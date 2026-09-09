@@ -1,0 +1,4 @@
+[agents]
+# Root Manager가 동시에 실행할 수 있는 Sub-Agent 수를 제한한다. 
+# 모든 Agent를 항상 실행한다는 의미가 아니다. 
+max_concurrent_threads_per_session = 6
