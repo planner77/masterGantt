@@ -1,551 +1,1508 @@
 # AGENTS.md
 
-## Project
+## 1. Project Overview
 
-이 Repository는 SVAR React Gantt 기반의 소규모 Project Gantt Management System이다.
+이 Repository는 **SVAR React Gantt 기반의 소규모 Project Gantt Management System**을 개발하기 위한 프로젝트이다.
 
-Project별 일정을 작성, 편집, Import, Export 및 조회할 수 있어야 한다.
+주요 목적은 다음과 같다.
 
-Project는 직접 접근 가능한 고유 URL을 가진다.
+* Project별 Gantt Chart 작성 및 관리
+* Project별 일정 데이터 저장 및 조회
+* Project별 Edit Password 기반 편집 권한 제어
+* Project Direct Link 제공
+* 기존 Excel 일정의 안전한 Import
+* Excel 형식 Export
+* SVAR React Gantt Core를 활용한 UI 구현
+* SVAR PRO 성격의 필요한 기능을 독립 Scheduling Engine으로 구현
+* SQLite 기반 단순한 운영
+* Docker 기반 배포
 
-기본 조회 상태는 Readonly이며 Project별 Edit Password 인증에 성공한 경우에만 편집할 수 있다.
+본 프로젝트는 Codex Multi-Agent 기반으로 개발한다.
 
-## Primary Requirements
+Main Codex Thread가 Manager 역할을 수행하며, 전문 Sub-Agent에게 필요한 작업을 위임한다.
 
-* Project 생성 및 관리
-* Project별 Gantt
-* Project Direct Link
-* SVAR React Gantt Core 사용
-* Project Edit Password
-* 기본 Readonly
-* Password 인증 후 Edit Mode
-* SQLite
-* Prisma 사용 금지
-* VBA 기반 Excel Schedule JSON Export/Import
-* JSON/CSV Import
-* Excel Export
-* Excel Project Hyperlink
-* Excel Gantt Sheet
-* Docker Deployment
+---
 
-## SVAR Policy
+# 2. Primary Requirements
 
-SVAR React Gantt는 Gantt UI와 Interactive Editing Layer로 사용한다.
+## 2.1 Project
 
-SVAR Core 기능이 있는 경우 독자 구현보다 공식 기능을 우선 사용한다.
+사용자는 Project를 생성할 수 있어야 한다.
 
-SVAR PRO 기능은 PRO 코드나 내부 구현에 의존하지 않는다.
+Project 생성 시 최소 다음 정보를 입력한다.
 
-Project에서 필요한 PRO 성격의 기능은 공개된 프로젝트 관리 원리와 프로젝트 요구사항을 기반으로 독립 구현한다.
+* Project Name
+* Description
+* Edit Password
 
-해당 기능은 가능한 한 SVAR와 분리된 Scheduling Engine에 구현한다.
+각 Project에는 내부 Database ID와 별도로 외부에서 사용할 수 있는 안정적인 `public_id`를 부여한다.
 
-공식 자료:
+Project 직접 접근 URL 예:
 
+```text
+/projects/{publicId}
+```
+
+예:
+
+```text
+https://gantt.company.local/projects/01KXXXXXXXXXXXX
+```
+
+Project URL에 Password, Session Token 또는 기타 Secret을 포함하면 안 된다.
+
+Project URL로 접근한 경우 기본 상태는 **Readonly**이다.
+
+정상적인 Edit Password 인증 후에만 Edit Mode를 활성화한다.
+
+---
+
+# 3. Project Authorization
+
+Project별 Edit Password를 사용한다.
+
+Password 원문은 Database 또는 Log에 저장하면 안 된다.
+
+검증된 Password Derivation 방식을 사용한다.
+
+예:
+
+* Node.js `crypto.scrypt`
+* 충분한 Random Salt
+* Timing-safe comparison
+
+정상적인 Password 인증 후 Edit Session을 생성한다.
+
+Browser에는 가능한 한 다음 정책을 사용하는 Cookie를 우선 검토한다.
+
+* HttpOnly
+* SameSite
+* Secure: HTTPS 운영 환경에서 적용
+
+Project를 편집할 수 있는 권한은 Frontend UI 상태만으로 판단하면 안 된다.
+
+다음과 같은 Mutation API에서도 Server-side Authorization을 반드시 수행한다.
+
+* Project Update
+* Task Create
+* Task Update
+* Task Delete
+* Dependency Create
+* Dependency Update
+* Dependency Delete
+* Import
+* 기타 일정 변경 API
+
+관련 상세 정책은 다음 문서를 Source of Truth로 사용한다.
+
+```text
+docs/SECURITY.md
+```
+
+---
+
+# 4. SVAR React Gantt Policy
+
+Gantt UI에는 **SVAR React Gantt Core**를 사용한다.
+
+공식 자료를 1차 근거로 사용한다.
+
+Official Documentation:
+
+```text
 https://docs.svar.dev/react/gantt/
+```
 
+Official GitHub:
+
+```text
 https://github.com/svar-widgets/react-gantt
+```
 
-## Architecture
+SVAR Core가 공식적으로 제공하는 기능은 불필요하게 다시 구현하지 않는다.
 
-기본 Application 흐름:
+가능한 한 다음 영역은 SVAR의 공식 API와 Data Provider 패턴을 사용한다.
 
-UI
-→ API
-→ Service
-→ Repository
-→ SQLite
+* Task Visualization
+* Task Editing
+* Drag & Drop
+* Task Hierarchy
+* Dependency Visualization
+* Timeline
+* Grid
+* Editor
+* Readonly
+* 기타 Core 기능
 
-Scheduling은 별도 Domain Layer로 분리한다.
+버전, API, Feature 존재 여부가 불명확한 경우 추측하지 말고 공식 문서 또는 공식 Repository를 조사한다.
 
-UI
-↔ Scheduling Engine
-↔ Domain Model
-↔ Persistence
+---
 
-Route Handler에서 SQL 또는 복잡한 Business Logic을 직접 구현하지 않는다.
+# 5. SVAR PRO-like Feature Policy
 
-## Scheduling Engine
+프로젝트에서 필요하지만 SVAR PRO에 해당하는 기능이 있을 경우 다음 원칙을 따른다.
 
-Scheduling Engine은 SVAR에 종속되지 않는 것을 원칙으로 한다.
+SVAR PRO 소스코드, 비공개 구현 또는 내부 알고리즘을 복제하거나 모방하지 않는다.
 
-대상 기능:
+대신 공개된 Project Scheduling 원리, 일반적인 알고리즘, 공식 자료 및 본 프로젝트 Requirement를 이용하여 **독립적인 Scheduling Engine**을 구현한다.
 
-* Working Calendar
-* Weekend
-* Holiday
-* Duration
-* Summary Task
-* Dependency
-* FS
-* SS
-* FF
-* SF
-* Lag/Lead
-* Auto Scheduling
-* WBS
+SVAR는 가능한 한:
+
+```text
+Gantt Renderer / Interactive Editor
+```
+
+역할로 제한한다.
+
+일정 계산은:
+
+```text
+Project Scheduling Domain Engine
+```
+
+에서 담당한다.
+
+Scheduling Engine은 가능한 한 SVAR에 종속되지 않도록 설계한다.
+
+---
+
+# 6. Scheduling Engine
+
+Scheduling Engine은 별도 Domain Layer로 관리한다.
+
+권장 위치:
+
+```text
+src/domain/scheduling/
+```
+
+초기 우선 기능:
+
+1. Working Calendar
+2. Weekend 제외
+3. Holiday 제외
+4. Duration 계산
+5. Summary Task 계산
+6. FS Dependency
+7. Dependency 기반 일정 재계산
+8. WBS
+
+향후 단계적으로 검토할 기능:
+
+* SS Dependency
+* FF Dependency
+* SF Dependency
+* Lag
+* Lead
 * Baseline
 * Critical Path
-* Slack
+* Total Slack / Free Slack
 * Grouping
-* Resource Scheduling
+* Resource Assignment
+* Resource Workload
+* Resource Calendar
+* Rollup
+* Split Task
 
-상세 설계는 다음을 참조한다.
+Scheduling Engine은 가능한 한 Pure Domain Logic으로 작성한다.
 
-`docs/SCHEDULING_ENGINE.md`
+UI 또는 Database 접근과 일정 계산 로직을 결합하지 않는다.
 
-SVAR PRO 기능 대응 현황:
+다음과 같은 Edge Case를 반드시 고려한다.
 
-`docs/PRO_FEATURE_MATRIX.md`
+* Circular Dependency
+* Missing Parent
+* Missing Dependency Target
+* Non-working Date
+* Weekend Boundary
+* Holiday Boundary
+* Summary Recalculation
+* Zero-duration Milestone
+* Manual Schedule와 Auto Schedule 혼합
 
-## Database
+관련 상세 내용은 다음 문서를 사용한다.
 
-SQLite를 사용한다.
+```text
+docs/SCHEDULING_ENGINE.md
+docs/PRO_FEATURE_MATRIX.md
+```
 
-Prisma를 사용하지 않는다.
+---
 
-SQLite Driver는 better-sqlite3를 우선 사용한다.
+# 7. Database
 
-Project에는 내부 PK와 별도의 외부 Public ID를 둔다.
+Database는 우선 **SQLite**를 사용한다.
 
-Public ID는 Project Direct URL에 사용한다.
+Prisma는 사용하지 않는다.
 
-상세 Schema:
+SQLite Driver는 `better-sqlite3`를 우선 검토한다.
 
-`docs/DB_SCHEMA.md`
+Database Access 구조는 다음 경계를 유지한다.
 
-## Project Authorization
+```text
+Route Handler
+    ↓
+Service
+    ↓
+Repository
+    ↓
+SQLite
+```
 
-Project Direct URL에는 Password 또는 Session Secret을 포함하지 않는다.
+Route Handler 내부에 SQL과 복잡한 Business Logic을 직접 집중시키지 않는다.
 
-Project 접근은 기본 Readonly이다.
+SQL Query에는 Parameter Binding을 사용한다.
 
-Edit Password 인증에 성공해야 Mutation이 가능하다.
+필요한 Foreign Key와 Index를 정의한다.
 
-Password 원문을 저장하거나 로그에 기록하지 않는다.
+DB Schema 변경은 SQL Migration으로 관리한다.
 
-Task, Link 및 Project Mutation API에서도 Edit Session을 검증한다.
+권장 위치:
 
-관련 정책:
+```text
+db/migrations/
+```
 
-`docs/SECURITY.md`
+실제 SQLite Database 파일은 Git에 저장하지 않는다.
 
-## Excel Import
+관련 상세 내용:
 
-DRM 해제 또는 우회 기능을 구현하지 않는다.
+```text
+docs/DB_SCHEMA.md
+```
 
-Clipboard Paste를 필수 전제로 하지 않는다.
+---
 
-우선 Import 경로:
+# 8. Excel Import Background
 
-1. VBA → JSON
-2. VBA → CSV
-3. 조직 정책이 허용하면 VBA → HTTP API
-4. Manual Import Grid
+기존 Project 일정은 Excel로 관리되고 있다.
 
-VBA는 필요한 Column만 추출하도록 한다.
+원본 Excel에는 DRM이 적용되어 있어 Web Application이 Excel 원본 파일을 직접 읽는 방식을 전제로 하지 않는다.
 
-Excel Column Letter 또는 Column Number에 강하게 의존하지 않는다.
+DRM 해제 또는 우회 기능을 개발하면 안 된다.
 
-Header Mapping을 사용한다.
+Clipboard Copy/Paste 역시 사용 가능함을 전제로 하지 않는다.
 
-JSON에는 schemaVersion을 포함한다.
+본 프로젝트에서는 조직 정책상 허용된 Excel 기능을 이용하여 필요한 일정 데이터를 별도 중간 Format으로 변환하는 방식을 우선한다.
 
-Task 관계 연결에는 가능한 한 externalId를 사용한다.
+---
 
-Import 전에 다음 단계를 수행한다.
+# 9. Excel Import Strategy
 
-Parsing
+Import 우선순위는 다음과 같다.
+
+## Primary
+
+```text
+Excel
+→ VBA
+→ 필요한 데이터 추출
+→ 데이터 정규화
+→ JSON
+→ Web Import
+```
+
+## Fallback 1
+
+```text
+Excel
+→ VBA
+→ CSV
+→ Web Import
+```
+
+## Fallback 2
+
+조직 정책상 허용되는 경우:
+
+```text
+Excel VBA
+→ HTTP API
+→ Web Application
+```
+
+## Fallback 3
+
+```text
+Manual Import Grid
+```
+
+DRM 또는 보안 정책으로 VBA 자체가 제한되는 경우 우회하지 않는다.
+
+승인된 다른 방식으로 전환한다.
+
+---
+
+# 10. Excel/VBA POC
+
+VBA 기반 Import 방식을 본격 구현하기 전에 최소 다음을 검증한다.
+
+1. 대상 Excel Workbook에서 VBA 실행 가능한가
+2. VBA에서 필요한 Cell 데이터에 접근 가능한가
+3. 필요한 Header를 찾을 수 있는가
+4. 승인된 위치에 JSON 저장 가능한가
+5. 승인된 위치에 CSV 저장 가능한가
+6. 한글 데이터가 손상되지 않는가
+7. 날짜 데이터가 정상 변환되는가
+8. Progress 등의 숫자 값이 정상 변환되는가
+9. 생성한 JSON/CSV를 Web Application이 정상적으로 읽을 수 있는가
+
+검증에 실패한 경우 DRM 또는 조직 정책을 우회하지 않는다.
+
+---
+
+# 11. Excel/VBA Export Rules
+
+Excel/VBA Agent는 Excel Column Letter 또는 Column Number에 강하게 의존하는 구현을 피한다.
+
+다음과 같은 방식:
+
+```text
+B열 = Task
+F열 = Start
+G열 = End
+```
+
+을 기본 설계로 사용하지 않는다.
+
+가능한 한 Header Name 기반 Mapping을 사용한다.
+
+예:
+
+```text
+Activity
+Task
+업무
+        → name
+
+Start
+Start Date
+시작일
+        → start
+
+Finish
+End
+종료일
+        → end
+```
+
+불필요한 Column은 무시한다.
+
+필요한 데이터만 표준 Import Format으로 정규화한다.
+
+VBA Export 과정에서 문제가 있는 Row를 조용히 누락시키면 안 된다.
+
+오류 또는 Warning 정보를 사용자가 확인할 수 있도록 해야 한다.
+
+---
+
+# 12. Import JSON Contract
+
+Excel/VBA와 Backend Import Service 사이의 공식 Interface Contract는 다음 문서이다.
+
+```text
+docs/IMPORT_SCHEMA.md
+```
+
+JSON에는 반드시 Schema Version을 포함한다.
+
+예:
+
+```json
+{
+  "schemaVersion": "1.0",
+  "project": {},
+  "tasks": []
+}
+```
+
+Task에는 가능한 한 안정적인 `externalId`를 사용한다.
+
+행 번호와 같은 불안정한 값을 Parent/Dependency 식별자로 사용하지 않는 것을 원칙으로 한다.
+
+예상 주요 Field:
+
+```text
+externalId
+name
+type
+start
+end
+duration
+progress
+parentExternalId
+predecessors
+```
+
+Dependency 정보는 가능한 한 다음 요소를 표현할 수 있도록 한다.
+
+```text
+target task
+dependency type
+lag
+```
+
+Import Schema를 `excel_vba` Agent 또는 `backend` Agent가 단독으로 임의 변경하면 안 된다.
+
+Schema 변경 절차:
+
+```text
+변경 필요 발견
+→ 영향 분석
+→ Manager 보고
+→ Backend + Excel/VBA 검토
+→ Manager Decision
+→ IMPORT_SCHEMA.md 갱신
+→ 양쪽 구현 갱신
+→ QA 검증
+```
+
+---
+
+# 13. Web Import Workflow
+
+Web Application의 Import 절차는 다음과 같이 한다.
+
+```text
+File Select
+→ Parsing
 → Schema Validation
 → Preview
-→ Mapping
+→ Mapping 필요 시 Mapping
 → Business Validation
 → Import
+→ Result
+```
 
-관련 문서:
+Server에서도 Import 데이터를 반드시 다시 검증한다.
 
-`docs/IMPORT_EXPORT.md`
+Client Validation만 신뢰하면 안 된다.
 
-`docs/IMPORT_SCHEMA.md`
+가능하면 Import 전체를 Transaction으로 처리한다.
 
-`docs/VBA_EXPORT.md`
+일부 데이터만 저장되고 나머지가 실패하는 Partial Import를 기본 동작으로 만들지 않는다.
 
-## Excel Export
+Import Validation 예:
 
-Excel Export는 SVAR PRO에 의존하지 않는다.
+* Invalid JSON
+* Invalid CSV
+* Unsupported schemaVersion
+* Missing required field
+* Invalid Date
+* Duplicate externalId
+* Missing Parent
+* Invalid Dependency
+* Circular Dependency
+* Invalid Progress
+* Invalid Task Type
 
-### Phase 1
+---
 
-표 형태 Workbook.
+# 14. Excel Export from Web Application
+
+Web Application → Excel Export는 Excel/VBA Agent가 아닌 **Backend Agent**가 담당한다.
+
+SVAR PRO Excel Export 기능에 의존하지 않는다.
+
+오픈소스 Excel 생성 Library를 사용한다.
+
+우선 ExcelJS를 검토한다.
+
+## Phase 1
+
+표 중심 Workbook을 구현한다.
 
 최소 Sheet:
 
-* Project
-* Tasks
-* Dependencies
+```text
+Project
+Tasks
+Dependencies
+```
 
-Project Direct Link를 Hyperlink로 포함한다.
+Project Sheet에는 다음 정보를 포함한다.
 
-### Phase 2
+* Project Name
+* Description
+* Export Date
+* Project Direct URL
+* Project Direct Hyperlink
 
-Gantt Sheet를 생성한다.
+Project Link는 다음 기준으로 생성한다.
 
-날짜별 Column과 Cell 표현을 이용하여 막대형 Gantt를 우선 구현한다.
+```text
+APP_BASE_URL
++
+/projects/
++
+project.public_id
+```
 
-Project URL은 다음 기준으로 생성한다.
+예:
 
-APP_BASE_URL + /projects/ + project.public_id
+```text
+https://gantt.company.local/projects/01KXXXXXXXX
+```
 
-## Docker
+Password 또는 Session 정보는 Excel Link에 포함하지 않는다.
 
-Docker Deployment를 지원한다.
+---
 
-필수 파일:
+# 15. Excel Gantt Export
+
+Excel Export Phase 2에서는 별도의 Gantt Sheet를 생성한다.
+
+초기 구현은 Excel Chart Object보다 날짜별 Cell을 사용하는 방식을 우선 검토한다.
+
+예:
+
+```text
+Task        09/01 09/02 09/03 09/04 09/05
+
+Design       ■     ■     ■
+Build                    ■     ■
+Test                           ■
+```
+
+구현 시 고려 항목:
+
+* Date Header
+* Week Header
+* Month Header
+* Task Start/End
+* Weekend 표현
+* Holiday 표현
+* Progress
+* Milestone
+* Summary
+* Page/Print 편의성
+
+Phase 1의 Table Export가 먼저 완료된 뒤 Phase 2를 진행한다.
+
+---
+
+# 16. Docker and Deployment
+
+본 프로젝트는 Docker 기반 배포를 지원한다.
+
+최소 Repository 파일:
+
+```text
+Dockerfile
+docker-compose.yml
+.dockerignore
+.env.example
+```
+
+SQLite Database 파일은 Container Image 내부에 저장하지 않는다.
+
+Persistent Volume 또는 Host Bind Mount를 사용한다.
+
+SQLite 단계에서는 기본적으로 **Single Application Instance**를 사용한다.
+
+불필요하게 다음을 추가하지 않는다.
+
+* Kubernetes
+* Redis
+* PostgreSQL
+* Message Broker
+* 기타 운영 복잡도를 크게 증가시키는 구성
+
+실제 요구가 발생하면 별도로 검토한다.
+
+`better-sqlite3`는 Native Module이므로 다음을 반드시 검증한다.
+
+* Node Runtime
+* Base Image
+* Build Architecture
+* Runtime Architecture
+* File Permission
+* Volume Permission
+
+Container Restart 이후에도 SQLite 데이터가 유지되어야 한다.
+
+관련 상세 내용:
+
+```text
+docs/DEPLOYMENT.md
+```
+
+---
+
+# 17. Recommended Technology Stack
+
+기본 권장 기술 스택:
+
+```text
+Next.js
+React
+TypeScript
+
+SVAR React Gantt
+@svar-ui/gantt-data-provider
+
+SQLite
+better-sqlite3
+
+shadcn/ui
+Tailwind CSS
+
+Zod
+
+ExcelJS
+
+Vitest
+Playwright
+
+Docker
+Docker Compose
+```
+
+설치 전에 현재 Version, License, Compatibility를 공식 자료로 확인한다.
+
+Version을 근거 없이 임의 고정하지 않는다.
+
+---
+
+# 18. UI Principles
+
+UI는 차분하고 전문적인 Project Management Tool 형태로 구성한다.
+
+장식보다 정보 전달, 가독성, 편집 편의성을 우선한다.
+
+주요 화면:
+
+```text
+Project List
+Project Create
+Project Gantt
+Edit Unlock
+Import Wizard
+Export
+```
+
+일반 Application UI는 shadcn/ui를 우선 사용한다.
+
+Gantt 관련 기능은 SVAR 공식 UI를 가능한 한 활용한다.
+
+---
+
+# 19. Multi-Agent Model
+
+Main Codex Thread는 **Manager Agent** 역할을 수행한다.
+
+별도의 Manager Sub-Agent를 기본적으로 생성하지 않는다.
+
+Project Custom Sub-Agent:
+
+```text
+researcher
+frontend
+backend
+scheduler
+excel_vba
+infra
+qa_docs
+```
+
+권장 모델 정책은 `.codex/config.toml`과 각 `.codex/agents/*.toml`을 Source of Truth로 한다.
+
+현재 기본 정책:
+
+```text
+Main / Manager
+→ GPT-6 Astra / High
+
+researcher
+→ GPT-5.6 Terra / Medium
+
+frontend
+→ GPT-5.6 Terra / Medium
+
+backend
+→ GPT-5.6 Sol / High
+
+scheduler
+→ GPT-6 Astra / High
+
+excel_vba
+→ GPT-5.6 Sol / Medium
+
+infra
+→ GPT-5.6 Terra / Medium
+
+qa_docs
+→ GPT-5.6 Sol / High
+```
+
+모델명 또는 Reasoning 옵션은 실제 Codex 환경에서 지원되는 값을 우선한다.
+
+설정과 실제 실행 모델이 일치하는지 초기 Bootstrap 과정에서 검증한다.
+
+---
+
+# 20. Manager Responsibilities
+
+Manager는 다음을 담당한다.
+
+* 사용자 요구사항 분석
+* Requirement 정리
+* Architecture 결정
+* 주요 기술 Decision
+* Agent Task Decomposition
+* Agent Assignment
+* Agent 작업 충돌 방지
+* Interface Coordination
+* Agent 결과 Review
+* Rework 판단
+* Integration
+* QA Result 검토
+* Final Decision
+* Documentation 최종 일관성
+
+Manager가 모든 구현 코드를 직접 작성하려 하지 않는다.
+
+Sub-Agent를 사용하면 품질 또는 속도가 개선되는 독립 작업은 위임한다.
+
+Manager는 Sub-Agent 결과를 자동 승인하지 않는다.
+
+다음 중 하나로 판단한다.
+
+```text
+ACCEPT
+REWORK
+REJECT
+DEFER
+```
+
+---
+
+# 21. Researcher Responsibilities
+
+Researcher는 읽기 중심 조사 Agent이다.
+
+주요 책임:
+
+* SVAR 공식 문서 조사
+* SVAR GitHub 조사
+* Next.js 공식 문서 조사
+* SQLite / better-sqlite3 조사
+* Excel / VBA 제약 조사
+* Docker 관련 조사
+* Library Version 조사
+* License 조사
+* Scheduling Algorithm 조사
+* 기술 선택의 근거 수집
+
+Researcher는 Architecture를 임의 결정하지 않는다.
+
+구현 코드를 수정하지 않는 것을 기본 원칙으로 한다.
+
+보고 형식:
+
+```text
+Finding
+Evidence
+Constraints
+Options
+Recommendation
+Unknowns
+```
+
+---
+
+# 22. Frontend Responsibilities
+
+Frontend Agent는 다음을 담당한다.
+
+* Next.js UI
+* Project List
+* Project Create
+* Project Gantt
+* SVAR Integration
+* Gantt Interaction
+* Readonly/Edit UI
+* Edit Unlock UI
+* Import Wizard
+* Import Preview
+* Validation UI
+* Export Trigger
+* Error State
+* Loading State
+* shadcn/ui
+
+Frontend는 Client-side 상태를 Authorization의 최종 근거로 사용하지 않는다.
+
+---
+
+# 23. Backend Responsibilities
+
+Backend Agent는 다음을 담당한다.
+
+* SQLite
+* SQL Migration
+* Repository Layer
+* Service Layer
+* API
+* Project Public ID
+* Password Hash
+* Edit Session
+* Authorization
+* JSON Import
+* CSV Import
+* Import Transaction
+* Excel Workbook Export
+* Project Hyperlink
+* Server Validation
+
+Web Application → `.xlsx` Export는 Backend Agent의 책임이다.
+
+Excel/VBA Export와 혼동하지 않는다.
+
+---
+
+# 24. Scheduler Responsibilities
+
+Scheduler Agent는 Project Scheduling Domain을 담당한다.
+
+주요 책임:
+
+* Calendar
+* Working Day
+* Holiday
+* Weekend
+* Duration
+* Dependency
+* Auto Scheduling
+* Summary
+* WBS
+* Critical Path
+* Slack
+* Baseline
+* Resource Scheduling
+
+Scheduling Engine은 SVAR와 독립적인 Domain Layer를 유지한다.
+
+복잡한 Scheduling Logic 변경에는 반드시 Unit Test를 작성한다.
+
+---
+
+# 25. Excel/VBA Responsibilities
+
+`excel_vba` Agent는 기존 Excel 일정 데이터를 Web Application이 Import할 수 있는 형태로 변환하는 Excel/VBA Integration을 담당한다.
+
+주요 책임:
+
+* 대상 Workbook/Worksheet 구조 분석
+* VBA POC
+* Header 탐색
+* Header Mapping
+* 필요한 Column 추출
+* 불필요 Column 제외
+* 날짜 정규화
+* Progress 정규화
+* externalId 처리
+* Parent 관계 변환
+* Dependency 변환
+* JSON 생성
+* CSV Fallback 생성
+* JSON Escaping
+* 한글/Encoding 검증
+* File Save
+* 오류 및 Warning 처리
+* VBA 설치 및 실행 절차 문서화
+
+DRM 해제 또는 우회 기능은 구현하지 않는다.
+
+조직 정책에서 허용된 Excel/VBA 기능만 사용한다.
+
+JSON Output Contract는 반드시 다음을 따른다.
+
+```text
+docs/IMPORT_SCHEMA.md
+```
+
+VBA 관련 상세 문서:
+
+```text
+docs/VBA_EXPORT.md
+```
+
+Import Schema를 단독으로 변경하면 안 된다.
+
+---
+
+# 26. Infra Responsibilities
+
+Infra Agent는 다음을 담당한다.
 
 * Dockerfile
 * docker-compose.yml
 * .dockerignore
 * .env.example
+* Runtime Environment
+* SQLite Persistence
+* Volume
+* Permission
+* Health Check
+* `better-sqlite3` Runtime Compatibility
+* Deployment
+* Backup/Restore 기본 정책
+* Deployment Documentation
 
-SQLite Database는 Persistent Volume에 저장한다.
+Infra Agent는 Docker 또는 배포와 관련 없는 작업에 불필요하게 호출하지 않는다.
 
-SQLite 사용 단계에서는 Single Application Instance를 기본으로 한다.
+---
 
-배포 관련 상세 내용:
+# 27. QA / Docs Responsibilities
 
-`docs/DEPLOYMENT.md`
+QA/Docs Agent는 독립 Reviewer 역할을 한다.
 
-## Documentation
+구현 Agent의 완료 보고를 그대로 신뢰하지 않는다.
 
-AGENTS.md는 상세 Specification이 아니다.
+다음을 실제 요구사항, 코드, 테스트 결과와 비교하여 검증한다.
 
-이 파일은 프로젝트의 핵심 원칙과 관련 Source of Truth를 안내하는 Project Map이다.
-
-상세 문서는 다음에 둔다.
-
-### Requirements
-
-`docs/REQUIREMENTS.md`
-
-### Architecture
-
-`docs/ARCHITECTURE.md`
-
-### Database
-
-`docs/DB_SCHEMA.md`
-
-### API
-
-`docs/API.md`
-
-### Scheduling Engine
-
-`docs/SCHEDULING_ENGINE.md`
-
-### SVAR PRO Replacement Matrix
-
-`docs/PRO_FEATURE_MATRIX.md`
-
-### Import / Export
-
-`docs/IMPORT_EXPORT.md`
-
-### Import JSON Schema
-
-`docs/IMPORT_SCHEMA.md`
-
-### VBA Export
-
-`docs/VBA_EXPORT.md`
-
-### Security
-
-`docs/SECURITY.md`
-
-### Deployment
-
-`docs/DEPLOYMENT.md`
-
-### Test Plan
-
-`docs/TEST_PLAN.md`
-
-### Architecture Decisions
-
-`docs/DECISIONS.md`
-
-### Research
-
-`docs/RESEARCH.md`
-
-### Current Execution Plan
-
-`docs/exec-plans/active/PLAN.md`
-
-완료된 Plan:
-
-`docs/exec-plans/completed/`
-
-## Multi-Agent Model
-
-Main Codex Thread는 Manager 역할을 수행한다.
-
-Project Custom Agents:
-
-* researcher
-* frontend
-* backend
-* scheduler
-* infra
-* qa_docs
-
-### Manager
-
-책임:
-
-* Requirements
-* Architecture
-* Planning
-* Task decomposition
-* Agent orchestration
-* Decision
-* Integration
-* Final review
-
-Manager는 모든 코드를 직접 작성하려 하지 않는다.
-
-독립적인 작업을 Sub-Agent에게 위임하여 품질 또는 속도가 개선될 경우 적극적으로 활용한다.
-
-### Researcher
-
-책임:
-
-* 공식 문서 조사
-* GitHub 조사
-* 기술 검증
-* 제약사항 확인
-* 기술 선택 근거 수집
-
-Researcher는 Architecture를 결정하지 않는다.
-
-### Frontend
-
-책임:
-
-* SVAR
-* React
-* Next.js UI
-* Project UI
-* Import UI
-* Readonly/Edit UI
-
-### Backend
-
-책임:
-
-* SQLite
-* Migration
-* Repository
-* API
-* Authentication
+* Functional Requirements
+* Project Isolation
+* Authorization
+* Gantt CRUD
+* Scheduling
 * Import
 * Export
-
-### Scheduler
-
-책임:
-
-* Scheduling Domain
-* Calendar
-* Dependency
-* Auto Scheduling
-* Critical Path 등
-
-### Infra
-
-책임:
-
-* Docker
-* Compose
-* Environment
-* Persistence
-* Deployment
-
-### QA/Docs
-
-책임:
-
-* Requirement Verification
-* Test
+* VBA Compatibility
+* SQLite Persistence
+* Docker Persistence
+* Security
 * Regression
-* Security Review
 * Documentation Consistency
 
-## Collaboration Rules
+결과 분류:
 
-읽기 중심 작업은 병렬화하는 것을 권장한다.
+```text
+PASS
+FAIL
+BLOCKED
+NOT TESTED
+```
 
-여러 Agent가 동일 파일을 동시에 수정하지 않는다.
+보고 형식:
 
-병렬 Write 작업이 필요한 경우 Manager가 담당 File/Directory를 먼저 분리한다.
+```text
+Summary
+Requirement Coverage
+Test Results
+Failures
+Security Findings
+Regression Findings
+Documentation Findings
+Remaining Risks
+Recommendation
+```
 
-Architecture 또는 공용 Interface 변경은 Manager가 조정한다.
+QA/Docs Agent는 Architecture를 독자적으로 변경하지 않는다.
 
-DB 변경 시 Migration과 DB_SCHEMA.md를 함께 변경한다.
+---
 
-API 변경 시 API.md를 함께 변경한다.
+# 28. Agent Selection Guidelines
 
-Scheduling Algorithm 변경 시 SCHEDULING_ENGINE.md를 함께 변경한다.
+일반적으로 다음 기준을 사용한다.
 
-Import Schema 변경 시 IMPORT_SCHEMA.md와 VBA_EXPORT.md의 호환성을 함께 검토한다.
+```text
+공식 문서 / 기술 조사
+→ researcher
 
-Docker 변경 시 DEPLOYMENT.md를 함께 변경한다.
+Next.js / React / SVAR / UI
+→ frontend
 
-## GitHub Workflow
+SQLite / API / Auth / Import / Web Excel Export
+→ backend
 
-구현 가능한 작업은 가능한 한 GitHub Issue 단위로 관리한다.
+Scheduling Algorithm
+→ scheduler
 
-Issue에는 다음을 포함한다.
+Excel VBA / JSON·CSV Export
+→ excel_vba
 
-* Goal
-* Background
-* Scope
-* Acceptance Criteria
-* Assigned Agent
-* Related Documentation
+Docker / Deployment
+→ infra
 
-독립 Feature는 Branch 또는 Worktree 사용을 우선한다.
+Test / Review / Documentation Consistency
+→ qa_docs
+```
 
-PR에는 다음을 포함한다.
+하나의 Feature가 여러 영역에 걸치는 경우 Manager가 Agent들을 조율한다.
 
-* Summary
-* Related Issue
-* Changes
-* Verification
-* Screenshots when UI changed
-* Documentation Updated
-* Remaining Risks
+예:
 
-## Research Rules
+```text
+Excel Import
 
-불확실하거나 버전 의존적인 기술 사항은 추측하지 않는다.
+researcher
+→ 환경/제약 조사
 
-공식 Documentation 및 공식 Repository를 우선 조사한다.
+excel_vba
+→ Excel → JSON
 
-Research 결과는 근거와 함께 기록한다.
+backend
+→ JSON → DB
 
-Architecture에 영향을 주는 Research 결과는 Manager가 검토 후 Decision으로 확정한다.
+frontend
+→ Import UI
 
-## Questions
+qa_docs
+→ End-to-End 검증
 
-다음 경우에는 사용자 확인을 우선한다.
+manager
+→ 최종 승인
+```
 
-* 유료 License 또는 비용 발생
-* 데이터 손실 위험
-* 요구사항 충돌
-* Architecture가 크게 달라짐
-* 사용자 Workflow가 크게 달라짐
+---
 
-그 외 쉽게 변경 가능한 기술적 세부사항은 합리적인 Assumption을 기록하고 진행한다.
+# 29. Collaboration Rules
 
-## Verification
+읽기 중심 작업은 가능한 한 병렬화한다.
 
-변경 범위에 적합한 검증을 수행한다.
+여러 Write Agent가 동일 파일을 동시에 수정하지 않도록 한다.
 
-최소:
+병렬 Write가 필요하면 Manager가 담당 File 또는 Directory를 먼저 분리한다.
 
-* Build
-* Type Check
-* Relevant Unit Tests
-* Integration Tests when needed
-* E2E when user workflow changes
+공용 Interface 변경은 Manager가 조정한다.
 
-Gantt 변경:
+## Database
 
-* Create
-* Update
-* Delete
-* Drag
-* Dependency
-* Hierarchy
-* Persistence
+DB 변경:
 
-Authorization 변경:
+```text
+Migration
++
+docs/DB_SCHEMA.md
+```
 
-* Readonly
-* Correct Password
-* Incorrect Password
-* Mutation without Edit Session
-* Session Expiration
+를 함께 갱신한다.
+
+## API
+
+API 변경:
+
+```text
+Code
++
+docs/API.md
+```
+
+를 함께 갱신한다.
+
+## Scheduling
 
 Scheduling 변경:
 
-* Weekend
-* Holiday
-* Dependency
-* Boundary Dates
-* Circular Dependency
-* Summary Recalculation
+```text
+Code
++
+Tests
++
+docs/SCHEDULING_ENGINE.md
+```
 
-Import 변경:
+를 함께 갱신한다.
 
-* Valid JSON
-* Invalid JSON
-* Unsupported Schema Version
-* Invalid Date
-* Duplicate externalId
-* Missing Parent
-* Invalid Dependency
+## Import Contract
 
-Export 변경:
+Excel/VBA와 Backend 사이의 Import Contract:
 
-* Workbook creation
-* Required Sheets
-* Project Hyperlink
-* Date formatting
-* Gantt rendering
+```text
+docs/IMPORT_SCHEMA.md
+```
+
+양쪽 Agent가 동일 Contract를 준수해야 한다.
+
+## VBA
+
+VBA 변경:
+
+```text
+VBA
++
+docs/VBA_EXPORT.md
+```
+
+를 함께 갱신한다.
+
+## Docker
 
 Docker 변경:
 
-* Image Build
+```text
+Docker Files
++
+docs/DEPLOYMENT.md
+```
+
+를 함께 갱신한다.
+
+---
+
+# 30. Documentation
+
+`AGENTS.md`는 상세 Specification 전체를 담는 문서가 아니다.
+
+이 파일은 핵심 개발 원칙과 Source of Truth를 안내하는 Project Map이다.
+
+상세 내용은 다음 문서를 사용한다.
+
+## Requirements
+
+```text
+docs/REQUIREMENTS.md
+```
+
+## Architecture
+
+```text
+docs/ARCHITECTURE.md
+```
+
+## Database
+
+```text
+docs/DB_SCHEMA.md
+```
+
+## API
+
+```text
+docs/API.md
+```
+
+## Scheduling Engine
+
+```text
+docs/SCHEDULING_ENGINE.md
+```
+
+## SVAR PRO Replacement Matrix
+
+```text
+docs/PRO_FEATURE_MATRIX.md
+```
+
+## Import / Export
+
+```text
+docs/IMPORT_EXPORT.md
+```
+
+## Import Schema
+
+```text
+docs/IMPORT_SCHEMA.md
+```
+
+## VBA Export
+
+```text
+docs/VBA_EXPORT.md
+```
+
+## Security
+
+```text
+docs/SECURITY.md
+```
+
+## Deployment
+
+```text
+docs/DEPLOYMENT.md
+```
+
+## Testing
+
+```text
+docs/TEST_PLAN.md
+```
+
+## Architecture Decisions
+
+```text
+docs/DECISIONS.md
+```
+
+## Research
+
+```text
+docs/RESEARCH.md
+```
+
+## Current Execution Plan
+
+```text
+docs/exec-plans/active/PLAN.md
+```
+
+완료된 Plan:
+
+```text
+docs/exec-plans/completed/
+```
+
+---
+
+# 31. GitHub Workflow
+
+프로젝트는 GitHub로 관리한다.
+
+다음 파일도 Project Source의 일부로 Git 관리한다.
+
+```text
+AGENTS.md
+.codex/config.toml
+.codex/agents/*.toml
+docs/**
+db/migrations/**
+Dockerfile
+docker-compose.yml
+.env.example
+```
+
+Secret 또는 환경별 실제 값은 Git에 저장하지 않는다.
+
+예:
+
+```text
+.env
+API Key
+PAT
+Password
+Token
+SQLite 실제 DB
+Runtime Log
+```
+
+구현 가능한 업무는 가능한 한 GitHub Issue 단위로 관리한다.
+
+Issue에는 최소 다음을 포함한다.
+
+```text
+Goal
+Background
+Scope
+Acceptance Criteria
+Assigned Agent
+Related Documents
+```
+
+독립적인 Feature는 Branch 또는 Worktree 사용을 우선한다.
+
+PR에는 가능한 한 다음을 포함한다.
+
+```text
+Summary
+Related Issue
+Changes
+Verification
+Screenshots if UI changed
+Documentation Updated
+Remaining Risks
+```
+
+---
+
+# 32. Requirement Classification
+
+새로운 요구사항은 Manager가 다음으로 구분한다.
+
+```text
+Confirmed
+Assumption
+Decision Required
+```
+
+쉽게 변경 가능하고 위험이 낮은 기술 선택은 합리적인 Assumption으로 기록하고 진행한다.
+
+다음 경우에는 사용자 확인을 우선한다.
+
+* 비용 또는 유료 License 발생
+* 데이터 손실 가능성
+* Security Policy 관련
+* Architecture가 크게 변경됨
+* 사용자 Workflow가 크게 변경됨
+* Requirement 간 충돌
+* 조직 정책을 알지 못하면 진행할 수 없음
+
+세부적인 Coding 선택 때문에 불필요하게 개발을 중단하지 않는다.
+
+---
+
+# 33. Verification
+
+모든 변경에는 변경 범위에 적합한 검증을 수행한다.
+
+기본:
+
+```text
+Build
+Type Check
+Relevant Tests
+Error Handling
+Documentation
+```
+
+## Gantt
+
+최소 확인:
+
+* Task Create
+* Task Update
+* Task Delete
+* Drag & Drop
+* Hierarchy
+* Dependency
+* Reload Persistence
+
+## Authorization
+
+최소 확인:
+
+* Password 없이 Readonly
+* Correct Password → Edit
+* Incorrect Password 거부
+* Session 없이 Mutation 거부
+* Session Expiration
+
+## Scheduling
+
+최소 확인:
+
+* Weekend
+* Holiday
+* Working Day
+* Dependency
+* Circular Dependency
+* Boundary Date
+* Summary Recalculation
+
+## Excel/VBA
+
+최소 확인:
+
+* 대상 Workbook에서 VBA 실행
+* Cell 데이터 접근
+* Header Mapping
+* 필요한 Column 추출
+* 불필요 Column 제외
+* JSON 생성
+* CSV Fallback
+* schemaVersion
+* externalId
+* Parent Mapping
+* Dependency Mapping
+* Date normalization
+* Progress normalization
+* 한글/Encoding
+* File Save
+* 오류 Row 보고
+
+## Import
+
+최소 확인:
+
+* Valid JSON
+* Invalid JSON
+* Unsupported schemaVersion
+* Duplicate externalId
+* Invalid Date
+* Missing Parent
+* Invalid Dependency
+* Circular Dependency
+* Transaction Rollback
+
+## Excel Export
+
+최소 확인:
+
+* Workbook 생성
+* Required Sheets
+* Project Information
+* Project Hyperlink
+* Task Data
+* Dependency Data
+* Date Formatting
+* Phase 2 Gantt Rendering
+
+## Docker
+
+최소 확인:
+
+* Docker Image Build
 * Container Start
 * Health Check
-* SQLite Persistence after Restart
+* SQLite File 생성
+* Restart 후 Data Persistence
+* File Permission
 
-## Definition of Done
+---
 
-다음을 모두 만족해야 한다.
+# 34. Definition of Done
+
+작업은 단순히 코드가 작성되었다는 이유만으로 완료되지 않는다.
+
+최소 다음을 만족해야 한다.
 
 * Requirement 충족
 * Build 성공
+* Type Check 성공
 * 관련 Test 성공
-* Error Handling
-* Security Requirement
-* Persistence 검증
+* Error Handling 구현
+* Security Requirement 충족
+* Persistence 확인
 * 관련 Documentation 갱신
-* Debug Code 제거
+* 불필요한 Debug 코드 제거
 * QA Review
 * Manager Review
 
-## Final Report
+---
 
-완료 시 다음을 보고한다.
+# 35. Final Report
 
-### Completed
+Manager는 작업 또는 Milestone 완료 시 다음 형식으로 사용자에게 보고한다.
 
-### Research Findings
+## Completed
 
-### Verification
+구현 완료 내용.
 
-### Changed Files
+## Research Findings
 
-### Documentation Updated
+조사를 통해 확인한 주요 사실.
 
-### Decisions
+## Architecture Decisions
 
-### Remaining
+확정된 주요 설계 결정.
 
-### Risks
+## Verification
 
-### Recommended Next Work
+수행한 테스트와 결과.
+
+## Changed Files
+
+주요 변경 파일.
+
+## Documentation Updated
+
+갱신한 문서.
+
+## Decisions
+
+추가로 확정한 사항.
+
+## Remaining
+
+미구현 사항.
+
+## Risks
+
+알려진 문제와 기술 부채.
+
+## Recommended Next Work
+
+다음 진행 권장 사항.
