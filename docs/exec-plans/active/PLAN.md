@@ -1,0 +1,52 @@
+# Active execution plan
+
+상태: **Bootstrap·Planning 완료 — 독립 QA PASS / Manager ACCEPT**. 기능 구현은 시작하지 않았다. 원격 기준 commit은 `131f3bb`이며 이후 문서 sync commit이 이 계획을 포함한다. 근거: [Requirements](../../REQUIREMENTS.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md), [QA record](../../BOOTSTRAP_REVIEW.md).
+
+## Phase와 Task
+
+| Phase | Task | Dependency | Assigned Agent | Acceptance Criteria | Status | Risk |
+| --- | --- | --- | --- | --- | --- | --- |
+| B0 | 저장소/설정/요구 검사 | 최신 pull | Manager | 7개 TOML과 현재 파일/소스 상태 기록 | DONE STATIC | runtime 적용 검증 한계 |
+| B1 | 공식 조사·설계·Import 계약 | B0 | researcher/backend/scheduler/excel_vba/infra | 공식 근거와 계약·경계 문서 | DONE PLANNING | 실제 Excel·native 미검증 |
+| B2 | Test strategy·초기 독립 QA | B1 | qa_docs | 실제 문서 대조와 구체적 findings | DONE INITIAL REVIEW | 전체 통합 후 재검토 필요 |
+| B3 | Manager 보완·Issue 분해 | B2 | Manager | findings 반영, dependency/AC/owner/risk 작성 | DONE PLANNING | 구현 결과 별도 검증 |
+| B4 | 최종 독립 review→Manager 판단 | B3 | qa_docs→Manager | 최종 계약 일치, blocker 판정, review 증거 | PASS / ACCEPT | runtime 검증과 구분 |
+| P1 | W01 Project Foundation | Bootstrap 최종 QA/Manager ACCEPT | frontend + backend | 공식 버전/라이선스·peer/engine 확인과 lockfile; build/typecheck/smoke 성공; server-only DB 경계 | READY | 패키지 호환성 |
+| P1 | W02 SQLite Foundation | W01 | backend | projects/tasks/links/edit_sessions/holidays, FK/index, migration 실패와 rollback, 다른 Project FK 거부 | PLANNED | Native ABI와 migration |
+| P1 | W03 SVAR Minimal Integration | W01 | frontend + researcher | 설치 version에서 SSR/mount·drag/date 왕복·readonly, PRO 호출 없음, 한 command 한 저장 경로 | PLANNED | End semantics/hydration |
+| P2 | W04 Project Create and Direct Read | W02 | backend + frontend | 입력3개, UUID URL, DB 재조회, 원문 password 미노출; List는 D02 범위만 노출 | PLANNED | 생성 abuse·목록 노출 |
+| P2 | W05 Readonly and Edit Authorization | W04 | backend + frontend | AUTH01–12; 잘못된·만료·다른 Project session 거부; password rotation; 보호 endpoint inventory | PLANNED | 인증 누락·KDF 자원 |
+| P2 | W06 Working Calendar and Duration | W01 | scheduler | 윤년·weekend·holiday·비근무 시작·범위·Manual 경계 unit; browser/server 동일 fixture | PLANNED | off-by-one·DST |
+| P2 | W07 Task and Link Persistence | W03,W05,W06 | backend + frontend | AUTH/DB 테스트와 task edit/reload 유지, 서버 거부 복원, Task UUID와 externalId 분리 | PLANNED | 두 편집자 lost update |
+| P2 | W08 Hierarchy Summary and WBS | W06,W07 | scheduler + backend + frontend | SCH08–10; Summary+첫 child 성공, final empty/cycle 거부, REAL progress 정확성 | PLANNED | 중간 invalid state·정렬 |
+| P2 | W09 FS Scheduling Recalculation | W06,W07 | scheduler + backend | SCH04–07/11; Manual conflict 전체 rollback, link 제거 날짜 복귀, 미지원 관계 명시 오류 | PLANNED | cycle·달력 계산 비용 |
+| P3 | W10 Excel/VBA Environment POC | D01,W11의 작은 browser parser harness | excel_vba + researcher | 승인 VBA·추출·JSON/CSV 저장·한글/날짜·browser 실제 파일 읽기 증거; 후속 앱 통합은 W12/W13 후 | BLOCKED ENVIRONMENT | 조직 정책·원본 구조 |
+| P3 | W11 Import Contract Executable Fixtures | Bootstrap 최종 QA, W06 | backend + excel_vba | Backend+Excel 공동 리뷰, Unicode ID·summary·FS/end·BOM/quote·limits, QA 승인; 단독 변경 없음 | PLANNED | 정규화 손실 |
+| P3 | W12 JSON and CSV Import Service | W08,W09,W11,W10 초기 POC PASS | backend | IMP01–07/09–10, stale preview412, fault injection rollback, metadata 미변경, 동일 CSV/JSON 결과 | PLANNED | partial import·resource abuse |
+| P3 | W13 Import Wizard and Manual Fallback | W12 | frontend | IMP08, row/path 오류 접근성, cancel/retry, 서버 diff 반영, 승인된 수동 경로만 제공 | PLANNED | 모호한 날짜/진척 mapping |
+| P3 | W14 Excel/VBA Exporter | W10 PASS,W11,W12,W13 | excel_vba | 실제 POC 근거, stable IDs, 한글/date fixture, 누락 행 없음; W12/W13 실환경 round-trip | PLANNED | VBA 정책·환경차 |
+| P4 | W15 Excel Table and Hyperlink Export | W07,W08,W09 | backend + frontend | XLS01–04, UTF8/date/formula-safe cells, hyperlink 실제 열기; secret/internal ID 없음 | PLANNED | 잘못된 URL·workbook 메모리 |
+| P4 | W16 Docker Deployment | W02,W05,W07; production D02/D03 | infra | DEP01–07, target image build와 nonroot 권한, restart/restore 실제 PASS; 단일 app | PLANNED | ABI/libc·volume·backup |
+| P4 | W17 Independent E2E and Release Review | W08,W09,W12,W13,W15,W16; VBA release W14 | qa_docs | TEST_PLAN의 초기 범위 실제 증거와 qa_docs PASS/FAIL/BLOCKED/NOT TESTED; Manager sign-off | PLANNED | 미검증을 PASS 처리 |
+| P5 | W18 Excel Gantt Sheet Phase 2 | W15 PASS,W17 초기 release 안정화 | backend + frontend | XLS05 별도 검증, 범위 제한, Phase1 export 회귀 없음 | DEFERRED | Excel sheet/size 제한 |
+| P5 | W19 Advanced Scheduling Discovery | 초기 release와 실제 사용자 우선순위 | researcher + scheduler | 공식 공개 근거, 비용·계약 영향 검토, 기능별 개별 issue; PRO 구현 비의존 | DEFERRED | 범위 확대·불명확한 제약 |
+
+## 최초 Vertical Slice
+
+W07은 Task CRUD와 Link 저장 기반까지이며 실제 FS mutation endpoint는 W09 검증 후 공개한다. W10 초기 환경/serialization POC와 W12/W13 이후 full application 통합 검증을 구분한다.
+
+B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위를 통합한다: Project 생성→SQLite 저장→새 browser Direct Readonly→password unlock→단일 Task 편집→reload 유지. 첫 완료 Gate는 build/typecheck, authorization/isolation integration, date adapter, persistence E2E와 독립 QA다. 전체 Import와 advanced scheduling을 한꺼번에 구현하지 않는다.
+
+## 병렬 작업과 소유권
+
+동시 실행은 세션 한도에 따라 Main+전문 Agent 최대3개다. Main은 공용 API/Import/Scheduling/Deployment 계약 변경을 조정한다. Backend는 server/db, Frontend는 UI/Gantt, Scheduler는 domain, Excel은 excel/vba, Infra는 Docker/운영을 소유한다. 공용 계약이나 같은 파일을 여러 write agent가 동시에 수정하지 않는다. qa_docs/researcher는 read-only 결과를 반환하고 Manager가 문서에 반영한다.
+
+실제 구현 시 각 issue에 명시한 directory를 branch/worktree로 분리할 수 있으며 QA와 Manager 검토 후 merge한다. 이 계획의 원격 동기화는 **draft documentation 보관**이며 code release/최종 QA 승인이 아니다.
+
+## 환경 Gate와 후속 처리
+
+- D01: 조직이 대상 Excel의 macro/cell/file export와 저장 위치를 확인해야 실제 POC를 진행한다. Fixture 기반 contract 검증과 분리한다.
+- D02: Project list/read/create의 접근 범위는 실데이터 공개 전 결정한다.
+- D03: target CPU/host/domain/TLS/volume/backup 정책은 배포 실행 전 확인한다.
+- qa_docs 재시도에서 B4 독립 review가 완료되었다. 구현 후에도 각 issue의 실제 test evidence와 독립 QA/Manager review를 다시 수행한다.
+- 지금은 package/build/test 명령 자체가 없으므로 제품 시험은 NOT TESTED다.
