@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Node 22는 package.json의 지원 범위와 맞추며, 모든 stage에서 Debian glibc 계열을
 # 사용한다. better-sqlite3 native addon의 Node ABI/libc 불일치를 피하기 위한 것이다.
-FROM node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5 AS production-dependencies
+FROM node:26-bookworm-slim@sha256:cd9f682fa2885cd1056e830424764158570061c59736a1da836bc3d73df095ae AS production-dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
 # better-sqlite3 prebuild가 대상 Node patch에 없을 수 있으므로 source build 도구를
@@ -17,7 +17,7 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:22-bookworm-slim@sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5 AS runtime
+FROM node:26-bookworm-slim@sha256:cd9f682fa2885cd1056e830424764158570061c59736a1da836bc3d73df095ae AS runtime
 ARG VERSION=dev
 LABEL org.opencontainers.image.title="masterGantt" \
       org.opencontainers.image.description="Single-instance project Gantt management application" \
