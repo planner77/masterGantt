@@ -94,6 +94,14 @@ GitHub 공식 image publish 지침은 GHCR에 repository-scoped `GITHUB_TOKEN`�
 
 Docker 공식 Actions 자료는 local image를 먼저 test한 후 push하는 방법과 SemVer metadata tag 생성을 제공한다. 본 프로젝트는 더 강하게 publish 뒤 output digest로 registry artifact를 다시 pull하고 readiness/native SQLite/restart persistence를 검사한다. Stable에서만 major/minor/latest alias를 갱신하고 prerelease에는 exact version과 commit tag만 둔다. 이는 `latest`를 검증 기준으로 삼지 않기 위한 자체 release 정책이다. [Test before push](https://docs.docker.com/build/ci/github-actions/test-before-push/), [metadata-action](https://github.com/docker/metadata-action)
 
+## W22 Main Commit Image / GitHub Plan 조사 — 2026-09-12
+
+GitHub Container Registry는 workflow의 repository-scoped `GITHUB_TOKEN`으로 연결할 수 있고, image를 digest SHA로 pull하면 동일 artifact를 고정해 사용할 수 있다. 따라서 `main` commit image는 mutable branch alias 대신 `ci-<full SHA>`를 한 번만 만들고 build output digest를 다시 pull하는 계약으로 정했다. PR과 수동 CI에는 registry write를 주지 않는다. [GitHub Container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
+
+GitHub 공식 문서상 branch/tag ruleset은 public repository에서는 Free에서도 사용할 수 있지만 private repository는 Pro, Team 또는 Enterprise Cloud가 필요하다. 실제 private `planner77/masterGantt`의 ruleset API도 현재 plan에서 403을 반환했다. 이는 인증 실패가 아니라 plan capability 제한이며, current private plan의 미강제 위험 수용 또는 plan 전환은 D05 사용자 결정이다. [GitHub rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
+
+Artifact Attestation은 Free/Pro/Team의 public repository에서 사용할 수 있으나 private/internal repository는 Enterprise Cloud가 필요하다. BuildKit의 registry provenance와 SBOM은 별도 output이므로 항상 생성하고, GitHub Attestation은 지원 plan에서 `ENABLE_GITHUB_ATTESTATIONS=true`로 명시한 경우만 실행한다. [GitHub Artifact Attestations](https://docs.github.com/en/enterprise-cloud@latest/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations)
+
 GitHub은 외부 Action을 full commit SHA로 고정할 것을 권고한다. 조사 시점의 official release tag와 ref를 대조해 checkout 7.0.1, setup-node 7.0.0, upload-artifact 7.0.1, Docker setup-buildx 4.3.0, login 4.6.0, build-push 7.3.0, actions/attest 4.2.2 SHA를 workflow에 고정했다. Mutable major tag로 되돌리지 않으며 Dependabot 제안도 permissions와 release note를 review한다.
 
 Official `node:22-bookworm-slim`의 2026-08-25 OCI manifest list를 조회해 digest `sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5`로 고정했다. 초기 target은 실제 검증 환경과 같은 `linux/amd64`이며, arm64는 해당 manifest가 존재한다는 사실만으로 지원 판정하지 않고 native runtime 검증 뒤 추가한다.

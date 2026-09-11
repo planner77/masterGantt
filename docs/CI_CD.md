@@ -1,6 +1,6 @@
-# CI/CD와 Semantic Container Release
+# CI/CD, Commit Test Image와 Semantic Container Release
 
-상태: **로컬 구현·독립 QA PASS / Manager ACCEPT, D04 정책 결정 완료**. GitHub Actions 실행과 GHCR push/pull은 현재 환경의 usable GitHub 인증과 실제 Repository 설정 적용 전까지 **NOT TESTED / BLOCKED**다.
+상태: W20 Semantic Release는 **로컬 구현·독립 QA PASS / Manager ACCEPT**다. W22의 immutable main commit image 자동화는 **IN PROGRESS**이며 실제 GitHub Actions run, GHCR publish/digest pull 증거는 아직 **NOT TESTED**다. 사용자 승인 범위에서 repository admin 인증은 성공했고 private repository를 확인했으므로 인증 자체는 더 이상 blocker가 아니다. Private repository의 ruleset/Artifact Attestation plan은 D05 결정이 남았다.
 
 이 문서는 GitHub Actions, 애플리케이션 버전, GHCR container image의 Source of Truth다. Docker runtime과 운영 persistence는 [DEPLOYMENT.md](DEPLOYMENT.md), 검증 분류는 [TEST_PLAN.md](TEST_PLAN.md), 자격증명 정책은 [SECURITY.md](SECURITY.md)를 함께 따른다.
 
@@ -12,6 +12,7 @@ GitHub Actions로 다음 반복 작업을 대체한다.
 - Chromium E2E: Playwright browser/dependency 설치 후 worker 1로 전체 실행
 - Container CI: clean Docker build, non-root runtime, migration/readiness, native SQLite, 임시 volume 재시작 persistence smoke
 - Dependency audit: production npm dependency 취약점 검사
+- Main commit image: 위 gate를 모두 통과한 `main` push만 immutable `ci-<full SHA>`를 GHCR에 게시하고 exact digest를 pull하여 HTTP Project/Task authorization·저장·재시작 persistence 검증
 - Semantic release: 승인된 version tag에서 release-configured candidate를 먼저 runtime smoke한 뒤에만 GHCR build/push, SBOM/provenance, registry digest 재다운로드와 smoke test
 
 Actions는 실제 운영 CPU/storage, reverse proxy/TLS, off-host backup/restore, Windows Excel/VBA/DRM 환경과 수동 UX 검증을 대신하지 않는다.
@@ -25,7 +26,7 @@ Actions는 실제 운영 CPU/storage, reverse proxy/TLS, off-host backup/restore
 - MAJOR: 호환되지 않는 public API, import/export schema 또는 운영 계약 변경
 - MINOR: 하위 호환 기능 추가
 - PATCH: 하위 호환 버그·보안·문서/운영 수정
-- Prerelease: `0.2.0-rc.1`처럼 정식 공개 전 검증 이미지
+- Prerelease: `0.5.0-rc.1`처럼 정식 공개 전 검증 이미지
 
 `0.x`에서도 사용자 workflow나 저장/API 계약을 확장하면 MINOR를 올리고, 기존 계약 내 수정은 PATCH를 올린다. 버전은 낮추거나 재사용하지 않는다. Release workflow는 full Git tag history의 유효한 이전 SemVer를 비교하고 새 version이 모두보다 클 때만 진행한다.
 
@@ -38,6 +39,14 @@ Release authority는 package version과 정확히 일치하는 annotated Git tag
 ```text
 ghcr.io/<owner>/<repository>
 ```
+
+성공한 `main` push의 사용자·통합 테스트 image는 다음 immutable tag 하나만 게시한다.
+
+```text
+ci-<40-character-commit>
+```
+
+같은 tag가 이미 존재하면 덮어쓰지 않고 실패한다. Commit workflow는 SemVer exact/major/minor/latest 또는 release candidate `sha-<commit>` tag를 만들지 않는다. PR과 수동 `workflow_dispatch`는 검증만 수행하고 registry에 로그인하거나 쓰지 않는다.
 
 안정 버전 `v1.4.2`는 다음 tag를 게시한다.
 
@@ -56,12 +65,15 @@ Prerelease `v1.5.0-rc.1`은 mutable stable alias를 변경하지 않는다.
 sha-<40-character-commit>
 ```
 
-운영과 자동 테스트 입력은 `latest`, major 또는 minor alias를 사용하지 않는다. 정확한 version 또는 publish output의 digest를 사용한다.
+운영과 자동 테스트 입력은 `latest`, major 또는 minor alias를 사용하지 않는다. Commit 테스트는 workflow가 출력한 `ci-<full SHA>`의 exact digest를, release 테스트·배포는 정확한 version 또는 release output digest를 사용한다.
 
 ```sh
 docker pull ghcr.io/<owner>/<repository>:1.4.2
+docker pull ghcr.io/<owner>/<repository>:ci-<full-commit>
 docker pull ghcr.io/<owner>/<repository>@sha256:<digest>
 ```
+
+Main commit workflow는 quality, Chromium E2E와 local container smoke가 모두 성공한 뒤 별도 publish job을 실행한다. `ci-<full SHA>`를 push한 후 tag가 아니라 build output의 digest로 다시 pull하고 image content policy, migration/readiness, Project 생성과 edit session, root Task 저장, unauthorized mutation 거부, container restart 뒤 Project/Task 재조회를 검증한다. Commit image의 성공은 SemVer release 승인이 아니며 stable alias를 이동하지 않는다.
 
 Release workflow는 전체 application/E2E gate 뒤 동일 source·version·platform 설정의 local release candidate를 먼저 build하여 image policy, production runtime config 거부, migration, readiness, native SQLite와 재시작 persistence를 확인한다. 이 pre-publish gate가 통과해야 registry write가 시작된다. Registry에는 먼저 immutable `sha-<commit>` candidate만 push하고 그 digest를 새로 pull해 같은 runtime 동작을 다시 확인한다. 검증·attestation 성공 뒤에만 stable rolling alias를 이동하며 immutable exact version tag는 완료 표식으로 마지막에 생성한다.
 
@@ -73,16 +85,17 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 
 | Workflow | Trigger | 권한 | 역할 |
 | --- | --- | --- | --- |
-| `.github/workflows/ci.yml` | PR, `main` push, manual | `contents: read` | application·browser·container 회귀 |
-| `.github/workflows/release-image.yml` | strict `v*` tag | publish job만 `packages: write`, attestation에 필요한 최소 권한 | 검증 후 GHCR publish와 digest smoke |
+| `.github/workflows/ci.yml` 검증 jobs | PR, `main` push, manual | `contents: read` | application·browser·container 회귀 |
+| `.github/workflows/ci.yml` commit publish job | 성공한 `main` push만 | `contents: read`, `packages: write`; optional attestation을 위해 job에 `attestations: write`, `id-token: write` 선언 | immutable `ci-<full SHA>` publish와 digest HTTP persistence smoke |
+| `.github/workflows/release-image.yml` | strict `v*` tag | publish job만 package/attestation 쓰기와 OIDC 권한 선언 | 검증 후 GHCR publish와 digest smoke |
 
-- PR workflow에 registry credential 또는 write token을 제공하지 않는다.
+- PR과 수동 CI에는 registry credential 또는 write token을 제공하지 않는다.
 - `pull_request_target`에서 repository code를 build/test하지 않는다.
 - 같은 repository의 GHCR publish는 개인 PAT 대신 job-scoped `GITHUB_TOKEN`을 사용한다.
 - GitHub/Docker Actions는 mutable major tag가 아니라 full commit SHA로 고정한다.
 - Base image도 digest로 고정하며 Dependabot의 reviewed PR로만 갱신한다.
 - Secret은 Docker build arg, OCI label, cache, artifact, log에 전달하지 않는다.
-- Release image는 SBOM과 provenance attestation을 생성한다.
+- Commit과 release image는 BuildKit SBOM/provenance를 항상 생성한다. GitHub Artifact Attestation은 private repository에서 Enterprise Cloud가 필요하므로 `ENABLE_GITHUB_ATTESTATIONS=true`인 지원 환경에서만 step을 실행하고, 미지원 상태를 성공 attestation으로 기록하지 않는다. 현재 workflow는 optional step을 같은 publish job에 두어 attestation/OIDC 권한 자체는 flag가 꺼진 run에도 선언된다. 권한까지 조건부로 축소하려면 별도 gated attestation job으로 분리하고 publish/promotion 순서를 다시 검증해야 한다.
 
 공식 근거: [GitHub Docker image publishing](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images), [GitHub workflow permissions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), [GitHub artifact attestations](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations), [Docker test before push](https://docs.docker.com/build/ci/github-actions/test-before-push/), [Docker metadata SemVer tags](https://github.com/docker/metadata-action), [Semantic Versioning 2.0.0](https://semver.org/).
 
@@ -98,6 +111,14 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 
 Tag/package 불일치, 이전 tag 이하 version, lightweight tag, 기존 exact/commit image, CI 실패, candidate/publish/promotion 실패 또는 registry digest smoke 실패는 release 실패다. 실패한 exact/commit version을 덮어쓰지 않고 원인을 수정한 다음 새 commit의 PATCH/prerelease version을 사용한다.
 
+### Main commit image 소비 절차
+
+1. `main` push의 quality, E2E, container와 publish job이 모두 성공했는지 확인한다.
+2. Workflow summary의 `ci-<full SHA>`와 `sha256:<digest>`가 대상 commit과 일치하는지 확인한다.
+3. Private GHCR consumer는 필요한 범위의 `packages: read` credential로 로그인한다.
+4. tag를 배포 기준으로 재해석하지 말고 summary의 exact digest를 pull해 격리 volume에서 테스트한다.
+5. release가 필요하면 별도 SemVer bump·CHANGELOG·annotated tag 절차를 수행한다. Commit image를 release alias로 retag하지 않는다.
+
 ## 6. Repository 설정 Gate
 
 Workflow 파일만으로 다음 GitHub 설정을 강제할 수 없으므로 Repository owner가 확인한다.
@@ -109,7 +130,7 @@ Workflow 파일만으로 다음 GitHub 설정을 강제할 수 없으므로 Repo
 - Package visibility(public/private) 및 다른 repository/runner의 pull 권한
 - Artifact/attestation retention과 조직 정책
 
-2026-09-12 D04 결정은 다음과 같다.
+2026-09-12 D04 정책 결정은 다음과 같다.
 
 - GHCR package는 private으로 유지한다.
 - downstream consumer에는 필요한 대상에만 최소 `packages: read`를 부여한다.
@@ -117,19 +138,22 @@ Workflow 파일만으로 다음 GitHub 설정을 강제할 수 없으므로 Repo
 - `refs/tags/v*` update/delete/force-update를 금지하고 지정 maintainer만 release authority를 가진다.
 - package-repository linkage와 SBOM/provenance/attestation 보존을 활성화하고 최초 publish 뒤 실제 설정을 재검증한다.
 
-과거 노출된 repository credential은 폐기·재발급이 권고되지만, 사용자는 해당 위험을 인지하고 기존 값을 재사용하기로 결정했다. 이 예외는 credential이 안전하다는 판정이 아니며 값은 문서, 명령 출력 또는 workflow 입력에 기록하지 않는다. 현재 환경에는 `gh`가 설치되어 있지 않고 `git ls-remote`에 사용할 인증도 구성되어 있지 않아 원격 적용과 push는 계속 BLOCKED다.
+사용자 승인 범위의 in-memory helper를 통해 기존 repository credential의 admin 인증이 성공했고 `planner77/masterGantt`가 private임을 확인했다. Credential 평문을 화면·로그·문서·workflow 입력에 출력하거나 별도 파일로 복사하지 않는다. 허용된 helper가 필요 시 값을 process memory로 불러와 HTTPS API 인증에 사용하는 것은 값의 사람/모델 열람·출력과 구분한다. 과거 노출 credential을 계속 사용하는 것은 사용자가 수용한 잔여 위험이며 안전 판정이 아니다.
+
+원격 확인에서 아직 `mastergantt` container package는 존재하지 않았다. Private repository의 ruleset API는 현재 plan에서 403을 반환했다. GitHub 공식 정책상 private branch/tag ruleset은 Pro/Team/Enterprise에서, private Artifact Attestation은 Enterprise Cloud에서 지원된다. 따라서 D04의 보호 의도는 문서상 유지하되 실제 강제 여부를 PASS로 표시하지 않는다. 사용자는 D05에서 private/current plan의 미강제 위험을 수용할지, ruleset 지원 plan으로 전환할지 결정해야 한다. GitHub Attestation은 지원 plan에서 명시적 `ENABLE_GITHUB_ATTESTATIONS=true` opt-in으로만 실행하며 BuildKit SBOM/provenance는 항상 유지한다.
 
 ## 7. 검증 증거와 상태
 
-로컬에서는 workflow script, version validator, Dockerfile/Compose, image build/runtime/persistence를 검증할 수 있다. GitHub-hosted runner와 GHCR의 최종 PASS에는 다음 원격 증거가 필요하다.
+로컬에서는 workflow script, version validator, Dockerfile/Compose, image build/runtime/persistence를 검증할 수 있다. Admin 인증 성공은 workflow/artifact PASS가 아니다. Commit image와 SemVer release의 최종 PASS에는 각각 다음 원격 증거가 필요하다.
 
-- Actions run URL, commit과 release tag
+- Actions run URL, event와 commit; release에는 annotated tag도 포함
 - runner/Node/Docker version
-- image exact tag와 digest
-- attestation/SBOM 생성 결과
+- commit `ci-<full SHA>` 또는 release exact tag와 digest
+- BuildKit provenance/SBOM 생성 결과와, opt-in한 경우에만 GitHub Attestation 결과
 - GHCR digest pull 및 post-publish smoke 결과
+- Commit image는 HTTP Project/Task authorization·저장·restart 재조회 결과
 
-원격 실행 전에는 문서와 로컬 검증이 완료되어도 `Actions/GHCR NOT TESTED`로 유지한다.
+원격 실행 전에는 문서와 로컬 검증이 완료되어도 해당 Commit/Release 경로를 `Actions/GHCR NOT TESTED`로 유지한다. 한 경로의 성공을 다른 경로의 증거로 대체하지 않는다.
 
 ## 8. 상시 변경 규칙
 
@@ -140,5 +164,7 @@ CI, release, version, Docker image 또는 registry 계약을 바꾸면 같은 �
 - 요구사항 또는 architecture가 바뀌면 `REQUIREMENTS.md`, `ARCHITECTURE.md`, `DECISIONS.md`
 - 현재 작업 상태가 바뀌면 `ISSUE_BREAKDOWN.md`, active `PLAN.md`, milestone review
 - 사용자 설치·release·image 소비 방식이 바뀌면 `README.md`와 `CHANGELOG.md`
+
+Commit publish 변경은 `ci-<SHA>` overwrite 거부, main-only 조건, upstream gate 의존성, PR/manual read-only, digest pull 및 HTTP persistence smoke를 함께 검토한다. Release publish 변경은 `sha-<SHA>` candidate와 SemVer promotion 불변식을 별도로 검토한다.
 
 Action 또는 base image update PR은 full SHA/digest, release note, permissions 변화, build/runtime smoke를 검토한다. 자동 update PR을 merge했다는 사실만으로 production release를 만들지 않는다.

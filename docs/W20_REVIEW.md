@@ -2,7 +2,7 @@
 
 검증일: 2026-09-12
 
-상태: **로컬 구현·독립 QA PASS / Manager ACCEPT**. 2026-09-12 D04 정책은 사용자 결정으로 완료됐고 credential 재사용 위험도 사용자가 수용했다. GitHub-hosted Actions와 GHCR publish/digest pull은 usable 인증과 원격 설정 적용 전까지 **NOT TESTED / BLOCKED**다.
+상태: **로컬 구현·독립 QA PASS / Manager ACCEPT**. 이 문서의 원격 차단 평가는 W20 완료 당시 기준이다. 2026-09-12 D04 정책과 credential 재사용 위험 수용 뒤 W22에서 repository admin 인증은 성공했지만, GitHub-hosted Actions와 GHCR publish/digest pull 자체는 여전히 **NOT TESTED**이며 private ruleset/attestation은 D05에서 별도 **BLOCKED**다.
 
 ## Summary
 
@@ -73,8 +73,8 @@ W20이 선행한 container/readiness 기반은 W16의 실제 production host, re
 - GHCR package visibility/repository linkage, exact/rolling tag와 attestation/SBOM, digest pull smoke 증거가 없다.
 - 초기 target은 `linux/amd64`만 지원한다. `linux/arm64`는 native module build/runtime 재검증 전 지원하지 않는다.
 - Production host bind-mount 권한, reverse proxy/TLS, backup/restore/rollback은 W16 범위다.
-- 과거 노출된 repository credential 재사용은 사용자 수용 잔여 위험이다. 현재 환경에는 usable GitHub 인증이 없어 branch/tag 원격 push는 여전히 수행하지 못했다.
+- 과거 노출된 repository credential 재사용은 사용자 수용 잔여 위험이다. W20 당시 usable 인증이 없어 원격 push를 수행하지 못했으며, W22에서 admin 인증 성공을 확인했다. 이는 실제 workflow/GHCR artifact PASS를 뜻하지 않는다.
 
 ## Recommendation
 
-로컬 W20 구현은 독립 QA PASS를 근거로 Manager ACCEPT한다. 원격 요구는 usable GitHub 인증을 구성하고, 결정된 branch/tag ruleset과 GHCR private 설정을 적용한 다음 최신 annotated release tag를 push해 Actions URL·image digest·attestation·registry smoke 증거를 이 문서에 추가해야 PASS다. 그 전까지 원격 publish는 BLOCKED로 유지한다.
+로컬 W20 구현은 독립 QA PASS를 근거로 Manager ACCEPT한다. 후속 W22에서 admin 인증은 성공했으나 현재 plan은 private ruleset을 지원하지 않는다. 원격 요구는 D05를 결정하고, main commit과 최신 annotated release를 각각 승인된 절차로 실행해 Actions URL·image digest·registry smoke 증거를 추가해야 PASS다. GitHub Attestation은 Enterprise Cloud와 명시적 opt-in이 있을 때만 요구하며 BuildKit SBOM/provenance와 구분한다.

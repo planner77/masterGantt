@@ -169,21 +169,33 @@ GitHub Actions [CI workflow](../.github/workflows/ci.yml)는 PR, `main` push와 
 3. 별도 Chromium job에서 Playwright browser와 OS dependency를 설치하고 E2E를 실행한다. 실패 시에만 report artifact를 7일 보관한다.
 4. Docker image를 빌드하고, non-root image가 migration을 적용한 뒤 readiness를 응답하는지, native SQLite write가 restart 후에도 남는지 smoke test를 실행한다.
 
-CI token은 `contents: read`뿐이며 모든 checkout은 `persist-credentials: false`로 token을 작업 디렉터리에 남기지 않는다. ref별 concurrency는 오래된 PR/main 검증을 취소한다. Docker Buildx cache와 Node dependency cache는 GitHub Actions cache일 뿐 release artifact나 secret을 포함하지 않는다.
+PR과 수동 CI token은 `contents: read`뿐이며 모든 checkout은 `persist-credentials: false`로 token을 작업 디렉터리에 남기지 않는다. ref별 concurrency는 오래된 PR/main 검증을 취소한다. 성공한 `main` push의 commit publish job과 SemVer release publish job만 별도 최소 package write 권한을 가진다. Docker Buildx cache와 Node dependency cache는 GitHub Actions cache일 뿐 release artifact나 secret을 포함하지 않는다.
+
+### Main commit 테스트 image
+
+`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 한 번만 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않는다.
+
+Workflow는 build output digest를 다시 pull해 image policy와 readiness를 확인하고, 실제 HTTP API로 Project를 생성해 edit session을 받은 뒤 root Task를 저장한다. Session 없는 mutation 거부를 확인하고 container를 restart한 후 동일 Project와 Task가 남는지 재조회한다. 이 검증은 격리 volume에서 수행하며 사용자 data를 사용하지 않는다. Workflow summary의 exact digest가 사용자·통합 테스트 입력이다.
+
+```sh
+docker pull ghcr.io/planner77/mastergantt@sha256:<commit-image-digest>
+```
+
+Commit image는 release가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. 아래 release workflow는 별도 `sha-<full SHA>` candidate를 사용한다.
 
 ### 안정 SemVer와 GHCR publish
 
-릴리스 기준은 `package.json.version`과 `package-lock.json` root version에 정확히 일치하는 SemVer tag다. 현재 package version `0.3.1`의 tag는 `v0.3.1`이며 prerelease 예시는 `v0.4.0-rc.1`이다. build metadata(`+...`)는 허용하지 않는다.
+릴리스 기준은 `package.json.version`과 `package-lock.json` root version에 정확히 일치하는 SemVer tag다. 현재 package version `0.4.0`의 tag는 `v0.4.0`이며 prerelease 예시는 `v0.5.0-rc.1`이다. build metadata(`+...`)는 허용하지 않는다.
 
 ```sh
-node scripts/verify-release-version.mjs v0.3.1
-git tag -a v0.3.1 -m "Release v0.3.1"
-git push origin v0.3.1
+node scripts/verify-release-version.mjs v0.4.0
+git tag -a v0.4.0 -m "Release v0.4.0"
+git push origin v0.4.0
 ```
 
 tag push는 [release image workflow](../.github/workflows/release-image.yml)를 실행한다. workflow는 이전 tag보다 큰 version과 annotated tag를 확인하고 전체 quality gate 및 동일 release 설정의 local candidate runtime smoke를 통과한 뒤에만 ephemeral `GITHUB_TOKEN`으로 lowercase GHCR의 immutable `sha-<full-commit>` candidate를 push한다. Registry digest smoke와 attestation 성공 뒤 stable release의 `major.minor`, `major`, `latest`를 이동하고 exact version을 마지막 완료 표식으로 생성한다. Prerelease는 exact/commit tag만 받는다. Repository 단위 직렬화와 monotonic gate가 낮은 version의 alias rollback을 막으며 기존 exact/commit image는 overwrite하지 않는다. tag workflow의 권한은 `contents: read`, `packages: write`, provenance attestation/OIDC에 필요한 `attestations: write` 및 `id-token: write`로 한정된다. Release run은 취소하지 않는다.
 
-BuildKit SBOM/provenance와 GitHub build attestation을 publish하며, push 결과 digest를 다시 pull하여 실제 GHCR image가 migration/readiness와 SQLite restart persistence smoke test를 통과하는지도 확인한다. GitHub의 공식 GHCR 예제는 `GITHUB_TOKEN`, `packages: write`, Docker build 및 attestation 구성을 지원한다. [GitHub Docs](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images)와 [Docker Docs](https://docs.docker.com/build/ci/github-actions/attestations/)를 따른다. 모든 third-party action은 review 가능한 full commit SHA로 pin하며, [Dependabot](../.github/dependabot.yml)가 주간 update PR을 제안한다.
+BuildKit SBOM/provenance는 항상 publish한다. GitHub Artifact Attestation은 private repository에서 Enterprise Cloud가 필요하므로 `ENABLE_GITHUB_ATTESTATIONS=true`인 지원 환경에서만 실행한다. Push 결과 digest를 다시 pull하여 실제 GHCR image가 migration/readiness와 HTTP Project/Task authorization·restart persistence smoke를 통과하는지도 확인한다. [GitHub Docs](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images), [GitHub Attestation 지원 조건](https://docs.github.com/en/enterprise-cloud@latest/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations), [Docker Docs](https://docs.docker.com/build/ci/github-actions/attestations/)를 따른다. 모든 third-party action은 review 가능한 full commit SHA로 pin하며, [Dependabot](../.github/dependabot.yml)가 주간 update PR을 제안한다.
 
 GHCR package visibility는 D04에 따라 private으로 설정하고 첫 성공 publish 뒤 실제 visibility와 repository linkage를 확인한다. private package의 소비자는 필요한 대상에만 최소 `read:packages` 권한을 가진 별도 token으로 authenticate해야 하며, token을 image, Compose, app `.env` 또는 workflow source에 넣으면 안 된다.
 
@@ -192,13 +204,13 @@ GHCR package visibility는 D04에 따라 private으로 설정하고 첫 성공 p
 고정 tag 또는 workflow가 표시한 immutable digest를 우선한다. 테스트 data가 운영 data와 섞이지 않도록 별도 volume을 사용한다.
 
 ```sh
-docker pull ghcr.io/planner77/mastergantt:0.3.1
+docker pull ghcr.io/planner77/mastergantt:0.4.0
 docker run --detach --name mastergantt-test \
   --publish 127.0.0.1:3000:3000 \
   --volume mastergantt-test-data:/data \
   --env APP_BASE_URL=https://gantt-test.company.local \
   --env SESSION_COOKIE_SECURE=true \
-  ghcr.io/planner77/mastergantt:0.3.1
+  ghcr.io/planner77/mastergantt:0.4.0
 curl -fsS http://127.0.0.1:3000/api/health/ready
 ```
 
@@ -218,5 +230,8 @@ docker compose ps
 - Healthcheck는 readiness API로 canonical runtime URL/path, migration, SQLite query, foreign key 및 latest migration ledger를 확인한다. HTTP process만 별도로 확인할 때는 `/api/health/live`를 사용한다.
 - native addon과 CPU architecture를 실제로 검증하기 전에는 multi-architecture manifest를 publish하지 않는다.
 - Docker named volume은 off-host backup을 대체하지 않는다. WAL 중 main DB 파일만 copy하지 말고 clean stop 후 `/data` 전체를 backup하고 fresh volume restore rehearsal을 수행한다.
-- release owner는 확정된 GHCR private·consumer 최소 권한을 적용하고, canonical hostname, TLS reverse proxy, backup destination/retention 및 action SHA pin maintenance policy를 결정한다.
-- 로컬 Docker build/smoke는 검증했지만 실제 GitHub-hosted workflow run, GHCR publish, registry digest pull은 tag를 remote에 push하기 전까지 **NOT TESTED**다.
+- Repository admin 인증과 private visibility는 확인됐지만 현재 `mastergantt` GHCR package는 아직 없다. 첫 commit/release publish 뒤 package linkage, private visibility와 consumer 최소 권한을 재검증한다.
+- Private repository의 main/tag ruleset은 현재 plan의 API 403으로 미강제다. D05에서 미강제 위험 수용 또는 지원 plan 전환을 결정하기 전까지 보호 적용은 **BLOCKED**다.
+- Private GitHub Artifact Attestation은 Enterprise Cloud와 명시적 opt-in 전까지 **BLOCKED**다. BuildKit SBOM/provenance는 이와 무관하게 필수다.
+- release owner는 canonical hostname, TLS reverse proxy, backup destination/retention 및 action SHA pin maintenance policy를 결정한다.
+- 로컬 Docker build/smoke는 검증했지만 실제 main commit workflow run, GHCR `ci-<SHA>` publish/digest pull과 SemVer release publish/digest pull은 각각 원격 증거가 생기기 전까지 **NOT TESTED**다.

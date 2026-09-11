@@ -52,7 +52,9 @@
 | ADR46 | ACCEPT | Container startup과 readiness가 production DB path뿐 아니라 canonical HTTPS `APP_BASE_URL`도 fail-closed 검증 | invalid config는 migration 전 exit 1, readiness는 DB를 열거나 생성하기 전 sanitized 503 |
 | ADR47 | ACCEPT | W20 로컬 CI/CD와 Semantic Container Release 기반 완료 | 독립 QA가 309 Vitest·Chromium 8/8·build/static/container를 재검증해 PASS 권고; 원격 Actions/GHCR는 별도 NOT TESTED/BLOCKED, [W20 검증](W20_REVIEW.md) |
 | ADR48 | ACCEPT | Project route는 single SVAR Core의 `displayMode="all"` Grid+Chart 작업공간과 viewport 기반 layout을 기본으로 사용 | native Add column은 보호 mutation 계약 때문에 제외하고 기존 form→Task API→canonical snapshot을 유지. supplied hierarchy는 `parent/open` adapter로 표시하며 Summary/reparent 저장은 W08, [W21 검증](W21_REVIEW.md) |
-| ADR49 | ACCEPT WITH EXPLICIT RISK | D04는 GHCR private, consumer 최소 `packages: read`, `main` 필수 CI, PR 필수 승인 0명, `v*` tag update/delete 금지와 지정 maintainer release로 확정 | 사용자는 과거 도구 출력에 노출된 repository credential을 교체하지 않고 재사용하기로 결정했다. 이는 안전 판정이 아닌 잔여 위험 수용이며, 현재 환경에 usable GitHub 인증이 없어 원격 적용·검증은 BLOCKED |
+| ADR49 | ACCEPT WITH EXPLICIT RISK / W22 STATUS SUPERSEDES AUTH BLOCK | D04는 GHCR private, consumer 최소 `packages: read`, `main` 필수 CI, PR 필수 승인 0명, `v*` tag update/delete 금지와 지정 maintainer release로 확정 | 사용자는 과거 도구 출력에 노출된 repository credential을 교체하지 않고 재사용하기로 결정했다. 이는 안전 판정이 아닌 잔여 위험 수용이다. 당시 usable 인증이 없었으나 W22에서 admin 인증은 성공했고, ruleset의 plan 제한과 실제 Actions/GHCR 증거는 ADR51/W22 상태로 추적한다 |
+| ADR50 | ACCEPT | 성공한 `main` commit마다 immutable `ci-<full SHA>` test image를 게시하고 SemVer release의 `sha-<full SHA>` tag 공간과 분리 | PR/수동 CI는 read-only; main publish는 quality/E2E/container gate 뒤 실행하며 commit/release 모두 registry digest를 다시 pull해 Project/Task authorization과 restart persistence까지 검증 |
+| ADR51 | DECISION REQUIRED | Private repository의 branch/tag ruleset과 GitHub Artifact Attestation 지원 Plan | 현재 admin 인증은 성공했지만 ruleset API는 요금제 제한 403. Private ruleset은 Pro/Team/Enterprise, private Artifact Attestation은 Enterprise Cloud가 필요하므로 D05 사용자 선택 전 미강제 상태를 수용했다고 표시하지 않음 |
 
 ## Integration 원칙
 

@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-12
+
+### Added
+
+- main commit마다 검증을 통과한 GHCR `ci-<full SHA>` 테스트 이미지 게시와 registry digest 재다운로드 검증
+- 게시 이미지의 Project/Task HTTP 저장·권한·재시작 persistence 검증
+
+### Changed
+
+- Commit 테스트 이미지와 Semantic Version release 이미지의 태그 공간 분리
+- BuildKit SBOM/provenance를 유지하고 GitHub 서명 attestation은 지원 플랜에서 명시적으로 활성화
+
 ## [0.3.1] - 2026-09-12
 
 ### Changed

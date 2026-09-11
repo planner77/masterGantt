@@ -2,13 +2,13 @@
 
 소규모 프로젝트의 일정과 진행 상황을 관리하는 웹 애플리케이션이다. SVAR React Gantt Core로 일정을 표시·편집하고, 일정 계산은 독립적인 Scheduling Engine에서 수행하는 구조를 목표로 한다.
 
-프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장, 좌측 계층 Grid와 우측 동기 Chart 중심의 넓은 Project 작업공간을 구현했다. GitHub Actions 검증과 Semantic Version tag 기반 GHCR image release 기반도 추가하며, Summary/WBS·FS 일정, 승인된 Excel/VBA → JSON·CSV Import, Excel Export와 production 배포 검증을 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
+프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장, 좌측 계층 Grid와 우측 동기 Chart 중심의 넓은 Project 작업공간을 구현했다. GitHub Actions 검증, `main` commit별 immutable GHCR 테스트 image와 Semantic Version release image 기반도 추가하며, Summary/WBS·FS 일정, 승인된 Excel/VBA → JSON·CSV Import, Excel Export와 production 배포 검증을 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
 
 이 README는 프로젝트 이해·설치·재설치·실행·진행 상황 확인을 위한 진입 문서다. 상세 요구사항은 [REQUIREMENTS](docs/REQUIREMENTS.md), 최신 작업 상태는 [실행 계획](docs/exec-plans/active/PLAN.md)을 따른다.
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-12 / 0.3.1 W21 완료·D04 정책 확정**. W01–W07, W20, W21은 독립 QA PASS / Manager ACCEPT이며, 원격 Actions/GHCR 실행은 usable GitHub 인증과 설정 적용이 남았다.
+기준: **2026-09-12 / 0.4.0 W22 Commit GHCR Automation 진행 중**. W01–W07, W20, W21은 독립 QA PASS / Manager ACCEPT이다. Repository admin 인증과 private visibility는 확인됐지만 main commit/release workflow 및 GHCR digest 증거는 아직 대기 중이고, private ruleset/Artifact Attestation plan은 사용자 결정 전이다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -20,14 +20,15 @@
 | W05 편집 인증 | 완료 / 독립 QA PASS | password unlock, session current/logout, metadata 보호 저장, revision, password rotation, route security inventory |
 | W06 일정 계산 기반 | 완료 / 독립 QA PASS | pure Gregorian date-only, weekend/holiday, inclusive duration, Auto/Manual leaf, milestone, server/browser 동일 fixture |
 | W07 Task·Link 저장 기반 | 완료 / 독립 QA PASS | root Task/Milestone CRUD, Project-scoped Link Repository, 실제 Gantt 이동·양방향 resize·삭제·reload, 거부 복원, revision 경쟁 |
-| W20 CI/CD·Semantic image | 로컬 완료 / D04 결정 / 독립 QA PASS | GHCR private, 필수 CI, 승인 review 0명, 보호 `v*` tag; 원격 적용·실행은 인증 미구성으로 NOT TESTED/BLOCKED |
+| W20 CI/CD·Semantic image | 로컬 완료 / D04 결정 / 독립 QA PASS | strict SemVer release와 digest smoke 기반; 원격 release 실행 증거는 아직 NOT TESTED |
 | W21 동기 Gantt 작업공간 | 완료 / 독립 QA PASS | 빈 일정부터 좌측 계층 Grid+우측 Chart, 생성 직후 양쪽 반영, full-width·viewport height, narrow 내부 scroll |
+| W22 Commit GHCR 자동화 | 구현·원격 검증 진행 중 | 성공한 main만 immutable `ci-<SHA>` 게시, digest HTTP Project/Task persistence smoke; PR/manual write 없음 |
 | W08 이후 | 예정 | Summary/WBS, FS 재계산, Import/Export |
 | W16 배포 | 일부 기반 선행 / 운영 검증 예정 | Docker/startup/readiness/named volume 기반; 실제 host·proxy·backup/restore 승인 후속 |
 
 홈 화면은 DB에 Project가 없다고 단정하지 않고 목록 discovery가 아직 비활성임을 안내하며 생성 링크를 제공한다. `/projects/new`에서 Project를 만들면 `/projects/{publicId}`로 이동한다. Direct snapshot API는 Cookie와 관계없이 Readonly이며, 화면은 별도 current-session 확인 뒤에만 metadata/password/logout과 root Task/Milestone 편집 control을 표시한다. D02 결정 전 `GET /api/projects`는 `405`로 닫혀 있다. Project 화면은 빈 일정부터 동일 SVAR 인스턴스의 좌측 계층 Grid와 우측 Chart를 표시한다. `작업 추가 또는 삭제`를 펼쳐 저장하면 새 row와 bar/milestone이 reload 없이 함께 나타나며, Grid/Chart 경계는 내장 Resizer로 조절한다. 좁은 화면에서는 Project Gantt 영역 안을 가로로 스크롤한다. Gantt drag/resize 결과는 보호 Task API와 W06 Scheduling Engine을 거쳐 SQLite에 저장되고, 성공·실패 모두 server canonical snapshot으로 복원된다. Summary 생성/reparent와 Link가 있는 일정의 변경은 W08/W09 전까지 fail-closed다. `/gantt-demo`는 별도의 로컬 fixture다.
 
-최근 Manager 검증: 0.3.1 version check, build/typecheck/lint PASS, **24개 파일 310개 Vitest PASS**, clean isolated Turbopack Chromium E2E **8개 PASS**. E2E는 empty 390×844 내부 Grid+Chart scroll, 1440×900 생성 직후 row+bar와 viewport geometry, 기존 pointer·복원·reload·authorization을 포함한다. W20에서 확인한 production dependency audit 0건과 Action/container 검증은 유지된다. W21 범위는 [W21 검토 기록](docs/W21_REVIEW.md), W20 원격 범위는 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다.
+최근 확정된 application 회귀 기준은 build/typecheck/lint, **24개 파일 310개 Vitest**, clean isolated Turbopack Chromium E2E **8개 PASS**다. W22는 `0.4.0` version과 commit/release workflow를 검증 중이며 실제 Actions URL·GHCR digest·HTTP persistence 결과 전에는 원격 PASS로 표시하지 않는다. W22 상태는 [W22 검토 기록](docs/W22_REVIEW.md), 이전 범위는 [W21 검토 기록](docs/W21_REVIEW.md)과 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다.
 
 ## 2. 기술 스택과 역할
 
@@ -35,7 +36,7 @@
 
 | 기술 | 현재 버전 / 상태 | 역할 |
 | --- | --- | --- |
-| masterGantt | 0.3.1 | `package.json` Semantic Version과 GHCR release 기준 |
+| masterGantt | 0.4.0 | `package.json` Semantic Version과 GHCR release 기준 |
 | Node.js | 최소 22, 검증 22.14.0 | 서버와 CLI 실행 |
 | Next.js | 16.3.4 | App Router, 서버 Route Handler, 빌드 |
 | React / React DOM | 19.3.0 | 화면 컴포넌트 |
@@ -51,7 +52,7 @@
 | Scheduling Engine | 자체 pure TypeScript | Gregorian ordinal, Project Calendar, 근무일·Leaf Duration; SVAR/DB/시간대 API 비의존 |
 | shadcn/ui / ExcelJS | 도입 예정, 미설치 | 일반 UI / 서버 Excel 생성 |
 | Docker / Docker Compose | W20 기반 구현 | non-root 단일 애플리케이션, startup migration/readiness와 영속 SQLite volume |
-| GitHub Actions / GHCR | W20 기반 구현 | application·browser·container CI와 Semantic Version image release |
+| GitHub Actions / GHCR | W20/W22 기반 구현 | application·browser·container CI, main commit test image와 Semantic Version release |
 
 서버의 접근 경계는 `Route Handler → Service → Repository → SQLite`다. W07 Task mutation도 이 경계를 따르며 transaction 안에서 session과 revision을 다시 확인한 뒤 W06 `scheduleLeaf` 결과를 저장한다. DB 진입점은 `server-only`이며 import나 Next.js build만으로 DB를 열지 않는다. 기술 선정 근거는 [RESEARCH](docs/RESEARCH.md), 설계는 [ARCHITECTURE](docs/ARCHITECTURE.md)를 참고한다.
 
@@ -200,10 +201,12 @@ Pull Request와 `main` push에서는 GitHub Actions가 application, Chromium과 
 
 ```sh
 npm run version:check
-node scripts/verify-release-version.mjs v0.3.1
+node scripts/verify-release-version.mjs v0.4.0
 ```
 
-Release workflow는 저장소 단위로 직렬 실행한다. 이전 release보다 큰 version인지 확인하고 local candidate를 먼저 검증한 뒤 immutable commit image를 게시하며, registry digest runtime smoke를 통과한 경우에만 stable alias와 exact version을 승격한다. 테스트에서는 `latest` 대신 exact version 또는 workflow가 출력한 digest를 사용한다. 실제 tag 생성·GHCR 권한·private image login을 포함한 절차는 [CI/CD 문서](docs/CI_CD.md), container 실행은 [Deployment](docs/DEPLOYMENT.md)를 따른다.
+성공한 `main` push는 모든 gate 뒤 `ci-<full SHA>` image를 게시하고 workflow가 출력한 digest를 새로 pull해 Project/Task API authorization과 restart persistence까지 검사한다. PR과 수동 CI는 registry에 쓰지 않는다. 이 commit image는 SemVer release가 아니며 stable alias를 만들지 않는다.
+
+Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 release보다 큰 version인지 확인하고 `sha-<full SHA>` candidate digest smoke를 통과한 경우에만 stable alias와 exact version을 승격한다. 테스트에서는 `latest` 대신 commit/release workflow가 출력한 exact digest를 사용한다. Private GHCR consumer는 최소 `packages: read`만 사용한다. 실제 tag 생성, plan별 ruleset·attestation 제약과 image login 절차는 [CI/CD 문서](docs/CI_CD.md), container 실행은 [Deployment](docs/DEPLOYMENT.md)를 따른다.
 
 ## 7. 코드와 실행 산출물
 
@@ -222,7 +225,7 @@ Release workflow는 저장소 단위로 직렬 실행한다. 이전 release보�
 | [tests/server](tests/server), [tests/scripts](tests/scripts) | DB·CLI·health·version·Project Service/HTTP/보안 경계 검증 |
 | [tests/domain/scheduling](tests/domain/scheduling), [tests/features/gantt](tests/features/gantt), [tests/e2e](tests/e2e) | Scheduling unit/purity, Gantt adapter와 Chromium runtime·Project workflow 검증 |
 | [package.json](package.json), [package-lock.json](package-lock.json) | 실행 명령, 의존성·재설치 기준 |
-| [.github/workflows](.github/workflows), [.github/dependabot.yml](.github/dependabot.yml) | PR/main CI, GHCR release와 pinned dependency update |
+| [.github/workflows](.github/workflows), [.github/dependabot.yml](.github/dependabot.yml) | PR/main CI, main commit image, GHCR release와 pinned dependency update |
 | [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml), [.dockerignore](.dockerignore) | non-root image, single-instance SQLite volume와 build context 보호 |
 | [AGENTS.md](AGENTS.md), [.codex](.codex) | 개발·협업 원칙과 전문 Agent 설정 |
 | `.next/`, `node_modules/` | 로컬 생성 빌드·의존성, Git 제외 |
@@ -233,7 +236,7 @@ Release workflow는 저장소 단위로 직렬 실행한다. 이전 release보�
 
 | 목적 | 문서 |
 | --- | --- |
-| 현재 진행과 다음 작업 | [실행 계획](docs/exec-plans/active/PLAN.md), [W01–W21 작업 목록](docs/ISSUE_BREAKDOWN.md) |
+| 현재 진행과 다음 작업 | [실행 계획](docs/exec-plans/active/PLAN.md), [W01–W22 작업 목록](docs/ISSUE_BREAKDOWN.md) |
 | 요구사항과 구조 | [REQUIREMENTS](docs/REQUIREMENTS.md), [ARCHITECTURE](docs/ARCHITECTURE.md) |
 | DB·API·보안 계약 | [DB_SCHEMA](docs/DB_SCHEMA.md), [API](docs/API.md), [SECURITY](docs/SECURITY.md) |
 | 일정 계산과 Core/PRO 경계 | [SCHEDULING_ENGINE](docs/SCHEDULING_ENGINE.md), [PRO_FEATURE_MATRIX](docs/PRO_FEATURE_MATRIX.md) |
@@ -249,6 +252,7 @@ Release workflow는 저장소 단위로 직렬 실행한다. 이전 release보�
 | W07 Task·Link 저장 기반 검증 결과 | [W07_REVIEW](docs/W07_REVIEW.md) |
 | W20 CI/CD·Semantic container 검증 결과 | [W20_REVIEW](docs/W20_REVIEW.md) |
 | W21 동기 Gantt 작업공간 검증 결과 | [W21_REVIEW](docs/W21_REVIEW.md) |
+| W22 Commit GHCR 자동화 검증 기록 | [W22_REVIEW](docs/W22_REVIEW.md) |
 | Multi-Agent 설정 검증 | [AGENT_CONFIGURATION](docs/AGENT_CONFIGURATION.md) |
 
 문서에 계약이 있다는 사실만으로 기능이 구현된 것은 아니다. 현재 구현 여부는 위 상태 표와 실행 계획, 실제 검증 기록을 함께 확인한다. 작업 목록의 W번호는 로컬 관리 식별자이며 GitHub Issue 번호가 아니다.

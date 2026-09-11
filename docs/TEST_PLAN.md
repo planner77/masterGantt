@@ -105,8 +105,10 @@ P-A/P-B 두 Project에 같은 externalId를 사용해 isolation을 시험한다.
 | CI06 | PR job은 read-only이고 publish job만 최소 package/attestation 권한; Action full SHA와 base image digest pin, secret build arg/log 없음 |
 | CI07 | Repository 단위 release 직렬화; stable만 latest/major/minor 갱신, prerelease는 exact/commit만 생성; OCI source/revision/version, SBOM/provenance 존재 |
 | CI08 | Pre-publish local candidate가 production config/migration/readiness/native SQLite/restart를 통과; GHCR에는 commit candidate만 먼저 push하고 digest smoke·attest 뒤 rolling/exact 승격; exact version/digest를 downstream test에 제공 |
+| CI09 | PR·수동 CI는 registry write가 없고 성공한 `main` push만 모든 quality/E2E/container job 뒤 immutable `ci-<full SHA>`를 게시; 기존 tag overwrite와 SemVer/rolling alias 생성을 거부 |
+| CI10 | Main commit과 SemVer release image를 각각 build output digest로 새로 pull해 image policy, migration/readiness, Project 생성·edit session·Task 저장, unauthorized write 거부, restart 후 Project/Task 재조회를 검증; BuildKit SBOM/provenance와 optional GitHub Attestation 결과를 구분 |
 
-로컬 workflow lint와 Docker smoke는 implementation evidence다. GitHub-hosted Actions URL, tag, GHCR digest, attestation과 registry pull 결과가 없으면 CI01–02 및 CI05–08의 원격 부분은 **NOT TESTED/BLOCKED**로 기록한다. Repository branch/tag ruleset, package visibility와 consumer pull 권한은 D04 운영 설정 증거가 필요하다.
+로컬 workflow lint와 Docker smoke는 implementation evidence다. GitHub-hosted Actions URL, tag, GHCR digest와 registry pull 결과가 없으면 CI01–02 및 CI05–10의 원격 부분은 **NOT TESTED**로 기록한다. Repository admin 인증 성공은 workflow나 artifact PASS가 아니다. Private repository ruleset은 현재 plan에서 403이므로 D05 결정 전 **BLOCKED**, GitHub Artifact Attestation은 Enterprise Cloud 선택과 opt-in 전 **BLOCKED**다. BuildKit SBOM/provenance와 혼동하지 않는다.
 
 W20 로컬 실행 결과는 typecheck/lint/build, 24 files/309 Vitest, Chromium 8/8, actionlint, Compose, Markdown 30 files, production audit 0, `linux/amd64` non-root image와 invalid runtime config exit 1, readiness/native SQLite restart persistence까지 독립 QA PASS다. 원격 CI01–02와 CI05–08은 실제 Actions/GHCR 증거 전 NOT TESTED/BLOCKED다. [W20 검증 기록](W20_REVIEW.md)
 
@@ -190,6 +192,7 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | R23–R24 | Agent 설정·독립 QA·Manager 기록과 구현별 build/typecheck/tests |
 | R25 | UI01–02, Project List 공개 정책 D02 |
 | R29 | UI03–10, SVAR 공식 Grid/Chart·Resizer API와 Browser geometry |
+| R30 | CI09–10, main-only publish 조건·immutable tag·digest HTTP persistence smoke |
 
 PR gate는 build/typecheck와 관련 unit/integration/E2E, migration 회귀, dependency/license 검토, 문서 일관성이다. 현재 command는 `npm run build`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:e2e`다. 구현 PR은 test ID에 실제 command·결과를 연결해야 한다.
 

@@ -969,6 +969,7 @@ Infra Agent는 다음을 담당한다.
 * Backup/Restore 기본 정책
 * Deployment Documentation
 * GitHub Actions CI
+* Main Commit Test Image Publish / Digest Smoke
 * Semantic Version Release Gate
 * GHCR Image Publish / Digest Smoke
 * Action SHA / Base Image Digest Pin
@@ -976,7 +977,7 @@ Infra Agent는 다음을 담당한다.
 
 Infra Agent는 Docker 또는 배포와 관련 없는 작업에 불필요하게 호출하지 않는다.
 
-PR workflow에는 write token 또는 registry secret을 제공하지 않는다. Release는 `package.json`과 일치하는 Semantic Version tag에서만 수행하고, GHCR publish 뒤 exact digest를 다시 pull해 검사한다. 로컬 image PASS와 실제 원격 Actions/GHCR PASS를 구분한다.
+PR과 수동 CI workflow에는 write token 또는 registry secret을 제공하지 않는다. 모든 품질 gate를 통과한 `main` push만 immutable `ci-<full SHA>` test image를 게시할 수 있다. Semantic Version release는 `package.json`과 일치하는 annotated tag에서 별도 `sha-<full SHA>` candidate를 사용한다. 두 경로 모두 게시 결과의 exact digest를 다시 pull하여 정책, readiness, Project/Task authorization 저장과 restart persistence를 검사한다. 로컬 image PASS와 실제 원격 Actions/GHCR PASS를 구분한다.
 
 ---
 
@@ -1195,6 +1196,10 @@ Release는 다음 불변식을 유지한다.
 * GHCR에는 Immutable Commit Candidate를 먼저 게시하고 Digest Smoke와 Attestation 뒤에만 Stable Alias와 Exact Version을 승격한다.
 * Exact Version Tag는 성공 완료 표식으로 마지막에 생성하며 Exact/Commit Image를 덮어쓰지 않는다.
 * Test와 Deployment는 `latest`가 아니라 Exact Version 또는 Digest를 사용한다.
+* `main` commit image는 immutable `ci-<full SHA>`만 사용하고 Stable Alias나 SemVer Exact Tag를 만들지 않는다.
+* Commit image와 SemVer release image는 서로 다른 Tag 공간과 Workflow를 유지하며 둘 다 Registry Digest를 새로 Pull해 Runtime을 검증한다.
+* PR과 수동 CI는 Readonly다. `main` commit publish와 release publish job에만 job-scoped 최소 Registry 권한을 부여한다.
+* Private Repository에서 GitHub Artifact Attestation을 요구하려면 지원 Plan을 먼저 확인한다. 지원하지 않는 Plan에서는 BuildKit SBOM/Provenance를 필수로 유지하고 GitHub Attestation을 성공으로 과대 표시하지 않는다.
 
 ---
 
@@ -1373,9 +1378,9 @@ Remaining Risks
 
 Application version은 `package.json`을 Source of Truth로 하고 `package-lock.json`과 일치시킨다. Version은 Semantic Versioning을 따르며 release tag는 정확히 `v<package version>`이어야 한다. Version을 변경하면 `CHANGELOG.md`도 같은 변경에서 갱신한다.
 
-Pull Request와 `main` push는 GitHub Actions의 build, typecheck, lint, unit/integration, browser E2E와 container smoke를 통과해야 한다. Release image는 검증된 Semantic Version tag에서만 GHCR에 게시한다. Stable release만 `latest`를 갱신하며 test/deployment는 exact version 또는 digest를 사용한다.
+Pull Request와 `main` push는 GitHub Actions의 build, typecheck, lint, unit/integration, browser E2E와 container smoke를 통과해야 한다. 성공한 `main` push는 사용자·통합 테스트용 immutable `ci-<full SHA>` image를 게시하고 exact digest로 다시 검증한다. Release image는 검증된 Semantic Version tag에서 별도 게시한다. Stable release만 `latest`를 갱신하며 test/deployment는 exact version 또는 digest를 사용한다.
 
-Workflow의 PR job에는 write 권한이나 registry secret을 주지 않는다. Publish job은 job-scoped `GITHUB_TOKEN`과 최소 `packages: write`만 사용하고 개인 PAT를 저장하지 않는다. 외부 Action은 full commit SHA, base image는 digest로 고정하고 reviewed dependency update로 갱신한다. 세부 계약은 `docs/CI_CD.md`가 Source of Truth다.
+Workflow의 PR·수동 CI job에는 write 권한이나 registry secret을 주지 않는다. `main` commit과 release Publish job만 job-scoped `GITHUB_TOKEN`과 최소 `packages: write`를 사용하고 개인 PAT를 저장하지 않는다. 외부 Action은 full commit SHA, base image는 digest로 고정하고 reviewed dependency update로 갱신한다. 세부 계약은 `docs/CI_CD.md`가 Source of Truth다.
 
 ---
 
@@ -1529,7 +1534,11 @@ Documentation
 * Stable/Prerelease Image Tag 분리
 * Pre-publish Candidate Runtime Smoke
 * Commit Candidate의 GHCR Digest Pull Smoke 후 Alias/Exact Promotion
+* `main` 성공 Commit의 Immutable `ci-<full SHA>` Publish와 Overwrite 거부
+* Commit Image의 Exact Digest Pull 후 Project/Task API Authorization·Restart Persistence
+* PR/수동 CI의 Registry Write 부재와 Commit/Release Tag 공간 분리
 * SBOM과 Provenance
+* Private Repository의 GitHub Attestation 지원 Plan과 명시적 Opt-in 상태
 * 원격 Actions/GHCR 미실행 상태를 로컬 PASS와 구분
 
 ---

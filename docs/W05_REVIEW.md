@@ -90,4 +90,4 @@ Backend/Security QA는 세 차례 finding 보완 뒤 targeted 3 files/36 tests�
 
 ## Recommendation
 
-W05는 ACCEPT하고 다음 독립 기반인 W06 Working Calendar and Duration으로 진행한다. 당시 GitHub push/release 전 credential 교체를 요구했지만 이 조건은 ADR49의 사용자 위험 수용 결정으로 대체됐으며, usable repository 인증 구성은 여전히 필요하다.
+W05는 ACCEPT하고 다음 독립 기반인 W06 Working Calendar and Duration으로 진행한다. 당시 GitHub push/release 전 credential 교체를 요구했지만 이 조건은 ADR49의 사용자 위험 수용 결정으로 대체됐다. 이후 W22에서 repository admin 인증은 성공했으며, 실제 원격 workflow/GHCR 증거와 plan-dependent ruleset/attestation은 별도 상태로 추적한다.

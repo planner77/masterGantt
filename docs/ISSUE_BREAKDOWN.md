@@ -239,7 +239,7 @@
 - Suggested / Assigned Agent: infra + backend + researcher + qa_docs + Manager; infra는 workflow/Docker, backend는 readiness, Manager는 공용 version/문서 계약을 통합한다.
 - Dependencies: W02,W07. W16의 최소 container runtime 기반을 선행하지만 운영 CPU/storage/proxy/backup gate는 완료 처리하지 않는다.
 - Related Documents: [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md), [SECURITY.md](SECURITY.md), [TEST_PLAN.md](TEST_PLAN.md).
-- Status: DONE LOCAL / independent QA PASS / Manager ACCEPT — D04 결정과 credential 위험 수용은 완료. remote Actions/GHCR는 usable 인증과 설정 적용 전 NOT TESTED/BLOCKED.
+- Status: DONE LOCAL / independent QA PASS / Manager ACCEPT — D04 결정과 credential 위험 수용은 완료. W22에서 admin 인증은 성공했지만 remote release Actions/GHCR artifact는 NOT TESTED이고 private ruleset은 D05 BLOCKED다.
 - Risk: tag 재사용, mutable image 소비, supply-chain action/base drift, GHCR visibility, native ABI, 원격 설정과 로컬 증거 혼동.
 
 ## W21 — Synchronized Gantt Workspace
@@ -253,3 +253,15 @@
 - Related Documents: [REQUIREMENTS.md](REQUIREMENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md), [TEST_PLAN.md](TEST_PLAN.md), [W21_REVIEW.md](W21_REVIEW.md).
 - Status: DONE — 독립 QA PASS / Manager ACCEPT. 실제 persisted Summary 생성·reparent·expand/collapse와 WBS는 W08에 유지한다.
 - Risk: Core compact threshold, nested min-content body overflow, native Add가 보호 mutation을 우회하는 문제, Summary UI를 W08 전에 완료로 오인.
+
+## W22 — Main Commit GHCR Automation
+
+- Goal: 모든 성공한 `main` commit을 사용자·통합 테스트용 immutable GHCR image로 게시하고 기존 SemVer release와 함께 실제 digest 기준으로 검증한다.
+- Background: W20은 release workflow를 정의했지만 commit 단위 test image와 실제 원격 artifact 증거는 없었다.
+- Scope: main-only `ci-<full SHA>`, PR·수동 CI read-only, release `sha-<full SHA>` tag 공간 분리, registry digest re-pull, image policy/readiness/HTTP Project·Task authorization/restart persistence, BuildKit SBOM/provenance와 plan-aware GitHub Attestation.
+- Acceptance Criteria: CI09–CI10; upstream quality/E2E/container gate 뒤에만 publish, immutable overwrite 거부, 두 경로의 실제 Actions URL·digest·smoke evidence를 별도 기록, package private/consumer `packages: read`, D05 미결정을 승인으로 과대 표시하지 않음.
+- Suggested / Assigned Agent: infra + qa_docs + Manager. Infra는 workflow와 smoke script, qa_docs는 독립 대조, Manager는 version/문서/remote 실행을 통합한다.
+- Dependencies: W20,W21; actual remote execution requires explicit Manager-controlled push/tag flow.
+- Related Documents: [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md), [SECURITY.md](SECURITY.md), [TEST_PLAN.md](TEST_PLAN.md), [W22_REVIEW.md](W22_REVIEW.md).
+- Status: IN PROGRESS — admin auth/private visibility PASS; workflow implementation/local evidence review 중; remote main/release artifact NOT TESTED; private ruleset/attestation D05 BLOCKED.
+- Risk: PR write 권한, commit/release tag 충돌, mutable tag smoke, overwrite, credential 노출, paid feature 과대 완료.

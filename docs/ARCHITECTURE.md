@@ -11,8 +11,11 @@ flowchart TD
   Service --> Domain[Pure Scheduling Domain]
   Service --> Repo[Repository / SQL transaction]
   Repo --> DB[(SQLite persistent volume)]
-  Git[Reviewed Git commit / SemVer tag] --> Actions[GitHub Actions]
-  Actions --> GHCR[GHCR image + digest + provenance]
+  Git[Reviewed main commit / SemVer tag] --> Actions[GitHub Actions]
+  Actions --> CommitImage[Immutable ci-full-SHA test image]
+  Actions --> ReleaseImage[SemVer exact / rolling release image]
+  CommitImage --> GHCR[GHCR digest + BuildKit provenance / SBOM]
+  ReleaseImage --> GHCR
   GHCR --> Runtime[Single non-root container]
   Runtime --> DB
   Browser -. 동일 Domain으로 preview .-> Domain
@@ -107,8 +110,8 @@ Web export는 일정 DTO의 DB 일관된 snapshot을 얻고 transaction 밖에�
 
 W04 생성 bootstrap에 이어 W05는 recorded scrypt profile의 timing-safe password 검증, unknown/corrupt credential dummy KDF, Project-bound session의 expiry/revoke/auth-version 검증, logout, password rotation과 metadata mutation authorization을 적용한다. Cookie는 8시간 HttpOnly/SameSite=Strict이며 production에서 Secure/`__Host-`를 강제한다. Unlock은 bounded process-local global+Project limiter와 공유 KDF concurrency 2 상한을 사용한다. [SECURITY.md](SECURITY.md)가 세부 정책이다. Public URL은 편집 권한을 부여하지 않지만 읽기 기밀성을 보장하는 인증도 아니다. production 노출 범위는 사용자 결정 항목이다.
 
-초기 운영은 한 Node application container와 local persistent SQLite volume이다. Native addon은 빌드·런타임 ABI/libc/architecture를 일치시키고 non-root permission과 restart persistence를 검사한다. PR/main은 read-only GitHub Actions로 application/browser/container 회귀를 수행한다. Release는 `package.json`과 일치하며 이전 tag보다 큰 annotated Semantic Version만 직렬 처리하고, local candidate와 GHCR digest가 통과한 뒤 exact version을 완료 표식으로 승격한다. Consumer와 post-publish smoke는 mutable alias가 아니라 exact version/digest를 사용한다. WAL-aware backup과 production host restore는 별도 경로에서 시험한다. [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md) 참조.
+초기 운영은 한 Node application container와 local persistent SQLite volume이다. Native addon은 빌드·런타임 ABI/libc/architecture를 일치시키고 non-root permission과 restart persistence를 검사한다. PR과 수동 CI는 read-only로 application/browser/container 회귀만 수행한다. 모든 gate를 통과한 `main` push는 immutable `ci-<full SHA>` test image를 별도 tag 공간에 게시한다. Release는 `package.json`과 일치하며 이전 tag보다 큰 annotated Semantic Version만 직렬 처리하고, 별도 `sha-<full SHA>` candidate와 GHCR digest가 통과한 뒤 exact version을 완료 표식으로 승격한다. 두 publish 경로 모두 registry에서 exact digest를 새로 pull해 Project/Task HTTP authorization 저장과 restart persistence까지 확인한다. Consumer와 post-publish smoke는 mutable alias가 아니라 exact version/digest를 사용한다. WAL-aware backup과 production host restore는 별도 경로에서 시험한다. [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md) 참조.
 
 ## 구현 진입 Gate
 
-최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. 새 운영 요구인 W20 CI/CD와 Semantic Container Release 및 W21 동기 Grid+Chart 작업공간도 로컬 구현·검증 대상으로 추가했으며, 다음 Scheduling 구현은 W08 Summary/Hierarchy/WBS다. D04 정책은 결정됐으며 실제 GHCR publish에는 usable GitHub 인증과 원격 ruleset/GHCR 설정 적용이 남았다. VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.
+최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. W20 Semantic Release와 W21 동기 Grid+Chart도 완료했고, W22 main commit image 자동화는 구현·원격 검증 중이다. Repository admin 인증은 성공했지만 실제 workflow run과 GHCR digest 증거는 아직 없으며, private ruleset/attestation plan은 D05 결정이 남았다. 다음 Scheduling 구현은 W08 Summary/Hierarchy/WBS다. VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.

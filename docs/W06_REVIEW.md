@@ -95,7 +95,7 @@ Package dependency, SQL schema와 migration, REST route는 변경하지 않았�
 - W06 변경 source와 문서에서 credential pattern은 발견되지 않았다.
 - Production dependency audit는 0건이다.
 
-이전 작업 중 노출된 repository 자격증명은 source/Git에 포함되지 않았다. 당시에는 별도 폐기·재발급을 요구했지만 2026-09-12 ADR49의 사용자 위험 수용 결정이 이를 대체했다. usable repository 인증 구성 전에는 원격 push/release를 시도하지 않는다.
+이전 작업 중 노출된 repository 자격증명은 source/Git에 포함되지 않았다. 당시에는 별도 폐기·재발급을 요구했지만 2026-09-12 ADR49의 사용자 위험 수용 결정이 이를 대체했다. 이후 W22에서 repository admin 인증은 성공했으며, 실제 원격 workflow/GHCR 증거와 plan-dependent ruleset/attestation은 별도 상태로 추적한다.
 
 ## Documentation Updated
 
