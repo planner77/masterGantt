@@ -1,5 +1,14 @@
 import { expect, test } from "@playwright/test";
 
+const canonicalSchedule = JSON.stringify({
+  requestedStart: "2026-09-12",
+  start: "2026-09-15",
+  end: "2026-09-17",
+  duration: 3,
+  inclusiveWorkingDays: 3,
+  warningCode: "NON_WORKING_START_SHIFTED",
+});
+
 test("renders the SVAR fixture readonly by default and exposes the local preview toggle", async ({ page }) => {
   await page.goto("/gantt-demo");
 
@@ -24,3 +33,24 @@ test("renders the SVAR fixture readonly by default and exposes the local preview
   await expect(page.getByText("build 변경을 감지했습니다. 이 데모는 저장하지 않습니다.")).toBeVisible();
   await expect(page.getByText("미리보기 변경은 서버나 SQLite에 저장되지 않습니다.")).toBeVisible();
 });
+
+for (const timezoneId of ["UTC", "Asia/Seoul", "America/New_York"]) {
+  test(`keeps the server and browser scheduling fixture date-only in ${timezoneId}`, async ({ baseURL, browser }) => {
+    if (baseURL === undefined) throw new Error("Playwright baseURL is required for the server fixture check.");
+    const context = await browser.newContext({ timezoneId });
+    const page = await context.newPage();
+    const serverResponse = await context.request.get(`${baseURL}/gantt-demo`);
+
+    expect(await serverResponse.text()).toContain('data-scheduling-match="pending"');
+
+    await page.goto("/gantt-demo");
+
+    const runtimeStatus = page.getByLabel("일정 엔진 런타임 일치 상태");
+    await expect(runtimeStatus).toHaveAttribute("data-scheduling-match", "true");
+    await expect(runtimeStatus).toHaveAttribute("data-scheduling-server", canonicalSchedule);
+    await expect(runtimeStatus).toHaveAttribute("data-scheduling-browser", canonicalSchedule);
+    await expect(runtimeStatus).toHaveText("일정 엔진 결과가 일치합니다.");
+
+    await context.close();
+  });
+}

@@ -36,7 +36,7 @@
 - Dependencies: W01.
 - Related Documents: [RESEARCH.md](RESEARCH.md), [PRO_FEATURE_MATRIX.md](PRO_FEATURE_MATRIX.md), [W03_REVIEW.md](W03_REVIEW.md).
 - Status: W03 DONE — Core 2.7.3 최소 통합, 독립 QA PASS / Manager ACCEPT.
-- Risk: exclusive End 의미는 공식 예제 기반 추론이며 실제 drag/resize·server round-trip은 W06/W07에서 재검증.
+- Risk: exclusive End 의미는 공식 예제 기반 추론이며 W06 server/browser date-only 계산은 PASS했지만 실제 drag/resize·저장 round-trip은 W07에서 재검증.
 
 ## W04 — Project Create and Direct Read
 
@@ -70,9 +70,9 @@
 - Acceptance Criteria: 윤년·weekend·holiday·비근무 시작·범위·Manual 경계 unit; browser/server 동일 fixture.
 - Suggested / Assigned Agent: scheduler; 병렬 write 시 Manager가 파일을 분리한다.
 - Dependencies: W01.
-- Related Documents: [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md), [TEST_PLAN.md](TEST_PLAN.md).
-- Status: PLANNED.
-- Risk: off-by-one·DST.
+- Related Documents: [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md), [TEST_PLAN.md](TEST_PLAN.md), [W06_REVIEW.md](W06_REVIEW.md).
+- Status: DONE — Gregorian ordinal Calendar/Leaf Engine, 135 domain tests, raw SSR→hydrated Chromium timezone fixture와 독립 QA PASS / Manager ACCEPT. [검증 기록](W06_REVIEW.md)
+- Risk: 실제 Task 저장·SVAR drag/resize는 W07, Summary/WBS는 W08, FS와 Calendar mutation의 aggregate Manual conflict는 W09에 남는다.
 
 ## W07 — Task and Link Persistence
 
@@ -102,7 +102,7 @@
 
 - Goal: FS Scheduling Recalculation 기능/기반을 검증 가능한 단위로 완성한다.
 - Background: 의존 관계 변경이 일관된 날짜를 만들어야 한다.
-- Scope: DAG/cycle, forward pass, requested/effective separation
+- Scope: DAG/cycle, forward pass, requested/effective separation, Calendar mutation 시 기존 Manual interval conflict 검증
 - Acceptance Criteria: SCH04–07/11; Manual conflict 전체 rollback, link 제거 날짜 복귀, 미지원 관계 명시 오류.
 - Suggested / Assigned Agent: scheduler + backend; 병렬 write 시 Manager가 파일을 분리한다.
 - Dependencies: W06,W07.

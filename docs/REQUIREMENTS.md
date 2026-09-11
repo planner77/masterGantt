@@ -1,6 +1,6 @@
 # Requirements baseline
 
-상태: 요구사항 기준선, 2026-09-11 갱신. W01–W05 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
+상태: 요구사항 기준선, 2026-09-11 갱신. W01–W06 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
 
 ## Confirmed
 
@@ -13,7 +13,7 @@
 | R05 | 모든 기존 Project mutation에서 server-side project edit session 검증 | API, Security |
 | R06 | SVAR React Gantt Core와 공식 API 우선, 구현 전 현재 공식 자료 확인 | [Research](RESEARCH.md), [기능 Matrix](PRO_FEATURE_MATRIX.md) |
 | R07 | PRO 비공개 구현 복제 금지; 독립 Scheduling Domain | [Scheduling](SCHEDULING_ENGINE.md) |
-| R08 | 초기 Calendar, weekend, holiday, duration, summary, FS 재계산, WBS | Scheduling |
+| R08 | 초기 Calendar, weekend, holiday, duration, summary, FS 재계산, WBS | [Scheduling](SCHEDULING_ENGINE.md); Calendar/Leaf Duration은 W06 PASS, 나머지는 W08/W09 |
 | R09 | SS/FF/SF, lag/lead, baseline, CPM/slack, grouping/resource, rollup/split는 후속 검토 | 기능 Matrix |
 | R10 | SQLite, Prisma 금지, better-sqlite3 우선; Route→Service→Repository→DB | [Architecture](ARCHITECTURE.md), DB |
 | R11 | SQL migration, parameter binding, FK와 index, 실제 DB Git 제외 | DB |
@@ -42,8 +42,8 @@ R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 ed
 | --- | --- | --- |
 | A01 | Next.js App Router + React + TypeScript, 단일 Node backend | AGENTS 권장 stack; exact versions는 설치 직전 검증 |
 | A02 | Public ID는 lowercase UUID v4 | 예시 URL의 특정 ULID 길이는 강제 계약 아님 |
-| A03 | 초기 Project Calendar는 Asia/Seoul, 토·일 휴무, 사용자 관리 holiday set | 현재 사용자 환경; 법정 공휴일 자동 추정 안 함 |
-| A04 | 날짜는 Gregorian YYYY-MM-DD, end 포함, duration 정수 근무일 | [Scheduling](SCHEDULING_ENGINE.md) 경계 예시; 시각 일정 후속 |
+| A03 | 초기 Project Calendar는 Asia/Seoul, exact weekend `[6,0]`, 사용자 관리 holiday set | W06 구현·검증; 법정 공휴일 자동 추정 안 함 |
+| A04 | 날짜는 Gregorian YYYY-MM-DD `1900-01-01..2199-12-31`, end 포함, 일반 Task duration `1..10000` 근무일 | W06 구현·검증; 시각 일정 후속 |
 | A05 | `start` 입력과 effective start 분리; Auto 이동은 preview, Manual 충돌은 전체 거부 | 요청값 보존과 일정 재계산의 결정성 |
 | A06 | 초기 dependency는 leaf task/milestone의 FS/0만; milestone도 다음 근무일 FS | 다른 type/lag를 버리지 않고 미지원 오류 |
 | A07 | Import v1은 기존 Project에 self-contained batch create-only | 기존 데이터 자동 교체·삭제 금지; update merge 별도 설계 |
@@ -73,4 +73,4 @@ W04/W05는 개발용 생성, direct-link Readonly, password unlock과 Project me
 - Core가 SS/FF/SF link를 표시할 수 있어도 초기 Domain 지원은 FS뿐이다. 이는 범위 차이며 UI에서 미지원 생성 방지를 해야 한다.
 - Project List 요구는 유지한다. 인증 없는 전체 목록의 노출 범위는 D02이며, 이를 임의로 공개하거나 List 요구를 삭제하지 않는다.
 - 대상 Excel에 안정 ID가 없을 수 있다. 승인된 ID 보존 방법이 확인될 때까지 행 번호를 장기 ID로 확정하지 않는다.
-- W01–W05 application source와 초기 migration, Project edit authorization은 구현되었다. Docker image와 VBA macro, Task/Gantt 일정 저장·Scheduling·Import/Export는 후속 산출물이며 완료로 간주하지 않는다.
+- W01–W06 application source와 초기 migration, Project edit authorization, pure Calendar/Leaf Scheduling은 구현되었다. Docker image와 VBA macro, Task/Gantt 저장, Summary/WBS·FS 재계산, Import/Export는 후속 산출물이며 완료로 간주하지 않는다.

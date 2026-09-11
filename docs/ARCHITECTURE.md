@@ -1,6 +1,6 @@
 # Architecture draft
 
-상태: Manager 통합 설계. W01–W05의 Project 기반, Direct Readonly, edit session lifecycle과 Project metadata 보호 mutation은 독립 QA PASS / Manager ACCEPT했다. Scheduling·Task persistence·Import/Export·배포는 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
+상태: Manager 통합 설계. W01–W06의 Project·authorization 기반과 pure Calendar/Leaf Scheduling은 독립 QA PASS / Manager ACCEPT했다. Task persistence, Summary/WBS, FS 재계산, Import/Export·배포는 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
 
 ## 경계
 
@@ -34,7 +34,7 @@ flowchart TD
 
 ## 제안 Directory 구조
 
-아래는 목표 구조다. W01–W05에서 `app`, `components`, `features/gantt`, `features/projects`, `contracts`, `server/db`, `server/repositories`, `server/projects`, `server/security`, `db/migrations`, 관련 `tests` 경로를 만들었고 나머지는 담당 작업에서 추가한다.
+아래는 목표 구조다. W01–W06에서 `app`, `components`, `features/gantt`, `features/projects`, `contracts`, `domain/scheduling`, `server/db`, `server/repositories`, `server/projects`, `server/security`, `db/migrations`, 관련 `tests` 경로를 만들었고 나머지는 담당 작업에서 추가한다.
 
 ```text
 src/app/                         Next.js pages and HTTP routes
@@ -62,7 +62,7 @@ SVAR 공식 Next.js guide의 client wrapper, theme/CSS, `init` API를 따랐고 
 
 Project Direct GET snapshot은 Cookie가 있어도 항상 Readonly다. UI는 별도 current-session GET으로 edit 표시를 동기화하고 password unlock 뒤 metadata/password/logout control을 활성화한다. 서버는 UI 상태와 무관하게 매 mutation에서 Project-bound session을 다시 확인한다.
 
-UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 external ID↔SVAR ID, date-only↔Date, end 포함↔SVAR endpoint 의미, working-day duration↔calendar span, domain link type↔SVAR link type을 변환한다. W03 Adapter는 공식 REST 예제에서 **추론한** exclusive widget end를 한 곳에서 inclusive domain end와 변환하고 unit round-trip을 통과했다. Vendor가 의미를 명시적으로 보장한 것은 아니므로 실제 pointer drag/resize와 서버 왕복을 W06/W07에서 재확인하며, 결과가 다르면 Adapter와 계약을 함께 수정한다.
+UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 external ID↔SVAR ID, date-only↔Date, end 포함↔SVAR endpoint 의미, working-day duration↔calendar span, domain link type↔SVAR link type을 변환한다. W03 Adapter는 공식 REST 예제에서 **추론한** exclusive widget end를 한 곳에서 inclusive domain end와 변환하고 unit round-trip을 통과했다. Vendor가 의미를 명시적으로 보장한 것은 아니므로 실제 pointer drag/resize와 서버 저장 왕복을 W07에서 재확인하며, 결과가 다르면 Adapter와 계약을 함께 수정한다.
 
 편집 명령은 `init`에서 얻은 API의 공식 interception/event hook을 통해 API로 보낸다. 단일 명령은 한 번만 저장한다. 초기 방안은 optimistic 화면 변경을 허용하되 요청 동안 동일 aggregate 후속 변경을 직렬화하고, 성공 시 전체 canonical snapshot으로 교체하며 실패·412 시 서버 재조회와 사용자 오류를 표시하는 것이다. PRO auto-scheduler를 동시에 실행하지 않는다. Data provider의 공식 패턴을 검토하되 프로젝트별 cookie/If-Match/atomic hierarchy 계약을 보존한다.
 
@@ -83,7 +83,7 @@ Empty summary가 금지되므로 새 summary와 자식 생성·재배치 같은 
 
 ## Scheduling
 
-Input에는 사용자 요청 `requestedStart`와 duration, mode, parent/order, calendar, FS edges가 있다. Output에는 effective start/end, summary, WBS, 변경 이유·오류가 있다. Service가 요청값과 계산값을 분리 저장하므로 dependency 제거·앞당김 시 원래 요청일로 복귀할 수 있다. Server의 계산이 권위이며 browser preview는 같은 pure code를 사용해도 저장 권한은 없다. 상세 규칙은 [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md)만이 정의한다.
+Input에는 사용자 요청 `requestedStart`와 duration, mode, parent/order, calendar, FS edges가 있다. Output에는 effective start/end, summary, WBS, 변경 이유·오류가 있다. W06은 자체 Gregorian ordinal 기반 date-only·Calendar·Leaf/Milestone 계산을 먼저 구현했으며 system timezone과 `Date` instant API에 의존하지 않는다. Service가 요청값과 계산값을 분리 저장하므로 dependency 제거·앞당김 시 원래 요청일로 복귀할 수 있다. Server의 계산이 권위이며 browser preview는 같은 pure code를 사용해도 저장 권한은 없다. 상세 규칙은 [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md)만이 정의한다.
 
 ## Import / Export
 
@@ -101,4 +101,4 @@ W04 생성 bootstrap에 이어 W05는 recorded scrypt profile의 timing-safe pas
 
 ## 구현 진입 Gate
 
-첫 slice 중 W04의 Project 생성→SQLite 저장→Direct Readonly 조회→reload 유지와 W05의 Readonly→unlock→metadata 저장/reload→logout/password rotation 경계는 독립 QA PASS / Manager ACCEPT했다. 다음은 W06/W07의 단일 task 변경→reload 유지로 확장한다. 실제 VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.
+첫 slice 중 W04의 Project 생성→SQLite 저장→Direct Readonly 조회→reload 유지, W05의 edit lifecycle, W06의 Calendar/Leaf 계산과 server/hydrated-browser 동일 fixture는 독립 QA PASS / Manager ACCEPT했다. 다음은 W07의 단일 task 변경→reload 유지로 확장한다. 실제 VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.

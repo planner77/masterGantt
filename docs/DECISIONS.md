@@ -27,7 +27,7 @@
 | ADR21 | ACCEPT | W02 parent composite FK는 `NO ACTION DEFERRABLE INITIALLY DEFERRED` | 기존 즉시 RESTRICT는 Project cascade와 충돌. 단독 parent 삭제와 cross-project parent는 commit 시 거부하고 전체 aggregate cascade는 허용; Project 삭제 API는 여전히 후속 범위 |
 | ADR22 | ACCEPT | W02 migration 파일 로딩 후 ledger 검증·미적용 SQL·ledger 기록을 단일 `BEGIN IMMEDIATE`로 처리 | 수정 checksum, 파일 누락, 이력 중간 누락은 시작 실패. 실행 CLI와 lazy server DB 진입점을 공유하고 DB를 build 시 열지 않음 |
 | ADR23 | ACCEPT | W03은 `@svar-ui/react-gantt` 2.7.3 Core만 exact direct dependency로 사용 | MIT와 React `>=18` peer를 확인. transitive data provider를 직접 import하지 않고 PRO·REST·scheduling API를 연결하지 않음 |
-| ADR24 | ACCEPT WITH REVALIDATION | Domain inclusive date-only end를 widget의 추론된 exclusive local `Date` end로 단일 Adapter에서 변환 | 공식 REST 예제와 round-trip/timezone unit 근거. 명시적 vendor 보장이 아니므로 실제 pointer drag/resize와 서버 저장을 W06/W07에서 재검증 |
+| ADR24 | ACCEPT WITH REVALIDATION | Domain inclusive date-only end를 widget의 추론된 exclusive local `Date` end로 단일 Adapter에서 변환 | 공식 REST 예제와 round-trip/timezone unit 근거. 명시적 vendor 보장이 아니므로 실제 pointer drag/resize와 서버 저장을 W07에서 재검증 |
 | ADR25 | ACCEPT | W04 생성은 Project+password derived material+최초 edit session digest를 원자 저장하고 Cookie를 발급 | 기존 API/DB/Security 계약을 지킴. scrypt는 transaction 밖에서 비동기 실행; session 검증·unlock/logout/rotation과 mutation authorization는 W05 |
 | ADR26 | ACCEPT | D02 결정 전 Project collection GET은 405, 홈은 DB discovery를 수행하지 않으며 direct GET은 항상 Readonly | 개발용 create/direct route 구현은 production 공개 승인이 아님. 실데이터 노출 전 조직의 read/create 경계 결정 |
 | ADR27 | ACCEPT | Project public ID는 canonical lowercase UUID v4, 생성 입력은 Zod 4.6.2 strict schema | name만 trim, description/password 원문 보존; unknown field·malformed Unicode·길이/byte 경계 거부 |
@@ -39,6 +39,9 @@
 | ADR33 | ACCEPT | W05 authorization 증거는 session endpoint만이 아니라 `PATCH /api/projects/{publicId}` 대표 보호 mutation과 route security inventory를 포함 | AUTH07 Task와 AUTH09–10 Import slice는 W07/W12 전까지 BLOCKED/NOT TESTED로 유지하며 W05 전체 AUTH01–12 PASS로 과대 표시하지 않음 |
 | ADR34 | ACCEPT | W05 Readonly and Edit Authorization 완료 | 최초 독립 QA finding 3건(lock 후 expiry 판정, 유효 wrong-project session만 Cookie 보존, canonical protected public ID)을 수정하고 Backend/Security·Frontend/Browser QA PASS, Manager ACCEPT; [W05 검증](W05_REVIEW.md) |
 | ADR35 | ACCEPT | Playwright 기본 개발 server는 격리 Turbopack·worker 1개를 사용 | Webpack 개발 cache의 transient manifest race와 병렬 spec의 의도한 process-global create limit 공유를 재현했다. 기본 suite는 직렬화하되 동일 revision 동시 PATCH는 spec 내부 병렬 HTTP로 유지하고 production build의 Webpack 설정은 유지 |
+| ADR36 | ACCEPT | W06 date-only는 자체 Gregorian ordinal과 `1900-01-01..2199-12-31` 절대 범위를 사용 | ECMAScript Date/instant/timezone 의존을 피하고 API·DB 상한과 정렬. 전체 109,573일 왕복·요일 oracle과 여러 TZ에서 검증 |
+| ADR37 | ACCEPT | W06은 exact `Asia/Seoul`/`[6,0]`, 중복 Holiday 거부·nullable name 보존, Task `1..10000`, calendar-only Leaf/Milestone까지만 구현 | Task 저장은 W07, Summary/WBS는 W08, FS·Calendar 변경 Manual aggregate conflict는 W09로 분리 |
+| ADR38 | ACCEPT | W06 Working Calendar and Duration 완료 | QA의 SSR-only runtime probe와 nullable Holiday 불일치를 수정하고 raw SSR pending→hydrated browser 계산, Domain 135/135·전체 226/226·Chromium 7/7 PASS; [W06 검증](W06_REVIEW.md) |
 
 ## Integration 원칙
 
@@ -48,4 +51,4 @@ Agent 초안은 바로 완료로 처리하지 않는다. Manager는 공동 계�
 
 ## 구현 시작과 사용자 판단
 
-W01–W05 기반과 Project 생성·Direct Readonly·edit authorization을 구현했다. 다음 독립 기반은 W06 Working Calendar and Duration이다. 비용·데이터 손실·조직 정책·대규모 Architecture/Workflow 변경이 생기면 해당 작업 전에 판단을 요청한다. 아직 실제 Workbook이나 운영 환경을 시험하지 않았으므로 이를 이유로 다른 독립 기반 작업을 막지 않는다.
+W01–W06 기반과 Project 생성·Direct Readonly·edit authorization·Calendar/Leaf Scheduling을 구현했다. 다음 vertical slice는 W07 Task and Link Persistence다. 비용·데이터 손실·조직 정책·대규모 Architecture/Workflow 변경이 생기면 해당 작업 전에 판단을 요청한다. 아직 실제 Workbook이나 운영 환경을 시험하지 않았으므로 이를 이유로 다른 독립 기반 작업을 막지 않는다.

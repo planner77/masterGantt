@@ -26,7 +26,7 @@
 - Task text는 grid와 chart 양쪽에 나타나므로 전역 text locator가 strict-mode 중복을 만들었다. grid scope로 좁혔다.
 - SVAR/lib-dom은 문자열 Link ID를 DOM에서 `:design-to-build`로 encode했다. 설치 artifact의 실제 DOM을 확인해 E2E selector를 수정했고 재실행에서 PASS했다.
 - Summary의 날짜가 child 범위보다 짧고 Milestone에 task 전용 필드가 들어간 초기 fixture를 설치 타입/표현에 맞게 정리했다.
-- `end`의 exclusive 의미는 공식 REST 예제로부터의 추론이지 vendor의 명시적 보장이 아니다. 변환을 한 Adapter에 격리하고, 실제 pointer drag/resize와 서버 round-trip은 W06/W07의 재검증 항목으로 남겼다.
+- `end`의 exclusive 의미는 공식 REST 예제로부터의 추론이지 vendor의 명시적 보장이 아니다. 변환을 한 Adapter에 격리하고, 실제 pointer drag/resize와 서버 round-trip은 W07의 재검증 항목으로 남겼다.
 
 ## Verification
 

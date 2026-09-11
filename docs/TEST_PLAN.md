@@ -1,6 +1,6 @@
 # Test Plan
 
-상태: qa_docs가 작성한 검증 전략. W02 DB 기반은 [W02_REVIEW.md](W02_REVIEW.md), W03 Gantt 기반은 [W03_REVIEW.md](W03_REVIEW.md), W04 Project 생성·직접 조회는 [W04_REVIEW.md](W04_REVIEW.md), W05 edit authorization은 [W05_REVIEW.md](W05_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W05의 Project/session slice PASS가 Scheduling/Task/Import/Export/Docker/VBA 통과를 뜻하지 않는다.
+상태: qa_docs가 작성한 검증 전략. W02–W05 검증 기록과 W06 Calendar/Leaf Scheduling의 [W06_REVIEW.md](W06_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W06 PASS가 Task 저장, Summary/WBS, FS, Import/Export/Docker/VBA 통과를 뜻하지 않는다.
 
 ## 판정과 증거
 
@@ -61,6 +61,16 @@ P-A/P-B 두 Project에 같은 externalId를 사용해 isolation을 시험한다.
 - **AUTH11 PASS (W05 application slice):** password/token/hash/salt가 response body/error/non-cookie header/URL/DOM/DB 원문에 나타나지 않는다. 운영 access log와 Import/Export는 NOT TESTED다.
 - **AUTH12 PASS:** credential·`auth_version + 1`·`revision + 1`·기존 session 전체 revoke·호출자 새 session을 하나의 transaction에 저장하고 old session/password 거부와 caller edit 유지를 browser까지 검증했다.
 - 전체 11개 파일 91개 Vitest, typecheck/lint/build와 clean 기본 Turbopack Chromium E2E 4개가 PASS했다. Webpack 개발 cache의 manifest race와 병렬 spec이 의도한 process-global create limit을 공유하는 실패를 재현해, 기본 Playwright server는 Turbopack·worker 1개로 고정했다. 동일 revision 병행성은 W05 spec 내부 병렬 HTTP로 계속 검증한다. 정확한 명령·환경·잔여 위험은 [W05_REVIEW.md](W05_REVIEW.md)에 기록한다.
+
+### W06 실행 증거
+
+- **SCH01 PASS:** strict `YYYY-MM-DD`, `1900-01-01..2199-12-31`, 윤년·월말·연말·overflow를 검증하고 전체 109,573일을 독립 oracle과 ordinal 왕복·요일 대조했다.
+- **SCH02 PASS:** exact `Asia/Seoul`/weekend `[6,0]`, Holiday 날짜·중복·nullable name, 주말 중복, inclusive/exclusive next working day, 전체 비근무 범위 탐색 종료를 검증했다.
+- **SCH03 PASS:** 일반 Task duration `1..10000`, inclusive end, supplied end 일치/불일치, milestone duration 0과 `start=end`를 검증했다.
+- **SCH04/SCH06/SCH07 PARTIAL PASS (W06 leaf slice):** `requestedStart` 보존, Auto 비근무 시작 이동 warning, Manual 비근무 시작 거부, calendar-only milestone을 검증했다. Dependency 이동·Manual FS/Calendar aggregate conflict는 W09까지 BLOCKED다.
+- **SCH11 PARTIAL PASS:** pure 입력 불변, frozen deterministic result, 5개 Node `TZ` 동일 결과와 Domain의 Date/Intl/process/I/O 비의존을 검증했다. Graph/summary 전체 멱등성은 W08/W09 후속이다.
+- **SCH12 PARTIAL PASS:** raw SSR은 `pending`이고 hydration 이후에만 Client Engine이 계산하도록 구성해 UTC·Asia/Seoul·America/New_York Chromium에서 Server/Browser canonical fixture가 일치했다. 실제 SVAR drag/resize와 DB 저장은 W07까지 BLOCKED다.
+- W06 Domain 4 files/135 tests와 전체 15 files/226 Vitest, typecheck/lint/build, clean 기본 Turbopack Chromium 7/7이 PASS했다. 정확한 범위·독립 QA·잔여 위험은 [W06_REVIEW.md](W06_REVIEW.md)에 기록한다.
 
 ## Scheduling / database
 

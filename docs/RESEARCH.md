@@ -34,6 +34,16 @@ OWASP CSRF 지침은 unsafe request에서 source/target origin의 정확한 비�
 
 W05는 기존 `0001_initial_schema.sql`의 password KDF·auth version·edit session binding/expiry/revoke column으로 요구를 충족해 migration을 추가하지 않는다. Password rotation의 비싼 KDF는 transaction 밖에서 실행하되, session과 aggregate revision은 `BEGIN IMMEDIATE` write transaction 안에서 다시 확인해야 race에서 revoke된 token이 write하지 못한다는 것이 Manager 설계 판단이다.
 
+## W06 Date-only Calendar 조사와 적용
+
+ECMAScript Date Time String Format은 offset 없는 date-only 문자열을 UTC로 해석하지만 offset 없는 date-time은 local time으로 해석한다. Date는 instant/timezone 모델이므로 `new Date("YYYY-MM-DD")`, local 자정 또는 밀리초 차이를 업무 날짜 산술에 사용하지 않는다. W06은 검증된 Gregorian year/month/day를 ordinal로 변환해 host timezone과 DST에 독립적으로 계산한다. [ECMAScript Date Time String Format](https://tc39.es/ecma262/multipage/numbers-and-dates.html#sec-date-time-string-format), [Time Values](https://tc39.es/ecma262/2025/multipage/numbers-and-dates.html#sec-time-values-and-time-range)
+
+현재 Node 22.14.0에서 표준 `Temporal`은 제공되지 않아 polyfill 의존성을 추가하지 않았다. 작은 v1 Calendar는 자체 ordinal 구현으로 제한하고 전체 지원 범위 `1900-01-01..2199-12-31`의 109,573일을 독립 UTC oracle과 왕복·요일 대조했다. 실제 계산 코드는 `Date`, `Intl`, process timezone을 사용하지 않으며 UTC·Asia/Seoul·America/New_York·Europe/Berlin·Pacific/Apia child process와 세 Chromium timezone에서 동일 결과를 확인했다.
+
+IANA timezone 자료는 civil-time 규칙이 정책 변경에 따라 갱신될 수 있음을 설명한다. W06의 `Asia/Seoul`은 Project 업무 날짜의 identifier일 뿐 offset 변환 입력이 아니다. 향후 시각 단위 일정이 생기면 tzdb/version 정책을 별도 결정한다. [IANA tzdb theory](https://www.iana.org/time-zones/theory), [tzdb zone list](https://github.com/eggert/tz/blob/main/zonenow.tab)
+
+W06의 weekend는 exact `[6,0]`, 일반 Task duration은 `1..10000`, Holiday는 중복 날짜를 거부하고 nullable 표시명을 보존한다. 임의 국가 공휴일은 생성하지 않는다. Summary/WBS와 FS/Manual aggregate conflict는 이 Calendar 기반 위에서 W08/W09가 독립 구현한다. 실행 근거는 [W06_REVIEW.md](W06_REVIEW.md)에 기록한다.
+
 ## SVAR Core와 API
 
 ### W03 설치 검증 — 2026-09-11
@@ -42,7 +52,7 @@ npm registry와 설치 artifact를 다시 확인하여 `@svar-ui/react-gantt` **
 
 공식 Next.js guide에 따라 Gantt는 browser API를 사용하는 Client Component에서 mount 이후 렌더링하고, `@svar-ui/react-gantt/all.css`, `Willow`, 명시적인 높이·너비를 사용한다. `readonly=true`는 widget data 변경을 막지만 서버 authorization을 대체하지 않는다. [Next.js 통합](https://docs.svar.dev/react/gantt/integration-guides/nextjs/setup/), [readonly](https://docs.svar.dev/react/gantt/api/properties/readonly/)
 
-Core task는 `end` 또는 `duration` 중 하나를 사용하며 link type의 FS 표기는 `e2s`다. 공식 문서는 end 날짜의 inclusive/exclusive 의미를 명시적으로 정의하지 않는다. 공식 REST 예제가 1일 task를 다음 날 00:00 end로 나타내는 것은 exclusive end를 시사하지만 **추론**으로만 기록한다. W03 Adapter는 본 프로젝트의 inclusive date-only end와 widget의 exclusive local `Date` 경계를 명시하고 round-trip fixture로 검증한다. 실제 drag/resize/server 저장 의미는 W06/W07에서 다시 확인한다. [tasks](https://docs.svar.dev/react/gantt/api/properties/tasks/), [links](https://docs.svar.dev/react/gantt/api/properties/links/), [공식 backend guide](https://docs.svar.dev/react/gantt/integration-guides/nextjs/backend/)
+Core task는 `end` 또는 `duration` 중 하나를 사용하며 link type의 FS 표기는 `e2s`다. 공식 문서는 end 날짜의 inclusive/exclusive 의미를 명시적으로 정의하지 않는다. 공식 REST 예제가 1일 task를 다음 날 00:00 end로 나타내는 것은 exclusive end를 시사하지만 **추론**으로만 기록한다. W03 Adapter는 본 프로젝트의 inclusive date-only end와 widget의 exclusive local `Date` 경계를 명시하고 round-trip fixture로 검증한다. 실제 drag/resize/server 저장 의미는 W07에서 다시 확인한다. [tasks](https://docs.svar.dev/react/gantt/api/properties/tasks/), [links](https://docs.svar.dev/react/gantt/api/properties/links/), [공식 backend guide](https://docs.svar.dev/react/gantt/integration-guides/nextjs/backend/)
 
 W03은 Core-only 시각화 POC다. `api.setNext`/RestDataProvider를 서버에 연결하거나 PRO 자동 scheduling을 사용하지 않는다. 향후 command adapter는 같은 사용자 동작을 한 번만 Service API에 전달하고 서버 snapshot을 최종 상태로 반영해야 한다. [공식 save guide](https://docs.svar.dev/react/gantt/guides/load-and-save/save-to-backend/), [action interception](https://docs.svar.dev/react/gantt/guides/configuration/prevent_actions/)
 

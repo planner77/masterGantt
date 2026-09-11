@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 경계
 
-이 문서는 REST API 계약이다. W04의 Project 생성·직접 Readonly 조회에 이어 W05의 edit session lifecycle, Project metadata 보호 mutation, password rotation을 구현했다. W05 최종 판정은 [W05 검증 기록](W05_REVIEW.md), Task/Calendar/Import/Export API는 각 후속 작업 상태와 함께 본다.
+이 문서는 REST API 계약이다. W04의 Project 생성·직접 Readonly 조회에 이어 W05의 edit session lifecycle, Project metadata 보호 mutation, password rotation을 구현했다. W06은 REST route나 저장을 추가하지 않고 pure Calendar/Leaf Scheduling Domain을 구현했다. W06 최종 판정은 [W06 검증 기록](W06_REVIEW.md), Task/Calendar/Import/Export API는 각 후속 작업 상태와 함께 본다.
 
 ```text
 Route Handler

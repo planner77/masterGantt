@@ -1,9 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { LocalTaskUpdateCommand } from "./command-gateway";
+import {
+  getSchedulingRuntimeFixture,
+  serializeSchedulingRuntimeFixture,
+  type SchedulingRuntimeFixtureResult,
+} from "./scheduling-runtime-fixture";
 
 const SvarGantt = dynamic(
   () => import("./svar-gantt").then((module) => module.SvarGantt),
@@ -13,10 +18,29 @@ const SvarGantt = dynamic(
   },
 );
 
-export function GanttDemo() {
+interface GanttDemoProps {
+  readonly serverSchedulingFixture: SchedulingRuntimeFixtureResult;
+}
+
+export function GanttDemo({ serverSchedulingFixture }: GanttDemoProps) {
   const [editablePreview, setEditablePreview] = useState(false);
   const [previewUpdateRequest, setPreviewUpdateRequest] = useState(0);
   const [lastCommand, setLastCommand] = useState<string>("읽기 전용 상태입니다.");
+  const [browserSchedulingFixture, setBrowserSchedulingFixture] = useState<SchedulingRuntimeFixtureResult | null>(null);
+  const serverFixtureText = serializeSchedulingRuntimeFixture(serverSchedulingFixture);
+  const browserFixtureText = browserSchedulingFixture === null
+    ? "pending"
+    : serializeSchedulingRuntimeFixture(browserSchedulingFixture);
+  const schedulingFixtureMatches = browserSchedulingFixture === null
+    ? "pending"
+    : String(serverFixtureText === browserFixtureText);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setBrowserSchedulingFixture(getSchedulingRuntimeFixture());
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const receiveLocalCommand = useCallback((command: LocalTaskUpdateCommand) => {
     setLastCommand(`${String(command.taskId)} 변경을 감지했습니다. 이 데모는 저장하지 않습니다.`);
@@ -51,6 +75,20 @@ export function GanttDemo() {
         </button>
         <p id="gantt-preview-note">기본은 읽기 전용입니다. 미리보기 변경은 서버나 SQLite에 저장되지 않습니다.</p>
       </div>
+
+      <p
+        aria-label="일정 엔진 런타임 일치 상태"
+        data-scheduling-browser={browserFixtureText}
+        data-scheduling-match={schedulingFixtureMatches}
+        data-scheduling-server={serverFixtureText}
+        role="status"
+      >
+        {schedulingFixtureMatches === "pending"
+          ? "브라우저 일정 엔진 결과를 확인하는 중입니다."
+          : schedulingFixtureMatches === "true"
+            ? "일정 엔진 결과가 일치합니다."
+            : "일정 엔진 결과가 일치하지 않습니다."}
+      </p>
 
       <div className="gantt-demo-frame" aria-describedby="gantt-preview-note">
         <SvarGantt

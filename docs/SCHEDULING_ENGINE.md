@@ -1,6 +1,6 @@
 # Scheduling Engine 설계
 
-상태: Bootstrap 설계 문서. 알고리즘·API·테스트는 아직 구현하지 않았다. 요구사항 출처는 [AGENTS.md](../AGENTS.md), 외부 입력 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)이다.
+상태: W06 Working Calendar and Duration 구현·독립 QA PASS / Manager ACCEPT. Gregorian date-only, Project Calendar, 근무일 연산과 calendar-only Leaf/Milestone 계산을 `src/domain/scheduling/`에 구현했다. Summary/WBS, FS 재계산, 저장·Calendar mutation은 W08/W09/W07 후속이다. 근거는 [W06_REVIEW.md](W06_REVIEW.md), 외부 입력 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)이다.
 
 ## 1. 범위와 결정 구분
 
@@ -60,7 +60,7 @@ flowchart TD
 
 Local 자정 Timestamp 차이를 `86,400,000`으로 나누어 일수를 계산하지 않는다. DST가 있는 실행 환경에서도 하루를 Gregorian 날짜 하나로 센다. Browser `Date` 객체는 SVAR Adapter 경계에서만 생성·해석하고 `toISOString().slice(0, 10)`에 의존해 Local 날짜를 변환하지 않는다. Server의 저장·계산은 Browser 및 Container Timezone과 무관해야 한다.
 
-`Asia/Seoul`은 Project의 표시·업무 날짜 기준이다. 문자열 `2026-09-11` 자체를 UTC Instant로 바꾸는 규칙이 아니다. Domain 날짜 표현의 범위는 네 자리 양의 Gregorian 연도이며, 범위 초과를 오류 처리한다. 실제 UI/Excel 호환 범위와 요청별 최대 기간·Task 수는 구현 착수 시 [API.md](API.md)의 입력 한도로 정렬한다.
+`Asia/Seoul`은 Project의 표시·업무 날짜 기준이다. 문자열 `2026-09-11` 자체를 UTC Instant로 바꾸는 규칙이 아니다. W06 Domain 지원 범위는 [API.md](API.md)의 초기 상한과 같은 `1900-01-01..2199-12-31`이며 전체 109,573일을 절대 탐색 상한으로 사용한다. 일반 Task duration은 정수 `1..10000`이다. 날짜 또는 계산 결과가 범위를 벗어나면 구조화된 오류로 종료한다.
 
 ### Calendar 연산 계약
 
@@ -71,11 +71,26 @@ Local 자정 Timestamp 차이를 `86,400,000`으로 나누어 일수를 계산�
 | `workingDaysBetween(s, e)` | s≤e인 구간의 양 끝을 포함하여 근무일 수 계산 |
 | `endFromStart(s, n)` | 근무일 s를 첫날로 하여 n번째 근무일 반환. Task는 n≥1 |
 
-Holiday는 조직이 설정한 날짜만 사용한다. 국가 공휴일이나 대체공휴일을 추측·자동 생성하지 않는다. 휴일이 주말과 겹쳐도 한 번만 제외하며, 휴일 목록의 잘못된 날짜는 거부한다. 전체 주간이 비근무일이 되는 미래 설정이나 유효 범위 내 근무일이 없는 탐색은 명확한 오류로 끝낸다. 일수·탐색 횟수 상한과 범위 검사는 무한 루프나 과도한 CPU 사용을 방지해야 한다.
+Holiday는 조직이 설정한 날짜만 사용한다. 국가 공휴일이나 대체공휴일을 추측·자동 생성하지 않는다. 휴일이 주말과 겹쳐도 한 번만 제외하며, 잘못된 날짜와 중복 날짜는 명시적 오류로 거부한다. 성공한 Calendar는 날짜순의 고유 목록으로 복사·동결하며 표시명 `string | null | omitted`을 구분해 보존한다. 전체 범위가 비근무일이어도 최대 지원 범위 안에서 종료하고 근무일을 찾지 못했다는 오류를 반환한다.
+
+### W06 공개 Domain API
+
+`src/domain/scheduling/index.ts`는 다음 pure API와 상한을 공개한다.
+
+- `parseDateOnly`, ordinal 변환·가감·요일: strict Gregorian label과 범위 검사
+- `createWorkingCalendar`: exact `Asia/Seoul`, exact weekend `[6,0]`, Holiday 검증·정렬·불변 복사
+- `isWorkingDay`, `nextWorkingDay`, `workingDaysBetween`, `endFromStart`: 양 끝 포함 근무일 연산
+- `scheduleLeaf`: `requestedStart` 보존, Auto 비근무 시작 이동 warning, Manual 거부, Task/Milestone와 dependency 전 optional end 검증
+- `SchedulingError`: 안정적인 `code`와 제한된 `field/date/expectedDate/index` context
+- `MIN_SUPPORTED_DATE`, `MAX_SUPPORTED_DATE`, `MAX_CALENDAR_SPAN_DAYS`, `MAX_TASK_DURATION`, `MAX_CALENDAR_HOLIDAYS`: 실행 가능한 자원 경계
+
+구현은 자체 Gregorian ordinal을 사용하며 `Date`, `Date.parse`, `Intl`, system timezone, 현재 시각, React, SVAR, DB, HTTP 또는 I/O를 import하지 않는다. Calendar 조회는 날짜 방문 수 `D`와 정렬 Holiday의 이진 검색 `O(log H)`를 사용하며 `D≤109573`이다.
 
 ## 5. Leaf Duration과 입력 검증 순서
 
 일반 Task는 `requestedStart + duration`을 기준으로 한다. Milestone은 `duration=0`, 계산된 `start=end`다. Duration이 0인 일반 Task를 Milestone으로 조용히 변환하지 않는다. Progress 100이라고 날짜·Duration을 줄이지 않는다.
+
+아래 순서는 hierarchy와 dependency를 포함한 전체 Engine의 목표 순서다. W06 `scheduleLeaf`는 date/type/duration/mode/optional end만 입력받으며 progress, hierarchy와 dependency 검증은 W07–W09에서 이 순서에 연결한다.
 
 1. 입력 날짜, Type, Duration, Progress를 검증한다.
 2. Auto의 비근무 요청일은 다음 근무일로 정규화하고 `NON_WORKING_START_SHIFTED` 경고를 만든다. Manual은 `NON_WORKING_MANUAL_START` 오류다.
@@ -163,7 +178,7 @@ Task 수 N, Dependency 수 E, Holiday 수 H일 때 ID·그래프 검증과 위�
 
 ## 10. 구현 시 필수 검증
 
-상태는 모두 **NOT TESTED — 설계 단계**다. 계산 구현과 동시에 Vitest Unit Test를 작성하며 [TEST_PLAN.md](TEST_PLAN.md)에 실행 결과를 연결한다.
+W06 범위인 날짜·Calendar·Leaf Duration·Milestone·단일 Leaf Manual 시작과 runtime 결정성은 **PASS**다. 아래 Graph/Cycle/Summary/WBS/Dependency 재계산·저장 항목은 각각 W08/W09/W07까지 **NOT TESTED/BLOCKED**다. 정확한 자동화 증거는 [W06_REVIEW.md](W06_REVIEW.md)에 기록한다.
 
 | 영역 | 필수 검증 |
 | --- | --- |
