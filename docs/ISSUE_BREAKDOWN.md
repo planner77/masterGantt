@@ -47,20 +47,20 @@
 - Suggested / Assigned Agent: backend + frontend; 병렬 write 시 Manager가 파일을 분리한다.
 - Dependencies: W02.
 - Related Documents: [API.md](API.md), [SECURITY.md](SECURITY.md), [W04_REVIEW.md](W04_REVIEW.md).
-- Status: DONE — 독립 QA PASS / Manager ACCEPT. Create는 exact Origin, 32 KiB JSON, strict Zod, process-global 5/hour fail-closed limiter, scrypt concurrency 2, hardened Cookie를 포함한다. Direct GET/UI는 Cookie와 무관하게 Readonly이며 collection GET은 405다.
-- Risk: production proxy의 지속 limiter와 KDF benchmark는 D03/W16에서 필요하다. 생성 session의 검증·unlock/logout/expiry/revoke/password rotation은 W05다.
+- Status: DONE — 독립 QA PASS / Manager ACCEPT. Create는 exact Origin, 32 KiB JSON, strict Zod, process-global 5/hour fail-closed limiter, scrypt concurrency 2, hardened Cookie를 포함한다. Direct GET은 Cookie와 무관하게 Readonly이며 collection GET은 405다. W05 UI는 별도 current-session 확인으로 edit 상태를 표시한다.
+- Risk: production proxy의 지속 limiter와 KDF benchmark는 D03/W16에서 필요하다. 생성 session의 검증·unlock/logout/expiry/revoke/password rotation은 W05에서 완료했다.
 
 ## W05 — Readonly and Edit Authorization
 
 - Goal: Readonly and Edit Authorization 기능/기반을 검증 가능한 단위로 완성한다.
 - Background: UI 밖 mutation도 보호해야 한다.
-- Scope: 저장된 scrypt/session의 검증·timing-safe compare, unlock/logout/expiry/revoke/password rotation, 모든 mutation authorization와 revision. 생성 전용 KDF/session/cookie/Origin/rate 기반은 W04에서 구현됨
-- Acceptance Criteria: AUTH01–12; 잘못된·만료·다른 Project session 거부; password rotation; 보호 endpoint inventory.
+- Scope: 저장된 scrypt/session의 검증·timing-safe compare, unlock/current/logout/expiry/revoke/password rotation, Project metadata 대표 보호 mutation과 revision. 생성 전용 KDF/session/cookie/Origin/rate 기반은 W04에서 구현됨
+- Acceptance Criteria: W05에 적용 가능한 AUTH01–06, AUTH08, AUTH12와 AUTH07/09–11의 Project metadata/session slice; 잘못된·만료·revoke·auth-version·다른 Project session 거부; password rotation rollback; 실제 Route Handler와 보호 policy inventory. Task CRUD의 AUTH07과 Import preview/commit의 AUTH09–11은 W07/W12 전까지 BLOCKED/NOT TESTED로 유지한다.
 - Suggested / Assigned Agent: backend + frontend; 병렬 write 시 Manager가 파일을 분리한다.
 - Dependencies: W04.
-- Related Documents: [SECURITY.md](SECURITY.md), [API.md](API.md), [TEST_PLAN.md](TEST_PLAN.md).
-- Status: PLANNED.
-- Risk: 인증 누락·KDF 자원.
+- Related Documents: [SECURITY.md](SECURITY.md), [API.md](API.md), [TEST_PLAN.md](TEST_PLAN.md), [W05_REVIEW.md](W05_REVIEW.md).
+- Status: DONE — 독립 Backend/Security 및 Frontend/Browser QA PASS / Manager ACCEPT. Unlock/current/logout, metadata PATCH, password rotation, UI와 실제 route policy inventory를 구현했다. [검증 기록](W05_REVIEW.md)
+- Risk: production persistent/proxy limiter·KDF benchmark는 D03/W16, Task/Import 전체 authorization은 W07/W12에 남는다.
 
 ## W06 — Working Calendar and Duration
 

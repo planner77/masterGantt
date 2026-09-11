@@ -8,7 +8,10 @@ const isolatedDatabasePath = resolve(process.cwd(), ".data", "playwright.sqlite3
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  fullyParallel: true,
+  // The application intentionally applies a process-global create limiter.
+  // Keep browser specs serial while each spec can still exercise HTTP races explicitly.
+  fullyParallel: false,
+  workers: 1,
   use: {
     baseURL,
     trace: "retain-on-failure",
@@ -16,7 +19,7 @@ export default defineConfig({
   webServer: externalBaseURL
     ? undefined
     : {
-        command: "npm run dev -- --webpack --hostname 127.0.0.1 --port 3100",
+        command: "npm run dev -- --hostname 127.0.0.1 --port 3100",
         url: baseURL,
         reuseExistingServer: false,
         env: {

@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 경계
 
-이 문서는 REST API 계약이다. W04의 `POST /api/projects`, `GET /api/projects/{publicId}`와 비활성 collection GET은 구현·Manager 검증했고, 아래 Task/Auth/Import/Export API는 명시된 후속 작업 전까지 계획이다. 구현 상태는 [W04 검증 기록](W04_REVIEW.md)과 함께 본다.
+이 문서는 REST API 계약이다. W04의 Project 생성·직접 Readonly 조회에 이어 W05의 edit session lifecycle, Project metadata 보호 mutation, password rotation을 구현했다. W05 최종 판정은 [W05 검증 기록](W05_REVIEW.md), Task/Calendar/Import/Export API는 각 후속 작업 상태와 함께 본다.
 
 ```text
 Route Handler
@@ -167,7 +167,7 @@ W04 route는 discovery가 활성화되지 않았음을 명시하는 `405 METHOD_
 
 ### `GET /api/projects/{publicId}`
 
-Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 canonical lowercase UUID v4가 아니면 동일한 `404 PROJECT_NOT_FOUND`이다. W04는 Cookie 유무와 관계없이 `permission: "readonly"`만 반환한다. W05 session-current 경계가 구현된 뒤 edit 표시를 별도로 동기화하며 mutation은 항상 다시 인증한다.
+Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 canonical lowercase UUID v4가 아니면 동일한 `404 PROJECT_NOT_FOUND`이다. Cookie 유무와 관계없이 `permission: "readonly"`만 반환하며, UI는 W05의 session-current endpoint로 edit 표시를 별도 동기화한다. Mutation은 표시 상태와 무관하게 server에서 다시 인증한다.
 
 ```json
 {
@@ -194,7 +194,31 @@ Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 c
 
 ### `PATCH /api/projects/{publicId}`
 
-Edit session과 `If-Match`가 필요하다. `name`과 `description`만 변경한다. Unknown field와 `null`로 삭제하는 요청은 거부한다. 성공 시 revision이 증가한다.
+Edit session, exact same-origin `Origin`, 강한 단일 `If-Match: "<positive revision>"`가 필요하다. strict JSON object에서 `name`과 `description` 중 하나 이상만 변경할 수 있다. Empty object, unknown field, `null`, weak/bare/wildcard/multiple ETag는 거부한다. 성공 시 revision이 정확히 1 증가하며 다음 canonical full snapshot을 반환한다.
+
+```json
+{
+  "name": "Plant Expansion — Revised",
+  "description": "Updated scope"
+}
+```
+
+```json
+{
+  "data": {
+    "project": { "publicId": "...", "name": "...", "description": "...", "revision": 8, "calendar": { "timezone": "Asia/Seoul", "weekendDays": [6, 0], "holidays": [] } },
+    "tasks": [],
+    "links": [],
+    "warnings": [],
+    "operation": {
+      "kind": "projectMetadata",
+      "changedFields": ["name", "description"]
+    }
+  }
+}
+```
+
+응답에는 UI permission을 넣지 않는다. UI는 snapshot과 `GET .../edit-sessions/current`를 분리해 동기화하고 서버는 write transaction 안에서 session과 revision을 최종 재검증한다.
 
 ### `PUT /api/projects/{publicId}/calendar`
 
@@ -220,17 +244,21 @@ v1은 timezone `Asia/Seoul`, weekend `[6,0]`만 허용한다. Holiday 중복/날
 
 성공은 `204 No Content`와 HttpOnly Cookie를 발급한다. 실패는 Project 존재 여부나 password mismatch를 구분하지 않는 일반 `401 INVALID_CREDENTIALS`를 반환한다. Rate limit을 적용한다.
 
+입력은 32 KiB UTF-8 JSON 상한과 strict `{ editPassword }` 계약을 사용한다. 로그인 candidate는 최소 길이로 사전 거부하지 않아 짧거나 빈 잘못된 값도 일반 credential 검증 경계를 통과하며 UTF-8 1,024 bytes를 초과할 수 없다. Unknown Project와 손상 credential에도 지원 profile의 dummy scrypt를 수행한다. W05 개발 경계는 forwarded client IP를 신뢰하지 않고 process-global 50회/15분과 canonical Project별 10회/15분을 함께 적용한다. Project key 저장은 최대 1,024개로 제한하며 capacity 초과는 fail closed한다. Persistent proxy limiter는 D03/W16 범위다.
+
 ### `GET /api/projects/{publicId}/edit-sessions/current`
 
-Frontend가 unlock 표시를 동기화하는 선택 endpoint이다. 유효하면 `{ "data": { "permission": "edit", "expiresAt": "..." } }`, 아니면 `{ "data": { "permission": "readonly" } }`를 반환한다. Token 자체는 반환하지 않는다.
+Frontend가 unlock 표시를 동기화하는 선택 endpoint이다. 유효하면 `{ "data": { "permission": "edit", "expiresAt": "..." } }`, 아니면 `{ "data": { "permission": "readonly" } }`를 반환한다. Token 자체는 반환하지 않는다. Canonical Project가 없으면 direct read와 같은 404이고, missing/malformed/unknown/expired/revoked/auth-version mismatch/wrong-project Cookie는 존재하는 Project에서 Readonly다. 이 GET은 session 사용 시각, TTL, Cookie, DB를 변경하지 않는다.
 
 ### `DELETE /api/projects/{publicId}/edit-sessions/current`
 
-현재 session을 revoke하고 같은 속성의 만료 Cookie를 내려 보낸다. Logout은 idempotent하게 `204`를 반환한다.
+Exact same-origin `Origin`이 필요하다. 현재 Project에 binding된 session은 revoke하고 같은 name/path/security 속성의 만료 Cookie를 내려 보낸다. Malformed 또는 DB에 없는 token은 안전하게 Cookie를 만료할 수 있고, Cookie가 없어도 성공한다. 전역 `Path=/` Cookie가 다른 Project의 유효 session임을 확인한 경우에는 그 session을 revoke하지 않고 Cookie도 지우지 않는다. Logout은 idempotent하게 `204`를 반환한다.
 
 ### `PUT /api/projects/{publicId}/edit-password`
 
 현재 edit session, `If-Match`, `newEditPassword`가 필요하다. 새 salt/hash를 저장하고 auth_version과 revision을 증가시키며 기존 session을 모두 revoke한다. 같은 transaction에서 호출자에게만 새 random session을 발급한다. 성공은 204 No Content, 새 ETag와 Set-Cookie다. 호출자는 새 Cookie로 편집을 유지하고 다른 이전 session은 거부된다. 원문 password는 DB/log/response에 남기지 않는다.
+
+새 password는 생성과 같은 최소 12 Unicode code point·UTF-8 최대 1,024 bytes 정책을 사용한다. 저비용 Origin/input/session/If-Match precheck 뒤 scrypt는 transaction 밖에서 수행하고, 즉시 write transaction에서 session을 먼저, revision을 다음으로 최종 확인한다. 새 credential·`auth_version + 1`·`revision + 1`·전체 revoke·호출자 새 session 중 하나라도 실패하면 모두 rollback한다.
 
 Project delete API는 초기 요구사항에 없고 복구 정책이 정해지지 않았으므로 제공하지 않는다.
 

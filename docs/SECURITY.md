@@ -2,7 +2,7 @@
 
 ## 1. Security Model
 
-이 문서는 Project별 Edit Password와 browser edit session을 사용하는 초기 보안 정책의 Source of Truth이다. W02에서 DB 격리·parameter binding을, W04에서 생성 전용 scrypt/session/cookie/Origin/body/rate 경계와 Direct Readonly를 구현·Manager 검증했다. Password verification, session consumption·revoke·rotation과 mutation authorization는 W05이며 침투 검증은 아직 수행하지 않았다. [W04 검증 기록](W04_REVIEW.md)
+이 문서는 Project별 Edit Password와 browser edit session을 사용하는 초기 보안 정책의 Source of Truth이다. W02에서 DB 격리·parameter binding을, W04에서 생성 bootstrap과 Direct Readonly를 구현했다. W05는 password verification, session consumption·revoke·rotation과 대표 보호 mutation인 Project metadata 변경을 구현했다. W05 자동화·독립 검증 범위와 후속 Task/Import 보안 경계는 [W05 검증 기록](W05_REVIEW.md)에서 구분한다.
 
 핵심 경계는 다음과 같다.
 
@@ -41,7 +41,7 @@ W04는 위 저장 profile(`N=32768, r=8, p=3`, key 32 bytes, salt 16 bytes, `max
 
 ### 검증
 
-아래 항목은 W05 범위이며 W04 완료 판정에 포함하지 않는다.
+다음 검증 경계는 W05에서 구현했다.
 
 - DB에 저장한 parameter와 salt로 candidate를 동일하게 derivation한다.
 - 기대값과 실제값을 같은 길이의 Buffer로 만들고 `crypto.timingSafeEqual`로 비교한다.
@@ -62,7 +62,7 @@ W04는 위 저장 profile(`N=32768, r=8, p=3`, key 32 bytes, salt 16 bytes, `max
 - Logout은 DB session을 revoke하고 Cookie를 만료시킨다. 만료/revoke row는 주기적으로 bounded batch 삭제한다.
 - Unlock마다 token을 rotate한다. Password 변경은 이전 모든 session revoke와 호출자 새 session 발급을 같은 transaction에서 처리하고 204/새 ETag/Set-Cookie를 반환한다.
 
-W04는 생성 시 32-byte random token을 발급해 browser Cookie에는 base64url 원문을, DB에는 SHA-256 digest·Project ID·`auth_version`·8시간 만료만 저장한다. 생성 transaction rollback과 원문 token DB 부재를 검증했다. 이 row를 실제 요청에서 조회해 binding/expiry/revoke를 판정하는 것은 W05다.
+W04는 생성 시 32-byte random token을 발급해 browser Cookie에는 base64url 원문을, DB에는 SHA-256 digest·Project ID·`auth_version`·8시간 만료만 저장했다. W05는 실제 요청에서 digest를 조회해 binding/strict expiry(`expires_at > now`)/revoke/auth-version을 판정한다. Current-session GET은 DB와 TTL을 변경하지 않는다. Unlock과 password rotation lifecycle transaction에서는 만료 또는 revoke row를 한 번에 최대 100개만 정리한다.
 
 ### Cookie
 
@@ -81,13 +81,15 @@ Max-Age=28800
 
 하나의 Cookie는 현재 unlock session 하나를 나타내며 다른 Project mutation에는 사용할 수 없다. 여러 Project를 동시에 edit해야 한다는 명시적 UX 요구가 생기면 cookie name/path 전략 또는 server-side session collection을 재설계한다. Token을 JavaScript, localStorage, sessionStorage에 복사하지 않는다.
 
-W04 Cookie serializer는 production HTTPS에서 `__Host-mastergantt_edit`, `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age=28800`, Domain 없음으로 검증했다. Local HTTP는 `mastergantt_edit` 이름과 Secure 없음으로 분리한다. Direct GET/UI는 이 Cookie가 있어도 아직 Readonly다.
+다른 Project URL에서 logout을 호출했을 때 Cookie token이 소유 Project 기준으로 credential integrity, binding, revoke, auth-version, strict expiry를 모두 만족하는 경우에는 해당 유효 session과 root Cookie를 보존한다. 단순히 session row가 존재하는 것만으로 보존하지 않으며 expired/revoked/auth-version-invalid/corrupt-owner/unknown token은 대상 Project를 변경하지 않고 Cookie만 만료한다.
+
+Cookie serializer는 production HTTPS에서 `__Host-mastergantt_edit`, `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age=28800`, Domain 없음으로 검증했다. Local HTTP는 `mastergantt_edit` 이름과 Secure 없음으로 분리한다. Cookie header는 8 KiB·100 pair 상한과 중복/형식 검사를 적용한다. Direct snapshot GET은 Cookie가 있어도 계속 Readonly이고 별도 current-session GET만 edit 표시를 동기화한다.
 
 ## 4. Server-side Authorization
 
 각 protected Route Handler는 동일 authorization middleware/service를 거친다.
 
-이 절의 protected Route 공통 경계는 W05 구현 대상이다. W04에는 보호 mutation이 없으며 create만 preexisting session이 없는 bootstrap 예외로 구현했다.
+W05는 이 공통 경계를 Project metadata PATCH와 edit-password PUT에 적용했다. W04 create는 preexisting session이 없는 bootstrap 예외다. 후속 Calendar/Task/Link/Import Route는 추가되는 즉시 같은 inventory와 검증 경계를 통과해야 한다.
 
 1. URL `publicId` 형식 검증
 2. Cookie 존재 및 최대 길이 검증
@@ -139,7 +141,7 @@ Project create와 unlock도 Origin을 검사한다. 이 endpoint들은 기존 Co
 
 모든 limit은 burst를 제한하고 `429` 및 가능한 경우 `Retry-After`를 반환한다. 성공 login도 짧은 burst limit에 포함해 공격자가 성공/실패 차이를 이용하기 어렵게 한다. In-memory limiter는 restart 시 상태가 사라지므로 internet-facing deployment의 유일한 방어로 간주하지 않는다.
 
-W04 Next Route의 표준 `Request`만으로 신뢰할 socket peer를 얻지 못하고 proxy 경계도 D03이라 create limiter는 모든 caller를 하나의 process-global key로 묶어 fail closed한다. 따라서 작은 내부 개발 환경에는 안전하지만 여러 정상 사용자가 5회 한도를 공유하고 restart 시 초기화된다. `X-Forwarded-For`는 사용하지 않는다. D03/W16에서 trusted proxy hop과 peer 전달 방식을 확정한 뒤 application key를 세분화하고 proxy의 persistent limit을 함께 적용한다. 잘못된 proxy trust는 rate limit 우회와 log spoofing을 만든다.
+Next Route의 표준 `Request`만으로 신뢰할 socket peer를 얻지 못하고 proxy 경계도 D03이라 create limiter는 모든 caller를 하나의 process-global key로 묶어 fail closed한다. Unlock도 forwarded header를 사용하지 않고 process-global 50회/15분과 canonical Project별 10회/15분을 함께 적용한다. Project key map은 1,024개로 제한하고 만료 key를 정리하며 capacity 초과는 fail closed한다. 이 process-local limiter는 restart 시 초기화되고 여러 정상 사용자가 global 한도를 공유한다. D03/W16에서 trusted proxy hop과 peer 전달 방식을 확정한 뒤 application key를 세분화하고 proxy의 persistent limit을 함께 적용한다. 잘못된 proxy trust는 rate limit 우회와 log spoofing을 만든다.
 
 추가 resource limit:
 
@@ -266,17 +268,17 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 
 ## 14. Security 검증 목록
 
-아래는 전체 보안 검증 계획이다. W04 Manager 검증은 Project 생성의 서로 다른 salt/hash, 원문 password DB/response/URL/DOM 부재, session digest 저장, 생성 원자성, production/local Cookie, exact Origin, request 크기·형식, rate/KDF capacity, public DTO 격리와 새 browser Readonly를 **PASS**했다. W02의 cross-project FK/Repository 기반도 PASS다. Unlock/password 비교, session 소비·만료·revoke·wrong-project, mutation authorization, image/운영 보안과 나머지는 **NOT TESTED**다. [근거 및 한계](W04_REVIEW.md)
+아래는 전체 보안 검증 계획이다. W04의 생성 bootstrap에 이어 W05는 password unlock, session lifecycle, metadata 보호 mutation, password rotation과 현재 Route inventory의 자동화·독립 QA를 **PASS**했다. W02의 cross-project FK/Repository 기반도 PASS다. Task/Link/Import의 실제 authorization과 운영 access log·proxy/KDF benchmark·image 보안은 후속이므로 완료로 간주하지 않는다. [W05 근거 및 한계](W05_REVIEW.md)
 
 - 동일 password의 Project 두 개가 서로 다른 salt/hash를 가짐 — W04 PASS
 - Password 원문/후보가 DB, response/error/URL/DOM에 없음 — W04 PASS; server log/workbook은 NOT TESTED
-- Correct/incorrect/unknown-project unlock과 rate limit — NOT TESTED (W05)
-- Session token DB 원문 부재 — W04 PASS; wrong-project/expired/revoked/auth-version mismatch 거부는 NOT TESTED (W05)
+- Correct/incorrect/unknown/corrupt credential unlock, dummy KDF와 bounded rate limit — W05 PASS
+- Session token DB 원문 부재 — W04 PASS; wrong-project/expired/revoked/auth-version/credential-integrity mismatch 거부와 idempotent logout — W05 PASS
 - Production Cookie의 HttpOnly/Secure/SameSite/Path/Domain 속성 — W04 PASS
-- Create의 missing/null/cross Origin 거부 — W04 PASS; 후속 mutation/CORS inventory는 NOT TESTED
-- Session 없이 모든 mutation/import 거부
+- Create의 missing/null/cross Origin 거부 — W04 PASS; W05 unlock/logout/metadata/password Origin과 현재 Route/CORS inventory — W05 PASS
+- Session 없이 Project metadata/password mutation 거부 — W05 PASS; Calendar/Task/Link/Import는 후속
 - Cross-project task parent/link 및 repository query isolation
-- Stale revision, scheduling/import 오류의 전체 rollback
+- Metadata/password의 missing·malformed·stale revision, 동시 동일 revision write와 password rollback — W05 PASS; scheduling/import rollback은 후속
 - Import size/depth/count/date traversal 상한
 - Export formula/hyperlink/filename injection과 secret scan
 - `.env`, SQLite, WAL/SHM, backup의 Git/image 제외

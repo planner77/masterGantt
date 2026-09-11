@@ -34,6 +34,11 @@
 | ADR28 | ACCEPT WITH REVALIDATION | W04 create abuse limiter는 forwarded IP를 신뢰하지 않는 process-global 5회/1시간 fail-closed 방식 | D03 전에는 신뢰 가능한 peer가 없음. 정상 caller가 한도를 공유하고 restart 시 초기화되므로 production proxy/persistent limit와 KDF benchmark는 W16에서 재검증 |
 | ADR29 | ACCEPT | Playwright는 port 3100, `.next-e2e`, `.data/playwright.sqlite3`로 개발 서버와 분리 | 병렬 개발 서버의 `.next` lock/DB 충돌을 피하고 E2E 자체 server의 `APP_BASE_URL`을 exact origin에 맞춤 |
 | ADR30 | ACCEPT | W04 Project Create and Direct Read 완료 | qa_docs 독립 실행·대조 PASS, Manager ACCEPT. W05 session 소비/authorization와 production D02/D03 gate를 완료로 오인하지 않음; [W04 검증](W04_REVIEW.md) |
+| ADR31 | ACCEPT | W05는 root `Path=/` 단일 edit Cookie를 유지하고 마지막으로 unlock한 Project 하나만 browser edit 상태로 둠 | 다른 Project의 유효 Cookie로 logout을 호출하면 해당 session을 revoke하거나 Cookie를 지우지 않는다. 다중 Project 동시 edit 요구가 생기면 cookie strategy를 별도 재설계 |
+| ADR32 | ACCEPT WITH REVALIDATION | W05 unlock limiter는 untrusted forwarded IP 없이 process-global 50회/15분 + canonical Project별 10회/15분, bounded 1,024 key로 fail closed | process restart와 여러 정상 caller 공유 한계가 있으므로 D03/W16에서 trusted proxy·persistent limiter·KDF benchmark를 재검증 |
+| ADR33 | ACCEPT | W05 authorization 증거는 session endpoint만이 아니라 `PATCH /api/projects/{publicId}` 대표 보호 mutation과 route security inventory를 포함 | AUTH07 Task와 AUTH09–10 Import slice는 W07/W12 전까지 BLOCKED/NOT TESTED로 유지하며 W05 전체 AUTH01–12 PASS로 과대 표시하지 않음 |
+| ADR34 | ACCEPT | W05 Readonly and Edit Authorization 완료 | 최초 독립 QA finding 3건(lock 후 expiry 판정, 유효 wrong-project session만 Cookie 보존, canonical protected public ID)을 수정하고 Backend/Security·Frontend/Browser QA PASS, Manager ACCEPT; [W05 검증](W05_REVIEW.md) |
+| ADR35 | ACCEPT | Playwright 기본 개발 server는 격리 Turbopack·worker 1개를 사용 | Webpack 개발 cache의 transient manifest race와 병렬 spec의 의도한 process-global create limit 공유를 재현했다. 기본 suite는 직렬화하되 동일 revision 동시 PATCH는 spec 내부 병렬 HTTP로 유지하고 production build의 Webpack 설정은 유지 |
 
 ## Integration 원칙
 
@@ -43,4 +48,4 @@ Agent 초안은 바로 완료로 처리하지 않는다. Manager는 공동 계�
 
 ## 구현 시작과 사용자 판단
 
-W01–W04 기반과 Project 생성·Direct Readonly는 구현되었고 첫 vertical slice의 다음 단계는 W05 edit authorization다. 비용·데이터 손실·조직 정책·대규모 Architecture/Workflow 변경이 생기면 해당 작업 전에 판단을 요청한다. 아직 실제 Workbook이나 운영 환경을 시험하지 않았으므로 이를 이유로 다른 독립 기반 작업을 막지 않는다.
+W01–W05 기반과 Project 생성·Direct Readonly·edit authorization을 구현했다. 다음 독립 기반은 W06 Working Calendar and Duration이다. 비용·데이터 손실·조직 정책·대규모 Architecture/Workflow 변경이 생기면 해당 작업 전에 판단을 요청한다. 아직 실제 Workbook이나 운영 환경을 시험하지 않았으므로 이를 이유로 다른 독립 기반 작업을 막지 않는다.

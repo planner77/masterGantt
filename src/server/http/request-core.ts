@@ -119,3 +119,33 @@ export async function readBoundedJson(
     );
   }
 }
+
+export function parseRequiredIfMatch(request: Request): number {
+  const value = request.headers.get("if-match");
+  if (value === null) {
+    throw new PublicApiError(
+      428,
+      "PRECONDITION_REQUIRED",
+      "If-Match is required.",
+    );
+  }
+
+  const match = /^"([1-9][0-9]*)"$/.exec(value);
+  if (!match) {
+    throw new PublicApiError(
+      400,
+      "INVALID_REQUEST",
+      "If-Match must contain one strong positive revision ETag.",
+    );
+  }
+
+  const revision = Number(match[1]);
+  if (!Number.isSafeInteger(revision)) {
+    throw new PublicApiError(
+      400,
+      "INVALID_REQUEST",
+      "If-Match must contain one strong positive revision ETag.",
+    );
+  }
+  return revision;
+}

@@ -64,6 +64,38 @@ export interface ProjectSnapshotResponse {
   };
 }
 
+export interface UnlockProjectRequest {
+  editPassword: string;
+}
+
+export interface CurrentEditSessionResponse {
+  data:
+    | { permission: "edit"; expiresAt: string }
+    | { permission: "readonly" };
+}
+
+export interface UpdateProjectRequest {
+  name?: string;
+  description?: string;
+}
+
+export interface ProjectMetadataMutationResponse {
+  data: {
+    project: ProjectDto;
+    tasks: ProjectTaskDto[];
+    links: ProjectLinkDto[];
+    warnings: [];
+    operation: {
+      kind: "projectMetadata";
+      changedFields: ("name" | "description")[];
+    };
+  };
+}
+
+export interface ChangeEditPasswordRequest {
+  newEditPassword: string;
+}
+
 export interface ApiErrorDetail {
   path?: string;
   code: string;

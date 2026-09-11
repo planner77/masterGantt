@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 기존 schema를 변경하지 않고 Project와 edit session insert Repository를 추가해 생성 원자성·DB 재개방·Project-scoped snapshot을 검증했다. [W04 검증](W04_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
+이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 기존 credential/session 조회·revoke·bounded cleanup·metadata update·password rotation Repository를 추가했다. 두 작업 모두 기존 `0001` schema로 충족하므로 migration을 추가하지 않았다. [W05 검증](W05_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
 
 요구사항으로 확정된 전제는 다음과 같다.
 
@@ -181,6 +181,8 @@ Dependency endpoint는 leaf task 또는 milestone만 허용하고 summary endpoi
 | `revoked_at` | TEXT | Y | logout 또는 강제 revoke 시각 |
 
 유효 session 조건은 token digest 일치, 올바른 `project_id`, `revoked_at IS NULL`, `expires_at > now`, `edit_sessions.auth_version = projects.auth_version`를 모두 만족하는 것이다. Token 원문은 DB나 log에 저장하지 않는다.
+
+Session current read는 row나 TTL을 갱신하지 않는다. Unlock과 password rotation lifecycle에서 `revoked_at IS NOT NULL OR expires_at <= now`인 row를 ID 순서로 한 transaction당 최대 100개 삭제한다. 이는 table 전체 cleanup을 request path에서 수행하지 않기 위한 bounded maintenance이며 운영 retention/incident cleanup을 대신하지 않는다.
 
 ## 6. Index 계획
 

@@ -1,6 +1,6 @@
 # Architecture draft
 
-상태: Manager 통합 설계. W01–W04 기반과 Project 생성·Direct Read는 독립 QA PASS / Manager ACCEPT했고, edit session 소비·Scheduling·Import/Export·배포는 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
+상태: Manager 통합 설계. W01–W05의 Project 기반, Direct Readonly, edit session lifecycle과 Project metadata 보호 mutation은 독립 QA PASS / Manager ACCEPT했다. Scheduling·Task persistence·Import/Export·배포는 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
 
 ## 경계
 
@@ -34,7 +34,7 @@ flowchart TD
 
 ## 제안 Directory 구조
 
-아래는 목표 구조다. W01–W04에서 `app`, `components`, `features/gantt`, `features/projects`, `contracts`, `server/db`, `server/repositories`, `server/projects`, `server/security`, `db/migrations`, 관련 `tests` 경로를 만들었고 나머지는 담당 작업에서 추가한다.
+아래는 목표 구조다. W01–W05에서 `app`, `components`, `features/gantt`, `features/projects`, `contracts`, `server/db`, `server/repositories`, `server/projects`, `server/security`, `db/migrations`, 관련 `tests` 경로를 만들었고 나머지는 담당 작업에서 추가한다.
 
 ```text
 src/app/                         Next.js pages and HTTP routes
@@ -42,7 +42,7 @@ src/components/                  general UI
 src/features/gantt/              SVAR client wrapper and adapters
 src/features/import/             wizard, mapping, preview
 src/server/projects/             implemented Project contract/service/HTTP orchestration
-src/server/security/             create credential/session/origin/rate primitives; W05 verification follows
+src/server/security/             credential/session/cookie/origin/rate primitives and route policy inventory
 src/server/services/             future cross-feature service orchestration
 src/server/repositories/         SQL access
 src/server/db/                   connection and migration runner
@@ -60,7 +60,7 @@ docs/                           sources of truth and execution plan
 
 SVAR 공식 Next.js guide의 client wrapper, theme/CSS, `init` API를 따랐고 W03에서 browser-only mount와 production build를 검증했다. [공식 integration guide](https://docs.svar.dev/react/gantt/integration-guides/nextjs/setup/), [W03 검증](W03_REVIEW.md)
 
-W04 Project Direct page와 GET snapshot은 Cookie가 있어도 항상 Readonly다. W05에서 session 확인 또는 password unlock 성공 후 편집 UI를 활성화하되, 서버는 매 mutation에서 다시 권한을 확인한다. W04 browser E2E는 생성 browser와 Cookie가 없는 새 browser가 모두 Readonly임을 확인했다.
+Project Direct GET snapshot은 Cookie가 있어도 항상 Readonly다. UI는 별도 current-session GET으로 edit 표시를 동기화하고 password unlock 뒤 metadata/password/logout control을 활성화한다. 서버는 UI 상태와 무관하게 매 mutation에서 Project-bound session을 다시 확인한다.
 
 UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 external ID↔SVAR ID, date-only↔Date, end 포함↔SVAR endpoint 의미, working-day duration↔calendar span, domain link type↔SVAR link type을 변환한다. W03 Adapter는 공식 REST 예제에서 **추론한** exclusive widget end를 한 곳에서 inclusive domain end와 변환하고 unit round-trip을 통과했다. Vendor가 의미를 명시적으로 보장한 것은 아니므로 실제 pointer drag/resize와 서버 왕복을 W06/W07에서 재확인하며, 결과가 다르면 Adapter와 계약을 함께 수정한다.
 
@@ -68,7 +68,7 @@ UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 exter
 
 화면: Project List/Create, Direct Gantt, Edit Unlock, Import Wizard, Export. UI toolkit은 shadcn/ui와 Tailwind 후보이며 설치 시 license·version을 확인한다. 핵심 Gantt 기능은 Core를 사용한다. Project List의 실데이터 공개는 D02 결정 전 비활성으로 유지한다.
 
-W04 생성 경로는 `Route Handler → ProjectService → ProjectRepository/EditSessionRepository → SQLite`를 따른다. Route가 canonical `APP_BASE_URL`과 exact `Origin`, UTF-8 JSON content type, 32 KiB body, strict Zod input을 검사한다. Service는 비동기 scrypt를 transaction 밖에서 수행하고 Project row와 최초 session digest만 짧은 `BEGIN IMMEDIATE` transaction에 저장한다. Direct read는 하나의 deferred read transaction에서 Project/tasks/links/holidays를 Project scope로 조회해 public DTO로 변환한다. Collection discovery는 D02 전 405다.
+Project 경로는 `Route Handler → ProjectService → ProjectRepository/EditSessionRepository → SQLite`를 따른다. Route가 canonical `APP_BASE_URL`과 unsafe method의 exact `Origin`, UTF-8 JSON content type, 32 KiB body, strict Zod input을 검사한다. Service는 비동기 scrypt를 transaction 밖에서 수행한다. Create는 Project row와 최초 session digest를, password rotation은 새 credential·auth version/revision·전체 revoke·호출자 session을 각각 짧은 `BEGIN IMMEDIATE` transaction에 저장한다. Metadata mutation도 같은 transaction에서 session과 revision을 최종 재검증한다. Direct read는 하나의 deferred read transaction에서 Project/tasks/links/holidays를 Project scope로 조회해 public DTO로 변환한다. Collection discovery는 D02 전 405다.
 
 ## 쓰기와 동시성
 
@@ -95,10 +95,10 @@ Web export는 일정 DTO의 DB 일관된 snapshot을 얻고 transaction 밖에�
 
 ## Security와 운영
 
-W04는 생성 시 password scrypt+salt 저장, random session token digest 저장, 8시간 HttpOnly/SameSite Cookie, production Secure/`__Host-`, exact Origin과 process-global fail-closed 생성 limit을 적용한다. 저장 session의 Project binding·expiry·revoke 검증과 timing-safe password unlock, 모든 mutation authorization은 W05다. [SECURITY.md](SECURITY.md)가 세부 정책이다. Public URL은 편집 권한을 부여하지 않지만 읽기 기밀성을 보장하는 인증도 아니다. production 노출 범위는 사용자 결정 항목이다.
+W04 생성 bootstrap에 이어 W05는 recorded scrypt profile의 timing-safe password 검증, unknown/corrupt credential dummy KDF, Project-bound session의 expiry/revoke/auth-version 검증, logout, password rotation과 metadata mutation authorization을 적용한다. Cookie는 8시간 HttpOnly/SameSite=Strict이며 production에서 Secure/`__Host-`를 강제한다. Unlock은 bounded process-local global+Project limiter와 공유 KDF concurrency 2 상한을 사용한다. [SECURITY.md](SECURITY.md)가 세부 정책이다. Public URL은 편집 권한을 부여하지 않지만 읽기 기밀성을 보장하는 인증도 아니다. production 노출 범위는 사용자 결정 항목이다.
 
 초기 운영은 한 Node application container와 local persistent SQLite volume이다. Native addon은 빌드·런타임 ABI/libc/architecture를 일치시키고 non-root permission과 restart persistence를 검사한다. WAL-aware backup을 사용하고 restore를 별도 경로에서 시험한다. [DEPLOYMENT.md](DEPLOYMENT.md) 참조.
 
 ## 구현 진입 Gate
 
-첫 slice 중 W04의 Project 생성→SQLite 저장→Direct Readonly 조회→reload 유지는 독립 QA PASS / Manager ACCEPT했다. 다음 W05 unlock 뒤 W06/W07의 단일 task 변경→reload 유지로 확장한다. 실제 VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.
+첫 slice 중 W04의 Project 생성→SQLite 저장→Direct Readonly 조회→reload 유지와 W05의 Readonly→unlock→metadata 저장/reload→logout/password rotation 경계는 독립 QA PASS / Manager ACCEPT했다. 다음은 W06/W07의 단일 task 변경→reload 유지로 확장한다. 실제 VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.

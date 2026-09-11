@@ -14,8 +14,9 @@ export class FixedWindowRateLimiter {
   constructor(
     private readonly maximumAttempts: number,
     private readonly windowMilliseconds: number,
+    private readonly maximumTrackedKeys = 1_024,
   ) {
-    if (maximumAttempts < 1 || windowMilliseconds < 1) {
+    if (maximumAttempts < 1 || windowMilliseconds < 1 || maximumTrackedKeys < 1) {
       throw new Error("Rate limiter bounds must be positive.");
     }
   }
@@ -23,6 +24,16 @@ export class FixedWindowRateLimiter {
   consume(key: string, nowMilliseconds = Date.now()): RateLimitDecision {
     const current = this.windows.get(key);
     if (!current || nowMilliseconds >= current.resetsAt) {
+      if (!current && this.windows.size >= this.maximumTrackedKeys) {
+        for (const [trackedKey, state] of this.windows) {
+          if (nowMilliseconds >= state.resetsAt) {
+            this.windows.delete(trackedKey);
+          }
+        }
+        if (this.windows.size >= this.maximumTrackedKeys) {
+          return { allowed: false, retryAfterSeconds: 1 };
+        }
+      }
       this.windows.set(key, {
         count: 1,
         resetsAt: nowMilliseconds + this.windowMilliseconds,
@@ -55,3 +66,17 @@ export const projectCreateRateLimiter = new FixedWindowRateLimiter(
 );
 
 export const UNATTRIBUTED_CREATE_RATE_KEY = "unattributed";
+
+export const unlockGlobalRateLimiter = new FixedWindowRateLimiter(
+  50,
+  15 * 60 * 1_000,
+  1,
+);
+
+export const unlockProjectRateLimiter = new FixedWindowRateLimiter(
+  10,
+  15 * 60 * 1_000,
+  1_024,
+);
+
+export const UNATTRIBUTED_UNLOCK_RATE_KEY = "unattributed";

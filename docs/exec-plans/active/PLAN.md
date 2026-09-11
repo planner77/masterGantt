@@ -1,6 +1,6 @@
 # Active execution plan
 
-상태: **W04 Project Create and Direct Read 완료 — 독립 QA PASS / Manager ACCEPT**. W01–W03도 구현·검증을 완료했다. 다음 구현 후보는 W05 편집 인증이다. 근거: [Requirements](../../REQUIREMENTS.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md), [W04 검증 기록](../../W04_REVIEW.md).
+상태: **W05 Readonly and Edit Authorization 완료 — 독립 QA PASS / Manager ACCEPT**. W01–W04도 구현·검증을 완료했다. 다음 구현은 W06 Working Calendar and Duration이다. 근거: [Requirements](../../REQUIREMENTS.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md), [W05 검증 기록](../../W05_REVIEW.md).
 
 ## Phase와 Task
 
@@ -15,7 +15,7 @@
 | P1 | W02 SQLite Foundation | W01 | backend + qa_docs + Manager | projects/tasks/links/edit_sessions/holidays, FK/index, migration 실패와 rollback, 다른 Project FK 거부 | DONE / PASS / ACCEPT | Native Docker platform은 W16 검증 |
 | P1 | W03 SVAR Minimal Integration | W01 | frontend + researcher + qa_docs + Manager | 설치 version에서 browser mount·final update event·date 왕복·readonly, PRO 호출 없음, 한 logical command 경계 | DONE / PASS / ACCEPT | exclusive end는 추론; pointer drag·server persistence는 W06/W07 |
 | P2 | W04 Project Create and Direct Read | W02 | backend + frontend + qa_docs + Manager | strict 입력3개, UUID URL, DB 재조회, scrypt+최초 session 원자 저장, 원문 password 미노출; D02 전 List 차단 | DONE / PASS / ACCEPT | production limiter·KDF benchmark는 W16 |
-| P2 | W05 Readonly and Edit Authorization | W04 | backend + frontend | AUTH01–12; 잘못된·만료·다른 Project session 거부; password rotation; 보호 endpoint inventory | PLANNED | 인증 누락·KDF 자원 |
+| P2 | W05 Readonly and Edit Authorization | W04 | backend + frontend + qa_docs + Manager | W05 적용 AUTH slice; 잘못된·만료·revoke·다른 Project session 거부; metadata 보호 mutation/revision; password rotation; route inventory | DONE / PASS / ACCEPT | production limiter·KDF benchmark는 W16; Task/Import auth는 W07/W12 |
 | P2 | W06 Working Calendar and Duration | W01 | scheduler | 윤년·weekend·holiday·비근무 시작·범위·Manual 경계 unit; browser/server 동일 fixture | PLANNED | off-by-one·DST |
 | P2 | W07 Task and Link Persistence | W03,W05,W06 | backend + frontend | AUTH/DB 테스트와 task edit/reload 유지, 서버 거부 복원, Task UUID와 externalId 분리 | PLANNED | 두 편집자 lost update |
 | P2 | W08 Hierarchy Summary and WBS | W06,W07 | scheduler + backend + frontend | SCH08–10; Summary+첫 child 성공, final empty/cycle 거부, REAL progress 정확성 | PLANNED | 중간 invalid state·정렬 |
@@ -53,3 +53,4 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위를 통합한다: P
 - W02 실행 결과: build/typecheck/lint PASS, 전체 17 tests PASS, 독립 DB/CLI 16 tests PASS. [검증 기록](../../W02_REVIEW.md)
 - W03 실행 결과: Core 2.7.3 browser fixture, build/typecheck/lint PASS, 전체 23 Vitest와 Chromium E2E 1개 PASS, 독립 QA PASS. [검증 기록](../../W03_REVIEW.md)
 - W04 실행 결과: `POST /api/projects`, `GET /api/projects/{publicId}`, 생성/직접 UI 구현. Manager와 독립 QA가 build/typecheck/lint, 전체 55 Vitest를 PASS했고 Manager Chromium E2E 3개도 PASS했다. Project+session 원자성, 재시작 DB 재조회, Project 격리, Origin/body/rate/KDF/cookie/secret 경계를 검증했다. `GET /api/projects`는 D02 전 405다. qa_docs PASS / Manager ACCEPT. [검증 기록](../../W04_REVIEW.md)
+- W05 실행 결과: unlock/current/logout, metadata PATCH, password rotation, edit UI와 실제 Route security inventory 구현. 최초 독립 QA의 expiry lock race, wrong-project Cookie 유효성, canonical protected ID finding을 수정했다. 전체 91 Vitest, typecheck/lint/build와 clean 기본 Turbopack Chromium 4/4(worker 1)를 PASS했다. Process-global create limiter를 spec 사이에서 경쟁시키지 않되 동일 revision concurrent PATCH 200+412는 spec 내부 병렬 HTTP로 유지했고, live HEAD/OPTIONS 불변, rotation rollback/old session 무효화를 포함한다. Backend/Security·Frontend/Browser qa_docs PASS / Manager ACCEPT. [검증 기록](../../W05_REVIEW.md)

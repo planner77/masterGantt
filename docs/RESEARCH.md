@@ -24,6 +24,16 @@ Project request schema에는 설치 시 npm metadata와 artifact를 확인한 Zo
 
 W04 구현 선택과 실행 결과는 [W04_REVIEW.md](W04_REVIEW.md)에 분리했다. Production hardware의 scrypt latency/memory와 trusted proxy 기반 limiter는 실제 D03 환경에서 다시 측정하며, 공개 direct read 모델이 조직 기밀성 요구를 충족하는지는 코드로 추정하지 않는다.
 
+## W05 Edit Authorization 조사와 적용
+
+Node 공식 `crypto` 계약상 `scrypt` salt는 random 16 bytes 이상을 사용하고, `timingSafeEqual`은 같은 byte length의 입력에 적용해야 하며 주변 코드 전체를 자동으로 timing-safe하게 만들지는 않는다. W05는 저장 record가 정확히 지원 profile인지 먼저 검사하고, 정상 record와 dummy record 모두 같은 process-global KDF capacity를 거쳐 derive한 뒤 동일 길이 Buffer를 비교한다. Unknown Project와 손상 credential도 지원 profile의 dummy scrypt 뒤 동일한 `401 INVALID_CREDENTIALS`를 사용한다. [Node.js Crypto](https://nodejs.org/api/crypto.html)
+
+Next.js 16.3.4의 local 설치 문서와 공식 문서를 다시 대조했다. Dynamic Route Handler의 `params`는 Promise이며 Cookie write/delete는 Route Handler에서 가능하다. Route Handler는 public API surface이므로 Client Component의 edit 상태와 별개로 데이터 source 가까이에서 authorization을 검사해야 한다. 구현은 native `Request`의 bounded Cookie header를 읽고 native `Response`의 `Set-Cookie`를 사용하며 모든 dynamic params를 `await`한다. [Route Handler](https://nextjs.org/docs/app/api-reference/file-conventions/route), [cookies](https://nextjs.org/docs/app/api-reference/functions/cookies), [Authentication](https://nextjs.org/docs/app/guides/authentication)
+
+OWASP CSRF 지침은 unsafe request에서 source/target origin의 정확한 비교와 missing Origin의 보수적 거부를 권고한다. W05는 trusted `APP_BASE_URL`과 scheme/host/port를 정확히 비교하고 forwarded Host 또는 `X-Forwarded-For`를 신뢰하지 않는다. Cookie `SameSite=Strict`는 보조 방어이며 Origin 검사를 대체하지 않는다. [OWASP CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
+
+W05는 기존 `0001_initial_schema.sql`의 password KDF·auth version·edit session binding/expiry/revoke column으로 요구를 충족해 migration을 추가하지 않는다. Password rotation의 비싼 KDF는 transaction 밖에서 실행하되, session과 aggregate revision은 `BEGIN IMMEDIATE` write transaction 안에서 다시 확인해야 race에서 revoke된 token이 write하지 못한다는 것이 Manager 설계 판단이다.
+
 ## SVAR Core와 API
 
 ### W03 설치 검증 — 2026-09-11

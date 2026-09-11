@@ -337,6 +337,57 @@ h2 {
   font-weight: 650;
 }
 
+.edit-badge {
+  flex: 0 0 auto;
+  border: 1px solid #75a98a;
+  border-radius: 999px;
+  background: #edf8f0;
+  color: #1d6339;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.unlock-form,
+.edit-panels {
+  display: grid;
+  width: min(100%, 42rem);
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.unlock-form {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.unlock-form .primary-button,
+.compact-form .secondary-button {
+  margin-top: 0;
+}
+
+.compact-form {
+  width: 100%;
+  padding: 0;
+  border: 0;
+}
+
+.edit-panels .logout-button {
+  justify-self: start;
+  margin-top: 0;
+}
+
+.form-status {
+  border-left: 3px solid #3974a8;
+  border-radius: 0.25rem;
+  background: #edf5fc;
+  color: #174e7b;
+  padding: 0.75rem;
+}
+
 .project-facts {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -483,6 +534,11 @@ h2 {
 
   .project-readonly-heading {
     flex-direction: column;
+  }
+
+  .unlock-form {
+    grid-template-columns: 1fr;
+    align-items: stretch;
   }
 
   .project-facts {

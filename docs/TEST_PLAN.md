@@ -1,6 +1,6 @@
 # Test Plan
 
-상태: qa_docs가 작성한 검증 전략. W02 DB 기반은 [W02_REVIEW.md](W02_REVIEW.md), W03 Gantt 기반은 [W03_REVIEW.md](W03_REVIEW.md), W04 Project 생성·직접 조회의 독립 QA PASS / Manager ACCEPT는 [W04_REVIEW.md](W04_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W04의 일부 AUTH/UI PASS가 전체 Auth/Scheduling/Import/Export/Docker/VBA 통과를 뜻하지 않는다.
+상태: qa_docs가 작성한 검증 전략. W02 DB 기반은 [W02_REVIEW.md](W02_REVIEW.md), W03 Gantt 기반은 [W03_REVIEW.md](W03_REVIEW.md), W04 Project 생성·직접 조회는 [W04_REVIEW.md](W04_REVIEW.md), W05 edit authorization은 [W05_REVIEW.md](W05_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W05의 Project/session slice PASS가 Scheduling/Task/Import/Export/Docker/VBA 통과를 뜻하지 않는다.
 
 ## 판정과 증거
 
@@ -44,11 +44,23 @@ P-A/P-B 두 Project에 같은 externalId를 사용해 isolation을 시험한다.
 ### W04 실행 증거
 
 - **AUTH01 PASS (생성 범위):** strict 입력, 32 KiB JSON, exact Origin, process-global 5/hour limiter, KDF concurrency 2, Project+derived password+최초 session digest 원자 저장, rollback과 원문 DB 부재.
-- **AUTH02 PARTIAL PASS:** 생성 browser·새 Cookie 없는 browser 모두 direct GET/UI Readonly, DB 재개방 후 유지. 보호 mutation 강제 거부는 endpoint가 없는 W05 이후 검증이다.
-- **AUTH04 PARTIAL PASS:** production/local Cookie 직렬화와 token URL/DOM 비노출 PASS. Server-side expiry 소비는 W05다.
-- **AUTH06 PARTIAL PASS:** create의 missing/null/malformed/multiple/cross Origin과 GET 비변경 PASS. 후속 unsafe route inventory는 W05 이후다.
+- **AUTH02 PARTIAL PASS (W04 당시):** 생성 browser·새 Cookie 없는 browser 모두 direct GET/UI Readonly, DB 재개방 후 유지. 보호 mutation 강제 거부는 W05에서 추가 검증했다.
+- **AUTH04 PARTIAL PASS (W04 당시):** production/local Cookie 직렬화와 token URL/DOM 비노출 PASS. Server-side expiry 소비는 W05에서 추가 검증했다.
+- **AUTH06 PARTIAL PASS (W04 당시):** create의 missing/null/malformed/multiple/cross Origin과 GET 비변경 PASS. 현재 unsafe route inventory는 W05에서 추가 검증했다.
 - **AUTH11 PARTIAL PASS:** 생성 response body/error/non-cookie header/DB/URL/DOM secret scan PASS. Opaque session 원문은 의도한 `Set-Cookie`에만 있고 DB에는 digest만 있다. 운영 access log와 Import/Export는 NOT TESTED다.
 - Project 격리·canonical UUID·동일 404, collection GET 405, create recovery UI를 추가로 PASS했다. Exact command·환경은 [W04_REVIEW.md](W04_REVIEW.md)에 기록한다.
+
+### W05 실행 증거
+
+- **AUTH02 PASS (현재 Project metadata slice):** Direct API는 Cookie와 무관하게 Readonly, 새 browser는 Readonly이며 no-session/cross-project/noncanonical persisted ID metadata/password mutation은 거부되고 DB는 불변이다. Task CRUD slice는 W07까지 BLOCKED다.
+- **AUTH03 PASS:** correct/wrong/unknown/corrupt credential, dummy scrypt, recorded profile, 동일 길이 timing-safe 비교, hash/verify 공유 KDF concurrency 2, global+Project bounded limiter를 검증했다.
+- **AUTH04–06 PASS (현재 Route slice):** production/local 발급·만료 Cookie와 8 KiB/100 pair/duplicate parser, strict expiry/revoke/auth-version/project binding, 유효 wrong-project Cookie 보존, idempotent logout, exact Origin, current GET·live HEAD/OPTIONS 상태 불변과 credential CORS 미노출을 검증했다.
+- **AUTH08 PASS (Project metadata/password):** strong positive If-Match, missing 428, malformed 400, stale 412, live 동일 revision 동시 PATCH의 정확한 200+412와 revision 1회 증가를 검증했다.
+- **AUTH09 PASS (password/session race slice):** write lock 획득 뒤 final session-first expiry/revoke/auth-version/credential integrity 검사와 rotation insert fault 전체 rollback을 검증했다. Import preview/commit race는 W12까지 BLOCKED다.
+- **AUTH10 PASS (현재 Route inventory):** 실제 `route.ts` export 전부를 policy inventory와 대조한다. 미래 Calendar/Task/Link/Import Route는 구현 시 inventory와 테스트를 동시에 확장해야 한다.
+- **AUTH11 PASS (W05 application slice):** password/token/hash/salt가 response body/error/non-cookie header/URL/DOM/DB 원문에 나타나지 않는다. 운영 access log와 Import/Export는 NOT TESTED다.
+- **AUTH12 PASS:** credential·`auth_version + 1`·`revision + 1`·기존 session 전체 revoke·호출자 새 session을 하나의 transaction에 저장하고 old session/password 거부와 caller edit 유지를 browser까지 검증했다.
+- 전체 11개 파일 91개 Vitest, typecheck/lint/build와 clean 기본 Turbopack Chromium E2E 4개가 PASS했다. Webpack 개발 cache의 manifest race와 병렬 spec이 의도한 process-global create limit을 공유하는 실패를 재현해, 기본 Playwright server는 Turbopack·worker 1개로 고정했다. 동일 revision 병행성은 W05 spec 내부 병렬 HTTP로 계속 검증한다. 정확한 명령·환경·잔여 위험은 [W05_REVIEW.md](W05_REVIEW.md)에 기록한다.
 
 ## Scheduling / database
 

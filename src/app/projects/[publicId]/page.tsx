@@ -8,5 +8,5 @@ export default async function ProjectPage({
   params,
 }: Readonly<{ params: Promise<{ publicId: string }> }>) {
   const { publicId } = await params;
-  return <ProjectReadonlyView publicId={publicId} />;
+  return <ProjectReadonlyView key={publicId} publicId={publicId} />;
 }

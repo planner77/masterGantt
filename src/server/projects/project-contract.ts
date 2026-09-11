@@ -2,7 +2,10 @@ import { z } from "zod";
 
 import type {
   ApiErrorDetail,
+  ChangeEditPasswordRequest,
   CreateProjectRequest,
+  UnlockProjectRequest,
+  UpdateProjectRequest,
 } from "@/contracts/projects";
 
 function isWellFormedUnicode(value: string): boolean {
@@ -32,20 +35,26 @@ function codePointLength(value: string): number {
 
 const wellFormedString = z.string().refine(isWellFormedUnicode);
 
+const projectName = wellFormedString
+  .transform((value) => value.trim())
+  .refine((value) => {
+    const length = codePointLength(value);
+    return length >= 1 && length <= 200;
+  });
+
+const projectDescription = wellFormedString.refine(
+  (value) => codePointLength(value) <= 4_000,
+);
+
+const newPassword = wellFormedString
+  .refine((value) => codePointLength(value) >= 12)
+  .refine((value) => Buffer.byteLength(value, "utf8") <= 1_024);
+
 const createProjectSchema = z
   .object({
-    name: wellFormedString
-      .transform((value) => value.trim())
-      .refine((value) => {
-        const length = codePointLength(value);
-        return length >= 1 && length <= 200;
-      }),
-    description: wellFormedString.refine(
-      (value) => codePointLength(value) <= 4_000,
-    ),
-    editPassword: wellFormedString
-      .refine((value) => codePointLength(value) >= 12)
-      .refine((value) => Buffer.byteLength(value, "utf8") <= 1_024),
+    name: projectName,
+    description: projectDescription,
+    editPassword: newPassword,
   })
   .strict();
 
@@ -82,6 +91,59 @@ export function parseCreateProjectInput(
   }
 
   return { success: false, details };
+}
+
+const unlockProjectSchema = z.object({
+  editPassword: wellFormedString.refine(
+    (value) => Buffer.byteLength(value, "utf8") <= 1_024,
+  ),
+}).strict();
+
+const updateProjectSchema = z.object({
+  name: projectName.optional(),
+  description: projectDescription.optional(),
+}).strict().refine(
+  (value) => value.name !== undefined || value.description !== undefined,
+);
+
+const changeEditPasswordSchema = z.object({
+  newEditPassword: newPassword,
+}).strict();
+
+function parseStrictInput<T>(
+  schema: z.ZodType<T>,
+  input: unknown,
+): { success: true; data: T } | { success: false; details: ApiErrorDetail[] } {
+  const result = schema.safeParse(input);
+  if (result.success) {
+    return result;
+  }
+
+  const details: ApiErrorDetail[] = result.error.issues.map((issue) => ({
+    path: issue.code === "unrecognized_keys"
+      ? "$"
+      : issue.path.length > 0 ? issue.path.join(".") : "$",
+    code: issue.code === "unrecognized_keys" ? "UNKNOWN_FIELD" : "INVALID_FIELD",
+    message: issue.code === "unrecognized_keys"
+      ? "The request contains an unknown field."
+      : "Invalid field value.",
+  }));
+  return { success: false, details };
+}
+
+export function parseUnlockProjectInput(input: unknown) {
+  return parseStrictInput<UnlockProjectRequest>(unlockProjectSchema, input);
+}
+
+export function parseUpdateProjectInput(input: unknown) {
+  return parseStrictInput<UpdateProjectRequest>(updateProjectSchema, input);
+}
+
+export function parseChangeEditPasswordInput(input: unknown) {
+  return parseStrictInput<ChangeEditPasswordRequest>(
+    changeEditPasswordSchema,
+    input,
+  );
 }
 
 const CANONICAL_UUID_V4 =
