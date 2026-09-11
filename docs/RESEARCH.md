@@ -6,6 +6,14 @@
 
 W01 lockfile에 Next.js 16.3.4, React 19.3.0, TypeScript 5.8.3, Vitest 5.0.0, Playwright 1.63.0이 기록되었다. `npm install` audit은 0 vulnerabilities였고 typecheck/lint/unit test와 Webpack production build가 PASS했다. 기본 Turbopack 및 sandbox 개발 서버는 process/port 권한 제한으로 검증하지 못했으며 이는 제품 결함 판정이 아니다. `GET /api/health/live`는 `{"status":"ok"}`를 반환했다.
 
+## W02 SQLite 설치 및 실행 근거
+
+2026-09-11 npm registry의 `better-sqlite3` 배포 manifest를 확인하여 **13.0.3**, MIT, Node `>=22`를 설치했다. 타입 정의는 `@types/better-sqlite3` **9.6.0**, MIT, TypeScript 최소 5.6이다. 현재 Node **22.14.0**, Linux x64에서 native module 로딩과 메모리 DB 쿼리를 실행했으며 bundled SQLite는 **3.53.4**였다. 이 결과는 Docker/다른 CPU의 검증을 대신하지 않는다. [공식 package metadata](https://www.npmjs.com/package/better-sqlite3), [공식 Repository](https://github.com/WiseLibs/better-sqlite3), [타입 정의](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/better-sqlite3)
+
+이 설치 artifact는 `prebuilds/` 및 `node-addon-api`를 포함하고 `gypfile: false`이며, 예전 버전의 `prebuild-install || node-gyp rebuild` 설치 흐름을 그대로 가정할 수 없다. W16에서는 실제 설치 manifest와 target platform의 native 쿼리를 다시 확인한다. 마이그레이션 CLI는 `tsx` **4.23.13**(MIT, Node >=18)을 runtime dependency로 사용하여 Node에서 TypeScript 코어를 실행한다. [tsx 공식 Repository](https://github.com/privatenumber/tsx)
+
+`better-sqlite3`의 transaction callback은 동기 실행이며 예외 전파 시 rollback한다. SQL 파일 로딩은 transaction 전에 끝내고 ledger 검증과 DDL 적용을 `BEGIN IMMEDIATE` 안에서 수행하도록 결정했다. [공식 transaction API](https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md#transactionfunction---function)
+
 ## SVAR Core와 API
 
 공식 Repository `main`의 manifest에서 `@svar-ui/react-gantt` **2.7.2**, MIT, React peer `>=18`, `@svar-ui/gantt-data-provider` 2.7.2를 확인했다. Repository HEAD와 npm 배포 tag가 같다는 검증은 아직 없으므로 설치 전 registry와 changelog를 다시 대조한다. [공식 manifest](https://github.com/svar-widgets/react-gantt/blob/main/package.json)

@@ -24,6 +24,8 @@
 | ADR18 | ACCEPT | Unicode externalId는 업무 참조, 별도 Task UUID는 CRUD URL | Backend 제안 반영, Excel 원본 ID를 ASCII로 재매핑하지 않음; 독립 Planning QA PASS |
 | ADR19 | ACCEPT | Summary mode auto, Preview non-mutating, password 변경 호출자 session rotate | 초기 qa_docs 발견 사항 반영, [QA 기록](BOOTSTRAP_REVIEW.md) |
 | ADR20 | ACCEPT | 전체 통합의 최종 독립 Planning QA와 W01 진입 Gate | qa_docs 재시도 PASS, Manager ACCEPT; 문서 sync는 제품 release 승인이 아님 |
+| ADR21 | ACCEPT | W02 parent composite FK는 `NO ACTION DEFERRABLE INITIALLY DEFERRED` | 기존 즉시 RESTRICT는 Project cascade와 충돌. 단독 parent 삭제와 cross-project parent는 commit 시 거부하고 전체 aggregate cascade는 허용; Project 삭제 API는 여전히 후속 범위 |
+| ADR22 | ACCEPT | W02 migration 파일 로딩 후 ledger 검증·미적용 SQL·ledger 기록을 단일 `BEGIN IMMEDIATE`로 처리 | 수정 checksum, 파일 누락, 이력 중간 누락은 시작 실패. 실행 CLI와 lazy server DB 진입점을 공유하고 DB를 build 시 열지 않음 |
 
 ## Integration 원칙
 

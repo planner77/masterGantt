@@ -2,7 +2,7 @@
 
 ## 1. Security Model
 
-이 문서는 Project별 Edit Password와 browser edit session을 사용하는 초기 보안 정책의 Source of Truth이다. 현재 단계는 설계이며 실제 구현과 침투/통합 검증은 아직 수행하지 않았다.
+이 문서는 Project별 Edit Password와 browser edit session을 사용하는 초기 보안 정책의 Source of Truth이다. W02에서 DB 격리·parameter binding 기반 일부를 구현·검증했다. 인증/session/API 보안과 침투 검증은 아직 수행하지 않았다. [W02 검증 기록](W02_REVIEW.md)
 
 핵심 경계는 다음과 같다.
 
@@ -256,7 +256,7 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 
 ## 14. Security 검증 목록
 
-상태는 설계 단계이므로 모두 **NOT TESTED**이다.
+아래는 전체 보안 검증 계획이다. W02는 cross-project parent/link와 Repository query isolation, password 자료를 제외한 Repository 반환값, Git의 `.env`/DB 제외, 현재 Node/Linux x64의 native query와 dependency 설치 audit을 확인했다. 이 기반 부분은 **PASS**이며 Auth/session/KDF/API, image/운영 보안 및 나머지 항목은 **NOT TESTED**다. [근거 및 한계](W02_REVIEW.md)
 
 - 동일 password의 Project 두 개가 서로 다른 salt/hash를 가짐
 - Password 원문/후보가 DB, log, error, workbook에 없음

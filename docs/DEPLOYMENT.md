@@ -2,11 +2,11 @@
 
 ## 1. 상태와 범위
 
-이 문서는 초기 배포 **설계**이다. 아직 `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.env.example`, application health route, migration runner는 구현하지 않았으며, 이 문서의 검증도 실행하지 않았다.
+이 문서는 초기 배포 **설계**이다. W01에서 `.env.example`과 liveness route를, W02에서 SQLite 연결·SQL migration runner와 `npm run db:migrate`를 추가했다. 아직 `Dockerfile`, `docker-compose.yml`, `.dockerignore`, readiness route 및 컨테이너 startup 연결은 구현하지 않았으며, Docker 검증은 실행하지 않았다.
 
 대상은 하나의 Next.js Node.js application과 하나의 SQLite database를 사용하는 소규모 운영 환경이다. SQLite 단계에서는 **application replica를 정확히 하나만** 실행한다. Redis, 별도 DB, Kubernetes, network filesystem을 이 설계에 추가하지 않는다.
 
-DB 논리 모델, `WAL` pragma, migration ledger의 상세는 `docs/DB_SCHEMA.md`, session/cookie/secret 정책은 `docs/SECURITY.md`를 따른다. 두 문서는 현재 다른 담당자가 통합 중일 수 있으므로, 실제 구현 PR에서는 세 문서를 함께 대조한다.
+DB 논리 모델, `WAL` pragma, migration ledger의 상세는 `docs/DB_SCHEMA.md`, session/cookie/secret 정책은 `docs/SECURITY.md`를 따른다. 실제 배포 구현에서는 세 문서를 함께 대조한다.
 
 ## 2. 확정 배포 형태
 
@@ -45,7 +45,7 @@ HTTPS reverse proxy / load balancer
 
 ### `better-sqlite3` 호환성
 
-`better-sqlite3`는 현재 지원 Node를 요구하고 주요 platform/architecture에 prebuilt binary를 제공한다. [better-sqlite3 README](https://github.com/WiseLibs/better-sqlite3) 조사 결과 native source build는 C++20 toolchain을 필요로 한다. Next.js는 `better-sqlite3`를 server external package로 자동 처리하는 목록에 포함한다. [Next.js serverExternalPackages](https://nextjs.org/docs/app/api-reference/config/next-config-js/serverExternalPackages)
+W02에 설치한 `better-sqlite3` 13.0.3은 Node >=22와 bundled prebuilds를 사용하는 artifact다. 현재 Linux x64 / Node 22.14.0에서 native query를 확인했다. Package 설치·source build 절차는 버전별 manifest에 맞춰 검토해야 한다. [better-sqlite3 README](https://github.com/WiseLibs/better-sqlite3), [설치 검증](RESEARCH.md) Next.js는 `better-sqlite3`를 server external package로 자동 처리하는 목록에 포함한다. [serverExternalPackages](https://nextjs.org/docs/app/api-reference/config/next-config-js/serverExternalPackages)
 
 그러므로 다음을 지킨다.
 
@@ -86,7 +86,7 @@ Docker `HEALTHCHECK`와 Compose healthcheck는 `ready`를 호출한다. interval
 
 ## 6. 환경 변수 계약
 
-실제 값, `.env`, token, PAT, password, database, WAL/SHM, backup은 Git과 image layer에 넣지 않는다. runtime secret은 deployment secret store 또는 접근 통제된 host environment에서 container에 주입한다. `.env.example`에는 값이나 실제 hostname 없이 key와 설명만 둔다.
+실제 값, `.env`, token, PAT, password, database, WAL/SHM, backup은 Git과 image layer에 넣지 않는다. runtime secret은 deployment secret store 또는 접근 통제된 host environment에서 container에 주입한다. `.env.example`에는 개발용 기본값과 예약 example domain만 있으며 운영 시 실제 설정을 별도 주입한다. Production은 `SESSION_COOKIE_SECURE=true`로 설정해야 한다.
 
 | 변수 | 필요 | 계약 |
 |---|---:|---|
@@ -107,9 +107,9 @@ Docker `HEALTHCHECK`와 Compose healthcheck는 `ready`를 호출한다. interval
 | `Dockerfile` | pinned-at-build approved Node LTS candidate, same native builder/runtime platform, production dependency/build artifact, non-root user, `/data` declaration, application start | DB data, `.env`, secrets/PAT, host `node_modules` |
 | `docker-compose.yml` | single `app` service, named `/data` volume, port/proxy boundary, runtime env references, restart/healthcheck | second app replica, database service, source DB bind mount 기본값 |
 | `.dockerignore` | `.git`, `.env*`(단 `.env.example`은 필요 시 예외), `node_modules`, `.next`, DB/WAL/SHM, backups, logs, coverage/test output 제외 | required source, lockfile, migrations |
-| `.env.example` | 위 환경변수 names와 Korean comment; secret injection 위치 안내 | 어떤 실제 secret, domain, password, token, production path value |
+| `.env.example` | 환경변수 names와 개발용 예시; secret injection 위치 안내 | 실제 secret, 운영 domain, password, token |
 
-구현 시 package manager와 lockfile이 확정된 뒤 `npm ci`/동등 frozen install을 선택한다. 현재 repository에는 application package/lockfile 및 Docker files가 아직 없으므로 이 문서는 command를 확정하지 않는다.
+Application package와 lockfile은 존재하며 frozen install은 `npm ci`, 빌드는 `npm run build`, migration CLI는 `npm run db:migrate`다. CLI는 repository root에서 실행하며 환경변수를 명시적으로 주입한다. `tsx`는 CLI 실행에 필요한 runtime dependency다. W16에서 image에 `db/migrations`, `scripts/migrate.ts`, 해당 DB core와 CLI dependencies를 포함하고 startup gate를 연결한다. 아직 `next start`가 migration CLI를 자동 실행하지는 않는다.
 
 ## 8. Backup, restore, rollback
 

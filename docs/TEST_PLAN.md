@@ -1,6 +1,6 @@
 # Test Plan
 
-상태: qa_docs가 작성한 전략을 Manager가 반영한 Planning 초안. 최종 통합 문서의 독립 재검토는 [BOOTSTRAP_REVIEW.md](BOOTSTRAP_REVIEW.md) 참조. 애플리케이션·migration·Docker·VBA 구현이 없으므로 아래 runtime 검증은 모두 NOT TESTED다.
+상태: qa_docs가 작성한 검증 전략. Planning 독립 검토와 W01 실행 결과는 [BOOTSTRAP_REVIEW.md](BOOTSTRAP_REVIEW.md) 참조. W02는 DB01 및 DB02 중 DB 기반 부분(연결·migration·격리·parameter binding)을 검증했다. nth-write schedule/import rollback 등 Service 검증은 후속이다. [W02 검증 기록](W02_REVIEW.md) 아래 표는 전체 제품의 검증 계획이며 Auth/Scheduling/Import/Export/Docker/VBA 통과를 뜻하지 않는다.
 
 ## 판정과 증거
 

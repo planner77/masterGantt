@@ -11,7 +11,7 @@
 - Suggested / Assigned Agent: frontend + backend; 병렬 write 시 Manager가 파일을 분리한다.
 - Dependencies: Bootstrap 최종 QA/Manager ACCEPT.
 - Related Documents: [ARCHITECTURE.md](ARCHITECTURE.md), [RESEARCH.md](RESEARCH.md).
-- Status: READY — Bootstrap 독립 QA PASS / Manager ACCEPT.
+- Status: W01 IMPLEMENTED — `c72fe18`; build/typecheck/lint/liveness unit·smoke PASS.
 - Risk: 패키지 호환성.
 
 ## W02 — SQLite Foundation
@@ -23,7 +23,7 @@
 - Suggested / Assigned Agent: backend; 병렬 write 시 Manager가 파일을 분리한다.
 - Dependencies: W01.
 - Related Documents: [DB_SCHEMA.md](DB_SCHEMA.md), [SECURITY.md](SECURITY.md).
-- Status: PLANNED.
+- Status: W02 DONE — SQLite/Repository/CLI 구현, 독립 QA PASS / Manager ACCEPT. [검증 기록](W02_REVIEW.md)
 - Risk: Native ABI와 migration.
 
 ## W03 — SVAR Minimal Integration

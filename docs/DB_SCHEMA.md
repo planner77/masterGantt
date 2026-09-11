@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 초기 구현을 위한 SQLite 논리 모델과 영속성 규칙을 정의한다. 현재 단계는 **계획(Planning)** 이며 실제 SQL migration은 아직 작성하지 않는다. 구현 시 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
+이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. [실행 검증](W02_REVIEW.md) 이후 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
 
 요구사항으로 확정된 전제는 다음과 같다.
 
@@ -114,10 +114,10 @@ UNIQUE(project_id, id)
 UNIQUE(project_id, external_id)
 FOREIGN KEY(project_id, parent_id)
   REFERENCES tasks(project_id, id)
-  ON DELETE RESTRICT
+  ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED
 ```
 
-`parent_id IS NULL`인 root task도 허용한다. Parent가 summary인지, hierarchy cycle이 없는지는 cross-row domain invariant이므로 Service/Scheduling Engine에서 검증한다.
+`parent_id IS NULL`인 root task도 허용한다. Parent가 summary인지, hierarchy cycle이 없는지는 cross-row domain invariant이므로 Service/Scheduling Engine에서 검증한다. Deferred `NO ACTION`은 일반 parent 단독 삭제를 transaction commit에서 거부하면서 Project aggregate 삭제 시 Project cascade가 전체 task hierarchy를 함께 제거할 수 있게 한다. Project 삭제 API 자체는 초기 범위 밖이다.
 
 일정 column의 의미는 다음과 같다.
 
@@ -134,7 +134,7 @@ FOREIGN KEY(project_id, parent_id)
 
 이 규칙은 DB trigger로 중복 구현하지 않고 Scheduling Engine을 단일 계산 소스로 사용한다. 저장 직전 Service가 전체 aggregate 결과를 검증한다.
 
-최종 persisted snapshot은 empty summary를 허용하지 않으므로 summary도 계산된 `start_date/end_date`가 항상 존재한다. Batch 처리 중간 candidate는 메모리에만 있고 불완전 row를 DB에 먼저 넣지 않는다. 일반 task duration은 1..10000, milestone은 0, summary snapshot은 Scheduling Engine의 허용 범위에 있어야 한다. Progress는 `100/3` 같은 파생값을 보존하도록 REAL을 사용하고 UI 표시 단계 전에는 반올림하지 않는다. Service는 `NaN`/무한대를 거부한다.
+최종 persisted snapshot은 empty summary를 허용하지 않으므로 summary도 계산된 `start_date/end_date`가 항상 존재한다. Batch 처리 중간 candidate는 메모리에만 있고 불완전 row를 DB에 먼저 넣지 않는다. 일반 task duration은 1..10000, milestone은 0이다. Summary duration은 descendant 전체 span의 계산 결과이므로 일반 task의 10000 제한을 적용하지 않고 Scheduling Engine의 지원 date range로 제한한다. Progress는 `100/3` 같은 파생값을 보존하도록 REAL을 사용하고 UI 표시 단계 전에는 반올림하지 않는다. Service는 `NaN`/무한대를 거부한다.
 
 ### 5.4 `links`
 
@@ -236,7 +236,13 @@ PRAGMA busy_timeout = 5000
 
 WAL 사용 가능 여부는 실제 persistent volume의 파일 locking과 함께 Docker 검증 대상이다. Database, `-wal`, `-shm` 파일을 동일한 persistent directory에 둔다. Single Application Instance 원칙을 벗어나거나 network filesystem을 사용하려면 SQLite 운영 적합성을 다시 검토한다.
 
-Migration은 순서가 고정된 SQL 파일과 별도 `schema_migrations` ledger로 관리한다. Application 시작 시 미적용 migration을 한 번만 transaction으로 적용하고 checksum 불일치는 실패시킨다. 실제 SQLite 파일, WAL/SHM 파일, backup은 Git에 포함하지 않는다.
+Migration은 순서가 고정된 `NNNN_name.sql` 파일과 별도 `schema_migrations` ledger로 관리한다. 파일 목록을 먼저 읽은 뒤 ledger 생성, 적용 이력 검증, 모든 pending SQL과 ledger insert를 하나의 `BEGIN IMMEDIATE` transaction에서 수행한다. 오류가 하나라도 발생하면 ledger를 포함한 pending 변경 전체를 rollback한다. 적용 이력은 disk migration의 정확한 연속 prefix여야 하며 빈 migration directory, sequence gap, 누락·이름 변경·checksum 변경은 시작을 실패시킨다.
+
+SQL migration은 검토된 repository 코드이며 사용자 입력을 실행하는 경로가 아니다. Transaction 제어는 runner만 담당한다. Migration 파일에 `BEGIN`/`COMMIT`/`ROLLBACK`이나 transaction 밖 작업을 요구하는 운영 명령을 넣지 않는다.
+
+Connection은 import 시 자동으로 열리지 않는다. Production entry가 처음 요청할 때 명시적으로 열며 각 connection에서 `foreign_keys=ON`, `journal_mode=WAL`, `synchronous=FULL`, `busy_timeout=5000`을 설정하고 실제 foreign-key/WAL 상태와 `foreign_key_check` 결과를 검증한다. In-memory test database만 SQLite의 `memory` journal mode를 허용한다.
+
+Production `DATABASE_PATH`는 정규화된 절대 경로이며 `/data` 바로 아래 또는 하위에 있어야 한다. `:memory:`, SQLite URI, 상대 경로, `/data` 밖 경로는 거부한다. 이 검증은 lexical boundary이며 mount와 symlink 안전성은 deployment 설정에서 보장한다. Development CLI는 명시적으로 제공한 workspace-relative path를 허용한다.
 
 ## 10. Import 저장 규칙
 
@@ -260,14 +266,23 @@ CSV 1.0은 `docs/IMPORT_SCHEMA.md`의 공동 승인 grammar를 따른다. RFC 41
 
 ## 12. 구현 시 검증
 
-- `PRAGMA foreign_key_check`와 migration checksum
-- 다른 Project task를 parent/link endpoint로 지정하는 insert 실패
-- duplicate external ID 실패
-- stale revision mutation 실패
-- import 중간 오류의 전체 rollback
+W02 자동화 검증 범위:
+
+- connection PRAGMA, 5개 domain table, ledger, 필수 index
+- migration 재실행 idempotency와 file DB reopen persistence
+- migration 중간 실패 시 ledger와 모든 pending DDL rollback
+- 빈 directory, sequence gap, 누락 파일, non-prefix ledger, 이름/checksum 변경 fail-closed
+- 다른 Project task를 parent 또는 link endpoint로 지정하는 insert 실패
+- Project aggregate cascade와 parent 단독 삭제 방지
+- production DB path boundary
+
+후속 work item에서 검증할 범위:
+
+- duplicate external ID의 Service 오류 mapping과 stale revision mutation
+- import 중간 오류의 전체 domain transaction rollback
 - weekend/holiday와 requested/effective date round-trip
 - password 변경 후 이전 session 무효화
-- container restart 후 DB와 WAL persistence
+- container restart 후 DB/WAL volume persistence
 
 ## 13. 근거 자료
 
