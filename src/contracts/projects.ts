@@ -92,6 +92,51 @@ export interface ProjectMetadataMutationResponse {
   };
 }
 
+export interface CreateTaskRequest {
+  externalId?: string;
+  name: string;
+  type: "task" | "milestone";
+  scheduleMode?: "auto" | "manual";
+  start: string;
+  end?: string;
+  duration: number;
+  progress: number;
+  parentExternalId?: null;
+}
+
+export interface UpdateTaskRequest {
+  name?: string;
+  scheduleMode?: "auto" | "manual";
+  start?: string;
+  end?: string;
+  duration?: number;
+  progress?: number;
+}
+
+export interface ScheduleWarningDto {
+  code: "NON_WORKING_START_SHIFTED";
+  path: "start";
+  requestedStart: string;
+  start: string;
+}
+
+export type TaskMutationKind = "taskCreate" | "taskUpdate" | "taskDelete";
+
+export interface TaskMutationResponse {
+  data: {
+    project: ProjectDto;
+    tasks: ProjectTaskDto[];
+    links: ProjectLinkDto[];
+    warnings: ScheduleWarningDto[];
+    operation: {
+      kind: TaskMutationKind;
+      changedTaskExternalIds: string[];
+      deletedTaskExternalIds: string[];
+      deletedLinkIds: string[];
+    };
+  };
+}
+
 export interface ChangeEditPasswordRequest {
   newEditPassword: string;
 }

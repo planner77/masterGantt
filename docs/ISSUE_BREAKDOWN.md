@@ -78,13 +78,13 @@
 
 - Goal: Task and Link Persistence 기능/기반을 검증 가능한 단위로 완성한다.
 - Background: Gantt 편집을 원자적으로 저장해야 한다.
-- Scope: Task CRUD, Link Repository foundation, project scope, canonical snapshot, revision, SVAR adapter. 실제 FS mutation endpoint 공개는 W09 검증 후다.
-- Acceptance Criteria: AUTH/DB 테스트와 task edit/reload 유지, 서버 거부 복원, Task UUID와 externalId 분리.
+- Scope: root Leaf Task/Milestone CRUD, Link Repository foundation, project scope, canonical snapshot, revision, SVAR adapter. Summary/Hierarchy/WBS는 W08, 실제 Link/FS mutation endpoint와 incident-Link 삭제는 W09 검증 후 공개한다.
+- Acceptance Criteria: 32 KiB strict 입력, name1..200/externalId1..128, server root append와 immutable Task UUID/externalId/type/parent/order, AUTH/DB 테스트와 task edit/reload 유지, 서버 거부 복원, Task UUID와 externalId 분리, 기존 hierarchy/Link aggregate fail-closed.
 - Suggested / Assigned Agent: backend + frontend; 병렬 write 시 Manager가 파일을 분리한다.
 - Dependencies: W03,W05,W06.
 - Related Documents: [API.md](API.md), [DB_SCHEMA.md](DB_SCHEMA.md), [ARCHITECTURE.md](ARCHITECTURE.md).
-- Status: PLANNED.
-- Risk: 두 편집자 lost update.
+- Status: DONE / PASS / ACCEPT. [W07 검증 기록](W07_REVIEW.md)
+- Risk: same-revision lost update와 root pointer 변환은 W07에서 검증했다. W08/W09 전 기존 hierarchy/Link aggregate는 fail-closed이며 multi-instance writer는 지원하지 않는다.
 
 ## W08 — Hierarchy Summary and WBS
 

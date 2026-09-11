@@ -52,7 +52,7 @@ npm registry와 설치 artifact를 다시 확인하여 `@svar-ui/react-gantt` **
 
 공식 Next.js guide에 따라 Gantt는 browser API를 사용하는 Client Component에서 mount 이후 렌더링하고, `@svar-ui/react-gantt/all.css`, `Willow`, 명시적인 높이·너비를 사용한다. `readonly=true`는 widget data 변경을 막지만 서버 authorization을 대체하지 않는다. [Next.js 통합](https://docs.svar.dev/react/gantt/integration-guides/nextjs/setup/), [readonly](https://docs.svar.dev/react/gantt/api/properties/readonly/)
 
-Core task는 `end` 또는 `duration` 중 하나를 사용하며 link type의 FS 표기는 `e2s`다. 공식 문서는 end 날짜의 inclusive/exclusive 의미를 명시적으로 정의하지 않는다. 공식 REST 예제가 1일 task를 다음 날 00:00 end로 나타내는 것은 exclusive end를 시사하지만 **추론**으로만 기록한다. W03 Adapter는 본 프로젝트의 inclusive date-only end와 widget의 exclusive local `Date` 경계를 명시하고 round-trip fixture로 검증한다. 실제 drag/resize/server 저장 의미는 W07에서 다시 확인한다. [tasks](https://docs.svar.dev/react/gantt/api/properties/tasks/), [links](https://docs.svar.dev/react/gantt/api/properties/links/), [공식 backend guide](https://docs.svar.dev/react/gantt/integration-guides/nextjs/backend/)
+Core task는 `end` 또는 `duration` 중 하나를 사용하며 link type의 FS 표기는 `e2s`다. 공식 문서는 end 날짜의 inclusive/exclusive 의미를 명시적으로 정의하지 않는다. 공식 REST 예제가 1일 task를 다음 날 00:00 end로 나타내는 것은 exclusive end를 시사하지만 **추론**으로만 기록한다. W03 Adapter는 본 프로젝트의 inclusive date-only end와 widget의 exclusive local `Date` 경계를 명시했고, W07에서 실제 drag/resize/server 저장 왕복을 확인했다. [tasks](https://docs.svar.dev/react/gantt/api/properties/tasks/), [links](https://docs.svar.dev/react/gantt/api/properties/links/), [공식 backend guide](https://docs.svar.dev/react/gantt/integration-guides/nextjs/backend/)
 
 W03은 Core-only 시각화 POC다. `api.setNext`/RestDataProvider를 서버에 연결하거나 PRO 자동 scheduling을 사용하지 않는다. 향후 command adapter는 같은 사용자 동작을 한 번만 Service API에 전달하고 서버 snapshot을 최종 상태로 반영해야 한다. [공식 save guide](https://docs.svar.dev/react/gantt/guides/load-and-save/save-to-backend/), [action interception](https://docs.svar.dev/react/gantt/guides/configuration/prevent_actions/)
 
@@ -61,6 +61,12 @@ Bootstrap 시점에는 공식 Repository manifest의 2.7.2를 확인했으나, W
 Core는 task/milestone/summary, hierarchy, grid/timeline, edit/drag/resize, link 표현과 readonly를 제공한다. Auto scheduling, working calendar 자동화, CPM/slack, baseline, WBS 등은 PRO 범주이므로 이 프로젝트의 계산 엔진과 분리한다. 이는 공개 기능 비교이며 상용 구현을 읽거나 복제한 조사가 아니다. [공식 Overview](https://docs.svar.dev/react/gantt/overview/), [공개 Repository](https://github.com/svar-widgets/react-gantt)
 
 필요한 integration surface는 `tasks`, `links`, `readonly`, `init`, 공식 `api.intercept`/event pipeline이다. Task/link add/update/delete와 move/copy가 서버 저장을 중복 유발하지 않게 실제 version POC를 수행한다. Core에서 link type을 표시할 수 있는 범위와 우리 API의 FS-only 허용 범위는 다르다. [공식 저장 guide](https://docs.svar.dev/react/gantt/guides/load-and-save/save-to-backend/), [readonly API](https://docs.svar.dev/react/gantt/api/properties/readonly/)
+
+### W07 실제 저장 검증 — 2026-09-11
+
+설치된 Core 2.7.3의 최종 pointer `update-task`는 signed calendar-day `diff`를 제공한다. Store 처리 뒤 React callback의 `task`가 전체 상태를 포함할 수 있으므로 field 존재 여부만으로 move와 resize를 구분하면 안 된다. W07 Adapter는 이전 effective start/inclusive end와 새 start/exclusive end를 비교해 move, 좌측 resize, 우측 resize를 구분하며 실제 Chromium pointer 동작으로 세 경우를 모두 SQLite 저장·reload까지 검증했다. 이는 설치 artifact와 실행 결과에 대한 확인이며, 공식 문서가 end의 inclusive/exclusive 의미를 명시했다는 주장으로 확대하지 않는다.
+
+공식 Data Provider 패턴도 재검토했지만 W07의 Project-scoped Cookie, required `If-Match`, W06 server scheduling과 canonical full snapshot 응답을 그대로 표현하지 않는다. 따라서 Core renderer와 공식 event는 사용하되 HTTP command adapter를 직접 유지한다. 이 결정은 PRO 구현이나 비공개 알고리즘을 사용하지 않는다. [공식 save guide](https://docs.svar.dev/react/gantt/guides/load-and-save/save-to-backend/), [공식 backend guide](https://docs.svar.dev/react/gantt/integration-guides/nextjs/backend/)
 
 SVAR 공식 Next.js guide는 browser API를 사용하는 client component와 `Willow`, CSS, 충분한 container height, `init` callback을 제시한다. Mount 후 렌더링 방안도 설명한다. 초기 통합에서 이를 적용하고 SSR/hydration 및 date endpoint 왕복을 시험한다. [공식 Next.js guide](https://docs.svar.dev/react/gantt/integration-guides/nextjs/setup/)
 
@@ -100,7 +106,7 @@ Calendar 탐색과 WBS 결과 길이를 포함해야 실제 복잡도를 설명�
 
 ## 미검증·후속 조사
 
-- SVAR의 실제 pointer drag/resize에서 end/date/duration이 왕복되는 의미와 Core 보조 계산을 서버 canonical snapshot이 덮어쓰는 방식. W03의 exclusive end는 공식 예제 기반 추론으로 격리했다.
+- Summary/hierarchy와 Dependency link 편집에서 Core 보조 계산을 W08/W09 server canonical snapshot이 덮어쓰는 방식. Root Leaf pointer drag/resize와 실패 복원은 W07에서 실제 검증했다.
 - Next/React/SVAR/better-sqlite3/ExcelJS 및 UI/test 도구의 최종 version·license·transitive dependency 조합. 전부 검증했다고 표시하지 않으며 최초 설치 issue의 acceptance다.
 - 실제 Workbook, DRM/macro 권한, 승인된 파일 저장 경로, 안정 ID 보존 수단, source calendar/progress 해석.
 - 실제 배포 architecture/volume permission, production scrypt memory·latency, 입력 크기/렌더 성능.

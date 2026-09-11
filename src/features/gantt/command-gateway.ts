@@ -3,12 +3,15 @@ import type { ITask, TID } from "@svar-ui/react-gantt";
 export interface LocalTaskUpdateCommand {
   kind: "update-task";
   taskId: TID;
+  /** SVAR's final pointer event uses a signed calendar-day delta. */
+  diff?: number;
   changes: Pick<ITask, "text" | "start" | "end" | "progress" | "parent">;
 }
 
 export interface TaskUpdateEvent {
   id: TID;
   task: Partial<ITask>;
+  diff?: number;
   inProgress?: boolean;
 }
 
@@ -40,6 +43,7 @@ export function createTaskUpdateGateway(
       changes.end?.getTime(),
       changes.progress,
       changes.parent,
+      event.diff,
     ]);
     if (dispatchedThisTurn.has(fingerprint)) return;
 
@@ -51,6 +55,11 @@ export function createTaskUpdateGateway(
         clearScheduled = false;
       });
     }
-    dispatch({ kind: "update-task", taskId: event.id, changes });
+    dispatch({
+      kind: "update-task",
+      taskId: event.id,
+      ...(typeof event.diff === "number" ? { diff: event.diff } : {}),
+      changes,
+    });
   };
 }

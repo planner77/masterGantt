@@ -2,7 +2,7 @@
 
 ## 1. Security Model
 
-이 문서는 Project별 Edit Password와 browser edit session을 사용하는 초기 보안 정책의 Source of Truth이다. W02에서 DB 격리·parameter binding을, W04에서 생성 bootstrap과 Direct Readonly를 구현했다. W05는 password verification, session consumption·revoke·rotation과 대표 보호 mutation인 Project metadata 변경을 구현했다. W05 자동화·독립 검증 범위와 후속 Task/Import 보안 경계는 [W05 검증 기록](W05_REVIEW.md)에서 구분한다.
+이 문서는 Project별 Edit Password와 browser edit session을 사용하는 초기 보안 정책의 Source of Truth이다. W02에서 DB 격리·parameter binding을, W04에서 생성 bootstrap과 Direct Readonly를 구현했다. W05는 password verification, session consumption·revoke·rotation과 Project metadata 보호 mutation을, W07은 root Task/Milestone 보호 mutation을 구현했다. 자동화·독립 검증 범위와 후속 Link/Import 보안 경계는 [W05 검증 기록](W05_REVIEW.md), [W07 검증 기록](W07_REVIEW.md)에서 구분한다.
 
 핵심 경계는 다음과 같다.
 
@@ -89,7 +89,7 @@ Cookie serializer는 production HTTPS에서 `__Host-mastergantt_edit`, `Secure`,
 
 각 protected Route Handler는 동일 authorization middleware/service를 거친다.
 
-W05는 이 공통 경계를 Project metadata PATCH와 edit-password PUT에 적용했다. W04 create는 preexisting session이 없는 bootstrap 예외다. 후속 Calendar/Task/Link/Import Route는 추가되는 즉시 같은 inventory와 검증 경계를 통과해야 한다.
+W05는 이 공통 경계를 Project metadata PATCH와 edit-password PUT에, W07은 Task POST/PATCH/DELETE에 적용했다. W04 create는 preexisting session이 없는 bootstrap 예외다. 후속 Calendar/Link/Import Route는 추가되는 즉시 같은 inventory와 검증 경계를 통과해야 한다.
 
 1. URL `publicId` 형식 검증
 2. Cookie 존재 및 최대 길이 검증
@@ -268,7 +268,7 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 
 ## 14. Security 검증 목록
 
-아래는 전체 보안 검증 계획이다. W04의 생성 bootstrap에 이어 W05는 password unlock, session lifecycle, metadata 보호 mutation, password rotation과 현재 Route inventory의 자동화·독립 QA를 **PASS**했다. W02의 cross-project FK/Repository 기반도 PASS다. Task/Link/Import의 실제 authorization과 운영 access log·proxy/KDF benchmark·image 보안은 후속이므로 완료로 간주하지 않는다. [W05 근거 및 한계](W05_REVIEW.md)
+아래는 전체 보안 검증 계획이다. W04의 생성 bootstrap, W05의 password/session·Project 보호 mutation에 이어 W07 root Task/Milestone authorization과 현재 Route inventory의 자동화·독립 QA를 **PASS**했다. W02의 cross-project FK와 W07 Project-scoped Task/Link Repository 기반도 PASS다. 외부 Link/Import의 실제 authorization과 운영 access log·proxy/KDF benchmark·image 보안은 후속이므로 완료로 간주하지 않는다. [W07 근거 및 한계](W07_REVIEW.md)
 
 - 동일 password의 Project 두 개가 서로 다른 salt/hash를 가짐 — W04 PASS
 - Password 원문/후보가 DB, response/error/URL/DOM에 없음 — W04 PASS; server log/workbook은 NOT TESTED
@@ -276,9 +276,9 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 - Session token DB 원문 부재 — W04 PASS; wrong-project/expired/revoked/auth-version/credential-integrity mismatch 거부와 idempotent logout — W05 PASS
 - Production Cookie의 HttpOnly/Secure/SameSite/Path/Domain 속성 — W04 PASS
 - Create의 missing/null/cross Origin 거부 — W04 PASS; W05 unlock/logout/metadata/password Origin과 현재 Route/CORS inventory — W05 PASS
-- Session 없이 Project metadata/password mutation 거부 — W05 PASS; Calendar/Task/Link/Import는 후속
-- Cross-project task parent/link 및 repository query isolation
-- Metadata/password의 missing·malformed·stale revision, 동시 동일 revision write와 password rollback — W05 PASS; scheduling/import rollback은 후속
+- Session 없이 Project metadata/password mutation 거부 — W05 PASS; root Task mutation — W07 PASS; Calendar/Link/Import는 후속
+- Public Task UUID와 valid wrong-Project Cookie를 결합해도 Task read/write 불가, parent/link composite FK와 Repository Project scope — W02/W07 PASS
+- Metadata/password의 missing·malformed·stale revision과 동시 동일 revision write — W05 PASS; Task의 missing/stale revision, 실제 동시 HTTP write 하나만 성공, create/update/delete fault rollback — W07 PASS; hierarchy/FS/import rollback은 후속
 - Import size/depth/count/date traversal 상한
 - Export formula/hyperlink/filename injection과 secret scan
 - `.env`, SQLite, WAL/SHM, backup의 Git/image 제외

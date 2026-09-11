@@ -42,6 +42,8 @@
 | ADR36 | ACCEPT | W06 date-only는 자체 Gregorian ordinal과 `1900-01-01..2199-12-31` 절대 범위를 사용 | ECMAScript Date/instant/timezone 의존을 피하고 API·DB 상한과 정렬. 전체 109,573일 왕복·요일 oracle과 여러 TZ에서 검증 |
 | ADR37 | ACCEPT | W06은 exact `Asia/Seoul`/`[6,0]`, 중복 Holiday 거부·nullable name 보존, Task `1..10000`, calendar-only Leaf/Milestone까지만 구현 | Task 저장은 W07, Summary/WBS는 W08, FS·Calendar 변경 Manual aggregate conflict는 W09로 분리 |
 | ADR38 | ACCEPT | W06 Working Calendar and Duration 완료 | QA의 SSR-only runtime probe와 nullable Holiday 불일치를 수정하고 raw SSR pending→hydrated browser 계산, Domain 135/135·전체 226/226·Chromium 7/7 PASS; [W06 검증](W06_REVIEW.md) |
+| ADR39 | ACCEPT | W07은 root Leaf Task/Milestone CRUD와 Link Repository foundation만 공개 | body32KiB, name1..200, externalId1..128, immutable ID/type/parent/order, root append. Summary/Hierarchy/WBS는 W08, Link Route·incident 삭제·FS는 W09. 기존 hierarchy/Link aggregate는 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 fail closed |
+| ADR40 | ACCEPT | W07 Task and Link Persistence 완료 | Project-scoped session/revision `BEGIN IMMEDIATE`, W06 Leaf 계산, canonical snapshot, 직접 SVAR command adapter와 실패 시 확정 snapshot 복원. 전체 291 Vitest와 clean Chromium 8/8 PASS; [W07 검증](W07_REVIEW.md) |
 
 ## Integration 원칙
 
@@ -51,4 +53,4 @@ Agent 초안은 바로 완료로 처리하지 않는다. Manager는 공동 계�
 
 ## 구현 시작과 사용자 판단
 
-W01–W06 기반과 Project 생성·Direct Readonly·edit authorization·Calendar/Leaf Scheduling을 구현했다. 다음 vertical slice는 W07 Task and Link Persistence다. 비용·데이터 손실·조직 정책·대규모 Architecture/Workflow 변경이 생기면 해당 작업 전에 판단을 요청한다. 아직 실제 Workbook이나 운영 환경을 시험하지 않았으므로 이를 이유로 다른 독립 기반 작업을 막지 않는다.
+W01–W07 기반과 Project 생성·Direct Readonly·edit authorization·Calendar/Leaf Scheduling·root Task persistence vertical slice를 구현했다. 다음 단계는 W08 Hierarchy Summary and WBS다. 비용·데이터 손실·조직 정책·대규모 Architecture/Workflow 변경이 생기면 해당 작업 전에 판단을 요청한다. 아직 실제 Workbook이나 운영 환경을 시험하지 않았으므로 이를 이유로 다른 독립 기반 작업을 막지 않는다.

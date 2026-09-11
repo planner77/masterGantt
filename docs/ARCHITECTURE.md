@@ -1,6 +1,6 @@
 # Architecture draft
 
-상태: Manager 통합 설계. W01–W06의 Project·authorization 기반과 pure Calendar/Leaf Scheduling은 독립 QA PASS / Manager ACCEPT했다. Task persistence, Summary/WBS, FS 재계산, Import/Export·배포는 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
+상태: Manager 통합 설계. W01–W07의 Project·authorization, pure Calendar/Leaf Scheduling과 root Task/Milestone persistence는 독립 QA PASS / Manager ACCEPT했다. Summary/WBS, FS 재계산, Import/Export·배포는 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
 
 ## 경계
 
@@ -34,7 +34,7 @@ flowchart TD
 
 ## 제안 Directory 구조
 
-아래는 목표 구조다. W01–W06에서 `app`, `components`, `features/gantt`, `features/projects`, `contracts`, `domain/scheduling`, `server/db`, `server/repositories`, `server/projects`, `server/security`, `db/migrations`, 관련 `tests` 경로를 만들었고 나머지는 담당 작업에서 추가한다.
+아래는 목표 구조다. W01–W07에서 `app`, `components`, `features/gantt`, `features/projects`, `contracts`, `domain/scheduling`, `server/db`, `server/repositories`, `server/projects`, `server/security`, `db/migrations`, 관련 `tests` 경로를 만들었고 나머지는 담당 작업에서 추가한다.
 
 ```text
 src/app/                         Next.js pages and HTTP routes
@@ -62,13 +62,13 @@ SVAR 공식 Next.js guide의 client wrapper, theme/CSS, `init` API를 따랐고 
 
 Project Direct GET snapshot은 Cookie가 있어도 항상 Readonly다. UI는 별도 current-session GET으로 edit 표시를 동기화하고 password unlock 뒤 metadata/password/logout control을 활성화한다. 서버는 UI 상태와 무관하게 매 mutation에서 Project-bound session을 다시 확인한다.
 
-UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 external ID↔SVAR ID, date-only↔Date, end 포함↔SVAR endpoint 의미, working-day duration↔calendar span, domain link type↔SVAR link type을 변환한다. W03 Adapter는 공식 REST 예제에서 **추론한** exclusive widget end를 한 곳에서 inclusive domain end와 변환하고 unit round-trip을 통과했다. Vendor가 의미를 명시적으로 보장한 것은 아니므로 실제 pointer drag/resize와 서버 저장 왕복을 W07에서 재확인하며, 결과가 다르면 Adapter와 계약을 함께 수정한다.
+UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 external ID↔SVAR ID, date-only↔Date, end 포함↔SVAR endpoint 의미, working-day duration↔calendar span, domain link type↔SVAR link type을 변환한다. W07은 설치된 Core 2.7.3에서 실제 이동·좌우 resize를 수행해 exclusive widget end↔inclusive domain end 변환과 서버 저장 왕복을 확인했다. 최종 콜백의 전체 Task 상태는 기존 endpoint와 비교해 move/start-resize/end-resize 명령으로 구분한다.
 
-편집 명령은 `init`에서 얻은 API의 공식 interception/event hook을 통해 API로 보낸다. 단일 명령은 한 번만 저장한다. 초기 방안은 optimistic 화면 변경을 허용하되 요청 동안 동일 aggregate 후속 변경을 직렬화하고, 성공 시 전체 canonical snapshot으로 교체하며 실패·412 시 서버 재조회와 사용자 오류를 표시하는 것이다. PRO auto-scheduler를 동시에 실행하지 않는다. Data provider의 공식 패턴을 검토하되 프로젝트별 cookie/If-Match/atomic hierarchy 계약을 보존한다.
+편집 명령은 Core `onUpdateTask`의 최종 이벤트만 API로 보낸다. 요청 동안 동일 aggregate 후속 변경을 동기 mutex로 막고, 성공 시 전체 canonical snapshot으로 교체한다. 실패·412·응답 불확실성에는 서버를 재조회하며, 재조회도 실패하면 React에 남은 마지막 확정 Snapshot으로 SVAR를 강제 재마운트한다. PRO auto-scheduler를 실행하지 않는다. 공식 Data Provider는 본 프로젝트의 cookie/If-Match/canonical full snapshot 계약과 맞지 않아 W07에서 직접 채택하지 않았다.
 
 화면: Project List/Create, Direct Gantt, Edit Unlock, Import Wizard, Export. UI toolkit은 shadcn/ui와 Tailwind 후보이며 설치 시 license·version을 확인한다. 핵심 Gantt 기능은 Core를 사용한다. Project List의 실데이터 공개는 D02 결정 전 비활성으로 유지한다.
 
-Project 경로는 `Route Handler → ProjectService → ProjectRepository/EditSessionRepository → SQLite`를 따른다. Route가 canonical `APP_BASE_URL`과 unsafe method의 exact `Origin`, UTF-8 JSON content type, 32 KiB body, strict Zod input을 검사한다. Service는 비동기 scrypt를 transaction 밖에서 수행한다. Create는 Project row와 최초 session digest를, password rotation은 새 credential·auth version/revision·전체 revoke·호출자 session을 각각 짧은 `BEGIN IMMEDIATE` transaction에 저장한다. Metadata mutation도 같은 transaction에서 session과 revision을 최종 재검증한다. Direct read는 하나의 deferred read transaction에서 Project/tasks/links/holidays를 Project scope로 조회해 public DTO로 변환한다. Collection discovery는 D02 전 405다.
+Project 경로는 `Route Handler → ProjectService → ProjectRepository/EditSessionRepository/ScheduleRepository → SQLite`를 따른다. Route가 canonical `APP_BASE_URL`과 unsafe method의 exact `Origin`, UTF-8 JSON content type, 32 KiB body, strict Zod input을 검사한다. Service는 비동기 scrypt를 transaction 밖에서 수행한다. Task mutation은 짧은 `BEGIN IMMEDIATE` transaction 안에서 session을 다시 검증하고 revision을 비교한 뒤 W06 `scheduleLeaf`를 호출해 저장하며 revision을 정확히 한 번 증가시킨다. Direct read와 mutation success는 Project/tasks/links/holidays의 canonical DTO를 반환한다. Collection discovery는 D02 전 405다.
 
 ## 쓰기와 동시성
 
@@ -101,4 +101,4 @@ W04 생성 bootstrap에 이어 W05는 recorded scrypt profile의 timing-safe pas
 
 ## 구현 진입 Gate
 
-첫 slice 중 W04의 Project 생성→SQLite 저장→Direct Readonly 조회→reload 유지, W05의 edit lifecycle, W06의 Calendar/Leaf 계산과 server/hydrated-browser 동일 fixture는 독립 QA PASS / Manager ACCEPT했다. 다음은 W07의 단일 task 변경→reload 유지로 확장한다. 실제 VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.
+최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. 다음은 W08 Summary/Hierarchy/WBS다. 실제 VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.

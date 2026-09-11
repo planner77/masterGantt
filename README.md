@@ -2,13 +2,13 @@
 
 소규모 프로젝트의 일정과 진행 상황을 관리하는 웹 애플리케이션이다. SVAR React Gantt Core로 일정을 표시·편집하고, 일정 계산은 독립적인 Scheduling Engine에서 수행하는 구조를 목표로 한다.
 
-프로젝트별 직접 링크, SQLite 저장과 편집 비밀번호 인증을 구현했으며, Task/Gantt 저장, 승인된 Excel/VBA → JSON·CSV Import, Excel Export, 단일 Docker 애플리케이션 배포를 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
+프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장을 구현했으며, Summary/WBS·FS 일정, 승인된 Excel/VBA → JSON·CSV Import, Excel Export, 단일 Docker 애플리케이션 배포를 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
 
 이 README는 프로젝트 이해·설치·재설치·실행·진행 상황 확인을 위한 진입 문서다. 상세 요구사항은 [REQUIREMENTS](docs/REQUIREMENTS.md), 최신 작업 상태는 [실행 계획](docs/exec-plans/active/PLAN.md)을 따른다.
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-11 / W06 완료**, 독립 QA PASS / Manager ACCEPT.
+기준: **2026-09-11 / W07 완료**, 독립 QA PASS / Manager ACCEPT.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -19,12 +19,13 @@
 | W04 Project 생성·직접 조회 | 완료 / 독립 QA PASS | strict 입력, UUID URL, scrypt 저장, 최초 session 원자 발급, 직접 Readonly snapshot, 컬렉션 비공개 |
 | W05 편집 인증 | 완료 / 독립 QA PASS | password unlock, session current/logout, metadata 보호 저장, revision, password rotation, route security inventory |
 | W06 일정 계산 기반 | 완료 / 독립 QA PASS | pure Gregorian date-only, weekend/holiday, inclusive duration, Auto/Manual leaf, milestone, server/browser 동일 fixture |
-| W07 이후 | 예정 | Task/Gantt 저장, Summary/WBS, FS 재계산, Import/Export |
+| W07 Task·Link 저장 기반 | 완료 / 독립 QA PASS | root Task/Milestone CRUD, Project-scoped Link Repository, 실제 Gantt 이동·양방향 resize·삭제·reload, 거부 복원, revision 경쟁 |
+| W08 이후 | 예정 | Summary/WBS, FS 재계산, Import/Export |
 | W16 배포 | 예정 | Docker 파일, startup/readiness, volume·재시작·백업 복원 검증 |
 
-홈 화면은 DB에 Project가 없다고 단정하지 않고 목록 discovery가 아직 비활성임을 안내하며 생성 링크를 제공한다. `/projects/new`에서 Project를 만들면 `/projects/{publicId}`로 이동한다. Direct snapshot API는 Cookie와 관계없이 Readonly이며, 화면은 별도 current-session 확인 뒤에만 metadata/password/logout 편집 control을 표시한다. D02 결정 전 `GET /api/projects`는 `405`로 닫혀 있다. `/gantt-demo`의 편집 미리보기는 브라우저 로컬 동작일 뿐 서버나 SQLite에 저장되지 않으며, 같은 화면의 runtime 상태는 W06 fixture가 server와 hydrated browser에서 일치하는지 보여 준다. 실제 Task/Gantt 일정 저장은 W07 이후 범위다.
+홈 화면은 DB에 Project가 없다고 단정하지 않고 목록 discovery가 아직 비활성임을 안내하며 생성 링크를 제공한다. `/projects/new`에서 Project를 만들면 `/projects/{publicId}`로 이동한다. Direct snapshot API는 Cookie와 관계없이 Readonly이며, 화면은 별도 current-session 확인 뒤에만 metadata/password/logout과 root Task/Milestone 편집 control을 표시한다. D02 결정 전 `GET /api/projects`는 `405`로 닫혀 있다. Project 화면의 Gantt drag/resize 결과는 보호 Task API와 W06 Scheduling Engine을 거쳐 SQLite에 저장되고, 성공·실패 모두 server canonical snapshot으로 복원된다. Summary/hierarchy나 Link가 있는 일정의 변경은 W08/W09 전까지 fail-closed다. `/gantt-demo`는 별도의 로컬 fixture다.
 
-최근 Manager·독립 QA 검증: build/typecheck/lint PASS, **15개 파일 226개 Vitest PASS**, clean isolated Turbopack Chromium E2E **7개 PASS**, production dependency audit 0건. 환경·범위·남은 위험은 [W06 검토 기록](docs/W06_REVIEW.md)을 참고한다.
+최근 Manager·독립 QA 검증: build/typecheck/lint PASS, **21개 파일 291개 Vitest PASS**, clean isolated Turbopack Chromium E2E **8개 PASS**, production dependency audit 0건. 환경·범위·남은 위험은 [W07 검토 기록](docs/W07_REVIEW.md)을 참고한다.
 
 ## 2. 기술 스택과 역할
 
@@ -42,13 +43,13 @@
 | Vitest | 5.0.0 | DB·CLI·liveness·Project API/보안 경계 자동화 검증 |
 | Playwright | 1.63.0 | Gantt와 Project 생성·직접 조회 Chromium E2E; 기본 격리 포트 3100 |
 | SVAR React Gantt Core | 2.7.3, MIT | Gantt 표시와 Core 이벤트; exact direct dependency |
-| SVAR data provider | Core의 transitive 2.7.2, 직접 사용 안 함 | 실제 API 저장 계약과 비교 후 W07에서 채택 여부 재검토 |
-| Zod | 4.6.2 | Project 생성 request의 strict server schema 검증 |
+| SVAR data provider | Core의 transitive 2.7.2, 직접 사용 안 함 | cookie/If-Match/canonical snapshot 계약이 달라 W07 직접 명령 Adapter 유지 |
+| Zod | 4.6.2 | Project·Task request의 strict server schema 검증 |
 | Scheduling Engine | 자체 pure TypeScript | Gregorian ordinal, Project Calendar, 근무일·Leaf Duration; SVAR/DB/시간대 API 비의존 |
 | shadcn/ui / ExcelJS | 도입 예정, 미설치 | 일반 UI / 서버 Excel 생성 |
 | Docker / Docker Compose | 구성 예정 | 단일 애플리케이션과 영속 SQLite volume 배포 |
 
-서버의 접근 경계는 `Route Handler → Service → Repository → SQLite`다. W04 Project 생성·조회가 이 경계로 구현되었고 DB 진입점은 `server-only`이며 import나 Next.js build만으로 DB를 열지 않는다. W06 일정 계산은 `src/domain/scheduling/`에서 UI·DB·system timezone과 독립적으로 구현했으며 W07 이후 Service가 호출한다. 기술 선정 근거는 [RESEARCH](docs/RESEARCH.md), 설계는 [ARCHITECTURE](docs/ARCHITECTURE.md)를 참고한다.
+서버의 접근 경계는 `Route Handler → Service → Repository → SQLite`다. W07 Task mutation도 이 경계를 따르며 transaction 안에서 session과 revision을 다시 확인한 뒤 W06 `scheduleLeaf` 결과를 저장한다. DB 진입점은 `server-only`이며 import나 Next.js build만으로 DB를 열지 않는다. 기술 선정 근거는 [RESEARCH](docs/RESEARCH.md), 설계는 [ARCHITECTURE](docs/ARCHITECTURE.md)를 참고한다.
 
 ## 3. 설치 및 재설치
 
@@ -125,7 +126,7 @@ npm run dev -- --hostname 127.0.0.1 --port 3000
 
 서버를 실행한 장비의 브라우저에서 [http://127.0.0.1:3000](http://127.0.0.1:3000)을 연다. `/projects/new`에서 Project를 생성하면 최초 요청 시 migration을 확인·적용하고 UUID 직접 URL로 이동한다. 종료는 터미널에서 `Ctrl+C`를 누른다.
 
-SVAR 최소 통합 화면은 [http://localhost:3000/gantt-demo](http://localhost:3000/gantt-demo)에서 확인한다. 기본은 readonly다. `로컬 편집 미리보기`를 켜고 fixture 이벤트를 실행해 Core update event가 한 개의 로컬 명령으로 전달되는지 볼 수 있지만, 이 변경은 저장되지 않는다.
+실제 Project 화면은 처음에는 readonly다. 비밀번호로 잠금을 해제하면 root Task/Milestone을 추가·삭제하고 SVAR bar를 이동하거나 양 끝을 resize할 수 있다. 이 변경은 revision을 사용해 SQLite에 저장되며 새로고침 후 유지된다. `/gantt-demo`의 `로컬 편집 미리보기`는 별도 fixture라 저장되지 않는다.
 
 포트가 이미 사용 중이면 `APP_BASE_URL=http://127.0.0.1:3001`과 `--port 3001`을 함께 적용한다. Turbopack이 실행 환경의 제약으로 실패하면 `npm run dev -- --webpack --hostname 127.0.0.1 --port 3000`으로 실행할 수 있다. 서버 listen 자체가 권한 오류로 차단된 경우에는 실행 환경의 포트 권한도 필요하다.
 
@@ -172,7 +173,7 @@ Build와 typecheck는 `.next` 생성 파일을 공유하므로 순서대로 실�
 npm test -- tests/server/db/database.test.ts tests/server/migration-cli.test.ts
 ```
 
-W06 Manager 검증 기준 전체 226개 Vitest와 Chromium E2E 7개가 통과했다. 기본 E2E는 Turbopack과 `.next-e2e`, `.data/playwright.sqlite3`를 사용해 일반 개발 서버와 격리한다. Process-global 생성 limiter를 실제 설정 그대로 사용하는 browser suite는 worker 1개로 직렬 실행하며, 동일 revision 동시 write는 W05 spec 내부의 병렬 HTTP 요청으로 계속 검증한다. W06은 raw SSR `pending`에서 hydration 후 browser 결과로 전환되는 fixture를 UTC·Asia/Seoul·America/New_York에서 검증한다. 동일 dist directory를 사용하는 Playwright server는 겹쳐 실행하지 않는다. CLI와 W06 timezone purity test는 별도 Node 프로세스를 실행하므로 sandbox에서 `EPERM`이 나오면 프로세스 실행 권한이 있는 환경에서 확인해야 한다. 이미 실행 중인 앱과 별도 Chromium executable을 사용하려면 다음 환경 변수를 선택적으로 지정할 수 있다.
+W07 Manager 검증 기준 전체 291개 Vitest와 Chromium E2E 8개가 통과했다. 기본 E2E는 Turbopack과 `.next-e2e`, `.data/playwright.sqlite3`를 사용해 일반 개발 서버와 격리한다. Process-global 생성 limiter를 실제 설정 그대로 사용하는 browser suite는 worker 1개로 직렬 실행한다. 동일 revision 동시 write는 W05 metadata와 W07 Task spec 내부의 병렬 HTTP 요청으로 검증한다. W07은 실제 SVAR 이동·좌우 resize·삭제·reload, 401/412/422/500과 canonical read 실패 복원도 포함한다. 동일 dist directory를 사용하는 Playwright server는 겹쳐 실행하지 않는다. 이미 실행 중인 앱과 별도 Chromium executable을 사용하려면 다음 환경 변수를 선택적으로 지정할 수 있다.
 
 ```sh
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 \
@@ -180,18 +181,18 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/path/to/chromium \
 npm run test:e2e
 ```
 
-일정 계산 기반의 근거와 미검증 범위는 [W06_REVIEW](docs/W06_REVIEW.md), 편집 인증은 [W05_REVIEW](docs/W05_REVIEW.md), 생성·직접 조회는 [W04_REVIEW](docs/W04_REVIEW.md), Gantt 기반은 [W03_REVIEW](docs/W03_REVIEW.md), DB 기반은 [W02_REVIEW](docs/W02_REVIEW.md), 전체 계획은 [TEST_PLAN](docs/TEST_PLAN.md)을 참고한다.
+Task 저장 근거는 [W07_REVIEW](docs/W07_REVIEW.md), 일정 계산 기반은 [W06_REVIEW](docs/W06_REVIEW.md), 편집 인증은 [W05_REVIEW](docs/W05_REVIEW.md), 생성·직접 조회는 [W04_REVIEW](docs/W04_REVIEW.md), Gantt 기반은 [W03_REVIEW](docs/W03_REVIEW.md), DB 기반은 [W02_REVIEW](docs/W02_REVIEW.md), 전체 계획은 [TEST_PLAN](docs/TEST_PLAN.md)을 참고한다.
 
 ## 7. 코드와 실행 산출물
 
 | 위치 | 내용 |
 | --- | --- |
 | [src/app](src/app), [src/components](src/components) | 화면, 레이아웃, loading/error, liveness Route |
-| [src/app/projects](src/app/projects), [src/features/projects](src/features/projects) | Project 생성, Direct Readonly, unlock/metadata/password/logout UI |
-| [src/app/api/projects](src/app/api/projects), [src/server/projects](src/server/projects), [src/server/security](src/server/security) | Project·edit session API, Service, strict 계약, protected authorization와 route inventory |
+| [src/app/projects](src/app/projects), [src/features/projects](src/features/projects) | Project 생성, Direct Readonly, unlock/metadata/password/logout, Task CRUD UI |
+| [src/app/api/projects](src/app/api/projects), [src/server/projects](src/server/projects), [src/server/security](src/server/security) | Project·edit session·Task API, Service, strict 계약, protected authorization와 route inventory |
 | [src/contracts](src/contracts) | Client/server가 공유하는 public Project DTO |
 | [src/domain/scheduling](src/domain/scheduling) | Pure Gregorian date-only, Project Calendar, 근무일·Leaf Duration과 안정 오류 |
-| [src/app/gantt-demo](src/app/gantt-demo), [src/features/gantt](src/features/gantt) | SVAR demo route, browser wrapper, inclusive/exclusive 날짜 adapter, 로컬 command gateway |
+| [src/app/gantt-demo](src/app/gantt-demo), [src/features/gantt](src/features/gantt) | SVAR demo와 Project Gantt, inclusive/exclusive 날짜·Task 명령 adapter |
 | [src/server/db](src/server/db) | DB 경로 정책, 연결, migration runner, lazy server-only 진입점 |
 | [src/server/repositories](src/server/repositories) | Project/Schedule prepared query와 서버용 반환 자료 |
 | [db/migrations](db/migrations) | 버전 관리하는 SQL schema 변경 |
@@ -221,6 +222,7 @@ npm run test:e2e
 | W04 Project 생성·직접 조회 검증 결과 | [W04_REVIEW](docs/W04_REVIEW.md) |
 | W05 편집 인증 검증 결과 | [W05_REVIEW](docs/W05_REVIEW.md) |
 | W06 일정 계산 기반 검증 결과 | [W06_REVIEW](docs/W06_REVIEW.md) |
+| W07 Task·Link 저장 기반 검증 결과 | [W07_REVIEW](docs/W07_REVIEW.md) |
 | Multi-Agent 설정 검증 | [AGENT_CONFIGURATION](docs/AGENT_CONFIGURATION.md) |
 
 문서에 계약이 있다는 사실만으로 기능이 구현된 것은 아니다. 현재 구현 여부는 위 상태 표와 실행 계획, 실제 검증 기록을 함께 확인한다. 작업 목록의 W번호는 로컬 관리 식별자이며 GitHub Issue 번호가 아니다.

@@ -419,6 +419,139 @@ h2 {
 
 .schedule-empty p { margin-bottom: 0; color: var(--muted-foreground); }
 
+.project-schedule {
+  display: grid;
+  gap: 1rem;
+}
+
+.schedule-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.schedule-heading-row h2,
+.task-edit-panel h3 {
+  margin: 0 0 0.25rem;
+}
+
+.schedule-heading-row p,
+.schedule-scope-note {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.schedule-saving {
+  flex: 0 0 auto;
+  color: #1e3a5f;
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.schedule-scope-note {
+  border-left: 3px solid #b98224;
+  background: #fff8e8;
+  color: #73551c;
+  padding: 0.75rem;
+}
+
+.project-gantt-widget {
+  min-height: 26rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.task-edit-panel {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.task-create-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.task-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.form-field select,
+.task-delete-control select {
+  width: 100%;
+  min-height: 2.5rem;
+  border: 1px solid var(--input);
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--card);
+  color: var(--foreground);
+  font: inherit;
+  padding: 0.5rem 0.75rem;
+}
+
+.task-delete-control {
+  display: grid;
+  width: min(100%, 42rem);
+  gap: 0.5rem;
+}
+
+.task-delete-control > label {
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.task-delete-control > div {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.task-delete-control select { flex: 1 1 auto; }
+
+.task-delete-control .secondary-button { margin-top: 0; }
+
+.delete-confirmation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  border-left: 3px solid #b42318;
+  background: #fff3f2;
+  padding: 0.75rem;
+}
+
+.delete-confirmation p { width: 100%; margin: 0; color: #8f1d17; }
+
+.delete-confirmation .secondary-button,
+.danger-button { margin-top: 0; }
+
+.danger-button {
+  min-height: 2.5rem;
+  border: 1px solid #a92017;
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: #b42318;
+  color: #fff;
+  cursor: pointer;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.danger-button:disabled { cursor: not-allowed; opacity: 0.6; }
+
+@media (max-width: 48rem) {
+  .task-form-grid { grid-template-columns: 1fr; }
+  .task-delete-control > div { align-items: stretch; flex-direction: column; }
+  .project-gantt-widget { min-height: 22rem; }
+}
+
 .loading-state {
   grid-template-columns: auto 1fr;
   align-items: center;

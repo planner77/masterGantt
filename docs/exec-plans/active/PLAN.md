@@ -1,6 +1,6 @@
 # Active execution plan
 
-상태: **W06 Working Calendar and Duration 완료 — 독립 QA PASS / Manager ACCEPT**. W01–W05도 구현·검증을 완료했다. 다음 구현은 W07 Task and Link Persistence다. 근거: [Requirements](../../REQUIREMENTS.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md), [W06 검증 기록](../../W06_REVIEW.md).
+상태: **W07 Task and Link Persistence 완료 — 독립 QA PASS / Manager ACCEPT**. W01–W06도 구현·검증을 완료했다. 다음 구현은 W08 Hierarchy Summary and WBS다. 근거: [Requirements](../../REQUIREMENTS.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md), [W07 검증 기록](../../W07_REVIEW.md).
 
 ## Phase와 Task
 
@@ -13,11 +13,11 @@
 | B4 | 최종 독립 review→Manager 판단 | B3 | qa_docs→Manager | 최종 계약 일치, blocker 판정, review 증거 | PASS / ACCEPT | runtime 검증과 구분 |
 | P1 | W01 Project Foundation | Bootstrap 최종 QA/Manager ACCEPT | frontend + backend | 공식 버전/라이선스·peer/engine 확인과 lockfile; build/typecheck/smoke 성공; server-only DB 경계 | DONE | Turbopack sandbox 제한; Webpack PASS |
 | P1 | W02 SQLite Foundation | W01 | backend + qa_docs + Manager | projects/tasks/links/edit_sessions/holidays, FK/index, migration 실패와 rollback, 다른 Project FK 거부 | DONE / PASS / ACCEPT | Native Docker platform은 W16 검증 |
-| P1 | W03 SVAR Minimal Integration | W01 | frontend + researcher + qa_docs + Manager | 설치 version에서 browser mount·final update event·date 왕복·readonly, PRO 호출 없음, 한 logical command 경계 | DONE / PASS / ACCEPT | exclusive end는 추론; pointer drag·server persistence는 W07 |
+| P1 | W03 SVAR Minimal Integration | W01 | frontend + researcher + qa_docs + Manager | 설치 version에서 browser mount·final update event·date 왕복·readonly, PRO 호출 없음, 한 logical command 경계 | DONE / PASS / ACCEPT | exclusive end 추론의 실제 root pointer 왕복은 W07 PASS |
 | P2 | W04 Project Create and Direct Read | W02 | backend + frontend + qa_docs + Manager | strict 입력3개, UUID URL, DB 재조회, scrypt+최초 session 원자 저장, 원문 password 미노출; D02 전 List 차단 | DONE / PASS / ACCEPT | production limiter·KDF benchmark는 W16 |
-| P2 | W05 Readonly and Edit Authorization | W04 | backend + frontend + qa_docs + Manager | W05 적용 AUTH slice; 잘못된·만료·revoke·다른 Project session 거부; metadata 보호 mutation/revision; password rotation; route inventory | DONE / PASS / ACCEPT | production limiter·KDF benchmark는 W16; Task/Import auth는 W07/W12 |
-| P2 | W06 Working Calendar and Duration | W01 | scheduler + frontend + researcher + qa_docs + Manager | 윤년·weekend·holiday·비근무 시작·범위·Manual 경계 unit; browser/server 동일 fixture | DONE / PASS / ACCEPT | 저장·Summary/WBS·FS는 W07–W09 |
-| P2 | W07 Task and Link Persistence | W03,W05,W06 | backend + frontend | AUTH/DB 테스트와 task edit/reload 유지, 서버 거부 복원, Task UUID와 externalId 분리 | PLANNED | 두 편집자 lost update |
+| P2 | W05 Readonly and Edit Authorization | W04 | backend + frontend + qa_docs + Manager | W05 적용 AUTH slice; 잘못된·만료·revoke·다른 Project session 거부; metadata 보호 mutation/revision; password rotation; route inventory | DONE / PASS / ACCEPT | production limiter·KDF benchmark는 W16; root Task auth W07 PASS, Import W12 |
+| P2 | W06 Working Calendar and Duration | W01 | scheduler + frontend + researcher + qa_docs + Manager | 윤년·weekend·holiday·비근무 시작·범위·Manual 경계 unit; browser/server 동일 fixture | DONE / PASS / ACCEPT | root Leaf 저장 W07 PASS; Summary/WBS·FS는 W08/W09 |
+| P2 | W07 Task and Link Persistence | W03,W05,W06 | backend + frontend + researcher + scheduler + qa_docs + Manager | root Task/Milestone strict CRUD, AUTH/DB rollback·reopen, 실제 pointer edit/reload·거부 복원, same-revision race, Task UUID/externalId 분리, Link Repository foundation | DONE / PASS / ACCEPT | Summary/Hierarchy·Link Route·FS는 W08/W09; 기존 구조는 fail-closed |
 | P2 | W08 Hierarchy Summary and WBS | W06,W07 | scheduler + backend + frontend | SCH08–10; Summary+첫 child 성공, final empty/cycle 거부, REAL progress 정확성 | PLANNED | 중간 invalid state·정렬 |
 | P2 | W09 FS Scheduling Recalculation | W06,W07 | scheduler + backend | SCH04–07/11; Manual conflict 전체 rollback, link 제거 날짜 복귀, 미지원 관계 명시 오류 | PLANNED | cycle·달력 계산 비용 |
 | P3 | W10 Excel/VBA Environment POC | D01,W11의 작은 browser parser harness | excel_vba + researcher | 승인 VBA·추출·JSON/CSV 저장·한글/날짜·browser 실제 파일 읽기 증거; 후속 앱 통합은 W12/W13 후 | BLOCKED ENVIRONMENT | 조직 정책·원본 구조 |
@@ -35,7 +35,7 @@
 
 W07은 Task CRUD와 Link 저장 기반까지이며 실제 FS mutation endpoint는 W09 검증 후 공개한다. W10 초기 환경/serialization POC와 W12/W13 이후 full application 통합 검증을 구분한다.
 
-B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위를 통합한다: Project 생성→SQLite 저장→새 browser Direct Readonly→password unlock→단일 Task 편집→reload 유지. 첫 완료 Gate는 build/typecheck, authorization/isolation integration, date adapter, persistence E2E와 독립 QA다. 전체 Import와 advanced scheduling을 한꺼번에 구현하지 않는다.
+B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위인 Project 생성→SQLite 저장→새 browser Direct Readonly→password unlock→단일 Task 편집→reload 유지를 완료했다. build/typecheck, authorization/isolation integration, date adapter, persistence E2E와 독립 QA를 통과했다. 전체 Import와 advanced scheduling은 후속 단계로 유지한다.
 
 ## 병렬 작업과 소유권
 
@@ -55,3 +55,4 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위를 통합한다: P
 - W04 실행 결과: `POST /api/projects`, `GET /api/projects/{publicId}`, 생성/직접 UI 구현. Manager와 독립 QA가 build/typecheck/lint, 전체 55 Vitest를 PASS했고 Manager Chromium E2E 3개도 PASS했다. Project+session 원자성, 재시작 DB 재조회, Project 격리, Origin/body/rate/KDF/cookie/secret 경계를 검증했다. `GET /api/projects`는 D02 전 405다. qa_docs PASS / Manager ACCEPT. [검증 기록](../../W04_REVIEW.md)
 - W05 실행 결과: unlock/current/logout, metadata PATCH, password rotation, edit UI와 실제 Route security inventory 구현. 최초 독립 QA의 expiry lock race, wrong-project Cookie 유효성, canonical protected ID finding을 수정했다. 전체 91 Vitest, typecheck/lint/build와 clean 기본 Turbopack Chromium 4/4(worker 1)를 PASS했다. Process-global create limiter를 spec 사이에서 경쟁시키지 않되 동일 revision concurrent PATCH 200+412는 spec 내부 병렬 HTTP로 유지했고, live HEAD/OPTIONS 불변, rotation rollback/old session 무효화를 포함한다. Backend/Security·Frontend/Browser qa_docs PASS / Manager ACCEPT. [검증 기록](../../W05_REVIEW.md)
 - W06 실행 결과: `1900-01-01..2199-12-31` Gregorian ordinal, exact `Asia/Seoul`/`[6,0]`, 중복 Holiday 거부·nullable name 보존, inclusive 근무일과 calendar-only Leaf/Milestone 계산을 pure Domain으로 구현했다. 최초 독립 QA의 SSR-only runtime 증거와 Holiday `name: null` 불일치를 수정하고 malformed leaf/context도 보강했다. Domain 135/135, 전체 226/226 Vitest, typecheck/lint/build, clean 기본 Turbopack Chromium 7/7과 production dependency audit 0건을 PASS했다. Scheduler/Frontend/Browser qa_docs PASS / Manager ACCEPT. [검증 기록](../../W06_REVIEW.md)
+- W07 실행 결과: root Task/Milestone POST/PATCH/DELETE, 32 KiB strict 입력, Project-scoped ScheduleRepository CRUD와 Link foundation, W06 `scheduleLeaf`, canonical snapshot/ETag를 연결했다. 실제 Handler→Service→SQLite authorization, cross-project UUID, transaction expiry/auth-version/rotation, create/update/delete/readback rollback, file reopen, same-revision HTTP `201+412`를 검증했다. 실제 SVAR 우측/좌측 resize·이동·삭제·reload와 401/412/422/500·canonical read 실패 복원도 통과했다. 전체 291/291 Vitest, typecheck/lint/build, clean 기본 Turbopack Chromium 8/8과 production dependency audit 0건 PASS. qa_docs PASS / Manager ACCEPT. [검증 기록](../../W07_REVIEW.md)

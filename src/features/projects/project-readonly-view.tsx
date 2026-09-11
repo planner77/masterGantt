@@ -1,11 +1,19 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import type {
   ProjectMetadataMutationResponse,
   ProjectSnapshotResponse,
+  TaskMutationResponse,
 } from "@/contracts/projects";
+import type { ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
+
+const ProjectGantt = dynamic(
+  () => import("@/features/gantt/project-gantt").then((module) => module.ProjectGantt),
+  { ssr: false, loading: () => <div className="gantt-loading" role="status">일정을 불러오는 중입니다.</div> },
+);
 
 type LoadState =
   | { status: "loading" }
@@ -80,6 +88,19 @@ function snapshotFromMetadataMutation(
   };
 }
 
+function snapshotFromTaskMutation(value: unknown): ProjectSnapshotResponse | null {
+  const response = value as Partial<TaskMutationResponse>;
+  const data = response.data;
+  if (
+    !data || typeof data !== "object" || !data.project || typeof data.project !== "object" ||
+    !Array.isArray(data.tasks) || !Array.isArray(data.links) || !Array.isArray(data.warnings) ||
+    !data.operation || !["taskCreate", "taskUpdate", "taskDelete"].includes(data.operation.kind) ||
+    !Array.isArray(data.operation.changedTaskExternalIds) || !Array.isArray(data.operation.deletedTaskExternalIds) ||
+    !Array.isArray(data.operation.deletedLinkIds)
+  ) return null;
+  return { data: { project: data.project, tasks: data.tasks, links: data.links, permission: "readonly" } };
+}
+
 export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>) {
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [permission, setPermission] = useState<Permission>("readonly");
@@ -93,9 +114,20 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   const [isSavingMetadata, setIsSavingMetadata] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isSavingTask, setIsSavingTask] = useState(false);
+  const [ganttResetGeneration, setGanttResetGeneration] = useState(0);
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
+  const [newTaskName, setNewTaskName] = useState("");
+  const [newTaskType, setNewTaskType] = useState<"task" | "milestone">("task");
+  const [newTaskStart, setNewTaskStart] = useState("");
+  const [newTaskDuration, setNewTaskDuration] = useState("1");
+  const [newTaskProgress, setNewTaskProgress] = useState("0");
+  const [newTaskExternalId, setNewTaskExternalId] = useState("");
+  const [deleteTaskId, setDeleteTaskId] = useState("");
+  const [confirmDeleteTaskId, setConfirmDeleteTaskId] = useState<string | null>(null);
   const alertReference = useRef<HTMLDivElement>(null);
+  const taskMutationReference = useRef(false);
 
   useEffect(() => {
     if (notice) alertReference.current?.focus();
@@ -170,6 +202,17 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
     setMetadataName(value.data.project.name);
     setMetadataDescription(value.data.project.description);
     return true;
+  }
+  async function reloadCanonicalSnapshot(): Promise<boolean> {
+    try {
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, {
+        credentials: "same-origin",
+      });
+      const body: unknown = await response.json().catch(() => null);
+      return response.ok && applySnapshot(body);
+    } catch {
+      return false;
+    }
   }
   function conflict() {
     setPermission("readonly");
@@ -282,6 +325,99 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
     finally { setIsLoggingOut(false); }
   }
 
+  async function handleTaskFailure(status: number | undefined, error: unknown, fallback: string) {
+    if (status === 401) {
+      setPermission("readonly");
+      setPermissionCheckState("complete");
+      await reloadCanonicalSnapshot();
+      setGanttResetGeneration((generation) => generation + 1);
+      setNotice("편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.");
+      return;
+    }
+    const code = safeErrorCode(error);
+    await reloadCanonicalSnapshot();
+    // A failed canonical fetch still leaves the last confirmed snapshot in
+    // React state. Remount SVAR so its transient pointer state cannot survive.
+    setGanttResetGeneration((generation) => generation + 1);
+    if (status === 412) {
+      setNotice("다른 편집 내용이 먼저 저장되었습니다. 최신 정보를 불러왔습니다. 내용을 확인한 뒤 다시 저장해 주세요.");
+    } else if (status === 400 || status === 409 || status === 422) {
+      setNotice(code === "END_DURATION_MISMATCH" ? "일정 기간을 확인해 주세요." : "작업 정보를 저장할 수 없습니다. 입력과 일정 제약을 확인해 주세요.");
+    } else {
+      setNotice(fallback);
+    }
+  }
+
+  async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown) {
+    if (state.status !== "ready" || taskMutationReference.current) return;
+    taskMutationReference.current = true;
+    setIsSavingTask(true);
+    setNotice(null);
+    let response: Response | undefined;
+    try {
+      const endpoint = taskId === null
+        ? `/api/projects/${encodeURIComponent(publicId)}/tasks`
+        : `/api/projects/${encodeURIComponent(publicId)}/tasks/${encodeURIComponent(taskId)}`;
+      response = await fetch(endpoint, {
+        method,
+        credentials: "same-origin",
+        headers: {
+          ...(method === "DELETE" ? {} : { "Content-Type": "application/json" }),
+          "If-Match": revisionTag(state.snapshot.data.project.revision),
+        },
+        ...(method === "DELETE" ? {} : { body: JSON.stringify(payload) }),
+      });
+      const body: unknown = response.status === 204 ? null : await response.json().catch(() => null);
+      const canonicalSnapshot = snapshotFromTaskMutation(body);
+      if (response.ok && canonicalSnapshot !== null && applySnapshot(canonicalSnapshot)) {
+        const successNotice = method === "POST"
+          ? "작업을 추가했습니다."
+          : method === "DELETE" ? "작업을 삭제했습니다." : "작업을 저장했습니다.";
+        const shifted = (body as TaskMutationResponse).data.warnings.some(
+          (warning) => warning.code === "NON_WORKING_START_SHIFTED",
+        );
+        setNotice(shifted
+          ? `${successNotice} 비근무일 시작은 다음 근무일로 조정되었습니다.`
+          : successNotice);
+        setConfirmDeleteTaskId(null);
+        if (method === "POST") {
+          setNewTaskName(""); setNewTaskExternalId(""); setNewTaskDuration("1"); setNewTaskProgress("0");
+        }
+      } else {
+        await handleTaskFailure(response.status, body, "작업을 저장할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+      }
+    } catch {
+      await handleTaskFailure(undefined, null, "네트워크 연결을 확인한 뒤 다시 시도해 주세요.");
+    } finally {
+      taskMutationReference.current = false;
+      setIsSavingTask(false);
+    }
+  }
+
+  function createTask(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const name = newTaskName.trim();
+    const duration = newTaskType === "milestone" ? 0 : Number(newTaskDuration);
+    const progress = Number(newTaskProgress);
+    if (!name || !/^\d{4}-\d{2}-\d{2}$/.test(newTaskStart) || !Number.isInteger(duration) || duration < (newTaskType === "milestone" ? 0 : 1) || !Number.isFinite(progress) || progress < 0 || progress > 100) {
+      setNotice("작업 이름, 시작일, 기간과 진척도를 확인해 주세요.");
+      return;
+    }
+    void saveTask("POST", null, {
+      ...(newTaskExternalId.trim() ? { externalId: newTaskExternalId.trim() } : {}),
+      name,
+      type: newTaskType,
+      start: newTaskStart,
+      duration,
+      progress,
+    });
+  }
+
+  function saveTaskCommand(command: ProjectTaskUpdateCommand) {
+    if (Object.keys(command.payload).length === 0) return;
+    void saveTask("PATCH", command.taskId, command.payload);
+  }
+
   if (state.status === "loading") {
     return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>프로젝트 정보를 불러오는 중입니다.</p></section>;
   }
@@ -294,7 +430,13 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
 
   const { project, tasks, links } = state.snapshot.data;
   const editing = permission === "edit" && permissionCheckState === "complete";
-  const busy = isSavingMetadata || isChangingPassword || isLoggingOut;
+  const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
+  const rootLeafTasksOnly = tasks.every(
+    (task) => task.parentExternalId === null && (task.type === "task" || task.type === "milestone"),
+  );
+  const w07TaskEditingSupported = links.length === 0 && rootLeafTasksOnly;
+  const taskEditing = editing && !busy && w07TaskEditingSupported;
+  const selectedDeleteTask = tasks.find((task) => task.taskId === deleteTaskId);
   return <section className="project-readonly" aria-labelledby="project-heading">
     <div className="project-readonly-heading">
       <div>
@@ -342,6 +484,42 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
       </div>
       <button className="primary-button" disabled={isUnlocking || permissionCheckState === "checking"} type="submit">{isUnlocking ? "확인 중…" : permissionCheckState === "checking" ? "권한 확인 중…" : "편집 잠금 해제"}</button>
     </form>}
-    <section className="schedule-empty" aria-labelledby="schedule-heading"><h2 id="schedule-heading">일정</h2><p>{tasks.length === 0 ? "아직 등록된 작업이 없습니다." : "일정 데이터가 준비되었습니다. 상세 Gantt 표시는 후속 작업에서 제공합니다."}</p></section>
+    <section className="project-schedule" aria-labelledby="schedule-heading">
+      <div className="schedule-heading-row">
+        <div>
+          <h2 id="schedule-heading">일정</h2>
+          <p>{tasks.length === 0 ? "아직 등록된 작업이 없습니다." : "서버의 최신 일정 snapshot을 표시합니다."}</p>
+        </div>
+        {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}
+      </div>
+      {editing && !w07TaskEditingSupported ? <p className="schedule-scope-note">계층 또는 연결이 있는 일정 편집은 다음 단계에서 지원합니다. 현재 일정은 읽기 전용으로 표시됩니다.</p> : null}
+      <ProjectGantt
+        key={`${project.revision}:${taskEditing ? "edit" : "readonly"}:${ganttResetGeneration}`}
+        calendar={project.calendar}
+        editable={taskEditing}
+        links={links}
+        onTaskCommand={saveTaskCommand}
+        tasks={tasks}
+      />
+      {editing && w07TaskEditingSupported ? <div className="task-edit-panel">
+        <form className="project-form compact-form task-create-form" noValidate onSubmit={createTask}>
+          <h3>작업 추가</h3>
+          <div className="task-form-grid">
+            <div className="form-field"><label htmlFor="new-task-name">작업 이름</label><input disabled={busy} id="new-task-name" onChange={(event) => setNewTaskName(event.target.value)} value={newTaskName} /></div>
+            <div className="form-field"><label htmlFor="new-task-external-id">외부 ID <span>선택</span></label><input disabled={busy} id="new-task-external-id" onChange={(event) => setNewTaskExternalId(event.target.value)} value={newTaskExternalId} /></div>
+            <div className="form-field"><label htmlFor="new-task-type">유형</label><select disabled={busy} id="new-task-type" onChange={(event) => setNewTaskType(event.target.value as "task" | "milestone")} value={newTaskType}><option value="task">작업</option><option value="milestone">마일스톤</option></select></div>
+            <div className="form-field"><label htmlFor="new-task-start">시작일</label><input disabled={busy} id="new-task-start" onChange={(event) => setNewTaskStart(event.target.value)} type="date" value={newTaskStart} /></div>
+            <div className="form-field"><label htmlFor="new-task-duration">기간 <span>{newTaskType === "milestone" ? "마일스톤은 0일" : "근무일"}</span></label><input disabled={busy || newTaskType === "milestone"} id="new-task-duration" min="1" onChange={(event) => setNewTaskDuration(event.target.value)} type="number" value={newTaskType === "milestone" ? "0" : newTaskDuration} /></div>
+            <div className="form-field"><label htmlFor="new-task-progress">진척도</label><input disabled={busy} id="new-task-progress" max="100" min="0" onChange={(event) => setNewTaskProgress(event.target.value)} step="any" type="number" value={newTaskProgress} /></div>
+          </div>
+          <button className="primary-button" disabled={busy} type="submit">작업 추가</button>
+        </form>
+        {tasks.length > 0 ? <div className="task-delete-control">
+          <label htmlFor="delete-task">작업 삭제</label>
+          <div><select disabled={busy} id="delete-task" onChange={(event) => { setDeleteTaskId(event.target.value); setConfirmDeleteTaskId(null); }} value={deleteTaskId}><option value="">작업을 선택하세요</option>{tasks.filter((task) => task.parentExternalId === null && task.type !== "summary").map((task) => <option key={task.taskId} value={task.taskId}>{task.name} ({task.externalId})</option>)}</select><button className="secondary-button" disabled={busy || !selectedDeleteTask} onClick={() => setConfirmDeleteTaskId(deleteTaskId)} type="button">삭제</button></div>
+          {confirmDeleteTaskId && selectedDeleteTask ? <div className="delete-confirmation" role="group" aria-label="작업 삭제 확인"><p><strong>{selectedDeleteTask.name}</strong> 작업을 삭제하시겠습니까?</p><button className="secondary-button" disabled={busy} onClick={() => setConfirmDeleteTaskId(null)} type="button">취소</button><button className="danger-button" disabled={busy} onClick={() => void saveTask("DELETE", confirmDeleteTaskId)} type="button">삭제 확인</button></div> : null}
+        </div> : null}
+      </div> : null}
+    </section>
   </section>;
 }

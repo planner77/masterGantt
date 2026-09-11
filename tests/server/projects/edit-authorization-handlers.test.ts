@@ -331,6 +331,9 @@ describe("route security inventory", () => {
       "GET /api/projects/{publicId}/edit-sessions/current",
       "DELETE /api/projects/{publicId}/edit-sessions/current",
       "PUT /api/projects/{publicId}/edit-password",
+      "POST /api/projects/{publicId}/tasks",
+      "PATCH /api/projects/{publicId}/tasks/{taskId}",
+      "DELETE /api/projects/{publicId}/tasks/{taskId}",
     ]);
     for (const route of ROUTE_SECURITY_INVENTORY.filter(({ method }) => !["GET"].includes(method))) {
       expect(route.policy).not.toBe("public-read");
@@ -350,7 +353,7 @@ describe("route security inventory", () => {
       const relativePath = relative(apiRoot, filename).split(sep).join("/");
       const template = `/api/${relativePath
         .replace(/\/route\.ts$/, "")
-        .replace(/\[publicId\]/g, "{publicId}")}`;
+        .replace(/\[([^\]]+)\]/g, "{$1}")}`;
       const source = readFileSync(filename, "utf8");
       for (const match of source.matchAll(/export (?:(?:async )?function (GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b|const (GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\b)/g)) {
         actual.push(`${match[1] ?? match[2]} ${template}`);
@@ -370,6 +373,9 @@ describe("route security inventory", () => {
       "POST /api/projects/{publicId}/edit-sessions": "origin-and-password-limit",
       "DELETE /api/projects/{publicId}/edit-sessions/current": "origin-and-target-logout",
       "PUT /api/projects/{publicId}/edit-password": "origin-session-if-match",
+      "POST /api/projects/{publicId}/tasks": "origin-session-if-match",
+      "PATCH /api/projects/{publicId}/tasks/{taskId}": "origin-session-if-match",
+      "DELETE /api/projects/{publicId}/tasks/{taskId}": "origin-session-if-match",
     });
   });
 

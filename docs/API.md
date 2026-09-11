@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 경계
 
-이 문서는 REST API 계약이다. W04의 Project 생성·직접 Readonly 조회에 이어 W05의 edit session lifecycle, Project metadata 보호 mutation, password rotation을 구현했다. W06은 REST route나 저장을 추가하지 않고 pure Calendar/Leaf Scheduling Domain을 구현했다. W06 최종 판정은 [W06 검증 기록](W06_REVIEW.md), Task/Calendar/Import/Export API는 각 후속 작업 상태와 함께 본다.
+이 문서는 REST API 계약이다. W04의 Project 생성·직접 Readonly 조회, W05의 edit session lifecycle과 Project 보호 mutation, W06의 pure Calendar/Leaf Scheduling을 기반으로 W07에서 root Leaf Task/Milestone CRUD를 연결했다. W07의 Link 범위는 Repository CRUD foundation뿐이며 외부 Link route와 FS 재계산은 W09까지 제공하지 않는다. 완료 범위와 검증은 [W07 검증 기록](W07_REVIEW.md), Calendar/Hierarchy/Import/Export API는 각 후속 작업 상태와 함께 본다.
 
 ```text
 Route Handler
@@ -264,6 +264,8 @@ Project delete API는 초기 요구사항에 없고 복구 정책이 정해지�
 
 ## 5. Task 표현과 API
 
+W07에서 실제 공개하는 범위는 root `task | milestone` CRUD다. `parentExternalId`는 생성 시 생략하거나 `null`만 허용하고 root 마지막에 append한다. Summary/Hierarchy/WBS와 reorder/task-batch는 W08, Link mutation과 FS 재계산은 W09에서 공개한다. W08/W09 전까지 기존 snapshot에 Summary, non-root parent 또는 Link가 하나라도 있으면 W07 Task mutation은 부분 계산하지 않고 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 전체 거부한다.
+
 ### Task response
 
 ```json
@@ -278,14 +280,13 @@ Project delete API는 초기 요구사항에 없고 복구 정책이 정해지�
   "end": "2026-09-16",
   "duration": 2,
   "progress": 25,
-  "parentExternalId": "SUM-10",
-  "siblingOrder": 3,
-  "wbs": "1.2"
+  "parentExternalId": null,
+  "siblingOrder": 0
 }
 ```
 
 - 일반 task duration은 정수 `>= 1`, milestone은 `0` 및 `start=end`이다.
-- Summary의 requestedStart는 null, scheduleMode는 auto이며 start/end/duration/progress/WBS는 Scheduling Engine 결과다. Summary mode 생략은 auto로 정규화하고 manual은 거부한다.
+- Summary의 requestedStart는 null, scheduleMode는 auto이며 start/end/duration/progress/WBS는 Scheduling Engine 결과다. Summary mode 생략은 auto로 정규화하고 manual은 거부한다. 이 Summary/WBS 응답 확장은 W08 전까지 공개하지 않는다.
 - Summary span duration은 descendant leaf의 최소 start부터 최대 end까지의 working-day 수이며 자식 duration 합이 아니다.
 - Summary progress는 일반 descendant task의 duration-weighted finite 0..100 값이며 계산/저장 단계에서 반올림하지 않는다. 일반 task가 하나도 없는 milestone-only summary 정책은 Scheduling 문서를 따른다. Import의 summary date/duration/progress는 optional snapshot이고 authority가 아니며 preview가 파생 결과와의 차이를 보고한다.
 - Parent는 같은 Project의 summary만 가능하다. Empty summary, missing parent, hierarchy cycle을 거부한다.
@@ -301,27 +302,28 @@ Edit session과 `If-Match`가 필요하다.
   "type": "task",
   "scheduleMode": "auto",
   "start": "2026-09-11",
-  "end": "2026-09-14",
   "duration": 2,
-  "progress": 0,
-  "parentExternalId": "SUM-10",
-  "siblingOrder": 3
+  "progress": 0
 }
 ```
 
-UI 생성에서는 `externalId` 생략을 허용하고 server가 UUID를 생성한다. Import에서는 반드시 제공한다. `end`가 제공되면 requested start를 calendar로 정규화한 뒤 duration으로 계산한 dependency 적용 전 end와 일치해야 한다. Dependency가 이후 날짜를 미는 것은 mismatch가 아니라 계산 diff다.
+W07 strict 입력은 `externalId?`, `name`, `type`, `scheduleMode?`, `start`, `end?`, `duration`, `progress`, `parentExternalId?: null`이다. Unknown field와 `siblingOrder` 입력은 거부한다. `name`은 trim 후 1–200 Unicode code point, `externalId`는 제공 시 well-formed Unicode 1–128 code point이며 control character와 앞뒤 Unicode whitespace를 허용하지 않는다. 일반 Task mutation body는 선언·실제 UTF-8 모두 32 KiB로 제한한다.
+
+UI 생성에서는 `externalId` 생략을 허용하고 server가 Task `taskId`와 서로 다른 canonical UUID를 생성한다. Import에서는 반드시 제공한다. `scheduleMode` 생략은 `auto`, root `siblingOrder`는 현재 최대값 다음으로 정한다. `end`가 제공되면 requested start를 calendar로 정규화한 뒤 duration으로 계산한 dependency 적용 전 end와 일치해야 한다. Dependency가 이후 날짜를 미는 것은 mismatch가 아니라 계산 diff다.
 
 성공은 `201`과 최신 canonical full schedule snapshot, warning 및 operation detail을 반환한다. Frontend는 반드시 server 계산 결과로 화면을 갱신한다.
 
 ### `PATCH /api/projects/{publicId}/tasks/{taskId}`
 
-명시된 field만 바꾼다. `start` 변경은 새 `requestedStart`를 만든다. 계산된 `end`만 직접 변경하는 요청은 허용하지 않으며 resize는 `start + duration` 명령으로 변환한다. Summary bar drag/resize는 초기 범위에서 거부한다.
+W07 mutable allowlist는 `name`, `scheduleMode`, `start`, `duration`, `progress`, optional assertion `end`다. Empty object와 unknown field를 거부하며 `taskId`, `externalId`, `type`, parent/order는 불변이다. `start` 변경은 새 `requestedStart`를 만든다. 계산된 `end`만 직접 변경하는 요청은 허용하지 않아 `end`가 있으면 `start` 또는 `duration`도 함께 있어야 한다. Client Adapter는 이동을 `start`, 좌측 resize를 `start + duration`, 우측 resize를 `duration` 명령으로 변환한다. 기존 persisted `end`를 새 assertion으로 자동 재사용하지 않는다. Summary bar drag/resize는 W08 전까지 거부한다.
 
 Auto의 비근무 requested start는 다음 근무일로 이동해 `NON_WORKING_START_SHIFTED` warning을 낸다. Manual의 비근무 requested start는 `NON_WORKING_MANUAL_START`, FS violation은 `MANUAL_DEPENDENCY_CONFLICT`로 전체 mutation을 거부한다.
 
 ### `DELETE /api/projects/{publicId}/tasks/{taskId}`
 
-관련 Link 삭제와 재계산을 하나의 transaction으로 처리하고 삭제된 Link ID를 결과에 명시한다. 다음 경우는 명시적으로 거부한다.
+W07은 root Leaf/Milestone만 삭제하고 canonical full snapshot을 반환한다. 기존 Link나 hierarchy가 있으면 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 Task·Link·revision을 모두 보존한다. Incident Link 삭제·후속 Task 재계산과 `deletedLinkIds` 보고는 W09에서 같은 transaction으로 활성화한다.
+
+최종 기능에서도 다음 경우는 명시적으로 거부한다.
 
 - Task가 존재하지 않거나 다른 Project에 속한다.
 - Leaf 삭제 결과 parent summary가 비게 된다.
@@ -329,7 +331,7 @@ Auto의 비근무 requested start는 다음 근무일로 이동해 `NON_WORKING_
 
 Subtree 삭제가 필요하면 별도의 명시적 `cascade=true` 계약과 UI 확인을 구현할 때 추가한다. 초기 route가 암묵적으로 descendant를 삭제하지 않는다.
 
-### `POST /api/projects/{publicId}/task-batches`
+### `POST /api/projects/{publicId}/task-batches` — W08 계획, 현재 Route 없음
 
 Empty summary를 금지하면서 summary와 첫 child를 만들거나 마지막 child를 옮기고 빈 summary를 삭제할 수 있도록 작은 atomic command endpoint를 제공한다. Edit session과 `If-Match`가 필요하다.
 
@@ -375,6 +377,8 @@ Batch가 기존 Link를 깨뜨리거나 Manual conflict를 만들면 전체 실�
 
 ## 6. Dependency API
 
+이 절은 W09 목표 계약이다. W07은 Project-scoped Link Repository와 snapshot read foundation만 검증하며 Link POST/PATCH/DELETE Route를 만들지 않는다.
+
 ### Link response/request
 
 ```json
@@ -387,7 +391,7 @@ Batch가 기존 Link를 깨뜨리거나 Manual conflict를 만들면 전체 실�
 }
 ```
 
-`POST /api/projects/{publicId}/links`, `PATCH /api/projects/{publicId}/links/{linkId}`, `DELETE /api/projects/{publicId}/links/{linkId}`를 제공한다. 모두 edit session과 `If-Match`가 필요하고, 전체 graph validation/recalculation 및 저장은 원자적이다. 성공은 최신 canonical full snapshot을 반환한다.
+W09에서 `POST /api/projects/{publicId}/links`, `PATCH /api/projects/{publicId}/links/{linkId}`, `DELETE /api/projects/{publicId}/links/{linkId}`를 제공한다. 모두 edit session과 `If-Match`가 필요하고, 전체 graph validation/recalculation 및 저장은 원자적이다. 성공은 최신 canonical full snapshot을 반환한다.
 
 v1은 leaf task/milestone endpoint, `FS`, `lag: 0`만 허용한다. Summary endpoint, self-link, duplicate, missing/cross-project target, cycle, SS/FF/SF, non-zero lag/lead를 조용히 바꾸거나 버리지 않고 안정 오류 code로 거부한다.
 
@@ -465,11 +469,11 @@ Phase 2 Gantt sheet endpoint/option은 Phase 1 검증 후 추가하며 현재 �
 | 401 | `EDIT_SESSION_REQUIRED`, `INVALID_CREDENTIALS`, `SESSION_EXPIRED` | 인증 실패 |
 | 403 | `ORIGIN_NOT_ALLOWED` | Same-Origin/CSRF 정책 실패 |
 | 404 | `PROJECT_NOT_FOUND`, `TASK_NOT_FOUND`, `LINK_NOT_FOUND` | Scope 안에서 대상 없음 |
-| 409 | `DUPLICATE_EXTERNAL_ID`, `DEPENDENCY_CYCLE`, `MANUAL_DEPENDENCY_CONFLICT`, `MANUAL_CALENDAR_CONFLICT` | 현재 aggregate와 domain 충돌 |
+| 409 | `DUPLICATE_EXTERNAL_ID`, `TASK_LIMIT_EXCEEDED`, `UNSUPPORTED_SCHEDULE_STRUCTURE`, `DEPENDENCY_CYCLE`, `MANUAL_DEPENDENCY_CONFLICT`, `MANUAL_CALENDAR_CONFLICT` | 현재 aggregate와 domain/capability 충돌 |
 | 412 | `REVISION_MISMATCH` | stale If-Match |
 | 413 | `REQUEST_TOO_LARGE`, `IMPORT_TOO_LARGE` | 일반 body 또는 Import byte/entity/depth/date range 상한 초과 |
 | 415 | `UNSUPPORTED_MEDIA_TYPE`, `UNSUPPORTED_IMPORT_FORMAT` | 허용하지 않은 형식 |
-| 422 | `INVALID_DATE`, `END_DURATION_MISMATCH`, `MISSING_PARENT`, `UNSUPPORTED_DEPENDENCY` | 의미 validation 실패 |
+| 422 | `INVALID_DATE`, `INVALID_DURATION`, `END_DURATION_MISMATCH`, `NON_WORKING_MANUAL_START`, `MISSING_PARENT`, `UNSUPPORTED_DEPENDENCY` | 기본 JSON shape은 맞지만 일정 의미 validation 실패 |
 | 428 | `PRECONDITION_REQUIRED` | If-Match 누락 |
 | 429 | `RATE_LIMITED` | rate limit 초과, 가능한 경우 `Retry-After` 포함 |
 | 500 | `INTERNAL_ERROR` | 세부정보를 숨긴 server 오류 |

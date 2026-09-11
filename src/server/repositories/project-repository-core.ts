@@ -258,6 +258,19 @@ export class ProjectRepository {
     return project;
   }
 
+  advanceRevision(
+    projectId: number,
+    expectedRevision: number,
+    updatedAt: string,
+  ): ProjectRecord | undefined {
+    const result = this.database.prepare(
+      `UPDATE projects
+       SET revision = revision + 1, updated_at = ?
+       WHERE id = ? AND revision = ?`,
+    ).run(updatedAt, projectId, expectedRevision);
+    return result.changes === 1 ? this.findById(projectId) : undefined;
+  }
+
   rotatePassword(
     projectId: number,
     password: Omit<NewProjectRecord, "publicId" | "name" | "description" | "calendarTimezone" | "createdAt" | "updatedAt">,

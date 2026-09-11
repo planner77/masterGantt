@@ -1,6 +1,6 @@
 # Scheduling Engine 설계
 
-상태: W06 Working Calendar and Duration 구현·독립 QA PASS / Manager ACCEPT. Gregorian date-only, Project Calendar, 근무일 연산과 calendar-only Leaf/Milestone 계산을 `src/domain/scheduling/`에 구현했다. Summary/WBS, FS 재계산, 저장·Calendar mutation은 W08/W09/W07 후속이다. 근거는 [W06_REVIEW.md](W06_REVIEW.md), 외부 입력 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)이다.
+상태: W06 Working Calendar and Duration 구현과 W07 root Leaf/Milestone 저장 연결을 독립 QA PASS / Manager ACCEPT했다. Gregorian date-only, Project Calendar, 근무일 연산과 calendar-only Leaf/Milestone 계산은 `src/domain/scheduling/`에 있고, W07 Service와 SVAR Adapter가 이를 호출한다. Summary/WBS와 FS 재계산·Calendar mutation은 W08/W09 후속이다. 근거는 [W06_REVIEW.md](W06_REVIEW.md), [W07_REVIEW.md](W07_REVIEW.md), 외부 입력 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)이다.
 
 ## 1. 범위와 결정 구분
 
@@ -178,7 +178,7 @@ Task 수 N, Dependency 수 E, Holiday 수 H일 때 ID·그래프 검증과 위�
 
 ## 10. 구현 시 필수 검증
 
-W06 범위인 날짜·Calendar·Leaf Duration·Milestone·단일 Leaf Manual 시작과 runtime 결정성은 **PASS**다. 아래 Graph/Cycle/Summary/WBS/Dependency 재계산·저장 항목은 각각 W08/W09/W07까지 **NOT TESTED/BLOCKED**다. 정확한 자동화 증거는 [W06_REVIEW.md](W06_REVIEW.md)에 기록한다.
+W06 범위인 날짜·Calendar·Leaf Duration·Milestone·단일 Leaf Manual 시작과 runtime 결정성은 **PASS**다. W07에서는 지원 범위인 root Leaf/Milestone 저장의 권한·Project 격리·Revision 충돌·Rollback·재조회 일치까지 **PASS**했다. 아래 표는 전체 Scheduling Engine의 최종 검증 목표이며, Graph/Cycle/Summary/WBS와 Dependency 기반 전체 재계산·저장은 W08/W09까지 **NOT TESTED/BLOCKED**다. W06 자동화 증거는 [W06_REVIEW.md](W06_REVIEW.md), W07 저장 증거는 [W07_REVIEW.md](W07_REVIEW.md)에 기록한다.
 
 | 영역 | 필수 검증 |
 | --- | --- |

@@ -22,4 +22,13 @@ describe("SVAR command gateway", () => {
     gateway(event);
     expect(dispatch).toHaveBeenCalledTimes(2);
   });
+
+  it("keeps distinct final pointer deltas in the same browser turn", () => {
+    const dispatch = vi.fn();
+    const gateway = createTaskUpdateGateway(dispatch);
+    gateway({ id: "build", diff: 1, task: { start: new Date(2026, 8, 14) } });
+    gateway({ id: "build", diff: 2, task: { start: new Date(2026, 8, 14) } });
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    expect(dispatch).toHaveBeenLastCalledWith(expect.objectContaining({ diff: 2 }));
+  });
 });

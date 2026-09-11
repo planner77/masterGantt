@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
 import type {
+  CreateTaskRequest,
   CreateProjectResponse,
   CurrentEditSessionResponse,
   ProjectDto,
@@ -10,8 +11,16 @@ import type {
   ProjectMetadataMutationResponse,
   ProjectSnapshotResponse,
   ProjectTaskDto,
+  ScheduleWarningDto,
+  TaskMutationKind,
+  TaskMutationResponse,
+  UpdateTaskRequest,
   UpdateProjectRequest,
 } from "../../contracts/projects";
+import {
+  createWorkingCalendar,
+  scheduleLeaf,
+} from "../../domain/scheduling";
 import {
   EditSessionRepository,
   ProjectRepository,
@@ -42,12 +51,16 @@ import {
   isCanonicalUuidV4,
   type CreateProjectInput,
 } from "./project-contract";
+import { parseCreateTaskInput, parseUpdateTaskInput } from "./task-contract";
 
 const PUBLIC_ID_ATTEMPTS = 3;
+const MAX_PROJECT_TASKS = 5_000;
 
 export interface ProjectServiceOptions {
   clock?: () => Date;
   generatePublicId?: () => string;
+  generateTaskPublicId?: () => string;
+  generateTaskExternalId?: () => string;
   hashPassword?: (password: string) => Promise<PasswordHashRecord>;
   generateSessionToken?: () => NewSessionToken;
   verifyPassword?: (
@@ -97,6 +110,48 @@ export class RevisionMismatchError extends Error {
   constructor() {
     super("The project revision does not match.");
     this.name = "RevisionMismatchError";
+  }
+}
+
+export class TaskNotFoundError extends Error {
+  constructor() {
+    super("Task not found.");
+    this.name = "TaskNotFoundError";
+  }
+}
+
+export class DuplicateExternalIdError extends Error {
+  constructor() {
+    super("The external task identifier already exists.");
+    this.name = "DuplicateExternalIdError";
+  }
+}
+
+export class TaskLimitExceededError extends Error {
+  constructor() {
+    super("The project task limit has been reached.");
+    this.name = "TaskLimitExceededError";
+  }
+}
+
+export class UnsupportedScheduleStructureError extends Error {
+  constructor() {
+    super("This schedule structure is not supported by this operation.");
+    this.name = "UnsupportedScheduleStructureError";
+  }
+}
+
+export class PersistedScheduleInvalidError extends Error {
+  constructor() {
+    super("The persisted schedule is invalid.");
+    this.name = "PersistedScheduleInvalidError";
+  }
+}
+
+export class InvalidTaskInputError extends Error {
+  constructor() {
+    super("The task input is invalid.");
+    this.name = "InvalidTaskInputError";
   }
 }
 
@@ -256,12 +311,143 @@ function isSessionValid(
     expiry !== undefined && expiry > now.getTime();
 }
 
+function assertW07ScheduleCapability(
+  tasks: readonly TaskRecord[],
+  links: readonly LinkRecord[],
+): void {
+  if (
+    links.length > 0 ||
+    tasks.some((task) => task.type === "summary" || task.parentId !== null)
+  ) {
+    throw new UnsupportedScheduleStructureError();
+  }
+}
+
+function workingCalendar(
+  project: Pick<ProjectRecord, "calendarTimezone">,
+  holidays: readonly { holidayDate: string; name: string | null }[],
+) {
+  try {
+    return createWorkingCalendar({
+      timezone: project.calendarTimezone as "Asia/Seoul",
+      weekendDays: [6, 0],
+      holidays: holidays.map((holiday) => ({
+        date: holiday.holidayDate,
+        name: holiday.name,
+      })),
+    });
+  } catch {
+    throw new PersistedScheduleInvalidError();
+  }
+}
+
+function warningDtos(
+  warnings: ReturnType<typeof scheduleLeaf>["warnings"],
+): ScheduleWarningDto[] {
+  return warnings.map((warning) => ({
+    code: warning.code,
+    path: "start",
+    requestedStart: warning.requestedStart,
+    start: warning.start,
+  }));
+}
+
+function isWellFormedUnicode(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+      if (index + 1 >= value.length) return false;
+      const next = value.charCodeAt(index + 1);
+      if (next < 0xdc00 || next > 0xdfff) return false;
+      index += 1;
+    } else if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function validPersistedName(value: string): boolean {
+  const length = Array.from(value).length;
+  return isWellFormedUnicode(value) &&
+    value === value.trim() && length >= 1 && length <= 200;
+}
+
+function validPersistedExternalId(value: string): boolean {
+  const length = Array.from(value).length;
+  return isWellFormedUnicode(value) &&
+    length >= 1 && length <= 128 &&
+    !/^\p{White_Space}|\p{White_Space}$/u.test(value) &&
+    !/[\p{Cc}\p{Cf}]/u.test(value);
+}
+
+function validatePersistedLeafSchedules(
+  tasks: readonly TaskRecord[],
+  calendar: ReturnType<typeof createWorkingCalendar>,
+): void {
+  try {
+    for (const task of tasks) {
+      if (
+        (task.type !== "task" && task.type !== "milestone") ||
+        task.requestedStart === null ||
+        !isCanonicalUuidV4(task.publicId) ||
+        !validPersistedExternalId(task.externalId) ||
+        !validPersistedName(task.name) ||
+        !Number.isInteger(task.sortOrder) || task.sortOrder < 0 ||
+        !Number.isFinite(task.progress) ||
+        task.progress < 0 || task.progress > 100
+      ) {
+        throw new PersistedScheduleInvalidError();
+      }
+      const scheduled = scheduleLeaf({
+        type: task.type,
+        requestedStart: task.requestedStart,
+        duration: task.duration,
+        scheduleMode: task.scheduleMode,
+        end: task.endDate,
+      }, calendar);
+      if (scheduled.start !== task.startDate) {
+        throw new PersistedScheduleInvalidError();
+      }
+    }
+  } catch (error) {
+    if (error instanceof PersistedScheduleInvalidError) throw error;
+    throw new PersistedScheduleInvalidError();
+  }
+}
+
+function requireCanonicalCreateTaskInput(input: CreateTaskRequest): CreateTaskRequest {
+  const parsed = parseCreateTaskInput(input);
+  if (
+    !parsed.success ||
+    input === null || typeof input !== "object" || Array.isArray(input) ||
+    parsed.data.name !== input.name
+  ) {
+    throw new InvalidTaskInputError();
+  }
+  return parsed.data;
+}
+
+function requireCanonicalUpdateTaskInput(input: UpdateTaskRequest): UpdateTaskRequest {
+  const parsed = parseUpdateTaskInput(input);
+  if (
+    !parsed.success ||
+    input === null || typeof input !== "object" || Array.isArray(input) ||
+    (parsed.data.name !== undefined && parsed.data.name !== input.name)
+  ) {
+    throw new InvalidTaskInputError();
+  }
+  return parsed.data;
+}
+
 export class ProjectService {
   private readonly projects: ProjectRepository;
   private readonly sessions: EditSessionRepository;
   private readonly schedules: ScheduleRepository;
   private readonly clock: () => Date;
   private readonly generatePublicId: () => string;
+  private readonly generateTaskPublicId: () => string;
+  private readonly generateTaskExternalId: () => string;
   private readonly hashPassword: (
     password: string,
   ) => Promise<PasswordHashRecord>;
@@ -277,10 +463,54 @@ export class ProjectService {
     this.schedules = new ScheduleRepository(database);
     this.clock = options.clock ?? (() => new Date());
     this.generatePublicId = options.generatePublicId ?? randomUUID;
+    this.generateTaskPublicId = options.generateTaskPublicId ?? randomUUID;
+    this.generateTaskExternalId = options.generateTaskExternalId ?? randomUUID;
     this.hashPassword = options.hashPassword ?? hashEditPassword;
     this.generateSessionToken =
       options.generateSessionToken ?? createSessionToken;
     this.verifyPassword = options.verifyPassword ?? verifyEditPassword;
+  }
+
+  private requireCurrentMutationProject(
+    authorization: AuthorizedEditSession,
+    now: Date,
+  ): ProjectCredentialRecord {
+    const session = this.sessions.findById(authorization.sessionId);
+    const project = this.projects.findCredentialById(authorization.projectId);
+    if (
+      !session ||
+      !project ||
+      !session.tokenHash.equals(authorization.tokenHash) ||
+      !hasSupportedCredentials(project) ||
+      !isSessionValid(session, project, now)
+    ) {
+      throw new EditSessionInvalidError();
+    }
+    return project;
+  }
+
+  private taskMutationResponse(
+    project: ProjectRecord,
+    tasks: TaskRecord[],
+    links: LinkRecord[],
+    holidays: { holidayDate: string; name: string | null }[],
+    warnings: ScheduleWarningDto[],
+    operation: {
+      kind: TaskMutationKind;
+      changedTaskExternalIds: string[];
+      deletedTaskExternalIds: string[];
+      deletedLinkIds: string[];
+    },
+  ): TaskMutationResponse {
+    return {
+      data: {
+        project: projectDto(project, holidays),
+        tasks: taskDtos(tasks),
+        links: linkDtos(links, tasks),
+        warnings,
+        operation,
+      },
+    };
   }
 
   async create(input: CreateProjectInput): Promise<CreatedProject> {
@@ -465,6 +695,229 @@ export class ProjectService {
       };
     });
     return read.deferred();
+  }
+
+  createTask(
+    authorization: AuthorizedEditSession,
+    expectedRevision: number,
+    input: CreateTaskRequest,
+  ): TaskMutationResponse {
+    const validatedInput = requireCanonicalCreateTaskInput(input);
+    const mutate = this.database.transaction(() => {
+      const now = this.clock();
+      const nowText = now.toISOString();
+      const project = this.requireCurrentMutationProject(authorization, now);
+      if (project.revision !== expectedRevision) {
+        throw new RevisionMismatchError();
+      }
+
+      const tasks = this.schedules.listTasks(project.id);
+      const links = this.schedules.listLinks(project.id);
+      const holidays = this.schedules.listHolidays(project.id);
+      assertW07ScheduleCapability(tasks, links);
+      if (tasks.length >= MAX_PROJECT_TASKS) {
+        throw new TaskLimitExceededError();
+      }
+      if (
+        validatedInput.externalId !== undefined &&
+        this.schedules.findTaskByExternalId(project.id, validatedInput.externalId)
+      ) {
+        throw new DuplicateExternalIdError();
+      }
+
+      const calendar = workingCalendar(project, holidays);
+      validatePersistedLeafSchedules(tasks, calendar);
+      const scheduled = scheduleLeaf({
+        type: validatedInput.type,
+        requestedStart: validatedInput.start,
+        duration: validatedInput.duration,
+        scheduleMode: validatedInput.scheduleMode,
+        end: validatedInput.end,
+      }, calendar);
+
+      let inserted: TaskRecord | undefined;
+      for (let attempt = 0; attempt < PUBLIC_ID_ATTEMPTS; attempt += 1) {
+        const taskPublicId = this.generateTaskPublicId();
+        const externalId = validatedInput.externalId ?? this.generateTaskExternalId();
+        if (
+          !isCanonicalUuidV4(taskPublicId) ||
+          (validatedInput.externalId === undefined && !isCanonicalUuidV4(externalId)) ||
+          (validatedInput.externalId === undefined && taskPublicId === externalId) ||
+          this.schedules.taskPublicIdExists(taskPublicId) ||
+          this.schedules.findTaskByExternalId(project.id, externalId)
+        ) {
+          continue;
+        }
+        inserted = this.schedules.insertTask({
+          projectId: project.id,
+          externalId,
+          publicId: taskPublicId,
+          name: validatedInput.name,
+          type: scheduled.type,
+          scheduleMode: scheduled.scheduleMode,
+          requestedStart: scheduled.requestedStart,
+          startDate: scheduled.start,
+          endDate: scheduled.end,
+          duration: scheduled.duration,
+          progress: validatedInput.progress,
+          parentId: null,
+          sortOrder: this.schedules.nextRootSortOrder(project.id),
+          createdAt: nowText,
+          updatedAt: nowText,
+        });
+        break;
+      }
+      if (!inserted) {
+        throw new Error("Unique task identifiers could not be generated.");
+      }
+
+      const updatedProject = this.projects.advanceRevision(
+        project.id,
+        expectedRevision,
+        nowText,
+      );
+      if (!updatedProject) throw new RevisionMismatchError();
+      const latestTasks = this.schedules.listTasks(project.id);
+      const latestLinks = this.schedules.listLinks(project.id);
+      return this.taskMutationResponse(
+        updatedProject,
+        latestTasks,
+        latestLinks,
+        holidays,
+        warningDtos(scheduled.warnings),
+        {
+          kind: "taskCreate",
+          changedTaskExternalIds: [inserted.externalId],
+          deletedTaskExternalIds: [],
+          deletedLinkIds: [],
+        },
+      );
+    });
+    return mutate.immediate();
+  }
+
+  updateTask(
+    authorization: AuthorizedEditSession,
+    expectedRevision: number,
+    taskPublicId: string,
+    input: UpdateTaskRequest,
+  ): TaskMutationResponse {
+    const validatedInput = requireCanonicalUpdateTaskInput(input);
+    const mutate = this.database.transaction(() => {
+      const now = this.clock();
+      const nowText = now.toISOString();
+      const project = this.requireCurrentMutationProject(authorization, now);
+      if (project.revision !== expectedRevision) {
+        throw new RevisionMismatchError();
+      }
+      const current = this.schedules.findTaskByPublicId(project.id, taskPublicId);
+      if (!current) throw new TaskNotFoundError();
+
+      const tasks = this.schedules.listTasks(project.id);
+      const links = this.schedules.listLinks(project.id);
+      const holidays = this.schedules.listHolidays(project.id);
+      assertW07ScheduleCapability(tasks, links);
+      if (current.type !== "task" && current.type !== "milestone") {
+        throw new UnsupportedScheduleStructureError();
+      }
+      if (current.requestedStart === null) {
+        throw new PersistedScheduleInvalidError();
+      }
+
+      const calendar = workingCalendar(project, holidays);
+      validatePersistedLeafSchedules(tasks, calendar);
+      const scheduled = scheduleLeaf({
+        type: current.type,
+        requestedStart: validatedInput.start ?? current.requestedStart,
+        duration: validatedInput.duration ?? current.duration,
+        scheduleMode: validatedInput.scheduleMode ?? current.scheduleMode,
+        end: validatedInput.end,
+      }, calendar);
+      const updated = this.schedules.updateTask(project.id, taskPublicId, {
+        name: validatedInput.name ?? current.name,
+        type: scheduled.type,
+        scheduleMode: scheduled.scheduleMode,
+        requestedStart: scheduled.requestedStart,
+        startDate: scheduled.start,
+        endDate: scheduled.end,
+        duration: scheduled.duration,
+        progress: validatedInput.progress ?? current.progress,
+        updatedAt: nowText,
+      });
+      if (!updated) throw new TaskNotFoundError();
+
+      const updatedProject = this.projects.advanceRevision(
+        project.id,
+        expectedRevision,
+        nowText,
+      );
+      if (!updatedProject) throw new RevisionMismatchError();
+      const latestTasks = this.schedules.listTasks(project.id);
+      const latestLinks = this.schedules.listLinks(project.id);
+      return this.taskMutationResponse(
+        updatedProject,
+        latestTasks,
+        latestLinks,
+        holidays,
+        warningDtos(scheduled.warnings),
+        {
+          kind: "taskUpdate",
+          changedTaskExternalIds: [updated.externalId],
+          deletedTaskExternalIds: [],
+          deletedLinkIds: [],
+        },
+      );
+    });
+    return mutate.immediate();
+  }
+
+  deleteTask(
+    authorization: AuthorizedEditSession,
+    expectedRevision: number,
+    taskPublicId: string,
+  ): TaskMutationResponse {
+    const mutate = this.database.transaction(() => {
+      const now = this.clock();
+      const nowText = now.toISOString();
+      const project = this.requireCurrentMutationProject(authorization, now);
+      if (project.revision !== expectedRevision) {
+        throw new RevisionMismatchError();
+      }
+      const current = this.schedules.findTaskByPublicId(project.id, taskPublicId);
+      if (!current) throw new TaskNotFoundError();
+
+      const tasks = this.schedules.listTasks(project.id);
+      const links = this.schedules.listLinks(project.id);
+      const holidays = this.schedules.listHolidays(project.id);
+      assertW07ScheduleCapability(tasks, links);
+      const calendar = workingCalendar(project, holidays);
+      validatePersistedLeafSchedules(tasks, calendar);
+      if (!this.schedules.deleteTask(project.id, taskPublicId)) {
+        throw new TaskNotFoundError();
+      }
+      const updatedProject = this.projects.advanceRevision(
+        project.id,
+        expectedRevision,
+        nowText,
+      );
+      if (!updatedProject) throw new RevisionMismatchError();
+      const latestTasks = this.schedules.listTasks(project.id);
+      const latestLinks = this.schedules.listLinks(project.id);
+      return this.taskMutationResponse(
+        updatedProject,
+        latestTasks,
+        latestLinks,
+        holidays,
+        [],
+        {
+          kind: "taskDelete",
+          changedTaskExternalIds: [],
+          deletedTaskExternalIds: [current.externalId],
+          deletedLinkIds: [],
+        },
+      );
+    });
+    return mutate.immediate();
   }
 
   updateMetadata(

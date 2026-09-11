@@ -1,6 +1,6 @@
 # Test Plan
 
-상태: qa_docs가 작성한 검증 전략. W02–W05 검증 기록과 W06 Calendar/Leaf Scheduling의 [W06_REVIEW.md](W06_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W06 PASS가 Task 저장, Summary/WBS, FS, Import/Export/Docker/VBA 통과를 뜻하지 않는다.
+상태: qa_docs가 작성한 검증 전략. W02–W06 검증 기록과 W07 Task Persistence의 [W07_REVIEW.md](W07_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W07 PASS가 Summary/WBS, FS, Import/Export/Docker/VBA 통과를 뜻하지 않는다.
 
 ## 판정과 증거
 
@@ -71,6 +71,17 @@ P-A/P-B 두 Project에 같은 externalId를 사용해 isolation을 시험한다.
 - **SCH11 PARTIAL PASS:** pure 입력 불변, frozen deterministic result, 5개 Node `TZ` 동일 결과와 Domain의 Date/Intl/process/I/O 비의존을 검증했다. Graph/summary 전체 멱등성은 W08/W09 후속이다.
 - **SCH12 PARTIAL PASS:** raw SSR은 `pending`이고 hydration 이후에만 Client Engine이 계산하도록 구성해 UTC·Asia/Seoul·America/New_York Chromium에서 Server/Browser canonical fixture가 일치했다. 실제 SVAR drag/resize와 DB 저장은 W07까지 BLOCKED다.
 - W06 Domain 4 files/135 tests와 전체 15 files/226 Vitest, typecheck/lint/build, clean 기본 Turbopack Chromium 7/7이 PASS했다. 정확한 범위·독립 QA·잔여 위험은 [W06_REVIEW.md](W06_REVIEW.md)에 기록한다.
+
+### W07 실행 증거
+
+- **AUTH02/AUTH05/AUTH07 PASS (root Task slice):** no/malformed/wrong-Project/expired/revoked/auth-version Cookie, password rotation 이전 session과 다른 Project Task UUID를 실제 Handler→Service→SQLite 경계에서 거부하고 row/revision 불변을 확인했다.
+- **AUTH08 PASS (Task slice):** missing/stale If-Match를 거부하고 동일 revision 두 실제 HTTP POST의 결과가 정확히 `201 + 412`, revision은 한 번만 증가하며 승자 Task 하나만 남는지 검증했다.
+- **AUTH09/DB02 PASS (Task slice):** `BEGIN IMMEDIATE` 안의 session-first 재검증과 create/update/delete/readback fault rollback, file-backed SQLite close/reopen의 requested/effective dates·progress·revision 보존을 검증했다.
+- **AUTH10 PASS (현재 Route inventory):** Task POST/PATCH/DELETE가 모두 `origin-session-if-match`로 등록됐으며 외부 Link route는 W09 전까지 존재하지 않는다.
+- **SCH03/SCH04/SCH12 PASS (root Leaf slice):** W06 `scheduleLeaf`가 Task/Milestone create/update에 적용되고, 실제 SVAR 우측 resize·좌측 resize·이동·삭제·reload에서 exclusive widget end와 inclusive domain end가 왕복한다.
+- **UI01 PARTIAL PASS:** Create→unlock→root Task CRUD→pointer edit→reload vertical slice는 PASS다. Hierarchy와 FS는 W08/W09까지 BLOCKED다.
+- **UI02 PARTIAL PASS:** Task 401/412/422/500 거부와 canonical 재조회 실패에서도 마지막 확정 Gantt를 복원했다. 403/409/413/429의 화면별 browser fixture는 후속 통합 QA까지 NOT TESTED다.
+- W07 전체 21 files/291 Vitest, typecheck/lint/build, clean 기본 Turbopack Chromium 8/8과 production dependency audit 0건이 PASS했다. 정확한 범위·독립 QA·잔여 위험은 [W07_REVIEW.md](W07_REVIEW.md)에 기록한다.
 
 ## Scheduling / database
 

@@ -41,7 +41,7 @@ test("creates a project, keeps its direct page readonly, and does not discover a
   const directUrl = page.url();
   await expect(page.getByRole("heading", { name })).toBeVisible();
   await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
-  await expect(page.getByText("작업", { exact: true })).toBeVisible();
+  await expect(page.locator(".project-facts").getByText("작업", { exact: true })).toBeVisible();
   await expect(page.getByText("아직 등록된 작업이 없습니다.")).toBeVisible();
   await expect(page.getByRole("button", { name: "프로젝트 정보 저장" })).toBeVisible();
   expect(directUrl).not.toContain(password);
