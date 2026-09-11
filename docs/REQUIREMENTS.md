@@ -1,6 +1,6 @@
 # Requirements baseline
 
-상태: 요구사항 기준선, 2026-09-12 갱신. W01–W07, W20과 W21의 로컬 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. 원격 Actions/GHCR는 D04가 해소되기 전 NOT TESTED/BLOCKED다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
+상태: 요구사항 기준선, 2026-09-12 갱신. W01–W07, W20과 W21의 로컬 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. D04 정책 결정은 완료됐고 원격 Actions/GHCR는 인증과 실제 Repository 설정 적용 전까지 NOT TESTED/BLOCKED다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
 
 ## Confirmed
 
@@ -67,7 +67,7 @@ R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 ed
 | D01 | 대상 Workbook에서 VBA 실행·셀 읽기·파일 Export가 허용되는지, 승인된 저장 위치 | 실제 VBA POC 전 | UNKNOWN; 실제 파일·정책을 추정하거나 DRM 우회하지 않음 |
 | D02 | Project 목록과 읽기/생성 서비스의 공개 범위: 사내 접근 경계 또는 공개 directory | 실데이터 사용·외부 노출 전 | local fixture UI 설계 가능; production discovery는 비활성 |
 | D03 | 운영 Host OS/CPU, volume 경로/owner, 도메인/TLS와 backup 보관 위치·정책 | 배포 검증 전 | 문서의 단일 container 후보로 계획, 운영값 생성 안 함 |
-| D04 | GHCR package visibility, downstream consumer의 `packages: read`, main/tag ruleset과 release 승인자 | 최초 원격 Actions/GHCR 실행 전 | 로컬 workflow/image 구현 가능; 원격 publish는 BLOCKED |
+| D04 | GHCR private, downstream consumer 최소 `packages: read`, `main` 필수 CI, PR 필수 승인 0명, `v*` update/delete 금지, 지정 maintainer release | 2026-09-12 사용자 결정 | DECIDED; 원격 설정 적용·검증은 인증 미구성으로 NOT TESTED/BLOCKED |
 
 유료 License 선택은 계획에 없다. 실제 요구가 생기면 구매 전에 별도 판단한다. Password reset/admin 계정, Project 삭제/복원, merge Import, HTTP VBA 전송은 자동으로 초기 범위에 추가하지 않는다.
 

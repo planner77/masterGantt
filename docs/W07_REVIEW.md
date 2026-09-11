@@ -99,7 +99,7 @@ DB schema와 migration, package dependency는 변경하지 않았다. W07은 기
 - Task body는 32 KiB, Project Task는 5,000개, identifier 생성은 3회로 제한한다. Link graph와 hierarchy 상한은 해당 기능을 공개하는 W08/W09에서 추가 검증한다.
 - Production dependency audit는 0건이다.
 
-이전 작업 중 노출된 repository 자격증명은 source/Git에 포함되지 않았지만 별도 폐기·재발급이 필요하다. 정상 인증 복구 전에는 원격 push/release를 시도하지 않는다.
+이전 작업 중 노출된 repository 자격증명은 source/Git에 포함되지 않았다. 당시에는 별도 폐기·재발급을 요구했지만 2026-09-12 ADR49의 사용자 위험 수용 결정이 이를 대체했다. usable repository 인증 구성 전에는 원격 push/release를 시도하지 않는다.
 
 ## Documentation Updated
 

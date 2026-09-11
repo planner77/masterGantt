@@ -8,7 +8,7 @@
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-12 / 0.3.0 W21 Synchronized Gantt Workspace 완료**. W01–W07, W20, W21은 독립 QA PASS / Manager ACCEPT이며, 원격 Actions/GHCR 실행은 별도 Gate다.
+기준: **2026-09-12 / 0.3.1 W21 완료·D04 정책 확정**. W01–W07, W20, W21은 독립 QA PASS / Manager ACCEPT이며, 원격 Actions/GHCR 실행은 usable GitHub 인증과 설정 적용이 남았다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -20,14 +20,14 @@
 | W05 편집 인증 | 완료 / 독립 QA PASS | password unlock, session current/logout, metadata 보호 저장, revision, password rotation, route security inventory |
 | W06 일정 계산 기반 | 완료 / 독립 QA PASS | pure Gregorian date-only, weekend/holiday, inclusive duration, Auto/Manual leaf, milestone, server/browser 동일 fixture |
 | W07 Task·Link 저장 기반 | 완료 / 독립 QA PASS | root Task/Milestone CRUD, Project-scoped Link Repository, 실제 Gantt 이동·양방향 resize·삭제·reload, 거부 복원, revision 경쟁 |
-| W20 CI/CD·Semantic image | 로컬 완료 / 독립 QA PASS | PR/main Actions, strict SemVer, non-root image/readiness, tag 기반 GHCR publish·digest smoke; 원격 실행은 NOT TESTED/BLOCKED |
+| W20 CI/CD·Semantic image | 로컬 완료 / D04 결정 / 독립 QA PASS | GHCR private, 필수 CI, 승인 review 0명, 보호 `v*` tag; 원격 적용·실행은 인증 미구성으로 NOT TESTED/BLOCKED |
 | W21 동기 Gantt 작업공간 | 완료 / 독립 QA PASS | 빈 일정부터 좌측 계층 Grid+우측 Chart, 생성 직후 양쪽 반영, full-width·viewport height, narrow 내부 scroll |
 | W08 이후 | 예정 | Summary/WBS, FS 재계산, Import/Export |
 | W16 배포 | 일부 기반 선행 / 운영 검증 예정 | Docker/startup/readiness/named volume 기반; 실제 host·proxy·backup/restore 승인 후속 |
 
 홈 화면은 DB에 Project가 없다고 단정하지 않고 목록 discovery가 아직 비활성임을 안내하며 생성 링크를 제공한다. `/projects/new`에서 Project를 만들면 `/projects/{publicId}`로 이동한다. Direct snapshot API는 Cookie와 관계없이 Readonly이며, 화면은 별도 current-session 확인 뒤에만 metadata/password/logout과 root Task/Milestone 편집 control을 표시한다. D02 결정 전 `GET /api/projects`는 `405`로 닫혀 있다. Project 화면은 빈 일정부터 동일 SVAR 인스턴스의 좌측 계층 Grid와 우측 Chart를 표시한다. `작업 추가 또는 삭제`를 펼쳐 저장하면 새 row와 bar/milestone이 reload 없이 함께 나타나며, Grid/Chart 경계는 내장 Resizer로 조절한다. 좁은 화면에서는 Project Gantt 영역 안을 가로로 스크롤한다. Gantt drag/resize 결과는 보호 Task API와 W06 Scheduling Engine을 거쳐 SQLite에 저장되고, 성공·실패 모두 server canonical snapshot으로 복원된다. Summary 생성/reparent와 Link가 있는 일정의 변경은 W08/W09 전까지 fail-closed다. `/gantt-demo`는 별도의 로컬 fixture다.
 
-최근 Manager 검증: 0.3.0 version check, build/typecheck/lint PASS, **24개 파일 310개 Vitest PASS**, clean isolated Turbopack Chromium E2E **8개 PASS**. E2E는 empty 390×844 내부 Grid+Chart scroll, 1440×900 생성 직후 row+bar와 viewport geometry, 기존 pointer·복원·reload·authorization을 포함한다. W20에서 확인한 production dependency audit 0건과 Action/container 검증은 유지된다. W21 범위는 [W21 검토 기록](docs/W21_REVIEW.md), W20 원격 범위는 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다.
+최근 Manager 검증: 0.3.1 version check, build/typecheck/lint PASS, **24개 파일 310개 Vitest PASS**, clean isolated Turbopack Chromium E2E **8개 PASS**. E2E는 empty 390×844 내부 Grid+Chart scroll, 1440×900 생성 직후 row+bar와 viewport geometry, 기존 pointer·복원·reload·authorization을 포함한다. W20에서 확인한 production dependency audit 0건과 Action/container 검증은 유지된다. W21 범위는 [W21 검토 기록](docs/W21_REVIEW.md), W20 원격 범위는 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다.
 
 ## 2. 기술 스택과 역할
 
@@ -35,7 +35,7 @@
 
 | 기술 | 현재 버전 / 상태 | 역할 |
 | --- | --- | --- |
-| masterGantt | 0.3.0 | `package.json` Semantic Version과 GHCR release 기준 |
+| masterGantt | 0.3.1 | `package.json` Semantic Version과 GHCR release 기준 |
 | Node.js | 최소 22, 검증 22.14.0 | 서버와 CLI 실행 |
 | Next.js | 16.3.4 | App Router, 서버 Route Handler, 빌드 |
 | React / React DOM | 19.3.0 | 화면 컴포넌트 |
@@ -200,7 +200,7 @@ Pull Request와 `main` push에서는 GitHub Actions가 application, Chromium과 
 
 ```sh
 npm run version:check
-node scripts/verify-release-version.mjs v0.3.0
+node scripts/verify-release-version.mjs v0.3.1
 ```
 
 Release workflow는 저장소 단위로 직렬 실행한다. 이전 release보다 큰 version인지 확인하고 local candidate를 먼저 검증한 뒤 immutable commit image를 게시하며, registry digest runtime smoke를 통과한 경우에만 stable alias와 exact version을 승격한다. 테스트에서는 `latest` 대신 exact version 또는 workflow가 출력한 digest를 사용한다. 실제 tag 생성·GHCR 권한·private image login을 포함한 절차는 [CI/CD 문서](docs/CI_CD.md), container 실행은 [Deployment](docs/DEPLOYMENT.md)를 따른다.

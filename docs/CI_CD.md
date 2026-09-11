@@ -1,6 +1,6 @@
 # CI/CD와 Semantic Container Release
 
-상태: **로컬 구현·독립 QA PASS / Manager ACCEPT**. GitHub Actions 실행과 GHCR push/pull은 원격 자격증명 회전 및 Repository 설정 확인 전까지 **NOT TESTED / BLOCKED**다.
+상태: **로컬 구현·독립 QA PASS / Manager ACCEPT, D04 정책 결정 완료**. GitHub Actions 실행과 GHCR push/pull은 현재 환경의 usable GitHub 인증과 실제 Repository 설정 적용 전까지 **NOT TESTED / BLOCKED**다.
 
 이 문서는 GitHub Actions, 애플리케이션 버전, GHCR container image의 Source of Truth다. Docker runtime과 운영 persistence는 [DEPLOYMENT.md](DEPLOYMENT.md), 검증 분류는 [TEST_PLAN.md](TEST_PLAN.md), 자격증명 정책은 [SECURITY.md](SECURITY.md)를 함께 따른다.
 
@@ -29,7 +29,7 @@ Actions는 실제 운영 CPU/storage, reverse proxy/TLS, off-host backup/restore
 
 `0.x`에서도 사용자 workflow나 저장/API 계약을 확장하면 MINOR를 올리고, 기존 계약 내 수정은 PATCH를 올린다. 버전은 낮추거나 재사용하지 않는다. Release workflow는 full Git tag history의 유효한 이전 SemVer를 비교하고 새 version이 모두보다 클 때만 진행한다.
 
-Release authority는 package version과 정확히 일치하는 annotated Git tag `vMAJOR.MINOR.PATCH[-PRERELEASE]`다. CI가 임의로 version commit이나 tag를 만들지 않는다. Tag push 전에 review와 일반 CI를 통과해야 하며, tag 이동·삭제·동일 version 재발행은 금지한다.
+Release authority는 package version과 정확히 일치하는 annotated Git tag `vMAJOR.MINOR.PATCH[-PRERELEASE]`다. CI가 임의로 version commit이나 tag를 만들지 않는다. Tag push 전에 필수 CI 통과와 지정 release authority를 확인하며, GitHub의 필수 승인 review 수는 0명이다. Tag 이동·삭제·동일 version 재발행은 금지한다.
 
 ## 3. Container image 계약
 
@@ -109,7 +109,15 @@ Workflow 파일만으로 다음 GitHub 설정을 강제할 수 없으므로 Repo
 - Package visibility(public/private) 및 다른 repository/runner의 pull 권한
 - Artifact/attestation retention과 조직 정책
 
-과거 노출된 repository credential을 폐기·재발급하기 전에는 branch/tag push와 release를 수행하지 않는다.
+2026-09-12 D04 결정은 다음과 같다.
+
+- GHCR package는 private으로 유지한다.
+- downstream consumer에는 필요한 대상에만 최소 `packages: read`를 부여한다.
+- `main`은 필수 CI를 통과해야 하며 Pull Request 흐름은 유지하되 필수 승인 review 수는 0명이다.
+- `refs/tags/v*` update/delete/force-update를 금지하고 지정 maintainer만 release authority를 가진다.
+- package-repository linkage와 SBOM/provenance/attestation 보존을 활성화하고 최초 publish 뒤 실제 설정을 재검증한다.
+
+과거 노출된 repository credential은 폐기·재발급이 권고되지만, 사용자는 해당 위험을 인지하고 기존 값을 재사용하기로 결정했다. 이 예외는 credential이 안전하다는 판정이 아니며 값은 문서, 명령 출력 또는 workflow 입력에 기록하지 않는다. 현재 환경에는 `gh`가 설치되어 있지 않고 `git ls-remote`에 사용할 인증도 구성되어 있지 않아 원격 적용과 push는 계속 BLOCKED다.
 
 ## 7. 검증 증거와 상태
 

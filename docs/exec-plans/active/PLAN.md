@@ -1,6 +1,6 @@
 # Active execution plan
 
-상태: **W21 Synchronized Gantt Workspace 독립 QA PASS / Manager ACCEPT**. W20 원격 Actions/GHCR는 D04와 자격증명 회전 전까지 NOT TESTED/BLOCKED이며, 다음 Scheduling 구현은 W08 Hierarchy Summary and WBS다. 근거: [Requirements](../../REQUIREMENTS.md), [W21 Review](../../W21_REVIEW.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md).
+상태: **W21 Synchronized Gantt Workspace 독립 QA PASS / Manager ACCEPT**. D04 정책 결정과 credential 재사용 위험 수용은 완료됐고, W20 원격 Actions/GHCR는 usable GitHub 인증과 실제 설정 적용 전까지 NOT TESTED/BLOCKED다. 다음 Scheduling 구현은 W08 Hierarchy Summary and WBS다. 근거: [Requirements](../../REQUIREMENTS.md), [W21 Review](../../W21_REVIEW.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md).
 
 ## Phase와 Task
 
@@ -18,7 +18,7 @@
 | P2 | W05 Readonly and Edit Authorization | W04 | backend + frontend + qa_docs + Manager | W05 적용 AUTH slice; 잘못된·만료·revoke·다른 Project session 거부; metadata 보호 mutation/revision; password rotation; route inventory | DONE / PASS / ACCEPT | production limiter·KDF benchmark는 W16; root Task auth W07 PASS, Import W12 |
 | P2 | W06 Working Calendar and Duration | W01 | scheduler + frontend + researcher + qa_docs + Manager | 윤년·weekend·holiday·비근무 시작·범위·Manual 경계 unit; browser/server 동일 fixture | DONE / PASS / ACCEPT | root Leaf 저장 W07 PASS; Summary/WBS·FS는 W08/W09 |
 | P2 | W07 Task and Link Persistence | W03,W05,W06 | backend + frontend + researcher + scheduler + qa_docs + Manager | root Task/Milestone strict CRUD, AUTH/DB rollback·reopen, 실제 pointer edit/reload·거부 복원, same-revision race, Task UUID/externalId 분리, Link Repository foundation | DONE / PASS / ACCEPT | Summary/Hierarchy·Link Route·FS는 W08/W09; 기존 구조는 fail-closed |
-| P1 | W20 CI/CD and Semantic Container Release | W02,W07; W16 runtime 일부 선행 | infra + backend + researcher + qa_docs + Manager | PR/main Actions, strict·monotonic SemVer/annotated tag, non-root image·runtime config·readiness·restart persistence, candidate→GHCR digest→exact promotion, 최소 권한·SHA/digest pin, 상시 문서 규칙 | DONE LOCAL / PASS / ACCEPT | credential rotation과 원격 Actions/GHCR 설정·실행은 BLOCKED |
+| P1 | W20 CI/CD and Semantic Container Release | W02,W07; W16 runtime 일부 선행 | infra + backend + researcher + qa_docs + Manager | PR/main Actions, strict·monotonic SemVer/annotated tag, non-root image·runtime config·readiness·restart persistence, candidate→GHCR digest→exact promotion, 최소 권한·SHA/digest pin, 상시 문서 규칙 | DONE LOCAL / D04 DECIDED / PASS / ACCEPT | remote 인증·ruleset/GHCR 적용·실행은 BLOCKED |
 | P1 | W21 Synchronized Gantt Workspace | W03,W07 | frontend + researcher + qa_docs + Manager | UI03–10, empty/0→1 Grid+Chart, explicit columns/gridWidth, Desktop viewport geometry, narrow inner scroll, auth/persistence regression | DONE / PASS / ACCEPT | persisted Summary/reparent/WBS는 W08; Resizer pointer 자동화 미검증 |
 | P2 | W08 Hierarchy Summary and WBS | W06,W07 | scheduler + backend + frontend | SCH08–10; Summary+첫 child 성공, final empty/cycle 거부, REAL progress 정확성 | PLANNED | 중간 invalid state·정렬 |
 | P2 | W09 FS Scheduling Recalculation | W06,W07 | scheduler + backend | SCH04–07/11; Manual conflict 전체 rollback, link 제거 날짜 복귀, 미지원 관계 명시 오류 | PLANNED | cycle·달력 계산 비용 |

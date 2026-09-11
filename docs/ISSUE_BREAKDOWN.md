@@ -239,7 +239,7 @@
 - Suggested / Assigned Agent: infra + backend + researcher + qa_docs + Manager; infra는 workflow/Docker, backend는 readiness, Manager는 공용 version/문서 계약을 통합한다.
 - Dependencies: W02,W07. W16의 최소 container runtime 기반을 선행하지만 운영 CPU/storage/proxy/backup gate는 완료 처리하지 않는다.
 - Related Documents: [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md), [SECURITY.md](SECURITY.md), [TEST_PLAN.md](TEST_PLAN.md).
-- Status: DONE LOCAL / independent QA PASS / Manager ACCEPT — remote Actions/GHCR는 credential rotation과 repository 설정 확인 전 NOT TESTED/BLOCKED.
+- Status: DONE LOCAL / independent QA PASS / Manager ACCEPT — D04 결정과 credential 위험 수용은 완료. remote Actions/GHCR는 usable 인증과 설정 적용 전 NOT TESTED/BLOCKED.
 - Risk: tag 재사용, mutable image 소비, supply-chain action/base drift, GHCR visibility, native ABI, 원격 설정과 로컬 증거 혼동.
 
 ## W21 — Synchronized Gantt Workspace

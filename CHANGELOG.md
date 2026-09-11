@@ -4,6 +4,14 @@
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-12
+
+### Changed
+
+- D04 운영 결정을 GHCR private, 최소 `packages: read`, 필수 CI, 보호된 `v*` tag와 지정 release 권한으로 확정
+- Pull Request는 유지하되 필수 승인 review 수를 0으로 설정
+- 과거 노출 credential의 재사용을 사용자 수용 잔여 위험으로 기록하고 원격 차단 사유를 인증 미구성으로 변경
+
 ## [0.3.0] - 2026-09-12
 
 ### Added

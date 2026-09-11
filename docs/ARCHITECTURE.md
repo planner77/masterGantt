@@ -111,4 +111,4 @@ W04 생성 bootstrap에 이어 W05는 recorded scrypt profile의 timing-safe pas
 
 ## 구현 진입 Gate
 
-최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. 새 운영 요구인 W20 CI/CD와 Semantic Container Release 및 W21 동기 Grid+Chart 작업공간도 로컬 구현·검증 대상으로 추가했으며, 다음 Scheduling 구현은 W08 Summary/Hierarchy/WBS다. 실제 GHCR publish는 D04, VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.
+최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. 새 운영 요구인 W20 CI/CD와 Semantic Container Release 및 W21 동기 Grid+Chart 작업공간도 로컬 구현·검증 대상으로 추가했으며, 다음 Scheduling 구현은 W08 Summary/Hierarchy/WBS다. D04 정책은 결정됐으며 실제 GHCR publish에는 usable GitHub 인증과 원격 ruleset/GHCR 설정 적용이 남았다. VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.

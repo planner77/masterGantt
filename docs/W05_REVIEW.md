@@ -70,7 +70,7 @@ Chromium은 W03 Gantt 회귀와 W04 생성/Readonly에 더해 password unlock, n
 
 - 최초 독립 QA는 write lock 전에 잡힌 expiry 시각, 단순히 존재하기만 하는 wrong-project session Cookie 보존, protected route의 canonical public ID 누락을 발견했다. 각각 lock 안의 현재 시각·owner session 전체 유효성 검사·DB 조회 전 canonical 검사로 수정했고 deterministic regression test를 추가했다.
 - Password/session 원문은 URL, DOM, response body, non-cookie header와 DB에 저장하지 않는다. Opaque session 원문은 의도한 HttpOnly `Set-Cookie`에만 존재한다.
-- W04 중 기존 `.env` 자격증명 값 하나가 Sub-Agent의 비공개 도구 출력에 노출된 incident가 있었다. 값은 source/Git/user message에 복사되지 않았고 이 검증에서도 `.env`를 읽거나 사용하지 않았지만, 해당 자격증명 폐기·재발급은 계속 필요하다.
+- W04 중 기존 `.env` 자격증명 값 하나가 Sub-Agent의 비공개 도구 출력에 노출된 incident가 있었다. 값은 source/Git/user message에 복사되지 않았고 이 검증에서도 `.env`를 읽거나 사용하지 않았다. 당시 폐기·재발급을 요구했지만 2026-09-12 사용자가 ADR49에서 재사용 위험을 명시적으로 수용했다.
 
 ## Independent QA
 
@@ -90,4 +90,4 @@ Backend/Security QA는 세 차례 finding 보완 뒤 targeted 3 files/36 tests�
 
 ## Recommendation
 
-W05는 ACCEPT하고 다음 독립 기반인 W06 Working Calendar and Duration으로 진행한다. GitHub push/release 전에는 노출된 자격증명을 폐기·재발급하고 정상적인 repository 인증을 복구해야 한다.
+W05는 ACCEPT하고 다음 독립 기반인 W06 Working Calendar and Duration으로 진행한다. 당시 GitHub push/release 전 credential 교체를 요구했지만 이 조건은 ADR49의 사용자 위험 수용 결정으로 대체됐으며, usable repository 인증 구성은 여전히 필요하다.

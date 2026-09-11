@@ -260,6 +260,7 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 - Release는 repository 단위로 직렬화하고 이전 tag보다 큰 annotated SemVer만 허용한다. Local candidate를 먼저 검증하고 GHCR에는 immutable commit candidate만 쓴 뒤 digest runtime smoke·attestation이 성공해야 rolling alias와 exact version을 승격한다.
 - Production runtime configuration은 migration 전에 canonical URL/path를 검사하고 readiness도 DB open 전 fail closed한다.
 - Publish한 GHCR digest를 새로 pull하여 readiness와 SQLite runtime을 검증하며 SBOM/provenance를 생성한다. 세부 계약은 [CI_CD.md](CI_CD.md)를 따른다.
+- 과거 도구 출력에 노출된 repository credential은 교체가 권고된다. 사용자는 2026-09-12 기존 값 재사용의 잔여 위험을 명시적으로 수용했으며, 이는 안전 판정이나 일반적인 secret rotation 원칙의 완화가 아니다. 값 자체는 다시 읽거나 출력·문서화하지 않는다.
 
 ## 13. 주요 Threat와 대응
 
@@ -309,7 +310,8 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 - Session 8시간 TTL과 동시에 여러 Project edit UX 승인
 - Trusted proxy hop, application/proxy rate-limit 수치와 persistent limiter 필요 여부
 - Backup encryption, 보존 기간, 복구 시 session revoke 운영 절차
-- GHCR package visibility·consumer pull 권한, main/tag ruleset과 release 승인자
+
+D04의 GHCR private·consumer 최소 pull 권한·main/tag ruleset·release authority 정책은 2026-09-12 결정 완료했다. 실제 GitHub 적용과 원격 증거는 usable 인증 구성 후 검증한다.
 
 ## 16. 근거 자료
 

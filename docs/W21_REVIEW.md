@@ -69,7 +69,7 @@ Manager가 Node.js 22.14.0 환경에서 실행했다.
 - 실제 Summary 생성·reparent·expand/collapse 저장, WBS와 Summary 계산은 W08 범위이며 이번 완료에 포함하지 않는다.
 - Grid width를 사용자가 조절할 수 있지만 preference로 서버에 저장하지 않는다.
 - Grid/Chart Resizer의 실제 pointer drag geometry는 이번 E2E에서 별도로 자동 조작하지 않았다.
-- 원격 GitHub Actions/GHCR `v0.3.0` 게시와 digest pull은 D04 및 노출 credential 회전 전까지 BLOCKED다.
+- W21 이후 D04 정책 결정과 credential 재사용 위험 수용은 완료됐지만, usable GitHub 인증과 원격 설정 적용이 없어 최신 release 게시와 digest pull은 여전히 BLOCKED다.
 
 ## Recommendation
 

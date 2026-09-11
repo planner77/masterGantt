@@ -65,7 +65,7 @@ Chromium은 실제 API로 생성→UUID redirect→Readonly metadata→reload, �
 ## Security Findings
 
 - 제출한 password는 response body/error/non-cookie header/DB file/URL/DOM에서 발견되지 않았다. Session 원문은 의도한 HttpOnly `Set-Cookie`에만 존재하고 response body/다른 header/DB에는 없으며 DB에는 digest만 저장된다.
-- W04 작업 도중 기존 `.env`의 자격증명 값 하나가 한 Sub-Agent의 비공개 도구 출력에 우발적으로 노출되었다. 값은 source, Git diff, 사용자 메시지에 복사되지 않았고 `.env`는 Git 제외 상태이나, 해당 자격증명은 폐기·재발급해야 한다. 이 검토에서도 `.env`를 다시 읽지 않았다.
+- W04 작업 도중 기존 `.env`의 자격증명 값 하나가 한 Sub-Agent의 비공개 도구 출력에 우발적으로 노출되었다. 값은 source, Git diff, 사용자 메시지에 복사되지 않았고 `.env`는 Git 제외 상태이며, 당시에는 해당 자격증명 폐기·재발급을 요구했다. 2026-09-12 사용자가 ADR49에서 재사용 위험을 명시적으로 수용했으며 이 검토에서도 `.env`를 다시 읽지 않았다.
 - Server access-log redaction, penetration test, CSP/header baseline, production proxy와 scrypt benchmark는 아직 NOT TESTED다.
 
 ## Independent QA
@@ -82,4 +82,4 @@ qa_docs는 현재 worktree의 구현·테스트·문서를 독립 대조하고 �
 
 ## Recommendation
 
-W04는 ACCEPT하고 다음으로 W05 Readonly/Edit Authorization를 진행한다. Production data exposure, credential rotation 확인, W05 authorization 완료 전에는 release로 판정하지 않는다.
+W04는 ACCEPT하고 다음으로 W05 Readonly/Edit Authorization를 진행한다. 당시에는 Production data exposure, credential rotation 확인, W05 authorization 완료 전 release로 판정하지 않았다. 이후 credential 조건은 ADR49의 사용자 위험 수용 결정으로 대체됐다.
