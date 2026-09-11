@@ -114,4 +114,4 @@ W04 생성 bootstrap에 이어 W05는 recorded scrypt profile의 timing-safe pas
 
 ## 구현 진입 Gate
 
-최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. W20 Semantic Release와 W21 동기 Grid+Chart도 완료했고, W22 main commit image 자동화는 구현·원격 검증 중이다. Repository admin 인증은 성공했지만 실제 workflow run과 GHCR digest 증거는 아직 없으며, private ruleset/attestation plan은 D05 결정이 남았다. 다음 Scheduling 구현은 W08 Summary/Hierarchy/WBS다. VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.
+최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. W20 Semantic Release와 W21 동기 Grid+Chart도 완료했고, W22 main commit image 자동화는 구현·원격 검증 중이다. Repository admin 인증은 성공했지만 실제 workflow run과 GHCR digest 증거는 아직 없다. D05에 따라 현재 private 요금제의 ruleset 미강제 위험을 수용하고 GitHub Artifact Attestation은 비활성으로 두며 BuildKit SBOM/provenance를 유지한다. 다음 Scheduling 구현은 W08 Summary/Hierarchy/WBS다. VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.

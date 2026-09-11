@@ -315,7 +315,7 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 - Trusted proxy hop, application/proxy rate-limit 수치와 persistent limiter 필요 여부
 - Backup encryption, 보존 기간, 복구 시 session revoke 운영 절차
 
-D04의 GHCR private·consumer 최소 pull 권한·main/tag ruleset·release authority 정책은 2026-09-12 결정 완료했다. Repository admin 인증은 이후 성공했지만 private repository의 ruleset API는 현재 plan에서 403이었다. D05에서 현재 plan의 미강제 위험 수용 또는 유료 plan 전환을 결정하기 전까지 ruleset 적용을 PASS로 표시하지 않는다. Private GitHub Artifact Attestation 필요 여부와 Enterprise Cloud 선택도 D05에 포함한다.
+D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·release authority 정책은 2026-09-12 결정 완료했다. Repository admin 인증은 이후 성공했지만 private repository의 ruleset API는 현재 plan에서 403이었다. D05에서 사용자는 현재 private 요금제를 유지하고 ruleset 미강제 위험을 명시적으로 수용했다. 보호가 적용됐다고 표시하지 않으며 지정 maintainer와 문서화된 절차를 운영 통제로 유지한다. Private GitHub Artifact Attestation은 비활성으로 두고 BuildKit SBOM/provenance를 필수로 유지한다.
 
 ## 16. 근거 자료
 

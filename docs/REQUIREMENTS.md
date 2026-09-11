@@ -1,6 +1,6 @@
 # Requirements baseline
 
-상태: 요구사항 기준선, 2026-09-12 갱신. W01–W07, W20–W22의 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. Repository admin 인증은 확인됐지만 W22 원격 workflow와 GHCR artifact 증거는 아직 대기 중이다. Private repository의 ruleset/attestation 유료 기능 선택은 D05로 미결정이다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
+상태: 요구사항 기준선, 2026-09-12 갱신. W01–W07, W20–W22의 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. Repository admin 인증은 확인됐지만 W22 원격 workflow와 GHCR artifact 증거는 아직 대기 중이다. D05는 현재 private 요금제의 ruleset 미강제 위험 수용과 GitHub Artifact Attestation 비활성으로 결정됐다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
 
 ## Confirmed
 
@@ -68,8 +68,8 @@ R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 ed
 | D01 | 대상 Workbook에서 VBA 실행·셀 읽기·파일 Export가 허용되는지, 승인된 저장 위치 | 실제 VBA POC 전 | UNKNOWN; 실제 파일·정책을 추정하거나 DRM 우회하지 않음 |
 | D02 | Project 목록과 읽기/생성 서비스의 공개 범위: 사내 접근 경계 또는 공개 directory | 실데이터 사용·외부 노출 전 | local fixture UI 설계 가능; production discovery는 비활성 |
 | D03 | 운영 Host OS/CPU, volume 경로/owner, 도메인/TLS와 backup 보관 위치·정책 | 배포 검증 전 | 문서의 단일 container 후보로 계획, 운영값 생성 안 함 |
-| D04 | GHCR private, downstream consumer 최소 `packages: read`, `main` 필수 CI, PR 필수 승인 0명, `v*` update/delete 금지, 지정 maintainer release | 2026-09-12 사용자 결정 | DECIDED; W22에서 admin 인증은 성공했으나 현재 private plan의 ruleset 적용은 D05 전 BLOCKED, 실제 workflow/GHCR artifact는 NOT TESTED |
-| D05 | Private repository를 현재 요금제에 유지하며 branch/tag ruleset 미강제를 수용할지, ruleset 지원 유료 Plan으로 전환할지; private GitHub Artifact Attestation이 필요하면 Enterprise Cloud를 선택할지 | W22 원격 보호·attestation 승인 전 | DECISION REQUIRED; 현재 private repository ruleset API는 403이며 BuildKit SBOM/provenance만 plan과 무관하게 유지 |
+| D04 | GHCR private, downstream consumer 최소 `packages: read`, `main` 필수 CI, PR 필수 승인 0명, `v*` update/delete 금지, 지정 maintainer release | 2026-09-12 사용자 결정 | DECIDED; W22에서 admin 인증 성공, 실제 workflow/GHCR artifact는 NOT TESTED. Ruleset 강제 가능 여부는 D05가 대체 |
+| D05 | Private repository를 현재 요금제에 유지하고 branch/tag ruleset 미강제 위험을 수용; private GitHub Artifact Attestation은 비활성, BuildKit SBOM/provenance는 필수 | 2026-09-12 사용자 결정 | DECIDED / RISK ACCEPTED; ruleset API 403과 미강제를 숨기지 않으며 지정 maintainer·절차 통제를 유지 |
 
 유료 License 선택은 계획에 없다. 실제 요구가 생기면 구매 전에 별도 판단한다. Password reset/admin 계정, Project 삭제/복원, merge Import, HTTP VBA 전송은 자동으로 초기 범위에 추가하지 않는다.
 

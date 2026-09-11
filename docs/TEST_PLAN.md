@@ -108,7 +108,7 @@ P-A/P-B 두 Project에 같은 externalId를 사용해 isolation을 시험한다.
 | CI09 | PR·수동 CI는 registry write가 없고 성공한 `main` push만 모든 quality/E2E/container job 뒤 immutable `ci-<full SHA>`를 게시; 기존 tag overwrite와 SemVer/rolling alias 생성을 거부 |
 | CI10 | Main commit과 SemVer release image를 각각 build output digest로 새로 pull해 image policy, migration/readiness, Project 생성·edit session·Task 저장, unauthorized write 거부, restart 후 Project/Task 재조회를 검증; BuildKit SBOM/provenance와 optional GitHub Attestation 결과를 구분 |
 
-로컬 workflow lint와 Docker smoke는 implementation evidence다. GitHub-hosted Actions URL, tag, GHCR digest와 registry pull 결과가 없으면 CI01–02 및 CI05–10의 원격 부분은 **NOT TESTED**로 기록한다. Repository admin 인증 성공은 workflow나 artifact PASS가 아니다. Private repository ruleset은 현재 plan에서 403이므로 D05 결정 전 **BLOCKED**, GitHub Artifact Attestation은 Enterprise Cloud 선택과 opt-in 전 **BLOCKED**다. BuildKit SBOM/provenance와 혼동하지 않는다.
+로컬 workflow lint와 Docker smoke는 implementation evidence다. GitHub-hosted Actions URL, tag, GHCR digest와 registry pull 결과가 없으면 CI01–02 및 CI05–10의 원격 부분은 **NOT TESTED**로 기록한다. Repository admin 인증 성공은 workflow나 artifact PASS가 아니다. D05에서 현재 private plan의 ruleset 미강제 위험을 수용했으므로 이를 blocker로 두지는 않지만 보호가 적용됐다고 표시하지 않는다. GitHub Artifact Attestation은 비활성이고 BuildKit SBOM/provenance만 필수이므로 둘을 혼동하지 않는다.
 
 W20 로컬 실행 결과는 typecheck/lint/build, 24 files/309 Vitest, Chromium 8/8, actionlint, Compose, Markdown 30 files, production audit 0, `linux/amd64` non-root image와 invalid runtime config exit 1, readiness/native SQLite restart persistence까지 독립 QA PASS다. 원격 CI01–02와 CI05–08은 실제 Actions/GHCR 증거 전 NOT TESTED/BLOCKED다. [W20 검증 기록](W20_REVIEW.md)
 

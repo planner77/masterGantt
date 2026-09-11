@@ -259,9 +259,9 @@
 - Goal: 모든 성공한 `main` commit을 사용자·통합 테스트용 immutable GHCR image로 게시하고 기존 SemVer release와 함께 실제 digest 기준으로 검증한다.
 - Background: W20은 release workflow를 정의했지만 commit 단위 test image와 실제 원격 artifact 증거는 없었다.
 - Scope: main-only `ci-<full SHA>`, PR·수동 CI read-only, release `sha-<full SHA>` tag 공간 분리, registry digest re-pull, image policy/readiness/HTTP Project·Task authorization/restart persistence, BuildKit SBOM/provenance와 plan-aware GitHub Attestation.
-- Acceptance Criteria: CI09–CI10; upstream quality/E2E/container gate 뒤에만 publish, immutable overwrite 거부, 두 경로의 실제 Actions URL·digest·smoke evidence를 별도 기록, package private/consumer `packages: read`, D05 미결정을 승인으로 과대 표시하지 않음.
+- Acceptance Criteria: CI09–CI10; upstream quality/E2E/container gate 뒤에만 publish, immutable overwrite 거부, 두 경로의 실제 Actions URL·digest·smoke evidence를 별도 기록, package private/consumer `packages: read`, D05 ruleset 미강제 위험 수용과 보호 미적용을 모두 명시.
 - Suggested / Assigned Agent: infra + qa_docs + Manager. Infra는 workflow와 smoke script, qa_docs는 독립 대조, Manager는 version/문서/remote 실행을 통합한다.
 - Dependencies: W20,W21; actual remote execution requires explicit Manager-controlled push/tag flow.
 - Related Documents: [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md), [SECURITY.md](SECURITY.md), [TEST_PLAN.md](TEST_PLAN.md), [W22_REVIEW.md](W22_REVIEW.md).
-- Status: IN PROGRESS — admin auth/private visibility PASS; workflow implementation/local evidence review 중; remote main/release artifact NOT TESTED; private ruleset/attestation D05 BLOCKED.
+- Status: IN PROGRESS — admin auth/private visibility와 local implementation PASS; D05 ruleset 미강제 위험 수용 및 GitHub Attestation 비활성. 최초 push 거부 후 PAT `workflow` scope 추가를 확인했으며 remote main/release artifact 검증을 진행한다.
 - Risk: PR write 권한, commit/release tag 충돌, mutable tag smoke, overwrite, credential 노출, paid feature 과대 완료.

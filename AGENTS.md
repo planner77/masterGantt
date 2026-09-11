@@ -979,6 +979,8 @@ Infra Agent는 Docker 또는 배포와 관련 없는 작업에 불필요하게 �
 
 PR과 수동 CI workflow에는 write token 또는 registry secret을 제공하지 않는다. 모든 품질 gate를 통과한 `main` push만 immutable `ci-<full SHA>` test image를 게시할 수 있다. Semantic Version release는 `package.json`과 일치하는 annotated tag에서 별도 `sha-<full SHA>` candidate를 사용한다. 두 경로 모두 게시 결과의 exact digest를 다시 pull하여 정책, readiness, Project/Task authorization 저장과 restart persistence를 검사한다. 로컬 image PASS와 실제 원격 Actions/GHCR PASS를 구분한다.
 
+현재 private repository 요금제에서는 branch/tag ruleset을 강제하지 못하는 위험을 사용자가 명시적으로 수용했다. 이는 보호 규칙이 적용됐다는 뜻이 아니며, 지정 maintainer와 문서화된 release 절차가 운영 통제다. Private GitHub Artifact Attestation은 비활성으로 두고 BuildKit SBOM/provenance는 모든 publish에서 필수로 유지한다.
+
 ---
 
 # 27. QA / Docs Responsibilities

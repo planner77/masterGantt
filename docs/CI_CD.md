@@ -1,6 +1,6 @@
 # CI/CD, Commit Test Image와 Semantic Container Release
 
-상태: W20 Semantic Release는 **로컬 구현·독립 QA PASS / Manager ACCEPT**다. W22의 immutable main commit image 자동화는 **IN PROGRESS**이며 실제 GitHub Actions run, GHCR publish/digest pull 증거는 아직 **NOT TESTED**다. 사용자 승인 범위에서 repository admin 인증은 성공했고 private repository를 확인했으므로 인증 자체는 더 이상 blocker가 아니다. Private repository의 ruleset/Artifact Attestation plan은 D05 결정이 남았다.
+상태: W20 Semantic Release는 **로컬 구현·독립 QA PASS / Manager ACCEPT**다. W22의 immutable main commit image 자동화는 **IN PROGRESS**이며 실제 GitHub Actions run, GHCR publish/digest pull 증거는 아직 **NOT TESTED**다. Repository admin 인증과 private visibility는 확인했다. D05에 따라 현재 요금제의 branch/tag ruleset 미강제 위험을 수용하고 GitHub Artifact Attestation은 비활성으로 두며 BuildKit SBOM/provenance를 필수로 유지한다.
 
 이 문서는 GitHub Actions, 애플리케이션 버전, GHCR container image의 Source of Truth다. Docker runtime과 운영 persistence는 [DEPLOYMENT.md](DEPLOYMENT.md), 검증 분류는 [TEST_PLAN.md](TEST_PLAN.md), 자격증명 정책은 [SECURITY.md](SECURITY.md)를 함께 따른다.
 
@@ -140,7 +140,7 @@ Workflow 파일만으로 다음 GitHub 설정을 강제할 수 없으므로 Repo
 
 사용자 승인 범위의 in-memory helper를 통해 기존 repository credential의 admin 인증이 성공했고 `planner77/masterGantt`가 private임을 확인했다. Credential 평문을 화면·로그·문서·workflow 입력에 출력하거나 별도 파일로 복사하지 않는다. 허용된 helper가 필요 시 값을 process memory로 불러와 HTTPS API 인증에 사용하는 것은 값의 사람/모델 열람·출력과 구분한다. 과거 노출 credential을 계속 사용하는 것은 사용자가 수용한 잔여 위험이며 안전 판정이 아니다.
 
-원격 확인에서 아직 `mastergantt` container package는 존재하지 않았다. Private repository의 ruleset API는 현재 plan에서 403을 반환했다. GitHub 공식 정책상 private branch/tag ruleset은 Pro/Team/Enterprise에서, private Artifact Attestation은 Enterprise Cloud에서 지원된다. 따라서 D04의 보호 의도는 문서상 유지하되 실제 강제 여부를 PASS로 표시하지 않는다. 사용자는 D05에서 private/current plan의 미강제 위험을 수용할지, ruleset 지원 plan으로 전환할지 결정해야 한다. GitHub Attestation은 지원 plan에서 명시적 `ENABLE_GITHUB_ATTESTATIONS=true` opt-in으로만 실행하며 BuildKit SBOM/provenance는 항상 유지한다.
+원격 확인에서 아직 `mastergantt` container package는 존재하지 않았다. Private repository의 ruleset API는 현재 plan에서 403을 반환했다. GitHub 공식 정책상 private branch/tag ruleset은 Pro/Team/Enterprise에서, private Artifact Attestation은 Enterprise Cloud에서 지원된다. D05에서 사용자는 현재 private 요금제를 유지하고 ruleset 미강제 위험을 명시적으로 수용했다. 이는 보호가 적용됐다는 뜻이 아니며 지정 maintainer와 문서화된 절차를 운영 통제로 유지한다. GitHub Attestation은 비활성으로 두고 `ENABLE_GITHUB_ATTESTATIONS`를 설정하지 않으며 BuildKit SBOM/provenance는 항상 유지한다.
 
 ## 7. 검증 증거와 상태
 

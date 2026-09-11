@@ -8,7 +8,7 @@
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-12 / 0.4.0 W22 Commit GHCR Automation 진행 중**. W01–W07, W20, W21은 독립 QA PASS / Manager ACCEPT이다. Repository admin 인증과 private visibility는 확인됐지만 main commit/release workflow 및 GHCR digest 증거는 아직 대기 중이고, private ruleset/Artifact Attestation plan은 사용자 결정 전이다.
+기준: **2026-09-12 / 0.4.0 W22 Commit GHCR Automation 진행 중**. W01–W07, W20, W21은 독립 QA PASS / Manager ACCEPT이다. Repository admin 인증과 private visibility를 확인했고 최초 push를 막았던 PAT `workflow` scope도 추가 확인했다. 원격 Actions/GHCR 검증을 진행한다. 사용자는 현재 private 요금제의 branch/tag ruleset 미강제 위험을 수용했고 GitHub Artifact Attestation은 비활성으로 두며 BuildKit SBOM/provenance를 유지한다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |

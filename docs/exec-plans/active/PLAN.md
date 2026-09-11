@@ -1,6 +1,6 @@
 # Active execution plan
 
-상태: **W22 Main Commit GHCR Automation IN PROGRESS**. D04 정책 결정과 credential 재사용 위험 수용, repository admin 인증은 확인됐다. Main commit과 SemVer release workflow의 실제 Actions/GHCR digest 증거는 아직 NOT TESTED이며, 현재 private plan의 ruleset과 GitHub Artifact Attestation 선택은 D05로 BLOCKED다. W22 뒤 다음 Scheduling 구현은 W08 Hierarchy Summary and WBS다. 근거: [Requirements](../../REQUIREMENTS.md), [W22 Review](../../W22_REVIEW.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md).
+상태: **W22 Main Commit GHCR Automation IN PROGRESS**. D04와 D05 위험 수용, repository admin 인증과 PAT `workflow` scope 추가를 확인했다. 최초 push 거부 원인은 해소됐으며 원격 Actions/GHCR 검증을 진행한다. W22 뒤 다음 Scheduling 구현은 W08 Hierarchy Summary and WBS다. 근거: [Requirements](../../REQUIREMENTS.md), [W22 Review](../../W22_REVIEW.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md).
 
 ## Phase와 Task
 
@@ -20,7 +20,7 @@
 | P2 | W07 Task and Link Persistence | W03,W05,W06 | backend + frontend + researcher + scheduler + qa_docs + Manager | root Task/Milestone strict CRUD, AUTH/DB rollback·reopen, 실제 pointer edit/reload·거부 복원, same-revision race, Task UUID/externalId 분리, Link Repository foundation | DONE / PASS / ACCEPT | Summary/Hierarchy·Link Route·FS는 W08/W09; 기존 구조는 fail-closed |
 | P1 | W20 CI/CD and Semantic Container Release | W02,W07; W16 runtime 일부 선행 | infra + backend + researcher + qa_docs + Manager | PR/main Actions, strict·monotonic SemVer/annotated tag, non-root image·runtime config·readiness·restart persistence, candidate→GHCR digest→exact promotion, 최소 권한·SHA/digest pin, 상시 문서 규칙 | DONE LOCAL / D04 DECIDED / PASS / ACCEPT | admin 인증은 W22에서 성공; remote release artifact는 NOT TESTED, ruleset은 D05 BLOCKED |
 | P1 | W21 Synchronized Gantt Workspace | W03,W07 | frontend + researcher + qa_docs + Manager | UI03–10, empty/0→1 Grid+Chart, explicit columns/gridWidth, Desktop viewport geometry, narrow inner scroll, auth/persistence regression | DONE / PASS / ACCEPT | persisted Summary/reparent/WBS는 W08; Resizer pointer 자동화 미검증 |
-| P1 | W22 Main Commit GHCR Automation | W20,W21 | infra + qa_docs + Manager | 성공한 main만 immutable `ci-<SHA>` 게시, release `sha-<SHA>`와 분리, 두 digest를 registry에서 새로 pull해 policy/readiness/HTTP Project·Task auth/restart persistence 검증, PR·수동 CI read-only | IN PROGRESS | remote run/package 증거 대기; private ruleset/attestation은 D05 |
+| P1 | W22 Main Commit GHCR Automation | W20,W21 | infra + qa_docs + Manager | 성공한 main만 immutable `ci-<SHA>` 게시, release `sha-<SHA>`와 분리, 두 digest를 registry에서 새로 pull해 policy/readiness/HTTP Project·Task auth/restart persistence 검증, PR·수동 CI read-only | IN PROGRESS | PAT scope 해결; ruleset 미강제 위험 수용, GitHub Attestation 비활성 |
 | P2 | W08 Hierarchy Summary and WBS | W06,W07 | scheduler + backend + frontend | SCH08–10; Summary+첫 child 성공, final empty/cycle 거부, REAL progress 정확성 | PLANNED | 중간 invalid state·정렬 |
 | P2 | W09 FS Scheduling Recalculation | W06,W07 | scheduler + backend | SCH04–07/11; Manual conflict 전체 rollback, link 제거 날짜 복귀, 미지원 관계 명시 오류 | PLANNED | cycle·달력 계산 비용 |
 | P3 | W10 Excel/VBA Environment POC | D01,W11의 작은 browser parser harness | excel_vba + researcher | 승인 VBA·추출·JSON/CSV 저장·한글/날짜·browser 실제 파일 읽기 증거; 후속 앱 통합은 W12/W13 후 | BLOCKED ENVIRONMENT | 조직 정책·원본 구조 |

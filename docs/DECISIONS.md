@@ -54,7 +54,7 @@
 | ADR48 | ACCEPT | Project route는 single SVAR Core의 `displayMode="all"` Grid+Chart 작업공간과 viewport 기반 layout을 기본으로 사용 | native Add column은 보호 mutation 계약 때문에 제외하고 기존 form→Task API→canonical snapshot을 유지. supplied hierarchy는 `parent/open` adapter로 표시하며 Summary/reparent 저장은 W08, [W21 검증](W21_REVIEW.md) |
 | ADR49 | ACCEPT WITH EXPLICIT RISK / W22 STATUS SUPERSEDES AUTH BLOCK | D04는 GHCR private, consumer 최소 `packages: read`, `main` 필수 CI, PR 필수 승인 0명, `v*` tag update/delete 금지와 지정 maintainer release로 확정 | 사용자는 과거 도구 출력에 노출된 repository credential을 교체하지 않고 재사용하기로 결정했다. 이는 안전 판정이 아닌 잔여 위험 수용이다. 당시 usable 인증이 없었으나 W22에서 admin 인증은 성공했고, ruleset의 plan 제한과 실제 Actions/GHCR 증거는 ADR51/W22 상태로 추적한다 |
 | ADR50 | ACCEPT | 성공한 `main` commit마다 immutable `ci-<full SHA>` test image를 게시하고 SemVer release의 `sha-<full SHA>` tag 공간과 분리 | PR/수동 CI는 read-only; main publish는 quality/E2E/container gate 뒤 실행하며 commit/release 모두 registry digest를 다시 pull해 Project/Task authorization과 restart persistence까지 검증 |
-| ADR51 | DECISION REQUIRED | Private repository의 branch/tag ruleset과 GitHub Artifact Attestation 지원 Plan | 현재 admin 인증은 성공했지만 ruleset API는 요금제 제한 403. Private ruleset은 Pro/Team/Enterprise, private Artifact Attestation은 Enterprise Cloud가 필요하므로 D05 사용자 선택 전 미강제 상태를 수용했다고 표시하지 않음 |
+| ADR51 | ACCEPT WITH EXPLICIT RISK | Private repository를 현재 요금제에 유지하고 branch/tag ruleset 미강제 위험을 수용; GitHub Artifact Attestation은 비활성, BuildKit SBOM/provenance는 필수 | Admin 인증은 성공했지만 ruleset API는 요금제 제한 403. 보호가 적용됐다고 표시하지 않고 지정 maintainer·절차 통제를 유지하며, 실제 Actions/GHCR artifact는 별도 원격 증거 전 NOT TESTED |
 
 ## Integration 원칙
 
