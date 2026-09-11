@@ -31,6 +31,8 @@ Architecture 문서를 직접 비교하여 검증한다.
 - Project Hyperlink
 - Scheduling Engine
 - Docker
+- GitHub Actions / Semantic Version / GHCR
+- Workflow Permission / Supply-chain Pin / Registry Digest Smoke
 - Security
 - Regression
 - Documentation Consistency
@@ -53,6 +55,10 @@ Regression Findings
 Documentation Findings
 Remaining Risks
 Recommendation
+
+로컬 Docker PASS와 실제 GitHub-hosted Actions/GHCR 실행 증거를 구분한다.
+Remote run URL, tag, image digest, attestation과 registry pull smoke가 없으면
+원격 release를 PASS로 판정하지 않는다.
 
 Architecture를 독자적으로 변경하지 않는다.
 

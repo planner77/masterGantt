@@ -1,0 +1,35 @@
+services:
+  app:
+    # 작은 SQLite 배포는 app replica 하나만 사용한다. replicas/별도 DB service를 추가하지 않는다.
+    build:
+      context: .
+      args:
+        VERSION: ${IMAGE_VERSION:-local}
+    image: ${IMAGE_NAME:-mastergantt:local}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATABASE_PATH: /data/mastergantt.sqlite3
+      # 운영자는 compose 실행 전에 실제 canonical HTTPS origin을 명시해야 한다.
+      APP_BASE_URL: ${APP_BASE_URL:?APP_BASE_URL must be a canonical HTTPS origin}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      SESSION_COOKIE_SECURE: "true"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    # Reverse proxy가 같은 Docker network에 있으면 이 port mapping을 제거하고 내부 port만 사용한다.
+    ports:
+      - "127.0.0.1:${HOST_PORT:-3000}:3000"
+    volumes:
+      # DB, WAL, SHM은 image가 아닌 Docker-managed persistent volume에만 둔다.
+      - mastergantt-data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:' + (process.env.PORT || '3000') + '/api/health/ready').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      start_period: 20s
+      retries: 6
+
+volumes:
+  mastergantt-data:
+    # Compose project를 삭제해도 `docker compose down`만으로는 volume을 제거하지 않는다.
+    name: ${MASTERGANTT_VOLUME_NAME:-mastergantt-data}

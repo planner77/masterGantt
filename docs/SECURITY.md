@@ -249,6 +249,18 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 - Restore 후 만료 session 정리를 수행하며, 보안 사고 복구라면 `auth_version` 증가 또는 session table 정리로 모두 revoke한다.
 - `PRAGMA foreign_keys=ON`, integrity/foreign-key check, parameter-bound query를 검증한다.
 
+### CI/CD와 image supply chain
+
+- Pull Request Actions는 `contents: read`만 사용하고 registry login, package write, personal token을 제공하지 않는다. `pull_request_target`에서 PR code를 실행하지 않는다.
+- GHCR publish job만 job-scoped `GITHUB_TOKEN`과 최소 `packages: write`를 사용한다. Attestation을 생성하는 동일 job에만 `attestations: write`, `id-token: write`를 추가한다.
+- 외부 Action은 reviewed full commit SHA, Node base image는 reviewed digest로 고정한다. Dependabot update도 permissions·release notes·runtime smoke를 검토한 뒤 merge한다.
+- `.env*`, SQLite/WAL/SHM, backup, log, test artifact, `.git`은 Docker build context와 image layer에서 제외한다.
+- Password, token, Cookie, 환경값을 build arg, OCI label, cache key, artifact, workflow summary에 전달하지 않는다.
+- Stable과 prerelease tag를 분리하고 test/deployment는 mutable `latest`가 아닌 exact version 또는 digest를 사용한다.
+- Release는 repository 단위로 직렬화하고 이전 tag보다 큰 annotated SemVer만 허용한다. Local candidate를 먼저 검증하고 GHCR에는 immutable commit candidate만 쓴 뒤 digest runtime smoke·attestation이 성공해야 rolling alias와 exact version을 승격한다.
+- Production runtime configuration은 migration 전에 canonical URL/path를 검사하고 readiness도 DB open 전 fail closed한다.
+- Publish한 GHCR digest를 새로 pull하여 readiness와 SQLite runtime을 검증하며 SBOM/provenance를 생성한다. 세부 계약은 [CI_CD.md](CI_CD.md)를 따른다.
+
 ## 13. 주요 Threat와 대응
 
 | Threat | 대응 |
@@ -265,10 +277,13 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 | Excel formula/link injection | user value를 text로 강제, hyperlink allowlist, XML/Excel QA |
 | Host header poisoning | trusted APP_BASE_URL만 사용 |
 | Public data overexposure | direct links가 비밀이 아님을 명시, list route 미확정/비활성화 |
+| Malicious PR의 token/package 탈취 | PR read-only, publish workflow 분리, `pull_request_target` 금지, 개인 PAT 미사용 |
+| Action/base image 공급망 변조 | full Action SHA와 base digest pin, reviewed automated update, SBOM/provenance |
+| Mutable image로 인한 재현 불가 | exact Semantic Version/digest 사용, stable/prerelease alias 정책, tag force-update 제한 |
 
 ## 14. Security 검증 목록
 
-아래는 전체 보안 검증 계획이다. W04의 생성 bootstrap, W05의 password/session·Project 보호 mutation에 이어 W07 root Task/Milestone authorization과 현재 Route inventory의 자동화·독립 QA를 **PASS**했다. W02의 cross-project FK와 W07 Project-scoped Task/Link Repository 기반도 PASS다. 외부 Link/Import의 실제 authorization과 운영 access log·proxy/KDF benchmark·image 보안은 후속이므로 완료로 간주하지 않는다. [W07 근거 및 한계](W07_REVIEW.md)
+아래는 전체 보안 검증 계획이다. W04의 생성 bootstrap, W05의 password/session·Project 보호 mutation에 이어 W07 root Task/Milestone authorization과 현재 Route inventory의 자동화·독립 QA를 **PASS**했다. W02의 cross-project FK와 W07 Project-scoped Task/Link Repository 기반도 PASS다. W20의 로컬 image supply-chain 자동화는 PASS했지만 원격 Actions/GHCR 증거 전에는 remote publish를 PASS로 간주하지 않는다. 외부 Link/Import의 실제 authorization과 운영 access log·proxy/KDF benchmark는 후속이다. [W07 근거 및 한계](W07_REVIEW.md), [W20 근거 및 한계](W20_REVIEW.md), [CI/CD](CI_CD.md)
 
 - 동일 password의 Project 두 개가 서로 다른 salt/hash를 가짐 — W04 PASS
 - Password 원문/후보가 DB, response/error/URL/DOM에 없음 — W04 PASS; server log/workbook은 NOT TESTED
@@ -283,6 +298,7 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 - Export formula/hyperlink/filename injection과 secret scan
 - `.env`, SQLite, WAL/SHM, backup의 Git/image 제외
 - Dependency audit, Node/native module/runtime compatibility, production security header
+- PR read-only token, publish 최소 권한, Action SHA/base digest, stable/prerelease tag, SBOM/provenance, GHCR digest pull smoke
 
 ## 15. Decision Required
 
@@ -293,6 +309,7 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 - Session 8시간 TTL과 동시에 여러 Project edit UX 승인
 - Trusted proxy hop, application/proxy rate-limit 수치와 persistent limiter 필요 여부
 - Backup encryption, 보존 기간, 복구 시 session revoke 운영 절차
+- GHCR package visibility·consumer pull 권한, main/tag ruleset과 release 승인자
 
 ## 16. 근거 자료
 

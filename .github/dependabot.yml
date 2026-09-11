@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # SHA-pinned action updates still need review; Dependabot proposes the next
+  # trusted release SHA rather than allowing a mutable major tag at runtime.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly

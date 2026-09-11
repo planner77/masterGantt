@@ -323,6 +323,7 @@ describe("route security inventory", () => {
   it("enumerates every explicit route/method and maps every unsafe method to a policy", () => {
     expect(ROUTE_SECURITY_INVENTORY.map(({ template, method }) => `${method} ${template}`)).toEqual([
       "GET /api/health/live",
+      "GET /api/health/ready",
       "GET /api/projects",
       "POST /api/projects",
       "GET /api/projects/{publicId}",

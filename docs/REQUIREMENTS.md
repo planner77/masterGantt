@@ -1,6 +1,6 @@
 # Requirements baseline
 
-상태: 요구사항 기준선, 2026-09-11 갱신. W01–W07 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
+상태: 요구사항 기준선, 2026-09-12 갱신. W01–W07과 W20의 로컬 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. 원격 Actions/GHCR는 D04가 해소되기 전 NOT TESTED/BLOCKED다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
 
 ## Confirmed
 
@@ -31,6 +31,9 @@
 | R23 | Root Manager 통합, 전문 Agent 필요 시 위임, 소유 파일 분리, 독립 QA | [실행 계획](exec-plans/active/PLAN.md) |
 | R24 | 구현별 build/typecheck/tests/security/persistence/docs/QA/Manager review | Test Plan |
 | R25 | Project List/Create/Gantt/Unlock/Import/Export UI, 명확한 loading/error 상태 | Architecture, API |
+| R26 | 반복 build/typecheck/lint/unit·integration/browser/container 검증을 GitHub Actions로 자동화 | [CI/CD](CI_CD.md), [Test Plan](TEST_PLAN.md) |
+| R27 | `package.json` 기준 Semantic Version과 일치하는 Git tag에서만 GHCR image 게시; exact version/digest로 테스트 가능 | CI/CD, [Deployment](DEPLOYMENT.md) |
+| R28 | PR read-only, publish 최소 권한, Action SHA/base digest pin, pre-publish candidate, SBOM/provenance와 registry digest smoke 뒤 exact promotion | CI/CD, [Security](SECURITY.md) |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 
@@ -51,6 +54,8 @@ R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 ed
 | A09 | Project aggregate revision + If-Match로 stale write 거부 | 단일 인스턴스여도 여러 편집자 가능 |
 | A10 | SQLite local volume + WAL; remote/network filesystem 사용 전 별도 검증 | [Deployment](DEPLOYMENT.md) |
 | A11 | Import/export resource limits는 초기 측정으로 조정, 무제한 입력 금지 | [Import Schema](IMPORT_SCHEMA.md) 초기 제한 |
+| A12 | Version SOT는 `package.json`, release authority는 동일 commit의 annotated `v<version>` tag; build metadata는 사용하지 않음 | 자동 version commit/tag 없이 review 가능한 release 경계 유지 |
+| A13 | 초기 GHCR image platform은 `linux/amd64`; arm64는 native runtime 검증 뒤 추가 | 현재 검증 host와 `better-sqlite3` ABI 위험 |
 
 ## Decision Required
 
@@ -61,6 +66,7 @@ R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 ed
 | D01 | 대상 Workbook에서 VBA 실행·셀 읽기·파일 Export가 허용되는지, 승인된 저장 위치 | 실제 VBA POC 전 | UNKNOWN; 실제 파일·정책을 추정하거나 DRM 우회하지 않음 |
 | D02 | Project 목록과 읽기/생성 서비스의 공개 범위: 사내 접근 경계 또는 공개 directory | 실데이터 사용·외부 노출 전 | local fixture UI 설계 가능; production discovery는 비활성 |
 | D03 | 운영 Host OS/CPU, volume 경로/owner, 도메인/TLS와 backup 보관 위치·정책 | 배포 검증 전 | 문서의 단일 container 후보로 계획, 운영값 생성 안 함 |
+| D04 | GHCR package visibility, downstream consumer의 `packages: read`, main/tag ruleset과 release 승인자 | 최초 원격 Actions/GHCR 실행 전 | 로컬 workflow/image 구현 가능; 원격 publish는 BLOCKED |
 
 유료 License 선택은 계획에 없다. 실제 요구가 생기면 구매 전에 별도 판단한다. Password reset/admin 계정, Project 삭제/복원, merge Import, HTTP VBA 전송은 자동으로 초기 범위에 추가하지 않는다.
 
@@ -73,4 +79,4 @@ W04/W05는 개발용 생성, direct-link Readonly, password unlock과 Project me
 - Core가 SS/FF/SF link를 표시할 수 있어도 초기 Domain 지원은 FS뿐이다. 이는 범위 차이며 UI에서 미지원 생성 방지를 해야 한다.
 - Project List 요구는 유지한다. 인증 없는 전체 목록의 노출 범위는 D02이며, 이를 임의로 공개하거나 List 요구를 삭제하지 않는다.
 - 대상 Excel에 안정 ID가 없을 수 있다. 승인된 ID 보존 방법이 확인될 때까지 행 번호를 장기 ID로 확정하지 않는다.
-- W01–W07 application source와 초기 migration, Project edit authorization, pure Calendar/Leaf Scheduling, root Task/Milestone Gantt 저장은 구현되었다. Docker image와 VBA macro, Summary/WBS·FS 재계산, Import/Export는 후속 산출물이며 완료로 간주하지 않는다.
+- W01–W07 application source와 초기 migration, Project edit authorization, pure Calendar/Leaf Scheduling, root Task/Milestone Gantt 저장은 구현되었다. W20은 CI와 최소 container artifact 기반을 선행하지만 production host/backup/restore를 포함한 W16 전체 배포 승인을 대신하지 않는다. VBA macro, Summary/WBS·FS 재계산, Import/Export도 후속 산출물이다.

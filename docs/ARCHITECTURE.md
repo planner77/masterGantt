@@ -1,6 +1,6 @@
 # Architecture draft
 
-상태: Manager 통합 설계. W01–W07의 Project·authorization, pure Calendar/Leaf Scheduling과 root Task/Milestone persistence는 독립 QA PASS / Manager ACCEPT했다. Summary/WBS, FS 재계산, Import/Export·배포는 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
+상태: Manager 통합 설계. W01–W07의 Project·authorization, pure Calendar/Leaf Scheduling과 root Task/Milestone persistence 및 W20의 CI/CD·최소 container artifact 기반은 독립 QA PASS / Manager ACCEPT했다. 원격 Actions/GHCR 증거, Summary/WBS, FS 재계산, Import/Export와 production 배포 승인은 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
 
 ## 경계
 
@@ -11,6 +11,10 @@ flowchart TD
   Service --> Domain[Pure Scheduling Domain]
   Service --> Repo[Repository / SQL transaction]
   Repo --> DB[(SQLite persistent volume)]
+  Git[Reviewed Git commit / SemVer tag] --> Actions[GitHub Actions]
+  Actions --> GHCR[GHCR image + digest + provenance]
+  GHCR --> Runtime[Single non-root container]
+  Runtime --> DB
   Browser -. 동일 Domain으로 preview .-> Domain
   Excel[승인된 Excel / VBA] --> File[JSON / CSV contract]
   File --> Browser
@@ -29,7 +33,7 @@ flowchart TD
 | Domain | date/calendar, graph, summary/WBS, deterministic calculation | React, SVAR, DB, network, 현재 시각의 암묵 의존 | scheduler |
 | Excel/VBA | Header mapping, 필요한 셀 정규화, JSON/CSV·오류 보고 | DRM 우회, backend schema 단독 변경 | excel_vba |
 | Export | DB snapshot→Project/Tasks/Dependencies XLSX, Phase 2 Gantt | PRO export, token hyperlink | backend |
-| Deployment | Node/native build, volume·permission·health·backup | image 안의 DB/secret, 다중 writer instance | infra |
+| Deployment / CI | Node/native build, Actions, Semantic release, GHCR, volume·permission·health·backup | image 안의 DB/secret, PR write token, mutable image를 test 기준으로 사용, 다중 writer instance | infra |
 | QA | 실제 계약과 결과의 독립 비교 | 구현 Agent 보고를 그대로 PASS 처리 | qa_docs |
 
 ## 제안 Directory 구조
@@ -51,6 +55,8 @@ src/contracts/                   validated API/import DTOs, no server imports
 db/migrations/                  ordered SQL, no actual database
 excel/vba/                      future approved VBA POC and exporter
 tests/                          integration / browser / deployment evidence
+.github/workflows/              PR/main CI and SemVer-tagged GHCR release
+scripts/                        migration, version validation, container smoke helpers
 docs/                           sources of truth and execution plan
 ```
 
@@ -97,8 +103,8 @@ Web export는 일정 DTO의 DB 일관된 snapshot을 얻고 transaction 밖에�
 
 W04 생성 bootstrap에 이어 W05는 recorded scrypt profile의 timing-safe password 검증, unknown/corrupt credential dummy KDF, Project-bound session의 expiry/revoke/auth-version 검증, logout, password rotation과 metadata mutation authorization을 적용한다. Cookie는 8시간 HttpOnly/SameSite=Strict이며 production에서 Secure/`__Host-`를 강제한다. Unlock은 bounded process-local global+Project limiter와 공유 KDF concurrency 2 상한을 사용한다. [SECURITY.md](SECURITY.md)가 세부 정책이다. Public URL은 편집 권한을 부여하지 않지만 읽기 기밀성을 보장하는 인증도 아니다. production 노출 범위는 사용자 결정 항목이다.
 
-초기 운영은 한 Node application container와 local persistent SQLite volume이다. Native addon은 빌드·런타임 ABI/libc/architecture를 일치시키고 non-root permission과 restart persistence를 검사한다. WAL-aware backup을 사용하고 restore를 별도 경로에서 시험한다. [DEPLOYMENT.md](DEPLOYMENT.md) 참조.
+초기 운영은 한 Node application container와 local persistent SQLite volume이다. Native addon은 빌드·런타임 ABI/libc/architecture를 일치시키고 non-root permission과 restart persistence를 검사한다. PR/main은 read-only GitHub Actions로 application/browser/container 회귀를 수행한다. Release는 `package.json`과 일치하며 이전 tag보다 큰 annotated Semantic Version만 직렬 처리하고, local candidate와 GHCR digest가 통과한 뒤 exact version을 완료 표식으로 승격한다. Consumer와 post-publish smoke는 mutable alias가 아니라 exact version/digest를 사용한다. WAL-aware backup과 production host restore는 별도 경로에서 시험한다. [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md) 참조.
 
 ## 구현 진입 Gate
 
-최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. 다음은 W08 Summary/Hierarchy/WBS다. 실제 VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.
+최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. 새 운영 요구인 W20 CI/CD와 Semantic Container Release도 로컬 구현·검증을 완료했으며 다음 구현은 W08 Summary/Hierarchy/WBS다. 실제 GHCR publish는 D04, VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.

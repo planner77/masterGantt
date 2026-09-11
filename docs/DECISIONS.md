@@ -1,6 +1,6 @@
 # Manager decisions
 
-최초 작성: 2026-09-10. 최종 갱신: 2026-09-11. 각 판단은 사용자 Confirmed 요구와 구현을 위한 Assumption을 구분한다. 이번 결과는 설계 승인 기준선이며 제품 release 승인이 아니다.
+최초 작성: 2026-09-10. 최종 갱신: 2026-09-12. 각 판단은 사용자 Confirmed 요구와 구현을 위한 Assumption을 구분한다. 이번 결과는 설계 승인 기준선이며 제품 release 승인이 아니다.
 
 | ID | 판단 | 내용 | 근거 / 후속 |
 | --- | --- | --- | --- |
@@ -44,6 +44,13 @@
 | ADR38 | ACCEPT | W06 Working Calendar and Duration 완료 | QA의 SSR-only runtime probe와 nullable Holiday 불일치를 수정하고 raw SSR pending→hydrated browser 계산, Domain 135/135·전체 226/226·Chromium 7/7 PASS; [W06 검증](W06_REVIEW.md) |
 | ADR39 | ACCEPT | W07은 root Leaf Task/Milestone CRUD와 Link Repository foundation만 공개 | body32KiB, name1..200, externalId1..128, immutable ID/type/parent/order, root append. Summary/Hierarchy/WBS는 W08, Link Route·incident 삭제·FS는 W09. 기존 hierarchy/Link aggregate는 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 fail closed |
 | ADR40 | ACCEPT | W07 Task and Link Persistence 완료 | Project-scoped session/revision `BEGIN IMMEDIATE`, W06 Leaf 계산, canonical snapshot, 직접 SVAR command adapter와 실패 시 확정 snapshot 복원. 전체 291 Vitest와 clean Chromium 8/8 PASS; [W07 검증](W07_REVIEW.md) |
+| ADR41 | ACCEPT | Application version SOT는 `package.json`, release authority는 exact annotated `v<version>` tag | package-lock과 strict SemVer를 자동 검사하며 CI가 임의 bump/tag를 만들지 않음; [CI/CD](CI_CD.md) |
+| ADR42 | ACCEPT | PR/main 검증과 GHCR publish workflow를 분리하고 release tag에서도 전체 gate 후 publish | PR은 `contents: read`; publish만 job-scoped `GITHUB_TOKEN`의 최소 package/attestation 권한. Action full SHA와 base image digest pin |
+| ADR43 | ACCEPT | Stable은 exact/major/minor/latest/commit tag, prerelease는 exact/commit tag만 게시 | Test/deployment는 mutable alias가 아니라 exact version 또는 digest 사용; 초기 platform은 `linux/amd64` |
+| ADR44 | ACCEPT | W20이 W16의 최소 image/readiness/persistence 기반을 선행하되 production 배포 승인은 분리 | 실제 host CPU/storage/proxy/TLS/backup/restore는 W16; remote Actions/GHCR는 credential rotation과 D04 전 BLOCKED |
+| ADR45 | ACCEPT | Release를 repository 단위 직렬화하고 이전 tag보다 큰 SemVer만 허용; SHA candidate digest smoke·attest 후 rolling alias와 exact를 승격 | 병렬 낮은 version의 alias rollback과 runtime 실패 image의 exact version 선게시를 방지; exact는 완료 표식으로 마지막 생성 |
+| ADR46 | ACCEPT | Container startup과 readiness가 production DB path뿐 아니라 canonical HTTPS `APP_BASE_URL`도 fail-closed 검증 | invalid config는 migration 전 exit 1, readiness는 DB를 열거나 생성하기 전 sanitized 503 |
+| ADR47 | ACCEPT | W20 로컬 CI/CD와 Semantic Container Release 기반 완료 | 독립 QA가 309 Vitest·Chromium 8/8·build/static/container를 재검증해 PASS 권고; 원격 Actions/GHCR는 별도 NOT TESTED/BLOCKED, [W20 검증](W20_REVIEW.md) |
 
 ## Integration 원칙
 
@@ -53,4 +60,4 @@ Agent 초안은 바로 완료로 처리하지 않는다. Manager는 공동 계�
 
 ## 구현 시작과 사용자 판단
 
-W01–W07 기반과 Project 생성·Direct Readonly·edit authorization·Calendar/Leaf Scheduling·root Task persistence vertical slice를 구현했다. 다음 단계는 W08 Hierarchy Summary and WBS다. 비용·데이터 손실·조직 정책·대규모 Architecture/Workflow 변경이 생기면 해당 작업 전에 판단을 요청한다. 아직 실제 Workbook이나 운영 환경을 시험하지 않았으므로 이를 이유로 다른 독립 기반 작업을 막지 않는다.
+W01–W07 기반과 Project 생성·Direct Readonly·edit authorization·Calendar/Leaf Scheduling·root Task persistence vertical slice를 구현했다. 사용자 요청에 따라 W20 CI/CD와 Semantic Container Release를 W08보다 먼저 진행하고 완료 후 W08 Hierarchy Summary and WBS로 복귀한다. 비용·데이터 손실·조직 정책·대규모 Architecture/Workflow 변경이 생기면 해당 작업 전에 판단을 요청한다. 아직 실제 Workbook이나 운영 환경을 시험하지 않았으므로 이를 이유로 다른 독립 기반 작업을 막지 않는다.

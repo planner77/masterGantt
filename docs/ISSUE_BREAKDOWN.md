@@ -229,3 +229,15 @@
 - Related Documents: [PRO_FEATURE_MATRIX.md](PRO_FEATURE_MATRIX.md), [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md).
 - Status: DEFERRED.
 - Risk: 범위 확대·불명확한 제약.
+
+## W20 — CI/CD and Semantic Container Release
+
+- Goal: 반복 검증을 GitHub Actions로 자동화하고 Semantic Version tag마다 검증된 Docker image를 GHCR에 게시한다.
+- Background: W07까지 검증은 수동 로컬 명령에 의존했고 Docker/runtime/readiness와 원격 registry artifact가 없었다.
+- Scope: PR/main CI, Chromium E2E, container build/runtime smoke, strict SemVer manifest/tag validator, GHCR publish, SBOM/provenance, digest pull smoke, Dependabot과 상시 문서 규칙. 실제 production host/backup/restore는 W16에 유지한다.
+- Acceptance Criteria: CI01–CI08; `package.json`·lockfile·`v<version>` 일치, Action SHA/base digest pin, PR read-only, non-root amd64 image, migration/readiness/native SQLite/restart persistence, stable/prerelease tag 정책, exact/digest 소비, 원격 미실행 상태 분리.
+- Suggested / Assigned Agent: infra + backend + researcher + qa_docs + Manager; infra는 workflow/Docker, backend는 readiness, Manager는 공용 version/문서 계약을 통합한다.
+- Dependencies: W02,W07. W16의 최소 container runtime 기반을 선행하지만 운영 CPU/storage/proxy/backup gate는 완료 처리하지 않는다.
+- Related Documents: [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md), [SECURITY.md](SECURITY.md), [TEST_PLAN.md](TEST_PLAN.md).
+- Status: DONE LOCAL / independent QA PASS / Manager ACCEPT — remote Actions/GHCR는 credential rotation과 repository 설정 확인 전 NOT TESTED/BLOCKED.
+- Risk: tag 재사용, mutable image 소비, supply-chain action/base drift, GHCR visibility, native ABI, 원격 설정과 로컬 증거 혼동.

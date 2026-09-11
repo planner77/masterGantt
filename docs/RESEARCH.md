@@ -88,6 +88,16 @@ Node LTS와 Next.js 최소 runtime 요구를 함께 확인하여 후보를 정�
 
 Persistent volume은 container 교체와 데이터 수명을 분리한다. Host 장애에 대한 backup을 대신하지 않으므로 WAL-aware backup/restore rehearsal을 별도 Gate로 둔다. [Docker volumes](https://docs.docker.com/engine/storage/volumes/), [SQLite backup API](https://www.sqlite.org/backup.html)
 
+## W20 GitHub Actions / GHCR 조사 — 2026-09-11
+
+GitHub 공식 image publish 지침은 GHCR에 repository-scoped `GITHUB_TOKEN`을 사용하고 publish job에 `contents: read`, `packages: write`를 부여하는 구성을 제공한다. Attestation은 추가로 `attestations: write`, `id-token: write`가 필요하다. PR CI에는 이 write 권한을 주지 않고 publish job에만 한정한다. [GitHub image publishing](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images), [Workflow permissions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax), [Artifact attestations](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations)
+
+Docker 공식 Actions 자료는 local image를 먼저 test한 후 push하는 방법과 SemVer metadata tag 생성을 제공한다. 본 프로젝트는 더 강하게 publish 뒤 output digest로 registry artifact를 다시 pull하고 readiness/native SQLite/restart persistence를 검사한다. Stable에서만 major/minor/latest alias를 갱신하고 prerelease에는 exact version과 commit tag만 둔다. 이는 `latest`를 검증 기준으로 삼지 않기 위한 자체 release 정책이다. [Test before push](https://docs.docker.com/build/ci/github-actions/test-before-push/), [metadata-action](https://github.com/docker/metadata-action)
+
+GitHub은 외부 Action을 full commit SHA로 고정할 것을 권고한다. 조사 시점의 official release tag와 ref를 대조해 checkout 7.0.1, setup-node 7.0.0, upload-artifact 7.0.1, Docker setup-buildx 4.3.0, login 4.6.0, build-push 7.3.0, actions/attest 4.2.2 SHA를 workflow에 고정했다. Mutable major tag로 되돌리지 않으며 Dependabot 제안도 permissions와 release note를 review한다.
+
+Official `node:22-bookworm-slim`의 2026-08-25 OCI manifest list를 조회해 digest `sha256:83f487e0a63425e5b4d146fb5e5be574bcbe1b7b843d3ebafdd95eaf7767a7e5`로 고정했다. 초기 target은 실제 검증 환경과 같은 `linux/amd64`이며, arm64는 해당 manifest가 존재한다는 사실만으로 지원 판정하지 않고 native runtime 검증 뒤 추가한다.
+
 ## ExcelJS / Excel·VBA
 
 Researcher 확인 시 `exceljs` 안정 package는 **4.4.0**, MIT다. Sheet, style, date, hyperlink, XLSX writer를 제공하므로 서버 표 export와 날짜 cell Gantt의 후보로 채택한다. Release 간격과 transitive dependency 상태는 설치 직전 확인할 유지보수 위험이다. [Package metadata](https://www.npmjs.com/package/exceljs), [ExcelJS 공식 Repository](https://github.com/exceljs/exceljs)

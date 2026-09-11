@@ -949,8 +949,15 @@ Infra Agent는 다음을 담당한다.
 * Deployment
 * Backup/Restore 기본 정책
 * Deployment Documentation
+* GitHub Actions CI
+* Semantic Version Release Gate
+* GHCR Image Publish / Digest Smoke
+* Action SHA / Base Image Digest Pin
+* SBOM / Provenance
 
 Infra Agent는 Docker 또는 배포와 관련 없는 작업에 불필요하게 호출하지 않는다.
+
+PR workflow에는 write token 또는 registry secret을 제공하지 않는다. Release는 `package.json`과 일치하는 Semantic Version tag에서만 수행하고, GHCR publish 뒤 exact digest를 다시 pull해 검사한다. 로컬 image PASS와 실제 원격 Actions/GHCR PASS를 구분한다.
 
 ---
 
@@ -1136,9 +1143,39 @@ Docker 변경:
 Docker Files
 +
 docs/DEPLOYMENT.md
++
+GitHub Actions / Release 영향이 있으면 docs/CI_CD.md
 ```
 
 를 함께 갱신한다.
+
+## CI/CD와 Version
+
+Workflow, Semantic Version, Container Registry 변경:
+
+```text
+.github/workflows/**
++
+자동화 Test / Script
++
+docs/CI_CD.md
++
+docs/TEST_PLAN.md
++
+사용자 절차가 바뀌면 README.md와 CHANGELOG.md
+```
+
+를 같은 변경에서 갱신한다.
+
+Release는 다음 불변식을 유지한다.
+
+* `package.json`과 lockfile의 Strict SemVer가 일치해야 한다.
+* Release authority는 이전 유효 Tag보다 큰 annotated `v<version>` Tag다.
+* 서로 다른 Version Release도 Repository 단위로 직렬화한다.
+* 원격 쓰기 전에 동일 Release 설정의 Local Candidate Runtime을 검증한다.
+* GHCR에는 Immutable Commit Candidate를 먼저 게시하고 Digest Smoke와 Attestation 뒤에만 Stable Alias와 Exact Version을 승격한다.
+* Exact Version Tag는 성공 완료 표식으로 마지막에 생성하며 Exact/Commit Image를 덮어쓰지 않는다.
+* Test와 Deployment는 `latest`가 아니라 Exact Version 또는 Digest를 사용한다.
 
 ---
 
@@ -1216,6 +1253,12 @@ docs/SECURITY.md
 docs/DEPLOYMENT.md
 ```
 
+## CI/CD and Semantic Versioning
+
+```text
+docs/CI_CD.md
+```
+
 ## Testing
 
 ```text
@@ -1262,6 +1305,9 @@ docs/**
 db/migrations/**
 Dockerfile
 docker-compose.yml
+.dockerignore
+.github/workflows/**
+.github/dependabot.yml
 .env.example
 ```
 
@@ -1305,6 +1351,12 @@ Screenshots if UI changed
 Documentation Updated
 Remaining Risks
 ```
+
+Application version은 `package.json`을 Source of Truth로 하고 `package-lock.json`과 일치시킨다. Version은 Semantic Versioning을 따르며 release tag는 정확히 `v<package version>`이어야 한다. Version을 변경하면 `CHANGELOG.md`도 같은 변경에서 갱신한다.
+
+Pull Request와 `main` push는 GitHub Actions의 build, typecheck, lint, unit/integration, browser E2E와 container smoke를 통과해야 한다. Release image는 검증된 Semantic Version tag에서만 GHCR에 게시한다. Stable release만 `latest`를 갱신하며 test/deployment는 exact version 또는 digest를 사용한다.
+
+Workflow의 PR job에는 write 권한이나 registry secret을 주지 않는다. Publish job은 job-scoped `GITHUB_TOKEN`과 최소 `packages: write`만 사용하고 개인 PAT를 저장하지 않는다. 외부 Action은 full commit SHA, base image는 digest로 고정하고 reviewed dependency update로 갱신한다. 세부 계약은 `docs/CI_CD.md`가 Source of Truth다.
 
 ---
 
@@ -1440,6 +1492,22 @@ Documentation
 * SQLite File 생성
 * Restart 후 Data Persistence
 * File Permission
+
+## CI/CD / Release
+
+최소 확인:
+
+* `package.json`과 `package-lock.json` Version 일치
+* Strict Semantic Version과 이전 Tag보다 큰 annotated `v<version>` Tag 일치
+* PR/Main CI의 frozen install, Build, Type Check, Lint, Unit/Integration, Browser E2E
+* Non-root Docker Build, Migration, Readiness, Native SQLite, Restart Persistence
+* PR Job Readonly 권한과 Publish Job 최소 권한
+* Action full SHA와 Base Image Digest Pin
+* Stable/Prerelease Image Tag 분리
+* Pre-publish Candidate Runtime Smoke
+* Commit Candidate의 GHCR Digest Pull Smoke 후 Alias/Exact Promotion
+* SBOM과 Provenance
+* 원격 Actions/GHCR 미실행 상태를 로컬 PASS와 구분
 
 ---
 

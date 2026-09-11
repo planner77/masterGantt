@@ -1,6 +1,6 @@
 # Test Plan
 
-상태: qa_docs가 작성한 검증 전략. W02–W06 검증 기록과 W07 Task Persistence의 [W07_REVIEW.md](W07_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W07 PASS가 Summary/WBS, FS, Import/Export/Docker/VBA 통과를 뜻하지 않는다.
+상태: qa_docs가 작성한 검증 전략. W02–W07과 W20 검증 기록은 [W07_REVIEW.md](W07_REVIEW.md), [W20_REVIEW.md](W20_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W20의 로컬 container PASS도 원격 Actions/GHCR, production host/backup/restore와 VBA 통과를 뜻하지 않는다.
 
 ## 판정과 증거
 
@@ -82,6 +82,23 @@ P-A/P-B 두 Project에 같은 externalId를 사용해 isolation을 시험한다.
 - **UI01 PARTIAL PASS:** Create→unlock→root Task CRUD→pointer edit→reload vertical slice는 PASS다. Hierarchy와 FS는 W08/W09까지 BLOCKED다.
 - **UI02 PARTIAL PASS:** Task 401/412/422/500 거부와 canonical 재조회 실패에서도 마지막 확정 Gantt를 복원했다. 403/409/413/429의 화면별 browser fixture는 후속 통합 QA까지 NOT TESTED다.
 - W07 전체 21 files/291 Vitest, typecheck/lint/build, clean 기본 Turbopack Chromium 8/8과 production dependency audit 0건이 PASS했다. 정확한 범위·독립 QA·잔여 위험은 [W07_REVIEW.md](W07_REVIEW.md)에 기록한다.
+
+## CI/CD / Semantic Release
+
+| ID | 검증과 기대 결과 |
+| --- | --- |
+| CI01 | PR/main의 frozen `npm ci`, version check, typecheck, lint, 전체 Vitest, production build가 clean GitHub runner에서 실행 |
+| CI02 | Chromium E2E worker 1, 실패 trace/report artifact, 일반 application job과 격리 |
+| CI03 | clean `linux/amd64` image build, non-root UID/GID, native `better-sqlite3`와 migration/readiness 성공 |
+| CI04 | ephemeral volume에 대표 Project 저장 후 같은 container/image restart에서 유지; image layer에는 DB/WAL/SHM 없음 |
+| CI05 | package와 lockfile version이 strict SemVer로 일치; release tag가 annotated exact `v<version>`이고 모든 이전 valid tag보다 크며 malformed/mismatch/lower version은 hard fail |
+| CI06 | PR job은 read-only이고 publish job만 최소 package/attestation 권한; Action full SHA와 base image digest pin, secret build arg/log 없음 |
+| CI07 | Repository 단위 release 직렬화; stable만 latest/major/minor 갱신, prerelease는 exact/commit만 생성; OCI source/revision/version, SBOM/provenance 존재 |
+| CI08 | Pre-publish local candidate가 production config/migration/readiness/native SQLite/restart를 통과; GHCR에는 commit candidate만 먼저 push하고 digest smoke·attest 뒤 rolling/exact 승격; exact version/digest를 downstream test에 제공 |
+
+로컬 workflow lint와 Docker smoke는 implementation evidence다. GitHub-hosted Actions URL, tag, GHCR digest, attestation과 registry pull 결과가 없으면 CI01–02 및 CI05–08의 원격 부분은 **NOT TESTED/BLOCKED**로 기록한다. Repository branch/tag ruleset, package visibility와 consumer pull 권한은 D04 운영 설정 증거가 필요하다.
+
+W20 로컬 실행 결과는 typecheck/lint/build, 24 files/309 Vitest, Chromium 8/8, actionlint, Compose, Markdown 30 files, production audit 0, `linux/amd64` non-root image와 invalid runtime config exit 1, readiness/native SQLite restart persistence까지 독립 QA PASS다. 원격 CI01–02와 CI05–08은 실제 Actions/GHCR 증거 전 NOT TESTED/BLOCKED다. [W20 검증 기록](W20_REVIEW.md)
 
 ## Scheduling / database
 

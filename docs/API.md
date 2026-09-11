@@ -57,6 +57,12 @@ Route Handler 안에 SQL이나 일정 알고리즘을 두지 않는다. Client p
 
 `details`는 입력 path, 안정 오류 code, 관련 external ID 등 사용자가 수정할 정보만 포함한다. SQL, stack, password/hash/session, filesystem path는 포함하지 않는다.
 
+### Health endpoints
+
+- `GET /api/health/live`: process와 HTTP router 생존만 확인하며 DB를 열지 않는다. 성공은 `200 { "status": "ok" }`다.
+- `GET /api/health/ready`: Node runtime에서 canonical `APP_BASE_URL`, production DB path, application DB 연결, `SELECT 1`, `foreign_keys=1`, 최신 migration의 version/name/checksum ledger 일치를 확인한다. 성공은 `200 { "status": "ok" }`, 실패는 내부 URL·경로·SQL·driver 오류를 숨긴 `503 { "status": "unavailable" }`다. Probe는 DB를 생성하거나 migration하지 않는다.
+- 두 응답은 `Cache-Control: no-store`이고 state를 변경하지 않는 public-read다. Docker/Compose와 registry image smoke는 readiness를 사용한다.
+
 ### Project revision / ETag
 
 Project schedule 전체를 하나의 aggregate로 보고 `projects.revision`을 사용한다.

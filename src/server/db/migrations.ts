@@ -13,6 +13,12 @@ interface MigrationFile {
   sql: string;
 }
 
+export interface RequiredMigration {
+  version: number;
+  name: string;
+  checksum: string;
+}
+
 interface AppliedMigration {
   version: number;
   name: string;
@@ -78,6 +84,38 @@ function loadMigrationFiles(directory: string): MigrationFile[] {
   });
 
   return migrations;
+}
+
+export function getRequiredMigration(
+  migrationsDirectory: string,
+): RequiredMigration {
+  let files: MigrationFile[];
+
+  try {
+    files = loadMigrationFiles(migrationsDirectory);
+  } catch (error) {
+    if (error instanceof MigrationError) {
+      throw error;
+    }
+
+    throw new MigrationError(
+      `Unable to read migrations from ${migrationsDirectory}.`,
+      { cause: error },
+    );
+  }
+
+  const required = files.at(-1);
+  if (!required) {
+    throw new MigrationError(
+      `No SQL migrations were found in ${migrationsDirectory}.`,
+    );
+  }
+
+  return {
+    version: required.version,
+    name: required.name,
+    checksum: required.checksum,
+  };
 }
 
 function ensureLedger(database: Database.Database): void {
