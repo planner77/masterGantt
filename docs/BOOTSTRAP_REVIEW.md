@@ -1,10 +1,10 @@
 # Bootstrap review evidence
 
-범위: Planning 문서, 제품 구현 아님. 원격 기준 `131f3bb`, 확인일 2026-09-10.
+범위: Bootstrap/Planning 및 W01 Foundation. 확인일 2026-09-11.
 
 ## Summary
 
-최종 독립 **Planning QA: PASS**, Manager 판단: **ACCEPT**. qa_docs는 substantive planning contract 18개 문서를 독립 검토하고 미해결 주요 불일치가 없음을 보고했다. 초기 검토 중 사용량 한도로 중단되었으나 재시도가 완료되어 더 이상 blocker가 아니다. 이 판정은 설계 기준선과 문서 commit/push에 대한 것이며 제품·운영 release 승인이 아니다.
+최종 독립 **Planning QA: PASS**, Manager 판단: **ACCEPT**. W01 Foundation의 typecheck/lint/unit/webpack build/liveness smoke도 PASS했다. 이 판정은 Foundation 범위에 한정되며 제품·운영 release 승인이 아니다.
 
 ## Initial independent findings와 Manager 처리
 
@@ -26,7 +26,8 @@ R01–R25를 [REQUIREMENTS.md](REQUIREMENTS.md)에서 분류하고 [TEST_PLAN.md
 ## Test Results
 
 - qa_docs 독립 검사: 계약 문서18개, 내부 링크123개, JSON예제16개 PASS. Manager의 전체 검사에는 이후 추가한 요약 보고서도 포함되며 아래 결과와 구분한다.
-- Application build/typecheck/unit/integration/E2E, SQLite migration/persistence, XLSX/CSV runtime, Docker image/restart/restore: **NOT TESTED**. package/source/migrations가 아직 없다.
+- W01 `npm run typecheck`, `npm run lint`, `npm test`, Webpack `next build`, `GET /api/health/live` smoke: **PASS**.
+- SQLite migration/persistence, authorization, Gantt, import/export runtime, Docker image/restart/restore, full E2E: **NOT TESTED**.
 - 대상 Excel의 조직 정책·실행 가능 여부: **UNKNOWN**. 실제 POC는 [VBA_EXPORT.md](VBA_EXPORT.md)의 개별 prerequisite에 따라 **BLOCKED**이며 PASS한 실행은 없다.
 
 ## Security / Regression / Documentation

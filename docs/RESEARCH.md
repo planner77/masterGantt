@@ -1,6 +1,10 @@
 # Bootstrap research
 
-확인일: 2026-09-10. Researcher의 공식 자료 조사와 Scheduler/Infra/Manager 검토를 통합했다. 공개 문서 확인과 실제 설치·실행 결과는 구분한다. Package lockfile이 아직 없으므로 아래 숫자는 확정 dependency pin이 아니다.
+확인일: 2026-09-11. Researcher의 공식 자료 조사와 Scheduler/Infra/Manager 검토를 통합했다. 공개 문서 확인과 실제 설치·실행 결과는 구분한다. W01 lockfile 및 실행 검증 결과를 아래에 별도로 기록한다.
+
+## W01 설치 및 실행 검증
+
+W01 lockfile에 Next.js 16.3.4, React 19.3.0, TypeScript 5.8.3, Vitest 5.0.0, Playwright 1.63.0이 기록되었다. `npm install` audit은 0 vulnerabilities였고 typecheck/lint/unit test와 Webpack production build가 PASS했다. 기본 Turbopack 및 sandbox 개발 서버는 process/port 권한 제한으로 검증하지 못했으며 이는 제품 결함 판정이 아니다. `GET /api/health/live`는 `{"status":"ok"}`를 반환했다.
 
 ## SVAR Core와 API
 

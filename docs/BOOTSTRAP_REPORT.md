@@ -2,7 +2,7 @@
 
 ## Completed
 
-Repository와 7개 Agent 정의를 점검하고 요구사항, Architecture, DB/API/Security, Scheduling, Import 계약, VBA POC, Docker, 테스트 전략, W01–W19 issue 초안과 실행 계획을 작성했다. Application source/migration/VBA macro/Docker image 구현은 시작하지 않았다. 최종 검토 상태는 [QA 기록](BOOTSTRAP_REVIEW.md)을 따른다.
+Repository와 7개 Agent 정의를 점검하고 요구사항, Architecture, DB/API/Security, Scheduling, Import 계약, VBA POC, Docker, 테스트 전략, W01–W19 issue 초안과 실행 계획을 작성했다. 이후 W01 Project Foundation으로 Next.js shell, liveness endpoint, test/build 설정을 구현했다. Application migration/VBA macro/Docker image 구현은 아직 남아 있다. 최종 검토 상태는 [QA 기록](BOOTSTRAP_REVIEW.md)을 따른다.
 
 ## Research Findings
 
@@ -46,7 +46,7 @@ Foundation→DB/SVAR→Project/Auth→Calendar/Task→Summary/FS→Excel POC/Con
 
 ## Verification
 
-TOML parsing, 문서 존재/내부 링크, JSON/CSV 예제 구조·참조, whitespace, staged credential exclusion을 정적 검사했다. qa_docs 초기 검토의 mode/revision/CSV/진척/배포/작업 순서 finding을 보완했다. 최종 독립 판정과 정확한 결과 수치는 [Review](BOOTSTRAP_REVIEW.md)에 기록한다. Application build/typecheck/tests는 구현물이 없어 NOT TESTED다.
+TOML parsing, 문서 존재/내부 링크, JSON/CSV 예제 구조·참조, whitespace, staged credential exclusion을 정적 검사했다. qa_docs 초기 검토의 mode/revision/CSV/진척/배포/작업 순서 finding을 보완했다. 초기 계획 시점에는 Application build/typecheck/tests가 NOT TESTED였고, W01에서 typecheck/lint/unit/webpack build와 liveness smoke를 PASS했다. DB/Auth/Gantt/Import/Export/Docker 동작은 아직 NOT TESTED다.
 
 ## Risks
 
@@ -54,4 +54,4 @@ TOML parsing, 문서 존재/내부 링크, JSON/CSV 예제 구조·참조, white
 
 ## Recommended First Implementation
 
-계획 최종 QA/Manager Gate 뒤 W01 Foundation을 시작한다. 첫 vertical slice는 **Project 생성→SQLite 저장→새 browser Direct Readonly→password unlock→단일 Task 편집→reload 유지**다. Build/typecheck와 권한·격리·영속성 E2E까지 완료 기준으로 삼는다.
+W01 Foundation 이후 첫 vertical slice는 **Project 생성→SQLite 저장→새 browser Direct Readonly→password unlock→단일 Task 편집→reload 유지**다. Build/typecheck와 권한·격리·영속성 E2E까지 완료 기준으로 삼는다.
