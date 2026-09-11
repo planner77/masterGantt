@@ -1,6 +1,6 @@
 # Architecture draft
 
-상태: Manager 통합 설계 초안. 구현·런타임 검증 전이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
+상태: Manager 통합 설계. W01–W03 기반은 구현·검증했고 Project API·인증·Scheduling·Import/Export·배포는 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
 
 ## 경계
 
@@ -34,7 +34,7 @@ flowchart TD
 
 ## 제안 Directory 구조
 
-아래는 구현 때 만들 구조이며 현재 존재하는 코드가 아니다.
+아래는 목표 구조다. W01–W03에서 `app`, `components`, `features/gantt`, `server/db`, `server/repositories`, `db/migrations`, 관련 `tests` 경로를 만들었고 나머지는 담당 작업에서 추가한다.
 
 ```text
 src/app/                         Next.js pages and HTTP routes
@@ -56,11 +56,11 @@ docs/                           sources of truth and execution plan
 
 ## Frontend와 SVAR
 
-SVAR 공식 Next.js guide의 client wrapper, theme/CSS, `init` API를 따르고 browser mount/SSR 경계를 최소 POC로 검증한다. [공식 integration guide](https://docs.svar.dev/react/gantt/integration-guides/nextjs/setup/)
+SVAR 공식 Next.js guide의 client wrapper, theme/CSS, `init` API를 따랐고 W03에서 browser-only mount와 production build를 검증했다. [공식 integration guide](https://docs.svar.dev/react/gantt/integration-guides/nextjs/setup/), [W03 검증](W03_REVIEW.md)
 
 Project Direct page는 Readonly로 시작한다. Session 확인 또는 password unlock 성공 후 편집 UI를 활성화한다. 서버는 매 mutation에서 다시 권한을 확인한다. 기존 유효 session 재사용과 새 브라우저의 Readonly를 각각 시험한다.
 
-UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 external ID↔SVAR ID, date-only↔Date, end 포함↔SVAR endpoint 의미, working-day duration↔calendar span, domain link type↔SVAR link type을 변환한다. 실제 설치 버전의 end semantics는 POC에서 검증하며 추측으로 날짜 하루를 가감하지 않는다.
+UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 external ID↔SVAR ID, date-only↔Date, end 포함↔SVAR endpoint 의미, working-day duration↔calendar span, domain link type↔SVAR link type을 변환한다. W03 Adapter는 공식 REST 예제에서 **추론한** exclusive widget end를 한 곳에서 inclusive domain end와 변환하고 unit round-trip을 통과했다. Vendor가 의미를 명시적으로 보장한 것은 아니므로 실제 pointer drag/resize와 서버 왕복을 W06/W07에서 재확인하며, 결과가 다르면 Adapter와 계약을 함께 수정한다.
 
 편집 명령은 `init`에서 얻은 API의 공식 interception/event hook을 통해 API로 보낸다. 단일 명령은 한 번만 저장한다. 초기 방안은 optimistic 화면 변경을 허용하되 요청 동안 동일 aggregate 후속 변경을 직렬화하고, 성공 시 전체 canonical snapshot으로 교체하며 실패·412 시 서버 재조회와 사용자 오류를 표시하는 것이다. PRO auto-scheduler를 동시에 실행하지 않는다. Data provider의 공식 패턴을 검토하되 프로젝트별 cookie/If-Match/atomic hierarchy 계약을 보존한다.
 

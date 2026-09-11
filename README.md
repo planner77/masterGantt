@@ -8,20 +8,20 @@
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-11 / W02 완료**, 기능 commit `fd16854`.
+기준: **2026-09-11 / W03 완료**, 독립 QA PASS / Manager ACCEPT.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
 | Bootstrap | 완료 | 요구사항·아키텍처·보안·Import 계약과 작업 계획 |
 | W01 Foundation | 완료 | Next.js 기본 화면, 빈 프로젝트 안내, liveness API, 빌드·테스트 설정 |
 | W02 SQLite | 완료 / 독립 QA PASS | 테이블 5개, 마이그레이션·checksum·rollback, 프로젝트 격리, Repository, DB 초기화 CLI |
-| W03 SVAR 통합 | 다음 작업 | Gantt 렌더링·readonly·날짜 adapter 검증 |
+| W03 SVAR 통합 | 완료 / 독립 QA PASS | Core 2.7.3, browser-only Gantt fixture, 기본 readonly, 날짜 adapter와 로컬 명령 경계 |
 | W04 이후 | 예정 | 프로젝트 생성·조회, 편집 인증, 작업 저장, 일정 계산, Import/Export |
 | W16 배포 | 예정 | Docker 파일, startup/readiness, volume·재시작·백업 복원 검증 |
 
-**지금 웹 화면에는 “등록된 프로젝트가 없습니다.”라는 기본 안내가 표시된다.** 실제 DB 목록을 조회하는 화면은 아직 아니며, 프로젝트 생성 버튼·Gantt Chart·편집 비밀번호 입력은 후속 단계다. W02의 결과는 DB CLI와 자동화 테스트로 확인한다.
+홈 화면에는 “등록된 프로젝트가 없습니다.”라는 기본 안내가 표시되며, 아직 실제 DB 목록을 조회하지 않는다. `/gantt-demo`에서는 Summary·일반 Task·Milestone·FS Link fixture를 확인할 수 있다. 이 데모의 편집 미리보기는 브라우저 로컬 동작일 뿐 서버나 SQLite에 저장되지 않으며, Project 생성·직접 URL·편집 인증과 실제 일정 저장은 후속 단계다.
 
-최근 검증: build/typecheck/lint PASS, **17개 테스트 PASS**. 환경·범위·남은 위험은 [W02 검토 기록](docs/W02_REVIEW.md)을 참고한다.
+최근 검증: build/typecheck/lint PASS, **5개 파일 23개 Vitest PASS**, Chromium E2E **1개 PASS**. 환경·범위·남은 위험은 [W03 검토 기록](docs/W03_REVIEW.md)을 참고한다.
 
 ## 2. 기술 스택과 역할
 
@@ -37,8 +37,9 @@
 | SQLite / better-sqlite3 | SQLite 3.53.4 / driver 13.0.3 | 파일 DB, prepared SQL, transaction; Prisma 미사용 |
 | tsx | 4.23.13 | TypeScript 마이그레이션 CLI 실행 |
 | Vitest | 5.0.0 | DB·CLI·liveness 자동화 검증 |
-| Playwright | 1.63.0, 설정만 준비 | 향후 브라우저 E2E; 현재 E2E 테스트 파일 없음 |
-| SVAR React Gantt Core / data provider | 도입 예정, 미설치 | Gantt 표시와 사용자 편집 |
+| Playwright | 1.63.0 | `/gantt-demo` Chromium E2E; 기본 격리 포트 3100 |
+| SVAR React Gantt Core | 2.7.3, MIT | Gantt 표시와 Core 이벤트; exact direct dependency |
+| SVAR data provider | Core의 transitive 2.7.2, 직접 사용 안 함 | 실제 API 저장 계약과 비교 후 W07에서 채택 여부 재검토 |
 | shadcn/ui / Zod / ExcelJS | 도입 예정, 미설치 | 일반 UI / 입력 검증 / 서버 Excel 생성 |
 | Docker / Docker Compose | 구성 예정 | 단일 애플리케이션과 영속 SQLite volume 배포 |
 
@@ -59,6 +60,12 @@ npm ci
 ```
 
 `npm ci`는 lockfile에 맞춰 의존성을 재설치한다. Node 버전이나 OS·CPU를 바꾼 경우에도 대상 환경에서 다시 실행하고, 다른 장비의 `node_modules`를 복사하지 않는다. 의존성 재설치는 `.data`의 DB 초기화 작업이 아니다.
+
+Chromium E2E까지 실행할 새 환경에서는 Playwright가 기대하는 browser를 추가로 설치한다. 조직이 관리하는 Chromium을 사용할 때는 이 명령 대신 아래 검증 절의 `PLAYWRIGHT_CHROMIUM_EXECUTABLE`을 지정할 수 있다.
+
+```sh
+npx playwright install chromium
+```
 
 새 clone에는 DB와 실제 환경 설정이 포함되지 않는다. 새 테스트 환경은 아래 마이그레이션으로 빈 DB를 생성하고, 기존 데이터를 이전할 때는 별도로 보관한 설정과 일관된 DB 백업이 필요하다. 운영 백업·복원 절차의 구현/검증 상태는 [DEPLOYMENT](docs/DEPLOYMENT.md)를 따른다. 기존 `.env`·`.env.local`·DB 파일을 재설치 과정에서 덮어쓰거나 삭제하지 않는다.
 
@@ -108,6 +115,8 @@ npm run dev -- --hostname 127.0.0.1 --port 3000
 
 서버를 실행한 장비의 브라우저에서 [http://localhost:3000](http://localhost:3000)을 연다. 홈 기본 화면이 보이면 W01 화면 기반을 확인한 것이다. 종료는 터미널에서 `Ctrl+C`를 누른다.
 
+SVAR 최소 통합 화면은 [http://localhost:3000/gantt-demo](http://localhost:3000/gantt-demo)에서 확인한다. 기본은 readonly다. `로컬 편집 미리보기`를 켜고 fixture 이벤트를 실행해 Core update event가 한 개의 로컬 명령으로 전달되는지 볼 수 있지만, 이 변경은 저장되지 않는다.
+
 포트가 이미 사용 중이면 `--port 3001`로 실행하고 브라우저 주소도 3001로 바꾼다. Turbopack이 실행 환경의 제약으로 실패하면 `npm run dev -- --webpack --hostname 127.0.0.1 --port 3000`으로 실행할 수 있다. 서버 listen 자체가 권한 오류로 차단된 경우에는 실행 환경의 포트 권한도 필요하다.
 
 원격 Linux 서버에서 실행했다면 브라우저 PC에서 SSH 포워딩을 사용할 수 있다. 아래 `사용자@서버주소`를 실제 SSH 접속 대상으로 바꾸고, 브라우저 PC의 3000 포트가 비어 있어야 한다.
@@ -144,28 +153,37 @@ npm run build
 npm run typecheck
 npm run lint
 npm test
+npm run test:e2e
 ```
 
-Build와 typecheck는 `.next` 생성 파일을 공유하므로 순서대로 실행한다. `npm test`의 DB 테스트는 임시 디렉터리를 사용하며 운영 DB를 대상으로 하지 않는다. DB·CLI만 확인하려면 다음을 실행한다.
+Build와 typecheck는 `.next` 생성 파일을 공유하므로 순서대로 실행한다. `npm test`의 DB 테스트는 임시 디렉터리를 사용하며 운영 DB를 대상으로 하지 않는다. `npm run test:e2e`는 기본적으로 Webpack 개발 서버를 격리 포트 3100에서 시작하며 Playwright Chromium이 설치되어 있어야 한다. DB·CLI만 확인하려면 다음을 실행한다.
 
 ```sh
 npm test -- tests/server/db/database.test.ts tests/server/migration-cli.test.ts
 ```
 
-W02 기준 전체 17개, DB·CLI 16개 테스트가 통과했다. CLI 테스트는 별도 Node 프로세스를 실행하므로 sandbox에서 `EPERM`이 나오면 프로세스 실행 권한이 있는 환경에서 확인해야 한다. `npm run test:e2e`는 설정만 준비된 상태이며 현재 통과한 E2E 시나리오는 없다.
+W03 기준 전체 23개, DB·CLI 16개 Vitest와 Gantt Chromium E2E 1개가 통과했다. CLI 테스트는 별도 Node 프로세스를 실행하므로 sandbox에서 `EPERM`이 나오면 프로세스 실행 권한이 있는 환경에서 확인해야 한다. 이미 실행 중인 앱과 별도 Chromium executable을 사용하려면 다음 환경 변수를 선택적으로 지정할 수 있다.
 
-검증 실패 기록과 미검증 범위까지 포함한 근거는 [W02_REVIEW](docs/W02_REVIEW.md), 전체 검증 계획은 [TEST_PLAN](docs/TEST_PLAN.md)을 참고한다.
+```sh
+PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 \
+PLAYWRIGHT_CHROMIUM_EXECUTABLE=/path/to/chromium \
+npm run test:e2e
+```
+
+검증 중 발견·수정한 locator 문제와 미검증 범위까지 포함한 근거는 [W03_REVIEW](docs/W03_REVIEW.md), DB 기반 검증은 [W02_REVIEW](docs/W02_REVIEW.md), 전체 검증 계획은 [TEST_PLAN](docs/TEST_PLAN.md)을 참고한다.
 
 ## 7. 코드와 실행 산출물
 
 | 위치 | 내용 |
 | --- | --- |
 | [src/app](src/app), [src/components](src/components) | 화면, 레이아웃, loading/error, liveness Route |
+| [src/app/gantt-demo](src/app/gantt-demo), [src/features/gantt](src/features/gantt) | SVAR demo route, browser wrapper, inclusive/exclusive 날짜 adapter, 로컬 command gateway |
 | [src/server/db](src/server/db) | DB 경로 정책, 연결, migration runner, lazy server-only 진입점 |
 | [src/server/repositories](src/server/repositories) | Project/Schedule prepared query와 서버용 반환 자료 |
 | [db/migrations](db/migrations) | 버전 관리하는 SQL schema 변경 |
 | [scripts/migrate.ts](scripts/migrate.ts) | 명시적인 DB 초기화 CLI |
 | [tests/server](tests/server) | DB·CLI·liveness 검증 |
+| [tests/features/gantt](tests/features/gantt), [tests/e2e](tests/e2e) | 날짜·명령 unit test와 실제 Chromium Gantt fixture 검증 |
 | [package.json](package.json), [package-lock.json](package-lock.json) | 실행 명령, 의존성·재설치 기준 |
 | [AGENTS.md](AGENTS.md), [.codex](.codex) | 개발·협업 원칙과 전문 Agent 설정 |
 | `.next/`, `node_modules/` | 로컬 생성 빌드·의존성, Git 제외 |
@@ -185,6 +203,7 @@ W02 기준 전체 17개, DB·CLI 16개 테스트가 통과했다. CLI 테스트�
 | 기술 조사·설계 판단 | [RESEARCH](docs/RESEARCH.md), [DECISIONS](docs/DECISIONS.md) |
 | Bootstrap 결과와 검토 | [BOOTSTRAP_REPORT](docs/BOOTSTRAP_REPORT.md), [BOOTSTRAP_REVIEW](docs/BOOTSTRAP_REVIEW.md) |
 | W02 구현 검증 결과 | [W02_REVIEW](docs/W02_REVIEW.md) |
+| W03 SVAR 최소 통합 검증 결과 | [W03_REVIEW](docs/W03_REVIEW.md) |
 | Multi-Agent 설정 검증 | [AGENT_CONFIGURATION](docs/AGENT_CONFIGURATION.md) |
 
 문서에 계약이 있다는 사실만으로 기능이 구현된 것은 아니다. 현재 구현 여부는 위 상태 표와 실행 계획, 실제 검증 기록을 함께 확인한다. 작업 목록의 W번호는 로컬 관리 식별자이며 GitHub Issue 번호가 아니다.

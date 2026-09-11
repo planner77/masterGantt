@@ -31,12 +31,12 @@
 - Goal: SVAR Minimal Integration 기능/기반을 검증 가능한 단위로 완성한다.
 - Background: 공식 Core API와 날짜 의미를 실측해야 한다.
 - Scope: Client wrapper, theme, fixture task/link, readonly/event/date adapter
-- Acceptance Criteria: 설치 version에서 SSR/mount·drag/date 왕복·readonly, PRO 호출 없음, 한 command 한 저장 경로.
+- Acceptance Criteria: 설치 version에서 browser mount·final update event·date 왕복·readonly, PRO 호출 없음, 한 logical command 경계. 실제 pointer drag/resize와 server persistence/rejection은 W07에서 검증한다.
 - Suggested / Assigned Agent: frontend + researcher; 병렬 write 시 Manager가 파일을 분리한다.
 - Dependencies: W01.
-- Related Documents: [RESEARCH.md](RESEARCH.md), [PRO_FEATURE_MATRIX.md](PRO_FEATURE_MATRIX.md).
-- Status: PLANNED.
-- Risk: End semantics/hydration.
+- Related Documents: [RESEARCH.md](RESEARCH.md), [PRO_FEATURE_MATRIX.md](PRO_FEATURE_MATRIX.md), [W03_REVIEW.md](W03_REVIEW.md).
+- Status: W03 DONE — Core 2.7.3 최소 통합, 독립 QA PASS / Manager ACCEPT.
+- Risk: exclusive End 의미는 공식 예제 기반 추론이며 실제 drag/resize·server round-trip은 W06/W07에서 재검증.
 
 ## W04 — Project Create and Direct Read
 

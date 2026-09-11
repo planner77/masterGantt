@@ -1,6 +1,6 @@
 # Manager decisions
 
-날짜: 2026-09-10. 각 판단은 사용자 Confirmed 요구와 구현을 위한 Assumption을 구분한다. 이번 결과는 설계 승인 기준선이며 제품 release 승인이 아니다.
+최초 작성: 2026-09-10. 최종 갱신: 2026-09-11. 각 판단은 사용자 Confirmed 요구와 구현을 위한 Assumption을 구분한다. 이번 결과는 설계 승인 기준선이며 제품 release 승인이 아니다.
 
 | ID | 판단 | 내용 | 근거 / 후속 |
 | --- | --- | --- | --- |
@@ -26,6 +26,8 @@
 | ADR20 | ACCEPT | 전체 통합의 최종 독립 Planning QA와 W01 진입 Gate | qa_docs 재시도 PASS, Manager ACCEPT; 문서 sync는 제품 release 승인이 아님 |
 | ADR21 | ACCEPT | W02 parent composite FK는 `NO ACTION DEFERRABLE INITIALLY DEFERRED` | 기존 즉시 RESTRICT는 Project cascade와 충돌. 단독 parent 삭제와 cross-project parent는 commit 시 거부하고 전체 aggregate cascade는 허용; Project 삭제 API는 여전히 후속 범위 |
 | ADR22 | ACCEPT | W02 migration 파일 로딩 후 ledger 검증·미적용 SQL·ledger 기록을 단일 `BEGIN IMMEDIATE`로 처리 | 수정 checksum, 파일 누락, 이력 중간 누락은 시작 실패. 실행 CLI와 lazy server DB 진입점을 공유하고 DB를 build 시 열지 않음 |
+| ADR23 | ACCEPT | W03은 `@svar-ui/react-gantt` 2.7.3 Core만 exact direct dependency로 사용 | MIT와 React `>=18` peer를 확인. transitive data provider를 직접 import하지 않고 PRO·REST·scheduling API를 연결하지 않음 |
+| ADR24 | ACCEPT WITH REVALIDATION | Domain inclusive date-only end를 widget의 추론된 exclusive local `Date` end로 단일 Adapter에서 변환 | 공식 REST 예제와 round-trip/timezone unit 근거. 명시적 vendor 보장이 아니므로 실제 pointer drag/resize와 서버 저장을 W06/W07에서 재검증 |
 
 ## Integration 원칙
 

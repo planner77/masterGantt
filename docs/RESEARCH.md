@@ -16,7 +16,17 @@ W01 lockfile에 Next.js 16.3.4, React 19.3.0, TypeScript 5.8.3, Vitest 5.0.0, Pl
 
 ## SVAR Core와 API
 
-공식 Repository `main`의 manifest에서 `@svar-ui/react-gantt` **2.7.2**, MIT, React peer `>=18`, `@svar-ui/gantt-data-provider` 2.7.2를 확인했다. Repository HEAD와 npm 배포 tag가 같다는 검증은 아직 없으므로 설치 전 registry와 changelog를 다시 대조한다. [공식 manifest](https://github.com/svar-widgets/react-gantt/blob/main/package.json)
+### W03 설치 검증 — 2026-09-11
+
+npm registry와 설치 artifact를 다시 확인하여 `@svar-ui/react-gantt` **2.7.3**을 exact dependency로 고정했다. License는 MIT, peer dependency는 React/React DOM `>=18`이며 현재 React 19.3.0과 선언상 호환된다. 설치 뒤 production dependency audit은 vulnerability 0건이다. Package는 `@svar-ui/gantt-data-provider` 2.7.2를 transitive dependency로 포함하지만, W03은 고정 fixture만 렌더링하므로 provider를 직접 import하거나 별도 top-level dependency로 선언하지 않는다. W07에서 실제 API 저장 경계를 구현할 때 공식 provider 계약과 본 프로젝트의 인증·revision·server scheduling 응답을 다시 비교한다. [npm package](https://www.npmjs.com/package/@svar-ui/react-gantt), [공식 Repository](https://github.com/svar-widgets/react-gantt)
+
+공식 Next.js guide에 따라 Gantt는 browser API를 사용하는 Client Component에서 mount 이후 렌더링하고, `@svar-ui/react-gantt/all.css`, `Willow`, 명시적인 높이·너비를 사용한다. `readonly=true`는 widget data 변경을 막지만 서버 authorization을 대체하지 않는다. [Next.js 통합](https://docs.svar.dev/react/gantt/integration-guides/nextjs/setup/), [readonly](https://docs.svar.dev/react/gantt/api/properties/readonly/)
+
+Core task는 `end` 또는 `duration` 중 하나를 사용하며 link type의 FS 표기는 `e2s`다. 공식 문서는 end 날짜의 inclusive/exclusive 의미를 명시적으로 정의하지 않는다. 공식 REST 예제가 1일 task를 다음 날 00:00 end로 나타내는 것은 exclusive end를 시사하지만 **추론**으로만 기록한다. W03 Adapter는 본 프로젝트의 inclusive date-only end와 widget의 exclusive local `Date` 경계를 명시하고 round-trip fixture로 검증한다. 실제 drag/resize/server 저장 의미는 W06/W07에서 다시 확인한다. [tasks](https://docs.svar.dev/react/gantt/api/properties/tasks/), [links](https://docs.svar.dev/react/gantt/api/properties/links/), [공식 backend guide](https://docs.svar.dev/react/gantt/integration-guides/nextjs/backend/)
+
+W03은 Core-only 시각화 POC다. `api.setNext`/RestDataProvider를 서버에 연결하거나 PRO 자동 scheduling을 사용하지 않는다. 향후 command adapter는 같은 사용자 동작을 한 번만 Service API에 전달하고 서버 snapshot을 최종 상태로 반영해야 한다. [공식 save guide](https://docs.svar.dev/react/gantt/guides/load-and-save/save-to-backend/), [action interception](https://docs.svar.dev/react/gantt/guides/configuration/prevent_actions/)
+
+Bootstrap 시점에는 공식 Repository manifest의 2.7.2를 확인했으나, W03 설치 시 npm latest와 설치 artifact가 2.7.3으로 갱신된 것을 재확인했다. 앞으로도 Repository HEAD와 npm 배포 tag가 같다고 가정하지 않고 lockfile 변경 때 registry와 changelog를 다시 대조한다. [공식 manifest](https://github.com/svar-widgets/react-gantt/blob/main/package.json)
 
 Core는 task/milestone/summary, hierarchy, grid/timeline, edit/drag/resize, link 표현과 readonly를 제공한다. Auto scheduling, working calendar 자동화, CPM/slack, baseline, WBS 등은 PRO 범주이므로 이 프로젝트의 계산 엔진과 분리한다. 이는 공개 기능 비교이며 상용 구현을 읽거나 복제한 조사가 아니다. [공식 Overview](https://docs.svar.dev/react/gantt/overview/), [공개 Repository](https://github.com/svar-widgets/react-gantt)
 
@@ -60,7 +70,7 @@ Calendar 탐색과 WBS 결과 길이를 포함해야 실제 복잡도를 설명�
 
 ## 미검증·후속 조사
 
-- SVAR 설치 artifact의 정확한 end/date/duration semantics와 Core 보조 계산을 Adapter가 덮어쓰는 방식.
+- SVAR의 실제 pointer drag/resize에서 end/date/duration이 왕복되는 의미와 Core 보조 계산을 서버 canonical snapshot이 덮어쓰는 방식. W03의 exclusive end는 공식 예제 기반 추론으로 격리했다.
 - Next/React/SVAR/better-sqlite3/ExcelJS 및 UI/test 도구의 최종 version·license·transitive dependency 조합. 전부 검증했다고 표시하지 않으며 최초 설치 issue의 acceptance다.
 - 실제 Workbook, DRM/macro 권한, 승인된 파일 저장 경로, 안정 ID 보존 수단, source calendar/progress 해석.
 - 실제 배포 architecture/volume permission, production scrypt memory·latency, 입력 크기/렌더 성능.

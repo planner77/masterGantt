@@ -1,6 +1,6 @@
 # Active execution plan
 
-상태: **W02 SQLite Foundation 완료 — 독립 QA PASS / Manager ACCEPT**. W01 Foundation은 구현·실행 검증을 완료했다. 다음은 W03 SVAR 통합과 W04 Project 생성·조회다. 근거: [Requirements](../../REQUIREMENTS.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md), [W02 검증 기록](../../W02_REVIEW.md).
+상태: **W03 SVAR Minimal Integration 완료 — 독립 QA PASS / Manager ACCEPT**. W01 Foundation과 W02 SQLite도 구현·검증을 완료했다. 다음은 W04 Project 생성·조회다. 근거: [Requirements](../../REQUIREMENTS.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md), [W03 검증 기록](../../W03_REVIEW.md).
 
 ## Phase와 Task
 
@@ -13,7 +13,7 @@
 | B4 | 최종 독립 review→Manager 판단 | B3 | qa_docs→Manager | 최종 계약 일치, blocker 판정, review 증거 | PASS / ACCEPT | runtime 검증과 구분 |
 | P1 | W01 Project Foundation | Bootstrap 최종 QA/Manager ACCEPT | frontend + backend | 공식 버전/라이선스·peer/engine 확인과 lockfile; build/typecheck/smoke 성공; server-only DB 경계 | DONE | Turbopack sandbox 제한; Webpack PASS |
 | P1 | W02 SQLite Foundation | W01 | backend + qa_docs + Manager | projects/tasks/links/edit_sessions/holidays, FK/index, migration 실패와 rollback, 다른 Project FK 거부 | DONE / PASS / ACCEPT | Native Docker platform은 W16 검증 |
-| P1 | W03 SVAR Minimal Integration | W01 | frontend + researcher | 설치 version에서 SSR/mount·drag/date 왕복·readonly, PRO 호출 없음, 한 command 한 저장 경로 | PLANNED | End semantics/hydration |
+| P1 | W03 SVAR Minimal Integration | W01 | frontend + researcher + qa_docs + Manager | 설치 version에서 browser mount·final update event·date 왕복·readonly, PRO 호출 없음, 한 logical command 경계 | DONE / PASS / ACCEPT | exclusive end는 추론; pointer drag·server persistence는 W06/W07 |
 | P2 | W04 Project Create and Direct Read | W02 | backend + frontend | 입력3개, UUID URL, DB 재조회, 원문 password 미노출; List는 D02 범위만 노출 | PLANNED | 생성 abuse·목록 노출 |
 | P2 | W05 Readonly and Edit Authorization | W04 | backend + frontend | AUTH01–12; 잘못된·만료·다른 Project session 거부; password rotation; 보호 endpoint inventory | PLANNED | 인증 누락·KDF 자원 |
 | P2 | W06 Working Calendar and Duration | W01 | scheduler | 윤년·weekend·holiday·비근무 시작·범위·Manual 경계 unit; browser/server 동일 fixture | PLANNED | off-by-one·DST |
@@ -41,7 +41,7 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위를 통합한다: P
 
 동시 실행은 세션 한도에 따라 Main+전문 Agent 최대3개다. Main은 공용 API/Import/Scheduling/Deployment 계약 변경을 조정한다. Backend는 server/db, Frontend는 UI/Gantt, Scheduler는 domain, Excel은 excel/vba, Infra는 Docker/운영을 소유한다. 공용 계약이나 같은 파일을 여러 write agent가 동시에 수정하지 않는다. qa_docs/researcher는 read-only 결과를 반환하고 Manager가 문서에 반영한다.
 
-실제 구현 시 각 issue에 명시한 directory를 branch/worktree로 분리할 수 있으며 QA와 Manager 검토 후 merge한다. 원격에는 W01/W02 구현과 검증 기록이 포함되며, 전체 제품 release 승인은 W17에서 별도로 수행한다.
+실제 구현 시 각 issue에 명시한 directory를 branch/worktree로 분리할 수 있으며 QA와 Manager 검토 후 merge한다. 원격에는 완료한 기반 작업과 검증 기록을 포함하며, 전체 제품 release 승인은 W17에서 별도로 수행한다.
 
 ## 환경 Gate와 후속 처리
 
@@ -51,3 +51,4 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위를 통합한다: P
 - qa_docs 재시도에서 B4 독립 review가 완료되었다. 구현 후에도 각 issue의 실제 test evidence와 독립 QA/Manager review를 다시 수행한다.
 - W01 실행 결과: `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`(Webpack), health endpoint smoke PASS. 기본 Turbopack은 sandbox process/port 제한으로 실행하지 않았다.
 - W02 실행 결과: build/typecheck/lint PASS, 전체 17 tests PASS, 독립 DB/CLI 16 tests PASS. [검증 기록](../../W02_REVIEW.md)
+- W03 실행 결과: Core 2.7.3 browser fixture, build/typecheck/lint PASS, 전체 23 Vitest와 Chromium E2E 1개 PASS, 독립 QA PASS. [검증 기록](../../W03_REVIEW.md)

@@ -1,6 +1,6 @@
 # SVAR Core 활용과 독립 기능 계획
 
-상태: Bootstrap 조사·설계. 아래 구현 상태는 전부 미구현이다. 확인일: 2026-09-10. 제품의 Core/PRO 구분과 본 프로젝트의 구현 계획은 구분해서 읽는다. 무료 Core가 표현할 수 있는 Link가 곧 본 시스템의 Scheduling 지원 범위인 것은 아니다.
+상태: W03 Core-only 최소 통합 완료. 확인일: 2026-09-11. 표의 W03 PASS는 fixture 시각화와 로컬 event 경계만 뜻하며 실제 Project 저장·Scheduling 지원 완료와 구분한다. 무료 Core가 표현할 수 있는 Link가 곧 본 시스템의 Scheduling 지원 범위인 것은 아니다.
 
 ## 1. 원칙과 근거
 
@@ -10,11 +10,11 @@ Core의 Task·Link 표현, 편집, Tree, Grid·Timeline을 공식 API로 사용�
 
 | 기능 | 공식 제공 구분과 근거 | 본 프로젝트 초기 방침 | 담당 / 상태 |
 | --- | --- | --- | --- |
-| Task·Milestone·Summary 표현, 하위 Tree | Core. [Overview](https://docs.svar.dev/react/gantt/overview/) | 공식 렌더링·Hierarchy UI 사용 | Frontend / 계획 |
-| Drag·Resize·편집 Form·Progress UI | Core. [README](https://github.com/svar-widgets/react-gantt) | 공식 이벤트를 명령으로 변환하고 서버 결과 반영 | Frontend / 계획 |
-| Grid·Timeline·Scale·정렬·필터 | Core. [README](https://github.com/svar-widgets/react-gantt) | 공식 기능 사용. UI 정렬과 저장 WBS 순서는 분리 | Frontend / 계획 |
-| Readonly | Core. [Overview](https://docs.svar.dev/react/gantt/overview/) | 기본 Readonly와 서버 Mutation 권한 검증 함께 적용 | Frontend + Backend / 계획 |
-| Dependency Link 표현·편집 | Core는 FS·SS·FF·SF 표현 제공. [Overview](https://docs.svar.dev/react/gantt/overview/) | UI/API 유효 입력은 초기 FS/0으로 제한 | Frontend + Scheduler / 계획 |
+| Task·Milestone·Summary 표현, 하위 Tree | Core. [Overview](https://docs.svar.dev/react/gantt/overview/) | 공식 렌더링·Hierarchy UI 사용 | Frontend / W03 fixture PASS |
+| Drag·Resize·편집 Form·Progress UI | Core. [README](https://github.com/svar-widgets/react-gantt) | 공식 이벤트를 명령으로 변환하고 서버 결과 반영 | Frontend / W03 local update event PASS; pointer·server W07 |
+| Grid·Timeline·Scale·정렬·필터 | Core. [README](https://github.com/svar-widgets/react-gantt) | 공식 기능 사용. UI 정렬과 저장 WBS 순서는 분리 | Frontend / W03 기본 Grid·Timeline PASS; 정렬·필터 후속 |
+| Readonly | Core. [Overview](https://docs.svar.dev/react/gantt/overview/) | 기본 Readonly와 서버 Mutation 권한 검증 함께 적용 | Frontend W03 기본 readonly PASS / Backend W05 계획 |
+| Dependency Link 표현·편집 | Core는 FS·SS·FF·SF 표현 제공. [Overview](https://docs.svar.dev/react/gantt/overview/) | UI/API 유효 입력은 초기 FS/0으로 제한 | Frontend W03 FS 표현 PASS / 편집·계산 W07·W09 |
 | 주말·휴일 시각 강조 | Core. [Overview](https://docs.svar.dev/react/gantt/overview/) | Calendar와 같은 날짜 목록으로 강조 | Frontend / 계획 |
 | 근무 Calendar와 근무일 계산 | Calendar 자동화는 PRO. [공식 문서 홈](https://docs.svar.dev/react/gantt/) | Project Calendar·Duration을 Pure Domain으로 계산 | Scheduler / 초기 계획 |
 | FS 기반 Auto Scheduling | PRO. [README](https://github.com/svar-widgets/react-gantt) | 자체 DAG 검증과 Forward Recalculation | Scheduler / 초기 계획 |
@@ -40,10 +40,10 @@ Summary 바 표현은 Core를 사용하되 날짜·진척 산출은 프로젝트
 
 WBS는 표준적인 Tree 번호 계산이며 데이터 식별자가 아니다. Excel Export는 SVAR 내장 Export를 호출하지 않고 Repository의 프로젝트 데이터를 사용하는 Backend 기능이다. Excel → JSON/CSV는 Excel/VBA의 별도 경계이며 DRM 우회나 원본 Workbook 직접 업로드를 전제로 하지 않는다.
 
-## 3. 구현 전 확인과 완료 기준
+## 3. 구현 확인과 후속 완료 기준
 
-- 실제 설치 후보 Version·License·React/Next.js 호환성을 다시 검증하고 [RESEARCH.md](RESEARCH.md)에 기록한다. 이 Matrix가 Version 고정 근거를 대신하지 않는다.
-- Core 공식 API로 날짜 왕복, End의 포함/제외 의미, Milestone, readonly 편집 차단, 서버 거부 복원, Task/Link ID Mapping을 최소 POC로 검증한다.
+- W03에서 설치 Core 2.7.3의 Version·MIT·React peer 범위, browser mount, fixture Task/Milestone/Summary/FS Link, 기본 readonly, 날짜 Adapter round-trip과 local final update command를 검증했다. 근거는 [RESEARCH.md](RESEARCH.md)와 [W03_REVIEW.md](W03_REVIEW.md)에 기록한다.
+- `end` exclusive 해석은 공식 예제 기반 추론이다. 실제 pointer drag/resize와 서버 저장 왕복, 서버 거부 복원, 전체 Task/Link ID mapping은 W06/W07에서 다시 검증한다.
 - [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md)의 Calendar·FS·Summary·WBS Fixture와 Server/Client 동일 결과를 검증한다.
 - 상용 API를 호출하지 않고 필요한 결과를 표시할 수 있는지 기능별 QA를 수행한다. 확인하지 못한 항목은 완료로 표시하지 않는다.
 

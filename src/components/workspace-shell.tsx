@@ -13,8 +13,11 @@ export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) 
             <span>masterGantt</span>
           </Link>
           <nav aria-label="주요 메뉴">
-            <Link className="nav-link" href="/" aria-current="page">
+            <Link className="nav-link" href="/">
               프로젝트
+            </Link>
+            <Link className="nav-link" href="/gantt-demo">
+              Gantt 데모
             </Link>
           </nav>
         </div>
