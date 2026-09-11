@@ -49,7 +49,7 @@ W20이 선행한 container/readiness 기반은 W16의 실제 production host, re
 - 모든 GitHub/Docker Action은 reviewed full commit SHA, Node base image는 digest로 고정했다.
 - Release tag와 image tag를 shell에 넣기 전 strict validator를 통과시키며, direct Action expression은 환경변수 경계로 전달한다.
 - 기존 exact version 또는 immutable commit image가 있으면 overwrite하지 않고 실패한다.
-- Release는 repository 단위 직렬화되고 tag history보다 큰 SemVer만 허용한다. Registry에는 commit candidate만 먼저 쓰며 digest smoke·attest 뒤 rolling alias와 exact version을 승격한다.
+- Release는 repository 단위 직렬화되고 tag history보다 큰 SemVer만 허용한다. Registry에는 commit candidate만 먼저 쓰며 digest smoke와, 활성화된 경우 GitHub Attestation 뒤 rolling alias와 exact version을 승격한다. Attestation의 private plan 조건은 W22/ADR51에서 후속 명확화했다.
 - `.dockerignore`와 runtime image policy가 `.env*`, Git metadata, SQLite/WAL/SHM, tests와 local output 포함을 거부한다.
 - Readiness는 DB를 생성·migrate하지 않고 기존 파일을 readonly로 열어 SQLite, foreign keys와 required migration name/checksum만 검사하며 오류 세부를 숨긴 503을 반환한다.
 

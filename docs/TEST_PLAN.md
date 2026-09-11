@@ -104,7 +104,7 @@ P-A/P-B 두 Project에 같은 externalId를 사용해 isolation을 시험한다.
 | CI05 | package와 lockfile version이 strict SemVer로 일치; release tag가 annotated exact `v<version>`이고 모든 이전 valid tag보다 크며 malformed/mismatch/lower version은 hard fail |
 | CI06 | PR job은 read-only이고 publish job만 최소 package/attestation 권한; Action full SHA와 base image digest pin, secret build arg/log 없음 |
 | CI07 | Repository 단위 release 직렬화; stable만 latest/major/minor 갱신, prerelease는 exact/commit만 생성; OCI source/revision/version, SBOM/provenance 존재 |
-| CI08 | Pre-publish local candidate가 production config/migration/readiness/native SQLite/restart를 통과; GHCR에는 commit candidate만 먼저 push하고 digest smoke·attest 뒤 rolling/exact 승격; exact version/digest를 downstream test에 제공 |
+| CI08 | Pre-publish local candidate가 production config/migration/readiness/native SQLite/restart를 통과; GHCR에는 commit candidate만 먼저 push하고 digest smoke 및 활성화한 GitHub Attestation 뒤 rolling/exact 승격; exact version/digest를 downstream test에 제공 |
 | CI09 | PR·수동 CI는 registry write가 없고 성공한 `main` push만 모든 quality/E2E/container job 뒤 immutable `ci-<full SHA>`를 게시; 기존 tag overwrite와 SemVer/rolling alias 생성을 거부 |
 | CI10 | Main commit과 SemVer release image를 각각 build output digest로 새로 pull해 image policy, migration/readiness, Project 생성·edit session·Task 저장, unauthorized write 거부, restart 후 Project/Task 재조회를 검증; BuildKit SBOM/provenance와 optional GitHub Attestation 결과를 구분 |
 

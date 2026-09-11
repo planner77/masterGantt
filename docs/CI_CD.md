@@ -75,7 +75,7 @@ docker pull ghcr.io/<owner>/<repository>@sha256:<digest>
 
 Main commit workflow는 quality, Chromium E2E와 local container smoke가 모두 성공한 뒤 별도 publish job을 실행한다. `ci-<full SHA>`를 push한 후 tag가 아니라 build output의 digest로 다시 pull하고 image content policy, migration/readiness, Project 생성과 edit session, root Task 저장, unauthorized mutation 거부, container restart 뒤 Project/Task 재조회를 검증한다. Commit image의 성공은 SemVer release 승인이 아니며 stable alias를 이동하지 않는다.
 
-Release workflow는 전체 application/E2E gate 뒤 동일 source·version·platform 설정의 local release candidate를 먼저 build하여 image policy, production runtime config 거부, migration, readiness, native SQLite와 재시작 persistence를 확인한다. 이 pre-publish gate가 통과해야 registry write가 시작된다. Registry에는 먼저 immutable `sha-<commit>` candidate만 push하고 그 digest를 새로 pull해 같은 runtime 동작을 다시 확인한다. 검증·attestation 성공 뒤에만 stable rolling alias를 이동하며 immutable exact version tag는 완료 표식으로 마지막에 생성한다.
+Release workflow는 전체 application/E2E gate 뒤 동일 source·version·platform 설정의 local release candidate를 먼저 build하여 image policy, production runtime config 거부, migration, readiness, native SQLite와 재시작 persistence를 확인한다. 이 pre-publish gate가 통과해야 registry write가 시작된다. Registry에는 먼저 immutable `sha-<commit>` candidate만 push하고 그 digest를 새로 pull해 같은 runtime 동작을 다시 확인한다. Digest 검증과, 활성화된 경우 GitHub Attestation이 성공한 뒤에만 stable rolling alias를 이동하며 immutable exact version tag는 완료 표식으로 마지막에 생성한다.
 
 모든 version release는 repository 단위 concurrency group에서 직렬 실행한다. Monotonic SemVer gate와 결합하여 늦게 끝난 낮은 version이 `latest`/major/minor alias를 되돌리는 것을 막는다. Exact와 commit tag가 이미 있으면 overwrite하지 않는다.
 
@@ -106,7 +106,7 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 3. `npm run version:check`와 전체 CI를 통과시킨다.
 4. `main` merge 뒤 동일 commit에 annotated `v<package version>` tag를 만든다.
 5. Tag를 원격에 push한다. Release workflow가 local candidate runtime gate를 통과하기 전에는 registry write를 수행하지 않으며 수동 GHCR push는 하지 않는다.
-6. Immutable commit candidate의 registry digest smoke와 attestation 뒤 rolling alias 및 exact version promotion이 끝났는지 workflow summary에서 확인한다.
+6. Immutable commit candidate의 registry digest smoke와, 활성화한 경우 GitHub Attestation 뒤 rolling alias 및 exact version promotion이 끝났는지 workflow summary에서 확인한다.
 7. GHCR package visibility와 consumer `packages: read` 권한을 확인하고 exact version/digest로 테스트한다.
 
 Tag/package 불일치, 이전 tag 이하 version, lightweight tag, 기존 exact/commit image, CI 실패, candidate/publish/promotion 실패 또는 registry digest smoke 실패는 release 실패다. 실패한 exact/commit version을 덮어쓰지 않고 원인을 수정한 다음 새 commit의 PATCH/prerelease version을 사용한다.
