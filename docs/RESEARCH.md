@@ -14,6 +14,16 @@ W01 lockfile에 Next.js 16.3.4, React 19.3.0, TypeScript 5.8.3, Vitest 5.0.0, Pl
 
 `better-sqlite3`의 transaction callback은 동기 실행이며 예외 전파 시 rollback한다. SQL 파일 로딩은 transaction 전에 끝내고 ledger 검증과 DDL 적용을 `BEGIN IMMEDIATE` 안에서 수행하도록 결정했다. [공식 transaction API](https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md#transactionfunction---function)
 
+## W04 Project 생성·Direct Read 조사와 설치 검증
+
+Node 22 내장 `crypto.randomUUID()`, `randomBytes()`, async `scrypt()`와 SHA-256 hash만으로 canonical UUID, password derivation, 고엔트로피 session token/digest를 구현할 수 있다. W04는 `randomUUID`, 16-byte salt, `scrypt N=32768/r=8/p=3/keyLength=32/maxmem=64MiB`, 32-byte random session과 SHA-256 digest를 사용한다. Password 비교의 `timingSafeEqual`은 unlock을 구현하는 W05에서 적용한다. [Node.js Crypto](https://nodejs.org/api/crypto.html)
+
+Next.js 16 App Router의 동적 route `params`는 Promise이므로 page와 Route Handler에서 `await params`를 사용했다. `better-sqlite3`와 Node crypto를 쓰는 Project API는 `runtime = "nodejs"`, DB 조회 route는 `dynamic = "force-dynamic"`으로 선언했다. [Route Handler](https://nextjs.org/docs/app/api-reference/file-conventions/route), [Dynamic segments](https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes)
+
+Project request schema에는 설치 시 npm metadata와 artifact를 확인한 Zod **4.6.2**, MIT를 exact direct dependency로 고정했다. `strict()` object와 refinement/transform으로 unknown field, malformed Unicode, Unicode code-point 길이와 password UTF-8 byte 상한을 server에서 검증한다. Client 검증은 UX일 뿐 이 경계를 대체하지 않는다. [Zod 공식 문서](https://zod.dev/), [npm package](https://www.npmjs.com/package/zod)
+
+W04 구현 선택과 실행 결과는 [W04_REVIEW.md](W04_REVIEW.md)에 분리했다. Production hardware의 scrypt latency/memory와 trusted proxy 기반 limiter는 실제 D03 환경에서 다시 측정하며, 공개 direct read 모델이 조직 기밀성 요구를 충족하는지는 코드로 추정하지 않는다.
+
 ## SVAR Core와 API
 
 ### W03 설치 검증 — 2026-09-11

@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. [실행 검증](W02_REVIEW.md) 이후 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
+이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 기존 schema를 변경하지 않고 Project와 edit session insert Repository를 추가해 생성 원자성·DB 재개방·Project-scoped snapshot을 검증했다. [W04 검증](W04_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
 
 요구사항으로 확정된 전제는 다음과 같다.
 

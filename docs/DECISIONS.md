@@ -28,6 +28,12 @@
 | ADR22 | ACCEPT | W02 migration 파일 로딩 후 ledger 검증·미적용 SQL·ledger 기록을 단일 `BEGIN IMMEDIATE`로 처리 | 수정 checksum, 파일 누락, 이력 중간 누락은 시작 실패. 실행 CLI와 lazy server DB 진입점을 공유하고 DB를 build 시 열지 않음 |
 | ADR23 | ACCEPT | W03은 `@svar-ui/react-gantt` 2.7.3 Core만 exact direct dependency로 사용 | MIT와 React `>=18` peer를 확인. transitive data provider를 직접 import하지 않고 PRO·REST·scheduling API를 연결하지 않음 |
 | ADR24 | ACCEPT WITH REVALIDATION | Domain inclusive date-only end를 widget의 추론된 exclusive local `Date` end로 단일 Adapter에서 변환 | 공식 REST 예제와 round-trip/timezone unit 근거. 명시적 vendor 보장이 아니므로 실제 pointer drag/resize와 서버 저장을 W06/W07에서 재검증 |
+| ADR25 | ACCEPT | W04 생성은 Project+password derived material+최초 edit session digest를 원자 저장하고 Cookie를 발급 | 기존 API/DB/Security 계약을 지킴. scrypt는 transaction 밖에서 비동기 실행; session 검증·unlock/logout/rotation과 mutation authorization는 W05 |
+| ADR26 | ACCEPT | D02 결정 전 Project collection GET은 405, 홈은 DB discovery를 수행하지 않으며 direct GET은 항상 Readonly | 개발용 create/direct route 구현은 production 공개 승인이 아님. 실데이터 노출 전 조직의 read/create 경계 결정 |
+| ADR27 | ACCEPT | Project public ID는 canonical lowercase UUID v4, 생성 입력은 Zod 4.6.2 strict schema | name만 trim, description/password 원문 보존; unknown field·malformed Unicode·길이/byte 경계 거부 |
+| ADR28 | ACCEPT WITH REVALIDATION | W04 create abuse limiter는 forwarded IP를 신뢰하지 않는 process-global 5회/1시간 fail-closed 방식 | D03 전에는 신뢰 가능한 peer가 없음. 정상 caller가 한도를 공유하고 restart 시 초기화되므로 production proxy/persistent limit와 KDF benchmark는 W16에서 재검증 |
+| ADR29 | ACCEPT | Playwright는 port 3100, `.next-e2e`, `.data/playwright.sqlite3`로 개발 서버와 분리 | 병렬 개발 서버의 `.next` lock/DB 충돌을 피하고 E2E 자체 server의 `APP_BASE_URL`을 exact origin에 맞춤 |
+| ADR30 | ACCEPT | W04 Project Create and Direct Read 완료 | qa_docs 독립 실행·대조 PASS, Manager ACCEPT. W05 session 소비/authorization와 production D02/D03 gate를 완료로 오인하지 않음; [W04 검증](W04_REVIEW.md) |
 
 ## Integration 원칙
 
@@ -37,4 +43,4 @@ Agent 초안은 바로 완료로 처리하지 않는다. Manager는 공동 계�
 
 ## 구현 시작과 사용자 판단
 
-이번 turn의 산출물은 Bootstrap·Planning이다. 설계 QA를 통과하면 명확한 첫 vertical slice를 시작할 수 있다. 비용·데이터 손실·조직 정책·대규모 Architecture/Workflow 변경이 생기면 해당 작업 전에 판단을 요청한다. 아직 실제 Workbook이나 운영 환경을 시험하지 않았으므로 이를 이유로 다른 독립 기반 작업을 막지 않는다.
+W01–W04 기반과 Project 생성·Direct Readonly는 구현되었고 첫 vertical slice의 다음 단계는 W05 edit authorization다. 비용·데이터 손실·조직 정책·대규모 Architecture/Workflow 변경이 생기면 해당 작업 전에 판단을 요청한다. 아직 실제 Workbook이나 운영 환경을 시험하지 않았으므로 이를 이유로 다른 독립 기반 작업을 막지 않는다.

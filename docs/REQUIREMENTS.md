@@ -1,6 +1,6 @@
 # Requirements baseline
 
-상태: Bootstrap·Planning 초안, 2026-09-10. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다. 이 문서는 구현 완료를 의미하지 않는다.
+상태: 요구사항 기준선, 2026-09-11 갱신. W01–W04 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
 
 ## Confirmed
 
@@ -64,6 +64,8 @@ R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 ed
 
 유료 License 선택은 계획에 없다. 실제 요구가 생기면 구매 전에 별도 판단한다. Password reset/admin 계정, Project 삭제/복원, merge Import, HTTP VBA 전송은 자동으로 초기 범위에 추가하지 않는다.
 
+W04는 개발용 생성과 direct-link Readonly 경로를 구현했지만 D02의 production 노출 결정을 대신하지 않는다. 목록 discovery는 `GET /api/projects`를 `405`로 유지하고 홈도 DB 목록을 조회하지 않는다. Direct read/create를 실데이터에 외부 노출하기 전에는 조직 접근 경계와 Readonly 데이터의 기밀성 요구를 결정해야 한다.
+
 ## 충돌·누락 분석
 
 - 초기 `.condex/` 경로와 지침 `.codex/`의 불일치는 원격 commit `81725bd`에서 해결되었다. [설정 검증](AGENT_CONFIGURATION.md) 참조.
@@ -71,4 +73,4 @@ R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 ed
 - Core가 SS/FF/SF link를 표시할 수 있어도 초기 Domain 지원은 FS뿐이다. 이는 범위 차이며 UI에서 미지원 생성 방지를 해야 한다.
 - Project List 요구는 유지한다. 인증 없는 전체 목록의 노출 범위는 D02이며, 이를 임의로 공개하거나 List 요구를 삭제하지 않는다.
 - 대상 Excel에 안정 ID가 없을 수 있다. 승인된 ID 보존 방법이 확인될 때까지 행 번호를 장기 ID로 확정하지 않는다.
-- 사용자가 요청한 이번 결과는 Bootstrap·Planning이다. 실제 application source, migration, Docker image, VBA macro는 후속 구현 산출물이다.
+- W01–W04 application source와 초기 migration은 구현되었다. Docker image와 VBA macro, 편집 인증·일정·Import/Export는 후속 산출물이며 완료로 간주하지 않는다.

@@ -43,18 +43,18 @@
 - Goal: Project Create and Direct Read 기능/기반을 검증 가능한 단위로 완성한다.
 - Background: 최소 사용자 경로와 public ID가 필요하다.
 - Scope: Project 생성·저장·direct Readonly, metadata API/UI
-- Acceptance Criteria: 입력3개, UUID URL, DB 재조회, 원문 password 미노출; List는 D02 범위만 노출.
+- Acceptance Criteria: strict 입력3개, UUID URL, DB 재조회, 원문 password 미노출, 생성 Project·password hash·최초 session 원자 저장; List는 D02 범위만 노출.
 - Suggested / Assigned Agent: backend + frontend; 병렬 write 시 Manager가 파일을 분리한다.
 - Dependencies: W02.
-- Related Documents: [API.md](API.md), [SECURITY.md](SECURITY.md).
-- Status: PLANNED.
-- Risk: 생성 abuse·목록 노출.
+- Related Documents: [API.md](API.md), [SECURITY.md](SECURITY.md), [W04_REVIEW.md](W04_REVIEW.md).
+- Status: DONE — 독립 QA PASS / Manager ACCEPT. Create는 exact Origin, 32 KiB JSON, strict Zod, process-global 5/hour fail-closed limiter, scrypt concurrency 2, hardened Cookie를 포함한다. Direct GET/UI는 Cookie와 무관하게 Readonly이며 collection GET은 405다.
+- Risk: production proxy의 지속 limiter와 KDF benchmark는 D03/W16에서 필요하다. 생성 session의 검증·unlock/logout/expiry/revoke/password rotation은 W05다.
 
 ## W05 — Readonly and Edit Authorization
 
 - Goal: Readonly and Edit Authorization 기능/기반을 검증 가능한 단위로 완성한다.
 - Background: UI 밖 mutation도 보호해야 한다.
-- Scope: scrypt/session/cookie/Origin/rate/revision, unlock/logout/password
+- Scope: 저장된 scrypt/session의 검증·timing-safe compare, unlock/logout/expiry/revoke/password rotation, 모든 mutation authorization와 revision. 생성 전용 KDF/session/cookie/Origin/rate 기반은 W04에서 구현됨
 - Acceptance Criteria: AUTH01–12; 잘못된·만료·다른 Project session 거부; password rotation; 보호 endpoint inventory.
 - Suggested / Assigned Agent: backend + frontend; 병렬 write 시 Manager가 파일을 분리한다.
 - Dependencies: W04.

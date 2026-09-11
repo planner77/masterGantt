@@ -1,6 +1,6 @@
 # Test Plan
 
-상태: qa_docs가 작성한 검증 전략. Planning 독립 검토와 W01 실행 결과는 [BOOTSTRAP_REVIEW.md](BOOTSTRAP_REVIEW.md) 참조. W02는 DB01 및 DB02 중 DB 기반 부분(연결·migration·격리·parameter binding)을 검증했다. nth-write schedule/import rollback 등 Service 검증은 후속이다. [W02 검증 기록](W02_REVIEW.md) 아래 표는 전체 제품의 검증 계획이며 Auth/Scheduling/Import/Export/Docker/VBA 통과를 뜻하지 않는다.
+상태: qa_docs가 작성한 검증 전략. W02 DB 기반은 [W02_REVIEW.md](W02_REVIEW.md), W03 Gantt 기반은 [W03_REVIEW.md](W03_REVIEW.md), W04 Project 생성·직접 조회의 독립 QA PASS / Manager ACCEPT는 [W04_REVIEW.md](W04_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W04의 일부 AUTH/UI PASS가 전체 Auth/Scheduling/Import/Export/Docker/VBA 통과를 뜻하지 않는다.
 
 ## 판정과 증거
 
@@ -38,8 +38,17 @@ P-A/P-B 두 Project에 같은 externalId를 사용해 isolation을 시험한다.
 | AUTH08 | If-Match 누락428/stale412; 동시 동일 revision write 둘 중 하나만 성공, 성공당 revision1 증가 |
 | AUTH09 | preview 뒤 다른 write→commit412 전체 불변; password revoke/mutation race에서 transaction 최종 session 검증 |
 | AUTH10 | route inventory를 보호 API 목록과 대조, 신규 unsafe endpoint 누락 실패; preview는 session+Origin 필요/If-Match 불필요/DB불변 |
-| AUTH11 | log/response에 password/hash/salt/session/Cookie/import body/SQL/stack/내부 path 없음 |
+| AUTH11 | log와 response body/error/non-cookie header에 password/hash/salt/session/Cookie/import body/SQL/stack/내부 path 없음. 인증 성공의 opaque session 원문은 의도한 `Set-Cookie`에만 존재 |
 | AUTH12 | password 변경으로 이전 모든 session 무효화, 호출자 새 token만 유효; 204/new ETag/Set-Cookie 계약 |
+
+### W04 실행 증거
+
+- **AUTH01 PASS (생성 범위):** strict 입력, 32 KiB JSON, exact Origin, process-global 5/hour limiter, KDF concurrency 2, Project+derived password+최초 session digest 원자 저장, rollback과 원문 DB 부재.
+- **AUTH02 PARTIAL PASS:** 생성 browser·새 Cookie 없는 browser 모두 direct GET/UI Readonly, DB 재개방 후 유지. 보호 mutation 강제 거부는 endpoint가 없는 W05 이후 검증이다.
+- **AUTH04 PARTIAL PASS:** production/local Cookie 직렬화와 token URL/DOM 비노출 PASS. Server-side expiry 소비는 W05다.
+- **AUTH06 PARTIAL PASS:** create의 missing/null/malformed/multiple/cross Origin과 GET 비변경 PASS. 후속 unsafe route inventory는 W05 이후다.
+- **AUTH11 PARTIAL PASS:** 생성 response body/error/non-cookie header/DB/URL/DOM secret scan PASS. Opaque session 원문은 의도한 `Set-Cookie`에만 있고 DB에는 digest만 있다. 운영 access log와 Import/Export는 NOT TESTED다.
+- Project 격리·canonical UUID·동일 404, collection GET 405, create recovery UI를 추가로 PASS했다. Exact command·환경은 [W04_REVIEW.md](W04_REVIEW.md)에 기록한다.
 
 ## Scheduling / database
 
@@ -113,6 +122,6 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | R23–R24 | Agent 설정·독립 QA·Manager 기록과 구현별 build/typecheck/tests |
 | R25 | UI01–02, Project List 공개 정책 D02 |
 
-PR gate는 build/typecheck와 관련 unit/integration/E2E, migration 회귀, dependency/license 검토, 문서 일관성이다. 현재 command는 package가 없으므로 아직 정의되지 않았다. 구현 PR은 test ID에 실제 command·결과를 연결해야 한다.
+PR gate는 build/typecheck와 관련 unit/integration/E2E, migration 회귀, dependency/license 검토, 문서 일관성이다. 현재 command는 `npm run build`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:e2e`다. 구현 PR은 test ID에 실제 command·결과를 연결해야 한다.
 
 Unauthorized/cross-project write, secret 유출, stale overwrite, cycle 누락, partial import, XLSX formula/link injection, migration/restore 실패, restart 데이터 손실은 release blocker다. QA 보고는 Summary/Requirement Coverage/Test Results/Failures/Security/Regression/Documentation/Remaining Risks/Recommendation을 포함한다.

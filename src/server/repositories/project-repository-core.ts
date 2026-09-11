@@ -28,6 +28,14 @@ export interface NewProjectRecord {
   updatedAt: string;
 }
 
+export interface NewEditSessionRecord {
+  projectId: number;
+  tokenHash: Buffer;
+  authVersion: number;
+  createdAt: string;
+  expiresAt: string;
+}
+
 interface ProjectRow {
   id: number;
   public_id: string;
@@ -146,5 +154,33 @@ export class ProjectRepository {
       .get(id) as ProjectRow | undefined;
 
     return row ? mapProject(row) : undefined;
+  }
+}
+
+export class EditSessionRepository {
+  constructor(private readonly database: Database.Database) {}
+
+  insert(session: NewEditSessionRecord): number {
+    const result = this.database
+      .prepare(
+        `
+          INSERT INTO edit_sessions (
+            project_id,
+            token_hash,
+            auth_version,
+            created_at,
+            expires_at
+          ) VALUES (
+            @projectId,
+            @tokenHash,
+            @authVersion,
+            @createdAt,
+            @expiresAt
+          )
+        `,
+      )
+      .run(session);
+
+    return Number(result.lastInsertRowid);
   }
 }

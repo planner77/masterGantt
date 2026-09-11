@@ -2,7 +2,7 @@
 
 ## 1. Security Model
 
-이 문서는 Project별 Edit Password와 browser edit session을 사용하는 초기 보안 정책의 Source of Truth이다. W02에서 DB 격리·parameter binding 기반 일부를 구현·검증했다. 인증/session/API 보안과 침투 검증은 아직 수행하지 않았다. [W02 검증 기록](W02_REVIEW.md)
+이 문서는 Project별 Edit Password와 browser edit session을 사용하는 초기 보안 정책의 Source of Truth이다. W02에서 DB 격리·parameter binding을, W04에서 생성 전용 scrypt/session/cookie/Origin/body/rate 경계와 Direct Readonly를 구현·Manager 검증했다. Password verification, session consumption·revoke·rotation과 mutation authorization는 W05이며 침투 검증은 아직 수행하지 않았다. [W04 검증 기록](W04_REVIEW.md)
 
 핵심 경계는 다음과 같다.
 
@@ -37,7 +37,11 @@ Password policy의 초기 가정은 다음과 같다.
 
 조직 password 정책이 있으면 이 가정보다 우선한다.
 
+W04는 위 저장 profile(`N=32768, r=8, p=3`, key 32 bytes, salt 16 bytes, `maxmem=64 MiB`)과 입력 길이, 동시 scrypt 2개 상한을 구현했다. Project와 최초 session digest는 같은 transaction에 저장하되 비동기 scrypt는 transaction 밖에서 실행한다. Production hardware benchmark와 parameter 승인은 D03/W16 전까지 남아 있다.
+
 ### 검증
+
+아래 항목은 W05 범위이며 W04 완료 판정에 포함하지 않는다.
 
 - DB에 저장한 parameter와 salt로 candidate를 동일하게 derivation한다.
 - 기대값과 실제값을 같은 길이의 Buffer로 만들고 `crypto.timingSafeEqual`로 비교한다.
@@ -58,6 +62,8 @@ Password policy의 초기 가정은 다음과 같다.
 - Logout은 DB session을 revoke하고 Cookie를 만료시킨다. 만료/revoke row는 주기적으로 bounded batch 삭제한다.
 - Unlock마다 token을 rotate한다. Password 변경은 이전 모든 session revoke와 호출자 새 session 발급을 같은 transaction에서 처리하고 204/새 ETag/Set-Cookie를 반환한다.
 
+W04는 생성 시 32-byte random token을 발급해 browser Cookie에는 base64url 원문을, DB에는 SHA-256 digest·Project ID·`auth_version`·8시간 만료만 저장한다. 생성 transaction rollback과 원문 token DB 부재를 검증했다. 이 row를 실제 요청에서 조회해 binding/expiry/revoke를 판정하는 것은 W05다.
+
 ### Cookie
 
 Production HTTPS의 기본 Cookie 제안:
@@ -75,9 +81,13 @@ Max-Age=28800
 
 하나의 Cookie는 현재 unlock session 하나를 나타내며 다른 Project mutation에는 사용할 수 없다. 여러 Project를 동시에 edit해야 한다는 명시적 UX 요구가 생기면 cookie name/path 전략 또는 server-side session collection을 재설계한다. Token을 JavaScript, localStorage, sessionStorage에 복사하지 않는다.
 
+W04 Cookie serializer는 production HTTPS에서 `__Host-mastergantt_edit`, `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age=28800`, Domain 없음으로 검증했다. Local HTTP는 `mastergantt_edit` 이름과 Secure 없음으로 분리한다. Direct GET/UI는 이 Cookie가 있어도 아직 Readonly다.
+
 ## 4. Server-side Authorization
 
 각 protected Route Handler는 동일 authorization middleware/service를 거친다.
+
+이 절의 protected Route 공통 경계는 W05 구현 대상이다. W04에는 보호 mutation이 없으며 create만 preexisting session이 없는 bootstrap 예외로 구현했다.
 
 1. URL `publicId` 형식 검증
 2. Cookie 존재 및 최대 길이 검증
@@ -121,7 +131,7 @@ Project create와 unlock도 Origin을 검사한다. 이 endpoint들은 기존 Co
 
 | Operation | 초기 application limit 가정 | Key |
 |---|---|---|
-| Project create | 5회/1시간 | client IP |
+| Project create | 5회/1시간 | W04는 process-global `unattributed`; trusted peer IP 확정 후 세분화 |
 | Unlock | 10회/15분 | client IP + Project public ID |
 | Unlock global guard | 50회/15분 | client IP |
 | Import preview/commit | 각 10회/분 | session + Project |
@@ -129,7 +139,7 @@ Project create와 unlock도 Origin을 검사한다. 이 endpoint들은 기존 Co
 
 모든 limit은 burst를 제한하고 `429` 및 가능한 경우 `Retry-After`를 반환한다. 성공 login도 짧은 burst limit에 포함해 공격자가 성공/실패 차이를 이용하기 어렵게 한다. In-memory limiter는 restart 시 상태가 사라지므로 internet-facing deployment의 유일한 방어로 간주하지 않는다.
 
-Client IP는 직접 socket peer를 기본으로 한다. `X-Forwarded-For`는 명시된 trusted proxy hop에서 온 경우에만 해석한다. 잘못된 proxy trust는 rate limit 우회와 log spoofing을 만들 수 있다.
+W04 Next Route의 표준 `Request`만으로 신뢰할 socket peer를 얻지 못하고 proxy 경계도 D03이라 create limiter는 모든 caller를 하나의 process-global key로 묶어 fail closed한다. 따라서 작은 내부 개발 환경에는 안전하지만 여러 정상 사용자가 5회 한도를 공유하고 restart 시 초기화된다. `X-Forwarded-For`는 사용하지 않는다. D03/W16에서 trusted proxy hop과 peer 전달 방식을 확정한 뒤 application key를 세분화하고 proxy의 persistent limit을 함께 적용한다. 잘못된 proxy trust는 rate limit 우회와 log spoofing을 만든다.
 
 추가 resource limit:
 
@@ -190,7 +200,7 @@ CSV는 공동 검토한 IMPORT_SCHEMA.md 1.0을 따른다. Predecessor JSON arra
 
 ## 9. APP_BASE_URL과 URL 안전
 
-Startup 시 `APP_BASE_URL`을 다음 조건으로 검증한다.
+W04 Project create handler는 요청을 처리하기 전에 `APP_BASE_URL`을 다음 조건으로 검증하고 실패를 안전한 `500 CONFIGURATION_ERROR`로 반환한다. W16 production startup/readiness에서도 같은 검증을 수행해 잘못된 설정으로 server가 ready가 되지 않게 하는 것은 후속이다.
 
 - 절대 `http:` 또는 `https:` URL
 - Production은 `https:` 필수
@@ -256,14 +266,14 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 
 ## 14. Security 검증 목록
 
-아래는 전체 보안 검증 계획이다. W02는 cross-project parent/link와 Repository query isolation, password 자료를 제외한 Repository 반환값, Git의 `.env`/DB 제외, 현재 Node/Linux x64의 native query와 dependency 설치 audit을 확인했다. 이 기반 부분은 **PASS**이며 Auth/session/KDF/API, image/운영 보안 및 나머지 항목은 **NOT TESTED**다. [근거 및 한계](W02_REVIEW.md)
+아래는 전체 보안 검증 계획이다. W04 Manager 검증은 Project 생성의 서로 다른 salt/hash, 원문 password DB/response/URL/DOM 부재, session digest 저장, 생성 원자성, production/local Cookie, exact Origin, request 크기·형식, rate/KDF capacity, public DTO 격리와 새 browser Readonly를 **PASS**했다. W02의 cross-project FK/Repository 기반도 PASS다. Unlock/password 비교, session 소비·만료·revoke·wrong-project, mutation authorization, image/운영 보안과 나머지는 **NOT TESTED**다. [근거 및 한계](W04_REVIEW.md)
 
-- 동일 password의 Project 두 개가 서로 다른 salt/hash를 가짐
-- Password 원문/후보가 DB, log, error, workbook에 없음
-- Correct/incorrect/unknown-project unlock과 rate limit
-- Session token DB 원문 부재, wrong-project/expired/revoked/auth-version mismatch 거부
-- Production Cookie의 HttpOnly/Secure/SameSite/Path/Domain 속성
-- Missing/null/cross Origin mutation 거부 및 CORS 확인
+- 동일 password의 Project 두 개가 서로 다른 salt/hash를 가짐 — W04 PASS
+- Password 원문/후보가 DB, response/error/URL/DOM에 없음 — W04 PASS; server log/workbook은 NOT TESTED
+- Correct/incorrect/unknown-project unlock과 rate limit — NOT TESTED (W05)
+- Session token DB 원문 부재 — W04 PASS; wrong-project/expired/revoked/auth-version mismatch 거부는 NOT TESTED (W05)
+- Production Cookie의 HttpOnly/Secure/SameSite/Path/Domain 속성 — W04 PASS
+- Create의 missing/null/cross Origin 거부 — W04 PASS; 후속 mutation/CORS inventory는 NOT TESTED
 - Session 없이 모든 mutation/import 거부
 - Cross-project task parent/link 및 repository query isolation
 - Stale revision, scheduling/import 오류의 전체 rollback

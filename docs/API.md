@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 경계
 
-이 문서는 초기 REST API 계획이다. 현재 구현 코드는 없으며 route 이름과 payload는 구현 전 Frontend 및 Scheduling 문서와 다시 대조한다.
+이 문서는 REST API 계약이다. W04의 `POST /api/projects`, `GET /api/projects/{publicId}`와 비활성 collection GET은 구현·Manager 검증했고, 아래 Task/Auth/Import/Export API는 명시된 후속 작업 전까지 계획이다. 구현 상태는 [W04 검증 기록](W04_REVIEW.md)과 함께 본다.
 
 ```text
 Route Handler
@@ -114,13 +114,15 @@ Project metadata, calendar, task, link, task batch, import commit처럼 schedule
 | Import preview/commit | 예 | CPU abuse 방지 및 편집 workflow 일관성을 위해 preview도 요구 |
 | Excel export | 아니오 | Project read와 같은 공개 범위. 별도 rate/size limit 적용 |
 
-Project create는 권한 우회가 아니라 독립 bootstrap operation이다. 정확한 `Origin` 검사, content type/크기 제한, IP 기반 rate limit을 적용하고 성공 시 생성한 Project에 대한 edit session을 같은 응답에서 발급한다.
+Project create는 권한 우회가 아니라 독립 bootstrap operation이다. W04는 정확한 `Origin`, UTF-8 JSON content type, 32 KiB 실제/선언 크기, strict 입력과 process-global 5회/1시간 fail-closed limit을 적용한다. Trusted client IP 경계가 아직 없으므로 forwarded header를 신뢰하지 않는다. 성공 시 생성한 Project에 대한 edit session을 같은 응답에서 발급한다. Proxy/IP 기반 persistent protection은 D03/W16에서 확정한다.
 
 ## 4. Project와 Session API
 
 ### `POST /api/projects`
 
 Project를 만들고 최초 edit session을 발급한다.
+
+W04 입력은 unknown field를 거부한다. `name`만 trim한 뒤 1–200 Unicode code point, `description`은 원문을 보존하며 0–4,000 code point, `editPassword`는 trim/정규화 없이 최소 12 code point·UTF-8 최대 1,024 bytes다. JSON body 상한은 32 KiB다.
 
 ```json
 {
@@ -161,9 +163,11 @@ Project List 화면에 필요한 discovery endpoint 후보이다. 그러나 전�
 2. Reverse proxy/SSO 인증 뒤에서만 제공한다.
 3. 목록 없이 direct-link only로 운영한다.
 
+W04 route는 discovery가 활성화되지 않았음을 명시하는 `405 METHOD_NOT_ALLOWED`, `Allow: POST`, `Cache-Control: private, no-store`를 반환한다. 홈페이지도 DB 목록을 요청하지 않는다.
+
 ### `GET /api/projects/{publicId}`
 
-Readonly schedule snapshot을 반환한다. Project가 없으면 `404 PROJECT_NOT_FOUND`이다. Cookie가 유효한 경우 `permission: "edit"`, 아니면 `permission: "readonly"`를 표시할 수 있지만 mutation은 별도로 다시 인증한다.
+Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 canonical lowercase UUID v4가 아니면 동일한 `404 PROJECT_NOT_FOUND`이다. W04는 Cookie 유무와 관계없이 `permission: "readonly"`만 반환한다. W05 session-current 경계가 구현된 뒤 edit 표시를 별도로 동기화하며 mutation은 항상 다시 인증한다.
 
 ```json
 {
@@ -435,7 +439,7 @@ Phase 2 Gantt sheet endpoint/option은 Phase 1 검증 후 추가하며 현재 �
 | 404 | `PROJECT_NOT_FOUND`, `TASK_NOT_FOUND`, `LINK_NOT_FOUND` | Scope 안에서 대상 없음 |
 | 409 | `DUPLICATE_EXTERNAL_ID`, `DEPENDENCY_CYCLE`, `MANUAL_DEPENDENCY_CONFLICT`, `MANUAL_CALENDAR_CONFLICT` | 현재 aggregate와 domain 충돌 |
 | 412 | `REVISION_MISMATCH` | stale If-Match |
-| 413 | `IMPORT_TOO_LARGE` | byte/entity/depth/date range 상한 초과 |
+| 413 | `REQUEST_TOO_LARGE`, `IMPORT_TOO_LARGE` | 일반 body 또는 Import byte/entity/depth/date range 상한 초과 |
 | 415 | `UNSUPPORTED_MEDIA_TYPE`, `UNSUPPORTED_IMPORT_FORMAT` | 허용하지 않은 형식 |
 | 422 | `INVALID_DATE`, `END_DURATION_MISMATCH`, `MISSING_PARENT`, `UNSUPPORTED_DEPENDENCY` | 의미 validation 실패 |
 | 428 | `PRECONDITION_REQUIRED` | If-Match 누락 |
@@ -445,6 +449,16 @@ Phase 2 Gantt sheet endpoint/option은 Phase 1 검증 후 추가하며 현재 �
 같은 category에서 Project 존재 여부를 password endpoint로 추론하기 어렵게 unlock 오류 메시지와 status를 통일한다. 모든 실패는 transaction 이전 상태를 유지해야 한다.
 
 ## 10. 구현 검증
+
+W04에서 아래 항목을 실제 Vitest/Chromium으로 PASS했다.
+
+- strict 생성 입력, malformed UTF-8/JSON/content type/content encoding/선언·실제 32 KiB 상한
+- Project+password derived material+최초 session digest 원자 저장, 원문 password DB/응답 미포함, DB 재개방 direct read
+- exact Origin, process-global 5/hour limit, KDF concurrency 2, production/local Cookie 속성
+- canonical UUID collision bounded retry, public DTO의 Project 격리, malformed/absent UUID 동일 404
+- 생성·reload·새 browser Direct Readonly UI, 컬렉션 요청 부재와 API 405, password URL/DOM 비노출
+
+나머지 목록은 후속 전체 제품 검증 항목이다.
 
 - Password 없이 Project GET은 성공하지만 모든 mutation은 실패
 - Project create만 preexisting session 없이 성공하며 cross-origin/과도한 요청은 실패
