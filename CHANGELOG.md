@@ -4,6 +4,21 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-12
+
+### Added
+
+- Project 화면의 좌측 계층 Task Grid와 우측 동기 Gantt Chart 작업공간
+- 빈 일정, 생성 직후 양쪽 표시, Desktop geometry와 narrow 내부 scroll Browser 회귀 검증
+
+### Changed
+
+- Project route가 viewport 폭·높이를 사용하고 Project 설정과 Task 관리를 접이식으로 표시
+
+### Fixed
+
+- 빈 Project에서 Gantt가 렌더링되지 않던 문제와 좁은 화면에서 Gantt min-content가 document 전체를 확장하던 문제
+
 ## [0.2.0] - 2026-09-12
 
 ### Added

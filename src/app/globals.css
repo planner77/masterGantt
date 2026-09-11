@@ -117,6 +117,11 @@ button:focus-visible {
   padding: clamp(2.25rem, 6vw, 5rem) 0;
 }
 
+.main-content:has(> .project-page-shell) {
+  width: calc(100% - 3rem);
+  padding-block: 1.25rem;
+}
+
 .page-section {
   display: grid;
   gap: 2.25rem;
@@ -317,6 +322,15 @@ h2 {
 .project-readonly {
   display: grid;
   gap: 1.5rem;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* A project is a working surface, so its synchronized Grid and Chart can use
+   the viewport instead of the narrow marketing-page measure. */
+.project-page-shell {
+  width: 100%;
 }
 
 .project-readonly-heading {
@@ -350,13 +364,46 @@ h2 {
 
 .unlock-form,
 .edit-panels {
-  display: grid;
   width: min(100%, 42rem);
   gap: 1rem;
-  padding: 1.25rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
+}
+
+.unlock-form {
+  display: grid;
+  padding: 1.25rem;
+}
+
+.edit-panels {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+}
+
+.edit-panels > summary {
+  cursor: pointer;
+  padding: 0.875rem 1.25rem;
+  color: var(--secondary-foreground);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.edit-panels[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.edit-panels > :not(summary) {
+  margin-inline: 1.25rem;
+}
+
+.edit-panels > form:first-of-type {
+  padding-top: 0.25rem;
+}
+
+.edit-panels > .logout-button {
+  margin-bottom: 1.25rem;
 }
 
 .unlock-form {
@@ -409,19 +456,12 @@ h2 {
 .project-facts dt { color: var(--muted-foreground); font-size: 0.75rem; font-weight: 650; }
 .project-facts dd { margin: 0; color: var(--foreground); font-weight: 650; }
 
-.schedule-empty {
-  min-height: 14rem;
-  padding: 1.5rem;
-  border: 1px dashed #cbd6e4;
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--card) 78%, transparent);
-}
-
-.schedule-empty p { margin-bottom: 0; color: var(--muted-foreground); }
-
 .project-schedule {
   display: grid;
   gap: 1rem;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 .schedule-heading-row {
@@ -457,21 +497,57 @@ h2 {
   padding: 0.75rem;
 }
 
-.project-gantt-widget {
+.project-gantt-scroll {
+  height: clamp(30rem, calc(100vh - 20rem), 52rem);
   min-height: 26rem;
-  overflow: hidden;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  contain: inline-size;
+  overflow: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
 }
 
+.gantt-widget.project-gantt-widget {
+  min-width: 45rem;
+  height: 100%;
+  overflow: hidden;
+}
+
 .task-edit-panel {
-  display: grid;
+  display: block;
   gap: 1rem;
-  padding: 1.25rem;
+  padding: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
+}
+
+.task-edit-panel > summary {
+  cursor: pointer;
+  padding: 0.875rem 1.25rem;
+  color: var(--secondary-foreground);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.task-edit-panel[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.task-edit-panel > form,
+.task-edit-panel > .task-delete-control {
+  margin-inline: 1.25rem;
+}
+
+.task-edit-panel > form {
+  padding-top: 0.25rem;
+}
+
+.task-edit-panel > .task-delete-control {
+  padding-bottom: 1.25rem;
 }
 
 .task-create-form {
@@ -667,6 +743,11 @@ h2 {
 
   .project-readonly-heading {
     flex-direction: column;
+  }
+
+  .project-page-shell {
+    width: 100%;
+    margin-left: 0;
   }
 
   .unlock-form {

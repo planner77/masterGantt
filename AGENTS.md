@@ -685,6 +685,25 @@ Export
 
 Gantt 관련 기능은 SVAR 공식 UI를 가능한 한 활용한다.
 
+Project Gantt 기본 작업공간은 별도의 Demo 목록 없이 다음 구성을 유지한다.
+
+```text
+좌측: 계층 구조 Task Grid
+우측: 동일 Task와 세로 스크롤이 동기화된 Gantt Chart
+```
+
+Grid와 Chart는 SVAR Core의 단일 Gantt 인스턴스와 공식 `displayMode`,
+`columns`, `gridWidth` 및 내장 Resizer를 사용한다. Project 화면은 많은 일정
+정보를 볼 수 있도록 Desktop의 가용 Viewport 폭과 높이를 적극 활용하고,
+좁은 화면에서도 내부 Scroll 또는 공식 Compact 동작으로 양쪽 내용에 접근할
+수 있어야 한다.
+
+SVAR의 로컬 Add/Edit/Delete UI를 사용하더라도 Project Mutation은 기존
+Edit Session, `If-Match` Revision, Server-side Scheduling과 Canonical Snapshot
+복원 경계를 우회하면 안 된다. 작업 생성 성공 직후 새 Task가 Reload 없이
+Grid Row와 Chart Bar 또는 Milestone 양쪽에 표시되는지를 Browser Test로
+검증한다.
+
 ---
 
 # 19. Multi-Agent Model
@@ -1411,6 +1430,10 @@ Documentation
 * Hierarchy
 * Dependency
 * Reload Persistence
+* Grid와 Chart 동시 표시 및 동기화
+* Task Create 직후 Grid Row와 Chart Bar/Milestone 동시 표시
+* Desktop Viewport 폭·높이 활용
+* 좁은 화면에서 Grid/Chart 접근과 의도하지 않은 Body Overflow 없음
 
 ## Authorization
 

@@ -173,12 +173,12 @@ CI token은 `contents: read`뿐이며 모든 checkout은 `persist-credentials: f
 
 ### 안정 SemVer와 GHCR publish
 
-릴리스 기준은 `package.json.version`과 `package-lock.json` root version에 정확히 일치하는 SemVer tag다. 현재 package version `0.2.0`의 tag는 `v0.2.0`이며 prerelease 예시는 `v0.3.0-rc.1`이다. build metadata(`+...`)는 허용하지 않는다.
+릴리스 기준은 `package.json.version`과 `package-lock.json` root version에 정확히 일치하는 SemVer tag다. 현재 package version `0.3.0`의 tag는 `v0.3.0`이며 prerelease 예시는 `v0.4.0-rc.1`이다. build metadata(`+...`)는 허용하지 않는다.
 
 ```sh
-node scripts/verify-release-version.mjs v0.2.0
-git tag -a v0.2.0 -m "Release v0.2.0"
-git push origin v0.2.0
+node scripts/verify-release-version.mjs v0.3.0
+git tag -a v0.3.0 -m "Release v0.3.0"
+git push origin v0.3.0
 ```
 
 tag push는 [release image workflow](../.github/workflows/release-image.yml)를 실행한다. workflow는 이전 tag보다 큰 version과 annotated tag를 확인하고 전체 quality gate 및 동일 release 설정의 local candidate runtime smoke를 통과한 뒤에만 ephemeral `GITHUB_TOKEN`으로 lowercase GHCR의 immutable `sha-<full-commit>` candidate를 push한다. Registry digest smoke와 attestation 성공 뒤 stable release의 `major.minor`, `major`, `latest`를 이동하고 exact version을 마지막 완료 표식으로 생성한다. Prerelease는 exact/commit tag만 받는다. Repository 단위 직렬화와 monotonic gate가 낮은 version의 alias rollback을 막으며 기존 exact/commit image는 overwrite하지 않는다. tag workflow의 권한은 `contents: read`, `packages: write`, provenance attestation/OIDC에 필요한 `attestations: write` 및 `id-token: write`로 한정된다. Release run은 취소하지 않는다.
@@ -192,13 +192,13 @@ BuildKit SBOM/provenance와 GitHub build attestation을 publish하며, push 결�
 고정 tag 또는 workflow가 표시한 immutable digest를 우선한다. 테스트 data가 운영 data와 섞이지 않도록 별도 volume을 사용한다.
 
 ```sh
-docker pull ghcr.io/planner77/mastergantt:0.2.0
+docker pull ghcr.io/planner77/mastergantt:0.3.0
 docker run --detach --name mastergantt-test \
   --publish 127.0.0.1:3000:3000 \
   --volume mastergantt-test-data:/data \
   --env APP_BASE_URL=https://gantt-test.company.local \
   --env SESSION_COOKIE_SECURE=true \
-  ghcr.io/planner77/mastergantt:0.2.0
+  ghcr.io/planner77/mastergantt:0.3.0
 curl -fsS http://127.0.0.1:3000/api/health/ready
 ```
 

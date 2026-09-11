@@ -1,6 +1,6 @@
 # Test Plan
 
-상태: qa_docs가 작성한 검증 전략. W02–W07과 W20 검증 기록은 [W07_REVIEW.md](W07_REVIEW.md), [W20_REVIEW.md](W20_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W20의 로컬 container PASS도 원격 Actions/GHCR, production host/backup/restore와 VBA 통과를 뜻하지 않는다.
+상태: qa_docs가 작성한 검증 전략. W02–W07, W20과 W21 검증 기록은 [W07_REVIEW.md](W07_REVIEW.md), [W20_REVIEW.md](W20_REVIEW.md), [W21_REVIEW.md](W21_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W20의 로컬 container PASS도 원격 Actions/GHCR, production host/backup/restore와 VBA 통과를 뜻하지 않는다.
 
 ## 판정과 증거
 
@@ -83,6 +83,16 @@ P-A/P-B 두 Project에 같은 externalId를 사용해 isolation을 시험한다.
 - **UI02 PARTIAL PASS:** Task 401/412/422/500 거부와 canonical 재조회 실패에서도 마지막 확정 Gantt를 복원했다. 403/409/413/429의 화면별 browser fixture는 후속 통합 QA까지 NOT TESTED다.
 - W07 전체 21 files/291 Vitest, typecheck/lint/build, clean 기본 Turbopack Chromium 8/8과 production dependency audit 0건이 PASS했다. 정확한 범위·독립 QA·잔여 위험은 [W07_REVIEW.md](W07_REVIEW.md)에 기록한다.
 
+### W21 실행 증거
+
+- **UI03 PASS:** 빈 Project에서도 Grid와 Chart를 렌더하고 첫 root Task 저장 직후 동일 taskId의 Grid row와 `.wx-bar`가 reload 없이 보인다.
+- **UI04 PARTIAL PASS:** supplied Summary/child의 snapshot 순서와 `parent/open` adapter를 unit으로 확인했고 단일 Core의 Grid/Chart 동시 pane을 Browser에서 확인했다. 실제 Summary 생성·expand/collapse와 WBS는 W08까지 BLOCKED다.
+- **UI05 PASS:** 1440×900에서 Project Gantt 폭 1,000px 초과, 높이 580px viewport 규칙과 첫 화면 위치를 확인했고 max-width cap을 두지 않는다. 실제 Resizer drag geometry는 Core 제공 동작으로 유지하지만 별도 자동 조작은 NOT TESTED다.
+- **UI06/UI08 PASS:** 기존 401/412/422/500·canonical read 실패 복원과 move/양쪽 resize/delete/reload persistence가 새 작업공간에서도 통과했다.
+- **UI07 PASS:** 기존 direct Readonly/current-session/unlock/logout과 Task 보호 API 경계를 유지하며 native Add column을 노출하지 않는다.
+- **UI09/UI10 PASS:** 390×844에서 Grid와 Chart가 함께 보이고 focus 가능한 outer region의 `scrollWidth > clientWidth`, 실제 `scrollLeft` 이동, document overflow 없음과 disclosure control 회귀를 확인했다.
+- Manager 재검증: version 0.3.0, typecheck/lint/build PASS, 전체 24 files/310 Vitest와 clean isolated Turbopack Chromium 8/8 PASS. 독립 판정과 잔여 범위는 [W21_REVIEW.md](W21_REVIEW.md)에 기록한다.
+
 ## CI/CD / Semantic Release
 
 | ID | 검증과 기대 결과 |
@@ -157,6 +167,14 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | DEP07 | graceful/forced stop WAL durability, busy timeout, isolated upgrade/rollback |
 | UI01 | Create→Readonly→unlock→CRUD→drag/resize→hierarchy batch→FS→reload |
 | UI02 | 401/403/409/412/413/429/500 복원, loading/error/keyboard focus, no-PRO runtime 사용 확인 |
+| UI03 | 빈 Project에서도 좌측 Grid와 우측 Chart가 보이고, 첫 Task/Milestone 생성 성공 직후 reload 없이 Grid row와 Chart bar/milestone이 모두 표시 |
+| UI04 | 단일 SVAR instance에서 Grid tree와 Chart row·세로 scroll이 동기화되고 parent/open/snapshot 순서가 유지 |
+| UI05 | 1440×900 이상 Desktop에서 Project route가 가용 폭을 사용하고 Gantt 높이가 viewport 규칙을 따르며 Grid/Chart Resizer가 유지 |
+| UI06 | Task mutation 실패·canonical 재조회 실패·401에서 optimistic ghost 없이 양쪽이 마지막 확정 snapshot으로 복원 |
+| UI07 | Direct access는 Readonly이고 unlock 전 create/delete/drag/resize가 보호되며 unlock 뒤만 기존 Task API를 사용 |
+| UI08 | create/move/좌우 resize/delete 뒤 reload 시 Grid 값과 Chart 위치가 동일 canonical server 상태와 일치 |
+| UI09 | 390×844 좁은 viewport에서 focus 가능한 Gantt 내부 horizontal scroll로 Grid와 Chart 모두 접근 가능하고 document body overflow가 없음 |
+| UI10 | 작업공간에 접근 가능한 이름과 keyboard focus가 있고 접이식 설정·작업 control이 기존 label/status 의미를 보존 |
 
 ## Requirement traceability와 Release gate
 
@@ -171,6 +189,7 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | R21–R22 | DEP01–07 |
 | R23–R24 | Agent 설정·독립 QA·Manager 기록과 구현별 build/typecheck/tests |
 | R25 | UI01–02, Project List 공개 정책 D02 |
+| R29 | UI03–10, SVAR 공식 Grid/Chart·Resizer API와 Browser geometry |
 
 PR gate는 build/typecheck와 관련 unit/integration/E2E, migration 회귀, dependency/license 검토, 문서 일관성이다. 현재 command는 `npm run build`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:e2e`다. 구현 PR은 test ID에 실제 command·결과를 연결해야 한다.
 

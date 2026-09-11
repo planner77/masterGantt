@@ -70,10 +70,28 @@ async function rejectNextPatch(
 }
 
 test("persists pointer edits, restores rejected writes, and serializes a same-revision race", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   const suffix = uniqueSuffix();
   const projectId = await createProject(page, `W07 Project ${suffix}`, `W07-password-${suffix}`);
   const apiPath = `/api/projects/${projectId}`;
 
+  const workspace = page.getByRole("region", { name: "프로젝트 일정 Grid와 Gantt 차트" });
+  await expect(workspace).toBeVisible();
+  await expect(page.locator(".project-gantt-widget .wx-table-container")).toBeVisible();
+  await expect(page.locator(".project-gantt-widget .wx-chart")).toBeVisible();
+  await workspace.focus();
+  await expect(workspace).toBeFocused();
+  expect(await workspace.evaluate((element) => element.scrollWidth)).toBeGreaterThan(
+    await workspace.evaluate((element) => element.clientWidth),
+  );
+  await workspace.evaluate((element) => { element.scrollLeft = 240; });
+  expect(await workspace.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    await page.evaluate(() => document.documentElement.clientWidth),
+  );
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect(page.locator(".project-gantt-widget .wx-chart")).toBeVisible();
+  await page.getByText("작업 추가 또는 삭제", { exact: true }).click();
   await page.getByLabel("작업 이름").fill(`W07 Build ${suffix}`);
   await page.getByLabel("외부 ID 선택").fill(`W07-${suffix}`);
   await page.getByLabel("시작일").fill("2026-09-12");
@@ -88,6 +106,19 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const task = snapshot.data.tasks.find((entry: { externalId: string }) => entry.externalId === `W07-${suffix}`);
   expect(task).toBeTruthy();
   expect(task).toMatchObject({ requestedStart: "2026-09-12", start: "2026-09-14", end: "2026-09-16", duration: 3 });
+  await page.getByText("작업 추가 또는 삭제", { exact: true }).click();
+  await expect(page.locator(".project-gantt-widget .wx-table-container")).toBeVisible();
+  await expect(page.locator(".project-gantt-widget .wx-chart")).toBeVisible();
+  await expect(page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${task.taskId}"]`)).toBeVisible();
+  await expect(page.getByRole("columnheader", { name: "Add task" })).toHaveCount(0);
+  const ganttBox = await page.locator(".project-gantt-scroll").boundingBox();
+  expect(ganttBox).not.toBeNull();
+  expect(ganttBox!.width).toBeGreaterThan(1_000);
+  expect(ganttBox!.height).toBeCloseTo(580, 0);
+  expect(ganttBox!.y).toBeLessThan(650);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    await page.evaluate(() => document.documentElement.clientWidth),
+  );
   const revisionAfterCreate = snapshot.data.project.revision as number;
 
   await page.reload();
@@ -178,6 +209,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   expect(restoredWithoutRead!.x).toBeCloseTo(canonicalBox.x, 0);
   expect(restoredWithoutRead!.width).toBeCloseTo(canonicalBox.width, 0);
 
+  await page.getByText("작업 추가 또는 삭제", { exact: true }).click();
   await page.getByLabel("작업 삭제").selectOption(task.taskId);
   await page.getByRole("button", { name: "삭제", exact: true }).click();
   await expect(page.getByRole("group", { name: "작업 삭제 확인" })).toBeVisible();

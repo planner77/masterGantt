@@ -1,6 +1,6 @@
 # Architecture draft
 
-상태: Manager 통합 설계. W01–W07의 Project·authorization, pure Calendar/Leaf Scheduling과 root Task/Milestone persistence 및 W20의 CI/CD·최소 container artifact 기반은 독립 QA PASS / Manager ACCEPT했다. 원격 Actions/GHCR 증거, Summary/WBS, FS 재계산, Import/Export와 production 배포 승인은 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
+상태: Manager 통합 설계. W01–W07의 Project·authorization, pure Calendar/Leaf Scheduling과 root Task/Milestone persistence, W20의 CI/CD·최소 container artifact 기반 및 W21의 동기 Grid+Chart 작업공간을 구현했다. 원격 Actions/GHCR 증거, Summary/WBS, FS 재계산, Import/Export와 production 배포 승인은 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
 
 ## 경계
 
@@ -72,6 +72,10 @@ UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 exter
 
 편집 명령은 Core `onUpdateTask`의 최종 이벤트만 API로 보낸다. 요청 동안 동일 aggregate 후속 변경을 동기 mutex로 막고, 성공 시 전체 canonical snapshot으로 교체한다. 실패·412·응답 불확실성에는 서버를 재조회하며, 재조회도 실패하면 React에 남은 마지막 확정 Snapshot으로 SVAR를 강제 재마운트한다. PRO auto-scheduler를 실행하지 않는다. 공식 Data Provider는 본 프로젝트의 cookie/If-Match/canonical full snapshot 계약과 맞지 않아 W07에서 직접 채택하지 않았다.
 
+Project route는 Demo navigation 없이 하나의 SVAR Gantt 인스턴스를 `displayMode="all"`로 실행한다. 같은 Task tree를 좌측 업무 Grid와 우측 Chart가 공유하며 Core의 세로 동기화와 Grid/Chart 경계 Resizer를 사용한다. Grid column은 작업명·외부 ID·시작·기간을 명시하고 `parent`/`open` adapter로 공급된 hierarchy를 표현한다. Core의 native Add column은 서버의 edit session·`If-Match`·Scheduling·canonical recovery 계약을 직접 만족하지 않으므로 노출하지 않고, 접이식 작업 관리 폼이 기존 보호 Task API를 호출한다. Summary 생성·reparent와 파생 WBS 계산은 이 Renderer 변경이 아니라 W08 atomic hierarchy 계약에서 구현한다.
+
+Project 작업공간은 일반 문서형 화면의 75rem 폭과 큰 상단 여백을 벗어나 gutter를 제외한 viewport 전체 폭을 사용한다. 프로젝트 설정과 작업 관리는 접어서 Chart의 첫 화면 점유를 확보하고 Gantt 높이는 viewport 기반 clamp를 적용한다. 650px 이하에서도 Core가 Grid-only로 접혀 Chart가 사라지지 않도록 최소 45rem Gantt surface를 focus 가능한 outer scroll region 안에 두며, document 자체의 우발적 가로 overflow는 차단한다.
+
 화면: Project List/Create, Direct Gantt, Edit Unlock, Import Wizard, Export. UI toolkit은 shadcn/ui와 Tailwind 후보이며 설치 시 license·version을 확인한다. 핵심 Gantt 기능은 Core를 사용한다. Project List의 실데이터 공개는 D02 결정 전 비활성으로 유지한다.
 
 Project 경로는 `Route Handler → ProjectService → ProjectRepository/EditSessionRepository/ScheduleRepository → SQLite`를 따른다. Route가 canonical `APP_BASE_URL`과 unsafe method의 exact `Origin`, UTF-8 JSON content type, 32 KiB body, strict Zod input을 검사한다. Service는 비동기 scrypt를 transaction 밖에서 수행한다. Task mutation은 짧은 `BEGIN IMMEDIATE` transaction 안에서 session을 다시 검증하고 revision을 비교한 뒤 W06 `scheduleLeaf`를 호출해 저장하며 revision을 정확히 한 번 증가시킨다. Direct read와 mutation success는 Project/tasks/links/holidays의 canonical DTO를 반환한다. Collection discovery는 D02 전 405다.
@@ -107,4 +111,4 @@ W04 생성 bootstrap에 이어 W05는 recorded scrypt profile의 timing-safe pas
 
 ## 구현 진입 Gate
 
-최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. 새 운영 요구인 W20 CI/CD와 Semantic Container Release도 로컬 구현·검증을 완료했으며 다음 구현은 W08 Summary/Hierarchy/WBS다. 실제 GHCR publish는 D04, VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.
+최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. 새 운영 요구인 W20 CI/CD와 Semantic Container Release 및 W21 동기 Grid+Chart 작업공간도 로컬 구현·검증 대상으로 추가했으며, 다음 Scheduling 구현은 W08 Summary/Hierarchy/WBS다. 실제 GHCR publish는 D04, VBA와 production 공개는 각각 D01/D02/D03 gate를 통과해야 한다. 전체 기능을 한 번에 시작하지 않는다.

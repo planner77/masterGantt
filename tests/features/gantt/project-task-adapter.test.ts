@@ -39,6 +39,19 @@ describe("Project task SVAR adapter", () => {
       .toEqual([{ id: "link-1", source: "task-a", target: "task-b", type: "e2s" }]);
   });
 
+  it("preserves snapshot order and maps supplied summary hierarchy for rendering", () => {
+    const summary = { ...task, taskId: "summary-a", externalId: "SUMMARY", type: "summary" as const, siblingOrder: 0 };
+    const child = { ...task, taskId: "child-a", externalId: "CHILD", parentExternalId: "SUMMARY", siblingOrder: 1 };
+
+    const mapped = projectTasksToSvarTasks([summary, child]);
+
+    expect(mapped.map((entry) => entry.id)).toEqual(["summary-a", "child-a"]);
+    expect(mapped).toMatchObject([
+      { id: "summary-a", type: "summary", parent: 0, open: true },
+      { id: "child-a", type: "task", parent: "summary-a", open: false },
+    ]);
+  });
+
   it("turns a final bar move into start only, preserving server duration", () => {
     expect(translateProjectTaskUpdate({
       kind: "update-task", taskId: "task-a", diff: 2,

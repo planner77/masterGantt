@@ -33,6 +33,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   const origin = new URL(page.url()).origin;
 
   await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await page.getByText("프로젝트 설정", { exact: true }).click();
   await expect(page.getByRole("button", { name: "프로젝트 정보 저장" })).toBeVisible();
 
   const directSnapshot = await page.request.get(projectPath);
@@ -138,6 +139,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
     await otherContext.close();
   }
 
+  await page.getByText("프로젝트 설정", { exact: true }).click();
   await page.getByLabel("새 편집 비밀번호").fill(rotatedPassword);
   await page.getByRole("button", { name: "편집 비밀번호 변경" }).click();
   await expect(page.getByRole("status")).toContainText("변경했습니다");
@@ -172,6 +174,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
     await oldPasswordContext.close();
   }
 
+  await page.getByText("프로젝트 설정", { exact: true }).click();
   await page.getByRole("button", { name: "편집 모드 종료" }).click();
   await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
   await expect(page.getByRole("status")).toContainText("종료했습니다");

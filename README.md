@@ -2,13 +2,13 @@
 
 소규모 프로젝트의 일정과 진행 상황을 관리하는 웹 애플리케이션이다. SVAR React Gantt Core로 일정을 표시·편집하고, 일정 계산은 독립적인 Scheduling Engine에서 수행하는 구조를 목표로 한다.
 
-프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장을 구현했다. GitHub Actions 검증과 Semantic Version tag 기반 GHCR image release 기반도 추가하며, Summary/WBS·FS 일정, 승인된 Excel/VBA → JSON·CSV Import, Excel Export와 production 배포 검증을 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
+프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장, 좌측 계층 Grid와 우측 동기 Chart 중심의 넓은 Project 작업공간을 구현했다. GitHub Actions 검증과 Semantic Version tag 기반 GHCR image release 기반도 추가하며, Summary/WBS·FS 일정, 승인된 Excel/VBA → JSON·CSV Import, Excel Export와 production 배포 검증을 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
 
 이 README는 프로젝트 이해·설치·재설치·실행·진행 상황 확인을 위한 진입 문서다. 상세 요구사항은 [REQUIREMENTS](docs/REQUIREMENTS.md), 최신 작업 상태는 [실행 계획](docs/exec-plans/active/PLAN.md)을 따른다.
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-12 / W20 CI/CD와 Semantic Container Release 로컬 완료**. W01–W07과 W20은 독립 QA PASS / Manager ACCEPT이며, 원격 Actions/GHCR 실행은 별도 Gate다.
+기준: **2026-09-12 / 0.3.0 W21 Synchronized Gantt Workspace 완료**. W01–W07, W20, W21은 독립 QA PASS / Manager ACCEPT이며, 원격 Actions/GHCR 실행은 별도 Gate다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -21,12 +21,13 @@
 | W06 일정 계산 기반 | 완료 / 독립 QA PASS | pure Gregorian date-only, weekend/holiday, inclusive duration, Auto/Manual leaf, milestone, server/browser 동일 fixture |
 | W07 Task·Link 저장 기반 | 완료 / 독립 QA PASS | root Task/Milestone CRUD, Project-scoped Link Repository, 실제 Gantt 이동·양방향 resize·삭제·reload, 거부 복원, revision 경쟁 |
 | W20 CI/CD·Semantic image | 로컬 완료 / 독립 QA PASS | PR/main Actions, strict SemVer, non-root image/readiness, tag 기반 GHCR publish·digest smoke; 원격 실행은 NOT TESTED/BLOCKED |
+| W21 동기 Gantt 작업공간 | 완료 / 독립 QA PASS | 빈 일정부터 좌측 계층 Grid+우측 Chart, 생성 직후 양쪽 반영, full-width·viewport height, narrow 내부 scroll |
 | W08 이후 | 예정 | Summary/WBS, FS 재계산, Import/Export |
 | W16 배포 | 일부 기반 선행 / 운영 검증 예정 | Docker/startup/readiness/named volume 기반; 실제 host·proxy·backup/restore 승인 후속 |
 
-홈 화면은 DB에 Project가 없다고 단정하지 않고 목록 discovery가 아직 비활성임을 안내하며 생성 링크를 제공한다. `/projects/new`에서 Project를 만들면 `/projects/{publicId}`로 이동한다. Direct snapshot API는 Cookie와 관계없이 Readonly이며, 화면은 별도 current-session 확인 뒤에만 metadata/password/logout과 root Task/Milestone 편집 control을 표시한다. D02 결정 전 `GET /api/projects`는 `405`로 닫혀 있다. Project 화면의 Gantt drag/resize 결과는 보호 Task API와 W06 Scheduling Engine을 거쳐 SQLite에 저장되고, 성공·실패 모두 server canonical snapshot으로 복원된다. Summary/hierarchy나 Link가 있는 일정의 변경은 W08/W09 전까지 fail-closed다. `/gantt-demo`는 별도의 로컬 fixture다.
+홈 화면은 DB에 Project가 없다고 단정하지 않고 목록 discovery가 아직 비활성임을 안내하며 생성 링크를 제공한다. `/projects/new`에서 Project를 만들면 `/projects/{publicId}`로 이동한다. Direct snapshot API는 Cookie와 관계없이 Readonly이며, 화면은 별도 current-session 확인 뒤에만 metadata/password/logout과 root Task/Milestone 편집 control을 표시한다. D02 결정 전 `GET /api/projects`는 `405`로 닫혀 있다. Project 화면은 빈 일정부터 동일 SVAR 인스턴스의 좌측 계층 Grid와 우측 Chart를 표시한다. `작업 추가 또는 삭제`를 펼쳐 저장하면 새 row와 bar/milestone이 reload 없이 함께 나타나며, Grid/Chart 경계는 내장 Resizer로 조절한다. 좁은 화면에서는 Project Gantt 영역 안을 가로로 스크롤한다. Gantt drag/resize 결과는 보호 Task API와 W06 Scheduling Engine을 거쳐 SQLite에 저장되고, 성공·실패 모두 server canonical snapshot으로 복원된다. Summary 생성/reparent와 Link가 있는 일정의 변경은 W08/W09 전까지 fail-closed다. `/gantt-demo`는 별도의 로컬 fixture다.
 
-최근 Manager 검증: build/typecheck/lint PASS, **24개 파일 309개 Vitest PASS**, clean isolated Turbopack Chromium E2E **8개 PASS**, production dependency audit 0건, Action workflow lint와 `linux/amd64` non-root container/runtime config/readiness/native SQLite 재시작 영속성 PASS. W20 독립 QA와 원격 범위는 [W20 검토 기록](docs/W20_REVIEW.md), 이전 application slice는 [W07 검토 기록](docs/W07_REVIEW.md)을 참고한다.
+최근 Manager 검증: 0.3.0 version check, build/typecheck/lint PASS, **24개 파일 310개 Vitest PASS**, clean isolated Turbopack Chromium E2E **8개 PASS**. E2E는 empty 390×844 내부 Grid+Chart scroll, 1440×900 생성 직후 row+bar와 viewport geometry, 기존 pointer·복원·reload·authorization을 포함한다. W20에서 확인한 production dependency audit 0건과 Action/container 검증은 유지된다. W21 범위는 [W21 검토 기록](docs/W21_REVIEW.md), W20 원격 범위는 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다.
 
 ## 2. 기술 스택과 역할
 
@@ -34,7 +35,7 @@
 
 | 기술 | 현재 버전 / 상태 | 역할 |
 | --- | --- | --- |
-| masterGantt | 0.2.0 | `package.json` Semantic Version과 GHCR release 기준 |
+| masterGantt | 0.3.0 | `package.json` Semantic Version과 GHCR release 기준 |
 | Node.js | 최소 22, 검증 22.14.0 | 서버와 CLI 실행 |
 | Next.js | 16.3.4 | App Router, 서버 Route Handler, 빌드 |
 | React / React DOM | 19.3.0 | 화면 컴포넌트 |
@@ -183,7 +184,7 @@ Build와 typecheck는 `.next` 생성 파일을 공유하므로 순서대로 실�
 npm test -- tests/server/db/database.test.ts tests/server/migration-cli.test.ts
 ```
 
-W20 Manager 검증 기준 전체 309개 Vitest와 Chromium E2E 8개가 통과했다. 기본 E2E는 Turbopack과 `.next-e2e`, `.data/playwright.sqlite3`를 사용해 일반 개발 서버와 격리한다. Process-global 생성 limiter를 실제 설정 그대로 사용하는 browser suite는 worker 1개로 직렬 실행한다. 동일 revision 동시 write는 W05 metadata와 W07 Task spec 내부의 병렬 HTTP 요청으로 검증한다. W07은 실제 SVAR 이동·좌우 resize·삭제·reload, 401/412/422/500과 canonical read 실패 복원도 포함한다. 동일 dist directory를 사용하는 Playwright server는 겹쳐 실행하지 않는다. 이미 실행 중인 앱과 별도 Chromium executable을 사용하려면 다음 환경 변수를 선택적으로 지정할 수 있다.
+W21 Manager 검증 기준 전체 310개 Vitest와 Chromium E2E 8개가 통과했다. 기본 E2E는 Turbopack과 `.next-e2e`, `.data/playwright.sqlite3`를 사용해 일반 개발 서버와 격리한다. Process-global 생성 limiter를 실제 설정 그대로 사용하는 browser suite는 worker 1개로 직렬 실행한다. 동일 revision 동시 write는 W05 metadata와 W07 Task spec 내부의 병렬 HTTP 요청으로 검증한다. W21 E2E는 빈 Project의 Grid+Chart, 첫 작업 생성 직후 양쪽 표시, Desktop geometry와 narrow 내부 scroll을 추가하고 기존 실제 SVAR 이동·좌우 resize·삭제·reload, 401/412/422/500과 canonical read 실패 복원을 유지한다. 동일 dist directory를 사용하는 Playwright server는 겹쳐 실행하지 않는다. 이미 실행 중인 앱과 별도 Chromium executable을 사용하려면 다음 환경 변수를 선택적으로 지정할 수 있다.
 
 ```sh
 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 \
@@ -199,7 +200,7 @@ Pull Request와 `main` push에서는 GitHub Actions가 application, Chromium과 
 
 ```sh
 npm run version:check
-node scripts/verify-release-version.mjs v0.2.0
+node scripts/verify-release-version.mjs v0.3.0
 ```
 
 Release workflow는 저장소 단위로 직렬 실행한다. 이전 release보다 큰 version인지 확인하고 local candidate를 먼저 검증한 뒤 immutable commit image를 게시하며, registry digest runtime smoke를 통과한 경우에만 stable alias와 exact version을 승격한다. 테스트에서는 `latest` 대신 exact version 또는 workflow가 출력한 digest를 사용한다. 실제 tag 생성·GHCR 권한·private image login을 포함한 절차는 [CI/CD 문서](docs/CI_CD.md), container 실행은 [Deployment](docs/DEPLOYMENT.md)를 따른다.
@@ -232,7 +233,7 @@ Release workflow는 저장소 단위로 직렬 실행한다. 이전 release보�
 
 | 목적 | 문서 |
 | --- | --- |
-| 현재 진행과 다음 작업 | [실행 계획](docs/exec-plans/active/PLAN.md), [W01–W20 작업 목록](docs/ISSUE_BREAKDOWN.md) |
+| 현재 진행과 다음 작업 | [실행 계획](docs/exec-plans/active/PLAN.md), [W01–W21 작업 목록](docs/ISSUE_BREAKDOWN.md) |
 | 요구사항과 구조 | [REQUIREMENTS](docs/REQUIREMENTS.md), [ARCHITECTURE](docs/ARCHITECTURE.md) |
 | DB·API·보안 계약 | [DB_SCHEMA](docs/DB_SCHEMA.md), [API](docs/API.md), [SECURITY](docs/SECURITY.md) |
 | 일정 계산과 Core/PRO 경계 | [SCHEDULING_ENGINE](docs/SCHEDULING_ENGINE.md), [PRO_FEATURE_MATRIX](docs/PRO_FEATURE_MATRIX.md) |
@@ -247,6 +248,7 @@ Release workflow는 저장소 단위로 직렬 실행한다. 이전 release보�
 | W06 일정 계산 기반 검증 결과 | [W06_REVIEW](docs/W06_REVIEW.md) |
 | W07 Task·Link 저장 기반 검증 결과 | [W07_REVIEW](docs/W07_REVIEW.md) |
 | W20 CI/CD·Semantic container 검증 결과 | [W20_REVIEW](docs/W20_REVIEW.md) |
+| W21 동기 Gantt 작업공간 검증 결과 | [W21_REVIEW](docs/W21_REVIEW.md) |
 | Multi-Agent 설정 검증 | [AGENT_CONFIGURATION](docs/AGENT_CONFIGURATION.md) |
 
 문서에 계약이 있다는 사실만으로 기능이 구현된 것은 아니다. 현재 구현 여부는 위 상태 표와 실행 계획, 실제 검증 기록을 함께 확인한다. 작업 목록의 W번호는 로컬 관리 식별자이며 GitHub Issue 번호가 아니다.

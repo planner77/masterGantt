@@ -1,6 +1,6 @@
 # Requirements baseline
 
-상태: 요구사항 기준선, 2026-09-12 갱신. W01–W07과 W20의 로컬 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. 원격 Actions/GHCR는 D04가 해소되기 전 NOT TESTED/BLOCKED다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
+상태: 요구사항 기준선, 2026-09-12 갱신. W01–W07, W20과 W21의 로컬 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. 원격 Actions/GHCR는 D04가 해소되기 전 NOT TESTED/BLOCKED다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
 
 ## Confirmed
 
@@ -34,6 +34,7 @@
 | R26 | 반복 build/typecheck/lint/unit·integration/browser/container 검증을 GitHub Actions로 자동화 | [CI/CD](CI_CD.md), [Test Plan](TEST_PLAN.md) |
 | R27 | `package.json` 기준 Semantic Version과 일치하는 Git tag에서만 GHCR image 게시; exact version/digest로 테스트 가능 | CI/CD, [Deployment](DEPLOYMENT.md) |
 | R28 | PR read-only, publish 최소 권한, Action SHA/base digest pin, pre-publish candidate, SBOM/provenance와 registry digest smoke 뒤 exact promotion | CI/CD, [Security](SECURITY.md) |
+| R29 | Project 화면은 Demo 목록 없이 좌측 계층 Task Grid와 우측 동기 Gantt Chart를 단일 SVAR Core로 표시; 빈 일정과 생성 직후에도 양쪽을 유지하고 Desktop viewport 폭·높이를 활용하며 좁은 화면은 내부 scroll로 접근 | [Architecture](ARCHITECTURE.md), [Test Plan](TEST_PLAN.md) UI03–UI10 |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 
@@ -79,4 +80,4 @@ W04/W05는 개발용 생성, direct-link Readonly, password unlock과 Project me
 - Core가 SS/FF/SF link를 표시할 수 있어도 초기 Domain 지원은 FS뿐이다. 이는 범위 차이며 UI에서 미지원 생성 방지를 해야 한다.
 - Project List 요구는 유지한다. 인증 없는 전체 목록의 노출 범위는 D02이며, 이를 임의로 공개하거나 List 요구를 삭제하지 않는다.
 - 대상 Excel에 안정 ID가 없을 수 있다. 승인된 ID 보존 방법이 확인될 때까지 행 번호를 장기 ID로 확정하지 않는다.
-- W01–W07 application source와 초기 migration, Project edit authorization, pure Calendar/Leaf Scheduling, root Task/Milestone Gantt 저장은 구현되었다. W20은 CI와 최소 container artifact 기반을 선행하지만 production host/backup/restore를 포함한 W16 전체 배포 승인을 대신하지 않는다. VBA macro, Summary/WBS·FS 재계산, Import/Export도 후속 산출물이다.
+- W01–W07 application source와 초기 migration, Project edit authorization, pure Calendar/Leaf Scheduling, root Task/Milestone Gantt 저장은 구현되었다. W21은 이 저장 경계를 유지하면서 full-width Grid+Chart 작업공간과 생성 직후 표시 회귀를 보완한다. W20은 CI와 최소 container artifact 기반을 선행하지만 production host/backup/restore를 포함한 W16 전체 배포 승인을 대신하지 않는다. VBA macro, Summary/WBS·FS 재계산, Import/Export도 후속 산출물이다.

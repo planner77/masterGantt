@@ -1,6 +1,6 @@
 "use client";
 
-import { Gantt, Willow, type IApi } from "@svar-ui/react-gantt";
+import { Gantt, Willow, type IApi, type IColumnConfig } from "@svar-ui/react-gantt";
 import "@svar-ui/react-gantt/all.css";
 import { useMemo, useRef } from "react";
 
@@ -26,6 +26,23 @@ interface ProjectGanttProps {
   readonly tasks: readonly ProjectTaskDto[];
 }
 
+// Omit SVAR's native `add-task` column: every project write must retain the
+// form's If-Match and canonical-snapshot recovery path.
+const projectColumns: IColumnConfig[] = [
+  { id: "text", header: "작업", width: 224, flexgrow: 1, sort: true },
+  { id: "externalId", header: "외부 ID", width: 128, getter: (task) => task.externalId ?? "—" },
+  { id: "start", header: "시작", width: 112, align: "center", sort: true },
+  { id: "duration", header: "기간", width: 76, align: "center", sort: true },
+];
+
+function emptyWorkspaceRange(): { start: Date; end: Date } {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 14);
+  return { start, end };
+}
+
 /** Browser-only renderer. The caller keys it by aggregate revision after writes. */
 export function ProjectGantt({
   calendar,
@@ -44,6 +61,7 @@ export function ProjectGantt({
   const visibleRange = useMemo(() => {
     const starts = svarTasks.flatMap((task) => task.start instanceof Date ? [task.start] : []);
     const ends = svarTasks.flatMap((task) => task.end instanceof Date ? [task.end] : []);
+    if (starts.length === 0 || ends.length === 0) return emptyWorkspaceRange();
     return {
       start: new Date(Math.min(...starts.map((date) => date.getTime()))),
       end: new Date(Math.max(...ends.map((date) => date.getTime()))),
@@ -59,22 +77,28 @@ export function ProjectGantt({
     [calendar, onTaskCommand, tasksById],
   );
 
-  if (tasks.length === 0) {
-    return <div className="schedule-empty"><p>작업을 추가하면 Gantt 차트에 표시됩니다.</p></div>;
-  }
-
   return (
     <Willow>
-      <div className="wx-theme gantt-widget project-gantt-widget" aria-label="프로젝트 일정">
-        <Gantt
-          end={visibleRange.end}
-          init={(api) => { apiReference.current = api; }}
-          links={svarLinks}
-          onUpdateTask={onUpdateTask}
-          readonly={!editable}
-          start={visibleRange.start}
-          tasks={svarTasks}
-        />
+      <div
+        aria-label="프로젝트 일정 Grid와 Gantt 차트"
+        className="project-gantt-scroll"
+        role="region"
+        tabIndex={0}
+      >
+        <div className="wx-theme gantt-widget project-gantt-widget">
+          <Gantt
+            columns={projectColumns}
+            displayMode="all"
+            gridWidth={440}
+            init={(api) => { apiReference.current = api; }}
+            links={svarLinks}
+            onUpdateTask={onUpdateTask}
+            readonly={!editable}
+            end={visibleRange.end}
+            start={visibleRange.start}
+            tasks={svarTasks}
+          />
+        </div>
       </div>
     </Willow>
   );

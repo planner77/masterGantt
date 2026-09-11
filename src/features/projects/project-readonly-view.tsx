@@ -456,7 +456,8 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
       <div><dt>작업</dt><dd>{tasks.length}개</dd></div>
       <div><dt>연결</dt><dd>{links.length}개</dd></div>
     </dl>
-    {editing ? <div className="edit-panels">
+    {editing ? <details className="edit-panels">
+      <summary>프로젝트 설정</summary>
       <form className="project-form compact-form" noValidate onSubmit={saveMetadata}>
         <div className="form-field">
           <label htmlFor="metadata-name">프로젝트 이름</label>
@@ -477,7 +478,7 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         <button className="secondary-button" disabled={busy} type="submit">{isChangingPassword ? "변경 중…" : "편집 비밀번호 변경"}</button>
       </form>
       <button className="secondary-button logout-button" disabled={busy} onClick={() => void logout()} type="button">{isLoggingOut ? "종료 중…" : "편집 모드 종료"}</button>
-    </div> : <form className="unlock-form" noValidate onSubmit={unlock}>
+    </details> : <form className="unlock-form" noValidate onSubmit={unlock}>
       <div className="form-field">
         <label htmlFor="unlock-edit-password">편집 비밀번호</label>
         <input autoComplete="current-password" disabled={isUnlocking || permissionCheckState === "checking"} id="unlock-edit-password" onChange={(event) => setUnlockPassword(event.target.value)} type="password" value={unlockPassword} />
@@ -493,15 +494,8 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}
       </div>
       {editing && !w07TaskEditingSupported ? <p className="schedule-scope-note">계층 또는 연결이 있는 일정 편집은 다음 단계에서 지원합니다. 현재 일정은 읽기 전용으로 표시됩니다.</p> : null}
-      <ProjectGantt
-        key={`${project.revision}:${taskEditing ? "edit" : "readonly"}:${ganttResetGeneration}`}
-        calendar={project.calendar}
-        editable={taskEditing}
-        links={links}
-        onTaskCommand={saveTaskCommand}
-        tasks={tasks}
-      />
-      {editing && w07TaskEditingSupported ? <div className="task-edit-panel">
+      {editing && w07TaskEditingSupported ? <details className="task-edit-panel">
+        <summary>작업 추가 또는 삭제</summary>
         <form className="project-form compact-form task-create-form" noValidate onSubmit={createTask}>
           <h3>작업 추가</h3>
           <div className="task-form-grid">
@@ -519,7 +513,15 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
           <div><select disabled={busy} id="delete-task" onChange={(event) => { setDeleteTaskId(event.target.value); setConfirmDeleteTaskId(null); }} value={deleteTaskId}><option value="">작업을 선택하세요</option>{tasks.filter((task) => task.parentExternalId === null && task.type !== "summary").map((task) => <option key={task.taskId} value={task.taskId}>{task.name} ({task.externalId})</option>)}</select><button className="secondary-button" disabled={busy || !selectedDeleteTask} onClick={() => setConfirmDeleteTaskId(deleteTaskId)} type="button">삭제</button></div>
           {confirmDeleteTaskId && selectedDeleteTask ? <div className="delete-confirmation" role="group" aria-label="작업 삭제 확인"><p><strong>{selectedDeleteTask.name}</strong> 작업을 삭제하시겠습니까?</p><button className="secondary-button" disabled={busy} onClick={() => setConfirmDeleteTaskId(null)} type="button">취소</button><button className="danger-button" disabled={busy} onClick={() => void saveTask("DELETE", confirmDeleteTaskId)} type="button">삭제 확인</button></div> : null}
         </div> : null}
-      </div> : null}
+      </details> : null}
+      <ProjectGantt
+        key={`${project.revision}:${taskEditing ? "edit" : "readonly"}:${ganttResetGeneration}`}
+        calendar={project.calendar}
+        editable={taskEditing}
+        links={links}
+        onTaskCommand={saveTaskCommand}
+        tasks={tasks}
+      />
     </section>
   </section>;
 }

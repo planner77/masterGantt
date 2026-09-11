@@ -241,3 +241,15 @@
 - Related Documents: [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md), [SECURITY.md](SECURITY.md), [TEST_PLAN.md](TEST_PLAN.md).
 - Status: DONE LOCAL / independent QA PASS / Manager ACCEPT — remote Actions/GHCR는 credential rotation과 repository 설정 확인 전 NOT TESTED/BLOCKED.
 - Risk: tag 재사용, mutable image 소비, supply-chain action/base drift, GHCR visibility, native ABI, 원격 설정과 로컬 증거 혼동.
+
+## W21 — Synchronized Gantt Workspace
+
+- Goal: Project 화면을 좌측 계층 Task Grid와 우측 동기 Gantt Chart 중심의 넓은 작업공간으로 만들고 신규 Task 표시 회귀를 제거한다.
+- Background: W07의 저장·pointer 편집은 동작했지만 Project route가 75rem/38rem 문서형 layout에 묶였고 빈 일정은 Gantt를 렌더링하지 않았으며 Grid/Chart geometry를 검증하지 않았다.
+- Scope: explicit SVAR `displayMode="all"`·업무 columns·initial `gridWidth`, empty workspace range, supplied hierarchy adapter 검증, viewport width/height, 접이식 Project/Task controls, focus 가능한 narrow inner scroll, create 직후 Grid+bar Browser 회귀. Summary/reparent 서버 계약은 W08에 유지한다.
+- Acceptance Criteria: UI03–UI10; 0→1 Task가 reload 없이 Grid와 Chart 양쪽에 표시, Desktop 1440×900 geometry, 390×844 내부 scroll/body overflow, 기존 pointer/recovery/reload/auth 회귀 PASS.
+- Suggested / Assigned Agent: frontend + researcher + qa_docs + Manager. Frontend는 UI/Gantt/test, researcher는 공식 API 확인, qa_docs는 독립 검증, Manager는 요구·문서·release를 통합한다.
+- Dependencies: W03,W07.
+- Related Documents: [REQUIREMENTS.md](REQUIREMENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md), [TEST_PLAN.md](TEST_PLAN.md), [W21_REVIEW.md](W21_REVIEW.md).
+- Status: DONE — 독립 QA PASS / Manager ACCEPT. 실제 persisted Summary 생성·reparent·expand/collapse와 WBS는 W08에 유지한다.
+- Risk: Core compact threshold, nested min-content body overflow, native Add가 보호 mutation을 우회하는 문제, Summary UI를 W08 전에 완료로 오인.

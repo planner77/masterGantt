@@ -51,6 +51,7 @@
 | ADR45 | ACCEPT | Release를 repository 단위 직렬화하고 이전 tag보다 큰 SemVer만 허용; SHA candidate digest smoke·attest 후 rolling alias와 exact를 승격 | 병렬 낮은 version의 alias rollback과 runtime 실패 image의 exact version 선게시를 방지; exact는 완료 표식으로 마지막 생성 |
 | ADR46 | ACCEPT | Container startup과 readiness가 production DB path뿐 아니라 canonical HTTPS `APP_BASE_URL`도 fail-closed 검증 | invalid config는 migration 전 exit 1, readiness는 DB를 열거나 생성하기 전 sanitized 503 |
 | ADR47 | ACCEPT | W20 로컬 CI/CD와 Semantic Container Release 기반 완료 | 독립 QA가 309 Vitest·Chromium 8/8·build/static/container를 재검증해 PASS 권고; 원격 Actions/GHCR는 별도 NOT TESTED/BLOCKED, [W20 검증](W20_REVIEW.md) |
+| ADR48 | ACCEPT | Project route는 single SVAR Core의 `displayMode="all"` Grid+Chart 작업공간과 viewport 기반 layout을 기본으로 사용 | native Add column은 보호 mutation 계약 때문에 제외하고 기존 form→Task API→canonical snapshot을 유지. supplied hierarchy는 `parent/open` adapter로 표시하며 Summary/reparent 저장은 W08, [W21 검증](W21_REVIEW.md) |
 
 ## Integration 원칙
 
