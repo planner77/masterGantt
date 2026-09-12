@@ -21,8 +21,8 @@ test("creates a project, lists it after returning home, and keeps its direct pag
   if (initialProjectCount === 0) {
     await expect(page.getByRole("heading", { name: "아직 프로젝트가 없습니다." })).toBeVisible();
   } else {
-    await expect(page.locator(".project-list-card")).toHaveCount(initialProjectCount);
-    await expect(page.locator(".project-list-card").first()).toBeVisible();
+    await expect(page.getByRole("table", { name: "프로젝트 목록" })).toBeVisible();
+    await expect(page.getByRole("table").locator("tbody tr")).toHaveCount(initialProjectCount);
   }
   await page.getByRole("link", { name: "프로젝트 만들기" }).first().click();
   await page.waitForURL("/projects/new");
@@ -66,12 +66,14 @@ test("creates a project, lists it after returning home, and keeps its direct pag
   await page.getByRole("link", { name: "프로젝트" }).click();
   await page.waitForURL("/");
   await expect(page.getByRole("heading", { name: "프로젝트", exact: true })).toBeVisible();
-  const projectCard = page.getByRole("link", { name: new RegExp(name) });
-  await expect(projectCard).toContainText("브라우저 통합 검증 프로젝트");
+  const projectLink = page.getByRole("link", { name: new RegExp(name) });
+  await expect(projectLink.locator("xpath=ancestor::tr")).toContainText(
+    "브라우저 통합 검증 프로젝트",
+  );
 
   await page.reload();
   await expect(page.getByRole("link", { name: new RegExp(name) })).toBeVisible();
-  await projectCard.click();
+  await projectLink.click();
   await page.waitForURL(directUrl);
   await expect(page.getByRole("heading", { name })).toBeVisible();
 
@@ -80,6 +82,7 @@ test("creates a project, lists it after returning home, and keeps its direct pag
     const readonlyPage = await readonlyContext.newPage();
     await readonlyPage.goto("/");
     await expect(readonlyPage.getByRole("link", { name: new RegExp(name) })).toBeVisible();
+    await expect(readonlyPage.getByRole("button", { name: "삭제" })).toHaveCount(0);
     await readonlyPage.getByRole("link", { name: new RegExp(name) }).click();
     await readonlyPage.waitForURL(directUrl);
     await expect(readonlyPage.getByRole("heading", { name })).toBeVisible();
@@ -88,6 +91,20 @@ test("creates a project, lists it after returning home, and keeps its direct pag
   } finally {
     await readonlyContext.close();
   }
+
+  await page.goto("/");
+  const row = page.locator(`tr[data-project-id="${directUrl.split("/").pop()}"]`);
+  await expect(row).toContainText(name);
+  page.once("dialog", async (dialog) => {
+    expect(dialog.message()).toContain(name);
+    expect(dialog.message()).toContain("모든 일정이 삭제됩니다");
+    expect(dialog.message()).toContain("복구할 수 없습니다");
+    await dialog.accept();
+  });
+  await row.getByRole("button", { name: "삭제" }).click();
+  await expect(row).toHaveCount(0);
+  const deletedSnapshot = await page.request.get(`/api/projects/${directUrl.split("/").pop()}`);
+  expect(deletedSnapshot.status()).toBe(404);
 });
 
 test("clears a password after a safe server validation error and permits recovery", async ({ page }) => {

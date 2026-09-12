@@ -117,7 +117,7 @@ FOREIGN KEY(project_id, parent_id)
   ON DELETE NO ACTION DEFERRABLE INITIALLY DEFERRED
 ```
 
-`parent_id IS NULL`인 root task도 허용한다. Parent가 summary인지, hierarchy cycle이 없는지는 cross-row domain invariant이므로 Service/Scheduling Engine에서 검증한다. Deferred `NO ACTION`은 일반 parent 단독 삭제를 transaction commit에서 거부하면서 Project aggregate 삭제 시 Project cascade가 전체 task hierarchy를 함께 제거할 수 있게 한다. Project 삭제 API 자체는 초기 범위 밖이다.
+`parent_id IS NULL`인 root task도 허용한다. Parent가 summary인지, hierarchy cycle이 없는지는 cross-row domain invariant이므로 Service/Scheduling Engine에서 검증한다. Deferred `NO ACTION`은 일반 parent 단독 삭제를 transaction commit에서 거부하면서 Project aggregate 삭제 시 Project cascade가 전체 task hierarchy를 함께 제거할 수 있게 한다. Project 삭제 API는 이 cascade를 `IMMEDIATE` transaction에서 사용한다.
 
 일정 column의 의미는 다음과 같다.
 
@@ -209,6 +209,8 @@ Foreign key child column을 index해 삭제/검증 시 전체 scan을 피한다.
 `projects.revision`을 Project schedule aggregate 전체의 version으로 사용한다. Project metadata, calendar, task, link, import 중 하나라도 성공적으로 변경되면 같은 transaction에서 정확히 1 증가시킨다.
 
 Mutation은 client가 보낸 `If-Match` revision과 현재 revision을 transaction 안에서 비교한다. 누락은 `428 PRECONDITION_REQUIRED`, 불일치는 `412 REVISION_MISMATCH`로 처리한다. Scheduling 재계산으로 여러 task가 바뀌어도 하나의 aggregate revision만 증가한다. 이 방식은 row별 revision보다 보수적이지만 작은 Project 편집기에서 lost update와 stale import commit을 단순하게 방지한다.
+
+Project 영구 삭제도 동일한 edit-session과 `If-Match` 검증을 거쳐 `IMMEDIATE` transaction에서 수행한다. `projects` 한 행이 삭제되면 `project_holidays`, `tasks`, `links`, `edit_sessions`의 `ON DELETE CASCADE`가 해당 Project aggregate만 함께 제거한다. Task의 self-reference는 deferred constraint이므로 transaction 종료 시 전체 Project Task가 함께 사라지는 것을 허용한다. Cascade 또는 constraint 처리 중 오류가 나면 Project 삭제 전체가 rollback된다.
 
 ## 8. Transaction 경계
 

@@ -8,7 +8,7 @@
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-12 / 0.5.0 W23 Project 목록 활성화 LOCAL PASS**. D02 승인에 따른 전체 목록을 구현하고 315 Vitest·Chromium 8/8·build/typecheck/lint 및 독립 QA를 통과했다. [W23 검증](docs/W23_REVIEW.md)을 참고한다. W01–W07, W20–W22는 독립 QA PASS / Manager ACCEPT이며 `v0.4.0` GHCR 릴리스까지 검증했다. 현재 private 요금제의 보호 규칙 미강제 위험은 수용하고 GitHub Artifact Attestation은 비활성으로 두며 BuildKit SBOM/provenance를 유지한다.
+기준: **2026-09-12 / 0.6.0 W24 Grid·삭제·계층 작업공간 로컬 PASS**. 목록 표, 권한 기반 삭제, native `+`와 하위 작업·Summary 집계, locale/주말/고정 headers를 구현했다. [W24 검증](docs/W24_REVIEW.md)을 참고한다. `v0.4.0` GHCR 릴리스 증거는 이전 범위로 유지하며 현재 소스의 원격 이미지 검증과 구분한다. Private 요금제의 보호 규칙 미강제 위험은 수용하고 GitHub Artifact Attestation은 비활성, BuildKit SBOM/provenance는 필수다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -24,12 +24,13 @@
 | W21 동기 Gantt 작업공간 | 완료 / 독립 QA PASS | 빈 일정부터 좌측 계층 Grid+우측 Chart, 생성 직후 양쪽 반영, full-width·viewport height, narrow 내부 scroll |
 | W22 Commit GHCR 자동화 | 완료 / 독립 QA PASS | immutable `ci-<SHA>`와 SemVer release를 exact digest로 원격·로컬 검증; PR publish skipped |
 | W23 Project 목록 | 로컬 완료 / 독립 QA PASS | D02 승인, 전체 공개 summary 목록, 생성 후 복귀·reload 조회, 편집 인증 유지 |
-| W08 이후 | 예정 | Summary/WBS, FS 재계산, Import/Export |
+| W24 Grid·삭제·계층 UI | 로컬 PASS / Manager ACCEPT | 목록 표/권한 삭제, native Header·row 추가, Summary 집계, locale·주말·고정 헤더 |
+| W08 이후 | 일부 W24 선행 / 예정 | WBS UI·reparent·유효 subtree 삭제 묶음, FS 재계산, Import/Export |
 | W16 배포 | 일부 기반 선행 / 운영 검증 예정 | Docker/startup/readiness/named volume 기반; 실제 host·proxy·backup/restore 승인 후속 |
 
-홈(`/`)과 `GET /api/projects`는 D02 승인에 따라 전체 Project의 이름·설명·생성/수정 시각과 직접 링크를 제공한다. 생성 후 목록으로 복귀하거나 새로고침하면 저장된 목록을 다시 조회하며, 빈 목록과 조회 실패를 구분한다. `/projects/new`에서 생성하면 `/projects/{publicId}`로 이동한다. Direct snapshot API는 항상 Readonly이며 별도 current-session 확인 뒤에만 편집 control을 표시한다. 모든 Mutation은 서버에서 Project별 인증을 유지한다. Project 화면은 빈 일정부터 동일 SVAR 인스턴스의 좌측 계층 Grid와 우측 Chart를 표시한다. 접이식 작업 관리에서 저장한 row와 bar/milestone은 reload 없이 함께 나타난다. Grid/Chart 경계는 내장 Resizer로 조절하며 좁은 화면은 내부 가로 scroll을 사용한다. Gantt drag/resize는 보호 API와 Scheduling Engine을 거쳐 저장하고 server canonical snapshot으로 복원한다. Summary 생성/reparent와 Link가 있는 일정 변경은 W08/W09 전까지 fail-closed다. `/gantt-demo`는 로컬 fixture다.
+홈(`/`)은 Project를 표 형태로 표시하며 현재 편집 권한이 있는 행에 삭제 기능을 제공한다. 삭제 확인에는 최신 프로젝트명과 모든 일정 제거를 명시하며 서버가 session/Origin/revision을 다시 검증한다. Direct snapshot은 Readonly이며 편집하려면 기존 비밀번호 잠금을 해제한다. Grid Header `+`는 최상위, 행 `+`는 하위 작업 입력창을 연다. 기본 날짜는 브라우저의 오늘, 기간은 1일이며 Auto 근무일 보정은 유지한다. 첫 하위 추가 시 일반 작업을 Summary로 전환한다는 명시 동의가 필요하다. 이후 Summary 날짜와 진척은 자식에서 계산된다. Milestone에는 자식을 추가하지 않으며 빈 Summary 방지를 위해 마지막 자식 단독 삭제는 거부한다. 외부 ID는 표시를 선택할 수 있고 토·일은 Chart 음영으로 구분한다. 날짜는 사용자 locale로 표시하고 설정은 기본 접힌 상태다. Project/Grid/Chart header는 유지한 채 내부를 스크롤한다. Reparent/FS 및 Summary 직접 편집은 후속이며 `/gantt-demo`는 저장 없는 fixture다.
 
-최근 확정된 application 회귀 기준은 build/typecheck/lint, **24개 파일 310개 Vitest**, clean isolated Turbopack Chromium E2E **8개 PASS**다. W22 main/PR와 `v0.4.0` release Actions, GHCR commit/release digest의 원격·로컬 HTTP persistence 및 SBOM/provenance 조회도 PASS했다. W22 상태는 [W22 검토 기록](docs/W22_REVIEW.md), 이전 범위는 [W21 검토 기록](docs/W21_REVIEW.md)과 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다.
+W24 application 회귀 기준은 build/typecheck/lint, **28개 파일 378개 Vitest**, isolated Turbopack Chromium E2E **10개 PASS**다. W22 main/PR와 `v0.4.0` release Actions, GHCR commit/release digest의 원격·로컬 HTTP persistence 및 SBOM/provenance 조회도 PASS했으나 W24 원격 검증을 대신하지 않는다. W22 상태는 [W22 검토 기록](docs/W22_REVIEW.md), 이전 범위는 [W21 검토 기록](docs/W21_REVIEW.md)과 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다.
 
 ## 2. 기술 스택과 역할
 
@@ -37,7 +38,7 @@
 
 | 기술 | 현재 버전 / 상태 | 역할 |
 | --- | --- | --- |
-| masterGantt | 0.4.0 | `package.json` Semantic Version과 GHCR release 기준 |
+| masterGantt | 0.6.0 | 현재 소스 버전. GHCR exact release 게시 여부는 검증 기록과 별도 확인 |
 | Node.js | 최소 22, 검증 22.14.0 | 서버와 CLI 실행 |
 | Next.js | 16.3.4 | App Router, 서버 Route Handler, 빌드 |
 | React / React DOM | 19.3.0 | 화면 컴포넌트 |

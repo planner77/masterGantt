@@ -36,8 +36,15 @@
 | R28 | PR read-only, publish 최소 권한, Action SHA/base digest pin, pre-publish candidate, SBOM/provenance와 registry digest smoke 뒤 exact promotion | CI/CD, [Security](SECURITY.md) |
 | R29 | Project 화면은 Demo 목록 없이 좌측 계층 Task Grid와 우측 동기 Gantt Chart를 단일 SVAR Core로 표시; 빈 일정과 생성 직후에도 양쪽을 유지하고 Desktop viewport 폭·높이를 활용하며 좁은 화면은 내부 scroll로 접근 | [Architecture](ARCHITECTURE.md), [Test Plan](TEST_PLAN.md) UI03–UI10 |
 | R30 | 모든 품질 gate를 통과한 `main` commit은 immutable GHCR `ci-<full SHA>` test image로 게시하고, SemVer release의 `sha-<full SHA>`/exact/rolling tag와 분리; 두 경로 모두 게시 digest를 새로 pull해 image policy, readiness, Project/Task authorization 저장과 restart persistence를 검증 | [CI/CD](CI_CD.md), [Deployment](DEPLOYMENT.md), [Test Plan](TEST_PLAN.md) CI09–CI10 |
+| R31 | Project 목록은 카드가 아닌 표/Grid이며 현재 편집 권한이 있는 Project를 명시적 확인 후 삭제할 수 있음 | API, Security; 삭제는 Project와 종속 일정·session 전체를 원자적으로 제거 |
+| R32 | SVAR Grid Header `+`는 최상위, 행 `+`는 선택 행의 하위 작업 추가(사용자 확정); 이름 입력 및 서버 인증·revision 검증 후 저장 | API, Scheduling; 일반 Task의 최초 하위 추가는 Summary 전환을 명시적으로 확인 |
+| R33 | 외부 ID column 표시/숨김 선택, 작업 생성 기본 시작일 오늘·기간 1일, Chart 토/일 구분 | UI/E2E; 기본 오늘은 브라우저 local 날짜, Auto 근무일 보정 유지 |
+| R34 | 날짜·시간 표시는 사용자 locale을 따르며 저장 date-only/UTC instant 계약은 변경하지 않음 | locale/TZ 경계 테스트; 날짜 문자열을 UTC instant로 파싱해 전날로 표시하지 않음 |
+| R35 | Project 설정은 modal 또는 기본 접힌 패널, Project header와 Grid/Chart header를 유지하며 본문 내부 상하 스크롤 | viewport/E2E geometry 검증 |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
+
+W24의 하위 추가는 일반 Task→Summary 전환에 `convertParentToSummary: true`를 요구한다. Milestone에는 하위를 추가하지 않으며 빈 Summary를 만들지 않도록 마지막 자식 단독 삭제를 거부한다. Summary 자체의 drag/resize/직접 삭제, reparent와 FS 의존 재계산은 이번 UI 확장의 승인 범위가 아니다. 일반 하위 Leaf 변경은 조상 Summary를 다시 계산한다.
 
 ## Assumption
 

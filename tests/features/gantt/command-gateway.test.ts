@@ -1,8 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createTaskUpdateGateway } from "../../../src/features/gantt/command-gateway";
+import {
+  createTaskAddGateway,
+  createTaskUpdateGateway,
+} from "../../../src/features/gantt/command-gateway";
 
 describe("SVAR command gateway", () => {
+  it("intercepts native add events before SVAR creates a temporary local task", () => {
+    const dispatch = vi.fn();
+    const gateway = createTaskAddGateway(dispatch);
+
+    expect(gateway({ target: "parent-task", mode: "child" })).toBe(false);
+    expect(dispatch).toHaveBeenCalledWith({
+      kind: "add-task",
+      targetTaskId: "parent-task",
+      mode: "child",
+    });
+  });
+
   it("ignores transient drag events and collapses duplicate final widget events", async () => {
     const dispatch = vi.fn();
     const gateway = createTaskUpdateGateway(dispatch);

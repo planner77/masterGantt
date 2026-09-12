@@ -254,6 +254,16 @@
 - Status: DONE — 독립 QA PASS / Manager ACCEPT. 실제 persisted Summary 생성·reparent·expand/collapse와 WBS는 W08에 유지한다.
 - Risk: Core compact threshold, nested min-content body overflow, native Add가 보호 mutation을 우회하는 문제, Summary UI를 W08 전에 완료로 오인.
 
+## W24 — Project Grid/Delete/Hierarchical Gantt UI
+
+- Goal: 목록·일정 편집을 Grid 중심으로 개선하고 권한 기반 삭제와 하위작업 입력 지원.
+- Background: 사용자 8개 UI 요구와 행 `+`는 하위 추가라는 명시 결정.
+- Scope: 목록 표/삭제 확인, 보호 DELETE API, native Gantt add intercept, child API/summary engine, 외부ID toggle, today/1day, locale/weekend, 고정 headers.
+- Acceptance Criteria: 무권한/stale 삭제 거부, cascade 원자성, root/child/nested reload, summary min/max·가중진척, invalid/empty/cycle 거부, 날짜 TZ/locale, header 위치·내부 scroll 회귀.
+- Assigned Agent: backend + frontend + scheduler + researcher + qa_docs + Manager.
+- Related Documents: [W24 Review](W24_REVIEW.md), [API](API.md), [Security](SECURITY.md), [Scheduling](SCHEDULING_ENGINE.md).
+- Status: IN PROGRESS.
+
 ## W23 — Project List 활성화
 
 - Goal: 생성한 Project를 홈 목록에서 발견하고 다시 접근할 수 있게 한다.

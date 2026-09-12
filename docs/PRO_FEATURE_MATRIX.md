@@ -1,6 +1,6 @@
 # SVAR Core 활용과 독립 기능 계획
 
-상태: W03 Core-only 최소 통합, W06 독립 Calendar/Leaf Scheduling과 W07 root Task/Milestone persistence 완료. 확인일: 2026-09-11. W07 PASS는 root Leaf 범위이며 Summary/WBS와 FS 재계산 완료를 뜻하지 않는다. 무료 Core가 표현할 수 있는 Link가 곧 본 시스템의 Scheduling 지원 범위인 것은 아니다.
+상태: W03 Core-only 최소 통합, W06 독립 Calendar/Leaf Scheduling과 W07 root Task/Milestone persistence 완료. 확인일: 2026-09-12. W24는 명시적으로 확인한 첫 child 생성과 Summary 집계, 순수 WBS 계산을 선행 구현했지만 W08 전체를 완료한 것은 아니다. Reparent, WBS HTTP DTO/UI와 FS 재계산은 후속이다. 무료 Core가 표현할 수 있는 Link가 곧 본 시스템의 Scheduling 지원 범위인 것은 아니다.
 
 ## 1. 원칙과 근거
 
@@ -10,17 +10,17 @@ Core의 Task·Link 표현, 편집, Tree, Grid·Timeline을 공식 API로 사용�
 
 | 기능 | 공식 제공 구분과 근거 | 본 프로젝트 초기 방침 | 담당 / 상태 |
 | --- | --- | --- | --- |
-| Task·Milestone·Summary 표현, 하위 Tree | Core. [Overview](https://docs.svar.dev/react/gantt/overview/) | 공식 렌더링·Hierarchy UI 사용 | Root Task/Milestone W07 PASS; Summary/Hierarchy W08 |
+| Task·Milestone·Summary 표현, 하위 Tree | Core. [Overview](https://docs.svar.dev/react/gantt/overview/) | 공식 렌더링·Hierarchy UI 사용 | Root Task/Milestone W07 PASS; W24 child 생성·Summary 표시 구현, Reparent/subtree 변경은 W08 후속 |
 | Drag·Resize·편집 Form·Progress UI | Core. [README](https://github.com/svar-widgets/react-gantt) | 공식 이벤트를 명령으로 변환하고 서버 결과 반영 | Frontend / W07 root Task pointer·server·reload PASS |
 | Grid·Timeline·Scale·정렬·필터 | Core. [README](https://github.com/svar-widgets/react-gantt) | 공식 기능 사용. UI 정렬과 저장 WBS 순서는 분리 | Frontend / W03 기본 Grid·Timeline PASS; 정렬·필터 후속 |
 | Readonly | Core. [Overview](https://docs.svar.dev/react/gantt/overview/) | 기본 Readonly와 서버 Mutation 권한 검증 함께 적용 | W05 Project / W07 root Task mutation authorization PASS |
 | Dependency Link 표현·편집 | Core는 FS·SS·FF·SF 표현 제공. [Overview](https://docs.svar.dev/react/gantt/overview/) | UI/API 유효 입력은 초기 FS/0으로 제한 | W03 FS 표현 / W07 Repository foundation PASS; mutation·계산 W09 |
-| 주말·휴일 시각 강조 | Core. [Overview](https://docs.svar.dev/react/gantt/overview/) | Calendar와 같은 날짜 목록으로 강조 | Frontend / 계획 |
+| 주말·휴일 시각 강조 | Core. [Overview](https://docs.svar.dev/react/gantt/overview/) | Calendar와 같은 날짜 목록으로 강조 | Frontend / W24 주말 강조 구현, Project holiday 강조 후속 |
 | 근무 Calendar와 근무일 계산 | Calendar 자동화는 PRO. [공식 문서 홈](https://docs.svar.dev/react/gantt/) | Project Calendar·Duration을 Pure Domain으로 계산 | Scheduler / W06 date-only·weekend·holiday·Leaf PASS |
 | FS 기반 Auto Scheduling | PRO. [README](https://github.com/svar-widgets/react-gantt) | 자체 DAG 검증과 Forward Recalculation | Scheduler / 초기 계획 |
 | 잘못된 Link 처리 | PRO 자동 처리로 명시. [Changelog 2.4.3](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 자체 서버 검증으로 누락·Cycle·미지원 제약 거부 | Scheduler + Backend / 초기 계획 |
-| Summary 자동화 | PRO의 진척 계산·Type 자동 변환. [Changelog 2.5.2](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 날짜·Duration·진척 자체 집계. Type은 명시적으로 검증 | Scheduler / 초기 계획 |
-| WBS 코드 | PRO. [Changelog 2.7](https://docs.svar.dev/react/gantt/whats-new/changelog/) | Parent와 Sibling Order에서 자체 생성 | Scheduler / 초기 계획 |
+| Summary 자동화 | PRO의 진척 계산·Type 자동 변환. [Changelog 2.5.2](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 날짜·Duration·진척 자체 집계. Type은 명시적으로 검증 | W24 child 기반 집계·원자적 첫 전환 구현; Summary는 이름만 API 변경 가능, 일정 직접 편집·삭제는 후속 |
+| WBS 코드 | PRO. [Changelog 2.7](https://docs.svar.dev/react/gantt/whats-new/changelog/) | Parent와 Sibling Order에서 자체 생성 | W24 Pure Domain 계산 구현; HTTP DTO·Grid 표시와 Reparent는 후속 |
 | Web → Excel Export | PRO의 내장 Export. [Overview](https://docs.svar.dev/react/gantt/overview/) | Backend에서 ExcelJS 검토. 표 Export 후 날짜 Cell Gantt | Backend / 단계적 계획 |
 | SS·FF·SF 일정 계산, Lag·Lead | Core Link 표현과 별개. 위 공개 설명만으로 모든 계산 지원을 단정하지 않음 | 독립 Constraint 모델로 향후 검토. v1에서는 명시적 거부 | Scheduler / 후속 |
 | Baseline | PRO. [README](https://github.com/svar-widgets/react-gantt) | 불변 Snapshot 설계 후 독립 비교 계산 | Scheduler + Backend / 후속 |
@@ -43,8 +43,8 @@ WBS는 표준적인 Tree 번호 계산이며 데이터 식별자가 아니다. E
 ## 3. 구현 확인과 후속 완료 기준
 
 - W03에서 설치 Core 2.7.3의 Version·MIT·React peer 범위, browser mount, fixture Task/Milestone/Summary/FS Link, 기본 readonly, 날짜 Adapter round-trip과 local final update command를 검증했다. 근거는 [RESEARCH.md](RESEARCH.md)와 [W03_REVIEW.md](W03_REVIEW.md)에 기록한다.
-- `end` exclusive 해석은 공식 예제 기반 추론이다. W07은 설치된 Core 2.7.3에서 root Task의 실제 이동·좌우 resize, 서버 저장 왕복, 401/412/422/500 및 canonical read 실패 복원, Task/Link ID mapping을 검증했다. Summary와 실제 Link 편집은 W08/W09까지 완료로 표시하지 않는다.
-- [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md)의 Calendar/Leaf fixture는 W06에서 PASS했다. FS·Summary·WBS fixture는 W08/W09까지 완료로 표시하지 않는다.
+- `end` exclusive 해석은 공식 예제 기반 추론이다. W07은 설치된 Core 2.7.3에서 root Task의 실제 이동·좌우 resize, 서버 저장 왕복, 401/412/422/500 및 canonical read 실패 복원, Task/Link ID mapping을 검증했다. W24의 Summary는 이름만 API로 변경할 수 있고 일정 drag/resize와 직접 삭제를 허용하지 않는다. 실제 Link 편집은 W09까지 완료로 표시하지 않는다.
+- [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md)의 Calendar/Leaf fixture는 W06에서 PASS했다. W24는 Parent graph·Summary 집계와 WBS의 순수 계산 및 child 저장 경계를 추가했다. WBS DTO/UI, Reparent와 FS 계산·저장은 W08/W09 후속이므로 전체 완료로 표시하지 않는다.
 - 상용 API를 호출하지 않고 필요한 결과를 표시할 수 있는지 기능별 QA를 수행한다. 확인하지 못한 항목은 완료로 표시하지 않는다.
 
 공식 분류는 공개 문서의 확인 시점 기준이다. 설치 Version에서 달라지면 문서와 Adapter 계획을 함께 갱신한다. 자세한 초기 계약과 후속 기능의 결정 사항은 [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md) 및 [REQUIREMENTS.md](REQUIREMENTS.md)를 따른다.

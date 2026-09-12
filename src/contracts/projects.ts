@@ -108,6 +108,8 @@ export interface ProjectMetadataMutationResponse {
 
 export interface CreateTaskRequest {
   externalId?: string;
+  parentTaskId?: string;
+  convertParentToSummary?: true;
   name: string;
   type: "task" | "milestone";
   scheduleMode?: "auto" | "manual";

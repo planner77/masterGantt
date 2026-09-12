@@ -113,6 +113,53 @@ describe("W07 real task Handler-Service-SQLite integration", () => {
     }
   });
 
+  it("creates a confirmed child and returns its converted summary parent through the real stack", async () => {
+    const value = await fixture();
+    try {
+      const rootResponse = await handleCreateTask(
+        request(value.publicId, "POST", input, {
+          cookie: cookie(value.rawToken),
+        }),
+        value.publicId,
+        { ...dependencies, service: value.service },
+      );
+      const rootBody = await rootResponse.json() as {
+        data: { tasks: { taskId: string; externalId: string }[] };
+      };
+      const root = rootBody.data.tasks[0];
+      const childResponse = await handleCreateTask(
+        request(value.publicId, "POST", {
+          ...input,
+          externalId: "ACT-101",
+          name: "Child",
+          parentTaskId: root.taskId,
+          convertParentToSummary: true,
+        }, {
+          cookie: cookie(value.rawToken),
+          ifMatch: '"2"',
+        }),
+        value.publicId,
+        { ...dependencies, service: value.service },
+      );
+      expect(childResponse.status).toBe(201);
+      expect(childResponse.headers.get("etag")).toBe('"3"');
+      expect(await childResponse.json()).toMatchObject({
+        data: {
+          project: { revision: 3 },
+          tasks: [
+            { externalId: "ACT-100", type: "summary", requestedStart: null },
+            { externalId: "ACT-101", parentExternalId: "ACT-100" },
+          ],
+        },
+      });
+      expect(value.database.prepare(
+        "SELECT type, requested_start FROM tasks WHERE external_id = 'ACT-100'",
+      ).get()).toEqual({ type: "summary", requested_start: null });
+    } finally {
+      value.database.close();
+    }
+  });
+
   it.each(["missing", "malformed", "expired", "revoked", "auth-version"])(
     "rejects a %s Cookie state without changing the aggregate",
     async (state) => {
@@ -215,6 +262,104 @@ describe("W07 real task Handler-Service-SQLite integration", () => {
       expect(value.database.prepare(
         "SELECT tasks.name AS name, projects.revision AS revision FROM tasks JOIN projects ON projects.id = tasks.project_id",
       ).get()).toEqual({ name: "Task", revision: 2 });
+    } finally {
+      value.database.close();
+    }
+  });
+
+  it.each([
+    "requested-schedule",
+    "effective-schedule",
+    "external-id",
+    "name",
+    "sibling-order",
+    "progress",
+    "summary",
+  ])("fails closed with 500 and no mutation for corrupted persisted %s state", async (kind) => {
+    const value = await fixture();
+    try {
+      const authorizationResult = authorization(
+        value.service,
+        value.publicId,
+        value.rawToken,
+      );
+      const root = value.service.createTask(
+        authorizationResult,
+        1,
+        input,
+      ).data.tasks[0];
+      let expectedRevision = 2;
+      let targetTaskId = root.taskId;
+
+      if (kind === "sibling-order") {
+        value.service.createTask(authorizationResult, 2, {
+          ...input,
+          externalId: "ACT-200",
+          name: "Second",
+        });
+        expectedRevision = 3;
+        value.database.prepare(
+          "UPDATE tasks SET sort_order = 0 WHERE external_id = 'ACT-200'",
+        ).run();
+      } else if (kind === "summary") {
+        const childSnapshot = value.service.createTask(authorizationResult, 2, {
+          ...input,
+          externalId: "ACT-101",
+          name: "Child",
+          parentTaskId: root.taskId,
+          convertParentToSummary: true,
+        });
+        expectedRevision = 3;
+        targetTaskId = childSnapshot.data.tasks.find(
+          (task) => task.externalId === "ACT-101",
+        )!.taskId;
+        value.database.prepare(
+          "UPDATE tasks SET start_date = '2026-09-15' WHERE external_id = 'ACT-100'",
+        ).run();
+      } else if (kind === "requested-schedule") {
+        value.database.prepare(
+          "UPDATE tasks SET requested_start = '2026-02-30'",
+        ).run();
+      } else if (kind === "effective-schedule") {
+        value.database.prepare(
+          "UPDATE tasks SET end_date = '2026-09-12'",
+        ).run();
+      } else if (kind === "external-id") {
+        value.database.pragma("ignore_check_constraints = ON");
+        value.database.prepare(
+          "UPDATE tasks SET external_id = ' invalid-id'",
+        ).run();
+      } else if (kind === "name") {
+        value.database.prepare(
+          "UPDATE tasks SET name = ' padded name '",
+        ).run();
+      } else if (kind === "progress") {
+        value.database.pragma("ignore_check_constraints = ON");
+        value.database.prepare("UPDATE tasks SET progress = 101").run();
+      }
+
+      const rowsBefore = value.database.prepare(
+        "SELECT * FROM tasks ORDER BY id",
+      ).all();
+      const response = await handleUpdateTask(
+        request(value.publicId, "PATCH", { name: "Must not persist" }, {
+          taskId: targetTaskId,
+          cookie: cookie(value.rawToken),
+          ifMatch: `"${expectedRevision}"`,
+        }),
+        value.publicId,
+        targetTaskId,
+        { ...dependencies, service: value.service },
+      );
+
+      expect(response.status).toBe(500);
+      expect(await response.json()).toMatchObject({
+        error: { code: "INTERNAL_ERROR" },
+      });
+      expect(value.database.prepare("SELECT * FROM tasks ORDER BY id").all())
+        .toEqual(rowsBefore);
+      expect(value.database.prepare("SELECT revision FROM projects").pluck().get())
+        .toBe(expectedRevision);
     } finally {
       value.database.close();
     }

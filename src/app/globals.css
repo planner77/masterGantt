@@ -119,6 +119,8 @@ button:focus-visible {
 
 .main-content:has(> .project-page-shell) {
   width: calc(100% - 3rem);
+  display: flex;
+  min-height: calc(100dvh - 4rem);
   padding-block: 1.25rem;
 }
 
@@ -409,9 +411,12 @@ h2 {
 }
 
 .project-readonly {
-  display: grid;
-  gap: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+  min-height: 0;
   min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
   width: 100%;
   max-width: 100%;
 }
@@ -420,6 +425,8 @@ h2 {
    the viewport instead of the narrow marketing-page measure. */
 .project-page-shell {
   width: 100%;
+  display: flex;
+  min-height: 0;
 }
 
 .project-readonly-heading {
@@ -427,6 +434,21 @@ h2 {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.project-readonly > :not(.project-schedule) {
+  flex: 0 0 auto;
+}
+
+.project-readonly-heading h1 {
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+
+.project-readonly-heading .page-description {
+  margin-top: 0.375rem;
+  max-height: 3rem;
+  overflow: auto;
 }
 
 .readonly-badge {
@@ -469,6 +491,12 @@ h2 {
   display: block;
   padding: 0;
   overflow: hidden;
+}
+
+/* Keep optional configuration from consuming the workspace viewport. */
+.edit-panels[open] {
+  max-height: min(20rem, 32dvh);
+  overflow: auto;
 }
 
 .edit-panels > summary {
@@ -535,9 +563,10 @@ h2 {
 }
 
 .project-facts div {
-  display: grid;
-  gap: 0.25rem;
-  padding: 1rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
   border-right: 1px solid var(--border);
 }
 
@@ -546,11 +575,18 @@ h2 {
 .project-facts dd { margin: 0; color: var(--foreground); font-weight: 650; }
 
 .project-schedule {
-  display: grid;
-  gap: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  min-height: 0;
   min-width: 0;
+  flex: 1 1 0;
+  flex-direction: column;
   width: 100%;
   max-width: 100%;
+}
+
+.project-schedule > :not(.project-gantt-frame) {
+  flex: 0 0 auto;
 }
 
 .schedule-heading-row {
@@ -558,6 +594,17 @@ h2 {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.schedule-heading-row > div {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.schedule-heading-row h2 {
+  font-size: 1rem;
 }
 
 .schedule-heading-row h2,
@@ -587,22 +634,149 @@ h2 {
 }
 
 .project-gantt-scroll {
-  height: clamp(30rem, calc(100vh - 20rem), 52rem);
-  min-height: 26rem;
+  /* SVAR's `height: 100%` resolves against this definite zero flex base.
+     The surrounding frame receives only the space remaining below project
+     controls, so long task lists scroll inside the native Gantt. */
+  height: 0;
+  min-height: 0;
   min-width: 0;
   width: 100%;
   max-width: 100%;
+  flex: 1 1 auto;
   contain: inline-size;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
+}
+
+.project-gantt-tools {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.project-gantt-frame {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0;
+  flex-direction: column;
+}
+
+/* Willow creates this theme wrapper around the toolbar and Gantt frame.
+   It must participate in the viewport flex chain so SVAR owns vertical
+   scrolling while its Grid and timeline headers remain fixed. */
+.project-gantt-frame > .wx-willow-theme {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+/* The Gantt component adds its own Willow theme root inside the application
+   theme provider. It is the direct owner of the toolbar and scroll frame. */
+.project-gantt-frame > .wx-willow-theme > .wx-willow-theme {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.gantt-column-toggle {
+  margin-top: 0;
+}
+
+.task-confirm-dialog {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  padding: 1rem;
+}
+
+.task-confirm-dialog[open] {
+  display: grid;
+  place-items: center;
+}
+
+.task-confirm-dialog::backdrop {
+  background: rgb(23 32 51 / 0.35);
+}
+
+.task-confirm-dialog-card {
+  width: min(100%, 31rem);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: 0 1rem 3rem rgb(23 32 51 / 0.2);
+  padding: 1.5rem;
+}
+
+.task-confirm-dialog-card h3 {
+  margin-bottom: 0.5rem;
+}
+
+.task-confirm-dialog-card > p:not(.eyebrow) {
+  margin-bottom: 0;
+  color: var(--muted-foreground);
+}
+
+.task-confirm-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.task-native-date-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.task-conversion-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.task-conversion-confirmation input {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.15rem;
+  accent-color: var(--primary);
+}
+
+.task-confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.task-confirm-dialog-actions .secondary-button,
+.task-confirm-dialog-actions .primary-button {
+  margin-top: 0;
 }
 
 .gantt-widget.project-gantt-widget {
   min-width: 45rem;
   height: 100%;
   overflow: hidden;
+}
+
+@media (min-width: 48.0625rem) {
+  .project-readonly {
+    height: calc(100dvh - 6.5rem);
+  }
+
 }
 
 .task-edit-panel {
@@ -612,6 +786,11 @@ h2 {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
+}
+
+.task-edit-panel[open] {
+  max-height: min(24rem, 38dvh);
+  overflow: auto;
 }
 
 .task-edit-panel > summary {
@@ -713,7 +892,9 @@ h2 {
 
 @media (max-width: 48rem) {
   .task-form-grid { grid-template-columns: 1fr; }
+  .task-native-date-grid { grid-template-columns: 1fr; }
   .task-delete-control > div { align-items: stretch; flex-direction: column; }
+  .project-gantt-scroll,
   .project-gantt-widget { min-height: 22rem; }
 }
 

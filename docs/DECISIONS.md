@@ -55,8 +55,10 @@
 | ADR49 | ACCEPT WITH EXPLICIT RISK / W22 STATUS SUPERSEDES AUTH BLOCK | D04는 GHCR private, consumer 최소 `packages: read`, `main` 필수 CI, PR 필수 승인 0명, `v*` tag update/delete 금지와 지정 maintainer release로 확정 | 사용자는 과거 도구 출력에 노출된 repository credential을 교체하지 않고 재사용하기로 결정했다. 이는 안전 판정이 아닌 잔여 위험 수용이다. 당시 usable 인증이 없었으나 W22에서 admin 인증은 성공했고, ruleset의 plan 제한과 실제 Actions/GHCR 증거는 ADR51/W22 상태로 추적한다 |
 | ADR50 | ACCEPT | 성공한 `main` commit마다 immutable `ci-<full SHA>` test image를 게시하고 SemVer release의 `sha-<full SHA>` tag 공간과 분리 | PR/수동 CI는 read-only; main publish는 quality/E2E/container gate 뒤 실행하며 commit/release 모두 registry digest를 다시 pull해 Project/Task authorization과 restart persistence까지 검증 |
 | ADR51 | ACCEPT WITH EXPLICIT RISK | Private repository를 현재 요금제에 유지하고 branch/tag ruleset 미강제 위험을 수용; GitHub Artifact Attestation은 비활성, BuildKit SBOM/provenance는 필수 | Admin 인증은 성공했지만 ruleset API는 요금제 제한 403. 보호가 적용됐다고 표시하지 않고 지정 maintainer·절차 통제를 유지하며, 실제 Actions/GHCR artifact는 별도 원격 증거 전 NOT TESTED |
-
 | ADR52 | ACCEPT | D02 승인으로 앱 접속자 전체 Project 목록 활성화 | 홈과 GET collection은 공개 summary만 제공하고 no-store로 생성 후 재조회한다. 내부 ID·credential·session 제외, 모든 기존 Mutation 인증 유지. 운영 네트워크/인터넷 공개는 별도 결정. ADR26의 discovery 405 정책 대체 |
+| ADR53 | ACCEPT | W24는 목록 표/Grid와 Project별 edit session·Origin·If-Match로 보호한 원자적 삭제 제공 | 삭제 확인에 대상 이름·종속 일정 제거를 명시, stale revision 자동 재삭제 금지, 실패는 DB 전체 유지 |
+| ADR54 | ACCEPT | 사용자 확정: Header `+`는 root, 행 `+`는 child 추가 | native add-task intercept로 local 임의 저장을 막고 서버 canonical snapshot 반영. 일반 Task→Summary는 확인 및 명시 flag 필요. Summary 계산은 독립 Domain, milestone parent/빈 summary 거부. ADR48 native add 제외 정책 대체 |
+| ADR55 | ACCEPT | 날짜 표시와 오늘 기본값은 브라우저 locale/local date; 저장은 date-only 및 기존 Calendar 유지 | Grid/Chart/List Intl formatter, 토·일 음영, 외부ID 선택, viewport 내부 세로 scroll과 고정 headers. 오늘이 비근무일이면 Auto engine의 다음 근무일 보정과 안내 유지 |
 
 ## Integration 원칙
 

@@ -1,6 +1,6 @@
 # Scheduling Engine 설계
 
-상태: W06 Working Calendar and Duration 구현과 W07 root Leaf/Milestone 저장 연결을 독립 QA PASS / Manager ACCEPT했다. Gregorian date-only, Project Calendar, 근무일 연산과 calendar-only Leaf/Milestone 계산은 `src/domain/scheduling/`에 있고, W07 Service와 SVAR Adapter가 이를 호출한다. Summary/WBS와 FS 재계산·Calendar mutation은 W08/W09 후속이다. 근거는 [W06_REVIEW.md](W06_REVIEW.md), [W07_REVIEW.md](W07_REVIEW.md), 외부 입력 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)이다.
+상태: W06 Working Calendar and Duration 구현과 W07 root Leaf/Milestone 저장 연결을 독립 QA PASS / Manager ACCEPT했다. Gregorian date-only, Project Calendar, 근무일 연산과 calendar-only Leaf/Milestone 계산은 `src/domain/scheduling/`에 있다. W24는 사용자 승인된 행 `+` 하위 작업 추가를 위해 독립 Summary/WBS 계층 계산을 구현하고 서비스 연결을 확장한다. FS 재계산·Calendar mutation은 후속 범위다. 근거는 [W06_REVIEW.md](W06_REVIEW.md), [W07_REVIEW.md](W07_REVIEW.md), 외부 입력 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)이다.
 
 ## 1. 범위와 결정 구분
 
@@ -102,9 +102,9 @@ Resize는 Adapter가 사용자가 선택한 구간을 근무일 Duration으로 �
 
 ## 6. Parent Tree, Summary와 WBS
 
-Parent Tree와 Dependency Graph는 별개로 검증한다. Parent는 같은 Project에 존재하는 `summary`만 가능하다. 자기 Parent, Missing Parent, Parent Cycle을 거부한다. 일반 Task와 Milestone은 자식을 갖지 않는다. 잘못된 Type을 자동 변환하지 않는다.
+Parent Tree와 Dependency Graph는 별개로 검증한다. 최종 Snapshot의 Parent는 같은 Project에 존재하는 `summary`만 가능하다. 자기 Parent, Missing Parent, Parent Cycle을 거부한다. 일반 Task와 Milestone은 자식을 갖지 않는다. 잘못된 Type을 Engine에서 자동 변환하지 않는다. W24의 첫 하위 작업 추가는 UI 확인과 명시적 `convertParentToSummary: true` 명령을 받은 Service가 기존 일반 Task를 Summary로 바꾸고 자식을 함께 생성하는 원자적 변경이다. Milestone은 Parent로 전환하지 않는다.
 
-초기 설계 가정으로 Empty Summary는 거부한다. Summary와 자식을 한 번의 변경으로 생성할 수 있으며 검증 대상은 변경 후 전체 Snapshot이다. 마지막 자식 삭제도 Summary 삭제·명시적 Type 변경을 포함하는 유효한 변경 묶음으로 처리한다. UI 명령 계약에서 이 동작을 지원해야 한다.
+Empty Summary는 거부한다. Summary와 자식을 한 번의 변경으로 생성할 수 있으며 검증 대상은 변경 후 전체 Snapshot이다. W24에서는 마지막 자식 삭제 및 Summary 직접 삭제를 거부하여 Empty Summary 또는 암묵적인 하위 전체 삭제가 발생하지 않게 한다. 향후 마지막 자식 삭제를 허용하려면 Summary 삭제·명시적 Type 변경을 포함하는 유효한 변경 묶음과 별도 UI 명령 계약이 필요하다.
 
 하위에서 상위 순서로 다음 값을 계산한다.
 
@@ -116,6 +116,20 @@ Parent Tree와 Dependency Graph는 별개로 검증한다. Parent는 같은 Proj
 Summary 입력 날짜·Duration·Progress를 최종 계산에 사용하지 않는다. Import에서 제공되었다면 원본과 파생 결과의 차이를 Preview로 알리는 방식은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)에 따른다. 자식 일정·진척·Parent 변경과 삭제 후 모든 조상 Summary를 다시 계산한다. 필터로 숨긴 자식도 계산에 포함한다.
 
 WBS는 Parent Tree의 형제 순서에 따라 `1`, `1.1`, `1.2`, `2` 형태로 계산한다. Root도 저장된 순서를 따른다. 화면 정렬·필터는 저장 순서를 바꾸지 않는다. 명시적 Reorder·Reparent 후 WBS를 다시 계산한다. 배열에서 자식이 Parent보다 먼저 나와도 모든 ID를 먼저 등록하여 처리한다. WBS가 달라져도 External ID와 Dependency 참조는 유지된다.
+
+### W24 공개 계층 API와 계산 경계
+
+`recalculateHierarchy(tasks, calendar)`는 canonical Leaf 일정과 변경 후 전체 Project Task Snapshot을 받아 Summary와 WBS를 계산한다. 입력 필드는 `taskId`, `externalId`, `parentExternalId`, `siblingOrder`, `type`, `requestedStart`, `start`, `end`, `duration`, `progress`, `scheduleMode`다. 다른 DTO 필드를 보존하며 입력 배열 순서를 유지한 새 동결 배열과 새 동결 Task 객체를 반환한다. WBS는 Domain 결과에 포함하지만 W24 HTTP DTO에 새 필드를 요구하지 않는다.
+
+- Service는 변경 Leaf를 `scheduleLeaf`로 먼저 계산하고 명시적인 Task→Summary 전환을 완료한 Snapshot을 전달한다. Engine은 Parent/Type을 바꾸지 않고 Leaf를 다시 스케줄하지 않는다.
+- Summary의 기존 날짜·기간·진척·모드는 계산에 사용하지 않는다. 결과는 하위 Leaf만을 집계하며 `scheduleMode: auto`, `requestedStart: null`이다. 중첩 Summary의 중간 진척률을 반올림하거나 Span을 가중치로 중복 집계하지 않는다.
+- Leaf 시작/종료 날짜는 유효한 근무일이어야 하며 기간과 양 끝 포함 근무일 수가 일치해야 한다. Milestone은 기간 0, 시작=종료다. Leaf Progress는 유한한 `0..100`이다. 자동/수동 요청 시작일의 실제 스케줄 정규화는 앞 단계 `scheduleLeaf`의 책임이다.
+- ID와 External ID는 각각 유일하고 Parent는 Snapshot 안의 Summary여야 한다. 형제 순서는 0 이상 Safe Integer이고 같은 Parent 안에서 중복할 수 없다. 삭제로 생긴 번호 간격은 허용하며 WBS 표시 번호는 형제 정렬 순서로 다시 계산한다.
+- 상한은 기존 API 기준으로 `MAX_HIERARCHY_TASKS=5000`, `MAX_HIERARCHY_DEPTH=64`(Root 깊이 1)다. 배열이 비었으면 유효한 빈 결과다. 순환·부모 누락·빈 Summary·상한 초과는 `SchedulingError`로 전체 실패한다. 부분 결과는 반환하지 않는다.
+- ID Map과 Root-first 반복 순회로 Parent Graph를 검증한다. 방문하지 못한 노드가 있으면 Parent Cycle이며 잔여 모든 노드를 실제 Cycle 경로라고 과대 표시하지 않는다. 역순 순회로 조상 집계를 수행해 JavaScript 재귀 Stack에 의존하지 않는다.
+- Leaf 전체 날짜 Span에 근무일 Prefix Count를 한 번 작성한다. Calendar Span은 기존 날짜 범위 안의 최대 109,573일이며 Summary Span/Leaf 기간 검증은 Prefix 조회로 처리한다. 형제 정렬을 포함한 비용은 `O(N log N + D log(H+1) + W)`, 메모리는 `O(N + D + W)`다. N은 Task 수, D는 전체 날짜 Span, H는 Holiday 수, W는 WBS 문자열 총 길이다. Calendar Prefix를 제외한 알고리즘만 O(N)이라고 전체 성능을 표시하지 않는다.
+
+`tests/domain/scheduling/hierarchy.test.ts`는 중첩 집계, 비정수 진척, 순수 Milestone 평균, 주말·휴일 경계, 자식 갱신·삭제 후 조상 재계산, WBS와 비연속 입력 순서, 순환/부모 누락/잘못된 Type/빈 Summary, 형제 중복, 날짜·기간·진척 검증, 깊이·노드 상한 및 입력 불변/멱등성을 검증한다. Dependency, Reparent, Calendar 변경은 W24 계층 함수의 범위에 포함하지 않는다. API 권한·Revision·원자적 저장은 Service 통합 테스트에서 별도로 검증한다.
 
 ## 7. FS Dependency와 Manual/Auto
 
@@ -178,7 +192,7 @@ Task 수 N, Dependency 수 E, Holiday 수 H일 때 ID·그래프 검증과 위�
 
 ## 10. 구현 시 필수 검증
 
-W06 범위인 날짜·Calendar·Leaf Duration·Milestone·단일 Leaf Manual 시작과 runtime 결정성은 **PASS**다. W07에서는 지원 범위인 root Leaf/Milestone 저장의 권한·Project 격리·Revision 충돌·Rollback·재조회 일치까지 **PASS**했다. 아래 표는 전체 Scheduling Engine의 최종 검증 목표이며, Graph/Cycle/Summary/WBS와 Dependency 기반 전체 재계산·저장은 W08/W09까지 **NOT TESTED/BLOCKED**다. W06 자동화 증거는 [W06_REVIEW.md](W06_REVIEW.md), W07 저장 증거는 [W07_REVIEW.md](W07_REVIEW.md)에 기록한다.
+W06 범위인 날짜·Calendar·Leaf Duration·Milestone·단일 Leaf Manual 시작과 runtime 결정성은 **PASS**다. W07에서는 지원 범위인 root Leaf/Milestone 저장의 권한·Project 격리·Revision 충돌·Rollback·재조회 일치까지 **PASS**했다. W24의 Pure Parent Graph/Cycle/Summary/WBS와 계층 입력 불변·상한은 Domain Unit Test로 검증한다. 아래 표는 전체 Scheduling Engine의 최종 검증 목표이며 Dependency 기반 재계산·저장, Reparent와 Calendar 변경은 아직 후속 범위다. W06 자동화 증거는 [W06_REVIEW.md](W06_REVIEW.md), W07 저장 증거는 [W07_REVIEW.md](W07_REVIEW.md)에 기록한다.
 
 | 영역 | 필수 검증 |
 | --- | --- |

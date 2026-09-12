@@ -1,6 +1,6 @@
 # Active execution plan
 
-상태: **W23 Project List 활성화 LOCAL PASS / QA PASS / Manager ACCEPT**. D02 승인에 따라 전체 공개 summary 목록을 제공하며 기존 편집 인증은 유지한다. 315 Vitest, Chromium 8/8, build/typecheck/lint를 PASS했다. 이번 코드의 원격 CI/이미지는 별도 검증 대상이다. 다음 Scheduling 구현은 W08 Hierarchy Summary and WBS다. 근거: [Requirements](../../REQUIREMENTS.md), [W23 Review](../../W23_REVIEW.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md).
+상태: **W24 Project Grid/Delete/Hierarchical Gantt UI LOCAL PASS / Manager ACCEPT**. 목록 표·보호 삭제·native Header/행 `+`·child 저장/summary 집계·locale·주말·고정 header 작업공간을 구현했다. 전체 Unit 378/28 files, Chromium E2E 10, build/typecheck/lint PASS. 사용자 승인으로 W08의 Summary/계층 일부를 선행하되 WBS/reparent/FS 전체를 완료로 처리하지 않는다. 원격 CI/이미지 결과는 별도이다. 근거: [Requirements](../../REQUIREMENTS.md), [W24 Review](../../W24_REVIEW.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md).
 
 ## Phase와 Task
 
@@ -22,7 +22,8 @@
 | P1 | W21 Synchronized Gantt Workspace | W03,W07 | frontend + researcher + qa_docs + Manager | UI03–10, empty/0→1 Grid+Chart, explicit columns/gridWidth, Desktop viewport geometry, narrow inner scroll, auth/persistence regression | DONE / PASS / ACCEPT | persisted Summary/reparent/WBS는 W08; Resizer pointer 자동화 미검증 |
 | P1 | W22 Main Commit GHCR Automation | W20,W21 | infra + qa_docs + Manager | 성공한 main만 immutable `ci-<SHA>` 게시, release `sha-<SHA>`와 분리, 두 digest를 registry에서 새로 pull해 policy/readiness/HTTP Project·Task auth/restart persistence 검증, PR·수동 CI read-only | DONE / PASS / ACCEPT | ruleset 미강제 위험 수용, GitHub Attestation 비활성; W16 운영 범위 별도 |
 | P1 | W23 Project List 활성화 | D02,W04,W05 | backend + frontend + qa_docs + Manager | 전체 공개 summary, 최신 수정순, no-store, 생성→목록 복귀·reload, secret 제외, 기존 Mutation 인증 유지 | DONE LOCAL / PASS / ACCEPT | 원격 이미지·운영 네트워크 공개는 별도 |
-| P2 | W08 Hierarchy Summary and WBS | W06,W07 | scheduler + backend + frontend | SCH08–10; Summary+첫 child 성공, final empty/cycle 거부, REAL progress 정확성 | PLANNED | 중간 invalid state·정렬 |
+| P1 | W24 Project Grid/Delete/Hierarchical Gantt UI | W23,W06,W07 | backend + frontend + scheduler + researcher + qa_docs + Manager | 표 목록·권한 삭제, Header root/row child, 명시 Summary 전환·집계, today/1day·locale·주말·column toggle·고정 headers | LOCAL PASS / ACCEPT | 원격 CI/image 별도 확인; subtree/reparent 후속 |
+| P2 | W08 Hierarchy Summary and WBS | W06,W07 | scheduler + backend + frontend | SCH08–10; Summary+첫 child 성공, final empty/cycle 거부, REAL progress 정확성 | PARTIAL IN W24 | WBS/reparent 및 유효한 subtree 삭제 묶음 후속 |
 | P2 | W09 FS Scheduling Recalculation | W06,W07 | scheduler + backend | SCH04–07/11; Manual conflict 전체 rollback, link 제거 날짜 복귀, 미지원 관계 명시 오류 | PLANNED | cycle·달력 계산 비용 |
 | P3 | W10 Excel/VBA Environment POC | D01,W11의 작은 browser parser harness | excel_vba + researcher | 승인 VBA·추출·JSON/CSV 저장·한글/날짜·browser 실제 파일 읽기 증거; 후속 앱 통합은 W12/W13 후 | BLOCKED ENVIRONMENT | 조직 정책·원본 구조 |
 | P3 | W11 Import Contract Executable Fixtures | Bootstrap 최종 QA, W06 | backend + excel_vba | Backend+Excel 공동 리뷰, Unicode ID·summary·FS/end·BOM/quote·limits, QA 승인; 단독 변경 없음 | PLANNED | 정규화 손실 |

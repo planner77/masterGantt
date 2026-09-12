@@ -10,3 +10,4 @@ export {
   type HolidayInput, type WorkingCalendarInput, type WorkingCalendar,
 } from "./calendar";
 export { scheduleLeaf, type LeafScheduleInput, type LeafSchedule, type CalendarShiftWarning } from "./leaf";
+export { recalculateHierarchy, MAX_HIERARCHY_TASKS, MAX_HIERARCHY_DEPTH, type HierarchyTaskInput } from "./hierarchy";

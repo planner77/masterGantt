@@ -16,7 +16,19 @@ export type SchedulingErrorCode =
   | "INVALID_TASK_TYPE"
   | "INVALID_SCHEDULE_MODE"
   | "INVALID_DURATION"
-  | "END_DURATION_MISMATCH";
+  | "END_DURATION_MISMATCH"
+  | "INVALID_HIERARCHY_INPUT"
+  | "HIERARCHY_TASK_LIMIT_EXCEEDED"
+  | "HIERARCHY_DEPTH_EXCEEDED"
+  | "DUPLICATE_TASK_ID"
+  | "DUPLICATE_EXTERNAL_ID"
+  | "INVALID_SIBLING_ORDER"
+  | "DUPLICATE_SIBLING_ORDER"
+  | "MISSING_PARENT"
+  | "INVALID_PARENT_TYPE"
+  | "PARENT_CYCLE"
+  | "EMPTY_SUMMARY"
+  | "INVALID_PROGRESS";
 
 /** Safe structured context; never includes an entire caller payload. */
 export interface SchedulingErrorContext {

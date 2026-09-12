@@ -2,7 +2,7 @@
 
 ## 1. Security Model
 
-이 문서는 Project별 Edit Password와 browser edit session을 사용하는 초기 보안 정책의 Source of Truth이다. W02에서 DB 격리·parameter binding을, W04에서 생성 bootstrap과 Direct Readonly를 구현했다. W05는 password verification, session consumption·revoke·rotation과 Project metadata 보호 mutation을, W07은 root Task/Milestone 보호 mutation을 구현했다. 자동화·독립 검증 범위와 후속 Link/Import 보안 경계는 [W05 검증 기록](W05_REVIEW.md), [W07 검증 기록](W07_REVIEW.md)에서 구분한다.
+이 문서는 Project별 Edit Password와 browser edit session을 사용하는 초기 보안 정책의 Source of Truth이다. W02에서 DB 격리·parameter binding을, W04에서 생성 bootstrap과 Direct Readonly를 구현했다. W05는 password verification, session consumption·revoke·rotation과 Project metadata 보호 mutation을, W07은 root Task/Milestone 보호 mutation을 구현했다. W24는 같은 서버 권한 경계 안에 Project 영구 삭제와 child hierarchy mutation을 추가했다. 자동화·독립 검증 범위와 후속 Link/Import 보안 경계는 각 검증 기록에서 구분한다.
 
 핵심 경계는 다음과 같다.
 
@@ -89,7 +89,7 @@ Cookie serializer는 production HTTPS에서 `__Host-mastergantt_edit`, `Secure`,
 
 각 protected Route Handler는 동일 authorization middleware/service를 거친다.
 
-W05는 이 공통 경계를 Project metadata PATCH와 edit-password PUT에, W07은 Task POST/PATCH/DELETE에 적용했다. W04 create는 preexisting session이 없는 bootstrap 예외다. 후속 Calendar/Link/Import Route는 추가되는 즉시 같은 inventory와 검증 경계를 통과해야 한다.
+W05는 이 공통 경계를 Project metadata PATCH와 edit-password PUT에, W07은 Task POST/PATCH/DELETE에 적용했다. Project DELETE도 같은 Origin/session/If-Match 경계를 사용하며 성공 시 현재 Cookie를 만료한다. W04 create는 preexisting session이 없는 bootstrap 예외다. 후속 Calendar/Link/Import Route는 추가되는 즉시 같은 inventory와 검증 경계를 통과해야 한다.
 
 1. URL `publicId` 형식 검증
 2. Cookie 존재 및 최대 길이 검증
@@ -104,12 +104,15 @@ Repository query는 항상 검증된 `project_id`를 포함한다. Task/link ext
 보호 대상에는 최소 다음이 포함된다.
 
 - Project metadata, calendar, password 변경
+- Project와 그 Project-scoped 일정·session의 영구 삭제
 - Task create/update/delete/reorder/reparent
 - Dependency create/update/delete
 - Import preview와 import commit
 - 이후 추가되는 모든 일정 변경 API
 
-Project 생성은 preexisting session이 존재할 수 없는 명시적 예외이다. Same-Origin 검사, payload 제한, password hashing, creation rate limit을 거친다. 성공 시 생성 transaction과 연결된 최초 edit session을 발급한다. Project delete는 초기 범위에 없다.
+Project 생성은 preexisting session이 존재할 수 없는 명시적 예외이다. Same-Origin 검사, payload 제한, password hashing, creation rate limit을 거친다. 성공 시 생성 transaction과 연결된 최초 edit session을 발급한다.
+
+Project 삭제는 `DELETE /api/projects/{publicId}`에서만 수행한다. Handler의 사전 검사 뒤에도 `IMMEDIATE` write transaction 안에서 session·Project binding·auth version·strict expiry와 revision을 다시 확인한다. Project row 삭제와 FK cascade에 의한 holiday/task/link/edit-session 정리는 하나의 원자적 변경이며 실패하면 전체 rollback한다. 다른 Project Cookie는 현행 단일 root Cookie 구조에서도 대상 Project 권한이 아니므로 `401`로 거부하고 보존한다. 성공한 대상 Cookie만 동일 속성으로 만료한다. UI 확인은 실수 방지 장치이며 server authorization을 대신하지 않는다.
 
 ## 5. CSRF와 Origin 정책
 

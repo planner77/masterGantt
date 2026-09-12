@@ -17,12 +17,17 @@ import {
 import { isCanonicalUuidV4 } from "./project-contract";
 import {
   DuplicateExternalIdError,
+  EmptySummaryNotAllowedError,
   EditSessionInvalidError,
+  InvalidParentTaskError,
   InvalidTaskInputError,
+  ParentConversionRequiredError,
   PersistedScheduleInvalidError,
   RevisionMismatchError,
   TaskLimitExceededError,
   TaskNotFoundError,
+  SummaryScheduleReadonlyError,
+  SummaryTaskDeleteUnsupportedError,
   UnsupportedScheduleStructureError,
   type AuthorizationResult,
   type AuthorizedEditSession,
@@ -159,6 +164,36 @@ function finishError(error: unknown, requestId: string): Response {
       409,
       "TASK_LIMIT_EXCEEDED",
       "The project task limit has been reached.",
+    );
+  } else if (error instanceof ParentConversionRequiredError) {
+    mapped = new PublicApiError(
+      409,
+      "PARENT_CONVERSION_REQUIRED",
+      "Explicit confirmation is required to convert the task to a summary.",
+    );
+  } else if (error instanceof InvalidParentTaskError) {
+    mapped = new PublicApiError(
+      409,
+      "INVALID_PARENT_TASK",
+      "The selected task cannot contain child tasks.",
+    );
+  } else if (error instanceof EmptySummaryNotAllowedError) {
+    mapped = new PublicApiError(
+      409,
+      "EMPTY_SUMMARY_NOT_ALLOWED",
+      "The last child of a summary cannot be deleted.",
+    );
+  } else if (error instanceof SummaryTaskDeleteUnsupportedError) {
+    mapped = new PublicApiError(
+      409,
+      "SUMMARY_DELETE_UNSUPPORTED",
+      "Summary task deletion is not supported.",
+    );
+  } else if (error instanceof SummaryScheduleReadonlyError) {
+    mapped = new PublicApiError(
+      409,
+      "SUMMARY_SCHEDULE_READONLY",
+      "Summary schedule fields are derived from child tasks.",
     );
   } else if (error instanceof SchedulingError) {
     const path = error.context.field === "requestedStart"

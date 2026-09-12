@@ -311,6 +311,14 @@ export class ProjectRepository {
     return result.changes === 1 ? this.findById(projectId) : undefined;
   }
 
+  deleteByIdAtRevision(projectId: number, expectedRevision: number): boolean {
+    const result = this.database.prepare(
+      `DELETE FROM projects
+       WHERE id = ? AND revision = ?`,
+    ).run(projectId, expectedRevision);
+    return result.changes === 1;
+  }
+
   rotatePassword(
     projectId: number,
     password: Omit<NewProjectRecord, "publicId" | "name" | "description" | "calendarTimezone" | "createdAt" | "updatedAt">,

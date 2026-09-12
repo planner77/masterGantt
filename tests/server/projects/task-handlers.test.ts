@@ -9,12 +9,17 @@ import {
 } from "../../../src/server/projects/task-handlers-core";
 import {
   DuplicateExternalIdError,
+  EmptySummaryNotAllowedError,
   EditSessionInvalidError,
+  InvalidParentTaskError,
   InvalidTaskInputError,
+  ParentConversionRequiredError,
   PersistedScheduleInvalidError,
   RevisionMismatchError,
   TaskLimitExceededError,
   TaskNotFoundError,
+  SummaryScheduleReadonlyError,
+  SummaryTaskDeleteUnsupportedError,
   UnsupportedScheduleStructureError,
   type AuthorizedEditSession,
 } from "../../../src/server/projects/project-service-core";
@@ -256,6 +261,26 @@ describe("W07 task handlers", () => {
         requestId: "request-id",
       },
     });
+  });
+
+  it.each([
+    [new ParentConversionRequiredError(), "PARENT_CONVERSION_REQUIRED"],
+    [new InvalidParentTaskError(), "INVALID_PARENT_TASK"],
+    [new EmptySummaryNotAllowedError(), "EMPTY_SUMMARY_NOT_ALLOWED"],
+    [new SummaryTaskDeleteUnsupportedError(), "SUMMARY_DELETE_UNSUPPORTED"],
+    [new SummaryScheduleReadonlyError(), "SUMMARY_SCHEDULE_READONLY"],
+  ])("maps hierarchy conflict %s to stable 409 code %s", async (failure, code) => {
+    const service = api();
+    service.createTask.mockImplementation(() => { throw failure; });
+    const response = await handleCreateTask(
+      jsonRequest(`/api/projects/${publicId}/tasks`, "POST", {
+        name: "Task", type: "task", start: "2026-09-11", duration: 1, progress: 0,
+      }),
+      publicId,
+      { ...dependencies, service },
+    );
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({ error: { code } });
   });
 
   it.each([

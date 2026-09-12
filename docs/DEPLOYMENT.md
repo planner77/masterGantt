@@ -185,12 +185,12 @@ Commit image는 release가 아니며 `latest`, major/minor 또는 SemVer exact t
 
 ### 안정 SemVer와 GHCR publish
 
-릴리스 기준은 `package.json.version`과 `package-lock.json` root version에 정확히 일치하는 SemVer tag다. 현재 소스 version `0.5.0`의 tag는 `v0.5.0`이며 아래는 검증 후 실행할 릴리스 절차다(게시 완료를 뜻하지 않는다). 이미 게시된 `v0.4.0` tag는 재사용하지 않는다. build metadata(`+...`)는 허용하지 않는다.
+릴리스 기준은 `package.json.version`과 `package-lock.json` root version에 정확히 일치하는 SemVer tag다. 현재 소스 version `0.6.0`의 tag는 `v0.6.0`이며 아래는 검증 후 실행할 릴리스 절차다(게시 완료를 뜻하지 않는다). 이미 게시된 `v0.4.0` tag는 재사용하지 않는다. build metadata(`+...`)는 허용하지 않는다.
 
 ```sh
-node scripts/verify-release-version.mjs v0.5.0
-git tag -a v0.5.0 -m "Release v0.5.0"
-git push origin v0.5.0
+node scripts/verify-release-version.mjs v0.6.0
+git tag -a v0.6.0 -m "Release v0.6.0"
+git push origin v0.6.0
 ```
 
 tag push는 [release image workflow](../.github/workflows/release-image.yml)를 실행한다. workflow는 이전 tag보다 큰 version과 annotated tag를 확인하고 전체 quality gate 및 동일 release 설정의 local candidate runtime smoke를 통과한 뒤에만 ephemeral `GITHUB_TOKEN`으로 lowercase GHCR의 immutable `sha-<full-commit>` candidate를 push한다. Registry digest smoke와, 활성화된 경우 GitHub Attestation이 성공한 뒤 stable release의 `major.minor`, `major`, `latest`를 이동하고 exact version을 마지막 완료 표식으로 생성한다. Prerelease는 exact/commit tag만 받는다. Repository 단위 직렬화와 monotonic gate가 낮은 version의 alias rollback을 막으며 기존 exact/commit image는 overwrite하지 않는다. tag workflow의 권한은 `contents: read`, `packages: write`, optional attestation/OIDC에 필요한 `attestations: write` 및 `id-token: write`로 한정된다. Release run은 취소하지 않는다.
@@ -201,7 +201,7 @@ GHCR package visibility는 D04에 따라 private으로 설정하고 첫 성공 p
 
 ### 사용자 테스트 image 실행
 
-고정 tag 또는 workflow가 표시한 immutable digest를 우선한다. 테스트 data가 운영 data와 섞이지 않도록 별도 volume을 사용한다. 아래 `0.4.0`은 게시가 검증된 이전 릴리스이며 W23 목록 기능은 포함하지 않는다. 목록 기능 테스트에는 새 소스 또는 해당 main commit CI가 게시한 image/digest를 사용하고, `0.5.0` 정식 tag는 실제 게시 성공 후 사용한다.
+고정 tag 또는 workflow가 표시한 immutable digest를 우선한다. 테스트 data가 운영 data와 섞이지 않도록 별도 volume을 사용한다. 아래 `0.4.0`은 게시가 검증된 이전 릴리스이며 W23 목록과 W24 Grid/삭제/계층 기능은 포함하지 않는다. 새 기능 테스트에는 새 소스 또는 해당 main commit CI가 게시한 image/digest를 사용하고, `0.6.0` 정식 tag는 실제 게시 성공 후 사용한다.
 
 ```sh
 docker pull ghcr.io/planner77/mastergantt:0.4.0

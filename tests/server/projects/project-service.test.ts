@@ -479,3 +479,187 @@ describe("ProjectService direct read", () => {
     }
   });
 });
+
+describe("ProjectService delete", () => {
+  it("remains deleted after reopening an isolated SQLite file", async () => {
+    const directory = temporaryDirectory();
+    const filename = join(directory, "delete-persistence.sqlite3");
+    const first = openDatabase({ filename, migrationsDirectory });
+    const service = createTestService(first.database);
+    const created = await service.create({
+      name: "Persistent delete",
+      description: "",
+      editPassword: "password phrase",
+    });
+    const authorization = service.authorize(
+      created.response.data.project.publicId,
+      created.rawSessionToken,
+    );
+    if (authorization.kind !== "authorized") {
+      throw new Error("Expected authorization.");
+    }
+    service.deleteProject(authorization.authorization, 1);
+    first.database.close();
+
+    const second = openDatabase({ filename, migrationsDirectory });
+    try {
+      expect(createTestService(second.database).listProjects())
+        .toEqual({ data: { projects: [] } });
+      expect(second.database.prepare("SELECT count(*) FROM edit_sessions").pluck().get())
+        .toBe(0);
+    } finally {
+      second.database.close();
+    }
+  });
+
+  it("atomically deletes only the authorized aggregate and all dependent rows", async () => {
+    const { database } = openDatabase({
+      filename: ":memory:",
+      migrationsDirectory,
+    });
+    const service = createTestService(database);
+
+    try {
+      const target = await service.create({
+        name: "Delete target",
+        description: "Target",
+        editPassword: "password phrase",
+      });
+      const preserved = await service.create({
+        name: "Preserved",
+        description: "Other",
+        editPassword: "password phrase",
+      });
+      const targetId = database.prepare(
+        "SELECT id FROM projects WHERE public_id = ?",
+      ).pluck().get(target.response.data.project.publicId) as number;
+      const preservedId = database.prepare(
+        "SELECT id FROM projects WHERE public_id = ?",
+      ).pluck().get(preserved.response.data.project.publicId) as number;
+      database.prepare(
+        "INSERT INTO project_holidays (project_id, holiday_date, name, created_at) VALUES (?, ?, ?, ?)",
+      ).run(targetId, "2026-10-05", "Holiday", "2026-09-11T01:00:00.000Z");
+      const predecessor = insertTask(database, targetId, "DELETE-1");
+      database.prepare(
+        "UPDATE tasks SET type = 'summary', schedule_mode = 'auto', requested_start = NULL WHERE id = ?",
+      ).run(predecessor);
+      const successor = insertTask(
+        database,
+        targetId,
+        "DELETE-2",
+        predecessor,
+      );
+      insertTask(database, preservedId, "KEEP-1");
+      database.prepare(
+        `INSERT INTO links (
+          public_id, project_id, predecessor_task_id, successor_task_id,
+          type, lag, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, 'FS', 0, ?, ?)`,
+      ).run(
+        randomUUID(),
+        targetId,
+        predecessor,
+        successor,
+        "2026-09-11T01:00:00.000Z",
+        "2026-09-11T01:00:00.000Z",
+      );
+      const authorization = service.authorize(
+        target.response.data.project.publicId,
+        target.rawSessionToken,
+      );
+      if (authorization.kind !== "authorized") {
+        throw new Error("Expected authorized target.");
+      }
+
+      service.deleteProject(authorization.authorization, 1);
+
+      expect(service.getReadonlySnapshot(target.response.data.project.publicId))
+        .toBeUndefined();
+      expect(service.listProjects().data.projects.map(({ publicId }) => publicId))
+        .toEqual([preserved.response.data.project.publicId]);
+      for (const table of ["project_holidays", "tasks", "links", "edit_sessions"]) {
+        expect(database.prepare(
+          `SELECT count(*) FROM ${table} WHERE project_id = ?`,
+        ).pluck().get(targetId)).toBe(0);
+      }
+      expect(database.prepare(
+        "SELECT external_id FROM tasks WHERE project_id = ?",
+      ).pluck().all(preservedId)).toEqual(["KEEP-1"]);
+      expect(database.prepare(
+        "SELECT count(*) FROM edit_sessions WHERE project_id = ?",
+      ).pluck().get(preservedId)).toBe(1);
+    } finally {
+      database.close();
+    }
+  });
+
+  it("rejects stale or mismatched authorization without deleting data", async () => {
+    const { database } = openDatabase({
+      filename: ":memory:",
+      migrationsDirectory,
+    });
+    const service = createTestService(database);
+
+    try {
+      const created = await service.create({
+        name: "Protected",
+        description: "",
+        editPassword: "password phrase",
+      });
+      const result = service.authorize(
+        created.response.data.project.publicId,
+        created.rawSessionToken,
+      );
+      if (result.kind !== "authorized") throw new Error("Expected authorization.");
+
+      expect(() => service.deleteProject(result.authorization, 2))
+        .toThrowError(/revision/i);
+      expect(() => service.deleteProject({
+        ...result.authorization,
+        projectPublicId: randomUUID(),
+      }, 1)).toThrowError(/session/i);
+      expect(database.prepare("SELECT count(*) FROM projects").pluck().get()).toBe(1);
+      expect(database.prepare("SELECT count(*) FROM edit_sessions").pluck().get()).toBe(1);
+    } finally {
+      database.close();
+    }
+  });
+
+  it("rolls the aggregate back when SQLite rejects the project deletion", async () => {
+    const { database } = openDatabase({
+      filename: ":memory:",
+      migrationsDirectory,
+    });
+    const service = createTestService(database);
+
+    try {
+      const created = await service.create({
+        name: "Rollback",
+        description: "",
+        editPassword: "password phrase",
+      });
+      const projectId = database.prepare(
+        "SELECT id FROM projects WHERE public_id = ?",
+      ).pluck().get(created.response.data.project.publicId) as number;
+      insertTask(database, projectId, "ROLLBACK-1");
+      database.exec(
+        `CREATE TRIGGER reject_project_delete
+         BEFORE DELETE ON projects
+         BEGIN SELECT RAISE(ABORT, 'forced delete failure'); END`,
+      );
+      const result = service.authorize(
+        created.response.data.project.publicId,
+        created.rawSessionToken,
+      );
+      if (result.kind !== "authorized") throw new Error("Expected authorization.");
+
+      expect(() => service.deleteProject(result.authorization, 1))
+        .toThrowError(/forced delete failure/);
+      expect(database.prepare("SELECT count(*) FROM projects").pluck().get()).toBe(1);
+      expect(database.prepare("SELECT count(*) FROM tasks").pluck().get()).toBe(1);
+      expect(database.prepare("SELECT count(*) FROM edit_sessions").pluck().get()).toBe(1);
+    } finally {
+      database.close();
+    }
+  });
+});

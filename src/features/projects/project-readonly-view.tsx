@@ -9,6 +9,8 @@ import type {
   TaskMutationResponse,
 } from "@/contracts/projects";
 import type { ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
+import type { ProjectTaskCreateCommand } from "@/features/gantt/project-task-adapter";
+import { todayLocalDateString } from "@/lib/date-display";
 
 const ProjectGantt = dynamic(
   () => import("@/features/gantt/project-gantt").then((module) => module.ProjectGantt),
@@ -120,18 +122,32 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   const [metadataDescription, setMetadataDescription] = useState("");
   const [newTaskName, setNewTaskName] = useState("");
   const [newTaskType, setNewTaskType] = useState<"task" | "milestone">("task");
-  const [newTaskStart, setNewTaskStart] = useState("");
+  const [newTaskStart, setNewTaskStart] = useState<string>(() => todayLocalDateString());
   const [newTaskDuration, setNewTaskDuration] = useState("1");
   const [newTaskProgress, setNewTaskProgress] = useState("0");
   const [newTaskExternalId, setNewTaskExternalId] = useState("");
   const [deleteTaskId, setDeleteTaskId] = useState("");
   const [confirmDeleteTaskId, setConfirmDeleteTaskId] = useState<string | null>(null);
+  const [pendingChildTask, setPendingChildTask] = useState<ProjectTaskCreateCommand | null>(null);
+  const [pendingNativeTaskName, setPendingNativeTaskName] = useState("");
+  const [pendingNativeTaskStart, setPendingNativeTaskStart] = useState(() => todayLocalDateString());
+  const [pendingNativeTaskDuration, setPendingNativeTaskDuration] = useState("1");
+  const [parentConversionConfirmed, setParentConversionConfirmed] = useState(false);
+  const [showExternalId, setShowExternalId] = useState(true);
   const alertReference = useRef<HTMLDivElement>(null);
+  const nativeTaskDialogReference = useRef<HTMLDialogElement>(null);
+  const nativeTaskTriggerReference = useRef<HTMLElement | null>(null);
   const taskMutationReference = useRef(false);
 
   useEffect(() => {
     if (notice) alertReference.current?.focus();
   }, [notice]);
+
+  useEffect(() => {
+    const dialog = nativeTaskDialogReference.current;
+    if (!dialog || !pendingChildTask || dialog.open) return;
+    dialog.showModal();
+  }, [pendingChildTask]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -342,7 +358,16 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
     if (status === 412) {
       setNotice("다른 편집 내용이 먼저 저장되었습니다. 최신 정보를 불러왔습니다. 내용을 확인한 뒤 다시 저장해 주세요.");
     } else if (status === 400 || status === 409 || status === 422) {
-      setNotice(code === "END_DURATION_MISMATCH" ? "일정 기간을 확인해 주세요." : "작업 정보를 저장할 수 없습니다. 입력과 일정 제약을 확인해 주세요.");
+      const constraintMessage = code === "END_DURATION_MISMATCH"
+        ? "일정 기간을 확인해 주세요."
+        : code === "EMPTY_SUMMARY_NOT_ALLOWED"
+          ? "요약 작업의 마지막 하위 작업은 삭제할 수 없습니다. 먼저 요약 작업 구조를 변경해 주세요."
+          : code === "PARENT_CONVERSION_REQUIRED"
+            ? "첫 하위 작업을 추가하려면 부모 작업을 요약 작업으로 전환하는 데 동의해야 합니다."
+            : code === "INVALID_PARENT_TASK"
+              ? "마일스톤에는 하위 작업을 추가할 수 없습니다."
+              : "작업 정보를 저장할 수 없습니다. 입력과 일정 제약을 확인해 주세요.";
+      setNotice(constraintMessage);
     } else {
       setNotice(fallback);
     }
@@ -413,6 +438,81 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
     });
   }
 
+  function createNativeTask(command: ProjectTaskCreateCommand) {
+    if (state.status !== "ready" || taskMutationReference.current) return;
+    const activeElement = document.activeElement;
+    nativeTaskTriggerReference.current = activeElement instanceof HTMLElement ? activeElement : null;
+    if (!command.parentTaskId) {
+      setPendingNativeTaskName(command.name);
+      setPendingNativeTaskStart(command.start);
+      setPendingNativeTaskDuration(String(command.duration));
+      setParentConversionConfirmed(false);
+      setPendingChildTask(command);
+      return;
+    }
+
+    const parent = state.snapshot.data.tasks.find((task) => task.taskId === command.parentTaskId);
+    if (!parent) {
+      setNotice("선택한 작업을 찾을 수 없습니다. 최신 정보를 불러온 뒤 다시 시도해 주세요.");
+      return;
+    }
+    if (parent.type === "milestone") {
+      setNotice("마일스톤에는 하위 작업을 추가할 수 없습니다.");
+      return;
+    }
+    setPendingNativeTaskName(command.name);
+    setPendingNativeTaskStart(command.start);
+    setPendingNativeTaskDuration(String(command.duration));
+    setParentConversionConfirmed(false);
+    setPendingChildTask(command);
+  }
+
+  function nativeParentRequiresConversion(command: ProjectTaskCreateCommand): boolean {
+    if (state.status !== "ready" || !command.parentTaskId) return false;
+    const parent = state.snapshot.data.tasks.find((task) => task.taskId === command.parentTaskId);
+    if (!parent || parent.type !== "task") return false;
+    return !state.snapshot.data.tasks.some(
+      (task) => task.parentExternalId === parent.externalId,
+    );
+  }
+
+  function confirmNativeTaskAdd(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!pendingChildTask) return;
+    const name = pendingNativeTaskName.trim();
+    const duration = Number(pendingNativeTaskDuration);
+    if (!name || !/^\d{4}-\d{2}-\d{2}$/.test(pendingNativeTaskStart) || !Number.isInteger(duration) || duration < 1) {
+      setNotice("작업 이름, 시작일과 기간을 확인해 주세요.");
+      return;
+    }
+    if (nativeParentRequiresConversion(pendingChildTask) && !parentConversionConfirmed) return;
+    const command = {
+      ...pendingChildTask,
+      name,
+      start: pendingNativeTaskStart,
+      duration,
+      ...(nativeParentRequiresConversion(pendingChildTask)
+        ? { convertParentToSummary: true as const }
+        : {}),
+    };
+    closeNativeTaskDialog();
+    void saveTask("POST", null, command);
+  }
+
+  function closeNativeTaskDialog() {
+    nativeTaskDialogReference.current?.close();
+    setPendingChildTask(null);
+    setPendingNativeTaskName("");
+    setPendingNativeTaskStart(todayLocalDateString());
+    setPendingNativeTaskDuration("1");
+    setParentConversionConfirmed(false);
+    requestAnimationFrame(() => nativeTaskTriggerReference.current?.focus());
+  }
+
+  function rejectNativeTaskAdd() {
+    setNotice("이 화면에서는 하위 작업만 추가할 수 있습니다.");
+  }
+
   function saveTaskCommand(command: ProjectTaskUpdateCommand) {
     if (Object.keys(command.payload).length === 0) return;
     void saveTask("PATCH", command.taskId, command.payload);
@@ -431,11 +531,8 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   const { project, tasks, links } = state.snapshot.data;
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
-  const rootLeafTasksOnly = tasks.every(
-    (task) => task.parentExternalId === null && (task.type === "task" || task.type === "milestone"),
-  );
-  const w07TaskEditingSupported = links.length === 0 && rootLeafTasksOnly;
-  const taskEditing = editing && !busy && w07TaskEditingSupported;
+  const taskEditingSupported = links.length === 0;
+  const taskEditing = editing && !busy && taskEditingSupported;
   const selectedDeleteTask = tasks.find((task) => task.taskId === deleteTaskId);
   return <section className="project-readonly" aria-labelledby="project-heading">
     <div className="project-readonly-heading">
@@ -493,8 +590,8 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         </div>
         {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}
       </div>
-      {editing && !w07TaskEditingSupported ? <p className="schedule-scope-note">계층 또는 연결이 있는 일정 편집은 다음 단계에서 지원합니다. 현재 일정은 읽기 전용으로 표시됩니다.</p> : null}
-      {editing && w07TaskEditingSupported ? <details className="task-edit-panel">
+      {editing && !taskEditingSupported ? <p className="schedule-scope-note">연결이 있는 일정 편집은 다음 단계에서 지원합니다. 현재 일정은 읽기 전용으로 표시됩니다.</p> : null}
+      {editing && taskEditingSupported ? <details className="task-edit-panel">
         <summary>작업 추가 또는 삭제</summary>
         <form className="project-form compact-form task-create-form" noValidate onSubmit={createTask}>
           <h3>작업 추가</h3>
@@ -510,18 +607,50 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         </form>
         {tasks.length > 0 ? <div className="task-delete-control">
           <label htmlFor="delete-task">작업 삭제</label>
-          <div><select disabled={busy} id="delete-task" onChange={(event) => { setDeleteTaskId(event.target.value); setConfirmDeleteTaskId(null); }} value={deleteTaskId}><option value="">작업을 선택하세요</option>{tasks.filter((task) => task.parentExternalId === null && task.type !== "summary").map((task) => <option key={task.taskId} value={task.taskId}>{task.name} ({task.externalId})</option>)}</select><button className="secondary-button" disabled={busy || !selectedDeleteTask} onClick={() => setConfirmDeleteTaskId(deleteTaskId)} type="button">삭제</button></div>
+          <div><select disabled={busy} id="delete-task" onChange={(event) => { setDeleteTaskId(event.target.value); setConfirmDeleteTaskId(null); }} value={deleteTaskId}><option value="">작업을 선택하세요</option>{tasks.filter((task) => task.type !== "summary").map((task) => <option key={task.taskId} value={task.taskId}>{task.name} ({task.externalId})</option>)}</select><button className="secondary-button" disabled={busy || !selectedDeleteTask} onClick={() => setConfirmDeleteTaskId(deleteTaskId)} type="button">삭제</button></div>
           {confirmDeleteTaskId && selectedDeleteTask ? <div className="delete-confirmation" role="group" aria-label="작업 삭제 확인"><p><strong>{selectedDeleteTask.name}</strong> 작업을 삭제하시겠습니까?</p><button className="secondary-button" disabled={busy} onClick={() => setConfirmDeleteTaskId(null)} type="button">취소</button><button className="danger-button" disabled={busy} onClick={() => void saveTask("DELETE", confirmDeleteTaskId)} type="button">삭제 확인</button></div> : null}
         </div> : null}
       </details> : null}
       <ProjectGantt
-        key={`${project.revision}:${taskEditing ? "edit" : "readonly"}:${ganttResetGeneration}`}
+        key={`${taskEditing ? "edit" : "readonly"}:${ganttResetGeneration}`}
         calendar={project.calendar}
         editable={taskEditing}
         links={links}
+        onTaskAddRejected={rejectNativeTaskAdd}
+        onTaskCreate={createNativeTask}
         onTaskCommand={saveTaskCommand}
+        onExternalIdVisibilityChange={() => setShowExternalId((visible) => !visible)}
+        showExternalId={showExternalId}
         tasks={tasks}
       />
+      <dialog aria-labelledby="child-task-confirm-title" className="task-confirm-dialog" onCancel={(event) => { event.preventDefault(); closeNativeTaskDialog(); }} ref={nativeTaskDialogReference}>
+        {pendingChildTask ? <div className="task-confirm-dialog-card">
+          <p className="eyebrow">{pendingChildTask.parentTaskId ? "하위 작업 추가" : "작업 추가"}</p>
+          <h3 id="child-task-confirm-title">{nativeParentRequiresConversion(pendingChildTask) ? "부모 작업을 요약 작업으로 전환할까요?" : "새 작업을 추가할까요?"}</h3>
+          {nativeParentRequiresConversion(pendingChildTask) ? <p>기존 작업의 시작일, 종료일과 진척도는 하위 작업을 기준으로 다시 계산됩니다.</p> : null}
+          <form className="task-confirm-form" onSubmit={confirmNativeTaskAdd}>
+            <div className="form-field">
+              <label htmlFor="native-task-name">작업 이름</label>
+              <input autoFocus id="native-task-name" onChange={(event) => setPendingNativeTaskName(event.target.value)} required value={pendingNativeTaskName} />
+            </div>
+            <div className="task-native-date-grid">
+              <div className="form-field">
+                <label htmlFor="native-task-start">시작일</label>
+                <input id="native-task-start" onChange={(event) => setPendingNativeTaskStart(event.target.value)} required type="date" value={pendingNativeTaskStart} />
+              </div>
+              <div className="form-field">
+                <label htmlFor="native-task-duration">기간 <span>근무일</span></label>
+                <input id="native-task-duration" min="1" onChange={(event) => setPendingNativeTaskDuration(event.target.value)} required step="1" type="number" value={pendingNativeTaskDuration} />
+              </div>
+            </div>
+            {nativeParentRequiresConversion(pendingChildTask) ? <label className="task-conversion-confirmation"><input checked={parentConversionConfirmed} onChange={(event) => setParentConversionConfirmed(event.target.checked)} type="checkbox" />부모 작업을 요약 작업으로 전환하는 데 동의합니다.</label> : null}
+            <div className="task-confirm-dialog-actions">
+              <button className="secondary-button" onClick={closeNativeTaskDialog} type="button">취소</button>
+              <button className="primary-button" disabled={nativeParentRequiresConversion(pendingChildTask) && !parentConversionConfirmed} type="submit">{nativeParentRequiresConversion(pendingChildTask) ? "전환하고 하위 작업 추가" : "작업 추가"}</button>
+            </div>
+          </form>
+        </div> : null}
+      </dialog>
     </section>
   </section>;
 }

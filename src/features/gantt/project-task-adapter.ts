@@ -34,6 +34,19 @@ export interface ProjectTaskUpdateCommand {
   readonly payload: ProjectTaskUpdatePayload;
 }
 
+export interface ProjectTaskCreateCommand {
+  readonly name: string;
+  /** Native Grid '+' always creates a schedulable leaf, never a milestone. */
+  readonly type: "task";
+  readonly start: string;
+  readonly duration: number;
+  readonly progress: 0;
+  /** Set only for a row '+' request; backend hierarchy support owns validation. */
+  readonly parentTaskId?: string;
+  /** Explicit acknowledgement before a leaf becomes a calculated summary. */
+  readonly convertParentToSummary?: true;
+}
+
 export function projectTasksToSvarTasks(tasks: readonly ProjectTaskDto[]): ITask[] {
   const taskIdsByExternalId = new Map(tasks.map((task) => [task.externalId, task.taskId]));
   return tasks.map((task) => ({

@@ -20,6 +20,7 @@ import type {
 } from "../../contracts/projects";
 import {
   createWorkingCalendar,
+  recalculateHierarchy,
   scheduleLeaf,
 } from "../../domain/scheduling";
 import {
@@ -153,6 +154,41 @@ export class InvalidTaskInputError extends Error {
   constructor() {
     super("The task input is invalid.");
     this.name = "InvalidTaskInputError";
+  }
+}
+
+export class ParentConversionRequiredError extends Error {
+  constructor() {
+    super("Converting a task to a summary requires explicit confirmation.");
+    this.name = "ParentConversionRequiredError";
+  }
+}
+
+export class InvalidParentTaskError extends Error {
+  constructor() {
+    super("The selected task cannot contain child tasks.");
+    this.name = "InvalidParentTaskError";
+  }
+}
+
+export class EmptySummaryNotAllowedError extends Error {
+  constructor() {
+    super("Deleting the last child would leave an empty summary.");
+    this.name = "EmptySummaryNotAllowedError";
+  }
+}
+
+export class SummaryTaskDeleteUnsupportedError extends Error {
+  constructor() {
+    super("Summary task deletion is not supported by this operation.");
+    this.name = "SummaryTaskDeleteUnsupportedError";
+  }
+}
+
+export class SummaryScheduleReadonlyError extends Error {
+  constructor() {
+    super("Summary schedule fields are derived from child tasks.");
+    this.name = "SummaryScheduleReadonlyError";
   }
 }
 
@@ -312,14 +348,8 @@ function isSessionValid(
     expiry !== undefined && expiry > now.getTime();
 }
 
-function assertW07ScheduleCapability(
-  tasks: readonly TaskRecord[],
-  links: readonly LinkRecord[],
-): void {
-  if (
-    links.length > 0 ||
-    tasks.some((task) => task.type === "summary" || task.parentId !== null)
-  ) {
+function assertHierarchyMutationCapability(links: readonly LinkRecord[]): void {
+  if (links.length > 0) {
     throw new UnsupportedScheduleStructureError();
   }
 }
@@ -389,14 +419,24 @@ function validatePersistedLeafSchedules(
   try {
     for (const task of tasks) {
       if (
-        (task.type !== "task" && task.type !== "milestone") ||
-        task.requestedStart === null ||
         !isCanonicalUuidV4(task.publicId) ||
         !validPersistedExternalId(task.externalId) ||
         !validPersistedName(task.name) ||
         !Number.isInteger(task.sortOrder) || task.sortOrder < 0 ||
         !Number.isFinite(task.progress) ||
         task.progress < 0 || task.progress > 100
+      ) {
+        throw new PersistedScheduleInvalidError();
+      }
+      if (task.type === "summary") {
+        if (task.scheduleMode !== "auto" || task.requestedStart !== null) {
+          throw new PersistedScheduleInvalidError();
+        }
+        continue;
+      }
+      if (
+        (task.type !== "task" && task.type !== "milestone") ||
+        task.requestedStart === null
       ) {
         throw new PersistedScheduleInvalidError();
       }
@@ -411,6 +451,36 @@ function validatePersistedLeafSchedules(
         throw new PersistedScheduleInvalidError();
       }
     }
+  } catch (error) {
+    if (error instanceof PersistedScheduleInvalidError) throw error;
+    throw new PersistedScheduleInvalidError();
+  }
+}
+
+function recalculatePersistedHierarchy(
+  tasks: readonly TaskRecord[],
+  calendar: ReturnType<typeof createWorkingCalendar>,
+) {
+  try {
+    validatePersistedLeafSchedules(tasks, calendar);
+    const original = taskDtos([...tasks]);
+    const derived = recalculateHierarchy(original, calendar);
+    for (let index = 0; index < original.length; index += 1) {
+      if (
+        original[index].type === "summary" &&
+        (
+          original[index].start !== derived[index].start ||
+          original[index].end !== derived[index].end ||
+          original[index].duration !== derived[index].duration ||
+          original[index].progress !== derived[index].progress ||
+          original[index].scheduleMode !== derived[index].scheduleMode ||
+          original[index].requestedStart !== derived[index].requestedStart
+        )
+      ) {
+        throw new PersistedScheduleInvalidError();
+      }
+    }
+    return derived;
   } catch (error) {
     if (error instanceof PersistedScheduleInvalidError) throw error;
     throw new PersistedScheduleInvalidError();
@@ -482,6 +552,8 @@ export class ProjectService {
       !session ||
       !project ||
       !session.tokenHash.equals(authorization.tokenHash) ||
+      project.publicId !== authorization.projectPublicId ||
+      project.authVersion !== authorization.projectAuthVersion ||
       !hasSupportedCredentials(project) ||
       !isSessionValid(session, project, now)
     ) {
@@ -512,6 +584,41 @@ export class ProjectService {
         operation,
       },
     };
+  }
+
+  private applySummaryDerivations(
+    projectId: number,
+    tasks: readonly TaskRecord[],
+    calendar: ReturnType<typeof createWorkingCalendar>,
+    updatedAt: string,
+  ): string[] {
+    const derived = recalculateHierarchy(taskDtos([...tasks]), calendar);
+    const persistedByPublicId = new Map(tasks.map((task) => [task.publicId, task]));
+    const changedExternalIds: string[] = [];
+    for (const task of derived) {
+      if (task.type !== "summary") continue;
+      const persisted = persistedByPublicId.get(task.taskId);
+      if (!persisted) throw new PersistedScheduleInvalidError();
+      const changed = persisted.startDate !== task.start ||
+        persisted.endDate !== task.end ||
+        persisted.duration !== task.duration ||
+        persisted.progress !== task.progress ||
+        persisted.scheduleMode !== "auto" ||
+        persisted.requestedStart !== null;
+      if (changed) {
+        if (!this.schedules.updateSummarySchedule(projectId, task.taskId, {
+          startDate: task.start,
+          endDate: task.end,
+          duration: task.duration,
+          progress: task.progress,
+          updatedAt,
+        })) {
+          throw new PersistedScheduleInvalidError();
+        }
+        changedExternalIds.push(task.externalId);
+      }
+    }
+    return changedExternalIds;
   }
 
   async create(input: CreateProjectInput): Promise<CreatedProject> {
@@ -729,7 +836,7 @@ export class ProjectService {
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
       const holidays = this.schedules.listHolidays(project.id);
-      assertW07ScheduleCapability(tasks, links);
+      assertHierarchyMutationCapability(links);
       if (tasks.length >= MAX_PROJECT_TASKS) {
         throw new TaskLimitExceededError();
       }
@@ -741,7 +848,25 @@ export class ProjectService {
       }
 
       const calendar = workingCalendar(project, holidays);
-      validatePersistedLeafSchedules(tasks, calendar);
+      if (tasks.length > 0) recalculatePersistedHierarchy(tasks, calendar);
+      const parent = validatedInput.parentTaskId === undefined
+        ? undefined
+        : this.schedules.findTaskByPublicId(
+          project.id,
+          validatedInput.parentTaskId,
+        );
+      if (validatedInput.parentTaskId !== undefined && !parent) {
+        throw new TaskNotFoundError();
+      }
+      if (parent?.type === "milestone") {
+        throw new InvalidParentTaskError();
+      }
+      if (
+        parent?.type === "task" &&
+        validatedInput.convertParentToSummary !== true
+      ) {
+        throw new ParentConversionRequiredError();
+      }
       const scheduled = scheduleLeaf({
         type: validatedInput.type,
         requestedStart: validatedInput.start,
@@ -775,8 +900,11 @@ export class ProjectService {
           endDate: scheduled.end,
           duration: scheduled.duration,
           progress: validatedInput.progress,
-          parentId: null,
-          sortOrder: this.schedules.nextRootSortOrder(project.id),
+          parentId: parent?.id ?? null,
+          sortOrder: this.schedules.nextSiblingSortOrder(
+            project.id,
+            parent?.id ?? null,
+          ),
           createdAt: nowText,
           updatedAt: nowText,
         });
@@ -784,6 +912,29 @@ export class ProjectService {
       }
       if (!inserted) {
         throw new Error("Unique task identifiers could not be generated.");
+      }
+
+      if (
+        parent?.type === "task" &&
+        !this.schedules.convertTaskToSummary(
+          project.id,
+          parent.publicId,
+          nowText,
+        )
+      ) {
+        throw new TaskNotFoundError();
+      }
+      const changedSummaryExternalIds = this.applySummaryDerivations(
+        project.id,
+        this.schedules.listTasks(project.id),
+        calendar,
+        nowText,
+      );
+      if (
+        parent?.type === "task" &&
+        !changedSummaryExternalIds.includes(parent.externalId)
+      ) {
+        changedSummaryExternalIds.push(parent.externalId);
       }
 
       const updatedProject = this.projects.advanceRevision(
@@ -802,7 +953,12 @@ export class ProjectService {
         warningDtos(scheduled.warnings),
         {
           kind: "taskCreate",
-          changedTaskExternalIds: [inserted.externalId],
+          changedTaskExternalIds: [
+            inserted.externalId,
+            ...changedSummaryExternalIds.filter(
+              (externalId) => externalId !== inserted.externalId,
+            ),
+          ],
           deletedTaskExternalIds: [],
           deletedLinkIds: [],
         },
@@ -831,16 +987,46 @@ export class ProjectService {
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
       const holidays = this.schedules.listHolidays(project.id);
-      assertW07ScheduleCapability(tasks, links);
-      if (current.type !== "task" && current.type !== "milestone") {
-        throw new UnsupportedScheduleStructureError();
+      assertHierarchyMutationCapability(links);
+      const calendar = workingCalendar(project, holidays);
+      recalculatePersistedHierarchy(tasks, calendar);
+      if (current.type === "summary") {
+        if (
+          validatedInput.name === undefined ||
+          Object.keys(validatedInput).some((field) => field !== "name")
+        ) {
+          throw new SummaryScheduleReadonlyError();
+        }
+        const renamed = this.schedules.renameTask(
+          project.id,
+          taskPublicId,
+          validatedInput.name,
+          nowText,
+        );
+        if (!renamed) throw new TaskNotFoundError();
+        const updatedProject = this.projects.advanceRevision(
+          project.id,
+          expectedRevision,
+          nowText,
+        );
+        if (!updatedProject) throw new RevisionMismatchError();
+        return this.taskMutationResponse(
+          updatedProject,
+          this.schedules.listTasks(project.id),
+          this.schedules.listLinks(project.id),
+          holidays,
+          [],
+          {
+            kind: "taskUpdate",
+            changedTaskExternalIds: [renamed.externalId],
+            deletedTaskExternalIds: [],
+            deletedLinkIds: [],
+          },
+        );
       }
       if (current.requestedStart === null) {
         throw new PersistedScheduleInvalidError();
       }
-
-      const calendar = workingCalendar(project, holidays);
-      validatePersistedLeafSchedules(tasks, calendar);
       const scheduled = scheduleLeaf({
         type: current.type,
         requestedStart: validatedInput.start ?? current.requestedStart,
@@ -860,6 +1046,12 @@ export class ProjectService {
         updatedAt: nowText,
       });
       if (!updated) throw new TaskNotFoundError();
+      const changedSummaryExternalIds = this.applySummaryDerivations(
+        project.id,
+        this.schedules.listTasks(project.id),
+        calendar,
+        nowText,
+      );
 
       const updatedProject = this.projects.advanceRevision(
         project.id,
@@ -877,7 +1069,12 @@ export class ProjectService {
         warningDtos(scheduled.warnings),
         {
           kind: "taskUpdate",
-          changedTaskExternalIds: [updated.externalId],
+          changedTaskExternalIds: [
+            updated.externalId,
+            ...changedSummaryExternalIds.filter(
+              (externalId) => externalId !== updated.externalId,
+            ),
+          ],
           deletedTaskExternalIds: [],
           deletedLinkIds: [],
         },
@@ -904,12 +1101,27 @@ export class ProjectService {
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
       const holidays = this.schedules.listHolidays(project.id);
-      assertW07ScheduleCapability(tasks, links);
+      assertHierarchyMutationCapability(links);
       const calendar = workingCalendar(project, holidays);
-      validatePersistedLeafSchedules(tasks, calendar);
+      recalculatePersistedHierarchy(tasks, calendar);
+      if (current.type === "summary") {
+        throw new SummaryTaskDeleteUnsupportedError();
+      }
+      if (
+        current.parentId !== null &&
+        tasks.filter((task) => task.parentId === current.parentId).length === 1
+      ) {
+        throw new EmptySummaryNotAllowedError();
+      }
       if (!this.schedules.deleteTask(project.id, taskPublicId)) {
         throw new TaskNotFoundError();
       }
+      const changedSummaryExternalIds = this.applySummaryDerivations(
+        project.id,
+        this.schedules.listTasks(project.id),
+        calendar,
+        nowText,
+      );
       const updatedProject = this.projects.advanceRevision(
         project.id,
         expectedRevision,
@@ -926,7 +1138,7 @@ export class ProjectService {
         [],
         {
           kind: "taskDelete",
-          changedTaskExternalIds: [],
+          changedTaskExternalIds: changedSummaryExternalIds,
           deletedTaskExternalIds: [current.externalId],
           deletedLinkIds: [],
         },
@@ -978,6 +1190,25 @@ export class ProjectService {
       };
     });
     return mutate.immediate();
+  }
+
+  deleteProject(
+    authorization: AuthorizedEditSession,
+    expectedRevision: number,
+  ): void {
+    const remove = this.database.transaction(() => {
+      const project = this.requireCurrentMutationProject(
+        authorization,
+        this.clock(),
+      );
+      if (project.revision !== expectedRevision) {
+        throw new RevisionMismatchError();
+      }
+      if (!this.projects.deleteByIdAtRevision(project.id, expectedRevision)) {
+        throw new RevisionMismatchError();
+      }
+    });
+    remove.immediate();
   }
 
   async rotatePassword(

@@ -59,7 +59,7 @@ Project URL로 접근한 경우 기본 상태는 **Readonly**이다.
 
 # 3. Project Authorization
 
-D02 승인에 따라 앱에 접속 가능한 모든 사용자는 Project 목록을 조회할 수 있다. 목록에는 공개 summary만 제공하고 password/hash/salt/session 및 내부 DB ID를 노출하지 않는다. 목록 공개는 편집 권한을 부여하지 않으며 기존 Project별 비밀번호와 서버 Mutation 인증을 유지한다. 상세 계약은 `docs/API.md`, `docs/SECURITY.md`를 따른다.
+D02 승인에 따라 앱에 접속 가능한 모든 사용자는 Project 목록을 조회할 수 있다. 목록에는 공개 summary만 제공하고 password/hash/salt/session 및 내부 DB ID를 노출하지 않는다. 목록 공개는 편집 권한을 부여하지 않으며 기존 Project별 비밀번호와 서버 Mutation 인증을 유지한다. Project 삭제도 edit session·Origin·If-Match를 검증하고 명시적 확인 뒤 종속 데이터를 원자적으로 제거한다. 상세 계약은 `docs/API.md`, `docs/SECURITY.md`를 따른다.
 
 Project별 Edit Password를 사용한다.
 
@@ -667,6 +667,8 @@ Version을 근거 없이 임의 고정하지 않는다.
 ---
 
 # 18. UI Principles
+
+Project 목록은 표/Grid로 표시한다. SVAR Grid Header `+`는 최상위, 행 `+`는 하위 Task 추가이며 native command를 intercept하여 보호 API와 canonical snapshot 경로를 유지한다. 첫 child 추가의 Summary 전환은 명시 확인한다. 날짜 표시는 사용자 locale을 따르고 date-only 저장을 시간대 변환하지 않는다. 설정 패널은 기본 접고 Project/Grid/Chart headers를 유지한 내부 scroll을 제공한다. 상세 기준은 `docs/REQUIREMENTS.md`, `docs/W24_REVIEW.md`다.
 
 UI는 차분하고 전문적인 Project Management Tool 형태로 구성한다.
 

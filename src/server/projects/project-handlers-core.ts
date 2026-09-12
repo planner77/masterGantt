@@ -12,7 +12,11 @@ import {
   PublicApiError,
 } from "../http/api-error-core";
 import { parseRequiredIfMatch, readBoundedJson } from "../http/request-core";
-import { parseEditSessionCookie, serializeEditSessionCookie } from "../security/cookie-core";
+import {
+  parseEditSessionCookie,
+  serializeEditSessionCookie,
+  serializeExpiredEditSessionCookie,
+} from "../security/cookie-core";
 import {
   ConfigurationError,
   isExactAllowedOrigin,
@@ -47,12 +51,25 @@ interface ProjectServiceApi {
     expectedRevision: number,
     input: UpdateProjectRequest,
   ): ProjectMetadataMutationResponse;
+  deleteProject(
+    authorization: AuthorizedEditSession,
+    expectedRevision: number,
+  ): void;
 }
 
 export interface UpdateProjectHandlerDependencies {
   service:
     | Pick<ProjectServiceApi, "authorize" | "updateMetadata">
     | (() => Pick<ProjectServiceApi, "authorize" | "updateMetadata">);
+  applicationBaseUrl: string | undefined;
+  environment: string | undefined;
+  requestId?: () => string;
+}
+
+export interface DeleteProjectHandlerDependencies {
+  service:
+    | Pick<ProjectServiceApi, "authorize" | "deleteProject">
+    | (() => Pick<ProjectServiceApi, "authorize" | "deleteProject">);
   applicationBaseUrl: string | undefined;
   environment: string | undefined;
   requestId?: () => string;
@@ -320,6 +337,86 @@ export async function handleUpdateProject(
         ...NO_STORE_HEADERS,
         "Content-Type": "application/json; charset=utf-8",
         ETag: `"${result.data.project.revision}"`,
+      },
+    });
+  } catch (error) {
+    let mapped = error;
+    if (error instanceof EditSessionInvalidError) {
+      mapped = new PublicApiError(
+        401,
+        "EDIT_SESSION_REQUIRED",
+        "A valid edit session is required.",
+      );
+    } else if (error instanceof RevisionMismatchError) {
+      mapped = new PublicApiError(
+        412,
+        "REVISION_MISMATCH",
+        "Project changed. Reload and retry.",
+      );
+    }
+    const response = apiErrorResponse(mapped, requestId);
+    response.headers.set("Cache-Control", NO_STORE_HEADERS["Cache-Control"]);
+    return response;
+  }
+}
+
+export function handleDeleteProject(
+  request: Request,
+  publicId: string,
+  dependencies: DeleteProjectHandlerDependencies,
+): Response {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    let applicationUrl: URL;
+    try {
+      applicationUrl = parseApplicationBaseUrl(
+        dependencies.applicationBaseUrl,
+        dependencies.environment,
+      );
+    } catch (error) {
+      if (error instanceof ConfigurationError) {
+        throw configurationApiError();
+      }
+      throw error;
+    }
+    if (!isExactAllowedOrigin(request.headers.get("origin"), applicationUrl)) {
+      throw new PublicApiError(
+        403,
+        "ORIGIN_NOT_ALLOWED",
+        "The request origin is not allowed.",
+      );
+    }
+
+    const cookie = parseEditSessionCookie(
+      request.headers.get("cookie"),
+      dependencies.environment,
+    );
+    const service = resolveDependency(dependencies.service);
+    const authorization = service.authorize(
+      publicId,
+      cookie.state === "present" ? cookie.rawToken : undefined,
+    );
+    if (authorization.kind === "projectNotFound") {
+      throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    }
+    if (authorization.kind === "unauthorized") {
+      throw new PublicApiError(
+        401,
+        "EDIT_SESSION_REQUIRED",
+        "A valid edit session is required.",
+      );
+    }
+
+    const expectedRevision = parseRequiredIfMatch(request);
+    service.deleteProject(authorization.authorization, expectedRevision);
+    return new Response(null, {
+      status: 204,
+      headers: {
+        ...NO_STORE_HEADERS,
+        "Set-Cookie": serializeExpiredEditSessionCookie(
+          applicationUrl,
+          dependencies.environment,
+        ),
       },
     });
   } catch (error) {

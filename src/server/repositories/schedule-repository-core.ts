@@ -51,7 +51,7 @@ export interface NewTaskRecord {
   endDate: string;
   duration: number;
   progress: number;
-  parentId: null;
+  parentId: number | null;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -216,12 +216,16 @@ export class ScheduleRepository {
   }
 
   nextRootSortOrder(projectId: number): number {
+    return this.nextSiblingSortOrder(projectId, null);
+  }
+
+  nextSiblingSortOrder(projectId: number, parentId: number | null): number {
     return this.database
       .prepare(
-        "SELECT COALESCE(MAX(sort_order), -1) + 1 FROM tasks WHERE project_id = ? AND parent_id IS NULL",
+        "SELECT COALESCE(MAX(sort_order), -1) + 1 FROM tasks WHERE project_id = ? AND parent_id IS ?",
       )
       .pluck()
-      .get(projectId) as number;
+      .get(projectId, parentId) as number;
   }
 
   insertTask(task: NewTaskRecord): TaskRecord {
@@ -263,6 +267,63 @@ export class ScheduleRepository {
     return result.changes === 1
       ? this.findTaskByPublicId(projectId, taskPublicId)
       : undefined;
+  }
+
+  renameTask(
+    projectId: number,
+    taskPublicId: string,
+    name: string,
+    updatedAt: string,
+  ): TaskRecord | undefined {
+    const result = this.database.prepare(
+      `UPDATE tasks
+       SET name = ?, updated_at = ?
+       WHERE project_id = ? AND public_id = ?`,
+    ).run(name, updatedAt, projectId, taskPublicId);
+    return result.changes === 1
+      ? this.findTaskByPublicId(projectId, taskPublicId)
+      : undefined;
+  }
+
+  convertTaskToSummary(
+    projectId: number,
+    taskPublicId: string,
+    updatedAt: string,
+  ): boolean {
+    return this.database.prepare(
+      `UPDATE tasks
+       SET type = 'summary',
+           schedule_mode = 'auto',
+           requested_start = NULL,
+           updated_at = ?
+       WHERE project_id = ? AND public_id = ? AND type = 'task'`,
+    ).run(updatedAt, projectId, taskPublicId).changes === 1;
+  }
+
+  updateSummarySchedule(
+    projectId: number,
+    taskPublicId: string,
+    schedule: {
+      startDate: string;
+      endDate: string;
+      duration: number;
+      progress: number;
+      updatedAt: string;
+    },
+  ): boolean {
+    return this.database.prepare(
+      `UPDATE tasks
+       SET schedule_mode = 'auto',
+           requested_start = NULL,
+           start_date = @startDate,
+           end_date = @endDate,
+           duration = @duration,
+           progress = @progress,
+           updated_at = @updatedAt
+       WHERE project_id = @projectId
+         AND public_id = @taskPublicId
+         AND type = 'summary'`,
+    ).run({ ...schedule, projectId, taskPublicId }).changes === 1;
   }
 
   deleteTask(projectId: number, taskPublicId: string): boolean {

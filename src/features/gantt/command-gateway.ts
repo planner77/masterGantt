@@ -16,6 +16,36 @@ export interface TaskUpdateEvent {
 }
 
 /**
+ * SVAR emits this before its local store creates a task.  Project Gantt
+ * intercepts it so the only durable mutation remains the protected HTTP
+ * command owned by the workspace.
+ */
+export interface LocalTaskAddCommand {
+  kind: "add-task";
+  targetTaskId: TID | undefined;
+  mode: "before" | "after" | "child" | undefined;
+}
+
+export interface TaskAddEvent {
+  target?: TID;
+  mode?: "before" | "after" | "child";
+}
+
+export function createTaskAddGateway(
+  dispatch: (command: LocalTaskAddCommand) => void,
+) {
+  return (event: TaskAddEvent): false => {
+    dispatch({
+      kind: "add-task",
+      targetTaskId: event.target,
+      mode: event.mode,
+    });
+    // Returning false from IApi.intercept cancels SVAR's temporary local task.
+    return false;
+  };
+}
+
+/**
  * The widget can emit transient drag updates before it emits its final update.
  * This small boundary emits only final logical commands and collapses duplicate
  * final events delivered in the same browser task. It intentionally has no API

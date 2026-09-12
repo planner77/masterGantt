@@ -26,6 +26,36 @@ describe("W07 task input contract", () => {
     });
   });
 
+  it("accepts an explicit parent conversion intent only with a canonical parent task UUID", () => {
+    const parentTaskId = "2fd0c93f-cd37-4b68-9f09-412239d99c79";
+    expect(parseCreateTaskInput({
+      ...valid,
+      parentTaskId,
+      convertParentToSummary: true,
+    })).toEqual({
+      success: true,
+      data: {
+        ...valid,
+        name: "Foundation",
+        parentTaskId,
+        convertParentToSummary: true,
+      },
+    });
+    expect(parseCreateTaskInput({
+      ...valid,
+      convertParentToSummary: true,
+    }).success).toBe(false);
+    expect(parseCreateTaskInput({
+      ...valid,
+      parentTaskId: "not-a-uuid",
+    }).success).toBe(false);
+    expect(parseCreateTaskInput({
+      ...valid,
+      parentTaskId,
+      convertParentToSummary: false,
+    }).success).toBe(false);
+  });
+
   it.each([
     { ...valid, type: "summary" },
     { ...valid, siblingOrder: 0 },

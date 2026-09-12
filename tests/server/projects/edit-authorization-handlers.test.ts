@@ -13,7 +13,10 @@ import {
   handleLogoutProject,
   handleUnlockProject,
 } from "../../../src/server/projects/edit-session-handlers-core";
-import { handleUpdateProject } from "../../../src/server/projects/project-handlers-core";
+import {
+  handleDeleteProject,
+  handleUpdateProject,
+} from "../../../src/server/projects/project-handlers-core";
 import {
   RevisionMismatchError,
   type AuthorizationResult,
@@ -80,6 +83,7 @@ function service(overrides: Record<string, unknown> = {}) {
     })),
     authorize: vi.fn((): AuthorizationResult => authorized),
     updateMetadata: vi.fn(() => mutationResponse),
+    deleteProject: vi.fn(),
     rotatePassword: vi.fn(async () => ({ rawSessionToken: rawToken, revision: 2 })),
     logout: vi.fn(() => ({ kind: "clearCookie" as const })),
     ...overrides,
@@ -278,6 +282,91 @@ describe("W05 protected project handlers", () => {
     expect(stale.status).toBe(412);
   });
 
+  it("deletes with a bodyless 204, no-store, and an expired edit cookie", async () => {
+    const api = service();
+    const response = handleDeleteProject(
+      new Request(`https://gantt.example.com/api/projects/${publicId}`, {
+        method: "DELETE",
+        headers: {
+          Origin: "https://gantt.example.com",
+          Cookie: cookie,
+          "If-Match": '"1"',
+        },
+      }),
+      publicId,
+      { ...common, service: api },
+    );
+
+    expect(response.status).toBe(204);
+    expect(await response.text()).toBe("");
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(api.deleteProject).toHaveBeenCalledWith(authorization, 1);
+  });
+
+  it("rejects delete for bad origin, missing target/session, precondition, and stale revision", async () => {
+    const request = (headers: HeadersInit = {}) => new Request(
+      `https://gantt.example.com/api/projects/${publicId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Origin: "https://gantt.example.com",
+          Cookie: cookie,
+          "If-Match": '"1"',
+          ...headers,
+        },
+      },
+    );
+    const forbiddenApi = service();
+    const forbidden = handleDeleteProject(
+      request({ Origin: "https://evil.test" }),
+      publicId,
+      { ...common, service: forbiddenApi },
+    );
+    expect(forbidden.status).toBe(403);
+    expect(forbiddenApi.authorize).not.toHaveBeenCalled();
+
+    const missingProject = handleDeleteProject(request(), publicId, {
+      ...common,
+      service: service({ authorize: vi.fn(() => ({ kind: "projectNotFound" as const })) }),
+    });
+    expect(missingProject.status).toBe(404);
+
+    const unauthenticatedApi = service({
+      authorize: vi.fn(() => ({ kind: "unauthorized" as const })),
+    });
+    const unauthenticated = handleDeleteProject(
+      request({ Cookie: "" }),
+      publicId,
+      { ...common, service: unauthenticatedApi },
+    );
+    expect(unauthenticated.status).toBe(401);
+    expect(unauthenticatedApi.deleteProject).not.toHaveBeenCalled();
+
+    const missingIfMatch = handleDeleteProject(
+      request({ "If-Match": "" }),
+      publicId,
+      { ...common, service: service() },
+    );
+    expect(missingIfMatch.status).toBe(400);
+    const noIfMatch = new Request(
+      `https://gantt.example.com/api/projects/${publicId}`,
+      { method: "DELETE", headers: { Origin: "https://gantt.example.com", Cookie: cookie } },
+    );
+    expect(handleDeleteProject(noIfMatch, publicId, {
+      ...common,
+      service: service(),
+    }).status).toBe(428);
+
+    const stale = handleDeleteProject(request(), publicId, {
+      ...common,
+      service: service({
+        deleteProject: vi.fn(() => { throw new RevisionMismatchError(); }),
+      }),
+    });
+    expect(stale.status).toBe(412);
+  });
+
   it("rotates with a bodyless 204, new ETag/cookie, and capacity mapping", async () => {
     const response = await handleChangeEditPassword(
       jsonRequest(`/api/projects/${publicId}/edit-password`, "PUT", { newEditPassword: "new password phrase" }, { Cookie: cookie, "If-Match": '"1"' }),
@@ -328,6 +417,7 @@ describe("route security inventory", () => {
       "POST /api/projects",
       "GET /api/projects/{publicId}",
       "PATCH /api/projects/{publicId}",
+      "DELETE /api/projects/{publicId}",
       "POST /api/projects/{publicId}/edit-sessions",
       "GET /api/projects/{publicId}/edit-sessions/current",
       "DELETE /api/projects/{publicId}/edit-sessions/current",
@@ -372,6 +462,7 @@ describe("route security inventory", () => {
       "GET /api/projects": "public-read",
       "POST /api/projects": "origin-and-create-limit",
       "PATCH /api/projects/{publicId}": "origin-session-if-match",
+      "DELETE /api/projects/{publicId}": "origin-session-if-match",
       "POST /api/projects/{publicId}/edit-sessions": "origin-and-password-limit",
       "DELETE /api/projects/{publicId}/edit-sessions/current": "origin-and-target-logout",
       "PUT /api/projects/{publicId}/edit-password": "origin-session-if-match",

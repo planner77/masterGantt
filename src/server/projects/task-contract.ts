@@ -5,6 +5,7 @@ import type {
   CreateTaskRequest,
   UpdateTaskRequest,
 } from "../../contracts/projects";
+import { isCanonicalUuidV4 } from "./project-contract";
 
 function isWellFormedUnicode(value: string): boolean {
   for (let index = 0; index < value.length; index += 1) {
@@ -50,6 +51,8 @@ const progress = z.number().finite().min(0).max(100);
 
 const createTaskSchema = z.object({
   externalId: externalId.optional(),
+  parentTaskId: z.string().refine(isCanonicalUuidV4).optional(),
+  convertParentToSummary: z.literal(true).optional(),
   name: taskName,
   type: leafType,
   scheduleMode: scheduleMode.optional(),
@@ -58,7 +61,13 @@ const createTaskSchema = z.object({
   duration,
   progress,
   parentExternalId: z.null().optional(),
-}).strict();
+}).strict().refine(
+  (value) => value.convertParentToSummary !== true || value.parentTaskId !== undefined,
+  {
+    path: ["convertParentToSummary"],
+    message: "Parent conversion requires parentTaskId.",
+  },
+);
 
 const updateTaskSchema = z.object({
   name: taskName.optional(),
