@@ -41,6 +41,7 @@
 | R33 | 외부 ID column 표시/숨김 선택, 작업 생성 시 시작일·기간을 묻지 않고 제출 시 오늘·1일 자동 적용, Chart 토/일 구분 | 오늘은 브라우저 local 날짜, Auto 근무일 보정 유지; Milestone은 기존 0일 계약. 후속 검증은 PENDING_TESTS.md |
 | R34 | 날짜·시간 표시는 사용자 locale을 따르며 저장 date-only/UTC instant 계약은 변경하지 않음 | locale/TZ 경계 테스트; 날짜 문자열을 UTC instant로 파싱해 전날로 표시하지 않음 |
 | R35 | Project 설정은 modal 또는 기본 접힌 패널, Project header와 Grid/Chart header를 유지하며 본문 내부 상하 스크롤 | viewport/E2E geometry 검증 |
+| R36 | Grid/Chart 상단의 별도 ‘작업 추가 또는 삭제’ 패널 제거; 생성은 native Grid `+` 사용 | 기존 패널의 Task 삭제 UI도 제거, 서버 삭제 API와 Project 목록 삭제는 유지. 후속 검증은 PENDING_TESTS.md |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 

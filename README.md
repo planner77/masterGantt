@@ -32,6 +32,8 @@
 
 현재 자동 기본값 적용 후속 변경은 사용자 요청에 따라 **로컬 커밋만 수행하고 검증·원격 push를 보류**한다. 기존 W24 PASS와 구분하며 [검증 및 push 대기 목록](docs/PENDING_TESTS.md)을 따른다.
 
+Grid/Chart 상단의 별도 ‘작업 추가 또는 삭제’ 패널은 제거했다. 작업 추가는 Grid `+`를 사용한다. 해당 패널의 Task 삭제 UI도 제거되며 서버 Task 삭제 API와 Project 목록 삭제 기능은 유지한다. 이 후속 변경 역시 일괄 검증 대기 상태다.
+
 W24 application 회귀 기준은 build/typecheck/lint, **28개 파일 378개 Vitest**, isolated Turbopack Chromium E2E **10개 PASS**다. W22 main/PR와 `v0.4.0` release Actions, GHCR commit/release digest의 원격·로컬 HTTP persistence 및 SBOM/provenance 조회도 PASS했으나 W24 원격 검증을 대신하지 않는다. W22 상태는 [W22 검토 기록](docs/W22_REVIEW.md), 이전 범위는 [W21 검토 기록](docs/W21_REVIEW.md)과 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다.
 
 ## 2. 기술 스택과 역할

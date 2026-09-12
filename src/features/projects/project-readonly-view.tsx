@@ -120,11 +120,6 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   const [ganttResetGeneration, setGanttResetGeneration] = useState(0);
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
-  const [newTaskType, setNewTaskType] = useState<"task" | "milestone">("task");
-  const [newTaskProgress, setNewTaskProgress] = useState("0");
-  const [newTaskExternalId, setNewTaskExternalId] = useState("");
-  const [deleteTaskId, setDeleteTaskId] = useState("");
-  const [confirmDeleteTaskId, setConfirmDeleteTaskId] = useState<string | null>(null);
   const [pendingChildTask, setPendingChildTask] = useState<ProjectTaskCreateCommand | null>(null);
   const [parentConversionConfirmed, setParentConversionConfirmed] = useState(false);
   const [showExternalId, setShowExternalId] = useState(true);
@@ -398,10 +393,6 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         setNotice(shifted
           ? `${successNotice} 비근무일 시작은 다음 근무일로 조정되었습니다.`
           : successNotice);
-        setConfirmDeleteTaskId(null);
-        if (method === "POST") {
-          setNewTaskExternalId(""); setNewTaskProgress("0");
-        }
       } else {
         await handleTaskFailure(response.status, body, "작업을 저장할 수 없습니다. 잠시 후 다시 시도해 주세요.");
       }
@@ -411,23 +402,6 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
       taskMutationReference.current = false;
       setIsSavingTask(false);
     }
-  }
-
-  function createTask(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const progress = Number(newTaskProgress);
-    if (!Number.isFinite(progress) || progress < 0 || progress > 100) {
-      setNotice("진척도를 확인해 주세요.");
-      return;
-    }
-    void saveTask("POST", null, {
-      ...(newTaskExternalId.trim() ? { externalId: newTaskExternalId.trim() } : {}),
-      name: "새 작업",
-      type: newTaskType,
-      start: todayLocalDateString(),
-      duration: newTaskType === "milestone" ? 0 : 1,
-      progress,
-    });
   }
 
   function createNativeTask(command: ProjectTaskCreateCommand) {
@@ -523,7 +497,6 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
   const taskEditingSupported = links.length === 0;
   const taskEditing = editing && !busy && taskEditingSupported;
-  const selectedDeleteTask = tasks.find((task) => task.taskId === deleteTaskId);
   return <section className="project-readonly" aria-labelledby="project-heading">
     <div className="project-readonly-heading">
       <div>
@@ -581,23 +554,6 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}
       </div>
       {editing && !taskEditingSupported ? <p className="schedule-scope-note">연결이 있는 일정 편집은 다음 단계에서 지원합니다. 현재 일정은 읽기 전용으로 표시됩니다.</p> : null}
-      {editing && taskEditingSupported ? <details className="task-edit-panel">
-        <summary>작업 추가 또는 삭제</summary>
-        <form className="project-form compact-form task-create-form" noValidate onSubmit={createTask}>
-          <h3>작업 추가</h3>
-          <div className="task-form-grid">
-            <div className="form-field"><label htmlFor="new-task-external-id">외부 ID <span>선택</span></label><input disabled={busy} id="new-task-external-id" onChange={(event) => setNewTaskExternalId(event.target.value)} value={newTaskExternalId} /></div>
-            <div className="form-field"><label htmlFor="new-task-type">유형</label><select disabled={busy} id="new-task-type" onChange={(event) => setNewTaskType(event.target.value as "task" | "milestone")} value={newTaskType}><option value="task">작업</option><option value="milestone">마일스톤</option></select></div>
-            <div className="form-field"><label htmlFor="new-task-progress">진척도</label><input disabled={busy} id="new-task-progress" max="100" min="0" onChange={(event) => setNewTaskProgress(event.target.value)} step="any" type="number" value={newTaskProgress} /></div>
-          </div>
-          <button className="primary-button" disabled={busy} type="submit">작업 추가</button>
-        </form>
-        {tasks.length > 0 ? <div className="task-delete-control">
-          <label htmlFor="delete-task">작업 삭제</label>
-          <div><select disabled={busy} id="delete-task" onChange={(event) => { setDeleteTaskId(event.target.value); setConfirmDeleteTaskId(null); }} value={deleteTaskId}><option value="">작업을 선택하세요</option>{tasks.filter((task) => task.type !== "summary").map((task) => <option key={task.taskId} value={task.taskId}>{task.name} ({task.externalId})</option>)}</select><button className="secondary-button" disabled={busy || !selectedDeleteTask} onClick={() => setConfirmDeleteTaskId(deleteTaskId)} type="button">삭제</button></div>
-          {confirmDeleteTaskId && selectedDeleteTask ? <div className="delete-confirmation" role="group" aria-label="작업 삭제 확인"><p><strong>{selectedDeleteTask.name}</strong> 작업을 삭제하시겠습니까?</p><button className="secondary-button" disabled={busy} onClick={() => setConfirmDeleteTaskId(null)} type="button">취소</button><button className="danger-button" disabled={busy} onClick={() => void saveTask("DELETE", confirmDeleteTaskId)} type="button">삭제 확인</button></div> : null}
-        </div> : null}
-      </details> : null}
       <ProjectGantt
         key={`${taskEditing ? "edit" : "readonly"}:${ganttResetGeneration}`}
         calendar={project.calendar}

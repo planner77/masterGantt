@@ -670,6 +670,8 @@ Version을 근거 없이 임의 고정하지 않는다.
 
 Project 목록은 표/Grid로 표시한다. SVAR Grid Header `+`는 최상위, 행 `+`는 하위 Task 추가이며 native command를 intercept하여 보호 API와 canonical snapshot 경로를 유지한다. 새 작업 생성 시 이름·시작일·기간은 묻지 않고 `새 작업`·브라우저 오늘·1일을 적용한다(Milestone 0일 유지). 일반 추가는 입력창 없이 저장하며 첫 child 추가의 Summary 전환만 명시 확인한다. 날짜 표시는 사용자 locale을 따르고 date-only 저장을 시간대 변환하지 않는다. 설정 패널은 기본 접고 Project/Grid/Chart headers를 유지한 내부 scroll을 제공한다. 상세 기준은 `docs/REQUIREMENTS.md`, `docs/W24_REVIEW.md`다.
 
+Grid/Chart 상단에 별도 ‘작업 추가 또는 삭제’ 패널을 다시 추가하지 않는다. 작업 추가 진입점은 native Grid `+`이며 서버 Task 삭제 API와 Project 목록 삭제는 유지한다.
+
 사용자가 일괄 검증을 위해 테스트 보류를 요청한 경우 실행을 강행하지 않는다. 미실행 항목은 `docs/PENDING_TESTS.md`에 기록하고 과거 PASS와 구분한다. 현재 보류 범위와 재개 여부는 `docs/exec-plans/active/PLAN.md`를 따른다.
 
 UI는 차분하고 전문적인 Project Management Tool 형태로 구성한다.
