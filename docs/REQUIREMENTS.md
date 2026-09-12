@@ -66,20 +66,20 @@ R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 ed
 | ID | 사용자/조직 판단 | 필요한 시점 | 미확정 상태의 처리 |
 | --- | --- | --- | --- |
 | D01 | 대상 Workbook에서 VBA 실행·셀 읽기·파일 Export가 허용되는지, 승인된 저장 위치 | 실제 VBA POC 전 | UNKNOWN; 실제 파일·정책을 추정하거나 DRM 우회하지 않음 |
-| D02 | Project 목록과 읽기/생성 서비스의 공개 범위: 사내 접근 경계 또는 공개 directory | 실데이터 사용·외부 노출 전 | local fixture UI 설계 가능; production discovery는 비활성 |
+| D02 | 앱 접속 가능한 모든 사용자에게 전체 Project 목록 공개, 편집은 Project별 비밀번호 인증 유지 | 2026-09-12 사용자 승인 | DECIDED; 인터넷 공개·네트워크 접근 경계는 별도 배포 결정 |
 | D03 | 운영 Host OS/CPU, volume 경로/owner, 도메인/TLS와 backup 보관 위치·정책 | 배포 검증 전 | 문서의 단일 container 후보로 계획, 운영값 생성 안 함 |
 | D04 | GHCR private, downstream consumer 최소 `packages: read`, `main` 필수 CI, PR 필수 승인 0명, `v*` update/delete 금지, 지정 maintainer release | 2026-09-12 사용자 결정 | DECIDED; W22 main/PR와 private GHCR commit/release artifact 원격 PASS. Ruleset 강제 가능 여부는 D05가 대체 |
 | D05 | Private repository를 현재 요금제에 유지하고 branch/tag ruleset 미강제 위험을 수용; private GitHub Artifact Attestation은 비활성, BuildKit SBOM/provenance는 필수 | 2026-09-12 사용자 결정 | DECIDED / RISK ACCEPTED; ruleset API 403과 미강제를 숨기지 않으며 지정 maintainer·절차 통제를 유지 |
 
 유료 License 선택은 계획에 없다. 실제 요구가 생기면 구매 전에 별도 판단한다. Password reset/admin 계정, Project 삭제/복원, merge Import, HTTP VBA 전송은 자동으로 초기 범위에 추가하지 않는다.
 
-W04/W05는 개발용 생성, direct-link Readonly, password unlock과 Project metadata 보호 변경을 구현했지만 D02의 production 노출 결정을 대신하지 않는다. 목록 discovery는 `GET /api/projects`를 `405`로 유지하고 홈도 DB 목록을 조회하지 않는다. Direct read/create를 실데이터에 외부 노출하기 전에는 조직 접근 경계와 Readonly 데이터의 기밀성 요구를 결정해야 한다.
+W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목록을 제공한다. 목록은 publicId/name/description/createdAt/updatedAt만 포함하며 최신 수정순으로 표시한다. 빈 목록과 조회 실패를 구분하고 생성 후 복귀·새로고침에서도 저장된 목록을 조회한다. 기존 direct-link Readonly와 모든 Mutation의 Project별 edit session 인증은 유지한다. 앱의 인터넷 공개 및 운영 네트워크 접근 경계는 별도 배포 결정이다.
 
 ## 충돌·누락 분석
 
 - 초기 `.condex/` 경로와 지침 `.codex/`의 불일치는 원격 commit `81725bd`에서 해결되었다. [설정 검증](AGENT_CONFIGURATION.md) 참조.
 - `AGENTS.md`가 가리키는 `docs/`는 원래 존재하지 않았다. 상충하는 기존 상세 구현은 없으며 이번 문서가 첫 초안이다.
 - Core가 SS/FF/SF link를 표시할 수 있어도 초기 Domain 지원은 FS뿐이다. 이는 범위 차이며 UI에서 미지원 생성 방지를 해야 한다.
-- Project List 요구는 유지한다. 인증 없는 전체 목록의 노출 범위는 D02이며, 이를 임의로 공개하거나 List 요구를 삭제하지 않는다.
+- Project List는 D02 승인 범위에서 앱 접속자 전체에게 제공한다. 목록 공개를 편집 권한 공개로 확대하지 않는다.
 - 대상 Excel에 안정 ID가 없을 수 있다. 승인된 ID 보존 방법이 확인될 때까지 행 번호를 장기 ID로 확정하지 않는다.
 - W01–W07 application source와 초기 migration, Project edit authorization, pure Calendar/Leaf Scheduling, root Task/Milestone Gantt 저장은 구현되었다. W21은 이 저장 경계를 유지하면서 full-width Grid+Chart 작업공간과 생성 직후 표시 회귀를 보완한다. W20은 CI와 최소 container artifact 기반을 선행하지만 production host/backup/restore를 포함한 W16 전체 배포 승인을 대신하지 않는다. VBA macro, Summary/WBS·FS 재계산, Import/Export도 후속 산출물이다.

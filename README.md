@@ -8,7 +8,7 @@
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-12 / 0.4.0 W22 Commit GHCR Automation 완료**. W01–W07, W20–W22는 독립 QA PASS / Manager ACCEPT이다. Main/PR Actions와 `v0.4.0` release, private GHCR commit/release digest의 원격·로컬 smoke 및 SBOM/provenance 조회를 완료했다. 사용자는 현재 private 요금제의 branch/tag ruleset 미강제 위험을 수용했고 GitHub Artifact Attestation은 비활성으로 두며 BuildKit SBOM/provenance를 유지한다.
+기준: **2026-09-12 / 0.5.0 W23 Project 목록 활성화 LOCAL PASS**. D02 승인에 따른 전체 목록을 구현하고 315 Vitest·Chromium 8/8·build/typecheck/lint 및 독립 QA를 통과했다. [W23 검증](docs/W23_REVIEW.md)을 참고한다. W01–W07, W20–W22는 독립 QA PASS / Manager ACCEPT이며 `v0.4.0` GHCR 릴리스까지 검증했다. 현재 private 요금제의 보호 규칙 미강제 위험은 수용하고 GitHub Artifact Attestation은 비활성으로 두며 BuildKit SBOM/provenance를 유지한다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -16,17 +16,18 @@
 | W01 Foundation | 완료 | Next.js 기본 화면, 빈 프로젝트 안내, liveness API, 빌드·테스트 설정 |
 | W02 SQLite | 완료 / 독립 QA PASS | 테이블 5개, 마이그레이션·checksum·rollback, 프로젝트 격리, Repository, DB 초기화 CLI |
 | W03 SVAR 통합 | 완료 / 독립 QA PASS | Core 2.7.3, browser-only Gantt fixture, 기본 readonly, 날짜 adapter와 로컬 명령 경계 |
-| W04 Project 생성·직접 조회 | 완료 / 독립 QA PASS | strict 입력, UUID URL, scrypt 저장, 최초 session 원자 발급, 직접 Readonly snapshot, 컬렉션 비공개 |
+| W04 Project 생성·직접 조회 | 완료 / 독립 QA PASS | strict 입력, UUID URL, scrypt 저장, 최초 session 원자 발급, 직접 Readonly snapshot; 목록은 W23에서 활성화 |
 | W05 편집 인증 | 완료 / 독립 QA PASS | password unlock, session current/logout, metadata 보호 저장, revision, password rotation, route security inventory |
 | W06 일정 계산 기반 | 완료 / 독립 QA PASS | pure Gregorian date-only, weekend/holiday, inclusive duration, Auto/Manual leaf, milestone, server/browser 동일 fixture |
 | W07 Task·Link 저장 기반 | 완료 / 독립 QA PASS | root Task/Milestone CRUD, Project-scoped Link Repository, 실제 Gantt 이동·양방향 resize·삭제·reload, 거부 복원, revision 경쟁 |
 | W20 CI/CD·Semantic image | 완료 / 독립 QA PASS | strict SemVer `v0.4.0`, immutable candidate, digest smoke와 exact/rolling promotion |
 | W21 동기 Gantt 작업공간 | 완료 / 독립 QA PASS | 빈 일정부터 좌측 계층 Grid+우측 Chart, 생성 직후 양쪽 반영, full-width·viewport height, narrow 내부 scroll |
 | W22 Commit GHCR 자동화 | 완료 / 독립 QA PASS | immutable `ci-<SHA>`와 SemVer release를 exact digest로 원격·로컬 검증; PR publish skipped |
+| W23 Project 목록 | 로컬 완료 / 독립 QA PASS | D02 승인, 전체 공개 summary 목록, 생성 후 복귀·reload 조회, 편집 인증 유지 |
 | W08 이후 | 예정 | Summary/WBS, FS 재계산, Import/Export |
 | W16 배포 | 일부 기반 선행 / 운영 검증 예정 | Docker/startup/readiness/named volume 기반; 실제 host·proxy·backup/restore 승인 후속 |
 
-홈 화면은 DB에 Project가 없다고 단정하지 않고 목록 discovery가 아직 비활성임을 안내하며 생성 링크를 제공한다. `/projects/new`에서 Project를 만들면 `/projects/{publicId}`로 이동한다. Direct snapshot API는 Cookie와 관계없이 Readonly이며, 화면은 별도 current-session 확인 뒤에만 metadata/password/logout과 root Task/Milestone 편집 control을 표시한다. D02 결정 전 `GET /api/projects`는 `405`로 닫혀 있다. Project 화면은 빈 일정부터 동일 SVAR 인스턴스의 좌측 계층 Grid와 우측 Chart를 표시한다. `작업 추가 또는 삭제`를 펼쳐 저장하면 새 row와 bar/milestone이 reload 없이 함께 나타나며, Grid/Chart 경계는 내장 Resizer로 조절한다. 좁은 화면에서는 Project Gantt 영역 안을 가로로 스크롤한다. Gantt drag/resize 결과는 보호 Task API와 W06 Scheduling Engine을 거쳐 SQLite에 저장되고, 성공·실패 모두 server canonical snapshot으로 복원된다. Summary 생성/reparent와 Link가 있는 일정의 변경은 W08/W09 전까지 fail-closed다. `/gantt-demo`는 별도의 로컬 fixture다.
+홈(`/`)과 `GET /api/projects`는 D02 승인에 따라 전체 Project의 이름·설명·생성/수정 시각과 직접 링크를 제공한다. 생성 후 목록으로 복귀하거나 새로고침하면 저장된 목록을 다시 조회하며, 빈 목록과 조회 실패를 구분한다. `/projects/new`에서 생성하면 `/projects/{publicId}`로 이동한다. Direct snapshot API는 항상 Readonly이며 별도 current-session 확인 뒤에만 편집 control을 표시한다. 모든 Mutation은 서버에서 Project별 인증을 유지한다. Project 화면은 빈 일정부터 동일 SVAR 인스턴스의 좌측 계층 Grid와 우측 Chart를 표시한다. 접이식 작업 관리에서 저장한 row와 bar/milestone은 reload 없이 함께 나타난다. Grid/Chart 경계는 내장 Resizer로 조절하며 좁은 화면은 내부 가로 scroll을 사용한다. Gantt drag/resize는 보호 API와 Scheduling Engine을 거쳐 저장하고 server canonical snapshot으로 복원한다. Summary 생성/reparent와 Link가 있는 일정 변경은 W08/W09 전까지 fail-closed다. `/gantt-demo`는 로컬 fixture다.
 
 최근 확정된 application 회귀 기준은 build/typecheck/lint, **24개 파일 310개 Vitest**, clean isolated Turbopack Chromium E2E **8개 PASS**다. W22 main/PR와 `v0.4.0` release Actions, GHCR commit/release digest의 원격·로컬 HTTP persistence 및 SBOM/provenance 조회도 PASS했다. W22 상태는 [W22 검토 기록](docs/W22_REVIEW.md), 이전 범위는 [W21 검토 기록](docs/W21_REVIEW.md)과 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다.
 

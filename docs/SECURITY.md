@@ -11,7 +11,7 @@
 - Edit Password를 정상 검증해 Project-scoped session을 받은 browser만 변경할 수 있다.
 - Frontend의 edit mode, 숨겨진 button, client validation은 authorization 근거가 아니다.
 - 모든 Project mutation, import preview/commit, password 변경에서 server가 session과 URL Project의 binding을 재검증한다.
-- Project 목록 공개 여부는 별도 결정이다. 전역 인증 없이 목록을 노출하면 direct-link보다 넓은 정보 공개가 되므로 deployment owner 결정 전에는 discovery API를 활성화하지 않는다.
+- D02 사용자 승인(2026-09-12)에 따라 앱에 접속 가능한 모든 사용자가 Project 목록을 조회할 수 있다. 목록은 publicId, 이름, 설명, 생성/수정 시각만 공개하며 내부 ID, password/hash/salt, session 정보는 제외한다. 목록 조회는 편집 권한을 부여하지 않으며 모든 Mutation의 기존 Project별 인증을 유지한다. 인터넷 공개나 upstream 접근 경계 설정은 별도 배포 결정이다.
 
 이 모델이 조직의 일정 데이터 기밀성 요구를 만족하지 못하면 공개 Readonly 모델을 유지한 채 UUID를 더 길게 만드는 것으로 해결하지 않는다. Reverse proxy/SSO 또는 별도 read authorization 요구사항을 먼저 추가해야 한다.
 
@@ -307,7 +307,7 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 
 ## 15. Decision Required
 
-- Project discovery를 공개, upstream 인증, direct-link only 중 어느 정책으로 운영할지
+- D02의 앱 접속자 전체 목록 공개 정책에 맞는 운영 네트워크/upstream 접근 경계
 - Readonly Project 내용에 조직 기밀성이 필요한지; 필요하다면 별도 read authorization 설계
 - 조직 password 최소 길이/복잡도/rotation 정책
 - Production hardware에서 scrypt profile과 KDF concurrency benchmark 승인

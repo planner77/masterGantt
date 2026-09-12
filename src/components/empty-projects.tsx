@@ -8,8 +8,8 @@ export function EmptyProjects() {
         <span />
         <span />
       </div>
-      <h2>프로젝트 목록은 아직 표시하지 않습니다.</h2>
-      <p>공유받은 직접 주소로 접근하거나 새 프로젝트를 만들어 시작하세요.</p>
+      <h2>아직 프로젝트가 없습니다.</h2>
+      <p>새 프로젝트를 만들면 이 목록에서 일정 현황을 바로 확인할 수 있습니다.</p>
       <Link className="secondary-button" href="/projects/new">
         프로젝트 만들기
       </Link>

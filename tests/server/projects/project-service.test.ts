@@ -276,6 +276,114 @@ describe("ProjectService create", () => {
 });
 
 describe("ProjectService direct read", () => {
+  it("returns an empty public project collection", () => {
+    const { database } = openDatabase({
+      filename: ":memory:",
+      migrationsDirectory,
+    });
+
+    try {
+      expect(createTestService(database).listProjects()).toEqual({
+        data: { projects: [] },
+      });
+    } finally {
+      database.close();
+    }
+  });
+
+  it("returns only public list fields in latest-update order with a stable tie-break", async () => {
+    const { database } = openDatabase({
+      filename: ":memory:",
+      migrationsDirectory,
+    });
+    const publicIds = [
+      "11111111-1111-4111-8111-111111111111",
+      "33333333-3333-4333-8333-333333333333",
+      "22222222-2222-4222-8222-222222222222",
+    ];
+    const times = [
+      new Date("2026-09-11T01:00:00.000Z"),
+      new Date("2026-09-12T01:00:00.000Z"),
+      new Date("2026-09-12T01:00:00.000Z"),
+    ];
+    const service = createTestService(database, {
+      generatePublicId: () => publicIds.shift() ?? randomUUID(),
+      clock: () => times.shift() ?? new Date("2026-09-12T01:00:00.000Z"),
+    });
+
+    try {
+      await service.create({
+        name: "Older",
+        description: "First description",
+        editPassword: "password phrase",
+      });
+      await service.create({
+        name: "Tie B",
+        description: "Third UUID",
+        editPassword: "password phrase",
+      });
+      await service.create({
+        name: "Tie A",
+        description: "Second UUID",
+        editPassword: "password phrase",
+      });
+
+      const sessionsBefore = database.prepare(
+        `SELECT id, project_id, hex(token_hash) AS token_hash,
+                auth_version, created_at, expires_at, revoked_at
+         FROM edit_sessions ORDER BY id`,
+      ).all();
+      const response = service.listProjects();
+      expect(response).toEqual({
+        data: {
+          projects: [
+            {
+              publicId: "22222222-2222-4222-8222-222222222222",
+              name: "Tie A",
+              description: "Second UUID",
+              createdAt: "2026-09-12T01:00:00.000Z",
+              updatedAt: "2026-09-12T01:00:00.000Z",
+            },
+            {
+              publicId: "33333333-3333-4333-8333-333333333333",
+              name: "Tie B",
+              description: "Third UUID",
+              createdAt: "2026-09-12T01:00:00.000Z",
+              updatedAt: "2026-09-12T01:00:00.000Z",
+            },
+            {
+              publicId: "11111111-1111-4111-8111-111111111111",
+              name: "Older",
+              description: "First description",
+              createdAt: "2026-09-11T01:00:00.000Z",
+              updatedAt: "2026-09-11T01:00:00.000Z",
+            },
+          ],
+        },
+      });
+      const serialized = JSON.stringify(response);
+      for (const forbidden of [
+        "password",
+        "passwordHash",
+        "passwordSalt",
+        "authVersion",
+        "revision",
+        "calendarTimezone",
+        "tokenHash",
+        "projectId",
+      ]) {
+        expect(serialized).not.toContain(forbidden);
+      }
+      expect(database.prepare(
+        `SELECT id, project_id, hex(token_hash) AS token_hash,
+                auth_version, created_at, expires_at, revoked_at
+         FROM edit_sessions ORDER BY id`,
+      ).all()).toEqual(sessionsBefore);
+    } finally {
+      database.close();
+    }
+  });
+
   it("returns one project-scoped public snapshot without internal or secret fields", async () => {
     const { database } = openDatabase({
       filename: ":memory:",

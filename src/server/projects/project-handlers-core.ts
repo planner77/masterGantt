@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import type {
   CreateProjectResponse,
+  ProjectListResponse,
   ProjectMetadataMutationResponse,
   ProjectSnapshotResponse,
   UpdateProjectRequest,
@@ -38,6 +39,7 @@ import {
 
 interface ProjectServiceApi {
   create(input: CreateProjectInput): Promise<CreatedProject>;
+  listProjects(): ProjectListResponse;
   getReadonlySnapshot(publicId: string): ProjectSnapshotResponse | undefined;
   authorize(publicId: string, rawToken: string | undefined): AuthorizationResult;
   updateMetadata(
@@ -70,6 +72,13 @@ export interface ReadProjectHandlerDependencies {
   service:
     | Pick<ProjectServiceApi, "getReadonlySnapshot">
     | (() => Pick<ProjectServiceApi, "getReadonlySnapshot">);
+  requestId?: () => string;
+}
+
+export interface ListProjectsHandlerDependencies {
+  service:
+    | Pick<ProjectServiceApi, "listProjects">
+    | (() => Pick<ProjectServiceApi, "listProjects">);
   requestId?: () => string;
 }
 
@@ -222,20 +231,24 @@ export function handleReadProject(
 }
 
 export function handleProjectCollectionGet(
-  requestId: () => string = randomUUID,
+  dependencies: ListProjectsHandlerDependencies,
 ): Response {
-  const response = apiErrorResponse(
-    new PublicApiError(
-      405,
-      "METHOD_NOT_ALLOWED",
-      "Project discovery is not enabled.",
-      [],
-      { Allow: "POST" },
-    ),
-    requestId(),
-  );
-  response.headers.set("Cache-Control", NO_STORE_HEADERS["Cache-Control"]);
-  return response;
+  const requestId = (dependencies.requestId ?? randomUUID)();
+
+  try {
+    const responseBody = resolveDependency(dependencies.service).listProjects();
+    return Response.json(responseBody, {
+      status: 200,
+      headers: {
+        ...NO_STORE_HEADERS,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    });
+  } catch (error) {
+    const response = apiErrorResponse(error, requestId);
+    response.headers.set("Cache-Control", NO_STORE_HEADERS["Cache-Control"]);
+    return response;
+  }
 }
 
 export async function handleUpdateProject(

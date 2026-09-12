@@ -18,5 +18,5 @@ export async function POST(request: Request): Promise<Response> {
 }
 
 export function GET(): Response {
-  return handleProjectCollectionGet();
+  return handleProjectCollectionGet({ service: getProjectService });
 }

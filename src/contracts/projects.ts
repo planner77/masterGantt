@@ -17,6 +17,20 @@ export interface ProjectDto {
   calendar: ProjectCalendarDto;
 }
 
+export interface ProjectListItemDto {
+  publicId: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectListResponse {
+  data: {
+    projects: ProjectListItemDto[];
+  };
+}
+
 export interface ProjectTaskDto {
   taskId: string;
   externalId: string;

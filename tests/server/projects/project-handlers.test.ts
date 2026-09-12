@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type {
   CreateProjectResponse,
+  ProjectListResponse,
   ProjectSnapshotResponse,
 } from "../../../src/contracts/projects";
 import {
@@ -36,6 +37,19 @@ const readonlyResponse: ProjectSnapshotResponse = {
     tasks: [],
     links: [],
     permission: "readonly",
+  },
+};
+const listResponse: ProjectListResponse = {
+  data: {
+    projects: [
+      {
+        publicId,
+        name: "Plant Expansion",
+        description: "Phase 1",
+        createdAt: "2026-09-11T01:00:00.000Z",
+        updatedAt: "2026-09-12T01:00:00.000Z",
+      },
+    ],
   },
 };
 
@@ -317,10 +331,51 @@ describe("readonly and collection GET handlers", () => {
     expect(getReadonlySnapshot).toHaveBeenCalledOnce();
   });
 
-  it("keeps collection discovery disabled", async () => {
-    const response = handleProjectCollectionGet(() => "request-id");
-    expect(response.status).toBe(405);
-    expect(response.headers.get("allow")).toBe("POST");
-    expect((await errorBody(response)).error.code).toBe("METHOD_NOT_ALLOWED");
+  it("returns the public project list without requiring authentication", async () => {
+    const listProjects = vi.fn(() => listResponse);
+    const response = handleProjectCollectionGet({
+      service: { listProjects },
+      requestId: () => "request-id",
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("content-type")).toBe(
+      "application/json; charset=utf-8",
+    );
+    expect(response.headers.get("set-cookie")).toBeNull();
+    expect(await response.json()).toEqual(listResponse);
+    expect(listProjects).toHaveBeenCalledOnce();
+  });
+
+  it("allows an empty project list", async () => {
+    const response = handleProjectCollectionGet({
+      service: { listProjects: () => ({ data: { projects: [] } }) },
+      requestId: () => "request-id",
+    });
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ data: { projects: [] } });
+  });
+
+  it("sanitizes project list failures and keeps them uncached", async () => {
+    const response = handleProjectCollectionGet({
+      service: () => {
+        throw new Error("SQLITE failure /data/private.sqlite3");
+      },
+      requestId: () => "request-id",
+    });
+    const body = await errorBody(response);
+
+    expect(response.status).toBe(500);
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(body.error).toEqual({
+      code: "INTERNAL_ERROR",
+      message: "The request could not be completed.",
+      details: [],
+      requestId: "request-id",
+    });
+    expect(JSON.stringify(body)).not.toContain("SQLITE");
+    expect(JSON.stringify(body)).not.toContain("/data");
   });
 });

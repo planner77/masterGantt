@@ -131,6 +131,19 @@ button:focus-visible {
   max-width: 42rem;
 }
 
+.project-list-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.project-list-create {
+  flex: 0 0 auto;
+  margin: 0;
+  text-decoration: none;
+}
+
 .eyebrow {
   margin: 0 0 0.5rem;
   color: #52759b;
@@ -203,6 +216,82 @@ h2 {
 
 .empty-state p {
   max-width: 29rem;
+}
+
+.project-list {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.project-list-count {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.project-list-count strong {
+  color: var(--foreground);
+}
+
+.project-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-list-card {
+  display: flex;
+  min-height: 11.5rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  padding: 1.25rem;
+  text-decoration: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.project-list-card:hover {
+  border-color: #aebfd3;
+  box-shadow: 0 0.5rem 1.25rem rgb(33 61 91 / 0.08);
+  transform: translateY(-1px);
+}
+
+.project-list-card-main,
+.project-list-card-meta {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.project-list-card-title {
+  overflow-wrap: anywhere;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.project-list-card-description {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.project-list-card-meta {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  color: #52759b;
+  font-size: 0.75rem;
+  font-weight: 650;
 }
 
 .status-page,
@@ -727,6 +816,16 @@ h2 {
 
   .empty-state {
     min-height: 17rem;
+  }
+
+  .project-list-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .project-list-create {
+    width: 100%;
+    text-align: center;
   }
 
   .gantt-demo-controls {

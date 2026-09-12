@@ -4,27 +4,31 @@ function uniqueSuffix(): string {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-test("creates a project, keeps its direct page readonly, and does not discover a collection", async ({
+test("creates a project, lists it after returning home, and keeps its direct page readonly", async ({
   browser,
   page,
 }) => {
   const suffix = uniqueSuffix();
   const name = `E2E Project ${suffix}`;
   const password = `E2E-password-${suffix}`;
-  const collectionReads: string[] = [];
+  const initialCollectionResponse = await page.request.get("/api/projects");
+  expect(initialCollectionResponse.status()).toBe(200);
+  const initialCollection = await initialCollectionResponse.json();
+  const initialProjectCount = initialCollection.data.projects.length;
 
-  page.on("request", (request) => {
-    const url = new URL(request.url());
-    if (url.pathname === "/api/projects" && request.method() === "GET") {
-      collectionReads.push(request.url());
-    }
-  });
-
-  await page.goto("/projects/new");
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "프로젝트", exact: true })).toBeVisible();
+  if (initialProjectCount === 0) {
+    await expect(page.getByRole("heading", { name: "아직 프로젝트가 없습니다." })).toBeVisible();
+  } else {
+    await expect(page.locator(".project-list-card")).toHaveCount(initialProjectCount);
+    await expect(page.locator(".project-list-card").first()).toBeVisible();
+  }
+  await page.getByRole("link", { name: "프로젝트 만들기" }).first().click();
+  await page.waitForURL("/projects/new");
   const create = page.getByRole("button", { name: "프로젝트 만들기" });
   await create.click();
   await expect(page.locator(".form-error")).toHaveText("프로젝트 이름을 입력해 주세요.");
-  await expect(collectionReads).toEqual([]);
 
   await page.getByLabel("프로젝트 이름").fill(name);
   await page.getByLabel("편집 비밀번호").fill("😀".repeat(11));
@@ -49,32 +53,38 @@ test("creates a project, keeps its direct page readonly, and does not discover a
   await expect(page.getByRole("button", { name: "프로젝트 정보 저장" })).toBeVisible();
   expect(directUrl).not.toContain(password);
   expect(await page.locator("body").innerText()).not.toContain(password);
-  await expect(collectionReads).toEqual([]);
 
   const collectionResponse = await page.request.get("/api/projects");
-  expect(collectionResponse.status()).toBe(405);
-  expect(collectionResponse.headers().allow).toBe("POST");
-  expect((await collectionResponse.json()).error.code).toBe("METHOD_NOT_ALLOWED");
+  expect(collectionResponse.status()).toBe(200);
+  const collection = await collectionResponse.json();
+  expect(collection.data.projects).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ name, description: "브라우저 통합 검증 프로젝트" }),
+    ]),
+  );
+
+  await page.getByRole("link", { name: "프로젝트" }).click();
+  await page.waitForURL("/");
+  await expect(page.getByRole("heading", { name: "프로젝트", exact: true })).toBeVisible();
+  const projectCard = page.getByRole("link", { name: new RegExp(name) });
+  await expect(projectCard).toContainText("브라우저 통합 검증 프로젝트");
 
   await page.reload();
+  await expect(page.getByRole("link", { name: new RegExp(name) })).toBeVisible();
+  await projectCard.click();
+  await page.waitForURL(directUrl);
   await expect(page.getByRole("heading", { name })).toBeVisible();
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
 
   const readonlyContext = await browser.newContext();
   try {
     const readonlyPage = await readonlyContext.newPage();
-    const readonlyCollectionReads: string[] = [];
-    readonlyPage.on("request", (request) => {
-      const url = new URL(request.url());
-      if (url.pathname === "/api/projects" && request.method() === "GET") {
-        readonlyCollectionReads.push(request.url());
-      }
-    });
-    await readonlyPage.goto(directUrl);
+    await readonlyPage.goto("/");
+    await expect(readonlyPage.getByRole("link", { name: new RegExp(name) })).toBeVisible();
+    await readonlyPage.getByRole("link", { name: new RegExp(name) }).click();
+    await readonlyPage.waitForURL(directUrl);
     await expect(readonlyPage.getByRole("heading", { name })).toBeVisible();
     await expect(readonlyPage.getByText("읽기 전용", { exact: true })).toBeVisible();
     await expect(readonlyPage.getByRole("button", { name: "편집 잠금 해제" })).toBeVisible();
-    await expect(readonlyCollectionReads).toEqual([]);
   } finally {
     await readonlyContext.close();
   }

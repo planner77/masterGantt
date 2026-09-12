@@ -552,6 +552,83 @@ describe("project isolation and lifecycle", () => {
     }
   });
 
+  it("lists only public project fields in deterministic latest-update order", () => {
+    const { database } = openDatabase({
+      filename: ":memory:",
+      migrationsDirectory: sourceMigrations,
+    });
+
+    try {
+      const projects = new ProjectRepository(database);
+      expect(projects.listPublic()).toEqual([]);
+
+      const insert = (
+        publicId: string,
+        name: string,
+        createdAt: string,
+        updatedAt: string,
+      ) => projects.insert({
+        publicId,
+        name,
+        description: `${name} description`,
+        passwordKdf: "scrypt",
+        passwordSalt: Buffer.alloc(16, 4),
+        passwordHash: Buffer.alloc(32, 5),
+        scryptN: 32768,
+        scryptR: 8,
+        scryptP: 3,
+        scryptKeyLength: 32,
+        calendarTimezone: "Asia/Seoul",
+        createdAt,
+        updatedAt,
+      });
+
+      insert(
+        "11111111-1111-4111-8111-111111111111",
+        "Older",
+        "2026-09-10T01:00:00.000Z",
+        "2026-09-11T01:00:00.000Z",
+      );
+      insert(
+        "33333333-3333-4333-8333-333333333333",
+        "Tie B",
+        "2026-09-12T01:00:00.000Z",
+        "2026-09-12T01:00:00.000Z",
+      );
+      insert(
+        "22222222-2222-4222-8222-222222222222",
+        "Tie A",
+        "2026-09-12T01:00:00.000Z",
+        "2026-09-12T01:00:00.000Z",
+      );
+
+      const listed = projects.listPublic();
+      expect(listed.map(({ publicId }) => publicId)).toEqual([
+        "22222222-2222-4222-8222-222222222222",
+        "33333333-3333-4333-8333-333333333333",
+        "11111111-1111-4111-8111-111111111111",
+      ]);
+      expect(listed[0]).toEqual({
+        publicId: "22222222-2222-4222-8222-222222222222",
+        name: "Tie A",
+        description: "Tie A description",
+        createdAt: "2026-09-12T01:00:00.000Z",
+        updatedAt: "2026-09-12T01:00:00.000Z",
+      });
+      for (const project of listed) {
+        expect(Object.keys(project).sort()).toEqual([
+          "createdAt",
+          "description",
+          "name",
+          "publicId",
+          "updatedAt",
+        ]);
+      }
+    } finally {
+      database.close();
+    }
+  });
+
   it("cascades a project aggregate while retaining direct parent-delete protection", () => {
     const { database } = openDatabase({
       filename: ":memory:",

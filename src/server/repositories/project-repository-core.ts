@@ -12,6 +12,14 @@ export interface ProjectRecord {
   updatedAt: string;
 }
 
+export interface ProjectListRecord {
+  publicId: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** Private authentication material. Never map this record into an API DTO. */
 export interface ProjectCredentialRecord extends ProjectRecord {
   passwordKdf: string;
@@ -69,6 +77,14 @@ interface ProjectCredentialRow extends ProjectRow {
   scrypt_key_length: number;
 }
 
+interface ProjectListRow {
+  public_id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+}
+
 function mapProject(row: ProjectRow): ProjectRecord {
   return {
     id: row.id,
@@ -96,8 +112,32 @@ function mapProjectCredential(row: ProjectCredentialRow): ProjectCredentialRecor
   };
 }
 
+function mapProjectListItem(row: ProjectListRow): ProjectListRecord {
+  return {
+    publicId: row.public_id,
+    name: row.name,
+    description: row.description,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 export class ProjectRepository {
   constructor(private readonly database: Database.Database) {}
+
+  listPublic(): ProjectListRecord[] {
+    const rows = this.database
+      .prepare(
+        `
+          SELECT public_id, name, description, created_at, updated_at
+          FROM projects
+          ORDER BY updated_at DESC, public_id ASC
+        `,
+      )
+      .all() as ProjectListRow[];
+
+    return rows.map(mapProjectListItem);
+  }
 
   findByPublicId(publicId: string): ProjectRecord | undefined {
     const row = this.database

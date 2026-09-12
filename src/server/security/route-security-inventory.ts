@@ -1,6 +1,5 @@
 export type RouteSecurityPolicy =
   | "public-read"
-  | "discovery-disabled"
   | "origin-and-create-limit"
   | "origin-and-password-limit"
   | "optional-session-read"
@@ -23,7 +22,7 @@ export interface RouteSecurityInventoryEntry {
 export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/health/live", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/health/ready", method: "GET", policy: "public-read", mutatesState: false },
-  { template: "/api/projects", method: "GET", policy: "discovery-disabled", mutatesState: false },
+  { template: "/api/projects", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects", method: "POST", policy: "origin-and-create-limit", mutatesState: true },
   { template: "/api/projects/{publicId}", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },

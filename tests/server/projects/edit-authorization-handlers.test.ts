@@ -369,6 +369,7 @@ describe("route security inventory", () => {
       `${route.method} ${route.template}`,
       route.policy,
     ]))).toMatchObject({
+      "GET /api/projects": "public-read",
       "POST /api/projects": "origin-and-create-limit",
       "PATCH /api/projects/{publicId}": "origin-session-if-match",
       "POST /api/projects/{publicId}/edit-sessions": "origin-and-password-limit",

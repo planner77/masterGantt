@@ -56,6 +56,8 @@
 | ADR50 | ACCEPT | 성공한 `main` commit마다 immutable `ci-<full SHA>` test image를 게시하고 SemVer release의 `sha-<full SHA>` tag 공간과 분리 | PR/수동 CI는 read-only; main publish는 quality/E2E/container gate 뒤 실행하며 commit/release 모두 registry digest를 다시 pull해 Project/Task authorization과 restart persistence까지 검증 |
 | ADR51 | ACCEPT WITH EXPLICIT RISK | Private repository를 현재 요금제에 유지하고 branch/tag ruleset 미강제 위험을 수용; GitHub Artifact Attestation은 비활성, BuildKit SBOM/provenance는 필수 | Admin 인증은 성공했지만 ruleset API는 요금제 제한 403. 보호가 적용됐다고 표시하지 않고 지정 maintainer·절차 통제를 유지하며, 실제 Actions/GHCR artifact는 별도 원격 증거 전 NOT TESTED |
 
+| ADR52 | ACCEPT | D02 승인으로 앱 접속자 전체 Project 목록 활성화 | 홈과 GET collection은 공개 summary만 제공하고 no-store로 생성 후 재조회한다. 내부 ID·credential·session 제외, 모든 기존 Mutation 인증 유지. 운영 네트워크/인터넷 공개는 별도 결정. ADR26의 discovery 405 정책 대체 |
+
 ## Integration 원칙
 
 Agent 초안은 바로 완료로 처리하지 않는다. Manager는 공동 계약의 날짜·진척·ID·CSV·오류·revision을 정렬하고 QA가 다시 비교한다. [BOOTSTRAP_REVIEW.md](BOOTSTRAP_REVIEW.md)에 발견 사항, 보완, 최종 판정을 기록한다.

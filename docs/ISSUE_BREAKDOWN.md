@@ -254,6 +254,16 @@
 - Status: DONE — 독립 QA PASS / Manager ACCEPT. 실제 persisted Summary 생성·reparent·expand/collapse와 WBS는 W08에 유지한다.
 - Risk: Core compact threshold, nested min-content body overflow, native Add가 보호 mutation을 우회하는 문제, Summary UI를 W08 전에 완료로 오인.
 
+## W23 — Project List 활성화
+
+- Goal: 생성한 Project를 홈 목록에서 발견하고 다시 접근할 수 있게 한다.
+- Background: D02 미결정 상태의 collection 405/비활성 안내를 사용자 승인으로 대체한다.
+- Scope: 공개 summary 목록 Repository/Service/GET, 홈 목록·빈 상태·오류, 문서 및 회귀 테스트.
+- Acceptance Criteria: 앱 접속자 전체 조회, 최신 수정순·안정 정렬, secret/internal ID 제외, no-store, 생성→목록 복귀→reload 유지, 기존 Project별 Mutation 인증 유지.
+- Assigned Agent: backend + frontend + qa_docs + Manager.
+- Related Documents: [API](API.md), [Security](SECURITY.md), [Requirements](REQUIREMENTS.md), [W23 Review](W23_REVIEW.md).
+- Status: DONE LOCAL / QA PASS / Manager ACCEPT — 315 Vitest, Chromium 8/8, build/typecheck/lint; 원격 release는 별도.
+
 ## W22 — Main Commit GHCR Automation
 
 - Goal: 모든 성공한 `main` commit을 사용자·통합 테스트용 immutable GHCR image로 게시하고 기존 SemVer release와 함께 실제 digest 기준으로 검증한다.

@@ -5,5 +5,6 @@ export {
   ProjectRepository,
   type NewEditSessionRecord,
   type NewProjectRecord,
+  type ProjectListRecord,
   type ProjectRecord,
 } from "./project-repository-core";

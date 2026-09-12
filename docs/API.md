@@ -114,7 +114,7 @@ Project metadata, calendar, task, link, task batch, import commit처럼 schedule
 |---|---:|---|
 | Project 생성 | 아니오 | 기존 Project가 없으므로 예외. Same-Origin 및 강한 rate limit 필수 |
 | Project direct read | 아니오 | URL 보유자는 전체 일정 read 가능; 링크가 기밀성을 뜻하지 않음 |
-| Project 목록 discovery | 미확정 | 배포 owner가 공개 directory/upstream 인증/direct-link only 중 결정 전에는 노출하지 않음 |
+| Project 목록 discovery | 아니오 | D02 승인: 앱 접속자 전체에게 공개 summary만 반환, 편집 권한 부여 없음 |
 | Unlock | 아니오 | Password 검증 후 Project-scoped edit session 발급 |
 | Metadata/calendar/task/link 변경 | 예 | Project와 session binding을 server에서 확인 |
 | Import preview/commit | 예 | CPU abuse 방지 및 편집 workflow 일관성을 위해 preview도 요구 |
@@ -163,13 +163,9 @@ Password는 응답하거나 log에 남기지 않는다. UUID collision은 unique
 
 ### `GET /api/projects`
 
-Project List 화면에 필요한 discovery endpoint 후보이다. 그러나 전역 사용자 인증이 없는 상태에서 Project name/description 목록을 공개하면 direct URL보다 훨씬 넓은 정보 노출이 된다. 배포 owner가 다음 중 하나를 결정하기 전에는 route를 활성화하지 않는다.
+D02 사용자 승인에 따라 앱 접속 가능한 모든 사용자에게 전체 목록을 제공한다. Session은 필요하지 않으며 `200 OK`, `Cache-Control: private, no-store`를 반환한다. 응답은 `{ "data": { "projects": [] } }` 형식이며 각 항목은 `publicId`, `name`, `description`, `createdAt`, `updatedAt`만 포함한다. 최신 `updatedAt` 내림차순과 안정적인 동률 정렬을 적용한다. 내부 DB ID, password/hash/salt, session/token과 일정 상세는 포함하지 않는다.
 
-1. 공개 directory임을 명시한다.
-2. Reverse proxy/SSO 인증 뒤에서만 제공한다.
-3. 목록 없이 direct-link only로 운영한다.
-
-W04 route는 discovery가 활성화되지 않았음을 명시하는 `405 METHOD_NOT_ALLOWED`, `Allow: POST`, `Cache-Control: private, no-store`를 반환한다. 홈페이지도 DB 목록을 요청하지 않는다.
+DB가 비어 있으면 빈 배열을 반환한다. DB 실패는 공통 sanitized API 오류로 처리하며 빈 목록 성공으로 숨기지 않는다. 이 GET은 session 발급 또는 편집 권한 변경을 수행하지 않는다. 기존 W04의 `405` 비활성 정책은 W23에서 대체했다.
 
 ### `GET /api/projects/{publicId}`
 

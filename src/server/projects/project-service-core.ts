@@ -7,6 +7,7 @@ import type {
   CreateProjectResponse,
   CurrentEditSessionResponse,
   ProjectDto,
+  ProjectListResponse,
   ProjectLinkDto,
   ProjectMetadataMutationResponse,
   ProjectSnapshotResponse,
@@ -572,6 +573,20 @@ export class ProjectService {
     }
 
     throw new Error("A unique project identifier could not be generated.");
+  }
+
+  listProjects(): ProjectListResponse {
+    return {
+      data: {
+        projects: this.projects.listPublic().map((project) => ({
+          publicId: project.publicId,
+          name: project.name,
+          description: project.description,
+          createdAt: project.createdAt,
+          updatedAt: project.updatedAt,
+        })),
+      },
+    };
   }
 
   getReadonlySnapshot(publicId: string): ProjectSnapshotResponse | undefined {
