@@ -758,7 +758,7 @@ excel_vba
 → GPT-5.6 Sol / Medium
 
 infra
-→ GPT-5.6 Terra / Medium
+→ GPT-6 Astra / High
 
 qa_docs
 → GPT-5.6 Sol / High
@@ -788,6 +788,8 @@ Manager는 다음을 담당한다.
 * QA Result 검토
 * Final Decision
 * Documentation 최종 일관성
+
+GitHub 저장소 설정·운영, GitHub Actions CI/CD와 GHCR 요청은 `infra`에 우선 배정한다. Docker 파일 변경이 없어도 동일하다. Application 결함은 해당 Domain Agent와 분담하고 `qa_docs`가 독립 검토한다. 상세 배정·승인 경계는 `docs/GITHUB_OPERATIONS.md`를 따른다.
 
 Manager가 모든 구현 코드를 직접 작성하려 하지 않는다.
 
@@ -961,9 +963,11 @@ Import Schema를 단독으로 변경하면 안 된다.
 
 ---
 
-# 26. Infra Responsibilities
+# 26. Infra / GitHub Operations Responsibilities
 
-Infra Agent는 다음을 담당한다.
+`infra`는 GitHub 저장소 운영, CI/CD, GHCR와 Docker 배포의 주 담당 Agent이다. 기존 역할을 확장하며 별도 GitHub/CI Agent는 만들지 않는다.
+
+주요 책임:
 
 * Dockerfile
 * docker-compose.yml
@@ -984,8 +988,14 @@ Infra Agent는 다음을 담당한다.
 * GHCR Image Publish / Digest Smoke
 * Action SHA / Base Image Digest Pin
 * SBOM / Provenance
+* GitHub Branch/PR/Merge 정책, Required Checks, Ruleset와 Actions/Environment 설정 점검·관리
+* GitHub 운영 Issue/PR/Check/Release 이력, Template와 Dependabot 설정 관리
+* CI Run/Job/Step/Commit 근거 기반 실패 원인 분석, 수정과 회귀 검증
+* GHCR 인증, Repository 연결, Package Visibility/Actions Access, 보관·정리·Rollback 계획
 
-Infra Agent는 Docker 또는 배포와 관련 없는 작업에 불필요하게 호출하지 않는다.
+GitHub/CI/GHCR 관련 작업은 Docker 변경이 없어도 `infra`에 배정한다. 기능 구현은 해당 Domain Agent와 분담하고 `qa_docs`가 독립 검토한다. 세부 업무 절차, 산출물과 승인 경계는 `docs/GITHUB_OPERATIONS.md`, 모델 설정 검증은 `docs/AGENT_CONFIGURATION.md`를 따른다.
+
+역할 배정은 GitHub 관리자 권한이나 무제한 변경 승인이 아니다. Secret 원문은 출력·기록하지 않는다. 공개 전환, 권한 확대, 보호 약화, Secret 변경, Image/Tag/Volume 삭제, 신규 비용, Release 발행·운영 배포는 명시적으로 승인된 범위에서만 수행한다. 기존 승인된 자동 Publish 정책은 유지한다. 도구·권한·Plan 때문에 확인할 수 없는 설정은 BLOCKED/미확인으로 보고하고 적용했다고 주장하지 않는다.
 
 PR과 수동 CI workflow에는 write token 또는 registry secret을 제공하지 않는다. 모든 품질 gate를 통과한 `main` push만 immutable `ci-<full SHA>` test image를 게시할 수 있다. Semantic Version release는 `package.json`과 일치하는 annotated tag에서 별도 `sha-<full SHA>` candidate를 사용한다. 두 경로 모두 게시 결과의 exact digest를 다시 pull하여 정책, readiness, Project/Task authorization 저장과 restart persistence를 검사한다. 로컬 image PASS와 실제 원격 Actions/GHCR PASS를 구분한다.
 
@@ -1062,7 +1072,7 @@ Scheduling Algorithm
 Excel VBA / JSON·CSV Export
 → excel_vba
 
-Docker / Deployment
+GitHub / CI/CD / GHCR / Docker / Deployment
 → infra
 
 Test / Review / Documentation Consistency
@@ -1295,6 +1305,13 @@ docs/DEPLOYMENT.md
 docs/CI_CD.md
 ```
 
+## GitHub / CI / GHCR Operations and Agent Configuration
+
+```text
+docs/GITHUB_OPERATIONS.md
+docs/AGENT_CONFIGURATION.md
+```
+
 ## Testing
 
 ```text
@@ -1330,6 +1347,8 @@ docs/exec-plans/completed/
 # 31. GitHub Workflow
 
 프로젝트는 GitHub로 관리한다.
+
+GitHub 운영 설정, CI와 GHCR 관련 업무의 논리적 담당은 `infra`다. Issue에는 `Assigned Agent: infra`를 기록하되 GitHub 실제 Assignee와 혼동하지 않는다. Manager는 대상 Repository/Ref/Commit, 작업 범위와 승인 조건을 정하고, `infra`는 `docs/GITHUB_OPERATIONS.md`에 따라 변경·검증 이력을 보고한다.
 
 다음 파일도 Project Source의 일부로 Git 관리한다.
 
