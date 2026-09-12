@@ -8,8 +8,13 @@ import type {
   ProjectSnapshotResponse,
   TaskMutationResponse,
 } from "@/contracts/projects";
-import type { ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
-import type { ProjectTaskCreateCommand } from "@/features/gantt/project-task-adapter";
+import type {
+  ProjectGridColumnVisibility,
+} from "@/features/gantt/project-gantt";
+import type {
+  ProjectTaskCreateCommand,
+  ProjectTaskUpdateCommand,
+} from "@/features/gantt/project-task-adapter";
 import { todayLocalDateString } from "@/lib/date-display";
 
 const ProjectGantt = dynamic(
@@ -27,6 +32,12 @@ type PermissionCheckState = "checking" | "complete";
 
 const PASSWORD_MINIMUM_LENGTH = 12;
 const PASSWORD_MAXIMUM_BYTES = 1024;
+const INITIAL_COLUMN_VISIBILITY: ProjectGridColumnVisibility = {
+  text: true,
+  externalId: false,
+  projectStart: true,
+  projectDuration: true,
+};
 
 function isSnapshot(value: unknown): value is ProjectSnapshotResponse {
   if (typeof value !== "object" || value === null || !("data" in value)) return false;
@@ -122,7 +133,7 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   const [metadataDescription, setMetadataDescription] = useState("");
   const [pendingChildTask, setPendingChildTask] = useState<ProjectTaskCreateCommand | null>(null);
   const [parentConversionConfirmed, setParentConversionConfirmed] = useState(false);
-  const [showExternalId, setShowExternalId] = useState(true);
+  const [columnVisibility, setColumnVisibility] = useState<ProjectGridColumnVisibility>(INITIAL_COLUMN_VISIBILITY);
   const alertReference = useRef<HTMLDivElement>(null);
   const nativeTaskDialogReference = useRef<HTMLDialogElement>(null);
   const nativeTaskTriggerReference = useRef<HTMLElement | null>(null);
@@ -562,8 +573,12 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         onTaskAddRejected={rejectNativeTaskAdd}
         onTaskCreate={createNativeTask}
         onTaskCommand={saveTaskCommand}
-        onExternalIdVisibilityChange={() => setShowExternalId((visible) => !visible)}
-        showExternalId={showExternalId}
+        columnVisibility={columnVisibility}
+        onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
+          const visibleColumnCount = Object.values(current).filter(Boolean).length;
+          if (current[columnId] && visibleColumnCount === 1) return current;
+          return { ...current, [columnId]: !current[columnId] };
+        })}
         tasks={tasks}
       />
       <dialog aria-labelledby="child-task-confirm-title" className="task-confirm-dialog" onCancel={(event) => { event.preventDefault(); closeNativeTaskDialog(); }} ref={nativeTaskDialogReference}>

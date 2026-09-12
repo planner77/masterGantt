@@ -6,6 +6,7 @@
 
 ### Changed
 
+- Grid Header 우클릭 표시 열 선택으로 전환하고 외부 ID를 기본 숨김 처리. 별도 외부 ID 표시/숨기기 버튼 제거.
 - Grid/Chart 상단의 ‘작업 추가 또는 삭제’ 패널과 전용 UI 상태 제거. Native Grid `+`와 서버 Task 삭제 API는 유지.
 - 새 작업 생성 시 이름·시작일·기간 입력을 제거하고 `새 작업`·오늘·1일 자동 적용(Milestone은 0일 유지). 일반 Task의 Summary 전환 확인만 유지.
 - 사용자 요청으로 이번 변경의 검증을 보류하고 `docs/PENDING_TESTS.md`에 일괄 검증 항목 기록.

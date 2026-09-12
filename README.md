@@ -34,6 +34,8 @@
 
 Grid/Chart 상단의 별도 ‘작업 추가 또는 삭제’ 패널은 제거했다. 작업 추가는 Grid `+`를 사용한다. 해당 패널의 Task 삭제 UI도 제거되며 서버 Task 삭제 API와 Project 목록 삭제 기능은 유지한다. 이 후속 변경 역시 일괄 검증 대기 상태다.
 
+표시 열은 Grid Column Header를 오른쪽 클릭하여 선택한다. 외부 ID는 기본 숨김이며 별도 토글 버튼은 없다. 작업·외부 ID·시작·기간 중 최소 한 열을 유지하며 선택은 현재 workspace에서 유지한다(새로고침 시 기본값). 이 변경도 로컬 커밋만 수행하고 테스트·원격 push는 보류한다.
+
 W24 application 회귀 기준은 build/typecheck/lint, **28개 파일 378개 Vitest**, isolated Turbopack Chromium E2E **10개 PASS**다. W22 main/PR와 `v0.4.0` release Actions, GHCR commit/release digest의 원격·로컬 HTTP persistence 및 SBOM/provenance 조회도 PASS했으나 W24 원격 검증을 대신하지 않는다. W22 상태는 [W22 검토 기록](docs/W22_REVIEW.md), 이전 범위는 [W21 검토 기록](docs/W21_REVIEW.md)과 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다.
 
 ## 2. 기술 스택과 역할

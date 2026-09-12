@@ -672,6 +672,8 @@ Project 목록은 표/Grid로 표시한다. SVAR Grid Header `+`는 최상위, �
 
 Grid/Chart 상단에 별도 ‘작업 추가 또는 삭제’ 패널을 다시 추가하지 않는다. 작업 추가 진입점은 native Grid `+`이며 서버 Task 삭제 API와 Project 목록 삭제는 유지한다.
 
+Grid 데이터 열 표시는 Column Header 우클릭 메뉴로 선택한다. 외부 ID는 기본 숨김이며 별도 외부 ID 토글 버튼을 두지 않는다. 데이터 열 최소 한 개와 권한 기반 `+` action을 유지하며 표시 설정은 서버 일정 변경과 분리한다.
+
 사용자가 일괄 검증을 위해 테스트 보류를 요청한 경우 실행을 강행하지 않는다. 미실행 항목은 `docs/PENDING_TESTS.md`에 기록하고 과거 PASS와 구분한다. 현재 보류 범위와 재개 여부는 `docs/exec-plans/active/PLAN.md`를 따른다.
 
 UI는 차분하고 전문적인 Project Management Tool 형태로 구성한다.

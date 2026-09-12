@@ -8,7 +8,15 @@ import {
   type ITask,
 } from "@svar-ui/react-gantt";
 import "@svar-ui/react-gantt/all.css";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 
 import type {
   ProjectCalendarDto,
@@ -35,6 +43,10 @@ import {
 } from "./project-task-adapter";
 import { dateOnlyFromLocalDate } from "./date-adapter";
 
+export type ProjectGridDataColumnId = "text" | "externalId" | "projectStart" | "projectDuration";
+
+export type ProjectGridColumnVisibility = Record<ProjectGridDataColumnId, boolean>;
+
 interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
   readonly editable: boolean;
@@ -42,8 +54,8 @@ interface ProjectGanttProps {
   readonly onTaskAddRejected: () => void;
   readonly onTaskCreate: (command: ProjectTaskCreateCommand) => void;
   readonly onTaskCommand: (command: ProjectTaskUpdateCommand) => void;
-  readonly onExternalIdVisibilityChange: () => void;
-  readonly showExternalId: boolean;
+  readonly columnVisibility: ProjectGridColumnVisibility;
+  readonly onColumnVisibilityChange: (columnId: ProjectGridDataColumnId) => void;
   readonly tasks: readonly ProjectTaskDto[];
 }
 
@@ -58,6 +70,13 @@ const baseProjectColumns: IColumnConfig[] = [
   // The Core recognizes this documented ID and renders its native header/row
   // plus controls. Their `add-task` event is intercepted below.
   { id: "add-task", header: "작업 추가", width: 37, align: "center" },
+];
+
+const dataColumns: ReadonlyArray<Readonly<{ id: ProjectGridDataColumnId; label: string }>> = [
+  { id: "text", label: "작업" },
+  { id: "externalId", label: "외부 ID" },
+  { id: "projectStart", label: "시작" },
+  { id: "projectDuration", label: "기간" },
 ];
 
 function emptyWorkspaceRange(): { start: Date; end: Date } {
@@ -85,8 +104,8 @@ export function ProjectGantt({
   onTaskAddRejected,
   onTaskCreate,
   onTaskCommand,
-  onExternalIdVisibilityChange,
-  showExternalId,
+  columnVisibility,
+  onColumnVisibilityChange,
   tasks,
 }: ProjectGanttProps) {
   const apiReference = useRef<IApi | null>(null);
@@ -94,7 +113,11 @@ export function ProjectGantt({
   const onTaskAddRejectedReference = useRef(onTaskAddRejected);
   const canCreateReference = useRef(editable);
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
+  const ganttScrollReference = useRef<HTMLDivElement>(null);
+  const columnMenuReference = useRef<HTMLDivElement>(null);
+  const columnMenuTriggerReference = useRef<HTMLElement | null>(null);
   const [nativeAddReady, setNativeAddReady] = useState(false);
+  const [columnMenuPosition, setColumnMenuPosition] = useState<{ left: number; top: number } | null>(null);
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
   const tasksById = useMemo(
@@ -135,10 +158,11 @@ export function ProjectGantt({
       .filter((column) => column.id !== "add-task" || (editable && nativeAddReady))
       .map((column) => (
       column.id === "externalId"
-        ? { ...column, hidden: !showExternalId }
+        ? { ...column, hidden: !columnVisibility.externalId }
         : column.id === "projectStart"
           ? {
             ...column,
+            hidden: !columnVisibility.projectStart,
             sort: (first: ITask, second: ITask) => {
               const difference = (first.start?.getTime() ?? 0) - (second.start?.getTime() ?? 0);
               return difference === 0 ? 0 : difference < 0 ? -1 : 1;
@@ -150,6 +174,7 @@ export function ProjectGantt({
           : column.id === "projectDuration"
             ? {
               ...column,
+              hidden: !columnVisibility.projectDuration,
               getter: (task: ITask) => (
                 // Core renders elapsed calendar duration for its bar. Keep
                 // the Grid contract truthful by reading the scheduler's
@@ -159,10 +184,71 @@ export function ProjectGantt({
                   : "—"
               ),
             }
-          : column
+          : column.id === "text"
+            ? { ...column, hidden: !columnVisibility.text }
+            : column
     )),
-    [editable, locales, nativeAddReady, showExternalId, tasksById],
+    [columnVisibility, editable, locales, nativeAddReady, tasksById],
   );
+
+  useEffect(() => {
+    if (!columnMenuPosition) return;
+    const restoreColumnMenuTrigger = () => {
+      queueMicrotask(() => columnMenuTriggerReference.current?.focus({ preventScroll: true }));
+    };
+    const closeForOutsidePointer = (event: PointerEvent) => {
+      if (event.target instanceof Node && columnMenuReference.current?.contains(event.target)) return;
+      setColumnMenuPosition(null);
+      restoreColumnMenuTrigger();
+    };
+    document.addEventListener("pointerdown", closeForOutsidePointer, true);
+    const closeForViewportChange = (event?: Event) => {
+      if (event?.target instanceof Node && columnMenuReference.current?.contains(event.target)) return;
+      setColumnMenuPosition(null);
+      restoreColumnMenuTrigger();
+    };
+    window.addEventListener("resize", closeForViewportChange);
+    document.addEventListener("scroll", closeForViewportChange, true);
+    return () => {
+      document.removeEventListener("pointerdown", closeForOutsidePointer, true);
+      window.removeEventListener("resize", closeForViewportChange);
+      document.removeEventListener("scroll", closeForViewportChange, true);
+    };
+  }, [columnMenuPosition]);
+
+  useEffect(() => {
+    if (!columnMenuPosition) return;
+    columnMenuReference.current?.querySelector<HTMLInputElement>("input:not(:disabled)")?.focus({ preventScroll: true });
+  }, [columnMenuPosition]);
+
+  useLayoutEffect(() => {
+    if (!columnMenuPosition) return;
+    const menu = columnMenuReference.current;
+    if (!menu) return;
+    const inset = 8;
+    const bounds = menu.getBoundingClientRect();
+    const left = Math.max(inset, Math.min(bounds.left, window.innerWidth - bounds.width - inset));
+    const top = Math.max(inset, Math.min(bounds.top, window.innerHeight - bounds.height - inset));
+    if (Math.abs(left - bounds.left) < 1 && Math.abs(top - bounds.top) < 1) return;
+    setColumnMenuPosition((current) => current ? { left, top } : current);
+  }, [columnMenuPosition]);
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root) return;
+    // Core renders its Grid header after this React tree. Its header wrapper
+    // is not necessarily tabbable, so make only that existing header focusable
+    // for the standard Shift+F10/ContextMenu entry path.
+    const makeGridHeadersFocusable = () => {
+      root.querySelectorAll<HTMLElement>(".wx-table-container .wx-header").forEach((header) => {
+        if (!header.hasAttribute("tabindex")) header.tabIndex = 0;
+      });
+    };
+    makeGridHeadersFocusable();
+    const observer = new MutationObserver(makeGridHeadersFocusable);
+    observer.observe(root, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
   const scales = useMemo(() => [
     {
       unit: "month",
@@ -229,22 +315,61 @@ export function ProjectGantt({
   // revision and callback current without re-registering EventBus handlers.
   }, []);
 
+  function headerFrom(target: EventTarget | null): HTMLElement | null {
+    if (!(target instanceof Element)) return null;
+    const header = target.closest(".wx-table-container .wx-header");
+    return header instanceof HTMLElement ? header : null;
+  }
+
+  function openColumnMenu(header: HTMLElement, x: number, y: number) {
+    header.focus({ preventScroll: true });
+    columnMenuTriggerReference.current = header;
+    const inset = 8;
+    const menuWidth = 208;
+    const menuHeight = 196;
+    setColumnMenuPosition({
+      left: Math.max(inset, Math.min(x, window.innerWidth - menuWidth - inset)),
+      top: Math.max(inset, Math.min(y, window.innerHeight - menuHeight - inset)),
+    });
+  }
+
+  function handleHeaderContextMenu(event: ReactMouseEvent<HTMLDivElement>) {
+    const header = headerFrom(event.target);
+    if (!header) return;
+    event.preventDefault();
+    openColumnMenu(header, event.clientX, event.clientY);
+  }
+
+  function handleHeaderKeyboardMenu(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "ContextMenu" && !(event.key === "F10" && event.shiftKey)) return;
+    const header = headerFrom(event.target);
+    if (!header) return;
+    event.preventDefault();
+    const bounds = header.getBoundingClientRect();
+    openColumnMenu(header, bounds.left + Math.min(bounds.width / 2, 24), bounds.top + Math.min(bounds.height / 2, 24));
+  }
+
+  function closeColumnMenu() {
+    setColumnMenuPosition(null);
+    queueMicrotask(() => columnMenuTriggerReference.current?.focus({ preventScroll: true }));
+  }
+
+  function handleColumnMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeColumnMenu();
+    }
+  }
+
   return (
     <div className="project-gantt-frame">
       <Willow>
-        <div className="project-gantt-tools">
-          <button
-            aria-pressed={showExternalId}
-            className="secondary-button gantt-column-toggle"
-            onClick={onExternalIdVisibilityChange}
-            type="button"
-          >
-            외부 ID {showExternalId ? "숨기기" : "표시"}
-          </button>
-        </div>
         <div
           aria-label="프로젝트 일정 Grid와 Gantt 차트"
           className="project-gantt-scroll"
+          onContextMenu={handleHeaderContextMenu}
+          onKeyDown={handleHeaderKeyboardMenu}
+          ref={ganttScrollReference}
           role="region"
           tabIndex={0}
         >
@@ -265,6 +390,34 @@ export function ProjectGantt({
             />
           </div>
         </div>
+        {columnMenuPosition ? <div
+          aria-label="표시 열 선택"
+          className="project-column-menu"
+          onKeyDown={handleColumnMenuKeyDown}
+          ref={columnMenuReference}
+          style={columnMenuPosition}
+        >
+          <fieldset>
+            <legend>표시 열</legend>
+            {dataColumns.map((column) => {
+              const isOnlyVisible = columnVisibility[column.id] && dataColumns.every(
+                (candidate) => candidate.id === column.id || !columnVisibility[candidate.id],
+              );
+              return <label
+                className={isOnlyVisible ? "project-column-menu-option is-disabled" : "project-column-menu-option"}
+                key={column.id}
+              >
+                <input
+                  checked={columnVisibility[column.id]}
+                  disabled={isOnlyVisible}
+                  onChange={() => onColumnVisibilityChange(column.id)}
+                  type="checkbox"
+                />
+                {column.label}
+              </label>;
+            })}
+          </fieldset>
+        </div> : null}
       </Willow>
     </div>
   );
