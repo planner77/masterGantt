@@ -69,7 +69,7 @@ Manager가 Node.js 22.14.0 환경에서 실행했다.
 - 실제 Summary 생성·reparent·expand/collapse 저장, WBS와 Summary 계산은 W08 범위이며 이번 완료에 포함하지 않는다.
 - Grid width를 사용자가 조절할 수 있지만 preference로 서버에 저장하지 않는다.
 - Grid/Chart Resizer의 실제 pointer drag geometry는 이번 E2E에서 별도로 자동 조작하지 않았다.
-- W21 이후 D04 정책 결정과 credential 재사용 위험 수용이 완료됐고 W22에서 repository admin 인증도 성공했다. 그러나 실제 main/release Actions, GHCR 게시와 digest pull은 아직 NOT TESTED이며 private ruleset/attestation 선택은 D05에서 BLOCKED다.
+- W21 이후 D04 정책과 credential 재사용 위험 수용이 완료됐고 W22에서 main/PR와 `v0.4.0` release Actions/GHCR remote smoke도 PASS했다. D05는 ruleset 미강제 위험 수용과 GitHub Attestation 비활성으로 결정됐다. 최신 상태는 [W22 검증 기록](W22_REVIEW.md)을 따른다.
 
 ## Recommendation
 

@@ -230,8 +230,8 @@ docker compose ps
 - Healthcheck는 readiness API로 canonical runtime URL/path, migration, SQLite query, foreign key 및 latest migration ledger를 확인한다. HTTP process만 별도로 확인할 때는 `/api/health/live`를 사용한다.
 - native addon과 CPU architecture를 실제로 검증하기 전에는 multi-architecture manifest를 publish하지 않는다.
 - Docker named volume은 off-host backup을 대체하지 않는다. WAL 중 main DB 파일만 copy하지 말고 clean stop 후 `/data` 전체를 backup하고 fresh volume restore rehearsal을 수행한다.
-- Repository admin 인증과 private visibility는 확인됐지만 현재 `mastergantt` GHCR package는 아직 없다. 첫 commit/release publish 뒤 package linkage, private visibility와 consumer 최소 권한을 재검증한다.
+- GHCR `mastergantt` package는 private이며 `planner77/masterGantt` repository와 연결된 것을 API 200으로 확인했다. Downstream consumer는 최소 `packages: read`를 유지한다.
 - Private repository의 main/tag ruleset은 현재 plan의 API 403으로 미강제다. D05에서 사용자가 이 위험을 명시적으로 수용했으며 보호 적용을 PASS로 표시하지 않는다. 지정 maintainer와 문서화된 release 절차를 운영 통제로 유지한다.
 - D05에 따라 Private GitHub Artifact Attestation은 비활성으로 두고 `ENABLE_GITHUB_ATTESTATIONS`를 설정하지 않는다. BuildKit SBOM/provenance는 모든 publish에서 필수다.
 - release owner는 canonical hostname, TLS reverse proxy, backup destination/retention 및 action SHA pin maintenance policy를 결정한다.
-- 로컬 Docker build/smoke는 검증했지만 실제 main commit workflow run, GHCR `ci-<SHA>` publish/digest pull과 SemVer release publish/digest pull은 각각 원격 증거가 생기기 전까지 **NOT TESTED**다.
+- Main commit workflow와 GHCR `ci-<SHA>` publish/digest pull, `v0.4.0` release publish/digest pull은 원격·로컬 PASS했다. 양쪽 BuildKit SPDX 2.3 SBOM과 SLSA provenance도 registry에서 조회했다.

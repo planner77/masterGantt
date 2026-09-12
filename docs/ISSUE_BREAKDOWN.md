@@ -239,7 +239,7 @@
 - Suggested / Assigned Agent: infra + backend + researcher + qa_docs + Manager; infra는 workflow/Docker, backend는 readiness, Manager는 공용 version/문서 계약을 통합한다.
 - Dependencies: W02,W07. W16의 최소 container runtime 기반을 선행하지만 운영 CPU/storage/proxy/backup gate는 완료 처리하지 않는다.
 - Related Documents: [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md), [SECURITY.md](SECURITY.md), [TEST_PLAN.md](TEST_PLAN.md).
-- Status: DONE LOCAL / independent QA PASS / Manager ACCEPT — D04 결정과 credential 위험 수용은 완료. W22에서 admin 인증은 성공했지만 remote release Actions/GHCR artifact는 NOT TESTED이고 private ruleset은 D05 BLOCKED다.
+- Status: DONE / independent QA PASS / Manager ACCEPT — D04/D05 결정과 W22 main/PR/release 원격·로컬 digest 검증 완료. Private ruleset 미강제 위험은 수용됐다.
 - Risk: tag 재사용, mutable image 소비, supply-chain action/base drift, GHCR visibility, native ABI, 원격 설정과 로컬 증거 혼동.
 
 ## W21 — Synchronized Gantt Workspace
@@ -263,5 +263,5 @@
 - Suggested / Assigned Agent: infra + qa_docs + Manager. Infra는 workflow와 smoke script, qa_docs는 독립 대조, Manager는 version/문서/remote 실행을 통합한다.
 - Dependencies: W20,W21; actual remote execution requires explicit Manager-controlled push/tag flow.
 - Related Documents: [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md), [SECURITY.md](SECURITY.md), [TEST_PLAN.md](TEST_PLAN.md), [W22_REVIEW.md](W22_REVIEW.md).
-- Status: IN PROGRESS — admin auth/private visibility와 local implementation PASS; D05 ruleset 미강제 위험 수용 및 GitHub Attestation 비활성. 최초 push 거부 후 PAT `workflow` scope 추가를 확인했으며 remote main/release artifact 검증을 진행한다.
+- Status: DONE — independent QA PASS / Manager ACCEPT. Main/PR/release Actions, private package/linkage, 양쪽 digest 원격·로컬 persistence와 SBOM/provenance PASS; D05 ruleset 미강제 위험 수용 및 GitHub Attestation 비활성.
 - Risk: PR write 권한, commit/release tag 충돌, mutable tag smoke, overwrite, credential 노출, paid feature 과대 완료.
