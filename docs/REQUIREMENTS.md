@@ -37,8 +37,8 @@
 | R29 | Project 화면은 Demo 목록 없이 좌측 계층 Task Grid와 우측 동기 Gantt Chart를 단일 SVAR Core로 표시; 빈 일정과 생성 직후에도 양쪽을 유지하고 Desktop viewport 폭·높이를 활용하며 좁은 화면은 내부 scroll로 접근 | [Architecture](ARCHITECTURE.md), [Test Plan](TEST_PLAN.md) UI03–UI10 |
 | R30 | 모든 품질 gate를 통과한 `main` commit은 immutable GHCR `ci-<full SHA>` test image로 게시하고, SemVer release의 `sha-<full SHA>`/exact/rolling tag와 분리; 두 경로 모두 게시 digest를 새로 pull해 image policy, readiness, Project/Task authorization 저장과 restart persistence를 검증 | [CI/CD](CI_CD.md), [Deployment](DEPLOYMENT.md), [Test Plan](TEST_PLAN.md) CI09–CI10 |
 | R31 | Project 목록은 카드가 아닌 표/Grid이며 현재 편집 권한이 있는 Project를 명시적 확인 후 삭제할 수 있음 | API, Security; 삭제는 Project와 종속 일정·session 전체를 원자적으로 제거 |
-| R32 | SVAR Grid Header `+`는 최상위, 행 `+`는 선택 행의 하위 작업 추가(사용자 확정); 이름 입력 및 서버 인증·revision 검증 후 저장 | API, Scheduling; 일반 Task의 최초 하위 추가는 Summary 전환을 명시적으로 확인 |
-| R33 | 외부 ID column 표시/숨김 선택, 작업 생성 기본 시작일 오늘·기간 1일, Chart 토/일 구분 | UI/E2E; 기본 오늘은 브라우저 local 날짜, Auto 근무일 보정 유지 |
+| R32 | SVAR Grid Header `+`는 최상위, 행 `+`는 선택 행의 하위 작업 추가(사용자 확정); 이름을 묻지 않고 `새 작업`으로 서버 인증·revision 검증 후 저장 | 일반 생성 확인창 없음; 일반 Task의 최초 하위 추가에만 Summary 전환 명시 확인 유지 |
+| R33 | 외부 ID column 표시/숨김 선택, 작업 생성 시 시작일·기간을 묻지 않고 제출 시 오늘·1일 자동 적용, Chart 토/일 구분 | 오늘은 브라우저 local 날짜, Auto 근무일 보정 유지; Milestone은 기존 0일 계약. 후속 검증은 PENDING_TESTS.md |
 | R34 | 날짜·시간 표시는 사용자 locale을 따르며 저장 date-only/UTC instant 계약은 변경하지 않음 | locale/TZ 경계 테스트; 날짜 문자열을 UTC instant로 파싱해 전날로 표시하지 않음 |
 | R35 | Project 설정은 modal 또는 기본 접힌 패널, Project header와 Grid/Chart header를 유지하며 본문 내부 상하 스크롤 | viewport/E2E geometry 검증 |
 

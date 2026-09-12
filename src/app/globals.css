@@ -733,12 +733,6 @@ h2 {
   margin-top: 1rem;
 }
 
-.task-native-date-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 1rem;
-}
-
 .task-conversion-confirmation {
   display: flex;
   align-items: flex-start;
@@ -892,7 +886,6 @@ h2 {
 
 @media (max-width: 48rem) {
   .task-form-grid { grid-template-columns: 1fr; }
-  .task-native-date-grid { grid-template-columns: 1fr; }
   .task-delete-control > div { align-items: stretch; flex-direction: column; }
   .project-gantt-scroll,
   .project-gantt-widget { min-height: 22rem; }

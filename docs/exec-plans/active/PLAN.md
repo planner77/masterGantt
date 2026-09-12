@@ -1,5 +1,7 @@
 # Active execution plan
 
+현재 후속 작업: **작업 생성 이름·날짜·기간 자동 적용 — 로컬 커밋 / 일괄 검증 대기**. 입력 없이 `새 작업`·브라우저 오늘·1일을 적용하며 일반 Task의 Summary 전환 확인만 유지한다. 사용자 요청에 따라 로컬 커밋만 수행하고 테스트·빌드·CI 실행과 원격 push는 별도 요청까지 보류한다. [검증·원격 반영 대기 목록](../../PENDING_TESTS.md)에 재개 절차를 기록한다. 아래 W24 PASS는 이 후속 변경 이전의 기록이다.
+
 상태: **W24 Project Grid/Delete/Hierarchical Gantt UI LOCAL PASS / Manager ACCEPT**. 목록 표·보호 삭제·native Header/행 `+`·child 저장/summary 집계·locale·주말·고정 header 작업공간을 구현했다. 전체 Unit 378/28 files, Chromium E2E 10, build/typecheck/lint PASS. 사용자 승인으로 W08의 Summary/계층 일부를 선행하되 WBS/reparent/FS 전체를 완료로 처리하지 않는다. 원격 CI/이미지 결과는 별도이다. 근거: [Requirements](../../REQUIREMENTS.md), [W24 Review](../../W24_REVIEW.md), [Decisions](../../DECISIONS.md), [Issue drafts](../../ISSUE_BREAKDOWN.md).
 
 ## Phase와 Task

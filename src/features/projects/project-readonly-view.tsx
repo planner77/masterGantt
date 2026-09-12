@@ -120,18 +120,12 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   const [ganttResetGeneration, setGanttResetGeneration] = useState(0);
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
-  const [newTaskName, setNewTaskName] = useState("");
   const [newTaskType, setNewTaskType] = useState<"task" | "milestone">("task");
-  const [newTaskStart, setNewTaskStart] = useState<string>(() => todayLocalDateString());
-  const [newTaskDuration, setNewTaskDuration] = useState("1");
   const [newTaskProgress, setNewTaskProgress] = useState("0");
   const [newTaskExternalId, setNewTaskExternalId] = useState("");
   const [deleteTaskId, setDeleteTaskId] = useState("");
   const [confirmDeleteTaskId, setConfirmDeleteTaskId] = useState<string | null>(null);
   const [pendingChildTask, setPendingChildTask] = useState<ProjectTaskCreateCommand | null>(null);
-  const [pendingNativeTaskName, setPendingNativeTaskName] = useState("");
-  const [pendingNativeTaskStart, setPendingNativeTaskStart] = useState(() => todayLocalDateString());
-  const [pendingNativeTaskDuration, setPendingNativeTaskDuration] = useState("1");
   const [parentConversionConfirmed, setParentConversionConfirmed] = useState(false);
   const [showExternalId, setShowExternalId] = useState(true);
   const alertReference = useRef<HTMLDivElement>(null);
@@ -406,7 +400,7 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
           : successNotice);
         setConfirmDeleteTaskId(null);
         if (method === "POST") {
-          setNewTaskName(""); setNewTaskExternalId(""); setNewTaskDuration("1"); setNewTaskProgress("0");
+          setNewTaskExternalId(""); setNewTaskProgress("0");
         }
       } else {
         await handleTaskFailure(response.status, body, "작업을 저장할 수 없습니다. 잠시 후 다시 시도해 주세요.");
@@ -421,19 +415,17 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
 
   function createTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const name = newTaskName.trim();
-    const duration = newTaskType === "milestone" ? 0 : Number(newTaskDuration);
     const progress = Number(newTaskProgress);
-    if (!name || !/^\d{4}-\d{2}-\d{2}$/.test(newTaskStart) || !Number.isInteger(duration) || duration < (newTaskType === "milestone" ? 0 : 1) || !Number.isFinite(progress) || progress < 0 || progress > 100) {
-      setNotice("작업 이름, 시작일, 기간과 진척도를 확인해 주세요.");
+    if (!Number.isFinite(progress) || progress < 0 || progress > 100) {
+      setNotice("진척도를 확인해 주세요.");
       return;
     }
     void saveTask("POST", null, {
       ...(newTaskExternalId.trim() ? { externalId: newTaskExternalId.trim() } : {}),
-      name,
+      name: "새 작업",
       type: newTaskType,
-      start: newTaskStart,
-      duration,
+      start: todayLocalDateString(),
+      duration: newTaskType === "milestone" ? 0 : 1,
       progress,
     });
   }
@@ -443,11 +435,12 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
     const activeElement = document.activeElement;
     nativeTaskTriggerReference.current = activeElement instanceof HTMLElement ? activeElement : null;
     if (!command.parentTaskId) {
-      setPendingNativeTaskName(command.name);
-      setPendingNativeTaskStart(command.start);
-      setPendingNativeTaskDuration(String(command.duration));
-      setParentConversionConfirmed(false);
-      setPendingChildTask(command);
+      void saveTask("POST", null, {
+        ...command,
+        name: "새 작업",
+        start: todayLocalDateString(),
+        duration: 1,
+      });
       return;
     }
 
@@ -460,9 +453,15 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
       setNotice("마일스톤에는 하위 작업을 추가할 수 없습니다.");
       return;
     }
-    setPendingNativeTaskName(command.name);
-    setPendingNativeTaskStart(command.start);
-    setPendingNativeTaskDuration(String(command.duration));
+    if (!nativeParentRequiresConversion(command)) {
+      void saveTask("POST", null, {
+        ...command,
+        name: "새 작업",
+        start: todayLocalDateString(),
+        duration: 1,
+      });
+      return;
+    }
     setParentConversionConfirmed(false);
     setPendingChildTask(command);
   }
@@ -479,18 +478,12 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   function confirmNativeTaskAdd(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!pendingChildTask) return;
-    const name = pendingNativeTaskName.trim();
-    const duration = Number(pendingNativeTaskDuration);
-    if (!name || !/^\d{4}-\d{2}-\d{2}$/.test(pendingNativeTaskStart) || !Number.isInteger(duration) || duration < 1) {
-      setNotice("작업 이름, 시작일과 기간을 확인해 주세요.");
-      return;
-    }
     if (nativeParentRequiresConversion(pendingChildTask) && !parentConversionConfirmed) return;
     const command = {
       ...pendingChildTask,
-      name,
-      start: pendingNativeTaskStart,
-      duration,
+      name: "새 작업",
+      start: todayLocalDateString(),
+      duration: 1,
       ...(nativeParentRequiresConversion(pendingChildTask)
         ? { convertParentToSummary: true as const }
         : {}),
@@ -502,9 +495,6 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   function closeNativeTaskDialog() {
     nativeTaskDialogReference.current?.close();
     setPendingChildTask(null);
-    setPendingNativeTaskName("");
-    setPendingNativeTaskStart(todayLocalDateString());
-    setPendingNativeTaskDuration("1");
     setParentConversionConfirmed(false);
     requestAnimationFrame(() => nativeTaskTriggerReference.current?.focus());
   }
@@ -596,11 +586,8 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         <form className="project-form compact-form task-create-form" noValidate onSubmit={createTask}>
           <h3>작업 추가</h3>
           <div className="task-form-grid">
-            <div className="form-field"><label htmlFor="new-task-name">작업 이름</label><input disabled={busy} id="new-task-name" onChange={(event) => setNewTaskName(event.target.value)} value={newTaskName} /></div>
             <div className="form-field"><label htmlFor="new-task-external-id">외부 ID <span>선택</span></label><input disabled={busy} id="new-task-external-id" onChange={(event) => setNewTaskExternalId(event.target.value)} value={newTaskExternalId} /></div>
             <div className="form-field"><label htmlFor="new-task-type">유형</label><select disabled={busy} id="new-task-type" onChange={(event) => setNewTaskType(event.target.value as "task" | "milestone")} value={newTaskType}><option value="task">작업</option><option value="milestone">마일스톤</option></select></div>
-            <div className="form-field"><label htmlFor="new-task-start">시작일</label><input disabled={busy} id="new-task-start" onChange={(event) => setNewTaskStart(event.target.value)} type="date" value={newTaskStart} /></div>
-            <div className="form-field"><label htmlFor="new-task-duration">기간 <span>{newTaskType === "milestone" ? "마일스톤은 0일" : "근무일"}</span></label><input disabled={busy || newTaskType === "milestone"} id="new-task-duration" min="1" onChange={(event) => setNewTaskDuration(event.target.value)} type="number" value={newTaskType === "milestone" ? "0" : newTaskDuration} /></div>
             <div className="form-field"><label htmlFor="new-task-progress">진척도</label><input disabled={busy} id="new-task-progress" max="100" min="0" onChange={(event) => setNewTaskProgress(event.target.value)} step="any" type="number" value={newTaskProgress} /></div>
           </div>
           <button className="primary-button" disabled={busy} type="submit">작업 추가</button>
@@ -626,27 +613,13 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
       <dialog aria-labelledby="child-task-confirm-title" className="task-confirm-dialog" onCancel={(event) => { event.preventDefault(); closeNativeTaskDialog(); }} ref={nativeTaskDialogReference}>
         {pendingChildTask ? <div className="task-confirm-dialog-card">
           <p className="eyebrow">{pendingChildTask.parentTaskId ? "하위 작업 추가" : "작업 추가"}</p>
-          <h3 id="child-task-confirm-title">{nativeParentRequiresConversion(pendingChildTask) ? "부모 작업을 요약 작업으로 전환할까요?" : "새 작업을 추가할까요?"}</h3>
-          {nativeParentRequiresConversion(pendingChildTask) ? <p>기존 작업의 시작일, 종료일과 진척도는 하위 작업을 기준으로 다시 계산됩니다.</p> : null}
+          <h3 id="child-task-confirm-title">부모 작업을 요약 작업으로 전환할까요?</h3>
+          <p>기존 작업의 시작일, 종료일과 진척도는 하위 작업을 기준으로 다시 계산됩니다.</p>
           <form className="task-confirm-form" onSubmit={confirmNativeTaskAdd}>
-            <div className="form-field">
-              <label htmlFor="native-task-name">작업 이름</label>
-              <input autoFocus id="native-task-name" onChange={(event) => setPendingNativeTaskName(event.target.value)} required value={pendingNativeTaskName} />
-            </div>
-            <div className="task-native-date-grid">
-              <div className="form-field">
-                <label htmlFor="native-task-start">시작일</label>
-                <input id="native-task-start" onChange={(event) => setPendingNativeTaskStart(event.target.value)} required type="date" value={pendingNativeTaskStart} />
-              </div>
-              <div className="form-field">
-                <label htmlFor="native-task-duration">기간 <span>근무일</span></label>
-                <input id="native-task-duration" min="1" onChange={(event) => setPendingNativeTaskDuration(event.target.value)} required step="1" type="number" value={pendingNativeTaskDuration} />
-              </div>
-            </div>
-            {nativeParentRequiresConversion(pendingChildTask) ? <label className="task-conversion-confirmation"><input checked={parentConversionConfirmed} onChange={(event) => setParentConversionConfirmed(event.target.checked)} type="checkbox" />부모 작업을 요약 작업으로 전환하는 데 동의합니다.</label> : null}
+            <label className="task-conversion-confirmation"><input autoFocus checked={parentConversionConfirmed} onChange={(event) => setParentConversionConfirmed(event.target.checked)} type="checkbox" />부모 작업을 요약 작업으로 전환하는 데 동의합니다.</label>
             <div className="task-confirm-dialog-actions">
               <button className="secondary-button" onClick={closeNativeTaskDialog} type="button">취소</button>
-              <button className="primary-button" disabled={nativeParentRequiresConversion(pendingChildTask) && !parentConversionConfirmed} type="submit">{nativeParentRequiresConversion(pendingChildTask) ? "전환하고 하위 작업 추가" : "작업 추가"}</button>
+              <button className="primary-button" disabled={!parentConversionConfirmed} type="submit">전환하고 하위 작업 추가</button>
             </div>
           </form>
         </div> : null}

@@ -1,5 +1,7 @@
 # Test Plan
 
+2026-09-12 후속 UI 변경의 테스트는 사용자 요청에 따라 일괄 실행까지 보류한다. 새 작업 이름·날짜·기간 자동 적용의 검증 항목과 기존 E2E 갱신 필요 사항, 별도 원격 push 절차는 [PENDING_TESTS.md](PENDING_TESTS.md)에 기록한다. 기존 PASS를 후속 변경에 적용하지 않는다.
+
 상태: qa_docs가 작성한 검증 전략. W02–W07, W20과 W21 검증 기록은 [W07_REVIEW.md](W07_REVIEW.md), [W20_REVIEW.md](W20_REVIEW.md), [W21_REVIEW.md](W21_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W20의 로컬 container PASS도 원격 Actions/GHCR, production host/backup/restore와 VBA 통과를 뜻하지 않는다.
 
 ## 판정과 증거
