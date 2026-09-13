@@ -39,6 +39,7 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const mutation = useRef(false);
+  const deleteTrigger = useRef<HTMLElement | null>(null);
   const locales = useSyncExternalStore<DisplayLocales>(subscribeToLocaleChanges, browserLocales, () => SSR_DATE_LOCALE);
   const timeZone = useSyncExternalStore(subscribeToLocaleChanges, browserTimeZone, () => SSR_TIME_ZONE);
   const visibleProjects = useMemo(() => projects.filter(({ publicId }) => !deletedIds.has(publicId)), [deletedIds, projects]);
@@ -51,8 +52,10 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
     if (mutation.current) return;
     setTarget(null); setPassword(""); setDeleteError(null);
   }
-  async function prepareDelete(project: ProjectListItemDto) {
+  async function prepareDelete(project: ProjectListItemDto, trigger: HTMLButtonElement) {
     if (mutation.current) return;
+    // disabled 처리나 await 전에 보존해야 취소 후 정확한 행의 버튼으로 복귀한다.
+    deleteTrigger.current = trigger;
     mutation.current = true;
     setDeletingId(project.publicId); clearToast(); setDeleteError(null); setPassword("");
     try {
@@ -133,13 +136,13 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
               <Link className={styles.openLink} href={projectPath(project.publicId)}>열기</Link>
               <ProjectLinkButton projectName={project.name} projectUrl={projectUrls[project.publicId] ?? null} />
               <button className={styles.deleteButton} disabled={deletingId !== undefined || submitting}
-                onClick={() => void prepareDelete(project)} type="button">{deletingId === project.publicId ? "확인 중" : "삭제"}</button>
+                onClick={(event) => void prepareDelete(project, event.currentTarget)} type="button">{deletingId === project.publicId ? "확인 중" : "삭제"}</button>
             </td>
           </tr>)}</tbody>
         </table>
       </div>
     </div>}
-    {target ? <WorkspaceDialog title="프로젝트 삭제" onClose={closeDelete} busy={submitting}>
+    {target ? <WorkspaceDialog title="프로젝트 삭제" onClose={closeDelete} busy={submitting} restoreFocusRef={deleteTrigger}>
       <p>“{target.name}” 프로젝트와 포함된 모든 일정이 삭제됩니다. 이 작업은 복구할 수 없습니다.</p>
       <p>삭제하려면 이 프로젝트의 편집 비밀번호를 입력해 주세요.</p>
       {deleteError ? <p role="alert">{deleteError}</p> : null}
