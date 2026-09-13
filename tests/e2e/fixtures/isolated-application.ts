@@ -76,7 +76,7 @@ export const test = base.extend<{ isolatedApplication: string }>({
       const port = await unusedLoopbackPort();
       const origin = `http://127.0.0.1:${port}`;
       const deadline = Date.now() + startupMilliseconds;
-      const applicationEnvironment = {
+      const applicationEnvironment: NodeJS.ProcessEnv = {
         ...process.env,
         NODE_ENV: "development",
         APP_BASE_URL: origin,
