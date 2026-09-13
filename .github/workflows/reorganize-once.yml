@@ -1,0 +1,33 @@
+name: Prepare approved repository reorganization
+
+# One-time preparation on an explicitly approved work branch, not application CI.
+# The script removes this workflow from the deliverable trees and never pushes refs.
+on:
+  push:
+    branches: [chore/reorganize-deployment]
+    paths:
+      - .github/workflows/reorganize-once.yml
+      - scripts/reorganize-once.py
+
+permissions: {}
+concurrency:
+  group: mastergantt-approved-reorganization
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: ${{ github.repository == 'planner77/masterGantt' && github.ref == 'refs/heads/chore/reorganize-deployment' && !github.event.deleted }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Prepare reviewed file moves and Git objects without moving any branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/reorganize-once.py
