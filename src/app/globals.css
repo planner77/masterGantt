@@ -72,6 +72,7 @@ button:focus-visible {
 
 .brand {
   display: inline-flex;
+  min-width: 0;
   align-items: center;
   gap: 0.625rem;
   color: #172033;
@@ -79,6 +80,13 @@ button:focus-visible {
   font-weight: 700;
   letter-spacing: -0.025em;
   text-decoration: none;
+}
+
+.brand-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .brand-mark {
@@ -106,6 +114,7 @@ button:focus-visible {
 
 .site-header nav {
   display: flex;
+  min-width: max-content;
   align-self: stretch;
   align-items: center;
   gap: 1.25rem;
@@ -119,7 +128,7 @@ button:focus-visible {
   justify-content: center;
 }
 
-@media (max-width: 22.5rem) {
+@media (max-width: 25rem) {
   .header-content {
     gap: 0.5rem;
     padding-inline: 0.75rem;

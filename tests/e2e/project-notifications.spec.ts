@@ -139,8 +139,8 @@ test("좁은 화면의 여러 오류 알림은 내부 스크롤로 확인하고 
   await page.keyboard.press("Escape");
 });
 
-for (const width of [320, 390, 414, 768, 1440]) {
-  test(`${width}px에서 알림 버튼이 Gantt 데모 링크의 hit area를 가리지 않는다`, async ({ page }) => {
+for (const width of [320, 360, 361, 375, 390, 400, 401, 414, 768, 1440]) {
+  test(`${width}px에서 브랜드·메뉴·알림 버튼의 hit area가 분리된다`, async ({ page }) => {
     await page.setViewportSize({ width, height: 844 });
     await installStatefulProjectFixture(page);
     await page.goto(`/projects/${publicId}`);
@@ -149,6 +149,7 @@ for (const width of [320, 390, 414, 768, 1440]) {
     const navigation = page.getByRole("navigation", { name: "주요 메뉴" });
     const navigationLinks = navigation.getByRole("link");
     const demoLink = navigation.getByRole("link", { name: "Gantt 데모", exact: true });
+    const brand = page.getByRole("link", { name: "masterGantt 홈", exact: true });
     const bell = page.getByRole("button", { name: "알림함", exact: true });
     const notificationSlot = page.locator("#workspace-notification-slot");
     await expect(navigationLinks).toHaveCount(2);
@@ -162,10 +163,14 @@ for (const width of [320, 390, 414, 768, 1440]) {
     expect(bellBox!.y).toBeGreaterThanOrEqual(slotBox!.y);
     expect(bellBox!.x + bellBox!.width).toBeLessThanOrEqual(slotBox!.x + slotBox!.width);
     expect(bellBox!.y + bellBox!.height).toBeLessThanOrEqual(slotBox!.y + slotBox!.height);
+    const brandBox = await brand.boundingBox();
+    expect(brandBox).not.toBeNull();
+    expect(rectanglesOverlap(brandBox!, bellBox!)).toBe(false);
     for (const link of await navigationLinks.all()) {
       const linkBox = await link.boundingBox();
       expect(linkBox).not.toBeNull();
       expect(rectanglesOverlap(linkBox!, bellBox!)).toBe(false);
+      expect(rectanglesOverlap(brandBox!, linkBox!)).toBe(false);
     }
 
     // Native dispatch avoids scrolling the workspace away from the header while creating unread state.
@@ -197,8 +202,16 @@ for (const width of [320, 390, 414, 768, 1440]) {
       return hit === element || element.contains(hit);
     });
     expect(centerIsLink).toBe(true);
+    const centerIsBrand = await brand.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return hit === element || element.contains(hit);
+    });
+    expect(centerIsBrand).toBe(true);
     await demoLink.click();
     await expect(page).toHaveURL(/\/gantt-demo$/);
     await expect(page.getByRole("heading", { name: "Gantt 최소 통합", exact: true })).toBeVisible();
+    await brand.click();
+    await expect(page).toHaveURL(/\/$/);
   });
 }

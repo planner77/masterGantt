@@ -1,8 +1,12 @@
 # Active execution plan
 
-## PR #23 미해결 리뷰 후속 — 진행 중
+## PR #24 review 경계 후속 — 진행 중
 
-사용자 요청으로 미해결 P2 두 건(390px 알림 벨의 상단 navigation 가림, `INVALID_CREDENTIALS` 진단 코드 누락)을 수정한다. 기준 main은 `7da0a87`, 작업 branch는 `fix/pr23-review-followups`다. Frontend는 UI/안전 메타데이터와 unit, QA는 E2E와 독립 검토, Infra는 원격 PR/CI/원래 리뷰 처리, Manager는 통합·문서 정합성을 담당한다. 로컬 테스트 보류는 유지하고 후속 PR Actions를 공식 검증으로 사용한다. 원 PR의 PASS를 후속 수정의 PASS로 전용하지 않는다. 별도 SemVer release와 운영 배포는 범위 밖이다. 실제 사내 proxy/Windows clipboard/스크린리더/최종 사용자 UX는 대상 환경이 필요한 미실행 항목으로 유지한다. 근거와 결과는 [후속 기록](../../PR23_FOLLOWUP.md)을 따른다.
+PR #24 자동 review에서 확인한 375px compact header 경계와 Architecture 현재 UX 본문 정합화를 후속 처리한다. 기준 main은 병합 commit `820aeba800f48b035e4219f8094a5038593c8eb0`, 작업 branch는 `fix/pr24-review-boundaries`다. 이전 PR의 PASS를 새 변경에 전용하지 않으며 로컬 테스트 보류를 유지한다. 새 head의 원격 quality/E2E/Docker와 문서 link 검증이 끝날 때까지 **NOT TESTED**다. 세부 경계는 [후속 기록](../../PR23_FOLLOWUP.md)과 [대기 목록](../../PENDING_TESTS.md)을 따른다.
+
+## PR #23 미해결 리뷰 후속 — PR #24 병합 완료
+
+사용자 요청으로 미해결 P2 두 건(390px 알림 벨의 상단 navigation 가림, `INVALID_CREDENTIALS` 진단 코드 누락)을 PR #24에서 수정하고 `820aeba800f48b035e4219f8094a5038593c8eb0`로 main에 병합했다. 최종 PR head `93b6f9497ac937b46695327ef85fdc08efb76a7c`의 CI `34784330854` quality/E2E/Docker와 main CI `34784810624`의 4개 job 및 immutable `ci-820aeba800f48b035e4219f8094a5038593c8eb0` image 게시·검증은 PASS다. 로컬 테스트는 사용자 보류에 따라 NOT TESTED이며 별도 SemVer release와 운영 배포는 범위 밖이다. 실제 사내 proxy/Windows clipboard/스크린리더/최종 사용자 UX는 대상 환경이 필요한 미실행 항목으로 유지한다. 근거와 결과는 [후속 기록](../../PR23_FOLLOWUP.md)을 따른다.
 
 ## Issue #3 — 작업 추가 중 Gantt 인스턴스 유지 (진행 중)
 
