@@ -287,16 +287,18 @@ export function ProjectGantt({
       const api = apiReference.current;
       if (!api) return;
       canonicalSyncDepthReference.current += 1;
-      const currentColumns = api.getState().columns;
-      const nextColumns = columns.map((column) => {
-        const current = currentColumns.find((candidate) => candidate.id === column.id);
-        return current ? { ...column, width: current.width, flexgrow: current.flexgrow } : column;
-      });
       try {
+        // State columns are optional; retain configured defaults when absent.
+        const currentColumns = api.getState().columns ?? [];
+        const nextColumns = columns.map((column) => {
+          const current = currentColumns.find((candidate) => candidate.id === column.id);
+          return current ? { ...column, width: current.width, flexgrow: current.flexgrow } : column;
+        });
         await api.exec("set-columns", { columns: nextColumns });
       } catch {
         onCanonicalSyncFailureReference.current();
       } finally {
+        // State reads and column mapping must also release the sync guard.
         canonicalSyncDepthReference.current -= 1;
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
