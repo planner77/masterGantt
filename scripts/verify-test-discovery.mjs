@@ -26,12 +26,20 @@ function execute(cwd, args) {
 const configDirectory = resolve(root, "tests/config");
 const unitArgs = [resolve(root, "node_modules/vitest/vitest.mjs"), "list", "--config", resolve(configDirectory, "vitest.config.ts"), "--filesOnly"];
 const browserArgs = [resolve(root, "node_modules/@playwright/test/cli.js"), "test", "--config", resolve(configDirectory, "playwright.config.ts"), "--list", "--reporter=list"];
-const unitAtRoot = execute(root, unitArgs);
-const unitOutside = execute(tmpdir(), unitArgs);
-assert.equal(unitOutside, unitAtRoot, "Vitest discovery changed with cwd");
-const unitFiles = files(resolve(root, "tests"), ".test.ts");
+// Vitest prints paths relative to invocation cwd and filesystem traversal order
+// is not an API contract. Compare complete sorted absolute paths, not raw text.
+function unitPaths(output, cwd) {
+  const lines = output.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  assert.ok(lines.length > 0, "Vitest discovered no test files");
+  for (const line of lines) assert.ok(line.endsWith(".test.ts"), `Unexpected Vitest discovery output: ${line}`);
+  return lines.map((line) => resolve(cwd, line)).sort();
+}
+const unitFiles = files(resolve(root, "tests"), ".test.ts").sort();
 assert.ok(unitFiles.length >= 28);
-for (const path of unitFiles) assert.ok(unitOutside.includes(path.slice(root.length)), `Missing unit file: ${path}`);
+const unitAtRoot = unitPaths(execute(root, unitArgs), root);
+const unitOutside = unitPaths(execute(tmpdir(), unitArgs), tmpdir());
+assert.deepEqual(unitAtRoot, unitFiles, "Vitest root discovery omitted, duplicated or added a test file");
+assert.deepEqual(unitOutside, unitFiles, "Vitest external-cwd discovery omitted, duplicated or added a test file");
 const browserAtRoot = execute(root, browserArgs);
 const browserOutside = execute(tmpdir(), browserArgs);
 assert.equal(browserOutside, browserAtRoot, "Playwright discovery changed with cwd");
