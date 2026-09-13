@@ -1,0 +1,29 @@
+import { expect, test } from "@playwright/test";
+import { expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
+
+test("설정 모달의 검증 오류는 top layer 안에서도 보이고 닫은 뒤 알림함에 남는다", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await installStatefulProjectFixture(page);
+  await page.goto(`/projects/${publicId}`);
+  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  const identity = await rememberGanttRoot(page);
+  const box = await page.locator(".project-gantt-frame").boundingBox();
+  const mutations: string[] = [];
+  page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.url()); });
+  const settings = page.getByRole("button", { name: "프로젝트 설정", exact: true });
+  await settings.click();
+  const dialog = page.getByRole("dialog", { name: "프로젝트 설정", exact: true });
+  await dialog.getByLabel("프로젝트 이름", { exact: true }).fill("");
+  await dialog.getByRole("button", { name: "프로젝트 정보 저장" }).click();
+  await expect(dialog.getByRole("status")).toHaveText("프로젝트 이름을 입력해 주세요.");
+  await expect(dialog.getByRole("status")).toBeVisible();
+  expect(mutations).toEqual([]);
+  expect(await page.locator(".project-gantt-frame").boundingBox()).toEqual(box);
+  await expectSameGanttRoot(page, identity);
+  await page.keyboard.press("Escape");
+  await expect(settings).toBeFocused();
+  await page.getByRole("button", { name: "알림함, 미확인 1건" }).click();
+  await expect(page.getByRole("dialog", { name: "오류 알림함" }).getByLabel("알림 1 내용")).toHaveValue(/프로젝트 이름을 입력해 주세요/);
+  expect(await page.locator(".project-gantt-frame").boundingBox()).toEqual(box);
+  await expectSameGanttRoot(page, identity);
+});

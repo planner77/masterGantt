@@ -73,19 +73,19 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const revisionAfterCreate = snapshot.data.project.revision as number;
   await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
   await dragTaskBarByOneDay(page, task.taskId, task.duration, "end");
-  await expect(page.getByRole("status")).toContainText("작업을 저장했습니다");
+  await expect(page.getByTestId("workspace-toast")).toContainText("작업을 저장했습니다");
   snapshot = await (await page.request.get(apiPath)).json();
   const rightResizedTask = snapshot.data.tasks.find((entry: { taskId: string }) => entry.taskId === task.taskId);
   expect(snapshot.data.project.revision).toBe(revisionAfterCreate + 1);
   expect(rightResizedTask).toMatchObject({ start: "2026-09-14", end: "2026-09-17", duration: 4 });
   await dragTaskBarByOneDay(page, task.taskId, rightResizedTask.duration, "start");
-  await expect(page.getByRole("status")).toContainText("작업을 저장했습니다");
+  await expect(page.getByTestId("workspace-toast")).toContainText("작업을 저장했습니다");
   snapshot = await (await page.request.get(apiPath)).json();
   const leftResizedTask = snapshot.data.tasks.find((entry: { taskId: string }) => entry.taskId === task.taskId);
   expect(snapshot.data.project.revision).toBe(revisionAfterCreate + 2);
   expect(leftResizedTask).toMatchObject({ start: "2026-09-15", end: "2026-09-17", duration: 3 });
   await dragTaskBarByOneDay(page, task.taskId, leftResizedTask.duration, "move");
-  await expect(page.getByRole("status")).toContainText("작업을 저장했습니다");
+  await expect(page.getByTestId("workspace-toast")).toContainText("작업을 저장했습니다");
   snapshot = await (await page.request.get(apiPath)).json();
   const movedTask = snapshot.data.tasks.find((entry: { taskId: string }) => entry.taskId === task.taskId);
   expect(snapshot.data.project.revision).toBe(revisionAfterCreate + 3);
@@ -100,7 +100,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   for (const rejected of rejectedCases) {
     const removeRoute = await rejectNextPatch(page, `${apiPath}/tasks/${task.taskId}`, rejected.status, rejected.code);
     await dragTaskBarByOneDay(page, task.taskId, movedTask.duration, "move");
-    await expect(page.getByRole("status")).toContainText(rejected.notice); await removeRoute();
+    await expect(page.getByTestId("workspace-toast")).toContainText(rejected.notice); await removeRoute();
     const restoredBox = await page.locator(`.wx-bar[data-task-id=":${task.taskId}"]`).boundingBox();
     expect(restoredBox).not.toBeNull(); expect(restoredBox!.x).toBeCloseTo(canonicalBox.x, 0); expect(restoredBox!.width).toBeCloseTo(canonicalBox.width, 0);
     const afterRejected = await (await page.request.get(apiPath)).json();
@@ -120,7 +120,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   await page.route(canonicalPattern, failCanonicalRead);
   const removeNetworkFailure = await rejectNextPatch(page, `${apiPath}/tasks/${task.taskId}`, 500, "INTERNAL_ERROR");
   await dragTaskBarByOneDay(page, task.taskId, movedTask.duration, "move");
-  await expect(page.getByRole("status")).toContainText("최신 일정 조회에 실패");
+  await expect(page.getByTestId("workspace-toast")).toContainText("최신 일정 조회에 실패");
   await removeNetworkFailure(); await page.unroute(canonicalPattern, failCanonicalRead); expect(failedCanonicalReads).toBe(1);
   // 저장 오류와 복구 오류가 둘 다 보관되어야 한다. 복구 안내가 원래 오류를 삭제하면 안 된다.
   await page.getByRole("button", { name: /알림함/ }).click();
@@ -154,7 +154,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   if (!beforeUnauthorized) throw new Error("Expected race winner SVAR task bar.");
   const removeUnauthorizedRoute = await rejectNextPatch(page, `${apiPath}/tasks/${winnerTask.taskId}`, 401, "EDIT_SESSION_INVALID");
   await dragTaskBarByOneDay(page, winnerTask.taskId, winnerTask.duration, "move");
-  await expect(page.getByRole("status")).toContainText("편집 권한이 만료되었습니다");
+  await expect(page.getByTestId("workspace-toast")).toContainText("편집 권한이 만료되었습니다");
   await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible(); await removeUnauthorizedRoute();
   const afterUnauthorized = await (await page.request.get(apiPath)).json();
   expect(afterUnauthorized.data.project.revision).toBe(revisionBeforeRace + 1);
@@ -180,7 +180,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   expect(roots).toHaveLength(1); const nativeRoot = roots[0];
   expect(nativeRoot).toMatchObject({ name: "새 작업", requestedStart: browserToday, start: browserToday, end: browserToday, duration: 1, parentExternalId: null });
   expect(afterRoot.data.project.revision).toBe(afterUnauthorized.data.project.revision + 1);
-  await expect(page.getByRole("status")).toContainText("작업을 추가했습니다");
+  await expect(page.getByTestId("workspace-toast")).toContainText("작업을 추가했습니다");
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(grid.getByText("새 작업", { exact: true })).toHaveCount(1); await expect(grid.getByText("새 작업", { exact: true })).toBeVisible();
   await expect(page.locator(`.wx-bar[data-task-id=":${nativeRoot.taskId}"]`)).toBeVisible();
@@ -200,7 +200,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const summary = afterChild.data.tasks.find((entry: { taskId: string }) => entry.taskId === winnerTask.taskId);
   expect(summary).toMatchObject({ type: "summary", start: child.start, end: child.end });
   expect(afterChild.data.project.revision).toBe(afterRoot.data.project.revision + 1);
-  await expect(page.getByRole("status")).toContainText("작업을 추가했습니다");
+  await expect(page.getByTestId("workspace-toast")).toContainText("작업을 추가했습니다");
   await expect(grid.getByText("새 작업", { exact: true })).toHaveCount(2);
   for (const name of await grid.getByText("새 작업", { exact: true }).all()) await expect(name).toBeVisible();
   await expect(page.locator(`.wx-bar[data-task-id=":${nativeRoot.taskId}"]`)).toBeVisible();

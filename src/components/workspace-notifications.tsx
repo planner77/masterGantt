@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
 import { WorkspaceDialog } from "./workspace-dialog";
+import { WorkspaceMessageContext } from "./workspace-message-context";
 import {
   formatNotification, INITIAL_NOTIFICATION_STATE, notificationReducer,
   safeNotificationMetadata, TOAST_DURATION_MS, type NoticeKind,
@@ -51,6 +52,7 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
   }
 
   return <NotificationContext.Provider value={api}>
+    <WorkspaceMessageContext.Provider value={state.toast?.message ?? ""}>
     {children}
     <button type="button" className={styles.bell} aria-haspopup="dialog" aria-expanded={state.open}
       aria-label={unread ? `알림함, 미확인 ${unread}건` : "알림함"}
@@ -61,7 +63,7 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
     <div className={`${styles.toast} ${state.toast ? styles.toastVisible : ""}`} role="status" aria-live="polite" aria-atomic="true" data-testid="workspace-toast">
       {state.toast?.message ?? ""}
     </div>
-    {state.open ? <WorkspaceDialog title="오류 알림함" onClose={() => dispatch({ type: "close" })}>
+    {state.open ? <WorkspaceDialog title="오류 알림함" feedback={false} onClose={() => dispatch({ type: "close" })}>
       <p className={styles.scope}>{scope} · 현재 화면에서 발생한 오류를 최대 50건 보관합니다.</p>
       <p role="status" className={styles.copyHint}>{copyHint}</p>
       {state.discarded > 0 ? <p>보관 한도로 이전 알림 {state.discarded}건이 제외되었습니다.</p> : null}
@@ -77,5 +79,6 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
         })}</ol>
       </>}
     </WorkspaceDialog> : null}
+    </WorkspaceMessageContext.Provider>
   </NotificationContext.Provider>;
 }

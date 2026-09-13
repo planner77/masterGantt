@@ -71,7 +71,7 @@ test.describe("Issue #3 stable Gantt instance", () => {
     await expect(page.locator(".project-schedule .schedule-saving[role=status]")).toContainText("일정 저장 중");
     await expect(page.locator(".form-status")).toHaveCount(0);
     gate.resolve();
-    await expect(page.getByRole("status")).toContainText("작업을 추가했습니다");
+    await expect(page.getByTestId("workspace-toast")).toContainText("작업을 추가했습니다");
     await expect(ganttRoot(page)).not.toHaveAttribute("data-task-mutation-locked", "true");
     await expect(rootAdd(page)).toHaveAttribute("aria-disabled", "false");
     expect(fixture.createdTaskIds).toHaveLength(1);
@@ -127,7 +127,7 @@ test.describe("Issue #3 stable Gantt instance", () => {
     await leafRow.locator('[data-action="add-task"]').click();
     expect((await firstChildResponse).status()).toBe(201);
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await expect(page.getByRole("status")).toContainText("작업을 추가했습니다");
+    await expect(page.getByTestId("workspace-toast")).toContainText("작업을 추가했습니다");
     expect(fixture.posts).toHaveLength(1);
     expect(fixture.posts[0]).toMatchObject({ parentTaskId: "00000000-0000-4000-8000-000000000003", convertParentToSummary: true });
     expect(fixture.tasks.find((entry) => entry.externalId === "LEAF-1")?.type).toBe("summary");
@@ -155,12 +155,12 @@ test.describe("Issue #3 stable Gantt instance", () => {
     await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(2);
     await expectSameGanttRoot(page, initialIdentity);
     await rowNamed(page, "Stable milestone").locator('[data-action="add-task"]').click();
-    await expect(page.getByRole("status")).toContainText("마일스톤에는 하위 작업을 추가할 수 없습니다");
+    await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업을 추가할 수 없습니다");
     expect(fixture.posts).toHaveLength(2);
     async function rejectNextAdd(outcome: PostOutcome, expectedNotice: string, trigger = rootAdd(page)): Promise<void> {
       const taskCount = fixture.tasks.length; const postCount = fixture.posts.length;
       fixture.nextPost = outcome; await trigger.click();
-      await expect(page.getByRole("status")).toContainText(expectedNotice);
+      await expect(page.getByTestId("workspace-toast")).toContainText(expectedNotice);
       expect(fixture.posts).toHaveLength(postCount + 1); expect(fixture.tasks).toHaveLength(taskCount);
       expect(fixture.createdTaskIds).toHaveLength(2);
       await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(2);
