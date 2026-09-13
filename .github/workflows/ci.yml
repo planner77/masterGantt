@@ -41,6 +41,8 @@ jobs:
       - run: node scripts/verify-release-version.mjs
       - run: npm run typecheck
       - run: npm run lint
+      - name: Verify test discovery from root and external cwd
+        run: node scripts/verify-test-discovery.mjs
       - run: npm test
       - run: npm audit --omit=dev
       - run: node scripts/check-markdown-links.mjs

@@ -18,7 +18,7 @@
 
 ## 유지하는 루트 파일
 
-`README.md`, `AGENTS.md`, `CHANGELOG.md`, `package.json`, `package-lock.json`, `next.config.ts`, `next-env.d.ts`, `tsconfig.json`, `postcss.config.mjs`, `eslint.config.mjs`, `.env.example`, `.gitignore`, `.dockerignore`는 루트 진입점이다. 테스트 설정 2개는 #13의 별도 변경으로 `tests/config/`에 모으며, 그 단계가 반영되기 전에는 기존 루트 설정을 사용한다. 앱 소스·DB·기타 scripts의 위치는 유지한다.
+`README.md`, `AGENTS.md`, `CHANGELOG.md`, `package.json`, `package-lock.json`, `next.config.ts`, `next-env.d.ts`, `tsconfig.json`, `postcss.config.mjs`, `eslint.config.mjs`, `.env.example`, `.gitignore`, `.dockerignore`는 루트 진입점이다. 테스트 설정 2개는 #13의 별도 커밋으로 `tests/config/`에 이동했다. 루트 파일은 기존 17개에서 13개로 줄었으며 설정 파일을 중복 유지하지 않는다. 앱 소스·DB·기타 scripts의 위치는 유지한다.
 
 ## Compose 운영 명령과 기존 배포 전환
 
@@ -65,3 +65,25 @@ docker build -f deploy/docker/Dockerfile -t mastergantt:local .
 - [Compose build 경로](https://docs.docker.com/reference/compose-file/build/)
 - [Compose project name](https://docs.docker.com/compose/how-tos/project-name/)
 - [Docker build context와 ignore](https://docs.docker.com/build/building/context/)
+
+## 테스트 설정 경로 (#13)
+
+| 이전 | 현재 |
+| --- | --- |
+| `vitest.config.ts` | `tests/config/vitest.config.ts` |
+| `playwright.config.ts` | `tests/config/playwright.config.ts` |
+
+`npm test`와 `npm run test:e2e`는 --config로 새 설정을 선택한다. 설정 파일의 import.meta.url에서 저장소 루트를 구하므로 cwd에 의존하지 않는다. Vitest root/include, Playwright testDir/webServer.cwd/outputDir/DB 경로와 기존 외부 URL·Chromium override를 유지한다. 브라우저 수·테스트 시나리오·worker 1개·포트 3100·날짜/권한 계약을 바꾸지 않는다.
+
+직접 실행 및 편집기 설정:
+
+```sh
+npx vitest run --config tests/config/vitest.config.ts
+npx playwright test --config tests/config/playwright.config.ts
+npx playwright test --config tests/config/playwright.config.ts --list
+node scripts/verify-test-discovery.mjs
+```
+
+VS Code의 Vitest/Playwright 확장에서 자동 발견되지 않으면 해당 설정 파일을 선택한다. 확장 기능의 실제 UI 동작은 이번 GitHub Linux CLI 검증과 별개다. `.dockerignore`는 tests 전체를 계속 제외한다. Playwright HTML reporter 도입이나 산출물의 추가 이동은 별도 범위이며 CI의 기존 artifact 정책은 변경하지 않았다.
+
+[Vitest root](https://vitest.dev/config/root), [Playwright test configuration](https://playwright.dev/docs/api/class-testconfig).

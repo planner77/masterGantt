@@ -22,7 +22,6 @@ tests
 AGENTS.md
 README.md
 CHANGELOG.md
-playwright.config.ts
-vitest.config.ts
+# Test configuration is under tests/ and remains excluded above.
 *.log
 *.tsbuildinfo
