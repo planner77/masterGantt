@@ -38,6 +38,16 @@ Excel DRM을 해제하거나 우회하지 않는다. Excel/VBA는 승인된 기�
 
 코드 변경의 공식 전체 회귀 검증은 개발자 로컬 환경보다 **GitHub Actions를 우선**한다. 상세 정책은 `docs/REMOTE_VALIDATION.md`가 Source of Truth다.
 
+### CI/CD 한글 작성 원칙
+
+Manager와 모든 Sub-Agent는 CI/CD 관련 내용 중 사람이 읽는 제목·설명·보고를 **한글로 작성**한다. 상세 대상, 예외와 검토 절차는 `docs/GITHUB_OPERATIONS.md`의 한글 작성 정책을 따른다.
+
+- Workflow의 `name`, `run-name`, job/step의 표시용 `name`, 수동 실행 입력의 `description`, 실행 요약과 직접 작성하는 안내·오류 설명은 한글을 기본으로 한다. CI 관련 Issue/PR/커밋/릴리스의 제목·본문과 검증 보고 제목·설명도 동일하게 적용한다. 필요한 제품명·기술 용어는 원문을 병기할 수 있다.
+- `jobs.<job_id>`, step `id`, `needs`, expression, 명령·옵션·환경변수, 파일 경로, Action 참조, image/tag/digest, API 필드와 자동화가 소비하는 상태값·산출물 이름은 번역하지 않는다. Conventional Commits의 `ci:`/`docs:` 같은 접두어는 유지하고 설명을 한글로 쓴다.
+- 기존 workflow/job 표시 이름도 required checks, ruleset, `workflow_run`, 상태 조회·외부 자동화에서 참조될 수 있으므로 일괄 치환하지 않는다. 참조와 권한을 먼저 확인하고 연동 변경 및 검증을 함께 수행한다. 확인·변경 권한이 없으면 기존 이름을 유지하고 예외와 사유를 한글로 기록한다. 새로 작성하거나 안전하게 변경 가능한 표시 문구부터 적용한다.
+- 외부 도구가 생성한 원문 로그·오류 코드·스택 추적은 변조하지 않고 비밀값을 제거한 근거와 한글 원인·조치 설명을 함께 남긴다. `PASS`/`FAIL`/`BLOCKED`/`NOT TESTED` 판정 코드는 유지하되 사람이 읽는 설명은 한글로 쓴다.
+- `infra`는 작성·변경을, `qa_docs`는 한글 적용 및 식별자·연동 보존 검토를 담당한다. Manager는 업무 배정과 최종 검토에 이 기준을 포함한다. 지침 변경만으로 기존 Actions 화면까지 한글화되었다고 보고하지 않는다.
+
 기본 흐름:
 
 ```text
@@ -141,9 +151,9 @@ Secret, `.env`, PAT, Password, Token, 실제 SQLite DB와 runtime log는 Git에 
 
 ## 7. GitHub Workflow
 
-구현 가능한 업무는 가능한 한 GitHub Issue 단위로 관리한다. Issue에는 Goal, Background, Scope, Acceptance Criteria, Assigned Agent, Related Documents를 포함한다.
+구현 가능한 업무는 가능한 한 GitHub Issue 단위로 관리한다. Issue에는 목표, 배경, 범위, 인수 기준, 담당 에이전트, 관련 문서를 포함한다.
 
-PR에는 Summary, Related Issue, Changes, Verification, UI 변경 시 Screenshot, Documentation Updated, Remaining Risks를 포함한다. Verification에는 Local Fast Feedback과 GitHub Actions 결과를 분리한다.
+PR에는 요약, 관련 Issue, 변경 사항, 검증, UI 변경 시 화면 캡처, 갱신 문서, 남은 위험을 포함한다. 검증에는 로컬 빠른 검증(Local Fast Feedback)과 GitHub Actions 결과를 분리한다. CI 관련 제목과 설명은 4절의 한글 작성 원칙을 적용한다.
 
 Application version은 `package.json`을 Source of Truth로 하고 lockfile과 일치시킨다. Release는 `docs/CI_CD.md`의 Semantic Version/tag/GHCR 정책을 따른다.
 
@@ -180,25 +190,25 @@ GitHub-hosted runner로 검증할 수 없는 항목은 해당 환경의 PASS/BLO
 
 ## 10. Final Report
 
-Manager는 다음을 구분하여 보고한다.
+Manager는 다음을 구분하여 한글 제목과 설명으로 보고한다. CI 식별자와 판정 코드는 원문을 유지한다.
 
 ```text
-Completed
-Issue / PR / Head SHA
-Local Fast Feedback
-GitHub Quality
-GitHub E2E
-GitHub Docker Smoke
-Main GHCR Digest Smoke
-Environment-specific Validation
-Documentation Updated
-Decisions
-Remaining
-Risks
-Recommended Next Work
+완료한 작업
+관련 Issue / PR / Head SHA
+로컬 빠른 검증 (Local Fast Feedback)
+GitHub 품질 검사 (quality)
+GitHub E2E 검사 (e2e)
+GitHub Docker 스모크 검사 (docker)
+main GHCR digest 스모크 검사
+환경별 별도 검증
+갱신 문서
+결정 사항
+남은 작업
+위험 사항
+권장 후속 작업
 ```
 
-원격 검증이 완료되지 않았으면 Completed로 과대 표시하지 않는다.
+원격 검증이 완료되지 않았으면 완료로 과대 표시하지 않는다.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
