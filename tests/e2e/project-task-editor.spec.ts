@@ -213,7 +213,7 @@ test.describe("Issue #4 direct task editor", () => {
     await expect(editor(page)).toHaveCount(0);
     expect(fixture.patches[1].postDataJSON()).toEqual({ start: "2026-09-19" });
     expect(fixture.tasks.find((entry) => entry.taskId === id(4))).toMatchObject({ requestedStart: "2026-09-19", start: "2026-09-22", end: "2026-09-23", duration: 2 });
-    await expect(page.locator(".form-status")).toContainText("비근무일 시작");
+    await expect(page.getByTestId("workspace-toast")).toContainText("비근무일 시작");
     await openRow(page);
     await editor(page).getByLabel("작업명", { exact: true }).fill("Edited together");
     await editor(page).getByLabel("시작일", { exact: true }).fill("2026-09-18");

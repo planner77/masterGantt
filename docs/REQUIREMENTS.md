@@ -1,6 +1,8 @@
 # Requirements baseline
 
-상태: 요구사항 기준선, 2026-09-12 갱신. W01–W07, W20–W22의 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. W22 main/PR/release Actions, commit/release digest의 원격·로컬 smoke와 SBOM/provenance 조회는 PASS했다. D05는 현재 private 요금제의 ruleset 미강제 위험 수용과 GitHub Artifact Attestation 비활성으로 결정됐다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
+상태: 요구사항 기준선, 2026-09-14 UX 변경 포함. W01–W07, W20–W22의 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. W22 main/PR/release Actions, commit/release digest의 원격·로컬 smoke와 SBOM/provenance 조회는 PASS했다. D05는 현재 private 요금제의 ruleset 미강제 위험 수용과 GitHub Artifact Attestation 비활성으로 결정됐다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
+
+Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계획은 [PROJECT_UX.md](PROJECT_UX.md)를 따른다. 과거 W24의 권한 기반 삭제 버튼 표시와 부모 전환 확인 창은 아래 R31/R32로 대체한다. 이번 변경의 원격 검증은 PR #23의 최종 head/run 기준이며 과거 Wxx PASS를 전용하지 않는다.
 
 ## Confirmed
 
@@ -36,18 +38,21 @@
 | R28 | PR read-only, publish 최소 권한, Action SHA/base digest pin, pre-publish candidate, SBOM/provenance와 registry digest smoke 뒤 exact promotion | CI/CD, [Security](SECURITY.md) |
 | R29 | Project 화면은 Demo 목록 없이 좌측 계층 Task Grid와 우측 동기 Gantt Chart를 단일 SVAR Core로 표시; 빈 일정과 생성 직후에도 양쪽을 유지하고 Desktop viewport 폭·높이를 활용하며 좁은 화면은 내부 scroll로 접근 | [Architecture](ARCHITECTURE.md), [Test Plan](TEST_PLAN.md) UI03–UI10 |
 | R30 | 모든 품질 gate를 통과한 `main` commit은 immutable GHCR `ci-<full SHA>` test image로 게시하고, SemVer release의 `sha-<full SHA>`/exact/rolling tag와 분리; 두 경로 모두 게시 digest를 새로 pull해 image policy, readiness, Project/Task authorization 저장과 restart persistence를 검증 | [CI/CD](CI_CD.md), [Deployment](DEPLOYMENT.md), [Test Plan](TEST_PLAN.md) CI09–CI10 |
-| R31 | Project 목록은 카드가 아닌 표/Grid이며 현재 편집 권한이 있는 Project를 명시적 확인 후 삭제할 수 있음 | API, Security; 삭제는 Project와 종속 일정·session 전체를 원자적으로 제거 |
-| R32 | SVAR Grid Header `+`는 최상위, 행 `+`는 선택 행의 하위 작업 추가(사용자 확정); 이름을 묻지 않고 `새 작업`으로 서버 인증·revision 검증 후 저장 | 일반 생성 확인창 없음; 일반 Task의 최초 하위 추가에만 Summary 전환 명시 확인 유지 |
+| R31 | Project 목록은 표/Grid이며 삭제 버튼은 항상 표시한다. 클릭 뒤 새 비밀번호 검증이 성공한 경우에만 기존 보호 DELETE를 호출한다 (#10). | 기존 유효 세션만으로 입력 절차를 생략하지 않는다. 최신 이름/revision 경고, If-Match·Origin·session과 종속 일정·session 원자 삭제 유지. [UX 계약](PROJECT_UX.md) |
+| R32 | SVAR Grid Header `+`는 최상위, 행 `+`는 선택 행의 하위 작업 추가. 이름을 묻지 않고 `새 작업`으로 서버 인증·revision 검증 후 저장한다. 첫 하위 추가의 Summary 전환 확인 팝업도 생략한다 (#11). | 일반 leaf에는 `convertParentToSummary: true` 명시, 마일스톤 금지·서버 원자 검증·상위 집계 유지. [UX 계약](PROJECT_UX.md) |
 | R33 | 외부 ID column 표시/숨김 선택, 작업 생성 시 시작일·기간을 묻지 않고 제출 시 오늘·1일 자동 적용, Chart 토/일 구분 | 오늘은 브라우저 local 날짜, Auto 근무일 보정 유지; Milestone은 기존 0일 계약. 후속 검증은 PENDING_TESTS.md |
 | R34 | 날짜·시간 표시는 사용자 locale을 따르며 저장 date-only/UTC instant 계약은 변경하지 않음 | locale/TZ 경계 테스트; 날짜 문자열을 UTC instant로 파싱해 전날로 표시하지 않음 |
-| R35 | Project 설정은 modal 또는 기본 접힌 패널, Project header와 Grid/Chart header를 유지하며 본문 내부 상하 스크롤 | viewport/E2E geometry 검증 |
+| R35 | Project 설정은 헤더 버튼으로 여는 별도 modal이다. 프로젝트명 아래 Revision/시간대/휴일/작업/연결 및 펼침 설정을 표시하지 않는다 (#9). | 기존 정보 저장·비밀번호 변경·편집 종료 유지. Project 및 Grid/Chart header와 내부 scroll, 설정 열기/닫기 geometry·인스턴스 검증 |
 | R36 | Grid/Chart 상단의 별도 ‘작업 추가 또는 삭제’ 패널 제거; 생성은 native Grid `+` 사용 | 기존 패널의 Task 삭제 UI도 제거, 서버 삭제 API와 Project 목록 삭제는 유지. 후속 검증은 PENDING_TESTS.md |
 | R37 | Grid Column Header 우클릭에서 표시할 데이터 열 선택; 외부 ID 기본 숨김, 별도 토글 버튼 제거 | 작업/외부 ID/시작/기간 대상, 마지막 데이터 열은 유지. `+`는 권한 기반 action. 선택은 workspace 내 유지하며 reload 시 기본값 |
 | R38 | 정상 작업 추가의 대기·성공 동안 동일 Gantt 인스턴스와 기존 화면 상태 유지; 문서 navigation/전체 loading 및 action 열 너비 변화 방지 | [Issue #3](ISSUE_3_REVIEW.md). 서버 canonical snapshot·중복 요청 차단·명시적 오류 복구 유지; 성공 알림은 focus를 빼앗지 않음 |
+| R39 | 정상 안내는 일시적 overlay Toast, 오류는 우측 상단 미확인 표시와 별도 복사 가능한 알림함으로 분리한다 (#18). | 오류는 성공/Toast 타이머로 삭제하지 않음. 공간·scroll·focus·Gantt 유지, locale 시각, 안전한 metadata만 허용. [UX 계약·보충 테스트 계획](PROJECT_UX.md) |
+| R40 | 목록 각 행과 상세 헤더에서 Readonly도 프로젝트 링크를 복사할 수 있다 (#21). | 검증한 APP_BASE_URL과 publicId 기반 절대 URL. 이름 변경 후 유지, query/hash/secret 제외, 같은 세션 권한 유지/새 세션 Readonly, mutation 없음 |
+| R41 | Clipboard 성공 확인 후에만 성공 안내를 한다. 거부·미지원이면 선택 가능한 읽기 전용 내용과 수동 복사/재시도를 제공한다 (#18/#21). | 클릭 기반 쓰기만 수행하며 앱은 clipboard 읽기 권한을 요청하지 않음. 오류·fallback·키보드·좁은 화면 검증. [UX 계약](PROJECT_UX.md) |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 
-W24의 하위 추가는 일반 Task→Summary 전환에 `convertParentToSummary: true`를 요구한다. Milestone에는 하위를 추가하지 않으며 빈 Summary를 만들지 않도록 마지막 자식 단독 삭제를 거부한다. Summary 자체의 drag/resize/직접 삭제, reparent와 FS 의존 재계산은 이번 UI 확장의 승인 범위가 아니다. 일반 하위 Leaf 변경은 조상 Summary를 다시 계산한다.
+W24의 하위 추가는 일반 Task→Summary 전환에 `convertParentToSummary: true`를 요구한다. Milestone에는 하위를 추가하지 않으며 빈 Summary를 만들지 않도록 마지막 자식 단독 삭제를 거부한다. Summary 자체의 drag/resize/직접 삭제, reparent와 FS 의존 재계산은 이번 UI 확장의 승인 범위가 아니다. 일반 하위 Leaf 변경은 조상 Summary를 다시 계산한다. #11은 서버 계약을 변경하지 않고 UI 확인 단계를 생략한다.
 
 ## Assumption
 
@@ -68,6 +73,7 @@ W24의 하위 추가는 일반 Task→Summary 전환에 `convertParentToSummary:
 | A11 | Import/export resource limits는 초기 측정으로 조정, 무제한 입력 금지 | [Import Schema](IMPORT_SCHEMA.md) 초기 제한 |
 | A12 | Version SOT는 `package.json`, release authority는 동일 commit의 annotated `v<version>` tag; build metadata는 사용하지 않음 | 자동 version commit/tag 없이 review 가능한 release 경계 유지 |
 | A13 | 초기 GHCR image platform은 `linux/amd64`; arm64는 native runtime 검증 뒤 추가 | 현재 검증 host와 `better-sqlite3` ABI 위험 |
+| A14 | Toast 5초·최근 1건, 오류 최신순 최대 50건, 알림함 열기/열린 동안 도착 시 읽음 전환, workspace 메모리에만 보관 | 사용자 확정 숫자가 아닌 구현 UX 정책. 초과 제외 건수 표시·명시적 읽은 항목 삭제. [UX 계약](PROJECT_UX.md) |
 
 ## Decision Required
 
@@ -93,3 +99,4 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - Project List는 D02 승인 범위에서 앱 접속자 전체에게 제공한다. 목록 공개를 편집 권한 공개로 확대하지 않는다.
 - 대상 Excel에 안정 ID가 없을 수 있다. 승인된 ID 보존 방법이 확인될 때까지 행 번호를 장기 ID로 확정하지 않는다.
 - W01–W07 application source와 초기 migration, Project edit authorization, pure Calendar/Leaf Scheduling, root Task/Milestone Gantt 저장은 구현되었다. W21은 이 저장 경계를 유지하면서 full-width Grid+Chart 작업공간과 생성 직후 표시 회귀를 보완한다. W20은 CI와 최소 container artifact 기반을 선행하지만 production host/backup/restore를 포함한 W16 전체 배포 승인을 대신하지 않는다. VBA macro, Summary/WBS·FS 재계산, Import/Export도 후속 산출물이다.
+- #18의 과거 부모 전환 확인 유지 조건은 함께 승인된 #11로 대체하며, 서버의 명시적 전환·인증·revision 계약은 유지한다.

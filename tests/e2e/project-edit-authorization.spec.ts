@@ -52,7 +52,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
 
     await readonlyPage.getByLabel("편집 비밀번호").fill("wrong-password-123");
     await readonlyPage.getByRole("button", { name: "편집 잠금 해제" }).click();
-    await expect(readonlyPage.getByRole("status")).toContainText("올바르지 않습니다");
+    await expect(readonlyPage.getByTestId("workspace-toast")).toContainText("올바르지 않습니다");
     await expect(readonlyPage.getByLabel("편집 비밀번호")).toHaveValue("");
     expect(await readonlyPage.locator("body").innerText()).not.toContain("wrong-password-123");
 
@@ -72,7 +72,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
 
   await page.getByLabel("프로젝트 이름").fill(savedName);
   await page.getByRole("button", { name: "프로젝트 정보 저장" }).click();
-  await expect(page.getByRole("status")).toContainText("저장했습니다");
+  await expect(page.getByTestId("workspace-toast")).toContainText("저장했습니다");
   await expect(page.getByRole("heading", { name: savedName })).toBeVisible();
   await page.goto(`/projects/${projectId}`);
   await expect(page.getByRole("heading", { name: savedName })).toBeVisible();
@@ -144,7 +144,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   await page.getByText("프로젝트 설정", { exact: true }).click();
   await page.getByLabel("새 편집 비밀번호").fill(rotatedPassword);
   await page.getByRole("button", { name: "편집 비밀번호 변경" }).click();
-  await expect(page.getByRole("status")).toContainText("변경했습니다");
+  await expect(page.getByTestId("workspace-toast")).toContainText("변경했습니다");
   await page.goto(`/projects/${projectId}`);
   await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
   expect(await page.locator("body").innerText()).not.toContain(rotatedPassword);
@@ -168,7 +168,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
     await oldPasswordPage.getByLabel("편집 비밀번호").fill(password);
     await oldPasswordPage.getByRole("button", { name: "편집 잠금 해제" }).click();
     await expect(oldPasswordPage.getByText("읽기 전용", { exact: true })).toBeVisible();
-    await expect(oldPasswordPage.getByRole("status")).toContainText("올바르지 않습니다");
+    await expect(oldPasswordPage.getByTestId("workspace-toast")).toContainText("올바르지 않습니다");
     await oldPasswordPage.getByLabel("편집 비밀번호").fill(rotatedPassword);
     await oldPasswordPage.getByRole("button", { name: "편집 잠금 해제" }).click();
     await expect(oldPasswordPage.getByText("편집 가능", { exact: true })).toBeVisible();
@@ -179,7 +179,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   await page.getByText("프로젝트 설정", { exact: true }).click();
   await page.getByRole("button", { name: "편집 모드 종료" }).click();
   await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
-  await expect(page.getByRole("status")).toContainText("종료했습니다");
+  await expect(page.getByTestId("workspace-toast")).toContainText("종료했습니다");
   const logoutAgain = await page.request.delete(`${projectPath}/edit-sessions/current`, {
     headers: { Origin: origin },
   });

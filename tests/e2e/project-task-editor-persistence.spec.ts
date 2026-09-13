@@ -50,7 +50,7 @@ test("persists explicit editor changes and parent aggregation, with date-only di
   expect(patches).toBe(0);
   await editor.getByRole("button", { name: "저장", exact: true }).click();
   await expect(editor).toHaveCount(0);
-  await expect(page.locator(".form-status")).toContainText("작업을 저장했습니다");
+  await expect(page.getByTestId("workspace-toast")).toContainText("작업을 저장했습니다");
   expect(patches).toBe(1);
   expect(navigations).toBe(0);
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);

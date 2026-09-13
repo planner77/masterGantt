@@ -21,12 +21,7 @@ for (const variant of [
   { locale: "en-US", timezoneId: "America/New_York" },
 ]) {
   test.describe(variant.locale, () => {
-    test.use({
-      locale: variant.locale,
-      timezoneId: variant.timezoneId,
-      viewport: { width: 1440, height: 900 },
-    });
-
+    test.use({ locale: variant.locale, timezoneId: variant.timezoneId, viewport: { width: 1440, height: 900 } });
     test(`keeps workspace headers fixed and formats date-only values in ${variant.locale}`, async ({ page }, testInfo) => {
       const errors: string[] = [];
       page.on("pageerror", (error) => errors.push(error.message));
@@ -40,7 +35,6 @@ for (const variant of [
       await page.route(`**/api/projects/${publicId}/edit-sessions/current`, (route) => route.fulfill({ json: {
         data: { permission: "edit", expiresAt: "2099-01-01T00:00:00.000Z" },
       } }));
-
       await page.goto(`/projects/${publicId}`);
       const projectHeader = page.locator(".project-readonly-heading");
       const gantt = page.locator(".project-gantt-widget .wx-gantt");
@@ -50,22 +44,36 @@ for (const variant of [
       const externalIdHeader = gridHeaders.getByText("외부 ID", { exact: true });
       const columnMenu = page.locator(".project-column-menu");
       const externalIdOption = columnMenu.getByRole("checkbox", { name: "외부 ID", exact: true });
-
       await expect(gantt).toBeVisible();
       await expect(gridHeader).toBeVisible();
       await expect(chartHeader).toBeVisible();
-      await expect(page.locator(".project-facts").getByText("60개", { exact: true })).toBeVisible();
-      await expect(page.locator(".edit-panels > summary")).toBeVisible();
-      expect(await page.locator(".edit-panels > summary").evaluate((element) => element.getBoundingClientRect().height)).toBeGreaterThan(30);
-      await expect(page.locator(".edit-panels")).not.toHaveAttribute("open", "");
+      // #9: 하단 요약/설정 영역은 없어야 하며 설정 기능은 헤더의 모달로 보존한다.
+      await expect(page.locator(".project-facts, .edit-panels")).toHaveCount(0);
+      const settings = projectHeader.getByRole("button", { name: "프로젝트 설정", exact: true });
+      await expect(settings).toBeVisible();
+      expect((await settings.boundingBox())!.height).toBeGreaterThan(30);
+      await expect(page.getByRole("dialog")).toHaveCount(0);
+      const frame = page.locator(".project-gantt-frame");
+      const instance = await frame.getAttribute("data-project-gantt-instance");
+      const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+      const beforeSettings = await Promise.all([projectHeader, gridHeader, chartHeader, gantt].map((locator) => locator.boundingBox()));
+      await settings.click();
+      const dialog = page.getByRole("dialog", { name: "프로젝트 설정", exact: true });
+      await expect(dialog.getByRole("button", { name: "프로젝트 정보 저장" })).toBeVisible();
+      await expect(dialog.getByRole("button", { name: "편집 비밀번호 변경" })).toBeVisible();
+      expect(await Promise.all([projectHeader, gridHeader, chartHeader, gantt].map((locator) => locator.boundingBox()))).toEqual(beforeSettings);
+      await page.keyboard.press("Escape");
+      await expect(dialog).toHaveCount(0);
+      await expect(settings).toBeFocused();
+      await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
+      await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+      expect(await Promise.all([projectHeader, gridHeader, chartHeader, gantt].map((locator) => locator.boundingBox()))).toEqual(beforeSettings);
       const expectedDate = await page.evaluate(() => new Intl.DateTimeFormat(navigator.language, {
         year: "numeric", month: "short", day: "numeric", timeZone: "UTC",
       }).format(new Date("2026-09-10T00:00:00Z")));
       await expect(page.locator(".project-gantt-widget .wx-table-container").getByText(expectedDate, { exact: true }).first()).toBeVisible();
       await expect(page.locator(".project-gantt-widget .wx-table-container").getByText("5 근무일", { exact: true }).first()).toBeVisible();
       await expect(page.locator(".project-gantt-widget .wx-weekend").first()).toBeVisible();
-
-      // External ID is hidden by default and is controlled by the Grid header context menu.
       await expect(externalIdHeader).toHaveCount(0);
       await gridHeader.click({ button: "right" });
       await expect(columnMenu).toBeVisible();
@@ -74,7 +82,6 @@ for (const variant of [
       await expect(externalIdHeader).toBeVisible();
       await page.keyboard.press("Escape");
       await expect(columnMenu).toBeHidden();
-
       await gridHeader.click({ button: "right" });
       await expect(columnMenu).toBeVisible();
       await expect(externalIdOption).toBeChecked();
@@ -82,16 +89,17 @@ for (const variant of [
       await expect(externalIdHeader).toHaveCount(0);
       await page.keyboard.press("Escape");
       await expect(columnMenu).toBeHidden();
-
       const before = await Promise.all([projectHeader, gridHeader, chartHeader].map((locator) => locator.boundingBox()));
       await gantt.evaluate((element) => { element.scrollTop = 500; });
       await expect.poll(() => gantt.evaluate((element) => element.scrollTop)).toBeGreaterThan(100);
       const after = await Promise.all([projectHeader, gridHeader, chartHeader].map((locator) => locator.boundingBox()));
       for (let i = 0; i < before.length; i += 1) {
-        expect(before[i]).not.toBeNull();
-        expect(after[i]).not.toBeNull();
+        expect(before[i]).not.toBeNull(); expect(after[i]).not.toBeNull();
         expect(Math.abs(after[i]!.y - before[i]!.y)).toBeLessThan(2);
       }
+      // 60개 작업이 실제 스크롤 가능한 일정으로 유지되는지 마지막 행까지 확인한다.
+      await gantt.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+      await expect(page.getByRole("grid").getByText("Layout task 60", { exact: true })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(902);
       expect(errors).toEqual([]);
       await page.screenshot({ path: testInfo.outputPath(`workspace-${variant.locale}.png`) });
