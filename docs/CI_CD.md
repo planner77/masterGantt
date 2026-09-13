@@ -8,7 +8,7 @@
 
 GitHub Actions로 다음 반복 작업을 대체한다.
 
-- Pull Request와 `main` push: frozen `npm ci`, version manifest 검사, typecheck, lint, Vitest, production build
+- Pull Request와 `main` push: frozen `npm ci`, version manifest 검사, typecheck, lint, 루트/외부 cwd의 테스트 발견 검사, Vitest, production build
 - Chromium E2E: Playwright browser/dependency 설치 후 worker 1로 전체 실행
 - Container CI: clean Docker build, non-root runtime, migration/readiness, native SQLite, 임시 volume 재시작 persistence smoke
 - Dependency audit: production npm dependency 취약점 검사
@@ -16,6 +16,16 @@ GitHub Actions로 다음 반복 작업을 대체한다.
 - Semantic release: 승인된 version tag에서 release-configured candidate를 먼저 runtime smoke한 뒤에만 GHCR build/push, SBOM/provenance, registry digest 재다운로드와 smoke test
 
 Actions는 실제 운영 CPU/storage, reverse proxy/TLS, off-host backup/restore, Windows Excel/VBA/DRM 환경과 수동 UX 검증을 대신하지 않는다.
+
+### 필수 테스트 발견 gate (#13)
+
+`.github/workflows/ci.yml`의 `quality` job은 `npm ci` → version → typecheck → lint 다음, `npm test` 전에 `node scripts/verify-test-discovery.mjs`를 실행한다. PR/main/manual CI 모두 같은 순서를 따른다. 이 gate는 단위 테스트 실행이나 Chromium E2E 자체를 대체하지 않는다. Semantic release workflow의 별도 검증 순서는 해당 workflow를 따르며 이 문구가 release에 새 step을 추가했다는 의미는 아니다.
+
+스크립트는 설치된 Vitest와 Playwright CLI를 각각 저장소 루트와 저장소 밖 임시 디렉터리에서 실행하고, 절대 경로로 지정한 `tests/config/vitest.config.ts`와 `tests/config/playwright.config.ts`가 같은 전체 테스트를 발견하는지 확인한다. Vitest 목록은 호출 위치 기준 경로를 정규화·정렬한 뒤 실제 `.test.ts` 파일 목록과 비교하여 누락·추가·중복을 거부한다. Playwright는 전체 목록의 일치와 각 E2E spec 포함 여부, 10개 이상 테스트를 확인한다. 단위 파일 28개 이상은 기존 기준의 최소 안전장치이며, 새 테스트를 제거할 수 있다는 의미가 아니다. 테스트 0개, 설정 로딩 실패, CLI 비정상 종료 또는 발견 범위 불일치는 CI 실패다.
+
+현재 package에는 `type: module`이 없고 Playwright는 `.ts` 설정을 CommonJS로 읽는다. 따라서 이 설정의 저장소 경로는 `resolve(__dirname, "../..")`으로 구한다. Vitest 설정의 `import.meta.url`과 기계적으로 통일하거나, root package 모듈 모드를 바꾸어 오류를 우회하지 않는다. 파일 기반 경로 계산을 유지하면서 실제 CLI로 로딩해야 한다. 타입 검사 PASS만으로 이 gate를 생략하지 않는다. 상세 경로와 편집기 사용은 [REPOSITORY_STRUCTURE](REPOSITORY_STRUCTURE.md)를 따른다.
+
+실패 시 해당 head SHA/run/job/최초 오류를 기록하고 설정 또는 검증 로직을 수정한 **새 commit**으로 전체 CI를 실행한다. 실패 gate를 삭제·skip하거나 `passWithNoTests`로 통과시키지 않는다. 추가 코드 변경 없는 재실행은 transient 원인일 때만 별도 근거를 남기며, 과거 실패 기록은 유지한다.
 
 ## 2. Semantic Versioning 계약
 

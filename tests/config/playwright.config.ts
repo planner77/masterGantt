@@ -1,13 +1,18 @@
 import { defineConfig, devices } from "@playwright/test";
 import { resolve } from "node:path";
 
+// This package has no "type": "module", so Playwright loads this .ts config
+// as CommonJS. Anchor paths to this file without ESM-only import.meta or cwd.
+const repositoryRoot = resolve(__dirname, "../..");
+
 const chromiumExecutable = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE;
 const externalBaseURL = process.env.PLAYWRIGHT_BASE_URL;
 const baseURL = externalBaseURL ?? "http://127.0.0.1:3100";
-const isolatedDatabasePath = resolve(process.cwd(), ".data", "playwright.sqlite3");
+const isolatedDatabasePath = resolve(repositoryRoot, ".data", "playwright.sqlite3");
 
 export default defineConfig({
-  testDir: "./tests/e2e",
+  testDir: resolve(repositoryRoot, "tests/e2e"),
+  outputDir: resolve(repositoryRoot, "test-results"),
   // The application intentionally applies a process-global create limiter.
   // Keep browser specs serial while each spec can still exercise HTTP races explicitly.
   fullyParallel: false,
@@ -20,6 +25,7 @@ export default defineConfig({
     ? undefined
     : {
         command: "npm run dev -- --hostname 127.0.0.1 --port 3100",
+        cwd: repositoryRoot,
         url: baseURL,
         reuseExistingServer: false,
         env: {
