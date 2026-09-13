@@ -1,5 +1,14 @@
 # Active execution plan
 
+## Issue #3 — 작업 추가 중 Gantt 인스턴스 유지 (진행 중)
+
+- 사용자 요청으로 원격 `main`을 `d540eb5`까지 fast-forward했다. 기존 `next-env.d.ts`의 개발 서버 생성 변경은 보존하고 이번 커밋에서 제외한다.
+- 열린 Issue 중 생성 시각이 가장 빠른 [#3](https://github.com/planner77/masterGantt/issues/3)을 처리한다. 작업 branch: `fix/issue-3-stable-gantt`.
+- Frontend: 정상 저장의 key/권한/요청 상태 분리, canonical snapshot 동기화와 UI 상태 유지. QA: 지연 응답·중복 요청·인스턴스·화면 상태 회귀 테스트와 독립 검토. Infra: 해당 PR/head의 원격 quality/e2e/docker 확인. Manager: 통합·문서·판정.
+- API/DB/일정 계산 계약과 명시적 실패 복구는 유지한다. 낙관적 임시 ID, PRO 기능, release 및 운영 배포는 범위 밖이다.
+- 기존 로컬 테스트 보류 요청을 존중하여 로컬 실행은 하지 않는다. 이번 Issue의 공식 검증은 최신 [GitHub-first 정책](../../REMOTE_VALIDATION.md)에 따른 branch/PR Actions로 진행한다. 아래 과거 보류 기록과 W24 PASS는 이번 Issue의 결과가 아니다.
+- 현재 판정: 구현/원격 검증 진행 전, **NOT TESTED**. 실제 결과와 남은 항목은 [Issue #3 기록](../../ISSUE_3_REVIEW.md)에 갱신한다.
+
 현재 추가 작업: **Grid Header 우클릭 열 선택 — 로컬 커밋 / 검증 대기**. 외부 ID는 기본 숨김, 기존 별도 버튼 제거. 데이터 열 선택은 최소 한 열을 유지하고 같은 workspace 안에서만 보존한다. 테스트·빌드·원격 push는 보류하며 [대기 목록](../../PENDING_TESTS.md)에 검증 항목을 기록한다.
 
 추가 후속 작업: **Grid/Chart 상단 ‘작업 추가 또는 삭제’ 패널 제거 — 로컬 커밋 / 검증 대기**. Native Grid `+`와 서버 API는 유지하며 테스트·원격 push 보류 정책은 동일하다. 제거된 패널에 의존하는 E2E 갱신 항목을 [대기 목록](../../PENDING_TESTS.md)에 추가한다.

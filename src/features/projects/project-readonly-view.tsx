@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
 import type {
   ProjectMetadataMutationResponse,
@@ -134,14 +134,9 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   const [pendingChildTask, setPendingChildTask] = useState<ProjectTaskCreateCommand | null>(null);
   const [parentConversionConfirmed, setParentConversionConfirmed] = useState(false);
   const [columnVisibility, setColumnVisibility] = useState<ProjectGridColumnVisibility>(INITIAL_COLUMN_VISIBILITY);
-  const alertReference = useRef<HTMLDivElement>(null);
   const nativeTaskDialogReference = useRef<HTMLDialogElement>(null);
   const nativeTaskTriggerReference = useRef<HTMLElement | null>(null);
   const taskMutationReference = useRef(false);
-
-  useEffect(() => {
-    if (notice) alertReference.current?.focus();
-  }, [notice]);
 
   useEffect(() => {
     const dialog = nativeTaskDialogReference.current;
@@ -488,6 +483,11 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
     setNotice("이 화면에서는 하위 작업만 추가할 수 있습니다.");
   }
 
+  const recoverCanonicalGantt = useCallback(() => {
+    setGanttResetGeneration((generation) => generation + 1);
+    setNotice("일정 화면을 최신 서버 정보로 복구했습니다.");
+  }, []);
+
   function saveTaskCommand(command: ProjectTaskUpdateCommand) {
     if (Object.keys(command.payload).length === 0) return;
     void saveTask("PATCH", command.taskId, command.payload);
@@ -507,7 +507,7 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
   const taskEditingSupported = links.length === 0;
-  const taskEditing = editing && !busy && taskEditingSupported;
+  const taskEditing = editing && taskEditingSupported;
   return <section className="project-readonly" aria-labelledby="project-heading">
     <div className="project-readonly-heading">
       <div>
@@ -519,7 +519,7 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         {editing ? "편집 가능" : "읽기 전용"}
       </span>
     </div>
-    {notice ? <div className="form-status" ref={alertReference} role="status" tabIndex={-1}>{notice}</div> : null}
+    {notice ? <div className="form-status" role="status">{notice}</div> : null}
     <dl className="project-facts">
       <div><dt>Revision</dt><dd>{project.revision}</dd></div>
       <div><dt>시간대</dt><dd>{project.calendar.timezone}</dd></div>
@@ -556,7 +556,7 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
       </div>
       <button className="primary-button" disabled={isUnlocking || permissionCheckState === "checking"} type="submit">{isUnlocking ? "확인 중…" : permissionCheckState === "checking" ? "권한 확인 중…" : "편집 잠금 해제"}</button>
     </form>}
-    <section className="project-schedule" aria-labelledby="schedule-heading">
+    <section aria-busy={isSavingTask || undefined} className="project-schedule" aria-labelledby="schedule-heading">
       <div className="schedule-heading-row">
         <div>
           <h2 id="schedule-heading">일정</h2>
@@ -566,9 +566,11 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
       </div>
       {editing && !taskEditingSupported ? <p className="schedule-scope-note">연결이 있는 일정 편집은 다음 단계에서 지원합니다. 현재 일정은 읽기 전용으로 표시됩니다.</p> : null}
       <ProjectGantt
-        key={`${taskEditing ? "edit" : "readonly"}:${ganttResetGeneration}`}
+        key={ganttResetGeneration}
         calendar={project.calendar}
         editable={taskEditing}
+        mutationLocked={busy}
+        onCanonicalSyncFailure={recoverCanonicalGantt}
         links={links}
         onTaskAddRejected={rejectNativeTaskAdd}
         onTaskCreate={createNativeTask}

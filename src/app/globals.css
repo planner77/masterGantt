@@ -650,6 +650,12 @@ h2 {
   background: var(--card);
 }
 
+.project-gantt-frame[data-task-mutation-locked="true"] [data-action="add-task"] {
+  cursor: not-allowed;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
 .project-gantt-frame {
   display: flex;
   min-height: 0;
