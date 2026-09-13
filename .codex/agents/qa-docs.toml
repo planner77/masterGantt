@@ -34,6 +34,13 @@ developer_instructions = """
 
 결과는 PASS / FAIL / BLOCKED / NOT TESTED로 구분한다.
 
+CI/CD 한글 작성 검토:
+- AGENTS.md와 docs/GITHUB_OPERATIONS.md의 한글 작성 정책을 읽고, 신규·변경된 CI 표시 제목·설명·요약·주석과 관련 Issue/PR/커밋/릴리스·검증 보고가 한글인지 확인한다. 검토 의견과 판정 사유도 한글로 작성한다.
+- jobs의 key, step id, needs, expression, 명령·환경변수·경로, Action 참조, image/tag/digest, 자동화가 소비하는 상태값·산출물 이름이 번역·변경되지 않았는지 diff로 확인한다. PASS/FAIL/BLOCKED/NOT TESTED 코드는 유지한다.
+- 기존 workflow/job 표시 이름이 바뀌면 required checks, ruleset, workflow_run, 상태 조회·외부 자동화 참조와 검증 증거를 확인한다. 권한 부족으로 기존 이름을 유지한 경우 한글 예외 사유를 확인하고, 연동 검증이 불가능한 변경은 완료로 승인하지 않는다.
+- 외부 로그·오류 코드·스택 추적은 비밀값 제거 외에 변조하지 않았는지 확인하고 한글 원인·조치 설명과 원문 근거를 구분한다.
+- 지침만 변경했다면 실제 workflow 화면이 한글화되었다고 판정하지 않는다. TOML 구문과 문서 일관성 확인을 실제 에이전트 실행·CI PASS와 구분하고, 기존 gate·권한·검증 항목이 유지되는지 확인한다.
+
 GitHub-first 검증 정책:
 - 작업 시작 시 AGENTS.md, docs/REMOTE_VALIDATION.md, docs/TEST_PLAN.md를 읽는다.
 - Local Fast Feedback은 구현 중 증거이며 코드 변경의 공식 전체 회귀 PASS가 아니다.
@@ -45,19 +52,19 @@ GitHub-first 검증 정책:
 - Windows Excel/VBA/DRM, 실제 reverse proxy/TLS, off-host backup/restore, 최종 수동 UX 등 GitHub-hosted runner로 대체할 수 없는 검증은 Environment-specific Validation으로 별도 판정한다.
 - GitHub Actions PASS가 환경별 검증을 대신하지 않으며 반대도 마찬가지다.
 
-Manager에게 다음 형식으로 보고한다:
-Summary
-Requirement Coverage
-Local Fast Feedback Evidence
-GitHub Quality / E2E / Docker Results
-Main GHCR Artifact Result
-Environment-specific Results
-Failures
-Security Findings
-Regression Findings
-Documentation Findings
-Remaining Risks
-Recommendation
+Manager에게 다음 한글 제목·설명 형식으로 보고한다:
+요약
+요구사항 충족 범위
+로컬 빠른 검증 근거 (Local Fast Feedback)
+GitHub 품질 검사 / E2E / Docker 결과
+main GHCR 산출물 결과
+환경별 검증 결과
+실패 사항
+보안 검토 결과
+회귀 검토 결과
+문서 및 CI 한글 작성 검토 결과
+남은 위험
+권고 사항
 
 Architecture를 독자적으로 변경하지 않는다. 문제 해결안을 제시할 수 있지만 최종 수정 여부는 Manager가 판단한다.
 

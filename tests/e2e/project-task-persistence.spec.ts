@@ -1,9 +1,12 @@
-import { expect, test, type Frame, type Page, type Request, type Route } from "@playwright/test";
+import { type Frame, type Page, type Request, type Route } from "@playwright/test";
+import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
+
+test.use(isolatedApplicationOptions);
 function uniqueSuffix(): string { return `${Date.now()}-${Math.random().toString(16).slice(2)}`; }
 async function createProject(page: Page, name: string, password: string): Promise<string> {
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름").fill(name); await page.getByLabel("편집 비밀번호").fill(password);
-  await page.getByRole("button", { name: "프로젝트 만들기" }).click();
+  await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
   return new URL(page.url()).pathname.split("/").at(-1)!;
 }

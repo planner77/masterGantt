@@ -46,6 +46,7 @@ import {
 } from "./project-task-adapter";
 import { dateOnlyFromLocalDate } from "./date-adapter";
 import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
+import { resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 
 export type ProjectGridDataColumnId = "text" | "externalId" | "projectStart" | "projectDuration";
 
@@ -61,6 +62,7 @@ interface ProjectGanttProps {
   readonly onTaskAddRejected: () => void;
   readonly onTaskCreate: (command: ProjectTaskCreateCommand) => void;
   readonly onTaskCommand: (command: ProjectTaskUpdateCommand) => void;
+  readonly onTaskEditorOpen: (taskId: string) => void;
   readonly columnVisibility: ProjectGridColumnVisibility;
   readonly onColumnVisibilityChange: (columnId: ProjectGridDataColumnId) => void;
   readonly tasks: readonly ProjectTaskDto[];
@@ -113,6 +115,7 @@ export function ProjectGantt({
   onTaskAddRejected,
   onTaskCreate,
   onTaskCommand,
+  onTaskEditorOpen,
   columnVisibility,
   onColumnVisibilityChange,
   tasks,
@@ -121,6 +124,7 @@ export function ProjectGantt({
   const onTaskCreateReference = useRef(onTaskCreate);
   const onTaskAddRejectedReference = useRef(onTaskAddRejected);
   const onCanonicalSyncFailureReference = useRef(onCanonicalSyncFailure);
+  const onTaskEditorOpenReference = useRef(onTaskEditorOpen);
   const canCreateReference = useRef(editable && !mutationLocked);
   const mutationLockedReference = useRef(mutationLocked);
   const canonicalSyncDepthReference = useRef(0);
@@ -147,10 +151,27 @@ export function ProjectGantt({
     onTaskCreateReference.current = onTaskCreate;
     onTaskAddRejectedReference.current = onTaskAddRejected;
     onCanonicalSyncFailureReference.current = onCanonicalSyncFailure;
+    onTaskEditorOpenReference.current = onTaskEditorOpen;
     canCreateReference.current = editable && !mutationLocked;
     mutationLockedReference.current = mutationLocked;
     tasksByIdReference.current = tasksById;
-  }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, tasksById]);
+  }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskEditorOpen, tasksById]);
+
+  useEffect(() => {
+    const api = apiReference.current;
+    const root = ganttScrollReference.current;
+    if (!api || !root || !apiInstanceId) return;
+    const tag = "project-task-editor";
+    api.detach(tag);
+    api.intercept("show-editor", (event) => {
+      if (apiReference.current === api && root.isConnected && typeof event.id === "string" && tasksByIdReference.current.has(event.id)) {
+        onTaskEditorOpenReference.current(event.id);
+      }
+      // The project editor owns explicit server-confirmed saves, not Core's editor.
+      return false;
+    }, { tag });
+    return () => api.detach(tag);
+  }, [apiInstanceId]);
 
   useEffect(() => {
     const root = ganttScrollReference.current;
@@ -320,16 +341,17 @@ export function ProjectGantt({
   useEffect(() => {
     const root = ganttScrollReference.current;
     if (!root) return;
-    // Core renders its Grid header after this React tree. Its header wrapper
-    // is not necessarily tabbable, so make only that existing header focusable
-    // for the standard Shift+F10/ContextMenu entry path.
-    const makeGridHeadersFocusable = () => {
+    const makeContextTargetsFocusable = () => {
       root.querySelectorAll<HTMLElement>(".wx-table-container .wx-header").forEach((header) => {
         if (!header.hasAttribute("tabindex")) header.tabIndex = 0;
       });
+      root.querySelectorAll<HTMLElement>(TASK_TARGET_SELECTOR).forEach((element) => {
+        const id = taskIdFromElement(element);
+        if (id && tasksByIdReference.current.has(id) && !element.hasAttribute("tabindex")) element.tabIndex = 0;
+      });
     };
-    makeGridHeadersFocusable();
-    const observer = new MutationObserver(makeGridHeadersFocusable);
+    makeContextTargetsFocusable();
+    const observer = new MutationObserver(makeContextTargetsFocusable);
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
@@ -422,20 +444,42 @@ export function ProjectGantt({
     });
   }
 
+  function requestTaskEditor(target: EventTarget | null): boolean {
+    const root = ganttScrollReference.current;
+    const api = apiReference.current;
+    if (!root || !api || !apiInstanceId) return false;
+    const match = resolveTaskContextTarget(target, root, (id) => tasksByIdReference.current.has(id));
+    if (!match) return false;
+    setColumnMenuPosition(null);
+    if (!match.element.hasAttribute("tabindex")) match.element.tabIndex = 0;
+    match.element.focus({ preventScroll: true });
+    // This public action is intercepted above for both explicit and native entry.
+    void api.exec("show-editor", { id: match.taskId });
+    return true;
+  }
+
   function handleHeaderContextMenu(event: ReactMouseEvent<HTMLDivElement>) {
     const header = headerFrom(event.target);
-    if (!header) return;
-    event.preventDefault();
-    openColumnMenu(header, event.clientX, event.clientY);
+    if (header) {
+      event.preventDefault();
+      openColumnMenu(header, event.clientX, event.clientY);
+    } else if (requestTaskEditor(event.target)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
 
   function handleHeaderKeyboardMenu(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key !== "ContextMenu" && !(event.key === "F10" && event.shiftKey)) return;
     const header = headerFrom(event.target);
-    if (!header) return;
-    event.preventDefault();
-    const bounds = header.getBoundingClientRect();
-    openColumnMenu(header, bounds.left + Math.min(bounds.width / 2, 24), bounds.top + Math.min(bounds.height / 2, 24));
+    if (header) {
+      event.preventDefault();
+      const bounds = header.getBoundingClientRect();
+      openColumnMenu(header, bounds.left + Math.min(bounds.width / 2, 24), bounds.top + Math.min(bounds.height / 2, 24));
+    } else if (requestTaskEditor(event.target)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
 
   function closeColumnMenu() {
@@ -457,7 +501,7 @@ export function ProjectGantt({
           aria-label="프로젝트 일정 Grid와 Gantt 차트"
           className="project-gantt-scroll"
           onContextMenu={handleHeaderContextMenu}
-          onKeyDown={handleHeaderKeyboardMenu}
+          onKeyDownCapture={handleHeaderKeyboardMenu}
           ref={ganttScrollReference}
           role="region"
           tabIndex={0}

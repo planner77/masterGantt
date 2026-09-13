@@ -1,5 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
 
+test.use(isolatedApplicationOptions);
 function uniqueSuffix(): string { return `${Date.now()}-${Math.random().toString(16).slice(2)}`; }
 
 test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호를 확인하는 삭제", async ({ browser, page }) => {
@@ -28,7 +29,7 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   await expect(page.locator(".form-error")).toHaveText("편집 비밀번호는 12자 이상이어야 합니다.");
   await page.getByLabel("설명 (선택)").fill("브라우저 통합 검증 프로젝트");
   await page.getByLabel("편집 비밀번호").fill(password);
-  await create.click();
+  await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   const directUrl = page.url();
   await expect(page.getByRole("heading", { name })).toBeVisible();
@@ -119,6 +120,6 @@ test("clears a password after a safe server validation error and permits recover
   expect(await page.locator("body").innerText()).not.toContain(password);
   await page.getByLabel("설명 (선택)").fill("");
   await page.getByLabel("편집 비밀번호").fill(password);
-  await page.getByRole("button", { name: "프로젝트 만들기" }).click();
+  await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
 });

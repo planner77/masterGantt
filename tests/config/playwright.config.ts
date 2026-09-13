@@ -19,8 +19,9 @@ export default defineConfig({
     ["list"],
     ["html", { outputFolder: resolve(repositoryRoot, "playwright-report"), open: "never" }],
   ],
-  // The application intentionally applies a process-global create limiter.
-  // Keep browser specs serial while each spec can still exercise HTTP races explicitly.
+  // Serial execution limits resource usage but does not isolate server memory.
+  // Real-backend specs use fixtures/isolated-application; this shared server
+  // remains for mock-backed UI and demo specs. See docs/CI_36_REVIEW.md.
   fullyParallel: false,
   workers: 1,
   use: {

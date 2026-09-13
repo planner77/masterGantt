@@ -24,6 +24,14 @@ Manager가 작업을 배정하면 조사, 변경, 검증, 운영 문서 갱신�
 - docs/DECISIONS.md
 - docs/exec-plans/active/PLAN.md
 
+CI/CD 한글 작성 책임:
+- AGENTS.md와 docs/GITHUB_OPERATIONS.md의 한글 작성 정책을 적용한다. 사람이 읽는 workflow/run/job/step 표시 제목, 입력 description, 실행 요약, 주석과 직접 작성하는 안내·오류 설명은 한글로 작성한다.
+- CI 관련 Issue/PR/커밋/릴리스 제목·본문과 원인 분석·검증·인수인계 보고도 한글로 작성한다. 제품명·기술 용어는 필요할 때 원문을 병기하고 ci:/docs: 같은 커밋 접두어는 유지한다.
+- jobs의 key, step id, needs, expression, 명령·옵션·환경변수·파일 경로, uses 참조, image/tag/digest, 자동화가 소비하는 상태값·산출물 이름은 번역하지 않는다. GITHUB_STEP_SUMMARY와 annotation의 제어 구문을 유지하고 사람이 읽는 제목·메시지만 한글로 작성한다.
+- 기존 workflow/job 표시 이름은 required checks, ruleset, workflow_run, 상태 조회와 외부 자동화의 참조부터 확인한다. 연동 변경과 검증을 함께 수행할 수 있을 때만 바꾸고, 확인·변경 권한이 없으면 이름을 유지하며 예외·사유를 한글로 보고한다. 보호 규칙을 제거하거나 gate를 약화해 번역을 적용하지 않는다.
+- 외부 도구의 로그·오류 코드·스택 추적은 비밀값 제거 외에 임의 번역·변조하지 않는다. 원문 근거와 한글 원인·조치 설명을 함께 제공한다. 지침 갱신과 실제 workflow 화면 변경, 정적 검토와 원격 CI 실행 결과를 구분한다.
+- qa_docs가 한글 적용 범위와 식별자·연동 보존 여부를 검토할 수 있도록 변경·유지한 항목과 검증 근거를 전달한다.
+
 GitHub-first 검증 운영:
 - GitHub-hosted runner에서 수행 가능한 전체 회귀 검증은 로컬 반복 실행보다 PR GitHub Actions를 기본 공식 경로로 운영한다.
 - PR에서 quality, e2e, docker job이 실제 head SHA에 대해 실행되는지 확인하고 결과가 끝나기 전에는 공식 PASS로 보고하지 않는다.
@@ -75,9 +83,9 @@ CI/CD와 GHCR:
 
 산출물과 보고:
 - 변경 범위에 따라 docs/REMOTE_VALIDATION.md, docs/GITHUB_OPERATIONS.md, docs/CI_CD.md, docs/DEPLOYMENT.md, docs/TEST_PLAN.md를 일관되게 유지한다.
-- Summary / Evidence / Root Cause / Changes / Verification / Risks / Rollback / Approval Needed / Related Issue-PR-Run-Digest 형식으로 보고한다.
-- Verification은 Local Fast Feedback / PR quality / PR E2E / PR Docker / Main GHCR digest / Environment-specific 항목을 분리한다.
-- PASS, FAIL, BLOCKED, NOT TESTED를 엄격히 구분하고 TOML 설정값을 실제 실행 model/effort 검증으로 과대 표시하지 않는다.
+- 요약 / 근거 / 근본 원인 / 변경 사항 / 검증 / 위험 / 복구 방안 / 필요한 승인 / 관련 Issue-PR-Run-Digest 형식의 한글 제목·설명으로 보고한다.
+- 검증은 로컬 빠른 검증(Local Fast Feedback) / PR 품질 검사(quality) / PR E2E / PR Docker / main GHCR digest / 환경별 검증 항목을 분리한다.
+- PASS, FAIL, BLOCKED, NOT TESTED 코드는 유지하고 판정 사유는 한글로 쓴다. TOML 설정값을 실제 실행 model/effort 검증으로 과대 표시하지 않는다.
 
 저장소 배치 기준은 docs/REPOSITORY_STRUCTURE.md다. Dockerfile/Compose/entrypoint는 deploy/에 두고 빌드 context와 .dockerignore는 루트를 유지한다. Compose 경로 변경 시 기존 COMPOSE_PROJECT_NAME 및 MASTERGANTT_VOLUME_NAME을 보존하고, 실제 운영 volume 변경 없이 GitHub의 격리 Compose smoke를 수행한다.
 

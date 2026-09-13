@@ -15,7 +15,7 @@
 | Docker/Compose, SQLite volume, Node/native module, readiness와 배포 | infra | backend 협업, qa_docs 독립 검증 |
 | 모든 변경의 최종 ACCEPT/REWORK/보류 판단 | Manager | 구현 Agent의 자체 PASS만으로 승인하지 않음 |
 
-GitHub/CI/GHCR 요청은 Docker 파일 수정이 없어도 `infra`에 배정한다. Agent ID는 GitHub 사용자 계정이 아니다. Issue에는 `Assigned Agent: infra`로 기록하고 실제 assignee는 확인된 계정만 사용한다. 같은 workflow/script를 여러 Agent가 동시에 수정하지 않는다.
+GitHub/CI/GHCR 요청은 Docker 파일 수정이 없어도 `infra`에 배정한다. Agent ID는 GitHub 사용자 계정이 아니다. Issue에는 `담당 에이전트: infra`로 기록하고 실제 assignee는 확인된 계정만 사용한다. 같은 workflow/script를 여러 Agent가 동시에 수정하지 않는다.
 
 ## 2. 작업 시작 시 확인
 
@@ -51,27 +51,59 @@ Force push, tag 이동/재발행, quality gate 우회, 무조건 재시도, 비�
 
 변경한 workflow/script/test와 관련 `CI_CD.md`, `DEPLOYMENT.md`, `TEST_PLAN.md`, 이 문서를 같은 변경에서 일관되게 유지한다. 사용자 절차나 version이 달라지는 경우 README/CHANGELOG 영향도 반영한다. 배정만 바뀌고 기술 계약이 바뀌지 않는 경우 불필요하게 workflow나 application version을 변경하지 않는다.
 
-보고 형식:
+보고 형식(제목·설명은 한글, 식별자·판정 코드는 원문 유지):
 
 ```text
-Assigned Agent: infra
-Requested Model / Effort: gpt-6-astra / high
-Repository / Ref / Commit:
-Related Issue / PR / Run / Job / Attempt:
-Scope / Approval:
-Evidence / Root Cause / Unknowns:
-Changes:
-Verification: PASS | FAIL | BLOCKED | NOT TESTED
-  Static / Local / Remote CI / GHCR digest / Production: 각각 구분
-Image / Tag / Digest / SBOM-Provenance:
-Risks / Rollback / Approval Needed:
-Documentation Updated:
-QA Findings / Manager Decision:
+담당 에이전트: infra
+요청 모델 / 추론 수준: gpt-6-astra / high
+저장소 / Ref / Commit:
+관련 Issue / PR / Run / Job / Attempt:
+범위 / 승인:
+근거 / 근본 원인 / 미확인 사항:
+변경 사항:
+검증: PASS | FAIL | BLOCKED | NOT TESTED
+  정적 검토 / 로컬 / 원격 CI / GHCR digest / 운영 환경: 각각 구분
+이미지 / Tag / Digest / SBOM-Provenance:
+위험 / 복구 방안 / 필요한 승인:
+갱신 문서:
+QA 검토 결과 / Manager 판단:
 ```
 
 완료는 근거 있는 원인/변경, 관련 검증, 권한·release 불변식 유지, 문서 일관성, 독립 QA와 Manager 판단을 포함한다. 실행하지 않은 CI나 GHCR 검증을 PASS로 기록하지 않는다. TOML에 적힌 model/effort와 실제 실행 metadata의 확인도 구분한다.
 
-## 7. 공식 참고자료
+## 7. CI/CD 한글 작성 정책
+
+적용일: 2026-09-13. CI 관련 내용에서 한글로 작성할 수 있는 사람이 읽는 부분은 한글로 작성한다. Manager와 모든 Sub-Agent에 적용하며 `AGENTS.md`, `.codex/agents/infra.toml`, `.codex/agents/qa-docs.toml`의 기준과 함께 유지한다.
+
+### 한글 작성 대상
+
+| 구분 | 작성 기준과 예시 |
+| --- | --- |
+| Actions 표시 제목 | Workflow `name`, 실행 `run-name`, job/step `name`은 한글 설명을 사용한다. 예: `CI 검증`, `빌드·정적 검사·단위 테스트`, `Chromium 종단 간 테스트`, `Docker 빌드 및 실행 스모크 테스트` |
+| 수동 실행 안내 | `workflow_dispatch` 입력의 `description`과 안내 문구는 한글로 작성한다. 입력 key와 자동화가 사용하는 선택값은 유지한다. |
+| 실행 요약·진단 | `GITHUB_STEP_SUMMARY` 내용, 직접 작성하는 annotation 제목·메시지, 운영 안내·실패 원인·조치 설명은 한글로 작성한다. 제어 구문과 기계 판독 출력 형식은 유지한다. |
+| GitHub 협업 기록 | CI 관련 Issue/PR/커밋/릴리스 제목·본문, 인수 기준, 검증 결과, 검토 의견을 한글로 작성한다. 예: `ci: Chromium E2E 테스트 대기 조건 수정`, `docs: CI 한글 작성 지침 추가` |
+| 문서·주석·보고 | CI 운영 문서와 직접 작성하는 설명용 주석, 원인 분석·검증·인수인계 보고의 제목과 설명은 한글로 작성한다. 제품명·기술 용어는 필요한 경우 원문을 병기한다. |
+
+### 번역하지 않는 항목
+
+YAML/TOML/API의 key, `jobs.<job_id>`와 step `id`, `needs`, 조건·expression, 명령·옵션·환경변수, 파일·디렉터리 경로, Action의 `uses` 참조와 고정 SHA, image 경로·tag·digest, cache key, 업로드·다운로드에 쓰이는 artifact 이름, 자동화가 소비하는 필드·상태값은 원문을 유지한다. Conventional Commits 접두어와 에이전트 ID·model·effort 값도 유지한다. 한국어 표기는 이 계약을 바꾸는 이유가 되지 않는다.
+
+외부 도구가 생성한 로그·오류 코드·스택 추적·자동 생성 블록은 한글화를 이유로 변경하지 않는다. 비밀값은 제거하고 원문 근거와 한글 요약·원인·조치 설명을 나란히 제공한다. 판정 코드는 `PASS`, `FAIL`, `BLOCKED`, `NOT TESTED`를 유지하며 판정 사유를 한글로 쓴다.
+
+### 기존 표시 이름 변경 시 안전 절차
+
+표시용 `name`도 required status checks/ruleset, `workflow_run.workflows`, 상태 조회 스크립트나 외부 자동화의 참조가 될 수 있으므로 무조건 치환하지 않는다. 먼저 참조와 실제 변경 권한을 확인하고, 연동 수정과 동일 head SHA의 필요한 검증을 함께 수행할 수 있을 때 변경한다. 권한 부족이나 참조 미확인 상태에서는 기존 이름을 유지하고 한글 적용 예외·사유·필요 조치를 기록한다. required checks 삭제, 보호 규칙 약화나 gate 생략으로 한글화를 적용하지 않는다. `run-name`의 표시 문구를 수정하더라도 expression과 이벤트 처리 의미는 유지한다.
+
+신규 문구와 참조 영향이 없는 문구부터 적용한다. 이 정책은 새로 작성하거나 수정하는 CI 관련 콘텐츠의 기준이며, 과거 실행 기록을 다시 쓰거나 요청 범위 밖의 기존 workflow를 일괄 변경하라는 지시가 아니다. 다른 범위가 명시되지 않은 지침 변경 작업에서는 workflow 실행 로직과 application version을 변경하지 않는다.
+
+### 담당과 검토
+
+`infra`는 한글 문구 작성, 연동 영향 확인, 변경·예외 및 검증 근거 보고를 담당한다. `qa_docs`는 대상 문구의 한글 적용, 식별자·권한·gate 보존과 문서 일관성을 독립 검토한다. Manager는 업무 배정과 인수 기준에 이 정책을 포함하고 최종 보고를 한글로 작성한다.
+
+검증 결과는 지침/TOML 정적 검토, 실제 에이전트 실행, workflow 변경, 원격 Actions 실행으로 구분한다. 지침 파일만 갱신한 상태를 기존 Actions 화면 한글화 또는 CI PASS로 보고하지 않는다.
+
+## 8. 공식 참고자료
 
 아래는 역할 설계 시 확인한 공식 자료이며, 실제 설정 작업 시 최신 내용과 해당 plan/계정 권한을 다시 확인한다(확인일 2026-09-12).
 
