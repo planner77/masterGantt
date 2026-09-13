@@ -47,11 +47,15 @@ import {
 import { dateOnlyFromLocalDate } from "./date-adapter";
 import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
 import { resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
+import "./task-context-menu.css";
 
 export type ProjectGridDataColumnId = "text" | "externalId" | "projectStart" | "projectDuration";
 
 export type ProjectGridColumnVisibility = Record<ProjectGridDataColumnId, boolean>;
 let nextApiInstanceId = 1;
+
+type MenuPosition = Readonly<{ left: number; top: number }>;
+type TaskMenuState = MenuPosition & Readonly<{ taskId: string }>;
 
 interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
@@ -105,6 +109,14 @@ function isWeekend(date: Date): boolean {
   return day === 0 || day === 6;
 }
 
+function clampMenuPosition(left: number, top: number, width: number, height: number): MenuPosition {
+  const inset = 8;
+  return {
+    left: Math.max(inset, Math.min(left, window.innerWidth - width - inset)),
+    top: Math.max(inset, Math.min(top, window.innerHeight - height - inset)),
+  };
+}
+
 /** Browser-only renderer; normal canonical snapshots keep this SVAR instance mounted. */
 export function ProjectGantt({
   calendar,
@@ -135,7 +147,10 @@ export function ProjectGantt({
   const ganttScrollReference = useRef<HTMLDivElement>(null);
   const columnMenuReference = useRef<HTMLDivElement>(null);
   const columnMenuTriggerReference = useRef<HTMLElement | null>(null);
-  const [columnMenuPosition, setColumnMenuPosition] = useState<{ left: number; top: number } | null>(null);
+  const taskMenuReference = useRef<HTMLDivElement>(null);
+  const taskMenuTriggerReference = useRef<HTMLElement | null>(null);
+  const [columnMenuPosition, setColumnMenuPosition] = useState<MenuPosition | null>(null);
+  const [taskMenu, setTaskMenu] = useState<TaskMenuState | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
@@ -322,21 +337,59 @@ export function ProjectGantt({
   }, [columnMenuPosition]);
 
   useEffect(() => {
+    if (!taskMenu) return;
+    const restoreTaskMenuTrigger = () => {
+      queueMicrotask(() => taskMenuTriggerReference.current?.focus({ preventScroll: true }));
+    };
+    const closeForOutsidePointer = (event: PointerEvent) => {
+      if (event.target instanceof Node && taskMenuReference.current?.contains(event.target)) return;
+      setTaskMenu(null);
+      restoreTaskMenuTrigger();
+    };
+    const closeForViewportChange = (event?: Event) => {
+      if (event?.target instanceof Node && taskMenuReference.current?.contains(event.target)) return;
+      setTaskMenu(null);
+      restoreTaskMenuTrigger();
+    };
+    document.addEventListener("pointerdown", closeForOutsidePointer, true);
+    window.addEventListener("resize", closeForViewportChange);
+    document.addEventListener("scroll", closeForViewportChange, true);
+    return () => {
+      document.removeEventListener("pointerdown", closeForOutsidePointer, true);
+      window.removeEventListener("resize", closeForViewportChange);
+      document.removeEventListener("scroll", closeForViewportChange, true);
+    };
+  }, [taskMenu]);
+
+  useEffect(() => {
     if (!columnMenuPosition) return;
     columnMenuReference.current?.querySelector<HTMLInputElement>("input:not(:disabled)")?.focus({ preventScroll: true });
   }, [columnMenuPosition]);
+
+  useEffect(() => {
+    if (!taskMenu) return;
+    taskMenuReference.current?.querySelector<HTMLButtonElement>('[role="menuitem"]:not(:disabled)')?.focus({ preventScroll: true });
+  }, [taskMenu]);
 
   useLayoutEffect(() => {
     if (!columnMenuPosition) return;
     const menu = columnMenuReference.current;
     if (!menu) return;
-    const inset = 8;
     const bounds = menu.getBoundingClientRect();
-    const left = Math.max(inset, Math.min(bounds.left, window.innerWidth - bounds.width - inset));
-    const top = Math.max(inset, Math.min(bounds.top, window.innerHeight - bounds.height - inset));
-    if (Math.abs(left - bounds.left) < 1 && Math.abs(top - bounds.top) < 1) return;
-    setColumnMenuPosition((current) => current ? { left, top } : current);
+    const next = clampMenuPosition(bounds.left, bounds.top, bounds.width, bounds.height);
+    if (Math.abs(next.left - bounds.left) < 1 && Math.abs(next.top - bounds.top) < 1) return;
+    setColumnMenuPosition(next);
   }, [columnMenuPosition]);
+
+  useLayoutEffect(() => {
+    if (!taskMenu) return;
+    const menu = taskMenuReference.current;
+    if (!menu) return;
+    const bounds = menu.getBoundingClientRect();
+    const next = clampMenuPosition(bounds.left, bounds.top, bounds.width, bounds.height);
+    if (Math.abs(next.left - bounds.left) < 1 && Math.abs(next.top - bounds.top) < 1) return;
+    setTaskMenu((current) => current ? { ...current, ...next } : current);
+  }, [taskMenu]);
 
   useEffect(() => {
     const root = ganttScrollReference.current;
@@ -435,27 +488,32 @@ export function ProjectGantt({
   function openColumnMenu(header: HTMLElement, x: number, y: number) {
     header.focus({ preventScroll: true });
     columnMenuTriggerReference.current = header;
-    const inset = 8;
-    const menuWidth = 208;
-    const menuHeight = 196;
-    setColumnMenuPosition({
-      left: Math.max(inset, Math.min(x, window.innerWidth - menuWidth - inset)),
-      top: Math.max(inset, Math.min(y, window.innerHeight - menuHeight - inset)),
-    });
+    setTaskMenu(null);
+    setColumnMenuPosition(clampMenuPosition(x, y, 208, 196));
   }
 
-  function requestTaskEditor(target: EventTarget | null): boolean {
+  function openTaskMenu(target: EventTarget | null, x?: number, y?: number): boolean {
     const root = ganttScrollReference.current;
-    const api = apiReference.current;
-    if (!root || !api || !apiInstanceId) return false;
+    if (!root || !apiReference.current || !apiInstanceId) return false;
     const match = resolveTaskContextTarget(target, root, (id) => tasksByIdReference.current.has(id));
     if (!match) return false;
-    setColumnMenuPosition(null);
     if (!match.element.hasAttribute("tabindex")) match.element.tabIndex = 0;
     match.element.focus({ preventScroll: true });
-    // This public action is intercepted above for both explicit and native entry.
-    void api.exec("show-editor", { id: match.taskId });
+    taskMenuTriggerReference.current = match.element;
+    const bounds = match.element.getBoundingClientRect();
+    const anchorX = x ?? bounds.left + Math.min(bounds.width / 2, 24);
+    const anchorY = y ?? bounds.top + Math.min(bounds.height / 2, 24);
+    setColumnMenuPosition(null);
+    setTaskMenu({ taskId: match.taskId, ...clampMenuPosition(anchorX, anchorY, 192, 52) });
     return true;
+  }
+
+  function openTaskEditorFromMenu() {
+    const api = apiReference.current;
+    if (!api || !taskMenu) return;
+    const taskId = taskMenu.taskId;
+    setTaskMenu(null);
+    void api.exec("show-editor", { id: taskId });
   }
 
   function handleHeaderContextMenu(event: ReactMouseEvent<HTMLDivElement>) {
@@ -463,7 +521,7 @@ export function ProjectGantt({
     if (header) {
       event.preventDefault();
       openColumnMenu(header, event.clientX, event.clientY);
-    } else if (requestTaskEditor(event.target)) {
+    } else if (openTaskMenu(event.target, event.clientX, event.clientY)) {
       event.preventDefault();
       event.stopPropagation();
     }
@@ -476,7 +534,7 @@ export function ProjectGantt({
       event.preventDefault();
       const bounds = header.getBoundingClientRect();
       openColumnMenu(header, bounds.left + Math.min(bounds.width / 2, 24), bounds.top + Math.min(bounds.height / 2, 24));
-    } else if (requestTaskEditor(event.target)) {
+    } else if (openTaskMenu(event.target)) {
       event.preventDefault();
       event.stopPropagation();
     }
@@ -487,10 +545,23 @@ export function ProjectGantt({
     queueMicrotask(() => columnMenuTriggerReference.current?.focus({ preventScroll: true }));
   }
 
+  function closeTaskMenu() {
+    setTaskMenu(null);
+    queueMicrotask(() => taskMenuTriggerReference.current?.focus({ preventScroll: true }));
+  }
+
   function handleColumnMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key === "Escape") {
       event.preventDefault();
       closeColumnMenu();
+    }
+  }
+
+  function handleTaskMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      closeTaskMenu();
     }
   }
 
@@ -550,6 +621,19 @@ export function ProjectGantt({
               </label>;
             })}
           </fieldset>
+        </div> : null}
+        {taskMenu ? <div
+          aria-label="작업 메뉴"
+          className="project-task-context-menu"
+          onKeyDown={handleTaskMenuKeyDown}
+          ref={taskMenuReference}
+          role="menu"
+          style={{ left: taskMenu.left, top: taskMenu.top }}
+        >
+          <button onClick={openTaskEditorFromMenu} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">i</span>
+            <span>작업 정보</span>
+          </button>
         </div> : null}
       </Willow>
     </div>
