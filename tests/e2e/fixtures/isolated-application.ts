@@ -56,11 +56,11 @@ async function stopApplication(child: ChildProcess, closed: Promise<void>): Prom
 
 /** Browser contexts alone cannot isolate a server's process-global rate limiter. */
 export const test = base.extend<{ isolatedApplication: string }>({
-  isolatedApplication: [async ({ browserName }, use, testInfo) => {
+  isolatedApplication: [async ({ browserName }, provide, testInfo) => {
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
-      await use(external);
+      await provide(external);
       return;
     }
     await mkdir(resolve(repositoryRoot, ".data"), { recursive: true });
@@ -120,7 +120,7 @@ export const test = base.extend<{ isolatedApplication: string }>({
         if (response.status >= 500) throw new Error(`Isolated E2E warmup failed: ${path} HTTP ${response.status}\n${output}`);
       }
       testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
-      await use(origin);
+      await provide(origin);
     } finally {
       if (child) await stopApplication(child, closed);
       // Remove only paths allocated by this fixture, after its server exits.
@@ -133,8 +133,8 @@ export const test = base.extend<{ isolatedApplication: string }>({
 // File-level test.use takes precedence over config.use.baseURL. Browser/context
 // fixtures and additional contexts retain Playwright's standard option plumbing.
 export const isolatedApplicationOptions = {
-  baseURL: async ({ isolatedApplication }: { isolatedApplication: string }, use: (value: string) => Promise<void>) => {
-    await use(isolatedApplication);
+  baseURL: async ({ isolatedApplication }: { isolatedApplication: string }, provide: (value: string) => Promise<void>) => {
+    await provide(isolatedApplication);
   },
 };
 
