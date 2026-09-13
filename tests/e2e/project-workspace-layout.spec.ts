@@ -20,27 +20,37 @@ for (const variant of [
   { locale: "ko-KR", timezoneId: "Asia/Seoul" },
   { locale: "en-US", timezoneId: "America/New_York" },
 ]) {
-  test(`keeps workspace headers fixed and formats date-only values in ${variant.locale}`, async ({ browser, baseURL }, testInfo) => {
-    const context = await browser.newContext({ ...variant, viewport: { width: 1440, height: 900 } });
-    const page = await context.newPage();
-    const errors: string[] = [];
-    page.on("pageerror", (error) => errors.push(error.message));
-    await page.route(`**/api/projects/${publicId}`, (route) => route.fulfill({ json: {
-      data: {
-        project: { publicId, name: "Workspace layout fixture", description: "Header and locale verification", revision: 1,
-          calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] } },
-        tasks, links: [], permission: "readonly",
-      },
-    } }));
-    await page.route(`**/api/projects/${publicId}/edit-sessions/current`, (route) => route.fulfill({ json: {
-      data: { permission: "edit", expiresAt: "2099-01-01T00:00:00.000Z" },
-    } }));
-    try {
-      await page.goto(`${baseURL}/projects/${publicId}`);
+  test.describe(variant.locale, () => {
+    test.use({
+      locale: variant.locale,
+      timezoneId: variant.timezoneId,
+      viewport: { width: 1440, height: 900 },
+    });
+
+    test(`keeps workspace headers fixed and formats date-only values in ${variant.locale}`, async ({ page }, testInfo) => {
+      const errors: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      await page.route(`**/api/projects/${publicId}`, (route) => route.fulfill({ json: {
+        data: {
+          project: { publicId, name: "Workspace layout fixture", description: "Header and locale verification", revision: 1,
+            calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] } },
+          tasks, links: [], permission: "readonly",
+        },
+      } }));
+      await page.route(`**/api/projects/${publicId}/edit-sessions/current`, (route) => route.fulfill({ json: {
+        data: { permission: "edit", expiresAt: "2099-01-01T00:00:00.000Z" },
+      } }));
+
+      await page.goto(`/projects/${publicId}`);
       const projectHeader = page.locator(".project-readonly-heading");
       const gantt = page.locator(".project-gantt-widget .wx-gantt");
-      const gridHeader = page.locator(".project-gantt-widget .wx-table-container .wx-header").first();
+      const gridHeaders = page.locator(".project-gantt-widget .wx-table-container .wx-header");
+      const gridHeader = gridHeaders.first();
       const chartHeader = page.locator(".project-gantt-widget .wx-scale").first();
+      const externalIdHeader = gridHeaders.getByText("외부 ID", { exact: true });
+      const columnMenu = page.locator(".project-column-menu");
+      const externalIdOption = columnMenu.getByRole("checkbox", { name: "외부 ID", exact: true });
+
       await expect(gantt).toBeVisible();
       await expect(gridHeader).toBeVisible();
       await expect(chartHeader).toBeVisible();
@@ -54,10 +64,24 @@ for (const variant of [
       await expect(page.locator(".project-gantt-widget .wx-table-container").getByText(expectedDate, { exact: true }).first()).toBeVisible();
       await expect(page.locator(".project-gantt-widget .wx-table-container").getByText("5 근무일", { exact: true }).first()).toBeVisible();
       await expect(page.locator(".project-gantt-widget .wx-weekend").first()).toBeVisible();
-      await page.getByRole("button", { name: "외부 ID 숨기기" }).click();
-      await expect(page.locator(".project-gantt-widget").getByText("외부 ID", { exact: true })).toHaveCount(0);
-      await page.getByRole("button", { name: "외부 ID 표시" }).click();
-      await expect(page.locator(".project-gantt-widget").getByText("외부 ID", { exact: true })).toBeVisible();
+
+      // External ID is hidden by default and is controlled by the Grid header context menu.
+      await expect(externalIdHeader).toHaveCount(0);
+      await gridHeader.click({ button: "right" });
+      await expect(columnMenu).toBeVisible();
+      await expect(externalIdOption).not.toBeChecked();
+      await externalIdOption.check();
+      await expect(externalIdHeader).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(columnMenu).toBeHidden();
+
+      await gridHeader.click({ button: "right" });
+      await expect(columnMenu).toBeVisible();
+      await expect(externalIdOption).toBeChecked();
+      await externalIdOption.uncheck();
+      await expect(externalIdHeader).toHaveCount(0);
+      await page.keyboard.press("Escape");
+      await expect(columnMenu).toBeHidden();
 
       const before = await Promise.all([projectHeader, gridHeader, chartHeader].map((locator) => locator.boundingBox()));
       await gantt.evaluate((element) => { element.scrollTop = 500; });
@@ -71,8 +95,6 @@ for (const variant of [
       expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(902);
       expect(errors).toEqual([]);
       await page.screenshot({ path: testInfo.outputPath(`workspace-${variant.locale}.png`) });
-    } finally {
-      await context.close();
-    }
+    });
   });
 }
