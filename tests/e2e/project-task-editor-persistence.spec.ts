@@ -1,5 +1,7 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
+
+test.use(isolatedApplicationOptions);
 
 test("persists explicit editor changes and parent aggregation, with date-only display in three timezones", async ({ page, browser }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -7,7 +9,7 @@ test("persists explicit editor changes and parent aggregation, with date-only di
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Editor persistence ${suffix}`);
   await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Editor-password-${suffix}`);
-  await page.getByRole("button", { name: "프로젝트 만들기", exact: true }).click();
+  await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
   const path = new URL(page.url()).pathname;
   const api = `/api${path}`;

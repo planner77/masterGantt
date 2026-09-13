@@ -1,4 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
+
+test.use(isolatedApplicationOptions);
 
 function uniqueSuffix(): string {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -39,7 +41,7 @@ test("creates a project, lists it after returning home, and keeps its direct pag
 
   await page.getByLabel("설명 (선택)").fill("브라우저 통합 검증 프로젝트");
   await page.getByLabel("편집 비밀번호").fill(password);
-  await create.click();
+  await submitProjectAndExpectCreated(page);
 
   await page.waitForURL(/\/projects\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   const directUrl = page.url();
@@ -123,6 +125,6 @@ test("clears a password after a safe server validation error and permits recover
 
   await page.getByLabel("설명 (선택)").fill("");
   await page.getByLabel("편집 비밀번호").fill(password);
-  await page.getByRole("button", { name: "프로젝트 만들기" }).click();
+  await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
 });
