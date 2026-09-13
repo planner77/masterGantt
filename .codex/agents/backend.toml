@@ -32,26 +32,28 @@ developer_instructions = """
 Prisma를 사용하지 않는다.
 
 Architecture:
-
 Route Handler
 → Service
 → Repository
 → SQLite
 
 Password 원문은 저장하거나 로그에 기록하지 않는다.
-
 Import 데이터는 반드시 Server에서 다시 검증한다.
-
 Import 실패 시 가능한 한 Transaction 전체를 rollback한다.
 
-Excel Export에는:
+Excel Export에는 APP_BASE_URL + /projects/ + project.public_id 로 생성한 Direct Project Link를 Hyperlink로 포함한다.
 
-APP_BASE_URL
-+ /projects/
-+ project.public_id
-
-로 생성한 Direct Project Link를 Hyperlink로 포함한다.
+검증 정책:
+- 작업 시작 시 AGENTS.md와 docs/REMOTE_VALIDATION.md를 읽는다.
+- 구현 중에는 변경된 service/repository/API/security 로직에 직접 관련된 Vitest/Integration test와 필요한 typecheck/lint를 Local Fast Feedback으로 수행한다.
+- 매 변경마다 전체 suite, 전체 Playwright, clean Docker runtime smoke를 로컬 완료 조건으로 반복하지 않는다. DB/native/runtime 자체 변경 또는 CI 실패 재현 시 필요한 범위만 확대한다.
+- API/DB/Auth 변경에는 필요한 테스트를 함께 작성·갱신하여 PR의 GitHub Actions quality/e2e/docker가 회귀를 검증할 수 있게 한다.
+- 코드 변경의 공식 전체 회귀 판정은 PR의 GitHub Actions 결과를 기준으로 한다. 로컬 PASS를 원격 CI PASS로 간주하지 않는다.
+- GitHub Actions 실패가 backend/application 원인이면 run/job/step의 최초 오류를 근거로 infra와 협업해 수정하며 gate를 약화하지 않는다.
+- main 반영 후 container artifact의 readiness/API/auth/persistence는 GHCR exact digest smoke 결과와 구분해 보고한다.
+- 원격 CI가 미실행/진행 중이면 NOT TESTED로 보고한다.
 
 DB 변경 시 DB_SCHEMA.md 및 Migration을 갱신한다.
 API 변경 시 API.md를 갱신한다.
+Manager에게 Local Fast Feedback, Remote CI, 필요한 Main Artifact Validation 상태를 분리하여 보고한다.
 """

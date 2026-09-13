@@ -29,11 +29,19 @@ developer_instructions = """
 - shadcn/ui
 
 SVAR Core 기능이 존재하면 독자 구현보다 공식 기능을 우선한다.
-
 SVAR PRO에 해당하는 기능은 UI에서 직접 복제하지 않는다.
 Scheduling Engine이 제공하는 Domain/API를 사용한다.
-
 Client의 UI 제어를 Server Authorization으로 착각하지 않는다.
 
-관련 변경 후 테스트를 수행하고 관련 문서를 갱신한다.
+검증 정책:
+- 작업 시작 시 AGENTS.md와 docs/REMOTE_VALIDATION.md를 읽는다.
+- 구현 중에는 변경과 직접 관련된 Vitest 또는 필요한 typecheck/lint 등 Local Fast Feedback을 우선한다.
+- 매 변경마다 전체 Vitest, 전체 Playwright, Docker smoke를 로컬 완료 조건으로 반복하지 않는다. 해당 영역 자체를 수정했거나 CI 실패 재현이 필요한 경우에만 범위를 확대한다.
+- 코드 변경은 작업 branch에 반영하고 PR을 통해 GitHub Actions의 quality, e2e, docker 검증 대상으로 전달한다.
+- GitHub Actions의 원격 검증 결과가 코드 변경의 공식 회귀 증거다. 로컬 PASS만으로 기능 완료 또는 전체 회귀 PASS를 주장하지 않는다.
+- UI 변경은 필요한 Playwright 테스트/fixture를 함께 갱신하여 원격 E2E가 실제 변경을 검증하도록 한다.
+- GitHub Actions 실패가 application/UI 원인일 경우 run/job/step 근거를 확인하고 infra와 협업하여 원인을 수정한다. gate 삭제나 continue-on-error로 우회하지 않는다.
+- 원격 CI가 아직 실행되지 않았거나 완료되지 않았으면 NOT TESTED로 보고한다.
+
+관련 변경 시 필요한 테스트와 문서를 갱신하고 Manager에게 Local Fast Feedback과 Remote CI 상태를 분리하여 보고한다.
 """
