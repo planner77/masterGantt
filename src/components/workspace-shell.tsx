@@ -10,7 +10,7 @@ export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) 
             <span className="brand-mark" aria-hidden="true">
               M
             </span>
-            <span>masterGantt</span>
+            <span className="brand-name">masterGantt</span>
           </Link>
           <nav aria-label="주요 메뉴">
             <Link className="nav-link" href="/">
@@ -20,6 +20,7 @@ export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) 
               Gantt 데모
             </Link>
           </nav>
+          <div id="workspace-notification-slot" className="header-actions" />
         </div>
       </header>
       <main className="main-content">{children}</main>

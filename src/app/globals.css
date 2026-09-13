@@ -60,13 +60,13 @@ button:focus-visible {
 }
 
 .header-content {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 2.5rem;
   min-height: 4rem;
   max-width: 75rem;
   margin: 0 auto;
   padding: 0 1.5rem;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
 }
 
@@ -109,6 +109,38 @@ button:focus-visible {
   align-self: stretch;
   align-items: center;
   gap: 1.25rem;
+}
+
+.header-actions {
+  display: flex;
+  width: 2.5rem;
+  min-width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 22.5rem) {
+  .header-content {
+    gap: 0.5rem;
+    padding-inline: 0.75rem;
+  }
+
+  .brand {
+    gap: 0.375rem;
+  }
+
+  .brand-mark {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  .brand-name {
+    display: none;
+  }
+
+  .site-header nav {
+    gap: 0.5rem;
+  }
 }
 
 .main-content {

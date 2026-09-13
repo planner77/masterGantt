@@ -12,6 +12,14 @@ async function geometry(page: Page) {
   });
 }
 
+function rectanglesOverlap(
+  first: Readonly<{ x: number; y: number; width: number; height: number }>,
+  second: Readonly<{ x: number; y: number; width: number; height: number }>,
+): boolean {
+  return first.x < second.x + second.width && first.x + first.width > second.x &&
+    first.y < second.y + second.height && first.y + first.height > second.y;
+}
+
 test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인스턴스를 바꾸지 않는다", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.clock.install({ time: new Date("2026-09-16T12:00:00Z") });
@@ -130,3 +138,67 @@ test("좁은 화면의 여러 오류 알림은 내부 스크롤로 확인하고 
   await expect(dialog).toContainText("확인할 오류가 없습니다");
   await page.keyboard.press("Escape");
 });
+
+for (const width of [320, 390, 414, 768, 1440]) {
+  test(`${width}px에서 알림 버튼이 Gantt 데모 링크의 hit area를 가리지 않는다`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await installStatefulProjectFixture(page);
+    await page.goto(`/projects/${publicId}`);
+    await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+
+    const navigation = page.getByRole("navigation", { name: "주요 메뉴" });
+    const navigationLinks = navigation.getByRole("link");
+    const demoLink = navigation.getByRole("link", { name: "Gantt 데모", exact: true });
+    const bell = page.getByRole("button", { name: "알림함", exact: true });
+    const notificationSlot = page.locator("#workspace-notification-slot");
+    await expect(navigationLinks).toHaveCount(2);
+    await expect(demoLink).toBeVisible();
+    await expect(bell).toBeVisible();
+    const slotBox = await notificationSlot.boundingBox();
+    const bellBox = await bell.boundingBox();
+    expect(slotBox).not.toBeNull();
+    expect(bellBox).not.toBeNull();
+    expect(bellBox!.x).toBeGreaterThanOrEqual(slotBox!.x);
+    expect(bellBox!.y).toBeGreaterThanOrEqual(slotBox!.y);
+    expect(bellBox!.x + bellBox!.width).toBeLessThanOrEqual(slotBox!.x + slotBox!.width);
+    expect(bellBox!.y + bellBox!.height).toBeLessThanOrEqual(slotBox!.y + slotBox!.height);
+    for (const link of await navigationLinks.all()) {
+      const linkBox = await link.boundingBox();
+      expect(linkBox).not.toBeNull();
+      expect(rectanglesOverlap(linkBox!, bellBox!)).toBe(false);
+    }
+
+    // Native dispatch avoids scrolling the workspace away from the header while creating unread state.
+    await rowNamed(page, "Stable milestone").locator('[data-action="add-task"]').dispatchEvent("click");
+    await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업");
+    const unreadBell = page.getByRole("button", { name: "알림함, 미확인 1건", exact: true });
+    await expect(unreadBell).toBeVisible();
+    const unreadBellBox = await unreadBell.boundingBox();
+    const badgeBox = await unreadBell.locator("span").boundingBox();
+    expect(unreadBellBox).not.toBeNull();
+    expect(badgeBox).not.toBeNull();
+    expect(unreadBellBox!.x).toBeCloseTo(bellBox!.x, 0);
+    expect(unreadBellBox!.y).toBeCloseTo(bellBox!.y, 0);
+    expect(rectanglesOverlap(unreadBellBox!, badgeBox!)).toBe(true);
+    expect(badgeBox!.x).toBeGreaterThan(unreadBellBox!.x + unreadBellBox!.width / 2);
+    expect(badgeBox!.y).toBeLessThan(unreadBellBox!.y + unreadBellBox!.height / 2);
+    expect(badgeBox!.x + badgeBox!.width).toBeLessThanOrEqual(width);
+    expect(badgeBox!.y).toBeGreaterThanOrEqual(0);
+    for (const link of await navigationLinks.all()) {
+      const linkBox = await link.boundingBox();
+      expect(linkBox).not.toBeNull();
+      expect(rectanglesOverlap(linkBox!, unreadBellBox!)).toBe(false);
+      expect(rectanglesOverlap(linkBox!, badgeBox!)).toBe(false);
+    }
+
+    const centerIsLink = await demoLink.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return hit === element || element.contains(hit);
+    });
+    expect(centerIsLink).toBe(true);
+    await demoLink.click();
+    await expect(page).toHaveURL(/\/gantt-demo$/);
+    await expect(page.getByRole("heading", { name: "Gantt 최소 통합", exact: true })).toBeVisible();
+  });
+}

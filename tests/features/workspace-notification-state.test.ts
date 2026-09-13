@@ -43,6 +43,10 @@ describe("작업공간 알림 정책", () => {
     expect(safeNotificationMetadata({ error: { code: "secret-password", requestId: "Bearer token" } })).toEqual({});
     for (const input of [null, false, 123, "raw response"]) expect(safeNotificationMetadata(input)).toEqual({});
   });
+  it("편집 자격 증명 실패의 공개 계약 코드만 보존한다", () => {
+    expect(safeNotificationMetadata({ error: { code: "INVALID_CREDENTIALS" } })).toEqual({ code: "INVALID_CREDENTIALS" });
+    expect(safeNotificationMetadata({ error: { code: "INVALID_PASSWORD" } })).toEqual({});
+  });
   it("locale 시각과 안전한 내용을 출력하며 없는 요청 ID를 만들지 않는다", () => {
     const text = formatNotification(notice(1), "프로젝트 A");
     expect(text).toContain("대상: 프로젝트 A");

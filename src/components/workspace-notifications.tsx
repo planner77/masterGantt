@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { WorkspaceDialog } from "./workspace-dialog";
 import { WorkspaceMessageContext } from "./workspace-message-context";
 import {
@@ -14,6 +15,11 @@ type NotificationApi = {
   clearToast: () => void;
 };
 const NotificationContext = createContext<NotificationApi | null>(null);
+const subscribeToNotificationSlot = () => () => {};
+const getNotificationSlotServerSnapshot = () => null;
+function getNotificationSlotSnapshot() {
+  return document.getElementById("workspace-notification-slot");
+}
 
 export function useWorkspaceNotifications(): NotificationApi {
   const api = useContext(NotificationContext);
@@ -25,6 +31,12 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
   const [state, dispatch] = useReducer(notificationReducer, INITIAL_NOTIFICATION_STATE);
   const sequence = useRef(0);
   const [copyHint, setCopyHint] = useState("");
+  // The server-rendered shell owns this static slot; resolve it after hydration without an effect update.
+  const notificationSlot = useSyncExternalStore(
+    subscribeToNotificationSlot,
+    getNotificationSlotSnapshot,
+    getNotificationSlotServerSnapshot,
+  );
   const notify = useCallback<NotificationApi["notify"]>((kind, message, operation, serverBody) => {
     dispatch({ type: "publish", notice: {
       id: ++sequence.current, kind, message, operation,
@@ -54,12 +66,12 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
   return <NotificationContext.Provider value={api}>
     <WorkspaceMessageContext.Provider value={state.toast?.message ?? ""}>
     {children}
-    <button type="button" className={styles.bell} aria-haspopup="dialog" aria-expanded={state.open}
+    {notificationSlot ? createPortal(<button type="button" className={styles.bell} aria-haspopup="dialog" aria-expanded={state.open}
       aria-label={unread ? `알림함, 미확인 ${unread}건` : "알림함"}
       onClick={() => { setCopyHint(""); dispatch({ type: "open" }); }}>
       <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M9 21h6" /></svg>
       {unread > 0 ? <span className={styles.badge} aria-hidden="true">{unread}</span> : null}
-    </button>
+    </button>, notificationSlot) : null}
     <div className={`${styles.toast} ${state.toast ? styles.toastVisible : ""}`} role="status" aria-live="polite" aria-atomic="true" data-testid="workspace-toast">
       {state.toast?.message ?? ""}
     </div>
