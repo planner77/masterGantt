@@ -1,8 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 
-const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url));
+// This package has no "type": "module", so Playwright loads this .ts config
+// as CommonJS. Anchor paths to this file without ESM-only import.meta or cwd.
+const repositoryRoot = resolve(__dirname, "../..");
 
 const chromiumExecutable = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE;
 const externalBaseURL = process.env.PLAYWRIGHT_BASE_URL;

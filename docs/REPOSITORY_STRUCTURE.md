@@ -73,7 +73,9 @@ docker build -f deploy/docker/Dockerfile -t mastergantt:local .
 | `vitest.config.ts` | `tests/config/vitest.config.ts` |
 | `playwright.config.ts` | `tests/config/playwright.config.ts` |
 
-`npm test`와 `npm run test:e2e`는 --config로 새 설정을 선택한다. 설정 파일의 import.meta.url에서 저장소 루트를 구하므로 cwd에 의존하지 않는다. Vitest root/include, Playwright testDir/webServer.cwd/outputDir/DB 경로와 기존 외부 URL·Chromium override를 유지한다. 브라우저 수·테스트 시나리오·worker 1개·포트 3100·날짜/권한 계약을 바꾸지 않는다.
+`npm test`와 `npm run test:e2e`는 --config로 새 설정을 선택한다. 두 설정 모두 **설정 파일 위치**에서 저장소 루트를 구하므로 호출 cwd에 의존하지 않는다. Vitest 설정은 해당 loader가 처리하는 `import.meta.url`을 사용하고, Playwright 설정은 현재 package가 CommonJS로 로딩되므로 `resolve(__dirname, "../..")`을 사용한다. TypeScript의 `module` 옵션만 바꾸거나 `.ts`에서 `import.meta.url`을 사용한다고 Playwright 설정이 ES module로 전환되지는 않는다. 이 수정은 root `package.json`의 모듈 유형이나 의존성을 바꾸지 않는다.
+
+Vitest root/include, Playwright testDir/webServer.cwd/outputDir/DB 경로와 기존 외부 URL·Chromium override를 유지한다. 브라우저 수·테스트 시나리오·worker 1개·포트 3100·날짜/권한 계약을 바꾸지 않는다. 실제 loader 호환성과 전체 테스트 발견은 `scripts/verify-test-discovery.mjs`를 루트/외부 cwd에서 실행하는 [필수 CI gate](CI_CD.md)로 검증한다. 구문 검사나 타입 검사만 통과한 것을 실제 설정 로딩 PASS로 해석하지 않는다.
 
 직접 실행 및 편집기 설정:
 
@@ -86,4 +88,4 @@ node scripts/verify-test-discovery.mjs
 
 VS Code의 Vitest/Playwright 확장에서 자동 발견되지 않으면 해당 설정 파일을 선택한다. 확장 기능의 실제 UI 동작은 이번 GitHub Linux CLI 검증과 별개다. `.dockerignore`는 tests 전체를 계속 제외한다. Playwright HTML reporter 도입이나 산출물의 추가 이동은 별도 범위이며 CI의 기존 artifact 정책은 변경하지 않았다.
 
-[Vitest root](https://vitest.dev/config/root), [Playwright test configuration](https://playwright.dev/docs/api/class-testconfig).
+[Vitest root](https://vitest.dev/config/root), [Playwright test configuration](https://playwright.dev/docs/api/class-testconfig), [Playwright TypeScript](https://playwright.dev/docs/test-typescript), [Node.js CommonJS 경로](https://nodejs.org/api/modules.html#dirname).

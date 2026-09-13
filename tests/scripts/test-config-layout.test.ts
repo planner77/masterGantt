@@ -16,10 +16,13 @@ describe("test configuration repository layout", () => {
   it("anchors discovery and browser working paths at repository root", () => {
     const unit = text("tests/config/vitest.config.ts");
     const browser = text("tests/config/playwright.config.ts");
-    for (const config of [unit, browser]) {
-      expect(config).toContain('new URL("../../", import.meta.url)');
-      expect(config).not.toContain("process.cwd()");
-    }
+    // Vitest's config loader handles import.meta.url, but Playwright loads this
+    // package's .ts config as CommonJS. Both must remain file-relative, not cwd-relative.
+    expect(unit).toContain('new URL("../../", import.meta.url)');
+    expect(JSON.parse(text("package.json")).type).not.toBe("module");
+    expect(browser).toContain('resolve(__dirname, "../..")');
+    expect(browser).not.toContain("import.meta.url");
+    for (const config of [unit, browser]) expect(config).not.toContain("process.cwd()");
     expect(unit).toContain('include: ["tests/**/*.test.ts"]');
     expect(browser).toContain('testDir: resolve(repositoryRoot, "tests/e2e")');
     expect(browser).toContain("cwd: repositoryRoot");
