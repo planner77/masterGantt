@@ -59,7 +59,7 @@ W24 application 회귀 기준은 build/typecheck/lint, **28개 파일 378개 Vit
 | SVAR React Gantt Core | 2.7.3, MIT | Gantt 표시와 Core 이벤트; exact direct dependency |
 | SVAR data provider | Core의 transitive 2.7.2, 직접 사용 안 함 | cookie/If-Match/canonical snapshot 계약이 달라 W07 직접 명령 Adapter 유지 |
 | Zod | 4.6.2 | Project·Task request의 strict server schema 검증 |
-| Scheduling Engine | 자체 pure TypeScript | Gregorian ordinal, Project Calendar, 근무일·Leaf Duration과 안정 오류 |
+| Scheduling Engine | 자체 pure TypeScript | Gregorian ordinal, Project Calendar, 근무일·Leaf Duration; SVAR/DB/시간대 API 비의존 |
 | shadcn/ui / ExcelJS | 도입 예정, 미설치 | 일반 UI / 서버 Excel 생성 |
 | Docker / Docker Compose | W20 기반 구현 | non-root 단일 애플리케이션, startup migration/readiness와 영속 SQLite volume |
 | GitHub Actions / GHCR | W20/W22 기반 구현 | application·browser·container CI, main commit test image와 Semantic Version release |
@@ -348,7 +348,7 @@ curl.exe -fsS http://127.0.0.1:3000/api/health/ready
 
 #### 5) Nginx도 Docker에서 실행하거나 다른 호스트에 있는 경우
 
-**같은 Docker network의 Nginx 컨테이너**에서는 `127.0.0.1`이 앱이 아니라 Nginx 컨테이너터 자신이다. 동일 network에 앱 service `app`을 연결하고 위 예제의 upstream만 다음과 같이 변경한다.
+**같은 Docker network의 Nginx 컨테이너**에서는 `127.0.0.1`이 앱이 아니라 Nginx 컨테이너 자신이다. 동일 network에 앱 service `app`을 연결하고 위 예제의 upstream만 다음과 같이 변경한다.
 
 ```nginx
 proxy_pass http://app:3000;
