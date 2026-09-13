@@ -97,6 +97,23 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   await expect(deletion.getByLabel("삭제 확인 비밀번호")).toHaveValue("");
   expect(deleteRequests).toBe(0);
   expect((await page.request.get(`/api/projects/${directUrl.split("/").pop()}`)).status()).toBe(200);
+
+  // 실제 server code를 allowlist가 다른 이름으로 바꾸거나 버리지 않고 안전하게 복사해야 한다.
+  await page.keyboard.press("Escape");
+  await expect(deletion).toHaveCount(0);
+  await page.getByRole("button", { name: "알림함, 미확인 1건" }).click();
+  const notificationInbox = page.getByRole("dialog", { name: "오류 알림함" });
+  const credentialNotice = notificationInbox.getByLabel("알림 1 내용");
+  await expect(credentialNotice).toHaveValue(/오류 코드: INVALID_CREDENTIALS/);
+  await expect(credentialNotice).not.toHaveValue(/INVALID_PASSWORD|wrong-password-123/);
+  await notificationInbox.getByRole("button", { name: "내용 복사", exact: true }).click();
+  await expect(notificationInbox.getByRole("status")).toContainText("알림 내용을 복사했습니다");
+  const copiedCredentialError = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copiedCredentialError).toContain("오류 코드: INVALID_CREDENTIALS");
+  expect(copiedCredentialError).not.toMatch(/INVALID_PASSWORD|wrong-password-123/);
+  await page.keyboard.press("Escape");
+
+  await row.getByRole("button", { name: "삭제", exact: true }).click();
   await deletion.getByLabel("삭제 확인 비밀번호").fill(password);
   await deletion.getByRole("button", { name: "비밀번호 확인 후 삭제" }).click();
   await expect(row).toHaveCount(0);

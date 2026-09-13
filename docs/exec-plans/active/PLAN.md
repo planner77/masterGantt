@@ -1,5 +1,9 @@
 # Active execution plan
 
+## PR #23 미해결 리뷰 후속 — 진행 중
+
+사용자 요청으로 미해결 P2 두 건(390px 알림 벨의 상단 navigation 가림, `INVALID_CREDENTIALS` 진단 코드 누락)을 수정한다. 기준 main은 `7da0a87`, 작업 branch는 `fix/pr23-review-followups`다. Frontend는 UI/안전 메타데이터와 unit, QA는 E2E와 독립 검토, Infra는 원격 PR/CI/원래 리뷰 처리, Manager는 통합·문서 정합성을 담당한다. 로컬 테스트 보류는 유지하고 후속 PR Actions를 공식 검증으로 사용한다. 원 PR의 PASS를 후속 수정의 PASS로 전용하지 않는다. 별도 SemVer release와 운영 배포는 범위 밖이다. 실제 사내 proxy/Windows clipboard/스크린리더/최종 사용자 UX는 대상 환경이 필요한 미실행 항목으로 유지한다. 근거와 결과는 [후속 기록](../../PR23_FOLLOWUP.md)을 따른다.
+
 ## Issue #3 — 작업 추가 중 Gantt 인스턴스 유지 (진행 중)
 
 - 사용자 요청으로 원격 `main`을 `d540eb5`까지 fast-forward했다. 기존 `next-env.d.ts`의 개발 서버 생성 변경은 보존하고 이번 커밋에서 제외한다.
