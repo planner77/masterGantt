@@ -15,6 +15,9 @@ import type {
   ProjectTaskCreateCommand,
   ProjectTaskUpdateCommand,
 } from "@/features/gantt/project-task-adapter";
+import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
+import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSession } from "@/features/gantt/task-editor-model";
+import { findTaskContextElement } from "@/features/gantt/task-context-target";
 import { todayLocalDateString } from "@/lib/date-display";
 
 const ProjectGantt = dynamic(
@@ -80,6 +83,7 @@ function revisionTag(revision: number): string { return `"${revision}"`; }
 function snapshotFromMetadataMutation(
   value: unknown,
 ): ProjectSnapshotResponse | null {
+  if (typeof value !== "object" || value === null) return null;
   const response = value as Partial<ProjectMetadataMutationResponse>;
   const data = response.data;
   if (
@@ -102,6 +106,7 @@ function snapshotFromMetadataMutation(
 }
 
 function snapshotFromTaskMutation(value: unknown): ProjectSnapshotResponse | null {
+  if (typeof value !== "object" || value === null) return null;
   const response = value as Partial<TaskMutationResponse>;
   const data = response.data;
   if (
@@ -137,6 +142,8 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
   const nativeTaskDialogReference = useRef<HTMLDialogElement>(null);
   const nativeTaskTriggerReference = useRef<HTMLElement | null>(null);
   const taskMutationReference = useRef(false);
+  const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
+  const editorTriggerReference = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const dialog = nativeTaskDialogReference.current;
@@ -214,16 +221,19 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
     setMetadataDescription(value.data.project.description);
     return true;
   }
-  async function reloadCanonicalSnapshot(): Promise<boolean> {
+  async function fetchCanonicalSnapshot(): Promise<ProjectSnapshotResponse | null> {
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, {
         credentials: "same-origin",
       });
       const body: unknown = await response.json().catch(() => null);
-      return response.ok && applySnapshot(body);
+      return response.ok && isSnapshot(body) && applySnapshot(body) ? body : null;
     } catch {
-      return false;
+      return null;
     }
+  }
+  async function reloadCanonicalSnapshot(): Promise<boolean> {
+    return (await fetchCanonicalSnapshot()) !== null;
   }
   function conflict() {
     setPermission("readonly");
@@ -336,24 +346,25 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
     finally { setIsLoggingOut(false); }
   }
 
-  async function handleTaskFailure(status: number | undefined, error: unknown, fallback: string) {
+  async function handleTaskFailure(status: number | undefined, error: unknown, fallback: string): Promise<string> {
     if (status === 401) {
       setPermission("readonly");
       setPermissionCheckState("complete");
       await reloadCanonicalSnapshot();
       setGanttResetGeneration((generation) => generation + 1);
-      setNotice("편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.");
-      return;
+      const message = "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.";
+      setNotice(message);
+      return message;
     }
     const code = safeErrorCode(error);
     await reloadCanonicalSnapshot();
-    // A failed canonical fetch still leaves the last confirmed snapshot in
-    // React state. Remount SVAR so its transient pointer state cannot survive.
+    // Preserve the existing failed-pointer recovery; the editor is outside this key.
     setGanttResetGeneration((generation) => generation + 1);
+    let message = fallback;
     if (status === 412) {
-      setNotice("다른 편집 내용이 먼저 저장되었습니다. 최신 정보를 불러왔습니다. 내용을 확인한 뒤 다시 저장해 주세요.");
+      message = "다른 편집 내용이 먼저 저장되었습니다. 최신 정보를 불러왔습니다. 내용을 확인한 뒤 다시 저장해 주세요.";
     } else if (status === 400 || status === 409 || status === 422) {
-      const constraintMessage = code === "END_DURATION_MISMATCH"
+      message = code === "END_DURATION_MISMATCH"
         ? "일정 기간을 확인해 주세요."
         : code === "EMPTY_SUMMARY_NOT_ALLOWED"
           ? "요약 작업의 마지막 하위 작업은 삭제할 수 없습니다. 먼저 요약 작업 구조를 변경해 주세요."
@@ -362,14 +373,16 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
             : code === "INVALID_PARENT_TASK"
               ? "마일스톤에는 하위 작업을 추가할 수 없습니다."
               : "작업 정보를 저장할 수 없습니다. 입력과 일정 제약을 확인해 주세요.";
-      setNotice(constraintMessage);
-    } else {
-      setNotice(fallback);
     }
+    setNotice(message);
+    return message;
   }
 
-  async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown) {
-    if (state.status !== "ready" || taskMutationReference.current) return;
+  async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number): Promise<TaskEditorSaveResult> {
+    if (state.status !== "ready" || taskMutationReference.current) return { status: "failed", message: "다른 작업을 저장 중입니다. 완료 후 다시 시도해 주세요." };
+    if (expectedRevision !== undefined && expectedRevision !== state.snapshot.data.project.revision) {
+      return { status: "failed", conflict: true, message: "기준 Revision이 변경되었습니다. 최신 정보를 다시 불러온 뒤 검토해 주세요." };
+    }
     taskMutationReference.current = true;
     setIsSavingTask(true);
     setNotice(null);
@@ -383,7 +396,7 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         credentials: "same-origin",
         headers: {
           ...(method === "DELETE" ? {} : { "Content-Type": "application/json" }),
-          "If-Match": revisionTag(state.snapshot.data.project.revision),
+          "If-Match": revisionTag(expectedRevision ?? state.snapshot.data.project.revision),
         },
         ...(method === "DELETE" ? {} : { body: JSON.stringify(payload) }),
       });
@@ -399,15 +412,52 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         setNotice(shifted
           ? `${successNotice} 비근무일 시작은 다음 근무일로 조정되었습니다.`
           : successNotice);
-      } else {
-        await handleTaskFailure(response.status, body, "작업을 저장할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+        return { status: "saved" };
       }
+      const message = await handleTaskFailure(response.status, body, "작업을 저장할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+      return { status: "failed", message, conflict: response.status === 412 };
     } catch {
-      await handleTaskFailure(undefined, null, "네트워크 연결을 확인한 뒤 다시 시도해 주세요.");
+      const message = await handleTaskFailure(undefined, null, "네트워크 연결을 확인한 뒤 다시 시도해 주세요.");
+      return { status: "failed", message };
     } finally {
       taskMutationReference.current = false;
       setIsSavingTask(false);
     }
+  }
+
+  function openTaskEditor(taskId: string) {
+    // A modal editor owns its draft until explicit save/discard; never switch it silently.
+    if (state.status !== "ready" || editorSession || pendingChildTask) return;
+    const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
+    if (!task) return;
+    editorTriggerReference.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setEditorSession({ task: { ...task }, revision: state.snapshot.data.project.revision });
+  }
+
+  function closeTaskEditor() {
+    const taskId = editorSession?.task.taskId;
+    const trigger = editorTriggerReference.current;
+    setEditorSession(null);
+    requestAnimationFrame(() => {
+      const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
+      const target = trigger?.isConnected ? trigger : root && taskId ? findTaskContextElement(root, taskId) ?? root : root;
+      target?.focus({ preventScroll: true });
+    });
+  }
+
+  async function saveEditorTask(command: ProjectTaskUpdateCommand, revision: number): Promise<TaskEditorSaveResult> {
+    if (state.status !== "ready") return { status: "failed", message: "프로젝트 정보를 확인할 수 없습니다." };
+    const task = state.snapshot.data.tasks.find((entry) => entry.taskId === command.taskId);
+    const restriction = taskEditorReadOnlyReason(task, permission === "edit" && permissionCheckState === "complete", state.snapshot.data.links.length > 0);
+    if (restriction) return { status: "failed", message: restriction };
+    if (isSavingMetadata || isChangingPassword || isLoggingOut) return { status: "failed", message: "프로젝트 변경을 완료한 뒤 다시 시도해 주세요." };
+    return saveTask("PATCH", command.taskId, command.payload, revision);
+  }
+
+  async function reloadEditorTask(taskId: string): Promise<TaskEditorSession | null> {
+    const snapshot = await fetchCanonicalSnapshot();
+    const task = snapshot?.data.tasks.find((entry) => entry.taskId === taskId);
+    return task && snapshot ? { task: { ...task }, revision: snapshot.data.project.revision } : null;
   }
 
   function createNativeTask(command: ProjectTaskCreateCommand) {
@@ -569,12 +619,13 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         key={ganttResetGeneration}
         calendar={project.calendar}
         editable={taskEditing}
-        mutationLocked={busy}
+        mutationLocked={busy || editorSession !== null}
         onCanonicalSyncFailure={recoverCanonicalGantt}
         links={links}
         onTaskAddRejected={rejectNativeTaskAdd}
         onTaskCreate={createNativeTask}
         onTaskCommand={saveTaskCommand}
+        onTaskEditorOpen={openTaskEditor}
         columnVisibility={columnVisibility}
         onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
           const visibleColumnCount = Object.values(current).filter(Boolean).length;
@@ -583,6 +634,18 @@ export function ProjectReadonlyView({ publicId }: Readonly<{ publicId: string }>
         })}
         tasks={tasks}
       />
+      {editorSession ? <ProjectTaskEditor
+        key={editorSession.task.taskId}
+        session={editorSession}
+        latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)}
+        revision={project.revision}
+        editable={editing}
+        hasLinks={links.length > 0}
+        busy={busy}
+        onSave={saveEditorTask}
+        onReload={reloadEditorTask}
+        onClose={closeTaskEditor}
+      /> : null}
       <dialog aria-labelledby="child-task-confirm-title" className="task-confirm-dialog" onCancel={(event) => { event.preventDefault(); closeNativeTaskDialog(); }} ref={nativeTaskDialogReference}>
         {pendingChildTask ? <div className="task-confirm-dialog-card">
           <p className="eyebrow">{pendingChildTask.parentTaskId ? "하위 작업 추가" : "작업 추가"}</p>
