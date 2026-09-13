@@ -5,10 +5,12 @@ import {
   Willow,
   type IApi,
   type IColumnConfig,
+  type ILink,
   type ITask,
 } from "@svar-ui/react-gantt";
 import "@svar-ui/react-gantt/all.css";
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -33,6 +35,7 @@ import {
   createTaskAddGateway,
   createTaskUpdateGateway,
   type LocalTaskAddCommand,
+  type TaskUpdateEvent,
 } from "./command-gateway";
 import {
   projectLinksToSvarLinks,
@@ -42,14 +45,18 @@ import {
   type ProjectTaskUpdateCommand,
 } from "./project-task-adapter";
 import { dateOnlyFromLocalDate } from "./date-adapter";
+import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
 
 export type ProjectGridDataColumnId = "text" | "externalId" | "projectStart" | "projectDuration";
 
 export type ProjectGridColumnVisibility = Record<ProjectGridDataColumnId, boolean>;
+let nextApiInstanceId = 1;
 
 interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
   readonly editable: boolean;
+  readonly mutationLocked: boolean;
+  readonly onCanonicalSyncFailure: () => void;
   readonly links: readonly ProjectLinkDto[];
   readonly onTaskAddRejected: () => void;
   readonly onTaskCreate: (command: ProjectTaskCreateCommand) => void;
@@ -96,10 +103,12 @@ function isWeekend(date: Date): boolean {
   return day === 0 || day === 6;
 }
 
-/** Browser-only renderer. The caller keys it by aggregate revision after writes. */
+/** Browser-only renderer; normal canonical snapshots keep this SVAR instance mounted. */
 export function ProjectGantt({
   calendar,
   editable,
+  mutationLocked,
+  onCanonicalSyncFailure,
   links,
   onTaskAddRejected,
   onTaskCreate,
@@ -111,15 +120,25 @@ export function ProjectGantt({
   const apiReference = useRef<IApi | null>(null);
   const onTaskCreateReference = useRef(onTaskCreate);
   const onTaskAddRejectedReference = useRef(onTaskAddRejected);
-  const canCreateReference = useRef(editable);
+  const onCanonicalSyncFailureReference = useRef(onCanonicalSyncFailure);
+  const canCreateReference = useRef(editable && !mutationLocked);
+  const mutationLockedReference = useRef(mutationLocked);
+  const canonicalSyncDepthReference = useRef(0);
+  const canonicalSyncVersionReference = useRef(0);
+  const instanceId = useState(() => `project-gantt-${Math.random().toString(36).slice(2)}`)[0];
+  const canonicalSyncQueueReference = useRef<Promise<void>>(Promise.resolve());
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
   const ganttScrollReference = useRef<HTMLDivElement>(null);
   const columnMenuReference = useRef<HTMLDivElement>(null);
   const columnMenuTriggerReference = useRef<HTMLElement | null>(null);
-  const [nativeAddReady, setNativeAddReady] = useState(false);
   const [columnMenuPosition, setColumnMenuPosition] = useState<{ left: number; top: number } | null>(null);
+  const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
+  const highlightWeekend = useCallback(
+    (date: Date, unit: "day" | "hour") => unit === "day" && isWeekend(date) ? "wx-weekend" : "",
+    [],
+  );
   const tasksById = useMemo(
     () => new Map(tasks.map((task) => [task.taskId, task])),
     [tasks],
@@ -127,21 +146,28 @@ export function ProjectGantt({
   useEffect(() => {
     onTaskCreateReference.current = onTaskCreate;
     onTaskAddRejectedReference.current = onTaskAddRejected;
-    canCreateReference.current = editable;
+    onCanonicalSyncFailureReference.current = onCanonicalSyncFailure;
+    canCreateReference.current = editable && !mutationLocked;
+    mutationLockedReference.current = mutationLocked;
     tasksByIdReference.current = tasksById;
-  }, [editable, onTaskAddRejected, onTaskCreate, tasksById]);
+  }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, tasksById]);
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root) return;
+    const setNativeAddAccessibility = () => {
+      root.querySelectorAll<HTMLElement>('[data-action="add-task"]').forEach((action) => {
+        action.setAttribute("aria-disabled", String(mutationLocked));
+      });
+    };
+    setNativeAddAccessibility();
+    const observer = new MutationObserver(setNativeAddAccessibility);
+    observer.observe(root, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [mutationLocked]);
   const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks), [tasks]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
-  const visibleRange = useMemo(() => {
-    const starts = svarTasks.flatMap((task) => task.start instanceof Date ? [task.start] : []);
-    const ends = svarTasks.flatMap((task) => task.end instanceof Date ? [task.end] : []);
-    if (starts.length === 0 || ends.length === 0) return emptyWorkspaceRange();
-    return {
-      start: new Date(Math.min(...starts.map((date) => date.getTime()))),
-      end: new Date(Math.max(...ends.map((date) => date.getTime()))),
-    };
-  }, [svarTasks]);
-  const onUpdateTask = useMemo(
+  const taskUpdateGateway = useMemo(
     () => createTaskUpdateGateway((local) => {
       const task = typeof local.taskId === "string" ? tasksById.get(local.taskId) : undefined;
       if (!task) return;
@@ -150,13 +176,14 @@ export function ProjectGantt({
     }),
     [calendar, onTaskCommand, tasksById],
   );
+  const onUpdateTask = useCallback((event: TaskUpdateEvent) => {
+    // Read mutable guards only when the widget dispatches an event, not
+    // through a callback passed to a factory during React rendering.
+    if (canonicalSyncDepthReference.current > 0 || !canCreateReference.current) return;
+    taskUpdateGateway(event);
+  }, [taskUpdateGateway]);
   const columns = useMemo(
-    () => baseProjectColumns
-      // Do not expose a Core '+' until its protected interceptor is attached.
-      // This avoids a post-remount click being ignored or creating a transient
-      // local task before the canonical API boundary is ready.
-      .filter((column) => column.id !== "add-task" || (editable && nativeAddReady))
-      .map((column) => (
+    () => baseProjectColumns.map((column) => (
       column.id === "externalId"
         ? { ...column, hidden: !columnVisibility.externalId }
         : column.id === "projectStart"
@@ -179,8 +206,8 @@ export function ProjectGantt({
                 // Core renders elapsed calendar duration for its bar. Keep
                 // the Grid contract truthful by reading the scheduler's
                 // canonical working-day duration from the snapshot instead.
-                typeof task.id === "string" && typeof tasksById.get(task.id)?.duration === "number"
-                  ? `${tasksById.get(task.id)!.duration} 근무일`
+                typeof task.id === "string" && typeof tasksByIdReference.current.get(task.id)?.duration === "number"
+                  ? `${tasksByIdReference.current.get(task.id)!.duration} 근무일`
                   : "—"
               ),
             }
@@ -188,8 +215,65 @@ export function ProjectGantt({
             ? { ...column, hidden: !columnVisibility.text }
             : column
     )),
-    [columnVisibility, editable, locales, nativeAddReady, tasksById],
+    [columnVisibility, locales],
   );
+  const initialConfig = useState(() => ({
+    tasks: projectTasksToSvarTasks(tasks),
+    links: projectLinksToSvarLinks(links, tasks),
+    columns,
+  }))[0];
+  const initialRange = useState(() => {
+    const fallback = emptyWorkspaceRange();
+    const starts = initialConfig.tasks.flatMap((task) => task.start instanceof Date ? [task.start] : []).concat(fallback.start);
+    const ends = initialConfig.tasks.flatMap((task) => task.end instanceof Date ? [task.end] : []).concat(fallback.end);
+    // New work always starts today. Keep that small range in the initial
+    // scale so a canonical root add remains visible without reinitializing.
+    return { start: new Date(Math.min(...starts.map((date) => date.getTime()))), end: new Date(Math.max(...ends.map((date) => date.getTime()))) };
+  })[0];
+
+  useEffect(() => {
+    const syncVersion = ++canonicalSyncVersionReference.current;
+    canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
+      if (syncVersion !== canonicalSyncVersionReference.current) return;
+      const api = apiReference.current;
+      if (!api) return;
+      canonicalSyncDepthReference.current += 1;
+      try {
+        const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
+        const currentLinks = (api.serialize({ data: "links" }) ?? []) as ILink[];
+        await applyCanonicalGanttSync(
+          api,
+          { tasks: currentTasks, links: currentLinks },
+          { tasks: svarTasks, links: svarLinks },
+          () => syncVersion === canonicalSyncVersionReference.current,
+        );
+      } catch {
+        if (syncVersion === canonicalSyncVersionReference.current) onCanonicalSyncFailureReference.current();
+      } finally { canonicalSyncDepthReference.current -= 1; }
+    }).catch(() => onCanonicalSyncFailureReference.current());
+  }, [svarLinks, svarTasks]);
+
+  useEffect(() => {
+    canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
+      const api = apiReference.current;
+      if (!api) return;
+      canonicalSyncDepthReference.current += 1;
+      try {
+        // State columns are optional; retain configured defaults when absent.
+        const currentColumns = api.getState().columns ?? [];
+        const nextColumns = columns.map((column) => {
+          const current = currentColumns.find((candidate) => candidate.id === column.id);
+          return current ? { ...column, width: current.width, flexgrow: current.flexgrow } : column;
+        });
+        await api.exec("set-columns", { columns: nextColumns });
+      } catch {
+        onCanonicalSyncFailureReference.current();
+      } finally {
+        // State reads and column mapping must also release the sync guard.
+        canonicalSyncDepthReference.current -= 1;
+      }
+    }).catch(() => onCanonicalSyncFailureReference.current());
+  }, [columns]);
 
   useEffect(() => {
     if (!columnMenuPosition) return;
@@ -270,7 +354,7 @@ export function ProjectGantt({
 
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
     if (!canCreateReference.current) {
-      onTaskAddRejectedReference.current();
+      if (!mutationLockedReference.current) onTaskAddRejectedReference.current();
       return;
     }
     const target = typeof local.targetTaskId === "string"
@@ -293,10 +377,15 @@ export function ProjectGantt({
 
   const initialize = useMemo(() => (api: IApi) => {
     apiReference.current = api;
+    setApiInstanceId(`svar-api-${nextApiInstanceId++}`);
     api.detach("project-native-add");
     api.intercept(
       "add-task",
-      createTaskAddGateway(interceptNativeTaskAdd),
+      (event) => event.eventSource === "project-canonical-sync" && canonicalSyncDepthReference.current > 0
+        ? undefined
+        : canonicalSyncDepthReference.current > 0
+          ? false
+          : createTaskAddGateway(interceptNativeTaskAdd)(event),
       { tag: "project-native-add" },
     );
     api.detach("project-summary-update");
@@ -306,11 +395,11 @@ export function ProjectGantt({
         const task = typeof event.id === "string"
           ? tasksByIdReference.current.get(event.id)
           : undefined;
-        return task?.type === "summary" ? false : undefined;
+        if (event.eventSource === "project-canonical-sync" && canonicalSyncDepthReference.current > 0) return undefined;
+        return canonicalSyncDepthReference.current > 0 || !canCreateReference.current || task?.type === "summary" ? false : undefined;
       },
       { tag: "project-summary-update" },
     );
-    setNativeAddReady(true);
   // SVAR retains this initializer for the mounted instance. Refs keep the
   // revision and callback current without re-registering EventBus handlers.
   }, []);
@@ -362,7 +451,7 @@ export function ProjectGantt({
   }
 
   return (
-    <div className="project-gantt-frame">
+    <div className="project-gantt-frame" data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined}>
       <Willow>
         <div
           aria-label="프로젝트 일정 Grid와 Gantt 차트"
@@ -375,18 +464,18 @@ export function ProjectGantt({
         >
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
-              columns={columns}
+              columns={initialConfig.columns}
               displayMode="all"
               gridWidth={620}
-              highlightTime={(date, unit) => unit === "day" && isWeekend(date) ? "wx-weekend" : ""}
+              highlightTime={highlightWeekend}
               init={initialize}
-              links={svarLinks}
+              links={initialConfig.links}
               onUpdateTask={onUpdateTask}
               readonly={!editable}
               scales={scales}
-              end={visibleRange.end}
-              start={visibleRange.start}
-              tasks={svarTasks}
+              end={initialRange.end}
+              start={initialRange.start}
+              tasks={initialConfig.tasks}
             />
           </div>
         </div>

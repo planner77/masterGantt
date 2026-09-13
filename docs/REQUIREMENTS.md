@@ -43,6 +43,7 @@
 | R35 | Project 설정은 modal 또는 기본 접힌 패널, Project header와 Grid/Chart header를 유지하며 본문 내부 상하 스크롤 | viewport/E2E geometry 검증 |
 | R36 | Grid/Chart 상단의 별도 ‘작업 추가 또는 삭제’ 패널 제거; 생성은 native Grid `+` 사용 | 기존 패널의 Task 삭제 UI도 제거, 서버 삭제 API와 Project 목록 삭제는 유지. 후속 검증은 PENDING_TESTS.md |
 | R37 | Grid Column Header 우클릭에서 표시할 데이터 열 선택; 외부 ID 기본 숨김, 별도 토글 버튼 제거 | 작업/외부 ID/시작/기간 대상, 마지막 데이터 열은 유지. `+`는 권한 기반 action. 선택은 workspace 내 유지하며 reload 시 기본값 |
+| R38 | 정상 작업 추가의 대기·성공 동안 동일 Gantt 인스턴스와 기존 화면 상태 유지; 문서 navigation/전체 loading 및 action 열 너비 변화 방지 | [Issue #3](ISSUE_3_REVIEW.md). 서버 canonical snapshot·중복 요청 차단·명시적 오류 복구 유지; 성공 알림은 focus를 빼앗지 않음 |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 

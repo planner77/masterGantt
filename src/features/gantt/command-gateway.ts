@@ -29,6 +29,7 @@ export interface LocalTaskAddCommand {
 export interface TaskAddEvent {
   target?: TID;
   mode?: "before" | "after" | "child";
+  eventSource?: string;
 }
 
 export function createTaskAddGateway(
