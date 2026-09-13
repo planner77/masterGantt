@@ -6,6 +6,8 @@
 
 이 README는 프로젝트 이해·설치·재설치·실행·진행 상황 확인을 위한 진입 문서다. 상세 요구사항은 [REQUIREMENTS](docs/REQUIREMENTS.md), 최신 작업 상태는 [실행 계획](docs/exec-plans/active/PLAN.md)을 따른다.
 
+Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-reverse-proxy)를 참고한다.
+
 ## 1. 현재 구현 상태
 
 기준: **2026-09-12 / 0.6.0 W24 Grid·삭제·계층 작업공간 로컬 PASS**. 목록 표, 권한 기반 삭제, native `+`와 하위 작업·Summary 집계, locale/주말/고정 headers를 구현했다. [W24 검증](docs/W24_REVIEW.md)을 참고한다. `v0.4.0` GHCR 릴리스 증거는 이전 범위로 유지하며 현재 소스의 원격 이미지 검증과 구분한다. Private 요금제의 보호 규칙 미강제 위험은 수용하고 GitHub Artifact Attestation은 비활성, BuildKit SBOM/provenance는 필수다.
@@ -57,7 +59,7 @@ W24 application 회귀 기준은 build/typecheck/lint, **28개 파일 378개 Vit
 | SVAR React Gantt Core | 2.7.3, MIT | Gantt 표시와 Core 이벤트; exact direct dependency |
 | SVAR data provider | Core의 transitive 2.7.2, 직접 사용 안 함 | cookie/If-Match/canonical snapshot 계약이 달라 W07 직접 명령 Adapter 유지 |
 | Zod | 4.6.2 | Project·Task request의 strict server schema 검증 |
-| Scheduling Engine | 자체 pure TypeScript | Gregorian ordinal, Project Calendar, 근무일·Leaf Duration; SVAR/DB/시간대 API 비의존 |
+| Scheduling Engine | 자체 pure TypeScript | Gregorian ordinal, Project Calendar, 근무일·Leaf Duration과 안정 오류 |
 | shadcn/ui / ExcelJS | 도입 예정, 미설치 | 일반 UI / 서버 Excel 생성 |
 | Docker / Docker Compose | W20 기반 구현 | non-root 단일 애플리케이션, startup migration/readiness와 영속 SQLite volume |
 | GitHub Actions / GHCR | W20/W22 기반 구현 | application·browser·container CI, main commit test image와 Semantic Version release |
@@ -176,6 +178,238 @@ npm run start -- --hostname 127.0.0.1 --port 3000
 
 현재 build script는 Webpack을 사용한다. 직접 실행하는 `npm start`는 DB migration CLI를 자동 실행하지 않지만 Docker entrypoint는 migration 성공 후에만 server를 시작한다. 실제 운영 배포에는 production DB 경로·권한, HTTPS, proxy와 backup/restore 검증이 추가로 필요하다.
 
+<a id="nginx-reverse-proxy"></a>
+
+### Nginx Reverse Proxy 운영
+
+아래 예제는 **브라우저 → HTTPS Nginx → HTTP masterGantt 단일 컨테이너** 구성이다. Nginx가 TLS를 종료하며 앱의 내부 HTTP 포트는 외부에 공개하지 않는다. 실제 인증서·방화벽·프록시를 포함한 운영 검증 완료를 의미하지 않는다. 영속 저장소·백업·이미지 선택은 [DEPLOYMENT](docs/DEPLOYMENT.md), 보안 계약은 [SECURITY](docs/SECURITY.md)를 함께 따른다.
+
+#### 1) 먼저 맞춰야 하는 주소와 환경 변수
+
+```text
+브라우저: https://gantt.example.com
+                 ↓ HTTPS 443
+Nginx: 호스트에서 실행, 인증서 보유
+                 ↓ HTTP 127.0.0.1:3000
+Docker app: 컨테이너 내부 3000 → /data 영속 volume
+```
+
+저장소 루트의 운영용 `.env`에 다음 값을 반영한다. 기존 파일을 통째로 덮어쓰지 않고 필요한 항목만 변경한다.
+
+```dotenv
+# 브라우저가 실제 접속하는 외부 HTTPS origin. 내부 컨테이너 주소가 아니다.
+# 끝의 /, /mastergantt 같은 경로, query, fragment는 넣지 않는다.
+APP_BASE_URL=https://gantt.example.com
+
+# 호스트에 공개할 내부 전달용 포트. Nginx proxy_pass의 포트와 맞춘다.
+# 외부 HTTPS 포트(443 또는 8443)와는 별개다.
+HOST_PORT=3000
+```
+
+현재 [docker-compose.yml](docker-compose.yml)은 `NODE_ENV=production`, 컨테이너 `PORT=3000`, `DATABASE_PATH=/data/mastergantt.sqlite3`와 `127.0.0.1:${HOST_PORT:-3000}:3000` 포트 매핑을 설정한다. 다음 명령은 **로컬 소스 빌드 방식**이며 저장소 루트에서 실행한다. 운영 이미지 갱신 전에는 백업·복원 가능 여부를 확인한다. GHCR 이미지를 사용할 때는 별도의 [이미지 실행 절차](docs/DEPLOYMENT.md)를 따른다.
+
+```sh
+docker compose config --quiet
+docker compose up -d --build app
+docker compose ps
+curl -fsS http://127.0.0.1:3000/api/health/ready
+```
+
+`.env`를 변경한 뒤 `docker compose restart`만 실행하면 컨테이너 환경 변수가 갱신되지 않는다. `docker compose up -d app`으로 변경된 설정을 반영하고 필요하면 `--force-recreate`를 사용한다. 기존 named volume은 유지하며 `docker compose down -v`는 실행하지 않는다. 참고: [Compose up](https://docs.docker.com/reference/cli/docker/compose/up/), [Compose restart](https://docs.docker.com/reference/cli/docker/compose/restart/).
+
+**현재 코드의 필수 조건:** `APP_BASE_URL`은 브라우저 `Origin`의 scheme·host·port와 정확히 같아야 하며 production에서는 HTTPS만 허용한다. 예를 들어 브라우저가 `https://192.0.2.10:8443`으로 접속하면 도메인 주소나 내부 `http://app:3000`이 아니라 그 origin을 설정한다. 기본 HTTPS 포트는 `:443`을 생략한다. `TRUST_PROXY`·`SESSION_COOKIE_SECURE`·`LOG_LEVEL`은 아직 앱이 소비하지 않는 예약 변수이므로 이를 바꿔 HTTP 운영이나 Origin 오류를 해결할 수 없다. 근거: [Origin 검증](src/server/security/origin-core.ts), [Cookie 구현](src/server/security/cookie-core.ts).
+
+#### 2) 호스트 Nginx 설정 예제: 도메인 + HTTPS 443
+
+도메인은 Nginx 서버를 가리키도록 준비하고, 브라우저가 신뢰하는 인증서와 개인 키를 배치한다. 아래 `gantt.example.com`, 인증서 경로, 로그 경로, upstream 포트는 실제 환경에 맞게 바꾼다. **아래 블록은 `nginx.conf`의 `http { ... }` 안에 들어갈 내용**이며 독립된 전체 `nginx.conf`가 아니다.
+
+Linux에서는 `/etc/nginx/conf.d/mastergantt.conf`에 저장하고 기존 `http` 블록이 `include /etc/nginx/conf.d/*.conf;`를 포함하는지 확인한다. `sites-enabled`를 사용하는 설치는 해당 구성에 맞게 한 번만 include한다. 기존 다른 서비스의 `server` 블록이나 전체 `nginx.conf`를 덮어쓰지 않는다.
+
+```nginx
+# http {} 안에서 한 번만 정의한다.
+# 요청 본문, Cookie, Authorization, query string은 기록하지 않는다.
+log_format mastergantt '$remote_addr [$time_local] '
+                       '"$request_method $uri $server_protocol" $status '
+                       'upstream=$upstream_status rt=$request_time '
+                       'urt=$upstream_response_time';
+
+# 일반 HTTP 접속은 승인된 HTTPS 주소로 이동한다.
+server {
+    listen 80;
+    server_name gantt.example.com;
+    return 308 https://gantt.example.com$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name gantt.example.com;
+
+    # 다른 Host가 이 server로 들어온 경우 앱에 전달하지 않는다.
+    # server_name을 바꿀 때 이 비교값도 함께 바꾼다.
+    if ($host != gantt.example.com) { return 444; }
+
+    # PEM 인증서 체인과 개인 키. 실제 파일을 배치하고 접근 권한을 제한한다.
+    ssl_certificate     /etc/nginx/certs/mastergantt/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/mastergantt/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    # 요청 본문 상한의 시작값. Import 허용 용량을 의미하지 않는다.
+    client_max_body_size 1m;
+
+    access_log /var/log/nginx/mastergantt.access.log mastergantt;
+    error_log  /var/log/nginx/mastergantt.error.log warn;
+
+    # 화면, /projects, /api, /_next를 모두 원래 경로 그대로 전달한다.
+    location / {
+        # 호스트 Nginx → Compose가 loopback에 게시한 앱 포트.
+        # URI 부분 없이 지정하여 원래 요청 경로와 query를 유지한다.
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        # 외부 Host의 명시적 포트까지 보존한다. $host로 대체하지 않는다.
+        proxy_set_header Host              $http_host;
+        proxy_set_header X-Forwarded-Host  $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Port  $server_port;
+        proxy_set_header X-Real-IP         $remote_addr;
+
+        # 브라우저가 직접 연결하는 단일 edge proxy 전제.
+        # 클라이언트가 임의로 보낸 X-Forwarded-For를 신뢰하지 않고 덮어쓴다.
+        proxy_set_header X-Forwarded-For   $remote_addr;
+
+        # 초기 운영값이며 앱 처리 시간과 모니터링 결과에 따라 조정한다.
+        proxy_connect_timeout 5s;
+        proxy_send_timeout    60s;
+        proxy_read_timeout    60s;
+
+        # Next.js의 스트리밍 응답을 중간에서 모아두지 않는다.
+        proxy_buffering off;
+
+        # 인증 상태와 revision을 포함하는 응답을 공유 캐시하지 않는다.
+        proxy_cache off;
+        # 앱의 401/403/412/422/503 JSON 응답을 Nginx HTML로 바꾸지 않는다.
+        proxy_intercept_errors off;
+
+        # Origin, Cookie, If-Match는 기본 전달을 유지한다.
+        # Origin을 고정값으로 덮어쓰거나 Set-Cookie를 숨기지 않는다.
+    }
+}
+```
+
+| 설정 | 역할과 주의점 |
+| --- | --- |
+| `listen 443 ssl`, 인증서, `ssl_protocols` | 브라우저 구간의 TLS 종료. 내부 HTTP 연결과 별개이며 사내 CA 사용 시 클라이언트에도 신뢰 체인을 배포한다. |
+| `Host $http_host` | 외부 요청의 host와 명시적 port를 그대로 보존한다. 비표준 포트에서 `$host`만 사용하면 포트 정보가 빠질 수 있다. 다만 **앱의 Origin 검증 기준은 `APP_BASE_URL`**이므로 Host 설정만으로 잘못된 환경 변수가 해결되지는 않는다. |
+| `X-Forwarded-*`, `X-Real-IP` | 원래 접속 정보를 전달한다. 위 예제는 Nginx 자체가 외부 TLS를 종료하는 단일 프록시 전용이다. 앞에 다른 프록시가 있으면 허용 proxy IP·실제 외부 scheme/port 정책을 별도로 설계하고, 전달받은 헤더를 무조건 신뢰하지 않는다. |
+| `proxy_pass`, `location /` | 앱의 모든 경로를 전달한다. `/api`·`/_next`를 다른 서비스로 보내거나 정적 SPA용 `try_files ... /index.html`을 적용하지 않는다. |
+| `proxy_buffering off` | 응답 스트리밍 지연을 줄인다. 요청 업로드 버퍼링을 끄는 `proxy_request_buffering off`와는 다른 설정이다. |
+| `proxy_cache off`, `proxy_intercept_errors off` | 권한·revision·오류 응답을 앱 계약대로 전달한다. `Origin`, `Cookie`, `If-Match`, 응답의 `Set-Cookie`·`ETag`를 제거하거나 재작성하지 않는다. |
+| `client_max_body_size 1m` | Nginx 요청 본문 상한. 초과하면 앱 도달 전에 413이 날 수 있다. 앱의 개별 API 크기 제한은 그대로 유효하며 향후 Import 구현·용량 정책과 함께 조정한다. 무제한 `0`을 기본으로 쓰지 않는다. |
+| `proxy_*_timeout` | 연결 수립 및 읽기·쓰기 대기 한도. read/send timeout은 요청 전체 실행 시간의 상한이 아니라 연속 I/O 사이의 대기 한도다. 502/504를 무조건 timeout 증가로 해결하지 않는다. |
+| `access_log`, `error_log` | 요청 상태·upstream 상태·처리 시간을 확인한다. 로그 파일의 접근 권한·보관·순환 정책도 설정하고 비밀번호·세션 원문을 추가 기록하지 않는다. |
+
+운영은 `npm run dev`가 아닌 production 서버를 사용한다. 현재 운영 경로에 개발용 HMR/WebSocket 설정을 필수로 추가할 필요는 없다. 추후 WebSocket 기능을 도입하면 Upgrade 처리를 별도로 검토한다. CORS `*`나 `proxy_set_header Origin ...`으로 인증 실패를 우회하지 않는다. 앱이 발행하는 `__Host-mastergantt_edit`의 `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/` 속성을 유지하고 `Domain`을 추가하지 않는다.
+
+#### 3) IP 주소 + 비표준 HTTPS 포트로 접속하는 경우
+
+아래 주소는 설명용이다. 예를 들어 외부 주소를 `https://192.0.2.10:8443`으로 정했다면 **위 예제에서 다음 항목을 함께 변경**한다. upstream `127.0.0.1:3000`과 `HOST_PORT=3000`은 그대로 유지할 수 있다.
+
+| 변경 대상 | 변경값 |
+| --- | --- |
+| `.env`의 `APP_BASE_URL` | `https://192.0.2.10:8443` |
+| HTTPS `listen` | `listen 8443 ssl;` |
+| 두 `server_name`과 Host 비교값 | `192.0.2.10` |
+| HTTP redirect | `return 308 https://192.0.2.10:8443$request_uri;` |
+| 인증서 | 접속 IP를 **IP Address SAN**으로 포함하고 브라우저가 신뢰하는 인증서 |
+| 방화벽 | 승인된 클라이언트의 Nginx 8443 접근 허용; 앱 3000 직접 접근은 차단 |
+
+HTTP redirect는 여전히 80 포트 예제다. 이미 다른 서비스가 사용하는 경우 충돌하지 않게 별도 포트를 정하거나 이 HTTP 블록을 제외하고 HTTPS 주소로 직접 접속한다. `proxy_set_header Host $http_host;`를 유지하여 `192.0.2.10:8443`을 전달하며, IP 접속과 도메인 접속을 하나의 앱에서 같은 canonical origin처럼 혼용하지 않는다.
+
+#### 4) Windows Nginx + WSL2 Docker
+
+위 Nginx 설정의 동작 원칙은 같지만 인증서·로그 경로를 Windows 경로로 바꾼다. 설정 파일 안에서는 `/`를 사용한다.
+
+```nginx
+# 위 server 블록의 해당 경로를 교체하는 예시다.
+ssl_certificate     C:/nginx/conf/certs/mastergantt/fullchain.pem;
+ssl_certificate_key C:/nginx/conf/certs/mastergantt/privkey.pem;
+access_log          C:/nginx/logs/mastergantt.access.log mastergantt;
+error_log           C:/nginx/logs/mastergantt.error.log warn;
+```
+
+`C:/nginx/conf/nginx.conf`의 기존 `http` 안에 포함시키거나, 그 안의 `include conf.d/*.conf;`와 `C:/nginx/conf/conf.d/mastergantt.conf`를 사용한다. 실행 위치와 실제 설치 경로에 맞게 조정한다. WSL2의 앱을 Windows에서 `localhost`로 접근할 수 있는지는 WSL 네트워크 모드·전달 설정·방화벽의 영향을 받으므로 **Nginx를 적용하기 전에 Windows PowerShell에서** 먼저 확인한다.
+
+```powershell
+curl.exe -fsS http://127.0.0.1:3000/api/health/ready
+```
+
+실패하면 WSL 배포판과 Docker/app 실행 상태, 포트 매핑, localhost 전달 및 Windows/Hyper-V 방화벽을 먼저 확인한다. WSL IP는 재시작 등으로 달라질 수 있으므로 이를 고정 주소처럼 복사하지 않는다. 특히 현재 `127.0.0.1`에만 게시한 앱은 `proxy_pass`를 WSL IP로 바꾸는 것만으로 접근이 보장되지 않는다. Windows와 WSL 양쪽에서 연결을 확인하고 필요한 전달 경계를 설계한다. 편의를 위해 앱을 무조건 `0.0.0.0`에 노출하거나 방화벽 전체를 해제하지 않는다.
+
+#### 5) Nginx도 Docker에서 실행하거나 다른 호스트에 있는 경우
+
+**같은 Docker network의 Nginx 컨테이너**에서는 `127.0.0.1`이 앱이 아니라 Nginx 컨테이너터 자신이다. 동일 network에 앱 service `app`을 연결하고 위 예제의 upstream만 다음과 같이 변경한다.
+
+```nginx
+proxy_pass http://app:3000;
+```
+
+이때 앱의 `ports` 매핑은 제거하고 Nginx의 외부 TLS 포트만 게시한다. 인증서·설정은 Nginx 컨테이너에 읽기 전용으로 제공하고, SQLite `/data` volume은 앱 하나만 사용한다. 서로 다른 Compose 프로젝트라면 명시적인 공용 network 구성이 필요하다. 앱 재생성으로 컨테이너 IP가 바뀔 때의 이름 재해석·Nginx reload 정책도 확인한다.
+
+**다른 호스트의 Nginx**는 앱 호스트의 `127.0.0.1`에 접근할 수 없다. 이 경우 앱 포트를 승인된 내부 인터페이스에만 게시하고 Nginx 호스트만 접근하도록 방화벽을 제한한다. 신뢰할 수 없는 구간을 건너면 upstream TLS 등 전송 보호도 추가로 검토한다.
+
+#### 6) `/mastergantt` 하위 경로 배포 주의
+
+현재 [next.config.ts](next.config.ts)에는 `basePath`가 없고, `APP_BASE_URL`도 경로가 없는 origin만 허용한다. 따라서 `/mastergantt`를 잘라 전달하는 Nginx `rewrite`만으로는 화면 이동·`/api`·`/_next`·직접 링크가 모두 정상 동작한다고 보장할 수 없다.
+
+**현재는 전용 도메인 또는 전용 포트의 루트 `/`로 운영한다.** 하위 경로가 필요하면 Next.js `basePath`를 빌드 시 적용하고 앱의 링크·fetch URL·직접 URL 생성 계약을 함께 수정한 뒤 재빌드 및 E2E 검증한다. `APP_BASE_URL=https://호스트/mastergantt`를 넣는 방법은 현재 검증 코드에서 거부된다. `basePath`는 런타임 Nginx 설정만으로 추가되는 기능이 아니다.
+
+#### 7) 적용 순서와 확인 명령
+
+인증서 파일과 권한, domain/IP, 외부 포트, `APP_BASE_URL`, upstream 연결을 준비한 뒤 **구문 검사에 성공한 경우에만 reload**한다. 처음 시작하는 Nginx는 구문 검사 후 설치 환경의 서비스 시작 절차를 따른다.
+
+```sh
+# Linux: 실제로 운영할 전체 nginx.conf를 검사한다.
+sudo nginx -t
+# 위 명령이 성공했을 때만 실행한다.
+sudo nginx -s reload
+
+# 내부 앱과 외부 TLS 경로를 각각 확인한다.
+curl -fsS http://127.0.0.1:3000/api/health/ready
+curl -I http://gantt.example.com/projects/new
+curl -fsS https://gantt.example.com/api/health/live
+curl -fsS https://gantt.example.com/api/health/ready
+
+# 사내 CA가 시스템 신뢰 저장소에 없는 테스트 장비에서는 CA 파일을 명시한다.
+curl --cacert /path/to/company-root-ca.pem -fsS https://gantt.example.com/api/health/ready
+```
+
+```powershell
+# Windows: 실제 설치 경로에서 기존 Nginx와 같은 prefix/config를 사용한다.
+Set-Location C:\nginx
+.\nginx.exe -t -p C:/nginx/ -c conf/nginx.conf
+# 위 명령이 성공했을 때만 실행한다.
+.\nginx.exe -s reload -p C:/nginx/ -c conf/nginx.conf
+```
+
+HTTP는 올바른 외부 HTTPS 주소로 308 redirect되어야 하고 live/ready는 각각 200과 `{"status":"ok"}`를 확인한다. Health 성공만으로 인증·편집을 검증한 것은 아니다. 브라우저에서 인증서 경고 없이 접속하여 **테스트 프로젝트 생성 → 비밀번호 잠금 해제 → 작업 추가·수정 → 새로고침 후 유지 → 로그아웃 후 변경 거부**까지 확인한다. 개발자 도구에서는 Origin·응답 상태·Cookie 속성만 점검하고 비밀번호나 Cookie 원문을 보고서에 복사하지 않는다. 인증서 검증을 생략하는 `curl -k`를 운영 검증 기준으로 삼지 않는다.
+
+#### 8) 증상별 점검
+
+| 증상 | 우선 확인 |
+| --- | --- |
+| Nginx `-t` 실패 | `http` 안에 include했는지, 중복 `listen`/default server, 인증서·키·로그 경로와 권한, 오타를 확인한다. 기존 정상 설정을 유지하고 reload하지 않는다. |
+| 502 Bad Gateway | Nginx 실행 환경에서 upstream으로 접속 가능한지, app 로그·재시작·`HOST_PORT`, WSL 전달, 컨테이너의 loopback 의미를 확인한다. |
+| 504 Gateway Timeout | Nginx error log와 앱 처리 시간·DB 잠금·자원 부족을 확인한 뒤 timeout 조정 필요성을 판단한다. |
+| 화면은 열리지만 생성·저장 시 403 | 브라우저 Origin과 `APP_BASE_URL`의 scheme/host/port, Origin 헤더의 원본 전달, 컨테이너 환경 변수 갱신 여부를 확인한다. CORS/Origin 검증을 끄지 않는다. |
+| 비밀번호 인증 후에도 401 또는 편집 해제 | HTTPS 여부, `__Host-mastergantt_edit`의 저장·전송, `Secure`·`Path=/`·Domain 미설정, 프록시의 `Set-Cookie` 제거 여부와 세션 만료를 확인한다. |
+| 412 응답 | 우선 앱의 revision 충돌인지 확인하고 최신 데이터를 다시 조회한다. 프록시가 `If-Match`를 제거하거나 응답을 캐시하지 않는지도 확인한다. |
+| 413 응답 | Nginx 본문 상한과 앱 API 자체 제한을 구분한다. Import 크기 정책 확정 없이 일괄 대용량·무제한으로 늘리지 않는다. |
+| `/_next` 404 또는 JS 대신 HTML 응답 | 다른 `location`에 잡혔는지, SPA fallback·하위 경로 rewrite가 적용됐는지 확인한다. |
+| `/api/health/ready`가 503 | 앱 설정·migration·SQLite volume 권한을 확인한다. liveness 200만 보고 정상으로 판정하지 않는다. |
+
+공식 참고: [Nginx proxy 모듈](https://nginx.org/en/docs/http/ngx_http_proxy_module.html), [요청 본문 제한](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size), [HTTPS 설정](https://nginx.org/en/docs/http/configuring_https_servers.html), [설정 적용](https://nginx.org/en/docs/beginners_guide.html), [Windows Nginx](https://nginx.org/en/docs/windows.html), [Next.js self-hosting](https://nextjs.org/docs/app/guides/self-hosting), [Next.js basePath](https://nextjs.org/docs/app/api-reference/config/next-config-js/basePath), [WSL 네트워킹](https://learn.microsoft.com/en-us/windows/wsl/networking).
+
 ## 6. 검증 명령
 
 ```sh
@@ -250,6 +484,7 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 | 일정 계산과 Core/PRO 경계 | [SCHEDULING_ENGINE](docs/SCHEDULING_ENGINE.md), [PRO_FEATURE_MATRIX](docs/PRO_FEATURE_MATRIX.md) |
 | Excel Import/Export | [IMPORT_EXPORT](docs/IMPORT_EXPORT.md), [IMPORT_SCHEMA](docs/IMPORT_SCHEMA.md), [VBA_EXPORT](docs/VBA_EXPORT.md) |
 | 셋업·운영·검증 상세 | [CI/CD](docs/CI_CD.md), [DEPLOYMENT](docs/DEPLOYMENT.md), [TEST_PLAN](docs/TEST_PLAN.md), [CHANGELOG](CHANGELOG.md) |
+| Nginx 앞단 운영 예제 | [README Nginx 설정·설명·점검](#nginx-reverse-proxy) |
 | 기술 조사·설계 판단 | [RESEARCH](docs/RESEARCH.md), [DECISIONS](docs/DECISIONS.md) |
 | Bootstrap 결과와 검토 | [BOOTSTRAP_REPORT](docs/BOOTSTRAP_REPORT.md), [BOOTSTRAP_REVIEW](docs/BOOTSTRAP_REVIEW.md) |
 | W02 구현 검증 결과 | [W02_REVIEW](docs/W02_REVIEW.md) |
