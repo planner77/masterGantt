@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, test, type Frame, type Page, type Request, type Route } from "@playwright/test";
 
 function uniqueSuffix(): string {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -69,7 +69,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   await expect(page.locator(".project-gantt-widget .wx-chart")).toBeVisible();
 
   // Pointer-edit coverage needs a deterministic three-day task. Seed it through
-  // the protected API instead of the removed legacy add/delete panel.
+  // the protected API; native Grid '+' is exercised separately below, before reload.
   let snapshot = await (await page.request.get(apiPath)).json();
   const seedRevision = snapshot.data.project.revision as number;
   const seedExternalId = `W07-${suffix}`;
@@ -232,4 +232,108 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   expect(afterUnauthorized.data.tasks[0]).toMatchObject({ taskId: winnerTask.taskId, requestedStart: "2026-09-22", start: "2026-09-22", end: "2026-09-23", duration: 2 });
   const restoredUnauthorizedBox = await page.locator(`.wx-bar[data-task-id=":${winnerTask.taskId}"]`).boundingBox();
   expect(restoredUnauthorizedBox).not.toBeNull();
-  expect(restoredUnauthorized
+  expect(restoredUnauthorizedBox!.x).toBeCloseTo(beforeUnauthorized.x, 0);
+  expect(restoredUnauthorizedBox!.width).toBeCloseTo(beforeUnauthorized.width, 0);
+
+  await page.getByLabel("편집 비밀번호").fill(password);
+  await page.getByRole("button", { name: "편집 잠금 해제" }).click();
+  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+
+  // Freeze Date only (not timers) so the browser-today default and chart range
+  // remain deterministic regardless of the date on which CI runs.
+  await page.clock.setFixedTime(new Date("2026-09-24T12:00:00Z"));
+  const browserToday = await page.evaluate(() => {
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${today.getFullYear()}-${month}-${day}`;
+  });
+  expect(browserToday).toBe("2026-09-24");
+  const grid = page.getByRole("grid");
+  const taskEndpoint = `${apiPath}/tasks`;
+  let nativePosts = 0;
+  let mainFrameNavigations = 0;
+  const recordNativePost = (request: Request) => {
+    if (request.method() === "POST" && new URL(request.url()).pathname === taskEndpoint) nativePosts += 1;
+  };
+  const recordNavigation = (frame: Frame) => {
+    if (frame === page.mainFrame()) mainFrameNavigations += 1;
+  };
+  page.on("request", recordNativePost);
+  page.on("framenavigated", recordNavigation);
+
+  // Exercise the real native header '+', never an API seed or page.reload(),
+  // and assert both views before the later, explicit persistence reload.
+  const beforeRootIds = new Set<string>(afterUnauthorized.data.tasks.map((entry: { taskId: string }) => entry.taskId));
+  const rootResponsePromise = page.waitForResponse((response) =>
+    response.request().method() === "POST" && new URL(response.url()).pathname === taskEndpoint,
+  );
+  await page.locator('.project-gantt-widget [data-action="add-task"]').first().click();
+  const rootResponse = await rootResponsePromise;
+  expect(rootResponse.status()).toBe(201);
+  const afterRoot = await rootResponse.json();
+  const roots = afterRoot.data.tasks.filter((entry: { taskId: string }) => !beforeRootIds.has(entry.taskId));
+  expect(roots).toHaveLength(1);
+  const nativeRoot = roots[0];
+  expect(nativeRoot).toMatchObject({ name: "새 작업", requestedStart: browserToday, start: browserToday, end: browserToday, duration: 1, parentExternalId: null });
+  expect(afterRoot.data.project.revision).toBe(afterUnauthorized.data.project.revision + 1);
+  await expect(page.getByRole("status")).toContainText("작업을 추가했습니다");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(grid.getByText("새 작업", { exact: true })).toHaveCount(1);
+  await expect(grid.getByText("새 작업", { exact: true })).toBeVisible();
+  await expect(page.locator(`.wx-bar[data-task-id=":${nativeRoot.taskId}"]`)).toBeVisible();
+  expect(nativePosts).toBe(1);
+  expect(mainFrameNavigations).toBe(0);
+
+  // A row '+' requires only explicit Summary conversion consent. Cancelling
+  // must not POST; task fields are no longer entered in this dialog.
+  const winnerRow = page.locator(".project-gantt-widget .wx-row", { hasText: winnerTask.name }).first();
+  await winnerRow.locator('[data-action="add-task"]').click();
+  const childTaskDialog = page.getByRole("dialog", { name: "부모 작업을 요약 작업으로 전환할까요?" });
+  await expect(childTaskDialog).toBeVisible();
+  await expect(childTaskDialog.locator('input[type="text"], input[type="date"], input[type="number"]')).toHaveCount(0);
+  await expect(childTaskDialog.getByRole("button", { name: "전환하고 하위 작업 추가" })).toBeDisabled();
+  await childTaskDialog.getByRole("button", { name: "취소", exact: true }).click();
+  await expect(childTaskDialog).toBeHidden();
+  expect(nativePosts).toBe(1);
+
+  await winnerRow.locator('[data-action="add-task"]').click();
+  await expect(childTaskDialog).toBeVisible();
+  await childTaskDialog.getByLabel("부모 작업을 요약 작업으로 전환하는 데 동의합니다.").check();
+  const childResponsePromise = page.waitForResponse((response) =>
+    response.request().method() === "POST" && new URL(response.url()).pathname === taskEndpoint,
+  );
+  await childTaskDialog.getByRole("button", { name: "전환하고 하위 작업 추가" }).click();
+  const childResponse = await childResponsePromise;
+  expect(childResponse.status()).toBe(201);
+  const afterChild = await childResponse.json();
+  const beforeChildIds = new Set<string>(afterRoot.data.tasks.map((entry: { taskId: string }) => entry.taskId));
+  const children = afterChild.data.tasks.filter((entry: { taskId: string }) => !beforeChildIds.has(entry.taskId));
+  expect(children).toHaveLength(1);
+  const child = children[0];
+  expect(child).toMatchObject({ name: "새 작업", requestedStart: browserToday, start: browserToday, end: browserToday, duration: 1, parentExternalId: winnerTask.externalId });
+  const summary = afterChild.data.tasks.find((entry: { taskId: string }) => entry.taskId === winnerTask.taskId);
+  expect(summary).toMatchObject({ type: "summary", start: child.start, end: child.end });
+  expect(afterChild.data.project.revision).toBe(afterRoot.data.project.revision + 1);
+  await expect(childTaskDialog).toBeHidden();
+  await expect(page.getByRole("status")).toContainText("작업을 추가했습니다");
+  await expect(grid.getByText("새 작업", { exact: true })).toHaveCount(2);
+  for (const name of await grid.getByText("새 작업", { exact: true }).all()) await expect(name).toBeVisible();
+  await expect(page.locator(`.wx-bar[data-task-id=":${nativeRoot.taskId}"]`)).toBeVisible();
+  await expect(page.locator(`.wx-bar[data-task-id=":${child.taskId}"]`)).toBeVisible();
+  expect(nativePosts).toBe(2);
+  expect(mainFrameNavigations).toBe(0);
+  page.off("request", recordNativePost);
+  page.off("framenavigated", recordNavigation);
+
+  // Only now reload to independently verify persistence of both native adds.
+  await page.reload();
+  await expect(grid.getByText("새 작업", { exact: true })).toHaveCount(2);
+  await expect(page.locator(`.wx-bar[data-task-id=":${nativeRoot.taskId}"]`)).toBeVisible();
+  await expect(page.locator(`.wx-bar[data-task-id=":${child.taskId}"]`)).toBeVisible();
+  const persisted = await (await page.request.get(apiPath)).json();
+  expect(persisted.data.project.revision).toBe(afterChild.data.project.revision);
+  expect(persisted.data.tasks).toHaveLength(afterChild.data.tasks.length);
+  expect(persisted.data.tasks.find((entry: { taskId: string }) => entry.taskId === child.taskId))
+    .toMatchObject({ parentExternalId: winnerTask.externalId, name: "새 작업", start: browserToday, duration: 1 });
+});
