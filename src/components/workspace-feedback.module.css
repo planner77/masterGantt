@@ -1,0 +1,44 @@
+.bell {
+  position: fixed; top: 0.75rem; right: 1rem; z-index: 70;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.5rem; height: 2.5rem; border: 1px solid var(--border);
+  border-radius: 0.5rem; background: var(--card); color: var(--foreground); cursor: pointer;
+}
+.badge {
+  position: absolute; top: -0.4rem; right: -0.4rem; min-width: 1.25rem;
+  padding: 0.1rem 0.25rem; border-radius: 1rem; background: #a12d2d; color: white; font-size: 0.7rem;
+}
+.toast {
+  position: fixed; z-index: 80; bottom: 1.25rem; left: 50%; transform: translateX(-50%);
+  max-width: min(42rem, calc(100vw - 2rem)); max-height: 30vh; overflow: auto;
+  pointer-events: none; padding: 0; border: 0; opacity: 0; overflow-wrap: anywhere;
+}
+.toastVisible {
+  padding: 0.8rem 1rem; border: 1px solid var(--border); border-radius: 0.5rem;
+  background: var(--card); color: var(--foreground); box-shadow: 0 0.4rem 1.5rem #0002; opacity: 1;
+}
+.dialog {
+  position: fixed; inset: 0; margin: auto; width: min(38rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem); box-sizing: border-box; overflow: auto;
+  padding: 1.25rem; border: 1px solid var(--border); border-radius: 0.75rem;
+  background: var(--card); color: var(--foreground); overflow-wrap: anywhere;
+}
+.dialog::backdrop { background: #172b4440; }
+.dialogHeading { display: flex; align-items: start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.dialogHeading h2 { margin: 0; font-size: 1.125rem; }
+.errorList { list-style: none; padding: 0; display: grid; gap: 1rem; }
+.errorList li { display: grid; gap: 0.5rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+.errorList textarea, .copyValue {
+  display: block; width: 100%; box-sizing: border-box; min-width: 0;
+  padding: 0.625rem; border: 1px solid var(--border); border-radius: 0.375rem;
+  background: var(--card); color: var(--foreground); white-space: pre-wrap; overflow-wrap: anywhere;
+  font: inherit; font-size: 0.875rem;
+}
+.errorList textarea { resize: vertical; }
+.copyValue { margin-block: 1rem; }
+.scope { color: var(--muted-foreground); font-size: 0.875rem; }
+.copyHint { min-height: 1.5em; font-size: 0.875rem; }
+.linkButton { white-space: nowrap; font-size: 0.8125rem !important; padding: 0.4rem 0.625rem !important; }
+.headingActions { display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.bell:focus-visible, .dialog button:focus-visible, .linkButton:focus-visible { outline: 2px solid #285b8c; outline-offset: 3px; }
+@media (max-width: 44rem) { .headingActions { justify-content: flex-start; } .bell { right: 0.75rem; } }
