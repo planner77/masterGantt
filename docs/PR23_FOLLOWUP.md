@@ -17,6 +17,6 @@
 
 - 로컬 테스트: **NOT TESTED**, 기존 보류 요청 유지. 정적 검토와 diff 점검은 실행 테스트와 구분한다.
 - 후속 PR/head/원격 quality/E2E/Docker: **NOT TESTED**, 구현 중. 실제 결과는 후속 PR 및 원 PR 리뷰 답변에 연결한다.
-- 독립 QA / Manager: 검토 진행 중. 원래 리뷰는 수정 근거와 원격 검증 확인 뒤 처리한다.
+- 독립 QA / Manager: 정적 검토 ACCEPT. 원격 실행 결과는 이 정적 판정과 별개이며 원래 리뷰는 수정 근거와 원격 검증 확인 뒤 처리한다.
 - 실제 사내 proxy, Windows clipboard/스크린리더, 최종 사용자 UX: **NOT TESTED**. 대상 환경 접근과 사용자 확인이 필요하며 GitHub Chromium 결과로 대체했다고 주장하지 않는다.
 - 별도 Semantic Version release/운영 배포는 이번 리뷰 완료 범위에 포함하지 않는다.

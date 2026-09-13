@@ -1,5 +1,16 @@
 # 일괄 검증 대기 목록
 
+## 현재: PR #23 미해결 리뷰 후속
+
+로컬 실행은 **NOT TESTED — 사용자 보류 유지**다. 이번 후속 PR의 원격 GitHub Actions 검증은 진행하며, 결과는 해당 head의 PR/run과 [PR23_FOLLOWUP.md](PR23_FOLLOWUP.md)에 안내한 근거 경로로 구분한다. 아래 과거 기록의 원격 실행 보류 문구는 이번 후속 PR에 적용하지 않는다.
+
+- [ ] 로컬 unit: 실제 `INVALID_CREDENTIALS` 보존 및 임의/존재하지 않는 오류 코드 차단.
+- [ ] 로컬 Chromium: 320/390/414/768/1440px 알림 버튼·badge·navigation 비중첩과 실제 링크 클릭.
+- [ ] 로컬 실제 API/clipboard: 잘못된 비밀번호 오류 코드 복사 및 입력 비밀번호 비노출.
+- [ ] 실제 사내 proxy, Windows clipboard/조직 브라우저 정책, 스크린리더와 최종 수동 UX. CI Chromium 성공만으로 완료 처리하지 않는다.
+
+## 과거 보류 기록
+
 Issue #3 후속: 원격 `d540eb5` 반영 후 Gantt 인스턴스 유지 작업을 진행한다. 로컬 실행 보류는 유지하며, 이번 Issue는 최신 GitHub-first 정책에 따라 PR Actions에서 검증한다. 결과는 [Issue #3 기록](ISSUE_3_REVIEW.md)을 따른다. 아래 체크 목록은 과거 변경의 미실행 기록이며 실제 원격 증거 없이 완료로 바꾸지 않는다.
 
 상태: **NOT TESTED — 사용자 요청으로 실행 보류**. 2026-09-12.
