@@ -53,8 +53,22 @@ test("두 프로젝트의 링크를 구분하고 이름 변경·새 탭·새 세
   await deleteButton.click();
   await expect(dialog.getByLabel("삭제 확인 비밀번호")).toHaveValue("");
   await page.keyboard.press("Escape");
+  await expect(deleteButton).toBeFocused();
+  expect(mutations).toEqual([]);
 
+  // 기존 Path=/ 단일 편집 쿠키는 두 번째 프로젝트 생성으로 교체된다.
+  // 첫 프로젝트의 유효한 세션은 정상 UI 인증으로 다시 만든 뒤 검증한다.
   await page.goto(first.url);
+  await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+  await page.getByLabel("편집 비밀번호").fill(password);
+  const unlockResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" &&
+    new URL(response.url()).pathname === `/api/projects/${first.publicId}/edit-sessions`);
+  await page.getByRole("button", { name: "편집 잠금 해제", exact: true }).click();
+  expect((await unlockResponse).status()).toBe(204);
+  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  expect(mutations).toEqual(["POST"]);
+
   await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
   const renamed = `변경된 링크 A ${suffix}`;
   await page.getByLabel("프로젝트 이름").fill(renamed);
@@ -62,7 +76,7 @@ test("두 프로젝트의 링크를 구분하고 이름 변경·새 탭·새 세
   await expect(page.getByRole("heading", { name: renamed, exact: true })).toBeVisible();
   await expect(page.getByRole("dialog", { name: "프로젝트 설정", exact: true })).toHaveCount(0);
   const mutationCount = mutations.length;
-  expect(mutations).toEqual(["PATCH"]);
+  expect(mutations).toEqual(["POST", "PATCH"]);
   const beforeCopy = await page.request.get(`/api/projects/${first.publicId}`);
   const revision = (await beforeCopy.json()).data.project.revision;
   await copyLink(page, renamed, first.url);
@@ -82,7 +96,7 @@ test("두 프로젝트의 링크를 구분하고 이름 변경·새 탭·새 세
   } finally {
     await sameSessionTab.close();
   }
-  // 링크 자체에는 권한이 없다. 별도 세션에서 직접 접근하고 새로고침해도 읽기 전용이다.
+  // 링크 자체에는 권한이 없다. 별도 세션에서 직접 접근하고 새로고침해도 읽기 전용이다。
   const readonlyContext = await browser.newContext();
   try {
     const readonlyPage = await readonlyContext.newPage();
