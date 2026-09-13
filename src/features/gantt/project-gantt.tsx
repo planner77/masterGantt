@@ -45,7 +45,7 @@ import {
   type ProjectTaskUpdateCommand,
 } from "./project-task-adapter";
 import { dateOnlyFromLocalDate } from "./date-adapter";
-import { planCanonicalGanttSync } from "./canonical-snapshot-sync";
+import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
 
 export type ProjectGridDataColumnId = "text" | "externalId" | "projectStart" | "projectDuration";
 
@@ -237,53 +237,16 @@ export function ProjectGantt({
       if (syncVersion !== canonicalSyncVersionReference.current) return;
       const api = apiReference.current;
       if (!api) return;
-      const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
-      const currentLinks = (api.serialize({ data: "links" }) ?? []) as ILink[];
-      const currentTaskById = new Map(currentTasks.map((task) => [task.id, task]));
-      const plan = planCanonicalGanttSync({ tasks: currentTasks, links: currentLinks }, { tasks: svarTasks, links: svarLinks });
       canonicalSyncDepthReference.current += 1;
       try {
-        for (const link of currentLinks) {
-          if (syncVersion !== canonicalSyncVersionReference.current) return;
-          if (plan.replaceLinks && link.id !== undefined) await api.exec("delete-link", { id: link.id });
-        }
-        for (const id of plan.deletedTaskIds) {
-          if (syncVersion !== canonicalSyncVersionReference.current) return;
-          await api.exec("delete-task", { id });
-        }
-        for (const task of plan.updatedTasks) {
-          if (syncVersion !== canonicalSyncVersionReference.current) return;
-          const { id, ...update } = task;
-          delete update.open;
-          if (id !== undefined) {
-            const prior = currentTaskById.get(id);
-            await api.exec("update-task", { id, task: update, eventSource: "project-canonical-sync", skipUndo: true });
-            // A leaf converted by its first child did not have an existing
-            // summary open/collapsed preference. Reveal that new hierarchy
-            // without reopening summaries the user had deliberately closed.
-            if (prior?.type !== "summary" && task.type === "summary") {
-              await api.exec("open-task", { id, mode: true });
-            }
-          }
-        }
-        for (const task of plan.addedTasks) {
-          if (syncVersion !== canonicalSyncVersionReference.current) return;
-          const { id, ...add } = task;
-          delete add.open;
-          await api.exec("add-task", {
-            id,
-            // Installed Core reads the canonical ID from task.id when adding.
-            // Keep the top-level ID as well for the public action contract.
-            task: { ...add, id },
-            select: false,
-            eventSource: "project-canonical-sync",
-            ...(task.parent && task.parent !== 0 ? { target: task.parent, mode: "child" as const } : {}),
-          });
-        }
-        if (plan.replaceLinks) for (const link of svarLinks) {
-          if (syncVersion !== canonicalSyncVersionReference.current) return;
-          await api.exec("add-link", { link, eventSource: "project-canonical-sync" });
-        }
+        const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
+        const currentLinks = (api.serialize({ data: "links" }) ?? []) as ILink[];
+        await applyCanonicalGanttSync(
+          api,
+          { tasks: currentTasks, links: currentLinks },
+          { tasks: svarTasks, links: svarLinks },
+          () => syncVersion === canonicalSyncVersionReference.current,
+        );
       } catch {
         if (syncVersion === canonicalSyncVersionReference.current) onCanonicalSyncFailureReference.current();
       } finally { canonicalSyncDepthReference.current -= 1; }

@@ -1,4 +1,4 @@
-import type { ILink, ITask } from "@svar-ui/react-gantt";
+import type { IApi, ILink, ITask } from "@svar-ui/react-gantt";
 
 export interface CanonicalGanttSnapshot {
   readonly tasks: readonly ITask[];
@@ -53,4 +53,67 @@ export function planCanonicalGanttSync(
     addedTasks: canonical.tasks.filter((task) => !currentById.has(String(task.id))),
     replaceLinks: !sameLinks(current.links, canonical.links),
   };
+}
+
+/**
+ * Applies the plan without rebuilding the widget. The caller owns the serialized
+ * queue, synchronization guard and recovery. Rejections deliberately propagate.
+ */
+export async function applyCanonicalGanttSync(
+  api: Pick<IApi, "exec">,
+  current: CanonicalGanttSnapshot,
+  canonical: CanonicalGanttSnapshot,
+  isCurrent: () => boolean = () => true,
+): Promise<void> {
+  const plan = planCanonicalGanttSync(current, canonical);
+  const currentById = new Map(current.tasks.map((task) => [task.id, task]));
+  const parentIds = new Set(canonical.tasks.map((task) => task.parent));
+  // Capture transitions before exec can mutate objects returned by serialize.
+  const summaryIdsToOpen = plan.updatedTasks.flatMap((task) => (
+    task.id !== undefined && task.type === "summary" &&
+    currentById.get(task.id)?.type !== "summary" && parentIds.has(task.id)
+      ? [task.id]
+      : []
+  ));
+
+  for (const link of current.links) {
+    if (!isCurrent()) return;
+    if (plan.replaceLinks && link.id !== undefined) await api.exec("delete-link", { id: link.id });
+  }
+  for (const id of plan.deletedTaskIds) {
+    if (!isCurrent()) return;
+    await api.exec("delete-task", { id });
+  }
+  for (const task of plan.updatedTasks) {
+    if (!isCurrent()) return;
+    const { id, ...update } = task;
+    delete update.open;
+    if (id !== undefined) {
+      await api.exec("update-task", { id, task: update, eventSource: "project-canonical-sync", skipUndo: true });
+    }
+  }
+  for (const task of plan.addedTasks) {
+    if (!isCurrent()) return;
+    const { id, ...add } = task;
+    delete add.open;
+    await api.exec("add-task", {
+      id,
+      // Core reads task.id; preserve the public top-level action ID as well.
+      task: { ...add, id },
+      select: false,
+      eventSource: "project-canonical-sync",
+      ...(task.parent && task.parent !== 0 ? { target: task.parent, mode: "child" as const } : {}),
+    });
+  }
+  // A former leaf has no child collection until add-task has run. Opening it
+  // earlier exposes an invalid intermediate tree to Core's synchronous render.
+  // Do not reopen existing summaries that the user deliberately collapsed.
+  for (const id of summaryIdsToOpen) {
+    if (!isCurrent()) return;
+    await api.exec("open-task", { id, mode: true });
+  }
+  if (plan.replaceLinks) for (const link of canonical.links) {
+    if (!isCurrent()) return;
+    await api.exec("add-link", { link, eventSource: "project-canonical-sync" });
+  }
 }

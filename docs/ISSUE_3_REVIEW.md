@@ -21,18 +21,41 @@
 
 - Pull 기준선 확인: 원격 `d540eb58c4492fdd945c2a0ebb61155a832918c5`의 [CI 34752263074](https://github.com/planner77/masterGantt/actions/runs/34752263074)는 quality/e2e/docker 및 main commit-image job 성공. 이번 수정의 검증 증거와는 별개다.
 - Local Fast Feedback: **NOT TESTED** — 사용자 로컬 테스트 보류 유지.
-- PR / head SHA: 아직 생성 전.
-- GitHub quality / e2e / docker: **NOT TESTED**.
-- Main GHCR digest: **N/A** — 아직 PR 검증 전이며 main 반영/이미지 완료를 주장하지 않는다.
-- QA / Manager: 검토 대기. 과거 W24 PASS를 이번 변경의 근거로 사용하지 않는다.
+- PR: [#16](https://github.com/planner77/masterGantt/pull/16).
+- 수정 전 head `5043b767b8bc683ee5fcc64c15b0a70e915ffab0` / [CI #33](https://github.com/planner77/masterGantt/actions/runs/34754329128): quality PASS, Docker PASS, E2E FAIL (12개 중 2개 실패).
+- 이번 후속 수정의 GitHub quality / e2e / docker: **NOT TESTED** — 커밋 후 실행 결과는 PR에 head SHA/run별로 기록한다. CI #33 결과를 새 head의 결과로 사용하지 않는다.
+- Main GHCR digest: **N/A** — main 반영/이미지 완료를 주장하지 않는다.
+- QA / Manager: 최종 검토 대기. 과거 W24 PASS를 이번 변경의 근거로 사용하지 않는다.
 
 수용 기준: pending/success 인스턴스 및 DOM 유지, 문서 navigation 없음, 한 클릭당 POST 한 번, 저장 중 열 너비 유지, scroll/tree/selection/columns 보존, root/summary-child/첫 child 확인·취소, 오류/권한 복구, 순차 10회 추가, 기존 수정/설정/로그아웃 회귀.
 
 신규 `project-gantt-stability.spec.ts`는 상태를 가진 API mock을 사용해 UI 동기화와 지연/오류를 검증한다. mock 응답을 reload 후 다시 읽는 검사는 실제 SQLite 영속성 증거가 아니다. 실제 저장·재조회는 기존 `project-task-persistence.spec.ts`와 서버 통합 테스트 및 Docker gate를 별도로 확인한다.
+
+## CI #33 E2E 후속 수정 (2026-09-13)
+
+### 관측 증거와 원인 구분
+
+실패 Job `103716218950`의 `npm run test:e2e`에서 두 테스트 모두 첫 하위 작업 생성 성공 응답 이후 성공 알림 대신 `일정 화면을 최신 서버 정보로 복구했습니다.`를 받았다. 브라우저 로그에는 `Cannot read properties of null (reading 'forEach')`가 기록되었다. ClockController는 예약 콜백을 실행하는 스택이므로 그 이름만으로 Playwright 자체 결함이라고 단정하지 않는다.
+
+기존 동기화 순서는 `update-task(parent -> summary) -> open-task(parent) -> add-task(child)`였다. 공개 SVAR `open-task` 구현은 펼침 상태 변경 후 동기적으로 tree 상태를 계산한다. 아직 자식이 없는 leaf를 먼저 펼쳐 잘못된 중간 트리를 노출하는 순서를 제거한다. 정확한 기존 브라우저 스택의 라이브러리 라인 매핑은 CI #33의 trace 미보존으로 미확인이다. 수정 전 실패 E2E를 그대로 재실행하여 원인 가설을 검증한다.
+
+### 수정과 회귀 범위
+
+`canonical-snapshot-sync.ts`의 `applyCanonicalGanttSync`로 공개 action 실행을 분리했다. 변경 전 snapshot에서 최초 summary 전환을 수집하고 `update-task -> add-task -> open-task` 순서로 실행한다. 실제 canonical child가 있는 새 전환만 펼치고 기존 summary 접힘 상태, 서버 ID, select:false, 내부 eventSource, stale version 중단과 오류 전파는 유지한다. React effect는 직렬 큐/동기화 guard/복구를 소유하며 serialize 실패도 finally로 guard를 해제한다.
+
+`canonical-sync-execution.test.ts`는 첫 child 이전 펼침 금지, live snapshot 객체 변이, 기존 접힘 보존, 빈 summary 미펼침, 추가 실패 시 펼침 금지, stale 작업 중단을 검증한다. 기존 두 실패 E2E의 기대값·timeout·clock 설정을 변경하지 않았다. 테스트 삭제/skip/재시도 증가/품질 gate 완화는 하지 않는다.
+
+### 실패 진단 자료 보존
+
+CI #33의 업로드 단계는 `playwright-report/` 파일을 찾지 못했다. 기존 Playwright 설정에 HTML reporter가 없어 trace는 `test-results/`에만 생성되고 runner 종료와 함께 사라졌다. `tests/config/playwright.config.ts`에 list + HTML reporter를 명시하고 출력 경로를 repositoryRoot/playwright-report로 고정한다. 기존 workflow의 실패 시 업로드 경로와 7일 보존 정책은 변경하지 않는다. HTML 보고서에는 실패 trace/오류 context 첨부가 포함된다. 실제 artifact 업로드 검증은 실패한 원격 실행에서만 PASS로 판정한다.
 
 ## 근거
 
 - [React key와 상태 보존](https://react.dev/learn/preserving-and-resetting-state)
 - [SVAR intercept](https://docs.svar.dev/react/gantt/api/methods/intercept/)
 - [SVAR add-task](https://docs.svar.dev/react/gantt/api/actions/add-task/)
+- [SVAR open-task](https://docs.svar.dev/react/gantt/api/actions/open-task/)
+- [SVAR 공개 DataStore 구현](https://github.com/svar-widgets/gantt/blob/2ffa82213baec254e2f25a324269d75dffcb3d5e/store/src/DataStore.ts)
+- [Playwright Clock](https://playwright.dev/docs/clock)
+- [Playwright HTML reporter](https://playwright.dev/docs/test-reporters#html-reporter)
 - 설치된 Core 타입과 구현의 확인 결과는 구현 검토에 함께 기록한다.

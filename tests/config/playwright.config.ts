@@ -13,6 +13,12 @@ const isolatedDatabasePath = resolve(repositoryRoot, ".data", "playwright.sqlite
 export default defineConfig({
   testDir: resolve(repositoryRoot, "tests/e2e"),
   outputDir: resolve(repositoryRoot, "test-results"),
+  // CI uploads this directory on failure. Without the HTML reporter no report
+  // existed, and the retained traces/error context were lost with the runner.
+  reporter: [
+    ["list"],
+    ["html", { outputFolder: resolve(repositoryRoot, "playwright-report"), open: "never" }],
+  ],
   // The application intentionally applies a process-global create limiter.
   // Keep browser specs serial while each spec can still exercise HTTP races explicitly.
   fullyParallel: false,
