@@ -206,16 +206,16 @@ APP_BASE_URL=https://gantt.example.com
 HOST_PORT=3000
 ```
 
-현재 [docker-compose.yml](docker-compose.yml)은 `NODE_ENV=production`, 컨테이너 `PORT=3000`, `DATABASE_PATH=/data/mastergantt.sqlite3`와 `127.0.0.1:${HOST_PORT:-3000}:3000` 포트 매핑을 설정한다. 다음 명령은 **로컬 소스 빌드 방식**이며 저장소 루트에서 실행한다. 운영 이미지 갱신 전에는 백업·복원 가능 여부를 확인한다. GHCR 이미지를 사용할 때는 별도의 [이미지 실행 절차](docs/DEPLOYMENT.md)를 따른다.
+현재 [deploy/compose.yml](deploy/compose.yml)은 `NODE_ENV=production`, 컨테이너 `PORT=3000`, `DATABASE_PATH=/data/mastergantt.sqlite3`와 `127.0.0.1:${HOST_PORT:-3000}:3000` 포트 매핑을 설정한다. 다음 명령은 **로컬 소스 빌드 방식**이며 저장소 루트에서 실행한다. 운영 이미지 갱신 전에는 백업·복원 가능 여부를 확인한다. GHCR 이미지를 사용할 때는 별도의 [이미지 실행 절차](docs/DEPLOYMENT.md)를 따른다.
 
 ```sh
-docker compose config --quiet
-docker compose up -d --build app
-docker compose ps
+docker compose --env-file .env -f deploy/compose.yml config --quiet
+docker compose --env-file .env -f deploy/compose.yml up -d --build app
+docker compose --env-file .env -f deploy/compose.yml ps
 curl -fsS http://127.0.0.1:3000/api/health/ready
 ```
 
-`.env`를 변경한 뒤 `docker compose restart`만 실행하면 컨테이너 환경 변수가 갱신되지 않는다. `docker compose up -d app`으로 변경된 설정을 반영하고 필요하면 `--force-recreate`를 사용한다. 기존 named volume은 유지하며 `docker compose down -v`는 실행하지 않는다. 참고: [Compose up](https://docs.docker.com/reference/cli/docker/compose/up/), [Compose restart](https://docs.docker.com/reference/cli/docker/compose/restart/).
+`.env`를 변경한 뒤 `docker compose --env-file .env -f deploy/compose.yml restart`만 실행하면 컨테이너 환경 변수가 갱신되지 않는다. `docker compose --env-file .env -f deploy/compose.yml up -d app`으로 변경된 설정을 반영하고 필요하면 `--force-recreate`를 사용한다. 기존 named volume은 유지하며 `docker compose --env-file .env -f deploy/compose.yml down -v`는 실행하지 않는다. 참고: [Compose up](https://docs.docker.com/reference/cli/docker/compose/up/), [Compose restart](https://docs.docker.com/reference/cli/docker/compose/restart/).
 
 **현재 코드의 필수 조건:** `APP_BASE_URL`은 브라우저 `Origin`의 scheme·host·port와 정확히 같아야 하며 production에서는 HTTPS만 허용한다. 예를 들어 브라우저가 `https://192.0.2.10:8443`으로 접속하면 도메인 주소나 내부 `http://app:3000`이 아니라 그 origin을 설정한다. 기본 HTTPS 포트는 `:443`을 생략한다. `TRUST_PROXY`·`SESSION_COOKIE_SECURE`·`LOG_LEVEL`은 아직 앱이 소비하지 않는 예약 변수이므로 이를 바꿔 HTTP 운영이나 Origin 오류를 해결할 수 없다. 근거: [Origin 검증](src/server/security/origin-core.ts), [Cookie 구현](src/server/security/cookie-core.ts).
 
@@ -468,7 +468,7 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 | [tests/domain/scheduling](tests/domain/scheduling), [tests/features/gantt](tests/features/gantt), [tests/e2e](tests/e2e) | Scheduling unit/purity, Gantt adapter와 Chromium runtime·Project workflow 검증 |
 | [package.json](package.json), [package-lock.json](package-lock.json) | 실행 명령, 의존성·재설치 기준 |
 | [.github/workflows](.github/workflows), [.github/dependabot.yml](.github/dependabot.yml) | PR/main CI, main commit image, GHCR release와 pinned dependency update |
-| [Dockerfile](Dockerfile), [docker-compose.yml](docker-compose.yml), [.dockerignore](.dockerignore) | non-root image, single-instance SQLite volume와 build context 보호 |
+| [deploy/docker/Dockerfile](deploy/docker/Dockerfile), [deploy/compose.yml](deploy/compose.yml), [.dockerignore](.dockerignore) | non-root image, single-instance SQLite volume와 build context 보호 |
 | [AGENTS.md](AGENTS.md), [.codex](.codex) | 개발·협업 원칙과 전문 Agent 설정 |
 | `.next/`, `node_modules/` | 로컬 생성 빌드·의존성, Git 제외 |
 | `.data/mastergantt.sqlite3` 및 WAL/SHM | 위 개발 예제로 생성하는 실제 DB, Git 제외 |
@@ -503,3 +503,7 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 ## 9. README 유지관리 원칙
 
 각 작업·마일스톤 진행 시 프로젝트 개요, 실제 기술 스택, 설치·재설치·설정·실행 방법, 현재 구현 상태, 관련 산출물 링크를 함께 갱신한다. 실행 명령이나 환경 변수 사용이 바뀌면 해당 구현과 같은 변경에 README를 포함한다. 완료·계획·미검증 상태를 구분하고 상세 계약은 해당 문서를 연결하여 관리한다.
+
+## 저장소 파일 배치와 Compose 경로
+
+배포 파일은 [Dockerfile](deploy/docker/Dockerfile), [Compose](deploy/compose.yml), [entrypoint](deploy/docker/container-entrypoint.sh)에 모았다. 상세 경로·기존 설치 전환·검증 방법은 [REPOSITORY_STRUCTURE](docs/REPOSITORY_STRUCTURE.md)를 따른다. 루트에서 `docker compose --env-file .env -f deploy/compose.yml ...`을 사용하며 기존 `.env`를 덮어쓰지 않는다. **실행 전 `COMPOSE_PROJECT_NAME`을 기존 컨테이너의 project label과 동일하게 설정**하고 기존 `/data` volume도 유지한다. `.env.example`의 project 이름은 신규 설치 예시다. HTTP/HTTPS 정책은 #8의 별도 변경이며 이 파일 이동으로 바뀌지 않는다.

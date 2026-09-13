@@ -1,8 +1,12 @@
+# 기존 배포는 실행 중인 Compose project 이름을 유지한다. 신규 설치 예시는 .env.example 참고.
+name: ${COMPOSE_PROJECT_NAME:?Set COMPOSE_PROJECT_NAME to the existing project name}
+
 services:
   app:
     # 작은 SQLite 배포는 app replica 하나만 사용한다. replicas/별도 DB service를 추가하지 않는다.
     build:
-      context: .
+      context: ..
+      dockerfile: deploy/docker/Dockerfile
       args:
         VERSION: ${IMAGE_VERSION:-local}
     image: ${IMAGE_NAME:-mastergantt:local}

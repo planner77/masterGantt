@@ -10,6 +10,6 @@ updates:
       github-actions:
         patterns: ["*"]
   - package-ecosystem: docker
-    directory: /
+    directory: /deploy/docker
     schedule:
       interval: weekly

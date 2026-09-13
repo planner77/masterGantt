@@ -52,7 +52,7 @@ CI/CD와 GHCR:
 - Image 삭제/정리는 dry-run 목록과 명시적 승인 뒤 수행하며 rollback에 필요한 digest를 보존한다.
 
 기존 Docker/배포 책임:
-- Dockerfile, docker-compose.yml, .dockerignore, .env.example와 환경변수
+- deploy/docker/Dockerfile, deploy/compose.yml, .dockerignore, .env.example와 환경변수
 - SQLite persistent volume, file permission, non-root runtime와 container health check
 - Node runtime와 better-sqlite3 native module compatibility
 - Backup/restore, restart persistence와 deployment documentation
@@ -78,4 +78,6 @@ CI/CD와 GHCR:
 - Summary / Evidence / Root Cause / Changes / Verification / Risks / Rollback / Approval Needed / Related Issue-PR-Run-Digest 형식으로 보고한다.
 - Verification은 Local Fast Feedback / PR quality / PR E2E / PR Docker / Main GHCR digest / Environment-specific 항목을 분리한다.
 - PASS, FAIL, BLOCKED, NOT TESTED를 엄격히 구분하고 TOML 설정값을 실제 실행 model/effort 검증으로 과대 표시하지 않는다.
+
+저장소 배치 기준은 docs/REPOSITORY_STRUCTURE.md다. Dockerfile/Compose/entrypoint는 deploy/에 두고 빌드 context와 .dockerignore는 루트를 유지한다. Compose 경로 변경 시 기존 COMPOSE_PROJECT_NAME 및 MASTERGANTT_VOLUME_NAME을 보존하고, 실제 운영 volume 변경 없이 GitHub의 격리 Compose smoke를 수행한다.
 """
