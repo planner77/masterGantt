@@ -43,7 +43,7 @@ COPY --from=build --chown=mastergantt:mastergantt /app/db ./db
 COPY --from=build --chown=mastergantt:mastergantt /app/scripts/migrate.ts ./scripts/migrate.ts
 COPY --from=build --chown=mastergantt:mastergantt /app/scripts/validate-runtime-config.ts ./scripts/validate-runtime-config.ts
 COPY --from=build --chown=mastergantt:mastergantt /app/src ./src
-COPY --chown=mastergantt:mastergantt scripts/container-entrypoint.sh /usr/local/bin/container-entrypoint
+COPY --chown=mastergantt:mastergantt deploy/docker/container-entrypoint.sh /usr/local/bin/container-entrypoint
 
 USER mastergantt
 VOLUME ["/data"]

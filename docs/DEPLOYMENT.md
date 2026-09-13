@@ -2,7 +2,7 @@
 
 ## 1. 상태와 범위
 
-이 문서는 단일 SQLite 운영 환경의 배포·CI/CD 계약이다. W01에서 `.env.example`과 liveness route를, W02에서 SQLite 연결·SQL migration runner와 `npm run db:migrate`를 추가했고, CI/CD 단계에서 `Dockerfile`, `docker-compose.yml`, `.dockerignore`, non-root startup migration 및 GitHub Actions를 구현했다. container healthcheck는 migration·SQLite·foreign key·migration ledger를 검증하는 readiness endpoint를 사용한다.
+이 문서는 단일 SQLite 운영 환경의 배포·CI/CD 계약이다. W01에서 `.env.example`과 liveness route를, W02에서 SQLite 연결·SQL migration runner와 `npm run db:migrate`를 추가했고, CI/CD 단계에서 `deploy/docker/Dockerfile`, `deploy/compose.yml`, `.dockerignore`, non-root startup migration 및 GitHub Actions를 구현했다. container healthcheck는 migration·SQLite·foreign key·migration ledger를 검증하는 readiness endpoint를 사용한다.
 
 대상은 하나의 Next.js Node.js application과 하나의 SQLite database를 사용하는 소규모 운영 환경이다. SQLite 단계에서는 **application replica를 정확히 하나만** 실행한다. Redis, 별도 DB, Kubernetes, network filesystem을 이 설계에 추가하지 않는다.
 
@@ -104,8 +104,8 @@ Docker `HEALTHCHECK`와 Compose healthcheck는 `ready`를 호출한다. interval
 
 | 파일 | 최소 책임 | 포함하면 안 되는 것 |
 |---|---|---|
-| `Dockerfile` | pinned-at-build approved Node LTS candidate, same native builder/runtime platform, production dependency/build artifact, non-root user, `/data` declaration, application start | DB data, `.env`, secrets/PAT, host `node_modules` |
-| `docker-compose.yml` | single `app` service, named `/data` volume, port/proxy boundary, runtime env references, restart/healthcheck | second app replica, database service, source DB bind mount 기본값 |
+| `deploy/docker/Dockerfile` | pinned-at-build approved Node LTS candidate, same native builder/runtime platform, production dependency/build artifact, non-root user, `/data` declaration, application start | DB data, `.env`, secrets/PAT, host `node_modules` |
+| `deploy/compose.yml` | single `app` service, named `/data` volume, port/proxy boundary, runtime env references, restart/healthcheck | second app replica, database service, source DB bind mount 기본값 |
 | `.dockerignore` | `.git`, 모든 `.env*`, `node_modules`, `.next`, DB/WAL/SHM, backups, logs, coverage/test output 제외 | required source, lockfile, migrations |
 | `.env.example` | 환경변수 names와 개발용 예시; secret injection 위치 안내 | 실제 secret, 운영 domain, password, token |
 
@@ -218,12 +218,12 @@ Compose run은 `APP_BASE_URL`를 shell 또는 access-controlled Compose environm
 
 ```sh
 export APP_BASE_URL=https://gantt.company.local
-docker compose up --build -d
-docker compose restart
-docker compose ps
+docker compose --env-file .env -f deploy/compose.yml up --build -d
+docker compose --env-file .env -f deploy/compose.yml restart
+docker compose --env-file .env -f deploy/compose.yml ps
 ```
 
-`docker compose down`은 named volume을 삭제하지 않아 restart/replace 뒤 data가 남는다. `docker volume rm mastergantt-data`는 backup 확인 전 실행하면 안 되는 destructive operation이다. Host bind mount를 택하면 사전에 UID:GID `1001:1001`이 쓸 수 있게 준비한다.
+`docker compose --env-file .env -f deploy/compose.yml down`은 named volume을 삭제하지 않아 restart/replace 뒤 data가 남는다. `docker volume rm mastergantt-data`는 backup 확인 전 실행하면 안 되는 destructive operation이다. Host bind mount를 택하면 사전에 UID:GID `1001:1001`이 쓸 수 있게 준비한다.
 
 ### 현재 한계와 release owner 확인 사항
 
@@ -235,3 +235,7 @@ docker compose ps
 - D05에 따라 Private GitHub Artifact Attestation은 비활성으로 두고 `ENABLE_GITHUB_ATTESTATIONS`를 설정하지 않는다. BuildKit SBOM/provenance는 모든 publish에서 필수다.
 - release owner는 canonical hostname, TLS reverse proxy, backup destination/retention 및 action SHA pin maintenance policy를 결정한다.
 - Main commit workflow와 GHCR `ci-<SHA>` publish/digest pull, `v0.4.0` release publish/digest pull은 원격·로컬 PASS했다. 양쪽 BuildKit SPDX 2.3 SBOM과 SLSA provenance도 registry에서 조회했다.
+
+## Repository layout relocation (#12)
+
+현재 배포 경로와 기존 Compose 프로젝트/volume을 유지하는 전환 절차는 [REPOSITORY_STRUCTURE](REPOSITORY_STRUCTURE.md)를 따른다. CI의 Docker build 4개 참조와 Dependabot 경로를 함께 갱신하고 Docker gate에 `scripts/verify-compose-smoke.sh`를 추가했다. 새 Compose 경로의 config, startup/readiness, restart 및 강제 recreate 후 SQLite 보존을 격리된 CI 리소스로 검사한다. 기존 quality/E2E/runtime/registry 권한·검증 gate는 유지한다. 결과는 해당 PR/run/head의 실제 증거로 판정하며 과거 Wxx 기록을 이번 이동의 PASS로 전용하지 않는다.
