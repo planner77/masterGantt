@@ -1,12 +1,15 @@
 # 일괄 검증 대기 목록
 
-## 현재: PR #23 미해결 리뷰 후속
+## 현재: PR #24 review 경계 후속
 
-로컬 실행은 **NOT TESTED — 사용자 보류 유지**다. 이번 후속 PR의 원격 GitHub Actions 검증은 진행하며, 결과는 해당 head의 PR/run과 [PR23_FOLLOWUP.md](PR23_FOLLOWUP.md)에 안내한 근거 경로로 구분한다. 아래 과거 기록의 원격 실행 보류 문구는 이번 후속 PR에 적용하지 않는다.
+PR #24는 `820aeba800f48b035e4219f8094a5038593c8eb0`로 병합되었고 최종 PR [CI #52](https://github.com/planner77/masterGantt/actions/runs/34784330854)와 main [CI #53](https://github.com/planner77/masterGantt/actions/runs/34784810624)의 4개 job 및 immutable `ci-820aeba800f48b035e4219f8094a5038593c8eb0` image 게시·검증이 PASS했다. 이 증거는 새 375px compact header 경계와 문서 정합화 후속에는 적용하지 않는다.
+
+로컬 실행은 **NOT TESTED — 사용자 보류 유지**다. 새 후속 변경의 원격 GitHub Actions도 아직 **NOT TESTED**이며 해당 변경 head의 PR/run으로 별도 판정한다. 아래 과거 기록의 원격 실행 보류 문구는 현재 원격 정책을 대체하지 않는다.
 
 - [ ] 로컬 unit: 실제 `INVALID_CREDENTIALS` 보존 및 임의/존재하지 않는 오류 코드 차단.
 - [ ] 로컬 Chromium: 320/390/414/768/1440px 알림 버튼·badge·navigation 비중첩과 실제 링크 클릭.
 - [ ] 로컬 실제 API/clipboard: 잘못된 비밀번호 오류 코드 복사 및 입력 비밀번호 비노출.
+- [ ] 새 375×844 compact header 경계의 brand·navigation·알림 버튼/badge 비중첩과 실제 링크 클릭. 변경 head의 문서 link 및 원격 quality/E2E/Docker도 함께 확인.
 - [ ] 실제 사내 proxy, Windows clipboard/조직 브라우저 정책, 스크린리더와 최종 수동 UX. CI Chromium 성공만으로 완료 처리하지 않는다.
 
 ## 과거 보류 기록
