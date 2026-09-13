@@ -35,6 +35,7 @@ import {
   createTaskAddGateway,
   createTaskUpdateGateway,
   type LocalTaskAddCommand,
+  type TaskUpdateEvent,
 } from "./command-gateway";
 import {
   projectLinksToSvarLinks,
@@ -166,9 +167,8 @@ export function ProjectGantt({
   }, [mutationLocked]);
   const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks), [tasks]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
-  const onUpdateTask = useMemo(
+  const taskUpdateGateway = useMemo(
     () => createTaskUpdateGateway((local) => {
-      if (canonicalSyncDepthReference.current > 0 || !canCreateReference.current) return;
       const task = typeof local.taskId === "string" ? tasksById.get(local.taskId) : undefined;
       if (!task) return;
       const command = translateProjectTaskUpdate(local, task, calendar);
@@ -176,6 +176,12 @@ export function ProjectGantt({
     }),
     [calendar, onTaskCommand, tasksById],
   );
+  const onUpdateTask = useCallback((event: TaskUpdateEvent) => {
+    // Read mutable guards only when the widget dispatches an event, not
+    // through a callback passed to a factory during React rendering.
+    if (canonicalSyncDepthReference.current > 0 || !canCreateReference.current) return;
+    taskUpdateGateway(event);
+  }, [taskUpdateGateway]);
   const columns = useMemo(
     () => baseProjectColumns.map((column) => (
       column.id === "externalId"
@@ -247,7 +253,8 @@ export function ProjectGantt({
         }
         for (const task of plan.updatedTasks) {
           if (syncVersion !== canonicalSyncVersionReference.current) return;
-          const { id, open: _open, ...update } = task;
+          const { id, ...update } = task;
+          delete update.open;
           if (id !== undefined) {
             const prior = currentTaskById.get(id);
             await api.exec("update-task", { id, task: update, eventSource: "project-canonical-sync", skipUndo: true });
@@ -261,7 +268,8 @@ export function ProjectGantt({
         }
         for (const task of plan.addedTasks) {
           if (syncVersion !== canonicalSyncVersionReference.current) return;
-          const { id, open: _open, ...add } = task;
+          const { id, ...add } = task;
+          delete add.open;
           await api.exec("add-task", {
             id,
             // Installed Core reads the canonical ID from task.id when adding.
