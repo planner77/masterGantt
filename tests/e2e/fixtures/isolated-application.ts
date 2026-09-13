@@ -1,13 +1,15 @@
 import { test as base, expect, type Page } from "@playwright/test";
-import { spawn, type ChildProcess } from "node:child_process";
+import { execFile, spawn, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { createServer, type AddressInfo } from "node:net";
 import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
+import { promisify } from "node:util";
 
 const repositoryRoot = resolve(__dirname, "../../..");
 const startupMilliseconds = 90_000;
+const executeFile = promisify(execFile);
 
 async function unusedLoopbackPort(): Promise<number> {
   const server = createServer();
@@ -74,6 +76,22 @@ export const test = base.extend<{ isolatedApplication: string }>({
       const port = await unusedLoopbackPort();
       const origin = `http://127.0.0.1:${port}`;
       const deadline = Date.now() + startupMilliseconds;
+      const applicationEnvironment = {
+        ...process.env,
+        NODE_ENV: "development",
+        APP_BASE_URL: origin,
+        DATABASE_PATH: resolve(temporary, "database.sqlite3"),
+        NEXT_DIST_DIR: distName,
+      };
+      // Readiness is deliberately read-only/fileMustExist and cannot bootstrap
+      // an empty fixture. Use the existing CLI; never touch another database.
+      await executeFile(process.execPath, ["--import", "tsx", resolve(repositoryRoot, "scripts/migrate.ts")], {
+        cwd: repositoryRoot,
+        env: applicationEnvironment,
+        timeout: 30_000,
+        maxBuffer: 16_384,
+        windowsHide: true,
+      });
       let spawnError: Error | undefined;
       let output = "";
       child = spawn(process.execPath, [resolve(repositoryRoot, "node_modules/next/dist/bin/next"), "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
@@ -81,13 +99,7 @@ export const test = base.extend<{ isolatedApplication: string }>({
         detached: process.platform !== "win32",
         windowsHide: true,
         stdio: ["ignore", "pipe", "pipe"],
-        env: {
-          ...process.env,
-          NODE_ENV: "development",
-          APP_BASE_URL: origin,
-          DATABASE_PATH: resolve(temporary, "database.sqlite3"),
-          NEXT_DIST_DIR: distName,
-        },
+        env: applicationEnvironment,
       });
       child.once("error", (error) => { spawnError = error; });
       const application = child;
