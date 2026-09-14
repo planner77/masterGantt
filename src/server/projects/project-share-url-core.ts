@@ -7,10 +7,11 @@ export function buildProjectShareUrl(
   applicationBaseUrl: string | undefined,
   environment: string | undefined,
   publicId: string,
+  allowInsecureHttp?: string,
 ): string | null {
   if (!PUBLIC_ID_PATTERN.test(publicId)) return null;
   try {
-    const base = parseApplicationBaseUrl(applicationBaseUrl, environment);
+    const base = parseApplicationBaseUrl(applicationBaseUrl, environment, allowInsecureHttp);
     return new URL(`/projects/${encodeURIComponent(publicId)}`, base).href;
   } catch {
     // A missing/invalid deployment URL must not produce a misleading share link.

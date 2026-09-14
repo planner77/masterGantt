@@ -61,6 +61,8 @@ interface EditSessionServiceApi {
 type ServiceDependency = EditSessionServiceApi | (() => EditSessionServiceApi);
 
 interface CommonDependencies {
+  applicationBaseUrl: string | undefined;
+  allowInsecureHttp?: string;
   service: ServiceDependency;
   environment: string | undefined;
   requestId?: () => string;
@@ -97,9 +99,10 @@ function configurationError(): PublicApiError {
 function applicationUrl(
   configured: string | undefined,
   environment: string | undefined,
+  allowInsecureHttp?: string,
 ): URL {
   try {
-    return parseApplicationBaseUrl(configured, environment);
+    return parseApplicationBaseUrl(configured, environment, allowInsecureHttp);
   } catch (error) {
     if (error instanceof ConfigurationError) {
       throw configurationError();
@@ -174,6 +177,7 @@ export async function handleUnlockProject(
     const url = applicationUrl(
       dependencies.applicationBaseUrl,
       dependencies.environment,
+      dependencies.allowInsecureHttp,
     );
     requireOrigin(request, url);
     const raw = await readBoundedJson(request);
@@ -242,9 +246,11 @@ export function handleCurrentEditSession(
     if (!isCanonicalUuidV4(publicId)) {
       throw projectNotFound();
     }
+    const url = applicationUrl(dependencies.applicationBaseUrl, dependencies.environment, dependencies.allowInsecureHttp);
     const cookie = parseEditSessionCookie(
       request.headers.get("cookie"),
       dependencies.environment,
+      url,
     );
     const current = resolveService(dependencies.service).getCurrentEditSession(
       publicId,
@@ -275,6 +281,7 @@ export function handleLogoutProject(
     const url = applicationUrl(
       dependencies.applicationBaseUrl,
       dependencies.environment,
+      dependencies.allowInsecureHttp,
     );
     requireOrigin(request, url);
     if (!isCanonicalUuidV4(publicId)) {
@@ -283,6 +290,7 @@ export function handleLogoutProject(
     const cookie = parseEditSessionCookie(
       request.headers.get("cookie"),
       dependencies.environment,
+      url,
     );
     const result = resolveService(dependencies.service).logout(publicId, cookie);
     if (result.kind === "projectNotFound") {
@@ -311,6 +319,7 @@ export async function handleChangeEditPassword(
     const url = applicationUrl(
       dependencies.applicationBaseUrl,
       dependencies.environment,
+      dependencies.allowInsecureHttp,
     );
     requireOrigin(request, url);
     const raw = await readBoundedJson(request);
@@ -326,6 +335,7 @@ export async function handleChangeEditPassword(
     const cookie = parseEditSessionCookie(
       request.headers.get("cookie"),
       dependencies.environment,
+      url,
     );
     const service = resolveService(dependencies.service);
     const authorization = unwrapAuthorization(

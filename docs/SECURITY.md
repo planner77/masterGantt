@@ -1,5 +1,8 @@
 # Security
 
+> **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
+
+
 ## 1. Security Model
 
 이 문서는 Project별 Edit Password와 browser edit session을 사용하는 초기 보안 정책의 Source of Truth이다. W02에서 DB 격리·parameter binding을, W04에서 생성 bootstrap과 Direct Readonly를 구현했다. W05는 password verification, session consumption·revoke·rotation과 Project metadata 보호 mutation을, W07은 root Task/Milestone 보호 mutation을 구현했다. W24는 같은 서버 권한 경계 안에 Project 영구 삭제와 child hierarchy mutation을 추가했다. 자동화·독립 검증 범위와 후속 Link/Import 보안 경계는 각 검증 기록에서 구분한다.
@@ -32,7 +35,7 @@ Password policy의 초기 가정은 다음과 같다.
 
 - 최소 12자, 최대 UTF-8 1024 bytes
 - Unicode와 공백을 포함할 수 있으며 server가 trim 또는 Unicode normalization으로 원문을 바꾸지 않음
-- 전송은 HTTPS만 사용
+- 전송은 기본 HTTPS를 사용한다. Issue #8의 명시적 내부망 HTTP opt-in에서는 평문 전송 위험을 별도로 수용해야 한다.
 - Password를 URL, analytics, telemetry, log context에 넣지 않음
 
 조직 password 정책이 있으면 이 가정보다 우선한다.
@@ -77,13 +80,13 @@ SameSite=Strict;
 Max-Age=28800
 ```
 
-`Domain`은 설정하지 않는다. `__Host-` prefix는 `Secure`와 `Path=/` 조건을 만족할 때만 사용한다. Local HTTP 개발은 별도 비-prefix name을 사용하되 production에서 `Secure` 누락을 허용하지 않는다.
+`Domain`은 설정하지 않는다. `__Host-` prefix는 `Secure`와 `Path=/` 조건을 만족할 때만 사용한다. Local HTTP 개발과 명시적으로 허용한 production HTTP는 `mastergantt_edit`를 사용한다. HTTPS production에서는 `Secure`와 `__Host-` 이름을 항상 유지한다.
 
 하나의 Cookie는 현재 unlock session 하나를 나타내며 다른 Project mutation에는 사용할 수 없다. 여러 Project를 동시에 edit해야 한다는 명시적 UX 요구가 생기면 cookie name/path 전략 또는 server-side session collection을 재설계한다. Token을 JavaScript, localStorage, sessionStorage에 복사하지 않는다.
 
 다른 Project URL에서 logout을 호출했을 때 Cookie token이 소유 Project 기준으로 credential integrity, binding, revoke, auth-version, strict expiry를 모두 만족하는 경우에는 해당 유효 session과 root Cookie를 보존한다. 단순히 session row가 존재하는 것만으로 보존하지 않으며 expired/revoked/auth-version-invalid/corrupt-owner/unknown token은 대상 Project를 변경하지 않고 Cookie만 만료한다.
 
-Cookie serializer는 production HTTPS에서 `__Host-mastergantt_edit`, `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age=28800`, Domain 없음으로 검증했다. Local HTTP는 `mastergantt_edit` 이름과 Secure 없음으로 분리한다. Cookie header는 8 KiB·100 pair 상한과 중복/형식 검사를 적용한다. Direct snapshot GET은 Cookie가 있어도 계속 Readonly이고 별도 current-session GET만 edit 표시를 동기화한다.
+Cookie serializer는 production HTTPS에서 `__Host-mastergantt_edit`, `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age=28800`, Domain 없음으로 검증했다. HTTP는 개발/명시적 production opt-in에서 `mastergantt_edit` 이름과 Secure 없음으로 분리한다. Cookie header는 8 KiB·100 pair 상한과 중복/형식 검사를 적용한다. Direct snapshot GET은 Cookie가 있어도 계속 Readonly이고 별도 current-session GET만 edit 표시를 동기화한다.
 
 ## 4. Server-side Authorization
 

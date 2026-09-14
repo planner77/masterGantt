@@ -15,6 +15,7 @@ export APP_BASE_URL="https://gantt.example.invalid"
 export HOST_PORT="0"
 export TRUST_PROXY="false"
 export LOG_LEVEL="info"
+export ALLOW_INSECURE_HTTP="false"
 owned=false
 
 dc() { docker compose --env-file /dev/null -f "$root/deploy/compose.yml" "$@"; }
@@ -55,7 +56,8 @@ assert app['environment']['NODE_ENV'] == 'production'
 assert app['environment']['DATABASE_PATH'] == '/data/mastergantt.sqlite3'
 assert app['environment']['APP_BASE_URL'] == os.environ['APP_BASE_URL']
 assert str(app['environment']['PORT']) == '3000'
-assert str(app['environment']['SESSION_COOKIE_SECURE']).lower() == 'true'
+assert str(app['environment']['ALLOW_INSECURE_HTTP']).lower() == 'false'
+assert 'SESSION_COOKIE_SECURE' not in app['environment']
 assert len(app['ports']) == 1
 assert app['ports'][0]['host_ip'] == '127.0.0.1'
 assert app['ports'][0]['target'] == 3000

@@ -8,7 +8,9 @@ export class ConfigurationError extends Error {
 export function parseApplicationBaseUrl(
   configuredValue: string | undefined,
   environment: string | undefined,
+  allowInsecureHttp?: string,
 ): URL {
+  const allowHttp = parseAllowInsecureHttp(allowInsecureHttp);
   if (!configuredValue || configuredValue.trim() !== configuredValue) {
     throw new ConfigurationError("APP_BASE_URL is missing or invalid.");
   }
@@ -22,7 +24,7 @@ export function parseApplicationBaseUrl(
 
   if (
     (url.protocol !== "http:" && url.protocol !== "https:") ||
-    (environment === "production" && url.protocol !== "https:") ||
+    (environment === "production" && url.protocol === "http:" && !allowHttp) ||
     url.username !== "" ||
     url.password !== "" ||
     url.pathname !== "/" ||
@@ -59,4 +61,20 @@ export function isExactAllowedOrigin(
   } catch {
     return false;
   }
+}
+
+/** Only a server-side deployment value may opt into clear-text production HTTP. */
+export function parseAllowInsecureHttp(value: string | undefined): boolean {
+  if (value === undefined || value === "false") return false;
+  if (value === "true") return true;
+  throw new ConfigurationError("ALLOW_INSECURE_HTTP must be true or false.");
+}
+
+/** Mapping only; callers validate inside their normal error boundary. */
+export function readApplicationConfiguration(env: Readonly<Record<string, string | undefined>>) {
+  return {
+    applicationBaseUrl: env.APP_BASE_URL,
+    environment: env.NODE_ENV,
+    allowInsecureHttp: env.ALLOW_INSECURE_HTTP,
+  };
 }

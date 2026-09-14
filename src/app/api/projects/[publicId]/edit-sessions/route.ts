@@ -1,3 +1,4 @@
+import { readApplicationConfiguration } from "@/server/security/origin-core";
 import { getProjectService } from "@/server/projects/project-service";
 import { handleUnlockProject } from "@/server/projects/edit-session-handlers-core";
 import {
@@ -19,8 +20,7 @@ export async function POST(
   const { publicId } = await context.params;
   return handleUnlockProject(request, publicId, {
     service: getProjectService,
-    applicationBaseUrl: process.env.APP_BASE_URL,
-    environment: process.env.NODE_ENV,
+    ...readApplicationConfiguration(process.env),
     globalRateLimiter: unlockGlobalRateLimiter,
     projectRateLimiter: unlockProjectRateLimiter,
   });

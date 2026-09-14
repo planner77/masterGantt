@@ -1,3 +1,4 @@
+import { readApplicationConfiguration } from "../security/origin-core";
 import "server-only";
 
 import { join } from "node:path";
@@ -8,8 +9,7 @@ import { checkConfiguredReadiness } from "./readiness-service-core";
 export function getReadiness(): ReadinessResult {
   return checkConfiguredReadiness({
     databasePath: process.env.DATABASE_PATH,
-    applicationBaseUrl: process.env.APP_BASE_URL,
-    environment: process.env.NODE_ENV,
+    ...readApplicationConfiguration(process.env),
     migrationsDirectory: join(process.cwd(), "db", "migrations"),
   });
 }

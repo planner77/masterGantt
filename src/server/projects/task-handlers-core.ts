@@ -61,6 +61,7 @@ type ServiceDependency = TaskServiceApi | (() => TaskServiceApi);
 export interface TaskHandlerDependencies {
   service: ServiceDependency;
   applicationBaseUrl: string | undefined;
+  allowInsecureHttp?: string;
   environment: string | undefined;
   requestId?: () => string;
 }
@@ -74,6 +75,7 @@ function requireApplicationUrl(dependencies: TaskHandlerDependencies): URL {
     return parseApplicationBaseUrl(
       dependencies.applicationBaseUrl,
       dependencies.environment,
+      dependencies.allowInsecureHttp,
     );
   } catch (error) {
     if (error instanceof ConfigurationError) {
@@ -102,8 +104,9 @@ function authorize(
   publicId: string,
   service: TaskServiceApi,
   environment: string | undefined,
+  applicationUrl: URL,
 ): AuthorizedEditSession {
-  const cookie = parseEditSessionCookie(request.headers.get("cookie"), environment);
+  const cookie = parseEditSessionCookie(request.headers.get("cookie"), environment, applicationUrl);
   const result = service.authorize(
     publicId,
     cookie.state === "present" ? cookie.rawToken : undefined,
@@ -239,7 +242,8 @@ export async function handleCreateTask(
 ): Promise<Response> {
   const requestId = (dependencies.requestId ?? randomUUID)();
   try {
-    requireOrigin(request, requireApplicationUrl(dependencies));
+    const applicationUrl = requireApplicationUrl(dependencies);
+    requireOrigin(request, applicationUrl);
     const raw = await readBoundedJson(request);
     const parsed = parseCreateTaskInput(raw);
     if (!parsed.success) {
@@ -256,6 +260,7 @@ export async function handleCreateTask(
       publicId,
       service,
       dependencies.environment,
+      applicationUrl,
     );
     const expectedRevision = parseRequiredIfMatch(request);
     return success(
@@ -275,7 +280,8 @@ export async function handleUpdateTask(
 ): Promise<Response> {
   const requestId = (dependencies.requestId ?? randomUUID)();
   try {
-    requireOrigin(request, requireApplicationUrl(dependencies));
+    const applicationUrl = requireApplicationUrl(dependencies);
+    requireOrigin(request, applicationUrl);
     const raw = await readBoundedJson(request);
     const parsed = parseUpdateTaskInput(raw);
     if (!parsed.success) {
@@ -292,6 +298,7 @@ export async function handleUpdateTask(
       publicId,
       service,
       dependencies.environment,
+      applicationUrl,
     );
     const expectedRevision = parseRequiredIfMatch(request);
     if (!isCanonicalUuidV4(taskPublicId)) throw taskNotFound();
@@ -317,13 +324,15 @@ export function handleDeleteTask(
 ): Response {
   const requestId = (dependencies.requestId ?? randomUUID)();
   try {
-    requireOrigin(request, requireApplicationUrl(dependencies));
+    const applicationUrl = requireApplicationUrl(dependencies);
+    requireOrigin(request, applicationUrl);
     const service = resolveService(dependencies.service);
     const authorization = authorize(
       request,
       publicId,
       service,
       dependencies.environment,
+      applicationUrl,
     );
     const expectedRevision = parseRequiredIfMatch(request);
     if (!isCanonicalUuidV4(taskPublicId)) throw taskNotFound();

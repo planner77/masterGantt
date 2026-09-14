@@ -1,3 +1,4 @@
+import { readApplicationConfiguration } from "@/server/security/origin-core";
 import { getProjectService } from "@/server/projects/project-service";
 import { handleChangeEditPassword } from "@/server/projects/edit-session-handlers-core";
 
@@ -15,7 +16,6 @@ export async function PUT(
   const { publicId } = await context.params;
   return handleChangeEditPassword(request, publicId, {
     service: getProjectService,
-    applicationBaseUrl: process.env.APP_BASE_URL,
-    environment: process.env.NODE_ENV,
+    ...readApplicationConfiguration(process.env),
   });
 }

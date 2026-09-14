@@ -10,7 +10,7 @@ export default async function ProjectPage({
   params,
 }: Readonly<{ params: Promise<{ publicId: string }> }>) {
   const { publicId } = await params;
-  const projectUrl = buildProjectShareUrl(process.env.APP_BASE_URL, process.env.NODE_ENV, publicId);
+  const projectUrl = buildProjectShareUrl(process.env.APP_BASE_URL, process.env.NODE_ENV, publicId, process.env.ALLOW_INSECURE_HTTP);
   return <div className="project-page-shell">
     <ProjectReadonlyView key={publicId} publicId={publicId} projectUrl={projectUrl} />
   </div>;

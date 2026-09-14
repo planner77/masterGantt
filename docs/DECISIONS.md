@@ -69,3 +69,7 @@ Agent 초안은 바로 완료로 처리하지 않는다. Manager는 공동 계�
 ## 구현 시작과 사용자 판단
 
 W01–W07 기반과 Project 생성·Direct Readonly·edit authorization·Calendar/Leaf Scheduling·root Task persistence vertical slice를 구현했다. 사용자 요청에 따라 W20 CI/CD와 Semantic Container Release를 W08보다 먼저 진행하고 완료 후 W08 Hierarchy Summary and WBS로 복귀한다. 비용·데이터 손실·조직 정책·대규모 Architecture/Workflow 변경이 생기면 해당 작업 전에 판단을 요청한다. 아직 실제 Workbook이나 운영 환경을 시험하지 않았으므로 이를 이유로 다른 독립 기반 작업을 막지 않는다.
+
+## Issue #8 — 내부망 production HTTP의 명시적 허용 (2026-09-14)
+
+사용자 요구에 따라 HTTPS 기본값은 유지하면서 `ALLOW_INSECURE_HTTP=true` opt-in을 채택한다. HTTP URL만 지정하거나 빈/잘못된 boolean 값이면 fail-closed. 요청 Host/Origin/forwarded header로 설정을 변경하지 않는다. HTTP 전송은 암호화되지 않으므로 조직 승인·네트워크 접근 제한이 별도로 필요하며 HTTPS와 동등한 보안으로 보지 않는다. 쿠키는 포트별로 격리되지 않는다. 운영 전환은 기존 Compose 프로젝트·volume 보존 및 재로그인을 전제로 한다. 코드/브라우저 검증은 [HTTP_OPERATION](HTTP_OPERATION.md)에 정의하고 실제 PASS는 PR/run/head 증거로 판단한다.

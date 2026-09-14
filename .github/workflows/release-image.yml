@@ -125,6 +125,17 @@ jobs:
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: 릴리스 후보 HTTP·HTTPS 브라우저 검증
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: 릴리스 후보 전송 정책 회귀 검사
+        run: |
+          npm ci
+          npx --no-install playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install --yes nginx libnss3-tools
+          bash scripts/verify-transport-smoke.sh mastergantt:release-candidate
       - name: Verify candidate image content policy
         run: sh scripts/verify-image-policy.sh mastergantt:release-candidate
       - name: Verify candidate migration, readiness, and SQLite restart persistence
@@ -133,7 +144,6 @@ jobs:
           set -euo pipefail
           docker run --detach --name mastergantt-release-candidate \
             --env APP_BASE_URL=https://gantt.example.invalid \
-            --env SESSION_COOKIE_SECURE=true \
             --publish 127.0.0.1:3000:3000 \
             mastergantt:release-candidate
           wait_for_ready() {
@@ -225,7 +235,6 @@ jobs:
           docker pull "$RELEASE_IMAGE"
           docker run --detach --name mastergantt-release-smoke \
             --env APP_BASE_URL=https://gantt.example.invalid \
-            --env SESSION_COOKIE_SECURE=true \
             --publish 127.0.0.1:3000:3000 \
             "$RELEASE_IMAGE"
       - name: Verify published image readiness and SQLite restart persistence

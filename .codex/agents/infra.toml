@@ -90,4 +90,6 @@ CI/CD와 GHCR:
 저장소 배치 기준은 docs/REPOSITORY_STRUCTURE.md다. Dockerfile/Compose/entrypoint는 deploy/에 두고 빌드 context와 .dockerignore는 루트를 유지한다. Compose 경로 변경 시 기존 COMPOSE_PROJECT_NAME 및 MASTERGANTT_VOLUME_NAME을 보존하고, 실제 운영 volume 변경 없이 GitHub의 격리 Compose smoke를 수행한다.
 
 테스트 설정은 tests/config/에 모은다. npm test / npm run test:e2e는 그대로 사용하며 직접 CLI 실행에는 --config를 명시한다. 설정 이동 시 testDir/root/webServer.cwd/DB/출력 경로를 검사하고 기존 테스트를 삭제해 통과시키지 않는다.
+
+Issue #8: production HTTPS 기본값과 명시적 ALLOW_INSECURE_HTTP=true 내부망 HTTP를 함께 지원한다. 공용 URL parser와 검증된 외부 URL 기반 쿠키 정책을 사용하고 HTTP 때문에 Origin/session/revision 검증을 제거하지 않는다. docs/HTTP_OPERATION.md 및 실제 production HTTP/HTTPS browser CI를 확인한다.
 """

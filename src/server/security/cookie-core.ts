@@ -8,17 +8,16 @@ export type ParsedEditSessionCookie =
   | { state: "malformed" }
   | { state: "present"; rawToken: string };
 
-export function editSessionCookieName(environment: string | undefined): string {
-  return environment === "production"
+export function editSessionCookieName(environment: string | undefined, applicationUrl: URL): string {
+  return environment === "production" && applicationUrl.protocol === "https:"
     ? "__Host-mastergantt_edit"
     : "mastergantt_edit";
 }
 
 function cookieAttributes(
   applicationUrl: URL,
-  environment: string | undefined,
 ): string[] {
-  const secure = environment === "production" || applicationUrl.protocol === "https:";
+  const secure = applicationUrl.protocol === "https:";
   const attributes = ["Path=/", "HttpOnly", "SameSite=Strict"];
   if (secure) {
     attributes.push("Secure");
@@ -35,10 +34,10 @@ export function serializeEditSessionCookie(
     throw new Error("Edit session token has an invalid format.");
   }
 
-  const name = editSessionCookieName(environment);
+  const name = editSessionCookieName(environment, applicationUrl);
   const attributes = [
     `${name}=${rawToken}`,
-    ...cookieAttributes(applicationUrl, environment),
+    ...cookieAttributes(applicationUrl),
   ];
 
   const secure = attributes.at(-1) === "Secure";
@@ -56,16 +55,17 @@ export function serializeExpiredEditSessionCookie(
   environment: string | undefined,
 ): string {
   return [
-    `${editSessionCookieName(environment)}=`,
+    `${editSessionCookieName(environment, applicationUrl)}=`,
     "Max-Age=0",
     "Expires=Thu, 01 Jan 1970 00:00:00 GMT",
-    ...cookieAttributes(applicationUrl, environment),
+    ...cookieAttributes(applicationUrl),
   ].join("; ");
 }
 
 export function parseEditSessionCookie(
   header: string | null,
   environment: string | undefined,
+  applicationUrl: URL,
 ): ParsedEditSessionCookie {
   if (header === null || header === "") {
     return { state: "absent" };
@@ -79,7 +79,7 @@ export function parseEditSessionCookie(
     return { state: "malformed" };
   }
 
-  const targetName = editSessionCookieName(environment);
+  const targetName = editSessionCookieName(environment, applicationUrl);
   let target: string | undefined;
   for (const pair of pairs) {
     const trimmed = pair.trim();

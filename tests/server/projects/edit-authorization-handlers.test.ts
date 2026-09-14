@@ -198,7 +198,7 @@ describe("W05 edit session handlers", () => {
     const response = handleCurrentEditSession(
       new Request(`https://gantt.example.com/api/projects/${publicId}/edit-sessions/current`, { headers: { Cookie: cookie } }),
       publicId,
-      { service: api, environment: "production", requestId: () => "request-id" },
+      { ...common, service: api },
     );
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ data: { permission: "edit", expiresAt: authorization.expiresAt } });
