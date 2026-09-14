@@ -7,9 +7,9 @@
 ## 기준과 분석
 
 - 기준 `main`: `1415ad24718fe679ab9464292263cb6a45f25ed9`, application `0.8.0`.
-- `src/components/workspace-shell.tsx`가 주요 메뉴에 `/`의 `프로젝트`와 `/gantt-demo`의 `Gantt 데모`를 노출한다. 해당 데모 링크에는 별도 이벤트 핸들러가 없다.
+- `src/components/workspace-shell.tsx`가 주요 메뉴에 `/`의 `프로젝트`와 `/gantt-demo`의 `Gantt 데모`를 노출했다. 해당 데모 링크에는 별도 이벤트 핸들러가 없었다.
 - `/gantt-demo` route와 `src/features/gantt/gantt-demo.tsx`는 단순 운영 기능이 아니라 `tests/e2e/gantt-demo.spec.ts`의 SVAR browser integration 및 server/browser timezone·hydration 검증 fixture로 사용된다. 따라서 route/fixture 삭제는 Issue #33의 UI 정리보다 검증 범위를 불필요하게 축소한다.
-- `tests/e2e/project-notifications.spec.ts`의 10개 viewport 헤더 회귀는 현재 `Gantt 데모` 링크 존재 및 클릭을 전제로 한다. 메뉴 제거와 함께 기대값을 프로젝트 메뉴 1개, 데모 링크 0개로 변경해야 한다.
+- `tests/e2e/project-notifications.spec.ts`의 10개 viewport 헤더 회귀는 기존에 `Gantt 데모` 링크 존재 및 클릭을 전제로 했으므로, 메뉴 제거와 함께 프로젝트 메뉴 1개 및 데모 링크 0개 계약으로 갱신했다.
 
 ## 구현 결정
 
@@ -20,7 +20,7 @@
 
 ## 버저닝
 
-현재 `0.8.0`에서 **`0.8.1` PATCH**로 증가한다. 신규 기능/API 추가가 아니라 운영 UI에 잘못 노출된 데모 진입점을 제거하는 호환성 유지 수정으로 판단한다. `package.json`과 `package-lock.json`은 같은 버전을 사용한다.
+`0.8.0`에서 **`0.8.1` PATCH**로 증가했다. 신규 기능/API 추가가 아니라 운영 UI에 잘못 노출된 데모 진입점을 제거하는 호환성 유지 수정으로 판단했다. `package.json`과 `package-lock.json`은 모두 `0.8.1`로 동기화했다.
 
 ## 검증 계획
 
@@ -28,7 +28,7 @@
 - TypeScript typecheck / ESLint / 전체 Vitest / npm audit / Markdown link / production build
 - Chromium 전체 E2E: 특히 헤더 10개 viewport와 기존 `/gantt-demo` fixture E2E가 함께 통과해야 한다.
 - Docker build/runtime/SQLite persistence 및 production HTTP·HTTPS transport 회귀
-- PR head의 GitHub Actions 결과를 공식 완료 근거로 사용한다. 실행 전 상태는 **NOT TESTED**다.
+- PR head의 GitHub Actions 결과를 공식 완료 근거로 사용한다.
 
 ## 범위 밖
 
@@ -36,7 +36,18 @@
 - SVAR fixture 제거 또는 테스트 축소
 - 다른 헤더 메뉴의 재설계
 - Gantt 기능/API/일정 엔진 변경
+- `main` 병합 및 `v0.8.1` 릴리스
 
-## 결과
+## 원격 검증 결과
 
-PR 및 GitHub Actions 결과는 최종 head 검증 후 이 문서에 갱신한다.
+PR #42의 구현 head `10ce5840514f4c5caf7369ff8014d1cbf572654e`에서 CI Run #128 (`34905942327`)을 실행했다.
+
+- release version consistency: **PASS**
+- TypeScript typecheck / ESLint / test discovery: **PASS**
+- 전체 Vitest / npm audit / Markdown link / shell syntax / production build: **PASS**
+- Chromium 전체 E2E: **PASS** — 변경한 10개 responsive header 계약과 유지한 `/gantt-demo` fixture를 포함한다.
+- Docker build/runtime smoke, image policy, SQLite restart persistence: **PASS**
+- production HTTP·HTTPS browser transport 및 relocated Compose persistence: **PASS**
+- PR에서는 immutable main commit image 게시 job이 정책대로 **SKIPPED**되었다.
+
+이 문서 동기화 이후 PR의 최종 head에도 동일 GitHub Actions gate를 다시 적용하며, 최종 head/run 좌표는 PR 본문에 기록한다. 구현 범위에 대한 현재 판정은 **PASS**다.
