@@ -402,7 +402,7 @@ server {
 | `proxy_*_timeout` | 연결 수립 및 읽기·쓰기 대기 한도. read/send timeout은 요청 전체 실행 시간의 상한이 아니라 연속 I/O 사이의 대기 한도다. 502/504를 무조건 timeout 증가로 해결하지 않는다. |
 | `access_log`, `error_log` | 요청 상태·upstream 상태·처리 시간을 확인한다. 로그 파일의 접근 권한·보관·순환 정책도 설정하고 비밀번호·세션 원문을 추가 기록하지 않는다. |
 
-운영은 `npm run dev`가 아닌 production 서버를 사용한다. 현재 운영 경로에 개발용 HMR/WebSocket 설정을 필수로 추가할 필요는 없다. 추후 WebSocket 기능을 도입하면 Upgrade 처리를 별도로 검토한다. CORS `*`나 `proxy_set_header Origin ...`으로 인증 실패를 우회하지 않는다. 앱이 발행하는 `__Host-mastergantt_edit`의 `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/` 속성을 유지하고 `Domain`을 추가하지 않는다.
+운영은 `npm run dev`가 아닌 production 서버를 사용한다. 현재 운영 경로에 개발용 HMR/WebSocket 설정을 필수로 추가할 필요는 없다. 추후 WebSocket 기능을 도입하면 Upgrade 처리를 별도로 검토한다. CORS `*`나 `proxy_set_header Origin ...`으로 인증 실패를 우회하지 않는다. HTTPS production에서 앱이 발행하는 `__Host-mastergantt_edit`의 `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/` 속성을 유지하고 `Domain`을 추가하지 않는다.
 
 #### 3) IP 주소 + 비표준 HTTPS 포트로 접속하는 경우
 

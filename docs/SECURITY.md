@@ -35,7 +35,7 @@ Password policy의 초기 가정은 다음과 같다.
 
 - 최소 12자, 최대 UTF-8 1024 bytes
 - Unicode와 공백을 포함할 수 있으며 server가 trim 또는 Unicode normalization으로 원문을 바꾸지 않음
-- 전송은 HTTPS만 사용
+- 전송은 기본 HTTPS를 사용한다. Issue #8의 명시적 내부망 HTTP opt-in에서는 평문 전송 위험을 별도로 수용해야 한다.
 - Password를 URL, analytics, telemetry, log context에 넣지 않음
 
 조직 password 정책이 있으면 이 가정보다 우선한다.
@@ -80,13 +80,13 @@ SameSite=Strict;
 Max-Age=28800
 ```
 
-`Domain`은 설정하지 않는다. `__Host-` prefix는 `Secure`와 `Path=/` 조건을 만족할 때만 사용한다. Local HTTP 개발은 별도 비-prefix name을 사용하되 production에서 `Secure` 누락을 허용하지 않는다.
+`Domain`은 설정하지 않는다. `__Host-` prefix는 `Secure`와 `Path=/` 조건을 만족할 때만 사용한다. Local HTTP 개발과 명시적으로 허용한 production HTTP는 `mastergantt_edit`를 사용한다. HTTPS production에서는 `Secure`와 `__Host-` 이름을 항상 유지한다.
 
 하나의 Cookie는 현재 unlock session 하나를 나타내며 다른 Project mutation에는 사용할 수 없다. 여러 Project를 동시에 edit해야 한다는 명시적 UX 요구가 생기면 cookie name/path 전략 또는 server-side session collection을 재설계한다. Token을 JavaScript, localStorage, sessionStorage에 복사하지 않는다.
 
 다른 Project URL에서 logout을 호출했을 때 Cookie token이 소유 Project 기준으로 credential integrity, binding, revoke, auth-version, strict expiry를 모두 만족하는 경우에는 해당 유효 session과 root Cookie를 보존한다. 단순히 session row가 존재하는 것만으로 보존하지 않으며 expired/revoked/auth-version-invalid/corrupt-owner/unknown token은 대상 Project를 변경하지 않고 Cookie만 만료한다.
 
-Cookie serializer는 production HTTPS에서 `__Host-mastergantt_edit`, `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age=28800`, Domain 없음으로 검증했다. Local HTTP는 `mastergantt_edit` 이름과 Secure 없음으로 분리한다. Cookie header는 8 KiB·100 pair 상한과 중복/형식 검사를 적용한다. Direct snapshot GET은 Cookie가 있어도 계속 Readonly이고 별도 current-session GET만 edit 표시를 동기화한다.
+Cookie serializer는 production HTTPS에서 `__Host-mastergantt_edit`, `Secure`, `HttpOnly`, `SameSite=Strict`, `Path=/`, `Max-Age=28800`, Domain 없음으로 검증했다. HTTP는 개발/명시적 production opt-in에서 `mastergantt_edit` 이름과 Secure 없음으로 분리한다. Cookie header는 8 KiB·100 pair 상한과 중복/형식 검사를 적용한다. Direct snapshot GET은 Cookie가 있어도 계속 Readonly이고 별도 current-session GET만 edit 표시를 동기화한다.
 
 ## 4. Server-side Authorization
 

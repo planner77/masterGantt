@@ -26,7 +26,7 @@ HTTPS reverse proxy / load balancer
   consistent backup → 접근 통제된 별도 host/storage
 ```
 
-- Reverse proxy는 TLS 종료, public hostname 전달, HTTP→HTTPS redirect를 담당한다. application은 proxy가 신뢰된 배포 경계에 있을 때만 forwarded header를 신뢰한다.
+- Reverse proxy는 public hostname과 원본 요청을 전달한다. HTTPS 구성에서는 TLS 종료와 HTTP→HTTPS redirect를 적용하고, 명시적 HTTP 구성에서는 인증서·HTTPS redirect를 요구하지 않는다. application은 proxy가 신뢰된 배포 경계에 있을 때만 forwarded header를 신뢰한다.
 - SQLite 파일과 WAL/SHM sidecar는 image나 source bind mount가 아닌 `/data` persistent volume에만 둔다. Docker named volume은 container engine이 관리하는 persistent data store이며 Compose가 service에 명시적으로 mount한다. [Docker Compose volumes](https://docs.docker.com/reference/compose-file/volumes/)
 - 한 DB volume을 여러 application container가 공유하지 않는다. SQLite WAL은 같은 host의 shared-memory 사용과 sidecar 파일을 전제하므로 network filesystem이나 replica 확장은 별도 적합성 검토 및 DB 전환 결정이 필요하다. [SQLite WAL](https://www.sqlite.org/wal.html)
 - service는 `restart: unless-stopped` 후보를 사용한다. 자동 restart는 장애 원인을 해결하지 않으므로 health/log/backup 관측과 함께 사용한다.
@@ -96,12 +96,12 @@ Docker `HEALTHCHECK`와 Compose healthcheck는 `ready`를 호출한다. interval
 | `NODE_ENV` | 예 | production에서는 `production` |
 | `PORT` | 예 | application listen port; reverse proxy만 public expose |
 | `DATABASE_PATH` | 예 | production은 `/data/` 아래 absolute SQLite filename |
-| `APP_BASE_URL` | 예 | canonical public `https` origin; trailing slash/path/query/fragment/userinfo 금지 |
+| `APP_BASE_URL` | 예 | canonical 외부 origin. 기본 HTTPS; ALLOW_INSECURE_HTTP=true일 때 HTTP 허용. trailing slash/path/query/fragment/userinfo 금지 |
+| `ALLOW_INSECURE_HTTP` | 선택 | 미설정/false는 HTTPS-only, true만 HTTP 허용. 빈 값/기타 리터럴은 설정 오류 |
 | `TRUST_PROXY` | 예약 | 현재 미사용. W16에서 trusted TLS reverse proxy 경계와 함께 활성화 여부 결정 |
-| `SESSION_COOKIE_SECURE` | 예약 | 현재 미사용. Cookie Secure는 `NODE_ENV`와 `APP_BASE_URL`에서 강제 |
 | `LOG_LEVEL` | 예약 | 현재 미사용. 도입 시 password, session, Cookie, authorization header, DB record를 log하지 않음 |
 
-`APP_BASE_URL`은 URL parser로 검증한다. protocol은 정확히 `https:`, hostname은 deployment owner가 승인한 canonical public host, port는 HTTPS default 또는 승인한 명시 port만 허용하며 URL origin과 입력이 동일해야 한다. 이 값으로만 `${APP_BASE_URL}/projects/${public_id}`를 만들고, request `Host`/forwarded host나 user input으로 export hyperlink를 만들지 않는다. public ID는 secret이 아니며 URL에 password/session을 넣지 않는다.
+`APP_BASE_URL`은 URL parser로 검증한다. protocol은 기본 `https:`이며 명시적 `ALLOW_INSECURE_HTTP=true`에서만 `http:`도 허용한다. 나머지 검증에서 hostname은 deployment owner가 승인한 canonical public host, port는 선택한 HTTP/HTTPS scheme의 default 또는 승인한 명시 port만 허용하며 URL origin과 입력이 동일해야 한다. 이 값으로만 `${APP_BASE_URL}/projects/${public_id}`를 만들고, request `Host`/forwarded host나 user input으로 export hyperlink를 만들지 않는다. public ID는 secret이 아니며 URL에 password/session을 넣지 않는다.
 
 ## 7. 구현 파일별 최소 책임
 
