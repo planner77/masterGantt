@@ -1,0 +1,43 @@
+name: Issue 31 버전 lockfile 일회성 동기화
+
+on:
+  push:
+    branches:
+      - feat/issue-31-task-context-delete
+
+permissions:
+  contents: write
+
+jobs:
+  sync-version:
+    name: package-lock 버전 동기화
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: feat/issue-31-task-context-delete
+          fetch-depth: 0
+      - name: package-lock 버전 맞춤
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const manifest = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const lockfile = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          lockfile.version = manifest.version;
+          lockfile.packages[''].version = manifest.version;
+          fs.writeFileSync('package-lock.json', `${JSON.stringify(lockfile, null, 2)}\n`);
+          NODE
+      - name: 변경이 있을 때 lockfile 커밋
+        shell: bash
+        run: |
+          if git diff --quiet -- package-lock.json; then
+            echo "package-lock.json은 이미 package.json과 일치합니다."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "chore: package-lock 버전을 0.7.0으로 동기화"
+          git push origin HEAD:feat/issue-31-task-context-delete
