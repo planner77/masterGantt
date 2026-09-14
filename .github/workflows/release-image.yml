@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - "v*"
+  # 연결된 운영 도구가 GITHUB_TOKEN으로 annotated tag를 만든 경우 push 이벤트가
+  # 새 workflow를 재귀 실행하지 않으므로, 같은 tag ref를 명시해 수동 실행할 수 있다.
+  # prepare job의 SemVer/package 일치 및 annotated tag 검증은 동일하게 적용된다.
+  workflow_dispatch:
 
 # A release tag must never have its publish run cancelled by a later push.
 concurrency:
