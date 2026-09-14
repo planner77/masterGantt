@@ -9,6 +9,14 @@
 
 ## 판정과 증거
 
+### Issue #31 작업 subtree 삭제
+
+- Unit: 실제 taskId 기준 자손 탐색이 모든 깊이를 포함하고 형제를 제외하며 cycle/unknown을 안전하게 처리한다.
+- SQLite service: subtree를 child-first로 같은 transaction에서 삭제하고 남은 Summary를 재계산한다. root 전체 subtree는 허용하되 선택 범위 밖 Summary가 비면 `EMPTY_SUMMARY_NOT_ALLOWED`로 rollback한다.
+- API/security: 기본 DELETE는 기존 단건 의미를 유지하고 `includeDescendants=true`만 subtree를 활성화한다. session/Origin/If-Match/Project isolation, stale 412, Link 포함 409, revision 정확히 1 증가를 검증한다.
+- Chromium 실제 API: Grid/Chart 우클릭의 정확한 target, 삭제 메뉴, 자손 확인의 작업명/개수, 취소 전 DELETE 0회, 확인 후 subtree DELETE 1회, sibling 보존, canonical Grid/Chart 동기화, Gantt instance 유지와 reload persistence를 검증한다.
+- GitHub Actions `quality/e2e/docker`의 최종 동일 head 실행을 공식 회귀 근거로 사용한다. 실제 스크린리더·Windows/사내 브라우저 최종 UX는 별도 환경 검증이다.
+
 W24: Project 목록 table 및 authorized DELETE 확인/취소/성공/실패, 401/403/404/412/428과 cascade/rollback/isolation을 검증한다. Gantt Header root·row child 추가, first-child 명시 Summary 전환, nested leaf 변경 후 ancestor 집계·reload, milestone parent와 마지막 child 삭제 거부를 포함한다. Default browser-local today/1day, locale/date-only timezone, 토/일 음영, 외부ID 표시 토글, Project 및 Grid/Chart header의 내부 scroll 중 위치 유지도 검증한다. 실제 결과는 [W24_REVIEW.md](W24_REVIEW.md)에 기록한다.
 
 W23 목록 검증: D02 공개 summary 필드 allowlist, 인증 없이 GET 200/no-store, 빈 목록과 DB 오류 구분, 최신 수정순·동률 정렬, 생성→목록 복귀→reload→새 브라우저 direct Readonly, 기존 Mutation 무인증 거부 회귀. 결과는 [W23_REVIEW.md](W23_REVIEW.md)에 기록한다. W04 당시 collection GET 405 검증은 역사적 기록이며 W23에서 200 계약으로 대체한다.

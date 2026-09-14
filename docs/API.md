@@ -334,15 +334,27 @@ Auto의 비근무 requested start는 다음 근무일로 이동해 `NON_WORKING_
 
 ### `DELETE /api/projects/{publicId}/tasks/{taskId}`
 
-Root 또는 nested Leaf/Milestone을 삭제하고 canonical full snapshot을 반환한다. Nested leaf 삭제 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. 마지막 child 삭제는 `EMPTY_SUMMARY_NOT_ALLOWED`, Summary 직접 삭제는 `SUMMARY_DELETE_UNSUPPORTED`로 거부한다. 기존 Link가 있으면 아직 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 Task·Link·revision을 모두 보존한다. Incident Link 삭제·후속 Task 재계산과 `deletedLinkIds` 보고는 W09에서 같은 transaction으로 활성화한다.
+기본 요청은 기존 계약을 유지하여 Root 또는 nested Leaf/Milestone **한 작업만** 삭제한다. Nested leaf 삭제 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. 마지막 child 삭제는 `EMPTY_SUMMARY_NOT_ALLOWED`, child가 있는 Summary를 명시적 subtree 의도 없이 삭제하면 `SUMMARY_DELETE_UNSUPPORTED`로 거부한다. 기존 Link가 있으면 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 Task·Link·revision을 모두 보존한다.
 
-최종 기능에서도 다음 경우는 명시적으로 거부한다.
+Issue #31부터 선택 작업과 모든 깊이의 자손을 함께 삭제할 때는 다음처럼 명시적인 query를 사용한다.
+
+```http
+DELETE /api/projects/{publicId}/tasks/{taskId}?includeDescendants=true
+Origin: <canonical APP_BASE_URL origin>
+If-Match: "<current revision>"
+```
+
+`includeDescendants=true`는 삭제 범위 의도이며 인증을 대체하지 않는다. 기존 Task DELETE와 동일하게 edit session, exact Origin, strong If-Match가 필요하다. 서버는 client가 전달한 자손 ID/개수를 신뢰하지 않고 write transaction 안에서 현재 저장된 parent 관계로 target subtree를 다시 계산한다. child-first로 target+전체 자손을 제거하고 남은 ancestor Summary를 재계산한 뒤 Project revision을 정확히 1 증가시킨다. 응답의 `operation.deletedTaskExternalIds`에는 실제 삭제한 전체 집합을 기록하고 canonical full snapshot을 반환한다.
+
+다음 경우는 전체 rollback한다.
 
 - Task가 존재하지 않거나 다른 Project에 속한다.
-- Leaf 삭제 결과 parent summary가 비게 된다.
-- Summary에 child가 있는데 cascade intent가 없다.
+- 선택 범위 밖의 parent Summary가 비게 된다 (`EMPTY_SUMMARY_NOT_ALLOWED`).
+- 확인 이후 다른 write로 revision이 바뀐다 (`REVISION_MISMATCH` / HTTP 412).
+- 기존 Link가 있어 현재 hierarchy mutation 정책을 만족하지 않는다 (`UNSUPPORTED_SCHEDULE_STRUCTURE`).
+- 저장된 계층이 cycle/고아/일정 불일치 등으로 유효하지 않다.
 
-Subtree 삭제가 필요하면 별도의 명시적 `cascade=true` 계약과 UI 확인을 구현할 때 추가한다. 초기 route가 암묵적으로 descendant를 삭제하지 않는다.
+UI는 canonical snapshot의 자손 수를 확인창에 표시하지만 이는 안내값이다. 자손이 있으면 작업명·자손 수·총 삭제 수를 표시하고 명시적으로 `하위 작업 포함 삭제`를 선택한 경우에만 위 query를 보낸다. 취소/Escape/닫기 전에는 DELETE를 보내지 않는다. 확인 당시 revision이 stale이면 최신 snapshot을 재조회한 후 새 범위를 다시 확인해야 하며 자동 재시도하지 않는다.
 
 ### `POST /api/projects/{publicId}/task-batches` — W08 계획, 현재 Route 없음
 
