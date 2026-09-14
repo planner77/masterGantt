@@ -457,7 +457,7 @@ function validatePersistedLeafSchedules(
   }
 }
 
-function recalculatePersistedHierarchy(
+export function recalculatePersistedHierarchy(
   tasks: readonly TaskRecord[],
   calendar: ReturnType<typeof createWorkingCalendar>,
 ) {

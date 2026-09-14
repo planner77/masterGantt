@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { openDatabase } from "../../../src/server/db/core";
 import {
   EmptySummaryNotAllowedError,
+  PersistedScheduleInvalidError,
   ProjectService,
 } from "../../../src/server/projects/project-service-core";
 import { TaskSubtreeDeleteService } from "../../../src/server/projects/task-subtree-delete-service-core";
@@ -70,6 +71,25 @@ describe("TaskSubtreeDeleteService", () => {
       expect(deleted.data.tasks.find((task) => task.externalId === "ROOT"))
         .toMatchObject({ type: "summary", start: "2026-09-18", end: "2026-09-18", duration: 1 });
       expect(value.database.prepare("SELECT count(*) FROM tasks").pluck().get()).toBe(2);
+    } finally {
+      value.database.close();
+    }
+  });
+
+  it("rejects deletion before mutation when the persisted subtree schedule is already invalid", async () => {
+    const value = await fixture();
+    try {
+      const root = value.service.createTask(value.authorization, 1, input("ROOT")).data.tasks[0];
+      const child = value.service.createTask(value.authorization, 2, {
+        ...input("CHILD", "2026-09-15", 1), parentTaskId: root.taskId, convertParentToSummary: true,
+      }).data.tasks.find((task) => task.externalId === "CHILD")!;
+      value.database.prepare("UPDATE tasks SET start_date = ? WHERE public_id = ?")
+        .run("2026-09-17", child.taskId);
+
+      expect(() => value.subtree.deleteTaskSubtree(value.authorization, 3, root.taskId))
+        .toThrow(PersistedScheduleInvalidError);
+      expect(value.database.prepare("SELECT count(*) FROM tasks").pluck().get()).toBe(2);
+      expect(value.database.prepare("SELECT revision FROM projects").pluck().get()).toBe(3);
     } finally {
       value.database.close();
     }

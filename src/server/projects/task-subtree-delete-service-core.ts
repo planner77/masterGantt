@@ -21,6 +21,7 @@ import {
   EditSessionInvalidError,
   EmptySummaryNotAllowedError,
   PersistedScheduleInvalidError,
+  recalculatePersistedHierarchy,
   RevisionMismatchError,
   TaskNotFoundError,
   UnsupportedScheduleStructureError,
@@ -172,6 +173,8 @@ export class TaskSubtreeDeleteService {
       const links = this.schedules.listLinks(project.id);
       const holidays = this.schedules.listHolidays(project.id);
       if (links.length > 0) throw new UnsupportedScheduleStructureError();
+      const calendar = workingCalendar(project, holidays);
+      recalculatePersistedHierarchy(tasks, calendar);
       const current = tasks.find((task) => task.publicId === taskPublicId);
       if (!current) throw new TaskNotFoundError();
 
@@ -189,7 +192,6 @@ export class TaskSubtreeDeleteService {
       }
 
       const remainingTasks = this.schedules.listTasks(project.id);
-      const calendar = workingCalendar(project, holidays);
       let derived: readonly ProjectTaskDto[];
       try {
         derived = recalculateHierarchy(taskDtos(remainingTasks), calendar);

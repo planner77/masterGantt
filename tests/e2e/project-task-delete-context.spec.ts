@@ -75,6 +75,7 @@ test("confirms and atomically deletes the right-clicked task subtree without rem
   await dialog.getByRole("button", { name: "취소", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   expect(deleteRequests).toBe(0);
+  await expect(row).toBeFocused();
 
   await row.getByText("Delete branch", { exact: true }).click({ button: "right" });
   await page.getByRole("menu", { name: "작업 메뉴", exact: true })

@@ -7,7 +7,7 @@ import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
 import type { ProjectMetadataMutationResponse, ProjectSnapshotResponse, TaskMutationResponse } from "@/contracts/projects";
-import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt-with-delete";
+import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
 import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
 import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSession } from "@/features/gantt/task-editor-model";
@@ -16,7 +16,7 @@ import { findTaskContextElement } from "@/features/gantt/task-context-target";
 import { todayLocalDateString } from "@/lib/date-display";
 
 const ProjectGantt = dynamic(
-  () => import("@/features/gantt/project-gantt-with-delete").then((module) => module.ProjectGanttWithDelete),
+  () => import("@/features/gantt/project-gantt").then((module) => module.ProjectGantt),
   { ssr: false, loading: () => <div className="gantt-loading" role="status">일정을 불러오는 중입니다.</div> },
 );
 type LoadState = { status: "loading" } | { status: "ready"; snapshot: ProjectSnapshotResponse } | { status: "not-found" } | { status: "error" };
@@ -350,11 +350,11 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
     void saveTask("POST", null, { ...command, name: "새 작업", start: todayLocalDateString(), duration: 1,
       ...(convert ? { convertParentToSummary: true } : {}) });
   }
-  function requestTaskDelete(taskId: string) {
+  function requestTaskDelete(taskId: string, trigger: HTMLElement | null) {
     if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen || state.snapshot.data.links.length > 0) return;
     const plan = createTaskDeletePlan(state.snapshot.data.tasks, taskId);
     if (!plan) { notify("error", "삭제할 작업을 찾을 수 없습니다. 최신 정보를 다시 확인해 주세요.", "작업 삭제"); return; }
-    deleteTriggerReference.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    deleteTriggerReference.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     if (plan.descendantTaskIds.length === 0) {
       void saveTask("DELETE", taskId);
       return;
