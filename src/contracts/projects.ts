@@ -3,13 +3,13 @@ export interface ProjectCalendarDto { timezone:"Asia/Seoul"; weekendDays:[6,0]; 
 export interface ProjectDto { publicId:string; name:string; description:string; revision:number; calendar:ProjectCalendarDto }
 export interface ProjectListItemDto { publicId:string; name:string; description:string; createdAt:string; updatedAt:string }
 export interface ProjectListResponse { data:{projects:ProjectListItemDto[]} }
-export interface ProjectTaskDto { taskId:string; externalId:string; name:string; type:"task"|"summary"|"milestone"; scheduleMode:"auto"|"manual"; requestedStart:string|null; start:string; end:string; duration:number; progress:number; description?:string|null; url?:string|null; parentExternalId:string|null; siblingOrder:number }
+export interface ProjectTaskDto { taskId:string; externalId:string; name:string; type:"task"|"summary"|"milestone"; scheduleMode:"auto"|"manual"; requestedStart:string|null; start:string; end:string; duration:number; progress:number; description:string|null; url:string|null; parentExternalId:string|null; siblingOrder:number }
 export interface ProjectLinkDto { id:string; predecessorExternalId:string; successorExternalId:string; type:"FS"; lag:0 }
 export type ProjectPermission="readonly"|"edit";
 export interface CreateProjectRequest { name:string; description:string; editPassword:string }
 export interface CreateProjectResponse { data:{project:ProjectDto;permission:"edit"} }
-export interface CopyProjectRequest { name:string; description?:string; editPassword:string }
-export interface CopyProjectResponse { data:{project:ProjectDto;permission:"edit"} }
+export interface CopyProjectRequest { name:string; description:string; editPassword:string; resetProgress?:boolean }
+export interface CopyProjectResponse { data:{project:ProjectDto;tasks:ProjectTaskDto[];links:ProjectLinkDto[];permission:"edit";operation:{kind:"projectCopy";sourcePublicId:string;sourceRevision:number;counts:{tasks:number;links:number;holidays:number}};warnings:[]} }
 export interface ProjectSnapshotResponse { data:{project:ProjectDto;tasks:ProjectTaskDto[];links:ProjectLinkDto[];permission:ProjectPermission} }
 export interface UnlockProjectRequest { editPassword:string }
 export interface CurrentEditSessionResponse { data:{permission:"edit";expiresAt:string}|{permission:"readonly"} }
