@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-09-15
+
+### Fixed
+
+- Issue #33: 운영 상단 주요 메뉴에서 `Gantt 데모` 링크를 제거한다. `/gantt-demo` route와 fixture는 SVAR 통합·timezone/hydration E2E 검증 자산으로 유지하고, 헤더 회귀 테스트는 프로젝트 메뉴와 알림 hit-area 및 데모 링크 미노출을 검증한다.
+
+
 ## [0.8.0] - 2026-09-15
 
 ### Added

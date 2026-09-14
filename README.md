@@ -30,7 +30,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | W08 이후 | 일부 W24 선행 / 예정 | WBS UI·reparent·유효 subtree 삭제 묶음, FS 재계산, Import/Export |
 | W16 배포 | 일부 기반 선행 / 운영 검증 예정 | Docker/startup/readiness/named volume 기반; 실제 host·proxy·backup/restore 승인 후속 |
 
-홈(`/`)은 Project를 표 형태로 표시하며 현재 편집 권한이 있는 행에 삭제 기능을 제공한다. 삭제 확인에는 최신 프로젝트명과 모든 일정 제거를 명시하며 서버가 session/Origin/revision을 다시 검증한다. Direct snapshot은 Readonly이며 편집하려면 기존 비밀번호 잠금을 해제한다. Grid Header `+`는 최상위, 행 `+`는 하위 작업을 추가한다. 이름·날짜·기간 입력 없이 `새 작업`·브라우저 오늘·1일을 적용하며 Auto 근무일 보정은 유지한다. 첫 하위 추가 시 일반 작업을 Summary로 전환한다는 명시 동의만 필요하다. 이후 Summary 날짜와 진척은 자식에서 계산된다. Milestone에는 자식을 추가하지 않으며 빈 Summary 방지를 위해 마지막 자식 단독 삭제는 거부한다. 외부 ID는 표시를 선택할 수 있고 토·일은 Chart 음영으로 구분한다. 날짜는 사용자 locale로 표시하고 설정은 기본 접힌 상태다. Project/Grid/Chart header는 유지한 채 내부를 스크롤한다. Reparent/FS 및 Summary 직접 일정 편집은 후속이며 `/gantt-demo`는 저장 없는 fixture다.
+홈(`/`)은 Project를 표 형태로 표시하며 현재 편집 권한이 있는 행에 삭제 기능을 제공한다. 삭제 확인에는 최신 프로젝트명과 모든 일정 제거를 명시하며 서버가 session/Origin/revision을 다시 검증한다. Direct snapshot은 Readonly이며 편집하려면 기존 비밀번호 잠금을 해제한다. Grid Header `+`는 최상위, 행 `+`는 하위 작업을 추가한다. 이름·날짜·기간 입력 없이 `새 작업`·브라우저 오늘·1일을 적용하며 Auto 근무일 보정은 유지한다. 첫 하위 추가 시 일반 작업을 Summary로 전환한다는 명시 동의만 필요하다. 이후 Summary 날짜와 진척은 자식에서 계산된다. Milestone에는 자식을 추가하지 않으며 빈 Summary 방지를 위해 마지막 자식 단독 삭제는 거부한다. 외부 ID는 표시를 선택할 수 있고 토·일은 Chart 음영으로 구분한다. 날짜는 사용자 locale로 표시하고 설정은 기본 접힌 상태다. Project/Grid/Chart header는 유지한 채 내부를 스크롤한다. Reparent/FS 및 Summary 직접 일정 편집은 후속이다. `/gantt-demo`는 저장 없는 CI/개발 검증용 fixture로 유지하지만 운영 상단 주요 메뉴에는 노출하지 않는다.
 
 현재 자동 기본값 적용 후속 변경은 사용자 요청에 따라 **로컬 커밋만 수행하고 검증·원격 push를 보류**한다. 기존 W24 PASS와 구분하며 [검증 및 push 대기 목록](docs/PENDING_TESTS.md)을 따른다.
 
