@@ -1,0 +1,29 @@
+name: Issue27 version sync
+on:
+  push:
+    branches: [feat/issue-27-project-copy]
+permissions:
+  contents: write
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: feat/issue-27-project-copy
+      - name: Sync version
+        run: |
+          python - <<'PY'
+          import json
+          for path in ['package.json','package-lock.json']:
+              with open(path,encoding='utf-8') as f: data=json.load(f)
+              data['version']='0.8.0'
+              if path=='package-lock.json': data['packages']['']['version']='0.8.0'
+              with open(path,'w',encoding='utf-8') as f: json.dump(data,f,ensure_ascii=False,indent=2); f.write('\n')
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add package.json package-lock.json
+          git commit -m 'chore: 0.8.0 버전 동기화 (#27)' || exit 0
+          git push
