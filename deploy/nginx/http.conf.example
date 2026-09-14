@@ -1,0 +1,44 @@
+# nginx.conf의 기존 http {} 안에서 include하는 예제다. 전체 nginx.conf가 아니다.
+# 192.168.10.20과 외부 8080, 내부 3000은 실제 주소/포트로 변경한다.
+# 앱 설정: APP_BASE_URL=http://192.168.10.20:8080, ALLOW_INSECURE_HTTP=true
+server {
+    listen 8080;
+    server_name 192.168.10.20;
+
+    # 단일 Nginx가 직접 브라우저 요청을 받는 구성. 다른 Host는 앱에 전달하지 않는다.
+    if ($host != 192.168.10.20) { return 444; }
+
+    # 인증서, ssl, HTTPS redirect, HSTS를 요구하지 않는 HTTP 전용 구성이다.
+    client_max_body_size 1m;
+    # 민감한 URL query·Cookie·비밀번호를 access log에 넣지 않는다.
+    # 별도 비식별 log_format을 준비하지 않은 기본 예제에서는 access log를 끈다.
+    access_log off;
+    # 실제 설치 경로와 권한에 맞게 지정한다.
+    # Linux: error_log /var/log/nginx/mastergantt.error.log warn;
+    # Windows: error_log C:/nginx/logs/mastergantt.error.log warn;
+
+    location / {
+        # 호스트 Nginx → loopback에 게시한 production 앱 컨테이너.
+        # Nginx도 같은 Docker network이면 http://app:3000 으로 변경한다.
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        # 외부 Host의 명시적 포트 보존. $host로 바꾸지 않는다.
+        proxy_set_header Host              $http_host;
+        proxy_set_header X-Forwarded-Host  $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Port  $server_port;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $remote_addr;
+
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_intercept_errors off;
+        # Origin·Cookie·If-Match 및 Set-Cookie·ETag는 원본 그대로 전달한다.
+        # Origin 재작성, CORS *, 쿠키 Domain/Path 재작성으로 오류를 우회하지 않는다.
+    }
+}
