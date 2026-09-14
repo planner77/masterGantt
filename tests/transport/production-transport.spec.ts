@@ -84,7 +84,7 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
   let saved = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
   let revision = saved.data.project.revision;
 
-  for (const origin of [baseURL.replace(/^https?:/, secure ? "http:" : "https:"), `${baseURL}0`, "http://evil.test"]) {
+  for (const origin of [baseURL.replace(/^https?:/, secure ? "http:" : "https:"), `${new URL(baseURL).protocol}//${new URL(baseURL).hostname}:18089`, "http://evil.test"]) {
     const denied = await page.request.patch(`${api}/tasks/${task.taskId}`, {
       headers: { Origin: origin, "If-Match": `"${revision}"`, "X-Forwarded-Proto": secure ? "https" : "http", "X-Forwarded-Host": new URL(baseURL).host },
       data: { name: "forbidden" },
@@ -133,7 +133,7 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
 
     await openSettings(page);
     await page.getByLabel("새 편집 비밀번호", { exact: true }).fill(rotated);
-    const rotating = page.waitForResponse((r) => new URL(r.url()).pathname === `${api}/edit-password` && r.request().method() === "PATCH");
+    const rotating = page.waitForResponse((r) => new URL(r.url()).pathname === `${api}/edit-password` && r.request().method() === "PUT");
     await page.getByRole("button", { name: "편집 비밀번호 변경", exact: true }).click();
     expect((await rotating).status()).toBe(204);
     await expect(page.getByTestId("workspace-toast")).toContainText("변경했습니다");
