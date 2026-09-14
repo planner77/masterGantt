@@ -35,6 +35,36 @@ function sameTask(first: ITask, second: ITask): boolean {
     first.externalId === second.externalId;
 }
 
+function deletedTaskIdsChildFirst(
+  current: readonly ITask[],
+  canonicalIds: ReadonlySet<string>,
+): string[] {
+  const currentById = new Map(current.map((task) => [String(task.id), task]));
+  const originalIndex = new Map(current.map((task, index) => [String(task.id), index]));
+  const depthCache = new Map<string, number>();
+
+  const depth = (id: string, visiting = new Set<string>()): number => {
+    const cached = depthCache.get(id);
+    if (cached !== undefined) return cached;
+    if (visiting.has(id)) return 0;
+    visiting.add(id);
+    const task = currentById.get(id);
+    const parentId = task?.parent === undefined || task.parent === null || task.parent === 0
+      ? null
+      : String(task.parent);
+    const value = parentId && currentById.has(parentId) ? depth(parentId, visiting) + 1 : 0;
+    visiting.delete(id);
+    depthCache.set(id, value);
+    return value;
+  };
+
+  return current
+    .map((task) => String(task.id))
+    .filter((id) => !canonicalIds.has(id))
+    .sort((first, second) => depth(second) - depth(first) ||
+      (originalIndex.get(first) ?? 0) - (originalIndex.get(second) ?? 0));
+}
+
 /** Plans public SVAR actions from the rendered data to the server snapshot. */
 export function planCanonicalGanttSync(
   current: CanonicalGanttSnapshot,
@@ -43,9 +73,10 @@ export function planCanonicalGanttSync(
   const canonicalIds = new Set(canonical.tasks.map((task) => String(task.id)));
   const currentById = new Map(current.tasks.map((task) => [String(task.id), task]));
   return {
-    deletedTaskIds: current.tasks
-      .map((task) => String(task.id))
-      .filter((id) => !canonicalIds.has(id)),
+    // Core cannot safely delete a summary before its rendered descendants.
+    // Mirror the server's child-first subtree mutation order so a successful
+    // canonical DELETE never needs the remount/recovery path.
+    deletedTaskIds: deletedTaskIdsChildFirst(current.tasks, canonicalIds),
     updatedTasks: canonical.tasks.filter((task) => {
       const currentTask = currentById.get(String(task.id));
       return currentTask !== undefined && !sameTask(currentTask, task);

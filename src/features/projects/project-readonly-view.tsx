@@ -11,6 +11,7 @@ import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
 import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
 import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSession } from "@/features/gantt/task-editor-model";
+import { createTaskDeletePlan, type TaskDeletePlan } from "@/features/gantt/task-delete-model";
 import { findTaskContextElement } from "@/features/gantt/task-context-target";
 import { todayLocalDateString } from "@/lib/date-display";
 
@@ -21,6 +22,7 @@ const ProjectGantt = dynamic(
 type LoadState = { status: "loading" } | { status: "ready"; snapshot: ProjectSnapshotResponse } | { status: "not-found" } | { status: "error" };
 type Permission = "readonly" | "edit";
 type PermissionCheckState = "checking" | "complete";
+type PendingTaskDelete = TaskDeletePlan & Readonly<{ revision: number }>;
 const INITIAL_COLUMN_VISIBILITY: ProjectGridColumnVisibility = { text: true, externalId: false, projectStart: true, projectDuration: true };
 
 function isSnapshot(value: unknown): value is ProjectSnapshotResponse {
@@ -94,9 +96,11 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
   const [columnVisibility, setColumnVisibility] = useState<ProjectGridColumnVisibility>(INITIAL_COLUMN_VISIBILITY);
+  const [pendingTaskDelete, setPendingTaskDelete] = useState<PendingTaskDelete | null>(null);
   const taskMutationReference = useRef(false);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
+  const deleteTriggerReference = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -114,7 +118,6 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
         }
         setMetadataName(body.data.project.name); setMetadataDescription(body.data.project.description);
         setState({ status: "ready", snapshot: body });
-        // 직접 조회는 항상 읽기 전용이다. 유효한 서버 세션만 편집 UI를 활성화한다.
         try {
           const current = await fetch(`/api/projects/${encodeURIComponent(publicId)}/edit-sessions/current`, { credentials: "same-origin", signal: controller.signal });
           const currentBody: unknown = await current.json().catch(() => null);
@@ -140,7 +143,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
 
   function beginRefresh(clearNotice: boolean) {
     if (clearNotice) clearToast();
-    setSettingsOpen(false); setPermission("readonly"); setPermissionCheckState("checking");
+    setSettingsOpen(false); setPendingTaskDelete(null); setPermission("readonly"); setPermissionCheckState("checking");
     setState({ status: "loading" }); setRetryKey((key) => key + 1);
   }
   function applySnapshot(value: unknown): boolean {
@@ -180,11 +183,9 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
         const current = await fetch(`/api/projects/${encodeURIComponent(publicId)}/edit-sessions/current`, { credentials: "same-origin" });
         const body: unknown = await current.json().catch(() => null);
         if (current.ok && permissionFrom(body) === "edit") {
-          setPermission("edit"); setPermissionCheckState("complete");
-          notify("success", "편집 모드가 활성화되었습니다.", "편집 잠금 해제");
+          setPermission("edit"); setPermissionCheckState("complete"); notify("success", "편집 모드가 활성화되었습니다.", "편집 잠금 해제");
         } else {
-          setPermission("readonly"); setPermissionCheckState("complete");
-          notify("error", "편집 권한을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.", "편집 잠금 해제", body);
+          setPermission("readonly"); setPermissionCheckState("complete"); notify("error", "편집 권한을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.", "편집 잠금 해제", body);
         }
       } else {
         setPermission("readonly"); setPermissionCheckState("complete");
@@ -194,8 +195,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
             : "편집 모드를 활성화할 수 없습니다. 잠시 후 다시 시도해 주세요.", "편집 잠금 해제", body);
       }
     } catch {
-      setPermission("readonly"); setPermissionCheckState("complete");
-      notify("error", "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", "편집 잠금 해제");
+      setPermission("readonly"); setPermissionCheckState("complete"); notify("error", "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", "편집 잠금 해제");
     } finally { setUnlockPassword(""); setIsUnlocking(false); }
   }
 
@@ -214,8 +214,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
       if (response.ok && snapshot && applySnapshot(snapshot)) {
         setSettingsOpen(false); notify("success", "프로젝트 정보를 저장했습니다.", "프로젝트 정보 저장");
       } else if (response.status === 401) {
-        setPermission("readonly"); setSettingsOpen(false);
-        notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "프로젝트 정보 저장", body);
+        setPermission("readonly"); setSettingsOpen(false); notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "프로젝트 정보 저장", body);
       } else if (response.status === 412) conflict("프로젝트 정보 저장", body);
       else notify("error", "프로젝트 정보를 저장할 수 없습니다. 입력을 확인한 뒤 다시 시도해 주세요.", "프로젝트 정보 저장", body);
     } catch { notify("error", "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", "프로젝트 정보 저장"); }
@@ -225,7 +224,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
     event.preventDefault();
     if (state.status !== "ready" || isChangingPassword) return;
     if (!passwordValid(newPassword)) {
-      notify("error", "새 편집 비밀번호는 최소 12자이며 UTF-8 기준 1,024 bytes 이하여야 합니다.", "편집 비밀번호 변경"); setNewPassword(""); return;
+      notify("error", "새 편집 비밀번호는 최소 12자이며 UTF-8 기준 최대 1,024 bytes 이하여야 합니다.", "편집 비밀번호 변경"); setNewPassword(""); return;
     }
     setIsChangingPassword(true); clearToast();
     const password = newPassword; setNewPassword("");
@@ -239,8 +238,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
       } else {
         const body: unknown = await response.json().catch(() => null);
         if (response.status === 401) {
-          setPermission("readonly"); setSettingsOpen(false);
-          notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "편집 비밀번호 변경", body);
+          setPermission("readonly"); setSettingsOpen(false); notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "편집 비밀번호 변경", body);
         } else if (response.status === 412) conflict("편집 비밀번호 변경", body);
         else notify("error", "편집 비밀번호를 변경할 수 없습니다. 입력을 확인한 뒤 다시 시도해 주세요.", "편집 비밀번호 변경", body);
       }
@@ -255,8 +253,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
       if (response.status === 204) {
         setPermission("readonly"); setSettingsOpen(false); notify("success", "편집 모드를 종료했습니다.", "편집 모드 종료");
       } else {
-        const body: unknown = await response.json().catch(() => null);
-        notify("error", "편집 모드를 종료할 수 없습니다. 잠시 후 다시 시도해 주세요.", "편집 모드 종료", body);
+        const body: unknown = await response.json().catch(() => null); notify("error", "편집 모드를 종료할 수 없습니다. 잠시 후 다시 시도해 주세요.", "편집 모드 종료", body);
       }
     } catch { notify("error", "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", "편집 모드 종료"); }
     finally { setIsLoggingOut(false); }
@@ -265,7 +262,6 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
   async function handleTaskFailure(status: number | undefined, error: unknown, fallback: string, operation: string): Promise<string> {
     if (status === 401) { setPermission("readonly"); setPermissionCheckState("complete"); }
     const recovered = await reloadCanonicalSnapshot();
-    // 기존 실패 복구만 재마운트한다. 알림과 편집기 자체는 이 key 밖에서 보존한다.
     setGanttResetGeneration((generation) => generation + 1);
     const code = safeErrorCode(error);
     let message = fallback;
@@ -275,15 +271,16 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
       : "다른 편집 내용이 먼저 저장되었지만 최신 정보를 불러오지 못했습니다. 마지막 확인 일정으로 복구했습니다. 다시 조회해 주세요.";
     else if (status === 400 || status === 409 || status === 422) message = code === "END_DURATION_MISMATCH"
       ? "일정 기간을 확인해 주세요."
-      : code === "EMPTY_SUMMARY_NOT_ALLOWED" ? "요약 작업의 마지막 하위 작업은 삭제할 수 없습니다. 먼저 요약 작업 구조를 변경해 주세요."
-        : code === "PARENT_CONVERSION_REQUIRED" ? "부모 작업 전환을 처리하지 못했습니다. 최신 정보를 확인한 뒤 다시 추가해 주세요."
-          : code === "INVALID_PARENT_TASK" ? "마일스톤에는 하위 작업을 추가할 수 없습니다."
-            : "작업 정보를 저장할 수 없습니다. 입력과 일정 제약을 확인해 주세요.";
+      : code === "EMPTY_SUMMARY_NOT_ALLOWED" ? "선택 범위를 삭제하면 상위 요약 작업이 비게 됩니다. 상위 작업 구조를 먼저 변경해 주세요."
+        : code === "SUMMARY_DELETE_UNSUPPORTED" ? "하위 작업이 있는 작업은 우클릭 메뉴에서 하위 작업 포함 삭제를 확인해 주세요."
+          : code === "PARENT_CONVERSION_REQUIRED" ? "부모 작업 전환을 처리하지 못했습니다. 최신 정보를 확인한 뒤 다시 추가해 주세요."
+            : code === "INVALID_PARENT_TASK" ? "마일스톤에는 하위 작업을 추가할 수 없습니다."
+              : "작업 정보를 저장할 수 없습니다. 입력과 일정 제약을 확인해 주세요.";
     notify("error", message, operation, error);
     if (!recovered && status !== 412) notify("error", "최신 일정 조회에 실패하여 마지막으로 확인한 일정으로 복구했습니다. 다시 조회해 주세요.", "일정 복구");
     return message;
   }
-  async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number): Promise<TaskEditorSaveResult> {
+  async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number, includeDescendants = false): Promise<TaskEditorSaveResult> {
     if (state.status !== "ready" || taskMutationReference.current) return { status: "failed", message: "다른 작업을 저장 중입니다. 완료 후 다시 시도해 주세요." };
     if (expectedRevision !== undefined && expectedRevision !== state.snapshot.data.project.revision) {
       return { status: "failed", conflict: true, message: "기준 Revision이 변경되었습니다. 최신 정보를 다시 불러온 뒤 검토해 주세요." };
@@ -291,7 +288,8 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
     taskMutationReference.current = true; setIsSavingTask(true); clearToast();
     const operation = method === "POST" ? "작업 추가" : method === "DELETE" ? "작업 삭제" : "작업 저장";
     try {
-      const endpoint = taskId === null ? `/api/projects/${encodeURIComponent(publicId)}/tasks` : `/api/projects/${encodeURIComponent(publicId)}/tasks/${encodeURIComponent(taskId)}`;
+      const baseEndpoint = taskId === null ? `/api/projects/${encodeURIComponent(publicId)}/tasks` : `/api/projects/${encodeURIComponent(publicId)}/tasks/${encodeURIComponent(taskId)}`;
+      const endpoint = method === "DELETE" && includeDescendants ? `${baseEndpoint}?includeDescendants=true` : baseEndpoint;
       const response = await fetch(endpoint, {
         method, credentials: "same-origin",
         headers: { ...(method === "DELETE" ? {} : { "Content-Type": "application/json" }), "If-Match": revisionTag(expectedRevision ?? state.snapshot.data.project.revision) },
@@ -314,7 +312,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
   }
 
   function openTaskEditor(taskId: string) {
-    if (state.status !== "ready" || editorSession || settingsOpen) return;
+    if (state.status !== "ready" || editorSession || settingsOpen || pendingTaskDelete) return;
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
     if (!task) return;
     editorTriggerReference.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -344,14 +342,30 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
     return task && snapshot ? { task: { ...task }, revision: snapshot.data.project.revision } : null;
   }
   function createNativeTask(command: ProjectTaskCreateCommand) {
-    if (state.status !== "ready" || taskMutationReference.current) return;
+    if (state.status !== "ready" || taskMutationReference.current || pendingTaskDelete) return;
     const parent = command.parentTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === command.parentTaskId) : undefined;
     if (command.parentTaskId && !parent) { notify("error", "선택한 작업을 찾을 수 없습니다. 최신 정보를 불러온 뒤 다시 시도해 주세요.", "하위 작업 추가"); return; }
     if (parent?.type === "milestone") { notify("error", "마일스톤에는 하위 작업을 추가할 수 없습니다.", "하위 작업 추가"); return; }
-    // #11: Grid +가 사용자의 추가 의사다. 서버의 명시적 전환 옵션과 원자 검증은 유지한다.
     const convert = parent?.type === "task" && !state.snapshot.data.tasks.some((task) => task.parentExternalId === parent.externalId);
     void saveTask("POST", null, { ...command, name: "새 작업", start: todayLocalDateString(), duration: 1,
       ...(convert ? { convertParentToSummary: true } : {}) });
+  }
+  function requestTaskDelete(taskId: string, trigger: HTMLElement | null) {
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen || state.snapshot.data.links.length > 0) return;
+    const plan = createTaskDeletePlan(state.snapshot.data.tasks, taskId);
+    if (!plan) { notify("error", "삭제할 작업을 찾을 수 없습니다. 최신 정보를 다시 확인해 주세요.", "작업 삭제"); return; }
+    deleteTriggerReference.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    if (plan.descendantTaskIds.length === 0) {
+      void saveTask("DELETE", taskId);
+      return;
+    }
+    setPendingTaskDelete({ ...plan, revision: state.snapshot.data.project.revision });
+  }
+  async function confirmTaskDelete() {
+    const pending = pendingTaskDelete;
+    if (!pending) return;
+    const result = await saveTask("DELETE", pending.taskId, undefined, pending.revision, true);
+    if (result.status === "saved" || result.conflict) setPendingTaskDelete(null);
   }
   function rejectNativeTaskAdd() { notify("info", "이 화면에서는 하위 작업만 추가할 수 있습니다.", "작업 추가"); }
   const recoverCanonicalGantt = useCallback(() => {
@@ -374,7 +388,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
       <div><p className="eyebrow">PROJECT</p><h1 id="project-heading">{project.name}</h1><p className="page-description">{project.description || "설명이 없습니다."}</p></div>
       <div className={feedbackStyles.headingActions}>
         <ProjectLinkButton projectName={project.name} projectUrl={projectUrl} />
-        {editing ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null} onClick={() => setSettingsOpen(true)}>프로젝트 설정</button> : null}
+        {editing ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null || pendingTaskDelete !== null} onClick={() => setSettingsOpen(true)}>프로젝트 설정</button> : null}
         <span className={editing ? "edit-badge" : "readonly-badge"}>{editing ? "편집 가능" : "읽기 전용"}</span>
       </div>
     </div>
@@ -387,9 +401,9 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
       <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{tasks.length === 0 ? "아직 등록된 작업이 없습니다." : "서버의 최신 일정 snapshot을 표시합니다."}</p></div>
         {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}</div>
       {editing && !taskEditingSupported ? <p className="schedule-scope-note">연결이 있는 일정 편집은 다음 단계에서 지원합니다. 현재 일정은 읽기 전용으로 표시됩니다.</p> : null}
-      <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing && taskEditingSupported} mutationLocked={busy || editorSession !== null}
+      <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing && taskEditingSupported} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
         onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
-        onTaskEditorOpen={openTaskEditor} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
+        onTaskEditorOpen={openTaskEditor} onTaskDeleteRequest={requestTaskDelete} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
           const visibleColumnCount = Object.values(current).filter(Boolean).length;
           if (current[columnId] && visibleColumnCount === 1) return current;
           return { ...current, [columnId]: !current[columnId] };
@@ -398,6 +412,17 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
         latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} revision={project.revision}
         editable={editing} hasLinks={links.length > 0} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
     </section>
+    {pendingTaskDelete ? <WorkspaceDialog title="작업 삭제" restoreFocusRef={deleteTriggerReference} busy={isSavingTask}
+      onClose={() => { if (!isSavingTask) setPendingTaskDelete(null); }}>
+      <div className="project-form compact-form">
+        <p><strong>{pendingTaskDelete.taskName}</strong> 작업과 하위 작업 {pendingTaskDelete.descendantTaskIds.length}개, 총 {pendingTaskDelete.descendantTaskIds.length + 1}개 작업을 삭제하시겠습니까?</p>
+        <p>접힌 하위 작업을 포함하여 모든 하위 작업이 함께 삭제됩니다. 삭제 후에는 이 화면에서 되돌릴 수 없습니다.</p>
+        <div className={feedbackStyles.headingActions}>
+          <button autoFocus className="secondary-button" disabled={isSavingTask} onClick={() => setPendingTaskDelete(null)} type="button">취소</button>
+          <button className="danger-button" disabled={isSavingTask} onClick={() => void confirmTaskDelete()} type="button">{isSavingTask ? "삭제 중…" : "하위 작업 포함 삭제"}</button>
+        </div>
+      </div>
+    </WorkspaceDialog> : null}
     {settingsOpen && editing ? <WorkspaceDialog title="프로젝트 설정" onClose={() => { if (!busy) { setSettingsOpen(false); setNewPassword(""); } }} busy={busy}>
       <form className="project-form compact-form" noValidate onSubmit={saveMetadata}>
         <div className="form-field"><label htmlFor="metadata-name">프로젝트 이름</label><input disabled={busy} id="metadata-name" onChange={(event) => setMetadataName(event.target.value)} value={metadataName} /></div>
