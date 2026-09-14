@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -40,13 +41,12 @@ function clamp(left: number, top: number, width = 192, height = 92) {
   };
 }
 
-export function ProjectGanttWithDelete(props: ProjectGanttWithDeleteProps) {
+export function ProjectGanttWithDelete({ onTaskDeleteRequest, ...ganttProps }: ProjectGanttWithDeleteProps) {
   const wrapperReference = useRef<HTMLDivElement>(null);
   const menuReference = useRef<HTMLDivElement>(null);
   const triggerReference = useRef<HTMLElement | null>(null);
   const [menu, setMenu] = useState<MenuState | null>(null);
-
-  const taskIds = new Set(props.tasks.map((task) => task.taskId));
+  const taskIds = useMemo(() => new Set(ganttProps.tasks.map((task) => task.taskId)), [ganttProps.tasks]);
 
   function taskTarget(target: EventTarget | null): { element: HTMLElement; taskId: string } | null {
     if (!(target instanceof Element)) return null;
@@ -103,18 +103,23 @@ export function ProjectGanttWithDelete(props: ProjectGanttWithDeleteProps) {
       event.preventDefault();
       close();
     };
+    const viewportChanged = () => close(false);
     document.addEventListener("pointerdown", outside, true);
     document.addEventListener("keydown", escape, true);
+    document.addEventListener("scroll", viewportChanged, true);
+    window.addEventListener("resize", viewportChanged);
     return () => {
       document.removeEventListener("pointerdown", outside, true);
       document.removeEventListener("keydown", escape, true);
+      document.removeEventListener("scroll", viewportChanged, true);
+      window.removeEventListener("resize", viewportChanged);
     };
   }, [menu]);
 
-  const canDelete = props.editable && !props.mutationLocked && props.links.length === 0;
+  const canDelete = ganttProps.editable && !ganttProps.mutationLocked && ganttProps.links.length === 0;
 
   return <div ref={wrapperReference} onContextMenuCapture={handleContextMenuCapture} onKeyDownCapture={handleKeyDownCapture}>
-    <ProjectGantt {...props} />
+    <ProjectGantt {...ganttProps} />
     {menu ? <div
       aria-label="작업 메뉴"
       className="project-task-context-menu"
@@ -122,14 +127,14 @@ export function ProjectGanttWithDelete(props: ProjectGanttWithDeleteProps) {
       role="menu"
       style={{ left: menu.left, top: menu.top }}
     >
-      <button onClick={() => { const id = menu.taskId; close(false); props.onTaskEditorOpen(id); }} role="menuitem" type="button">
+      <button onClick={() => { const id = menu.taskId; close(false); ganttProps.onTaskEditorOpen(id); }} role="menuitem" type="button">
         <span aria-hidden="true" className="project-task-context-menu-icon">i</span>
         <span>작업 정보</span>
       </button>
       <button
         className="project-task-context-menu-danger"
         disabled={!canDelete}
-        onClick={() => { const id = menu.taskId; close(false); props.onTaskDeleteRequest(id); }}
+        onClick={() => { const id = menu.taskId; close(false); onTaskDeleteRequest(id); }}
         role="menuitem"
         type="button"
       >
