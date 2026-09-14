@@ -1,11 +1,11 @@
 import "server-only";
 
 import { getDatabase } from "../db";
-import { ProjectService } from "./project-service-core";
+import { EnhancedProjectService } from "./enhanced-project-service-core";
 import { TaskSubtreeDeleteService } from "./task-subtree-delete-service-core";
 
-export function getProjectService(): ProjectService {
-  return new ProjectService(getDatabase());
+export function getProjectService(): EnhancedProjectService {
+  return new EnhancedProjectService(getDatabase());
 }
 
 export function getTaskSubtreeDeleteService(): TaskSubtreeDeleteService {
