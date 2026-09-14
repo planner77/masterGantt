@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #31 — Grid·Chart 우클릭 작업 subtree 삭제 — 진행 중
+
+기준 main `51adbfb4fbd0c9b6e9d7bad2ffe40c858c6e7230`, branch `feat/issue-31-task-context-delete`. Frontend는 실제 우클릭 taskId의 삭제 메뉴와 자손 확인 dialog, Backend는 기존 Task DELETE의 보호 경계를 재사용하는 `includeDescendants=true` 원자 subtree 삭제를 담당한다. Scheduler는 삭제 후 살아남은 Summary 집계를 검토하고 qa_docs는 Unit/SQLite/실제 Chromium 및 문서 계약을 대조한다. Semantic Version은 하위 호환 기능/API 확장으로 `0.6.0 → 0.7.0` MINOR다. 최종 완료 판정은 같은 PR head의 GitHub Actions `quality/e2e/docker` 실제 결과로 하며, 실행 전 상태는 **NOT TESTED**다. 상세 근거는 [Issue #31 기록](../../ISSUE_31_REVIEW.md)을 따른다.
+
 ## PR #24 review 경계 후속 — 진행 중
 
 PR #24 자동 review에서 확인한 375px compact header 경계와 Architecture 현재 UX 본문 정합화를 후속 처리한다. 기준 main은 병합 commit `820aeba800f48b035e4219f8094a5038593c8eb0`, 작업 branch는 `fix/pr24-review-boundaries`다. 이전 PR의 PASS를 새 변경에 전용하지 않으며 로컬 테스트 보류를 유지한다. 새 head의 원격 quality/E2E/Docker와 문서 link 검증이 끝날 때까지 **NOT TESTED**다. 세부 경계는 [후속 기록](../../PR23_FOLLOWUP.md)과 [대기 목록](../../PENDING_TESTS.md)을 따른다.

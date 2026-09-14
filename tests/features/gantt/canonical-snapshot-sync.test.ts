@@ -49,4 +49,18 @@ describe("canonical SVAR snapshot sync", () => {
     expect(first.deletedTaskIds).toEqual(["removed"]);
     expect(second).toMatchObject({ deletedTaskIds: [], updatedTasks: [], addedTasks: [], replaceLinks: false });
   });
+
+  it("orders subtree removals child-first so Core never deletes a rendered summary before its descendants", () => {
+    const root = { id: "root", text: "Root", start: new Date(2026, 8, 14), end: new Date(2026, 8, 19), parent: 0, type: "summary" };
+    const branch = { id: "branch", text: "Branch", start: new Date(2026, 8, 15), end: new Date(2026, 8, 17), parent: "root", type: "summary" };
+    const grandchild = { id: "grandchild", text: "Grandchild", start: new Date(2026, 8, 16), end: new Date(2026, 8, 17), parent: "branch", type: "task" };
+    const sibling = { id: "sibling", text: "Sibling", start: new Date(2026, 8, 18), end: new Date(2026, 8, 19), parent: "root", type: "task" };
+
+    const plan = planCanonicalGanttSync(
+      { tasks: [root, branch, grandchild, sibling], links: [] },
+      { tasks: [root, sibling], links: [] },
+    );
+
+    expect(plan.deletedTaskIds).toEqual(["grandchild", "branch"]);
+  });
 });

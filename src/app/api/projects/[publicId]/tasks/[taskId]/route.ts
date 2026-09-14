@@ -1,5 +1,8 @@
 import { readApplicationConfiguration } from "@/server/security/origin-core";
-import { getProjectService } from "@/server/projects/project-service";
+import {
+  getProjectService,
+  getTaskSubtreeDeleteService,
+} from "@/server/projects/project-service";
 import {
   handleDeleteTask,
   handleUpdateTask,
@@ -28,8 +31,23 @@ export async function DELETE(
   context: RouteContext,
 ): Promise<Response> {
   const { publicId, taskId } = await context.params;
+  const includeDescendants = new URL(request.url).searchParams.get("includeDescendants") === "true";
+  if (!includeDescendants) {
+    return handleDeleteTask(request, publicId, taskId, {
+      service: getProjectService,
+      ...readApplicationConfiguration(process.env),
+    });
+  }
+
+  const projectService = getProjectService();
+  const subtreeService = getTaskSubtreeDeleteService();
   return handleDeleteTask(request, publicId, taskId, {
-    service: getProjectService,
+    service: {
+      authorize: projectService.authorize.bind(projectService),
+      createTask: projectService.createTask.bind(projectService),
+      updateTask: projectService.updateTask.bind(projectService),
+      deleteTask: subtreeService.deleteTaskSubtree.bind(subtreeService),
+    },
     ...readApplicationConfiguration(process.env),
   });
 }

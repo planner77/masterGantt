@@ -68,6 +68,7 @@ interface ProjectGanttProps {
   readonly onTaskCreate: (command: ProjectTaskCreateCommand) => void;
   readonly onTaskCommand: (command: ProjectTaskUpdateCommand) => void;
   readonly onTaskEditorOpen: (taskId: string) => void;
+  readonly onTaskDeleteRequest: (taskId: string, trigger: HTMLElement | null) => void;
   readonly columnVisibility: ProjectGridColumnVisibility;
   readonly onColumnVisibilityChange: (columnId: ProjectGridDataColumnId) => void;
   readonly tasks: readonly ProjectTaskDto[];
@@ -129,6 +130,7 @@ export function ProjectGantt({
   onTaskCreate,
   onTaskCommand,
   onTaskEditorOpen,
+  onTaskDeleteRequest,
   columnVisibility,
   onColumnVisibilityChange,
   tasks,
@@ -138,6 +140,7 @@ export function ProjectGantt({
   const onTaskAddRejectedReference = useRef(onTaskAddRejected);
   const onCanonicalSyncFailureReference = useRef(onCanonicalSyncFailure);
   const onTaskEditorOpenReference = useRef(onTaskEditorOpen);
+  const onTaskDeleteRequestReference = useRef(onTaskDeleteRequest);
   const canCreateReference = useRef(editable && !mutationLocked);
   const mutationLockedReference = useRef(mutationLocked);
   const canonicalSyncDepthReference = useRef(0);
@@ -169,10 +172,11 @@ export function ProjectGantt({
     onTaskAddRejectedReference.current = onTaskAddRejected;
     onCanonicalSyncFailureReference.current = onCanonicalSyncFailure;
     onTaskEditorOpenReference.current = onTaskEditorOpen;
+    onTaskDeleteRequestReference.current = onTaskDeleteRequest;
     canCreateReference.current = editable && !mutationLocked;
     mutationLockedReference.current = mutationLocked;
     tasksByIdReference.current = tasksById;
-  }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskEditorOpen, tasksById]);
+  }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskDeleteRequest, onTaskEditorOpen, tasksById]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -510,7 +514,7 @@ export function ProjectGantt({
     const anchorX = x ?? bounds.left + Math.min(bounds.width / 2, 24);
     const anchorY = y ?? bounds.top + Math.min(bounds.height / 2, 24);
     setColumnMenuPosition(null);
-    setTaskMenu({ taskId: match.taskId, ...clampMenuPosition(anchorX, anchorY, 192, 52) });
+    setTaskMenu({ taskId: match.taskId, ...clampMenuPosition(anchorX, anchorY, 192, 92) });
     return true;
   }
 
@@ -520,6 +524,14 @@ export function ProjectGantt({
     const taskId = taskMenu.taskId;
     setTaskMenu(null);
     void api.exec("show-editor", { id: taskId });
+  }
+
+  function requestTaskDeleteFromMenu() {
+    if (!taskMenu) return;
+    const taskId = taskMenu.taskId;
+    const trigger = taskMenuTriggerReference.current;
+    setTaskMenu(null);
+    onTaskDeleteRequestReference.current(taskId, trigger);
   }
 
   function handleHeaderContextMenu(event: ReactMouseEvent<HTMLDivElement>) {
@@ -570,6 +582,8 @@ export function ProjectGantt({
       closeTaskMenu();
     }
   }
+
+  const canDelete = editable && !mutationLocked && links.length === 0;
 
   return (
     <div className="project-gantt-frame" data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined}>
@@ -639,6 +653,16 @@ export function ProjectGantt({
           <button onClick={openTaskEditorFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">i</span>
             <span>작업 정보</span>
+          </button>
+          <button
+            className="project-task-context-menu-danger"
+            disabled={!canDelete}
+            onClick={requestTaskDeleteFromMenu}
+            role="menuitem"
+            type="button"
+          >
+            <span aria-hidden="true" className="project-task-context-menu-icon">×</span>
+            <span>작업 삭제</span>
           </button>
         </div> : null}
       </Willow>
