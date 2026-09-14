@@ -1,0 +1,35 @@
+# Issue #27 프로젝트 복사
+
+## 목표
+기존 프로젝트의 저장된 일정, 계층, 의존관계, 휴일을 별도의 독립 프로젝트로 복제한다. 원본과 복사본은 이후 서로 영향을 주지 않는다.
+
+## 설계
+- API: `POST /api/projects/{sourcePublicId}/copy`
+- 보안: exact Origin, 원본 edit session, strong `If-Match` 필수
+- 입력: 새 프로젝트명, 설명, 새 편집 비밀번호, 선택적 `resetProgress`
+- 생성 rate limit과 기존 password KDF 동시 실행 제한을 재사용한다.
+- 비밀번호 hashing은 DB write transaction 밖에서 수행한다.
+- `IMMEDIATE` transaction 안에서 원본 session binding/authVersion/expiry와 revision을 재검증한다.
+- Project/Task/Link/Holiday/새 edit session을 한 transaction에서 생성한다.
+- Project/Task/Link 공개 ID는 새로 발급하고 Task `externalId`는 프로젝트 범위 식별자이므로 유지한다.
+- 부모와 Link endpoint는 새 Task 내부 PK로 다시 연결한다.
+- 기본은 날짜·기간·진척률 보존이며 `resetProgress=true`이면 leaf/milestone을 0으로 만들고 summary 진척률을 재집계한다.
+- 성공 응답은 `201 Created`, `Location`, `ETag: "1"`, 새 프로젝트 edit-session Cookie와 canonical snapshot/counts를 반환한다.
+
+## UI
+프로젝트 상세 화면에서 `프로젝트 복사`를 제공한다. 현재 원본 edit session이 유효한 경우에만 실행할 수 있으며 새 프로젝트명, 설명, 새 편집 비밀번호/확인, 진척률 초기화 여부를 확인한다. 성공한 뒤에만 새 프로젝트로 이동한다.
+
+## Acceptance Criteria
+- 원본 Project revision/updated schedule을 변경하지 않는다.
+- 새 Project revision은 1이다.
+- Task/Link 공개 ID가 원본과 다르다.
+- Task externalId, 계층, sibling order, Link 관계, 휴일, 날짜/기간을 보존한다.
+- 복사 중 오류가 발생하면 부분 프로젝트를 남기지 않는다.
+- stale `If-Match`, 만료/회수 session, 잘못된 Origin, invalid body를 거부한다.
+- 진척률 초기화 옵션은 summary를 포함해 일관되게 재집계한다.
+
+## 버전
+기준 버전 `0.7.0`에서 하위 호환 신규 기능을 추가하므로 Semantic Versioning MINOR를 증가하여 `0.8.0`으로 관리한다.
+
+## 검증
+CI의 version consistency, typecheck, lint, Vitest, production build, Chromium E2E, Docker smoke gate를 그대로 적용한다. 프로젝트 복사 서비스 테스트에서 독립 ID, 계층/Link/Holiday 보존, 원본 revision 불변, 진척률 초기화를 검증한다.
