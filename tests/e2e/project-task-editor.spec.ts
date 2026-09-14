@@ -2,6 +2,7 @@ import { expect, test, type Page, type Request } from "@playwright/test";
 import type { ProjectDto, ProjectLinkDto, ProjectTaskDto, UpdateTaskRequest } from "../../src/contracts/projects";
 import { createWorkingCalendar } from "../../src/domain/scheduling/calendar";
 import { scheduleLeaf } from "../../src/domain/scheduling/leaf";
+import { chooseTaskInformation, taskContextMenu } from "./helpers/task-context-menu";
 
 const publicId = "a3405d3d-8cb4-4da4-9b0f-43a5de330004";
 const apiPath = `/api/projects/${publicId}`;
@@ -99,7 +100,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean 
 
 async function openRow(page: Page, name = "Beta leaf") {
   await row(page, name).getByText(name, { exact: true }).click({ button: "right" });
-  await expect(editor(page)).toBeVisible();
+  await chooseTaskInformation(page);
   await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue(name);
   await expect(editor(page)).toHaveCount(1);
 }
@@ -109,7 +110,7 @@ async function cancel(page: Page) {
   await expect(editor(page)).toHaveCount(0);
 }
 
-test.describe("Issue #4 direct task editor", () => {
+test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
   test.use({ viewport: { width: 1440, height: 1100 } });
 
   test("resolves Grid and Chart targets instead of selection and preserves header/empty-area behavior", async ({ page }) => {
@@ -122,6 +123,7 @@ test.describe("Issue #4 direct task editor", () => {
     await cancel(page);
     await expect(row(page, "Beta leaf")).toBeFocused();
     await bar(page, id(4)).click({ button: "right" });
+    await chooseTaskInformation(page);
     await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Beta leaf");
     await cancel(page);
     const header = page.locator(".project-gantt-widget .wx-table-container .wx-header").first();
@@ -135,6 +137,7 @@ test.describe("Issue #4 direct task editor", () => {
     await cancel(page);
     await header.click({ button: "right" });
     await expect(page.locator(".project-column-menu")).toBeVisible();
+    await expect(taskContextMenu(page)).toHaveCount(0);
     await expect(editor(page)).toHaveCount(0);
     await page.locator(".project-column-menu").getByRole("checkbox", { name: "외부 ID", exact: true }).check();
     await page.keyboard.press("Escape");
@@ -149,6 +152,7 @@ test.describe("Issue #4 direct task editor", () => {
       return event.defaultPrevented;
     });
     expect(prevented).toBe(false);
+    await expect(taskContextMenu(page)).toHaveCount(0);
     await expect(editor(page)).toHaveCount(0);
     for (let i = 0; i < 3; i += 1) { await openRow(page); await cancel(page); }
     await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
@@ -160,7 +164,7 @@ test.describe("Issue #4 direct task editor", () => {
     const fixture = await setup(page);
     await row(page, "Beta leaf").focus();
     await page.keyboard.press("Shift+F10");
-    await expect(editor(page)).toBeVisible();
+    await chooseTaskInformation(page, true);
     const name = editor(page).getByLabel("작업명", { exact: true });
     await name.fill("Unsaved draft");
     await name.click({ button: "right" });
@@ -185,6 +189,85 @@ test.describe("Issue #4 direct task editor", () => {
     await expect(editor(page)).toHaveCount(0);
     expect(fixture.patches).toHaveLength(0);
   });
+
+  test("메뉴 열기·취소·대상 전환은 저장·이동·Gantt 재생성을 일으키지 않는다", async ({ page }) => {
+    const fixture = await setup(page);
+    const instance = await frame(page).getAttribute("data-project-gantt-instance");
+    const apiInstance = await frame(page).getAttribute("data-project-gantt-api-instance");
+    const mutations: Request[] = [];
+    const navigations: Request[] = [];
+    page.on("request", (request) => {
+      if (request.resourceType() === "document") navigations.push(request);
+      if (["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && new URL(request.url()).pathname.startsWith(apiPath)) mutations.push(request);
+    });
+    const scroll = () => page.locator(".project-gantt-scroll").evaluate((root) => ({
+      x: window.scrollX, y: window.scrollY,
+      positions: [root, ...Array.from(root.querySelectorAll<HTMLElement>("*"))]
+        .filter((element) => element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth)
+        .map((element) => [element.scrollLeft, element.scrollTop]),
+    }));
+    const before = await scroll();
+    const geometry = await frame(page).boundingBox();
+    await row(page, "Beta leaf").getByText("Beta leaf", { exact: true }).click({ button: "right" });
+    await expect(taskContextMenu(page)).toBeVisible();
+    await expect(editor(page)).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(taskContextMenu(page)).toHaveCount(0);
+    await expect(row(page, "Beta leaf")).toBeFocused();
+    await bar(page, id(4)).focus();
+    await page.keyboard.press("ContextMenu");
+    await expect(taskContextMenu(page)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(bar(page, id(4))).toBeFocused();
+    await row(page, "Beta leaf").getByText("Beta leaf", { exact: true }).click({ button: "right" });
+    await expect(taskContextMenu(page)).toBeVisible();
+    await row(page, "Alpha leaf").getByText("Alpha leaf", { exact: true }).click({ button: "right" });
+    await chooseTaskInformation(page);
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Alpha leaf");
+    await cancel(page);
+    await row(page, "Beta leaf").getByText("Beta leaf", { exact: true }).click({ button: "right" });
+    await expect(taskContextMenu(page)).toBeVisible();
+    const header = page.locator(".project-gantt-widget .wx-table-container .wx-header").first();
+    await header.click({ button: "right" });
+    await expect(page.locator(".project-column-menu")).toBeVisible();
+    await expect(taskContextMenu(page)).toHaveCount(0);
+    await row(page, "Beta leaf").getByText("Beta leaf", { exact: true }).click({ button: "right" });
+    await expect(taskContextMenu(page)).toBeVisible();
+    await expect(page.locator(".project-column-menu")).toHaveCount(0);
+    await page.locator(".project-gantt-widget .wx-scale").first().click();
+    await expect(taskContextMenu(page)).toHaveCount(0);
+    await expect(editor(page)).toHaveCount(0);
+    expect(await scroll()).toEqual(before);
+    expect(await frame(page).boundingBox()).toEqual(geometry);
+    await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
+    await expect(frame(page)).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+    expect(fixture.patches).toHaveLength(0);
+    expect(mutations).toHaveLength(0);
+    expect(navigations).toHaveLength(0);
+  });
+
+  for (const viewport of [{ width: 1440, height: 1100 }, { width: 360, height: 800 }]) {
+    test(`${viewport.width}px 메뉴 위치는 네 모서리에서도 viewport 안에 머문다`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      const fixture = await setup(page);
+      for (const [clientX, clientY] of [[0, 0], [viewport.width - 1, 0], [0, viewport.height - 1], [viewport.width - 1, viewport.height - 1]]) {
+        // 실제 우클릭과 분리한 경계 배치 테스트: 기존 task 대상에 가장자리 좌표를 전달한다.
+        await row(page, "Beta leaf").dispatchEvent("contextmenu", { clientX, clientY });
+        const menu = taskContextMenu(page);
+        await expect(menu).toBeVisible();
+        await expect(editor(page)).toHaveCount(0);
+        const bounds = await menu.boundingBox();
+        expect(bounds).not.toBeNull();
+        expect(bounds!.x).toBeGreaterThanOrEqual(7);
+        expect(bounds!.y).toBeGreaterThanOrEqual(7);
+        expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width - 7);
+        expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height - 7);
+        await page.keyboard.press("Escape");
+        await expect(menu).toHaveCount(0);
+      }
+      expect(fixture.patches).toHaveLength(0);
+    });
+  }
 
   test("sends one explicit PATCH and uses canonical working-day results across weekends and holidays", async ({ page }) => {
     const fixture = await setup(page);
@@ -253,6 +336,7 @@ test.describe("Issue #4 direct task editor", () => {
     await save(page).click();
     await expect(editor(page)).toContainText("편집 권한이 만료");
     await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Expired draft");
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Expired draft");
     await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
     await expect(save(page)).toHaveCount(0);
     expect(fixture.patches).toHaveLength(1);
@@ -295,6 +379,7 @@ test.describe("Issue #4 direct task editor", () => {
       await expect(editor(page)).toContainText(mode === "readonly" ? "편집 권한이 없습니다" : "연결이 있는 일정");
       await cancel(page);
       await bar(page, id(5)).click({ button: "right" });
+      await chooseTaskInformation(page);
       await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Milestone");
       await expect(save(page)).toHaveCount(0);
       expect(fixture.patches).toHaveLength(0);
@@ -304,6 +389,7 @@ test.describe("Issue #4 direct task editor", () => {
   test("permits only supported milestone fields and does not change its zero duration", async ({ page }) => {
     const fixture = await setup(page);
     await bar(page, id(5)).click({ button: "right" });
+    await chooseTaskInformation(page);
     await expect(editor(page).getByLabel("기간 (근무일)", { exact: true })).toHaveAttribute("readonly", "");
     await editor(page).getByLabel("작업명", { exact: true }).fill("Updated milestone");
     await editor(page).getByLabel("시작일", { exact: true }).fill("2026-09-22");
