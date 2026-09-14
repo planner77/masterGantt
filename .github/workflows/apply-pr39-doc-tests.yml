@@ -1,0 +1,29 @@
+name: Apply PR39 docs tests
+on:
+  push:
+    branches: [feat/issues-27-33-35-36-37]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with: { ref: feat/issues-27-33-35-36-37 }
+      - run: |
+          python - <<'PY'
+          from pathlib import Path
+          for name in ['tests/e2e/project-task-editor.spec.ts','tests/e2e/project-task-editor-persistence.spec.ts']:
+            p=Path(name); s=p.read_text(); s=s.replace('getByLabel("진행률 (%)", { exact: true })','getByLabel("진행률", { exact: true })').replace('.fill("35.5")','.fill("35")').replace('progress: 35.5','progress: 35'); p.write_text(s)
+          p=Path('src/features/gantt/project-gantt.tsx'); s=p.read_text(); s=s.replace('highlightTime={highlightWeekend}', 'highlightTime={scaleMode === "day" ? highlightWeekend : undefined}'); p.write_text(s)
+          p=Path('docs/API.md'); s=p.read_text(); s += '''\n\n## `POST /api/projects/{sourcePublicId}/copy` — 프로젝트 복사\n\n원본의 유효한 edit session, exact Origin, strong `If-Match`가 필요하다. 요청은 `name`, `description`, `editPassword`, 선택적 `resetProgress`만 허용한다. 성공은 `201 Created`, `Location: /projects/{newPublicId}`, `ETag: "1"`, 새 프로젝트 edit-session Cookie를 반환한다. Project/Task/Link public/internal ID는 새로 발급하고 Task `externalId`, 일정, 계층, FS/lag 0 연결, 휴일을 보존한다. `resetProgress=true`이면 leaf/milestone progress를 0으로 하고 summary progress를 재집계한다. 전체 복사는 하나의 SQLite IMMEDIATE transaction이며 실패 시 신규 aggregate를 남기지 않는다.\n\nTask create/PATCH 및 canonical snapshot의 `ProjectTaskDto`는 `description: string | null`(최대 4,000자)과 `url: string | null`(최대 2,048자, http/https)을 포함한다.\n'''; p.write_text(s)
+          p=Path('docs/DB_SCHEMA.md'); s=p.read_text(); s += '''\n\n## Task 상세 필드 — migration 0002\n\n`tasks.description TEXT NULL`, `tasks.url TEXT NULL`을 추가한다. API 계층에서 description은 Unicode code point 기준 최대 4,000자, URL은 최대 2,048자이며 `http:`/`https:` scheme만 허용한다. 기존 행은 NULL이며 Task 일반 mutation에서 필드가 생략되면 기존 값을 보존한다. 프로젝트 복사 시 두 필드는 원본 값 그대로 신규 Task 행에 복사한다.\n'''; p.write_text(s)
+          p=Path('CHANGELOG.md'); s=p.read_text(); marker='### Added'; entry='''### Added\n\n- v0.8.0: Issues #27/#33/#35/#36/#37 — 프로젝트 전체 복사, Gantt 일/주 표시 전환, Task 진행률 slider·Description·URL 및 URL 실행, 프로젝트 진입 시 edit-session 재확인을 추가한다.\n''';
+          if marker in s and 'Issues #27/#33/#35/#36/#37' not in s: s=s.replace(marker,entry,1)
+          p.write_text(s)
+          PY
+          git rm .github/workflows/apply-pr39-doc-tests.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -m "test: 0.8.0 기능 계약과 회귀 검증 갱신" && git push origin HEAD:feat/issues-27-33-35-36-37
