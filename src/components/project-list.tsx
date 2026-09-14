@@ -54,7 +54,6 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   }
   async function prepareDelete(project: ProjectListItemDto, trigger: HTMLButtonElement) {
     if (mutation.current) return;
-    // disabled 처리나 await 전에 보존해야 취소 후 정확한 행의 버튼으로 복귀한다.
     deleteTrigger.current = trigger;
     mutation.current = true;
     setDeletingId(project.publicId); clearToast(); setDeleteError(null); setPassword("");
@@ -82,7 +81,6 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
     setPassword(""); setDeleteError(null); clearToast();
     mutation.current = true; setSubmitting(true);
     try {
-      // Always verify a newly entered password, even when a valid edit session already exists.
       const authorization = await fetch(`/api${projectPath(currentTarget.publicId)}/edit-sessions`, {
         method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ editPassword: submittedPassword }),
@@ -134,6 +132,7 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
             <td className={styles.dateCell}>{formatLocaleDateTime(project.updatedAt, locales, timeZone)}</td>
             <td className={styles.actions}>
               <Link className={styles.openLink} href={projectPath(project.publicId)}>열기</Link>
+              <Link className={styles.openLink} href={`${projectPath(project.publicId)}?copy=1`}>프로젝트 복사</Link>
               <ProjectLinkButton projectName={project.name} projectUrl={projectUrls[project.publicId] ?? null} />
               <button className={styles.deleteButton} disabled={deletingId !== undefined || submitting}
                 onClick={(event) => void prepareDelete(project, event.currentTarget)} type="button">{deletingId === project.publicId ? "확인 중" : "삭제"}</button>
