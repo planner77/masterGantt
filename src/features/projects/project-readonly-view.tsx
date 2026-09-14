@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { ProjectLinkButton } from "@/components/project-link-button";
+import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
@@ -388,6 +389,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
       <div><p className="eyebrow">PROJECT</p><h1 id="project-heading">{project.name}</h1><p className="page-description">{project.description || "설명이 없습니다."}</p></div>
       <div className={feedbackStyles.headingActions}>
         <ProjectLinkButton projectName={project.name} projectUrl={projectUrl} />
+        <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} />
         {editing ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null || pendingTaskDelete !== null} onClick={() => setSettingsOpen(true)}>프로젝트 설정</button> : null}
         <span className={editing ? "edit-badge" : "readonly-badge"}>{editing ? "편집 가능" : "읽기 전용"}</span>
       </div>
