@@ -100,7 +100,7 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 | --- | --- | --- | --- |
 | `.github/workflows/ci.yml` 검증 jobs | PR, `main` push, manual | `contents: read` | application·browser·container 회귀 |
 | `.github/workflows/ci.yml` commit publish job | 성공한 `main` push만 | `contents: read`, `packages: write`; optional attestation을 위해 job에 `attestations: write`, `id-token: write` 선언 | immutable `ci-<full SHA>` publish와 digest HTTP persistence smoke |
-| `.github/workflows/release-image.yml` | strict `v*` tag | publish job만 package/attestation 쓰기와 OIDC 권한 선언 | 검증 후 GHCR publish와 digest smoke |
+| `.github/workflows/release-image.yml` | strict `v*` tag push 또는 annotated `v*` tag ref의 수동 실행 | publish job만 package/attestation 쓰기와 OIDC 권한 선언 | 동일 SemVer/annotated-tag 검증 후 GHCR publish와 digest smoke |
 
 - PR과 수동 CI에는 registry credential 또는 write token을 제공하지 않는다.
 - `pull_request_target`에서 repository code를 build/test하지 않는다.
@@ -121,6 +121,8 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 5. Tag를 원격에 push한다. Release workflow가 local candidate runtime gate를 통과하기 전에는 registry write를 수행하지 않으며 수동 GHCR push는 하지 않는다.
 6. Immutable commit candidate의 registry digest smoke와, 활성화한 경우 GitHub Attestation 뒤 rolling alias 및 exact version promotion이 끝났는지 workflow summary에서 확인한다.
 7. GHCR package visibility와 consumer `packages: read` 권한을 확인하고 exact version/digest로 테스트한다.
+
+연결된 운영 도구가 `GITHUB_TOKEN`으로 annotated tag를 생성해 tag push가 후속 workflow를 자동 재귀 실행하지 않는 경우에는, 해당 **annotated `v*` tag ref**를 지정해 `workflow_dispatch`로 같은 release workflow를 실행할 수 있다. 이 경로도 package/tag 일치, 이전 SemVer보다 큰 버전, annotated tag 여부와 immutable image 충돌 검사를 우회하지 않는다.
 
 Tag/package 불일치, 이전 tag 이하 version, lightweight tag, 기존 exact/commit image, CI 실패, candidate/publish/promotion 실패 또는 registry digest smoke 실패는 release 실패다. 실패한 exact/commit version을 덮어쓰지 않고 원인을 수정한 다음 새 commit의 PATCH/prerelease version을 사용한다.
 

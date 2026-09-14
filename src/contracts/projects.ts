@@ -69,6 +69,33 @@ export interface CreateProjectResponse {
   };
 }
 
+export interface CopyProjectRequest {
+  name: string;
+  description: string;
+  editPassword: string;
+  resetProgress?: boolean;
+}
+
+export interface CopyProjectResponse {
+  data: {
+    project: ProjectDto;
+    tasks: ProjectTaskDto[];
+    links: ProjectLinkDto[];
+    permission: "edit";
+    operation: {
+      kind: "projectCopy";
+      sourcePublicId: string;
+      sourceRevision: number;
+      counts: {
+        tasks: number;
+        links: number;
+        holidays: number;
+      };
+    };
+    warnings: [];
+  };
+}
+
 export interface ProjectSnapshotResponse {
   data: {
     project: ProjectDto;
