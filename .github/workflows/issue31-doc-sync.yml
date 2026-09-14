@@ -1,0 +1,140 @@
+name: Issue 31 관련 문서 일회성 동기화
+
+on:
+  push:
+    branches:
+      - feat/issue-31-task-context-delete
+
+permissions:
+  contents: write
+
+jobs:
+  sync-docs:
+    name: Issue 31 문서 계약 동기화
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: feat/issue-31-task-context-delete
+          fetch-depth: 0
+      - name: 문서 갱신
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              if new in text:
+                  return
+              if old not in text:
+                  raise SystemExit(f"expected text not found in {path}")
+              p.write_text(text.replace(old, new, 1))
+
+          replace_once(
+              "docs/API.md",
+              '''### `DELETE /api/projects/{publicId}/tasks/{taskId}`
+
+Root 또는 nested Leaf/Milestone을 삭제하고 canonical full snapshot을 반환한다. Nested leaf 삭제 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. 마지막 child 삭제는 `EMPTY_SUMMARY_NOT_ALLOWED`, Summary 직접 삭제는 `SUMMARY_DELETE_UNSUPPORTED`로 거부한다. 기존 Link가 있으면 아직 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 Task·Link·revision을 모두 보존한다. Incident Link 삭제·후속 Task 재계산과 `deletedLinkIds` 보고는 W09에서 같은 transaction으로 활성화한다.
+
+최종 기능에서도 다음 경우는 명시적으로 거부한다.
+
+- Task가 존재하지 않거나 다른 Project에 속한다.
+- Leaf 삭제 결과 parent summary가 비게 된다.
+- Summary에 child가 있는데 cascade intent가 없다.
+
+Subtree 삭제가 필요하면 별도의 명시적 `cascade=true` 계약과 UI 확인을 구현할 때 추가한다. 초기 route가 암묵적으로 descendant를 삭제하지 않는다.
+''',
+              '''### `DELETE /api/projects/{publicId}/tasks/{taskId}`
+
+기본 요청은 기존 계약을 유지하여 Root 또는 nested Leaf/Milestone **한 작업만** 삭제한다. Nested leaf 삭제 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. 마지막 child 삭제는 `EMPTY_SUMMARY_NOT_ALLOWED`, child가 있는 Summary를 명시적 subtree 의도 없이 삭제하면 `SUMMARY_DELETE_UNSUPPORTED`로 거부한다. 기존 Link가 있으면 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 Task·Link·revision을 모두 보존한다.
+
+Issue #31부터 선택 작업과 모든 깊이의 자손을 함께 삭제할 때는 다음처럼 명시적인 query를 사용한다.
+
+```http
+DELETE /api/projects/{publicId}/tasks/{taskId}?includeDescendants=true
+Origin: <canonical APP_BASE_URL origin>
+If-Match: "<current revision>"
+```
+
+`includeDescendants=true`는 삭제 범위 의도이며 인증을 대체하지 않는다. 기존 Task DELETE와 동일하게 edit session, exact Origin, strong If-Match가 필요하다. 서버는 client가 전달한 자손 ID/개수를 신뢰하지 않고 write transaction 안에서 현재 저장된 parent 관계로 target subtree를 다시 계산한다. child-first로 target+전체 자손을 제거하고 남은 ancestor Summary를 재계산한 뒤 Project revision을 정확히 1 증가시킨다. 응답의 `operation.deletedTaskExternalIds`에는 실제 삭제한 전체 집합을 기록하고 canonical full snapshot을 반환한다.
+
+다음 경우는 전체 rollback한다.
+
+- Task가 존재하지 않거나 다른 Project에 속한다.
+- 선택 범위 밖의 parent Summary가 비게 된다 (`EMPTY_SUMMARY_NOT_ALLOWED`).
+- 확인 이후 다른 write로 revision이 바뀐다 (`REVISION_MISMATCH` / HTTP 412).
+- 기존 Link가 있어 현재 hierarchy mutation 정책을 만족하지 않는다 (`UNSUPPORTED_SCHEDULE_STRUCTURE`).
+- 저장된 계층이 cycle/고아/일정 불일치 등으로 유효하지 않다.
+
+UI는 canonical snapshot의 자손 수를 확인창에 표시하지만 이는 안내값이다. 자손이 있으면 작업명·자손 수·총 삭제 수를 표시하고 명시적으로 `하위 작업 포함 삭제`를 선택한 경우에만 위 query를 보낸다. 취소/Escape/닫기 전에는 DELETE를 보내지 않는다. 확인 당시 revision이 stale이면 최신 snapshot을 재조회한 후 새 범위를 다시 확인해야 하며 자동 재시도하지 않는다.
+''')
+
+          replace_once(
+              "docs/TASK_EDITOR.md",
+              "# Issue #4 / #22 — 작업 메뉴와 Grid / Chart 작업 정보 편집기",
+              "# Issue #4 / #22 / #31 — 작업 메뉴와 Grid / Chart 작업 정보·삭제")
+          replace_once(
+              "docs/TASK_EDITOR.md",
+              "삭제, 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.",
+              "작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.")
+          replace_once(
+              "docs/TASK_EDITOR.md",
+              "| 추가·삭제·복제 | 이번 메뉴에서 미제공 | 기존 도구의 존재를 신규 메뉴 명령의 자동 승인으로 해석하지 않는다. 별도 저장·삭제 의미를 추가하지 않는다. |",
+              "| 작업 삭제 | 제공 (#31) | Edit·무연결 일정에서 실제 우클릭 taskId를 대상으로 한다. 자손이 있으면 범위 확인 후 `includeDescendants=true`로 원자 삭제한다. |\n| 추가·복제 | 이번 메뉴에서 미제공 | 기존 도구의 존재를 신규 메뉴 명령의 자동 승인으로 해석하지 않는다. |")
+          replace_once(
+              "docs/TASK_EDITOR.md",
+              "메뉴는 우클릭 지점 근처에 fixed overlay로 표시하고 viewport 경계를 보정한다.",
+              "삭제 메뉴는 Readonly·mutation 진행 중·Link가 있는 일정에서는 비활성화한다. 자손 없는 작업은 기존 단건 DELETE, 자손이 있는 작업은 작업명·자손 수·총 삭제 수를 보여주는 확인창을 거쳐 명시적 subtree DELETE를 사용한다. 취소/Escape/닫기는 DELETE 0회이며 확인 시점 revision이 바뀌면 412 후 최신 범위를 다시 확인한다.\n\n메뉴는 우클릭 지점 근처에 fixed overlay로 표시하고 viewport 경계를 보정한다.")
+
+          req = Path("docs/REQUIREMENTS.md")
+          req_text = req.read_text()
+          marker = '| R41 | Clipboard 성공 확인 후에만 성공 안내를 한다. 거부·미지원이면 선택 가능한 읽기 전용 내용과 수동 복사/재시도를 제공한다 (#18/#21). | 클릭 기반 쓰기만 수행하며 앱은 clipboard 읽기 권한을 요청하지 않음. 오류·fallback·키보드·좁은 화면 검증. [UX 계약](PROJECT_UX.md) |'
+          r42 = '| R42 | Grid와 Chart의 실제 작업 우클릭 메뉴에 `작업 삭제`를 제공한다 (#31). 하위 작업이 있으면 선택 작업+모든 깊이의 자손 수와 총 삭제 수를 보여주고 명시적 확인 후에만 원자적으로 삭제한다. | 취소 전 DELETE 0회, server persisted hierarchy 재계산, edit session/Origin/If-Match 유지, `includeDescendants=true`, revision 1회 증가, 외부 Summary empty/Link 일정은 기존 정책대로 거부. [Issue #31](ISSUE_31_REVIEW.md) |'
+          if r42 not in req_text:
+              if marker not in req_text: raise SystemExit("R41 marker missing")
+              req_text = req_text.replace(marker, marker + "\n" + r42, 1)
+          old = "Summary 자체의 drag/resize/직접 삭제, reparent와 FS 의존 재계산은 이번 UI 확장의 승인 범위가 아니다. 일반 하위 Leaf 변경은 조상 Summary를 다시 계산한다. #11은 서버 계약을 변경하지 않고 UI 확인 단계를 생략한다."
+          new = "Summary 자체의 drag/resize와 reparent·FS 의존 재계산은 기존 범위를 유지한다. #31은 예외적으로 child가 있는 작업의 명시적 subtree 삭제를 승인하며 `includeDescendants=true`와 사용자 확인을 요구한다. 일반 하위 Leaf 변경과 subtree 삭제 뒤 살아남은 조상 Summary는 다시 계산한다. #11은 생성 시 서버 계약을 변경하지 않고 UI 확인 단계를 생략한다."
+          if new not in req_text:
+              if old not in req_text: raise SystemExit("summary requirement marker missing")
+              req_text = req_text.replace(old, new, 1)
+          req.write_text(req_text)
+
+          plan = Path("docs/TEST_PLAN.md")
+          plan_text = plan.read_text()
+          issue31_test = '''### Issue #31 작업 subtree 삭제\n\n- Unit: 실제 taskId 기준 자손 탐색이 모든 깊이를 포함하고 형제를 제외하며 cycle/unknown을 안전하게 처리한다.\n- SQLite service: subtree를 child-first로 같은 transaction에서 삭제하고 남은 Summary를 재계산한다. root 전체 subtree는 허용하되 선택 범위 밖 Summary가 비면 `EMPTY_SUMMARY_NOT_ALLOWED`로 rollback한다.\n- API/security: 기본 DELETE는 기존 단건 의미를 유지하고 `includeDescendants=true`만 subtree를 활성화한다. session/Origin/If-Match/Project isolation, stale 412, Link 포함 409, revision 정확히 1 증가를 검증한다.\n- Chromium 실제 API: Grid/Chart 우클릭의 정확한 target, 삭제 메뉴, 자손 확인의 작업명/개수, 취소 전 DELETE 0회, 확인 후 subtree DELETE 1회, sibling 보존, canonical Grid/Chart 동기화, Gantt instance 유지와 reload persistence를 검증한다.\n- GitHub Actions `quality/e2e/docker`의 최종 동일 head 실행을 공식 회귀 근거로 사용한다. 실제 스크린리더·Windows/사내 브라우저 최종 UX는 별도 환경 검증이다.\n\n'''
+          if issue31_test not in plan_text:
+              plan_text = plan_text.replace("## 판정과 증거\n\n", "## 판정과 증거\n\n" + issue31_test, 1)
+              plan.write_text(plan_text)
+
+          changelog = Path("CHANGELOG.md")
+          ch = changelog.read_text()
+          bullet = "- Issue #31: Grid·Chart 작업 우클릭 메뉴에 보호된 작업 삭제를 추가하고, 자손이 있으면 범위를 확인한 뒤 서버가 저장 계층을 재계산하여 하나의 transaction으로 subtree를 삭제한다. 사용자 기능/API 확장에 따라 버전을 `0.7.0`으로 갱신한다."
+          if bullet not in ch:
+              anchor = "- Issue #8: production 내부망 HTTP opt-in, 외부 URL 기반 쿠키 정책, Nginx HTTP 예제 및 production HTTP/HTTPS 브라우저·영속성 CI."
+              if anchor not in ch: raise SystemExit("changelog anchor missing")
+              ch = ch.replace(anchor, anchor + "\n" + bullet, 1)
+              changelog.write_text(ch)
+
+          active = Path("docs/exec-plans/active/PLAN.md")
+          active_text = active.read_text()
+          section = '''## Issue #31 — Grid·Chart 우클릭 작업 subtree 삭제 — 진행 중\n\n기준 main `51adbfb4fbd0c9b6e9d7bad2ffe40c858c6e7230`, branch `feat/issue-31-task-context-delete`. Frontend는 실제 우클릭 taskId의 삭제 메뉴와 자손 확인 dialog, Backend는 기존 Task DELETE의 보호 경계를 재사용하는 `includeDescendants=true` 원자 subtree 삭제를 담당한다. Scheduler는 삭제 후 살아남은 Summary 집계를 검토하고 qa_docs는 Unit/SQLite/실제 Chromium 및 문서 계약을 대조한다. Semantic Version은 하위 호환 기능/API 확장으로 `0.6.0 → 0.7.0` MINOR다. 최종 완료 판정은 같은 PR head의 GitHub Actions `quality/e2e/docker` 실제 결과로 하며, 실행 전 상태는 **NOT TESTED**다. 상세 근거는 [Issue #31 기록](../../ISSUE_31_REVIEW.md)을 따른다.\n\n'''
+          if section not in active_text:
+              active_text = active_text.replace("# Active execution plan\n\n", "# Active execution plan\n\n" + section, 1)
+              active.write_text(active_text)
+          PY
+      - name: 변경이 있을 때 문서 커밋
+        shell: bash
+        run: |
+          if git diff --quiet -- docs CHANGELOG.md; then
+            echo "Issue #31 문서는 이미 동기화되어 있습니다."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs CHANGELOG.md
+          git commit -m "docs: Issue 31 삭제 계약과 검증 계획 갱신"
+          git push origin HEAD:feat/issue-31-task-context-delete
