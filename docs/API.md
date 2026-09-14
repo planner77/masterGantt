@@ -197,6 +197,69 @@ Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 c
 
 초기 Gantt snapshot은 consistency를 위해 task/link를 한 번에 반환한다. Project 규모 상한을 적용하고 측정 없이 pagination을 추가하지 않는다.
 
+### `POST /api/projects/{sourcePublicId}/copy`
+
+서버에 저장된 원본 Project의 일정·계층·의존관계·휴일을 새 Project로 독립 복사한다. 브라우저 snapshot을 복사 payload로 보내지 않으며, 실제 원본 데이터는 같은 DB transaction 안에서 다시 읽는다.
+
+원본 Project의 **유효한 edit session**, exact same-origin `Origin`, 강한 단일 `If-Match: "<source revision>"`가 필요하다. Project 생성과 동일한 process-global 생성 rate limit 및 password KDF 동시 실행 제한을 적용한다. JSON body는 기존 bounded JSON 정책을 따르고 unknown field를 거부한다.
+
+```json
+{
+  "name": "Plant Expansion (복사본)",
+  "description": "Next planning cycle",
+  "editPassword": "new-project-password",
+  "resetProgress": false
+}
+```
+
+- `name`: 기존 Project 생성과 동일하게 trim 후 1–200 Unicode code point.
+- `description`: 0–4,000 Unicode code point, 원문 보존.
+- `editPassword`: 새 Project 전용 비밀번호. 원본 password hash/salt/KDF record를 복사하지 않는다.
+- `resetProgress`: 선택값이며 기본 `false`. `true`이면 leaf task/milestone progress를 0으로 만들고 summary progress를 계층 규칙으로 재집계한다.
+
+Password hashing은 write transaction 밖에서 수행한다. 이후 `IMMEDIATE` transaction 안에서 원본 session의 Project binding, authVersion, expiry/revocation과 원본 revision을 다시 검사하고 Project/Task/Link/Holiday/새 edit session을 한 번에 생성한다. 중간 실패 시 전체 rollback한다. 새 Project/Task/Link의 내부·공개 ID는 새로 발급하며 Task `externalId`, 계층/sibling order, Link 관계, 날짜/기간, Project 휴일은 보존한다. 원본 Project의 revision과 일정은 변경하지 않는다.
+
+성공은 `201 Created`, `Location: /projects/{newPublicId}`, `ETag: "1"`, `Cache-Control: private, no-store`와 새 Project에 binding된 edit-session `Set-Cookie`를 반환한다. 현재 root cookie 정책상 성공 후 브라우저의 편집 session 대상은 새 Project로 전환된다.
+
+```json
+{
+  "data": {
+    "project": {
+      "publicId": "new-project-uuid",
+      "name": "Plant Expansion (복사본)",
+      "description": "Next planning cycle",
+      "revision": 1,
+      "calendar": {
+        "timezone": "Asia/Seoul",
+        "weekendDays": [6, 0],
+        "holidays": []
+      }
+    },
+    "tasks": [],
+    "links": [],
+    "permission": "edit",
+    "operation": {
+      "kind": "projectCopy",
+      "sourcePublicId": "source-project-uuid",
+      "sourceRevision": 7,
+      "counts": { "tasks": 0, "links": 0, "holidays": 0 }
+    },
+    "warnings": []
+  }
+}
+```
+
+주요 오류는 다음과 같다. 공통 sanitized error envelope와 `requestId` 규약을 그대로 따른다.
+
+- `400 INVALID_REQUEST`: strict body 또는 `If-Match` 형식 오류
+- `401 EDIT_SESSION_REQUIRED`: 원본 edit session 없음·만료·회수·authVersion 불일치
+- `403 ORIGIN_NOT_ALLOWED`: 허용되지 않은 Origin
+- `404 PROJECT_NOT_FOUND`: 원본 Project 없음 또는 비정상 publicId
+- `412 REVISION_MISMATCH`: 확인한 원본 revision 이후 일정이 변경됨
+- `409 PERSISTED_SCHEDULE_INVALID`: 저장된 원본 일정/계층/Link가 복사 가능한 canonical 상태가 아님
+- `428 PRECONDITION_REQUIRED`: `If-Match` 누락
+- `429 RATE_LIMITED`: Project 생성 rate limit 또는 password KDF capacity 초과
+
 ### `PATCH /api/projects/{publicId}`
 
 Edit session, exact same-origin `Origin`, 강한 단일 `If-Match: "<positive revision>"`가 필요하다. strict JSON object에서 `name`과 `description` 중 하나 이상만 변경할 수 있다. Empty object, unknown field, `null`, weak/bare/wildcard/multiple ETag는 거부한다. 성공 시 revision이 정확히 1 증가하며 다음 canonical full snapshot을 반환한다.
