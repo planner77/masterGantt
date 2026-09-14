@@ -125,7 +125,6 @@ jobs:
         run: |
           docker run --detach --name mastergantt-ci \
             --env APP_BASE_URL=https://gantt.example.invalid \
-            --env SESSION_COOKIE_SECURE=true \
             --publish 127.0.0.1:3000:3000 \
             mastergantt:ci
           for _ in $(seq 1 30); do
@@ -152,6 +151,17 @@ jobs:
           done
           test "$ready" = true
           docker exec mastergantt-ci node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH, { readonly: true }); const row = db.prepare('SELECT COUNT(*) AS count FROM ci_smoke WHERE value = ?').get('persisted'); db.close(); if (row.count !== 1) process.exit(1)"
+      - name: production HTTP·HTTPS 브라우저 검증 도구 준비
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: production 전송 정책과 실제 쿠키·인증·영속성 검증
+        run: |
+          npm ci
+          npx --no-install playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install --yes nginx libnss3-tools
+          bash scripts/verify-transport-smoke.sh mastergantt:ci
       - name: Verify relocated Compose configuration and persistence
         run: bash scripts/verify-compose-smoke.sh
       - name: Show container logs on failure
@@ -243,7 +253,6 @@ jobs:
           set -euo pipefail
           docker run --detach --name mastergantt-commit-smoke \
             --env APP_BASE_URL=https://gantt.example.invalid \
-            --env SESSION_COOKIE_SECURE=true \
             --publish 127.0.0.1:3000:3000 \
             "${{ steps.digest.outputs.image }}"
           for _ in $(seq 1 30); do
@@ -272,6 +281,13 @@ jobs:
           docker exec mastergantt-commit-smoke node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH, { readonly: true }); const row = db.prepare('SELECT COUNT(*) AS count FROM commit_smoke WHERE value = ?').get('persisted'); db.close(); if (row.count !== 1) process.exit(1)"
       - name: Verify Project and Task API persistence through fetched image
         run: node scripts/verify-registry-api-smoke.mjs http://127.0.0.1:3000 mastergantt-commit-smoke
+      - name: 게시 digest의 HTTP·HTTPS 브라우저 검증
+        run: |
+          npm ci
+          npx --no-install playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install --yes nginx libnss3-tools
+          bash scripts/verify-transport-smoke.sh "${{ steps.digest.outputs.image }}"
       - name: Attest the verified commit image digest
         id: attest
         # Private repositories below Enterprise Cloud leave this variable unset.
