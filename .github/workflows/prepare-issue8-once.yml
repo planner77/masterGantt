@@ -1,0 +1,76 @@
+name: 이슈 8 변경 일회성 준비
+on:
+  push:
+    branches: [feat/issue-8-internal-http]
+    paths: [scripts/prepare-issue8.py, .github/workflows/prepare-issue8-once.yml]
+permissions: {}
+concurrency:
+  group: issue8-prepare-once
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.repository == 'planner77/masterGantt' && github.ref == 'refs/heads/feat/issue-8-internal-http'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          ref: feat/issue-8-internal-http
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: 변경 기준과 준비 입력 검증
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 -m py_compile scripts/prepare-issue8.py
+          bash -n scripts/verify-transport-smoke.sh
+          npm ci
+      - name: 소스·문서 변경 적용
+        run: |
+          python3 scripts/prepare-issue8.py
+          python3 - <<'PY'
+          from pathlib import Path
+          # Remove a blank line left by removal of the unused legacy env argument.
+          # Keep shell continuations intact; do not remove any validation gate.
+          for p in Path('_issue8_staging').glob('*.yml'):
+              s = p.read_text()
+              while '\\\n\n' in s:
+                  s = s.replace('\\\n\n', '\\\n')
+              p.write_text(s)
+          p = Path('README.md')
+          s = p.read_text()
+          doc = Path('docs/HTTP_OPERATION.md').read_text()
+          sample = doc.split('## 내부망 HTTP 실행 예제\n', 1)[1].split('## 쿠키 및 프로토콜 전환', 1)[0]
+          sample = sample.replace('../deploy/', 'deploy/')
+          sample += '\n```nginx\n' + Path('deploy/nginx/http.conf.example').read_text() + '```\n\n'
+          assert s.count('<!-- ISSUE8_HTTP_EXAMPLE -->') == 1
+          s = s.replace('<!-- ISSUE8_HTTP_EXAMPLE -->', '#### 인증서 없는 내부망 HTTP 구성\n\n' + sample + '#### 선택 사항: HTTPS 구성\n')
+          p.write_text(s)
+          PY
+          git diff --check
+          node scripts/check-markdown-links.mjs
+      - name: 전용 브랜치에 일반 파일만 커밋
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src scripts tests deploy docs README.md AGENTS.md CHANGELOG.md .env.example .codex _issue8_staging
+          # Workflow 변경은 staging에만 두고 승인된 연결의 별도 atomic commit으로 적용한다.
+          test -z "$(git diff --cached --name-only -- .github)"
+          git commit -m 'feat: 내부망 HTTP opt-in과 쿠키·설정 주입 및 운영 문서 구현'
+          python3 - <<'PY'
+          import base64, os, subprocess
+          env = os.environ.copy()
+          env['GIT_TERMINAL_PROMPT'] = '0'
+          env['GIT_CONFIG_COUNT'] = '1'
+          env['GIT_CONFIG_KEY_0'] = 'http.https://github.com/.extraheader'
+          env['GIT_CONFIG_VALUE_0'] = 'AUTHORIZATION: basic ' + base64.b64encode(('x-access-token:' + os.environ['GH_TOKEN']).encode()).decode()
+          result = subprocess.run(['git','push','origin','HEAD:refs/heads/feat/issue-8-internal-http'], env=env, capture_output=True, text=True, timeout=60)
+          if result.returncode:
+              raise SystemExit('전용 브랜치 push 실패. 권한을 확장하거나 force push하지 않습니다.')
+          print('일반 파일 변경을 전용 브랜치에 반영했습니다. 실제 PR CI는 별도 실행합니다.')
+          PY
