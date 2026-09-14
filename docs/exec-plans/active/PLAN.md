@@ -1,5 +1,10 @@
 # Active execution plan
 
+## Issue #33 — 운영 헤더 Gantt 데모 메뉴 제거 — 병합 완료 / v0.8.1 릴리스 준비
+
+Issue #33은 운영 상단 주요 메뉴에서 `Gantt 데모` 링크를 제거하고 `/gantt-demo` 자체는 SVAR 통합·timezone/hydration 검증 fixture로 유지하는 범위로 구현했다. 전용 PR #42의 최종 head `62e891609df40cedf3d091cce6c4e0f2fc2d3fad`는 CI #130 (`34906688532`)에서 version/typecheck/lint/Vitest/build/Chromium E2E/Docker/HTTP·HTTPS/Compose gate를 모두 통과했고, `main`에 squash 병합되어 commit `ff12f358b856c33126574f27efbe830a8d8ee125`가 생성되었다. Application version은 SemVer PATCH `0.8.1`이다. 상세 분석·검증 근거는 [Issue #33 기록](../../ISSUE_33_REVIEW.md)과 [Issue #33 실행 계획](ISSUE_33_PLAN.md)을 따른다. 현재 다음 단계는 최종 `main` CI 및 immutable commit image 검증 후 annotated `v0.8.1` tag와 Semantic release image를 발행하는 것이다.
+
+
 ## Issue #31 — Grid·Chart 우클릭 작업 subtree 삭제 — 진행 중
 
 기준 main `51adbfb4fbd0c9b6e9d7bad2ffe40c858c6e7230`, branch `feat/issue-31-task-context-delete`. Frontend는 실제 우클릭 taskId의 삭제 메뉴와 자손 확인 dialog, Backend는 기존 Task DELETE의 보호 경계를 재사용하는 `includeDescendants=true` 원자 subtree 삭제를 담당한다. Scheduler는 삭제 후 살아남은 Summary 집계를 검토하고 qa_docs는 Unit/SQLite/실제 Chromium 및 문서 계약을 대조한다. Semantic Version은 하위 호환 기능/API 확장으로 `0.6.0 → 0.7.0` MINOR다. 최종 완료 판정은 같은 PR head의 GitHub Actions `quality/e2e/docker` 실제 결과로 하며, 실행 전 상태는 **NOT TESTED**다. 상세 근거는 [Issue #31 기록](../../ISSUE_31_REVIEW.md)을 따른다.
