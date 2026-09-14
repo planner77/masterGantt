@@ -1,0 +1,32 @@
+name: Fix Issue27 tests
+on:
+  push:
+    branches: [feat/issue-27-project-copy]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: feat/issue-27-project-copy
+      - name: 프로젝트 복사 route 기대값 추가
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tests/server/projects/edit-authorization-handlers.test.ts')
+          text = path.read_text(encoding='utf-8')
+          old = '      "DELETE /api/projects/{publicId}",\n      "POST /api/projects/{publicId}/edit-sessions",'
+          new = '      "DELETE /api/projects/{publicId}",\n      "POST /api/projects/{publicId}/copy",\n      "POST /api/projects/{publicId}/edit-sessions",'
+          if old not in text:
+              raise SystemExit('expected route list anchor not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          rm .github/workflows/fix-issue27-tests.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/server/projects/edit-authorization-handlers.test.ts .github/workflows/fix-issue27-tests.yml
+          git commit -m "test: 프로젝트 복사 보안 route 기대값 갱신 (#27)"
+          git push origin HEAD:feat/issue-27-project-copy
