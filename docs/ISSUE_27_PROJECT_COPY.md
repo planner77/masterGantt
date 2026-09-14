@@ -17,7 +17,13 @@
 - 성공 응답은 `201 Created`, `Location`, `ETag: "1"`, 새 프로젝트 edit-session Cookie와 canonical snapshot/counts를 반환한다.
 
 ## UI
-프로젝트 상세 화면에서 `프로젝트 복사`를 제공한다. 현재 원본 edit session이 유효한 경우에만 실행할 수 있으며 새 프로젝트명, 설명, 새 편집 비밀번호/확인, 진척률 초기화 여부를 확인한다. 성공한 뒤에만 새 프로젝트로 이동한다.
+- 프로젝트 상세 화면에 `프로젝트 복사` 진입점을 제공한다.
+- 프로젝트 목록에도 `프로젝트 복사` 진입점을 제공하며 상세 화면의 복사 대화상자를 연다.
+- 복사 대화상자를 열 때마다 최신 canonical snapshot과 현재 edit-session을 서버에서 다시 확인한다.
+- 원본 edit session이 없으면 기존 편집 비밀번호 잠금 해제 API를 통해 인증한 뒤 복사를 진행한다.
+- 실제 복사 직전 canonical snapshot을 다시 읽어 최신 revision을 `If-Match`에 사용하므로, 다른 편집 직후에도 stale revision을 재사용하지 않는다.
+- 새 프로젝트명, 설명, 새 편집 비밀번호/확인, 진척률 초기화 여부를 확인하며 성공한 뒤에만 새 프로젝트로 이동한다.
+- 복사 UI는 자체 `WorkspaceNotifications` 범위 안에서 동작하여 알림 컨텍스트 누락으로 페이지가 중단되지 않는다.
 
 ## Acceptance Criteria
 - 원본 Project revision/updated schedule을 변경하지 않는다.
@@ -27,6 +33,13 @@
 - 복사 중 오류가 발생하면 부분 프로젝트를 남기지 않는다.
 - stale `If-Match`, 만료/회수 session, 잘못된 Origin, invalid body를 거부한다.
 - 진척률 초기화 옵션은 summary를 포함해 일관되게 재집계한다.
+- 목록과 상세 화면 양쪽에서 복사 기능에 진입할 수 있다.
+- 잠금 해제/프로젝트 수정 후에도 최신 권한·revision을 사용한다.
+
+## CI 및 리뷰 보정
+- 응답 DTO는 `CopyProjectResponse`를 명시하여 `timezone: "Asia/Seoul"` 및 `[6, 0]` tuple의 리터럴 타입을 보존한다.
+- route security inventory에 `POST /api/projects/{publicId}/copy`를 추가하고 exact inventory 테스트 기대값도 함께 갱신한다.
+- Codex P1 리뷰의 알림 Provider 범위와 stale snapshot/revision 문제를 보정했다.
 
 ## 버전
 기준 버전 `0.7.0`에서 하위 호환 신규 기능을 추가하므로 Semantic Versioning MINOR를 증가하여 `0.8.0`으로 관리한다.
