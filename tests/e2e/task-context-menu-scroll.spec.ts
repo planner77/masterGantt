@@ -12,10 +12,17 @@ test("화면 밖 막대를 우클릭한 뒤 지연된 스크롤 알림은 무시
     publicId, name: "Menu scroll fixture", description: "Issue #22 scroll regression", revision: 20,
     calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] },
   };
+  // 9월 23일은 이 viewport의 초기 표시 범위 안에 있었다. 초기 작업과 충분히
+  // 떨어진 마일스톤을 두고 실제 geometry로 화면 밖이라는 준비 조건을 확인한다.
   const task: ProjectTaskDto = {
     taskId, externalId: "SCROLL-5", name: "Far milestone", type: "milestone", scheduleMode: "auto",
-    requestedStart: "2026-09-23", start: "2026-09-23", end: "2026-09-23", duration: 0, progress: 0,
-    parentExternalId: null, siblingOrder: 0,
+    requestedStart: "2026-10-16", start: "2026-10-16", end: "2026-10-16", duration: 0, progress: 0,
+    parentExternalId: null, siblingOrder: 1,
+  };
+  const firstTask: ProjectTaskDto = {
+    ...task, taskId: "00000000-0000-4000-8000-000000000001", externalId: "SCROLL-1",
+    name: "Initial task", type: "task", duration: 1, siblingOrder: 0,
+    requestedStart: "2026-09-16", start: "2026-09-16", end: "2026-09-16",
   };
   const mutations: Request[] = [];
   await page.route("**/api/projects/**", async (route) => {
@@ -27,7 +34,7 @@ test("화면 밖 막대를 우클릭한 뒤 지연된 스크롤 알림은 무시
     } else if (path === `${apiPath}/edit-sessions/current`) {
       await route.fulfill({ json: { data: { permission: "edit", expiresAt: "2099-01-01T00:00:00Z" } } });
     } else if (path === apiPath) {
-      await route.fulfill({ json: { data: { project, tasks: [task], links: [], permission: "readonly" } } });
+      await route.fulfill({ json: { data: { project, tasks: [firstTask, task], links: [], permission: "readonly" } } });
     } else {
       await route.continue();
     }
@@ -39,6 +46,15 @@ test("화면 밖 막대를 우클릭한 뒤 지연된 스크롤 알림은 무시
   const instance = await frame.getAttribute("data-project-gantt-api-instance");
   const chart = page.locator(".project-gantt-widget .wx-chart").first();
   const bar = page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${taskId}"]`);
+  await expect(bar).toBeAttached();
+  await expect.poll(() => chart.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeGreaterThan(0);
+  await chart.evaluate((element) => { element.scrollLeft = 0; });
+  await expect.poll(() => chart.evaluate((element) => element.scrollLeft)).toBe(0);
+  await expect.poll(() => bar.evaluate((element) => {
+    const parentChart = element.closest(".wx-chart");
+    if (!parentChart) throw new Error("마일스톤의 Chart 조상을 찾을 수 없습니다.");
+    return element.getBoundingClientRect().left - parentChart.getBoundingClientRect().right;
+  })).toBeGreaterThan(0);
   // force/dispatchEvent로 우클릭을 우회하지 않는다. 실제 scrollIntoView 후 클릭을 검증한다.
   await bar.click({ button: "right" });
   await expect(taskContextMenu(page)).toBeVisible();
