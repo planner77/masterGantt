@@ -89,7 +89,7 @@ test("confirms and atomically deletes the right-clicked task subtree without rem
   expect(new URL(deleteUrl).searchParams.get("includeDescendants")).toBe("true");
   await expect(page.getByText("Delete branch", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Delete grandchild", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("Keep sibling", { exact: true })).toBeVisible();
+  await expect(page.getByRole("grid").getByText("Keep sibling", { exact: true })).toBeVisible();
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
 
   const stored = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
@@ -101,5 +101,5 @@ test("confirms and atomically deletes the right-clicked task subtree without rem
   await page.reload();
   await expect(page.getByText("Delete branch", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Delete grandchild", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("Keep sibling", { exact: true })).toBeVisible();
+  await expect(page.getByRole("grid").getByText("Keep sibling", { exact: true })).toBeVisible();
 });
