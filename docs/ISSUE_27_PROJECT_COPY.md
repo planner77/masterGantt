@@ -40,6 +40,7 @@
 ## CI 및 리뷰 보정
 - 응답 DTO는 `CopyProjectResponse`를 명시하여 `timezone: "Asia/Seoul"` 및 `[6, 0]` tuple의 리터럴 타입을 보존한다.
 - route security inventory에 `POST /api/projects/{publicId}/copy`를 추가하고 exact inventory 테스트 기대값도 함께 갱신한다.
+- 공식 API source of truth인 `docs/API.md`에 프로젝트 복사 route, 입력 schema, 인증·precondition, 성공 응답과 오류 mapping을 추가했다.
 - Codex P1 리뷰의 알림 Provider 범위와 stale snapshot/revision 문제를 보정했다.
 - CI #111에서 별도 복사 Provider 때문에 `workspace-toast`와 알림 세부 버튼이 2개 렌더링되어 Chromium E2E와 Docker production transport 검증이 함께 실패한 원인을 확인했다. 복사 진입점을 기존 작업공간 Provider 내부로 통합하여 중복 렌더링을 제거했다.
 
