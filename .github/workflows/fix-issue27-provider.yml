@@ -1,0 +1,40 @@
+name: Fix Issue27 provider integration
+on:
+  push:
+    branches: [feat/issue-27-project-copy]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: feat/issue-27-project-copy
+      - name: 기존 프로젝트 알림 Provider 내부에 복사 진입점 배치
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/features/projects/project-readonly-view.tsx')
+          text = path.read_text(encoding='utf-8')
+          import_anchor = 'import { ProjectLinkButton } from "@/components/project-link-button";\n'
+          import_line = 'import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";\n'
+          if import_line not in text:
+              if import_anchor not in text:
+                  raise SystemExit('import anchor not found')
+              text = text.replace(import_anchor, import_anchor + import_line, 1)
+          jsx_anchor = '        <ProjectLinkButton projectName={project.name} projectUrl={projectUrl} />\n        {editing ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null || pendingTaskDelete !== null} onClick={() => setSettingsOpen(true)}>프로젝트 설정</button> : null}\n'
+          jsx_replacement = '        <ProjectLinkButton projectName={project.name} projectUrl={projectUrl} />\n        <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} />\n        {editing ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null || pendingTaskDelete !== null} onClick={() => setSettingsOpen(true)}>프로젝트 설정</button> : null}\n'
+          if '<ProjectCopyEntry publicId={publicId}' not in text:
+              if jsx_anchor not in text:
+                  raise SystemExit('heading action anchor not found')
+              text = text.replace(jsx_anchor, jsx_replacement, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git rm .github/workflows/fix-issue27-provider.yml
+          git add src/features/projects/project-readonly-view.tsx
+          git commit -m 'fix: 프로젝트 복사 진입점을 작업공간 Provider에 통합 (#27)'
+          git push
