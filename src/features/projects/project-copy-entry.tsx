@@ -1,6 +1,20 @@
 "use client";
-import { useEffect,useState } from "react";
-import type { ProjectSnapshotResponse } from "@/contracts/projects";
+
+import { useSearchParams } from "next/navigation";
+
+import { WorkspaceNotifications } from "@/components/workspace-notifications";
+
 import { ProjectCopyButton } from "./project-copy-button";
-function isSnapshot(value:unknown):value is ProjectSnapshotResponse{return typeof value==="object"&&value!==null&&"data"in value&&typeof value.data==="object"&&value.data!==null&&"project"in value.data&&"tasks"in value.data&&Array.isArray(value.data.tasks)&&"links"in value.data&&Array.isArray(value.data.links)}
-export function ProjectCopyEntry({publicId}:Readonly<{publicId:string}>){const[snapshot,setSnapshot]=useState<ProjectSnapshotResponse|null>(null),[editable,setEditable]=useState(false);useEffect(()=>{const controller=new AbortController();void(async()=>{try{const [project,session]=await Promise.all([fetch(`/api/projects/${encodeURIComponent(publicId)}`,{credentials:"same-origin",signal:controller.signal}),fetch(`/api/projects/${encodeURIComponent(publicId)}/edit-sessions/current`,{credentials:"same-origin",signal:controller.signal})]);const body:unknown=await project.json().catch(()=>null),sessionBody:unknown=await session.json().catch(()=>null);if(controller.signal.aborted)return;if(project.ok&&isSnapshot(body))setSnapshot(body);setEditable(session.ok&&typeof sessionBody==="object"&&sessionBody!==null&&"data"in sessionBody&&typeof sessionBody.data==="object"&&sessionBody.data!==null&&"permission"in sessionBody.data&&sessionBody.data.permission==="edit")}catch{if(!controller.signal.aborted)setEditable(false)}})();return()=>controller.abort()},[publicId]);if(!snapshot)return null;return <div className="project-copy-entry"><ProjectCopyButton snapshot={snapshot} enabled={editable} busy={false}/></div>}
+
+export function ProjectCopyEntry({ publicId }: Readonly<{ publicId: string }>) {
+  const searchParams = useSearchParams();
+  const autoOpen = searchParams.get("copy") === "1";
+
+  return (
+    <WorkspaceNotifications scope={`프로젝트 ${publicId} 복사`}>
+      <div className="project-copy-entry">
+        <ProjectCopyButton publicId={publicId} autoOpen={autoOpen} />
+      </div>
+    </WorkspaceNotifications>
+  );
+}
