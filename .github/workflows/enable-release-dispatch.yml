@@ -1,0 +1,66 @@
+name: 릴리스 수동 실행 경로 보완
+
+on:
+  push:
+    branches:
+      - "feat/issue-27-project-copy"
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    name: release-image 수동 dispatch 경로 추가
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: feat/issue-27-project-copy
+          fetch-depth: 0
+      - name: annotated tag ref 수동 실행 지원 반영
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          workflow = Path('.github/workflows/release-image.yml')
+          text = workflow.read_text()
+          old = '''on:\n  push:\n    tags:\n      - "v*"\n'''
+          new = '''on:\n  push:\n    tags:\n      - "v*"\n  # 연결된 운영 도구가 GITHUB_TOKEN으로 annotated tag를 만든 경우 push 이벤트가\n  # 새 workflow를 재귀 실행하지 않으므로, 같은 tag ref를 명시해 수동 실행할 수 있다.\n  # prepare job의 SemVer/package 일치 및 annotated tag 검증은 동일하게 적용된다.\n  workflow_dispatch:\n'''
+          if old not in text:
+              raise SystemExit('release-image trigger block not found')
+          workflow.write_text(text.replace(old, new, 1))
+
+          docs = Path('docs/CI_CD.md')
+          text = docs.read_text()
+          old = '| `.github/workflows/release-image.yml` | strict `v*` tag | publish job만 package/attestation 쓰기와 OIDC 권한 선언 | 검증 후 GHCR publish와 digest smoke |'
+          new = '| `.github/workflows/release-image.yml` | strict `v*` tag push 또는 annotated `v*` tag ref의 수동 실행 | publish job만 package/attestation 쓰기와 OIDC 권한 선언 | 동일 SemVer/annotated-tag 검증 후 GHCR publish와 digest smoke |'
+          if old not in text:
+              raise SystemExit('CI/CD workflow table row not found')
+          text = text.replace(old, new, 1)
+          marker = 'Tag/package 불일치, 이전 tag 이하 version, lightweight tag, 기존 exact/commit image, CI 실패, candidate/publish/promotion 실패 또는 registry digest smoke 실패는 release 실패다.'
+          addition = ('연결된 운영 도구가 `GITHUB_TOKEN`으로 annotated tag를 생성해 tag push가 후속 workflow를 자동 재귀 실행하지 않는 경우에는, '
+                      '해당 **annotated `v*` tag ref**를 지정해 `workflow_dispatch`로 같은 release workflow를 실행할 수 있다. '
+                      '이 경로도 package/tag 일치, 이전 SemVer보다 큰 버전, annotated tag 여부와 immutable image 충돌 검사를 우회하지 않는다.\n\n')
+          if marker not in text:
+              raise SystemExit('release failure paragraph not found')
+          text = text.replace(marker, addition + marker, 1)
+          docs.write_text(text)
+
+          changelog = Path('CHANGELOG.md')
+          text = changelog.read_text()
+          marker = '### Changed\n\n'
+          addition = '- annotated `v*` tag ref를 지정한 수동 실행에서도 기존 Semantic Release 검증과 GHCR digest smoke를 동일하게 수행할 수 있도록 release workflow 실행 경로를 보완했다.\n'
+          if marker not in text:
+              raise SystemExit('CHANGELOG Changed section not found')
+          text = text.replace(marker, marker + addition, 1)
+          changelog.write_text(text)
+
+          Path('.github/workflows/enable-release-dispatch.yml').unlink()
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add .github/workflows/release-image.yml docs/CI_CD.md CHANGELOG.md .github/workflows/enable-release-dispatch.yml
+          git commit -m 'ci: annotated tag 수동 릴리스 실행 지원'
+          git push origin HEAD:feat/issue-27-project-copy
