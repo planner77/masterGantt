@@ -157,6 +157,7 @@ export function ProjectGantt({
   const [columnMenuPosition, setColumnMenuPosition] = useState<MenuPosition | null>(null);
   const [taskMenu, setTaskMenu] = useState<TaskMenuState | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
+  const [scaleMode, setScaleMode] = useState<"day" | "week">("day");
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
   const highlightWeekend = useCallback(
@@ -193,6 +194,20 @@ export function ProjectGantt({
     }, { tag });
     return () => api.detach(tag);
   }, [apiInstanceId]);
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root) return;
+    const openTaskUrl = (event: MouseEvent) => {
+      if (event.button !== 0) return;
+      const match = resolveTaskContextTarget(event.target, root, (id) => tasksByIdReference.current.has(id));
+      const task = match ? tasksByIdReference.current.get(match.taskId) : undefined;
+      if (!task?.url) return;
+      window.open(task.url, "_blank", "noopener,noreferrer");
+    };
+    root.addEventListener("click", openTaskUrl);
+    return () => root.removeEventListener("click", openTaskUrl);
+  }, []);
 
   useEffect(() => {
     const root = ganttScrollReference.current;
@@ -418,23 +433,15 @@ export function ProjectGantt({
     return () => observer.disconnect();
   }, []);
   const scales = useMemo(() => [
-    {
-      unit: "month",
-      step: 1,
-      format: (date: Date) => new Intl.DateTimeFormat(locales, {
-        year: "numeric",
-        month: "long",
-      }).format(date),
-    },
-    {
-      unit: "day",
-      step: 1,
-      format: (date: Date) => new Intl.DateTimeFormat(locales, {
-        day: "numeric",
-        weekday: "narrow",
-      }).format(date),
-    },
-  ], [locales]);
+    { unit: "month", step: 1, format: (date: Date) => new Intl.DateTimeFormat(locales, { year: "numeric", month: "long" }).format(date) },
+    scaleMode === "day"
+      ? { unit: "day", step: 1, format: (date: Date) => new Intl.DateTimeFormat(locales, { day: "numeric", weekday: "narrow" }).format(date) }
+      : { unit: "week", step: 1, format: (date: Date, next?: Date) => {
+          const end = next ? new Date(next.getTime() - 86400000) : date;
+          const f = new Intl.DateTimeFormat(locales, { month: "numeric", day: "numeric" });
+          return `${f.format(date)}–${f.format(end)}`;
+        } },
+  ], [locales, scaleMode]);
 
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
     if (!canCreateReference.current) {
@@ -588,6 +595,10 @@ export function ProjectGantt({
   return (
     <div className="project-gantt-frame" data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined}>
       <Willow>
+        <div className="project-gantt-scale-controls" role="group" aria-label="Chart 표시 단위">
+          <button type="button" className={scaleMode === "day" ? "primary-button" : "secondary-button"} aria-pressed={scaleMode === "day"} onClick={() => setScaleMode("day")}>일</button>
+          <button type="button" className={scaleMode === "week" ? "primary-button" : "secondary-button"} aria-pressed={scaleMode === "week"} onClick={() => setScaleMode("week")}>주</button>
+        </div>
         <div
           aria-label="프로젝트 일정 Grid와 Gantt 차트"
           className="project-gantt-scroll"
