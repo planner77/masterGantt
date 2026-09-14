@@ -1,3 +1,4 @@
+import { readApplicationConfiguration } from "@/server/security/origin-core";
 import { getProjectService } from "@/server/projects/project-service";
 import {
   handleCurrentEditSession,
@@ -18,7 +19,7 @@ export async function GET(
   const { publicId } = await context.params;
   return handleCurrentEditSession(request, publicId, {
     service: getProjectService,
-    environment: process.env.NODE_ENV,
+    ...readApplicationConfiguration(process.env),
   });
 }
 
@@ -29,7 +30,6 @@ export async function DELETE(
   const { publicId } = await context.params;
   return handleLogoutProject(request, publicId, {
     service: getProjectService,
-    applicationBaseUrl: process.env.APP_BASE_URL,
-    environment: process.env.NODE_ENV,
+    ...readApplicationConfiguration(process.env),
   });
 }

@@ -12,6 +12,7 @@ import {
 export interface ReadinessServiceOptions {
   databasePath: string | undefined;
   applicationBaseUrl: string | undefined;
+  allowInsecureHttp?: string;
   environment: string | undefined;
   migrationsDirectory: string;
   openDatabase?: (filename: string) => Database.Database;
@@ -37,6 +38,7 @@ export function checkConfiguredReadiness(
     parseApplicationBaseUrl(
       options.applicationBaseUrl,
       options.environment,
+    options.allowInsecureHttp,
     );
     const filename = validateDatabasePath(
       options.databasePath,

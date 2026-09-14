@@ -61,26 +61,26 @@ describe("W05 cookie boundary", () => {
   const token = "A".repeat(43);
 
   it("selects the environment-specific cookie without accepting duplicates", () => {
-    expect(parseEditSessionCookie(`other=1; __Host-mastergantt_edit=${token}`, "production"))
+    expect(parseEditSessionCookie(`other=1; __Host-mastergantt_edit=${token}`, "production", new URL("https://gantt.example.com")))
       .toEqual({ state: "present", rawToken: token });
-    expect(parseEditSessionCookie(`mastergantt_edit=${token}`, "production"))
+    expect(parseEditSessionCookie(`mastergantt_edit=${token}`, "production", new URL("https://gantt.example.com")))
       .toEqual({ state: "absent" });
     expect(parseEditSessionCookie(
       `__Host-mastergantt_edit=${token}; __Host-mastergantt_edit=${token}`,
-      "production",
+      "production", new URL("https://gantt.example.com"),
     )).toEqual({ state: "malformed" });
   });
 
   it("fails closed for malformed tokens, syntax, pair count, and byte size", () => {
-    expect(parseEditSessionCookie("__Host-mastergantt_edit=short", "production"))
+    expect(parseEditSessionCookie("__Host-mastergantt_edit=short", "production", new URL("https://gantt.example.com")))
       .toEqual({ state: "malformed" });
-    expect(parseEditSessionCookie("broken", "production"))
+    expect(parseEditSessionCookie("broken", "production", new URL("https://gantt.example.com")))
       .toEqual({ state: "malformed" });
     expect(parseEditSessionCookie(
       Array.from({ length: 101 }, (_, index) => `c${index}=x`).join(";"),
-      "production",
+      "production", new URL("https://gantt.example.com"),
     )).toEqual({ state: "malformed" });
-    expect(parseEditSessionCookie(`x=${"a".repeat(MAX_COOKIE_HEADER_BYTES)}`, "production"))
+    expect(parseEditSessionCookie(`x=${"a".repeat(MAX_COOKIE_HEADER_BYTES)}`, "production", new URL("https://gantt.example.com")))
       .toEqual({ state: "malformed" });
   });
 

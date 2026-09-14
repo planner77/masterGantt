@@ -1,3 +1,4 @@
+import { readApplicationConfiguration } from "@/server/security/origin-core";
 import { getProjectService } from "@/server/projects/project-service";
 import {
   handleDeleteProject,
@@ -27,8 +28,7 @@ export async function PATCH(
   const { publicId } = await context.params;
   return handleUpdateProject(request, publicId, {
     service: getProjectService,
-    applicationBaseUrl: process.env.APP_BASE_URL,
-    environment: process.env.NODE_ENV,
+    ...readApplicationConfiguration(process.env),
   });
 }
 
@@ -39,7 +39,6 @@ export async function DELETE(
   const { publicId } = await context.params;
   return handleDeleteProject(request, publicId, {
     service: getProjectService,
-    applicationBaseUrl: process.env.APP_BASE_URL,
-    environment: process.env.NODE_ENV,
+    ...readApplicationConfiguration(process.env),
   });
 }

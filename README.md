@@ -99,8 +99,8 @@ npx playwright install chromium
 | `DATABASE_PATH` | DB CLI와 서버 DB 진입점에서 사용. 개발은 쓰기 가능한 경로, production은 `/data/` 아래의 정규화된 절대 경로 |
 | `NODE_ENV` | 개발 서버는 development, production 서버는 production. DB CLI에도 production 정책을 적용하려면 명시적으로 전달 |
 | `PORT` | 실행 포트. 예제에서는 `.env` 값에 의존하지 않고 `--port`로 지정 |
-| `APP_BASE_URL` | Project 생성의 `Origin`과 정확히 비교하는 canonical origin. scheme/host/port가 browser 주소와 같아야 하며 production은 HTTPS 필수 |
-| `TRUST_PROXY`, `SESSION_COOKIE_SECURE`, `LOG_LEVEL` | 후속 배포용 예약 설정이며 현재 코드가 소비하지 않음. Cookie `Secure`와 `__Host-` 이름은 `NODE_ENV`와 `APP_BASE_URL`에서 강제 |
+| `APP_BASE_URL` | Project 생성의 `Origin`과 정확히 비교하는 canonical origin. scheme/host/port가 browser 주소와 같아야 하며 production은 기본 HTTPS, ALLOW_INSECURE_HTTP=true일 때 내부망 HTTP 허용 |
+| `TRUST_PROXY`, `LOG_LEVEL` | 후속 배포용 예약 설정이며 현재 코드가 소비하지 않음. Cookie 속성은 검증된 외부 APP_BASE_URL과 NODE_ENV로 결정; HTTP/HTTPS 정책은 아래 운영 절 참조 |
 
 Next.js 앱은 `.env.local` 등의 설정을 읽을 수 있지만 **DB CLI는 `.env`·`.env.local`을 자동 로딩하지 않는다.** CLI에는 아래처럼 명시적으로 전달한다. Production의 `/data` 경로는 로컬 계정에 쓰기 권한이 없을 수 있으므로 개발 예제는 repository 안의 `.data`를 사용한다.
 
@@ -182,6 +182,99 @@ npm run start -- --hostname 127.0.0.1 --port 3000
 
 ### Nginx Reverse Proxy 운영
 
+**내부망 HTTP:** 인증서 없이 운영할 때는 아래 HTTP 전용 절과 [상세 운영 정책](docs/HTTP_OPERATION.md)을 먼저 적용한다. 뒤의 HTTPS 예제는 선택 가능한 별도 구성이다.
+
+#### 인증서 없는 내부망 HTTP 구성
+
+
+주소 `192.168.10.20:8080`은 예시다. 현재 운영 중인 Compose 프로젝트명·named volume은 그대로 보존한다. `.env`를 통째로 덮어쓰지 않고 다음 항목을 수정한다.
+
+```dotenv
+# 브라우저가 접속하는 HTTP 주소. 내부 컨테이너 주소가 아니다.
+APP_BASE_URL=http://192.168.10.20:8080
+# 명시적인 소문자 true만 내부망 HTTP를 허용한다.
+ALLOW_INSECURE_HTTP=true
+# Nginx가 앱으로 전달할 호스트 내부 포트. 외부 8080과 다르다.
+HOST_PORT=3000
+# 신규 설치 예시. 기존 운영은 실제 프로젝트명/볼륨명을 그대로 사용한다.
+COMPOSE_PROJECT_NAME=mastergantt
+MASTERGANTT_VOLUME_NAME=mastergantt-data
+```
+
+```text
+브라우저 HTTP :8080 → Nginx → HTTP 127.0.0.1:3000 → production 컨테이너 :3000
+```
+
+Nginx 예제는 [http.conf.example](deploy/nginx/http.conf.example)에 있다. Linux에서는 기존 `http {}`가 include하는 `/etc/nginx/conf.d/` 등에, Windows에서는 `C:/nginx/conf/nginx.conf`의 기존 `http {}` 안에 포함시킨다. 전체 설정이나 다른 서비스 설정을 덮어쓰지 않는다. 인증서·HTTPS redirect·HSTS를 추가할 필요가 없다.
+
+저장소 루트에서 아래 순서로 적용한다. 기존 DB의 일관된 백업과 프로젝트/volume 일치를 먼저 확인한다.
+
+```sh
+# 설정 확인 후 환경 변수를 반영하기 위해 재생성한다. restart만으로 바뀌지 않는다.
+docker compose --env-file .env -f deploy/compose.yml config --quiet
+docker compose --env-file .env -f deploy/compose.yml up -d --build app
+docker compose --env-file .env -f deploy/compose.yml ps
+curl -fsS http://127.0.0.1:3000/api/health/ready
+# 실제 Nginx 전체 설정을 검사하고, 성공한 경우에만 reload한다.
+sudo nginx -t && sudo nginx -s reload
+curl -fsS http://192.168.10.20:8080/api/health/ready
+```
+
+Windows PowerShell에서는 먼저 `curl.exe -fsS http://127.0.0.1:3000/api/health/ready`로 WSL2 앱에 접근 가능한지 확인한다. WSL localhost 전달이 안 되는 경우 Nginx만 바꿔 해결하려 하지 말고 네트워크 모드·포트 게시·방화벽을 확인한다. Nginx 설치 위치에서 `.\nginx.exe -t` 성공 후 `.\nginx.exe -s reload`를 실행한다. Nginx도 Docker라면 같은 network에서 upstream을 `http://app:3000`으로 하고 앱의 호스트 포트 게시를 제거할 수 있다. 별도 호스트 프록시는 승인된 내부 인터페이스/방화벽을 설계해야 한다.
+
+브라우저에서 프로젝트 생성 → 편집 잠금 해제 → Grid `+` 작업 추가 → 작업 정보 편집 → 새로고침 후 유지 → 편집 모드 종료 후 변경 거부를 확인한다. Health 200만으로 쿠키/편집 검증을 완료했다고 보지 않는다. 공유 링크 복사에 clipboard API를 사용할 수 없는 HTTP 브라우저는 기존 수동 복사 모달을 사용한다.
+
+
+```nginx
+# nginx.conf의 기존 http {} 안에서 include하는 예제다. 전체 nginx.conf가 아니다.
+# 192.168.10.20과 외부 8080, 내부 3000은 실제 주소/포트로 변경한다.
+# 앱 설정: APP_BASE_URL=http://192.168.10.20:8080, ALLOW_INSECURE_HTTP=true
+server {
+    listen 8080;
+    server_name 192.168.10.20;
+
+    # 단일 Nginx가 직접 브라우저 요청을 받는 구성. 다른 Host는 앱에 전달하지 않는다.
+    if ($host != 192.168.10.20) { return 444; }
+
+    # 인증서, ssl, HTTPS redirect, HSTS를 요구하지 않는 HTTP 전용 구성이다.
+    client_max_body_size 1m;
+    # 민감한 URL query·Cookie·비밀번호를 access log에 넣지 않는다.
+    # 별도 비식별 log_format을 준비하지 않은 기본 예제에서는 access log를 끈다.
+    access_log off;
+    # 실제 설치 경로와 권한에 맞게 지정한다.
+    # Linux: error_log /var/log/nginx/mastergantt.error.log warn;
+    # Windows: error_log C:/nginx/logs/mastergantt.error.log warn;
+
+    location / {
+        # 호스트 Nginx → loopback에 게시한 production 앱 컨테이너.
+        # Nginx도 같은 Docker network이면 http://app:3000 으로 변경한다.
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        # 외부 Host의 명시적 포트 보존. $host로 바꾸지 않는다.
+        proxy_set_header Host              $http_host;
+        proxy_set_header X-Forwarded-Host  $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Port  $server_port;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $remote_addr;
+
+        proxy_connect_timeout 5s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_intercept_errors off;
+        # Origin·Cookie·If-Match 및 Set-Cookie·ETag는 원본 그대로 전달한다.
+        # Origin 재작성, CORS *, 쿠키 Domain/Path 재작성으로 오류를 우회하지 않는다.
+    }
+}
+```
+
+#### 선택 사항: HTTPS 구성
+
+
 아래 예제는 **브라우저 → HTTPS Nginx → HTTP masterGantt 단일 컨테이너** 구성이다. Nginx가 TLS를 종료하며 앱의 내부 HTTP 포트는 외부에 공개하지 않는다. 실제 인증서·방화벽·프록시를 포함한 운영 검증 완료를 의미하지 않는다. 영속 저장소·백업·이미지 선택은 [DEPLOYMENT](docs/DEPLOYMENT.md), 보안 계약은 [SECURITY](docs/SECURITY.md)를 함께 따른다.
 
 #### 1) 먼저 맞춰야 하는 주소와 환경 변수
@@ -217,7 +310,7 @@ curl -fsS http://127.0.0.1:3000/api/health/ready
 
 `.env`를 변경한 뒤 `docker compose --env-file .env -f deploy/compose.yml restart`만 실행하면 컨테이너 환경 변수가 갱신되지 않는다. `docker compose --env-file .env -f deploy/compose.yml up -d app`으로 변경된 설정을 반영하고 필요하면 `--force-recreate`를 사용한다. 기존 named volume은 유지하며 `docker compose --env-file .env -f deploy/compose.yml down -v`는 실행하지 않는다. 참고: [Compose up](https://docs.docker.com/reference/cli/docker/compose/up/), [Compose restart](https://docs.docker.com/reference/cli/docker/compose/restart/).
 
-**현재 코드의 필수 조건:** `APP_BASE_URL`은 브라우저 `Origin`의 scheme·host·port와 정확히 같아야 하며 production에서는 HTTPS만 허용한다. 예를 들어 브라우저가 `https://192.0.2.10:8443`으로 접속하면 도메인 주소나 내부 `http://app:3000`이 아니라 그 origin을 설정한다. 기본 HTTPS 포트는 `:443`을 생략한다. `TRUST_PROXY`·`SESSION_COOKIE_SECURE`·`LOG_LEVEL`은 아직 앱이 소비하지 않는 예약 변수이므로 이를 바꿔 HTTP 운영이나 Origin 오류를 해결할 수 없다. 근거: [Origin 검증](src/server/security/origin-core.ts), [Cookie 구현](src/server/security/cookie-core.ts).
+**현재 코드의 필수 조건:** `APP_BASE_URL`은 브라우저 `Origin`의 scheme·host·port와 정확히 같아야 하며 production에서는 기본 HTTPS만 허용하며, 명시적 ALLOW_INSECURE_HTTP=true일 때 HTTP도 허용한다. 예를 들어 브라우저가 `https://192.0.2.10:8443`으로 접속하면 도메인 주소나 내부 `http://app:3000`이 아니라 그 origin을 설정한다. 기본 HTTPS 포트는 `:443`을 생략한다. `TRUST_PROXY`·`LOG_LEVEL`은 아직 앱이 소비하지 않는 예약 변수이므로 이를 바꿔 HTTP 운영이나 Origin 오류를 해결할 수 없다. 근거: [Origin 검증](src/server/security/origin-core.ts), [Cookie 구현](src/server/security/cookie-core.ts).
 
 #### 2) 호스트 Nginx 설정 예제: 도메인 + HTTPS 443
 

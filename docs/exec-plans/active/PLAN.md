@@ -90,3 +90,7 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위인 Project 생성�
 ## Repository layout work (#12 / #13)
 
 사용자 승인에 따라 배포 파일 정리와 테스트 설정 정리를 별도 커밋/stacked PR로 진행한다. 배포 구조와 새 검증은 #12, 테스트 config 이동은 #13에서 추적한다. 이 기록은 main 반영이나 CI PASS를 의미하지 않는다. 각 head의 quality/E2E/docker 실행 결과를 PR에 남기고 배포 PR → 테스트 설정 PR 순서로 검토한다. 실제 운영 배포, 데이터 이동, HTTP 지원, Node 버전 전환은 이번 범위에서 제외한다.
+
+## Issue #8 — 내부망 HTTP
+
+전용 브랜치에서 URL/쿠키/설정 주입/공유 URL과 문서를 갱신한다. PR quality/E2E/Docker 및 HTTP·HTTPS 실제 브라우저 검증 후 리뷰·병합하고 main exact digest 결과를 별도로 기록한다. 본 계획 추가만으로 PASS가 아니며 운영 Windows/WSL2 전환은 별도 미검증이다.

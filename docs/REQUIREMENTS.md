@@ -1,5 +1,8 @@
 # Requirements baseline
 
+> **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
+
+
 상태: 요구사항 기준선, 2026-09-14 UX 변경 포함. W01–W07, W20–W22의 구현 상태는 [실행 계획](exec-plans/active/PLAN.md)과 개별 검증 기록을 함께 본다. W22 main/PR/release Actions, commit/release digest의 원격·로컬 smoke와 SBOM/provenance 조회는 PASS했다. D05는 현재 private 요금제의 ruleset 미강제 위험 수용과 GitHub Artifact Attestation 비활성으로 결정됐다. 최상위 근거는 사용자 지침과 [AGENTS.md](../AGENTS.md)다.
 
 Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계획은 [PROJECT_UX.md](PROJECT_UX.md)를 따른다. 과거 W24의 권한 기반 삭제 버튼 표시와 부모 전환 확인 창은 아래 R31/R32로 대체한다. 이번 변경의 원격 검증은 PR #23의 최종 head/run 기준이며 과거 Wxx PASS를 전용하지 않는다.

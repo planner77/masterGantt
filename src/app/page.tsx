@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default function HomePage() {
   const projects = getProjectService().listProjects().data.projects;
   const projectUrls = Object.fromEntries(projects.map(({ publicId }) => [publicId,
-    buildProjectShareUrl(process.env.APP_BASE_URL, process.env.NODE_ENV, publicId)]));
+    buildProjectShareUrl(process.env.APP_BASE_URL, process.env.NODE_ENV, publicId, process.env.ALLOW_INSECURE_HTTP)]));
   return (
     <WorkspaceNotifications scope="프로젝트 목록">
       <section className="page-section" aria-labelledby="projects-heading">

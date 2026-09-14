@@ -1,3 +1,4 @@
+import { readApplicationConfiguration } from "@/server/security/origin-core";
 import { getProjectService } from "@/server/projects/project-service";
 import {
   handleCreateProject,
@@ -12,8 +13,7 @@ export async function POST(request: Request): Promise<Response> {
   return handleCreateProject(request, {
     service: getProjectService,
     rateLimiter: projectCreateRateLimiter,
-    applicationBaseUrl: process.env.APP_BASE_URL,
-    environment: process.env.NODE_ENV,
+    ...readApplicationConfiguration(process.env),
   });
 }
 

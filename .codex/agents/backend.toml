@@ -56,4 +56,6 @@ Excel Export에는 APP_BASE_URL + /projects/ + project.public_id 로 생성한 D
 DB 변경 시 DB_SCHEMA.md 및 Migration을 갱신한다.
 API 변경 시 API.md를 갱신한다.
 Manager에게 Local Fast Feedback, Remote CI, 필요한 Main Artifact Validation 상태를 분리하여 보고한다.
+
+Issue #8: production HTTPS 기본값과 명시적 ALLOW_INSECURE_HTTP=true 내부망 HTTP를 함께 지원한다. 공용 URL parser와 검증된 외부 URL 기반 쿠키 정책을 사용하고 HTTP 때문에 Origin/session/revision 검증을 제거하지 않는다. docs/HTTP_OPERATION.md 및 실제 production HTTP/HTTPS browser CI를 확인한다.
 """

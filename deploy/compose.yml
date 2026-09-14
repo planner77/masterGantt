@@ -15,10 +15,11 @@ services:
       NODE_ENV: production
       PORT: "3000"
       DATABASE_PATH: /data/mastergantt.sqlite3
-      # 운영자는 compose 실행 전에 실제 canonical HTTPS origin을 명시해야 한다.
-      APP_BASE_URL: ${APP_BASE_URL:?APP_BASE_URL must be a canonical HTTPS origin}
+      # 운영자는 compose 실행 전에 실제 canonical 외부 origin을 명시해야 한다.
+      APP_BASE_URL: ${APP_BASE_URL:?Set the canonical browser origin}
+      # 미설정은 HTTPS-only. 내부망 HTTP는 명시적인 true만 허용한다.
+      ALLOW_INSECURE_HTTP: ${ALLOW_INSECURE_HTTP-false}
       TRUST_PROXY: ${TRUST_PROXY:-false}
-      SESSION_COOKIE_SECURE: "true"
       LOG_LEVEL: ${LOG_LEVEL:-info}
     # Reverse proxy가 같은 Docker network에 있으면 이 port mapping을 제거하고 내부 port만 사용한다.
     ports:

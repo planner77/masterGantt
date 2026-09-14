@@ -62,6 +62,7 @@ export interface UpdateProjectHandlerDependencies {
     | Pick<ProjectServiceApi, "authorize" | "updateMetadata">
     | (() => Pick<ProjectServiceApi, "authorize" | "updateMetadata">);
   applicationBaseUrl: string | undefined;
+  allowInsecureHttp?: string;
   environment: string | undefined;
   requestId?: () => string;
 }
@@ -71,6 +72,7 @@ export interface DeleteProjectHandlerDependencies {
     | Pick<ProjectServiceApi, "authorize" | "deleteProject">
     | (() => Pick<ProjectServiceApi, "authorize" | "deleteProject">);
   applicationBaseUrl: string | undefined;
+  allowInsecureHttp?: string;
   environment: string | undefined;
   requestId?: () => string;
 }
@@ -81,6 +83,7 @@ export interface CreateProjectHandlerDependencies {
     | (() => Pick<ProjectServiceApi, "create" | "getReadonlySnapshot">);
   rateLimiter: Pick<FixedWindowRateLimiter, "consume">;
   applicationBaseUrl: string | undefined;
+  allowInsecureHttp?: string;
   environment: string | undefined;
   requestId?: () => string;
 }
@@ -127,6 +130,7 @@ export async function handleCreateProject(
       applicationUrl = parseApplicationBaseUrl(
         dependencies.applicationBaseUrl,
         dependencies.environment,
+        dependencies.allowInsecureHttp,
       );
     } catch (error) {
       if (error instanceof ConfigurationError) {
@@ -280,6 +284,7 @@ export async function handleUpdateProject(
       applicationUrl = parseApplicationBaseUrl(
         dependencies.applicationBaseUrl,
         dependencies.environment,
+        dependencies.allowInsecureHttp,
       );
     } catch (error) {
       if (error instanceof ConfigurationError) {
@@ -309,6 +314,7 @@ export async function handleUpdateProject(
     const cookie = parseEditSessionCookie(
       request.headers.get("cookie"),
       dependencies.environment,
+      applicationUrl,
     );
     const service = resolveDependency(dependencies.service);
     const authorization = service.authorize(
@@ -372,6 +378,7 @@ export function handleDeleteProject(
       applicationUrl = parseApplicationBaseUrl(
         dependencies.applicationBaseUrl,
         dependencies.environment,
+        dependencies.allowInsecureHttp,
       );
     } catch (error) {
       if (error instanceof ConfigurationError) {
@@ -390,6 +397,7 @@ export function handleDeleteProject(
     const cookie = parseEditSessionCookie(
       request.headers.get("cookie"),
       dependencies.environment,
+      applicationUrl,
     );
     const service = resolveDependency(dependencies.service);
     const authorization = service.authorize(
