@@ -7,7 +7,7 @@ import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { useWorkspaceNotifications } from "@/components/workspace-notifications";
 import type { CopyProjectResponse, ProjectSnapshotResponse } from "@/contracts/projects";
 
-type Props = Readonly<{ publicId: string; autoOpen?: boolean }>;
+type Props = Readonly<{ publicId: string; autoOpen?: boolean; busy?: boolean }>;
 
 function validPassword(value: string): boolean {
   return Array.from(value).length >= 12 &&
@@ -38,7 +38,7 @@ function hasEditPermission(value: unknown): boolean {
     "permission" in value.data && value.data.permission === "edit";
 }
 
-export function ProjectCopyButton({ publicId, autoOpen = false }: Props) {
+export function ProjectCopyButton({ publicId, autoOpen = false, busy = false }: Props) {
   const router = useRouter();
   const { notify } = useWorkspaceNotifications();
   const [snapshot, setSnapshot] = useState<ProjectSnapshotResponse | null>(null);
@@ -100,10 +100,10 @@ export function ProjectCopyButton({ publicId, autoOpen = false }: Props) {
   }
 
   useEffect(() => {
-    if (!autoOpen || autoOpened.current) return;
+    if (!autoOpen || autoOpened.current || busy) return;
     autoOpened.current = true;
     void show();
-  }, [autoOpen]);
+  }, [autoOpen, busy]);
 
   function close() {
     if (!copying) setOpen(false);
@@ -152,8 +152,6 @@ export function ProjectCopyButton({ publicId, autoOpen = false }: Props) {
     try {
       if (!(await unlockSource())) return;
 
-      // 권한 해제나 다른 workspace mutation 직후에도 stale revision을 쓰지 않도록
-      // 실제 복사 직전에 canonical snapshot을 다시 읽는다.
       const latestResponse = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, {
         cache: "no-store",
         credentials: "same-origin",
@@ -209,7 +207,7 @@ export function ProjectCopyButton({ publicId, autoOpen = false }: Props) {
   const links = snapshot?.data.links ?? [];
 
   return <>
-    <button ref={trigger} type="button" className="secondary-button" disabled={loading || copying} onClick={() => void show()}>
+    <button ref={trigger} type="button" className="secondary-button" disabled={busy || loading || copying} onClick={() => void show()}>
       {loading ? "확인 중…" : "프로젝트 복사"}
     </button>
     {open ? <WorkspaceDialog title="프로젝트 복사" onClose={close} busy={copying || loading} restoreFocusRef={trigger}>
