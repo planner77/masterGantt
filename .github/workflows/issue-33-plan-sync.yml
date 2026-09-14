@@ -1,0 +1,47 @@
+name: Issue #33 canonical plan 동기화
+
+on:
+  push:
+    branches:
+      - docs/issue-33-canonical-plan
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Issue #33 canonical plan 갱신
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/issue-33-canonical-plan
+          fetch-depth: 0
+      - name: canonical plan 갱신
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('docs/exec-plans/active/PLAN.md')
+          text = path.read_text(encoding='utf-8')
+          marker = '# Active execution plan\n'
+          if text.count(marker) != 1:
+              raise SystemExit('PLAN title marker mismatch')
+          if '## Issue #33 — 운영 헤더 Gantt 데모 메뉴 제거' in text:
+              raise SystemExit('Issue #33 section already exists')
+          section = '''# Active execution plan\n\n## Issue #33 — 운영 헤더 Gantt 데모 메뉴 제거 — 병합 완료 / v0.8.1 릴리스 준비\n\nIssue #33은 운영 상단 주요 메뉴에서 `Gantt 데모` 링크를 제거하고 `/gantt-demo` 자체는 SVAR 통합·timezone/hydration 검증 fixture로 유지하는 범위로 구현했다. 전용 PR #42의 최종 head `62e891609df40cedf3d091cce6c4e0f2fc2d3fad`는 CI #130 (`34906688532`)에서 version/typecheck/lint/Vitest/build/Chromium E2E/Docker/HTTP·HTTPS/Compose gate를 모두 통과했고, `main`에 squash 병합되어 commit `ff12f358b856c33126574f27efbe830a8d8ee125`가 생성되었다. Application version은 SemVer PATCH `0.8.1`이다. 상세 분석·검증 근거는 [Issue #33 기록](../../ISSUE_33_REVIEW.md)과 [Issue #33 실행 계획](ISSUE_33_PLAN.md)을 따른다. 현재 다음 단계는 최종 `main` CI 및 immutable commit image 검증 후 annotated `v0.8.1` tag와 Semantic release image를 발행하는 것이다.\n\n'''
+          path.write_text(text.replace(marker, section, 1), encoding='utf-8')
+          PY
+          git diff --check
+      - name: 변경 커밋 및 push
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/exec-plans/active/PLAN.md
+          git commit -m "docs: Issue #33 canonical plan 갱신"
+          git push origin HEAD:docs/issue-33-canonical-plan
