@@ -25,11 +25,7 @@ export interface ProjectListItemDto {
   updatedAt: string;
 }
 
-export interface ProjectListResponse {
-  data: {
-    projects: ProjectListItemDto[];
-  };
-}
+export interface ProjectListResponse { data: { projects: ProjectListItemDto[] } }
 
 export interface ProjectTaskDto {
   taskId: string;
@@ -42,6 +38,8 @@ export interface ProjectTaskDto {
   end: string;
   duration: number;
   progress: number;
+  description: string | null;
+  url: string | null;
   parentExternalId: string | null;
   siblingOrder: number;
 }
@@ -55,119 +53,31 @@ export interface ProjectLinkDto {
 }
 
 export type ProjectPermission = "readonly" | "edit";
-
-export interface CreateProjectRequest {
-  name: string;
-  description: string;
-  editPassword: string;
-}
-
-export interface CreateProjectResponse {
-  data: {
-    project: ProjectDto;
-    permission: "edit";
-  };
-}
-
-export interface ProjectSnapshotResponse {
-  data: {
-    project: ProjectDto;
-    tasks: ProjectTaskDto[];
-    links: ProjectLinkDto[];
-    permission: ProjectPermission;
-  };
-}
-
-export interface UnlockProjectRequest {
-  editPassword: string;
-}
-
-export interface CurrentEditSessionResponse {
-  data:
-    | { permission: "edit"; expiresAt: string }
-    | { permission: "readonly" };
-}
-
-export interface UpdateProjectRequest {
-  name?: string;
-  description?: string;
-}
-
+export interface CreateProjectRequest { name: string; description: string; editPassword: string }
+export interface CreateProjectResponse { data: { project: ProjectDto; permission: "edit" } }
+export interface CopyProjectRequest { name: string; description?: string; editPassword: string }
+export interface CopyProjectResponse { data: { project: ProjectDto; permission: "edit" } }
+export interface ProjectSnapshotResponse { data: { project: ProjectDto; tasks: ProjectTaskDto[]; links: ProjectLinkDto[]; permission: ProjectPermission } }
+export interface UnlockProjectRequest { editPassword: string }
+export interface CurrentEditSessionResponse { data: { permission: "edit"; expiresAt: string } | { permission: "readonly" } }
+export interface UpdateProjectRequest { name?: string; description?: string }
 export interface ProjectMetadataMutationResponse {
-  data: {
-    project: ProjectDto;
-    tasks: ProjectTaskDto[];
-    links: ProjectLinkDto[];
-    warnings: [];
-    operation: {
-      kind: "projectMetadata";
-      changedFields: ("name" | "description")[];
-    };
-  };
+  data: { project: ProjectDto; tasks: ProjectTaskDto[]; links: ProjectLinkDto[]; warnings: []; operation: { kind: "projectMetadata"; changedFields: ("name" | "description")[] } }
 }
-
 export interface CreateTaskRequest {
-  externalId?: string;
-  parentTaskId?: string;
-  convertParentToSummary?: true;
-  name: string;
-  type: "task" | "milestone";
-  scheduleMode?: "auto" | "manual";
-  start: string;
-  end?: string;
-  duration: number;
-  progress: number;
-  parentExternalId?: null;
+  externalId?: string; parentTaskId?: string; convertParentToSummary?: true; name: string; type: "task" | "milestone";
+  scheduleMode?: "auto" | "manual"; start: string; end?: string; duration: number; progress: number; parentExternalId?: null;
+  description?: string | null; url?: string | null;
 }
-
 export interface UpdateTaskRequest {
-  name?: string;
-  scheduleMode?: "auto" | "manual";
-  start?: string;
-  end?: string;
-  duration?: number;
-  progress?: number;
+  name?: string; scheduleMode?: "auto" | "manual"; start?: string; end?: string; duration?: number; progress?: number;
+  description?: string | null; url?: string | null;
 }
-
-export interface ScheduleWarningDto {
-  code: "NON_WORKING_START_SHIFTED";
-  path: "start";
-  requestedStart: string;
-  start: string;
-}
-
+export interface ScheduleWarningDto { code: "NON_WORKING_START_SHIFTED"; path: "start"; requestedStart: string; start: string }
 export type TaskMutationKind = "taskCreate" | "taskUpdate" | "taskDelete";
-
 export interface TaskMutationResponse {
-  data: {
-    project: ProjectDto;
-    tasks: ProjectTaskDto[];
-    links: ProjectLinkDto[];
-    warnings: ScheduleWarningDto[];
-    operation: {
-      kind: TaskMutationKind;
-      changedTaskExternalIds: string[];
-      deletedTaskExternalIds: string[];
-      deletedLinkIds: string[];
-    };
-  };
+  data: { project: ProjectDto; tasks: ProjectTaskDto[]; links: ProjectLinkDto[]; warnings: ScheduleWarningDto[]; operation: { kind: TaskMutationKind; changedTaskExternalIds: string[]; deletedTaskExternalIds: string[]; deletedLinkIds: string[] } }
 }
-
-export interface ChangeEditPasswordRequest {
-  newEditPassword: string;
-}
-
-export interface ApiErrorDetail {
-  path?: string;
-  code: string;
-  message: string;
-}
-
-export interface ApiErrorResponse {
-  error: {
-    code: string;
-    message: string;
-    details: ApiErrorDetail[];
-    requestId: string;
-  };
-}
+export interface ChangeEditPasswordRequest { newEditPassword: string }
+export interface ApiErrorDetail { path?: string; code: string; message: string }
+export interface ApiErrorResponse { error: { code: string; message: string; details: ApiErrorDetail[]; requestId: string } }
