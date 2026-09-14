@@ -47,6 +47,7 @@ import {
 import { dateOnlyFromLocalDate } from "./date-adapter";
 import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
 import { resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
+import { captureMenuScrollChange } from "./menu-scroll-guard";
 import "./task-context-menu.css";
 
 export type ProjectGridDataColumnId = "text" | "externalId" | "projectStart" | "projectDuration";
@@ -149,6 +150,7 @@ export function ProjectGantt({
   const columnMenuTriggerReference = useRef<HTMLElement | null>(null);
   const taskMenuReference = useRef<HTMLDivElement>(null);
   const taskMenuTriggerReference = useRef<HTMLElement | null>(null);
+  const taskMenuScrollChangedReference = useRef<() => boolean>(() => false);
   const [columnMenuPosition, setColumnMenuPosition] = useState<MenuPosition | null>(null);
   const [taskMenu, setTaskMenu] = useState<TaskMenuState | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
@@ -348,6 +350,9 @@ export function ProjectGantt({
     };
     const closeForViewportChange = (event?: Event) => {
       if (event?.target instanceof Node && taskMenuReference.current?.contains(event.target)) return;
+      // 열기 전에 완료된 scrollIntoView/SVAR 동기화의 지연 알림은 무시한다.
+      // 임의의 지연 시간 대신 호출 대상 조상의 실제 위치 변화를 확인한다.
+      if (event?.type === "scroll" && !taskMenuScrollChangedReference.current()) return;
       setTaskMenu(null);
       restoreTaskMenuTrigger();
     };
@@ -500,6 +505,7 @@ export function ProjectGantt({
     if (!match.element.hasAttribute("tabindex")) match.element.tabIndex = 0;
     match.element.focus({ preventScroll: true });
     taskMenuTriggerReference.current = match.element;
+    taskMenuScrollChangedReference.current = captureMenuScrollChange(match.element);
     const bounds = match.element.getBoundingClientRect();
     const anchorX = x ?? bounds.left + Math.min(bounds.width / 2, 24);
     const anchorY = y ?? bounds.top + Math.min(bounds.height / 2, 24);
