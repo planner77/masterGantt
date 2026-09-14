@@ -533,3 +533,10 @@ W04에서 아래 항목을 실제 Vitest/Chromium으로 PASS했다.
 - [Node.js Crypto API](https://nodejs.org/api/crypto.html)
 - [`better-sqlite3` transaction API](https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md#transactionfunction---function)
 - [ExcelJS](https://github.com/exceljs/exceljs)
+
+
+## `POST /api/projects/{sourcePublicId}/copy` — 프로젝트 복사
+
+원본의 유효한 edit session, exact Origin, strong `If-Match`가 필요하다. 요청은 `name`, `description`, `editPassword`, 선택적 `resetProgress`만 허용한다. 성공은 `201 Created`, `Location: /projects/{newPublicId}`, `ETag: "1"`, 새 프로젝트 edit-session Cookie를 반환한다. Project/Task/Link public/internal ID는 새로 발급하고 Task `externalId`, 일정, 계층, FS/lag 0 연결, 휴일을 보존한다. `resetProgress=true`이면 leaf/milestone progress를 0으로 하고 summary progress를 재집계한다. 전체 복사는 하나의 SQLite IMMEDIATE transaction이며 실패 시 신규 aggregate를 남기지 않는다.
+
+Task create/PATCH 및 canonical snapshot의 `ProjectTaskDto`는 `description: string | null`(최대 4,000자)과 `url: string | null`(최대 2,048자, http/https)을 포함한다.

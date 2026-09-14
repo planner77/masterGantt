@@ -6,6 +6,9 @@
 
 ### Added
 
+- v0.8.0: Issues #27/#33/#35/#36/#37 — 프로젝트 전체 복사, Gantt 일/주 표시 전환, Task 진행률 slider·Description·URL 및 URL 실행, 프로젝트 진입 시 edit-session 재확인을 추가한다.
+
+
 - Issue #8: production 내부망 HTTP opt-in, 외부 URL 기반 쿠키 정책, Nginx HTTP 예제 및 production HTTP/HTTPS 브라우저·영속성 CI.
 - Issue #31: Grid·Chart 작업 우클릭 메뉴에 보호된 작업 삭제를 추가하고, 자손이 있으면 범위를 확인한 뒤 서버가 저장 계층을 재계산하여 하나의 transaction으로 subtree를 삭제한다. 사용자 기능/API 확장에 따라 버전을 `0.7.0`으로 갱신한다.
 

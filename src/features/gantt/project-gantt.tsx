@@ -613,7 +613,7 @@ export function ProjectGantt({
               columns={initialConfig.columns}
               displayMode="all"
               gridWidth={620}
-              highlightTime={highlightWeekend}
+              highlightTime={scaleMode === "day" ? highlightWeekend : undefined}
               init={initialize}
               links={initialConfig.links}
               onUpdateTask={onUpdateTask}

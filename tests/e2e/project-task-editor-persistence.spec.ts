@@ -48,7 +48,7 @@ test("persists explicit editor changes and parent aggregation, with date-only di
   await expect(editor).toBeVisible();
   await editor.getByLabel("작업명", { exact: true }).fill("Saved via editor");
   await editor.getByLabel("기간 (근무일)", { exact: true }).fill("2");
-  await editor.getByLabel("진행률 (%)", { exact: true }).fill("75");
+  await editor.getByLabel("진행률", { exact: true }).fill("75");
   expect(patches).toBe(0);
   await editor.getByRole("button", { name: "저장", exact: true }).click();
   await expect(editor).toHaveCount(0);

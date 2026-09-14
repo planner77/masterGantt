@@ -295,3 +295,8 @@ W02 자동화 검증 범위:
 - [SQLite Write-Ahead Logging](https://www.sqlite.org/wal.html)
 - [`better-sqlite3` API: transactions and pragmas](https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md)
 - [Node.js Crypto API](https://nodejs.org/api/crypto.html)
+
+
+## Task 상세 필드 — migration 0002
+
+`tasks.description TEXT NULL`, `tasks.url TEXT NULL`을 추가한다. API 계층에서 description은 Unicode code point 기준 최대 4,000자, URL은 최대 2,048자이며 `http:`/`https:` scheme만 허용한다. 기존 행은 NULL이며 Task 일반 mutation에서 필드가 생략되면 기존 값을 보존한다. 프로젝트 복사 시 두 필드는 원본 값 그대로 신규 Task 행에 복사한다.
