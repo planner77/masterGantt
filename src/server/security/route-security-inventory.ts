@@ -13,12 +13,6 @@ export interface RouteSecurityInventoryEntry {
   mutatesState: boolean;
 }
 
-/**
- * Source-of-truth inventory for explicitly exported Route Handler methods.
- * Next may synthesize HEAD for GET and OPTIONS for Allow discovery. Those
- * automatic methods are treated as stateless and never enable credentialed
- * cross-origin access.
- */
 export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/health/live", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/health/ready", method: "GET", policy: "public-read", mutatesState: false },
@@ -27,6 +21,7 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/copy", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/edit-sessions", method: "POST", policy: "origin-and-password-limit", mutatesState: true },
   { template: "/api/projects/{publicId}/edit-sessions/current", method: "GET", policy: "optional-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/edit-sessions/current", method: "DELETE", policy: "origin-and-target-logout", mutatesState: true },
