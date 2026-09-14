@@ -148,12 +148,14 @@ for (const width of [320, 360, 361, 375, 390, 400, 401, 414, 768, 1440]) {
 
     const navigation = page.getByRole("navigation", { name: "주요 메뉴" });
     const navigationLinks = navigation.getByRole("link");
+    const projectLink = navigation.getByRole("link", { name: "프로젝트", exact: true });
     const demoLink = navigation.getByRole("link", { name: "Gantt 데모", exact: true });
     const brand = page.getByRole("link", { name: "masterGantt 홈", exact: true });
     const bell = page.getByRole("button", { name: "알림함", exact: true });
     const notificationSlot = page.locator("#workspace-notification-slot");
-    await expect(navigationLinks).toHaveCount(2);
-    await expect(demoLink).toBeVisible();
+    await expect(navigationLinks).toHaveCount(1);
+    await expect(projectLink).toBeVisible();
+    await expect(demoLink).toHaveCount(0);
     await expect(bell).toBeVisible();
     const slotBox = await notificationSlot.boundingBox();
     const bellBox = await bell.boundingBox();
@@ -196,7 +198,7 @@ for (const width of [320, 360, 361, 375, 390, 400, 401, 414, 768, 1440]) {
       expect(rectanglesOverlap(linkBox!, badgeBox!)).toBe(false);
     }
 
-    const centerIsLink = await demoLink.evaluate((element) => {
+    const centerIsLink = await projectLink.evaluate((element) => {
       const box = element.getBoundingClientRect();
       const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
       return hit === element || element.contains(hit);
@@ -208,10 +210,7 @@ for (const width of [320, 360, 361, 375, 390, 400, 401, 414, 768, 1440]) {
       return hit === element || element.contains(hit);
     });
     expect(centerIsBrand).toBe(true);
-    await demoLink.click();
-    await expect(page).toHaveURL(/\/gantt-demo$/);
-    await expect(page.getByRole("heading", { name: "Gantt 최소 통합", exact: true })).toBeVisible();
-    await brand.click();
+    await projectLink.click();
     await expect(page).toHaveURL(/\/$/);
   });
 }

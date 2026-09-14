@@ -16,9 +16,6 @@ export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) 
             <Link className="nav-link" href="/">
               프로젝트
             </Link>
-            <Link className="nav-link" href="/gantt-demo">
-              Gantt 데모
-            </Link>
           </nav>
           <div id="workspace-notification-slot" className="header-actions" />
         </div>
