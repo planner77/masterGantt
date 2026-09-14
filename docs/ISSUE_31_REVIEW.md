@@ -51,6 +51,7 @@ Grid 작업 행과 Chart 작업 막대의 우클릭 메뉴에 `작업 삭제`를
 
 - `src/features/gantt/project-gantt.tsx`
 - `src/features/gantt/task-delete-model.ts`
+- `src/features/gantt/canonical-snapshot-sync.ts`
 - `src/features/projects/project-readonly-view.tsx`
 - `src/features/gantt/task-context-menu.css`
 - `src/app/api/projects/[publicId]/tasks/[taskId]/route.ts`
@@ -58,11 +59,12 @@ Grid 작업 행과 Chart 작업 막대의 우클릭 메뉴에 `작업 삭제`를
 - `src/server/projects/task-subtree-delete-service-core.ts`
 - `src/server/projects/project-service.ts`
 
-초기 구현에서 추가했던 별도 `ProjectGanttWithDelete` wrapper는 Gantt flex chain과 pointer interaction을 깨뜨리는 회귀가 확인되어 제거했다. 삭제 메뉴는 기존 `ProjectGantt` task menu에 직접 통합한다.
+초기 구현에서 추가했던 별도 `ProjectGanttWithDelete` wrapper는 Gantt flex chain과 pointer interaction을 깨뜨리는 회귀가 확인되어 제거했다. 삭제 메뉴는 기존 `ProjectGantt` task menu에 직접 통합한다. Canonical UI 동기화도 서버와 동일하게 삭제 대상을 자손 우선으로 정렬하여 Summary 부모를 자손보다 먼저 삭제하지 않는다.
 
 ## 테스트
 
 - Unit: `tests/features/gantt/task-delete-model.test.ts` — 다단계 자손, 형제 제외, leaf/unknown.
+- Canonical sync unit: `tests/features/gantt/canonical-snapshot-sync.test.ts` — 삭제 대상 subtree를 child-first로 계획하는 순서를 검증한다.
 - SQLite service: `tests/server/projects/task-subtree-delete-service.test.ts` — child-first 원자 삭제, Summary 재계산, root 전체 삭제, 외부 Summary empty rollback, 삭제 대상 내부 persisted schedule 손상 사전 거부.
 - Chromium + 실제 SQLite API: `tests/e2e/project-task-delete-context.spec.ts` — 실제 Grid 우클릭, 삭제 메뉴, 확인 전 DELETE 0회, 취소 0회, 취소 후 원래 task focus 복원, `includeDescendants=true` 1회, 전체 자손 삭제·형제 보존·revision+1·Gantt instance 유지·reload persistence.
 - 기존 공유 task-menu E2E helper는 메뉴 항목 2개(`작업 정보`, `작업 삭제`) 계약으로 갱신한다.
@@ -72,10 +74,19 @@ Grid 작업 행과 Chart 작업 막대의 우클릭 메뉴에 `작업 삭제`를
 
 현재 `0.6.0`에서 하위 호환 사용자 기능과 명시적 API 옵션을 추가하므로 프로젝트의 0.x 정책에 따라 **MINOR**를 증가시켜 `0.7.0`으로 관리한다. `package.json`과 `package-lock.json` top-level/root package version을 동일하게 유지한다. PR 검증 단계에서는 tag, GitHub Release, 정식 version GHCR image를 만들지 않는다. 정식 `v0.7.0` release는 main에 이 변경이 포함된 뒤 `docs/CI_CD.md`의 release 절차와 별도 승인 범위를 따른다.
 
-## 검증 이력과 현재 상태
+## 검증 이력과 최종 상태
 
 - 최초 PR head `f2ea52cfc7a2c3e6c200bbd102915956f995fbbf`, CI Run `34799702598`: quality PASS, Chromium E2E 47개 중 24개 FAIL, Docker production transport browser 검증 FAIL.
 - 실패의 공통 원인은 별도 `ProjectGanttWithDelete` wrapper가 `.project-gantt-frame`의 direct-child flex 계약을 깨뜨려 Gantt가 hidden 처리되거나 상위 요소가 pointer event를 가로챈 UI 회귀였다.
 - 자동 리뷰에서 task-menu helper shape, unchanged-scroll guard, 삭제 취소 focus 복원, persisted schedule 사전 검증, column/task menu 상호배제에 대한 P1 2건/P2 3건이 확인됐다.
 - 해당 리뷰 항목을 반영하여 wrapper를 제거하고 기존 `ProjectGantt` 메뉴에 기능을 통합했으며, 서버 사전 검증과 회귀 테스트를 보강했다.
-- 수정 후 최종 판정은 최신 사용자 작성 커밋에 대한 GitHub Actions `quality`, `e2e`, `docker`가 모두 완료된 뒤 기록한다. 현재는 **RETESTING**이다.
+- 중간 Run `34801294355`: 기존 회귀는 46/47 PASS로 회복됐으나 canonical subtree UI sync 실패 1건을 확인했다.
+- canonical sync의 삭제 순서를 child-first로 수정한 뒤 Run `34801931553`에서 기능은 정상 동작했고, 남은 1건은 동일 작업명이 Grid/Chart 양쪽에 렌더링되어 발생한 Playwright strict locator 오류였다.
+- 최종 기능 head `bdb024bf33ceeb4b427680a5567c9b0f1b9bbbff`, CI Run `34802516240` (#74): **SUCCESS**.
+  - Build/static/unit/production build: PASS.
+  - Chromium E2E: **47/47 PASS**.
+  - Docker build/runtime smoke: PASS. Production HTTP·HTTPS transport/cookie/auth/persistence와 relocated Compose persistence 포함.
+  - `Publish and verify immutable main commit image`는 PR event이므로 정상적으로 skipped.
+- 자동 리뷰 P1 2건/P2 3건은 모두 반영 근거를 답변하고 resolved 처리했다.
+
+따라서 Issue #31 구현은 PR 단계의 요구 검증을 충족하며 현재 판정은 **PASS / MERGE READY**다. 이 문서 갱신 커밋 자체에 대해서도 저장소 정책에 따라 최신 PR CI를 다시 확인한다.
