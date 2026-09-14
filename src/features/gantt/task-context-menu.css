@@ -45,6 +45,15 @@
   opacity: 0.45;
 }
 
+.project-task-context-menu .project-task-context-menu-danger {
+  color: #b42318;
+}
+
+.project-task-context-menu .project-task-context-menu-danger:hover,
+.project-task-context-menu .project-task-context-menu-danger:focus-visible {
+  background: rgb(180 35 24 / 0.08);
+}
+
 .project-task-context-menu-icon {
   display: inline-grid;
   width: 1.125rem;
@@ -54,4 +63,8 @@
   font-size: 0.75rem;
   font-weight: 750;
   line-height: 1;
+}
+
+.project-task-context-menu-danger .project-task-context-menu-icon {
+  color: currentColor;
 }
