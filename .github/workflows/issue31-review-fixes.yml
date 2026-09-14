@@ -1,0 +1,34 @@
+name: Issue 31 review fixes
+
+on:
+  push:
+    branches:
+      - feat/issue-31-task-context-delete
+    paths:
+      - scripts/issue31-review-fixes.py
+      - .github/workflows/issue31-review-fixes.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 브랜치 체크아웃
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: feat/issue-31-task-context-delete
+          fetch-depth: 0
+      - name: 리뷰 수정 적용
+        run: python3 scripts/issue31-review-fixes.py
+      - name: 임시 파일 제거 및 커밋
+        run: |
+          rm -f scripts/issue31-review-fixes.py .github/workflows/issue31-review-fixes.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "fix: PR #38 리뷰와 Gantt 회귀 수정"
+          git push origin HEAD:feat/issue-31-task-context-delete
