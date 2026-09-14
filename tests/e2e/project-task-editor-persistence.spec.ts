@@ -1,5 +1,6 @@
 import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
+import { chooseTaskInformation } from "./helpers/task-context-menu";
 
 test.use(isolatedApplicationOptions);
 
@@ -42,6 +43,7 @@ test("persists explicit editor changes and parent aggregation, with date-only di
     if (request.resourceType() === "document") navigations += 1;
   });
   await row.getByText("Persistent child", { exact: true }).click({ button: "right" });
+  await chooseTaskInformation(page);
   const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
   await expect(editor).toBeVisible();
   await editor.getByLabel("작업명", { exact: true }).fill("Saved via editor");
@@ -68,6 +70,7 @@ test("persists explicit editor changes and parent aggregation, with date-only di
       await check.goto(`${origin}${path}`);
       await expect(check.getByText("편집 가능", { exact: true })).toBeVisible();
       await check.locator(`.wx-bar[data-task-id=":${child.taskId}"]`).click({ button: "right" });
+      await chooseTaskInformation(check);
       const information = check.getByRole("dialog", { name: "작업 정보", exact: true });
       await expect(information.getByLabel("작업명", { exact: true })).toHaveValue("Saved via editor");
       await expect(information.getByLabel("시작일", { exact: true })).toHaveValue("2026-09-18");
