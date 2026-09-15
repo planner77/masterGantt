@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
+import { TaskAssignmentEditor } from "./task-assignment-editor";
 import { buildTaskRelations, formatTaskRelationType, type TaskRelationView, type TaskRelationsView } from "./task-relations";
 import {
   createTaskEditorDraft,
@@ -180,6 +181,13 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
       <label className={styles.field}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={readOnly} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
       <dl className={styles.confirmed}><dt>서버 확정 종료일</dt><dd><output>{base.task.end}</output></dd><dt>요청 시작일</dt><dd>{base.task.requestedStart ?? "하위 작업 기준"}</dd></dl>
       <p className={styles.caption}>종료일은 저장 전 확정된 값입니다. 변경한 시작일과 근무일 기간의 계산은 저장 시 서버가 수행합니다. URL은 http/https만 허용되며 링크는 일정 화면에서 새 탭으로 열립니다.</p>
+      <TaskAssignmentEditor
+        taskId={base.task.taskId}
+        revision={base.revision}
+        editable={editable}
+        disabled={locked || readOnly || dirty}
+        onApplied={reload}
+      />
       <section className={styles.relations} aria-labelledby="task-relations-title">
         <h3 id="task-relations-title">작업 관계</h3>
         {relationState.status === "loading" ? <p className={styles.caption} role="status">관계 정보를 불러오는 중…</p> : null}
