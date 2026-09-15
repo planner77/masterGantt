@@ -1,0 +1,114 @@
+name: One-time Release v0.12.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/one-time-release-v0.12.0.yml
+
+permissions:
+  contents: write
+  actions: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      TARGET_SHA: dc98fa5f32fc22404aac8224da45eb54595aa186
+      MAIN_CI_RUN_ID: "35024575079"
+      TAG_NAME: v0.12.0
+      VERSION: 0.12.0
+      WORK_BRANCH: feat/issue-19-resource-catalog
+      WORKFLOW_PATH: .github/workflows/one-time-release-v0.12.0.yml
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Git 사용자 설정
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: 병합 커밋 main CI 성공 확인
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh run watch "$MAIN_CI_RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+          conclusion="$(gh run view "$MAIN_CI_RUN_ID" --repo "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)"
+          test "$conclusion" = "success"
+
+      - name: 릴리스 대상 SHA와 버전 검증
+        run: |
+          set -euo pipefail
+          git fetch origin main --tags --force
+          git cat-file -e "$TARGET_SHA^{commit}"
+          git merge-base --is-ancestor "$TARGET_SHA" origin/main
+          version="$(git show "$TARGET_SHA:package.json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>process.stdout.write(JSON.parse(s).version))')"
+          test "$version" = "$VERSION"
+          git show "$TARGET_SHA:package-lock.json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const p=JSON.parse(s);if(p.version!==process.env.VERSION||p.packages?.[""]?.version!==process.env.VERSION)process.exit(1)})'
+
+      - name: annotated tag 생성
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+            existing="$(git rev-parse "$TAG_NAME^{}")"
+            test "$existing" = "$TARGET_SHA"
+          else
+            git tag -a "$TAG_NAME" "$TARGET_SHA" -m "masterGantt $TAG_NAME"
+            git push origin "refs/tags/$TAG_NAME"
+          fi
+          test "$(git cat-file -t "$TAG_NAME")" = "tag"
+          test "$(git rev-parse "$TAG_NAME^{}")" = "$TARGET_SHA"
+
+      - name: release image workflow 실행 및 성공 확인
+        id: release_image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh workflow run release-image.yml --repo "$GITHUB_REPOSITORY" --ref "$TAG_NAME"
+          run_id=""
+          for _ in $(seq 1 30); do
+            run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release-image.yml --branch "$TAG_NAME" --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+            if [ -n "$run_id" ]; then break; fi
+            sleep 2
+          done
+          test -n "$run_id"
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          gh run watch "$run_id" --repo "$GITHUB_REPOSITORY" --exit-status
+          conclusion="$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)"
+          test "$conclusion" = "success"
+
+      - name: GitHub Release 생성
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$TAG_NAME" --repo "$GITHUB_REPOSITORY" --target "$TARGET_SHA" --title "$TAG_NAME" --notes-file docs/releases/v0.12.0.md
+          else
+            gh release create "$TAG_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --target "$TARGET_SHA" --title "$TAG_NAME" --notes-file docs/releases/v0.12.0.md
+          fi
+
+      - name: 작업 브랜치 삭제
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$WORK_BRANCH" >/dev/null 2>&1; then
+            gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$WORK_BRANCH"
+          fi
+
+      - name: 일회성 릴리스 workflow 제거
+        if: success()
+        run: |
+          set -euo pipefail
+          git pull --ff-only origin main
+          git rm "$WORKFLOW_PATH"
+          git commit -m "chore: 일회성 v0.12.0 릴리스 workflow 제거"
+          git push origin HEAD:main
