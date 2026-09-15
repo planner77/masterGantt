@@ -27,7 +27,7 @@ jobs:
               text = p.read_text(encoding="utf-8")
               count = text.count(old)
               if count != 1:
-                  raise SystemExit(f"{path}: expected exactly one match, got {count}: {old[:80]!r}")
+                  raise SystemExit(f"{path}: expected exactly one match, got {count}: {old[:100]!r}")
               p.write_text(text.replace(old, new, 1), encoding="utf-8")
 
           replace_once(
@@ -37,8 +37,8 @@ jobs:
           )
           replace_once(
               "docs/API.md",
-              '  "name": "Foundation",\n  "type": "task",',
-              '  "name": "Foundation",\n  "description": "기초 작업 상세 설명",\n  "url": "https://intranet.example/tasks/ACT-100",\n  "type": "task",',
+              '  "externalId": "ACT-100",\n  "name": "Foundation",\n  "type": "task",',
+              '  "externalId": "ACT-100",\n  "name": "Foundation",\n  "description": "기초 작업 상세 설명",\n  "url": "https://intranet.example/tasks/ACT-100",\n  "type": "task",',
           )
           replace_once(
               "docs/API.md",
