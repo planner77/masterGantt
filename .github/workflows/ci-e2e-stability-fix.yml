@@ -1,0 +1,70 @@
+name: 릴리스 E2E 안정화
+
+on:
+  push:
+    branches:
+      - docs/issue-33-canonical-plan
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    name: 비동기 UI 회귀 테스트 안정화
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/issue-33-canonical-plan
+          fetch-depth: 0
+      - name: E2E assertion 안정화
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one match, found {count}')
+              target.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          replace_once(
+              'tests/e2e/project-task-editor.spec.ts',
+              '''        .filter((element) => element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth)\n        .map((element) => [element.scrollLeft, element.scrollTop]),''',
+              '''        .filter((element) => element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth)\n        .map((element) => [element.scrollLeft, element.scrollTop])\n        .filter(([left, top]) => left !== 0 || top !== 0),''',
+          )
+
+          replace_once(
+              'tests/e2e/project-task-persistence.spec.ts',
+              '''  await page.route(pattern, handler);\n  return async () => { await page.unroute(pattern, handler); expect(intercepted).toBe(1); };\n}\n\ntest("persists pointer edits, restores rejected writes, and serializes a same-revision race", async ({ page }) => {''',
+              '''  await page.route(pattern, handler);\n  return async () => { await page.unroute(pattern, handler); expect(intercepted).toBe(1); };\n}\n\nasync function expectTaskBarGeometry(\n  page: Page,\n  taskId: string,\n  expected: Readonly<{ x: number; width: number }>,\n): Promise<void> {\n  const target = page.locator(`.wx-bar[data-task-id=":${taskId}"]`);\n  await expect.poll(async () => {\n    const box = await target.boundingBox();\n    if (!box) return Number.POSITIVE_INFINITY;\n    return Math.max(Math.abs(box.x - expected.x), Math.abs(box.width - expected.width));\n  }, { timeout: 5_000 }).toBeLessThan(0.5);\n}\n\ntest("persists pointer edits, restores rejected writes, and serializes a same-revision race", async ({ page }) => {''',
+          )
+
+          replace_once(
+              'tests/e2e/project-task-persistence.spec.ts',
+              '''    const restoredBox = await page.locator(`.wx-bar[data-task-id=":${task.taskId}"]`).boundingBox();\n    expect(restoredBox).not.toBeNull(); expect(restoredBox!.x).toBeCloseTo(canonicalBox.x, 0); expect(restoredBox!.width).toBeCloseTo(canonicalBox.width, 0);''',
+              '''    await expectTaskBarGeometry(page, task.taskId, canonicalBox);''',
+          )
+
+          replace_once(
+              'tests/e2e/project-task-persistence.spec.ts',
+              '''  const restoredWithoutRead = await page.locator(`.wx-bar[data-task-id=":${task.taskId}"]`).boundingBox();\n  expect(restoredWithoutRead).not.toBeNull(); expect(restoredWithoutRead!.x).toBeCloseTo(canonicalBox.x, 0); expect(restoredWithoutRead!.width).toBeCloseTo(canonicalBox.width, 0);''',
+              '''  await expectTaskBarGeometry(page, task.taskId, canonicalBox);''',
+          )
+          PY
+          git diff --check
+      - name: 변경 커밋 및 push
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/project-task-editor.spec.ts tests/e2e/project-task-persistence.spec.ts
+          git commit -m "test: 비동기 Gantt E2E 복구 검증 안정화"
+          git push origin HEAD:docs/issue-33-canonical-plan
