@@ -1,1 +1,1 @@
-Issue #36 API/DB contract docs update retry trigger.
+Issue #36 API/DB contract docs update final retry.
