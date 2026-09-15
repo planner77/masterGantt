@@ -37,13 +37,8 @@ jobs:
           )
           replace_once(
               "docs/API.md",
-              '  "externalId": "ACT-100",\n  "name": "Foundation",\n  "type": "task",\n  "scheduleMode": "auto",',
-              '  "externalId": "ACT-100",\n  "name": "Foundation",\n  "description": "기초 작업 상세 설명",\n  "url": "https://intranet.example/tasks/ACT-100",\n  "type": "task",\n  "scheduleMode": "auto",',
-          )
-          replace_once(
-              "docs/API.md",
               'Strict 입력은 `externalId?`, `parentTaskId?`, `convertParentToSummary?: true`, `name`, `type`, `scheduleMode?`, `start`, `end?`, `duration`, `progress`, `parentExternalId?: null`이다.',
-              'Strict 입력은 `externalId?`, `parentTaskId?`, `convertParentToSummary?: true`, `name`, `description?`, `url?`, `type`, `scheduleMode?`, `start`, `end?`, `duration`, `progress`, `parentExternalId?: null`이다.',
+              'Strict 입력은 `externalId?`, `parentTaskId?`, `convertParentToSummary?: true`, `name`, `description?`, `url?`, `type`, `scheduleMode?`, `start`, `end?`, `duration`, `progress`, `parentExternalId?: null`이다. `description`은 최대 10,000 Unicode code point이며 공백-only 값은 `null`로 정규화한다. `url`은 trim 후 최대 4,096 code point의 `http:`/`https:` URL만 허용한다.',
           )
           replace_once(
               "docs/API.md",
@@ -55,6 +50,21 @@ jobs:
               '| `name` | TEXT | N | trim 후 빈 문자열 불가 |\n| `type` | TEXT | N | `task`, `summary`, `milestone` CHECK |',
               '| `name` | TEXT | N | trim 후 빈 문자열 불가 |\n| `description` | TEXT | Y | 작업 다중 행 설명, 공백-only 입력은 API에서 NULL 정규화 |\n| `url` | TEXT | Y | 작업 링크. API에서 `http:`/`https:`만 허용 |\n| `type` | TEXT | N | `task`, `summary`, `milestone` CHECK |',
           )
+          replace_once(
+              "docs/TASK_EDITOR.md",
+              '일반 작업은 작업명·시작일·기간(근무일)·진행률을 입력하고 **저장**한다.',
+              '일반 작업은 작업명·시작일·기간(근무일)과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다.',
+          )
+          replace_once(
+              "docs/TASK_EDITOR.md",
+              '`task-editor-model.ts`는 DTO를 초안으로 복사하고 변경된 name/start/duration/progress만 command로 만든다.',
+              '`task-editor-model.ts`는 DTO를 초안으로 복사하고 변경된 name/start/duration/progress/description/url만 command로 만든다.',
+          )
+          replace_once(
+              "docs/TASK_EDITOR.md",
+              '서버 session/Origin/revision/스케줄러 계약, DB 스키마와 API는 변경하지 않는다.',
+              '서버 session/Origin/revision/스케줄러 계약을 유지하며, Issue #36의 Description/URL은 동일 PATCH 경로와 SQLite migration/canonical snapshot 계약으로 저장한다.',
+          )
       - name: Commit docs and remove one-time workflows
         shell: bash
         run: |
@@ -63,6 +73,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm -f .github/workflows/issue-36-doc-contracts.yml .release/issue-36-doc-contracts.trigger
           git rm -f .github/workflows/issue-36-doc-contracts-retry.yml .release/issue-36-doc-contracts-retry.trigger
-          git add docs/API.md docs/DB_SCHEMA.md
-          git commit -m "docs: Task Description과 URL API·DB 계약 갱신 (#36)"
+          git add docs/API.md docs/DB_SCHEMA.md docs/TASK_EDITOR.md
+          git commit -m "docs: Issue #36 Task Editor API·DB 계약 갱신"
           git push origin HEAD:feature/issue-36-task-editor-fields
