@@ -1,5 +1,5 @@
 .dialog {
-  width: min(32rem, calc(100vw - 2rem));
+  width: min(40rem, calc(100vw - 2rem));
   max-height: calc(100dvh - 2rem);
   margin: auto;
   padding: 1.5rem;
@@ -23,6 +23,19 @@
 .confirmed dd { margin: 0; overflow-wrap: anywhere; }
 .note { background: #f1f5f9; padding: 0.75rem; border-radius: 0.35rem; font-size: 0.875rem; line-height: 1.5; }
 .error { background: #fff1f2; color: #9f1239; padding: 0.75rem; border-radius: 0.35rem; }
+.relations { display: grid; gap: 0.75rem; border-top: 1px solid #e2e8f0; padding-top: 1rem; }
+.relations h3, .relationGroup h4 { margin: 0; }
+.relations h3 { font-size: 1rem; }
+.relationGroup { display: grid; gap: 0.5rem; min-width: 0; }
+.relationGroup h4 { font-size: 0.875rem; }
+.relationList { display: grid; gap: 0.5rem; max-height: 12rem; margin: 0; padding: 0 0.25rem 0 0; overflow: auto; list-style: none; }
+.relationItem { min-width: 0; padding: 0.65rem; border: 1px solid #e2e8f0; border-radius: 0.35rem; background: #f8fafc; }
+.relationTask { min-width: 0; overflow-wrap: anywhere; }
+.relationTask code { margin-left: 0.35rem; font-size: 0.8rem; white-space: normal; overflow-wrap: anywhere; }
+.relationMeta { display: flex; flex-wrap: wrap; gap: 0.35rem 0.75rem; margin-top: 0.35rem; color: #475569; font-size: 0.8rem; }
+.relationWarning, .relationError { color: #9f1239; }
+.relationError { margin: 0; padding: 0.65rem; border-radius: 0.35rem; background: #fff1f2; font-size: 0.875rem; }
+.emptyRelation { margin: 0; color: #64748b; font-size: 0.875rem; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: flex-end; margin-top: 0.5rem; }
 .discard { border: 1px solid #e2b35b; background: #fffbeb; padding: 0.85rem; border-radius: 0.35rem; margin-top: 1rem; }
 .discard p { margin-top: 0; }
