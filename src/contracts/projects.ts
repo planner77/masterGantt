@@ -1,3 +1,5 @@
+import type { ProjectAssignmentDto } from "./resources";
+
 export interface ProjectHolidayDto {
   date: string;
   name: string | null;
@@ -105,6 +107,7 @@ export interface ProjectSnapshotResponse {
     project: ProjectDto;
     tasks: ProjectTaskDto[];
     links: ProjectLinkDto[];
+    assignments: ProjectAssignmentDto[];
     permission: ProjectPermission;
   };
 }
@@ -129,6 +132,7 @@ export interface ProjectMetadataMutationResponse {
     project: ProjectDto;
     tasks: ProjectTaskDto[];
     links: ProjectLinkDto[];
+    assignments: ProjectAssignmentDto[];
     warnings: [];
     operation: {
       kind: "projectMetadata";
@@ -178,6 +182,7 @@ export interface TaskMutationResponse {
     project: ProjectDto;
     tasks: ProjectTaskDto[];
     links: ProjectLinkDto[];
+    assignments: ProjectAssignmentDto[];
     warnings: ScheduleWarningDto[];
     operation: {
       kind: TaskMutationKind;
