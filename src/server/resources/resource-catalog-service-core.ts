@@ -10,7 +10,6 @@ import type {
   ProjectAssignmentDto,
   ReplaceResourceGroupMembersRequest,
   ReplaceTaskAssignmentsRequest,
-  ReplaceTaskAssignmentsResponse,
   ResourceCatalogResponse,
   UpdateCatalogTargetRequest,
 } from "../../contracts/resources";
@@ -42,6 +41,20 @@ export interface ResourceCatalogServiceOptions {
   generatePublicId?: () => string;
   generateAssignmentPublicId?: () => string;
   generateSessionToken?: typeof createSessionToken;
+}
+
+/** Internal mutation result. The HTTP handler combines this with a canonical Project snapshot. */
+export interface ReplaceTaskAssignmentsMutationResult {
+  data: {
+    projectRevision: number;
+    catalogRevision: number;
+    assignments: ProjectAssignmentDto[];
+    operation: {
+      kind: "taskAssignments";
+      taskId: string;
+      changed: boolean;
+    };
+  };
 }
 
 function normalizedText(value: unknown, maximum: number, allowEmpty = false): string | undefined {
@@ -262,7 +275,7 @@ export class ResourceCatalogService {
     return { data: { projectRevision: project.revision, catalogRevision: this.catalog.getRevision(), assignments: assignmentDtos(assignments), targets } };
   }
 
-  replaceTaskAssignments(authorization: AuthorizedEditSession, expectedProjectRevision: number, taskPublicId: string, input: ReplaceTaskAssignmentsRequest): ReplaceTaskAssignmentsResponse {
+  replaceTaskAssignments(authorization: AuthorizedEditSession, expectedProjectRevision: number, taskPublicId: string, input: ReplaceTaskAssignmentsRequest): ReplaceTaskAssignmentsMutationResult {
     if (!input || !Number.isSafeInteger(input.catalogRevision) || input.catalogRevision < 1 || !Array.isArray(input.targets) || input.targets.length > MAX_TARGETS_PER_TASK) throw new ResourceCatalogInvalidInputError();
     const keys = input.targets.map((target) => `${target?.kind}:${target?.id}`);
     if (new Set(keys).size !== keys.length || input.targets.some((target) => !target || (target.kind !== "resource" && target.kind !== "group") || !isCanonicalUuidV4(target.id))) throw new ResourceCatalogInvalidInputError();
@@ -286,7 +299,16 @@ export class ResourceCatalogService {
         return { data: { projectRevision: currentProject.revision, catalogRevision, assignments: assignmentDtos(this.catalog.listAssignments(currentProject.id)), operation: { kind: "taskAssignments" as const, taskId: taskPublicId, changed: false } } };
       }
       const now = this.clock().toISOString();
-      this.catalog.replaceTaskAssignments({ projectId: currentProject.id, taskId: task.id, targets: resolved.map((target) => { const assignmentPublicId = this.generateAssignmentPublicId(); if (!isCanonicalUuidV4(assignmentPublicId)) throw new ResourceCatalogInvalidInputError(); return { ...target, assignmentPublicId }; }), now });
+      this.catalog.replaceTaskAssignments({
+        projectId: currentProject.id,
+        taskId: task.id,
+        targets: resolved.map((target) => {
+          const assignmentPublicId = this.generateAssignmentPublicId();
+          if (!isCanonicalUuidV4(assignmentPublicId)) throw new ResourceCatalogInvalidInputError();
+          return { ...target, assignmentPublicId };
+        }),
+        now,
+      });
       const updatedProject = this.projects.advanceRevision(currentProject.id, expectedProjectRevision, now);
       if (!updatedProject) throw new ResourceCatalogProjectRevisionMismatchError();
       return { data: { projectRevision: updatedProject.revision, catalogRevision, assignments: assignmentDtos(this.catalog.listAssignments(currentProject.id)), operation: { kind: "taskAssignments" as const, taskId: taskPublicId, changed: true } } };
