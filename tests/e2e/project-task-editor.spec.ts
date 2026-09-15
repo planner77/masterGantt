@@ -400,7 +400,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     const fixture = await setup(page);
     await bar(page, id(5)).click({ button: "right" });
     await chooseTaskInformation(page);
-    await expect(editor(page).getByLabel("기간 (근무일)", { exact: true }).toHaveAttribute("readonly", ""));
+    await expect(editor(page).getByLabel("기간 (근무일)", { exact: true })).toHaveAttribute("readonly", "");
     await editor(page).getByLabel("작업명", { exact: true }).fill("Updated milestone");
     await editor(page).getByLabel("시작일", { exact: true }).fill("2026-09-22");
     await save(page).click();
