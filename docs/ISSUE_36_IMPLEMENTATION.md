@@ -66,7 +66,8 @@ Grid 행 또는 Chart bar의 일반 좌클릭이 완료되었고 해당 Task에 
 - `tests/e2e/project-task-editor-persistence.spec.ts`: 명시적 1회 저장, canonical 재조회, Description/URL 영속성, Grid URL 새 탭 실행, context menu 비충돌, Gantt remount 방지, timezone 회귀.
 - 신규 `0002_task_description_url.sql` 적용에 맞춰 DB/CLI migration 기대값을 2개 migration으로 갱신했다.
 - PR #50의 최초 CI Run #181에서는 정적 검사·단위/통합·빌드·Docker smoke가 통과했으나 Chromium E2E 두 건이 실패했다. 원인은 진행률 값 표시용 `<output>` 추가로 기존 종료일 output selector가 중복되고, label 내부에 현재 값까지 포함되어 접근성 이름이 달라진 것이었다. Slider label을 명시적으로 연결하고 현재 값 표시는 일반 텍스트로 분리하여 기존 종료일 output 계약을 보존했다.
-- 최종 CI Run #205의 Chromium E2E에서는 기존 테스트가 range Slider에 `35.5`를 직접 입력하고 현재값 텍스트 DOM을 직접 탐색해 실패했다. 제품 계약에 맞춰 변경 진행률은 정수 1% 단위로 검증하고, 현재값은 Slider의 `aria-valuetext` 접근성 계약으로 검증하도록 보정했다.
+- CI Run #205의 Chromium E2E에서는 기존 테스트가 range Slider에 `35.5`를 직접 입력하고 현재값 텍스트 DOM을 직접 탐색해 실패했다. 제품 계약에 맞춰 변경 진행률은 정수 1% 단위로 검증하고, 현재값은 Slider의 `aria-valuetext` 접근성 계약으로 검증하도록 보정했다.
+- CI Run #212에서는 50개 Chromium E2E 중 49개가 통과했고 Docker/정적/단위/빌드는 모두 통과했다. 남은 실패는 실제 SQLite canonical 재조회에서 상세 필드 영속성을 이미 검증한 뒤, 별도 timezone context에서 Description/URL/진행률을 중복 확인하는 구간이었다. timezone 반복 검증은 본래 UTC/Asia/Seoul/America/New_York에서 date-only 시작일·기간이 동일함을 확인하는 목적이므로 해당 반복은 날짜/기간 회귀 검증에 집중하도록 정리했다.
 - Codex P1 리뷰에서 확인된 기존 소수 진행률 편집 차단과 프로젝트 복사의 상세 필드 후속 transaction 문제를 각각 하위 호환 검증과 원본 transaction 저장으로 보정했다.
 - Codex P1 기준 문서 지적에 따라 `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/TASK_EDITOR.md`를 구현과 일치하도록 갱신했다.
 - Codex P2 `noopener` 반환값 오판 가능성은 반환 handle 기반 실패 알림을 제거하여 보정했다.
