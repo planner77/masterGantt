@@ -204,7 +204,8 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       x: window.scrollX, y: window.scrollY,
       positions: [root, ...Array.from(root.querySelectorAll<HTMLElement>("*"))]
         .filter((element) => element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth)
-        .map((element) => [element.scrollLeft, element.scrollTop]),
+        .map((element) => [element.scrollLeft, element.scrollTop])
+        .filter(([left, top]) => left !== 0 || top !== 0),
     }));
     const before = await scroll();
     const geometry = await frame(page).boundingBox();

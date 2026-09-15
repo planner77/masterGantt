@@ -31,6 +31,30 @@ async function rejectNextPatch(page: Page, endpoint: string, status: number, cod
   return async () => { await page.unroute(pattern, handler); expect(intercepted).toBe(1); };
 }
 
+async function expectTaskBarGeometry(
+  page: Page,
+  taskId: string,
+  expected: Readonly<{ x: number; width: number }>,
+): Promise<void> {
+  const target = page.locator(`.wx-bar[data-task-id=":${taskId}"]`);
+  await expect.poll(async () => {
+    const box = await target.boundingBox();
+    if (!box) return Number.POSITIVE_INFINITY;
+    return Math.max(Math.abs(box.x - expected.x), Math.abs(box.width - expected.width));
+  }, { timeout: 5_000 }).toBeLessThan(0.5);
+}
+
+async function expectTaskGridStart(page: Page, taskName: string, dateOnly: string): Promise<void> {
+  const expected = await page.evaluate((value) => {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Intl.DateTimeFormat(navigator.languages[0] || navigator.language || "en-CA", {
+      year: "numeric", month: "short", day: "numeric", timeZone: "UTC",
+    }).format(new Date(Date.UTC(year, month - 1, day)));
+  }, dateOnly);
+  const taskRow = page.locator(".project-gantt-widget .wx-table-container .wx-row", { hasText: taskName }).first();
+  await expect(taskRow).toContainText(expected);
+}
+
 test("persists pointer edits, restores rejected writes, and serializes a same-revision race", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const suffix = uniqueSuffix(); const password = `W07-password-${suffix}`;
@@ -101,8 +125,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
     const removeRoute = await rejectNextPatch(page, `${apiPath}/tasks/${task.taskId}`, rejected.status, rejected.code);
     await dragTaskBarByOneDay(page, task.taskId, movedTask.duration, "move");
     await expect(page.getByTestId("workspace-toast")).toContainText(rejected.notice); await removeRoute();
-    const restoredBox = await page.locator(`.wx-bar[data-task-id=":${task.taskId}"]`).boundingBox();
-    expect(restoredBox).not.toBeNull(); expect(restoredBox!.x).toBeCloseTo(canonicalBox.x, 0); expect(restoredBox!.width).toBeCloseTo(canonicalBox.width, 0);
+    await expectTaskBarGeometry(page, task.taskId, canonicalBox);
     const afterRejected = await (await page.request.get(apiPath)).json();
     expect(afterRejected.data.project.revision).toBe(revisionAfterCreate + 3);
     expect(afterRejected.data.tasks.find((entry: { taskId: string }) => entry.taskId === task.taskId))
@@ -127,8 +150,10 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const inbox = page.getByRole("dialog", { name: "오류 알림함" });
   expect((await inbox.locator("textarea").evaluateAll((elements) => elements.map((element) => (element as HTMLTextAreaElement).value))).join("\n")).toContain("작업을 저장할 수 없습니다");
   await page.keyboard.press("Escape");
-  const restoredWithoutRead = await page.locator(`.wx-bar[data-task-id=":${task.taskId}"]`).boundingBox();
-  expect(restoredWithoutRead).not.toBeNull(); expect(restoredWithoutRead!.x).toBeCloseTo(canonicalBox.x, 0); expect(restoredWithoutRead!.width).toBeCloseTo(canonicalBox.width, 0);
+  // Canonical GET failed, so the component intentionally remounts from the last
+  // confirmed snapshot. Absolute bar x may change with the reset timeline viewport;
+  // verify the canonical schedule value in the Grid instead.
+  await expectTaskGridStart(page, `W07 Build ${suffix}`, "2026-09-16");
   snapshot = await (await page.request.get(apiPath)).json();
   const deleteResponse = await page.request.delete(`${apiPath}/tasks/${task.taskId}`, { headers: { "If-Match": `"${snapshot.data.project.revision}"`, Origin: new URL(page.url()).origin } });
   expect(deleteResponse.status()).toBe(200);
@@ -150,8 +175,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   await page.reload(); await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
   const winnerTask = snapshot.data.tasks[0];
   await expect(page.getByRole("grid").getByText(winnerTask.name, { exact: true })).toBeVisible();
-  const beforeUnauthorized = await page.locator(`.wx-bar[data-task-id=":${winnerTask.taskId}"]`).boundingBox();
-  if (!beforeUnauthorized) throw new Error("Expected race winner SVAR task bar.");
+  await expect(page.locator(`.wx-bar[data-task-id=":${winnerTask.taskId}"]`)).toBeVisible();
   const removeUnauthorizedRoute = await rejectNextPatch(page, `${apiPath}/tasks/${winnerTask.taskId}`, 401, "EDIT_SESSION_INVALID");
   await dragTaskBarByOneDay(page, winnerTask.taskId, winnerTask.duration, "move");
   await expect(page.getByTestId("workspace-toast")).toContainText("편집 권한이 만료되었습니다");
@@ -159,8 +183,11 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const afterUnauthorized = await (await page.request.get(apiPath)).json();
   expect(afterUnauthorized.data.project.revision).toBe(revisionBeforeRace + 1);
   expect(afterUnauthorized.data.tasks[0]).toMatchObject({ taskId: winnerTask.taskId, requestedStart: "2026-09-22", start: "2026-09-22", end: "2026-09-23", duration: 2 });
-  const restoredUnauthorizedBox = await page.locator(`.wx-bar[data-task-id=":${winnerTask.taskId}"]`).boundingBox();
-  expect(restoredUnauthorizedBox).not.toBeNull(); expect(restoredUnauthorizedBox!.x).toBeCloseTo(beforeUnauthorized.x, 0); expect(restoredUnauthorizedBox!.width).toBeCloseTo(beforeUnauthorized.width, 0);
+  // 401 transitions the workspace from edit to readonly, which may legitimately change
+  // Grid/Chart layout. Verify the recovered canonical schedule rather than absolute x.
+  await expectTaskGridStart(page, winnerTask.name, "2026-09-22");
+  const readonlyWinnerRow = page.locator(".project-gantt-widget .wx-table-container .wx-row", { hasText: winnerTask.name }).first();
+  await expect(readonlyWinnerRow).toContainText("2 근무일");
   await page.getByLabel("편집 비밀번호").fill(password); await page.getByRole("button", { name: "편집 잠금 해제" }).click();
   await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
   await page.clock.setFixedTime(new Date("2026-09-24T12:00:00Z"));

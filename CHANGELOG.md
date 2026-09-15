@@ -9,6 +9,7 @@
 ### Fixed
 
 - Issue #33: 운영 상단 주요 메뉴에서 `Gantt 데모` 링크를 제거한다. `/gantt-demo` route와 fixture는 SVAR 통합·timezone/hydration E2E 검증 자산으로 유지하고, 헤더 회귀 테스트는 프로젝트 메뉴와 알림 hit-area 및 데모 링크 미노출을 검증한다.
+- 저장이 거부된 drag/resize의 canonical 조회가 성공하면 동일 Gantt 인스턴스에 서버 snapshot을 동기화하고, 조회 실패 시에만 강제 reset하여 검증되지 않은 로컬 변경을 폐기한다. 관련 비동기 E2E는 실제 스크롤 상태와 canonical 일정 복구를 기다려 검증한다.
 
 
 ## [0.8.0] - 2026-09-15
