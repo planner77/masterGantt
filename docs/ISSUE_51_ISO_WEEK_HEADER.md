@@ -46,6 +46,7 @@ Gantt의 `주` 표시 모드에서 하위 Chart Header를 날짜 범위(`9/14–
   - 날짜 범위 Header 제거
   - `day → week → day → week` 반복 전환 후 Gantt/API instance identity 유지
   - 일 모드 주말 강조 회귀 없음
+- 버전 및 문서 변경까지 포함한 최종 PR head SHA에서 GitHub Actions의 정적/단위, Chromium E2E, Docker runtime 검증을 다시 통과해야 한다.
 
 ## 버전
 
