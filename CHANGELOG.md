@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-09-15
+
+### Fixed
+
+- Issue #40: Task Editor E2E의 스크롤 불변성 검증이 레이아웃 시점마다 달라질 수 있는 전체 scrollable DOM 목록을 비교하지 않도록 변경했다. `window`, 프로젝트 작업공간, SVAR Grid, Chart의 명시적 컨테이너 위치만 비교하고 실제 스크롤에 따른 메뉴 닫힘 검증은 전용 `task-context-menu-scroll.spec.ts`에 유지하여 동일 head 재실행에서도 안정적으로 회귀를 검출한다.
+
 ## [0.8.1] - 2026-09-15
 
 ### Fixed

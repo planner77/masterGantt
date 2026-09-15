@@ -110,6 +110,22 @@ async function cancel(page: Page) {
   await expect(editor(page)).toHaveCount(0);
 }
 
+async function menuInvariantScrollState(page: Page) {
+  return page.evaluate(() => {
+    const position = (selector: string) => {
+      const elements = Array.from(document.querySelectorAll<HTMLElement>(selector));
+      if (elements.length !== 1) throw new Error(`Expected one stable scroll target for ${selector}, found ${elements.length}.`);
+      return { left: elements[0].scrollLeft, top: elements[0].scrollTop };
+    };
+    return {
+      window: { left: window.scrollX, top: window.scrollY },
+      workspace: position(".project-gantt-scroll"),
+      grid: position(".project-gantt-widget .wx-table-container"),
+      chart: position(".project-gantt-widget .wx-chart"),
+    };
+  });
+}
+
 test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
   test.use({ viewport: { width: 1440, height: 1100 } });
 
@@ -200,14 +216,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       if (request.resourceType() === "document") navigations.push(request);
       if (["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && new URL(request.url()).pathname.startsWith(apiPath)) mutations.push(request);
     });
-    const scroll = () => page.locator(".project-gantt-scroll").evaluate((root) => ({
-      x: window.scrollX, y: window.scrollY,
-      positions: [root, ...Array.from(root.querySelectorAll<HTMLElement>("*"))]
-        .filter((element) => element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth)
-        .map((element) => [element.scrollLeft, element.scrollTop])
-        .filter(([left, top]) => left !== 0 || top !== 0),
-    }));
-    const before = await scroll();
+    const before = await menuInvariantScrollState(page);
     const geometry = await frame(page).boundingBox();
     await row(page, "Beta leaf").getByText("Beta leaf", { exact: true }).click({ button: "right" });
     await expect(taskContextMenu(page)).toBeVisible();
@@ -238,7 +247,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await page.locator(".project-gantt-widget .wx-scale").first().click();
     await expect(taskContextMenu(page)).toHaveCount(0);
     await expect(editor(page)).toHaveCount(0);
-    expect(await scroll()).toEqual(before);
+    expect(await menuInvariantScrollState(page)).toEqual(before);
     expect(await frame(page).boundingBox()).toEqual(geometry);
     await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
     await expect(frame(page)).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
