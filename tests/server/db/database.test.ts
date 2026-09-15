@@ -121,7 +121,7 @@ describe("SQLite connection and schema", () => {
     });
 
     try {
-      expect(migrations.applied).toEqual(["0001_initial_schema.sql"]);
+      expect(migrations.applied).toEqual(["0001_initial_schema.sql", "0002_task_description_url.sql"]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
       expect(database.pragma("synchronous", { simple: true })).toBe(2);

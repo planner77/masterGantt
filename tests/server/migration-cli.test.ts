@@ -39,7 +39,7 @@ describe("migration CLI", () => {
     expect(first.status, first.stderr).toBe(0);
     expect(JSON.parse(first.stdout)).toEqual({
       status: "ok",
-      applied: ["0001_initial_schema.sql"],
+      applied: ["0001_initial_schema.sql", "0002_task_description_url.sql"],
     });
 
     const second = runCli(filename);
@@ -49,7 +49,7 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 1 });
+        .toEqual({ count: 2 });
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
     } finally {
