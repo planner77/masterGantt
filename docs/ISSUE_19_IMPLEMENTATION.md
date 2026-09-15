@@ -169,3 +169,16 @@ Migration 추가에 따라 기존 migration/schema 고정 테스트의 기대 mi
 - 그룹 중첩
 - 그룹 멤버의 개인 assignment 자동 확장
 - 물리 삭제 API
+
+
+## 11. 최종 검증 및 릴리스
+
+- 릴리스 버전: `0.12.0` (Semantic Versioning MINOR)
+- 최종 PR: #53
+- 최종 PR CI: Run #235 `success`
+- Vitest: 530/530 PASS
+- Chromium E2E: 50/50 PASS
+- Docker/runtime smoke: image policy, migration/readiness, SQLite restart persistence, HTTP/HTTPS cookie·auth transport, relocated Compose persistence PASS
+- 릴리스 태그: `v0.12.0` annotated tag를 병합된 release commit에 생성한다.
+- GHCR: `release-image.yml`의 SemVer/tag 검증과 release candidate quality/container gate를 통과한 digest만 exact/rolling tag로 승격한다.
+- GitHub Release 설명은 `docs/releases/v0.12.0.md`를 기준으로 한다.
