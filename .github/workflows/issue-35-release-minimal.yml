@@ -1,3 +1,4 @@
+# one-time workflow for Issue #35 release finalization
 name: Issue 35 release minimal
 on:
   push:
