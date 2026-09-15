@@ -52,9 +52,17 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
 
   useEffect(() => {
     let alive = true;
-    const publicId = projectIdFromPathname(window.location.pathname);
-    if (!publicId) { setLoading(false); setError("프로젝트 경로를 확인할 수 없습니다."); return; }
     void (async () => {
+      // Defer the initial state transition to the asynchronous load callback so
+      // this effect only starts/cancels external synchronization.
+      await Promise.resolve();
+      if (!alive) return;
+      const publicId = projectIdFromPathname(window.location.pathname);
+      if (!publicId) {
+        setLoading(false);
+        setError("프로젝트 경로를 확인할 수 없습니다.");
+        return;
+      }
       try {
         const assignedResponse = await fetch(`/api/projects/${encodeURIComponent(publicId)}/assigned-targets`, {
           credentials: "same-origin", cache: "no-store",
@@ -118,7 +126,6 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
         headers: { "Content-Type": "application/json", "If-Match": `"${revision}"` },
         body: JSON.stringify({ catalogRevision, targets: requested }),
       });
-      const body: unknown = await response.json().catch(() => null);
       if (response.status === 412) {
         setError("프로젝트 또는 리소스 목록이 변경되었습니다. 최신 정보를 다시 불러와 주세요.");
         return;
