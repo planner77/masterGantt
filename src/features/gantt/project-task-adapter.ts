@@ -24,6 +24,8 @@ function dateOnly(value: string): DateOnly {
 
 export interface ProjectTaskUpdatePayload {
   readonly name?: string;
+  readonly description?: string | null;
+  readonly url?: string | null;
   readonly progress?: number;
   readonly start?: string;
   readonly duration?: number;
@@ -36,14 +38,11 @@ export interface ProjectTaskUpdateCommand {
 
 export interface ProjectTaskCreateCommand {
   readonly name: string;
-  /** Native Grid '+' always creates a schedulable leaf, never a milestone. */
   readonly type: "task";
   readonly start: string;
   readonly duration: number;
   readonly progress: 0;
-  /** Set only for a row '+' request; backend hierarchy support owns validation. */
   readonly parentTaskId?: string;
-  /** Explicit acknowledgement before a leaf becomes a calculated summary. */
   readonly convertParentToSummary?: true;
 }
 
@@ -58,8 +57,6 @@ export function projectTasksToSvarTasks(tasks: readonly ProjectTaskDto[]): ITask
     parent: task.parentExternalId === null
       ? 0
       : taskIdsByExternalId.get(task.parentExternalId) ?? 0,
-    // SVAR traverses `data` when `open === true`; root Leaf tasks have no
-    // child array, so only Summary rows may be expanded.
     open: task.type === "summary",
     externalId: task.externalId,
   }));
@@ -80,76 +77,42 @@ export function projectLinksToSvarLinks(
 }
 
 function calendarFromDto(calendar: ProjectCalendarDto) {
-  return createWorkingCalendar({
-    timezone: calendar.timezone,
-    weekendDays: calendar.weekendDays,
-    holidays: calendar.holidays,
-  });
+  return createWorkingCalendar({ timezone: calendar.timezone, weekendDays: calendar.weekendDays, holidays: calendar.holidays });
 }
-
 function durationFromRange(start: string, end: string, calendar: ProjectCalendarDto): number {
   return workingDaysBetween(start, end, calendarFromDto(calendar));
 }
-
 function dateFromSvarExclusiveEnd(value: Date): string {
   return addCalendarDays(dateOnlyFromLocalDate(value), -1);
 }
 
-/** Converts a final SVAR update to the HTTP contract. */
 export function translateProjectTaskUpdate(
   local: LocalTaskUpdateCommand,
   task: ProjectTaskDto,
   calendar: ProjectCalendarDto,
 ): ProjectTaskUpdateCommand | null {
-  if (typeof local.taskId !== "string" || local.taskId !== task.taskId || task.type === "summary") {
-    return null;
-  }
-
+  if (typeof local.taskId !== "string" || local.taskId !== task.taskId || task.type === "summary") return null;
   const payload: { name?: string; progress?: number; start?: string; duration?: number } = {};
-  if (typeof local.changes.text === "string" && local.changes.text !== task.name) {
-    payload.name = local.changes.text;
-  }
-  if (typeof local.changes.progress === "number" && local.changes.progress !== task.progress) {
-    payload.progress = local.changes.progress;
-  }
-
+  if (typeof local.changes.text === "string" && local.changes.text !== task.name) payload.name = local.changes.text;
+  if (typeof local.changes.progress === "number" && local.changes.progress !== task.progress) payload.progress = local.changes.progress;
   const { start: changedStart, end: changedEnd } = local.changes;
-  const nextStart = changedStart instanceof Date
-    ? dateOnlyFromLocalDate(changedStart)
-    : undefined;
-  const nextEnd = changedEnd instanceof Date
-    ? dateFromSvarExclusiveEnd(changedEnd)
-    : undefined;
+  const nextStart = changedStart instanceof Date ? dateOnlyFromLocalDate(changedStart) : undefined;
+  const nextEnd = changedEnd instanceof Date ? dateFromSvarExclusiveEnd(changedEnd) : undefined;
   const startChanged = nextStart !== undefined && nextStart !== task.start;
   const endChanged = nextEnd !== undefined && nextEnd !== task.end;
-
   if (task.type === "milestone") {
-    if (startChanged) {
-      // A direct pointer move establishes a new requested start from the
-      // rendered position, even when the prior request was normalized.
-      payload.start = nextStart;
-    }
+    if (startChanged) payload.start = nextStart;
     return Object.keys(payload).length === 0 ? null : { taskId: task.taskId, payload };
   }
-
   if (typeof local.diff === "number") {
-    if (startChanged && endChanged) {
-      // A move changes both rendered endpoints and establishes a new request.
-      payload.start = nextStart;
-    } else if (startChanged) {
-      const start = nextStart;
-      payload.start = start;
-      payload.duration = durationFromRange(start, task.end, calendar);
-    } else if (endChanged) {
-      // Core has already applied diff to the final right-resize endpoint.
-      payload.duration = durationFromRange(task.start, nextEnd, calendar);
-    }
+    if (startChanged && endChanged) payload.start = nextStart;
+    else if (startChanged) { payload.start = nextStart; payload.duration = durationFromRange(nextStart, task.end, calendar); }
+    else if (endChanged) payload.duration = durationFromRange(task.start, nextEnd, calendar);
   } else if (startChanged || endChanged) {
     const start = nextStart ?? task.start;
     const end = nextEnd ?? task.end;
     if (startChanged) payload.start = start;
     if (endChanged || startChanged) payload.duration = durationFromRange(start, end, calendar);
   }
-
   return Object.keys(payload).length === 0 ? null : { taskId: task.taskId, payload };
 }

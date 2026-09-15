@@ -35,6 +35,26 @@ const taskName = wellFormedString
     return length >= 1 && length <= 200;
   });
 
+const taskDescription = wellFormedString
+  .refine((value) => codePointLength(value) <= 10_000)
+  .transform((value) => value.trim().length === 0 ? null : value)
+  .nullable();
+
+function isAllowedTaskUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+const taskUrl = wellFormedString
+  .transform((value) => value.trim())
+  .refine((value) => value.length === 0 || (codePointLength(value) <= 4_096 && isAllowedTaskUrl(value)))
+  .transform((value) => value.length === 0 ? null : value)
+  .nullable();
+
 const externalId = wellFormedString.refine((value) => {
   const length = codePointLength(value);
   return length >= 1 &&
@@ -54,6 +74,8 @@ const createTaskSchema = z.object({
   parentTaskId: z.string().refine(isCanonicalUuidV4).optional(),
   convertParentToSummary: z.literal(true).optional(),
   name: taskName,
+  description: taskDescription.optional(),
+  url: taskUrl.optional(),
   type: leafType,
   scheduleMode: scheduleMode.optional(),
   start: dateLabel,
@@ -71,6 +93,8 @@ const createTaskSchema = z.object({
 
 const updateTaskSchema = z.object({
   name: taskName.optional(),
+  description: taskDescription.optional(),
+  url: taskUrl.optional(),
   scheduleMode: scheduleMode.optional(),
   start: dateLabel.optional(),
   end: dateLabel.optional(),

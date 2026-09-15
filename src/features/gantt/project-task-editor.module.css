@@ -16,9 +16,13 @@
 .caption { margin: 0.4rem 0 1rem; color: #475569; font-size: 0.875rem; overflow-wrap: anywhere; }
 .form { display: grid; gap: 1rem; }
 .field { display: grid; gap: 0.35rem; }
-.field input { width: 100%; box-sizing: border-box; padding: 0.65rem; border: 1px solid #94a3b8; border-radius: 0.35rem; font: inherit; }
-.field input[readonly] { background: #f1f5f9; color: #475569; }
-.field input:focus-visible, .dialog button:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+.field input, .field textarea { width: 100%; box-sizing: border-box; padding: 0.65rem; border: 1px solid #94a3b8; border-radius: 0.35rem; font: inherit; }
+.field textarea { min-height: 7rem; resize: vertical; line-height: 1.45; }
+.field input[readonly], .field textarea[readonly] { background: #f1f5f9; color: #475569; }
+.field input:focus-visible, .field textarea:focus-visible, .dialog button:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+.sliderRow { display: grid; grid-template-columns: minmax(0, 1fr) 4.5rem; align-items: center; gap: 0.75rem; }
+.sliderRow input[type="range"] { padding: 0; border: 0; }
+.progressValue { justify-self: end; min-width: 3.5rem; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
 .confirmed { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem; margin: 0; font-size: 0.875rem; }
 .confirmed dd { margin: 0; overflow-wrap: anywhere; }
 .note { background: #f1f5f9; padding: 0.75rem; border-radius: 0.35rem; font-size: 0.875rem; line-height: 1.5; }
@@ -39,4 +43,4 @@
 .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: flex-end; margin-top: 0.5rem; }
 .discard { border: 1px solid #e2b35b; background: #fffbeb; padding: 0.85rem; border-radius: 0.35rem; margin-top: 1rem; }
 .discard p { margin-top: 0; }
-@media (max-width: 480px) { .dialog { padding: 1rem; } .actions { justify-content: stretch; } .actions button { flex: 1; } }
+@media (max-width: 480px) { .dialog { padding: 1rem; } .actions { justify-content: stretch; } .actions button { flex: 1; } .sliderRow { grid-template-columns: 1fr; } .progressValue { justify-self: start; } }
