@@ -1,0 +1,300 @@
+name: Issue 35 변경 적용
+
+on:
+  push:
+    branches:
+      - feat/issue-35-gantt-scale-toggle
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Issue #35 구현·버전·문서 반영
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: Path, old: str, new: str) -> None:
+              text = path.read_text()
+              if new in text:
+                  return
+              if old not in text:
+                  raise SystemExit(f"expected source fragment not found: {path}")
+              path.write_text(text.replace(old, new, 1))
+
+          gantt = Path("src/features/gantt/project-gantt.tsx")
+          replace_once(
+              gantt,
+              'import "./task-context-menu.css";\n',
+              'import "./task-context-menu.css";\nimport "./gantt-scale-toolbar.css";\n',
+          )
+          replace_once(
+              gantt,
+              'type TaskMenuState = MenuPosition & Readonly<{ taskId: string }>;\n',
+              'type TaskMenuState = MenuPosition & Readonly<{ taskId: string }>;\ntype GanttScaleMode = "day" | "week";\n',
+          )
+          replace_once(
+              gantt,
+              '  const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);\n',
+              '  const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);\n  const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");\n',
+          )
+          old_scales = '''  const scales = useMemo(() => [
+              {
+                unit: "month",
+                step: 1,
+                format: (date: Date) => new Intl.DateTimeFormat(locales, {
+                  year: "numeric",
+                  month: "long",
+                }).format(date),
+              },
+              {
+                unit: "day",
+                step: 1,
+                format: (date: Date) => new Intl.DateTimeFormat(locales, {
+                  day: "numeric",
+                  weekday: "narrow",
+                }).format(date),
+              },
+            ], [locales]);'''
+          new_scales = '''  const scales = useMemo(() => [
+              {
+                unit: "month",
+                step: 1,
+                format: (date: Date) => new Intl.DateTimeFormat(locales, {
+                  year: "numeric",
+                  month: "long",
+                }).format(date),
+              },
+              scaleMode === "day"
+                ? {
+                  unit: "day",
+                  step: 1,
+                  format: (date: Date) => new Intl.DateTimeFormat(locales, {
+                    day: "numeric",
+                    weekday: "narrow",
+                  }).format(date),
+                }
+                : {
+                  unit: "week",
+                  step: 1,
+                  format: (date: Date, next?: Date) => {
+                    const end = next ? new Date(next.getTime() - 86_400_000) : date;
+                    const formatter = new Intl.DateTimeFormat(locales, { month: "numeric", day: "numeric" });
+                    return `${formatter.format(date)}–${formatter.format(end)}`;
+                  },
+                },
+            ], [locales, scaleMode]);'''
+          replace_once(gantt, old_scales, new_scales)
+          replace_once(
+              gantt,
+              '    <div className="project-gantt-frame" data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined}>',
+              '    <div className="project-gantt-frame" data-gantt-scale-mode={scaleMode} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined}>',
+          )
+          replace_once(
+              gantt,
+              '      <Willow>\n        <div\n          aria-label="프로젝트 일정 Grid와 Gantt 차트"',
+              '''      <Willow>
+                <div className="project-gantt-scale-toolbar">
+                  <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
+                    <span aria-hidden="true" className="project-gantt-scale-label">표시 단위</span>
+                    <button aria-pressed={scaleMode === "day"} onClick={() => setScaleMode("day")} type="button">일</button>
+                    <button aria-pressed={scaleMode === "week"} onClick={() => setScaleMode("week")} type="button">주</button>
+                  </div>
+                </div>
+                <div
+                  aria-label="프로젝트 일정 Grid와 Gantt 차트"''',
+          )
+          replace_once(gantt, '              highlightTime={highlightWeekend}\n', '              highlightTime={scaleMode === "day" ? highlightWeekend : undefined}\n')
+
+          Path("src/features/gantt/gantt-scale-toolbar.css").write_text('''.project-gantt-scale-toolbar {
+            display: flex;
+            flex: 0 0 auto;
+            justify-content: flex-end;
+            padding: 0 0 0.5rem;
+          }
+
+          .project-gantt-scale-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            border: 1px solid var(--border);
+            border-radius: calc(var(--radius) - 0.125rem);
+            background: var(--card);
+            padding: 0.25rem;
+          }
+
+          .project-gantt-scale-label {
+            color: var(--muted-foreground);
+            font-size: 0.8125rem;
+            font-weight: 650;
+            padding: 0 0.375rem;
+          }
+
+          .project-gantt-scale-controls button {
+            min-width: 2.5rem;
+            min-height: 2rem;
+            border: 1px solid transparent;
+            border-radius: calc(var(--radius) - 0.25rem);
+            background: transparent;
+            color: var(--foreground);
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.8125rem;
+            font-weight: 650;
+            padding: 0.25rem 0.625rem;
+          }
+
+          .project-gantt-scale-controls button:hover,
+          .project-gantt-scale-controls button:focus-visible {
+            border-color: var(--border);
+            background: var(--muted);
+            outline: none;
+          }
+
+          .project-gantt-scale-controls button[aria-pressed="true"] {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: var(--primary-foreground);
+          }
+
+          @media (max-width: 48rem) {
+            .project-gantt-scale-toolbar { justify-content: flex-start; }
+          }
+          ''')
+
+          Path("tests/e2e/project-gantt-scale.spec.ts").write_text('''import { expect, test } from "@playwright/test";
+
+          const publicId = "35000000-0000-4000-8000-000000000035";
+
+          test("switches the Gantt timeline between day and week without remounting", async ({ page }) => {
+            await page.route(`**/api/projects/${publicId}`, (route) => route.fulfill({ json: {
+              data: {
+                project: {
+                  publicId,
+                  name: "Issue 35 scale fixture",
+                  description: "Day/week timeline scale verification",
+                  revision: 1,
+                  calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] },
+                },
+                tasks: [{
+                  taskId: "35000000-0000-4000-8000-000000000001",
+                  externalId: "ISSUE-35-1",
+                  name: "Scale verification task",
+                  type: "task",
+                  scheduleMode: "auto",
+                  requestedStart: "2026-09-14",
+                  start: "2026-09-14",
+                  end: "2026-09-30",
+                  duration: 13,
+                  progress: 25,
+                  parentExternalId: null,
+                  siblingOrder: 0,
+                }],
+                links: [],
+                permission: "readonly",
+              },
+            } }));
+            await page.route(`**/api/projects/${publicId}/edit-sessions/current`, (route) => route.fulfill({ json: {
+              data: { permission: "readonly" },
+            } }));
+
+            await page.goto(`/projects/${publicId}`);
+            const frame = page.locator(".project-gantt-frame");
+            const controls = page.getByRole("group", { name: "Gantt 표시 단위" });
+            const day = controls.getByRole("button", { name: "일", exact: true });
+            const week = controls.getByRole("button", { name: "주", exact: true });
+
+            await expect(frame).toHaveAttribute("data-gantt-scale-mode", "day");
+            await expect(day).toHaveAttribute("aria-pressed", "true");
+            await expect(week).toHaveAttribute("aria-pressed", "false");
+            await expect(page.locator(".project-gantt-widget .wx-weekend").first()).toBeVisible();
+            const instanceId = await frame.getAttribute("data-project-gantt-instance");
+            const apiInstanceId = await frame.getAttribute("data-project-gantt-api-instance");
+            expect(instanceId).toBeTruthy();
+            expect(apiInstanceId).toBeTruthy();
+
+            await week.click();
+            await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
+            await expect(day).toHaveAttribute("aria-pressed", "false");
+            await expect(week).toHaveAttribute("aria-pressed", "true");
+            await expect(frame).toHaveAttribute("data-project-gantt-instance", instanceId!);
+            await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstanceId!);
+            await expect(page.locator(".project-gantt-widget .wx-weekend")).toHaveCount(0);
+
+            await day.click();
+            await expect(frame).toHaveAttribute("data-gantt-scale-mode", "day");
+            await expect(frame).toHaveAttribute("data-project-gantt-instance", instanceId!);
+            await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstanceId!);
+            await expect(page.locator(".project-gantt-widget .wx-weekend").first()).toBeVisible();
+          });
+          ''')
+
+          replace_once(Path("package.json"), '  "version": "0.8.3",\n', '  "version": "0.9.0",\n')
+          lock = Path("package-lock.json")
+          lock_text = lock.read_text()
+          if '"version": "0.9.0"' not in lock_text[:500]:
+              lock_text = lock_text.replace('"version": "0.8.3"', '"version": "0.9.0"', 2)
+              lock.write_text(lock_text)
+
+          changelog = Path("CHANGELOG.md")
+          text = changelog.read_text()
+          marker = "## [0.9.0] - 2026-09-15"
+          if marker not in text:
+              text = text.replace(
+                  "## [Unreleased]\n",
+                  "## [Unreleased]\n\n## [0.9.0] - 2026-09-15\n\n### Added\n\n- Issue #35: Gantt Chart 상단에서 기본 일 단위와 주 단위를 즉시 전환할 수 있다. 전환은 동일 SVAR Gantt 인스턴스를 유지하며 일 보기에서만 기존 주말 강조를 표시한다. 사용자 기능 추가에 따라 버전을 `0.9.0`으로 갱신한다.\n",
+                  1,
+              )
+              changelog.write_text(text)
+
+          Path("docs/ISSUE_35_GANTT_SCALE.md").write_text('''# Issue #35 Gantt 표시 단위 전환
+
+          ## 요구사항
+
+          - Gantt Chart는 최초 진입 시 기존과 동일하게 일 단위로 표시한다.
+          - 사용자는 Chart 상단의 `일`/`주` 버튼으로 시간축 표시 단위를 전환할 수 있다.
+          - 단위 전환은 일정 데이터, 선택 상태, 편집 권한과 무관한 표시 전용 상태이며 서버 저장을 발생시키지 않는다.
+          - 전환 때문에 SVAR Gantt 인스턴스를 재마운트하지 않는다.
+
+          ## SVAR 근거와 설계
+
+          SVAR React Gantt의 `scales` 속성은 `day`, `week`, `month` 등의 시간 단위를 조합할 수 있고 formatter가 각 구간의 날짜 경계를 받을 수 있다. 따라서 별도 Pro zoom API를 모사하지 않고 공개 `scales` 계약만 사용한다.
+
+          - 일 보기: 월 + 일 scale. 기존 주말 강조(`highlightTime`)를 유지한다.
+          - 주 보기: 월 + 주 scale. 주 구간은 시작일과 다음 구간 직전 날짜를 `M/D–M/D` 형식으로 표시한다.
+          - 상태는 `ProjectGantt` 내부의 `day | week` 표시 전용 state로 관리한다.
+          - `key` 변경이나 강제 재마운트를 사용하지 않아 기존 Gantt/API instance identity를 유지한다.
+          - 버튼 그룹은 `role=group`, `aria-label`, `aria-pressed`를 사용해 키보드·보조기술에서 현재 단위를 식별할 수 있게 한다.
+
+          ## 검증 기준
+
+          - 기본 단위가 `day`인지 확인한다.
+          - `주` 전환 후 `week` 상태와 버튼 접근성 상태가 일치하는지 확인한다.
+          - 전환 전후 `data-project-gantt-instance`, `data-project-gantt-api-instance`가 동일한지 확인한다.
+          - 일 보기의 주말 강조가 주 보기에서는 제거되고 다시 일 보기로 돌아오면 복원되는지 Chromium E2E로 확인한다.
+          - 기존 CI의 typecheck, lint, Vitest, build, 전체 Chromium E2E, Docker smoke를 통과해야 한다.
+
+          ## 버전
+
+          사용자에게 노출되는 신규 기능이므로 Semantic Versioning 기준으로 `0.8.3`에서 `0.9.0`으로 minor version을 증가시킨다.
+          ''')
+          PY
+      - name: 변경 커밋
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/gantt/project-gantt.tsx src/features/gantt/gantt-scale-toolbar.css tests/e2e/project-gantt-scale.spec.ts package.json package-lock.json CHANGELOG.md docs/ISSUE_35_GANTT_SCALE.md
+          git commit -m "feat: Gantt 일·주 표시 단위 전환 추가 (#35)"
+          git push origin HEAD:feat/issue-35-gantt-scale-toggle
