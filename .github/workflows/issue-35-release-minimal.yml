@@ -1,33 +1,24 @@
-# one-time workflow for Issue #35 release finalization
-name: Issue 35 release minimal
+name: Issue 35 cleanup
 on:
   push:
     branches: [main]
     paths: [.github/workflows/issue-35-release-minimal.yml]
 permissions:
   contents: write
-  actions: write
 jobs:
-  release:
+  cleanup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
-      - name: Create v0.9.0 tag
+      - name: Remove Issue 35 work branch
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin main --tags
-          git merge-base --is-ancestor c9156e9134c576b5c2e7a4866284a21508b7ba09 origin/main
-          test "$(git show c9156e9134c576b5c2e7a4866284a21508b7ba09:package.json | jq -r .version)" = "0.9.0"
-          if ! git rev-parse -q --verify refs/tags/v0.9.0 >/dev/null; then
-            git config user.name github-actions[bot]
-            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-            git tag -a v0.9.0 c9156e9134c576b5c2e7a4866284a21508b7ba09 -m "Release v0.9.0"
-            git push origin refs/tags/v0.9.0
+          git fetch origin --prune
+          if git ls-remote --exit-code --heads origin feat/issue-35-gantt-scale-toggle >/dev/null 2>&1; then
+            git push origin --delete feat/issue-35-gantt-scale-toggle
+          else
+            echo "Issue #35 work branch already removed."
           fi
-      - name: Dispatch release workflow
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh workflow run release-image.yml --repo "$GITHUB_REPOSITORY" --ref v0.9.0
