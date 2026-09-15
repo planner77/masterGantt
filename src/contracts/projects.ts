@@ -107,7 +107,8 @@ export interface ProjectSnapshotResponse {
     project: ProjectDto;
     tasks: ProjectTaskDto[];
     links: ProjectLinkDto[];
-    assignments: ProjectAssignmentDto[];
+    /** Added by the canonical server adapter; optional for legacy fixtures and focused service tests. */
+    assignments?: ProjectAssignmentDto[];
     permission: ProjectPermission;
   };
 }
@@ -132,7 +133,7 @@ export interface ProjectMetadataMutationResponse {
     project: ProjectDto;
     tasks: ProjectTaskDto[];
     links: ProjectLinkDto[];
-    assignments: ProjectAssignmentDto[];
+    assignments?: ProjectAssignmentDto[];
     warnings: [];
     operation: {
       kind: "projectMetadata";
@@ -182,7 +183,7 @@ export interface TaskMutationResponse {
     project: ProjectDto;
     tasks: ProjectTaskDto[];
     links: ProjectLinkDto[];
-    assignments: ProjectAssignmentDto[];
+    assignments?: ProjectAssignmentDto[];
     warnings: ScheduleWarningDto[];
     operation: {
       kind: TaskMutationKind;
