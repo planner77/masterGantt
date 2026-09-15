@@ -119,8 +119,9 @@ function installTaskUrlLauncher(): void {
     if (!element || taskId !== current.taskId) return;
     const url = safeStoredUrl(element.dataset.taskUrl);
     if (!url) return;
-    const opened = window.open(url, "_blank", "noopener,noreferrer");
-    if (!opened) window.alert("작업 URL을 열 수 없습니다. 브라우저의 팝업 차단 설정을 확인해 주세요.");
+    // With noopener/noreferrer a successful browser open is allowed to return null,
+    // so the WindowProxy return value cannot distinguish success from popup blocking.
+    window.open(url, "_blank", "noopener,noreferrer");
   }, true);
   const observer = new MutationObserver(() => scheduleDecoration());
   observer.observe(document.documentElement, { childList: true, subtree: true });
