@@ -50,6 +50,14 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean 
       await route.fulfill({ json: { data: fixture.editable ? { permission: "edit", expiresAt: "2099-01-01T00:00:00Z" } : { permission: "readonly" } } });
       return;
     }
+    if (path === `${apiPath}/assigned-targets` && request.method() === "GET") {
+      await route.fulfill({ json: { data: { projectRevision: fixture.project.revision, catalogRevision: 1, assignments: [], targets: [] } } });
+      return;
+    }
+    if (path === `${apiPath}/assignment-targets` && request.method() === "GET") {
+      await route.fulfill({ json: { data: { catalogRevision: 1, targets: [] } } });
+      return;
+    }
     if (path === apiPath && request.method() === "GET") {
       await route.fulfill(fixture.failReads ? { status: 500, json: { error: { code: "READ_FAILED" } } } : { json: snapshot() });
       return;
