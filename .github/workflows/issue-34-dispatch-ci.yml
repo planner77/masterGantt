@@ -1,0 +1,33 @@
+name: Issue 34 dispatch CI
+
+on:
+  push:
+    branches:
+      - feat/issue-34-task-relations
+    paths:
+      - .github/workflows/issue-34-dispatch-ci.yml
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: feat/issue-34-task-relations
+      - name: 임시 workflow 제거 후 최종 head 생성
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/issue-34-dispatch-ci.yml
+          git commit -m 'ci: Issue #34 임시 dispatch workflow 제거'
+          git push origin HEAD:feat/issue-34-task-relations
+      - name: 최종 branch head로 정규 CI 실행
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref feat/issue-34-task-relations
