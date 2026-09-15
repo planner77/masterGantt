@@ -36,7 +36,7 @@ ScheduleRepository는 신규 컬럼을 읽고 생성 시 저장하며, 일정 �
 
 ### URL 실행
 
-Grid 행 또는 Chart bar의 일반 좌클릭이 완료되었고 해당 Task에 안전한 URL이 있는 경우에만 새 탭으로 연다. 저장된 URL은 canonical snapshot에서 가져오며 실행 직전에도 `http:`/`https:` scheme을 재확인한다.
+Grid 행 또는 Chart bar의 일반 좌클릭이 완료되었고 해당 Task에 안전한 URL이 있는 경우에만 `window.open(url, "_blank", "noopener,noreferrer")`로 새 탭을 연다. 저장된 URL은 canonical snapshot에서 가져오며 실행 직전에도 `http:`/`https:` scheme을 재확인한다.
 
 다음 동작에서는 URL을 실행하지 않는다.
 
@@ -46,11 +46,18 @@ Grid 행 또는 Chart bar의 일반 좌클릭이 완료되었고 해당 Task에 
 - input/textarea/select/button/link/dialog/menu 내부 동작
 - pointerdown과 click의 Task가 다른 경우
 
-팝업 차단으로 새 창을 만들지 못하면 사용자에게 안내한다. 링크 실행은 현재 Gantt 페이지를 navigation/reload하지 않는다.
+`noopener`를 사용한 정상 새 탭 열기에서도 브라우저가 `window.open()` 반환값을 `null`로 줄 수 있으므로 반환값만으로 팝업 차단을 판정하지 않는다. 이로써 정상 링크 실행에 잘못된 실패 알림이 나타나는 것을 방지한다. 링크 실행은 현재 Gantt 페이지를 navigation/reload하지 않는다.
 
 ## Import / Export 범위
 
 현재 Import schema v1은 create-only 일정 교환 규약이며 Description/URL은 기존 규약의 필수 필드가 아니다. Issue #36에서는 기존 파일 호환성을 깨지 않기 위해 Import schema version을 변경하지 않는다. 프로젝트 복사에는 신규 필드를 보존한다. 향후 JSON/Excel Import/Export에서 Task 상세 메타데이터를 공식 교환 항목으로 포함하려면 schema version 및 VBA mapping을 함께 변경하는 별도 이슈로 다룬다.
+
+## 관련 문서
+
+- `docs/API.md`: Task canonical DTO와 create/update allowlist에 Description/URL 계약을 반영한다.
+- `docs/DB_SCHEMA.md`: `tasks.description`, `tasks.url` nullable TEXT 컬럼을 반영한다.
+- `docs/TASK_EDITOR.md`: Slider·Description·URL 입력 및 동일 PATCH/canonical snapshot 저장 정책을 반영한다.
+- `CHANGELOG.md`: `0.11.0` 기능 및 호환성 보정을 기록한다.
 
 ## 테스트 및 리뷰 보정
 
@@ -60,6 +67,8 @@ Grid 행 또는 Chart bar의 일반 좌클릭이 완료되었고 해당 Task에 
 - 신규 `0002_task_description_url.sql` 적용에 맞춰 DB/CLI migration 기대값을 2개 migration으로 갱신했다.
 - PR #50의 최초 CI Run #181에서는 정적 검사·단위/통합·빌드·Docker smoke가 통과했으나 Chromium E2E 두 건이 실패했다. 원인은 진행률 값 표시용 `<output>` 추가로 기존 종료일 output selector가 중복되고, label 내부에 현재 값까지 포함되어 접근성 이름이 달라진 것이었다. Slider label을 명시적으로 연결하고 현재 값 표시는 일반 텍스트로 분리하여 기존 종료일 output 계약을 보존했다.
 - Codex P1 리뷰에서 확인된 기존 소수 진행률 편집 차단과 프로젝트 복사의 상세 필드 후속 transaction 문제를 각각 하위 호환 검증과 원본 transaction 저장으로 보정했다.
+- Codex P1 기준 문서 지적에 따라 `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/TASK_EDITOR.md`를 구현과 일치하도록 갱신했다.
+- Codex P2 `noopener` 반환값 오판 가능성은 반환 handle 기반 실패 알림을 제거하여 보정했다.
 - 최종 head는 GitHub Actions의 typecheck/lint/unit/integration/build/Chromium E2E/Docker smoke 전체 통과를 병합 gate로 사용한다.
 
 ## 릴리스
