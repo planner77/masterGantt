@@ -116,3 +116,5 @@ PR #49 merged after CI #169 passed."
           else
             echo "$FEATURE_BRANCH already deleted."
           fi
+
+# 이 파일은 릴리스 완료 확인 후 제거한다.
