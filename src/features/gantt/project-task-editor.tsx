@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
 import { buildTaskRelations, formatTaskRelationType, type TaskRelationView, type TaskRelationsView } from "./task-relations";
@@ -32,6 +32,10 @@ type RelationState =
   | { readonly status: "ready"; readonly revision: number; readonly relations: TaskRelationsView }
   | { readonly status: "failed"; readonly message: string };
 
+type RelationLoadResult =
+  | { readonly status: "ready"; readonly revision: number; readonly relations: TaskRelationsView }
+  | { readonly status: "failed"; readonly message: string; readonly conflict: boolean };
+
 function isSnapshot(value: unknown): value is ProjectSnapshotResponse {
   if (typeof value !== "object" || value === null || !("data" in value)) return false;
   const data = value.data;
@@ -44,6 +48,34 @@ function projectPublicIdFromPathname(pathname: string): string | null {
   if (!match) return null;
   try { return decodeURIComponent(match[1]); }
   catch { return null; }
+}
+
+async function fetchTaskRelations(expected: TaskEditorSession): Promise<RelationLoadResult> {
+  const publicId = projectPublicIdFromPathname(window.location.pathname);
+  if (!publicId) {
+    return { status: "failed", conflict: false, message: "프로젝트 경로를 확인할 수 없어 작업 관계를 불러오지 못했습니다." };
+  }
+  try {
+    const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin" });
+    const body: unknown = await response.json().catch(() => null);
+    if (!response.ok || !isSnapshot(body)) {
+      return { status: "failed", conflict: false, message: "작업 관계를 불러올 수 없습니다. 최신 정보 다시 불러오기를 시도해 주세요." };
+    }
+    if (body.data.project.revision !== expected.revision) {
+      return { status: "failed", conflict: true, message: "관계 조회 중 프로젝트 Revision이 변경되었습니다. 최신 정보를 다시 불러와 주세요." };
+    }
+    const task = body.data.tasks.find((entry) => entry.taskId === expected.task.taskId);
+    if (!task || task.externalId !== expected.task.externalId) {
+      return { status: "failed", conflict: true, message: "기준 작업이 변경되었거나 삭제되었습니다. 최신 정보를 다시 불러와 주세요." };
+    }
+    return {
+      status: "ready",
+      revision: expected.revision,
+      relations: buildTaskRelations(task, body.data.tasks, body.data.links),
+    };
+  } catch {
+    return { status: "failed", conflict: false, message: "네트워크 오류로 작업 관계를 불러오지 못했습니다." };
+  }
 }
 
 function RelationList({ title, relations }: Readonly<{ title: string; relations: readonly TaskRelationView[] }>) {
@@ -80,47 +112,24 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
     (latestTask?.type !== base.task.type ? "작업 유형이 변경되었습니다. 최신 정보를 다시 불러와 주세요." : null);
   const locked = busy || operation !== null;
 
-  const loadRelations = useCallback(async (expected: TaskEditorSession) => {
-    const publicId = projectPublicIdFromPathname(window.location.pathname);
-    if (!publicId) {
-      setRelationState({ status: "failed", message: "프로젝트 경로를 확인할 수 없어 작업 관계를 불러오지 못했습니다." });
-      return;
-    }
-    try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin" });
-      const body: unknown = await response.json().catch(() => null);
-      if (!mountedReference.current) return;
-      if (!response.ok || !isSnapshot(body)) {
-        setRelationState({ status: "failed", message: "작업 관계를 불러올 수 없습니다. 최신 정보 다시 불러오기를 시도해 주세요." });
-        return;
-      }
-      if (body.data.project.revision !== expected.revision) {
-        setConflicted(true);
-        setRelationState({ status: "failed", message: "관계 조회 중 프로젝트 Revision이 변경되었습니다. 최신 정보를 다시 불러와 주세요." });
-        return;
-      }
-      const task = body.data.tasks.find((entry) => entry.taskId === expected.task.taskId);
-      if (!task || task.externalId !== expected.task.externalId) {
-        setConflicted(true);
-        setRelationState({ status: "failed", message: "기준 작업이 변경되었거나 삭제되었습니다. 최신 정보를 다시 불러와 주세요." });
-        return;
-      }
-      setRelationState({ status: "ready", revision: expected.revision, relations: buildTaskRelations(task, body.data.tasks, body.data.links) });
-    } catch {
-      if (mountedReference.current) setRelationState({ status: "failed", message: "네트워크 오류로 작업 관계를 불러오지 못했습니다." });
-    }
-  }, []);
-
   useEffect(() => {
     mountedReference.current = true;
     const dialog = dialogReference.current;
     if (dialog && !dialog.open) dialog.showModal();
-    void loadRelations(session);
+    void fetchTaskRelations(session).then((result) => {
+      if (!mountedReference.current) return;
+      if (result.status === "failed") {
+        if (result.conflict) setConflicted(true);
+        setRelationState({ status: "failed", message: result.message });
+        return;
+      }
+      setRelationState(result);
+    });
     return () => {
       mountedReference.current = false;
       dialog?.close();
     };
-  }, [loadRelations, session]);
+  }, [session]);
 
   useEffect(() => {
     if (!dirty) return;
@@ -154,11 +163,17 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
         setError("최신 정보를 불러올 수 없습니다. 작업이 존재하는지와 네트워크 연결을 확인해 주세요.");
         return;
       }
+      const relationResult = await fetchTaskRelations(next);
+      if (!mountedReference.current) return;
       setBase(next);
       setDraft(createTaskEditorDraft(next.task));
-      setConflicted(false);
+      setConflicted(relationResult.status === "failed" && relationResult.conflict);
       setError(null);
-      await loadRelations(next);
+      if (relationResult.status === "failed") {
+        setRelationState({ status: "failed", message: relationResult.message });
+      } else {
+        setRelationState(relationResult);
+      }
     } catch {
       if (mountedReference.current) setError("최신 정보를 불러올 수 없습니다. 입력 내용은 유지됩니다.");
     } finally {
