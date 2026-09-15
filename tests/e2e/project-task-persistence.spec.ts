@@ -31,6 +31,19 @@ async function rejectNextPatch(page: Page, endpoint: string, status: number, cod
   return async () => { await page.unroute(pattern, handler); expect(intercepted).toBe(1); };
 }
 
+async function expectTaskBarGeometry(
+  page: Page,
+  taskId: string,
+  expected: Readonly<{ x: number; width: number }>,
+): Promise<void> {
+  const target = page.locator(`.wx-bar[data-task-id=":${taskId}"]`);
+  await expect.poll(async () => {
+    const box = await target.boundingBox();
+    if (!box) return Number.POSITIVE_INFINITY;
+    return Math.max(Math.abs(box.x - expected.x), Math.abs(box.width - expected.width));
+  }, { timeout: 5_000 }).toBeLessThan(0.5);
+}
+
 test("persists pointer edits, restores rejected writes, and serializes a same-revision race", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const suffix = uniqueSuffix(); const password = `W07-password-${suffix}`;
@@ -101,8 +114,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
     const removeRoute = await rejectNextPatch(page, `${apiPath}/tasks/${task.taskId}`, rejected.status, rejected.code);
     await dragTaskBarByOneDay(page, task.taskId, movedTask.duration, "move");
     await expect(page.getByTestId("workspace-toast")).toContainText(rejected.notice); await removeRoute();
-    const restoredBox = await page.locator(`.wx-bar[data-task-id=":${task.taskId}"]`).boundingBox();
-    expect(restoredBox).not.toBeNull(); expect(restoredBox!.x).toBeCloseTo(canonicalBox.x, 0); expect(restoredBox!.width).toBeCloseTo(canonicalBox.width, 0);
+    await expectTaskBarGeometry(page, task.taskId, canonicalBox);
     const afterRejected = await (await page.request.get(apiPath)).json();
     expect(afterRejected.data.project.revision).toBe(revisionAfterCreate + 3);
     expect(afterRejected.data.tasks.find((entry: { taskId: string }) => entry.taskId === task.taskId))
@@ -127,8 +139,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const inbox = page.getByRole("dialog", { name: "오류 알림함" });
   expect((await inbox.locator("textarea").evaluateAll((elements) => elements.map((element) => (element as HTMLTextAreaElement).value))).join("\n")).toContain("작업을 저장할 수 없습니다");
   await page.keyboard.press("Escape");
-  const restoredWithoutRead = await page.locator(`.wx-bar[data-task-id=":${task.taskId}"]`).boundingBox();
-  expect(restoredWithoutRead).not.toBeNull(); expect(restoredWithoutRead!.x).toBeCloseTo(canonicalBox.x, 0); expect(restoredWithoutRead!.width).toBeCloseTo(canonicalBox.width, 0);
+  await expectTaskBarGeometry(page, task.taskId, canonicalBox);
   snapshot = await (await page.request.get(apiPath)).json();
   const deleteResponse = await page.request.delete(`${apiPath}/tasks/${task.taskId}`, { headers: { "If-Match": `"${snapshot.data.project.revision}"`, Origin: new URL(page.url()).origin } });
   expect(deleteResponse.status()).toBe(200);
