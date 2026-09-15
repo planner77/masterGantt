@@ -263,7 +263,10 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
   async function handleTaskFailure(status: number | undefined, error: unknown, fallback: string, operation: string): Promise<string> {
     if (status === 401) { setPermission("readonly"); setPermissionCheckState("complete"); }
     const recovered = await reloadCanonicalSnapshot();
-    setGanttResetGeneration((generation) => generation + 1);
+    // A successful canonical fetch is synchronized into the existing SVAR instance.
+    // Remount only when the fetch itself failed and the last confirmed React snapshot
+    // must be used to discard an unconfirmed local drag/resize.
+    if (!recovered) setGanttResetGeneration((generation) => generation + 1);
     const code = safeErrorCode(error);
     let message = fallback;
     if (status === 401) message = "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.";

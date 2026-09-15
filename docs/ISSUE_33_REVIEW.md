@@ -51,3 +51,7 @@ PR #42의 구현 head `10ce5840514f4c5caf7369ff8014d1cbf572654e`에서 CI Run #1
 - PR에서는 immutable main commit image 게시 job이 정책대로 **SKIPPED**되었다.
 
 이 문서 동기화 이후 PR의 최종 head에도 동일 GitHub Actions gate를 다시 적용하며, 최종 head/run 좌표는 PR 본문에 기록한다. 구현 범위에 대한 현재 판정은 **PASS**다.
+
+## 릴리스 전 후속 검증
+
+PR #42 병합 뒤 canonical `PLAN.md` 누락을 보완하는 과정에서 기존 Chromium E2E의 두 비동기 assertion이 불안정함을 확인했다. 추가 분석 결과 저장 거부 후 canonical GET 성공 시에도 `ganttResetGeneration`을 증가시켜 이미 복구 가능한 동일 인스턴스를 강제로 remount하고 있었고, 이로 인해 시간축 viewport가 바뀔 수 있었다. 성공한 canonical 조회는 기존 `applyCanonicalGanttSync` 경로로 동기화하고 조회 실패 때만 마지막 확인 snapshot 기반 reset을 수행하도록 보완한다. 테스트는 0-offset DOM 노드 개수 대신 실제 스크롤 상태를 비교하고, canonical sync 완료를 bounded polling으로 확인한다. 이 보완은 0.8.1 릴리스 전에 같은 전체 GitHub Actions gate로 재검증한다.

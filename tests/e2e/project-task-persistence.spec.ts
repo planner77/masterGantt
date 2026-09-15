@@ -44,6 +44,17 @@ async function expectTaskBarGeometry(
   }, { timeout: 5_000 }).toBeLessThan(0.5);
 }
 
+async function expectTaskGridStart(page: Page, taskName: string, dateOnly: string): Promise<void> {
+  const expected = await page.evaluate((value) => {
+    const [year, month, day] = value.split("-").map(Number);
+    return new Intl.DateTimeFormat(navigator.languages[0] || navigator.language || "en-CA", {
+      year: "numeric", month: "short", day: "numeric", timeZone: "UTC",
+    }).format(new Date(Date.UTC(year, month - 1, day)));
+  }, dateOnly);
+  const taskRow = page.locator(".project-gantt-widget .wx-table-container .wx-row", { hasText: taskName }).first();
+  await expect(taskRow).toContainText(expected);
+}
+
 test("persists pointer edits, restores rejected writes, and serializes a same-revision race", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const suffix = uniqueSuffix(); const password = `W07-password-${suffix}`;
@@ -139,7 +150,10 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const inbox = page.getByRole("dialog", { name: "오류 알림함" });
   expect((await inbox.locator("textarea").evaluateAll((elements) => elements.map((element) => (element as HTMLTextAreaElement).value))).join("\n")).toContain("작업을 저장할 수 없습니다");
   await page.keyboard.press("Escape");
-  await expectTaskBarGeometry(page, task.taskId, canonicalBox);
+  // Canonical GET failed, so the component intentionally remounts from the last
+  // confirmed snapshot. Absolute bar x may change with the reset timeline viewport;
+  // verify the canonical schedule value in the Grid instead.
+  await expectTaskGridStart(page, `W07 Build ${suffix}`, "2026-09-16");
   snapshot = await (await page.request.get(apiPath)).json();
   const deleteResponse = await page.request.delete(`${apiPath}/tasks/${task.taskId}`, { headers: { "If-Match": `"${snapshot.data.project.revision}"`, Origin: new URL(page.url()).origin } });
   expect(deleteResponse.status()).toBe(200);
