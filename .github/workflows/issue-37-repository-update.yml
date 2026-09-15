@@ -7,16 +7,24 @@ on:
     paths:
       - .github/workflows/issue-37-repository-update.yml
       - package.json
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/issue-37-repository-update.yml
+      - package.json
 
 permissions:
   contents: write
 
 jobs:
   sync:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: fix/issue-37-edit-permission-recheck
           fetch-depth: 0
       - name: package-lock과 관련 문서 갱신
         shell: python
