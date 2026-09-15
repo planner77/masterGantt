@@ -56,6 +56,8 @@ Grid 행 또는 Chart bar의 일반 좌클릭이 완료되었고 해당 Task에 
 - `tests/features/gantt/task-editor-model.test.ts`: Slider 정수 진행률, Description 정규화/개행, URL 검증, payload whitelist.
 - `tests/server/projects/task-field-contract.test.ts`: 서버 URL scheme 검증 및 정규화.
 - `tests/e2e/project-task-editor-persistence.spec.ts`: 명시적 1회 저장, canonical 재조회, Description/URL 영속성, Grid URL 새 탭 실행, context menu 비충돌, Gantt remount 방지, timezone 회귀.
+- 신규 `0002_task_description_url.sql` 적용에 맞춰 DB/CLI migration 기대값을 2개 migration으로 갱신했다.
+- PR CI #178의 최초 실패는 신규 migration을 반영하지 않은 두 고정 기대값 때문이었으며 typecheck/lint와 나머지 518개 단위·통합 테스트는 통과했다. 해당 기대값을 수정한 뒤 전체 CI를 다시 검증한다.
 - 기존 CI의 typecheck/lint/unit/integration/build/Chromium E2E/Docker smoke를 함께 통과해야 한다.
 
 ## 릴리스
