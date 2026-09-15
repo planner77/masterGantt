@@ -426,6 +426,18 @@ describe("route security inventory", () => {
       "POST /api/projects/{publicId}/tasks",
       "PATCH /api/projects/{publicId}/tasks/{taskId}",
       "DELETE /api/projects/{publicId}/tasks/{taskId}",
+      "POST /api/resource-catalog/admin-sessions",
+      "DELETE /api/resource-catalog/admin-sessions",
+      "GET /api/resources",
+      "POST /api/resources",
+      "PATCH /api/resources/{resourceId}",
+      "GET /api/resource-groups",
+      "POST /api/resource-groups",
+      "PATCH /api/resource-groups/{groupId}",
+      "PUT /api/resource-groups/{groupId}/members",
+      "GET /api/projects/{publicId}/assignment-targets",
+      "GET /api/projects/{publicId}/assigned-targets",
+      "PUT /api/projects/{publicId}/tasks/{taskId}/assignments",
     ]);
     for (const route of ROUTE_SECURITY_INVENTORY.filter(({ method }) => !["GET"].includes(method))) {
       expect(route.policy).not.toBe("public-read");
