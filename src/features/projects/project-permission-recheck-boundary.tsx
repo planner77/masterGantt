@@ -26,8 +26,11 @@ export function ProjectPermissionRecheckBoundary({
 }: ProjectPermissionRecheckBoundaryProps) {
   const [rechecking, setRechecking] = useState(false);
   const requestGeneration = useRef(0);
+  const projectPath = `/projects/${encodeURIComponent(publicId)}`;
 
   const recheck = useCallback(async () => {
+    if (window.location.pathname !== projectPath) return;
+
     const generation = ++requestGeneration.current;
     setRechecking(true);
     try {
@@ -36,7 +39,7 @@ export function ProjectPermissionRecheckBoundary({
         { credentials: "same-origin", cache: "no-store" },
       );
       const body: unknown = await response.json().catch(() => null);
-      if (generation !== requestGeneration.current) return;
+      if (generation !== requestGeneration.current || window.location.pathname !== projectPath) return;
       const parsed = response.ok
         ? parseCurrentEditPermission(body)
         : { permission: "readonly" as const, valid: false };
@@ -45,12 +48,12 @@ export function ProjectPermissionRecheckBoundary({
         return;
       }
     } catch {
-      if (generation !== requestGeneration.current) return;
+      if (generation !== requestGeneration.current || window.location.pathname !== projectPath) return;
       window.location.reload();
       return;
     }
     if (generation === requestGeneration.current) setRechecking(false);
-  }, [publicId]);
+  }, [projectPath, publicId]);
 
   useEffect(() => {
     const handlePageShow = (event: PageTransitionEvent) => {
