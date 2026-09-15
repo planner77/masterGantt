@@ -66,7 +66,9 @@ export function prepareTaskEditorCommand(task: ProjectTaskDto, draft: TaskEditor
   const duration = Number(draft.duration);
   if (!draft.duration.trim() || !Number.isSafeInteger(duration) || (task.type === "milestone" ? duration !== 0 : duration < 1 || duration > MAX_TASK_DURATION)) return invalid(task.type === "milestone" ? "마일스톤의 기간은 0일입니다." : "기간은 1~10,000 사이의 정수 근무일로 입력해 주세요.");
   const progress = Number(draft.progress);
-  if (!draft.progress.trim() || !Number.isInteger(progress) || progress < 0 || progress > 100) return invalid("진행률은 0~100 사이의 정수로 입력해 주세요.");
+  if (!draft.progress.trim() || !Number.isFinite(progress) || progress < 0 || progress > 100 || (progress !== task.progress && !Number.isInteger(progress))) {
+    return invalid("진행률은 0~100 사이의 1% 단위 값으로 입력해 주세요.");
+  }
   if (Array.from(draft.description).length > 10_000) return invalid("Description은 10,000자 이하로 입력해 주세요.");
   const description = normalizedDescription(draft.description);
   const url = normalizedUrl(draft.url);
