@@ -175,8 +175,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   await page.reload(); await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
   const winnerTask = snapshot.data.tasks[0];
   await expect(page.getByRole("grid").getByText(winnerTask.name, { exact: true })).toBeVisible();
-  const beforeUnauthorized = await page.locator(`.wx-bar[data-task-id=":${winnerTask.taskId}"]`).boundingBox();
-  if (!beforeUnauthorized) throw new Error("Expected race winner SVAR task bar.");
+  await expect(page.locator(`.wx-bar[data-task-id=":${winnerTask.taskId}"]`)).toBeVisible();
   const removeUnauthorizedRoute = await rejectNextPatch(page, `${apiPath}/tasks/${winnerTask.taskId}`, 401, "EDIT_SESSION_INVALID");
   await dragTaskBarByOneDay(page, winnerTask.taskId, winnerTask.duration, "move");
   await expect(page.getByTestId("workspace-toast")).toContainText("편집 권한이 만료되었습니다");
@@ -184,8 +183,11 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const afterUnauthorized = await (await page.request.get(apiPath)).json();
   expect(afterUnauthorized.data.project.revision).toBe(revisionBeforeRace + 1);
   expect(afterUnauthorized.data.tasks[0]).toMatchObject({ taskId: winnerTask.taskId, requestedStart: "2026-09-22", start: "2026-09-22", end: "2026-09-23", duration: 2 });
-  const restoredUnauthorizedBox = await page.locator(`.wx-bar[data-task-id=":${winnerTask.taskId}"]`).boundingBox();
-  expect(restoredUnauthorizedBox).not.toBeNull(); expect(restoredUnauthorizedBox!.x).toBeCloseTo(beforeUnauthorized.x, 0); expect(restoredUnauthorizedBox!.width).toBeCloseTo(beforeUnauthorized.width, 0);
+  // 401 transitions the workspace from edit to readonly, which may legitimately change
+  // Grid/Chart layout. Verify the recovered canonical schedule rather than absolute x.
+  await expectTaskGridStart(page, winnerTask.name, "2026-09-22");
+  const readonlyWinnerRow = page.locator(".project-gantt-widget .wx-table-container .wx-row", { hasText: winnerTask.name }).first();
+  await expect(readonlyWinnerRow).toContainText("2 근무일");
   await page.getByLabel("편집 비밀번호").fill(password); await page.getByRole("button", { name: "편집 잠금 해제" }).click();
   await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
   await page.clock.setFixedTime(new Date("2026-09-24T12:00:00Z"));
