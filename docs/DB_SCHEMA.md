@@ -95,6 +95,8 @@ Project별 holiday set을 정규화해 저장한다.
 | `external_id` | TEXT | N | Project 안에서 UNIQUE, API/import의 안정 식별자 |
 | `public_id` | TEXT | N | UNIQUE UUID v4, API CRUD의 taskId; externalId와 독립 |
 | `name` | TEXT | N | trim 후 빈 문자열 불가 |
+| `description` | TEXT | Y | 작업 다중 행 설명, 공백-only 입력은 API에서 NULL 정규화 |
+| `url` | TEXT | Y | 작업 링크. API에서 `http:`/`https:`만 허용 |
 | `type` | TEXT | N | `task`, `summary`, `milestone` CHECK |
 | `schedule_mode` | TEXT | N | `auto`, `manual` CHECK; summary는 항상 auto로 정규화, 날짜는 파생 |
 | `requested_start` | TEXT | Y | leaf의 사용자 요청 시작일; summary는 NULL |

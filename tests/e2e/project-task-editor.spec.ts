@@ -311,10 +311,10 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await editor(page).getByLabel("작업명", { exact: true }).fill("Edited together");
     await editor(page).getByLabel("시작일", { exact: true }).fill("2026-09-18");
     await editor(page).getByLabel("기간 (근무일)", { exact: true }).fill("3");
-    await editor(page).getByLabel("진행률 (%)", { exact: true }).fill("35.5");
+    await editor(page).getByLabel("진행률 (%)", { exact: true }).fill("36");
     await save(page).click();
     await expect(editor(page)).toHaveCount(0);
-    expect(fixture.patches[2].postDataJSON()).toEqual({ name: "Edited together", start: "2026-09-18", duration: 3, progress: 35.5 });
+    expect(fixture.patches[2].postDataJSON()).toEqual({ name: "Edited together", start: "2026-09-18", duration: 3, progress: 36 });
     await expect(row(page, "Edited together")).toBeVisible();
     await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
   });

@@ -354,6 +354,8 @@ W24는 root 및 nested `task | milestone` CRUD와 명시적 첫-child 생성에 
   "end": "2026-09-16",
   "duration": 2,
   "progress": 25,
+  "description": "Foundation work",
+  "url": "https://intranet.example/tasks/ACT-100",
   "parentExternalId": null,
   "siblingOrder": 0
 }
@@ -381,7 +383,7 @@ Edit session과 `If-Match`가 필요하다.
 }
 ```
 
-Strict 입력은 `externalId?`, `parentTaskId?`, `convertParentToSummary?: true`, `name`, `type`, `scheduleMode?`, `start`, `end?`, `duration`, `progress`, `parentExternalId?: null`이다. Unknown field와 `siblingOrder` 입력은 거부한다. `parentTaskId`는 같은 Project에 속한 canonical lowercase UUID v4 Task ID이며 생략하면 root 끝에, 지정하면 해당 Parent의 마지막 child로 추가한다. Missing/cross-Project Parent는 동일한 `404 TASK_NOT_FOUND`다. `name`은 trim 후 1–200 Unicode code point, `externalId`는 제공 시 well-formed Unicode 1–128 code point이며 control character와 앞뒤 Unicode whitespace를 허용하지 않는다. 일반 Task mutation body는 선언·실제 UTF-8 모두 32 KiB로 제한한다.
+Strict 입력은 `externalId?`, `parentTaskId?`, `convertParentToSummary?: true`, `name`, `description?`, `url?`, `type`, `scheduleMode?`, `start`, `end?`, `duration`, `progress`, `parentExternalId?: null`이다. `description`은 최대 10,000 Unicode code point이며 공백-only 값은 `null`로 정규화한다. `url`은 trim 후 최대 4,096 code point의 `http:`/`https:` URL만 허용한다. Unknown field와 `siblingOrder` 입력은 거부한다. `parentTaskId`는 같은 Project에 속한 canonical lowercase UUID v4 Task ID이며 생략하면 root 끝에, 지정하면 해당 Parent의 마지막 child로 추가한다. Missing/cross-Project Parent는 동일한 `404 TASK_NOT_FOUND`다. `name`은 trim 후 1–200 Unicode code point, `externalId`는 제공 시 well-formed Unicode 1–128 code point이며 control character와 앞뒤 Unicode whitespace를 허용하지 않는다. 일반 Task mutation body는 선언·실제 UTF-8 모두 32 KiB로 제한한다.
 
 기존 일반 Task에 처음 child를 추가하면 그 Task 자체의 날짜·기간·진척 의미가 descendant 집계로 대체된다. 따라서 `parentTaskId`만 보낸 요청은 `409 PARENT_CONVERSION_REQUIRED`로 거부한다. 현재 UI는 #11/PR #23에서 승인된 팝업 생략 정책에 따라 일반 leaf의 첫 하위 추가에 `convertParentToSummary: true`를 명시하며, parent 전환과 child 생성은 한 transaction에서 실행된다. 별도 확인 팝업 생략은 서버의 명시적 옵션 검증을 제거하지 않는다. `convertParentToSummary`는 `parentTaskId` 없이 사용할 수 없다. 이미 Summary인 Parent에는 전환 flag가 필요 없고 Milestone Parent는 `409 INVALID_PARENT_TASK`다. 성공 시 모든 ancestor Summary의 날짜·기간·진척을 다시 계산해 저장하며 Project revision은 정확히 한 번 증가한다.
 
@@ -391,7 +393,7 @@ UI 생성에서는 `externalId` 생략을 허용하고 server가 Task `taskId`�
 
 ### `PATCH /api/projects/{publicId}/tasks/{taskId}`
 
-Mutable allowlist는 `name`, `scheduleMode`, `start`, `duration`, `progress`, optional assertion `end`다. Empty object와 unknown field를 거부하며 `taskId`, `externalId`, `type`, parent/order는 불변이다. `start` 변경은 새 `requestedStart`를 만든다. 계산된 `end`만 직접 변경하는 요청은 허용하지 않아 `end`가 있으면 `start` 또는 `duration`도 함께 있어야 한다. Client Adapter는 이동을 `start`, 좌측 resize를 `start + duration`, 우측 resize를 `duration` 명령으로 변환한다. 기존 persisted `end`를 새 assertion으로 자동 재사용하지 않는다. Nested leaf 변경 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. Summary는 이름만 변경할 수 있고 날짜·기간·진척·mode는 `409 SUMMARY_SCHEDULE_READONLY`로 거부한다.
+Mutable allowlist는 `name`, `description`, `url`, `scheduleMode`, `start`, `duration`, `progress`, optional assertion `end`다. `description`은 최대 10,000 Unicode code point이며 공백만 입력하면 `null`로 정규화한다. `url`은 trim 후 최대 4,096 code point의 `http:`/`https:` URL만 허용하고 `javascript:`, `data:`, `vbscript:`, `file:` 등 다른 scheme은 거부한다. Empty object와 unknown field를 거부하며 `taskId`, `externalId`, `type`, parent/order는 불변이다. `start` 변경은 새 `requestedStart`를 만든다. 계산된 `end`만 직접 변경하는 요청은 허용하지 않아 `end`가 있으면 `start` 또는 `duration`도 함께 있어야 한다. Client Adapter는 이동을 `start`, 좌측 resize를 `start + duration`, 우측 resize를 `duration` 명령으로 변환한다. 기존 persisted `end`를 새 assertion으로 자동 재사용하지 않는다. Nested leaf 변경 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. Summary는 이름만 변경할 수 있고 날짜·기간·진척·mode는 `409 SUMMARY_SCHEDULE_READONLY`로 거부한다.
 
 Auto의 비근무 requested start는 다음 근무일로 이동해 `NON_WORKING_START_SHIFTED` warning을 낸다. Manual의 비근무 requested start는 `NON_WORKING_MANUAL_START`, FS violation은 `MANUAL_DEPENDENCY_CONFLICT`로 전체 mutation을 거부한다.
 

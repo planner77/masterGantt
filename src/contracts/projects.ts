@@ -35,6 +35,10 @@ export interface ProjectTaskDto {
   taskId: string;
   externalId: string;
   name: string;
+  /** Present on canonical API snapshots; optional keeps older fixtures/source adapters compatible. */
+  description?: string | null;
+  /** Present on canonical API snapshots; only http(s) values are persisted. */
+  url?: string | null;
   type: "task" | "summary" | "milestone";
   scheduleMode: "auto" | "manual";
   requestedStart: string | null;
@@ -138,6 +142,8 @@ export interface CreateTaskRequest {
   parentTaskId?: string;
   convertParentToSummary?: true;
   name: string;
+  description?: string | null;
+  url?: string | null;
   type: "task" | "milestone";
   scheduleMode?: "auto" | "manual";
   start: string;
@@ -149,6 +155,8 @@ export interface CreateTaskRequest {
 
 export interface UpdateTaskRequest {
   name?: string;
+  description?: string | null;
+  url?: string | null;
   scheduleMode?: "auto" | "manual";
   start?: string;
   end?: string;
