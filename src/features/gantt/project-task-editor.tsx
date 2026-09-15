@@ -86,7 +86,6 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
       setRelationState({ status: "failed", message: "프로젝트 경로를 확인할 수 없어 작업 관계를 불러오지 못했습니다." });
       return;
     }
-    setRelationState({ status: "loading" });
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin" });
       const body: unknown = await response.json().catch(() => null);
@@ -147,6 +146,7 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
     actionReference.current = true;
     setOperation("reload");
     setConfirmation(null);
+    setRelationState({ status: "loading" });
     try {
       const next = await onReload(base.task.taskId);
       if (!mountedReference.current) return;
