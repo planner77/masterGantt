@@ -58,10 +58,7 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "Release $RELEASE_TAG
-
-Issue #37: project edit permission is revalidated on project re-entry, history/BFCache restoration, and failures remain fail-closed.
-PR #45 merged and CI #151/#152 passed."
+          git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "Release $RELEASE_TAG - Issue #37 edit permission recheck; PR #45; CI #151/#152 passed"
           git push origin "refs/tags/$RELEASE_TAG"
 
       - name: Dispatch release image workflow explicitly
