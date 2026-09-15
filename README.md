@@ -10,7 +10,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-12 / 0.6.0 W24 Grid·삭제·계층 작업공간 로컬 PASS**. 목록 표, 권한 기반 삭제, native `+`와 하위 작업·Summary 집계, locale/주말/고정 headers를 구현했다. [W24 검증](docs/W24_REVIEW.md)을 참고한다. `v0.4.0` GHCR 릴리스 증거는 이전 범위로 유지하며 현재 소스의 원격 이미지 검증과 구분한다. Private 요금제의 보호 규칙 미강제 위험은 수용하고 GitHub Artifact Attestation은 비활성, BuildKit SBOM/provenance는 필수다.
+기준: **2026-09-16 / 0.12.0 Issue #19 글로벌 리소스·그룹 및 작업 할당 PR CI PASS**. Project와 독립된 Resource/Resource Group 카탈로그, 별도 관리자 세션, Task/Summary/Milestone 직접 할당, catalog/Project revision 동시성 검증과 SQLite `0003_resource_catalog.sql` migration을 구현했다. 최종 PR 검증은 typecheck/lint/build, Vitest 530개, Chromium E2E 50개, Docker/runtime smoke 전체 PASS다. 릴리스 상세는 [v0.12.0 릴리스 노트](docs/releases/v0.12.0.md)와 [Issue #19 구현 문서](docs/ISSUE_19_IMPLEMENTATION.md)를 따른다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -26,19 +26,14 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | W21 동기 Gantt 작업공간 | 완료 / 독립 QA PASS | 빈 일정부터 좌측 계층 Grid+우측 Chart, 생성 직후 양쪽 반영, full-width·viewport height, narrow 내부 scroll |
 | W22 Commit GHCR 자동화 | 완료 / 독립 QA PASS | immutable `ci-<SHA>`와 SemVer release를 exact digest로 원격·로컬 검증; PR publish skipped |
 | W23 Project 목록 | 로컬 완료 / 독립 QA PASS | D02 승인, 전체 공개 summary 목록, 생성 후 복귀·reload 조회, 편집 인증 유지 |
-| W24 Grid·삭제·계층 UI | 로컬 PASS / Manager ACCEPT | 목록 표/권한 삭제, native Header·row 추가, Summary 집계, locale·주말·고정 헤더 |
+| W24 Grid·삭제·계층 UI | 완료 / 원격 CI PASS | 목록 표/권한 삭제, native Header·row 추가, Summary 집계, locale·주말·고정 헤더 |
+| Issue #19 글로벌 리소스·그룹 | 완료 / PR CI PASS | 독립 Resource/Group 카탈로그, 관리자 세션, 그룹 멤버, Task/Summary/Milestone 직접 할당, canonical assignment 보존 |
 | W08 이후 | 일부 W24 선행 / 예정 | WBS UI·reparent·유효 subtree 삭제 묶음, FS 재계산, Import/Export |
 | W16 배포 | 일부 기반 선행 / 운영 검증 예정 | Docker/startup/readiness/named volume 기반; 실제 host·proxy·backup/restore 승인 후속 |
 
 홈(`/`)은 Project를 표 형태로 표시하며 현재 편집 권한이 있는 행에 삭제 기능을 제공한다. 삭제 확인에는 최신 프로젝트명과 모든 일정 제거를 명시하며 서버가 session/Origin/revision을 다시 검증한다. Direct snapshot은 Readonly이며 편집하려면 기존 비밀번호 잠금을 해제한다. Grid Header `+`는 최상위, 행 `+`는 하위 작업을 추가한다. 이름·날짜·기간 입력 없이 `새 작업`·브라우저 오늘·1일을 적용하며 Auto 근무일 보정은 유지한다. 첫 하위 추가 시 일반 작업을 Summary로 전환한다는 명시 동의만 필요하다. 이후 Summary 날짜와 진척은 자식에서 계산된다. Milestone에는 자식을 추가하지 않으며 빈 Summary 방지를 위해 마지막 자식 단독 삭제는 거부한다. 외부 ID는 표시를 선택할 수 있고 토·일은 Chart 음영으로 구분한다. 날짜는 사용자 locale로 표시하고 설정은 기본 접힌 상태다. Project/Grid/Chart header는 유지한 채 내부를 스크롤한다. Reparent/FS 및 Summary 직접 일정 편집은 후속이다. `/gantt-demo`는 저장 없는 CI/개발 검증용 fixture로 유지하지만 운영 상단 주요 메뉴에는 노출하지 않는다.
 
-현재 자동 기본값 적용 후속 변경은 사용자 요청에 따라 **로컬 커밋만 수행하고 검증·원격 push를 보류**한다. 기존 W24 PASS와 구분하며 [검증 및 push 대기 목록](docs/PENDING_TESTS.md)을 따른다.
-
-Grid/Chart 상단의 별도 ‘작업 추가 또는 삭제’ 패널은 제거했다. 작업 추가는 Grid `+`를 사용한다. 해당 패널의 Task 삭제 UI도 제거되며 서버 Task 삭제 API와 Project 목록 삭제 기능은 유지한다. 이 후속 변경 역시 일괄 검증 대기 상태다.
-
-표시 열은 Grid Column Header를 오른쪽 클릭하여 선택한다. 외부 ID는 기본 숨김이며 별도 토글 버튼은 없다. 작업·외부 ID·시작·기간 중 최소 한 열을 유지하며 선택은 현재 workspace에서 유지한다(새로고침 시 기본값). 이 변경도 로컬 커밋만 수행하고 테스트·원격 push는 보류한다.
-
-W24 application 회귀 기준은 build/typecheck/lint, **28개 파일 378개 Vitest**, isolated Turbopack Chromium E2E **10개 PASS**다. W22 main/PR와 `v0.4.0` release Actions, GHCR commit/release digest의 원격·로컬 HTTP persistence 및 SBOM/provenance 조회도 PASS했으나 W24 원격 검증을 대신하지 않는다. W22 상태는 [W22 검토 기록](docs/W22_REVIEW.md), 이전 범위는 [W21 검토 기록](docs/W21_REVIEW.md)과 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다.
+0.12.0 릴리스 후보의 회귀 기준은 `verify-release-version`, typecheck, lint, test discovery, **Vitest 530개**, dependency audit, Markdown/shell 검사, production build, Chromium E2E **50개**, Docker image/runtime·migration·readiness·SQLite restart persistence·HTTP/HTTPS 전송 정책 검증이다. 최종 PR CI Run #235에서 모두 PASS했다.
 
 ## 2. 기술 스택과 역할
 
@@ -46,7 +41,7 @@ W24 application 회귀 기준은 build/typecheck/lint, **28개 파일 378개 Vit
 
 | 기술 | 현재 버전 / 상태 | 역할 |
 | --- | --- | --- |
-| masterGantt | 0.6.0 | 현재 소스 버전. GHCR exact release 게시 여부는 검증 기록과 별도 확인 |
+| masterGantt | 0.12.0 | Issue #19 글로벌 리소스·그룹 및 작업 할당 릴리스 버전 |
 | Node.js | 최소 22, 검증 22.14.0 | 서버와 CLI 실행 |
 | Next.js | 16.3.4 | App Router, 서버 Route Handler, 빌드 |
 | React / React DOM | 19.3.0 | 화면 컴포넌트 |
@@ -100,6 +95,7 @@ npx playwright install chromium
 | `NODE_ENV` | 개발 서버는 development, production 서버는 production. DB CLI에도 production 정책을 적용하려면 명시적으로 전달 |
 | `PORT` | 실행 포트. 예제에서는 `.env` 값에 의존하지 않고 `--port`로 지정 |
 | `APP_BASE_URL` | Project 생성의 `Origin`과 정확히 비교하는 canonical origin. scheme/host/port가 browser 주소와 같아야 하며 production은 기본 HTTPS, ALLOW_INSECURE_HTTP=true일 때 내부망 HTTP 허용 |
+| `RESOURCE_CATALOG_ADMIN_PASSWORD` | 글로벌 Resource/Resource Group 관리 전용 비밀번호. Project 편집 비밀번호와 별도이며 16자 미만 또는 미설정이면 관리자 로그인이 fail-closed |
 | `TRUST_PROXY`, `LOG_LEVEL` | 후속 배포용 예약 설정이며 현재 코드가 소비하지 않음. Cookie 속성은 검증된 외부 APP_BASE_URL과 NODE_ENV로 결정; HTTP/HTTPS 정책은 아래 운영 절 참조 |
 
 Next.js 앱은 `.env.local` 등의 설정을 읽을 수 있지만 **DB CLI는 `.env`·`.env.local`을 자동 로딩하지 않는다.** CLI에는 아래처럼 명시적으로 전달한다. Production의 `/data` 경로는 로컬 계정에 쓰기 권한이 없을 수 있으므로 개발 예제는 repository 안의 `.data`를 사용한다.
@@ -111,10 +107,10 @@ NODE_ENV=development DATABASE_PATH="$PWD/.data/mastergantt.sqlite3" npm run db:m
 최초 성공 시 npm 출력 뒤에 다음 결과가 나온다.
 
 ```json
-{"status":"ok","applied":["0001_initial_schema.sql"]}
+{"status":"ok","applied":["0001_initial_schema.sql","0002_task_description_url.sql","0003_resource_catalog.sql"]}
 ```
 
-동일 명령을 다시 실행하면 `applied`가 빈 배열이 된다. 테이블은 `projects`, `tasks`, `links`, `project_holidays`, `edit_sessions`와 이력용 `schema_migrations`다. 프로젝트나 작업의 예제 row를 자동 생성하지 않는다.
+동일 명령을 다시 실행하면 `applied`가 빈 배열이 된다. 기본 Project 테이블 외에 `resource_catalog_state`, `resources`, `resource_groups`, `resource_group_members`, `resource_catalog_admin_sessions`, `task_assignments`가 있으며 migration 이력은 `schema_migrations`가 관리한다. 프로젝트·작업·리소스 예제 row를 자동 생성하지 않는다.
 
 적용 이력·checksum을 검증하고 미적용 SQL과 ledger 기록을 하나의 transaction으로 적용한다. 오류 시 실패하며, 적용한 SQL을 수정하거나 ledger를 지워 재시도하지 않는다. 변경에는 새 migration을 추가한다. 상세 계약은 [DB_SCHEMA](docs/DB_SCHEMA.md)를 참고한다.
 
@@ -133,6 +129,7 @@ Repository root에서 `.env.local`에 최소 다음 값을 설정하고 실행�
 ```dotenv
 DATABASE_PATH=.data/mastergantt.sqlite3
 APP_BASE_URL=http://127.0.0.1:3000
+RESOURCE_CATALOG_ADMIN_PASSWORD=change-me-resource-admin-password
 ```
 
 ```sh
@@ -141,7 +138,7 @@ npm run dev -- --hostname 127.0.0.1 --port 3000
 
 서버를 실행한 장비의 브라우저에서 [http://127.0.0.1:3000](http://127.0.0.1:3000)을 연다. `/projects/new`에서 Project를 생성하면 최초 요청 시 migration을 확인·적용하고 UUID 직접 URL로 이동한다. 종료는 터미널에서 `Ctrl+C`를 누른다.
 
-실제 Project 화면은 처음에는 readonly다. 비밀번호로 잠금을 해제하면 root Task/Milestone을 추가·삭제하고 SVAR bar를 이동하거나 양 끝을 resize할 수 있다. 이 변경은 revision을 사용해 SQLite에 저장되며 새로고침 후 유지된다. `/gantt-demo`의 `로컬 편집 미리보기`는 별도 fixture라 저장되지 않는다.
+실제 Project 화면은 처음에는 readonly다. 비밀번호로 잠금을 해제하면 root Task/Milestone을 추가·삭제하고 SVAR bar를 이동하거나 양 끝을 resize할 수 있다. 상단 `리소스` 메뉴의 `/resources`에서는 별도 글로벌 관리자 비밀번호로 Resource/Group과 그룹 멤버를 관리하며, Task Editor에서 Resource 또는 Group을 직접 할당할 수 있다. 이 변경은 revision을 사용해 SQLite에 저장되며 새로고침 후 유지된다. `/gantt-demo`의 `로컬 편집 미리보기`는 별도 fixture라 저장되지 않는다.
 
 포트가 이미 사용 중이면 `APP_BASE_URL=http://127.0.0.1:3001`과 `--port 3001`을 함께 적용한다. Turbopack이 실행 환경의 제약으로 실패하면 `npm run dev -- --webpack --hostname 127.0.0.1 --port 3000`으로 실행할 수 있다. 서버 listen 자체가 권한 오류로 차단된 경우에는 실행 환경의 포트 권한도 필요하다.
 

@@ -4,7 +4,12 @@ export type RouteSecurityPolicy =
   | "origin-and-password-limit"
   | "optional-session-read"
   | "origin-and-target-logout"
-  | "origin-session-if-match";
+  | "origin-session-if-match"
+  | "resource-admin-read"
+  | "origin-resource-admin-auth"
+  | "origin-resource-admin-logout"
+  | "origin-resource-admin-if-match"
+  | "project-edit-session-read";
 
 export interface RouteSecurityInventoryEntry {
   template: string;
@@ -29,6 +34,18 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/tasks", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/tasks/{taskId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/tasks/{taskId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/resource-catalog/admin-sessions", method: "POST", policy: "origin-resource-admin-auth", mutatesState: true },
+  { template: "/api/resource-catalog/admin-sessions", method: "DELETE", policy: "origin-resource-admin-logout", mutatesState: true },
+  { template: "/api/resources", method: "GET", policy: "resource-admin-read", mutatesState: false },
+  { template: "/api/resources", method: "POST", policy: "origin-resource-admin-if-match", mutatesState: true },
+  { template: "/api/resources/{resourceId}", method: "PATCH", policy: "origin-resource-admin-if-match", mutatesState: true },
+  { template: "/api/resource-groups", method: "GET", policy: "resource-admin-read", mutatesState: false },
+  { template: "/api/resource-groups", method: "POST", policy: "origin-resource-admin-if-match", mutatesState: true },
+  { template: "/api/resource-groups/{groupId}", method: "PATCH", policy: "origin-resource-admin-if-match", mutatesState: true },
+  { template: "/api/resource-groups/{groupId}/members", method: "PUT", policy: "origin-resource-admin-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/assignment-targets", method: "GET", policy: "project-edit-session-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/assigned-targets", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/tasks/{taskId}/assignments", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
 ] satisfies readonly RouteSecurityInventoryEntry[]);
 
 export const NEXT_AUTOMATIC_METHOD_SECURITY = Object.freeze({

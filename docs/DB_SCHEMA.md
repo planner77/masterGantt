@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07 모두 기존 `0001` schema로 충족하므로 migration을 추가하지 않았다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
+이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`을 추가했다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
 
 요구사항으로 확정된 전제는 다음과 같다.
 
@@ -41,8 +41,13 @@ SQLite CHECK만으로 실재하는 달력 날짜를 완전히 판별하지 않�
 projects
   ├─< project_holidays
   ├─< tasks ──(self parent)──> tasks
-  │      └─< links >─┘
+  │      ├─< links >─┘
+  │      └─< task_assignments >─ resources / resource_groups
   └─< edit_sessions
+
+resource_catalog_state (singleton revision)
+resources >─< resource_group_members >─ resource_groups
+resource_catalog_admin_sessions (global admin)
 ```
 
 `project_id`는 단순 조회 filter가 아니라 isolation 경계이다. Task parent와 Link 양 끝은 composite foreign key로 같은 Project에 속함을 DB에서도 강제한다.
@@ -186,6 +191,26 @@ Dependency endpoint는 leaf task 또는 milestone만 허용하고 summary endpoi
 
 Session current read는 row나 TTL을 갱신하지 않는다. Unlock과 password rotation lifecycle에서 `revoked_at IS NOT NULL OR expires_at <= now`인 row를 ID 순서로 한 transaction당 최대 100개 삭제한다. 이는 table 전체 cleanup을 request path에서 수행하지 않기 위한 bounded maintenance이며 운영 retention/incident cleanup을 대신하지 않는다.
 
+### 5.6 `resource_catalog_state`
+
+글로벌 Resource/Group catalog의 optimistic concurrency를 위한 singleton row다. `id=1`, `revision>=1`, `updated_at`을 저장하며 Resource/Group/Group member 실제 변경 transaction에서만 revision을 증가시킨다.
+
+### 5.7 `resources` / `resource_groups`
+
+두 테이블은 내부 INTEGER PK와 외부 UUID `public_id`, 필수 `name`, optional unique `code`, `description`, `active`, 생성/수정 시각을 저장한다. `active=0`은 신규 할당 후보에서 제외하지만 기존 assignment는 유지한다. 물리 삭제보다 비활성화를 기본 정책으로 사용한다.
+
+### 5.8 `resource_group_members`
+
+`(group_id, resource_id)` 복합 PK로 그룹 멤버 중복을 방지한다. Resource와 Group FK는 모두 `ON DELETE RESTRICT`이며 그룹은 중첩하지 않는다. 한 Resource는 여러 Group에 속할 수 있다.
+
+### 5.9 `resource_catalog_admin_sessions`
+
+글로벌 catalog 관리자 세션을 Project edit session과 분리한다. 원문 token은 저장하지 않고 32-byte SHA-256 digest와 생성/만료/폐기 시각만 저장한다.
+
+### 5.10 `task_assignments`
+
+Task/Summary/Milestone과 글로벌 Resource 또는 Group의 직접 할당을 저장한다. `(project_id, task_id)` composite FK로 Project 경계를 DB에서도 강제하고, `resource_id`와 `group_id`는 XOR CHECK로 정확히 하나만 허용한다. 부분 UNIQUE index로 같은 Task에 같은 Resource/Group의 중복 할당을 차단한다. Task/Project 삭제에는 assignment가 cascade되지만 글로벌 catalog FK는 `ON DELETE RESTRICT`다. Group assignment는 팀 참조이며 Group member 개인 assignment로 자동 확장하지 않는다.
+
 ## 6. Index 계획
 
 최소 index는 다음과 같다.
@@ -202,6 +227,11 @@ links(project_id, successor_task_id)
 project_holidays(project_id, holiday_date) UNIQUE
 edit_sessions(token_hash) UNIQUE
 edit_sessions(project_id, expires_at)
+resource_group_members(resource_id, group_id)
+task_assignments(project_id, task_id)
+task_assignments(resource_id) WHERE resource_id IS NOT NULL
+task_assignments(group_id) WHERE group_id IS NOT NULL
+resource_catalog_admin_sessions(expires_at, revoked_at)
 ```
 
 Foreign key child column을 index해 삭제/검증 시 전체 scan을 피한다. 실제 query plan은 대표 Project 크기의 fixture로 확인한 후 추가한다.

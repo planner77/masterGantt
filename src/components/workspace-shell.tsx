@@ -16,6 +16,9 @@ export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) 
             <Link className="nav-link" href="/">
               프로젝트
             </Link>
+            <Link className="nav-link" href="/resources">
+              리소스
+            </Link>
           </nav>
           <div id="workspace-notification-slot" className="header-actions" />
         </div>

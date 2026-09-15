@@ -143,12 +143,15 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   await page.route(canonicalPattern, failCanonicalRead);
   const removeNetworkFailure = await rejectNextPatch(page, `${apiPath}/tasks/${task.taskId}`, 500, "INTERNAL_ERROR");
   await dragTaskBarByOneDay(page, task.taskId, movedTask.duration, "move");
-  await expect(page.getByTestId("workspace-toast")).toContainText("최신 일정 조회에 실패");
-  await removeNetworkFailure(); await page.unroute(canonicalPattern, failCanonicalRead); expect(failedCanonicalReads).toBe(1);
-  // 저장 오류와 복구 오류가 둘 다 보관되어야 한다. 복구 안내가 원래 오류를 삭제하면 안 된다.
+  await expect.poll(() => failedCanonicalReads, { timeout: 5_000 }).toBe(1);
+  await removeNetworkFailure(); await page.unroute(canonicalPattern, failCanonicalRead);
+  // 저장 오류 toast가 표시 중이어도 복구 오류는 알림함에 별도로 보관되어야 한다.
+  // toast 교체 시점에 의존하지 않고 두 오류가 모두 보존되는 사용자 계약을 검증한다.
   await page.getByRole("button", { name: /알림함/ }).click();
   const inbox = page.getByRole("dialog", { name: "오류 알림함" });
-  expect((await inbox.locator("textarea").evaluateAll((elements) => elements.map((element) => (element as HTMLTextAreaElement).value))).join("\n")).toContain("작업을 저장할 수 없습니다");
+  const inboxText = (await inbox.locator("textarea").evaluateAll((elements) => elements.map((element) => (element as HTMLTextAreaElement).value))).join("\n");
+  expect(inboxText).toContain("작업을 저장할 수 없습니다");
+  expect(inboxText).toContain("최신 일정 조회에 실패");
   await page.keyboard.press("Escape");
   // Canonical GET failed, so the component intentionally remounts from the last
   // confirmed snapshot. Absolute bar x may change with the reset timeline viewport;
