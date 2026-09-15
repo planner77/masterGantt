@@ -1,3 +1,5 @@
+import type { ProjectDto, ProjectLinkDto, ProjectTaskDto } from "./projects";
+
 export type AssignmentTargetKind = "resource" | "group";
 
 export interface ResourceDto {
@@ -93,11 +95,19 @@ export interface ReplaceTaskAssignmentsRequest {
   targets: AssignmentTargetRefDto[];
 }
 
+/**
+ * Assignment mutation follows the same canonical aggregate response rule as the
+ * existing Project/Task mutations. Mutable target labels remain outside this
+ * response and are resolved through assigned-targets.
+ */
 export interface ReplaceTaskAssignmentsResponse {
   data: {
-    projectRevision: number;
-    catalogRevision: number;
+    project: ProjectDto;
+    tasks: ProjectTaskDto[];
+    links: ProjectLinkDto[];
     assignments: ProjectAssignmentDto[];
+    catalogRevision: number;
+    warnings: [];
     operation: {
       kind: "taskAssignments";
       taskId: string;
