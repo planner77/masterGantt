@@ -4,6 +4,13 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-09-15
+
+### Added
+
+- Issue #34: Task Editor에 현재 작업의 선행/후행 관계를 조회 전용으로 표시한다. 상대 작업명과 externalId, 관계 유형, lag를 함께 보여주며 Editor 기준 revision과 동일한 canonical snapshot만 채택해 stale 관계 혼합을 차단한다. 사용자 기능 추가에 따라 버전을 `0.10.0`으로 갱신한다.
+
+
 ## [0.9.0] - 2026-09-15
 
 ### Added
