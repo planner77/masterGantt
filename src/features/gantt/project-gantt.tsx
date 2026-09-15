@@ -30,6 +30,7 @@ import {
   formatLocaleDateOnly,
   todayLocalDateString,
 } from "@/lib/date-display";
+import { formatIsoWeek } from "@/lib/iso-week";
 
 import {
   createTaskAddGateway,
@@ -441,11 +442,7 @@ export function ProjectGantt({
       : {
         unit: "week",
         step: 1,
-        format: (date: Date, next?: Date) => {
-          const end = next ? new Date(next.getTime() - 86_400_000) : date;
-          const formatter = new Intl.DateTimeFormat(locales, { month: "numeric", day: "numeric" });
-          return `${formatter.format(date)}–${formatter.format(end)}`;
-        },
+        format: (date: Date) => formatIsoWeek(date),
       },
   ], [locales, scaleMode]);
 
