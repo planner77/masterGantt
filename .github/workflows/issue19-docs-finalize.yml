@@ -1,0 +1,142 @@
+name: Issue 19 Docs Finalize
+
+on:
+  push:
+    branches: [feat/issue-19-resource-catalog]
+    paths:
+      - .github/workflows/issue19-docs-finalize.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: 릴리스 관련 문서 갱신
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              if old not in text:
+                  raise SystemExit(f"anchor not found: {label}")
+              return text.replace(old, new, 1)
+
+          readme = Path("README.md")
+          text = readme.read_text(encoding="utf-8")
+          text = replace_once(
+              text,
+              "기준: **2026-09-12 / 0.6.0 W24 Grid·삭제·계층 작업공간 로컬 PASS**. 목록 표, 권한 기반 삭제, native `+`와 하위 작업·Summary 집계, locale/주말/고정 headers를 구현했다. [W24 검증](docs/W24_REVIEW.md)을 참고한다. `v0.4.0` GHCR 릴리스 증거는 이전 범위로 유지하며 현재 소스의 원격 이미지 검증과 구분한다. Private 요금제의 보호 규칙 미강제 위험은 수용하고 GitHub Artifact Attestation은 비활성, BuildKit SBOM/provenance는 필수다.",
+              "기준: **2026-09-16 / 0.12.0 Issue #19 글로벌 리소스·그룹 및 작업 할당 PR CI PASS**. Project와 독립된 Resource/Resource Group 카탈로그, 별도 관리자 세션, Task/Summary/Milestone 직접 할당, catalog/Project revision 동시성 검증과 SQLite `0003_resource_catalog.sql` migration을 구현했다. 최종 PR 검증은 typecheck/lint/build, Vitest 530개, Chromium E2E 50개, Docker/runtime smoke 전체 PASS다. 릴리스 상세는 [v0.12.0 릴리스 노트](docs/releases/v0.12.0.md)와 [Issue #19 구현 문서](docs/ISSUE_19_IMPLEMENTATION.md)를 따른다.",
+              "README status",
+          )
+          text = replace_once(
+              text,
+              "| W24 Grid·삭제·계층 UI | 로컬 PASS / Manager ACCEPT | 목록 표/권한 삭제, native Header·row 추가, Summary 집계, locale·주말·고정 헤더 |",
+              "| W24 Grid·삭제·계층 UI | 완료 / 원격 CI PASS | 목록 표/권한 삭제, native Header·row 추가, Summary 집계, locale·주말·고정 헤더 |\n| Issue #19 글로벌 리소스·그룹 | 완료 / PR CI PASS | 독립 Resource/Group 카탈로그, 관리자 세션, 그룹 멤버, Task/Summary/Milestone 직접 할당, canonical assignment 보존 |",
+              "README status table",
+          )
+          for stale in [
+              "현재 자동 기본값 적용 후속 변경은 사용자 요청에 따라 **로컬 커밋만 수행하고 검증·원격 push를 보류**한다. 기존 W24 PASS와 구분하며 [검증 및 push 대기 목록](docs/PENDING_TESTS.md)을 따른다.\n\n",
+              "Grid/Chart 상단의 별도 ‘작업 추가 또는 삭제’ 패널은 제거했다. 작업 추가는 Grid `+`를 사용한다. 해당 패널의 Task 삭제 UI도 제거되며 서버 Task 삭제 API와 Project 목록 삭제 기능은 유지한다. 이 후속 변경 역시 일괄 검증 대기 상태다.\n\n",
+              "표시 열은 Grid Column Header를 오른쪽 클릭하여 선택한다. 외부 ID는 기본 숨김이며 별도 토글 버튼은 없다. 작업·외부 ID·시작·기간 중 최소 한 열을 유지하며 선택은 현재 workspace에서 유지한다(새로고침 시 기본값). 이 변경도 로컬 커밋만 수행하고 테스트·원격 push는 보류한다.\n\n",
+          ]:
+              if stale in text:
+                  text = text.replace(stale, "", 1)
+          old_regression = "W24 application 회귀 기준은 build/typecheck/lint, **28개 파일 378개 Vitest**, isolated Turbopack Chromium E2E **10개 PASS**다. W22 main/PR와 `v0.4.0` release Actions, GHCR commit/release digest의 원격·로컬 HTTP persistence 및 SBOM/provenance 조회도 PASS했으나 W24 원격 검증을 대신하지 않는다. W22 상태는 [W22 검토 기록](docs/W22_REVIEW.md), 이전 범위는 [W21 검토 기록](docs/W21_REVIEW.md)과 [W20 검토 기록](docs/W20_REVIEW.md)을 참고한다."
+          new_regression = "0.12.0 릴리스 후보의 회귀 기준은 `verify-release-version`, typecheck, lint, test discovery, **Vitest 530개**, dependency audit, Markdown/shell 검사, production build, Chromium E2E **50개**, Docker image/runtime·migration·readiness·SQLite restart persistence·HTTP/HTTPS 전송 정책 검증이다. 최종 PR CI Run #235에서 모두 PASS했다."
+          text = replace_once(text, old_regression, new_regression, "README regression")
+          text = replace_once(
+              text,
+              "| masterGantt | 0.6.0 | 현재 소스 버전. GHCR exact release 게시 여부는 검증 기록과 별도 확인 |",
+              "| masterGantt | 0.12.0 | Issue #19 글로벌 리소스·그룹 및 작업 할당 릴리스 버전 |",
+              "README version row",
+          )
+          text = replace_once(
+              text,
+              "| `APP_BASE_URL` | Project 생성의 `Origin`과 정확히 비교하는 canonical origin. scheme/host/port가 browser 주소와 같아야 하며 production은 기본 HTTPS, ALLOW_INSECURE_HTTP=true일 때 내부망 HTTP 허용 |",
+              "| `APP_BASE_URL` | Project 생성의 `Origin`과 정확히 비교하는 canonical origin. scheme/host/port가 browser 주소와 같아야 하며 production은 기본 HTTPS, ALLOW_INSECURE_HTTP=true일 때 내부망 HTTP 허용 |\n| `RESOURCE_CATALOG_ADMIN_PASSWORD` | 글로벌 Resource/Resource Group 관리 전용 비밀번호. Project 편집 비밀번호와 별도이며 16자 미만 또는 미설정이면 관리자 로그인이 fail-closed |",
+              "README resource env",
+          )
+          text = replace_once(
+              text,
+              '{"status":"ok","applied":["0001_initial_schema.sql"]}',
+              '{"status":"ok","applied":["0001_initial_schema.sql","0002_task_description_url.sql","0003_resource_catalog.sql"]}',
+              "README migration output",
+          )
+          text = replace_once(
+              text,
+              "동일 명령을 다시 실행하면 `applied`가 빈 배열이 된다. 테이블은 `projects`, `tasks`, `links`, `project_holidays`, `edit_sessions`와 이력용 `schema_migrations`다. 프로젝트나 작업의 예제 row를 자동 생성하지 않는다.",
+              "동일 명령을 다시 실행하면 `applied`가 빈 배열이 된다. 기본 Project 테이블 외에 `resource_catalog_state`, `resources`, `resource_groups`, `resource_group_members`, `resource_catalog_admin_sessions`, `task_assignments`가 있으며 migration 이력은 `schema_migrations`가 관리한다. 프로젝트·작업·리소스 예제 row를 자동 생성하지 않는다.",
+              "README table list",
+          )
+          text = replace_once(
+              text,
+              "DATABASE_PATH=.data/mastergantt.sqlite3\nAPP_BASE_URL=http://127.0.0.1:3000",
+              "DATABASE_PATH=.data/mastergantt.sqlite3\nAPP_BASE_URL=http://127.0.0.1:3000\nRESOURCE_CATALOG_ADMIN_PASSWORD=change-me-resource-admin-password",
+              "README development env",
+          )
+          text = replace_once(
+              text,
+              "실제 Project 화면은 처음에는 readonly다. 비밀번호로 잠금을 해제하면 root Task/Milestone을 추가·삭제하고 SVAR bar를 이동하거나 양 끝을 resize할 수 있다.",
+              "실제 Project 화면은 처음에는 readonly다. 비밀번호로 잠금을 해제하면 root Task/Milestone을 추가·삭제하고 SVAR bar를 이동하거나 양 끝을 resize할 수 있다. 상단 `리소스` 메뉴의 `/resources`에서는 별도 글로벌 관리자 비밀번호로 Resource/Group과 그룹 멤버를 관리하며, Task Editor에서 Resource 또는 Group을 직접 할당할 수 있다.",
+              "README resource usage",
+          )
+          readme.write_text(text, encoding="utf-8")
+
+          changelog = Path("CHANGELOG.md")
+          text = changelog.read_text(encoding="utf-8")
+          text = replace_once(text, "## [0.12.0] - 2026-09-15", "## [0.12.0] - 2026-09-16", "CHANGELOG release date")
+          changelog.write_text(text, encoding="utf-8")
+
+          schema = Path("docs/DB_SCHEMA.md")
+          text = schema.read_text(encoding="utf-8")
+          text = replace_once(
+              text,
+              "W04–W07 모두 기존 `0001` schema로 충족하므로 migration을 추가하지 않았다.",
+              "W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`을 추가했다.",
+              "DB schema migration history",
+          )
+          text = replace_once(
+              text,
+              "projects\n  ├─< project_holidays\n  ├─< tasks ──(self parent)──> tasks\n  │      └─< links >─┘\n  └─< edit_sessions",
+              "projects\n  ├─< project_holidays\n  ├─< tasks ──(self parent)──> tasks\n  │      ├─< links >─┘\n  │      └─< task_assignments >─ resources / resource_groups\n  └─< edit_sessions\n\nresource_catalog_state (singleton revision)\nresources >─< resource_group_members >─ resource_groups\nresource_catalog_admin_sessions (global admin)",
+              "DB schema relation overview",
+          )
+          resource_sections = '''### 5.6 `resource_catalog_state`\n\n글로벌 Resource/Group catalog의 optimistic concurrency를 위한 singleton row다. `id=1`, `revision>=1`, `updated_at`을 저장하며 Resource/Group/Group member 실제 변경 transaction에서만 revision을 증가시킨다.\n\n### 5.7 `resources` / `resource_groups`\n\n두 테이블은 내부 INTEGER PK와 외부 UUID `public_id`, 필수 `name`, optional unique `code`, `description`, `active`, 생성/수정 시각을 저장한다. `active=0`은 신규 할당 후보에서 제외하지만 기존 assignment는 유지한다. 물리 삭제보다 비활성화를 기본 정책으로 사용한다.\n\n### 5.8 `resource_group_members`\n\n`(group_id, resource_id)` 복합 PK로 그룹 멤버 중복을 방지한다. Resource와 Group FK는 모두 `ON DELETE RESTRICT`이며 그룹은 중첩하지 않는다. 한 Resource는 여러 Group에 속할 수 있다.\n\n### 5.9 `resource_catalog_admin_sessions`\n\n글로벌 catalog 관리자 세션을 Project edit session과 분리한다. 원문 token은 저장하지 않고 32-byte SHA-256 digest와 생성/만료/폐기 시각만 저장한다.\n\n### 5.10 `task_assignments`\n\nTask/Summary/Milestone과 글로벌 Resource 또는 Group의 직접 할당을 저장한다. `(project_id, task_id)` composite FK로 Project 경계를 DB에서도 강제하고, `resource_id`와 `group_id`는 XOR CHECK로 정확히 하나만 허용한다. 부분 UNIQUE index로 같은 Task에 같은 Resource/Group의 중복 할당을 차단한다. Task/Project 삭제에는 assignment가 cascade되지만 글로벌 catalog FK는 `ON DELETE RESTRICT`다. Group assignment는 팀 참조이며 Group member 개인 assignment로 자동 확장하지 않는다.\n\n'''
+          text = replace_once(text, "## 6. Index 계획", resource_sections + "## 6. Index 계획", "DB resource sections")
+          text = replace_once(
+              text,
+              "edit_sessions(project_id, expires_at)\n```",
+              "edit_sessions(project_id, expires_at)\nresource_group_members(resource_id, group_id)\ntask_assignments(project_id, task_id)\ntask_assignments(resource_id) WHERE resource_id IS NOT NULL\ntask_assignments(group_id) WHERE group_id IS NOT NULL\nresource_catalog_admin_sessions(expires_at, revoked_at)\n```",
+              "DB resource indexes",
+          )
+          schema.write_text(text, encoding="utf-8")
+
+          implementation = Path("docs/ISSUE_19_IMPLEMENTATION.md")
+          text = implementation.read_text(encoding="utf-8")
+          if "## 11. 최종 검증 및 릴리스" not in text:
+              text += '''\n\n## 11. 최종 검증 및 릴리스\n\n- 릴리스 버전: `0.12.0` (Semantic Versioning MINOR)\n- 최종 PR: #53\n- 최종 PR CI: Run #235 `success`\n- Vitest: 530/530 PASS\n- Chromium E2E: 50/50 PASS\n- Docker/runtime smoke: image policy, migration/readiness, SQLite restart persistence, HTTP/HTTPS cookie·auth transport, relocated Compose persistence PASS\n- 릴리스 태그: `v0.12.0` annotated tag를 병합된 release commit에 생성한다.\n- GHCR: `release-image.yml`의 SemVer/tag 검증과 release candidate quality/container gate를 통과한 digest만 exact/rolling tag로 승격한다.\n- GitHub Release 설명은 `docs/releases/v0.12.0.md`를 기준으로 한다.\n'''
+          implementation.write_text(text, encoding="utf-8")
+
+          release_dir = Path("docs/releases")
+          release_dir.mkdir(parents=True, exist_ok=True)
+          (release_dir / "v0.12.0.md").write_text('''# masterGantt v0.12.0\n\nIssue #19 글로벌 리소스·리소스 그룹 및 작업 직접 할당 기능을 추가한 하위 호환 MINOR 릴리스다.\n\n## 주요 변경\n\n- Project와 독립된 글로벌 Resource / Resource Group 카탈로그와 `/resources` 관리 화면\n- Project 편집 권한과 분리된 Resource catalog 관리자 세션 (`RESOURCE_CATALOG_ADMIN_PASSWORD`)\n- Group 멤버 관리, 활성/비활성 상태, catalog revision 기반 optimistic concurrency\n- Task / Summary / Milestone에 Resource 또는 Group 복수 직접 할당·해제\n- Group 할당은 담당 팀 참조이며 Group member 개인 할당으로 자동 확장하지 않음\n- Assignment PUT 응답을 최신 `project`, `tasks`, `links`, `assignments` canonical aggregate와 strong Project ETag로 통일\n- SQLite `0003_resource_catalog.sql` migration 추가\n- SVAR React Gantt PRO Resource API/package는 사용하지 않고 앱 자체 DB/API/UI 경계로 구현\n\n## 운영 전 확인\n\n- 기존 DB는 애플리케이션 시작 또는 `npm run db:migrate`에서 `0003_resource_catalog.sql`까지 순차 적용한다. 적용된 migration SQL은 수정하지 않는다.\n- `RESOURCE_CATALOG_ADMIN_PASSWORD`는 Project 편집 비밀번호와 별도이며 최소 16자 이상으로 운영 secret에서 주입한다. 미설정/16자 미만이면 관리자 인증은 fail-closed 된다.\n- 기존 Project/Task 데이터는 유지되며 신규 global catalog와 assignment는 초기 상태가 비어 있다.\n\n## 검증\n\nPR #53 최종 CI Run #235에서 다음을 통과했다.\n\n- release version, TypeScript, ESLint, test discovery, dependency audit, Markdown/shell, production build\n- Vitest 530/530\n- Chromium E2E 50/50\n- Docker image policy 및 runtime smoke\n- migration/readiness, SQLite restart persistence\n- production HTTP/HTTPS cookie·auth transport와 relocated Compose persistence\n\nIssue #19를 완료한다.\n''', encoding="utf-8")
+          PY
+          rm .github/workflows/issue19-docs-finalize.yml
+      - name: 문서 변경 커밋
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs: v0.12.0 리소스 기능 및 릴리스 문서 갱신 (#19)"
+          git push origin HEAD:feat/issue-19-resource-catalog
