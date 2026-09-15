@@ -55,7 +55,7 @@ test("persists explicit editor changes, task details and safe URL click without 
   await expect(progress).toHaveAttribute("aria-valuetext", "75%");
   await editor.getByLabel("Description", { exact: true }).fill("첫 줄\n둘째 줄");
   await editor.getByLabel("URL", { exact: true }).fill(taskUrl);
-  await expect(editor.getByText("75%", { exact: true })).toBeVisible();
+  await expect(progress).toHaveAttribute("aria-valuetext", "75%");
   expect(patches).toBe(0);
   await editor.getByRole("button", { name: "저장", exact: true }).click();
   await expect(editor).toHaveCount(0);
@@ -104,7 +104,7 @@ test("persists explicit editor changes, task details and safe URL click without 
       await expect(information.getByLabel("기간 (근무일)", { exact: true })).toHaveValue("2");
       await expect(information.getByLabel("Description", { exact: true })).toHaveValue("첫 줄\n둘째 줄");
       await expect(information.getByLabel("URL", { exact: true })).toHaveValue(taskUrl);
-      await expect(information.getByText("75%", { exact: true })).toBeVisible();
+      await expect(information.getByLabel("진행률 (%)", { exact: true })).toHaveAttribute("aria-valuetext", "75%");
     } finally { await context.close(); }
   }
 });
