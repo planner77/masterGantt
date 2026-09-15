@@ -107,7 +107,7 @@ test("persists explicit editor changes, task details and safe URL click without 
       await expect(information.getByLabel("기간 (근무일)", { exact: true })).toHaveValue("2");
       await expect(information.getByLabel("Description", { exact: true })).toHaveValue("첫 줄\n둘째 줄");
       await expect(information.getByLabel("URL", { exact: true })).toHaveValue(taskUrl);
-      await expect(information.locator("output").first()).toHaveText("75%");
+      await expect(information.getByText("75%", { exact: true })).toBeVisible();
     } finally { await context.close(); }
   }
 });
