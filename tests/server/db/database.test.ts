@@ -121,7 +121,11 @@ describe("SQLite connection and schema", () => {
     });
 
     try {
-      expect(migrations.applied).toEqual(["0001_initial_schema.sql", "0002_task_description_url.sql"]);
+      expect(migrations.applied).toEqual([
+        "0001_initial_schema.sql",
+        "0002_task_description_url.sql",
+        "0003_resource_catalog.sql",
+      ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
       expect(database.pragma("synchronous", { simple: true })).toBe(2);
@@ -138,7 +142,13 @@ describe("SQLite connection and schema", () => {
         "links",
         "project_holidays",
         "projects",
+        "resource_catalog_admin_sessions",
+        "resource_catalog_state",
+        "resource_group_members",
+        "resource_groups",
+        "resources",
         "schema_migrations",
+        "task_assignments",
         "tasks",
       ]);
 
@@ -152,6 +162,13 @@ describe("SQLite connection and schema", () => {
         "edit_sessions_project_expires_idx",
         "links_project_predecessor_idx",
         "links_project_successor_idx",
+        "resource_admin_sessions_expiry_idx",
+        "resource_group_members_resource_idx",
+        "task_assignments_group_idx",
+        "task_assignments_group_unique_idx",
+        "task_assignments_project_task_idx",
+        "task_assignments_resource_idx",
+        "task_assignments_resource_unique_idx",
         "tasks_project_parent_idx",
         "tasks_project_sort_order_idx",
       ]);
