@@ -9,7 +9,9 @@ import type {
   UpdateProjectRequest,
   UpdateTaskRequest,
 } from "../../contracts/projects";
+import type { ProjectAssignmentDto } from "../../contracts/resources";
 import { ProjectRepository } from "../repositories/project-repository-core";
+import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
 import { ScheduleRepository, type TaskRecord } from "../repositories/schedule-repository-core";
 import {
   ProjectService,
@@ -26,14 +28,26 @@ function enrichTasks(tasks: readonly ProjectTaskDto[], records: readonly TaskRec
   });
 }
 
+function assignmentDtos(repository: ResourceCatalogRepository, projectId: number): ProjectAssignmentDto[] {
+  return repository.listAssignments(projectId).map((assignment) => ({
+    id: assignment.publicId,
+    taskId: assignment.taskPublicId,
+    target: {
+      kind: assignment.kind,
+      id: assignment.targetPublicId,
+    },
+  }));
+}
+
 /**
- * Extends the scheduling-focused ProjectService with non-scheduling Task fields.
- * The outer SQLite transaction keeps explicit editor PATCHes atomic with the
- * base revision/scheduling mutation while avoiding any change to scheduler inputs.
+ * Extends the scheduling-focused ProjectService with non-scheduling Task fields
+ * and application-owned resource assignment references. Resource assignment is
+ * deliberately independent from the scheduler and SVAR PRO resource APIs.
  */
 export class TaskFieldProjectService extends ProjectService {
   private readonly projectsForFields: ProjectRepository;
   private readonly schedulesForFields: ScheduleRepository;
+  private readonly resourcesForFields: ResourceCatalogRepository;
 
   constructor(
     private readonly fieldDatabase: Database.Database,
@@ -42,6 +56,7 @@ export class TaskFieldProjectService extends ProjectService {
     super(fieldDatabase, options);
     this.projectsForFields = new ProjectRepository(fieldDatabase);
     this.schedulesForFields = new ScheduleRepository(fieldDatabase);
+    this.resourcesForFields = new ResourceCatalogRepository(fieldDatabase);
   }
 
   private enrichMutation<T extends TaskMutationResponse | ProjectMetadataMutationResponse>(
@@ -53,6 +68,7 @@ export class TaskFieldProjectService extends ProjectService {
       data: {
         ...response.data,
         tasks: enrichTasks(response.data.tasks, this.schedulesForFields.listTasks(projectId)),
+        assignments: assignmentDtos(this.resourcesForFields, projectId),
       },
     } as T;
   }
@@ -67,6 +83,7 @@ export class TaskFieldProjectService extends ProjectService {
       data: {
         ...response.data,
         tasks: enrichTasks(response.data.tasks, this.schedulesForFields.listTasks(project.id)),
+        assignments: assignmentDtos(this.resourcesForFields, project.id),
       },
     };
   }
