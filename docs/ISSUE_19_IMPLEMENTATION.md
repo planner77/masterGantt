@@ -105,6 +105,9 @@ Project edit session을 global admin으로 승격하지 않는다.
   - Project edit session + exact Origin + Project `If-Match`
   - body에 catalog revision 포함
   - 최대 100개 직접 할당
+  - 성공 응답은 최신 `project`, `tasks`, `links`, `assignments` 전체 canonical aggregate와 `catalogRevision`, `warnings`, `operation`을 반환한다.
+  - 실제 변경이면 응답 `project.revision`은 요청 `If-Match` revision보다 정확히 1 증가하고, 동일 목록 no-op이면 revision을 유지한다.
+  - 응답 `ETag`은 항상 최신 `project.revision`의 strong ETag와 일치한다.
 
 ## 7. Canonical Project 응답
 
@@ -122,6 +125,8 @@ Project edit session을 global admin으로 승격하지 않는다.
 ```
 
 변경 가능한 표시 이름/코드/active 상태는 `/assigned-targets`에서 분리하여 조회한다. `TaskFieldProjectService`가 기존 read/task/metadata canonical 응답에 현재 assignment를 다시 붙이므로 다른 Task 저장 후 assignment 참조가 사라지지 않는다.
+
+Assignment PUT도 같은 canonical aggregate 규칙을 따른다. ResourceCatalogService의 내부 mutation 결과는 revision과 assignment 변경 결과만 담고, HTTP route가 mutation 직후 최신 Project canonical snapshot을 다시 읽어 응답을 구성한다. snapshot revision과 mutation revision이 불일치하면 성공 응답을 만들지 않고 fail-closed 한다.
 
 ## 8. UI
 
