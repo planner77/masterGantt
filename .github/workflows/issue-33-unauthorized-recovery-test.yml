@@ -1,0 +1,50 @@
+name: 401 canonical 복구 검증 수정
+
+on:
+  push:
+    branches:
+      - docs/issue-33-canonical-plan
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    name: 401 복구 E2E 의미 검증 전환
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/issue-33-canonical-plan
+          fetch-depth: 0
+      - name: 401 복구 assertion 수정
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('tests/e2e/project-task-persistence.spec.ts')
+          text = path.read_text(encoding='utf-8')
+          old = '''  const beforeUnauthorized = await page.locator(`.wx-bar[data-task-id=":${winnerTask.taskId}"]`).boundingBox();\n  if (!beforeUnauthorized) throw new Error("Expected race winner SVAR task bar.");\n  const removeUnauthorizedRoute = await rejectNextPatch(page, `${apiPath}/tasks/${winnerTask.taskId}`, 401, "EDIT_SESSION_INVALID");'''
+          new = '''  await expect(page.locator(`.wx-bar[data-task-id=":${winnerTask.taskId}"]`)).toBeVisible();\n  const removeUnauthorizedRoute = await rejectNextPatch(page, `${apiPath}/tasks/${winnerTask.taskId}`, 401, "EDIT_SESSION_INVALID");'''
+          if text.count(old) != 1:
+              raise SystemExit('beforeUnauthorized block mismatch')
+          text = text.replace(old, new, 1)
+          old = '''  const restoredUnauthorizedBox = await page.locator(`.wx-bar[data-task-id=":${winnerTask.taskId}"]`).boundingBox();\n  expect(restoredUnauthorizedBox).not.toBeNull(); expect(restoredUnauthorizedBox!.x).toBeCloseTo(beforeUnauthorized.x, 0); expect(restoredUnauthorizedBox!.width).toBeCloseTo(beforeUnauthorized.width, 0);'''
+          new = '''  // 401 transitions the workspace from edit to readonly, which may legitimately change\n  // Grid/Chart layout. Verify the recovered canonical schedule rather than absolute x.\n  await expectTaskGridStart(page, winnerTask.name, "2026-09-22");\n  const readonlyWinnerRow = page.locator(".project-gantt-widget .wx-table-container .wx-row", { hasText: winnerTask.name }).first();\n  await expect(readonlyWinnerRow).toContainText("2 근무일");'''
+          if text.count(old) != 1:
+              raise SystemExit('restoredUnauthorizedBox block mismatch')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          git diff --check
+      - name: 변경 커밋 및 push
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/project-task-persistence.spec.ts
+          git commit -m "test: 401 복구를 canonical 일정 값으로 검증"
+          git push origin HEAD:docs/issue-33-canonical-plan
