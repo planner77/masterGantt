@@ -50,12 +50,9 @@ test("persists explicit editor changes, task details and safe URL click without 
   await editor.getByLabel("작업명", { exact: true }).fill("Saved via editor");
   await editor.getByLabel("기간 (근무일)", { exact: true }).fill("2");
   const progress = editor.getByLabel("진행률 (%)", { exact: true });
-  await progress.evaluate((element) => {
-    const input = element as HTMLInputElement;
-    input.value = "75";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-  });
+  await progress.fill("75");
+  await expect(progress).toHaveValue("75");
+  await expect(progress).toHaveAttribute("aria-valuetext", "75%");
   await editor.getByLabel("Description", { exact: true }).fill("첫 줄\n둘째 줄");
   await editor.getByLabel("URL", { exact: true }).fill(taskUrl);
   await expect(editor.getByText("75%", { exact: true })).toBeVisible();
