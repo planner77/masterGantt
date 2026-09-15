@@ -49,6 +49,7 @@ import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
 import { resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import { captureMenuScrollChange } from "./menu-scroll-guard";
 import "./task-context-menu.css";
+import "./gantt-scale-toolbar.css";
 
 export type ProjectGridDataColumnId = "text" | "externalId" | "projectStart" | "projectDuration";
 
@@ -57,6 +58,7 @@ let nextApiInstanceId = 1;
 
 type MenuPosition = Readonly<{ left: number; top: number }>;
 type TaskMenuState = MenuPosition & Readonly<{ taskId: string }>;
+type GanttScaleMode = "day" | "week";
 
 interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
@@ -157,6 +159,7 @@ export function ProjectGantt({
   const [columnMenuPosition, setColumnMenuPosition] = useState<MenuPosition | null>(null);
   const [taskMenu, setTaskMenu] = useState<TaskMenuState | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
+  const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
   const highlightWeekend = useCallback(
@@ -426,15 +429,25 @@ export function ProjectGantt({
         month: "long",
       }).format(date),
     },
-    {
-      unit: "day",
-      step: 1,
-      format: (date: Date) => new Intl.DateTimeFormat(locales, {
-        day: "numeric",
-        weekday: "narrow",
-      }).format(date),
-    },
-  ], [locales]);
+    scaleMode === "day"
+      ? {
+        unit: "day",
+        step: 1,
+        format: (date: Date) => new Intl.DateTimeFormat(locales, {
+          day: "numeric",
+          weekday: "narrow",
+        }).format(date),
+      }
+      : {
+        unit: "week",
+        step: 1,
+        format: (date: Date, next?: Date) => {
+          const end = next ? new Date(next.getTime() - 86_400_000) : date;
+          const formatter = new Intl.DateTimeFormat(locales, { month: "numeric", day: "numeric" });
+          return `${formatter.format(date)}–${formatter.format(end)}`;
+        },
+      },
+  ], [locales, scaleMode]);
 
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
     if (!canCreateReference.current) {
@@ -586,10 +599,17 @@ export function ProjectGantt({
   const canDelete = editable && !mutationLocked && links.length === 0;
 
   return (
-    <div className="project-gantt-frame" data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined}>
+    <div className="project-gantt-frame" data-gantt-scale-mode={scaleMode} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined}>
       <Willow>
-        <div
-          aria-label="프로젝트 일정 Grid와 Gantt 차트"
+      <div className="project-gantt-scale-toolbar">
+        <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
+          <span aria-hidden="true" className="project-gantt-scale-label">표시 단위</span>
+          <button aria-pressed={scaleMode === "day"} onClick={() => setScaleMode("day")} type="button">일</button>
+          <button aria-pressed={scaleMode === "week"} onClick={() => setScaleMode("week")} type="button">주</button>
+        </div>
+      </div>
+      <div
+        aria-label="프로젝트 일정 Grid와 Gantt 차트"
           className="project-gantt-scroll"
           onContextMenu={handleHeaderContextMenu}
           onKeyDownCapture={handleHeaderKeyboardMenu}
@@ -602,7 +622,7 @@ export function ProjectGantt({
               columns={initialConfig.columns}
               displayMode="all"
               gridWidth={620}
-              highlightTime={highlightWeekend}
+              highlightTime={scaleMode === "day" ? highlightWeekend : undefined}
               init={initialize}
               links={initialConfig.links}
               onUpdateTask={onUpdateTask}
