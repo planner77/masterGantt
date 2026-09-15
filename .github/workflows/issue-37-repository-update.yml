@@ -1,4 +1,4 @@
-name: Issue 37 저장소 메타데이터 동기화
+name: Issue 37 lockfile sync
 
 on:
   push:
@@ -9,80 +9,22 @@ permissions:
   contents: write
 
 jobs:
-  sync:
+  sync-lockfile:
     runs-on: ubuntu-latest
     steps:
-      - name: 저장소 checkout
+      - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
-      - name: package-lock과 관련 문서 갱신
-        shell: bash
+      - name: Sync package version metadata
+        run: npm version 0.8.3 --no-git-tag-version --allow-same-version
+      - name: Commit lockfile
         run: |
-          python3 <<'PY'
-          from pathlib import Path
-
-          lock = Path("package-lock.json")
-          text = lock.read_text()
-          text = text.replace('"version": "0.8.2"', '"version": "0.8.3"', 2)
-          lock.write_text(text)
-
-          changelog = Path("CHANGELOG.md")
-          text = changelog.read_text()
-          marker = "## [0.8.3] - 2026-09-15"
-          if marker not in text:
-              text = text.replace(
-                  "## [Unreleased]\n",
-                  "## [Unreleased]\n\n## [0.8.3] - 2026-09-15\n\n### Fixed\n\n- Issue #37: 프로젝트 직접 진입뿐 아니라 브라우저 history/BFCache 복원에서도 서버의 현재 편집 세션을 다시 확인한다. 재검증 중 작업공간을 inert 처리하고, 만료·잘못된 응답·조회 실패는 fail-closed로 읽기 전용 재진입시켜 stale edit UI를 폐기한다. 정상 edit 재검증은 기존 Gantt 인스턴스를 유지한다.\n"
-              )
-              changelog.write_text(text)
-
-          additions = {
-              "docs/REQUIREMENTS.md": """
-
-## Issue #37 편집 권한 재진입 요구사항
-
-- 프로젝트 직접 진입·새로고침·클라이언트 재진입·브라우저 history/BFCache 복원에서 해당 `publicId`의 `GET /api/projects/{publicId}/edit-sessions/current`를 서버 기준으로 확인한다.
-- 권한 확인이 끝나기 전에는 mutation 가능한 UI를 활성화하지 않는다. 응답 실패·형식 오류·만료된 edit grant는 fail-closed로 처리한다.
-- 정상 edit 재검증은 Gantt를 불필요하게 재마운트하지 않아 선택·스크롤·레이아웃 상태를 보존한다. 프로젝트 전환 시 다른 프로젝트의 세션 상태를 재사용하지 않는다.
-""",
-              "docs/API.md": """
-
-## Issue #37 `GET /api/projects/{publicId}/edit-sessions/current` 재확인 계약
-
-프로젝트 화면은 초기 진입뿐 아니라 browser history/BFCache로 복원될 때도 이 endpoint를 `no-store`, same-origin credential로 호출한다. `permission=edit`는 유효한 미래 `expiresAt`이 함께 있을 때만 클라이언트에서 edit로 인정한다. non-2xx, JSON 파싱 실패, 계약 외 permission, 누락·잘못된 `expiresAt`, 이미 만료된 grant는 클라이언트에서 readonly fail-closed로 취급한다. 서버의 mutation endpoint는 기존과 동일하게 최종 edit-session 검증을 수행한다.
-""",
-              "docs/SECURITY.md": """
-
-## Issue #37 재진입 권한 재검증
-
-클라이언트의 이전 `edit` 상태는 권한 근거가 아니다. history/BFCache에서 프로젝트 화면이 복원되면 해당 프로젝트의 현재 edit session을 서버에 다시 확인하고, 확인 중 작업공간을 inert 처리한다. 실패·malformed·expired·readonly 결과에서는 기존 mutation 가능 상태를 폐기하고 읽기 전용 상태로 재진입한다. 정상 edit 재검증은 UI 상태 보존을 위해 기존 Gantt subtree를 유지한다. 서버는 projectId/authVersion/revokedAt/expiresAt 검증을 계속 최종 권한 경계로 사용한다.
-""",
-              "docs/TEST_PLAN.md": """
-
-## Issue #37 편집 권한 재진입 회귀 검증
-
-- Unit: current edit-session 응답의 valid edit/readonly, malformed payload, 잘못된 timestamp, 만료 경계를 검증한다.
-- E2E: 프로젝트를 벗어났다가 재진입할 때 current-session API가 다시 호출되는지 검증한다.
-- E2E: browser back/forward 복원 후 current-session 재확인을 검증하고, 실패 시 stale edit UI가 남지 않고 읽기 전용으로 fail-closed 되는지 확인한다.
-- 회귀 기준: 정상 edit 재검증에서는 권한 확인용 wrapper만 잠시 inert 처리하며 Gantt component key를 변경하거나 강제 remount하지 않는다. 프로젝트 A/B 전환에서는 현재 URL의 `publicId`와 일치하는 세션만 확인한다.
-""",
-          }
-
-          for filename, addition in additions.items():
-              path = Path(filename)
-              text = path.read_text()
-              if "Issue #37" not in text:
-                  path.write_text(text.rstrip() + addition + "\n")
-          PY
-      - name: 변경 커밋
-        shell: bash
-        run: |
-          if git diff --quiet; then
+          if git diff --quiet -- package.json package-lock.json; then
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json CHANGELOG.md docs/REQUIREMENTS.md docs/API.md docs/SECURITY.md docs/TEST_PLAN.md
-          git commit -m "docs: Issue #37 버전 및 권한 재검증 계약 반영"
+          git add package.json package-lock.json
+          git commit -m "chore: 0.8.3 lockfile 버전 동기화"
           git push origin HEAD:fix/issue-37-edit-permission-recheck
