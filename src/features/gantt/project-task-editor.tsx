@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import type { ProjectTaskDto } from "../../contracts/projects";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
+import { buildTaskRelations, formatTaskRelationType, type TaskRelationView, type TaskRelationsView } from "./task-relations";
 import {
   createTaskEditorDraft,
   prepareTaskEditorCommand,
@@ -26,6 +27,41 @@ interface Props {
   readonly onClose: () => void;
 }
 
+type RelationState =
+  | { readonly status: "loading" }
+  | { readonly status: "ready"; readonly revision: number; readonly relations: TaskRelationsView }
+  | { readonly status: "failed"; readonly message: string };
+
+function isSnapshot(value: unknown): value is ProjectSnapshotResponse {
+  if (typeof value !== "object" || value === null || !("data" in value)) return false;
+  const data = value.data;
+  return typeof data === "object" && data !== null && "project" in data && typeof data.project === "object" && data.project !== null &&
+    "revision" in data.project && typeof data.project.revision === "number" && "tasks" in data && Array.isArray(data.tasks) && "links" in data && Array.isArray(data.links);
+}
+
+function projectPublicIdFromPathname(pathname: string): string | null {
+  const match = /^\/projects\/([^/]+)\/?$/.exec(pathname);
+  if (!match) return null;
+  try { return decodeURIComponent(match[1]); }
+  catch { return null; }
+}
+
+function RelationList({ title, relations }: Readonly<{ title: string; relations: readonly TaskRelationView[] }>) {
+  return <section className={styles.relationGroup} aria-label={title}>
+    <h4>{title} ({relations.length})</h4>
+    {relations.length === 0 ? <p className={styles.emptyRelation}>없음</p> : <ul className={styles.relationList}>
+      {relations.map((relation) => <li key={`${relation.direction}:${relation.id}`} className={styles.relationItem}>
+        <div className={styles.relationTask}><strong>{relation.relatedTaskName}</strong> <code>{relation.relatedTaskExternalId}</code></div>
+        <div className={styles.relationMeta}>
+          <span>{formatTaskRelationType(relation.type)}</span>
+          <span>Lag {relation.lag}일</span>
+          {!relation.resolved ? <span className={styles.relationWarning}>참조 작업을 찾을 수 없음</span> : null}
+        </div>
+      </li>)}
+    </ul>}
+  </section>;
+}
+
 /** Lives outside the Gantt recovery key: an unsuccessful write cannot erase a draft. */
 export function ProjectTaskEditor({ session, latestTask, revision, editable, hasLinks, busy, onSave, onReload, onClose }: Props) {
   const [base, setBase] = useState(session);
@@ -34,6 +70,7 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
   const [conflicted, setConflicted] = useState(false);
   const [operation, setOperation] = useState<"save" | "reload" | null>(null);
   const [confirmation, setConfirmation] = useState<"close" | "reload" | null>(null);
+  const [relationState, setRelationState] = useState<RelationState>({ status: "loading" });
   const dialogReference = useRef<HTMLDialogElement>(null);
   const actionReference = useRef(false);
   const mountedReference = useRef(false);
@@ -43,15 +80,48 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
     (latestTask?.type !== base.task.type ? "작업 유형이 변경되었습니다. 최신 정보를 다시 불러와 주세요." : null);
   const locked = busy || operation !== null;
 
+  const loadRelations = useCallback(async (expected: TaskEditorSession) => {
+    const publicId = projectPublicIdFromPathname(window.location.pathname);
+    if (!publicId) {
+      setRelationState({ status: "failed", message: "프로젝트 경로를 확인할 수 없어 작업 관계를 불러오지 못했습니다." });
+      return;
+    }
+    setRelationState({ status: "loading" });
+    try {
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin" });
+      const body: unknown = await response.json().catch(() => null);
+      if (!mountedReference.current) return;
+      if (!response.ok || !isSnapshot(body)) {
+        setRelationState({ status: "failed", message: "작업 관계를 불러올 수 없습니다. 최신 정보 다시 불러오기를 시도해 주세요." });
+        return;
+      }
+      if (body.data.project.revision !== expected.revision) {
+        setConflicted(true);
+        setRelationState({ status: "failed", message: "관계 조회 중 프로젝트 Revision이 변경되었습니다. 최신 정보를 다시 불러와 주세요." });
+        return;
+      }
+      const task = body.data.tasks.find((entry) => entry.taskId === expected.task.taskId);
+      if (!task || task.externalId !== expected.task.externalId) {
+        setConflicted(true);
+        setRelationState({ status: "failed", message: "기준 작업이 변경되었거나 삭제되었습니다. 최신 정보를 다시 불러와 주세요." });
+        return;
+      }
+      setRelationState({ status: "ready", revision: expected.revision, relations: buildTaskRelations(task, body.data.tasks, body.data.links) });
+    } catch {
+      if (mountedReference.current) setRelationState({ status: "failed", message: "네트워크 오류로 작업 관계를 불러오지 못했습니다." });
+    }
+  }, []);
+
   useEffect(() => {
     mountedReference.current = true;
     const dialog = dialogReference.current;
     if (dialog && !dialog.open) dialog.showModal();
+    void loadRelations(session);
     return () => {
       mountedReference.current = false;
       dialog?.close();
     };
-  }, []);
+  }, [loadRelations, session]);
 
   useEffect(() => {
     if (!dirty) return;
@@ -81,7 +151,6 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
       const next = await onReload(base.task.taskId);
       if (!mountedReference.current) return;
       if (!next) {
-        // Keep both the draft and its original revision if reload fails.
         setError("최신 정보를 불러올 수 없습니다. 작업이 존재하는지와 네트워크 연결을 확인해 주세요.");
         return;
       }
@@ -89,6 +158,7 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
       setDraft(createTaskEditorDraft(next.task));
       setConflicted(false);
       setError(null);
+      await loadRelations(next);
     } catch {
       if (mountedReference.current) setError("최신 정보를 불러올 수 없습니다. 입력 내용은 유지됩니다.");
     } finally {
@@ -142,6 +212,15 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
         <dt>요청 시작일</dt><dd>{base.task.requestedStart ?? "하위 작업 기준"}</dd>
       </dl>
       <p className={styles.caption}>종료일은 저장 전 확정된 값입니다. 변경한 시작일과 근무일 기간의 계산은 저장 시 서버가 수행합니다. 비근무일 처리에는 프로젝트 달력과 일정 모드가 적용됩니다.</p>
+      <section className={styles.relations} aria-labelledby="task-relations-title">
+        <h3 id="task-relations-title">작업 관계</h3>
+        {relationState.status === "loading" ? <p className={styles.caption} role="status">관계 정보를 불러오는 중…</p> : null}
+        {relationState.status === "failed" ? <p className={styles.relationError} role="alert">{relationState.message}</p> : null}
+        {relationState.status === "ready" ? <>
+          <RelationList title="선행 작업" relations={relationState.relations.predecessors} />
+          <RelationList title="후행 작업" relations={relationState.relations.successors} />
+        </> : null}
+      </section>
       <div className={styles.actions}>
         <button className="secondary-button" type="button" disabled={locked} onClick={() => dirty ? setConfirmation("reload") : void reload()}>최신 정보 다시 불러오기</button>
         <button className="secondary-button" type="button" disabled={locked} onClick={close}>취소</button>
