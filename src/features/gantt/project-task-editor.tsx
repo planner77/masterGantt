@@ -169,12 +169,13 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
       <label className={styles.field}>작업명<input autoFocus name="task-name" value={draft.name} readOnly={readOnly} disabled={locked} onChange={(event) => change("name", event.target.value)} /></label>
       <label className={styles.field}>시작일<input name="task-start" type="date" min="1900-01-01" max="2199-12-31" value={draft.start} readOnly={readOnly} disabled={locked} onChange={(event) => change("start", event.target.value)} /></label>
       <label className={styles.field}>기간 (근무일)<input name="task-duration" type="number" min={base.task.type === "milestone" ? 0 : 1} max="10000" step="1" value={draft.duration} readOnly={readOnly || base.task.type === "milestone"} disabled={locked} onChange={(event) => change("duration", event.target.value)} /></label>
-      <label className={styles.field}>진행률 (%)
+      <div className={styles.field}>
+        <label htmlFor="task-progress">진행률 (%)</label>
         <span className={styles.sliderRow}>
-          <input aria-valuetext={`${draft.progress}%`} name="task-progress" type="range" min="0" max="100" step="1" value={draft.progress} disabled={locked || readOnly} onChange={(event) => change("progress", event.target.value)} />
-          <output className={styles.progressValue} htmlFor="task-progress">{draft.progress}%</output>
+          <input id="task-progress" aria-valuetext={`${draft.progress}%`} name="task-progress" type="range" min="0" max="100" step="1" value={draft.progress} disabled={locked || readOnly} onChange={(event) => change("progress", event.target.value)} />
+          <span className={styles.progressValue} aria-live="polite">{draft.progress}%</span>
         </span>
-      </label>
+      </div>
       <label className={styles.field}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={readOnly} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
       <label className={styles.field}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={readOnly} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
       <dl className={styles.confirmed}><dt>서버 확정 종료일</dt><dd><output>{base.task.end}</output></dd><dt>요청 시작일</dt><dd>{base.task.requestedStart ?? "하위 작업 기준"}</dd></dl>
