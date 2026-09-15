@@ -1,0 +1,34 @@
+name: Issue 36 one-time version bump
+
+on:
+  push:
+    branches:
+      - feature/issue-36-task-editor-fields
+    paths:
+      - .release/issue-36-version-bump.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: Bump package and lockfile together
+        run: npm version 0.11.0 --no-git-tag-version
+      - name: Commit version and remove one-time workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/issue-36-version-bump.yml .release/issue-36-version-bump.trigger
+          git add package.json package-lock.json
+          git commit -m "chore: Issue #36 릴리스 버전을 0.11.0으로 갱신"
+          git push origin HEAD:feature/issue-36-task-editor-fields
