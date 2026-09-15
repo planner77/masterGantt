@@ -19,6 +19,11 @@ type ProjectPermissionRecheckBoundaryProps = Readonly<{
  * A valid edit grant keeps the existing subtree (and Gantt scroll/selection state)
  * untouched. Readonly, malformed, failed, or expired checks hard-reload the current
  * URL so stale client edit state is discarded and the workspace restarts readonly.
+ *
+ * The boundary uses `display: contents` deliberately: ProjectReadonlyView must stay
+ * a direct layout participant of `.project-page-shell`. Adding a normal wrapper
+ * changes the existing grid/flex sizing contract and can hide or narrow the Gantt.
+ * `inert` still applies to the DOM subtree during the short revalidation window.
  */
 export function ProjectPermissionRecheckBoundary({
   publicId,
@@ -69,7 +74,11 @@ export function ProjectPermissionRecheckBoundary({
     };
   }, [recheck]);
 
-  return <div aria-busy={rechecking || undefined} inert={rechecking || undefined}>
+  return <div
+    aria-busy={rechecking || undefined}
+    inert={rechecking || undefined}
+    style={{ display: "contents" }}
+  >
     {rechecking ? <span className="sr-only" role="status">편집 권한을 다시 확인하는 중입니다.</span> : null}
     {children}
   </div>;
