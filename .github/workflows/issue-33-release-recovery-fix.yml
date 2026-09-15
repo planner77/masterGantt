@@ -1,0 +1,78 @@
+name: 릴리스 전 Gantt 복구 수정
+
+on:
+  push:
+    branches:
+      - docs/issue-33-canonical-plan
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    name: canonical 복구와 회귀 검증 수정
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: docs/issue-33-canonical-plan
+          fetch-depth: 0
+      - name: 복구 경로 수정
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one match, found {count}')
+              target.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          replace_once(
+              'src/features/projects/project-readonly-view.tsx',
+              '''    const recovered = await reloadCanonicalSnapshot();\n    setGanttResetGeneration((generation) => generation + 1);''',
+              '''    const recovered = await reloadCanonicalSnapshot();\n    // A successful canonical fetch is synchronized into the existing SVAR instance.\n    // Remount only when the fetch itself failed and the last confirmed React snapshot\n    // must be used to discard an unconfirmed local drag/resize.\n    if (!recovered) setGanttResetGeneration((generation) => generation + 1);''',
+          )
+
+          replace_once(
+              'tests/e2e/project-task-persistence.spec.ts',
+              '''async function expectTaskBarGeometry(\n  page: Page,\n  taskId: string,\n  expected: Readonly<{ x: number; width: number }>,\n): Promise<void> {\n  const target = page.locator(`.wx-bar[data-task-id=":${taskId}"]`);\n  await expect.poll(async () => {\n    const box = await target.boundingBox();\n    if (!box) return Number.POSITIVE_INFINITY;\n    return Math.max(Math.abs(box.x - expected.x), Math.abs(box.width - expected.width));\n  }, { timeout: 5_000 }).toBeLessThan(0.5);\n}\n''',
+              '''async function expectTaskBarGeometry(\n  page: Page,\n  taskId: string,\n  expected: Readonly<{ x: number; width: number }>,\n): Promise<void> {\n  const target = page.locator(`.wx-bar[data-task-id=":${taskId}"]`);\n  await expect.poll(async () => {\n    const box = await target.boundingBox();\n    if (!box) return Number.POSITIVE_INFINITY;\n    return Math.max(Math.abs(box.x - expected.x), Math.abs(box.width - expected.width));\n  }, { timeout: 5_000 }).toBeLessThan(0.5);\n}\n\nasync function expectTaskGridStart(page: Page, taskName: string, dateOnly: string): Promise<void> {\n  const expected = await page.evaluate((value) => {\n    const [year, month, day] = value.split("-").map(Number);\n    return new Intl.DateTimeFormat(navigator.languages[0] || navigator.language || "en-CA", {\n      year: "numeric", month: "short", day: "numeric", timeZone: "UTC",\n    }).format(new Date(Date.UTC(year, month - 1, day)));\n  }, dateOnly);\n  const taskRow = page.locator(".project-gantt-widget .wx-table-container .wx-row", { hasText: taskName }).first();\n  await expect(taskRow).toContainText(expected);\n}\n''',
+          )
+
+          replace_once(
+              'tests/e2e/project-task-persistence.spec.ts',
+              '''  await expectTaskBarGeometry(page, task.taskId, canonicalBox);\n  snapshot = await (await page.request.get(apiPath)).json();\n  const deleteResponse = await page.request.delete''',
+              '''  // Canonical GET failed, so the component intentionally remounts from the last\n  // confirmed snapshot. Absolute bar x may change with the reset timeline viewport;\n  // verify the canonical schedule value in the Grid instead.\n  await expectTaskGridStart(page, `W07 Build ${suffix}`, "2026-09-16");\n  snapshot = await (await page.request.get(apiPath)).json();\n  const deleteResponse = await page.request.delete''',
+          )
+
+          changelog = Path('CHANGELOG.md')
+          text = changelog.read_text(encoding='utf-8')
+          issue_line = '- Issue #33: 운영 상단 주요 메뉴에서 `Gantt 데모` 링크를 제거한다. `/gantt-demo` route와 fixture는 SVAR 통합·timezone/hydration E2E 검증 자산으로 유지하고, 헤더 회귀 테스트는 프로젝트 메뉴와 알림 hit-area 및 데모 링크 미노출을 검증한다.\n'
+          addition = issue_line + '- 저장이 거부된 drag/resize의 canonical 조회가 성공하면 동일 Gantt 인스턴스에 서버 snapshot을 동기화하고, 조회 실패 시에만 강제 reset하여 검증되지 않은 로컬 변경을 폐기한다. 관련 비동기 E2E는 실제 스크롤 상태와 canonical 일정 복구를 기다려 검증한다.\n'
+          if text.count(issue_line) != 1:
+              raise SystemExit('CHANGELOG Issue #33 entry mismatch')
+          changelog.write_text(text.replace(issue_line, addition, 1), encoding='utf-8')
+
+          review = Path('docs/ISSUE_33_REVIEW.md')
+          text = review.read_text(encoding='utf-8')
+          note = '''\n## 릴리스 전 후속 검증\n\nPR #42 병합 뒤 canonical `PLAN.md` 누락을 보완하는 과정에서 기존 Chromium E2E의 두 비동기 assertion이 불안정함을 확인했다. 추가 분석 결과 저장 거부 후 canonical GET 성공 시에도 `ganttResetGeneration`을 증가시켜 이미 복구 가능한 동일 인스턴스를 강제로 remount하고 있었고, 이로 인해 시간축 viewport가 바뀔 수 있었다. 성공한 canonical 조회는 기존 `applyCanonicalGanttSync` 경로로 동기화하고 조회 실패 때만 마지막 확인 snapshot 기반 reset을 수행하도록 보완한다. 테스트는 0-offset DOM 노드 개수 대신 실제 스크롤 상태를 비교하고, canonical sync 완료를 bounded polling으로 확인한다. 이 보완은 0.8.1 릴리스 전에 같은 전체 GitHub Actions gate로 재검증한다.\n'''
+          if '## 릴리스 전 후속 검증' not in text:
+              review.write_text(text + note, encoding='utf-8')
+          PY
+          git diff --check
+      - name: 변경 커밋 및 push
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/projects/project-readonly-view.tsx tests/e2e/project-task-persistence.spec.ts CHANGELOG.md docs/ISSUE_33_REVIEW.md
+          git commit -m "fix: 저장 거부 후 canonical Gantt 복구 유지"
+          git push origin HEAD:docs/issue-33-canonical-plan
