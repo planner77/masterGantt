@@ -1,0 +1,40 @@
+name: Issue 36 one-time timezone E2E fix
+
+on:
+  push:
+    branches:
+      - feature/issue-36-task-editor-fields
+    paths:
+      - .release/issue-36-e2e-timezone-fix.trigger
+
+permissions:
+  contents: write
+
+jobs:
+  fix-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: true
+      - name: Keep timezone loop focused on date-only regression
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path("tests/e2e/project-task-editor-persistence.spec.ts")
+          text = path.read_text(encoding="utf-8")
+          old = '''      await expect(information.getByLabel("기간 (근무일)", { exact: true })).toHaveValue("2");\n      await expect(information.getByLabel("Description", { exact: true })).toHaveValue("첫 줄\\n둘째 줄");\n      await expect(information.getByLabel("URL", { exact: true })).toHaveValue(taskUrl);\n      await expect(information.getByLabel("진행률 (%)", { exact: true })).toHaveAttribute("aria-valuetext", "75%");'''
+          new = '''      await expect(information.getByLabel("기간 (근무일)", { exact: true })).toHaveValue("2");'''
+          if text.count(old) != 1:
+              raise SystemExit("timezone detail assertion block not found exactly once")
+          path.write_text(text.replace(old, new, 1), encoding="utf-8")
+      - name: Commit fix and remove one-time workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/issue-36-e2e-timezone-fix.yml .release/issue-36-e2e-timezone-fix.trigger
+          git add tests/e2e/project-task-editor-persistence.spec.ts
+          git commit -m "test: timezone E2E를 date-only 회귀 검증에 집중 (#36)"
+          git push origin HEAD:feature/issue-36-task-editor-fields
