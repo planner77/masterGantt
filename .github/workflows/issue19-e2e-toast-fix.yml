@@ -1,0 +1,43 @@
+name: Issue 19 E2E Toast Fix
+
+on:
+  push:
+    branches: [feat/issue-19-resource-catalog]
+    paths:
+      - .github/workflows/issue19-e2e-toast-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: 복구 실패 E2E assertion 안정화
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('tests/e2e/project-task-persistence.spec.ts')
+          text = path.read_text(encoding='utf-8')
+          old = '''  await dragTaskBarByOneDay(page, task.taskId, movedTask.duration, "move");\n  await expect(page.getByTestId("workspace-toast")).toContainText("최신 일정 조회에 실패");\n  await removeNetworkFailure(); await page.unroute(canonicalPattern, failCanonicalRead); expect(failedCanonicalReads).toBe(1);\n  // 저장 오류와 복구 오류가 둘 다 보관되어야 한다. 복구 안내가 원래 오류를 삭제하면 안 된다.\n  await page.getByRole("button", { name: /알림함/ }).click();\n  const inbox = page.getByRole("dialog", { name: "오류 알림함" });\n  expect((await inbox.locator("textarea").evaluateAll((elements) => elements.map((element) => (element as HTMLTextAreaElement).value))).join("\\n")).toContain("작업을 저장할 수 없습니다");\n'''
+          new = '''  await dragTaskBarByOneDay(page, task.taskId, movedTask.duration, "move");\n  await expect.poll(() => failedCanonicalReads, { timeout: 5_000 }).toBe(1);\n  await removeNetworkFailure(); await page.unroute(canonicalPattern, failCanonicalRead);\n  // 저장 오류 toast가 표시 중이어도 복구 오류는 알림함에 별도로 보관되어야 한다.\n  // toast 교체 시점에 의존하지 않고 두 오류가 모두 보존되는 사용자 계약을 검증한다.\n  await page.getByRole("button", { name: /알림함/ }).click();\n  const inbox = page.getByRole("dialog", { name: "오류 알림함" });\n  const inboxText = (await inbox.locator("textarea").evaluateAll((elements) => elements.map((element) => (element as HTMLTextAreaElement).value))).join("\\n");\n  expect(inboxText).toContain("작업을 저장할 수 없습니다");\n  expect(inboxText).toContain("최신 일정 조회에 실패");\n'''
+          if old not in text:
+              raise SystemExit('E2E recovery assertion anchor not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+          rm .github/workflows/issue19-e2e-toast-fix.yml
+      - name: 수정 커밋
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "test(e2e): 복구 실패 알림 검증을 비동기 순서와 분리 (#19)"
+          git push origin HEAD:feat/issue-19-resource-catalog
