@@ -13,8 +13,8 @@ export default async function ProjectPage({
 }: Readonly<{ params: Promise<{ publicId: string }> }>) {
   const { publicId } = await params;
   const projectUrl = buildProjectShareUrl(process.env.APP_BASE_URL, process.env.NODE_ENV, publicId, process.env.ALLOW_INSECURE_HTTP);
-  return <div className="project-page-shell">
-    <div className="project-page-actions">
+  return <div className="project-page-shell" style={{ flexDirection: "column" }}>
+    <div className="project-page-actions" style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.75rem" }}>
       <ProjectExcelExportButton publicId={publicId} />
     </div>
     <ProjectPermissionRecheckBoundary publicId={publicId}>
