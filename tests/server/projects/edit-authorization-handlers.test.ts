@@ -409,7 +409,7 @@ describe("W05 protected project handlers", () => {
 });
 
 describe("route security inventory", () => {
-  it("enumerates every explicit route/method and maps every unsafe method to a policy", () => {
+  it("enumerates every explicit route/method and maps state-changing methods to a policy", () => {
     expect(ROUTE_SECURITY_INVENTORY.map(({ template, method }) => `${method} ${template}`)).toEqual([
       "GET /api/health/live",
       "GET /api/health/ready",
@@ -419,6 +419,7 @@ describe("route security inventory", () => {
       "PATCH /api/projects/{publicId}",
       "DELETE /api/projects/{publicId}",
       "POST /api/projects/{publicId}/copy",
+      "POST /api/projects/{publicId}/exports/excel",
       "POST /api/projects/{publicId}/edit-sessions",
       "GET /api/projects/{publicId}/edit-sessions/current",
       "DELETE /api/projects/{publicId}/edit-sessions/current",
@@ -439,12 +440,14 @@ describe("route security inventory", () => {
       "GET /api/projects/{publicId}/assigned-targets",
       "PUT /api/projects/{publicId}/tasks/{taskId}/assignments",
     ]);
-    for (const route of ROUTE_SECURITY_INVENTORY.filter(({ method }) => !["GET"].includes(method))) {
+    for (const route of ROUTE_SECURITY_INVENTORY.filter(({ mutatesState }) => mutatesState)) {
+      expect(route.method).not.toBe("GET");
       expect(route.policy).not.toBe("public-read");
-      expect(route.mutatesState).toBe(true);
     }
     expect(ROUTE_SECURITY_INVENTORY.filter(({ method }) => method === "GET").every(({ mutatesState }) => !mutatesState))
       .toBe(true);
+    expect(ROUTE_SECURITY_INVENTORY.find(({ template }) => template === "/api/projects/{publicId}/exports/excel"))
+      .toMatchObject({ method: "POST", policy: "origin-if-match-read", mutatesState: false });
   });
 
   it("matches the exported methods in every API route source", () => {
@@ -476,6 +479,7 @@ describe("route security inventory", () => {
       "POST /api/projects": "origin-and-create-limit",
       "PATCH /api/projects/{publicId}": "origin-session-if-match",
       "DELETE /api/projects/{publicId}": "origin-session-if-match",
+      "POST /api/projects/{publicId}/exports/excel": "origin-if-match-read",
       "POST /api/projects/{publicId}/edit-sessions": "origin-and-password-limit",
       "DELETE /api/projects/{publicId}/edit-sessions/current": "origin-and-target-logout",
       "PUT /api/projects/{publicId}/edit-password": "origin-session-if-match",
