@@ -5,6 +5,7 @@ export type RouteSecurityPolicy =
   | "optional-session-read"
   | "origin-and-target-logout"
   | "origin-session-if-match"
+  | "origin-if-match-read"
   | "resource-admin-read"
   | "origin-resource-admin-auth"
   | "origin-resource-admin-logout"
@@ -27,6 +28,7 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/copy", method: "POST", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/exports/excel", method: "POST", policy: "origin-if-match-read", mutatesState: false },
   { template: "/api/projects/{publicId}/edit-sessions", method: "POST", policy: "origin-and-password-limit", mutatesState: true },
   { template: "/api/projects/{publicId}/edit-sessions/current", method: "GET", policy: "optional-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/edit-sessions/current", method: "DELETE", policy: "origin-and-target-logout", mutatesState: true },
