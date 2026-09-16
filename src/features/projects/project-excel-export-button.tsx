@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import type { ProjectExcelExportRequest } from "@/contracts/project-excel-export";
@@ -38,11 +39,29 @@ const exportLayout: ProjectExcelExportRequest["layout"] = {
   ],
 };
 
+function findHeadingActions(): HTMLElement | null {
+  const heading = document.querySelector(".project-readonly-heading");
+  const target = heading?.lastElementChild;
+  return target instanceof HTMLElement ? target : null;
+}
+
 export function ProjectExcelExportButton({ publicId }: Readonly<{ publicId: string }>) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const resolveTarget = () => {
+      const next = findHeadingActions();
+      setPortalTarget((current) => current === next ? current : next);
+    };
+    resolveTarget();
+    const observer = new MutationObserver(resolveTarget);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [publicId]);
 
   async function exportExcel(includeDependencies: boolean) {
     if (busy) return;
@@ -109,14 +128,16 @@ export function ProjectExcelExportButton({ publicId }: Readonly<{ publicId: stri
     }
   }
 
+  const trigger = <button
+    ref={triggerRef}
+    className="secondary-button"
+    type="button"
+    disabled={busy}
+    onClick={() => { setMessage(null); setOpen(true); }}
+  >Excel 내보내기</button>;
+
   return <>
-    <button
-      ref={triggerRef}
-      className="secondary-button"
-      type="button"
-      disabled={busy}
-      onClick={() => { setMessage(null); setOpen(true); }}
-    >Excel 내보내기</button>
+    {portalTarget ? createPortal(trigger, portalTarget) : null}
     {open ? <WorkspaceDialog
       title="Excel 내보내기"
       busy={busy}
