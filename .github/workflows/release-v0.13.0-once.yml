@@ -1,0 +1,88 @@
+name: Release v0.13.0 once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/release-v0.13.0-once.yml"
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  release:
+    name: v0.13.0 태그·이미지·GitHub Release 게시
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: v0.13.0
+      RELEASE_VERSION: 0.13.0
+      RELEASE_COMMIT: 0d9e07b6883fbf405741b82642ca7c167e5a9b28
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: 릴리스 대상 검증
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor "$RELEASE_COMMIT" HEAD
+          package_version="$(git show "$RELEASE_COMMIT:package.json" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>process.stdout.write(JSON.parse(s).version))")"
+          test "$package_version" = "$RELEASE_VERSION"
+          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Tag already exists: $RELEASE_TAG" >&2
+            exit 1
+          fi
+          if gh api "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "GitHub Release already exists: $RELEASE_TAG" >&2
+            exit 1
+          fi
+
+      - name: annotated tag 생성 및 게시
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$RELEASE_TAG" "$RELEASE_COMMIT" -m "masterGantt $RELEASE_TAG"
+          git push origin "refs/tags/$RELEASE_TAG"
+          test "$(git cat-file -t "refs/tags/$RELEASE_TAG")" = tag
+
+      - name: 정식 release-image workflow 실행
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run release-image.yml --ref "$RELEASE_TAG"
+
+          run_id=""
+          for _ in $(seq 1 60); do
+            run_id="$(gh run list --workflow release-image.yml --event workflow_dispatch --limit 30 --json databaseId,headSha,status,createdAt --jq ".[] | select(.headSha == \"$RELEASE_COMMIT\") | .databaseId" | head -n 1)"
+            if [[ -n "$run_id" ]]; then
+              break
+            fi
+            sleep 5
+          done
+          if [[ -z "$run_id" ]]; then
+            echo "release-image workflow run을 찾지 못했습니다." >&2
+            exit 1
+          fi
+          echo "release-image run: $run_id"
+          gh run watch "$run_id" --exit-status
+
+      - name: GitHub Release 게시
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_body="$(git show "$RELEASE_COMMIT:docs/releases/v0.13.0.md")"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/releases" \
+            -f tag_name="$RELEASE_TAG" \
+            -f target_commitish="$RELEASE_COMMIT" \
+            -f name="$RELEASE_TAG" \
+            -F draft=false \
+            -F prerelease=false \
+            --raw-field body="$release_body" >/tmp/release.json
+          node -e "const r=require('/tmp/release.json'); if(r.tag_name!=='v0.13.0'||r.draft||r.prerelease) process.exit(1); console.log(r.html_url)"
