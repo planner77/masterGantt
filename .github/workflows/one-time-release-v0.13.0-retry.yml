@@ -1,0 +1,148 @@
+name: One-time Release v0.13.0 Retry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/one-time-release-v0.13.0-retry.yml
+
+permissions:
+  contents: write
+  actions: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      TARGET_SHA: 314e04bbb01668c645960a094b75060398bb6209
+      MAIN_CI_RUN_ID: "35065598621"
+      TAG_NAME: v0.13.0
+      VERSION: 0.13.0
+      WORK_BRANCH: feat/issue-28-excel-export
+      WORKFLOW_PATH: .github/workflows/one-time-release-v0.13.0-retry.yml
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Git 사용자 설정
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: main CI 필수 gate 완료 대기
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 240); do
+            jobs="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$MAIN_CI_RUN_ID/jobs?filter=latest&per_page=100")"
+            status="$(node - "$jobs" <<'NODE'
+          const data = JSON.parse(process.argv[2]);
+          const required = [
+            'Build, static checks, and unit tests',
+            'Chromium end-to-end tests',
+            'Docker build and runtime smoke test',
+          ];
+          let allSuccess = true;
+          for (const name of required) {
+            const matches = data.jobs.filter((job) => job.name === name);
+            if (matches.some((job) => job.status === 'completed' && job.conclusion && job.conclusion !== 'success')) {
+              console.log('failure');
+              process.exit(0);
+            }
+            if (!matches.some((job) => job.status === 'completed' && job.conclusion === 'success')) {
+              allSuccess = false;
+            }
+          }
+          console.log(allSuccess ? 'success' : 'waiting');
+          NODE
+            )"
+            if [ "$status" = success ]; then
+              exit 0
+            fi
+            if [ "$status" = failure ]; then
+              echo "main CI 필수 gate 중 실패가 있습니다." >&2
+              exit 1
+            fi
+            sleep 15
+          done
+          echo "main CI 필수 gate 대기 시간이 초과되었습니다." >&2
+          exit 1
+
+      - name: 릴리스 대상 SHA와 버전 검증
+        run: |
+          set -euo pipefail
+          git fetch origin main --tags --force
+          git cat-file -e "$TARGET_SHA^{commit}"
+          git merge-base --is-ancestor "$TARGET_SHA" origin/main
+          version="$(git show "$TARGET_SHA:package.json" | node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>process.stdout.write(JSON.parse(s).version))')"
+          test "$version" = "$VERSION"
+          git show "$TARGET_SHA:package-lock.json" | VERSION="$VERSION" node -e 'let s="";process.stdin.on("data",d=>s+=d);process.stdin.on("end",()=>{const p=JSON.parse(s);if(p.version!==process.env.VERSION||p.packages?.[""]?.version!==process.env.VERSION)process.exit(1)})'
+
+      - name: annotated tag 생성
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+            existing="$(git rev-parse "$TAG_NAME^{}")"
+            test "$existing" = "$TARGET_SHA"
+          else
+            git tag -a "$TAG_NAME" "$TARGET_SHA" -m "masterGantt $TAG_NAME"
+            git push origin "refs/tags/$TAG_NAME"
+          fi
+          test "$(git cat-file -t "$TAG_NAME")" = tag
+          test "$(git rev-parse "$TAG_NAME^{}")" = "$TARGET_SHA"
+
+      - name: release image workflow 실행 및 성공 확인
+        id: release_image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run release-image.yml --repo "$GITHUB_REPOSITORY" --ref "$TAG_NAME"
+          run_id=""
+          for _ in $(seq 1 60); do
+            run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release-image.yml --branch "$TAG_NAME" --event workflow_dispatch --limit 10 --json databaseId,headSha --jq ".[] | select(.headSha == \"$TARGET_SHA\") | .databaseId" | head -n 1)"
+            if [ -n "$run_id" ]; then break; fi
+            sleep 2
+          done
+          test -n "$run_id"
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          gh run watch "$run_id" --repo "$GITHUB_REPOSITORY" --exit-status
+          conclusion="$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json conclusion --jq .conclusion)"
+          test "$conclusion" = success
+
+      - name: GitHub Release 생성
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git show "$TARGET_SHA:docs/releases/v0.13.0.md" > /tmp/v0.13.0.md
+          if gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$TAG_NAME" --repo "$GITHUB_REPOSITORY" --target "$TARGET_SHA" --title "$TAG_NAME" --notes-file /tmp/v0.13.0.md
+          else
+            gh release create "$TAG_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --target "$TARGET_SHA" --title "$TAG_NAME" --notes-file /tmp/v0.13.0.md
+          fi
+
+      - name: 작업 브랜치 삭제
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$WORK_BRANCH" >/dev/null 2>&1; then
+            gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$WORK_BRANCH"
+          fi
+
+      - name: 일회성 workflow 제거
+        if: success()
+        run: |
+          set -euo pipefail
+          git pull --ff-only origin main
+          git rm "$WORKFLOW_PATH"
+          git commit -m "chore: 일회성 v0.13.0 릴리스 workflow 제거"
+          git push origin HEAD:main
