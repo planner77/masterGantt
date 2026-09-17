@@ -18,7 +18,7 @@ function runCli(
   filename: string | undefined,
   environment: NodeJS.ProcessEnv["NODE_ENV"] = "test",
 ) {
-  const env: NodeJS.ProcessEnv = { ...process.env, NODE_ENV: environment };
+  const env: NodeJS.ProcessEnv = { ...process.env, NODE_ENV: environment, LOG_LEVEL: "info" };
   delete env.DATABASE_PATH;
   if (filename !== undefined) env.DATABASE_PATH = filename;
   return spawnSync(
@@ -26,6 +26,14 @@ function runCli(
     ["--import", "tsx", resolve("scripts/migrate.ts")],
     { cwd: process.cwd(), env, encoding: "utf8", timeout: 15_000 },
   );
+}
+
+function diagnosticEvents(stderr: string): Array<Record<string, unknown>> {
+  return stderr
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line) as Record<string, unknown>);
 }
 
 describe("migration CLI", () => {
@@ -47,10 +55,18 @@ describe("migration CLI", () => {
         "0005_resource_workload.sql",
       ],
     });
+    expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
+      "database_migration_started",
+      "database_migration_completed",
+    ]);
 
     const second = runCli(filename);
     expect(second.status, second.stderr).toBe(0);
     expect(JSON.parse(second.stdout)).toEqual({ status: "ok", applied: [] });
+    expect(diagnosticEvents(second.stderr).map((entry) => entry.event)).toEqual([
+      "database_migration_started",
+      "database_migration_completed",
+    ]);
 
     const database = new Database(filename, { readonly: true });
     try {
@@ -69,13 +85,17 @@ describe("migration CLI", () => {
     }
   });
 
-  it("fails without an explicit path and does not print configuration", () => {
+  it("fails without an explicit path and emits a safe structured diagnostic", () => {
     const result = runCli(undefined);
     expect(result.error).toBeUndefined();
     expect(result.status).toBe(1);
     expect(result.stdout).toBe("");
-    expect(result.stderr).toContain("Database migration failed.");
-    expect(result.stderr).not.toContain("Error:");
+    const events = diagnosticEvents(result.stderr);
+    expect(events.map((entry) => entry.event)).toEqual([
+      "database_migration_started",
+      "database_migration_failed",
+    ]);
+    expect(result.stderr).not.toContain("DATABASE_PATH is required");
   });
 
   it("rejects a production path outside /data without exposing it", () => {
@@ -85,5 +105,6 @@ describe("migration CLI", () => {
     expect(result.status).toBe(1);
     expect(result.stdout).toBe("");
     expect(result.stderr).not.toContain(filename);
+    expect(diagnosticEvents(result.stderr).at(-1)?.event).toBe("database_migration_failed");
   });
 });
