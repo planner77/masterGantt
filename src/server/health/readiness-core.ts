@@ -6,6 +6,15 @@ export type ReadinessResult =
   | { status: "ok" }
   | { status: "unavailable" };
 
+export type ReadinessFailureReason =
+  | "DATABASE_CONNECTIVITY_FAILED"
+  | "FOREIGN_KEYS_DISABLED"
+  | "MIGRATION_MISMATCH";
+
+export type ReadinessDiagnostic =
+  | { result: { status: "ok" }; reason?: undefined }
+  | { result: { status: "unavailable" }; reason: ReadinessFailureReason };
+
 const READY: ReadinessResult = Object.freeze({ status: "ok" });
 const UNAVAILABLE: ReadinessResult = Object.freeze({ status: "unavailable" });
 
@@ -19,22 +28,30 @@ export function unavailableReadiness(): ReadinessResult {
   return UNAVAILABLE;
 }
 
-export function checkReadiness(
+export function diagnoseReadiness(
   database: Database.Database,
   requiredMigration: RequiredMigration,
-): ReadinessResult {
+): ReadinessDiagnostic {
   try {
     const connectivity = database
       .prepare("SELECT 1 AS value")
       .get() as { value?: unknown } | undefined;
     if (connectivity?.value !== 1) {
-      return UNAVAILABLE;
+      return { result: UNAVAILABLE, reason: "DATABASE_CONNECTIVITY_FAILED" };
     }
+  } catch {
+    return { result: UNAVAILABLE, reason: "DATABASE_CONNECTIVITY_FAILED" };
+  }
 
+  try {
     if (database.pragma("foreign_keys", { simple: true }) !== 1) {
-      return UNAVAILABLE;
+      return { result: UNAVAILABLE, reason: "FOREIGN_KEYS_DISABLED" };
     }
+  } catch {
+    return { result: UNAVAILABLE, reason: "DATABASE_CONNECTIVITY_FAILED" };
+  }
 
+  try {
     const appliedMigration = database
       .prepare(
         `
@@ -50,11 +67,18 @@ export function checkReadiness(
       appliedMigration.name !== requiredMigration.name ||
       appliedMigration.checksum !== requiredMigration.checksum
     ) {
-      return UNAVAILABLE;
+      return { result: UNAVAILABLE, reason: "MIGRATION_MISMATCH" };
     }
-
-    return READY;
   } catch {
-    return UNAVAILABLE;
+    return { result: UNAVAILABLE, reason: "MIGRATION_MISMATCH" };
   }
+
+  return { result: READY };
+}
+
+export function checkReadiness(
+  database: Database.Database,
+  requiredMigration: RequiredMigration,
+): ReadinessResult {
+  return diagnoseReadiness(database, requiredMigration).result;
 }
