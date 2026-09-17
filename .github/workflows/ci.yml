@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 concurrency:
-  # Each main SHA has its own immutable image. PRs share a group so an obsolete
-  # head can be cancelled, while no main publish is displaced while pending.
+  # PRs share a group so obsolete heads can be cancelled. Main runs keep a SHA-specific
+  # group while their temporary registry publish/pull/cleanup sequence is in progress.
   group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.event.pull_request.number) || format('ci-main-{0}', github.sha) }}
   # Do not cancel a main publish after it has begun; only superseded PR checks
   # are safe to cancel.
@@ -172,9 +172,9 @@ jobs:
         run: docker rm --force --volumes mastergantt-ci || true
 
   publish-commit-image:
-    # PR and manual runs stay read-only. A successful push to main is the sole
-    # event that may publish a commit image for user/integration testing.
-    name: Publish and verify immutable main commit image
+    # PR and manual runs stay read-only. A successful push to main may publish a
+    # temporary commit image only long enough to verify registry pull/runtime behavior.
+    name: Main 임시 commit 이미지 게시·검증·정리
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -182,14 +182,12 @@ jobs:
     permissions:
       contents: read
       packages: write
-      attestations: write
-      id-token: write
     steps:
       # actions/checkout v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Calculate lowercase immutable GHCR reference
+      - name: 임시 GHCR 참조 계산
         id: image
         shell: bash
         run: |
@@ -210,15 +208,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Refuse to overwrite an existing commit image
+      - name: 기존 임시 commit 이미지 덮어쓰기 거부
         shell: bash
         run: |
           set -euo pipefail
           if docker manifest inspect "${{ steps.image.outputs.reference }}" >/dev/null 2>&1; then
-            echo "Refusing to overwrite immutable commit image: ${{ steps.image.outputs.reference }}" >&2
+            echo "Refusing to overwrite temporary commit image: ${{ steps.image.outputs.reference }}" >&2
             exit 1
           fi
-      - name: Build and push immutable commit image
+      - name: 임시 commit 이미지 빌드·게시
         id: push
         # docker/build-push-action v7.3.0
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
@@ -288,28 +286,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes nginx libnss3-tools
           bash scripts/verify-transport-smoke.sh "${{ steps.digest.outputs.image }}"
-      - name: Attest the verified commit image digest
-        id: attest
-        # Private repositories below Enterprise Cloud leave this variable unset.
-        # BuildKit SBOM/provenance above remains mandatory in every publish.
-        if: vars.ENABLE_GITHUB_ATTESTATIONS == 'true'
-        # actions/attest v4.2.2
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
-        with:
-          subject-name: ${{ steps.image.outputs.name }}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
-      - name: Report published digest
+      - name: 임시 이미지 검증 결과 기록
         if: success()
         shell: bash
         run: |
           {
-            echo "## Published main commit image"
+            echo "## Verified temporary main commit image"
             echo
             echo "- Reference: \`${{ steps.digest.outputs.image }}\`"
             echo "- Digest: \`${{ steps.push.outputs.digest }}\`"
             echo "- Verification: policy, readiness, native SQLite/API write, authorization denial, and restart persistence passed."
-            echo "- BuildKit SBOM/provenance: generated. GitHub attestation: ${{ steps.attest.outcome || 'disabled' }}."
+            echo "- BuildKit SBOM/provenance: generated for registry verification."
+            echo "- Retention: the temporary ci-<SHA> package version is deleted after verification."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Show smoke-test logs on failure
         if: failure()
@@ -317,3 +305,11 @@ jobs:
       - name: Remove smoke-test container
         if: always()
         run: docker rm --force --volumes mastergantt-commit-smoke || true
+      - name: GHCR 임시 main commit 이미지 삭제
+        if: always() && steps.push.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}
+        run: |
+          node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${{ github.sha }}"
+          echo "- GHCR cleanup: temporary ci-${{ github.sha }} package version deleted." >> "$GITHUB_STEP_SUMMARY"

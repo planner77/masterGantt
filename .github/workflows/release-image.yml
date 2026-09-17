@@ -24,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image_name: ${{ steps.tags.outputs.image_name }}
-      candidate_image: ${{ steps.tags.outputs.candidate_image }}
       exact_image: ${{ steps.tags.outputs.exact_image }}
       rolling_tags: ${{ steps.tags.outputs.rolling_tags }}
       version: ${{ steps.tags.outputs.version }}
@@ -62,11 +61,10 @@ jobs:
           {
             echo "image_name=$image_name"
             echo "version=$version"
-            echo "candidate_image=$image_name:sha-$GITHUB_SHA"
             echo "exact_image=$image_name:$version"
             echo "rolling_tags<<EOF"
-            # Prereleases have only exact and immutable-SHA tags. Stable releases
-            # alone move major/minor/latest consumer convenience tags.
+            # Prereleases keep only the exact SemVer tag. Stable releases alone
+            # move major/minor/latest consumer convenience tags after digest verification.
             if [[ "$version" != *-* ]]; then
               IFS=. read -r major minor _ <<< "$version"
               echo "$image_name:$major.$minor"
@@ -197,20 +195,17 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Refuse to overwrite an immutable exact or commit tag
+      - name: 기존 exact release 이미지 덮어쓰기 거부
         shell: bash
         env:
           EXACT_IMAGE: ${{ needs.prepare.outputs.exact_image }}
-          CANDIDATE_IMAGE: ${{ needs.prepare.outputs.candidate_image }}
         run: |
           set -euo pipefail
-          for immutable_image in "$EXACT_IMAGE" "$CANDIDATE_IMAGE"; do
-            if docker manifest inspect "$immutable_image" >/dev/null 2>&1; then
-              echo "Refusing to overwrite existing immutable release image: $immutable_image" >&2
-              echo "Create a new SemVer version and commit for a replacement release." >&2
-              exit 1
-            fi
-          done
+          if docker manifest inspect "$EXACT_IMAGE" >/dev/null 2>&1; then
+            echo "Refusing to overwrite existing exact release image: $EXACT_IMAGE" >&2
+            echo "Create a new SemVer version and commit for a replacement release." >&2
+            exit 1
+          fi
       - name: Build and push release image
         id: push
         # docker/build-push-action v7.3.0
@@ -219,9 +214,9 @@ jobs:
           context: .
           file: deploy/docker/Dockerfile
           push: true
-          # The immutable commit tag is a candidate until digest smoke passes.
-          # Exact/rolling release tags are promoted from that verified digest below.
-          tags: ${{ needs.prepare.outputs.candidate_image }}
+          # Local candidate smoke already passed. Publish the exact SemVer tag, then
+          # verify its registry digest before moving any stable rolling aliases.
+          tags: ${{ needs.prepare.outputs.exact_image }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
@@ -288,11 +283,6 @@ jobs:
             fi
           done <<< "$ROLLING_TAGS"
           docker buildx imagetools create "${tag_arguments[@]}" "$VERIFIED_IMAGE"
-      - name: Mark the verified digest with the immutable exact version
-        env:
-          VERIFIED_IMAGE: ${{ needs.prepare.outputs.image_name }}@${{ steps.push.outputs.digest }}
-          EXACT_IMAGE: ${{ needs.prepare.outputs.exact_image }}
-        run: docker buildx imagetools create --tag "$EXACT_IMAGE" "$VERIFIED_IMAGE"
       - name: Record release coordinates
         env:
           EXACT_IMAGE: ${{ needs.prepare.outputs.exact_image }}
@@ -308,3 +298,9 @@ jobs:
       - name: Remove smoke-test container
         if: always()
         run: docker rm --force --volumes mastergantt-release-smoke || true
+      - name: 실패한 exact release 이미지 정리
+        if: always() && failure() && steps.push.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}
+        run: node scripts/delete-ghcr-package-version-by-tag.mjs "${{ needs.prepare.outputs.version }}"

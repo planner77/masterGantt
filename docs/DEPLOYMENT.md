@@ -176,7 +176,7 @@ PR과 수동 CI token은 `contents: read`뿐이며 모든 checkout은 `persist-c
 
 ### Main commit 테스트 image
 
-`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 한 번만 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않는다.
+`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 임시로 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않으며, digest 검증이 끝난 `ci-*` package version은 자동 삭제한다.
 
 Workflow는 build output digest를 다시 pull해 image policy와 readiness를 확인하고, 실제 HTTP API로 Project를 생성해 edit session을 받은 뒤 root Task를 저장한다. Session 없는 mutation 거부를 확인하고 container를 restart한 후 동일 Project와 Task가 남는지 재조회한다. 이 검증은 격리 volume에서 수행하며 사용자 data를 사용하지 않는다. Workflow summary의 exact digest가 사용자·통합 테스트 입력이다.
 
@@ -184,7 +184,7 @@ Workflow는 build output digest를 다시 pull해 image policy와 readiness를 �
 docker pull ghcr.io/planner77/mastergantt@sha256:<commit-image-digest>
 ```
 
-Commit image는 release가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. 아래 release workflow는 별도 `sha-<full SHA>` candidate를 사용한다.
+Commit image는 release가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. 아래 release workflow는 GHCR에 commit 고정 candidate를 남기지 않고 local candidate 검증 후 exact SemVer를 직접 게시한다.
 
 ### 안정 SemVer와 GHCR publish
 
@@ -196,7 +196,7 @@ git tag -a v0.6.0 -m "Release v0.6.0"
 git push origin v0.6.0
 ```
 
-tag push는 [release image workflow](../.github/workflows/release-image.yml)를 실행한다. workflow는 이전 tag보다 큰 version과 annotated tag를 확인하고 전체 quality gate 및 동일 release 설정의 local candidate runtime smoke를 통과한 뒤에만 ephemeral `GITHUB_TOKEN`으로 lowercase GHCR의 immutable `sha-<full-commit>` candidate를 push한다. Registry digest smoke와, 활성화된 경우 GitHub Attestation이 성공한 뒤 stable release의 `major.minor`, `major`, `latest`를 이동하고 exact version을 마지막 완료 표식으로 생성한다. Prerelease는 exact/commit tag만 받는다. Repository 단위 직렬화와 monotonic gate가 낮은 version의 alias rollback을 막으며 기존 exact/commit image는 overwrite하지 않는다. tag workflow의 권한은 `contents: read`, `packages: write`, optional attestation/OIDC에 필요한 `attestations: write` 및 `id-token: write`로 한정된다. Release run은 취소하지 않는다.
+tag push는 [release image workflow](../.github/workflows/release-image.yml)를 실행한다. workflow는 이전 tag보다 큰 version과 annotated tag를 확인하고 전체 quality gate 및 동일 release 설정의 local candidate runtime smoke를 통과한 뒤에만 ephemeral `GITHUB_TOKEN`으로 lowercase GHCR exact SemVer image를 직접 게시한다. 게시된 build output digest를 registry에서 다시 pull하여 runtime smoke와, 활성화된 경우 GitHub Attestation을 통과한 뒤 stable release의 `major.minor`, `major`, `latest`만 같은 검증 digest로 이동한다. Prerelease는 exact SemVer tag만 보관한다. Release용 `sha-<full-commit>` GHCR candidate는 만들지 않는다. Repository 단위 직렬화와 monotonic gate가 낮은 version의 alias rollback을 막으며 기존 exact image는 overwrite하지 않는다. tag workflow의 권한은 `contents: read`, `packages: write`, optional attestation/OIDC에 필요한 `attestations: write` 및 `id-token: write`로 한정된다. Release run은 취소하지 않는다.
 
 BuildKit SBOM/provenance는 항상 publish한다. GitHub Artifact Attestation은 private repository에서 Enterprise Cloud가 필요하므로 `ENABLE_GITHUB_ATTESTATIONS=true`인 지원 환경에서만 실행한다. Push 결과 digest를 다시 pull하여 실제 GHCR image가 migration/readiness와 HTTP Project/Task authorization·restart persistence smoke를 통과하는지도 확인한다. [GitHub Docs](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images), [GitHub Attestation 지원 조건](https://docs.github.com/en/enterprise-cloud@latest/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations), [Docker Docs](https://docs.docker.com/build/ci/github-actions/attestations/)를 따른다. 모든 third-party action은 review 가능한 full commit SHA로 pin하며, [Dependabot](../.github/dependabot.yml)가 주간 update PR을 제안한다.
 

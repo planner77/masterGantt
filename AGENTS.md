@@ -60,8 +60,9 @@ Issue / approved scope
 → QA / Manager review
 → merge to main
 → GitHub Actions 재검증
-→ GHCR immutable ci-<full SHA>
+→ GHCR 임시 ci-<full SHA> 게시
 → exact digest pull smoke
+→ 임시 ci-<full SHA> package version 삭제
 ```
 
 ### Local Fast Feedback
@@ -78,7 +79,7 @@ PR은 read-only이며 registry write를 수행하지 않는다. 검토 대상 he
 
 ### Main Artifact Validation
 
-`main` push에서는 동일 gate를 다시 통과한 뒤에만 immutable `ci-<full SHA>` image를 GHCR에 게시한다. 게시한 image는 exact digest로 다시 pull하여 policy, readiness, native SQLite, Project/Task API authorization/persistence, restart persistence를 검증하고 SBOM/provenance를 생성한다.
+`main` push에서는 동일 gate를 다시 통과한 뒤에만 임시 `ci-<full SHA>` image를 GHCR에 게시한다. 게시한 image는 exact digest로 다시 pull하여 policy, readiness, native SQLite, Project/Task API authorization/persistence, restart persistence를 검증하고 SBOM/provenance를 생성한 뒤 해당 GHCR package version을 삭제한다. `ci-*`는 운영·rollback artifact로 보관하지 않는다.
 
 로컬 Docker PASS나 PR PASS만으로 main GHCR artifact PASS를 주장하지 않는다.
 
@@ -129,7 +130,7 @@ Excel → JSON/CSV 변환과 VBA integration을 담당한다. 자동화 가능�
 
 ### infra
 
-GitHub repository 운영, GitHub Actions CI/CD, GHCR, Docker/Compose, SQLite persistence와 deployment를 담당한다. PR `quality/e2e/docker` 실행과 실패 분석, main immutable GHCR publish/exact digest smoke를 주 담당한다. 원격 run/job/step/head SHA를 증거로 사용하며 gate를 약화해 통과시키지 않는다. 상세 절차는 `docs/GITHUB_OPERATIONS.md`와 `docs/REMOTE_VALIDATION.md`를 따른다.
+GitHub repository 운영, GitHub Actions CI/CD, GHCR, Docker/Compose, SQLite persistence와 deployment를 담당한다. PR `quality/e2e/docker` 실행과 실패 분석, main 임시 GHCR publish/exact digest smoke와 검증 후 package cleanup을 주 담당한다. 원격 run/job/step/head SHA를 증거로 사용하며 gate를 약화해 통과시키지 않는다. 상세 절차는 `docs/GITHUB_OPERATIONS.md`와 `docs/REMOTE_VALIDATION.md`를 따른다.
 
 ### qa_docs
 
@@ -184,7 +185,7 @@ PR과 수동 CI에는 write token/registry secret을 주지 않는다. `main` co
 - QA Review
 - Manager Review
 
-`main` artifact까지 완료 범위에 포함되는 작업은 추가로 main CI gate PASS, immutable `ci-<full SHA>` publish, exact GHCR digest runtime smoke PASS, SBOM/provenance 확인을 요구한다.
+`main` artifact까지 완료 범위에 포함되는 작업은 추가로 main CI gate PASS, 임시 `ci-<full SHA>` publish, exact GHCR digest runtime smoke PASS, SBOM/provenance 확인과 임시 package version 삭제을 요구한다.
 
 GitHub-hosted runner로 검증할 수 없는 항목은 해당 환경의 PASS/BLOCKED/NOT TESTED 상태를 별도로 기록한다.
 
