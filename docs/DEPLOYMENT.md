@@ -176,7 +176,7 @@ PR과 수동 CI token은 `contents: read`뿐이며 모든 checkout은 `persist-c
 
 ### Main commit 테스트 image
 
-`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 한 번만 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않는다.
+`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 임시로 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않으며, digest 검증이 끝난 `ci-*` package version은 자동 삭제한다.
 
 Workflow는 build output digest를 다시 pull해 image policy와 readiness를 확인하고, 실제 HTTP API로 Project를 생성해 edit session을 받은 뒤 root Task를 저장한다. Session 없는 mutation 거부를 확인하고 container를 restart한 후 동일 Project와 Task가 남는지 재조회한다. 이 검증은 격리 volume에서 수행하며 사용자 data를 사용하지 않는다. Workflow summary의 exact digest가 사용자·통합 테스트 입력이다.
 
@@ -184,7 +184,7 @@ Workflow는 build output digest를 다시 pull해 image policy와 readiness를 �
 docker pull ghcr.io/planner77/mastergantt@sha256:<commit-image-digest>
 ```
 
-Commit image는 release가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. 아래 release workflow는 별도 `sha-<full SHA>` candidate를 사용한다.
+Commit image는 release가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. 아래 release workflow는 GHCR에 commit 고정 candidate를 남기지 않고 local candidate 검증 후 exact SemVer를 직접 게시한다.
 
 ### 안정 SemVer와 GHCR publish
 

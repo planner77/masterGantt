@@ -15,7 +15,7 @@
 | --- | --- | --- | --- |
 | Local Fast Feedback | 개발 환경 | 변경과 직접 관련된 Vitest, 필요 시 typecheck/lint, 재현용 명령 | 구현 중 빠른 피드백. 공식 전체 회귀 PASS를 의미하지 않음 |
 | PR Required Validation | GitHub Actions | version check, typecheck, lint, 전체 Vitest, dependency audit, markdown link, production build, Chromium Playwright E2E, Docker build/runtime/SQLite persistence smoke | 코드 변경의 기본 공식 검증 |
-| Main Artifact Validation | GitHub Actions + GHCR | PR 수준 gate + immutable `ci-<full SHA>` publish + exact digest pull + readiness/API/auth/restart persistence + SBOM/provenance | `main` commit container artifact 검증 |
+| Main Artifact Validation | GitHub Actions + GHCR | PR 수준 gate + 임시 `ci-<full SHA>` publish + exact digest pull + readiness/API/auth/restart persistence + SBOM/provenance + 검증 후 package version 삭제 | `main` commit registry 경로 검증 |
 | Semantic Release Validation | GitHub Actions + GHCR | release workflow의 version/tag gate, candidate runtime, digest smoke, promotion | 배포 가능한 version artifact 검증 |
 | Environment-specific Validation | 실제 대상 환경 | Windows Excel/VBA/DRM, reverse proxy/TLS, off-host backup/restore, 최종 수동 UX 등 | GitHub-hosted runner로 대체할 수 없는 항목 |
 
@@ -28,7 +28,7 @@
 5. PR의 `.github/workflows/ci.yml` 결과를 공식 검증으로 사용한다. `quality`, `e2e`, `docker`가 모두 성공하기 전에는 Manager가 기능을 최종 ACCEPT하지 않는다.
 6. 실패하면 GitHub run → job → step → 최초 오류를 근거로 원인을 분석한다. 로컬에서만 다시 PASS한 것은 원격 실패 해결 증거가 아니다.
 7. PR이 merge되어 `main`에 반영되면 동일 CI gate 후 `publish-commit-image`가 실행되어야 한다.
-8. `main`의 완료 보고에는 대상 commit SHA, CI run 결과, GHCR `ci-<full SHA>`와 exact digest 검증 결과를 기록한다. GHCR publish가 필요 없는 문서 전용 변경이라도 현재 workflow가 실행되면 실제 결과를 그대로 기록하며 임의로 PASS를 가정하지 않는다.
+8. `main`의 완료 보고에는 대상 commit SHA, CI run 결과, 임시 GHCR `ci-<full SHA>`와 exact digest 검증 결과, package version 삭제 결과를 기록한다. GHCR publish가 필요 없는 문서 전용 변경이라도 현재 workflow가 실행되면 실제 결과를 그대로 기록하며 임의로 PASS를 가정하지 않는다.
 9. Release는 별도 Semantic Version workflow와 승인 절차를 따른다.
 
 ## 3. 로컬에서 기본적으로 반복하지 않는 항목
@@ -74,13 +74,14 @@ PR에서는 GHCR login/publish 또는 registry write를 수행하지 않는다.
 
 PR과 동일한 gate를 다시 수행한 뒤 모두 성공한 경우에만:
 
-- immutable `ci-<full SHA>` image를 GHCR에 게시
+- 임시 `ci-<full SHA>` image를 GHCR에 게시
 - 기존 동일 commit tag overwrite 거부
 - BuildKit SBOM/provenance 생성
 - build output의 exact digest를 다시 pull
 - image policy/readiness 검증
 - native SQLite restart persistence 검증
 - Project/Task API persistence 및 authorization denial 검증
+- 검증 완료 후 `ci-<full SHA>` package version 삭제
 
 `main`의 로컬 PASS만으로 GHCR artifact를 정상으로 판정하지 않는다.
 

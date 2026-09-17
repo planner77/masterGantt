@@ -2,7 +2,7 @@
 
 소규모 프로젝트의 일정과 진행 상황을 관리하는 웹 애플리케이션이다. SVAR React Gantt Core로 일정을 표시·편집하고, 일정 계산은 독립적인 Scheduling Engine에서 수행하는 구조를 목표로 한다.
 
-프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장, 좌측 계층 Grid와 우측 동기 Chart 중심의 넓은 Project 작업공간을 구현했다. GitHub Actions 검증, `main` commit별 immutable GHCR 테스트 image와 Semantic Version release image 기반도 추가하며, Summary/WBS·FS 일정, 승인된 Excel/VBA → JSON·CSV Import, Excel Export와 production 배포 검증을 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
+프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장, 좌측 계층 Grid와 우측 동기 Chart 중심의 넓은 Project 작업공간을 구현했다. GitHub Actions 검증, `main` commit별 임시 GHCR registry 검증 image와 Semantic Version release image 기반도 추가하며, Summary/WBS·FS 일정, 승인된 Excel/VBA → JSON·CSV Import, Excel Export와 production 배포 검증을 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
 
 이 README는 프로젝트 이해·설치·재설치·실행·진행 상황 확인을 위한 진입 문서다. 상세 요구사항은 [REQUIREMENTS](docs/REQUIREMENTS.md), 최신 작업 상태는 [실행 계획](docs/exec-plans/active/PLAN.md)을 따른다.
 
@@ -24,7 +24,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | W07 Task·Link 저장 기반 | 완료 / 독립 QA PASS | root Task/Milestone CRUD, Project-scoped Link Repository, 실제 Gantt 이동·양방향 resize·삭제·reload, 거부 복원, revision 경쟁 |
 | W20 CI/CD·Semantic image | 완료 / 독립 QA PASS | strict SemVer `v0.4.0`, immutable candidate, digest smoke와 exact/rolling promotion |
 | W21 동기 Gantt 작업공간 | 완료 / 독립 QA PASS | 빈 일정부터 좌측 계층 Grid+우측 Chart, 생성 직후 양쪽 반영, full-width·viewport height, narrow 내부 scroll |
-| W22 Commit GHCR 자동화 | 완료 / 독립 QA PASS | immutable `ci-<SHA>`와 SemVer release를 exact digest로 원격·로컬 검증; PR publish skipped |
+| W22 Commit GHCR 자동화 | 완료 / 독립 QA PASS | 임시 `ci-<SHA>`를 exact digest로 검증 후 자동 삭제하고 SemVer release만 보관; PR publish skipped |
 | W23 Project 목록 | 로컬 완료 / 독립 QA PASS | D02 승인, 전체 공개 summary 목록, 생성 후 복귀·reload 조회, 편집 인증 유지 |
 | W24 Grid·삭제·계층 UI | 완료 / 원격 CI PASS | 목록 표/권한 삭제, native Header·row 추가, Summary 집계, locale·주말·고정 헤더 |
 | Issue #19 글로벌 리소스·그룹 | 완료 / PR CI PASS | 독립 Resource/Group 카탈로그, 관리자 세션, 그룹 멤버, Task/Summary/Milestone 직접 할당, canonical assignment 보존 |
@@ -57,7 +57,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | Scheduling Engine | 자체 pure TypeScript | Gregorian ordinal, Project Calendar, 근무일·Leaf Duration; SVAR/DB/시간대 API 비의존 |
 | shadcn/ui / ExcelJS | 도입 예정, 미설치 | 일반 UI / 서버 Excel 생성 |
 | Docker / Docker Compose | W20 기반 구현 | non-root 단일 애플리케이션, startup migration/readiness와 영속 SQLite volume |
-| GitHub Actions / GHCR | W20/W22 기반 구현 | application·browser·container CI, main commit test image와 Semantic Version release |
+| GitHub Actions / GHCR | W20/W22 기반 구현 | application·browser·container CI, main commit 임시 registry 검증과 Semantic Version release |
 
 서버의 접근 경계는 `Route Handler → Service → Repository → SQLite`다. W07 Task mutation도 이 경계를 따르며 transaction 안에서 session과 revision을 다시 확인한 뒤 W06 `scheduleLeaf` 결과를 저장한다. DB 진입점은 `server-only`이며 import나 Next.js build만으로 DB를 열지 않는다. 기술 선정 근거는 [RESEARCH](docs/RESEARCH.md), 설계는 [ARCHITECTURE](docs/ARCHITECTURE.md)를 참고한다.
 
@@ -536,9 +536,9 @@ npm run version:check
 node scripts/verify-release-version.mjs v0.4.0
 ```
 
-성공한 `main` push는 모든 gate 뒤 `ci-<full SHA>` image를 게시하고 workflow가 출력한 digest를 새로 pull해 Project/Task API authorization과 restart persistence까지 검사한다. PR과 수동 CI는 registry에 쓰지 않는다. 이 commit image는 SemVer release가 아니며 stable alias를 만들지 않는다.
+성공한 `main` push는 모든 gate 뒤 `ci-<full SHA>` image를 임시 게시하고 workflow가 출력한 digest를 새로 pull해 Project/Task API authorization과 restart persistence까지 검사한 뒤 해당 package version을 삭제한다. PR과 수동 CI는 registry에 쓰지 않는다. `ci-*`는 SemVer release나 운영/rollback artifact로 남기지 않는다.
 
-Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 release보다 큰 version인지 확인하고 `sha-<full SHA>` candidate digest smoke를 통과한 경우에만 stable alias와 exact version을 승격한다. 테스트에서는 `latest` 대신 commit/release workflow가 출력한 exact digest를 사용한다. Private GHCR consumer는 최소 `packages: read`만 사용한다. 실제 tag 생성, plan별 ruleset·attestation 제약과 image login 절차는 [CI/CD 문서](docs/CI_CD.md), container 실행은 [Deployment](docs/DEPLOYMENT.md)를 따른다.
+Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 release보다 큰 version인지 확인하고 GHCR에 남지 않는 local candidate digest smoke를 통과한 경우에만 stable alias와 exact version을 승격한다. 테스트에서는 `latest` 대신 commit/release workflow가 출력한 exact digest를 사용한다. Private GHCR consumer는 최소 `packages: read`만 사용한다. 실제 tag 생성, plan별 ruleset·attestation 제약과 image login 절차는 [CI/CD 문서](docs/CI_CD.md), container 실행은 [Deployment](docs/DEPLOYMENT.md)를 따른다.
 
 ## 7. 코드와 실행 산출물
 

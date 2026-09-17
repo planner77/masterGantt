@@ -1,0 +1,315 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# PR은 read-only token만 사용한다. publish 권한은 main push commit image와 release job에만 한정한다.
+permissions:
+  contents: read
+
+concurrency:
+  # PRs share a group so obsolete heads can be cancelled. Main runs keep a SHA-specific
+  # group while their temporary registry publish/pull/cleanup sequence is in progress.
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.event.pull_request.number) || format('ci-main-{0}', github.sha) }}
+  # Do not cancel a main publish after it has begun; only superseded PR checks
+  # are safe to cancel.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  quality:
+    name: Build, static checks, and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      # actions/setup-node v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Record Node and npm versions
+        run: |
+          node --version
+          npm --version
+      - run: npm ci
+      - run: node scripts/verify-release-version.mjs
+      - run: npm run typecheck
+      - run: npm run lint
+      - name: Verify test discovery from root and external cwd
+        run: node scripts/verify-test-discovery.mjs
+      - run: npm test
+      - run: npm audit --omit=dev
+      - run: node scripts/check-markdown-links.mjs
+      - name: Verify deployment shell syntax
+        run: |
+          sh -n deploy/docker/container-entrypoint.sh
+          bash -n scripts/verify-compose-smoke.sh
+      - run: npm run build
+
+  e2e:
+    name: Chromium end-to-end tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality
+    steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      # actions/setup-node v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx --no-install playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Upload Playwright report on failure
+        if: failure()
+        # actions/upload-artifact v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  docker:
+    name: Docker build and runtime smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality
+    steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      # docker/setup-buildx-action v4.3.0
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+      - name: Record Docker version
+        run: docker version --format '{{.Server.Version}}'
+      # docker/build-push-action v7.3.0
+      - uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          load: true
+          tags: mastergantt:ci
+          build-args: VERSION=ci-${{ github.sha }}
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Verify image content policy
+        run: sh scripts/verify-image-policy.sh mastergantt:ci
+      - name: Reject insecure production runtime configuration before migration
+        shell: bash
+        run: |
+          set +e
+          timeout 15s docker run --rm --name mastergantt-invalid-config \
+            --env APP_BASE_URL=http://gantt.example.invalid \
+            mastergantt:ci
+          status=$?
+          set -e
+          if [[ "$status" -ne 1 ]]; then
+            echo "Expected invalid production APP_BASE_URL to exit 1 before startup; got $status." >&2
+            docker rm --force --volumes mastergantt-invalid-config 2>/dev/null || true
+            exit 1
+          fi
+      - name: Verify image runs migrations and serves readiness
+        run: |
+          docker run --detach --name mastergantt-ci \
+            --env APP_BASE_URL=https://gantt.example.invalid \
+            --publish 127.0.0.1:3000:3000 \
+            mastergantt:ci
+          for _ in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/api/health/ready; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs mastergantt-ci
+          exit 1
+      - name: Verify SQLite native access persists across restart
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker exec mastergantt-ci node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH); db.exec('CREATE TABLE IF NOT EXISTS ci_smoke (value TEXT NOT NULL)'); db.prepare('INSERT INTO ci_smoke (value) VALUES (?)').run('persisted'); db.close()"
+          docker restart mastergantt-ci
+          ready=false
+          for _ in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/api/health/ready; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = true
+          docker exec mastergantt-ci node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH, { readonly: true }); const row = db.prepare('SELECT COUNT(*) AS count FROM ci_smoke WHERE value = ?').get('persisted'); db.close(); if (row.count !== 1) process.exit(1)"
+      - name: production HTTP·HTTPS 브라우저 검증 도구 준비
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: production 전송 정책과 실제 쿠키·인증·영속성 검증
+        run: |
+          npm ci
+          npx --no-install playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install --yes nginx libnss3-tools
+          bash scripts/verify-transport-smoke.sh mastergantt:ci
+      - name: Verify relocated Compose configuration and persistence
+        run: bash scripts/verify-compose-smoke.sh
+      - name: Show container logs on failure
+        if: failure()
+        run: docker logs mastergantt-ci || true
+      - name: Remove smoke-test container
+        if: always()
+        run: docker rm --force --volumes mastergantt-ci || true
+
+  publish-commit-image:
+    # PR and manual runs stay read-only. A successful push to main may publish a
+    # temporary commit image only long enough to verify registry pull/runtime behavior.
+    name: Publish, verify, and clean up temporary main commit image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [quality, e2e, docker]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Calculate temporary GHCR reference
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image_name="ghcr.io/${GITHUB_REPOSITORY,,}"
+          {
+            echo "name=$image_name"
+            echo "tag=ci-$GITHUB_SHA"
+            echo "reference=$image_name:ci-$GITHUB_SHA"
+          } >> "$GITHUB_OUTPUT"
+      # docker/setup-buildx-action v4.3.0
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+      - name: Record Docker version
+        run: docker version --format '{{.Server.Version}}'
+      # docker/login-action v4.6.0
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Refuse to overwrite an existing temporary commit image
+        shell: bash
+        run: |
+          set -euo pipefail
+          if docker manifest inspect "${{ steps.image.outputs.reference }}" >/dev/null 2>&1; then
+            echo "Refusing to overwrite temporary commit image: ${{ steps.image.outputs.reference }}" >&2
+            exit 1
+          fi
+      - name: Build and push temporary commit image
+        id: push
+        # docker/build-push-action v7.3.0
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          push: true
+          tags: ${{ steps.image.outputs.reference }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=ci-${{ github.sha }}
+          build-args: VERSION=ci-${{ github.sha }}
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max
+          sbom: true
+      - name: Pull exact published digest
+        id: digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="${{ steps.image.outputs.name }}@${{ steps.push.outputs.digest }}"
+          docker pull "$image"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+      - name: Verify pulled image content policy
+        run: sh scripts/verify-image-policy.sh "${{ steps.digest.outputs.image }}"
+      - name: Start pulled image and verify readiness
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name mastergantt-commit-smoke \
+            --env APP_BASE_URL=https://gantt.example.invalid \
+            --publish 127.0.0.1:3000:3000 \
+            "${{ steps.digest.outputs.image }}"
+          for _ in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/api/health/ready; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs mastergantt-commit-smoke
+          exit 1
+      - name: Verify native SQLite write persists across restart
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker exec mastergantt-commit-smoke node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH); db.exec('CREATE TABLE IF NOT EXISTS commit_smoke (value TEXT NOT NULL)'); db.prepare('INSERT INTO commit_smoke (value) VALUES (?)').run('persisted'); db.close()"
+          docker restart mastergantt-commit-smoke
+          ready=false
+          for _ in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/api/health/ready; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = true
+          docker exec mastergantt-commit-smoke node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH, { readonly: true }); const row = db.prepare('SELECT COUNT(*) AS count FROM commit_smoke WHERE value = ?').get('persisted'); db.close(); if (row.count !== 1) process.exit(1)"
+      - name: Verify Project and Task API persistence through fetched image
+        run: node scripts/verify-registry-api-smoke.mjs http://127.0.0.1:3000 mastergantt-commit-smoke
+      - name: 게시 digest의 HTTP·HTTPS 브라우저 검증
+        run: |
+          npm ci
+          npx --no-install playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install --yes nginx libnss3-tools
+          bash scripts/verify-transport-smoke.sh "${{ steps.digest.outputs.image }}"
+      - name: Report verified temporary digest
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo "## Verified temporary main commit image"
+            echo
+            echo "- Reference: \`${{ steps.digest.outputs.image }}\`"
+            echo "- Digest: \`${{ steps.push.outputs.digest }}\`"
+            echo "- Verification: policy, readiness, native SQLite/API write, authorization denial, and restart persistence passed."
+            echo "- BuildKit SBOM/provenance: generated for registry verification."
+            echo "- Retention: the temporary ci-<SHA> package version is deleted after verification."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Show smoke-test logs on failure
+        if: failure()
+        run: docker logs mastergantt-commit-smoke || true
+      - name: Remove smoke-test container
+        if: always()
+        run: docker rm --force --volumes mastergantt-commit-smoke || true
+      - name: Delete temporary main commit image from GHCR
+        if: always() && steps.push.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}
+        run: |
+          node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${{ github.sha }}"
+          echo "- GHCR cleanup: temporary ci-${{ github.sha }} package version deleted." >> "$GITHUB_STEP_SUMMARY"
