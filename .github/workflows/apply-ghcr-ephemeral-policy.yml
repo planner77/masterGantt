@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   apply:
-    name: workflow와 운영 문서 갱신
+    name: 운영 문서와 커넥터 적용용 workflow 생성
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -21,11 +21,14 @@ jobs:
         run: |
           set -euo pipefail
           python scripts/apply-ghcr-ephemeral-policy.py
-          rm scripts/apply-ghcr-ephemeral-policy.py
-          rm .github/workflows/apply-ghcr-ephemeral-policy.yml
+
+          mkdir -p .tmp-ghcr-policy
+          cp .github/workflows/ci.yml .tmp-ghcr-policy/ci.yml
+          cp .github/workflows/release-image.yml .tmp-ghcr-policy/release-image.yml
+          git restore .github/workflows/ci.yml .github/workflows/release-image.yml
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add AGENTS.md README.md docs .github/workflows scripts/delete-ghcr-package-version-by-tag.mjs
-          git commit -m "ci: GHCR 임시 이미지 검증 후 자동 삭제"
+          git add AGENTS.md README.md docs scripts/delete-ghcr-package-version-by-tag.mjs .tmp-ghcr-policy
+          git commit -m "ci: GHCR 임시 이미지 검증 후 자동 삭제 정책 반영"
           git push origin HEAD:chore/ghcr-ephemeral-cleanup
