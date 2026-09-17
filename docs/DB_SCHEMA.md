@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
+이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
 
 요구사항으로 확정된 전제는 다음과 같다.
 
@@ -214,6 +214,8 @@ Session current read는 row나 TTL을 갱신하지 않는다. Unlock과 password
 
 Task/Summary/Milestone과 글로벌 Resource 또는 Group의 직접 할당을 저장한다. `(project_id, task_id)` composite FK로 Project 경계를 DB에서도 강제하고, `resource_id`와 `group_id`는 XOR CHECK로 정확히 하나만 허용한다. 부분 UNIQUE index로 같은 Task에 같은 Resource/Group의 중복 할당을 차단한다. Task/Project 삭제에는 assignment가 cascade되지만 글로벌 catalog FK는 `ON DELETE RESTRICT`다. Group assignment는 팀 참조이며 Group member 개인 assignment로 자동 확장하지 않는다.
 
+`0005_resource_workload.sql`은 기존 row 호환을 위해 Resource assignment의 `assignment_start`, `assignment_end`, `allocation_percent`를 nullable로 추가한다. 두 날짜는 `YYYY-MM-DD` 길이 제약을 DB에서 두고 실제 Gregorian 날짜 검증은 Scheduling Domain의 `parseDateOnly`가 담당한다. `allocation_percent`는 NULL 또는 `0 < value <= 100`만 허용한다. 기존 NULL allocation은 100%로 추정하지 않고 `공수 미설정`으로 취급한다. Group assignment에는 이 세 필드를 사용하지 않는다. 명시 Resource allocation 기간은 leaf Task의 확정 `start_date/end_date` 안에 있어야 하며 Task 일정 변경도 같은 invariant를 다시 검증해 위반 시 transaction 전체를 rollback한다.
+
 ## 6. Index 계획
 
 최소 index는 다음과 같다.
@@ -233,6 +235,7 @@ edit_sessions(project_id, expires_at)
 resource_group_members(resource_id, group_id)
 task_assignments(project_id, task_id)
 task_assignments(resource_id) WHERE resource_id IS NOT NULL
+task_assignments(project_id, resource_id, assignment_start, assignment_end) WHERE resource_id IS NOT NULL
 task_assignments(group_id) WHERE group_id IS NOT NULL
 resource_catalog_admin_sessions(expires_at, revoked_at)
 ```

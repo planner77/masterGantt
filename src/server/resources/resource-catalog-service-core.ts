@@ -13,6 +13,7 @@ import type {
   ResourceCatalogResponse,
   UpdateCatalogTargetRequest,
 } from "../../contracts/resources";
+import { parseDateOnly } from "../../domain/scheduling/date-only";
 import { ProjectRepository, EditSessionRepository } from "../repositories/project-repository-core";
 import {
   ResourceCatalogRepository,
@@ -27,7 +28,6 @@ import { isCanonicalUuidV4 } from "../projects/project-contract";
 
 const MAX_TARGETS_PER_TASK = 100;
 const MAX_SEARCH_RESULTS = 100;
-const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
 export class ResourceCatalogAuthorizationError extends Error {}
 export class ResourceCatalogRevisionMismatchError extends Error {}
@@ -101,7 +101,9 @@ function assignmentDtos(records: readonly AssignmentRecord[]): ProjectAssignment
 }
 function digest(value: string): Buffer { return createHash("sha256").update(value, "utf8").digest(); }
 function validDateOrNull(value: unknown): value is string | null | undefined {
-  return value === undefined || value === null || (typeof value === "string" && DATE_ONLY.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`)));
+  if (value === undefined || value === null) return true;
+  if (typeof value !== "string") return false;
+  try { parseDateOnly(value, "allocationDate"); return true; } catch { return false; }
 }
 
 export class ResourceCatalogService {

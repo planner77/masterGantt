@@ -53,13 +53,13 @@ export class ResourceWorkloadService {
     for (const assignment of assignments) {
       const task = taskById.get(assignment.taskPublicId);
       const resource = resources.find((candidate) => candidate.publicId === assignment.targetPublicId);
-      if (!task || !resource) continue;
+      if (!task || !resource || task.type !== "task") continue;
       const effectiveStart = assignment.assignmentStart ?? task.startDate;
       const effectiveEnd = assignment.assignmentEnd ?? task.endDate;
       const start = effectiveStart < from ? from : effectiveStart;
       const end = effectiveEnd > to ? to : effectiveEnd;
       if (start > end) continue;
-      const configured = assignment.allocationPercent !== null && task.type === "task";
+      const configured = assignment.allocationPercent !== null;
       const effortMd = configured ? round(workingDaysBetween(start, end, calendar) * assignment.allocationPercent! / 100) : null;
       const effortMm = effortMd === null || mdPerMm === null ? null : round(effortMd / mdPerMm);
       const detail: ResourceWorkloadTaskDto = { assignmentId: assignment.publicId, taskId: task.publicId, taskName: task.name, start, end, allocationPercent: assignment.allocationPercent, effortMd, effortMm, effortConfigured: configured };

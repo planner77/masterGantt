@@ -21,6 +21,8 @@ services:
       ALLOW_INSECURE_HTTP: ${ALLOW_INSECURE_HTTP-false}
       TRUST_PROXY: ${TRUST_PROXY:-false}
       LOG_LEVEL: ${LOG_LEVEL:-info}
+      # 조직의 1 M/M 환산 근무일 수. 빈 값이면 M/M 조회를 비활성화한다.
+      RESOURCE_MD_PER_MM: "${RESOURCE_MD_PER_MM:-}"
     # Reverse proxy가 같은 Docker network에 있으면 이 port mapping을 제거하고 내부 port만 사용한다.
     ports:
       - "127.0.0.1:${HOST_PORT:-3000}:3000"
