@@ -147,15 +147,25 @@ const consoleSink: StructuredLogSink = {
 export function createStructuredLogger(options: StructuredLoggerOptions = {}): StructuredLogger {
   const environment = options.environment ?? "development";
   const configuration = resolveLogConfiguration(options.level, environment);
-  const component = options.component ?? "application";
+  const defaultComponent = options.component ?? "application";
   const sink = options.sink ?? consoleSink;
   const now = options.now ?? (() => new Date());
 
   function write(level: LogLevel, event: string, fields: StructuredLogFields = {}): void {
     if (LOG_LEVEL_WEIGHT[level] < LOG_LEVEL_WEIGHT[configuration.level]) return;
 
+    const sanitized = sanitizeLogFields(fields);
+    const component = typeof sanitized.component === "string" && sanitized.component.length > 0
+      ? sanitized.component
+      : defaultComponent;
+    delete sanitized.component;
+    delete sanitized.timestamp;
+    delete sanitized.level;
+    delete sanitized.event;
+    delete sanitized.environment;
+
     const entry: StructuredLogEntry = {
-      ...sanitizeLogFields(fields),
+      ...sanitized,
       timestamp: now().toISOString(),
       level,
       event: truncate(event),
