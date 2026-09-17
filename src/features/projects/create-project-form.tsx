@@ -10,6 +10,7 @@ import type {
 
 const MINIMUM_PASSWORD_LENGTH = 12;
 const MAXIMUM_PASSWORD_BYTES = 1024;
+const MAXIMUM_OWNER_LENGTH = 100;
 const API_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   INVALID_JSON: "입력 전송 형식을 확인한 뒤 다시 시도해 주세요.",
   INVALID_REQUEST: "프로젝트 입력값을 확인해 주세요.",
@@ -49,6 +50,7 @@ export function CreateProjectForm() {
   const router = useRouter();
   const errorReference = useRef<HTMLDivElement>(null);
   const [name, setName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
   const [description, setDescription] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +68,15 @@ export function CreateProjectForm() {
       setError("프로젝트 이름을 입력해 주세요.");
       return;
     }
+    const normalizedOwnerName = ownerName.trim();
+    if (normalizedOwnerName.length === 0) {
+      setError("소유자를 입력해 주세요.");
+      return;
+    }
+    if (codePointLength(normalizedOwnerName) > MAXIMUM_OWNER_LENGTH) {
+      setError(`소유자는 ${MAXIMUM_OWNER_LENGTH}자 이하여야 합니다.`);
+      return;
+    }
     if (codePointLength(editPassword) < MINIMUM_PASSWORD_LENGTH) {
       setError(`편집 비밀번호는 ${MINIMUM_PASSWORD_LENGTH}자 이상이어야 합니다.`);
       return;
@@ -77,7 +88,12 @@ export function CreateProjectForm() {
 
     setError(null);
     setIsSubmitting(true);
-    const request: CreateProjectRequest = { name, description, editPassword };
+    const request: CreateProjectRequest = {
+      name,
+      description,
+      ownerName: normalizedOwnerName,
+      editPassword,
+    };
     setEditPassword("");
 
     try {
@@ -120,6 +136,21 @@ export function CreateProjectForm() {
           required
           value={name}
         />
+      </div>
+
+      <div className="form-field">
+        <label htmlFor="project-owner">소유자</label>
+        <input
+          autoComplete="off"
+          disabled={isSubmitting}
+          id="project-owner"
+          maxLength={MAXIMUM_OWNER_LENGTH}
+          name="ownerName"
+          onChange={(event) => setOwnerName(event.target.value)}
+          required
+          value={ownerName}
+        />
+        <p>프로젝트 담당자를 표시하는 정보이며 계정/권한과는 연결되지 않습니다. 최대 100자입니다.</p>
       </div>
 
       <div className="form-field">
