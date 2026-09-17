@@ -35,6 +35,12 @@ const projectName = wellFormedString
     const length = codePointLength(value);
     return length >= 1 && length <= 200;
   });
+const projectOwnerName = wellFormedString
+  .transform((value) => value.trim())
+  .refine((value) => {
+    const length = codePointLength(value);
+    return length >= 1 && length <= 100;
+  });
 const projectDescription = wellFormedString.refine(
   (value) => codePointLength(value) <= 4_000,
 );
@@ -45,19 +51,28 @@ const newPassword = wellFormedString
 const createProjectSchema = z.object({
   name: projectName,
   description: projectDescription,
+  ownerName: projectOwnerName,
   editPassword: newPassword,
 }).strict();
 
 const copyProjectSchema = z.object({
   name: projectName,
   description: projectDescription,
+  ownerName: projectOwnerName,
   editPassword: newPassword,
   resetProgress: z.boolean().optional(),
 }).strict();
 
-export type CreateProjectInput = CreateProjectRequest;
+/**
+ * Internal service input keeps ownerName optional so legacy focused service
+ * fixtures can create pre-Issue-54 compatible rows. The HTTP parser always
+ * returns a CreateProjectRequest where ownerName is required and normalized.
+ */
+export type CreateProjectInput = Omit<CreateProjectRequest, "ownerName"> & {
+  ownerName?: string;
+};
 export type ProjectInputParseResult =
-  | { success: true; data: CreateProjectInput }
+  | { success: true; data: CreateProjectRequest }
   | { success: false; details: ApiErrorDetail[] };
 
 function parseStrictInput<T>(
@@ -85,7 +100,10 @@ export function parseCreateProjectInput(input: unknown): ProjectInputParseResult
 }
 
 export function parseCopyProjectInput(input: unknown) {
-  return parseStrictInput<CopyProjectRequest>(copyProjectSchema, input);
+  return parseStrictInput<CopyProjectRequest & { ownerName: string }>(
+    copyProjectSchema,
+    input,
+  );
 }
 
 const unlockProjectSchema = z.object({
