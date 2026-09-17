@@ -86,6 +86,22 @@ docker logs --tail 200 <container-name>
 
 실패 시에는 먼저 `resource_catalog_admin_auth_failed`를 찾고 `reason_code`와 `requestId`를 확인한다. 비밀번호 원문을 로그에 추가하거나 디버깅 목적으로 출력해서는 안 된다.
 
+### 로그 필터 예시
+
+Compose 로그에서 관리자 인증 이벤트만 빠르게 확인하려면 다음처럼 event 이름으로 필터링할 수 있다.
+
+```bash
+docker compose --env-file .env -f deploy/compose.yml logs --no-color app \
+  | grep 'resource_catalog_admin_auth_'
+```
+
+특정 API 오류 응답에서 확인한 `requestId`가 있다면 같은 ID로 서버 로그를 검색해 해당 요청의 시작·실패·완료 이벤트를 연계한다.
+
+```bash
+docker compose --env-file .env -f deploy/compose.yml logs --no-color app \
+  | grep '<requestId>'
+```
+
 ## 운영 해석 예
 
 - `ADMIN_PASSWORD_NOT_CONFIGURED`: `.env`에 값이 있어도 기존 컨테이너가 재생성되지 않아 런타임 환경에 반영되지 않았는지 확인한다.
