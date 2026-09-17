@@ -32,6 +32,41 @@ import {
 } from "./resource-catalog-service-core";
 
 const NO_STORE = { "Cache-Control": "private, no-store" };
+const RESOURCE_ADMIN_AUTH_ENDPOINT = "/api/resource-catalog/admin-sessions";
+const RESOURCE_ADMIN_AUTH_COMPONENT = "resource_catalog_admin_auth";
+
+export type ResourceAdminAuthReasonCode =
+  | "ADMIN_PASSWORD_NOT_CONFIGURED"
+  | "ADMIN_PASSWORD_POLICY_INVALID"
+  | "ADMIN_PASSWORD_MISMATCH"
+  | "INVALID_REQUEST"
+  | "ORIGIN_NOT_ALLOWED"
+  | "CONFIGURATION_ERROR"
+  | "UNEXPECTED_ERROR";
+
+export interface ResourceAdminAuthDiagnosticEntry {
+  timestamp: string;
+  level: "info" | "warn" | "error";
+  event: string;
+  requestId: string;
+  endpoint: string;
+  component: string;
+  result: "success" | "failure" | null;
+  reason_code: ResourceAdminAuthReasonCode | null;
+  status: number | null;
+  configured?: boolean;
+  policyValid?: boolean;
+}
+
+export interface ResourceAdminAuthDiagnosticLogger {
+  info(entry: ResourceAdminAuthDiagnosticEntry): void;
+  warn(entry: ResourceAdminAuthDiagnosticEntry): void;
+  error(entry: ResourceAdminAuthDiagnosticEntry): void;
+}
+
+export interface ResourceAdminAuthConfigurationState {
+  logged: boolean;
+}
 
 interface ProjectAuthorizationService {
   authorize(publicId: string, rawToken: string | undefined): AuthorizationResult;
@@ -45,7 +80,24 @@ export interface ResourceHandlerDependencies {
   environment: string | undefined;
   adminPassword?: string;
   requestId?: () => string;
+  adminAuthLogger?: ResourceAdminAuthDiagnosticLogger;
+  adminAuthConfigurationState?: ResourceAdminAuthConfigurationState;
+  diagnosticNow?: () => Date;
 }
+
+const defaultAdminAuthConfigurationState: ResourceAdminAuthConfigurationState = { logged: false };
+
+const defaultAdminAuthLogger: ResourceAdminAuthDiagnosticLogger = {
+  info(entry) {
+    console.info(JSON.stringify(entry));
+  },
+  warn(entry) {
+    console.warn(JSON.stringify(entry));
+  },
+  error(entry) {
+    console.error(JSON.stringify(entry));
+  },
+};
 
 function resourceService(dependencies: ResourceHandlerDependencies): ResourceCatalogService {
   return typeof dependencies.resourceService === "function"
@@ -155,8 +207,142 @@ function json(data: unknown, status = 200, etag?: number): Response {
   });
 }
 
+function adminPasswordConfiguration(password: string | undefined): { configured: boolean; policyValid: boolean } {
+  const configured = typeof password === "string" && password.length > 0;
+  return {
+    configured,
+    policyValid: configured && password.length >= 16,
+  };
+}
+
+function diagnosticTimestamp(dependencies: ResourceHandlerDependencies): string {
+  return (dependencies.diagnosticNow ?? (() => new Date()))().toISOString();
+}
+
+function emitAdminAuthDiagnostic(
+  dependencies: ResourceHandlerDependencies,
+  level: ResourceAdminAuthDiagnosticEntry["level"],
+  event: string,
+  requestId: string,
+  result: ResourceAdminAuthDiagnosticEntry["result"],
+  reasonCode: ResourceAdminAuthReasonCode | null,
+  status: number | null,
+  configuration?: { configured: boolean; policyValid: boolean },
+): void {
+  const entry: ResourceAdminAuthDiagnosticEntry = {
+    timestamp: diagnosticTimestamp(dependencies),
+    level,
+    event,
+    requestId,
+    endpoint: RESOURCE_ADMIN_AUTH_ENDPOINT,
+    component: RESOURCE_ADMIN_AUTH_COMPONENT,
+    result,
+    reason_code: reasonCode,
+    status,
+    ...(configuration ?? {}),
+  };
+  const logger = dependencies.adminAuthLogger ?? defaultAdminAuthLogger;
+  try {
+    logger[level](entry);
+  } catch {
+    // Diagnostic logging must never change authentication behavior.
+  }
+}
+
+function emitAdminPasswordConfigurationOnce(
+  dependencies: ResourceHandlerDependencies,
+  requestId: string,
+  configuration: { configured: boolean; policyValid: boolean },
+): void {
+  const state = dependencies.adminAuthConfigurationState ?? defaultAdminAuthConfigurationState;
+  if (state.logged) return;
+  state.logged = true;
+  const reasonCode: ResourceAdminAuthReasonCode | null = !configuration.configured
+    ? "ADMIN_PASSWORD_NOT_CONFIGURED"
+    : !configuration.policyValid
+      ? "ADMIN_PASSWORD_POLICY_INVALID"
+      : null;
+  emitAdminAuthDiagnostic(
+    dependencies,
+    reasonCode ? "error" : "info",
+    "resource_catalog_admin_auth_configuration",
+    requestId,
+    reasonCode ? "failure" : "success",
+    reasonCode,
+    null,
+    configuration,
+  );
+}
+
+function requestFailureReason(error: unknown): ResourceAdminAuthReasonCode {
+  if (error instanceof PublicApiError) {
+    if (error.code === "ORIGIN_NOT_ALLOWED") return "ORIGIN_NOT_ALLOWED";
+    if (error.code === "CONFIGURATION_ERROR") return "CONFIGURATION_ERROR";
+    if (
+      error.code === "INVALID_REQUEST"
+      || error.code === "INVALID_JSON"
+      || error.code === "UNSUPPORTED_MEDIA_TYPE"
+      || error.code === "REQUEST_TOO_LARGE"
+    ) {
+      return "INVALID_REQUEST";
+    }
+  }
+  return "UNEXPECTED_ERROR";
+}
+
+function failureLevel(reasonCode: ResourceAdminAuthReasonCode): ResourceAdminAuthDiagnosticEntry["level"] {
+  return reasonCode === "ADMIN_PASSWORD_NOT_CONFIGURED"
+    || reasonCode === "ADMIN_PASSWORD_POLICY_INVALID"
+    || reasonCode === "CONFIGURATION_ERROR"
+    || reasonCode === "UNEXPECTED_ERROR"
+    ? "error"
+    : "warn";
+}
+
+function logAdminAuthFailure(
+  dependencies: ResourceHandlerDependencies,
+  requestId: string,
+  reasonCode: ResourceAdminAuthReasonCode,
+  status: number,
+  configuration?: { configured: boolean; policyValid: boolean },
+): void {
+  const level = failureLevel(reasonCode);
+  emitAdminAuthDiagnostic(
+    dependencies,
+    level,
+    "resource_catalog_admin_auth_failed",
+    requestId,
+    "failure",
+    reasonCode,
+    status,
+    configuration,
+  );
+  emitAdminAuthDiagnostic(
+    dependencies,
+    level,
+    "resource_catalog_admin_auth_completed",
+    requestId,
+    "failure",
+    reasonCode,
+    status,
+    configuration,
+  );
+}
+
 export async function handleUnlockResourceCatalogAdmin(request: Request, dependencies: ResourceHandlerDependencies): Promise<Response> {
   const requestId = (dependencies.requestId ?? randomUUID)();
+  const configuration = adminPasswordConfiguration(dependencies.adminPassword);
+  emitAdminAuthDiagnostic(
+    dependencies,
+    "info",
+    "resource_catalog_admin_auth_started",
+    requestId,
+    null,
+    null,
+    null,
+  );
+  emitAdminPasswordConfigurationOnce(dependencies, requestId, configuration);
+
   try {
     const url = applicationUrl(dependencies);
     requireOrigin(request, url);
@@ -164,15 +350,59 @@ export async function handleUnlockResourceCatalogAdmin(request: Request, depende
     if (!body || typeof body.password !== "string" || body.password.length > 512) {
       throw new PublicApiError(400, "INVALID_REQUEST", "Administrator password is invalid.");
     }
+
+    const authenticationFailureReason: ResourceAdminAuthReasonCode | null = !configuration.configured
+      ? "ADMIN_PASSWORD_NOT_CONFIGURED"
+      : !configuration.policyValid
+        ? "ADMIN_PASSWORD_POLICY_INVALID"
+        : null;
+    if (authenticationFailureReason) {
+      const response = fail(
+        new PublicApiError(401, "RESOURCE_ADMIN_AUTH_FAILED", "Resource catalog administrator authentication failed."),
+        requestId,
+      );
+      logAdminAuthFailure(dependencies, requestId, authenticationFailureReason, response.status, configuration);
+      return response;
+    }
+
     const unlocked = resourceService(dependencies).unlockAdmin(body.password, dependencies.adminPassword);
     if (!unlocked) {
-      throw new PublicApiError(401, "RESOURCE_ADMIN_AUTH_FAILED", "Resource catalog administrator authentication failed.");
+      const response = fail(
+        new PublicApiError(401, "RESOURCE_ADMIN_AUTH_FAILED", "Resource catalog administrator authentication failed."),
+        requestId,
+      );
+      logAdminAuthFailure(dependencies, requestId, "ADMIN_PASSWORD_MISMATCH", response.status, configuration);
+      return response;
     }
+
     const response = json({ data: { permission: "resource_catalog_admin", expiresAt: unlocked.expiresAt } }, 201);
     response.headers.set("Set-Cookie", serializeResourceCatalogAdminCookie(unlocked.rawToken, url, dependencies.environment));
+    emitAdminAuthDiagnostic(
+      dependencies,
+      "info",
+      "resource_catalog_admin_auth_succeeded",
+      requestId,
+      "success",
+      null,
+      response.status,
+      configuration,
+    );
+    emitAdminAuthDiagnostic(
+      dependencies,
+      "info",
+      "resource_catalog_admin_auth_completed",
+      requestId,
+      "success",
+      null,
+      response.status,
+      configuration,
+    );
     return response;
   } catch (error) {
-    return fail(error, requestId);
+    const response = fail(error, requestId);
+    const reasonCode = requestFailureReason(error);
+    logAdminAuthFailure(dependencies, requestId, reasonCode, response.status, configuration);
+    return response;
   }
 }
 
