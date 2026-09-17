@@ -1,6 +1,6 @@
 # nginx.conf의 기존 http {} 안에서 include하는 예제다. 전체 nginx.conf가 아니다.
 # 192.168.10.20과 외부 8080, 내부 3000은 실제 주소/포트로 변경한다.
-# 앱 설정: APP_BASE_URL=http://192.168.10.20:8080, ALLOW_INSECURE_HTTP=true
+# 앱 설정: APP_BASE_URL=http://192.168.10.20:8080, ALLOW_INSECURE_HTTP=true, TRUST_PROXY=true
 server {
     listen 8080;
     server_name 192.168.10.20;
@@ -31,6 +31,10 @@ server {
         proxy_set_header X-Forwarded-Port  $server_port;
         proxy_set_header X-Real-IP         $remote_addr;
         proxy_set_header X-Forwarded-For   $remote_addr;
+
+        # Nginx와 애플리케이션 로그를 같은 상관관계 ID로 조회한다.
+        # 앱은 TRUST_PROXY=true일 때만 이 값을 신뢰하며 Nginx $request_id의 32 hex 형식을 검증한다.
+        proxy_set_header X-Request-ID      $request_id;
 
         proxy_connect_timeout 5s;
         proxy_send_timeout 60s;
