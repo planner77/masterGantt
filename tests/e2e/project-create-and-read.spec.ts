@@ -1,4 +1,4 @@
-import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
+import { E2E_PROJECT_OWNER, expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
 function uniqueSuffix(): string { return `${Date.now()}-${Math.random().toString(16).slice(2)}`; }
@@ -24,6 +24,9 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   await create.click();
   await expect(page.locator(".form-error")).toHaveText("프로젝트 이름을 입력해 주세요.");
   await page.getByLabel("프로젝트 이름").fill(name);
+  await create.click();
+  await expect(page.locator(".form-error")).toHaveText("소유자를 입력해 주세요.");
+  await page.getByLabel("소유자").fill(E2E_PROJECT_OWNER);
   await page.getByLabel("편집 비밀번호").fill("😀".repeat(11));
   await create.click();
   await expect(page.locator(".form-error")).toHaveText("편집 비밀번호는 12자 이상이어야 합니다.");
@@ -51,12 +54,13 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   const collectionResponse = await page.request.get("/api/projects");
   expect(collectionResponse.status()).toBe(200);
   const collection = await collectionResponse.json();
-  expect(collection.data.projects).toEqual(expect.arrayContaining([expect.objectContaining({ name, description: "브라우저 통합 검증 프로젝트" })]));
+  expect(collection.data.projects).toEqual(expect.arrayContaining([expect.objectContaining({ name, description: "브라우저 통합 검증 프로젝트", ownerName: E2E_PROJECT_OWNER })]));
   await page.getByRole("link", { name: "프로젝트", exact: true }).click();
   await page.waitForURL("/");
   await expect(page.getByRole("heading", { name: "프로젝트", exact: true })).toBeVisible();
   const projectLink = page.getByRole("link", { name: new RegExp(name) });
   await expect(projectLink.locator("xpath=ancestor::tr")).toContainText("브라우저 통합 검증 프로젝트");
+  await expect(projectLink.locator("xpath=ancestor::tr")).toContainText(E2E_PROJECT_OWNER);
   await page.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true }).click();
   await expect(page.getByTestId("workspace-toast")).toContainText("프로젝트 링크를 복사했습니다");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(detailCopiedUrl);
@@ -129,6 +133,7 @@ test("clears a password after a safe server validation error and permits recover
   const password = `E2E-password-${suffix}`;
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름").fill(`Validation ${suffix}`);
+  await page.getByLabel("소유자").fill(E2E_PROJECT_OWNER);
   await page.getByLabel("설명 (선택)").fill("x".repeat(4_001));
   await page.getByLabel("편집 비밀번호").fill(password);
   await page.getByRole("button", { name: "프로젝트 만들기" }).click();
