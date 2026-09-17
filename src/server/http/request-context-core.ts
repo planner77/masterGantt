@@ -79,8 +79,8 @@ export async function withApiRequestLogging(
     try {
       const response = await handler(requestId);
       response.headers.set("X-Request-ID", requestId);
-      const level = completionLevel(response.status);
-      if (!(isHealthRoute(options.route) && response.status < 400)) {
+      if (!isHealthRoute(options.route)) {
+        const level = completionLevel(response.status);
         logger[level]("http_request_completed", {
           requestId,
           method: request.method,
