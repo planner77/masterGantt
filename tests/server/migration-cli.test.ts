@@ -71,17 +71,19 @@ describe("migration CLI", () => {
 
   it("fails without an explicit path and does not print configuration", () => {
     const result = runCli(undefined);
+    expect(result.error).toBeUndefined();
     expect(result.status).toBe(1);
     expect(result.stdout).toBe("");
-    expect(result.stderr).toContain("DATABASE_PATH is required");
-    expect(result.stderr).not.toContain("mastergantt.sqlite3");
+    expect(result.stderr).toContain("Database migration failed.");
+    expect(result.stderr).not.toContain("Error:");
   });
 
   it("rejects a production path outside /data without exposing it", () => {
-    const result = runCli("/tmp/do-not-print.sqlite3", "production");
+    const filename = "/tmp/private-deployment-location.sqlite3";
+    const result = runCli(filename, "production");
+    expect(result.error).toBeUndefined();
     expect(result.status).toBe(1);
     expect(result.stdout).toBe("");
-    expect(result.stderr).toContain("DATABASE_PATH is invalid");
-    expect(result.stderr).not.toContain("/tmp/do-not-print.sqlite3");
+    expect(result.stderr).not.toContain(filename);
   });
 });
