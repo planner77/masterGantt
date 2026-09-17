@@ -5,7 +5,7 @@
 
 ## 1. 문서 상태와 경계
 
-이 문서는 REST API 계약이다. W04의 Project 생성·직접 Readonly 조회, W05의 edit session lifecycle과 Project 보호 mutation, W06의 pure Calendar/Leaf Scheduling을 기반으로 W07에서 root Leaf Task/Milestone CRUD를 연결했다. W24는 Project 영구 삭제와 명시적 Task→Summary 전환을 포함한 child hierarchy mutation을 추가한다. Link 범위는 Repository CRUD foundation뿐이며 외부 Link route와 FS 재계산은 W09까지 제공하지 않는다. 완료 범위와 검증은 W07/W24 검증 기록과 Calendar/Hierarchy/Import/Export 후속 작업 상태를 함께 본다.
+이 문서는 REST API 계약이다. W04의 Project 생성·직접 Readonly 조회, W05의 edit session lifecycle과 Project 보호 mutation, W06의 pure Calendar/Leaf Scheduling을 기반으로 W07에서 root Leaf Task/Milestone CRUD를 연결했다. W24는 Project 영구 삭제와 명시적 Task→Summary 전환을 포함한 child hierarchy mutation을 추가한다. Issue #54는 Project 생성/복사와 조회 DTO에 표시용 Owner(`ownerName`)를 추가한다. Link 범위는 Repository CRUD foundation뿐이며 외부 Link route와 FS 재계산은 W09까지 제공하지 않는다. 완료 범위와 검증은 W07/W24 검증 기록과 Calendar/Hierarchy/Import/Export 후속 작업 상태를 함께 본다.
 
 ```text
 Route Handler
@@ -15,7 +15,7 @@ Route Handler
       → SQLite
 ```
 
-Route Handler 안에 SQL이나 일정 알고리즘을 두지 않는다. Client preview나 `canEdit` UI 상태는 mutation 권한의 근거가 아니며, 모든 mutation에서 server가 Project edit session을 다시 검증한다.
+Route Handler 안에 SQL이나 일정 알고리즘을 두지 않는다. Client preview나 `canEdit` UI 상태는 mutation 권한의 근거가 아니며, 모든 mutation에서 server가 Project edit session을 다시 검증한다. `ownerName`은 표시용 Project 메타데이터이며 인증 또는 편집 권한 주체가 아니다.
 
 ## 2. 공통 규약
 
@@ -89,6 +89,7 @@ Project metadata, calendar, task, link, task batch, import commit처럼 schedule
       "publicId": "2fd0c93f-cd37-4b68-9f09-412239d99c79",
       "name": "Plant Expansion",
       "description": "Phase 1 schedule",
+      "ownerName": "Production Engineering",
       "revision": 8,
       "calendar": {
         "timezone": "Asia/Seoul",
@@ -109,7 +110,7 @@ Project metadata, calendar, task, link, task batch, import commit처럼 schedule
 }
 ```
 
-`operation`의 detail은 operation별로 달라도 `project/tasks/links/warnings` shape은 바꾸지 않는다. 배열 순서는 저장된 hierarchy/sibling 순서와 안정적인 Link 순서를 따른다. Response `ETag`은 body revision과 같다. 이 정책은 초기 소규모 Project에 맞춘 것이며 측정 없이 부분 patch protocol로 바꾸지 않는다.
+`operation`의 detail은 operation별로 달라도 `project/tasks/links/warnings` shape은 바꾸지 않는다. 배열 순서는 저장된 hierarchy/sibling 순서와 안정적인 Link 순서를 따른다. Response `ETag`은 body revision과 같다. 이 정책은 초기 소규모 Project에 맞춘 것이며 측정 없이 부분 patch protocol로 바꾸지 않는다. Issue #54 이전 데이터는 `ownerName: null`로 조회될 수 있으며 UI는 이를 `미지정`으로 표시한다.
 
 ## 3. 권한 모델
 
@@ -131,17 +132,18 @@ Project create는 권한 우회가 아니라 독립 bootstrap operation이다. W
 
 Project를 만들고 최초 edit session을 발급한다.
 
-W04 입력은 unknown field를 거부한다. `name`만 trim한 뒤 1–200 Unicode code point, `description`은 원문을 보존하며 0–4,000 code point, `editPassword`는 trim/정규화 없이 최소 12 code point·UTF-8 최대 1,024 bytes다. JSON body 상한은 32 KiB다.
+입력은 unknown field를 거부한다. `name`은 trim 후 1–200 Unicode code point, `ownerName`은 trim 후 1–100 Unicode code point로 필수이며 표시용 메타데이터일 뿐 계정/권한과 연결하지 않는다. `description`은 원문을 보존하며 0–4,000 code point, `editPassword`는 trim/정규화 없이 최소 12 code point·UTF-8 최대 1,024 bytes다. JSON body 상한은 32 KiB다.
 
 ```json
 {
   "name": "Plant Expansion",
+  "ownerName": "Production Engineering",
   "description": "Phase 1 schedule",
   "editPassword": "user-provided-password"
 }
 ```
 
-성공은 `201 Created`, `Location: /projects/{publicId}`, session `Set-Cookie`, 다음 형태의 응답을 반환한다.
+성공은 `201 Created`, `Location: /projects/{publicId}`, session `Set-Cookie`, 다음 형태의 응답을 반환한다. Project row, `ownerName`, password derived material, 최초 edit session은 하나의 write transaction에서 저장되며 어느 단계가 실패해도 전체 rollback한다.
 
 ```json
 {
@@ -150,6 +152,7 @@ W04 입력은 unknown field를 거부한다. `name`만 trim한 뒤 1–200 Unico
       "publicId": "2fd0c93f-cd37-4b68-9f09-412239d99c79",
       "name": "Plant Expansion",
       "description": "Phase 1 schedule",
+      "ownerName": "Production Engineering",
       "revision": 1,
       "calendar": {
         "timezone": "Asia/Seoul",
@@ -166,13 +169,13 @@ Password는 응답하거나 log에 남기지 않는다. UUID collision은 unique
 
 ### `GET /api/projects`
 
-D02 사용자 승인에 따라 앱 접속 가능한 모든 사용자에게 전체 목록을 제공한다. Session은 필요하지 않으며 `200 OK`, `Cache-Control: private, no-store`를 반환한다. 응답은 `{ "data": { "projects": [] } }` 형식이며 각 항목은 `publicId`, `name`, `description`, `createdAt`, `updatedAt`만 포함한다. 최신 `updatedAt` 내림차순과 안정적인 동률 정렬을 적용한다. 내부 DB ID, password/hash/salt, session/token과 일정 상세는 포함하지 않는다.
+D02 사용자 승인에 따라 앱 접속 가능한 모든 사용자에게 전체 목록을 제공한다. Session은 필요하지 않으며 `200 OK`, `Cache-Control: private, no-store`를 반환한다. 응답은 `{ "data": { "projects": [] } }` 형식이며 각 항목은 `publicId`, `name`, `description`, `ownerName`, `createdAt`, `updatedAt`을 포함한다. 기존 Project의 Owner가 없으면 `ownerName`은 `null`이다. 최신 `updatedAt` 내림차순과 안정적인 동률 정렬을 적용한다. 내부 DB ID, password/hash/salt, session/token과 일정 상세는 포함하지 않는다.
 
 DB가 비어 있으면 빈 배열을 반환한다. DB 실패는 공통 sanitized API 오류로 처리하며 빈 목록 성공으로 숨기지 않는다. 이 GET은 session 발급 또는 편집 권한 변경을 수행하지 않는다. 기존 W04의 `405` 비활성 정책은 W23에서 대체했다.
 
 ### `GET /api/projects/{publicId}`
 
-Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 canonical lowercase UUID v4가 아니면 동일한 `404 PROJECT_NOT_FOUND`이다. Cookie 유무와 관계없이 `permission: "readonly"`만 반환하며, UI는 W05의 session-current endpoint로 edit 표시를 별도 동기화한다. Mutation은 표시 상태와 무관하게 server에서 다시 인증한다.
+Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 canonical lowercase UUID v4가 아니면 동일한 `404 PROJECT_NOT_FOUND`이다. Cookie 유무와 관계없이 `permission: "readonly"`만 반환하며, UI는 W05의 session-current endpoint로 edit 표시를 별도 동기화한다. Mutation은 표시 상태와 무관하게 server에서 다시 인증한다. `ownerName`은 표시 전용이며 편집 session 여부에 영향을 주지 않는다.
 
 ```json
 {
@@ -181,6 +184,7 @@ Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 c
       "publicId": "2fd0c93f-cd37-4b68-9f09-412239d99c79",
       "name": "Plant Expansion",
       "description": "Phase 1 schedule",
+      "ownerName": "Production Engineering",
       "revision": 7,
       "calendar": {
         "timezone": "Asia/Seoul",
@@ -206,6 +210,7 @@ Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 c
 ```json
 {
   "name": "Plant Expansion (복사본)",
+  "ownerName": "Production Engineering",
   "description": "Next planning cycle",
   "editPassword": "new-project-password",
   "resetProgress": false
@@ -213,11 +218,12 @@ Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 c
 ```
 
 - `name`: 기존 Project 생성과 동일하게 trim 후 1–200 Unicode code point.
+- `ownerName`: trim 후 1–100 Unicode code point의 필수 표시용 Owner. 계정 또는 권한 식별자가 아니다.
 - `description`: 0–4,000 Unicode code point, 원문 보존.
 - `editPassword`: 새 Project 전용 비밀번호. 원본 password hash/salt/KDF record를 복사하지 않는다.
 - `resetProgress`: 선택값이며 기본 `false`. `true`이면 leaf task/milestone progress를 0으로 만들고 summary progress를 계층 규칙으로 재집계한다.
 
-Password hashing은 write transaction 밖에서 수행한다. 이후 `IMMEDIATE` transaction 안에서 원본 session의 Project binding, authVersion, expiry/revocation과 원본 revision을 다시 검사하고 Project/Task/Link/Holiday/새 edit session을 한 번에 생성한다. 중간 실패 시 전체 rollback한다. 새 Project/Task/Link의 내부·공개 ID는 새로 발급하며 Task `externalId`, 계층/sibling order, Link 관계, 날짜/기간, Project 휴일은 보존한다. 원본 Project의 revision과 일정은 변경하지 않는다.
+Password hashing은 write transaction 밖에서 수행한다. 이후 `IMMEDIATE` transaction 안에서 원본 session의 Project binding, authVersion, expiry/revocation과 원본 revision을 다시 검사하고 Project/Owner/Task/Link/Holiday/새 edit session을 한 번에 생성한다. 중간 실패 시 전체 rollback한다. 새 Project/Task/Link의 내부·공개 ID는 새로 발급하며 Task `externalId`, 계층/sibling order, Link 관계, 날짜/기간, Project 휴일은 보존한다. 원본 Project의 revision과 일정은 변경하지 않는다.
 
 성공은 `201 Created`, `Location: /projects/{newPublicId}`, `ETag: "1"`, `Cache-Control: private, no-store`와 새 Project에 binding된 edit-session `Set-Cookie`를 반환한다. 현재 root cookie 정책상 성공 후 브라우저의 편집 session 대상은 새 Project로 전환된다.
 
@@ -228,6 +234,7 @@ Password hashing은 write transaction 밖에서 수행한다. 이후 `IMMEDIATE`
       "publicId": "new-project-uuid",
       "name": "Plant Expansion (복사본)",
       "description": "Next planning cycle",
+      "ownerName": "Production Engineering",
       "revision": 1,
       "calendar": {
         "timezone": "Asia/Seoul",
@@ -262,7 +269,7 @@ Password hashing은 write transaction 밖에서 수행한다. 이후 `IMMEDIATE`
 
 ### `PATCH /api/projects/{publicId}`
 
-Edit session, exact same-origin `Origin`, 강한 단일 `If-Match: "<positive revision>"`가 필요하다. strict JSON object에서 `name`과 `description` 중 하나 이상만 변경할 수 있다. Empty object, unknown field, `null`, weak/bare/wildcard/multiple ETag는 거부한다. 성공 시 revision이 정확히 1 증가하며 다음 canonical full snapshot을 반환한다.
+Edit session, exact same-origin `Origin`, 강한 단일 `If-Match: "<positive revision>"`가 필요하다. strict JSON object에서 `name`과 `description` 중 하나 이상만 변경할 수 있다. Empty object, unknown field, `null`, weak/bare/wildcard/multiple ETag는 거부한다. Issue #54의 `ownerName`은 현재 생성/복사 시점 표시 metadata이며 이 PATCH의 mutable allowlist에는 포함하지 않는다. 성공 시 revision이 정확히 1 증가하며 다음 canonical full snapshot을 반환한다.
 
 ```json
 {
@@ -274,7 +281,7 @@ Edit session, exact same-origin `Origin`, 강한 단일 `If-Match: "<positive re
 ```json
 {
   "data": {
-    "project": { "publicId": "...", "name": "...", "description": "...", "revision": 8, "calendar": { "timezone": "Asia/Seoul", "weekendDays": [6, 0], "holidays": [] } },
+    "project": { "publicId": "...", "name": "...", "description": "...", "ownerName": "Production Engineering", "revision": 8, "calendar": { "timezone": "Asia/Seoul", "weekendDays": [6, 0], "holidays": [] } },
     "tasks": [],
     "links": [],
     "warnings": [],
@@ -579,6 +586,14 @@ W04에서 아래 항목을 실제 Vitest/Chromium으로 PASS했다.
 - exact Origin, process-global 5/hour limit, KDF concurrency 2, production/local Cookie 속성
 - canonical UUID collision bounded retry, public DTO의 Project 격리, malformed/absent UUID 동일 404
 - 생성·reload·새 browser Direct Readonly UI, 컬렉션 요청 부재와 API 405, password URL/DOM 비노출
+
+Issue #54에서 추가한 자동화 검증은 다음과 같다.
+
+- create/copy의 `ownerName` strict 입력 및 trim/Unicode 1–100 code point 경계
+- Owner 저장, 목록, readonly snapshot 및 container restart round-trip
+- legacy `ownerName: null` 호환과 UI `미지정` 처리
+- Owner 저장 실패 시 Project/edit session을 남기지 않는 aggregate rollback
+- Chromium create fixture 및 production HTTP/HTTPS transport에서 필수 Owner 계약 검증
 
 나머지 목록은 후속 전체 제품 검증 항목이다.
 
