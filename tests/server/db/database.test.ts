@@ -125,6 +125,7 @@ describe("SQLite connection and schema", () => {
         "0001_initial_schema.sql",
         "0002_task_description_url.sql",
         "0003_resource_catalog.sql",
+        "0004_project_owner.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
