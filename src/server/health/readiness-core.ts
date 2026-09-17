@@ -15,8 +15,8 @@ export type ReadinessDiagnostic =
   | { result: { status: "ok" }; reason?: undefined }
   | { result: { status: "unavailable" }; reason: ReadinessFailureReason };
 
-const READY: ReadinessResult = Object.freeze({ status: "ok" });
-const UNAVAILABLE: ReadinessResult = Object.freeze({ status: "unavailable" });
+const READY = Object.freeze({ status: "ok" as const });
+const UNAVAILABLE = Object.freeze({ status: "unavailable" as const });
 
 interface AppliedMigrationRow {
   version: number;
