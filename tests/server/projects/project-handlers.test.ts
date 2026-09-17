@@ -21,6 +21,7 @@ const createResponse: CreateProjectResponse = {
       publicId,
       name: "Plant Expansion",
       description: "Phase 1",
+      ownerName: "Plant Owner",
       revision: 1,
       calendar: {
         timezone: "Asia/Seoul",
@@ -46,6 +47,7 @@ const listResponse: ProjectListResponse = {
         publicId,
         name: "Plant Expansion",
         description: "Phase 1",
+        ownerName: "Plant Owner",
         createdAt: "2026-09-11T01:00:00.000Z",
         updatedAt: "2026-09-12T01:00:00.000Z",
       },
@@ -57,6 +59,7 @@ function request(
   body: BodyInit = JSON.stringify({
     name: "Plant Expansion",
     description: "Phase 1",
+    ownerName: "Plant Owner",
     editPassword: "password phrase",
   }),
   headers: HeadersInit = {},
@@ -163,6 +166,7 @@ describe("POST /api/projects handler", () => {
       {
         request: request(JSON.stringify({
           name: "Name",
+          ownerName: "Owner",
           description: "",
           editPassword: "password phrase",
           secretExtra: "must not echo",
@@ -250,6 +254,7 @@ describe("POST /api/projects handler", () => {
     const response = await handleCreateProject(
       request(JSON.stringify({
         name: "Name",
+        ownerName: "Owner",
         description: "",
         editPassword: password,
       })),
