@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import type Database from "better-sqlite3";
 
 import type {
@@ -12,16 +14,24 @@ import type {
 } from "../../contracts/projects";
 import type { ProjectAssignmentDto } from "../../contracts/resources";
 import { ProjectOwnerRepository } from "../repositories/project-owner-repository-core";
-import { ProjectRepository } from "../repositories/project-repository-core";
+import { EditSessionRepository, ProjectRepository } from "../repositories/project-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
 import { ScheduleRepository, type TaskRecord } from "../repositories/schedule-repository-core";
-import type { CreateProjectInput } from "./project-contract";
+import { hashEditPassword, type PasswordHashRecord } from "../security/password-core";
+import {
+  createSessionToken,
+  sessionExpiry,
+  type NewSessionToken,
+} from "../security/session-core";
+import { isCanonicalUuidV4, type CreateProjectInput } from "./project-contract";
 import {
   ProjectService,
   type AuthorizedEditSession,
   type CreatedProject,
   type ProjectServiceOptions,
 } from "./project-service-core";
+
+const PUBLIC_ID_ATTEMPTS = 3;
 
 function enrichTasks(tasks: readonly ProjectTaskDto[], records: readonly TaskRecord[]): ProjectTaskDto[] {
   const details = new Map(records.map((task) => [task.publicId, task]));
@@ -51,8 +61,13 @@ function assignmentDtos(repository: ResourceCatalogRepository, projectId: number
 export class TaskFieldProjectService extends ProjectService {
   private readonly projectsForFields: ProjectRepository;
   private readonly ownersForFields: ProjectOwnerRepository;
+  private readonly sessionsForFields: EditSessionRepository;
   private readonly schedulesForFields: ScheduleRepository;
   private readonly resourcesForFields: ResourceCatalogRepository;
+  private readonly createClock: () => Date;
+  private readonly createPublicId: () => string;
+  private readonly createHashPassword: (password: string) => Promise<PasswordHashRecord>;
+  private readonly createSession: () => NewSessionToken;
 
   constructor(
     private readonly fieldDatabase: Database.Database,
@@ -61,8 +76,13 @@ export class TaskFieldProjectService extends ProjectService {
     super(fieldDatabase, options);
     this.projectsForFields = new ProjectRepository(fieldDatabase);
     this.ownersForFields = new ProjectOwnerRepository(fieldDatabase);
+    this.sessionsForFields = new EditSessionRepository(fieldDatabase);
     this.schedulesForFields = new ScheduleRepository(fieldDatabase);
     this.resourcesForFields = new ResourceCatalogRepository(fieldDatabase);
+    this.createClock = options.clock ?? (() => new Date());
+    this.createPublicId = options.generatePublicId ?? randomUUID;
+    this.createHashPassword = options.hashPassword ?? hashEditPassword;
+    this.createSession = options.generateSessionToken ?? createSessionToken;
   }
 
   private ownerByProjectId(projectId: number): string | null {
@@ -88,25 +108,75 @@ export class TaskFieldProjectService extends ProjectService {
   }
 
   override async create(input: CreateProjectInput): Promise<CreatedProject> {
-    const created = await super.create(input);
-    const publicId = created.response.data.project.publicId;
+    const password = await this.createHashPassword(input.editPassword);
+    const sessionToken = this.createSession();
+    const createdAt = this.createClock();
+    const createdAtText = createdAt.toISOString();
+    const expiresAtText = sessionExpiry(createdAt).toISOString();
     const ownerName = input.ownerName ?? null;
-    if (!this.ownersForFields.setByPublicId(publicId, ownerName)) {
-      throw new Error("Created project owner metadata could not be persisted.");
-    }
-    return {
-      ...created,
-      response: {
-        ...created.response,
-        data: {
-          ...created.response.data,
-          project: {
-            ...created.response.data.project,
-            ownerName,
+
+    for (let attempt = 0; attempt < PUBLIC_ID_ATTEMPTS; attempt += 1) {
+      const publicId = this.createPublicId();
+      if (!isCanonicalUuidV4(publicId)) continue;
+
+      const createAggregate = this.fieldDatabase.transaction(() => {
+        const project = this.projectsForFields.insert({
+          publicId,
+          name: input.name,
+          description: input.description,
+          passwordKdf: password.algorithm,
+          passwordSalt: password.salt,
+          passwordHash: password.hash,
+          scryptN: password.n,
+          scryptR: password.r,
+          scryptP: password.p,
+          scryptKeyLength: password.keyLength,
+          calendarTimezone: "Asia/Seoul",
+          createdAt: createdAtText,
+          updatedAt: createdAtText,
+        });
+        if (!this.ownersForFields.setByPublicId(publicId, ownerName)) {
+          throw new Error("Created project owner metadata could not be persisted.");
+        }
+        this.sessionsForFields.insert({
+          projectId: project.id,
+          tokenHash: sessionToken.tokenHash,
+          authVersion: project.authVersion,
+          createdAt: createdAtText,
+          expiresAt: expiresAtText,
+        });
+        return project;
+      });
+
+      try {
+        const project = createAggregate.immediate();
+        return {
+          response: {
+            data: {
+              project: {
+                publicId: project.publicId,
+                name: project.name,
+                description: project.description,
+                ownerName,
+                revision: project.revision,
+                calendar: {
+                  timezone: "Asia/Seoul",
+                  weekendDays: [6, 0],
+                  holidays: [],
+                },
+              },
+              permission: "edit",
+            },
           },
-        },
-      },
-    };
+          rawSessionToken: sessionToken.rawToken,
+        };
+      } catch (error) {
+        if (this.projectsForFields.findByPublicId(publicId)) continue;
+        throw error;
+      }
+    }
+
+    throw new Error("A unique project identifier could not be generated.");
   }
 
   override listProjects(): ProjectListResponse {
