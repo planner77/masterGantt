@@ -613,3 +613,15 @@ Issue #54에서 추가한 자동화 검증은 다음과 같다.
 - [Node.js Crypto API](https://nodejs.org/api/crypto.html)
 - [`better-sqlite3` transaction API](https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md#transactionfunction---function)
 - [ExcelJS](https://github.com/exceljs/exceljs)
+
+## Issue #56: Resource workload API
+
+### 작업별 리소스 계획 투입
+
+기존 `PUT /api/projects/{publicId}/tasks/{taskId}/assignments`의 resource target은 선택적으로 `assignmentStart`, `assignmentEnd`, `allocationPercent`를 함께 저장한다. `allocationPercent`는 0 초과 100 이하이며, 명시한 시작/종료일은 leaf task의 서버 확정 일정 범위를 벗어날 수 없다. 시작/종료가 없으면 작업의 확정 `start`/`end`를 상속한다. 기존 Issue #19 데이터의 `allocationPercent: null`은 100%로 추정하지 않으며 공수 합계에서 제외한다. group 직접 할당은 담당 팀 참조이므로 개인 공수를 구성원에게 자동 분배하지 않는다.
+
+### `GET /api/projects/{publicId}/resource-workload?from=YYYY-MM-DD&to=YYYY-MM-DD`
+
+Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`to`는 선택 사항이며 서버가 프로젝트 일정 범위와 교차해 유효 구간을 계산한다. leaf task의 직접 resource assignment만 집계하고 Summary/Milestone/group 직접 할당은 개인 계획 공수에서 제외한다.
+
+`M/D = 조회 구간 내 프로젝트 근무일 수 × allocationPercent / 100`으로 계산한다. `RESOURCE_MD_PER_MM`이 유효한 양수일 때만 `M/M = M/D / RESOURCE_MD_PER_MM`을 반환한다. 응답은 그룹 → 리소스 → 작업 계층, assignment 기준 Grand Total, `unsetCount`, 일별 할당률 합계가 100%를 초과하는 `overAllocated` 상태를 포함한다. 복수 그룹 소속 리소스는 각 그룹에 보일 수 있지만 Grand Total은 같은 assignment를 중복 집계하지 않는다. 미소속 리소스는 `미분류 리소스`로 표시한다.
