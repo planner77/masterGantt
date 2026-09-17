@@ -46,6 +46,7 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false }: 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
+  const [ownerName, setOwnerName] = useState("");
   const [description, setDescription] = useState("");
   const [sourcePassword, setSourcePassword] = useState("");
   const [password, setPassword] = useState("");
@@ -80,6 +81,7 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false }: 
       setSnapshot(projectBody);
       setAuthorized(canEdit);
       setName(suggestedName(projectBody.data.project.name));
+      setOwnerName(projectBody.data.project.ownerName ?? "");
       setDescription(projectBody.data.project.description);
       setSourcePassword("");
       setPassword("");
@@ -134,8 +136,13 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false }: 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const normalizedName = name.trim();
+    const normalizedOwnerName = ownerName.trim();
     if (!normalizedName || Array.from(normalizedName).length > 200) {
       setError("새 프로젝트명은 1~200자로 입력해 주세요.");
+      return;
+    }
+    if (!normalizedOwnerName || Array.from(normalizedOwnerName).length > 100) {
+      setError("소유자는 Unicode 문자 기준 1~100자로 입력해 주세요.");
       return;
     }
     if (Array.from(description).length > 4_000) {
@@ -172,6 +179,7 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false }: 
         },
         body: JSON.stringify({
           name: normalizedName,
+          ownerName: normalizedOwnerName,
           description,
           editPassword: password,
           resetProgress,
@@ -216,6 +224,7 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false }: 
       {project ? <form className="project-form compact-form" noValidate onSubmit={submit}>
         {!authorized ? <div className="form-field"><label htmlFor="detail-copy-source-password">원본 편집 비밀번호</label><input id="detail-copy-source-password" type="password" autoComplete="current-password" value={sourcePassword} disabled={copying} onChange={(event) => setSourcePassword(event.target.value)} /></div> : null}
         <div className="form-field"><label htmlFor="detail-copy-name">새 프로젝트명</label><input id="detail-copy-name" value={name} disabled={copying} onChange={(event) => setName(event.target.value)} /></div>
+        <div className="form-field"><label htmlFor="detail-copy-owner">소유자</label><input id="detail-copy-owner" value={ownerName} disabled={copying} onChange={(event) => setOwnerName(event.target.value)} /></div>
         <div className="form-field"><label htmlFor="detail-copy-description">설명</label><textarea id="detail-copy-description" rows={3} value={description} disabled={copying} onChange={(event) => setDescription(event.target.value)} /></div>
         <div className="form-field"><label htmlFor="detail-copy-password">새 편집 비밀번호</label><input id="detail-copy-password" type="password" autoComplete="new-password" value={password} disabled={copying} onChange={(event) => setPassword(event.target.value)} /></div>
         <div className="form-field"><label htmlFor="detail-copy-password-confirm">새 편집 비밀번호 확인</label><input id="detail-copy-password-confirm" type="password" autoComplete="new-password" value={confirm} disabled={copying} onChange={(event) => setConfirm(event.target.value)} /></div>

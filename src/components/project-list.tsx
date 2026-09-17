@@ -124,9 +124,10 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
       <p className={styles.count}><strong>{visibleProjects.length}</strong>개의 프로젝트</p>
       <div className={styles.tableWrap}>
         <table aria-label="프로젝트 목록" className={styles.table}>
-          <thead><tr><th scope="col">프로젝트</th><th scope="col">설명</th><th scope="col">생성</th><th scope="col">최근 변경</th><th scope="col">작업</th></tr></thead>
+          <thead><tr><th scope="col">프로젝트</th><th scope="col">소유자</th><th scope="col">설명</th><th scope="col">생성</th><th scope="col">최근 변경</th><th scope="col">작업</th></tr></thead>
           <tbody>{visibleProjects.map((project) => <tr key={project.publicId} data-project-id={project.publicId}>
             <td className={styles.nameCell}><Link className={styles.nameLink} href={projectPath(project.publicId)}>{project.name}</Link></td>
+            <td>{project.ownerName ?? "미지정"}</td>
             <td className={styles.descriptionCell}><span className={styles.description}>{project.description || "설명이 없습니다."}</span></td>
             <td className={styles.dateCell}>{formatLocaleDateTime(project.createdAt, locales, timeZone)}</td>
             <td className={styles.dateCell}>{formatLocaleDateTime(project.updatedAt, locales, timeZone)}</td>

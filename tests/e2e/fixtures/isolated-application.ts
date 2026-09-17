@@ -10,6 +10,7 @@ import { promisify } from "node:util";
 const repositoryRoot = resolve(__dirname, "../../..");
 const startupMilliseconds = 90_000;
 const executeFile = promisify(execFile);
+export const E2E_PROJECT_OWNER = "E2E 자동화";
 
 async function unusedLoopbackPort(): Promise<number> {
   const server = createServer();
@@ -151,7 +152,11 @@ export const isolatedApplicationOptions = {
 };
 
 /** Report the actual HTTP failure rather than a misleading navigation timeout. */
-export async function submitProjectAndExpectCreated(page: Page): Promise<void> {
+export async function submitProjectAndExpectCreated(page: Page, ownerName = E2E_PROJECT_OWNER): Promise<void> {
+  const owner = page.getByLabel("소유자", { exact: true });
+  if (await owner.count() > 0 && (await owner.inputValue()).trim().length === 0) {
+    await owner.fill(ownerName);
+  }
   const [response] = await Promise.all([
     page.waitForResponse((candidate) => candidate.request().method() === "POST" && new URL(candidate.url()).pathname === "/api/projects"),
     page.getByRole("button", { name: "프로젝트 만들기", exact: true }).click(),

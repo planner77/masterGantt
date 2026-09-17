@@ -3,9 +3,24 @@ import { expect, test, type Page } from "@playwright/test";
 import { chooseTaskInformation } from "../e2e/helpers/task-context-menu";
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
 
+const TRANSPORT_PROJECT_OWNER = "Transport CI";
+
+async function gotoProjectCreate(page: Page): Promise<void> {
+  try {
+    await page.goto("/projects/new");
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.includes("ERR_NETWORK_CHANGED")) throw error;
+    // Docker restart can invalidate Chromium's cached network route for an
+    // already-open production page. Retry navigation once after that explicit
+    // infrastructure transition; mutation requests themselves are never retried.
+    await page.goto("/projects/new");
+  }
+}
+
 async function createProject(page: Page, name: string, password: string): Promise<string> {
-  await page.goto("/projects/new");
+  await gotoProjectCreate(page);
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(name);
+  await page.getByLabel("소유자", { exact: true }).fill(TRANSPORT_PROJECT_OWNER);
   await page.getByLabel("편집 비밀번호", { exact: true }).fill(password);
   const pending = page.waitForResponse((r) => new URL(r.url()).pathname === "/api/projects" && r.request().method() === "POST");
   await page.getByRole("button", { name: "프로젝트 만들기" }).click();
@@ -39,8 +54,6 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
   expect(await page.evaluate(() => window.isSecureContext)).toBe(secure);
   expect(new URL(page.url()).hostname).not.toMatch(/localhost|127\.0\.0\.1/);
 
-  // Positive paths never inject cookies or rewrite requests. Check attributes
-  // individually so assertion diagnostics cannot expose the raw session token.
   const cookies = await page.context().cookies(baseURL);
   const cookie = cookies.find((entry) => entry.name === cookieName);
   expect(Boolean(cookie)).toBe(true);
@@ -66,8 +79,6 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
   await expect(page.getByRole("grid").getByText(task.name, { exact: true })).toBeVisible();
   await expect(page.locator(`.wx-bar[data-task-id=":${task.taskId}"]`)).toBeVisible();
 
-  // Edit through the actual task context menu and editor, with native browser
-  // credential handling, not an API seed pretending to be UI coverage.
   await page.locator(".project-gantt-widget .wx-row", { hasText: task.name }).first()
     .getByText(task.name, { exact: true }).click({ button: "right" });
   await chooseTaskInformation(page);
@@ -82,6 +93,7 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
   await page.reload();
   await expect(page.getByRole("grid").getByText(savedTaskName, { exact: true })).toBeVisible();
   let saved = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  expect(saved.data.project.ownerName).toBe(TRANSPORT_PROJECT_OWNER);
   let revision = saved.data.project.revision;
 
   for (const origin of [baseURL.replace(/^https?:/, secure ? "http:" : "https:"), `${new URL(baseURL).protocol}//${new URL(baseURL).hostname}:18089`, "http://evil.test"]) {
@@ -95,8 +107,6 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
     headers: { Origin: baseURL, "If-Match": `"${revision - 1}"` }, data: { name: "stale" },
   });
   expect(stale.status()).toBe(412);
-  // Selecting the other scheme's cookie name must not authenticate, even with a
-  // real token. This explicit negative request is not a browser login shortcut.
   const wrongName = secure ? "mastergantt_edit" : "__Host-mastergantt_edit";
   const wrongCookie = await page.request.patch(api, {
     headers: { Origin: baseURL, "If-Match": `"${revision}"`, Cookie: `${wrongName}=${cookie!.value}` }, data: { name: "wrong cookie" },
@@ -130,6 +140,7 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
     await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
     saved = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
     expect(saved.data.project.revision).toBe(revision);
+    expect(saved.data.project.ownerName).toBe(TRANSPORT_PROJECT_OWNER);
 
     await openSettings(page);
     await page.getByLabel("새 편집 비밀번호", { exact: true }).fill(rotated);
@@ -144,7 +155,6 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
     });
     expect(crossSession.status()).toBe(401);
 
-    // A second project's cookie must not authorize access to the first project.
     const otherId = await createProject(otherPage, `Other ${suffix}`, `other-password-${suffix}`);
     const crossProject = await page.request.patch(`/api/projects/${otherId}`, {
       headers: { Origin: baseURL, "If-Match": '"1"' }, data: { name: "cross project" },

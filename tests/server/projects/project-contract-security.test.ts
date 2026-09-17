@@ -26,10 +26,11 @@ import {
 } from "../../../src/server/security/session-core";
 
 describe("project input contract", () => {
-  it("trims only the name while preserving description and password", () => {
+  it("trims project name and owner while preserving description and password", () => {
     const password = "  열두글자 암호 문구  ";
     const result = parseCreateProjectInput({
       name: "  설비 확장  ",
+      ownerName: "  생산기술팀 이대리  ",
       description: "  설명은 보존됩니다.\n",
       editPassword: password,
     });
@@ -38,6 +39,7 @@ describe("project input contract", () => {
       success: true,
       data: {
         name: "설비 확장",
+        ownerName: "생산기술팀 이대리",
         description: "  설명은 보존됩니다.\n",
         editPassword: password,
       },
@@ -47,17 +49,21 @@ describe("project input contract", () => {
   it("counts Unicode code points and enforces each boundary", () => {
     const valid = parseCreateProjectInput({
       name: "😀".repeat(200),
+      ownerName: "😀".repeat(100),
       description: "한".repeat(4_000),
       editPassword: "😀".repeat(12),
     });
     expect(valid.success).toBe(true);
 
     for (const invalid of [
-      { name: " ", description: "", editPassword: "123456789012" },
-      { name: "n".repeat(201), description: "", editPassword: "123456789012" },
-      { name: "Valid", description: "d".repeat(4_001), editPassword: "123456789012" },
-      { name: "Valid", description: "", editPassword: "short" },
-      { name: "Valid", description: "", editPassword: "😀".repeat(257) },
+      { name: " ", ownerName: "Owner", description: "", editPassword: "123456789012" },
+      { name: "n".repeat(201), ownerName: "Owner", description: "", editPassword: "123456789012" },
+      { name: "Valid", ownerName: " ", description: "", editPassword: "123456789012" },
+      { name: "Valid", ownerName: "o".repeat(101), description: "", editPassword: "123456789012" },
+      { name: "Valid", ownerName: "Owner", description: "d".repeat(4_001), editPassword: "123456789012" },
+      { name: "Valid", ownerName: "Owner", description: "", editPassword: "short" },
+      { name: "Valid", ownerName: "Owner", description: "", editPassword: "😀".repeat(257) },
+      { name: "Valid", description: "", editPassword: "123456789012" },
     ]) {
       expect(parseCreateProjectInput(invalid).success).toBe(false);
     }
@@ -66,12 +72,14 @@ describe("project input contract", () => {
   it("rejects unknown, null, mistyped, and malformed Unicode values", () => {
     const cases: unknown[] = [
       null,
-      { name: "Valid", description: "", editPassword: "123456789012", extra: true },
-      { name: null, description: "", editPassword: "123456789012" },
-      { name: 42, description: "", editPassword: "123456789012" },
-      { name: "\ud800", description: "", editPassword: "123456789012" },
-      { name: "Valid", description: "\udc00", editPassword: "123456789012" },
-      { name: "Valid", description: "", editPassword: "12345678901\ud800" },
+      { name: "Valid", ownerName: "Owner", description: "", editPassword: "123456789012", extra: true },
+      { name: null, ownerName: "Owner", description: "", editPassword: "123456789012" },
+      { name: 42, ownerName: "Owner", description: "", editPassword: "123456789012" },
+      { name: "Valid", ownerName: 42, description: "", editPassword: "123456789012" },
+      { name: "\ud800", ownerName: "Owner", description: "", editPassword: "123456789012" },
+      { name: "Valid", ownerName: "\ud800", description: "", editPassword: "123456789012" },
+      { name: "Valid", ownerName: "Owner", description: "\udc00", editPassword: "123456789012" },
+      { name: "Valid", ownerName: "Owner", description: "", editPassword: "12345678901\ud800" },
     ];
 
     for (const value of cases) {
@@ -99,7 +107,7 @@ describe("request and origin boundaries", () => {
       "https://gantt.example.com/",
       "https://gantt.example.com.evil.test",
       "http://gantt.example.com",
-      "https://gantt.example.com, https://evil.test",
+      "https://gantt.example.com, https://evil.example.com",
       " https://gantt.example.com",
     ]) {
       expect(isExactAllowedOrigin(origin, app)).toBe(false);
@@ -225,14 +233,7 @@ describe("create abuse and credential material", () => {
       hashEditPassword("same password phrase"),
       hashEditPassword("same password phrase"),
     ]);
-
-    expect(first).toMatchObject({
-      algorithm: "scrypt",
-      n: SCRYPT_PARAMETERS.n,
-      r: SCRYPT_PARAMETERS.r,
-      p: SCRYPT_PARAMETERS.p,
-      keyLength: 32,
-    });
+    expect(first).toMatchObject({ algorithm: "scrypt", n: SCRYPT_PARAMETERS.n, r: SCRYPT_PARAMETERS.r, p: SCRYPT_PARAMETERS.p, keyLength: 32 });
     expect(first.salt).toHaveLength(16);
     expect(first.hash).toHaveLength(32);
     expect(first.salt.equals(second.salt)).toBe(false);
@@ -252,36 +253,11 @@ describe("create abuse and credential material", () => {
 
   it("serializes production and development cookie policies", () => {
     const rawToken = "A".repeat(43);
-    const production = serializeEditSessionCookie(
-      rawToken,
-      new URL("https://gantt.example.com"),
-      "production",
-    );
-    expect(production).toBe(
-      `__Host-mastergantt_edit=${rawToken}; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800; Secure`,
-    );
+    const production = serializeEditSessionCookie(rawToken, new URL("https://gantt.example.com"), "production");
+    expect(production).toBe(`__Host-mastergantt_edit=${rawToken}; Path=/; HttpOnly; SameSite=Strict; Max-Age=28800; Secure`);
     expect(production).not.toContain("Domain=");
-
-    expect(
-      serializeEditSessionCookie(
-        rawToken,
-        new URL("http://127.0.0.1:3000"),
-        "development",
-      ),
-    ).not.toContain("Secure");
-    expect(
-      serializeEditSessionCookie(
-        rawToken,
-        new URL("https://dev.example.com"),
-        "development",
-      ),
-    ).toContain("; Secure");
-    expect(() =>
-      serializeEditSessionCookie(
-        "invalid;token",
-        new URL("https://gantt.example.com"),
-        "production",
-      ),
-    ).toThrow(/invalid format/);
+    expect(serializeEditSessionCookie(rawToken, new URL("http://127.0.0.1:3000"), "development")).not.toContain("Secure");
+    expect(serializeEditSessionCookie(rawToken, new URL("https://dev.example.com"), "development")).toContain("; Secure");
+    expect(() => serializeEditSessionCookie("invalid;token", new URL("https://gantt.example.com"), "production")).toThrow(/invalid format/);
   });
 });

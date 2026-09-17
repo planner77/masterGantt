@@ -102,7 +102,7 @@ it("HTTP Handler → Service → SQLite에서 CRUD와 세션 만료·Origin·rev
   });
   try {
     const password = "http-integration-password";
-    const response = await handleCreateProject(request("/api/projects", "POST", { name: "HTTP integration", description: "", editPassword: password }), { ...config, rateLimiter: new FixedWindowRateLimiter(20, 60_000) });
+    const response = await handleCreateProject(request("/api/projects", "POST", { name: "HTTP integration", description: "", ownerName: "HTTP Test Owner", editPassword: password }), { ...config, rateLimiter: new FixedWindowRateLimiter(20, 60_000) });
     expect(response.status).toBe(201);
     const body = await response.json() as CreateProjectResponse;
     const id = body.data.project.publicId;
