@@ -31,7 +31,14 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     } finally { setLoading(false); }
   }, [publicId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      await Promise.resolve();
+      if (alive) await load();
+    })();
+    return () => { alive = false; };
+  }, [load]);
 
   return <section aria-labelledby="resource-workload-heading" className="project-resource-workload">
     <div className="schedule-heading-row">
