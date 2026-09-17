@@ -438,6 +438,7 @@ describe("route security inventory", () => {
       "PUT /api/resource-groups/{groupId}/members",
       "GET /api/projects/{publicId}/assignment-targets",
       "GET /api/projects/{publicId}/assigned-targets",
+      "GET /api/projects/{publicId}/resource-workload",
       "PUT /api/projects/{publicId}/tasks/{taskId}/assignments",
     ]);
     for (const route of ROUTE_SECURITY_INVENTORY.filter(({ mutatesState }) => mutatesState)) {
