@@ -120,10 +120,10 @@ P-A/P-B 두 Project에 같은 externalId를 사용해 isolation을 시험한다.
 | CI04 | ephemeral volume에 대표 Project 저장 후 같은 container/image restart에서 유지; image layer에는 DB/WAL/SHM 없음 |
 | CI05 | package와 lockfile version이 strict SemVer로 일치; release tag가 annotated exact `v<version>`이고 모든 이전 valid tag보다 크며 malformed/mismatch/lower version은 hard fail |
 | CI06 | PR job은 read-only이고 publish job만 최소 package/attestation 권한; Action full SHA와 base image digest pin, secret build arg/log 없음 |
-| CI07 | Repository 단위 release 직렬화; stable만 latest/major/minor 갱신, prerelease는 exact/commit만 생성; OCI source/revision/version, SBOM/provenance 존재 |
-| CI08 | Pre-publish local candidate가 production config/migration/readiness/native SQLite/restart를 통과; GHCR에는 commit candidate만 먼저 push하고 digest smoke 및 활성화한 GitHub Attestation 뒤 rolling/exact 승격; exact version/digest를 downstream test에 제공 |
-| CI09 | PR·수동 CI는 registry write가 없고 성공한 `main` push만 모든 quality/E2E/container job 뒤 immutable `ci-<full SHA>`를 게시; 기존 tag overwrite와 SemVer/rolling alias 생성을 거부 |
-| CI10 | Main commit과 SemVer release image를 각각 build output digest로 새로 pull해 image policy, migration/readiness, Project 생성·edit session·Task 저장, unauthorized write 거부, restart 후 Project/Task 재조회를 검증; BuildKit SBOM/provenance와 optional GitHub Attestation 결과를 구분 |
+| CI07 | Repository 단위 release 직렬화; stable만 latest/major/minor 갱신, prerelease는 exact SemVer만 보관; OCI source/revision/version, SBOM/provenance 존재 |
+| CI08 | Pre-publish local candidate가 production config/migration/readiness/native SQLite/restart를 통과; PASS 후 GHCR exact SemVer를 직접 push하고 그 build output digest를 재-pull하여 smoke 및 활성화한 GitHub Attestation을 수행한 뒤 stable rolling alias만 승격; exact version/digest를 downstream test에 제공 |
+| CI09 | PR·수동 CI는 registry write가 없고 성공한 `main` push만 모든 quality/E2E/container job 뒤 임시 `ci-<full SHA>`를 게시; exact digest 검증 뒤 package version을 삭제하며 기존 tag overwrite와 SemVer/rolling alias 생성을 거부 |
+| CI10 | Main 임시 commit image와 SemVer exact release image를 각각 build output digest로 새로 pull해 image policy, migration/readiness, Project 생성·edit session·Task 저장, unauthorized write 거부, restart 후 Project/Task 재조회를 검증; main 임시 package 삭제까지 확인하고 BuildKit SBOM/provenance와 optional GitHub Attestation 결과를 구분 |
 
 로컬 workflow lint와 Docker smoke는 implementation evidence다. GitHub-hosted Actions URL, tag, GHCR digest와 registry pull 결과가 없으면 CI01–02 및 CI05–10의 원격 부분은 **NOT TESTED**로 기록한다. Repository admin 인증 성공은 workflow나 artifact PASS가 아니다. D05에서 현재 private plan의 ruleset 미강제 위험을 수용했으므로 이를 blocker로 두지는 않지만 보호가 적용됐다고 표시하지 않는다. GitHub Artifact Attestation은 비활성이고 BuildKit SBOM/provenance만 필수이므로 둘을 혼동하지 않는다.
 

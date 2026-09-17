@@ -1,0 +1,306 @@
+name: Publish release image
+
+on:
+  push:
+    tags:
+      - "v*"
+  # 연결된 운영 도구가 GITHUB_TOKEN으로 annotated tag를 만든 경우 push 이벤트가
+  # 새 workflow를 재귀 실행하지 않으므로, 같은 tag ref를 명시해 수동 실행할 수 있다.
+  # prepare job의 SemVer/package 일치 및 annotated tag 검증은 동일하게 적용된다.
+  workflow_dispatch:
+
+# A release tag must never have its publish run cancelled by a later push.
+concurrency:
+  # 모든 version을 직렬화해 mutable stable alias가 병렬 release로 역행하지 않게 한다.
+  group: ghcr-release-${{ github.repository }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    name: Validate SemVer and calculate immutable tags
+    runs-on: ubuntu-latest
+    outputs:
+      image_name: ${{ steps.tags.outputs.image_name }}
+      exact_image: ${{ steps.tags.outputs.exact_image }}
+      rolling_tags: ${{ steps.tags.outputs.rolling_tags }}
+      version: ${{ steps.tags.outputs.version }}
+    steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          # Annotated tag 여부를 tag object 자체로 검사해야 하므로 tag history를 받는다.
+          fetch-depth: 0
+      - name: Enforce exact package/tag SemVer agreement
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          previous_tag_arguments=()
+          while IFS= read -r previous_tag; do
+            if [[ -n "$previous_tag" ]]; then
+              previous_tag_arguments+=(--previous-tag "$previous_tag")
+            fi
+          done < <(git tag --list 'v*')
+          node scripts/verify-release-version.mjs "$RELEASE_TAG" "${previous_tag_arguments[@]}"
+          if [[ "$(git cat-file -t "refs/tags/$RELEASE_TAG")" != "tag" ]]; then
+            echo "Release authority must be an annotated Git tag: $RELEASE_TAG" >&2
+            exit 1
+          fi
+      - name: Calculate lowercase GHCR tags
+        id: tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          image_name="ghcr.io/${GITHUB_REPOSITORY,,}"
+          {
+            echo "image_name=$image_name"
+            echo "version=$version"
+            echo "exact_image=$image_name:$version"
+            echo "rolling_tags<<EOF"
+            # Prereleases keep only the exact SemVer tag. Stable releases alone
+            # move major/minor/latest consumer convenience tags after digest verification.
+            if [[ "$version" != *-* ]]; then
+              IFS=. read -r major minor _ <<< "$version"
+              echo "$image_name:$major.$minor"
+              echo "$image_name:$major"
+              echo "$image_name:latest"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+  quality:
+    name: Release quality gates
+    runs-on: ubuntu-latest
+    needs: prepare
+    timeout-minutes: 30
+    steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      # actions/setup-node v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Record Node and npm versions
+        run: |
+          node --version
+          npm --version
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm audit --omit=dev
+      - run: node scripts/check-markdown-links.mjs
+      - run: npm run build
+      - run: npx --no-install playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+  container:
+    name: Smoke-test release candidate before registry write
+    runs-on: ubuntu-latest
+    needs: [prepare, quality]
+    timeout-minutes: 20
+    steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      # docker/setup-buildx-action v4.3.0
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+      - name: Build the release-configured candidate without publishing it
+        # docker/build-push-action v7.3.0
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          load: true
+          tags: mastergantt:release-candidate
+          build-args: VERSION=v${{ needs.prepare.outputs.version }}
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: 릴리스 후보 HTTP·HTTPS 브라우저 검증
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: 릴리스 후보 전송 정책 회귀 검사
+        run: |
+          npm ci
+          npx --no-install playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install --yes nginx libnss3-tools
+          bash scripts/verify-transport-smoke.sh mastergantt:release-candidate
+      - name: Verify candidate image content policy
+        run: sh scripts/verify-image-policy.sh mastergantt:release-candidate
+      - name: Verify candidate migration, readiness, and SQLite restart persistence
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name mastergantt-release-candidate \
+            --env APP_BASE_URL=https://gantt.example.invalid \
+            --publish 127.0.0.1:3000:3000 \
+            mastergantt:release-candidate
+          wait_for_ready() {
+            for _ in $(seq 1 30); do
+              if curl --fail --silent --show-error http://127.0.0.1:3000/api/health/ready; then
+                return 0
+              fi
+              sleep 1
+            done
+            docker logs mastergantt-release-candidate
+            return 1
+          }
+          wait_for_ready
+          docker exec mastergantt-release-candidate node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH); db.exec('CREATE TABLE IF NOT EXISTS release_candidate_smoke (value TEXT NOT NULL)'); db.prepare('INSERT INTO release_candidate_smoke (value) VALUES (?)').run('persisted'); db.close()"
+          docker restart mastergantt-release-candidate
+          wait_for_ready
+          docker exec mastergantt-release-candidate node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH, { readonly: true }); const row = db.prepare('SELECT COUNT(*) AS count FROM release_candidate_smoke WHERE value = ?').get('persisted'); db.close(); if (row.count !== 1) process.exit(1)"
+      - name: Show candidate logs on failure
+        if: failure()
+        run: docker logs mastergantt-release-candidate || true
+      - name: Remove release-candidate container
+        if: always()
+        run: docker rm --force --volumes mastergantt-release-candidate || true
+
+  publish:
+    name: Build, attest, publish, and smoke test
+    runs-on: ubuntu-latest
+    needs: [prepare, quality, container]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      # docker/setup-buildx-action v4.3.0
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e
+      - name: Record Docker version
+        run: docker version --format '{{.Server.Version}}'
+      # docker/login-action v4.6.0
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: 기존 exact release 이미지 덮어쓰기 거부
+        shell: bash
+        env:
+          EXACT_IMAGE: ${{ needs.prepare.outputs.exact_image }}
+        run: |
+          set -euo pipefail
+          if docker manifest inspect "$EXACT_IMAGE" >/dev/null 2>&1; then
+            echo "Refusing to overwrite existing exact release image: $EXACT_IMAGE" >&2
+            echo "Create a new SemVer version and commit for a replacement release." >&2
+            exit 1
+          fi
+      - name: Build and push release image
+        id: push
+        # docker/build-push-action v7.3.0
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          push: true
+          # Local candidate smoke already passed. Publish the exact SemVer tag, then
+          # verify its registry digest before moving any stable rolling aliases.
+          tags: ${{ needs.prepare.outputs.exact_image }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ needs.prepare.outputs.version }}
+          build-args: VERSION=${{ github.ref_name }}
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max
+          sbom: true
+      - name: Pull exact digest and start it
+        env:
+          RELEASE_IMAGE: ${{ needs.prepare.outputs.image_name }}@${{ steps.push.outputs.digest }}
+        run: |
+          docker pull "$RELEASE_IMAGE"
+          docker run --detach --name mastergantt-release-smoke \
+            --env APP_BASE_URL=https://gantt.example.invalid \
+            --publish 127.0.0.1:3000:3000 \
+            "$RELEASE_IMAGE"
+      - name: Verify published image readiness and SQLite restart persistence
+        shell: bash
+        run: |
+          set -euo pipefail
+          wait_for_ready() {
+            for _ in $(seq 1 30); do
+              if curl --fail --silent --show-error http://127.0.0.1:3000/api/health/ready; then
+                return 0
+              fi
+              sleep 1
+            done
+            docker logs mastergantt-release-smoke
+            return 1
+          }
+          wait_for_ready
+          docker exec mastergantt-release-smoke node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH); db.exec('CREATE TABLE IF NOT EXISTS release_smoke (value TEXT NOT NULL)'); db.prepare('INSERT INTO release_smoke (value) VALUES (?)').run('persisted'); db.close()"
+          docker restart mastergantt-release-smoke
+          wait_for_ready
+          docker exec mastergantt-release-smoke node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH, { readonly: true }); const row = db.prepare('SELECT COUNT(*) AS count FROM release_smoke WHERE value = ?').get('persisted'); db.close(); if (row.count !== 1) process.exit(1)"
+      - name: Verify Project and Task API persistence through released image
+        run: node scripts/verify-registry-api-smoke.mjs http://127.0.0.1:3000 mastergantt-release-smoke
+      - name: Attest the verified image digest
+        id: attest
+        # Private repositories below Enterprise Cloud leave this variable unset.
+        # BuildKit SBOM/provenance above remains mandatory in every publish.
+        if: vars.ENABLE_GITHUB_ATTESTATIONS == 'true'
+        # actions/attest v4.2.2
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-name: ${{ needs.prepare.outputs.image_name }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+      - name: Promote verified digest to stable rolling aliases
+        if: needs.prepare.outputs.rolling_tags != ''
+        shell: bash
+        env:
+          VERIFIED_IMAGE: ${{ needs.prepare.outputs.image_name }}@${{ steps.push.outputs.digest }}
+          ROLLING_TAGS: ${{ needs.prepare.outputs.rolling_tags }}
+        run: |
+          set -euo pipefail
+          tag_arguments=()
+          while IFS= read -r destination; do
+            if [[ -n "$destination" ]]; then
+              tag_arguments+=(--tag "$destination")
+            fi
+          done <<< "$ROLLING_TAGS"
+          docker buildx imagetools create "${tag_arguments[@]}" "$VERIFIED_IMAGE"
+      - name: Record release coordinates
+        env:
+          EXACT_IMAGE: ${{ needs.prepare.outputs.exact_image }}
+          RELEASE_DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          {
+            echo "Published: $EXACT_IMAGE"
+            echo "Digest: $RELEASE_DIGEST"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Show smoke-test logs on failure
+        if: failure()
+        run: docker logs mastergantt-release-smoke || true
+      - name: Remove smoke-test container
+        if: always()
+        run: docker rm --force --volumes mastergantt-release-smoke || true
+      - name: 실패한 exact release 이미지 정리
+        if: always() && failure() && steps.push.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}
+        run: node scripts/delete-ghcr-package-version-by-tag.mjs "${{ needs.prepare.outputs.version }}"

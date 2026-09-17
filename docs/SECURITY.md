@@ -263,7 +263,7 @@ HSTS는 HTTPS 운영과 subdomain 영향 범위를 검토한 deployment owner가
 - `.env*`, SQLite/WAL/SHM, backup, log, test artifact, `.git`은 Docker build context와 image layer에서 제외한다.
 - Password, token, Cookie, 환경값을 build arg, OCI label, cache key, artifact, workflow summary에 전달하지 않는다.
 - Main commit 검증용 `ci-<full SHA>`는 exact digest smoke 직후 package version을 삭제한다. Semantic release는 GHCR `sha-*` candidate를 만들지 않고 exact/rolling SemVer tag만 보관한다. Test/deployment는 mutable `latest`가 아닌 workflow가 검증한 exact digest 또는 exact SemVer를 사용한다.
-- Release는 repository 단위로 직렬화하고 이전 tag보다 큰 annotated SemVer만 허용한다. Local candidate를 먼저 검증하고 GHCR에는 immutable commit candidate만 쓴 뒤 digest runtime smoke와, 활성화된 경우 GitHub Attestation이 성공해야 rolling alias와 exact version을 승격한다.
+- Release는 repository 단위로 직렬화하고 이전 tag보다 큰 annotated SemVer만 허용한다. Local candidate를 먼저 검증한 뒤 GHCR exact SemVer를 직접 게시하고 그 build output digest의 runtime smoke와, 활성화된 경우 GitHub Attestation이 성공해야 stable rolling alias를 같은 digest로 승격한다. Release commit 고정 `sha-*` image는 보관하지 않는다.
 - Production runtime configuration은 migration 전에 canonical URL/path를 검사하고 readiness도 DB open 전 fail closed한다.
 - Commit과 release가 publish한 GHCR digest를 각각 새로 pull하여 image policy, readiness와 Project/Task authorization 저장·restart persistence를 검증하며 BuildKit SBOM/provenance를 생성한다. 세부 계약은 [CI_CD.md](CI_CD.md)를 따른다.
 - Private repository의 GitHub Artifact Attestation은 Enterprise Cloud에서만 지원된다. `ENABLE_GITHUB_ATTESTATIONS=true`가 명시된 지원 환경에서만 GitHub Attestation step을 실행하며, 그 외에는 BuildKit SBOM/provenance를 필수 증거로 유지하고 attestation 성공을 주장하지 않는다. 현재 optional step이 publish job 안에 있어 attestation/OIDC job 권한은 flag가 꺼진 run에도 선언되는 잔여 범위가 있으며, 엄격한 조건부 권한이 필요하면 별도 gated job으로 분리한다.
