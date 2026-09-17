@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`을 추가했다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
+이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
 
 요구사항으로 확정된 전제는 다음과 같다.
 
@@ -62,6 +62,7 @@ resource_catalog_admin_sessions (global admin)
 | `public_id` | TEXT | N | UNIQUE, immutable UUID v4 |
 | `name` | TEXT | N | trim 후 빈 문자열 불가, 길이는 API 정책으로 제한 |
 | `description` | TEXT | N | 기본값 빈 문자열 |
+| `owner_name` | TEXT | Y | Issue #54 표시용 Owner. 새 HTTP 생성/복사는 trim 후 Unicode code point 1–100자를 요구하며, 기존 Project는 NULL 허용 |
 | `password_kdf` | TEXT | N | 초기값 `scrypt` |
 | `password_salt` | BLOB | N | project별 cryptographic random salt |
 | `password_hash` | BLOB | N | scrypt derived key |
@@ -74,6 +75,8 @@ resource_catalog_admin_sessions (global admin)
 | `revision` | INTEGER | N | Project aggregate optimistic concurrency version, 1부터 시작 |
 | `created_at` | TEXT | N | UTC timestamp |
 | `updated_at` | TEXT | N | UTC timestamp |
+
+`owner_name`은 인증 또는 권한 주체가 아니라 사용자에게 표시하는 Project 메타데이터다. `0004_project_owner.sql`은 기존 데이터 호환을 위해 NULL을 허용하며, non-NULL 값은 trim된 1–100자만 허용한다. 신규 HTTP 생성/복사는 API 계층에서 Owner를 필수로 검증하고 Project row 및 최초 edit session과 같은 write transaction 안에서 저장한다. 향후 사용자/조직 식별자를 도입하더라도 현재 문자열은 표시명 역할로 분리한다.
 
 Password parameter를 row와 함께 저장해 향후 cost 변경 후에도 기존 hash를 검증하고 성공 시 재해시할 수 있게 한다. `public_id`는 접근 편의를 위한 주소이지 authorization secret이 아니다.
 
@@ -248,14 +251,15 @@ Project 영구 삭제도 동일한 edit-session과 `If-Match` 검증을 거쳐 `
 
 다음은 각각 하나의 write transaction이다.
 
-- Project 생성 + password hash 저장 + 최초 edit session 발급
+- Project 생성 + `owner_name` 저장 + password hash 저장 + 최초 edit session 발급
+- Project 복사 + `owner_name` 저장 + Task/Link/Holiday + 새 edit session 발급
 - Project metadata/password/calendar 변경
 - Task create/update/delete + dependency validation + 전체 일정 재계산
 - Link create/update/delete + 전체 일정 재계산
 - Import 전체 validation 결과 저장
 - Password 변경 + `auth_version` 증가 + 기존 session 모두 revoke + 호출자 새 session 발급
 
-Service는 transaction 전에 schema parsing과 순수 Scheduling 계산을 준비할 수 있지만, 최종 revision 확인과 영향 row 저장은 하나의 `BEGIN IMMEDIATE` transaction에서 다시 확인한다. Import의 duplicate existing external ID 검증도 transaction 안에서 수행한다. 오류가 발생하면 예외를 전파해 전체 rollback하며 partial import를 만들지 않는다.
+Service는 transaction 전에 schema parsing과 순수 Scheduling 계산을 준비할 수 있지만, 최종 revision 확인과 영향 row 저장은 하나의 `BEGIN IMMEDIATE` transaction에서 다시 확인한다. Import의 duplicate existing external ID 검증도 transaction 안에서 수행한다. 오류가 발생하면 예외를 전파해 전체 rollback하며 partial import를 만들지 않는다. 신규 Project 생성/복사에서 Owner 저장 또는 session 저장이 실패하는 경우에도 Project row를 포함해 전체 aggregate를 rollback한다.
 
 `better-sqlite3` transaction callback은 synchronous하게 유지하고 내부에서 `await`, network I/O, 파일 I/O를 수행하지 않는다. 외부 작업이 필요한 Excel 생성은 read snapshot을 메모리 DTO로 가져온 뒤 transaction 밖에서 수행한다.
 
@@ -311,6 +315,13 @@ W02 자동화 검증 범위:
 - 다른 Project task를 parent 또는 link endpoint로 지정하는 insert 실패
 - Project aggregate cascade와 parent 단독 삭제 방지
 - production DB path boundary
+
+Issue #54 추가 자동화 검증 범위:
+
+- `0004_project_owner.sql` 적용 및 legacy `owner_name IS NULL` 호환
+- 신규 생성 Owner 저장/목록/snapshot round-trip
+- Owner persistence 실패 시 Project와 edit session까지 aggregate rollback
+- Docker 재시작 후 Owner 포함 Project snapshot 영속성
 
 후속 work item에서 검증할 범위:
 
