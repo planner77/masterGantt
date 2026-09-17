@@ -10,6 +10,7 @@ import {
   createWorkingCalendar,
   recalculateHierarchy,
 } from "../../domain/scheduling";
+import { ProjectOwnerRepository } from "../repositories/project-owner-repository-core";
 import {
   EditSessionRepository,
   ProjectRepository,
@@ -94,6 +95,7 @@ function validSession(
 
 export class ProjectCopyService {
   private readonly projects: ProjectRepository;
+  private readonly owners: ProjectOwnerRepository;
   private readonly sessions: EditSessionRepository;
   private readonly schedules: ScheduleRepository;
   private readonly clock: () => Date;
@@ -108,6 +110,7 @@ export class ProjectCopyService {
     options: ProjectCopyServiceOptions = {},
   ) {
     this.projects = new ProjectRepository(database);
+    this.owners = new ProjectOwnerRepository(database);
     this.sessions = new EditSessionRepository(database);
     this.schedules = new ScheduleRepository(database);
     this.clock = options.clock ?? (() => new Date());
@@ -177,6 +180,10 @@ export class ProjectCopyService {
           createdAt: nowText,
           updatedAt: nowText,
         });
+        const ownerName = input.ownerName ?? this.owners.findById(source.id) ?? null;
+        if (!this.owners.setByPublicId(newPublicId, ownerName)) {
+          throw new Error("Copied project owner metadata could not be persisted.");
+        }
 
         for (const holiday of sourceHolidays) {
           this.schedules.insertHoliday(
@@ -319,6 +326,7 @@ export class ProjectCopyService {
               publicId: project.publicId,
               name: project.name,
               description: project.description,
+              ownerName,
               revision: project.revision,
               calendar: {
                 timezone: "Asia/Seoul",
