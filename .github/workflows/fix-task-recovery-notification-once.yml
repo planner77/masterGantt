@@ -1,5 +1,4 @@
-name: Fix task recovery notification once
-# retry with patch script present
+name: Fix task recovery E2E fixture once
 
 on:
   push:
@@ -23,22 +22,23 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Patch recovery notification order
-        run: node scripts/fix-recovery-notification-order.mjs
+      - name: Patch E2E canonical GET fixture
+        run: node scripts/fix-task-persistence-e2e-route.mjs
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
       - run: npx --no-install playwright install --with-deps chromium
       - name: Verify failing E2E
         run: npx --no-install playwright test tests/e2e/project-task-persistence.spec.ts --config tests/config/playwright.config.ts
-      - name: Commit fix and cleanup
+      - name: Commit test fix and cleanup
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm scripts/fix-recovery-notification-order.mjs
+          git rm scripts/fix-task-persistence-e2e-route.mjs
+          if [ -f scripts/fix-recovery-notification-order.mjs ]; then git rm scripts/fix-recovery-notification-order.mjs; fi
           git rm .github/workflows/fix-task-recovery-notification-once.yml
           if [ -f .github/workflows/one-time-release-v0.13.0-retry.yml ]; then git rm .github/workflows/one-time-release-v0.13.0-retry.yml; fi
-          git add src/features/projects/project-readonly-view.tsx
+          git add tests/e2e/project-task-persistence.spec.ts
           git diff --cached --check
-          git commit -m "fix: 일정 복구 실패 알림을 안정적으로 보존"
+          git commit -m "test: 일정 복구 E2E의 canonical GET fixture 안정화"
           git push origin HEAD:main
