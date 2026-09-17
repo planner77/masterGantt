@@ -2,6 +2,7 @@ import type Database from "better-sqlite3";
 
 import type {
   CreateTaskRequest,
+  ProjectListResponse,
   ProjectMetadataMutationResponse,
   ProjectSnapshotResponse,
   ProjectTaskDto,
@@ -10,12 +11,15 @@ import type {
   UpdateTaskRequest,
 } from "../../contracts/projects";
 import type { ProjectAssignmentDto } from "../../contracts/resources";
+import { ProjectOwnerRepository } from "../repositories/project-owner-repository-core";
 import { ProjectRepository } from "../repositories/project-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
 import { ScheduleRepository, type TaskRecord } from "../repositories/schedule-repository-core";
+import type { CreateProjectInput } from "./project-contract";
 import {
   ProjectService,
   type AuthorizedEditSession,
+  type CreatedProject,
   type ProjectServiceOptions,
 } from "./project-service-core";
 
@@ -40,12 +44,13 @@ function assignmentDtos(repository: ResourceCatalogRepository, projectId: number
 }
 
 /**
- * Extends the scheduling-focused ProjectService with non-scheduling Task fields
- * and application-owned resource assignment references. Resource assignment is
- * deliberately independent from the scheduler and SVAR PRO resource APIs.
+ * Extends the scheduling-focused ProjectService with non-scheduling Task fields,
+ * display-only Project owner metadata, and application-owned resource assignment
+ * references. Project owner is not an authorization identity.
  */
 export class TaskFieldProjectService extends ProjectService {
   private readonly projectsForFields: ProjectRepository;
+  private readonly ownersForFields: ProjectOwnerRepository;
   private readonly schedulesForFields: ScheduleRepository;
   private readonly resourcesForFields: ResourceCatalogRepository;
 
@@ -55,8 +60,13 @@ export class TaskFieldProjectService extends ProjectService {
   ) {
     super(fieldDatabase, options);
     this.projectsForFields = new ProjectRepository(fieldDatabase);
+    this.ownersForFields = new ProjectOwnerRepository(fieldDatabase);
     this.schedulesForFields = new ScheduleRepository(fieldDatabase);
     this.resourcesForFields = new ResourceCatalogRepository(fieldDatabase);
+  }
+
+  private ownerByProjectId(projectId: number): string | null {
+    return this.ownersForFields.findById(projectId) ?? null;
   }
 
   private enrichMutation<T extends TaskMutationResponse | ProjectMetadataMutationResponse>(
@@ -67,10 +77,49 @@ export class TaskFieldProjectService extends ProjectService {
       ...response,
       data: {
         ...response.data,
+        project: {
+          ...response.data.project,
+          ownerName: this.ownerByProjectId(projectId),
+        },
         tasks: enrichTasks(response.data.tasks, this.schedulesForFields.listTasks(projectId)),
         assignments: assignmentDtos(this.resourcesForFields, projectId),
       },
     } as T;
+  }
+
+  override async create(input: CreateProjectInput): Promise<CreatedProject> {
+    const created = await super.create(input);
+    const publicId = created.response.data.project.publicId;
+    const ownerName = input.ownerName ?? null;
+    if (!this.ownersForFields.setByPublicId(publicId, ownerName)) {
+      throw new Error("Created project owner metadata could not be persisted.");
+    }
+    return {
+      ...created,
+      response: {
+        ...created.response,
+        data: {
+          ...created.response.data,
+          project: {
+            ...created.response.data.project,
+            ownerName,
+          },
+        },
+      },
+    };
+  }
+
+  override listProjects(): ProjectListResponse {
+    const response = super.listProjects();
+    const owners = this.ownersForFields.list();
+    return {
+      data: {
+        projects: response.data.projects.map((project) => ({
+          ...project,
+          ownerName: owners.get(project.publicId) ?? null,
+        })),
+      },
+    };
   }
 
   override getReadonlySnapshot(publicId: string): ProjectSnapshotResponse | undefined {
@@ -82,6 +131,10 @@ export class TaskFieldProjectService extends ProjectService {
       ...response,
       data: {
         ...response.data,
+        project: {
+          ...response.data.project,
+          ownerName: this.ownersForFields.findByPublicId(publicId) ?? null,
+        },
         tasks: enrichTasks(response.data.tasks, this.schedulesForFields.listTasks(project.id)),
         assignments: assignmentDtos(this.resourcesForFields, project.id),
       },
