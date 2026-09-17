@@ -15,6 +15,8 @@ export interface ProjectDto {
   publicId: string;
   name: string;
   description: string;
+  /** Canonical API responses include this field; null represents a pre-Issue-54 project. */
+  ownerName?: string | null;
   revision: number;
   calendar: ProjectCalendarDto;
 }
@@ -23,6 +25,8 @@ export interface ProjectListItemDto {
   publicId: string;
   name: string;
   description: string;
+  /** Canonical API responses include this field; null represents a pre-Issue-54 project. */
+  ownerName?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,6 +69,7 @@ export type ProjectPermission = "readonly" | "edit";
 export interface CreateProjectRequest {
   name: string;
   description: string;
+  ownerName: string;
   editPassword: string;
 }
 
@@ -78,6 +83,8 @@ export interface CreateProjectResponse {
 export interface CopyProjectRequest {
   name: string;
   description: string;
+  /** Required by the HTTP contract; optional only to keep focused legacy service fixtures source-compatible. */
+  ownerName?: string;
   editPassword: string;
   resetProgress?: boolean;
 }
