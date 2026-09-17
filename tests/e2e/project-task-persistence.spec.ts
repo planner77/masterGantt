@@ -89,9 +89,9 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   await expect(page.locator('.project-gantt-widget [data-action="add-task"]').first()).toBeVisible();
   const ganttBox = await page.locator(".project-gantt-scroll").boundingBox();
   expect(ganttBox).not.toBeNull(); expect(ganttBox!.width).toBeGreaterThan(1_000); expect(ganttBox!.height).toBeGreaterThan(240);
-  const projectBox = await page.locator(".project-readonly").boundingBox();
-  expect(projectBox).not.toBeNull();
-  expect(ganttBox!.y + ganttBox!.height).toBeCloseTo(projectBox!.y + projectBox!.height, 0);
+  const scheduleBox = await page.locator(".project-schedule").boundingBox();
+  expect(scheduleBox).not.toBeNull();
+  expect(ganttBox!.y + ganttBox!.height).toBeCloseTo(scheduleBox!.y + scheduleBox!.height, 0);
   expect(ganttBox!.y).toBeLessThan(650);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
   const revisionAfterCreate = snapshot.data.project.revision as number;

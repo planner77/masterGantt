@@ -47,6 +47,7 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/resource-groups/{groupId}/members", method: "PUT", policy: "origin-resource-admin-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/assignment-targets", method: "GET", policy: "project-edit-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/assigned-targets", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-workload", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/tasks/{taskId}/assignments", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
 ] satisfies readonly RouteSecurityInventoryEntry[]);
 

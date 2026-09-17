@@ -44,6 +44,7 @@ describe("migration CLI", () => {
         "0002_task_description_url.sql",
         "0003_resource_catalog.sql",
         "0004_project_owner.sql",
+        "0005_resource_workload.sql",
       ],
     });
 
@@ -54,13 +55,15 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 4 });
+        .toEqual({ count: 5 });
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT revision FROM resource_catalog_state WHERE id = 1").get())
         .toEqual({ revision: 1 });
       const ownerColumn = database.prepare("SELECT name, \"notnull\" AS required FROM pragma_table_info('projects') WHERE name = 'owner_name'").get();
       expect(ownerColumn).toEqual({ name: "owner_name", required: 0 });
+      const allocationColumn = database.prepare("SELECT name, type FROM pragma_table_info('task_assignments') WHERE name = 'allocation_percent'").get();
+      expect(allocationColumn).toEqual({ name: "allocation_percent", type: "REAL" });
     } finally {
       database.close();
     }

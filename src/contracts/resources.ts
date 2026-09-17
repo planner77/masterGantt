@@ -60,10 +60,18 @@ export interface AssignmentTargetRefDto {
   id: string;
 }
 
+export interface ResourceAllocationDto {
+  start: string | null;
+  end: string | null;
+  percent: number | null;
+}
+
 export interface ProjectAssignmentDto {
   id: string;
   taskId: string;
   target: AssignmentTargetRefDto;
+  /** Issue #56. Optional only for source compatibility with older fixtures/adapters. */
+  allocation?: ResourceAllocationDto | null;
 }
 
 export interface AssignmentTargetDto {
@@ -90,9 +98,68 @@ export interface AssignedTargetsResponse {
   };
 }
 
+export interface ReplaceTaskAssignmentTargetRequest extends AssignmentTargetRefDto {
+  allocation?: {
+    start?: string | null;
+    end?: string | null;
+    percent: number;
+  };
+}
+
 export interface ReplaceTaskAssignmentsRequest {
   catalogRevision: number;
-  targets: AssignmentTargetRefDto[];
+  targets: ReplaceTaskAssignmentTargetRequest[];
+}
+
+export interface ResourceWorkloadTaskDto {
+  assignmentId: string;
+  taskId: string;
+  taskName: string;
+  start: string;
+  end: string;
+  allocationPercent: number | null;
+  effortMd: number | null;
+  effortMm: number | null;
+  effortConfigured: boolean;
+}
+
+export interface ResourceWorkloadResourceDto {
+  id: string;
+  name: string;
+  code: string | null;
+  active: boolean;
+  start: string | null;
+  end: string | null;
+  effortMd: number;
+  effortMm: number | null;
+  unsetCount: number;
+  overAllocated: boolean;
+  tasks: ResourceWorkloadTaskDto[];
+}
+
+export interface ResourceWorkloadGroupDto {
+  id: string | null;
+  name: string;
+  active: boolean;
+  start: string | null;
+  end: string | null;
+  effortMd: number;
+  effortMm: number | null;
+  unsetCount: number;
+  resources: ResourceWorkloadResourceDto[];
+}
+
+export interface ResourceWorkloadResponse {
+  data: {
+    projectRevision: number;
+    catalogRevision: number;
+    range: { from: string; to: string };
+    mdPerMm: number | null;
+    grandTotalMd: number;
+    grandTotalMm: number | null;
+    unsetCount: number;
+    groups: ResourceWorkloadGroupDto[];
+  };
 }
 
 /**

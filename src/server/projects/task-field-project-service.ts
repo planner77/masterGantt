@@ -25,6 +25,7 @@ import {
 } from "../security/session-core";
 import { isCanonicalUuidV4, type CreateProjectInput } from "./project-contract";
 import {
+  InvalidTaskInputError,
   ProjectService,
   type AuthorizedEditSession,
   type CreatedProject,
@@ -46,10 +47,10 @@ function assignmentDtos(repository: ResourceCatalogRepository, projectId: number
   return repository.listAssignments(projectId).map((assignment) => ({
     id: assignment.publicId,
     taskId: assignment.taskPublicId,
-    target: {
-      kind: assignment.kind,
-      id: assignment.targetPublicId,
-    },
+    target: { kind: assignment.kind, id: assignment.targetPublicId },
+    allocation: assignment.kind === "resource"
+      ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
+      : null,
   }));
 }
 
@@ -243,6 +244,16 @@ export class TaskFieldProjectService extends ProjectService {
   ): TaskMutationResponse {
     const mutation = this.fieldDatabase.transaction(() => {
       const response = super.updateTask(authorization, expectedRevision, taskPublicId, input);
+      const updatedSchedule = this.schedulesForFields.findTaskByPublicId(authorization.projectId, taskPublicId);
+    if (!updatedSchedule) throw new Error("Updated task schedule could not be read back.");
+    if (updatedSchedule.type === "task") {
+      const invalidAllocation = this.resourcesForFields.listAssignments(authorization.projectId).some((assignment) =>
+        assignment.kind === "resource" && assignment.taskPublicId === taskPublicId &&
+        ((assignment.assignmentStart !== null && (assignment.assignmentStart < updatedSchedule.startDate || assignment.assignmentStart > updatedSchedule.endDate)) ||
+          (assignment.assignmentEnd !== null && (assignment.assignmentEnd < updatedSchedule.startDate || assignment.assignmentEnd > updatedSchedule.endDate))),
+      );
+      if (invalidAllocation) throw new InvalidTaskInputError();
+    }
       if (input.description !== undefined || input.url !== undefined) {
         const updated = this.schedulesForFields.updateTaskDetails(authorization.projectId, taskPublicId, {
           ...(input.description !== undefined ? { description: input.description } : {}),

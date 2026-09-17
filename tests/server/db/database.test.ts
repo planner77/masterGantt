@@ -126,6 +126,7 @@ describe("SQLite connection and schema", () => {
         "0002_task_description_url.sql",
         "0003_resource_catalog.sql",
         "0004_project_owner.sql",
+        "0005_resource_workload.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -170,6 +171,7 @@ describe("SQLite connection and schema", () => {
         "task_assignments_project_task_idx",
         "task_assignments_resource_idx",
         "task_assignments_resource_unique_idx",
+        "task_assignments_resource_workload_idx",
         "tasks_project_parent_idx",
         "tasks_project_sort_order_idx",
       ]);
