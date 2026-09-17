@@ -1,0 +1,91 @@
+name: Issue 56 documentation sync
+
+on:
+  push:
+    branches:
+      - feat/issue-56-resource-workload
+    paths:
+      - .github/workflows/issue-56-doc-sync.yml
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Update Issue 56 release documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: feat/issue-56-resource-workload
+          fetch-depth: 0
+      - name: Update CHANGELOG and API/test documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('CHANGELOG.md')
+          text = path.read_text()
+          marker = '## [Unreleased]\n'
+          entry = '''## [0.14.0] - 2026-09-17
+
+          ### Added
+
+          - Issue #56: 작업별 개별 리소스에 계획 투입 시작일·종료일·투입률을 저장하고 프로젝트 근무일 기준 M/D를 계산한다.
+          - 프로젝트 화면에 `그룹 → 리소스 → 작업` 계층의 리소스 공수 조회를 추가하고 M/D와 설정된 기준의 M/M 전환, 미설정 공수 및 과투입 표시를 제공한다.
+          - `GET /api/projects/{publicId}/resource-workload` 집계 API와 SQLite `0005_resource_workload.sql` migration을 추가한다.
+
+          ### Changed
+
+          - `RESOURCE_MD_PER_MM`이 유효한 양수일 때만 M/M 환산을 제공하고, 미설정 시 임의 기준을 사용하지 않는다.
+          - 하위 호환 사용자 workflow와 API/DB 계약 추가이므로 Semantic Versioning 정책에 따라 `0.13.0`에서 `0.14.0`으로 증가한다.
+
+          ### Fixed
+
+          - 공수 조회 영역이 기존 프로젝트 작업면의 Gantt 폭·스크롤 계약을 변경하지 않도록 portal로 격리하고, E2E 레이아웃 검증 경계를 실제 `.project-schedule`로 맞춘다.
+
+          '''
+          if '## [0.14.0] - 2026-09-17' not in text:
+              if marker not in text:
+                  raise SystemExit('CHANGELOG Unreleased marker not found')
+              text = text.replace(marker, marker + '\n' + entry, 1)
+              path.write_text(text)
+          PY
+
+          if ! grep -q '^## Issue #56: Resource workload API$' docs/API.md; then
+            cat >> docs/API.md <<'EOF'
+
+          ## Issue #56: Resource workload API
+
+          ### 작업별 리소스 계획 투입
+
+          기존 `PUT /api/projects/{publicId}/tasks/{taskId}/assignments`의 resource target은 선택적으로 `assignmentStart`, `assignmentEnd`, `allocationPercent`를 함께 저장한다. `allocationPercent`는 0 초과 100 이하이며, 명시한 시작/종료일은 leaf task의 서버 확정 일정 범위를 벗어날 수 없다. 시작/종료가 없으면 작업의 확정 `start`/`end`를 상속한다. 기존 Issue #19 데이터의 `allocationPercent: null`은 100%로 추정하지 않으며 공수 합계에서 제외한다. group 직접 할당은 담당 팀 참조이므로 개인 공수를 구성원에게 자동 분배하지 않는다.
+
+          ### `GET /api/projects/{publicId}/resource-workload?from=YYYY-MM-DD&to=YYYY-MM-DD`
+
+          Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`to`는 선택 사항이며 서버가 프로젝트 일정 범위와 교차해 유효 구간을 계산한다. leaf task의 직접 resource assignment만 집계하고 Summary/Milestone/group 직접 할당은 개인 계획 공수에서 제외한다.
+
+          `M/D = 조회 구간 내 프로젝트 근무일 수 × allocationPercent / 100`으로 계산한다. `RESOURCE_MD_PER_MM`이 유효한 양수일 때만 `M/M = M/D / RESOURCE_MD_PER_MM`을 반환한다. 응답은 그룹 → 리소스 → 작업 계층, assignment 기준 Grand Total, `unsetCount`, 일별 할당률 합계가 100%를 초과하는 `overAllocated` 상태를 포함한다. 복수 그룹 소속 리소스는 각 그룹에 보일 수 있지만 Grand Total은 같은 assignment를 중복 집계하지 않는다. 미소속 리소스는 `미분류 리소스`로 표시한다.
+          EOF
+          fi
+
+          if ! grep -q '^## Issue #56 리소스 공수 회귀 검증$' docs/TEST_PLAN.md; then
+            cat >> docs/TEST_PLAN.md <<'EOF'
+
+          ## Issue #56 리소스 공수 회귀 검증
+
+          - DB migration: 기존 `task_assignments` 호환, nullable allocation 필드, allocation 범위 제약과 workload index를 검증한다.
+          - Service/API: Project calendar 근무일 기반 M/D, 선택 구간 clipping, M/M 설정 유무, 미설정 allocation 제외, 복수 그룹 Grand Total 중복 방지와 과투입 판정을 검증한다.
+          - Assignment mutation: resource의 기간/투입률 validation, group allocation 금지, revision/catalog revision 동시성 및 기존 assignment canonical snapshot 보존을 검증한다.
+          - UI/E2E: 기존 Gantt instance/폭/페이지 수평 overflow 계약을 유지하고 리소스 공수 조회가 프로젝트 작업면 외부 flex sibling으로 Gantt를 축소하지 않는지 전체 Chromium 회귀로 확인한다.
+          - PR 최종 gate는 version/typecheck/lint/Vitest/build, Chromium 전체 E2E, Docker migration/readiness/SQLite restart, production HTTP·HTTPS browser와 relocated Compose persistence를 모두 통과해야 한다.
+          EOF
+          fi
+
+          git rm .github/workflows/issue-56-doc-sync.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md docs/API.md docs/TEST_PLAN.md
+          git commit -m "docs: Issue #56 공수 조회와 0.14.0 문서 갱신"
+          git push origin HEAD:feat/issue-56-resource-workload
