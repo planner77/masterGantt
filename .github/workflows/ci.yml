@@ -174,7 +174,7 @@ jobs:
   publish-commit-image:
     # PR and manual runs stay read-only. A successful push to main may publish a
     # temporary commit image only long enough to verify registry pull/runtime behavior.
-    name: Publish, verify, and clean up temporary main commit image
+    name: Main 임시 commit 이미지 게시·검증·정리
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -187,7 +187,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Calculate temporary GHCR reference
+      - name: 임시 GHCR 참조 계산
         id: image
         shell: bash
         run: |
@@ -208,7 +208,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Refuse to overwrite an existing temporary commit image
+      - name: 기존 임시 commit 이미지 덮어쓰기 거부
         shell: bash
         run: |
           set -euo pipefail
@@ -216,7 +216,7 @@ jobs:
             echo "Refusing to overwrite temporary commit image: ${{ steps.image.outputs.reference }}" >&2
             exit 1
           fi
-      - name: Build and push temporary commit image
+      - name: 임시 commit 이미지 빌드·게시
         id: push
         # docker/build-push-action v7.3.0
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a
@@ -286,7 +286,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes nginx libnss3-tools
           bash scripts/verify-transport-smoke.sh "${{ steps.digest.outputs.image }}"
-      - name: Report verified temporary digest
+      - name: 임시 이미지 검증 결과 기록
         if: success()
         shell: bash
         run: |
@@ -305,7 +305,7 @@ jobs:
       - name: Remove smoke-test container
         if: always()
         run: docker rm --force --volumes mastergantt-commit-smoke || true
-      - name: Delete temporary main commit image from GHCR
+      - name: GHCR 임시 main commit 이미지 삭제
         if: always() && steps.push.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

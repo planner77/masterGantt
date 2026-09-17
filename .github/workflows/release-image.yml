@@ -195,7 +195,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Refuse to overwrite an existing exact release image
+      - name: 기존 exact release 이미지 덮어쓰기 거부
         shell: bash
         env:
           EXACT_IMAGE: ${{ needs.prepare.outputs.exact_image }}
@@ -298,7 +298,7 @@ jobs:
       - name: Remove smoke-test container
         if: always()
         run: docker rm --force --volumes mastergantt-release-smoke || true
-      - name: Delete failed exact release image
+      - name: 실패한 exact release 이미지 정리
         if: always() && failure() && steps.push.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
