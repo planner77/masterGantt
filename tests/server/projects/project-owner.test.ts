@@ -55,4 +55,22 @@ describe("Issue #54 project owner", () => {
       database.close();
     }
   });
+
+  it("rolls back the project and edit session when owner persistence fails", async () => {
+    const { database } = openDatabase({ filename: ":memory:", migrationsDirectory });
+    const service = new TaskFieldProjectService(database);
+    try {
+      await expect(service.create({
+        name: "Atomic owner project",
+        description: "",
+        ownerName: "\u0000",
+        editPassword: "atomic-owner-password",
+      })).rejects.toThrow();
+
+      expect(database.prepare("SELECT count(*) FROM projects").pluck().get()).toBe(0);
+      expect(database.prepare("SELECT count(*) FROM edit_sessions").pluck().get()).toBe(0);
+    } finally {
+      database.close();
+    }
+  });
 });
