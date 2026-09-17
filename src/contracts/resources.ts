@@ -70,7 +70,8 @@ export interface ProjectAssignmentDto {
   id: string;
   taskId: string;
   target: AssignmentTargetRefDto;
-  allocation: ResourceAllocationDto | null;
+  /** Issue #56. Optional only for source compatibility with older fixtures/adapters. */
+  allocation?: ResourceAllocationDto | null;
 }
 
 export interface AssignmentTargetDto {
