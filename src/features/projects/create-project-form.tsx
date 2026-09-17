@@ -144,13 +144,12 @@ export function CreateProjectForm() {
           autoComplete="off"
           disabled={isSubmitting}
           id="project-owner"
-          maxLength={MAXIMUM_OWNER_LENGTH}
           name="ownerName"
           onChange={(event) => setOwnerName(event.target.value)}
           required
           value={ownerName}
         />
-        <p>프로젝트 담당자를 표시하는 정보이며 계정/권한과는 연결되지 않습니다. 최대 100자입니다.</p>
+        <p>프로젝트 담당자를 표시하는 정보이며 계정/권한과는 연결되지 않습니다. Unicode 문자 기준 최대 100자입니다.</p>
       </div>
 
       <div className="form-field">
