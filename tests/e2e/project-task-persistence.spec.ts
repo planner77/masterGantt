@@ -134,7 +134,11 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   let failedCanonicalReads = 0;
   const canonicalPattern = `**${apiPath}`;
   const failCanonicalRead = async (route: Route) => {
-    if (route.request().method() === "GET" && failedCanonicalReads === 0) {
+    if (route.request().method() === "GET") {
+      // task-context-target.ts also performs background snapshot GETs for URL decoration.
+      // Keep every matching GET failed until the recovery notice is observed so a
+      // background request cannot consume the single injected failure before the
+      // mutation recovery fetch runs.
       failedCanonicalReads += 1;
       await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: { code: "INTERNAL_ERROR", message: "Unavailable." } }) }); return;
     }
@@ -143,15 +147,20 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   await page.route(canonicalPattern, failCanonicalRead);
   const removeNetworkFailure = await rejectNextPatch(page, `${apiPath}/tasks/${task.taskId}`, 500, "INTERNAL_ERROR");
   await dragTaskBarByOneDay(page, task.taskId, movedTask.duration, "move");
-  await expect.poll(() => failedCanonicalReads, { timeout: 5_000 }).toBe(1);
-  await removeNetworkFailure(); await page.unroute(canonicalPattern, failCanonicalRead);
+  await expect.poll(() => failedCanonicalReads, { timeout: 5_000 }).toBeGreaterThanOrEqual(1);
+  await removeNetworkFailure();
   // 저장 오류 toast가 표시 중이어도 복구 오류는 알림함에 별도로 보관되어야 한다.
-  // toast 교체 시점에 의존하지 않고 두 오류가 모두 보존되는 사용자 계약을 검증한다.
+  // URL decoration의 background GET과 실제 복구 GET이 같은 endpoint를 사용하므로
+  // 복구 알림이 기록될 때까지 fixture를 유지한 뒤 route를 해제한다.
   await page.getByRole("button", { name: /알림함/ }).click();
   const inbox = page.getByRole("dialog", { name: "오류 알림함" });
+  await expect.poll(async () =>
+    (await inbox.locator("textarea").evaluateAll((elements) => elements.map((element) => (element as HTMLTextAreaElement).value))).join("\n"),
+    { timeout: 5_000 },
+  ).toContain("최신 일정 조회에 실패");
   const inboxText = (await inbox.locator("textarea").evaluateAll((elements) => elements.map((element) => (element as HTMLTextAreaElement).value))).join("\n");
   expect(inboxText).toContain("작업을 저장할 수 없습니다");
-  expect(inboxText).toContain("최신 일정 조회에 실패");
+  await page.unroute(canonicalPattern, failCanonicalRead);
   await page.keyboard.press("Escape");
   // Canonical GET failed, so the component intentionally remounts from the last
   // confirmed snapshot. Absolute bar x may change with the reset timeline viewport;
