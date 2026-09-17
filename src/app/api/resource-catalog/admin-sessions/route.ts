@@ -8,10 +8,13 @@ import { getResourceCatalogService } from "@/server/resources/resource-catalog-s
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const adminAuthConfigurationState = { logged: false };
+
 const dependencies = () => ({
   resourceService: getResourceCatalogService,
   ...readApplicationConfiguration(process.env),
   adminPassword: process.env.RESOURCE_CATALOG_ADMIN_PASSWORD,
+  adminAuthConfigurationState,
 });
 
 export async function POST(request: Request): Promise<Response> {

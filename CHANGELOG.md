@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-09-18
+
+### Fixed
+
+- Issue #61: 리소스 편집 관리자 인증 실패 원인을 Docker/server stdout의 구조화 로그에서 구분할 수 있도록 진단 로그를 추가한다.
+- 비밀번호 미설정·정책 위반·불일치를 `ADMIN_PASSWORD_NOT_CONFIGURED`, `ADMIN_PASSWORD_POLICY_INVALID`, `ADMIN_PASSWORD_MISMATCH`로 구분하면서 외부 API는 기존 `RESOURCE_ADMIN_AUTH_FAILED` 계약을 유지한다.
+- 비밀번호, session token, Cookie/Authorization 및 예외 원문이 로그에 노출되지 않도록 회귀 테스트를 추가하고 `requestId` 기반 추적 절차를 문서화한다.
+
+### Changed
+
+- 하위 호환 운영 진단/보안 수정이므로 Semantic Versioning 정책에 따라 `0.14.0`에서 `0.14.1`로 증가한다.
+
 ## [0.14.0] - 2026-09-17
 
 ### Added
