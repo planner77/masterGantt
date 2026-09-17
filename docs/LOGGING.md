@@ -43,6 +43,16 @@ Issue #61의 리소스 관리자 인증 진단도 동일 공통 logger를 사용
 
 동일한 readiness 장애가 반복될 때는 반복 로그를 만들지 않고 장애 진입 또는 실패 원인 전환 시 `readiness_unavailable`, 복구 시 `readiness_recovered`를 기록한다.
 
+## Startup / configuration / migration
+
+컨테이너 시작 과정은 운영 진단을 위해 다음 구조화 이벤트를 남긴다.
+
+- `runtime_configuration_validated` / `runtime_configuration_invalid`: `APP_BASE_URL`, `DATABASE_PATH` 등 runtime 설정의 비민감 검증 상태
+- `database_migration_started` / `database_migration_completed` / `database_migration_failed`: migration 실행 상태와 적용 건수
+- `application_started`: Next.js Node runtime이 기동되어 애플리케이션 요청 처리를 시작한 시점
+
+설정 오류 및 migration 실패 로그에는 전체 경로, 전체 환경변수, SQL 원문이나 임의 오류 메시지를 기록하지 않는다. Compose smoke test는 위 성공 이벤트 세 가지가 `docker compose logs app`에서 실제 조회되는지 확인한다.
+
 ## Docker 운영
 
 애플리케이션 로그 파일을 컨테이너 내부에 직접 저장하지 않는다. `docker logs <container>` 또는 Compose 로그로 확인하고 Docker logging driver에서 회전 정책을 운영한다. 예를 들어 Docker daemon의 `json-file` driver를 사용하는 환경에서는 운영 정책에 맞춰 `max-size`, `max-file`을 지정한다. 변경 전에는 동일 daemon을 사용하는 다른 컨테이너에 미치는 영향을 검토한다.
