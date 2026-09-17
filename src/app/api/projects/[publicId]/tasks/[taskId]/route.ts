@@ -1,3 +1,4 @@
+import { withApiRequestLogging } from "@/server/http/request-context-core";
 import { readApplicationConfiguration } from "@/server/security/origin-core";
 import {
   getProjectService,
@@ -11,6 +12,8 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const ROUTE = "/api/projects/[publicId]/tasks/[taskId]";
+
 interface RouteContext {
   params: Promise<{ publicId: string; taskId: string }>;
 }
@@ -20,10 +23,13 @@ export async function PATCH(
   context: RouteContext,
 ): Promise<Response> {
   const { publicId, taskId } = await context.params;
-  return handleUpdateTask(request, publicId, taskId, {
-    service: getProjectService,
-    ...readApplicationConfiguration(process.env),
-  });
+  return withApiRequestLogging(request, { route: ROUTE, trustProxy: process.env.TRUST_PROXY }, (requestId) =>
+    handleUpdateTask(request, publicId, taskId, {
+      service: getProjectService,
+      ...readApplicationConfiguration(process.env),
+      requestId: () => requestId,
+    }),
+  );
 }
 
 export async function DELETE(
@@ -31,23 +37,27 @@ export async function DELETE(
   context: RouteContext,
 ): Promise<Response> {
   const { publicId, taskId } = await context.params;
-  const includeDescendants = new URL(request.url).searchParams.get("includeDescendants") === "true";
-  if (!includeDescendants) {
-    return handleDeleteTask(request, publicId, taskId, {
-      service: getProjectService,
-      ...readApplicationConfiguration(process.env),
-    });
-  }
+  return withApiRequestLogging(request, { route: ROUTE, trustProxy: process.env.TRUST_PROXY }, (requestId) => {
+    const includeDescendants = new URL(request.url).searchParams.get("includeDescendants") === "true";
+    if (!includeDescendants) {
+      return handleDeleteTask(request, publicId, taskId, {
+        service: getProjectService,
+        ...readApplicationConfiguration(process.env),
+        requestId: () => requestId,
+      });
+    }
 
-  const projectService = getProjectService();
-  const subtreeService = getTaskSubtreeDeleteService();
-  return handleDeleteTask(request, publicId, taskId, {
-    service: {
-      authorize: projectService.authorize.bind(projectService),
-      createTask: projectService.createTask.bind(projectService),
-      updateTask: projectService.updateTask.bind(projectService),
-      deleteTask: subtreeService.deleteTaskSubtree.bind(subtreeService),
-    },
-    ...readApplicationConfiguration(process.env),
+    const projectService = getProjectService();
+    const subtreeService = getTaskSubtreeDeleteService();
+    return handleDeleteTask(request, publicId, taskId, {
+      service: {
+        authorize: projectService.authorize.bind(projectService),
+        createTask: projectService.createTask.bind(projectService),
+        updateTask: projectService.updateTask.bind(projectService),
+        deleteTask: subtreeService.deleteTaskSubtree.bind(subtreeService),
+      },
+      ...readApplicationConfiguration(process.env),
+      requestId: () => requestId,
+    });
   });
 }

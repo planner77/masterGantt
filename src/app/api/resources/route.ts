@@ -1,3 +1,4 @@
+import { withApiRequestLogging } from "@/server/http/request-context-core";
 import { readApplicationConfiguration } from "@/server/security/origin-core";
 import {
   handleCreateCatalogTarget,
@@ -8,18 +9,25 @@ import { getResourceCatalogService } from "@/server/resources/resource-catalog-s
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function dependencies() {
+const ROUTE = "/api/resources";
+
+function dependencies(requestId: string) {
   return {
     resourceService: getResourceCatalogService,
     ...readApplicationConfiguration(process.env),
     adminPassword: process.env.RESOURCE_CATALOG_ADMIN_PASSWORD,
+    requestId: () => requestId,
   };
 }
 
 export async function GET(request: Request): Promise<Response> {
-  return handleGetResourceCatalog(request, dependencies());
+  return withApiRequestLogging(request, { route: ROUTE, trustProxy: process.env.TRUST_PROXY }, (requestId) =>
+    handleGetResourceCatalog(request, dependencies(requestId)),
+  );
 }
 
 export async function POST(request: Request): Promise<Response> {
-  return handleCreateCatalogTarget(request, "resource", dependencies());
+  return withApiRequestLogging(request, { route: ROUTE, trustProxy: process.env.TRUST_PROXY }, (requestId) =>
+    handleCreateCatalogTarget(request, "resource", dependencies(requestId)),
+  );
 }

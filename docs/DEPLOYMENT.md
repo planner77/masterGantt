@@ -98,8 +98,8 @@ Docker `HEALTHCHECK`와 Compose healthcheck는 `ready`를 호출한다. interval
 | `DATABASE_PATH` | 예 | production은 `/data/` 아래 absolute SQLite filename |
 | `APP_BASE_URL` | 예 | canonical 외부 origin. 기본 HTTPS; ALLOW_INSECURE_HTTP=true일 때 HTTP 허용. trailing slash/path/query/fragment/userinfo 금지 |
 | `ALLOW_INSECURE_HTTP` | 선택 | 미설정/false는 HTTPS-only, true만 HTTP 허용. 빈 값/기타 리터럴은 설정 오류 |
-| `TRUST_PROXY` | 예약 | 현재 미사용. W16에서 trusted TLS reverse proxy 경계와 함께 활성화 여부 결정 |
-| `LOG_LEVEL` | 예약 | 현재 미사용. 도입 시 password, session, Cookie, authorization header, DB record를 log하지 않음 |
+| `TRUST_PROXY` | 선택 | `true`일 때만 검증된 reverse proxy `X-Request-ID`를 신뢰. Origin/HTTPS/Cookie 정책과 무관 |
+| `LOG_LEVEL` | 선택 | `debug`, `info`, `warn`, `error`; production 기본 `info`. 잘못된 값은 안전 기본값 + 진단 경고 |
 
 `APP_BASE_URL`은 URL parser로 검증한다. protocol은 기본 `https:`이며 명시적 `ALLOW_INSECURE_HTTP=true`에서만 `http:`도 허용한다. 나머지 검증에서 hostname은 deployment owner가 승인한 canonical public host, port는 선택한 HTTP/HTTPS scheme의 default 또는 승인한 명시 port만 허용하며 URL origin과 입력이 동일해야 한다. 이 값으로만 `${APP_BASE_URL}/projects/${public_id}`를 만들고, request `Host`/forwarded host나 user input으로 export hyperlink를 만들지 않는다. public ID는 secret이 아니며 URL에 password/session을 넣지 않는다.
 
@@ -242,3 +242,14 @@ docker compose --env-file .env -f deploy/compose.yml ps
 ## Repository layout relocation (#12)
 
 현재 배포 경로와 기존 Compose 프로젝트/volume을 유지하는 전환 절차는 [REPOSITORY_STRUCTURE](REPOSITORY_STRUCTURE.md)를 따른다. CI의 Docker build 4개 참조와 Dependabot 경로를 함께 갱신하고 Docker gate에 `scripts/verify-compose-smoke.sh`를 추가했다. 새 Compose 경로의 config, startup/readiness, restart 및 강제 recreate 후 SQLite 보존을 격리된 CI 리소스로 검사한다. 기존 quality/E2E/runtime/registry 권한·검증 gate는 유지한다. 결과는 해당 PR/run/head의 실제 증거로 판정하며 과거 Wxx 기록을 이번 이동의 PASS로 전용하지 않는다.
+
+## 구조화 로그와 Docker 운영 (Issue #64)
+
+애플리케이션, runtime configuration 검사와 DB migration은 컨테이너 내부 파일이 아니라 `stdout/stderr`에 JSON 한 줄 로그를 남긴다. 주요 운영 이벤트는 `application_started`, `runtime_configuration_validated|invalid`, `database_migration_started|completed|failed`, `http_request_completed`, `readiness_unavailable|recovered`다. 비밀번호, Cookie, Authorization, session token, hash/digest, 전체 request body 및 DB record는 기록하지 않는다.
+
+```bash
+docker logs <container>
+docker compose --env-file .env -f deploy/compose.yml logs -f app
+```
+
+Docker daemon의 `json-file` 또는 `local` logging driver와 `max-size`/`max-file` 보존 정책은 호스트 운영 기준에 맞춰 별도로 설정한다. daemon 전역 변경은 다른 컨테이너 영향을 먼저 검토한다. Windows Nginx는 `proxy_set_header X-Request-ID $request_id;`를 사용하고 access log에도 `$request_id`를 포함하여 응답 헤더와 Docker 로그를 같은 ID로 조회한다. 상세 기준은 [LOGGING.md](LOGGING.md)를 따른다.

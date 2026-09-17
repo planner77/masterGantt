@@ -101,4 +101,9 @@ after="$(dc ps --quiet app)"
 [[ -n "$after" && "$after" != "$before" ]]
 [[ "$(volume_name "$after")" == "$MASTERGANTT_VOLUME_NAME" ]]
 verify_row
+logs="$(dc logs --no-color app 2>&1)"
+grep -q '"event":"runtime_configuration_validated"' <<<"$logs"
+grep -q '"event":"database_migration_completed"' <<<"$logs"
+grep -q '"event":"application_started"' <<<"$logs"
+echo 'Compose structured stdout/stderr logging: PASS'
 echo 'Compose startup, restart, forced recreation and SQLite volume persistence: PASS'
