@@ -19,7 +19,7 @@ const request = (path, options = {}) => fetch(new URL(path, baseUrl), {
 
 const projectResponse = await request("/api/projects", {
   method: "POST",
-  body: JSON.stringify({ name: "Registry smoke", description: "commit image", editPassword: "registry-smoke-password" }),
+  body: JSON.stringify({ name: "Registry smoke", ownerName: "Registry smoke owner", description: "commit image", editPassword: "registry-smoke-password" }),
 });
 if (projectResponse.status !== 201) throw new Error(`project create status ${projectResponse.status}`);
 const project = (await projectResponse.json()).data.project;
@@ -39,7 +39,7 @@ if (taskResponse.status !== 201) throw new Error(`authenticated task mutation st
 
 const snapshotResponse = await fetch(new URL(`/api/projects/${encodeURIComponent(project.publicId)}`, baseUrl), { signal: AbortSignal.timeout(10_000) });
 const snapshot = await snapshotResponse.json();
-if (snapshotResponse.status !== 200 || !snapshot.data.tasks.some((task) => task.externalId === "registry-smoke-task")) throw new Error("persisted task missing from readonly snapshot");
+if (snapshotResponse.status !== 200 || snapshot.data.project.ownerName !== "Registry smoke owner" || !snapshot.data.tasks.some((task) => task.externalId === "registry-smoke-task")) throw new Error("persisted project owner or task missing from readonly snapshot");
 
 const restart = spawnSync("docker", ["restart", containerName], { encoding: "utf8", timeout: 30_000 });
 if (restart.status !== 0) throw new Error(`docker restart failed: ${restart.stderr}`);
@@ -61,8 +61,8 @@ if (!ready) throw new Error("readiness did not recover after container restart")
 
 const afterRestart = await fetch(new URL(`/api/projects/${encodeURIComponent(project.publicId)}`, baseUrl), { signal: AbortSignal.timeout(10_000) });
 const afterSnapshot = await afterRestart.json();
-if (afterRestart.status !== 200 || afterSnapshot.data.project.revision !== project.revision + 1 || !afterSnapshot.data.tasks.some((task) => task.externalId === "registry-smoke-task")) {
-  throw new Error("API task or revision did not persist across container restart");
+if (afterRestart.status !== 200 || afterSnapshot.data.project.revision !== project.revision + 1 || afterSnapshot.data.project.ownerName !== "Registry smoke owner" || !afterSnapshot.data.tasks.some((task) => task.externalId === "registry-smoke-task")) {
+  throw new Error("API project owner, task, or revision did not persist across container restart");
 }
 
-console.log("Registry API smoke passed: project create, auth denial, task create, readonly persistence, restart persistence.");
+console.log("Registry API smoke passed: project create/owner, auth denial, task create, readonly persistence, restart persistence.");
