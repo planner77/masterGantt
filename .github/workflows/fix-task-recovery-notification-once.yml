@@ -1,0 +1,91 @@
+name: Fix task recovery notification once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/fix-task-recovery-notification-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+      - name: 복구 실패 알림 순서 수정
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/features/projects/project-readonly-view.tsx')
+          text = path.read_text()
+          old_head = '''    const recovered = await reloadCanonicalSnapshot();
+    // A successful canonical fetch is synchronized into the existing SVAR instance.
+    // Remount only when the fetch itself failed and the last confirmed React snapshot
+    // must be used to discard an unconfirmed local drag/resize.
+    if (!recovered) setGanttResetGeneration((generation) => generation + 1);
+'''
+          new_head = '''    const recovered = await reloadCanonicalSnapshot();
+    // Keep recovery failure as a separate inbox error, but publish it before the
+    // primary mutation error so the user-facing toast remains the save/delete error.
+    // Record it before remounting the Gantt so a recovery-generation update cannot
+    // race with notification persistence.
+    if (!recovered and status != 412):
+      pass
+'''
+          # Generate the TypeScript block explicitly to avoid accidental Python syntax in source.
+          new_head = '''    const recovered = await reloadCanonicalSnapshot();
+    // Keep recovery failure as a separate inbox error, but publish it before the
+    // primary mutation error so the user-facing toast remains the save/delete error.
+    // Record it before remounting the Gantt so a recovery-generation update cannot
+    // race with notification persistence.
+    if (!recovered && status !== 412) notify("error", "최신 일정 조회에 실패하여 마지막으로 확인한 일정으로 복구했습니다. 다시 조회해 주세요.", "일정 복구");
+    // A successful canonical fetch is synchronized into the existing SVAR instance.
+    // Remount only when the fetch itself failed and the last confirmed React snapshot
+    // must be used to discard an unconfirmed local drag/resize.
+    if (!recovered) setGanttResetGeneration((generation) => generation + 1);
+'''
+          old_tail = '''    notify("error", message, operation, error);
+    if (!recovered && status !== 412) notify("error", "최신 일정 조회에 실패하여 마지막으로 확인한 일정으로 복구했습니다. 다시 조회해 주세요.", "일정 복구");
+    return message;
+'''
+          new_tail = '''    notify("error", message, operation, error);
+    return message;
+'''
+          if text.count(old_head) != 1:
+              raise SystemExit(f'expected one recovery head block, found {text.count(old_head)}')
+          if text.count(old_tail) != 1:
+              raise SystemExit(f'expected one recovery tail block, found {text.count(old_tail)}')
+          text = text.replace(old_head, new_head).replace(old_tail, new_tail)
+          path.write_text(text)
+          PY
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npx --no-install playwright install --with-deps chromium
+      - name: 실패 재현 E2E 단독 검증
+        run: npx --no-install playwright test tests/e2e/project-task-persistence.spec.ts --config tests/config/playwright.config.ts
+      - name: 수정 커밋 및 임시 workflow 정리
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/fix-task-recovery-notification-once.yml
+          if [ -f .github/workflows/one-time-release-v0.13.0-retry.yml ]; then
+            git rm .github/workflows/one-time-release-v0.13.0-retry.yml
+          fi
+          git add src/features/projects/project-readonly-view.tsx
+          git diff --cached --check
+          git commit -m "fix: 일정 복구 실패 알림을 안정적으로 보존"
+          git push origin HEAD:main
