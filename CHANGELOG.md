@@ -4,6 +4,20 @@
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-09-18
+
+### Added
+
+- Issue #64: Docker/server stdout에 JSON 한 줄 구조화 logger, 실제 `LOG_LEVEL` 필터, 민감 필드 redaction과 안전한 500 진단을 추가한다.
+- 검증된 `X-Request-ID` 또는 서버 UUID를 API lifecycle, 오류 body, 응답 header와 서버 로그에서 동일하게 사용하는 request correlation을 추가한다.
+- runtime configuration, DB migration, application startup과 readiness 장애/복구 운영 이벤트 및 Nginx↔Docker 추적 문서를 추가한다.
+
+### Changed
+
+- Issue #61의 리소스 관리자 인증 진단을 공통 logger에 연결하고 주요 Project/Task/Resource/Export API를 동일 request lifecycle 체계에 편입한다.
+- 하위 호환 운영 관측성 및 request-correlation 기능 추가이므로 Semantic Versioning 정책에 따라 `0.14.1`에서 `0.15.0`으로 증가한다.
+
+
 ## [0.14.1] - 2026-09-18
 
 ### Fixed

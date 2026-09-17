@@ -96,7 +96,8 @@ npx playwright install chromium
 | `PORT` | 실행 포트. 예제에서는 `.env` 값에 의존하지 않고 `--port`로 지정 |
 | `APP_BASE_URL` | Project 생성의 `Origin`과 정확히 비교하는 canonical origin. scheme/host/port가 browser 주소와 같아야 하며 production은 기본 HTTPS, ALLOW_INSECURE_HTTP=true일 때 내부망 HTTP 허용 |
 | `RESOURCE_CATALOG_ADMIN_PASSWORD` | 글로벌 Resource/Resource Group 관리 전용 비밀번호. Project 편집 비밀번호와 별도이며 16자 미만 또는 미설정이면 관리자 로그인이 fail-closed |
-| `TRUST_PROXY`, `LOG_LEVEL` | 후속 배포용 예약 설정이며 현재 코드가 소비하지 않음. Cookie 속성은 검증된 외부 APP_BASE_URL과 NODE_ENV로 결정; HTTP/HTTPS 정책은 아래 운영 절 참조 |
+| `TRUST_PROXY` | `true`일 때만 검증된 reverse proxy의 `X-Request-ID`를 상관관계 ID로 신뢰. Origin/HTTP/Cookie 정책은 변경하지 않음 |
+| `LOG_LEVEL` | `debug`, `info`, `warn`, `error`. development 기본 `debug`, 그 외 기본 `info` |
 
 Next.js 앱은 `.env.local` 등의 설정을 읽을 수 있지만 **DB CLI는 `.env`·`.env.local`을 자동 로딩하지 않는다.** CLI에는 아래처럼 명시적으로 전달한다. Production의 `/data` 경로는 로컬 계정에 쓰기 권한이 없을 수 있으므로 개발 예제는 repository 안의 `.data`를 사용한다.
 
@@ -307,7 +308,7 @@ curl -fsS http://127.0.0.1:3000/api/health/ready
 
 `.env`를 변경한 뒤 `docker compose --env-file .env -f deploy/compose.yml restart`만 실행하면 컨테이너 환경 변수가 갱신되지 않는다. `docker compose --env-file .env -f deploy/compose.yml up -d app`으로 변경된 설정을 반영하고 필요하면 `--force-recreate`를 사용한다. 기존 named volume은 유지하며 `docker compose --env-file .env -f deploy/compose.yml down -v`는 실행하지 않는다. 참고: [Compose up](https://docs.docker.com/reference/cli/docker/compose/up/), [Compose restart](https://docs.docker.com/reference/cli/docker/compose/restart/).
 
-**현재 코드의 필수 조건:** `APP_BASE_URL`은 브라우저 `Origin`의 scheme·host·port와 정확히 같아야 하며 production에서는 기본 HTTPS만 허용하며, 명시적 ALLOW_INSECURE_HTTP=true일 때 HTTP도 허용한다. 예를 들어 브라우저가 `https://192.0.2.10:8443`으로 접속하면 도메인 주소나 내부 `http://app:3000`이 아니라 그 origin을 설정한다. 기본 HTTPS 포트는 `:443`을 생략한다. `TRUST_PROXY`·`LOG_LEVEL`은 아직 앱이 소비하지 않는 예약 변수이므로 이를 바꿔 HTTP 운영이나 Origin 오류를 해결할 수 없다. 근거: [Origin 검증](src/server/security/origin-core.ts), [Cookie 구현](src/server/security/cookie-core.ts).
+**현재 코드의 필수 조건:** `APP_BASE_URL`은 브라우저 `Origin`의 scheme·host·port와 정확히 같아야 하며 production에서는 기본 HTTPS만 허용하며, 명시적 ALLOW_INSECURE_HTTP=true일 때 HTTP도 허용한다. 예를 들어 브라우저가 `https://192.0.2.10:8443`으로 접속하면 도메인 주소나 내부 `http://app:3000`이 아니라 그 origin을 설정한다. 기본 HTTPS 포트는 `:443`을 생략한다. `TRUST_PROXY`는 request ID 신뢰 경계에만 적용되고 `LOG_LEVEL`은 서버 로그 필터에 적용된다. 둘 다 HTTP 허용, Origin 검증 또는 Cookie 보안 정책을 완화하지 않는다. 근거: [Origin 검증](src/server/security/origin-core.ts), [Cookie 구현](src/server/security/cookie-core.ts).
 
 #### 2) 호스트 Nginx 설정 예제: 도메인 + HTTPS 443
 
@@ -601,3 +602,14 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 ## Test configuration relocation (#13)
 
 설정은 `tests/config/vitest.config.ts`, `tests/config/playwright.config.ts`에 있다. `npm test`, `npm run test:e2e`는 그대로 사용한다. 직접 실행은 `npx vitest run --config tests/config/vitest.config.ts`, `npx playwright test --config tests/config/playwright.config.ts`로 지정한다. 설정 파일 기준 root/testDir/webServer.cwd를 사용하고 E2E DB `.data/playwright.sqlite3`, `.next-e2e`, `test-results/`는 루트 기준으로 유지한다. CI는 `node scripts/verify-test-discovery.mjs`로 루트/외부 cwd의 동일한 테스트 발견을 확인한 뒤 전체 테스트를 실행한다. 편집기에서 자동 발견되지 않으면 같은 설정 경로를 지정한다. 실제 Windows 편집기 UI 검증은 미실행이며 [배치 문서](docs/REPOSITORY_STRUCTURE.md)를 함께 따른다.
+
+## 운영 로그 및 요청 추적
+
+서버는 Docker `stdout/stderr`에 JSON 한 줄 구조화 로그를 출력한다. `LOG_LEVEL=debug|info|warn|error`로 필터링하며 잘못된 값은 환경별 안전 기본값으로 fallback하고 진단 이벤트를 남긴다. 신뢰 가능한 Nginx 앞단에서만 `TRUST_PROXY=true`를 사용하고 `$request_id`를 `X-Request-ID`로 전달한다. 응답 `X-Request-ID`, 오류 body의 `error.requestId`, 애플리케이션 로그의 `requestId`는 동일하다.
+
+```bash
+docker logs <container>
+docker compose --env-file .env -f deploy/compose.yml logs -f app
+```
+
+장애 조사는 `사용자 requestId → Nginx access log → Docker application log → errorCode/reasonCode/component` 순서로 수행한다. 상세 schema, 보안 금지 필드, readiness 전환 이벤트와 로그 회전 지침은 [운영 로깅 및 요청 추적](docs/LOGGING.md)을 따른다.

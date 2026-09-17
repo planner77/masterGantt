@@ -234,3 +234,12 @@ Unauthorized/cross-project write, secret 유출, stale overwrite, cycle 누락, 
 - Assignment mutation: resource의 기간/투입률 validation, group allocation 금지, revision/catalog revision 동시성 및 기존 assignment canonical snapshot 보존을 검증한다.
 - UI/E2E: 기존 Gantt instance/폭/페이지 수평 overflow 계약을 유지하고 리소스 공수 조회가 프로젝트 작업면 외부 flex sibling으로 Gantt를 축소하지 않는지 전체 Chromium 회귀로 확인한다.
 - PR 최종 gate는 version/typecheck/lint/Vitest/build, Chromium 전체 E2E, Docker migration/readiness/SQLite restart, production HTTP·HTTPS browser와 relocated Compose persistence를 모두 통과해야 한다.
+
+## Issue #64 구조화 로그 및 요청 추적 회귀
+
+- `LOG_LEVEL` 필터와 잘못된 설정 fallback을 단위 테스트한다.
+- trusted/untrusted `X-Request-ID`, 응답 header, 오류 body와 server log 상관관계를 검증한다.
+- 2xx/4xx/5xx lifecycle level, 예상하지 못한 500의 client/server 정보 분리, 민감 필드 redaction을 검증한다.
+- readiness failure category 및 장애→복구 전환을 검증하고 정상 health probe가 반복 `info` 로그를 만들지 않는지 확인한다.
+- migration CLI가 성공/실패 구조화 진단을 stderr에 남기면서 DB path/내부 오류 원문을 노출하지 않는지 검증한다.
+- Docker Compose smoke에서 `runtime_configuration_validated`, `database_migration_completed`, `application_started` 이벤트가 `docker compose logs app`으로 조회되는지 확인한다.

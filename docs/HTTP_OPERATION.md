@@ -14,7 +14,7 @@
 
 `APP_BASE_URL`에는 실제 브라우저 origin(프로토콜·호스트·포트)만 지정한다. 끝 `/`, 경로, query/hash, 사용자정보, 기본 포트의 비정규화 표기는 허용하지 않는다. 프록시 upstream 주소를 외부 origin으로 사용하지 않는다. 하나의 앱을 HTTP와 HTTPS 두 canonical origin으로 동시에 제공하지 않는다.
 
-공유 URL·시작 CLI·readiness·생성/조회/편집 인증의 설정은 공용 URL parser를 따른다. 브라우저/요청 `Host`, `Origin`, `X-Forwarded-*`로 HTTP 허용이나 Secure 속성을 결정하지 않는다. `SESSION_COOKIE_SECURE`는 실제 코드가 읽지 않았던 예약값이므로 예제/Compose에서 제거했다. 이 값을 바꿔 보안을 조절하지 않는다. `TRUST_PROXY`, `LOG_LEVEL`은 기존 미사용 예약 상태다.
+공유 URL·시작 CLI·readiness·생성/조회/편집 인증의 설정은 공용 URL parser를 따른다. 브라우저/요청 `Host`, `Origin`, `X-Forwarded-*`로 HTTP 허용이나 Secure 속성을 결정하지 않는다. `SESSION_COOKIE_SECURE`는 실제 코드가 읽지 않았던 예약값이므로 예제/Compose에서 제거했다. 이 값을 바꿔 보안을 조절하지 않는다. `TRUST_PROXY`는 검증된 `X-Request-ID` 수용 여부에만 사용하고 `LOG_LEVEL`은 구조화 서버 로그 필터에 사용한다. 두 값은 APP_BASE_URL, Origin 검증, HTTP 허용 또는 Secure Cookie 정책을 변경하지 않는다.
 
 ## 내부망 HTTP 실행 예제
 
@@ -100,3 +100,7 @@ CI의 Docker gate, main 게시 이미지의 exact digest 검사, 릴리스 후�
 - [Nginx proxy 모듈](https://nginx.org/en/docs/http/ngx_http_proxy_module.html)
 - [Playwright configuration](https://playwright.dev/docs/api/class-testconfig)
 - [Chromium Linux CA 신뢰 저장소](https://chromium.googlesource.com/chromium/src/+/main/docs/linux/cert_management.md)
+
+## Request ID와 로그 설정
+
+신뢰 가능한 reverse proxy가 애플리케이션에 직접 연결되는 구성에서만 `TRUST_PROXY=true`로 두고 Nginx `$request_id`를 `X-Request-ID`로 전달한다. 앱은 형식과 길이를 검증하며 유효하지 않으면 새 UUID를 생성한다. `LOG_LEVEL`은 `debug|info|warn|error`만 지원한다. 두 설정은 transport 보안 우회 수단이 아니다.

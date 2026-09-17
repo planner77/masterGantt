@@ -625,3 +625,7 @@ Issue #54에서 추가한 자동화 검증은 다음과 같다.
 Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`to`는 선택 사항이며 서버가 프로젝트 일정 범위와 교차해 유효 구간을 계산한다. leaf task의 직접 resource assignment만 집계하고 Summary/Milestone/group 직접 할당은 개인 계획 공수에서 제외한다.
 
 `M/D = 조회 구간 내 프로젝트 근무일 수 × allocationPercent / 100`으로 계산한다. `RESOURCE_MD_PER_MM`이 유효한 양수일 때만 `M/M = M/D / RESOURCE_MD_PER_MM`을 반환한다. 응답은 그룹 → 리소스 → 작업 계층, assignment 기준 Grand Total, `unsetCount`, 일별 할당률 합계가 100%를 초과하는 `overAllocated` 상태를 포함한다. 복수 그룹 소속 리소스는 각 그룹에 보일 수 있지만 Grand Total은 같은 assignment를 중복 집계하지 않는다. 미소속 리소스는 `미분류 리소스`로 표시한다.
+
+## 공통 Request ID / Correlation 계약
+
+주요 API 응답은 `X-Request-ID`를 반환한다. 오류 응답의 `error.requestId`는 이 헤더와 서버 구조화 로그의 `requestId`와 동일하다. 기본 `TRUST_PROXY=false`에서는 클라이언트 제공 `X-Request-ID`를 무시하고 서버 UUID를 사용한다. `TRUST_PROXY=true`인 신뢰 프록시 경계에서도 UUID 또는 Nginx `$request_id` 32-hex 형식만 수용하고 그 외 값은 재생성한다. 이 설정은 인증, Origin, revision, Cookie 또는 HTTP/HTTPS 정책을 변경하지 않는다.
