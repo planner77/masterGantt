@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import type { ResourceWorkloadResponse } from "@/contracts/resources";
 
@@ -13,7 +14,13 @@ function effort(md: number, mm: number | null, unit: Unit): string {
   return `${md.toFixed(2)} M/D`;
 }
 
+function findProjectWorkloadTarget(): HTMLElement | null {
+  const target = document.querySelector(".project-readonly");
+  return target instanceof HTMLElement ? target : null;
+}
+
 export function ProjectResourceWorkload({ publicId }: Props) {
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [data, setData] = useState<ResourceWorkloadResponse["data"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +39,17 @@ export function ProjectResourceWorkload({ publicId }: Props) {
   }, [publicId]);
 
   useEffect(() => {
+    const resolveTarget = () => {
+      const next = findProjectWorkloadTarget();
+      setPortalTarget((current) => current === next ? current : next);
+    };
+    resolveTarget();
+    const observer = new MutationObserver(resolveTarget);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     let alive = true;
     void (async () => {
       await Promise.resolve();
@@ -40,7 +58,9 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     return () => { alive = false; };
   }, [load]);
 
-  return <section aria-labelledby="resource-workload-heading" className="project-resource-workload">
+  if (!portalTarget) return null;
+
+  return createPortal(<section aria-labelledby="resource-workload-heading" className="project-resource-workload">
     <div className="schedule-heading-row">
       <div>
         <h2 id="resource-workload-heading">리소스 공수</h2>
@@ -60,12 +80,12 @@ export function ProjectResourceWorkload({ publicId }: Props) {
         <div style={{ paddingInlineStart: "1.25rem" }}>
           {group.resources.map((resource) => <details key={`${group.id ?? "ungrouped"}:${resource.id}`}>
             <summary>{resource.name}{resource.code ? ` (${resource.code})` : ""}{!resource.active ? " · 비활성" : ""} · {resource.start ?? "—"} ~ {resource.end ?? "—"} · {effort(resource.effortMd, resource.effortMm, unit)}{resource.overAllocated ? " · 과투입" : ""}{resource.unsetCount ? ` · 미설정 ${resource.unsetCount}` : ""}</summary>
-            <div style={{ overflowX: "auto" }}><table><thead><tr><th>작업</th><th>투입 시작</th><th>투입 종료</th><th>투입률</th><th>공수</th></tr></thead><tbody>
+            <div style={{ maxWidth: "100%", overflowX: "auto" }}><table><thead><tr><th>작업</th><th>투입 시작</th><th>투입 종료</th><th>투입률</th><th>공수</th></tr></thead><tbody>
               {resource.tasks.map((task) => <tr key={task.assignmentId}><td>{task.taskName}</td><td>{task.start}</td><td>{task.end}</td><td>{task.allocationPercent === null ? "미설정" : `${task.allocationPercent}%`}</td><td>{task.effortMd === null ? "공수 미설정" : effort(task.effortMd, task.effortMm, unit)}</td></tr>)}
             </tbody></table></div>
           </details>)}
         </div>
       </details>)}
     </> : null}
-  </section>;
+  </section>, portalTarget);
 }
