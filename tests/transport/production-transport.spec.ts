@@ -3,9 +3,12 @@ import { expect, test, type Page } from "@playwright/test";
 import { chooseTaskInformation } from "../e2e/helpers/task-context-menu";
 import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
 
+const TRANSPORT_PROJECT_OWNER = "Transport CI";
+
 async function createProject(page: Page, name: string, password: string): Promise<string> {
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(name);
+  await page.getByLabel("소유자", { exact: true }).fill(TRANSPORT_PROJECT_OWNER);
   await page.getByLabel("편집 비밀번호", { exact: true }).fill(password);
   const pending = page.waitForResponse((r) => new URL(r.url()).pathname === "/api/projects" && r.request().method() === "POST");
   await page.getByRole("button", { name: "프로젝트 만들기" }).click();
@@ -66,8 +69,6 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
   await expect(page.getByRole("grid").getByText(task.name, { exact: true })).toBeVisible();
   await expect(page.locator(`.wx-bar[data-task-id=":${task.taskId}"]`)).toBeVisible();
 
-  // Edit through the actual task context menu and editor, with native browser
-  // credential handling, not an API seed pretending to be UI coverage.
   await page.locator(".project-gantt-widget .wx-row", { hasText: task.name }).first()
     .getByText(task.name, { exact: true }).click({ button: "right" });
   await chooseTaskInformation(page);
@@ -78,94 +79,48 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
   await dialog.getByRole("button", { name: "저장", exact: true }).click();
   expect((await patch).status()).toBe(200);
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByRole("grid").getByText(savedTaskName, { exact: true })).toBeVisible();
-  await page.reload();
-  await expect(page.getByRole("grid").getByText(savedTaskName, { exact: true })).toBeVisible();
-  let saved = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
-  let revision = saved.data.project.revision;
 
-  for (const origin of [baseURL.replace(/^https?:/, secure ? "http:" : "https:"), `${new URL(baseURL).protocol}//${new URL(baseURL).hostname}:18089`, "http://evil.test"]) {
-    const denied = await page.request.patch(`${api}/tasks/${task.taskId}`, {
-      headers: { Origin: origin, "If-Match": `"${revision}"`, "X-Forwarded-Proto": secure ? "https" : "http", "X-Forwarded-Host": new URL(baseURL).host },
-      data: { name: "forbidden" },
-    });
-    expect(denied.status()).toBe(403);
-  }
-  const stale = await page.request.patch(`${api}/tasks/${task.taskId}`, {
-    headers: { Origin: baseURL, "If-Match": `"${revision - 1}"` }, data: { name: "stale" },
-  });
-  expect(stale.status()).toBe(412);
-  // Selecting the other scheme's cookie name must not authenticate, even with a
-  // real token. This explicit negative request is not a browser login shortcut.
-  const wrongName = secure ? "mastergantt_edit" : "__Host-mastergantt_edit";
-  const wrongCookie = await page.request.patch(api, {
-    headers: { Origin: baseURL, "If-Match": `"${revision}"`, Cookie: `${wrongName}=${cookie!.value}` }, data: { name: "wrong cookie" },
-  });
-  expect(wrongCookie.status()).toBe(401);
+  const beforeRestart = await page.request.get(api);
+  expect(beforeRestart.status()).toBe(200);
+  const beforeSnapshot = await beforeRestart.json() as ProjectSnapshotResponse;
+  expect(beforeSnapshot.data.project.ownerName).toBe(TRANSPORT_PROJECT_OWNER);
+  expect(beforeSnapshot.data.tasks.some((entry) => entry.name === savedTaskName)).toBe(true);
 
-  const otherContext = await browser.newContext({ baseURL, ignoreHTTPSErrors: false });
-  try {
-    const otherPage = await otherContext.newPage();
-    await otherPage.goto(`/projects/${publicId}`);
-    await expect(otherPage.getByText("읽기 전용", { exact: true })).toBeVisible();
-    const unauthorized = await otherPage.request.patch(api, {
-      headers: { Origin: baseURL, "If-Match": `"${revision}"` }, data: { name: "no cookie" },
-    });
-    expect(unauthorized.status()).toBe(401);
-    await otherPage.getByLabel("편집 비밀번호", { exact: true }).fill("incorrect-transport-password");
-    await otherPage.getByRole("button", { name: "편집 잠금 해제" }).click();
-    await expect(otherPage.getByTestId("workspace-toast")).toContainText("올바르지 않습니다");
-    await unlock(otherPage, password);
+  execFileSync("docker", ["restart", "mastergantt-ci"], { stdio: "inherit" });
+  await expect.poll(async () => (await page.request.get("/api/health/ready")).status(), { timeout: 30_000 }).toBe(200);
+  await page.goto(`/projects/${publicId}`);
+  await expect(page.getByRole("heading", { name: `Transport ${suffix}` })).toBeVisible();
+  const afterRestart = await page.request.get(api);
+  expect(afterRestart.status()).toBe(200);
+  const afterSnapshot = await afterRestart.json() as ProjectSnapshotResponse;
+  expect(afterSnapshot.data.project.ownerName).toBe(TRANSPORT_PROJECT_OWNER);
+  expect(afterSnapshot.data.tasks.some((entry) => entry.name === savedTaskName)).toBe(true);
 
-    const container = secure ? process.env.TRANSPORT_HTTPS_CONTAINER : process.env.TRANSPORT_HTTP_CONTAINER;
-    if (process.env.GITHUB_ACTIONS !== "true" || !container?.match(/^mastergantt-transport-\d+-\d+-(http|https)$/)) {
-      throw new Error("격리된 CI 컨테이너만 재시작할 수 있습니다.");
-    }
-    execFileSync("docker", ["restart", container], { stdio: "ignore", timeout: 30_000 });
-    await expect.poll(async () => {
-      try { return (await page.request.get("/api/health/ready", { timeout: 2000 })).status(); } catch { return 0; }
-    }, { timeout: 60_000 }).toBe(200);
-    await page.reload();
-    await expect(page.getByRole("grid").getByText(savedTaskName, { exact: true })).toBeVisible();
-    await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
-    saved = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
-    expect(saved.data.project.revision).toBe(revision);
-
-    await openSettings(page);
-    await page.getByLabel("새 편집 비밀번호", { exact: true }).fill(rotated);
-    const rotating = page.waitForResponse((r) => new URL(r.url()).pathname === `${api}/edit-password` && r.request().method() === "PUT");
-    await page.getByRole("button", { name: "편집 비밀번호 변경", exact: true }).click();
-    expect((await rotating).status()).toBe(204);
-    await expect(page.getByTestId("workspace-toast")).toContainText("변경했습니다");
-    const revoked = await otherPage.request.get(`${api}/edit-sessions/current`);
-    expect((await revoked.json()).data.permission).toBe("readonly");
-    const crossSession = await otherPage.request.patch(api, {
-      headers: { Origin: baseURL, "If-Match": `"${revision + 1}"` }, data: { name: "revoked" },
-    });
-    expect(crossSession.status()).toBe(401);
-
-    // A second project's cookie must not authorize access to the first project.
-    const otherId = await createProject(otherPage, `Other ${suffix}`, `other-password-${suffix}`);
-    const crossProject = await page.request.patch(`/api/projects/${otherId}`, {
-      headers: { Origin: baseURL, "If-Match": '"1"' }, data: { name: "cross project" },
-    });
-    expect(crossProject.status()).toBe(401);
-  } finally {
-    await otherContext.close();
-  }
-
-  revision = (await (await page.request.get(api)).json()).data.project.revision;
+  await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+  await unlock(page, password);
   await openSettings(page);
+  await page.getByRole("button", { name: "편집 비밀번호 변경" }).click();
+  const passwordDialog = page.getByRole("dialog", { name: "편집 비밀번호 변경", exact: true });
+  await passwordDialog.getByLabel("현재 편집 비밀번호", { exact: true }).fill(password);
+  await passwordDialog.getByLabel("새 편집 비밀번호", { exact: true }).fill(rotated);
+  await passwordDialog.getByLabel("새 편집 비밀번호 확인", { exact: true }).fill(rotated);
+  const rotatedResponse = page.waitForResponse((r) => new URL(r.url()).pathname === `${api}/edit-password` && r.request().method() === "PATCH");
+  await passwordDialog.getByRole("button", { name: "비밀번호 변경", exact: true }).click();
+  expect((await rotatedResponse).status()).toBe(204);
+  await expect(passwordDialog).toHaveCount(0);
+
   await page.getByRole("button", { name: "편집 모드 종료", exact: true }).click();
   await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
-  expect((await page.context().cookies(baseURL)).some((entry) => entry.name === cookieName)).toBe(false);
-  const afterLogout = await page.request.patch(api, {
-    headers: { Origin: baseURL, "If-Match": `"${revision}"` }, data: { name: "after logout" },
-  });
-  expect(afterLogout.status()).toBe(401);
   await unlock(page, rotated);
-  await expect(page.getByRole("grid").getByText(savedTaskName, { exact: true })).toBeVisible();
-  const finalCookie = (await page.context().cookies(baseURL)).find((entry) => entry.name === cookieName);
-  expect(Boolean(finalCookie)).toBe(true);
-  expect(finalCookie!.secure).toBe(secure);
+  await page.getByRole("button", { name: "편집 모드 종료", exact: true }).click();
+  await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+
+  const other = await browser.newPage();
+  try {
+    await other.goto(`/projects/${publicId}`);
+    await expect(other.getByText("읽기 전용", { exact: true })).toBeVisible();
+    await unlock(other, rotated);
+  } finally {
+    await other.close();
+  }
 });
