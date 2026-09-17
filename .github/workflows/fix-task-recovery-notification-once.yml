@@ -1,4 +1,5 @@
 name: Fix task recovery notification once
+# retry with patch script present
 
 on:
   push:
