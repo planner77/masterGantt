@@ -243,3 +243,19 @@ Unauthorized/cross-project write, secret 유출, stale overwrite, cycle 누락, 
 - readiness failure category 및 장애→복구 전환을 검증하고 정상 health probe가 반복 `info` 로그를 만들지 않는지 확인한다.
 - migration CLI가 성공/실패 구조화 진단을 stderr에 남기면서 DB path/내부 오류 원문을 노출하지 않는지 검증한다.
 - Docker Compose smoke에서 `runtime_configuration_validated`, `database_migration_completed`, `application_started` 이벤트가 `docker compose logs app`으로 조회되는지 확인한다.
+
+
+## Issue #57 작업 캘린더 회귀 검증
+
+Issue #57 PR은 기존 gate를 완화하거나 skip해서 통과시키지 않는다. 최신 PR head에서 다음을 검증한다.
+
+- **Domain**: 평일/주말, `NON_WORKING` 평일 override, `WORKING` 주말 override, legacy holiday 호환, 중복·충돌 거부, leap/date 범위, timezone purity.
+- **Country fixture**: KR/CN/VN/PH/TH/MX/US의 2026 metadata와 대표 휴일, CN/VN 보충 근무일, 지원 외 연도 `COUNTRY_CALENDAR_UNAVAILABLE`.
+- **Migration 0006**: 기존 `project_holidays` row를 Custom Project rule/date로 보존, 기존 Project에 국가 rule 자동 추가 금지, 호환 VIEW/INSERT trigger, 재실행 ledger 안정성.
+- **Service/API**: countries/read/preview/replace, edit session/Origin/If-Match, stale revision, Calendar exception 충돌, Manual conflict rollback, dependency link 안전 거부, revision 정확히 +1.
+- **Resource workload**: Project+Group+Resource Effective Calendar를 이용한 M/D, M/M 분자, 일별 allocation/과투입 판정. Group/Resource 휴무가 Project Task start/end를 이동시키지 않는지 검증.
+- **Project copy**: source의 materialized Calendar rule/date가 새 Project로 독립 복사되고 source revision/Calendar는 변경되지 않는다.
+- **UI/Chromium**: 설정 modal의 Calendar rule/custom date 편집, Preview/저장, canonical snapshot 재조회, 신규 KR 기본 Calendar의 실제 휴일 이동, 기존 알림/geometry/Gantt instance 회귀.
+- **Docker**: migration 0006 적용 후 readiness, SQLite restart persistence, production HTTP/HTTPS 인증·Cookie·영속성, relocated Compose persistence.
+
+PR #66 최종 검증 기준은 CI Run #350이며 quality, Chromium E2E 50/50, Docker smoke가 모두 PASS했다. Merge 후 main은 같은 gate를 다시 실행한 뒤 임시 `ci-<SHA>` GHCR image를 exact digest로 검증하고 삭제한다. SemVer release image는 annotated `v0.16.0` tag를 release authority로 사용한다.
