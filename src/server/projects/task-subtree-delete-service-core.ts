@@ -8,7 +8,7 @@ import type {
   ProjectTaskDto,
   TaskMutationResponse,
 } from "../../contracts/projects";
-import { createWorkingCalendar, recalculateHierarchy } from "../../domain/scheduling";
+import { recalculateHierarchy, type WorkingCalendar } from "../../domain/scheduling";
 import {
   EditSessionRepository,
   ProjectRepository,
