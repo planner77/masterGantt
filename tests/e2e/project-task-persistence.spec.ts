@@ -217,7 +217,8 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const afterRoot = await rootResponse.json();
   const roots = afterRoot.data.tasks.filter((entry: { taskId: string }) => !beforeRootIds.has(entry.taskId));
   expect(roots).toHaveLength(1); const nativeRoot = roots[0];
-  expect(nativeRoot).toMatchObject({ name: "새 작업", requestedStart: browserToday, start: browserToday, end: browserToday, duration: 1, parentExternalId: null });
+  const expectedHolidayShift = "2026-09-28";
+  expect(nativeRoot).toMatchObject({ name: "새 작업", requestedStart: browserToday, start: expectedHolidayShift, end: expectedHolidayShift, duration: 1, parentExternalId: null });
   expect(afterRoot.data.project.revision).toBe(afterUnauthorized.data.project.revision + 1);
   await expect(page.getByTestId("workspace-toast")).toContainText("작업을 추가했습니다");
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -235,7 +236,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const beforeChildIds = new Set<string>(afterRoot.data.tasks.map((entry: { taskId: string }) => entry.taskId));
   const children = afterChild.data.tasks.filter((entry: { taskId: string }) => !beforeChildIds.has(entry.taskId));
   expect(children).toHaveLength(1); const child = children[0];
-  expect(child).toMatchObject({ name: "새 작업", requestedStart: browserToday, start: browserToday, end: browserToday, duration: 1, parentExternalId: winnerTask.externalId });
+  expect(child).toMatchObject({ name: "새 작업", requestedStart: browserToday, start: expectedHolidayShift, end: expectedHolidayShift, duration: 1, parentExternalId: winnerTask.externalId });
   const summary = afterChild.data.tasks.find((entry: { taskId: string }) => entry.taskId === winnerTask.taskId);
   expect(summary).toMatchObject({ type: "summary", start: child.start, end: child.end });
   expect(afterChild.data.project.revision).toBe(afterRoot.data.project.revision + 1);
