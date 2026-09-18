@@ -10,7 +10,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-19 / 0.17.0 Issue #68 작업 캘린더 Dependency 재계산 구현 브랜치**. 기존 작업 캘린더 기능에 FS/lag=0 Dependency forward-pass를 연결해 Calendar 변경 시 Auto 후행 일정과 Summary를 함께 재계산하고 Manual dependency 충돌은 원자적으로 거부한다. 작업 캘린더 기본 설계는 [Issue #57 작업 캘린더](docs/ISSUE_57_WORK_CALENDAR.md), 후속 통합 설계는 [Issue #68](docs/ISSUE_68_CALENDAR_DEPENDENCY_RECALC.md)을 따른다.
+기준: **2026-09-19 / 0.17.0 Issue #68 작업 캘린더 Dependency 재계산**. 기존 작업 캘린더 기능에 FS/lag=0 Dependency forward-pass를 연결해 Calendar 변경 시 Auto 후행 일정과 Summary를 함께 재계산하고 Manual dependency 충돌은 원자적으로 거부한다. 작업 캘린더 기본 설계는 [Issue #57 작업 캘린더](docs/ISSUE_57_WORK_CALENDAR.md), 후속 통합 설계는 [Issue #68](docs/ISSUE_68_CALENDAR_DEPENDENCY_RECALC.md)을 따른다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -29,7 +29,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | W24 Grid·삭제·계층 UI | 완료 / 원격 CI PASS | 목록 표/권한 삭제, native Header·row 추가, Summary 집계, locale·주말·고정 헤더 |
 | Issue #19 글로벌 리소스·그룹 | 완료 / PR CI PASS | 독립 Resource/Group 카탈로그, 관리자 세션, 그룹 멤버, Task/Summary/Milestone 직접 할당, canonical assignment 보존 |
 | Issue #57 작업 캘린더 | 완료 / PR CI PASS | KR/CN/VN/PH/TH/MX/US 2026 국가 규칙, 기간 적용, Project/Group/개인 휴무, WORKING override, Preview/원자 저장, #56 Effective Calendar 연계 |
-| Issue #68 Calendar+FS 재계산 | 구현 완료 / CI 검증 전 | 후보 Calendar → Leaf → FS/lag=0 → Summary 순서, Preview 원인 표시, Manual dependency conflict 원자 거부 |
+| Issue #68 Calendar+FS 재계산 | 구현 완료 / PR CI PASS | 후보 Calendar → Leaf → FS/lag=0 → Summary 순서, Preview 원인 표시, Manual dependency conflict 원자 거부 |
 | W08 이후 | 일부 W24 선행 / 예정 | WBS UI·reparent·유효 subtree 삭제 묶음, 일반 Task/Link mutation FS 재계산, Import/Export |
 | W16 배포 | 일부 기반 선행 / 운영 검증 예정 | Docker/startup/readiness/named volume 기반; 실제 host·proxy·backup/restore 승인 후속 |
 
