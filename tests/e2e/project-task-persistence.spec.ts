@@ -253,5 +253,5 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const persisted = await (await page.request.get(apiPath)).json();
   expect(persisted.data.project.revision).toBe(afterChild.data.project.revision);
   expect(persisted.data.tasks).toHaveLength(afterChild.data.tasks.length);
-  expect(persisted.data.tasks.find((entry: { taskId: string }) => entry.taskId === child.taskId)).toMatchObject({ parentExternalId: winnerTask.externalId, name: "새 작업", start: browserToday, duration: 1 });
+  expect(persisted.data.tasks.find((entry: { taskId: string }) => entry.taskId === child.taskId)).toMatchObject({ parentExternalId: winnerTask.externalId, name: "새 작업", start: expectedHolidayShift, duration: 1 });
 });
