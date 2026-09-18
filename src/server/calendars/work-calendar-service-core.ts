@@ -364,7 +364,7 @@ export class WorkCalendarService {
     }
     return {
       candidateRules,
-      afterTasks:after,
+      afterTasks:[...after],
       response:{data:{
         projectRevision,
         calendar:{projectRevision,rules,projectDates},
