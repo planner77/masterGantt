@@ -100,9 +100,11 @@ export function handleListWorkCalendarCountries(deps:WorkCalendarHandlerDependen
   catch(error) { return fail(error,requestId); }
 }
 
-export function handleGetProjectWorkCalendar(publicId:string,deps:WorkCalendarHandlerDependencies):Response {
+export function handleGetProjectWorkCalendar(request:Request,publicId:string,deps:WorkCalendarHandlerDependencies):Response {
   const requestId=(deps.requestId??randomUUID)();
   try {
+    const url=applicationUrl(deps);
+    authorize(request,publicId,deps,url);
     const result=calendarService(deps).get(publicId);
     if(!result) throw new PublicApiError(404,"PROJECT_NOT_FOUND","Project not found.");
     return json(result,200,result.data.projectRevision);
