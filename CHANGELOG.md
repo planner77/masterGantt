@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+## [0.16.1] - 2026-09-18
+
+### Fixed
+
+- Issue #67: Docker Compose가 `.env`의 `RESOURCE_CATALOG_ADMIN_PASSWORD`를 app 컨테이너에 전달하지 않던 결함을 수정한다.
+- 관리자 비밀번호 누락 시 Compose config 단계에서 fail-fast하고, CI Docker smoke에서 실제 컨테이너 환경 전달·인증 성공/거부·로그 비노출을 검증한다.
+
+### Changed
+
+- 하위 호환 Docker 배포 결함 수정이므로 Semantic Versioning 정책에 따라 `0.16.0`에서 `0.16.1`로 증가한다.
+
 ## [0.16.0] - 2026-09-18
 
 ### Added
