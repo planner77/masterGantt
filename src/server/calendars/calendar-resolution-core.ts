@@ -1,5 +1,7 @@
 import type Database from "better-sqlite3";
 
+import type { ProjectCalendarDto } from "../../contracts/projects";
+
 import {
   createWorkingCalendar,
   type CalendarDayExceptionInput,
@@ -72,4 +74,21 @@ export function resolveResourceWorkingCalendar(
     weekendDays:[6,0],
     exceptions:[...effective.values()],
   });
+}
+
+export function projectCalendarDto(
+  database:Database.Database,
+  projectId:number,
+):ProjectCalendarDto {
+  const calendar=resolveProjectWorkingCalendar(database,projectId);
+  return {
+    timezone:"Asia/Seoul",
+    weekendDays:[6,0],
+    holidays:calendar.holidays.map((holiday)=>({date:holiday.date,name:holiday.name??null})),
+    exceptions:calendar.exceptions.map((entry)=>({
+      date:entry.date,
+      dayType:entry.dayType,
+      name:entry.name??null,
+    })),
+  };
 }
