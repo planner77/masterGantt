@@ -1,12 +1,12 @@
 # Scheduling Engine 설계
 
-상태: W06 Working Calendar and Duration 구현과 W07 root Leaf/Milestone 저장 연결을 독립 QA PASS / Manager ACCEPT했다. Gregorian date-only, Project Calendar, 근무일 연산과 calendar-only Leaf/Milestone 계산은 `src/domain/scheduling/`에 있다. W24는 사용자 승인된 행 `+` 하위 작업 추가를 위해 독립 Summary/WBS 계층 계산을 구현하고 서비스 연결을 확장한다. FS 재계산·Calendar mutation은 후속 범위다. 근거는 [W06_REVIEW.md](W06_REVIEW.md), [W07_REVIEW.md](W07_REVIEW.md), 외부 입력 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)이다.
+상태: W06 Working Calendar/Duration과 W07 root Leaf/Milestone 저장 연결을 기반으로, Issue #57에서 Working Calendar를 `Base weekly rule + WORKING/NON_WORKING date exception`으로 일반화하고 Project Calendar Preview/저장 및 Resource Effective Calendar를 연결했다. Gregorian date-only, 근무일 연산과 Leaf/Summary 계산은 `src/domain/scheduling/`의 pure API를 유지한다. W24의 Summary/WBS 계층 계산도 유지하며, dependency link가 있는 Project의 Calendar 일괄 재계산은 전체 Dependency Scheduling 완성 전까지 안전하게 거부한다. 근거는 [W06_REVIEW.md](W06_REVIEW.md), [W07_REVIEW.md](W07_REVIEW.md), 외부 입력 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)이다.
 
 ## 1. 범위와 결정 구분
 
 **Confirmed**: `src/domain/scheduling/`에 UI·DB와 독립적인 계산 계층을 둔다. 초기 범위는 Project Working Calendar, 주말·휴일 제외, 근무일 Duration, Summary 계산, FS Dependency, 의존 관계 재계산, WBS다. Server가 최종 결과를 계산하며 Client Preview에서도 같은 Pure Domain Logic을 사용한다.
 
-**Assumption — 초기 설계 기준**: 일 단위 Gregorian 날짜, 양 끝 포함 구간, Project 공통 Calendar 한 개, `Asia/Seoul` 표시 기준, 토·일 비근무일, 사용자 설정 휴일 목록, FS/lag=0만 허용한다. 일반 업무의 Duration은 양의 정수 근무일이다. 업무는 `auto` 또는 `manual`이고 생략 시 `auto`로 정규화한다. 시각·반일·개별 업무 Calendar는 초기 범위에 없다.
+**구현 기준**: 일 단위 Gregorian 날짜, 양 끝 포함 구간, `Asia/Seoul` 표시 기준과 월~금 근무/토·일 휴무의 Base weekly rule을 사용한다. Issue #57부터 Project Calendar는 여러 국가 규칙과 Project Custom 휴무를 날짜 예외로 결합하며, 명시적 `WORKING/NON_WORKING` 예외가 기본 주간 규칙보다 우선한다. FS/lag=0 경계는 기존과 같다. 일반 업무의 Duration은 양의 정수 근무일이다. 업무는 `auto` 또는 `manual`이고 생략 시 `auto`로 정규화한다. 시각·반일·개별 업무 Calendar는 초기 범위에 없다.
 
 **Manager 결정**: 입력 의도인 `requestedStart`와 계산 결과인 `start`를 분리한다. Summary를 Dependency Endpoint로 쓰지 않는다. Auto 일정의 비근무 시작일은 다음 근무일로 이동하고, Manual 일정의 비근무 시작일 또는 FS 위반은 전체 변경을 거부한다. Milestone을 포함한 모든 FS는 선행 종료일보다 뒤의 근무일에 후행 업무를 시작한다. 이는 본 시스템의 일 단위 규칙이며 다른 일정 도구와 동일한 의미라고 가정하지 않는다.
 
@@ -47,7 +47,7 @@ flowchart TD
 | `progress` | Leaf는 유한 숫자 `0..100`. Summary는 하위 Leaf에서 계산한다. |
 | Parent·Sibling Order | Parent 참조와 저장된 형제 순서. Import 배열에서 같은 Parent의 등장 순서로 초기 순서를 만든다. |
 | Dependency | 선행 Leaf → 후행 Leaf 방향. 초기 유효 값은 FS, lag=0. |
-| Calendar | 토·일 제외, 중복 제거된 날짜별 Holiday 집합. Project 전체에 같은 버전을 적용한다. |
+| Calendar | Base weekly rule + 날짜별 `NON_WORKING/WORKING` 예외. Project 일정에는 Project target rule만 사용하고 Resource workload에는 Group/Resource NON_WORKING을 추가 union한다. |
 | Result | 새 Snapshot, 원본 대비 변경 Task, 날짜 이동 이유, 경고, 안정적인 오류 코드와 관련 Task ID. 실패하면 저장 가능한 부분 결과를 반환하지 않는다. |
 
 `requestedStart`를 계산된 `start`로 자동 덮어쓰지 않는다. 예를 들어 B의 요청일이 9월 14일이고 A 때문에 9월 17일로 밀렸다면, A가 앞당겨졌을 때 B는 원래 요청일을 기준으로 다시 계산한다. 화면에서 사용자가 직접 시작일을 변경하는 명령만 새로운 요청일을 만든다. 별도 날짜 고정이 필요하면 `manual`을 사용한다.
@@ -66,23 +66,23 @@ Local 자정 Timestamp 차이를 `86,400,000`으로 나누어 일수를 계산�
 
 | 개념 연산 | 정의 |
 | --- | --- |
-| `isWorkingDay(d)` | 날짜가 토·일이 아니고 Holiday 집합에도 없으면 참 |
+| `isWorkingDay(d)` | 명시적 날짜 예외가 있으면 그 `dayType`을 사용하고, 없으면 월~금 true / 토·일 false |
 | `nextWorkingDay(d, inclusive)` | `inclusive=true`이면 d부터, false이면 d 다음 날짜부터 첫 근무일 탐색 |
-| `workingDaysBetween(s, e)` | s≤e인 구간의 양 끝을 포함하여 근무일 수 계산 |
-| `endFromStart(s, n)` | 근무일 s를 첫날로 하여 n번째 근무일 반환. Task는 n≥1 |
+| `workingDaysBetween(s, e)` | s≤e인 구간의 양 끝을 포함하여 Effective Calendar의 근무일 수 계산 |
+| `endFromStart(s, n)` | 근무일 s를 첫날로 하여 n번째 Effective 근무일 반환. Task는 n≥1 |
 
-Holiday는 조직이 설정한 날짜만 사용한다. 국가 공휴일이나 대체공휴일을 추측·자동 생성하지 않는다. 휴일이 주말과 겹쳐도 한 번만 제외하며, 잘못된 날짜와 중복 날짜는 명시적 오류로 거부한다. 성공한 Calendar는 날짜순의 고유 목록으로 복사·동결하며 표시명 `string | null | omitted`을 구분해 보존한다. 전체 범위가 비근무일이어도 최대 지원 범위 안에서 종료하고 근무일을 찾지 못했다는 오류를 반환한다.
+`NON_WORKING`은 평일도 휴무로 만들고 `WORKING`은 기본 주말도 근무일로 만든다. 날짜별 명시 예외가 Base weekly rule보다 우선한다. 기존 `holidays` 입력은 하위 호환을 위해 모두 `NON_WORKING` exception으로 정규화한다. 동일 Calendar input에서 같은 날짜가 중복되거나 서로 충돌하면 암묵적으로 선택하지 않고 오류로 거부한다. 국가 데이터 생성·출처 선택은 Scheduling Domain 밖의 서버 Calendar 계층이 담당하며 Engine은 정규화된 exception만 입력받는다. 성공한 Calendar는 날짜순 고유 목록을 복사·동결한다. 전체 범위가 비근무일이어도 최대 지원 범위 안에서 종료하고 근무일을 찾지 못했다는 오류를 반환한다.
 
 ### W06 공개 Domain API
 
 `src/domain/scheduling/index.ts`는 다음 pure API와 상한을 공개한다.
 
 - `parseDateOnly`, ordinal 변환·가감·요일: strict Gregorian label과 범위 검사
-- `createWorkingCalendar`: exact `Asia/Seoul`, exact weekend `[6,0]`, Holiday 검증·정렬·불변 복사
+- `createWorkingCalendar`: exact `Asia/Seoul`, exact weekend `[6,0]`, legacy Holiday 및 `WORKING/NON_WORKING` exception 검증·정렬·불변 복사
 - `isWorkingDay`, `nextWorkingDay`, `workingDaysBetween`, `endFromStart`: 양 끝 포함 근무일 연산
 - `scheduleLeaf`: `requestedStart` 보존, Auto 비근무 시작 이동 warning, Manual 거부, Task/Milestone와 dependency 전 optional end 검증
 - `SchedulingError`: 안정적인 `code`와 제한된 `field/date/expectedDate/index` context
-- `MIN_SUPPORTED_DATE`, `MAX_SUPPORTED_DATE`, `MAX_CALENDAR_SPAN_DAYS`, `MAX_TASK_DURATION`, `MAX_CALENDAR_HOLIDAYS`: 실행 가능한 자원 경계
+- `MIN_SUPPORTED_DATE`, `MAX_SUPPORTED_DATE`, `MAX_CALENDAR_SPAN_DAYS`, `MAX_TASK_DURATION`, `MAX_CALENDAR_HOLIDAYS`, `MAX_CALENDAR_EXCEPTIONS`: 실행 가능한 자원 경계
 
 구현은 자체 Gregorian ordinal을 사용하며 `Date`, `Date.parse`, `Intl`, system timezone, 현재 시각, React, SVAR, DB, HTTP 또는 I/O를 import하지 않는다. Calendar 조회는 날짜 방문 수 `D`와 정렬 Holiday의 이진 검색 `O(log H)`를 사용하며 `D≤109573`이다.
 
@@ -217,3 +217,36 @@ SS/FF/SF와 Lag/Lead는 Constraint 모델을 먼저 정의하고 Formula·Cycle�
 Grouping은 표시 그룹과 실제 Parent Tree를 구분한다. Resource Assignment·Workload·Calendar는 단위·용량·겹침·다중 Calendar 충돌 정책이 필요하다. Rollup은 표시 집계와 Summary 계산을 구분하고, Split Task는 Segment 목록과 Duration·Dependency Endpoint의 의미를 별도 계약으로 확장한다. 이들은 초기 FS 모델의 숨은 옵션으로 구현하지 않는다.
 
 관련 범위와 공식 기능 근거는 [PRO_FEATURE_MATRIX.md](PRO_FEATURE_MATRIX.md), 저장 책임은 [ARCHITECTURE.md](ARCHITECTURE.md)와 [DB_SCHEMA.md](DB_SCHEMA.md)에 연결한다.
+
+
+## Issue #57 Calendar Resolution과 저장 경계
+
+### Project Effective Calendar
+
+```text
+월~금 근무 / 토·일 휴무
++ Project COUNTRY rules의 materialized WORKING/NON_WORKING
++ Project CUSTOM NON_WORKING
+= Project Effective Calendar
+```
+
+여러 국가 rule이 같은 날짜에 같은 day type을 만들면 계산에서는 한 번만 적용하고 source는 API Preview에 모두 보존한다. 서로 반대 day type이면 `CALENDAR_EXCEPTION_CONFLICT`로 저장 전에 거부한다. 국가 fixture는 현재 2026년 KR/CN/VN/PH/TH/MX/US만 검증 범위이며 범위 밖 연도는 추정하지 않는다.
+
+### Resource Effective Calendar
+
+```text
+Project Effective Calendar
++ Resource가 속한 모든 Resource Group CUSTOM NON_WORKING
++ Resource 개인 CUSTOM NON_WORKING
+= Resource Effective Calendar
+```
+
+Group/Resource 휴무는 #56 M/D, M/M 분자와 일별 allocation/과투입 판정에 사용하지만 Project Task의 start/end를 이동시키는 Resource Leveling 입력으로 사용하지 않는다. Project의 명시적 WORKING 날짜도 해당 Resource에 Group/개인 NON_WORKING이 있으면 그 Resource workload 계산에서는 휴무가 된다.
+
+### Calendar Preview / Commit
+
+Calendar 후보를 변경할 때 Server가 최신 Project snapshot과 candidate calendar로 Leaf를 다시 계산한다. Auto task는 `requestedStart`와 duration을 보존하고 새 근무일 규칙으로 effective start/end를 계산한다. Manual task가 새 Calendar에서 동일 확정 interval을 유지할 수 없으면 `MANUAL_TASK_CALENDAR_CONFLICT`로 전체 저장을 거부한다. Summary는 변경된 leaf 결과에서 재집계한다.
+
+현재 persisted dependency link가 하나라도 있는 Project의 Calendar 일괄 변경은 link를 무시하거나 부분 계산하지 않고 `CALENDAR_RECALC_UNSUPPORTED`로 거부한다. 향후 Dependency Scheduling이 Calendar mutation 경로까지 통합되면 이 제한을 제거한다.
+
+Preview는 DB를 변경하지 않으며 edit session, Origin, If-Match를 검증한다. Commit은 Calendar rule/date 교체, Auto/Summary 일정 저장, revision +1을 하나의 SQLite transaction에서 수행한다.
