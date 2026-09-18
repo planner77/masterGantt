@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
+import { ProjectWorkCalendarEditor } from "@/features/projects/project-work-calendar-editor";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
@@ -429,6 +430,10 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
       </div>
     </WorkspaceDialog> : null}
     {settingsOpen && editing ? <WorkspaceDialog title="프로젝트 설정" onClose={() => { if (!busy) { setSettingsOpen(false); setNewPassword(""); } }} busy={busy}>
+      <ProjectWorkCalendarEditor publicId={publicId} revision={project.revision} disabled={busy}
+        onSaved={reloadCanonicalSnapshot}
+        onUnauthorized={() => { setPermission("readonly"); setSettingsOpen(false); notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "작업 캘린더 저장"); }}
+        onConflict={(body) => conflict("작업 캘린더 저장", body)} notify={notify} />
       <form className="project-form compact-form" noValidate onSubmit={saveMetadata}>
         <div className="form-field"><label htmlFor="metadata-name">프로젝트 이름</label><input disabled={busy} id="metadata-name" onChange={(event) => setMetadataName(event.target.value)} value={metadataName} /></div>
         <div className="form-field"><label htmlFor="metadata-description">설명</label><textarea disabled={busy} id="metadata-description" onChange={(event) => setMetadataDescription(event.target.value)} rows={3} value={metadataDescription} /></div>
