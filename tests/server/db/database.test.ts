@@ -245,6 +245,43 @@ describe("SQLite connection and schema", () => {
 });
 
 describe("migration safety", () => {
+  it("migrates existing project_holidays one-for-one into editable work calendar rules", () => {
+    const directory=copiedMigrations();
+    const migration6=join(directory,"0006_work_calendars.sql");
+    const migration6Contents=readFileSync(migration6);
+    unlinkSync(migration6);
+    const database=new Database(":memory:");
+
+    try {
+      runMigrations(database,directory);
+      const projectId=insertProject(database,"Legacy holidays");
+      const now="2026-09-11T01:00:00.000Z";
+      database.prepare(
+        "INSERT INTO project_holidays (project_id, holiday_date, name, created_at) VALUES (?, ?, ?, ?)",
+      ).run(projectId,"2026-10-06","Legacy day",now);
+
+      writeFileSync(migration6,migration6Contents);
+      expect(runMigrations(database,directory).applied).toEqual(["0006_work_calendars.sql"]);
+
+      expect(database.prepare(
+        "SELECT holiday_date, name FROM project_holidays WHERE project_id = ?",
+      ).all(projectId)).toEqual([{holiday_date:"2026-10-06",name:"Legacy day"}]);
+      expect(database.prepare(
+        `SELECT kind,target_type,scope,effective_from,effective_to,name
+         FROM work_calendar_rules WHERE project_id = ?`,
+      ).get(projectId)).toEqual({
+        kind:"CUSTOM",target_type:"PROJECT",scope:"DATE_RANGE",
+        effective_from:"2026-10-06",effective_to:"2026-10-06",name:"Legacy day",
+      });
+      expect(database.prepare(
+        `SELECT date,day_type,name FROM work_calendar_dates
+         WHERE calendar_rule_id=(SELECT id FROM work_calendar_rules WHERE project_id = ?)`,
+      ).get(projectId)).toEqual({date:"2026-10-06",day_type:"NON_WORKING",name:"Legacy day"});
+    } finally {
+      database.close();
+    }
+  });
+
   it("rolls back the ledger and every pending migration when one fails", () => {
     const directory = temporaryDirectory();
     writeFileSync(join(directory, "0001_first.sql"), "CREATE TABLE first_table (id INTEGER);\n");
