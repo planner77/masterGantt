@@ -55,9 +55,9 @@ SVAR React Gantt는 표시 계층으로만 유지한다. 이번 변경은 렌더
 
 기존 API 필드를 제거하지 않고 Calendar mutation이 지원하는 일정 구조를 확장하는 하위 호환 기능 추가이므로 Semantic Versioning 기준 **0.16.1 → 0.17.0 MINOR**로 올린다.
 
-## 6. 검증 계획
+## 6. 검증 결과
 
-- Domain unit: FS 분기/합류, milestone, Manual conflict, cycle/invalid structure, immutable/idempotent
-- Service integration: Calendar → predecessor → successor → Summary 결과 및 변경 원인
-- Transaction integration: Manual dependency conflict rollback, revision 불변
-- PR CI: typecheck/lint/Vitest/build/Chromium/Docker 전체 gate
+- Domain unit: FS 분기/합류, milestone, Manual conflict, cycle/invalid structure, immutable/idempotent 검증 PASS
+- Service integration: Calendar → predecessor → successor → Summary 결과 및 변경 원인 검증 PASS
+- Transaction integration: Manual dependency conflict 시 Calendar/Task/Summary/revision 전체 rollback, 성공 시 revision 정확히 +1 검증 PASS
+- PR CI: version check, typecheck, lint, 전체 Vitest, production build, Chromium E2E, Docker build/runtime smoke gate PASS
