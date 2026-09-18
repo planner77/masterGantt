@@ -1,5 +1,7 @@
 import type Database from "better-sqlite3";
 
+import { resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
+
 import type {
   ProjectDto,
   ProjectLinkDto,
@@ -94,20 +96,6 @@ function linkDtos(links: readonly LinkRecord[], tasks: readonly TaskRecord[]): P
   });
 }
 
-function workingCalendar(
-  project: Pick<ProjectRecord, "calendarTimezone">,
-  holidays: readonly { holidayDate: string; name: string | null }[],
-) {
-  try {
-    return createWorkingCalendar({
-      timezone: project.calendarTimezone as "Asia/Seoul",
-      weekendDays: [6, 0],
-      holidays: holidays.map((holiday) => ({ date: holiday.holidayDate, name: holiday.name })),
-    });
-  } catch {
-    throw new PersistedScheduleInvalidError();
-  }
-}
 
 function postOrderSubtree(root: TaskRecord, tasks: readonly TaskRecord[]): TaskRecord[] {
   const childrenByParent = new Map<number, TaskRecord[]>();
@@ -173,7 +161,7 @@ export class TaskSubtreeDeleteService {
       const links = this.schedules.listLinks(project.id);
       const holidays = this.schedules.listHolidays(project.id);
       if (links.length > 0) throw new UnsupportedScheduleStructureError();
-      const calendar = workingCalendar(project, holidays);
+      const calendar = resolveProjectWorkingCalendar(this.database, project.id);
       recalculatePersistedHierarchy(tasks, calendar);
       const current = tasks.find((task) => task.publicId === taskPublicId);
       if (!current) throw new TaskNotFoundError();
