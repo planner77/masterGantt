@@ -253,10 +253,20 @@ Issue #57 PR은 기존 gate를 완화하거나 skip해서 통과시키지 않는
 - **Domain**: 평일/주말, `NON_WORKING` 평일 override, `WORKING` 주말 override, legacy holiday 호환, 중복·충돌 거부, leap/date 범위, timezone purity.
 - **Country fixture**: KR/CN/VN/PH/TH/MX/US의 2026 metadata와 대표 휴일, CN/VN 보충 근무일, 지원 외 연도 `COUNTRY_CALENDAR_UNAVAILABLE`.
 - **Migration 0006**: 기존 `project_holidays` row를 Custom Project rule/date로 보존, 기존 Project에 국가 rule 자동 추가 금지, 호환 VIEW/INSERT trigger, 재실행 ledger 안정성.
-- **Service/API**: countries/read/preview/replace, edit session/Origin/If-Match, stale revision, Calendar exception 충돌, Manual conflict rollback, dependency link 안전 거부, revision 정확히 +1.
+- **Service/API**: countries/read/preview/replace, edit session/Origin/If-Match, stale revision, Calendar exception 충돌, Calendar→FS/lag=0→Summary 재계산, Manual Calendar/Dependency conflict rollback, dependency cycle/지원 외 구조 오류, revision 정확히 +1.
 - **Resource workload**: Project+Group+Resource Effective Calendar를 이용한 M/D, M/M 분자, 일별 allocation/과투입 판정. Group/Resource 휴무가 Project Task start/end를 이동시키지 않는지 검증.
 - **Project copy**: source의 materialized Calendar rule/date가 새 Project로 독립 복사되고 source revision/Calendar는 변경되지 않는다.
 - **UI/Chromium**: 설정 modal의 Calendar rule/custom date 편집, Preview/저장, canonical snapshot 재조회, 신규 KR 기본 Calendar의 실제 휴일 이동, 기존 알림/geometry/Gantt instance 회귀.
 - **Docker**: migration 0006 적용 후 readiness, SQLite restart persistence, production HTTP/HTTPS 인증·Cookie·영속성, relocated Compose persistence.
 
 PR #66 최종 검증 기준은 CI Run #350이며 quality, Chromium E2E 50/50, Docker smoke가 모두 PASS했다. Merge 후 main은 같은 gate를 다시 실행한 뒤 임시 `ci-<SHA>` GHCR image를 exact digest로 검증하고 삭제한다. SemVer release image는 annotated `v0.16.0` tag를 release authority로 사용한다.
+
+
+## Issue #68 Calendar + Dependency 재계산 회귀
+
+- **Domain**: FS/lag=0 단일/복수 선행, milestone endpoint, 요청일이 bound보다 늦은 경우 유지, Manual lower-bound conflict, cycle/missing/summary/unsupported relation 거부, 입력 불변과 멱등성.
+- **Service**: 후보 Calendar로 선행 Auto가 이동하면 후행 Auto가 다음 근무일 FS bound로 이동하고 Summary가 최종 Leaf에서 재집계되는지 검증한다. Preview는 DB/revision을 변경하지 않는다.
+- **원인 추적**: 현재 Calendar base와 후보 Calendar base를 비교해 `CALENDAR`를 판정하고 FS forward-pass가 추가로 이동한 작업만 `DEPENDENCY`로 표시한다. Summary는 `SUMMARY`로 표시한다.
+- **원자성**: Manual dependency conflict에서 Calendar rule/date, Task/Summary, revision이 모두 원상태인지 검증한다.
+- **HTTP/보안**: 기존 edit session, exact Origin, 강한 If-Match, stale 412 계약을 유지하고 cycle/지원 외 graph는 409 structured error를 반환한다.
+- **PR gate**: version/typecheck/lint/test-discovery/Vitest/build, 전체 Chromium E2E, Docker migration/readiness/restart persistence를 기존 gate 완화 없이 실행한다.
