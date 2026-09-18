@@ -439,6 +439,10 @@ describe("route security inventory", () => {
       "GET /api/projects/{publicId}/assignment-targets",
       "GET /api/projects/{publicId}/assigned-targets",
       "GET /api/projects/{publicId}/resource-workload",
+      "GET /api/work-calendars/countries",
+      "GET /api/projects/{publicId}/work-calendar",
+      "POST /api/projects/{publicId}/work-calendar/preview",
+      "PUT /api/projects/{publicId}/work-calendar",
       "PUT /api/projects/{publicId}/tasks/{taskId}/assignments",
     ]);
     for (const route of ROUTE_SECURITY_INVENTORY.filter(({ mutatesState }) => mutatesState)) {
