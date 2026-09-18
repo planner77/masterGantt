@@ -53,6 +53,8 @@ Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계�
 | R40 | 목록 각 행과 상세 헤더에서 Readonly도 프로젝트 링크를 복사할 수 있다 (#21). | 검증한 APP_BASE_URL과 publicId 기반 절대 URL. 이름 변경 후 유지, query/hash/secret 제외, 같은 세션 권한 유지/새 세션 Readonly, mutation 없음 |
 | R41 | Clipboard 성공 확인 후에만 성공 안내를 한다. 거부·미지원이면 선택 가능한 읽기 전용 내용과 수동 복사/재시도를 제공한다 (#18/#21). | 클릭 기반 쓰기만 수행하며 앱은 clipboard 읽기 권한을 요청하지 않음. 오류·fallback·키보드·좁은 화면 검증. [UX 계약](PROJECT_UX.md) |
 | R42 | Grid와 Chart의 실제 작업 우클릭 메뉴에 `작업 삭제`를 제공한다 (#31). 하위 작업이 있으면 선택 작업+모든 깊이의 자손 수와 총 삭제 수를 보여주고 명시적 확인 후에만 원자적으로 삭제한다. | 취소 전 DELETE 0회, server persisted hierarchy 재계산, edit session/Origin/If-Match 유지, `includeDescendants=true`, revision 1회 증가, 외부 Summary empty/Link 일정은 기존 정책대로 거부. [Issue #31](ISSUE_31_REVIEW.md) |
+| R43 | Project 작업 캘린더는 KR/CN/VN/PH/TH/MX/US 국가 규칙을 전체 또는 기간별로 적용하고 Project/Resource Group/Resource Custom 휴무를 관리한다 (#57). 신규 Project 기본은 KR/FULL_PROJECT, 기존 Project migration은 국가 규칙을 자동 추가하지 않는다. | [Issue #57](ISSUE_57_WORK_CALENDAR.md), [API](API.md), [DB](DB_SCHEMA.md) |
+| R44 | Calendar 계산은 `Base weekly rule + WORKING/NON_WORKING date exception`을 사용한다. Project Task 일정에는 Project target만, #56 Resource workload에는 Project+Group+Resource NON_WORKING 합집합을 적용한다. Preview/저장은 edit session+Origin+If-Match를 요구하며 Manual conflict/날짜 충돌은 전체 원자 거부한다. | [Scheduling](SCHEDULING_ENGINE.md), [Test Plan](TEST_PLAN.md) |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 
@@ -66,7 +68,7 @@ W24의 하위 추가는 일반 Task→Summary 전환에 `convertParentToSummary:
 | --- | --- | --- |
 | A01 | Next.js App Router + React + TypeScript, 단일 Node backend | AGENTS 권장 stack; exact versions는 설치 직전 검증 |
 | A02 | Public ID는 lowercase UUID v4 | 예시 URL의 특정 ULID 길이는 강제 계약 아님 |
-| A03 | 초기 Project Calendar는 Asia/Seoul, exact weekend `[6,0]`, 사용자 관리 holiday set | W06 구현·검증; 법정 공휴일 자동 추정 안 함 |
+| A03 | Project Calendar의 timezone/base week는 Asia/Seoul, exact weekend `[6,0]`을 유지하고 날짜 예외로 일반화 | W06 기반 + Issue #57 구현. 국가 데이터는 검증된 repository fixture만 사용하며 런타임 추정/API 호출 금지 |
 | A04 | 날짜는 Gregorian YYYY-MM-DD `1900-01-01..2199-12-31`, end 포함, 일반 Task duration `1..10000` 근무일 | W06 구현·검증; 시각 일정 후속 |
 | A05 | `start` 입력과 effective start 분리; Auto 이동은 preview, Manual 충돌은 전체 거부 | 요청값 보존과 일정 재계산의 결정성 |
 | A06 | 초기 dependency는 leaf task/milestone의 FS/0만; milestone도 다음 근무일 FS | 다른 type/lag를 버리지 않고 미지원 오류 |
