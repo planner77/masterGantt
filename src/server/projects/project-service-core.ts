@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import type Database from "better-sqlite3";
 
-import { resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
+import { projectCalendarDto, resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
 import { seedDefaultProjectCalendar } from "../calendars/default-calendar-core";
 
 import type {
@@ -203,7 +203,7 @@ function projectDto(
     revision: number;
     calendarTimezone: string;
   },
-  holidays: { holidayDate: string; name: string | null }[] = [],
+  calendar: ProjectDto["calendar"],
 ): ProjectDto {
   if (project.calendarTimezone !== "Asia/Seoul") {
     throw new Error("Unsupported persisted project timezone.");
@@ -214,14 +214,7 @@ function projectDto(
     name: project.name,
     description: project.description,
     revision: project.revision,
-    calendar: {
-      timezone: "Asia/Seoul",
-      weekendDays: [6, 0],
-      holidays: holidays.map((holiday) => ({
-        date: holiday.holidayDate,
-        name: holiday.name,
-      })),
-    },
+    calendar,
   };
 }
 
@@ -564,7 +557,6 @@ export class ProjectService {
     project: ProjectRecord,
     tasks: TaskRecord[],
     links: LinkRecord[],
-    holidays: { holidayDate: string; name: string | null }[],
     warnings: ScheduleWarningDto[],
     operation: {
       kind: TaskMutationKind;
@@ -575,7 +567,7 @@ export class ProjectService {
   ): TaskMutationResponse {
     return {
       data: {
-        project: projectDto(project, holidays),
+        project: projectDto(project, projectCalendarDto(this.database, project.id)),
         tasks: taskDtos(tasks),
         links: linkDtos(links, tasks),
         warnings,
@@ -669,7 +661,7 @@ export class ProjectService {
         return {
           response: {
             data: {
-              project: projectDto(project, this.schedules.listHolidays(project.id)),
+              project: projectDto(project, projectCalendarDto(this.database, project.id)),
               permission: "edit",
             },
           },
@@ -713,7 +705,7 @@ export class ProjectService {
 
       return {
         data: {
-          project: projectDto(project, holidays),
+          project: projectDto(project, projectCalendarDto(this.database, project.id)),
           tasks: taskDtos(tasks),
           links: linkDtos(links, tasks),
           permission: "readonly" as const,
@@ -953,7 +945,6 @@ export class ProjectService {
         updatedProject,
         latestTasks,
         latestLinks,
-        holidays,
         warningDtos(scheduled.warnings),
         {
           kind: "taskCreate",
@@ -1018,7 +1009,6 @@ export class ProjectService {
           updatedProject,
           this.schedules.listTasks(project.id),
           this.schedules.listLinks(project.id),
-          holidays,
           [],
           {
             kind: "taskUpdate",
@@ -1069,7 +1059,6 @@ export class ProjectService {
         updatedProject,
         latestTasks,
         latestLinks,
-        holidays,
         warningDtos(scheduled.warnings),
         {
           kind: "taskUpdate",
@@ -1138,7 +1127,6 @@ export class ProjectService {
         updatedProject,
         latestTasks,
         latestLinks,
-        holidays,
         [],
         {
           kind: "taskDelete",
@@ -1185,7 +1173,7 @@ export class ProjectService {
       if (input.description !== undefined) changedFields.push("description");
       return {
         data: {
-          project: projectDto(updated, holidays),
+          project: projectDto(updated, projectCalendarDto(this.database, project.id)),
           tasks: taskDtos(tasks),
           links: linkDtos(links, tasks),
           warnings: [] as [],
