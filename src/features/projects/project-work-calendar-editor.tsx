@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import type {
+  CalendarTaskChangeReason,
   CountryCalendarDescriptorDto,
   PreviewProjectWorkCalendarResponse,
   ProjectWorkCalendarResponse,
@@ -39,6 +40,7 @@ interface CustomDraft {
   targetId:string;
 }
 const key=()=>crypto.randomUUID();
+const reasonLabel=(reason:CalendarTaskChangeReason)=>reason==="CALENDAR"?"캘린더":reason==="DEPENDENCY"?"FS 선행 관계":"상위 요약";
 
 function requestFrom(countryRules:CountryDraft[],customDates:CustomDraft[]):ReplaceProjectWorkCalendarRequest {
   return {
@@ -215,7 +217,14 @@ export function ProjectWorkCalendarEditor({
     </div>
     {preview?<div aria-live="polite">
       <p>일정 변경 작업: {preview.data.changedTasks.length}개 / 수동 작업 충돌: {preview.data.manualConflicts.length}개</p>
-      {preview.data.manualConflicts.length>0?<ul>{preview.data.manualConflicts.slice(0,10).map((item)=><li key={item.taskId}>{item.name}: {item.date}</li>)}</ul>:null}
+      {preview.data.changedTasks.length>0?<ul>{preview.data.changedTasks.slice(0,10).map((item)=><li key={item.taskId}>
+        {item.name}: {item.beforeStart}~{item.beforeEnd} → {item.afterStart}~{item.afterEnd} · {item.reasons.map(reasonLabel).join(", ")}
+        {item.dependencyPredecessorExternalIds.length>0?` (선행: ${item.dependencyPredecessorExternalIds.join(", ")})`:""}
+      </li>)}</ul>:null}
+      {preview.data.manualConflicts.length>0?<ul>{preview.data.manualConflicts.slice(0,10).map((item)=><li key={item.taskId}>
+        {item.name}: {item.date} · {item.reason==="DEPENDENCY"?"FS 선행 관계 충돌":"캘린더 충돌"}
+        {item.predecessorExternalIds.length>0?` (선행: ${item.predecessorExternalIds.join(", ")})`:""}
+      </li>)}</ul>:null}
       <details><summary>적용 날짜 미리보기 ({preview.data.calendar.projectDates.length}개)</summary>
         <ul>{preview.data.calendar.projectDates.slice(0,40).map((item)=><li key={item.date}>{item.date} · {item.dayType} · {item.sources.map((source)=>source.ruleName).join(", ")}</li>)}</ul>
       </details>
