@@ -701,7 +701,6 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const holidays = this.schedules.listHolidays(project.id);
 
       return {
         data: {
@@ -831,7 +830,6 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const holidays = this.schedules.listHolidays(project.id);
       assertHierarchyMutationCapability(links);
       if (tasks.length >= MAX_PROJECT_TASKS) {
         throw new TaskLimitExceededError();
@@ -981,7 +979,6 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const holidays = this.schedules.listHolidays(project.id);
       assertHierarchyMutationCapability(links);
       const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar);
@@ -1093,7 +1090,6 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const holidays = this.schedules.listHolidays(project.id);
       assertHierarchyMutationCapability(links);
       const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar);
@@ -1167,7 +1163,6 @@ export class ProjectService {
       );
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const holidays = this.schedules.listHolidays(project.id);
       const changedFields: ("name" | "description")[] = [];
       if (input.name !== undefined) changedFields.push("name");
       if (input.description !== undefined) changedFields.push("description");
