@@ -3,7 +3,6 @@ import type Database from "better-sqlite3";
 import { projectCalendarDto, resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
 
 import type {
-  ProjectDto,
   ProjectLinkDto,
   ProjectTaskDto,
   TaskMutationResponse,
@@ -12,7 +11,6 @@ import { recalculateHierarchy, type WorkingCalendar } from "../../domain/schedul
 import {
   EditSessionRepository,
   ProjectRepository,
-  type ProjectRecord,
 } from "../repositories/project-repository-core";
 import {
   ScheduleRepository,
