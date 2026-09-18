@@ -31,7 +31,7 @@ export type SchedulingErrorCode =
   | "INVALID_PARENT_TYPE"
   | "PARENT_CYCLE"
   | "EMPTY_SUMMARY"
-  | "INVALID_PROGRESS";
+  | "INVALID_PROGRESS"\n  | "INVALID_DEPENDENCY_INPUT"\n  | "MISSING_DEPENDENCY"\n  | "SUMMARY_DEPENDENCY_ENDPOINT"\n  | "SELF_DEPENDENCY"\n  | "DUPLICATE_DEPENDENCY"\n  | "UNSUPPORTED_DEPENDENCY"\n  | "DEPENDENCY_CYCLE";
 
 /** Safe structured context; never includes an entire caller payload. */
 export interface SchedulingErrorContext {
