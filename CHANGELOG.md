@@ -4,6 +4,21 @@
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-09-19
+
+### Added
+
+- Issue #68: 작업 캘린더 Preview/저장 경로에 기존 `FS/lag=0` Dependency를 포함하는 서버 권위 forward-pass 재계산을 추가한다.
+- `changedTasks`에 `CALENDAR` / `DEPENDENCY` / `SUMMARY` 원인과 실제 lower bound를 만든 선행 작업 External ID를 포함한다.
+- Calendar 변경 후 Manual 후행 작업이 FS lower bound를 위반하면 `MANUAL_DEPENDENCY_CONFLICT`로 전체 저장을 거부한다.
+
+### Changed
+
+- Dependency Link 존재만으로 반환하던 `CALENDAR_RECALC_UNSUPPORTED` 제한을 제거하고, cycle은 `DEPENDENCY_CYCLE`, 지원 외 구조는 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 구분한다.
+- Calendar rule/date, Auto Task, Summary 파생값과 Project revision은 하나의 SQLite transaction에서 저장하며 revision은 정확히 1 증가한다.
+- 하위 호환 일정 기능 확장이므로 Semantic Versioning 정책에 따라 `0.16.1`에서 `0.17.0`으로 증가한다.
+
+
 ## [0.16.1] - 2026-09-18
 
 ### Fixed

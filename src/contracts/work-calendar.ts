@@ -72,6 +72,8 @@ export interface ReplaceProjectWorkCalendarRequest {
   }>;
 }
 
+export type CalendarTaskChangeReason = "CALENDAR" | "DEPENDENCY" | "SUMMARY";
+
 export interface CalendarTaskChangeDto {
   taskId: string;
   externalId: string;
@@ -80,6 +82,17 @@ export interface CalendarTaskChangeDto {
   beforeEnd: string;
   afterStart: string;
   afterEnd: string;
+  reasons: CalendarTaskChangeReason[];
+  dependencyPredecessorExternalIds: string[];
+}
+
+export interface CalendarManualConflictDto {
+  taskId: string;
+  externalId: string;
+  name: string;
+  date: string;
+  reason: "CALENDAR" | "DEPENDENCY";
+  predecessorExternalIds: string[];
 }
 
 export interface PreviewProjectWorkCalendarResponse {
@@ -87,7 +100,7 @@ export interface PreviewProjectWorkCalendarResponse {
     projectRevision: number;
     calendar: ProjectWorkCalendarResponse["data"];
     changedTasks: CalendarTaskChangeDto[];
-    manualConflicts: Array<{ taskId: string; externalId: string; name: string; date: string }>;
+    manualConflicts: CalendarManualConflictDto[];
   };
 }
 

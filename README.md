@@ -10,7 +10,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-18 / 0.16.1 Issue #67 Docker Compose 관리자 환경변수 전달 수정**. 0.16.0의 작업 캘린더 기능을 유지하면서 Docker Compose가 `RESOURCE_CATALOG_ADMIN_PASSWORD`를 app 컨테이너에 명시적으로 전달하고, 누락 시 config 단계에서 fail-fast하도록 보완했다. PR #69에서 Compose 실제 인증과 인증 시점 로그 비밀정보 비노출을 포함한 전체 GitHub Actions 회귀를 검증한다. 작업 캘린더 상세 설계는 [Issue #57 작업 캘린더](docs/ISSUE_57_WORK_CALENDAR.md)를 따른다.
+기준: **2026-09-19 / 0.17.0 Issue #68 작업 캘린더 Dependency 재계산**. 기존 작업 캘린더 기능에 FS/lag=0 Dependency forward-pass를 연결해 Calendar 변경 시 Auto 후행 일정과 Summary를 함께 재계산하고 Manual dependency 충돌은 원자적으로 거부한다. 작업 캘린더 기본 설계는 [Issue #57 작업 캘린더](docs/ISSUE_57_WORK_CALENDAR.md), 후속 통합 설계는 [Issue #68](docs/ISSUE_68_CALENDAR_DEPENDENCY_RECALC.md)을 따른다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -29,12 +29,13 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | W24 Grid·삭제·계층 UI | 완료 / 원격 CI PASS | 목록 표/권한 삭제, native Header·row 추가, Summary 집계, locale·주말·고정 헤더 |
 | Issue #19 글로벌 리소스·그룹 | 완료 / PR CI PASS | 독립 Resource/Group 카탈로그, 관리자 세션, 그룹 멤버, Task/Summary/Milestone 직접 할당, canonical assignment 보존 |
 | Issue #57 작업 캘린더 | 완료 / PR CI PASS | KR/CN/VN/PH/TH/MX/US 2026 국가 규칙, 기간 적용, Project/Group/개인 휴무, WORKING override, Preview/원자 저장, #56 Effective Calendar 연계 |
-| W08 이후 | 일부 W24 선행 / 예정 | WBS UI·reparent·유효 subtree 삭제 묶음, FS 재계산, Import/Export |
+| Issue #68 Calendar+FS 재계산 | 구현 완료 / PR CI PASS | 후보 Calendar → Leaf → FS/lag=0 → Summary 순서, Preview 원인 표시, Manual dependency conflict 원자 거부 |
+| W08 이후 | 일부 W24 선행 / 예정 | WBS UI·reparent·유효 subtree 삭제 묶음, 일반 Task/Link mutation FS 재계산, Import/Export |
 | W16 배포 | 일부 기반 선행 / 운영 검증 예정 | Docker/startup/readiness/named volume 기반; 실제 host·proxy·backup/restore 승인 후속 |
 
 홈(`/`)은 Project를 표 형태로 표시하며 현재 편집 권한이 있는 행에 삭제 기능을 제공한다. 삭제 확인에는 최신 프로젝트명과 모든 일정 제거를 명시하며 서버가 session/Origin/revision을 다시 검증한다. Direct snapshot은 Readonly이며 편집하려면 기존 비밀번호 잠금을 해제한다. Grid Header `+`는 최상위, 행 `+`는 하위 작업을 추가한다. 이름·날짜·기간 입력 없이 `새 작업`·브라우저 오늘·1일을 적용하며 Auto 근무일 보정은 유지한다. 첫 하위 추가 시 일반 작업을 Summary로 전환한다는 명시 동의만 필요하다. 이후 Summary 날짜와 진척은 자식에서 계산된다. Milestone에는 자식을 추가하지 않으며 빈 Summary 방지를 위해 마지막 자식 단독 삭제는 거부한다. 외부 ID는 표시를 선택할 수 있고 토·일은 Chart 음영으로 구분한다. 날짜는 사용자 locale로 표시하고 설정은 기본 접힌 상태다. Project/Grid/Chart header는 유지한 채 내부를 스크롤한다. Reparent/FS 및 Summary 직접 일정 편집은 후속이다. `/gantt-demo`는 저장 없는 CI/개발 검증용 fixture로 유지하지만 운영 상단 주요 메뉴에는 노출하지 않는다.
 
-0.16.1 PR 회귀 기준은 `verify-release-version`, typecheck, lint, test discovery, 전체 Vitest, dependency audit, Markdown/shell 검사, production build, 전체 Chromium E2E, Docker image/runtime·migration·readiness·SQLite restart persistence·HTTP/HTTPS 검증과 함께 Compose 필수 관리자 비밀번호 fail-fast·컨테이너 전달·실제 인증 성공/거부·인증 시점 로그 비밀정보 비노출·강제 재생성 persistence를 포함한다.
+0.17.0 PR 회귀 기준은 `verify-release-version`, typecheck, lint, test discovery, 전체 Vitest, dependency audit, Markdown/shell 검사, production build, 전체 Chromium E2E, Docker image/runtime·migration·readiness·SQLite restart persistence·HTTP/HTTPS 검증과 함께 Compose 필수 관리자 비밀번호 fail-fast·컨테이너 전달·실제 인증 성공/거부·인증 시점 로그 비밀정보 비노출·강제 재생성 persistence를 포함한다.
 
 ## 2. 기술 스택과 역할
 
@@ -42,7 +43,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 
 | 기술 | 현재 버전 / 상태 | 역할 |
 | --- | --- | --- |
-| masterGantt | 0.16.1 | Issue #67 Docker Compose 리소스 관리자 환경변수 전달 결함 수정 버전 |
+| masterGantt | 0.17.0 | Issue #68 작업 캘린더 변경 시 FS/lag=0 Dependency 재계산 기능 버전 |
 | Node.js | 최소 22, 검증 22.14.0 | 서버와 CLI 실행 |
 | Next.js | 16.3.4 | App Router, 서버 Route Handler, 빌드 |
 | React / React DOM | 19.3.0 | 화면 컴포넌트 |

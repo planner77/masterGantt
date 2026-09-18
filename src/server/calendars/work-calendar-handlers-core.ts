@@ -13,12 +13,12 @@ import {
 import {
   WorkCalendarConflictError,
   WorkCalendarCountryUnavailableError,
+  WorkCalendarDependencyStructureError,
   WorkCalendarEditSessionInvalidError,
   WorkCalendarInvalidInputError,
   WorkCalendarManualConflictError,
   WorkCalendarProjectNotFoundError,
   WorkCalendarRevisionMismatchError,
-  WorkCalendarScheduleStructureUnsupportedError,
   type WorkCalendarService,
 } from "./work-calendar-service-core";
 
@@ -74,14 +74,26 @@ function mapped(error:unknown):unknown {
     409,"CALENDAR_EXCEPTION_CONFLICT","WORKING and NON_WORKING exceptions conflict on the same date.",
     [{path:"date",code:"CALENDAR_EXCEPTION_CONFLICT",message:error.date}],
   );
-  if(error instanceof WorkCalendarManualConflictError) return new PublicApiError(
-    409,"MANUAL_TASK_CALENDAR_CONFLICT","Manual tasks conflict with the proposed work calendar.",
-    error.conflicts.map((conflict)=>({path:`tasks.${conflict.taskId}`,code:"MANUAL_TASK_CALENDAR_CONFLICT",message:conflict.date})),
-  );
+  if(error instanceof WorkCalendarManualConflictError) {
+    const dependencyConflict=error.conflicts.some((conflict)=>conflict.reason==="DEPENDENCY");
+    const code=dependencyConflict?"MANUAL_DEPENDENCY_CONFLICT":"MANUAL_TASK_CALENDAR_CONFLICT";
+    return new PublicApiError(
+      409,code,dependencyConflict
+        ?"Manual tasks conflict with FS dependency constraints under the proposed work calendar."
+        :"Manual tasks conflict with the proposed work calendar.",
+      error.conflicts.map((conflict)=>({
+        path:`tasks.${conflict.taskId}`,
+        code:conflict.reason==="DEPENDENCY"?"MANUAL_DEPENDENCY_CONFLICT":"MANUAL_TASK_CALENDAR_CONFLICT",
+        message:conflict.date,
+      })),
+    );
+  }
   if(error instanceof WorkCalendarRevisionMismatchError) return new PublicApiError(412,"REVISION_MISMATCH","Project changed. Reload and retry.");
   if(error instanceof WorkCalendarEditSessionInvalidError) return new PublicApiError(401,"EDIT_SESSION_REQUIRED","A valid edit session is required.");
-  if(error instanceof WorkCalendarScheduleStructureUnsupportedError) return new PublicApiError(
-    409,"CALENDAR_RECALC_UNSUPPORTED","Calendar recalculation is not supported while dependency links exist.",
+  if(error instanceof WorkCalendarDependencyStructureError) return new PublicApiError(
+    409,error.code,error.code==="DEPENDENCY_CYCLE"
+      ?"The persisted dependency graph contains a cycle."
+      :"The persisted dependency graph contains an unsupported structure.",
   );
   return error;
 }

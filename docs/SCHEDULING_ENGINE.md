@@ -1,6 +1,6 @@
 # Scheduling Engine 설계
 
-상태: W06 Working Calendar/Duration과 W07 root Leaf/Milestone 저장 연결을 기반으로, Issue #57에서 Working Calendar를 `Base weekly rule + WORKING/NON_WORKING date exception`으로 일반화하고 Project Calendar Preview/저장 및 Resource Effective Calendar를 연결했다. Gregorian date-only, 근무일 연산과 Leaf/Summary 계산은 `src/domain/scheduling/`의 pure API를 유지한다. W24의 Summary/WBS 계층 계산도 유지하며, dependency link가 있는 Project의 Calendar 일괄 재계산은 전체 Dependency Scheduling 완성 전까지 안전하게 거부한다. 근거는 [W06_REVIEW.md](W06_REVIEW.md), [W07_REVIEW.md](W07_REVIEW.md), 외부 입력 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)이다.
+상태: W06 Working Calendar/Duration과 W07 root Leaf/Milestone 저장 연결을 기반으로, Issue #57에서 Working Calendar를 `Base weekly rule + WORKING/NON_WORKING date exception`으로 일반화하고 Project Calendar Preview/저장 및 Resource Effective Calendar를 연결했다. Gregorian date-only, 근무일 연산과 Leaf/Summary 계산은 `src/domain/scheduling/`의 pure API를 유지한다. W24의 Summary/WBS 계층 계산을 유지하며 Issue #68에서 Calendar mutation 경로에 `FS/lag=0` Dependency forward-pass를 연결했다. 근거는 [W06_REVIEW.md](W06_REVIEW.md), [W07_REVIEW.md](W07_REVIEW.md), 외부 입력 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)이다.
 
 ## 1. 범위와 결정 구분
 
@@ -81,6 +81,7 @@ Local 자정 Timestamp 차이를 `86,400,000`으로 나누어 일수를 계산�
 - `createWorkingCalendar`: exact `Asia/Seoul`, exact weekend `[6,0]`, legacy Holiday 및 `WORKING/NON_WORKING` exception 검증·정렬·불변 복사
 - `isWorkingDay`, `nextWorkingDay`, `workingDaysBetween`, `endFromStart`: 양 끝 포함 근무일 연산
 - `scheduleLeaf`: `requestedStart` 보존, Auto 비근무 시작 이동 warning, Manual 거부, Task/Milestone와 dependency 전 optional end 검증
+- `recalculateFinishStartDependencies`: calendar-normalized Leaf와 FS/lag=0 graph를 검증하고 Kahn forward-pass로 Auto 일정 이동 및 Manual lower-bound conflict를 계산
 - `SchedulingError`: 안정적인 `code`와 제한된 `field/date/expectedDate/index` context
 - `MIN_SUPPORTED_DATE`, `MAX_SUPPORTED_DATE`, `MAX_CALENDAR_SPAN_DAYS`, `MAX_TASK_DURATION`, `MAX_CALENDAR_HOLIDAYS`, `MAX_CALENDAR_EXCEPTIONS`: 실행 가능한 자원 경계
 
@@ -247,6 +248,6 @@ Group/Resource 휴무는 #56 M/D, M/M 분자와 일별 allocation/과투입 판�
 
 Calendar 후보를 변경할 때 Server가 최신 Project snapshot과 candidate calendar로 Leaf를 다시 계산한다. Auto task는 `requestedStart`와 duration을 보존하고 새 근무일 규칙으로 effective start/end를 계산한다. Manual task가 새 Calendar에서 동일 확정 interval을 유지할 수 없으면 `MANUAL_TASK_CALENDAR_CONFLICT`로 전체 저장을 거부한다. Summary는 변경된 leaf 결과에서 재집계한다.
 
-현재 persisted dependency link가 하나라도 있는 Project의 Calendar 일괄 변경은 link를 무시하거나 부분 계산하지 않고 `CALENDAR_RECALC_UNSUPPORTED`로 거부한다. 향후 Dependency Scheduling이 Calendar mutation 경로까지 통합되면 이 제한을 제거한다.
+Issue #68부터 persisted `FS/lag=0` Dependency가 있는 Project도 Calendar 일괄 변경을 지원한다. 계산 순서는 **현재/후보 Calendar base 비교 → 후보 Calendar Leaf 계산 → FS DAG forward-pass → Summary 재집계**다. 따라서 기존 dependency로 이미 늦춰진 후행 Task를 Calendar 이동으로 오진하지 않는다. Auto 후행의 FS 이동은 `DEPENDENCY` 원인과 실제 lower bound를 만든 선행 External ID를 Preview에 남긴다. Manual Task가 후보 Calendar 자체를 만족하지 못하면 `MANUAL_TASK_CALENDAR_CONFLICT`, Calendar 적용 후 FS lower bound를 위반하면 `MANUAL_DEPENDENCY_CONFLICT`로 저장 전체를 거부한다. Cycle은 `DEPENDENCY_CYCLE`, 지원 범위 밖 endpoint/관계는 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 실패한다.
 
 Preview는 DB를 변경하지 않으며 edit session, Origin, If-Match를 검증한다. Commit은 Calendar rule/date 교체, Auto/Summary 일정 저장, revision +1을 하나의 SQLite transaction에서 수행한다.
