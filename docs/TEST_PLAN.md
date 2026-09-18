@@ -184,6 +184,7 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | DEP05 | consistent backup→off-host artifact→isolated restore→integrity/FK/read/write/export/restart; 같은 volume 사본은 불충분 |
 | DEP06 | context/image/history/log에 .env/PAT/DB/backup 없음; production path/URL/Secure 오류 시작 거부 |
 | DEP07 | graceful/forced stop WAL durability, busy timeout, isolated upgrade/rollback |
+| DEP08 | Compose `RESOURCE_CATALOG_ADMIN_PASSWORD` 누락 config fail-fast, app 환경 전달, 실제 관리자 인증 201/401, 인증 직후·재생성 후 로그의 정상/오류 비밀번호 원문 비노출 |
 | UI01 | Create→Readonly→unlock→CRUD→drag/resize→hierarchy batch→FS→reload |
 | UI02 | 401/403/409/412/413/429/500 복원, loading/error/keyboard focus, no-PRO runtime 사용 확인 |
 | UI03 | 빈 Project에서도 좌측 Grid와 우측 Chart가 보이고, 첫 Task/Milestone 생성 성공 직후 reload 없이 Grid row와 Chart bar/milestone이 모두 표시 |
@@ -206,7 +207,7 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | R12–R16 | VBA POC, IMP09–10, 공동 계약 검토 |
 | R17 | IMP01–10 |
 | R18–R20 | XLS01–05, Phase 분리 |
-| R21–R22 | DEP01–07 |
+| R21–R22 | DEP01–08 |
 | R23–R24 | Agent 설정·독립 QA·Manager 기록과 구현별 build/typecheck/tests |
 | R25 | UI01–02, Project List 공개 정책 D02 |
 | R29 | UI03–10, SVAR 공식 Grid/Chart·Resizer API와 Browser geometry |
@@ -221,7 +222,7 @@ Unauthorized/cross-project write, secret 유출, stale overwrite, cycle 누락, 
 
 ## Repository layout relocation (#12)
 
-현재 배포 경로와 기존 Compose 프로젝트/volume을 유지하는 전환 절차는 [REPOSITORY_STRUCTURE](REPOSITORY_STRUCTURE.md)를 따른다. CI의 Docker build 4개 참조와 Dependabot 경로를 함께 갱신하고 Docker gate에 `scripts/verify-compose-smoke.sh`를 추가했다. 새 Compose 경로의 config, startup/readiness, restart 및 강제 recreate 후 SQLite 보존을 격리된 CI 리소스로 검사한다. 기존 quality/E2E/runtime/registry 권한·검증 gate는 유지한다. 결과는 해당 PR/run/head의 실제 증거로 판정하며 과거 Wxx 기록을 이번 이동의 PASS로 전용하지 않는다.
+현재 배포 경로와 기존 Compose 프로젝트/volume을 유지하는 전환 절차는 [REPOSITORY_STRUCTURE](REPOSITORY_STRUCTURE.md)를 따른다. Docker gate의 `scripts/verify-compose-smoke.sh`는 config/startup/readiness/restart/강제 recreate SQLite 보존에 더해 DEP08을 검사한다. 즉 `RESOURCE_CATALOG_ADMIN_PASSWORD` 누락은 config 단계에서 실패하고, 설정값은 app 컨테이너에 전달되어 실제 인증 정상 201/오류 401을 만들어야 하며, 인증 요청 직후 및 강제 재생성 후의 application log에는 정상/오류 입력 비밀번호 원문이 없어야 한다. 기존 quality/E2E/runtime/registry 권한·검증 gate는 유지한다.
 
 ## Test configuration relocation (#13)
 

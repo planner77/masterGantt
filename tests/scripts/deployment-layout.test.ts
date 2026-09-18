@@ -42,6 +42,9 @@ describe("deployment repository layout", () => {
     expect(compose).toContain("context: ..");
     expect(compose).toContain("dockerfile: deploy/docker/Dockerfile");
     expect(compose).toContain("127.0.0.1:${HOST_PORT:-3000}:3000");
+    expect(compose).toContain(
+      "RESOURCE_CATALOG_ADMIN_PASSWORD: ${RESOURCE_CATALOG_ADMIN_PASSWORD:?Set RESOURCE_CATALOG_ADMIN_PASSWORD}",
+    );
     expect(compose).toContain("name: ${MASTERGANTT_VOLUME_NAME:-mastergantt-data}");
   });
 

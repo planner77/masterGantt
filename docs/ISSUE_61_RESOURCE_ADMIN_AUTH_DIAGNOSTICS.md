@@ -18,7 +18,7 @@ Origin, 요청 형식, 애플리케이션 설정 오류의 기존 HTTP 상태와
 
 | reason_code | 의미 | 일반적인 확인 항목 |
 |---|---|---|
-| `ADMIN_PASSWORD_NOT_CONFIGURED` | `RESOURCE_CATALOG_ADMIN_PASSWORD`가 없거나 빈 값 | Compose `.env`와 컨테이너 환경변수 전달 여부 |
+| `ADMIN_PASSWORD_NOT_CONFIGURED` | `RESOURCE_CATALOG_ADMIN_PASSWORD`가 없거나 빈 값 | Compose는 #67 이후 config 단계에서 fail-fast하므로 직접 실행/비-Compose 배포의 런타임 환경변수 전달 여부 |
 | `ADMIN_PASSWORD_POLICY_INVALID` | 관리자 비밀번호가 최소 16자 정책을 만족하지 않음 | 실제 값 자체가 아니라 정책 충족 여부만 확인 |
 | `ADMIN_PASSWORD_MISMATCH` | 입력 비밀번호와 서버 설정 비밀번호가 다름 | 사용 중인 운영 `.env`/컨테이너 재생성 여부 |
 | `INVALID_REQUEST` | JSON/body/content-type/크기 등 요청 형식 문제 | 브라우저/프록시 요청 형식 |
@@ -100,7 +100,7 @@ docker compose --env-file .env -f deploy/compose.yml logs app | grep '<requestId
 
 ## 운영 해석 예
 
-- `ADMIN_PASSWORD_NOT_CONFIGURED`: `.env`에 값이 있어도 기존 컨테이너가 재생성되지 않아 런타임 환경에 반영되지 않았는지 확인한다.
+- `ADMIN_PASSWORD_NOT_CONFIGURED`: Compose 배포는 #67 이후 비밀번호 누락 시 container 생성 전 실패한다. 직접 실행/비-Compose 환경이라면 런타임 환경변수 전달 여부를 확인하고, 값을 변경한 Compose 배포는 기존 container를 재생성했는지 확인한다.
 - `ADMIN_PASSWORD_POLICY_INVALID`: 값 자체를 출력하지 말고 최소 16자 정책을 충족하도록 운영 secret을 수정한다.
 - `ADMIN_PASSWORD_MISMATCH`: 브라우저 입력값과 현재 컨테이너가 가진 운영 설정이 다른 경우다. 운영 secret 변경 후 컨테이너 재생성 여부를 확인한다.
 - `ORIGIN_NOT_ALLOWED`: Nginx로 접속하는 실제 외부 Origin과 `APP_BASE_URL`이 정확히 같은지 확인한다.
