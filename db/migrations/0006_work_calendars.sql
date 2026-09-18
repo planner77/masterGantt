@@ -49,28 +49,27 @@ CREATE INDEX work_calendar_rules_project_idx
 CREATE INDEX work_calendar_dates_rule_date_idx
   ON work_calendar_dates(calendar_rule_id, date);
 
--- Existing project_holidays are preserved as one custom project rule per project.
+-- Existing project_holidays are preserved one-for-one so each date remains editable.
 INSERT INTO work_calendar_rules (
   public_id, project_id, kind, name, country_code, target_type,
   target_public_id, scope, effective_from, effective_to, source_version,
   created_at, updated_at
 )
 SELECT
-  'legacy-project-' || project_id,
+  'legacy-holiday-' || id,
   project_id,
   'CUSTOM',
-  '기존 프로젝트 휴일',
+  COALESCE(name, '기존 프로젝트 휴일'),
   NULL,
   'PROJECT',
   NULL,
-  'FULL_PROJECT',
-  NULL,
-  NULL,
+  'DATE_RANGE',
+  holiday_date,
+  holiday_date,
   'legacy-project-holidays-v1',
-  MIN(created_at),
-  MIN(created_at)
-FROM project_holidays
-GROUP BY project_id;
+  created_at,
+  created_at
+FROM project_holidays;
 
 INSERT INTO work_calendar_dates (
   calendar_rule_id, date, day_type, name, source_key, source_version, created_at
@@ -85,7 +84,7 @@ SELECT
   h.created_at
 FROM project_holidays h
 JOIN work_calendar_rules r
-  ON r.public_id = 'legacy-project-' || h.project_id;
+  ON r.public_id = 'legacy-holiday-' || h.id;
 
 DROP TABLE project_holidays;
 
@@ -112,16 +111,16 @@ BEGIN
     target_public_id, scope, effective_from, effective_to, source_version,
     created_at, updated_at
   ) VALUES (
-    'legacy-project-' || NEW.project_id,
+    'legacy-project-' || NEW.project_id || '-' || NEW.holiday_date,
     NEW.project_id,
     'CUSTOM',
-    '기존 프로젝트 휴일',
+    COALESCE(NEW.name, '기존 프로젝트 휴일'),
     NULL,
     'PROJECT',
     NULL,
-    'FULL_PROJECT',
-    NULL,
-    NULL,
+    'DATE_RANGE',
+    NEW.holiday_date,
+    NEW.holiday_date,
     'legacy-project-holidays-v1',
     NEW.created_at,
     NEW.created_at
@@ -139,5 +138,5 @@ BEGIN
     'legacy-project-holidays-v1',
     NEW.created_at
   FROM work_calendar_rules
-  WHERE public_id = 'legacy-project-' || NEW.project_id;
+  WHERE public_id = 'legacy-project-' || NEW.project_id || '-' || NEW.holiday_date;
 END;
