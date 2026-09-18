@@ -303,21 +303,97 @@ Service는 `IMMEDIATE` transaction 안에서 session의 token digest, Project bi
 
 Canonical 형식이 아니거나 존재하지 않는 `publicId`는 동일한 `404 PROJECT_NOT_FOUND`다. Cookie 없음·malformed·expired·revoked·auth-version 불일치 및 다른 Project 소유 Cookie는 `401 EDIT_SESSION_REQUIRED`, stale revision은 `412 REVISION_MISMATCH`로 처리하며 어떤 경우에도 부분 삭제하지 않는다. 삭제는 복구 기능을 제공하지 않는 영구 작업이므로 UI는 Project 이름을 포함한 명시적 사용자 확인을 거친다.
 
-### `PUT /api/projects/{publicId}/calendar`
+### 작업 캘린더 API — Issue #57
 
-Project calendar 전체를 명시적으로 교체한다.
+Issue #57부터 Project Calendar는 단일 holiday 교체 endpoint가 아니라 **국가 규칙 + Custom 휴무 + materialized date exception** 계약을 사용한다. 이전 설계 문서의 `PUT /api/projects/{publicId}/calendar`는 구현 API가 아니며 아래 endpoint로 대체한다.
+
+#### `GET /api/work-calendars/countries`
+
+지원 국가와 fixture metadata를 공개 조회한다. 현재 지원 코드는 `KR/CN/VN/PH/TH/MX/US`, 최초 지원 연도는 **2026년**이다. 응답에는 국가 표시명, `supportedYears`, `sourceVersion`, `sourceUrl`이 포함된다. 런타임 외부 공휴일 API를 호출하지 않는다.
+
+#### `GET /api/projects/{publicId}/work-calendar`
+
+Project edit session이 필요하다. 현재 Project의 Calendar rule과 Project 일정 계산에 적용되는 materialized date를 반환한다. 성공 시 `ETag: "<projectRevision>"`과 `Cache-Control: private, no-store`를 반환한다. Resource Group/Resource 개인 휴무 사유를 public readonly snapshot에 노출하지 않기 위해 이 endpoint는 편집 세션 read 정책을 사용한다.
+
+응답 핵심 형태:
 
 ```json
 {
-  "timezone": "Asia/Seoul",
-  "weekendDays": [6, 0],
-  "holidays": [
-    { "date": "2026-09-21", "name": "Company holiday" }
+  "data": {
+    "projectRevision": 7,
+    "rules": [
+      {
+        "id": "rule-uuid",
+        "kind": "COUNTRY",
+        "name": "대한민국 공휴일",
+        "countryCode": "KR",
+        "targetType": "PROJECT",
+        "targetId": null,
+        "scope": "FULL_PROJECT",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "sourceVersion": "KR-2026-law-2026-05-11"
+      }
+    ],
+    "projectDates": []
+  }
+}
+```
+
+#### `POST /api/projects/{publicId}/work-calendar/preview`
+
+저장하지 않고 후보 Calendar를 materialize하고 일정 영향을 계산한다. **exact same-origin Origin, 유효한 edit session, `If-Match: "<revision>"`가 모두 필요**하다. Preview도 stale revision이면 `412 REVISION_MISMATCH`로 거부한다.
+
+입력은 다음 두 집합이다.
+
+```json
+{
+  "countryRules": [
+    {
+      "countryCode": "KR",
+      "scope": "FULL_PROJECT",
+      "effectiveFrom": null,
+      "effectiveTo": null
+    },
+    {
+      "countryCode": "VN",
+      "scope": "DATE_RANGE",
+      "effectiveFrom": "2026-04-01",
+      "effectiveTo": "2026-09-30"
+    }
+  ],
+  "customDates": [
+    {
+      "name": "회사 창립기념일",
+      "date": "2026-08-16",
+      "targetType": "PROJECT",
+      "targetId": null
+    }
   ]
 }
 ```
 
-v1은 timezone `Asia/Seoul`, weekend `[6,0]`만 허용한다. Holiday 중복/날짜를 검증한 뒤 모든 일정을 재계산한다. 기존 Manual task의 확정 interval이 calendar 변경만으로 달라지거나 FS를 위반하면 `MANUAL_CALENDAR_CONFLICT`로 전체 변경을 거부한다. 사용자가 별도 task edit에서 Manual start/duration을 명시적으로 바꾸는 것은 새로운 interval 요청이다.
+Preview 응답은 후보 rule/date와 함께 `changedTasks`, `manualConflicts`를 반환한다. 저장된 dependency link가 있는 Project는 현재 dependency 전체 재계산 구현 경계 때문에 `409 CALENDAR_RECALC_UNSUPPORTED`로 안전하게 거부한다.
+
+#### `PUT /api/projects/{publicId}/work-calendar`
+
+Preview와 같은 입력을 저장한다. exact same-origin Origin, edit session, `If-Match`가 필요하다. Server는 Client가 계산한 휴일 목록을 authority로 신뢰하지 않고 국가 fixture와 Custom 입력을 다시 검증한다.
+
+하나의 SQLite `IMMEDIATE` transaction에서 session/revision 재검증 → 후보 Calendar materialize → Manual conflict 검사 → rule/date 전체 교체 → Auto/Summary 일정 재계산 → Project revision **정확히 1 증가** 순으로 처리한다. 실패 시 Calendar와 Task를 부분 저장하지 않는다. 성공 응답은 Preview shape에 새 `projectRevision`을 포함하며 UI는 canonical Project snapshot을 다시 조회해 기존 Gantt instance에 반영한다.
+
+주요 오류:
+
+- `400 INVALID_WORK_CALENDAR`: 잘못된 국가/대상/범위/날짜/입력 구조
+- `401 EDIT_SESSION_REQUIRED`: 편집 세션 없음·만료·불일치
+- `403 ORIGIN_NOT_ALLOWED`: Origin 불일치
+- `409 CALENDAR_EXCEPTION_CONFLICT`: 동일 날짜의 WORKING/NON_WORKING 충돌
+- `409 MANUAL_TASK_CALENDAR_CONFLICT`: Manual Task가 후보 Calendar와 충돌
+- `409 CALENDAR_RECALC_UNSUPPORTED`: dependency link가 있어 현재 안전한 전체 재계산을 지원하지 않음
+- `412 REVISION_MISMATCH`: stale Project revision
+- `422 COUNTRY_CALENDAR_UNAVAILABLE`: 요청 연도의 검증된 국가 fixture가 없음
+- `428 PRECONDITION_REQUIRED`: `If-Match` 누락
+
+Project Task 일정에는 `PROJECT` 대상 Calendar만 적용한다. `RESOURCE_GROUP/RESOURCE` Custom 휴무는 #56 Resource workload의 Effective Calendar에만 추가되며 Task start/end를 자동 이동시키지 않는다.
 
 ### `POST /api/projects/{publicId}/edit-sessions`
 
