@@ -127,6 +127,7 @@ describe("SQLite connection and schema", () => {
         "0003_resource_catalog.sql",
         "0004_project_owner.sql",
         "0005_resource_workload.sql",
+        "0006_work_calendars.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -142,7 +143,6 @@ describe("SQLite connection and schema", () => {
       expect(tables).toEqual([
         "edit_sessions",
         "links",
-        "project_holidays",
         "projects",
         "resource_catalog_admin_sessions",
         "resource_catalog_state",
@@ -152,6 +152,8 @@ describe("SQLite connection and schema", () => {
         "schema_migrations",
         "task_assignments",
         "tasks",
+        "work_calendar_dates",
+        "work_calendar_rules",
       ]);
 
       const indexes = database
@@ -174,6 +176,8 @@ describe("SQLite connection and schema", () => {
         "task_assignments_resource_workload_idx",
         "tasks_project_parent_idx",
         "tasks_project_sort_order_idx",
+        "work_calendar_dates_rule_date_idx",
+        "work_calendar_rules_project_idx",
       ]);
     } finally {
       database.close();
