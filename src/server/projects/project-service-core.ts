@@ -2,6 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import type Database from "better-sqlite3";
 
+import { resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
+import { seedDefaultProjectCalendar } from "../calendars/default-calendar-core";
+
 import type {
   CreateTaskRequest,
   CreateProjectResponse,
@@ -355,18 +358,13 @@ function assertHierarchyMutationCapability(links: readonly LinkRecord[]): void {
 }
 
 function workingCalendar(
+  database: Database.Database,
   project: Pick<ProjectRecord, "calendarTimezone">,
-  holidays: readonly { holidayDate: string; name: string | null }[],
+  projectId: number,
 ) {
   try {
-    return createWorkingCalendar({
-      timezone: project.calendarTimezone as "Asia/Seoul",
-      weekendDays: [6, 0],
-      holidays: holidays.map((holiday) => ({
-        date: holiday.holidayDate,
-        name: holiday.name,
-      })),
-    });
+    if (project.calendarTimezone !== "Asia/Seoul") throw new Error("Unsupported timezone.");
+    return resolveProjectWorkingCalendar(database, projectId);
   } catch {
     throw new PersistedScheduleInvalidError();
   }
@@ -650,6 +648,12 @@ export class ProjectService {
           createdAt: createdAtText,
           updatedAt: createdAtText,
         });
+        seedDefaultProjectCalendar(
+          this.database,
+          project.id,
+          createdAtText,
+          createdAt.getUTCFullYear(),
+        );
         this.sessions.insert({
           projectId: project.id,
           tokenHash: sessionToken.tokenHash,
@@ -665,7 +669,7 @@ export class ProjectService {
         return {
           response: {
             data: {
-              project: projectDto(project),
+              project: projectDto(project, this.schedules.listHolidays(project.id)),
               permission: "edit",
             },
           },
@@ -847,7 +851,7 @@ export class ProjectService {
         throw new DuplicateExternalIdError();
       }
 
-      const calendar = workingCalendar(project, holidays);
+      const calendar = workingCalendar(this.database, project, project.id);
       if (tasks.length > 0) recalculatePersistedHierarchy(tasks, calendar);
       const parent = validatedInput.parentTaskId === undefined
         ? undefined
@@ -988,7 +992,7 @@ export class ProjectService {
       const links = this.schedules.listLinks(project.id);
       const holidays = this.schedules.listHolidays(project.id);
       assertHierarchyMutationCapability(links);
-      const calendar = workingCalendar(project, holidays);
+      const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar);
       if (current.type === "summary") {
         if (
@@ -1102,7 +1106,7 @@ export class ProjectService {
       const links = this.schedules.listLinks(project.id);
       const holidays = this.schedules.listHolidays(project.id);
       assertHierarchyMutationCapability(links);
-      const calendar = workingCalendar(project, holidays);
+      const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar);
       if (current.type === "summary") {
         throw new SummaryTaskDeleteUnsupportedError();
