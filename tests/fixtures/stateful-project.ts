@@ -92,6 +92,12 @@ export async function installStatefulProjectFixture(page: Page): Promise<Statefu
       fixture.sessionEditable = true; await route.fulfill({ status: 204, body: "" }); return;
     }
     if (pathname === projectPath && request.method() === "GET") { await route.fulfill({ json: snapshot(fixture) }); return; }
+    if (pathname === `${projectPath}/work-calendar` && request.method() === "GET") {
+      await route.fulfill({ json: { data: { projectRevision: fixture.project.revision, rules: [], projectDates: [] } } }); return;
+    }
+    if (pathname === `${projectPath}/assignment-targets` && request.method() === "GET") {
+      await route.fulfill({ json: { data: { catalogRevision: 1, targets: [] } } }); return;
+    }
     if (pathname === taskPath && request.method() === "POST") {
       const payload = request.postDataJSON() as CreateTaskRequest;
       fixture.posts.push(payload);
