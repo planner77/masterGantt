@@ -21,7 +21,7 @@ interface Props {
   onSaved:()=>Promise<boolean>;
   onUnauthorized:()=>void;
   onConflict:(body:unknown)=>void;
-  notify:(kind:"success"|"error"|"info",message:string,title?:string,details?:unknown)=>void;
+  notify:(kind:"success"|"error"|"info",message:string,operation:string,serverBody?:unknown)=>void;
 }
 
 interface CountryDraft {
