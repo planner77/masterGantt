@@ -129,3 +129,29 @@ Calendar 탐색과 WBS 결과 길이를 포함해야 실제 복잡도를 설명�
 - 실제 Workbook, DRM/macro 권한, 승인된 파일 저장 경로, 안정 ID 보존 수단, source calendar/progress 해석.
 - 실제 배포 architecture/volume permission, production scrypt memory·latency, 입력 크기/렌더 성능.
 - Framework/API의 향후 변경은 이 문서의 확인일 이후 재검증한다.
+
+
+## Issue #57 국가 작업 캘린더 조사 — 2026-09-18
+
+Issue #57은 런타임 공휴일 API나 SVAR PRO Calendar 구현에 의존하지 않고, 공식/공공기관 발표를 검증한 뒤 repository fixture로 version을 고정하는 방식을 채택했다. 최초 구현 지원 연도는 2026년이며 지원 국가는 KR/CN/VN/PH/TH/MX/US다. 각 materialized date에는 `sourceKey/sourceVersion`을 보존한다.
+
+| 국가 | 2026 fixture source/version | 근거 |
+| --- | --- | --- |
+| KR | `KR-2026-law-2026-05-11` | 대한민국 국가법령정보센터 공휴일 규정: https://www.law.go.kr/LSW/lsInfoP.do?ancYnChk=0&lsId=014112 |
+| CN | `CN-2026-guoban-2025-7` | 중국 국무원 2026 휴일 통지: https://www.gov.cn/zhengce/content/202511/content_7047098.htm |
+| VN | `VN-2026-bnv` | 베트남 정부 2026 휴일 계획: https://xaydungchinhsach.chinhphu.vn/de-xuat-phuong-an-nghi-tet-am-lich-nghi-le-quoc-khanh-nam-2026-119251002130522291.htm |
+| PH | `PH-2026-proclamation-1006+1189+1264` | Presidential Communications Office 2026 holidays: https://pco.gov.ph/news_releases/pbbm-issues-proclamation-declaring-regular-holidays-special-non-working-days-for-2026/ |
+| TH | `TH-2026-bot-31-2568` | Bank of Thailand Financial Institutions Holiday: https://www.bot.or.th/th/financial-institutions-holiday.html |
+| MX | `MX-2026-lft-art74` | PROFEDET 2026 mandatory rest days: https://www.gob.mx/profedet/articulos/sabes-cuales-son-los-dias-de-descanso-obligatorio-para-este-2026 |
+| US | `US-2026-opm-federal` | U.S. OPM Federal Holidays: https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/ |
+
+국가별 지역 휴일은 자동 포함하지 않는다. 중국과 베트남처럼 공식 연휴 운영에서 주말 보충 근무/교환 근무가 있는 경우 단순 holiday 집합으로는 표현할 수 없으므로 `WORKING` date exception을 사용한다. 이 사실이 Issue #57의 Calendar Domain을 `NON_WORKING/WORKING` 두 종류로 일반화한 직접 근거다.
+
+SVAR React Gantt 공개 Calendar 문서는 global/task/resource calendar와 특정 date/range exception 개념을 설명하므로 UI/도메인 용어 참고에만 사용한다: https://docs.svar.dev/react/gantt/guides/scheduling/calendars/ . 해당 Scheduling Calendar 기능은 PRO 범주이므로 패키지/API/비공개 코드를 사용하거나 동작을 복제하지 않는다. masterGantt의 근무일 판정은 기존 Gregorian ordinal 기반 pure Scheduling Domain이 authority다.
+
+운영 정책은 다음과 같다.
+
+- fixture가 없는 연도는 관습·전년도 패턴으로 추정하지 않고 `COUNTRY_CALENDAR_UNAVAILABLE`로 거부한다.
+- source version이 바뀌어도 기존 Project의 materialized date를 자동 재작성하지 않는다.
+- 기존 Project migration은 사용자 holiday만 보존하고 KR 국가 rule을 조용히 추가하지 않는다.
+- 신규 Project는 생성 시 현재 구현 기준연도 2026의 KR/FULL_PROJECT rule을 materialize한다.
