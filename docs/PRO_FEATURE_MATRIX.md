@@ -48,3 +48,18 @@ WBS는 표준적인 Tree 번호 계산이며 데이터 식별자가 아니다. E
 - 상용 API를 호출하지 않고 필요한 결과를 표시할 수 있는지 기능별 QA를 수행한다. 확인하지 못한 항목은 완료로 표시하지 않는다.
 
 공식 분류는 공개 문서의 확인 시점 기준이다. 설치 Version에서 달라지면 문서와 Adapter 계획을 함께 갱신한다. 자세한 초기 계약과 후속 기능의 결정 사항은 [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md) 및 [REQUIREMENTS.md](REQUIREMENTS.md)를 따른다.
+
+
+## Issue #57 Working Calendar 경계
+
+SVAR 공개 Calendar 문서의 global/task/resource calendar 및 date/range exception 개념은 설계 참고만 한다. Issue #57 구현은 PRO Calendar package/API를 설치하거나 호출하지 않는다.
+
+masterGantt의 실제 구현 경계는 다음과 같다.
+
+- SVAR Core: Grid/Chart 표시·편집 이벤트와 기존 Gantt instance 유지.
+- masterGantt Scheduling Domain: Gregorian ordinal, Base weekly rule, `WORKING/NON_WORKING` 예외, Leaf/Summary 계산.
+- Calendar Server 계층: 7개 국가 2026 fixture materialize, Project/Group/Resource rule 저장, Preview/원자 commit.
+- Resource workload: Project+Group+Resource Effective Calendar로 M/D 계산.
+- 범위 밖: Resource leveling, 개인 휴무에 의한 Task 자동 재배치, 시간/반일 Calendar, SVAR PRO scheduling/calendar.
+
+따라서 Issue #57의 기능 완성 여부는 SVAR PRO 기능과의 parity가 아니라 [ISSUE_57_WORK_CALENDAR](ISSUE_57_WORK_CALENDAR.md)의 자체 수용 기준과 GitHub Actions 회귀 검증으로 판단한다.
