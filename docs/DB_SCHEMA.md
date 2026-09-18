@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
+이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
 
 요구사항으로 확정된 전제는 다음과 같다.
 
@@ -39,12 +39,13 @@ SQLite CHECK만으로 실재하는 달력 날짜를 완전히 판별하지 않�
 
 ```text
 projects
-  ├─< project_holidays
+  ├─< work_calendar_rules ──< work_calendar_dates
   ├─< tasks ──(self parent)──> tasks
   │      ├─< links >─┘
   │      └─< task_assignments >─ resources / resource_groups
   └─< edit_sessions
 
+project_holidays (0006 이후 Project NON_WORKING 호환 VIEW + INSERT trigger)
 resource_catalog_state (singleton revision)
 resources >─< resource_group_members >─ resource_groups
 resource_catalog_admin_sessions (global admin)
@@ -80,19 +81,12 @@ resource_catalog_admin_sessions (global admin)
 
 Password parameter를 row와 함께 저장해 향후 cost 변경 후에도 기존 hash를 검증하고 성공 시 재해시할 수 있게 한다. `public_id`는 접근 편의를 위한 주소이지 authorization secret이 아니다.
 
-### 5.2 `project_holidays`
+### 5.2 `project_holidays` 호환 VIEW
 
-Project별 holiday set을 정규화해 저장한다.
+`0006_work_calendars.sql` 적용 전에는 Project별 holiday table이었다. 0006은 기존 row를 `work_calendar_rules(kind=CUSTOM,target_type=PROJECT)`와 `work_calendar_dates(day_type=NON_WORKING)`로 **손실 없이 이관한 뒤 원본 table을 제거**한다.
 
-| Column | Type | Null | Constraint / 의미 |
-|---|---|---:|---|
-| `id` | INTEGER | N | Primary key |
-| `project_id` | INTEGER | N | FK → `projects.id` ON DELETE CASCADE |
-| `holiday_date` | TEXT | N | `YYYY-MM-DD` |
-| `name` | TEXT | Y | 표시용 명칭 |
-| `created_at` | TEXT | N | UTC timestamp |
+이후 같은 이름은 단계적 하위 호환을 위한 VIEW다. Project 대상 `NON_WORKING` 날짜를 날짜별로 한 번만 투영하며, 기존 focused test/legacy repository의 INSERT는 INSTEAD OF trigger가 `legacy-project-<project_id>` Custom rule/date로 변환한다. 신규 기능은 이 VIEW를 authority로 사용하지 않고 `work_calendar_rules/work_calendar_dates`를 직접 조회한다.
 
-`UNIQUE(project_id, holiday_date)`를 둔다. v1 working calendar는 토요일/일요일을 비근무일로 고정하고, holiday는 이 table의 Project별 집합을 사용한다. Timezone은 `Asia/Seoul`만 지원한다는 초기 가정이며 일반화는 별도 결정이다.
 
 ### 5.3 `tasks`
 
@@ -341,3 +335,51 @@ Issue #54 추가 자동화 검증 범위:
 - [SQLite Write-Ahead Logging](https://www.sqlite.org/wal.html)
 - [`better-sqlite3` API: transactions and pragmas](https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md)
 - [Node.js Crypto API](https://nodejs.org/api/crypto.html)
+
+
+## Issue #57 Working Calendar 영속 모델
+
+### 5.10 `work_calendar_rules`
+
+Calendar의 출처와 적용 범위를 저장한다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `public_id` | TEXT | N | API에서 사용하는 안정 rule ID |
+| `project_id` | INTEGER | N | Project FK, Project 삭제 시 cascade |
+| `kind` | TEXT | N | `COUNTRY | CUSTOM` |
+| `name` | TEXT | N | 표시용 규칙명 |
+| `country_code` | TEXT | Y | COUNTRY일 때 KR/CN/VN/PH/TH/MX/US |
+| `target_type` | TEXT | N | `PROJECT | RESOURCE_GROUP | RESOURCE` |
+| `target_public_id` | TEXT | Y | Project 대상은 NULL, Group/Resource는 public ID |
+| `scope` | TEXT | N | `FULL_PROJECT | DATE_RANGE` |
+| `effective_from/to` | TEXT | Y | DATE_RANGE일 때 양쪽 모두 필요 |
+| `source_version` | TEXT | Y | materialized 국가 fixture 버전 |
+| `created_at/updated_at` | TEXT | N | UTC timestamp |
+
+COUNTRY rule은 Project 대상만 허용한다. CUSTOM은 Project/Group/Resource를 허용하며 Issue #57 UI/API에서는 추가 휴무 `NON_WORKING`만 생성한다. `FULL_PROJECT`는 물리적인 Project 최소/최대 날짜를 저장하지 않는 논리 범위다.
+
+### 5.11 `work_calendar_dates`
+
+실제 계산 입력이 되는 materialized 날짜 예외다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `calendar_rule_id` | INTEGER | N | `work_calendar_rules.id` FK, rule 삭제 시 cascade |
+| `date` | TEXT | N | `YYYY-MM-DD` |
+| `day_type` | TEXT | N | `NON_WORKING | WORKING` |
+| `name` | TEXT | Y | 휴일/근무일 표시명 |
+| `source_key` | TEXT | Y | 국가 fixture 안의 안정 source key |
+| `source_version` | TEXT | Y | 날짜를 생성한 fixture 버전 |
+| `created_at` | TEXT | N | UTC timestamp |
+
+`UNIQUE(calendar_rule_id,date)`로 한 rule 안의 중복을 막는다. 서로 다른 rule이 같은 날짜·같은 day type을 제공하는 것은 Effective Calendar에서 합집합으로 결합하고 source 목록은 보존한다. 같은 날짜에 `WORKING`과 `NON_WORKING`이 동시에 생성되면 Service가 저장 전에 충돌로 거부한다.
+
+Project 일정 계산은 Project target rule만 사용한다. Resource workload 계산은 Project Calendar에 Resource가 속한 모든 Group CUSTOM 휴무와 Resource 개인 CUSTOM 휴무를 union한다. 이 Resource Effective Calendar는 Task row의 `start_date/end_date`를 변경하지 않고 M/D와 일별 allocation 판정에만 사용한다.
+
+### Migration 0006 호환 원칙
+
+- 기존 Project의 `project_holidays`는 Custom Project rule로 이관하며 국가 공휴일을 자동 추가하지 않는다.
+- 신규 Project는 생성 시 2026 KR `FULL_PROJECT` 국가 rule/date를 materialize한다.
+- 국가 fixture update는 기존 Project row를 조용히 다시 쓰지 않는다. 사용자가 Preview/저장을 수행할 때만 새 candidate가 저장된다.
+- Calendar 교체와 Auto/Summary Task 재계산, Project revision 증가는 하나의 transaction에서 처리한다.

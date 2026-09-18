@@ -6,7 +6,8 @@ import type {
   ResourceWorkloadResponse,
   ResourceWorkloadTaskDto,
 } from "../../contracts/resources";
-import { createWorkingCalendar, isWorkingDay, workingDaysBetween } from "../../domain/scheduling/calendar";
+import { isWorkingDay, workingDaysBetween, type WorkingCalendar } from "../../domain/scheduling/calendar";
+import { resolveResourceWorkingCalendar } from "../calendars/calendar-resolution-core";
 import { dateToOrdinal, ordinalToDate, parseDateOnly } from "../../domain/scheduling/date-only";
 import { ProjectRepository } from "../repositories/project-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
@@ -34,8 +35,14 @@ export class ResourceWorkloadService {
     if (!project) return undefined;
     const tasks = this.schedules.listTasks(project.id);
     const taskById = new Map(tasks.map((task) => [task.publicId, task]));
-    const holidays = this.schedules.listHolidays(project.id).map((holiday) => ({ date: holiday.holidayDate, name: holiday.name }));
-    const calendar = createWorkingCalendar({ timezone: "Asia/Seoul", weekendDays: [6, 0], holidays });
+    const resourceCalendars = new Map<string, WorkingCalendar>();
+    const calendarFor = (resourceId: string): WorkingCalendar => {
+      const cached = resourceCalendars.get(resourceId);
+      if (cached) return cached;
+      const resolved = resolveResourceWorkingCalendar(this.database, project.id, resourceId);
+      resourceCalendars.set(resourceId, resolved);
+      return resolved;
+    };
     const assignments = this.catalog.listAssignments(project.id).filter((assignment) => assignment.kind === "resource");
     const resources = this.catalog.listResources();
     const groups = this.catalog.listGroups();
@@ -60,6 +67,7 @@ export class ResourceWorkloadService {
       const end = effectiveEnd > to ? to : effectiveEnd;
       if (start > end) continue;
       const configured = assignment.allocationPercent !== null;
+      const calendar = calendarFor(resource.publicId);
       const effortMd = configured ? round(workingDaysBetween(start, end, calendar) * assignment.allocationPercent! / 100) : null;
       const effortMm = effortMd === null || mdPerMm === null ? null : round(effortMd / mdPerMm);
       const detail: ResourceWorkloadTaskDto = { assignmentId: assignment.publicId, taskId: task.publicId, taskName: task.name, start, end, allocationPercent: assignment.allocationPercent, effortMd, effortMm, effortConfigured: configured };
@@ -75,6 +83,7 @@ export class ResourceWorkloadService {
     for (const row of resourceRows.values()) {
       row.effortMm = mdPerMm === null ? null : round(row.effortMd / mdPerMm);
       const daily = new Map<string, number>();
+      const calendar = calendarFor(row.id);
       for (const detail of row.tasks) {
         if (!detail.effortConfigured || detail.allocationPercent === null) continue;
         for (let ordinal = dateToOrdinal(detail.start); ordinal <= dateToOrdinal(detail.end); ordinal += 1) {

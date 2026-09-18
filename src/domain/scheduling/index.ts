@@ -6,8 +6,8 @@ export {
 } from "./date-only";
 export {
   createWorkingCalendar, isWorkingDay, nextWorkingDay, workingDaysBetween, endFromStart,
-  MAX_TASK_DURATION, MAX_CALENDAR_HOLIDAYS,
-  type HolidayInput, type WorkingCalendarInput, type WorkingCalendar,
+  MAX_TASK_DURATION, MAX_CALENDAR_HOLIDAYS, MAX_CALENDAR_EXCEPTIONS,
+  type CalendarDayType, type CalendarDayExceptionInput, type HolidayInput, type WorkingCalendarInput, type WorkingCalendar,
 } from "./calendar";
 export { scheduleLeaf, type LeafScheduleInput, type LeafSchedule, type CalendarShiftWarning } from "./leaf";
 export { recalculateHierarchy, MAX_HIERARCHY_TASKS, MAX_HIERARCHY_DEPTH, type HierarchyTaskInput } from "./hierarchy";

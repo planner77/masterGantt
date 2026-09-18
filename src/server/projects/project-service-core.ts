@@ -2,6 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import type Database from "better-sqlite3";
 
+import { projectCalendarDto, resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
+import { seedDefaultProjectCalendar } from "../calendars/default-calendar-core";
+
 import type {
   CreateTaskRequest,
   CreateProjectResponse,
@@ -19,9 +22,9 @@ import type {
   UpdateProjectRequest,
 } from "../../contracts/projects";
 import {
-  createWorkingCalendar,
   recalculateHierarchy,
   scheduleLeaf,
+  type WorkingCalendar,
 } from "../../domain/scheduling";
 import {
   EditSessionRepository,
@@ -200,7 +203,7 @@ function projectDto(
     revision: number;
     calendarTimezone: string;
   },
-  holidays: { holidayDate: string; name: string | null }[] = [],
+  calendar: ProjectDto["calendar"],
 ): ProjectDto {
   if (project.calendarTimezone !== "Asia/Seoul") {
     throw new Error("Unsupported persisted project timezone.");
@@ -211,14 +214,7 @@ function projectDto(
     name: project.name,
     description: project.description,
     revision: project.revision,
-    calendar: {
-      timezone: "Asia/Seoul",
-      weekendDays: [6, 0],
-      holidays: holidays.map((holiday) => ({
-        date: holiday.holidayDate,
-        name: holiday.name,
-      })),
-    },
+    calendar,
   };
 }
 
@@ -355,18 +351,13 @@ function assertHierarchyMutationCapability(links: readonly LinkRecord[]): void {
 }
 
 function workingCalendar(
+  database: Database.Database,
   project: Pick<ProjectRecord, "calendarTimezone">,
-  holidays: readonly { holidayDate: string; name: string | null }[],
+  projectId: number,
 ) {
   try {
-    return createWorkingCalendar({
-      timezone: project.calendarTimezone as "Asia/Seoul",
-      weekendDays: [6, 0],
-      holidays: holidays.map((holiday) => ({
-        date: holiday.holidayDate,
-        name: holiday.name,
-      })),
-    });
+    if (project.calendarTimezone !== "Asia/Seoul") throw new Error("Unsupported timezone.");
+    return resolveProjectWorkingCalendar(database, projectId);
   } catch {
     throw new PersistedScheduleInvalidError();
   }
@@ -414,7 +405,7 @@ function validPersistedExternalId(value: string): boolean {
 
 function validatePersistedLeafSchedules(
   tasks: readonly TaskRecord[],
-  calendar: ReturnType<typeof createWorkingCalendar>,
+  calendar: WorkingCalendar,
 ): void {
   try {
     for (const task of tasks) {
@@ -459,7 +450,7 @@ function validatePersistedLeafSchedules(
 
 export function recalculatePersistedHierarchy(
   tasks: readonly TaskRecord[],
-  calendar: ReturnType<typeof createWorkingCalendar>,
+  calendar: WorkingCalendar,
 ) {
   try {
     validatePersistedLeafSchedules(tasks, calendar);
@@ -566,7 +557,6 @@ export class ProjectService {
     project: ProjectRecord,
     tasks: TaskRecord[],
     links: LinkRecord[],
-    holidays: { holidayDate: string; name: string | null }[],
     warnings: ScheduleWarningDto[],
     operation: {
       kind: TaskMutationKind;
@@ -577,7 +567,7 @@ export class ProjectService {
   ): TaskMutationResponse {
     return {
       data: {
-        project: projectDto(project, holidays),
+        project: projectDto(project, projectCalendarDto(this.database, project.id)),
         tasks: taskDtos(tasks),
         links: linkDtos(links, tasks),
         warnings,
@@ -589,7 +579,7 @@ export class ProjectService {
   private applySummaryDerivations(
     projectId: number,
     tasks: readonly TaskRecord[],
-    calendar: ReturnType<typeof createWorkingCalendar>,
+    calendar: WorkingCalendar,
     updatedAt: string,
   ): string[] {
     const derived = recalculateHierarchy(taskDtos([...tasks]), calendar);
@@ -650,6 +640,12 @@ export class ProjectService {
           createdAt: createdAtText,
           updatedAt: createdAtText,
         });
+        seedDefaultProjectCalendar(
+          this.database,
+          project.id,
+          createdAtText,
+          createdAt.getUTCFullYear(),
+        );
         this.sessions.insert({
           projectId: project.id,
           tokenHash: sessionToken.tokenHash,
@@ -665,7 +661,7 @@ export class ProjectService {
         return {
           response: {
             data: {
-              project: projectDto(project),
+              project: projectDto(project, projectCalendarDto(this.database, project.id)),
               permission: "edit",
             },
           },
@@ -705,11 +701,10 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const holidays = this.schedules.listHolidays(project.id);
 
       return {
         data: {
-          project: projectDto(project, holidays),
+          project: projectDto(project, projectCalendarDto(this.database, project.id)),
           tasks: taskDtos(tasks),
           links: linkDtos(links, tasks),
           permission: "readonly" as const,
@@ -835,7 +830,6 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const holidays = this.schedules.listHolidays(project.id);
       assertHierarchyMutationCapability(links);
       if (tasks.length >= MAX_PROJECT_TASKS) {
         throw new TaskLimitExceededError();
@@ -847,7 +841,7 @@ export class ProjectService {
         throw new DuplicateExternalIdError();
       }
 
-      const calendar = workingCalendar(project, holidays);
+      const calendar = workingCalendar(this.database, project, project.id);
       if (tasks.length > 0) recalculatePersistedHierarchy(tasks, calendar);
       const parent = validatedInput.parentTaskId === undefined
         ? undefined
@@ -949,7 +943,6 @@ export class ProjectService {
         updatedProject,
         latestTasks,
         latestLinks,
-        holidays,
         warningDtos(scheduled.warnings),
         {
           kind: "taskCreate",
@@ -986,9 +979,8 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const holidays = this.schedules.listHolidays(project.id);
       assertHierarchyMutationCapability(links);
-      const calendar = workingCalendar(project, holidays);
+      const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar);
       if (current.type === "summary") {
         if (
@@ -1014,7 +1006,6 @@ export class ProjectService {
           updatedProject,
           this.schedules.listTasks(project.id),
           this.schedules.listLinks(project.id),
-          holidays,
           [],
           {
             kind: "taskUpdate",
@@ -1065,7 +1056,6 @@ export class ProjectService {
         updatedProject,
         latestTasks,
         latestLinks,
-        holidays,
         warningDtos(scheduled.warnings),
         {
           kind: "taskUpdate",
@@ -1100,9 +1090,8 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const holidays = this.schedules.listHolidays(project.id);
       assertHierarchyMutationCapability(links);
-      const calendar = workingCalendar(project, holidays);
+      const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar);
       if (current.type === "summary") {
         throw new SummaryTaskDeleteUnsupportedError();
@@ -1134,7 +1123,6 @@ export class ProjectService {
         updatedProject,
         latestTasks,
         latestLinks,
-        holidays,
         [],
         {
           kind: "taskDelete",
@@ -1175,13 +1163,12 @@ export class ProjectService {
       );
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const holidays = this.schedules.listHolidays(project.id);
       const changedFields: ("name" | "description")[] = [];
       if (input.name !== undefined) changedFields.push("name");
       if (input.description !== undefined) changedFields.push("description");
       return {
         data: {
-          project: projectDto(updated, holidays),
+          project: projectDto(updated, projectCalendarDto(this.database, project.id)),
           tasks: taskDtos(tasks),
           links: linkDtos(links, tasks),
           warnings: [] as [],

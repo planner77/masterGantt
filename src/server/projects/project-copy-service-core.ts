@@ -1,16 +1,16 @@
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
+import { projectCalendarDto, resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
+
 import type {
   CopyProjectRequest,
   CopyProjectResponse,
   ProjectTaskDto,
 } from "../../contracts/projects";
-import {
-  createWorkingCalendar,
-  recalculateHierarchy,
-} from "../../domain/scheduling";
+import { recalculateHierarchy } from "../../domain/scheduling";
 import { ProjectOwnerRepository } from "../repositories/project-owner-repository-core";
+import { WorkCalendarRepository } from "../repositories/work-calendar-repository-core";
 import {
   EditSessionRepository,
   ProjectRepository,
@@ -98,6 +98,7 @@ export class ProjectCopyService {
   private readonly owners: ProjectOwnerRepository;
   private readonly sessions: EditSessionRepository;
   private readonly schedules: ScheduleRepository;
+  private readonly calendars: WorkCalendarRepository;
   private readonly clock: () => Date;
   private readonly generatePublicId: () => string;
   private readonly generateTaskPublicId: () => string;
@@ -113,6 +114,7 @@ export class ProjectCopyService {
     this.owners = new ProjectOwnerRepository(database);
     this.sessions = new EditSessionRepository(database);
     this.schedules = new ScheduleRepository(database);
+    this.calendars = new WorkCalendarRepository(database);
     this.clock = options.clock ?? (() => new Date());
     this.generatePublicId = options.generatePublicId ?? randomUUID;
     this.generateTaskPublicId = options.generateTaskPublicId ?? randomUUID;
@@ -151,18 +153,13 @@ export class ProjectCopyService {
         const sourceTasks = this.schedules.listTasks(source.id);
         const sourceLinks = this.schedules.listLinks(source.id);
         const sourceHolidays = this.schedules.listHolidays(source.id);
+        const sourceCalendarRules = this.calendars.listRules(source.id);
+        const sourceCalendarDates = this.calendars.listDates(source.id);
         if (sourceTasks.length > MAX_PROJECT_TASKS) {
           throw new PersistedScheduleInvalidError();
         }
 
-        const calendar = createWorkingCalendar({
-          timezone: "Asia/Seoul",
-          weekendDays: [6, 0],
-          holidays: sourceHolidays.map((holiday) => ({
-            date: holiday.holidayDate,
-            name: holiday.name,
-          })),
-        });
+        const calendar = resolveProjectWorkingCalendar(this.database, source.id);
         recalculatePersistedHierarchy(sourceTasks, calendar);
 
         const project = this.projects.insert({
@@ -185,13 +182,38 @@ export class ProjectCopyService {
           throw new Error("Copied project owner metadata could not be persisted.");
         }
 
-        for (const holiday of sourceHolidays) {
-          this.schedules.insertHoliday(
-            project.id,
-            holiday.holidayDate,
-            holiday.name,
-            nowText,
-          );
+        const datesByRule = new Map<number, typeof sourceCalendarDates>();
+        for (const date of sourceCalendarDates) {
+          const entries = datesByRule.get(date.calendarRuleId) ?? [];
+          entries.push(date);
+          datesByRule.set(date.calendarRuleId, entries);
+        }
+        for (const sourceRule of sourceCalendarRules) {
+          const copiedRule = this.calendars.insertRule({
+            publicId: randomUUID(),
+            projectId: project.id,
+            kind: sourceRule.kind,
+            name: sourceRule.name,
+            countryCode: sourceRule.countryCode,
+            targetType: sourceRule.targetType,
+            targetPublicId: sourceRule.targetPublicId,
+            scope: sourceRule.scope,
+            effectiveFrom: sourceRule.effectiveFrom,
+            effectiveTo: sourceRule.effectiveTo,
+            sourceVersion: sourceRule.sourceVersion,
+            now: nowText,
+          });
+          for (const sourceDate of datesByRule.get(sourceRule.id) ?? []) {
+            this.calendars.insertDate({
+              calendarRuleId: copiedRule.id,
+              date: sourceDate.date,
+              dayType: sourceDate.dayType,
+              name: sourceDate.name,
+              sourceKey: sourceDate.sourceKey,
+              sourceVersion: sourceDate.sourceVersion,
+              now: nowText,
+            });
+          }
         }
 
         const newBySourceId = new Map<number, TaskRecord>();
@@ -328,14 +350,7 @@ export class ProjectCopyService {
               description: project.description,
               ownerName,
               revision: project.revision,
-              calendar: {
-                timezone: "Asia/Seoul",
-                weekendDays: [6, 0],
-                holidays: sourceHolidays.map((holiday) => ({
-                  date: holiday.holidayDate,
-                  name: holiday.name,
-                })),
-              },
+              calendar: projectCalendarDto(this.database, project.id),
             },
             tasks: dtoTasks(copiedTasks),
             links: copiedLinks.map((link) => ({

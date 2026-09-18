@@ -115,7 +115,13 @@ describe("ProjectService create", () => {
         calendar: {
           timezone: "Asia/Seoul",
           weekendDays: [6, 0],
-          holidays: [],
+          holidays: expect.arrayContaining([
+            { date: "2026-01-01", name: "신정" },
+            { date: "2026-12-25", name: "기독탄신일" },
+          ]),
+          exceptions: expect.arrayContaining([
+            { date: "2026-01-01", dayType: "NON_WORKING", name: "신정" },
+          ]),
         },
       });
       expect(JSON.stringify(created.response)).not.toContain(password);
@@ -449,11 +455,14 @@ describe("ProjectService direct read", () => {
         project: {
           publicId: first.response.data.project.publicId,
           name: "First",
-          calendar: {
-            holidays: [{ date: "2026-10-05", name: "First holiday" }],
-          },
         },
       });
+      expect(snapshot?.data.project.calendar.holidays).toEqual(
+        expect.arrayContaining([{ date: "2026-10-05", name: "First holiday" }]),
+      );
+      expect(snapshot?.data.project.calendar.holidays).not.toEqual(
+        expect.arrayContaining([{ date: "2026-10-06", name: "Second holiday" }]),
+      );
       expect(snapshot?.data.tasks.map((task) => task.externalId)).toEqual([
         "FIRST-1",
         "FIRST-2",
