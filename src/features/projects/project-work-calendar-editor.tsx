@@ -12,7 +12,7 @@ import type {
   WorkCalendarScope,
   WorkCalendarTargetType,
 } from "../../contracts/work-calendar";
-import type { AssignmentTargetDto, AssignmentTargetSearchResponse } from "../../contracts/resources";
+import type { AssignmentTargetDto, AssignmentTargetsResponse } from "../../contracts/resources";
 
 interface Props {
   publicId:string;
@@ -65,9 +65,9 @@ function validCountries(value:unknown):value is {data:{countries:CountryCalendar
   return !!value && typeof value==="object" && "data" in value &&
     Array.isArray((value as {data?:{countries?:unknown}}).data?.countries);
 }
-function validTargets(value:unknown):value is AssignmentTargetSearchResponse {
+function validTargets(value:unknown):value is AssignmentTargetsResponse {
   return !!value && typeof value==="object" && "data" in value &&
-    Array.isArray((value as AssignmentTargetSearchResponse).data?.targets);
+    Array.isArray((value as AssignmentTargetsResponse).data?.targets);
 }
 
 export function ProjectWorkCalendarEditor({
