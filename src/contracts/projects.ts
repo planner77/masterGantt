@@ -5,10 +5,16 @@ export interface ProjectHolidayDto {
   name: string | null;
 }
 
+export interface ProjectCalendarExceptionDto extends ProjectHolidayDto {
+  dayType: "NON_WORKING" | "WORKING";
+}
+
 export interface ProjectCalendarDto {
   timezone: "Asia/Seoul";
   weekendDays: [6, 0];
   holidays: ProjectHolidayDto[];
+  /** Canonical snapshots include this; optional keeps older fixtures source-compatible. */
+  exceptions?: ProjectCalendarExceptionDto[];
 }
 
 export interface ProjectDto {
