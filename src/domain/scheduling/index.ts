@@ -11,4 +11,11 @@ export {
 } from "./calendar";
 export { scheduleLeaf, type LeafScheduleInput, type LeafSchedule, type CalendarShiftWarning } from "./leaf";
 export { recalculateHierarchy, MAX_HIERARCHY_TASKS, MAX_HIERARCHY_DEPTH, type HierarchyTaskInput } from "./hierarchy";
-export {\n  recalculateFinishStartDependencies,\n  type FinishStartDependencyTaskInput,\n  type FinishStartDependencyLinkInput,\n  type FinishStartDependencyChange,\n  type FinishStartManualConflict,\n  type FinishStartDependencyResult,\n} from "./dependency";\n
+export {
+  recalculateFinishStartDependencies,
+  type FinishStartDependencyTaskInput,
+  type FinishStartDependencyLinkInput,
+  type FinishStartDependencyChange,
+  type FinishStartManualConflict,
+  type FinishStartDependencyResult,
+} from "./dependency";
