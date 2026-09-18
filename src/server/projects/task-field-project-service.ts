@@ -2,6 +2,9 @@ import { randomUUID } from "node:crypto";
 
 import type Database from "better-sqlite3";
 
+import { projectCalendarDto } from "../calendars/calendar-resolution-core";
+import { seedDefaultProjectCalendar } from "../calendars/default-calendar-core";
+
 import type {
   CreateTaskRequest,
   ProjectListResponse,
@@ -139,6 +142,12 @@ export class TaskFieldProjectService extends ProjectService {
         if (!this.ownersForFields.setByPublicId(publicId, ownerName)) {
           throw new Error("Created project owner metadata could not be persisted.");
         }
+        seedDefaultProjectCalendar(
+          this.fieldDatabase,
+          project.id,
+          createdAtText,
+          createdAt.getUTCFullYear(),
+        );
         this.sessionsForFields.insert({
           projectId: project.id,
           tokenHash: sessionToken.tokenHash,
@@ -160,11 +169,7 @@ export class TaskFieldProjectService extends ProjectService {
                 description: project.description,
                 ownerName,
                 revision: project.revision,
-                calendar: {
-                  timezone: "Asia/Seoul",
-                  weekendDays: [6, 0],
-                  holidays: [],
-                },
+                calendar: projectCalendarDto(this.fieldDatabase, project.id),
               },
               permission: "edit",
             },
