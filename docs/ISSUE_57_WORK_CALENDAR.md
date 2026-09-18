@@ -161,11 +161,12 @@ Working Calendar 계산은 Pure Domain으로 유지한다.
 - `workingDaysBetween`
 - `endFromStart`
 - `scheduleLeaf`
+- `recalculateFinishStartDependencies`
 - `recalculateHierarchy`
 
 SVAR는 화면 표현과 상호작용에 사용하며 근무일 판정의 권위는 서버/도메인 계층에 둔다.
 
-현재 저장된 dependency link가 존재하는 Project의 Calendar 일괄 재계산은 기존 Dependency Scheduling Engine 범위가 완성되기 전까지 안전하게 거부한다. 링크를 무시하고 일정만 부분 재계산하지 않는다.
+Issue #68에서 저장된 `FS/lag=0` dependency link까지 Calendar Preview/저장 재계산에 통합했다. 후보 Calendar로 Leaf base 일정을 다시 만든 뒤 FS forward-pass와 Summary 집계를 적용하며, Manual dependency 충돌은 전체 저장을 거부한다. 상세 계약은 [Issue #68](ISSUE_68_CALENDAR_DEPENDENCY_RECALC.md)을 따른다.
 
 ## 8. #56 Resource Workload 연계
 
