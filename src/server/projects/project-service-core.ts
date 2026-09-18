@@ -22,7 +22,6 @@ import type {
   UpdateProjectRequest,
 } from "../../contracts/projects";
 import {
-  createWorkingCalendar,
   recalculateHierarchy,
   scheduleLeaf,
 } from "../../domain/scheduling";
