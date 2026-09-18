@@ -10,7 +10,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-16 / 0.12.0 Issue #19 글로벌 리소스·그룹 및 작업 할당 PR CI PASS**. Project와 독립된 Resource/Resource Group 카탈로그, 별도 관리자 세션, Task/Summary/Milestone 직접 할당, catalog/Project revision 동시성 검증과 SQLite `0003_resource_catalog.sql` migration을 구현했다. 최종 PR 검증은 typecheck/lint/build, Vitest 530개, Chromium E2E 50개, Docker/runtime smoke 전체 PASS다. 릴리스 상세는 [v0.12.0 릴리스 노트](docs/releases/v0.12.0.md)와 [Issue #19 구현 문서](docs/ISSUE_19_IMPLEMENTATION.md)를 따른다.
+기준: **2026-09-18 / 0.16.0 Issue #57 작업 캘린더 PR CI PASS**. Project에 7개 국가의 기간별 Calendar rule과 Project/Resource Group/Resource Custom 휴무를 관리하고, `WORKING/NON_WORKING` 날짜 예외를 Scheduling Engine과 #56 Resource workload에 연결했다. SQLite `0006_work_calendars.sql`로 기존 Project holiday를 보존한다. PR #66 최신 head의 GitHub Actions Run #350에서 quality, Chromium E2E 50/50, Docker/runtime smoke가 모두 PASS했다. 상세 설계는 [Issue #57 작업 캘린더](docs/ISSUE_57_WORK_CALENDAR.md)를 따른다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -28,12 +28,13 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | W23 Project 목록 | 로컬 완료 / 독립 QA PASS | D02 승인, 전체 공개 summary 목록, 생성 후 복귀·reload 조회, 편집 인증 유지 |
 | W24 Grid·삭제·계층 UI | 완료 / 원격 CI PASS | 목록 표/권한 삭제, native Header·row 추가, Summary 집계, locale·주말·고정 헤더 |
 | Issue #19 글로벌 리소스·그룹 | 완료 / PR CI PASS | 독립 Resource/Group 카탈로그, 관리자 세션, 그룹 멤버, Task/Summary/Milestone 직접 할당, canonical assignment 보존 |
+| Issue #57 작업 캘린더 | 완료 / PR CI PASS | KR/CN/VN/PH/TH/MX/US 2026 국가 규칙, 기간 적용, Project/Group/개인 휴무, WORKING override, Preview/원자 저장, #56 Effective Calendar 연계 |
 | W08 이후 | 일부 W24 선행 / 예정 | WBS UI·reparent·유효 subtree 삭제 묶음, FS 재계산, Import/Export |
 | W16 배포 | 일부 기반 선행 / 운영 검증 예정 | Docker/startup/readiness/named volume 기반; 실제 host·proxy·backup/restore 승인 후속 |
 
 홈(`/`)은 Project를 표 형태로 표시하며 현재 편집 권한이 있는 행에 삭제 기능을 제공한다. 삭제 확인에는 최신 프로젝트명과 모든 일정 제거를 명시하며 서버가 session/Origin/revision을 다시 검증한다. Direct snapshot은 Readonly이며 편집하려면 기존 비밀번호 잠금을 해제한다. Grid Header `+`는 최상위, 행 `+`는 하위 작업을 추가한다. 이름·날짜·기간 입력 없이 `새 작업`·브라우저 오늘·1일을 적용하며 Auto 근무일 보정은 유지한다. 첫 하위 추가 시 일반 작업을 Summary로 전환한다는 명시 동의만 필요하다. 이후 Summary 날짜와 진척은 자식에서 계산된다. Milestone에는 자식을 추가하지 않으며 빈 Summary 방지를 위해 마지막 자식 단독 삭제는 거부한다. 외부 ID는 표시를 선택할 수 있고 토·일은 Chart 음영으로 구분한다. 날짜는 사용자 locale로 표시하고 설정은 기본 접힌 상태다. Project/Grid/Chart header는 유지한 채 내부를 스크롤한다. Reparent/FS 및 Summary 직접 일정 편집은 후속이다. `/gantt-demo`는 저장 없는 CI/개발 검증용 fixture로 유지하지만 운영 상단 주요 메뉴에는 노출하지 않는다.
 
-0.12.0 릴리스 후보의 회귀 기준은 `verify-release-version`, typecheck, lint, test discovery, **Vitest 530개**, dependency audit, Markdown/shell 검사, production build, Chromium E2E **50개**, Docker image/runtime·migration·readiness·SQLite restart persistence·HTTP/HTTPS 전송 정책 검증이다. 최종 PR CI Run #235에서 모두 PASS했다.
+0.16.0 PR 회귀 기준은 `verify-release-version`, typecheck, lint, test discovery, **Vitest 565개**, dependency audit, Markdown/shell 검사, production build, Chromium E2E **50개**, Docker image/runtime·migration·readiness·SQLite restart persistence·HTTP/HTTPS·Compose persistence 검증이다. 최종 PR CI Run #350에서 모두 PASS했다.
 
 ## 2. 기술 스택과 역할
 
@@ -41,7 +42,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 
 | 기술 | 현재 버전 / 상태 | 역할 |
 | --- | --- | --- |
-| masterGantt | 0.12.0 | Issue #19 글로벌 리소스·그룹 및 작업 할당 릴리스 버전 |
+| masterGantt | 0.16.0 | Issue #57 작업 캘린더 구현 버전 |
 | Node.js | 최소 22, 검증 22.14.0 | 서버와 CLI 실행 |
 | Next.js | 16.3.4 | App Router, 서버 Route Handler, 빌드 |
 | React / React DOM | 19.3.0 | 화면 컴포넌트 |
@@ -108,10 +109,10 @@ NODE_ENV=development DATABASE_PATH="$PWD/.data/mastergantt.sqlite3" npm run db:m
 최초 성공 시 npm 출력 뒤에 다음 결과가 나온다.
 
 ```json
-{"status":"ok","applied":["0001_initial_schema.sql","0002_task_description_url.sql","0003_resource_catalog.sql"]}
+{"status":"ok","applied":["0001_initial_schema.sql","0002_task_description_url.sql","0003_resource_catalog.sql","0004_project_owner.sql","0005_resource_workload.sql","0006_work_calendars.sql"]}
 ```
 
-동일 명령을 다시 실행하면 `applied`가 빈 배열이 된다. 기본 Project 테이블 외에 `resource_catalog_state`, `resources`, `resource_groups`, `resource_group_members`, `resource_catalog_admin_sessions`, `task_assignments`가 있으며 migration 이력은 `schema_migrations`가 관리한다. 프로젝트·작업·리소스 예제 row를 자동 생성하지 않는다.
+동일 명령을 다시 실행하면 `applied`가 빈 배열이 된다. 기본 Project/Task 테이블 외에 `resource_catalog_state`, `resources`, `resource_groups`, `resource_group_members`, `resource_catalog_admin_sessions`, `task_assignments`, `work_calendar_rules`, `work_calendar_dates`가 있으며 migration 이력은 `schema_migrations`가 관리한다. `project_holidays`는 0006 이후 기존 코드 호환 VIEW다. 프로젝트·작업·리소스 예제 row를 자동 생성하지 않는다.
 
 적용 이력·checksum을 검증하고 미적용 SQL과 ledger 기록을 하나의 transaction으로 적용한다. 오류 시 실패하며, 적용한 SQL을 수정하거나 ledger를 지워 재시도하지 않는다. 변경에는 새 migration을 추가한다. 상세 계약은 [DB_SCHEMA](docs/DB_SCHEMA.md)를 참고한다.
 
@@ -139,7 +140,7 @@ npm run dev -- --hostname 127.0.0.1 --port 3000
 
 서버를 실행한 장비의 브라우저에서 [http://127.0.0.1:3000](http://127.0.0.1:3000)을 연다. `/projects/new`에서 Project를 생성하면 최초 요청 시 migration을 확인·적용하고 UUID 직접 URL로 이동한다. 종료는 터미널에서 `Ctrl+C`를 누른다.
 
-실제 Project 화면은 처음에는 readonly다. 비밀번호로 잠금을 해제하면 root Task/Milestone을 추가·삭제하고 SVAR bar를 이동하거나 양 끝을 resize할 수 있다. 상단 `리소스` 메뉴의 `/resources`에서는 별도 글로벌 관리자 비밀번호로 Resource/Group과 그룹 멤버를 관리하며, Task Editor에서 Resource 또는 Group을 직접 할당할 수 있다. 이 변경은 revision을 사용해 SQLite에 저장되며 새로고침 후 유지된다. `/gantt-demo`의 `로컬 편집 미리보기`는 별도 fixture라 저장되지 않는다.
+실제 Project 화면은 처음에는 readonly다. 비밀번호로 잠금을 해제하면 root Task/Milestone을 추가·삭제하고 SVAR bar를 이동하거나 양 끝을 resize할 수 있다. 상단 `리소스` 메뉴의 `/resources`에서는 별도 글로벌 관리자 비밀번호로 Resource/Group과 그룹 멤버를 관리하며, Task Editor에서 Resource 또는 Group을 직접 할당할 수 있다. Project 설정의 `작업 캘린더`에서는 국가 규칙과 Project/Group/Resource 휴무를 Preview 후 저장할 수 있다. 이 변경은 revision을 사용해 SQLite에 저장되며 새로고침 후 유지된다. `/gantt-demo`의 `로컬 편집 미리보기`는 별도 fixture라 저장되지 않는다.
 
 포트가 이미 사용 중이면 `APP_BASE_URL=http://127.0.0.1:3001`과 `--port 3001`을 함께 적용한다. Turbopack이 실행 환경의 제약으로 실패하면 `npm run dev -- --webpack --hostname 127.0.0.1 --port 3000`으로 실행할 수 있다. 서버 listen 자체가 권한 오류로 차단된 경우에는 실행 환경의 포트 권한도 필요하다.
 
