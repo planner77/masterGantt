@@ -4,6 +4,23 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-09-18
+
+### Added
+
+- Issue #57: 프로젝트별 작업 캘린더 관리 기능을 추가한다. 대한민국을 기본 국가로 하고 중국, 베트남, 필리핀, 태국, 멕시코, 미국의 2026년 국가 공휴일 fixture와 출처/version metadata를 저장소에 고정한다.
+- 국가 규칙은 프로젝트 전체 또는 기간 범위로 적용할 수 있으며, 조직·개인·프로젝트 휴무일을 별도 CUSTOM 규칙으로 관리한다.
+- Scheduling Domain에 명시적 `NON_WORKING` / `WORKING` 날짜 예외를 추가해 중국·베트남의 보충 근무일처럼 주말을 근무일로 전환하는 규칙을 지원한다.
+- `GET /api/work-calendars/countries`, `GET/PUT /api/projects/{publicId}/work-calendar`, `POST /api/projects/{publicId}/work-calendar/preview` API와 Preview UI를 추가한다.
+- 리소스 공수 계산은 Project + Resource Group + Resource 휴무일을 합성한 Effective Calendar를 사용한다.
+
+### Changed
+
+- 기존 `project_holidays` 데이터는 migration에서 신규 작업 캘린더 모델로 손실 없이 옮기고 호환 VIEW/trigger를 유지한다.
+- 신규 프로젝트에는 생성 시점의 대한민국 `FULL_PROJECT` 국가 규칙을 기본 생성하며, 기존 프로젝트에는 migration만으로 국가 규칙을 자동 추가하지 않는다.
+- 작업 생성·수정·삭제 및 하위 작업 삭제 재계산은 신규 Project Calendar를 서버 권위 일정 계산에 사용한다.
+- 사용자 기능, API와 DB 계약을 하위 호환으로 확장하므로 Semantic Versioning 정책에 따라 `0.15.0`에서 `0.16.0`으로 증가한다.
+
 ## [0.15.0] - 2026-09-18
 
 ### Added
