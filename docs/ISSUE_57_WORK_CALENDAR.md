@@ -125,7 +125,7 @@ Issue #57 최초 구현 지원 연도는 **2026년**이다.
 
 ### GET /api/projects/{publicId}/work-calendar
 
-현재 규칙과 Project 유효 날짜를 조회한다.
+편집 세션을 요구한다. 현재 규칙과 Project 유효 날짜를 조회하며 Resource/Group/개인 휴무 사유가 공개 read API로 노출되지 않도록 한다.
 
 ### POST /api/projects/{publicId}/work-calendar/preview
 
