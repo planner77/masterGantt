@@ -373,7 +373,7 @@ Project edit session이 필요하다. 현재 Project의 Calendar rule과 Project
 }
 ```
 
-Preview 응답은 후보 rule/date와 함께 `changedTasks`, `manualConflicts`를 반환한다. 저장된 dependency link가 있는 Project는 현재 dependency 전체 재계산 구현 경계 때문에 `409 CALENDAR_RECALC_UNSUPPORTED`로 안전하게 거부한다.
+Preview 응답은 후보 rule/date와 함께 `changedTasks`, `manualConflicts`를 반환한다. Issue #68부터 저장된 `FS/lag=0` Dependency가 있으면 후보 Calendar로 Leaf base 일정을 계산한 뒤 Dependency DAG forward-pass와 Summary 집계를 같은 서버 Scheduling Domain에서 수행한다. `changedTasks[].reasons`는 `CALENDAR | DEPENDENCY | SUMMARY`를, `dependencyPredecessorExternalIds`는 해당 FS lower bound를 만든 선행 작업을 표시한다. Manual 후행이 새 FS bound를 만족하지 못하면 Preview에는 `reason: "DEPENDENCY"`가 포함되고 저장은 `409 MANUAL_DEPENDENCY_CONFLICT`로 전체 거부한다.
 
 #### `PUT /api/projects/{publicId}/work-calendar`
 
@@ -387,8 +387,10 @@ Preview와 같은 입력을 저장한다. exact same-origin Origin, edit session
 - `401 EDIT_SESSION_REQUIRED`: 편집 세션 없음·만료·불일치
 - `403 ORIGIN_NOT_ALLOWED`: Origin 불일치
 - `409 CALENDAR_EXCEPTION_CONFLICT`: 동일 날짜의 WORKING/NON_WORKING 충돌
-- `409 MANUAL_TASK_CALENDAR_CONFLICT`: Manual Task가 후보 Calendar와 충돌
-- `409 CALENDAR_RECALC_UNSUPPORTED`: dependency link가 있어 현재 안전한 전체 재계산을 지원하지 않음
+- `409 MANUAL_TASK_CALENDAR_CONFLICT`: Manual Task가 후보 Calendar 자체와 충돌
+- `409 MANUAL_DEPENDENCY_CONFLICT`: Manual Task가 후보 Calendar 적용 후 FS lower bound를 위반
+- `409 DEPENDENCY_CYCLE`: 저장된 Dependency graph에 cycle 존재
+- `409 UNSUPPORTED_SCHEDULE_STRUCTURE`: 저장된 Dependency endpoint/관계가 지원 범위를 벗어남
 - `412 REVISION_MISMATCH`: stale Project revision
 - `422 COUNTRY_CALENDAR_UNAVAILABLE`: 요청 연도의 검증된 국가 fixture가 없음
 - `428 PRECONDITION_REQUIRED`: `If-Match` 누락
