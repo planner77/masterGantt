@@ -10,7 +10,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 
 ## 1. 현재 구현 상태
 
-기준: **2026-09-18 / 0.16.0 Issue #57 작업 캘린더 PR CI PASS**. Project에 7개 국가의 기간별 Calendar rule과 Project/Resource Group/Resource Custom 휴무를 관리하고, `WORKING/NON_WORKING` 날짜 예외를 Scheduling Engine과 #56 Resource workload에 연결했다. SQLite `0006_work_calendars.sql`로 기존 Project holiday를 보존한다. PR #66 최신 head의 GitHub Actions Run #350에서 quality, Chromium E2E 50/50, Docker/runtime smoke가 모두 PASS했다. 상세 설계는 [Issue #57 작업 캘린더](docs/ISSUE_57_WORK_CALENDAR.md)를 따른다.
+기준: **2026-09-18 / 0.16.1 Issue #67 Docker Compose 관리자 환경변수 전달 수정**. 0.16.0의 작업 캘린더 기능을 유지하면서 Docker Compose가 `RESOURCE_CATALOG_ADMIN_PASSWORD`를 app 컨테이너에 명시적으로 전달하고, 누락 시 config 단계에서 fail-fast하도록 보완했다. PR #69에서 Compose 실제 인증과 인증 시점 로그 비밀정보 비노출을 포함한 전체 GitHub Actions 회귀를 검증한다. 작업 캘린더 상세 설계는 [Issue #57 작업 캘린더](docs/ISSUE_57_WORK_CALENDAR.md)를 따른다.
 
 | 단계 | 상태 | 현재 확인 가능한 내용 |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 
 홈(`/`)은 Project를 표 형태로 표시하며 현재 편집 권한이 있는 행에 삭제 기능을 제공한다. 삭제 확인에는 최신 프로젝트명과 모든 일정 제거를 명시하며 서버가 session/Origin/revision을 다시 검증한다. Direct snapshot은 Readonly이며 편집하려면 기존 비밀번호 잠금을 해제한다. Grid Header `+`는 최상위, 행 `+`는 하위 작업을 추가한다. 이름·날짜·기간 입력 없이 `새 작업`·브라우저 오늘·1일을 적용하며 Auto 근무일 보정은 유지한다. 첫 하위 추가 시 일반 작업을 Summary로 전환한다는 명시 동의만 필요하다. 이후 Summary 날짜와 진척은 자식에서 계산된다. Milestone에는 자식을 추가하지 않으며 빈 Summary 방지를 위해 마지막 자식 단독 삭제는 거부한다. 외부 ID는 표시를 선택할 수 있고 토·일은 Chart 음영으로 구분한다. 날짜는 사용자 locale로 표시하고 설정은 기본 접힌 상태다. Project/Grid/Chart header는 유지한 채 내부를 스크롤한다. Reparent/FS 및 Summary 직접 일정 편집은 후속이다. `/gantt-demo`는 저장 없는 CI/개발 검증용 fixture로 유지하지만 운영 상단 주요 메뉴에는 노출하지 않는다.
 
-0.16.0 PR 회귀 기준은 `verify-release-version`, typecheck, lint, test discovery, **Vitest 565개**, dependency audit, Markdown/shell 검사, production build, Chromium E2E **50개**, Docker image/runtime·migration·readiness·SQLite restart persistence·HTTP/HTTPS·Compose persistence 검증이다. 최종 PR CI Run #350에서 모두 PASS했다.
+0.16.1 PR 회귀 기준은 `verify-release-version`, typecheck, lint, test discovery, 전체 Vitest, dependency audit, Markdown/shell 검사, production build, 전체 Chromium E2E, Docker image/runtime·migration·readiness·SQLite restart persistence·HTTP/HTTPS 검증과 함께 Compose 필수 관리자 비밀번호 fail-fast·컨테이너 전달·실제 인증 성공/거부·인증 시점 로그 비밀정보 비노출·강제 재생성 persistence를 포함한다.
 
 ## 2. 기술 스택과 역할
 
@@ -42,7 +42,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 
 | 기술 | 현재 버전 / 상태 | 역할 |
 | --- | --- | --- |
-| masterGantt | 0.16.0 | Issue #57 작업 캘린더 구현 버전 |
+| masterGantt | 0.16.1 | Issue #67 Docker Compose 리소스 관리자 환경변수 전달 결함 수정 버전 |
 | Node.js | 최소 22, 검증 22.14.0 | 서버와 CLI 실행 |
 | Next.js | 16.3.4 | App Router, 서버 Route Handler, 빌드 |
 | React / React DOM | 19.3.0 | 화면 컴포넌트 |
