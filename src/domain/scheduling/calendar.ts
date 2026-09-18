@@ -70,8 +70,8 @@ export function createWorkingCalendar(input: WorkingCalendarInput): WorkingCalen
     throw new SchedulingError("UNSUPPORTED_WEEKEND", { field: "weekendDays" });
   }
 
-  const legacyHolidays = input.holidays ?? [];
-  const explicitExceptions = input.exceptions ?? [];
+  const legacyHolidays = input.holidays === undefined ? [] : input.holidays;
+  const explicitExceptions = input.exceptions === undefined ? [] : input.exceptions;
   if (!Array.isArray(legacyHolidays)) throw new SchedulingError("INVALID_HOLIDAY", { field: "holidays" });
   if (!Array.isArray(explicitExceptions)) throw new SchedulingError("INVALID_CALENDAR_EXCEPTION", { field: "exceptions" });
   if (legacyHolidays.length > MAX_CALENDAR_HOLIDAYS) throw new SchedulingError("HOLIDAY_LIMIT_EXCEEDED", { field: "holidays" });
