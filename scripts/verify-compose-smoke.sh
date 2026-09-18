@@ -15,6 +15,7 @@ export APP_BASE_URL="https://gantt.example.invalid"
 export HOST_PORT="0"
 export TRUST_PROXY="false"
 export LOG_LEVEL="info"
+export RESOURCE_CATALOG_ADMIN_PASSWORD="ci-resource-admin-password"
 export ALLOW_INSECURE_HTTP="false"
 owned=false
 
@@ -38,6 +39,12 @@ if docker volume inspect "$MASTERGANTT_VOLUME_NAME" >/dev/null 2>&1; then
   exit 1
 fi
 [[ -z "$(dc ps --all --quiet)" ]]
+if env -u RESOURCE_CATALOG_ADMIN_PASSWORD docker compose --env-file /dev/null -f "$root/deploy/compose.yml" config --quiet >"$tmp/missing-resource-admin.out" 2>"$tmp/missing-resource-admin.err"; then
+  echo "Compose config must fail when RESOURCE_CATALOG_ADMIN_PASSWORD is missing." >&2
+  exit 1
+fi
+grep -q 'RESOURCE_CATALOG_ADMIN_PASSWORD' "$tmp/missing-resource-admin.err"
+echo 'Compose missing resource admin password fail-fast: PASS'
 dc config --format json > "$tmp/compose.json"
 python3 - "$tmp/compose.json" "$root" <<'PY_CONFIG'
 import json, os, pathlib, sys
@@ -57,6 +64,7 @@ assert app['environment']['DATABASE_PATH'] == '/data/mastergantt.sqlite3'
 assert app['environment']['APP_BASE_URL'] == os.environ['APP_BASE_URL']
 assert str(app['environment']['PORT']) == '3000'
 assert str(app['environment']['ALLOW_INSECURE_HTTP']).lower() == 'false'
+assert app['environment']['RESOURCE_CATALOG_ADMIN_PASSWORD'] == os.environ['RESOURCE_CATALOG_ADMIN_PASSWORD']
 assert 'SESSION_COOKIE_SECURE' not in app['environment']
 assert len(app['ports']) == 1
 assert app['ports'][0]['host_ip'] == '127.0.0.1'
@@ -89,6 +97,22 @@ verify_row() {
   dc exec -T app node -e "const D=require('better-sqlite3'); const d=new D(process.env.DATABASE_PATH,{readonly:true}); const r=d.prepare('SELECT COUNT(*) AS n FROM layout_smoke WHERE value=?').get('preserved'); d.close(); if(r.n!==1) process.exit(1)"
 }
 wait_ready
+published="$(dc port app 3000)"
+[[ "$published" =~ ^127\.0\.0\.1:[0-9]+$ ]]
+auth_status="$(curl --silent --output "$tmp/resource-auth-ok.json" --write-out '%{http_code}' \
+  --request POST "http://$published/api/resource-catalog/admin-sessions" \
+  --header "Origin: $APP_BASE_URL" \
+  --header "Content-Type: application/json" \
+  --data "{\"password\":\"$RESOURCE_CATALOG_ADMIN_PASSWORD\"}")"
+[[ "$auth_status" == "201" ]]
+bad_auth_status="$(curl --silent --output "$tmp/resource-auth-bad.json" --write-out '%{http_code}' \
+  --request POST "http://$published/api/resource-catalog/admin-sessions" \
+  --header "Origin: $APP_BASE_URL" \
+  --header "Content-Type: application/json" \
+  --data '{"password":"wrong-resource-admin-password"}')"
+[[ "$bad_auth_status" == "401" ]]
+grep -q 'RESOURCE_ADMIN_AUTH_FAILED' "$tmp/resource-auth-bad.json"
+echo 'Compose resource admin authentication success/rejection: PASS'
 before="$(dc ps --quiet app)"
 [[ -n "$before" && "$(volume_name "$before")" == "$MASTERGANTT_VOLUME_NAME" ]]
 dc exec -T app node -e "const D=require('better-sqlite3'); const d=new D(process.env.DATABASE_PATH); d.exec('CREATE TABLE layout_smoke (value TEXT NOT NULL)'); d.prepare('INSERT INTO layout_smoke(value) VALUES (?)').run('preserved'); d.close()"
@@ -105,5 +129,9 @@ logs="$(dc logs --no-color app 2>&1)"
 grep -q '"event":"runtime_configuration_validated"' <<<"$logs"
 grep -q '"event":"database_migration_completed"' <<<"$logs"
 grep -q '"event":"application_started"' <<<"$logs"
-echo 'Compose structured stdout/stderr logging: PASS'
+if grep -Fq "$RESOURCE_CATALOG_ADMIN_PASSWORD" <<<"$logs"; then
+  echo "Resource admin password leaked into application logs." >&2
+  exit 1
+fi
+echo 'Compose structured stdout/stderr logging and secret non-disclosure: PASS'
 echo 'Compose startup, restart, forced recreation and SQLite volume persistence: PASS'
