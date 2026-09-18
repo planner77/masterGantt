@@ -1,6 +1,6 @@
 import type Database from "better-sqlite3";
 
-import { resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
+import { projectCalendarDto, resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
 
 import type {
   ProjectDto,
@@ -34,25 +34,6 @@ export interface TaskSubtreeDeleteServiceOptions {
   clock?: () => Date;
 }
 
-function projectDto(
-  project: Pick<ProjectRecord, "publicId" | "name" | "description" | "revision" | "calendarTimezone">,
-  holidays: readonly { holidayDate: string; name: string | null }[],
-): ProjectDto {
-  if (project.calendarTimezone !== "Asia/Seoul") {
-    throw new PersistedScheduleInvalidError();
-  }
-  return {
-    publicId: project.publicId,
-    name: project.name,
-    description: project.description,
-    revision: project.revision,
-    calendar: {
-      timezone: "Asia/Seoul",
-      weekendDays: [6, 0],
-      holidays: holidays.map((holiday) => ({ date: holiday.holidayDate, name: holiday.name })),
-    },
-  };
-}
 
 function taskDtos(tasks: readonly TaskRecord[]): ProjectTaskDto[] {
   const externalIdsByInternalId = new Map(tasks.map((task) => [task.id, task.externalId]));
@@ -159,7 +140,6 @@ export class TaskSubtreeDeleteService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const holidays = this.schedules.listHolidays(project.id);
       if (links.length > 0) throw new UnsupportedScheduleStructureError();
       const calendar = resolveProjectWorkingCalendar(this.database, project.id);
       recalculatePersistedHierarchy(tasks, calendar);
@@ -213,7 +193,13 @@ export class TaskSubtreeDeleteService {
       const latestLinks = this.schedules.listLinks(project.id);
       return {
         data: {
-          project: projectDto(updatedProject, holidays),
+          project: {
+            publicId: updatedProject.publicId,
+            name: updatedProject.name,
+            description: updatedProject.description,
+            revision: updatedProject.revision,
+            calendar: projectCalendarDto(this.database, project.id),
+          },
           tasks: taskDtos(latestTasks),
           links: linkDtos(latestLinks, latestTasks),
           warnings: [],
