@@ -18,21 +18,27 @@ import { WORK_CALENDAR_COUNTRY_CODES } from "../../contracts/work-calendar";
 import {
   createWorkingCalendar,
   parseDateOnly,
+  recalculateFinishStartDependencies,
   recalculateHierarchy,
   scheduleLeaf,
   SchedulingError,
 } from "../../domain/scheduling";
-import type { ProjectTaskDto } from "../../contracts/projects";
+import type { ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
 import { ProjectRepository } from "../repositories/project-repository-core";
 import { EditSessionRepository } from "../repositories/project-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
-import { ScheduleRepository, type TaskRecord } from "../repositories/schedule-repository-core";
+import {
+  ScheduleRepository,
+  type LinkRecord,
+  type TaskRecord,
+} from "../repositories/schedule-repository-core";
 import {
   WorkCalendarRepository,
   type WorkCalendarDateRecord,
   type WorkCalendarRuleRecord,
 } from "../repositories/work-calendar-repository-core";
 import type { AuthorizedEditSession } from "../projects/project-service-core";
+import { resolveProjectWorkingCalendar } from "./calendar-resolution-core";
 import { getCountryCalendarDataset, listCountryCalendarDescriptors } from "./country-calendar-data";
 
 const MAX_COUNTRY_RULES = 32;
@@ -50,7 +56,11 @@ export class WorkCalendarManualConflictError extends Error {
 }
 export class WorkCalendarRevisionMismatchError extends Error {}
 export class WorkCalendarEditSessionInvalidError extends Error {}
-export class WorkCalendarScheduleStructureUnsupportedError extends Error {}
+export class WorkCalendarDependencyStructureError extends Error {
+  constructor(readonly code:"DEPENDENCY_CYCLE"|"UNSUPPORTED_SCHEDULE_STRUCTURE") {
+    super("The persisted dependency graph cannot be recalculated.");
+  }
+}
 export class WorkCalendarProjectNotFoundError extends Error {}
 
 interface CandidateRule {
@@ -106,6 +116,37 @@ function taskDtos(tasks:readonly TaskRecord[]):ProjectTaskDto[] {
     parentExternalId:task.parentId===null?null:externalById.get(task.parentId)??null,
     siblingOrder:task.sortOrder,
   }));
+}
+
+function linkDtos(links:readonly LinkRecord[],tasks:readonly TaskRecord[]):ProjectLinkDto[] {
+  const externalById=new Map(tasks.map((task)=>[task.id,task.externalId]));
+  return links.map((link)=>{
+    const predecessorExternalId=externalById.get(link.predecessorTaskId);
+    const successorExternalId=externalById.get(link.successorTaskId);
+    if(!predecessorExternalId || !successorExternalId) {
+      throw new WorkCalendarDependencyStructureError("UNSUPPORTED_SCHEDULE_STRUCTURE");
+    }
+    return {id:link.publicId,predecessorExternalId,successorExternalId,type:link.type,lag:link.lag};
+  });
+}
+
+const DEPENDENCY_STRUCTURE_CODES=new Set([
+  "INVALID_DEPENDENCY_INPUT",
+  "MISSING_DEPENDENCY",
+  "SUMMARY_DEPENDENCY_ENDPOINT",
+  "SELF_DEPENDENCY",
+  "DUPLICATE_DEPENDENCY",
+  "UNSUPPORTED_DEPENDENCY",
+]);
+
+function mapDependencySchedulingError(error:unknown):never {
+  if(error instanceof SchedulingError && error.code==="DEPENDENCY_CYCLE") {
+    throw new WorkCalendarDependencyStructureError("DEPENDENCY_CYCLE");
+  }
+  if(error instanceof SchedulingError && DEPENDENCY_STRUCTURE_CODES.has(error.code)) {
+    throw new WorkCalendarDependencyStructureError("UNSUPPORTED_SCHEDULE_STRUCTURE");
+  }
+  throw error;
 }
 
 function aggregateProjectDates(
@@ -312,7 +353,6 @@ export class WorkCalendarService {
   ):PreviewInternal {
     const tasks=this.schedules.listTasks(projectId);
     const links=this.schedules.listLinks(projectId);
-    if(links.length>0) throw new WorkCalendarScheduleStructureUnsupportedError();
     const candidateRules=this.materialize(input,tasks);
     const rules=candidateRules.map((candidate)=>candidate.dto);
     const projectDates=aggregateProjectDates(
@@ -323,9 +363,12 @@ export class WorkCalendarService {
       timezone:"Asia/Seoul",weekendDays:[6,0],
       exceptions:projectDates.map((entry)=>({date:entry.date,dayType:entry.dayType,name:entry.name})),
     });
+    const currentCalendar=resolveProjectWorkingCalendar(this.database,projectId);
     const before=taskDtos(tasks);
     const staged=before.map((task)=>({...task}));
+    const calendarChangedTaskIds=new Set<string>();
     const manualConflicts:PreviewProjectWorkCalendarResponse["data"]["manualConflicts"]=[];
+
     for(const task of staged) {
       if(task.type==="summary") continue;
       if(task.requestedStart===null) throw new WorkCalendarInvalidInputError();
@@ -335,42 +378,82 @@ export class WorkCalendarService {
         },calendar);
         if(task.scheduleMode==="manual") {
           if(scheduled.start!==task.start || scheduled.end!==task.end) {
-            manualConflicts.push({taskId:task.taskId,externalId:task.externalId,name:task.name,date:task.requestedStart});
+            manualConflicts.push({
+              taskId:task.taskId,externalId:task.externalId,name:task.name,date:task.requestedStart,
+              reason:"CALENDAR",predecessorExternalIds:[],
+            });
           }
         } else {
+          const currentBase=scheduleLeaf({
+            type:task.type,requestedStart:task.requestedStart,duration:task.duration,scheduleMode:"auto",
+          },currentCalendar);
+          if(currentBase.start!==scheduled.start || currentBase.end!==scheduled.end) {
+            calendarChangedTaskIds.add(task.taskId);
+          }
           task.start=scheduled.start;
           task.end=scheduled.end;
         }
       } catch(error) {
         if(task.scheduleMode==="manual" && error instanceof SchedulingError) {
-          manualConflicts.push({taskId:task.taskId,externalId:task.externalId,name:task.name,date:task.requestedStart});
+          manualConflicts.push({
+            taskId:task.taskId,externalId:task.externalId,name:task.name,date:task.requestedStart,
+            reason:"CALENDAR",predecessorExternalIds:[],
+          });
           continue;
         }
         throw error;
       }
     }
-    const after=manualConflicts.length===0?recalculateHierarchy(staged,calendar):staged;
+
+    let dependencyTasks=staged;
+    const dependencyChanges=new Map<string,{predecessorExternalIds:readonly string[]}>();
+    if(manualConflicts.length===0) {
+      try {
+        const dependencyResult=recalculateFinishStartDependencies(staged,linkDtos(links,tasks),calendar);
+        dependencyTasks=dependencyResult.tasks.map((task)=>({...task}));
+        for(const change of dependencyResult.changes) {
+          dependencyChanges.set(change.taskId,{predecessorExternalIds:change.predecessorExternalIds});
+        }
+        const namesByTaskId=new Map(before.map((task)=>[task.taskId,task.name]));
+        for(const conflict of dependencyResult.manualConflicts) {
+          manualConflicts.push({
+            taskId:conflict.taskId,externalId:conflict.externalId,
+            name:namesByTaskId.get(conflict.taskId)??conflict.externalId,
+            date:conflict.requiredStart,reason:"DEPENDENCY",
+            predecessorExternalIds:[...conflict.predecessorExternalIds],
+          });
+        }
+      } catch(error) {
+        mapDependencySchedulingError(error);
+      }
+    }
+
+    const after=manualConflicts.length===0?recalculateHierarchy(dependencyTasks,calendar):dependencyTasks;
     const afterById=new Map(after.map((task)=>[task.taskId,task]));
     const changedTasks:CalendarTaskChangeDto[]=[];
     for(const original of before) {
       const changed=afterById.get(original.taskId);
       if(!changed) continue;
       if(original.start!==changed.start || original.end!==changed.end) {
+        const reasons:CalendarTaskChangeDto["reasons"]=[];
+        const dependency=dependencyChanges.get(original.taskId);
+        if(original.type==="summary") reasons.push("SUMMARY");
+        else {
+          if(calendarChangedTaskIds.has(original.taskId)) reasons.push("CALENDAR");
+          if(dependency) reasons.push("DEPENDENCY");
+        }
         changedTasks.push({
           taskId:original.taskId,externalId:original.externalId,name:original.name,
           beforeStart:original.start,beforeEnd:original.end,afterStart:changed.start,afterEnd:changed.end,
+          reasons:reasons.length>0?reasons:["CALENDAR"],
+          dependencyPredecessorExternalIds:dependency?[...dependency.predecessorExternalIds]:[],
         });
       }
     }
     return {
       candidateRules,
       afterTasks:[...after],
-      response:{data:{
-        projectRevision,
-        calendar:{projectRevision,rules,projectDates},
-        changedTasks,
-        manualConflicts,
-      }},
+      response:{data:{projectRevision,calendar:{projectRevision,rules,projectDates},changedTasks,manualConflicts}},
     };
   }
 
