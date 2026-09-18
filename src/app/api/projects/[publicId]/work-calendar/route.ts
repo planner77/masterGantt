@@ -12,7 +12,10 @@ interface RouteContext { params:Promise<{publicId:string}> }
 export async function GET(request:Request,context:RouteContext):Promise<Response> {
   const {publicId}=await context.params;
   return withApiRequestLogging(request,{route:ROUTE,trustProxy:process.env.TRUST_PROXY},(requestId)=>
-    handleGetProjectWorkCalendar(publicId,{calendarService:getWorkCalendarService,requestId:()=>requestId}),
+    handleGetProjectWorkCalendar(request,publicId,{
+      calendarService:getWorkCalendarService,projectService:getProjectService,
+      ...readApplicationConfiguration(process.env),requestId:()=>requestId,
+    }),
   );
 }
 export async function PUT(request:Request,context:RouteContext):Promise<Response> {
