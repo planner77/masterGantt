@@ -223,7 +223,6 @@ export class WorkCalendarService {
   }
 
   private materialize(
-    projectId:number,
     input:ReplaceProjectWorkCalendarRequest,
     tasks:readonly TaskRecord[],
   ):CandidateRule[] {
@@ -259,8 +258,10 @@ export class WorkCalendarService {
         effectiveTo=parseDateOnly(raw.effectiveTo,"effectiveTo");
         if(effectiveFrom>effectiveTo) throw new WorkCalendarInvalidInputError();
       }
-      const rangeFrom=effectiveFrom??projectFrom;
-      const rangeTo=effectiveTo??projectTo;
+      const logicalFrom=effectiveFrom??projectFrom;
+      const logicalTo=effectiveTo??projectTo;
+      const rangeFrom=raw.scope==="FULL_PROJECT" ? `${dateYear(logicalFrom)}-01-01` : logicalFrom;
+      const rangeTo=raw.scope==="FULL_PROJECT" ? `${dateYear(logicalTo)}-12-31` : logicalTo;
       const datasets=yearRange(rangeFrom,rangeTo).map((year)=>{
         const dataset=getCountryCalendarDataset(raw.countryCode,year);
         if(!dataset) throw new WorkCalendarCountryUnavailableError(raw.countryCode,year);
@@ -312,7 +313,7 @@ export class WorkCalendarService {
     const tasks=this.schedules.listTasks(projectId);
     const links=this.schedules.listLinks(projectId);
     if(links.length>0) throw new WorkCalendarScheduleStructureUnsupportedError();
-    const candidateRules=this.materialize(projectId,input,tasks);
+    const candidateRules=this.materialize(input,tasks);
     const rules=candidateRules.map((candidate)=>candidate.dto);
     const projectDates=aggregateProjectDates(
       rules,
