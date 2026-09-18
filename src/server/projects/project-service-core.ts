@@ -24,6 +24,7 @@ import type {
 import {
   recalculateHierarchy,
   scheduleLeaf,
+  type WorkingCalendar,
 } from "../../domain/scheduling";
 import {
   EditSessionRepository,
@@ -411,7 +412,7 @@ function validPersistedExternalId(value: string): boolean {
 
 function validatePersistedLeafSchedules(
   tasks: readonly TaskRecord[],
-  calendar: ReturnType<typeof createWorkingCalendar>,
+  calendar: WorkingCalendar,
 ): void {
   try {
     for (const task of tasks) {
@@ -456,7 +457,7 @@ function validatePersistedLeafSchedules(
 
 export function recalculatePersistedHierarchy(
   tasks: readonly TaskRecord[],
-  calendar: ReturnType<typeof createWorkingCalendar>,
+  calendar: WorkingCalendar,
 ) {
   try {
     validatePersistedLeafSchedules(tasks, calendar);
@@ -586,7 +587,7 @@ export class ProjectService {
   private applySummaryDerivations(
     projectId: number,
     tasks: readonly TaskRecord[],
-    calendar: ReturnType<typeof createWorkingCalendar>,
+    calendar: WorkingCalendar,
     updatedAt: string,
   ): string[] {
     const derived = recalculateHierarchy(taskDtos([...tasks]), calendar);
