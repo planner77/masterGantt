@@ -65,13 +65,62 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   await expect(projectLink.locator("xpath=ancestor::tr")).toContainText("브라우저 통합 검증 프로젝트");
   await expect(projectLink.locator("xpath=ancestor::tr")).toContainText(E2E_PROJECT_OWNER);
   const listActionTrigger = projectLink.locator("xpath=ancestor::tr").getByRole("button", { name: `${name} 프로젝트 작업`, exact: true });
+
+  for (const width of [390, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    const documentOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+    expect(documentOverflow).toBe(false);
+    await listActionTrigger.click();
+    const responsiveMenu = page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
+    await expect(responsiveMenu).toBeVisible();
+    const menuBox = await responsiveMenu.boundingBox();
+    expect(menuBox).not.toBeNull();
+    expect(menuBox!.x).toBeGreaterThanOrEqual(0);
+    expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(width);
+    expect(menuBox!.y).toBeGreaterThanOrEqual(0);
+    expect(menuBox!.y + menuBox!.height).toBeLessThanOrEqual(900);
+    const menuItems = responsiveMenu.getByRole("menuitem");
+    await expect(menuItems).toHaveCount(3);
+    await expect(menuItems.nth(0)).toHaveText("프로젝트 복사");
+    await expect(menuItems.nth(0)).toBeFocused();
+    await page.keyboard.press("ArrowDown");
+    await expect(menuItems.nth(1)).toBeFocused();
+    await page.keyboard.press("End");
+    await expect(menuItems.nth(2)).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(responsiveMenu).toHaveCount(0);
+    await expect(listActionTrigger).toBeFocused();
+  }
+
+  await page.setViewportSize({ width: 1440, height: 900 });
   await listActionTrigger.click();
-  const listMenu = page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
+  let listMenu = page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
   await expect(listMenu).toBeVisible();
+  await page.getByRole("heading", { name: "프로젝트", exact: true }).click();
+  await expect(listMenu).toHaveCount(0);
+
+  await listActionTrigger.click();
+  listMenu = page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
   await listMenu.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true }).click();
   await expect(page.getByTestId("workspace-toast")).toContainText("프로젝트 링크를 복사했습니다");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(detailCopiedUrl);
   await expect(page).toHaveURL(new URL("/", directUrl).href);
+
+  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: {
+    writeText: async () => { throw new DOMException("Denied", "NotAllowedError"); },
+  } }));
+  await listActionTrigger.click();
+  listMenu = page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
+  await listMenu.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true }).click();
+  const fallbackDialog = page.getByRole("dialog", { name: "프로젝트 링크 수동 복사", exact: true });
+  await expect(fallbackDialog).toBeVisible();
+  await expect(fallbackDialog.getByLabel("프로젝트 바로 가기 URL")).toHaveValue(detailCopiedUrl);
+  await expect(listMenu).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await expect(fallbackDialog).toHaveCount(0);
+  await expect(listMenu).toHaveCount(0);
+  await expect(listActionTrigger).toBeFocused();
+
   await page.reload();
   await expect(page.getByRole("link", { name: new RegExp(name) })).toBeVisible();
   await projectLink.click(); await page.waitForURL(directUrl);
