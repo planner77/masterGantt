@@ -15,16 +15,20 @@ Grid 또는 Chart에서 여는 기존 Task Editor에 현재 작업의 **선행 �
 
 ## Revision 일관성
 
-Task Editor가 열린 뒤 프로젝트가 다른 곳에서 변경될 수 있으므로 관계 목록만 최신 snapshot으로 조용히 교체하지 않는다. Editor가 관계 조회를 수행할 때 canonical GET snapshot의 project revision이 Editor session의 기준 revision과 정확히 같은 경우에만 목록을 채택한다. revision이 달라졌거나 기준 작업의 ID/externalId가 달라졌으면 충돌 상태로 전환하여 저장을 막고 **최신 정보 다시 불러오기**를 요구한다.
+Issue #80부터 Task Editor는 관계만을 위해 Project snapshot을 다시 조회하지 않는다. `ProjectWorkspace`가 화면과 Gantt에 사용 중인 동일 canonical `tasks + links + revision`을 Editor에 전달하고, Editor session revision과 현재 Project revision이 일치할 때만 `buildTaskRelations()` 결과를 표시한다.
 
-최신 정보 다시 불러오기가 성공하면 작업 필드와 관계를 새 revision 기준으로 함께 다시 조회한다. 이 방식으로 Editor가 서로 다른 revision의 작업 필드와 관계를 혼합해 보여주지 않도록 한다.
+Editor가 열린 뒤 다른 변경으로 revision이 달라지면 기존 stale 보호 계약에 따라 저장을 막고 **최신 정보 다시 불러오기**를 요구한다. 재조회 성공 시 상위 canonical snapshot과 Editor task session이 함께 새 revision으로 갱신되므로 서로 다른 revision의 작업 필드와 관계를 혼합하지 않는다.
+
+이 구조는 reverse proxy/base path에서 `window.location.pathname`을 다시 해석하거나 관계 전용 `GET /api/projects/{publicId}`를 호출할 필요가 없다.
 
 ## 구현 구조
 
 - `src/features/gantt/task-relations.ts`: 링크 방향 판정, 상대 작업 resolve, 표시 모델 생성, 관계 유형 표시 문자열.
-- `src/features/gantt/project-task-editor.tsx`: 관계 snapshot 조회·revision 검증·조회 전용 UI.
+- `src/features/projects/project-readonly-view.tsx`: 동일 canonical `tasks + links + revision`을 Task Editor에 전달.
+- `src/features/gantt/project-task-editor.tsx`: 전달된 canonical snapshot으로 관계를 계산하고 조회 전용 UI를 표시.
 - `src/features/gantt/project-task-editor.module.css`: 선행/후행 목록 레이아웃과 작은 화면 overflow 처리.
-- `tests/features/gantt/task-relations.test.ts`: 방향 판정, 동일 이름, 무관계, dangling reference, 유형 표시 회귀 테스트.
+- `tests/features/gantt/task-relations.test.ts`: 방향 판정, 동일 이름, 무관계, dangling reference, multiple/type/lag 회귀 테스트.
+- `tests/e2e/project-task-editor.spec.ts`: Grid/Chart 더블클릭, Context Menu → Edit, Readonly 및 추가 Project GET/mutation 부재 회귀 테스트.
 
 기존 Grid/Chart/context-menu 진입점은 동일 `ProjectTaskEditor`를 사용하므로 별도의 메뉴 동작이나 SVAR mutation 계약을 변경하지 않는다. 서버 API·DB schema·링크 생성 규칙도 변경하지 않는다.
 
