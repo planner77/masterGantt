@@ -28,7 +28,7 @@ interface Fixture {
   failReads: boolean;
 }
 
-async function setup(page: Page, options: { editable?: boolean; links?: boolean } = {}): Promise<Fixture> {
+async function setup(page: Page, options: { editable?: boolean; links?: boolean; assignmentTargets?: boolean } = {}): Promise<Fixture> {
   await page.clock.setFixedTime(new Date("2026-09-16T12:00:00Z"));
   const fixture: Fixture = {
     project: { publicId, name: "Task Editor fixture", description: "Issue #4", revision: 20, calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [{ date: "2026-09-21", name: "Fixture holiday" }] } },
@@ -42,6 +42,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean 
     links: options.links ? [{ id: id(90), predecessorExternalId: "EDITOR-3", successorExternalId: "EDITOR-4", type: "FS", lag: 0 }] : [],
     editable: options.editable ?? true, patches: [], nextFailure: null, gate: null, failReads: false,
   };
+  const assignmentTargets = options.assignmentTargets ? [{ kind: "resource" as const, id: id(70), name: "Resource A", code: "RES-A", active: true }] : [];
   const snapshot = () => ({ data: { project: fixture.project, tasks: fixture.tasks, links: fixture.links, permission: "readonly" } });
   await page.route("**/api/projects/**", async (route) => {
     const request = route.request();
@@ -51,11 +52,11 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean 
       return;
     }
     if (path === `${apiPath}/assigned-targets` && request.method() === "GET") {
-      await route.fulfill({ json: { data: { projectRevision: fixture.project.revision, catalogRevision: 1, assignments: [], targets: [] } } });
+      await route.fulfill({ json: { data: { projectRevision: fixture.project.revision, catalogRevision: 1, assignments: [], targets: assignmentTargets } } });
       return;
     }
     if (path === `${apiPath}/assignment-targets` && request.method() === "GET") {
-      await route.fulfill({ json: { data: { catalogRevision: 1, targets: [] } } });
+      await route.fulfill({ json: { data: { catalogRevision: 1, targets: assignmentTargets } } });
       return;
     }
     if (path === apiPath && request.method() === "GET") {
@@ -416,4 +417,54 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(fixture.patches[0].postDataJSON()).toEqual({ name: "Updated milestone", start: "2026-09-22" });
     expect(fixture.tasks.find((entry) => entry.taskId === id(5))).toMatchObject({ start: "2026-09-22", end: "2026-09-22", duration: 0 });
   });
+
+  test("Issue #74 탭 구조는 초안을 보존하고 키보드 탐색과 좁은 화면을 지원한다", async ({ page }) => {
+    const fixture = await setup(page, { assignmentTargets: true });
+    await openRow(page);
+
+    const dialog = editor(page);
+    const taskTab = dialog.getByRole("tab", { name: "작업 정보", exact: true });
+    const resourceTab = dialog.getByRole("tab", { name: /리소스/ });
+    const relationTab = dialog.getByRole("tab", { name: /관계/ });
+
+    await expect(taskTab).toHaveAttribute("aria-selected", "true");
+    await dialog.getByLabel("작업명", { exact: true }).fill("탭 전환 초안");
+
+    await taskTab.focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(resourceTab).toBeFocused();
+    await expect(resourceTab).toHaveAttribute("aria-selected", "true");
+    await expect(dialog.getByRole("tabpanel", { name: /리소스/ })).toBeVisible();
+
+    const resourceSearch = dialog.getByLabel("검색", { exact: true });
+    await resourceSearch.fill("resource");
+    await resourceSearch.press("Enter");
+    await expect(dialog).toBeVisible();
+    await expect(resourceTab).toHaveAttribute("aria-selected", "true");
+    expect(fixture.patches).toHaveLength(0);
+
+    await resourceTab.focus();
+    await page.keyboard.press("End");
+    await expect(relationTab).toBeFocused();
+    await expect(relationTab).toHaveAttribute("aria-selected", "true");
+
+    await page.keyboard.press("Home");
+    await expect(taskTab).toBeFocused();
+    await expect(dialog.getByLabel("작업명", { exact: true })).toHaveValue("탭 전환 초안");
+    expect(fixture.patches).toHaveLength(0);
+
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 768, height: 900 }, { width: 360, height: 800 }]) {
+      await page.setViewportSize(viewport);
+      const overflow = await dialog.evaluate((element) => ({
+        own: element.scrollWidth - element.clientWidth,
+        body: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      }));
+      expect(overflow.own).toBeLessThanOrEqual(1);
+      expect(overflow.body).toBeLessThanOrEqual(1);
+      await expect(dialog.getByRole("button", { name: "최신 정보 다시 불러오기" })).toBeVisible();
+      await expect(dialog.getByRole("button", { name: "취소", exact: true })).toBeVisible();
+      await expect(save(page)).toBeVisible();
+    }
+  });
+
 });

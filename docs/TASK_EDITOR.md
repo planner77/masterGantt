@@ -70,3 +70,18 @@ PR #16의 초기 시간축 범위 확대 및 canonical sync 종료 시점 입력
 Cut은 선택 Task를 즉시 삭제하거나 이동하지 않는다. Copy와 함께 현재 Project revision을 포함한 client clipboard만 만든다. Paste는 `POST /api/projects/{publicId}/task-commands`를 호출하며 Cut은 `reparent`, Copy는 `copy` 명령으로 변환한다. 성공 응답의 canonical snapshot만 동일 Gantt instance에 동기화하고 revision 변경 시 기존 clipboard는 폐기한다. Canonical snapshot의 parent/sibling 구조 변경은 SVAR의 공개 `move-task` action으로 반영하고, 일반 `update-task`에 parent를 직접 덮어쓰지 않는다. 이 규칙은 hierarchy 변경 뒤 recovery remount 없이 동일 Gantt instance를 유지하기 위한 회귀 계약이다. Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D는 input/textarea/dialog/contenteditable 밖의 실제 Task target에서만 동작한다.
 
 Leaf→Summary는 빈 Summary를 영속화하지 않는 기존 모델 때문에 직접 변환 항목을 비활성화한다. Task↔Milestone은 자식이 없는 Leaf에서만 허용한다. Task를 child parent로 사용하는 Add/Indent/Paste는 기존 first-child 정책과 동일하게 해당 Task를 transaction 안에서 Summary로 전환한다. subtree Copy에 Resource Assignment가 존재하면 조용히 누락하지 않고 현재 단계에서는 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 거부한다.
+
+
+## Issue #74 — 탭 기반 Task Editor UX
+
+기존 서버 권위 저장·revision·권한 계약은 유지하면서 정보 구조만 재설계한다. Editor는 **작업 정보 / 리소스 / 관계** 3개 탭을 사용하며 최초 진입은 작업 정보다. 탭 전환은 mutation을 발생시키지 않고 패널 상태를 DOM에 유지해 작업 초안과 리소스 입력 상태를 보존한다.
+
+- Desktop modal은 최대 70rem 범위에서 가용 폭을 사용하고 Header/Tab/Footer는 고정된 구조로 유지한다. 스크롤은 active tab body에서만 발생한다.
+- 작업 정보 탭은 작업명, 일정 필드, 진행률, Description, URL을 우선 배치하고 서버 확정 정보는 secondary metadata 영역으로 분리한다.
+- 리소스 탭은 검색·유형·할당됨 필터와 선택 우선 정렬을 제공한다. Resource/Group 유형과 active 상태를 text/badge로 함께 표시하며 색상만으로 상태를 전달하지 않는다.
+- 관계 탭은 wide 화면에서 선행/후행 2열, narrow 화면에서 1열로 표시하며 기존 조회 전용 계약을 유지한다.
+- Footer의 최신 정보 재조회는 좌측 tertiary 성격, 취소/저장은 우측 action group이며 저장만 primary다. stale/revision conflict 시 기존처럼 저장을 차단한다.
+- 탭은 WAI-ARIA `tablist/tab/tabpanel` 역할과 Arrow Left/Right, Home/End 이동을 지원한다. Escape/dirty confirmation/focus restore 계약은 기존 편집기 흐름을 유지한다.
+- Task 저장과 Assignment 저장은 원자적으로 통합하지 않는다. Task draft가 dirty/stale이면 Assignment 편집을 잠그고 저장 범위를 화면에서 설명한다.
+
+검증은 `task-editor-view-model.test.ts`의 keyboard navigation 단위 테스트와 `project-task-editor.spec.ts`의 탭 전환·초안 보존·반응형 overflow 회귀를 포함하며, 전체 공식 판정은 PR GitHub Actions quality/e2e/docker를 따른다.

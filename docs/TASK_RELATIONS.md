@@ -37,3 +37,8 @@ Task Editor가 열린 뒤 프로젝트가 다른 곳에서 변경될 수 있으�
 5. 관계 조회 snapshot revision이 Editor 기준과 다르면 stale 관계를 표시하지 않고 충돌 처리한다.
 6. 기존 저장, dirty draft, 재조회, readonly/linked-task 보호 계약을 유지한다.
 7. CI의 typecheck, lint, unit/integration, Chromium E2E, Docker smoke를 모두 통과해야 병합한다.
+
+
+## Issue #74 표시 구조 보완
+
+관계 데이터 계약과 revision 검증은 변경하지 않는다. Task Editor의 관계 정보는 별도 `관계` 탭으로 이동하며 탭에는 현재 선행+후행 관계 건수를 표시한다. wide 화면은 선행/후행을 2열로, 768px 이하에서는 1열로 stack한다. dangling reference, loading, error, empty 상태의 기존 의미와 경고 표현은 유지한다.
