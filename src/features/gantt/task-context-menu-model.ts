@@ -59,8 +59,7 @@ export function taskContextCapabilities(
     canMoveUp: available && index > 0,
     canMoveDown: available && index >= 0 && index < siblings.length - 1,
     canIndent: available && index > 0,
-    canOutdent: available && task.parentExternalId !== null &&
-      siblings.length > 1,
+    canOutdent: available && task.parentExternalId !== null,
     canPaste: available && clipboard !== null && clipboard.taskId !== task.taskId,
     canConvertToTask: available && task.type === "milestone" && !hasChildren,
     canConvertToMilestone: available && task.type === "task" && !hasChildren,
