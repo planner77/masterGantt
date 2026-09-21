@@ -252,7 +252,7 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
             <summary>서버 확정 정보</summary>
             <dl className={styles.confirmed}>
               <dt>요청 시작일</dt><dd>{base.task.requestedStart ?? "하위 작업 기준"}</dd>
-              <dt>확정 종료일</dt><dd><output>{base.task.end}</output></dd>
+              <dt>확정 종료일</dt><dd>{base.task.end}</dd>
               <dt>기준 Revision</dt><dd>{base.revision}</dd>
             </dl>
           </details>
@@ -305,7 +305,7 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
           <span aria-hidden="true">↻</span><span>최신 정보 다시 불러오기</span>
         </button>
         <div className={styles.footerActions}>
-          <button className="secondary-button" type="button" disabled={locked} onClick={close}>{restriction ? "닫기" : "취소"}</button>
+          <button className="secondary-button" type="button" disabled={locked} onClick={close}>{"취소"}</button>
           {!restriction ? <button className="primary-button" type="submit" disabled={locked || stale || confirmation !== null}>{operation === "save" ? "저장 중…" : "저장"}</button> : null}
         </div>
       </footer>
