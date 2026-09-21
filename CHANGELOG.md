@@ -10,6 +10,7 @@
 
 - Issue #72: 편집 권한이 있는 Grid/Chart 작업의 우클릭 메뉴를 SVAR Willow 기본 작업 흐름에 맞춰 Add, Convert to, Edit, Cut, Copy, Paste, Move, Indent, Outdent, Delete로 확장한다.
 - `POST /api/projects/{publicId}/task-commands`를 추가해 생성 위치 지정, 형식 변환, sibling 재정렬, indent/outdent, cut-paste reparent, subtree copy를 서버 권위의 단일 transaction으로 처리한다.
+- Canonical hierarchy 동기화는 SVAR 공개 `move-task` action을 사용해 parent/sibling 변경을 반영하며, 구조 변경 중 불필요한 Gantt recovery remount를 방지한다.
 - Ctrl/Cmd+X, Ctrl/Cmd+C, Ctrl/Cmd+V와 Delete/Backspace/Ctrl+D 작업 단축키를 추가한다.
 
 ### Changed
