@@ -167,7 +167,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
     {!loading && targets.length > 0 ? <div className={styles.assignmentFilters}>
       <label className={styles.searchField}>
         <span>검색</span>
-        <input type="search" value={query} placeholder="이름 또는 코드" onChange={(event) => setQuery(event.target.value)} />
+        <input type="search" value={query} placeholder="이름 또는 코드" onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }} />
       </label>
       <label className={styles.filterField}>
         <span>유형</span>
