@@ -51,6 +51,19 @@ describe("task context menu model", () => {
     });
   });
 
+  it("allows outdent for the only child because parent presence is the hierarchy boundary", () => {
+    const tasks = [
+      task("a", "A", null, 0, "summary"),
+      task("a1", "A1", "A", 0),
+    ];
+
+    expect(taskContextCapabilities(tasks, "a1", true, false, false, null)).toMatchObject({
+      canMoveUp: false,
+      canMoveDown: false,
+      canOutdent: true,
+    });
+  });
+
   it("fails closed for readonly, busy, links and stale/empty clipboard targets", () => {
     const tasks = [task("a", "A", null, 0), task("b", "B", null, 1)];
     expect(taskContextCapabilities(tasks, "a", false, false, false, null).canMoveDown).toBe(false);
