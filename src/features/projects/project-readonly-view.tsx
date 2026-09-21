@@ -1,9 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
+import { ProjectExcelExportButton } from "@/features/projects/project-excel-export-button";
 import { ProjectWorkCalendarEditor } from "@/features/projects/project-work-calendar-editor";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
@@ -15,6 +16,7 @@ import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
 import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSession } from "@/features/gantt/task-editor-model";
 import { createTaskDeletePlan, type TaskDeletePlan } from "@/features/gantt/task-delete-model";
 import { findTaskContextElement } from "@/features/gantt/task-context-target";
+import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
 import { todayLocalDateString } from "@/lib/date-display";
 
 const ProjectGantt = dynamic(
@@ -73,14 +75,14 @@ function snapshotFromTaskMutation(value: unknown): ProjectSnapshotResponse | nul
   return { data: { project: data.project, tasks: data.tasks, links: data.links, permission: "readonly" } };
 }
 
-type ProjectViewProps = Readonly<{ publicId: string; projectUrl?: string | null }>;
-export function ProjectReadonlyView({ publicId, projectUrl = null }: ProjectViewProps) {
+type ProjectViewProps = Readonly<{ publicId: string; projectUrl?: string | null; ownerName: string }>;
+export function ProjectReadonlyView({ publicId, projectUrl = null, ownerName }: ProjectViewProps) {
   return <WorkspaceNotifications key={publicId} scope={`프로젝트 ${publicId}`}>
-    <ProjectWorkspace publicId={publicId} projectUrl={projectUrl} />
+    <ProjectWorkspace publicId={publicId} projectUrl={projectUrl} ownerName={ownerName} />
   </WorkspaceNotifications>;
 }
 
-function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
+function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectViewProps) {
   const { notify, clearToast } = useWorkspaceNotifications();
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [permission, setPermission] = useState<Permission>("readonly");
@@ -94,6 +96,8 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSavingTask, setIsSavingTask] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [unlockOpen, setUnlockOpen] = useState(false);
+  const [activeView, setActiveView] = useState<"schedule" | "resources">("schedule");
   const [ganttResetGeneration, setGanttResetGeneration] = useState(0);
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
@@ -103,6 +107,10 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
   const deleteTriggerReference = useRef<HTMLElement | null>(null);
+  const unlockTriggerReference = useRef<HTMLButtonElement | null>(null);
+  const scheduleTabReference = useRef<HTMLButtonElement | null>(null);
+  const resourceTabReference = useRef<HTMLButtonElement | null>(null);
+  const actionMenuReference = useRef<HTMLDetailsElement | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -145,7 +153,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
 
   function beginRefresh(clearNotice: boolean) {
     if (clearNotice) clearToast();
-    setSettingsOpen(false); setPendingTaskDelete(null); setPermission("readonly"); setPermissionCheckState("checking");
+    setSettingsOpen(false); setUnlockOpen(false); setPendingTaskDelete(null); setPermission("readonly"); setPermissionCheckState("checking");
     setState({ status: "loading" }); setRetryKey((key) => key + 1);
   }
   function applySnapshot(value: unknown): boolean {
@@ -409,6 +417,22 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
     if (Object.keys(command.payload).length > 0) void saveTask("PATCH", command.taskId, command.payload);
   }
 
+  function activateWorkspaceView(view: "schedule" | "resources") {
+    setActiveView(view);
+    requestAnimationFrame(() => {
+      (view === "schedule" ? scheduleTabReference.current : resourceTabReference.current)?.focus({ preventScroll: true });
+    });
+  }
+  function handleWorkspaceTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, current: "schedule" | "resources") {
+    let next: "schedule" | "resources" | null = null;
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") next = current === "schedule" ? "resources" : "schedule";
+    else if (event.key === "Home") next = "schedule";
+    else if (event.key === "End") next = "resources";
+    if (!next) return;
+    event.preventDefault();
+    activateWorkspaceView(next);
+  }
+
   if (state.status === "loading") return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>프로젝트 정보를 불러오는 중입니다.</p></section>;
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
   if (state.status === "error") return <section className="status-page" aria-labelledby="project-load-error-heading"><p className="eyebrow">PROJECT</p><h1 id="project-load-error-heading">프로젝트를 불러올 수 없습니다.</h1><p>네트워크 또는 서버 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="secondary-button" onClick={() => beginRefresh(true)} type="button">다시 시도</button></section>;
@@ -417,36 +441,122 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
   const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
   const taskEditingSupported = links.length === 0;
   return <section className="project-readonly" aria-labelledby="project-heading">
-    <div className="project-readonly-heading">
-      <div><p className="eyebrow">PROJECT</p><h1 id="project-heading">{project.name}</h1><p className="page-description">{project.description || "설명이 없습니다."}</p></div>
-      <div className={feedbackStyles.headingActions}>
-        <ProjectLinkButton projectName={project.name} projectUrl={projectUrl} />
-        <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} />
-        {editing ? <button type="button" className="secondary-button" disabled={busy || editorSession !== null || pendingTaskDelete !== null} onClick={() => setSettingsOpen(true)}>프로젝트 설정</button> : null}
-        <span className={editing ? "edit-badge" : "readonly-badge"}>{editing ? "편집 가능" : "읽기 전용"}</span>
+    <header className="project-context-bar">
+      <div className="project-context-identity">
+        <div className="project-title-row">
+          <h1 id="project-heading">{project.name}</h1>
+          <span className={editing ? "edit-badge" : "readonly-badge"}>{editing ? "편집 중" : "읽기 전용"}</span>
+          <details className="project-info-popover">
+            <summary aria-label="프로젝트 정보 보기">정보</summary>
+            <div className="project-info-panel">
+              <dl>
+                <div><dt>설명</dt><dd>{project.description || "설명이 없습니다."}</dd></div>
+                <div><dt>소유자</dt><dd>{ownerName}</dd></div>
+                <div><dt>Revision</dt><dd>{project.revision}</dd></div>
+              </dl>
+            </div>
+          </details>
+        </div>
       </div>
+      <div className="project-context-actions">
+        <ProjectLinkButton projectName={project.name} projectUrl={projectUrl} />
+        <ProjectExcelExportButton publicId={publicId} />
+        <details className="project-action-menu" ref={actionMenuReference}>
+          <summary aria-label="프로젝트 작업 더보기">더보기</summary>
+          <div className="project-action-menu-panel" role="menu">
+            <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} />
+            {editing ? <button
+              type="button"
+              role="menuitem"
+              className="secondary-button"
+              disabled={busy || editorSession !== null || pendingTaskDelete !== null}
+              onClick={() => { actionMenuReference.current?.removeAttribute("open"); setSettingsOpen(true); }}
+            >프로젝트 설정</button> : <button
+              ref={unlockTriggerReference}
+              type="button"
+              role="menuitem"
+              className="secondary-button"
+              disabled={isUnlocking || permissionCheckState === "checking"}
+              onClick={() => { actionMenuReference.current?.removeAttribute("open"); setUnlockOpen(true); }}
+            >{permissionCheckState === "checking" ? "권한 확인 중…" : "편집 활성화"}</button>}
+          </div>
+        </details>
+      </div>
+    </header>
+
+    <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 작업공간">
+      <button
+        ref={scheduleTabReference}
+        id="project-tab-schedule"
+        role="tab"
+        type="button"
+        aria-controls="project-panel-schedule"
+        aria-selected={activeView === "schedule"}
+        tabIndex={activeView === "schedule" ? 0 : -1}
+        onClick={() => setActiveView("schedule")}
+        onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "schedule")}
+      >일정</button>
+      <button
+        ref={resourceTabReference}
+        id="project-tab-resources"
+        role="tab"
+        type="button"
+        aria-controls="project-panel-resources"
+        aria-selected={activeView === "resources"}
+        tabIndex={activeView === "resources" ? 0 : -1}
+        onClick={() => setActiveView("resources")}
+        onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "resources")}
+      >리소스</button>
     </div>
-    {!editing ? <form className="unlock-form" noValidate onSubmit={unlock}>
-      <div className="form-field"><label htmlFor="unlock-edit-password">편집 비밀번호</label>
-        <input autoComplete="current-password" disabled={isUnlocking || permissionCheckState === "checking"} id="unlock-edit-password" onChange={(event) => setUnlockPassword(event.target.value)} type="password" value={unlockPassword} /></div>
-      <button className="primary-button" disabled={isUnlocking || permissionCheckState === "checking"} type="submit">{isUnlocking ? "확인 중…" : permissionCheckState === "checking" ? "권한 확인 중…" : "편집 잠금 해제"}</button>
-    </form> : null}
-    <section aria-busy={isSavingTask || undefined} className="project-schedule" aria-labelledby="schedule-heading">
-      <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{tasks.length === 0 ? "아직 등록된 작업이 없습니다." : "서버의 최신 일정 snapshot을 표시합니다."}</p></div>
-        {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}</div>
-      {editing && !taskEditingSupported ? <p className="schedule-scope-note">연결이 있는 일정 편집은 다음 단계에서 지원합니다. 현재 일정은 읽기 전용으로 표시됩니다.</p> : null}
-      <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing && taskEditingSupported} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
-        onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
-        onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
-        onTaskEditorOpen={openTaskEditor} onTaskDeleteRequest={requestTaskDelete} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
-          const visibleColumnCount = Object.values(current).filter(Boolean).length;
-          if (current[columnId] && visibleColumnCount === 1) return current;
-          return { ...current, [columnId]: !current[columnId] };
-        })} tasks={tasks} />
-      {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
-        latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} revision={project.revision}
-        editable={editing} hasLinks={links.length > 0} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
-    </section>
+
+    <div className="project-workspace-panels">
+      <section
+        id="project-panel-schedule"
+        role="tabpanel"
+        aria-labelledby="project-tab-schedule"
+        hidden={activeView !== "schedule"}
+        aria-busy={isSavingTask || undefined}
+        className="project-schedule project-workspace-panel"
+      >
+        <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{tasks.length === 0 ? "아직 등록된 작업이 없습니다." : "서버의 최신 일정 snapshot을 표시합니다."}</p></div>
+          {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}</div>
+        {editing && !taskEditingSupported ? <p className="schedule-scope-note">연결이 있는 일정 편집은 다음 단계에서 지원합니다. 현재 일정은 읽기 전용으로 표시됩니다.</p> : null}
+        <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing && taskEditingSupported} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
+          onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
+          onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
+          onTaskEditorOpen={openTaskEditor} onTaskDeleteRequest={requestTaskDelete} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
+            const visibleColumnCount = Object.values(current).filter(Boolean).length;
+            if (current[columnId] && visibleColumnCount === 1) return current;
+            return { ...current, [columnId]: !current[columnId] };
+          })} tasks={tasks} />
+        {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
+          latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} revision={project.revision}
+          editable={editing} hasLinks={links.length > 0} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
+      </section>
+      <section
+        id="project-panel-resources"
+        role="tabpanel"
+        aria-labelledby="project-tab-resources"
+        hidden={activeView !== "resources"}
+        className="project-workspace-panel project-resource-panel"
+      >
+        <ProjectResourceWorkload publicId={publicId} />
+      </section>
+    </div>
+
+    {unlockOpen && !editing ? <WorkspaceDialog
+      title="편집 활성화"
+      restoreFocusRef={unlockTriggerReference}
+      busy={isUnlocking}
+      onClose={() => { if (!isUnlocking) { setUnlockOpen(false); setUnlockPassword(""); } }}
+    >
+      <form className="project-form compact-form" noValidate onSubmit={unlock}>
+        <p>편집 비밀번호를 확인한 뒤 현재 브라우저 세션에서 편집 모드를 활성화합니다.</p>
+        <div className="form-field"><label htmlFor="unlock-edit-password">편집 비밀번호</label>
+          <input autoFocus autoComplete="current-password" disabled={isUnlocking || permissionCheckState === "checking"} id="unlock-edit-password" onChange={(event) => setUnlockPassword(event.target.value)} type="password" value={unlockPassword} /></div>
+        <button className="primary-button" disabled={isUnlocking || permissionCheckState === "checking"} type="submit">{isUnlocking ? "확인 중…" : "편집 활성화"}</button>
+      </form>
+    </WorkspaceDialog> : null}
     {pendingTaskDelete ? <WorkspaceDialog title="작업 삭제" restoreFocusRef={deleteTriggerReference} busy={isSavingTask}
       onClose={() => { if (!isSavingTask) setPendingTaskDelete(null); }}>
       <div className="project-form compact-form">
