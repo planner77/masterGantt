@@ -31,7 +31,9 @@ ui_ux와 qa_docs는 읽기 중심으로 결과를 반환한다. 설계 문서 �
 
 새 세션에서 프로젝트 설정이 로드되고 ui_ux가 선택 가능한지, 실제 model/effort와 read-only 경계, 위임/반환/종료를 확인해야 한다. 설정/정적 검사만으로 model access나 독립 실행을 입증하지 않는다. 읽기 전용 sandbox가 connector 쓰기 권한까지 강제한다고 가정하지 않는다.
 
-현재 변경은 지침/Agent 설정만의 변경이며 application version, source/API/DB, workflow/권한, 정식 release를 변경하지 않는다. 정적 검사·PR CI·main 임시 GHCR·실제 Agent 실행은 별도 상태로 Issue/PR에 기록한다. Sub-Agent 도구가 없는 세션의 순차 검토를 독립 qa_docs 실행으로 표시하지 않는다. 이 문서 작성은 #76의 실제 Workspace 구현 완료가 아니다.
+최초 `c69f0b7` 변경은 지침/Agent 설정만 포함했다. 이후 사용자가 남은 병합·main 검증·브랜치 정리를 요청하여 [Issue #87 한정 cleanup workflow](../.github/workflows/issue-87-branch-cleanup.yml)와 [회귀 스크립트](../scripts/verify-issue-87-cleanup.py)를 추가했다. 따라서 최종 변경을 workflow/권한 변경이 없는 것으로 설명하지 않는다. 신규 cleanup job은 `contents: write`, `actions: read`, `pull-requests: read`를 사용하고 별도 PR validation은 `contents: read`만 사용한다. 대상은 PR #88의 고정 작업 브랜치 하나이며 실제 main CI/GHCR 성공·merge commit·검증 SHA를 확인한 뒤에만 조건부 삭제한다. 기존 `ci.yml`/`release-image.yml`, 제품 version/source/API/DB, Secrets·보호 설정과 정식 release는 변경하지 않는다. 운영 계약은 [CI_CD.md](CI_CD.md) 9절, 검증은 [REMOTE_VALIDATION.md](REMOTE_VALIDATION.md)와 [TEST_PLAN.md](TEST_PLAN.md), 후속 범위는 [ISSUE_87_COMPLETION.md](ISSUE_87_COMPLETION.md)를 따른다.
+
+정적 검사·PR CI·main 임시 GHCR·실제 branch 정리·실제 Agent 실행은 별도 상태로 Issue/PR에 기록한다. Sub-Agent 도구가 없는 세션의 순차 검토를 독립 qa_docs 실행으로 표시하지 않는다. 이 문서 작성은 #76의 실제 Workspace 구현 완료가 아니다.
 
 아래 2026-09-12 절은 기존 결정 이력이다.
 
