@@ -22,6 +22,9 @@ test.describe("Issue #76 Project Workspace UX", () => {
     await page.goto(`/projects/${publicId}`);
     await expect(page.getByRole("heading", { level: 1, name: "Issue 3 stable Gantt fixture" })).toBeVisible();
     await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+    const headerBox = await page.locator(".header-content").boundingBox();
+    expect(headerBox).not.toBeNull();
+    expect(headerBox!.width).toBeGreaterThan(1200);
     await expect(page.getByText("Stateful canonical snapshot fixture", { exact: true })).toHaveCount(0);
 
     await page.getByRole("button", { name: "프로젝트 정보 보기", exact: true }).click();
@@ -68,7 +71,7 @@ test.describe("Issue #76 Project Workspace UX", () => {
     page.off("framenavigated", recordNavigation);
   });
 
-  for (const width of [390, 768, 1024, 1440]) {
+  for (const width of [390, 768, 1024, 1440, 1920]) {
     test(`${width}px에서 document horizontal overflow가 없다`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await installStatefulProjectFixture(page);
