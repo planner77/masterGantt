@@ -61,7 +61,7 @@ test("Issue #77 Context Menu opens without activating a submenu", async ({ page 
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Context initial state ${suffix}`);
   await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Context-password-${suffix}`);
   await submitProjectAndExpectCreated(page);
-  await page.waitForURL(/\\/projects\\/[0-9a-f-]{36}$/);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
 
   const path = new URL(page.url()).pathname;
   const api = `/api${path}`;
