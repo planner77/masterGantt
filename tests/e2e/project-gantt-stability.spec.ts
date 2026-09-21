@@ -1,4 +1,5 @@
 import { expect, test, type Frame, type Request } from "@playwright/test";
+import { submitProjectUnlock } from "./fixtures/isolated-application";
 import { deferred, expectSameGanttRoot, ganttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot, rootAdd, rowNamed, taskPath, waitForAnimationFrame, type PostOutcome } from "../fixtures/stateful-project";
 
 test.describe("Issue #3 stable Gantt instance", () => {
