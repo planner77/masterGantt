@@ -425,6 +425,7 @@ describe("route security inventory", () => {
       "DELETE /api/projects/{publicId}/edit-sessions/current",
       "PUT /api/projects/{publicId}/edit-password",
       "POST /api/projects/{publicId}/tasks",
+      "POST /api/projects/{publicId}/task-commands",
       "PATCH /api/projects/{publicId}/tasks/{taskId}",
       "DELETE /api/projects/{publicId}/tasks/{taskId}",
       "POST /api/resource-catalog/admin-sessions",
@@ -489,6 +490,7 @@ describe("route security inventory", () => {
       "DELETE /api/projects/{publicId}/edit-sessions/current": "origin-and-target-logout",
       "PUT /api/projects/{publicId}/edit-password": "origin-session-if-match",
       "POST /api/projects/{publicId}/tasks": "origin-session-if-match",
+      "POST /api/projects/{publicId}/task-commands": "origin-session-if-match",
       "PATCH /api/projects/{publicId}/tasks/{taskId}": "origin-session-if-match",
       "DELETE /api/projects/{publicId}/tasks/{taskId}": "origin-session-if-match",
     });
