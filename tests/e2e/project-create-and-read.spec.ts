@@ -101,7 +101,7 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
 
   await listActionTrigger.click();
   listMenu = page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
-  await listMenu.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true }).click();
+  await listMenu.getByRole("menuitem", { name: `${name} 프로젝트 링크 복사`, exact: true }).click();
   await expect(page.getByTestId("workspace-toast")).toContainText("프로젝트 링크를 복사했습니다");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(detailCopiedUrl);
   await expect(page).toHaveURL(new URL("/", directUrl).href);
@@ -111,7 +111,7 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   } }));
   await listActionTrigger.click();
   listMenu = page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
-  await listMenu.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true }).click();
+  await listMenu.getByRole("menuitem", { name: `${name} 프로젝트 링크 복사`, exact: true }).click();
   const fallbackDialog = page.getByRole("dialog", { name: "프로젝트 링크 수동 복사", exact: true });
   await expect(fallbackDialog).toBeVisible();
   await expect(fallbackDialog.getByLabel("프로젝트 바로 가기 URL")).toHaveValue(detailCopiedUrl);
@@ -135,9 +135,9 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
     await expect(readonlyActionTrigger).toBeVisible();
     await readonlyActionTrigger.click();
     const readonlyMenu = readonlyPage.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
-    await expect(readonlyMenu.getByRole("link", { name: "프로젝트 복사", exact: true })).toBeVisible();
-    await expect(readonlyMenu.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true })).toBeVisible();
-    await expect(readonlyMenu.getByRole("button", { name: "삭제", exact: true })).toBeVisible();
+    await expect(readonlyMenu.getByRole("menuitem", { name: "프로젝트 복사", exact: true })).toBeVisible();
+    await expect(readonlyMenu.getByRole("menuitem", { name: `${name} 프로젝트 링크 복사`, exact: true })).toBeVisible();
+    await expect(readonlyMenu.getByRole("menuitem", { name: "삭제", exact: true })).toBeVisible();
     await readonlyPage.keyboard.press("Escape");
     await expect(readonlyActionTrigger).toBeFocused();
     await readonlyPage.goto(detailCopiedUrl);
@@ -156,7 +156,7 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   const deleteActionTrigger = row.getByRole("button", { name: `${name} 프로젝트 작업`, exact: true });
   await deleteActionTrigger.click();
   await page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true })
-    .getByRole("button", { name: "삭제", exact: true }).click();
+    .getByRole("menuitem", { name: "삭제", exact: true }).click();
   const deletion = page.getByRole("dialog", { name: "프로젝트 삭제", exact: true });
   await expect(deletion).toContainText(name);
   await expect(deletion).toContainText("모든 일정이 삭제됩니다");
@@ -185,7 +185,7 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
 
   await deleteActionTrigger.click();
   await page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true })
-    .getByRole("button", { name: "삭제", exact: true }).click();
+    .getByRole("menuitem", { name: "삭제", exact: true }).click();
   await deletion.getByLabel("삭제 확인 비밀번호").fill(password);
   await deletion.getByRole("button", { name: "비밀번호 확인 후 삭제" }).click();
   await expect(row).toHaveCount(0);
