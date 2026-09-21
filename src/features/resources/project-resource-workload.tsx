@@ -40,8 +40,28 @@ export function ProjectResourceWorkload({ publicId }: Props) {
   }, [publicId]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/resource-workload`, {
+          credentials: "same-origin",
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        const body: unknown = await response.json().catch(() => null);
+        if (controller.signal.aborted) return;
+        if (!response.ok || !body || typeof body !== "object" || !("data" in body)) {
+          throw new Error("invalid workload response");
+        }
+        setData((body as ResourceWorkloadResponse).data);
+      } catch {
+        if (!controller.signal.aborted) setError("리소스 공수 정보를 불러오지 못했습니다.");
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    })();
+    return () => controller.abort();
+  }, [publicId]);
 
   const overAllocatedCount = data?.groups.reduce(
     (count, group) => count + group.resources.filter((resource) => resource.overAllocated).length,
