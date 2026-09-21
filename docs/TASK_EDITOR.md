@@ -1,4 +1,4 @@
-# Issue #4 / #22 / #31 — 작업 메뉴와 Grid / Chart 작업 정보·삭제
+# Issue #4 / #22 / #31 / #72 — 작업 메뉴와 Grid / Chart 작업 명령
 
 ## 사용 방법과 범위
 
@@ -14,8 +14,8 @@
 | --- | --- | --- |
 | 작업 정보 | 제공 | 기존 보호된 편집기에서 조회/편집 여부를 판단한다. 읽기 전용 프로젝트에도 정보 조회를 제공한다. |
 | 작업 삭제 | 제공 (#31) | Edit·무연결 일정에서 실제 우클릭 taskId를 대상으로 한다. 자손이 있으면 범위 확인 후 `includeDescendants=true`로 원자 삭제한다. |
-| 추가·복제 | 이번 메뉴에서 미제공 | 기존 도구의 존재를 신규 메뉴 명령의 자동 승인으로 해석하지 않는다. |
-| 유형 변환·이동·들여쓰기 | 미제공 | 미지원 또는 별도 승인이 필요한 명령을 활성화하지 않는다. |
+| Add / Cut / Copy / Paste | 제공 (#72) | Cut/Copy는 프로젝트 화면의 clipboard 상태만 갱신하고 Paste 시 서버의 원자 계층 명령을 호출한다. Add는 child/above/below 위치를 명시한다. |
+| Convert / Move / Indent / Outdent | 제공 (#72) | 현재 canonical hierarchy에서 유효한 명령만 활성화하고 서버가 parent/sibling order와 Summary를 재계산한다. 빈 Summary 또는 Link 포함 일정은 fail-closed한다. |
 
 삭제 메뉴는 Readonly·mutation 진행 중·Link가 있는 일정에서는 비활성화한다. 자손 없는 작업은 기존 단건 DELETE, 자손이 있는 작업은 작업명·자손 수·총 삭제 수를 보여주는 확인창을 거쳐 명시적 subtree DELETE를 사용한다. 취소/Escape/닫기는 DELETE 0회이며 확인 시점 revision이 바뀌면 412 후 최신 범위를 다시 확인한다.
 
@@ -62,3 +62,11 @@ mock의 결과는 DB 영속성 증거가 아니며 실제 API 테스트와 구�
 ## 남은 범위
 
 PR #16의 초기 시간축 범위 확대 및 canonical sync 종료 시점 입력 잠금 P2 관측은 별도 검토 대상이다. 이번 편집기 저장 결과가 초기 시간축 밖이면 해당 기존 제약의 영향을 받을 수 있다. #8 HTTP production 지원, #9/#10/#11 UI 변경, 릴리스 #17은 이슈 #4의 구현 범위가 아니다. 이 기능 PR 생성과 CI 성공은 main 병합, 정식 이미지 릴리스 또는 운영 배포를 의미하지 않는다.
+
+## Issue #72 계층 메뉴 계약
+
+편집 권한이 있고 다른 mutation이 진행 중이지 않으며 Dependency Link가 없는 경우 메뉴는 SVAR Willow의 기본 작업 흐름에 맞춰 **Add → Convert to → Edit → Cut/Copy/Paste → Move → Indent/Outdent → Delete** 순서를 제공한다. Readonly에서는 정보 조회(Edit)만 실제 동작하며 mutation 항목은 비활성화한다.
+
+Cut은 선택 Task를 즉시 삭제하거나 이동하지 않는다. Copy와 함께 현재 Project revision을 포함한 client clipboard만 만든다. Paste는 `POST /api/projects/{publicId}/task-commands`를 호출하며 Cut은 `reparent`, Copy는 `copy` 명령으로 변환한다. 성공 응답의 canonical snapshot만 동일 Gantt instance에 동기화하고 revision 변경 시 기존 clipboard는 폐기한다. Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D는 input/textarea/dialog/contenteditable 밖의 실제 Task target에서만 동작한다.
+
+Leaf→Summary는 빈 Summary를 영속화하지 않는 기존 모델 때문에 직접 변환 항목을 비활성화한다. Task↔Milestone은 자식이 없는 Leaf에서만 허용한다. Task를 child parent로 사용하는 Add/Indent/Paste는 기존 first-child 정책과 동일하게 해당 Task를 transaction 안에서 Summary로 전환한다. subtree Copy에 Resource Assignment가 존재하면 조용히 누락하지 않고 현재 단계에서는 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 거부한다.
