@@ -76,7 +76,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   const c = cBody.data.tasks.find((task) => task.name === "Context C")!;
 
   await page.reload();
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
 
