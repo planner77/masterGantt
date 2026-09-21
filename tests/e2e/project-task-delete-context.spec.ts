@@ -48,7 +48,7 @@ test("confirms and atomically deletes the right-clicked task subtree without rem
   const seeded = await grandchildResponse.json() as TaskMutationResponse;
 
   await page.reload();
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
   const row = page.locator(".project-gantt-widget .wx-row", { hasText: "Delete branch" }).first();
