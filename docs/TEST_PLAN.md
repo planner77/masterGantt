@@ -283,3 +283,15 @@ PR #66 최종 검증 기준은 CI Run #350이며 quality, Chromium E2E 50/50, Do
 - **원자성**: Manual dependency conflict에서 Calendar rule/date, Task/Summary, revision이 모두 원상태인지 검증한다.
 - **HTTP/보안**: 기존 edit session, exact Origin, 강한 If-Match, stale 412 계약을 유지하고 cycle/지원 외 graph는 409 structured error를 반환한다.
 - **PR gate**: version/typecheck/lint/test-discovery/Vitest/build, 전체 Chromium E2E, Docker migration/readiness/restart persistence를 기존 gate 완화 없이 실행한다.
+
+## Issue #76 Project Workspace 회귀 검증
+
+- **Global shell**: 1440/wide viewport에서 Header가 기존 75rem cap에 갇히지 않는지, 프로젝트/리소스 active navigation과 global utility 배치가 유지되는지 검증한다.
+- **Compact context**: 프로젝트명과 읽기 전용/편집 중 상태를 항상 표시하고 Description/Owner/Revision은 Info UI에서 조회하며 action 사이에 status badge가 섞이지 않는지 검증한다.
+- **Unlock/Settings**: Readonly password form 상시 노출이 없고 Unlock Dialog의 focus/Escape/restore가 정상이며 기존 edit-session, password rotation, logout, 401/412 계약을 회귀 검증한다.
+- **Workspace tabs**: WAI-ARIA tablist/tab/tabpanel, Arrow Left/Right, Home/End, selected/tabIndex와 일정 기본 view를 검증한다. 일정 ↔ 리소스 반복 전환에서 document navigation/mutation이 없고 동일 Gantt DOM/API instance를 유지하는지 확인한다.
+- **Resource view**: full-width Resource panel, Summary, M/D·M/M·Refresh toolbar, Group → Resource → Task hierarchy, 미설정/과투입 상태 및 M/M 미설정 disabled reason을 검증한다.
+- **Responsive**: 390/768/1024/1440/wide viewport에서 document-level horizontal overflow가 없고 Gantt internal scroll은 유지되는지 검증한다.
+- **Regression**: Gantt add/edit/delete/drag/resize, Project Settings, permission BFCache recheck, share/copy/export, Resource workload API/calculation, canonical snapshot/revision을 기존 CI 전체 회귀에서 함께 검증한다.
+
+PR 완료 조건은 해당 head SHA의 GitHub Actions `quality`, `e2e`, `docker` PASS다. main 병합 후 동일 gate와 임시 `ci-<SHA>` GHCR exact digest smoke를 확인하고, 정식 `v0.21.0` annotated tag release에서는 release candidate/quality/container/publish gate와 GHCR exact SemVer image 검증을 모두 통과해야 한다.
