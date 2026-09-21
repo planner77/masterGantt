@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-09-21
+
+### Changed
+
+- Issue #75: 프로젝트 목록 페이지를 일반 Form 폭과 분리해 최대 100rem의 wide layout으로 확장하고 Header/Table 좌우 기준선을 맞춘다.
+- 프로젝트명을 primary navigation으로 유지하면서 행 작업을 `프로젝트 복사`·`링크 복사`·`삭제`가 포함된 accessible overflow menu로 통합한다.
+- Header/Row typography, divider, hover/focus-within, Description 우선 열 배분과 반응형 horizontal scroll을 정리한다.
+- 기존 링크 복사 fallback과 프로젝트 삭제 재인증/If-Match/오류 처리 계약은 변경하지 않는다.
+- 하위 호환 사용자 UX 확장이므로 Semantic Versioning 정책에 따라 `0.18.0`에서 `0.19.0`으로 증가한다.
+
+
 ## [0.18.0] - 2026-09-21
 
 ### Added
