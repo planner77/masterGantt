@@ -14,7 +14,17 @@
 - 관계 정보는 wide 화면 2열, narrow 화면 1열로 표시하고 관계/할당 건수를 탭과 섹션에서 확인할 수 있게 한다.
 - 하위 호환 사용자 UX 확장이므로 Semantic Versioning 정책에 따라 `0.19.0`에서 `0.20.0`으로 증가한다.
 
+## [0.19.1] - 2026-09-21
 
+### Fixed
+
+- Issue #75 정식 release gate에서 좁은 viewport의 행 작업 버튼을 Playwright가 자동 스크롤한 직후 메뉴를 열면서 지연된 `scroll` 이벤트와 경합하던 E2E 불안정성을 수정한다.
+- 반응형 메뉴 검증은 작업 trigger를 먼저 `scrollIntoViewIfNeeded()`로 안정화하고 두 animation frame 뒤에 메뉴를 열어 실제 사용자 흐름인 ‘스크롤 완료 후 클릭’을 검증한다.
+
+### Changed
+
+- `v0.19.0` annotated tag의 release run #18은 candidate build/GHCR write 이전 Chromium E2E에서 실패했으므로 tag를 이동·삭제·재사용하지 않는다.
+- 실패한 exact version을 덮어쓰지 않는 릴리스 정책에 따라 후속 PATCH 버전 `0.19.1`로 정식 release를 재진행한다.
 ## [0.19.0] - 2026-09-21
 
 ### Changed
