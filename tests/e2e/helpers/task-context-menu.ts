@@ -15,7 +15,10 @@ export async function chooseTaskInformation(page: Page, viaKeyboard = false): Pr
   await expect(edit).toBeEnabled();
 
   if (viaKeyboard) {
-    await expect.poll(async () => menu.locator(":focus").count()).toBe(1);
+    // Issue #77: opening the menu focuses the root container first so no
+    // submenu is implicitly activated. Explicit arrow navigation then moves
+    // focus through enabled menu items.
+    await expect(menu).toBeFocused();
     for (let step = 0; step < 12; step += 1) {
       if (await edit.evaluate((element) => element === document.activeElement)) break;
       await page.keyboard.press("ArrowDown");
