@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { EmptyProjects } from "@/components/empty-projects";
-import { ProjectLinkButton } from "@/components/project-link-button";
+import { ProjectRowActions } from "@/components/project-row-actions";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { useWorkspaceNotifications } from "@/components/workspace-notifications";
 import type { ProjectListItemDto } from "@/contracts/projects";
@@ -52,7 +52,7 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
     if (mutation.current) return;
     setTarget(null); setPassword(""); setDeleteError(null);
   }
-  async function prepareDelete(project: ProjectListItemDto, trigger: HTMLButtonElement) {
+  async function prepareDelete(project: ProjectListItemDto, trigger: HTMLElement) {
     if (mutation.current) return;
     deleteTrigger.current = trigger;
     mutation.current = true;
@@ -132,11 +132,9 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
             <td className={styles.dateCell}>{formatLocaleDateTime(project.createdAt, locales, timeZone)}</td>
             <td className={styles.dateCell}>{formatLocaleDateTime(project.updatedAt, locales, timeZone)}</td>
             <td className={styles.actions}>
-              <Link className={styles.openLink} href={projectPath(project.publicId)}>열기</Link>
-              <Link className={styles.openLink} href={`${projectPath(project.publicId)}?copy=1`}>프로젝트 복사</Link>
-              <ProjectLinkButton projectName={project.name} projectUrl={projectUrls[project.publicId] ?? null} />
-              <button className={styles.deleteButton} disabled={deletingId !== undefined || submitting}
-                onClick={(event) => void prepareDelete(project, event.currentTarget)} type="button">{deletingId === project.publicId ? "확인 중" : "삭제"}</button>
+              <ProjectRowActions project={project} projectUrl={projectUrls[project.publicId] ?? null}
+                disabled={deletingId !== undefined || submitting}
+                onDelete={(selected, restoreTarget) => void prepareDelete(selected, restoreTarget)} />
             </td>
           </tr>)}</tbody>
         </table>

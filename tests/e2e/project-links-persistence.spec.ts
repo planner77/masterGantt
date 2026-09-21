@@ -17,7 +17,16 @@ async function createProject(page: Page, name: string, password: string) {
 
 async function copyLink(page: Page, name: string, expected: string) {
   const currentUrl = page.url();
-  await page.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true }).click();
+  const copyButton = page.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true });
+  if (await copyButton.isVisible().catch(() => false)) {
+    await copyButton.click();
+  } else {
+    const actionTrigger = page.getByRole("button", { name: `${name} 프로젝트 작업`, exact: true });
+    await actionTrigger.click();
+    const menu = page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
+    await expect(menu).toBeVisible();
+    await menu.getByRole("menuitem", { name: `${name} 프로젝트 링크 복사`, exact: true }).click();
+  }
   await expect(page.getByTestId("workspace-toast")).toContainText("프로젝트 링크를 복사했습니다");
   // 실제 Chromium clipboard를 읽는 것은 테스트에서만 수행한다. 앱은 읽기 권한을 요청하지 않는다.
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(expected);
@@ -41,19 +50,24 @@ test("두 프로젝트의 링크를 구분하고 이름 변경·새 탭·새 세
   expect(mutations).toEqual([]);
 
   const row = page.locator(`tr[data-project-id="${first.publicId}"]`);
-  const deleteButton = row.getByRole("button", { name: "삭제", exact: true });
-  await deleteButton.click();
+  const actionTrigger = row.getByRole("button", { name: `${first.name} 프로젝트 작업`, exact: true });
+  await actionTrigger.click();
+  let rowMenu = page.getByRole("menu", { name: `${first.name} 프로젝트 작업`, exact: true });
+  await expect(rowMenu).toBeVisible();
+  await rowMenu.getByRole("menuitem", { name: "삭제", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "프로젝트 삭제", exact: true });
   await expect(dialog).toContainText(first.name);
   await dialog.getByLabel("삭제 확인 비밀번호").fill(password);
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
-  await expect(deleteButton).toBeFocused();
+  await expect(actionTrigger).toBeFocused();
   expect(mutations).toEqual([]);
-  await deleteButton.click();
+  await actionTrigger.click();
+  rowMenu = page.getByRole("menu", { name: `${first.name} 프로젝트 작업`, exact: true });
+  await rowMenu.getByRole("menuitem", { name: "삭제", exact: true }).click();
   await expect(dialog.getByLabel("삭제 확인 비밀번호")).toHaveValue("");
   await page.keyboard.press("Escape");
-  await expect(deleteButton).toBeFocused();
+  await expect(actionTrigger).toBeFocused();
   expect(mutations).toEqual([]);
 
   // 기존 Path=/ 단일 편집 쿠키는 두 번째 프로젝트 생성으로 교체된다.
