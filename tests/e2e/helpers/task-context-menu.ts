@@ -8,17 +8,24 @@ export async function chooseTaskInformation(page: Page, viaKeyboard = false): Pr
   const menu = taskContextMenu(page);
   await expect(menu).toBeVisible();
   await expect(menu).toHaveCount(1);
-  // Issue #22: 메뉴를 여는 것만으로 편집기가 열려서는 안 된다.
+  // Issue #22/#72: 메뉴를 여는 것만으로 편집기가 열려서는 안 된다.
   await expect(taskInformationDialog(page)).toHaveCount(0);
-  await expect(menu.getByRole("menuitem")).toHaveCount(2);
-  const information = menu.getByRole("menuitem", { name: "작업 정보", exact: true });
-  await expect(information).toBeEnabled();
+
+  const edit = menu.getByRole("menuitem", { name: "Edit", exact: true });
+  await expect(edit).toBeEnabled();
+
   if (viaKeyboard) {
-    await expect(information).toBeFocused();
+    await expect.poll(async () => menu.locator(":focus").count()).toBe(1);
+    for (let step = 0; step < 12; step += 1) {
+      if (await edit.evaluate((element) => element === document.activeElement)) break;
+      await page.keyboard.press("ArrowDown");
+    }
+    await expect(edit).toBeFocused();
     await page.keyboard.press("Enter");
   } else {
-    await information.click();
+    await edit.click();
   }
+
   await expect(menu).toHaveCount(0);
   await expect(taskInformationDialog(page)).toBeVisible();
   await expect(taskInformationDialog(page)).toHaveCount(1);
