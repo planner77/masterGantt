@@ -15,6 +15,7 @@ interface Props {
   readonly editable: boolean;
   readonly disabled: boolean;
   readonly onApplied: () => Promise<void>;
+  readonly onSelectionCountChange?: (count: number) => void;
 }
 
 type AllocationDraft = { start: string; end: string; percent: string };
