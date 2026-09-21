@@ -4,6 +4,21 @@
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-09-21
+
+### Added
+
+- Issue #72: 편집 권한이 있는 Grid/Chart 작업의 우클릭 메뉴를 SVAR Willow 기본 작업 흐름에 맞춰 Add, Convert to, Edit, Cut, Copy, Paste, Move, Indent, Outdent, Delete로 확장한다.
+- `POST /api/projects/{publicId}/task-commands`를 추가해 생성 위치 지정, 형식 변환, sibling 재정렬, indent/outdent, cut-paste reparent, subtree copy를 서버 권위의 단일 transaction으로 처리한다.
+- Ctrl/Cmd+X, Ctrl/Cmd+C, Ctrl/Cmd+V와 Delete/Backspace/Ctrl+D 작업 단축키를 추가한다.
+
+### Changed
+
+- 계층 명령 성공 시 전체 canonical snapshot을 반환하고 Project revision을 정확히 1 증가시키며, 기존 Dependency Link가 있는 일정은 기존 정책대로 계층 mutation을 거부한다.
+- subtree copy는 리소스 할당을 조용히 누락하지 않도록 할당이 있는 원본을 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 명시적으로 거부한다.
+- 하위 호환 사용자 기능/API 확장이므로 Semantic Versioning 정책에 따라 `0.17.0`에서 `0.18.0`으로 증가한다.
+
+
 ## [0.17.0] - 2026-09-19
 
 ### Added
