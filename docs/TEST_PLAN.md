@@ -225,7 +225,7 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | R31 | project-create-and-read / project-links-persistence: 목록 삭제 재인증·취소·삭제 후 404 및 기존 서버 권한 |
 | R32–R38 | project-gantt-stability / project-task-persistence / project-workspace-layout: 팝업 없는 child 생성·상위 집계·locale·열 선택·geometry·인스턴스 유지 |
 | R39–R41 | project-notifications / project-modal-feedback / project-links-persistence, workspace-notification-state / project-share-url: 알림·안전한 진단·링크·clipboard 및 fallback |
-| R44 | project-create-and-read / project-links-persistence: 1440px wide content, 행 overflow menu keyboard/Escape/focus, 프로젝트 복사·링크 복사·삭제 회귀와 작은 화면 접근성을 검증 |
+| R45 | project-create-and-read / project-links-persistence: 1440px wide content, 행 overflow menu keyboard/Escape/focus, 프로젝트 복사·링크 복사·삭제 회귀와 작은 화면 접근성을 검증 |
 
 PR gate는 build/typecheck와 관련 unit/integration/E2E, migration 회귀, dependency/license 검토, 문서 일관성이다. 현재 command는 `npm run build`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:e2e`다. 구현 PR은 test ID에 실제 command·결과를 연결해야 한다.
 
