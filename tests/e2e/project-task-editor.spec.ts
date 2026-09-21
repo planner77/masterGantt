@@ -42,7 +42,8 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
     links: options.links ? [{ id: id(90), predecessorExternalId: "EDITOR-3", successorExternalId: "EDITOR-4", type: "FS", lag: 0 }] : [],
     editable: options.editable ?? true, patches: [], nextFailure: null, gate: null, failReads: false,
   };
-  const assignmentTargets = options.assignmentTargets ? [{ kind: "resource" as const, id: id(70), name: "Resource A", code: "RES-A", active: true }] : [];\n  const snapshot = () => ({ data: { project: fixture.project, tasks: fixture.tasks, links: fixture.links, permission: "readonly" } });
+  const assignmentTargets = options.assignmentTargets ? [{ kind: "resource" as const, id: id(70), name: "Resource A", code: "RES-A", active: true }] : [];
+  const snapshot = () => ({ data: { project: fixture.project, tasks: fixture.tasks, links: fixture.links, permission: "readonly" } });
   await page.route("**/api/projects/**", async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
