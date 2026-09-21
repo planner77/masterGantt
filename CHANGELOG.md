@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+## [0.20.1] - 2026-09-22
+
+### Fixed
+
+- Issue #80: Task Editor의 관계 표시가 `window.location.pathname` 파싱과 별도 Project GET에 의존하던 회귀를 수정하고, `ProjectWorkspace`가 이미 보유한 동일 canonical `tasks + links + revision` snapshot을 직접 사용하도록 변경한다.
+- Grid 더블클릭, Chart 더블클릭, Context Menu → Edit에서 동일한 선행·후행 관계가 표시되고 Editor open만으로 추가 Project GET 또는 mutation이 발생하지 않도록 Chromium E2E 회귀를 추가한다.
+- Readonly Editor에서도 관계를 조회할 수 있으며, 관계의 상대 작업명/externalId/type/lag 및 multiple relation 표시를 유지한다.
+
+### Changed
+
+- 하위 호환 회귀 결함 수정이므로 Semantic Versioning 정책에 따라 `0.20.0`에서 `0.20.1`로 증가한다.
+
 ## [0.20.0] - 2026-09-21
 
 ### Changed
