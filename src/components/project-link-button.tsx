@@ -29,11 +29,11 @@ export function ProjectLinkButton({ projectName, projectUrl, className, role, on
       await navigator.clipboard.writeText(projectUrl);
       setFallback(false);
       notify("success", "프로젝트 링크를 복사했습니다.", "프로젝트 링크 복사");
+      onActionComplete?.();
     } catch {
       setFallback(true);
     } finally {
       pending.current = false;
-      onActionComplete?.();
     }
   }
 
@@ -42,7 +42,7 @@ export function ProjectLinkButton({ projectName, projectUrl, className, role, on
       role={role}
       aria-label={`${projectName} 프로젝트 링크 복사`}
       onClick={(event) => { event.stopPropagation(); void copy(); }}>링크 복사</button>
-    {fallback && projectUrl ? <WorkspaceDialog title="프로젝트 링크 수동 복사" onClose={() => setFallback(false)}>
+    {fallback && projectUrl ? <WorkspaceDialog title="프로젝트 링크 수동 복사" onClose={() => { setFallback(false); onActionComplete?.(); }}>
       <p>자동 복사를 사용할 수 없습니다. 아래 주소를 선택해 수동으로 복사해 주세요.</p>
       <input aria-label="프로젝트 바로 가기 URL" className={styles.copyValue} readOnly value={projectUrl}
         onFocus={(event) => event.currentTarget.select()} />
