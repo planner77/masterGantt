@@ -1,4 +1,4 @@
-import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
+import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated, submitProjectUnlock } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
 
@@ -34,7 +34,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   const projectPath = `/api/projects/${projectId}`;
   const origin = new URL(page.url()).origin;
 
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   await page.getByText("프로젝트 설정", { exact: true }).click();
   await expect(page.getByRole("button", { name: "프로젝트 정보 저장" })).toBeVisible();
 
@@ -50,8 +50,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
     await expect(readonlyPage.getByText("읽기 전용", { exact: true })).toBeVisible();
     await expect(readonlyPage.getByRole("button", { name: "편집 잠금 해제" })).toBeVisible();
 
-    await readonlyPage.getByLabel("편집 비밀번호").fill("wrong-password-123");
-    await readonlyPage.getByRole("button", { name: "편집 잠금 해제" }).click();
+    await submitProjectUnlock(readonlyPage, "wrong-password-123");
     await expect(readonlyPage.getByTestId("workspace-toast")).toContainText("올바르지 않습니다");
     await expect(readonlyPage.getByLabel("편집 비밀번호")).toHaveValue("");
     expect(await readonlyPage.locator("body").innerText()).not.toContain("wrong-password-123");
@@ -62,9 +61,8 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
     });
     expect(noSessionPatch.status()).toBe(401);
 
-    await readonlyPage.getByLabel("편집 비밀번호").fill(password);
-    await readonlyPage.getByRole("button", { name: "편집 잠금 해제" }).click();
-    await expect(readonlyPage.getByText("편집 가능", { exact: true })).toBeVisible();
+    await submitProjectUnlock(readonlyPage, password);
+    await expect(readonlyPage.getByText("편집 중", { exact: true })).toBeVisible();
   } catch (error) {
     await retainedSessionContext.close();
     throw error;
@@ -76,7 +74,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   await expect(page.getByRole("heading", { name: savedName })).toBeVisible();
   await page.goto(`/projects/${projectId}`);
   await expect(page.getByRole("heading", { name: savedName })).toBeVisible();
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 
   const afterSave = await page.request.get(projectPath);
   const afterSaveBody = await afterSave.json();
@@ -117,7 +115,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   );
   currentRevision = afterConcurrentWriteBody.data.project.revision as number;
   await page.goto(`/projects/${projectId}`);
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const stalePatch = await page.request.patch(projectPath, {
     data: { description: "stale write" },
     headers: {
@@ -146,7 +144,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   await page.getByRole("button", { name: "편집 비밀번호 변경" }).click();
   await expect(page.getByTestId("workspace-toast")).toContainText("변경했습니다");
   await page.goto(`/projects/${projectId}`);
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   expect(await page.locator("body").innerText()).not.toContain(rotatedPassword);
 
   const revokedCurrent = await retainedSessionPage.request.get(
@@ -165,13 +163,11 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   try {
     const oldPasswordPage = await oldPasswordContext.newPage();
     await oldPasswordPage.goto(`/projects/${projectId}`);
-    await oldPasswordPage.getByLabel("편집 비밀번호").fill(password);
-    await oldPasswordPage.getByRole("button", { name: "편집 잠금 해제" }).click();
+    await submitProjectUnlock(oldPasswordPage, password);
     await expect(oldPasswordPage.getByText("읽기 전용", { exact: true })).toBeVisible();
     await expect(oldPasswordPage.getByTestId("workspace-toast")).toContainText("올바르지 않습니다");
-    await oldPasswordPage.getByLabel("편집 비밀번호").fill(rotatedPassword);
-    await oldPasswordPage.getByRole("button", { name: "편집 잠금 해제" }).click();
-    await expect(oldPasswordPage.getByText("편집 가능", { exact: true })).toBeVisible();
+    await submitProjectUnlock(oldPasswordPage, rotatedPassword);
+    await expect(oldPasswordPage.getByText("편집 중", { exact: true })).toBeVisible();
   } finally {
     await oldPasswordContext.close();
   }
