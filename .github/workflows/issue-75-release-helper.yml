@@ -105,6 +105,7 @@ jobs:
           branches=(
             "feature/75-project-list-ux"
             "chore/75-release-finalization"
+            "fix/75-release-e2e-stability"
           )
           for branch in "${branches[@]}"; do
             if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null 2>&1; then
@@ -125,5 +126,5 @@ jobs:
             echo "- 릴리스 태그: `$RELEASE_TAG`"
             echo "- 릴리스 커밋: `$TARGET_SHA`"
             echo "- 릴리스 workflow: ${{ steps.release.outputs.run_url }}"
-            echo "- 삭제된 브랜치: `feature/75-project-list-ux`, `chore/75-release-finalization`"
+            echo "- 삭제된 브랜치: `feature/75-project-list-ux`, `chore/75-release-finalization`, `fix/75-release-e2e-stability`"
           } >> "$GITHUB_STEP_SUMMARY"
