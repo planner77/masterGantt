@@ -6,7 +6,7 @@
 
 사용자는 UI/UX 역할과 GHCR 포함 Lifecycle 지침을 작성한 뒤 PR #88의 검토·병합·main 검증·브랜치 정리·이슈 종료까지 요청했다. 연결된 GitHub 도구에 branch 삭제 action이 없고 저장소의 `delete_branch_on_merge=false`여서 [고정 대상 정리 workflow](../.github/workflows/issue-87-branch-cleanup.yml)를 추가했다. 최초 문서/Agent 7파일안과 달리 후속 변경에는 이 workflow, 자동화 회귀 스크립트 및 CI 기준 문서 보완이 포함된다.
 
-기존 `ci.yml`/`release-image.yml`, 제품 코드/API/DB/의존성, 기존 모델·동시 실행 수, 제품 버전 `0.20.0`은 유지한다. 이번 제품 산출물에는 변화가 없어 정식 release_required=false이며 annotated version tag/정식 GHCR release/운영 배포는 N/A다. 기존 main 임시 GHCR 게시·digest smoke·cleanup은 그대로 수행한다.
+기존 `ci.yml`/`release-image.yml`, 제품 코드/API/DB/의존성, 기존 모델·동시 실행 수를 유지하고 이 이슈 자체로 제품 버전을 올리지 않는다. 최초 기준은 `0.20.0`이었으나 최종 병합 직전 #77이 main `0adb3da20eaf8bfc0144d662a3d4763be566892a`에 먼저 반영되었다. 해당 main의 제품 버전 `0.20.1`, 코드·테스트·CHANGELOG를 그대로 통합하고 TEST_PLAN의 #77/#87 추가 절을 모두 보존한다. 이를 #87에서 구현한 제품 기능이나 버전 증가로 주장하지 않는다. #87 자체는 제품 산출물을 변경하지 않으므로 정식 release_required=false이며 annotated version tag/정식 GHCR release/운영 배포는 N/A다. 기존 main 임시 GHCR 게시·digest smoke·cleanup은 통합된 최종 SHA에서 그대로 수행한다.
 
 ## 독립 검토와 조치
 

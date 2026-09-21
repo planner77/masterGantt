@@ -4,6 +4,18 @@
 
 ## [Unreleased]
 
+## [0.20.1] - 2026-09-22
+
+### Fixed
+
+- Issue #77: Task Context Menu를 열 때 첫 번째 항목인 `Add`에 자동 focus가 지정되어 submenu가 즉시 열리던 회귀를 수정한다.
+- 최초 focus는 root menu container에 두고, hover 또는 ArrowDown/ArrowUp/Home/End 등 사용자의 명시적 탐색 이후에만 menuitem과 submenu가 활성화되도록 변경한다.
+- Grid와 Chart 모두에서 최초 open, close 후 reopen, pointer hover, keyboard navigation을 Playwright 회귀 테스트로 검증한다.
+
+### Changed
+
+- 하위 호환 UI 결함 수정이므로 Semantic Versioning 정책에 따라 `0.20.0`에서 `0.20.1`로 증가한다.
+
 ## [0.20.0] - 2026-09-21
 
 ### Changed

@@ -303,3 +303,13 @@ PR #66 최종 검증 기준은 CI Run #350이며 quality, Chromium E2E 50/50, Do
 기존 PR quality/e2e/docker와 최종 head의 독립 검토는 유지한다. 이 정리 회귀를 통과해도 main/GHCR/실제 삭제가 아직 실행되지 않았으면 NOT TESTED다. SHA lease 거부, 새 tip, 보호/다른 PR 참조, 필수 CI/GHCR 실패·누락, 권한/네트워크 오류를 무조건 삭제나 retry로 우회하지 않는다. 원격 삭제 postcondition이 미확인이면 이슈를 완료 처리하지 않는다. 정책·모형·Git 검증과 실제 운영 증거를 구분해 PR/Issue에 기록한다.
 
 정리 workflow는 PR #88/고정 branch에 한정하며 다른 main run은 no-op, 이미 없는 branch는 재삭제하지 않는다. 대상 이름을 재사용하지 않고 퇴역은 증거 보존 후 별도 검토된 운영 변경으로 진행한다. 정식 릴리스나 운영 배포를 생성하지 않는다.
+
+
+## Issue #77 Context Menu 초기 submenu 상태 회귀
+
+- Grid Task 우클릭 직후 root menu만 표시되고 `Add` 및 다른 submenu가 자동 표시되지 않는지 검증한다.
+- Chart Task 우클릭에서도 동일한 초기 상태를 검증한다.
+- 최초 focus는 root `role=menu` container에 있고, ArrowDown/ArrowUp/Home/End로 명시적 탐색한 뒤에만 menuitem focus가 이동하는지 검증한다.
+- `Add` hover와 keyboard focus/ArrowRight에서만 submenu가 표시되고, Escape 후 reopen 시 이전 submenu 상태가 남지 않는지 검증한다.
+- Issue #72의 Add / Convert to / Edit / Cut / Copy / Paste / Move / Indent / Outdent / Delete 회귀 테스트를 함께 유지한다.
+- 공식 완료 판정은 동일 PR head SHA의 GitHub Actions `quality`, `e2e`, `docker` PASS와 merge 후 main GHCR exact-digest smoke 결과를 사용한다.
