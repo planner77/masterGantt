@@ -28,7 +28,7 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
     writeText: async () => { throw new DOMException("Denied", "NotAllowedError"); },
   } }));
   await page.goto(`/projects/${publicId}`);
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const identity = await rememberGanttRoot(page);
   const chart = page.locator(".wx-chart");
   await chart.evaluate((element) => { element.scrollLeft = 200; });
@@ -121,7 +121,7 @@ test("좁은 화면의 여러 오류 알림은 내부 스크롤로 확인하고 
   await page.setViewportSize({ width: 390, height: 844 });
   await installStatefulProjectFixture(page);
   await page.goto(`/projects/${publicId}`);
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const identity = await rememberGanttRoot(page);
   for (let index = 0; index < 8; index++) await rowNamed(page, "Stable milestone").locator('[data-action="add-task"]').click();
   await expect(page.getByRole("button", { name: "알림함, 미확인 8건" })).toBeVisible();
@@ -144,7 +144,7 @@ for (const width of [320, 360, 361, 375, 390, 400, 401, 414, 768, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     await installStatefulProjectFixture(page);
     await page.goto(`/projects/${publicId}`);
-    await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+    await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 
     const navigation = page.getByRole("navigation", { name: "주요 메뉴" });
     const navigationLinks = navigation.getByRole("link");
