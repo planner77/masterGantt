@@ -22,7 +22,7 @@ Main Codex Thread가 Manager 역할을 수행하며, 전문 Sub-Agent에게 필�
 
 ## 2. Source of Truth
 
-상세 요구사항/설계는 `docs/**`를 따른다. 작업 전에 특히 `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/exec-plans/active/PLAN.md`를 확인한다.
+상세 요구사항/설계는 `docs/**`를 따른다. 작업 전에 특히 `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/UI_UX_GUIDELINES.md`, `docs/exec-plans/active/PLAN.md`를 확인한다.
 
 ## 3. Core Architecture and Security
 
@@ -92,6 +92,7 @@ GitHub-hosted runner로 대체할 수 없는 Windows Excel/VBA/DRM, 실제 rever
 ```text
 Main / Manager → GPT-6 Astra / High
 researcher     → GPT-5.6 Terra / Medium
+ui_ux         → GPT-5.6 Terra / Medium / Read-only
 frontend       → GPT-5.6 Terra / Medium
 backend        → GPT-5.6 Sol / High
 scheduler      → GPT-6 Astra / High
@@ -104,7 +105,7 @@ qa_docs        → GPT-5.6 Sol / High
 
 ### Manager
 
-요구사항 분석, Architecture/Decision, Agent 분배, 충돌 조정, 결과 Review, Integration과 최종 ACCEPT/REWORK/REJECT/DEFER를 담당한다. 구현 Agent의 자체 PASS를 자동 승인하지 않는다.
+요구사항 분석, Architecture/Decision, Agent 분배, 충돌 조정, 결과 Review, Integration과 최종 ACCEPT/REWORK/REJECT/DEFER를 담당한다. 구현 Agent의 자체 PASS를 자동 승인하지 않는다. Issue lifecycle과 자동 역할 선택의 Source of Truth는 `docs/ISSUE_LIFECYCLE.md`이며, 모든 Agent를 기계적으로 실행하지 않고 이슈 성격·위험·의존성에 필요한 최소 역할을 선택한다.
 
 코드 변경은 가능한 한 Issue → branch/worktree → PR 흐름으로 진행한다. 검토 대상 PR head SHA와 GitHub Actions `quality/e2e/docker` 결과를 확인하고 원격 gate가 미완료인 상태에서 코드 변경을 최종 완료/ACCEPT로 보고하지 않는다. main artifact 완료를 주장할 때는 필요한 GHCR exact digest validation까지 확인한다.
 
@@ -112,9 +113,13 @@ qa_docs        → GPT-5.6 Sol / High
 
 공식 문서, SVAR/Next.js/SQLite/Docker/Excel 제약, library/version/license, scheduling algorithm을 조사한다. Architecture를 임의 결정하거나 구현 코드를 수정하지 않는 것을 기본으로 한다.
 
+### ui_ux
+
+정보 구조, 사용자 workflow, interaction pattern, responsive/accessibility와 UI 상태 설계를 담당하는 read-only Reviewer다. 신규 화면·Workspace/Editor/Navigation 재설계·공통 UI pattern·접근성 위험이 큰 변경에 우선 배정한다. 관련 SVAR 공식 sample/guide와 `docs/UI_UX_GUIDELINES.md`를 근거로 acceptance criteria를 만들고, Manager 승인 후 `frontend`가 구현한다. 단순 문구/국소 style 변경에는 강제하지 않는다. 실제 browser/사용성 검증 없이 UX PASS를 주장하지 않는다.
+
 ### frontend
 
-Next.js/React/SVAR UI를 담당한다. 변경 관련 Local Fast Feedback을 수행하고 필요한 Playwright test/fixture를 갱신한 뒤 PR 원격 검증으로 전달한다. 전체 회귀는 GitHub Actions 결과로 판정한다.
+Next.js/React/SVAR UI를 담당한다. `docs/UI_UX_GUIDELINES.md`를 공통 기준으로 적용하고 ui_ux가 배정된 변경은 승인된 UX acceptance criteria를 구현한다. 변경 관련 Local Fast Feedback을 수행하고 필요한 Playwright test/fixture를 갱신한 뒤 PR 원격 검증으로 전달한다. 전체 회귀는 GitHub Actions 결과로 판정한다.
 
 ### backend
 
@@ -143,6 +148,7 @@ GitHub repository 운영, GitHub Actions CI/CD, GHCR, Docker/Compose, SQLite per
 - DB 변경: migration + `docs/DB_SCHEMA.md`
 - API 변경: code + `docs/API.md`
 - Scheduling 변경: code + tests + `docs/SCHEDULING_ENGINE.md`
+- UI/UX 변경: `docs/UI_UX_GUIDELINES.md` + 관련 SVAR 공식 sample/guide 확인 + 필요한 UI test
 - Import contract: `docs/IMPORT_SCHEMA.md`
 - VBA 변경: VBA + `docs/VBA_EXPORT.md`
 - Docker 변경: Docker files + `docs/DEPLOYMENT.md`
@@ -152,7 +158,7 @@ Secret, `.env`, PAT, Password, Token, 실제 SQLite DB와 runtime log는 Git에 
 
 ## 7. GitHub Workflow
 
-구현 가능한 업무는 가능한 한 GitHub Issue 단위로 관리한다. Issue에는 목표, 배경, 범위, 인수 기준, 담당 에이전트, 관련 문서를 포함한다.
+구현 가능한 업무는 가능한 한 GitHub Issue 단위로 관리한다. Issue에는 목표, 배경, 범위, 인수 기준, 담당 에이전트, 관련 문서를 포함한다. 사용자가 Issue 해결 lifecycle 전체를 요청하면 Manager는 `docs/ISSUE_LIFECYCLE.md`에 따라 분석→역할 배정→계획/버저닝→branch→구현→Local Fast Feedback→독립 QA→PR/CI→최종 검토→merge→main 검증→Issue 종료→branch 정리를 조율한다. 여러 Issue를 순차 처리하라는 요청은 한 Issue의 lifecycle 완료 후 다음 Issue로 이동한다.
 
 PR에는 요약, 관련 Issue, 변경 사항, 검증, UI 변경 시 화면 캡처, 갱신 문서, 남은 위험을 포함한다. 검증에는 로컬 빠른 검증(Local Fast Feedback)과 GitHub Actions 결과를 분리한다. CI 관련 제목과 설명은 4절의 한글 작성 원칙을 적용한다.
 
