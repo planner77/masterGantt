@@ -91,7 +91,10 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
   const [operation, setOperation] = useState<"save" | "reload" | null>(null);
   const [confirmation, setConfirmation] = useState<"close" | "reload" | null>(null);
   const [relationState, setRelationState] = useState<RelationState>({ status: "loading" });
+  const [activeTab, setActiveTab] = useState<TaskEditorTab>("task");
+  const [assignmentCount, setAssignmentCount] = useState(0);
   const dialogReference = useRef<HTMLDialogElement>(null);
+  const tabReferences = useRef<Array<HTMLButtonElement | null>>([]);
   const actionReference = useRef(false);
   const mountedReference = useRef(false);
   const dirty = taskEditorIsDirty(base.task, draft);
