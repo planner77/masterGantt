@@ -85,3 +85,15 @@ Leaf→Summary는 빈 Summary를 영속화하지 않는 기존 모델 때문에 
 - Task 저장과 Assignment 저장은 원자적으로 통합하지 않는다. Task draft가 dirty/stale이면 Assignment 편집을 잠그고 저장 범위를 화면에서 설명한다.
 
 검증은 `task-editor-view-model.test.ts`의 keyboard navigation 단위 테스트와 `project-task-editor.spec.ts`의 탭 전환·초안 보존·반응형 overflow 회귀를 포함하며, 전체 공식 판정은 PR GitHub Actions quality/e2e/docker를 따른다.
+
+
+## Issue #80 — 관계 표시 회귀 수정
+
+Task Editor의 관계 탭은 상위 Project 화면이 이미 사용 중인 canonical `tasks + links + revision` snapshot을 사용한다. 관계 표시만을 위한 pathname 재파싱과 별도 Project GET은 수행하지 않는다.
+
+- Grid 더블클릭, Chart 더블클릭, Context Menu → Edit은 모두 동일 `ProjectTaskEditor`와 동일 canonical 관계 모델을 사용한다.
+- A → B 관계에서 A에는 B가 후행 작업, B에는 A가 선행 작업으로 표시된다.
+- 상대 작업명, externalId, relation type, lag를 표시하고 복수 관계를 누락하지 않는다.
+- Readonly 상태에서도 관계 조회는 가능하며 저장 버튼 제공 여부와 관계 조회 가능 여부를 분리한다.
+- Editor open만으로 Project mutation 또는 추가 Project snapshot GET을 만들지 않는다.
+- Project revision이 Editor session revision과 달라지면 기존 stale 보호 및 명시적 reload 흐름을 사용한다.
