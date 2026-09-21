@@ -53,10 +53,10 @@ export function ProjectRowActions({ project, projectUrl, disabled, onDelete }: R
     function onPointerDown(event: PointerEvent) {
       const target = event.target as Node;
       if (menuRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
-      closeMenu(false);
+      setOpen(false);
     }
     function onViewportChange() {
-      closeMenu(false);
+      setOpen(false);
     }
     document.addEventListener("pointerdown", onPointerDown, true);
     window.addEventListener("resize", onViewportChange);
