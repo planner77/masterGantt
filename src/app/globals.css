@@ -491,7 +491,7 @@ h2 {
   gap: 1rem;
 }
 
-.project-readonly > :not(.project-schedule) {
+.project-readonly > :not(.project-workspace-panels) {
   flex: 0 0 auto;
 }
 
