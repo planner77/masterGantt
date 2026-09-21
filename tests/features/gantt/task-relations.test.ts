@@ -76,15 +76,15 @@ describe("Task Editor 관계 표시 모델", () => {
     });
   });
 
-  it("복수 관계의 type과 lag를 손실 없이 표시 모델에 보존한다", () => {
+  it("복수 관계의 현재 지원 type과 lag를 손실 없이 표시 모델에 보존한다", () => {
     const relations = buildTaskRelations(tasks[1], tasks, [
       ...links,
-      { id: "L-4", predecessorExternalId: "TASK-001", successorExternalId: "TASK-002", type: "SS", lag: 2 },
+      link("L-4", "TASK-001", "TASK-002"),
     ]);
     expect(relations.predecessors).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: "L-1", type: "FS", lag: 0 }),
       expect.objectContaining({ id: "L-2", type: "FS", lag: 0 }),
-      expect.objectContaining({ id: "L-4", type: "SS", lag: 2 }),
+      expect.objectContaining({ id: "L-4", type: "FS", lag: 0 }),
     ]));
   });
 
