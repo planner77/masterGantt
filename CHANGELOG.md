@@ -4,6 +4,21 @@
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-09-22
+
+### Added
+
+- Issue #76: Project Workspace에 WAI-ARIA 기반 `일정 / 리소스` peer view 탭을 추가하고 두 panel을 mount 상태로 유지해 탭 전환 중 Gantt instance/state가 불필요하게 초기화되지 않도록 한다.
+- 공통 Frontend 기준 문서 `docs/UI_UX_GUIDELINES.md`를 추가해 Global App Shell → Entity Context → Workspace View 계층, progressive disclosure, status/action 분리, responsive/accessibility 기본 검증을 정의한다.
+
+### Changed
+
+- Global Header를 기존 75rem 제한에서 분리한 full-width App Shell로 변경하고 현재 전역 메뉴에 `aria-current`를 제공한다.
+- Project Header를 프로젝트명과 편집 상태 중심의 compact context bar로 재구성하고 Description/Owner/Revision은 Info UI로 이동한다.
+- 읽기 전용 편집 비밀번호 form은 상시 노출하지 않고 명시적 `편집 잠금 해제` Dialog에서만 입력하도록 변경한다.
+- Resource workload를 Gantt 하단 portal에서 독립적인 full-width Resource View로 이동하고 Summary, M/D·M/M·Refresh toolbar, Group → Resource → Task hierarchy를 정돈한다.
+- 사용자 UI의 하위 호환 기능 확장이므로 Semantic Versioning 정책에 따라 `0.20.0`에서 `0.21.0`으로 증가한다.
+
 ## [0.20.0] - 2026-09-21
 
 ### Changed
