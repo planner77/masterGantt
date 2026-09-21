@@ -63,8 +63,9 @@ Issue / approved scope
 → GHCR 임시 ci-<full SHA> 게시
 → exact digest pull smoke
 → 임시 ci-<full SHA> package version 삭제
-→ [release_required] annotated version tag / Release CI
-→ 정식 GHCR 게시 / exact digest smoke / stable promotion
+→ [release_required] 명시적 release_authorized 승인 확인 (미승인 시 BLOCKED)
+→ [release_required && release_authorized] annotated version tag / Release CI
+→ [release_required && release_authorized] 정식 GHCR 게시 / exact digest smoke / stable promotion
 → 완료 증거 / 작업 브랜치 정리 / Issue 종료
 ```
 
@@ -248,11 +249,12 @@ Issue #8: production HTTPS 기본값과 명시적 ALLOW_INSECURE_HTTP=true 내�
 
 Manager와 모든 Sub-Agent는 작업 전에 [ISSUE_LIFECYCLE](docs/ISSUE_LIFECYCLE.md)를 읽는다. 사용자가 Issue 처리를 요청하면 Manager는 실제 Issue/코드/PR/CI 상태를 읽고, 문서의 역할 선택표에 따라 필요한 전문 Sub-Agent를 자동 선택·위임한다. 분석만 요청한 작업을 구현/게시로 확대하지 않는다.
 
-- Manager는 단계·인수 기준·release_required·버전 결정·파일 소유권·의존성을 확정하고 위임/반환 계약을 전달한다. 별도의 Manager Sub-Agent를 만들지 않고 Main Thread가 통합한다.
+- Manager는 단계·인수 기준·release_required·release_authorized와 승인 근거·버전 결정·파일 소유권·의존성을 확정하고 위임/반환 계약을 전달한다. 별도의 Manager Sub-Agent를 만들지 않고 Main Thread가 통합한다.
 - 복합 UI/UX 설계는 ui_ux, 구현은 frontend다. 사소한 문구/CSS 변경은 frontend가 UI/UX를 겸임하며 [UI_UX_GUIDELINES](docs/UI_UX_GUIDELINES.md)를 따른다. 유사 SVAR 공식 demo와 Core/API/설치 버전 차이를 확인한다.
 - 병렬 실행은 독립 작업에 한정한다. 동시 한도 6과 실제 runtime 제한을 준수하고 동일 파일 동시 쓰기, 중복 PR/version/tag, 무단 재귀 위임을 금지한다.
-- infra는 branch/PR/CI/merge, main 임시 GHCR 게시·digest 검증·정리, 필요한 정식 version tag/Release CI/GHCR 게시·digest 검증을 담당한다. qa_docs는 각각의 실제 근거를 독립 확인하고 Manager가 승인한다.
-- 애플리케이션의 전체 Lifecycle은 정식 GHCR 게시까지 기본 포함하되 사용자 요청 범위를 우선한다. 문서/Agent 지침만의 변경은 제품 영향이 없음을 확인해 application version 유지와 정식 release N/A를 기록할 수 있다. 실제 main workflow 결과는 생략하지 않는다.
+- infra는 branch/PR/CI/merge, main 임시 GHCR 게시·digest 검증·정리, 명시적으로 승인된 정식 version tag/Release CI/GHCR 게시·digest 검증을 담당한다. qa_docs는 각각의 실제 근거를 독립 확인하고 Manager가 승인 범위 안에서 판단한다.
+- GHCR 게시 단계는 Lifecycle에 포함하되 정식 릴리스 필요성(release_required)과 명시적 게시 승인(release_authorized)은 별개다. 단순 '전체 Lifecycle 진행'만으로 정식 릴리스 범위나 승인을 간주하지 않는다. 사용자 또는 지정 maintainer의 명확한 정식 GHCR 게시 요청/승인 근거가 있어야 annotated tag·정식 게시·rolling tag 변경을 실행한다. 이미 확인한 동일 범위의 승인은 반복 요청하지 않는다. 필요한 릴리스의 승인이 없으면 BLOCKED/승인 대기로 남긴다.
+- 문서/Agent 지침만의 변경은 제품 영향이 없음을 확인해 application version 유지와 정식 release N/A를 기록할 수 있다. Lifecycle 문서 수정 요청 자체를 제품 릴리스 승인으로 해석하지 않으며 실제 main 임시 GHCR workflow 결과는 생략하지 않는다.
 - 필요한 GHCR 게시·검증과 main gate가 남아 있으면 병합만으로 이슈를 종료하지 않는다. PR에는 조기 자동 종료 대신 Refs 연결을 사용한다. 안전한 branch 정리와 완료 증거를 남긴 뒤 승인 범위에서 종료한다.
 - 도구 부재 시 단일 에이전트 순차 처리임을 밝히고 독립 Sub-Agent/QA 실행을 주장하지 않는다. 필수 독립 검토나 CI/GHCR 증거가 없으면 해당 gate를 BLOCKED/NOT TESTED로 남긴다. TOML 존재는 runtime 검증이 아니다.
 - CI 실패는 근거에 따라 담당 Agent에 REWORK하고, 중단/추가 요청은 Issue/PR에 재개 지점을 기록한다. main PASS, 정식 GHCR PASS, 실제 운영 배포는 서로 대체하지 않는다.
