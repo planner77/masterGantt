@@ -461,24 +461,22 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       <div className="project-context-actions">
         <ProjectLinkButton projectName={project.name} projectUrl={projectUrl} />
         <ProjectExcelExportButton publicId={publicId} />
+        {editing ? <button
+          type="button"
+          className="secondary-button"
+          disabled={busy || editorSession !== null || pendingTaskDelete !== null}
+          onClick={() => setSettingsOpen(true)}
+        >프로젝트 설정</button> : <button
+          ref={unlockTriggerReference}
+          type="button"
+          className="secondary-button"
+          disabled={isUnlocking || permissionCheckState === "checking"}
+          onClick={() => setUnlockOpen(true)}
+        >{permissionCheckState === "checking" ? "권한 확인 중…" : "편집 잠금 해제"}</button>}
         <details className="project-action-menu" ref={actionMenuReference}>
           <summary aria-label="프로젝트 작업 더보기">더보기</summary>
           <div className="project-action-menu-panel" role="menu">
             <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} />
-            {editing ? <button
-              type="button"
-              role="menuitem"
-              className="secondary-button"
-              disabled={busy || editorSession !== null || pendingTaskDelete !== null}
-              onClick={() => { actionMenuReference.current?.removeAttribute("open"); setSettingsOpen(true); }}
-            >프로젝트 설정</button> : <button
-              ref={unlockTriggerReference}
-              type="button"
-              role="menuitem"
-              className="secondary-button"
-              disabled={isUnlocking || permissionCheckState === "checking"}
-              onClick={() => { actionMenuReference.current?.removeAttribute("open"); setUnlockOpen(true); }}
-            >{permissionCheckState === "checking" ? "권한 확인 중…" : "편집 활성화"}</button>}
           </div>
         </details>
       </div>
