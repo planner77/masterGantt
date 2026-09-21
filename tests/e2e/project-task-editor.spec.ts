@@ -28,7 +28,7 @@ interface Fixture {
   failReads: boolean;
 }
 
-async function setup(page: Page, options: { editable?: boolean; links?: boolean } = {}): Promise<Fixture> {
+async function setup(page: Page, options: { editable?: boolean; links?: boolean; assignmentTargets?: boolean } = {}): Promise<Fixture> {
   await page.clock.setFixedTime(new Date("2026-09-16T12:00:00Z"));
   const fixture: Fixture = {
     project: { publicId, name: "Task Editor fixture", description: "Issue #4", revision: 20, calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [{ date: "2026-09-21", name: "Fixture holiday" }] } },
@@ -42,7 +42,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean 
     links: options.links ? [{ id: id(90), predecessorExternalId: "EDITOR-3", successorExternalId: "EDITOR-4", type: "FS", lag: 0 }] : [],
     editable: options.editable ?? true, patches: [], nextFailure: null, gate: null, failReads: false,
   };
-  const snapshot = () => ({ data: { project: fixture.project, tasks: fixture.tasks, links: fixture.links, permission: "readonly" } });
+  const assignmentTargets = options.assignmentTargets ? [{ kind: "resource" as const, id: id(70), name: "Resource A", code: "RES-A", active: true }] : [];\n  const snapshot = () => ({ data: { project: fixture.project, tasks: fixture.tasks, links: fixture.links, permission: "readonly" } });
   await page.route("**/api/projects/**", async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
@@ -51,11 +51,11 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean 
       return;
     }
     if (path === `${apiPath}/assigned-targets` && request.method() === "GET") {
-      await route.fulfill({ json: { data: { projectRevision: fixture.project.revision, catalogRevision: 1, assignments: [], targets: [] } } });
+      await route.fulfill({ json: { data: { projectRevision: fixture.project.revision, catalogRevision: 1, assignments: [], targets: assignmentTargets } } });
       return;
     }
     if (path === `${apiPath}/assignment-targets` && request.method() === "GET") {
-      await route.fulfill({ json: { data: { catalogRevision: 1, targets: [] } } });
+      await route.fulfill({ json: { data: { catalogRevision: 1, targets: assignmentTargets } } });
       return;
     }
     if (path === apiPath && request.method() === "GET") {
