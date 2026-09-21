@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
-import { TaskAssignmentEditor } from "./task-assignment-editor";
+import { TaskAssignmentEditor } from "./task-assignment-editor";\nimport { TASK_EDITOR_TABS, taskEditorTabForKey, type TaskEditorTab } from "./task-editor-view-model";
 import { buildTaskRelations, formatTaskRelationType, type TaskRelationView, type TaskRelationsView } from "./task-relations";
 import {
   createTaskEditorDraft,
@@ -144,6 +144,14 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
     } catch { if (mountedReference.current) setError("최신 정보를 불러올 수 없습니다. 입력 내용은 유지됩니다."); }
     finally { actionReference.current = false; if (mountedReference.current) setOperation(null); }
   }
+  function navigateTab(event: KeyboardEvent<HTMLButtonElement>, current: TaskEditorTab) {
+    const next = taskEditorTabForKey(current, event.key);
+    if (!next) return;
+    event.preventDefault();
+    setActiveTab(next);
+    tabReferences.current[TASK_EDITOR_TABS.indexOf(next)]?.focus();
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (locked || actionReference.current || restriction || stale) return;
@@ -160,46 +168,147 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
     finally { actionReference.current = false; if (mountedReference.current) setOperation(null); }
   }
 
+  const relationCount = relationState.status === "ready"
+    ? relationState.relations.predecessors.length + relationState.relations.successors.length
+    : 0;
+
   return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onCancel={(event) => { event.preventDefault(); close(); }}>
-    <div className={styles.header}><h2 id="task-editor-title">작업 정보</h2><button className="secondary-button" type="button" disabled={locked} onClick={close} aria-label="작업 편집기 닫기">닫기</button></div>
-    <p className={styles.caption} id="task-editor-description">{base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "마일스톤" : "일반 작업"} · 기준 Revision {base.revision} · {base.task.externalId}</p>
-    {restriction ? <p className={styles.note}>{restriction}</p> : null}
-    {stale ? <p className={styles.error} role="alert">다른 편집 내용이 먼저 저장되었거나 기준 Revision이 변경되었습니다. 입력 내용은 보존됩니다. 최신 정보를 다시 불러온 뒤 검토해 주세요.</p> : null}
-    {error ? <p className={styles.error} role="alert">{error}</p> : null}
+    <header className={styles.header}>
+      <div className={styles.headerText}>
+        <h2 id="task-editor-title">작업 정보</h2>
+        <p className={styles.headerMeta} id="task-editor-description">{base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "마일스톤" : "일반 작업"} · {base.task.externalId} · Revision {base.revision}</p>
+      </div>
+      <button className="secondary-button" type="button" disabled={locked} onClick={close} aria-label="작업 편집기 닫기">닫기</button>
+    </header>
+
+    <div className={styles.noticeStack}>
+      {restriction ? <p className={styles.note}>{restriction}</p> : null}
+      {stale ? <p className={styles.error} role="alert">다른 편집 내용이 먼저 저장되었거나 기준 Revision이 변경되었습니다. 입력 내용은 보존됩니다. 최신 정보를 다시 불러온 뒤 검토해 주세요.</p> : null}
+      {error ? <p className={styles.error} role="alert">{error}</p> : null}
+      {confirmation ? <div className={styles.discard} role="alert">
+        <p>{confirmation === "close" ? "저장하지 않은 변경사항을 버리고 닫을까요?" : "저장하지 않은 변경사항을 버리고 최신 정보를 불러올까요?"}</p>
+        <div className={styles.confirmationActions}>
+          <button className="secondary-button" type="button" onClick={() => setConfirmation(null)}>계속 편집</button>
+          <button className="secondary-button" type="button" onClick={() => confirmation === "close" ? onClose() : void reload()}>{confirmation === "close" ? "변경사항 버리고 닫기" : "변경사항 버리고 다시 불러오기"}</button>
+        </div>
+      </div> : null}
+    </div>
+
+    <div className={styles.tabs} role="tablist" aria-label="작업 편집 정보">
+      {TASK_EDITOR_TABS.map((tab, index) => {
+        const selected = activeTab === tab;
+        const label = tab === "task" ? "작업 정보" : tab === "resources" ? "리소스" : "관계";
+        const count = tab === "resources" ? assignmentCount : tab === "relations" ? relationCount : null;
+        return <button
+          key={tab}
+          ref={(element) => { tabReferences.current[index] = element; }}
+          className={styles.tab}
+          id={"task-editor-tab-" + tab}
+          role="tab"
+          type="button"
+          aria-selected={selected}
+          aria-controls={"task-editor-panel-" + tab}
+          tabIndex={selected ? 0 : -1}
+          onClick={() => setActiveTab(tab)}
+          onKeyDown={(event) => navigateTab(event, tab)}
+        >
+          <span>{label}</span>
+          {count !== null ? <span className={styles.tabBadge} aria-label={label + " " + count + "건"}>{count}</span> : null}
+        </button>;
+      })}
+    </div>
+
     <form className={styles.form} noValidate onSubmit={(event) => void submit(event)}>
-      <label className={styles.field}>작업명<input autoFocus name="task-name" value={draft.name} readOnly={readOnly} disabled={locked} onChange={(event) => change("name", event.target.value)} /></label>
-      <label className={styles.field}>시작일<input name="task-start" type="date" min="1900-01-01" max="2199-12-31" value={draft.start} readOnly={readOnly} disabled={locked} onChange={(event) => change("start", event.target.value)} /></label>
-      <label className={styles.field}>기간 (근무일)<input name="task-duration" type="number" min={base.task.type === "milestone" ? 0 : 1} max="10000" step="1" value={draft.duration} readOnly={readOnly || base.task.type === "milestone"} disabled={locked} onChange={(event) => change("duration", event.target.value)} /></label>
-      <div className={styles.field}>
-        <label htmlFor="task-progress">진행률 (%)</label>
-        <span className={styles.sliderRow}>
-          <input id="task-progress" aria-valuetext={`${draft.progress}%`} name="task-progress" type="range" min="0" max="100" step="1" value={draft.progress} disabled={locked || readOnly} onChange={(event) => change("progress", event.target.value)} />
-          <span className={styles.progressValue} aria-live="polite">{draft.progress}%</span>
-        </span>
+      <div className={styles.body}>
+        <section
+          className={styles.tabPanel}
+          id="task-editor-panel-task"
+          role="tabpanel"
+          aria-labelledby="task-editor-tab-task"
+          hidden={activeTab !== "task"}
+          tabIndex={0}
+        >
+          <div className={styles.taskFields}>
+            <label className={styles.field}>작업명<input autoFocus name="task-name" value={draft.name} readOnly={readOnly} disabled={locked} onChange={(event) => change("name", event.target.value)} /></label>
+            <div className={styles.scheduleFields}>
+              <label className={styles.field}>시작일<input name="task-start" type="date" min="1900-01-01" max="2199-12-31" value={draft.start} readOnly={readOnly} disabled={locked} onChange={(event) => change("start", event.target.value)} /></label>
+              <label className={styles.field}>기간 (근무일)<input name="task-duration" type="number" min={base.task.type === "milestone" ? 0 : 1} max="10000" step="1" value={draft.duration} readOnly={readOnly || base.task.type === "milestone"} disabled={locked} onChange={(event) => change("duration", event.target.value)} /></label>
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>서버 확정 종료일</span>
+                <output className={styles.outputField}>{base.task.end}</output>
+              </div>
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="task-progress">진행률 (%)</label>
+              <span className={styles.sliderRow}>
+                <input id="task-progress" aria-valuetext={draft.progress + "%"} name="task-progress" type="range" min="0" max="100" step="1" value={draft.progress} disabled={locked || readOnly} onChange={(event) => change("progress", event.target.value)} />
+                <span className={styles.progressValue} aria-live="polite">{draft.progress}%</span>
+              </span>
+            </div>
+            <label className={styles.field}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={readOnly} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
+            <label className={styles.field}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={readOnly} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
+          </div>
+          <details className={styles.metadata} open>
+            <summary>서버 확정 정보</summary>
+            <dl className={styles.confirmed}>
+              <dt>요청 시작일</dt><dd>{base.task.requestedStart ?? "하위 작업 기준"}</dd>
+              <dt>확정 종료일</dt><dd><output>{base.task.end}</output></dd>
+              <dt>기준 Revision</dt><dd>{base.revision}</dd>
+            </dl>
+          </details>
+          <p className={styles.caption}>종료일은 저장 전 확정된 값입니다. 변경한 시작일과 근무일 기간의 계산은 저장 시 서버가 수행합니다. URL은 http/https만 허용되며 링크는 일정 화면에서 새 탭으로 열립니다.</p>
+        </section>
+
+        <section
+          className={styles.tabPanel}
+          id="task-editor-panel-resources"
+          role="tabpanel"
+          aria-labelledby="task-editor-tab-resources"
+          hidden={activeTab !== "resources"}
+          tabIndex={0}
+        >
+          <TaskAssignmentEditor
+            taskId={base.task.taskId}
+            revision={base.revision}
+            editable={editable}
+            disabled={locked || readOnly || dirty}
+            onApplied={reload}
+            onSelectionCountChange={setAssignmentCount}
+          />
+        </section>
+
+        <section
+          className={styles.tabPanel}
+          id="task-editor-panel-relations"
+          role="tabpanel"
+          aria-labelledby="task-editor-tab-relations"
+          hidden={activeTab !== "relations"}
+          tabIndex={0}
+        >
+          <section className={styles.relations} aria-labelledby="task-relations-title">
+            <div className={styles.sectionHeading}>
+              <div>
+                <h3 id="task-relations-title">작업 관계</h3>
+                <p className={styles.sectionDescription}>관계는 현재 조회 전용입니다. 편집 기능은 기존 범위대로 제공하지 않습니다.</p>
+              </div>
+              <span className={styles.sectionCount}>{relationCount}건</span>
+            </div>
+            {relationState.status === "loading" ? <p className={styles.caption} role="status">관계 정보를 불러오는 중…</p> : null}
+            {relationState.status === "failed" ? <p className={styles.relationError} role="alert">{relationState.message}</p> : null}
+            {relationState.status === "ready" ? <div className={styles.relationColumns}><RelationList title="선행 작업" relations={relationState.relations.predecessors} /><RelationList title="후행 작업" relations={relationState.relations.successors} /></div> : null}
+          </section>
+        </section>
       </div>
-      <label className={styles.field}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={readOnly} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
-      <label className={styles.field}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={readOnly} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
-      <dl className={styles.confirmed}><dt>서버 확정 종료일</dt><dd><output>{base.task.end}</output></dd><dt>요청 시작일</dt><dd>{base.task.requestedStart ?? "하위 작업 기준"}</dd></dl>
-      <p className={styles.caption}>종료일은 저장 전 확정된 값입니다. 변경한 시작일과 근무일 기간의 계산은 저장 시 서버가 수행합니다. URL은 http/https만 허용되며 링크는 일정 화면에서 새 탭으로 열립니다.</p>
-      <TaskAssignmentEditor
-        taskId={base.task.taskId}
-        revision={base.revision}
-        editable={editable}
-        disabled={locked || readOnly || dirty}
-        onApplied={reload}
-      />
-      <section className={styles.relations} aria-labelledby="task-relations-title">
-        <h3 id="task-relations-title">작업 관계</h3>
-        {relationState.status === "loading" ? <p className={styles.caption} role="status">관계 정보를 불러오는 중…</p> : null}
-        {relationState.status === "failed" ? <p className={styles.relationError} role="alert">{relationState.message}</p> : null}
-        {relationState.status === "ready" ? <><RelationList title="선행 작업" relations={relationState.relations.predecessors} /><RelationList title="후행 작업" relations={relationState.relations.successors} /></> : null}
-      </section>
-      <div className={styles.actions}>
-        <button className="secondary-button" type="button" disabled={locked} onClick={() => dirty ? setConfirmation("reload") : void reload()}>최신 정보 다시 불러오기</button>
-        <button className="secondary-button" type="button" disabled={locked} onClick={close}>취소</button>
-        {!restriction ? <button className="primary-button" type="submit" disabled={locked || stale || confirmation !== null}>{operation === "save" ? "저장 중…" : "저장"}</button> : null}
-      </div>
+
+      <footer className={styles.footer}>
+        <button className={"secondary-button " + styles.reloadButton} type="button" disabled={locked} onClick={() => dirty ? setConfirmation("reload") : void reload()}>
+          <span aria-hidden="true">↻</span><span>최신 정보 다시 불러오기</span>
+        </button>
+        <div className={styles.footerActions}>
+          <button className="secondary-button" type="button" disabled={locked} onClick={close}>{restriction ? "닫기" : "취소"}</button>
+          {!restriction ? <button className="primary-button" type="submit" disabled={locked || stale || confirmation !== null}>{operation === "save" ? "저장 중…" : "저장"}</button> : null}
+        </div>
+      </footer>
     </form>
-    {confirmation ? <div className={styles.discard} role="alert"><p>{confirmation === "close" ? "저장하지 않은 변경사항을 버리고 닫을까요?" : "저장하지 않은 변경사항을 버리고 최신 정보를 불러올까요?"}</p><div className={styles.actions}><button className="secondary-button" type="button" onClick={() => setConfirmation(null)}>계속 편집</button><button className="secondary-button" type="button" onClick={() => confirmation === "close" ? onClose() : void reload()}>{confirmation === "close" ? "변경사항 버리고 닫기" : "변경사항 버리고 다시 불러오기"}</button></div></div> : null}
   </dialog>;
 }
