@@ -9,6 +9,7 @@
 | 역할 | 검증 책임 |
 | --- | --- |
 | Main / Manager | PR head SHA의 GitHub Actions `quality/e2e/docker`가 성공하기 전 코드 변경을 최종 ACCEPT하지 않는다. main artifact 범위는 GHCR exact digest 결과까지 확인한다. |
+| ui_ux | UI/UX 설계·접근성·responsive acceptance criteria를 read-only로 검토하며 실제 browser 검증은 별도 상태로 분리한다. |
 | frontend | 변경 관련 Local Fast Feedback과 필요한 Playwright test/fixture를 작성하고 PR 원격 검증으로 전달한다. |
 | backend | 변경 관련 Unit/Integration Local Fast Feedback과 API/DB/Auth 테스트를 작성하고 PR 원격 검증으로 전달한다. |
 | scheduler | Algorithm Unit Test를 작성하고 관련 Local Fast Feedback 후 PR 전체 회귀 검증으로 전달한다. |
@@ -29,6 +30,7 @@
 | --- | --- |
 | Main / Manager | `gpt-6-astra` / high |
 | researcher | `gpt-5.6-terra` / medium / read-only |
+| ui_ux | `gpt-5.6-terra` / medium / read-only |
 | frontend | `gpt-5.6-terra` / medium |
 | backend | `gpt-5.6-sol` / high |
 | scheduler | `gpt-6-astra` / high |
@@ -50,4 +52,12 @@
 
 새 세션/설정 reload 후 Manager는 구현 Agent에게 작업을 배정할 때 Local Fast Feedback과 Remote Required Validation을 분리해 보고하도록 한다. `infra`는 GitHub run/job/step/head SHA와 GHCR digest를 근거로 보고하고 `qa_docs`는 독립 판정한다. 지원되지 않는 모델은 조용히 대체하지 않고 Manager에게 보고한다.
 
-관련 문서: `AGENTS.md`, `docs/REMOTE_VALIDATION.md`, `docs/GITHUB_OPERATIONS.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`.
+관련 문서: `AGENTS.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/UI_UX_GUIDELINES.md`, `docs/REMOTE_VALIDATION.md`, `docs/GITHUB_OPERATIONS.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`.
+
+## 2026-09-22: UI/UX 전담 역할과 Issue Lifecycle 자동 배분
+
+Issue #85에서 #74/#75/#76과 같은 화면 재설계 요구를 검토했다. 기존 frontend는 구현과 테스트 책임이 중심이므로, 정보 구조·interaction·접근성·responsive 판단을 구현과 분리하기 위해 read-only `ui_ux`를 추가했다. 모든 UI 수정에 강제하지 않고 신규 화면/Workspace·Editor·Navigation 재설계/공통 pattern/접근성 위험이 큰 변경에 Manager가 선택적으로 배정한다.
+
+`docs/ISSUE_LIFECYCLE.md`는 Manager의 Issue intake, 역할 선택, 파일 소유권, version 결정, branch, 구현, QA, PR/CI, REWORK, merge, main 검증, Issue close와 재개 규칙의 Source of Truth다. `docs/UI_UX_GUIDELINES.md`는 frontend/ui_ux/qa_docs의 공통 UX 기준이다.
+
+이번 변경은 agent instruction과 문서 계약이며 application runtime/API/DB/dependency를 변경하지 않으므로 application version을 올리지 않는다. `.codex/config.toml`의 Manager 모델/effort와 `max_concurrent_threads_per_session = 6`도 유지한다. 역할 TOML이 존재하는 사실은 실제 custom agent 실행, model access 또는 sandbox enforcement의 실행 증거가 아니다.
