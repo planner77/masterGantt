@@ -1,8 +1,13 @@
 name: Issue 87 병합 브랜치 정리
 
 # 사용자 요청에 따른 PR #88의 브랜치 정리만 수행한다.
-# PR 코드/artifact/cache를 내려받거나 실행하지 않는다.
+# 쓰기 권한의 cleanup은 PR 코드/artifact/cache를 내려받거나 실행하지 않는다.
+# read-only validation만 PR의 고정 검증 스크립트를 실행한다.
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/issue-87-branch-cleanup.yml"
+      - "scripts/verify-issue-87-cleanup.py"
   workflow_run:
     workflows: [CI]
     types: [completed]
@@ -16,9 +21,24 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validation:
+    name: Issue 87 브랜치 정리 안전 조건 검증
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: 모형 조건 및 실제 로컬 Git lease 회귀 검증
+        run: python3 scripts/verify-issue-87-cleanup.py
+
   cleanup:
     name: PR 88 main CI·GHCR 검증 후 작업 브랜치 정리
     if: >-
+      github.event_name == 'workflow_run' &&
       github.repository == 'planner77/masterGantt' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.conclusion == 'success'
@@ -35,9 +55,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 - <<'PY'
+          import base64
           import json
           import os
           import re
+          import subprocess
+          import tempfile
           import urllib.error
           import urllib.parse
           import urllib.request
@@ -69,6 +92,39 @@ jobs:
                   status, raw = error.code, b""
               require(status in allowed, "GitHub API 검증 실패: " + method + " " + path + " (" + str(status) + ")")
               return status, json.loads(raw) if raw else None
+
+
+          def delete_verified_ref(head_sha):
+              # 단일 삭제 refspec에 SHA lease를 적용한다. commit/history force update가 아니다.
+              ref = "refs/heads/" + BRANCH
+              env = {key: value for key, value in os.environ.items()
+                     if not key.startswith("GIT_")}
+              authorization = base64.b64encode(
+                  ("x-access-token:" + os.environ["GH_TOKEN"]).encode()
+              ).decode()
+              env.update({
+                  "GIT_TERMINAL_PROMPT": "0",
+                  "GIT_CONFIG_NOSYSTEM": "1",
+                  "GIT_CONFIG_GLOBAL": os.devnull,
+                  "GIT_CONFIG_COUNT": "1",
+                  "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
+                  "GIT_CONFIG_VALUE_0": "AUTHORIZATION: basic " + authorization,
+              })
+              with tempfile.TemporaryDirectory(prefix="issue-87-ref-") as directory:
+                  initialized = subprocess.run(
+                      ["git", "init", "--bare", "--object-format=sha1", "--template=", directory],
+                      env=env, capture_output=True, text=True, timeout=30,
+                  )
+                  require(initialized.returncode == 0, "정리용 빈 Git 저장소 초기화 실패")
+                  deleted = subprocess.run(
+                      ["git", "-C", directory, "push", "--porcelain",
+                       "--force-with-lease=" + ref + ":" + head_sha,
+                       "https://github.com/" + REPO + ".git", ":" + ref],
+                      env=env, capture_output=True, text=True, timeout=60,
+                  )
+                  # 인증 헤더와 외부 응답은 출력하지 않는다. 실패 시 재시도/강제 삭제하지 않는다.
+                  require(deleted.returncode == 0,
+                          "SHA 조건부 삭제 실패: 변경된 tip·보호/권한·네트워크 상태 확인 필요")
 
 
           def main():
@@ -103,6 +159,11 @@ jobs:
               ):
                   matches = [job for job in jobs["jobs"] if job["name"] == name]
                   require(len(matches) == 1 and matches[0]["status"] == "completed" and matches[0]["conclusion"] == "success", "필수 gate 실패/누락: " + name)
+              # 이번 고정 대상은 merge commit 방식만 허용한다. squash/rebase를 추정하지 않는다.
+              _, commit = api("/git/commits/" + merge_sha)
+              parents = commit["parents"]
+              require(len(parents) == 2 and parents[1]["sha"] == head_sha,
+                      "PR #88은 merge_method=merge가 필수이며 squash/rebase 후 자동 삭제하지 않음")
               for base, head in ((head_sha, merge_sha), (merge_sha, "main")):
                   _, comparison = api("/compare/" + base + "..." + head)
                   require(comparison["merge_base_commit"]["sha"] == base, "main에서 미병합 또는 이탈한 commit 감지")
@@ -117,7 +178,7 @@ jobs:
                   _, current_ref = api("/git/ref/heads/" + BRANCH)
                   require(current_ref["object"]["sha"] == head_sha, "삭제 직전 branch 변경 감지")
                   print("삭제 대상 확인: " + BRANCH + " @ " + head_sha)
-                  api("/git/refs/heads/" + BRANCH, method="DELETE", allowed=(204,))
+                  delete_verified_ref(head_sha)
               api("/git/ref/heads/" + BRANCH, allowed=(404,))
               summary = "\n".join((
                   "## Issue #87 작업 브랜치 정리 완료",

@@ -98,6 +98,8 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 | `.github/workflows/ci.yml` 검증 jobs | PR, `main` push, manual | `contents: read` | application·browser·container 회귀 |
 | `.github/workflows/ci.yml` commit publish job | 성공한 `main` push만 | `contents: read`, `packages: write`; optional attestation을 위해 job에 `attestations: write`, `id-token: write` 선언 | 임시 `ci-<full SHA>` publish/digest smoke와 검증 후 package cleanup |
 | `.github/workflows/release-image.yml` | strict `v*` tag push 또는 annotated `v*` tag ref의 수동 실행 | publish job만 package/attestation 쓰기와 OIDC 권한 선언 | 동일 SemVer/annotated-tag 검증 후 GHCR publish와 digest smoke |
+| `.github/workflows/issue-87-branch-cleanup.yml` validation | 해당 workflow/검증 script 변경 PR | `contents: read`, checkout credential 미보존 | embedded Python 안전 조건과 실제 로컬 Git lease 회귀 |
+| `.github/workflows/issue-87-branch-cleanup.yml` cleanup | main CI의 성공한 push에 대한 `workflow_run: completed` | 해당 job만 `contents: write`, `actions: read`, `pull-requests: read` | PR #88의 실제 merge CI/GHCR 성공 후 고정 작업 branch의 SHA 조건부 삭제 |
 
 - PR과 수동 CI에는 registry credential 또는 write token을 제공하지 않는다.
 - `pull_request_target`에서 repository code를 build/test하지 않는다.
@@ -184,3 +186,16 @@ Action 또는 base image update PR은 full SHA/digest, release note, permissions
 ## Repository layout relocation (#12)
 
 현재 배포 경로와 기존 Compose 프로젝트/volume을 유지하는 전환 절차는 [REPOSITORY_STRUCTURE](REPOSITORY_STRUCTURE.md)를 따른다. CI의 Docker build 4개 참조와 Dependabot 경로를 함께 갱신하고 Docker gate에 `scripts/verify-compose-smoke.sh`를 추가했다. 이 smoke는 새 Compose 경로의 config, startup/readiness, restart 및 강제 recreate 후 SQLite 보존뿐 아니라 `RESOURCE_CATALOG_ADMIN_PASSWORD` 누락 시 config fail-fast, app 컨테이너 환경 전달, 실제 관리자 인증 성공/거부, **인증 요청 직후 로그와 재생성 후 로그의 비밀번호 원문 비노출**을 격리된 CI 리소스로 검사한다. 관리자 비밀번호 값 자체는 Actions 출력에 기록하지 않는다. 기존 quality/E2E/runtime/registry 권한·검증 gate는 유지한다. 결과는 해당 PR/run/head의 실제 증거로 판정하며 과거 Wxx 기록을 이번 변경의 PASS로 전용하지 않는다.
+
+## 9. Issue #87 고정 대상 브랜치 정리
+
+[issue-87-branch-cleanup.yml](../.github/workflows/issue-87-branch-cleanup.yml)은 사용자 요청의 PR #88 작업 브랜치 정리에 한정한다. 일반 이슈의 자동 삭제나 정식 릴리스 승인을 부여하지 않는다. 기존 ci/release job과 registry 권한은 변경하지 않는다.
+
+- PR validation은 해당 workflow/script 변경에서 contents:read로 [회귀 스크립트](../scripts/verify-issue-87-cleanup.py)를 실행한다. 기존 quality/e2e/docker를 대체하지 않는다.
+- cleanup은 main push CI 완료 뒤 API로 repository/event/path/attempt, 실제 merge SHA, quality/e2e/docker/main GHCR 네 job의 success를 확인한다. write job은 checkout/fetch/PR script/artifact/cache를 실행하지 않는다.
+- **PR #88은 `merge_method=merge`와 최종 expected_head_sha를 지정하여 병합한다.** 실제 merge commit의 두 parent와 두 번째 parent=PR head를 확인하며 squash/rebase는 지원하지 않고 삭제를 거부한다.
+- ancestry, 다른 열린 PR 참조 부재, 보호 branch 및 새 tip 검사를 통과한 `docs/issue-87-agent-lifecycle` 하나만 삭제한다. Git의 명시적 `--force-with-lease=<ref>:<verified-head>`와 단일 삭제 refspec으로 원자적 SHA 조건을 적용한다. 이력 force update/태그 이동이 아니며 REST 무조건 삭제로 fallback하지 않는다.
+- GITHUB_TOKEN은 해당 job의 런타임 인증 환경에서만 사용한다. 시스템/global Git 설정과 trace를 배제하며 토큰을 Git config 파일·인자·로그에 기록하지 않는다. 삭제 후 API 404와 summary를 증거로 남긴다.
+- 완료 후 다른 main run은 no-op이고 이미 없는 branch는 재삭제하지 않는다. branch 이름을 재사용하지 않는다. 파일 제거/비활성화는 증거 보존 뒤 별도 검토된 운영 변경으로만 수행하며 workflow가 자체 제거 commit이나 다른 target을 만들지 않는다.
+
+원격 검증 항목과 실패 판정은 [REMOTE_VALIDATION](REMOTE_VALIDATION.md)의 Issue #87 절을 따른다. 정리 run/head/ref 근거는 PR/Issue 완료 댓글에 남긴다. 자세한 결정 이력은 [ISSUE_87_COMPLETION](ISSUE_87_COMPLETION.md)에 있다.
