@@ -59,9 +59,16 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   await page.waitForURL("/");
   await expect(page.getByRole("heading", { name: "프로젝트", exact: true })).toBeVisible();
   const projectLink = page.getByRole("link", { name: new RegExp(name) });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const mainWidth = await page.locator("main.main-content").evaluate((element) => element.getBoundingClientRect().width);
+  expect(mainWidth).toBeGreaterThan(1200);
   await expect(projectLink.locator("xpath=ancestor::tr")).toContainText("브라우저 통합 검증 프로젝트");
   await expect(projectLink.locator("xpath=ancestor::tr")).toContainText(E2E_PROJECT_OWNER);
-  await page.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true }).click();
+  const listActionTrigger = projectLink.locator("xpath=ancestor::tr").getByRole("button", { name: `${name} 프로젝트 작업`, exact: true });
+  await listActionTrigger.click();
+  const listMenu = page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
+  await expect(listMenu).toBeVisible();
+  await listMenu.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true }).click();
   await expect(page.getByTestId("workspace-toast")).toContainText("프로젝트 링크를 복사했습니다");
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(detailCopiedUrl);
   await expect(page).toHaveURL(new URL("/", directUrl).href);
@@ -75,8 +82,15 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
     const readonlyPage = await readonlyContext.newPage();
     await readonlyPage.goto("/");
     const readonlyRow = readonlyPage.locator(`tr[data-project-id="${directUrl.split("/").pop()}"]`);
-    await expect(readonlyRow.getByRole("button", { name: "삭제", exact: true })).toBeVisible();
-    await expect(readonlyRow.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true })).toBeVisible();
+    const readonlyActionTrigger = readonlyRow.getByRole("button", { name: `${name} 프로젝트 작업`, exact: true });
+    await expect(readonlyActionTrigger).toBeVisible();
+    await readonlyActionTrigger.click();
+    const readonlyMenu = readonlyPage.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
+    await expect(readonlyMenu.getByRole("link", { name: "프로젝트 복사", exact: true })).toBeVisible();
+    await expect(readonlyMenu.getByRole("button", { name: `${name} 프로젝트 링크 복사`, exact: true })).toBeVisible();
+    await expect(readonlyMenu.getByRole("button", { name: "삭제", exact: true })).toBeVisible();
+    await readonlyPage.keyboard.press("Escape");
+    await expect(readonlyActionTrigger).toBeFocused();
     await readonlyPage.goto(detailCopiedUrl);
     await expect(readonlyPage.getByRole("heading", { name })).toBeVisible();
     await expect(readonlyPage.getByText("읽기 전용", { exact: true })).toBeVisible();
@@ -90,7 +104,10 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   await expect(row).toContainText(name);
   let deleteRequests = 0;
   page.on("request", (request) => { if (request.method() === "DELETE") deleteRequests++; });
-  await row.getByRole("button", { name: "삭제", exact: true }).click();
+  const deleteActionTrigger = row.getByRole("button", { name: `${name} 프로젝트 작업`, exact: true });
+  await deleteActionTrigger.click();
+  await page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true })
+    .getByRole("button", { name: "삭제", exact: true }).click();
   const deletion = page.getByRole("dialog", { name: "프로젝트 삭제", exact: true });
   await expect(deletion).toContainText(name);
   await expect(deletion).toContainText("모든 일정이 삭제됩니다");
@@ -117,7 +134,9 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   expect(copiedCredentialError).not.toMatch(/INVALID_PASSWORD|wrong-password-123/);
   await page.keyboard.press("Escape");
 
-  await row.getByRole("button", { name: "삭제", exact: true }).click();
+  await deleteActionTrigger.click();
+  await page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true })
+    .getByRole("button", { name: "삭제", exact: true }).click();
   await deletion.getByLabel("삭제 확인 비밀번호").fill(password);
   await deletion.getByRole("button", { name: "비밀번호 확인 후 삭제" }).click();
   await expect(row).toHaveCount(0);
