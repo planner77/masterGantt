@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { planCanonicalGanttSync } from "../../../src/features/gantt/canonical-snapshot-sync";
+import { applyCanonicalGanttSync, planCanonicalGanttSync } from "../../../src/features/gantt/canonical-snapshot-sync";
 
 describe("canonical SVAR snapshot sync", () => {
   it("preserves unchanged rendered tasks while planning only server-confirmed additions", () => {
@@ -62,5 +62,31 @@ describe("canonical SVAR snapshot sync", () => {
     );
 
     expect(plan.deletedTaskIds).toEqual(["grandchild", "branch"]);
+  });
+
+  it("uses move-task for canonical reparenting instead of rewriting parent through update-task", async () => {
+    const parent = { id: "parent", text: "Parent", start: new Date(2026, 8, 14), end: new Date(2026, 8, 16), parent: 0, type: "summary" };
+    const currentChild = { id: "child", text: "Child", start: new Date(2026, 8, 15), end: new Date(2026, 8, 16), parent: 0, type: "task" };
+    const canonicalChild = { ...currentChild, parent: "parent" };
+    const calls: Array<{ action: string; payload: unknown }> = [];
+    const api = {
+      exec: async (action: string, payload: unknown) => {
+        calls.push({ action, payload });
+      },
+    };
+
+    await applyCanonicalGanttSync(
+      api as never,
+      { tasks: [parent, currentChild], links: [] },
+      { tasks: [parent, canonicalChild], links: [] },
+    );
+
+    expect(calls).toContainEqual({
+      action: "move-task",
+      payload: { id: "child", mode: "child", target: "parent" },
+    });
+    const update = calls.find((call) => call.action === "update-task");
+    expect(update).toBeDefined();
+    expect(update?.payload).not.toMatchObject({ task: { parent: "parent" } });
   });
 });

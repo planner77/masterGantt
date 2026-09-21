@@ -707,3 +707,13 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 ## 공통 Request ID / Correlation 계약
 
 주요 API 응답은 `X-Request-ID`를 반환한다. 오류 응답의 `error.requestId`는 이 헤더와 서버 구조화 로그의 `requestId`와 동일하다. 기본 `TRUST_PROXY=false`에서는 클라이언트 제공 `X-Request-ID`를 무시하고 서버 UUID를 사용한다. `TRUST_PROXY=true`인 신뢰 프록시 경계에서도 UUID 또는 Nginx `$request_id` 32-hex 형식만 수용하고 그 외 값은 재생성한다. 이 설정은 인증, Origin, revision, Cookie 또는 HTTP/HTTPS 정책을 변경하지 않는다.
+
+## Issue #72 — Task hierarchy command
+
+### POST `/api/projects/{publicId}/task-commands`
+
+보호된 Project mutation이다. exact Origin, 유효한 edit session과 strong `If-Match: "<revision>"`가 필요하며 성공은 `200`과 새 ETag/canonical Task snapshot을 반환한다. 한 HTTP 명령은 하나의 SQLite immediate transaction에서 parent/order/type/subtree와 파생 Summary를 저장하고 Project revision을 정확히 1 증가시킨다.
+
+지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste의 실제 저장 동작이고 `copy`는 source subtree에 새 taskId/externalId를 발급한다. Dependency Link가 하나라도 존재하면 기존 계층 mutation 정책과 동일하게 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`를 반환한다.
+
+경계 이동 등 현재 위치에서 의미 없는 명령은 `409 TASK_COMMAND_NOT_AVAILABLE`, 마지막 child 이동으로 빈 Summary가 생기면 `409 EMPTY_SUMMARY_NOT_ALLOWED`, Resource Assignment가 포함된 subtree Copy는 현재 `409 TASK_COPY_ASSIGNMENTS_UNSUPPORTED`다. stale revision은 `412 REVISION_MISMATCH`이며 부분 저장은 없다.

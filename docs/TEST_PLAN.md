@@ -7,6 +7,16 @@
 
 상태: qa_docs가 작성한 검증 전략. W02–W07, W20과 W21 검증 기록은 [W07_REVIEW.md](W07_REVIEW.md), [W20_REVIEW.md](W20_REVIEW.md), [W21_REVIEW.md](W21_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W20의 로컬 container PASS도 원격 Actions/GHCR, production host/backup/restore와 VBA 통과를 뜻하지 않는다.
 
+## Issue #72 Task Context Menu
+
+최종 PR 검증 기준은 **PR #73 / CI Run #387**이다. `quality`, 전체 Chromium E2E, Docker build/runtime/transport/Compose smoke가 모두 PASS했으며, hierarchy reparent는 canonical sync에서 공개 `move-task` action을 사용하고 `update-task` parent 직접 변경으로 인한 recovery remount가 발생하지 않는지를 Unit/E2E에서 고정한다.
+
+- Unit: 메뉴 enable/disable, sibling 경계, Indent/Outdent, clipboard Cut/Copy/Paste command mapping과 readonly/busy/link fail-closed를 검증한다.
+- SQLite service: Move, Indent parent Summary 전환, subtree Copy identity/shape, boundary no-op rollback, 성공당 revision +1을 검증한다. cycle/empty Summary/assignment-copy/link 구조도 회귀 범위다.
+- API/security: 신규 `POST /task-commands`가 route security inventory에 포함되고 Origin/session/If-Match/stale revision/Project isolation 규약을 그대로 적용하는지 검증한다.
+- Browser: Grid/Chart 우클릭과 Shift+F10, submenu keyboard focus, Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D, viewport edge, 실패 후 canonical recovery와 reload persistence를 검증한다.
+- GitHub Actions의 동일 head quality/e2e/docker가 최종 자동 판정 근거다. SVAR Willow와의 실제 시각/키보드 UX 비교는 별도 수동 확인 항목이다.
+
 ## 판정과 증거
 
 ### Issue #31 작업 subtree 삭제

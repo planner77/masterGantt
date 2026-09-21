@@ -106,3 +106,10 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 대상 Excel에 안정 ID가 없을 수 있다. 승인된 ID 보존 방법이 확인될 때까지 행 번호를 장기 ID로 확정하지 않는다.
 - W01–W07 application source와 초기 migration, Project edit authorization, pure Calendar/Leaf Scheduling, root Task/Milestone Gantt 저장은 구현되었다. W21은 이 저장 경계를 유지하면서 full-width Grid+Chart 작업공간과 생성 직후 표시 회귀를 보완한다. W20은 CI와 최소 container artifact 기반을 선행하지만 production host/backup/restore를 포함한 W16 전체 배포 승인을 대신하지 않는다. VBA macro, Summary/WBS·FS 재계산, Import/Export도 후속 산출물이다.
 - #18의 과거 부모 전환 확인 유지 조건은 함께 승인된 #11로 대체하며, 서버의 명시적 전환·인증·revision 계약은 유지한다.
+
+## Issue #72 confirmed addendum
+
+- **R72-01**: Edit 권한 Task의 Grid/Chart context menu는 SVAR Willow 기본 작업 흐름의 Add, Convert to, Edit, Cut, Copy, Paste, Move up/down, Indent, Outdent, Delete를 표현한다. Readonly에서는 mutation이 동작하지 않는다.
+- **R72-02**: parent/sibling order/type/subtree를 바꾸는 명령은 server-authoritative atomic mutation이며 성공당 Project revision을 정확히 1 증가시킨다. Client-only hierarchy 상태를 canonical로 간주하지 않는다.
+- **R72-03**: Cut은 Paste 전까지 저장 상태를 바꾸지 않는다. Copy는 subtree identity를 새로 발급하고 원본을 변경하지 않는다. stale clipboard는 Project revision 변경 시 폐기한다.
+- **R72-04**: cycle, Project 외 Task, Milestone parent, 빈 Summary 발생, Link 포함 계층 mutation은 fail-closed한다. Assignment가 있는 subtree Copy는 Assignment 복제 정책이 별도 확정될 때까지 명시적 오류로 거부한다.

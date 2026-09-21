@@ -1,0 +1,160 @@
+import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
+import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/contracts/projects";
+
+test.use(isolatedApplicationOptions);
+
+async function snapshot(page: import("@playwright/test").Page, api: string) {
+  const response = await page.request.get(api);
+  expect(response.status()).toBe(200);
+  return await response.json() as ProjectSnapshotResponse;
+}
+
+async function createTask(
+  page: import("@playwright/test").Page,
+  api: string,
+  origin: string,
+  revision: number,
+  name: string,
+) {
+  const response = await page.request.post(`${api}/tasks`, {
+    headers: { Origin: origin, "If-Match": `"${revision}"` },
+    data: { name, type: "task", start: "2026-09-21", duration: 1, progress: 0 },
+  });
+  expect(response.status()).toBe(201);
+  return await response.json() as TaskMutationResponse;
+}
+
+const row = (page: import("@playwright/test").Page, name: string) =>
+  page.locator(".project-gantt-widget .wx-row", { hasText: name }).first();
+
+async function openTaskMenu(page: import("@playwright/test").Page, name: string) {
+  const target = row(page, name);
+  await expect(target).toBeVisible();
+  await target.getByText(name, { exact: true }).click({ button: "right" });
+  const menu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
+  await expect(menu).toBeVisible();
+  return menu;
+}
+
+async function runSubmenu(
+  page: import("@playwright/test").Page,
+  menuName: string,
+  itemName: string,
+) {
+  const menu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
+  const trigger = menu.getByRole("menuitem", { name: menuName, exact: true });
+  await trigger.hover();
+  const submenu = page.getByRole("menu", { name: menuName, exact: true });
+  await expect(submenu).toBeVisible();
+  await submenu.getByRole("menuitem", { name: itemName, exact: true }).click();
+}
+
+async function expectStructureToast(page: import("@playwright/test").Page) {
+  await expect(page.getByTestId("workspace-toast")).toContainText("작업 구조를 변경했습니다");
+}
+
+test("Issue #72 Context Menu hierarchy commands persist canonical state without remounting", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Context hierarchy ${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Context-password-${suffix}`);
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
+
+  const path = new URL(page.url()).pathname;
+  const api = `/api${path}`;
+  const origin = new URL(page.url()).origin;
+  let current = await snapshot(page, api);
+
+  const aBody = await createTask(page, api, origin, current.data.project.revision, "Context A");
+  const a = aBody.data.tasks.find((task) => task.name === "Context A")!;
+  const bBody = await createTask(page, api, origin, aBody.data.project.revision, "Context B");
+  const b = bBody.data.tasks.find((task) => task.name === "Context B")!;
+  const cBody = await createTask(page, api, origin, bBody.data.project.revision, "Context C");
+  const c = cBody.data.tasks.find((task) => task.name === "Context C")!;
+
+  await page.reload();
+  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  const frame = page.locator(".project-gantt-frame");
+  const instance = await frame.getAttribute("data-project-gantt-instance");
+
+  let menu = await openTaskMenu(page, "Context B");
+  for (const name of ["Add", "Convert to", "Edit", "Cut", "Copy", "Paste", "Move", "Indent", "Outdent", "Delete"]) {
+    await expect(menu.getByRole("menuitem", { name, exact: true })).toBeVisible();
+  }
+  await expect(menu.getByRole("menuitem", { name: "Paste", exact: true })).toBeDisabled();
+  await expect(menu.getByRole("menuitem", { name: "Outdent", exact: true })).toBeDisabled();
+  await page.keyboard.press("Escape");
+
+  menu = await openTaskMenu(page, "Context B");
+  await runSubmenu(page, "Move", "Move up");
+  await expectStructureToast(page);
+  current = await snapshot(page, api);
+  expect(current.data.tasks
+    .filter((task) => task.parentExternalId === null)
+    .sort((left, right) => left.siblingOrder - right.siblingOrder)
+    .map((task) => task.name)).toEqual(["Context B", "Context A", "Context C"]);
+
+  menu = await openTaskMenu(page, "Context A");
+  await menu.getByRole("menuitem", { name: "Indent", exact: true }).click();
+  await expectStructureToast(page);
+  current = await snapshot(page, api);
+  const afterIndentA = current.data.tasks.find((task) => task.taskId === a.taskId)!;
+  const afterIndentB = current.data.tasks.find((task) => task.taskId === b.taskId)!;
+  expect(afterIndentA.parentExternalId).toBe(afterIndentB.externalId);
+  expect(afterIndentB.type).toBe("summary");
+
+  // A가 B의 유일한 child이면 Outdent는 B를 빈 Summary로 만들기 때문에 금지된다.
+  // B 아래에 sibling child를 하나 더 만든 뒤에 허용되는 Outdent 경로를 검증한다.
+  menu = await openTaskMenu(page, "Context B");
+  await runSubmenu(page, "Add", "Child task");
+  await expectStructureToast(page);
+  current = await snapshot(page, api);
+  const bChildren = current.data.tasks.filter((task) => task.parentExternalId === afterIndentB.externalId);
+  expect(bChildren).toHaveLength(2);
+
+  menu = await openTaskMenu(page, "Context A");
+  await expect(menu.getByRole("menuitem", { name: "Outdent", exact: true })).toBeEnabled();
+  await menu.getByRole("menuitem", { name: "Outdent", exact: true }).click();
+  await expectStructureToast(page);
+  current = await snapshot(page, api);
+  expect(current.data.tasks.find((task) => task.taskId === a.taskId)?.parentExternalId).toBeNull();
+
+  menu = await openTaskMenu(page, "Context C");
+  await menu.getByRole("menuitem", { name: "Copy", exact: true }).click();
+  menu = await openTaskMenu(page, "Context A");
+  await expect(menu.getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
+  await runSubmenu(page, "Paste", "Below");
+  await expectStructureToast(page);
+  current = await snapshot(page, api);
+  const copies = current.data.tasks.filter((task) => task.name === "Context C");
+  expect(copies).toHaveLength(2);
+  expect(new Set(copies.map((task) => task.taskId)).size).toBe(2);
+  expect(copies.some((task) => task.taskId === c.taskId)).toBe(true);
+
+  menu = await openTaskMenu(page, "Context A");
+  await runSubmenu(page, "Convert to", "Milestone");
+  await expectStructureToast(page);
+  current = await snapshot(page, api);
+  expect(current.data.tasks.find((task) => task.taskId === a.taskId)).toMatchObject({
+    type: "milestone",
+    duration: 0,
+  });
+
+  const beforeAddRevision = current.data.project.revision;
+  menu = await openTaskMenu(page, "Context A");
+  await runSubmenu(page, "Add", "Task below");
+  await expectStructureToast(page);
+  current = await snapshot(page, api);
+  expect(current.data.project.revision).toBe(beforeAddRevision + 1);
+  expect(current.data.tasks.some((task) => task.name === "새 작업")).toBe(true);
+
+  await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
+  await page.reload();
+  current = await snapshot(page, api);
+  expect(current.data.tasks.find((task) => task.taskId === a.taskId)?.type).toBe("milestone");
+  expect(current.data.tasks.filter((task) => task.name === "Context C")).toHaveLength(2);
+  await expect(page.getByRole("grid").getByText("Context A", { exact: true })).toBeVisible();
+});

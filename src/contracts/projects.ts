@@ -182,6 +182,56 @@ export interface UpdateTaskRequest {
   progress?: number;
 }
 
+export type TaskHierarchyPlacement = "before" | "after" | "child";
+export type TaskHierarchyCommandKind =
+  | "create"
+  | "convert"
+  | "move"
+  | "indent"
+  | "outdent"
+  | "reparent"
+  | "copy";
+
+export interface TaskHierarchyCreateSeed {
+  name: string;
+  description?: string | null;
+  url?: string | null;
+  type: "task" | "milestone";
+  scheduleMode?: "auto" | "manual";
+  start: string;
+  end?: string;
+  duration: number;
+  progress: number;
+}
+
+export type TaskHierarchyCommandRequest =
+  | {
+      kind: "create";
+      anchorTaskId: string;
+      placement: TaskHierarchyPlacement;
+      task: TaskHierarchyCreateSeed;
+    }
+  | {
+      kind: "convert";
+      taskId: string;
+      targetType: "task" | "summary" | "milestone";
+    }
+  | {
+      kind: "move";
+      taskId: string;
+      direction: "up" | "down";
+    }
+  | {
+      kind: "indent" | "outdent";
+      taskId: string;
+    }
+  | {
+      kind: "reparent" | "copy";
+      taskId: string;
+      anchorTaskId: string;
+      placement: TaskHierarchyPlacement;
+    };
+
 export interface ScheduleWarningDto {
   code: "NON_WORKING_START_SHIFTED";
   path: "start";
@@ -189,7 +239,7 @@ export interface ScheduleWarningDto {
   start: string;
 }
 
-export type TaskMutationKind = "taskCreate" | "taskUpdate" | "taskDelete";
+export type TaskMutationKind = "taskCreate" | "taskUpdate" | "taskDelete" | "taskHierarchy";
 
 export interface TaskMutationResponse {
   data: {
@@ -200,6 +250,8 @@ export interface TaskMutationResponse {
     warnings: ScheduleWarningDto[];
     operation: {
       kind: TaskMutationKind;
+      /** Present for atomic context-menu hierarchy commands. */
+      command?: TaskHierarchyCommandKind;
       changedTaskExternalIds: string[];
       deletedTaskExternalIds: string[];
       deletedLinkIds: string[];
