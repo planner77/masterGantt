@@ -493,14 +493,14 @@ export class TaskHierarchyService {
           links: [],
           warnings,
           operation: {
-            kind: "taskHierarchy",
+            kind: "taskHierarchy" as const,
             command: command.kind,
             changedTaskExternalIds: [...changed],
             deletedTaskExternalIds: [],
             deletedLinkIds: [],
           },
         },
-      };
+      } satisfies TaskMutationResponse;
     });
     return mutate.immediate();
   }
