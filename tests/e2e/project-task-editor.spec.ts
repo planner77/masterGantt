@@ -26,6 +26,7 @@ interface Fixture {
   nextFailure: number | "network" | null;
   gate: Promise<void> | null;
   failReads: boolean;
+  projectReads: number;
 }
 
 async function setup(page: Page, options: { editable?: boolean; links?: boolean; assignmentTargets?: boolean } = {}): Promise<Fixture> {
@@ -40,7 +41,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       task(5, "Milestone", { type: "milestone", duration: 0, requestedStart: "2026-09-23", start: "2026-09-23", end: "2026-09-23" }),
     ],
     links: options.links ? [{ id: id(90), predecessorExternalId: "EDITOR-3", successorExternalId: "EDITOR-4", type: "FS", lag: 0 }] : [],
-    editable: options.editable ?? true, patches: [], nextFailure: null, gate: null, failReads: false,
+    editable: options.editable ?? true, patches: [], nextFailure: null, gate: null, failReads: false, projectReads: 0,
   };
   const assignmentTargets = options.assignmentTargets ? [{ kind: "resource" as const, id: id(70), name: "Resource A", code: "RES-A", active: true }] : [];
   const snapshot = () => ({ data: { project: fixture.project, tasks: fixture.tasks, links: fixture.links, permission: "readonly" } });
@@ -60,6 +61,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       return;
     }
     if (path === apiPath && request.method() === "GET") {
+      fixture.projectReads += 1;
       await route.fulfill(fixture.failReads ? { status: 500, json: { error: { code: "READ_FAILED" } } } : { json: snapshot() });
       return;
     }
@@ -416,6 +418,51 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(editor(page)).toHaveCount(0);
     expect(fixture.patches[0].postDataJSON()).toEqual({ name: "Updated milestone", start: "2026-09-22" });
     expect(fixture.tasks.find((entry) => entry.taskId === id(5))).toMatchObject({ start: "2026-09-22", end: "2026-09-22", duration: 0 });
+  });
+
+  test("Issue #80 canonical 관계 snapshot은 Grid/Chart/Context Menu Editor에서 동일하게 표시되고 추가 Project GET을 만들지 않는다", async ({ page }) => {
+    const fixture = await setup(page, { links: true });
+    expect(fixture.projectReads).toBe(1);
+
+    const expectRelations = async (direction: "predecessor" | "successor") => {
+      const dialog = editor(page);
+      await dialog.getByRole("tab", { name: /관계/ }).click();
+      const group = dialog.getByRole("region", { name: direction === "predecessor" ? /선행 작업/ : /후행 작업/ });
+      await expect(group).toContainText(direction === "predecessor" ? "Alpha leaf" : "Beta leaf");
+      await expect(group).toContainText(direction === "predecessor" ? "EDITOR-3" : "EDITOR-4");
+      await expect(group).toContainText("FS (종료 → 시작)");
+      await expect(group).toContainText("Lag 0일");
+      await expect(dialog.getByRole("tab", { name: /관계 1건/ })).toBeVisible();
+      expect(fixture.projectReads).toBe(1);
+      expect(fixture.patches).toHaveLength(0);
+    };
+
+    await row(page, "Alpha leaf").getByText("Alpha leaf", { exact: true }).dblclick();
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Alpha leaf");
+    await expectRelations("successor");
+    await cancel(page);
+
+    await bar(page, id(4)).dblclick();
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Beta leaf");
+    await expectRelations("predecessor");
+    await cancel(page);
+
+    await openRow(page, "Beta leaf");
+    await expectRelations("predecessor");
+    await cancel(page);
+
+    expect(fixture.projectReads).toBe(1);
+    expect(fixture.patches).toHaveLength(0);
+  });
+
+  test("Issue #80 관계 정보는 Readonly Editor에서도 canonical snapshot으로 조회된다", async ({ page }) => {
+    const fixture = await setup(page, { editable: false, links: true });
+    await openRow(page, "Beta leaf");
+    await editor(page).getByRole("tab", { name: /관계/ }).click();
+    await expect(editor(page).getByRole("region", { name: /선행 작업/ })).toContainText("Alpha leaf");
+    await expect(save(page)).toHaveCount(0);
+    expect(fixture.projectReads).toBe(1);
+    expect(fixture.patches).toHaveLength(0);
   });
 
   test("Issue #74 탭 구조는 초안을 보존하고 키보드 탐색과 좁은 화면을 지원한다", async ({ page }) => {
