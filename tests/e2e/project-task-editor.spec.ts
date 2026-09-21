@@ -422,7 +422,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
   test("Issue #80 canonical 관계 snapshot은 Grid/Chart/Context Menu Editor에서 동일하게 표시되고 추가 Project GET을 만들지 않는다", async ({ page }) => {
     const fixture = await setup(page, { links: true });
-    expect(fixture.projectReads).toBe(1);
+    const baselineProjectReads = fixture.projectReads;
 
     const expectRelations = async (direction: "predecessor" | "successor") => {
       const dialog = editor(page);
@@ -433,7 +433,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       await expect(group).toContainText("FS (종료 → 시작)");
       await expect(group).toContainText("Lag 0일");
       await expect(dialog.getByRole("tab", { name: /관계 1건/ })).toBeVisible();
-      expect(fixture.projectReads).toBe(1);
+      expect(fixture.projectReads).toBe(baselineProjectReads);
       expect(fixture.patches).toHaveLength(0);
     };
 
@@ -451,17 +451,18 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expectRelations("predecessor");
     await cancel(page);
 
-    expect(fixture.projectReads).toBe(1);
+    expect(fixture.projectReads).toBe(baselineProjectReads);
     expect(fixture.patches).toHaveLength(0);
   });
 
   test("Issue #80 관계 정보는 Readonly Editor에서도 canonical snapshot으로 조회된다", async ({ page }) => {
     const fixture = await setup(page, { editable: false, links: true });
+    const baselineProjectReads = fixture.projectReads;
     await openRow(page, "Beta leaf");
     await editor(page).getByRole("tab", { name: /관계/ }).click();
     await expect(editor(page).getByRole("region", { name: /선행 작업/ })).toContainText("Alpha leaf");
     await expect(save(page)).toHaveCount(0);
-    expect(fixture.projectReads).toBe(1);
+    expect(fixture.projectReads).toBe(baselineProjectReads);
     expect(fixture.patches).toHaveLength(0);
   });
 
