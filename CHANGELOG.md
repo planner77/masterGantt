@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-09-21
+
+### Changed
+
+- Issue #74: Task Editor를 작업 정보·리소스·관계 3개 탭으로 재구성하고 Header/Tab/Footer는 유지한 채 Body만 스크롤하도록 대형 반응형 modal layout을 적용한다.
+- WAI-ARIA tab pattern에 맞춰 Arrow Left/Right, Home/End 키보드 탐색과 focus-visible을 제공하고 360/768/1440px에서 horizontal overflow를 방지한다.
+- 리소스 할당은 검색·유형·할당됨 필터, 선택 우선 정렬, Resource/Group badge와 row/divider 구조로 정돈하고 기존 Task PATCH와 Assignment PUT 저장 계약은 분리 유지한다.
+- 관계 정보는 wide 화면 2열, narrow 화면 1열로 표시하고 관계/할당 건수를 탭과 섹션에서 확인할 수 있게 한다.
+- 하위 호환 사용자 UX 확장이므로 Semantic Versioning 정책에 따라 `0.19.0`에서 `0.20.0`으로 증가한다.
+
+
 ## [0.19.0] - 2026-09-21
 
 ### Changed
