@@ -197,10 +197,6 @@ export function ProjectGantt({
   }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, tasksById]);
 
   useEffect(() => {
-    setTaskClipboard((current) => current && current.revision !== projectRevision ? null : current);
-  }, [projectRevision]);
-
-  useEffect(() => {
     const api = apiReference.current;
     const root = ganttScrollReference.current;
     if (!api || !root || !apiInstanceId) return;
@@ -590,8 +586,8 @@ export function ProjectGantt({
   }
 
   function pasteFromMenu(placement: "before" | "after" | "child" = "after") {
-    if (!taskMenu || !taskClipboard) return;
-    executeHierarchyCommand(createPasteCommand(taskClipboard, taskMenu.taskId, placement));
+    if (!taskMenu || !activeClipboard) return;
+    executeHierarchyCommand(createPasteCommand(activeClipboard, taskMenu.taskId, placement));
   }
 
   function runTaskShortcut(event: ReactKeyboardEvent<HTMLDivElement>): boolean {
@@ -607,8 +603,8 @@ export function ProjectGantt({
       setTaskClipboard({ mode: "copy", taskId: match.taskId, revision: projectRevision });
     } else if (modifier && event.key.toLowerCase() === "x" && canMutate) {
       setTaskClipboard({ mode: "cut", taskId: match.taskId, revision: projectRevision });
-    } else if (modifier && event.key.toLowerCase() === "v" && canMutate && taskClipboard && taskClipboard.taskId !== match.taskId) {
-      onTaskHierarchyCommandReference.current(createPasteCommand(taskClipboard, match.taskId));
+    } else if (modifier && event.key.toLowerCase() === "v" && canMutate && activeClipboard && activeClipboard.taskId !== match.taskId) {
+      onTaskHierarchyCommandReference.current(createPasteCommand(activeClipboard, match.taskId));
     } else if ((event.key === "Delete" || event.key === "Backspace" || (modifier && event.key.toLowerCase() === "d")) && canMutate) {
       onTaskDeleteRequestReference.current(match.taskId, match.element);
     } else {
@@ -671,8 +667,9 @@ export function ProjectGantt({
 
   const canMutate = editable && !mutationLocked && links.length === 0;
   const canDelete = canMutate;
+  const activeClipboard = taskClipboard?.revision === projectRevision ? taskClipboard : null;
   const menuCapabilities = taskMenu
-    ? taskContextCapabilities(tasks, taskMenu.taskId, editable, mutationLocked, links.length > 0, taskClipboard)
+    ? taskContextCapabilities(tasks, taskMenu.taskId, editable, mutationLocked, links.length > 0, activeClipboard)
     : null;
 
   return (
