@@ -165,6 +165,10 @@ button:focus-visible {
   padding-block: 1.25rem;
 }
 
+.main-content:has(> .project-list-page) {
+  width: min(calc(100% - 3rem), 100rem);
+}
+
 .page-section {
   display: grid;
   gap: 2.25rem;
