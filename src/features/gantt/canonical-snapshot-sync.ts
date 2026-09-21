@@ -69,7 +69,9 @@ async function syncExistingTaskHierarchy(
   const existingIds = new Set(current.map((task) => String(task.id)));
   for (const task of canonical) {
     if (!isCurrent()) return;
-    const id = String(task.id);
+    if (task.id === undefined) continue;
+    const taskId = task.id;
+    const id = String(taskId);
     if (!existingIds.has(id) || !hierarchyChanged(task, current, canonical)) continue;
 
     const parent = normalizedParent(task);
@@ -81,14 +83,14 @@ async function syncExistingTaskHierarchy(
     const next = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : undefined;
     const currentTask = current.find((candidate) => String(candidate.id) === id);
 
-    if (parent !== "0" && normalizedParent(currentTask) !== parent) {
-      await api.exec("move-task", { id: task.id, mode: "child", target: task.parent });
+    if (parent !== "0" && normalizedParent(currentTask) !== parent && task.parent !== undefined && task.parent !== null) {
+      await api.exec("move-task", { id: taskId, mode: "child", target: task.parent });
     }
     if (!isCurrent()) return;
     if (previous?.id !== undefined) {
-      await api.exec("move-task", { id: task.id, mode: "after", target: previous.id });
+      await api.exec("move-task", { id: taskId, mode: "after", target: previous.id });
     } else if (next?.id !== undefined) {
-      await api.exec("move-task", { id: task.id, mode: "before", target: next.id });
+      await api.exec("move-task", { id: taskId, mode: "before", target: next.id });
     }
   }
 }
