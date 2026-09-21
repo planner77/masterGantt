@@ -105,12 +105,12 @@ export function ProjectRowActions({ project, projectUrl, disabled, onDelete }: R
           href={`${projectPath(project.publicId)}?copy=1`}
           onClick={() => closeMenu(false)}>프로젝트 복사</Link>
         <ProjectLinkButton projectName={project.name} projectUrl={projectUrl}
-          className={styles.menuItem} role="menuitem" onActionComplete={() => closeMenu(false)} />
+          className={styles.menuItem} role="menuitem" tabIndex={-1} onActionComplete={() => closeMenu(true)} />
         <div className={styles.separator} role="separator" />
         <button role="menuitem" tabIndex={-1} type="button" className={`${styles.menuItem} ${styles.destructive}`}
           onClick={() => {
             const restoreTarget = triggerRef.current;
-            closeMenu(false);
+            closeMenu(true);
             if (restoreTarget) void onDelete(project, restoreTarget);
           }}>삭제</button>
       </div>,
