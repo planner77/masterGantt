@@ -1,9 +1,9 @@
 # Issue #75 프로젝트 목록 UX 구현·검증 기록
 
-상태: PR 병합 및 main artifact 검증 완료 / `v0.19.0` 정식 릴리스 검증 진행  
+상태: PR 병합 및 main artifact 검증 완료 / `v0.19.1` 정식 릴리스 복구 검증 진행  
 구현 브랜치: `feature/75-project-list-ux`  
 릴리스 정리 브랜치: `chore/75-release-finalization`  
-버전: `0.19.0`
+버전: `0.19.1` (`v0.19.0` release 실패 이력 보존)
 
 ## 구현 결정
 
@@ -51,3 +51,14 @@
 - release helper는 자신의 main 병합 commit이 전체 main CI와 임시 GHCR digest 검증을 통과한 경우에만 `v0.19.0` tag를 생성하고 release-image workflow를 실행한다.
 - 정식 release-image workflow가 exact SemVer image와 digest smoke를 성공한 뒤에만 `feature/75-project-list-ux`와 `chore/75-release-finalization` 브랜치를 삭제한다.
 - 최종 release run/digest와 Issue 종료 근거는 Issue #75 종료 댓글과 workflow summary에 기록한다.
+
+## v0.19.0 release 실패와 복구
+
+- annotated `v0.19.0` tag는 release-finalization merge commit `2305643ed9c4ba10303ee573b0df9397facfa9b0`에 생성되었다.
+- release-image run #18 (`35610134945`)은 SemVer 검증, typecheck, lint, Vitest, audit, build까지 PASS했으나 Chromium E2E 53건 중 1건이 실패했다.
+- 실패 지점은 `project-create-and-read.spec.ts`의 390/768/1024/1440 반응형 메뉴 루프다. Playwright `click()`이 화면 밖 action trigger를 자동 스크롤한 뒤 메뉴를 열었고, 지연된 `scroll` 이벤트가 제품의 정상적인 scroll-close 처리와 경합해 menu가 즉시 닫혔다.
+- 나머지 52개 Chromium E2E는 PASS했고, release candidate build와 GHCR write job은 gate 실패로 모두 skip되었다.
+- 릴리스 정책에 따라 `v0.19.0` tag는 이동·삭제·재사용하지 않는다.
+- E2E는 trigger를 명시적으로 먼저 scroll한 후 두 animation frame을 기다려 viewport/scroll 이벤트를 안정화하고 메뉴를 연다.
+- 이 변경은 제품 runtime 동작을 변경하지 않는 테스트 안정성 수정이며 `0.19.1` PATCH로 관리한다.
+- `v0.19.1` release가 성공한 뒤에만 Issue #75 관련 작업 브랜치를 삭제하고 Issue를 종료한다.
