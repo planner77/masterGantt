@@ -44,7 +44,10 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
   const [catalogRevision, setCatalogRevision] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);\n  const [query, setQuery] = useState("");\n  const [kindFilter, setKindFilter] = useState<"all" | "resource" | "group">("all");\n  const [assignedOnly, setAssignedOnly] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [kindFilter, setKindFilter] = useState<"all" | "resource" | "group">("all");
+  const [assignedOnly, setAssignedOnly] = useState(false);
 
   useEffect(() => {
     let alive = true;
