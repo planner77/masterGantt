@@ -443,6 +443,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(resourceTab).toHaveAttribute("aria-selected", "true");
     expect(fixture.patches).toHaveLength(0);
 
+    await resourceTab.focus();
     await page.keyboard.press("End");
     await expect(relationTab).toBeFocused();
     await expect(relationTab).toHaveAttribute("aria-selected", "true");
