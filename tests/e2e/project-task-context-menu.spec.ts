@@ -106,6 +106,15 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   expect(afterIndentA.parentExternalId).toBe(afterIndentB.externalId);
   expect(afterIndentB.type).toBe("summary");
 
+  // A가 B의 유일한 child이면 Outdent는 B를 빈 Summary로 만들기 때문에 금지된다.
+  // B 아래에 sibling child를 하나 더 만든 뒤에 허용되는 Outdent 경로를 검증한다.
+  menu = await openTaskMenu(page, "Context B");
+  await runSubmenu(page, "Add", "Child task");
+  await expectStructureToast(page);
+  current = await snapshot(page, api);
+  const bChildren = current.data.tasks.filter((task) => task.parentExternalId === afterIndentB.externalId);
+  expect(bChildren).toHaveLength(2);
+
   menu = await openTaskMenu(page, "Context A");
   await expect(menu.getByRole("menuitem", { name: "Outdent", exact: true })).toBeEnabled();
   await menu.getByRole("menuitem", { name: "Outdent", exact: true }).click();
