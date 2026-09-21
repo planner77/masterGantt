@@ -163,6 +163,12 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   expect(gammaIndented.parentExternalId).toBe(alphaSummary.externalId);
   expect(alphaSummary.type).toBe("summary");
 
+  // Gamma가 Alpha의 유일한 child이면 Outdent는 empty summary를 만들므로 금지된다.
+  // Alpha에 child를 하나 더 추가한 뒤 Outdent가 허용되는 정상 경로를 검증한다.
+  await openMenu(page, "Alpha");
+  const childAdded = await chooseSubmenu(page, "Add", "Child task");
+  expect(childAdded.data.tasks.filter((task) => task.parentExternalId === alphaSummary.externalId)).toHaveLength(2);
+
   await openMenu(page, "Gamma");
   await expect(menu(page).getByRole("menuitem", { name: "Outdent", exact: true })).toBeEnabled();
   const outdented = await chooseCommand(page, "Outdent");
