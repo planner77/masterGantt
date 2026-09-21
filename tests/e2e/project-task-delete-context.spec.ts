@@ -65,8 +65,8 @@ test("confirms and atomically deletes the right-clicked task subtree without rem
 
   await row.getByText("Delete branch", { exact: true }).click({ button: "right" });
   const menu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
-  await expect(menu.getByRole("menuitem", { name: "작업 삭제", exact: true })).toBeVisible();
-  await menu.getByRole("menuitem", { name: "작업 삭제", exact: true }).click();
+  await expect(menu.getByRole("menuitem", { name: "Delete", exact: true })).toBeVisible();
+  await menu.getByRole("menuitem", { name: "Delete", exact: true }).click();
 
   const dialog = page.getByRole("dialog", { name: "작업 삭제", exact: true });
   await expect(dialog).toContainText("Delete branch");
@@ -79,7 +79,7 @@ test("confirms and atomically deletes the right-clicked task subtree without rem
 
   await row.getByText("Delete branch", { exact: true }).click({ button: "right" });
   await page.getByRole("menu", { name: "작업 메뉴", exact: true })
-    .getByRole("menuitem", { name: "작업 삭제", exact: true }).click();
+    .getByRole("menuitem", { name: "Delete", exact: true }).click();
   const confirm = page.getByRole("dialog", { name: "작업 삭제", exact: true });
   await confirm.getByRole("button", { name: "하위 작업 포함 삭제", exact: true }).click();
   await expect(confirm).toHaveCount(0);
