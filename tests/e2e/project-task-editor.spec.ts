@@ -419,7 +419,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
   });
 
   test("Issue #74 탭 구조는 초안을 보존하고 키보드 탐색과 좁은 화면을 지원한다", async ({ page }) => {
-    const fixture = await setup(page);
+    const fixture = await setup(page, { assignmentTargets: true });
     await openRow(page);
 
     const dialog = editor(page);
