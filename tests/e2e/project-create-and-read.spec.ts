@@ -70,6 +70,8 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
     await page.setViewportSize({ width, height: 900 });
     const documentOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
     expect(documentOverflow).toBe(false);
+    await listActionTrigger.scrollIntoViewIfNeeded();
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     await listActionTrigger.click();
     const responsiveMenu = page.getByRole("menu", { name: `${name} 프로젝트 작업`, exact: true });
     await expect(responsiveMenu).toBeVisible();
