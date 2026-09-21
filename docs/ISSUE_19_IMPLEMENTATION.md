@@ -182,3 +182,10 @@ Migration 추가에 따라 기존 migration/schema 고정 테스트의 기대 mi
 - 릴리스 태그: `v0.12.0` annotated tag를 병합된 release commit에 생성한다.
 - GHCR: `release-image.yml`의 SemVer/tag 검증과 release candidate quality/container gate를 통과한 digest만 exact/rolling tag로 승격한다.
 - GitHub Release 설명은 `docs/releases/v0.12.0.md`를 기준으로 한다.
+
+
+## Issue #74 Task Editor 리소스 할당 UI 보완
+
+리소스/그룹 할당의 API, catalog revision, project revision, validation 의미는 변경하지 않는다. Task Editor에서는 리소스 할당을 별도 탭에서 표시하며 검색, Resource/Group 유형 필터, 할당됨만 필터와 선택 대상 우선 정렬을 제공한다. 선택된 Resource에만 투입 시작/종료/투입률을 표시하고 Group에는 개인 allocation 입력을 제공하지 않는다.
+
+Task PATCH와 Assignment PUT은 계속 별도 저장 계약이다. Task draft가 dirty/stale/locked 상태이면 할당 편집을 잠그고, 리소스 탭에서 할당 저장의 범위를 명시한다. presentation inline style은 제거하고 Task Editor CSS Module 규칙을 사용한다.
