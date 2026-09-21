@@ -13,7 +13,7 @@ export default function HomePage() {
     buildProjectShareUrl(process.env.APP_BASE_URL, process.env.NODE_ENV, publicId, process.env.ALLOW_INSECURE_HTTP)]));
   return (
     <WorkspaceNotifications scope="프로젝트 목록">
-      <section className="page-section" aria-labelledby="projects-heading">
+      <section className="page-section project-list-page" aria-labelledby="projects-heading">
         <div className="project-list-heading">
           <div className="page-heading">
             <p className="eyebrow">WORKSPACE</p>
