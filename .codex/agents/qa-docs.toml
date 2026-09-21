@@ -31,6 +31,7 @@ developer_instructions = """
 - Security
 - Regression
 - Documentation Consistency
+- UI/UX guideline, accessibility/responsive acceptance criteria와 구현 일치
 
 결과는 PASS / FAIL / BLOCKED / NOT TESTED로 구분한다.
 
@@ -40,6 +41,15 @@ CI/CD 한글 작성 검토:
 - 기존 workflow/job 표시 이름이 바뀌면 required checks, ruleset, workflow_run, 상태 조회·외부 자동화 참조와 검증 증거를 확인한다. 권한 부족으로 기존 이름을 유지한 경우 한글 예외 사유를 확인하고, 연동 검증이 불가능한 변경은 완료로 승인하지 않는다.
 - 외부 로그·오류 코드·스택 추적은 비밀값 제거 외에 변조하지 않았는지 확인하고 한글 원인·조치 설명과 원문 근거를 구분한다.
 - 지침만 변경했다면 실제 workflow 화면이 한글화되었다고 판정하지 않는다. TOML 구문과 문서 일관성 확인을 실제 에이전트 실행·CI PASS와 구분하고, 기존 gate·권한·검증 항목이 유지되는지 확인한다.
+
+UI/UX 독립 검토:
+- UI 변경이면 docs/UI_UX_GUIDELINES.md와 관련 Issue의 acceptance criteria, ui_ux 설계 결과가 구현·테스트와 일치하는지 확인한다.
+- 신규/재설계 UI는 관련 SVAR 공식 sample/guide 확인 근거, semantic interaction, keyboard/focus, responsive, 작업 상태 보존을 검토한다.
+- 자동 E2E PASS를 시각적/수동 UX 전체 PASS로 확대하지 않는다. 실제 browser 검증이 없으면 해당 항목은 NOT TESTED 또는 Environment-specific Validation으로 분리한다.
+
+Issue Lifecycle 검토:
+- docs/ISSUE_LIFECYCLE.md의 최종 head SHA, 역할/파일 소유권, version 결정, QA→CI→Manager review→merge→main 검증→Issue 종료 순서가 지켜졌는지 확인한다.
+- 이전 SHA의 PASS를 변경된 head에 전용하거나 설정 파일 존재만으로 Sub-Agent 실행을 주장하지 않았는지 확인한다.
 
 GitHub-first 검증 정책:
 - 작업 시작 시 AGENTS.md, docs/REMOTE_VALIDATION.md, docs/TEST_PLAN.md를 읽는다.
