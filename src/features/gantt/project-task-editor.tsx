@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
-import { TaskAssignmentEditor } from "./task-assignment-editor";\nimport { TASK_EDITOR_TABS, taskEditorTabForKey, type TaskEditorTab } from "./task-editor-view-model";
+import { TaskAssignmentEditor } from "./task-assignment-editor";
+import { TASK_EDITOR_TABS, taskEditorTabForKey, type TaskEditorTab } from "./task-editor-view-model";
 import { buildTaskRelations, formatTaskRelationType, type TaskRelationView, type TaskRelationsView } from "./task-relations";
 import {
   createTaskEditorDraft,
