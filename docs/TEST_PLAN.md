@@ -9,6 +9,8 @@
 
 ## Issue #72 Task Context Menu
 
+최종 PR 검증 기준은 **PR #73 / CI Run #387**이다. `quality`, 전체 Chromium E2E, Docker build/runtime/transport/Compose smoke가 모두 PASS했으며, hierarchy reparent는 canonical sync에서 공개 `move-task` action을 사용하고 `update-task` parent 직접 변경으로 인한 recovery remount가 발생하지 않는지를 Unit/E2E에서 고정한다.
+
 - Unit: 메뉴 enable/disable, sibling 경계, Indent/Outdent, clipboard Cut/Copy/Paste command mapping과 readonly/busy/link fail-closed를 검증한다.
 - SQLite service: Move, Indent parent Summary 전환, subtree Copy identity/shape, boundary no-op rollback, 성공당 revision +1을 검증한다. cycle/empty Summary/assignment-copy/link 구조도 회귀 범위다.
 - API/security: 신규 `POST /task-commands`가 route security inventory에 포함되고 Origin/session/If-Match/stale revision/Project isolation 규약을 그대로 적용하는지 검증한다.
