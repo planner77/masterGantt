@@ -592,6 +592,8 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 | W21 동기 Gantt 작업공간 검증 결과 | [W21_REVIEW](docs/W21_REVIEW.md) |
 | W22 Commit GHCR 자동화 검증 기록 | [W22_REVIEW](docs/W22_REVIEW.md) |
 | Multi-Agent 설정 검증 | [AGENT_CONFIGURATION](docs/AGENT_CONFIGURATION.md) |
+| Issue Lifecycle 및 자동 역할 배분 | [ISSUE_LIFECYCLE](docs/ISSUE_LIFECYCLE.md) |
+| UI/UX 공통 기준 | [UI_UX_GUIDELINES](docs/UI_UX_GUIDELINES.md) |
 
 문서에 계약이 있다는 사실만으로 기능이 구현된 것은 아니다. 현재 구현 여부는 위 상태 표와 실행 계획, 실제 검증 기록을 함께 확인한다. 작업 목록의 W번호는 로컬 관리 식별자이며 GitHub Issue 번호가 아니다.
 
