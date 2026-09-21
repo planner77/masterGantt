@@ -393,11 +393,6 @@ export function ProjectGantt({
     columnMenuReference.current?.querySelector<HTMLInputElement>("input:not(:disabled)")?.focus({ preventScroll: true });
   }, [columnMenuPosition]);
 
-  useEffect(() => {
-    if (!taskMenu) return;
-    taskMenuReference.current?.querySelector<HTMLButtonElement>('[role="menuitem"]:not(:disabled)')?.focus({ preventScroll: true });
-  }, [taskMenu]);
-
   useLayoutEffect(() => {
     if (!columnMenuPosition) return;
     const menu = columnMenuReference.current;
@@ -670,6 +665,20 @@ export function ProjectGantt({
       closeTaskMenu();
       return;
     }
+
+    const rootMenu = taskMenuReference.current;
+    if (!rootMenu) return;
+    if (event.target === rootMenu) {
+      const items = enabledMenuItems(rootMenu);
+      const targetIndex = event.key === "ArrowUp" || event.key === "End" ? items.length - 1 : 0;
+      if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) && items[targetIndex]) {
+        event.preventDefault();
+        event.stopPropagation();
+        items[targetIndex].focus({ preventScroll: true });
+      }
+      return;
+    }
+
     if (!(event.target instanceof HTMLButtonElement)) return;
     const currentMenu = event.target.closest<HTMLElement>('[role="menu"]');
     if (!currentMenu) return;
@@ -722,10 +731,7 @@ export function ProjectGantt({
 
   useEffect(() => {
     if (!taskMenu) return;
-    queueMicrotask(() => {
-      const menu = taskMenuReference.current;
-      enabledMenuItems(menu ?? document.createElement("div"))[0]?.focus({ preventScroll: true });
-    });
+    queueMicrotask(() => taskMenuReference.current?.focus({ preventScroll: true }));
   }, [taskMenu]);
 
   return (
@@ -798,6 +804,7 @@ export function ProjectGantt({
           onKeyDown={handleTaskMenuKeyDown}
           ref={taskMenuReference}
           role="menu"
+          tabIndex={-1}
           style={{ left: taskMenu.left, top: taskMenu.top }}
         >
           <div className="project-task-context-submenu-host">
