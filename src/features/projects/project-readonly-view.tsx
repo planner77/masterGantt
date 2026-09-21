@@ -8,7 +8,7 @@ import { ProjectWorkCalendarEditor } from "@/features/projects/project-work-cale
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
-import type { ProjectMetadataMutationResponse, ProjectSnapshotResponse, TaskMutationResponse } from "@/contracts/projects";
+import type { ProjectMetadataMutationResponse, ProjectSnapshotResponse, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
 import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
@@ -67,7 +67,7 @@ function snapshotFromTaskMutation(value: unknown): ProjectSnapshotResponse | nul
   const data = (value as Partial<TaskMutationResponse>).data;
   if (!data || typeof data !== "object" || !data.project || typeof data.project !== "object" ||
     !Array.isArray(data.tasks) || !Array.isArray(data.links) || !Array.isArray(data.warnings) ||
-    !data.operation || !["taskCreate", "taskUpdate", "taskDelete"].includes(data.operation.kind) ||
+    !data.operation || !["taskCreate", "taskUpdate", "taskDelete", "taskHierarchy"].includes(data.operation.kind) ||
     !Array.isArray(data.operation.changedTaskExternalIds) || !Array.isArray(data.operation.deletedTaskExternalIds) ||
     !Array.isArray(data.operation.deletedLinkIds)) return null;
   return { data: { project: data.project, tasks: data.tasks, links: data.links, permission: "readonly" } };
@@ -316,6 +316,34 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
     } finally { taskMutationReference.current = false; setIsSavingTask(false); }
   }
 
+  async function saveTaskHierarchyCommand(command: TaskHierarchyCommandRequest): Promise<void> {
+    if (state.status !== "ready" || taskMutationReference.current) return;
+    taskMutationReference.current = true; setIsSavingTask(true); clearToast();
+    try {
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/task-commands`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "If-Match": revisionTag(state.snapshot.data.project.revision),
+        },
+        body: JSON.stringify(command),
+      });
+      const body: unknown = await response.json().catch(() => null);
+      const snapshot = snapshotFromTaskMutation(body);
+      if (response.ok && snapshot && applySnapshot(snapshot)) {
+        notify("success", "작업 구조를 변경했습니다.", "작업 메뉴");
+        return;
+      }
+      await handleTaskFailure(response.status, body, "작업 구조를 변경할 수 없습니다.", "작업 메뉴");
+    } catch {
+      await handleTaskFailure(undefined, null, "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", "작업 메뉴");
+    } finally {
+      taskMutationReference.current = false;
+      setIsSavingTask(false);
+    }
+  }
+
   function openTaskEditor(taskId: string) {
     if (state.status !== "ready" || editorSession || settingsOpen || pendingTaskDelete) return;
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
@@ -409,6 +437,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
       {editing && !taskEditingSupported ? <p className="schedule-scope-note">연결이 있는 일정 편집은 다음 단계에서 지원합니다. 현재 일정은 읽기 전용으로 표시됩니다.</p> : null}
       <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing && taskEditingSupported} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
         onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
+        onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
         onTaskEditorOpen={openTaskEditor} onTaskDeleteRequest={requestTaskDelete} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
           const visibleColumnCount = Object.values(current).filter(Boolean).length;
           if (current[columnId] && visibleColumnCount === 1) return current;
