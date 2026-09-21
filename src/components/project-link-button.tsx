@@ -5,11 +5,12 @@ import { WorkspaceDialog } from "./workspace-dialog";
 import { useWorkspaceNotifications } from "./workspace-notifications";
 import styles from "./workspace-feedback.module.css";
 
-export function ProjectLinkButton({ projectName, projectUrl, className, role, onActionComplete }: Readonly<{
+export function ProjectLinkButton({ projectName, projectUrl, className, role, tabIndex, onActionComplete }: Readonly<{
   projectName: string;
   projectUrl: string | null;
   className?: string;
   role?: "menuitem";
+  tabIndex?: number;
   onActionComplete?: () => void;
 }>) {
   const { notify } = useWorkspaceNotifications();
@@ -39,7 +40,7 @@ export function ProjectLinkButton({ projectName, projectUrl, className, role, on
 
   return <>
     <button type="button" className={className ?? `secondary-button ${styles.linkButton}`}
-      role={role}
+      role={role} tabIndex={tabIndex}
       aria-label={`${projectName} 프로젝트 링크 복사`}
       onClick={(event) => { event.stopPropagation(); void copy(); }}>링크 복사</button>
     {fallback && projectUrl ? <WorkspaceDialog title="프로젝트 링크 수동 복사" onClose={() => { setFallback(false); onActionComplete?.(); }}>
