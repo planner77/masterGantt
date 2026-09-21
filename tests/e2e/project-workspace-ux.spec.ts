@@ -25,7 +25,7 @@ test.describe("Issue #76 Project Workspace UX", () => {
     const headerBox = await page.locator(".header-content").boundingBox();
     expect(headerBox).not.toBeNull();
     expect(headerBox!.width).toBeGreaterThan(1200);
-    await expect(page.getByText("Stateful canonical snapshot fixture", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("Stateful canonical snapshot fixture", { exact: true })).not.toBeVisible();
 
     await page.getByRole("button", { name: "프로젝트 정보 보기", exact: true }).click();
     await expect(page.getByText("Stateful canonical snapshot fixture", { exact: true })).toBeVisible();
