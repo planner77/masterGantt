@@ -53,6 +53,64 @@ async function expectStructureToast(page: import("@playwright/test").Page) {
   await expect(page.getByTestId("workspace-toast")).toContainText("작업 구조를 변경했습니다");
 }
 
+test("Issue #77 Context Menu opens without activating a submenu", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Context initial state ${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Context-password-${suffix}`);
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\\/projects\\/[0-9a-f-]{36}$/);
+
+  const path = new URL(page.url()).pathname;
+  const api = `/api${path}`;
+  const origin = new URL(page.url()).origin;
+  const initial = await snapshot(page, api);
+  const created = await createTask(page, api, origin, initial.data.project.revision, "Context initial");
+  const taskId = created.data.tasks.find((task) => task.name === "Context initial")!.taskId;
+
+  await page.reload();
+  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+
+  const rootMenu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
+  const addSubmenu = page.getByRole("menu", { name: "Add", exact: true });
+
+  // Grid: opening the root menu must not implicitly activate the first submenu.
+  await openTaskMenu(page, "Context initial");
+  await expect(addSubmenu).toBeHidden();
+  await expect(rootMenu).toBeFocused();
+
+  // Explicit pointer intent opens the submenu.
+  await rootMenu.getByRole("menuitem", { name: "Add", exact: true }).hover();
+  await expect(addSubmenu).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(rootMenu).toHaveCount(0);
+
+  // Reopening starts from a clean root-menu state.
+  await openTaskMenu(page, "Context initial");
+  await expect(addSubmenu).toBeHidden();
+  await expect(rootMenu).toBeFocused();
+
+  // Explicit keyboard navigation selects Add, then ArrowRight enters its submenu.
+  await page.keyboard.press("ArrowDown");
+  const add = rootMenu.getByRole("menuitem", { name: "Add", exact: true });
+  await expect(add).toBeFocused();
+  await expect(addSubmenu).toBeVisible();
+  await page.keyboard.press("ArrowRight");
+  await expect(addSubmenu.getByRole("menuitem", { name: "Child task", exact: true })).toBeFocused();
+  await page.keyboard.press("Escape");
+
+  // Chart: same initial behavior as Grid.
+  const bar = page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${taskId}"]`);
+  await expect(bar).toBeAttached();
+  await bar.click({ button: "right" });
+  await expect(rootMenu).toBeVisible();
+  await expect(rootMenu).toBeFocused();
+  await expect(addSubmenu).toBeHidden();
+  await page.keyboard.press("Escape");
+});
+
 test("Issue #72 Context Menu hierarchy commands persist canonical state without remounting", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
