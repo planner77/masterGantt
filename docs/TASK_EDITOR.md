@@ -67,6 +67,6 @@ PR #16의 초기 시간축 범위 확대 및 canonical sync 종료 시점 입력
 
 편집 권한이 있고 다른 mutation이 진행 중이지 않으며 Dependency Link가 없는 경우 메뉴는 SVAR Willow의 기본 작업 흐름에 맞춰 **Add → Convert to → Edit → Cut/Copy/Paste → Move → Indent/Outdent → Delete** 순서를 제공한다. Readonly에서는 정보 조회(Edit)만 실제 동작하며 mutation 항목은 비활성화한다.
 
-Cut은 선택 Task를 즉시 삭제하거나 이동하지 않는다. Copy와 함께 현재 Project revision을 포함한 client clipboard만 만든다. Paste는 `POST /api/projects/{publicId}/task-commands`를 호출하며 Cut은 `reparent`, Copy는 `copy` 명령으로 변환한다. 성공 응답의 canonical snapshot만 동일 Gantt instance에 동기화하고 revision 변경 시 기존 clipboard는 폐기한다. Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D는 input/textarea/dialog/contenteditable 밖의 실제 Task target에서만 동작한다.
+Cut은 선택 Task를 즉시 삭제하거나 이동하지 않는다. Copy와 함께 현재 Project revision을 포함한 client clipboard만 만든다. Paste는 `POST /api/projects/{publicId}/task-commands`를 호출하며 Cut은 `reparent`, Copy는 `copy` 명령으로 변환한다. 성공 응답의 canonical snapshot만 동일 Gantt instance에 동기화하고 revision 변경 시 기존 clipboard는 폐기한다. Canonical snapshot의 parent/sibling 구조 변경은 SVAR의 공개 `move-task` action으로 반영하고, 일반 `update-task`에 parent를 직접 덮어쓰지 않는다. 이 규칙은 hierarchy 변경 뒤 recovery remount 없이 동일 Gantt instance를 유지하기 위한 회귀 계약이다. Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D는 input/textarea/dialog/contenteditable 밖의 실제 Task target에서만 동작한다.
 
 Leaf→Summary는 빈 Summary를 영속화하지 않는 기존 모델 때문에 직접 변환 항목을 비활성화한다. Task↔Milestone은 자식이 없는 Leaf에서만 허용한다. Task를 child parent로 사용하는 Add/Indent/Paste는 기존 first-child 정책과 동일하게 해당 Task를 transaction 안에서 Summary로 전환한다. subtree Copy에 Resource Assignment가 존재하면 조용히 누락하지 않고 현재 단계에서는 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 거부한다.
