@@ -35,6 +35,64 @@ function sameTask(first: ITask, second: ITask): boolean {
     first.externalId === second.externalId;
 }
 
+function normalizedParent(task: ITask | undefined): string {
+  const parent = task?.parent;
+  return parent === undefined || parent === null || parent === 0 ? "0" : String(parent);
+}
+
+function hierarchyChanged(
+  task: ITask,
+  current: readonly ITask[],
+  canonical: readonly ITask[],
+): boolean {
+  const id = String(task.id);
+  const currentTask = current.find((candidate) => String(candidate.id) === id);
+  if (!currentTask || normalizedParent(currentTask) !== normalizedParent(task)) return true;
+
+  const parent = normalizedParent(task);
+  const currentOrder = current
+    .filter((candidate) => normalizedParent(candidate) === parent)
+    .map((candidate) => String(candidate.id));
+  const canonicalIds = new Set(current.map((candidate) => String(candidate.id)));
+  const canonicalOrder = canonical
+    .filter((candidate) => normalizedParent(candidate) === parent && canonicalIds.has(String(candidate.id)))
+    .map((candidate) => String(candidate.id));
+  return currentOrder.indexOf(id) !== canonicalOrder.indexOf(id);
+}
+
+async function syncExistingTaskHierarchy(
+  api: Pick<IApi, "exec">,
+  current: readonly ITask[],
+  canonical: readonly ITask[],
+  isCurrent: () => boolean,
+): Promise<void> {
+  const existingIds = new Set(current.map((task) => String(task.id)));
+  for (const task of canonical) {
+    if (!isCurrent()) return;
+    const id = String(task.id);
+    if (!existingIds.has(id) || !hierarchyChanged(task, current, canonical)) continue;
+
+    const parent = normalizedParent(task);
+    const siblings = canonical.filter((candidate) =>
+      normalizedParent(candidate) === parent && existingIds.has(String(candidate.id)),
+    );
+    const index = siblings.findIndex((candidate) => String(candidate.id) === id);
+    const previous = index > 0 ? siblings[index - 1] : undefined;
+    const next = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : undefined;
+    const currentTask = current.find((candidate) => String(candidate.id) === id);
+
+    if (parent !== "0" && normalizedParent(currentTask) !== parent) {
+      await api.exec("move-task", { id: task.id, mode: "child", target: task.parent });
+    }
+    if (!isCurrent()) return;
+    if (previous?.id !== undefined) {
+      await api.exec("move-task", { id: task.id, mode: "after", target: previous.id });
+    } else if (next?.id !== undefined) {
+      await api.exec("move-task", { id: task.id, mode: "before", target: next.id });
+    }
+  }
+}
+
 function deletedTaskIdsChildFirst(
   current: readonly ITask[],
   canonicalIds: ReadonlySet<string>,
@@ -115,10 +173,14 @@ export async function applyCanonicalGanttSync(
     if (!isCurrent()) return;
     await api.exec("delete-task", { id });
   }
+  await syncExistingTaskHierarchy(api, current.tasks, canonical.tasks, isCurrent);
   for (const task of plan.updatedTasks) {
     if (!isCurrent()) return;
     const { id, ...update } = task;
     delete update.open;
+    // Hierarchy/order is synchronized through SVAR's documented move-task action.
+    // Updating parent directly is not a supported tree mutation and can force recovery remounts.
+    delete update.parent;
     if (id !== undefined) {
       await api.exec("update-task", { id, task: update, eventSource: "project-canonical-sync", skipUndo: true });
     }
