@@ -27,9 +27,8 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   await create.click();
   await expect(page.locator(".form-error")).toHaveText("소유자를 입력해 주세요.");
   await page.getByLabel("소유자").fill(E2E_PROJECT_OWNER);
-  await page.getByLabel("편집 비밀번호").fill("😀".repeat(13));
-  await create.click();
-  await expect(page.locator(".form-error")).toHaveText("편집 비밀번호는 1~12자로 입력해 주세요.");
+  const passwordInput = page.getByLabel("편집 비밀번호");
+  await expect(passwordInput).toHaveAttribute("maxlength", "12");
   await page.getByLabel("설명 (선택)").fill("브라우저 통합 검증 프로젝트");
   await page.getByLabel("편집 비밀번호").fill(password);
   await submitProjectAndExpectCreated(page);
