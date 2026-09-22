@@ -240,7 +240,7 @@ Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 �
 | PLAN | 역할, 파일 소유권, interface, 테스트/문서 계획 | Manager + domain |
 | VERSION_DECIDED | keep/patch/minor/major 결정과 release 판단 | Manager |
 | BRANCH_READY | 최신 main 기반 Issue branch/worktree 또는 기존 branch 재사용 | infra |
-| IMPLEMENTING | 지정 파일 내 코드/테스트/문서 변경 | domain Agent |
+| IMPLEMENTING | 지정 파일 내 구현/테스트 변경 | Work Packet의 지정 구현 Agent(domain 또는 infrastructure-only 이슈의 infra) |
 | LOCAL_VALIDATED | 관련 Local Fast Feedback 실제 결과 | domain Agent |
 | DOCUMENTATION_SYNC | 문서 영향 분석 완료, required docs 갱신 또는 항목별 N/A 근거 기록, 코드·계약·문서 정합성 확인 | Manager가 지정한 문서 작성자; 기본은 해당 domain Agent |
 | QA_READY | DOCUMENTATION_SYNC PASS와 구현 결과/증거가 Result Contract로 전달됨 | qa_docs |
@@ -257,7 +257,7 @@ Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 �
 
 Issue 조치와 Local Fast Feedback이 끝난 뒤 QA에 들어가기 전에 관련 문서를 독립 Gate로 동기화한다.
 
-Manager는 PLAN 단계에서 `required_docs`와 문서 작성자를 지정한다. 기본 작성자는 해당 변경을 구현한 domain Agent이며, 여러 domain에 걸친 공용 문서는 Manager가 단일 작성자를 지정한다. `qa_docs`는 read-only reviewer이므로 이 Gate의 문서를 직접 수정하지 않는다.
+Manager는 PLAN 단계에서 `required_docs`와 문서 작성자를 지정한다. 기본 작성자는 해당 변경의 지정 구현 Agent(domain 또는 infrastructure-only 이슈의 infra)이며, 여러 영역에 걸친 공용 문서는 Manager가 단일 작성자를 지정한다. `qa_docs`는 read-only reviewer이므로 이 Gate의 문서를 직접 수정하지 않는다.
 
 DOCUMENTATION_SYNC PASS 조건:
 
@@ -275,12 +275,12 @@ DOCUMENTATION_SYNC PASS 조건:
 
 모든 Agent는 Issue number, lifecycle phase, baseline SHA, 상태(PASS/FAIL/BLOCKED/NOT TESTED), findings/changes, files, commit/head, 실제 테스트/결과, documentation impact와 docs required/updated/N/A 근거, 미검증, 위험, next phase/owner를 반환한다.
 
-Domain 구현 Agent가 version/tag/PR/merge/GHCR/Issue close를 독자 실행하지 않는다. infra도 Manager의 version/release/merge gate를 넘어서지 않는다. qa_docs/researcher/ui_ux는 read-only이며 쓰기 작업을 직접 수행하지 않는다.
+구현 Agent가 자신의 구현 범위를 넘어 version/tag/PR/merge/GHCR/Issue close를 독자 실행하지 않는다. infrastructure-only 이슈에서 infra가 구현 Agent여도 Manager의 version/release/merge gate를 넘어서지 않는다. qa_docs/researcher/ui_ux는 read-only이며 쓰기 작업을 직접 수행하지 않는다.
 
 ### 9.6 REWORK와 재개
 
 - 기존 Issue/branch/PR이 있으면 재사용한다.
-- 수정 후 head가 바뀌면 해당 변경에 영향을 받는 이전 CI/QA PASS는 stale이다.
+- PR head가 바뀌면 이전 head에 연결된 모든 required PR CI(`quality/e2e/docker`)와 최종 QA 판정은 변경 영향도와 무관하게 stale이다. 새 head에서 전체 required PR gate와 최종 QA를 다시 수행한다. Local Fast Feedback만 영향도 기준 재사용을 허용한다.
 - 구현·계약 변경이 문서에 영향을 주면 이전 DOCUMENTATION_SYNC PASS도 stale이며 QA 전 문서 Gate를 다시 통과한다.
 - 같은 원인 실패를 두 차례 반복하면 Manager가 가설/계획을 재검토한다.
 - 중단 후에는 Issue/PR/CI/main을 다시 읽고 현재 상태에서 남은 단계만 실행한다.
