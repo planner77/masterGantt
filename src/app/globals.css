@@ -1226,7 +1226,7 @@ h2 {
   outline-offset: 1px;
 }
 
-.project-workspace-panels {
+.project-readonly > .project-workspace-panels {
   position: relative;
   display: flex;
   min-height: 0;
