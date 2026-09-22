@@ -48,7 +48,7 @@ jobs:
           repo_name="${GITHUB_REPOSITORY#*/}"
 
           app_pr_ci_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=pull_request&per_page=100")"
-          app_pr_ci="$(jq -c --arg sha "$app_head_sha" '[.workflow_runs[] | select(.head_sha == $sha and any(.pull_requests[]?; .number == 114))] | sort_by(.created_at) | last // empty' <<<"$app_pr_ci_runs")"
+          app_pr_ci="$(jq -c --arg sha "$app_head_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$app_pr_ci_runs")"
           test -n "$app_pr_ci"
           test "$(jq -r .status <<<"$app_pr_ci")" = "completed"
           test "$(jq -r '.conclusion // ""' <<<"$app_pr_ci")" = "success"
@@ -79,7 +79,7 @@ jobs:
           test -n "$release_head_sha"
 
           pr_ci_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=pull_request&per_page=100")"
-          pr_ci="$(jq -c --arg sha "$release_head_sha" --argjson pr "$release_pr_number" '[.workflow_runs[] | select(.head_sha == $sha and any(.pull_requests[]?; .number == $pr))] | sort_by(.created_at) | last // empty' <<<"$pr_ci_runs")"
+          pr_ci="$(jq -c --arg sha "$release_head_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$pr_ci_runs")"
           test -n "$pr_ci"
           test "$(jq -r .status <<<"$pr_ci")" = "completed"
           test "$(jq -r '.conclusion // ""' <<<"$pr_ci")" = "success"
