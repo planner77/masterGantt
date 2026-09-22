@@ -250,7 +250,7 @@ describe("POST /api/projects handler", () => {
   });
 
   it("sanitizes unexpected errors and never returns submitted secrets", async () => {
-    const password = "do not expose this password";
+    const password = "Secret12345!";
     const response = await handleCreateProject(
       request(JSON.stringify({
         name: "Name",
