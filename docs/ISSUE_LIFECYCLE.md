@@ -262,7 +262,7 @@ Manager는 PLAN 단계에서 `required_docs`와 문서 작성자를 지정한다
 DOCUMENTATION_SYNC PASS 조건:
 
 - 변경된 기능·API·DB·Scheduling·UI/UX·Excel·배포·CI·보안·운영 계약이 어떤 문서에 영향을 주는지 문서 영향 분석을 수행한다.
-- Work Packet의 `required_docs` 각 항목을 실제 변경하거나, 갱신이 불필요하면 항목별로 `N/A`와 근거를 기록한다.
+- Work Packet의 `required_docs` 각 항목을 실제 변경하거나, 갱신이 불필요하면 항목별로 `N/A`와 근거를 Result Contract·Issue·PR 중 추적 가능한 위치에 기록한다. 실제 갱신 문서는 해당 작업 head에 포함되어야 하지만 N/A 근거만을 위해 불필요한 Git 파일 변경을 만들지 않는다.
 - 최소한 관련 요구사항/Architecture/API/DB/Scheduling/UI/Deployment/CI/Test Plan/CHANGELOG 중 영향받는 문서를 현재 코드 및 Issue AC와 일치시킨다.
 - 과거 검증 기록이나 완료 시점 문서를 현재 상태로 소급 변조하지 않는다. 새 상태는 현재 문서/Issue/PR에 추가 기록한다.
 - Result Contract에 `documentation_impact`, `docs_required`, `docs_updated`, `docs_n_a_with_reason`을 남긴다.
