@@ -21,7 +21,7 @@
 
 - Unit: predecessor/successor externalId 방향, 동일 이름, dangling reference, 관계 없음, multiple relation과 type/lag 보존을 검증한다.
 - Chromium E2E: A → B fixture를 reload 가능한 canonical snapshot으로 구성하고 Grid 더블클릭, Chart 더블클릭, Context Menu → Edit 각각에서 A의 후행 B/B의 선행 A 및 이름/externalId/type/lag를 확인한다.
-- Editor open만으로 initial Project GET 외 추가 `GET /api/projects/{publicId}` 또는 mutation이 발생하지 않는지 검증한다.
+- 관계 표시는 상위 canonical snapshot을 사용해 별도 관계용 `GET /api/projects/{publicId}`에 의존하지 않으며, Editor open만으로 mutation이 발생하지 않는지 검증한다.
 - Readonly Editor에서도 관계 탭 조회가 가능하며 Save는 제공되지 않는지 검증한다.
 - 기존 401/412/draft/reload/Gantt instance 및 no document navigation 회귀를 유지한다.
 - PR의 `quality`, 전체 Chromium E2E, Docker smoke와 병합 후 main GHCR exact digest smoke를 공식 PASS 근거로 사용한다.
