@@ -94,3 +94,58 @@
 @media (prefers-reduced-motion: reduce) {
   .table tbody tr { transition: none; }
 }
+
+.filterGroup {
+  align-items: end;
+  border-top: 1px solid var(--border) !important;
+  padding-top: 0.75rem !important;
+}
+.filterGroup .secondary-button {
+  align-self: end;
+  margin-top: 0;
+}
+.filterError {
+  flex-basis: 100%;
+  margin: 0;
+  color: #a12d2d;
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+.filterFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+.noResults {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--muted) 35%, var(--card));
+  padding: 1.25rem;
+}
+.noResults h2,
+.noResults p {
+  margin: 0;
+}
+.noResults h2 {
+  font-size: 1rem;
+}
+.noResults p {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+.noResults .secondary-button {
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 48rem) {
+  .filterFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
