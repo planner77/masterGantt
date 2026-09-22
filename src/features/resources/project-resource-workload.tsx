@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { ResourceWorkloadResponse } from "@/contracts/resources";
+import type { AssignedTargetsResponse, AssignmentTargetDto, ResourceWorkloadResponse } from "@/contracts/resources";
 
 type Unit = "md" | "mm";
+type ActiveFilter = "all" | "active" | "inactive";
+type KindFilter = "all" | "resource" | "group";
 
 type Props = Readonly<{ publicId: string }>;
 
@@ -13,25 +15,49 @@ function effort(md: number, mm: number | null, unit: Unit): string {
   return `${md.toFixed(2)} M/D`;
 }
 
+function includesText(target: AssignmentTargetDto | undefined, fallbackName: string, query: string): boolean {
+  if (!query) return true;
+  const needle = query.trim().toLocaleLowerCase();
+  return [target?.name ?? fallbackName, target?.code ?? "", target ? ("description" in target ? String((target as { description?: string }).description ?? "") : "") : ""]
+    .some((value) => value.toLocaleLowerCase().includes(needle));
+}
+
+function overlaps(start: string, end: string, from: string, to: string): boolean {
+  if (!from || !to) return true;
+  const low = from <= to ? from : to;
+  const high = from <= to ? to : from;
+  return start <= high && end >= low;
+}
+
 export function ProjectResourceWorkload({ publicId }: Props) {
   const [data, setData] = useState<ResourceWorkloadResponse["data"] | null>(null);
+  const [targets, setTargets] = useState<AssignmentTargetDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unit, setUnit] = useState<Unit>("md");
+  const [query, setQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState<ActiveFilter>("all");
+  const [kindFilter, setKindFilter] = useState<KindFilter>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/resource-workload`, {
-        credentials: "same-origin",
-        cache: "no-store",
-      });
-      const body: unknown = await response.json().catch(() => null);
-      if (!response.ok || !body || typeof body !== "object" || !("data" in body)) {
+      const [workloadResponse, targetResponse] = await Promise.all([
+        fetch(`/api/projects/${encodeURIComponent(publicId)}/resource-workload`, { credentials: "same-origin", cache: "no-store" }),
+        fetch(`/api/projects/${encodeURIComponent(publicId)}/assigned-targets`, { credentials: "same-origin", cache: "no-store" }),
+      ]);
+      const workloadBody: unknown = await workloadResponse.json().catch(() => null);
+      const targetBody: unknown = await targetResponse.json().catch(() => null);
+      if (!workloadResponse.ok || !workloadBody || typeof workloadBody !== "object" || !("data" in workloadBody)) {
         throw new Error("invalid workload response");
       }
-      setData((body as ResourceWorkloadResponse).data);
+      setData((workloadBody as ResourceWorkloadResponse).data);
+      if (targetResponse.ok && targetBody && typeof targetBody === "object" && "data" in targetBody) {
+        setTargets((targetBody as AssignedTargetsResponse).data.targets);
+      }
     } catch {
       setError("리소스 공수 정보를 불러오지 못했습니다.");
     } finally {
@@ -43,17 +69,20 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     const controller = new AbortController();
     void (async () => {
       try {
-        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/resource-workload`, {
-          credentials: "same-origin",
-          cache: "no-store",
-          signal: controller.signal,
-        });
-        const body: unknown = await response.json().catch(() => null);
+        const [workloadResponse, targetResponse] = await Promise.all([
+          fetch(`/api/projects/${encodeURIComponent(publicId)}/resource-workload`, { credentials: "same-origin", cache: "no-store", signal: controller.signal }),
+          fetch(`/api/projects/${encodeURIComponent(publicId)}/assigned-targets`, { credentials: "same-origin", cache: "no-store", signal: controller.signal }),
+        ]);
+        const workloadBody: unknown = await workloadResponse.json().catch(() => null);
+        const targetBody: unknown = await targetResponse.json().catch(() => null);
         if (controller.signal.aborted) return;
-        if (!response.ok || !body || typeof body !== "object" || !("data" in body)) {
+        if (!workloadResponse.ok || !workloadBody || typeof workloadBody !== "object" || !("data" in workloadBody)) {
           throw new Error("invalid workload response");
         }
-        setData((body as ResourceWorkloadResponse).data);
+        setData((workloadBody as ResourceWorkloadResponse).data);
+        if (targetResponse.ok && targetBody && typeof targetBody === "object" && "data" in targetBody) {
+          setTargets((targetBody as AssignedTargetsResponse).data.targets);
+        }
       } catch {
         if (!controller.signal.aborted) setError("리소스 공수 정보를 불러오지 못했습니다.");
       } finally {
@@ -62,6 +91,34 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     })();
     return () => controller.abort();
   }, [publicId]);
+
+  const targetByKey = useMemo(() => new Map(targets.map((target) => [`${target.kind}:${target.id}`, target])), [targets]);
+
+  const filteredGroups = useMemo(() => {
+    if (!data) return [];
+    return data.groups.flatMap((group) => {
+      const groupTarget = group.id ? targetByKey.get(`group:${group.id}`) : undefined;
+      const groupMatchesText = includesText(groupTarget, group.name, query);
+      const groupMatchesActive = activeFilter === "all" || (activeFilter === "active" ? group.active : !group.active);
+      const resources = group.resources.flatMap((resource) => {
+        const resourceTarget = targetByKey.get(`resource:${resource.id}`);
+        const textMatch = includesText(resourceTarget, resource.name, query);
+        const activeMatch = activeFilter === "all" || (activeFilter === "active" ? resource.active : !resource.active);
+        const tasks = resource.tasks.filter((task) => overlaps(task.start, task.end, dateFrom, dateTo));
+        const dateMatch = !dateFrom || !dateTo || tasks.length > 0;
+        if (!textMatch || !activeMatch || !dateMatch || kindFilter === "group") return [];
+        return [{ ...resource, tasks }];
+      });
+      const groupDateMatch = !dateFrom || !dateTo || resources.length > 0 || group.resources.some((resource) => resource.tasks.some((task) => overlaps(task.start, task.end, dateFrom, dateTo)));
+      const groupDirectMatch = kindFilter !== "resource" && groupMatchesText && groupMatchesActive && groupDateMatch;
+      if (!groupDirectMatch && resources.length === 0) return [];
+      return [{ ...group, resources: groupDirectMatch && kindFilter === "group" ? group.resources : resources }];
+    });
+  }, [activeFilter, data, dateFrom, dateTo, kindFilter, query, targetByKey]);
+
+  const visibleResourceCount = new Set(filteredGroups.flatMap((group) => group.resources.map((resource) => resource.id))).size;
+  const visibleGroupCount = filteredGroups.filter((group) => group.id !== null).length;
+  const filterActive = Boolean(query.trim() || activeFilter !== "all" || kindFilter !== "all" || (dateFrom && dateTo));
 
   const overAllocatedCount = data
     ? new Set(
@@ -97,6 +154,16 @@ export function ProjectResourceWorkload({ publicId }: Props) {
         </div>
       </div>
 
+      <div className="project-filter-toolbar resource-filter-toolbar" role="search" aria-label="리소스 검색과 필터">
+        <input aria-label="리소스 또는 그룹 이름과 코드 검색" placeholder="이름 또는 코드 검색" type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
+        <label>종류<select value={kindFilter} onChange={(event) => setKindFilter(event.target.value as KindFilter)}><option value="all">전체</option><option value="resource">Resource</option><option value="group">Resource Group</option></select></label>
+        <label>상태<select value={activeFilter} onChange={(event) => setActiveFilter(event.target.value as ActiveFilter)}><option value="all">전체</option><option value="active">활성</option><option value="inactive">비활성</option></select></label>
+        <label>Task 기간 From<input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label>
+        <label>Task 기간 To<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
+        <button className="secondary-button" type="button" disabled={!filterActive} onClick={() => { setQuery(""); setActiveFilter("all"); setKindFilter("all"); setDateFrom(""); setDateTo(""); }}>초기화</button>
+        <span className="project-filter-result" role="status">그룹 {visibleGroupCount} · 리소스 {visibleResourceCount}</span>
+      </div>
+
       {error ? <p className="resource-workload-error" role="alert">{error}</p> : null}
 
       {data ? (
@@ -120,14 +187,15 @@ export function ProjectResourceWorkload({ publicId }: Props) {
             </div>
           </dl>
 
+          <p className="resource-workload-note">위 집계는 전체 Project 기준이며, 아래 필터는 표시 행만 제한합니다.</p>
           {data.mdPerMm
             ? <p className="resource-workload-note">M/M 환산 기준: 1 M/M = {data.mdPerMm} M/D</p>
             : <p className="resource-workload-note">M/M 환산 기준이 설정되지 않아 M/M 보기는 사용할 수 없습니다.</p>}
 
           <div className="resource-workload-groups">
-            {data.groups.length === 0 ? (
-              <p className="resource-workload-empty">조회할 리소스 할당이 없습니다.</p>
-            ) : data.groups.map((group) => (
+            {filteredGroups.length === 0 ? (
+              <p className="resource-workload-empty">검색 조건에 일치하는 리소스 할당이 없습니다.</p>
+            ) : filteredGroups.map((group) => (
               <details className="resource-workload-group" key={group.id ?? "ungrouped"} open>
                 <summary>
                   <span className="resource-workload-name">{group.name}</span>
