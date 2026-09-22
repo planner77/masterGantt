@@ -48,7 +48,7 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
     const identity = await rememberGanttRoot(page);
 
     await page.getByRole("button", { name: "필터", exact: true }).click();
-    await page.getByLabel("작업명").fill("Existing summary child");
+    await page.getByLabel("작업명", { exact: true }).fill("Existing summary child");
     await expect(page.getByRole("status").filter({ hasText: "1개 일치" })).toBeVisible();
     await expect(rowNamed(page, "Stable summary")).toBeVisible();
     await expect(rowNamed(page, "Existing summary child")).toBeVisible();
