@@ -61,6 +61,15 @@ export function validateProjectFilter(filter: ProjectFilterState): ProjectFilter
   };
 }
 
+export function sanitizeInvalidProjectDateFilters(filter: ProjectFilterState): ProjectFilterState {
+  const validation = validateProjectFilter(filter);
+  return {
+    ...filter,
+    ...(validation.created ? { createdOperator: "any" as const, createdFrom: "", createdTo: "" } : {}),
+    ...(validation.updated ? { updatedOperator: "any" as const, updatedFrom: "", updatedTo: "" } : {}),
+  };
+}
+
 export function projectCalendarDate(value: string, timeZone: string): string | null {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
