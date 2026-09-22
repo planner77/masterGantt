@@ -172,3 +172,19 @@ Issue #96은 Task Editor UI 변경과 함께 사용자가 GHCR 정식 게시를 
 7. Issue #96 완료 댓글에 version, main CI/임시 GHCR 검증 URL, 정식 release run URL, tag, branch cleanup 결과를 기록한 뒤 completed로 닫는다.
 
 Workflow 파일의 존재나 과거 run은 현재 target SHA의 PASS를 대신하지 않는다. GHCR 게시 성공은 운영 환경 배포 완료를 의미하지 않는다.
+
+
+## Issue #84 원격 릴리스 검증
+
+Issue #84는 PR #114에서 기능·테스트·Documentation Sync를 완료하고, 사용자가 GHCR 정식 게시까지 명시적으로 요청한 범위다. 완료 판정은 다음 원격 증거를 모두 요구한다.
+
+1. 기능 PR #114 최종 head의 quality, Chromium E2E, Docker smoke와 독립 review finding 조치가 PASS/Resolved여야 한다.
+2. PR #114 merge 뒤 실제 main SHA의 CI가 completed/success여야 하며, 같은 run에서 임시 `ci-<full SHA>` 게시 → exact digest pull/runtime smoke → package version cleanup이 성공해야 한다.
+3. 릴리스 마무리 helper PR도 동일 PR CI gate와 review를 통과해야 한다.
+4. package version `0.25.0`과 annotated `v0.25.0` tag가 정확히 일치하고 tag가 release target main SHA를 가리켜야 한다.
+5. 새 tag에서만 `release-image.yml`을 dispatch한다. 실행 시작 전에 tag가 이미 존재한다면 동일 tag/head SHA의 completed/success release run이 있는 경우에만 publish를 반복하지 않고 후속 cleanup/Issue 종료를 재개한다. **기존 tag만 있고 성공 release 증거가 없으면 FAIL**이며 동일 version/tag를 재사용하지 않는다.
+6. 작업 branch와 release-finalization branch 삭제 전 현재 remote tip이 해당 merged PR의 recorded head SHA와 동일한지 확인하고, merge commit이 release target의 ancestor인지와 열린 head/base PR 부재를 확인한다. 마지막 삭제는 explicit SHA lease를 사용한다. 새 commit/race/API 오류가 있으면 삭제하지 않고 FAIL/BLOCKED로 남긴다.
+7. 정식 release workflow의 exact SemVer image digest 재다운로드/runtime smoke와 stable alias promotion 결과를 실제 run/job 증거로 확인한다.
+8. Issue #84 완료 댓글에 기능/릴리스 PR, version, main CI, 정식 release run, tag, branch cleanup 결과를 남긴 뒤 completed로 닫는다.
+
+Workflow 파일 존재나 과거 다른 version의 성공 run은 현재 `v0.25.0` release 성공 증거를 대신하지 않는다. GitHub-hosted 검증은 최종 수동 UX/실제 사내 reverse proxy 등 환경별 검증을 자동으로 완료한 것으로 간주하지 않는다.
