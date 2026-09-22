@@ -36,7 +36,7 @@ for (const variant of [
         data: { permission: "edit", expiresAt: "2099-01-01T00:00:00.000Z" },
       } }));
       await page.goto(`/projects/${publicId}`);
-      const projectHeader = page.locator(".project-readonly-heading");
+      const projectHeader = page.locator(".project-context-bar");
       const gantt = page.locator(".project-gantt-widget .wx-gantt");
       const gridHeaders = page.locator(".project-gantt-widget .wx-table-container .wx-header");
       const gridHeader = gridHeaders.first();
