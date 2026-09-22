@@ -13,7 +13,7 @@ import type {
 import { recalculateHierarchy, scheduleLeaf } from "../../domain/scheduling";
 import { EditSessionRepository, ProjectRepository } from "../repositories/project-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
-import { ScheduleRepository, type TaskRecord } from "../repositories/schedule-repository-core";
+import { ScheduleRepository, type LinkRecord, type TaskRecord } from "../repositories/schedule-repository-core";
 import {
   EditSessionInvalidError,
   EmptySummaryNotAllowedError,
@@ -73,6 +73,29 @@ function taskDtos(tasks: readonly TaskRecord[]): ProjectTaskDto[] {
       siblingOrder: task.sortOrder,
     };
   });
+}
+
+function linkDtos(links: readonly LinkRecord[], tasks: readonly TaskRecord[]) {
+  const externalById = new Map(tasks.map((task) => [task.id, task.externalId]));
+  return links.map((link) => {
+    const predecessorExternalId = externalById.get(link.predecessorTaskId);
+    const successorExternalId = externalById.get(link.successorTaskId);
+    if (!predecessorExternalId || !successorExternalId) throw new PersistedScheduleInvalidError();
+    return {
+      id: link.publicId,
+      predecessorExternalId,
+      successorExternalId,
+      type: link.type,
+      lag: link.lag,
+    };
+  });
+}
+
+function assertTasksNotLinked(links: readonly LinkRecord[], taskIds: readonly number[]): void {
+  const affected = new Set(taskIds);
+  if (links.some((link) => affected.has(link.predecessorTaskId) || affected.has(link.successorTaskId))) {
+    throw new UnsupportedScheduleStructureError();
+  }
 }
 
 function warningDtos(warnings: ReturnType<typeof scheduleLeaf>["warnings"]): ScheduleWarningDto[] {
@@ -277,7 +300,6 @@ export class TaskHierarchyService {
 
       const initialTasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      if (links.length > 0) throw new UnsupportedScheduleStructureError();
       const calendar = resolveProjectWorkingCalendar(this.database, project.id);
       recalculatePersistedHierarchy(initialTasks, calendar);
 
@@ -289,6 +311,7 @@ export class TaskHierarchyService {
         if (initialTasks.length >= MAX_PROJECT_TASKS) throw new TaskLimitExceededError();
         const anchor = byPublicId.get(command.anchorTaskId);
         if (!anchor) throw new TaskNotFoundError();
+        assertTasksNotLinked(links, [anchor.id]);
         const target = insertionTarget(anchor, command.placement, initialTasks);
         if (command.placement === "child") this.assertParentCanContain(project.id, anchor, initialTasks, nowText, changed);
         const scheduled = scheduleLeaf({
@@ -327,6 +350,7 @@ export class TaskHierarchyService {
       } else if (command.kind === "convert") {
         const task = byPublicId.get(command.taskId);
         if (!task) throw new TaskNotFoundError();
+        assertTasksNotLinked(links, [task.id]);
         if (task.type === command.targetType) throw new TaskHierarchyNoopError();
         if (command.targetType === "summary" || task.type === "summary") {
           throw new TaskHierarchyNoopError();
@@ -357,6 +381,7 @@ export class TaskHierarchyService {
       } else if (command.kind === "move") {
         const task = byPublicId.get(command.taskId);
         if (!task) throw new TaskNotFoundError();
+        assertTasksNotLinked(links, [task.id]);
         const siblings = orderedSiblings(initialTasks, task.parentId);
         const index = siblings.findIndex((candidate) => candidate.id === task.id);
         const targetIndex = index + (command.direction === "up" ? -1 : 1);
@@ -371,6 +396,7 @@ export class TaskHierarchyService {
         const index = siblings.findIndex((candidate) => candidate.id === task.id);
         if (index <= 0) throw new TaskHierarchyNoopError();
         const parent = siblings[index - 1];
+        assertTasksNotLinked(links, [task.id, parent.id]);
         this.ensureOldParentRemainsValid(task, initialTasks);
         this.assertParentCanContain(project.id, parent, initialTasks, nowText, changed);
         const oldFamily = siblings.filter((candidate) => candidate.id !== task.id);
@@ -382,6 +408,7 @@ export class TaskHierarchyService {
       } else if (command.kind === "outdent") {
         const task = byPublicId.get(command.taskId);
         if (!task) throw new TaskNotFoundError();
+        assertTasksNotLinked(links, [task.id]);
         if (task.parentId === null) throw new TaskHierarchyNoopError();
         const parent = initialTasks.find((candidate) => candidate.id === task.parentId);
         if (!parent) throw new PersistedScheduleInvalidError();
@@ -398,6 +425,7 @@ export class TaskHierarchyService {
         const anchor = byPublicId.get(command.anchorTaskId);
         if (!task || !anchor) throw new TaskNotFoundError();
         if (task.id === anchor.id) throw new TaskHierarchyNoopError();
+        assertTasksNotLinked(links, [task.id, ...descendants(task.id, initialTasks).map((entry) => entry.id), anchor.id]);
         const target = insertionTarget(anchor, command.placement, initialTasks);
         if (wouldCreateCycle(task, target.parentId, initialTasks)) throw new InvalidTaskInputError();
         if (task.parentId === target.parentId) {
@@ -427,6 +455,7 @@ export class TaskHierarchyService {
         const anchor = byPublicId.get(command.anchorTaskId);
         if (!source || !anchor) throw new TaskNotFoundError();
         const branch = [source, ...descendants(source.id, initialTasks)];
+        assertTasksNotLinked(links, [...branch.map((entry) => entry.id), anchor.id]);
         if (initialTasks.length + branch.length > MAX_PROJECT_TASKS) throw new TaskLimitExceededError();
         const branchIds = new Set(branch.map((task) => task.publicId));
         if (this.resources.listAssignments(project.id).some((assignment) => branchIds.has(assignment.taskPublicId))) {
@@ -490,7 +519,7 @@ export class TaskHierarchyService {
             calendar: projectCalendarDto(this.database, project.id),
           },
           tasks: taskDtos(tasks),
-          links: [],
+          links: linkDtos(this.schedules.listLinks(project.id), tasks),
           warnings,
           operation: {
             kind: "taskHierarchy" as const,
