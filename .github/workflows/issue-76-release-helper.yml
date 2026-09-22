@@ -144,18 +144,33 @@ jobs:
             test "$open_base" = "0"
 
             git fetch --quiet --no-tags origin "refs/heads/$branch:refs/remotes/origin/$branch"
-            incorporated=false
+            cleanup_authorized=false
             if [[ "$branch" == "feat/issue-76-project-workspace-ux-final" ]]; then
               if [[ "$head_sha" == "$final_head_sha" ]]; then
-                incorporated=true
+                cleanup_authorized=true
                 echo "최종 PR #94의 정확한 merged head를 확인했습니다: $branch @ $head_sha"
               fi
-            elif git merge-base --is-ancestor "$head_sha" "$final_head_sha"; then
-              incorporated=true
-              echo "최종 PR #94 head에 현재 tip이 포함된 것을 확인했습니다: $branch @ $head_sha"
+            else
+              superseded_pr=""
+              case "$branch" in
+                "feat/issue-76-project-workspace-ux") superseded_pr="89" ;;
+                "feat/issue-76-project-workspace-ux-rebased") superseded_pr="93" ;;
+              esac
+              if [[ -n "$superseded_pr" ]]; then
+                superseded_json="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$superseded_pr")"
+                superseded_head="$(jq -r '.head.sha' <<<"$superseded_json")"
+                superseded_state="$(jq -r '.state' <<<"$superseded_json")"
+                superseded_merged="$(jq -r '.merged_at // ""' <<<"$superseded_json")"
+                superseded_comments="$(gh api "/repos/$GITHUB_REPOSITORY/issues/$superseded_pr/comments?per_page=100")"
+                superseded_marker="$(jq -r '[.[] | select((.body // "") | contains("Superseded-by: #94"))] | length' <<<"$superseded_comments")"
+                if [[ "$superseded_state" == "closed" && -z "$superseded_merged" && "$superseded_head" == "$head_sha" && "$superseded_marker" != "0" ]]; then
+                  cleanup_authorized=true
+                  echo "PR #$superseded_pr의 정확한 head와 PR #94 대체 표시를 확인했습니다: $branch @ $head_sha"
+                fi
+              fi
             fi
-            if [[ "$incorporated" != "true" ]]; then
-              echo "현재 tip의 최종 merged PR 반영 증거가 없어 보존합니다: $branch @ $head_sha"
+            if [[ "$cleanup_authorized" != "true" ]]; then
+              echo "현재 tip의 병합 또는 명시적 superseded 증거가 없어 보존합니다: $branch @ $head_sha"
               retained+=("$branch")
               continue
             fi
