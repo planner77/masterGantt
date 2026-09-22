@@ -226,7 +226,7 @@ test("Issue #104 unrelated task context actions stay enabled when other tasks ar
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Context link scope ${suffix}`);
   await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Context-password-${suffix}`);
   await submitProjectAndExpectCreated(page);
-  await page.waitForURL(/\\/projects\\/[0-9a-f-]{36}$/);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
 
   const path = new URL(page.url()).pathname;
   const api = `/api${path}`;
