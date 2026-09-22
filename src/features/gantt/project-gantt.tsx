@@ -228,15 +228,15 @@ export function ProjectGantt({
     const tag = "project-link-mutations";
     api.detach(tag);
     const add = createLinkAddGateway(({ source, target }) => {
-      if (canonicalSyncDepthReference.current > 0 || !canCreateReference.current) return;
+      if (!canCreateReference.current) return;
       if (typeof source === "string" && typeof target === "string") onLinkCreateReference.current(source, target);
     });
     const remove = createLinkDeleteGateway((id) => {
-      if (canonicalSyncDepthReference.current > 0 || !canCreateReference.current) return;
+      if (!canCreateReference.current) return;
       if (typeof id === "string") onLinkDeleteReference.current(id);
     });
-    api.intercept("add-link", add, { tag });
-    api.intercept("delete-link", remove, { tag });
+    api.intercept("add-link", (event) => canonicalSyncDepthReference.current > 0 ? true : add(event), { tag });
+    api.intercept("delete-link", (event) => canonicalSyncDepthReference.current > 0 ? true : remove(event), { tag });
     return () => api.detach(tag);
   }, [apiInstanceId]);
 
