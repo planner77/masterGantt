@@ -113,6 +113,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
   const [taskFilterOpen, setTaskFilterOpen] = useState(false);
   const [assignedTargets, setAssignedTargets] = useState<AssignmentTargetDto[]>([]);
+  const [targetPickerQuery, setTargetPickerQuery] = useState("");
+  const [targetPickerKind, setTargetPickerKind] = useState<"all" | "resource" | "group">("all");
   const [ganttResetGeneration, setGanttResetGeneration] = useState(0);
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
@@ -527,6 +529,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const filteredTasks = filterTasksWithAncestors(tasks, taskFilter, assignments);
   const activeFilters = activeTaskFilterCount(taskFilter);
   const visibleTaskIds = filteredTasks.tasks.map((task) => task.taskId);
+  const normalizedTargetQuery = targetPickerQuery.trim().toLocaleLowerCase();
+  const selectableAssignedTargets = assignedTargets.filter((target) =>
+    (targetPickerKind === "all" || target.kind === targetPickerKind) &&
+    (!normalizedTargetQuery || [target.name, target.code ?? ""].some((value) => value.toLocaleLowerCase().includes(normalizedTargetQuery)))
+  );
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
   return <section className="project-readonly" aria-labelledby="project-heading">
@@ -649,8 +656,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           <fieldset><legend>Task type</legend>{(["task","summary","milestone"] as const).map((type) => <label key={type}><input type="checkbox" checked={taskFilter.types.includes(type)} onChange={() => setTaskFilter((current) => ({ ...current, types: current.types.includes(type) ? current.types.filter((item) => item !== type) : [...current.types, type] }))} />{type}</label>)}</fieldset>
           <fieldset><legend>Schedule mode</legend>{(["auto","manual"] as const).map((mode) => <label key={mode}><input type="checkbox" checked={taskFilter.scheduleModes.includes(mode)} onChange={() => setTaskFilter((current) => ({ ...current, scheduleModes: current.scheduleModes.includes(mode) ? current.scheduleModes.filter((item) => item !== mode) : [...current.scheduleModes, mode] }))} />{mode}</label>)}</fieldset>
           {assignedTargets.length > 0 ? <fieldset><legend>할당 Resource / Group</legend>
+            <label>대상 종류<select value={targetPickerKind} onChange={(event) => setTargetPickerKind(event.target.value as "all" | "resource" | "group")}><option value="all">전체</option><option value="resource">Resource</option><option value="group">Group</option></select></label>
+            <label>대상 검색<input aria-label="할당 Resource 또는 Group 이름과 code 검색" placeholder="이름 또는 code" type="search" value={targetPickerQuery} onChange={(event) => setTargetPickerQuery(event.target.value)} /></label>
             <label>다중 조건<select value={taskFilter.targetMode} onChange={(event) => setTaskFilter((current) => ({ ...current, targetMode: event.target.value as "any" | "all" }))}><option value="any">ANY</option><option value="all">ALL</option></select></label>
-            <div className="project-filter-targets">{assignedTargets.map((target) => {
+            <div className="project-filter-targets">{selectableAssignedTargets.map((target) => {
               const key = `${target.kind}:${target.id}`;
               return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name}{target.code ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
             })}</div>
