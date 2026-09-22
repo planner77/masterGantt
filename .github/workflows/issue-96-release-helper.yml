@@ -34,6 +34,16 @@ jobs:
           test "$(git show "$TARGET_SHA:package.json" | jq -r .version)" = "0.21.1"
           git merge-base --is-ancestor "$TARGET_SHA" origin/main
 
+          pr98="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/98")"
+          test "$(jq -r '.merged_at // ""' <<<"$pr98")" != ""
+          test "$(jq -r '.base.ref' <<<"$pr98")" = "main"
+          merged_head_sha="$(jq -r '.head.sha' <<<"$pr98")"
+          test -n "$merged_head_sha"
+          parent_count="$(git rev-list --parents -n 1 "$TARGET_SHA" | awk '{print NF-1}')"
+          test "$parent_count" -ge 2
+          test "$(git rev-parse "$TARGET_SHA^2")" = "$merged_head_sha"
+          git merge-base --is-ancestor "$merged_head_sha" "$TARGET_SHA"
+
           main_ci_url=""
           main_ci_success=false
           for _ in $(seq 1 300); do
@@ -124,10 +134,8 @@ jobs:
             test "$open_base" = "0"
 
             git fetch --quiet --no-tags origin "refs/heads/$WORK_BRANCH:refs/remotes/origin/$WORK_BRANCH"
+            test "$branch_sha" = "$merged_head_sha"
             git merge-base --is-ancestor "$branch_sha" "$TARGET_SHA"
-            parent_count="$(git rev-list --parents -n 1 "$TARGET_SHA" | awk '{print NF-1}')"
-            test "$parent_count" -ge 2
-            test "$(git rev-parse "$TARGET_SHA^2")" = "$branch_sha"
             current_sha="$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/$encoded" --jq '.object.sha')"
             test "$current_sha" = "$branch_sha"
 
