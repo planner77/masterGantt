@@ -7,6 +7,14 @@
 
 상태: qa_docs가 작성한 검증 전략. W02–W07, W20과 W21 검증 기록은 [W07_REVIEW.md](W07_REVIEW.md), [W20_REVIEW.md](W20_REVIEW.md), [W21_REVIEW.md](W21_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W20의 로컬 container PASS도 원격 Actions/GHCR, production host/backup/restore와 VBA 통과를 뜻하지 않는다.
 
+## Issue #83 Project Task / Resource 검색·필터
+
+- Unit: text normalization, inclusive date overlap, contained/start-in/end-in, milestone, type/schedule mode, progress/duration range, assigned/unassigned, Resource/Group ANY·ALL, ancestor context를 검증한다.
+- Browser: 일정 Toolbar 검색/필터, Grid/Chart 동일 결과, ancestor context와 match count 분리, dangling dependency 미표시, 초기화, readonly, 탭 전환 상태 보존을 검증한다.
+- Resource: 이름/code, kind, active/inactive, 연결 Task 기간 필터와 전체 Project workload 집계 라벨을 검증한다.
+- 성능: 5,000 Task deterministic fixture에서 입력마다 Project snapshot 재조회 또는 Gantt 전체 page remount가 발생하지 않는지 검증한다.
+- 공식 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker`, 병합 후 main 임시 GHCR exact digest smoke, 승인된 release image의 exact digest smoke를 사용한다.
+
 ## Issue #76 Project Workspace UX
 
 - Global Header가 viewport 기반 full-width로 동작하고 전역 active navigation을 `aria-current`로 제공하는지 검증한다.
