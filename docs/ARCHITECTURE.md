@@ -119,3 +119,14 @@ W04 생성 bootstrap에 이어 W05는 recorded scrypt profile의 timing-safe pas
 ## 구현 진입 Gate
 
 최초 vertical slice인 Project 생성→SQLite 저장→Direct Readonly→unlock→root Task 생성·SVAR 이동/resize→reload 유지→삭제를 W07에서 독립 QA PASS / Manager ACCEPT했다. W20 Semantic Release, W21 동기 Grid+Chart와 W22 main commit image 자동화도 완료했다. Main/PR/release workflow, private GHCR publish, commit/release digest의 원격·로컬 smoke와 SBOM/provenance 조회를 PASS했다. D05에 따라 현재 private 요금제의 ruleset 미강제 위험을 수용하고 GitHub Artifact Attestation은 비활성으로 둔다. W23은 D02 승인으로 목록을 활성화했다. W24가 W08의 child 생성·Summary 집계·순수 WBS 계산 일부를 선행하며, WBS DTO/UI·Reparent·FS와 유효 subtree 변경 묶음은 후속이다. VBA는 D01, 운영 공개는 D03 및 별도 네트워크/TLS 배포 검증을 따른다. 전체 기능을 한 번에 시작하지 않는다.
+
+## Project Workspace UI 계층 (Issue #76)
+
+Frontend shell은 **Global App Shell → Entity Context → Workspace View** 3단 계층을 사용한다.
+
+- `WorkspaceShell`: viewport 기반 global header와 primary navigation을 제공하고 Project 전용 metadata/action을 소유하지 않는다.
+- `ProjectReadonlyView`: compact Project context, permission status, Project Info/Settings/Unlock command와 `일정 / 리소스` peer view를 조정한다.
+- `ProjectGantt`와 `ProjectResourceWorkload`: 동일 Project context의 독립 workspace panel이다. tab 전환은 API mutation이나 route navigation이 아니며 panel mount를 유지해 Gantt lifecycle/state를 보존한다.
+- Resource workload API, edit-session, If-Match/revision, canonical snapshot, Scheduling Domain 경계는 UI 재배치와 독립적으로 유지한다.
+
+Frontend 레이아웃과 interaction 상세 기준은 [UI/UX Guidelines](UI_UX_GUIDELINES.md)를 Source of Truth로 사용한다.
