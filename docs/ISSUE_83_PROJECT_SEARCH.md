@@ -19,6 +19,7 @@ Project Workspace의 일정 및 리소스 탭에서 canonical Project 데이터�
 
 ### Resource
 
+- assigned-target metadata의 `description`을 기존 public-read 응답에 추가해 readonly에서도 name/code/description 검색을 수행한다.
 - 기존 Resource workload의 Group → Resource → Task 구조를 유지한다.
 - 이름/code, Resource/Group 종류, 활성 상태, 연결 Task effective 기간 조건을 제공한다.
 - 비활성 target도 기존 Project assignment에 포함되어 있으면 검색 대상이다.
@@ -52,7 +53,7 @@ Project Workspace의 일정 및 리소스 탭에서 canonical Project 데이터�
 
 ## 성능
 
-Task predicate는 assignment lookup을 Map/Set으로 구성하고 Task × Resource 전체 중첩 탐색을 피한다. Filter 결과 계산은 canonical input과 filter state에 대해 결정적으로 수행한다.
+Gantt 가시성은 SVAR 2.7.3 공개 `filter-tasks` action으로 적용하고 canonical tasks/links는 유지한다. Task predicate는 assignment lookup을 Map/Set으로 구성하고 Task × Resource 전체 중첩 탐색을 피한다. Filter 결과 계산은 canonical input과 filter state에 대해 결정적으로 수행한다.
 
 ## 버전
 
