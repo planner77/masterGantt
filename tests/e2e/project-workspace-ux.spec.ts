@@ -103,7 +103,9 @@ test.describe("Issue #76 Project Workspace UX", () => {
 
     await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
     await expect(unlockDialog).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "편집 잠금 해제", exact: true })).toBeVisible();
+    const unlockButton = page.getByRole("button", { name: "편집 잠금 해제", exact: true });
+    await expect(unlockButton).toBeVisible();
+    await expect(unlockButton).toBeFocused();
   });
 
   for (const width of [390, 768, 1024, 1440, 1920]) {
