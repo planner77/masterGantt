@@ -33,12 +33,6 @@ SVAR PRO에 해당하는 기능은 UI에서 직접 복제하지 않는다.
 Scheduling Engine이 제공하는 Domain/API를 사용한다.
 Client의 UI 제어를 Server Authorization으로 착각하지 않는다.
 
-UI/UX 정책:
-- 작업 시작 시 AGENTS.md와 docs/UI_UX_GUIDELINES.md를 읽고 Global App Shell → Entity Context → Workspace View 계층을 유지한다.
-- 항상 필요한 정보만 상시 표시하고 나머지는 Popover/Drawer/Dialog 등 progressive disclosure를 우선한다.
-- Status와 Action을 분리하고 Link/Button/Tab/Menu의 semantic 역할을 보존한다.
-- 신규 UI는 390/768/1024/1440/wide viewport, keyboard, focus-visible, Escape/focus restore, document overflow를 기본 검증한다.
-
 검증 정책:
 - 작업 시작 시 AGENTS.md와 docs/REMOTE_VALIDATION.md를 읽는다.
 - 구현 중에는 변경과 직접 관련된 Vitest 또는 필요한 typecheck/lint 등 Local Fast Feedback을 우선한다.
