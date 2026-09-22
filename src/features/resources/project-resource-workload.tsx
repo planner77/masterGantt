@@ -18,7 +18,7 @@ function effort(md: number, mm: number | null, unit: Unit): string {
 function includesText(target: AssignmentTargetDto | undefined, fallbackName: string, query: string): boolean {
   if (!query) return true;
   const needle = query.trim().toLocaleLowerCase();
-  return [target?.name ?? fallbackName, target?.code ?? "", target ? ("description" in target ? String((target as { description?: string }).description ?? "") : "") : ""]
+  return [target?.name ?? fallbackName, target?.code ?? "", target?.description ?? ""]
     .some((value) => value.toLocaleLowerCase().includes(needle));
 }
 
