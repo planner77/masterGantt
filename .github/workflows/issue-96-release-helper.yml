@@ -35,6 +35,7 @@ jobs:
           git merge-base --is-ancestor "$TARGET_SHA" origin/main
 
           main_ci_url=""
+          main_ci_success=false
           for _ in $(seq 1 300); do
             runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=50")"
             run="$(jq -c --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
@@ -44,49 +45,72 @@ jobs:
               conclusion="$(jq -r '.conclusion // ""' <<<"$run")"
               if [[ "$status" == "completed" ]]; then
                 test "$conclusion" = "success"
+                main_ci_success=true
                 break
               fi
             fi
             sleep 15
           done
           test -n "$main_ci_url"
+          test "$main_ci_success" = "true"
 
+          release_run_url=""
+          release_success=false
           if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
             git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
             test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$TARGET_SHA"
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?per_page=100")"
+            successful="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .status == "completed" and .conclusion == "success")] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -z "$successful" ]]; then
+              echo "기존 태그는 있으나 성공한 정식 릴리스 증거가 없습니다: $RELEASE_TAG" >&2
+              exit 1
+            fi
+            release_run_url="$(jq -r .html_url <<<"$successful")"
+            release_success=true
           else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "Release $RELEASE_TAG"
             git push origin "refs/tags/$RELEASE_TAG"
-          fi
+            test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$TARGET_SHA"
 
-          dispatched_after="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" -f ref="$RELEASE_TAG"
+            dispatched_after="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" -f ref="$RELEASE_TAG"
 
-          release_run_url=""
-          for _ in $(seq 1 480); do
-            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=100")"
-            run="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" --arg after "$dispatched_after" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .created_at >= $after)] | sort_by(.created_at) | last // empty' <<<"$runs")"
-            if [[ -n "$run" ]]; then
-              release_run_url="$(jq -r .html_url <<<"$run")"
-              status="$(jq -r .status <<<"$run")"
-              conclusion="$(jq -r '.conclusion // ""' <<<"$run")"
-              if [[ "$status" == "completed" ]]; then
-                test "$conclusion" = "success"
-                break
+            for _ in $(seq 1 480); do
+              runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=100")"
+              run="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" --arg after "$dispatched_after" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .created_at >= $after)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+              if [[ -n "$run" ]]; then
+                release_run_url="$(jq -r .html_url <<<"$run")"
+                status="$(jq -r .status <<<"$run")"
+                conclusion="$(jq -r '.conclusion // ""' <<<"$run")"
+                if [[ "$status" == "completed" ]]; then
+                  test "$conclusion" = "success"
+                  release_success=true
+                  break
+                fi
               fi
-            fi
-            sleep 15
-          done
+              sleep 15
+            done
+          fi
           test -n "$release_run_url"
+          test "$release_success" = "true"
 
           owner="${GITHUB_REPOSITORY%%/*}"
           open_head="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&head=$owner:$WORK_BRANCH&per_page=1" --jq 'length')"
           test "$open_head" = "0"
           if git ls-remote --exit-code --heads origin "refs/heads/$WORK_BRANCH" >/dev/null 2>&1; then
-            branch_sha="$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/feat%2Fissue-96-task-editor-density" --jq '.object.sha')"
+            encoded="${WORK_BRANCH//\//%2F}"
+            branch_sha="$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/$encoded" --jq '.object.sha')"
+            git fetch --quiet --no-tags origin "refs/heads/$WORK_BRANCH:refs/remotes/origin/$WORK_BRANCH"
+            git merge-base --is-ancestor "$branch_sha" "$TARGET_SHA"
+            current_sha="$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/$encoded" --jq '.object.sha')"
+            test "$current_sha" = "$branch_sha"
             git push --porcelain --force-with-lease="refs/heads/$WORK_BRANCH:$branch_sha" origin ":refs/heads/$WORK_BRANCH" >/dev/null
+            if git ls-remote --exit-code --heads origin "refs/heads/$WORK_BRANCH" >/dev/null 2>&1; then
+              echo "작업 브랜치 삭제 확인 실패: $WORK_BRANCH" >&2
+              exit 1
+            fi
           fi
 
           body="$(printf '%s\n'             "Issue Lifecycle 완료:"             "- 버전: 0.21.1"             "- main CI/임시 GHCR 검증: $main_ci_url"             "- GHCR 정식 릴리스 이미지: $release_run_url"             "- 정식 릴리스 태그: $RELEASE_TAG"             "- 작업 브랜치 정리: $WORK_BRANCH")"
