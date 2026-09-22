@@ -348,7 +348,7 @@ export function ProjectGantt({
     if (!api || !apiInstanceId) return;
     const visible = visibleTaskIds ? new Set(visibleTaskIds) : null;
     void api.exec("filter-tasks", {
-      filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : null,
+      filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined,
     });
   }, [apiInstanceId, visibleTaskIds]);
 
