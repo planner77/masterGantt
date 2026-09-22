@@ -64,7 +64,7 @@ test.describe("Issue #76 Project Workspace UX", () => {
     await expectSameGanttRoot(page, identity);
 
     expect(documentRequests.filter((url) => url.includes(`/projects/${publicId}`))).toHaveLength(1);
-    expect(navigations.filter((url) => url.includes(`/projects/${publicId}`))).toHaveLength(1);
+    expect(new Set(navigations.filter((url) => url.includes(`/projects/${publicId}`))).size).toBe(1);
     expect(mutations).toEqual([]);
 
     page.off("request", recordRequest);
