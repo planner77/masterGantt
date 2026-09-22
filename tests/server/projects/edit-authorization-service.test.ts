@@ -105,7 +105,7 @@ describe("ProjectService W05 unlock and session consumption", () => {
       generateSessionToken: () => token("A"),
       hashPassword: async () => fixedPasswordHash(),
     });
-    await base.create({ name: "Project", description: "", editPassword: "password phrase" });
+    await base.create({ name: "Project", description: "", editPassword: "Pass123456!" });
     const racing = new ProjectService(db, {
       clock: () => new Date("2026-09-11T01:00:01.000Z"),
       generateSessionToken: () => token("B"),
@@ -116,7 +116,7 @@ describe("ProjectService W05 unlock and session consumption", () => {
       },
     });
 
-    await expect(racing.unlock(publicId, "password phrase")).resolves.toBeUndefined();
+    await expect(racing.unlock(publicId, "Pass123456!")).resolves.toBeUndefined();
     expect(db.prepare("SELECT count(*) FROM edit_sessions").pluck().get()).toBe(1);
   });
 
@@ -131,8 +131,8 @@ describe("ProjectService W05 unlock and session consumption", () => {
       generateSessionToken: () => tokens.shift() ?? token("Z"),
       hashPassword: async () => fixedPasswordHash(),
     });
-    await service.create({ name: "A", description: "", editPassword: "password phrase" });
-    await service.create({ name: "B", description: "", editPassword: "password phrase" });
+    await service.create({ name: "A", description: "", editPassword: "Pass123456!" });
+    await service.create({ name: "B", description: "", editPassword: "Pass123456!" });
     const before = db.prepare("SELECT total_changes() as value").get() as { value: number };
 
     expect(service.getCurrentEditSession(publicIds[0], token("A").rawToken)?.data.permission).toBe("edit");
@@ -166,8 +166,8 @@ describe("ProjectService W05 unlock and session consumption", () => {
       generateSessionToken: () => tokens.shift() ?? token("Z"),
       hashPassword: async () => fixedPasswordHash(),
     });
-    await service.create({ name: "A", description: "", editPassword: "password phrase" });
-    await service.create({ name: "B", description: "", editPassword: "password phrase" });
+    await service.create({ name: "A", description: "", editPassword: "Pass123456!" });
+    await service.create({ name: "B", description: "", editPassword: "Pass123456!" });
 
     expect(service.logout(publicIds[1], { state: "present", rawToken: token("A").rawToken }))
       .toEqual({ kind: "preserveCookie" });
@@ -217,7 +217,7 @@ describe("ProjectService W05 protected mutations", () => {
       generateSessionToken: () => token("A"),
       hashPassword: async () => fixedPasswordHash(),
     });
-    await service.create({ name: "Before", description: "Old", editPassword: "password phrase" });
+    await service.create({ name: "Before", description: "Old", editPassword: "Pass123456!" });
     const auth = authorized(service.authorize(publicIds[0], token("A").rawToken));
     const response = service.updateMetadata(auth, 1, { name: "After", description: "New" });
 
@@ -243,7 +243,7 @@ describe("ProjectService W05 protected mutations", () => {
       generateSessionToken: () => token("A"),
       hashPassword: hash,
     });
-    await service.create({ name: "Before", description: "Old", editPassword: "password phrase" });
+    await service.create({ name: "Before", description: "Old", editPassword: "Pass123456!" });
     const legacyId = "legacy-project-id";
     db.prepare("UPDATE projects SET public_id = ? WHERE public_id = ?")
       .run(legacyId, publicIds[0]);
@@ -284,7 +284,7 @@ describe("ProjectService W05 protected mutations", () => {
           Cookie: `__Host-mastergantt_edit=${token("A").rawToken}`,
           "If-Match": '"1"',
         },
-        body: JSON.stringify({ newEditPassword: "new password phrase" }),
+        body: JSON.stringify({ newEditPassword: "New123456!" }),
       }),
       legacyId,
       {
@@ -313,7 +313,7 @@ describe("ProjectService W05 protected mutations", () => {
       generateSessionToken: () => token("A"),
       hashPassword: async () => fixedPasswordHash(),
     });
-    await service.create({ name: "Before", description: "", editPassword: "password phrase" });
+    await service.create({ name: "Before", description: "", editPassword: "Pass123456!" });
     const auth = authorized(service.authorize(publicIds[0], token("A").rawToken));
     db.prepare("UPDATE edit_sessions SET revoked_at = ?").run("2026-09-11T01:00:00.000Z");
     db.prepare("UPDATE projects SET revision = 2").run();
@@ -330,7 +330,7 @@ describe("ProjectService W05 protected mutations", () => {
       generateSessionToken: () => token("A"),
       hashPassword: async () => fixedPasswordHash(),
     });
-    await base.create({ name: "Before", description: "", editPassword: "password phrase" });
+    await base.create({ name: "Before", description: "", editPassword: "Pass123456!" });
     const auth = authorized(base.authorize(publicIds[0], token("A").rawToken));
     const hash = vi.fn(async () => {
       expect(db.inTransaction).toBe(false);
@@ -346,7 +346,7 @@ describe("ProjectService W05 protected mutations", () => {
 
     expect(() => racing.updateMetadata(auth, 1, { name: "Must not write" }))
       .toThrow(EditSessionInvalidError);
-    await expect(racing.rotatePassword(auth, 1, "new password phrase"))
+    await expect(racing.rotatePassword(auth, 1, "New123456!"))
       .rejects.toBeInstanceOf(EditSessionInvalidError);
     expect(hash).toHaveBeenCalledOnce();
     expect(db.prepare("SELECT name, revision, auth_version, password_salt FROM projects").get())
@@ -365,23 +365,23 @@ describe("ProjectService W05 protected mutations", () => {
       clock: () => new Date("2026-09-11T01:00:00.000Z"),
       generatePublicId: () => publicIds[0],
       generateSessionToken: () => tokens.shift() ?? token("Z"),
-      hashPassword: async (value) => fixedPasswordHash(value === "new password phrase" ? 8 : 1),
+      hashPassword: async (value) => fixedPasswordHash(value === "New123456!" ? 8 : 1),
       verifyPassword: async (candidate, record) =>
-        (candidate === "password phrase" && record?.hash.equals(Buffer.alloc(32, 2))) ||
-        (candidate === "new password phrase" && record?.hash.equals(Buffer.alloc(32, 9))) ||
+        (candidate === "Pass123456!" && record?.hash.equals(Buffer.alloc(32, 2))) ||
+        (candidate === "New123456!" && record?.hash.equals(Buffer.alloc(32, 9))) ||
         false,
     });
-    await service.create({ name: "Project", description: "", editPassword: "password phrase" });
-    await service.unlock(publicIds[0], "password phrase");
+    await service.create({ name: "Project", description: "", editPassword: "Pass123456!" });
+    await service.unlock(publicIds[0], "Pass123456!");
     const first = authorized(service.authorize(publicIds[0], token("A").rawToken));
-    const rotated = await service.rotatePassword(first, 1, "new password phrase");
+    const rotated = await service.rotatePassword(first, 1, "New123456!");
 
     expect(rotated).toEqual({ rawSessionToken: token("C").rawToken, revision: 2 });
     expect(service.authorize(publicIds[0], token("A").rawToken).kind).toBe("unauthorized");
     expect(service.authorize(publicIds[0], token("B").rawToken).kind).toBe("unauthorized");
     expect(service.authorize(publicIds[0], token("C").rawToken).kind).toBe("authorized");
-    await expect(service.unlock(publicIds[0], "password phrase")).resolves.toBeUndefined();
-    await expect(service.unlock(publicIds[0], "new password phrase")).resolves.toEqual({
+    await expect(service.unlock(publicIds[0], "Pass123456!")).resolves.toBeUndefined();
+    await expect(service.unlock(publicIds[0], "New123456!")).resolves.toEqual({
       rawSessionToken: token("D").rawToken,
     });
     expect(db.prepare("SELECT auth_version, revision, password_salt FROM projects").get())
@@ -397,12 +397,12 @@ describe("ProjectService W05 protected mutations", () => {
       generateSessionToken: () => tokens.shift() ?? token("Z"),
       hashPassword: async (value) => fixedPasswordHash(value.startsWith("new") ? 8 : 1),
     });
-    await service.create({ name: "Project", description: "", editPassword: "password phrase" });
+    await service.create({ name: "Project", description: "", editPassword: "Pass123456!" });
     const auth = authorized(service.authorize(publicIds[0], token("A").rawToken));
     db.exec(`CREATE TRIGGER reject_rotated_session BEFORE INSERT ON edit_sessions
       WHEN NEW.auth_version = 2 BEGIN SELECT RAISE(ABORT, 'fault'); END`);
 
-    await expect(service.rotatePassword(auth, 1, "new password phrase")).rejects.toThrow();
+    await expect(service.rotatePassword(auth, 1, "New123456!")).rejects.toThrow();
     expect(db.prepare("SELECT auth_version, revision, password_salt FROM projects").get())
       .toEqual({ auth_version: 1, revision: 1, password_salt: Buffer.alloc(16, 1) });
     expect(service.authorize(publicIds[0], token("A").rawToken).kind).toBe("authorized");
@@ -416,7 +416,7 @@ describe("ProjectService W05 protected mutations", () => {
       generateSessionToken: () => token("A"),
       hashPassword: async () => fixedPasswordHash(),
     });
-    await base.create({ name: "Project", description: "", editPassword: "password phrase" });
+    await base.create({ name: "Project", description: "", editPassword: "Pass123456!" });
     const hash = vi.fn(async () => {
       db.prepare("UPDATE edit_sessions SET revoked_at = ?").run("2026-09-11T01:00:00.000Z");
       db.prepare("UPDATE projects SET revision = revision + 1").run();
@@ -429,10 +429,10 @@ describe("ProjectService W05 protected mutations", () => {
     });
     const auth = authorized(racing.authorize(publicIds[0], token("A").rawToken));
 
-    await expect(racing.rotatePassword(auth, 2, "new password phrase"))
+    await expect(racing.rotatePassword(auth, 2, "New123456!"))
       .rejects.toBeInstanceOf(RevisionMismatchError);
     expect(hash).not.toHaveBeenCalled();
-    await expect(racing.rotatePassword(auth, 1, "new password phrase"))
+    await expect(racing.rotatePassword(auth, 1, "New123456!"))
       .rejects.toBeInstanceOf(EditSessionInvalidError);
     expect(db.prepare("SELECT auth_version, password_salt FROM projects").get())
       .toEqual({ auth_version: 1, password_salt: Buffer.alloc(16, 1) });
