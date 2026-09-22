@@ -34,7 +34,7 @@ async function fixture() {
   const created = await projects.create({
     name: "Hierarchy command",
     description: "",
-    editPassword: "password phrase",
+    editPassword: "Pass123456!",
   });
   const result = projects.authorize(created.response.data.project.publicId, created.rawSessionToken);
   if (result.kind !== "authorized") throw new Error("expected authorization");
