@@ -402,7 +402,13 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       await bar(page, id(5)).click({ button: "right" });
       await chooseTaskInformation(page);
       await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Milestone");
-      await expect(save(page)).toHaveCount(0);
+      if (mode === "readonly") {
+        await expect(save(page)).toHaveCount(0);
+        await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
+      } else {
+        await expect(save(page)).toBeEnabled();
+        await expect(editor(page).getByLabel("작업명", { exact: true })).not.toHaveAttribute("readonly", "");
+      }
       expect(fixture.patches).toHaveLength(0);
     });
   }
