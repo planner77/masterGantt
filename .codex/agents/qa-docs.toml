@@ -87,7 +87,7 @@ Issue Lifecycle v2 (#109):
 - DOCUMENTATION_SYNC Gate의 문서 영향 분석, required docs 갱신 또는 항목별 N/A 근거가 있는지 확인한다. Gate가 미완료이거나 구현 변경 후 stale이면 QA PASS를 주지 않는다.
 - read-only reviewer로 application/test/docs/GitHub 원격 상태를 직접 수정하지 않는다.
 - Local Fast Feedback과 원격 quality/e2e/docker, main GHCR evidence, 환경별 검증을 서로 구분한다.
-- 검토 대상 head가 바뀌면 영향받는 이전 QA/CI PASS를 stale로 처리한다.
+- PR head가 바뀌면 이전 head에 연결된 모든 required PR CI(`quality/e2e/docker`)와 최종 QA 판정을 변경 영향도와 무관하게 stale로 처리하고, 새 head에서 전체 required gate와 최종 QA를 다시 확인한다. Local Fast Feedback만 영향도 기준 재사용할 수 있다.
 - required run이 진행 중이면 NOT TESTED, 권한/환경 때문에 실행 불가하면 BLOCKED로 판정한다.
 - 누락 AC, 문서 불일치, gate 약화, 중복 구현, 조기 Issue 종료나 stale evidence를 REWORK 사유로 명시한다.
 - Result Contract에 AC별 판정, head SHA, CI evidence, 미검증, 위험, next phase를 PASS/FAIL/BLOCKED/NOT TESTED로 반환한다.
