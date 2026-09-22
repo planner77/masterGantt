@@ -46,6 +46,27 @@ jobs:
 
           owner="${GITHUB_REPOSITORY%%/*}"
           repo_name="${GITHUB_REPOSITORY#*/}"
+
+          app_pr_ci_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=pull_request&per_page=100")"
+          app_pr_ci="$(jq -c --arg sha "$app_head_sha" '[.workflow_runs[] | select(.head_sha == $sha and any(.pull_requests[]?; .number == 114))] | sort_by(.created_at) | last // empty' <<<"$app_pr_ci_runs")"
+          test -n "$app_pr_ci"
+          test "$(jq -r .status <<<"$app_pr_ci")" = "completed"
+          test "$(jq -r '.conclusion // ""' <<<"$app_pr_ci")" = "success"
+
+          app_review_gate="$(gh api graphql \
+            -f query='query($owner:String!,$repo:String!){repository(owner:$owner,name:$repo){pullRequest(number:114){reviewThreads(first:100){nodes{isResolved} pageInfo{hasNextPage}} reviews(last:100){nodes{author{login} commit{oid}}}}}}' \
+            -f owner="$owner" -f repo="$repo_name")"
+          test "$(jq -r '.data.repository.pullRequest.reviewThreads.pageInfo.hasNextPage' <<<"$app_review_gate")" = "false"
+          test "$(jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false)] | length' <<<"$app_review_gate")" = "0"
+          app_codex_reviews="$(jq --arg sha "$app_head_sha" '[.data.repository.pullRequest.reviews.nodes[] | select(.commit.oid == $sha and (.author.login // "" | startswith("chatgpt-codex-connector")))] | length' <<<"$app_review_gate")"
+          test "$app_codex_reviews" -ge 1
+
+          app_main_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=100")"
+          app_main_ci="$(jq -c --arg sha "$app_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$app_main_runs")"
+          test -n "$app_main_ci"
+          test "$(jq -r .status <<<"$app_main_ci")" = "completed"
+          test "$(jq -r '.conclusion // ""' <<<"$app_main_ci")" = "success"
+
           release_prs="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&head=$owner:$RELEASE_BRANCH&base=main&per_page=100")"
           release_pr="$(jq -c --arg target "$TARGET_SHA" '[.[] | select(.merged_at != null and .merge_commit_sha == $target)] | sort_by(.merged_at) | last // empty' <<<"$release_prs")"
           test -n "$release_pr"
