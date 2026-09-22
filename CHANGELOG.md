@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.26.0] - 2026-09-23
+
+### Added
+
+- Issue #120: 기존 파란색 업무 UI palette를 유지하면서 surface/text/border/action/focus/status 의미를 명시하는 semantic UI token 계층을 추가한다.
+- error/warning/info/success 상태와 focus outline을 공통 token으로 정의하고 실제 브라우저 computed style에서 텍스트 대비와 focus 가시성을 측정하는 회귀 검증을 추가한다.
+
+### Changed
+
+- Task Editor, Resource Catalog Admin, Project Row Actions, Workspace Feedback의 selected/focus/disabled/error 상태를 공통 semantic token 또는 문서화된 density 예외로 정합화한다.
+- API/DB/revision/auth/Gantt 상태 보존 계약과 시스템 한국어 폰트는 변경하지 않는 하위 호환 UI enhancement이므로 Semantic Versioning 정책에 따라 0.25.0에서 0.26.0으로 증가한다.
+
+
 ## [0.25.0] - 2026-09-23
 
 ### Added
