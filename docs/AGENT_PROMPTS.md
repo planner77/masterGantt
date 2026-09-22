@@ -234,7 +234,7 @@ Manager가 승인한 Issue Work Packet을 기준으로 branch/PR/CI/merge/main a
 | Implementation/tests | Work Packet 지정 구현 Agent(domain 또는 infrastructure-only 이슈의 infra) | Manager 파일 소유권 통제 |
 | Documentation sync | Manager 지정 문서 작성자; 기본은 지정 구현 Agent | 영향 문서 갱신 또는 N/A 근거, 정합성 확인 |
 | QA readiness/final QA | qa_docs | DOCUMENTATION_SYNC 증거 필수, ui_ux는 UI 설계 비교 |
-| PR/CI | infra | domain Agent는 실패 수정 |
+| PR/CI | infra | 실패 원인에 해당하는 Work Packet 지정 구현 Agent가 수정 |
 | Merge | Manager 승인 + infra 실행 | qa_docs PASS 필요 |
 | Main CI/GHCR ci image | infra | qa_docs 증거 검토 |
 | Formal release | Manager 승인 + infra | 명시적 release authorization 필수 |
