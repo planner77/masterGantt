@@ -214,3 +214,17 @@ Action 또는 base image update PR은 full SHA/digest, release note, permissions
 
 이 helper는 Issue #76 완료 증거를 보존한 뒤 별도 검토된 운영 변경에서 퇴역한다. 정식 릴리스 승인 경계는 [ISSUE_LIFECYCLE](ISSUE_LIFECYCLE.md)을 따른다.
 
+
+
+## Issue #96 정식 릴리스 완료 자동화
+
+`.github/workflows/issue-96-release-helper.yml`은 Issue #96에서 사용자가 명시적으로 승인한 v0.21.1 GHCR 정식 게시와 Lifecycle 종료에만 사용하는 일회성 운영 workflow다.
+
+- Trigger는 helper 파일이 포함된 `main` push로 한정하며 PR에서는 registry write를 수행하지 않는다.
+- 대상 merge SHA의 `ci.yml` push run이 **completed/success**가 될 때까지 polling하고, 명시적 success flag가 없으면 tag 생성이나 release 단계로 진행하지 않는다. 따라서 main 임시 `ci-<SHA>` 게시·exact digest smoke·package cleanup을 포함한 main gate가 선행된다.
+- `v0.21.1`은 package version과 대상 SHA가 일치하는 annotated tag여야 한다. 새 tag일 때만 `release-image.yml`을 해당 tag ref로 dispatch하고, 같은 tag/head SHA 및 dispatch 이후 생성된 run의 completed/success만 인정한다.
+- 재실행 시 tag가 이미 있으면 같은 tag/head SHA의 기존 성공 release run을 확인하고 게시를 반복하지 않은 채 cleanup/Issue 종료를 재개한다. tag만 있고 성공 release 증거가 없으면 FAIL한다.
+- 작업 branch 삭제 전 열린 PR 참조 부재, 현재 tip SHA, tip이 merge target SHA의 ancestor인지, 삭제 직전 ref SHA 불변을 재검증한 뒤 explicit SHA lease로 삭제한다.
+- 완료 댓글에는 version, main CI URL, 정식 release run URL, tag와 branch cleanup 결과를 남긴 뒤에만 Issue #96을 completed로 닫는다. 중간 실패 시 tag/image overwrite나 gate 우회 없이 Issue를 열린 상태로 유지한다.
+
+이 workflow는 Issue #96 완료 증거 보존 후 별도 검토된 운영 변경에서 퇴역하며, 일반 릴리스 승인으로 확대하지 않는다.
