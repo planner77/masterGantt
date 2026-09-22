@@ -27,7 +27,7 @@ import {
 
 describe("project input contract", () => {
   it("trims project name and owner while preserving description and password", () => {
-    const password = "  열두글자 암호 문구  ";
+    const password = " 암호 문구 ";
     const result = parseCreateProjectInput({
       name: "  설비 확장  ",
       ownerName: "  생산기술팀 이대리  ",
@@ -61,8 +61,8 @@ describe("project input contract", () => {
       { name: "Valid", ownerName: " ", description: "", editPassword: "123456789012" },
       { name: "Valid", ownerName: "o".repeat(101), description: "", editPassword: "123456789012" },
       { name: "Valid", ownerName: "Owner", description: "d".repeat(4_001), editPassword: "123456789012" },
-      { name: "Valid", ownerName: "Owner", description: "", editPassword: "short" },
-      { name: "Valid", ownerName: "Owner", description: "", editPassword: "😀".repeat(257) },
+      { name: "Valid", ownerName: "Owner", description: "", editPassword: "" },
+      { name: "Valid", ownerName: "Owner", description: "", editPassword: "😀".repeat(13) },
       { name: "Valid", description: "", editPassword: "123456789012" },
     ]) {
       expect(parseCreateProjectInput(invalid).success).toBe(false);
