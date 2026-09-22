@@ -139,7 +139,7 @@ export class TaskSubtreeDeleteService {
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
       const calendar = resolveProjectWorkingCalendar(this.database, project.id);
-      recalculatePersistedHierarchy(tasks, calendar);
+      recalculatePersistedHierarchy(tasks, calendar, links);
       const current = tasks.find((task) => task.publicId === taskPublicId);
       if (!current) throw new TaskNotFoundError();
 
