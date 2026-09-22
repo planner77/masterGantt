@@ -20,20 +20,11 @@
 ## Issue #80 Task Editor 관계 표시 회귀
 
 - Unit: predecessor/successor externalId 방향, 동일 이름, dangling reference, 관계 없음, multiple relation과 type/lag 보존을 검증한다.
-- Chromium E2E: A → B fixture를 reload 가능한 canonical snapshot으로 구성하고 Grid 더블클릭, Chart 더블클릭, Context Menu → Edit 각각에서 A의 후행 B/B의 선행 A 및 이름/externalId/type/lag를 확인한다.
+- Chromium E2E: A → B fixture를 canonical snapshot으로 구성하고 Grid 더블클릭, Chart 더블클릭, Context Menu → Edit 각각에서 A의 후행 B/B의 선행 A 및 이름/externalId/type/lag를 확인한다.
 - 관계 표시는 상위 canonical snapshot을 사용해 별도 관계용 `GET /api/projects/{publicId}`에 의존하지 않으며, Editor open만으로 mutation이 발생하지 않는지 검증한다.
-- Readonly Editor에서도 관계 탭 조회가 가능하며 Save는 제공되지 않는지 검증한다.
-- 기존 401/412/draft/reload/Gantt instance 및 no document navigation 회귀를 유지한다.
+- Readonly 및 Link 포함 일정에서도 Grid/Chart 더블클릭과 Context Menu로 조회용 Editor가 열리고 관계 탭 조회가 가능하며 Save는 제공되지 않는지 검증한다.
+- 기존 401/412/draft/reload/Gantt instance, Context Menu #77 focus 정책 및 no document navigation 회귀를 유지한다.
 - PR의 `quality`, 전체 Chromium E2E, Docker smoke와 병합 후 main GHCR exact digest smoke를 공식 PASS 근거로 사용한다.
-
-## Issue #77 Context Menu 초기 submenu 상태 회귀
-
-- Grid Task 우클릭 직후 root menu만 표시되고 `Add` 및 다른 submenu가 자동 표시되지 않는지 검증한다.
-- Chart Task 우클릭에서도 동일한 초기 상태를 검증한다.
-- 최초 focus는 root `role=menu` container에 있고, ArrowDown/ArrowUp/Home/End로 명시적 탐색한 뒤에만 menuitem focus가 이동하는지 검증한다.
-- `Add` hover와 keyboard focus/ArrowRight에서만 submenu가 표시되고, Escape 후 reopen 시 이전 submenu 상태가 남지 않는지 검증한다.
-- Issue #72의 Add / Convert to / Edit / Cut / Copy / Paste / Move / Indent / Outdent / Delete 회귀 테스트를 함께 유지한다.
-- 공식 완료 판정은 동일 PR head SHA의 GitHub Actions `quality`, `e2e`, `docker` PASS와 merge 후 main GHCR exact-digest smoke 결과를 사용한다.
 
 ## 판정과 증거
 
@@ -301,3 +292,33 @@ PR #66 최종 검증 기준은 CI Run #350이며 quality, Chromium E2E 50/50, Do
 - **원자성**: Manual dependency conflict에서 Calendar rule/date, Task/Summary, revision이 모두 원상태인지 검증한다.
 - **HTTP/보안**: 기존 edit session, exact Origin, 강한 If-Match, stale 412 계약을 유지하고 cycle/지원 외 graph는 409 structured error를 반환한다.
 - **PR gate**: version/typecheck/lint/test-discovery/Vitest/build, 전체 Chromium E2E, Docker migration/readiness/restart persistence를 기존 gate 완화 없이 실행한다.
+
+## Issue #87 Agent Lifecycle와 한정 브랜치 정리 회귀
+
+운영 기준은 [CI_CD.md](CI_CD.md) 9절, 실제 원격 판정은 [REMOTE_VALIDATION.md](REMOTE_VALIDATION.md), 작업 범위는 [ISSUE_87_COMPLETION.md](ISSUE_87_COMPLETION.md)를 따른다. 여기의 계획은 실제 Agent 실행이나 원격 삭제 PASS를 뜻하지 않는다.
+
+| ID | 검증과 기대 결과 | 실행/근거 |
+| --- | --- | --- |
+| AG87-01 | ui_ux/frontend/qa_docs의 설계·구현·읽기 전용 책임, 기존 모델/동시 한도 보존, 위임/반환·파일 소유권·실행 불가 시 정직한 상태 기록 | TOML 구문/필수값, AGENTS·구성·Lifecycle·UI 가이드 대조; 실제 runtime은 별도 |
+| AG87-02 | release_required와 release_authorized 분리, 명시적 승인 없는 tag/정식 게시 금지, 필요한 미승인 게시를 BLOCKED로 기록, 문서 변경의 release N/A와 main 임시 GHCR 분리 | Lifecycle 정책 시나리오와 독립 리뷰 |
+| CL87-01 | 실제 workflow inline Python을 추출하여 정상 삭제/이미 없음/무관 run 2개, API·CI·PR·SHA·branch 보호 조건 20개를 검증 (모형 24개) | `python3 scripts/verify-issue-87-cleanup.py` |
+| CL87-02 | 잘못된 event/branch/source repository/workflow/attempt/SHA, 실패·진행 중 CI, 누락·skipped GHCR, job 페이지 초과에서 삭제하지 않음 | 모형 거부 시나리오; 실제 API 통신 실패·권한 부족은 원격 BLOCKED/FAIL로 기록 |
+| CL87-03 | merge parent 2개/두 번째=PR head를 요구, squash·잘못된 parent·ancestry 불일치·새 tip·보호 branch·다른 열린 PR 참조에서 삭제하지 않음 | 모형 거부 및 PR #88 `merge_method=merge`, expected_head_sha 확인 |
+| CL87-04 | 정상 삭제, push 전 stale tip, 서버 광고 이후 pre-receive 경합에서 명시적 SHA lease가 새 commit/다른 ref를 보존 (실제 로컬 Git 3개) | 격리 bare Git 테스트. 외부 통신 없음; 단일 삭제 refspec, 무조건 force/REST fallback 없음 |
+| CL87-05 | 인증값이 Git 인자/설정 파일/로그에 남지 않고 trace/global/system 설정을 배제; PR validation은 contents:read와 credential 미보존, write cleanup은 checkout/fetch/artifact/cache/PR code 실행 없음 | Git 호출 검증, workflow 정적 검토, 실제 Actions 권한/step 로그 |
+| CL87-06 | PR 검증과 실제 원격 삭제를 분리. 모형 24개+Git 3개=27시나리오를 5개 unittest method로 실행 | workflow/script 변경 PR의 `Issue 87 브랜치 정리 안전 조건 검증` success; PR cleanup skipped 확인 |
+| CL87-07 | 실제 PR #88 merge SHA의 main quality/e2e/docker/main GHCR 모두 success 뒤에만 고정 작업 branch를 삭제하고 ref 404 확인 | main/cleanup run·attempt·job·merge/head SHA, GHCR digest/smoke/SBOM·provenance/package 정리, cleanup summary와 API 404 |
+
+기존 PR quality/e2e/docker와 최종 head의 독립 검토는 유지한다. 이 정리 회귀를 통과해도 main/GHCR/실제 삭제가 아직 실행되지 않았으면 NOT TESTED다. SHA lease 거부, 새 tip, 보호/다른 PR 참조, 필수 CI/GHCR 실패·누락, 권한/네트워크 오류를 무조건 삭제나 retry로 우회하지 않는다. 원격 삭제 postcondition이 미확인이면 이슈를 완료 처리하지 않는다. 정책·모형·Git 검증과 실제 운영 증거를 구분해 PR/Issue에 기록한다.
+
+정리 workflow는 PR #88/고정 branch에 한정하며 다른 main run은 no-op, 이미 없는 branch는 재삭제하지 않는다. 대상 이름을 재사용하지 않고 퇴역은 증거 보존 후 별도 검토된 운영 변경으로 진행한다. 정식 릴리스나 운영 배포를 생성하지 않는다.
+
+
+## Issue #77 Context Menu 초기 submenu 상태 회귀
+
+- Grid Task 우클릭 직후 root menu만 표시되고 `Add` 및 다른 submenu가 자동 표시되지 않는지 검증한다.
+- Chart Task 우클릭에서도 동일한 초기 상태를 검증한다.
+- 최초 focus는 root `role=menu` container에 있고, ArrowDown/ArrowUp/Home/End로 명시적 탐색한 뒤에만 menuitem focus가 이동하는지 검증한다.
+- `Add` hover와 keyboard focus/ArrowRight에서만 submenu가 표시되고, Escape 후 reopen 시 이전 submenu 상태가 남지 않는지 검증한다.
+- Issue #72의 Add / Convert to / Edit / Cut / Copy / Paste / Move / Indent / Outdent / Delete 회귀 테스트를 함께 유지한다.
+- 공식 완료 판정은 동일 PR head SHA의 GitHub Actions `quality`, `e2e`, `docker` PASS와 merge 후 main GHCR exact-digest smoke 결과를 사용한다.
