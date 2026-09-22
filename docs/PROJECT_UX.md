@@ -125,3 +125,12 @@ Readonly 상태의 password form은 작업공간 위에 상시 노출하지 않�
 Resource workload는 더 이상 page 하단 portal로 누적하지 않고 Resource tab의 full-width content로 표시한다. Group → Resource → Task hierarchy, M/D·M/M·Refresh toolbar, 미설정/과투입 상태와 기존 workload API/calculation 계약은 유지한다.
 
 탭 panel은 동일 Project Workspace 안에서 mount 상태를 유지해 일정 → 리소스 → 일정 전환 시 SVAR Gantt instance, tree/column/scale/selection/scroll 상태가 UI 전환만으로 불필요하게 초기화되지 않도록 한다. 세부 공통 기준은 [UI/UX Guidelines](UI_UX_GUIDELINES.md)를 따른다.
+
+
+## Issue #83 Project Task / Resource 검색 UX
+
+일정 탭 Toolbar는 즉시 통합 검색, 고급 필터 진입, 전체 초기화, match count를 제공한다. 고급 panel은 text/date/number/enum/assignment 타입에 맞는 native control을 사용하고, Resource/Group 선택은 종류 + 이름/code 검색 + 다중 checkbox + ANY/ALL을 사용한다. 필터된 child를 표시하는 ancestor Summary는 context row이며 결과 수에 포함하지 않는다.
+
+Gantt는 canonical tasks/links를 계속 보유하고 SVAR 2.7.3 공개 `filter-tasks` action으로 가시성만 바꾼다. DOM 행 숨김이나 Project mutation을 사용하지 않는다. 필터 해제 시 같은 Gantt instance에서 canonical hierarchy가 복원된다.
+
+리소스 탭은 기존 Group → Resource → Task 구조를 유지한다. 통합 검색은 assigned target의 name/code/description을 사용하고 kind/active/연결 Task effective 기간을 조합한다. workload summary는 전체 Project 집계임을 명시하고 조건에 맞는 표시 행/Task detail만 제한한다.
