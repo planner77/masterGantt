@@ -526,13 +526,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const { project, tasks, links, assignments } = state.snapshot.data;
   const filteredTasks = filterTasksWithAncestors(tasks, taskFilter, assignments);
   const activeFilters = activeTaskFilterCount(taskFilter);
-  const visibleTaskIds = new Set(filteredTasks.tasks.map((task) => task.taskId));
-  const tasksByExternalId = new Map(tasks.map((task) => [task.externalId, task]));
-  const visibleLinks = links.filter((link) => {
-    const predecessor = tasksByExternalId.get(link.predecessorExternalId);
-    const successor = tasksByExternalId.get(link.successorExternalId);
-    return Boolean(predecessor && successor && visibleTaskIds.has(predecessor.taskId) && visibleTaskIds.has(successor.taskId));
-  });
+  const visibleTaskIds = filteredTasks.tasks.map((task) => task.taskId);
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
   return <section className="project-readonly" aria-labelledby="project-heading">
@@ -657,13 +651,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           </fieldset> : null}
         </div> : null}
         <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
-          onCanonicalSyncFailure={recoverCanonicalGantt} links={visibleLinks} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
+          onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
           onTaskEditorOpen={openTaskEditor} onTaskDeleteRequest={requestTaskDelete} onLinkCreate={(source, target) => void saveLink("POST", source, target)} onLinkDelete={(linkId) => void saveLink("DELETE", undefined, undefined, linkId)} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
             const visibleColumnCount = Object.values(current).filter(Boolean).length;
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };
-          })} tasks={filteredTasks.tasks} />
+          })} tasks={tasks} visibleTaskIds={activeFilters > 0 ? visibleTaskIds : null} />
         {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
           editable={editing} hasLinks={links.length > 0} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
