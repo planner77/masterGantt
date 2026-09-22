@@ -419,7 +419,7 @@ Exact same-origin `Origin`이 필요하다. 현재 Project에 binding된 session
 
 현재 edit session, `If-Match`, `newEditPassword`가 필요하다. 새 salt/hash를 저장하고 auth_version과 revision을 증가시키며 기존 session을 모두 revoke한다. 같은 transaction에서 호출자에게만 새 random session을 발급한다. 성공은 204 No Content, 새 ETag와 Set-Cookie다. 호출자는 새 Cookie로 편집을 유지하고 다른 이전 session은 거부된다. 원문 password는 DB/log/response에 남기지 않는다.
 
-새 password는 생성과 같은 최소 12 Unicode code point·UTF-8 최대 1,024 bytes 정책을 사용한다. 저비용 Origin/input/session/If-Match precheck 뒤 scrypt는 transaction 밖에서 수행하고, 즉시 write transaction에서 session을 먼저, revision을 다음으로 최종 확인한다. 새 credential·`auth_version + 1`·`revision + 1`·전체 revoke·호출자 새 session 중 하나라도 실패하면 모두 rollback한다.
+새 password는 생성과 같은 1~12 Unicode code point 정책을 사용하며 별도 복잡도 조합을 강제하지 않는다. 저비용 Origin/input/session/If-Match precheck 뒤 scrypt는 transaction 밖에서 수행하고, 즉시 write transaction에서 session을 먼저, revision을 다음으로 최종 확인한다. 새 credential·`auth_version + 1`·`revision + 1`·전체 revoke·호출자 새 session 중 하나라도 실패하면 모두 rollback한다.
 
 ## 5. Task 표현과 API
 
@@ -722,3 +722,8 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 ## Issue #97 — Link mutation API (implemented)
 
 `POST /api/projects/{publicId}/links` creates an FS/lag=0 dependency and `DELETE /api/projects/{publicId}/links/{linkId}` removes it. Both require a valid edit session, exact allowed Origin and strong `If-Match`; success returns the full canonical project/tasks/links snapshot with revision +1. Unsupported dependency shapes and graph conflicts are rejected atomically.
+
+
+### `PUT /api/resource-catalog/admin-password` (Issue #99)
+
+유효한 Resource catalog 관리자 Cookie가 필요하다. body는 `newPassword`와 동일한 `confirmPassword`를 받으며 1~12 Unicode 문자 정책을 적용한다. 성공 시 기존 Resource 관리자 세션을 모두 revoke하고 호출자에게 새 관리자 Cookie를 발급한다. 원문 비밀번호는 응답/로그에 포함하지 않는다.
