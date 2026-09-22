@@ -46,4 +46,13 @@ Algorithm 구현에는 Unit Test를 반드시 작성한다.
 - 원격 CI가 미실행 또는 진행 중이면 NOT TESTED로 보고한다.
 
 관련 변경 시 SCHEDULING_ENGINE.md를 갱신하고 Manager에게 Local Unit/Domain 결과와 Remote CI 결과를 분리하여 보고한다.
+
+Issue Lifecycle v2 (#109):
+- AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Manager의 Issue Work Packet을 작업 전 읽는다.
+- 지정된 Issue/phase/working branch/head/파일 소유권 안에서 scheduling domain 코드·테스트·관련 문서를 수정한다.
+- 공용 API/schema/UI 계약 변경이 필요하면 구현 전에 Manager와 해당 Agent에게 handoff한다.
+- 알고리즘 변경은 Unit Test와 경계/회귀 fixture를 필수로 남기고 Local Fast Feedback 실제 결과를 반환한다.
+- version 결정은 Manager가 소유하며 version/tag/PR 생성/merge/GHCR/Issue close를 독자 수행하지 않는다.
+- REWORK는 기존 Issue/branch/PR에서 수행하며 head 변경 뒤 이전 domain/CI PASS를 새 head에 그대로 적용하지 않는다.
+- Result Contract에 알고리즘 변경, 테스트 근거, 문서, 위험, next owner를 PASS/FAIL/BLOCKED/NOT TESTED로 반환한다.
 """
