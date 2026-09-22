@@ -134,3 +134,14 @@ Resource workload는 더 이상 page 하단 portal로 누적하지 않고 Resour
 Gantt는 canonical tasks/links를 계속 보유하고 SVAR 2.7.3 공개 `filter-tasks` action으로 가시성만 바꾼다. DOM 행 숨김이나 Project mutation을 사용하지 않는다. 필터 해제 시 같은 Gantt instance에서 canonical hierarchy가 복원된다.
 
 리소스 탭은 기존 Group → Resource → Task 구조를 유지한다. 통합 검색은 assigned target의 name/code/description을 사용하고 kind/active/연결 Task effective 기간을 조합한다. workload summary는 전체 Project 집계임을 명시하고 조건에 맞는 표시 행/Task detail만 제한한다.
+
+
+## Issue #84 Project List 검색/필터 UX
+
+Project List 상단에는 `프로젝트 검색`, 적용 조건 수를 포함한 `필터 N`, `초기화`, 결과 수를 배치한다. Quick Search는 프로젝트명·소유자·설명을 동시에 검색하며 고급 조건과 AND로 결합한다. 고급 panel은 Project명/소유자/설명의 typed text operator, 소유자 지정 여부, 생성일/최근 변경일의 날짜 조건을 제공하고 각 활성 조건을 개별 삭제할 수 있다.
+
+날짜 입력은 native date control을 사용하며 목록 날짜 표시와 동일한 browser timezone calendar date로 비교한다. 잘못된 range는 자동으로 뒤집거나 추정하지 않고 panel에 오류를 표시하며 해당 invalid condition을 결과 predicate에 적용하지 않는다.
+
+검색 결과 수는 `일치 / 전체` 텍스트로 표시한다. 실제 Project가 0개면 기존 `EmptyProjects`를 사용하고, Project는 존재하지만 결과가 0개면 별도의 “조건에 맞는 프로젝트가 없습니다.” 상태와 초기화 action을 제공한다. 검색 상태에서도 Project Link와 Row Action 메뉴를 그대로 사용할 수 있고 삭제 성공한 Project는 즉시 결과에서 제거된다.
+
+필터 panel은 keyboard 접근 가능한 native controls를 사용한다. Escape 또는 닫기 버튼으로 panel을 닫으면 Filter trigger로 focus를 복원한다. 390/768/1024/1440/wide desktop에서 document-level unintended horizontal overflow를 만들지 않는다.
