@@ -444,7 +444,7 @@ function ProjectWorkspace({ publicId, projectUrl = null }: ProjectViewProps) {
           return { ...current, [columnId]: !current[columnId] };
         })} tasks={tasks} />
       {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
-        latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} revision={project.revision}
+        latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
         editable={editing} hasLinks={links.length > 0} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
     </section>
     {pendingTaskDelete ? <WorkspaceDialog title="작업 삭제" restoreFocusRef={deleteTriggerReference} busy={isSavingTask}

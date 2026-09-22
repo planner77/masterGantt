@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import type { ProjectSnapshotResponse, ProjectTaskDto } from "../../contracts/projects";
+import type { ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
 import { TaskAssignmentEditor } from "./task-assignment-editor";
 import { TASK_EDITOR_TABS, taskEditorTabForKey, type TaskEditorTab } from "./task-editor-view-model";
@@ -20,6 +20,8 @@ import styles from "./project-task-editor.module.css";
 interface Props {
   readonly session: TaskEditorSession;
   readonly latestTask: ProjectTaskDto | undefined;
+  readonly tasks: readonly ProjectTaskDto[];
+  readonly links: readonly ProjectLinkDto[];
   readonly revision: number;
   readonly editable: boolean;
   readonly hasLinks: boolean;
@@ -27,45 +29,6 @@ interface Props {
   readonly onSave: (command: ProjectTaskUpdateCommand, revision: number) => Promise<TaskEditorSaveResult>;
   readonly onReload: (taskId: string) => Promise<TaskEditorSession | null>;
   readonly onClose: () => void;
-}
-
-type RelationState =
-  | { readonly status: "loading" }
-  | { readonly status: "ready"; readonly revision: number; readonly relations: TaskRelationsView }
-  | { readonly status: "failed"; readonly message: string };
-
-type RelationLoadResult =
-  | { readonly status: "ready"; readonly revision: number; readonly relations: TaskRelationsView }
-  | { readonly status: "failed"; readonly message: string; readonly conflict: boolean };
-
-function isSnapshot(value: unknown): value is ProjectSnapshotResponse {
-  if (typeof value !== "object" || value === null || !("data" in value)) return false;
-  const data = value.data;
-  return typeof data === "object" && data !== null && "project" in data && typeof data.project === "object" && data.project !== null &&
-    "revision" in data.project && typeof data.project.revision === "number" && "tasks" in data && Array.isArray(data.tasks) && "links" in data && Array.isArray(data.links);
-}
-
-function projectPublicIdFromPathname(pathname: string): string | null {
-  const match = /^\/projects\/([^/]+)\/?$/.exec(pathname);
-  if (!match) return null;
-  try { return decodeURIComponent(match[1]); }
-  catch { return null; }
-}
-
-async function fetchTaskRelations(expected: TaskEditorSession): Promise<RelationLoadResult> {
-  const publicId = projectPublicIdFromPathname(window.location.pathname);
-  if (!publicId) return { status: "failed", conflict: false, message: "프로젝트 경로를 확인할 수 없어 작업 관계를 불러오지 못했습니다." };
-  try {
-    const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin" });
-    const body: unknown = await response.json().catch(() => null);
-    if (!response.ok || !isSnapshot(body)) return { status: "failed", conflict: false, message: "작업 관계를 불러올 수 없습니다. 최신 정보 다시 불러오기를 시도해 주세요." };
-    if (body.data.project.revision !== expected.revision) return { status: "failed", conflict: true, message: "관계 조회 중 프로젝트 Revision이 변경되었습니다. 최신 정보를 다시 불러와 주세요." };
-    const task = body.data.tasks.find((entry) => entry.taskId === expected.task.taskId);
-    if (!task || task.externalId !== expected.task.externalId) return { status: "failed", conflict: true, message: "기준 작업이 변경되었거나 삭제되었습니다. 최신 정보를 다시 불러와 주세요." };
-    return { status: "ready", revision: expected.revision, relations: buildTaskRelations(task, body.data.tasks, body.data.links) };
-  } catch {
-    return { status: "failed", conflict: false, message: "네트워크 오류로 작업 관계를 불러오지 못했습니다." };
-  }
 }
 
 function RelationList({ title, relations }: Readonly<{ title: string; relations: readonly TaskRelationView[] }>) {
@@ -83,14 +46,13 @@ function RelationList({ title, relations }: Readonly<{ title: string; relations:
   </section>;
 }
 
-export function ProjectTaskEditor({ session, latestTask, revision, editable, hasLinks, busy, onSave, onReload, onClose }: Props) {
+export function ProjectTaskEditor({ session, latestTask, tasks, links, revision, editable, hasLinks, busy, onSave, onReload, onClose }: Props) {
   const [base, setBase] = useState(session);
   const [draft, setDraft] = useState(() => createTaskEditorDraft(session.task));
   const [error, setError] = useState<string | null>(null);
   const [conflicted, setConflicted] = useState(false);
   const [operation, setOperation] = useState<"save" | "reload" | null>(null);
   const [confirmation, setConfirmation] = useState<"close" | "reload" | null>(null);
-  const [relationState, setRelationState] = useState<RelationState>({ status: "loading" });
   const [activeTab, setActiveTab] = useState<TaskEditorTab>("task");
   const [assignmentCount, setAssignmentCount] = useState(0);
   const dialogReference = useRef<HTMLDialogElement>(null);
@@ -108,13 +70,6 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
     mountedReference.current = true;
     const dialog = dialogReference.current;
     if (dialog && !dialog.open) dialog.showModal();
-    void fetchTaskRelations(session).then((result) => {
-      if (!mountedReference.current) return;
-      if (result.status === "failed") {
-        if (result.conflict) setConflicted(true);
-        setRelationState({ status: "failed", message: result.message });
-      } else setRelationState(result);
-    });
     return () => { mountedReference.current = false; dialog?.close(); };
   }, [session]);
 
@@ -136,15 +91,12 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
   }
   async function reload() {
     if (locked || actionReference.current) return;
-    actionReference.current = true; setOperation("reload"); setConfirmation(null); setRelationState({ status: "loading" });
+    actionReference.current = true; setOperation("reload"); setConfirmation(null);
     try {
       const next = await onReload(base.task.taskId);
       if (!mountedReference.current) return;
       if (!next) { setError("최신 정보를 불러올 수 없습니다. 작업이 존재하는지와 네트워크 연결을 확인해 주세요."); return; }
-      const relationResult = await fetchTaskRelations(next);
-      if (!mountedReference.current) return;
-      setBase(next); setDraft(createTaskEditorDraft(next.task)); setConflicted(relationResult.status === "failed" && relationResult.conflict); setError(null);
-      setRelationState(relationResult.status === "failed" ? { status: "failed", message: relationResult.message } : relationResult);
+      setBase(next); setDraft(createTaskEditorDraft(next.task)); setConflicted(false); setError(null);
     } catch { if (mountedReference.current) setError("최신 정보를 불러올 수 없습니다. 입력 내용은 유지됩니다."); }
     finally { actionReference.current = false; if (mountedReference.current) setOperation(null); }
   }
@@ -172,9 +124,9 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
     finally { actionReference.current = false; if (mountedReference.current) setOperation(null); }
   }
 
-  const relationCount = relationState.status === "ready"
-    ? relationState.relations.predecessors.length + relationState.relations.successors.length
-    : 0;
+  const relationSnapshotMatches = revision === base.revision && latestTask?.externalId === base.task.externalId;
+  const relations = relationSnapshotMatches ? buildTaskRelations(base.task, tasks, links) : null;
+  const relationCount = relations ? relations.predecessors.length + relations.successors.length : 0;
 
   return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onCancel={(event) => { event.preventDefault(); close(); }}>
     <header className={styles.header}>
@@ -297,9 +249,8 @@ export function ProjectTaskEditor({ session, latestTask, revision, editable, has
               </div>
               <span className={styles.sectionCount}>{relationCount}건</span>
             </div>
-            {relationState.status === "loading" ? <p className={styles.caption} role="status">관계 정보를 불러오는 중…</p> : null}
-            {relationState.status === "failed" ? <p className={styles.relationError} role="alert">{relationState.message}</p> : null}
-            {relationState.status === "ready" ? <div className={styles.relationColumns}><RelationList title="선행 작업" relations={relationState.relations.predecessors} /><RelationList title="후행 작업" relations={relationState.relations.successors} /></div> : null}
+            {!relationSnapshotMatches ? <p className={styles.relationError} role="alert">관계 정보의 기준 Revision이 변경되었습니다. 최신 정보를 다시 불러와 주세요.</p> : null}
+            {relations ? <div className={styles.relationColumns}><RelationList title="선행 작업" relations={relations.predecessors} /><RelationList title="후행 작업" relations={relations.successors} /></div> : null}
           </section>
         </section>
       </div>

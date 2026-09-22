@@ -17,6 +17,15 @@
 - Browser: Grid/Chart 우클릭과 Shift+F10, submenu keyboard focus, Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D, viewport edge, 실패 후 canonical recovery와 reload persistence를 검증한다.
 - GitHub Actions의 동일 head quality/e2e/docker가 최종 자동 판정 근거다. SVAR Willow와의 실제 시각/키보드 UX 비교는 별도 수동 확인 항목이다.
 
+## Issue #80 Task Editor 관계 표시 회귀
+
+- Unit: predecessor/successor externalId 방향, 동일 이름, dangling reference, 관계 없음, multiple relation과 type/lag 보존을 검증한다.
+- Chromium E2E: A → B fixture를 canonical snapshot으로 구성하고 Grid 더블클릭, Chart 더블클릭, Context Menu → Edit 각각에서 A의 후행 B/B의 선행 A 및 이름/externalId/type/lag를 확인한다.
+- 관계 표시는 상위 canonical snapshot을 사용해 별도 관계용 `GET /api/projects/{publicId}`에 의존하지 않으며, Editor open만으로 mutation이 발생하지 않는지 검증한다.
+- Readonly 및 Link 포함 일정에서도 Grid/Chart 더블클릭과 Context Menu로 조회용 Editor가 열리고 관계 탭 조회가 가능하며 Save는 제공되지 않는지 검증한다.
+- 기존 401/412/draft/reload/Gantt instance, Context Menu #77 focus 정책 및 no document navigation 회귀를 유지한다.
+- PR의 `quality`, 전체 Chromium E2E, Docker smoke와 병합 후 main GHCR exact digest smoke를 공식 PASS 근거로 사용한다.
+
 ## 판정과 증거
 
 ### Issue #31 작업 subtree 삭제
