@@ -130,3 +130,13 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 
 
 - **REQ-LINK-97**: 편집 권한 사용자는 Gantt에서 FS/lag=0 관계를 생성·삭제할 수 있고, 변경은 Project revision과 함께 SQLite에 원자적으로 저장되어 reload/restart 후에도 유지되어야 한다. 실패한 mutation은 로컬 ghost relation을 남기지 않는다.
+
+
+## Issue #83 Project 검색/필터 요구사항
+
+- 일정 탭은 Task의 통합 텍스트(name/description/externalId), 필드별 text 연산자, effective start/end 기간, type/schedule mode, progress/duration, assignment 존재 여부, 직접 할당 Resource/Group ANY·ALL 조건을 AND로 조합한다.
+- child 직접 일치 시 필요한 ancestor Summary는 context로 표시하되 match count에서 제외한다.
+- Gantt 표시에는 SVAR 2.7.3의 공개 `filter-tasks` API를 사용하며 canonical Task hierarchy, revision, DB를 변경하지 않는다.
+- 리소스 탭은 현재 Project에서 실제 사용 중인 Resource/Group을 name/code/description, kind, active, 연결 Task effective 기간으로 제한한다.
+- 비활성 assigned target도 검색 가능하며 Group member를 direct Resource assignment로 추론하지 않는다.
+- 같은 page session 동안 일정/리소스 필터 state를 유지하고 새로고침 시 초기화할 수 있다.
