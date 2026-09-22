@@ -89,6 +89,26 @@ describe("ResourceCatalogService", () => {
     }
   });
 
+  it("persists seeded credentials and rotates the resource administrator password", () => {
+    const fixture = createProjectFixture();
+    try {
+      const service = new ResourceCatalogService(fixture.database, { clock: () => new Date("2026-09-15T12:00:00.000Z") });
+      const first = service.unlockAdmin("Admin123456!", "Admin123456!");
+      expect(first).toBeDefined();
+      expect(service.adminCredentialConfigured()).toBe(true);
+
+      const restarted = new ResourceCatalogService(fixture.database, { clock: () => new Date("2026-09-15T12:01:00.000Z") });
+      expect(restarted.unlockAdmin("Admin123456!", "ChangedEnv1!")).toBeDefined();
+      const rotated = restarted.changeAdminPassword(first?.rawToken, "New123456!");
+      expect(rotated.rawToken).toBeTruthy();
+      expect(restarted.authorizeAdmin(first?.rawToken)).toBeUndefined();
+      expect(restarted.unlockAdmin("Admin123456!", "Admin123456!")).toBeUndefined();
+      expect(restarted.unlockAdmin("New123456!", "Admin123456!")).toBeDefined();
+    } finally {
+      fixture.database.close();
+    }
+  });
+
   it("creates resources/groups, replaces members and assigns both kinds atomically", () => {
     const fixture = createProjectFixture();
     try {
