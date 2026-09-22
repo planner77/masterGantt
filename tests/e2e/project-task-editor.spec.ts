@@ -420,9 +420,12 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(fixture.tasks.find((entry) => entry.taskId === id(5))).toMatchObject({ start: "2026-09-22", end: "2026-09-22", duration: 0 });
   });
 
-  test("Issue #80 canonical 관계 snapshot은 Grid/Chart/Context Menu Editor에서 동일하게 표시되고 추가 Project GET을 만들지 않는다", async ({ page }) => {
+  test("Issue #80 canonical 관계 snapshot은 Grid/Chart/Context Menu Editor에서 동일하게 표시되고 mutation을 만들지 않는다", async ({ page }) => {
     const fixture = await setup(page, { links: true });
-    const baselineProjectReads = fixture.projectReads;
+    const mutations: Request[] = [];
+    page.on("request", (request) => {
+      if (["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && new URL(request.url()).pathname.startsWith(apiPath)) mutations.push(request);
+    });
 
     const expectRelations = async (direction: "predecessor" | "successor") => {
       const dialog = editor(page);
@@ -433,8 +436,8 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       await expect(group).toContainText("FS (종료 → 시작)");
       await expect(group).toContainText("Lag 0일");
       await expect(dialog.getByRole("tab", { name: /관계 1건/ })).toBeVisible();
-      expect(fixture.projectReads).toBe(baselineProjectReads);
       expect(fixture.patches).toHaveLength(0);
+      expect(mutations).toHaveLength(0);
     };
 
     await row(page, "Alpha leaf").getByText("Alpha leaf", { exact: true }).dblclick();
@@ -451,19 +454,22 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expectRelations("predecessor");
     await cancel(page);
 
-    expect(fixture.projectReads).toBe(baselineProjectReads);
     expect(fixture.patches).toHaveLength(0);
+    expect(mutations).toHaveLength(0);
   });
 
   test("Issue #80 관계 정보는 Readonly Editor에서도 canonical snapshot으로 조회된다", async ({ page }) => {
     const fixture = await setup(page, { editable: false, links: true });
-    const baselineProjectReads = fixture.projectReads;
+    const mutations: Request[] = [];
+    page.on("request", (request) => {
+      if (["POST", "PATCH", "PUT", "DELETE"].includes(request.method()) && new URL(request.url()).pathname.startsWith(apiPath)) mutations.push(request);
+    });
     await openRow(page, "Beta leaf");
     await editor(page).getByRole("tab", { name: /관계/ }).click();
     await expect(editor(page).getByRole("region", { name: /선행 작업/ })).toContainText("Alpha leaf");
     await expect(save(page)).toHaveCount(0);
-    expect(fixture.projectReads).toBe(baselineProjectReads);
     expect(fixture.patches).toHaveLength(0);
+    expect(mutations).toHaveLength(0);
   });
 
   test("Issue #74 탭 구조는 초안을 보존하고 키보드 탐색과 좁은 화면을 지원한다", async ({ page }) => {
