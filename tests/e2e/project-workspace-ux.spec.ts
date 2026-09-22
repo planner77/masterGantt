@@ -78,6 +78,9 @@ test.describe("Issue #76 Project Workspace UX", () => {
       await page.goto(`/projects/${publicId}`);
       await expect(page.getByRole("heading", { level: 1, name: "Issue 3 stable Gantt fixture" })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+      await page.locator('summary[aria-label="프로젝트 정보 보기"]').click();
+      await expect(page.getByText("Stateful canonical snapshot fixture", { exact: true })).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
     });
   }
 });
