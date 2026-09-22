@@ -1,4 +1,5 @@
 import { expect, test, type Frame, type Request } from "@playwright/test";
+import { submitProjectUnlock } from "./fixtures/isolated-application";
 import { deferred, expectSameGanttRoot, ganttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot, rootAdd, rowNamed, taskPath, waitForAnimationFrame, type PostOutcome } from "../fixtures/stateful-project";
 
 test.describe("Issue #3 stable Gantt instance", () => {
@@ -7,7 +8,7 @@ test.describe("Issue #3 stable Gantt instance", () => {
     await page.clock.setFixedTime(new Date("2026-09-16T12:00:00.000Z"));
     const fixture = await installStatefulProjectFixture(page);
     await page.goto(`/projects/${publicId}`);
-    await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+    await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
     await expect(rootAdd(page)).toBeVisible();
     const documentRequests: string[] = [];
     const navigations: string[] = [];
@@ -108,7 +109,7 @@ test.describe("Issue #3 stable Gantt instance", () => {
     page.off("request", recordDocument); page.off("framenavigated", recordNavigation);
     const persistedTaskIds = [...fixture.createdTaskIds];
     await page.reload();
-    await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+    await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
     await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(10);
     for (const taskId of persistedTaskIds) await expect(page.locator(`.wx-bar[data-task-id=":${taskId}"]`)).toHaveCount(1);
   });
@@ -117,7 +118,7 @@ test.describe("Issue #3 stable Gantt instance", () => {
     await page.clock.setFixedTime(new Date("2026-09-16T12:00:00.000Z"));
     const fixture = await installStatefulProjectFixture(page);
     await page.goto(`/projects/${publicId}`);
-    await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+    await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
     const initialIdentity = await rememberGanttRoot(page);
     const documentRequests: string[] = []; const navigations: string[] = [];
     page.on("request", (request) => { if (request.resourceType() === "document") documentRequests.push(request.url()); });
@@ -148,9 +149,8 @@ test.describe("Issue #3 stable Gantt instance", () => {
     await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(2);
     for (const taskId of fixture.createdTaskIds) await expect(page.locator(`.wx-bar[data-task-id=":${taskId}"]`)).toHaveCount(1);
     await expectSameGanttRoot(page, initialIdentity);
-    await page.getByLabel("편집 비밀번호").fill("issue-3-password");
-    await page.getByRole("button", { name: "편집 잠금 해제" }).click();
-    await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+    await submitProjectUnlock(page, "issue-3-password");
+    await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
     await expect(rootAdd(page)).toBeVisible();
     await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(2);
     await expectSameGanttRoot(page, initialIdentity);
