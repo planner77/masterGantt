@@ -1,8 +1,10 @@
 import type {
+  ProjectLinkDto,
   ProjectTaskDto,
   TaskHierarchyCommandRequest,
   TaskHierarchyPlacement,
 } from "@/contracts/projects";
+import { taskHasDependencyLinks } from "./task-link-scope";
 
 export type TaskClipboard = Readonly<{
   mode: "cut" | "copy";
@@ -33,11 +35,11 @@ export function taskContextCapabilities(
   taskId: string,
   editable: boolean,
   mutationLocked: boolean,
-  hasLinks: boolean,
+  links: readonly ProjectLinkDto[],
   clipboard: TaskClipboard | null,
 ): TaskContextCapabilities {
   const task = tasks.find((candidate) => candidate.taskId === taskId);
-  const available = editable && !mutationLocked && !hasLinks && task !== undefined;
+  const available = editable && !mutationLocked && !taskHasDependencyLinks(tasks, taskId, links) && task !== undefined;
   if (!task) {
     return {
       canAddChild: false,
