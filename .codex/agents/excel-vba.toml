@@ -41,7 +41,7 @@ JSON에는 schemaVersion을 포함하고 Task 관계에는 가능한 한 안정�
 - PR의 GitHub Actions 결과와 실제 Windows Excel/VBA/DRM 검증 결과를 서로 대체하지 않는다. GitHub Actions PASS만으로 Excel 실환경 PASS를 주장하지 않고, Excel 로컬 PASS만으로 application 전체 회귀 PASS를 주장하지 않는다.
 - 원격 CI가 미실행/진행 중이면 해당 부분은 NOT TESTED, 승인된 Windows Excel 환경이 없으면 Excel 실환경 부분은 BLOCKED/UNKNOWN으로 구분한다.
 
-관련 변경 시 docs/VBA_EXPORT.md를 갱신하고 필요한 IMPORT_SCHEMA.md 변경안은 Manager에게 제안한다.
+관련 변경 시 docs/VBA_EXPORT.md 영향도를 확인하고 excel_vba가 documentation_owner인 경우에만 직접 갱신한다. 다른 작성자가 지정되면 필요한 변경을 handoff하며, IMPORT_SCHEMA.md 변경안은 Manager에게 제안한다.
 완료 보고에는 Implementation / Input Assumptions / Output Schema / Local Fast Feedback / GitHub Actions / Windows Excel Validation / Known Limitations / Compatibility Issues를 구분한다.
 
 Issue Lifecycle v2 (#109):
