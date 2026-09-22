@@ -7,6 +7,7 @@ import {
   filterProjectList,
   projectCalendarDate,
   projectMatchesFilter,
+  sanitizeInvalidProjectDateFilters,
   validateProjectFilter,
 } from "../../../src/features/projects/project-list-filter";
 
@@ -81,5 +82,20 @@ describe("Issue #84 project list filters", () => {
     const reversed = { ...EMPTY_PROJECT_FILTER, updatedOperator: "range" as const, updatedFrom: "2026-10-02", updatedTo: "2026-10-01" };
     expect(validateProjectFilter(reversed).updated).toContain("늦을 수 없습니다");
     expect(activeProjectFilterCount({ ...EMPTY_PROJECT_FILTER, query: "x", ownerState: "assigned", createdOperator: "equals", createdFrom: "2026-09-01" })).toBe(3);
+  });
+
+  it("ignores only invalid date clauses while preserving other valid filters", () => {
+    const invalidDateWithValidQuery = {
+      ...EMPTY_PROJECT_FILTER,
+      query: "amr",
+      ownerState: "assigned" as const,
+      createdOperator: "range" as const,
+      createdFrom: "2026-09-30",
+    };
+    const effective = sanitizeInvalidProjectDateFilters(invalidDateWithValidQuery);
+    expect(effective.createdOperator).toBe("any");
+    expect(effective.query).toBe("amr");
+    expect(effective.ownerState).toBe("assigned");
+    expect(filterProjectList(projects, effective, "Asia/Seoul").map((project) => project.publicId)).toEqual(["alpha"]);
   });
 });
