@@ -20,7 +20,7 @@
   background: var(--muted);
   color: var(--foreground);
 }
-.trigger:disabled { cursor: wait; opacity: 0.55; }
+.trigger:disabled { cursor: wait; opacity: var(--state-disabled-opacity); }
 .trigger:focus-visible,
 .menuItem:focus-visible {
   outline: var(--focus-outline);
