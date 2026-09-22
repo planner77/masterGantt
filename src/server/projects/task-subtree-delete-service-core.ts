@@ -138,7 +138,6 @@ export class TaskSubtreeDeleteService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      if (links.length > 0) throw new UnsupportedScheduleStructureError();
       const calendar = resolveProjectWorkingCalendar(this.database, project.id);
       recalculatePersistedHierarchy(tasks, calendar);
       const current = tasks.find((task) => task.publicId === taskPublicId);
@@ -146,6 +145,9 @@ export class TaskSubtreeDeleteService {
 
       const deleteOrder = postOrderSubtree(current, tasks);
       const deleteIds = new Set(deleteOrder.map((task) => task.id));
+      if (links.some((link) => deleteIds.has(link.predecessorTaskId) || deleteIds.has(link.successorTaskId))) {
+        throw new UnsupportedScheduleStructureError();
+      }
       if (
         current.parentId !== null &&
         !tasks.some((task) => task.parentId === current.parentId && !deleteIds.has(task.id))
