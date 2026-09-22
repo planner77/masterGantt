@@ -57,7 +57,7 @@ async function expectTaskGridStart(page: Page, taskName: string, dateOnly: strin
 
 test("persists pointer edits, restores rejected writes, and serializes a same-revision race", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  const suffix = uniqueSuffix(); const password = `W07-password-${suffix}`;
+  const suffix = uniqueSuffix(); const password = "W07Pass123!";
   const projectId = await createProject(page, `W07 Project ${suffix}`, password);
   const apiPath = `/api/projects/${projectId}`;
   const workspace = page.getByRole("region", { name: "프로젝트 일정 Grid와 Gantt 차트" });
