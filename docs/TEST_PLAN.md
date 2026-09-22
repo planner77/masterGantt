@@ -357,3 +357,11 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - Excel `Gantt` 월 헤더 `YYYY-MM`, 일 헤더, 작업 데이터, 스타일, merge 범위, 관계 DrawingML, 다른 sheet 계약은 변경하지 않는다.
 - PR gate는 version consistency, typecheck, lint, 전체 Vitest, Markdown link, production build, Chromium E2E, Docker smoke를 기존 기준 그대로 적용한다.
 - 병합 후 main CI와 임시 GHCR image exact-digest smoke가 PASS한 뒤, 승인된 `v0.23.2` annotated tag에 대해 정식 GHCR release image를 게시하고 digest 재검증한다.
+
+
+## Issue #84 Project List 검색·필터
+
+- Unit: 공통 text trim/case normalization, contains/not-contains/equals, null owner와 assigned/unassigned, browser timezone calendar date 변환, equals/before/after/inclusive range, Quick Search + advanced AND, invalid range validation, deletedIds 조합과 source order 보존을 검증한다.
+- Browser: Project명/owner/description 검색, 고급 조건 수, 결과/전체 count, 결과 0건 전용 empty state와 reset, 날짜 조건, Escape focus restore, 검색 상태의 Row Action과 삭제 성공 후 결과 제거, 입력 중 Project collection API 재조회 없음, 390/768/1024/1440 viewport document overflow를 검증한다.
+- 기존 Project List 회귀인 Link, Copy, clipboard fallback, 삭제 취소/credential failure/success/conflict와 EmptyProjects는 기존 E2E suite를 계속 실행한다.
+- API/DB schema는 변경하지 않으므로 API/DB 문서 회귀는 N/A다. 공식 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker`, 병합 후 main 임시 GHCR exact digest smoke, 승인된 정식 release image exact digest smoke를 사용한다.
