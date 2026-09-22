@@ -68,6 +68,15 @@ describe("Issue #83 project task filters", () => {
     expect(result.tasks.map((task) => task.taskId)).toEqual(["summary", "child"]);
   });
 
+  it("supports field-specific text operators", () => {
+    const byName = filterTasksWithAncestors(tasks, { ...EMPTY_TASK_FILTER, nameQuery: "install", nameOperator: "contains" }, assignments);
+    expect(byName.matchCount).toBe(1);
+    const excludes = filterTasksWithAncestors(tasks, { ...EMPTY_TASK_FILTER, descriptionQuery: "vietnam", descriptionOperator: "not-contains" }, assignments);
+    expect(excludes.matchCount).toBe(2);
+    const external = filterTasksWithAncestors(tasks, { ...EMPTY_TASK_FILTER, externalIdQuery: "M1", externalIdOperator: "equals" }, assignments);
+    expect(external.tasks.map((task) => task.taskId)).toEqual(["milestone"]);
+  });
+
   it("uses inclusive effective-date overlap including milestones", () => {
     const result = filterTasksWithAncestors(tasks, {
       ...EMPTY_TASK_FILTER,
@@ -99,6 +108,20 @@ describe("Issue #83 project task filters", () => {
     expect(taskMatchesFilter(tasks[1], { ...EMPTY_TASK_FILTER, targetIds: ["resource:r1", "group:g1"], targetMode: "all" }, assignedMap)).toBe(true);
     expect(taskMatchesFilter(tasks[1], { ...EMPTY_TASK_FILTER, targetIds: ["resource:r2", "group:g1"], targetMode: "all" }, assignedMap)).toBe(false);
     expect(taskMatchesFilter(tasks[1], { ...EMPTY_TASK_FILTER, targetIds: ["resource:r2", "group:g1"], targetMode: "any" }, assignedMap)).toBe(true);
+  });
+
+  it("handles 5,000 deterministic tasks without changing the source collection", () => {
+    const many = Array.from({ length: 5000 }, (_, index): ProjectTaskDto => ({
+      ...tasks[1],
+      taskId: `task-${index}`,
+      externalId: `WBS-${index}`,
+      name: index % 10 === 0 ? `AMR target ${index}` : `Other ${index}`,
+      parentExternalId: null,
+      siblingOrder: index,
+    }));
+    const result = filterTasksWithAncestors(many, { ...EMPTY_TASK_FILTER, query: "amr target" }, []);
+    expect(result.matchCount).toBe(500);
+    expect(many).toHaveLength(5000);
   });
 
   it("supports type, schedule mode, progress and duration ranges", () => {
