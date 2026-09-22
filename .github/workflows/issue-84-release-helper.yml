@@ -59,7 +59,10 @@ jobs:
           test "$(jq -r '.data.repository.pullRequest.reviewThreads.pageInfo.hasNextPage' <<<"$app_review_gate")" = "false"
           test "$(jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false)] | length' <<<"$app_review_gate")" = "0"
           app_codex_reviews="$(jq --arg sha "$app_head_sha" '[.data.repository.pullRequest.reviews.nodes[] | select(.commit.oid == $sha and (.author.login // "" | startswith("chatgpt-codex-connector")))] | length' <<<"$app_review_gate")"
-          test "$app_codex_reviews" -ge 1
+          app_short_sha="${app_head_sha:0:7}"
+          app_review_comments="$(gh api "/repos/$GITHUB_REPOSITORY/issues/114/comments?per_page=100")"
+          app_codex_summaries="$(jq --arg short "$app_short_sha" '[.[] | select(.user.login == "chatgpt-codex-connector[bot]" and ((.body // "") | contains("codex-pull-request-review-summary")) and ((.body // "") | contains("✅ **Completed**")) and ((.body // "") | contains($short)))] | length' <<<"$app_review_comments")"
+          test "$((app_codex_reviews + app_codex_summaries))" -ge 1
 
           app_main_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=100")"
           app_main_ci="$(jq -c --arg sha "$app_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$app_main_runs")"
@@ -87,7 +90,10 @@ jobs:
           test "$(jq -r '.data.repository.pullRequest.reviewThreads.pageInfo.hasNextPage' <<<"$review_gate")" = "false"
           test "$(jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false)] | length' <<<"$review_gate")" = "0"
           codex_reviews="$(jq --arg sha "$release_head_sha" '[.data.repository.pullRequest.reviews.nodes[] | select(.commit.oid == $sha and (.author.login // "" | startswith("chatgpt-codex-connector")))] | length' <<<"$review_gate")"
-          test "$codex_reviews" -ge 1
+          release_short_sha="${release_head_sha:0:7}"
+          release_review_comments="$(gh api "/repos/$GITHUB_REPOSITORY/issues/$release_pr_number/comments?per_page=100")"
+          codex_summaries="$(jq --arg short "$release_short_sha" '[.[] | select(.user.login == "chatgpt-codex-connector[bot]" and ((.body // "") | contains("codex-pull-request-review-summary")) and ((.body // "") | contains("✅ **Completed**")) and ((.body // "") | contains($short)))] | length' <<<"$release_review_comments")"
+          test "$((codex_reviews + codex_summaries))" -ge 1
 
           main_ci_url=""
           for _ in $(seq 1 300); do
