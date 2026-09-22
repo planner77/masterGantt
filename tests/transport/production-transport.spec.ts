@@ -30,8 +30,13 @@ async function createProject(page: Page, name: string, password: string): Promis
 }
 
 async function unlock(page: Page, password: string): Promise<void> {
-  await page.getByLabel("편집 비밀번호", { exact: true }).fill(password);
-  await page.getByRole("button", { name: "편집 잠금 해제" }).click();
+  const dialog = page.getByRole("dialog", { name: "편집 활성화", exact: true });
+  if (!(await dialog.isVisible().catch(() => false))) {
+    await page.getByRole("button", { name: "편집 잠금 해제", exact: true }).click();
+    await expect(dialog).toBeVisible();
+  }
+  await dialog.getByLabel("편집 비밀번호", { exact: true }).fill(password);
+  await dialog.getByRole("button", { name: "편집 활성화", exact: true }).click();
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 }
 
@@ -122,8 +127,10 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
       headers: { Origin: baseURL, "If-Match": `"${revision}"` }, data: { name: "no cookie" },
     });
     expect(unauthorized.status()).toBe(401);
-    await otherPage.getByLabel("편집 비밀번호", { exact: true }).fill("incorrect-transport-password");
-    await otherPage.getByRole("button", { name: "편집 잠금 해제" }).click();
+    await otherPage.getByRole("button", { name: "편집 잠금 해제", exact: true }).click();
+    const unlockDialog = otherPage.getByRole("dialog", { name: "편집 활성화", exact: true });
+    await unlockDialog.getByLabel("편집 비밀번호", { exact: true }).fill("incorrect-transport-password");
+    await unlockDialog.getByRole("button", { name: "편집 활성화", exact: true }).click();
     await expect(otherPage.getByTestId("workspace-toast")).toContainText("올바르지 않습니다");
     await unlock(otherPage, password);
 
