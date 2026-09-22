@@ -256,7 +256,14 @@ test("Issue #104 unrelated task context actions stay enabled when other tasks ar
   for (const name of ["Add", "Convert to", "Cut", "Copy", "Move", "Delete"]) {
     await expect(unrelatedMenu.getByRole("menuitem", { name, exact: true })).toBeEnabled();
   }
-  await page.keyboard.press("Escape");
+  await unrelatedMenu.getByRole("menuitem", { name: "Delete", exact: true }).click();
+  await expect(page.locator(".project-gantt-widget .wx-row", { hasText: "Unlinked C" })).toHaveCount(0);
+  const afterDelete = await snapshot(page, api);
+  expect(afterDelete.data.links).toHaveLength(1);
+  expect(afterDelete.data.links[0]).toMatchObject({
+    predecessorExternalId: a.externalId,
+    successorExternalId: b.externalId,
+  });
 
   const linkedMenu = await openTaskMenu(page, "Linked A");
   await expect(linkedMenu.getByRole("menuitem", { name: "Edit", exact: true })).toBeEnabled();
