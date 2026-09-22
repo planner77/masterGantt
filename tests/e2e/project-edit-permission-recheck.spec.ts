@@ -26,7 +26,7 @@ test("rechecks the current edit session on project re-entry and history restorat
   const publicId = await createProject(page, name, password);
   const permissionPath = `/api/projects/${publicId}/edit-sessions/current`;
 
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 
   let permissionRequests = 0;
   page.on("request", (request) => {
@@ -39,7 +39,7 @@ test("rechecks the current edit session on project re-entry and history restorat
   await page.waitForURL("/");
   await page.getByRole("link", { name: new RegExp(name) }).click();
   await page.waitForURL(`/projects/${publicId}`);
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   expect(permissionRequests).toBeGreaterThanOrEqual(1);
 
   const beforeHistoryRestore = permissionRequests;
@@ -47,7 +47,7 @@ test("rechecks the current edit session on project re-entry and history restorat
   await page.waitForURL("/");
   await page.goForward();
   await page.waitForURL(`/projects/${publicId}`);
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   await expect.poll(() => permissionRequests).toBeGreaterThan(beforeHistoryRestore);
 });
 
@@ -58,7 +58,7 @@ test("fails closed when a restored project cannot revalidate edit permission", a
   const publicId = await createProject(page, name, password);
   const permissionPath = `/api/projects/${publicId}/edit-sessions/current`;
 
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   await page.getByRole("link", { name: "프로젝트", exact: true }).click();
   await page.waitForURL("/");
 
