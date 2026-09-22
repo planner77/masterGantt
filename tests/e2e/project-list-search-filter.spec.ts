@@ -38,13 +38,13 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
     const filterButton = page.getByRole("button", { name: /필터 1/ });
     await filterButton.click();
     const panel = page.getByLabel("프로젝트 고급 필터");
-    await panel.getByLabel("프로젝트명").fill("alpha");
+    await panel.getByRole("textbox", { name: "프로젝트명", exact: true }).fill("alpha");
     await expect(page.getByRole("button", { name: /필터 2/ })).toBeVisible();
     await panel.getByLabel("소유자 지정 여부").selectOption("assigned");
     await expect(page.getByRole("button", { name: /필터 3/ })).toBeVisible();
     await expect(table.locator("tbody tr")).toHaveCount(1);
 
-    await panel.getByLabel("프로젝트명").fill("does-not-match");
+    await panel.getByRole("textbox", { name: "프로젝트명", exact: true }).fill("does-not-match");
     await expect(page.getByRole("heading", { name: "조건에 맞는 프로젝트가 없습니다." })).toBeVisible();
     await page.getByRole("button", { name: "검색/필터 초기화" }).click();
     await expect(table.locator("tbody tr")).toHaveCount(2);
@@ -63,7 +63,7 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
     await page.goto("/");
     const search = page.getByLabel("프로젝트명, 소유자 또는 설명 검색");
     await search.fill("timezone");
-    const filterButton = page.getByRole("button", { name: /필터 1/ });
+    const filterButton = page.locator('button[aria-controls="project-list-advanced-filter"]');
     await filterButton.click();
     const panel = page.getByLabel("프로젝트 고급 필터");
     const browserDate = await page.evaluate((value) => {
