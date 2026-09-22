@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.23.0] - 2026-09-22
+
+### Added
+
+- Issue #83: Project 일정 화면에 Task 통합 텍스트, effective 일정 기간, type/schedule mode, progress/duration, 할당 여부, 특정 Resource/Group ANY·ALL 검색/필터를 추가한다.
+- 일치한 하위 Task를 표시할 때 ancestor Summary를 context row로 유지하고 실제 match count와 분리하며, 숨겨진 Task endpoint를 가진 dependency line은 표시하지 않는다.
+- Resource 탭에 이름/code, Resource/Group 종류, 활성 상태, 연결 Task 기간 기반 필터를 추가하고 전체 Project workload 집계와 필터된 표시 행을 명확히 구분한다.
+
+### Changed
+
+- 검색/필터는 Project mutation·revision·DB 저장 없이 page-session view state로 동작하고 일정/리소스 탭별 상태를 유지한다.
+- 사용자에게 노출되는 검색/필터 기능 확장이므로 Semantic Versioning 정책에 따라 `0.22.0`에서 `0.23.0`으로 증가한다.
+
 ## [0.22.0] - 2026-09-22
 
 ### Added

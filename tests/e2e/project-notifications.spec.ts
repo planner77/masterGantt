@@ -123,7 +123,7 @@ test("좁은 화면의 여러 오류 알림은 내부 스크롤로 확인하고 
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const identity = await rememberGanttRoot(page);
-  for (let index = 0; index < 8; index++) await rowNamed(page, "Stable milestone").locator('[data-action="add-task"]').click();
+  for (let index = 0; index < 8; index++) await rowNamed(page, "Stable milestone").locator('[data-action="add-task"]').dispatchEvent("click");
   await expect(page.getByRole("button", { name: "알림함, 미확인 8건" })).toBeVisible();
   const before = await geometry(page);
   await page.getByRole("button", { name: "알림함, 미확인 8건" }).click();

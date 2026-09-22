@@ -6,10 +6,12 @@ import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectExcelExportButton } from "@/features/projects/project-excel-export-button";
 import { ProjectWorkCalendarEditor } from "@/features/projects/project-work-calendar-editor";
+import { EMPTY_TASK_FILTER, activeTaskFilterCount, filterTasksWithAncestors, type TaskFilterState } from "@/features/projects/project-search-filter";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
 import type { LinkMutationResponse, ProjectMetadataMutationResponse, ProjectSnapshotResponse, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
+import type { AssignedTargetsResponse, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
 import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
@@ -108,6 +110,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [activeView, setActiveView] = useState<"schedule" | "resources">("schedule");
+  const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
+  const [taskFilterOpen, setTaskFilterOpen] = useState(false);
+  const [assignedTargets, setAssignedTargets] = useState<AssignmentTargetDto[]>([]);
+  const [targetPickerQuery, setTargetPickerQuery] = useState("");
+  const [targetPickerKind, setTargetPickerKind] = useState<"all" | "resource" | "group">("all");
   const [ganttResetGeneration, setGanttResetGeneration] = useState(0);
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
@@ -124,6 +131,22 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const scheduleTabReference = useRef<HTMLButtonElement | null>(null);
   const resourceTabReference = useRef<HTMLButtonElement | null>(null);
   const actionMenuReference = useRef<HTMLDetailsElement | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/assigned-targets`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
+        const body: unknown = await response.json().catch(() => null);
+        if (!controller.signal.aborted && response.ok && body && typeof body === "object" && "data" in body) {
+          setAssignedTargets((body as AssignedTargetsResponse).data.targets);
+        }
+      } catch {
+        if (!controller.signal.aborted) setAssignedTargets([]);
+      }
+    })();
+    return () => controller.abort();
+  }, [publicId]);
 
   useEffect(() => {
     if (permission !== "edit" || permissionCheckState !== "complete" || !focusSettingsAfterUnlockReference.current) return;
@@ -502,7 +525,15 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   if (state.status === "loading") return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>프로젝트 정보를 불러오는 중입니다.</p></section>;
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
   if (state.status === "error") return <section className="status-page" aria-labelledby="project-load-error-heading"><p className="eyebrow">PROJECT</p><h1 id="project-load-error-heading">프로젝트를 불러올 수 없습니다.</h1><p>네트워크 또는 서버 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="secondary-button" onClick={() => beginRefresh(true)} type="button">다시 시도</button></section>;
-  const { project, tasks, links } = state.snapshot.data;
+  const { project, tasks, links, assignments } = state.snapshot.data;
+  const filteredTasks = filterTasksWithAncestors(tasks, taskFilter, assignments);
+  const activeFilters = activeTaskFilterCount(taskFilter);
+  const visibleTaskIds = filteredTasks.tasks.map((task) => task.taskId);
+  const normalizedTargetQuery = targetPickerQuery.trim().toLocaleLowerCase();
+  const selectableAssignedTargets = assignedTargets.filter((target) =>
+    (targetPickerKind === "all" || target.kind === targetPickerKind) &&
+    (!normalizedTargetQuery || [target.name, target.code ?? ""].some((value) => value.toLocaleLowerCase().includes(normalizedTargetQuery)))
+  );
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
   return <section className="project-readonly" aria-labelledby="project-heading">
@@ -582,8 +613,58 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         aria-busy={isSavingTask || undefined}
         className="project-schedule project-workspace-panel"
       >
-        <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{tasks.length === 0 ? "아직 등록된 작업이 없습니다." : "서버의 최신 일정 snapshot을 표시합니다."}</p></div>
+        <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{tasks.length === 0 ? "아직 등록된 작업이 없습니다." : `필터 결과 ${filteredTasks.matchCount} / 전체 ${tasks.length}개 작업`}</p></div>
           {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}</div>
+        <div className="project-filter-toolbar" role="toolbar" aria-label="작업 검색과 필터">
+          <label className="project-filter-search">
+            <span className="sr-only">작업 검색</span>
+            <input
+              aria-label="작업명, 설명, External ID 검색"
+              placeholder="작업명, 설명, External ID 검색"
+              type="search"
+              value={taskFilter.query}
+              onChange={(event) => setTaskFilter((current) => ({ ...current, query: event.target.value }))}
+            />
+          </label>
+          <button className="secondary-button" type="button" aria-expanded={taskFilterOpen} onClick={() => setTaskFilterOpen((open) => !open)}>
+            필터{activeFilters ? ` ${activeFilters}` : ""}
+          </button>
+          <button className="secondary-button" type="button" disabled={activeFilters === 0} onClick={() => setTaskFilter(EMPTY_TASK_FILTER)}>초기화</button>
+          <span className="project-filter-result" role="status">{filteredTasks.matchCount}개 일치</span>
+        </div>
+        {taskFilterOpen ? <div className="project-filter-panel" aria-label="작업 고급 필터">
+          <div className="project-filter-grid">
+            <label>작업명 조건<select value={taskFilter.nameOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, nameOperator: event.target.value as TaskFilterState["nameOperator"] }))}><option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option></select></label>
+            <label>작업명<input type="text" value={taskFilter.nameQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, nameQuery: event.target.value }))} /></label>
+            <label>설명 조건<select value={taskFilter.descriptionOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionOperator: event.target.value as TaskFilterState["descriptionOperator"] }))}><option value="contains">포함</option><option value="not-contains">포함하지 않음</option></select></label>
+            <label>설명<input type="text" value={taskFilter.descriptionQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionQuery: event.target.value }))} /></label>
+            <label>External ID 조건<select value={taskFilter.externalIdOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, externalIdOperator: event.target.value as TaskFilterState["externalIdOperator"] }))}><option value="contains">포함</option><option value="equals">같음</option></select></label>
+            <label>External ID<input type="text" value={taskFilter.externalIdQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, externalIdQuery: event.target.value }))} /></label>
+            <label>기간 From<input type="date" value={taskFilter.dateFrom} onChange={(event) => setTaskFilter((current) => ({ ...current, dateFrom: event.target.value }))} /></label>
+            <label>기간 To<input type="date" value={taskFilter.dateTo} onChange={(event) => setTaskFilter((current) => ({ ...current, dateTo: event.target.value }))} /></label>
+            <label>기간 조건<select value={taskFilter.dateOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, dateOperator: event.target.value as TaskFilterState["dateOperator"] }))}>
+              <option value="overlap">기간과 겹침</option><option value="contained">기간 안에 완전히 포함</option><option value="start-in">시작일이 기간 안</option><option value="end-in">종료일이 기간 안</option>
+            </select></label>
+            <label>리소스 할당<select value={taskFilter.assignmentState} onChange={(event) => setTaskFilter((current) => ({ ...current, assignmentState: event.target.value as TaskFilterState["assignmentState"] }))}>
+              <option value="all">전체</option><option value="assigned">할당됨</option><option value="unassigned">미할당</option>
+            </select></label>
+            <label>진행률 최소<input min={0} max={100} type="number" value={taskFilter.progressMin ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, progressMin: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+            <label>진행률 최대<input min={0} max={100} type="number" value={taskFilter.progressMax ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, progressMax: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+            <label>기간 최소<input min={0} type="number" value={taskFilter.durationMin ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, durationMin: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+            <label>기간 최대<input min={0} type="number" value={taskFilter.durationMax ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, durationMax: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+          </div>
+          <fieldset><legend>Task type</legend>{(["task","summary","milestone"] as const).map((type) => <label key={type}><input type="checkbox" checked={taskFilter.types.includes(type)} onChange={() => setTaskFilter((current) => ({ ...current, types: current.types.includes(type) ? current.types.filter((item) => item !== type) : [...current.types, type] }))} />{type}</label>)}</fieldset>
+          <fieldset><legend>Schedule mode</legend>{(["auto","manual"] as const).map((mode) => <label key={mode}><input type="checkbox" checked={taskFilter.scheduleModes.includes(mode)} onChange={() => setTaskFilter((current) => ({ ...current, scheduleModes: current.scheduleModes.includes(mode) ? current.scheduleModes.filter((item) => item !== mode) : [...current.scheduleModes, mode] }))} />{mode}</label>)}</fieldset>
+          {assignedTargets.length > 0 ? <fieldset><legend>할당 Resource / Group</legend>
+            <label>대상 종류<select value={targetPickerKind} onChange={(event) => setTargetPickerKind(event.target.value as "all" | "resource" | "group")}><option value="all">전체</option><option value="resource">Resource</option><option value="group">Group</option></select></label>
+            <label>대상 검색<input aria-label="할당 Resource 또는 Group 이름과 code 검색" placeholder="이름 또는 code" type="search" value={targetPickerQuery} onChange={(event) => setTargetPickerQuery(event.target.value)} /></label>
+            <label>다중 조건<select value={taskFilter.targetMode} onChange={(event) => setTaskFilter((current) => ({ ...current, targetMode: event.target.value as "any" | "all" }))}><option value="any">ANY</option><option value="all">ALL</option></select></label>
+            <div className="project-filter-targets">{selectableAssignedTargets.map((target) => {
+              const key = `${target.kind}:${target.id}`;
+              return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name}{target.code ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
+            })}</div>
+          </fieldset> : null}
+        </div> : null}
         <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
@@ -591,7 +672,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             const visibleColumnCount = Object.values(current).filter(Boolean).length;
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };
-          })} tasks={tasks} />
+          })} tasks={tasks} visibleTaskIds={activeFilters > 0 ? visibleTaskIds : null} />
         {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
           editable={editing} hasLinks={links.length > 0} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
