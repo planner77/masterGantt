@@ -108,6 +108,9 @@ jobs:
           test "$(jq -r '.base.ref' <<<"$pr94")" = "main"
           final_head_sha="$(jq -r '.head.sha' <<<"$pr94")"
           test -n "$final_head_sha"
+          owner="${GITHUB_REPOSITORY%%/*}"
+          final_files="$(gh api --paginate "/repos/$GITHUB_REPOSITORY/pulls/94/files?per_page=100" --jq '.[].filename' | sort -u)"
+          test -n "$final_files"
 
           branches=(
             "feat/issue-76-project-workspace-ux"
@@ -137,7 +140,6 @@ jobs:
             protected="$(jq -r '.protected' <<<"$branch_json")"
             test "$protected" = "false"
 
-            owner="${GITHUB_REPOSITORY%%/*}"
             open_head="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&head=$owner:$branch&per_page=1" --jq 'length')"
             open_base="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&base=$branch&per_page=1" --jq 'length')"
             test "$open_head" = "0"
@@ -162,10 +164,17 @@ jobs:
                 superseded_state="$(jq -r '.state' <<<"$superseded_json")"
                 superseded_merged="$(jq -r '.merged_at // ""' <<<"$superseded_json")"
                 superseded_comments="$(gh api "/repos/$GITHUB_REPOSITORY/issues/$superseded_pr/comments?per_page=100")"
-                superseded_marker="$(jq -r '[.[] | select((.body // "") | contains("Superseded-by: #94"))] | length' <<<"$superseded_comments")"
-                if [[ "$superseded_state" == "closed" && -z "$superseded_merged" && "$superseded_head" == "$head_sha" && "$superseded_marker" != "0" ]]; then
+                owner_proof_count="$(jq -r --arg owner "$owner"                   '[.[] | select(
+                    .user.login == $owner and
+                    .author_association == "OWNER" and
+                    ((.body // "") | contains("Superseded-by: #94")) and
+                    ((.body // "") | contains("Cleanup-authorized: Issue-76"))
+                  )] | length' <<<"$superseded_comments")"
+                superseded_files="$(gh api --paginate "/repos/$GITHUB_REPOSITORY/pulls/$superseded_pr/files?per_page=100" --jq '.[].filename' | sort -u)"
+                missing_files="$(comm -23 <(printf '%s\n' "$superseded_files") <(printf '%s\n' "$final_files"))"
+                if [[ "$superseded_state" == "closed" && -z "$superseded_merged" && "$superseded_head" == "$head_sha" && "$owner_proof_count" != "0" && -z "$missing_files" ]]; then
                   cleanup_authorized=true
-                  echo "PR #$superseded_pr의 정확한 head와 PR #94 대체 표시를 확인했습니다: $branch @ $head_sha"
+                  echo "PR #$superseded_pr의 정확한 head, Owner 승인, PR #94 변경 파일 포함 근거를 확인했습니다: $branch @ $head_sha"
                 fi
               fi
             fi
