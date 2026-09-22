@@ -32,7 +32,7 @@ test("persists explicit editor changes, task details and safe URL click without 
   const childBody = await childResponse.json() as TaskMutationResponse;
   const child = childBody.data.tasks.find((entry) => entry.name === "Persistent child")!;
   await page.reload();
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const row = page.locator(".project-gantt-widget .wx-row", { hasText: "Persistent child" }).first();
   await expect(row).toBeVisible();
   const frame = page.locator(".project-gantt-frame");
@@ -95,7 +95,7 @@ test("persists explicit editor changes, task details and safe URL click without 
     try {
       const check = await context.newPage();
       await check.goto(`${origin}${path}`);
-      await expect(check.getByText("편집 가능", { exact: true })).toBeVisible();
+      await expect(check.getByText("편집 중", { exact: true })).toBeVisible();
       await check.locator(`.wx-bar[data-task-id=":${child.taskId}"]`).click({ button: "right" });
       await chooseTaskInformation(check);
       const information = check.getByRole("dialog", { name: "작업 정보", exact: true });

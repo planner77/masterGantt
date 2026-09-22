@@ -5,7 +5,7 @@ test("설정 모달의 검증 오류는 top layer 안에서도 보이고 닫은 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await installStatefulProjectFixture(page);
   await page.goto(`/projects/${publicId}`);
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const identity = await rememberGanttRoot(page);
   const box = await page.locator(".project-gantt-frame").boundingBox();
   const mutations: string[] = [];

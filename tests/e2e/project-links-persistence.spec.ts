@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
+import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated, submitProjectUnlock } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
 
@@ -10,7 +10,7 @@ async function createProject(page: Page, name: string, password: string) {
   await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
   await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const url = page.url();
   return { name, url, publicId: new URL(url).pathname.split("/").at(-1)! };
 }
@@ -74,13 +74,12 @@ test("두 프로젝트의 링크를 구분하고 이름 변경·새 탭·새 세
   // 첫 프로젝트의 유효한 세션은 정상 UI 인증으로 다시 만든 뒤 검증한다.
   await page.goto(first.url);
   await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
-  await page.getByLabel("편집 비밀번호").fill(password);
   const unlockResponse = page.waitForResponse((response) =>
     response.request().method() === "POST" &&
     new URL(response.url()).pathname === `/api/projects/${first.publicId}/edit-sessions`);
-  await page.getByRole("button", { name: "편집 잠금 해제", exact: true }).click();
+  await submitProjectUnlock(page, password);
   expect((await unlockResponse).status()).toBe(204);
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   expect(mutations).toEqual(["POST"]);
 
   await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
@@ -106,7 +105,7 @@ test("두 프로젝트의 링크를 구분하고 이름 변경·새 탭·새 세
   try {
     await sameSessionTab.goto(first.url);
     await expect(sameSessionTab.getByRole("heading", { name: renamed, exact: true })).toBeVisible();
-    await expect(sameSessionTab.getByText("편집 가능", { exact: true })).toBeVisible();
+    await expect(sameSessionTab.getByText("편집 중", { exact: true })).toBeVisible();
   } finally {
     await sameSessionTab.close();
   }

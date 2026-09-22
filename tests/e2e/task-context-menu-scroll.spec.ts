@@ -40,7 +40,7 @@ test("화면 밖 막대를 우클릭한 뒤 지연된 스크롤 알림은 무시
     }
   });
   await page.goto(`/projects/${publicId}`);
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const frame = page.locator(".project-gantt-frame");
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", /svar-api-/);
   const instance = await frame.getAttribute("data-project-gantt-api-instance");

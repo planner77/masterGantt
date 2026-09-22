@@ -1,0 +1,233 @@
+name: Issue 76 릴리스 완료 자동화
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/issue-76-release-helper.yml"
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  release:
+    name: v0.21.0 GHCR 릴리스·브랜치 정리·이슈 종료
+    runs-on: ubuntu-latest
+    timeout-minutes: 210
+    env:
+      TARGET_SHA: ${{ github.sha }}
+      RELEASE_TAG: v0.21.0
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Issue #76 승인된 릴리스 Lifecycle 완료
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test "$(git show "$TARGET_SHA:package.json" | jq -r .version)" = "0.21.0"
+          git merge-base --is-ancestor "$TARGET_SHA" origin/main
+
+          echo "main CI와 임시 GHCR 검증 완료를 기다립니다."
+          main_ci_url=""
+          main_ci_success=false
+          for _ in $(seq 1 300); do
+            runs="$(gh api -H "Accept: application/vnd.github+json" "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=50")"
+            run="$(jq -c --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" ]]; then
+              run_id="$(jq -r .id <<<"$run")"
+              main_ci_url="$(jq -r .html_url <<<"$run")"
+              status="$(jq -r .status <<<"$run")"
+              conclusion="$(jq -r '.conclusion // ""' <<<"$run")"
+              echo "main CI #$run_id: 상태=$status 결과=$conclusion"
+              if [[ "$status" == "completed" ]]; then
+                test "$conclusion" = "success"
+                main_ci_success=true
+                break
+              fi
+            fi
+            sleep 15
+          done
+          test -n "$main_ci_url"
+          test "$main_ci_success" = "true"
+
+          release_run_url=""
+          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+            tag_commit="$(git rev-parse "$RELEASE_TAG^{commit}")"
+            test "$tag_commit" = "$TARGET_SHA"
+            runs="$(gh api -H "Accept: application/vnd.github+json" "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?per_page=100")"
+            successful="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .status == "completed" and .conclusion == "success")] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -z "$successful" ]]; then
+              echo "기존 태그는 있으나 성공한 정식 릴리스 증거가 없습니다: $RELEASE_TAG" >&2
+              echo "실패한 릴리스 버전은 재사용하지 않습니다." >&2
+              exit 1
+            fi
+            release_run_url="$(jq -r .html_url <<<"$successful")"
+            echo "기존 성공 릴리스를 확인해 게시를 반복하지 않고 정리 단계를 재개합니다."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "릴리스 $RELEASE_TAG"
+            git push origin "refs/tags/$RELEASE_TAG"
+            test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$TARGET_SHA"
+
+            dispatched_after="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            gh api --method POST               -H "Accept: application/vnd.github+json"               "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches"               -f ref="$RELEASE_TAG"
+
+            release_success=false
+            for _ in $(seq 1 480); do
+              runs="$(gh api -H "Accept: application/vnd.github+json" "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=100")"
+              run="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" --arg after "$dispatched_after" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .created_at >= $after)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+              if [[ -n "$run" ]]; then
+                run_id="$(jq -r .id <<<"$run")"
+                release_run_url="$(jq -r .html_url <<<"$run")"
+                status="$(jq -r .status <<<"$run")"
+                conclusion="$(jq -r '.conclusion // ""' <<<"$run")"
+                echo "정식 릴리스 #$run_id: 상태=$status 결과=$conclusion"
+                if [[ "$status" == "completed" ]]; then
+                  test "$conclusion" = "success"
+                  release_success=true
+                  break
+                fi
+              fi
+              sleep 15
+            done
+            test -n "$release_run_url"
+            test "$release_success" = "true"
+          fi
+
+          pr94="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/94")"
+          test "$(jq -r '.merged_at // ""' <<<"$pr94")" != ""
+          test "$(jq -r '.base.ref' <<<"$pr94")" = "main"
+          final_head_sha="$(jq -r '.head.sha' <<<"$pr94")"
+          test -n "$final_head_sha"
+          owner="${GITHUB_REPOSITORY%%/*}"
+          final_files="$(gh api --paginate "/repos/$GITHUB_REPOSITORY/pulls/94/files?per_page=100" --jq '.[].filename' | sort -u)"
+          test -n "$final_files"
+
+          branches=(
+            "feat/issue-76-project-workspace-ux"
+            "feat/issue-76-project-workspace-ux-rebased"
+            "feat/issue-76-project-workspace-ux-final"
+          )
+          deleted=()
+          retained=()
+          for branch in "${branches[@]}"; do
+            encoded="${branch//\//%2F}"
+            response_file="$(mktemp)"
+            http_status="$(curl --silent --show-error --location --output "$response_file" --write-out '%{http_code}'               -H "Accept: application/vnd.github+json"               -H "Authorization: Bearer $GH_TOKEN"               -H "X-GitHub-Api-Version: 2022-11-28"               "https://api.github.com/repos/$GITHUB_REPOSITORY/branches/$encoded")"
+            if [[ "$http_status" == "404" ]]; then
+              echo "이미 없는 작업 브랜치: $branch"
+              rm -f "$response_file"
+              continue
+            fi
+            if [[ "$http_status" != "200" ]]; then
+              echo "작업 브랜치 조회 실패: $branch (HTTP $http_status)" >&2
+              cat "$response_file" >&2
+              rm -f "$response_file"
+              exit 1
+            fi
+            branch_json="$(cat "$response_file")"
+            rm -f "$response_file"
+            head_sha="$(jq -r '.commit.sha' <<<"$branch_json")"
+            protected="$(jq -r '.protected' <<<"$branch_json")"
+            test "$protected" = "false"
+
+            open_head="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&head=$owner:$branch&per_page=1" --jq 'length')"
+            open_base="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&base=$branch&per_page=1" --jq 'length')"
+            test "$open_head" = "0"
+            test "$open_base" = "0"
+
+            git fetch --quiet --no-tags origin "refs/heads/$branch:refs/remotes/origin/$branch"
+            cleanup_authorized=false
+            if [[ "$branch" == "feat/issue-76-project-workspace-ux-final" ]]; then
+              if [[ "$head_sha" == "$final_head_sha" ]]; then
+                cleanup_authorized=true
+                echo "최종 PR #94의 정확한 merged head를 확인했습니다: $branch @ $head_sha"
+              fi
+            else
+              superseded_pr=""
+              case "$branch" in
+                "feat/issue-76-project-workspace-ux") superseded_pr="89" ;;
+                "feat/issue-76-project-workspace-ux-rebased") superseded_pr="93" ;;
+              esac
+              if [[ -n "$superseded_pr" ]]; then
+                superseded_json="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$superseded_pr")"
+                superseded_head="$(jq -r '.head.sha' <<<"$superseded_json")"
+                superseded_state="$(jq -r '.state' <<<"$superseded_json")"
+                superseded_merged="$(jq -r '.merged_at // ""' <<<"$superseded_json")"
+                superseded_comments="$(gh api "/repos/$GITHUB_REPOSITORY/issues/$superseded_pr/comments?per_page=100")"
+                owner_proof_count="$(jq -r --arg owner "$owner"                   '[.[] | select(
+                    .user.login == $owner and
+                    .author_association == "OWNER" and
+                    ((.body // "") | contains("Superseded-by: #94")) and
+                    ((.body // "") | contains("Cleanup-authorized: Issue-76"))
+                  )] | length' <<<"$superseded_comments")"
+                superseded_files="$(gh api --paginate "/repos/$GITHUB_REPOSITORY/pulls/$superseded_pr/files?per_page=100" --jq '.[].filename' | sort -u)"
+                missing_files="$(comm -23 <(printf '%s\n' "$superseded_files") <(printf '%s\n' "$final_files"))"
+                if [[ "$superseded_state" == "closed" && -z "$superseded_merged" && "$superseded_head" == "$head_sha" && "$owner_proof_count" != "0" && -z "$missing_files" ]]; then
+                  cleanup_authorized=true
+                  echo "PR #$superseded_pr의 정확한 head, Owner 승인, PR #94 변경 파일 포함 근거를 확인했습니다: $branch @ $head_sha"
+                fi
+              fi
+            fi
+            if [[ "$cleanup_authorized" != "true" ]]; then
+              echo "현재 tip의 병합 또는 명시적 superseded 증거가 없어 보존합니다: $branch @ $head_sha"
+              retained+=("$branch")
+              continue
+            fi
+
+            current_sha="$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/$encoded" --jq '.object.sha')"
+            test "$current_sha" = "$head_sha"
+            open_head="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&head=$owner:$branch&per_page=1" --jq 'length')"
+            open_base="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&base=$branch&per_page=1" --jq 'length')"
+            if [[ "$open_head" != "0" || "$open_base" != "0" ]]; then
+              echo "삭제 직전 새 열린 PR 참조를 감지해 보존합니다: $branch"
+              retained+=("$branch")
+              continue
+            fi
+            git push --porcelain --force-with-lease="refs/heads/$branch:$head_sha" origin ":refs/heads/$branch" >/dev/null
+
+            set +e
+            git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null 2>&1
+            verify_rc=$?
+            set -e
+            if [[ "$verify_rc" != "2" ]]; then
+              echo "작업 브랜치 삭제 확인 실패: $branch (git ls-remote rc=$verify_rc)" >&2
+              exit 1
+            fi
+            deleted+=("$branch")
+          done
+
+          deleted_text="${deleted[*]:-이미 없음}"
+          retained_text="${retained[*]:-없음}"
+          if [[ "${#retained[@]}" -ne 0 ]]; then
+            echo "안전 조건 때문에 보존된 작업 브랜치가 있어 Issue 종료를 중단합니다: $retained_text" >&2
+            exit 1
+          fi
+          body="$(printf '%s\n' \
+            "Issue Lifecycle 완료:" \
+            "- 버전: 0.21.0" \
+            "- main CI/임시 GHCR 커밋 이미지 검증: $main_ci_url" \
+            "- GHCR 정식 릴리스 이미지: $release_run_url" \
+            "- 정식 릴리스 태그: $RELEASE_TAG" \
+            "- 삭제한 Issue #76 작업 브랜치: $deleted_text")"
+          gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/76/comments" -f body="$body"
+          gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/76" -f state="closed" -f state_reason="completed"
+
+          {
+            echo "## Issue #76 Lifecycle 완료"
+            echo
+            echo "- 정식 릴리스 태그: $RELEASE_TAG"
+            echo "- main CI/임시 GHCR 검증: $main_ci_url"
+            echo "- GHCR 정식 릴리스: $release_run_url"
+            echo "- 삭제한 작업 브랜치: $deleted_text"
+            echo "- Issue #76 종료 완료"
+          } >> "$GITHUB_STEP_SUMMARY"

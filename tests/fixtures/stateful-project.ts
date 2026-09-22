@@ -98,6 +98,9 @@ export async function installStatefulProjectFixture(page: Page): Promise<Statefu
     if (pathname === `${projectPath}/assignment-targets` && request.method() === "GET") {
       await route.fulfill({ json: { data: { catalogRevision: 1, targets: [] } } }); return;
     }
+    if (pathname === `${projectPath}/resource-workload` && request.method() === "GET") {
+      await route.fulfill({ json: { data: { projectRevision: fixture.project.revision, catalogRevision: 1, range: { from: "2026-09-01", to: "2026-09-30" }, mdPerMm: 20, grandTotalMd: 5, grandTotalMm: 0.25, unsetCount: 0, groups: [{ id: "group-1", name: "개발팀", active: true, start: "2026-09-16", end: "2026-09-18", effortMd: 5, effortMm: 0.25, unsetCount: 0, resources: [{ id: "resource-1", name: "테스트 리소스", code: "R-01", active: true, start: "2026-09-16", end: "2026-09-18", effortMd: 5, effortMm: 0.25, unsetCount: 0, overAllocated: false, tasks: [{ assignmentId: "assignment-1", taskId: fixture.tasks[2].taskId, taskName: fixture.tasks[2].name, start: "2026-09-16", end: "2026-09-18", allocationPercent: 100, effortMd: 5, effortMm: 0.25, effortConfigured: true }] }] }] } } }); return;
+    }
     if (pathname === taskPath && request.method() === "POST") {
       const payload = request.postDataJSON() as CreateTaskRequest;
       fixture.posts.push(payload);

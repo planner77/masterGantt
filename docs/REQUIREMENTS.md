@@ -115,3 +115,15 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - **R72-02**: parent/sibling order/type/subtree를 바꾸는 명령은 server-authoritative atomic mutation이며 성공당 Project revision을 정확히 1 증가시킨다. Client-only hierarchy 상태를 canonical로 간주하지 않는다.
 - **R72-03**: Cut은 Paste 전까지 저장 상태를 바꾸지 않는다. Copy는 subtree identity를 새로 발급하고 원본을 변경하지 않는다. stale clipboard는 Project revision 변경 시 폐기한다.
 - **R72-04**: cycle, Project 외 Task, Milestone parent, 빈 Summary 발생, Link 포함 계층 mutation은 fail-closed한다. Assignment가 있는 subtree Copy는 Assignment 복제 정책이 별도 확정될 때까지 명시적 오류로 거부한다.
+
+## Issue #76 Project Workspace 요구사항
+
+- Global Header는 viewport 기반 full-width App Shell을 사용하고 현재 primary navigation을 접근 가능하게 표시한다.
+- Project Context는 프로젝트명과 편집 상태 중심으로 compact하게 유지하며 Description/Owner/Revision은 별도 Info UI에서 조회 가능해야 한다.
+- Status와 Action을 분리하고 Share/Export/Settings/Copy 등 Project command는 direct action과 overflow hierarchy로 정돈한다.
+- Readonly password 입력은 상시 form이 아니라 사용자가 명시적으로 편집 활성화를 선택했을 때 Dialog로 제공한다. 기존 edit-session/security/rate-limit 계약은 변경하지 않는다.
+- `일정`과 `리소스`를 동일 Project Context의 peer view로 제공하고 최초 view는 일정이다.
+- Resource workload를 Gantt 하단 누적 영역에서 Resource view로 이동하고 전체 가용 폭에서 Summary, M/D/M/M/Refresh, Group → Resource → Task hierarchy를 제공한다.
+- 정상 tab 전환은 mutation/reload/navigation을 발생시키지 않으며 일정 view로 복귀했을 때 Gantt instance와 사용자의 scroll/tree/column/scale/selection state를 불필요하게 잃지 않아야 한다.
+- 390/768/1024/1440/wide viewport, keyboard/focus, Escape/focus restore, unintended document overflow를 회귀 검증한다.
+- 본 변경으로 Project revision, If-Match, canonical snapshot, permission/BFCache recheck, Resource workload API/calculation, Gantt mutation lifecycle을 변경하지 않는다.

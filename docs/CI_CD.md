@@ -199,3 +199,18 @@ Action 또는 base image update PR은 full SHA/digest, release note, permissions
 - 완료 후 다른 main run은 no-op이고 이미 없는 branch는 재삭제하지 않는다. branch 이름을 재사용하지 않는다. 파일 제거/비활성화는 증거 보존 뒤 별도 검토된 운영 변경으로만 수행하며 workflow가 자체 제거 commit이나 다른 target을 만들지 않는다.
 
 원격 검증 항목과 실패 판정은 [REMOTE_VALIDATION](REMOTE_VALIDATION.md)의 Issue #87 절을 따른다. 정리 run/head/ref 근거는 PR/Issue 완료 댓글에 남긴다. 자세한 결정 이력은 [ISSUE_87_COMPLETION](ISSUE_87_COMPLETION.md)에 있다.
+
+## Issue #76 정식 릴리스 완료 자동화
+
+`.github/workflows/issue-76-release-helper.yml`은 Issue #76의 **명시적으로 승인된** 정식 릴리스 완료에만 사용하는 일회성 운영 workflow다. 일반 Issue Lifecycle이나 다른 버전의 릴리스 승인으로 확대하지 않는다.
+
+- Trigger: `main` push 중 이 helper 파일이 변경된 경우에만 실행한다. PR/feature branch에서는 실행하지 않는다.
+- 권한: `contents: write`, `actions: write`, `issues: write`, `pull-requests: read`만 사용한다.
+- 선행 gate: 대상 `main` SHA의 CI가 완료되고 성공해야 하며, 해당 CI에 포함된 임시 `ci-<full SHA>` GHCR 게시·exact digest smoke·임시 package version 정리가 성공해야 한다.
+- Release: `package.json`의 `0.21.0`과 annotated `v0.21.0` tag가 정확히 일치해야 한다. helper가 만든 tag는 `release-image.yml`을 해당 tag ref로 dispatch하고, **같은 tag/head SHA이면서 dispatch 시각 이후 생성된 run**만 이번 실행의 증거로 인정한다.
+- 복구: tag가 이미 존재할 때는 같은 target SHA의 `release-image.yml` 성공 run이 확인된 경우에만 게시 단계를 반복하지 않고 branch cleanup/Issue 종료를 재개한다. tag만 있고 성공 release 증거가 없으면 실패한 버전을 재사용하지 않고 FAIL 처리한다.
+- Cleanup: Issue #76의 고정 작업 브랜치만 대상으로 보호 여부·열린 PR 참조·tip SHA를 재확인하고 SHA lease를 사용해 삭제한다. branch 조회는 HTTP 404만 '이미 없음'으로 처리하고 인증/rate-limit/5xx 등 다른 API 오류는 FAIL한다.
+- 완료 계약: release run 성공, branch cleanup 결과와 main CI URL을 Issue #76 댓글에 기록한 뒤에만 Issue를 `completed`로 닫는다. 어느 단계든 실패하면 Issue를 열린 상태로 유지한다.
+
+이 helper는 Issue #76 완료 증거를 보존한 뒤 별도 검토된 운영 변경에서 퇴역한다. 정식 릴리스 승인 경계는 [ISSUE_LIFECYCLE](ISSUE_LIFECYCLE.md)을 따른다.
+

@@ -195,7 +195,7 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
 
   const finalRevision = added.data.project.revision;
   await page.reload();
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const persisted = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
   expect(persisted.data.project.revision).toBe(finalRevision);
   expect(persisted.data.tasks.filter((task) => task.name === "Beta")).toHaveLength(2);

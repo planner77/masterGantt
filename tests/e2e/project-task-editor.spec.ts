@@ -103,7 +103,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
     await route.continue();
   });
   await page.goto(`/projects/${publicId}`);
-  await expect(page.getByText(fixture.editable ? "편집 가능" : "읽기 전용", { exact: true })).toBeVisible();
+  await expect(page.getByText(fixture.editable ? "편집 중" : "읽기 전용", { exact: true })).toBeVisible();
   await expect(row(page, "Beta leaf")).toBeVisible();
   await expect(frame(page)).toHaveAttribute("data-project-gantt-api-instance", /svar-api-/);
   return fixture;
