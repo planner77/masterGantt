@@ -45,7 +45,7 @@ Algorithm 구현에는 Unit Test를 반드시 작성한다.
 - 원격 실패가 scheduling/domain 원인일 경우 run/job/step 근거를 확인하여 수정하고 infra와 협업한다. 테스트나 gate를 제거해 통과시키지 않는다.
 - 원격 CI가 미실행 또는 진행 중이면 NOT TESTED로 보고한다.
 
-관련 변경 시 SCHEDULING_ENGINE.md를 갱신하고 Manager에게 Local Unit/Domain 결과와 Remote CI 결과를 분리하여 보고한다.
+관련 변경 시 SCHEDULING_ENGINE.md의 영향도를 확인한다. scheduler가 documentation_owner인 경우에만 직접 갱신하고, 아니면 필요한 변경을 지정 작성자에게 handoff한다. Manager에게 Local Unit/Domain 결과와 Remote CI 결과를 분리하여 보고한다.
 
 Issue Lifecycle v2 (#109):
 - AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Manager의 Issue Work Packet을 작업 전 읽는다.
