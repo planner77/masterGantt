@@ -49,14 +49,14 @@ export const EMPTY_TASK_FILTER: TaskFilterState = {
   targetMode: "any",
 };
 
-function normalizeText(value: string | null | undefined): string {
+export function normalizeFilterText(value: string | null | undefined): string {
   return (value ?? "").trim().toLocaleLowerCase();
 }
 
-function textMatches(value: string | null | undefined, query: string, operator: TextOperator): boolean {
-  const normalizedQuery = normalizeText(query);
+export function textMatchesFilter(value: string | null | undefined, query: string, operator: TextOperator): boolean {
+  const normalizedQuery = normalizeFilterText(query);
   if (!normalizedQuery) return true;
-  const normalizedValue = normalizeText(value);
+  const normalizedValue = normalizeFilterText(value);
   if (operator === "equals") return normalizedValue === normalizedQuery;
   if (operator === "not-contains") return !normalizedValue.includes(normalizedQuery);
   return normalizedValue.includes(normalizedQuery);
@@ -81,14 +81,14 @@ export function taskMatchesFilter(
   filter: TaskFilterState,
   assignmentIdsByTask: ReadonlyMap<string, ReadonlySet<string>>,
 ): boolean {
-  const query = normalizeText(filter.query);
+  const query = normalizeFilterText(filter.query);
   if (query) {
-    const haystack = [task.name, task.description, task.externalId].map(normalizeText);
+    const haystack = [task.name, task.description, task.externalId].map(normalizeFilterText);
     if (!haystack.some((value) => value.includes(query))) return false;
   }
-  if (!textMatches(task.name, filter.nameQuery, filter.nameOperator)) return false;
-  if (!textMatches(task.description, filter.descriptionQuery, filter.descriptionOperator)) return false;
-  if (!textMatches(task.externalId, filter.externalIdQuery, filter.externalIdOperator)) return false;
+  if (!textMatchesFilter(task.name, filter.nameQuery, filter.nameOperator)) return false;
+  if (!textMatchesFilter(task.description, filter.descriptionQuery, filter.descriptionOperator)) return false;
+  if (!textMatchesFilter(task.externalId, filter.externalIdQuery, filter.externalIdOperator)) return false;
   if (!dateMatches(task, filter)) return false;
   if (filter.types.length > 0 && !filter.types.includes(task.type)) return false;
   if (filter.scheduleModes.length > 0 && !filter.scheduleModes.includes(task.scheduleMode)) return false;
@@ -142,10 +142,10 @@ export function filterTasksWithAncestors(
 
 export function activeTaskFilterCount(filter: TaskFilterState): number {
   return [
-    normalizeText(filter.query) !== "",
-    normalizeText(filter.nameQuery) !== "",
-    normalizeText(filter.descriptionQuery) !== "",
-    normalizeText(filter.externalIdQuery) !== "",
+    normalizeFilterText(filter.query) !== "",
+    normalizeFilterText(filter.nameQuery) !== "",
+    normalizeFilterText(filter.descriptionQuery) !== "",
+    normalizeFilterText(filter.externalIdQuery) !== "",
     Boolean(filter.dateFrom && filter.dateTo),
     filter.assignmentState !== "all",
     filter.types.length > 0,
