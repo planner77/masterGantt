@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.23.1] - 2026-09-22
+
+### Fixed
+
+- Issue #104: 프로젝트에 Dependency Link가 존재할 때 관계가 없는 Task의 Context Menu mutation까지 전역 비활성화되던 회귀를 수정한다.
+- Context Menu/단축키/Task Editor와 서버 Task·Hierarchy·Subtree Delete 검증을 선택 Task 또는 영향 subtree 기준으로 좁혀, unrelated Link는 그대로 보존하면서 unlinked Task의 편집·이동·삭제를 허용한다.
+- 관계 endpoint 자체와 관계가 포함된 영향 subtree는 기존 fail-closed 안전 계약을 유지한다.
+
+### Changed
+
+- 하위 호환 UI/서버 권한 판정 버그 수정이므로 Semantic Versioning 정책에 따라 `0.23.0`에서 PATCH 버전 `0.23.1`로 증가한다.
+
 ## [0.23.0] - 2026-09-22
 
 ### Added
