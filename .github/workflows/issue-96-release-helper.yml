@@ -1,0 +1,94 @@
+name: Issue 96 릴리스 완료 자동화
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/issue-96-release-helper.yml"
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  release:
+    name: v0.21.1 GHCR 릴리스·브랜치 정리·이슈 종료
+    runs-on: ubuntu-latest
+    timeout-minutes: 210
+    env:
+      TARGET_SHA: ${{ github.sha }}
+      RELEASE_TAG: v0.21.1
+      WORK_BRANCH: feat/issue-96-task-editor-density
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: 승인된 Issue #96 Lifecycle 완료
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git show "$TARGET_SHA:package.json" | jq -r .version)" = "0.21.1"
+          git merge-base --is-ancestor "$TARGET_SHA" origin/main
+
+          main_ci_url=""
+          for _ in $(seq 1 300); do
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=50")"
+            run="$(jq -c --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" ]]; then
+              main_ci_url="$(jq -r .html_url <<<"$run")"
+              status="$(jq -r .status <<<"$run")"
+              conclusion="$(jq -r '.conclusion // ""' <<<"$run")"
+              if [[ "$status" == "completed" ]]; then
+                test "$conclusion" = "success"
+                break
+              fi
+            fi
+            sleep 15
+          done
+          test -n "$main_ci_url"
+
+          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+            test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$TARGET_SHA"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "Release $RELEASE_TAG"
+            git push origin "refs/tags/$RELEASE_TAG"
+          fi
+
+          dispatched_after="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" -f ref="$RELEASE_TAG"
+
+          release_run_url=""
+          for _ in $(seq 1 480); do
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=100")"
+            run="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" --arg after "$dispatched_after" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .created_at >= $after)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" ]]; then
+              release_run_url="$(jq -r .html_url <<<"$run")"
+              status="$(jq -r .status <<<"$run")"
+              conclusion="$(jq -r '.conclusion // ""' <<<"$run")"
+              if [[ "$status" == "completed" ]]; then
+                test "$conclusion" = "success"
+                break
+              fi
+            fi
+            sleep 15
+          done
+          test -n "$release_run_url"
+
+          owner="${GITHUB_REPOSITORY%%/*}"
+          open_head="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&head=$owner:$WORK_BRANCH&per_page=1" --jq 'length')"
+          test "$open_head" = "0"
+          if git ls-remote --exit-code --heads origin "refs/heads/$WORK_BRANCH" >/dev/null 2>&1; then
+            branch_sha="$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/feat%2Fissue-96-task-editor-density" --jq '.object.sha')"
+            git push --porcelain --force-with-lease="refs/heads/$WORK_BRANCH:$branch_sha" origin ":refs/heads/$WORK_BRANCH" >/dev/null
+          fi
+
+          body="$(printf '%s\n'             "Issue Lifecycle 완료:"             "- 버전: 0.21.1"             "- main CI/임시 GHCR 검증: $main_ci_url"             "- GHCR 정식 릴리스 이미지: $release_run_url"             "- 정식 릴리스 태그: $RELEASE_TAG"             "- 작업 브랜치 정리: $WORK_BRANCH")"
+          gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/96/comments" -f body="$body"
+          gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/96" -f state="closed" -f state_reason="completed"
