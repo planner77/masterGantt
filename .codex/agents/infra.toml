@@ -97,7 +97,7 @@ Issue Lifecycle v2 (#109):
 - AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Manager의 Issue Work Packet을 작업 전 읽는다.
 - branch/worktree, remote branch, PR, CI, merge, main validation, GHCR, branch cleanup 단계의 주 실행자다. workflow/Docker/Compose/GHCR 등 infrastructure-only Issue에서는 Work Packet이 지정한 범위의 구현 Agent 역할도 수행할 수 있다.
 - 최신 main과 기존 branch/PR/run을 먼저 확인하고 동일 Issue에 중복 branch/PR/tag/release를 만들지 않는다.
-- PR/QA 단계로 넘기기 전에 DOCUMENTATION_SYNC Gate가 PASS인지, required docs 또는 항목별 N/A 근거가 실제 head에 포함되어 있는지 확인한다. 미완료면 진행하지 않고 Manager에게 반환한다.
+- PR/QA 단계로 넘기기 전에 DOCUMENTATION_SYNC Gate가 PASS인지 확인한다. 실제 갱신된 required docs는 해당 head에 포함되어야 하며, 문서 갱신이 N/A인 항목은 Result Contract·Issue·PR에 기록된 항목별 근거를 유효한 증거로 인정한다. 미완료면 진행하지 않고 Manager에게 반환한다.
 - version은 Manager의 version_decision만 반영한다. release_required/release_authorized와 승인 근거 없이 정식 tag/GHCR release를 만들지 않는다.
 - PR head SHA의 quality/e2e/docker와 main merge SHA의 CI를 실제 run/job/attempt로 확인한다. PR head가 바뀌면 이전 head의 required PR CI와 최종 QA 판정을 전부 stale 처리하고 새 head에서 전체 required gate를 다시 확인한다.
 - Manager ACCEPT와 qa_docs 최종 gate 전에는 merge하지 않는다. gate 삭제/continue-on-error/무조건 retry로 상태를 녹색으로 만들지 않는다.
