@@ -229,3 +229,18 @@ Action 또는 base image update PR은 full SHA/digest, release note, permissions
 - 완료 댓글에는 version, main CI URL, 정식 release run URL, tag와 branch cleanup 결과를 남긴 뒤에만 Issue #96을 completed로 닫는다. 중간 실패 시 tag/image overwrite나 gate 우회 없이 Issue를 열린 상태로 유지한다.
 
 이 workflow는 Issue #96 완료 증거 보존 후 별도 검토된 운영 변경에서 퇴역하며, 일반 릴리스 승인으로 확대하지 않는다.
+
+
+## Issue #84 정식 릴리스 완료 자동화
+
+`.github/workflows/issue-84-release-helper.yml`은 Issue #84에서 승인된 프로젝트 목록 검색 기능의 **v0.25.0 정식 GHCR 게시와 Issue Lifecycle 종료**에만 사용하는 일회성 운영 workflow다.
+
+- Trigger: helper 파일이 포함된 `main` push에서만 실행하며 PR/feature branch에서는 release write를 수행하지 않는다.
+- 권한: `contents: write`, `actions: write`, `issues: write`, `pull-requests: read`로 한정한다.
+- 선행 Gate: 실행 대상 `TARGET_SHA`의 `ci.yml` main push run이 `completed/success`여야 한다. 따라서 quality/E2E/Docker와 임시 `ci-<SHA>` GHCR exact-digest smoke 및 package cleanup이 모두 완료된 뒤에만 정식 tag/release로 진행한다.
+- Release: package version `0.25.0`과 annotated `v0.25.0`이 정확히 일치하고 tag가 `TARGET_SHA`를 가리켜야 한다. 새 tag를 만든 실행만 `release-image.yml`을 해당 tag ref로 dispatch할 수 있다.
+- 실패·재실행 계약: `v0.25.0`이 실행 시작 전에 이미 존재하면 동일 tag/head SHA의 **기존 completed/success release run**이 있을 때만 게시 단계를 재사용한다. 기존 tag만 있고 성공 release 증거가 없으면 실패한 version/tag를 재사용하거나 재게시하지 않고 FAIL한다.
+- Branch cleanup: 원격 tip SHA가 merged PR의 recorded head SHA와 일치하고, 해당 merged PR의 merge commit이 `TARGET_SHA`의 ancestor이며, head/base로 열린 PR이 없음을 확인한 뒤 explicit `--force-with-lease=<ref>:<tip SHA>`로 삭제한다. 원격 tip이 merge 이후 변경되면 삭제하지 않는다.
+- 완료 증거: 기능 PR #114, 릴리스 마무리 PR, version, feature merge SHA, release target SHA, main CI URL, 정식 release run URL, tag, branch cleanup 결과를 Issue #84에 기록한 뒤에만 `completed`로 닫는다.
+
+이 helper는 Issue #84 완료 증거를 보존하기 위한 한정 자동화이며 일반 release authority나 범용 branch 삭제 권한으로 확대하지 않는다.
