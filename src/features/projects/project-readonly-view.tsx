@@ -57,7 +57,8 @@ function safeErrorCode(value: unknown): string | null {
   if (typeof value === "object" && value !== null && "error" in value && typeof value.error === "object" && value.error !== null && "code" in value.error && typeof value.error.code === "string") return value.error.code;
   return null;
 }
-function passwordValid(value: string): boolean { return Array.from(value).length >= 12 && new TextEncoder().encode(value).byteLength <= 1024; }
+function unlockPasswordValid(value: string): boolean { return Array.from(value).length >= 1 && new TextEncoder().encode(value).byteLength <= 1024; }
+function newPasswordValid(value: string): boolean { const length = Array.from(value).length; return length >= 1 && length <= 12; }
 function revisionTag(revision: number): string { return `"${revision}"`; }
 function snapshotFromMetadataMutation(value: unknown): ProjectSnapshotResponse | null {
   if (typeof value !== "object" || value === null) return null;
@@ -228,8 +229,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function unlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isUnlocking) return;
-    if (!passwordValid(unlockPassword)) {
-      notify("error", "편집 비밀번호는 최소 12자이며 UTF-8 기준 1,024 bytes 이하여야 합니다.", "편집 잠금 해제");
+    if (!unlockPasswordValid(unlockPassword)) {
+      notify("error", "편집 비밀번호를 입력해 주세요.", "편집 잠금 해제");
       setUnlockPassword(""); return;
     }
     clearToast(); setIsUnlocking(true);
@@ -289,8 +290,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (state.status !== "ready" || isChangingPassword) return;
-    if (!passwordValid(newPassword)) {
-      notify("error", "새 편집 비밀번호는 최소 12자이며 UTF-8 기준 최대 1,024 bytes 이하여야 합니다.", "편집 비밀번호 변경"); setNewPassword(""); return;
+    if (!newPasswordValid(newPassword)) {
+      notify("error", "새 편집 비밀번호는 1~12자로 입력해 주세요.", "편집 비밀번호 변경"); setNewPassword(""); return;
     }
     setIsChangingPassword(true); clearToast();
     const password = newPassword; setNewPassword("");
@@ -729,7 +730,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         <button className="primary-button" disabled={busy} type="submit">{isSavingMetadata ? "저장 중…" : "프로젝트 정보 저장"}</button>
       </form>
       <form className="project-form compact-form" noValidate onSubmit={changePassword}>
-        <div className="form-field"><label htmlFor="new-edit-password">새 편집 비밀번호</label><input autoComplete="new-password" disabled={busy} id="new-edit-password" onChange={(event) => setNewPassword(event.target.value)} type="password" value={newPassword} /><p>최소 12자, UTF-8 기준 최대 1,024 bytes입니다.</p></div>
+        <div className="form-field"><label htmlFor="new-edit-password">새 편집 비밀번호</label><input autoComplete="new-password" disabled={busy} id="new-edit-password" minLength={1} maxLength={12} onChange={(event) => setNewPassword(event.target.value)} type="password" value={newPassword} /><p>1~12자로 입력해 주세요.</p></div>
         <button className="secondary-button" disabled={busy} type="submit">{isChangingPassword ? "변경 중…" : "편집 비밀번호 변경"}</button>
       </form>
       <button className="secondary-button logout-button" disabled={busy} onClick={() => void logout()} type="button">{isLoggingOut ? "종료 중…" : "편집 모드 종료"}</button>
