@@ -1,7 +1,10 @@
 import { handleChangeResourceCatalogAdminPassword } from "@/server/resources/resource-catalog-handlers-core";
 import { getResourceCatalogService } from "@/server/resources/resource-catalog-service";
-import { readApplicationConfiguration } from "@/server/config/application-configuration";
-import { withApiRequestLogging } from "@/server/observability/api-request-logging";
+import { readApplicationConfiguration } from "@/server/security/origin-core";
+import { withApiRequestLogging } from "@/server/http/request-context-core";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const ROUTE = "/api/resource-catalog/admin-password";
 
