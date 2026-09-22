@@ -106,6 +106,8 @@ jobs:
           pr94="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/94")"
           test "$(jq -r '.merged_at // ""' <<<"$pr94")" != ""
           test "$(jq -r '.base.ref' <<<"$pr94")" = "main"
+          final_head_sha="$(jq -r '.head.sha' <<<"$pr94")"
+          test -n "$final_head_sha"
 
           branches=(
             "feat/issue-76-project-workspace-ux"
@@ -113,6 +115,7 @@ jobs:
             "feat/issue-76-project-workspace-ux-final"
           )
           deleted=()
+          retained=()
           for branch in "${branches[@]}"; do
             encoded="${branch//\//%2F}"
             response_file="$(mktemp)"
@@ -142,22 +145,30 @@ jobs:
 
             git fetch --quiet --no-tags origin "refs/heads/$branch:refs/remotes/origin/$branch"
             incorporated=false
-            if git merge-base --is-ancestor "$head_sha" "$TARGET_SHA"; then
-              incorporated=true
-            else
-              merged_pr_count="$(gh api                 -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2022-11-28"                 "/repos/$GITHUB_REPOSITORY/commits/$head_sha/pulls"                 --jq '[.[] | select(.merged_at != null and .base.ref == "main" and .head.sha == "'"$head_sha"'")] | length')"
-              if [[ "$merged_pr_count" != "0" ]]; then
+            if [[ "$branch" == "feat/issue-76-project-workspace-ux-final" ]]; then
+              if [[ "$head_sha" == "$final_head_sha" ]]; then
                 incorporated=true
-                echo "현재 tip을 포함한 merged PR 증거를 확인했습니다: $branch @ $head_sha"
+                echo "최종 PR #94의 정확한 merged head를 확인했습니다: $branch @ $head_sha"
               fi
+            elif git merge-base --is-ancestor "$head_sha" "$final_head_sha"; then
+              incorporated=true
+              echo "최종 PR #94 head에 현재 tip이 포함된 것을 확인했습니다: $branch @ $head_sha"
             fi
             if [[ "$incorporated" != "true" ]]; then
-              echo "현재 tip의 main 반영 증거가 없어 자동 삭제하지 않습니다: $branch @ $head_sha"
+              echo "현재 tip의 최종 merged PR 반영 증거가 없어 보존합니다: $branch @ $head_sha"
+              retained+=("$branch")
               continue
             fi
 
             current_sha="$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/$encoded" --jq '.object.sha')"
             test "$current_sha" = "$head_sha"
+            open_head="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&head=$owner:$branch&per_page=1" --jq 'length')"
+            open_base="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&base=$branch&per_page=1" --jq 'length')"
+            if [[ "$open_head" != "0" || "$open_base" != "0" ]]; then
+              echo "삭제 직전 새 열린 PR 참조를 감지해 보존합니다: $branch"
+              retained+=("$branch")
+              continue
+            fi
             git push --porcelain --force-with-lease="refs/heads/$branch:$head_sha" origin ":refs/heads/$branch" >/dev/null
 
             set +e
@@ -172,6 +183,11 @@ jobs:
           done
 
           deleted_text="${deleted[*]:-이미 없음}"
+          retained_text="${retained[*]:-없음}"
+          if [[ "${#retained[@]}" -ne 0 ]]; then
+            echo "안전 조건 때문에 보존된 작업 브랜치가 있어 Issue 종료를 중단합니다: $retained_text" >&2
+            exit 1
+          fi
           body="$(printf '%s\n' \
             "Issue Lifecycle 완료:" \
             "- 버전: 0.21.0" \
