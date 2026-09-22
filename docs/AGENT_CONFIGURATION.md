@@ -106,7 +106,7 @@ ui_ux와 qa_docs는 읽기 중심으로 결과를 반환한다. 설계 문서 �
 Issue 조치와 Local Fast Feedback 뒤, QA 진입 전에 `DOCUMENTATION_SYNC`를 독립 Phase로 둔다.
 
 - PLAN 단계의 Work Packet에 `required_docs`와 `documentation_owner`를 지정한다.
-- 기본 작성자는 변경을 구현한 domain Agent이며 공용 문서는 Manager가 단일 작성자를 지정한다.
+- 기본 작성자는 Work Packet의 지정 구현 Agent이며, infrastructure-only Issue에서는 infra가 포함될 수 있다. 공용 문서는 Manager가 단일 작성자를 지정한다.
 - 영향 문서를 실제 갱신하거나 항목별 `N/A` 근거를 남겨야 Gate PASS가 가능하다.
 - `qa_docs`는 문서를 직접 작성하지 않고 DOCUMENTATION_SYNC의 완결성과 코드/계약/문서 일치 여부를 독립 검토한다.
 - 구현 또는 계약이 다시 바뀌면 이전 DOCUMENTATION_SYNC PASS는 stale이며 QA 전 재수행한다.
