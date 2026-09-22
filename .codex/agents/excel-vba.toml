@@ -49,7 +49,7 @@ Issue Lifecycle v2 (#109):
 - 지정된 Issue/phase/파일 소유권 안에서 VBA/Excel integration, fixture, 관련 문서를 수정한다.
 - Import schema/API 변경이 필요하면 backend와 Manager에게 먼저 handoff하고 임의 변경하지 않는다.
 - 자동화 가능한 fixture/contract 검증과 Windows Excel/DRM 환경 검증을 구분해 Result Contract에 기록한다.
-- 구현/검증 뒤 DOCUMENTATION_SYNC Gate에서 VBA_EXPORT/IMPORT_SCHEMA/사용 절차 문서 영향을 분석하고 required docs를 갱신하거나 N/A 근거를 남긴다. Gate PASS 전 QA_READY로 넘기지 않는다.
+- 구현/검증 뒤 DOCUMENTATION_SYNC Gate에서 VBA_EXPORT/IMPORT_SCHEMA/사용 절차 문서 영향을 분석한다. excel_vba가 documentation_owner인 required docs만 직접 갱신하고, 다른 작성자가 지정된 문서는 영향 분석과 필요한 변경 내용을 handoff한다. 갱신 불필요 항목은 Result Contract·Issue·PR에 항목별 N/A 근거를 남긴다. Gate PASS 전 QA_READY로 넘기지 않는다.
 - schema/호환성 변경 후 문서 영향이 달라지면 DOCUMENTATION_SYNC를 재수행한다.
 - version 결정은 Manager가 소유하며 version/tag/PR 생성/merge/GHCR/Issue close를 독자 수행하지 않는다.
 - REWORK 시 기존 Issue/branch/PR을 재사용하고 최신 head 및 실제 Windows 검증 범위를 다시 확인한다.
