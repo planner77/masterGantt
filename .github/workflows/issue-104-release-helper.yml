@@ -1,4 +1,4 @@
-name: Issue 104 release helper
+name: Issue 104 release cleanup
 
 on:
   push:
@@ -8,106 +8,53 @@ on:
 
 permissions:
   contents: write
-  actions: write
+  actions: read
 
 jobs:
-  release:
-    name: v0.23.1 릴리스 이미지 게시 및 작업 브랜치 정리
+  cleanup:
+    name: v0.23.1 릴리스 검증 및 작업 브랜치 정리
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 10
     env:
       TARGET_SHA: a450d866cbb335c0d31276ebdd54fd55c972f983
       RELEASE_TAG: v0.23.1
+      WORK_BRANCH: fix/issue-104-context-menu-link-scope
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
 
-      - name: 릴리스 대상과 main CI 성공 확인
+      - name: 정식 릴리스 성공 검증
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git show "$TARGET_SHA:package.json" | jq -r .version)" = "0.23.1"
-          git merge-base --is-ancestor "$TARGET_SHA" origin/main
-          for _ in $(seq 1 240); do
-            runs="$(gh api -H "Accept: application/vnd.github+json" "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=50")"
-            run="$(jq -c --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
-            if [[ -n "$run" ]]; then
-              run_id="$(jq -r .id <<<"$run")"
-              status="$(jq -r .status <<<"$run")"
-              conclusion="$(jq -r '.conclusion // ""' <<<"$run")"
-              echo "main CI #$run_id: status=$status conclusion=$conclusion"
-              if [[ "$status" == "completed" ]]; then
-                test "$conclusion" = "success"
-                exit 0
-              fi
-            fi
-            sleep 15
-          done
-          echo "main CI 완료 대기 시간이 초과되었습니다." >&2
-          exit 1
-
-      - name: annotated release tag 생성 및 push
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
-            git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
-            test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$TARGET_SHA"
-          else
-            git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "Release $RELEASE_TAG"
-            git push origin "refs/tags/$RELEASE_TAG"
-          fi
+          git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          test "$(git cat-file -t "refs/tags/$RELEASE_TAG")" = "tag"
           test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$TARGET_SHA"
+          test "$(git show "$TARGET_SHA:package.json" | jq -r .version)" = "0.23.1"
 
-      - name: release image workflow 실행
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh api --method POST \
-            -H "Accept: application/vnd.github+json" \
-            "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" \
-            -f ref="$RELEASE_TAG"
-
-      - name: release image workflow 성공 확인
-        id: release
-        shell: bash
-        run: |
-          set -euo pipefail
-          for _ in $(seq 1 240); do
-            runs="$(gh api -H "Accept: application/vnd.github+json" "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=50")"
-            run="$(jq -c --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
-            if [[ -n "$run" ]]; then
-              run_id="$(jq -r .id <<<"$run")"
-              run_url="$(jq -r .html_url <<<"$run")"
-              status="$(jq -r .status <<<"$run")"
-              conclusion="$(jq -r '.conclusion // ""' <<<"$run")"
-              echo "릴리스 run $run_id: status=$status conclusion=$conclusion"
-              if [[ "$status" == "completed" ]]; then
-                test "$conclusion" = "success"
-                echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
-                echo "run_url=$run_url" >> "$GITHUB_OUTPUT"
-                exit 0
-              fi
-            fi
-            sleep 15
-          done
-          echo "릴리스 workflow 완료 대기 시간이 초과되었습니다." >&2
-          exit 1
+          runs="$(gh api -H "Accept: application/vnd.github+json" "/repos/$GITHUB_REPOSITORY/actions/runs?per_page=100")"
+          success_count="$(jq -r --arg sha "$TARGET_SHA" '
+            [.workflow_runs[]
+              | select(.name == "Publish release image")
+              | select(.event == "workflow_dispatch")
+              | select(.head_sha == $sha)
+              | select(.status == "completed")
+              | select(.conclusion == "success")]
+            | length
+          ' <<<"$runs")"
+          test "$success_count" -ge 1
 
       - name: Issue #104 작업 브랜치 삭제 및 확인
         shell: bash
         run: |
           set -euo pipefail
-          branch="fix/issue-104-context-menu-link-scope"
-          if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null 2>&1; then
-            gh api --method DELETE "/repos/$GITHUB_REPOSITORY/git/refs/heads/$branch"
+          if git ls-remote --exit-code --heads origin "refs/heads/$WORK_BRANCH" >/dev/null 2>&1; then
+            gh api --method DELETE "/repos/$GITHUB_REPOSITORY/git/refs/heads/$WORK_BRANCH"
           fi
-          if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null 2>&1; then
-            echo "작업 브랜치 삭제에 실패했습니다: $branch" >&2
+          if git ls-remote --exit-code --heads origin "refs/heads/$WORK_BRANCH" >/dev/null 2>&1; then
+            echo "작업 브랜치 삭제에 실패했습니다: $WORK_BRANCH" >&2
             exit 1
           fi
 
@@ -115,10 +62,9 @@ jobs:
         shell: bash
         run: |
           {
-            echo "## Issue #104 릴리스 완료"
+            echo "## Issue #104 cleanup 완료"
             echo
-            echo "- 릴리스 태그: `$RELEASE_TAG`"
-            echo "- 릴리스 커밋: `$TARGET_SHA`"
-            echo "- 릴리스 workflow: ${{ steps.release.outputs.run_url }}"
-            echo "- 삭제 대상 브랜치: `fix/issue-104-context-menu-link-scope`"
+            echo "- release tag: `$RELEASE_TAG`"
+            echo "- release commit: `$TARGET_SHA`"
+            echo "- deleted branch: `$WORK_BRANCH`"
           } >> "$GITHUB_STEP_SUMMARY"
