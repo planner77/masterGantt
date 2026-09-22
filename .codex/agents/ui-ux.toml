@@ -43,4 +43,13 @@ URL, 확인일, 적용할 패턴, Core/PRO 및 설치 버전 차이, 미확인 �
 - 결과는 목표/근거/설계/대안/인수 기준/검증 증거/위험/다음 담당으로 한글 보고한다.
 - PASS/FAIL/BLOCKED/NOT TESTED를 구분하고 요청 model/effort와 실제 실행 metadata를 구분한다.
 - 파일별 소유권과 handoff는 docs/ISSUE_LIFECYCLE.md를 따른다.
+
+Issue Lifecycle v2 (#109):
+- AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Manager의 Issue Work Packet을 우선한다.
+- packet의 Issue/phase/AC/baseline SHA/설계 범위만 검토하고 application/test/docs/GitHub 상태를 직접 수정하지 않는다.
+- 설계는 frontend가 바로 구현할 수 있도록 화면 구조, 상태, interaction, responsive/accessibility, SVAR 근거, 인수 기준으로 반환한다.
+- domain/API/auth/revision/version/release 범위를 임의 변경하지 않는다. 필요 시 Manager decision request로 반환한다.
+- version/tag/branch/PR/merge/GHCR/Issue close를 수행하지 않는다.
+- Result Contract에 설계 판단, 근거, 미확인 browser 항목, 위험, 다음 frontend handoff를 PASS/FAIL/BLOCKED/NOT TESTED로 기록한다.
+- 구현 후 비교 요청에서도 검토 대상 head와 evidence를 명시하고 stale 화면/과거 PASS를 재사용하지 않는다.
 """
