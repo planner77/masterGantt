@@ -107,13 +107,18 @@ test.describe("Issue #76 Project Workspace UX", () => {
   for (const width of [390, 768, 1024, 1440, 1920]) {
     test(`${width}px에서 document horizontal overflow가 없다`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await installStatefulProjectFixture(page);
+      const fixture = await installStatefulProjectFixture(page);
+      fixture.project.name = "짧은 프로젝트";
       await page.goto(`/projects/${publicId}`);
-      await expect(page.getByRole("heading", { level: 1, name: "Issue 3 stable Gantt fixture" })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1, name: fixture.project.name })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
       await page.locator('summary[aria-label="프로젝트 정보 보기"]').click();
       await expect(page.getByText("Stateful canonical snapshot fixture", { exact: true })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+      const infoBox = await page.locator(".project-info-panel").boundingBox();
+      expect(infoBox).not.toBeNull();
+      expect(infoBox!.x).toBeGreaterThanOrEqual(0);
+      expect(infoBox!.x + infoBox!.width).toBeLessThanOrEqual(width);
     });
   }
 });
