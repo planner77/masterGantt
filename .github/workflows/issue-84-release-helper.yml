@@ -57,7 +57,10 @@ jobs:
           done
           test -n "$main_ci_url"
 
-          if ! git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+          tag_existed=false
+          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            tag_existed=true
+          else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "Release $RELEASE_TAG"
@@ -73,6 +76,10 @@ jobs:
           if [[ -n "$successful" ]]; then
             release_run_url="$(jq -r .html_url <<<"$successful")"
           else
+            if [[ "$tag_existed" == "true" ]]; then
+              echo "기존 $RELEASE_TAG 태그에 동일 target의 성공 release 증거가 없습니다. 실패한 version/tag는 재사용하지 않습니다." >&2
+              exit 1
+            fi
             dispatched_after="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" -f ref="$RELEASE_TAG"
             for _ in $(seq 1 480); do
