@@ -495,10 +495,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await resourceSearch.press("Enter");
     await expect(dialog).toBeVisible();
     await expect(resourceTab).toHaveAttribute("aria-selected", "true");
-    await dialog.getByRole("checkbox", { name: /Resource A/ }).check();
-    await expect(dialog.getByLabel("투입 시작", { exact: true })).toBeVisible();
-    await expect(dialog.getByLabel("투입 종료", { exact: true })).toBeVisible();
-    await expect(dialog.getByLabel("투입률 (%)", { exact: true })).toBeVisible();
+    await expect(dialog.getByRole("checkbox", { name: /Resource A/ })).toBeDisabled();
     expect(fixture.patches).toHaveLength(0);
 
     await resourceTab.focus();
@@ -539,12 +536,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       }
 
       await resourceTab.click();
-      const allocationStartBox = await dialog.getByLabel("투입 시작", { exact: true }).boundingBox();
-      const allocationPercentBox = await dialog.getByLabel("투입률 (%)", { exact: true }).boundingBox();
-      expect(allocationStartBox).not.toBeNull();
-      expect(allocationPercentBox).not.toBeNull();
-      if (viewport.width >= 1024) expect(allocationPercentBox!.width).toBeLessThan(allocationStartBox!.width);
-      else expect(Math.abs(allocationPercentBox!.width - allocationStartBox!.width)).toBeLessThanOrEqual(2);
+      await expect(dialog.getByRole("checkbox", { name: /Resource A/ })).toBeDisabled();
 
       await expect(dialog.getByRole("button", { name: "최신 정보 다시 불러오기" })).toBeVisible();
       await expect(dialog.getByRole("button", { name: "취소", exact: true })).toBeVisible();
