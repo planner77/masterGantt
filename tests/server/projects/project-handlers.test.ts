@@ -60,7 +60,7 @@ function request(
     name: "Plant Expansion",
     description: "Phase 1",
     ownerName: "Plant Owner",
-    editPassword: "password phrase",
+    editPassword: "Pass123456!",
   }),
   headers: HeadersInit = {},
 ): Request {
@@ -168,7 +168,7 @@ describe("POST /api/projects handler", () => {
           name: "Name",
           ownerName: "Owner",
           description: "",
-          editPassword: "password phrase",
+          editPassword: "Pass123456!",
           secretExtra: "must not echo",
         })),
         status: 400,
