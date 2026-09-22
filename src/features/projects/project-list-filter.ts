@@ -1,9 +1,9 @@
-import type { ProjectListItemDto } from "@/contracts/projects";
+import type { ProjectListItemDto } from "../../contracts/projects";
 import {
   normalizeFilterText,
   textMatchesFilter,
   type TextOperator,
-} from "@/features/projects/project-search-filter";
+} from "./project-search-filter";
 
 export type ProjectDateOperator = "any" | "equals" | "before" | "after" | "range";
 
