@@ -88,3 +88,15 @@ ui_ux와 qa_docs는 읽기 중심으로 결과를 반환한다. 설계 문서 �
 새 세션/설정 reload 후 Manager는 구현 Agent에게 작업을 배정할 때 Local Fast Feedback과 Remote Required Validation을 분리해 보고하도록 한다. `infra`는 GitHub run/job/step/head SHA와 GHCR digest를 근거로 보고하고 `qa_docs`는 독립 판정한다. 지원되지 않는 모델은 조용히 대체하지 않고 Manager에게 보고한다.
 
 관련 문서: `AGENTS.md`, `docs/REMOTE_VALIDATION.md`, `docs/GITHUB_OPERATIONS.md`, `docs/CI_CD.md`, `docs/TEST_PLAN.md`.
+
+## 2026-09-22: Issue Lifecycle v2와 Agent Prompt 표준 (#109)
+
+#87에서 만든 자동 역할 선택/단계 gate를 모든 Agent의 공통 실행 계약으로 확장했다.
+
+- `docs/AGENT_PROMPTS.md`를 추가하여 Manager Work Packet, 공통 Result Contract, Domain 구현, Research/UI 설계, 독립 QA, Infra, REWORK/Resume prompt를 표준화한다.
+- `AGENTS.md`와 `docs/ISSUE_LIFECYCLE.md`는 lifecycle phase, version/release 판단, 파일 소유권, stale PASS 처리, handoff를 공통 규칙으로 정의한다.
+- 모든 `.codex/agents/*.toml`은 두 문서를 작업 전 읽고 자신의 역할 경계 안에서 packet을 수행하도록 연결한다.
+- frontend/backend/scheduler/excel_vba는 구현 및 Local Fast Feedback, researcher/ui_ux/qa_docs는 read-only, infra는 branch/PR/CI/merge/GHCR/cleanup을 담당한다.
+- application version은 실행 코드/API/DB/배포 계약을 바꾸지 않는 Agent 지침 변경이므로 `0.23.0`을 유지한다. 정식 release는 N/A이며 main workflow가 수행하는 임시 GHCR 검증은 별도 실제 결과로 확인한다.
+
+정적 TOML/문서 유효성은 실제 Sub-Agent 실행 또는 GitHub Actions PASS를 대체하지 않는다. 새 세션에서는 Work Packet이 실제 Agent에게 전달되고 Result Contract가 반환되는지 별도 실행 증거로 확인한다.
