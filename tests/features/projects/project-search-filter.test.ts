@@ -1,0 +1,117 @@
+import { describe, expect, it } from "vitest";
+
+import type { ProjectAssignmentDto } from "@/contracts/resources";
+import type { ProjectTaskDto } from "@/contracts/projects";
+import {
+  EMPTY_TASK_FILTER,
+  filterTasksWithAncestors,
+  taskMatchesFilter,
+} from "@/features/projects/project-search-filter";
+
+const tasks: ProjectTaskDto[] = [
+  {
+    taskId: "summary",
+    externalId: "WBS-1",
+    name: "Summary",
+    description: "parent",
+    type: "summary",
+    scheduleMode: "auto",
+    requestedStart: null,
+    start: "2026-09-01",
+    end: "2026-09-30",
+    duration: 22,
+    progress: 50,
+    parentExternalId: null,
+    siblingOrder: 0,
+  },
+  {
+    taskId: "child",
+    externalId: "WBS-1.1",
+    name: "Install AMR",
+    description: "Vietnam line",
+    type: "task",
+    scheduleMode: "manual",
+    requestedStart: null,
+    start: "2026-09-10",
+    end: "2026-09-15",
+    duration: 4,
+    progress: 20,
+    parentExternalId: "WBS-1",
+    siblingOrder: 0,
+  },
+  {
+    taskId: "milestone",
+    externalId: "M1",
+    name: "Acceptance",
+    description: null,
+    type: "milestone",
+    scheduleMode: "manual",
+    requestedStart: null,
+    start: "2026-10-01",
+    end: "2026-10-01",
+    duration: 0,
+    progress: 0,
+    parentExternalId: null,
+    siblingOrder: 1,
+  },
+];
+
+const assignments: ProjectAssignmentDto[] = [
+  { id: "a1", taskId: "child", target: { kind: "resource", id: "r1" } },
+  { id: "a2", taskId: "child", target: { kind: "group", id: "g1" } },
+];
+
+describe("Issue #83 project task filters", () => {
+  it("normalizes text and keeps ancestor context outside match count", () => {
+    const result = filterTasksWithAncestors(tasks, { ...EMPTY_TASK_FILTER, query: " vietnam " }, assignments);
+    expect(result.matchCount).toBe(1);
+    expect(result.tasks.map((task) => task.taskId)).toEqual(["summary", "child"]);
+  });
+
+  it("uses inclusive effective-date overlap including milestones", () => {
+    const result = filterTasksWithAncestors(tasks, {
+      ...EMPTY_TASK_FILTER,
+      dateFrom: "2026-09-30",
+      dateTo: "2026-10-01",
+      dateOperator: "overlap",
+    }, assignments);
+    expect(result.matchCount).toBe(2);
+    expect(result.tasks.map((task) => task.taskId)).toContain("milestone");
+  });
+
+  it("supports contained, start-in and end-in operators", () => {
+    for (const dateOperator of ["contained", "start-in", "end-in"] as const) {
+      const result = filterTasksWithAncestors(tasks, {
+        ...EMPTY_TASK_FILTER,
+        dateFrom: "2026-09-10",
+        dateTo: "2026-09-15",
+        dateOperator,
+      }, assignments);
+      expect(result.matchCount).toBe(1);
+      expect(result.tasks.some((task) => task.taskId === "child")).toBe(true);
+    }
+  });
+
+  it("separates assigned/unassigned and direct resource/group ANY/ALL", () => {
+    const assignedMap = new Map([["child", new Set(["resource:r1", "group:g1"])]]);
+    expect(taskMatchesFilter(tasks[1], { ...EMPTY_TASK_FILTER, assignmentState: "assigned" }, assignedMap)).toBe(true);
+    expect(taskMatchesFilter(tasks[2], { ...EMPTY_TASK_FILTER, assignmentState: "unassigned" }, assignedMap)).toBe(true);
+    expect(taskMatchesFilter(tasks[1], { ...EMPTY_TASK_FILTER, targetIds: ["resource:r1", "group:g1"], targetMode: "all" }, assignedMap)).toBe(true);
+    expect(taskMatchesFilter(tasks[1], { ...EMPTY_TASK_FILTER, targetIds: ["resource:r2", "group:g1"], targetMode: "all" }, assignedMap)).toBe(false);
+    expect(taskMatchesFilter(tasks[1], { ...EMPTY_TASK_FILTER, targetIds: ["resource:r2", "group:g1"], targetMode: "any" }, assignedMap)).toBe(true);
+  });
+
+  it("supports type, schedule mode, progress and duration ranges", () => {
+    const result = filterTasksWithAncestors(tasks, {
+      ...EMPTY_TASK_FILTER,
+      types: ["task"],
+      scheduleModes: ["manual"],
+      progressMin: 10,
+      progressMax: 30,
+      durationMin: 3,
+      durationMax: 5,
+    }, assignments);
+    expect(result.matchCount).toBe(1);
+    expect(result.tasks.map((task) => task.taskId)).toEqual(["summary", "child"]);
+  });
+});
