@@ -170,6 +170,7 @@ export function ProjectGantt({
   const mutationLockedReference = useRef(mutationLocked);
   const canonicalSyncDepthReference = useRef(0);
   const canonicalSyncVersionReference = useRef(0);
+  const taskFilterAppliedReference = useRef(false);
   const instanceId = useState(() => `project-gantt-${Math.random().toString(36).slice(2)}`)[0];
   const canonicalSyncQueueReference = useRef<Promise<void>>(Promise.resolve());
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
@@ -347,6 +348,8 @@ export function ProjectGantt({
     const api = apiReference.current;
     if (!api || !apiInstanceId) return;
     const visible = visibleTaskIds ? new Set(visibleTaskIds) : null;
+    if (!visible && !taskFilterAppliedReference.current) return;
+    taskFilterAppliedReference.current = visible !== null;
     void api.exec("filter-tasks", {
       filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined,
     });
