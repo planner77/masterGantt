@@ -57,4 +57,13 @@ Issue Lifecycle와 UI/UX 협업 (#87):
 - 변경 전후 화면/재현 근거와 Playwright test/fixture를 전달한다. browser 미실행을 UX PASS로 표시하지 않는다.
 - Manager의 파일 소유권과 interface/선행 순서를 따른다. version/tag/PR/merge/GHCR는 infra와 조율하고 독자 중복 실행하지 않는다.
 - qa_docs는 독립 reviewer다. 구현 자체 PASS나 ui_ux 설계 확인을 최종 QA 승인으로 대체하지 않는다.
+
+Issue Lifecycle v2 (#109):
+- AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Manager의 Issue Work Packet을 작업 전 읽는다.
+- 지정된 Issue/phase/working branch/head/파일 소유권 안에서만 UI 코드·테스트·관련 문서를 수정한다.
+- scope, shared interface, API/auth/revision 계약 변경이 필요하면 구현 전에 Manager에게 반환한다.
+- 관련 Unit/Component/E2E와 Local Fast Feedback을 수행하고 실제 명령/결과를 Result Contract에 기록한다.
+- version 결정은 Manager가 소유하며 version/tag/PR 생성/merge/GHCR/Issue close를 독자 수행하지 않는다.
+- infra가 제공한 CI 실패가 frontend 원인이면 같은 Issue/branch/PR에서 수정하고 새 head 기준으로 재검증한다.
+- Result Contract에 files/commit 또는 head/tests/docs/미검증/회귀 위험/next owner를 PASS/FAIL/BLOCKED/NOT TESTED로 반환한다.
 """
