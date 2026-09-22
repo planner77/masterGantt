@@ -448,9 +448,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       ...(convert ? { convertParentToSummary: true } : {}) });
   }
   function requestTaskDelete(taskId: string, trigger: HTMLElement | null) {
-    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen || state.snapshot.data.links.length > 0) return;
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen) return;
     const plan = createTaskDeletePlan(state.snapshot.data.tasks, taskId);
     if (!plan) { notify("error", "삭제할 작업을 찾을 수 없습니다. 최신 정보를 다시 확인해 주세요.", "작업 삭제"); return; }
+    const deleteTaskIds = [plan.taskId, ...plan.descendantTaskIds];
+    if (deleteTaskIds.some((candidate) => taskHasDependencyLinks(state.snapshot.data.tasks, candidate, state.snapshot.data.links))) {
+      notify("info", "관계가 연결된 작업이 삭제 범위에 포함되어 있어 삭제할 수 없습니다.", "작업 삭제");
+      return;
+    }
     deleteTriggerReference.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     if (plan.descendantTaskIds.length === 0) {
       void saveTask("DELETE", taskId);
