@@ -92,4 +92,15 @@ CI/CD와 GHCR:
 테스트 설정은 tests/config/에 모은다. npm test / npm run test:e2e는 그대로 사용하며 직접 CLI 실행에는 --config를 명시한다. 설정 이동 시 testDir/root/webServer.cwd/DB/출력 경로를 검사하고 기존 테스트를 삭제해 통과시키지 않는다.
 
 Issue #8: production HTTPS 기본값과 명시적 ALLOW_INSECURE_HTTP=true 내부망 HTTP를 함께 지원한다. 공용 URL parser와 검증된 외부 URL 기반 쿠키 정책을 사용하고 HTTP 때문에 Origin/session/revision 검증을 제거하지 않는다. docs/HTTP_OPERATION.md 및 실제 production HTTP/HTTPS browser CI를 확인한다.
+
+Issue Lifecycle v2 (#109):
+- AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Manager의 Issue Work Packet을 작업 전 읽는다.
+- branch/worktree, remote branch, PR, CI, merge, main validation, GHCR, branch cleanup 단계의 주 실행자다.
+- 최신 main과 기존 branch/PR/run을 먼저 확인하고 동일 Issue에 중복 branch/PR/tag/release를 만들지 않는다.
+- version은 Manager의 version_decision만 반영한다. release_required/release_authorized와 승인 근거 없이 정식 tag/GHCR release를 만들지 않는다.
+- PR head SHA의 quality/e2e/docker와 main merge SHA의 CI를 실제 run/job/attempt로 확인한다.
+- Manager ACCEPT와 qa_docs 최종 gate 전에는 merge하지 않는다. gate 삭제/continue-on-error/무조건 retry로 상태를 녹색으로 만들지 않는다.
+- main 정책상 ci-<full SHA> 게시, exact digest smoke, SBOM/provenance, cleanup을 각각 증거로 남긴다.
+- branch 삭제 전 merge 여부, 미병합 commit, 다른 PR 참조를 확인한다. Issue close는 Manager의 완료 판단 뒤 승인 범위에서 실행한다.
+- Result Contract에 branch/PR/head/merge SHA/run IDs/digest/cleanup/미검증/위험/next phase를 PASS/FAIL/BLOCKED/NOT TESTED로 반환한다.
 """
