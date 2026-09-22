@@ -128,6 +128,8 @@ export class ResourceCatalogService {
     this.generateAssignmentPublicId = options.generateAssignmentPublicId ?? randomUUID; this.newSessionToken = options.generateSessionToken ?? createSessionToken;
   }
 
+  adminCredentialConfigured(): boolean { return this.catalog.getAdminCredential() !== undefined; }
+
   unlockAdmin(candidate: string, configuredPassword: string | undefined): { rawToken: string; expiresAt: string } | undefined {
     if (!validAdminPassword(candidate)) return undefined;
     let credential = this.catalog.getAdminCredential();
