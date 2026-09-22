@@ -54,6 +54,7 @@ describe("migration CLI", () => {
         "0004_project_owner.sql",
         "0005_resource_workload.sql",
         "0006_work_calendars.sql",
+        "0007_resource_admin_credentials.sql",
       ],
     });
     expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
