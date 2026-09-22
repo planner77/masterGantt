@@ -30,8 +30,8 @@
 
 최종 PR 검증 기준은 **PR #73 / CI Run #387**이다. `quality`, 전체 Chromium E2E, Docker build/runtime/transport/Compose smoke가 모두 PASS했으며, hierarchy reparent는 canonical sync에서 공개 `move-task` action을 사용하고 `update-task` parent 직접 변경으로 인한 recovery remount가 발생하지 않는지를 Unit/E2E에서 고정한다.
 
-- Unit: 메뉴 enable/disable, sibling 경계, Indent/Outdent, clipboard Cut/Copy/Paste command mapping과 readonly/busy/link fail-closed를 검증한다.
-- SQLite service: Move, Indent parent Summary 전환, subtree Copy identity/shape, boundary no-op rollback, 성공당 revision +1을 검증한다. cycle/empty Summary/assignment-copy/link 구조도 회귀 범위다.
+- Unit: 메뉴 enable/disable, sibling 경계, Indent/Outdent, clipboard Cut/Copy/Paste command mapping과 readonly/busy/**선택 Task endpoint link** fail-closed를 검증한다. Issue #104 회귀로 unrelated Task에만 Link가 있는 경우 현재 Task capability가 유지되는지 별도 검증한다.
+- SQLite service: Move, Indent parent Summary 전환, subtree Copy identity/shape, boundary no-op rollback, 성공당 revision +1을 검증한다. cycle/empty Summary/assignment-copy/link 구조도 회귀 범위이며, Issue #104는 linked A↔B가 있어도 unlinked C의 hierarchy/delete mutation이 성공하고 기존 Link가 canonical response에 보존되는지 검증한다.
 - API/security: 신규 `POST /task-commands`가 route security inventory에 포함되고 Origin/session/If-Match/stale revision/Project isolation 규약을 그대로 적용하는지 검증한다.
 - Browser: Grid/Chart 우클릭과 Shift+F10, submenu keyboard focus, Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D, viewport edge, 실패 후 canonical recovery와 reload persistence를 검증한다.
 - GitHub Actions의 동일 head quality/e2e/docker가 최종 자동 판정 근거다. SVAR Willow와의 실제 시각/키보드 UX 비교는 별도 수동 확인 항목이다.
@@ -235,6 +235,7 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | UI10 | 작업공간에 접근 가능한 이름과 keyboard focus가 있고 접이식 설정·작업 control이 기존 label/status 의미를 보존 |
 | UI12 | Issue #74: Task Editor 3개 Tab, draft 보존, Arrow/Home/End keyboard, Resource/Group filter/assignment 저장 범위, 관계 2열→1열, sticky Footer, 360/768/1024/1440 horizontal overflow 없음과 기존 401/412/dirty/readonly 회귀 |
 | UI13 | Issue #96: 1440/1024px Task Editor에서 작업명·날짜·기간·진행률·Description/URL 및 Resource allocation이 역할별 content-aware 폭을 사용하고, 768/390px에서 1열 전환하며 dialog/document horizontal overflow가 없음. 기존 Task/Assignment/Relation/dirty/stale/readonly 저장 계약 회귀 포함 |
+| UI14 | Issue #104: A↔B Dependency가 있어도 unrelated C의 Context Menu mutation이 edit/busy/hierarchy 경계에 따라 활성화되고, linked A는 기존 fail-closed를 유지한다. Task Editor와 server Task/Hierarchy/Subtree Delete도 동일 task/subtree scope를 사용하며 unrelated Link를 canonical snapshot에 보존 |
 | UI11 | Issue #3 및 PR #23: 지연 POST 대기/성공 동안 동일 Gantt DOM/API, no document navigation, action 열과 scroll/tree/selection/columns 유지; 순차 추가마다 정확히 한 POST 및 canonical row/bar 한 개, root/child/팝업 없는 명시적 Summary 전환·오류 복구 회귀. [현재 UX 계약](PROJECT_UX.md), [과거 검증 기록](ISSUE_3_REVIEW.md) |
 
 ## Requirement traceability와 Release gate
