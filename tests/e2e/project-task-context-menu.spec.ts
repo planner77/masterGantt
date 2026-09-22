@@ -231,18 +231,15 @@ test("Issue #104 unrelated task context actions stay enabled when other tasks ar
   const path = new URL(page.url()).pathname;
   const api = `/api${path}`;
   const origin = new URL(page.url()).origin;
-  let current = await snapshot(page, api);
+  const current = await snapshot(page, api);
   const first = await createTask(page, api, origin, current.data.project.revision, "Linked A");
-  current = { data: first.data };
-  const second = await createTask(page, api, origin, current.data.project.revision, "Linked B");
-  current = { data: second.data };
-  const third = await createTask(page, api, origin, current.data.project.revision, "Unlinked C");
-  current = { data: third.data };
+  const second = await createTask(page, api, origin, first.data.project.revision, "Linked B");
+  const third = await createTask(page, api, origin, second.data.project.revision, "Unlinked C");
 
-  const a = current.data.tasks.find((task) => task.name === "Linked A")!;
-  const b = current.data.tasks.find((task) => task.name === "Linked B")!;
+  const a = third.data.tasks.find((task) => task.name === "Linked A")!;
+  const b = third.data.tasks.find((task) => task.name === "Linked B")!;
   const link = await page.request.post(`${api}/links`, {
-    headers: { Origin: origin, "If-Match": `"${current.data.project.revision}"` },
+    headers: { Origin: origin, "If-Match": `"${third.data.project.revision}"` },
     data: {
       predecessorExternalId: a.externalId,
       successorExternalId: b.externalId,
