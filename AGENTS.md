@@ -54,6 +54,7 @@ Manager와 모든 Sub-Agent는 CI/CD 관련 내용 중 사람이 읽는 제목·
 Issue / approved scope
 → branch/worktree
 → Local Fast Feedback
+→ DOCUMENTATION_SYNC: 관련 문서 영향 분석·갱신 또는 N/A 근거
 → push
 → Pull Request
 → GitHub Actions: quality + e2e + docker
@@ -190,7 +191,7 @@ PR과 수동 CI에는 write token/registry secret을 주지 않는다. `main` co
 - GitHub Actions e2e PASS
 - GitHub Actions docker PASS
 - Security/Error Handling 충족
-- 관련 Documentation 갱신
+- DOCUMENTATION_SYNC Gate PASS: 관련 Documentation 영향 분석, required docs 갱신 또는 N/A 근거, 코드·계약·문서 정합성 확인
 - QA Review
 - Manager Review
 
@@ -266,13 +267,13 @@ Manager와 모든 Sub-Agent는 작업 전에 [ISSUE_LIFECYCLE](docs/ISSUE_LIFECY
 Issue 기반 개발은 `docs/ISSUE_LIFECYCLE.md`를 전체 단계 Source of Truth로 하고, 실제 위임/반환 형식은 `docs/AGENT_PROMPTS.md`를 사용한다.
 
 - Manager는 작업 시작 시 실제 Issue, main SHA, 기존 branch/PR/CI, version을 조회하고 표준 **Issue Work Packet**을 만든다.
-- Packet에는 Issue/AC/scope/non-scope, lifecycle phase, baseline SHA/branch/head, version 결정, release_required/release_authorized, 파일 소유권, 테스트·문서·증거, 다음 handoff를 포함한다.
+- Packet에는 Issue/AC/scope/non-scope, lifecycle phase, baseline SHA/branch/head, version 결정, release_required/release_authorized, 파일 소유권, 테스트·required docs·문서 작성자·증거, 다음 handoff를 포함한다.
 - 모든 Sub-Agent는 Packet에 지정된 phase와 파일 범위만 수행한다. scope/interface/version/release 판단 변경이 필요하면 독자 결정하지 않고 Manager에게 반환한다.
-- frontend/backend/scheduler/excel_vba는 구현·관련 테스트·Local Fast Feedback을 담당한다. researcher/ui_ux/qa_docs는 read-only 책임을 유지한다.
+- frontend/backend/scheduler/excel_vba는 구현·관련 테스트·Local Fast Feedback을 담당한다. 그 다음 별도 DOCUMENTATION_SYNC Gate에서 문서 영향 분석과 required docs 갱신/N/A 근거를 완료한다. researcher/ui_ux/qa_docs는 read-only 책임을 유지한다.
 - version 결정과 전체 단계 전환은 Manager가 소유한다. branch/PR/CI/merge/main GHCR/branch cleanup은 infra가 실행하되 Manager gate와 승인 범위를 따른다.
 - Domain Agent는 독자적으로 version/tag/PR/merge/GHCR/Issue close를 수행하지 않는다.
-- qa_docs는 검토 대상 head SHA의 AC/code/test/docs/실제 CI를 독립 비교한다. 구현 Agent의 자체 PASS를 승인으로 사용하지 않는다.
-- REWORK/재개 시 기존 Issue/branch/PR을 재사용한다. 수정으로 head가 바뀌면 영향받는 이전 PASS는 stale이며 새 head에서 재검증한다.
+- qa_docs는 DOCUMENTATION_SYNC PASS를 선행조건으로 확인하고 검토 대상 head SHA의 AC/code/test/docs/실제 CI를 독립 비교한다. 구현 Agent의 자체 PASS를 승인으로 사용하지 않는다.
+- REWORK/재개 시 기존 Issue/branch/PR을 재사용한다. 수정으로 head가 바뀌면 영향받는 이전 PASS는 stale이며 새 head에서 재검증한다. 구현/계약 변경이 문서에 영향을 주면 이전 DOCUMENTATION_SYNC PASS도 stale이다.
 - 모든 Agent 결과는 `PASS | FAIL | BLOCKED | NOT TESTED`와 변경 파일/commit 또는 head/실제 검증/미검증/위험/다음 담당을 포함하는 Result Contract로 반환한다.
 - 병합만으로 Lifecycle을 끝내지 않는다. main CI, repository 정책상 임시 GHCR digest 검증/cleanup, 안전한 branch 정리와 Issue 종료까지 필요한 gate를 확인한다.
 - 정식 release는 `release_required=true`이면서 `release_authorized=true`인 경우에만 실행한다.
