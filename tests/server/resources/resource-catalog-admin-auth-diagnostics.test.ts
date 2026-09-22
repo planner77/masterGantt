@@ -10,7 +10,7 @@ import type { ResourceCatalogService } from "../../../src/server/resources/resou
 
 const APP_ORIGIN = "http://localhost:3000";
 const ENDPOINT = `${APP_ORIGIN}/api/resource-catalog/admin-sessions`;
-const CORRECT_PASSWORD = "correct-resource-admin-password";
+const CORRECT_PASSWORD = "Admin123456!";
 const RAW_SESSION_TOKEN = "A".repeat(43);
 
 interface HarnessOptions extends Partial<ResourceHandlerDependencies> {
@@ -25,6 +25,7 @@ function createHarness(options: HarnessOptions = {}) {
     error: (entry) => entries.push(entry),
   };
   const service = {
+    adminCredentialConfigured: () => false,
     unlockAdmin: options.unlockAdmin ?? ((candidate: string, configuredPassword: string | undefined) => (
       candidate === configuredPassword
         ? { rawToken: RAW_SESSION_TOKEN, expiresAt: "2026-09-18T04:00:00.000Z" }
@@ -106,7 +107,7 @@ describe("resource catalog administrator authentication diagnostics", () => {
   it("classifies a password mismatch while keeping the public error generic", async () => {
     const { dependencies, entries } = createHarness();
 
-    const response = await handleUnlockResourceCatalogAdmin(request({ password: "wrong-password-value" }), dependencies);
+    const response = await handleUnlockResourceCatalogAdmin(request({ password: "Wrong123456!" }), dependencies);
 
     expect(response.status).toBe(401);
     expect(await errorCode(response)).toBe("RESOURCE_ADMIN_AUTH_FAILED");
@@ -121,7 +122,7 @@ describe("resource catalog administrator authentication diagnostics", () => {
   it("distinguishes an unset administrator password without exposing it through the API", async () => {
     const { dependencies, entries } = createHarness({ adminPassword: undefined });
 
-    const response = await handleUnlockResourceCatalogAdmin(request({ password: "candidate-password-value" }), dependencies);
+    const response = await handleUnlockResourceCatalogAdmin(request({ password: "Candidate12!" }), dependencies);
 
     expect(response.status).toBe(401);
     expect(await errorCode(response)).toBe("RESOURCE_ADMIN_AUTH_FAILED");
@@ -133,9 +134,9 @@ describe("resource catalog administrator authentication diagnostics", () => {
   });
 
   it("distinguishes a configured password that violates the minimum policy", async () => {
-    const { dependencies, entries } = createHarness({ adminPassword: "too-short" });
+    const { dependencies, entries } = createHarness({ adminPassword: "" });
 
-    const response = await handleUnlockResourceCatalogAdmin(request({ password: "too-short" }), dependencies);
+    const response = await handleUnlockResourceCatalogAdmin(request({ password: "" }), dependencies);
 
     expect(response.status).toBe(401);
     expect(await errorCode(response)).toBe("RESOURCE_ADMIN_AUTH_FAILED");
@@ -196,8 +197,8 @@ describe("resource catalog administrator authentication diagnostics", () => {
   });
 
   it("never logs candidate/server passwords, Cookie, Authorization or returned session tokens", async () => {
-    const candidateSecret = "candidate-super-secret-value";
-    const serverSecret = "server-super-secret-password";
+    const candidateSecret = "Candidate12!";
+    const serverSecret = "Server12345!";
     const cookieSecret = "cookie-secret-marker";
     const authorizationSecret = "authorization-secret-marker";
     const { dependencies, entries } = createHarness({ adminPassword: serverSecret });
@@ -223,8 +224,8 @@ describe("resource catalog administrator authentication diagnostics", () => {
     const state = { logged: false };
     const { dependencies, entries } = createHarness({ adminAuthConfigurationState: state });
 
-    await handleUnlockResourceCatalogAdmin(request({ password: "wrong-password-value" }), dependencies);
-    await handleUnlockResourceCatalogAdmin(request({ password: "wrong-password-value" }), dependencies);
+    await handleUnlockResourceCatalogAdmin(request({ password: "Wrong123456!" }), dependencies);
+    await handleUnlockResourceCatalogAdmin(request({ password: "Wrong123456!" }), dependencies);
 
     expect(entries.filter((entry) => entry.event === "resource_catalog_admin_auth_configuration")).toHaveLength(1);
   });
@@ -235,7 +236,7 @@ describe("resource catalog administrator authentication diagnostics", () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const { dependencies } = createHarness({ adminAuthLogger: undefined });
 
-    const response = await handleUnlockResourceCatalogAdmin(request({ password: "wrong-password-value" }), dependencies);
+    const response = await handleUnlockResourceCatalogAdmin(request({ password: "Wrong123456!" }), dependencies);
 
     expect(response.status).toBe(401);
     expect(info).toHaveBeenCalled();
@@ -243,7 +244,7 @@ describe("resource catalog administrator authentication diagnostics", () => {
     expect(error).not.toHaveBeenCalled();
     for (const [line] of [...info.mock.calls, ...warn.mock.calls]) {
       expect(() => JSON.parse(String(line))).not.toThrow();
-      expect(String(line)).not.toContain("wrong-password-value");
+      expect(String(line)).not.toContain("Wrong123456!");
       expect(String(line)).not.toContain(CORRECT_PASSWORD);
     }
   });
