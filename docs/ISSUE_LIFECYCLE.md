@@ -67,7 +67,7 @@ PR을 조기에 만들 수 있으나 동일 이슈의 PR을 중복 생성하지 
 | 버전 결정 | Manager 승인, infra 반영 | CI_CD의 호환성 기준; package.json/lockfile/CHANGELOG 동기화 계획 |
 | branch/worktree | infra | 확인한 최신 main 기반 `fix/issue-N-...`, `feat/issue-N-...`, `docs/issue-N-...`; 기존 작업은 재사용 |
 | 구현/빠른 검증 | 지정 구현 담당 | 범위 내 diff, 회귀 테스트, 실제 실행 명령·exit 결과; version 수정도 작업 branch에서 수행 |
-| 문서 동기화 (DOCUMENTATION_SYNC) | Manager가 지정한 문서 작성자, 기본 domain Agent | 문서 영향 분석, required docs 실제 갱신 또는 N/A 근거, 코드·계약·문서 정합성; 미완료 시 QA 진입 금지 |
+| 문서 동기화 (DOCUMENTATION_SYNC) | Manager가 지정한 문서 작성자, 기본은 Work Packet 지정 구현 Agent | 문서 영향 분석, required docs 실제 갱신 또는 N/A 근거, 코드·계약·문서 정합성; 미완료 시 QA 진입 금지 |
 | QA 사전 검토 | qa_docs, UI 설계 비교는 ui_ux | 요구사항↔코드↔테스트↔문서 비교, DOCUMENTATION_SYNC 증거, 실패/미검증 목록; frontend 자체 PASS로 대체 금지 |
 | PR/CI | infra | PR head와 테스트된 merge/base ref, run/job/attempt; quality/e2e/docker 실제 성공 |
 | 병합 승인 | qa_docs 최종 검토 + Manager | 마지막 수정 이후 head의 필수 CI/검토 PASS, 미해결 차단 사항 없음, 병합 승인 범위 확인 |
@@ -241,8 +241,8 @@ Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 �
 | VERSION_DECIDED | keep/patch/minor/major 결정과 release 판단 | Manager |
 | BRANCH_READY | 최신 main 기반 Issue branch/worktree 또는 기존 branch 재사용 | infra |
 | IMPLEMENTING | 지정 파일 내 구현/테스트 변경 | Work Packet의 지정 구현 Agent(domain 또는 infrastructure-only 이슈의 infra) |
-| LOCAL_VALIDATED | 관련 Local Fast Feedback 실제 결과 | domain Agent |
-| DOCUMENTATION_SYNC | 문서 영향 분석 완료, required docs 갱신 또는 항목별 N/A 근거 기록, 코드·계약·문서 정합성 확인 | Manager가 지정한 문서 작성자; 기본은 해당 domain Agent |
+| LOCAL_VALIDATED | 관련 Local Fast Feedback 실제 결과 | Work Packet 지정 구현 Agent |
+| DOCUMENTATION_SYNC | 문서 영향 분석 완료, required docs 갱신 또는 항목별 N/A 근거 기록, 코드·계약·문서 정합성 확인 | Manager가 지정한 문서 작성자; 기본은 Work Packet 지정 구현 Agent |
 | QA_READY | DOCUMENTATION_SYNC PASS와 구현 결과/증거가 Result Contract로 전달됨 | qa_docs |
 | PR_OPEN/PR_CI | 단일 PR, 최신 head의 quality/e2e/docker | infra |
 | QA_FINAL/MERGE_READY | qa_docs 독립 판정 + Manager ACCEPT | qa_docs + Manager |
