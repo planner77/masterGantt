@@ -96,7 +96,7 @@ ui_ux와 qa_docs는 읽기 중심으로 결과를 반환한다. 설계 문서 �
 - `docs/AGENT_PROMPTS.md`를 추가하여 Manager Work Packet, 공통 Result Contract, Domain 구현, Research/UI 설계, 독립 QA, Infra, REWORK/Resume prompt를 표준화한다.
 - `AGENTS.md`와 `docs/ISSUE_LIFECYCLE.md`는 lifecycle phase, version/release 판단, 파일 소유권, stale PASS 처리, handoff를 공통 규칙으로 정의한다.
 - 모든 `.codex/agents/*.toml`은 두 문서를 작업 전 읽고 자신의 역할 경계 안에서 packet을 수행하도록 연결한다.
-- frontend/backend/scheduler/excel_vba는 구현 및 Local Fast Feedback, researcher/ui_ux/qa_docs는 read-only, infra는 branch/PR/CI/merge/GHCR/cleanup을 담당한다.
+- frontend/backend/scheduler/excel_vba는 application/domain 구현 및 Local Fast Feedback을 담당하고, infra는 workflow/Docker/Compose/GHCR 등 infrastructure-only Issue의 구현 Agent가 될 수 있으며 branch/PR/CI/merge/GHCR/cleanup 운영도 담당한다. researcher/ui_ux/qa_docs는 read-only다.
 - application version은 실행 코드/API/DB/배포 계약을 바꾸지 않는 Agent 지침 변경이므로 `0.23.0`을 유지한다. 정식 release는 N/A이며 main workflow가 수행하는 임시 GHCR 검증은 별도 실제 결과로 확인한다.
 
 정적 TOML/문서 유효성은 실제 Sub-Agent 실행 또는 GitHub Actions PASS를 대체하지 않는다. 새 세션에서는 Work Packet이 실제 Agent에게 전달되고 Result Contract가 반환되는지 별도 실행 증거로 확인한다.
@@ -105,8 +105,8 @@ ui_ux와 qa_docs는 읽기 중심으로 결과를 반환한다. 설계 문서 �
 
 Issue 조치와 Local Fast Feedback 뒤, QA 진입 전에 `DOCUMENTATION_SYNC`를 독립 Phase로 둔다.
 
-- PLAN 단계의 Work Packet에 `required_docs`와 `documentation_owner`를 지정한다.
-- 기본 작성자는 Work Packet의 지정 구현 Agent이며, infrastructure-only Issue에서는 infra가 포함될 수 있다. 공용 문서는 Manager가 단일 작성자를 지정한다.
+- PLAN 단계의 Work Packet에 `required_docs`와 `documentation_owner`를 **반드시 명시**한다. 암묵적 소유자로 진행하지 않는다.
+- 구현 결과에 직접 대응하는 문서는 지정 구현 Agent(frontend/backend/scheduler/excel_vba 또는 infrastructure-only Issue의 infra)를 기본 후보로 한다. researcher/ui_ux/qa_docs처럼 read-only Agent의 결과를 문서화해야 하는 경우에는 Manager 또는 Manager가 지정한 Write Agent를 `documentation_owner`로 지정한다. 공용 문서는 Manager가 단일 작성자를 지정한다.
 - 영향 문서를 실제 갱신하거나 항목별 `N/A` 근거를 남겨야 Gate PASS가 가능하다.
 - `qa_docs`는 문서를 직접 작성하지 않고 DOCUMENTATION_SYNC의 완결성과 코드/계약/문서 일치 여부를 독립 검토한다.
 - 구현 또는 계약이 다시 바뀌면 이전 DOCUMENTATION_SYNC PASS는 stale이며 QA 전 재수행한다.
