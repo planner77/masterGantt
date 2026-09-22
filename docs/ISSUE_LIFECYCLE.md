@@ -182,3 +182,84 @@ Secret/PAT/.env/실제 DB/runtime log를 Git/Issue/PR/artifact에 저장하지 �
 - [OpenAI Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents): 프로젝트별 Agent TOML과 AGENTS 지침 기반 위임, 실행 환경/권한 확인.
 - [OpenAI Configuration Reference](https://learn.chatgpt.com/docs/config-file/config-reference): 동시 thread 설정.
 - [GitHub Container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry): image 게시와 digest pull. 세부 release 정책은 저장소 CI_CD가 기준이다.
+
+## 9. Issue Lifecycle v2: Work Packet과 Phase Gate (#109)
+
+기존 단계/승인/GHCR 규칙을 유지하면서 모든 Agent 사이의 입력과 반환을 표준화한다. 실제 프롬프트 템플릿은 [AGENT_PROMPTS.md](AGENT_PROMPTS.md)를 사용한다.
+
+### 9.1 Lifecycle 상태
+
+Manager는 Issue마다 현재 상태를 하나만 유지한다.
+
+```text
+INTAKE
+→ ANALYSIS
+→ PLAN
+→ VERSION_DECIDED
+→ BRANCH_READY
+→ IMPLEMENTING
+→ LOCAL_VALIDATED
+→ QA_READY
+→ PR_OPEN
+→ PR_CI
+→ QA_FINAL
+→ MERGE_READY
+→ MERGED
+→ MAIN_VALIDATION
+→ MAIN_ARTIFACT_VALIDATED
+→ [RELEASE_REQUIRED] RELEASE_VALIDATION
+→ CLEANUP
+→ CLOSED
+```
+
+실패 시 `REWORK(<target phase>)`, 권한/환경으로 진행 불가하면 `BLOCKED(<reason>)`를 기록한다. 상태 이름은 진행 보고를 위한 운영 표준이며 별도 GitHub Project automation을 의미하지 않는다.
+
+### 9.2 Issue Work Packet
+
+Manager는 각 위임 전에 최소 다음을 고정한다.
+
+- repository / issue number / issue URL / lifecycle phase
+- goal / acceptance criteria / scope / non-scope / dependencies / risks
+- default branch / main SHA / working branch / working head / existing PR / CI
+- current version / version decision과 근거
+- release_required / release_authorized / 승인 근거
+- primary Agent / collaborators / writable files / read-only files / shared interface
+- Local Fast Feedback / required tests / docs / remote CI / 환경별 검증
+- predecessor result / expected output / next owner / stop conditions
+
+Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 않고 Manager에게 차이를 반환한다.
+
+### 9.3 Phase Gate
+
+| Phase | 필수 완료 조건 | 다음 단계 책임 |
+| --- | --- | --- |
+| INTAKE/ANALYSIS | 실제 Issue/main/기존 PR·branch 확인, AC/scope/non-scope | Manager |
+| PLAN | 역할, 파일 소유권, interface, 테스트/문서 계획 | Manager + domain |
+| VERSION_DECIDED | keep/patch/minor/major 결정과 release 판단 | Manager |
+| BRANCH_READY | 최신 main 기반 Issue branch/worktree 또는 기존 branch 재사용 | infra |
+| IMPLEMENTING | 지정 파일 내 코드/테스트/문서 변경 | domain Agent |
+| LOCAL_VALIDATED | 관련 Local Fast Feedback 실제 결과 | domain Agent |
+| QA_READY | 구현 결과/증거가 Result Contract로 전달됨 | qa_docs |
+| PR_OPEN/PR_CI | 단일 PR, 최신 head의 quality/e2e/docker | infra |
+| QA_FINAL/MERGE_READY | qa_docs 독립 판정 + Manager ACCEPT | qa_docs + Manager |
+| MERGED | 승인 head의 실제 merge SHA | infra |
+| MAIN_VALIDATION | merge SHA의 main CI 완료 | infra |
+| MAIN_ARTIFACT_VALIDATED | 정책상 ci-<SHA> exact digest smoke/SBOM/provenance/cleanup | infra + qa_docs |
+| RELEASE_VALIDATION | 필요한 경우 명시적 승인 기반 정식 tag/CI/GHCR | Manager + infra |
+| CLEANUP | 안전한 branch 정리, docs/evidence 최종 동기화 | infra |
+| CLOSED | 모든 필수 AC/gate와 잔여 위험 기록 | Manager |
+
+### 9.4 Agent 반환 계약
+
+모든 Agent는 Issue number, lifecycle phase, baseline SHA, 상태(PASS/FAIL/BLOCKED/NOT TESTED), findings/changes, files, commit/head, 실제 테스트/결과, 문서, 미검증, 위험, next phase/owner를 반환한다.
+
+Domain 구현 Agent가 version/tag/PR/merge/GHCR/Issue close를 독자 실행하지 않는다. infra도 Manager의 version/release/merge gate를 넘어서지 않는다. qa_docs/researcher/ui_ux는 read-only이며 쓰기 작업을 직접 수행하지 않는다.
+
+### 9.5 REWORK와 재개
+
+- 기존 Issue/branch/PR이 있으면 재사용한다.
+- 수정 후 head가 바뀌면 해당 변경에 영향을 받는 이전 CI/QA PASS는 stale이다.
+- 같은 원인 실패를 두 차례 반복하면 Manager가 가설/계획을 재검토한다.
+- 중단 후에는 Issue/PR/CI/main을 다시 읽고 현재 상태에서 남은 단계만 실행한다.
+- 이미 게시된 immutable version/tag는 재사용/덮어쓰기하지 않는다.
+- 완료 상태를 과거 대화만으로 복원하지 않는다. 원격 evidence가 기준이다.
