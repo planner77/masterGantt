@@ -11,6 +11,7 @@ import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
 import type { LinkMutationResponse, ProjectMetadataMutationResponse, ProjectSnapshotResponse, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
+import type { AssignedTargetsResponse, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
 import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
@@ -111,6 +112,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [activeView, setActiveView] = useState<"schedule" | "resources">("schedule");
   const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
   const [taskFilterOpen, setTaskFilterOpen] = useState(false);
+  const [assignedTargets, setAssignedTargets] = useState<AssignmentTargetDto[]>([]);
   const [ganttResetGeneration, setGanttResetGeneration] = useState(0);
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
@@ -127,6 +129,22 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const scheduleTabReference = useRef<HTMLButtonElement | null>(null);
   const resourceTabReference = useRef<HTMLButtonElement | null>(null);
   const actionMenuReference = useRef<HTMLDetailsElement | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/assigned-targets`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
+        const body: unknown = await response.json().catch(() => null);
+        if (!controller.signal.aborted && response.ok && body && typeof body === "object" && "data" in body) {
+          setAssignedTargets((body as AssignedTargetsResponse).data.targets);
+        }
+      } catch {
+        if (!controller.signal.aborted) setAssignedTargets([]);
+      }
+    })();
+    return () => controller.abort();
+  }, [publicId]);
 
   useEffect(() => {
     if (permission !== "edit" || permissionCheckState !== "complete" || !focusSettingsAfterUnlockReference.current) return;
@@ -629,6 +647,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           </div>
           <fieldset><legend>Task type</legend>{(["task","summary","milestone"] as const).map((type) => <label key={type}><input type="checkbox" checked={taskFilter.types.includes(type)} onChange={() => setTaskFilter((current) => ({ ...current, types: current.types.includes(type) ? current.types.filter((item) => item !== type) : [...current.types, type] }))} />{type}</label>)}</fieldset>
           <fieldset><legend>Schedule mode</legend>{(["auto","manual"] as const).map((mode) => <label key={mode}><input type="checkbox" checked={taskFilter.scheduleModes.includes(mode)} onChange={() => setTaskFilter((current) => ({ ...current, scheduleModes: current.scheduleModes.includes(mode) ? current.scheduleModes.filter((item) => item !== mode) : [...current.scheduleModes, mode] }))} />{mode}</label>)}</fieldset>
+          {assignedTargets.length > 0 ? <fieldset><legend>할당 Resource / Group</legend>
+            <label>다중 조건<select value={taskFilter.targetMode} onChange={(event) => setTaskFilter((current) => ({ ...current, targetMode: event.target.value as "any" | "all" }))}><option value="any">ANY</option><option value="all">ALL</option></select></label>
+            <div className="project-filter-targets">{assignedTargets.map((target) => {
+              const key = `${target.kind}:${target.id}`;
+              return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name}{target.code ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
+            })}</div>
+          </fieldset> : null}
         </div> : null}
         <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={visibleLinks} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
