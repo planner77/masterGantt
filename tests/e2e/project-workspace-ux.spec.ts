@@ -71,6 +71,39 @@ test.describe("Issue #76 Project Workspace UX", () => {
     page.off("framenavigated", recordNavigation);
   });
 
+  test("copy=1 진입은 overflow disclosure와 복사 Dialog를 함께 연다", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await installStatefulProjectFixture(page);
+    await page.goto(`/projects/${publicId}?copy=1`);
+
+    await expect(page.getByRole("dialog", { name: "프로젝트 복사", exact: true })).toBeVisible();
+    await expect(page.locator(".project-action-menu")).toHaveAttribute("open", "");
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "프로젝트 복사", exact: true })).toHaveCount(0);
+  });
+
+  test("unlock 성공 후 편집 종료 시 unlock Dialog가 자동 재개방되지 않는다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.sessionEditable = false;
+    await page.goto(`/projects/${publicId}`);
+
+    await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "편집 잠금 해제", exact: true }).click();
+    const unlockDialog = page.getByRole("dialog", { name: "편집 활성화", exact: true });
+    await expect(unlockDialog).toBeVisible();
+    await unlockDialog.getByLabel("편집 비밀번호", { exact: true }).fill("issue-76-password");
+    await unlockDialog.getByRole("button", { name: "편집 활성화", exact: true }).click();
+
+    await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+    await expect(unlockDialog).toHaveCount(0);
+    await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
+    await page.getByRole("button", { name: "편집 모드 종료", exact: true }).click();
+
+    await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+    await expect(unlockDialog).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "편집 잠금 해제", exact: true })).toBeVisible();
+  });
+
   for (const width of [390, 768, 1024, 1440, 1920]) {
     test(`${width}px에서 document horizontal overflow가 없다`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
