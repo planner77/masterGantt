@@ -22,7 +22,7 @@ Main Codex Thread가 Manager 역할을 수행하며, 전문 Sub-Agent에게 필�
 
 ## 2. Source of Truth
 
-상세 요구사항/설계는 `docs/**`를 따른다. 작업 전에 특히 `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/UI_UX_GUIDELINES.md`, `docs/exec-plans/active/PLAN.md`를 확인한다.
+상세 요구사항/설계는 `docs/**`를 따른다. 작업 전에 특히 `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/exec-plans/active/PLAN.md`를 확인한다.
 
 ## 3. Core Architecture and Security
 
@@ -114,7 +114,7 @@ qa_docs        → GPT-5.6 Sol / High
 
 ### frontend
 
-Next.js/React/SVAR UI를 담당한다. Frontend UI 변경 전 `docs/UI_UX_GUIDELINES.md`를 확인하고 Global/Context/View 계층, progressive disclosure, semantic interaction, responsive/accessibility 기준을 적용한다. 변경 관련 Local Fast Feedback을 수행하고 필요한 Playwright test/fixture를 갱신한 뒤 PR 원격 검증으로 전달한다. 전체 회귀는 GitHub Actions 결과로 판정한다.
+Next.js/React/SVAR UI를 담당한다. 변경 관련 Local Fast Feedback을 수행하고 필요한 Playwright test/fixture를 갱신한 뒤 PR 원격 검증으로 전달한다. 전체 회귀는 GitHub Actions 결과로 판정한다.
 
 ### backend
 
