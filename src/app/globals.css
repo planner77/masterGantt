@@ -1151,8 +1151,10 @@ h2 {
 }
 
 .project-info-panel {
-  left: 0;
+  right: 0;
+  left: auto;
   width: min(24rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
   padding: 0.875rem;
 }
 
