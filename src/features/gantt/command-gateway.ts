@@ -94,3 +94,35 @@ export function createTaskUpdateGateway(
     });
   };
 }
+
+
+export interface LinkAddEvent {
+  link: { source?: TID; target?: TID; type?: "e2s" | "s2s" | "e2e" | "s2e" };
+}
+export interface LinkDeleteEvent { id: TID }
+
+export function createLinkAddGateway(dispatch: (command: { source: TID; target: TID; type: "e2s" }) => void) {
+  const seen = new Set<string>();
+  return (event: LinkAddEvent): false => {
+    if (event.link.type !== "e2s" || event.link.source === undefined || event.link.target === undefined) return false;
+    const fingerprint = JSON.stringify([event.link.source, event.link.target, event.link.type]);
+    if (!seen.has(fingerprint)) {
+      seen.add(fingerprint);
+      queueMicrotask(() => seen.delete(fingerprint));
+      dispatch({ source: event.link.source, target: event.link.target, type: "e2s" });
+    }
+    return false;
+  };
+}
+export function createLinkDeleteGateway(dispatch: (id: TID) => void) {
+  const seen = new Set<string>();
+  return (event: LinkDeleteEvent): false => {
+    const key = String(event.id);
+    if (!seen.has(key)) {
+      seen.add(key);
+      queueMicrotask(() => seen.delete(key));
+      dispatch(event.id);
+    }
+    return false;
+  };
+}

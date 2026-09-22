@@ -127,3 +127,6 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 정상 tab 전환은 mutation/reload/navigation을 발생시키지 않으며 일정 view로 복귀했을 때 Gantt instance와 사용자의 scroll/tree/column/scale/selection state를 불필요하게 잃지 않아야 한다.
 - 390/768/1024/1440/wide viewport, keyboard/focus, Escape/focus restore, unintended document overflow를 회귀 검증한다.
 - 본 변경으로 Project revision, If-Match, canonical snapshot, permission/BFCache recheck, Resource workload API/calculation, Gantt mutation lifecycle을 변경하지 않는다.
+
+
+- **REQ-LINK-97**: 편집 권한 사용자는 Gantt에서 FS/lag=0 관계를 생성·삭제할 수 있고, 변경은 Project revision과 함께 SQLite에 원자적으로 저장되어 reload/restart 후에도 유지되어야 한다. 실패한 mutation은 로컬 ghost relation을 남기지 않는다.

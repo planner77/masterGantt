@@ -9,7 +9,7 @@ import { ProjectWorkCalendarEditor } from "@/features/projects/project-work-cale
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
-import type { ProjectMetadataMutationResponse, ProjectSnapshotResponse, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
+import type { LinkMutationResponse, ProjectMetadataMutationResponse, ProjectSnapshotResponse, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
 import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
@@ -74,6 +74,15 @@ function snapshotFromTaskMutation(value: unknown): ProjectSnapshotResponse | nul
     !Array.isArray(data.operation.deletedLinkIds)) return null;
   return { data: { project: data.project, tasks: data.tasks, links: data.links, permission: "readonly" } };
 }
+function snapshotFromLinkMutation(value: unknown): ProjectSnapshotResponse | null {
+  if (typeof value !== "object" || value === null) return null;
+  const data = (value as Partial<LinkMutationResponse>).data;
+  if (!data || typeof data !== "object" || !data.project || !Array.isArray(data.tasks) ||
+    !Array.isArray(data.links) || !Array.isArray(data.warnings) || !data.operation ||
+    !["linkCreate", "linkDelete"].includes(data.operation.kind)) return null;
+  return { data: { project: data.project, tasks: data.tasks, links: data.links, permission: "readonly" } };
+}
+
 
 type ProjectViewProps = Readonly<{ publicId: string; projectUrl?: string | null; ownerName: string }>;
 export function ProjectReadonlyView({ publicId, projectUrl = null, ownerName }: ProjectViewProps) {
@@ -440,6 +449,40 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (Object.keys(command.payload).length > 0) void saveTask("PATCH", command.taskId, command.payload);
   }
 
+  async function saveLink(method: "POST" | "DELETE", sourceTaskId?: string, targetTaskId?: string, linkId?: string) {
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return;
+    taskMutationReference.current = true; setIsSavingTask(true); clearToast();
+    try {
+      const source = sourceTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === sourceTaskId) : undefined;
+      const target = targetTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === targetTaskId) : undefined;
+      if (method === "POST" && (!source || !target)) throw new Error("TASK_MAPPING");
+      const url = method === "POST"
+        ? `/api/projects/${encodeURIComponent(publicId)}/links`
+        : `/api/projects/${encodeURIComponent(publicId)}/links/${encodeURIComponent(linkId ?? "")}`;
+      const response = await fetch(url, {
+        method, credentials: "same-origin",
+        headers: {
+          ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
+          "If-Match": revisionTag(state.snapshot.data.project.revision),
+        },
+        ...(method === "POST" ? { body: JSON.stringify({
+          predecessorExternalId: source!.externalId, successorExternalId: target!.externalId, type: "FS", lag: 0,
+        }) } : {}),
+      });
+      const body: unknown = await response.json().catch(() => null);
+      const snapshot = snapshotFromLinkMutation(body);
+      if (response.ok && snapshot && applySnapshot(snapshot)) {
+        notify("success", method === "POST" ? "작업 관계를 저장했습니다." : "작업 관계를 삭제했습니다.", "작업 관계");
+        return;
+      }
+      await handleTaskFailure(response.status, body, "작업 관계를 변경할 수 없습니다.", "작업 관계");
+    } catch {
+      await handleTaskFailure(undefined, null, "작업 관계를 변경하지 못했습니다. 최신 서버 상태로 복구합니다.", "작업 관계");
+    } finally {
+      taskMutationReference.current = false; setIsSavingTask(false);
+    }
+  }
+
   function activateWorkspaceView(view: "schedule" | "resources") {
     setActiveView(view);
     requestAnimationFrame(() => {
@@ -462,7 +505,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const { project, tasks, links } = state.snapshot.data;
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
-  const taskEditingSupported = links.length === 0;
   return <section className="project-readonly" aria-labelledby="project-heading">
     <header className="project-context-bar">
       <div className="project-context-identity">
@@ -542,11 +584,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       >
         <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{tasks.length === 0 ? "아직 등록된 작업이 없습니다." : "서버의 최신 일정 snapshot을 표시합니다."}</p></div>
           {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}</div>
-        {editing && !taskEditingSupported ? <p className="schedule-scope-note">연결이 있는 일정 편집은 다음 단계에서 지원합니다. 현재 일정은 읽기 전용으로 표시됩니다.</p> : null}
-        <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing && taskEditingSupported} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
+        <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
-          onTaskEditorOpen={openTaskEditor} onTaskDeleteRequest={requestTaskDelete} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
+          onTaskEditorOpen={openTaskEditor} onTaskDeleteRequest={requestTaskDelete} onLinkCreate={(source, target) => void saveLink("POST", source, target)} onLinkDelete={(linkId) => void saveLink("DELETE", undefined, undefined, linkId)} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
             const visibleColumnCount = Object.values(current).filter(Boolean).length;
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };

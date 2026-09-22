@@ -63,3 +63,6 @@ masterGantt의 실제 구현 경계는 다음과 같다.
 - 범위 밖: Resource leveling, 개인 휴무에 의한 Task 자동 재배치, 시간/반일 Calendar, SVAR PRO scheduling/calendar.
 
 따라서 Issue #57의 기능 완성 여부는 SVAR PRO 기능과의 parity가 아니라 [ISSUE_57_WORK_CALENDAR](ISSUE_57_WORK_CALENDAR.md)의 자체 수용 기준과 GitHub Actions 회귀 검증으로 판단한다.
+
+
+- Issue #97의 FS/lag=0 Link 생성·삭제와 서버 scheduling은 SVAR Core action interception + 자체 API/SQLite 구현이며 PRO auto-scheduling 기능에 의존하지 않는다.

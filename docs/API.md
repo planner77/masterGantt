@@ -717,3 +717,8 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste의 실제 저장 동작이고 `copy`는 source subtree에 새 taskId/externalId를 발급한다. Dependency Link가 하나라도 존재하면 기존 계층 mutation 정책과 동일하게 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`를 반환한다.
 
 경계 이동 등 현재 위치에서 의미 없는 명령은 `409 TASK_COMMAND_NOT_AVAILABLE`, 마지막 child 이동으로 빈 Summary가 생기면 `409 EMPTY_SUMMARY_NOT_ALLOWED`, Resource Assignment가 포함된 subtree Copy는 현재 `409 TASK_COPY_ASSIGNMENTS_UNSUPPORTED`다. stale revision은 `412 REVISION_MISMATCH`이며 부분 저장은 없다.
+
+
+## Issue #97 — Link mutation API (implemented)
+
+`POST /api/projects/{publicId}/links` creates an FS/lag=0 dependency and `DELETE /api/projects/{publicId}/links/{linkId}` removes it. Both require a valid edit session, exact allowed Origin and strong `If-Match`; success returns the full canonical project/tasks/links snapshot with revision +1. Unsupported dependency shapes and graph conflicts are rejected atomically.
