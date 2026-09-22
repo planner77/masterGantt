@@ -134,7 +134,7 @@ describe("resource catalog administrator authentication diagnostics", () => {
   });
 
   it("distinguishes a configured password that violates the minimum policy", async () => {
-    const { dependencies, entries } = createHarness({ adminPassword: "" });
+    const { dependencies, entries } = createHarness({ adminPassword: "1234567890123" });
 
     const response = await handleUnlockResourceCatalogAdmin(request({ password: "" }), dependencies);
 
