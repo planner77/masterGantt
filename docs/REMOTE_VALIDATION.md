@@ -5,6 +5,10 @@
 
 관련 Issue: #5
 
+## Issue #120 원격 검증
+
+동일 PR head에서 quality/e2e/docker를 모두 확인한다. E2E는 semantic token의 실제 computed color 대비, visible focus, 390/768/1024/1440 대표 폭과 기존 Task Editor/Row Menu interaction 회귀를 포함한다. main 병합 뒤에는 해당 merge SHA의 main CI와 임시 GHCR exact digest smoke/cleanup을 확인한다. 정식 0.26.0 release는 `release_required=true`이지만 별도의 명시적 `release_authorized=true` 근거가 있을 때만 annotated tag와 release-image workflow를 실행한다.
+
 ## 목적
 
 코드 변경의 공식 검증 증거를 개발자 로컬 환경이 아니라 GitHub Actions에 우선 둔다. 로컬 실행은 빠른 피드백과 재현에 사용하고, PR merge 가능 여부와 `main` artifact의 유효성은 원격 workflow 결과로 판단한다.
