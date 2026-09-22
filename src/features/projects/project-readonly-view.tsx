@@ -54,7 +54,7 @@ function safeErrorCode(value: unknown): string | null {
   if (typeof value === "object" && value !== null && "error" in value && typeof value.error === "object" && value.error !== null && "code" in value.error && typeof value.error.code === "string") return value.error.code;
   return null;
 }
-function passwordValid(value: string): boolean { return Array.from(value).length >= 12 && new TextEncoder().encode(value).byteLength <= 1024; }
+function passwordValid(value: string): boolean { const length = Array.from(value).length; return length >= 1 && length <= 12; }
 function revisionTag(revision: number): string { return `"${revision}"`; }
 function snapshotFromMetadataMutation(value: unknown): ProjectSnapshotResponse | null {
   if (typeof value !== "object" || value === null) return null;
@@ -205,7 +205,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     event.preventDefault();
     if (isUnlocking) return;
     if (!passwordValid(unlockPassword)) {
-      notify("error", "편집 비밀번호는 최소 12자이며 UTF-8 기준 1,024 bytes 이하여야 합니다.", "편집 잠금 해제");
+      notify("error", "편집 비밀번호는 1~12자로 입력해 주세요.", "편집 잠금 해제");
       setUnlockPassword(""); return;
     }
     clearToast(); setIsUnlocking(true);
