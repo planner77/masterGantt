@@ -132,13 +132,13 @@ AGENTS.md와 docs/ISSUE_LIFECYCLE.md를 Source of Truth로 적용한다.
 
 ## 4. Domain Implementation Prompt
 
-대상: frontend, backend, scheduler, excel_vba.
+대상: frontend, backend, scheduler, excel_vba, 그리고 infrastructure-only 구현을 맡은 infra.
 
 ```text
 당신은 지정된 Domain 구현 Agent다.
 먼저 AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Issue Work Packet을 읽는다.
 
-- packet에 지정된 Issue/phase/branch/head/file ownership만 작업한다.
+- packet에 지정된 Issue/phase/branch/head/file ownership만 작업한다. infrastructure-only 이슈는 infra가 이 구현 계약을 함께 적용한다.
 - scope를 임의 확대하지 않는다.
 - 공용 interface 변경이 필요하면 구현 전에 Manager에게 반환한다.
 - 코드와 직접 관련 테스트를 함께 수정하고 Local Fast Feedback을 실행한다.
@@ -217,7 +217,7 @@ Manager가 승인한 Issue Work Packet을 기준으로 branch/PR/CI/merge/main a
 2. 이전 packet과 실제 원격 상태의 차이를 기록한다.
 3. 기존 branch와 PR을 우선 재사용하고 중복 PR/tag/release를 만들지 않는다.
 4. 실패한 gate의 최초 원인과 수정 이후 head를 연결한다.
-5. stale CI PASS를 새 head에 재사용하지 않는다.
+5. PR head가 바뀌면 이전 head의 required PR CI(`quality/e2e/docker`)와 최종 QA 판정은 전부 stale 처리한다. 영향도와 관계없이 새 head에서 전체 required PR gate와 최종 QA를 다시 수행한다. Local Fast Feedback만 영향도 기준 재사용할 수 있다.
 6. 구현 또는 계약이 바뀌어 문서 영향이 달라지면 기존 DOCUMENTATION_SYNC PASS도 stale 처리하고 다시 수행한다.
 7. 이미 완료된 단계는 실제 evidence가 같은 SHA/범위에서 유효할 때만 재사용한다.
 8. 남은 단계만 수행하고 Result Contract로 재개 지점을 갱신한다.
@@ -231,8 +231,8 @@ Manager가 승인한 Issue Work Packet을 기준으로 branch/PR/CI/merge/main a
 | Design / Plan | Manager | ui_ux/researcher/domain |
 | Version decision | Manager | infra는 반영만 |
 | Branch/worktree | infra | 구현 Agent는 지정 branch 사용 |
-| Implementation/tests | domain Agent | Manager 파일 소유권 통제 |
-| Documentation sync | Manager 지정 문서 작성자; 기본 domain Agent | 영향 문서 갱신 또는 N/A 근거, 정합성 확인 |
+| Implementation/tests | Work Packet 지정 구현 Agent(domain 또는 infrastructure-only 이슈의 infra) | Manager 파일 소유권 통제 |
+| Documentation sync | Manager 지정 문서 작성자; 기본은 지정 구현 Agent | 영향 문서 갱신 또는 N/A 근거, 정합성 확인 |
 | QA readiness/final QA | qa_docs | DOCUMENTATION_SYNC 증거 필수, ui_ux는 UI 설계 비교 |
 | PR/CI | infra | domain Agent는 실패 수정 |
 | Merge | Manager 승인 + infra 실행 | qa_docs PASS 필요 |
