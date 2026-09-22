@@ -18,11 +18,11 @@
 | text | `--text-default/muted` | 기본/보조 텍스트. 상태 텍스트와 혼용하지 않음 |
 | border | `--border-default/control` | 구조 경계와 입력 control 경계를 구분 |
 | action | `--action-primary/*`, `--action-secondary/*`, `--action-selected/*` | primary action과 selected tab/row를 구분하고 selected를 색만으로 전달하지 않음 |
-| focus | `--focus-ring/outline/offset` | keyboard focus는 공통 3px outline 계약. component가 별도 파란색 outline을 만들지 않음 |
+| focus | `--focus-ring/outline/offset` | keyboard focus는 밝은 panel과 3:1 이상 대비되는 공통 3px solid outline 계약. component가 별도 파란색 outline을 만들지 않음 |
 | status | `--status-error/warning/info/success` 및 surface/border variant | 서로 다른 의미의 상태색을 하나로 합치지 않음 |
 | disabled | `--state-disabled-opacity` | native disabled/aria 의미를 유지하고 opacity만 보조 표현으로 사용 |
 
-기본 상태는 panel/default text/control border, hover는 기존 component interaction을 유지하되 의미 token을 사용한다. focus는 `--focus-outline`과 `--focus-offset`, selected는 `aria-selected` 등 의미와 `--action-selected`, disabled는 native `disabled`와 공통 opacity, error/success는 role/text와 status token을 함께 사용한다. token 정리만으로 접근성 PASS를 주장하지 않고 실제 computed style의 텍스트 대비와 keyboard focus를 측정한다.
+기본 상태는 panel/default text/control border, hover는 기존 component interaction을 유지하되 의미 token을 사용한다. focus는 `--focus-outline`과 `--focus-offset`, selected는 `aria-selected` 등 의미와 `--action-selected`, disabled는 native `disabled`와 공통 opacity, error/success는 role/text와 status token을 함께 사용한다. readonly/output 일반 텍스트는 subtle surface에서도 4.5:1 이상을 유지한다. token 정리만으로 접근성 PASS를 주장하지 않고 실제 computed style의 텍스트 대비와 keyboard focus/인접 surface 대비를 측정한다.
 
 밀도 예외: Task Editor는 Gantt 작업 밀도를 위해 기존 0.4~0.55rem control/card radius를 유지한다. Resource Catalog는 전역 `--radius`와 파생 radius로 정합화한다. Project Row Menu의 2.25rem trigger와 2.5rem menu item, Task Editor의 2.65~2.75rem control 높이는 기존 정보 밀도와 hit-area를 보존하므로 변경하지 않는다. 이 예외는 색상·focus 의미의 독자 정의를 허용하지 않는다.
 
