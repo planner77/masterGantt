@@ -36,6 +36,8 @@ import { formatIsoWeek } from "@/lib/iso-week";
 import {
   createTaskAddGateway,
   createTaskUpdateGateway,
+  createLinkAddGateway,
+  createLinkDeleteGateway,
   type LocalTaskAddCommand,
   type TaskUpdateEvent,
 } from "./command-gateway";
@@ -80,6 +82,8 @@ interface ProjectGanttProps {
   readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest) => void;
   readonly onTaskEditorOpen: (taskId: string) => void;
   readonly onTaskDeleteRequest: (taskId: string, trigger: HTMLElement | null) => void;
+  readonly onLinkCreate: (sourceTaskId: string, targetTaskId: string) => void;
+  readonly onLinkDelete: (linkId: string) => void;
   readonly columnVisibility: ProjectGridColumnVisibility;
   readonly onColumnVisibilityChange: (columnId: ProjectGridDataColumnId) => void;
   readonly tasks: readonly ProjectTaskDto[];
@@ -144,6 +148,8 @@ export function ProjectGantt({
   onTaskHierarchyCommand,
   onTaskEditorOpen,
   onTaskDeleteRequest,
+  onLinkCreate,
+  onLinkDelete,
   columnVisibility,
   onColumnVisibilityChange,
   tasks,
@@ -156,6 +162,8 @@ export function ProjectGantt({
   const onTaskEditorOpenReference = useRef(onTaskEditorOpen);
   const onTaskHierarchyCommandReference = useRef(onTaskHierarchyCommand);
   const onTaskDeleteRequestReference = useRef(onTaskDeleteRequest);
+  const onLinkCreateReference = useRef(onLinkCreate);
+  const onLinkDeleteReference = useRef(onLinkDelete);
   const canCreateReference = useRef(editable && !mutationLocked);
   const mutationLockedReference = useRef(mutationLocked);
   const canonicalSyncDepthReference = useRef(0);
@@ -191,10 +199,12 @@ export function ProjectGantt({
     onTaskEditorOpenReference.current = onTaskEditorOpen;
     onTaskHierarchyCommandReference.current = onTaskHierarchyCommand;
     onTaskDeleteRequestReference.current = onTaskDeleteRequest;
+    onLinkCreateReference.current = onLinkCreate;
+    onLinkDeleteReference.current = onLinkDelete;
     canCreateReference.current = editable && !mutationLocked;
     mutationLockedReference.current = mutationLocked;
     tasksByIdReference.current = tasksById;
-  }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, tasksById]);
+  }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkDelete, tasksById]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -209,6 +219,24 @@ export function ProjectGantt({
       // The project editor owns explicit server-confirmed saves, not Core's editor.
       return false;
     }, { tag });
+    return () => api.detach(tag);
+  }, [apiInstanceId]);
+
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    const tag = "project-link-mutations";
+    api.detach(tag);
+    const add = createLinkAddGateway(({ source, target }) => {
+      if (!canCreateReference.current) return;
+      if (typeof source === "string" && typeof target === "string") onLinkCreateReference.current(source, target);
+    });
+    const remove = createLinkDeleteGateway((id) => {
+      if (!canCreateReference.current) return;
+      if (typeof id === "string") onLinkDeleteReference.current(id);
+    });
+    api.intercept("add-link", (event) => canonicalSyncDepthReference.current > 0 ? true : add(event), { tag });
+    api.intercept("delete-link", (event) => canonicalSyncDepthReference.current > 0 ? true : remove(event), { tag });
     return () => api.detach(tag);
   }, [apiInstanceId]);
 

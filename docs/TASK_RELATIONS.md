@@ -46,3 +46,8 @@ Editor가 열린 뒤 다른 변경으로 revision이 달라지면 기존 stale �
 ## Issue #74 표시 구조 보완
 
 관계 데이터 계약과 revision 검증은 변경하지 않는다. Task Editor의 관계 정보는 별도 `관계` 탭으로 이동하며 탭에는 현재 선행+후행 관계 건수를 표시한다. wide 화면은 선행/후행을 2열로, 768px 이하에서는 1열로 stack한다. dangling reference, loading, error, empty 상태의 기존 의미와 경고 표현은 유지한다.
+
+
+## Issue #97 mutation scope
+
+Gantt link markers now support server-persisted FS/lag=0 create/delete. SVAR local actions are intercepted, sent through the protected Link API, and only the returned canonical snapshot is accepted. Task Editor remains a relation viewer; after a successful mutation it reads the same canonical links immediately.

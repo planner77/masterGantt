@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.22.0] - 2026-09-22
+
+### Added
+
+- Issue #97: Gantt의 FS/lag=0 작업 관계 생성·삭제를 보호된 Link API와 SQLite transaction에 연결하고 canonical snapshot으로 동일 SVAR instance를 동기화한다.
+- Link 생성·삭제 후 dependency graph를 재계산해 Auto Task와 downstream 일정 및 Summary 파생값을 갱신하며, cycle/self/duplicate/Summary endpoint/Manual conflict를 원자적으로 거부한다.
+- `POST /api/projects/{publicId}/links`와 `DELETE /api/projects/{publicId}/links/{linkId}`에 edit session, exact Origin, strong If-Match, Project isolation을 적용한다.
+
+### Changed
+
+- 사용자 기능/API 확장이므로 Semantic Versioning 정책에 따라 `0.21.1`에서 `0.22.0`으로 증가한다.
+
 이 프로젝트의 주요 변경은 Semantic Versioning과 [CI/CD 정책](docs/CI_CD.md)에 따라 기록한다.
 
 ## [Unreleased]

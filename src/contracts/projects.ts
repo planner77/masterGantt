@@ -277,3 +277,27 @@ export interface ApiErrorResponse {
     requestId: string;
   };
 }
+
+
+export interface CreateLinkRequest {
+  predecessorExternalId: string;
+  successorExternalId: string;
+  type: "FS";
+  lag: 0;
+}
+
+export type LinkMutationKind = "linkCreate" | "linkDelete";
+
+export interface LinkMutationResponse {
+  data: {
+    project: ProjectDto;
+    tasks: ProjectTaskDto[];
+    links: ProjectLinkDto[];
+    warnings: ScheduleWarningDto[];
+    operation: {
+      kind: LinkMutationKind;
+      changedTaskExternalIds: string[];
+      deletedLinkIds: string[];
+    };
+  };
+}

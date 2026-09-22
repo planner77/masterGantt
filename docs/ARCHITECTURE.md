@@ -130,3 +130,8 @@ Frontend shell은 **Global App Shell → Entity Context → Workspace View** 3�
 - Resource workload API, edit-session, If-Match/revision, canonical snapshot, Scheduling Domain 경계는 UI 재배치와 독립적으로 유지한다.
 
 Frontend 레이아웃과 interaction 상세 기준은 [UI/UX Guidelines](UI_UX_GUIDELINES.md)를 Source of Truth로 사용한다.
+
+
+### Link command vertical slice (#97)
+
+SVAR `add-link`/`delete-link` actions are intercepted before local commit. The Project workspace calls protected Link routes; `LinkService` validates the project graph, recalculates schedules and summaries, persists Link/Task/Project revision atomically, and returns the canonical snapshot for in-place Gantt synchronization.

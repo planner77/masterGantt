@@ -334,3 +334,8 @@ PR #66 최종 검증 기준은 CI Run #350이며 quality, Chromium E2E 50/50, Do
 - `Add` hover와 keyboard focus/ArrowRight에서만 submenu가 표시되고, Escape 후 reopen 시 이전 submenu 상태가 남지 않는지 검증한다.
 - Issue #72의 Add / Convert to / Edit / Cut / Copy / Paste / Move / Indent / Outdent / Delete 회귀 테스트를 함께 유지한다.
 - 공식 완료 판정은 동일 PR head SHA의 GitHub Actions `quality`, `e2e`, `docker` PASS와 merge 후 main GHCR exact-digest smoke 결과를 사용한다.
+
+
+### Issue #97 Link persistence
+
+Regression scope includes link command deduplication, protected POST/DELETE contracts, graph validation, revision +1/rollback, SQLite reopen and Docker volume restart persistence, Task Editor relation visibility, and preservation of the mounted Gantt instance during canonical synchronization.

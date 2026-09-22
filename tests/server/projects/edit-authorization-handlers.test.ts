@@ -425,6 +425,8 @@ describe("route security inventory", () => {
       "DELETE /api/projects/{publicId}/edit-sessions/current",
       "PUT /api/projects/{publicId}/edit-password",
       "POST /api/projects/{publicId}/tasks",
+      "POST /api/projects/{publicId}/links",
+      "DELETE /api/projects/{publicId}/links/{linkId}",
       "POST /api/projects/{publicId}/task-commands",
       "PATCH /api/projects/{publicId}/tasks/{taskId}",
       "DELETE /api/projects/{publicId}/tasks/{taskId}",
