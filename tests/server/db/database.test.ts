@@ -128,6 +128,7 @@ describe("SQLite connection and schema", () => {
         "0004_project_owner.sql",
         "0005_resource_workload.sql",
         "0006_work_calendars.sql",
+        "0007_resource_admin_credentials.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
