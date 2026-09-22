@@ -79,6 +79,8 @@ export interface AssignmentTargetDto {
   id: string;
   name: string;
   code: string | null;
+  /** Included by public assigned-target metadata for Project-local search. Optional keeps older fixtures compatible. */
+  description?: string;
   active: boolean;
 }
 
