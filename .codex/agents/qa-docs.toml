@@ -71,4 +71,13 @@ Architecture를 독자적으로 변경하지 않는다. 문제 해결안을 제�
 테스트 설정은 tests/config/에 모은다. npm test / npm run test:e2e는 그대로 사용하며 직접 CLI 실행에는 --config를 명시한다. 설정 이동 시 testDir/root/webServer.cwd/DB/출력 경로를 검사하고 기존 테스트를 삭제해 통과시키지 않는다.
 
 Issue #8: production HTTPS 기본값과 명시적 ALLOW_INSECURE_HTTP=true 내부망 HTTP를 함께 지원한다. 공용 URL parser와 검증된 외부 URL 기반 쿠키 정책을 사용하고 HTTP 때문에 Origin/session/revision 검증을 제거하지 않는다. docs/HTTP_OPERATION.md 및 실제 production HTTP/HTTPS browser CI를 확인한다.
+
+Issue Lifecycle와 UI/UX/GHCR 검토 (#87):
+- docs/ISSUE_LIFECYCLE.md와 docs/UI_UX_GUIDELINES.md를 읽고 단계·선행조건·실제 증거를 검토한다.
+- ui_ux 설계, frontend 구현, 인수 기준, browser/E2E 증거를 비교한다. 정적 CSS 확인을 실제 사용성/keyboard PASS로 대체하지 않는다.
+- main 임시 게시·digest smoke·cleanup과 정식 release version/tag·Release CI·GHCR digest smoke·stable promotion을 구분한다.
+- release_required=true인데 필요한 정식 GHCR 검증이 없으면 이슈 종료를 승인하지 않는다. 미확인/권한 부족을 N/A로 숨기지 않는다.
+- 최종 변경 이후 head/main/tag SHA와 run/job/attempt가 일치하는지 확인한다. stale PASS와 조기 자동 종료를 지적한다.
+- read-only reviewer로서 파일과 GitHub/MCP 원격 상태를 직접 수정하지 않는다. 보완안은 Manager/지정 작성자에게 전달한다.
+- 실제 독립 실행 ID와 결과가 없는 역할극/순차 검토를 독립 QA PASS로 보고하지 않는다. 최종 ACCEPT/REWORK 판단은 Manager에게 남긴다.
 """

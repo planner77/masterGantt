@@ -1,5 +1,42 @@
 # Agent configuration validation
 
+## 2026-09-22: UI/UX 전담 역할과 Issue Lifecycle (#87)
+
+### 결정과 책임
+
+#74/#75/#76의 편집창·목록·Workspace 요구는 개별 UI 구현을 넘어 정보 구조, action/status 계층과 화면 간 일관성을 다룬다. 기존 frontend와 설계 책임을 분리하기 위해 `ui_ux`를 추가한다. 작은 문구/CSS 수정은 frontend가 UI/UX를 겸임하여 불필요한 Agent 실행을 줄인다.
+
+| 역할 | 현재 요청 설정 | 책임 경계 |
+| --- | --- | --- |
+| Main / Manager | 기존 gpt-6-astra / high 유지 | Issue 분석·자동 배분·단계/파일 소유권·버전/승인·최종 판단 |
+| ui_ux | gpt-5.6-terra / high / read-only | 정보 구조·interaction·반응형·접근성 설계와 구현 증거 비교 |
+| frontend | 기존 gpt-5.6-terra / medium 유지 | UI/test 구현, 작은 변경의 UI/UX 겸임, browser 증거 |
+| infra | 기존 gpt-6-astra / high 유지 | branch/PR/CI/merge 및 main/정식 GHCR 게시·digest 검증 |
+| qa_docs | 기존 gpt-5.6-sol / high / read-only 유지 | 요구사항/코드/테스트/문서/UI·GHCR 증거 독립 검토 |
+
+researcher/backend/scheduler/excel_vba의 기존 모델·effort·domain 책임은 유지한다. 전문 역할은 총 8개이며 동시 실행 한도는 기존 6이다. 역할 수와 동시 실행 수는 다르다. 별도의 Manager Sub-Agent는 만들지 않는다.
+
+### 실행 규칙의 연결
+
+- [AGENTS.md](../AGENTS.md): 모든 역할의 공통 진입점과 Manager의 명시적 위임 지시.
+- [ISSUE_LIFECYCLE.md](ISSUE_LIFECYCLE.md): 선택표, 위임/반환 계약, 파일 소유권, 단계 gate, REWORK/재개, GHCR 게시와 종료 조건.
+- [UI_UX_GUIDELINES.md](UI_UX_GUIDELINES.md): #76 UX-01~12 선행 기준과 SVAR demo/API 확인, 상태·접근성·반응형 검증.
+- [.codex/agents/ui-ux.toml](../.codex/agents/ui-ux.toml): 새 역할의 Source of Truth. frontend/qa_docs 설정에도 협업 계약을 연결한다.
+
+ui_ux와 qa_docs는 읽기 중심으로 결과를 반환한다. 설계 문서 반영은 Manager/지정 작성자, UI/test 수정은 frontend다. GHCR 게시에 새 Agent를 추가하지 않고 기존 infra에 배정한다. 정식 release가 필요한 이슈는 version/tag/Release CI/digest 검증 전 종료하지 않는다. 임시 ci-image는 정식 배포 이미지가 아니다.
+
+### 설정과 실제 실행의 구분
+
+공식 [Subagents](https://learn.chatgpt.com/docs/agent-configuration/subagents) 문서에서 프로젝트 `.codex/agents/*.toml`, name/description/developer_instructions, AGENTS 지침에 따른 위임을 확인했다. name이 역할 ID이며 파일명과 하이픈/밑줄이 달라도 된다. 기존 `.codex/config.toml`의 `max_concurrent_threads_per_session = 6`과 Manager 설정은 변경하지 않는다.
+
+새 세션에서 프로젝트 설정이 로드되고 ui_ux가 선택 가능한지, 실제 model/effort와 read-only 경계, 위임/반환/종료를 확인해야 한다. 설정/정적 검사만으로 model access나 독립 실행을 입증하지 않는다. 읽기 전용 sandbox가 connector 쓰기 권한까지 강제한다고 가정하지 않는다.
+
+최초 `c69f0b7` 변경은 지침/Agent 설정만 포함했다. 이후 사용자가 남은 병합·main 검증·브랜치 정리를 요청하여 [Issue #87 한정 cleanup workflow](../.github/workflows/issue-87-branch-cleanup.yml)와 [회귀 스크립트](../scripts/verify-issue-87-cleanup.py)를 추가했다. 따라서 최종 변경을 workflow/권한 변경이 없는 것으로 설명하지 않는다. 신규 cleanup job은 `contents: write`, `actions: read`, `pull-requests: read`를 사용하고 별도 PR validation은 `contents: read`만 사용한다. 대상은 PR #88의 고정 작업 브랜치 하나이며 실제 main CI/GHCR 성공·merge commit·검증 SHA를 확인한 뒤에만 조건부 삭제한다. 기존 `ci.yml`/`release-image.yml`, 제품 version/source/API/DB, Secrets·보호 설정과 정식 release는 변경하지 않는다. 운영 계약은 [CI_CD.md](CI_CD.md) 9절, 검증은 [REMOTE_VALIDATION.md](REMOTE_VALIDATION.md)와 [TEST_PLAN.md](TEST_PLAN.md), 후속 범위는 [ISSUE_87_COMPLETION.md](ISSUE_87_COMPLETION.md)를 따른다.
+
+정적 검사·PR CI·main 임시 GHCR·실제 branch 정리·실제 Agent 실행은 별도 상태로 Issue/PR에 기록한다. Sub-Agent 도구가 없는 세션의 순차 검토를 독립 qa_docs 실행으로 표시하지 않는다. 이 문서 작성은 #76의 실제 Workspace 구현 완료가 아니다.
+
+아래 2026-09-12 절은 기존 결정 이력이다.
+
 ## 2026-09-12: GitHub-first validation 적용
 
 코드 변경 검증 정책을 로컬 전체 실행 중심에서 GitHub Actions 중심으로 전환했다. 상세 정책은 `docs/REMOTE_VALIDATION.md`가 Source of Truth다.

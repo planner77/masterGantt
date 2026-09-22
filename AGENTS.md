@@ -22,7 +22,7 @@ Main Codex Thread가 Manager 역할을 수행하며, 전문 Sub-Agent에게 필�
 
 ## 2. Source of Truth
 
-상세 요구사항/설계는 `docs/**`를 따른다. 작업 전에 특히 `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/exec-plans/active/PLAN.md`를 확인한다.
+상세 요구사항/설계는 `docs/**`를 따른다. 작업 전에 특히 `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/UI_UX_GUIDELINES.md`, `docs/exec-plans/active/PLAN.md`를 확인한다.
 
 ## 3. Core Architecture and Security
 
@@ -63,6 +63,10 @@ Issue / approved scope
 → GHCR 임시 ci-<full SHA> 게시
 → exact digest pull smoke
 → 임시 ci-<full SHA> package version 삭제
+→ [release_required] 명시적 release_authorized 승인 확인 (미승인 시 BLOCKED)
+→ [release_required && release_authorized] annotated version tag / Release CI
+→ [release_required && release_authorized] 정식 GHCR 게시 / exact digest smoke / stable promotion
+→ 완료 증거 / 작업 브랜치 정리 / Issue 종료
 ```
 
 ### Local Fast Feedback
@@ -92,6 +96,7 @@ GitHub-hosted runner로 대체할 수 없는 Windows Excel/VBA/DRM, 실제 rever
 ```text
 Main / Manager → GPT-6 Astra / High
 researcher     → GPT-5.6 Terra / Medium
+ui_ux          → GPT-5.6 Terra / High
 frontend       → GPT-5.6 Terra / Medium
 backend        → GPT-5.6 Sol / High
 scheduler      → GPT-6 Astra / High
@@ -112,9 +117,13 @@ qa_docs        → GPT-5.6 Sol / High
 
 공식 문서, SVAR/Next.js/SQLite/Docker/Excel 제약, library/version/license, scheduling algorithm을 조사한다. Architecture를 임의 결정하거나 구현 코드를 수정하지 않는 것을 기본으로 한다.
 
+### ui_ux
+
+정보 구조, 화면 배치, interaction, 반응형·접근성, 여러 화면의 일관성을 설계하고 구현 증거와 비교하는 read-only 역할이다. 코드/테스트 구현은 frontend, 문서 반영은 Manager 또는 지정 작성자, 독립 QA는 qa_docs가 담당한다. `docs/UI_UX_GUIDELINES.md`와 공식 SVAR demo/API를 참조한다.
+
 ### frontend
 
-Next.js/React/SVAR UI를 담당한다. 변경 관련 Local Fast Feedback을 수행하고 필요한 Playwright test/fixture를 갱신한 뒤 PR 원격 검증으로 전달한다. 전체 회귀는 GitHub Actions 결과로 판정한다.
+Next.js/React/SVAR UI를 담당한다. 변경 관련 Local Fast Feedback을 수행하고 필요한 Playwright test/fixture를 갱신한 뒤 PR 원격 검증으로 전달한다. 전체 회귀는 GitHub Actions 결과로 판정한다. 작은 UI 수정은 UI/UX를 겸임하고, 구조/interaction/접근성 변경은 ui_ux 설계와 공통 가이드를 따른다.
 
 ### backend
 
@@ -200,7 +209,10 @@ Manager는 다음을 구분하여 한글 제목과 설명으로 보고한다. CI
 GitHub 품질 검사 (quality)
 GitHub E2E 검사 (e2e)
 GitHub Docker 스모크 검사 (docker)
-main GHCR digest 스모크 검사
+main GHCR digest 스모크 검사 / 임시 이미지 정리
+정식 GHCR 게시 / version tag / Release CI / digest / promotion
+실제 Agent 실행 방식 / 독립 QA 여부
+작업 브랜치 정리 / Issue 상태
 환경별 별도 검증
 갱신 문서
 결정 사항
@@ -232,3 +244,19 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## 내부망 HTTP 운영 (#8)
 
 Issue #8: production HTTPS 기본값과 명시적 ALLOW_INSECURE_HTTP=true 내부망 HTTP를 함께 지원한다. 공용 URL parser와 검증된 외부 URL 기반 쿠키 정책을 사용하고 HTTP 때문에 Origin/session/revision 검증을 제거하지 않는다. docs/HTTP_OPERATION.md 및 실제 production HTTP/HTTPS browser CI를 확인한다.
+
+## 11. Manager Issue Lifecycle 자동 위임 (#87)
+
+Manager와 모든 Sub-Agent는 작업 전에 [ISSUE_LIFECYCLE](docs/ISSUE_LIFECYCLE.md)를 읽는다. 사용자가 Issue 처리를 요청하면 Manager는 실제 Issue/코드/PR/CI 상태를 읽고, 문서의 역할 선택표에 따라 필요한 전문 Sub-Agent를 자동 선택·위임한다. 분석만 요청한 작업을 구현/게시로 확대하지 않는다.
+
+- Manager는 단계·인수 기준·release_required·release_authorized와 승인 근거·버전 결정·파일 소유권·의존성을 확정하고 위임/반환 계약을 전달한다. 별도의 Manager Sub-Agent를 만들지 않고 Main Thread가 통합한다.
+- 복합 UI/UX 설계는 ui_ux, 구현은 frontend다. 사소한 문구/CSS 변경은 frontend가 UI/UX를 겸임하며 [UI_UX_GUIDELINES](docs/UI_UX_GUIDELINES.md)를 따른다. 유사 SVAR 공식 demo와 Core/API/설치 버전 차이를 확인한다.
+- 병렬 실행은 독립 작업에 한정한다. 동시 한도 6과 실제 runtime 제한을 준수하고 동일 파일 동시 쓰기, 중복 PR/version/tag, 무단 재귀 위임을 금지한다.
+- infra는 branch/PR/CI/merge, main 임시 GHCR 게시·digest 검증·정리, 명시적으로 승인된 정식 version tag/Release CI/GHCR 게시·digest 검증을 담당한다. qa_docs는 각각의 실제 근거를 독립 확인하고 Manager가 승인 범위 안에서 판단한다.
+- GHCR 게시 단계는 Lifecycle에 포함하되 정식 릴리스 필요성(release_required)과 명시적 게시 승인(release_authorized)은 별개다. 단순 '전체 Lifecycle 진행'만으로 정식 릴리스 범위나 승인을 간주하지 않는다. 사용자 또는 지정 maintainer의 명확한 정식 GHCR 게시 요청/승인 근거가 있어야 annotated tag·정식 게시·rolling tag 변경을 실행한다. 이미 확인한 동일 범위의 승인은 반복 요청하지 않는다. 필요한 릴리스의 승인이 없으면 BLOCKED/승인 대기로 남긴다.
+- 문서/Agent 지침만의 변경은 제품 영향이 없음을 확인해 application version 유지와 정식 release N/A를 기록할 수 있다. Lifecycle 문서 수정 요청 자체를 제품 릴리스 승인으로 해석하지 않으며 실제 main 임시 GHCR workflow 결과는 생략하지 않는다.
+- 필요한 GHCR 게시·검증과 main gate가 남아 있으면 병합만으로 이슈를 종료하지 않는다. PR에는 조기 자동 종료 대신 Refs 연결을 사용한다. 안전한 branch 정리와 완료 증거를 남긴 뒤 승인 범위에서 종료한다.
+- 도구 부재 시 단일 에이전트 순차 처리임을 밝히고 독립 Sub-Agent/QA 실행을 주장하지 않는다. 필수 독립 검토나 CI/GHCR 증거가 없으면 해당 gate를 BLOCKED/NOT TESTED로 남긴다. TOML 존재는 runtime 검증이 아니다.
+- CI 실패는 근거에 따라 담당 Agent에 REWORK하고, 중단/추가 요청은 Issue/PR에 재개 지점을 기록한다. main PASS, 정식 GHCR PASS, 실제 운영 배포는 서로 대체하지 않는다.
+
+이 지침은 기존 CI/보안/권한 gate를 완화하거나 GitHub에서 상시 Agent 서버를 실행하는 설정이 아니다. 모델·effort·동시 실행 제한의 실제 적용은 사용하는 Codex 환경에서 별도 확인한다.
