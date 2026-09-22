@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.25.0] - 2026-09-23
+
+### Added
+
+- Issue #84: Project List에 프로젝트명·소유자·설명 Quick Search와 typed 고급 필터를 추가한다.
+- 고급 필터는 프로젝트명/소유자/설명 text operator, 소유자 지정 여부, 생성일/최근 변경일의 browser-timezone 날짜 조건을 지원한다.
+- 전체 수/일치 수, 검색 결과 0건 전용 상태, 조건별 삭제·전체 초기화, Escape focus 복귀와 responsive 접근성 계약을 추가한다.
+
+### Changed
+
+- Issue #83의 text normalization/operator primitive를 Task/Project filter가 공유하도록 분리하고 Project 전용 predicate는 독립 adapter로 유지한다.
+- 검색은 client-side read-only view state이며 Project API/DB/revision과 기존 Row Action 정렬·mutation 계약을 변경하지 않는다.
+- 사용자 기능 확장이므로 현재 main `0.23.1` 및 병행 중인 `0.24.0` 후보와 충돌하지 않도록 다음 MINOR 버전 `0.25.0`을 사용한다.
+
 ## [0.23.2] - 2026-09-23
 
 ### Fixed
