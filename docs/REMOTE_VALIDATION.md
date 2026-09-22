@@ -142,3 +142,18 @@ GitHub-hosted runner가 접근할 수 없는 사내 시스템, Windows Excel/DRM
 Manager는 PR #88에 `merge_method=merge`와 최종 expected_head_sha를 사용한다. squash/rebase는 지원하지 않으므로 임의로 ancestry gate를 제거하지 않는다. cleanup의 단일 삭제 refspec은 명시적 SHA lease를 사용하며 별도 GET 뒤 REST 무조건 DELETE로 fallback하지 않는다. 권한 부족·lease 실패·새 commit·누락 gate는 FAIL/BLOCKED로 남기고 강제 삭제하지 않는다.
 
 infra는 main run/merge SHA, GHCR digest·smoke·package 정리, cleanup run과 최종 ref 404를 기록한다. 독립 검토가 이를 확인한 뒤 Manager가 종료를 판단한다. 다른 main run은 no-op이며 이미 없는 branch는 재삭제하지 않는다. 대상 이름을 재사용하지 않고 workflow 퇴역은 증거 보존 후 별도 검토된 운영 변경으로만 수행한다. 이번 완료 기준은 이 한정 절차를 일반 브랜치 자동 삭제나 제품 릴리스 승인으로 확대하지 않는다.
+
+## Issue #76 원격 릴리스 검증
+
+Issue #76의 제품 변경은 PR의 `quality/e2e/docker` PASS만으로 완료하지 않는다. 사용자 요청으로 정식 GHCR 게시가 승인된 범위이므로 아래 원격 증거를 모두 확인한다.
+
+1. 최종 PR head SHA에서 `quality`, Chromium E2E, Docker smoke가 모두 PASS인지 확인한다.
+2. PR 병합 후 실제 `main` merge SHA의 CI가 PASS인지 확인한다. `publish-commit-image`가 게시한 임시 `ci-<full SHA>` image의 exact digest pull/smoke와 package version 정리 결과를 같은 run에서 확인한다.
+3. `v0.21.0` annotated tag가 실제 merge SHA를 가리키는지 확인한다.
+4. `release-image.yml`은 `v0.21.0` ref로 실행하며, helper가 기록한 dispatch 시각 이후 생성되고 `head_branch=v0.21.0`, `head_sha=<merge SHA>`인 성공 run만 이번 정식 릴리스 PASS로 인정한다.
+5. helper 재실행 시 tag가 이미 존재하면 동일 target의 성공 release run을 확인한 경우에만 release 단계를 skip하고 cleanup/Issue 종료를 재개할 수 있다. 성공 증거가 없는 기존 tag는 FAIL이다.
+6. branch cleanup은 HTTP 404인 branch만 이미 없는 것으로 간주한다. API 401/403/429/5xx, 보호 branch, 열린 PR 참조, tip 변경, SHA lease 실패는 FAIL/BLOCKED이며 Issue를 닫지 않는다.
+7. Issue #76 종료 댓글에는 버전, main CI URL, 정식 release run URL, 삭제/보존 branch를 기록한다.
+
+Workflow 파일의 존재나 과거 성공 run은 현재 head의 PASS를 대신하지 않는다. release/tag/GHCR/branch cleanup/Issue 종료는 각 단계의 실제 GitHub 원격 증거로 판정한다.
+
