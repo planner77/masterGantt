@@ -8,6 +8,26 @@
 
 아래 기준은 외부 디자인 시스템을 그대로 도입하라는 요구가 아니라 masterGantt의 설계 선택이다. 기존 shadcn/ui와 SVAR Core를 우선하고 스타일을 이유로 새 UI framework를 추가하지 않는다. 기존 화면을 일괄 수정하지 않고 승인된 이슈 범위부터 적용한다.
 
+## Semantic UI token과 상태 규칙 (Issue #120)
+
+기존 파란색 업무 UI와 시스템 한국어 폰트를 유지한다. palette primitive(`--background`, `--card`, `--foreground`, `--border`, `--primary`, `--ring`)를 직접 없애지 않고, 화면 구현은 의미를 드러내는 아래 alias를 우선 사용한다.
+
+| 의미 | token | 사용 규칙 |
+| --- | --- | --- |
+| surface | `--surface-page/panel/subtle` | page, card/dialog, readonly/subtle 배경 |
+| text | `--text-default/muted` | 기본/보조 텍스트. 상태 텍스트와 혼용하지 않음 |
+| border | `--border-default/control` | 구조 경계와 입력 control 경계를 구분 |
+| action | `--action-primary/*`, `--action-secondary/*`, `--action-selected/*` | primary action과 selected tab/row를 구분하고 selected를 색만으로 전달하지 않음 |
+| focus | `--focus-ring/outline/offset` | keyboard focus는 공통 3px outline 계약. component가 별도 파란색 outline을 만들지 않음 |
+| status | `--status-error/warning/info/success` 및 surface/border variant | 서로 다른 의미의 상태색을 하나로 합치지 않음 |
+| disabled | `--state-disabled-opacity` | native disabled/aria 의미를 유지하고 opacity만 보조 표현으로 사용 |
+
+기본 상태는 panel/default text/control border, hover는 기존 component interaction을 유지하되 의미 token을 사용한다. focus는 `--focus-outline`과 `--focus-offset`, selected는 `aria-selected` 등 의미와 `--action-selected`, disabled는 native `disabled`와 공통 opacity, error/success는 role/text와 status token을 함께 사용한다. token 정리만으로 접근성 PASS를 주장하지 않고 실제 computed style의 텍스트 대비와 keyboard focus를 측정한다.
+
+밀도 예외: Task Editor는 Gantt 작업 밀도를 위해 기존 0.4~0.55rem control/card radius를 유지한다. Resource Catalog는 전역 `--radius`와 파생 radius로 정합화한다. Project Row Menu의 2.25rem trigger와 2.5rem menu item, Task Editor의 2.65~2.75rem control 높이는 기존 정보 밀도와 hit-area를 보존하므로 변경하지 않는다. 이 예외는 색상·focus 의미의 독자 정의를 허용하지 않는다.
+
+#120 범위는 Task Editor, Resource Catalog Admin, Project Row Actions, Workspace Feedback 및 이들이 참조하는 전역 semantic token이다. #74/#75/#76/#96의 구조를 되돌리거나 전역 재스타일하지 않는다.
+
 ## 공통 원칙
 
 | ID | 기준 | 설계/검토 질문 |
