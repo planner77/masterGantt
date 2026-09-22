@@ -59,38 +59,76 @@ jobs:
           echo "main CI 완료 대기 시간이 초과되었습니다." >&2
           exit 1
 
+      - name: 기존 태그와 성공 릴리스 증거 확인
+        id: release_state
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "already_successful=false" >> "$GITHUB_OUTPUT"
+          echo "run_url=" >> "$GITHUB_OUTPUT"
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            exit 0
+          fi
+
+          git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          tag_commit="$(git rev-parse "$RELEASE_TAG^{commit}")"
+          if [[ "$tag_commit" != "$TARGET_SHA" ]]; then
+            echo "기존 태그가 현재 릴리스 대상과 다릅니다: $RELEASE_TAG -> $tag_commit" >&2
+            exit 1
+          fi
+
+          runs="$(gh api -H "Accept: application/vnd.github+json" "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?per_page=100")"
+          successful="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG"             '[.workflow_runs[]
+              | select(.head_sha == $sha and .head_branch == $tag and .status == "completed" and .conclusion == "success")]
+             | sort_by(.created_at) | last // empty' <<<"$runs")"
+          if [[ -n "$successful" ]]; then
+            echo "기존 정식 릴리스 성공 증거를 확인했습니다. 게시를 반복하지 않고 정리 단계를 재개합니다."
+            echo "already_successful=true" >> "$GITHUB_OUTPUT"
+            echo "run_url=$(jq -r .html_url <<<"$successful")" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "기존 태그는 있으나 성공한 정식 릴리스 증거가 없습니다: $RELEASE_TAG" >&2
+          echo "실패한 릴리스 버전은 재사용하지 않고 새 PATCH 또는 prerelease 버전이 필요합니다." >&2
+          exit 1
+
       - name: 주석 정식 릴리스 태그 생성 및 푸시
+        if: steps.release_state.outputs.already_successful != 'true'
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
-            echo "기존 정식 릴리스 태그는 재사용하지 않습니다: $RELEASE_TAG" >&2
-            echo "이전 릴리스가 실패했다면 새 PATCH 또는 prerelease 버전 커밋이 필요합니다." >&2
-            exit 1
-          fi
           git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "릴리스 $RELEASE_TAG"
           git push origin "refs/tags/$RELEASE_TAG"
           test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$TARGET_SHA"
 
       - name: 정식 릴리스 이미지 워크플로 실행
+        if: steps.release_state.outputs.already_successful != 'true'
+        id: release_dispatch
         shell: bash
         run: |
           set -euo pipefail
+          dispatched_after="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "dispatched_after=$dispatched_after" >> "$GITHUB_OUTPUT"
           gh api --method POST \
             -H "Accept: application/vnd.github+json" \
             "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" \
             -f ref="$RELEASE_TAG"
 
       - name: GHCR 정식 릴리스 이미지 워크플로 성공 확인
+        if: steps.release_state.outputs.already_successful != 'true'
         id: release
         shell: bash
+        env:
+          DISPATCHED_AFTER: ${{ steps.release_dispatch.outputs.dispatched_after }}
         run: |
           set -euo pipefail
           for _ in $(seq 1 480); do
-            runs="$(gh api -H "Accept: application/vnd.github+json" "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=50")"
-            run="$(jq -c --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            runs="$(gh api -H "Accept: application/vnd.github+json" "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=100")"
+            run="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" --arg after "$DISPATCHED_AFTER"               '[.workflow_runs[]
+                | select(.head_sha == $sha and .head_branch == $tag and .created_at >= $after)]
+               | sort_by(.created_at) | last // empty' <<<"$runs")"
             if [[ -n "$run" ]]; then
               run_id="$(jq -r .id <<<"$run")"
               run_url="$(jq -r .html_url <<<"$run")"
@@ -108,6 +146,17 @@ jobs:
           done
           echo "정식 릴리스 워크플로 완료 대기 시간이 초과되었습니다." >&2
           exit 1
+
+      - name: 정식 릴리스 증거 정리
+        id: release_evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ steps.release_state.outputs.already_successful }}" == "true" ]]; then
+            echo "run_url=${{ steps.release_state.outputs.run_url }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_url=${{ steps.release.outputs.run_url }}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Issue #76 작업 브랜치 안전 정리
         id: cleanup
@@ -143,8 +192,18 @@ jobs:
               continue
             fi
             git fetch --quiet --no-tags origin "refs/heads/$branch:refs/remotes/origin/$branch"
-            if ! git merge-base --is-ancestor "$head_sha" "$TARGET_SHA"; then
-              echo "main 병합 이력이 확인되지 않아 보존합니다: $branch @ $head_sha"
+            incorporated=false
+            if git merge-base --is-ancestor "$head_sha" "$TARGET_SHA"; then
+              incorporated=true
+            else
+              merged_pr_count="$(gh api                 -H "Accept: application/vnd.github+json"                 -H "X-GitHub-Api-Version: 2022-11-28"                 "/repos/$GITHUB_REPOSITORY/commits/$head_sha/pulls"                 --jq '[.[] | select(.merged_at != null and .base.ref == "main" and .head.sha == "'"$head_sha"'")] | length')"
+              if [[ "$merged_pr_count" != "0" ]]; then
+                incorporated=true
+                echo "squash/rebase 병합 PR 증거로 main 반영을 확인했습니다: $branch @ $head_sha"
+              fi
+            fi
+            if [[ "$incorporated" != "true" ]]; then
+              echo "main 반영 증거가 확인되지 않아 보존합니다: $branch @ $head_sha"
               retained+=("$branch")
               continue
             fi
@@ -178,7 +237,7 @@ jobs:
         shell: bash
         env:
           MAIN_CI_URL: ${{ steps.main_ci.outputs.run_url }}
-          RELEASE_RUN_URL: ${{ steps.release.outputs.run_url }}
+          RELEASE_RUN_URL: ${{ steps.release_evidence.outputs.run_url }}
         run: |
           set -euo pipefail
           body="$(cat <<EOF
@@ -202,7 +261,7 @@ EOF
             echo
             echo "- 정식 릴리스 태그: `$RELEASE_TAG`"
             echo "- main CI/임시 GHCR 커밋 이미지 검증: ${{ steps.main_ci.outputs.run_url }}"
-            echo "- GHCR 정식 릴리스: ${{ steps.release.outputs.run_url }}"
+            echo "- GHCR 정식 릴리스: ${{ steps.release_evidence.outputs.run_url }}"
             echo "- 삭제한 브랜치: ${{ steps.cleanup.outputs.deleted }}"
             echo "- 안전 조건 때문에 보존한 브랜치: ${{ steps.cleanup.outputs.retained }}"
             echo "- Issue #76 종료 완료"
