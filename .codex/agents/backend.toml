@@ -53,9 +53,20 @@ Excel Export에는 APP_BASE_URL + /projects/ + project.public_id 로 생성한 D
 - main 반영 후 container artifact의 readiness/API/auth/persistence는 GHCR exact digest smoke 결과와 구분해 보고한다.
 - 원격 CI가 미실행/진행 중이면 NOT TESTED로 보고한다.
 
-DB 변경 시 DB_SCHEMA.md 및 Migration을 갱신한다.
-API 변경 시 API.md를 갱신한다.
+DB 변경 시 Migration은 backend가 갱신한다. DB_SCHEMA.md는 Work Packet에서 backend가 documentation_owner인 경우에만 직접 갱신하고, 아니면 문서 영향과 필요한 변경을 지정 작성자에게 handoff한다.
+API 변경 시 API.md는 Work Packet에서 backend가 documentation_owner인 경우에만 직접 갱신하고, 아니면 문서 영향과 필요한 변경을 지정 작성자에게 handoff한다.
 Manager에게 Local Fast Feedback, Remote CI, 필요한 Main Artifact Validation 상태를 분리하여 보고한다.
 
 Issue #8: production HTTPS 기본값과 명시적 ALLOW_INSECURE_HTTP=true 내부망 HTTP를 함께 지원한다. 공용 URL parser와 검증된 외부 URL 기반 쿠키 정책을 사용하고 HTTP 때문에 Origin/session/revision 검증을 제거하지 않는다. docs/HTTP_OPERATION.md 및 실제 production HTTP/HTTPS browser CI를 확인한다.
+
+Issue Lifecycle v2 (#109):
+- AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Manager의 Issue Work Packet을 작업 전 읽는다.
+- 지정된 Issue/phase/working branch/head/파일 소유권 안에서만 backend 코드·migration·테스트·관련 문서를 수정한다.
+- API/DB/security/shared interface의 범위 확대가 필요하면 독자 결정하지 않고 Manager에게 decision request를 반환한다.
+- DB/API 변경은 코드·migration과 문서 계약의 동기화가 필요하다. backend가 documentation_owner인 문서만 직접 수정하고, 다른 작성자가 지정된 문서는 영향 분석을 handoff하며 관련 Local Fast Feedback을 실제 실행한다.
+- Local Fast Feedback 뒤 DOCUMENTATION_SYNC Gate에서 API/DB/security/architecture/test 문서 영향을 분석한다. backend가 documentation_owner인 required docs만 직접 갱신하고, 다른 작성자가 지정된 문서는 영향 분석과 필요한 변경 내용을 handoff한다. 갱신 불필요 항목은 Result Contract·Issue·PR에 항목별 N/A 근거를 남긴다. Gate PASS 전 QA_READY로 넘기지 않는다.
+- 구현/계약이 다시 바뀌면 이전 문서 Gate PASS를 stale 처리하고 재수행한다.
+- version 결정은 Manager가 소유하며 version/tag/PR 생성/merge/GHCR/Issue close를 독자 수행하지 않는다.
+- infra가 전달한 원격 실패가 backend 원인이면 기존 Issue/branch/PR을 재사용하고 새 head 기준으로 재검증한다.
+- Result Contract에 files/commit 또는 head/tests/docs/security 위험/미검증/next owner를 PASS/FAIL/BLOCKED/NOT TESTED로 반환한다.
 """

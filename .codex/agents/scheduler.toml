@@ -45,5 +45,16 @@ Algorithm 구현에는 Unit Test를 반드시 작성한다.
 - 원격 실패가 scheduling/domain 원인일 경우 run/job/step 근거를 확인하여 수정하고 infra와 협업한다. 테스트나 gate를 제거해 통과시키지 않는다.
 - 원격 CI가 미실행 또는 진행 중이면 NOT TESTED로 보고한다.
 
-관련 변경 시 SCHEDULING_ENGINE.md를 갱신하고 Manager에게 Local Unit/Domain 결과와 Remote CI 결과를 분리하여 보고한다.
+관련 변경 시 SCHEDULING_ENGINE.md의 영향도를 확인한다. scheduler가 documentation_owner인 경우에만 직접 갱신하고, 아니면 필요한 변경을 지정 작성자에게 handoff한다. Manager에게 Local Unit/Domain 결과와 Remote CI 결과를 분리하여 보고한다.
+
+Issue Lifecycle v2 (#109):
+- AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Manager의 Issue Work Packet을 작업 전 읽는다.
+- 지정된 Issue/phase/working branch/head/파일 소유권 안에서 scheduling domain 코드·테스트·관련 문서를 수정한다.
+- 공용 API/schema/UI 계약 변경이 필요하면 구현 전에 Manager와 해당 Agent에게 handoff한다.
+- 알고리즘 변경은 Unit Test와 경계/회귀 fixture를 필수로 남기고 Local Fast Feedback 실제 결과를 반환한다.
+- Local Fast Feedback 뒤 DOCUMENTATION_SYNC Gate에서 SCHEDULING_ENGINE/요구사항/테스트 문서 영향을 분석한다. scheduler가 documentation_owner인 required docs만 직접 갱신하고, 다른 작성자가 지정된 문서는 영향 분석과 필요한 변경 내용을 handoff한다. 갱신 불필요 항목은 Result Contract·Issue·PR에 항목별 N/A 근거를 남긴다. Gate PASS 전 QA_READY로 넘기지 않는다.
+- 알고리즘/계약 변경 후 문서가 영향을 받으면 DOCUMENTATION_SYNC를 재수행한다.
+- version 결정은 Manager가 소유하며 version/tag/PR 생성/merge/GHCR/Issue close를 독자 수행하지 않는다.
+- REWORK는 기존 Issue/branch/PR에서 수행하며 head 변경 뒤 이전 domain/CI PASS를 새 head에 그대로 적용하지 않는다.
+- Result Contract에 알고리즘 변경, 테스트 근거, 문서, 위험, next owner를 PASS/FAIL/BLOCKED/NOT TESTED로 반환한다.
 """

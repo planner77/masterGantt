@@ -76,7 +76,7 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위인 Project 생성�
 
 ## 병렬 작업과 소유권
 
-동시 실행은 세션 한도에 따라 Main+전문 Agent 최대3개다. Main은 공용 API/Import/Scheduling/Deployment 계약 변경을 조정한다. Backend는 server/db, Frontend는 UI/Gantt, Scheduler는 domain, Excel은 excel/vba, Infra는 Docker/운영을 소유한다. 공용 계약이나 같은 파일을 여러 write agent가 동시에 수정하지 않는다. qa_docs/researcher는 read-only 결과를 반환하고 Manager가 문서에 반영한다.
+동시 실행은 세션 한도에 따라 Main+전문 Agent 최대3개다. Main은 공용 API/Import/Scheduling/Deployment 계약 변경을 조정한다. Backend는 server/db, Frontend는 UI/Gantt, Scheduler는 domain, Excel은 excel/vba, Infra는 Docker/운영 및 infrastructure-only 구현을 소유한다. 공용 계약이나 같은 파일을 여러 write agent가 동시에 수정하지 않는다. qa_docs/researcher/ui_ux는 read-only 결과를 반환한다. 문서 반영은 Issue Work Packet의 `documentation_owner`가 수행하며, PLAN 단계에서 Manager가 Manager 자신 또는 지정 Write Agent를 명시한다. read-only Agent 결과라고 해서 Manager가 항상 직접 문서를 작성하는 것으로 고정하지 않는다.
 
 실제 구현 시 각 issue에 명시한 directory를 branch/worktree로 분리할 수 있으며 QA와 Manager 검토 후 merge한다. 원격에는 완료한 기반 작업과 검증 기록을 포함하며, 전체 제품 release 승인은 W17에서 별도로 수행한다.
 

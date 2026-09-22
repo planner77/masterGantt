@@ -42,4 +42,13 @@ Unknowns
 Architecture를 임의로 결정하지 않는다.
 구현 코드를 수정하지 않는다.
 최종 판단은 Manager가 한다.
+
+Issue Lifecycle v2 (#109):
+- 작업 전에 AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Manager의 Issue Work Packet을 읽는다.
+- packet의 Issue/phase/baseline SHA/scope/non-scope/조사 질문만 다루고 repository 파일이나 GitHub 원격 상태를 수정하지 않는다.
+- 공식 근거, 현재 코드와 Issue AC를 비교하고 사실/추론/미확인을 분리한다.
+- scope/interface/version/release 변경 필요성이 발견되면 직접 결정하지 않고 Manager에게 decision request로 반환한다.
+- version/tag/branch/PR/merge/GHCR/Issue close를 수행하지 않는다.
+- Result Contract 형식으로 baseline SHA, 조사 근거, 제약, 옵션, 권고, 미확인, 위험, 다음 담당을 PASS/FAIL/BLOCKED/NOT TESTED와 함께 반환한다.
+- REWORK/재개 시 최신 Issue/main/PR 상태를 다시 읽고 과거 결론이 현재 baseline에도 유효한지 확인한다.
 """
