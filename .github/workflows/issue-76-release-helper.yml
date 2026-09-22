@@ -36,6 +36,7 @@ jobs:
 
           echo "main CI와 임시 GHCR 검증 완료를 기다립니다."
           main_ci_url=""
+          main_ci_success=false
           for _ in $(seq 1 300); do
             runs="$(gh api -H "Accept: application/vnd.github+json" "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=50")"
             run="$(jq -c --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
@@ -47,14 +48,14 @@ jobs:
               echo "main CI #$run_id: 상태=$status 결과=$conclusion"
               if [[ "$status" == "completed" ]]; then
                 test "$conclusion" = "success"
+                main_ci_success=true
                 break
               fi
             fi
             sleep 15
           done
           test -n "$main_ci_url"
-          main_ci_conclusion="$(gh api "$main_ci_url" 2>/dev/null || true)"
-          # URL은 완료 증거 기록용이며 실제 판정은 위 API 응답의 success로 끝난다.
+          test "$main_ci_success" = "true"
 
           release_run_url=""
           if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
@@ -80,6 +81,7 @@ jobs:
             dispatched_after="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             gh api --method POST               -H "Accept: application/vnd.github+json"               "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches"               -f ref="$RELEASE_TAG"
 
+            release_success=false
             for _ in $(seq 1 480); do
               runs="$(gh api -H "Accept: application/vnd.github+json" "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=100")"
               run="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" --arg after "$dispatched_after" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .created_at >= $after)] | sort_by(.created_at) | last // empty' <<<"$runs")"
@@ -91,12 +93,14 @@ jobs:
                 echo "정식 릴리스 #$run_id: 상태=$status 결과=$conclusion"
                 if [[ "$status" == "completed" ]]; then
                   test "$conclusion" = "success"
+                  release_success=true
                   break
                 fi
               fi
               sleep 15
             done
             test -n "$release_run_url"
+            test "$release_success" = "true"
           fi
 
           pr94="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/94")"
