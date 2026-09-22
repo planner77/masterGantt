@@ -103,7 +103,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          branch="feat/issue-76-project-workspace-ux"
+          branch="feat/issue-76-project-workspace-ux-rebased"
           if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null 2>&1; then
             gh api --method DELETE "/repos/$GITHUB_REPOSITORY/git/refs/heads/$branch"
           fi
@@ -133,6 +133,6 @@ jobs:
             echo "- 릴리스 태그: `$RELEASE_TAG`"
             echo "- 릴리스 커밋: `$TARGET_SHA`"
             echo "- 릴리스 workflow: ${{ steps.release.outputs.run_url }}"
-            echo "- 삭제된 브랜치: `feat/issue-76-project-workspace-ux`"
+            echo "- 삭제된 브랜치: `feat/issue-76-project-workspace-ux-rebased`"
             echo "- Issue #76: completed"
           } >> "$GITHUB_STEP_SUMMARY"
