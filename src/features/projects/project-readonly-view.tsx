@@ -627,6 +627,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         </div>
         {taskFilterOpen ? <div className="project-filter-panel" aria-label="작업 고급 필터">
           <div className="project-filter-grid">
+            <label>작업명 조건<select value={taskFilter.nameOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, nameOperator: event.target.value as TaskFilterState["nameOperator"] }))}><option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option></select></label>
+            <label>작업명<input type="text" value={taskFilter.nameQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, nameQuery: event.target.value }))} /></label>
+            <label>설명 조건<select value={taskFilter.descriptionOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionOperator: event.target.value as TaskFilterState["descriptionOperator"] }))}><option value="contains">포함</option><option value="not-contains">포함하지 않음</option></select></label>
+            <label>설명<input type="text" value={taskFilter.descriptionQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionQuery: event.target.value }))} /></label>
+            <label>External ID 조건<select value={taskFilter.externalIdOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, externalIdOperator: event.target.value as TaskFilterState["externalIdOperator"] }))}><option value="contains">포함</option><option value="equals">같음</option></select></label>
+            <label>External ID<input type="text" value={taskFilter.externalIdQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, externalIdQuery: event.target.value }))} /></label>
             <label>기간 From<input type="date" value={taskFilter.dateFrom} onChange={(event) => setTaskFilter((current) => ({ ...current, dateFrom: event.target.value }))} /></label>
             <label>기간 To<input type="date" value={taskFilter.dateTo} onChange={(event) => setTaskFilter((current) => ({ ...current, dateTo: event.target.value }))} /></label>
             <label>기간 조건<select value={taskFilter.dateOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, dateOperator: event.target.value as TaskFilterState["dateOperator"] }))}>
