@@ -96,7 +96,9 @@ test.describe("Issue #76 Project Workspace UX", () => {
 
     await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
     await expect(unlockDialog).toHaveCount(0);
-    await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
+    const settingsButton = page.getByRole("button", { name: "프로젝트 설정", exact: true });
+    await expect(settingsButton).toBeFocused();
+    await settingsButton.click();
     await page.getByRole("button", { name: "편집 모드 종료", exact: true }).click();
 
     await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
