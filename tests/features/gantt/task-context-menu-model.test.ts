@@ -78,6 +78,24 @@ describe("task context menu model", () => {
     }).canPaste).toBe(false);
   });
 
+  it("keeps an unrelated task mutable when other tasks have a dependency", () => {
+    const tasks = [task("a", "A", null, 0), task("b", "B", null, 1), task("c", "C", null, 2)];
+    const links: ProjectLinkDto[] = [
+      { id: "link-ab", predecessorExternalId: "A", successorExternalId: "B", type: "FS", lag: 0 },
+    ];
+
+    expect(taskContextCapabilities(tasks, "c", true, false, links, null)).toMatchObject({
+      canAddChild: true,
+      canMoveUp: true,
+      canIndent: true,
+    });
+    expect(taskContextCapabilities(tasks, "a", true, false, links, null)).toMatchObject({
+      canAddChild: false,
+      canMoveDown: false,
+      canIndent: false,
+    });
+  });
+
   it("maps shortcuts/menu intents to atomic hierarchy commands", () => {
     expect(createHierarchyCommand("move-up", "a")).toEqual({
       kind: "move",
