@@ -160,15 +160,13 @@ jobs:
           done
 
           deleted_text="${deleted[*]:-이미 없음}"
-          body="$(cat <<EOF
-Issue Lifecycle 완료:
-- 버전: 0.21.0
-- main CI/임시 GHCR 커밋 이미지 검증: $main_ci_url
-- GHCR 정식 릴리스 이미지: $release_run_url
-- 정식 릴리스 태그: $RELEASE_TAG
-- 삭제한 Issue #76 작업 브랜치: $deleted_text
-EOF
-)"
+          body="$(printf '%s\n' \
+            "Issue Lifecycle 완료:" \
+            "- 버전: 0.21.0" \
+            "- main CI/임시 GHCR 커밋 이미지 검증: $main_ci_url" \
+            "- GHCR 정식 릴리스 이미지: $release_run_url" \
+            "- 정식 릴리스 태그: $RELEASE_TAG" \
+            "- 삭제한 Issue #76 작업 브랜치: $deleted_text")"
           gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/76/comments" -f body="$body"
           gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/76" -f state="closed" -f state_reason="completed"
 
