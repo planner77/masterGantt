@@ -107,7 +107,7 @@ HANDOFF
 - rework_reason:
 ```
 
-Head SHA가 변경되면 이전 PASS는 그 SHA에만 유효하다. 새로운 수정 뒤에는 영향받는 검증을 다시 수행한다.
+Head SHA가 변경되면 이전 PASS는 그 SHA에만 유효하다. 모든 필수 원격 Gate(`quality`, `e2e`, `docker`)와 final QA 판정은 영향도와 무관하게 새 Head SHA에서 전부 다시 수행한다. Local Fast Feedback만 변경 영향도에 따라 선택적으로 재사용할 수 있다.
 
 ## 3. Manager Orchestration Prompt
 
