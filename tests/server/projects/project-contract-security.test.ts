@@ -230,8 +230,8 @@ describe("create abuse and credential material", () => {
 
   it("uses independent salts and the recorded scrypt profile", async () => {
     const [first, second] = await Promise.all([
-      hashEditPassword("same password phrase"),
-      hashEditPassword("same password phrase"),
+      hashEditPassword("Same123456!"),
+      hashEditPassword("Same123456!"),
     ]);
     expect(first).toMatchObject({ algorithm: "scrypt", n: SCRYPT_PARAMETERS.n, r: SCRYPT_PARAMETERS.r, p: SCRYPT_PARAMETERS.p, keyLength: 32 });
     expect(first.salt).toHaveLength(16);
