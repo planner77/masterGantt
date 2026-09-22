@@ -225,6 +225,7 @@ Action 또는 base image update PR은 full SHA/digest, release note, permissions
 - `v0.21.1`은 package version과 대상 SHA가 일치하는 annotated tag여야 한다. 새 tag일 때만 `release-image.yml`을 해당 tag ref로 dispatch하고, 같은 tag/head SHA 및 dispatch 이후 생성된 run의 completed/success만 인정한다.
 - 재실행 시 tag가 이미 있으면 같은 tag/head SHA의 기존 성공 release run을 확인하고 게시를 반복하지 않은 채 cleanup/Issue 종료를 재개한다. tag만 있고 성공 release 증거가 없으면 FAIL한다.
 - 작업 branch 삭제 전 열린 PR 참조 부재, 현재 tip SHA, tip이 merge target SHA의 ancestor인지, 삭제 직전 ref SHA 불변을 재검증한 뒤 explicit SHA lease로 삭제한다.
+- PR #98은 squash/rebase가 아닌 **merge commit 방식**으로 병합한다. cleanup 전에 target SHA가 2개 이상의 parent를 가진 merge commit인지와 `TARGET_SHA^2 == 작업 branch tip SHA`를 검증해 이 전제를 원격 증거로 고정한다.
 - 완료 댓글에는 version, main CI URL, 정식 release run URL, tag와 branch cleanup 결과를 남긴 뒤에만 Issue #96을 completed로 닫는다. 중간 실패 시 tag/image overwrite나 gate 우회 없이 Issue를 열린 상태로 유지한다.
 
 이 workflow는 Issue #96 완료 증거 보존 후 별도 검토된 운영 변경에서 퇴역하며, 일반 릴리스 승인으로 확대하지 않는다.
