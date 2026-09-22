@@ -77,12 +77,9 @@ export function CreateProjectForm() {
       setError(`소유자는 ${MAXIMUM_OWNER_LENGTH}자 이하여야 합니다.`);
       return;
     }
-    if (codePointLength(editPassword) < MINIMUM_PASSWORD_LENGTH) {
-      setError(`편집 비밀번호는 ${MINIMUM_PASSWORD_LENGTH}자 이상이어야 합니다.`);
-      return;
-    }
-    if (new TextEncoder().encode(editPassword).byteLength > MAXIMUM_PASSWORD_BYTES) {
-      setError("편집 비밀번호는 UTF-8 기준 1,024 bytes 이하여야 합니다.");
+    const passwordLength = codePointLength(editPassword);
+    if (passwordLength < MINIMUM_PASSWORD_LENGTH || passwordLength > MAXIMUM_PASSWORD_LENGTH) {
+      setError("편집 비밀번호는 1~12자로 입력해 주세요.");
       return;
     }
 
