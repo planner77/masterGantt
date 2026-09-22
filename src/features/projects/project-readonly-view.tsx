@@ -111,6 +111,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const unlockTriggerReference = useRef<HTMLButtonElement | null>(null);
   const settingsTriggerReference = useRef<HTMLButtonElement | null>(null);
   const focusSettingsAfterUnlockReference = useRef(false);
+  const focusUnlockAfterSettingsReference = useRef(false);
   const scheduleTabReference = useRef<HTMLButtonElement | null>(null);
   const resourceTabReference = useRef<HTMLButtonElement | null>(null);
   const actionMenuReference = useRef<HTMLDetailsElement | null>(null);
@@ -119,6 +120,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (permission !== "edit" || permissionCheckState !== "complete" || !focusSettingsAfterUnlockReference.current) return;
     focusSettingsAfterUnlockReference.current = false;
     settingsTriggerReference.current?.focus();
+  }, [permission, permissionCheckState]);
+
+  useEffect(() => {
+    if (permission !== "readonly" || permissionCheckState !== "complete" || !focusUnlockAfterSettingsReference.current) return;
+    focusUnlockAfterSettingsReference.current = false;
+    unlockTriggerReference.current?.focus();
   }, [permission, permissionCheckState]);
 
   useEffect(() => {
@@ -218,6 +225,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     } finally { setUnlockPassword(""); setIsUnlocking(false); }
   }
 
+  function closeSettingsAsReadonly() {
+    focusUnlockAfterSettingsReference.current = true;
+    setPermission("readonly");
+    setPermissionCheckState("complete");
+    setSettingsOpen(false);
+  }
+
   async function saveMetadata(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (state.status !== "ready" || isSavingMetadata) return;
@@ -233,7 +247,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       if (response.ok && snapshot && applySnapshot(snapshot)) {
         setSettingsOpen(false); notify("success", "프로젝트 정보를 저장했습니다.", "프로젝트 정보 저장");
       } else if (response.status === 401) {
-        setPermission("readonly"); setSettingsOpen(false); notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "프로젝트 정보 저장", body);
+        closeSettingsAsReadonly(); notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "프로젝트 정보 저장", body);
       } else if (response.status === 412) conflict("프로젝트 정보 저장", body);
       else notify("error", "프로젝트 정보를 저장할 수 없습니다. 입력을 확인한 뒤 다시 시도해 주세요.", "프로젝트 정보 저장", body);
     } catch { notify("error", "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", "프로젝트 정보 저장"); }
@@ -257,7 +271,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       } else {
         const body: unknown = await response.json().catch(() => null);
         if (response.status === 401) {
-          setPermission("readonly"); setSettingsOpen(false); notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "편집 비밀번호 변경", body);
+          closeSettingsAsReadonly(); notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "편집 비밀번호 변경", body);
         } else if (response.status === 412) conflict("편집 비밀번호 변경", body);
         else notify("error", "편집 비밀번호를 변경할 수 없습니다. 입력을 확인한 뒤 다시 시도해 주세요.", "편집 비밀번호 변경", body);
       }
@@ -270,7 +284,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/edit-sessions/current`, { method: "DELETE", credentials: "same-origin" });
       if (response.status === 204) {
-        setPermission("readonly"); setSettingsOpen(false); notify("success", "편집 모드를 종료했습니다.", "편집 모드 종료");
+        closeSettingsAsReadonly(); notify("success", "편집 모드를 종료했습니다.", "편집 모드 종료");
       } else {
         const body: unknown = await response.json().catch(() => null); notify("error", "편집 모드를 종료할 수 없습니다. 잠시 후 다시 시도해 주세요.", "편집 모드 종료", body);
       }
@@ -579,7 +593,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     {settingsOpen && editing ? <WorkspaceDialog title="프로젝트 설정" onClose={() => { if (!busy) { setSettingsOpen(false); setNewPassword(""); } }} busy={busy}>
       <ProjectWorkCalendarEditor publicId={publicId} revision={project.revision} disabled={busy}
         onSaved={reloadCanonicalSnapshot}
-        onUnauthorized={() => { setPermission("readonly"); setSettingsOpen(false); notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "작업 캘린더 저장"); }}
+        onUnauthorized={() => { closeSettingsAsReadonly(); notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "작업 캘린더 저장"); }}
         onConflict={(body) => conflict("작업 캘린더 저장", body)} notify={notify} />
       <form className="project-form compact-form" noValidate onSubmit={saveMetadata}>
         <div className="form-field"><label htmlFor="metadata-name">프로젝트 이름</label><input disabled={busy} id="metadata-name" onChange={(event) => setMetadataName(event.target.value)} value={metadataName} /></div>
