@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.23.2] - 2026-09-23
+
+### Fixed
+
+- Issue #108: Excel 내보내기 `Gantt` 시트의 주차 헤더에서 ISO week year와 `W` 접두어를 제거하고 주차 번호만 표시한다.
+- 월 헤더의 `YYYY-MM` 형식과 기존 ISO week 계산/그룹 경계는 유지하며, 연말·연초 `W53 → W01` 경계를 회귀 테스트로 고정한다.
+
+### Changed
+
+- API/DB 계약 변경 없이 기존 Excel 표시 형식만 수정하므로 Semantic Versioning 정책에 따라 `0.23.1`에서 PATCH 버전 `0.23.2`로 증가한다.
+
+
 ## [0.23.1] - 2026-09-22
 
 ### Fixed

@@ -191,13 +191,16 @@ function timeline(tasks: readonly OrderedTask[]): string[] {
   return Array.from({ length: days }, (_, index) => dateFromEpochDay(first + index));
 }
 
-function isoWeek(value: string): string {
+export function excelIsoWeekHeader(value: string): Readonly<{ key: string; label: string }> {
   const date = new Date(epochDay(value) * DAY_MS);
   const day = date.getUTCDay() || 7;
   date.setUTCDate(date.getUTCDate() + 4 - day);
   const yearStart = Date.UTC(date.getUTCFullYear(), 0, 1);
   const week = Math.ceil((((date.getTime() - yearStart) / DAY_MS) + 1) / 7);
-  return `${date.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
+  return {
+    key: `${date.getUTCFullYear()}-W${String(week).padStart(2, "0")}`,
+    label: String(week),
+  };
 }
 
 function groups(values: readonly string[], label: (value: string) => string) {
@@ -262,8 +265,12 @@ function ganttSheet(snapshot: ProjectSnapshotResponse, tasks: readonly OrderedTa
   for (const group of groups(dates, (date) => date.slice(0, 7))) {
     monthCells[grid.length + group.start] = { column: timelineStart + group.start, style: STYLE.header, value: group.text };
   }
-  for (const group of groups(dates, isoWeek)) {
-    weekCells[group.start] = { column: timelineStart + group.start, style: STYLE.subheader, value: group.text };
+  for (const group of groups(dates, (date) => excelIsoWeekHeader(date).key)) {
+    weekCells[group.start] = {
+      column: timelineStart + group.start,
+      style: STYLE.subheader,
+      value: excelIsoWeekHeader(dates[group.start]).label,
+    };
   }
   rows.push(rowXml(3, monthCells, 0, 22), rowXml(4, weekCells, 0, 20), rowXml(5, dayCells, 0, 20));
 
@@ -301,7 +308,7 @@ function ganttSheet(snapshot: ProjectSnapshotResponse, tasks: readonly OrderedTa
   for (const group of groups(dates, (date) => date.slice(0, 7))) {
     if (group.end > group.start) merges.push(`${cellReference(timelineStart + group.start, 3)}:${cellReference(timelineStart + group.end, 3)}`);
   }
-  for (const group of groups(dates, isoWeek)) {
+  for (const group of groups(dates, (date) => excelIsoWeekHeader(date).key)) {
     if (group.end > group.start) merges.push(`${cellReference(timelineStart + group.start, 4)}:${cellReference(timelineStart + group.end, 4)}`);
   }
   const cols = [

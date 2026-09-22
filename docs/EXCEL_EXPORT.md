@@ -62,6 +62,8 @@ Issue #28에서 구현된 프로젝트 Excel 내보내기의 **현재 구현 계
 - 주말/Project holiday를 timeline에서 구분한다.
 - task/summary/milestone을 구분해 표시한다.
 - 관계 포함 시 FS/lag 0 link를 DrawingML connector로 표현한다.
+- 월 헤더는 `YYYY-MM`을 유지하고, 주차 헤더는 ISO week 계산 결과의 **주차 번호만** 표시한다. 예: `2026-W39` 계산 결과는 `39`로 표시한다.
+- 연말/연초 ISO week year 경계는 계산 key로 유지해 같은 ISO week를 동일 그룹으로 병합하며, 표시 label에서만 연도와 `W`를 제거한다.
 
 ### Tasks
 
