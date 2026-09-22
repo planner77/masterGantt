@@ -125,6 +125,9 @@ jobs:
 
             git fetch --quiet --no-tags origin "refs/heads/$WORK_BRANCH:refs/remotes/origin/$WORK_BRANCH"
             git merge-base --is-ancestor "$branch_sha" "$TARGET_SHA"
+            parent_count="$(git rev-list --parents -n 1 "$TARGET_SHA" | awk '{print NF-1}')"
+            test "$parent_count" -ge 2
+            test "$(git rev-parse "$TARGET_SHA^2")" = "$branch_sha"
             current_sha="$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/$encoded" --jq '.object.sha')"
             test "$current_sha" = "$branch_sha"
 
