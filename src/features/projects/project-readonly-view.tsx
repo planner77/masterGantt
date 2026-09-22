@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectExcelExportButton } from "@/features/projects/project-excel-export-button";
@@ -524,14 +524,15 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
   if (state.status === "error") return <section className="status-page" aria-labelledby="project-load-error-heading"><p className="eyebrow">PROJECT</p><h1 id="project-load-error-heading">프로젝트를 불러올 수 없습니다.</h1><p>네트워크 또는 서버 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="secondary-button" onClick={() => beginRefresh(true)} type="button">다시 시도</button></section>;
   const { project, tasks, links, assignments } = state.snapshot.data;
-  const filteredTasks = useMemo(() => filterTasksWithAncestors(tasks, taskFilter, assignments), [assignments, taskFilter, tasks]);
+  const filteredTasks = filterTasksWithAncestors(tasks, taskFilter, assignments);
   const activeFilters = activeTaskFilterCount(taskFilter);
-  const visibleTaskIds = useMemo(() => new Set(filteredTasks.tasks.map((task) => task.taskId)), [filteredTasks.tasks]);
-  const visibleLinks = useMemo(() => links.filter((link) => {
-    const predecessor = tasks.find((task) => task.externalId === link.predecessorExternalId);
-    const successor = tasks.find((task) => task.externalId === link.successorExternalId);
+  const visibleTaskIds = new Set(filteredTasks.tasks.map((task) => task.taskId));
+  const tasksByExternalId = new Map(tasks.map((task) => [task.externalId, task]));
+  const visibleLinks = links.filter((link) => {
+    const predecessor = tasksByExternalId.get(link.predecessorExternalId);
+    const successor = tasksByExternalId.get(link.successorExternalId);
     return Boolean(predecessor && successor && visibleTaskIds.has(predecessor.taskId) && visibleTaskIds.has(successor.taskId));
-  }), [links, tasks, visibleTaskIds]);
+  });
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
   return <section className="project-readonly" aria-labelledby="project-heading">
