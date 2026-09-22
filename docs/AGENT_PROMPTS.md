@@ -143,7 +143,7 @@ AGENTS.md와 docs/ISSUE_LIFECYCLE.md를 Source of Truth로 적용한다.
 - 공용 interface 변경이 필요하면 구현 전에 Manager에게 반환한다.
 - 코드와 직접 관련 테스트를 함께 수정하고 Local Fast Feedback을 실행한다.
 - 구현 완료 후 DOCUMENTATION_SYNC Gate로 전환해 문서 영향 분석을 수행한다.
-- Work Packet의 required_docs를 실제 갱신하고, 불필요한 문서는 항목별 N/A 근거를 기록한다. 공용 문서의 작성자가 따로 지정되면 구현 결과와 문서 영향만 handoff한다.
+- 각 required_docs는 Work Packet의 documentation_owner가 본인일 때만 실제 갱신한다. 다른 Write Agent/Manager가 owner이면 해당 문서를 수정하지 않고 구현 결과·문서 영향·필요 변경사항을 handoff한다. 갱신이 불필요한 문서는 항목별 N/A 근거를 기록한다.
 - API/DB/Scheduling/Excel/UI 계약과 문서가 일치해야 QA_READY로 넘긴다.
 - 문서 동기화 뒤 구현이 다시 바뀌면 DOCUMENTATION_SYNC를 재수행한다.
 - version/tag/PR/merge/GHCR/Issue close는 독자 수행하지 않는다.
