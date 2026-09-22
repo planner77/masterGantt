@@ -56,7 +56,7 @@ async function fixture(options: ConstructorParameters<typeof ProjectService>[1] 
     hashPassword: async () => fixedPasswordHash(),
     ...options,
   });
-  const created = await service.create({ name: "Project", description: "", editPassword: "password phrase" });
+  const created = await service.create({ name: "Project", description: "", editPassword: "Pass123456!" });
   return {
     database,
     service,
@@ -359,8 +359,8 @@ describe("W07 ProjectService task mutations", () => {
       hashPassword: async () => fixedPasswordHash(),
     });
     try {
-      const first = await service.create({ name: "First", description: "", editPassword: "password phrase" });
-      const second = await service.create({ name: "Second", description: "", editPassword: "password phrase" });
+      const first = await service.create({ name: "First", description: "", editPassword: "Pass123456!" });
+      const second = await service.create({ name: "Second", description: "", editPassword: "Pass123456!" });
       const firstAuth = authorized(service, first.response.data.project.publicId, first.rawSessionToken);
       const secondAuth = authorized(service, second.response.data.project.publicId, second.rawSessionToken);
       const task = service.createTask(firstAuth, 1, createInput).data.tasks[0];
@@ -412,7 +412,7 @@ describe("W07 ProjectService task mutations", () => {
         value.projectPublicId,
         value.rawToken,
       );
-      await value.service.rotatePassword(currentAuthorization, 2, "new password phrase");
+      await value.service.rotatePassword(currentAuthorization, 2, "New123456!");
       expect(() => value.service.updateTask(currentAuthorization, 3, task.taskId, { name: "Old session" }))
         .toThrow(EditSessionInvalidError);
       expect(value.database.prepare("SELECT name FROM tasks").pluck().get()).toBe("Foundation");
@@ -431,7 +431,7 @@ describe("W07 ProjectService task mutations", () => {
       hashPassword: async () => fixedPasswordHash(),
     });
     try {
-      const project = await service.create({ name: "Persistent", description: "", editPassword: "password phrase" });
+      const project = await service.create({ name: "Persistent", description: "", editPassword: "Pass123456!" });
       firstDatabase.prepare(
         "INSERT INTO project_holidays (project_id, holiday_date, name, created_at) VALUES (1, '2026-09-14', 'Holiday', ?)",
       ).run(now.toISOString());
