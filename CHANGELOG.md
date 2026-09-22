@@ -4,6 +4,15 @@
 
 ## [Unreleased]
 
+## [0.21.1] - 2026-09-22
+
+### Changed
+
+- Issue #96: Task Editor의 작업 정보와 Resource allocation 입력을 content-aware grid로 조정해 넓은 화면에서 불필요한 stretching을 줄인다.
+- 작업명은 주 입력 폭으로 제한하고 일정은 날짜/기간/확정 종료일에 맞는 비율, 진행률 slider는 최대 폭, Resource 투입률은 날짜보다 좁은 폭을 사용한다.
+- 768px 이하에서는 기존 1열 stack으로 전환하며 Task PATCH, revision, dirty/stale/readonly, Assignment 저장 및 Relation 계약은 변경하지 않는다.
+- 기존 기능의 호환 UI 밀도 보완이므로 `0.21.0`에서 PATCH 버전 `0.21.1`로 증가한다.
+
 ## [0.21.0] - 2026-09-22
 
 ### Added
