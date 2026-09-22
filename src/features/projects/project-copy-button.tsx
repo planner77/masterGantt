@@ -10,8 +10,8 @@ import type { CopyProjectResponse, ProjectSnapshotResponse } from "@/contracts/p
 type Props = Readonly<{ publicId: string; autoOpen?: boolean; busy?: boolean; onAutoOpen?: () => void }>;
 
 function validPassword(value: string): boolean {
-  return Array.from(value).length >= 12 &&
-    new TextEncoder().encode(value).byteLength <= 1_024;
+  const length = Array.from(value).length;
+  return length >= 1 && length <= 12;
 }
 
 function suggestedName(name: string): string {
