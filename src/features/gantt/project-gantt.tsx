@@ -88,6 +88,7 @@ interface ProjectGanttProps {
   readonly onColumnVisibilityChange: (columnId: ProjectGridDataColumnId) => void;
   readonly tasks: readonly ProjectTaskDto[];
   readonly projectRevision: number;
+  readonly visibleTaskIds?: readonly string[] | null;
 }
 
 const baseProjectColumns: IColumnConfig[] = [
@@ -154,6 +155,7 @@ export function ProjectGantt({
   onColumnVisibilityChange,
   tasks,
   projectRevision,
+  visibleTaskIds = null,
 }: ProjectGanttProps) {
   const apiReference = useRef<IApi | null>(null);
   const onTaskCreateReference = useRef(onTaskCreate);
@@ -340,6 +342,15 @@ export function ProjectGantt({
       } finally { canonicalSyncDepthReference.current -= 1; }
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [svarLinks, svarTasks]);
+
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    const visible = visibleTaskIds ? new Set(visibleTaskIds) : null;
+    void api.exec("filter-tasks", {
+      filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : null,
+    });
+  }, [apiInstanceId, visibleTaskIds]);
 
   useEffect(() => {
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
