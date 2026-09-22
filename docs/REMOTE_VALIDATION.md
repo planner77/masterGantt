@@ -178,9 +178,9 @@ Workflow 파일의 존재나 과거 run은 현재 target SHA의 PASS를 대신�
 
 Issue #84는 PR #114에서 기능·테스트·Documentation Sync를 완료하고, 사용자가 GHCR 정식 게시까지 명시적으로 요청한 범위다. 완료 판정은 다음 원격 증거를 모두 요구한다.
 
-1. helper는 기능 PR #114의 **exact final head SHA**에 대한 `ci.yml` pull_request run이 completed/success인지 확인하고, 동일 exact head를 검토한 Codex review가 존재하며 unresolved review thread가 0건인지 검증한다.
+1. helper는 기능 PR #114의 **exact final head SHA**에 대한 `ci.yml` pull_request run이 completed/success인지 확인하고, 동일 exact head를 검토한 Codex review node 또는 `codex-pull-request-review-summary` Completed 증거가 존재하며 unresolved review thread가 0건인지 검증한다.
 2. PR #114 merge 뒤 실제 feature merge SHA의 main push CI가 completed/success인지 별도로 확인한다. 이 run 성공은 quality/E2E/Docker뿐 아니라 임시 `ci-<full SHA>` 게시 → exact digest pull/runtime smoke → package version cleanup까지 성공했음을 의미해야 한다.
-3. 릴리스 마무리 helper는 자기 `TARGET_SHA`를 만든 merged PR을 확인한 뒤, 해당 PR 최신 head의 `ci.yml` pull_request run이 completed/success인지 검증한다. 또한 그 exact head에 대한 Codex review가 존재하고 unresolved review thread가 0건이어야 한다. 직접 main push나 review/CI 우회 병합은 release Gate를 통과할 수 없다.
+3. 릴리스 마무리 helper는 자기 `TARGET_SHA`를 만든 merged PR을 확인한 뒤, 해당 PR 최신 head의 `ci.yml` pull_request run이 completed/success인지 검증한다. 또한 그 exact head에 대한 Codex review node 또는 Completed review summary 증거가 존재하고 unresolved review thread가 0건이어야 한다. 직접 main push나 review/CI 우회 병합은 release Gate를 통과할 수 없다.
 4. package version `0.25.0`과 annotated `v0.25.0` tag가 정확히 일치하고 tag가 release target main SHA를 가리켜야 한다.
 5. 새 tag에서만 `release-image.yml`을 dispatch한다. 실행 시작 전에 tag가 이미 존재한다면 동일 tag/head SHA의 completed/success release run이 있는 경우에만 publish를 반복하지 않고 후속 cleanup/Issue 종료를 재개한다. **기존 tag만 있고 성공 release 증거가 없으면 FAIL**이며 동일 version/tag를 재사용하지 않는다.
 6. 작업 branch와 release-finalization branch 삭제 전 현재 remote tip이 해당 merged PR의 recorded head SHA와 동일한지 확인하고, merge commit이 release target의 ancestor인지와 열린 head/base PR 부재를 확인한다. 마지막 삭제는 explicit SHA lease를 사용한다. 새 commit/race/API 오류가 있으면 삭제하지 않고 FAIL/BLOCKED로 남긴다.
