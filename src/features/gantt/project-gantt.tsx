@@ -626,6 +626,20 @@ export function ProjectGantt({
     }
   }
 
+  function handleTaskDoubleClick(event: ReactMouseEvent<HTMLDivElement>) {
+    // SVAR's readonly mode suppresses its native show-editor action. Keep
+    // mutation readonly while still allowing the project's information editor
+    // to open from Grid/Chart double-click.
+    if (editable) return;
+    const root = ganttScrollReference.current;
+    if (!root) return;
+    const match = resolveTaskContextTarget(event.target, root, (id) => tasksByIdReference.current.has(id));
+    if (!match) return;
+    event.preventDefault();
+    event.stopPropagation();
+    onTaskEditorOpenReference.current(match.taskId);
+  }
+
   function handleHeaderKeyboardMenu(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (runTaskShortcut(event)) return;
     if (event.key !== "ContextMenu" && !(event.key === "F10" && event.shiftKey)) return;
@@ -742,6 +756,7 @@ export function ProjectGantt({
         aria-label="프로젝트 일정 Grid와 Gantt 차트"
           className="project-gantt-scroll"
           onContextMenu={handleHeaderContextMenu}
+          onDoubleClick={handleTaskDoubleClick}
           onKeyDownCapture={handleHeaderKeyboardMenu}
           ref={ganttScrollReference}
           role="region"
