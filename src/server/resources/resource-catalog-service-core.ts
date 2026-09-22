@@ -89,7 +89,7 @@ function sameTarget(current: CatalogTargetRecord, update: UpdateCatalogTargetReq
     (update.description === undefined || update.description === current.description) && (update.active === undefined || update.active === current.active);
 }
 function targetDto(kind: "resource" | "group", target: CatalogTargetRecord): AssignmentTargetDto {
-  return { kind, id: target.publicId, name: target.name, code: target.code, active: target.active };
+  return { kind, id: target.publicId, name: target.name, code: target.code, description: target.description, active: target.active };
 }
 function assignmentDtos(records: readonly AssignmentRecord[]): ProjectAssignmentDto[] {
   return records.map((record) => ({
