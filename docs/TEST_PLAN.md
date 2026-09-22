@@ -26,6 +26,15 @@
 - 기존 401/412/draft/reload/Gantt instance 및 no document navigation 회귀를 유지한다.
 - PR의 `quality`, 전체 Chromium E2E, Docker smoke와 병합 후 main GHCR exact digest smoke를 공식 PASS 근거로 사용한다.
 
+## Issue #77 Context Menu 초기 submenu 상태 회귀
+
+- Grid Task 우클릭 직후 root menu만 표시되고 `Add` 및 다른 submenu가 자동 표시되지 않는지 검증한다.
+- Chart Task 우클릭에서도 동일한 초기 상태를 검증한다.
+- 최초 focus는 root `role=menu` container에 있고, ArrowDown/ArrowUp/Home/End로 명시적 탐색한 뒤에만 menuitem focus가 이동하는지 검증한다.
+- `Add` hover와 keyboard focus/ArrowRight에서만 submenu가 표시되고, Escape 후 reopen 시 이전 submenu 상태가 남지 않는지 검증한다.
+- Issue #72의 Add / Convert to / Edit / Cut / Copy / Paste / Move / Indent / Outdent / Delete 회귀 테스트를 함께 유지한다.
+- 공식 완료 판정은 동일 PR head SHA의 GitHub Actions `quality`, `e2e`, `docker` PASS와 merge 후 main GHCR exact-digest smoke 결과를 사용한다.
+
 ## 판정과 증거
 
 ### Issue #31 작업 subtree 삭제
