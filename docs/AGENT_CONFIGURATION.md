@@ -100,3 +100,14 @@ ui_ux와 qa_docs는 읽기 중심으로 결과를 반환한다. 설계 문서 �
 - application version은 실행 코드/API/DB/배포 계약을 바꾸지 않는 Agent 지침 변경이므로 `0.23.0`을 유지한다. 정식 release는 N/A이며 main workflow가 수행하는 임시 GHCR 검증은 별도 실제 결과로 확인한다.
 
 정적 TOML/문서 유효성은 실제 Sub-Agent 실행 또는 GitHub Actions PASS를 대체하지 않는다. 새 세션에서는 Work Packet이 실제 Agent에게 전달되고 Result Contract가 반환되는지 별도 실행 증거로 확인한다.
+
+### DOCUMENTATION_SYNC 독립 Gate
+
+Issue 조치와 Local Fast Feedback 뒤, QA 진입 전에 `DOCUMENTATION_SYNC`를 독립 Phase로 둔다.
+
+- PLAN 단계의 Work Packet에 `required_docs`와 `documentation_owner`를 지정한다.
+- 기본 작성자는 변경을 구현한 domain Agent이며 공용 문서는 Manager가 단일 작성자를 지정한다.
+- 영향 문서를 실제 갱신하거나 항목별 `N/A` 근거를 남겨야 Gate PASS가 가능하다.
+- `qa_docs`는 문서를 직접 작성하지 않고 DOCUMENTATION_SYNC의 완결성과 코드/계약/문서 일치 여부를 독립 검토한다.
+- 구현 또는 계약이 다시 바뀌면 이전 DOCUMENTATION_SYNC PASS는 stale이며 QA 전 재수행한다.
+- 문서 영향이 없는 변경도 Gate를 생략하지 않고 영향 분석 결과와 N/A 근거를 남긴다.
