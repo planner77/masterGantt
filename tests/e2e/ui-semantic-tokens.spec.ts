@@ -38,6 +38,10 @@ test.describe("Issue #120 semantic UI state tokens", () => {
         warning: resolve("--status-warning"),
         warningSurface: resolve("--status-warning-surface"),
         focusOutline: root.getPropertyValue("--focus-outline").trim(),
+        focusRing: resolve("--focus-ring"),
+        panel: resolve("--surface-panel"),
+        readonlyText: resolve("--text-readonly"),
+        readonlySurface: "rgb(241, 245, 249)",
       };
     });
     expect(contrastRatio(values.primary, values.primaryForeground)).toBeGreaterThanOrEqual(4.5);
@@ -46,16 +50,19 @@ test.describe("Issue #120 semantic UI state tokens", () => {
     expect(contrastRatio(values.info, values.infoSurface)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(values.warning, values.warningSurface)).toBeGreaterThanOrEqual(4.5);
     expect(values.focusOutline).toContain("3px");
+    expect(contrastRatio(values.focusRing, values.panel)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(values.readonlyText, values.readonlySurface)).toBeGreaterThanOrEqual(4.5);
 
     const password = page.getByLabel("관리자 비밀번호");
     await password.focus();
     const focus = await password.evaluate((element) => {
       const style = getComputedStyle(element);
-      return { style: style.outlineStyle, width: style.outlineWidth, offset: style.outlineOffset };
+      return { style: style.outlineStyle, width: style.outlineWidth, offset: style.outlineOffset, color: style.outlineColor, background: style.backgroundColor };
     });
     expect(focus.style).not.toBe("none");
     expect(Number.parseFloat(focus.width)).toBeGreaterThanOrEqual(3);
     expect(Number.parseFloat(focus.offset)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(focus.color, focus.background)).toBeGreaterThanOrEqual(3);
   });
 
   test("resource admin keeps the representative viewport widths free of document overflow", async ({ page }) => {
