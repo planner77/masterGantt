@@ -12,6 +12,7 @@ import {
   EMPTY_PROJECT_FILTER,
   activeProjectFilterCount,
   filterProjectList,
+  sanitizeInvalidProjectDateFilters,
   validateProjectFilter,
   type ProjectDateOperator,
   type ProjectFilterState,
@@ -91,9 +92,10 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   const availableProjects = useMemo(() => projects.filter(({ publicId }) => !deletedIds.has(publicId)), [deletedIds, projects]);
   const validation = useMemo(() => validateProjectFilter(filter), [filter]);
   const hasValidationError = Boolean(validation.created || validation.updated);
+  const effectiveFilter = useMemo(() => sanitizeInvalidProjectDateFilters(filter), [filter]);
   const visibleProjects = useMemo(
-    () => hasValidationError ? availableProjects : filterProjectList(projects, filter, timeZone, deletedIds),
-    [availableProjects, deletedIds, filter, hasValidationError, projects, timeZone],
+    () => filterProjectList(projects, effectiveFilter, timeZone, deletedIds),
+    [deletedIds, effectiveFilter, projects, timeZone],
   );
   const activeFilters = activeProjectFilterCount(filter);
   const filterApplied = activeFilters > 0;
@@ -253,7 +255,7 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
         </div>
       </div> : null}
 
-      {visibleProjects.length === 0 && !hasValidationError ? <div className={styles.noResults} role="status">
+      {visibleProjects.length === 0 ? <div className={styles.noResults} role="status">
         <h2>조건에 맞는 프로젝트가 없습니다.</h2>
         <p>검색어나 필터 조건을 변경하거나 전체 조건을 초기화해 주세요.</p>
         <button className="secondary-button" type="button" onClick={resetFilter}>검색/필터 초기화</button>
