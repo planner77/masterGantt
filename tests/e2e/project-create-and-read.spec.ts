@@ -36,7 +36,7 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   await page.waitForURL(/\/projects\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   const directUrl = page.url();
   await expect(page.getByRole("heading", { name })).toBeVisible();
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   await expect(page.locator(".project-facts, .edit-panels")).toHaveCount(0);
   await expect(page.getByRole("region", { name: "프로젝트 일정 Grid와 Gantt 차트" })).toBeVisible();
   await expect(page.locator(".project-gantt-widget .wx-table-container")).toBeVisible();
