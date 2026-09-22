@@ -475,7 +475,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         >{permissionCheckState === "checking" ? "권한 확인 중…" : "편집 잠금 해제"}</button>}
         <details className="project-action-menu" ref={actionMenuReference}>
           <summary aria-label="프로젝트 작업 더보기">더보기</summary>
-          <div className="project-action-menu-panel" role="menu">
+          <div className="project-action-menu-panel">
             <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} />
           </div>
         </details>
