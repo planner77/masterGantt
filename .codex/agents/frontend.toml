@@ -63,7 +63,7 @@ Issue Lifecycle v2 (#109):
 - 지정된 Issue/phase/working branch/head/파일 소유권 안에서만 UI 코드·테스트·관련 문서를 수정한다.
 - scope, shared interface, API/auth/revision 계약 변경이 필요하면 구현 전에 Manager에게 반환한다.
 - 관련 Unit/Component/E2E와 Local Fast Feedback을 수행하고 실제 명령/결과를 Result Contract에 기록한다.
-- Local Fast Feedback 뒤 DOCUMENTATION_SYNC Gate에서 UI/UX/요구사항/테스트 문서 영향을 분석하고 required docs를 갱신하거나 항목별 N/A 근거를 남긴다. 이 Gate가 PASS되기 전 QA_READY로 넘기지 않는다.
+- Local Fast Feedback 뒤 DOCUMENTATION_SYNC Gate에서 UI/UX/요구사항/테스트 문서 영향을 분석한다. frontend가 documentation_owner인 required docs만 직접 갱신하고, 다른 작성자가 지정된 문서는 영향 분석과 필요한 변경 내용을 해당 작성자에게 handoff한다. 갱신 불필요 항목은 Result Contract·Issue·PR에 항목별 N/A 근거를 남긴다. 이 Gate가 PASS되기 전 QA_READY로 넘기지 않는다.
 - 문서 동기화 이후 UI/계약이 다시 바뀌면 DOCUMENTATION_SYNC를 재수행한다.
 - version 결정은 Manager가 소유하며 version/tag/PR 생성/merge/GHCR/Issue close를 독자 수행하지 않는다.
 - infra가 제공한 CI 실패가 frontend 원인이면 같은 Issue/branch/PR에서 수정하고 새 head 기준으로 재검증한다.
