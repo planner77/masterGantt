@@ -92,16 +92,19 @@
 .taskFields {
   display: grid;
   grid-template-columns: minmax(0, 42rem) minmax(16rem, 24rem);
+  grid-template-areas:
+    "name progress"
+    "schedule schedule"
+    "description description"
+    "url url";
   align-items: start;
   gap: 0.75rem 1.25rem;
 }
-.taskFields > :first-child,
-.scheduleFields,
-.taskFields > :nth-last-child(2),
-.taskFields > :last-child {
-  grid-column: 1 / -1;
-}
-.taskFields > :first-child { max-width: 42rem; }
+.taskFields > :first-child { grid-area: name; }
+.scheduleFields { grid-area: schedule; }
+.taskFields > :nth-child(3) { grid-area: progress; }
+.taskFields > :nth-last-child(2) { grid-area: description; }
+.taskFields > :last-child { grid-area: url; }
 .scheduleFields {
   display: grid;
   grid-template-columns: minmax(10rem, 13rem) minmax(7rem, 9rem) minmax(10rem, 13rem);
@@ -310,8 +313,15 @@
   .dialog { width: min(46rem, calc(100vw - 1rem)); max-height: calc(100dvh - 1rem); }
   .header, .body, .footer { padding-left: 1rem; padding-right: 1rem; }
   .tabs, .noticeStack { padding-left: 1rem; padding-right: 1rem; }
-  .taskFields { grid-template-columns: 1fr; }
-  .taskFields > * { grid-column: 1; max-width: none; }
+  .taskFields {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "name"
+      "schedule"
+      "progress"
+      "description"
+      "url";
+  }
   .scheduleFields, .relationColumns, .allocationGrid { grid-template-columns: 1fr; }
   .allocationGrid { margin-left: 1.8rem; }
   .assignmentFilters { grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.45fr); }
