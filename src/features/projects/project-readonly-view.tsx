@@ -18,6 +18,7 @@ import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
 import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSession } from "@/features/gantt/task-editor-model";
 import { createTaskDeletePlan, type TaskDeletePlan } from "@/features/gantt/task-delete-model";
 import { findTaskContextElement } from "@/features/gantt/task-context-target";
+import { taskHasDependencyLinks } from "@/features/gantt/task-link-scope";
 import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
 import { todayLocalDateString } from "@/lib/date-display";
 
@@ -427,7 +428,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function saveEditorTask(command: ProjectTaskUpdateCommand, revision: number): Promise<TaskEditorSaveResult> {
     if (state.status !== "ready") return { status: "failed", message: "프로젝트 정보를 확인할 수 없습니다." };
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === command.taskId);
-    const restriction = taskEditorReadOnlyReason(task, permission === "edit" && permissionCheckState === "complete", state.snapshot.data.links.length > 0);
+    const restriction = taskEditorReadOnlyReason(task, permission === "edit" && permissionCheckState === "complete", task ? taskHasDependencyLinks(state.snapshot.data.tasks, task.taskId, state.snapshot.data.links) : false);
     if (restriction) return { status: "failed", message: restriction };
     if (isSavingMetadata || isChangingPassword || isLoggingOut) return { status: "failed", message: "프로젝트 변경을 완료한 뒤 다시 시도해 주세요." };
     return saveTask("PATCH", command.taskId, command.payload, revision);
@@ -675,7 +676,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           })} tasks={tasks} visibleTaskIds={activeFilters > 0 ? visibleTaskIds : null} />
         {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
-          editable={editing} hasLinks={links.length > 0} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
+          editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
       </section>
       <section
         id="project-panel-resources"
