@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { E2E_PROJECT_OWNER, expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
@@ -17,7 +16,7 @@ for (const instance of [1, 2]) {
     for (let attempt = 1; attempt <= 5; attempt += 1) {
       const response = await page.request.post("/api/projects", {
         headers: { Origin: baseURL! },
-        data: { name: `Isolation ${instance}-${attempt}`, ownerName: E2E_PROJECT_OWNER, description: "E2E fixture only", editPassword: `test-${randomUUID()}` },
+        data: { name: `Isolation ${instance}-${attempt}`, ownerName: E2E_PROJECT_OWNER, description: "E2E fixture only", editPassword: `Iso${instance}${attempt}123!` },
       });
       expect(response.status(), `Fresh server instance ${instance}, attempt ${attempt}`).toBe(201);
     }
@@ -26,7 +25,7 @@ for (const instance of [1, 2]) {
     try {
       const rejected = await otherClient.post("/api/projects", {
         headers: { Origin: baseURL! },
-        data: { name: "Sixth attempt must fail", ownerName: E2E_PROJECT_OWNER, description: "E2E fixture only", editPassword: `test-${randomUUID()}` },
+        data: { name: "Sixth attempt must fail", ownerName: E2E_PROJECT_OWNER, description: "E2E fixture only", editPassword: "IsoLimit123!" },
       });
       expect(rejected.status()).toBe(429);
       expect((await rejected.json()).error.code).toBe("RATE_LIMITED");
