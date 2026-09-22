@@ -80,8 +80,8 @@ describe("ResourceCatalogService", () => {
       const service = new ResourceCatalogService(fixture.database, {
         clock: () => new Date("2026-09-15T12:00:00.000Z"),
       });
-      expect(service.unlockAdmin("wrong-password-value", "correct-resource-admin-password")).toBeUndefined();
-      const admin = service.unlockAdmin("correct-resource-admin-password", "correct-resource-admin-password");
+      expect(service.unlockAdmin("Wrong123456!", "Admin123456!")).toBeUndefined();
+      const admin = service.unlockAdmin("Admin123456!", "Admin123456!");
       expect(admin).toBeDefined();
       expect(service.authorizeAdmin(admin?.rawToken)).toMatchObject({ expiresAt: "2026-09-15T20:00:00.000Z" });
     } finally {
@@ -95,7 +95,7 @@ describe("ResourceCatalogService", () => {
       const service = new ResourceCatalogService(fixture.database, {
         clock: () => new Date("2026-09-15T12:00:00.000Z"),
       });
-      const admin = service.unlockAdmin("correct-resource-admin-password", "correct-resource-admin-password");
+      const admin = service.unlockAdmin("Admin123456!", "Admin123456!");
       if (!admin) throw new Error("admin session not created");
 
       let catalog = service.createTarget("resource", admin.rawToken, 1, { name: "홍길동", code: "R-001" });
@@ -149,7 +149,7 @@ describe("ResourceCatalogService", () => {
       const service = new ResourceCatalogService(fixture.database, {
         clock: () => new Date("2026-09-15T12:00:00.000Z"),
       });
-      const admin = service.unlockAdmin("correct-resource-admin-password", "correct-resource-admin-password");
+      const admin = service.unlockAdmin("Admin123456!", "Admin123456!");
       if (!admin) throw new Error("admin session not created");
       service.createTarget("resource", admin.rawToken, 1, { name: "Resource A" });
       expect(() => service.createTarget("group", admin.rawToken, 1, { name: "Stale group" }))
