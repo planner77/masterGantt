@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import type { ProjectAssignmentDto } from "@/contracts/resources";
-import type { ProjectTaskDto } from "@/contracts/projects";
+import type { ProjectAssignmentDto } from "../../../src/contracts/resources";
+import type { ProjectTaskDto } from "../../../src/contracts/projects";
 import {
   EMPTY_TASK_FILTER,
   filterTasksWithAncestors,
   taskMatchesFilter,
-} from "@/features/projects/project-search-filter";
+} from "../../../src/features/projects/project-search-filter";
 
 const tasks: ProjectTaskDto[] = [
   {
