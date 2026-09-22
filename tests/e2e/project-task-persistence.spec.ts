@@ -1,5 +1,5 @@
 import { type Frame, type Page, type Request, type Route } from "@playwright/test";
-import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
+import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated, submitProjectUnlock } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
 function uniqueSuffix(): string { return `${Date.now()}-${Math.random().toString(16).slice(2)}`; }
@@ -95,7 +95,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   expect(ganttBox!.y).toBeLessThan(650);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
   const revisionAfterCreate = snapshot.data.project.revision as number;
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   await dragTaskBarByOneDay(page, task.taskId, task.duration, "end");
   await expect(page.getByTestId("workspace-toast")).toContainText("작업을 저장했습니다");
   snapshot = await (await page.request.get(apiPath)).json();
@@ -184,7 +184,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   const winnerExternalId = raceExternalIds[winnerIndex];
   snapshot = await (await page.request.get(apiPath)).json();
   expect(snapshot.data.project.revision).toBe(revisionBeforeRace + 1); expect(snapshot.data.tasks).toHaveLength(1); expect(snapshot.data.tasks[0].externalId).toBe(winnerExternalId);
-  await page.reload(); await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await page.reload(); await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const winnerTask = snapshot.data.tasks[0];
   await expect(page.getByRole("grid").getByText(winnerTask.name, { exact: true })).toBeVisible();
   await expect(page.locator(`.wx-bar[data-task-id=":${winnerTask.taskId}"]`)).toBeVisible();
@@ -200,8 +200,8 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   await expectTaskGridStart(page, winnerTask.name, "2026-09-22");
   const readonlyWinnerRow = page.locator(".project-gantt-widget .wx-table-container .wx-row", { hasText: winnerTask.name }).first();
   await expect(readonlyWinnerRow).toContainText("2 근무일");
-  await page.getByLabel("편집 비밀번호").fill(password); await page.getByRole("button", { name: "편집 잠금 해제" }).click();
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await submitProjectUnlock(page, password);
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   await page.clock.setFixedTime(new Date("2026-09-24T12:00:00Z"));
   const browserToday = await page.evaluate(() => { const today = new Date(); return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`; });
   expect(browserToday).toBe("2026-09-24");
