@@ -63,10 +63,13 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     return () => controller.abort();
   }, [publicId]);
 
-  const overAllocatedCount = data?.groups.reduce(
-    (count, group) => count + group.resources.filter((resource) => resource.overAllocated).length,
-    0,
-  ) ?? 0;
+  const overAllocatedCount = data
+    ? new Set(
+        data.groups.flatMap((group) =>
+          group.resources.filter((resource) => resource.overAllocated).map((resource) => resource.id),
+        ),
+      ).size
+    : 0;
 
   return (
     <section aria-labelledby="resource-workload-heading" className="project-resource-workload">
