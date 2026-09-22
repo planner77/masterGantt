@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { WorkspaceNavigation } from "@/components/workspace-navigation";
 
 export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) {
   return (
@@ -12,14 +13,7 @@ export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) 
             </span>
             <span className="brand-name">masterGantt</span>
           </Link>
-          <nav aria-label="주요 메뉴">
-            <Link className="nav-link" href="/">
-              프로젝트
-            </Link>
-            <Link className="nav-link" href="/resources">
-              리소스
-            </Link>
-          </nav>
+          <WorkspaceNavigation />
           <div id="workspace-notification-slot" className="header-actions" />
         </div>
       </header>
