@@ -160,7 +160,7 @@ export class ProjectCopyService {
         }
 
         const calendar = resolveProjectWorkingCalendar(this.database, source.id);
-        recalculatePersistedHierarchy(sourceTasks, calendar, sourceLinks);
+        recalculatePersistedHierarchy(sourceTasks, calendar);
 
         const project = this.projects.insert({
           publicId: newPublicId,
