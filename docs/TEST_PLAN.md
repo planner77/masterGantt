@@ -348,3 +348,12 @@ PR #66 최종 검증 기준은 CI Run #350이며 quality, Chromium E2E 50/50, Do
 ### Issue #97 Link persistence
 
 Regression scope includes link command deduplication, protected POST/DELETE contracts, graph validation, revision +1/rollback, SQLite reopen and Docker volume restart persistence, Task Editor relation visibility, and preservation of the mounted Gantt instance during canonical synchronization.
+
+
+## Issue #108 Excel Gantt 주차 헤더 회귀
+
+- `excelIsoWeekHeader`가 동일 연도 일반 구간에서 ISO 계산 key(`YYYY-Www`)는 유지하고 표시 label은 주차 번호만 반환하는지 검증한다.
+- `2026-12-31`과 `2027-01-01`이 기존 규칙대로 같은 `2026-W53` 그룹에 속하면서 둘 다 `53`으로 표시되고, `2027-01-04`는 `2027-W01`/표시 `1`로 전환되는지 검증한다.
+- Excel `Gantt` 월 헤더 `YYYY-MM`, 일 헤더, 작업 데이터, 스타일, merge 범위, 관계 DrawingML, 다른 sheet 계약은 변경하지 않는다.
+- PR gate는 version consistency, typecheck, lint, 전체 Vitest, Markdown link, production build, Chromium E2E, Docker smoke를 기존 기준 그대로 적용한다.
+- 병합 후 main CI와 임시 GHCR image exact-digest smoke가 PASS한 뒤, 승인된 `v0.23.2` annotated tag에 대해 정식 GHCR release image를 게시하고 digest 재검증한다.
