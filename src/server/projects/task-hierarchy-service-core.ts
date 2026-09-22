@@ -301,7 +301,7 @@ export class TaskHierarchyService {
       const initialTasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
       const calendar = resolveProjectWorkingCalendar(this.database, project.id);
-      recalculatePersistedHierarchy(initialTasks, calendar);
+      recalculatePersistedHierarchy(initialTasks, calendar, links);
 
       const byPublicId = new Map(initialTasks.map((task) => [task.publicId, task]));
       const changed = new Set<string>();
