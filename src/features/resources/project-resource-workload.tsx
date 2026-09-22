@@ -120,7 +120,9 @@ export function ProjectResourceWorkload({ publicId }: Props) {
             </div>
           </dl>
 
-          {!data.mdPerMm ? <p className="resource-workload-note">M/M 환산 기준이 설정되지 않아 M/M 보기는 사용할 수 없습니다.</p> : null}
+          {data.mdPerMm
+            ? <p className="resource-workload-note">M/M 환산 기준: 1 M/M = {data.mdPerMm} M/D</p>
+            : <p className="resource-workload-note">M/M 환산 기준이 설정되지 않아 M/M 보기는 사용할 수 없습니다.</p>}
 
           <div className="resource-workload-groups">
             {data.groups.length === 0 ? (
