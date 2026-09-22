@@ -174,6 +174,24 @@ export class ResourceCatalogRepository {
     }
   }
 
+  getAdminCredential(): { passwordSalt: Buffer; passwordHash: Buffer } | undefined {
+    const row = this.database.prepare(`SELECT password_salt, password_hash FROM resource_catalog_admin_credentials WHERE id = 1`).get() as { password_salt: Buffer; password_hash: Buffer } | undefined;
+    return row ? { passwordSalt: row.password_salt, passwordHash: row.password_hash } : undefined;
+  }
+
+  seedAdminCredential(input: { passwordSalt: Buffer; passwordHash: Buffer; updatedAt: string }): boolean {
+    const result = this.database.prepare(`INSERT OR IGNORE INTO resource_catalog_admin_credentials (id, password_kdf, password_salt, password_hash, updated_at) VALUES (1, 'scrypt', @passwordSalt, @passwordHash, @updatedAt)`).run(input);
+    return result.changes === 1;
+  }
+
+  replaceAdminCredential(input: { passwordSalt: Buffer; passwordHash: Buffer; updatedAt: string }): void {
+    this.database.prepare(`UPDATE resource_catalog_admin_credentials SET password_salt = @passwordSalt, password_hash = @passwordHash, updated_at = @updatedAt WHERE id = 1`).run(input);
+  }
+
+  revokeAllAdminSessions(revokedAt: string): void {
+    this.database.prepare(`UPDATE resource_catalog_admin_sessions SET revoked_at = COALESCE(revoked_at, ?) WHERE revoked_at IS NULL`).run(revokedAt);
+  }
+
   insertAdminSession(input: { tokenHash: Buffer; createdAt: string; expiresAt: string }): number {
     const result = this.database.prepare(`INSERT INTO resource_catalog_admin_sessions (token_hash, created_at, expires_at) VALUES (@tokenHash, @createdAt, @expiresAt)`).run(input);
     return Number(result.lastInsertRowid);

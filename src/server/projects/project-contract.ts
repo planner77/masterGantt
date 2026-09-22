@@ -44,9 +44,10 @@ const projectOwnerName = wellFormedString
 const projectDescription = wellFormedString.refine(
   (value) => codePointLength(value) <= 4_000,
 );
-const newPassword = wellFormedString
-  .refine((value) => codePointLength(value) >= 12)
-  .refine((value) => Buffer.byteLength(value, "utf8") <= 1_024);
+const newPassword = wellFormedString.refine((value) => {
+  const length = codePointLength(value);
+  return length >= 1 && length <= 12;
+});
 
 const createProjectSchema = z.object({
   name: projectName,

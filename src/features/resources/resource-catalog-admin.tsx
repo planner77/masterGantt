@@ -24,6 +24,8 @@ function revisionTag(revision: number): string {
 export function ResourceCatalogAdmin() {
   const [catalog, setCatalog] = useState<ResourceCatalogResponse | null>(null);
   const [password, setPassword] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+  const [confirmAdminPassword, setConfirmAdminPassword] = useState("");
   const [resourceName, setResourceName] = useState("");
   const [resourceCode, setResourceCode] = useState("");
   const [groupName, setGroupName] = useState("");
@@ -99,6 +101,29 @@ export function ResourceCatalogAdmin() {
     }
   }
 
+  async function changePassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (busy) return;
+    const length = Array.from(newAdminPassword).length;
+    if (length < 1 || length > 12 || newAdminPassword !== confirmAdminPassword) {
+      setError("새 관리자 비밀번호는 1~12자이며 확인 값이 일치해야 합니다.");
+      return;
+    }
+    setBusy(true); setError(null);
+    try {
+      const response = await fetch("/api/resource-catalog/admin-password", {
+        method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newPassword: newAdminPassword, confirmPassword: confirmAdminPassword }),
+      });
+      setNewAdminPassword(""); setConfirmAdminPassword("");
+      if (response.status === 401) { setCatalog(null); setError("관리자 세션이 만료되었습니다. 다시 로그인해 주세요."); return; }
+      if (!response.ok) { setError("관리자 비밀번호를 변경하지 못했습니다."); return; }
+      setError("관리자 비밀번호를 변경했습니다.");
+    } catch {
+      setError("비밀번호 변경 결과를 확인할 수 없습니다.");
+    } finally { setBusy(false); }
+  }
+
   async function addResource(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const name = resourceName.trim();
@@ -170,6 +195,16 @@ export function ResourceCatalogAdmin() {
       </div>
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
     </div>
+
+    <section className={styles.card} aria-labelledby="admin-password-title">
+      <h2 id="admin-password-title">관리자 비밀번호 변경</h2>
+      <p className={styles.note}>현재 관리자 권한이 있는 세션에서만 변경할 수 있습니다. 새 비밀번호는 1~12자입니다.</p>
+      <form className={styles.formRow} onSubmit={(event) => void changePassword(event)}>
+        <label>새 비밀번호<input type="password" autoComplete="new-password" minLength={1} maxLength={12} value={newAdminPassword} disabled={busy} onChange={(event) => setNewAdminPassword(event.target.value)} /></label>
+        <label>새 비밀번호 확인<input type="password" autoComplete="new-password" minLength={1} maxLength={12} value={confirmAdminPassword} disabled={busy} onChange={(event) => setConfirmAdminPassword(event.target.value)} /></label>
+        <button className="primary-button" type="submit" disabled={busy || !newAdminPassword || newAdminPassword !== confirmAdminPassword}>비밀번호 변경</button>
+      </form>
+    </section>
 
     <div className={styles.columns}>
       <section className={styles.card} aria-labelledby="resources-title">

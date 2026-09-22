@@ -35,7 +35,7 @@ async function copyLink(page: Page, name: string, expected: string) {
 
 test("두 프로젝트의 링크를 구분하고 이름 변경·새 탭·새 세션에서도 publicId와 권한을 보존한다", async ({ page, browser }) => {
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const password = `Link-test-${suffix}`;
+  const password = "Link123456!";
   const first = await createProject(page, `링크 A ${suffix}`, password);
   const second = await createProject(page, `링크 B ${suffix}`, password);
   expect(first.publicId).not.toBe(second.publicId);

@@ -15,8 +15,8 @@ export APP_BASE_URL="https://gantt.example.invalid"
 export HOST_PORT="0"
 export TRUST_PROXY="false"
 export LOG_LEVEL="info"
-export RESOURCE_CATALOG_ADMIN_PASSWORD="ci-resource-admin-password"
-WRONG_RESOURCE_CATALOG_ADMIN_PASSWORD="ci-wrong-resource-admin-password"
+export RESOURCE_CATALOG_ADMIN_PASSWORD="Admin123456!"
+WRONG_RESOURCE_CATALOG_ADMIN_PASSWORD="Wrong123456!"
 export ALLOW_INSECURE_HTTP="false"
 owned=false
 

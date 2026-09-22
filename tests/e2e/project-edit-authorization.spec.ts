@@ -28,8 +28,8 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   const suffix = uniqueSuffix();
   const firstName = `W05 Project ${suffix}`;
   const savedName = `W05 Saved ${suffix}`;
-  const password = `W05-original-${suffix}`;
-  const rotatedPassword = `W05-rotated-${suffix}`;
+  const password = "W05Orig123!";
+  const rotatedPassword = "W05New1234!";
   const projectId = await createProject(page, firstName, password);
   const projectPath = `/api/projects/${projectId}`;
   const origin = new URL(page.url()).origin;

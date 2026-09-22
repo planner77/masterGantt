@@ -87,7 +87,7 @@ describe("ResourceWorkloadService", () => {
     const f = fixture();
     try {
       const resources = new ResourceCatalogService(f.database, { clock: () => new Date(NOW) });
-      const admin = resources.unlockAdmin("correct-resource-admin-password", "correct-resource-admin-password");
+      const admin = resources.unlockAdmin("Admin123456!", "Admin123456!");
       if (!admin) throw new Error("admin session not created");
 
       let catalog = resources.createTarget("resource", admin.rawToken, 1, { name: "Resource A", code: "R-A" });

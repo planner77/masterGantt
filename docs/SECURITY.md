@@ -221,7 +221,7 @@ Project URL은 URL parser로 base와 `/projects/{canonicalUuid}`를 결합한다
 
 반드시 redact하거나 기록하지 않는 값:
 
-- `editPassword`, `newEditPassword`
+- `editPassword`, `newEditPassword`, Resource 관리자 `password`/`newPassword`/`confirmPassword`
 - `Cookie`, `Set-Cookie`, session token/digest
 - password salt/hash/KDF derived key
 - 전체 import payload
@@ -330,3 +330,8 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 - [OWASP CSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
 - [MDN Set-Cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie)
 - [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html)
+
+
+## Issue #99 경량 비밀번호 정책
+
+현재 1~3명 내부 운영 범위에서 Project 편집 및 Resource 관리의 **신규/변경 비밀번호**는 1~12 Unicode 문자이며 문자 종류 조합을 강제하지 않는다. Project 비밀번호는 기존 scrypt 저장을 유지한다. Resource 관리자 비밀번호는 최초 DB 자격증명이 없을 때만 환경변수를 seed로 해시 저장하고 이후 DB 값을 우선한다. 변경 시 해당 Resource 관리자 세션을 모두 revoke한 뒤 호출자 세션만 재발급한다. 기존 Project와 Resource 권한 영역은 서로 독립적이다.

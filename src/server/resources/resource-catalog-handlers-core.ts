@@ -211,7 +211,7 @@ function adminPasswordConfiguration(password: string | undefined): { configured:
   const configured = typeof password === "string" && password.length > 0;
   return {
     configured,
-    policyValid: configured && password.length >= 16,
+    policyValid: configured && Array.from(password).length >= 1 && Array.from(password).length <= 12,
   };
 }
 
@@ -351,11 +351,14 @@ export async function handleUnlockResourceCatalogAdmin(request: Request, depende
       throw new PublicApiError(400, "INVALID_REQUEST", "Administrator password is invalid.");
     }
 
-    const authenticationFailureReason: ResourceAdminAuthReasonCode | null = !configuration.configured
-      ? "ADMIN_PASSWORD_NOT_CONFIGURED"
-      : !configuration.policyValid
-        ? "ADMIN_PASSWORD_POLICY_INVALID"
-        : null;
+    const credentialConfigured = resourceService(dependencies).adminCredentialConfigured();
+    const authenticationFailureReason: ResourceAdminAuthReasonCode | null = credentialConfigured
+      ? null
+      : !configuration.configured
+        ? "ADMIN_PASSWORD_NOT_CONFIGURED"
+        : !configuration.policyValid
+          ? "ADMIN_PASSWORD_POLICY_INVALID"
+          : null;
     if (authenticationFailureReason) {
       const response = fail(
         new PublicApiError(401, "RESOURCE_ADMIN_AUTH_FAILED", "Resource catalog administrator authentication failed."),
@@ -403,6 +406,24 @@ export async function handleUnlockResourceCatalogAdmin(request: Request, depende
     const reasonCode = requestFailureReason(error);
     logAdminAuthFailure(dependencies, requestId, reasonCode, response.status, configuration);
     return response;
+  }
+}
+
+export async function handleChangeResourceCatalogAdminPassword(request: Request, dependencies: ResourceHandlerDependencies): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    const url = applicationUrl(dependencies);
+    requireOrigin(request, url);
+    const body = await readBoundedJson(request, 4 * 1024) as { newPassword?: unknown; confirmPassword?: unknown };
+    if (!body || typeof body.newPassword !== "string" || body.newPassword !== body.confirmPassword || Array.from(body.newPassword).length < 1 || Array.from(body.newPassword).length > 12) {
+      throw new PublicApiError(400, "INVALID_REQUEST", "New administrator password must be 1 to 12 characters and confirmation must match.");
+    }
+    const changed = resourceService(dependencies).changeAdminPassword(adminToken(request, dependencies, url), body.newPassword);
+    const response = json({ data: { permission: "resource_catalog_admin", expiresAt: changed.expiresAt } }, 200);
+    response.headers.set("Set-Cookie", serializeResourceCatalogAdminCookie(changed.rawToken, url, dependencies.environment));
+    return response;
+  } catch (error) {
+    return fail(error, requestId);
   }
 }
 
