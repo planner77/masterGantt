@@ -54,7 +54,8 @@ function safeErrorCode(value: unknown): string | null {
   if (typeof value === "object" && value !== null && "error" in value && typeof value.error === "object" && value.error !== null && "code" in value.error && typeof value.error.code === "string") return value.error.code;
   return null;
 }
-function passwordValid(value: string): boolean { const length = Array.from(value).length; return length >= 1 && length <= 12; }
+function unlockPasswordValid(value: string): boolean { return Array.from(value).length >= 1 && new TextEncoder().encode(value).byteLength <= 1024; }
+function newPasswordValid(value: string): boolean { const length = Array.from(value).length; return length >= 1 && length <= 12; }
 function revisionTag(revision: number): string { return `"${revision}"`; }
 function snapshotFromMetadataMutation(value: unknown): ProjectSnapshotResponse | null {
   if (typeof value !== "object" || value === null) return null;
@@ -204,8 +205,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function unlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isUnlocking) return;
-    if (!passwordValid(unlockPassword)) {
-      notify("error", "편집 비밀번호는 1~12자로 입력해 주세요.", "편집 잠금 해제");
+    if (!unlockPasswordValid(unlockPassword)) {
+      notify("error", "편집 비밀번호를 입력해 주세요.", "편집 잠금 해제");
       setUnlockPassword(""); return;
     }
     clearToast(); setIsUnlocking(true);
@@ -265,8 +266,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (state.status !== "ready" || isChangingPassword) return;
-    if (!passwordValid(newPassword)) {
-      notify("error", "새 편집 비밀번호는 최소 12자이며 UTF-8 기준 최대 1,024 bytes 이하여야 합니다.", "편집 비밀번호 변경"); setNewPassword(""); return;
+    if (!newPasswordValid(newPassword)) {
+      notify("error", "새 편집 비밀번호는 1~12자이며 UTF-8 기준 최대 1,024 bytes 이하여야 합니다.", "편집 비밀번호 변경"); setNewPassword(""); return;
     }
     setIsChangingPassword(true); clearToast();
     const password = newPassword; setNewPassword("");
