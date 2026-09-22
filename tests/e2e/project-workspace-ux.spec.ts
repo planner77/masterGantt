@@ -27,7 +27,7 @@ test.describe("Issue #76 Project Workspace UX", () => {
     expect(headerBox!.width).toBeGreaterThan(1200);
     await expect(page.getByText("Stateful canonical snapshot fixture", { exact: true })).not.toBeVisible();
 
-    await page.getByRole("button", { name: "프로젝트 정보 보기", exact: true }).click();
+    await page.getByRole("group").locator("summary[aria-label=\"프로젝트 정보 보기\"]").click().catch(async () => { await page.locator("summary[aria-label=\"프로젝트 정보 보기\"]").click(); });
     await expect(page.getByText("Stateful canonical snapshot fixture", { exact: true })).toBeVisible();
     await expect(page.getByText("Revision", { exact: true })).toBeVisible();
 
