@@ -87,7 +87,7 @@ describe("TaskSubtreeDeleteService", () => {
         "INSERT INTO links(public_id,project_id,predecessor_task_id,successor_task_id,type,lag,created_at,updated_at) VALUES('link-ab',1,?,?,'FS',0,?,?)",
       ).run(ids[0], ids[1], now.toISOString(), now.toISOString());
       value.database.prepare(
-        "UPDATE tasks SET start_date='2026-09-22', end_date='2026-09-22' WHERE external_id='B'",
+        "UPDATE tasks SET start_date='2026-09-15', end_date='2026-09-15' WHERE external_id='B'",
       ).run();
 
       const deleted = value.subtree.deleteTaskSubtree(value.authorization, 4, third.taskId);
