@@ -109,9 +109,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const editorTriggerReference = useRef<HTMLElement | null>(null);
   const deleteTriggerReference = useRef<HTMLElement | null>(null);
   const unlockTriggerReference = useRef<HTMLButtonElement | null>(null);
+  const settingsTriggerReference = useRef<HTMLButtonElement | null>(null);
+  const focusSettingsAfterUnlockReference = useRef(false);
   const scheduleTabReference = useRef<HTMLButtonElement | null>(null);
   const resourceTabReference = useRef<HTMLButtonElement | null>(null);
   const actionMenuReference = useRef<HTMLDetailsElement | null>(null);
+
+  useEffect(() => {
+    if (permission !== "edit" || permissionCheckState !== "complete" || !focusSettingsAfterUnlockReference.current) return;
+    focusSettingsAfterUnlockReference.current = false;
+    settingsTriggerReference.current?.focus();
+  }, [permission, permissionCheckState]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -194,7 +202,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         const current = await fetch(`/api/projects/${encodeURIComponent(publicId)}/edit-sessions/current`, { credentials: "same-origin" });
         const body: unknown = await current.json().catch(() => null);
         if (current.ok && permissionFrom(body) === "edit") {
-          setUnlockOpen(false); setPermission("edit"); setPermissionCheckState("complete"); notify("success", "편집 모드가 활성화되었습니다.", "편집 잠금 해제");
+          focusSettingsAfterUnlockReference.current = true; setUnlockOpen(false); setPermission("edit"); setPermissionCheckState("complete"); notify("success", "편집 모드가 활성화되었습니다.", "편집 잠금 해제");
         } else {
           setPermission("readonly"); setPermissionCheckState("complete"); notify("error", "편집 권한을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.", "편집 잠금 해제", body);
         }
@@ -463,6 +471,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         <ProjectLinkButton projectName={project.name} projectUrl={projectUrl} />
         <ProjectExcelExportButton publicId={publicId} />
         {editing ? <button
+          ref={settingsTriggerReference}
           type="button"
           className="secondary-button"
           disabled={busy || editorSession !== null || pendingTaskDelete !== null}
