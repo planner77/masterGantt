@@ -71,7 +71,7 @@ test("Issue #77 Context Menu opens without activating a submenu", async ({ page 
   const taskId = created.data.tasks.find((task) => task.name === "Context initial")!.taskId;
 
   await page.reload();
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
 
   const rootMenu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
   const addSubmenu = page.getByRole("menu", { name: "Add", exact: true });
@@ -134,7 +134,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   const c = cBody.data.tasks.find((task) => task.name === "Context C")!;
 
   await page.reload();
-  await expect(page.getByText("편집 가능", { exact: true })).toBeVisible();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   const frame = page.locator(".project-gantt-frame");
   const instance = await frame.getAttribute("data-project-gantt-instance");
 
