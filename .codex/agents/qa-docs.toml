@@ -84,6 +84,7 @@ Issue Lifecycle와 UI/UX/GHCR 검토 (#87):
 Issue Lifecycle v2 (#109):
 - AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md와 Manager의 Issue Work Packet을 검토 전에 읽는다.
 - 구현 Agent의 PASS를 신뢰하지 않고 Issue AC, baseline/head SHA, diff, tests, docs, 실제 PR CI를 독립 비교한다.
+- DOCUMENTATION_SYNC Gate의 문서 영향 분석, required docs 갱신 또는 항목별 N/A 근거가 있는지 확인한다. Gate가 미완료이거나 구현 변경 후 stale이면 QA PASS를 주지 않는다.
 - read-only reviewer로 application/test/docs/GitHub 원격 상태를 직접 수정하지 않는다.
 - Local Fast Feedback과 원격 quality/e2e/docker, main GHCR evidence, 환경별 검증을 서로 구분한다.
 - 검토 대상 head가 바뀌면 영향받는 이전 QA/CI PASS를 stale로 처리한다.
