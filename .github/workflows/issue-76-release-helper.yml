@@ -59,7 +59,7 @@ jobs:
           echo "main CI 완료 대기 시간이 초과되었습니다." >&2
           exit 1
 
-      - name: annotated release tag 생성 및 push
+      - name: 주석 정식 릴리스 태그 생성 및 푸시
         shell: bash
         run: |
           set -euo pipefail
@@ -74,7 +74,7 @@ jobs:
           git push origin "refs/tags/$RELEASE_TAG"
           test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$TARGET_SHA"
 
-      - name: 정식 릴리스 이미지 workflow 실행
+      - name: 정식 릴리스 이미지 워크플로 실행
         shell: bash
         run: |
           set -euo pipefail
@@ -83,7 +83,7 @@ jobs:
             "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" \
             -f ref="$RELEASE_TAG"
 
-      - name: GHCR 정식 릴리스 이미지 workflow 성공 확인
+      - name: GHCR 정식 릴리스 이미지 워크플로 성공 확인
         id: release
         shell: bash
         run: |
@@ -106,7 +106,7 @@ jobs:
             fi
             sleep 15
           done
-          echo "정식 릴리스 workflow 완료 대기 시간이 초과되었습니다." >&2
+          echo "정식 릴리스 워크플로 완료 대기 시간이 초과되었습니다." >&2
           exit 1
 
       - name: Issue #76 작업 브랜치 안전 정리
@@ -154,6 +154,13 @@ jobs:
               retained+=("$branch")
               continue
             fi
+            open_head="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&head=$owner:$branch&per_page=1" --jq 'length')"
+            open_base="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&base=$branch&per_page=1" --jq 'length')"
+            if [[ "$open_head" != "0" || "$open_base" != "0" ]]; then
+              echo "삭제 직전 새 PR 참조를 감지해 보존합니다: $branch"
+              retained+=("$branch")
+              continue
+            fi
             echo "SHA 조건부 삭제 대상: $branch @ $head_sha"
             git push --porcelain --force-with-lease="refs/heads/$branch:$head_sha" origin ":refs/heads/$branch" >/dev/null
             if gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/$encoded" >/dev/null 2>&1; then
@@ -177,7 +184,7 @@ jobs:
           body="$(cat <<EOF
 Issue Lifecycle 완료:
 - 버전: 0.21.0
-- main CI/임시 GHCR commit artifact 검증: $MAIN_CI_URL
+- main CI/임시 GHCR 커밋 이미지 검증: $MAIN_CI_URL
 - GHCR 정식 릴리스 이미지: $RELEASE_RUN_URL
 - 정식 릴리스 태그: $RELEASE_TAG
 - 안전 조건 충족 후 삭제한 브랜치: ${{ steps.cleanup.outputs.deleted }}
@@ -194,7 +201,7 @@ EOF
             echo "## Issue #76 Lifecycle 완료"
             echo
             echo "- 정식 릴리스 태그: `$RELEASE_TAG`"
-            echo "- main CI/임시 GHCR 검증: ${{ steps.main_ci.outputs.run_url }}"
+            echo "- main CI/임시 GHCR 커밋 이미지 검증: ${{ steps.main_ci.outputs.run_url }}"
             echo "- GHCR 정식 릴리스: ${{ steps.release.outputs.run_url }}"
             echo "- 삭제한 브랜치: ${{ steps.cleanup.outputs.deleted }}"
             echo "- 안전 조건 때문에 보존한 브랜치: ${{ steps.cleanup.outputs.retained }}"
