@@ -151,6 +151,16 @@ export const isolatedApplicationOptions = {
   },
 };
 
+export async function submitProjectUnlock(page: Page, password: string): Promise<void> {
+  const dialog = page.getByRole("dialog", { name: "편집 활성화", exact: true });
+  if (!(await dialog.isVisible().catch(() => false))) {
+    await page.getByRole("button", { name: "편집 잠금 해제", exact: true }).click();
+    await expect(dialog).toBeVisible();
+  }
+  await dialog.getByLabel("편집 비밀번호", { exact: true }).fill(password);
+  await dialog.getByRole("button", { name: "편집 활성화", exact: true }).click();
+}
+
 /** Report the actual HTTP failure rather than a misleading navigation timeout. */
 export async function submitProjectAndExpectCreated(page: Page, ownerName = E2E_PROJECT_OWNER): Promise<void> {
   const owner = page.getByLabel("소유자", { exact: true });
