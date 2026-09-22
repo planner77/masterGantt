@@ -722,3 +722,8 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 ## Issue #97 — Link mutation API (implemented)
 
 `POST /api/projects/{publicId}/links` creates an FS/lag=0 dependency and `DELETE /api/projects/{publicId}/links/{linkId}` removes it. Both require a valid edit session, exact allowed Origin and strong `If-Match`; success returns the full canonical project/tasks/links snapshot with revision +1. Unsupported dependency shapes and graph conflicts are rejected atomically.
+
+
+## Issue #83 assigned-target metadata extension
+
+기존 public-read `GET /api/projects/{publicId}/assigned-targets`의 target metadata는 Project-local Resource 검색을 위해 기존 `kind/id/name/code/active`에 선택적 `description`을 추가한다. endpoint 권한, mutation 여부, revision 계약은 변경하지 않는다. 새 API는 추가하지 않는다.
