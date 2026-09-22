@@ -97,6 +97,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [isSavingTask, setIsSavingTask] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [unlockOpen, setUnlockOpen] = useState(false);
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [activeView, setActiveView] = useState<"schedule" | "resources">("schedule");
   const [ganttResetGeneration, setGanttResetGeneration] = useState(0);
   const [metadataName, setMetadataName] = useState("");
@@ -193,7 +194,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         const current = await fetch(`/api/projects/${encodeURIComponent(publicId)}/edit-sessions/current`, { credentials: "same-origin" });
         const body: unknown = await current.json().catch(() => null);
         if (current.ok && permissionFrom(body) === "edit") {
-          setPermission("edit"); setPermissionCheckState("complete"); notify("success", "편집 모드가 활성화되었습니다.", "편집 잠금 해제");
+          setUnlockOpen(false); setPermission("edit"); setPermissionCheckState("complete"); notify("success", "편집 모드가 활성화되었습니다.", "편집 잠금 해제");
         } else {
           setPermission("readonly"); setPermissionCheckState("complete"); notify("error", "편집 권한을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.", "편집 잠금 해제", body);
         }
@@ -473,10 +474,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           disabled={isUnlocking || permissionCheckState === "checking"}
           onClick={() => setUnlockOpen(true)}
         >{permissionCheckState === "checking" ? "권한 확인 중…" : "편집 잠금 해제"}</button>}
-        <details className="project-action-menu" ref={actionMenuReference}>
+        <details className="project-action-menu" ref={actionMenuReference} open={actionMenuOpen} onToggle={(event) => setActionMenuOpen(event.currentTarget.open)}>
           <summary aria-label="프로젝트 작업 더보기">더보기</summary>
           <div className="project-action-menu-panel">
-            <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} />
+            <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} onAutoOpen={() => setActionMenuOpen(true)} />
           </div>
         </details>
       </div>
