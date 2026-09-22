@@ -495,6 +495,10 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await resourceSearch.press("Enter");
     await expect(dialog).toBeVisible();
     await expect(resourceTab).toHaveAttribute("aria-selected", "true");
+    await dialog.getByRole("checkbox", { name: /Resource A/ }).check();
+    await expect(dialog.getByLabel("투입 시작", { exact: true })).toBeVisible();
+    await expect(dialog.getByLabel("투입 종료", { exact: true })).toBeVisible();
+    await expect(dialog.getByLabel("투입률 (%)", { exact: true })).toBeVisible();
     expect(fixture.patches).toHaveLength(0);
 
     await resourceTab.focus();
@@ -507,14 +511,41 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(dialog.getByLabel("작업명", { exact: true })).toHaveValue("탭 전환 초안");
     expect(fixture.patches).toHaveLength(0);
 
-    for (const viewport of [{ width: 1440, height: 900 }, { width: 768, height: 900 }, { width: 360, height: 800 }]) {
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 1024, height: 900 }, { width: 768, height: 900 }, { width: 390, height: 844 }]) {
       await page.setViewportSize(viewport);
+      await taskTab.click();
       const overflow = await dialog.evaluate((element) => ({
         own: element.scrollWidth - element.clientWidth,
         body: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       }));
       expect(overflow.own).toBeLessThanOrEqual(1);
       expect(overflow.body).toBeLessThanOrEqual(1);
+
+      const nameBox = await dialog.getByLabel("작업명", { exact: true }).boundingBox();
+      const startBox = await dialog.getByLabel("시작일", { exact: true }).boundingBox();
+      const durationBox = await dialog.getByLabel("기간 (근무일)", { exact: true }).boundingBox();
+      const progressBox = await dialog.getByLabel("진행률 (%)", { exact: true }).boundingBox();
+      expect(nameBox).not.toBeNull();
+      expect(startBox).not.toBeNull();
+      expect(durationBox).not.toBeNull();
+      expect(progressBox).not.toBeNull();
+
+      if (viewport.width >= 1024) {
+        expect(nameBox!.width).toBeLessThanOrEqual(680);
+        expect(durationBox!.width).toBeLessThan(startBox!.width);
+        expect(progressBox!.width).toBeLessThanOrEqual(330);
+      } else {
+        expect(Math.abs(durationBox!.width - startBox!.width)).toBeLessThanOrEqual(2);
+      }
+
+      await resourceTab.click();
+      const allocationStartBox = await dialog.getByLabel("투입 시작", { exact: true }).boundingBox();
+      const allocationPercentBox = await dialog.getByLabel("투입률 (%)", { exact: true }).boundingBox();
+      expect(allocationStartBox).not.toBeNull();
+      expect(allocationPercentBox).not.toBeNull();
+      if (viewport.width >= 1024) expect(allocationPercentBox!.width).toBeLessThan(allocationStartBox!.width);
+      else expect(Math.abs(allocationPercentBox!.width - allocationStartBox!.width)).toBeLessThanOrEqual(2);
+
       await expect(dialog.getByRole("button", { name: "최신 정보 다시 불러오기" })).toBeVisible();
       await expect(dialog.getByRole("button", { name: "취소", exact: true })).toBeVisible();
       await expect(save(page)).toBeVisible();
