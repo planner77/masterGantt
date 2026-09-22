@@ -58,6 +58,7 @@ import {
   taskContextCapabilities,
   type TaskClipboard,
 } from "./task-context-menu-model";
+import { taskHasDependencyLinks } from "./task-link-scope";
 import "./task-context-menu.css";
 import "./gantt-scale-toolbar.css";
 
@@ -634,7 +635,7 @@ export function ProjectGantt({
     if (!root) return false;
     const match = resolveTaskContextTarget(event.target, root, (id) => tasksByIdReference.current.has(id));
     if (!match) return false;
-    const canMutate = editable && !mutationLocked && links.length === 0;
+    const canMutate = editable && !mutationLocked && !taskHasDependencyLinks(tasksByIdReference.current.size ? Array.from(tasksByIdReference.current.values()) : tasks, match.taskId, links);
     const modifier = event.ctrlKey || event.metaKey;
     if (modifier && event.key.toLowerCase() === "c" && canMutate) {
       setTaskClipboard({ mode: "copy", taskId: match.taskId, revision: projectRevision });
@@ -777,11 +778,12 @@ export function ProjectGantt({
     }
   }
 
-  const canMutate = editable && !mutationLocked && links.length === 0;
+  const selectedTaskHasLinks = taskMenu ? taskHasDependencyLinks(tasks, taskMenu.taskId, links) : false;
+  const canMutate = editable && !mutationLocked && !selectedTaskHasLinks;
   const canDelete = canMutate;
   const activeClipboard = taskClipboard?.revision === projectRevision ? taskClipboard : null;
   const menuCapabilities = taskMenu
-    ? taskContextCapabilities(tasks, taskMenu.taskId, editable, mutationLocked, links.length > 0, activeClipboard)
+    ? taskContextCapabilities(tasks, taskMenu.taskId, editable, mutationLocked, links, activeClipboard)
     : null;
 
   useEffect(() => {
