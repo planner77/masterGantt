@@ -24,6 +24,7 @@
   --surface-subtle: var(--muted);
   --text-default: var(--foreground);
   --text-muted: var(--muted-foreground);
+  --text-readonly: #475569;
   --border-default: var(--border);
   --border-control: #94a3b8;
   --action-primary: var(--primary);
@@ -33,8 +34,8 @@
   --action-selected: var(--primary);
   --action-selected-subtle: #dbeafe;
   --action-selected-foreground: #1d4ed8;
-  --focus-ring: var(--ring);
-  --focus-outline: 3px solid color-mix(in srgb, var(--focus-ring) 55%, transparent);
+  --focus-ring: #285b8c;
+  --focus-outline: 3px solid var(--focus-ring);
   --focus-offset: 3px;
   --state-disabled-opacity: 0.6;
   --status-error: #9f1239;
