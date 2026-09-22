@@ -3,9 +3,16 @@ import type { ProjectTaskDto } from "@/contracts/projects";
 
 export type DateOperator = "overlap" | "contained" | "start-in" | "end-in";
 export type NumberOperator = "eq" | "gte" | "lte" | "range";
+export type TextOperator = "contains" | "not-contains" | "equals";
 
 export type TaskFilterState = Readonly<{
   query: string;
+  nameQuery: string;
+  nameOperator: TextOperator;
+  descriptionQuery: string;
+  descriptionOperator: Exclude<TextOperator, "equals">;
+  externalIdQuery: string;
+  externalIdOperator: Exclude<TextOperator, "not-contains">;
   dateFrom: string;
   dateTo: string;
   dateOperator: DateOperator;
@@ -22,6 +29,12 @@ export type TaskFilterState = Readonly<{
 
 export const EMPTY_TASK_FILTER: TaskFilterState = {
   query: "",
+  nameQuery: "",
+  nameOperator: "contains",
+  descriptionQuery: "",
+  descriptionOperator: "contains",
+  externalIdQuery: "",
+  externalIdOperator: "contains",
   dateFrom: "",
   dateTo: "",
   dateOperator: "overlap",
@@ -38,6 +51,15 @@ export const EMPTY_TASK_FILTER: TaskFilterState = {
 
 function normalizeText(value: string | null | undefined): string {
   return (value ?? "").trim().toLocaleLowerCase();
+}
+
+function textMatches(value: string | null | undefined, query: string, operator: TextOperator): boolean {
+  const normalizedQuery = normalizeText(query);
+  if (!normalizedQuery) return true;
+  const normalizedValue = normalizeText(value);
+  if (operator === "equals") return normalizedValue === normalizedQuery;
+  if (operator === "not-contains") return !normalizedValue.includes(normalizedQuery);
+  return normalizedValue.includes(normalizedQuery);
 }
 
 function inRange(value: string, from: string, to: string): boolean {
@@ -64,6 +86,9 @@ export function taskMatchesFilter(
     const haystack = [task.name, task.description, task.externalId].map(normalizeText);
     if (!haystack.some((value) => value.includes(query))) return false;
   }
+  if (!textMatches(task.name, filter.nameQuery, filter.nameOperator)) return false;
+  if (!textMatches(task.description, filter.descriptionQuery, filter.descriptionOperator)) return false;
+  if (!textMatches(task.externalId, filter.externalIdQuery, filter.externalIdOperator)) return false;
   if (!dateMatches(task, filter)) return false;
   if (filter.types.length > 0 && !filter.types.includes(task.type)) return false;
   if (filter.scheduleModes.length > 0 && !filter.scheduleModes.includes(task.scheduleMode)) return false;
@@ -118,6 +143,9 @@ export function filterTasksWithAncestors(
 export function activeTaskFilterCount(filter: TaskFilterState): number {
   return [
     normalizeText(filter.query) !== "",
+    normalizeText(filter.nameQuery) !== "",
+    normalizeText(filter.descriptionQuery) !== "",
+    normalizeText(filter.externalIdQuery) !== "",
     Boolean(filter.dateFrom && filter.dateTo),
     filter.assignmentState !== "all",
     filter.types.length > 0,
