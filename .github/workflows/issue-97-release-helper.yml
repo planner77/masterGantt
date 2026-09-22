@@ -1,0 +1,51 @@
+name: Issue 97 release helper
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/issue-97-release-helper.yml"]
+permissions:
+  contents: write
+  actions: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      TARGET_SHA: ${{ github.sha }}
+      RELEASE_TAG: v0.22.0
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with: { fetch-depth: 0 }
+      - name: main CI 확인
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git show "$TARGET_SHA:package.json" | jq -r .version)" = "0.22.0"
+          for _ in $(seq 1 240); do
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=50")"
+            run="$(jq -c --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" && "$(jq -r .status <<<"$run")" == completed ]]; then test "$(jq -r .conclusion <<<"$run")" = success; exit 0; fi
+            sleep 15
+          done
+          exit 1
+      - name: annotated tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "Release $RELEASE_TAG"
+          git push origin "refs/tags/$RELEASE_TAG"
+      - name: publish GHCR
+        run: gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" -f ref="$RELEASE_TAG"
+      - name: GHCR release 성공 확인
+        shell: bash
+        run: |
+          set -euo pipefail
+          for _ in $(seq 1 240); do
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=50")"
+            run="$(jq -c --arg sha "$TARGET_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" && "$(jq -r .status <<<"$run")" == completed ]]; then test "$(jq -r .conclusion <<<"$run")" = success; exit 0; fi
+            sleep 15
+          done
+          exit 1
