@@ -89,11 +89,24 @@
 .tab[aria-selected="true"] .tabBadge { background: #dbeafe; color: #1d4ed8; }
 .tabPanel { min-width: 0; }
 .tabPanel[hidden] { display: none; }
-.taskFields { display: grid; gap: 1rem; }
+.taskFields {
+  display: grid;
+  grid-template-columns: minmax(0, 42rem) minmax(16rem, 24rem);
+  align-items: start;
+  gap: 0.75rem 1.25rem;
+}
+.taskFields > :first-child,
+.scheduleFields,
+.taskFields > :nth-last-child(2),
+.taskFields > :last-child {
+  grid-column: 1 / -1;
+}
+.taskFields > :first-child { max-width: 42rem; }
 .scheduleFields {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.9rem;
+  grid-template-columns: minmax(10rem, 13rem) minmax(7rem, 9rem) minmax(10rem, 13rem);
+  align-items: end;
+  gap: 0.75rem;
 }
 .field { display: grid; align-content: start; gap: 0.38rem; min-width: 0; font-size: 0.9rem; font-weight: 600; }
 .fieldLabel { display: block; }
@@ -136,9 +149,10 @@
 }
 .sliderRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 4.5rem;
+  grid-template-columns: minmax(12rem, 20rem) 4rem;
   align-items: center;
   gap: 0.75rem;
+  max-width: 24rem;
 }
 .sliderRow input[type="range"] { min-height: 2.5rem; padding: 0; border: 0; }
 .progressValue { justify-self: end; min-width: 3.5rem; text-align: right; font-variant-numeric: tabular-nums; font-weight: 650; }
@@ -264,7 +278,7 @@
 .inactiveBadge { background: #e2e8f0; color: #475569; }
 .allocationGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(10rem, 13rem) minmax(10rem, 13rem) minmax(7rem, 9rem);
   gap: 0.75rem;
   margin: 0.75rem 0 0 1.8rem;
 }
@@ -296,6 +310,8 @@
   .dialog { width: min(46rem, calc(100vw - 1rem)); max-height: calc(100dvh - 1rem); }
   .header, .body, .footer { padding-left: 1rem; padding-right: 1rem; }
   .tabs, .noticeStack { padding-left: 1rem; padding-right: 1rem; }
+  .taskFields { grid-template-columns: 1fr; }
+  .taskFields > * { grid-column: 1; max-width: none; }
   .scheduleFields, .relationColumns, .allocationGrid { grid-template-columns: 1fr; }
   .allocationGrid { margin-left: 1.8rem; }
   .assignmentFilters { grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.45fr); }
@@ -308,7 +324,7 @@
   .body { padding: 0.9rem 0.85rem 1rem; }
   .tabs, .noticeStack { padding-left: 0.85rem; padding-right: 0.85rem; }
   .tab { min-width: 6.5rem; }
-  .sliderRow { grid-template-columns: 1fr; }
+  .sliderRow { grid-template-columns: 1fr; max-width: none; }
   .progressValue { justify-self: start; }
   .assignmentFilters { grid-template-columns: 1fr; }
   .assignedOnly { grid-column: auto; }
