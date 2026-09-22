@@ -32,7 +32,7 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
     await search.fill(`  vietnam  `);
     await expect(table.locator("tbody tr")).toHaveCount(1);
     await expect(table).toContainText(`AMR Alpha ${suffix}`);
-    await expect(page.getByRole("status")).toContainText("1 / 2개 프로젝트");
+    await expect(page.locator(".project-filter-result")).toContainText("1 / 2개 프로젝트");
     expect(collectionGets).toBe(initialGets);
 
     const filterButton = page.getByRole("button", { name: /필터 1/ });
@@ -72,7 +72,7 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
       return `${part("year")}-${part("month")}-${part("day")}`;
     }, project.createdAt);
     await panel.getByLabel("생성일 조건").selectOption("equals");
-    await panel.getByLabel("날짜").first().fill(browserDate);
+    await panel.locator('input[type="date"]').first().fill(browserDate);
     await expect(page.getByRole("table", { name: "프로젝트 목록" }).locator("tbody tr")).toHaveCount(1);
 
     await page.keyboard.press("Escape");
@@ -108,7 +108,7 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
 
     await expect(page.getByRole("heading", { name: "조건에 맞는 프로젝트가 없습니다." })).toBeVisible();
     await expect(search).toHaveValue("delete filtered");
-    await expect(page.getByRole("status")).toContainText("0 / 1개 프로젝트");
+    await expect(page.locator(".project-filter-result")).toContainText("0 / 1개 프로젝트");
   });
 
   test("390/768/1024/1440에서 문서 수준 가로 overflow가 없다", async ({ page, baseURL }) => {
