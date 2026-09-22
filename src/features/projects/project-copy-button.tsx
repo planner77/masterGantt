@@ -151,7 +151,7 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false, on
       return;
     }
     if (!validPassword(password) || password !== confirm) {
-      setError("새 편집 비밀번호는 12자 이상이어야 하며 확인 값과 일치해야 합니다.");
+      setError("새 편집 비밀번호는 1~12자이며 확인 값과 일치해야 합니다.");
       return;
     }
 
@@ -227,8 +227,8 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false, on
         <div className="form-field"><label htmlFor="detail-copy-name">새 프로젝트명</label><input id="detail-copy-name" value={name} disabled={copying} onChange={(event) => setName(event.target.value)} /></div>
         <div className="form-field"><label htmlFor="detail-copy-owner">소유자</label><input id="detail-copy-owner" value={ownerName} disabled={copying} onChange={(event) => setOwnerName(event.target.value)} /></div>
         <div className="form-field"><label htmlFor="detail-copy-description">설명</label><textarea id="detail-copy-description" rows={3} value={description} disabled={copying} onChange={(event) => setDescription(event.target.value)} /></div>
-        <div className="form-field"><label htmlFor="detail-copy-password">새 편집 비밀번호</label><input id="detail-copy-password" type="password" autoComplete="new-password" value={password} disabled={copying} onChange={(event) => setPassword(event.target.value)} /></div>
-        <div className="form-field"><label htmlFor="detail-copy-password-confirm">새 편집 비밀번호 확인</label><input id="detail-copy-password-confirm" type="password" autoComplete="new-password" value={confirm} disabled={copying} onChange={(event) => setConfirm(event.target.value)} /></div>
+        <div className="form-field"><label htmlFor="detail-copy-password">새 편집 비밀번호</label><input id="detail-copy-password" type="password" autoComplete="new-password" minLength={1} maxLength={12} value={password} disabled={copying} onChange={(event) => setPassword(event.target.value)} /></div>
+        <div className="form-field"><label htmlFor="detail-copy-password-confirm">새 편집 비밀번호 확인</label><input id="detail-copy-password-confirm" type="password" autoComplete="new-password" minLength={1} maxLength={12} value={confirm} disabled={copying} onChange={(event) => setConfirm(event.target.value)} /></div>
         <label><input type="checkbox" checked={resetProgress} disabled={copying} onChange={(event) => setResetProgress(event.target.checked)} /> 진척률 0%로 초기화</label>
         <button className="primary-button" type="submit" disabled={copying}>{copying ? "복사 중…" : "복사본 생성"}</button>
       </form> : null}
