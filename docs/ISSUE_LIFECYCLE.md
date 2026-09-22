@@ -49,7 +49,8 @@ Manager는 사용자가 Issue 처리를 요청하면 별도의 역할 선택 질
 
 ```text
 접수/현재 상태 확인 → 분석/필요 역할 배정 → 설계·계획·버전 결정
-→ 작업 branch/worktree → 구현·관련 테스트·문서 → Local Fast Feedback
+→ 작업 branch/worktree → 구현·관련 테스트 → Local Fast Feedback
+→ DOCUMENTATION_SYNC(관련 문서 갱신 또는 N/A 근거)
 → QA 사전 검토 → PR → CI → QA 최종 검토/Manager 병합 승인
 → main 병합 → main CI → main 임시 GHCR 게시·digest 검증·정리
 → [release_required] 명시적 release_authorized 승인 확인 (미승인 시 BLOCKED)
@@ -65,8 +66,9 @@ PR을 조기에 만들 수 있으나 동일 이슈의 PR을 중복 생성하지 
 | 설계/계획 | Manager + domain, UI면 ui_ux/frontend | 변경 파일 소유권, interface, 의존 순서, 테스트와 문서 계획, release_required/release_authorized와 승인 근거 |
 | 버전 결정 | Manager 승인, infra 반영 | CI_CD의 호환성 기준; package.json/lockfile/CHANGELOG 동기화 계획 |
 | branch/worktree | infra | 확인한 최신 main 기반 `fix/issue-N-...`, `feat/issue-N-...`, `docs/issue-N-...`; 기존 작업은 재사용 |
-| 구현/문서/빠른 검증 | 지정 구현 담당 | 범위 내 diff, 회귀 테스트, 실제 실행 명령·exit 결과; version 수정도 작업 branch에서 수행 |
-| QA 사전 검토 | qa_docs, UI 설계 비교는 ui_ux | 요구사항↔코드↔테스트↔문서 비교, 실패/미검증 목록; frontend 자체 PASS로 대체 금지 |
+| 구현/빠른 검증 | 지정 구현 담당 | 범위 내 diff, 회귀 테스트, 실제 실행 명령·exit 결과; version 수정도 작업 branch에서 수행 |
+| 문서 동기화 (DOCUMENTATION_SYNC) | Manager가 지정한 문서 작성자, 기본 domain Agent | 문서 영향 분석, required docs 실제 갱신 또는 N/A 근거, 코드·계약·문서 정합성; 미완료 시 QA 진입 금지 |
+| QA 사전 검토 | qa_docs, UI 설계 비교는 ui_ux | 요구사항↔코드↔테스트↔문서 비교, DOCUMENTATION_SYNC 증거, 실패/미검증 목록; frontend 자체 PASS로 대체 금지 |
 | PR/CI | infra | PR head와 테스트된 merge/base ref, run/job/attempt; quality/e2e/docker 실제 성공 |
 | 병합 승인 | qa_docs 최종 검토 + Manager | 마지막 수정 이후 head의 필수 CI/검토 PASS, 미해결 차단 사항 없음, 병합 승인 범위 확인 |
 | main 병합 | infra | 승인한 head를 지정한 merge, 실제 merge SHA; base 이동/충돌로 diff가 바뀌면 재검증 |
@@ -199,6 +201,7 @@ INTAKE
 → BRANCH_READY
 → IMPLEMENTING
 → LOCAL_VALIDATED
+→ DOCUMENTATION_SYNC
 → QA_READY
 → PR_OPEN
 → PR_CI
@@ -239,7 +242,8 @@ Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 �
 | BRANCH_READY | 최신 main 기반 Issue branch/worktree 또는 기존 branch 재사용 | infra |
 | IMPLEMENTING | 지정 파일 내 코드/테스트/문서 변경 | domain Agent |
 | LOCAL_VALIDATED | 관련 Local Fast Feedback 실제 결과 | domain Agent |
-| QA_READY | 구현 결과/증거가 Result Contract로 전달됨 | qa_docs |
+| DOCUMENTATION_SYNC | 문서 영향 분석 완료, required docs 갱신 또는 항목별 N/A 근거 기록, 코드·계약·문서 정합성 확인 | Manager가 지정한 문서 작성자; 기본은 해당 domain Agent |
+| QA_READY | DOCUMENTATION_SYNC PASS와 구현 결과/증거가 Result Contract로 전달됨 | qa_docs |
 | PR_OPEN/PR_CI | 단일 PR, 최신 head의 quality/e2e/docker | infra |
 | QA_FINAL/MERGE_READY | qa_docs 독립 판정 + Manager ACCEPT | qa_docs + Manager |
 | MERGED | 승인 head의 실제 merge SHA | infra |
@@ -249,16 +253,35 @@ Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 �
 | CLEANUP | 안전한 branch 정리, docs/evidence 최종 동기화 | infra |
 | CLOSED | 모든 필수 AC/gate와 잔여 위험 기록 | Manager |
 
-### 9.4 Agent 반환 계약
+### 9.4 DOCUMENTATION_SYNC Gate
 
-모든 Agent는 Issue number, lifecycle phase, baseline SHA, 상태(PASS/FAIL/BLOCKED/NOT TESTED), findings/changes, files, commit/head, 실제 테스트/결과, 문서, 미검증, 위험, next phase/owner를 반환한다.
+Issue 조치와 Local Fast Feedback이 끝난 뒤 QA에 들어가기 전에 관련 문서를 독립 Gate로 동기화한다.
+
+Manager는 PLAN 단계에서 `required_docs`와 문서 작성자를 지정한다. 기본 작성자는 해당 변경을 구현한 domain Agent이며, 여러 domain에 걸친 공용 문서는 Manager가 단일 작성자를 지정한다. `qa_docs`는 read-only reviewer이므로 이 Gate의 문서를 직접 수정하지 않는다.
+
+DOCUMENTATION_SYNC PASS 조건:
+
+- 변경된 기능·API·DB·Scheduling·UI/UX·Excel·배포·CI·보안·운영 계약이 어떤 문서에 영향을 주는지 문서 영향 분석을 수행한다.
+- Work Packet의 `required_docs` 각 항목을 실제 변경하거나, 갱신이 불필요하면 항목별로 `N/A`와 근거를 기록한다.
+- 최소한 관련 요구사항/Architecture/API/DB/Scheduling/UI/Deployment/CI/Test Plan/CHANGELOG 중 영향받는 문서를 현재 코드 및 Issue AC와 일치시킨다.
+- 과거 검증 기록이나 완료 시점 문서를 현재 상태로 소급 변조하지 않는다. 새 상태는 현재 문서/Issue/PR에 추가 기록한다.
+- Result Contract에 `documentation_impact`, `docs_required`, `docs_updated`, `docs_n_a_with_reason`을 남긴다.
+- 문서 링크/참조와 용어·버전·계약이 현재 구현과 모순되지 않는지 확인한다.
+- 문서 갱신 이후 구현/계약이 다시 바뀌면 DOCUMENTATION_SYNC PASS는 stale이며 다시 수행한다.
+
+필요 문서가 실제로 하나도 없는 변경도 Gate 자체를 생략하지 않는다. 문서 영향 분석 결과와 `N/A` 근거가 있어야 PASS할 수 있다. DOCUMENTATION_SYNC가 FAIL/BLOCKED/NOT TESTED이면 QA_READY로 전환하지 않는다.
+
+### 9.5 Agent 반환 계약
+
+모든 Agent는 Issue number, lifecycle phase, baseline SHA, 상태(PASS/FAIL/BLOCKED/NOT TESTED), findings/changes, files, commit/head, 실제 테스트/결과, documentation impact와 docs required/updated/N/A 근거, 미검증, 위험, next phase/owner를 반환한다.
 
 Domain 구현 Agent가 version/tag/PR/merge/GHCR/Issue close를 독자 실행하지 않는다. infra도 Manager의 version/release/merge gate를 넘어서지 않는다. qa_docs/researcher/ui_ux는 read-only이며 쓰기 작업을 직접 수행하지 않는다.
 
-### 9.5 REWORK와 재개
+### 9.6 REWORK와 재개
 
 - 기존 Issue/branch/PR이 있으면 재사용한다.
 - 수정 후 head가 바뀌면 해당 변경에 영향을 받는 이전 CI/QA PASS는 stale이다.
+- 구현·계약 변경이 문서에 영향을 주면 이전 DOCUMENTATION_SYNC PASS도 stale이며 QA 전 문서 Gate를 다시 통과한다.
 - 같은 원인 실패를 두 차례 반복하면 Manager가 가설/계획을 재검토한다.
 - 중단 후에는 Issue/PR/CI/main을 다시 읽고 현재 상태에서 남은 단계만 실행한다.
 - 이미 게시된 immutable version/tag는 재사용/덮어쓰기하지 않는다.
