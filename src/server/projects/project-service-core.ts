@@ -22,6 +22,7 @@ import type {
   UpdateProjectRequest,
 } from "../../contracts/projects";
 import {
+  recalculateFinishStartDependencies,
   recalculateHierarchy,
   scheduleLeaf,
   type WorkingCalendar,
@@ -407,12 +408,14 @@ function validPersistedExternalId(value: string): boolean {
     !/[\p{Cc}\p{Cf}]/u.test(value);
 }
 
-function validatePersistedLeafSchedules(
+function validatePersistedScheduleShape(
   tasks: readonly TaskRecord[],
   calendar: WorkingCalendar,
-): void {
+): ProjectTaskDto[] {
   try {
-    for (const task of tasks) {
+    const original = taskDtos([...tasks]);
+    return original.map((dto, index) => {
+      const task = tasks[index];
       if (
         !isCanonicalUuidV4(task.publicId) ||
         !validPersistedExternalId(task.externalId) ||
@@ -427,7 +430,7 @@ function validatePersistedLeafSchedules(
         if (task.scheduleMode !== "auto" || task.requestedStart !== null) {
           throw new PersistedScheduleInvalidError();
         }
-        continue;
+        return dto;
       }
       if (
         (task.type !== "task" && task.type !== "milestone") ||
@@ -440,12 +443,16 @@ function validatePersistedLeafSchedules(
         requestedStart: task.requestedStart,
         duration: task.duration,
         scheduleMode: task.scheduleMode,
-        end: task.endDate,
       }, calendar);
-      if (scheduled.start !== task.startDate) {
-        throw new PersistedScheduleInvalidError();
-      }
-    }
+      return {
+        ...dto,
+        start: scheduled.start,
+        end: scheduled.end,
+        duration: scheduled.duration,
+        scheduleMode: scheduled.scheduleMode,
+        requestedStart: scheduled.requestedStart,
+      };
+    });
   } catch (error) {
     if (error instanceof PersistedScheduleInvalidError) throw error;
     throw new PersistedScheduleInvalidError();
@@ -455,22 +462,28 @@ function validatePersistedLeafSchedules(
 export function recalculatePersistedHierarchy(
   tasks: readonly TaskRecord[],
   calendar: WorkingCalendar,
+  links: readonly LinkRecord[] = [],
 ) {
   try {
-    validatePersistedLeafSchedules(tasks, calendar);
     const original = taskDtos([...tasks]);
-    const derived = recalculateHierarchy(original, calendar);
+    const base = validatePersistedScheduleShape(tasks, calendar);
+    const baseWithSummaries = recalculateHierarchy(base, calendar);
+    const dependencyAdjusted = links.length === 0
+      ? baseWithSummaries
+      : recalculateFinishStartDependencies(
+          baseWithSummaries,
+          linkDtos([...links], [...tasks]),
+          calendar,
+        ).tasks;
+    const derived = recalculateHierarchy(dependencyAdjusted, calendar);
     for (let index = 0; index < original.length; index += 1) {
       if (
-        original[index].type === "summary" &&
-        (
-          original[index].start !== derived[index].start ||
-          original[index].end !== derived[index].end ||
-          original[index].duration !== derived[index].duration ||
-          original[index].progress !== derived[index].progress ||
-          original[index].scheduleMode !== derived[index].scheduleMode ||
-          original[index].requestedStart !== derived[index].requestedStart
-        )
+        original[index].start !== derived[index].start ||
+        original[index].end !== derived[index].end ||
+        original[index].duration !== derived[index].duration ||
+        original[index].progress !== derived[index].progress ||
+        original[index].scheduleMode !== derived[index].scheduleMode ||
+        original[index].requestedStart !== derived[index].requestedStart
       ) {
         throw new PersistedScheduleInvalidError();
       }
@@ -845,7 +858,7 @@ export class ProjectService {
       }
 
       const calendar = workingCalendar(this.database, project, project.id);
-      if (tasks.length > 0) recalculatePersistedHierarchy(tasks, calendar);
+      if (tasks.length > 0) recalculatePersistedHierarchy(tasks, calendar, links);
       const parent = validatedInput.parentTaskId === undefined
         ? undefined
         : this.schedules.findTaskByPublicId(
@@ -985,7 +998,7 @@ export class ProjectService {
       const links = this.schedules.listLinks(project.id);
       assertHierarchyMutationCapability(links, [current.id]);
       const calendar = workingCalendar(this.database, project, project.id);
-      recalculatePersistedHierarchy(tasks, calendar);
+      recalculatePersistedHierarchy(tasks, calendar, links);
       if (current.type === "summary") {
         if (
           validatedInput.name === undefined ||
@@ -1096,7 +1109,7 @@ export class ProjectService {
       const links = this.schedules.listLinks(project.id);
       assertHierarchyMutationCapability(links, [current.id]);
       const calendar = workingCalendar(this.database, project, project.id);
-      recalculatePersistedHierarchy(tasks, calendar);
+      recalculatePersistedHierarchy(tasks, calendar, links);
       if (current.type === "summary") {
         throw new SummaryTaskDeleteUnsupportedError();
       }
