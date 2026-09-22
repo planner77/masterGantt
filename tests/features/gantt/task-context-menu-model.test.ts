@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import type { ProjectTaskDto } from "../../../src/contracts/projects";
+import type { ProjectLinkDto, ProjectTaskDto } from "../../../src/contracts/projects";
 import {
   createHierarchyCommand,
   createPasteCommand,
   taskContextCapabilities,
 } from "../../../src/features/gantt/task-context-menu-model";
+
+const noLinks: ProjectLinkDto[] = [];
 
 function task(
   taskId: string,
@@ -39,13 +41,13 @@ describe("task context menu model", () => {
       task("a2", "A2", "A", 1),
     ];
 
-    expect(taskContextCapabilities(tasks, "b", true, false, false, null)).toMatchObject({
+    expect(taskContextCapabilities(tasks, "b", true, false, noLinks, null)).toMatchObject({
       canMoveUp: true,
       canMoveDown: false,
       canIndent: true,
       canOutdent: false,
     });
-    expect(taskContextCapabilities(tasks, "a2", true, false, false, null)).toMatchObject({
+    expect(taskContextCapabilities(tasks, "a2", true, false, noLinks, null)).toMatchObject({
       canMoveUp: true,
       canOutdent: true,
     });
@@ -57,7 +59,7 @@ describe("task context menu model", () => {
       task("a1", "A1", "A", 0),
     ];
 
-    expect(taskContextCapabilities(tasks, "a1", true, false, false, null)).toMatchObject({
+    expect(taskContextCapabilities(tasks, "a1", true, false, noLinks, null)).toMatchObject({
       canMoveUp: false,
       canMoveDown: false,
       canOutdent: true,
@@ -66,14 +68,32 @@ describe("task context menu model", () => {
 
   it("fails closed for readonly, busy, links and stale/empty clipboard targets", () => {
     const tasks = [task("a", "A", null, 0), task("b", "B", null, 1)];
-    expect(taskContextCapabilities(tasks, "a", false, false, false, null).canMoveDown).toBe(false);
-    expect(taskContextCapabilities(tasks, "a", true, true, false, null).canMoveDown).toBe(false);
-    expect(taskContextCapabilities(tasks, "a", true, false, true, null).canMoveDown).toBe(false);
-    expect(taskContextCapabilities(tasks, "a", true, false, false, {
+    expect(taskContextCapabilities(tasks, "a", false, false, noLinks, null).canMoveDown).toBe(false);
+    expect(taskContextCapabilities(tasks, "a", true, true, noLinks, null).canMoveDown).toBe(false);
+    expect(taskContextCapabilities(tasks, "a", true, false, [{ id: "link", predecessorExternalId: "A", successorExternalId: "B", type: "FS", lag: 0 }], null).canMoveDown).toBe(false);
+    expect(taskContextCapabilities(tasks, "a", true, false, noLinks, {
       mode: "copy",
       taskId: "a",
       revision: 1,
     }).canPaste).toBe(false);
+  });
+
+  it("keeps an unrelated task mutable when other tasks have a dependency", () => {
+    const tasks = [task("a", "A", null, 0), task("b", "B", null, 1), task("c", "C", null, 2)];
+    const links: ProjectLinkDto[] = [
+      { id: "link-ab", predecessorExternalId: "A", successorExternalId: "B", type: "FS", lag: 0 },
+    ];
+
+    expect(taskContextCapabilities(tasks, "c", true, false, links, null)).toMatchObject({
+      canAddChild: true,
+      canMoveUp: true,
+      canIndent: true,
+    });
+    expect(taskContextCapabilities(tasks, "a", true, false, links, null)).toMatchObject({
+      canAddChild: false,
+      canMoveDown: false,
+      canIndent: false,
+    });
   });
 
   it("maps shortcuts/menu intents to atomic hierarchy commands", () => {

@@ -216,3 +216,58 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   expect(current.data.tasks.filter((task) => task.name === "Context C")).toHaveLength(2);
   await expect(page.getByRole("grid").getByText("Context A", { exact: true })).toBeVisible();
 });
+
+
+test("Issue #104 unrelated task context actions stay enabled when other tasks are linked", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Context link scope ${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Context-password-${suffix}`);
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
+
+  const path = new URL(page.url()).pathname;
+  const api = `/api${path}`;
+  const origin = new URL(page.url()).origin;
+  const current = await snapshot(page, api);
+  const first = await createTask(page, api, origin, current.data.project.revision, "Linked A");
+  const second = await createTask(page, api, origin, first.data.project.revision, "Linked B");
+  const third = await createTask(page, api, origin, second.data.project.revision, "Unlinked C");
+
+  const a = third.data.tasks.find((task) => task.name === "Linked A")!;
+  const b = third.data.tasks.find((task) => task.name === "Linked B")!;
+  const link = await page.request.post(`${api}/links`, {
+    headers: { Origin: origin, "If-Match": `"${third.data.project.revision}"` },
+    data: {
+      predecessorExternalId: a.externalId,
+      successorExternalId: b.externalId,
+      type: "FS",
+      lag: 0,
+    },
+  });
+  expect(link.status()).toBe(201);
+
+  await page.reload();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+
+  const unrelatedMenu = await openTaskMenu(page, "Unlinked C");
+  for (const name of ["Add", "Convert to", "Cut", "Copy", "Move", "Delete"]) {
+    await expect(unrelatedMenu.getByRole("menuitem", { name, exact: true })).toBeEnabled();
+  }
+  await unrelatedMenu.getByRole("menuitem", { name: "Delete", exact: true }).click();
+  await expect(page.locator(".project-gantt-widget .wx-row", { hasText: "Unlinked C" })).toHaveCount(0);
+  const afterDelete = await snapshot(page, api);
+  expect(afterDelete.data.links).toHaveLength(1);
+  expect(afterDelete.data.links[0]).toMatchObject({
+    predecessorExternalId: a.externalId,
+    successorExternalId: b.externalId,
+  });
+
+  const linkedMenu = await openTaskMenu(page, "Linked A");
+  await expect(linkedMenu.getByRole("menuitem", { name: "Edit", exact: true })).toBeEnabled();
+  for (const name of ["Add", "Convert to", "Cut", "Copy", "Move", "Delete"]) {
+    await expect(linkedMenu.getByRole("menuitem", { name, exact: true })).toBeDisabled();
+  }
+});

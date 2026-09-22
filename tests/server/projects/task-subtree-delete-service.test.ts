@@ -76,6 +76,30 @@ describe("TaskSubtreeDeleteService", () => {
     }
   });
 
+  it("allows deleting an unlinked task while preserving unrelated dependency links", async () => {
+    const value = await fixture();
+    try {
+      value.service.createTask(value.authorization, 1, input("A"));
+      value.service.createTask(value.authorization, 2, input("B"));
+      const third = value.service.createTask(value.authorization, 3, input("C")).data.tasks.find((task) => task.externalId === "C")!;
+      const ids = value.database.prepare("SELECT id FROM tasks WHERE external_id IN ('A','B') ORDER BY external_id").pluck().all() as number[];
+      value.database.prepare(
+        "INSERT INTO links(public_id,project_id,predecessor_task_id,successor_task_id,type,lag,created_at,updated_at) VALUES('link-ab',1,?,?,'FS',0,?,?)",
+      ).run(ids[0], ids[1], now.toISOString(), now.toISOString());
+      value.database.prepare(
+        "UPDATE tasks SET start_date='2026-09-15', end_date='2026-09-15' WHERE external_id='B'",
+      ).run();
+
+      const deleted = value.subtree.deleteTaskSubtree(value.authorization, 4, third.taskId);
+      expect(deleted.data.project.revision).toBe(5);
+      expect(deleted.data.tasks.map((task) => task.externalId).sort()).toEqual(["A", "B"]);
+      expect(deleted.data.links).toHaveLength(1);
+      expect(deleted.data.links[0]).toMatchObject({ predecessorExternalId: "A", successorExternalId: "B" });
+    } finally {
+      value.database.close();
+    }
+  });
+
   it("rejects deletion before mutation when the persisted subtree schedule is already invalid", async () => {
     const value = await fixture();
     try {

@@ -18,6 +18,7 @@ import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
 import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSession } from "@/features/gantt/task-editor-model";
 import { createTaskDeletePlan, type TaskDeletePlan } from "@/features/gantt/task-delete-model";
 import { findTaskContextElement } from "@/features/gantt/task-context-target";
+import { taskHasDependencyLinks } from "@/features/gantt/task-link-scope";
 import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
 import { todayLocalDateString } from "@/lib/date-display";
 
@@ -427,7 +428,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function saveEditorTask(command: ProjectTaskUpdateCommand, revision: number): Promise<TaskEditorSaveResult> {
     if (state.status !== "ready") return { status: "failed", message: "프로젝트 정보를 확인할 수 없습니다." };
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === command.taskId);
-    const restriction = taskEditorReadOnlyReason(task, permission === "edit" && permissionCheckState === "complete", state.snapshot.data.links.length > 0);
+    const restriction = taskEditorReadOnlyReason(task, permission === "edit" && permissionCheckState === "complete", task ? taskHasDependencyLinks(state.snapshot.data.tasks, task.taskId, state.snapshot.data.links) : false);
     if (restriction) return { status: "failed", message: restriction };
     if (isSavingMetadata || isChangingPassword || isLoggingOut) return { status: "failed", message: "프로젝트 변경을 완료한 뒤 다시 시도해 주세요." };
     return saveTask("PATCH", command.taskId, command.payload, revision);
@@ -447,9 +448,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       ...(convert ? { convertParentToSummary: true } : {}) });
   }
   function requestTaskDelete(taskId: string, trigger: HTMLElement | null) {
-    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen || state.snapshot.data.links.length > 0) return;
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen) return;
     const plan = createTaskDeletePlan(state.snapshot.data.tasks, taskId);
     if (!plan) { notify("error", "삭제할 작업을 찾을 수 없습니다. 최신 정보를 다시 확인해 주세요.", "작업 삭제"); return; }
+    const deleteTaskIds = [plan.taskId, ...plan.descendantTaskIds];
+    if (deleteTaskIds.some((candidate) => taskHasDependencyLinks(state.snapshot.data.tasks, candidate, state.snapshot.data.links))) {
+      notify("info", "관계가 연결된 작업이 삭제 범위에 포함되어 있어 삭제할 수 없습니다.", "작업 삭제");
+      return;
+    }
     deleteTriggerReference.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     if (plan.descendantTaskIds.length === 0) {
       void saveTask("DELETE", taskId);
@@ -675,7 +681,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           })} tasks={tasks} visibleTaskIds={activeFilters > 0 ? visibleTaskIds : null} />
         {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
-          editable={editing} hasLinks={links.length > 0} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
+          editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
       </section>
       <section
         id="project-panel-resources"
