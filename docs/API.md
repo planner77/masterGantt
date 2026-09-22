@@ -423,7 +423,7 @@ Exact same-origin `Origin`이 필요하다. 현재 Project에 binding된 session
 
 ## 5. Task 표현과 API
 
-W24는 root 및 nested `task | milestone` CRUD와 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder/task-batch와 WBS 응답 필드는 후속이고, Link mutation과 FS 재계산은 W09 범위다. 기존 snapshot에 Link가 하나라도 있으면 현재 Task mutation은 부분 계산하지 않고 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 전체 거부한다.
+W24는 root 및 nested `task | milestone` CRUD와 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder/task-batch와 WBS 응답 필드는 후속이고, Link mutation과 FS 재계산은 W09 범위다. Task mutation은 선택 Task 또는 mutation 영향 subtree가 Dependency endpoint를 포함할 때 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다. 프로젝트의 다른 Task에만 Link가 있는 경우에는 mutation을 허용하고 기존 Link를 canonical snapshot에 그대로 보존한다.
 
 ### Task response
 
@@ -484,7 +484,7 @@ Auto의 비근무 requested start는 다음 근무일로 이동해 `NON_WORKING_
 
 ### `DELETE /api/projects/{publicId}/tasks/{taskId}`
 
-기본 요청은 기존 계약을 유지하여 Root 또는 nested Leaf/Milestone **한 작업만** 삭제한다. Nested leaf 삭제 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. 마지막 child 삭제는 `EMPTY_SUMMARY_NOT_ALLOWED`, child가 있는 Summary를 명시적 subtree 의도 없이 삭제하면 `SUMMARY_DELETE_UNSUPPORTED`로 거부한다. 기존 Link가 있으면 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 Task·Link·revision을 모두 보존한다.
+기본 요청은 기존 계약을 유지하여 Root 또는 nested Leaf/Milestone **한 작업만** 삭제한다. Nested leaf 삭제 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. 마지막 child 삭제는 `EMPTY_SUMMARY_NOT_ALLOWED`, child가 있는 Summary를 명시적 subtree 의도 없이 삭제하면 `SUMMARY_DELETE_UNSUPPORTED`로 거부한다. 삭제 대상 Task가 Dependency endpoint이면 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 Task·Link·revision을 모두 보존한다. 다른 Task 사이에만 Link가 있으면 해당 Link를 보존한 채 삭제를 허용한다.
 
 Issue #31부터 선택 작업과 모든 깊이의 자손을 함께 삭제할 때는 다음처럼 명시적인 query를 사용한다.
 
@@ -501,7 +501,7 @@ If-Match: "<current revision>"
 - Task가 존재하지 않거나 다른 Project에 속한다.
 - 선택 범위 밖의 parent Summary가 비게 된다 (`EMPTY_SUMMARY_NOT_ALLOWED`).
 - 확인 이후 다른 write로 revision이 바뀐다 (`REVISION_MISMATCH` / HTTP 412).
-- 기존 Link가 있어 현재 hierarchy mutation 정책을 만족하지 않는다 (`UNSUPPORTED_SCHEDULE_STRUCTURE`).
+- 선택 Task/삭제 subtree에 Dependency endpoint가 포함되어 hierarchy mutation 정책을 만족하지 않는다 (`UNSUPPORTED_SCHEDULE_STRUCTURE`).
 - 저장된 계층이 cycle/고아/일정 불일치 등으로 유효하지 않다.
 
 UI는 canonical snapshot의 자손 수를 확인창에 표시하지만 이는 안내값이다. 자손이 있으면 작업명·자손 수·총 삭제 수를 표시하고 명시적으로 `하위 작업 포함 삭제`를 선택한 경우에만 위 query를 보낸다. 취소/Escape/닫기 전에는 DELETE를 보내지 않는다. 확인 당시 revision이 stale이면 최신 snapshot을 재조회한 후 새 범위를 다시 확인해야 하며 자동 재시도하지 않는다.
@@ -714,7 +714,7 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 
 보호된 Project mutation이다. exact Origin, 유효한 edit session과 strong `If-Match: "<revision>"`가 필요하며 성공은 `200`과 새 ETag/canonical Task snapshot을 반환한다. 한 HTTP 명령은 하나의 SQLite immediate transaction에서 parent/order/type/subtree와 파생 Summary를 저장하고 Project revision을 정확히 1 증가시킨다.
 
-지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste의 실제 저장 동작이고 `copy`는 source subtree에 새 taskId/externalId를 발급한다. Dependency Link가 하나라도 존재하면 기존 계층 mutation 정책과 동일하게 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`를 반환한다.
+지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste의 실제 저장 동작이고 `copy`는 source subtree에 새 taskId/externalId를 발급한다. 선택 Task 또는 계층 mutation의 영향 subtree가 Dependency endpoint를 포함하면 기존 fail-closed 정책대로 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`를 반환한다. 프로젝트의 unrelated Link만으로는 다른 Task의 계층 명령을 거부하지 않으며 성공 canonical snapshot에 해당 Link를 보존한다.
 
 경계 이동 등 현재 위치에서 의미 없는 명령은 `409 TASK_COMMAND_NOT_AVAILABLE`, 마지막 child 이동으로 빈 Summary가 생기면 `409 EMPTY_SUMMARY_NOT_ALLOWED`, Resource Assignment가 포함된 subtree Copy는 현재 `409 TASK_COPY_ASSIGNMENTS_UNSUPPORTED`다. stale revision은 `412 REVISION_MISMATCH`이며 부분 저장은 없다.
 
