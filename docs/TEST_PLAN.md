@@ -226,6 +226,7 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | UI09 | 390×844 좁은 viewport에서 focus 가능한 Gantt 내부 horizontal scroll로 Grid와 Chart 모두 접근 가능하고 document body overflow가 없음 |
 | UI10 | 작업공간에 접근 가능한 이름과 keyboard focus가 있고 접이식 설정·작업 control이 기존 label/status 의미를 보존 |
 | UI12 | Issue #74: Task Editor 3개 Tab, draft 보존, Arrow/Home/End keyboard, Resource/Group filter/assignment 저장 범위, 관계 2열→1열, sticky Footer, 360/768/1024/1440 horizontal overflow 없음과 기존 401/412/dirty/readonly 회귀 |
+| UI13 | Issue #96: 1440/1024px Task Editor에서 작업명·날짜·기간·진행률·Description/URL 및 Resource allocation이 역할별 content-aware 폭을 사용하고, 768/390px에서 1열 전환하며 dialog/document horizontal overflow가 없음. 기존 Task/Assignment/Relation/dirty/stale/readonly 저장 계약 회귀 포함 |
 | UI11 | Issue #3 및 PR #23: 지연 POST 대기/성공 동안 동일 Gantt DOM/API, no document navigation, action 열과 scroll/tree/selection/columns 유지; 순차 추가마다 정확히 한 POST 및 canonical row/bar 한 개, root/child/팝업 없는 명시적 Summary 전환·오류 복구 회귀. [현재 UX 계약](PROJECT_UX.md), [과거 검증 기록](ISSUE_3_REVIEW.md) |
 
 ## Requirement traceability와 Release gate

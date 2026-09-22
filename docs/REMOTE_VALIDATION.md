@@ -157,3 +157,18 @@ Issue #76의 제품 변경은 PR의 `quality/e2e/docker` PASS만으로 완료하
 
 Workflow 파일의 존재나 과거 성공 run은 현재 head의 PASS를 대신하지 않는다. release/tag/GHCR/branch cleanup/Issue 종료는 각 단계의 실제 GitHub 원격 증거로 판정한다.
 
+
+
+## Issue #96 원격 릴리스 검증
+
+Issue #96은 Task Editor UI 변경과 함께 사용자가 GHCR 정식 게시를 명시적으로 승인했으므로 아래 증거가 모두 확인되어야 완료다.
+
+1. 최종 PR head에서 quality, Chromium E2E, Docker smoke가 모두 PASS이고 독립 Codex review의 unresolved finding이 없어야 한다.
+2. merge 후 실제 `main` merge SHA의 CI가 completed/success여야 하며, 같은 run의 `publish-commit-image`가 임시 `ci-<full SHA>` 게시, exact digest 재다운로드/runtime smoke, SBOM/provenance, 임시 package cleanup을 완료해야 한다.
+3. package version `0.21.1`과 annotated `v0.21.1` tag가 정확히 일치하고 tag가 실제 merge SHA를 가리켜야 한다.
+4. 새 tag에서 `release-image.yml`은 `v0.21.1` ref로 dispatch하며, helper의 dispatch 시각 이후 생성되고 `head_branch=v0.21.1`, `head_sha=<merge SHA>`, completed/success인 run만 정식 게시 PASS로 인정한다.
+5. helper 재실행 시 기존 tag가 같은 target을 가리키고 동일 tag/head SHA의 성공 release run이 있는 경우에만 publish를 반복하지 않고 cleanup/Issue 종료를 재개한다.
+6. PR #98은 **merge commit 방식**으로 병합해야 하며 squash/rebase merge는 허용하지 않는다. branch cleanup은 target SHA가 2개 이상의 parent를 가진 merge commit이고 `TARGET_SHA^2 == 작업 branch tip SHA`임을 확인한 뒤, 열린 PR 참조가 없고 현재 tip이 merge target의 ancestor이며 삭제 직전 SHA가 재검증된 경우에만 explicit SHA lease로 수행한다. 새 commit, lease 불일치, API 오류는 FAIL/BLOCKED다.
+7. Issue #96 완료 댓글에 version, main CI/임시 GHCR 검증 URL, 정식 release run URL, tag, branch cleanup 결과를 기록한 뒤 completed로 닫는다.
+
+Workflow 파일의 존재나 과거 run은 현재 target SHA의 PASS를 대신하지 않는다. GHCR 게시 성공은 운영 환경 배포 완료를 의미하지 않는다.

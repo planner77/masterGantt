@@ -97,3 +97,16 @@ Task Editor의 관계 탭은 상위 Project 화면이 이미 사용 중인 canon
 - Readonly 상태에서도 관계 조회는 가능하며 저장 버튼 제공 여부와 관계 조회 가능 여부를 분리한다.
 - Editor open만으로 Project mutation 또는 추가 Project snapshot GET을 만들지 않는다.
 - Project revision이 Editor session revision과 달라지면 기존 stale 보호 및 명시적 reload 흐름을 사용한다.
+
+
+## Issue #96 — 입력 폭·간격·배치 밀도 최적화
+
+Issue #74의 3개 탭, body-only scroll, 고정 Footer 구조와 모든 저장/권한 계약은 유지하고 presentation density만 조정한다.
+
+- Desktop 작업 정보 탭은 content-aware 2열 grid를 사용한다. 작업명·일정·Description·URL은 주 content 폭을 사용하고 진행률은 보조 열에서 최대 24rem 범위로 제한한다.
+- 일정은 시작일 10~13rem, 기간 7~9rem, 서버 확정 종료일 10~13rem 방향으로 배치해 기간 입력이 날짜 필드와 같은 폭을 강제받지 않는다.
+- Resource allocation은 시작/종료 10~13rem, 투입률 7~9rem을 사용하며 Search는 flexible, Type은 compact, Assigned only는 intrinsic sizing 계약을 유지한다.
+- 768px 이하에서는 Task/일정/Resource allocation을 1열로 전환하고 480px 이하에서는 진행률 값도 자연스럽게 stack한다. document/dialog horizontal overflow는 허용하지 않는다.
+- 변경은 CSS Module에 한정하며 JSX inline width, Task API, canonical snapshot, revision/If-Match, 401/412, dirty/stale, Relation 및 Assignment 별도 저장 계약을 변경하지 않는다.
+
+검증 기준은 390/768/1024/1440px에서 input geometry와 horizontal overflow를 확인하고 기존 Task Editor 상호작용 회귀를 함께 실행한다.
