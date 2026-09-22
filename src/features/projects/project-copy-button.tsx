@@ -7,7 +7,7 @@ import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { useWorkspaceNotifications } from "@/components/workspace-notifications";
 import type { CopyProjectResponse, ProjectSnapshotResponse } from "@/contracts/projects";
 
-type Props = Readonly<{ publicId: string; autoOpen?: boolean; busy?: boolean }>;
+type Props = Readonly<{ publicId: string; autoOpen?: boolean; busy?: boolean; onAutoOpen?: () => void }>;
 
 function validPassword(value: string): boolean {
   return Array.from(value).length >= 12 &&
@@ -38,7 +38,7 @@ function hasEditPermission(value: unknown): boolean {
     "permission" in value.data && value.data.permission === "edit";
 }
 
-export function ProjectCopyButton({ publicId, autoOpen = false, busy = false }: Props) {
+export function ProjectCopyButton({ publicId, autoOpen = false, busy = false, onAutoOpen }: Props) {
   const router = useRouter();
   const { notify } = useWorkspaceNotifications();
   const [snapshot, setSnapshot] = useState<ProjectSnapshotResponse | null>(null);
@@ -104,8 +104,9 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false }: 
   useEffect(() => {
     if (!autoOpen || autoOpened.current || busy) return;
     autoOpened.current = true;
+    onAutoOpen?.();
     void show();
-  }, [autoOpen, busy]);
+  }, [autoOpen, busy, onAutoOpen]);
 
   function close() {
     if (!copying) setOpen(false);
