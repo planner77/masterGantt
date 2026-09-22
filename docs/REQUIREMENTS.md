@@ -140,3 +140,14 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 리소스 탭은 현재 Project에서 실제 사용 중인 Resource/Group을 name/code/description, kind, active, 연결 Task effective 기간으로 제한한다.
 - 비활성 assigned target도 검색 가능하며 Group member를 direct Resource assignment로 추론하지 않는다.
 - 같은 page session 동안 일정/리소스 필터 state를 유지하고 새로고침 시 초기화할 수 있다.
+
+
+## Issue #84 Project List 검색/필터
+
+- Project List는 현재 public summary(`name/ownerName/description/createdAt/updatedAt`)만 사용해 client-side read-only view filter를 제공한다. 검색을 위해 DB schema, API schema, Project revision을 변경하지 않는다.
+- Quick Search는 프로젝트명·소유자·설명을 trim + case-insensitive contains로 동시에 검색하며, 고급 조건과 AND로 결합한다.
+- 고급 조건은 프로젝트명/소유자/설명 text operator, 소유자 지정 여부, 생성일/최근 변경일의 equals/before/after/inclusive range를 지원한다.
+- 날짜 조건은 UTC 문자열 substring이 아니라 목록 표시와 동일한 browser timezone의 calendar date로 판정한다.
+- 삭제된 Project를 먼저 제외한 뒤 검색 조건을 적용하고, 전체 Project 0건과 검색 결과 0건을 서로 다른 상태로 표시한다.
+- 검색 입력은 Project API 재조회, page reload, Project mutation을 발생시키지 않으며 같은 page session의 Row Action/Dialog 사용 중 view state를 유지한다.
+- Task/Resource 검색은 Issue #83 구현을 그대로 사용하고 Project List가 별도 검색 프레임워크를 만들지 않는다. 공통 text normalization/operator primitive는 Project/Task predicate가 공유한다.
