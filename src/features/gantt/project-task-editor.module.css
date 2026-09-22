@@ -129,7 +129,7 @@
   font-weight: 400;
 }
 .field textarea { min-height: 7.5rem; resize: vertical; line-height: 1.45; }
-.field input[readonly], .field textarea[readonly], .outputField { background: #f1f5f9; color: var(--text-muted); }
+.field input[readonly], .field textarea[readonly], .outputField { background: #f1f5f9; color: var(--text-readonly); }
 .outputField {
   display: flex;
   align-items: center;
