@@ -344,8 +344,12 @@ function isSessionValid(
     expiry !== undefined && expiry > now.getTime();
 }
 
-function assertHierarchyMutationCapability(links: readonly LinkRecord[]): void {
-  if (links.length > 0) {
+function assertHierarchyMutationCapability(
+  links: readonly LinkRecord[],
+  taskIds: readonly number[],
+): void {
+  const affected = new Set(taskIds);
+  if (links.some((link) => affected.has(link.predecessorTaskId) || affected.has(link.successorTaskId))) {
     throw new UnsupportedScheduleStructureError();
   }
 }
@@ -830,7 +834,6 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      assertHierarchyMutationCapability(links);
       if (tasks.length >= MAX_PROJECT_TASKS) {
         throw new TaskLimitExceededError();
       }
@@ -852,6 +855,7 @@ export class ProjectService {
       if (validatedInput.parentTaskId !== undefined && !parent) {
         throw new TaskNotFoundError();
       }
+      if (parent) assertHierarchyMutationCapability(links, [parent.id]);
       if (parent?.type === "milestone") {
         throw new InvalidParentTaskError();
       }
@@ -979,7 +983,7 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      assertHierarchyMutationCapability(links);
+      assertHierarchyMutationCapability(links, [current.id]);
       const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar);
       if (current.type === "summary") {
@@ -1090,7 +1094,7 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      assertHierarchyMutationCapability(links);
+      assertHierarchyMutationCapability(links, [current.id]);
       const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar);
       if (current.type === "summary") {
