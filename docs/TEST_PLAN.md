@@ -7,6 +7,17 @@
 
 상태: qa_docs가 작성한 검증 전략. W02–W07, W20과 W21 검증 기록은 [W07_REVIEW.md](W07_REVIEW.md), [W20_REVIEW.md](W20_REVIEW.md), [W21_REVIEW.md](W21_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W20의 로컬 container PASS도 원격 Actions/GHCR, production host/backup/restore와 VBA 통과를 뜻하지 않는다.
 
+## Issue #76 Project Workspace UX
+
+- Global Header가 viewport 기반 full-width로 동작하고 전역 active navigation을 `aria-current`로 제공하는지 검증한다.
+- Project Context가 프로젝트명·편집 상태 중심의 compact bar이며 Description/Owner/Revision은 Info disclosure에서 조회 가능한지 검증한다.
+- Readonly 상태의 비밀번호 입력은 상시 공간을 점유하지 않고 `편집 잠금 해제` Dialog에서만 제공되며 기존 edit-session 인증/실패/재인증 계약을 유지하는지 검증한다.
+- `일정 / 리소스` tablist/tab/tabpanel의 selected state, Arrow/Home/End keyboard 이동과 focus를 검증한다.
+- 일정 → 리소스 → 일정 전환 전후 Gantt instance와 scroll/state가 보존되고 mutation/navigation/reload가 발생하지 않는지 검증한다.
+- Resource workload는 full-width peer view로 표시하고 M/D·M/M·Refresh, Group → Resource → Task 계층과 과투입/미설정 상태를 검증한다.
+- 390/768/1024/1440/1920px에서 unintended document horizontal overflow가 없고 Gantt 내부 scroll 계약은 유지되는지 검증한다.
+- 최종 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker`와 병합 후 main artifact gate를 사용한다.
+
 ## Issue #72 Task Context Menu
 
 최종 PR 검증 기준은 **PR #73 / CI Run #387**이다. `quality`, 전체 Chromium E2E, Docker build/runtime/transport/Compose smoke가 모두 PASS했으며, hierarchy reparent는 canonical sync에서 공개 `move-task` action을 사용하고 `update-task` parent 직접 변경으로 인한 recovery remount가 발생하지 않는지를 Unit/E2E에서 고정한다.
