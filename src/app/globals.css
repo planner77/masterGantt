@@ -1181,6 +1181,23 @@ h2 {
   font-size: 0.875rem;
 }
 
+@media (max-width: 48rem) {
+  .project-title-row {
+    position: relative;
+  }
+
+  .project-info-popover {
+    position: static;
+  }
+
+  .project-info-panel {
+    right: 0;
+    left: 0;
+    width: auto;
+    max-width: none;
+  }
+}
+
 .project-action-menu-panel {
   right: 0;
   display: grid;
