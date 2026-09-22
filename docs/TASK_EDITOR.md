@@ -4,7 +4,7 @@
 
 프로젝트 Grid의 작업 행 또는 Chart의 작업 막대를 우클릭하면 해당 작업의 **작업 메뉴**를 먼저 연다. 메뉴의 **작업 정보**를 선택해야 기존 작업 정보 대화상자가 열린다. 메뉴를 여는 것만으로 대화상자·저장·삭제가 실행되지 않는다. 선택된 행이나 작업명이 아니라 실제 taskId로 찾는다. Tab으로 작업 행/막대에 포커스를 옮긴 뒤 Shift+F10 또는 ContextMenu 키로 메뉴를 열고, 작업 정보 항목에서 Enter로 진입할 수 있다. Escape는 메뉴를 닫는다. Grid 헤더의 우클릭/Shift+F10은 기존 표시 열 메뉴를 유지하며 두 메뉴는 동시에 표시하지 않는다. 빈 Chart, 링크, 시간축과 입력 상자에는 작업 우클릭 처리를 적용하지 않는다.
 
-일반 작업은 작업명·시작일·기간(근무일)과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 입력 도중에는 저장하지 않는다. 종료일은 마지막 서버 확정값이며 저장 시 서버가 프로젝트의 휴일/주말과 일정 모드로 다시 계산한다. 마일스톤 기간은 0이며 수정할 수 없다. 요약 작업은 조회만 가능하다. 편집 권한이 없거나 연결이 존재하면 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
+일반 작업은 작업명·시작일·기간(근무일)과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 입력 도중에는 저장하지 않는다. 종료일은 마지막 서버 확정값이며 저장 시 서버가 프로젝트의 휴일/주말과 일정 모드로 다시 계산한다. 마일스톤 기간은 0이며 수정할 수 없다. 요약 작업은 조회만 가능하다. 편집 권한이 없거나 **현재 Task가 Dependency endpoint인 경우** 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 프로젝트의 다른 Task에만 연결이 존재하는 것은 현재 Task를 읽기 전용으로 만들지 않는다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
 
 취소/닫기/Escape는 미저장 변경이 있으면 먼저 버리기 확인을 요구한다. 편집기 하나가 열려 있는 동안 다른 작업으로 초안을 조용히 전환하지 않는다. 메뉴의 Escape는 원래 호출 대상으로 포커스를 복구한다. 편집기 종료 시 연결된 원래 대상이 없으면 해당 taskId의 현재 행이나 작업공간을 사용한다. 포커스 복구에는 preventScroll을 사용한다.
 
@@ -17,7 +17,7 @@
 | Add / Cut / Copy / Paste | 제공 (#72) | Cut/Copy는 프로젝트 화면의 clipboard 상태만 갱신하고 Paste 시 서버의 원자 계층 명령을 호출한다. Add는 child/above/below 위치를 명시한다. |
 | Convert / Move / Indent / Outdent | 제공 (#72) | 현재 canonical hierarchy에서 유효한 명령만 활성화하고 서버가 parent/sibling order와 Summary를 재계산한다. 빈 Summary 또는 Link 포함 일정은 fail-closed한다. |
 
-삭제 메뉴는 Readonly·mutation 진행 중·Link가 있는 일정에서는 비활성화한다. 자손 없는 작업은 기존 단건 DELETE, 자손이 있는 작업은 작업명·자손 수·총 삭제 수를 보여주는 확인창을 거쳐 명시적 subtree DELETE를 사용한다. 취소/Escape/닫기는 DELETE 0회이며 확인 시점 revision이 바뀌면 412 후 최신 범위를 다시 확인한다.
+삭제 메뉴는 Readonly·mutation 진행 중이거나 **선택 Task/삭제 subtree가 Link endpoint를 포함하는 경우** 비활성화 또는 서버에서 거부한다. 프로젝트의 unrelated Link만으로는 선택 Task를 잠그지 않는다. 자손 없는 작업은 기존 단건 DELETE, 자손이 있는 작업은 작업명·자손 수·총 삭제 수를 보여주는 확인창을 거쳐 명시적 subtree DELETE를 사용한다. 취소/Escape/닫기는 DELETE 0회이며 확인 시점 revision이 바뀌면 412 후 최신 범위를 다시 확인한다.
 
 메뉴는 우클릭 지점 근처에 fixed overlay로 표시하고 viewport 경계를 보정한다. 바깥 클릭, 다른 작업 우클릭, Escape, resize/scroll은 닫기 또는 대상 전환으로 처리한다. 기본 상세 편집기와 서버 권한/저장 제약은 메뉴와 별도로 유지한다.
 
@@ -65,7 +65,7 @@ PR #16의 초기 시간축 범위 확대 및 canonical sync 종료 시점 입력
 
 ## Issue #72 계층 메뉴 계약
 
-편집 권한이 있고 다른 mutation이 진행 중이지 않으며 Dependency Link가 없는 경우 메뉴는 SVAR Willow의 기본 작업 흐름에 맞춰 **Add → Convert to → Edit → Cut/Copy/Paste → Move → Indent/Outdent → Delete** 순서를 제공한다. Readonly에서는 정보 조회(Edit)만 실제 동작하며 mutation 항목은 비활성화한다.
+편집 권한이 있고 다른 mutation이 진행 중이지 않으며 **선택 Task가 Dependency endpoint가 아닌 경우** 메뉴는 SVAR Willow의 기본 작업 흐름에 맞춰 **Add → Convert to → Edit → Cut/Copy/Paste → Move → Indent/Outdent → Delete** 순서를 제공한다. Readonly에서는 정보 조회(Edit)만 실제 동작하며 mutation 항목은 비활성화한다.
 
 Cut은 선택 Task를 즉시 삭제하거나 이동하지 않는다. Copy와 함께 현재 Project revision을 포함한 client clipboard만 만든다. Paste는 `POST /api/projects/{publicId}/task-commands`를 호출하며 Cut은 `reparent`, Copy는 `copy` 명령으로 변환한다. 성공 응답의 canonical snapshot만 동일 Gantt instance에 동기화하고 revision 변경 시 기존 clipboard는 폐기한다. Canonical snapshot의 parent/sibling 구조 변경은 SVAR의 공개 `move-task` action으로 반영하고, 일반 `update-task`에 parent를 직접 덮어쓰지 않는다. 이 규칙은 hierarchy 변경 뒤 recovery remount 없이 동일 Gantt instance를 유지하기 위한 회귀 계약이다. Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D는 input/textarea/dialog/contenteditable 밖의 실제 Task target에서만 동작한다.
 
