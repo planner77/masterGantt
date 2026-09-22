@@ -112,3 +112,7 @@ Task Editor의 기존 담당 리소스/그룹 편집을 확장한다.
 - relocated Compose persistence
 
 Issue #56 구현 과정에서 신규 공수 영역을 `.project-page-shell`의 직계 flex sibling으로 추가해 기존 Gantt 폭과 E2E geometry가 변경되는 회귀를 확인했다. 공수 영역을 Project workspace 내부 portal로 이동해 해결했으며, 기존 persistence E2E의 레이아웃 검증은 전체 `.project-readonly`가 아니라 실제 일정 경계인 `.project-schedule`을 기준으로 유지한다.
+
+## Issue #76 화면 배치 갱신
+
+Issue #56 당시 Gantt 폭 회귀를 피하기 위해 사용한 page 하단 portal 배치는 Issue #76에서 폐기한다. Workload API/계산/assignment 계약은 그대로 유지하되, 표시 영역은 Project Workspace의 `리소스` tab으로 이동한다. 일정 tab과 리소스 tab은 sibling flex column으로 Gantt 폭을 나누지 않으며, tab 전환 중 Gantt panel mount를 유지해 기존 Gantt instance/state 보존 계약을 유지한다.
