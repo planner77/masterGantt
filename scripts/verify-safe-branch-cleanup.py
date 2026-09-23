@@ -167,7 +167,7 @@ def normalize_workflow_commands(content: str) -> str:
             index += 1
             continue
 
-        base_indent = len(match.group("indent"))
+        base_indent = len(match.group("indent")) + len(match.group("item") or "")
         index += 1
         parts = []
         while index < len(lines):
@@ -246,9 +246,26 @@ def executable_tokens(tokens: list[str]) -> list[str]:
     return tokens[index:]
 
 
+def command_basename(token: str) -> str:
+    return token.replace("\\", "/").rsplit("/", 1)[-1]
+
+
+def shell_execution_tokens(tokens: list[str]) -> list[str]:
+    """Return the executable command after shell control prefixes/wrappers."""
+    index = 0
+    control_words = {"if", "then", "elif", "while", "until", "do", "else"}
+    while index < len(tokens) and tokens[index] in control_words:
+        index += 1
+
+    remaining = executable_tokens(tokens[index:])
+    while remaining and remaining[0] in ("exec", "time"):
+        remaining = executable_tokens(remaining[1:])
+    return remaining
+
+
 def git_push_args(tokens: list[str]) -> list[str] | None:
-    tokens = executable_tokens(tokens)
-    if not tokens or tokens[0] != "git":
+    tokens = shell_execution_tokens(tokens)
+    if not tokens or command_basename(tokens[0]) != "git":
         return None
 
     value_options = {
@@ -304,30 +321,29 @@ def is_destructive_push_long_option(token: str) -> bool:
 
 
 def scan_shell_command(tokens: list[str]) -> list[str]:
+    tokens = shell_execution_tokens(tokens)
     if not tokens:
         return []
 
     findings = []
-    for start, token in enumerate(tokens):
-        if token == "git":
-            push_args = git_push_args(tokens[start:])
-            if push_args is not None:
-                if any(
-                    is_destructive_push_short_option(arg) or is_destructive_push_long_option(arg)
-                    for arg in push_args
-                ):
-                    findings.append("git push destructive option")
-                if any(re.fullmatch(r"\+?:[^\s]+", arg) for arg in push_args):
-                    findings.append("git push empty-source refspec")
+    push_args = git_push_args(tokens)
+    if push_args is not None:
+        if any(
+            is_destructive_push_short_option(arg) or is_destructive_push_long_option(arg)
+            for arg in push_args
+        ):
+            findings.append("git push destructive option")
+        if any(re.fullmatch(r"\+?:[^\s]+", arg) for arg in push_args):
+            findings.append("git push empty-source refspec")
 
-        if token == "gh" and start + 1 < len(tokens) and tokens[start + 1] == "api":
-            gh_args = tokens[start + 2 :]
-            for index, arg in enumerate(gh_args):
-                if arg in ("-X", "--method") and index + 1 < len(gh_args):
-                    if gh_args[index + 1].upper() == "DELETE":
-                        findings.append("gh api DELETE")
-                elif arg.startswith("--method=") and arg.split("=", 1)[1].upper() == "DELETE":
+    if command_basename(tokens[0]) == "gh" and len(tokens) >= 2 and tokens[1] == "api":
+        gh_args = tokens[2:]
+        for index, arg in enumerate(gh_args):
+            if arg in ("-X", "--method") and index + 1 < len(gh_args):
+                if gh_args[index + 1].upper() == "DELETE":
                     findings.append("gh api DELETE")
+            elif arg.startswith("--method=") and arg.split("=", 1)[1].upper() == "DELETE":
+                findings.append("gh api DELETE")
 
     return findings
 
@@ -423,6 +439,8 @@ class RepositoryPolicyTest(unittest.TestCase):
         for source in (
             'git push origin -d "$WORK_BRANCH"',
             'git push origin --delete "$WORK_BRANCH"',
+            '/usr/bin/git push origin --delete feature/foo',
+            '/usr/local/bin/git push origin :feature/foo',
             'git push --m origin',
             'git push --mi origin',
             'git push --mir origin',
@@ -478,6 +496,8 @@ class RepositoryPolicyTest(unittest.TestCase):
             [],
         )
         self.assertEqual(find_workflow_branch_deletions('git push origin --dry-run main'), [])
+        self.assertEqual(find_workflow_branch_deletions('echo git push origin --delete feature/foo'), [])
+        self.assertEqual(find_workflow_branch_deletions("printf '%s\\n' 'git push origin :feature/foo'"), [])
 
     def test_direct_delete_detector_folds_yaml_run_scalars(self):
         folded_workflows = (
@@ -508,6 +528,15 @@ class RepositoryPolicyTest(unittest.TestCase):
         for workflow in folded_workflows:
             with self.subTest(workflow=workflow):
                 self.assertTrue(find_workflow_branch_deletions(workflow), workflow)
+
+        sibling_key_workflow = """steps:
+  - run: >-
+      git push origin
+      :feature/foo
+    env: # don't expose this
+      SAFE: "1"
+"""
+        self.assertTrue(find_workflow_branch_deletions(sibling_key_workflow))
 
         safe_workflow = """steps:
   - name: safe cleanup
