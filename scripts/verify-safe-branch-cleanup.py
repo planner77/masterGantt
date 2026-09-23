@@ -297,6 +297,17 @@ def command_basename(token: str) -> str:
     return token.replace("\\", "/").rsplit("/", 1)[-1]
 
 
+def long_option_matches(token: str, canonical: str, minimum: int = 2) -> bool:
+    if not token.startswith("--") or token.startswith("--no-"):
+        return False
+    name = token[2:].split("=", 1)[0]
+    return len(name) >= minimum and canonical.startswith(name)
+
+
+def terminal_wrapper_option(token: str) -> bool:
+    return long_option_matches(token, "help", 2) or long_option_matches(token, "version", 2)
+
+
 def shell_execution_tokens(tokens: list[str]) -> list[str]:
     """Return the executable command after shell control prefixes/wrappers."""
     index = 0
@@ -343,17 +354,23 @@ def shell_execution_tokens(tokens: list[str]) -> list[str]:
 
         if wrapper == "timeout":
             wrapper_index = 1
-            value_options = {"-k", "--kill-after", "-s", "--signal"}
             while wrapper_index < len(remaining):
                 token = remaining[wrapper_index]
+                if terminal_wrapper_option(token):
+                    return []
                 if token == "--":
                     wrapper_index += 1
                     break
-                if token in value_options and wrapper_index + 1 < len(remaining):
+                if token in ("-k", "-s") and wrapper_index + 1 < len(remaining):
                     wrapper_index += 2
                     continue
-                if token.startswith(("--kill-after=", "--signal=")):
-                    wrapper_index += 1
+                if long_option_matches(token, "kill-after", 4) or long_option_matches(token, "signal", 2):
+                    if "=" in token:
+                        wrapper_index += 1
+                    elif wrapper_index + 1 < len(remaining):
+                        wrapper_index += 2
+                    else:
+                        return []
                     continue
                 if token.startswith("-"):
                     wrapper_index += 1
@@ -369,13 +386,23 @@ def shell_execution_tokens(tokens: list[str]) -> list[str]:
             wrapper_index = 1
             while wrapper_index < len(remaining):
                 token = remaining[wrapper_index]
+                if terminal_wrapper_option(token):
+                    return []
                 if token == "--":
                     wrapper_index += 1
                     break
-                if token in ("-n", "--adjustment") and wrapper_index + 1 < len(remaining):
+                if token == "-n" and wrapper_index + 1 < len(remaining):
                     wrapper_index += 2
                     continue
-                if token.startswith("--adjustment=") or (token.startswith("-n") and len(token) > 2):
+                if long_option_matches(token, "adjustment", 3):
+                    if "=" in token:
+                        wrapper_index += 1
+                    elif wrapper_index + 1 < len(remaining):
+                        wrapper_index += 2
+                    else:
+                        return []
+                    continue
+                if token.startswith("-n") and len(token) > 2:
                     wrapper_index += 1
                     continue
                 if token.startswith("-"):
@@ -388,7 +415,10 @@ def shell_execution_tokens(tokens: list[str]) -> list[str]:
         if wrapper in {"nohup", "setsid"}:
             wrapper_index = 1
             while wrapper_index < len(remaining) and remaining[wrapper_index].startswith("-"):
-                if remaining[wrapper_index] == "--":
+                token = remaining[wrapper_index]
+                if terminal_wrapper_option(token):
+                    return []
+                if token == "--":
                     wrapper_index += 1
                     break
                 wrapper_index += 1
@@ -397,17 +427,27 @@ def shell_execution_tokens(tokens: list[str]) -> list[str]:
 
         if wrapper == "stdbuf":
             wrapper_index = 1
-            value_options = {"-i", "--input", "-o", "--output", "-e", "--error"}
             while wrapper_index < len(remaining):
                 token = remaining[wrapper_index]
+                if terminal_wrapper_option(token):
+                    return []
                 if token == "--":
                     wrapper_index += 1
                     break
-                if token in value_options and wrapper_index + 1 < len(remaining):
+                if token in ("-i", "-o", "-e") and wrapper_index + 1 < len(remaining):
                     wrapper_index += 2
                     continue
-                if token.startswith(("--input=", "--output=", "--error=")):
-                    wrapper_index += 1
+                long_value_option = next(
+                    (canonical for canonical in ("input", "output", "error") if long_option_matches(token, canonical, 2)),
+                    None,
+                )
+                if long_value_option:
+                    if "=" in token:
+                        wrapper_index += 1
+                    elif wrapper_index + 1 < len(remaining):
+                        wrapper_index += 2
+                    else:
+                        return []
                     continue
                 if re.match(r"^-[ioe].+", token):
                     wrapper_index += 1
@@ -901,6 +941,9 @@ class RepositoryPolicyTest(unittest.TestCase):
             "printf ':refs/heads/feature/foo\\n' | git send-pack --stdin origin",
             "timeout 30 bash -c 'git push origin :feature/foo'",
             "timeout -k 5 30 git send-pack origin :refs/heads/feature/foo",
+            "timeout --kill 5 30 git push origin :feature/foo",
+            "nice --adj 5 git push origin +:feature/foo",
+            "stdbuf --out L git push origin :feature/foo",
             "nice -n 5 bash -c 'git push origin +:feature/foo'",
             "nohup git push origin --delete feature/foo",
             "stdbuf -oL git push origin :feature/foo",
@@ -938,6 +981,17 @@ class RepositoryPolicyTest(unittest.TestCase):
             [],
         )
         self.assertEqual(find_workflow_branch_deletions('git push origin --dry-run main'), [])
+        for source in (
+            "timeout --help 30 git push origin :feature/foo",
+            "timeout --version 30 git push origin :feature/foo",
+            "nice --help git push origin :feature/foo",
+            "nohup --help git push origin :feature/foo",
+            "setsid --version git push origin :feature/foo",
+            "stdbuf --help git push origin :feature/foo",
+        ):
+            with self.subTest(source=source):
+                self.assertEqual(find_workflow_branch_deletions(source), [])
+
         multiline_single_quoted_run = """steps:
   - name: multiline single quoted delete
     run: 'git push origin
