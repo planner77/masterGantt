@@ -676,7 +676,7 @@ def configured_git_alias(tokens: list[str]) -> str | None:
             config = tokens[index + 1]
             if "=" in config and config.split("=", 1)[0].lower().startswith("alias."):
                 name, value = config.split("=", 1)
-                aliases[name.split(".", 1)[1]] = value
+                aliases[name.split(".", 1)[1].lower()] = value
             index += 2
             continue
         if token.startswith("-c") and "=" in token[2:] and token[2:].split("=", 1)[0].lower().startswith("alias."):
@@ -697,8 +697,8 @@ def configured_git_alias(tokens: list[str]) -> str | None:
         invoked = token
         break
 
-    if invoked and invoked in aliases:
-        return aliases[invoked]
+    if invoked and invoked.lower() in aliases:
+        return aliases[invoked.lower()]
     return None
 
 
@@ -719,7 +719,8 @@ def scan_shell_command(tokens: list[str]) -> list[str]:
 
     alias_body = configured_git_alias(tokens)
     if alias_body:
-        findings.extend(find_workflow_branch_deletions(alias_body))
+        expanded_alias = alias_body[1:] if alias_body.startswith("!") else f"git {alias_body}"
+        findings.extend(find_workflow_branch_deletions(expanded_alias))
 
     if command_basename(tokens[0]) == "eval" and len(tokens) > 1:
         findings.extend(find_workflow_branch_deletions(" ".join(tokens[1:])))
