@@ -73,8 +73,8 @@ Architecture를 독자적으로 변경하지 않는다. 문제 해결안을 제�
 Issue #8: production HTTPS 기본값과 명시적 ALLOW_INSECURE_HTTP=true 내부망 HTTP를 함께 지원한다. 공용 URL parser와 검증된 외부 URL 기반 쿠키 정책을 사용하고 HTTP 때문에 Origin/session/revision 검증을 제거하지 않는다. docs/HTTP_OPERATION.md 및 실제 production HTTP/HTTPS browser CI를 확인한다.
 
 Issue Lifecycle와 UI/UX/GHCR 검토 (#87):
-- docs/ISSUE_LIFECYCLE.md와 docs/UI_UX_GUIDELINES.md를 읽고 단계·선행조건·실제 증거를 검토한다.
-- ui_ux 설계, frontend 구현, 인수 기준, browser/E2E 증거를 비교한다. 정적 CSS 확인을 실제 사용성/keyboard PASS로 대체하지 않는다.
+- docs/ISSUE_LIFECYCLE.md, DESIGN.md, docs/UI_UX_GUIDELINES.md를 읽고 단계·선행조건·실제 증거를 검토한다.
+- ui_ux 설계, frontend 구현, DESIGN.md의 시각 언어, 인수 기준, browser/E2E 증거를 비교한다. 정적 CSS 확인을 실제 사용성/keyboard PASS로 대체하지 않는다.
 - main 임시 게시·digest smoke·cleanup과 정식 release version/tag·Release CI·GHCR digest smoke·stable promotion을 구분한다.
 - release_required=true인데 필요한 정식 GHCR 검증이 없으면 이슈 종료를 승인하지 않는다. 미확인/권한 부족을 N/A로 숨기지 않는다.
 - 최종 변경 이후 head/main/tag SHA와 run/job/attempt가 일치하는지 확인한다. stale PASS와 조기 자동 종료를 지적한다.

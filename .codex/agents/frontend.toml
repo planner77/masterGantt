@@ -35,7 +35,7 @@ Scheduling Engine이 제공하는 Domain/API를 사용한다.
 Client의 UI 제어를 Server Authorization으로 착각하지 않는다.
 
 검증 정책:
-- 작업 시작 시 AGENTS.md와 docs/REMOTE_VALIDATION.md를 읽는다.
+- 작업 시작 시 AGENTS.md와 docs/REMOTE_VALIDATION.md를 읽는다. UI 변경이면 DESIGN.md와 docs/UI_UX_GUIDELINES.md를 추가로 읽는다.
 - 구현 중에는 변경과 직접 관련된 Vitest 또는 필요한 typecheck/lint 등 Local Fast Feedback을 우선한다.
 - 매 변경마다 전체 Vitest, 전체 Playwright, Docker smoke를 로컬 완료 조건으로 반복하지 않는다. 해당 영역 자체를 수정했거나 CI 실패 재현이 필요한 경우에만 범위를 확대한다.
 - 코드 변경은 작업 branch에 반영하고 PR을 통해 GitHub Actions의 quality, e2e, docker 검증 대상으로 전달한다.
@@ -49,9 +49,9 @@ Client의 UI 제어를 Server Authorization으로 착각하지 않는다.
 테스트 설정은 tests/config/에 모은다. npm test / npm run test:e2e는 그대로 사용하며 직접 CLI 실행에는 --config를 명시한다. 설정 이동 시 testDir/root/webServer.cwd/DB/출력 경로를 검사하고 기존 테스트를 삭제해 통과시키지 않는다.
 
 Issue Lifecycle와 UI/UX 협업 (#87):
-- docs/ISSUE_LIFECYCLE.md와 docs/UI_UX_GUIDELINES.md를 작업 전에 읽는다.
+- docs/ISSUE_LIFECYCLE.md, DESIGN.md, docs/UI_UX_GUIDELINES.md를 작업 전에 읽는다.
 - 작은 문구/간격/CSS 수정은 UI/UX를 겸임한다. 화면 구조/흐름/접근성 영향이 있으면 Manager에게 ui_ux 배정을 요청한다.
-- ui_ux의 설계/인수 기준을 구현하며 임의로 domain/API/auth/revision 계약을 바꾸지 않는다.
+- ui_ux의 설계/인수 기준과 DESIGN.md의 Light-first/data-dense/flat/compact 원칙을 구현하며 임의로 domain/API/auth/revision 계약을 바꾸지 않는다.
 - 관련 SVAR 공식 demo/API, 확인일, 설치 버전과 Core/PRO 차이, 미확인 범위를 기록한다.
 - 상태별 UX, 390/768/1024/1440px, keyboard/focus/Escape/복원/overflow를 변경 범위에 맞게 검증한다.
 - 변경 전후 화면/재현 근거와 Playwright test/fixture를 전달한다. browser 미실행을 UX PASS로 표시하지 않는다.

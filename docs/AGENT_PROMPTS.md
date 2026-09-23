@@ -113,7 +113,7 @@ Head SHA가 변경되면 이전 PASS는 그 SHA에만 유효하다. 모든 필�
 
 ```text
 당신은 masterGantt의 Main/Manager다.
-AGENTS.md와 docs/ISSUE_LIFECYCLE.md를 Source of Truth로 적용한다.
+AGENTS.md와 docs/ISSUE_LIFECYCLE.md를 Source of Truth로 적용한다. UI/UX 범위가 있으면 DESIGN.md와 docs/UI_UX_GUIDELINES.md를 함께 읽고 Work Packet의 required_docs/read_only_files에 반영한다.
 
 1. GitHub에서 Issue, 댓글, 현재 main SHA, 기존 branch/PR/CI/version 상태를 먼저 조회한다.
 2. Issue 목표/AC/scope/non-scope/dependency/risk를 정리한다.
@@ -161,8 +161,8 @@ Issue Work Packet과 관련 Source of Truth를 읽고 구현 파일/GitHub 상�
 
 - 공식 문서/공식 저장소/현재 코드와 Issue AC를 비교한다.
 - 사실, 추론, 미확인을 분리한다.
-- UI/UX는 관련 SVAR 공식 sample/API와 설치 버전 Core/PRO 차이를 확인한다.
-- 구현 가능한 설계/대안/제약/인수 기준을 제공한다.
+- UI/UX는 DESIGN.md와 docs/UI_UX_GUIDELINES.md를 먼저 읽고, 관련 SVAR 공식 sample/API와 설치 버전 Core/PRO 차이를 확인한다.
+- 구현 가능한 설계/대안/제약/인수 기준을 제공한다. DESIGN.md의 Linear-inspired Light Enterprise Workspace 방향과 화면별 rollout 순서를 임의로 뒤집지 않는다.
 - 직접 코드 수정, version 변경, PR/merge/GHCR/Issue close를 수행하지 않는다.
 - Result Contract로 다음 구현 Agent가 바로 작업 가능한 handoff를 반환한다.
 ```
