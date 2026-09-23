@@ -270,13 +270,15 @@ def executable_tokens(tokens: list[str]) -> list[str]:
                     split_args = shlex.split(tokens[index + 1], posix=True)
                 except ValueError:
                     return []
-                return split_args + tokens[index + 2 :]
+                tokens = tokens[:index] + split_args + tokens[index + 2 :]
+                continue
             if token.startswith("--split-string="):
                 try:
                     split_args = shlex.split(token.split("=", 1)[1], posix=True)
                 except ValueError:
                     return []
-                return split_args + tokens[index + 1 :]
+                tokens = tokens[:index] + split_args + tokens[index + 1 :]
+                continue
             if token in ("-u", "--unset", "-C", "--chdir") and index + 1 < len(tokens):
                 index += 2
                 continue
@@ -341,6 +343,31 @@ def shell_execution_tokens(tokens: list[str]) -> list[str]:
 
         break
     return remaining
+
+
+def shell_command_string(tokens: list[str]) -> str | None:
+    """Return a command string passed to a POSIX-like shell via -c."""
+    tokens = shell_execution_tokens(tokens)
+    if not tokens:
+        return None
+    shell = command_basename(tokens[0])
+    if shell not in {"sh", "bash", "dash", "zsh", "ksh"}:
+        return None
+
+    index = 1
+    while index < len(tokens):
+        token = tokens[index]
+        if token == "--":
+            index += 1
+            continue
+        if token == "-c":
+            return tokens[index + 1] if index + 1 < len(tokens) else None
+        if token.startswith("-") and not token.startswith("--") and "c" in token[1:]:
+            return tokens[index + 1] if index + 1 < len(tokens) else None
+        if not token.startswith("-"):
+            break
+        index += 1
+    return None
 
 
 def git_push_args(tokens: list[str]) -> list[str] | None:
@@ -564,6 +591,9 @@ def find_workflow_branch_deletions(content: str) -> list[str]:
         for candidate in expanded_candidates:
             for segment in shell_command_segments(candidate):
                 findings.extend(scan_shell_command(segment))
+                nested_shell = shell_command_string(segment)
+                if nested_shell:
+                    findings.extend(find_workflow_branch_deletions(nested_shell))
 
     return findings
 
@@ -605,6 +635,9 @@ class RepositoryPolicyTest(unittest.TestCase):
             'echo `git push origin +:feature/foo`',
             '{ git push origin :feature/foo; }',
             'time -p git push origin :feature/foo',
+            "bash -c 'git push origin :feature/foo'",
+            "sh -c 'git push origin --delete feature/foo'",
+            "bash -ec 'git push origin +:feature/foo'",
             'exec -a git git push origin +:feature/foo',
             'git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
             'git -c protocol.version=2 push origin +:feature/foo',
@@ -616,6 +649,8 @@ class RepositoryPolicyTest(unittest.TestCase):
             'env FOO=bar git push origin --delete "$WORK_BRANCH"',
             "env -S 'git push origin :feature/foo'",
             "env --split-string='git push origin +:feature/foo'",
+            "env -S '-C /tmp git push origin :feature/foo'",
+            "env --split-string='-C /tmp git push origin +:feature/foo'",
             'env -C "$GITHUB_WORKSPACE" git push origin :feature/foo',
             'env --chdir="$GITHUB_WORKSPACE" git push origin +:feature/foo',
             'git push origin :feature/foo',
