@@ -427,6 +427,30 @@ def is_destructive_push_long_option(token: str) -> bool:
     return any(len(name) >= minimum and canonical.startswith(name) for canonical, minimum in destructive)
 
 
+def lexical_git_push_deletions(text: str) -> list[str]:
+    """Fail closed on destructive git-push material regardless of shell wrappers.
+
+    GNU env -S treats \\_ as an argument separator, so canonicalize that form
+    before scanning. This fallback is intentionally conservative for workflow
+    run commands: destructive push text must use the shared cleanup helper.
+    """
+    canonical = text.replace("\\_", " ")
+    findings = []
+    git_push = re.compile(
+        r"(?<![A-Za-z0-9_.-])(?:[^\s;|(){}]+/)?git\b(?P<prefix>[^\n;|{}]*?)\bpush\b(?P<args>[^\n;|{}]*)",
+        re.IGNORECASE,
+    )
+    for match in git_push.finditer(canonical):
+        args = match.group("args")
+        tokens = re.findall(r"""(?:"[^"]*"|'[^']*'|\S+)""", args)
+        cleaned = [token.strip(""'") for token in tokens]
+        if any(is_destructive_push_short_option(token) or is_destructive_push_long_option(token) for token in cleaned):
+            findings.append("git push destructive option (lexical)")
+        if any(re.fullmatch(r"\+?:[^\s]+", token) for token in cleaned):
+            findings.append("git push empty-source refspec (lexical)")
+    return findings
+
+
 def scan_shell_command(tokens: list[str]) -> list[str]:
     tokens = shell_execution_tokens(tokens)
     if not tokens:
@@ -589,6 +613,7 @@ def find_workflow_branch_deletions(content: str) -> list[str]:
             expanded_candidates.extend(embedded_shell_commands(candidate))
 
         for candidate in expanded_candidates:
+            findings.extend(lexical_git_push_deletions(candidate))
             for segment in shell_command_segments(candidate):
                 findings.extend(scan_shell_command(segment))
                 nested_shell = shell_command_string(segment)
@@ -650,6 +675,11 @@ class RepositoryPolicyTest(unittest.TestCase):
             "env -S 'git push origin :feature/foo'",
             "env --split-string='git push origin +:feature/foo'",
             "env -S '-C /tmp git push origin :feature/foo'",
+            r"env -S 'git\_push\_origin\_:feature/foo'",
+            r"env -S '-C\_/tmp\_git\_push\_origin\_+:feature/foo'",
+            "bash -O extglob -c 'git push origin :feature/foo'",
+            "bash --rcfile /dev/null -c 'git push origin +:feature/foo'",
+            "sh -o errexit -c 'git push origin --delete feature/foo'",
             "env --split-string='-C /tmp git push origin +:feature/foo'",
             'env -C "$GITHUB_WORKSPACE" git push origin :feature/foo',
             'env --chdir="$GITHUB_WORKSPACE" git push origin +:feature/foo',
