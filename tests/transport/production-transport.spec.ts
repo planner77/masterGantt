@@ -142,8 +142,28 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
     await expect.poll(async () => {
       try { return (await page.request.get("/api/health/ready", { timeout: 2000 })).status(); } catch { return 0; }
     }, { timeout: 60_000 }).toBe(200);
-    await page.reload();
-    await expect(page.getByRole("grid").getByText(savedTaskName, { exact: true })).toBeVisible();
+
+    await expect.poll(async () => {
+      try {
+        const response = await page.request.get(api, { timeout: 2000 });
+        if (response.status() !== 200) return false;
+        const snapshot = await response.json() as ProjectSnapshotResponse;
+        return snapshot.data.project.revision === revision
+          && snapshot.data.project.ownerName === TRANSPORT_PROJECT_OWNER
+          && snapshot.data.tasks.some((candidate) => candidate.name === savedTaskName);
+      } catch {
+        return false;
+      }
+    }, { timeout: 60_000 }).toBe(true);
+
+    const reloadedSnapshot = page.waitForResponse((response) =>
+      response.request().method() === "GET"
+      && new URL(response.url()).pathname === api
+      && response.status() === 200,
+    );
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await reloadedSnapshot;
+    await expect(page.getByRole("grid").getByText(savedTaskName, { exact: true })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
     saved = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
     expect(saved.data.project.revision).toBe(revision);
