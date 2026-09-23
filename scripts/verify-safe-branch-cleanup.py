@@ -299,7 +299,7 @@ def is_destructive_push_long_option(token: str) -> bool:
     if not token.startswith("--") or token.startswith("--no-"):
         return False
     name = token[2:]
-    destructive = (("delete", 2), ("prune", 3), ("mirror", 3))
+    destructive = (("delete", 2), ("prune", 3), ("mirror", 1))
     return any(len(name) >= minimum and canonical.startswith(name) for canonical, minimum in destructive)
 
 
@@ -423,6 +423,10 @@ class RepositoryPolicyTest(unittest.TestCase):
         for source in (
             'git push origin -d "$WORK_BRANCH"',
             'git push origin --delete "$WORK_BRANCH"',
+            'git push --m origin',
+            'git push --mi origin',
+            'git push --mir origin',
+            'git push --mirror origin',
             'git push origin -vd feature/foo',
             'git push origin -dv feature/foo',
             'git push origin -vp feature/foo',
