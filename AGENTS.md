@@ -22,7 +22,7 @@ Main Codex Thread가 Manager 역할을 수행하며, 전문 Sub-Agent에게 필�
 
 ## 2. Source of Truth
 
-상세 요구사항/설계는 `docs/**`를 따른다. 작업 전에 특히 `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/UI_UX_GUIDELINES.md`, `docs/exec-plans/active/PLAN.md`를 확인한다.
+상세 요구사항/설계는 `docs/**`를 따른다. 작업 전에 특히 `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/ISSUE_LIFECYCLE.md`, `DESIGN.md`, `docs/UI_UX_GUIDELINES.md`, `docs/exec-plans/active/PLAN.md`를 확인한다.
 
 ## 3. Core Architecture and Security
 
@@ -120,11 +120,11 @@ qa_docs        → GPT-5.6 Sol / High
 
 ### ui_ux
 
-정보 구조, 화면 배치, interaction, 반응형·접근성, 여러 화면의 일관성을 설계하고 구현 증거와 비교하는 read-only 역할이다. 코드/테스트 구현은 frontend, 문서 반영은 Manager 또는 지정 작성자, 독립 QA는 qa_docs가 담당한다. `docs/UI_UX_GUIDELINES.md`와 공식 SVAR demo/API를 참조한다.
+정보 구조, 화면 배치, interaction, 반응형·접근성, 여러 화면의 일관성을 설계하고 구현 증거와 비교하는 read-only 역할이다. 코드/테스트 구현은 frontend, 문서 반영은 Manager 또는 지정 작성자, 독립 QA는 qa_docs가 담당한다. `DESIGN.md`, `docs/UI_UX_GUIDELINES.md`와 공식 SVAR demo/API를 참조한다. 시각 언어는 DESIGN.md, interaction·접근성·검증 세칙은 UI_UX_GUIDELINES.md를 우선한다.
 
 ### frontend
 
-Next.js/React/SVAR UI를 담당한다. 변경 관련 Local Fast Feedback을 수행하고 필요한 Playwright test/fixture를 갱신한 뒤 PR 원격 검증으로 전달한다. 전체 회귀는 GitHub Actions 결과로 판정한다. 작은 UI 수정은 UI/UX를 겸임하고, 구조/interaction/접근성 변경은 ui_ux 설계와 공통 가이드를 따른다.
+Next.js/React/SVAR UI를 담당한다. 변경 관련 Local Fast Feedback을 수행하고 필요한 Playwright test/fixture를 갱신한 뒤 PR 원격 검증으로 전달한다. 전체 회귀는 GitHub Actions 결과로 판정한다. 작은 UI 수정은 UI/UX를 겸임하고, 구조/interaction/접근성 변경은 ui_ux 설계와 `DESIGN.md` 및 공통 UI/UX 가이드를 따른다.
 
 ### backend
 
@@ -251,7 +251,7 @@ Issue #8: production HTTPS 기본값과 명시적 ALLOW_INSECURE_HTTP=true 내�
 Manager와 모든 Sub-Agent는 작업 전에 [ISSUE_LIFECYCLE](docs/ISSUE_LIFECYCLE.md)를 읽는다. 사용자가 Issue 처리를 요청하면 Manager는 실제 Issue/코드/PR/CI 상태를 읽고, 문서의 역할 선택표에 따라 필요한 전문 Sub-Agent를 자동 선택·위임한다. 분석만 요청한 작업을 구현/게시로 확대하지 않는다.
 
 - Manager는 단계·인수 기준·release_required·release_authorized와 승인 근거·버전 결정·파일 소유권·의존성을 확정하고 위임/반환 계약을 전달한다. 별도의 Manager Sub-Agent를 만들지 않고 Main Thread가 통합한다.
-- 복합 UI/UX 설계는 ui_ux, 구현은 frontend다. 사소한 문구/CSS 변경은 frontend가 UI/UX를 겸임하며 [UI_UX_GUIDELINES](docs/UI_UX_GUIDELINES.md)를 따른다. 유사 SVAR 공식 demo와 Core/API/설치 버전 차이를 확인한다.
+- 복합 UI/UX 설계는 ui_ux, 구현은 frontend다. 사소한 문구/CSS 변경은 frontend가 UI/UX를 겸임하며 [DESIGN](DESIGN.md)과 [UI_UX_GUIDELINES](docs/UI_UX_GUIDELINES.md)를 따른다. 유사 SVAR 공식 demo와 Core/API/설치 버전 차이를 확인한다.
 - 병렬 실행은 독립 작업에 한정한다. 동시 한도 6과 실제 runtime 제한을 준수하고 동일 파일 동시 쓰기, 중복 PR/version/tag, 무단 재귀 위임을 금지한다.
 - infra는 branch/PR/CI/merge, main 임시 GHCR 게시·digest 검증·정리, 명시적으로 승인된 정식 version tag/Release CI/GHCR 게시·digest 검증을 담당한다. qa_docs는 각각의 실제 근거를 독립 확인하고 Manager가 승인 범위 안에서 판단한다.
 - GHCR 게시 단계는 Lifecycle에 포함하되 정식 릴리스 필요성(release_required)과 명시적 게시 승인(release_authorized)은 별개다. 단순 '전체 Lifecycle 진행'만으로 정식 릴리스 범위나 승인을 간주하지 않는다. 사용자 또는 지정 maintainer의 명확한 정식 GHCR 게시 요청/승인 근거가 있어야 annotated tag·정식 게시·rolling tag 변경을 실행한다. 이미 확인한 동일 범위의 승인은 반복 요청하지 않는다. 필요한 릴리스의 승인이 없으면 BLOCKED/승인 대기로 남긴다.
