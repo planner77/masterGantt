@@ -301,6 +301,24 @@ def scan_shell_command(tokens: list[str]) -> list[str]:
     return findings
 
 
+def embedded_shell_commands(text: str) -> list[str]:
+    """Extract shell command/process substitutions even when they are quoted."""
+    results = []
+    pending = [text]
+    seen = {text}
+    substitution = re.compile(r"(?:\$|<|>)\(([^()]*)\)|`([^`]*)`")
+
+    while pending:
+        current = pending.pop()
+        for match in substitution.finditer(current):
+            inner = next(group for group in match.groups() if group is not None).strip()
+            if inner and inner not in seen:
+                seen.add(inner)
+                results.append(inner)
+                pending.append(inner)
+    return results
+
+
 def find_workflow_branch_deletions(content: str) -> list[str]:
     normalized = normalize_workflow_commands(content)
     findings = []
@@ -311,7 +329,12 @@ def find_workflow_branch_deletions(content: str) -> list[str]:
         if inline_run:
             candidates.append(inline_run.group(1).strip())
 
+        expanded_candidates = []
         for candidate in candidates:
+            expanded_candidates.append(candidate)
+            expanded_candidates.extend(embedded_shell_commands(candidate))
+
+        for candidate in expanded_candidates:
             for segment in shell_command_segments(candidate):
                 findings.extend(scan_shell_command(segment))
 
@@ -333,6 +356,8 @@ class RepositoryPolicyTest(unittest.TestCase):
             'if git push origin -d feature/foo; then :; fi',
             '! git push origin :feature/foo',
             'echo "$(git push origin :feature/foo)"',
+            "echo 'prefix '"$(git push origin +:feature/foo)"",
+            'cat <(git push origin :feature/foo)',
             'echo `git push origin +:feature/foo`',
             'git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
             'git -c protocol.version=2 push origin +:feature/foo',
