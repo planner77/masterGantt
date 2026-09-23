@@ -437,7 +437,7 @@ def lexical_git_push_deletions(text: str) -> list[str]:
     canonical = text.replace("\\_", " ")
     findings = []
     git_push = re.compile(
-        r"(?<![A-Za-z0-9_.-])(?:[^\s;|(){}]+/)?git\b(?P<prefix>[^\n;|{}]*?)\bpush\b(?P<args>[^\n;|{}]*)",
+        r"(?<![A-Za-z0-9_.-])(?:[^\s;&|(){}]+/)?git\b(?P<prefix>[^\n;&|{}]*?)\bpush\b(?P<args>[^\n;&|{}]*)",
         re.IGNORECASE,
     )
     for match in git_push.finditer(canonical):
@@ -703,6 +703,12 @@ class RepositoryPolicyTest(unittest.TestCase):
         self.assertEqual(
             find_workflow_branch_deletions(
                 'git status && echo push && python3 scripts/safe_branch_cleanup.py --delete --repo planner77/masterGantt'
+            ),
+            [],
+        )
+        self.assertEqual(
+            find_workflow_branch_deletions(
+                'git status & echo push && python3 scripts/safe_branch_cleanup.py --delete --repo planner77/masterGantt'
             ),
             [],
         )
