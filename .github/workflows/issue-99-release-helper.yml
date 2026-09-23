@@ -21,6 +21,7 @@ jobs:
       TARGET_SHA: ${{ github.sha }}
       RELEASE_TAG: v0.26.0
       WORK_BRANCH: feat/issue-99-password-policy-v3
+      RELEASE_BRANCH: fix/issue-99-release-validation
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -39,10 +40,19 @@ jobs:
           test "$(jq -r '.base.ref' <<<"$pr")" = "main"
           test "$(jq -r '.head.ref' <<<"$pr")" = "$WORK_BRANCH"
           test "$(jq -r '.head.repo.full_name' <<<"$pr")" = "$GITHUB_REPOSITORY"
-          test "$(jq -r '.merge_commit_sha' <<<"$pr")" = "$TARGET_SHA"
-          pr_head_sha="$(jq -r '.head.sha' <<<"$pr")"
-          test -n "$pr_head_sha"
-          test "$(git rev-parse "$TARGET_SHA^2")" = "$pr_head_sha"
+          app_sha="$(jq -r '.merge_commit_sha' <<<"$pr")"
+          test -n "$app_sha"
+          git merge-base --is-ancestor "$app_sha" "$TARGET_SHA"
+
+          release_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/133")"
+          test "$(jq -r '.merged_at // ""' <<<"$release_pr")" != ""
+          test "$(jq -r '.base.ref' <<<"$release_pr")" = "main"
+          test "$(jq -r '.head.ref' <<<"$release_pr")" = "$RELEASE_BRANCH"
+          test "$(jq -r '.head.repo.full_name' <<<"$release_pr")" = "$GITHUB_REPOSITORY"
+          test "$(jq -r '.merge_commit_sha' <<<"$release_pr")" = "$TARGET_SHA"
+          release_head_sha="$(jq -r '.head.sha' <<<"$release_pr")"
+          test -n "$release_head_sha"
+          test "$(git rev-parse "$TARGET_SHA^2")" = "$release_head_sha"
 
           main_ci_url=""
           for _ in $(seq 1 300); do
@@ -95,7 +105,13 @@ jobs:
             --target-sha "$TARGET_SHA" \
             --delete
 
+          python3 scripts/safe_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr 133 \
+            --branch "$RELEASE_BRANCH" \
+            --target-sha "$TARGET_SHA" \
+            --delete
 
-          body="$(printf '%s\n'             "Issue Lifecycle 완료:"             "- PR: #127"             "- 버전: 0.26.0"             "- 릴리스 기준 SHA: $TARGET_SHA"             "- main CI: $main_ci_url"             "- GHCR 정식 릴리스 이미지: $release_run_url"             "- 정식 릴리스 태그: $RELEASE_TAG"             "- 작업 브랜치 정리: $WORK_BRANCH (scripts/safe_branch_cleanup.py)")"
+          body="$(printf '%s\n'             "Issue Lifecycle 완료:"             "- 기능 PR: #127"             "- 릴리스 검증 PR: #133"             "- 버전: 0.26.0"             "- 릴리스 기준 SHA: $TARGET_SHA"             "- main CI: $main_ci_url"             "- GHCR 정식 릴리스 이미지: $release_run_url"             "- 정식 릴리스 태그: $RELEASE_TAG"             "- 작업 브랜치 정리: $WORK_BRANCH, $RELEASE_BRANCH (scripts/safe_branch_cleanup.py)")"
           gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/99/comments" -f body="$body"
           gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/99" -f state="closed" -f state_reason="completed"
