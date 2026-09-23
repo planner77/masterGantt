@@ -184,10 +184,21 @@ def normalize_workflow_commands(content: str) -> str:
             parts.append(line.strip())
             index += 1
 
-        # YAML folded scalars replace ordinary content line breaks with spaces.
-        # Joining the scalar body is intentionally conservative for policy scanning:
-        # a deletion command split across folded lines must not bypass detection.
-        folded_commands.append(" ".join(part for part in parts if part))
+        # YAML folded scalars replace ordinary content line breaks with spaces,
+        # but blank lines create paragraph breaks. Preserve those breaks so a shell
+        # comment cannot swallow the following executable command.
+        paragraphs = []
+        paragraph = []
+        for part in parts:
+            if part:
+                paragraph.append(part)
+                continue
+            if paragraph:
+                paragraphs.append(" ".join(paragraph))
+                paragraph = []
+        if paragraph:
+            paragraphs.append(" ".join(paragraph))
+        folded_commands.append("\n".join(paragraphs))
 
     if folded_commands:
         normalized += "\n" + "\n".join(folded_commands)
@@ -196,7 +207,7 @@ def normalize_workflow_commands(content: str) -> str:
 
 def shell_command_segments(line: str) -> list[list[str]]:
     try:
-        lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|()!`")
+        lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|()!`{}")
         lexer.whitespace_split = True
         lexer.commenters = ""
         tokens = list(lexer)
@@ -206,7 +217,7 @@ def shell_command_segments(line: str) -> list[list[str]]:
     segments = []
     current = []
     for token in tokens:
-        if token and all(char in ";&|()!`" for char in token):
+        if token and all(char in ";&|()!`{}" for char in token):
             if current:
                 segments.append(current)
                 current = []
@@ -464,6 +475,7 @@ class RepositoryPolicyTest(unittest.TestCase):
             'echo "prefix $(git push origin +:feature/foo)"',
             'cat <(git push origin :feature/foo)',
             'echo `git push origin +:feature/foo`',
+            '{ git push origin :feature/foo; }',
             'git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
             'git -c protocol.version=2 push origin +:feature/foo',
             'git --git-dir=.git push origin --delete "$WORK_BRANCH"',
@@ -537,6 +549,15 @@ class RepositoryPolicyTest(unittest.TestCase):
       SAFE: "1"
 """
         self.assertTrue(find_workflow_branch_deletions(sibling_key_workflow))
+
+        comment_paragraph_workflow = """steps:
+  - name: comment paragraph then delete
+    run: >-
+      # remove branch
+
+      git push origin :feature/foo
+"""
+        self.assertTrue(find_workflow_branch_deletions(comment_paragraph_workflow))
 
         safe_workflow = """steps:
   - name: safe cleanup
