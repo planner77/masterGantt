@@ -443,7 +443,7 @@ def lexical_git_push_deletions(text: str) -> list[str]:
     for match in git_push.finditer(canonical):
         args = match.group("args")
         tokens = re.findall(r"""(?:"[^"]*"|'[^']*'|\S+)""", args)
-        cleaned = [token.strip(""'") for token in tokens]
+        cleaned = [token.strip(chr(34) + chr(39)) for token in tokens]
         if any(is_destructive_push_short_option(token) or is_destructive_push_long_option(token) for token in cleaned):
             findings.append("git push destructive option (lexical)")
         if any(re.fullmatch(r"\+?:[^\s]+", token) for token in cleaned):
