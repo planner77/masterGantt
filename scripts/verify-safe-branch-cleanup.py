@@ -265,10 +265,22 @@ def executable_tokens(tokens: list[str]) -> list[str]:
             if assignment.match(token):
                 index += 1
                 continue
-            if token in ("-u", "--unset", "-C", "--chdir", "-S", "--split-string") and index + 1 < len(tokens):
+            if token in ("-S", "--split-string") and index + 1 < len(tokens):
+                try:
+                    split_args = shlex.split(tokens[index + 1], posix=True)
+                except ValueError:
+                    return []
+                return split_args + tokens[index + 2 :]
+            if token.startswith("--split-string="):
+                try:
+                    split_args = shlex.split(token.split("=", 1)[1], posix=True)
+                except ValueError:
+                    return []
+                return split_args + tokens[index + 1 :]
+            if token in ("-u", "--unset", "-C", "--chdir") and index + 1 < len(tokens):
                 index += 2
                 continue
-            if token.startswith(("--unset=", "--chdir=", "--split-string=")):
+            if token.startswith(("--unset=", "--chdir=")):
                 index += 1
                 continue
             if token.startswith("-"):
@@ -452,6 +464,62 @@ def decode_inline_run_scalar(value: str) -> str:
     return value
 
 
+def fold_yaml_flow_scalar_lines(parts: list[str]) -> str:
+    """Fold plain/single/double-quoted YAML flow scalar continuation lines."""
+    paragraphs = []
+    paragraph = []
+    for part in parts:
+        if part.strip():
+            paragraph.append(part.strip())
+            continue
+        if paragraph:
+            paragraphs.append(" ".join(paragraph))
+            paragraph = []
+    if paragraph:
+        paragraphs.append(" ".join(paragraph))
+    return "\n".join(paragraphs)
+
+
+def multiline_inline_run_commands(content: str) -> list[str]:
+    """Extract multiline non-block run scalars and fold them as one YAML value."""
+    lines = content.splitlines()
+    commands = []
+    index = 0
+    run_line = re.compile(
+        r"^(?P<indent>\s*)(?P<item>-\s+)?run:\s*(?![>|])(?P<value>.*)$"
+    )
+
+    while index < len(lines):
+        match = run_line.match(lines[index])
+        if not match:
+            index += 1
+            continue
+
+        base_indent = len(match.group("indent")) + len(match.group("item") or "")
+        parts = [match.group("value")]
+        cursor = index + 1
+        while cursor < len(lines):
+            line = lines[cursor]
+            if not line.strip():
+                parts.append("")
+                cursor += 1
+                continue
+            indent = len(line) - len(line.lstrip(" "))
+            if indent <= base_indent:
+                break
+            parts.append(line.strip())
+            cursor += 1
+
+        if len(parts) > 1:
+            folded = fold_yaml_flow_scalar_lines(parts)
+            commands.append(decode_inline_run_scalar(folded))
+            index = cursor
+        else:
+            index += 1
+
+    return commands
+
+
 def embedded_shell_commands(text: str) -> list[str]:
     """Extract shell command/process substitutions even when they are quoted."""
     results = []
@@ -472,6 +540,9 @@ def embedded_shell_commands(text: str) -> list[str]:
 
 def find_workflow_branch_deletions(content: str) -> list[str]:
     normalized = normalize_workflow_commands(content)
+    multiline_runs = multiline_inline_run_commands(content)
+    if multiline_runs:
+        normalized += "\n" + "\n".join(multiline_runs)
     findings = []
 
     # GitHub's ref-delete REST endpoint is forbidden regardless of whether a
@@ -543,6 +614,8 @@ class RepositoryPolicyTest(unittest.TestCase):
             'FOO=bar git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
             'command git -c protocol.version=2 push origin +:feature/foo',
             'env FOO=bar git push origin --delete "$WORK_BRANCH"',
+            "env -S 'git push origin :feature/foo'",
+            "env --split-string='git push origin +:feature/foo'",
             'env -C "$GITHUB_WORKSPACE" git push origin :feature/foo',
             'env --chdir="$GITHUB_WORKSPACE" git push origin +:feature/foo',
             'git push origin :feature/foo',
@@ -569,6 +642,27 @@ class RepositoryPolicyTest(unittest.TestCase):
             [],
         )
         self.assertEqual(find_workflow_branch_deletions('git push origin --dry-run main'), [])
+        multiline_single_quoted_run = """steps:
+  - name: multiline single quoted delete
+    run: 'git push origin
+      :feature/foo'
+"""
+        self.assertTrue(find_workflow_branch_deletions(multiline_single_quoted_run))
+
+        multiline_double_quoted_run = """steps:
+  - name: multiline double quoted delete
+    run: "git push origin
+      +:feature/foo"
+"""
+        self.assertTrue(find_workflow_branch_deletions(multiline_double_quoted_run))
+
+        multiline_plain_run = """steps:
+  - name: multiline plain delete
+    run: git push origin
+      :feature/foo
+"""
+        self.assertTrue(find_workflow_branch_deletions(multiline_plain_run))
+
         explicit_indent_safe = """steps:
   - name: explicitly more-indented shell text
     run: >2-
