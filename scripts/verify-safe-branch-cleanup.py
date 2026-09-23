@@ -537,7 +537,7 @@ def multiline_inline_run_commands(content: str) -> list[str]:
     commands = []
     index = 0
     run_line = re.compile(
-        r"^(?P<indent>\s*)(?P<item>-\s+)?run:\s*(?![>|])(?P<value>.*)$"
+        r"^(?P<indent>\s*)(?P<item>-\s+)?run:(?![ \t]*[>|])[ \t]*(?P<value>.*)$"
     )
 
     while index < len(lines):
@@ -603,7 +603,7 @@ def find_workflow_branch_deletions(content: str) -> list[str]:
 
     for raw_line in normalized.splitlines():
         candidates = [raw_line.strip()]
-        inline_run = re.match(r"^\s*(?:-\s+)?run:\s*(?![>|])(.+)$", raw_line)
+        inline_run = re.match(r"^\s*(?:-\s+)?run:(?![ \t]*[>|])[ \t]*(.+)$", raw_line)
         if inline_run:
             candidates.append(decode_inline_run_scalar(inline_run.group(1)))
 
@@ -741,6 +741,7 @@ class RepositoryPolicyTest(unittest.TestCase):
         :feature/foo
 """
         self.assertEqual(find_workflow_branch_deletions(explicit_indent_safe), [])
+        self.assertEqual(multiline_inline_run_commands(explicit_indent_safe), [])
 
         explicit_indent_delete = """steps:
   - name: explicit indent with real deleting command
