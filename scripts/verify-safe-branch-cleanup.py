@@ -271,8 +271,17 @@ def is_delete_long_option(token: str) -> bool:
     return len(name) >= 2 and "delete".startswith(name)
 
 
-def is_delete_short_option(token: str) -> bool:
-    return token.startswith("-") and not token.startswith("--") and "d" in token[1:]
+def is_destructive_push_short_option(token: str) -> bool:
+    if not token.startswith("-") or token.startswith("--"):
+        return False
+    options = token[1:]
+    return "d" in options or "p" in options
+
+
+def is_destructive_push_long_option(token: str) -> bool:
+    if is_delete_long_option(token):
+        return True
+    return token in ("--prune", "--mirror")
 
 
 def scan_shell_command(tokens: list[str]) -> list[str]:
@@ -284,8 +293,11 @@ def scan_shell_command(tokens: list[str]) -> list[str]:
         if token == "git":
             push_args = git_push_args(tokens[start:])
             if push_args is not None:
-                if any(is_delete_short_option(arg) or is_delete_long_option(arg) for arg in push_args):
-                    findings.append("git push delete option")
+                if any(
+                    is_destructive_push_short_option(arg) or is_destructive_push_long_option(arg)
+                    for arg in push_args
+                ):
+                    findings.append("git push destructive option")
                 if any(re.fullmatch(r"\+?:[^\s]+", arg) for arg in push_args):
                     findings.append("git push empty-source refspec")
 
@@ -299,6 +311,16 @@ def scan_shell_command(tokens: list[str]) -> list[str]:
                     findings.append("gh api DELETE")
 
     return findings
+
+
+def decode_inline_run_scalar(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] == "'":
+        return value[1:-1].replace("''", "'")
+    if len(value) >= 2 and value[0] == value[-1] == '"':
+        inner = value[1:-1]
+        return bytes(inner, "utf-8").decode("unicode_escape")
+    return value
 
 
 def embedded_shell_commands(text: str) -> list[str]:
@@ -323,11 +345,16 @@ def find_workflow_branch_deletions(content: str) -> list[str]:
     normalized = normalize_workflow_commands(content)
     findings = []
 
+    # GitHub's ref-delete REST endpoint is forbidden regardless of whether a
+    # workflow reaches it through gh, curl, wget, Python, or another client.
+    if "/git/refs/heads/" in normalized:
+        findings.append("GitHub branch ref DELETE endpoint")
+
     for raw_line in normalized.splitlines():
         candidates = [raw_line.strip()]
         inline_run = re.match(r"^\s*(?:-\s+)?run:\s*(?![>|])(.+)$", raw_line)
         if inline_run:
-            candidates.append(inline_run.group(1).strip())
+            candidates.append(decode_inline_run_scalar(inline_run.group(1)))
 
         expanded_candidates = []
         for candidate in candidates:
@@ -353,6 +380,13 @@ class RepositoryPolicyTest(unittest.TestCase):
             'git push origin --delete "$WORK_BRANCH"',
             'git push origin -vd feature/foo',
             'git push origin -dv feature/foo',
+            'git push origin -vp feature/foo',
+            'git push --prune origin "refs/heads/*:refs/heads/*"',
+            'git push --mirror origin',
+            '- run: "git push origin :feature/foo"',
+            "- run: 'git push origin +:feature/foo'",
+            'curl -X DELETE https://api.github.com/repos/o/r/git/refs/heads/foo',
+            'curl --request DELETE https://api.github.com/repos/o/r/git/refs/heads/foo',
             'if git push origin -d feature/foo; then :; fi',
             '! git push origin :feature/foo',
             'echo "$(git push origin :feature/foo)"',
