@@ -656,21 +656,24 @@ def lexical_git_push_deletions(text: str) -> list[str]:
 
 
 def configured_git_alias(tokens: list[str]) -> str | None:
-    """Return the configured alias body when the invoked Git subcommand is an inline -c alias."""
+    """Expand inline Git aliases, retaining invocation args and chained aliases."""
     tokens = shell_execution_tokens(tokens)
     if not tokens or command_basename(tokens[0]) != "git":
         return None
 
-    aliases = {}
+    aliases: dict[str, str] = {}
     index = 1
     invoked = None
+    invoked_args: list[str] = []
     value_options = {"-C", "--git-dir", "--work-tree", "--namespace", "--config-env", "--exec-path"}
+
     while index < len(tokens):
         token = tokens[index]
         if token == "--":
             index += 1
             if index < len(tokens):
                 invoked = tokens[index]
+                invoked_args = tokens[index + 1 :]
             break
         if token == "-c" and index + 1 < len(tokens):
             config = tokens[index + 1]
@@ -682,7 +685,7 @@ def configured_git_alias(tokens: list[str]) -> str | None:
         if token.startswith("-c") and "=" in token[2:] and token[2:].split("=", 1)[0].lower().startswith("alias."):
             config = token[2:]
             name, value = config.split("=", 1)
-            aliases[name.split(".", 1)[1]] = value
+            aliases[name.split(".", 1)[1].lower()] = value
             index += 1
             continue
         if token in value_options and index + 1 < len(tokens):
@@ -695,10 +698,44 @@ def configured_git_alias(tokens: list[str]) -> str | None:
             index += 1
             continue
         invoked = token
+        invoked_args = tokens[index + 1 :]
         break
 
-    if invoked and invoked.lower() in aliases:
-        return aliases[invoked.lower()]
+    if not invoked:
+        return None
+
+    alias_name = invoked.lower()
+    if alias_name not in aliases:
+        return None
+
+    args = list(invoked_args)
+    seen: set[str] = set()
+    while alias_name in aliases:
+        if alias_name in seen:
+            return None
+        seen.add(alias_name)
+        body = aliases[alias_name]
+
+        if body.startswith("!"):
+            suffix = shlex.join(args) if args else ""
+            return body[1:] + (f" {suffix}" if suffix else "")
+
+        try:
+            body_tokens = shlex.split(body, posix=True)
+        except ValueError:
+            body_tokens = body.split()
+        if not body_tokens:
+            return None
+
+        command = body_tokens[0]
+        args = body_tokens[1:] + args
+        next_alias = command.lower()
+        if next_alias in aliases:
+            alias_name = next_alias
+            continue
+
+        return shlex.join(["git", command, *args])
+
     return None
 
 
@@ -717,10 +754,9 @@ def scan_shell_command(tokens: list[str]) -> list[str]:
             findings.extend(scan_shell_command(tokens[index:]))
         return findings
 
-    alias_body = configured_git_alias(tokens)
-    if alias_body:
-        expanded_alias = alias_body[1:] if alias_body.startswith("!") else f"git {alias_body}"
-        findings.extend(find_workflow_branch_deletions(expanded_alias))
+    alias_expansion = configured_git_alias(tokens)
+    if alias_expansion:
+        findings.extend(find_workflow_branch_deletions(alias_expansion))
 
     if command_basename(tokens[0]) == "eval" and len(tokens) > 1:
         findings.extend(find_workflow_branch_deletions(" ".join(tokens[1:])))
@@ -979,6 +1015,9 @@ class RepositoryPolicyTest(unittest.TestCase):
             'git -c protocol.version=2 push origin +:feature/foo',
             "git -c Alias.z='push origin :refs/heads/feature/foo' z",
             "git -c ALIAS.Z='push origin +:feature/foo' Z",
+            "git -c alias.z='push' z origin :refs/heads/feature/foo",
+            "git -c alias.a='b' -c alias.b='push origin :refs/heads/feature/foo' a",
+            "git -c alias.a='b' -c alias.b='push' a origin +:feature/foo",
             "builtin eval 'git push origin :refs/heads/feature/foo'",
             'git --git-dir=.git push origin --delete "$WORK_BRANCH"',
             'git push origin --de feature/foo',
