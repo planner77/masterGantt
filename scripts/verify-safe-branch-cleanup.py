@@ -746,6 +746,15 @@ def scan_shell_command(tokens: list[str]) -> list[str]:
 
     findings = []
 
+    if command_basename(tokens[0]) == "git":
+        for index, token in enumerate(tokens[1:], start=1):
+            lowered = token.lower()
+            if lowered.startswith("--config-env=alias."):
+                findings.append("git alias via --config-env is not statically inspectable")
+            elif lowered == "--config-env" and index + 1 < len(tokens):
+                if tokens[index + 1].lower().startswith("alias."):
+                    findings.append("git alias via --config-env is not statically inspectable")
+
     if command_basename(tokens[0]) == "builtin":
         index = 1
         while index < len(tokens) and tokens[index].startswith("-"):
@@ -1018,6 +1027,8 @@ class RepositoryPolicyTest(unittest.TestCase):
             "git -c alias.z='push' z origin :refs/heads/feature/foo",
             "git -c alias.a='b' -c alias.b='push origin :refs/heads/feature/foo' a",
             "git -c alias.a='b' -c alias.b='push' a origin +:feature/foo",
+            "ALIAS=push git --config-env=alias.z=ALIAS z origin :refs/heads/feature/foo",
+            "git --config-env=Alias.z=ALIAS z origin +:feature/foo",
             "builtin eval 'git push origin :refs/heads/feature/foo'",
             'git --git-dir=.git push origin --delete "$WORK_BRANCH"',
             'git push origin --de feature/foo',
