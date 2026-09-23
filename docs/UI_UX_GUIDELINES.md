@@ -1,12 +1,31 @@
 # masterGantt 공통 UI/UX 기준
 
-적용: Issue #87, 2026-09-22. Issue #76의 UX-01~12를 공통 설계 기준으로 선행 정리한다. 이 문서 추가는 #76 Workspace나 다른 화면 재설계의 구현 완료를 뜻하지 않는다. 기존 동작 계약은 [PROJECT_UX.md](PROJECT_UX.md), 도메인/권한은 [REQUIREMENTS.md](REQUIREMENTS.md)와 [SECURITY.md](SECURITY.md)를 함께 따른다.
+적용: Issue #87, 2026-09-22. Issue #76의 UX-01~12를 공통 설계 기준으로 선행 정리한다. 이 문서 추가는 #76 Workspace나 다른 화면 재설계의 구현 완료를 뜻하지 않는다. 제품 시각 언어와 화면 설계 방향은 저장소 루트의 [DESIGN.md](../DESIGN.md)를 Source of Truth로 사용한다. 이 문서는 interaction·접근성·반응형·검증 규칙을 구체화한다. 기존 동작 계약은 [PROJECT_UX.md](PROJECT_UX.md), 도메인/권한은 [REQUIREMENTS.md](REQUIREMENTS.md)와 [SECURITY.md](SECURITY.md)를 함께 따른다.
 
 ## 책임과 적용
 
 `ui_ux`는 정보 구조·interaction·접근성 설계와 구현 비교를 담당하고, `frontend`는 구현·브라우저 증거·테스트를 담당한다. 작은 변경은 frontend가 UI/UX를 겸임한다. `qa_docs`는 인수 기준과 증거를 독립 검토하고 Manager가 범위/예외를 결정한다. 역할 선택은 [ISSUE_LIFECYCLE.md](ISSUE_LIFECYCLE.md)를 따른다.
 
-아래 기준은 외부 디자인 시스템을 그대로 도입하라는 요구가 아니라 masterGantt의 설계 선택이다. 기존 shadcn/ui와 SVAR Core를 우선하고 스타일을 이유로 새 UI framework를 추가하지 않는다. 기존 화면을 일괄 수정하지 않고 승인된 이슈 범위부터 적용한다.
+아래 기준은 외부 디자인 시스템을 그대로 도입하라는 요구가 아니라 masterGantt의 설계 선택이다. `DESIGN.md`의 **Linear-inspired Light Enterprise Workspace** 방향을 적용하되 기존 파란색 Light UI, shadcn/ui와 SVAR Core를 우선하고 스타일을 이유로 새 UI framework를 추가하지 않는다. Linear는 정보 밀도·toolbar·tab·flat surface의 primary reference, Airtable은 table/search/filter, IBM Carbon은 enterprise form/status/accessibility의 secondary reference다. 기존 화면을 일괄 수정하지 않고 승인된 이슈 범위부터 적용한다.
+
+
+## Design language 적용 규칙
+
+UI 변경은 다음 순서로 판단한다.
+
+1. security/domain/API/revision/canonical snapshot 계약
+2. `DESIGN.md`
+3. 이 UI/UX 가이드
+4. 화면별 현재 UX 문서
+5. 외부 reference
+
+공통 시각 원칙은 **Light-first, workspace-first, data-dense, flat surface, compact controls, progressive disclosure**다. 모든 영역을 카드로 감싸거나 큰 제목·설명·여백으로 Gantt/Grid의 작업 면적을 줄이지 않는다. 시각 계층은 spacing, typography, hairline divider, subtle surface, semantic state로 만든다.
+
+기본 spacing은 4/8/12/16/24/32px scale을 기준으로 하며, compact control/menu/input은 대체로 6–8px radius, 큰 panel/dialog는 8–12px 범위에서 현재 token과 회귀를 기준으로 정한다. 숫자·날짜처럼 비교가 중요한 정보는 가능한 경우 tabular numeric 표현을 사용한다.
+
+색상·focus·selected·disabled·error/success 상태는 raw color의 화면별 추가보다 semantic token을 우선한다. 실제 token 정합화 범위와 값은 Issue #120에서 현재 UI 회귀와 함께 확정한다. 색을 통일한다는 이유로 서로 다른 의미의 상태까지 하나로 합치지 않는다.
+
+화면별 디자인 적용 순서는 `Project List → Project Workspace → Task Editor → Search/Filter`다. 완료된 #75/#76/#74/#96/#83/#84의 기능 계약을 유지하며, #122의 P2/P3 이슈와 범위가 겹치면 별도 중복 구현 대신 dependency로 연결한다.
 
 ## 공통 원칙
 
