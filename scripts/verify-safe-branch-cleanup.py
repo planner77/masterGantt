@@ -655,12 +655,66 @@ def lexical_git_push_deletions(text: str) -> list[str]:
     return findings
 
 
+def configured_git_alias(tokens: list[str]) -> str | None:
+    """Return the configured alias body when the invoked Git subcommand is an inline -c alias."""
+    tokens = shell_execution_tokens(tokens)
+    if not tokens or command_basename(tokens[0]) != "git":
+        return None
+
+    aliases = {}
+    index = 1
+    invoked = None
+    value_options = {"-C", "--git-dir", "--work-tree", "--namespace", "--config-env", "--exec-path"}
+    while index < len(tokens):
+        token = tokens[index]
+        if token == "--":
+            index += 1
+            if index < len(tokens):
+                invoked = tokens[index]
+            break
+        if token == "-c" and index + 1 < len(tokens):
+            config = tokens[index + 1]
+            if config.startswith("alias.") and "=" in config:
+                name, value = config.split("=", 1)
+                aliases[name[len("alias."):]] = value
+            index += 2
+            continue
+        if token.startswith("-calias.") and "=" in token:
+            config = token[2:]
+            name, value = config.split("=", 1)
+            aliases[name[len("alias."):]] = value
+            index += 1
+            continue
+        if token in value_options and index + 1 < len(tokens):
+            index += 2
+            continue
+        if any(token.startswith(option + "=") for option in value_options if option.startswith("--")):
+            index += 1
+            continue
+        if token.startswith("-"):
+            index += 1
+            continue
+        invoked = token
+        break
+
+    if invoked and invoked in aliases:
+        return aliases[invoked]
+    return None
+
+
 def scan_shell_command(tokens: list[str]) -> list[str]:
     tokens = shell_execution_tokens(tokens)
     if not tokens:
         return []
 
     findings = []
+
+    alias_body = configured_git_alias(tokens)
+    if alias_body:
+        findings.extend(find_workflow_branch_deletions(alias_body))
+
+    if command_basename(tokens[0]) == "eval" and len(tokens) > 1:
+        findings.extend(find_workflow_branch_deletions(" ".join(tokens[1:])))
     git_command = git_command_args(tokens)
     if git_command is not None:
         subcommand, git_args = git_command
