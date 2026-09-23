@@ -5,7 +5,7 @@ description = """
 Security Review 및 문서 일관성 검증 담당 Agent
 """
 
-model = "gpt-5.6-sol"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 
 # 기본적으로 독립 Reviewer로 운용
