@@ -185,8 +185,8 @@ def find_workflow_branch_deletions(content: str) -> list[str]:
         ":refs/heads/$",
     )
     command_patterns = (
-        re.compile(r"\bgit\s+push\b[^\n]*(?:\s-d(?:\s|=)|\s--delete(?:\s|=))", re.IGNORECASE),
-        re.compile(r"\bgit\s+push\b[^\n]*\s[\"\']?\+?:[^\s\"\']+[\"\']?(?:\s|$)", re.IGNORECASE),
+        re.compile(r"\bgit\b[^\n]*?\bpush\b[^\n]*(?:\s-d(?:\s|=)|\s--delete(?:\s|=))", re.IGNORECASE),
+        re.compile(r"\bgit\b[^\n]*?\bpush\b[^\n]*\s[\"\']?\+?:[^\s\"\']+[\"\']?(?:\s|$)", re.IGNORECASE),
         re.compile(r"\bgh\s+api\b[^\n]*(?:-X|--method)\s+DELETE\b", re.IGNORECASE),
     )
     findings = [marker for marker in literal_markers if marker in normalized]
