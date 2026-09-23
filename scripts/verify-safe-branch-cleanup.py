@@ -204,6 +204,9 @@ class RepositoryPolicyTest(unittest.TestCase):
         for source in (
             'git push origin -d "$WORK_BRANCH"',
             'git push origin --delete "$WORK_BRANCH"',
+            'git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
+            'git -c protocol.version=2 push origin +:feature/foo',
+            'git --git-dir=.git push origin --delete "$WORK_BRANCH"',
             'git push origin :feature/foo',
             'git push origin +:feature/foo',
             'git push origin :refs/heads/feature/foo',
