@@ -6,7 +6,7 @@ description = """
 코드 구현은 frontend가 담당하며, 작은 문구/CSS 수정은 frontend에 맡긴다.
 """
 
-model = "gpt-5.6-terra"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 
