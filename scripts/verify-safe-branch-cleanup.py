@@ -739,21 +739,61 @@ def configured_git_alias(tokens: list[str]) -> str | None:
     return None
 
 
+def git_env_alias_injection(tokens: list[str]) -> bool:
+    """Fail closed on GIT_CONFIG_* environment assignments that inject Git aliases."""
+    assignment = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
+    for token in tokens:
+        match = assignment.match(token)
+        if not match:
+            break
+        name, value = match.groups()
+        if re.fullmatch(r"GIT_CONFIG_KEY_\d+", name) and value.lower().startswith("alias."):
+            return True
+    return False
+
+
+def git_global_config_env_alias(tokens: list[str]) -> bool:
+    """Inspect --config-env only in Git's global-option region before the subcommand."""
+    tokens = shell_execution_tokens(tokens)
+    if not tokens or command_basename(tokens[0]) != "git":
+        return False
+
+    value_options = {"-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path"}
+    index = 1
+    while index < len(tokens):
+        token = tokens[index]
+        if token == "--":
+            return False
+        if not token.startswith("-"):
+            return False
+
+        if token == "--config-env" and index + 1 < len(tokens):
+            return tokens[index + 1].lower().startswith("alias.")
+        if token.startswith("--config-env="):
+            return token.split("=", 1)[1].lower().startswith("alias.")
+
+        if token in value_options and index + 1 < len(tokens):
+            index += 2
+            continue
+        if any(token.startswith(option + "=") for option in value_options if option.startswith("--")):
+            index += 1
+            continue
+        index += 1
+    return False
+
+
 def scan_shell_command(tokens: list[str]) -> list[str]:
+    original_tokens = tokens
+    findings = []
+    if git_env_alias_injection(original_tokens):
+        findings.append("git alias via GIT_CONFIG_* environment is not statically inspectable")
+
     tokens = shell_execution_tokens(tokens)
     if not tokens:
-        return []
+        return findings
 
-    findings = []
-
-    if command_basename(tokens[0]) == "git":
-        for index, token in enumerate(tokens[1:], start=1):
-            lowered = token.lower()
-            if lowered.startswith("--config-env=alias."):
-                findings.append("git alias via --config-env is not statically inspectable")
-            elif lowered == "--config-env" and index + 1 < len(tokens):
-                if tokens[index + 1].lower().startswith("alias."):
-                    findings.append("git alias via --config-env is not statically inspectable")
+    if git_global_config_env_alias(tokens):
+        findings.append("git alias via --config-env is not statically inspectable")
 
     if command_basename(tokens[0]) == "builtin":
         index = 1
@@ -1036,6 +1076,7 @@ class RepositoryPolicyTest(unittest.TestCase):
             'FOO=bar git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
             'command git -c protocol.version=2 push origin +:feature/foo',
             'env FOO=bar git push origin --delete "$WORK_BRANCH"',
+            'GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=alias.z GIT_CONFIG_VALUE_0=push git z origin :refs/heads/feature/foo',
             "env -S 'git push origin :feature/foo'",
             "env --split-string='git push origin +:feature/foo'",
             "env -S '-C /tmp git push origin :feature/foo'",
@@ -1102,6 +1143,10 @@ class RepositoryPolicyTest(unittest.TestCase):
             [],
         )
         self.assertEqual(find_workflow_branch_deletions('git push origin --dry-run main'), [])
+        self.assertEqual(
+            find_workflow_branch_deletions('git grep -- --config-env=alias.z'),
+            [],
+        )
         for source in (
             "timeout --help 30 git push origin :feature/foo",
             "timeout --h 30 git push origin :feature/foo",
