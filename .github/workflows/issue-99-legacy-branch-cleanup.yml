@@ -22,6 +22,8 @@ jobs:
       RELEASE_SHA: 527df06f945c8b0820eaca68b1ecbfce991ec3b4
       RELEASE_TAG: v0.26.0
       CLEANUP_BRANCH: chore/issue-99-legacy-branch-cleanup
+      STABILIZATION_BRANCH: fix/issue-99-release-validation
+      STABILIZATION_PR: 133
       LEGACY_BRANCH_1: feat/issue-99-password-policy
       LEGACY_BRANCH_2: feat/issue-99-password-policy-v2
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,14 +64,38 @@ jobs:
           test "$(git rev-parse "$TARGET_SHA^2")" = "$cleanup_head_sha"
           echo "CLEANUP_PR_NUMBER=$cleanup_pr_number" >> "$GITHUB_ENV"
 
+          stabilization_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$STABILIZATION_PR")"
+          test "$(jq -r '.merged_at // ""' <<<"$stabilization_pr")" != ""
+          test "$(jq -r .head.ref <<<"$stabilization_pr")" = "$STABILIZATION_BRANCH"
+          stabilization_merge_sha="$(jq -r .merge_commit_sha <<<"$stabilization_pr")"
+          test -n "$stabilization_merge_sha"
+          git merge-base --is-ancestor "$stabilization_merge_sha" "$TARGET_SHA"
+          echo "STABILIZATION_MERGE_SHA=$stabilization_merge_sha" >> "$GITHUB_ENV"
+
+      - name: release validation 작업 브랜치 안전 삭제
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/safe_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "$STABILIZATION_PR" \
+            --branch "$STABILIZATION_BRANCH" \
+            --target-sha "$STABILIZATION_MERGE_SHA" \
+            --delete
+
       - name: cleanup PR 작업 브랜치 안전 삭제
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr "$CLEANUP_PR_NUMBER"             --branch "$CLEANUP_BRANCH"             --target-sha "$TARGET_SHA"             --delete
+          python3 scripts/safe_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "$CLEANUP_PR_NUMBER" \
+            --branch "$CLEANUP_BRANCH" \
+            --target-sha "$TARGET_SHA" \
+            --delete
 
       - name: Issue #99 최종 저장소 상태 기록
         shell: bash
         run: |
-          body="$(printf '%s\n'             "추가 저장소 정리 확인:"             "- 정식 릴리스: $RELEASE_TAG @ $RELEASE_SHA"             "- cleanup branch 삭제: $CLEANUP_BRANCH"             "- 정책상 보존: $LEGACY_BRANCH_1 (closed/unmerged PR branch)"             "- 정책상 보존: $LEGACY_BRANCH_2 (closed/unmerged PR branch)"             "- 보존 근거: docs/CI_CD.md Issue #99 절 및 scripts/safe_branch_cleanup.py merged-head 계약")"
+          body="$(printf '%s\n'             "추가 저장소 정리 확인:"             "- 정식 릴리스: $RELEASE_TAG @ $RELEASE_SHA"             "- release validation branch 삭제: $STABILIZATION_BRANCH"             "- cleanup branch 삭제: $CLEANUP_BRANCH"             "- 정책상 보존: $LEGACY_BRANCH_1 (closed/unmerged PR branch)"             "- 정책상 보존: $LEGACY_BRANCH_2 (closed/unmerged PR branch)"             "- 보존 근거: docs/CI_CD.md Issue #99 절 및 scripts/safe_branch_cleanup.py merged-head 계약")"
           gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/99/comments" -f body="$body"
