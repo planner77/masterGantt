@@ -102,6 +102,8 @@ class CleanupContractTest(unittest.TestCase):
             def get(self, path, *, allowed=(200,)):
                 if path == "/pulls/124":
                     return 200, self.pr
+                if path.startswith("/compare/"):
+                    return 200, {"merge_base_commit": {"sha": "1" * 40}}
                 if path.startswith("/branches/"):
                     return 404, None
                 raise AssertionError(path)
@@ -129,6 +131,21 @@ class CleanupContractTest(unittest.TestCase):
         with self.assertRaises(cleanup.CleanupError):
             cleanup.fetch_snapshot(
                 FakeApi(wrong_branch),
+                repo="planner77/masterGantt",
+                pr_number=124,
+                branch="fix/issue-124",
+                target_sha="2" * 40,
+            )
+
+        class WrongAncestryApi(FakeApi):
+            def get(self, path, *, allowed=(200,)):
+                if path.startswith("/compare/"):
+                    return 200, {"merge_base_commit": {"sha": "9" * 40}}
+                return super().get(path, allowed=allowed)
+
+        with self.assertRaises(cleanup.CleanupError):
+            cleanup.fetch_snapshot(
+                WrongAncestryApi(valid_pr),
                 repo="planner77/masterGantt",
                 pr_number=124,
                 branch="fix/issue-124",
@@ -279,9 +296,11 @@ def is_destructive_push_short_option(token: str) -> bool:
 
 
 def is_destructive_push_long_option(token: str) -> bool:
-    if is_delete_long_option(token):
-        return True
-    return token in ("--prune", "--mirror")
+    if not token.startswith("--") or token.startswith("--no-"):
+        return False
+    name = token[2:]
+    destructive = (("delete", 2), ("prune", 3), ("mirror", 3))
+    return any(len(name) >= minimum and canonical.startswith(name) for canonical, minimum in destructive)
 
 
 def scan_shell_command(tokens: list[str]) -> list[str]:
@@ -313,8 +332,34 @@ def scan_shell_command(tokens: list[str]) -> list[str]:
     return findings
 
 
+def strip_yaml_trailing_comment(value: str) -> str:
+    quote = None
+    index = 0
+    while index < len(value):
+        char = value[index]
+        if quote == "'":
+            if char == "'" and index + 1 < len(value) and value[index + 1] == "'":
+                index += 2
+                continue
+            if char == "'":
+                quote = None
+        elif quote == '"':
+            if char == "\\" and index + 1 < len(value):
+                index += 2
+                continue
+            if char == '"':
+                quote = None
+        else:
+            if char in ("'", '"'):
+                quote = char
+            elif char == "#" and (index == 0 or value[index - 1].isspace()):
+                return value[:index].rstrip()
+        index += 1
+    return value.rstrip()
+
+
 def decode_inline_run_scalar(value: str) -> str:
-    value = value.strip()
+    value = strip_yaml_trailing_comment(value.strip())
     if len(value) >= 2 and value[0] == value[-1] == "'":
         return value[1:-1].replace("''", "'")
     if len(value) >= 2 and value[0] == value[-1] == '"':
@@ -383,6 +428,10 @@ class RepositoryPolicyTest(unittest.TestCase):
             'git push origin -vp feature/foo',
             'git push --prune origin "refs/heads/*:refs/heads/*"',
             'git push --mirror origin',
+            'git push --pru origin "refs/heads/*:refs/heads/*"',
+            'git push --mir origin',
+            '- run: "git push origin :feature/foo" # remove branch',
+            "- run: 'git push origin +:feature/foo' # remove branch",
             '- run: "git push origin :feature/foo"',
             "- run: 'git push origin +:feature/foo'",
             'curl -X DELETE https://api.github.com/repos/o/r/git/refs/heads/foo',
