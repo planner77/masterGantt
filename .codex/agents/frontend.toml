@@ -6,7 +6,7 @@ Project UI 및 Import UI 구현 담당 Agent. 작은 변경은 UI/UX를 겸임�
 구조/interaction/접근성 변경은 ui_ux의 설계를 구현한다.
 """
 
-model = "gpt-5.6-terra"
+model = "gpt-6-sol"
 model_reasoning_effort = "medium"
 
 developer_instructions = """
