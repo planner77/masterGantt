@@ -129,7 +129,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   const otherContext = await browser.newContext();
   try {
     const otherPage = await otherContext.newPage();
-    const otherId = await createProject(otherPage, `W05 Other ${suffix}`, `W05-other-${suffix}`);
+    const otherId = await createProject(otherPage, `W05 Other ${suffix}`, "W05Other123!");
     const crossProjectPatch = await page.request.patch(`/api/projects/${otherId}`, {
       data: { name: "Cross project denied" },
       headers: { "If-Match": '"1"', Origin: origin },
