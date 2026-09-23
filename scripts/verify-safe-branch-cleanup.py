@@ -355,32 +355,50 @@ def shell_command_string(tokens: list[str]) -> str | None:
         return None
 
     index = 1
-    value_options = {"-O", "-o", "--rcfile", "--init-file"}
+    command_mode = False
+    value_options = {"-O", "+O", "-o", "+o", "--rcfile", "--init-file"}
     while index < len(tokens):
         token = tokens[index]
+
         if token == "--":
             index += 1
             continue
-        if token == "-c":
-            return tokens[index + 1] if index + 1 < len(tokens) else None
-        if token.startswith("-") and not token.startswith("--") and "c" in token[1:]:
-            return tokens[index + 1] if index + 1 < len(tokens) else None
+
         if token in value_options and index + 1 < len(tokens):
             index += 2
             continue
         if token.startswith(("--rcfile=", "--init-file=")):
             index += 1
             continue
-        if (token.startswith("-O") or token.startswith("-o")) and len(token) > 2:
+
+        if token.startswith(("-O", "+O", "-o", "+o")) and len(token) > 2:
             index += 1
             continue
-        if not token.startswith("-"):
-            break
-        index += 1
+
+        if token.startswith(("-", "+")) and not token.startswith("--"):
+            option_chars = token[1:]
+            if "c" in option_chars:
+                command_mode = True
+            # -O/+O and -o/+o inside a short-option cluster still consume the
+            # following shopt/set option before the command operand.
+            if ("O" in option_chars or "o" in option_chars) and index + 1 < len(tokens):
+                index += 2
+                continue
+            index += 1
+            continue
+
+        if token.startswith("--"):
+            index += 1
+            continue
+
+        if command_mode:
+            return token
+        break
+
     return None
 
 
-def git_push_args(tokens: list[str]) -> list[str] | None:
+def git_command_args(tokens: list[str]) -> tuple[str, list[str]] | None:
     tokens = shell_execution_tokens(tokens)
     if not tokens or command_basename(tokens[0]) != "git":
         return None
@@ -410,9 +428,16 @@ def git_push_args(tokens: list[str]) -> list[str] | None:
             continue
         index += 1
 
-    if index >= len(tokens) or tokens[index] != "push":
+    if index >= len(tokens):
         return None
-    return tokens[index + 1 :]
+    return tokens[index], tokens[index + 1 :]
+
+
+def git_push_args(tokens: list[str]) -> list[str] | None:
+    parsed = git_command_args(tokens)
+    if parsed is None or parsed[0] != "push":
+        return None
+    return parsed[1]
 
 
 def is_delete_long_option(token: str) -> bool:
@@ -437,6 +462,55 @@ def is_destructive_push_long_option(token: str) -> bool:
     return any(len(name) >= minimum and canonical.startswith(name) for canonical, minimum in destructive)
 
 
+def mask_shell_single_quoted_literals(text: str) -> str:
+    """Mask single-quoted shell literals; substitutions inside them do not execute."""
+    chars = list(text)
+    in_single = False
+    escaped = False
+    for index, char in enumerate(text):
+        if escaped:
+            escaped = False
+            continue
+        if not in_single and char == "\\":
+            escaped = True
+            continue
+        if char == "'":
+            in_single = not in_single
+            chars[index] = " "
+            continue
+        if in_single:
+            chars[index] = " "
+    return "".join(chars)
+
+
+def mask_shell_quoted_literals(text: str) -> str:
+    """Mask quoted shell arguments for lexical fallback scanning."""
+    chars = list(text)
+    quote = None
+    escaped = False
+    for index, char in enumerate(text):
+        if escaped:
+            chars[index] = " "
+            escaped = False
+            continue
+        if quote == "'":
+            chars[index] = " "
+            if char == "'":
+                quote = None
+            continue
+        if quote == '"':
+            chars[index] = " "
+            if char == "\\":
+                escaped = True
+            elif char == '"':
+                quote = None
+            continue
+        if char in ("'", '"'):
+            quote = char
+            chars[index] = " "
+    return "".join(chars)
+
+
 def lexical_git_push_deletions(text: str) -> list[str]:
     """Fail closed on destructive git-push material regardless of shell wrappers.
 
@@ -444,7 +518,7 @@ def lexical_git_push_deletions(text: str) -> list[str]:
     before scanning. This fallback is intentionally conservative for workflow
     run commands: destructive push text must use the shared cleanup helper.
     """
-    canonical = text.replace("\\_", " ")
+    canonical = mask_shell_quoted_literals(text.replace("\\_", " "))
     findings = []
     git_push = re.compile(
         r"(?:^|(?<=[;&|(){}]))[ \t]*(?:[^\s;&|(){}]+/)?git\b(?P<prefix>[^\n;&|{}]*?)\bpush\b(?P<args>[^\n;&|{}]*)",
@@ -467,15 +541,28 @@ def scan_shell_command(tokens: list[str]) -> list[str]:
         return []
 
     findings = []
-    push_args = git_push_args(tokens)
-    if push_args is not None:
-        if any(
-            is_destructive_push_short_option(arg) or is_destructive_push_long_option(arg)
-            for arg in push_args
-        ):
-            findings.append("git push destructive option")
-        if any(re.fullmatch(r"\+?:[^\s]+", arg) for arg in push_args):
-            findings.append("git push empty-source refspec")
+    git_command = git_command_args(tokens)
+    if git_command is not None:
+        subcommand, git_args = git_command
+        if subcommand == "push":
+            if any(
+                is_destructive_push_short_option(arg) or is_destructive_push_long_option(arg)
+                for arg in git_args
+            ):
+                findings.append("git push destructive option")
+            if any(re.fullmatch(r"\+?:[^\s]+", arg) for arg in git_args):
+                findings.append("git push empty-source refspec")
+        elif subcommand == "send-pack":
+            if any(
+                arg.startswith("--")
+                and not arg.startswith("--no-")
+                and "mirror".startswith(arg[2:])
+                and len(arg[2:]) >= 1
+                for arg in git_args
+            ):
+                findings.append("git send-pack mirror")
+            if any(re.fullmatch(r"\+?:[^\s]+", arg) for arg in git_args):
+                findings.append("git send-pack empty-source refspec")
 
     if command_basename(tokens[0]) == "gh" and len(tokens) >= 2 and tokens[1] == "api":
         gh_args = tokens[2:]
@@ -590,7 +677,8 @@ def embedded_shell_commands(text: str) -> list[str]:
 
     while pending:
         current = pending.pop()
-        for match in substitution.finditer(current):
+        executable_text = mask_shell_single_quoted_literals(current)
+        for match in substitution.finditer(executable_text):
             inner = next(group for group in match.groups() if group is not None).strip()
             if inner and inner not in seen:
                 seen.add(inner)
@@ -690,6 +778,14 @@ class RepositoryPolicyTest(unittest.TestCase):
             "bash -O extglob -c 'git push origin :feature/foo'",
             "bash --rcfile /dev/null -c 'git push origin +:feature/foo'",
             "sh -o errexit -c 'git push origin --delete feature/foo'",
+            "bash +e -c 'git push origin :feature/foo'",
+            "bash +O extglob -c 'git push origin +:feature/foo'",
+            "bash +o errexit -c 'git push origin --delete feature/foo'",
+            "bash -c -O extglob 'git push origin :feature/foo'",
+            "bash -lcO extglob 'git push origin +:feature/foo'",
+            "git send-pack origin :refs/heads/feature/foo",
+            "git send-pack --mirror origin",
+            "git send-pack --m origin",
             "env --split-string='-C /tmp git push origin +:feature/foo'",
             'env -C "$GITHUB_WORKSPACE" git push origin :feature/foo',
             'env --chdir="$GITHUB_WORKSPACE" git push origin +:feature/foo',
@@ -763,6 +859,8 @@ class RepositoryPolicyTest(unittest.TestCase):
 
         self.assertEqual(find_workflow_branch_deletions('echo git push origin --delete feature/foo'), [])
         self.assertEqual(find_workflow_branch_deletions("printf '%s\\n' 'git push origin :feature/foo'"), [])
+        self.assertEqual(find_workflow_branch_deletions("echo '$(git push origin :feature/foo)'"), [])
+        self.assertEqual(find_workflow_branch_deletions("printf '%s\\n' '`git push origin :feature/foo`'"), [])
 
     def test_direct_delete_detector_folds_yaml_run_scalars(self):
         folded_workflows = (
