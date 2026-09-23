@@ -98,8 +98,7 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 | `.github/workflows/ci.yml` 검증 jobs | PR, `main` push, manual | `contents: read` | application·browser·container 회귀 |
 | `.github/workflows/ci.yml` commit publish job | 성공한 `main` push만 | `contents: read`, `packages: write`; optional attestation을 위해 job에 `attestations: write`, `id-token: write` 선언 | 임시 `ci-<full SHA>` publish/digest smoke와 검증 후 package cleanup |
 | `.github/workflows/release-image.yml` | strict `v*` tag push 또는 annotated `v*` tag ref의 수동 실행 | publish job만 package/attestation 쓰기와 OIDC 권한 선언 | 동일 SemVer/annotated-tag 검증 후 GHCR publish와 digest smoke |
-| `.github/workflows/issue-87-branch-cleanup.yml` validation | 해당 workflow/검증 script 변경 PR | `contents: read`, checkout credential 미보존 | embedded Python 안전 조건과 실제 로컬 Git lease 회귀 |
-| `.github/workflows/issue-87-branch-cleanup.yml` cleanup | main CI의 성공한 push에 대한 `workflow_run: completed` | 해당 job만 `contents: write`, `actions: read`, `pull-requests: read` | PR #88의 실제 merge CI/GHCR 성공 후 고정 작업 branch의 SHA 조건부 삭제 |
+| `.github/workflows/ci.yml` branch cleanup policy check | PR, `main` push, manual | `contents: read` | `scripts/verify-safe-branch-cleanup.py`로 완료 Issue helper 재도입과 직접 branch deletion 우회를 차단하고 공통 fail-closed 계약을 회귀 검증 |
 
 - PR과 수동 CI에는 registry credential 또는 write token을 제공하지 않는다.
 - `pull_request_target`에서 repository code를 build/test하지 않는다.
@@ -187,22 +186,30 @@ Action 또는 base image update PR은 full SHA/digest, release note, permissions
 
 현재 배포 경로와 기존 Compose 프로젝트/volume을 유지하는 전환 절차는 [REPOSITORY_STRUCTURE](REPOSITORY_STRUCTURE.md)를 따른다. CI의 Docker build 4개 참조와 Dependabot 경로를 함께 갱신하고 Docker gate에 `scripts/verify-compose-smoke.sh`를 추가했다. 이 smoke는 새 Compose 경로의 config, startup/readiness, restart 및 강제 recreate 후 SQLite 보존뿐 아니라 `RESOURCE_CATALOG_ADMIN_PASSWORD` 누락 시 config fail-fast, app 컨테이너 환경 전달, 실제 관리자 인증 성공/거부, **인증 요청 직후 로그와 재생성 후 로그의 비밀번호 원문 비노출**을 격리된 CI 리소스로 검사한다. 관리자 비밀번호 값 자체는 Actions 출력에 기록하지 않는다. 기존 quality/E2E/runtime/registry 권한·검증 gate는 유지한다. 결과는 해당 PR/run/head의 실제 증거로 판정하며 과거 Wxx 기록을 이번 변경의 PASS로 전용하지 않는다.
 
-## 9. Issue #87 고정 대상 브랜치 정리
+## 9. 공통 작업 브랜치 정리 안전성 (#124)
 
-[issue-87-branch-cleanup.yml](../.github/workflows/issue-87-branch-cleanup.yml)은 사용자 요청의 PR #88 작업 브랜치 정리에 한정한다. 일반 이슈의 자동 삭제나 정식 릴리스 승인을 부여하지 않는다. 기존 ci/release job과 registry 권한은 변경하지 않는다.
+Issue #124부터 작업 브랜치 삭제는 [공통 안전 cleanup 도구](../scripts/safe_branch_cleanup.py)를 기준으로 한다. 완료된 Issue별 일회성 release/cleanup workflow는 완료 증거를 보존한 채 퇴역하며, 새 Issue 전용 workflow에 삭제 코드를 복제하지 않는다.
 
-- PR validation은 해당 workflow/script 변경에서 contents:read로 [회귀 스크립트](../scripts/verify-issue-87-cleanup.py)를 실행한다. 기존 quality/e2e/docker를 대체하지 않는다.
-- cleanup은 main push CI 완료 뒤 API로 repository/event/path/attempt, 실제 merge SHA, quality/e2e/docker/main GHCR 네 job의 success를 확인한다. write job은 checkout/fetch/PR script/artifact/cache를 실행하지 않는다.
-- **PR #88은 `merge_method=merge`와 최종 expected_head_sha를 지정하여 병합한다.** 실제 merge commit의 두 parent와 두 번째 parent=PR head를 확인하며 squash/rebase는 지원하지 않고 삭제를 거부한다.
-- ancestry, 다른 열린 PR 참조 부재, 보호 branch 및 새 tip 검사를 통과한 `docs/issue-87-agent-lifecycle` 하나만 삭제한다. Git의 명시적 `--force-with-lease=<ref>:<verified-head>`와 단일 삭제 refspec으로 원자적 SHA 조건을 적용한다. 이력 force update/태그 이동이 아니며 REST 무조건 삭제로 fallback하지 않는다.
-- GITHUB_TOKEN은 해당 job의 런타임 인증 환경에서만 사용한다. 시스템/global Git 설정과 trace를 배제하며 토큰을 Git config 파일·인자·로그에 기록하지 않는다. 삭제 후 API 404와 summary를 증거로 남긴다.
-- 완료 후 다른 main run은 no-op이고 이미 없는 branch는 재삭제하지 않는다. branch 이름을 재사용하지 않는다. 파일 제거/비활성화는 증거 보존 뒤 별도 검토된 운영 변경으로만 수행하며 workflow가 자체 제거 commit이나 다른 target을 만들지 않는다.
+공통 도구는 `--repo`, merged `--pr`, `--branch`, 검증된 `--target-sha`를 입력받고 기본적으로 검증만 수행한다. 실제 삭제는 `--delete`를 명시한 경우에만 수행한다.
 
-원격 검증 항목과 실패 판정은 [REMOTE_VALIDATION](REMOTE_VALIDATION.md)의 Issue #87 절을 따른다. 정리 run/head/ref 근거는 PR/Issue 완료 댓글에 남긴다. 자세한 결정 이력은 [ISSUE_87_COMPLETION](ISSUE_87_COMPLETION.md)에 있다.
+삭제 전 필수 조건은 다음과 같다.
+
+- PR이 실제 merged 상태이고 base가 `main`이며 head repository/branch가 입력과 정확히 일치한다.
+- 현재 remote branch tip이 merged PR head SHA와 정확히 같아야 한다.
+- GitHub compare 결과에서 merged PR head가 target main/merge SHA의 ancestor여야 한다.
+- protected branch와 해당 branch를 head/base로 사용하는 다른 open PR을 거부한다.
+- 삭제 직전 Git ref SHA를 다시 읽어 동일 tip인지 확인한다.
+- 최종 삭제는 격리된 bare Git 저장소에서 `--force-with-lease=<ref>:<verified-head>`와 단일 delete refspec으로 수행한다.
+- REST 무조건 ref DELETE fallback은 금지한다.
+- 삭제 후 GitHub ref가 404인지 확인한다. 조건 불일치·권한·네트워크 오류는 FAIL/BLOCKED이며 보존이 기본이다.
+
+`scripts/verify-safe-branch-cleanup.py`는 위 fail-closed 조건과 workflow 정책을 CI quality job에서 검증한다. `.yml`/`.yaml`, `git push -d/--delete`, empty-source refspec(`:branch`, `+:branch`), REST DELETE, YAML folded `run` 우회까지 검사한다.
+
+Issue #87의 고정 cleanup workflow와 전용 verifier는 이 공통 기준의 선행 사례였으며 Issue #124에서 퇴역했다. 당시 실행 증거와 설계 이력은 [ISSUE_87_COMPLETION](ISSUE_87_COMPLETION.md)에 보존한다.
 
 ## Issue #76 정식 릴리스 완료 자동화
 
-`.github/workflows/issue-76-release-helper.yml`은 Issue #76의 **명시적으로 승인된** 정식 릴리스 완료에만 사용하는 일회성 운영 workflow다. 일반 Issue Lifecycle이나 다른 버전의 릴리스 승인으로 확대하지 않는다.
+`issue-76-release-helper.yml`은 Issue #76 정식 릴리스 완료에 사용한 일회성 workflow이며 Issue #124에서 퇴역했다. 아래 내용은 당시 완료 증거와 안전 조건의 역사적 기록이다.
 
 - Trigger: `main` push 중 이 helper 파일이 변경된 경우에만 실행한다. PR/feature branch에서는 실행하지 않는다.
 - 권한: `contents: write`, `actions: write`, `issues: write`, `pull-requests: read`만 사용한다.
@@ -218,7 +225,7 @@ Action 또는 base image update PR은 full SHA/digest, release note, permissions
 
 ## Issue #96 정식 릴리스 완료 자동화
 
-`.github/workflows/issue-96-release-helper.yml`은 Issue #96에서 사용자가 명시적으로 승인한 v0.21.1 GHCR 정식 게시와 Lifecycle 종료에만 사용하는 일회성 운영 workflow다.
+`issue-96-release-helper.yml`은 Issue #96의 v0.21.1 GHCR 정식 게시와 Lifecycle 종료에 사용한 일회성 workflow이며 Issue #124에서 퇴역했다. 아래 내용은 당시 완료 증거와 안전 조건의 역사적 기록이다.
 
 - Trigger는 helper 파일이 포함된 `main` push로 한정하며 PR에서는 registry write를 수행하지 않는다.
 - 대상 merge SHA의 `ci.yml` push run이 **completed/success**가 될 때까지 polling하고, 명시적 success flag가 없으면 tag 생성이나 release 단계로 진행하지 않는다. 따라서 main 임시 `ci-<SHA>` 게시·exact digest smoke·package cleanup을 포함한 main gate가 선행된다.
@@ -233,7 +240,7 @@ Action 또는 base image update PR은 full SHA/digest, release note, permissions
 
 ## Issue #84 정식 릴리스 완료 자동화
 
-`.github/workflows/issue-84-release-helper.yml`은 Issue #84에서 승인된 프로젝트 목록 검색 기능의 **v0.25.0 정식 GHCR 게시와 Issue Lifecycle 종료**에만 사용하는 일회성 운영 workflow다.
+`issue-84-release-helper.yml`은 Issue #84의 v0.25.0 정식 GHCR 게시와 Lifecycle 종료에 사용한 일회성 workflow이며 Issue #124에서 퇴역했다. 아래 내용은 당시 완료 증거와 안전 조건의 역사적 기록이다.
 
 - Trigger: helper 파일이 포함된 `main` push에서만 실행하며 PR/feature branch에서는 release write를 수행하지 않는다.
 - 권한: `contents: write`, `actions: write`, `issues: write`, `pull-requests: read`로 한정한다.
