@@ -21,10 +21,6 @@ jobs:
       TARGET_SHA: ${{ github.sha }}
       RELEASE_TAG: v0.26.0
       WORK_BRANCH: feat/issue-99-password-policy-v3
-      LEGACY_BRANCH_1: feat/issue-99-password-policy
-      LEGACY_BRANCH_1_SHA: 3312856a28c848f18aa14159f2fb246e2145c386
-      LEGACY_BRANCH_2: feat/issue-99-password-policy-v2
-      LEGACY_BRANCH_2_SHA: 153ecd45517ca6dfb6fa684c8e69c6316ab5033b
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -92,33 +88,14 @@ jobs:
           fi
           test -n "$release_run_url"
 
-          owner="${GITHUB_REPOSITORY%%/*}"
-          cleanup_branch() {
-            local branch="$1"
-            local expected_sha="$2"
-            local encoded="${branch//\//%2F}"
-            local branch_http
-            branch_http="$(curl -sSLo /tmp/branch.json -w '%{http_code}'               -H "Accept: application/vnd.github+json"               -H "Authorization: Bearer $GH_TOKEN"               -H "X-GitHub-Api-Version: 2022-11-28"               "https://api.github.com/repos/$GITHUB_REPOSITORY/branches/$encoded")"
-            if [[ "$branch_http" == "404" ]]; then
-              return 0
-            fi
-            test "$branch_http" = "200"
-            local branch_sha
-            branch_sha="$(jq -r '.commit.sha' /tmp/branch.json)"
-            test "$branch_sha" = "$expected_sha"
-            test "$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&head=$owner:$branch&per_page=1" --jq 'length')" = "0"
-            test "$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&base=$branch&per_page=1" --jq 'length')" = "0"
-            git push --porcelain --force-with-lease="refs/heads/$branch:$branch_sha" origin ":refs/heads/$branch" >/dev/null
-            if git ls-remote --exit-code --heads origin "refs/heads/$branch" >/dev/null 2>&1; then
-              echo "branch cleanup failed: $branch" >&2
-              exit 1
-            fi
-          }
+          python3 scripts/safe_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr 127 \
+            --branch "$WORK_BRANCH" \
+            --target-sha "$TARGET_SHA" \
+            --delete
 
-          cleanup_branch "$WORK_BRANCH" "$pr_head_sha"
-          cleanup_branch "$LEGACY_BRANCH_1" "$LEGACY_BRANCH_1_SHA"
-          cleanup_branch "$LEGACY_BRANCH_2" "$LEGACY_BRANCH_2_SHA"
 
-          body="$(printf '%s\n'             "Issue Lifecycle 완료:"             "- PR: #127"             "- 버전: 0.26.0"             "- 릴리스 기준 SHA: $TARGET_SHA"             "- main CI: $main_ci_url"             "- GHCR 정식 릴리스 이미지: $release_run_url"             "- 정식 릴리스 태그: $RELEASE_TAG"             "- 작업 브랜치 정리: $WORK_BRANCH, $LEGACY_BRANCH_1, $LEGACY_BRANCH_2")"
+          body="$(printf '%s\n'             "Issue Lifecycle 완료:"             "- PR: #127"             "- 버전: 0.26.0"             "- 릴리스 기준 SHA: $TARGET_SHA"             "- main CI: $main_ci_url"             "- GHCR 정식 릴리스 이미지: $release_run_url"             "- 정식 릴리스 태그: $RELEASE_TAG"             "- 작업 브랜치 정리: $WORK_BRANCH (scripts/safe_branch_cleanup.py)")"
           gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/99/comments" -f body="$body"
           gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/99" -f state="closed" -f state_reason="completed"
