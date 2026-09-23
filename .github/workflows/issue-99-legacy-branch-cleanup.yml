@@ -1,4 +1,4 @@
-name: Issue 99 legacy branch cleanup
+name: Issue 99 과거 브랜치 정리 기록
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   cleanup:
-    name: Issue #99 과거 브랜치 안전 정리
+    name: Issue #99 저장소 정리 상태 고정
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -23,9 +23,7 @@ jobs:
       RELEASE_TAG: v0.26.0
       CLEANUP_BRANCH: chore/issue-99-legacy-branch-cleanup
       LEGACY_BRANCH_1: feat/issue-99-password-policy
-      LEGACY_BRANCH_1_SHA: 3312856a28c848f18aa14159f2fb246e2145c386
       LEGACY_BRANCH_2: feat/issue-99-password-policy-v2
-      LEGACY_BRANCH_2_SHA: 153ecd45517ca6dfb6fa684c8e69c6316ab5033b
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -64,19 +62,14 @@ jobs:
           test "$(git rev-parse "$TARGET_SHA^2")" = "$cleanup_head_sha"
           echo "CLEANUP_PR_NUMBER=$cleanup_pr_number" >> "$GITHUB_ENV"
 
-      - name: 표준 safe cleanup으로 과거 브랜치 제거
+      - name: cleanup PR 작업 브랜치 안전 삭제
         shell: bash
         run: |
           set -euo pipefail
-
-          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr 107             --branch "$LEGACY_BRANCH_1"             --target-sha "$RELEASE_SHA"             --allow-closed-unmerged             --expected-head-sha "$LEGACY_BRANCH_1_SHA"             --delete
-
-          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr 111             --branch "$LEGACY_BRANCH_2"             --target-sha "$RELEASE_SHA"             --allow-closed-unmerged             --expected-head-sha "$LEGACY_BRANCH_2_SHA"             --delete
-
           python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr "$CLEANUP_PR_NUMBER"             --branch "$CLEANUP_BRANCH"             --target-sha "$TARGET_SHA"             --delete
 
-      - name: Issue #99 정리 완료 기록
+      - name: Issue #99 최종 저장소 상태 기록
         shell: bash
         run: |
-          body="$(printf '%s\n'             "추가 저장소 정리 완료:"             "- 정식 릴리스: $RELEASE_TAG @ $RELEASE_SHA"             "- 삭제: $LEGACY_BRANCH_1"             "- 삭제: $LEGACY_BRANCH_2"             "- 삭제: $CLEANUP_BRANCH")"
+          body="$(printf '%s\n'             "추가 저장소 정리 확인:"             "- 정식 릴리스: $RELEASE_TAG @ $RELEASE_SHA"             "- cleanup branch 삭제: $CLEANUP_BRANCH"             "- 정책상 보존: $LEGACY_BRANCH_1 (closed/unmerged PR branch)"             "- 정책상 보존: $LEGACY_BRANCH_2 (closed/unmerged PR branch)"             "- 보존 근거: docs/CI_CD.md Issue #99 절 및 scripts/safe_branch_cleanup.py merged-head 계약")"
           gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/99/comments" -f body="$body"
