@@ -159,7 +159,7 @@ def normalize_workflow_commands(content: str) -> str:
     lines = content.splitlines()
     folded_commands = []
     index = 0
-    folded_run = re.compile(r"^(?P<indent>\s*)(?P<item>-\s+)?run:\s*>[^#]*?(?:\s+#.*)?$")
+    folded_run = re.compile(r"^(?P<indent>\s*)(?P<item>-\s+)?run:\s*>(?P<header>[^#\s]*)(?:\s+#.*)?$")
 
     while index < len(lines):
         match = folded_run.match(lines[index])
@@ -185,11 +185,17 @@ def normalize_workflow_commands(content: str) -> str:
             index += 1
 
         # YAML folded scalars fold ordinary lines to spaces, but blank lines and
-        # more-indented lines preserve line breaks. Use the minimum content indent
-        # as the scalar's normal indentation and preserve boundaries around any
-        # deeper-indented content.
+        # more-indented lines preserve line breaks. An explicit indentation
+        # indicator (for example >2-) defines the scalar content indentation
+        # relative to the run key; otherwise infer it from the first/minimum
+        # non-empty content indentation.
+        header = match.group("header") or ""
+        explicit_indent = next((int(char) for char in header if char.isdigit()), None)
         content_indents = [indent for indent, text in raw_parts if indent is not None and text]
-        content_indent = min(content_indents) if content_indents else base_indent + 1
+        if explicit_indent is not None:
+            content_indent = base_indent + explicit_indent
+        else:
+            content_indent = min(content_indents) if content_indents else base_indent + 1
         output_lines = []
         normal = []
 
@@ -259,8 +265,11 @@ def executable_tokens(tokens: list[str]) -> list[str]:
             if assignment.match(token):
                 index += 1
                 continue
-            if token in ("-u", "--unset") and index + 1 < len(tokens):
+            if token in ("-u", "--unset", "-C", "--chdir", "-S", "--split-string") and index + 1 < len(tokens):
                 index += 2
+                continue
+            if token.startswith(("--unset=", "--chdir=", "--split-string=")):
+                index += 1
                 continue
             if token.startswith("-"):
                 index += 1
@@ -534,6 +543,8 @@ class RepositoryPolicyTest(unittest.TestCase):
             'FOO=bar git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
             'command git -c protocol.version=2 push origin +:feature/foo',
             'env FOO=bar git push origin --delete "$WORK_BRANCH"',
+            'env -C "$GITHUB_WORKSPACE" git push origin :feature/foo',
+            'env --chdir="$GITHUB_WORKSPACE" git push origin +:feature/foo',
             'git push origin :feature/foo',
             'git push origin +:feature/foo',
             'git push origin :refs/heads/feature/foo',
@@ -558,6 +569,22 @@ class RepositoryPolicyTest(unittest.TestCase):
             [],
         )
         self.assertEqual(find_workflow_branch_deletions('git push origin --dry-run main'), [])
+        explicit_indent_safe = """steps:
+  - name: explicitly more-indented shell text
+    run: >2-
+        git push origin
+        :feature/foo
+"""
+        self.assertEqual(find_workflow_branch_deletions(explicit_indent_safe), [])
+
+        explicit_indent_delete = """steps:
+  - name: explicit indent with real deleting command
+    run: >2-
+      git push origin
+      :feature/foo
+"""
+        self.assertTrue(find_workflow_branch_deletions(explicit_indent_delete))
+
         self.assertEqual(find_workflow_branch_deletions('echo git push origin --delete feature/foo'), [])
         self.assertEqual(find_workflow_branch_deletions("printf '%s\\n' 'git push origin :feature/foo'"), [])
 
