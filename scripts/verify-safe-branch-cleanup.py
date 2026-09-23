@@ -356,7 +356,7 @@ class RepositoryPolicyTest(unittest.TestCase):
             'if git push origin -d feature/foo; then :; fi',
             '! git push origin :feature/foo',
             'echo "$(git push origin :feature/foo)"',
-            "echo 'prefix '"$(git push origin +:feature/foo)"",
+            'echo "prefix $(git push origin +:feature/foo)"',
             'cat <(git push origin :feature/foo)',
             'echo `git push origin +:feature/foo`',
             'git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
