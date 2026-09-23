@@ -179,7 +179,7 @@ def normalize_workflow_commands(content: str) -> str:
 
 def shell_command_segments(line: str) -> list[list[str]]:
     try:
-        lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|")
+        lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|()!`")
         lexer.whitespace_split = True
         lexer.commenters = ""
         tokens = list(lexer)
@@ -189,7 +189,7 @@ def shell_command_segments(line: str) -> list[list[str]]:
     segments = []
     current = []
     for token in tokens:
-        if token and all(char in ";&|" for char in token):
+        if token and all(char in ";&|()!`" for char in token):
             if current:
                 segments.append(current)
                 current = []
@@ -271,27 +271,32 @@ def is_delete_long_option(token: str) -> bool:
     return len(name) >= 2 and "delete".startswith(name)
 
 
+def is_delete_short_option(token: str) -> bool:
+    return token.startswith("-") and not token.startswith("--") and "d" in token[1:]
+
+
 def scan_shell_command(tokens: list[str]) -> list[str]:
-    tokens = executable_tokens(tokens)
     if not tokens:
         return []
 
     findings = []
-    push_args = git_push_args(tokens)
-    if push_args is not None:
-        if any(arg == "-d" or is_delete_long_option(arg) for arg in push_args):
-            findings.append("git push delete option")
-        if any(re.fullmatch(r"\+?:[^\s]+", arg) for arg in push_args):
-            findings.append("git push empty-source refspec")
+    for start, token in enumerate(tokens):
+        if token == "git":
+            push_args = git_push_args(tokens[start:])
+            if push_args is not None:
+                if any(is_delete_short_option(arg) or is_delete_long_option(arg) for arg in push_args):
+                    findings.append("git push delete option")
+                if any(re.fullmatch(r"\+?:[^\s]+", arg) for arg in push_args):
+                    findings.append("git push empty-source refspec")
 
-    if tokens[0] == "gh" and len(tokens) >= 2 and tokens[1] == "api":
-        for index, token in enumerate(tokens[2:]):
-            absolute = index + 2
-            if token in ("-X", "--method") and absolute + 1 < len(tokens):
-                if tokens[absolute + 1].upper() == "DELETE":
+        if token == "gh" and start + 1 < len(tokens) and tokens[start + 1] == "api":
+            gh_args = tokens[start + 2 :]
+            for index, arg in enumerate(gh_args):
+                if arg in ("-X", "--method") and index + 1 < len(gh_args):
+                    if gh_args[index + 1].upper() == "DELETE":
+                        findings.append("gh api DELETE")
+                elif arg.startswith("--method=") and arg.split("=", 1)[1].upper() == "DELETE":
                     findings.append("gh api DELETE")
-            elif token.startswith("--method=") and token.split("=", 1)[1].upper() == "DELETE":
-                findings.append("gh api DELETE")
 
     return findings
 
@@ -323,6 +328,12 @@ class RepositoryPolicyTest(unittest.TestCase):
         for source in (
             'git push origin -d "$WORK_BRANCH"',
             'git push origin --delete "$WORK_BRANCH"',
+            'git push origin -vd feature/foo',
+            'git push origin -dv feature/foo',
+            'if git push origin -d feature/foo; then :; fi',
+            '! git push origin :feature/foo',
+            'echo "$(git push origin :feature/foo)"',
+            'echo `git push origin +:feature/foo`',
             'git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
             'git -c protocol.version=2 push origin +:feature/foo',
             'git --git-dir=.git push origin --delete "$WORK_BRANCH"',
