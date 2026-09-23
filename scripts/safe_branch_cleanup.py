@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Safely delete a merged pull-request branch.
+"""Safely delete a pull-request branch under explicit fail-closed contracts.
 
-The tool fails closed. It never falls back to an unconditional REST ref delete.
-It verifies the current remote branch tip is exactly the merged PR head, that the
-head is contained in the supplied target main SHA, that no open PR still uses
-the branch, and then performs one SHA-leased Git delete followed by a 404 check.
+The default mode deletes only a merged PR branch whose exact head is contained
+in a validated target main SHA. An explicit closed-unmerged mode is available
+for intentionally discarded PR branches; it requires the PR to be closed and
+unmerged plus an exact expected head SHA. Both modes require a non-protected
+branch, zero open PR references, an unchanged remote ref immediately before
+deletion, and one SHA-leased Git delete followed by a 404 check.
 """
 
 from __future__ import annotations
@@ -109,6 +111,25 @@ def validate_pr_identity(pr: Any, *, repo: str, branch: str) -> str:
     return head_sha
 
 
+def validate_closed_unmerged_pr_identity(
+    pr: Any,
+    *,
+    repo: str,
+    branch: str,
+    expected_head_sha: str,
+) -> str:
+    require(pr.get("state") == "closed", "closed pull request is required")
+    require(not bool(pr.get("merged")), "pull request is merged; use merged cleanup mode")
+    require(pr["base"]["ref"] == "main", "pull request base is not main")
+    require(pr["head"]["repo"] is not None, "pull request head repository is unavailable")
+    require(pr["head"]["ref"] == branch, "pull request head branch mismatch")
+    require(pr["head"]["repo"]["full_name"] == repo, "pull request head repository mismatch")
+    head_sha = pr["head"]["sha"]
+    require(SHA_RE.fullmatch(head_sha) is not None, "invalid pull request head SHA")
+    require(head_sha == expected_head_sha, "pull request head differs from expected discarded SHA")
+    return head_sha
+
+
 def fetch_snapshot(api: GitHubApi, *, repo: str, pr_number: int, branch: str, target_sha: str) -> CleanupSnapshot | None:
     _, pr = api.get(f"/pulls/{pr_number}")
     head_sha = validate_pr_identity(pr, repo=repo, branch=branch)
@@ -140,6 +161,66 @@ def fetch_snapshot(api: GitHubApi, *, repo: str, pr_number: int, branch: str, ta
         open_base_prs=count_open_prs(api, "base", branch),
         current_ref_sha=current_ref["object"]["sha"],
     )
+
+
+def fetch_closed_unmerged_snapshot(
+    api: GitHubApi,
+    *,
+    repo: str,
+    pr_number: int,
+    branch: str,
+    target_sha: str,
+    expected_head_sha: str,
+) -> CleanupSnapshot | None:
+    _, pr = api.get(f"/pulls/{pr_number}")
+    head_sha = validate_closed_unmerged_pr_identity(
+        pr,
+        repo=repo,
+        branch=branch,
+        expected_head_sha=expected_head_sha,
+    )
+
+    encoded_branch = urllib.parse.quote(branch, safe="")
+    status, branch_json = api.get(f"/branches/{encoded_branch}", allowed=(200, 404))
+    if status == 404:
+        return None
+
+    _, current_ref = api.get(f"/git/ref/heads/{encoded_branch}")
+    return CleanupSnapshot(
+        pr_merged=False,
+        pr_base=pr["base"]["ref"],
+        pr_head_branch=pr["head"]["ref"],
+        pr_head_repo=pr["head"]["repo"]["full_name"],
+        pr_head_sha=head_sha,
+        branch_sha=branch_json["commit"]["sha"],
+        branch_protected=bool(branch_json["protected"]),
+        target_sha=target_sha,
+        merge_base_sha=head_sha,
+        open_head_prs=count_open_prs(api, "head", f"{repo.split('/', 1)[0]}:{branch}"),
+        open_base_prs=count_open_prs(api, "base", branch),
+        current_ref_sha=current_ref["object"]["sha"],
+    )
+
+
+def validate_closed_unmerged_snapshot(
+    snapshot: CleanupSnapshot,
+    *,
+    repo: str,
+    branch: str,
+    expected_head_sha: str,
+) -> None:
+    require(not snapshot.pr_merged, "pull request is merged; use merged cleanup mode")
+    require(snapshot.pr_base == "main", "pull request base is not main")
+    require(snapshot.pr_head_branch == branch, "pull request head branch mismatch")
+    require(snapshot.pr_head_repo == repo, "pull request head repository mismatch")
+    require(SHA_RE.fullmatch(snapshot.pr_head_sha) is not None, "invalid pull request head SHA")
+    require(SHA_RE.fullmatch(snapshot.target_sha) is not None, "invalid target SHA")
+    require(snapshot.pr_head_sha == expected_head_sha, "pull request head differs from expected discarded SHA")
+    require(snapshot.branch_sha == expected_head_sha, "branch tip differs from expected discarded SHA")
+    require(not snapshot.branch_protected, "refusing to delete a protected branch")
+    require(snapshot.open_head_prs == 0, "another open pull request uses the branch as head")
+    require(snapshot.open_base_prs == 0, "another open pull request uses the branch as base")
+    require(snapshot.current_ref_sha == snapshot.branch_sha, "remote branch changed before deletion")
 
 
 def delete_with_sha_lease(*, repo: str, branch: str, head_sha: str, token: str) -> None:
@@ -194,7 +275,16 @@ def main() -> int:
     parser.add_argument("--repo", required=True, help="owner/repository")
     parser.add_argument("--pr", required=True, type=int, help="merged pull request number")
     parser.add_argument("--branch", required=True, help="working branch to delete")
-    parser.add_argument("--target-sha", required=True, help="validated main/merge SHA containing the PR head")
+    parser.add_argument("--target-sha", required=True, help="validated main/merge or release SHA for this cleanup")
+    parser.add_argument(
+        "--allow-closed-unmerged",
+        action="store_true",
+        help="explicitly clean a closed, unmerged PR branch using --expected-head-sha",
+    )
+    parser.add_argument(
+        "--expected-head-sha",
+        help="exact discarded PR/branch SHA required with --allow-closed-unmerged",
+    )
     parser.add_argument("--delete", action="store_true", help="perform deletion; default validates only")
     args = parser.parse_args()
 
@@ -203,18 +293,42 @@ def main() -> int:
     require(SHA_RE.fullmatch(args.target_sha) is not None, "target SHA must be a full 40-character SHA")
 
     api = GitHubApi(args.repo, token)
-    snapshot = fetch_snapshot(
-        api,
-        repo=args.repo,
-        pr_number=args.pr,
-        branch=args.branch,
-        target_sha=args.target_sha,
-    )
-    if snapshot is None:
-        print(f"Branch already absent: {args.branch}")
-        return 0
-
-    validate_snapshot(snapshot, repo=args.repo, branch=args.branch)
+    if args.allow_closed_unmerged:
+        require(
+            args.expected_head_sha is not None
+            and SHA_RE.fullmatch(args.expected_head_sha) is not None,
+            "--expected-head-sha must be a full 40-character SHA in closed-unmerged mode",
+        )
+        snapshot = fetch_closed_unmerged_snapshot(
+            api,
+            repo=args.repo,
+            pr_number=args.pr,
+            branch=args.branch,
+            target_sha=args.target_sha,
+            expected_head_sha=args.expected_head_sha,
+        )
+        if snapshot is None:
+            print(f"Branch already absent: {args.branch}")
+            return 0
+        validate_closed_unmerged_snapshot(
+            snapshot,
+            repo=args.repo,
+            branch=args.branch,
+            expected_head_sha=args.expected_head_sha,
+        )
+    else:
+        require(args.expected_head_sha is None, "--expected-head-sha requires --allow-closed-unmerged")
+        snapshot = fetch_snapshot(
+            api,
+            repo=args.repo,
+            pr_number=args.pr,
+            branch=args.branch,
+            target_sha=args.target_sha,
+        )
+        if snapshot is None:
+            print(f"Branch already absent: {args.branch}")
+            return 0
+        validate_snapshot(snapshot, repo=args.repo, branch=args.branch)
     print(f"Validated cleanup target: {args.branch} @ {snapshot.branch_sha}")
 
     if not args.delete:
