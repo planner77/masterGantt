@@ -5,7 +5,7 @@ Next.js Backend, SQLite, 인증,
 JSON/CSV Import 및 Excel Export 담당 Agent
 """
 
-model = "gpt-5.6-sol"
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 
 developer_instructions = """

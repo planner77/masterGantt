@@ -1,5 +1,23 @@
 # Agent configuration validation
 
+## 2026-09-24: GPT-6 Sol/Luna 역할별 재배치 (#131)
+
+새 모델 추가에 따라 역할의 추론 난이도, 변경 위험, 반복 처리량을 기준으로 모델을 재배치했다. Manager/scheduler/infra는 GPT-6 Astra를 유지하고, 구현 및 독립 검토 역할은 GPT-6 Sol, 반복적인 공식 문서 탐색·비교 중심 researcher는 GPT-6 Luna를 사용한다.
+
+| 역할 | 설정 |
+| --- | --- |
+| Main / Manager | `gpt-6-astra` / high |
+| researcher | `gpt-6-luna` / medium / read-only |
+| ui_ux | `gpt-6-sol` / high / read-only |
+| frontend | `gpt-6-sol` / medium |
+| backend | `gpt-6-sol` / high |
+| scheduler | `gpt-6-astra` / high |
+| excel_vba | `gpt-6-sol` / medium |
+| infra | `gpt-6-astra` / high |
+| qa_docs | `gpt-6-sol` / high / read-only |
+
+reasoning effort, sandbox 경계, 역할 책임, 동시 실행 한도 6은 유지한다. 이 변경은 Agent 설정/문서에 한정되며 application version 변경과 정식 제품 release는 필요하지 않다. 저장소의 model 문자열은 실행 환경에 대한 요청값이며 실제 모델 접근 가능 여부와 runtime metadata는 새 세션에서 별도로 검증한다.
+
 ## 2026-09-22: UI/UX 전담 역할과 Issue Lifecycle (#87)
 
 ### 결정과 책임
@@ -8,13 +26,13 @@
 
 | 역할 | 현재 요청 설정 | 책임 경계 |
 | --- | --- | --- |
-| Main / Manager | 기존 gpt-6-astra / high 유지 | Issue 분석·자동 배분·단계/파일 소유권·버전/승인·최종 판단 |
-| ui_ux | gpt-5.6-terra / high / read-only | 정보 구조·interaction·반응형·접근성 설계와 구현 증거 비교 |
-| frontend | 기존 gpt-5.6-terra / medium 유지 | UI/test 구현, 작은 변경의 UI/UX 겸임, browser 증거 |
-| infra | 기존 gpt-6-astra / high 유지 | branch/PR/CI/merge 및 main/정식 GHCR 게시·digest 검증 |
-| qa_docs | 기존 gpt-5.6-sol / high / read-only 유지 | 요구사항/코드/테스트/문서/UI·GHCR 증거 독립 검토 |
+| Main / Manager | gpt-6-astra / high 유지 | Issue 분석·자동 배분·단계/파일 소유권·버전/승인·최종 판단 |
+| ui_ux | gpt-6-sol / high / read-only | 정보 구조·interaction·반응형·접근성 설계와 구현 증거 비교 |
+| frontend | gpt-6-sol / medium | UI/test 구현, 작은 변경의 UI/UX 겸임, browser 증거 |
+| infra | gpt-6-astra / high 유지 | branch/PR/CI/merge 및 main/정식 GHCR 게시·digest 검증 |
+| qa_docs | gpt-6-sol / high / read-only | 요구사항/코드/테스트/문서/UI·GHCR 증거 독립 검토 |
 
-researcher/backend/scheduler/excel_vba의 기존 모델·effort·domain 책임은 유지한다. 전문 역할은 총 8개이며 동시 실행 한도는 기존 6이다. 역할 수와 동시 실행 수는 다르다. 별도의 Manager Sub-Agent는 만들지 않는다.
+researcher는 반복 조사·비교 처리량을 위해 gpt-6-luna / medium으로 전환하고, backend/excel_vba는 gpt-6-sol로 전환한다. scheduler는 고난도 일정 도메인 추론을 위해 gpt-6-astra / high를 유지한다. 전문 역할은 총 8개이며 동시 실행 한도는 기존 6이다. 역할 수와 동시 실행 수는 다르다. 별도의 Manager Sub-Agent는 만들지 않는다.
 
 ### 실행 규칙의 연결
 
