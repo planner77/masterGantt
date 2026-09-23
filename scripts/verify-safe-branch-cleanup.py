@@ -305,7 +305,9 @@ def long_option_matches(token: str, canonical: str, minimum: int = 2) -> bool:
 
 
 def terminal_wrapper_option(token: str) -> bool:
-    return long_option_matches(token, "help", 2) or long_option_matches(token, "version", 2)
+    if token in ("-h", "-V"):
+        return True
+    return long_option_matches(token, "help", 1) or long_option_matches(token, "version", 1)
 
 
 def shell_execution_tokens(tokens: list[str]) -> list[str]:
@@ -364,7 +366,7 @@ def shell_execution_tokens(tokens: list[str]) -> list[str]:
                 if token in ("-k", "-s") and wrapper_index + 1 < len(remaining):
                     wrapper_index += 2
                     continue
-                if long_option_matches(token, "kill-after", 4) or long_option_matches(token, "signal", 2):
+                if long_option_matches(token, "kill-after", 1) or long_option_matches(token, "signal", 1):
                     if "=" in token:
                         wrapper_index += 1
                     elif wrapper_index + 1 < len(remaining):
@@ -394,7 +396,7 @@ def shell_execution_tokens(tokens: list[str]) -> list[str]:
                 if token == "-n" and wrapper_index + 1 < len(remaining):
                     wrapper_index += 2
                     continue
-                if long_option_matches(token, "adjustment", 3):
+                if long_option_matches(token, "adjustment", 1):
                     if "=" in token:
                         wrapper_index += 1
                     elif wrapper_index + 1 < len(remaining):
@@ -438,7 +440,7 @@ def shell_execution_tokens(tokens: list[str]) -> list[str]:
                     wrapper_index += 2
                     continue
                 long_value_option = next(
-                    (canonical for canonical in ("input", "output", "error") if long_option_matches(token, canonical, 2)),
+                    (canonical for canonical in ("input", "output", "error") if long_option_matches(token, canonical, 1)),
                     None,
                 )
                 if long_value_option:
@@ -942,6 +944,9 @@ class RepositoryPolicyTest(unittest.TestCase):
             "timeout 30 bash -c 'git push origin :feature/foo'",
             "timeout -k 5 30 git send-pack origin :refs/heads/feature/foo",
             "timeout --kill 5 30 git push origin :feature/foo",
+            "timeout --k 5 30 git push origin :feature/foo",
+            "nice --a 5 git push origin +:feature/foo",
+            "stdbuf --o L git push origin :feature/foo",
             "nice --adj 5 git push origin +:feature/foo",
             "stdbuf --out L git push origin :feature/foo",
             "nice -n 5 bash -c 'git push origin +:feature/foo'",
@@ -983,6 +988,9 @@ class RepositoryPolicyTest(unittest.TestCase):
         self.assertEqual(find_workflow_branch_deletions('git push origin --dry-run main'), [])
         for source in (
             "timeout --help 30 git push origin :feature/foo",
+            "timeout --h 30 git push origin :feature/foo",
+            "setsid -h git push origin :feature/foo",
+            "setsid -V git push origin :feature/foo",
             "timeout --version 30 git push origin :feature/foo",
             "nice --help git push origin :feature/foo",
             "nohup --help git push origin :feature/foo",
