@@ -740,12 +740,18 @@ def configured_git_alias(tokens: list[str]) -> str | None:
 
 
 def git_env_alias_injection(tokens: list[str]) -> bool:
-    """Fail closed on GIT_CONFIG_* environment assignments that inject Git aliases."""
+    """Fail closed on environment assignments that can inject Git aliases."""
+    execution = shell_execution_tokens(tokens)
+    if not execution or command_basename(execution[0]) != "git":
+        return False
+
     assignment = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)=(.*)$")
     for token in tokens:
+        if command_basename(token) == "git":
+            break
         match = assignment.match(token)
         if not match:
-            break
+            continue
         name, value = match.groups()
         if re.fullmatch(r"GIT_CONFIG_KEY_\d+", name) and value.lower().startswith("alias."):
             return True
@@ -768,9 +774,15 @@ def git_global_config_env_alias(tokens: list[str]) -> bool:
             return False
 
         if token == "--config-env" and index + 1 < len(tokens):
-            return tokens[index + 1].lower().startswith("alias.")
+            if tokens[index + 1].lower().startswith("alias."):
+                return True
+            index += 2
+            continue
         if token.startswith("--config-env="):
-            return token.split("=", 1)[1].lower().startswith("alias.")
+            if token.split("=", 1)[1].lower().startswith("alias."):
+                return True
+            index += 1
+            continue
 
         if token in value_options and index + 1 < len(tokens):
             index += 2
@@ -1068,6 +1080,7 @@ class RepositoryPolicyTest(unittest.TestCase):
             "git -c alias.a='b' -c alias.b='push origin :refs/heads/feature/foo' a",
             "git -c alias.a='b' -c alias.b='push' a origin +:feature/foo",
             "ALIAS=push git --config-env=alias.z=ALIAS z origin :refs/heads/feature/foo",
+            "FOO=bar ALIAS=push git --config-env=core.foo=FOO --config-env=alias.z=ALIAS z origin :refs/heads/feature/foo",
             "git --config-env=Alias.z=ALIAS z origin +:feature/foo",
             "builtin eval 'git push origin :refs/heads/feature/foo'",
             'git --git-dir=.git push origin --delete "$WORK_BRANCH"',
@@ -1077,6 +1090,7 @@ class RepositoryPolicyTest(unittest.TestCase):
             'command git -c protocol.version=2 push origin +:feature/foo',
             'env FOO=bar git push origin --delete "$WORK_BRANCH"',
             'GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=alias.z GIT_CONFIG_VALUE_0=push git z origin :refs/heads/feature/foo',
+            'env GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=alias.z GIT_CONFIG_VALUE_0=push git z origin :refs/heads/feature/foo',
             "env -S 'git push origin :feature/foo'",
             "env --split-string='git push origin +:feature/foo'",
             "env -S '-C /tmp git push origin :feature/foo'",
