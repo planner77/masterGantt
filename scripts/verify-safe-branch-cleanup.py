@@ -355,6 +355,7 @@ def shell_command_string(tokens: list[str]) -> str | None:
         return None
 
     index = 1
+    value_options = {"-O", "-o", "--rcfile", "--init-file"}
     while index < len(tokens):
         token = tokens[index]
         if token == "--":
@@ -364,6 +365,15 @@ def shell_command_string(tokens: list[str]) -> str | None:
             return tokens[index + 1] if index + 1 < len(tokens) else None
         if token.startswith("-") and not token.startswith("--") and "c" in token[1:]:
             return tokens[index + 1] if index + 1 < len(tokens) else None
+        if token in value_options and index + 1 < len(tokens):
+            index += 2
+            continue
+        if token.startswith(("--rcfile=", "--init-file=")):
+            index += 1
+            continue
+        if (token.startswith("-O") or token.startswith("-o")) and len(token) > 2:
+            index += 1
+            continue
         if not token.startswith("-"):
             break
         index += 1
