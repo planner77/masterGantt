@@ -258,8 +258,8 @@ Issue #87의 고정 cleanup workflow와 전용 verifier는 이 공통 기준의 
 `.github/workflows/issue-99-release-helper.yml`은 Issue #99에서 승인된 **v0.26.0 정식 GHCR 게시와 Issue Lifecycle 종료**에만 사용하는 일회성 운영 workflow다.
 
 - Trigger는 helper 파일이 포함된 `main` push로 한정하며 PR/feature branch에서는 registry write를 수행하지 않는다.
-- PR #127은 merge commit 방식으로 병합하며 helper는 merge commit의 두 번째 parent가 기록된 PR head와 정확히 일치하는지 검증한다.
+- 기능 PR #127과 release-validation PR #133은 merge commit 방식으로 병합한다. helper는 #127 merge SHA가 최종 release target의 ancestor인지 확인하고, 최종 target 자체는 #133의 merge commit이며 두 번째 parent가 #133 head와 정확히 일치하는지 검증한다.
 - 대상 main SHA의 `ci.yml` push run이 `completed/success`가 된 뒤에만 annotated `v0.26.0` tag를 생성하고 `release-image.yml`을 해당 tag ref로 dispatch한다.
 - 동일 tag/head의 기존 성공 release run이 있으면 재사용하며, tag만 있고 성공 release 증거가 없으면 gate를 우회하지 않는다.
-- 정식 release 성공 후에만 PR #127의 현재 작업 branch를 `scripts/safe_branch_cleanup.py`로 검증·삭제한다. 이전 재통합 branch는 merged-PR-head 조건을 충족하지 않으므로 공통 안전 도구를 우회해 자동 삭제하지 않는다.
-- 완료 댓글에는 PR, version, release target SHA, main CI, 정식 release run, tag, 현재 작업 branch cleanup 결과를 기록하고 마지막 단계에서만 Issue #99를 `completed`로 닫는다.
+- 정식 release 성공 후에만 PR #127의 기능 branch와 PR #133의 release-validation branch를 각각 `scripts/safe_branch_cleanup.py`로 검증·삭제한다. 이전 재통합 branch는 merged-PR-head 조건을 충족하지 않으므로 공통 안전 도구를 우회해 자동 삭제하지 않는다.
+- 완료 댓글에는 기능 PR #127, release-validation PR #133, version, release target SHA, main CI, 정식 release run, tag, 두 merged branch cleanup 결과를 기록하고 마지막 단계에서만 Issue #99를 `completed`로 닫는다.
