@@ -96,14 +96,14 @@ GitHub-hosted runner로 대체할 수 없는 Windows Excel/VBA/DRM, 실제 rever
 
 ```text
 Main / Manager → GPT-6 Astra / High
-researcher     → GPT-5.6 Terra / Medium
-ui_ux          → GPT-5.6 Terra / High
-frontend       → GPT-5.6 Terra / Medium
-backend        → GPT-5.6 Sol / High
+researcher     → GPT-6 Luna / Medium
+ui_ux          → GPT-6 Sol / High
+frontend       → GPT-6 Sol / Medium
+backend        → GPT-6 Sol / High
 scheduler      → GPT-6 Astra / High
-excel_vba      → GPT-5.6 Sol / Medium
+excel_vba      → GPT-6 Sol / Medium
 infra          → GPT-6 Astra / High
-qa_docs        → GPT-5.6 Sol / High
+qa_docs        → GPT-6 Sol / High
 ```
 
 실제 model/effort 지원 여부는 실행 환경에서 확인하며 설정값을 실제 실행 검증으로 과대 표시하지 않는다.
