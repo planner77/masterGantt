@@ -135,7 +135,7 @@ CI 실패 시 infra는 run/job/step/attempt/최초 오류를 확보한다. appli
 
 Manager는 인수 기준별 증거, 현재 head/main/release SHA, 필수 QA와 CI, 필요한 GHCR의 명시적 승인·게시·digest 검증, 문서, 환경별 결과를 확인한 후 종료를 승인한다. 필수 gate의 FAIL/BLOCKED/NOT TESTED 또는 필요한 릴리스의 승인 대기가 남으면 완료로 보고하지 않는다. 선택적 환경 검증과 범위 밖 항목도 구분해 남긴다.
 
-작업 브랜치는 merge 여부와 미병합 commit/다른 PR 참조가 없음을 확인한 뒤 승인 범위에서만 삭제한다. 삭제는 `scripts/safe_branch_cleanup.py`의 공통 fail-closed 계약을 따른다. 기본 merged 모드는 PR head == 현재 tip, target SHA ancestry, protected/open PR 검사, 삭제 직전 ref 재확인, SHA lease, 삭제 후 404를 요구한다. 재통합 과정에서 명시적으로 폐기된 **closed + unmerged PR branch**는 `--allow-closed-unmerged --expected-head-sha`를 명시한 경우에만 예외적으로 정리할 수 있으며, PR이 closed/unmerged인지, base/head/repository identity, exact expected SHA == 현재 tip, protected/open PR, 삭제 직전 ref 불변과 SHA lease를 모두 검증한다. 이 모드는 미병합 작업을 임의로 삭제하는 우회 수단이 아니다. Issue별 workflow에 직접 branch deletion을 복제하거나 REST 무조건 ref DELETE로 fallback하지 않는다. 보호 branch/tag/운영 데이터는 삭제하지 않는다. 삭제 권한이 없으면 정리 BLOCKED를 남긴다.
+작업 브랜치는 merge 여부와 미병합 commit/다른 PR 참조가 없음을 확인한 뒤 승인 범위에서만 삭제한다. 삭제는 `scripts/safe_branch_cleanup.py`의 공통 fail-closed 계약(merged PR head == 현재 tip, target SHA ancestry, protected/open PR 검사, 삭제 직전 ref 재확인, SHA lease, 삭제 후 404)을 따른다. Issue별 workflow에 직접 branch deletion을 복제하거나 REST 무조건 ref DELETE로 fallback하지 않는다. 보호 branch/tag/운영 데이터는 삭제하지 않는다. 삭제 권한이 없으면 정리 BLOCKED를 남긴다.
 
 최종 보고에는 다음을 포함한다.
 
