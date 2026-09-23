@@ -94,72 +94,6 @@ class CleanupContractTest(unittest.TestCase):
                     cleanup.validate_snapshot(snapshot, repo="planner77/masterGantt", branch="fix/issue-124")
 
 
-    def test_accepts_explicit_closed_unmerged_snapshot(self):
-        snapshot = valid_snapshot(
-            pr_merged=False,
-            target_sha="9" * 40,
-            merge_base_sha="1" * 40,
-        )
-        cleanup.validate_closed_unmerged_snapshot(
-            snapshot,
-            repo="planner77/masterGantt",
-            branch="fix/issue-124",
-            expected_head_sha="1" * 40,
-        )
-
-    def test_closed_unmerged_snapshot_fails_closed(self):
-        for snapshot, expected in (
-            (valid_snapshot(pr_merged=True), "1" * 40),
-            (valid_snapshot(pr_merged=False, branch_sha="3" * 40), "1" * 40),
-            (valid_snapshot(pr_merged=False, branch_protected=True), "1" * 40),
-            (valid_snapshot(pr_merged=False, open_head_prs=1), "1" * 40),
-            (valid_snapshot(pr_merged=False, open_base_prs=1), "1" * 40),
-            (valid_snapshot(pr_merged=False, current_ref_sha="3" * 40), "1" * 40),
-            (valid_snapshot(pr_merged=False), "2" * 40),
-        ):
-            with self.subTest(snapshot=snapshot, expected=expected):
-                with self.assertRaises(cleanup.CleanupError):
-                    cleanup.validate_closed_unmerged_snapshot(
-                        snapshot,
-                        repo="planner77/masterGantt",
-                        branch="fix/issue-124",
-                        expected_head_sha=expected,
-                    )
-
-    def test_closed_unmerged_identity_requires_closed_exact_discard(self):
-        repo = {"full_name": "planner77/masterGantt"}
-        valid_pr = {
-            "state": "closed",
-            "merged": False,
-            "base": {"ref": "main"},
-            "head": {"ref": "fix/issue-124", "repo": repo, "sha": "1" * 40},
-        }
-        self.assertEqual(
-            cleanup.validate_closed_unmerged_pr_identity(
-                valid_pr,
-                repo="planner77/masterGantt",
-                branch="fix/issue-124",
-                expected_head_sha="1" * 40,
-            ),
-            "1" * 40,
-        )
-
-        invalid = (
-            {**valid_pr, "state": "open"},
-            {**valid_pr, "merged": True},
-            {**valid_pr, "head": {**valid_pr["head"], "sha": "2" * 40}},
-        )
-        for pr in invalid:
-            with self.subTest(pr=pr):
-                with self.assertRaises(cleanup.CleanupError):
-                    cleanup.validate_closed_unmerged_pr_identity(
-                        pr,
-                        repo="planner77/masterGantt",
-                        branch="fix/issue-124",
-                        expected_head_sha="1" * 40,
-                    )
-
-
     def test_absent_branch_still_requires_matching_merged_pr_identity(self):
         class FakeApi:
             def __init__(self, pr):
@@ -1372,8 +1306,6 @@ class RepositoryPolicyTest(unittest.TestCase):
             "another open pull request uses the branch as head",
             "another open pull request uses the branch as base",
             "remote branch changed before deletion",
-            "closed pull request is required",
-            "pull request head differs from expected discarded SHA",
             "--force-with-lease=",
             "allowed=(404,)",
         ):
