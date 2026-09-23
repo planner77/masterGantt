@@ -341,6 +341,84 @@ def shell_execution_tokens(tokens: list[str]) -> list[str]:
             remaining = executable_tokens(remaining[wrapper_index:])
             continue
 
+        if wrapper == "timeout":
+            wrapper_index = 1
+            value_options = {"-k", "--kill-after", "-s", "--signal"}
+            while wrapper_index < len(remaining):
+                token = remaining[wrapper_index]
+                if token == "--":
+                    wrapper_index += 1
+                    break
+                if token in value_options and wrapper_index + 1 < len(remaining):
+                    wrapper_index += 2
+                    continue
+                if token.startswith(("--kill-after=", "--signal=")):
+                    wrapper_index += 1
+                    continue
+                if token.startswith("-"):
+                    wrapper_index += 1
+                    continue
+                break
+            # timeout requires a duration before COMMAND.
+            if wrapper_index < len(remaining):
+                wrapper_index += 1
+            remaining = executable_tokens(remaining[wrapper_index:])
+            continue
+
+        if wrapper == "nice":
+            wrapper_index = 1
+            while wrapper_index < len(remaining):
+                token = remaining[wrapper_index]
+                if token == "--":
+                    wrapper_index += 1
+                    break
+                if token in ("-n", "--adjustment") and wrapper_index + 1 < len(remaining):
+                    wrapper_index += 2
+                    continue
+                if token.startswith("--adjustment=") or (token.startswith("-n") and len(token) > 2):
+                    wrapper_index += 1
+                    continue
+                if token.startswith("-"):
+                    wrapper_index += 1
+                    continue
+                break
+            remaining = executable_tokens(remaining[wrapper_index:])
+            continue
+
+        if wrapper in {"nohup", "setsid"}:
+            wrapper_index = 1
+            while wrapper_index < len(remaining) and remaining[wrapper_index].startswith("-"):
+                if remaining[wrapper_index] == "--":
+                    wrapper_index += 1
+                    break
+                wrapper_index += 1
+            remaining = executable_tokens(remaining[wrapper_index:])
+            continue
+
+        if wrapper == "stdbuf":
+            wrapper_index = 1
+            value_options = {"-i", "--input", "-o", "--output", "-e", "--error"}
+            while wrapper_index < len(remaining):
+                token = remaining[wrapper_index]
+                if token == "--":
+                    wrapper_index += 1
+                    break
+                if token in value_options and wrapper_index + 1 < len(remaining):
+                    wrapper_index += 2
+                    continue
+                if token.startswith(("--input=", "--output=", "--error=")):
+                    wrapper_index += 1
+                    continue
+                if re.match(r"^-[ioe].+", token):
+                    wrapper_index += 1
+                    continue
+                if token.startswith("-"):
+                    wrapper_index += 1
+                    continue
+                break
+            remaining = executable_tokens(remaining[wrapper_index:])
+            continue
+
         break
     return remaining
 
@@ -561,10 +639,40 @@ def scan_shell_command(tokens: list[str]) -> list[str]:
                 for arg in git_args
             ):
                 findings.append("git send-pack mirror")
+            if any(
+                arg.startswith("--")
+                and not arg.startswith("--no-")
+                and "stdin".startswith(arg[2:])
+                and len(arg[2:]) >= 3
+                for arg in git_args
+            ):
+                findings.append("git send-pack stdin")
             if any(re.fullmatch(r"\+?:[^\s]+", arg) for arg in git_args):
                 findings.append("git send-pack empty-source refspec")
 
-    if command_basename(tokens[0]) == "gh" and len(tokens) >= 2 and tokens[1] == "api":
+    executable = command_basename(tokens[0])
+    if executable == "git-send-pack":
+        send_pack_args = tokens[1:]
+        if any(
+            arg.startswith("--")
+            and not arg.startswith("--no-")
+            and "mirror".startswith(arg[2:])
+            and len(arg[2:]) >= 1
+            for arg in send_pack_args
+        ):
+            findings.append("git-send-pack mirror")
+        if any(
+            arg.startswith("--")
+            and not arg.startswith("--no-")
+            and "stdin".startswith(arg[2:])
+            and len(arg[2:]) >= 3
+            for arg in send_pack_args
+        ):
+            findings.append("git-send-pack stdin")
+        if any(re.fullmatch(r"\+?:[^\s]+", arg) for arg in send_pack_args):
+            findings.append("git-send-pack empty-source refspec")
+
+    if executable == "gh" and len(tokens) >= 2 and tokens[1] == "api":
         gh_args = tokens[2:]
         for index, arg in enumerate(gh_args):
             if arg in ("-X", "--method") and index + 1 < len(gh_args):
@@ -786,6 +894,17 @@ class RepositoryPolicyTest(unittest.TestCase):
             "git send-pack origin :refs/heads/feature/foo",
             "git send-pack --mirror origin",
             "git send-pack --m origin",
+            "/usr/lib/git-core/git-send-pack origin :refs/heads/feature/foo",
+            "/usr/lib/git-core/git-send-pack --mirror origin",
+            "git send-pack --stdin origin",
+            "git send-pack --std origin",
+            "printf ':refs/heads/feature/foo\\n' | git send-pack --stdin origin",
+            "timeout 30 bash -c 'git push origin :feature/foo'",
+            "timeout -k 5 30 git send-pack origin :refs/heads/feature/foo",
+            "nice -n 5 bash -c 'git push origin +:feature/foo'",
+            "nohup git push origin --delete feature/foo",
+            "stdbuf -oL git push origin :feature/foo",
+            "setsid git push origin +:feature/foo",
             "env --split-string='-C /tmp git push origin +:feature/foo'",
             'env -C "$GITHUB_WORKSPACE" git push origin :feature/foo',
             'env --chdir="$GITHUB_WORKSPACE" git push origin +:feature/foo',
