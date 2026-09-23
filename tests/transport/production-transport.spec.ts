@@ -17,6 +17,25 @@ async function gotoProjectCreate(page: Page): Promise<void> {
   }
 }
 
+async function reloadProjectAfterRestart(page: Page, api: string): Promise<void> {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await Promise.all([
+        page.waitForResponse((response) =>
+          response.request().method() === "GET"
+          && new URL(response.url()).pathname === api
+          && response.status() === 200,
+        ),
+        page.reload({ waitUntil: "domcontentloaded" }),
+      ]);
+      return;
+    } catch (error) {
+      if (attempt === 0 && error instanceof Error && error.message.includes("ERR_NETWORK_CHANGED")) continue;
+      throw error;
+    }
+  }
+}
+
 async function createProject(page: Page, name: string, password: string): Promise<string> {
   await gotoProjectCreate(page);
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(name);
@@ -156,13 +175,7 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
       }
     }, { timeout: 60_000 }).toBe(true);
 
-    const reloadedSnapshot = page.waitForResponse((response) =>
-      response.request().method() === "GET"
-      && new URL(response.url()).pathname === api
-      && response.status() === 200,
-    );
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await reloadedSnapshot;
+    await reloadProjectAfterRestart(page, api);
     await expect(page.getByRole("grid").getByText(savedTaskName, { exact: true })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
     saved = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
