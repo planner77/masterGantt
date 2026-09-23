@@ -141,7 +141,7 @@ def normalize_workflow_commands(content: str) -> str:
     lines = content.splitlines()
     folded_commands = []
     index = 0
-    folded_run = re.compile(r"^(?P<indent>\s*)run:\s*>[^#]*?(?:\s+#.*)?$")
+    folded_run = re.compile(r"^(?P<indent>\s*)(?:-\s+)?run:\s*>[^#]*?(?:\s+#.*)?$")
 
     while index < len(lines):
         match = folded_run.match(lines[index])
