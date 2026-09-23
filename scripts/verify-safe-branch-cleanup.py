@@ -6,6 +6,7 @@ from __future__ import annotations
 import importlib.util
 import pathlib
 import re
+import shlex
 import sys
 import unittest
 
@@ -176,21 +177,139 @@ def normalize_workflow_commands(content: str) -> str:
     return normalized
 
 
+def shell_command_segments(line: str) -> list[list[str]]:
+    try:
+        lexer = shlex.shlex(line, posix=True, punctuation_chars=";&|")
+        lexer.whitespace_split = True
+        lexer.commenters = ""
+        tokens = list(lexer)
+    except ValueError:
+        return []
+
+    segments = []
+    current = []
+    for token in tokens:
+        if token and all(char in ";&|" for char in token):
+            if current:
+                segments.append(current)
+                current = []
+            continue
+        current.append(token)
+    if current:
+        segments.append(current)
+    return segments
+
+
+def executable_tokens(tokens: list[str]) -> list[str]:
+    index = 0
+    assignment = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+    while index < len(tokens) and assignment.match(tokens[index]):
+        index += 1
+
+    if index < len(tokens) and tokens[index] == "command":
+        index += 1
+        while index < len(tokens) and tokens[index].startswith("-"):
+            index += 1
+
+    if index < len(tokens) and tokens[index] == "env":
+        index += 1
+        while index < len(tokens):
+            token = tokens[index]
+            if assignment.match(token):
+                index += 1
+                continue
+            if token in ("-u", "--unset") and index + 1 < len(tokens):
+                index += 2
+                continue
+            if token.startswith("-"):
+                index += 1
+                continue
+            break
+
+    return tokens[index:]
+
+
+def git_push_args(tokens: list[str]) -> list[str] | None:
+    tokens = executable_tokens(tokens)
+    if not tokens or tokens[0] != "git":
+        return None
+
+    value_options = {
+        "-C",
+        "-c",
+        "--git-dir",
+        "--work-tree",
+        "--namespace",
+        "--config-env",
+        "--exec-path",
+    }
+    index = 1
+    while index < len(tokens):
+        token = tokens[index]
+        if token == "--":
+            index += 1
+            break
+        if not token.startswith("-"):
+            break
+        if token in value_options:
+            index += 2
+            continue
+        if any(token.startswith(option + "=") for option in value_options if option.startswith("--")):
+            index += 1
+            continue
+        index += 1
+
+    if index >= len(tokens) or tokens[index] != "push":
+        return None
+    return tokens[index + 1 :]
+
+
+def is_delete_long_option(token: str) -> bool:
+    if not token.startswith("--") or token.startswith("--no-"):
+        return False
+    name = token[2:]
+    return len(name) >= 2 and "delete".startswith(name)
+
+
+def scan_shell_command(tokens: list[str]) -> list[str]:
+    tokens = executable_tokens(tokens)
+    if not tokens:
+        return []
+
+    findings = []
+    push_args = git_push_args(tokens)
+    if push_args is not None:
+        if any(arg == "-d" or is_delete_long_option(arg) for arg in push_args):
+            findings.append("git push delete option")
+        if any(re.fullmatch(r"\+?:[^\s]+", arg) for arg in push_args):
+            findings.append("git push empty-source refspec")
+
+    if tokens[0] == "gh" and len(tokens) >= 2 and tokens[1] == "api":
+        for index, token in enumerate(tokens[2:]):
+            absolute = index + 2
+            if token in ("-X", "--method") and absolute + 1 < len(tokens):
+                if tokens[absolute + 1].upper() == "DELETE":
+                    findings.append("gh api DELETE")
+            elif token.startswith("--method=") and token.split("=", 1)[1].upper() == "DELETE":
+                findings.append("gh api DELETE")
+
+    return findings
+
+
 def find_workflow_branch_deletions(content: str) -> list[str]:
     normalized = normalize_workflow_commands(content)
-    literal_markers = (
-        "--force-with-lease=refs/heads/",
-        "--method DELETE",
-        "/git/refs/heads/",
-        ":refs/heads/$",
-    )
-    command_patterns = (
-        re.compile(r"\bgit\b[^\n]*?\bpush\b[^\n]*(?:\s-d(?:\s|=)|\s--delete(?:\s|=))", re.IGNORECASE),
-        re.compile(r"\bgit\b[^\n]*?\bpush\b[^\n]*\s[\"\']?\+?:[^\s\"\']+[\"\']?(?:\s|$)", re.IGNORECASE),
-        re.compile(r"\bgh\s+api\b[^\n]*(?:-X|--method)\s+DELETE\b", re.IGNORECASE),
-    )
-    findings = [marker for marker in literal_markers if marker in normalized]
-    findings.extend(pattern.pattern for pattern in command_patterns if pattern.search(normalized))
+    findings = []
+
+    for raw_line in normalized.splitlines():
+        candidates = [raw_line.strip()]
+        inline_run = re.match(r"^\s*(?:-\s+)?run:\s*(?![>|])(.+)$", raw_line)
+        if inline_run:
+            candidates.append(inline_run.group(1).strip())
+
+        for candidate in candidates:
+            for segment in shell_command_segments(candidate):
+                findings.extend(scan_shell_command(segment))
+
     return findings
 
 
@@ -207,6 +326,11 @@ class RepositoryPolicyTest(unittest.TestCase):
             'git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
             'git -c protocol.version=2 push origin +:feature/foo',
             'git --git-dir=.git push origin --delete "$WORK_BRANCH"',
+            'git push origin --de feature/foo',
+            'git push origin --del feature/foo',
+            'FOO=bar git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
+            'command git -c protocol.version=2 push origin +:feature/foo',
+            'env FOO=bar git push origin --delete "$WORK_BRANCH"',
             'git push origin :feature/foo',
             'git push origin +:feature/foo',
             'git push origin :refs/heads/feature/foo',
@@ -224,6 +348,13 @@ class RepositoryPolicyTest(unittest.TestCase):
             find_workflow_branch_deletions('python3 scripts/safe_branch_cleanup.py --delete'),
             [],
         )
+        self.assertEqual(
+            find_workflow_branch_deletions(
+                'git status && echo push && python3 scripts/safe_branch_cleanup.py --delete --repo planner77/masterGantt'
+            ),
+            [],
+        )
+        self.assertEqual(find_workflow_branch_deletions('git push origin --dry-run main'), [])
 
     def test_direct_delete_detector_folds_yaml_run_scalars(self):
         folded_workflows = (
