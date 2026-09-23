@@ -316,18 +316,18 @@ PR #66 최종 검증 기준은 CI Run #350이며 quality, Chromium E2E 50/50, Do
 
 ## Issue #87 Agent Lifecycle와 한정 브랜치 정리 회귀
 
-운영 기준은 [CI_CD.md](CI_CD.md) 9절, 실제 원격 판정은 [REMOTE_VALIDATION.md](REMOTE_VALIDATION.md), 작업 범위는 [ISSUE_87_COMPLETION.md](ISSUE_87_COMPLETION.md)를 따른다. 여기의 계획은 실제 Agent 실행이나 원격 삭제 PASS를 뜻하지 않는다.
+운영 기준은 [CI_CD.md](CI_CD.md) 9절, 실제 원격 판정은 [REMOTE_VALIDATION.md](REMOTE_VALIDATION.md), 작업 범위는 [ISSUE_87_COMPLETION.md](ISSUE_87_COMPLETION.md)를 따른다. 여기의 계획은 실제 Agent 실행이나 원격 삭제 PASS를 뜻하지 않는다. 아래 `CL87-*`는 PR #88 당시 수행한 **역사적 검증 기록**이며, Issue #124에서 전용 workflow와 `verify-issue-87-cleanup.py`가 퇴역했으므로 현재 실행 지침으로 사용하지 않는다. 현재 branch cleanup 회귀 실행은 이 문서의 Issue #124 절과 `python3 scripts/verify-safe-branch-cleanup.py`를 따른다.
 
 | ID | 검증과 기대 결과 | 실행/근거 |
 | --- | --- | --- |
 | AG87-01 | ui_ux/frontend/qa_docs의 설계·구현·읽기 전용 책임, 기존 모델/동시 한도 보존, 위임/반환·파일 소유권·실행 불가 시 정직한 상태 기록 | TOML 구문/필수값, AGENTS·구성·Lifecycle·UI 가이드 대조; 실제 runtime은 별도 |
 | AG87-02 | release_required와 release_authorized 분리, 명시적 승인 없는 tag/정식 게시 금지, 필요한 미승인 게시를 BLOCKED로 기록, 문서 변경의 release N/A와 main 임시 GHCR 분리 | Lifecycle 정책 시나리오와 독립 리뷰 |
-| CL87-01 | 실제 workflow inline Python을 추출하여 정상 삭제/이미 없음/무관 run 2개, API·CI·PR·SHA·branch 보호 조건 20개를 검증 (모형 24개) | `python3 scripts/verify-issue-87-cleanup.py` |
+| CL87-01 | [역사 기록] 당시 workflow inline Python을 추출하여 정상 삭제/이미 없음/무관 run 2개, API·CI·PR·SHA·branch 보호 조건 20개를 검증 (모형 24개) | 퇴역된 `verify-issue-87-cleanup.py`의 PR #88 당시 결과. 현재 실행 대상 아님 |
 | CL87-02 | 잘못된 event/branch/source repository/workflow/attempt/SHA, 실패·진행 중 CI, 누락·skipped GHCR, job 페이지 초과에서 삭제하지 않음 | 모형 거부 시나리오; 실제 API 통신 실패·권한 부족은 원격 BLOCKED/FAIL로 기록 |
 | CL87-03 | merge parent 2개/두 번째=PR head를 요구, squash·잘못된 parent·ancestry 불일치·새 tip·보호 branch·다른 열린 PR 참조에서 삭제하지 않음 | 모형 거부 및 PR #88 `merge_method=merge`, expected_head_sha 확인 |
 | CL87-04 | 정상 삭제, push 전 stale tip, 서버 광고 이후 pre-receive 경합에서 명시적 SHA lease가 새 commit/다른 ref를 보존 (실제 로컬 Git 3개) | 격리 bare Git 테스트. 외부 통신 없음; 단일 삭제 refspec, 무조건 force/REST fallback 없음 |
 | CL87-05 | 인증값이 Git 인자/설정 파일/로그에 남지 않고 trace/global/system 설정을 배제; PR validation은 contents:read와 credential 미보존, write cleanup은 checkout/fetch/artifact/cache/PR code 실행 없음 | Git 호출 검증, workflow 정적 검토, 실제 Actions 권한/step 로그 |
-| CL87-06 | PR 검증과 실제 원격 삭제를 분리. 모형 24개+Git 3개=27시나리오를 5개 unittest method로 실행 | workflow/script 변경 PR의 `Issue 87 브랜치 정리 안전 조건 검증` success; PR cleanup skipped 확인 |
+| CL87-06 | [역사 기록] PR 검증과 실제 원격 삭제를 분리. 당시 모형 24개+Git 3개=27시나리오를 5개 unittest method로 실행 | 퇴역된 Issue #87 전용 validation workflow의 당시 성공 증거. 현재 실행 대상 아님 |
 | CL87-07 | 실제 PR #88 merge SHA의 main quality/e2e/docker/main GHCR 모두 success 뒤에만 고정 작업 branch를 삭제하고 ref 404 확인 | main/cleanup run·attempt·job·merge/head SHA, GHCR digest/smoke/SBOM·provenance/package 정리, cleanup summary와 API 404 |
 
 기존 PR quality/e2e/docker와 최종 head의 독립 검토는 유지한다. 이 정리 회귀를 통과해도 main/GHCR/실제 삭제가 아직 실행되지 않았으면 NOT TESTED다. SHA lease 거부, 새 tip, 보호/다른 PR 참조, 필수 CI/GHCR 실패·누락, 권한/네트워크 오류를 무조건 삭제나 retry로 우회하지 않는다. 원격 삭제 postcondition이 미확인이면 이슈를 완료 처리하지 않는다. 정책·모형·Git 검증과 실제 운영 증거를 구분해 PR/Issue에 기록한다.
@@ -365,3 +365,15 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - Browser: Project명/owner/description 검색, 고급 조건 수, 결과/전체 count, 결과 0건 전용 empty state와 reset, 날짜 조건, Escape focus restore, 검색 상태의 Row Action과 삭제 성공 후 결과 제거, 입력 중 Project collection API 재조회 없음, 390/768/1024/1440 viewport document overflow를 검증한다.
 - 기존 Project List 회귀인 Link, Copy, clipboard fallback, 삭제 취소/credential failure/success/conflict와 EmptyProjects는 기존 E2E suite를 계속 실행한다.
 - API/DB schema는 변경하지 않으므로 API/DB 문서 회귀는 N/A다. 공식 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker`, 병합 후 main 임시 GHCR exact digest smoke, 승인된 정식 release image exact digest smoke를 사용한다.
+
+
+## Issue #124 공통 Branch Cleanup 안전성
+
+- 공통 `safe_branch_cleanup.validate_snapshot`은 merged PR/base/main/repository/branch identity와 정확한 merged head tip을 검증한다.
+- 현재 branch tip이 merged PR head와 다르거나 삭제 직전 ref가 바뀌면 FAIL한다.
+- target main SHA ancestry 불일치, protected branch, branch를 head/base로 사용하는 open PR이 있으면 FAIL한다.
+- 정상 조건에서만 explicit SHA `--force-with-lease` 삭제 경로를 허용하며 REST 무조건 ref DELETE fallback은 금지한다.
+- repository policy regression은 완료된 Issue별 release/cleanup helper가 active workflow로 재도입되지 않는지와 workflow 내부 직접 branch deletion 패턴을 `.yml`/`.yaml`, short/long delete option, empty-source refspec, YAML folded `run`까지 검사한다.
+- quality job에서 `python3 scripts/verify-safe-branch-cleanup.py`를 실행하며 기존 typecheck/lint/unit/markdown/build/E2E/Docker gate를 대체하지 않는다.
+- Issue #68/#72/#75/#76/#80/#83/#84/#87/#96/#97/#104/#108 전용 완료 helper와 #87 전용 verifier는 퇴역 대상으로 확인한다.
+- application code/API/DB/UI와 현재 package version은 변경하지 않는다. 정식 release는 N/A이며 merge 후 main CI와 정책상 임시 GHCR exact-digest smoke/cleanup은 별도 원격 증거로 확인한다.
