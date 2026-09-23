@@ -674,15 +674,15 @@ def configured_git_alias(tokens: list[str]) -> str | None:
             break
         if token == "-c" and index + 1 < len(tokens):
             config = tokens[index + 1]
-            if config.startswith("alias.") and "=" in config:
+            if "=" in config and config.split("=", 1)[0].lower().startswith("alias."):
                 name, value = config.split("=", 1)
-                aliases[name[len("alias."):]] = value
+                aliases[name.split(".", 1)[1]] = value
             index += 2
             continue
-        if token.startswith("-calias.") and "=" in token:
+        if token.startswith("-c") and "=" in token[2:] and token[2:].split("=", 1)[0].lower().startswith("alias."):
             config = token[2:]
             name, value = config.split("=", 1)
-            aliases[name[len("alias."):]] = value
+            aliases[name.split(".", 1)[1]] = value
             index += 1
             continue
         if token in value_options and index + 1 < len(tokens):
@@ -708,6 +708,14 @@ def scan_shell_command(tokens: list[str]) -> list[str]:
         return []
 
     findings = []
+
+    if command_basename(tokens[0]) == "builtin":
+        index = 1
+        while index < len(tokens) and tokens[index].startswith("-"):
+            index += 1
+        if index < len(tokens):
+            findings.extend(scan_shell_command(tokens[index:]))
+        return findings
 
     alias_body = configured_git_alias(tokens)
     if alias_body:
@@ -968,6 +976,9 @@ class RepositoryPolicyTest(unittest.TestCase):
             'exec -a git git push origin +:feature/foo',
             'git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
             'git -c protocol.version=2 push origin +:feature/foo',
+            "git -c Alias.z='push origin :refs/heads/feature/foo' z",
+            "git -c ALIAS.Z='push origin +:feature/foo' Z",
+            "builtin eval 'git push origin :refs/heads/feature/foo'",
             'git --git-dir=.git push origin --delete "$WORK_BRANCH"',
             'git push origin --de feature/foo',
             'git push origin --del feature/foo',
