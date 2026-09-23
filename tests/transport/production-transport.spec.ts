@@ -51,8 +51,8 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
   const secure = info.project.name === "production-https";
   const cookieName = secure ? "__Host-mastergantt_edit" : "mastergantt_edit";
   const suffix = `${Date.now()}-${info.project.name}`;
-  const password = `transport-original-${suffix}`;
-  const rotated = `transport-rotated-${suffix}`;
+  const password = "TrOrig12345!";
+  const rotated = "TrNew123456!";
   const publicId = await createProject(page, `Transport ${suffix}`, password);
   const api = `/api/projects/${publicId}`;
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
@@ -129,7 +129,7 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
     expect(unauthorized.status()).toBe(401);
     await otherPage.getByRole("button", { name: "편집 잠금 해제", exact: true }).click();
     const unlockDialog = otherPage.getByRole("dialog", { name: "편집 활성화", exact: true });
-    await unlockDialog.getByLabel("편집 비밀번호", { exact: true }).fill("incorrect-transport-password");
+    await unlockDialog.getByLabel("편집 비밀번호", { exact: true }).fill("Wrong123456!");
     await unlockDialog.getByRole("button", { name: "편집 활성화", exact: true }).click();
     await expect(otherPage.getByTestId("workspace-toast")).toContainText("올바르지 않습니다");
     await unlock(otherPage, password);
@@ -162,7 +162,7 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
     });
     expect(crossSession.status()).toBe(401);
 
-    const otherId = await createProject(otherPage, `Other ${suffix}`, `other-password-${suffix}`);
+    const otherId = await createProject(otherPage, `Other ${suffix}`, "Other123456!");
     const crossProject = await page.request.patch(`/api/projects/${otherId}`, {
       headers: { Origin: baseURL, "If-Match": '"1"' }, data: { name: "cross project" },
     });

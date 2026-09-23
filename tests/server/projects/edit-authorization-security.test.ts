@@ -43,7 +43,9 @@ describe("W05 strict inputs and If-Match", () => {
 
   it("applies the creation password policy to rotation", () => {
     expect(parseChangeEditPasswordInput({ newEditPassword: "123456789012" }).success).toBe(true);
-    expect(parseChangeEditPasswordInput({ newEditPassword: "short" }).success).toBe(false);
+    expect(parseChangeEditPasswordInput({ newEditPassword: "short" }).success).toBe(true);
+    expect(parseChangeEditPasswordInput({ newEditPassword: "" }).success).toBe(false);
+    expect(parseChangeEditPasswordInput({ newEditPassword: "1234567890123" }).success).toBe(false);
     expect(parseChangeEditPasswordInput({ newEditPassword: "123456789012", editPassword: "x" }).success).toBe(false);
   });
 

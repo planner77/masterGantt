@@ -59,7 +59,7 @@ test("Issue #77 Context Menu opens without activating a submenu", async ({ page 
 
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Context initial state ${suffix}`);
-  await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Context-password-${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("CtxPwd12345!");
   await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
 
@@ -117,7 +117,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
 
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Context hierarchy ${suffix}`);
-  await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Context-password-${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("CtxPwd12345!");
   await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
 
@@ -224,7 +224,7 @@ test("Issue #104 unrelated task context actions stay enabled when other tasks ar
 
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Context link scope ${suffix}`);
-  await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Context-password-${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("CtxPwd12345!");
   await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
 

@@ -37,7 +37,7 @@ async function fixture() {
   const created = await projectService.create({
     name: "Calendar dependency",
     description: "",
-    editPassword: "password phrase",
+    editPassword: "Pass123456!",
   });
   const result = projectService.authorize(
     created.response.data.project.publicId,

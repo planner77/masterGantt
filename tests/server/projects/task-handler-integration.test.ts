@@ -33,7 +33,7 @@ async function fixture() {
     clock,
     hashPassword: async () => fixedPasswordHash(),
   });
-  const created = await service.create({ name: "Project", description: "", editPassword: "password phrase" });
+  const created = await service.create({ name: "Project", description: "", editPassword: "Pass123456!" });
   return {
     database,
     service,
@@ -192,7 +192,7 @@ describe("W07 real task Handler-Service-SQLite integration", () => {
   it("rejects a valid Cookie owned by another Project", async () => {
     const value = await fixture();
     try {
-      const other = await value.service.create({ name: "Other", description: "", editPassword: "password phrase" });
+      const other = await value.service.create({ name: "Other", description: "", editPassword: "Pass123456!" });
       const response = await handleCreateTask(
         request(value.publicId, "POST", input, { cookie: cookie(other.rawSessionToken) }),
         value.publicId,
@@ -209,7 +209,7 @@ describe("W07 real task Handler-Service-SQLite integration", () => {
   it("returns scoped TASK_NOT_FOUND for a Task UUID owned by another Project", async () => {
     const value = await fixture();
     try {
-      const other = await value.service.create({ name: "Other", description: "", editPassword: "password phrase" });
+      const other = await value.service.create({ name: "Other", description: "", editPassword: "Pass123456!" });
       const firstTask = value.service.createTask(
         authorization(value.service, value.publicId, value.rawToken),
         1,

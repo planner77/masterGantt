@@ -87,7 +87,7 @@ describe("ProjectService create", () => {
       filename: ":memory:",
       migrationsDirectory,
     });
-    const password = "plain password phrase";
+    const password = "plain Pass123456!";
     let observedPassword = "";
     let hashingRanInsideTransaction = true;
     const service = createTestService(database, {
@@ -199,7 +199,7 @@ describe("ProjectService create", () => {
         service.create({
           name: "Rollback",
           description: "",
-          editPassword: "password phrase",
+          editPassword: "Pass123456!",
         }),
       ).rejects.toThrow();
       expect(database.prepare("SELECT count(*) FROM projects").pluck().get()).toBe(0);
@@ -224,7 +224,7 @@ describe("ProjectService create", () => {
       await existingService.create({
         name: "Existing",
         description: "",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
       const identifiers = [collision, unique];
       const retrying = createTestService(database, {
@@ -233,7 +233,7 @@ describe("ProjectService create", () => {
       const created = await retrying.create({
         name: "Retried",
         description: "",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
       expect(created.response.data.project.publicId).toBe(unique);
 
@@ -244,7 +244,7 @@ describe("ProjectService create", () => {
         neverValid.create({
           name: "Never stored",
           description: "",
-          editPassword: "password phrase",
+          editPassword: "Pass123456!",
         }),
       ).rejects.toThrow(/unique project identifier/);
       expect(database.prepare("SELECT count(*) FROM projects").pluck().get()).toBe(2);
@@ -321,17 +321,17 @@ describe("ProjectService direct read", () => {
       await service.create({
         name: "Older",
         description: "First description",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
       await service.create({
         name: "Tie B",
         description: "Third UUID",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
       await service.create({
         name: "Tie A",
         description: "Second UUID",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
 
       const sessionsBefore = database.prepare(
@@ -401,12 +401,12 @@ describe("ProjectService direct read", () => {
       const first = await service.create({
         name: "First",
         description: "First description",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
       const second = await service.create({
         name: "Second",
         description: "Second description",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
       const firstId = database
         .prepare("SELECT id FROM projects WHERE public_id = ?")
@@ -498,7 +498,7 @@ describe("ProjectService delete", () => {
     const created = await service.create({
       name: "Persistent delete",
       description: "",
-      editPassword: "password phrase",
+      editPassword: "Pass123456!",
     });
     const authorization = service.authorize(
       created.response.data.project.publicId,
@@ -532,12 +532,12 @@ describe("ProjectService delete", () => {
       const target = await service.create({
         name: "Delete target",
         description: "Target",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
       const preserved = await service.create({
         name: "Preserved",
         description: "Other",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
       const targetId = database.prepare(
         "SELECT id FROM projects WHERE public_id = ?",
@@ -613,7 +613,7 @@ describe("ProjectService delete", () => {
       const created = await service.create({
         name: "Protected",
         description: "",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
       const result = service.authorize(
         created.response.data.project.publicId,
@@ -645,7 +645,7 @@ describe("ProjectService delete", () => {
       const created = await service.create({
         name: "Rollback",
         description: "",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
       const projectId = database.prepare(
         "SELECT id FROM projects WHERE public_id = ?",

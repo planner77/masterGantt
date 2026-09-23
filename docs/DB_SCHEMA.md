@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
+이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. Issue #99에서 리소스 관리자 런타임 자격증명 해시를 위한 `0007_resource_admin_credentials.sql`을 추가했다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
 
 요구사항으로 확정된 전제는 다음과 같다.
 
@@ -48,7 +48,8 @@ projects
 project_holidays (0006 이후 Project NON_WORKING 호환 VIEW + INSERT trigger)
 resource_catalog_state (singleton revision)
 resources >─< resource_group_members >─ resource_groups
-resource_catalog_admin_sessions (global admin)
+resource_catalog_admin_sessions (global admin sessions)
+resource_catalog_admin_credentials (singleton global admin credential)
 ```
 
 `project_id`는 단순 조회 filter가 아니라 isolation 경계이다. Task parent와 Link 양 끝은 composite foreign key로 같은 Project에 속함을 DB에서도 강제한다.
@@ -204,7 +205,21 @@ Session current read는 row나 TTL을 갱신하지 않는다. Unlock과 password
 
 글로벌 catalog 관리자 세션을 Project edit session과 분리한다. 원문 token은 저장하지 않고 32-byte SHA-256 digest와 생성/만료/폐기 시각만 저장한다.
 
-### 5.10 `task_assignments`
+### 5.10 `resource_catalog_admin_credentials`
+
+Resource catalog 관리자 비밀번호의 런타임 변경값을 저장하는 singleton credential table이다.
+
+| Column | Type | Null | Constraint / 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | Primary key, `CHECK(id = 1)`로 singleton 강제 |
+| `password_kdf` | TEXT | N | 현재 `scrypt`만 허용 |
+| `password_salt` | BLOB | N | 최소 16-byte random salt |
+| `password_hash` | BLOB | N | 32-byte scrypt derived key |
+| `updated_at` | TEXT | N | 마지막 seed/rotation UTC timestamp |
+
+비밀번호 원문은 저장하지 않는다. 테이블이 비어 있는 최초 실행/업그레이드 상태에서만 `RESOURCE_CATALOG_ADMIN_PASSWORD`를 bootstrap seed로 사용할 수 있으며, 정상 인증 후 salt/hash를 이 table에 저장한다. 신규 seed는 1~12 Unicode code point를 사용하고, 이전 정책에서 유효했던 16자 이상 값은 bounded legacy bootstrap 경로에서만 허용한다. credential row가 생성된 뒤에는 DB 값이 환경변수보다 우선한다. 비밀번호 rotation은 singleton row를 upsert하고 기존 Resource 관리자 session을 모두 revoke한 뒤 호출자에게 새 session을 발급한다.
+
+### 5.11 `task_assignments`
 
 Task/Summary/Milestone과 글로벌 Resource 또는 Group의 직접 할당을 저장한다. `(project_id, task_id)` composite FK로 Project 경계를 DB에서도 강제하고, `resource_id`와 `group_id`는 XOR CHECK로 정확히 하나만 허용한다. 부분 UNIQUE index로 같은 Task에 같은 Resource/Group의 중복 할당을 차단한다. Task/Project 삭제에는 assignment가 cascade되지만 글로벌 catalog FK는 `ON DELETE RESTRICT`다. Group assignment는 팀 참조이며 Group member 개인 assignment로 자동 확장하지 않는다.
 
@@ -339,7 +354,7 @@ Issue #54 추가 자동화 검증 범위:
 
 ## Issue #57 Working Calendar 영속 모델
 
-### 5.10 `work_calendar_rules`
+### 5.12 `work_calendar_rules`
 
 Calendar의 출처와 적용 범위를 저장한다.
 
@@ -359,7 +374,7 @@ Calendar의 출처와 적용 범위를 저장한다.
 
 COUNTRY rule은 Project 대상만 허용한다. CUSTOM은 Project/Group/Resource를 허용하며 Issue #57 UI/API에서는 추가 휴무 `NON_WORKING`만 생성한다. `FULL_PROJECT`는 물리적인 Project 최소/최대 날짜를 저장하지 않는 논리 범위다.
 
-### 5.11 `work_calendar_dates`
+### 5.13 `work_calendar_dates`
 
 실제 계산 입력이 되는 materialized 날짜 예외다.
 

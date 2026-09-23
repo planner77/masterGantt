@@ -15,8 +15,8 @@ async function createProject(page: import("@playwright/test").Page, baseURL: str
 test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
   test("Quick Search와 고급 조건을 AND로 조합하고 서버 재조회 없이 초기화한다", async ({ page, baseURL }) => {
     const suffix = randomUUID().slice(0, 8);
-    await createProject(page, baseURL!, `AMR Alpha ${suffix}`, "Automation Team", "Vietnam logistics", `Password-A-${suffix}`);
-    await createProject(page, baseURL!, `Stocker Beta ${suffix}`, "Storage Team", "Korea stocker", `Password-B-${suffix}`);
+    await createProject(page, baseURL!, `AMR Alpha ${suffix}`, "Automation Team", "Vietnam logistics", "PwdA123456!");
+    await createProject(page, baseURL!, `Stocker Beta ${suffix}`, "Storage Team", "Korea stocker", "PwdB123456!");
 
     let collectionGets = 0;
     page.on("request", (request) => {
@@ -55,7 +55,7 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
   test("browser timezone 날짜 필터, Escape focus 복귀와 검색 상태의 Row Action을 유지한다", async ({ page, baseURL }) => {
     const suffix = randomUUID().slice(0, 8);
     const name = `Timezone Project ${suffix}`;
-    await createProject(page, baseURL!, name, "Timezone Team", "calendar-date", `Password-T-${suffix}`);
+    await createProject(page, baseURL!, name, "Timezone Team", "calendar-date", "PwdT123456!");
     const collection = await (await page.request.get("/api/projects")).json();
     const project = collection.data.projects.find((candidate: { name: string }) => candidate.name === name);
     expect(project).toBeTruthy();
@@ -90,9 +90,9 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
   test("검색 상태에서 삭제 성공 후 삭제된 프로젝트가 결과에 남지 않는다", async ({ page, baseURL }) => {
     const suffix = randomUUID().slice(0, 8);
     const name = `Delete Filtered ${suffix}`;
-    const password = `Password-D-${suffix}`;
+    const password = "PwdD123456!";
     await createProject(page, baseURL!, name, "Delete Team", "delete filtered row", password);
-    await createProject(page, baseURL!, `Keep ${suffix}`, "Keep Team", "other row", `Password-K-${suffix}`);
+    await createProject(page, baseURL!, `Keep ${suffix}`, "Keep Team", "other row", "PwdK123456!");
 
     await page.goto("/");
     const search = page.getByLabel("프로젝트명, 소유자 또는 설명 검색");
@@ -113,7 +113,7 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
 
   test("390/768/1024/1440에서 문서 수준 가로 overflow가 없다", async ({ page, baseURL }) => {
     const suffix = randomUUID().slice(0, 8);
-    await createProject(page, baseURL!, `Responsive ${suffix}`, "Responsive Team", "responsive search", `Password-R-${suffix}`);
+    await createProject(page, baseURL!, `Responsive ${suffix}`, "Responsive Team", "responsive search", "PwdR123456!");
     await page.goto("/");
     for (const width of [390, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });

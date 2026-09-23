@@ -72,7 +72,7 @@ describe("resource workload integrity", () => {
       };
 
       const resources = new ResourceCatalogService(database, { clock: () => new Date(NOW) });
-      const admin = resources.unlockAdmin("correct-resource-admin-password", "correct-resource-admin-password");
+      const admin = resources.unlockAdmin("Admin123456!", "Admin123456!");
       if (!admin) throw new Error("admin session not created");
       const catalog = resources.createTarget("resource", admin.rawToken, 1, { name: "Resource" });
       const resource = catalog.data.resources[0];

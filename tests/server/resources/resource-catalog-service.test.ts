@@ -80,10 +80,94 @@ describe("ResourceCatalogService", () => {
       const service = new ResourceCatalogService(fixture.database, {
         clock: () => new Date("2026-09-15T12:00:00.000Z"),
       });
-      expect(service.unlockAdmin("wrong-password-value", "correct-resource-admin-password")).toBeUndefined();
-      const admin = service.unlockAdmin("correct-resource-admin-password", "correct-resource-admin-password");
+      expect(service.unlockAdmin("Wrong123456!", "Admin123456!")).toBeUndefined();
+      const admin = service.unlockAdmin("Admin123456!", "Admin123456!");
       expect(admin).toBeDefined();
       expect(service.authorizeAdmin(admin?.rawToken)).toMatchObject({ expiresAt: "2026-09-15T20:00:00.000Z" });
+    } finally {
+      fixture.database.close();
+    }
+  });
+
+  it("rejects bootstrap passwords in the 13 to 15 character policy gap", () => {
+    const fixture = createProjectFixture();
+    try {
+      const service = new ResourceCatalogService(fixture.database, { clock: () => new Date("2026-09-15T12:00:00.000Z") });
+      for (const password of ["1234567890123", "12345678901234", "123456789012345"]) {
+        expect(service.unlockAdmin(password, password)).toBeUndefined();
+        expect(service.adminCredentialConfigured()).toBe(false);
+      }
+    } finally {
+      fixture.database.close();
+    }
+  });
+
+  it("migrates a legacy long administrator seed on first login", () => {
+    const fixture = createProjectFixture();
+    try {
+      const legacyPassword = "legacy-resource-admin-password";
+      const service = new ResourceCatalogService(fixture.database, { clock: () => new Date("2026-09-15T12:00:00.000Z") });
+      const admin = service.unlockAdmin(legacyPassword, legacyPassword);
+      expect(admin).toBeDefined();
+      expect(service.adminCredentialConfigured()).toBe(true);
+
+      const restarted = new ResourceCatalogService(fixture.database, { clock: () => new Date("2026-09-15T12:01:00.000Z") });
+      expect(restarted.unlockAdmin(legacyPassword, "DifferentEnv!")).toBeDefined();
+    } finally {
+      fixture.database.close();
+    }
+  });
+
+  it("upserts a new administrator credential when an upgrade session exists before seeding", () => {
+    const fixture = createProjectFixture();
+    try {
+      const legacyPassword = "legacy-resource-admin-password";
+      const service = new ResourceCatalogService(fixture.database, { clock: () => new Date("2026-09-15T12:00:00.000Z") });
+      const admin = service.unlockAdmin(legacyPassword, legacyPassword);
+      if (!admin) throw new Error("legacy administrator session not created");
+
+      fixture.database.prepare("DELETE FROM resource_catalog_admin_credentials").run();
+      expect(service.adminCredentialConfigured()).toBe(false);
+
+      const rotated = service.changeAdminPassword(admin.rawToken, "New123456!");
+      expect(rotated.rawToken).toBeTruthy();
+      expect(service.adminCredentialConfigured()).toBe(true);
+      expect(service.authorizeAdmin(admin.rawToken)).toBeUndefined();
+      expect(service.unlockAdmin("New123456!", legacyPassword)).toBeDefined();
+      expect(service.unlockAdmin(legacyPassword, legacyPassword)).toBeUndefined();
+    } finally {
+      fixture.database.close();
+    }
+  });
+
+  it("rejects malformed Unicode when rotating the resource administrator password", () => {
+    const fixture = createProjectFixture();
+    try {
+      const service = new ResourceCatalogService(fixture.database, { clock: () => new Date("2026-09-15T12:00:00.000Z") });
+      const admin = service.unlockAdmin("Admin123456!", "Admin123456!");
+      if (!admin) throw new Error("administrator session not created");
+      expect(() => service.changeAdminPassword(admin.rawToken, "\ud800")).toThrow();
+      expect(service.unlockAdmin("�", "Admin123456!")).toBeUndefined();
+    } finally {
+      fixture.database.close();
+    }
+  });
+
+  it("persists seeded credentials and rotates the resource administrator password", () => {
+    const fixture = createProjectFixture();
+    try {
+      const service = new ResourceCatalogService(fixture.database, { clock: () => new Date("2026-09-15T12:00:00.000Z") });
+      const first = service.unlockAdmin("Admin123456!", "Admin123456!");
+      expect(first).toBeDefined();
+      expect(service.adminCredentialConfigured()).toBe(true);
+
+      const restarted = new ResourceCatalogService(fixture.database, { clock: () => new Date("2026-09-15T12:01:00.000Z") });
+      expect(restarted.unlockAdmin("Admin123456!", "ChangedEnv1!")).toBeDefined();
+      const rotated = restarted.changeAdminPassword(first?.rawToken, "New123456!");
+      expect(rotated.rawToken).toBeTruthy();
+      expect(restarted.authorizeAdmin(first?.rawToken)).toBeUndefined();
+      expect(restarted.unlockAdmin("Admin123456!", "Admin123456!")).toBeUndefined();
+      expect(restarted.unlockAdmin("New123456!", "Admin123456!")).toBeDefined();
     } finally {
       fixture.database.close();
     }
@@ -95,7 +179,7 @@ describe("ResourceCatalogService", () => {
       const service = new ResourceCatalogService(fixture.database, {
         clock: () => new Date("2026-09-15T12:00:00.000Z"),
       });
-      const admin = service.unlockAdmin("correct-resource-admin-password", "correct-resource-admin-password");
+      const admin = service.unlockAdmin("Admin123456!", "Admin123456!");
       if (!admin) throw new Error("admin session not created");
 
       let catalog = service.createTarget("resource", admin.rawToken, 1, { name: "홍길동", code: "R-001" });
@@ -149,7 +233,7 @@ describe("ResourceCatalogService", () => {
       const service = new ResourceCatalogService(fixture.database, {
         clock: () => new Date("2026-09-15T12:00:00.000Z"),
       });
-      const admin = service.unlockAdmin("correct-resource-admin-password", "correct-resource-admin-password");
+      const admin = service.unlockAdmin("Admin123456!", "Admin123456!");
       if (!admin) throw new Error("admin session not created");
       service.createTarget("resource", admin.rawToken, 1, { name: "Resource A" });
       expect(() => service.createTarget("group", admin.rawToken, 1, { name: "Stale group" }))

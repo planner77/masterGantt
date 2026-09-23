@@ -49,7 +49,7 @@ async function fixture() {
   const target = await service.create({
     name: "Target",
     description: "",
-    editPassword: "password phrase",
+    editPassword: "Pass123456!",
   });
   return { database, service, target };
 }
@@ -91,7 +91,7 @@ describe("Project DELETE Handler-Service-SQLite integration", () => {
         const other = await value.service.create({
           name: "Other",
           description: "",
-          editPassword: "password phrase",
+          editPassword: "Pass123456!",
         });
         if (state === "expired") {
           value.database.prepare(

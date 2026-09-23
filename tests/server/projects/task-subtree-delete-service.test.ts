@@ -43,7 +43,7 @@ async function fixture() {
     hashPassword: async () => fixedPasswordHash(),
   });
   const subtree = new TaskSubtreeDeleteService(database, { clock: () => now });
-  const created = await service.create({ name: "Delete subtree", description: "", editPassword: "password phrase" });
+  const created = await service.create({ name: "Delete subtree", description: "", editPassword: "Pass123456!" });
   const result = service.authorize(created.response.data.project.publicId, created.rawSessionToken);
   if (result.kind !== "authorized") throw new Error("Expected authorization.");
   return { database, service, subtree, authorization: result.authorization };

@@ -147,7 +147,7 @@ Project create와 unlock도 Origin을 검사한다. 이 endpoint들은 기존 Co
 
 모든 limit은 burst를 제한하고 `429` 및 가능한 경우 `Retry-After`를 반환한다. 성공 login도 짧은 burst limit에 포함해 공격자가 성공/실패 차이를 이용하기 어렵게 한다. In-memory limiter는 restart 시 상태가 사라지므로 internet-facing deployment의 유일한 방어로 간주하지 않는다.
 
-Next Route의 표준 `Request`만으로 신뢰할 socket peer를 얻지 못하고 proxy 경계도 D03이라 create limiter는 모든 caller를 하나의 process-global key로 묶어 fail closed한다. Unlock도 forwarded header를 사용하지 않고 process-global 50회/15분과 canonical Project별 10회/15분을 함께 적용한다. Project key map은 1,024개로 제한하고 만료 key를 정리하며 capacity 초과는 fail closed한다. 이 process-local limiter는 restart 시 초기화되고 여러 정상 사용자가 global 한도를 공유한다. D03/W16에서 trusted proxy hop과 peer 전달 방식을 확정한 뒤 application key를 세분화하고 proxy의 persistent limit을 함께 적용한다. 잘못된 proxy trust는 rate limit 우회와 log spoofing을 만든다.
+Next Route의 표준 `Request`만으로 신뢰할 socket peer를 얻지 못하고 proxy 경계도 D03이라 create limiter는 모든 caller를 하나의 process-global key로 묶어 fail closed한다. Project Unlock도 forwarded header를 사용하지 않고 process-global 50회/15분과 canonical Project별 10회/15분을 함께 적용한다. Resource 관리자 로그인은 동기 scrypt의 event-loop 비용을 무제한 노출하지 않도록 별도 process-global 20회/15분 fail-closed limiter를 KDF 전에 적용한다. Project key map은 1,024개로 제한하고 만료 key를 정리하며 capacity 초과는 fail closed한다. 이 process-local limiter는 restart 시 초기화되고 여러 정상 사용자가 global 한도를 공유한다. D03/W16에서 trusted proxy hop과 peer 전달 방식을 확정한 뒤 application key를 세분화하고 proxy의 persistent limit을 함께 적용한다. 잘못된 proxy trust는 rate limit 우회와 log spoofing을 만든다.
 
 추가 resource limit:
 
@@ -221,7 +221,7 @@ Project URL은 URL parser로 base와 `/projects/{canonicalUuid}`를 결합한다
 
 반드시 redact하거나 기록하지 않는 값:
 
-- `editPassword`, `newEditPassword`
+- `editPassword`, `newEditPassword`, Resource 관리자 `password`/`newPassword`/`confirmPassword`
 - `Cookie`, `Set-Cookie`, session token/digest
 - password salt/hash/KDF derived key
 - 전체 import payload
@@ -330,3 +330,8 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 - [OWASP CSRF Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
 - [MDN Set-Cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie)
 - [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html)
+
+
+## Issue #99 경량 비밀번호 정책
+
+현재 1~3명 내부 운영 범위에서 Project 편집 및 Resource 관리의 **신규/변경 비밀번호**는 1~12 Unicode 문자이며 문자 종류 조합을 강제하지 않는다. Project 비밀번호는 기존 scrypt 저장을 유지한다. Resource 관리자 비밀번호는 최초 DB 자격증명이 없을 때만 환경변수를 seed로 해시 저장하고 이후 DB 값을 우선한다. 업그레이드 호환성을 위해 이전 정책에서 사용하던 16자 이상 환경변수 값은 bounded legacy bootstrap credential로 최초 로그인에서 허용하고 즉시 DB 해시로 이관할 수 있지만, 이후 UI 변경값에는 1~12자 정책을 적용한다. 변경 시 해당 Resource 관리자 세션을 모두 revoke한 뒤 호출자 세션만 재발급한다. 기존 Project와 Resource 권한 영역은 서로 독립적이다.

@@ -14,6 +14,11 @@ import {
   isExactAllowedOrigin,
   parseApplicationBaseUrl,
 } from "../security/origin-core";
+import type { FixedWindowRateLimiter } from "../security/rate-limit-core";
+import {
+  resourceAdminUnlockRateLimiter,
+  UNATTRIBUTED_RESOURCE_ADMIN_RATE_KEY,
+} from "../security/rate-limit-core";
 import {
   parseResourceCatalogAdminCookie,
   serializeExpiredResourceCatalogAdminCookie,
@@ -42,6 +47,7 @@ export type ResourceAdminAuthReasonCode =
   | "INVALID_REQUEST"
   | "ORIGIN_NOT_ALLOWED"
   | "CONFIGURATION_ERROR"
+  | "RATE_LIMITED"
   | "UNEXPECTED_ERROR";
 
 export interface ResourceAdminAuthDiagnosticEntry {
@@ -83,6 +89,7 @@ export interface ResourceHandlerDependencies {
   adminAuthLogger?: ResourceAdminAuthDiagnosticLogger;
   adminAuthConfigurationState?: ResourceAdminAuthConfigurationState;
   diagnosticNow?: () => Date;
+  adminAuthRateLimiter?: Pick<FixedWindowRateLimiter, "consume">;
 }
 
 const defaultAdminAuthConfigurationState: ResourceAdminAuthConfigurationState = { logged: false };
@@ -207,11 +214,32 @@ function json(data: unknown, status = 200, etag?: number): Response {
   });
 }
 
+function isWellFormedUnicode(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+      if (index + 1 >= value.length) return false;
+      const next = value.charCodeAt(index + 1);
+      if (next < 0xdc00 || next > 0xdfff) return false;
+      index += 1;
+    } else if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+      return false;
+    }
+  }
+  return true;
+}
 function adminPasswordConfiguration(password: string | undefined): { configured: boolean; policyValid: boolean } {
   const configured = typeof password === "string" && password.length > 0;
+  if (!configured || password === undefined || !isWellFormedUnicode(password)) {
+    return { configured, policyValid: false };
+  }
+  const length = Array.from(password).length;
+  const bounded = length <= 512 && new TextEncoder().encode(password).byteLength <= 1_024;
   return {
     configured,
-    policyValid: configured && password.length >= 16,
+    // New installs use 1..12. Existing deployments historically required
+    // >=16, so only that legacy range is accepted for one-time bootstrap.
+    policyValid: bounded && (length <= 12 || length >= 16),
   };
 }
 
@@ -278,6 +306,7 @@ function requestFailureReason(error: unknown): ResourceAdminAuthReasonCode {
   if (error instanceof PublicApiError) {
     if (error.code === "ORIGIN_NOT_ALLOWED") return "ORIGIN_NOT_ALLOWED";
     if (error.code === "CONFIGURATION_ERROR") return "CONFIGURATION_ERROR";
+    if (error.code === "RATE_LIMITED") return "RATE_LIMITED";
     if (
       error.code === "INVALID_REQUEST"
       || error.code === "INVALID_JSON"
@@ -351,11 +380,26 @@ export async function handleUnlockResourceCatalogAdmin(request: Request, depende
       throw new PublicApiError(400, "INVALID_REQUEST", "Administrator password is invalid.");
     }
 
-    const authenticationFailureReason: ResourceAdminAuthReasonCode | null = !configuration.configured
-      ? "ADMIN_PASSWORD_NOT_CONFIGURED"
-      : !configuration.policyValid
-        ? "ADMIN_PASSWORD_POLICY_INVALID"
-        : null;
+    const rateLimiter = dependencies.adminAuthRateLimiter ?? resourceAdminUnlockRateLimiter;
+    const rateDecision = rateLimiter.consume(UNATTRIBUTED_RESOURCE_ADMIN_RATE_KEY);
+    if (!rateDecision.allowed) {
+      throw new PublicApiError(
+        429,
+        "RATE_LIMITED",
+        "Too many administrator authentication attempts. Retry later.",
+        [],
+        { "Retry-After": String(rateDecision.retryAfterSeconds) },
+      );
+    }
+
+    const credentialConfigured = resourceService(dependencies).adminCredentialConfigured();
+    const authenticationFailureReason: ResourceAdminAuthReasonCode | null = credentialConfigured
+      ? null
+      : !configuration.configured
+        ? "ADMIN_PASSWORD_NOT_CONFIGURED"
+        : !configuration.policyValid
+          ? "ADMIN_PASSWORD_POLICY_INVALID"
+          : null;
     if (authenticationFailureReason) {
       const response = fail(
         new PublicApiError(401, "RESOURCE_ADMIN_AUTH_FAILED", "Resource catalog administrator authentication failed."),
@@ -403,6 +447,24 @@ export async function handleUnlockResourceCatalogAdmin(request: Request, depende
     const reasonCode = requestFailureReason(error);
     logAdminAuthFailure(dependencies, requestId, reasonCode, response.status, configuration);
     return response;
+  }
+}
+
+export async function handleChangeResourceCatalogAdminPassword(request: Request, dependencies: ResourceHandlerDependencies): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    const url = applicationUrl(dependencies);
+    requireOrigin(request, url);
+    const body = await readBoundedJson(request, 4 * 1024) as { newPassword?: unknown; confirmPassword?: unknown };
+    if (!body || typeof body.newPassword !== "string" || !isWellFormedUnicode(body.newPassword) || body.newPassword !== body.confirmPassword || Array.from(body.newPassword).length < 1 || Array.from(body.newPassword).length > 12) {
+      throw new PublicApiError(400, "INVALID_REQUEST", "New administrator password must be 1 to 12 characters and confirmation must match.");
+    }
+    const changed = resourceService(dependencies).changeAdminPassword(adminToken(request, dependencies, url), body.newPassword);
+    const response = json({ data: { permission: "resource_catalog_admin", expiresAt: changed.expiresAt } }, 200);
+    response.headers.set("Set-Cookie", serializeResourceCatalogAdminCookie(changed.rawToken, url, dependencies.environment));
+    return response;
+  } catch (error) {
+    return fail(error, requestId);
   }
 }
 

@@ -145,8 +145,8 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   async function deleteProject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!target || mutation.current) return;
-    if (Array.from(password).length < 12 || new TextEncoder().encode(password).byteLength > 1024) {
-      setPassword(""); reportError("편집 비밀번호는 최소 12자이며 UTF-8 기준 1,024 bytes 이하여야 합니다."); return;
+    if (Array.from(password).length < 1 || new TextEncoder().encode(password).byteLength > 1024) {
+      setPassword(""); reportError("삭제 확인 비밀번호를 입력해 주세요."); return;
     }
     const currentTarget = target;
     const submittedPassword = password;

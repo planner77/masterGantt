@@ -28,8 +28,8 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   const suffix = uniqueSuffix();
   const firstName = `W05 Project ${suffix}`;
   const savedName = `W05 Saved ${suffix}`;
-  const password = `W05-original-${suffix}`;
-  const rotatedPassword = `W05-rotated-${suffix}`;
+  const password = "W05Orig123!";
+  const rotatedPassword = "W05New1234!";
   const projectId = await createProject(page, firstName, password);
   const projectPath = `/api/projects/${projectId}`;
   const origin = new URL(page.url()).origin;
@@ -129,7 +129,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   const otherContext = await browser.newContext();
   try {
     const otherPage = await otherContext.newPage();
-    const otherId = await createProject(otherPage, `W05 Other ${suffix}`, `W05-other-${suffix}`);
+    const otherId = await createProject(otherPage, `W05 Other ${suffix}`, "W05Other123!");
     const crossProjectPatch = await page.request.patch(`/api/projects/${otherId}`, {
       data: { name: "Cross project denied" },
       headers: { "If-Match": '"1"', Origin: origin },
