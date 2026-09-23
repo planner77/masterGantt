@@ -225,6 +225,11 @@ class RepositoryPolicyTest(unittest.TestCase):
     def test_direct_delete_detector_folds_yaml_run_scalars(self):
         folded_workflows = (
             """steps:
+  - run: >-
+      git push origin
+      :feature/foo
+""",
+            """steps:
   - name: folded delete
     run: >-
       git push origin
