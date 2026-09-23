@@ -169,11 +169,11 @@ def normalize_workflow_commands(content: str) -> str:
 
         base_indent = len(match.group("indent")) + len(match.group("item") or "")
         index += 1
-        parts = []
+        raw_parts = []
         while index < len(lines):
             line = lines[index]
             if not line.strip():
-                parts.append("")
+                raw_parts.append((None, ""))
                 index += 1
                 continue
 
@@ -181,24 +181,37 @@ def normalize_workflow_commands(content: str) -> str:
             if indent <= base_indent:
                 break
 
-            parts.append(line.strip())
+            raw_parts.append((indent, line.strip()))
             index += 1
 
-        # YAML folded scalars replace ordinary content line breaks with spaces,
-        # but blank lines create paragraph breaks. Preserve those breaks so a shell
-        # comment cannot swallow the following executable command.
-        paragraphs = []
-        paragraph = []
-        for part in parts:
-            if part:
-                paragraph.append(part)
+        # YAML folded scalars fold ordinary lines to spaces, but blank lines and
+        # more-indented lines preserve line breaks. Use the minimum content indent
+        # as the scalar's normal indentation and preserve boundaries around any
+        # deeper-indented content.
+        content_indents = [indent for indent, text in raw_parts if indent is not None and text]
+        content_indent = min(content_indents) if content_indents else base_indent + 1
+        output_lines = []
+        normal = []
+
+        def flush_normal():
+            if normal:
+                output_lines.append(" ".join(normal))
+                normal.clear()
+
+        for indent, text in raw_parts:
+            if indent is None:
+                flush_normal()
+                if output_lines and output_lines[-1] != "":
+                    output_lines.append("")
                 continue
-            if paragraph:
-                paragraphs.append(" ".join(paragraph))
-                paragraph = []
-        if paragraph:
-            paragraphs.append(" ".join(paragraph))
-        folded_commands.append("\n".join(paragraphs))
+            if indent > content_indent:
+                flush_normal()
+                output_lines.append(text)
+                continue
+            normal.append(text)
+        flush_normal()
+
+        folded_commands.append("\n".join(output_lines))
 
     if folded_commands:
         normalized += "\n" + "\n".join(folded_commands)
@@ -269,8 +282,43 @@ def shell_execution_tokens(tokens: list[str]) -> list[str]:
         index += 1
 
     remaining = executable_tokens(tokens[index:])
-    while remaining and remaining[0] in ("exec", "time"):
-        remaining = executable_tokens(remaining[1:])
+    while remaining:
+        wrapper = command_basename(remaining[0])
+        if wrapper == "time":
+            wrapper_index = 1
+            while wrapper_index < len(remaining):
+                token = remaining[wrapper_index]
+                if token == "--":
+                    wrapper_index += 1
+                    break
+                if token.startswith("-"):
+                    wrapper_index += 1
+                    continue
+                break
+            remaining = executable_tokens(remaining[wrapper_index:])
+            continue
+
+        if wrapper == "exec":
+            wrapper_index = 1
+            while wrapper_index < len(remaining):
+                token = remaining[wrapper_index]
+                if token == "--":
+                    wrapper_index += 1
+                    break
+                if token in ("-a", "--argv0") and wrapper_index + 1 < len(remaining):
+                    wrapper_index += 2
+                    continue
+                if token.startswith("--argv0="):
+                    wrapper_index += 1
+                    continue
+                if token.startswith("-"):
+                    wrapper_index += 1
+                    continue
+                break
+            remaining = executable_tokens(remaining[wrapper_index:])
+            continue
+
+        break
     return remaining
 
 
@@ -476,6 +524,8 @@ class RepositoryPolicyTest(unittest.TestCase):
             'cat <(git push origin :feature/foo)',
             'echo `git push origin +:feature/foo`',
             '{ git push origin :feature/foo; }',
+            'time -p git push origin :feature/foo',
+            'exec -a git git push origin +:feature/foo',
             'git -C "$GITHUB_WORKSPACE" push origin :feature/foo',
             'git -c protocol.version=2 push origin +:feature/foo',
             'git --git-dir=.git push origin --delete "$WORK_BRANCH"',
@@ -549,6 +599,16 @@ class RepositoryPolicyTest(unittest.TestCase):
       SAFE: "1"
 """
         self.assertTrue(find_workflow_branch_deletions(sibling_key_workflow))
+
+        more_indented_workflow = """steps:
+  - name: more-indented boundary
+    run: >-
+      echo safe
+        true
+      git push origin
+      :feature/foo
+"""
+        self.assertTrue(find_workflow_branch_deletions(more_indented_workflow))
 
         comment_paragraph_workflow = """steps:
   - name: comment paragraph then delete
