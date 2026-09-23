@@ -113,12 +113,17 @@ def fetch_snapshot(api: GitHubApi, *, repo: str, pr_number: int, branch: str, ta
     _, pr = api.get(f"/pulls/{pr_number}")
     head_sha = validate_pr_identity(pr, repo=repo, branch=branch)
 
+    # Prove the requested target contains the merged PR head before treating an
+    # already-absent branch as an idempotent success.
+    _, comparison = api.get(f"/compare/{head_sha}...{target_sha}")
+    merge_base_sha = comparison["merge_base_commit"]["sha"]
+    require(merge_base_sha == head_sha, "merged PR head is not an ancestor of target SHA")
+
     encoded_branch = urllib.parse.quote(branch, safe="")
     status, branch_json = api.get(f"/branches/{encoded_branch}", allowed=(200, 404))
     if status == 404:
         return None
 
-    _, comparison = api.get(f"/compare/{head_sha}...{target_sha}")
     _, current_ref = api.get(f"/git/ref/heads/{encoded_branch}")
 
     return CleanupSnapshot(
@@ -130,7 +135,7 @@ def fetch_snapshot(api: GitHubApi, *, repo: str, pr_number: int, branch: str, ta
         branch_sha=branch_json["commit"]["sha"],
         branch_protected=bool(branch_json["protected"]),
         target_sha=target_sha,
-        merge_base_sha=comparison["merge_base_commit"]["sha"],
+        merge_base_sha=merge_base_sha,
         open_head_prs=count_open_prs(api, "head", f"{repo.split('/', 1)[0]}:{branch}"),
         open_base_prs=count_open_prs(api, "base", branch),
         current_ref_sha=current_ref["object"]["sha"],
