@@ -128,6 +128,7 @@ describe("SQLite connection and schema", () => {
         "0004_project_owner.sql",
         "0005_resource_workload.sql",
         "0006_work_calendars.sql",
+        "0007_resource_admin_credentials.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -144,6 +145,7 @@ describe("SQLite connection and schema", () => {
         "edit_sessions",
         "links",
         "projects",
+        "resource_catalog_admin_credentials",
         "resource_catalog_admin_sessions",
         "resource_catalog_state",
         "resource_group_members",
@@ -249,6 +251,9 @@ describe("migration safety", () => {
     const directory=copiedMigrations();
     const migration6=join(directory,"0006_work_calendars.sql");
     const migration6Contents=readFileSync(migration6);
+    const migration7=join(directory,"0007_resource_admin_credentials.sql");
+    const migration7Contents=readFileSync(migration7);
+    unlinkSync(migration7);
     unlinkSync(migration6);
     const database=new Database(":memory:");
 
@@ -261,7 +266,8 @@ describe("migration safety", () => {
       ).run(projectId,"2026-10-06","Legacy day",now);
 
       writeFileSync(migration6,migration6Contents);
-      expect(runMigrations(database,directory).applied).toEqual(["0006_work_calendars.sql"]);
+      writeFileSync(migration7,migration7Contents);
+      expect(runMigrations(database,directory).applied).toEqual(["0006_work_calendars.sql","0007_resource_admin_credentials.sql"]);
 
       expect(database.prepare(
         "SELECT holiday_date, name FROM project_holidays WHERE project_id = ?",

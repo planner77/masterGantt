@@ -87,7 +87,7 @@ test("Issue #72 menu exposes Willow commands and readonly users cannot mutate", 
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Context menu ${suffix}`);
-  await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Context-password-${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("CtxPwd12345!");
   await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
 
@@ -132,7 +132,7 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Hierarchy E2E ${suffix}`);
-  await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Hierarchy-password-${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("HierPwd1234!");
   await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
 

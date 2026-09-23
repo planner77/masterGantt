@@ -9,7 +9,7 @@ test("persists explicit editor changes, task details and safe URL click without 
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Editor persistence ${suffix}`);
-  await page.getByLabel("편집 비밀번호", { exact: true }).fill(`Editor-password-${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("EditPwd1234!");
   await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
   const path = new URL(page.url()).pathname;

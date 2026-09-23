@@ -21,7 +21,7 @@ async function createProject(
 
 test("rechecks the current edit session on project re-entry and history restoration", async ({ page }) => {
   const suffix = uniqueSuffix();
-  const password = `Issue-37-password-${suffix}`;
+  const password = "Issue37Pwd1!";
   const name = `Issue 37 ${suffix}`;
   const publicId = await createProject(page, name, password);
   const permissionPath = `/api/projects/${publicId}/edit-sessions/current`;
@@ -53,7 +53,7 @@ test("rechecks the current edit session on project re-entry and history restorat
 
 test("fails closed when a restored project cannot revalidate edit permission", async ({ page }) => {
   const suffix = uniqueSuffix();
-  const password = `Issue-37-fail-${suffix}`;
+  const password = "Issue37Pwd2!";
   const name = `Issue 37 Fail ${suffix}`;
   const publicId = await createProject(page, name, password);
   const permissionPath = `/api/projects/${publicId}/edit-sessions/current`;

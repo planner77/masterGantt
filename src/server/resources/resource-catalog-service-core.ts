@@ -1,4 +1,4 @@
-import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
+import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 
 import type Database from "better-sqlite3";
 
@@ -99,7 +99,38 @@ function assignmentDtos(records: readonly AssignmentRecord[]): ProjectAssignment
     allocation: record.kind === "resource" ? { start: record.assignmentStart, end: record.assignmentEnd, percent: record.allocationPercent } : null,
   }));
 }
-function digest(value: string): Buffer { return createHash("sha256").update(value, "utf8").digest(); }
+function isWellFormedUnicode(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const codeUnit = value.charCodeAt(index);
+    if (codeUnit >= 0xd800 && codeUnit <= 0xdbff) {
+      if (index + 1 >= value.length) return false;
+      const next = value.charCodeAt(index + 1);
+      if (next < 0xdc00 || next > 0xdfff) return false;
+      index += 1;
+    } else if (codeUnit >= 0xdc00 && codeUnit <= 0xdfff) {
+      return false;
+    }
+  }
+  return true;
+}
+function validAdminLoginPassword(value: unknown): value is string {
+  if (typeof value !== "string" || !isWellFormedUnicode(value)) return false;
+  const length = Array.from(value).length;
+  return length >= 1 && length <= 512 && Buffer.byteLength(value, "utf8") <= 1_024;
+}
+function validAdminBootstrapPassword(value: unknown): value is string {
+  if (!validAdminLoginPassword(value)) return false;
+  const length = Array.from(value).length;
+  return length <= 12 || length >= 16;
+}
+function validNewAdminPassword(value: unknown): value is string {
+  if (typeof value !== "string" || !isWellFormedUnicode(value)) return false;
+  const length = Array.from(value).length;
+  return length >= 1 && length <= 12;
+}
+function deriveAdminPassword(password: string, salt: Buffer): Buffer {
+  return scryptSync(password, salt, 32, { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
+}
 function validDateOrNull(value: unknown): value is string | null | undefined {
   if (value === undefined || value === null) return true;
   if (typeof value !== "string") return false;
@@ -123,11 +154,38 @@ export class ResourceCatalogService {
     this.generateAssignmentPublicId = options.generateAssignmentPublicId ?? randomUUID; this.newSessionToken = options.generateSessionToken ?? createSessionToken;
   }
 
+  adminCredentialConfigured(): boolean { return this.catalog.getAdminCredential() !== undefined; }
+
   unlockAdmin(candidate: string, configuredPassword: string | undefined): { rawToken: string; expiresAt: string } | undefined {
-    if (typeof configuredPassword !== "string" || configuredPassword.length < 16 || typeof candidate !== "string") return undefined;
-    if (!timingSafeEqual(digest(candidate), digest(configuredPassword))) return undefined;
+    if (!validAdminLoginPassword(candidate)) return undefined;
+    let credential = this.catalog.getAdminCredential();
+    if (!credential) {
+      if (!validAdminBootstrapPassword(configuredPassword)) return undefined;
+      const salt = randomBytes(16);
+      const passwordHash = deriveAdminPassword(configuredPassword, salt);
+      this.catalog.seedAdminCredential({ passwordSalt: salt, passwordHash, updatedAt: this.clock().toISOString() });
+      credential = this.catalog.getAdminCredential();
+    }
+    if (!credential) return undefined;
+    const candidateHash = deriveAdminPassword(candidate, credential.passwordSalt);
+    if (!timingSafeEqual(candidateHash, credential.passwordHash)) return undefined;
     const now = this.clock(); const expires = new Date(now.getTime() + RESOURCE_CATALOG_ADMIN_SESSION_TTL_SECONDS * 1000); const token = this.newSessionToken();
     this.catalog.insertAdminSession({ tokenHash: token.tokenHash, createdAt: now.toISOString(), expiresAt: expires.toISOString() });
+    return { rawToken: token.rawToken, expiresAt: expires.toISOString() };
+  }
+
+  changeAdminPassword(rawToken: string | undefined, newPassword: string): { rawToken: string; expiresAt: string } {
+    if (!this.authorizeAdmin(rawToken)) throw new ResourceCatalogAuthorizationError();
+    if (!validNewAdminPassword(newPassword)) throw new ResourceCatalogInvalidInputError();
+    const salt = randomBytes(16); const passwordHash = deriveAdminPassword(newPassword, salt);
+    const now = this.clock(); const expires = new Date(now.getTime() + RESOURCE_CATALOG_ADMIN_SESSION_TTL_SECONDS * 1000); const token = this.newSessionToken();
+    const rotate = this.database.transaction(() => {
+      if (!this.authorizeAdmin(rawToken)) throw new ResourceCatalogAuthorizationError();
+      this.catalog.replaceAdminCredential({ passwordSalt: salt, passwordHash, updatedAt: now.toISOString() });
+      this.catalog.revokeAllAdminSessions(now.toISOString());
+      this.catalog.insertAdminSession({ tokenHash: token.tokenHash, createdAt: now.toISOString(), expiresAt: expires.toISOString() });
+    });
+    rotate.immediate();
     return { rawToken: token.rawToken, expiresAt: expires.toISOString() };
   }
   authorizeAdmin(rawToken: string | undefined): { id: number; expiresAt: string } | undefined {

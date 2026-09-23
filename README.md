@@ -97,11 +97,11 @@ npx playwright install chromium
 | `NODE_ENV` | 개발 서버는 development, production 서버는 production. DB CLI에도 production 정책을 적용하려면 명시적으로 전달 |
 | `PORT` | 실행 포트. 예제에서는 `.env` 값에 의존하지 않고 `--port`로 지정 |
 | `APP_BASE_URL` | Project 생성의 `Origin`과 정확히 비교하는 canonical origin. scheme/host/port가 browser 주소와 같아야 하며 production은 기본 HTTPS, ALLOW_INSECURE_HTTP=true일 때 내부망 HTTP 허용 |
-| `RESOURCE_CATALOG_ADMIN_PASSWORD` | 글로벌 Resource/Resource Group 관리 전용 비밀번호. Project 편집 비밀번호와 별도이며 16자 미만이면 관리자 로그인이 fail-closed. Docker Compose에서는 필수 입력이며 누락 시 `docker compose ... config` 단계에서 배포를 중단 |
+| `RESOURCE_CATALOG_ADMIN_PASSWORD` | 글로벌 Resource/Resource Group 관리 전용 비밀번호. 신규 설치 seed는 1~12자를 사용한다. 업그레이드 시 기존 16자 이상 값은 최초 로그인에서 호환 migration seed로 허용하고 DB에 해시 저장한다. 이후 UI에서 변경한 DB 자격증명이 우선 적용된다. Docker Compose에서는 필수 입력이며 누락 시 `docker compose ... config` 단계에서 배포를 중단 |
 | `TRUST_PROXY` | `true`일 때만 검증된 reverse proxy의 `X-Request-ID`를 상관관계 ID로 신뢰. Origin/HTTP/Cookie 정책은 변경하지 않음 |
 | `LOG_LEVEL` | `debug`, `info`, `warn`, `error`. development 기본 `debug`, 그 외 기본 `info` |
 
-Docker Compose의 `--env-file .env`는 Compose 변수 치환 입력이며 모든 값을 컨테이너에 자동 전달하지 않는다. `deploy/compose.yml`은 `RESOURCE_CATALOG_ADMIN_PASSWORD`를 app 환경에 명시적으로 전달하고, 값이 없으면 container 생성 전 config 단계에서 fail-fast 한다. 값을 변경한 뒤에는 단순 `restart`가 아니라 container를 재생성해야 한다.
+Docker Compose의 `--env-file .env`는 Compose 변수 치환 입력이며 모든 값을 컨테이너에 자동 전달하지 않는다. `deploy/compose.yml`은 `RESOURCE_CATALOG_ADMIN_PASSWORD`를 app 환경에 명시적으로 전달하고, 값이 없으면 container 생성 전 config 단계에서 fail-fast 한다. Resource 관리자 credential이 DB에 생성된 뒤에는 환경변수 변경이 비밀번호를 덮어쓰지 않는다. 다른 환경 설정을 변경해 반영할 때는 단순 `restart`가 아니라 container를 재생성해야 한다.
 
 Next.js 앱은 `.env.local` 등의 설정을 읽을 수 있지만 **DB CLI는 `.env`·`.env.local`을 자동 로딩하지 않는다.** CLI에는 아래처럼 명시적으로 전달한다. Production의 `/data` 경로는 로컬 계정에 쓰기 권한이 없을 수 있으므로 개발 예제는 repository 안의 `.data`를 사용한다.
 
@@ -112,10 +112,10 @@ NODE_ENV=development DATABASE_PATH="$PWD/.data/mastergantt.sqlite3" npm run db:m
 최초 성공 시 npm 출력 뒤에 다음 결과가 나온다.
 
 ```json
-{"status":"ok","applied":["0001_initial_schema.sql","0002_task_description_url.sql","0003_resource_catalog.sql","0004_project_owner.sql","0005_resource_workload.sql","0006_work_calendars.sql"]}
+{"status":"ok","applied":["0001_initial_schema.sql","0002_task_description_url.sql","0003_resource_catalog.sql","0004_project_owner.sql","0005_resource_workload.sql","0006_work_calendars.sql","0007_resource_admin_credentials.sql"]}
 ```
 
-동일 명령을 다시 실행하면 `applied`가 빈 배열이 된다. 기본 Project/Task 테이블 외에 `resource_catalog_state`, `resources`, `resource_groups`, `resource_group_members`, `resource_catalog_admin_sessions`, `task_assignments`, `work_calendar_rules`, `work_calendar_dates`가 있으며 migration 이력은 `schema_migrations`가 관리한다. `project_holidays`는 0006 이후 기존 코드 호환 VIEW다. 프로젝트·작업·리소스 예제 row를 자동 생성하지 않는다.
+동일 명령을 다시 실행하면 `applied`가 빈 배열이 된다. 기본 Project/Task 테이블 외에 `resource_catalog_state`, `resources`, `resource_groups`, `resource_group_members`, `resource_catalog_admin_sessions`, `resource_catalog_admin_credentials`, `task_assignments`, `work_calendar_rules`, `work_calendar_dates`가 있으며 migration 이력은 `schema_migrations`가 관리한다. `project_holidays`는 0006 이후 기존 코드 호환 VIEW다. 프로젝트·작업·리소스 예제 row를 자동 생성하지 않는다.
 
 적용 이력·checksum을 검증하고 미적용 SQL과 ledger 기록을 하나의 transaction으로 적용한다. 오류 시 실패하며, 적용한 SQL을 수정하거나 ledger를 지워 재시도하지 않는다. 변경에는 새 migration을 추가한다. 상세 계약은 [DB_SCHEMA](docs/DB_SCHEMA.md)를 참고한다.
 
@@ -134,7 +134,7 @@ Repository root에서 `.env.local`에 최소 다음 값을 설정하고 실행�
 ```dotenv
 DATABASE_PATH=.data/mastergantt.sqlite3
 APP_BASE_URL=http://127.0.0.1:3000
-RESOURCE_CATALOG_ADMIN_PASSWORD=change-me-resource-admin-password
+RESOURCE_CATALOG_ADMIN_PASSWORD=Admin123456!
 ```
 
 ```sh

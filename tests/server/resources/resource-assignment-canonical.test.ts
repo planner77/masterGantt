@@ -82,8 +82,8 @@ describe("resource assignment canonical Project aggregate", () => {
       const resources = new ResourceCatalogService(fixture.database, { clock });
       const projects = new TaskFieldProjectService(fixture.database, { clock });
       const admin = resources.unlockAdmin(
-        "correct-resource-admin-password",
-        "correct-resource-admin-password",
+        "Admin123456!",
+        "Admin123456!",
       );
       if (!admin) throw new Error("admin session not created");
 

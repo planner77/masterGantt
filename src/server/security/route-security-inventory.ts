@@ -9,6 +9,7 @@ export type RouteSecurityPolicy =
   | "resource-admin-read"
   | "origin-resource-admin-auth"
   | "origin-resource-admin-logout"
+  | "origin-resource-admin-password"
   | "origin-resource-admin-if-match"
   | "project-edit-session-read";
 
@@ -41,6 +42,7 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/tasks/{taskId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/resource-catalog/admin-sessions", method: "POST", policy: "origin-resource-admin-auth", mutatesState: true },
   { template: "/api/resource-catalog/admin-sessions", method: "DELETE", policy: "origin-resource-admin-logout", mutatesState: true },
+  { template: "/api/resource-catalog/admin-password", method: "PUT", policy: "origin-resource-admin-password", mutatesState: true },
   { template: "/api/resources", method: "GET", policy: "resource-admin-read", mutatesState: false },
   { template: "/api/resources", method: "POST", policy: "origin-resource-admin-if-match", mutatesState: true },
   { template: "/api/resources/{resourceId}", method: "PATCH", policy: "origin-resource-admin-if-match", mutatesState: true },

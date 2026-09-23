@@ -97,12 +97,12 @@ Docker `HEALTHCHECK`와 Compose healthcheck는 `ready`를 호출한다. interval
 | `PORT` | 예 | application listen port; reverse proxy만 public expose |
 | `DATABASE_PATH` | 예 | production은 `/data/` 아래 absolute SQLite filename |
 | `APP_BASE_URL` | 예 | canonical 외부 origin. 기본 HTTPS; ALLOW_INSECURE_HTTP=true일 때 HTTP 허용. trailing slash/path/query/fragment/userinfo 금지 |
-| `RESOURCE_CATALOG_ADMIN_PASSWORD` | Compose: 예 | 글로벌 Resource/Resource Group 관리자 비밀번호. 최소 16자 정책을 유지하며 Compose는 미설정 시 config 단계에서 fail-fast; 직접 실행 환경은 기존 API fail-closed 정책 유지 |
+| `RESOURCE_CATALOG_ADMIN_PASSWORD` | Compose: 예 | 글로벌 Resource/Resource Group 관리자 비밀번호. 신규 설치 seed는 1~12자. 업그레이드 DB에서 기존 16자 이상 값은 최초 로그인 시 legacy seed로 호환 migration하며, 이후 DB 런타임 변경값이 우선한다. Compose는 미설정 시 config 단계에서 fail-fast; 직접 실행 환경은 기존 API fail-closed 정책 유지 |
 | `ALLOW_INSECURE_HTTP` | 선택 | 미설정/false는 HTTPS-only, true만 HTTP 허용. 빈 값/기타 리터럴은 설정 오류 |
 | `TRUST_PROXY` | 선택 | `true`일 때만 검증된 reverse proxy `X-Request-ID`를 신뢰. Origin/HTTPS/Cookie 정책과 무관 |
 | `LOG_LEVEL` | 선택 | `debug`, `info`, `warn`, `error`; production 기본 `info`. 잘못된 값은 안전 기본값 + 진단 경고 |
 
-`docker compose --env-file .env`의 `--env-file`은 Compose 변수 치환용 입력이며 `.env`의 모든 항목을 컨테이너에 자동 전달하지 않는다. 따라서 `deploy/compose.yml`은 `RESOURCE_CATALOG_ADMIN_PASSWORD: ${RESOURCE_CATALOG_ADMIN_PASSWORD:?Set RESOURCE_CATALOG_ADMIN_PASSWORD}`를 명시해 실제 app 환경으로 전달한다. 값이 없으면 container 생성 전에 실패하며, 값 변경 후에는 `restart`가 아니라 `docker compose ... up -d --force-recreate app` 또는 동등한 재생성 절차를 사용한다. 실제 비밀번호 원문은 Compose/애플리케이션 로그에 출력하지 않는다.
+`docker compose --env-file .env`의 `--env-file`은 Compose 변수 치환용 입력이며 `.env`의 모든 항목을 컨테이너에 자동 전달하지 않는다. 따라서 `deploy/compose.yml`은 `RESOURCE_CATALOG_ADMIN_PASSWORD: ${RESOURCE_CATALOG_ADMIN_PASSWORD:?Set RESOURCE_CATALOG_ADMIN_PASSWORD}`를 명시해 실제 app 환경으로 전달한다. 값이 없으면 container 생성 전에 실패한다. 기존 배포의 16자 이상 관리자 비밀번호는 migration 직후 최초 정상 로그인에서만 legacy bootstrap 값으로 받아 SQLite scrypt credential로 저장할 수 있다. 신규/변경 비밀번호는 1~12자를 사용한다. 최초 seed 이후 UI에서 변경한 값은 SQLite에 유지되며 환경변수 변경이나 컨테이너 재생성으로 덮어쓰지 않는다. 실제 비밀번호 원문은 Compose/애플리케이션 로그에 출력하지 않는다.
 
 `APP_BASE_URL`은 URL parser로 검증한다. protocol은 기본 `https:`이며 명시적 `ALLOW_INSECURE_HTTP=true`에서만 `http:`도 허용한다. 나머지 검증에서 hostname은 deployment owner가 승인한 canonical public host, port는 선택한 HTTP/HTTPS scheme의 default 또는 승인한 명시 port만 허용하며 URL origin과 입력이 동일해야 한다. 이 값으로만 `${APP_BASE_URL}/projects/${public_id}`를 만들고, request `Host`/forwarded host나 user input으로 export hyperlink를 만들지 않는다. public ID는 secret이 아니며 URL에 password/session을 넣지 않는다.
 

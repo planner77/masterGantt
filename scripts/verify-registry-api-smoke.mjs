@@ -19,7 +19,7 @@ const request = (path, options = {}) => fetch(new URL(path, baseUrl), {
 
 const projectResponse = await request("/api/projects", {
   method: "POST",
-  body: JSON.stringify({ name: "Registry smoke", ownerName: "Registry smoke owner", description: "commit image", editPassword: "registry-smoke-password" }),
+  body: JSON.stringify({ name: "Registry smoke", ownerName: "Registry smoke owner", description: "commit image", editPassword: "Smoke123456!" }),
 });
 if (projectResponse.status !== 201) throw new Error(`project create status ${projectResponse.status}`);
 const project = (await projectResponse.json()).data.project;

@@ -40,7 +40,7 @@ async function fixture() {
   const created = await service.create({
     name: "Hierarchy",
     description: "",
-    editPassword: "password phrase",
+    editPassword: "Pass123456!",
   });
   const authorization = service.authorize(
     created.response.data.project.publicId,
@@ -287,7 +287,7 @@ describe("ProjectService task hierarchy mutations", () => {
       const other = await value.service.create({
         name: "Other",
         description: "",
-        editPassword: "password phrase",
+        editPassword: "Pass123456!",
       });
       const otherAuthorization = value.service.authorize(
         other.response.data.project.publicId,

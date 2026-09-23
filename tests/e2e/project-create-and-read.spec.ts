@@ -6,7 +6,7 @@ function uniqueSuffix(): string { return `${Date.now()}-${Math.random().toString
 test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호를 확인하는 삭제", async ({ browser, page }) => {
   const suffix = uniqueSuffix();
   const name = `E2E Project ${suffix}`;
-  const password = `E2E-password-${suffix}`;
+  const password = "E2E123456!";
   const initialCollectionResponse = await page.request.get("/api/projects");
   expect(initialCollectionResponse.status()).toBe(200);
   const initialCollection = await initialCollectionResponse.json();
@@ -27,9 +27,11 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
   await create.click();
   await expect(page.locator(".form-error")).toHaveText("소유자를 입력해 주세요.");
   await page.getByLabel("소유자").fill(E2E_PROJECT_OWNER);
-  await page.getByLabel("편집 비밀번호").fill("😀".repeat(11));
+  const passwordInput = page.getByLabel("편집 비밀번호");
+  await expect(passwordInput).not.toHaveAttribute("maxlength", "12");
+  await passwordInput.fill("😀".repeat(13));
   await create.click();
-  await expect(page.locator(".form-error")).toHaveText("편집 비밀번호는 12자 이상이어야 합니다.");
+  await expect(page.locator(".form-error")).toHaveText("편집 비밀번호는 1~12자로 입력해 주세요.");
   await page.getByLabel("설명 (선택)").fill("브라우저 통합 검증 프로젝트");
   await page.getByLabel("편집 비밀번호").fill(password);
   await submitProjectAndExpectCreated(page);
@@ -200,7 +202,7 @@ test("생성·목록·직접 읽기·실제 링크 복사와 매번 비밀번호
 
 test("clears a password after a safe server validation error and permits recovery", async ({ page }) => {
   const suffix = uniqueSuffix();
-  const password = `E2E-password-${suffix}`;
+  const password = "E2E123456!";
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름").fill(`Validation ${suffix}`);
   await page.getByLabel("소유자").fill(E2E_PROJECT_OWNER);

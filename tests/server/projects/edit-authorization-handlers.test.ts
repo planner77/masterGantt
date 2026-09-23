@@ -104,7 +104,7 @@ describe("W05 edit session handlers", () => {
   it("unlocks with bounded rate checks and emits only a hardened cookie", async () => {
     const api = service();
     const response = await handleUnlockProject(
-      jsonRequest(`/api/projects/${publicId}/edit-sessions`, "POST", { editPassword: "password phrase" }),
+      jsonRequest(`/api/projects/${publicId}/edit-sessions`, "POST", { editPassword: "Pass123456!" }),
       publicId,
       {
         ...common,
@@ -117,7 +117,7 @@ describe("W05 edit session handlers", () => {
     expect(await response.text()).toBe("");
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     expect(response.headers.get("set-cookie")).toContain(`__Host-mastergantt_edit=${rawToken}`);
-    expect(JSON.stringify([...response.headers])).not.toContain("password phrase");
+    expect(JSON.stringify([...response.headers])).not.toContain("Pass123456!");
   });
 
   it("returns identical generic errors for wrong and unknown credentials", async () => {
@@ -369,7 +369,7 @@ describe("W05 protected project handlers", () => {
 
   it("rotates with a bodyless 204, new ETag/cookie, and capacity mapping", async () => {
     const response = await handleChangeEditPassword(
-      jsonRequest(`/api/projects/${publicId}/edit-password`, "PUT", { newEditPassword: "new password phrase" }, { Cookie: cookie, "If-Match": '"1"' }),
+      jsonRequest(`/api/projects/${publicId}/edit-password`, "PUT", { newEditPassword: "New123456!" }, { Cookie: cookie, "If-Match": '"1"' }),
       publicId,
       { ...common, service: service() },
     );
@@ -379,7 +379,7 @@ describe("W05 protected project handlers", () => {
     expect(response.headers.get("set-cookie")).toContain(rawToken);
 
     const busy = await handleChangeEditPassword(
-      jsonRequest(`/api/projects/${publicId}/edit-password`, "PUT", { newEditPassword: "new password phrase" }, { Cookie: cookie, "If-Match": '"1"' }),
+      jsonRequest(`/api/projects/${publicId}/edit-password`, "PUT", { newEditPassword: "New123456!" }, { Cookie: cookie, "If-Match": '"1"' }),
       publicId,
       { ...common, service: service({ rotatePassword: vi.fn(async () => { throw new PasswordHashCapacityError(); }) }) },
     );
@@ -392,7 +392,7 @@ describe("W05 protected project handlers", () => {
     ["DELETE", "logout"],
   ])("rejects cross Origin for %s %s before service access", async (method) => {
     const api = service();
-    const request = jsonRequest(`/api/projects/${publicId}`, method, method === "PUT" ? { newEditPassword: "new password phrase" } : { name: "X" }, {
+    const request = jsonRequest(`/api/projects/${publicId}`, method, method === "PUT" ? { newEditPassword: "New123456!" } : { name: "X" }, {
       Origin: "https://evil.test",
       Cookie: cookie,
       "If-Match": '"1"',
@@ -432,6 +432,7 @@ describe("route security inventory", () => {
       "DELETE /api/projects/{publicId}/tasks/{taskId}",
       "POST /api/resource-catalog/admin-sessions",
       "DELETE /api/resource-catalog/admin-sessions",
+      "PUT /api/resource-catalog/admin-password",
       "GET /api/resources",
       "POST /api/resources",
       "PATCH /api/resources/{resourceId}",

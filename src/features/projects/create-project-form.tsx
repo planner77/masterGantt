@@ -8,8 +8,8 @@ import type {
   CreateProjectResponse,
 } from "@/contracts/projects";
 
-const MINIMUM_PASSWORD_LENGTH = 12;
-const MAXIMUM_PASSWORD_BYTES = 1024;
+const MINIMUM_PASSWORD_LENGTH = 1;
+const MAXIMUM_PASSWORD_LENGTH = 12;
 const MAXIMUM_OWNER_LENGTH = 100;
 const API_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   INVALID_JSON: "입력 전송 형식을 확인한 뒤 다시 시도해 주세요.",
@@ -77,12 +77,9 @@ export function CreateProjectForm() {
       setError(`소유자는 ${MAXIMUM_OWNER_LENGTH}자 이하여야 합니다.`);
       return;
     }
-    if (codePointLength(editPassword) < MINIMUM_PASSWORD_LENGTH) {
-      setError(`편집 비밀번호는 ${MINIMUM_PASSWORD_LENGTH}자 이상이어야 합니다.`);
-      return;
-    }
-    if (new TextEncoder().encode(editPassword).byteLength > MAXIMUM_PASSWORD_BYTES) {
-      setError("편집 비밀번호는 UTF-8 기준 1,024 bytes 이하여야 합니다.");
+    const passwordLength = codePointLength(editPassword);
+    if (passwordLength < MINIMUM_PASSWORD_LENGTH || passwordLength > MAXIMUM_PASSWORD_LENGTH) {
+      setError("편집 비밀번호는 1~12자로 입력해 주세요.");
       return;
     }
 
@@ -179,7 +176,7 @@ export function CreateProjectForm() {
           value={editPassword}
         />
         <p id="project-password-help">
-          최소 12자, UTF-8 기준 최대 1,024 bytes입니다. 서버가 최종 검증합니다.
+          1~12자, UTF-8 기준 최대 1,024 bytes입니다. 서버가 최종 검증합니다.
         </p>
       </div>
 
