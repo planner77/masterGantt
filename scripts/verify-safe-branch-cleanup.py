@@ -267,14 +267,14 @@ def executable_tokens(tokens: list[str]) -> list[str]:
                 continue
             if token in ("-S", "--split-string") and index + 1 < len(tokens):
                 try:
-                    split_args = shlex.split(tokens[index + 1], posix=True)
+                    split_args = shlex.split(tokens[index + 1].replace("\\_", " "), posix=True)
                 except ValueError:
                     return []
                 tokens = tokens[:index] + split_args + tokens[index + 2 :]
                 continue
             if token.startswith("--split-string="):
                 try:
-                    split_args = shlex.split(token.split("=", 1)[1], posix=True)
+                    split_args = shlex.split(token.split("=", 1)[1].replace("\\_", " "), posix=True)
                 except ValueError:
                     return []
                 tokens = tokens[:index] + split_args + tokens[index + 1 :]
@@ -437,7 +437,7 @@ def lexical_git_push_deletions(text: str) -> list[str]:
     canonical = text.replace("\\_", " ")
     findings = []
     git_push = re.compile(
-        r"(?<![A-Za-z0-9_.-])(?:[^\s;&|(){}]+/)?git\b(?P<prefix>[^\n;&|{}]*?)\bpush\b(?P<args>[^\n;&|{}]*)",
+        r"(?:^|(?<=[;&|(){}]))[ \t]*(?:[^\s;&|(){}]+/)?git\b(?P<prefix>[^\n;&|{}]*?)\bpush\b(?P<args>[^\n;&|{}]*)",
         re.IGNORECASE,
     )
     for match in git_push.finditer(canonical):
