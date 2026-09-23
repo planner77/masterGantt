@@ -129,7 +129,7 @@ GitHub-hosted runner가 접근할 수 없는 사내 시스템, Windows Excel/DRM
 
 ## Issue #87 브랜치 정리 검증과 종료 Gate
 
-[issue-87-branch-cleanup.yml](../.github/workflows/issue-87-branch-cleanup.yml)의 추가 trigger/권한/퇴역 계약은 [CI_CD.md](CI_CD.md) 9절을 따른다. 정식 release와 별개인 고정 PR #88 운영 정리다.
+Issue #87에서 사용한 고정 cleanup workflow는 Issue #124에서 퇴역했다. 현재 branch cleanup 검증/삭제 계약은 [공통 안전 cleanup 도구](../scripts/safe_branch_cleanup.py)와 [CI_CD.md](CI_CD.md) 9절을 따른다. 아래 표는 당시 PR #88 운영 정리 증거의 역사적 기록이다.
 
 | 계층 | 실행과 필수 증거 |
 | --- | --- |
