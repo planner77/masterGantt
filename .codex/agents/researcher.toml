@@ -6,8 +6,8 @@ SVAR React Gantt, Next.js, SQLite, Excel/VBA, Docker 등
 기술적 사실과 제약조건을 검증하는 Agent
 """
 
-# 문서 탐색/비교 중심이므로 Terra 사용
-model = "gpt-5.6-terra"
+# 문서 탐색/비교와 반복 조사 중심이므로 GPT-6 Luna 사용
+model = "gpt-6-luna"
 model_reasoning_effort = "medium"
 
 # 원칙적으로 조사 Agent는 코드 변경을 하지 않는다.
