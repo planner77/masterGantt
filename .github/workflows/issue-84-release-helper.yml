@@ -47,11 +47,36 @@ jobs:
           owner="${GITHUB_REPOSITORY%%/*}"
           repo_name="${GITHUB_REPOSITORY#*/}"
 
-          app_pr_ci_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=pull_request&per_page=100")"
-          app_pr_ci="$(jq -c --arg sha "$app_head_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$app_pr_ci_runs")"
-          test -n "$app_pr_ci"
-          test "$(jq -r .status <<<"$app_pr_ci")" = "completed"
-          test "$(jq -r '.conclusion // ""' <<<"$app_pr_ci")" = "success"
+          verify_pr_ci() {
+            pr_number="$1"
+            expected_sha="$2"
+            expected_branch="$3"
+            expected_repo="$4"
+            expected_base="$5"
+
+            test -n "$pr_number"
+            test -n "$expected_sha"
+            test -n "$expected_branch"
+            test "$expected_repo" = "$GITHUB_REPOSITORY"
+            test "$expected_base" = "main"
+
+            source_prs="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=all&head=$owner:$expected_branch&per_page=100")"
+            source_matches="$(jq --arg sha "$expected_sha" --arg branch "$expected_branch" --arg repo "$expected_repo" '[.[] | select(.head.sha == $sha and .head.ref == $branch and .head.repo.full_name == $repo)]' <<<"$source_prs")"
+            test "$(jq 'length' <<<"$source_matches")" = "1"
+            test "$(jq -r '.[0].number' <<<"$source_matches")" = "$pr_number"
+            test "$(jq -r '.[0].base.ref' <<<"$source_matches")" = "$expected_base"
+
+            ci_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=pull_request&per_page=100")"
+            ci_run="$(jq -c --arg sha "$expected_sha" --arg branch "$expected_branch" --arg repo "$expected_repo" --arg repository "$GITHUB_REPOSITORY" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $branch and .head_repository.full_name == $repo and .repository.full_name == $repository)] | sort_by(.created_at) | last // empty' <<<"$ci_runs")"
+            test -n "$ci_run"
+            test "$(jq -r .status <<<"$ci_run")" = "completed"
+            test "$(jq -r '.conclusion // ""' <<<"$ci_run")" = "success"
+          }
+
+          app_head_branch="$(jq -r .head.ref <<<"$pr114")"
+          app_head_repo="$(jq -r .head.repo.full_name <<<"$pr114")"
+          app_base_ref="$(jq -r .base.ref <<<"$pr114")"
+          verify_pr_ci "114" "$app_head_sha" "$app_head_branch" "$app_head_repo" "$app_base_ref"
 
           app_review_gate="$(gh api graphql \
             -f query='query($owner:String!,$repo:String!){repository(owner:$owner,name:$repo){pullRequest(number:114){reviewThreads(first:100){nodes{isResolved} pageInfo{hasNextPage}} reviews(last:100){nodes{author{login} commit{oid}}}}}}' \
@@ -78,11 +103,10 @@ jobs:
           test -n "$release_pr_number"
           test -n "$release_head_sha"
 
-          pr_ci_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=pull_request&per_page=100")"
-          pr_ci="$(jq -c --arg sha "$release_head_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$pr_ci_runs")"
-          test -n "$pr_ci"
-          test "$(jq -r .status <<<"$pr_ci")" = "completed"
-          test "$(jq -r '.conclusion // ""' <<<"$pr_ci")" = "success"
+          release_head_branch="$(jq -r .head.ref <<<"$release_pr")"
+          release_head_repo="$(jq -r .head.repo.full_name <<<"$release_pr")"
+          release_base_ref="$(jq -r .base.ref <<<"$release_pr")"
+          verify_pr_ci "$release_pr_number" "$release_head_sha" "$release_head_branch" "$release_head_repo" "$release_base_ref"
 
           review_gate="$(gh api graphql \
             -f query='query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){reviewThreads(first:100){nodes{isResolved} pageInfo{hasNextPage}} reviews(last:100){nodes{author{login} commit{oid}}}}}}' \
