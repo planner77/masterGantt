@@ -34,7 +34,7 @@
   --action-selected: var(--primary);
   --action-selected-subtle: #dbeafe;
   --action-selected-foreground: #1d4ed8;
-  --focus-ring: #285b8c;
+  --focus-ring: #1f4f82;
   --focus-outline: 3px solid var(--focus-ring);
   --focus-offset: 3px;
   --state-disabled-opacity: 0.6;
@@ -487,7 +487,7 @@ h2 {
 .form-field input:focus-visible,
 .form-field textarea:focus-visible {
   outline: var(--focus-outline);
-  outline-offset: 1px;
+  outline-offset: var(--focus-offset);
 }
 
 .form-error {
@@ -1174,7 +1174,7 @@ h2 {
 .project-info-popover > summary:focus-visible,
 .project-action-menu > summary:focus-visible {
   outline: var(--focus-outline);
-  outline-offset: 2px;
+  outline-offset: var(--focus-offset);
 }
 
 .project-info-panel,
@@ -1263,7 +1263,7 @@ h2 {
 
 .project-workspace-tabs button:focus-visible {
   outline: var(--focus-outline);
-  outline-offset: 1px;
+  outline-offset: var(--focus-offset);
 }
 
 .project-readonly > .project-workspace-panels {
