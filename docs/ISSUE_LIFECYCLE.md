@@ -277,7 +277,41 @@ DOCUMENTATION_SYNC PASS 조건:
 
 구현 Agent가 자신의 구현 범위를 넘어 version/tag/PR/merge/GHCR/Issue close를 독자 실행하지 않는다. infrastructure-only 이슈에서 infra가 구현 Agent여도 Manager의 version/release/merge gate를 넘어서지 않는다. qa_docs/researcher/ui_ux는 read-only이며 쓰기 작업을 직접 수행하지 않는다.
 
-### 9.6 REWORK와 재개
+### 9.6 Issue Progress Log 계약
+
+GitHub Issue는 요구사항 Source이자 작업 진행 기록의 기준점이다. Manager는 사람이 Issue만 읽어도 현재 단계, 완료/미완료 사항, 다음 조치, 차단 요인을 파악할 수 있도록 필요한 시점에 댓글을 남긴다. 단, 모든 명령·도구 호출·반복 조회를 기록하지 않는다.
+
+표준 기록 유형:
+
+| 유형 | 기록 시점 | 최소 내용 |
+| --- | --- | --- |
+| `PLAN` | 분석 후 실행 계획 확정 시 | 현재 phase, 범위/비범위, 단계별 계획, 역할/소유권, 검증/문서 계획, version/release 판단 |
+| `STATUS` | 주요 phase 전환 또는 의미 있는 진행 완료 시 | 이전→현재 phase, 완료 항목, 현재 head/PR/CI 등 핵심 증거, 다음 조치 |
+| `EXCEPTION` | 예상 밖 제약·실패·위험·workaround 발견 시 | 사실, 영향, 원인/가설 구분, 임시 조치, 재작업 대상 phase |
+| `DECISION_REQUIRED` | 사용자/maintainer 결정 없이는 진행할 수 없거나 범위가 달라질 때 | 결정 질문, 선택지, 각 영향, 권장 기본안이 있으면 근거, 미결정 시 차단 범위 |
+| `RESUME` | 중단/세션 재개/기존 작업 인수 시 | 실제 원격 상태 재조회 결과, 재사용 branch/PR/run, stale evidence, 재개 phase와 남은 작업 |
+| `FINAL` | 종료 직전 | AC별 결과, PR/merge/main/GHCR/문서/cleanup 증거, N/A/BLOCKED 구분, 남은 위험 |
+
+기록 원칙:
+
+- 동일 상태를 반복 게시하지 않는다. 새 evidence, phase 변경, 실패/차단, 결정 요청 등 **의미 있는 변화**가 있을 때만 추가한다.
+- 짧은 작업은 `PLAN`과 `FINAL`만으로 충분할 수 있다. 장시간/다단계 작업은 주요 gate마다 `STATUS`를 남긴다.
+- CI가 진행 중인 동안 polling 결과를 매번 기록하지 않고, 시작/실패/성공처럼 상태 의미가 바뀔 때만 기록한다.
+- `PASS | FAIL | BLOCKED | NOT TESTED` 판정과 head SHA/run ID/PR 등 검증 식별자는 실제 evidence에 맞게 적는다.
+- Secret, PAT, Password, Token, `.env`, 실제 DB 내용, 민감한 runtime log는 Issue/PR 댓글에 남기지 않는다. 필요한 오류 로그는 secret을 제거한 최소 발췌와 요약만 사용한다.
+- Issue 댓글은 현재 사실을 기록하는 곳이지 과거 실패를 삭제하거나 덮어쓰는 곳이 아니다. 수정이 필요하면 새 댓글 또는 명확한 정정으로 추적성을 유지한다.
+
+소유권:
+
+- Manager가 Issue Progress Log의 최종 책임자다.
+- frontend/backend/scheduler/excel_vba/infra 등 Sub-Agent는 작업 결과와 함께 `issue_log_type`, `issue_log_summary`, `decision_required`, 관련 evidence를 Result Contract로 반환한다.
+- researcher/ui_ux/qa_docs는 read-only 경계를 유지하며 GitHub 원격 상태를 직접 수정하지 않는다.
+- infra는 Work Packet에서 명시적으로 위임받은 경우 branch/PR/CI/GHCR 운영과 직접 관련된 `STATUS`/`EXCEPTION` 댓글을 대신 남길 수 있다. 범위/AC/version/release 판단이나 최종 완료 판단은 Manager 소유다.
+- Sub-Agent가 직접 댓글을 남겼더라도 Manager는 최종 상태와 충돌 여부를 확인하며, 동일 내용을 중복 게시하지 않는다.
+
+`DECISION_REQUIRED`는 단순 정보 공유가 아니라 실제 의사결정 요청이다. 이미 Issue 본문/댓글 또는 사용자 요청에서 답이 확정된 사항을 다시 묻지 않는다. 결정 없이 안전하게 진행 가능한 범위가 있으면 그 범위는 계속 진행하고, 차단되는 phase만 명시한다. 보안·권한·정식 release 승인처럼 명시적 승인이 필요한 항목은 추측하지 않는다.
+
+### 9.7 REWORK와 재개
 
 - 기존 Issue/branch/PR이 있으면 재사용한다.
 - PR head가 바뀌면 이전 head에 연결된 모든 required PR CI(`quality/e2e/docker`)와 최종 QA 판정은 변경 영향도와 무관하게 stale이다. 새 head에서 전체 required PR gate와 최종 QA를 다시 수행한다. Local Fast Feedback만 영향도 기준 재사용을 허용한다.
