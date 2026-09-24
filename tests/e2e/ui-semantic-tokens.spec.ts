@@ -67,6 +67,48 @@ test.describe("Issue #120 semantic UI state tokens", () => {
     expect(contrastRatio(focus.color, focus.background)).toBeGreaterThanOrEqual(3);
   });
 
+
+  test("resource admin measures rendered inactive badge contrast without ancestor opacity", async ({ page }) => {
+    await page.route("**/api/resource-catalog/admin-sessions", async (route) => {
+      if (route.request().method() === "POST") {
+        await route.fulfill({ status: 201, json: { data: { permission: "admin" } } });
+        return;
+      }
+      await route.continue();
+    });
+    await page.route("**/api/resources", async (route) => {
+      if (route.request().method() === "GET") {
+        await route.fulfill({ json: { data: {
+          revision: 7,
+          resources: [{ id: "resource-inactive", name: "Inactive Resource", code: "R-OFF", description: null, active: false }],
+          groups: [{ id: "group-inactive", name: "Inactive Group", code: "G-OFF", description: null, active: false, memberResourceIds: [] }],
+        } } });
+        return;
+      }
+      await route.continue();
+    });
+
+    await page.goto("/resources");
+    await page.getByLabel("관리자 비밀번호").fill("x");
+    await page.getByRole("button", { name: "로그인" }).click();
+    const inactiveBadge = page.getByText("비활성", { exact: true }).first();
+    await expect(inactiveBadge).toBeVisible();
+    const rendered = await inactiveBadge.evaluate((element) => {
+      const style = getComputedStyle(element);
+      const row = element.closest("li");
+      const rowStyle = row ? getComputedStyle(row) : null;
+      return {
+        color: style.color,
+        background: style.backgroundColor,
+        rowBackground: rowStyle?.backgroundColor ?? "rgba(0, 0, 0, 0)",
+        rowOpacity: rowStyle?.opacity ?? "1",
+      };
+    });
+    expect(Number(rendered.rowOpacity)).toBe(1);
+    const background = rendered.background === "rgba(0, 0, 0, 0)" ? (rendered.rowBackground === "rgba(0, 0, 0, 0)" ? "rgb(255, 255, 255)" : rendered.rowBackground) : rendered.background;
+    expect(contrastRatio(rendered.color, background)).toBeGreaterThanOrEqual(4.5);
+  });
+
   test("resource admin keeps the representative viewport widths free of document overflow", async ({ page }) => {
     for (const width of [390, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
