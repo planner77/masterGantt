@@ -94,7 +94,7 @@ function ordinaryTarget(target: EventTarget | null): HTMLElement | null {
   if (target.closest("input, textarea, select, button, a, [contenteditable=true], dialog, .wx-header, .project-task-context-menu")) return null;
   // In edit mode the name text has a single-click Grid editor. Chart bars
   // and readonly name cells retain their existing URL launch behavior.
-  if (target.closest('.project-gantt-frame[data-task-inline-editable="true"] .wx-table-container .wx-row[data-inline-name-eligible="true"] [role="gridcell"][data-col-id="text"] .wx-content > .wx-text')) return null;
+  if (target.closest('.project-gantt-frame[data-task-inline-editable="true"] .wx-table-container .wx-row[data-inline-name-eligible="true"] [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text')) return null;
   const element = target.closest(TASK_TARGET_SELECTOR);
   return element instanceof HTMLElement ? element : null;
 }

@@ -286,7 +286,7 @@ export function ProjectGantt({
         const eligible = Boolean(taskId && editable && !mutationLocked && tasksById.has(taskId) &&
           !taskHasDependencyLinks(tasks, taskId, links));
         if (row.dataset.inlineNameEligible !== String(eligible)) row.dataset.inlineNameEligible = String(eligible);
-        const nameCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id="text"]');
+        const nameCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
         if (nameCell && !eligible && nameCell.getAttribute("aria-readonly") !== "true") nameCell.setAttribute("aria-readonly", "true");
         if (nameCell && eligible && nameCell.hasAttribute("aria-readonly")) nameCell.removeAttribute("aria-readonly");
       });
@@ -852,7 +852,7 @@ export function ProjectGantt({
     const root = ganttScrollReference.current;
     const row = root && Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]"))
       .find((candidate) => taskIdFromElement(candidate) === taskId);
-    const cell = row?.querySelector<HTMLElement>('[role="gridcell"][data-col-id="text"]');
+    const cell = row?.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
     const target = cell ?? (fallback.isConnected ? fallback : null);
     target?.focus({ preventScroll: true });
   }, []);
@@ -920,7 +920,7 @@ export function ProjectGantt({
         taskHasDependencyLinks(Array.from(tasksByIdReference.current.values()), taskId, linksReference.current)) return false;
       const row = Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]"))
         .find((candidate) => taskIdFromElement(candidate) === taskId);
-      const cell = row?.querySelector<HTMLElement>('[role="gridcell"][data-col-id="text"]');
+      const cell = row?.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
       if (!cell) return false;
       const current = inlineSessionReference.current;
       if (current) return false;
@@ -976,8 +976,8 @@ export function ProjectGantt({
     const root = ganttScrollReference.current;
     const api = apiReference.current;
     if (!root || !api || !(event.target instanceof Element)) return;
-    const text = event.target.closest<HTMLElement>('.wx-table-container [role="gridcell"][data-col-id="text"] .wx-content > .wx-text');
-    const cell = text?.closest<HTMLElement>('[role="gridcell"][data-col-id="text"]');
+    const text = event.target.closest<HTMLElement>('.wx-table-container [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text');
+    const cell = text?.closest<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
     const row = cell?.closest<HTMLElement>(".wx-row[data-id]");
     const taskId = row ? taskIdFromElement(row) : null;
     if (!text || !cell || !taskId || !root.contains(cell) || !tasksByIdReference.current.has(taskId) ||
@@ -1016,7 +1016,7 @@ export function ProjectGantt({
 
   function handleHeaderKeyboardMenu(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key === "Enter" && event.target instanceof HTMLInputElement &&
-      event.target.closest('[role="gridcell"][data-col-id="text"]')) {
+      event.target.closest('[role="gridcell"][data-col-id=":text"]')) {
       event.preventDefault();
       event.stopPropagation();
       // Core's input saves on Enter while its editor wrapper also cancels on
@@ -1246,7 +1246,7 @@ export function ProjectGantt({
           onCompositionStart={() => { inlineComposingReference.current = true; }}
           onCompositionEnd={() => { inlineComposingReference.current = false; }}
           onInput={(event) => {
-            if (!(event.target instanceof HTMLInputElement) || !event.target.closest('[role="gridcell"][data-col-id="text"]')) return;
+            if (!(event.target instanceof HTMLInputElement) || !event.target.closest('[role="gridcell"][data-col-id=":text"]')) return;
             event.target.removeAttribute("aria-invalid");
             event.target.removeAttribute("aria-describedby");
             setInlineNameError(false);

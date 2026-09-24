@@ -12,8 +12,8 @@ import {
 } from "../fixtures/stateful-project";
 
 const id = (ordinal: number) => `00000000-0000-4000-8000-${String(ordinal).padStart(12, "0")}`;
-const nameCell = (page: Page, name: string) => rowNamed(page, name).locator('[role="gridcell"][data-col-id="text"]');
-const inlineInput = (page: Page) => ganttRoot(page).locator('[role="gridcell"][data-col-id="text"] input.wx-text');
+const nameCell = (page: Page, name: string) => rowNamed(page, name).locator('[role="gridcell"][data-col-id=":text"]');
+const inlineInput = (page: Page) => ganttRoot(page).locator('[role="gridcell"][data-col-id=":text"] input.wx-text');
 
 async function openName(page: Page, name: string) {
   const cell = nameCell(page, name);
@@ -107,7 +107,7 @@ test("single-click names use one canonical PATCH across Summary, Task and Milest
   // Other cells and tree controls keep their native behavior and do not open an editor.
   await nameCell(page, "Renamed summary").locator('[data-action="open-task"]').click();
   await expect(inlineInput(page)).toHaveCount(0);
-  await rowNamed(page, "Renamed milestone").locator('[role="gridcell"][data-col-id="projectStart"]').click();
+  await rowNamed(page, "Renamed milestone").locator('[role="gridcell"][data-col-id=":projectStart"]').click();
   await expect(inlineInput(page)).toHaveCount(0);
   expect(route.patches).toHaveLength(4);
 });
