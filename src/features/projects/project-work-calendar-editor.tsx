@@ -13,6 +13,7 @@ import type {
   WorkCalendarTargetType,
 } from "../../contracts/work-calendar";
 import type { AssignmentTargetDto, AssignmentTargetsResponse } from "../../contracts/resources";
+import styles from "./project-work-calendar-editor.module.css";
 
 interface Props {
   publicId:string;
@@ -38,6 +39,7 @@ interface CustomDraft {
   targetType:WorkCalendarTargetType;
   targetId:string;
 }
+type CalendarIssue={id:string;label:string;message:string};
 const key=()=>crypto.randomUUID();
 const reasonLabel=(reason:CalendarTaskChangeReason)=>reason==="CALENDAR"?"캘린더":reason==="DEPENDENCY"?"FS 선행 관계":"상위 요약";
 type PreviewOrigin = {publicId:string;revision:number;fingerprint:string};
@@ -102,6 +104,8 @@ export function ProjectWorkCalendarEditor({
   const mounted=useRef(false);
   const previousProject=useRef({publicId,revision});
   const previewButton=useRef<HTMLButtonElement|null>(null);
+  const validationSummary=useRef<HTMLDivElement|null>(null);
+  const [showValidation,setShowValidation]=useState(false);
   const restorePreviewFocus=useRef<number|null>(null);
   useEffect(()=>{
     mounted.current=true;
@@ -191,11 +195,27 @@ export function ProjectWorkCalendarEditor({
     invalidatePreview();
     setCustomDates(update);
   }
-  const invalid=countryRules.some((rule)=>rule.scope==="DATE_RANGE" && (!rule.effectiveFrom || !rule.effectiveTo || rule.effectiveFrom>rule.effectiveTo)) ||
-    customDates.some((entry)=>!entry.name.trim() || !entry.date || (entry.targetType!=="PROJECT" && !entry.targetId));
+  const issues:CalendarIssue[]=[];
+  countryRules.forEach((rule,index)=>{
+    if(rule.scope!=="DATE_RANGE") return;
+    if(!rule.effectiveFrom) issues.push({id:`calendar-rule-${rule.key}-from`,label:`국가 규칙 ${index+1} 시작일`,message:"시작일을 입력해 주세요."});
+    if(!rule.effectiveTo) issues.push({id:`calendar-rule-${rule.key}-to`,label:`국가 규칙 ${index+1} 종료일`,message:"종료일을 입력해 주세요."});
+    else if(rule.effectiveFrom && rule.effectiveFrom>rule.effectiveTo) issues.push({id:`calendar-rule-${rule.key}-to`,label:`국가 규칙 ${index+1} 종료일`,message:"종료일은 시작일보다 빠를 수 없습니다."});
+  });
+  customDates.forEach((entry,index)=>{
+    if(!entry.name.trim()) issues.push({id:`calendar-date-${entry.key}-name`,label:`휴무일 ${index+1} 이름`,message:"휴무일 이름을 입력해 주세요."});
+    if(!entry.date) issues.push({id:`calendar-date-${entry.key}-date`,label:`휴무일 ${index+1} 날짜`,message:"날짜를 입력해 주세요."});
+    if(entry.targetType!=="PROJECT" && !entry.targetId) issues.push({id:`calendar-date-${entry.key}-target`,label:`휴무일 ${index+1} 대상`,message:"대상을 선택해 주세요."});
+  });
+  function invalidSubmission() {
+    if(issues.length===0) {setShowValidation(false);return false;}
+    setShowValidation(true);
+    requestAnimationFrame(()=>validationSummary.current?.focus({preventScroll:true}));
+    return true;
+  }
 
   async function previewCalendar() {
-    if(disabled || working || invalid) return;
+    if(disabled || working || invalidSubmission()) return;
     const operation=++requestSequence.current;
     latestUserOperation.current=operation;
     const submittedOrigin=origin;
@@ -220,7 +240,7 @@ export function ProjectWorkCalendarEditor({
   }
 
   async function saveCalendar() {
-    if(disabled || working || invalid) return;
+    if(disabled || working || invalidSubmission()) return;
     const operation=++requestSequence.current;
     latestUserOperation.current=operation;
     const submittedOrigin=origin;
@@ -256,43 +276,47 @@ export function ProjectWorkCalendarEditor({
     </div>
     <fieldset disabled={disabled||working!==null}>
       <legend>국가 공휴일</legend>
-      {countryRules.map((rule,index)=><div className="form-field" key={rule.key}>
-        <label htmlFor={`country-${rule.key}`}>국가 {index+1}</label>
+      {countryRules.map((rule,index)=><fieldset className={styles.itemFieldset} key={rule.key}>
+        <legend>국가 규칙 {index+1}</legend>
+        <div className="form-field"><label htmlFor={`country-${rule.key}`}>국가 {index+1}</label>
         <select id={`country-${rule.key}`} value={rule.countryCode} onChange={(event)=>changeCountryRules((items)=>items.map((item)=>item.key===rule.key?{...item,countryCode:event.target.value as WorkCalendarCountryCode}:item))}>
           {countries.map((country)=><option key={country.code} value={country.code}>{country.name}</option>)}
-        </select>
-        <select aria-label="적용 범위" value={rule.scope} onChange={(event)=>changeCountryRules((items)=>items.map((item)=>item.key===rule.key?{...item,scope:event.target.value as WorkCalendarScope}:item))}>
+        </select></div>
+        <label className={styles.field}>적용 범위 <select aria-label={`국가 규칙 ${index+1} 적용 범위`} value={rule.scope} onChange={(event)=>changeCountryRules((items)=>items.map((item)=>item.key===rule.key?{...item,scope:event.target.value as WorkCalendarScope}:item))}>
           <option value="FULL_PROJECT">프로젝트 전체 기간</option><option value="DATE_RANGE">기간 지정</option>
-        </select>
-        {rule.scope==="DATE_RANGE"?<div>
-          <input aria-label="시작일" type="date" value={rule.effectiveFrom} onChange={(event)=>changeCountryRules((items)=>items.map((item)=>item.key===rule.key?{...item,effectiveFrom:event.target.value}:item))}/>
-          <input aria-label="종료일" type="date" value={rule.effectiveTo} onChange={(event)=>changeCountryRules((items)=>items.map((item)=>item.key===rule.key?{...item,effectiveTo:event.target.value}:item))}/>
+        </select></label>
+        {rule.scope==="DATE_RANGE"?<div className={styles.dateFields}>
+          <label className={styles.field}>시작일 <input id={`calendar-rule-${rule.key}-from`} aria-label={`국가 규칙 ${index+1} 시작일`} aria-invalid={showValidation&&issues.some((issue)=>issue.id===`calendar-rule-${rule.key}-from`)} aria-describedby={showValidation&&issues.some((issue)=>issue.id===`calendar-rule-${rule.key}-from`)?`calendar-rule-${rule.key}-from-error`:undefined} type="date" value={rule.effectiveFrom} onChange={(event)=>changeCountryRules((items)=>items.map((item)=>item.key===rule.key?{...item,effectiveFrom:event.target.value}:item))}/>{showValidation?issues.filter((issue)=>issue.id===`calendar-rule-${rule.key}-from`).map((issue)=><span className={styles.fieldError} id={`${issue.id}-error`} key={issue.id}>{issue.message}</span>):null}</label>
+          <label className={styles.field}>종료일 <input id={`calendar-rule-${rule.key}-to`} aria-label={`국가 규칙 ${index+1} 종료일`} aria-invalid={showValidation&&issues.some((issue)=>issue.id===`calendar-rule-${rule.key}-to`)} aria-describedby={showValidation&&issues.some((issue)=>issue.id===`calendar-rule-${rule.key}-to`)?`calendar-rule-${rule.key}-to-error`:undefined} type="date" value={rule.effectiveTo} onChange={(event)=>changeCountryRules((items)=>items.map((item)=>item.key===rule.key?{...item,effectiveTo:event.target.value}:item))}/>{showValidation?issues.filter((issue)=>issue.id===`calendar-rule-${rule.key}-to`).map((issue)=><span className={styles.fieldError} id={`${issue.id}-error`} key={issue.id}>{issue.message}</span>):null}</label>
         </div>:null}
-        <button className="secondary-button" type="button" onClick={()=>changeCountryRules((items)=>items.filter((item)=>item.key!==rule.key))}>국가 규칙 삭제</button>
-      </div>)}
+        <button className="secondary-button" type="button" onClick={()=>changeCountryRules((items)=>items.filter((item)=>item.key!==rule.key))}>국가 규칙 삭제 {index+1}</button>
+      </fieldset>)}
       <button className="secondary-button" type="button" disabled={countries.length===0} onClick={()=>changeCountryRules((items)=>[...items,{key:key(),countryCode:(countries[0]?.code??"KR"),scope:"FULL_PROJECT",effectiveFrom:"",effectiveTo:""}])}>국가 규칙 추가</button>
     </fieldset>
     <fieldset disabled={disabled||working!==null}>
       <legend>조직·개인·프로젝트 휴무일</legend>
-      {customDates.map((entry,index)=><div className="form-field" key={entry.key}>
-        <label htmlFor={`custom-name-${entry.key}`}>휴무일 {index+1}</label>
-        <input id={`custom-name-${entry.key}`} placeholder="휴무 사유" value={entry.name} onChange={(event)=>changeCustomDates((items)=>items.map((item)=>item.key===entry.key?{...item,name:event.target.value}:item))}/>
-        <input aria-label="휴무일 날짜" type="date" value={entry.date} onChange={(event)=>changeCustomDates((items)=>items.map((item)=>item.key===entry.key?{...item,date:event.target.value}:item))}/>
-        <select aria-label="휴무 대상" value={entry.targetType} onChange={(event)=>changeCustomDates((items)=>items.map((item)=>item.key===entry.key?{...item,targetType:event.target.value as WorkCalendarTargetType,targetId:""}:item))}>
+      {customDates.map((entry,index)=><fieldset className={styles.itemFieldset} key={entry.key}>
+        <legend>휴무일 항목 {index+1}</legend>
+        <label className={styles.field}>휴무일 {index+1} 이름<input id={`calendar-date-${entry.key}-name`} placeholder="휴무 사유" aria-invalid={showValidation&&issues.some((issue)=>issue.id===`calendar-date-${entry.key}-name`)} aria-describedby={showValidation&&issues.some((issue)=>issue.id===`calendar-date-${entry.key}-name`)?`calendar-date-${entry.key}-name-error`:undefined} value={entry.name} onChange={(event)=>changeCustomDates((items)=>items.map((item)=>item.key===entry.key?{...item,name:event.target.value}:item))}/>{showValidation?issues.filter((issue)=>issue.id===`calendar-date-${entry.key}-name`).map((issue)=><span className={styles.fieldError} id={`${issue.id}-error`} key={issue.id}>{issue.message}</span>):null}</label>
+        <label className={styles.field}>휴무일 날짜 {index+1}<input id={`calendar-date-${entry.key}-date`} aria-invalid={showValidation&&issues.some((issue)=>issue.id===`calendar-date-${entry.key}-date`)} aria-describedby={showValidation&&issues.some((issue)=>issue.id===`calendar-date-${entry.key}-date`)?`calendar-date-${entry.key}-date-error`:undefined} type="date" value={entry.date} onChange={(event)=>changeCustomDates((items)=>items.map((item)=>item.key===entry.key?{...item,date:event.target.value}:item))}/>{showValidation?issues.filter((issue)=>issue.id===`calendar-date-${entry.key}-date`).map((issue)=><span className={styles.fieldError} id={`${issue.id}-error`} key={issue.id}>{issue.message}</span>):null}</label>
+        <label className={styles.field}>휴무 대상 {index+1}<select value={entry.targetType} onChange={(event)=>changeCustomDates((items)=>items.map((item)=>item.key===entry.key?{...item,targetType:event.target.value as WorkCalendarTargetType,targetId:""}:item))}>
           <option value="PROJECT">프로젝트 전체</option><option value="RESOURCE_GROUP">리소스 그룹</option><option value="RESOURCE">리소스</option>
-        </select>
-        {entry.targetType!=="PROJECT"?<select aria-label="대상 선택" value={entry.targetId} onChange={(event)=>changeCustomDates((items)=>items.map((item)=>item.key===entry.key?{...item,targetId:event.target.value}:item))}>
+        </select></label>
+        {entry.targetType!=="PROJECT"?<label className={styles.field}>대상 선택 {index+1}<select id={`calendar-date-${entry.key}-target`} aria-invalid={showValidation&&issues.some((issue)=>issue.id===`calendar-date-${entry.key}-target`)} aria-describedby={showValidation&&issues.some((issue)=>issue.id===`calendar-date-${entry.key}-target`)?`calendar-date-${entry.key}-target-error`:undefined} value={entry.targetId} onChange={(event)=>changeCustomDates((items)=>items.map((item)=>item.key===entry.key?{...item,targetId:event.target.value}:item))}>
           <option value="">대상을 선택하세요</option>
           {targets.filter((target)=>target.kind===(entry.targetType==="RESOURCE"?"resource":"group")).map((target)=><option key={target.id} value={target.id}>{target.name}{target.code?` (${target.code})`:""}</option>)}
-        </select>:null}
-        <button className="secondary-button" type="button" onClick={()=>changeCustomDates((items)=>items.filter((item)=>item.key!==entry.key))}>휴무일 삭제</button>
-      </div>)}
+        </select>{showValidation?issues.filter((issue)=>issue.id===`calendar-date-${entry.key}-target`).map((issue)=><span className={styles.fieldError} id={`${issue.id}-error`} key={issue.id}>{issue.message}</span>):null}</label>:null}
+        <button className="secondary-button" type="button" onClick={()=>changeCustomDates((items)=>items.filter((item)=>item.key!==entry.key))}>휴무일 삭제 {index+1}</button>
+      </fieldset>)}
       <button className="secondary-button" type="button" onClick={()=>changeCustomDates((items)=>[...items,{key:key(),name:"",date:"",targetType:"PROJECT",targetId:""}])}>휴무일 추가</button>
     </fieldset>
-    {invalid?<p role="alert">기간, 휴무일 이름/날짜 및 대상을 확인해 주세요.</p>:null}
+    {showValidation&&issues.length>0?<div className={styles.validationSummary} role="alert" tabIndex={-1} ref={validationSummary}>
+      <strong>작업 캘린더 입력 {issues.length}곳을 확인해 주세요.</strong>
+      <ul>{issues.map((issue)=><li key={issue.id}><button type="button" onClick={()=>document.getElementById(issue.id)?.focus()}>{issue.label}: {issue.message}</button></li>)}</ul>
+    </div>:null}
     <div>
-      <button ref={previewButton} className="secondary-button" disabled={disabled||working!==null||invalid} type="button" onClick={()=>void previewCalendar()}>{working==="preview"?"계산 중…":"미리보기 계산"}</button>
-      <button className="primary-button" disabled={disabled||working!==null||invalid} type="button" onClick={()=>void saveCalendar()}>{working==="save"?"저장 중…":"작업 캘린더 저장"}</button>
+      <button ref={previewButton} className="secondary-button" disabled={disabled||working!==null} type="button" onClick={()=>void previewCalendar()}>{working==="preview"?"계산 중…":"미리보기 계산"}</button>
+      <button className="primary-button" disabled={disabled||working!==null} type="button" onClick={()=>void saveCalendar()}>{working==="save"?"저장 중…":"작업 캘린더 저장"}</button>
     </div>
     <p role="status" aria-live="polite" aria-atomic="true">{previewStatus}</p>
     {preview?<div>

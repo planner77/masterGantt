@@ -11,6 +11,7 @@ import type {
 const MINIMUM_PASSWORD_LENGTH = 1;
 const MAXIMUM_PASSWORD_LENGTH = 12;
 const MAXIMUM_OWNER_LENGTH = 100;
+type ProjectField = "name" | "ownerName" | "editPassword";
 const API_ERROR_MESSAGES: Readonly<Record<string, string>> = {
   INVALID_JSON: "입력 전송 형식을 확인한 뒤 다시 시도해 주세요.",
   INVALID_REQUEST: "프로젝트 입력값을 확인해 주세요.",
@@ -54,35 +55,36 @@ export function CreateProjectForm() {
   const [description, setDescription] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<ProjectField,string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (error) errorReference.current?.focus();
   }, [error]);
+  function clearFieldError(field: ProjectField) {
+    setFieldErrors((current) => { if (!current[field]) return current; const next = { ...current }; delete next[field]; return next; });
+    setError(null);
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isSubmitting) return;
 
-    if (name.trim().length === 0) {
-      setError("프로젝트 이름을 입력해 주세요.");
-      return;
-    }
+    const issues: Partial<Record<ProjectField,string>> = {};
+    if (name.trim().length === 0) issues.name = "프로젝트 이름을 입력해 주세요.";
     const normalizedOwnerName = ownerName.trim();
-    if (normalizedOwnerName.length === 0) {
-      setError("소유자를 입력해 주세요.");
-      return;
-    }
-    if (codePointLength(normalizedOwnerName) > MAXIMUM_OWNER_LENGTH) {
-      setError(`소유자는 ${MAXIMUM_OWNER_LENGTH}자 이하여야 합니다.`);
-      return;
-    }
+    if (normalizedOwnerName.length === 0) issues.ownerName = "소유자를 입력해 주세요.";
+    else if (codePointLength(normalizedOwnerName) > MAXIMUM_OWNER_LENGTH) issues.ownerName = `소유자는 ${MAXIMUM_OWNER_LENGTH}자 이하여야 합니다.`;
     const passwordLength = codePointLength(editPassword);
-    if (passwordLength < MINIMUM_PASSWORD_LENGTH || passwordLength > MAXIMUM_PASSWORD_LENGTH) {
-      setError("편집 비밀번호는 1~12자로 입력해 주세요.");
+    if (passwordLength < MINIMUM_PASSWORD_LENGTH || passwordLength > MAXIMUM_PASSWORD_LENGTH) issues.editPassword = "편집 비밀번호는 1~12자로 입력해 주세요.";
+    if (Object.keys(issues).length > 0) {
+      setFieldErrors(issues);
+      setError(null);
+      requestAnimationFrame(() => errorReference.current?.focus({ preventScroll: true }));
       return;
     }
 
+    setFieldErrors({});
     setError(null);
     setIsSubmitting(true);
     const request: CreateProjectRequest = {
@@ -128,11 +130,14 @@ export function CreateProjectForm() {
           autoComplete="off"
           disabled={isSubmitting}
           id="project-name"
+          aria-invalid={Boolean(fieldErrors.name)}
+          aria-describedby={fieldErrors.name ? "project-name-error" : undefined}
           name="name"
-          onChange={(event) => setName(event.target.value)}
+          onChange={(event) => { setName(event.target.value); clearFieldError("name"); }}
           required
           value={name}
         />
+        {fieldErrors.name ? <p className="form-field-error" id="project-name-error">{fieldErrors.name}</p> : null}
       </div>
 
       <div className="form-field">
@@ -141,12 +146,15 @@ export function CreateProjectForm() {
           autoComplete="off"
           disabled={isSubmitting}
           id="project-owner"
+          aria-invalid={Boolean(fieldErrors.ownerName)}
+          aria-describedby={fieldErrors.ownerName ? "project-owner-help project-owner-error" : "project-owner-help"}
           name="ownerName"
-          onChange={(event) => setOwnerName(event.target.value)}
+          onChange={(event) => { setOwnerName(event.target.value); clearFieldError("ownerName"); }}
           required
           value={ownerName}
         />
-        <p>프로젝트 담당자를 표시하는 정보이며 계정/권한과는 연결되지 않습니다. Unicode 문자 기준 최대 100자입니다.</p>
+        <p id="project-owner-help">프로젝트 담당자를 표시하는 정보이며 계정/권한과는 연결되지 않습니다. Unicode 문자 기준 최대 100자입니다.</p>
+        {fieldErrors.ownerName ? <p className="form-field-error" id="project-owner-error">{fieldErrors.ownerName}</p> : null}
       </div>
 
       <div className="form-field">
@@ -164,13 +172,14 @@ export function CreateProjectForm() {
       <div className="form-field">
         <label htmlFor="project-edit-password">편집 비밀번호</label>
         <input
-          aria-describedby="project-password-help"
+          aria-describedby={fieldErrors.editPassword ? "project-password-help project-password-error" : "project-password-help"}
+          aria-invalid={Boolean(fieldErrors.editPassword)}
           autoComplete="new-password"
           disabled={isSubmitting}
           id="project-edit-password"
           minLength={MINIMUM_PASSWORD_LENGTH}
           name="editPassword"
-          onChange={(event) => setEditPassword(event.target.value)}
+          onChange={(event) => { setEditPassword(event.target.value); clearFieldError("editPassword"); }}
           required
           type="password"
           value={editPassword}
@@ -178,9 +187,13 @@ export function CreateProjectForm() {
         <p id="project-password-help">
           1~12자, UTF-8 기준 최대 1,024 bytes입니다. 서버가 최종 검증합니다.
         </p>
+        {fieldErrors.editPassword ? <p className="form-field-error" id="project-password-error">{fieldErrors.editPassword}</p> : null}
       </div>
 
-      {error ? (
+      {Object.keys(fieldErrors).length > 0 ? <div className="form-error" ref={errorReference} role="alert" tabIndex={-1}>
+        <strong>프로젝트 입력 {Object.keys(fieldErrors).length}곳을 확인해 주세요.</strong>
+        <ul>{(["name", "ownerName", "editPassword"] as const).filter((field) => fieldErrors[field]).map((field) => <li key={field}><button type="button" onClick={() => document.getElementById(field === "name" ? "project-name" : field === "ownerName" ? "project-owner" : "project-edit-password")?.focus()}>{fieldErrors[field]}</button></li>)}</ul>
+      </div> : error ? (
         <div className="form-error" ref={errorReference} role="alert" tabIndex={-1}>
           {error}
         </div>

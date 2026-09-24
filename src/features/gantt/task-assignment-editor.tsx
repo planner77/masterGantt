@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type {
   AssignedTargetsResponse,
@@ -19,6 +19,8 @@ interface Props {
 }
 
 type AllocationDraft = { start: string; end: string; percent: string };
+type AllocationField = "end" | "percent";
+type AllocationIssue = { key: string; field: AllocationField; label: string; message: string };
 
 function projectIdFromPathname(pathname: string): string | null {
   const match = /^\/projects\/([^/]+)\/?$/.exec(pathname);
@@ -49,6 +51,8 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
   const [query, setQuery] = useState("");
   const [kindFilter, setKindFilter] = useState<"all" | "resource" | "group">("all");
   const [assignedOnly, setAssignedOnly] = useState(false);
+  const [allocationIssues, setAllocationIssues] = useState<AllocationIssue[]>([]);
+  const issueSummary = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -117,26 +121,44 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
     const key = targetKey(target);
     setSelected((current) => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next; });
     if (target.kind === "resource") setAllocations((current) => ({ ...current, [key]: current[key] ?? { start: "", end: "", percent: "" } }));
+    setAllocationIssues((current) => current.filter((issue) => issue.key !== key));
     setError(null);
   }
   function changeAllocation(key: string, field: keyof AllocationDraft, value: string) {
     setAllocations((current) => ({ ...current, [key]: { ...(current[key] ?? { start: "", end: "", percent: "" }), [field]: value } }));
+    setAllocationIssues((current) => current.filter((issue) => issue.key !== key || (field === "start" ? issue.field !== "end" : issue.field !== field)));
     setError(null);
+  }
+  function focusAllocationIssue(issue: AllocationIssue) {
+    setQuery("");
+    setKindFilter("all");
+    setAssignedOnly(false);
+    requestAnimationFrame(() => document.getElementById(`allocation-${issue.key}-${issue.field}`)?.focus());
   }
 
   async function save() {
     if (!editable || disabled || saving || catalogRevision === null) return;
     const publicId = projectIdFromPathname(window.location.pathname); if (!publicId) return;
     const requested = [] as Array<{ kind: "resource" | "group"; id: string; allocation?: { start: string | null; end: string | null; percent: number } }>;
+    const issues: AllocationIssue[] = [];
     for (const key of selected) {
       const separator = key.indexOf(":"); const kind = key.slice(0, separator) as "resource" | "group"; const id = key.slice(separator + 1);
       if (kind === "group") { requested.push({ kind, id }); continue; }
       const allocation = allocations[key] ?? { start: "", end: "", percent: "" };
       const percent = Number(allocation.percent);
-      if (!allocation.percent || !Number.isFinite(percent) || percent <= 0 || percent > 100) { setError("개별 리소스의 투입률은 0보다 크고 100 이하로 입력해 주세요."); return; }
-      if (allocation.start && allocation.end && allocation.start > allocation.end) { setError("리소스 투입 시작일은 종료일보다 늦을 수 없습니다."); return; }
+      const target = targets.find((candidate) => targetKey(candidate) === key);
+      const label = `${target?.name ?? "리소스"}${target?.code ? ` (${target.code})` : ""}`;
+      if (!allocation.percent || !Number.isFinite(percent) || percent <= 0 || percent > 100) issues.push({ key, field: "percent", label, message: "투입률은 0보다 크고 100 이하로 입력해 주세요." });
+      if (allocation.start && allocation.end && allocation.start > allocation.end) issues.push({ key, field: "end", label, message: "투입 종료일은 시작일보다 빠를 수 없습니다." });
       requested.push({ kind, id, allocation: { start: allocation.start || null, end: allocation.end || null, percent } });
     }
+    if (issues.length > 0) {
+      setAllocationIssues(issues);
+      setError(null);
+      requestAnimationFrame(() => issueSummary.current?.focus({ preventScroll: true }));
+      return;
+    }
+    setAllocationIssues([]);
     setSaving(true); setError(null);
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/tasks/${encodeURIComponent(taskId)}/assignments`, {
@@ -162,6 +184,10 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
 
     {loading ? <p className={styles.caption} role="status">할당 정보를 불러오는 중…</p> : null}
     {error ? <p className={styles.relationError} role="alert">{error}</p> : null}
+    {allocationIssues.length > 0 ? <div className={styles.validationSummary} role="alert" tabIndex={-1} ref={issueSummary}>
+      <strong>할당 입력 {allocationIssues.length}곳을 확인해 주세요.</strong>
+      <ul>{allocationIssues.map((issue) => <li key={`${issue.key}-${issue.field}`}><button type="button" onClick={() => focusAllocationIssue(issue)}>{issue.label}: {issue.message}</button></li>)}</ul>
+    </div> : null}
     {disabled && editable ? <p className={styles.assignmentNotice}>작업 필드 변경 또는 최신 정보 확인이 필요하여 할당 편집이 잠겨 있습니다.</p> : null}
 
     {!loading && targets.length > 0 ? <div className={styles.assignmentFilters}>
@@ -187,10 +213,13 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
     {!loading && targets.length > 0 && visibleTargets.length === 0 ? <p className={styles.emptyRelation}>현재 필터 조건에 맞는 대상이 없습니다.</p> : null}
 
     {!loading && visibleTargets.length > 0 ? <div className={styles.assignmentList}>
-      {visibleTargets.map((target) => {
+      {visibleTargets.map((target, index) => {
         const key = targetKey(target);
         const checked = selected.has(key);
         const allocation = allocations[key] ?? { start: "", end: "", percent: "" };
+        const identity = `${target.kind === "resource" ? "리소스" : "그룹"} ${index + 1} ${target.name}${target.code ? ` (${target.code})` : ""}`;
+        const percentIssue = allocationIssues.find((issue) => issue.key === key && issue.field === "percent");
+        const endIssue = allocationIssues.find((issue) => issue.key === key && issue.field === "end");
         return <article key={key} className={styles.assignmentRow} data-selected={checked || undefined}>
           <div className={styles.assignmentHeader}>
             <label className={styles.assignmentToggle}>
@@ -205,11 +234,14 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
               </span>
             </label>
           </div>
-          {checked && target.kind === "resource" ? <div className={styles.allocationGrid}>
-            <label className={styles.field}>투입 시작<input type="date" value={allocation.start} disabled={!editable || disabled || saving} onChange={(event) => changeAllocation(key, "start", event.target.value)} /></label>
-            <label className={styles.field}>투입 종료<input type="date" value={allocation.end} disabled={!editable || disabled || saving} onChange={(event) => changeAllocation(key, "end", event.target.value)} /></label>
-            <label className={styles.field}>투입률 (%)<input type="number" min="0.01" max="100" step="0.01" value={allocation.percent} disabled={!editable || disabled || saving} onChange={(event) => changeAllocation(key, "percent", event.target.value)} /></label>
-          </div> : null}
+          {checked && target.kind === "resource" ? <fieldset className={styles.allocationFieldset}>
+            <legend>{identity} 투입 정보</legend>
+            <div className={styles.allocationGrid}>
+              <label className={styles.field}>투입 시작<input id={`allocation-${key}-start`} aria-label={`${identity} 투입 시작`} type="date" value={allocation.start} disabled={!editable || disabled || saving} onChange={(event) => changeAllocation(key, "start", event.target.value)} /></label>
+              <label className={styles.field}>투입 종료<input id={`allocation-${key}-end`} aria-label={`${identity} 투입 종료`} aria-invalid={Boolean(endIssue)} aria-describedby={endIssue ? `allocation-${key}-end-error` : undefined} type="date" value={allocation.end} disabled={!editable || disabled || saving} onChange={(event) => changeAllocation(key, "end", event.target.value)} />{endIssue ? <span className={styles.fieldError} id={`allocation-${key}-end-error`}>{endIssue.message}</span> : null}</label>
+              <label className={styles.field}>투입률 (%)<input id={`allocation-${key}-percent`} aria-label={`${identity} 투입률 (%)`} aria-invalid={Boolean(percentIssue)} aria-describedby={percentIssue ? `allocation-${key}-percent-error` : undefined} type="number" min="0.01" max="100" step="0.01" value={allocation.percent} disabled={!editable || disabled || saving} onChange={(event) => changeAllocation(key, "percent", event.target.value)} />{percentIssue ? <span className={styles.fieldError} id={`allocation-${key}-percent-error`}>{percentIssue.message}</span> : null}</label>
+            </div>
+          </fieldset> : null}
         </article>;
       })}
     </div> : null}
