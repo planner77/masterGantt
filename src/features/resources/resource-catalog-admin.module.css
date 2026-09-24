@@ -3,7 +3,7 @@
 .login { max-width: 520px; display: grid; gap: .75rem; }
 .formRow { display: grid; grid-template-columns: minmax(160px, 1fr) minmax(120px, .7fr) auto; gap: .5rem; align-items: end; }
 .formRow label, .field { display: grid; gap: .3rem; font-size: .9rem; }
-.formRow input, .field input, .field textarea, .field select { min-height: 38px; border: 1px solid var(--border-control); border-radius: calc(var(--radius) - 0.125rem); padding: .45rem .6rem; font: inherit; }
+.formRow input, .field input, .field textarea, .field select { min-height: 38px; border: 1px solid var(--border-control); border-radius: calc(var(--radius) - 0.125rem); background: var(--surface-panel); color: var(--text-default); padding: .45rem .6rem; font: inherit; }
 .columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .list { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
 .item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .75rem; align-items: center; padding: .65rem .75rem; border: 1px solid var(--border-default); border-radius: calc(var(--radius) - 0.0625rem); }
