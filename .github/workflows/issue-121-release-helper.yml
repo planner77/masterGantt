@@ -20,7 +20,6 @@ jobs:
     env:
       RELEASE_TAG: v0.27.6
       WORK_BRANCH: fix/issue-121-skip-to-content
-      TEMP_BRANCH: fix/issue-121-rebase-temp
       FEATURE_HEAD_SHA: bbd288b384ac324ffb19b4f07a9b8cdca1af0366
       FEATURE_MERGE_SHA: 2648db3c614f288b222cbf5cc1b9ef7d552c0512
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -91,14 +90,6 @@ jobs:
           test -n "$release_run_url"
 
           python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr 148             --branch "$WORK_BRANCH"             --target-sha "$target_sha"             --delete
-
-          temp_ref="refs/heads/$TEMP_BRANCH"
-          temp_sha="$(git ls-remote origin "$temp_ref" | awk '{print $1}')"
-          if [[ -n "$temp_sha" ]]; then
-            test "$temp_sha" = "$FEATURE_HEAD_SHA"
-            git merge-base --is-ancestor "$temp_sha" "$target_sha"
-            git push origin --delete "$TEMP_BRANCH"
-          fi
 
           body="$(printf '%s\n'             "Issue #121 Lifecycle 완료:"             "- 기능 PR: #148"             "- 버전: 0.27.6"             "- 기능 병합 SHA: $FEATURE_MERGE_SHA"             "- 릴리스 기준 SHA: $target_sha"             "- main CI/GHCR 임시 digest 검증·cleanup: $main_ci_url"             "- GHCR 정식 릴리스 이미지: $release_run_url"             "- 정식 릴리스 태그: $RELEASE_TAG"             "- 작업 브랜치 정리: $WORK_BRANCH, $TEMP_BRANCH"             "- 실제 스크린리더/모바일 수동 검증: 별도 범위 NOT TESTED")"
           gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/121/comments" -f body="$body"
