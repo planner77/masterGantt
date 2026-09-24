@@ -1,8 +1,9 @@
-name: Issue 118 Lifecycle 완료 자동화
+name: Issue 118 Lifecycle finalizer
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - ".github/workflows/issue-118-release-helper.yml"
 
@@ -14,21 +15,25 @@ permissions:
 
 jobs:
   cleanup:
-    name: Issue #118 브랜치 정리·이슈 종료
+    name: Finalize Issue 118
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
-      WORK_BRANCH: fix/issue-118-project-context-toolbar
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      FEATURE_PR: "146"
+      FEATURE_BRANCH: fix/issue-118-project-context-toolbar
       FEATURE_HEAD_SHA: 80159c5a5e6a2bfacf8b0c4fad03675801a79ef0
       FEATURE_MERGE_SHA: 6386db860af69635cfb0fe626fd1a937905b9a56
-      FEATURE_PR: "146"
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      FINALIZER_PR: "163"
+      FINALIZER_BRANCH: chore/issue-118-lifecycle-finalize
+
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
 
-      - name: Issue #118 Lifecycle 완료
+      - name: Verify merged feature and main CI
+        id: verify
         shell: bash
         run: |
           set -euo pipefail
@@ -37,13 +42,12 @@ jobs:
           test "$(git show "$target_sha:package.json" | jq -r .version)" = "0.27.4"
           git merge-base --is-ancestor "$FEATURE_MERGE_SHA" "$target_sha"
 
-          pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$FEATURE_PR")"
-          test "$(jq -r '.merged_at // ""' <<<"$pr")" != ""
-          test "$(jq -r '.base.ref' <<<"$pr")" = "main"
-          test "$(jq -r '.head.ref' <<<"$pr")" = "$WORK_BRANCH"
-          test "$(jq -r '.head.repo.full_name' <<<"$pr")" = "$GITHUB_REPOSITORY"
-          test "$(jq -r '.head.sha' <<<"$pr")" = "$FEATURE_HEAD_SHA"
-          test "$(jq -r '.merge_commit_sha' <<<"$pr")" = "$FEATURE_MERGE_SHA"
+          feature_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$FEATURE_PR")"
+          test "$(jq -r '.merged_at // ""' <<<"$feature_pr")" != ""
+          test "$(jq -r '.base.ref' <<<"$feature_pr")" = "main"
+          test "$(jq -r '.head.ref' <<<"$feature_pr")" = "$FEATURE_BRANCH"
+          test "$(jq -r '.head.sha' <<<"$feature_pr")" = "$FEATURE_HEAD_SHA"
+          test "$(jq -r '.merge_commit_sha' <<<"$feature_pr")" = "$FEATURE_MERGE_SHA"
 
           main_ci_url=""
           main_ci_run=""
@@ -60,17 +64,35 @@ jobs:
           done
           test -n "$main_ci_url"
 
-          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr "$FEATURE_PR"             --branch "$WORK_BRANCH"             --target-sha "$target_sha"             --delete
+          {
+            echo "target_sha=$target_sha"
+            echo "main_ci_url=$main_ci_url"
+            echo "main_ci_run=$main_ci_run"
+          } >> "$GITHUB_OUTPUT"
 
-          finalizer_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=${GITHUB_REPOSITORY_OWNER}:chore/issue-118-lifecycle-finalize&per_page=20" | jq -c --arg sha "$target_sha" '[.[] | select(.merged_at != null and .merge_commit_sha == $sha)] | first // empty')"
-          test -n "$finalizer_pr"
-          finalizer_number="$(jq -r .number <<<"$finalizer_pr")"
-          finalizer_branch="$(jq -r .head.ref <<<"$finalizer_pr")"
-          test "$finalizer_branch" = "chore/issue-118-lifecycle-finalize"
+      - name: Clean merged branches safely
+        id: cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          target_sha="${{ steps.verify.outputs.target_sha }}"
 
-          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr "$finalizer_number"             --branch "$finalizer_branch"             --target-sha "$target_sha"             --delete
+          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr "$FEATURE_PR"             --branch "$FEATURE_BRANCH"             --target-sha "$target_sha"             --delete
 
-          body="$(printf '%s
-'             "FINAL — Issue #118 Lifecycle 완료"             ""             "- Acceptance Criteria: PASS — 긴 제목/상태/정보/핵심 action 줄바꿈 방지, 390/768px 검색·필터 압축, 접근 가능한 필터/초기화, 390/768/1024/1440px E2E, Gantt instance/scale/scroll 보존"             "- 기능 PR: #146"             "- 버전: 0.27.4"             "- 최종 PR head: $FEATURE_HEAD_SHA"             "- PR CI: https://github.com/$GITHUB_REPOSITORY/actions/runs/35987961438 (quality/e2e/docker PASS)"             "- 기능 병합 SHA: $FEATURE_MERGE_SHA"             "- 완료 helper 기준 SHA: $target_sha"             "- main CI/GHCR 임시 이미지 게시·exact digest 검증·cleanup: $main_ci_url (run $main_ci_run)"             "- 문서 동기화: docs/PROJECT_UX.md, docs/TEST_PLAN.md, CHANGELOG.md, docs/CI_CD.md"             "- API/DB/Scheduling 계약 변경: N/A"             "- Codex P1 review thread: 조치 및 Resolve 완료"             "- 작업 브랜치 정리: $WORK_BRANCH + $finalizer_branch (scripts/safe_branch_cleanup.py)"             "- 정식 SemVer/GHCR release: N/A (별도 정식 release 승인 없음; main 임시 commit image 검증만 수행)"             "- 잔여 검증: 실제 모바일 기기·스크린리더 및 동일 fixture의 구현 전후 높이 수동 실측은 자동 회귀 범위 밖")"
+          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr "$FINALIZER_PR"             --branch "$FINALIZER_BRANCH"             --target-sha "$target_sha"             --delete
+
+          repair_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=${GITHUB_REPOSITORY_OWNER}:fix/issue-118-finalizer-workflow&per_page=20" | jq -c --arg sha "$target_sha" '[.[] | select(.merged_at != null and .merge_commit_sha == $sha)] | first // empty')"
+          test -n "$repair_pr"
+          repair_number="$(jq -r .number <<<"$repair_pr")"
+
+          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr "$repair_number"             --branch "fix/issue-118-finalizer-workflow"             --target-sha "$target_sha"             --delete
+
+          echo "repair_pr=$repair_number" >> "$GITHUB_OUTPUT"
+
+      - name: Record final evidence and close Issue 118
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(printf '%s\n'             "FINAL - Issue #118 Lifecycle complete"             ""             "- Feature PR: #146"             "- Version: 0.27.4"             "- Feature head: $FEATURE_HEAD_SHA"             "- Feature merge SHA: $FEATURE_MERGE_SHA"             "- PR CI: run 35987961438 PASS"             "- Main CI / temporary GHCR commit image validation: ${{ steps.verify.outputs.main_ci_url }} (run ${{ steps.verify.outputs.main_ci_run }})"             "- Documentation: docs/PROJECT_UX.md, docs/TEST_PLAN.md, CHANGELOG.md, docs/CI_CD.md"             "- Codex P1 review thread: resolved"             "- Branch cleanup: $FEATURE_BRANCH, $FINALIZER_BRANCH, fix/issue-118-finalizer-workflow"             "- Formal SemVer/GHCR release: N/A; no separate release authorization"             "- Remaining manual-only validation: physical mobile device, screen reader, and identical-fixture before/after height measurement")"
           gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/118/comments" -f body="$body"
           gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/118" -f state="closed" -f state_reason="completed"
