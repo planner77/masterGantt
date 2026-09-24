@@ -122,3 +122,129 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
     }
   });
 });
+
+test.describe("Issue #130 Phase 1 Project List 시각·접근성 계약", () => {
+  test("같은 긴 목록에서 table 내부 스크롤, 열·행 밀도, More 메뉴와 결과 상태를 유지한다", async ({ page, baseURL }, testInfo) => {
+    const suffix = randomUUID().slice(0, 8);
+    const names = [
+      `장기 프로젝트 일정과 공급망 전환 계획 Alpha ${suffix}`,
+      `Global engineering delivery and operations Beta ${suffix}`,
+      `한국어 English 혼합 프로젝트 Gamma ${suffix}`,
+    ];
+    for (const [index, name] of names.entries()) {
+      await createProject(page, baseURL!, name, `Owner Team ${index + 1}`,
+        `긴 설명입니다. This description explains milestones, dependencies, delivery owners, and operational handoff for project ${index + 1}.`,
+        "PwdL123456!");
+    }
+    await page.goto("/");
+    const table = page.getByRole("table", { name: "프로젝트 목록" });
+    const rows = table.locator("tbody tr");
+    await expect(rows).toHaveCount(3);
+
+    for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900], [1600, 900]] as const) {
+      await page.setViewportSize({ width, height });
+      await expect(table).toBeVisible();
+      await expect(page.getByRole("link", { name: "프로젝트 만들기" })).toBeVisible();
+      const geometry = await page.evaluate(() => {
+        const tableElement = document.querySelector<HTMLTableElement>('table[aria-label="프로젝트 목록"]')!;
+        const wrapper = tableElement.parentElement!;
+        const firstRow = tableElement.tBodies[0].rows[0];
+        const description = firstRow.cells[2].firstElementChild as HTMLElement;
+        const lineHeight = Number.parseFloat(getComputedStyle(description).lineHeight);
+        const action = firstRow.cells[5].getBoundingClientRect();
+        return {
+          documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+          wrapperClientWidth: wrapper.clientWidth,
+          wrapperScrollWidth: wrapper.scrollWidth,
+          rowHeight: firstRow.getBoundingClientRect().height,
+          descriptionHeight: description.getBoundingClientRect().height,
+          descriptionTwoLines: lineHeight * 2 + 2,
+          actionWidth: action.width,
+        };
+      });
+      expect(geometry.documentOverflow).toBe(false);
+      expect(geometry.actionWidth).toBeGreaterThanOrEqual(36);
+      expect(geometry.descriptionHeight).toBeLessThanOrEqual(geometry.descriptionTwoLines);
+      expect(geometry.rowHeight).toBeLessThanOrEqual(90);
+      if (width <= 768) expect(geometry.wrapperScrollWidth).toBeGreaterThan(geometry.wrapperClientWidth);
+      await page.screenshot({ path: testInfo.outputPath(`issue-130-list-current-${width}.png`), fullPage: true });
+
+      const trigger = rows.filter({ hasText: names[2] }).getByRole("button", { name: `${names[2]} 프로젝트 작업`, exact: true });
+      if (width === 390) {
+        await rows.filter({ hasText: names[2] }).getByRole("link", { name: names[2], exact: true }).focus();
+        await page.keyboard.press("Tab");
+        await expect(trigger).toBeFocused();
+        await page.keyboard.press("Enter");
+      } else {
+        await trigger.click();
+      }
+      if (width <= 768) {
+        expect(await table.evaluate((element) => element.parentElement!.scrollLeft)).toBeGreaterThan(0);
+      }
+      const menu = page.getByRole("menu", { name: `${names[2]} 프로젝트 작업`, exact: true });
+      await expect(menu).toBeVisible();
+      const bounds = await menu.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.x).toBeGreaterThanOrEqual(8);
+      expect(bounds!.y).toBeGreaterThanOrEqual(8);
+      expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width - 8);
+      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(height - 8);
+      if (width === 390) await page.screenshot({ path: testInfo.outputPath("issue-130-list-current-menu-390.png"), fullPage: true });
+      await expect(menu.getByRole("menuitem", { name: "프로젝트 복사" })).toBeFocused();
+      await page.keyboard.press("End");
+      await expect(menu.getByRole("menuitem", { name: "삭제" })).toBeFocused();
+      await page.keyboard.press("Home");
+      await expect(menu.getByRole("menuitem", { name: "프로젝트 복사" })).toBeFocused();
+      await page.keyboard.press("Escape");
+      await expect(menu).toHaveCount(0);
+      await expect(trigger).toBeFocused();
+      if (width === 390) {
+        await page.keyboard.press("Enter");
+        await expect(menu).toBeVisible();
+        const triggerX = await trigger.evaluate((element) => element.getBoundingClientRect().x);
+        await table.evaluate((element) => element.parentElement!.dispatchEvent(new Event("scroll")));
+        await expect(menu).toBeVisible();
+        await expect(trigger).toHaveAttribute("aria-expanded", "true");
+        expect(await trigger.evaluate((element) => element.getBoundingClientRect().x)).toBe(triggerX);
+
+        await table.evaluate((element) => {
+          const wrapper = element.parentElement!;
+          wrapper.scrollLeft = Math.max(0, wrapper.scrollLeft - 40);
+        });
+        await expect.poll(() => trigger.evaluate((element) => element.getBoundingClientRect().x)).not.toBe(triggerX);
+        await expect(menu).toHaveCount(0);
+        await expect(trigger).toHaveAttribute("aria-expanded", "false");
+      }
+    }
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    const search = page.getByLabel("프로젝트명, 소유자 또는 설명 검색");
+    await search.fill("no-matching-project");
+    await expect(page.getByRole("heading", { name: "조건에 맞는 프로젝트가 없습니다." })).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath("issue-130-list-current-no-result-390.png"), fullPage: true });
+    await page.getByRole("button", { name: "검색/필터 초기화" }).click();
+    await expect(rows).toHaveCount(3);
+    await expect(search).toHaveValue("");
+
+    await search.fill("혼합");
+    await page.locator('button[aria-controls="project-list-advanced-filter"]').click();
+    const panel = page.getByLabel("프로젝트 고급 필터");
+    await panel.getByRole("textbox", { name: "프로젝트명", exact: true }).fill("Gamma");
+    const created = panel.getByRole("group", { name: "생성일" });
+    await created.getByLabel("생성일 조건").selectOption("range");
+    await created.getByLabel("From").fill("2026-09-18");
+    await created.getByLabel("To").fill("2026-09-01");
+    const dateError = created.getByRole("alert");
+    await expect(dateError).toBeVisible();
+    await dateError.scrollIntoViewIfNeeded();
+    const errorBounds = await dateError.boundingBox();
+    expect(errorBounds).not.toBeNull();
+    expect(errorBounds!.x).toBeGreaterThanOrEqual(0);
+    expect(errorBounds!.x + errorBounds!.width).toBeLessThanOrEqual(390);
+    await expect(rows).toHaveCount(1);
+    await expect(table).toContainText(names[2]);
+    await expect(search).toHaveValue("혼합");
+    await expect(panel.getByRole("textbox", { name: "프로젝트명", exact: true })).toHaveValue("Gamma");
+    await page.screenshot({ path: testInfo.outputPath("issue-130-list-current-invalid-range-390.png"), fullPage: true });
+  });
+});

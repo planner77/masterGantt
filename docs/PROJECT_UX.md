@@ -194,3 +194,11 @@ Project 생성은 이름·소유자·비밀번호의 오류를 각각 연결하�
 App Shell의 header 앞에 `본문으로 바로가기` 링크를 둔다. 키보드 첫 Tab에서만 화면에 나타나며 링크는 같은 페이지의 `#main-content`로 이동한다. `main`은 `tabIndex=-1`인 focus 대상이어서 Enter 뒤 본문으로 focus가 옮겨지고, 본문에 조작 가능한 control이 있으면 다음 Tab이 그 control로 이어진다. 빈 목록·리소스 관리·생성 화면·프로젝트 조회 중/오류/정상 화면에서 같은 main landmark를 사용한다. 조회 중처럼 본문 control이 없는 상태는 main focus까지 확인한다.
 
 Modal dialog가 열려 있을 때는 기존 native focus trap이 우선하며 skip link가 dialog 밖으로 focus를 빼앗지 않는다. Escape로 닫으면 기존 설정 trigger focus 복원도 유지한다. 링크는 390/1440px에서 focus 상태에만 보이고 화면 밖 가로 overflow를 만들지 않는다. 리소스 관리로의 client navigation에서도 main landmark를 유지하며, 스크롤된 페이지에서는 fragment 이동이 main을 다시 화면에 놓는다. 같은 문서의 fragment만 바뀐 `popstate`는 편집 권한 재확인·reload를 시작하지 않는다. 실제 history 복귀와 BFCache `pageshow.persisted`의 fail-closed 재확인은 계속 수행한다. Fragment 이동 자체는 API mutation이나 Gantt 재생성을 수행하지 않는다. 현재 코드는 native anchor 동작을 사용하며 browser별 focus·scroll 결과와 실제 focus 상태 캡처는 원격 Chromium E2E에서 판정한다. API/DB/Scheduling 계약 문서 영향은 N/A다.
+
+## Issue #130 Phase 1 Project List 시각 정합화
+
+Project List는 기존 native table, Project 이름 Link, 행별 More 메뉴와 #84 검색·필터를 유지한다. 페이지 제목과 목록 사이의 간격, 테이블 헤더·행 간격을 compact하게 정렬한다. Project 이름은 기본 텍스트와 강조된 Link, 소유자·최대 두 줄 설명·날짜는 보조 정보, 날짜는 tabular 숫자로 표시한다. 헤더·구분선·hover/focus·More 메뉴는 #120 의미 토큰을 사용한다. 새로운 행 선택 상태나 검색 predicate는 추가하지 않는다.
+
+390px에서는 최소 62rem table을 목록 wrapper 안에서 가로 스크롤하며 문서 자체의 가로 스크롤을 만들지 않는다. More 메뉴는 기존 portal의 viewport 배치, Arrow/Home/End·Escape와 focus 복원을 유지한다. Copy/link/delete, 삭제 auth·If-Match·401/412 및 빈 목록과 검색 결과 0건의 서로 다른 상태는 기존 계약을 따른다.
+
+같은 긴 한국어·영어 Project 이름/설명과 소유자, 3개 이상 행 fixture를 390×844·768×900·1024×900·1440×900·1600×900, browser zoom 100%에서 구현 전후 각각 측정·촬영한다. wrapper/client/scroll 폭, 열 폭·행 높이, 문서 overflow, 메뉴 bounds와 keyboard focus를 비교한다. 현재 E2E는 새 구현 상태의 캡처와 동작 assertion을 준비했으며, 구현 전 baseline과 실제 브라우저 수치·이미지는 아직 확보하지 않았다(**NOT TESTED**). 따라서 새 캡처를 전후 개선 증거로 사용하지 않는다. API/DB/Scheduling 계약 문서 영향은 N/A다.

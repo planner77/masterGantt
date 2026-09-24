@@ -4,6 +4,7 @@ import { ProjectList } from "@/components/project-list";
 import { WorkspaceNotifications } from "@/components/workspace-notifications";
 import { getProjectService } from "@/server/projects/project-service";
 import { buildProjectShareUrl } from "@/server/projects/project-share-url-core";
+import projectListStyles from "@/components/project-list.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export default function HomePage() {
     buildProjectShareUrl(process.env.APP_BASE_URL, process.env.NODE_ENV, publicId, process.env.ALLOW_INSECURE_HTTP)]));
   return (
     <WorkspaceNotifications scope="프로젝트 목록">
-      <section className="page-section project-list-page" aria-labelledby="projects-heading">
+      <section className={`page-section project-list-page ${projectListStyles.pageSection}`} aria-labelledby="projects-heading">
         <div className="project-list-heading">
           <div className="page-heading">
             <p className="eyebrow">WORKSPACE</p>
