@@ -6,7 +6,7 @@
 }
 .badge {
   position: absolute; top: -0.4rem; right: -0.4rem; min-width: 1.25rem;
-  padding: 0.1rem 0.25rem; border-radius: 1rem; background: #a12d2d; color: white; font-size: 0.7rem;
+  padding: 0.1rem 0.25rem; border-radius: 1rem; background: var(--status-error-strong); color: var(--action-primary-foreground); font-size: 0.7rem;
 }
 .toast {
   position: fixed; z-index: 80; bottom: 1.25rem; left: 50%; transform: translateX(-50%);
@@ -40,5 +40,5 @@
 .copyHint { min-height: 1.5em; font-size: 0.875rem; }
 .linkButton { white-space: nowrap; font-size: 0.8125rem !important; padding: 0.4rem 0.625rem !important; }
 .headingActions { display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
-.bell:focus-visible, .dialog button:focus-visible, .linkButton:focus-visible { outline: 2px solid #285b8c; outline-offset: 3px; }
+.bell:focus-visible, .dialog button:focus-visible, .linkButton:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
 @media (max-width: 44rem) { .headingActions { justify-content: flex-start; } }
