@@ -229,6 +229,9 @@ Manager는 각 위임 전에 최소 다음을 고정한다.
 - primary Agent / collaborators / writable files / read-only files / shared interface
 - Local Fast Feedback / required tests / docs / remote CI / 환경별 검증
 - predecessor result / expected output / next owner / stop conditions
+- Issue Progress Log 후보와 댓글 작성 권한: `issue_log_type`, `issue_comment_writer`, `issue_comment_allowed_types`
+
+`issue_comment_writer` 기본값은 `manager`다. infra가 댓글을 직접 작성하도록 위임할 때만 `issue_comment_writer=infra`를 명시하고, `issue_comment_allowed_types`는 `STATUS`, `EXCEPTION` 또는 두 유형의 조합으로 제한한다. 필드 누락, `manager`, `NONE`은 infra에 대한 쓰기 위임이 아니다. `issue_log_type` 자체도 댓글 작성 권한을 부여하지 않는다.
 
 Agent는 packet과 실제 저장소 상태가 다르면 조용히 보정하지 않고 Manager에게 차이를 반환한다.
 
@@ -306,8 +309,10 @@ GitHub Issue는 요구사항 Source이자 작업 진행 기록의 기준점이�
 - Manager가 Issue Progress Log의 최종 책임자다.
 - frontend/backend/scheduler/excel_vba/infra 등 Sub-Agent는 작업 결과와 함께 `issue_log_type`, `issue_log_summary`, `decision_required`, 관련 evidence를 Result Contract로 반환한다.
 - researcher/ui_ux/qa_docs는 read-only 경계를 유지하며 GitHub 원격 상태를 직접 수정하지 않는다.
-- infra는 Work Packet에서 명시적으로 위임받은 경우 branch/PR/CI/GHCR 운영과 직접 관련된 `STATUS`/`EXCEPTION` 댓글을 대신 남길 수 있다. 범위/AC/version/release 판단이나 최종 완료 판단은 Manager 소유다.
-- Sub-Agent가 직접 댓글을 남겼더라도 Manager는 최종 상태와 충돌 여부를 확인하며, 동일 내용을 중복 게시하지 않는다.
+- infra는 Work Packet에 `issue_comment_writer=infra`가 있고 현재 유형이 `issue_comment_allowed_types`에 포함된 경우에만 branch/PR/CI/GHCR 운영과 직접 관련된 `STATUS`/`EXCEPTION` 댓글을 대신 남길 수 있다. `issue_log_type`만으로는 위임된 것으로 간주하지 않는다.
+- infra에 허용할 수 있는 댓글 유형은 `STATUS`/`EXCEPTION`의 부분집합뿐이다. `PLAN`, `DECISION_REQUIRED`, `RESUME`, `FINAL`과 범위/AC/version/release 판단 및 최종 완료 판단은 Manager 소유다.
+- 실제 댓글을 남긴 Agent는 Result Contract에 `issue_comment_posted_by`와 `issue_comment_url_or_id`를 반환한다.
+- Sub-Agent가 위임 범위 안에서 직접 댓글을 남겼더라도 Manager는 최종 상태와 충돌 여부를 확인하며, 동일 내용을 중복 게시하지 않는다.
 
 `DECISION_REQUIRED`는 단순 정보 공유가 아니라 실제 의사결정 요청이다. 이미 Issue 본문/댓글 또는 사용자 요청에서 답이 확정된 사항을 다시 묻지 않는다. 결정 없이 안전하게 진행 가능한 범위가 있으면 그 범위는 계속 진행하고, 차단되는 phase만 명시한다. 보안·권한·정식 release 승인처럼 명시적 승인이 필요한 항목은 추측하지 않는다.
 
