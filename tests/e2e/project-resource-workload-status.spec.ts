@@ -335,7 +335,7 @@ test("Issue #117 최신 메타데이터 라벨과 재시도 focus를 유지한�
 
   const busyRetry = targets.getByRole("button", { name: "이름·코드 재시도 중…" });
   await expect(busyRetry).toBeVisible();
-  await expect(busyRetry).toBeDisabled();
+  await expect(busyRetry).toHaveAttribute("aria-disabled", "true");
   await expect(busyRetry).toHaveAttribute("aria-busy", "true");
   await expect(busyRetry).toBeFocused();
 
