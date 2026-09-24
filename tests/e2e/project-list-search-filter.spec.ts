@@ -198,6 +198,23 @@ test.describe("Issue #130 Phase 1 Project List 시각·접근성 계약", () => 
       await page.keyboard.press("Escape");
       await expect(menu).toHaveCount(0);
       await expect(trigger).toBeFocused();
+      if (width === 390) {
+        await page.keyboard.press("Enter");
+        await expect(menu).toBeVisible();
+        const triggerX = await trigger.evaluate((element) => element.getBoundingClientRect().x);
+        await table.evaluate((element) => element.parentElement!.dispatchEvent(new Event("scroll")));
+        await expect(menu).toBeVisible();
+        await expect(trigger).toHaveAttribute("aria-expanded", "true");
+        expect(await trigger.evaluate((element) => element.getBoundingClientRect().x)).toBe(triggerX);
+
+        await table.evaluate((element) => {
+          const wrapper = element.parentElement!;
+          wrapper.scrollLeft = Math.max(0, wrapper.scrollLeft - 40);
+        });
+        await expect.poll(() => trigger.evaluate((element) => element.getBoundingClientRect().x)).not.toBe(triggerX);
+        await expect(menu).toHaveCount(0);
+        await expect(trigger).toHaveAttribute("aria-expanded", "false");
+      }
     }
 
     await page.setViewportSize({ width: 390, height: 844 });

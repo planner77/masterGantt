@@ -1327,12 +1327,14 @@ h2 {
 }
 
 .project-resource-panel {
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-block: 0.25rem;
 }
 
 .project-resource-workload {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
   gap: 1rem;
   padding-bottom: 1rem;
@@ -1340,6 +1342,7 @@ h2 {
 
 .resource-workload-header {
   display: flex;
+  min-width: 0;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
@@ -1444,11 +1447,14 @@ h2 {
 
 .resource-workload-groups {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 0.5rem;
 }
 
 .resource-workload-group,
 .resource-workload-resource {
+  min-width: 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -1475,10 +1481,13 @@ h2 {
 }
 
 .resource-workload-resources {
+  min-width: 0;
   padding-inline-start: 1rem;
 }
 
 .resource-workload-table-scroll {
+  min-width: 0;
+  width: 100%;
   max-width: 100%;
   overflow-x: auto;
   padding: 0 0 0.75rem 1rem;
