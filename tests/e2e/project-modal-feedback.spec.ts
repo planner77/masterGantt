@@ -15,8 +15,10 @@ test("설정 모달의 검증 오류는 top layer 안에서도 보이고 닫은 
   const dialog = page.getByRole("dialog", { name: "프로젝트 설정", exact: true });
   await dialog.getByLabel("프로젝트 이름", { exact: true }).fill("");
   await dialog.getByRole("button", { name: "프로젝트 정보 저장" }).click();
-  await expect(dialog.getByRole("status")).toHaveText("프로젝트 이름을 입력해 주세요.");
-  await expect(dialog.getByRole("status")).toBeVisible();
+  const feedback = dialog.locator('div[role="status"][aria-atomic="true"]');
+  await expect(feedback).toHaveAttribute("role", "status");
+  await expect(feedback).toHaveText("프로젝트 이름을 입력해 주세요.");
+  await expect(feedback).toBeVisible();
   expect(mutations).toEqual([]);
   expect(await page.locator(".project-gantt-frame").boundingBox()).toEqual(box);
   await expectSameGanttRoot(page, identity);

@@ -15,7 +15,7 @@
 
 | 단계 | 목표 | 현재 상태 |
 | --- | --- | --- |
-| #115 | 캘린더 draft와 미리보기 대응, 실패·revision 변경 처리 | 구현/문서/로컬 검사 PASS, 독립 QA·원격 검사 진행 |
+| #115 | 캘린더 draft와 미리보기 대응, 실패·revision 변경 처리 | PR #137 원격 E2E locator 회귀 REWORK |
 | #116 | 작은 화면·높이의 계층 메뉴 경계 및 키보드 보존 | 대기 |
 | #117 | 리소스 조회 실패 시 이전 결과·부분 실패·재시도 구분 | 대기 |
 | #118 | 모바일/태블릿 도구 모음 밀도와 정보 버튼 개선 | 대기 |
@@ -81,7 +81,10 @@ ui_ux 읽기 전용 검토를 바탕으로 결과가 사라지는 이유와 다�
 - 최초 키보드 검사에서 비활성 버튼의 focus 손실을 발견해 현재 요청 종료 시에만 안전하게 복원하도록 수정했다. 독립 QA에서 지적한 늦은 저장 알림 및 테스트 KR/US 입력 흐름 불일치도 수정했다. 최종 독립 QA와 원격 CI는 별도 gate다.
 - [변경 전](../../images/issue-115-before.png)은 KR 초기 설정(계산 전), [변경 후](../../images/issue-115-after.png)는 US 미리보기 완료 상태다. 같은 결함 순간의 쌍으로 오해하지 않도록 구분한다. 원래 결함 흐름은 Issue 재현 기록과 E2E로 검증한다.
 - 같은 editor mount에서 revision prop만 변경하는 브라우저 경로는 없어 실제 E2E는 metadata 저장→revision 변경→설정 창 unmount를 검증했다. 순수 prop 변경 경계는 코드 검토와 구분하며 실제 모바일/스크린리더는 NOT TESTED다.
-- PR quality/e2e/docker, main 임시 GHCR, 로컬 Docker 교체는 아직 NOT TESTED다.
+- PR #137 첫 head `76f7f415f7efe2ed178eddd79458cda983bee1b9`의 [run 35950170417](https://github.com/planner77/masterGantt/actions/runs/35950170417) attempt 1: quality/docker PASS, e2e FAIL(77 passed / 1 failed). 새 캘린더 live status와 기존 오류 toast를 `project-modal-feedback.spec.ts`의 광범위한 status locator가 동시에 선택했다. 기존 오류 알림 검증을 정확히 지정하도록 REWORK하며 접근성 status나 테스트를 제거하지 않는다. 후속 head에서 required gate 전체와 독립 QA를 다시 수행한다.
+- REWORK의 첫 로컬 시도에서 전역 toast의 test id가 모달 안에는 없음을 확인해 FAIL했다. 실제 모달 내부 `div[role="status"][aria-atomic="true"]`를 지정하고 role·문구·가시성·알림함 회귀를 유지한 최종 대상 테스트는 1/1 PASS(4.2초), 해당 spec ESLint/diff 검사도 PASS다. 제품 코드와 기존 UX/테스트 계약은 바뀌지 않았다.
+- 로컬 Docker는 `0.27.1`로 교체했고 기존 volume·8299 포트를 보존했다. SQLite integrity `ok`, 외래키 오류 0, 프로젝트 1개/작업 24개, migration 1~7을 확인했다. Manager 브라우저 확인에서도 읽기 전용 Gantt/24개 작업/문서 가로 overflow 없음/readiness 정상이다. 이미지 source tree `7ed0f9f22336f6b39121dbca22136fef367887c4`와 게시 tree는 문서 변경만 차이가 나며 runtime/package는 동일하다. 원격 E2E locator 수정은 runtime 변경이 아니다.
+- main 병합·임시 GHCR은 아직 NOT TESTED다. Git HTTPS 쓰기 인증이 없어 공통 SHA 검증 branch cleanup은 BLOCKED이며 사용자 환경 설정 또는 직접 정리 경로를 확인 중이다.
 
 ### 선행 #120 및 로컬 데이터 보존 확인
 
