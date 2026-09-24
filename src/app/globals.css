@@ -15,6 +15,39 @@
   --secondary-foreground: #1e3a5f;
   --ring: #4b86bf;
   --radius: 0.625rem;
+
+  /* Issue #120 semantic aliases: keep the existing blue work UI palette while
+     making component state meaning explicit. Primitive values above remain the
+     palette source of truth; components consume these aliases. */
+  --surface-page: var(--background);
+  --surface-panel: var(--card);
+  --surface-subtle: var(--muted);
+  --text-default: var(--foreground);
+  --text-muted: var(--muted-foreground);
+  --text-readonly: #475569;
+  --border-default: var(--border);
+  --border-control: #94a3b8;
+  --action-primary: var(--primary);
+  --action-primary-foreground: var(--primary-foreground);
+  --action-secondary: var(--secondary);
+  --action-secondary-foreground: var(--secondary-foreground);
+  --action-selected: var(--primary);
+  --action-selected-subtle: #dbeafe;
+  --action-selected-foreground: #1d4ed8;
+  --focus-ring: #1f4f82;
+  --focus-outline: 3px solid var(--focus-ring);
+  --focus-offset: 3px;
+  --state-disabled-opacity: 0.6;
+  --status-error: #9f1239;
+  --status-error-strong: #a12d2d;
+  --status-error-surface: #fff1f2;
+  --status-warning: #92400e;
+  --status-warning-border: #e2b35b;
+  --status-warning-surface: #fffbeb;
+  --status-info: #1e40af;
+  --status-info-surface: #eff6ff;
+  --status-success: #1d6339;
+  --status-success-surface: #edf8f0;
 }
 
 * {
@@ -46,8 +79,8 @@ a {
 
 a:focus-visible,
 button:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--ring) 55%, transparent);
-  outline-offset: 3px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }
 
 .app-shell {
@@ -404,7 +437,7 @@ h2 {
 .primary-button:disabled,
 .secondary-button:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: var(--state-disabled-opacity);
 }
 
 .project-form {
@@ -453,8 +486,8 @@ h2 {
 
 .form-field input:focus-visible,
 .form-field textarea:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--ring) 55%, transparent);
-  outline-offset: 1px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }
 
 .form-error {
@@ -1140,8 +1173,8 @@ h2 {
 
 .project-info-popover > summary:focus-visible,
 .project-action-menu > summary:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--ring) 55%, transparent);
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }
 
 .project-info-panel,
@@ -1229,8 +1262,8 @@ h2 {
 }
 
 .project-workspace-tabs button:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--ring) 55%, transparent);
-  outline-offset: 1px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }
 
 .project-readonly > .project-workspace-panels {

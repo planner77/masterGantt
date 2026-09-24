@@ -20,11 +20,11 @@
   background: var(--muted);
   color: var(--foreground);
 }
-.trigger:disabled { cursor: wait; opacity: 0.55; }
+.trigger:disabled { cursor: wait; opacity: var(--state-disabled-opacity); }
 .trigger:focus-visible,
 .menuItem:focus-visible {
-  outline: 2px solid #285b8c;
-  outline-offset: 2px;
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }
 .menu {
   position: fixed;
@@ -60,6 +60,6 @@
   text-decoration: none;
 }
 .separator { height: 1px; margin: 0.25rem 0.375rem; background: var(--border); }
-.destructive { color: #a12d2d; }
+.destructive { color: var(--status-error-strong); }
 .destructive:hover,
-.destructive:focus-visible { background: #fff1f1; color: #8f2020; }
+.destructive:focus-visible { background: var(--status-error-surface); color: var(--status-error); }
