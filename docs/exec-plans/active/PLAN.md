@@ -2,7 +2,7 @@
 
 ## UI/UX 순차 개선 — 2026-09-24 착수
 
-원격 상태와 사용자 요청에 따른 최신 작업은 [UI/UX 실행 계획](UI_UX_ROLLOUT.md)을 따른다. #30을 제외하고 #115 → #116 → #117 → #118 → #119 → #121 및 #122 검증, 이어 #130의 Project List → Workspace → Task Editor → Search/Filter 단계를 순서대로 처리한다. 이후 새로 열린 #155 전체 화면 기능을 별도 Issue로 처리한다. 이미 병합된 #120 token을 재사용하며 각 Issue는 수정·문서 동기화·PR 생성·해당 head의 CI 시작까지만 진행한 후 다음 Issue로 이동한다. 이 작업의 병합/main 검증·정식 릴리스·Issue 종료는 보류한다. 다만 2026-09-24 08:01 UTC `planner77` 계정의 PR #144 병합으로 main이 `e91bcff22a6e087b510d5706c2e71a75c47ad92f` / version `0.27.2`로 이동했고 main quality/e2e/docker 및 임시 GHCR exact digest smoke·cleanup이 PASS한 원격 사실은 별도 기록한다. 변경본 로컬 Docker는 PR #156 후보를 별도 볼륨과 8301 포트에서 확인한다. 아래 Wxx/과거 이슈 기록은 당시 상태이며 이번 변경의 검증 근거로 재사용하지 않는다.
+원격 상태와 사용자 요청에 따른 최신 작업은 [UI/UX 실행 계획](UI_UX_ROLLOUT.md)을 따른다. #30을 제외하고 #115 → #116 → #117 → #118 → #119 → #121 및 #122 검증, 이어 #130의 Project List → Workspace → Task Editor → Search/Filter 단계는 각 PR/CI 시작까지 진행했으며 미완 검증·충돌은 실행 계획에 남긴다. #155 전체 화면 PR/CI 시작 뒤 새로 확인한 UI/UX 이슈는 #136 브랜드 버전 → #141 파비콘/탭 제목 → #138 프로젝트 상태·필터 → #140 Grid 이름 인라인 편집 → #142 Chart 날짜 셀 정렬 순서로 처리한다. 이미 병합된 #120 token을 재사용하며 각 Issue는 수정·문서 동기화·PR 생성·해당 head의 CI 시작까지만 진행한 후 다음 Issue로 이동한다. 이 작업의 병합/main 검증·정식 릴리스·Issue 종료는 보류한다. 다만 2026-09-24 08:01 UTC `planner77` 계정의 PR #144 병합으로 main이 `e91bcff22a6e087b510d5706c2e71a75c47ad92f` / version `0.27.2`로 이동했고 main quality/e2e/docker 및 임시 GHCR exact digest smoke·cleanup이 PASS한 원격 사실은 별도 기록한다. 변경본 로컬 Docker는 현재 PR #156 후보를 별도 볼륨과 8301 포트에서 확인하며 후속 이슈 후보는 격리 미리보기로 갱신한다. 아래 Wxx/과거 이슈 기록은 당시 상태이며 이번 변경의 검증 근거로 재사용하지 않는다.
 
 ## Issue #33 — 운영 헤더 Gantt 데모 메뉴 제거 — 병합 완료 / v0.8.1 릴리스 준비
 

@@ -6,7 +6,7 @@
 
 - 2026-09-24 착수 기준: 원격 main `69fa36aac486bf81bd247595cc0ab2bfbbc8982a`, version `0.27.0`, 열린 PR 없음. 현재 main과 검증 상태는 아래 완료 증거를 따른다.
 - 2026-09-24 08:01:35 UTC 원격 갱신: GitHub 이벤트에서 `planner77` 계정이 PR #144를 병합해 main이 `e91bcff22a6e087b510d5706c2e71a75c47ad92f` / application `0.27.2`로 이동했다. 이 작업에서 병합을 실행하지 않았다. [새 main run 35972848516](https://github.com/planner77/masterGantt/actions/runs/35972848516)의 quality/e2e/docker와 임시 GHCR 게시·검증·정리 job은 모두 PASS다. 임시 `ci-e91bcff22a6e087b510d5706c2e71a75c47ad92f` exact digest `sha256:02b24fac87e655c3506890f1edccffe12ff40b4d374fd876136ec7d22a4553ad` pull·policy/API/인증/재시작/HTTP·HTTPS smoke·SBOM/provenance·임시 package version 삭제까지 독립 로그 확인했다. 아래 #155 작업 packet의 `f7f18ee…`는 착수 기준 SHA다.
-- 착수 시 열린 대상: #115, #116, #117, #118, #119, #121, #122, #130. 현재 #115는 종료됐고 새 #155를 추가했다.
+- 착수 시 열린 대상: #115, #116, #117, #118, #119, #121, #122, #130. 이후 열린 UI/UX 관련 #136, #138, #140, #141, #142, #155도 원격 Issue 본문을 확인해 순서에 추가했다. #115는 종료됐고 #30은 요청대로 제외한다. #149는 Agent 운영 지침, #157은 운영 Compose/GHCR 정책 이슈이므로 이 UI/UX 실행 순서와 분리한다.
 - #120/PR #135 공통 semantic token은 기존 결과를 재사용한다.
 - 독립 감사에서 #120이 `release_required=true / release_authorized=false`인 채 종료된 불일치를 확인해 재개했다. #120 코드는 이후 `v0.27.1` image에 포함됐지만 #115의 게시 승인을 #120 Lifecycle 승인으로 소급 적용할 근거는 확인되지 않았다. #120은 열린 상태로 범위·승인·증거를 별도 판단한다.
 - 기준: [Issue Lifecycle](../../ISSUE_LIFECYCLE.md), [디자인](../../../DESIGN.md), [UI 지침](../../UI_UX_GUIDELINES.md), [원격 검증](../../REMOTE_VALIDATION.md).
@@ -27,17 +27,22 @@
 | #130 Phase 2 | Project Workspace 디자인 정합화 | 로컬 수정·정적 QA PASS, PR #152 quality/docker PASS, e2e 94 PASS / 10 FAIL(선행 실패 포함); 자체 2건 PASS |
 | #130 Phase 3 | Task Editor 디자인 정합화 | 로컬 수정·독립 정적 QA PASS, PR #153 quality/docker PASS, e2e 96 PASS / 9 FAIL(선행 실패 포함); 자체 1건 PASS, 전후 실측 NOT TESTED |
 | #130 Phase 4 | Search / Filter 공통 시각·상태 정합화 | PR #154 첫 head quality/docker PASS·e2e 96 PASS / 11 FAIL; Phase 4 명세 2곳 REWORK 정적 QA PASS, 새 head `89198288804ec68d453fa96f08907a7df45e34f5`의 [CI run](https://github.com/planner77/masterGantt/actions/runs/35971567049)은 quality/docker PASS·e2e 97 PASS / 10 FAIL; 상위 실패 별도 기록 |
-| #155 | Grid/Chart 전체 화면 버튼·단축키·상태 보존 | 설계·독립 정적 QA PASS, [PR #156](https://github.com/planner77/masterGantt/pull/156) head `063a81f53d2beb1bddc692bf9ec3bd54c6e6698d`의 [CI run](https://github.com/planner77/masterGantt/actions/runs/35973400077)은 quality/docker PASS·e2e 진행 중 |
+| #155 | Grid/Chart 전체 화면 버튼·단축키·상태 보존 | 설계·독립 정적 QA PASS, [PR #156](https://github.com/planner77/masterGantt/pull/156) head `063a81f53d2beb1bddc692bf9ec3bd54c6e6698d`의 [CI run](https://github.com/planner77/masterGantt/actions/runs/35973400077)은 quality/docker PASS·e2e FAIL; 전체 회귀와 최종 QA 미완 |
+| #136 | 공통 헤더 브랜드 옆 빌드 버전 표시 | 다음 작업. #155 branch 위에 별도 PR; 패키지 버전 단일 Source of Truth, 4폭 헤더·홈 링크·접근성 검증 |
+| #141 | 파비콘과 프로젝트별 브라우저 타이틀 | #136 PR/CI 시작 후. 프로젝트명 변경·직접 URL·비프로젝트 화면 복원 검증 |
+| #138 | 프로젝트 상태 저장·표시·다중 필터 | #141 PR/CI 시작 후. #130 List/Filter 구조 재사용; SQLite migration·API·revision·readonly·기존 데이터 보존 필요 |
+| #140 | Grid Task/Summary/Milestone 이름 인라인 편집 | #138 PR/CI 시작 후. SVAR Core 편집 기능·권한·기존 Task update 경로 확인 필요 |
+| #142 | Chart 날짜 셀 범위·Milestone 중앙 정렬 | #140 PR/CI 시작 후. 실제 timeline cell 좌표와 zoom/scroll·drag/resize 회귀 확인 필요 |
 
-원래 완료 경로는 설계 → branch → 구현/관련 테스트 → DOCUMENTATION_SYNC → 독립 QA → PR quality/e2e/docker → Manager 병합 판단 → main CI/임시 GHCR exact digest smoke/SBOM/provenance/cleanup → 로컬 Docker 확인 → 인수 기준 감사 → 안전한 branch 정리/Issue 종료다. 필요한 릴리스의 범위/승인은 종료 전 확정한다. 아래 최신 사용자 범위 변경에 따라 이 작업은 후속 이슈의 PR/CI 시작까지만 순서대로 진행하고 나머지 gate를 보류한다. PR #144의 외부 병합 사실과 이 작업의 승인 범위는 구분한다.
+원래 완료 경로는 설계 → branch → 구현/관련 테스트 → DOCUMENTATION_SYNC → 독립 QA → PR quality/e2e/docker → Manager 병합 판단 → main CI/임시 GHCR exact digest smoke/SBOM/provenance/cleanup → 로컬 Docker 확인 → 인수 기준 감사 → 안전한 branch 정리/Issue 종료다. 필요한 릴리스의 범위/승인은 종료 전 확정한다. 아래 최신 사용자 범위 변경에 따라 이 작업은 후속 이슈의 PR/CI 시작까지만 순서대로 진행하고 나머지 gate를 보류한다. #136 이후에는 앞 이슈의 PR head를 다음 이슈의 branch base로 하는 직렬 stacked PR을 사용하되, 현재 main과 선행 PR의 ancestry/CI를 별도 증거로 판정한다. PR #144의 외부 병합 사실과 이 작업의 승인 범위는 구분한다.
 
 ## 2026-09-24 작업 범위 변경
 
 사용자가 처음에는 남은 UI/UX 이슈를 **수정까지만 진행하고 테스트·PR·CI는 실행 준비만** 하도록 지시했다. 이후 **테스트 계획 수립과 PR·CI 생성까지** 범위를 넓혔다. 최신 지시는 **각 Issue의 PR을 열고 해당 head의 CI가 시작된 것까지만 확인한 뒤 다음 Issue로 이동**하는 것이다. 이에 #116부터 기존 순서대로 코드·관련 문서·실행 가능한 테스트 자료를 준비한다. 로컬 테스트 명령은 실행하지 않는다. 각 수정의 정적 검토, 로컬 미실행(`NOT TESTED`), 원격 CI 시작·실제 결과를 구분해 기록한다. CI 실패는 기록하되 다음 Issue의 착수를 막지 않고 별도 REWORK로 추적한다. 이 작업에서는 병합·main GHCR·정식 릴리스·Issue 종료를 실행하지 않는다. 로컬 변경은 기존 volume을 건드리지 않는 별도 Docker 미리보기로 제공한다.
 
-이 변경 전 이미 열린 [PR #143](https://github.com/planner77/masterGantt/pull/143)은 실행 계획 상태 정정 문서 1건이며, 기존 run `35955861564` attempt 1의 quality/e2e/docker가 PASS한 뒤 열린 상태로 둔다. 이 결과를 #116 이후 수정의 테스트/CI 근거로 재사용하지 않는다. #115는 아래 정식 릴리스·안전한 branch 정리 증거에 따라 종료됐고, #120의 별도 릴리스 범위·승인 판단은 여전히 대기한다.
+[PR #143](https://github.com/planner77/masterGantt/pull/143)은 최신 main을 통합한 문서 두 파일 전용 head `ab8da09f8371085dee493bb96edc65ecdd4a903d`로 갱신됐다. [run 35974729225](https://github.com/planner77/masterGantt/actions/runs/35974729225)의 quality/e2e/docker는 PASS이며 이 결과를 #116 이후 제품 수정의 테스트/CI 근거로 재사용하지 않는다. #115는 아래 정식 릴리스·안전한 branch 정리 증거에 따라 종료됐고, #120의 별도 릴리스 범위·승인 판단은 여전히 대기한다.
 
-#116의 코드·CSS·E2E 명세·문서는 작성했고 독립 `qa_docs` 정적 재검토에서 PASS했다. 최초에는 로컬 실행을 보류했고, 이후 사용자 범위 확장에 따라 PR CI를 실행했다. 최종 원격 결과는 아래 head/run 증거를 따른다. 실제 모바일·스크린리더 검증은 NOT TESTED다. #115 후보 container는 현재 없으며, 아래 #155 별도 미리보기가 후속 변경을 담는다.
+#116의 코드·CSS·E2E 명세·문서는 작성했고 독립 `qa_docs` 정적 재검토에서 PASS했다. 최초에는 로컬 실행을 보류했고, 이후 사용자 범위 확장에 따라 PR CI를 실행했다. 최종 원격 결과는 아래 head/run 증거를 따른다. 실제 모바일·스크린리더 검증은 NOT TESTED다. 현재 8299의 정식 `latest` image는 `0.27.1`이며, 아래 8301의 #155 별도 미리보기가 후속 변경을 담는다.
 
 범위 확장 후 [#116 PR #144](https://github.com/planner77/masterGantt/pull/144)를 main 기준 허용 8파일만으로 열었다. 첫 head `2a9185edc8019533dffbccfb30d5ccf0b3efabb5`의 [run 35958787914](https://github.com/planner77/masterGantt/actions/runs/35958787914) attempt 1에서 quality `npm run typecheck`가 TS2367(`project-gantt.tsx:1023`의 narrowed JSX 분기 중복 비교)로 FAIL했고, 의존 e2e/docker는 미실행이다. 비교 한 줄을 제거하는 REWORK가 독립 정적 검토 PASS를 받았고 새 head `996047afc630ef960a1982d49928d006396b27f7`로 push했다. 새 head의 CI는 실행 결과로 재판정한다. 이전 실패를 retry PASS로 덮지 않는다.
 
@@ -67,15 +72,24 @@ List·Schedule·Resource는 데스크톱에서 검색 → `필터 N` → 조건�
 
 Resource의 종류·상태·기간은 고급 panel로 이동하고 M/D·M/M·새로고침은 독립 명령으로 남긴다. 기존 #83 Task 날짜 역순 자동 정렬과 #84 List의 잘못된 range 표시·조건 미적용 계약은 이 시각 정합화에서 변경하지 않는다. 날짜 정책 통합은 별도 모델·predicate 변경과 회귀 검토가 필요하다. 구현 전후 동일 fixture·viewport·zoom·locale의 toolbar bounds, overflow, 상태별 screenshot은 별도로 확보해야 하며, 현재는 NOT TESTED다.
 
-## 다음 Issue Work Packet — #155 Grid/Chart 전체 화면
+## Issue Work Packet — #155 Grid/Chart 전체 화면
 
-- Issue: [#155](https://github.com/planner77/masterGantt/issues/155), 분석·설계·구현의 독립 정적 QA PASS. 착수 당시 원격 main 기준 `f7f18ee589812e0357a023887202979c83b245ba` / application `0.27.1`; 선행 누적 PR은 #154 head `89198288804ec68d453fa96f08907a7df45e34f5`다. Branch `feat/issue-155-gantt-fullscreen`의 [PR #156](https://github.com/planner77/masterGantt/pull/156) head `063a81f53d2beb1bddc692bf9ec3bd54c6e6698d`와 [CI run 35973400077](https://github.com/planner77/masterGantt/actions/runs/35973400077)가 시작됐다. quality/docker PASS·e2e 진행 중이며 최종 QA는 아직 NOT TESTED다.
+- Issue: [#155](https://github.com/planner77/masterGantt/issues/155), 분석·설계·구현의 독립 정적 QA PASS. 착수 당시 원격 main 기준 `f7f18ee589812e0357a023887202979c83b245ba` / application `0.27.1`; 선행 누적 PR은 #154 head `89198288804ec68d453fa96f08907a7df45e34f5`다. Branch `feat/issue-155-gantt-fullscreen`의 [PR #156](https://github.com/planner77/masterGantt/pull/156) head `063a81f53d2beb1bddc692bf9ec3bd54c6e6698d`와 [CI run 35973400077](https://github.com/planner77/masterGantt/actions/runs/35973400077)가 시작됐다. quality/docker PASS·e2e FAIL이며 최종 QA는 아직 NOT TESTED다.
 - 목표·인수 기준: Gantt Grid/Chart의 전체 화면 버튼, `Ctrl/Cmd+Shift+F`와 `Escape`, 읽기 전용 공통 제공, 크기 재계산과 Gantt 인스턴스·분할/열 폭·zoom·양축 scroll·선택·계층 펼침 상태 보존. API/DB/Scheduling/권한 계약 변경은 범위 밖이다.
 - Version 결정: `0.x`의 새 하위 호환 기능이므로 [CI/CD 정책](../../CI_CD.md)에 따라 `0.28.0` MINOR. `release_required=UNKNOWN`, `release_authorized=false`; 이번 요청은 PR과 해당 head CI 시작까지만 승인한다.
 - 설계 결정: 설치된 Gantt 2.7.3/Core 2.6.1의 SVAR Fullscreen helper는 런타임 export와 타입 선언이 어긋나고 Fullscreen API 요청 거절에 대한 상태 처리가 없으며 입력 중 단축키 차단도 제공하지 않는다. 이 인수 기준에서는 기존 `.project-gantt-frame`에 브라우저 Fullscreen API를 직접 적용한다. 표시 단위 도구줄·Grid·Chart·작업 메뉴만 대상 안에 두고 App Shell·프로젝트 정보·검색·Resource panel은 밖에 둔다. 상태 표시는 `document.fullscreenElement` 확인 후에만 바꾼다.
 - 구현 소유자: frontend — `project-gantt.tsx`, `gantt-scale-toolbar.css`, `project-readonly-view.tsx`, 전용 E2E, `docs/PROJECT_UX.md`, `docs/TASK_EDITOR.md`, `docs/TEST_PLAN.md`. infra — 격리 branch·`package.json`/lock/CHANGELOG `0.28.0`·PR/CI. Manager — 이 packet과 단계·판정. researcher·ui_ux·qa_docs는 읽기 전용이며 설계와 사전 QA는 PASS다.
 - DOCUMENTATION_SYNC: 전체 화면/단축키/Task Editor의 전체 화면 종료 후 열림 계약을 세 문서에 반영한다. API/DB/Scheduling/DESIGN/UI_UX_GUIDELINES는 계약 불변이면 N/A 근거를 남긴다. 로컬 테스트·브라우저·빌드는 사용자 지시에 따라 NOT TESTED다. 전용 E2E는 버튼/단축키/Escape·입력/대화상자/Resource tab guard·거절·읽기 전용·네 폭·상태 보존·resize를 명세한다.
 - 다음 handoff: PR #156 CI 결과를 후속 검토 대상으로 기록하고 현재는 로컬 확인용 Docker 후보를 별도 volume·port에 격리한다. CI 성공 대기·main 병합·GHCR 게시·Issue 종료는 이번 범위 밖이다.
+
+## 다음 Issue Work Packet — #136 공통 헤더 버전 표시
+
+- Issue/범위: [#136](https://github.com/planner77/masterGantt/issues/136). 공통 헤더의 `masterGantt` 브랜드 옆에 빌드된 application version을 `v<SemVer>`로 낮은 위계의 metadata로 표시한다. 헤더 높이·전역 navigation·홈 링크 의미를 보존하고 좁은 화면 overflow를 막는다. SHA/빌드 시각·About 페이지·헤더 전체 재설계는 제외한다.
+- 기준과 의존성: 원격 main `e91bcff22a6e087b510d5706c2e71a75c47ad92f` / `0.27.2`; 선행 #155 [PR #156](https://github.com/planner77/masterGantt/pull/156) head `063a81f53d2beb1bddc692bf9ec3bd54c6e6698d` / `0.28.0`을 branch base로 한다. 이전 Issue PR의 미완 gate나 CI 결과를 #136의 PASS로 전용하지 않는다.
+- 버전과 승인: UI에 새 정보 제공이므로 `0.29.0` MINOR 후보로 결정한다. infra가 package/lock/CHANGELOG를 한 번에 반영한다. `release_required=미확정`, `release_authorized=false`; 이번 사용자 범위는 PR과 해당 head CI 시작까지이며 병합·tag·정식 GHCR 게시·Issue 종료는 승인 범위 밖이다.
+- 소유권: frontend는 `src/components/workspace-shell.tsx`와 관련 header CSS·전용 E2E, `docs/PROJECT_UX.md`·`docs/TEST_PLAN.md`의 작성 및 `DESIGN.md`·`docs/UI_UX_GUIDELINES.md` 영향 분석을 맡는다. 공통 디자인 원칙 변경이 실제 필요할 때만 Manager가 DESIGN/UI 지침 문서 작성자를 지정한다. infra는 격리 branch·package/lock/CHANGELOG 버전·PR/CI·Docker 미리보기를, Manager는 이 계획과 인터페이스·단계 결정을 담당한다. qa_docs는 독립 read-only 검토한다. `next-env.d.ts` 등 기존 사용자 변경은 보존한다.
+- 구현/검증 계약: `package.json.version`과 같은 단일 빌드 시점 값을 재사용하며 UI에 버전을 하드코딩하지 않는다. desktop과 390/768/1024/1440px에서 header 높이·브랜드 링크·navigation·screen reader 링크 이름을 확인한다. E2E는 빌드된 version 문자열과 표시, 홈 링크, responsive overflow를 검증하도록 작성한다. 로컬 테스트 명령은 최신 사용자 지시에 따라 실행하지 않고 `NOT TESTED`로 남긴다.
+- DOCUMENTATION_SYNC: frontend는 `docs/PROJECT_UX.md`·`docs/TEST_PLAN.md`를 실제 계약에 맞춰 갱신하거나 N/A 근거를, `DESIGN.md`·`docs/UI_UX_GUIDELINES.md`는 공통 규칙 변경 여부와 N/A 근거를 기록한다. infra는 version과 함께 `CHANGELOG.md`를 갱신한다. API/DB/Scheduling 변경은 N/A다. QA 정적 PASS 후 기존 Issue 중복 PR이 없는지 확인하고 #136 PR을 열어 해당 head의 CI 시작을 확인한 다음 #141로 이동한다. PR CI의 production build와 8302 Docker 후보의 build/readiness/화면 버전은 실제 실행 시 각각 판정한다. 정식 GHCR image와 브라우저 표시 version의 일치 검증은 이번 PR/CI 시작 범위에서 NOT TESTED이며 병합·정식 게시 이후 별도 gate다.
 
 ## 역할과 소유권
 
@@ -124,7 +138,7 @@ ui_ux 읽기 전용 검토를 바탕으로 결과가 사라지는 이유와 다�
 
 ## 로컬 확인 환경
 
-초기 #115 미리보기는 기존 Compose project·volume과 8299 포트를 유지한 `mastergantt:preview-issue115-candidate`(application `0.27.1`)로 실행했고 당시 container healthy, `GET /api/health/ready` 200이었다. 2026-09-24 후속 점검에서 현재 Docker daemon에는 해당 container가 없고 기존 `mastergantt-data` volume만 남아 있다. 이 작업은 기존 container 삭제·volume 연결/복사/migration을 하지 않았다.
+초기 #115 미리보기는 기존 Compose project·volume과 8299 포트를 유지한 `mastergantt:preview-issue115-candidate`(application `0.27.1`)로 실행했고 당시 container healthy, `GET /api/health/ready` 200이었다. 중간 점검에서는 해당 container가 없었으나 이후 외부에서 `mastergantt-app-1`이 재기동됐다. 현재 8299의 `ghcr.io/planner77/mastergantt:latest`는 image label version `0.27.1` / revision `f7f18ee…`이며 healthy이고 기존 `mastergantt-data:/data`를 사용한다. 이 작업은 기존 container 삭제·volume 연결/복사/migration을 하지 않았다.
 
 현재 확인용 미리보기는 [PR #156](https://github.com/planner77/masterGantt/pull/156) head `063a81f53d2beb1bddc692bf9ec3bd54c6e6698d` / application `0.28.0`의 `mastergantt:preview-issue155-063a81f`를 별도 Compose project `mastergantt-preview-issue155`, 별도 volume `mastergantt-preview-issue155-data`, `127.0.0.1:8301`에서 실행한다. `http://localhost:8301/api/health/ready` 200, container healthy, 새 SQLite Project/Task 0개·integrity `ok`를 확인했다. 기존 `mastergantt-data` volume은 사용하지 않았으므로 기존 사용자의 일정 데이터는 이 미리보기에 표시되지 않는다. 로컬 실행은 정식 GHCR 게시 또는 운영 배포 완료가 아니다.
 
