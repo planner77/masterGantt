@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.27.8] - 2026-09-24
+
+### Fixed
+
+- Issue #130 Phase 2: Project Context와 일정·리소스 탭의 간격·시각 토큰을 정합화하고 정보·더보기 disclosure의 Escape focus 복귀를 지원한다.
+
 ## [0.27.7] - 2026-09-24
 
 ### Fixed

@@ -552,6 +552,15 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setTaskFilterOpen(false);
     requestAnimationFrame(() => taskFilterTriggerReference.current?.focus({ preventScroll: true }));
   };
+  const closeContextDisclosureOnEscape = (event: ReactKeyboardEvent<HTMLDetailsElement>) => {
+    if (event.key !== "Escape" || !event.currentTarget.open) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const details = event.currentTarget;
+    details.open = false;
+    if (details === actionMenuReference.current) setActionMenuOpen(false);
+    requestAnimationFrame(() => details.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true }));
+  };
   const resetTaskFilter = () => {
     setTaskFilter(EMPTY_TASK_FILTER);
     requestAnimationFrame(() => taskSearchReference.current?.focus({ preventScroll: true }));
@@ -562,7 +571,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         <div className="project-title-row">
           <h1 id="project-heading" title={project.name}>{project.name}</h1>
           <span className={editing ? "edit-badge" : "readonly-badge"}>{editing ? "편집 중" : "읽기 전용"}</span>
-          <details className="project-info-popover">
+          <details className="project-info-popover" onKeyDown={closeContextDisclosureOnEscape}>
             <summary aria-label="프로젝트 정보 보기">정보</summary>
             <div className="project-info-panel">
               <dl>
@@ -590,7 +599,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           disabled={isUnlocking || permissionCheckState === "checking"}
           onClick={() => setUnlockOpen(true)}
         >{permissionCheckState === "checking" ? "권한 확인 중…" : "편집 잠금 해제"}</button>}
-        <details className="project-action-menu" ref={actionMenuReference} open={actionMenuOpen} onToggle={(event) => setActionMenuOpen(event.currentTarget.open)}>
+        <details className="project-action-menu" ref={actionMenuReference} open={actionMenuOpen} onToggle={(event) => setActionMenuOpen(event.currentTarget.open)} onKeyDown={closeContextDisclosureOnEscape}>
           <summary aria-label="프로젝트 작업 더보기">더보기</summary>
           <div className="project-action-menu-panel">
             <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} onAutoOpen={() => setActionMenuOpen(true)} />
