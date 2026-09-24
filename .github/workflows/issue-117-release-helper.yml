@@ -1,0 +1,66 @@
+name: Issue 117 Lifecycle 완료 자동화
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/issue-117-release-helper.yml"
+
+permissions:
+  contents: write
+  actions: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    name: Issue #117 브랜치 정리·이슈 종료
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      WORK_BRANCH: fix/issue-117-resource-load-status
+      FEATURE_HEAD_SHA: e286cddb3ea78a8abeb7c3970f9a83c93e47538c
+      FEATURE_MERGE_SHA: d37828c18ff9343f7c789fc179c981847b0253a4
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Issue #117 Lifecycle 완료
+        shell: bash
+        run: |
+          set -euo pipefail
+          target_sha="$GITHUB_SHA"
+
+          test "$(git show "$target_sha:package.json" | jq -r .version)" = "0.27.3"
+          git merge-base --is-ancestor "$FEATURE_MERGE_SHA" "$target_sha"
+
+          pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/145")"
+          test "$(jq -r '.merged_at // ""' <<<"$pr")" != ""
+          test "$(jq -r '.base.ref' <<<"$pr")" = "main"
+          test "$(jq -r '.head.ref' <<<"$pr")" = "$WORK_BRANCH"
+          test "$(jq -r '.head.repo.full_name' <<<"$pr")" = "$GITHUB_REPOSITORY"
+          test "$(jq -r '.head.sha' <<<"$pr")" = "$FEATURE_HEAD_SHA"
+          test "$(jq -r '.merge_commit_sha' <<<"$pr")" = "$FEATURE_MERGE_SHA"
+
+          main_ci_url=""
+          main_ci_run=""
+          for _ in $(seq 1 300); do
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=50")"
+            run="$(jq -c --arg sha "$target_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" && "$(jq -r .status <<<"$run")" == "completed" ]]; then
+              test "$(jq -r '.conclusion // ""' <<<"$run")" = "success"
+              main_ci_url="$(jq -r .html_url <<<"$run")"
+              main_ci_run="$(jq -r .id <<<"$run")"
+              break
+            fi
+            sleep 15
+          done
+          test -n "$main_ci_url"
+
+          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr 145             --branch "$WORK_BRANCH"             --target-sha "$target_sha"             --delete
+
+          body="$(printf '%s\n'             "FINAL — Issue #117 Lifecycle 완료"             ""             "- Acceptance Criteria: PASS — stale 결과 최신성 안내, 첫 실패/빈 결과 구분, 재시도/중복 요청 방지, 필터·펼침·단위 상태 보존, workload/assigned-targets 부분 실패 E2E 검증"             "- 기능 PR: #145"             "- 최종 PR head: $FEATURE_HEAD_SHA"             "- PR CI: https://github.com/$GITHUB_REPOSITORY/actions/runs/35982557710 (quality/Docker PASS, #117 E2E 5건 PASS, 전체 E2E 재실행 PASS)"             "- 기능 병합 SHA: $FEATURE_MERGE_SHA"             "- 완료 helper 기준 SHA: $target_sha"             "- main CI/GHCR 임시 이미지 게시·exact digest 검증·cleanup: $main_ci_url (run $main_ci_run)"             "- 문서 동기화: docs/PROJECT_UX.md, docs/TEST_PLAN.md, CHANGELOG.md"             "- API/DB/Scheduling 계약 변경: N/A"             "- Codex P2 review thread 2건: 조치 및 Resolve 완료"             "- 작업 브랜치 정리: $WORK_BRANCH (scripts/safe_branch_cleanup.py)"             "- 정식 SemVer/GHCR release: N/A (별도 release 승인 없음; main 임시 commit 이미지 검증만 수행)"             "- 잔여 검증: 실제 모바일 기기·스크린리더 수동 검증은 자동 회귀 범위 밖")"
+          gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/117/comments" -f body="$body"
+          gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/117" -f state="closed" -f state_reason="completed"
