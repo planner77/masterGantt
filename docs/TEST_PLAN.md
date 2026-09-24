@@ -393,3 +393,10 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - Preview 실패와 응답 형식 오류는 결과를 지우고 재시도 안내를 표시한다. 요청 중 초안 잠금, metadata 저장으로 설정 창이 닫힌 뒤 늦은 응답 무시와 401/412 분기는 전용 E2E에서 검증한다. 현재 If-Match 헤더 전송과 응답 내부 calendar revision 일치 검사는 코드에서 확인하며, 내부 revision 불일치 응답을 별도 E2E로 주입하지 않는다. 같은 editor mount 상태에서 revision prop만 바뀌는 경로는 현재 브라우저 UI에 없어 코드 경계·원격 회귀로 별도 확인한다.
 - 390/768/1024/1440px에서 상태 문구와 미리보기·저장 버튼이 접근 가능하고 의도하지 않은 문서 가로 overflow가 없는지 확인한다. 변경 전후 화면은 비밀값 없는 별도 PNG로 보관한다.
 - 전용 테스트는 `tests/e2e/project-work-calendar-preview.spec.ts`이며 기존 전체 E2E를 대체하지 않는다. PR head의 `quality/e2e/docker`와 main GHCR digest 검증은 원격 실행 증거로 별도 판정한다. API/DB/스케줄링 계약은 바꾸지 않으므로 관련 계약 문서 변경은 N/A다.
+
+## Issue #116 작업 Context Menu 하위 메뉴 회귀
+
+- `tests/e2e/project-task-context-menu.spec.ts`에 390/768/1024/1440px의 네 viewport 모서리 메뉴 anchor를 추가한다. 각 경우 활성 `Add` 하위 메뉴 전체가 viewport gutter 안에 있는지, 오른쪽/왼쪽 flyout 또는 같은 폭 drilldown으로 배치되는지 검사한다.
+- 390px에서는 최초 root focus와 닫힌 child, focus만으로 열리지 않음, ArrowRight·click·Enter·Space 진입, ArrowLeft·Back 복귀, Escape 전체 닫힘과 원래 Task focus 복원을 검사한다. Convert to/Move/Paste의 좁은 drilldown과 명령 접근, 명령이 모두 비활성인 외동 Task의 Move 및 자식이 있는 Summary의 Convert to에서 Back focus fallback도 검사한다. 넓은 화면에서는 기존 hover/focus/#77 초기 상태와 세 하위 메뉴의 좌우 배치·활성 명령 접근, ArrowLeft 뒤 부모 focus·child hidden·`aria-expanded=false`를 검사한다. 또한 열린 Add child에서 일반 root 명령 `Edit`로 focus 또는 pointer가 이동하면 child가 닫히고 Add의 `aria-expanded=false`가 되는 회귀를 검사한다.
+- 390×160 짧은 화면에서는 실제 End/Home/ArrowDown 키보드 탐색으로 root 내부 스크롤·마지막/root 중간 명령 가시성·문서 scroll 불변을 검사한다. 하위 메뉴 마지막 명령 접근, sticky Back, 좁은 화면의 실제 명령과 Gantt instance 유지도 확인한다. 기존 #72 명령과 #104 endpoint Link 분리는 `project-task-context-menu.spec.ts`에 있으며 readonly 계약은 별도 `task-context-menu-hierarchy.spec.ts`가 검사한다.
+- 2026-09-24 현재 코드를 작성했으나 로컬 Playwright, unit, lint, typecheck, build는 **실행하지 않았다(NOT TESTED)**. 자동 테스트의 계획/작성은 PASS 증거가 아니다. 로컬 실행 시 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-task-context-menu.spec.ts`와 변경 파일 lint/typecheck를 먼저 수행하고, PR head의 quality/e2e/docker는 해당 run의 원격 증거로 별도 판정한다.

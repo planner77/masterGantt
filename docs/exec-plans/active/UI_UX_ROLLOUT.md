@@ -16,7 +16,7 @@
 | 단계 | 목표 | 현재 상태 |
 | --- | --- | --- |
 | #115 | 캘린더 draft와 미리보기 대응, 실패·revision 변경 처리 | 구현·문서·PR #137·main CI·임시 GHCR 검증 완료; 정식 release 및 종료 정리 단계 |
-| #116 | 작은 화면·높이의 계층 메뉴 경계 및 키보드 보존 | 대기 |
+| #116 | 작은 화면·높이의 계층 메뉴 경계 및 키보드 보존 | 구현·문서·PR #144 원격 CI PASS 후 Codex P2 보완 및 최신 main 재통합 진행 |
 | #117 | 리소스 조회 실패 시 이전 결과·부분 실패·재시도 구분 | 대기 |
 | #118 | 모바일/태블릿 도구 모음 밀도와 정보 버튼 개선 | 대기 |
 | #119 | 반복 입력의 대상 구분·필드 오류 연결 | 대기 |
@@ -38,6 +38,15 @@
 - qa_docs: 구현 담당과 분리된 읽기 전용 QA 및 원격 증거 확인.
 
 동일 파일에 동시 쓰기하지 않는다. 기존 `next-env.d.ts` 개발 모드 변경은 보존하며 이 작업 커밋에 섞지 않는다.
+
+## #116 진행 기록
+
+- branch `fix/issue-116-context-menu-viewport`, PR #144, version `0.27.2`.
+- 390/768/1024/1440px 네 모서리에서 child menu viewport 경계, 390px drilldown, 390×160 내부 스크롤, keyboard/Escape/focus 복원 및 #77/#104 회귀를 전용 E2E로 검증한다.
+- 원격 PR head `30fe979465325b74a6ff2fad0709d11550bbc807`의 CI run 35964067138은 quality/e2e/docker PASS였다. 이전 실패는 Playwright generic Event의 contextmenu 좌표 누락과 viewport 준비/hover 잔류 원인을 보존해 기록했다.
+- Codex P2에서 child가 열린 뒤 일반 root 항목으로 focus/pointer 이동 시 child가 남는 접근성 불일치를 확인했다. 일반 root 명령 진입 시 child를 닫고 `aria-expanded=false`를 유지하도록 코드·E2E·PROJECT_UX·TEST_PLAN을 보완한다.
+- 최신 main `f7f18ee589812e0357a023887202979c83b245ba`를 작업 브랜치에 merge commit으로 통합했다. 보완 head의 원격 quality/e2e/docker와 review thread resolve 후 병합한다.
+- API/DB/Scheduling 계약 변경은 N/A이며 실제 모바일 기기·스크린리더 수동 검증은 별도 NOT TESTED다.
 
 ## #115 작업 계약
 
