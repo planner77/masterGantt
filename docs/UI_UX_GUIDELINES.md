@@ -27,6 +27,26 @@ UI 변경은 다음 순서로 판단한다.
 
 화면별 디자인 적용 순서는 `Project List → Project Workspace → Task Editor → Search/Filter`다. 완료된 #75/#76/#74/#96/#83/#84의 기능 계약을 유지하며, #122의 P2/P3 이슈와 범위가 겹치면 별도 중복 구현 대신 dependency로 연결한다.
 
+## Semantic UI token과 상태 규칙 (Issue #120)
+
+기존 파란색 업무 UI와 시스템 한국어 폰트를 유지한다. palette primitive(`--background`, `--card`, `--foreground`, `--border`, `--primary`, `--ring`)를 제거하지 않고 구현은 의미 alias를 우선한다.
+
+| 의미 | token | 사용 규칙 |
+| --- | --- | --- |
+| surface | `--surface-page/panel/subtle` | page, card/dialog, readonly/subtle 배경 |
+| text | `--text-default/muted/readonly` | 기본/보조/대비가 필요한 readonly·subtle badge 텍스트 |
+| border | `--border-default/control` | 구조 경계와 입력 control 경계 |
+| action | `--action-primary/*`, `--action-secondary/*`, `--action-selected/*` | primary action과 selected 상태 분리 |
+| focus | `--focus-ring/outline/offset` | 밝은 panel과 3:1 이상 대비되는 공통 3px solid outline과 공통 offset |
+| status | `--status-error/warning/info/success` 및 surface/border variant | 서로 다른 의미의 상태색을 합치지 않음 |
+| disabled | `--state-disabled-opacity` | native disabled/aria 의미를 유지하고 opacity는 보조 표현 |
+
+selected는 `aria-selected` 등 의미와 색을 함께 사용한다. readonly/output 및 작은 subtle badge의 일반 텍스트는 실제 배경에서 4.5:1 이상을 유지한다. token 존재만으로 접근성 PASS를 주장하지 않고 computed style의 텍스트 대비와 keyboard focus/인접 surface 대비를 측정한다.
+
+밀도 예외: Task Editor는 기존 compact radius/control 높이를 유지하고 Resource Catalog는 전역 radius 계열로 정합화한다. Project Row Menu와 Task Editor의 기존 hit-area를 유지하며, 이 예외는 색상·focus 의미의 독자 정의를 허용하지 않는다.
+
+#120 범위는 Task Editor, Resource Catalog Admin, Project Row Actions, Workspace Feedback 및 이들이 참조하는 전역 semantic token이다. #74/#75/#76/#96 구조를 되돌리거나 전역 재스타일하지 않는다.
+
 ## 공통 원칙
 
 | ID | 기준 | 설계/검토 질문 |
