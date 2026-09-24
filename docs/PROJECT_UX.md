@@ -207,3 +207,11 @@ Project Context는 긴 제목만 한 줄 말줄임으로 제한하고, 읽기 �
 일정/리소스 탭의 ArrowLeft/ArrowRight/Home/End, `aria-selected`·`aria-controls`·tabpanel 연결과 탭 왕복 시 같은 Gantt instance를 유지한다. 주 단위 선택·chart 가로 스크롤, tree·column·selection은 기존 Gantt 회귀 계약을 따른다. #118 일정 검색 도구줄, #121 skip link, #119 forms와 #117 Resource 조회 상태는 변경하지 않는다. API/session/revision/401/412/If-Match/canonical 경로도 그대로다.
 
 같은 긴 제목·설명 fixture의 읽기 전용/편집 중 상태를 390×844·768×900·1024×900·1440×900·1600×900에서 구현 전후 각각 촬영하고 Context·Gantt top/height, Info/More panel bounds, 문서 overflow를 비교한다. 현재 작성한 E2E의 PNG는 **변경 후 상태**만 기록하며 구현 전 같은 fixture의 baseline과 실제 수치는 아직 **NOT TESTED**다. 조회 중·조회 오류/재시도도 별도 E2E 명세로 기록한다. API/DB/Scheduling 계약 문서 변경은 N/A다.
+
+## Issue #130 Phase 3 Task Editor 시각 정합화
+
+Task Editor의 modal header는 작업 정보 제목과 작업 유형, External ID, 기준 Revision을 구분해 표시하고 닫기 action을 유지한다. 변경 제한·stale·저장 오류·초안 폐기 확인은 탭 위의 별도 notice 영역에 남긴다. Task/Resource/Relation 탭, 작업 입력과 서버 확정 정보, 관계 조회는 기존 semantic grouping을 유지한다. 좁은 화면에서는 작업 필드와 관계를 한 열로, 1024px 이상에서는 작업명/진행률과 선행/후행 관계를 해당 내용 폭에 맞게 나란히 놓는다.
+
+Dialog 자체는 viewport 안에 두고 **본문만 세로 스크롤**한다. Header·탭·취소/저장/최신 정보 다시 불러오기 footer는 본문 스크롤 중에도 접근할 수 있다. Notice가 여러 개 쌓이면 notice 영역 안에서 스크롤해 본문·footer를 밀어내지 않는다. #120 의미 토큰으로 상태·focus·border를 정렬하되 Task Editor의 기존 compact control 높이와 #119 할당 fieldset/개별 오류 연결은 보존한다.
+
+Dirty close/Escape 확인, stale 뒤 명시적 reload, 실패 시 draft 보존, 저장 중 중복 PATCH 방지, 읽기 전용과 Task PATCH·Assignment PUT의 독립 계약 및 Gantt instance·원래 행 focus 복원은 기존 경로를 따른다. Domain validation은 기존 `prepareTaskEditorCommand`에 맡긴다. 동일 fixture의 390×844·768×900·1024×900·1440×900·1600×900 구현 전후 modal/header/body/footer/필드/관계 geometry와 PNG가 비교 대상이다. 현재 E2E는 **변경 후 상태**만 기록하며 구현 전 baseline·실측, 로컬 브라우저·테스트·빌드는 **NOT TESTED**다. API/DB/Scheduling 문서 변경은 N/A다.

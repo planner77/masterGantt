@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.27.9] - 2026-09-24
+
+### Fixed
+
+- Issue #130 Phase 3: Task Editor의 정보 위계와 반응형 필드 배치를 정리하고 본문 스크롤 중 header·탭·footer 접근을 유지한다.
+
 ## [0.27.8] - 2026-09-24
 
 ### Fixed
