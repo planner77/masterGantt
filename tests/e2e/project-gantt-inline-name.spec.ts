@@ -13,13 +13,16 @@ import {
 
 const id = (ordinal: number) => `00000000-0000-4000-8000-${String(ordinal).padStart(12, "0")}`;
 const nameCell = (page: Page, name: string) => rowNamed(page, name).locator('[role="gridcell"][data-col-id=":text"]');
-const inlineInput = (page: Page) => ganttRoot(page).locator('[role="gridcell"][data-col-id=":text"] input.wx-text');
+const inlineInput = (page: Page) => ganttRoot(page).locator(".wx-table-container .wx-cell.wx-editor input.wx-text");
 
 async function openName(page: Page, name: string) {
   const cell = nameCell(page, name);
+  const rowId = await cell.locator("..").getAttribute("data-id");
+  expect(rowId).not.toBeNull();
   await cell.locator(".wx-content > .wx-text").click();
-  await expect(cell.locator("input.wx-text")).toBeFocused();
-  return cell.locator("input.wx-text");
+  const input = ganttRoot(page).locator(`.wx-table-container .wx-row[data-id="${rowId}"] .wx-cell.wx-editor input.wx-text`);
+  await expect(input).toBeFocused();
+  return input;
 }
 
 async function routeRenames(page: Page, fixture: StatefulProjectFixture) {

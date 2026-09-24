@@ -58,6 +58,40 @@ function containingCell(cells: Box[], center: number): Box {
   return cell!;
 }
 
+async function revealRuler(page: Page, ordinal: number): Promise<{ ruler: Box; cells: Box[] }> {
+  const outer = page.locator(".project-gantt-scroll");
+  const chart = page.locator('.project-gantt-widget .wx-chart[tabindex="-1"]');
+  // The Grid and Chart share a wide outer scrollport on narrow screens. Move
+  // that scrollport to the Chart before scrolling Core's own virtualized ruler.
+  await outer.evaluate((element) => {
+    const inner = element.querySelector<HTMLElement>('.wx-chart[tabindex="-1"]');
+    if (!inner) throw new Error("Gantt chart scrollport is missing");
+    element.scrollLeft += inner.getBoundingClientRect().left - element.getBoundingClientRect().left;
+  });
+  await chart.evaluate((element, id) => {
+    const target = element.querySelector<HTMLElement>(`.wx-bar[data-task-id=":${id}"]`);
+    const outerScroll = element.closest<HTMLElement>(".project-gantt-scroll");
+    if (!target || !outerScroll) throw new Error("Ruler bar or outer scrollport is missing");
+    const targetBox = target.getBoundingClientRect();
+    const chartBox = element.getBoundingClientRect();
+    const visibleWidth = Math.min(element.clientWidth, outerScroll.clientWidth);
+    element.scrollLeft += targetBox.left + targetBox.width / 2 - chartBox.left - visibleWidth / 2;
+  }, taskId(ordinal));
+  await expect.poll(async () => {
+    const ruler = await box(bar(page, ordinal));
+    const outerBox = await outer.boundingBox();
+    const chartBox = await chart.boundingBox();
+    const cells = await scaleCells(page);
+    if (!outerBox || !chartBox) return false;
+    const center = ruler.x + ruler.width / 2;
+    const visibleLeft = Math.max(outerBox.x, chartBox.x);
+    const visibleRight = Math.min(outerBox.x + outerBox.width, chartBox.x + chartBox.width);
+    return center >= visibleLeft && center < visibleRight &&
+      cells.some(({ x, width }) => x <= center && center < x + width);
+  }).toBe(true);
+  return { ruler: await box(bar(page, ordinal)), cells: await scaleCells(page) };
+}
+
 test("Task and Summary span included dates at four widths in day and week views", async ({ page }) => {
   const mutations: string[] = [];
   page.on("request", (request) => {
@@ -91,12 +125,12 @@ test("Task and Summary span included dates at four widths in day and week views"
       else await expect(weekCells).toHaveCount(0);
       await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
       await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
-      const cells = await scaleCells(page);
+      const chart = page.locator('.project-gantt-widget .wx-chart[tabindex="-1"]');
+      const { ruler: visibleMonday, cells } = await revealRuler(page, 10);
       expect(cells.length).toBeGreaterThan(0);
-      const monday = await box(bar(page, 10));
+      const monday = visibleMonday;
       const thursday = await box(bar(page, 13));
       const friday = await box(bar(page, 14));
-      const nextMonday = await box(bar(page, 17));
       const nextTuesday = await box(bar(page, 18));
       const summary = await box(bar(page, 1));
       const spanning = await box(bar(page, 20));
@@ -121,21 +155,22 @@ test("Task and Summary span included dates at four widths in day and week views"
       } else {
         // Installed Willow/Core en locale starts the scale week on Sunday.
         const weekCell = containingCell(cells, monday.x + monday.width / 2);
-        const nextWeekCell = containingCell(cells, nextMonday.x + nextMonday.width / 2);
         closeTo(monday.x - weekCell.x, weekCell.width / 7);
-        closeTo(nextMonday.x - nextWeekCell.x, nextWeekCell.width / 7);
         expect(thursday.x + thursday.width / 2).toBeLessThan(weekCell.x + weekCell.width);
         closeTo(monday.width, weekCell.width / 7);
         closeTo(thursday.x - weekCell.x, weekCell.width * 4 / 7);
+        const { ruler: visibleNextMonday, cells: nextWeekCells } = await revealRuler(page, 17);
+        const nextWeekCell = containingCell(nextWeekCells, visibleNextMonday.x + visibleNextMonday.width / 2);
+        closeTo(visibleNextMonday.x - nextWeekCell.x, nextWeekCell.width / 7);
       }
 
-      const chart = page.locator('.project-gantt-widget .wx-chart[tabindex="-1"]');
       const beforeScroll = await chart.evaluate((element) => element.scrollLeft);
+      const mondayBeforeScroll = await box(bar(page, 10));
       await chart.evaluate((element) => { element.scrollLeft += 120; });
       await expect.poll(() => chart.evaluate((element) => element.scrollLeft)).toBeGreaterThan(beforeScroll);
       const afterScroll = await chart.evaluate((element) => element.scrollLeft);
       const mondayScrolled = await box(bar(page, 10));
-      closeTo(mondayScrolled.x - monday.x, beforeScroll - afterScroll);
+      closeTo(mondayScrolled.x - mondayBeforeScroll.x, beforeScroll - afterScroll);
       const chartBounds = await chart.boundingBox();
       expect(chartBounds).not.toBeNull();
       const renderedCells = await scaleCells(page);
