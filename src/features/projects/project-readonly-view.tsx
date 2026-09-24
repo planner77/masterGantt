@@ -229,6 +229,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return () => controller.abort();
   }, [publicId, retryKey, notify]);
 
+  const canonicalProjectName = state.status === "ready" ? state.snapshot.data.project.name : null;
+  useEffect(() => {
+    const title = canonicalProjectName?.trim() ? `masterGantt|${canonicalProjectName}` : "masterGantt";
+    document.title = title;
+    return () => {
+      if (window.location.pathname === `/projects/${encodeURIComponent(publicId)}` && document.title === title) {
+        document.title = "masterGantt";
+      }
+    };
+  }, [publicId, canonicalProjectName]);
+
   function beginRefresh(clearNotice: boolean) {
     if (clearNotice) clearToast();
     setSettingsOpen(false); setUnlockOpen(false); setPendingTaskDelete(null); setPermission("readonly"); setPermissionCheckState("checking");

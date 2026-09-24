@@ -466,3 +466,10 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - `tests/e2e/workspace-header-version.spec.ts`는 `package.json.version`과 화면의 `v<SemVer>`가 일치하는지 검사한다. Infra가 version을 올린 PR 빌드에서도 테스트가 같은 package 원천을 읽으므로 화면의 수동 고정값을 허용하지 않는다.
 - 390px에서는 기존 M 마크만 보이고, 480px에서는 브랜드 이름을 우선해 버전을 숨기며, 768/1024/1440px에서는 브랜드 옆 버전이 낮은 글자 위계로 보이는지 검사한다. 다섯 폭 모두 헤더 높이 57px 이하, 주요 navigation/알림 영역의 viewport 내 배치와 문서 가로 overflow 부재를 확인하고 변경 후 PNG를 남긴다. 홈 링크의 접근 가능한 이름·`href=/`·리소스 이동 후 홈 복귀 및 navigation `aria-current`도 확인한다.
 - 로컬 Playwright·lint·typecheck·build·브라우저 및 실제 구현 전후 화면 비교는 사용자 지시에 따라 **NOT TESTED**다. 작성된 명세와 PNG 경로는 실행 증거가 아니다. PR head의 `quality/e2e/docker`는 실제 run에서 별도 판정한다. API/DB/Scheduling 및 보안·권한 계약 불변으로 해당 문서·테스트 변경은 N/A다.
+
+## Issue #141 브라우저 제목과 파비콘 회귀
+
+- `tests/e2e/project-browser-title-favicon.spec.ts`는 실제 격리 SQLite Project 세 건으로 목록·리소스·생성·Gantt 데모의 정확한 `masterGantt` 제목, 직접 URL의 서버 GET 전체 HTML에 포함된 초기 `masterGantt|canonical name`과 hydration 뒤 제목을 구분해 검사한다. 새로고침, SPA A→목록→B 이동, 같은 이름·서로 다른 publicId의 프로젝트→목록→다른 프로젝트 이동 및 프로젝트 이탈 후 기본 제목 복원도 확인한다. 로딩 중 잠시 기본 제목은 허용하며 404·클라이언트 조회 실패에서는 기본 제목을 확인한다.
+- 프로젝트 이름 초안과 HTTP 500 저장 실패·401은 마지막 확정 이름을 유지하고, 성공한 metadata 저장은 전체 페이지 reload 없이 새 확정 이름을 제목에 반영하는지 확인한다. 412 재조회 대기 중에는 기본 제목으로 돌아갔다가 성공한 canonical 재조회 뒤 이름을 복원하는지 검사한다. 비밀번호·세션·If-Match·서버 인가 경로 자체는 기존 회귀에서 계속 검증한다.
+- `<head>`의 SVG icon 링크와 해당 응답의 HTTP 200·M 브랜드 색상·SVG MIME을 확인한다. SVG 링크/응답만으로 실제 브라우저 탭 렌더링을 PASS로 보지 않으며 Edge/Chrome/Firefox/Safari 수동 시각 검증은 별도다. 로컬 Playwright·lint·typecheck·build·브라우저는 사용자 지시에 따라 **NOT TESTED**이고 원격 PR head의 `quality/e2e/docker`는 실제 run 결과로 판정한다. API/DB/Scheduling·보안·권한 계약 및 DESIGN/UI_UX_GUIDELINES 공통 원칙은 바뀌지 않으므로 해당 문서 영향은 N/A다.
+- App Router의 `src/app/error.tsx`는 기존 오류 기록·다시 시도 버튼을 유지하면서 기본 제목을 복원한다. 전용 E2E는 malformed 프로젝트 조회 응답으로 client render 오류 경계를 유도해 오류 화면·재시도 버튼·기본 제목을 확인한다. 서버 렌더 DB 오류까지 별도로 주입한 것은 아니므로 그 경우의 화면·제목은 코드 검토와 원격 일반 회귀 범위로 구분한다.
