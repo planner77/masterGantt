@@ -179,6 +179,10 @@ Secret, `.env`, PAT, Password, Token, 실제 SQLite DB와 runtime log는 Git에 
 
 구현 가능한 업무는 가능한 한 GitHub Issue 단위로 관리한다. Issue에는 목표, 배경, 범위, 인수 기준, 담당 에이전트, 관련 문서를 포함한다.
 
+Issue는 요구사항 등록뿐 아니라 **작업 진행 기록의 기준점**으로 사용한다. Manager는 PLAN 확정, 주요 Lifecycle phase 전환, FAIL/BLOCKED, 예상 밖 특이사항, 사용자/maintainer 결정 필요, 재개, 최종 완료 시점에 필요한 정보를 Issue 댓글로 남긴다. 정상적인 세부 명령·반복 조회를 모두 기록하지 않고 사람이 현재 상태와 다음 조치를 파악하는 데 필요한 변화만 기록한다. 표준 유형은 `PLAN`, `STATUS`, `EXCEPTION`, `DECISION_REQUIRED`, `RESUME`, `FINAL`이며 상세 형식과 책임은 `docs/ISSUE_LIFECYCLE.md`를 따른다.
+
+Sub-Agent는 임의로 Issue/PR에 진행 댓글을 쓰지 않고 자신의 Result Contract에 `issue_log_type`, `issue_log_summary`, `decision_required`와 증거를 포함해 Manager에게 반환한다. Manager 또는 Work Packet에서 명시적으로 GitHub 운영 쓰기를 위임받은 infra만 공식 Issue 진행 기록을 남긴다. researcher/ui_ux/qa_docs의 read-only 경계는 그대로 유지한다. Secret, PAT, Password, Token, `.env`, 민감한 운영 로그나 실제 DB 내용은 Issue 댓글에도 기록하지 않는다.
+
 PR에는 요약, 관련 Issue, 변경 사항, 검증, UI 변경 시 화면 캡처, 갱신 문서, 남은 위험을 포함한다. 검증에는 로컬 빠른 검증(Local Fast Feedback)과 GitHub Actions 결과를 분리한다. CI 관련 제목과 설명은 4절의 한글 작성 원칙을 적용한다.
 
 Application version은 `package.json`을 Source of Truth로 하고 lockfile과 일치시킨다. Release는 `docs/CI_CD.md`의 Semantic Version/tag/GHCR 정책을 따른다.
