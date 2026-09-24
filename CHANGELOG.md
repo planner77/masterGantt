@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.27.6] - 2026-09-24
+
+### Fixed
+
+- Issue #121: App Shell에 키보드 본문 바로가기와 focus 가능한 main landmark를 제공하고 기존 dialog focus trap을 유지한다.
+
 ## [0.27.5] - 2026-09-24
 
 ### Fixed

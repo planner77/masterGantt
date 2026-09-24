@@ -188,3 +188,9 @@ Resource tab은 공수 계산 결과와 assigned-targets 이름·코드·설명 
 캘린더의 반복 국가 규칙·휴무일은 항목별 fieldset/legend와 순번을 포함한 고유 control 이름을 제공한다. 기간·이름·날짜·대상 선택 오류를 각 입력에 연결하고, 명시적 Preview/Save에서 오류 요약으로 focus를 옮긴다. 잘못된 초안에서도 두 버튼은 누를 수 있으며 클라이언트 검증 후 API 요청 0회로 멈춘다. 타이핑 중 focus를 강제로 옮기지 않는다. 외부 disabled 또는 계산·저장 중에는 기존처럼 버튼과 입력을 잠근다. #115의 live preview status, 초안 무효화, publicId/revision/늦은 응답 방어, 401/412/If-Match 및 canonical 저장·재조회 계약은 유지한다.
 
 Project 생성은 이름·소유자·비밀번호의 오류를 각각 연결하고 명시적 제출 때 복수 오류 요약으로 focus를 옮긴다. 요약 항목은 해당 입력으로 이동하며 잘못된 제출은 API 요청 없이 입력 초안을 보존한다. 서버 거부·비밀번호 처리 경로는 기존 계약을 유지한다. 네 viewport의 keyboard-only E2E 명세는 작성했으나 로컬 브라우저·테스트·빌드는 **NOT TESTED**다. Project/Assignment/Calendar API·DB·Scheduling 계약 문서 변경은 N/A다.
+
+## Issue #121 App Shell 본문 바로가기
+
+App Shell의 header 앞에 `본문으로 바로가기` 링크를 둔다. 키보드 첫 Tab에서만 화면에 나타나며 링크는 같은 페이지의 `#main-content`로 이동한다. `main`은 `tabIndex=-1`인 focus 대상이어서 Enter 뒤 본문으로 focus가 옮겨지고, 본문에 조작 가능한 control이 있으면 다음 Tab이 그 control로 이어진다. 빈 목록·리소스 관리·생성 화면·프로젝트 조회 중/오류/정상 화면에서 같은 main landmark를 사용한다. 조회 중처럼 본문 control이 없는 상태는 main focus까지 확인한다.
+
+Modal dialog가 열려 있을 때는 기존 native focus trap이 우선하며 skip link가 dialog 밖으로 focus를 빼앗지 않는다. Escape로 닫으면 기존 설정 trigger focus 복원도 유지한다. 링크는 390/1440px에서 focus 상태에만 보이고 화면 밖 가로 overflow를 만들지 않는다. 리소스 관리로의 client navigation에서도 main landmark를 유지하며, 스크롤된 페이지에서는 fragment 이동이 main을 다시 화면에 놓는다. 같은 문서의 fragment만 바뀐 `popstate`는 편집 권한 재확인·reload를 시작하지 않는다. 실제 history 복귀와 BFCache `pageshow.persisted`의 fail-closed 재확인은 계속 수행한다. Fragment 이동 자체는 API mutation이나 Gantt 재생성을 수행하지 않는다. 현재 코드는 native anchor 동작을 사용하며 browser별 focus·scroll 결과와 실제 focus 상태 캡처는 원격 Chromium E2E에서 판정한다. API/DB/Scheduling 계약 문서 영향은 N/A다.
