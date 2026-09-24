@@ -142,9 +142,10 @@ AGENTS.md와 docs/ISSUE_LIFECYCLE.md를 Source of Truth로 적용한다. UI/UX �
 9. qa_docs의 독립 검토와 실제 PR CI를 통과하기 전에 병합하지 않는다.
 10. 병합 후 main CI와 repository 정책상 GHCR ci-<SHA> digest 검증/cleanup을 확인한다.
 11. 정식 release는 release_required=true AND release_authorized=true일 때만 수행한다.
-12. branch cleanup과 Issue close는 모든 필수 gate가 완료된 뒤 수행한다.
-13. 종료 직전 Issue에 `FINAL` 기록을 남겨 AC별 결과와 PR/merge/main/GHCR/문서/cleanup 증거, 남은 위험을 정리한다.
-14. 완료 보고에는 Issue/PR/SHA/CI/GHCR/문서/잔여 위험을 실제 증거와 함께 남긴다.
+12. branch cleanup은 모든 필수 gate가 완료된 뒤 수행하고 cleanup 결과를 확인한다.
+13. Issue 종료 직전 `FINAL` 기록을 남겨 AC별 결과와 PR/merge/main/GHCR/문서/cleanup 증거, 남은 위험을 정리한다.
+14. `FINAL` 기록이 성공한 뒤 Issue를 종료한다. FINAL 기록 실패나 미완료 상태에서는 Issue를 닫지 않는다.
+15. 완료 보고에는 Issue/PR/SHA/CI/GHCR/문서/잔여 위험을 실제 증거와 함께 남긴다.
 ```
 
 ## 4. Domain Implementation Prompt
@@ -166,7 +167,7 @@ AGENTS.md와 docs/ISSUE_LIFECYCLE.md를 Source of Truth로 적용한다. UI/UX �
 - version/tag/PR/merge/GHCR/Issue close는 독자 수행하지 않는다.
 - CI 실패 재현을 위해 필요한 경우에만 로컬 검증 범위를 확대한다.
 - 변경 후 Result Contract로 실제 파일, commit/head, 명령과 결과, 위험, 다음 handoff를 반환한다.
-- 의미 있는 진행 변화, 예상 밖 제약/실패, 사용자 결정 필요 사항이 있으면 Result Contract의 ISSUE_LOG 필드에 STATUS/EXCEPTION/DECISION_REQUIRED 후보와 근거를 포함한다. 직접 GitHub Issue에 댓글을 쓰지 않는다.
+- 의미 있는 진행 변화, 예상 밖 제약/실패, 사용자 결정 필요 사항이 있으면 Result Contract의 ISSUE_LOG 필드에 STATUS/EXCEPTION/DECISION_REQUIRED 후보와 근거를 포함한다. 기본적으로 GitHub Issue에 직접 댓글을 쓰지 않는다. 단, infrastructure-only 구현을 맡은 infra는 Work Packet에 `issue_comment_writer=infra`가 명시되고 현재 유형이 `issue_comment_allowed_types`의 STATUS/EXCEPTION에 포함된 경우에만 §7의 동일한 위임 규칙에 따라 직접 기록할 수 있다.
 ```
 
 ## 5. Research / UI Design Prompt
