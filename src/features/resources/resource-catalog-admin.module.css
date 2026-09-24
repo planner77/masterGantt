@@ -10,7 +10,9 @@
 .meta { display: flex; flex-wrap: wrap; gap: .35rem .65rem; color: var(--text-muted); font-size: .82rem; }
 .actions { display: flex; gap: .45rem; align-items: center; flex-wrap: wrap; }
 .badge { display: inline-flex; padding: .1rem .45rem; border-radius: 999px; border: 1px solid currentColor; font-size: .75rem; }
-.inactive { opacity: .62; }
+.inactive { color: var(--text-readonly); }
+.inactive .meta { color: var(--text-readonly); }
+.inactive .badge { color: var(--text-readonly); }
 .memberGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: .45rem; margin-top: .75rem; }
 .member { display: flex; gap: .45rem; align-items: center; }
 .error { color: var(--status-error); margin: 0; }
