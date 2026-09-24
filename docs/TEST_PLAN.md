@@ -430,3 +430,9 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - 빈 Project 목록·리소스 관리·생성 화면·Project 조회 중·조회 오류·정상 Gantt 화면에서 같은 landmark를 확인한다. 프로젝트 목록→리소스 관리 Next client navigation에서는 동일 main DOM을 확인하고, reload 뒤 첫 Tab도 검사한다. 테스트용으로 main 높이를 늘려 아래로 스크롤한 뒤 skip을 실행해 scroll 위치가 main 쪽으로 되돌아오는지 확인한다.
 - Modal dialog가 열리면 기존 focus trap 안에 Tab focus가 남고 skip link가 선점하지 않으며 Escape 뒤 설정 trigger focus를 복원하는지 확인한다. Skip 동작 중 API mutation 0회, 동일 Gantt DOM/API instance, document 가로 overflow 부재를 확인한다.
 - Native fragment focus/scroll가 브라우저별로 충분한지 실제 Chromium E2E에서 판정한다. 현재 캡처·SPA·scroll·modal 경로는 작성된 명세이며 실제 브라우저 증거가 아니다. 로컬 Playwright·lint·typecheck·build·browser는 사용자 지시에 따라 **NOT TESTED**이며 PR head의 quality/e2e/docker 결과도 실행 전까지 NOT TESTED다. API/DB/Scheduling 계약은 변경하지 않으므로 관련 문서·테스트 영향은 N/A다.
+
+## Issue #130 Phase 1 Project List 시각·동작 회귀
+
+- `tests/e2e/project-list-search-filter.spec.ts`의 Phase 1 명세는 긴 한국어·영어 이름과 설명, 소유자, 3행 이상의 동일 fixture에서 390×844·768×900·1024×900·1440×900·1600×900을 순회한다. Browser zoom 100%에서 native table과 62rem 최소 폭, wrapper 내부 스크롤, 문서 가로 overflow 없음, 설명 최대 두 줄, compact 행 높이, More 열 너비를 확인하고 viewport별 새 구현 상태 PNG를 남긴다.
+- 각 폭에서 마지막 행 More 메뉴의 viewport bounds, 첫 명령 focus, End/Home 탐색, Escape 닫힘과 trigger focus 복원을 확인한다. 390px는 Project Link에서 Tab으로 More trigger에 도착해 Enter로 연다. 검색 결과 0건 상태와 초기화 후 원래 3행 복귀를 확인한다. 좁은 화면에서 유효한 Quick Search·프로젝트명 조건과 잘못된 생성일 범위를 함께 설정해 날짜 오류가 화면 안에 표시되고 유효한 조건의 단일 결과가 유지되는지도 확인한다. 기존 #84 명세의 AND predicate·결과 수·날짜·삭제 상태, 기존 Project Link/Copy/delete 인증·If-Match·401/412 회귀는 기존 전용 E2E와 전체 원격 suite를 유지한다.
+- 구현 전후 시각 비교는 동일 fixture·viewport·zoom·상태의 **별도 baseline**과 변경 후 wrapper/열/행/overflow/menu 수치·PNG가 필요하다. 작성된 `issue-130-list-current-*.png`는 변경 후 상태만 기록하며 개선 수치가 아니다. 로컬 브라우저·Playwright·lint·typecheck·build와 실제 전후 캡처는 사용자 지시에 따라 **NOT TESTED**다. PR head의 `quality/e2e/docker`는 실제 run 증거로 판정한다. API/DB/Scheduling 계약 불변으로 해당 문서·테스트 변경은 N/A다.
