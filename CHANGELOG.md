@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.27.0] - 2026-09-24
+
+### Added
+
+- Issue #120: 기존 파란색 업무 UI palette를 유지하면서 surface/text/border/action/focus/status 의미를 명시하는 semantic UI token 계층을 추가한다.
+- error/warning/info/success 상태와 focus outline을 공통 token으로 정의하고 실제 Chromium computed style에서 텍스트 대비와 focus 가시성을 측정하는 회귀 검증을 추가한다.
+
+### Changed
+
+- Task Editor, Resource Catalog Admin, Project Row Actions, Workspace Feedback의 selected/focus/disabled/error 상태를 공통 semantic token 또는 문서화된 density 예외로 정합화한다.
+- focus indicator는 밝은 surface와 3:1 이상, readonly/subtle badge 일반 텍스트는 4.5:1 이상 대비를 유지하도록 실제 렌더링 조합을 검증한다.
+- Issue #99가 0.26.0을 선점한 최신 main에 재통합했으므로, 하위 호환 UI enhancement를 다음 MINOR 버전 0.27.0으로 증가한다.
+
+
 ## [0.26.0] - 2026-09-23
 
 ### Added
