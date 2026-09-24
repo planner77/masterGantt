@@ -1114,12 +1114,27 @@ h2 {
 }
 
 .project-title-row h1 {
+  flex: 1 1 auto;
   min-width: 0;
   margin: 0;
   overflow: hidden;
   font-size: 1.25rem;
   line-height: 1.3;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-title-row > .readonly-badge,
+.project-title-row > .edit-badge,
+.project-title-row > .project-info-popover {
+  flex: 0 0 auto;
+}
+
+.project-title-row > .readonly-badge,
+.project-title-row > .edit-badge,
+.project-info-popover > summary,
+.project-context-actions > .secondary-button,
+.project-action-menu > summary {
   white-space: nowrap;
 }
 
@@ -1191,8 +1206,10 @@ h2 {
 .project-info-panel {
   right: auto;
   left: 0;
-  width: min(24rem, 100%);
-  max-width: 100%;
+  width: min(24rem, calc(100vw - 2rem));
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100dvh - 8rem);
+  overflow-y: auto;
   padding: 0.875rem;
 }
 
@@ -1286,12 +1303,14 @@ h2 {
 }
 
 .project-resource-panel {
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding-block: 0.25rem;
 }
 
 .project-resource-workload {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
   gap: 1rem;
   padding-bottom: 1rem;
@@ -1299,6 +1318,7 @@ h2 {
 
 .resource-workload-header {
   display: flex;
+  min-width: 0;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
@@ -1321,6 +1341,42 @@ h2 {
   flex: 0 0 auto;
   align-items: center;
   gap: 0.5rem;
+}
+
+.resource-workload-statuses {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.resource-workload-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.resource-workload-status p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.resource-workload-status .secondary-button {
+  flex: 0 0 auto;
+}
+
+.resource-workload-status-error {
+  border-color: #d9a09c;
+  background: #fff3f2;
+  color: #8f1d17;
 }
 
 .resource-workload-summary {
@@ -1367,11 +1423,14 @@ h2 {
 
 .resource-workload-groups {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 0.5rem;
 }
 
 .resource-workload-group,
 .resource-workload-resource {
+  min-width: 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -1398,10 +1457,13 @@ h2 {
 }
 
 .resource-workload-resources {
+  min-width: 0;
   padding-inline-start: 1rem;
 }
 
 .resource-workload-table-scroll {
+  min-width: 0;
+  width: 100%;
   max-width: 100%;
   overflow-x: auto;
   padding: 0 0 0.75rem 1rem;
@@ -1478,6 +1540,10 @@ h2 {
 
   .resource-workload-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .resource-workload-statuses {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .resource-workload-summary > div:nth-child(2n) {
@@ -1591,6 +1657,10 @@ h2 {
   padding: 0.75rem;
 }
 
+.project-filter-panel[hidden] {
+  display: none;
+}
+
 .project-filter-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
@@ -1647,5 +1717,37 @@ h2 {
   .project-filter-search,
   .project-filter-toolbar input[type="search"] {
     width: 100%;
+  }
+
+  .project-schedule-filter-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .project-schedule-filter-toolbar .project-filter-search {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  .project-schedule-filter-toolbar .project-filter-search input {
+    width: 100%;
+    max-width: none;
+  }
+
+  .project-schedule-filter-toolbar .project-filter-trigger {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .project-schedule-filter-toolbar .project-filter-result {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .project-schedule-filter-toolbar .project-filter-reset {
+    grid-column: 2;
+    grid-row: 2;
   }
 }

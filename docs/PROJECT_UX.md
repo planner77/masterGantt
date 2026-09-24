@@ -161,3 +161,21 @@ Project List 상단에는 `프로젝트 검색`, 적용 조건 수를 포함한 
 하위 메뉴 trigger는 `aria-expanded`와 열린 메뉴를 가리키는 `aria-controls`를 제공한다. 하위 메뉴는 이름이 있는 `role=menu`이고 비활성 명령은 그대로 비활성으로 남는다. 넓은 화면에서 ArrowLeft는 부모 trigger에 focus를 돌려주고 child를 닫는다. 하위 메뉴가 열린 상태에서 `Edit`·`Cut` 등 일반 root 명령으로 keyboard focus 또는 mouse pointer가 이동하면 열린 child를 즉시 닫고 해당 trigger의 `aria-expanded=false`를 유지한다. 좁은 drilldown에서 활성 명령이 하나도 없으면 `Back`이 focus를 받는다. 짧은 화면에서는 메뉴 높이를 `100dvh - 16px` 이내로 제한하고 내부 스크롤과 고정된 `Back`을 사용하며 Arrow/Home/End 탐색은 문서가 아닌 메뉴 내부를 스크롤한다. Context Menu의 권한·revision·선택 Task endpoint link 제한, #104의 무관한 Task 동작, canonical Gantt instance 유지 계약은 변경하지 않는다. API·DB·스케줄링 문서 변경은 N/A다.
 
 2026-09-24 확인: 설치 버전은 `@svar-ui/react-gantt` 2.7.3이다. [SVAR 공식 ContextMenu 가이드](https://docs.svar.dev/react/gantt/guides/configuration/configuring_context_menu/)는 공개 Core `ContextMenu`의 `options`/`data` 하위 항목과 `resolver`/`filter`를 설명한다. 이 프로젝트의 작업 명령은 앱의 인가·revision·clipboard·canonical 동기화 경계를 포함해 기존 사용자 메뉴를 유지하며 PRO 전용 기능을 복제하지 않는다. UI/UX 조사에서 공식 데모는 1440px hover와 390px 항목 화면 관찰까지만 근거가 있으며 keyboard 동작은 **NOT TESTED**다. 본 변경의 코드·E2E 명세는 작성했다. 로컬 브라우저·자동 검증은 실행하지 않았고, PR 원격 CI 결과는 해당 PR의 head SHA와 run으로 별도 판정한다.
+
+
+## Issue #117 리소스 공수 조회 상태
+
+Resource tab은 공수 계산 결과와 assigned-targets 이름·코드·설명 정보를 독립적으로 조회·표시한다. 한쪽 API의 실패가 다른 쪽 성공을 숨기지 않는다. 공수 첫 조회 실패 때는 결과가 없음을 명시하고 빈 검색 결과와 구별한다. 메타데이터 첫 조회 실패 때는 공수 응답에 포함된 Group·Resource 기본 이름과 Resource 기본 코드의 검색·표시를 유지한다. Group 코드는 공수 응답에 없어 메타데이터 성공 전에는 검색할 수 없으며 설명 검색도 제한됨을 알린다. 각 상태에는 별도의 오류 안내와 재시도 버튼이 있다. 전역 `새로고침`은 두 조회를 다시 시작하며 어느 한쪽이라도 조회 중이면 중복 요청을 막기 위해 비활성화한다.
+
+성공한 조회를 새로고침하다 실패하면 마지막 성공 결과를 계속 보여 주되, 실패 상태와 마지막 성공 확인 시각을 함께 표시한다. assigned-targets가 독립적으로 최신화되면 검색뿐 아니라 Group·Resource 행의 이름과 코드도 최신 메타데이터를 우선 사용하고 workload snapshot 값은 메타데이터 실패 시 fallback으로만 사용한다. 늦은 이전 요청의 성공·오류는 최신 요청을 덮지 않는다.
+
+개별 재시도 버튼은 요청 중에도 같은 DOM 위치에 유지되고 disabled/aria-busy 상태로 전환하여 keyboard focus를 잃지 않는다. 실패하면 같은 버튼이 다시 활성화되고 성공하면 완료 상태로 전환된다. 재조회·부분 실패는 검색/종류/상태/기간 필터, M/D·M/M 선택, 열린 Group·Resource details, 일정·리소스 tab 상태와 SVAR Gantt instance를 초기화하지 않는다. Resource API·domain·권한 계약은 변경하지 않으며 API/DB/스케줄링 문서 영향은 N/A다.
+
+
+## Issue #118 Project Context와 일정 도구줄
+
+긴 Project 이름은 제목 영역에서만 한 줄 말줄임으로 표시하고 전체 이름은 제목의 tooltip에서 확인한다. 읽기 전용/편집 중 badge, 정보 버튼, 공유·내보내기·설정 등 action의 문구는 글자 단위로 줄바꿈되지 않고 읽을 수 있는 크기와 위치를 유지한다. 정보 panel은 viewport 폭 안에 두고 긴 설명은 panel 내부에서 스크롤한다.
+
+390/768px 일정 도구줄은 첫째 줄에 검색과 필터 버튼, 둘째 줄에 일치 결과와 조건이 있을 때만 표시하는 초기화 버튼을 둔다. 필터 버튼의 `aria-expanded`와 `aria-controls`는 고급 필터 panel의 열린 상태와 연결된다. 열린 panel에서 Escape를 누르면 닫고 필터 버튼으로 focus를 돌린다. 초기화 후에는 검색 입력으로 focus를 돌린다. 1024/1440px는 기존 넓은 도구줄 구성을 유지한다. 도구줄 조정은 Project Workspace에만 적용하며 SVAR Gantt 내부 scale toolbar는 변경하지 않는다.
+
+검색·필터·정보 panel 조작과 일정↔리소스 tab 이동은 canonical Gantt instance를 재생성하지 않는다. Gantt 내부 표시 단위 선택과 차트 가로 스크롤도 유지한다. 390/768/1024/1440px의 readonly/editing 각 상태에서 Gantt의 상단 위치·높이, 문서 가로 overflow와 버튼 접근성을 E2E로 확인할 명세를 작성했다. 명세의 `search-idle`/`search-reset` 캡처는 새 구현 안의 두 조작 상태이며 구현 전후 비교 자료가 아니다. Gantt 높이 개선을 판단하려면 동일 fixture·viewport·상태의 구현 전 baseline과 변경 후 측정이 별도로 필요하다. 기존 다른 높이·fixture의 수치를 합격 기준으로 대체하지 않는다. 코드·명세는 작성했으나 로컬 브라우저·테스트·빌드 및 실제 전후 수치는 **NOT TESTED**이며 원격 PR CI는 해당 head/run으로 별도 판정한다. Project API·DB·Scheduling 계약 변경은 N/A다.

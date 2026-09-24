@@ -133,6 +133,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const scheduleTabReference = useRef<HTMLButtonElement | null>(null);
   const resourceTabReference = useRef<HTMLButtonElement | null>(null);
   const actionMenuReference = useRef<HTMLDetailsElement | null>(null);
+  const taskSearchReference = useRef<HTMLInputElement | null>(null);
+  const taskFilterTriggerReference = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -543,11 +545,22 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
+  const closeTaskFilterOnEscape = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Escape" || !taskFilterOpen) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setTaskFilterOpen(false);
+    requestAnimationFrame(() => taskFilterTriggerReference.current?.focus({ preventScroll: true }));
+  };
+  const resetTaskFilter = () => {
+    setTaskFilter(EMPTY_TASK_FILTER);
+    requestAnimationFrame(() => taskSearchReference.current?.focus({ preventScroll: true }));
+  };
   return <section className="project-readonly" aria-labelledby="project-heading">
     <header className="project-context-bar">
       <div className="project-context-identity">
         <div className="project-title-row">
-          <h1 id="project-heading">{project.name}</h1>
+          <h1 id="project-heading" title={project.name}>{project.name}</h1>
           <span className={editing ? "edit-badge" : "readonly-badge"}>{editing ? "편집 중" : "읽기 전용"}</span>
           <details className="project-info-popover">
             <summary aria-label="프로젝트 정보 보기">정보</summary>
@@ -622,24 +635,25 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       >
         <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{tasks.length === 0 ? "아직 등록된 작업이 없습니다." : `필터 결과 ${filteredTasks.matchCount} / 전체 ${tasks.length}개 작업`}</p></div>
           {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}</div>
-        <div className="project-filter-toolbar" role="toolbar" aria-label="작업 검색과 필터">
+        <div className="project-filter-toolbar project-schedule-filter-toolbar" role="toolbar" aria-label="작업 검색과 필터" onKeyDown={closeTaskFilterOnEscape}>
           <label className="project-filter-search">
             <span className="sr-only">작업 검색</span>
             <input
               aria-label="작업명, 설명, External ID 검색"
               placeholder="작업명, 설명, External ID 검색"
               type="search"
+              ref={taskSearchReference}
               value={taskFilter.query}
               onChange={(event) => setTaskFilter((current) => ({ ...current, query: event.target.value }))}
             />
           </label>
-          <button className="secondary-button" type="button" aria-expanded={taskFilterOpen} onClick={() => setTaskFilterOpen((open) => !open)}>
+          <button className="secondary-button project-filter-trigger" type="button" aria-controls="project-task-filter-panel" aria-expanded={taskFilterOpen} ref={taskFilterTriggerReference} onClick={() => setTaskFilterOpen((open) => !open)}>
             필터{activeFilters ? ` ${activeFilters}` : ""}
           </button>
-          <button className="secondary-button" type="button" disabled={activeFilters === 0} onClick={() => setTaskFilter(EMPTY_TASK_FILTER)}>초기화</button>
+          {activeFilters > 0 ? <button className="secondary-button project-filter-reset" type="button" onClick={resetTaskFilter}>초기화</button> : null}
           <span className="project-filter-result" role="status">{filteredTasks.matchCount}개 일치</span>
         </div>
-        {taskFilterOpen ? <div className="project-filter-panel" aria-label="작업 고급 필터">
+        <div className="project-filter-panel" id="project-task-filter-panel" hidden={!taskFilterOpen} aria-label="작업 고급 필터" onKeyDown={closeTaskFilterOnEscape}>
           <div className="project-filter-grid">
             <label>작업명 조건<select value={taskFilter.nameOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, nameOperator: event.target.value as TaskFilterState["nameOperator"] }))}><option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option></select></label>
             <label>작업명<input type="text" value={taskFilter.nameQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, nameQuery: event.target.value }))} /></label>
@@ -671,7 +685,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name}{target.code ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
             })}</div>
           </fieldset> : null}
-        </div> : null}
+        </div>
         <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}

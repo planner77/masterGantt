@@ -400,3 +400,21 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - 390px에서는 최초 root focus와 닫힌 child, focus만으로 열리지 않음, ArrowRight·click·Enter·Space 진입, ArrowLeft·Back 복귀, Escape 전체 닫힘과 원래 Task focus 복원을 검사한다. Convert to/Move/Paste의 좁은 drilldown과 명령 접근, 명령이 모두 비활성인 외동 Task의 Move 및 자식이 있는 Summary의 Convert to에서 Back focus fallback도 검사한다. 넓은 화면에서는 기존 hover/focus/#77 초기 상태와 세 하위 메뉴의 좌우 배치·활성 명령 접근, ArrowLeft 뒤 부모 focus·child hidden·`aria-expanded=false`를 검사한다. 또한 열린 Add child에서 일반 root 명령 `Edit`로 focus 또는 pointer가 이동하면 child가 닫히고 Add의 `aria-expanded=false`가 되는 회귀를 검사한다.
 - 390×160 짧은 화면에서는 실제 End/Home/ArrowDown 키보드 탐색으로 root 내부 스크롤·마지막/root 중간 명령 가시성·문서 scroll 불변을 검사한다. 하위 메뉴 마지막 명령 접근, sticky Back, 좁은 화면의 실제 명령과 Gantt instance 유지도 확인한다. 기존 #72 명령과 #104 endpoint Link 분리는 `project-task-context-menu.spec.ts`에 있으며 readonly 계약은 별도 `task-context-menu-hierarchy.spec.ts`가 검사한다.
 - 2026-09-24 현재 코드를 작성했으나 로컬 Playwright, unit, lint, typecheck, build는 **실행하지 않았다(NOT TESTED)**. 자동 테스트의 계획/작성은 PASS 증거가 아니다. 로컬 실행 시 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-task-context-menu.spec.ts`와 변경 파일 lint/typecheck를 먼저 수행하고, PR head의 quality/e2e/docker는 해당 run의 원격 증거로 별도 판정한다.
+
+
+## Issue #117 리소스 공수 조회 상태 회귀
+
+- `tests/e2e/project-resource-workload-status.spec.ts`는 공수/assigned-targets의 첫 실패, 부분 실패, 개별 재시도, stale 결과, 네트워크 실패와 형식이 잘못된 HTTP 200 응답을 검사한다.
+- assigned-targets가 최신 이름/코드를 반환하고 workload가 stale이어도 Group·Resource 행 라벨이 최신 메타데이터를 우선 표시하는지 검증한다.
+- 개별 재시도 버튼은 요청 중에도 DOM에 유지되어 disabled/aria-busy가 되고 keyboard focus가 보존되는지, 재실패 후 같은 재시도 제어로 복귀하는지 검사한다.
+- M/D·M/M, 검색/종류/활성/기간 필터, 열린 details, tab 왕복, SVAR Gantt instance 및 좁은 viewport의 overflow 계약을 유지한다.
+- 진행 중 전역 새로고침 중복 요청 방지와 화면 이탈 뒤 늦은 응답 무시를 검사한다. API/domain/revision 계약 변경은 없으므로 API·DB·Scheduling 문서 영향은 N/A다.
+- 최종 판정은 최신 PR head의 원격 `quality/e2e/docker` 전체 결과를 사용하며 이전 head의 PASS는 재사용하지 않는다.
+
+
+## Issue #118 Project Context와 일정 도구줄 회귀
+
+- `tests/e2e/project-context-toolbar-responsive.spec.ts`는 390/768/1024/1440px에서 긴 Project 이름만 말줄임되고 읽기 전용/편집 중 badge·정보·핵심 action 문구가 단일 행으로 viewport 안에 보이는지, 긴 설명의 정보 panel이 viewport 안에서 스크롤 가능한지 확인한다.
+- 일정 도구줄은 390/768px에서 검색·필터가 첫째 줄, 결과·조건부 초기화가 둘째 줄인지 확인한다. 검색 결과·초기화 후 검색 focus, 필터 버튼의 `aria-controls`/`aria-expanded`, panel Escape 후 닫힘과 필터 버튼 focus 복원을 검증한다.
+- readonly/editing 양쪽에서 검색·필터 전후 Gantt 상단 위치·높이와 document 가로 overflow, 일정↔리소스 tab 왕복 시 동일 Gantt DOM/API instance를 확인한다. 같은 spec에서 SVAR 내부 scale toolbar의 주 단위 선택과 차트 내부 가로 스크롤이 검색·초기화·tab 왕복 뒤 유지되는지도 확인한다. Scale 단위 전환 자체는 `tests/e2e/project-gantt-scale.spec.ts`, tab 왕복의 가로 스크롤은 `tests/e2e/project-workspace-ux.spec.ts`, tree 접힘·선택·column 표시/너비 상태의 기존 mutation 회귀는 `tests/e2e/project-gantt-stability.spec.ts`, column 메뉴와 긴 목록 스크롤은 `tests/e2e/project-workspace-layout.spec.ts`가 각각 검사한다. 새 #118 spec은 tree/column을 직접 변경하지 않으므로 이 계약의 이번 조합별 검증으로 과대 해석하지 않는다. SVAR 내부 scale toolbar CSS/구현은 수정 대상이 아니다.
+- 이 명세의 `search-idle`/`search-reset` PNG는 새 구현에서 검색 전과 초기화 후를 기록할 예정이며 구현 전후 증거가 아니다. 높이 개선의 전후 판정에는 동일 fixture·viewport·readonly/editing 상태에서 구현 전 baseline과 변경 후 Gantt 위치·높이를 별도 측정해야 한다. 기존 390×844/768×1024 자료는 새 768×844 fixture의 수치 기준으로 사용하지 않는다. 로컬 Playwright·lint·typecheck·build·브라우저 확인과 실제 전후 측정은 사용자 지시에 따라 **NOT TESTED**다. 원격 PR head의 `quality/e2e/docker` 결과로 회귀를 판정한다. API/DB/Scheduling 테스트 및 문서 변경은 계약 불변으로 N/A다.
