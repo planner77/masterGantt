@@ -48,6 +48,7 @@ const mutationResponse: ProjectMetadataMutationResponse = {
       publicId,
       name: "Updated",
       description: "Description",
+      status: "planned",
       revision: 2,
       calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] },
     },
