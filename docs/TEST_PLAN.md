@@ -400,3 +400,13 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - 390px에서는 최초 root focus와 닫힌 child, focus만으로 열리지 않음, ArrowRight·click·Enter·Space 진입, ArrowLeft·Back 복귀, Escape 전체 닫힘과 원래 Task focus 복원을 검사한다. Convert to/Move/Paste의 좁은 drilldown과 명령 접근, 명령이 모두 비활성인 외동 Task의 Move 및 자식이 있는 Summary의 Convert to에서 Back focus fallback도 검사한다. 넓은 화면에서는 기존 hover/focus/#77 초기 상태와 세 하위 메뉴의 좌우 배치·활성 명령 접근, ArrowLeft 뒤 부모 focus·child hidden·`aria-expanded=false`를 검사한다. 또한 열린 Add child에서 일반 root 명령 `Edit`로 focus 또는 pointer가 이동하면 child가 닫히고 Add의 `aria-expanded=false`가 되는 회귀를 검사한다.
 - 390×160 짧은 화면에서는 실제 End/Home/ArrowDown 키보드 탐색으로 root 내부 스크롤·마지막/root 중간 명령 가시성·문서 scroll 불변을 검사한다. 하위 메뉴 마지막 명령 접근, sticky Back, 좁은 화면의 실제 명령과 Gantt instance 유지도 확인한다. 기존 #72 명령과 #104 endpoint Link 분리는 `project-task-context-menu.spec.ts`에 있으며 readonly 계약은 별도 `task-context-menu-hierarchy.spec.ts`가 검사한다.
 - 2026-09-24 현재 코드를 작성했으나 로컬 Playwright, unit, lint, typecheck, build는 **실행하지 않았다(NOT TESTED)**. 자동 테스트의 계획/작성은 PASS 증거가 아니다. 로컬 실행 시 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-task-context-menu.spec.ts`와 변경 파일 lint/typecheck를 먼저 수행하고, PR head의 quality/e2e/docker는 해당 run의 원격 증거로 별도 판정한다.
+
+
+## Issue #117 리소스 공수 조회 상태 회귀
+
+- `tests/e2e/project-resource-workload-status.spec.ts`는 공수/assigned-targets의 첫 실패, 부분 실패, 개별 재시도, stale 결과, 네트워크 실패와 형식이 잘못된 HTTP 200 응답을 검사한다.
+- assigned-targets가 최신 이름/코드를 반환하고 workload가 stale이어도 Group·Resource 행 라벨이 최신 메타데이터를 우선 표시하는지 검증한다.
+- 개별 재시도 버튼은 요청 중에도 DOM에 유지되어 disabled/aria-busy가 되고 keyboard focus가 보존되는지, 재실패 후 같은 재시도 제어로 복귀하는지 검사한다.
+- M/D·M/M, 검색/종류/활성/기간 필터, 열린 details, tab 왕복, SVAR Gantt instance 및 좁은 viewport의 overflow 계약을 유지한다.
+- 진행 중 전역 새로고침 중복 요청 방지와 화면 이탈 뒤 늦은 응답 무시를 검사한다. API/domain/revision 계약 변경은 없으므로 API·DB·Scheduling 문서 영향은 N/A다.
+- 최종 판정은 최신 PR head의 원격 `quality/e2e/docker` 전체 결과를 사용하며 이전 head의 PASS는 재사용하지 않는다.
