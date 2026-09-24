@@ -37,7 +37,10 @@ async function settleViewportBeforeContextMenu(page: import("@playwright/test").
 async function dispatchTaskContextMenuAt(page: import("@playwright/test").Page, target: import("@playwright/test").Locator, x: number, y: number) {
   // The synthetic anchor must not inherit a real pointer still hovering the previous Add trigger.
   await page.mouse.move(0, 0);
-  await target.dispatchEvent("contextmenu", { bubbles: true, button: 2, clientX: x, clientY: y });
+  // Playwright dispatchEvent("contextmenu") creates a generic Event; supply mouse coordinates explicitly.
+  await target.evaluate((element, position) => element.dispatchEvent(new MouseEvent("contextmenu", {
+    bubbles: true, cancelable: true, button: 2, clientX: position.x, clientY: position.y,
+  })), { x, y });
 }
 
 async function openTaskMenu(page: import("@playwright/test").Page, name: string) {
