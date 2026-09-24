@@ -74,8 +74,11 @@ async function revealRuler(page: Page, ordinal: number): Promise<{ ruler: Box; c
     if (!target || !outerScroll) throw new Error("Ruler bar or outer scrollport is missing");
     const targetBox = target.getBoundingClientRect();
     const chartBox = element.getBoundingClientRect();
-    const visibleWidth = Math.min(element.clientWidth, outerScroll.clientWidth);
-    element.scrollLeft += targetBox.left + targetBox.width / 2 - chartBox.left - visibleWidth / 2;
+    const outerBox = outerScroll.getBoundingClientRect();
+    const visibleLeft = Math.max(chartBox.left, outerBox.left);
+    const visibleRight = Math.min(chartBox.right, outerBox.right);
+    if (visibleRight <= visibleLeft) throw new Error("Gantt chart has no visible horizontal slice");
+    element.scrollLeft += targetBox.left + targetBox.width / 2 - (visibleLeft + visibleRight) / 2;
   }, taskId(ordinal));
   await expect.poll(async () => {
     const ruler = await box(bar(page, ordinal));
@@ -166,26 +169,42 @@ test("Task and Summary span included dates at four widths in day and week views"
 
       const beforeScroll = await chart.evaluate((element) => element.scrollLeft);
       const mondayBeforeScroll = await box(bar(page, 10));
-      await chart.evaluate((element) => { element.scrollLeft += 120; });
+      const scrollAnchorOrdinal = mode === "week" ? 17 : 10;
+      const scrollStep = await chart.evaluate((element, id) => {
+        const target = element.querySelector<HTMLElement>(`.wx-bar[data-task-id=":${id}"]`);
+        const outer = element.closest<HTMLElement>(".project-gantt-scroll");
+        if (!target || !outer) throw new Error("Scroll anchor or outer scrollport is missing");
+        const chartBox = element.getBoundingClientRect();
+        const outerBox = outer.getBoundingClientRect();
+        const visibleLeft = Math.max(chartBox.left, outerBox.left);
+        const visibleRight = Math.min(chartBox.right, outerBox.right);
+        const anchorBox = target.getBoundingClientRect();
+        const clearance = anchorBox.left + anchorBox.width / 2 - visibleLeft;
+        if (visibleRight <= visibleLeft || clearance <= 0) throw new Error("Scroll anchor is outside the visible Chart slice");
+        return Math.min(120, clearance / 2, (visibleRight - visibleLeft) / 4);
+      }, taskId(scrollAnchorOrdinal));
+      expect(scrollStep).toBeGreaterThan(0);
+      await chart.evaluate((element, step) => { element.scrollLeft += step; }, scrollStep);
       await expect.poll(() => chart.evaluate((element) => element.scrollLeft)).toBeGreaterThan(beforeScroll);
       const afterScroll = await chart.evaluate((element) => element.scrollLeft);
       const mondayScrolled = await box(bar(page, 10));
       closeTo(mondayScrolled.x - mondayBeforeScroll.x, beforeScroll - afterScroll);
-      const chartBounds = await chart.boundingBox();
-      expect(chartBounds).not.toBeNull();
-      const renderedCells = await scaleCells(page);
-      let alignedRenderedAnchor = false;
-      for (const [ordinal, dayFromSunday] of [[10, 1], [11, 2], [12, 3], [13, 4], [14, 5], [17, 1], [18, 2]]) {
-        const ruler = await box(bar(page, ordinal));
+      const visibleScrollAnchor = async () => {
+        const ruler = await box(bar(page, scrollAnchorOrdinal));
+        const chartBounds = await chart.boundingBox();
+        const outerBounds = await page.locator(".project-gantt-scroll").boundingBox();
+        if (!chartBounds || !outerBounds) return null;
         const center = ruler.x + ruler.width / 2;
-        if (center < chartBounds!.x || center >= chartBounds!.x + chartBounds!.width) continue;
-        const cell = renderedCells.find(({ x, width: cellWidth }) => x <= center && center < x + cellWidth);
-        if (!cell) continue;
-        closeTo(ruler.x - cell.x, mode === "day" ? 0 : cell.width * dayFromSunday / 7);
-        alignedRenderedAnchor = true;
-        break;
-      }
-      expect(alignedRenderedAnchor).toBe(true);
+        const visibleLeft = Math.max(chartBounds.x, outerBounds.x);
+        const visibleRight = Math.min(chartBounds.x + chartBounds.width, outerBounds.x + outerBounds.width);
+        if (center < visibleLeft || center >= visibleRight) return null;
+        const cell = (await scaleCells(page)).find(({ x, width }) => x <= center && center < x + width);
+        return cell ? { ruler, cell } : null;
+      };
+      await expect.poll(async () => (await visibleScrollAnchor()) !== null).toBe(true);
+      const aligned = await visibleScrollAnchor();
+      expect(aligned).not.toBeNull();
+      closeTo(aligned!.ruler.x - aligned!.cell.x, mode === "day" ? 0 : aligned!.cell.width / 7);
       await chart.evaluate((element) => { element.scrollLeft = 0; });
     }
   }

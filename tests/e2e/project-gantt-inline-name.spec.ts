@@ -1,4 +1,4 @@
-import { expect, test, type Page, type Request, type Route } from "@playwright/test";
+import { expect, test, type Locator, type Page, type Request, type Route } from "@playwright/test";
 import type { TaskMutationResponse } from "../../src/contracts/projects";
 import {
   expectSameGanttRoot,
@@ -14,6 +14,15 @@ import {
 const id = (ordinal: number) => `00000000-0000-4000-8000-${String(ordinal).padStart(12, "0")}`;
 const nameCell = (page: Page, name: string) => rowNamed(page, name).locator('[role="gridcell"][data-col-id=":text"]');
 const inlineInput = (page: Page) => ganttRoot(page).locator(".wx-table-container .wx-cell.wx-editor input.wx-text");
+
+function barContentBox(bar: Locator) {
+  return bar.evaluate((element) => {
+    const chart = element.closest<HTMLElement>('.wx-chart[tabindex="-1"]');
+    if (!chart) throw new Error("Gantt chart scrollport is missing");
+    const bounds = element.getBoundingClientRect();
+    return { x: bounds.x - chart.getBoundingClientRect().x + chart.scrollLeft, width: bounds.width };
+  });
+}
 
 async function openName(page: Page, name: string) {
   const cell = nameCell(page, name);
@@ -75,8 +84,7 @@ test("single-click names use one canonical PATCH across Summary, Task and Milest
   await expect.poll(() => rowNamed(page, "Stable leaf").getAttribute("data-task-url")).toBe("https://example.invalid/leaf");
   const summaryToggleClass = await nameCell(page, "Stable summary").locator('[data-action="open-task"]').getAttribute("class");
   const leafBar = ganttRoot(page).locator(`.wx-bar[data-task-id=":${id(3)}"]`);
-  const leafBarBefore = await leafBar.boundingBox();
-  expect(leafBarBefore).not.toBeNull();
+  const leafBarBefore = await barContentBox(leafBar);
 
   for (const [before, after] of [["Stable summary", "Renamed summary"], ["Stable leaf", "001"], ["Stable milestone", "Renamed milestone"]] as const) {
     const input = await openName(page, before);
@@ -88,10 +96,9 @@ test("single-click names use one canonical PATCH across Summary, Task and Milest
     await expectSameGanttRoot(page, identity);
   }
   expect(await nameCell(page, "Renamed summary").locator('[data-action="open-task"]').getAttribute("class")).toBe(summaryToggleClass);
-  const leafBarAfter = await leafBar.boundingBox();
-  expect(leafBarAfter).not.toBeNull();
-  expect(leafBarAfter!.x).toBeCloseTo(leafBarBefore!.x, 0);
-  expect(leafBarAfter!.width).toBeCloseTo(leafBarBefore!.width, 0);
+  const leafBarAfter = await barContentBox(leafBar);
+  expect(leafBarAfter.x).toBeCloseTo(leafBarBefore.x, 0);
+  expect(leafBarAfter.width).toBeCloseTo(leafBarBefore.width, 0);
   await nameCell(page, "001").focus();
   await nameCell(page, "001").press("F2");
   await expect(inlineInput(page)).toBeFocused();
