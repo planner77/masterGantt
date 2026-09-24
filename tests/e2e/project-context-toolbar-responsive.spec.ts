@@ -50,12 +50,13 @@ for (const width of [390, 768, 1024, 1440]) {
 
       const toolbar = page.getByRole("toolbar", { name: "작업 검색과 필터" });
       const search = toolbar.getByRole("searchbox", { name: "작업명, 설명, External ID 검색" });
-      const filter = toolbar.getByRole("button", { name: "필터", exact: true });
+      const filter = toolbar.locator('button[aria-controls="project-task-filter-panel"]');
       const result = toolbar.getByRole("status");
       const panel = page.locator("#project-task-filter-panel");
       await toolbar.scrollIntoViewIfNeeded();
       await expect(filter).toHaveAttribute("aria-controls", "project-task-filter-panel");
       await expect(filter).toHaveAttribute("aria-expanded", "false");
+      await expect(filter).toHaveText("필터");
       await expect(panel).toBeHidden();
       const searchBox = await search.boundingBox();
       const filterBox = await filter.boundingBox();
@@ -64,8 +65,9 @@ for (const width of [390, 768, 1024, 1440]) {
       expect(filterBox).not.toBeNull();
       expect(resultBox).not.toBeNull();
       if (width <= 768) {
-        expect(searchBox!.y).toBe(filterBox!.y);
-        expect(resultBox!.y).toBeGreaterThan(searchBox!.y);
+        expect(searchBox!.y).toBeLessThan(filterBox!.y + filterBox!.height);
+        expect(filterBox!.y).toBeLessThan(searchBox!.y + searchBox!.height);
+        expect(resultBox!.y).toBeGreaterThanOrEqual(Math.max(searchBox!.y + searchBox!.height, filterBox!.y + filterBox!.height) - 1);
       }
       const gantt = page.locator(".project-gantt-frame");
       const scale = gantt.getByRole("group", { name: "Gantt 표시 단위" });
@@ -83,6 +85,7 @@ for (const width of [390, 768, 1024, 1440]) {
       await page.screenshot({ path: testInfo.outputPath(`issue-118-${width}-${editing ? "edit" : "readonly"}-search-idle.png`) });
 
       await search.fill("Stable leaf");
+      await expect(filter).toHaveText("필터 1");
       const reset = toolbar.getByRole("button", { name: "초기화", exact: true });
       await expect(reset).toBeVisible();
       await expect(result).toContainText("1개 일치");
@@ -91,7 +94,9 @@ for (const width of [390, 768, 1024, 1440]) {
         const filteredResultBox = await result.boundingBox();
         expect(resetBox).not.toBeNull();
         expect(filteredResultBox).not.toBeNull();
-        expect(resetBox!.y).toBe(filteredResultBox!.y);
+        expect(resetBox!.y).toBeLessThan(filteredResultBox!.y + filteredResultBox!.height);
+        expect(filteredResultBox!.y).toBeLessThan(resetBox!.y + resetBox!.height);
+        expect(Math.min(resetBox!.y, filteredResultBox!.y)).toBeGreaterThanOrEqual(Math.max(searchBox!.y + searchBox!.height, filterBox!.y + filterBox!.height) - 1);
       }
       await filter.click();
       await expect(filter).toHaveAttribute("aria-expanded", "true");

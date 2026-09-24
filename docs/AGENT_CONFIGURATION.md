@@ -1,5 +1,18 @@
 # Agent configuration validation
 
+## 2026-09-24: GitHub Issue Progress Log 운영 계약 (#149)
+
+사용자가 요구사항을 GitHub Issue로 등록하는 운영 방식을 기준으로, Issue를 요구사항 Source뿐 아니라 작업 진행 기록의 기준점으로 사용하도록 Agent 계약을 보강했다.
+
+- Manager는 PLAN 확정, 주요 phase 전환, FAIL/BLOCKED, 특이사항, 사용자/maintainer 결정 필요, 재개, 종료 시 Issue에 구조화된 진행 기록을 남긴다.
+- 기록 유형은 `PLAN`, `STATUS`, `EXCEPTION`, `DECISION_REQUIRED`, `RESUME`, `FINAL`로 표준화한다.
+- Sub-Agent는 직접 Issue 댓글을 남기는 대신 Result Contract의 ISSUE_LOG 필드로 기록 후보와 evidence를 Manager에게 반환한다.
+- researcher/ui_ux/qa_docs의 read-only 경계는 유지한다. infra는 Work Packet에서 명시적으로 위임받은 운영 범위의 STATUS/EXCEPTION만 직접 기록할 수 있다.
+- 반복 polling/세부 명령은 기록하지 않고 사람이 현재 상태와 다음 조치를 파악하는 데 필요한 의미 있는 변화만 남긴다.
+- Secret/PAT/Password/Token/.env/민감 runtime·DB 정보는 Issue/PR 댓글에도 남기지 않는다.
+
+이 변경은 Agent 운영 문서에 한정되므로 application version은 유지하며 정식 제품 release는 N/A다. 실제 GitHub 댓글 작성 권한과 원격 실행 여부는 runtime 권한을 따른다.
+
 ## 2026-09-24: GPT-6 Sol/Luna 역할별 재배치 (#131)
 
 새 모델 추가에 따라 역할의 추론 난이도, 변경 위험, 반복 처리량을 기준으로 모델을 재배치했다. Manager/scheduler/infra는 GPT-6 Astra를 유지하고, 구현 및 독립 검토 역할은 GPT-6 Sol, 반복적인 공식 문서 탐색·비교 중심 researcher는 GPT-6 Luna를 사용한다.
