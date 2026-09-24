@@ -1,0 +1,97 @@
+name: Issue 149 Lifecycle 완료 자동화
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/issue-149-release-helper.yml"
+
+permissions:
+  contents: write
+  actions: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    name: Issue #149 브랜치 정리·이슈 종료
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      WORK_BRANCH: docs/issue-149-issue-progress-log
+      FEATURE_HEAD_SHA: 5ac7e0e611f331bdd81fef454b574d6658ab2dce
+      FEATURE_MERGE_SHA: 159ff3be057f8eb4d8fd3b025e6c3b421c24fb4e
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Issue #149 완료 증거 검증
+        shell: bash
+        run: |
+          set -euo pipefail
+          target_sha="$GITHUB_SHA"
+
+          pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/151")"
+          test "$(jq -r '.merged_at // ""' <<<"$pr")" != ""
+          test "$(jq -r '.base.ref' <<<"$pr")" = "main"
+          test "$(jq -r '.head.ref' <<<"$pr")" = "$WORK_BRANCH"
+          test "$(jq -r '.head.repo.full_name' <<<"$pr")" = "$GITHUB_REPOSITORY"
+          test "$(jq -r '.head.sha' <<<"$pr")" = "$FEATURE_HEAD_SHA"
+          test "$(jq -r '.merge_commit_sha' <<<"$pr")" = "$FEATURE_MERGE_SHA"
+
+          git merge-base --is-ancestor "$FEATURE_MERGE_SHA" "$target_sha"
+
+          main_ci_url=""
+          for _ in $(seq 1 300); do
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=50")"
+            run="$(jq -c --arg sha "$target_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" && "$(jq -r .status <<<"$run")" == "completed" ]]; then
+              test "$(jq -r '.conclusion // ""' <<<"$run")" = "success"
+              main_ci_url="$(jq -r .html_url <<<"$run")"
+              break
+            fi
+            sleep 15
+          done
+          test -n "$main_ci_url"
+          echo "MAIN_CI_URL=$main_ci_url" >> "$GITHUB_ENV"
+          echo "TARGET_SHA=$target_sha" >> "$GITHUB_ENV"
+
+      - name: Issue #149 작업 브랜치 안전 삭제
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/safe_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr 151 \
+            --branch "$WORK_BRANCH" \
+            --target-sha "$TARGET_SHA" \
+            --delete
+
+      - name: Issue #149 FINAL 기록 및 종료
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(printf '%s\n' \
+            "## FINAL · Issue #149 완료" \
+            "" \
+            "**최종 상태:** COMPLETED" \
+            "" \
+            "- PR: #151 (merged)" \
+            "- 기능 head: $FEATURE_HEAD_SHA" \
+            "- merge SHA: $FEATURE_MERGE_SHA" \
+            "- 완료 helper 기준 main SHA: $TARGET_SHA" \
+            "- PR CI #740: PASS" \
+            "- 최신 head Codex 독립 review: PASS (major issue 없음)" \
+            "- main CI #742 및 이후 helper 기준 main CI: PASS" \
+            "- main 임시 GHCR image 게시/exact digest smoke/cleanup: PASS" \
+            "- 작업 브랜치 삭제: $WORK_BRANCH (scripts/safe_branch_cleanup.py)" \
+            "- application version 변경: 없음" \
+            "- 정식 SemVer/GHCR release: N/A (문서/Agent 운영 지침 변경)" \
+            "- 관련 문서: AGENTS.md, docs/ISSUE_LIFECYCLE.md, docs/AGENT_PROMPTS.md, docs/AGENT_CONFIGURATION.md" \
+            "- 잔여 차단 사항: 없음" \
+            "" \
+            "완료 helper main CI: $MAIN_CI_URL")"
+          gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/149/comments" -f body="$body"
+          gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/149" -f state="closed" -f state_reason="completed"
