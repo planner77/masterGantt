@@ -400,3 +400,12 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - 390px에서는 최초 root focus와 닫힌 child, focus만으로 열리지 않음, ArrowRight·click·Enter·Space 진입, ArrowLeft·Back 복귀, Escape 전체 닫힘과 원래 Task focus 복원을 검사한다. Convert to/Move/Paste의 좁은 drilldown과 명령 접근, 명령이 모두 비활성인 외동 Task의 Move 및 자식이 있는 Summary의 Convert to에서 Back focus fallback도 검사한다. 넓은 화면에서는 기존 hover/focus/#77 초기 상태와 세 하위 메뉴의 좌우 배치·활성 명령 접근, ArrowLeft 뒤 부모 focus·child hidden·`aria-expanded=false`를 검사한다.
 - 390×160 짧은 화면에서는 실제 End/Home/ArrowDown 키보드 탐색으로 root 내부 스크롤·마지막/root 중간 명령 가시성·문서 scroll 불변을 검사한다. 하위 메뉴 마지막 명령 접근, sticky Back, 좁은 화면의 실제 명령과 Gantt instance 유지도 확인한다. 기존 #72 명령과 #104 endpoint Link 분리는 `project-task-context-menu.spec.ts`에 있으며 readonly 계약은 별도 `task-context-menu-hierarchy.spec.ts`가 검사한다.
 - 2026-09-24 현재 코드를 작성했으나 로컬 Playwright, unit, lint, typecheck, build는 **실행하지 않았다(NOT TESTED)**. 자동 테스트의 계획/작성은 PASS 증거가 아니다. 로컬 실행 시 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-task-context-menu.spec.ts`와 변경 파일 lint/typecheck를 먼저 수행하고, PR head의 quality/e2e/docker는 해당 run의 원격 증거로 별도 판정한다.
+
+## Issue #117 리소스 공수 조회 상태 회귀
+
+- `tests/e2e/project-resource-workload-status.spec.ts`는 공수 첫 실패/메타데이터 성공, 공수만 재시도, 메타데이터 첫 실패/공수 성공, 메타데이터만 재시도를 각각 검사한다. 메타데이터 실패 중에도 workload의 기본 이름과 Resource 코드는 검색되고 Group 코드·설명 검색은 제한되며, 성공 후 복원되는지 확인한다.
+- HTTP 오류 외에 `route.abort` 네트워크 실패와 필수 필드가 빠진 HTTP 200 응답을 각각 주입해 첫 실패·stale 실패가 성공으로 잘못 표시되지 않는지, 다른 쪽 성공과 재시도 복구를 검사한다. Parser는 workload의 project/catalog revision과 Task 식별자·공수 설정 여부, assigned-targets의 project/catalog revision·assignment 식별/대상 등 DTO 필수 구조를 확인한다.
+- 기존 성공 뒤 한쪽 새로고침 실패에서는 마지막 성공 시각과 이전 결과를 표시하면서 다른 쪽 성공을 유지하는지 검사한다. retry와 loading 상태, M/D·M/M 선택, 검색·종류·활성·기간 필터, 열린 Resource details, tab 왕복 및 SVAR Gantt instance 보존을 확인한다.
+- 진행 중 전역 새로고침 비활성으로 중복 GET을 막고, 화면 이탈 후 늦은 이전 실패가 다시 연 화면의 성공 상태를 덮지 않는지 검사한다. 동일 component에서 publicId prop만 교체하는 진입은 현재 브라우저 시나리오에 없어 publicId ref·요청 번호·Abort guard를 코드에서 확인한다.
+- 390/768/1024/1440px에서 오류 재시도 버튼의 viewport 내 접근과 document 가로 overflow 부재를 검사한다. API/domain/revision 계약은 변경하지 않으므로 API·DB·Scheduling 문서 영향은 N/A다.
+- 코드는 작성했으나 로컬 Playwright, lint, typecheck, build를 **실행하지 않았다(NOT TESTED)**. 원격 PR CI는 실제 head SHA의 `quality/e2e/docker` run 결과로 별도 판정한다. 재개 시 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-resource-workload-status.spec.ts`와 변경 TS/CSS lint/typecheck를 우선 실행한다.
