@@ -27,6 +27,22 @@ async function createTask(
 const row = (page: import("@playwright/test").Page, name: string) =>
   page.locator(".project-gantt-widget .wx-row", { hasText: name }).first();
 
+async function settleViewportBeforeContextMenu(page: import("@playwright/test").Page, target: import("@playwright/test").Locator, width: number, height: number) {
+  await page.setViewportSize({ width, height });
+  await expect.poll(() => page.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight }))).toEqual({ width, height });
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await expect(target).toBeVisible();
+}
+
+async function dispatchTaskContextMenuAt(page: import("@playwright/test").Page, target: import("@playwright/test").Locator, x: number, y: number) {
+  // The synthetic anchor must not inherit a real pointer still hovering the previous Add trigger.
+  await page.mouse.move(0, 0);
+  // Playwright dispatchEvent("contextmenu") creates a generic Event; supply mouse coordinates explicitly.
+  await target.evaluate((element, position) => element.dispatchEvent(new MouseEvent("contextmenu", {
+    bubbles: true, cancelable: true, button: 2, clientX: position.x, clientY: position.y,
+  })), { x, y });
+}
+
 async function openTaskMenu(page: import("@playwright/test").Page, name: string) {
   const target = row(page, name);
   await expect(target).toBeVisible();
@@ -130,10 +146,10 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   const target = row(page, "Responsive menu task").getByText("Responsive menu task", { exact: true });
   for (const width of [390, 768, 1024, 1440]) {
     const height = 844;
-    await page.setViewportSize({ width, height });
+    await settleViewportBeforeContextMenu(page, target, width, height);
     for (const [x, y] of [[8, 8], [width - 8, 8], [8, height - 8], [width - 8, height - 8]]) {
       // The target remains a real Grid row; only the context-menu event's viewport anchor varies.
-      await target.dispatchEvent("contextmenu", { bubbles: true, button: 2, clientX: x, clientY: y });
+      await dispatchTaskContextMenuAt(page, target, x, y);
       await expect(rootMenu).toBeVisible();
       await expect(rootMenu).toBeFocused();
       await expect(childMenu).toBeHidden();
@@ -169,6 +185,20 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
         await expect(childMenu).toBeVisible();
         await expect(add).toHaveAttribute("aria-expanded", "true");
         await expect(add).toHaveAttribute("aria-controls", await childMenu.getAttribute("id") ?? "");
+        const edit = rootMenu.getByRole("menuitem", { name: "Edit", exact: true });
+        await edit.focus();
+        await expect(childMenu).toBeHidden();
+        await expect(add).toHaveAttribute("aria-expanded", "false");
+        // Focus movement does not move the physical pointer. Move it away so the next
+        // Add hover represents a fresh pointer-enter intent instead of reusing its old position.
+        await page.mouse.move(0, 0);
+        await add.hover();
+        await expect(childMenu).toBeVisible();
+        await edit.hover();
+        await expect(childMenu).toBeHidden();
+        await expect(add).toHaveAttribute("aria-expanded", "false");
+        await add.hover();
+        await expect(childMenu).toBeVisible();
         const rootBounds = await rootMenu.boundingBox();
         const childBounds = await childMenu.boundingBox();
         expect(rootBounds).not.toBeNull();
@@ -197,9 +227,9 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
     }
   }
 
-  await page.setViewportSize({ width: 390, height: 844 });
+  await settleViewportBeforeContextMenu(page, target, 390, 844);
   for (const name of ["Convert to", "Move"] as const) {
-    await target.dispatchEvent("contextmenu", { bubbles: true, button: 2, clientX: 380, clientY: 836 });
+    await dispatchTaskContextMenuAt(page, target, 380, 836);
     const trigger = rootMenu.getByRole("menuitem", { name, exact: true });
     await trigger.focus();
     await expect(page.getByRole("menu", { name, exact: true })).toBeHidden();
@@ -221,8 +251,8 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
     await expect(row(page, "Responsive menu task")).toBeFocused();
   }
 
-  await page.setViewportSize({ width: 390, height: 160 });
-  await target.dispatchEvent("contextmenu", { bubbles: true, button: 2, clientX: 380, clientY: 150 });
+  await settleViewportBeforeContextMenu(page, target, 390, 160);
+  await dispatchTaskContextMenuAt(page, target, 380, 150);
   await expect(rootMenu).toBeVisible();
   expect(await rootMenu.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
   const documentScroll = await page.evaluate(() => window.scrollY);
@@ -266,16 +296,16 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   await childMenu.getByRole("menuitem", { name: "Task below" }).click();
   await expectStructureToast(page);
   await expect(page.locator(".project-gantt-frame")).toHaveAttribute("data-project-gantt-instance", instance!);
-  await target.dispatchEvent("contextmenu", { bubbles: true, button: 2, clientX: 380, clientY: 150 });
+  await dispatchTaskContextMenuAt(page, target, 380, 150);
   await page.keyboard.press("Escape");
   await expect(row(page, "Responsive menu task")).toBeFocused();
 
   // Copy the new sibling, then inspect Paste on the original task.
   const createdTask = row(page, "새 작업").first();
-  await createdTask.getByText("새 작업", { exact: true }).dispatchEvent("contextmenu", { bubbles: true, button: 2, clientX: 380, clientY: 150 });
+  await dispatchTaskContextMenuAt(page, createdTask.getByText("새 작업", { exact: true }), 380, 150);
   await rootMenu.getByRole("menuitem", { name: "Copy", exact: true }).click();
-  await page.setViewportSize({ width: 390, height: 844 });
-  await target.dispatchEvent("contextmenu", { bubbles: true, button: 2, clientX: 380, clientY: 836 });
+  await settleViewportBeforeContextMenu(page, target, 390, 844);
+  await dispatchTaskContextMenuAt(page, target, 380, 836);
   const paste = rootMenu.getByRole("menuitem", { name: "Paste", exact: true });
   await expect(paste).toBeEnabled();
   await paste.focus();
@@ -286,9 +316,9 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   await page.keyboard.press("Escape");
 
   for (const x of [8, 1432]) {
-    await page.setViewportSize({ width: 1440, height: 844 });
+    await settleViewportBeforeContextMenu(page, target, 1440, 844);
     for (const name of ["Convert to", "Paste", "Move"] as const) {
-      await target.dispatchEvent("contextmenu", { bubbles: true, button: 2, clientX: x, clientY: 836 });
+      await dispatchTaskContextMenuAt(page, target, x, 836);
       const trigger = rootMenu.getByRole("menuitem", { name, exact: true });
       await trigger.hover();
       const submenu = page.getByRole("menu", { name, exact: true });
@@ -316,14 +346,14 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   }
 
   // A parent converted to Summary has no available Convert-to command.
-  await page.setViewportSize({ width: 390, height: 844 });
-  await target.dispatchEvent("contextmenu", { bubbles: true, button: 2, clientX: 380, clientY: 836 });
+  await settleViewportBeforeContextMenu(page, target, 390, 844);
+  await dispatchTaskContextMenuAt(page, target, 380, 836);
   await rootMenu.getByRole("menuitem", { name: "Add", exact: true }).click();
   await childMenu.getByRole("menuitem", { name: "Child task" }).click();
   await expectStructureToast(page);
   const summary = (await snapshot(page, api)).data.tasks.find((task) => task.name === "Responsive menu task");
   expect(summary?.type).toBe("summary");
-  await target.dispatchEvent("contextmenu", { bubbles: true, button: 2, clientX: 380, clientY: 836 });
+  await dispatchTaskContextMenuAt(page, target, 380, 836);
   const convert = rootMenu.getByRole("menuitem", { name: "Convert to", exact: true });
   await convert.focus();
   await page.keyboard.press("ArrowRight");
