@@ -59,12 +59,13 @@ test.describe("Issue #120 semantic UI state tokens", () => {
     await password.focus();
     const focus = await password.evaluate((element) => {
       const style = getComputedStyle(element);
-      return { style: style.outlineStyle, width: style.outlineWidth, offset: style.outlineOffset, color: style.outlineColor, background: style.backgroundColor };
+      return { style: style.outlineStyle, width: style.outlineWidth, offset: style.outlineOffset, color: style.outlineColor, background: style.backgroundColor, border: style.borderColor };
     });
     expect(focus.style).not.toBe("none");
     expect(Number.parseFloat(focus.width)).toBeGreaterThanOrEqual(3);
     expect(Number.parseFloat(focus.offset)).toBeGreaterThanOrEqual(3);
     expect(contrastRatio(focus.color, focus.background)).toBeGreaterThanOrEqual(3);
+    expect(focus.background).not.toBe("rgba(0, 0, 0, 0)");
   });
 
 
