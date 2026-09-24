@@ -274,3 +274,15 @@ Issue #87의 고정 cleanup workflow와 전용 verifier는 이 공통 기준의 
 - 기능 branch `fix/issue-118-project-context-toolbar`와 helper finalization branch는 `scripts/safe_branch_cleanup.py`의 merged PR/head SHA/ancestor/open-PR/lease 조건을 모두 통과한 경우에만 삭제한다.
 - 기능 PR의 resolved Codex P1, 문서 동기화(`PROJECT_UX`, `TEST_PLAN`, `CHANGELOG`)와 main 검증 증거를 FINAL 댓글에 기록한 뒤 Issue #118을 `completed`로 닫는다.
 - 정식 SemVer/GHCR release는 별도 명시적 승인 없이 자동 생성하지 않는다. 이 helper는 main 임시 commit image 검증까지만 완료하며 정식 release authority를 확대하지 않는다.
+
+
+## Issue #118 구현 전후 레이아웃 증거 Workflow
+
+`.github/workflows/issue-118-before-after-evidence.yml`은 #118 Acceptance Criteria의 동일 조건 구현 전/후 증거를 생성하는 검증 전용 Workflow다.
+
+- Trigger: 해당 Workflow, 측정/비교 script 또는 관련 검증 문서가 변경된 PR과 수동 `workflow_dispatch`.
+- 비교 revision은 Before `703a6f08595dea06a918366192df464d7215108e`, After `6386db860af69635cfb0fe626fd1a937905b9a56`(#118 기능 병합 SHA)로 고정한다.
+- 두 revision에 PR head의 **동일 측정 harness**를 적용하고 390/768/1024/1440px 모두 높이 844px, editing/readonly 동일 mock fixture로 실행한다.
+- PASS 기준: 390px 및 768px의 editing/readonly에서 After의 viewport 내 Gantt 가시 높이가 Before보다 증가하고, 모든 After 조건에서 document horizontal overflow가 없으며 정보 컨트롤이 한 줄을 유지해야 한다.
+- 증거: raw geometry JSON, comparison JSON, Markdown 요약, 동일 조건 before/after screenshot을 `issue-118-before-after-evidence` artifact로 90일 보관한다.
+- 이 Workflow는 제품 CI `quality/e2e/docker`, main 임시 GHCR 검증, 실제 모바일/스크린리더 검증을 대체하지 않는다. #118/122 종료에는 최신 PR head의 일반 CI와 이 evidence Workflow 결과를 각각 확인한다.
