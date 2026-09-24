@@ -109,6 +109,9 @@ export function ProjectResourceWorkload({ publicId }: Props) {
   const [kindFilter, setKindFilter] = useState<KindFilter>("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterTrigger = useRef<HTMLButtonElement>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
 
   useLayoutEffect(() => { currentPublicId.current = publicId; }, [publicId]);
 
@@ -197,7 +200,14 @@ export function ProjectResourceWorkload({ publicId }: Props) {
 
   const visibleResourceCount = new Set(filteredGroups.flatMap((group) => group.resources.map((resource) => resource.id))).size;
   const visibleGroupCount = filteredGroups.filter((group) => group.id !== null).length;
-  const filterActive = Boolean(query.trim() || activeFilter !== "all" || kindFilter !== "all" || (dateFrom && dateTo));
+  const appliedFilterCount = Number(Boolean(query.trim())) + Number(activeFilter !== "all") + Number(kindFilter !== "all") + Number(Boolean(dateFrom && dateTo));
+  const hasFilterInput = appliedFilterCount > 0 || Boolean(dateFrom || dateTo);
+  const totalGroupCount = data?.groups.filter((group) => group.id !== null).length ?? 0;
+  const totalResourceCount = data ? new Set(data.groups.flatMap((group) => group.resources.map((resource) => resource.id))).size : 0;
+  const resetFilters = () => {
+    setQuery(""); setActiveFilter("all"); setKindFilter("all"); setDateFrom(""); setDateTo("");
+    requestAnimationFrame(() => searchInput.current?.focus({ preventScroll: true }));
+  };
 
   const overAllocatedCount = data
     ? new Set(
@@ -240,15 +250,25 @@ export function ProjectResourceWorkload({ publicId }: Props) {
       </div>
 
       <div className="project-filter-toolbar resource-filter-toolbar" role="search" aria-label="리소스 검색과 필터">
-        <input aria-label="리소스 또는 그룹 이름과 코드 검색" placeholder="이름 또는 코드 검색" type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
+        <input ref={searchInput} aria-label="리소스 또는 그룹 이름과 코드 검색" placeholder="이름 또는 코드 검색" type="search" value={query} onChange={(event) => setQuery(event.target.value)} />
+        <button ref={filterTrigger} className="secondary-button resource-filter-trigger" type="button" aria-controls="resource-advanced-filter" aria-expanded={filterOpen} onClick={() => setFilterOpen((open) => !open)}>필터{appliedFilterCount ? ` ${appliedFilterCount}` : ""}</button>
+        {hasFilterInput ? <button className="secondary-button resource-filter-reset" type="button" onClick={resetFilters}>초기화</button> : null}
+        <span className="project-filter-result resource-filter-result" role="status">{data
+          ? `그룹 ${visibleGroupCount} / 전체 ${totalGroupCount} · 리소스 ${visibleResourceCount} / 전체 ${totalResourceCount}`
+          : currentWorkload.phase === "error" ? "조회 결과 없음 · 공수 조회 실패" : "공수 조회 중…"}</span>
+      </div>
+      <div id="resource-advanced-filter" className="project-filter-panel resource-filter-panel" hidden={!filterOpen}
+        aria-label="리소스 고급 필터" onKeyDown={(event) => {
+          if (event.key !== "Escape") return;
+          event.preventDefault(); event.stopPropagation(); setFilterOpen(false);
+          requestAnimationFrame(() => filterTrigger.current?.focus({ preventScroll: true }));
+        }}>
         <label>종류<select value={kindFilter} onChange={(event) => setKindFilter(event.target.value as KindFilter)}><option value="all">전체</option><option value="resource">Resource</option><option value="group">Resource Group</option></select></label>
         <label>상태<select value={activeFilter} onChange={(event) => setActiveFilter(event.target.value as ActiveFilter)}><option value="all">전체</option><option value="active">활성</option><option value="inactive">비활성</option></select></label>
         <label>Task 기간 From<input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label>
         <label>Task 기간 To<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
-        <button className="secondary-button" type="button" disabled={!filterActive} onClick={() => { setQuery(""); setActiveFilter("all"); setKindFilter("all"); setDateFrom(""); setDateTo(""); }}>초기화</button>
-        <span className="project-filter-result" role="status">{data
-          ? `그룹 ${visibleGroupCount} · 리소스 ${visibleResourceCount}`
-          : currentWorkload.phase === "error" ? "조회 결과 없음 · 공수 조회 실패" : "공수 조회 중…"}</span>
+        {Boolean(dateFrom) !== Boolean(dateTo) ? <p className="resource-filter-date-note" role="status">기간 시작일과 종료일을 모두 입력해 주세요. 기간 조건은 아직 적용되지 않습니다.</p> : null}
+        {dateFrom && dateTo && dateFrom > dateTo ? <p className="resource-filter-date-note" role="status">시작일이 종료일보다 늦어 두 날짜 사이의 범위로 검색합니다.</p> : null}
       </div>
 
       <div className="resource-workload-statuses" aria-label="리소스 조회 상태">

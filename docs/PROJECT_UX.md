@@ -215,3 +215,11 @@ Task Editor의 modal header는 작업 정보 제목과 작업 유형, External I
 Dialog 자체는 viewport 안에 두고 **본문만 세로 스크롤**한다. Header·탭·취소/저장/최신 정보 다시 불러오기 footer는 본문 스크롤 중에도 접근할 수 있다. Notice가 여러 개 쌓이면 notice 영역 안에서 스크롤해 본문·footer를 밀어내지 않는다. #120 의미 토큰으로 상태·focus·border를 정렬하되 Task Editor의 기존 compact control 높이와 #119 할당 fieldset/개별 오류 연결은 보존한다.
 
 Dirty close/Escape 확인, stale 뒤 명시적 reload, 실패 시 draft 보존, 저장 중 중복 PATCH 방지, 읽기 전용과 Task PATCH·Assignment PUT의 독립 계약 및 Gantt instance·원래 행 focus 복원은 기존 경로를 따른다. Domain validation은 기존 `prepareTaskEditorCommand`에 맡긴다. 동일 fixture의 390×844·768×900·1024×900·1440×900·1600×900 구현 전후 modal/header/body/footer/필드/관계 geometry와 PNG가 비교 대상이다. 현재 E2E는 **변경 후 상태**만 기록하며 구현 전 baseline·실측, 로컬 브라우저·테스트·빌드는 **NOT TESTED**다. API/DB/Scheduling 문서 변경은 N/A다.
+
+## Issue #130 Phase 4 Search / Filter 공통 표현
+
+Project List, 일정, 리소스의 검색 도구줄은 넓은 화면에서 검색→`필터 N`→조건부 `초기화`→일치/전체 결과 순서로 표시한다. 390/768px에서는 검색·필터가 첫째 행, 결과·조건부 초기화가 둘째 행에 놓인다. 초기화 뒤 검색 입력으로 focus를 돌리고 고급 필터에서 Escape를 누르면 패널을 닫아 필터 버튼으로 focus를 복원한다. 표면·텍스트·테두리·focus·상태는 #120 의미 토큰을 사용하며 새 chip이나 필터 프레임워크는 도입하지 않는다.
+
+Project List의 #84 Quick Search+고급 AND, browser timezone 날짜 및 잘못된 날짜 범위 무시 계약은 그대로다. 일정은 #83 client filter와 canonical Gantt instance를 유지하며, 섹션 설명은 정적 맥락만 보여 주고 동적 결과 수는 도구줄에서 한 번만 표시한다. Resource의 종류·활성·Task 기간 native control은 고급 필터 패널로 모으고, M/D·M/M·새로고침은 별도 공수 도구줄에 남긴다. Resource 날짜가 역순이면 기존처럼 두 날짜 사이 범위로 해석한다고 패널 안에서 알린다. 한쪽 날짜만 입력한 경우 '기간 시작일과 종료일을 모두 입력' 안내를 보여 주고 조건을 적용하지 않는다. 이 미완성 초안은 적용 조건 수 `필터 N`에서 제외하되 초기화로 지울 수 있다. 공수/assigned-targets의 조회 중·첫 실패·stale/부분 실패 상태와 결과 0건은 별개로 유지한다. 오류 카드도 #120 상태 토큰을 사용한다. 필터 조작은 API 재조회나 mutation을 하지 않는다.
+
+같은 fixture의 Project List·일정·리소스 도구줄을 390×844·768×900·1024×900·1440×900·1600×900에서 구현 전후 각각 비교할 계획이다. 현재 명세는 **변경 후 상태**의 배치·focus·overflow·API 불변과 PNG만 작성했고 구현 전 같은 fixture의 baseline, 실제 브라우저 수치와 로컬 실행은 **NOT TESTED**다. API/DB/Scheduling 계약 문서 변경은 N/A다.

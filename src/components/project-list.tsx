@@ -87,6 +87,7 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   const mutation = useRef(false);
   const deleteTrigger = useRef<HTMLElement | null>(null);
   const filterTrigger = useRef<HTMLButtonElement | null>(null);
+  const searchInput = useRef<HTMLInputElement | null>(null);
   const locales = useSyncExternalStore<DisplayLocales>(subscribeToLocaleChanges, browserLocales, () => SSR_DATE_LOCALE);
   const timeZone = useSyncExternalStore(subscribeToLocaleChanges, browserTimeZone, () => SSR_TIME_ZONE);
   const availableProjects = useMemo(() => projects.filter(({ publicId }) => !deletedIds.has(publicId)), [deletedIds, projects]);
@@ -105,6 +106,7 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   }
   function resetFilter() {
     setFilter(EMPTY_PROJECT_FILTER);
+    requestAnimationFrame(() => searchInput.current?.focus({ preventScroll: true }));
   }
   function closeFilterWithFocus() {
     setFilterOpen(false);
@@ -193,19 +195,19 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
 
   return <>
     {availableProjects.length === 0 ? <EmptyProjects /> : <div className={styles.list} aria-label="프로젝트 목록">
-      <div className="project-filter-toolbar" role="search" aria-label="프로젝트 검색과 필터">
+      <div className={`project-filter-toolbar ${styles.filterToolbar}`} role="search" aria-label="프로젝트 검색과 필터">
         <label className="project-filter-search">
           <span className="sr-only">프로젝트 검색</span>
-          <input aria-label="프로젝트명, 소유자 또는 설명 검색" placeholder="프로젝트 검색" type="search"
+          <input ref={searchInput} aria-label="프로젝트명, 소유자 또는 설명 검색" placeholder="프로젝트 검색" type="search"
             value={filter.query} onChange={(event) => updateFilter({ query: event.target.value })} />
         </label>
-        <button ref={filterTrigger} className="secondary-button" type="button" aria-expanded={filterOpen}
+        <button ref={filterTrigger} className={`secondary-button ${styles.filterTrigger}`} type="button" aria-expanded={filterOpen}
           aria-controls="project-list-advanced-filter" onClick={() => setFilterOpen((open) => !open)}>
           필터{activeFilters ? ` ${activeFilters}` : ""}
         </button>
-        <button className="secondary-button" type="button" disabled={!filterApplied} onClick={resetFilter}>초기화</button>
-        <span className="project-filter-result" role="status">
-          {filterApplied ? `${visibleProjects.length} / ${availableProjects.length}개 프로젝트` : `${availableProjects.length}개의 프로젝트`}
+        {filterApplied ? <button className={`secondary-button ${styles.filterReset}`} type="button" onClick={resetFilter}>초기화</button> : null}
+        <span className={`project-filter-result ${styles.filterResult}`} role="status">
+          {`${visibleProjects.length} / ${availableProjects.length}개 프로젝트`}
         </span>
       </div>
 
