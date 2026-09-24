@@ -42,6 +42,7 @@ test.describe("Issue #120 semantic UI state tokens", () => {
         panel: resolve("--surface-panel"),
         readonlyText: resolve("--text-readonly"),
         readonlySurface: "rgb(241, 245, 249)",
+        inactiveBadgeSurface: "rgb(226, 232, 240)",
       };
     });
     expect(contrastRatio(values.primary, values.primaryForeground)).toBeGreaterThanOrEqual(4.5);
@@ -52,6 +53,7 @@ test.describe("Issue #120 semantic UI state tokens", () => {
     expect(values.focusOutline).toContain("3px");
     expect(contrastRatio(values.focusRing, values.panel)).toBeGreaterThanOrEqual(3);
     expect(contrastRatio(values.readonlyText, values.readonlySurface)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(values.readonlyText, values.inactiveBadgeSurface)).toBeGreaterThanOrEqual(4.5);
 
     const password = page.getByLabel("관리자 비밀번호");
     await password.focus();
