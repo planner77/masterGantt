@@ -181,7 +181,7 @@ Secret, `.env`, PAT, Password, Token, 실제 SQLite DB와 runtime log는 Git에 
 
 Issue는 요구사항 등록뿐 아니라 **작업 진행 기록의 기준점**으로 사용한다. Manager는 PLAN 확정, 주요 Lifecycle phase 전환, FAIL/BLOCKED, 예상 밖 특이사항, 사용자/maintainer 결정 필요, 재개, 최종 완료 시점에 필요한 정보를 Issue 댓글로 남긴다. 정상적인 세부 명령·반복 조회를 모두 기록하지 않고 사람이 현재 상태와 다음 조치를 파악하는 데 필요한 변화만 기록한다. 표준 유형은 `PLAN`, `STATUS`, `EXCEPTION`, `DECISION_REQUIRED`, `RESUME`, `FINAL`이며 상세 형식과 책임은 `docs/ISSUE_LIFECYCLE.md`를 따른다.
 
-Sub-Agent는 임의로 Issue/PR에 진행 댓글을 쓰지 않고 자신의 Result Contract에 `issue_log_type`, `issue_log_summary`, `decision_required`와 증거를 포함해 Manager에게 반환한다. Manager 또는 Work Packet에서 명시적으로 GitHub 운영 쓰기를 위임받은 infra만 공식 Issue 진행 기록을 남긴다. researcher/ui_ux/qa_docs의 read-only 경계는 그대로 유지한다. Secret, PAT, Password, Token, `.env`, 민감한 운영 로그나 실제 DB 내용은 Issue 댓글에도 기록하지 않는다.
+Sub-Agent는 임의로 Issue/PR에 진행 댓글을 쓰지 않고 자신의 Result Contract에 `issue_log_type`, `issue_log_summary`, `decision_required`와 증거를 포함해 Manager에게 반환한다. Manager 또는 Work Packet에서 `issue_comment_writer=infra`와 허용 유형(`issue_comment_allowed_types`)을 명시적으로 지정받은 infra만 공식 Issue 진행 기록을 대신 남길 수 있다. `issue_log_type`만으로 쓰기 권한을 추론하지 않는다. infra에 위임 가능한 유형은 branch/PR/CI/GHCR 운영의 `STATUS`/`EXCEPTION`에 한정하고 PLAN/DECISION_REQUIRED/RESUME/FINAL은 Manager가 기록한다. researcher/ui_ux/qa_docs의 read-only 경계는 그대로 유지한다. Secret, PAT, Password, Token, `.env`, 민감한 운영 로그나 실제 DB 내용은 Issue 댓글에도 기록하지 않는다.
 
 PR에는 요약, 관련 Issue, 변경 사항, 검증, UI 변경 시 화면 캡처, 갱신 문서, 남은 위험을 포함한다. 검증에는 로컬 빠른 검증(Local Fast Feedback)과 GitHub Actions 결과를 분리한다. CI 관련 제목과 설명은 4절의 한글 작성 원칙을 적용한다.
 
@@ -286,7 +286,7 @@ Manager와 모든 Sub-Agent는 작업 전에 [ISSUE_LIFECYCLE](docs/ISSUE_LIFECY
 Issue 기반 개발은 `docs/ISSUE_LIFECYCLE.md`를 전체 단계 Source of Truth로 하고, 실제 위임/반환 형식은 `docs/AGENT_PROMPTS.md`를 사용한다.
 
 - Manager는 작업 시작 시 실제 Issue, main SHA, 기존 branch/PR/CI, version을 조회하고 표준 **Issue Work Packet**을 만든다.
-- Packet에는 Issue/AC/scope/non-scope, lifecycle phase, baseline SHA/branch/head, version 결정, release_required/release_authorized, 파일 소유권, 테스트·required docs·문서 작성자·증거, 다음 handoff를 포함한다.
+- Packet에는 Issue/AC/scope/non-scope, lifecycle phase, baseline SHA/branch/head, version 결정, release_required/release_authorized, 파일 소유권, 테스트·required docs·문서 작성자·증거, Issue 댓글 작성자/허용 유형(`issue_comment_writer`/`issue_comment_allowed_types`), 다음 handoff를 포함한다.
 - 모든 Sub-Agent는 Packet에 지정된 phase와 파일 범위만 수행한다. scope/interface/version/release 판단 변경이 필요하면 독자 결정하지 않고 Manager에게 반환한다.
 - frontend/backend/scheduler/excel_vba는 application/domain 구현·관련 테스트·Local Fast Feedback을 담당한다. workflow/Docker/Compose/GHCR 등 infrastructure-only 변경은 infra가 구현 Agent가 될 수 있다. 그 다음 별도 DOCUMENTATION_SYNC Gate에서 문서 영향 분석과 required docs 갱신/N/A 근거를 완료한다. researcher/ui_ux/qa_docs는 read-only 책임을 유지한다.
 - version 결정과 전체 단계 전환은 Manager가 소유한다. branch/PR/CI/merge/main GHCR/branch cleanup은 infra가 실행하되 Manager gate와 승인 범위를 따른다.
