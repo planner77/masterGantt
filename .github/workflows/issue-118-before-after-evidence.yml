@@ -1,0 +1,136 @@
+name: Issue 118 before-after evidence
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/issue-118-before-after-evidence.yml"
+      - "scripts/measure-issue-118-layout.mjs"
+      - "scripts/compare-issue-118-layout.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: Compare #118 baseline and merged layout
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASELINE_SHA: 703a6f08595dea06a918366192df464d7215108e
+      AFTER_SHA: 6386db860af69635cfb0fe626fd1a937905b9a56
+    steps:
+      - name: Checkout measurement harness
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          path: harness
+
+      - name: Checkout before revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          ref: ${{ env.BASELINE_SHA }}
+          path: before
+
+      - name: Checkout #118 merge revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          ref: ${{ env.AFTER_SHA }}
+          path: after
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+
+      - name: Install harness and revision dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd harness && npm ci)
+          (cd before && npm ci)
+          (cd after && npm ci)
+          (cd harness && npx --no-install playwright install --with-deps chromium)
+
+      - name: Start before and after applications
+        shell: bash
+        run: |
+          set -euo pipefail
+          (
+            cd before
+            APP_BASE_URL=http://127.0.0.1:3101 \
+            DATABASE_PATH="$RUNNER_TEMP/issue118-before.sqlite3" \
+            NEXT_DIST_DIR=.next-issue118-before \
+            npm run dev -- --hostname 127.0.0.1 --port 3101 \
+              >"$RUNNER_TEMP/issue118-before.log" 2>&1 &
+            echo $! >"$RUNNER_TEMP/issue118-before.pid"
+          )
+          (
+            cd after
+            APP_BASE_URL=http://127.0.0.1:3102 \
+            DATABASE_PATH="$RUNNER_TEMP/issue118-after.sqlite3" \
+            NEXT_DIST_DIR=.next-issue118-after \
+            npm run dev -- --hostname 127.0.0.1 --port 3102 \
+              >"$RUNNER_TEMP/issue118-after.log" 2>&1 &
+            echo $! >"$RUNNER_TEMP/issue118-after.pid"
+          )
+          for port in 3101 3102; do
+            ready=false
+            for _ in $(seq 1 60); do
+              if curl --fail --silent "http://127.0.0.1:$port/" >/dev/null; then
+                ready=true
+                break
+              fi
+              sleep 1
+            done
+            if [[ "$ready" != true ]]; then
+              cat "$RUNNER_TEMP/issue118-before.log" || true
+              cat "$RUNNER_TEMP/issue118-after.log" || true
+              exit 1
+            fi
+          done
+
+      - name: Measure baseline with common harness
+        working-directory: harness
+        run: node scripts/measure-issue-118-layout.mjs http://127.0.0.1:3101 before issue-118-evidence/before
+
+      - name: Measure #118 merged revision with common harness
+        working-directory: harness
+        run: node scripts/measure-issue-118-layout.mjs http://127.0.0.1:3102 after issue-118-evidence/after
+
+      - name: Compare visible Gantt height and create report
+        working-directory: harness
+        run: |
+          node scripts/compare-issue-118-layout.mjs \
+            issue-118-evidence/before/metrics.json \
+            issue-118-evidence/after/metrics.json \
+            issue-118-evidence
+          cat issue-118-evidence/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload before-after evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: issue-118-before-after-evidence
+          path: harness/issue-118-evidence/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Show application logs on failure
+        if: failure()
+        shell: bash
+        run: |
+          cat "$RUNNER_TEMP/issue118-before.log" || true
+          cat "$RUNNER_TEMP/issue118-after.log" || true
+
+      - name: Stop applications
+        if: always()
+        shell: bash
+        run: |
+          for file in "$RUNNER_TEMP/issue118-before.pid" "$RUNNER_TEMP/issue118-after.pid"; do
+            if [[ -f "$file" ]]; then
+              kill "$(cat "$file")" 2>/dev/null || true
+            fi
+          done
