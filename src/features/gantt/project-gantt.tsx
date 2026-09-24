@@ -452,7 +452,7 @@ export function ProjectGantt({
             ? {
               ...column,
               hidden: !columnVisibility.text,
-              editor: (row?: { id?: string | number }) => {
+              editor: (row?: Record<string, unknown>) => {
                 const taskId = typeof row?.id === "string" ? row.id : null;
                 return editable && !mutationLocked && taskId && tasksById.has(taskId) &&
                   !taskHasDependencyLinks(tasks, taskId, links) ? "text" : null;
