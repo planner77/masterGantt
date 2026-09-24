@@ -263,3 +263,14 @@ Issue #87의 고정 cleanup workflow와 전용 verifier는 이 공통 기준의 
 - 동일 tag/head의 기존 성공 release run이 있으면 재사용하며, tag만 있고 성공 release 증거가 없으면 gate를 우회하지 않는다.
 - 정식 release 성공 후에만 PR #127의 기능 branch와 PR #133의 release-validation branch를 각각 `scripts/safe_branch_cleanup.py`로 검증·삭제한다. 이전 재통합 branch는 merged-PR-head 조건을 충족하지 않으므로 공통 안전 도구를 우회해 자동 삭제하지 않는다.
 - 완료 댓글에는 기능 PR #127, release-validation PR #133, version, release target SHA, main CI, 정식 release run, tag, 두 merged branch cleanup 결과를 기록하고 마지막 단계에서만 Issue #99를 `completed`로 닫는다.
+
+
+## Issue #118 Lifecycle 완료 자동화
+
+`.github/workflows/issue-118-release-helper.yml`은 Issue #118의 기능 PR #146 병합 이후 main 검증과 안전한 branch cleanup, 최종 Issue 종료를 직렬화하는 한정 helper다.
+
+- 기능 기준은 PR #146 최종 head `80159c5a5e6a2bfacf8b0c4fad03675801a79ef0`, merge SHA `6386db860af69635cfb0fe626fd1a937905b9a56`, application version `0.27.4`다.
+- helper는 자신이 포함된 main commit의 `ci.yml` push run이 `completed/success`가 될 때까지 기다린다. 이 성공에는 quality/E2E/Docker와 main 임시 `ci-<SHA>` GHCR 게시·exact digest smoke·cleanup이 포함된다.
+- 기능 branch `fix/issue-118-project-context-toolbar`와 helper finalization branch는 `scripts/safe_branch_cleanup.py`의 merged PR/head SHA/ancestor/open-PR/lease 조건을 모두 통과한 경우에만 삭제한다.
+- 기능 PR의 resolved Codex P1, 문서 동기화(`PROJECT_UX`, `TEST_PLAN`, `CHANGELOG`)와 main 검증 증거를 FINAL 댓글에 기록한 뒤 Issue #118을 `completed`로 닫는다.
+- 정식 SemVer/GHCR release는 별도 명시적 승인 없이 자동 생성하지 않는다. 이 helper는 main 임시 commit image 검증까지만 완료하며 정식 release authority를 확대하지 않는다.

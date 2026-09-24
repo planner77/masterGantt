@@ -784,6 +784,14 @@ export function ProjectGantt({
     else if (itemBounds.top < scrollBounds.top + 4) scroller.scrollTop -= scrollBounds.top - itemBounds.top + 4;
   }
 
+  function closeTaskSubmenuForOrdinaryRootItem(target: EventTarget | null) {
+    if (!taskSubmenu || !(target instanceof Element)) return;
+    const item = target.closest<HTMLButtonElement>('button[role="menuitem"]');
+    if (!item || !taskMenuReference.current?.contains(item)) return;
+    if (item.closest(".project-task-context-submenu-host") || item.closest(".project-task-context-submenu")) return;
+    setTaskSubmenu(null);
+  }
+
   function handleColumnMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key === "Escape") {
       event.preventDefault();
@@ -962,7 +970,9 @@ export function ProjectGantt({
         {taskMenu && menuCapabilities ? <div
           aria-label="작업 메뉴"
           className="project-task-context-menu"
+          onFocusCapture={(event) => closeTaskSubmenuForOrdinaryRootItem(event.target)}
           onKeyDown={handleTaskMenuKeyDown}
+          onPointerOver={(event) => { if (event.pointerType === "mouse") closeTaskSubmenuForOrdinaryRootItem(event.target); }}
           onScroll={(event) => { if (event.target === event.currentTarget && taskSubmenu?.placement !== "drilldown") setTaskSubmenu(null); }}
           ref={taskMenuReference}
           role="menu"

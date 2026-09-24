@@ -48,7 +48,7 @@ test.describe("Issue #76 Project Workspace UX", () => {
     await expect(resourcesTab).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("heading", { level: 2, name: "리소스 공수" })).toBeVisible();
     await expect(page.getByText("개발팀", { exact: true })).toBeVisible();
-    await expect(page.getByText("테스트 리소스 (R-01)", { exact: true })).toBeVisible();
+    await expect(page.getByRole("tabpanel", { name: "리소스" }).getByText("테스트 리소스 (R-01)", { exact: true })).toBeVisible();
     await expect(page.getByText("5.00 M/D", { exact: true }).first()).toBeVisible();
 
     await page.keyboard.press("Home");

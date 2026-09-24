@@ -57,6 +57,14 @@ VALIDATION
 - environment_specific_validation:
 - evidence_required:
 
+ISSUE_LOG
+- issue_log_type: PLAN | STATUS | EXCEPTION | DECISION_REQUIRED | RESUME | FINAL | NONE
+- issue_log_summary:
+- decision_required:
+- issue_log_evidence:
+- issue_comment_writer: manager | infra | NONE
+- issue_comment_allowed_types: PLAN | STATUS | EXCEPTION | DECISION_REQUIRED | RESUME | FINAL | STATUS,EXCEPTION | NONE
+
 HANDOFF
 - predecessor_result:
 - expected_output:
@@ -100,6 +108,14 @@ RISK
 - security_or_permission_risk:
 - remaining_risk:
 
+ISSUE_LOG
+- issue_log_type: STATUS | EXCEPTION | DECISION_REQUIRED | RESUME | FINAL | NONE
+- issue_log_summary:
+- decision_required:
+- issue_log_evidence:
+- issue_comment_posted_by: manager | infra | NONE
+- issue_comment_url_or_id:
+
 HANDOFF
 - next_phase:
 - next_owner:
@@ -119,15 +135,17 @@ AGENTS.md와 docs/ISSUE_LIFECYCLE.md를 Source of Truth로 적용한다. UI/UX �
 2. Issue 목표/AC/scope/non-scope/dependency/risk를 정리한다.
 3. version_decision, release_required, release_authorized를 각각 판단하고 근거를 기록한다.
 4. 필요한 Agent만 선택한다. 동일 파일을 두 Write Agent에게 동시에 배정하지 않는다.
-5. 각 Agent에게 표준 Issue Work Packet을 전달한다.
-6. Agent 결과를 Result Contract로 수집하고 PASS를 자동 승인하지 않는다.
+5. PLAN 확정 시 Issue에 `PLAN` 기록을 남기고 각 Agent에게 표준 Issue Work Packet을 전달한다. Packet의 `issue_comment_writer`와 `issue_comment_allowed_types`를 명시하여 댓글 작성 권한을 추측하게 하지 않는다. 기본 writer는 `manager`이며 infra 위임이 없으면 `infra`로 설정하지 않는다.
+6. Agent 결과를 Result Contract로 수집하고 PASS를 자동 승인하지 않는다. 각 Result의 `ISSUE_LOG`를 검토하여 주요 phase 전환, FAIL/BLOCKED, 특이사항, 결정 필요, 재개 시 Issue에 중복 없이 기록한다.
 7. 구현과 Local Fast Feedback 뒤 DOCUMENTATION_SYNC Gate를 수행한다. required docs를 갱신하거나 항목별 N/A 근거를 기록하기 전 QA_READY로 넘기지 않는다.
 8. REWORK 시 기존 Issue/branch/PR을 재사용하며 최신 head 기준으로 재검증한다. 구현 변경으로 문서 영향이 생기면 이전 DOCUMENTATION_SYNC PASS도 stale 처리한다.
 9. qa_docs의 독립 검토와 실제 PR CI를 통과하기 전에 병합하지 않는다.
 10. 병합 후 main CI와 repository 정책상 GHCR ci-<SHA> digest 검증/cleanup을 확인한다.
 11. 정식 release는 release_required=true AND release_authorized=true일 때만 수행한다.
-12. branch cleanup과 Issue close는 모든 필수 gate가 완료된 뒤 수행한다.
-13. 완료 보고에는 Issue/PR/SHA/CI/GHCR/문서/잔여 위험을 실제 증거와 함께 남긴다.
+12. branch cleanup은 모든 필수 gate가 완료된 뒤 수행하고 cleanup 결과를 확인한다.
+13. Issue 종료 직전 `FINAL` 기록을 남겨 AC별 결과와 PR/merge/main/GHCR/문서/cleanup 증거, 남은 위험을 정리한다.
+14. `FINAL` 기록이 성공한 뒤 Issue를 종료한다. FINAL 기록 실패나 미완료 상태에서는 Issue를 닫지 않는다.
+15. 완료 보고에는 Issue/PR/SHA/CI/GHCR/문서/잔여 위험을 실제 증거와 함께 남긴다.
 ```
 
 ## 4. Domain Implementation Prompt
@@ -149,6 +167,7 @@ AGENTS.md와 docs/ISSUE_LIFECYCLE.md를 Source of Truth로 적용한다. UI/UX �
 - version/tag/PR/merge/GHCR/Issue close는 독자 수행하지 않는다.
 - CI 실패 재현을 위해 필요한 경우에만 로컬 검증 범위를 확대한다.
 - 변경 후 Result Contract로 실제 파일, commit/head, 명령과 결과, 위험, 다음 handoff를 반환한다.
+- 의미 있는 진행 변화, 예상 밖 제약/실패, 사용자 결정 필요 사항이 있으면 Result Contract의 ISSUE_LOG 필드에 STATUS/EXCEPTION/DECISION_REQUIRED 후보와 근거를 포함한다. 기본적으로 GitHub Issue에 직접 댓글을 쓰지 않는다. 단, infrastructure-only 구현을 맡은 infra는 Work Packet에 `issue_comment_writer=infra`가 명시되고 현재 유형이 `issue_comment_allowed_types`의 STATUS/EXCEPTION에 포함된 경우에만 §7의 동일한 위임 규칙에 따라 직접 기록할 수 있다.
 ```
 
 ## 5. Research / UI Design Prompt
@@ -165,6 +184,7 @@ Issue Work Packet과 관련 Source of Truth를 읽고 구현 파일/GitHub 상�
 - 구현 가능한 설계/대안/제약/인수 기준을 제공한다. DESIGN.md의 Linear-inspired Light Enterprise Workspace 방향과 화면별 rollout 순서를 임의로 뒤집지 않는다.
 - 직접 코드 수정, version 변경, PR/merge/GHCR/Issue close를 수행하지 않는다.
 - Result Contract로 다음 구현 Agent가 바로 작업 가능한 handoff를 반환한다.
+- 사용자 결정이나 구현 범위 변경이 필요한 발견은 ISSUE_LOG에 DECISION_REQUIRED 후보로 구조화해 Manager에게 반환하며 직접 Issue를 수정하지 않는다.
 ```
 
 ## 6. Independent QA Prompt
@@ -185,6 +205,7 @@ Issue Work Packet과 관련 Source of Truth를 읽고 구현 파일/GitHub 상�
 - stale PASS, 조기 자동 종료, 누락 문서, 중복 구현, gate 약화를 지적한다.
 - 파일/GitHub 상태를 직접 수정하지 않는다.
 - PASS/FAIL/BLOCKED/NOT TESTED와 REWORK 사유를 Result Contract로 반환한다.
+- 독립 검토에서 발견한 차단 사항이나 특이사항은 ISSUE_LOG에 EXCEPTION/DECISION_REQUIRED 후보로 반환하며 read-only 경계를 유지한다.
 ```
 
 ## 7. Infra / GitHub / CI / GHCR Prompt
@@ -205,7 +226,9 @@ Manager가 승인한 Issue Work Packet을 기준으로 branch/PR/CI/merge/main a
 - 정식 version tag/GHCR release는 release_required=true AND release_authorized=true 근거가 있을 때만 수행한다.
 - branch 삭제 전 merge 및 미병합 commit/다른 PR 참조 여부를 확인한다.
 - Issue close 자체는 Manager 완료 판단 이후 승인된 범위에서만 수행한다.
-- run ID/job/attempt/head SHA/image digest를 Result Contract에 남긴다.
+- Work Packet의 `issue_comment_writer=infra`이고 `issue_comment_allowed_types`에 해당 유형이 포함된 경우에만 branch/PR/CI/GHCR 운영에 직접 관련된 STATUS/EXCEPTION 댓글을 기록할 수 있다. 필드가 누락되거나 `manager`/`NONE`이면 댓글을 직접 쓰지 않고 후보만 반환한다.
+- infra 위임 시에도 허용 유형은 STATUS/EXCEPTION의 부분집합이어야 하며 PLAN/DECISION_REQUIRED/RESUME/FINAL 및 범위/AC/version/release/최종 완료 판단은 Manager 소유다.
+- run ID/job/attempt/head SHA/image digest와 필요한 ISSUE_LOG 후보를 Result Contract에 남기고, 실제 댓글을 게시했다면 `issue_comment_posted_by`와 `issue_comment_url_or_id`를 기록한다.
 ```
 
 ## 8. REWORK / Resume Prompt
@@ -214,7 +237,7 @@ Manager가 승인한 Issue Work Packet을 기준으로 branch/PR/CI/merge/main a
 이 작업은 신규 작업이 아니라 기존 Issue Lifecycle의 REWORK/재개다.
 
 1. Issue/댓글/기존 branch/PR/current head/main SHA/CI를 다시 조회한다.
-2. 이전 packet과 실제 원격 상태의 차이를 기록한다.
+2. 이전 packet과 실제 원격 상태의 차이를 기록하고, 재개 지점이 확정되면 Issue에 남길 RESUME 후보를 만든다.
 3. 기존 branch와 PR을 우선 재사용하고 중복 PR/tag/release를 만들지 않는다.
 4. 실패한 gate의 최초 원인과 수정 이후 head를 연결한다.
 5. PR head가 바뀌면 이전 head의 required PR CI(`quality/e2e/docker`)와 최종 QA 판정은 전부 stale 처리한다. 영향도와 관계없이 새 head에서 전체 required PR gate와 최종 QA를 다시 수행한다. Local Fast Feedback만 영향도 기준 재사용할 수 있다.
