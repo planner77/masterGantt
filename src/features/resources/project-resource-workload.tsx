@@ -117,6 +117,9 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     requestControllers.current[source]?.abort();
     const controller = new AbortController();
     requestControllers.current[source] = controller;
+    // Effect startup is asynchronous; cleanup can invalidate this request before any state update.
+    await Promise.resolve();
+    if (controller.signal.aborted || id !== requestId.current[source] || currentPublicId.current !== publicId) return;
     if (source === "workload") setWorkloadQuery((previous) => ({
       ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading",
     }));
