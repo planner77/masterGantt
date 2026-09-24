@@ -1,5 +1,5 @@
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
-import { version } from "../../package.json";
+import appPackage from "../../package.json";
 
 test.use(isolatedApplicationOptions);
 
@@ -12,7 +12,7 @@ test("#136 공통 헤더에 빌드 버전을 표시하고 홈 링크와 탐색�
   const projects = header.getByRole("link", { name: "프로젝트", exact: true });
   const resources = header.getByRole("link", { name: "리소스", exact: true });
 
-  await expect(versionText).toHaveText(`v${version}`);
+  await expect(versionText).toHaveText(`v${appPackage.version}`);
   await expect(brand).toHaveAttribute("href", "/");
   await expect(projects).toHaveAttribute("aria-current", "page");
 
@@ -67,10 +67,10 @@ test("#136 공통 헤더에 빌드 버전을 표시하고 홈 링크와 탐색�
 
   await resources.click();
   await expect(page.getByRole("heading", { name: "리소스 관리" })).toBeVisible();
-  await expect(versionText).toHaveText(`v${version}`);
+  await expect(versionText).toHaveText(`v${appPackage.version}`);
   await expect(resources).toHaveAttribute("aria-current", "page");
   await brand.click();
   await expect(page).toHaveURL(/\/$/);
   await expect(projects).toHaveAttribute("aria-current", "page");
-  await expect(versionText).toHaveText(`v${version}`);
+  await expect(versionText).toHaveText(`v${appPackage.version}`);
 });

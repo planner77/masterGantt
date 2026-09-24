@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { WorkspaceNavigation } from "@/components/workspace-navigation";
-import { version } from "../../package.json";
+import appPackage from "../../package.json";
 
 export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) {
   return (
@@ -16,7 +16,7 @@ export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) 
               </span>
               <span className="brand-name">masterGantt</span>
             </Link>
-            <span className="brand-version">v{version}</span>
+            <span className="brand-version">v{appPackage.version}</span>
           </div>
           <WorkspaceNavigation />
           <div id="workspace-notification-slot" className="header-actions" />
