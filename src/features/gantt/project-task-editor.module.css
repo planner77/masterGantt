@@ -208,7 +208,7 @@
   padding: 0.22rem 0.55rem;
   border-radius: 999px;
   background: #f1f5f9;
-  color: var(--text-muted);
+  color: var(--text-readonly);
   font-size: 0.78rem;
   font-weight: 650;
 }
@@ -278,7 +278,7 @@
 }
 .resourceBadge { background: var(--action-selected-subtle); color: var(--action-selected-foreground); }
 .groupBadge { background: #ede9fe; color: #6d28d9; }
-.inactiveBadge { background: #e2e8f0; color: var(--text-muted); }
+.inactiveBadge { background: #e2e8f0; color: var(--text-readonly); }
 .allocationGrid {
   display: grid;
   grid-template-columns: minmax(10rem, 13rem) minmax(10rem, 13rem) minmax(7rem, 9rem);
