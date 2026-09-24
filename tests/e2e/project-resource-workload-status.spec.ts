@@ -10,6 +10,16 @@ async function openResources(page: import("@playwright/test").Page) {
   await expect(page.getByRole("heading", { name: "리소스 공수" })).toBeVisible();
 }
 
+async function expectResourcePanelOwnsOnlyVerticalScroll(page: import("@playwright/test").Page) {
+  const geometry = await page.locator("#project-panel-resources").evaluate((panel) => ({
+    scrollLeft: panel.scrollLeft,
+    scrollWidth: panel.scrollWidth,
+    clientWidth: panel.clientWidth,
+  }));
+  expect(geometry.scrollLeft).toBe(0);
+  expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.clientWidth + 1);
+}
+
 test("Issue #117 첫 공수 실패와 이름·코드 부분 실패는 독립적으로 재시도한다", async ({ page }) => {
   await installStatefulProjectFixture(page);
   let failWorkload = true;
@@ -23,6 +33,7 @@ test("Issue #117 첫 공수 실패와 이름·코드 부분 실패는 독립적�
     else await route.fallback();
   });
   await openResources(page);
+  const resourcePanel = page.getByRole("tabpanel", { name: "리소스" });
   const workload = page.locator('[data-source="workload"]');
   const targets = page.locator('[data-source="targets"]');
   await expect(workload).toHaveAttribute("data-state", "error");
@@ -41,10 +52,10 @@ test("Issue #117 첫 공수 실패와 이름·코드 부분 실패는 독립적�
   await expect(workload).toHaveAttribute("data-state", "ready");
   await expect(targets).toHaveAttribute("data-state", "error");
   await expect(targets.getByRole("alert")).toContainText("설명 검색은 사용할 수 없습니다");
-  await expect(page.getByText("테스트 리소스 (R-01)")).toBeVisible();
+  await expect(resourcePanel.getByText("테스트 리소스 (R-01)")).toBeVisible();
   const search = page.getByRole("search", { name: "리소스 검색과 필터" }).getByRole("searchbox");
   await search.fill("R-01");
-  await expect(page.getByText("테스트 리소스 (R-01)")).toBeVisible();
+  await expect(resourcePanel.getByText("테스트 리소스 (R-01)")).toBeVisible();
   await search.fill("G-01");
   await expect(page.getByText("검색 조건에 일치하는 리소스 할당이 없습니다.")).toBeVisible();
   await search.fill("테스트 리소스 설명");
@@ -53,7 +64,7 @@ test("Issue #117 첫 공수 실패와 이름·코드 부분 실패는 독립적�
   await targets.getByRole("button", { name: "이름·코드 다시 시도" }).click();
   await expect(targets).toHaveAttribute("data-state", "ready");
   await expect(page.getByText("검색 조건에 일치하는 리소스 할당이 없습니다.")).toHaveCount(0);
-  await expect(page.getByText("테스트 리소스 (R-01)")).toBeVisible();
+  await expect(resourcePanel.getByText("테스트 리소스 (R-01)")).toBeVisible();
   await search.fill("G-01");
   await expect(page.getByText("개발팀", { exact: true })).toBeVisible();
 });
@@ -132,10 +143,12 @@ test("Issue #117 이전 성공 뒤 부분 실패는 stale 결과와 조작 상�
   await page.goto(`/projects/${publicId}`);
   const ganttIdentity = await rememberGanttRoot(page);
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  const resourcePanel = page.getByRole("tabpanel", { name: "리소스" });
   const workload = page.locator('[data-source="workload"]');
   const targets = page.locator('[data-source="targets"]');
   await expect(workload).toHaveAttribute("data-state", "ready");
   await expect(targets).toHaveAttribute("data-state", "ready");
+  await expectResourcePanelOwnsOnlyVerticalScroll(page);
   const originalSuccess = await workload.getByRole("status").textContent();
   await page.getByRole("button", { name: "M/M", exact: true }).click();
   const filters = page.getByRole("search", { name: "리소스 검색과 필터" });
@@ -144,9 +157,19 @@ test("Issue #117 이전 성공 뒤 부분 실패는 stale 결과와 조작 상�
   await filters.getByLabel("상태").selectOption("active");
   await filters.getByLabel("Task 기간 From").fill("2026-09-16");
   await filters.getByLabel("Task 기간 To").fill("2026-09-18");
+  await expectResourcePanelOwnsOnlyVerticalScroll(page);
   const resourceDetails = page.locator(".resource-workload-resource").first();
   await resourceDetails.locator("summary").click();
   await expect(resourceDetails).toHaveAttribute("open", "");
+  const taskTableScroll = resourceDetails.locator(".resource-workload-table-scroll");
+  const tableOverflow = await taskTableScroll.evaluate((scroller) => {
+    const initial = scroller.scrollLeft;
+    scroller.scrollLeft = scroller.scrollWidth - scroller.clientWidth;
+    return { initial, after: scroller.scrollLeft, scrollWidth: scroller.scrollWidth, clientWidth: scroller.clientWidth };
+  });
+  expect(tableOverflow.scrollWidth).toBeGreaterThan(tableOverflow.clientWidth);
+  expect(tableOverflow.after).toBeGreaterThan(tableOverflow.initial);
+  await expectResourcePanelOwnsOnlyVerticalScroll(page);
   failWorkload = true;
   await page.getByRole("button", { name: "새로고침" }).click();
   await expect(workload).toHaveAttribute("data-state", "error");
@@ -162,6 +185,7 @@ test("Issue #117 이전 성공 뒤 부분 실패는 stale 결과와 조작 상�
   await expect(filters.getByLabel("상태")).toHaveValue("active");
   await expect(filters.getByLabel("Task 기간 From")).toHaveValue("2026-09-16");
   await expect(filters.getByLabel("Task 기간 To")).toHaveValue("2026-09-18");
+  await expectResourcePanelOwnsOnlyVerticalScroll(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   await expectSameGanttRoot(page, ganttIdentity);
@@ -172,15 +196,22 @@ test("Issue #117 이전 성공 뒤 부분 실패는 stale 결과와 조작 상�
   await expect(filters.getByLabel("상태")).toHaveValue("active");
   await expect(filters.getByLabel("Task 기간 From")).toHaveValue("2026-09-16");
   await expect(filters.getByLabel("Task 기간 To")).toHaveValue("2026-09-18");
+  await expectResourcePanelOwnsOnlyVerticalScroll(page);
 
   failWorkload = false;
   failTargets = true;
-  await workload.getByRole("button", { name: "공수 다시 시도" }).click();
+  const retryWorkload = workload.getByRole("button", { name: "공수 다시 시도" });
+  const workloadRetryBounds = await retryWorkload.boundingBox();
+  expect(workloadRetryBounds).not.toBeNull();
+  expect(workloadRetryBounds!.x).toBeGreaterThanOrEqual(0);
+  expect(workloadRetryBounds!.x + workloadRetryBounds!.width).toBeLessThanOrEqual(390);
+  await retryWorkload.click();
   await expect(workload).toHaveAttribute("data-state", "ready");
+  await expectResourcePanelOwnsOnlyVerticalScroll(page);
   await page.getByRole("button", { name: "새로고침" }).click();
   await expect(targets).toHaveAttribute("data-state", "error");
   await expect(targets.getByRole("alert")).toContainText("마지막 성공");
-  await expect(page.getByText("테스트 리소스 (R-01)")).toBeVisible();
+  await expect(resourcePanel.getByText("테스트 리소스 (R-01)")).toBeVisible();
   const retryTargets = targets.getByRole("button", { name: "이름·코드 다시 시도" });
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
@@ -189,11 +220,13 @@ test("Issue #117 이전 성공 뒤 부분 실패는 stale 결과와 조작 상�
     expect(bounds).not.toBeNull();
     expect(bounds!.x).toBeGreaterThanOrEqual(0);
     expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width);
+    await expectResourcePanelOwnsOnlyVerticalScroll(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   }
   failTargets = false;
   await retryTargets.click();
   await expect(targets).toHaveAttribute("data-state", "ready");
+  await expectResourcePanelOwnsOnlyVerticalScroll(page);
   await expect(page.getByRole("button", { name: "M/M", exact: true })).toHaveAttribute("aria-pressed", "true");
 });
 
@@ -237,4 +270,76 @@ test("Issue #117 진행 중 중복 새로고침을 막고 화면 이탈 뒤 늦�
   expect(count).toBeGreaterThan(oldRequestCount);
   await expect(workload.getByRole("status")).toContainText("확인 완료");
   await expect(workload.getByRole("alert")).toHaveCount(0);
+});
+
+
+test("Issue #117 최신 메타데이터 라벨과 재시도 focus를 유지한다", async ({ page }) => {
+  await installStatefulProjectFixture(page);
+  let workloadFails = false;
+  let targetsFail = false;
+  let renamedTargets = false;
+  let holdRetry = false;
+  const retryGate = deferred();
+
+  await page.route(workloadPath, async (route) => {
+    if (workloadFails) await route.fulfill({ status: 503, json: { error: { code: "UNAVAILABLE" } } });
+    else await route.fallback();
+  });
+  await page.route(targetsPath, async (route) => {
+    if (targetsFail) {
+      if (holdRetry) await retryGate.promise;
+      await route.fulfill({ status: 503, json: { error: { code: "UNAVAILABLE" } } });
+      return;
+    }
+    if (renamedTargets) {
+      await route.fulfill({ status: 200, json: { data: {
+        projectRevision: 40,
+        catalogRevision: 2,
+        assignments: [],
+        targets: [
+          { kind: "group", id: "group-1", name: "최신 개발팀", code: "G-NEW", active: true, description: "최신 그룹 설명" },
+          { kind: "resource", id: "resource-1", name: "최신 리소스", code: "R-NEW", active: true, description: "최신 리소스 설명" },
+        ],
+      } } });
+      return;
+    }
+    await route.fallback();
+  });
+
+  await openResources(page);
+  const panel = page.getByRole("tabpanel", { name: "리소스" });
+  const workload = page.locator('[data-source="workload"]');
+  const targets = page.locator('[data-source="targets"]');
+
+  workloadFails = true;
+  renamedTargets = true;
+  await page.getByRole("button", { name: "새로고침" }).click();
+  await expect(workload).toHaveAttribute("data-state", "error");
+  await expect(targets).toHaveAttribute("data-state", "ready");
+  await expect(panel.getByText("최신 개발팀", { exact: true })).toBeVisible();
+  await expect(panel.getByText("최신 리소스 (R-NEW)", { exact: true })).toBeVisible();
+
+  workloadFails = false;
+  targetsFail = true;
+  renamedTargets = false;
+  await workload.getByRole("button", { name: "공수 다시 시도" }).click();
+  await expect(workload).toHaveAttribute("data-state", "ready");
+  await page.getByRole("button", { name: "새로고침" }).click();
+  await expect(targets).toHaveAttribute("data-state", "error");
+
+  const retry = targets.getByRole("button", { name: "이름·코드 다시 시도" });
+  await retry.focus();
+  await expect(retry).toBeFocused();
+  holdRetry = true;
+  await retry.click();
+
+  const busyRetry = targets.getByRole("button", { name: "이름·코드 재시도 중…" });
+  await expect(busyRetry).toBeVisible();
+  await expect(busyRetry).toHaveAttribute("aria-disabled", "true");
+  await expect(busyRetry).toHaveAttribute("aria-busy", "true");
+  await expect(busyRetry).toBeFocused();
+
+  retryGate.resolve();
+  await expect(targets).toHaveAttribute("data-state", "error");
+  await expect(targets.getByRole("button", { name: "이름·코드 다시 시도" })).toBeFocused();
 });
