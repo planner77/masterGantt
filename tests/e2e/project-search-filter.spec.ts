@@ -70,8 +70,12 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
     await search.fill("R-01");
     await expect(panel.getByText("테스트 리소스", { exact: false })).toBeVisible();
 
-    await panel.getByLabel("Task 기간 From").fill("2026-10-01");
-    await panel.getByLabel("Task 기간 To").fill("2026-10-31");
+    const filter = panel.locator('button[aria-controls="resource-advanced-filter"]');
+    await filter.click();
+    const advanced = panel.getByLabel("리소스 고급 필터");
+    await expect(advanced).toBeVisible();
+    await advanced.getByLabel("Task 기간 From").fill("2026-10-01");
+    await advanced.getByLabel("Task 기간 To").fill("2026-10-31");
     await expect(panel.getByText("검색 조건에 일치하는 리소스 할당이 없습니다.")).toBeVisible();
     await expect(panel).toContainText("5.00 M/D");
 

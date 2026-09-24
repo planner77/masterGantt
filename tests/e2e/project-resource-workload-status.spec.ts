@@ -153,10 +153,12 @@ test("Issue #117 이전 성공 뒤 부분 실패는 stale 결과와 조작 상�
   await page.getByRole("button", { name: "M/M", exact: true }).click();
   const filters = page.getByRole("search", { name: "리소스 검색과 필터" });
   await filters.getByRole("searchbox").fill("테스트");
-  await filters.getByLabel("종류").selectOption("resource");
-  await filters.getByLabel("상태").selectOption("active");
-  await filters.getByLabel("Task 기간 From").fill("2026-09-16");
-  await filters.getByLabel("Task 기간 To").fill("2026-09-18");
+  await filters.locator('button[aria-controls="resource-advanced-filter"]').click();
+  const advancedFilters = page.getByLabel("리소스 고급 필터");
+  await advancedFilters.getByLabel("종류").selectOption("resource");
+  await advancedFilters.getByLabel("상태").selectOption("active");
+  await advancedFilters.getByLabel("Task 기간 From").fill("2026-09-16");
+  await advancedFilters.getByLabel("Task 기간 To").fill("2026-09-18");
   await expectResourcePanelOwnsOnlyVerticalScroll(page);
   const resourceDetails = page.locator(".resource-workload-resource").first();
   await resourceDetails.locator("summary").click();
@@ -181,10 +183,10 @@ test("Issue #117 이전 성공 뒤 부분 실패는 stale 결과와 조작 상�
   await expect(page.getByText("0.25 M/M", { exact: true }).first()).toBeVisible();
   await expect(resourceDetails).toHaveAttribute("open", "");
   await expect(filters.getByRole("searchbox")).toHaveValue("테스트");
-  await expect(filters.getByLabel("종류")).toHaveValue("resource");
-  await expect(filters.getByLabel("상태")).toHaveValue("active");
-  await expect(filters.getByLabel("Task 기간 From")).toHaveValue("2026-09-16");
-  await expect(filters.getByLabel("Task 기간 To")).toHaveValue("2026-09-18");
+  await expect(advancedFilters.getByLabel("종류")).toHaveValue("resource");
+  await expect(advancedFilters.getByLabel("상태")).toHaveValue("active");
+  await expect(advancedFilters.getByLabel("Task 기간 From")).toHaveValue("2026-09-16");
+  await expect(advancedFilters.getByLabel("Task 기간 To")).toHaveValue("2026-09-18");
   await expectResourcePanelOwnsOnlyVerticalScroll(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   await page.getByRole("tab", { name: "일정", exact: true }).click();
@@ -192,10 +194,10 @@ test("Issue #117 이전 성공 뒤 부분 실패는 stale 결과와 조작 상�
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
   await expect(workload).toHaveAttribute("data-state", "error");
   await expect(resourceDetails).toHaveAttribute("open", "");
-  await expect(filters.getByLabel("종류")).toHaveValue("resource");
-  await expect(filters.getByLabel("상태")).toHaveValue("active");
-  await expect(filters.getByLabel("Task 기간 From")).toHaveValue("2026-09-16");
-  await expect(filters.getByLabel("Task 기간 To")).toHaveValue("2026-09-18");
+  await expect(advancedFilters.getByLabel("종류")).toHaveValue("resource");
+  await expect(advancedFilters.getByLabel("상태")).toHaveValue("active");
+  await expect(advancedFilters.getByLabel("Task 기간 From")).toHaveValue("2026-09-16");
+  await expect(advancedFilters.getByLabel("Task 기간 To")).toHaveValue("2026-09-18");
   await expectResourcePanelOwnsOnlyVerticalScroll(page);
 
   failWorkload = false;

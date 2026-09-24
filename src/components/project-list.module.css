@@ -2,6 +2,8 @@
 .pageSection :global(.project-list-heading) { gap: 1rem; }
 .pageSection :global(.page-description) { margin-bottom: 0; }
 .list { display: grid; gap: 0.75rem; min-width: 0; }
+.filterToolbar { min-width: 0; }
+.filterResult { margin-left: auto; }
 .count {
   margin: 0;
   color: var(--text-muted);
@@ -149,6 +151,16 @@
 }
 
 @media (max-width: 48rem) {
+  .filterToolbar:global(.project-filter-toolbar) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+  .filterToolbar :global(.project-filter-search) { grid-column: 1; grid-row: 1; min-width: 0; }
+  .filterToolbar :global(.project-filter-search) input { max-width: none; }
+  .filterTrigger { grid-column: 2; grid-row: 1; width: auto !important; }
+  .filterResult { grid-column: 1; grid-row: 2; width: auto !important; margin-left: 0; }
+  .filterReset { grid-column: 2; grid-row: 2; width: auto !important; }
   .filterFooter {
     align-items: stretch;
     flex-direction: column;
