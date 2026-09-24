@@ -261,7 +261,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
                 ? data ? `공수 정보 새로고침에 실패했습니다. 마지막 성공 ${confirmedAt(currentWorkload.lastSuccessAt)} 결과를 표시합니다.` : "리소스 공수 정보를 불러오지 못했습니다."
                 : `공수 정보 확인 완료 · ${confirmedAt(currentWorkload.lastSuccessAt)}`}
           </p>
-          {currentWorkload.phase === "error" || currentWorkload.retrying ? <button className="secondary-button" type="button" disabled={currentWorkload.retrying} aria-busy={currentWorkload.retrying || undefined} onClick={() => void loadSource("workload", true)}>{currentWorkload.retrying ? "공수 재시도 중…" : "공수 다시 시도"}</button> : null}
+          {currentWorkload.phase === "error" || currentWorkload.retrying ? <button className="secondary-button" type="button" aria-disabled={currentWorkload.retrying || undefined} aria-busy={currentWorkload.retrying || undefined} onClick={() => { if (!currentWorkload.retrying) void loadSource("workload", true); }}>{currentWorkload.retrying ? "공수 재시도 중…" : "공수 다시 시도"}</button> : null}
         </div>
         <div className={`resource-workload-status${currentTargets.phase === "error" ? " resource-workload-status-error" : ""}`} data-source="targets" data-state={currentTargets.phase}>
           <p role={currentTargets.phase === "error" ? "alert" : "status"}>
@@ -271,7 +271,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
                 ? currentTargets.value ? `이름·코드·설명 정보 새로고침에 실패했습니다. 마지막 성공 ${confirmedAt(currentTargets.lastSuccessAt)} 정보를 표시합니다.` : "리소스 이름·코드·설명 정보를 불러오지 못했습니다. Group·Resource 기본 이름과 Resource 코드는 유지되며 Group 코드와 설명 검색은 사용할 수 없습니다."
                 : `이름·코드 정보 확인 완료 · ${confirmedAt(currentTargets.lastSuccessAt)}`}
           </p>
-          {currentTargets.phase === "error" || currentTargets.retrying ? <button className="secondary-button" type="button" disabled={currentTargets.retrying} aria-busy={currentTargets.retrying || undefined} onClick={() => void loadSource("targets", true)}>{currentTargets.retrying ? "이름·코드 재시도 중…" : "이름·코드 다시 시도"}</button> : null}
+          {currentTargets.phase === "error" || currentTargets.retrying ? <button className="secondary-button" type="button" aria-disabled={currentTargets.retrying || undefined} aria-busy={currentTargets.retrying || undefined} onClick={() => { if (!currentTargets.retrying) void loadSource("targets", true); }}>{currentTargets.retrying ? "이름·코드 재시도 중…" : "이름·코드 다시 시도"}</button> : null}
         </div>
       </div>
 
