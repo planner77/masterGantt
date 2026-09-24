@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Issue #116: 작업 Context Menu 하위 메뉴를 화면 여유 공간에 따라 좌우 flyout 또는 같은 폭 drilldown으로 배치하고, 작은 화면·짧은 높이에서 키보드 탐색과 명령 접근을 유지한다.
+- Issue #116: 작업 Context Menu 하위 메뉴를 화면 여유 공간에 따라 좌우 flyout 또는 같은 폭 drilldown으로 배치하고, 작은 화면·짧은 높이에서 키보드 탐색과 명령 접근을 유지한다. 열린 하위 메뉴에서 일반 root 명령으로 focus/pointer가 이동하면 child를 닫아 표시 상태와 `aria-expanded`를 일치시킨다.
 
 ## [0.27.1] - 2026-09-24
 

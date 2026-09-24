@@ -185,6 +185,17 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
         await expect(childMenu).toBeVisible();
         await expect(add).toHaveAttribute("aria-expanded", "true");
         await expect(add).toHaveAttribute("aria-controls", await childMenu.getAttribute("id") ?? "");
+        const edit = rootMenu.getByRole("menuitem", { name: "Edit", exact: true });
+        await edit.focus();
+        await expect(childMenu).toBeHidden();
+        await expect(add).toHaveAttribute("aria-expanded", "false");
+        await add.hover();
+        await expect(childMenu).toBeVisible();
+        await edit.hover();
+        await expect(childMenu).toBeHidden();
+        await expect(add).toHaveAttribute("aria-expanded", "false");
+        await add.hover();
+        await expect(childMenu).toBeVisible();
         const rootBounds = await rootMenu.boundingBox();
         const childBounds = await childMenu.boundingBox();
         expect(rootBounds).not.toBeNull();
