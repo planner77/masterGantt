@@ -69,6 +69,8 @@ let nextApiInstanceId = 1;
 
 type MenuPosition = Readonly<{ left: number; top: number }>;
 type TaskMenuState = MenuPosition & Readonly<{ taskId: string }>;
+type TaskSubmenuName = "Add" | "Convert to" | "Paste" | "Move";
+type TaskSubmenuState = Readonly<{ name: TaskSubmenuName; placement: "right" | "left" | "drilldown"; left: number; top: number }>;
 type GanttScaleMode = "day" | "week";
 
 interface ProjectGanttProps {
@@ -179,10 +181,15 @@ export function ProjectGantt({
   const columnMenuReference = useRef<HTMLDivElement>(null);
   const columnMenuTriggerReference = useRef<HTMLElement | null>(null);
   const taskMenuReference = useRef<HTMLDivElement>(null);
+  const taskSubmenuReference = useRef<HTMLDivElement>(null);
+  const taskSubmenuTriggers = useRef<Partial<Record<TaskSubmenuName, HTMLButtonElement | null>>>({});
+  const suppressTaskSubmenuFocusOpenReference = useRef<TaskSubmenuName | null>(null);
+  const focusTaskMenuOnOpenReference = useRef(false);
   const taskMenuTriggerReference = useRef<HTMLElement | null>(null);
   const taskMenuScrollChangedReference = useRef<() => boolean>(() => false);
   const [columnMenuPosition, setColumnMenuPosition] = useState<MenuPosition | null>(null);
   const [taskMenu, setTaskMenu] = useState<TaskMenuState | null>(null);
+  const [taskSubmenu, setTaskSubmenu] = useState<TaskSubmenuState | null>(null);
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
@@ -411,6 +418,7 @@ export function ProjectGantt({
     const closeForOutsidePointer = (event: PointerEvent) => {
       if (event.target instanceof Node && taskMenuReference.current?.contains(event.target)) return;
       setTaskMenu(null);
+      setTaskSubmenu(null);
       restoreTaskMenuTrigger();
     };
     const closeForViewportChange = (event?: Event) => {
@@ -419,6 +427,7 @@ export function ProjectGantt({
       // 임의의 지연 시간 대신 호출 대상 조상의 실제 위치 변화를 확인한다.
       if (event?.type === "scroll" && !taskMenuScrollChangedReference.current()) return;
       setTaskMenu(null);
+      setTaskSubmenu(null);
       restoreTaskMenuTrigger();
     };
     document.addEventListener("pointerdown", closeForOutsidePointer, true);
@@ -455,6 +464,15 @@ export function ProjectGantt({
     if (Math.abs(next.left - bounds.left) < 1 && Math.abs(next.top - bounds.top) < 1) return;
     setTaskMenu((current) => current ? { ...current, ...next } : current);
   }, [taskMenu]);
+
+  useLayoutEffect(() => {
+    if (!taskSubmenu || taskSubmenu.placement === "drilldown") return;
+    const menu = taskSubmenuReference.current;
+    if (!menu) return;
+    const bounds = menu.getBoundingClientRect();
+    const top = Math.max(8, Math.min(taskSubmenu.top, window.innerHeight - bounds.height - 8));
+    if (Math.abs(top - taskSubmenu.top) >= 1) setTaskSubmenu((current) => current ? { ...current, top } : current);
+  }, [taskSubmenu]);
 
   useEffect(() => {
     const root = ganttScrollReference.current;
@@ -575,8 +593,13 @@ export function ProjectGantt({
     const bounds = match.element.getBoundingClientRect();
     const anchorX = x ?? bounds.left + Math.min(bounds.width / 2, 24);
     const anchorY = y ?? bounds.top + Math.min(bounds.height / 2, 24);
+    const rootRem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const rootWidth = Math.min(16 * rootRem, window.innerWidth - 16);
     setColumnMenuPosition(null);
-    setTaskMenu({ taskId: match.taskId, ...clampMenuPosition(anchorX, anchorY, 520, 452) });
+    setTaskSubmenu(null);
+    suppressTaskSubmenuFocusOpenReference.current = null;
+    focusTaskMenuOnOpenReference.current = true;
+    setTaskMenu({ taskId: match.taskId, ...clampMenuPosition(anchorX, anchorY, rootWidth, Math.min(452, window.innerHeight - 16)) });
     return true;
   }
 
@@ -699,7 +722,74 @@ export function ProjectGantt({
 
   function closeTaskMenu() {
     setTaskMenu(null);
+    setTaskSubmenu(null);
+    suppressTaskSubmenuFocusOpenReference.current = null;
     queueMicrotask(() => taskMenuTriggerReference.current?.focus({ preventScroll: true }));
+  }
+
+  function openTaskSubmenu(name: TaskSubmenuName, explicit: boolean) {
+    if (!explicit && suppressTaskSubmenuFocusOpenReference.current === name) {
+      suppressTaskSubmenuFocusOpenReference.current = null;
+      return;
+    }
+    const root = taskMenuReference.current;
+    const trigger = taskSubmenuTriggers.current[name];
+    if (!root || !trigger || trigger.disabled) return;
+    const rootBounds = root.getBoundingClientRect();
+    const triggerBounds = trigger.getBoundingClientRect();
+    // Match the CSS 10.5rem width even when the user changes the root font size.
+    const childWidth = Math.min(10.5 * parseFloat(getComputedStyle(document.documentElement).fontSize), window.innerWidth - 16);
+    const right = rootBounds.right - 4;
+    const left = rootBounds.left - childWidth + 4;
+    const placement = right + childWidth <= window.innerWidth - 8
+      ? "right"
+      : left >= 8 ? "left" : "drilldown";
+    if (placement === "drilldown" && !explicit) return;
+    setTaskSubmenu({
+      name,
+      placement,
+      left: placement === "left" ? left : right,
+      top: Math.max(8, triggerBounds.top - 6),
+    });
+  }
+
+  function focusFirstTaskSubmenuItem() {
+    requestAnimationFrame(() => {
+      const submenu = taskSubmenuReference.current;
+      const first = submenu?.querySelector<HTMLButtonElement>(
+        '.project-task-context-submenu-command[role="menuitem"]:not(:disabled)',
+      ) ?? submenu?.querySelector<HTMLButtonElement>(".project-task-context-submenu-back");
+      if (first) focusTaskMenuItem(first);
+    });
+  }
+
+  function returnToTaskMenu() {
+    const name = taskSubmenu?.name;
+    suppressTaskSubmenuFocusOpenReference.current = name ?? null;
+    setTaskSubmenu(null);
+    requestAnimationFrame(() => {
+      const trigger = name ? taskSubmenuTriggers.current[name] : null;
+      if (trigger) focusTaskMenuItem(trigger);
+      if (suppressTaskSubmenuFocusOpenReference.current === name) suppressTaskSubmenuFocusOpenReference.current = null;
+    });
+  }
+
+  function focusTaskMenuItem(item: HTMLButtonElement) {
+    item.focus({ preventScroll: true });
+    const scroller = item.closest<HTMLElement>(".project-task-context-submenu-flyout") ?? taskMenuReference.current;
+    if (!scroller) return;
+    const itemBounds = item.getBoundingClientRect();
+    const scrollBounds = scroller.getBoundingClientRect();
+    if (itemBounds.bottom > scrollBounds.bottom - 4) scroller.scrollTop += itemBounds.bottom - scrollBounds.bottom + 4;
+    else if (itemBounds.top < scrollBounds.top + 4) scroller.scrollTop -= scrollBounds.top - itemBounds.top + 4;
+  }
+
+  function closeTaskSubmenuForOrdinaryRootItem(target: EventTarget | null) {
+    if (!taskSubmenu || !(target instanceof Element)) return;
+    const item = target.closest<HTMLButtonElement>('button[role="menuitem"]');
+    if (!item || !taskMenuReference.current?.contains(item)) return;
+    if (item.closest(".project-task-context-submenu-host") || item.closest(".project-task-context-submenu")) return;
+    setTaskSubmenu(null);
   }
 
   function handleColumnMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
@@ -711,7 +801,7 @@ export function ProjectGantt({
 
   function enabledMenuItems(menu: HTMLElement): HTMLButtonElement[] {
     return Array.from(menu.querySelectorAll<HTMLButtonElement>(
-      ':scope > button[role="menuitem"]:not(:disabled), :scope > .project-task-context-submenu-host > button[role="menuitem"]:not(:disabled)',
+      ':scope > button[role="menuitem"]:not(:disabled), :scope > .project-task-context-submenu-host > button[role="menuitem"]:not(:disabled), :scope > .project-task-context-submenu-content > button[role="menuitem"]:not(:disabled)',
     ));
   }
 
@@ -724,13 +814,13 @@ export function ProjectGantt({
     }
     const rootMenu = taskMenuReference.current;
     if (!rootMenu) return;
-    if (event.target === rootMenu) {
+    if (event.target === rootMenu && taskSubmenu?.placement !== "drilldown") {
       const items = enabledMenuItems(rootMenu);
       const targetIndex = event.key === "ArrowUp" || event.key === "End" ? items.length - 1 : 0;
       if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) && items[targetIndex]) {
         event.preventDefault();
         event.stopPropagation();
-        items[targetIndex].focus({ preventScroll: true });
+        focusTaskMenuItem(items[targetIndex]);
       }
       return;
     }
@@ -740,26 +830,20 @@ export function ProjectGantt({
     if (!currentMenu) return;
 
     if (event.key === "ArrowRight") {
-      const host = event.target.closest<HTMLElement>(".project-task-context-submenu-host");
-      const submenu = host?.querySelector<HTMLElement>(":scope > .project-task-context-submenu");
-      const first = submenu ? enabledMenuItems(submenu)[0] : undefined;
-      if (first) {
+      const name = event.target.closest<HTMLElement>(".project-task-context-submenu-host")?.getAttribute("data-submenu") as TaskSubmenuName | null;
+      if (name && !event.target.disabled) {
         event.preventDefault();
         event.stopPropagation();
-        first.focus({ preventScroll: true });
+        openTaskSubmenu(name, true);
+        focusFirstTaskSubmenuItem();
       }
       return;
     }
 
     if (event.key === "ArrowLeft" && currentMenu.classList.contains("project-task-context-submenu")) {
-      const trigger = currentMenu.parentElement?.querySelector<HTMLButtonElement>(
-        ':scope > button[role="menuitem"]:not(:disabled)',
-      );
-      if (trigger) {
-        event.preventDefault();
-        event.stopPropagation();
-        trigger.focus({ preventScroll: true });
-      }
+      event.preventDefault();
+      event.stopPropagation();
+      returnToTaskMenu();
       return;
     }
 
@@ -774,7 +858,7 @@ export function ProjectGantt({
     if (nextIndex !== null) {
       event.preventDefault();
       event.stopPropagation();
-      items[nextIndex]?.focus({ preventScroll: true });
+      if (items[nextIndex]) focusTaskMenuItem(items[nextIndex]);
     }
   }
 
@@ -785,11 +869,38 @@ export function ProjectGantt({
   const menuCapabilities = taskMenu
     ? taskContextCapabilities(tasks, taskMenu.taskId, editable, mutationLocked, links, activeClipboard)
     : null;
+  const submenuId = taskSubmenu ? `${instanceId}-${taskSubmenu.name.replaceAll(" ", "-")}-submenu` : undefined;
+  const submenuCommands = taskMenu && menuCapabilities && taskSubmenu ? (() => {
+    switch (taskSubmenu.name) {
+      case "Add": return <>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canAddChild} onClick={() => createTaskFromMenu("child")} role="menuitem" type="button">Child task</button>
+        <button className="project-task-context-submenu-command" disabled={!canMutate} onClick={() => createTaskFromMenu("before")} role="menuitem" type="button">Task above</button>
+        <button className="project-task-context-submenu-command" disabled={!canMutate} onClick={() => createTaskFromMenu("after")} role="menuitem" type="button">Task below</button>
+      </>;
+      case "Convert to": return <>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canConvertToTask} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "task" })} role="menuitem" type="button">Task</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canConvertToSummary} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "summary" })} role="menuitem" type="button">Summary task</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canConvertToMilestone} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "milestone" })} role="menuitem" type="button">Milestone</button>
+      </>;
+      case "Paste": return <>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || !menuCapabilities.canAddChild} onClick={() => pasteFromMenu("child")} role="menuitem" type="button">As child</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste} onClick={() => pasteFromMenu("before")} role="menuitem" type="button">Above</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste} onClick={() => pasteFromMenu("after")} role="menuitem" type="button">Below</button>
+      </>;
+      case "Move": return <>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canMoveUp} onClick={() => executeHierarchyCommand(createHierarchyCommand("move-up", taskMenu.taskId))} role="menuitem" type="button">Move up</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canMoveDown} onClick={() => executeHierarchyCommand(createHierarchyCommand("move-down", taskMenu.taskId))} role="menuitem" type="button">Move down</button>
+      </>;
+    }
+  })() : null;
 
   useEffect(() => {
-    if (!taskMenu) return;
-    queueMicrotask(() => taskMenuReference.current?.focus({ preventScroll: true }));
-  }, [taskMenu]);
+    if (!taskMenu || !focusTaskMenuOnOpenReference.current) return;
+    focusTaskMenuOnOpenReference.current = false;
+    if (!taskSubmenu) queueMicrotask(() => {
+      if (!taskSubmenuReference.current) taskMenuReference.current?.focus({ preventScroll: true });
+    });
+  }, [taskMenu, taskSubmenu]);
 
   return (
     <div className="project-gantt-frame" data-gantt-scale-mode={scaleMode} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined}>
@@ -859,31 +970,34 @@ export function ProjectGantt({
         {taskMenu && menuCapabilities ? <div
           aria-label="작업 메뉴"
           className="project-task-context-menu"
+          onFocusCapture={(event) => closeTaskSubmenuForOrdinaryRootItem(event.target)}
           onKeyDown={handleTaskMenuKeyDown}
+          onPointerOver={(event) => { if (event.pointerType === "mouse") closeTaskSubmenuForOrdinaryRootItem(event.target); }}
+          onScroll={(event) => { if (event.target === event.currentTarget && taskSubmenu?.placement !== "drilldown") setTaskSubmenu(null); }}
           ref={taskMenuReference}
           role="menu"
           tabIndex={-1}
           style={{ left: taskMenu.left, top: taskMenu.top }}
         >
-          <div className="project-task-context-submenu-host">
-            <button aria-haspopup="menu" aria-label="Add" disabled={!canMutate} role="menuitem" type="button">
+          {taskSubmenu?.placement === "drilldown" ? <div
+            aria-label={taskSubmenu.name}
+            className="project-task-context-submenu project-task-context-submenu-drilldown"
+            id={submenuId}
+            ref={taskSubmenuReference}
+            role="menu"
+          >
+            <button className="project-task-context-submenu-back" onClick={returnToTaskMenu} role="menuitem" type="button">‹ Back</button>
+            <div className="project-task-context-submenu-content">{submenuCommands}</div>
+          </div> : <>
+          <div className="project-task-context-submenu-host" data-submenu="Add">
+            <button aria-controls={taskSubmenu?.name === "Add" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Add"} aria-haspopup="menu" aria-label="Add" disabled={!canMutate} onClick={() => { openTaskSubmenu("Add", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Add", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Add", false); }} ref={(node) => { taskSubmenuTriggers.current.Add = node; }} role="menuitem" type="button">
               <span aria-hidden="true" className="project-task-context-menu-icon">＋</span><span>Add</span><span className="project-task-context-menu-arrow">›</span>
             </button>
-            <div className="project-task-context-submenu" role="menu" aria-label="Add">
-              <button disabled={!menuCapabilities.canAddChild} onClick={() => createTaskFromMenu("child")} role="menuitem" type="button">Child task</button>
-              <button disabled={!canMutate} onClick={() => createTaskFromMenu("before")} role="menuitem" type="button">Task above</button>
-              <button disabled={!canMutate} onClick={() => createTaskFromMenu("after")} role="menuitem" type="button">Task below</button>
-            </div>
           </div>
-          <div className="project-task-context-submenu-host">
-            <button aria-haspopup="menu" aria-label="Convert to" disabled={!canMutate} role="menuitem" type="button">
+          <div className="project-task-context-submenu-host" data-submenu="Convert to">
+            <button aria-controls={taskSubmenu?.name === "Convert to" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Convert to"} aria-haspopup="menu" aria-label="Convert to" disabled={!canMutate} onClick={() => { openTaskSubmenu("Convert to", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Convert to", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Convert to", false); }} ref={(node) => { taskSubmenuTriggers.current["Convert to"] = node; }} role="menuitem" type="button">
               <span aria-hidden="true" className="project-task-context-menu-icon">↻</span><span>Convert to</span><span className="project-task-context-menu-arrow">›</span>
             </button>
-            <div className="project-task-context-submenu" role="menu" aria-label="Convert to">
-              <button disabled={!menuCapabilities.canConvertToTask} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "task" })} role="menuitem" type="button">Task</button>
-              <button disabled={!menuCapabilities.canConvertToSummary} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "summary" })} role="menuitem" type="button">Summary task</button>
-              <button disabled={!menuCapabilities.canConvertToMilestone} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "milestone" })} role="menuitem" type="button">Milestone</button>
-            </div>
           </div>
           <button aria-label="Edit" onClick={openTaskEditorFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">i</span><span>Edit</span>
@@ -895,25 +1009,16 @@ export function ProjectGantt({
           <button aria-label="Copy" disabled={!canMutate} onClick={() => storeClipboard("copy")} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">□</span><span>Copy</span><kbd>Ctrl+C</kbd>
           </button>
-          <div className="project-task-context-submenu-host">
-            <button aria-haspopup="menu" aria-label="Paste" disabled={!menuCapabilities.canPaste} role="menuitem" type="button">
+          <div className="project-task-context-submenu-host" data-submenu="Paste">
+            <button aria-controls={taskSubmenu?.name === "Paste" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Paste"} aria-haspopup="menu" aria-label="Paste" disabled={!menuCapabilities.canPaste} onClick={() => { openTaskSubmenu("Paste", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Paste", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Paste", false); }} ref={(node) => { taskSubmenuTriggers.current.Paste = node; }} role="menuitem" type="button">
               <span aria-hidden="true" className="project-task-context-menu-icon">▣</span><span>Paste</span><span className="project-task-context-menu-arrow">›</span>
             </button>
-            <div className="project-task-context-submenu" role="menu" aria-label="Paste">
-              <button disabled={!menuCapabilities.canPaste || !menuCapabilities.canAddChild} onClick={() => pasteFromMenu("child")} role="menuitem" type="button">As child</button>
-              <button disabled={!menuCapabilities.canPaste} onClick={() => pasteFromMenu("before")} role="menuitem" type="button">Above</button>
-              <button disabled={!menuCapabilities.canPaste} onClick={() => pasteFromMenu("after")} role="menuitem" type="button">Below</button>
-            </div>
           </div>
           <div className="project-task-context-menu-separator" role="separator" />
-          <div className="project-task-context-submenu-host">
-            <button aria-haspopup="menu" aria-label="Move" disabled={!canMutate} role="menuitem" type="button">
+          <div className="project-task-context-submenu-host" data-submenu="Move">
+            <button aria-controls={taskSubmenu?.name === "Move" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Move"} aria-haspopup="menu" aria-label="Move" disabled={!canMutate} onClick={() => { openTaskSubmenu("Move", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Move", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Move", false); }} ref={(node) => { taskSubmenuTriggers.current.Move = node; }} role="menuitem" type="button">
               <span aria-hidden="true" className="project-task-context-menu-icon">↕</span><span>Move</span><span className="project-task-context-menu-arrow">›</span>
             </button>
-            <div className="project-task-context-submenu" role="menu" aria-label="Move">
-              <button disabled={!menuCapabilities.canMoveUp} onClick={() => executeHierarchyCommand(createHierarchyCommand("move-up", taskMenu.taskId))} role="menuitem" type="button">Move up</button>
-              <button disabled={!menuCapabilities.canMoveDown} onClick={() => executeHierarchyCommand(createHierarchyCommand("move-down", taskMenu.taskId))} role="menuitem" type="button">Move down</button>
-            </div>
           </div>
           <button aria-label="Indent" disabled={!menuCapabilities.canIndent} onClick={() => executeHierarchyCommand(createHierarchyCommand("indent", taskMenu.taskId))} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">→</span><span>Indent</span>
@@ -925,6 +1030,16 @@ export function ProjectGantt({
           <button aria-label="Delete" className="project-task-context-menu-danger" disabled={!canDelete} onClick={requestTaskDeleteFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">×</span><span>Delete</span><kbd>Ctrl+D / Backspace</kbd>
           </button>
+          {taskSubmenu ? <div
+            aria-label={taskSubmenu.name}
+            className="project-task-context-submenu project-task-context-submenu-flyout"
+            data-placement={taskSubmenu.placement}
+            id={submenuId}
+            ref={taskSubmenuReference}
+            role="menu"
+            style={{ left: taskSubmenu.left, top: taskSubmenu.top }}
+          >{submenuCommands}</div> : null}
+          </>}
         </div> : null}
       </Willow>
     </div>
