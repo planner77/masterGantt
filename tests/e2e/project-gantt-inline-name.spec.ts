@@ -34,6 +34,19 @@ async function openName(page: Page, name: string) {
   return input;
 }
 
+async function openNameWithF2(page: Page, name: string, ordinal: number) {
+  // A real Grid click synchronizes Core's focusCell. DOM .focus() alone does
+  // not update that state, so F2 could otherwise edit the previously selected row.
+  const opened = await openName(page, name);
+  await opened.press("Escape");
+  const cell = nameCell(page, name);
+  await expect(cell).toBeFocused();
+  await cell.press("F2");
+  const input = ganttRoot(page).locator(`.wx-table-container .wx-row[data-id=":${id(ordinal)}"] .wx-cell.wx-editor input.wx-text`);
+  await expect(input).toBeFocused();
+  return input;
+}
+
 async function routeRenames(page: Page, fixture: StatefulProjectFixture) {
   const patches: Request[] = [];
   let failure: 401 | 409 | 412 | 500 | "network" | null = null;
@@ -99,17 +112,14 @@ test("single-click names use one canonical PATCH across Summary, Task and Milest
   const leafBarAfter = await barContentBox(leafBar);
   expect(leafBarAfter.x).toBeCloseTo(leafBarBefore.x, 0);
   expect(leafBarAfter.width).toBeCloseTo(leafBarBefore.width, 0);
-  await nameCell(page, "001").focus();
-  await nameCell(page, "001").press("F2");
-  await expect(inlineInput(page)).toBeFocused();
-  await inlineInput(page).fill("002");
-  await inlineInput(page).press("Enter");
+  const leafKeyboardInput = await openNameWithF2(page, "001", 3);
+  await leafKeyboardInput.fill("002");
+  await leafKeyboardInput.press("Enter");
   await expect(nameCell(page, "002")).toBeVisible();
-  await nameCell(page, "Renamed milestone").focus();
-  await nameCell(page, "Renamed milestone").press("F2");
-  await expect(inlineInput(page)).toBeFocused();
-  await inlineInput(page).press("Escape");
+  const milestoneKeyboardInput = await openNameWithF2(page, "Renamed milestone", 4);
+  await milestoneKeyboardInput.press("Escape");
   expect(route.patches.map((request) => request.postDataJSON())).toEqual([{ name: "Renamed summary" }, { name: "001" }, { name: "Renamed milestone" }, { name: "002" }]);
+  expect(route.patches.map((request) => new URL(request.url()).pathname.split("/").at(-1))).toEqual([id(1), id(3), id(4), id(3)]);
   expect(await page.evaluate(() => (window as typeof window & { __openedTaskUrls?: string[] }).__openedTaskUrls)).toEqual([]);
   await page.reload();
   for (const name of ["Renamed summary", "002", "Renamed milestone"]) await expect(nameCell(page, name)).toBeVisible();
