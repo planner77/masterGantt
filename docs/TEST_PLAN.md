@@ -385,3 +385,11 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - quality job에서 `python3 scripts/verify-safe-branch-cleanup.py`를 실행하며 기존 typecheck/lint/unit/markdown/build/E2E/Docker gate를 대체하지 않는다.
 - Issue #68/#72/#75/#76/#80/#83/#84/#87/#96/#97/#104/#108 전용 완료 helper와 #87 전용 verifier는 퇴역 대상으로 확인한다.
 - application code/API/DB/UI와 현재 package version은 변경하지 않는다. 정식 release는 N/A이며 merge 후 main CI와 정책상 임시 GHCR exact-digest smoke/cleanup은 별도 원격 증거로 확인한다.
+
+## Issue #115 작업 캘린더 미리보기 상태 회귀
+
+- 실제 Chromium에서 신규 KR 캘린더를 US로 바꾸면 기존 결과가 즉시 숨겨지고 재계산 요청·저장 요청의 국가 코드가 모두 US인지 확인한다. 저장 성공 뒤 응답을 미리보기로 재사용하지 않고 canonical 재조회 경로를 유지한다.
+- 국가/적용 범위/시작일/종료일, 휴무일 이름/날짜/대상/대상 선택, 규칙·휴무일 추가/삭제 각각의 변경은 이전 미리보기를 무효화한다. 원래 값으로 되돌려도 명시적 재계산 전에는 결과를 다시 표시하지 않는다.
+- Preview 실패와 응답 형식 오류는 결과를 지우고 재시도 안내를 표시한다. 요청 중 초안 잠금, metadata 저장으로 설정 창이 닫힌 뒤 늦은 응답 무시와 401/412 분기는 전용 E2E에서 검증한다. 현재 If-Match 헤더 전송과 응답 내부 calendar revision 일치 검사는 코드에서 확인하며, 내부 revision 불일치 응답을 별도 E2E로 주입하지 않는다. 같은 editor mount 상태에서 revision prop만 바뀌는 경로는 현재 브라우저 UI에 없어 코드 경계·원격 회귀로 별도 확인한다.
+- 390/768/1024/1440px에서 상태 문구와 미리보기·저장 버튼이 접근 가능하고 의도하지 않은 문서 가로 overflow가 없는지 확인한다. 변경 전후 화면은 비밀값 없는 별도 PNG로 보관한다.
+- 전용 테스트는 `tests/e2e/project-work-calendar-preview.spec.ts`이며 기존 전체 E2E를 대체하지 않는다. PR head의 `quality/e2e/docker`와 main GHCR digest 검증은 원격 실행 증거로 별도 판정한다. API/DB/스케줄링 계약은 바꾸지 않으므로 관련 계약 문서 변경은 N/A다.
