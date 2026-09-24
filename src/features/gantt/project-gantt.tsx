@@ -857,6 +857,19 @@ export function ProjectGantt({
     target?.focus({ preventScroll: true });
   }, []);
 
+  const findInlineNameInput = useCallback((taskId: string): HTMLInputElement | null => {
+    const root = ganttScrollReference.current;
+    const row = root && Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]"))
+      .find((candidate) => taskIdFromElement(candidate) === taskId);
+    return row?.querySelector<HTMLInputElement>(".wx-cell.wx-editor input.wx-text") ?? null;
+  }, []);
+
+  function isCurrentInlineNameInput(target: EventTarget | null): target is HTMLInputElement {
+    if (!(target instanceof HTMLInputElement) || !target.matches(".wx-cell.wx-editor input.wx-text")) return false;
+    const row = target.closest(".wx-row[data-id]");
+    return !!row && taskIdFromElement(row) === inlineSessionReference.current?.taskId;
+  }
+
   const commitInlineName = useCallback((value: unknown, session: NonNullable<typeof inlineSessionReference.current>): void => {
     if (session.committed) return;
     if (!canCreateReference.current || session.revision !== projectRevisionReference.current ||
@@ -869,7 +882,7 @@ export function ProjectGantt({
     if (normalized.error || normalized.name === null) {
       setInlineNameError(true);
       setInlineNameMessage(normalized.error ?? "작업명을 확인해 주세요.");
-      const input = session.cell.querySelector<HTMLInputElement>('input.wx-text');
+      const input = findInlineNameInput(session.taskId);
       if (input) {
         input.setAttribute("aria-invalid", "true");
         input.setAttribute("aria-describedby", `${instanceId}-inline-name-status`);
@@ -902,7 +915,7 @@ export function ProjectGantt({
     }).finally(() => {
       if (inlineSessionReference.current === session) inlineSessionReference.current = null;
     });
-  }, [focusInlineNameCell, instanceId]);
+  }, [findInlineNameInput, focusInlineNameCell, instanceId]);
 
   const installInlineTableHandlers = useCallback((table: Awaited<ReturnType<IApi["getTable"]>>): void => {
     if (inlineTableReference.current === table) return;
@@ -946,7 +959,7 @@ export function ProjectGantt({
       if (!checked.error) return undefined;
       setInlineNameError(true);
       setInlineNameMessage(checked.error);
-      const input = current.cell.querySelector<HTMLInputElement>('input.wx-text');
+      const input = findInlineNameInput(current.taskId);
       input?.setAttribute("aria-invalid", "true");
       input?.setAttribute("aria-describedby", `${instanceId}-inline-name-status`);
       requestAnimationFrame(() => input?.isConnected && input.focus({ preventScroll: true }));
@@ -959,7 +972,7 @@ export function ProjectGantt({
         setInlineNameMessage("");
       }
     }, { tag: "project-inline-name" });
-  }, [commitInlineName, instanceId]);
+  }, [commitInlineName, findInlineNameInput, instanceId]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -1015,8 +1028,7 @@ export function ProjectGantt({
   }
 
   function handleHeaderKeyboardMenu(event: ReactKeyboardEvent<HTMLDivElement>) {
-    if (event.key === "Enter" && event.target instanceof HTMLInputElement &&
-      event.target.closest('[role="gridcell"][data-col-id=":text"]')) {
+    if (event.key === "Enter" && isCurrentInlineNameInput(event.target)) {
       event.preventDefault();
       event.stopPropagation();
       // Core's input saves on Enter while its editor wrapper also cancels on
@@ -1246,7 +1258,7 @@ export function ProjectGantt({
           onCompositionStart={() => { inlineComposingReference.current = true; }}
           onCompositionEnd={() => { inlineComposingReference.current = false; }}
           onInput={(event) => {
-            if (!(event.target instanceof HTMLInputElement) || !event.target.closest('[role="gridcell"][data-col-id=":text"]')) return;
+            if (!isCurrentInlineNameInput(event.target)) return;
             event.target.removeAttribute("aria-invalid");
             event.target.removeAttribute("aria-describedby");
             setInlineNameError(false);
