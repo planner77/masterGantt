@@ -1,0 +1,96 @@
+name: Issue 130 릴리스 완료 자동화
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/issue-130-release-helper.yml"
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  release:
+    name: v0.27.10 GHCR 릴리스·브랜치 정리·이슈 종료
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      RELEASE_TAG: v0.27.10
+      FINALIZER_BRANCH: ops/issue-130-release-v0.27.10
+      FINALIZER_PR: "0"
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: 승인된 Issue #130 Lifecycle 완료
+        shell: bash
+        run: |
+          set -euo pipefail
+          target_sha="$GITHUB_SHA"
+
+          test "$(git show "$target_sha:package.json" | jq -r .version)" = "0.27.10"
+
+          for merge_sha in             609fced19148ca3a23f323f6ca0b4099b49628e2             7358d3f9ecaf6a12c827c4ee62a9f1a3e79ac7a4             1ce196bd2a1be5d26a298a2974d5f6c58b1bc0e4             36895aa7ebb36c644259835867bd1bff33dec243
+          do
+            git merge-base --is-ancestor "$merge_sha" "$target_sha"
+          done
+
+          main_ci_url=""
+          for _ in $(seq 1 300); do
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=50")"
+            run="$(jq -c --arg sha "$target_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" && "$(jq -r .status <<<"$run")" == "completed" ]]; then
+              test "$(jq -r '.conclusion // ""' <<<"$run")" = "success"
+              main_ci_url="$(jq -r .html_url <<<"$run")"
+              break
+            fi
+            sleep 15
+          done
+          test -n "$main_ci_url"
+
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$RELEASE_TAG" "$target_sha" -m "Release $RELEASE_TAG"
+            git push origin "refs/tags/$RELEASE_TAG"
+          fi
+
+          git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          test "$(git cat-file -t "refs/tags/$RELEASE_TAG")" = "tag"
+          test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$target_sha"
+
+          release_run_url=""
+          existing_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?per_page=100")"
+          successful="$(jq -c --arg sha "$target_sha" --arg tag "$RELEASE_TAG" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .status == "completed" and .conclusion == "success")] | sort_by(.created_at) | last // empty' <<<"$existing_runs")"
+          if [[ -n "$successful" ]]; then
+            release_run_url="$(jq -r .html_url <<<"$successful")"
+          else
+            dispatched_after="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" -f ref="$RELEASE_TAG"
+            for _ in $(seq 1 480); do
+              runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=100")"
+              run="$(jq -c --arg sha "$target_sha" --arg tag "$RELEASE_TAG" --arg after "$dispatched_after" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .created_at >= $after)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+              if [[ -n "$run" && "$(jq -r .status <<<"$run")" == "completed" ]]; then
+                test "$(jq -r '.conclusion // ""' <<<"$run")" = "success"
+                release_run_url="$(jq -r .html_url <<<"$run")"
+                break
+              fi
+              sleep 15
+            done
+          fi
+          test -n "$release_run_url"
+
+          python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr 154 --branch fix/issue-130-phase4-filter-toolbar --target-sha "$target_sha" --delete
+          python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr 153 --branch fix/issue-130-phase3-task-editor --target-sha "$target_sha" --delete
+          python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr 152 --branch fix/issue-130-phase2-workspace --target-sha "$target_sha" --delete
+          python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr 150 --branch fix/issue-130-phase1-project-list --target-sha "$target_sha" --delete
+          python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr "$FINALIZER_PR" --branch "$FINALIZER_BRANCH" --target-sha "$target_sha" --delete
+
+          body="$(printf '%s\n'             "Issue #130 Lifecycle 완료:"             "- Phase 1 PR #150 → merge 609fced19148ca3a23f323f6ca0b4099b49628e2"             "- Phase 2 PR #152 → merge 7358d3f9ecaf6a12c827c4ee62a9f1a3e79ac7a4"             "- Phase 3 PR #153 → merge 1ce196bd2a1be5d26a298a2974d5f6c58b1bc0e4"             "- Phase 4 PR #154 → merge 36895aa7ebb36c644259835867bd1bff33dec243"             "- 버전: 0.27.10"             "- 릴리스 기준 SHA: $target_sha"             "- main CI/GHCR 임시 digest 검증·cleanup: $main_ci_url"             "- GHCR 정식 릴리스 이미지: $release_run_url"             "- 정식 릴리스 태그: $RELEASE_TAG"             "- 작업 브랜치 4개 및 finalization branch 안전 cleanup 완료"             "- 관련 문서: CHANGELOG/PROJECT_UX/TEST_PLAN main 동기화"             "- before/after 자동 evidence: #118 evidence workflow 및 각 Phase E2E 증거를 보존")"
+          gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/130/comments" -f body="$body"
+          gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/130" -f state="closed" -f state_reason="completed"
