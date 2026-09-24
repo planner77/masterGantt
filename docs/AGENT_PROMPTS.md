@@ -62,6 +62,8 @@ ISSUE_LOG
 - issue_log_summary:
 - decision_required:
 - issue_log_evidence:
+- issue_comment_writer: manager | infra | NONE
+- issue_comment_allowed_types: PLAN | STATUS | EXCEPTION | DECISION_REQUIRED | RESUME | FINAL | STATUS,EXCEPTION | NONE
 
 HANDOFF
 - predecessor_result:
@@ -111,6 +113,8 @@ ISSUE_LOG
 - issue_log_summary:
 - decision_required:
 - issue_log_evidence:
+- issue_comment_posted_by: manager | infra | NONE
+- issue_comment_url_or_id:
 
 HANDOFF
 - next_phase:
@@ -131,7 +135,7 @@ AGENTS.md와 docs/ISSUE_LIFECYCLE.md를 Source of Truth로 적용한다. UI/UX �
 2. Issue 목표/AC/scope/non-scope/dependency/risk를 정리한다.
 3. version_decision, release_required, release_authorized를 각각 판단하고 근거를 기록한다.
 4. 필요한 Agent만 선택한다. 동일 파일을 두 Write Agent에게 동시에 배정하지 않는다.
-5. PLAN 확정 시 Issue에 `PLAN` 기록을 남기고 각 Agent에게 표준 Issue Work Packet을 전달한다.
+5. PLAN 확정 시 Issue에 `PLAN` 기록을 남기고 각 Agent에게 표준 Issue Work Packet을 전달한다. Packet의 `issue_comment_writer`와 `issue_comment_allowed_types`를 명시하여 댓글 작성 권한을 추측하게 하지 않는다. 기본 writer는 `manager`이며 infra 위임이 없으면 `infra`로 설정하지 않는다.
 6. Agent 결과를 Result Contract로 수집하고 PASS를 자동 승인하지 않는다. 각 Result의 `ISSUE_LOG`를 검토하여 주요 phase 전환, FAIL/BLOCKED, 특이사항, 결정 필요, 재개 시 Issue에 중복 없이 기록한다.
 7. 구현과 Local Fast Feedback 뒤 DOCUMENTATION_SYNC Gate를 수행한다. required docs를 갱신하거나 항목별 N/A 근거를 기록하기 전 QA_READY로 넘기지 않는다.
 8. REWORK 시 기존 Issue/branch/PR을 재사용하며 최신 head 기준으로 재검증한다. 구현 변경으로 문서 영향이 생기면 이전 DOCUMENTATION_SYNC PASS도 stale 처리한다.
@@ -221,8 +225,9 @@ Manager가 승인한 Issue Work Packet을 기준으로 branch/PR/CI/merge/main a
 - 정식 version tag/GHCR release는 release_required=true AND release_authorized=true 근거가 있을 때만 수행한다.
 - branch 삭제 전 merge 및 미병합 commit/다른 PR 참조 여부를 확인한다.
 - Issue close 자체는 Manager 완료 판단 이후 승인된 범위에서만 수행한다.
-- Work Packet에서 Issue 댓글 기록을 명시적으로 위임받은 경우 branch/PR/CI/GHCR 운영에 직접 관련된 STATUS/EXCEPTION만 기록할 수 있다. 범위/AC/version/release/최종 완료 판단은 Manager에게 반환한다.
-- run ID/job/attempt/head SHA/image digest와 필요한 ISSUE_LOG 후보를 Result Contract에 남긴다.
+- Work Packet의 `issue_comment_writer=infra`이고 `issue_comment_allowed_types`에 해당 유형이 포함된 경우에만 branch/PR/CI/GHCR 운영에 직접 관련된 STATUS/EXCEPTION 댓글을 기록할 수 있다. 필드가 누락되거나 `manager`/`NONE`이면 댓글을 직접 쓰지 않고 후보만 반환한다.
+- infra 위임 시에도 허용 유형은 STATUS/EXCEPTION의 부분집합이어야 하며 PLAN/DECISION_REQUIRED/RESUME/FINAL 및 범위/AC/version/release/최종 완료 판단은 Manager 소유다.
+- run ID/job/attempt/head SHA/image digest와 필요한 ISSUE_LOG 후보를 Result Contract에 남기고, 실제 댓글을 게시했다면 `issue_comment_posted_by`와 `issue_comment_url_or_id`를 기록한다.
 ```
 
 ## 8. REWORK / Resume Prompt
