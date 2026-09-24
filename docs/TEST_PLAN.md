@@ -418,3 +418,11 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - 일정 도구줄은 390/768px에서 검색·필터가 첫째 줄, 결과·조건부 초기화가 둘째 줄인지 확인한다. 검색 결과·초기화 후 검색 focus, 필터 버튼의 `aria-controls`/`aria-expanded`, panel Escape 후 닫힘과 필터 버튼 focus 복원을 검증한다.
 - readonly/editing 양쪽에서 검색·필터 전후 Gantt 상단 위치·높이와 document 가로 overflow, 일정↔리소스 tab 왕복 시 동일 Gantt DOM/API instance를 확인한다. 같은 spec에서 SVAR 내부 scale toolbar의 주 단위 선택과 차트 내부 가로 스크롤이 검색·초기화·tab 왕복 뒤 유지되는지도 확인한다. Scale 단위 전환 자체는 `tests/e2e/project-gantt-scale.spec.ts`, tab 왕복의 가로 스크롤은 `tests/e2e/project-workspace-ux.spec.ts`, tree 접힘·선택·column 표시/너비 상태의 기존 mutation 회귀는 `tests/e2e/project-gantt-stability.spec.ts`, column 메뉴와 긴 목록 스크롤은 `tests/e2e/project-workspace-layout.spec.ts`가 각각 검사한다. 새 #118 spec은 tree/column을 직접 변경하지 않으므로 이 계약의 이번 조합별 검증으로 과대 해석하지 않는다. SVAR 내부 scale toolbar CSS/구현은 수정 대상이 아니다.
 - 이 명세의 `search-idle`/`search-reset` PNG는 새 구현에서 검색 전과 초기화 후를 기록할 예정이며 구현 전후 증거가 아니다. 높이 개선의 전후 판정에는 동일 fixture·viewport·readonly/editing 상태에서 구현 전 baseline과 변경 후 Gantt 위치·높이를 별도 측정해야 한다. 기존 390×844/768×1024 자료는 새 768×844 fixture의 수치 기준으로 사용하지 않는다. 로컬 Playwright·lint·typecheck·build·브라우저 확인과 실제 전후 측정은 사용자 지시에 따라 **NOT TESTED**다. 원격 PR head의 `quality/e2e/docker` 결과로 회귀를 판정한다. API/DB/Scheduling 테스트 및 문서 변경은 계약 불변으로 N/A다.
+
+
+## Issue #119 반복 입력과 오류 연결 회귀
+
+- `tests/e2e/project-repeated-input-accessibility.spec.ts`는 390/768/1024/1440px에서 Project 생성, 작업 캘린더, 반복 리소스 할당을 keyboard-only 제출한다. 각 필드의 고유 accessible name·fieldset/legend, `aria-invalid`·`aria-describedby`와 표시 오류, 제출 뒤 summary focus 및 요약 항목→오류 입력 focus를 검사한다.
+- 잘못된 Project 생성은 POST 0회, 잘못된 캘린더 Preview/Save는 각각 POST/PUT 0회, 잘못된 할당은 PUT 0회를 검사한다. 입력 초안·date/percent 값, 키보드 조작과 문서 가로 overflow도 확인한다. 기존 생성 회귀인 `tests/e2e/project-create-and-read.spec.ts`의 단일 오류 text 기대는 새 복수 오류 요약과 필드 오류 링크에 맞춰 갱신하되 정상 생성·조회·복사·삭제 경로는 유지한다.
+- #115의 `tests/e2e/project-work-calendar-preview.spec.ts`는 유효한 초안의 Preview/Save, 상태·실패·401/412·stale 응답을 계속 검증한다. 작업 저장/할당 저장 독립성과 revision·권한 계약은 기존 `tests/e2e/project-task-editor.spec.ts` 및 전체 원격 회귀로 함께 확인한다. 해당 API/domain 코드는 바꾸지 않는다.
+- 로컬 Playwright·lint·typecheck·build·browser는 사용자 지시에 따라 **NOT TESTED**다. 작성된 명세의 PASS를 주장하지 않고 PR head의 `quality/e2e/docker` 실제 run으로 판정한다. API·DB·Scheduling 문서 갱신은 계약 불변으로 N/A다.
