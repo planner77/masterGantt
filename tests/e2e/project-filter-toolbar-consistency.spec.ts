@@ -99,6 +99,7 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     const resourceSearch = resourceToolbar.getByRole("searchbox");
     const resourceFilter = resourceToolbar.locator('button[aria-controls="resource-advanced-filter"]');
     const resourceReset = resourceToolbar.getByRole("button", { name: "초기화" });
+    await expect(resourceFilter).toHaveAttribute("aria-expanded", "false");
     await expect(resourceReset).toHaveCount(0);
     await resourceSearch.fill("R-01");
     await expect(resourceFilter).toHaveText("필터 1");
@@ -133,6 +134,11 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     await resourceReset.click();
     await expect(resourceSearch).toBeFocused();
     await expect(resourceReset).toHaveCount(0);
+    await advanced.getByLabel("Task 기간 From").focus();
+    await page.keyboard.press("Escape");
+    await expect(advanced).toBeHidden();
+    await expect(resourceFilter).toHaveAttribute("aria-expanded", "false");
+    await expect(resourceFilter).toBeFocused();
     await page.getByRole("tab", { name: "일정", exact: true }).click();
     await expectSameGanttRoot(page, ganttIdentity);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
