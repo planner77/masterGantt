@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import type {
   CreateProjectRequest,
   CreateProjectResponse,
+  ProjectStatus,
 } from "@/contracts/projects";
+import { PROJECT_STATUS_OPTIONS } from "./project-status";
 
 const MINIMUM_PASSWORD_LENGTH = 1;
 const MAXIMUM_PASSWORD_LENGTH = 12;
@@ -53,6 +55,7 @@ export function CreateProjectForm() {
   const [name, setName] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [description, setDescription] = useState("");
+  const [status, setStatus] = useState<ProjectStatus>("planned");
   const [editPassword, setEditPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<ProjectField,string>>>({});
@@ -90,6 +93,7 @@ export function CreateProjectForm() {
     const request: CreateProjectRequest = {
       name,
       description,
+      status,
       ownerName: normalizedOwnerName,
       editPassword,
     };
@@ -167,6 +171,14 @@ export function CreateProjectForm() {
           rows={4}
           value={description}
         />
+      </div>
+
+      <div className="form-field">
+        <label htmlFor="project-status">프로젝트 상태</label>
+        <select disabled={isSubmitting} id="project-status" name="status" value={status}
+          onChange={(event) => setStatus(event.target.value as ProjectStatus)}>
+          {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+        </select>
       </div>
 
       <div className="form-field">

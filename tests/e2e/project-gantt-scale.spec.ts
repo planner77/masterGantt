@@ -9,6 +9,7 @@ test("switches the Gantt timeline between day and ISO week headers without remou
         publicId,
         name: "Issue 51 ISO week scale fixture",
         description: "Day/ISO-week timeline scale verification",
+        status: "planned",
         revision: 1,
         calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] },
       },

@@ -515,6 +515,7 @@ export class TaskHierarchyService {
             publicId: updatedProject.publicId,
             name: updatedProject.name,
             description: updatedProject.description,
+            status: updatedProject.status,
             revision: updatedProject.revision,
             calendar: projectCalendarDto(this.database, project.id),
           },

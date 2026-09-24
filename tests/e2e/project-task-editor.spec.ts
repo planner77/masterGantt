@@ -32,7 +32,7 @@ interface Fixture {
 async function setup(page: Page, options: { editable?: boolean; links?: boolean; assignmentTargets?: boolean } = {}): Promise<Fixture> {
   await page.clock.setFixedTime(new Date("2026-09-16T12:00:00Z"));
   const fixture: Fixture = {
-    project: { publicId, name: "Task Editor fixture", description: "Issue #4", revision: 20, calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [{ date: "2026-09-21", name: "Fixture holiday" }] } },
+    project: { publicId, name: "Task Editor fixture", description: "Issue #4", status: "planned", revision: 20, calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [{ date: "2026-09-21", name: "Fixture holiday" }] } },
     tasks: [
       task(1, "Summary", { type: "summary", requestedStart: null }),
       task(2, "Child", { parentExternalId: "EDITOR-1" }),

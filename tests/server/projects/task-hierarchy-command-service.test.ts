@@ -67,6 +67,7 @@ describe("TaskHierarchyService", () => {
       });
 
       expect(moved.data.project.revision).toBe(5);
+      expect(moved.data.project.status).toBe("planned");
       expect(moved.data.operation).toMatchObject({ kind: "taskHierarchy", command: "move" });
       expect(moved.data.tasks
         .filter((task) => task.parentExternalId === null)

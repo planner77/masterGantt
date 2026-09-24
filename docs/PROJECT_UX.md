@@ -146,6 +146,14 @@ Project List 상단에는 `프로젝트 검색`, 적용 조건 수를 포함한 
 
 필터 panel은 keyboard 접근 가능한 native controls를 사용한다. Escape 또는 닫기 버튼으로 panel을 닫으면 Filter trigger로 focus를 복원한다. 390/768/1024/1440/wide desktop에서 document-level unintended horizontal overflow를 만들지 않는다.
 
+## Issue #138 프로젝트 상태와 목록 필터
+
+프로젝트 상태는 `planned`(예정), `in_progress`(진행 중), `completed`(완료)의 별도 데이터다. Project List는 `상태` 열에 텍스트 badge를 표시하고, 상세 Context에는 프로젝트 상태와 읽기 전용/편집 권한 badge를 구별해 표시한다. 예정은 info, 진행 중은 selected, 완료는 success semantic token을 쓰되 한국어 상태 텍스트를 항상 함께 표시한다. 새 프로젝트의 상태 선택 기본값은 예정이며, 편집 가능한 사용자는 기존 프로젝트 설정에서 상태를 바꾼다. 상태에는 강제 전이 순서가 없다. 읽기 전용 사용자는 canonical 상태만 확인한다.
+
+목록의 기존 고급 필터에는 native checkbox 세 개를 포함한 `프로젝트 상태` fieldset을 둔다. 첫 진입과 초기화는 예정+진행 중을 선택하고 완료를 제외한다. 필터 안내에서 완료 프로젝트를 선택해 표시할 수 있음을 알린다. 세 상태 모두 선택하거나 하나/아무것도 선택하지 않은 경우도 명시적 사용자 조건이다. 상태 선택이 기본 두 값과 다르면 적용 조건 수에서 한 조건으로 세고 초기화 버튼을 표시한다. 아무것도 선택하지 않으면 선택 상태가 없다는 원인을 적은 결과 0건 상태와 초기화 경로를 표시한다. 상태는 기존 Quick Search·이름/소유자/설명·날짜 조건과 AND이며, 목록 전체 수에는 완료 프로젝트도 포함한다. 필터 변경 자체는 API 재조회나 mutation을 하지 않는다. 필터는 현재 List view의 일시적 상태이며 새 진입에서 기본값으로 돌아간다. URL이나 localStorage에 저장하지 않는다.
+
+상태 저장은 기존 프로젝트 metadata PATCH의 `If-Match` revision 및 401/412 경로를 사용하고, 성공 시 canonical snapshot의 상태로 목록·상세를 표시한다. 실패한 초안 상태를 현재 상태처럼 표시하지 않는다. 목록의 좁은 상태 열을 포함한 table은 390/768px에서 table wrapper 안에서만 가로 스크롤하며 문서 자체에는 가로 overflow를 만들지 않는다. 1024/1440px에서도 헤더·행 작업과 상태 텍스트를 함께 볼 수 있어야 한다. `tests/e2e/project-status.spec.ts`와 기존 List E2E의 열 위치 검증을 갱신했다. 로컬 브라우저·테스트 및 전후 화면 실측은 사용자 지시에 따라 **NOT TESTED**이며 PR CI로 판정한다. API/DB migration 계약 문서는 backend 작성 범위다.
+
 ## Issue #115 작업 캘린더 미리보기 상태
 
 프로젝트 설정의 작업 캘린더 초안은 국가, 적용 범위·기간, 휴무일 이름·날짜·대상·대상 선택, 규칙·휴무일 추가·삭제가 바뀔 때마다 이전 미리보기를 즉시 숨긴다. 입력을 원래 값으로 되돌려도 이전 결과를 자동으로 다시 표시하지 않으며, 사용자가 `미리보기 계산`을 다시 실행해야 한다. 결과는 계산 당시의 프로젝트 publicId, revision, 요청 본문과 일치할 때만 표시한다. 다른 프로젝트·revision의 늦은 성공/오류 응답은 현재 상태나 알림을 덮어쓰지 않는다.

@@ -1,6 +1,6 @@
 import { deflateRawSync } from "node:zlib";
 
-import type { ProjectLinkDto, ProjectSnapshotResponse, ProjectTaskDto } from "@/contracts/projects";
+import type { ProjectLinkDto, ProjectSnapshotResponse, ProjectStatus, ProjectTaskDto } from "@/contracts/projects";
 import type { ProjectExcelExportRequest } from "@/contracts/project-excel-export";
 
 const MAX_TASKS = 5_000;
@@ -375,7 +375,14 @@ function projectSheet(snapshot: ProjectSnapshotResponse, taskCount: number, incl
   const holidayStart = includeDependencies ? 10 : 9;
   rows.push(rowXml(holidayStart, [{ column: 1, style: STYLE.header, value: "휴일" }, { column: 2, style: STYLE.header, value: "이름" }]));
   project.calendar.holidays.forEach((holiday, index) => rows.push(rowXml(holidayStart + index + 1, [{ column: 1, style: STYLE.date, type: "number", value: excelSerial(holiday.date) }, { column: 2, style: STYLE.text, value: holiday.name ?? "" }])));
-  return `<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><dimension ref=\"A1:B${Math.max(holidayStart, holidayStart + project.calendar.holidays.length)}\"/><sheetViews><sheetView workbookViewId=\"0\"/></sheetViews><sheetData>${rows.join("")}</sheetData><pageMargins left=\"0.25\" right=\"0.25\" top=\"0.5\" bottom=\"0.5\" header=\"0.2\" footer=\"0.2\"/></worksheet>`;
+  const statusLabels: Record<ProjectStatus, string> = {
+    planned: "예정",
+    in_progress: "진행 중",
+    completed: "완료",
+  };
+  const statusRow = holidayStart + project.calendar.holidays.length + 1;
+  rows.push(pair(statusRow, "프로젝트 상태", statusLabels[project.status]));
+  return `<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><dimension ref=\"A1:B${statusRow}\"/><sheetViews><sheetView workbookViewId=\"0\"/></sheetViews><sheetData>${rows.join("")}</sheetData><pageMargins left=\"0.25\" right=\"0.25\" top=\"0.5\" bottom=\"0.5\" header=\"0.2\" footer=\"0.2\"/></worksheet>`;
 }
 
 function dependenciesSheet(links: readonly ProjectLinkDto[], tasks: readonly OrderedTask[]): string {

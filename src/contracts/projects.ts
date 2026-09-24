@@ -1,5 +1,7 @@
 import type { ProjectAssignmentDto } from "./resources";
 
+export type ProjectStatus = "planned" | "in_progress" | "completed";
+
 export interface ProjectHolidayDto {
   date: string;
   name: string | null;
@@ -21,6 +23,7 @@ export interface ProjectDto {
   publicId: string;
   name: string;
   description: string;
+  status: ProjectStatus;
   /** Canonical API responses include this field; null represents a pre-Issue-54 project. */
   ownerName?: string | null;
   revision: number;
@@ -31,6 +34,7 @@ export interface ProjectListItemDto {
   publicId: string;
   name: string;
   description: string;
+  status: ProjectStatus;
   /** Canonical API responses include this field; null represents a pre-Issue-54 project. */
   ownerName?: string | null;
   createdAt: string;
@@ -77,6 +81,8 @@ export interface CreateProjectRequest {
   description: string;
   ownerName: string;
   editPassword: string;
+  /** Omission remains compatible with older clients and creates a planned project. */
+  status?: ProjectStatus;
 }
 
 export interface CreateProjectResponse {
@@ -139,6 +145,7 @@ export interface CurrentEditSessionResponse {
 export interface UpdateProjectRequest {
   name?: string;
   description?: string;
+  status?: ProjectStatus;
 }
 
 export interface ProjectMetadataMutationResponse {
@@ -150,7 +157,7 @@ export interface ProjectMetadataMutationResponse {
     warnings: [];
     operation: {
       kind: "projectMetadata";
-      changedFields: ("name" | "description")[];
+      changedFields: ("name" | "description" | "status")[];
     };
   };
 }

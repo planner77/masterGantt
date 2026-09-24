@@ -234,6 +234,57 @@ describe("ProjectService W05 protected mutations", () => {
     expect(db.prepare("SELECT name, revision FROM projects").get()).toEqual({ name: "After", revision: 2 });
   });
 
+  it("changes status through the protected PATCH contract and returns the canonical status", async () => {
+    const db = database();
+    const service = new ProjectService(db, {
+      clock: () => new Date("2026-09-11T01:00:00.000Z"),
+      generatePublicId: () => publicIds[0],
+      generateSessionToken: () => token("A"),
+      hashPassword: async () => fixedPasswordHash(),
+    });
+    const created = await service.create({
+      name: "Status project", description: "", editPassword: "Pass123456!",
+    });
+    expect(created.response.data.project.status).toBe("planned");
+    const url = `https://gantt.example.com/api/projects/${publicIds[0]}`;
+    const request = (status: string, revision: number, cookie = true, origin = "https://gantt.example.com") => new Request(url, {
+      method: "PATCH",
+      headers: {
+        Origin: origin,
+        "Content-Type": "application/json",
+        "If-Match": `"${revision}"`,
+        ...(cookie ? { Cookie: `__Host-mastergantt_edit=${token("A").rawToken}` } : {}),
+      },
+      body: JSON.stringify({ status }),
+    });
+    const dependencies = {
+      service,
+      applicationBaseUrl: "https://gantt.example.com",
+      environment: "production",
+    };
+
+    const completed = await handleUpdateProject(request("completed", 1), publicIds[0], dependencies);
+    expect(completed.status).toBe(200);
+    expect(completed.headers.get("etag")).toBe('"2"');
+    const completedBody = await completed.json();
+    expect(completedBody.data.project).toMatchObject({ status: "completed", revision: 2 });
+    expect(completedBody.data.operation.changedFields).toEqual(["status"]);
+    expect(completedBody.data.tasks).toEqual([]);
+    expect(completedBody.data.links).toEqual([]);
+    expect(service.listProjects().data.projects[0].status).toBe("completed");
+
+    expect((await handleUpdateProject(request("planned", 2, true, "https://evil.example.com"), publicIds[0], dependencies)).status).toBe(403);
+    expect((await handleUpdateProject(request("planned", 2, false), publicIds[0], dependencies)).status).toBe(401);
+    expect((await handleUpdateProject(request("planned", 1), publicIds[0], dependencies)).status).toBe(412);
+    expect((await handleUpdateProject(request("unknown", 2), publicIds[0], dependencies)).status).toBe(400);
+    expect(db.prepare("SELECT status, revision FROM projects").get()).toEqual({ status: "completed", revision: 2 });
+
+    const reopened = await handleUpdateProject(request("in_progress", 2), publicIds[0], dependencies);
+    expect(reopened.status).toBe(200);
+    expect((await reopened.json()).data.project).toMatchObject({ status: "in_progress", revision: 3 });
+    expect(service.getReadonlySnapshot(publicIds[0])?.data.project.status).toBe("in_progress");
+  });
+
   it("rejects a persisted noncanonical Project row at PATCH and password handler boundaries", async () => {
     const db = database();
     const hash = vi.fn(async () => fixedPasswordHash());

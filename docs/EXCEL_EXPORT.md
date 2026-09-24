@@ -69,6 +69,10 @@ Issue #28에서 구현된 프로젝트 Excel 내보내기의 **현재 구현 계
 
 기본 열은 WBS, 작업명, 외부 ID, 유형, 시작, 종료, 근무일 기간, 진행률, 설명, URL이다. 관계 포함 시 predecessor/successor 관련 열을 추가한다.
 
+### Project
+
+기존 metadata 행(프로젝트명·ID·revision·설명·시간대·작업 수·관계 포함과 선택적 관계 수) 및 휴일 표의 셀 위치는 유지한다. Issue #138의 Project 상태는 마지막 휴일 데이터 다음 행에 `프로젝트 상태`와 한국어 표시명(`예정`/`진행 중`/`완료`)으로 추가한다. 기존 Project는 migration 뒤 `진행 중`, 새 Project/복사본은 기본적으로 `예정`이 기록된다. 시트 dimension은 추가된 행까지 포함한다.
+
 ### Dependencies
 
 관계 포함을 선택한 경우에만 relation ID, type, lag, predecessor와 successor의 WBS/name/external ID를 기록한다.

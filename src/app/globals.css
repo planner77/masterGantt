@@ -608,6 +608,21 @@ h2 {
   font-weight: 650;
 }
 
+.project-lifecycle-badge {
+  flex: 0 0 auto;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-subtle);
+  color: var(--text-default);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+.project-lifecycle-badge[data-status="planned"] { border-color: var(--status-info); background: var(--status-info-surface); color: var(--status-info); }
+.project-lifecycle-badge[data-status="in_progress"] { border-color: var(--action-selected); background: var(--action-selected-subtle); color: var(--action-selected-foreground); }
+.project-lifecycle-badge[data-status="completed"] { border-color: var(--status-success); background: var(--status-success-surface); color: var(--status-success); }
+
 .unlock-form,
 .edit-panels {
   width: min(100%, 42rem);

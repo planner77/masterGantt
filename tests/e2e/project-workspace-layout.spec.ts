@@ -27,7 +27,7 @@ for (const variant of [
       page.on("pageerror", (error) => errors.push(error.message));
       await page.route(`**/api/projects/${publicId}`, (route) => route.fulfill({ json: {
         data: {
-          project: { publicId, name: "Workspace layout fixture", description: "Header and locale verification", revision: 1,
+          project: { publicId, name: "Workspace layout fixture", description: "Header and locale verification", status: "planned", revision: 1,
             calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] } },
           tasks, links: [], permission: "readonly",
         },

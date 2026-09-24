@@ -66,6 +66,7 @@ describe("TaskSubtreeDeleteService", () => {
 
       const deleted = value.subtree.deleteTaskSubtree(value.authorization, 5, first.taskId);
       expect(deleted.data.project.revision).toBe(6);
+      expect(deleted.data.project.status).toBe("planned");
       expect(deleted.data.operation.deletedTaskExternalIds).toEqual(["GRANDCHILD", "FIRST"]);
       expect(deleted.data.tasks.map((task) => task.externalId).sort()).toEqual(["ROOT", "SECOND"]);
       expect(deleted.data.tasks.find((task) => task.externalId === "ROOT"))
