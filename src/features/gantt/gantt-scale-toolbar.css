@@ -2,8 +2,50 @@
   display: flex;
   flex: 0 0 auto;
   justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   padding: 0 0 0.5rem;
 }
+
+.project-gantt-fullscreen-button {
+  min-height: 2.5rem;
+  border: 1px solid var(--border-control, var(--border));
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel, var(--card));
+  color: var(--text-default, var(--foreground));
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  padding: 0.375rem 0.75rem;
+}
+
+.project-gantt-fullscreen-button:hover { background: var(--surface-subtle, var(--muted)); }
+.project-gantt-fullscreen-button:focus-visible {
+  outline: 3px solid var(--focus-ring, var(--ring));
+  outline-offset: 2px;
+}
+.project-gantt-fullscreen-button:disabled { cursor: wait; opacity: var(--state-disabled-opacity, 0.55); }
+.project-gantt-fullscreen-status { max-width: 100%; overflow-wrap: anywhere; }
+.project-gantt-fullscreen-status:not(:empty) {
+  color: var(--status-error, var(--foreground));
+  font-size: 0.8125rem;
+}
+
+.project-gantt-frame:fullscreen {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  padding: 0.75rem;
+  background: var(--surface-page, var(--background));
+}
+
+.project-gantt-frame:fullscreen .project-gantt-scroll,
+.project-gantt-frame:fullscreen .project-gantt-widget { min-height: 0; }
 
 .project-gantt-scale-controls {
   display: inline-flex;

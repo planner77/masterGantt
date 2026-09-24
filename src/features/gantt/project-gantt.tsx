@@ -73,6 +73,11 @@ type TaskSubmenuName = "Add" | "Convert to" | "Paste" | "Move";
 type TaskSubmenuState = Readonly<{ name: TaskSubmenuName; placement: "right" | "left" | "drilldown"; left: number; top: number }>;
 type GanttScaleMode = "day" | "week";
 
+function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return true;
+  return Boolean(target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="menu"], dialog, [role="dialog"]'));
+}
+
 interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
   readonly editable: boolean;
@@ -178,6 +183,10 @@ export function ProjectGantt({
   const canonicalSyncQueueReference = useRef<Promise<void>>(Promise.resolve());
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
   const ganttScrollReference = useRef<HTMLDivElement>(null);
+  const fullscreenFrameReference = useRef<HTMLDivElement>(null);
+  const fullscreenButtonReference = useRef<HTMLButtonElement>(null);
+  const fullscreenPendingReference = useRef(false);
+  const fullscreenWasActiveReference = useRef(false);
   const columnMenuReference = useRef<HTMLDivElement>(null);
   const columnMenuTriggerReference = useRef<HTMLElement | null>(null);
   const taskMenuReference = useRef<HTMLDivElement>(null);
@@ -193,6 +202,9 @@ export function ProjectGantt({
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [fullscreenPending, setFullscreenPending] = useState(false);
+  const [fullscreenMessage, setFullscreenMessage] = useState("");
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
   const highlightWeekend = useCallback(
@@ -216,6 +228,64 @@ export function ProjectGantt({
     mutationLockedReference.current = mutationLocked;
     tasksByIdReference.current = tasksById;
   }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkDelete, tasksById]);
+
+  useEffect(() => {
+    const frame = fullscreenFrameReference.current;
+    if (!frame) return;
+    const onFullscreenChange = () => {
+      const active = document.fullscreenElement === frame;
+      setIsFullscreen(active);
+      if (active) setFullscreenMessage("");
+      else if (fullscreenWasActiveReference.current && frame.isConnected && document.fullscreenElement === null) fullscreenButtonReference.current?.focus({ preventScroll: true });
+      fullscreenWasActiveReference.current = active;
+    };
+    const onFullscreenError = () => setFullscreenMessage("전체화면으로 전환할 수 없습니다. 브라우저 권한을 확인해 주세요.");
+    const onEditorExitError = () => setFullscreenMessage("전체화면을 종료하지 못해 작업 정보를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.");
+    document.addEventListener("fullscreenchange", onFullscreenChange);
+    document.addEventListener("fullscreenerror", onFullscreenError);
+    frame.addEventListener("project-gantt-fullscreen-exit-error", onEditorExitError);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
+      document.removeEventListener("fullscreenerror", onFullscreenError);
+      frame.removeEventListener("project-gantt-fullscreen-exit-error", onEditorExitError);
+      if (document.fullscreenElement === frame) void document.exitFullscreen().catch(() => {});
+    };
+  }, []);
+
+  async function toggleFullscreen() {
+    const frame = fullscreenFrameReference.current;
+    if (!frame || fullscreenPendingReference.current) return;
+    fullscreenPendingReference.current = true;
+    setFullscreenPending(true);
+    setFullscreenMessage("");
+    try {
+      if (document.fullscreenElement === frame) {
+        await document.exitFullscreen();
+      } else if (!document.fullscreenElement && typeof frame.requestFullscreen === "function") {
+        await frame.requestFullscreen();
+      } else {
+        throw new Error("Fullscreen unavailable");
+      }
+    } catch {
+      setFullscreenMessage("전체화면으로 전환하거나 종료할 수 없습니다. 브라우저 권한을 확인해 주세요.");
+    } finally {
+      fullscreenPendingReference.current = false;
+      setFullscreenPending(false);
+    }
+  }
+
+  useEffect(() => {
+    const onShortcut = (event: KeyboardEvent) => {
+      const frame = fullscreenFrameReference.current;
+      if (!frame || !frame.getClientRects().length || event.defaultPrevented || event.repeat || event.isComposing ||
+        !event.shiftKey || !(event.ctrlKey || event.metaKey) || event.altKey || event.key.toLowerCase() !== "f" ||
+        fullscreenShortcutBlocked(event.target) || document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]')) return;
+      event.preventDefault();
+      void toggleFullscreen();
+    };
+    document.addEventListener("keydown", onShortcut);
+    return () => document.removeEventListener("keydown", onShortcut);
+  });
 
   useEffect(() => {
     const api = apiReference.current;
@@ -895,7 +965,7 @@ export function ProjectGantt({
   }, [taskMenu, taskSubmenu]);
 
   return (
-    <div className="project-gantt-frame" data-gantt-scale-mode={scaleMode} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined}>
+    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined}>
       <Willow>
       <div className="project-gantt-scale-toolbar">
         <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
@@ -903,6 +973,14 @@ export function ProjectGantt({
           <button aria-pressed={scaleMode === "day"} onClick={() => setScaleMode("day")} type="button">일</button>
           <button aria-pressed={scaleMode === "week"} onClick={() => setScaleMode("week")} type="button">주</button>
         </div>
+        <button className="project-gantt-fullscreen-button" ref={fullscreenButtonReference} type="button"
+          aria-label={isFullscreen ? "Gantt 전체 화면 종료" : "Gantt 전체 화면"} aria-pressed={isFullscreen}
+          aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
+          title={isFullscreen ? "전체 화면 종료 (Esc)" : "전체 화면 (Ctrl/Cmd+Shift+F)"}
+          disabled={fullscreenPending} onClick={() => void toggleFullscreen()}>
+          {isFullscreen ? "전체 화면 종료" : "전체 화면"}
+        </button>
+        <span className="project-gantt-fullscreen-status" role="status" aria-live="polite">{fullscreenMessage}</span>
       </div>
       <div
         aria-label="프로젝트 일정 Grid와 Gantt 차트"

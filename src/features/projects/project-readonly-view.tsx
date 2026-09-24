@@ -60,6 +60,31 @@ function safeErrorCode(value: unknown): string | null {
 function unlockPasswordValid(value: string): boolean { return Array.from(value).length >= 1 && new TextEncoder().encode(value).byteLength <= 1024; }
 function newPasswordValid(value: string): boolean { const length = Array.from(value).length; return length >= 1 && length <= 12; }
 function revisionTag(revision: number): string { return `"${revision}"`; }
+function exitGanttFullscreen(frame: HTMLElement): Promise<void> {
+  if (document.fullscreenElement !== frame) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      document.removeEventListener("fullscreenerror", onError);
+    };
+    const onChange = () => {
+      if (document.fullscreenElement === frame) return;
+      cleanup();
+      resolve();
+    };
+    const onError = () => {
+      cleanup();
+      reject(new Error("Gantt fullscreen exit failed"));
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    document.addEventListener("fullscreenerror", onError);
+    try {
+      void document.exitFullscreen().then(onChange, onError);
+    } catch {
+      onError();
+    }
+  });
+}
 function snapshotFromMetadataMutation(value: unknown): ProjectSnapshotResponse | null {
   if (typeof value !== "object" || value === null) return null;
   const data = (value as Partial<ProjectMetadataMutationResponse>).data;
@@ -125,6 +150,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const taskMutationReference = useRef(false);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
+  const editorOpeningReference = useRef(false);
   const deleteTriggerReference = useRef<HTMLElement | null>(null);
   const unlockTriggerReference = useRef<HTMLButtonElement | null>(null);
   const settingsTriggerReference = useRef<HTMLButtonElement | null>(null);
@@ -411,17 +437,33 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     }
   }
 
-  function openTaskEditor(taskId: string) {
-    if (state.status !== "ready" || editorSession || settingsOpen || pendingTaskDelete) return;
+  async function openTaskEditor(taskId: string) {
+    if (state.status !== "ready" || editorSession || editorOpeningReference.current || settingsOpen || pendingTaskDelete) return;
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
     if (!task) return;
-    editorTriggerReference.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setEditorSession({ task: { ...task }, revision: state.snapshot.data.project.revision });
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
+    editorOpeningReference.current = true;
+    try {
+      if (frame && document.fullscreenElement === frame) await exitGanttFullscreen(frame);
+      if (frame && document.fullscreenElement === frame) throw new Error("Gantt fullscreen remains active");
+      editorTriggerReference.current = trigger;
+      setEditorSession({ task: { ...task }, revision: state.snapshot.data.project.revision });
+    } catch {
+      editorOpeningReference.current = false;
+      frame?.dispatchEvent(new Event("project-gantt-fullscreen-exit-error"));
+      notify("error", "전체화면을 종료하지 못해 작업 정보를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.", "작업 정보");
+      const root = frame?.querySelector<HTMLElement>(".project-gantt-scroll");
+      const focusTarget = trigger?.isConnected && !trigger.closest(".project-task-context-menu")
+        ? trigger : root ? findTaskContextElement(root, taskId) ?? root : null;
+      focusTarget?.focus({ preventScroll: true });
+    }
   }
   function closeTaskEditor() {
     const taskId = editorSession?.task.taskId;
     const trigger = editorTriggerReference.current;
     setEditorSession(null);
+    editorOpeningReference.current = false;
     requestAnimationFrame(() => {
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
       const target = trigger?.isConnected ? trigger : root && taskId ? findTaskContextElement(root, taskId) ?? root : root;

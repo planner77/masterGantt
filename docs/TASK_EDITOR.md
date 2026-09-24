@@ -110,3 +110,7 @@ Issue #74의 3개 탭, body-only scroll, 고정 Footer 구조와 모든 저장/�
 - 변경은 CSS Module에 한정하며 JSX inline width, Task API, canonical snapshot, revision/If-Match, 401/412, dirty/stale, Relation 및 Assignment 별도 저장 계약을 변경하지 않는다.
 
 검증 기준은 390/768/1024/1440px에서 input geometry와 horizontal overflow를 확인하고 기존 Task Editor 상호작용 회귀를 함께 실행한다.
+
+## Issue #155 — 전체화면에서 작업 정보 진입
+
+Task Editor는 Gantt 전체화면 frame 바깥의 native dialog다. SVAR `show-editor` intercept(메뉴 Edit 포함)와 Readonly Grid/Chart 더블클릭은 호출 대상을 먼저 기억하고 자기 Gantt의 native fullscreen 종료와 `fullscreenchange`를 확인한 뒤에만 기존 편집기를 연다. 종료 거부 시 보이지 않는 dialog를 만들지 않고 오류를 안내하며 원래 대상에 focus를 유지한다. 닫기/Escape 후 호출 대상 또는 기존 taskId fallback으로 복원하는 규칙과 dirty 확인, readonly·revision·If-Match·401/412·Task PATCH/Assignment PUT 계약은 그대로다. 전체화면 전환만으로 작업/할당 API mutation을 보내지 않는다.
