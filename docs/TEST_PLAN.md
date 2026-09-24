@@ -7,6 +7,14 @@
 
 상태: qa_docs가 작성한 검증 전략. W02–W07, W20과 W21 검증 기록은 [W07_REVIEW.md](W07_REVIEW.md), [W20_REVIEW.md](W20_REVIEW.md), [W21_REVIEW.md](W21_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W20의 로컬 container PASS도 원격 Actions/GHCR, production host/backup/restore와 VBA 통과를 뜻하지 않는다.
 
+## Issue #120 semantic UI state token 회귀
+
+- `tests/e2e/ui-semantic-tokens.spec.ts`: Chromium computed style로 primary/error/warning/info/success 텍스트 대비를 측정하고 4.5:1 이상인지 확인한다.
+- focus ring은 실제 focused Resource Admin control의 outline color와 인접 background를 측정해 3:1 이상인지 확인한다.
+- readonly/output와 subtle inactive badge 조합은 각각 실제 surface에 대해 4.5:1 이상인지 확인한다.
+- 390/768/1024/1440px Resource Admin 진입 화면의 document horizontal overflow 부재를 확인한다. 기존 Task Editor/Project Row Menu E2E가 keyboard/selected interaction 회귀를 계속 담당한다.
+- 실제 모바일 기기와 screen reader는 CI 범위 밖이며 별도 검증 시 결과를 기록한다.
+
 ## Issue #83 Project Task / Resource 검색·필터
 
 - Unit: text normalization, inclusive date overlap, contained/start-in/end-in, milestone, type/schedule mode, progress/duration range, assigned/unassigned, Resource/Group ANY·ALL, ancestor context를 검증한다.
