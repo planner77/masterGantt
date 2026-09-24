@@ -16,8 +16,8 @@ import {
   useMemo,
   useRef,
   useState,
-  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 
 import type {
@@ -45,12 +45,14 @@ import {
   projectLinksToSvarLinks,
   projectTasksToSvarTasks,
   translateProjectTaskUpdate,
+  normalizeInlineTaskName,
   type ProjectTaskCreateCommand,
   type ProjectTaskUpdateCommand,
 } from "./project-task-adapter";
 import { dateOnlyFromLocalDate } from "./date-adapter";
 import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
 import { resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
+import type { TaskEditorSaveResult } from "./task-editor-model";
 import { captureMenuScrollChange } from "./menu-scroll-guard";
 import {
   createHierarchyCommand,
@@ -86,7 +88,7 @@ interface ProjectGanttProps {
   readonly links: readonly ProjectLinkDto[];
   readonly onTaskAddRejected: () => void;
   readonly onTaskCreate: (command: ProjectTaskCreateCommand) => void;
-  readonly onTaskCommand: (command: ProjectTaskUpdateCommand) => void;
+  readonly onTaskCommand: (command: ProjectTaskUpdateCommand, expectedRevision?: number) => Promise<TaskEditorSaveResult>;
   readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest) => void;
   readonly onTaskEditorOpen: (taskId: string) => void;
   readonly onTaskDeleteRequest: (taskId: string, trigger: HTMLElement | null) => void;
@@ -167,6 +169,9 @@ export function ProjectGantt({
 }: ProjectGanttProps) {
   const apiReference = useRef<IApi | null>(null);
   const onTaskCreateReference = useRef(onTaskCreate);
+  const onTaskCommandReference = useRef(onTaskCommand);
+  const linksReference = useRef(links);
+  const projectRevisionReference = useRef(projectRevision);
   const onTaskAddRejectedReference = useRef(onTaskAddRejected);
   const onCanonicalSyncFailureReference = useRef(onCanonicalSyncFailure);
   const onTaskEditorOpenReference = useRef(onTaskEditorOpen);
@@ -179,6 +184,16 @@ export function ProjectGantt({
   const canonicalSyncDepthReference = useRef(0);
   const canonicalSyncVersionReference = useRef(0);
   const taskFilterAppliedReference = useRef(false);
+  const inlineOpenTokenReference = useRef(0);
+  const inlineComposingReference = useRef(false);
+  const inlineTableReference = useRef<Awaited<ReturnType<IApi["getTable"]>> | null>(null);
+  const inlineSessionReference = useRef<{
+    taskId: string;
+    revision: number;
+    cell: HTMLElement;
+    table: Awaited<ReturnType<IApi["getTable"]>>;
+    committed: boolean;
+  } | null>(null);
   const instanceId = useState(() => `project-gantt-${Math.random().toString(36).slice(2)}`)[0];
   const canonicalSyncQueueReference = useRef<Promise<void>>(Promise.resolve());
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
@@ -205,6 +220,8 @@ export function ProjectGantt({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenPending, setFullscreenPending] = useState(false);
   const [fullscreenMessage, setFullscreenMessage] = useState("");
+  const [inlineNameMessage, setInlineNameMessage] = useState("");
+  const [inlineNameError, setInlineNameError] = useState(false);
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
   const highlightWeekend = useCallback(
@@ -217,6 +234,8 @@ export function ProjectGantt({
   );
   useEffect(() => {
     onTaskCreateReference.current = onTaskCreate;
+    onTaskCommandReference.current = onTaskCommand;
+    linksReference.current = links;
     onTaskAddRejectedReference.current = onTaskAddRejected;
     onCanonicalSyncFailureReference.current = onCanonicalSyncFailure;
     onTaskEditorOpenReference.current = onTaskEditorOpen;
@@ -227,7 +246,56 @@ export function ProjectGantt({
     canCreateReference.current = editable && !mutationLocked;
     mutationLockedReference.current = mutationLocked;
     tasksByIdReference.current = tasksById;
-  }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkDelete, tasksById]);
+  }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkDelete, tasksById]);
+
+  useEffect(() => () => {
+    inlineOpenTokenReference.current += 1;
+    inlineTableReference.current?.detach("project-inline-name");
+    inlineTableReference.current = null;
+    inlineSessionReference.current = null;
+  }, []);
+
+  useEffect(() => {
+    if (editable && !mutationLocked) return;
+    const session = inlineSessionReference.current;
+    if (!session || session.committed) return;
+    inlineOpenTokenReference.current += 1;
+    inlineSessionReference.current = null;
+    void session.table.exec("close-editor", { ignore: true });
+  }, [editable, mutationLocked]);
+
+  useEffect(() => {
+    if (projectRevisionReference.current === projectRevision) return;
+    projectRevisionReference.current = projectRevision;
+    inlineOpenTokenReference.current += 1;
+    const session = inlineSessionReference.current;
+    inlineSessionReference.current = null;
+    if (session && !session.committed) void session.table.exec("close-editor", { ignore: true });
+    queueMicrotask(() => {
+      setInlineNameError(false);
+      setInlineNameMessage("");
+    });
+  }, [projectRevision]);
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root) return;
+    const markRows = () => {
+      root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]").forEach((row) => {
+        const taskId = taskIdFromElement(row);
+        const eligible = Boolean(taskId && editable && !mutationLocked && tasksById.has(taskId) &&
+          !taskHasDependencyLinks(tasks, taskId, links));
+        if (row.dataset.inlineNameEligible !== String(eligible)) row.dataset.inlineNameEligible = String(eligible);
+        const nameCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id="text"]');
+        if (nameCell && !eligible && nameCell.getAttribute("aria-readonly") !== "true") nameCell.setAttribute("aria-readonly", "true");
+        if (nameCell && eligible && nameCell.hasAttribute("aria-readonly")) nameCell.removeAttribute("aria-readonly");
+      });
+    };
+    markRows();
+    const observer = new MutationObserver(markRows);
+    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-readonly"] });
+    return () => observer.disconnect();
+  }, [editable, links, mutationLocked, tasks, tasksById]);
 
   useEffect(() => {
     const frame = fullscreenFrameReference.current;
@@ -341,7 +409,7 @@ export function ProjectGantt({
       const task = typeof local.taskId === "string" ? tasksById.get(local.taskId) : undefined;
       if (!task) return;
       const command = translateProjectTaskUpdate(local, task, calendar);
-      if (command) onTaskCommand(command);
+      if (command) void onTaskCommand(command);
     }),
     [calendar, onTaskCommand, tasksById],
   );
@@ -381,10 +449,18 @@ export function ProjectGantt({
               ),
             }
           : column.id === "text"
-            ? { ...column, hidden: !columnVisibility.text }
+            ? {
+              ...column,
+              hidden: !columnVisibility.text,
+              editor: (row?: { id?: string | number }) => {
+                const taskId = typeof row?.id === "string" ? row.id : null;
+                return editable && !mutationLocked && taskId && tasksById.has(taskId) &&
+                  !taskHasDependencyLinks(tasks, taskId, links) ? "text" : null;
+              },
+            }
             : column
     )),
-    [columnVisibility, locales],
+    [columnVisibility, editable, links, locales, mutationLocked, tasks, tasksById],
   );
   const initialConfig = useState(() => ({
     tasks: projectTasksToSvarTasks(tasks),
@@ -630,7 +706,8 @@ export function ProjectGantt({
           ? tasksByIdReference.current.get(event.id)
           : undefined;
         if (event.eventSource === "project-canonical-sync" && canonicalSyncDepthReference.current > 0) return undefined;
-        return canonicalSyncDepthReference.current > 0 || !canCreateReference.current || task?.type === "summary" ? false : undefined;
+        return canonicalSyncDepthReference.current > 0 || !canCreateReference.current ||
+          (inlineSessionReference.current?.taskId === event.id) || task?.type === "summary" ? false : undefined;
       },
       { tag: "project-summary-update" },
     );
@@ -771,7 +848,186 @@ export function ProjectGantt({
     onTaskEditorOpenReference.current(match.taskId);
   }
 
+  const focusInlineNameCell = useCallback((taskId: string, fallback: HTMLElement): void => {
+    const root = ganttScrollReference.current;
+    const row = root && Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]"))
+      .find((candidate) => taskIdFromElement(candidate) === taskId);
+    const cell = row?.querySelector<HTMLElement>('[role="gridcell"][data-col-id="text"]');
+    const target = cell ?? (fallback.isConnected ? fallback : null);
+    target?.focus({ preventScroll: true });
+  }, []);
+
+  const commitInlineName = useCallback((value: unknown, session: NonNullable<typeof inlineSessionReference.current>): void => {
+    if (session.committed) return;
+    if (!canCreateReference.current || session.revision !== projectRevisionReference.current ||
+      taskHasDependencyLinks(Array.from(tasksByIdReference.current.values()), session.taskId, linksReference.current)) {
+      inlineSessionReference.current = null;
+      return;
+    }
+    const task = tasksByIdReference.current.get(session.taskId);
+    const normalized = normalizeInlineTaskName(value);
+    if (normalized.error || normalized.name === null) {
+      setInlineNameError(true);
+      setInlineNameMessage(normalized.error ?? "작업명을 확인해 주세요.");
+      const input = session.cell.querySelector<HTMLInputElement>('input.wx-text');
+      if (input) {
+        input.setAttribute("aria-invalid", "true");
+        input.setAttribute("aria-describedby", `${instanceId}-inline-name-status`);
+        requestAnimationFrame(() => input.isConnected && input.focus({ preventScroll: true }));
+      } else {
+        inlineSessionReference.current = null;
+        requestAnimationFrame(() => focusInlineNameCell(session.taskId, session.cell));
+      }
+      return;
+    }
+    if (!task || normalized.name === task.name) {
+      inlineSessionReference.current = null;
+      setInlineNameMessage("");
+      return;
+    }
+    session.committed = true;
+    setInlineNameError(false);
+    setInlineNameMessage("작업명을 저장하는 중…");
+    const token = inlineOpenTokenReference.current;
+    const api = apiReference.current;
+    void onTaskCommandReference.current({ taskId: task.taskId, payload: { name: normalized.name } }, session.revision).then((result) => {
+      if (inlineOpenTokenReference.current !== token || apiReference.current !== api) return;
+      if (result.status === "saved") {
+        setInlineNameMessage("작업명을 저장했습니다.");
+      } else {
+        setInlineNameError(true);
+        setInlineNameMessage(result.message);
+        requestAnimationFrame(() => focusInlineNameCell(session.taskId, session.cell));
+      }
+    }).finally(() => {
+      if (inlineSessionReference.current === session) inlineSessionReference.current = null;
+    });
+  }, [focusInlineNameCell, instanceId]);
+
+  const installInlineTableHandlers = useCallback((table: Awaited<ReturnType<IApi["getTable"]>>): void => {
+    if (inlineTableReference.current === table) return;
+    inlineTableReference.current?.detach("project-inline-name");
+    inlineTableReference.current = table;
+    table.detach("project-inline-name");
+    table.intercept("open-editor", (request) => {
+      const column = request.column ?? table.getState().focusCell?.column;
+      if (column !== "text") return false;
+      request.column = "text";
+      const root = ganttScrollReference.current;
+      const taskId = typeof request.id === "string" ? request.id : null;
+      const task = taskId ? tasksByIdReference.current.get(taskId) : null;
+      if (!root || !taskId || !task || !canCreateReference.current ||
+        taskHasDependencyLinks(Array.from(tasksByIdReference.current.values()), taskId, linksReference.current)) return false;
+      const row = Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]"))
+        .find((candidate) => taskIdFromElement(candidate) === taskId);
+      const cell = row?.querySelector<HTMLElement>('[role="gridcell"][data-col-id="text"]');
+      if (!cell) return false;
+      const current = inlineSessionReference.current;
+      if (current) return false;
+      inlineOpenTokenReference.current += 1;
+      inlineSessionReference.current = { taskId, revision: projectRevisionReference.current, cell, table, committed: false };
+      setInlineNameMessage("");
+      setInlineNameError(false);
+      return undefined;
+    }, { tag: "project-inline-name" });
+    // Installed before user interaction: native double-click and keyboard
+    // editor entries use the same protected gateway as single click.
+    table.intercept("update-cell", (change) => {
+      if (change.column !== "text") return undefined;
+      const current = inlineSessionReference.current;
+      if (current && change.id === current.taskId) commitInlineName(change.value, current);
+      return false;
+    }, { tag: "project-inline-name" });
+    table.intercept("close-editor", (change) => {
+      const current = inlineSessionReference.current;
+      const editor = table.getState().editor;
+      if (!current || current.committed || change?.ignore || editor?.id !== current.taskId || editor.column !== "text") return undefined;
+      const checked = normalizeInlineTaskName(editor.value);
+      if (!checked.error) return undefined;
+      setInlineNameError(true);
+      setInlineNameMessage(checked.error);
+      const input = current.cell.querySelector<HTMLInputElement>('input.wx-text');
+      input?.setAttribute("aria-invalid", "true");
+      input?.setAttribute("aria-describedby", `${instanceId}-inline-name-status`);
+      requestAnimationFrame(() => input?.isConnected && input.focus({ preventScroll: true }));
+      return false;
+    }, { tag: "project-inline-name" });
+    table.on("close-editor", () => {
+      const current = inlineSessionReference.current;
+      if (current && !current.committed) {
+        inlineSessionReference.current = null;
+        setInlineNameMessage("");
+      }
+    }, { tag: "project-inline-name" });
+  }, [commitInlineName, instanceId]);
+
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    let active = true;
+    void Promise.resolve(api.getTable(true)).then((table) => {
+      if (active && apiReference.current === api && ganttScrollReference.current?.isConnected) installInlineTableHandlers(table);
+    });
+    return () => { active = false; };
+  }, [apiInstanceId, installInlineTableHandlers]);
+
+  async function handleNameClick(event: ReactMouseEvent<HTMLDivElement>) {
+    if (!editable || mutationLocked || event.button !== 0 || inlineSessionReference.current) return;
+    const root = ganttScrollReference.current;
+    const api = apiReference.current;
+    if (!root || !api || !(event.target instanceof Element)) return;
+    const text = event.target.closest<HTMLElement>('.wx-table-container [role="gridcell"][data-col-id="text"] .wx-content > .wx-text');
+    const cell = text?.closest<HTMLElement>('[role="gridcell"][data-col-id="text"]');
+    const row = cell?.closest<HTMLElement>(".wx-row[data-id]");
+    const taskId = row ? taskIdFromElement(row) : null;
+    if (!text || !cell || !taskId || !root.contains(cell) || !tasksByIdReference.current.has(taskId) ||
+      taskHasDependencyLinks(tasks, taskId, links)) return;
+    const token = ++inlineOpenTokenReference.current;
+    setInlineNameMessage("");
+    setInlineNameError(false);
+    try {
+      const table = await api.getTable(true);
+      if (token !== inlineOpenTokenReference.current || apiReference.current !== api || !root.isConnected ||
+        !cell.isConnected || !canCreateReference.current) return;
+      installInlineTableHandlers(table);
+      await table.exec("open-editor", { id: taskId, column: "text" });
+    } catch {
+      if (token !== inlineOpenTokenReference.current || !root.isConnected) return;
+      inlineSessionReference.current = null;
+      setInlineNameError(true);
+      setInlineNameMessage("작업명 편집기를 열 수 없습니다. 다시 시도해 주세요.");
+      cell.focus({ preventScroll: true });
+    }
+  }
+
+  function handleInlineEscape(event: ReactKeyboardEvent<HTMLDivElement>): boolean {
+    const session = inlineSessionReference.current;
+    if (event.key !== "Escape" || !session || session.committed) return false;
+    event.preventDefault();
+    event.stopPropagation();
+    inlineSessionReference.current = null;
+    inlineOpenTokenReference.current += 1;
+    setInlineNameMessage("");
+    void session.table.exec("close-editor", { ignore: true }).finally(() => {
+      focusInlineNameCell(session.taskId, session.cell);
+    });
+    return true;
+  }
+
   function handleHeaderKeyboardMenu(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (event.key === "Enter" && event.target instanceof HTMLInputElement &&
+      event.target.closest('[role="gridcell"][data-col-id="text"]')) {
+      event.preventDefault();
+      event.stopPropagation();
+      // Core's input saves on Enter while its editor wrapper also cancels on
+      // the bubbling Enter. Own the key before either handler can run.
+      if (!inlineComposingReference.current && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) {
+        const session = inlineSessionReference.current;
+        if (session && !session.committed) void session.table.exec("close-editor", { ignore: false });
+      }
+      return;
+    }
+    if (handleInlineEscape(event)) return;
     if (runTaskShortcut(event)) return;
     if (event.key !== "ContextMenu" && !(event.key === "F10" && event.shiftKey)) return;
     const header = headerFrom(event.target);
@@ -965,7 +1221,7 @@ export function ProjectGantt({
   }, [taskMenu, taskSubmenu]);
 
   return (
-    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined}>
+    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
       <Willow>
       <div className="project-gantt-scale-toolbar">
         <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
@@ -986,6 +1242,16 @@ export function ProjectGantt({
         aria-label="프로젝트 일정 Grid와 Gantt 차트"
           className="project-gantt-scroll"
           onContextMenu={handleHeaderContextMenu}
+          onClick={(event) => { void handleNameClick(event); }}
+          onCompositionStart={() => { inlineComposingReference.current = true; }}
+          onCompositionEnd={() => { inlineComposingReference.current = false; }}
+          onInput={(event) => {
+            if (!(event.target instanceof HTMLInputElement) || !event.target.closest('[role="gridcell"][data-col-id="text"]')) return;
+            event.target.removeAttribute("aria-invalid");
+            event.target.removeAttribute("aria-describedby");
+            setInlineNameError(false);
+            setInlineNameMessage("");
+          }}
           onDoubleClick={handleTaskDoubleClick}
           onKeyDownCapture={handleHeaderKeyboardMenu}
           ref={ganttScrollReference}
@@ -1009,6 +1275,7 @@ export function ProjectGantt({
             />
           </div>
         </div>
+        {inlineNameMessage ? <p className="project-gantt-inline-name-status" role={inlineNameError ? "alert" : "status"} id={`${instanceId}-inline-name-status`}>{inlineNameMessage}</p> : null}
         {columnMenuPosition ? <div
           aria-label="표시 열 선택"
           className="project-column-menu"

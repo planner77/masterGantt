@@ -381,7 +381,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     else if (status === 412) message = recovered
       ? "다른 편집 내용이 먼저 저장되었습니다. 최신 정보를 불러왔습니다. 내용을 확인한 뒤 다시 저장해 주세요."
       : "다른 편집 내용이 먼저 저장되었지만 최신 정보를 불러오지 못했습니다. 마지막 확인 일정으로 복구했습니다. 다시 조회해 주세요.";
-    else if (status === 400 || status === 409 || status === 422) message = code === "END_DURATION_MISMATCH"
+    else if (status === 400 || status === 409 || status === 422) message = code === "UNSUPPORTED_SCHEDULE_STRUCTURE"
+      ? "관계가 연결된 작업은 이 방법으로 변경할 수 없습니다. 최신 일정을 확인해 주세요."
+      : code === "END_DURATION_MISMATCH"
       ? "일정 기간을 확인해 주세요."
       : code === "EMPTY_SUMMARY_NOT_ALLOWED" ? "선택 범위를 삭제하면 상위 요약 작업이 비게 됩니다. 상위 작업 구조를 먼저 변경해 주세요."
         : code === "SUMMARY_DELETE_UNSUPPORTED" ? "하위 작업이 있는 작업은 우클릭 메뉴에서 하위 작업 포함 삭제를 확인해 주세요."
@@ -533,8 +535,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setGanttResetGeneration((generation) => generation + 1);
     notify("error", "일정 화면을 최신 서버 정보로 복구했습니다.", "일정 화면 복구");
   }, [notify]);
-  function saveTaskCommand(command: ProjectTaskUpdateCommand) {
-    if (Object.keys(command.payload).length > 0) void saveTask("PATCH", command.taskId, command.payload);
+  function saveTaskCommand(command: ProjectTaskUpdateCommand, expectedRevision?: number): Promise<TaskEditorSaveResult> {
+    if (Object.keys(command.payload).length > 0) return saveTask("PATCH", command.taskId, command.payload, expectedRevision);
+    return Promise.resolve({ status: "failed", message: "변경할 작업 정보가 없습니다." });
   }
 
   async function saveLink(method: "POST" | "DELETE", sourceTaskId?: string, targetTaskId?: string, linkId?: string) {

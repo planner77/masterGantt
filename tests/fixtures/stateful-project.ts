@@ -1,5 +1,5 @@
 import { expect, type Page, type Request, type Route } from "@playwright/test";
-import type { CreateTaskRequest, ProjectDto, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
+import type { CreateTaskRequest, ProjectDto, ProjectLinkDto, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
 
 export const publicId = "a3405d3d-8cb4-4da4-9b0f-43a5de330003";
 export const projectPath = `/api/projects/${publicId}`;
@@ -16,6 +16,7 @@ export interface StatefulProjectFixture {
   readonly createdTaskIds: string[];
   readonly project: ProjectDto;
   readonly tasks: ProjectTaskDto[];
+  readonly links: ProjectLinkDto[];
   sessionEditable: boolean;
   nextPost: PostOutcome;
 }
@@ -41,11 +42,11 @@ function initialTasks(): ProjectTaskDto[] {
   ];
 }
 function snapshot(fixture: StatefulProjectFixture) {
-  return { data: { project: { ...fixture.project }, tasks: fixture.tasks.map((entry) => ({ ...entry })), links: [], permission: "readonly" as const } };
+  return { data: { project: { ...fixture.project }, tasks: fixture.tasks.map((entry) => ({ ...entry })), links: fixture.links.map((entry) => ({ ...entry })), permission: "readonly" as const } };
 }
 function taskMutation(fixture: StatefulProjectFixture, changedTaskExternalIds: string[]): TaskMutationResponse {
   return { data: {
-    project: { ...fixture.project }, tasks: fixture.tasks.map((entry) => ({ ...entry })), links: [], warnings: [],
+    project: { ...fixture.project }, tasks: fixture.tasks.map((entry) => ({ ...entry })), links: fixture.links.map((entry) => ({ ...entry })), warnings: [],
     operation: { kind: "taskCreate", changedTaskExternalIds, deletedTaskExternalIds: [], deletedLinkIds: [] },
   } };
 }
@@ -77,7 +78,7 @@ export async function installStatefulProjectFixture(page: Page): Promise<Statefu
   };
   const fixture: StatefulProjectFixture = {
     initialRevision: project.revision, posts: [], patchRequests: [], createdTaskIds: [],
-    project, tasks: initialTasks(), sessionEditable: true, nextPost: { kind: "success" },
+    project, tasks: initialTasks(), links: [], sessionEditable: true, nextPost: { kind: "success" },
   };
   await page.route("**/api/projects/**", async (route: Route) => {
     const request = route.request();

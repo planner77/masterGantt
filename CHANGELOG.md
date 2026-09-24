@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.32.0] - 2026-09-24
+
+### Added
+
+- Issue #140: Grid 작업명 셀의 한 번 클릭 인라인 편집을 추가한다. Summary·Task·Milestone의 이름을 기존 권한·revision 계약으로 저장하고 Enter·blur 저장, Escape 취소 및 입력 오류 복구를 지원한다.
+
 ## [0.31.0] - 2026-09-24
 
 ### Added
