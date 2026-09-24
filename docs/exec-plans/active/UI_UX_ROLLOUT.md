@@ -15,7 +15,7 @@
 
 | 단계 | 목표 | 현재 상태 |
 | --- | --- | --- |
-| #115 | 캘린더 draft와 미리보기 대응, 실패·revision 변경 처리 | PR #137 원격 E2E locator 회귀 REWORK |
+| #115 | 캘린더 draft와 미리보기 대응, 실패·revision 변경 처리 | 구현·문서·PR #137·main CI·임시 GHCR 검증 완료; 정식 release 및 종료 정리 단계 |
 | #116 | 작은 화면·높이의 계층 메뉴 경계 및 키보드 보존 | 대기 |
 | #117 | 리소스 조회 실패 시 이전 결과·부분 실패·재시도 구분 | 대기 |
 | #118 | 모바일/태블릿 도구 모음 밀도와 정보 버튼 개선 | 대기 |
@@ -87,7 +87,11 @@ ui_ux 읽기 전용 검토를 바탕으로 결과가 사라지는 이유와 다�
 - 원격 trace의 `call@2491`에서 milestone Add 클릭 직전 Playwright `scrolling into view if needed`가 실행됐고, action/after snapshot에 처음 document scroll top 1이 기록됐다. frontend와 Manager가 독립 확인했다. 알림 동작 전에 발생하는 클릭 준비 스크롤이 baseline에 섞인 것이므로 해당 대상에 명시적 scroll 준비를 마친 뒤 baseline을 잡는 최소 테스트 수정을 승인했다. 제품 CSS/코드를 바꾸거나 geometry 허용 오차를 추가하지 않고 실제 클릭과 이후 모든 strict geometry/인스턴스 검증을 유지한다.
 - 해당 원격 trace를 qa_docs도 독립 확인했다. `project-notifications.spec.ts`에서 버튼 scroll 준비 → chart 내부 scroll 설정 → baseline → 실제 클릭 순서로 정리한 뒤, 대상 Chromium 테스트를 3회 반복해 3/3 PASS(14.5초)했다. 해당 spec ESLint와 diff 검사 PASS이며 제품/UX 계약 문서 수정은 N/A다. 후속 head의 required 원격 gate는 모두 새로 판정한다.
 - 로컬 Docker는 `0.27.1`로 교체했고 기존 volume·8299 포트를 보존했다. SQLite integrity `ok`, 외래키 오류 0, 프로젝트 1개/작업 24개, migration 1~7을 확인했다. Manager 브라우저 확인에서도 읽기 전용 Gantt/24개 작업/문서 가로 overflow 없음/readiness 정상이다. 이미지 source tree `7ed0f9f22336f6b39121dbca22136fef367887c4`와 게시 tree는 문서 변경만 차이가 나며 runtime/package는 동일하다. 원격 E2E locator 수정은 runtime 변경이 아니다.
-- main 병합·임시 GHCR은 아직 NOT TESTED다. Git HTTPS 쓰기 인증이 없어 공통 SHA 검증 branch cleanup은 BLOCKED이며 사용자 환경 설정 또는 직접 정리 경로를 확인 중이다.
+- 최종 PR head `5339d82ad569e36c42d0592df1d07fcaa21dd873`의 PR CI `35952444601`은 quality 615건/62파일, Chromium E2E 78/78, Docker HTTP·HTTPS/Compose/SQLite 영속성까지 PASS했다.
+- PR #137은 merge commit 방식으로 병합되었고 실제 main merge SHA는 `692ed6dc51674e00eabb096a9ae46696b6b82cfd`다.
+- main CI `35953411571`은 quality/e2e/docker/publish-commit-image 모두 PASS했으며 Chromium E2E 78/78을 재확인했다. 임시 GHCR `ci-692ed6dc51674e00eabb096a9ae46696b6b82cfd`의 exact digest `sha256:05989b6fa41d4c41d712c48b4f141dd2ac0c2c73067ae0f17151f47f467ef9ff`를 재다운로드하여 image policy/readiness/native SQLite/API 인증/restart persistence/HTTP·HTTPS smoke를 PASS했고 BuildKit SBOM/provenance 생성 및 임시 package version cleanup까지 확인했다.
+- `PROJECT_UX.md`, `TEST_PLAN.md`, CHANGELOG/package version 및 이 실행계획 문서가 구현 결과와 동기화되어 DOCUMENTATION_SYNC를 완료한다. API/DB/스케줄링 계약은 변경하지 않아 별도 계약 문서 변경은 N/A다.
+- 사용자 요청으로 Issue #115의 정식 GHCR 게시까지 승인되었으므로 `release_required=true`, `release_authorized=true`로 전환한다. 정식 SemVer tag/release image 검증과 안전한 branch cleanup, Issue 종료를 남은 단계로 수행한다.
 
 ### 선행 #120 및 로컬 데이터 보존 확인
 
