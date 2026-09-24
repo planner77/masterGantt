@@ -119,7 +119,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     const gridWidth = (await ganttRoot(page).locator(".wx-table-container").first().boundingBox())!.width;
     expect(gridWidth).toBeGreaterThan(gridWidthBefore + 20);
     await ganttRoot(page).getByRole("button", { name: "주", exact: true }).click();
-    const chart = ganttRoot(page).locator(".wx-chart").first();
+    const chart = ganttRoot(page).locator('.wx-chart[tabindex="-1"]');
     await chart.evaluate((element) => { element.scrollLeft = 120; });
     const chartScroll = await chart.evaluate((element) => element.scrollLeft);
     expect(chartScroll).toBeGreaterThan(0);
@@ -137,6 +137,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
       expect(row).not.toBeNull(); expect(bar).not.toBeNull();
       return row!.y + row!.height / 2 - (bar!.y + bar!.height / 2);
     };
+    await expect.poll(async () => Math.abs(await rowBarOffset())).toBeLessThan(2);
     const initialOffset = await rowBarOffset();
 
     await fullscreenButton(page).click();
@@ -147,6 +148,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     expect((await ganttRoot(page).locator(".wx-table-container").first().boundingBox())!.width).toBeCloseTo(gridWidth, 0);
     expect(await chart.evaluate((element) => element.scrollLeft)).toBeCloseTo(chartScroll, 0);
     expect(await vertical.evaluate((element) => element.scrollTop)).toBeCloseTo(verticalScroll, 0);
+    await expect.poll(async () => Math.abs(await rowBarOffset())).toBeLessThan(2);
     expect(Math.abs((await rowBarOffset()) - initialOffset)).toBeLessThan(2);
     await syncedRow.getByText("Scroll task 8", { exact: true }).click({ button: "right" });
     await expect(page.getByRole("menu", { name: "작업 메뉴" })).toBeVisible();
@@ -162,6 +164,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     expect((await ganttRoot(page).locator(".wx-table-container").first().boundingBox())!.width).toBeCloseTo(gridWidth, 0);
     expect(await chart.evaluate((element) => element.scrollLeft)).toBeCloseTo(chartScroll, 0);
     expect(await vertical.evaluate((element) => element.scrollTop)).toBeCloseTo(verticalScroll, 0);
+    await expect.poll(async () => Math.abs(await rowBarOffset())).toBeLessThan(2);
     expect(Math.abs((await rowBarOffset()) - initialOffset)).toBeLessThan(2);
     await vertical.evaluate((element) => { element.scrollTop = 0; });
     await expect(selectedRow).toHaveClass(/wx-selected/);

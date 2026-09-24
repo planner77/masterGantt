@@ -23,6 +23,7 @@ async function useSkipLink(page: import("@playwright/test").Page, width: number,
     await page.keyboard.press("Tab");
     expect(await main.evaluate((element) => element.contains(document.activeElement))).toBe(true);
   }
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
 }
 
@@ -57,7 +58,16 @@ for (const width of [390, 1440]) {
     await page.route(`**/api/projects/${errorId}`, (route) => route.fulfill({ status: 500, json: { error: { code: "TEST_ERROR" } } }));
     await page.goto(`/projects/${errorId}`);
     await expect(page.getByRole("heading", { name: "프로젝트를 불러올 수 없습니다." })).toBeVisible();
+    const errorSkipRequests: string[] = [];
+    const recordErrorSkip = (request: import("@playwright/test").Request) => {
+      const path = new URL(request.url()).pathname;
+      if (request.resourceType() === "document" || path === `/api/projects/${errorId}/edit-sessions/current`) errorSkipRequests.push(request.url());
+    };
+    page.on("request", recordErrorSkip);
     await useSkipLink(page, width);
+    await expect(page.getByRole("heading", { name: "프로젝트를 불러올 수 없습니다." })).toBeVisible();
+    expect(errorSkipRequests).toEqual([]);
+    page.off("request", recordErrorSkip);
 
     const loadingId = "00000000-0000-4000-8000-000000000122";
     let release!: () => void;
@@ -73,14 +83,37 @@ for (const width of [390, 1440]) {
     await expect(page.getByRole("heading", { name: "프로젝트를 찾을 수 없습니다." })).toBeVisible();
     await expect(page.getByRole("main")).toHaveAttribute("id", "main-content");
 
-    await installStatefulProjectFixture(page);
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.sessionEditable = false;
+    await page.goto(`/projects/${publicId}`);
+    await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+    const readonlyIdentity = await rememberGanttRoot(page);
+    const readonlySkipRequests: string[] = [];
+    const recordReadonlySkip = (request: import("@playwright/test").Request) => {
+      const path = new URL(request.url()).pathname;
+      if (request.resourceType() === "document" || path === `/api/projects/${publicId}/edit-sessions/current`) readonlySkipRequests.push(request.url());
+    };
+    page.on("request", recordReadonlySkip);
+    await useSkipLink(page, width);
+    await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+    await expectSameGanttRoot(page, readonlyIdentity);
+    expect(readonlySkipRequests).toEqual([]);
+    page.off("request", recordReadonlySkip);
+
+    fixture.sessionEditable = true;
     await page.goto(`/projects/${publicId}`);
     await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
     const identity = await rememberGanttRoot(page);
     const mutations: string[] = [];
-    page.on("request", (request) => { if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.url()); });
+    const editingSkipRequests: string[] = [];
+    page.on("request", (request) => {
+      if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.url());
+      const path = new URL(request.url()).pathname;
+      if (request.resourceType() === "document" || path === `/api/projects/${publicId}/edit-sessions/current`) editingSkipRequests.push(request.url());
+    });
     await useSkipLink(page, width);
     await expectSameGanttRoot(page, identity);
+    expect(editingSkipRequests).toEqual([]);
     expect(mutations).toEqual([]);
 
     const settings = page.getByRole("button", { name: "프로젝트 설정", exact: true });

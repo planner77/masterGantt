@@ -397,18 +397,20 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 ## Issue #116 작업 Context Menu 하위 메뉴 회귀
 
 - `tests/e2e/project-task-context-menu.spec.ts`에 390/768/1024/1440px의 네 viewport 모서리 메뉴 anchor를 추가한다. 각 경우 활성 `Add` 하위 메뉴 전체가 viewport gutter 안에 있는지, 오른쪽/왼쪽 flyout 또는 같은 폭 drilldown으로 배치되는지 검사한다.
-- 390px에서는 최초 root focus와 닫힌 child, focus만으로 열리지 않음, ArrowRight·click·Enter·Space 진입, ArrowLeft·Back 복귀, Escape 전체 닫힘과 원래 Task focus 복원을 검사한다. Convert to/Move/Paste의 좁은 drilldown과 명령 접근, 명령이 모두 비활성인 외동 Task의 Move 및 자식이 있는 Summary의 Convert to에서 Back focus fallback도 검사한다. 넓은 화면에서는 기존 hover/focus/#77 초기 상태와 세 하위 메뉴의 좌우 배치·활성 명령 접근, ArrowLeft 뒤 부모 focus·child hidden·`aria-expanded=false`를 검사한다.
+- 390px에서는 최초 root focus와 닫힌 child, focus만으로 열리지 않음, ArrowRight·click·Enter·Space 진입, ArrowLeft·Back 복귀, Escape 전체 닫힘과 원래 Task focus 복원을 검사한다. Convert to/Move/Paste의 좁은 drilldown과 명령 접근, 명령이 모두 비활성인 외동 Task의 Move 및 자식이 있는 Summary의 Convert to에서 Back focus fallback도 검사한다. 넓은 화면에서는 기존 hover/focus/#77 초기 상태와 세 하위 메뉴의 좌우 배치·활성 명령 접근, ArrowLeft 뒤 부모 focus·child hidden·`aria-expanded=false`를 검사한다. 또한 열린 Add child에서 일반 root 명령 `Edit`로 focus 또는 pointer가 이동하면 child가 닫히고 Add의 `aria-expanded=false`가 되는 회귀를 검사한다.
 - 390×160 짧은 화면에서는 실제 End/Home/ArrowDown 키보드 탐색으로 root 내부 스크롤·마지막/root 중간 명령 가시성·문서 scroll 불변을 검사한다. 하위 메뉴 마지막 명령 접근, sticky Back, 좁은 화면의 실제 명령과 Gantt instance 유지도 확인한다. 기존 #72 명령과 #104 endpoint Link 분리는 `project-task-context-menu.spec.ts`에 있으며 readonly 계약은 별도 `task-context-menu-hierarchy.spec.ts`가 검사한다.
 - 2026-09-24 현재 코드를 작성했으나 로컬 Playwright, unit, lint, typecheck, build는 **실행하지 않았다(NOT TESTED)**. 자동 테스트의 계획/작성은 PASS 증거가 아니다. 로컬 실행 시 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-task-context-menu.spec.ts`와 변경 파일 lint/typecheck를 먼저 수행하고, PR head의 quality/e2e/docker는 해당 run의 원격 증거로 별도 판정한다.
 
+
 ## Issue #117 리소스 공수 조회 상태 회귀
 
-- `tests/e2e/project-resource-workload-status.spec.ts`는 공수 첫 실패/메타데이터 성공, 공수만 재시도, 메타데이터 첫 실패/공수 성공, 메타데이터만 재시도를 각각 검사한다. 메타데이터 실패 중에도 workload의 기본 이름과 Resource 코드는 검색되고 Group 코드·설명 검색은 제한되며, 성공 후 복원되는지 확인한다.
-- HTTP 오류 외에 `route.abort` 네트워크 실패와 필수 필드가 빠진 HTTP 200 응답을 각각 주입해 첫 실패·stale 실패가 성공으로 잘못 표시되지 않는지, 다른 쪽 성공과 재시도 복구를 검사한다. Parser는 workload의 project/catalog revision과 Task 식별자·공수 설정 여부, assigned-targets의 project/catalog revision·assignment 식별/대상 등 DTO 필수 구조를 확인한다.
-- 기존 성공 뒤 한쪽 새로고침 실패에서는 마지막 성공 시각과 이전 결과를 표시하면서 다른 쪽 성공을 유지하는지 검사한다. retry와 loading 상태, M/D·M/M 선택, 검색·종류·활성·기간 필터, 열린 Resource details, tab 왕복 및 SVAR Gantt instance 보존을 확인한다.
-- 진행 중 전역 새로고침 비활성으로 중복 GET을 막고, 화면 이탈 후 늦은 이전 실패가 다시 연 화면의 성공 상태를 덮지 않는지 검사한다. 동일 component에서 publicId prop만 교체하는 진입은 현재 브라우저 시나리오에 없어 publicId ref·요청 번호·Abort guard를 코드에서 확인한다.
-- 390/768/1024/1440px에서 오류 재시도 버튼의 viewport 내 접근과 document 가로 overflow 부재를 검사한다. API/domain/revision 계약은 변경하지 않으므로 API·DB·Scheduling 문서 영향은 N/A다.
-- 코드는 작성했으나 로컬 Playwright, lint, typecheck, build를 **실행하지 않았다(NOT TESTED)**. 원격 PR CI는 실제 head SHA의 `quality/e2e/docker` run 결과로 별도 판정한다. 재개 시 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-resource-workload-status.spec.ts`와 변경 TS/CSS lint/typecheck를 우선 실행한다.
+- `tests/e2e/project-resource-workload-status.spec.ts`는 공수/assigned-targets의 첫 실패, 부분 실패, 개별 재시도, stale 결과, 네트워크 실패와 형식이 잘못된 HTTP 200 응답을 검사한다.
+- assigned-targets가 최신 이름/코드를 반환하고 workload가 stale이어도 Group·Resource 행 라벨이 최신 메타데이터를 우선 표시하는지 검증한다.
+- 개별 재시도 버튼은 요청 중에도 DOM에 유지되어 disabled/aria-busy가 되고 keyboard focus가 보존되는지, 재실패 후 같은 재시도 제어로 복귀하는지 검사한다.
+- M/D·M/M, 검색/종류/활성/기간 필터, 열린 details, tab 왕복, SVAR Gantt instance 및 좁은 viewport의 overflow 계약을 유지한다.
+- 진행 중 전역 새로고침 중복 요청 방지와 화면 이탈 뒤 늦은 응답 무시를 검사한다. API/domain/revision 계약 변경은 없으므로 API·DB·Scheduling 문서 영향은 N/A다.
+- 최종 판정은 최신 PR head의 원격 `quality/e2e/docker` 전체 결과를 사용하며 이전 head의 PASS는 재사용하지 않는다.
+
 
 ## Issue #118 Project Context와 일정 도구줄 회귀
 
@@ -416,6 +418,7 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - 일정 도구줄은 390/768px에서 검색·필터가 첫째 줄, 결과·조건부 초기화가 둘째 줄인지 확인한다. 검색 결과·초기화 후 검색 focus, 필터 버튼의 `aria-controls`/`aria-expanded`, panel Escape 후 닫힘과 필터 버튼 focus 복원을 검증한다.
 - readonly/editing 양쪽에서 검색·필터 전후 Gantt 상단 위치·높이와 document 가로 overflow, 일정↔리소스 tab 왕복 시 동일 Gantt DOM/API instance를 확인한다. 같은 spec에서 SVAR 내부 scale toolbar의 주 단위 선택과 차트 내부 가로 스크롤이 검색·초기화·tab 왕복 뒤 유지되는지도 확인한다. Scale 단위 전환 자체는 `tests/e2e/project-gantt-scale.spec.ts`, tab 왕복의 가로 스크롤은 `tests/e2e/project-workspace-ux.spec.ts`, tree 접힘·선택·column 표시/너비 상태의 기존 mutation 회귀는 `tests/e2e/project-gantt-stability.spec.ts`, column 메뉴와 긴 목록 스크롤은 `tests/e2e/project-workspace-layout.spec.ts`가 각각 검사한다. 새 #118 spec은 tree/column을 직접 변경하지 않으므로 이 계약의 이번 조합별 검증으로 과대 해석하지 않는다. SVAR 내부 scale toolbar CSS/구현은 수정 대상이 아니다.
 - 이 명세의 `search-idle`/`search-reset` PNG는 새 구현에서 검색 전과 초기화 후를 기록할 예정이며 구현 전후 증거가 아니다. 높이 개선의 전후 판정에는 동일 fixture·viewport·readonly/editing 상태에서 구현 전 baseline과 변경 후 Gantt 위치·높이를 별도 측정해야 한다. 기존 390×844/768×1024 자료는 새 768×844 fixture의 수치 기준으로 사용하지 않는다. 로컬 Playwright·lint·typecheck·build·브라우저 확인과 실제 전후 측정은 사용자 지시에 따라 **NOT TESTED**다. 원격 PR head의 `quality/e2e/docker` 결과로 회귀를 판정한다. API/DB/Scheduling 테스트 및 문서 변경은 계약 불변으로 N/A다.
+
 
 ## Issue #119 반복 입력과 오류 연결 회귀
 
@@ -429,7 +432,8 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - `tests/e2e/skip-link.spec.ts`는 390/1440px에서 첫 Tab이 header 앞의 `본문으로 바로가기`에 도착하고 링크가 viewport 안에서 보이는지, 그 focus 순간의 PNG, `href=#main-content`/main `id`/`tabIndex=-1`, Enter 뒤 main focus, 다음 Tab이 본문 control로 이어지는지 검사한다. 본문 control이 없는 조회 중 상태는 main focus까지만 검사한다.
 - 빈 Project 목록·리소스 관리·생성 화면·Project 조회 중·조회 오류·정상 Gantt 화면에서 같은 landmark를 확인한다. 프로젝트 목록→리소스 관리 Next client navigation에서는 동일 main DOM을 확인하고, reload 뒤 첫 Tab도 검사한다. 테스트용으로 main 높이를 늘려 아래로 스크롤한 뒤 skip을 실행해 scroll 위치가 main 쪽으로 되돌아오는지 확인한다.
 - Modal dialog가 열리면 기존 focus trap 안에 Tab focus가 남고 skip link가 선점하지 않으며 Escape 뒤 설정 trigger focus를 복원하는지 확인한다. Skip 동작 중 API mutation 0회, 동일 Gantt DOM/API instance, document 가로 overflow 부재를 확인한다.
-- Native fragment focus/scroll가 브라우저별로 충분한지 실제 Chromium E2E에서 판정한다. 현재 캡처·SPA·scroll·modal 경로는 작성된 명세이며 실제 브라우저 증거가 아니다. 로컬 Playwright·lint·typecheck·build·browser는 사용자 지시에 따라 **NOT TESTED**이며 PR head의 quality/e2e/docker 결과도 실행 전까지 NOT TESTED다. API/DB/Scheduling 계약은 변경하지 않으므로 관련 문서·테스트 영향은 N/A다.
+- 오류·읽기 전용·편집 중 Project에서 skip link Enter 후 main focus와 다음 Tab의 본문 control 이동, 화면 상태 안정성, edit-session/current GET 및 document navigation 0회를 확인한다. 같은 문서의 해시만 바뀐 popstate는 재확인 대상이 아니며, 실제 history 복귀의 재확인과 실패 시 읽기 전용 재시작은 `project-edit-permission-recheck.spec.ts`가 계속 검증한다. BFCache `pageshow.persisted` 분기는 코드에서 유지 여부를 확인하고 환경별 실제 BFCache 재현은 별도 증거로 판정한다.
+- Native fragment focus/scroll가 브라우저별로 충분한지 실제 Chromium E2E에서 판정한다. API/DB/Scheduling 계약은 변경하지 않으므로 관련 문서·테스트 영향은 N/A다.
 
 ## Issue #130 Phase 1 Project List 시각·동작 회귀
 

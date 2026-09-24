@@ -15,10 +15,11 @@ type QueryState<T> = Readonly<{
   value: T | null;
   phase: "loading" | "ready" | "error";
   lastSuccessAt: string | null;
+  retrying: boolean;
 }>;
 
 function initialQueryState<T>(publicId: string): QueryState<T> {
-  return { publicId, value: null, phase: "loading", lastSuccessAt: null };
+  return { publicId, value: null, phase: "loading", lastSuccessAt: null, retrying: false };
 }
 
 function record(value: unknown): value is Record<string, unknown> {
@@ -115,16 +116,16 @@ export function ProjectResourceWorkload({ publicId }: Props) {
 
   useLayoutEffect(() => { currentPublicId.current = publicId; }, [publicId]);
 
-  const loadSource = useCallback(async (source: Source) => {
+  const loadSource = useCallback(async (source: Source, retrying = false) => {
     const id = ++requestId.current[source];
     requestControllers.current[source]?.abort();
     const controller = new AbortController();
     requestControllers.current[source] = controller;
     if (source === "workload") setWorkloadQuery((previous) => ({
-      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading",
+      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading", retrying,
     }));
     else setTargetsQuery((previous) => ({
-      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading",
+      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading", retrying,
     }));
     try {
       const endpoint = source === "workload" ? "resource-workload" : "assigned-targets";
@@ -137,15 +138,15 @@ export function ProjectResourceWorkload({ publicId }: Props) {
       if (!fresh) throw new Error("invalid response");
       if (controller.signal.aborted || id !== requestId.current[source] || currentPublicId.current !== publicId) return;
       const lastSuccessAt = new Date().toISOString();
-      if (source === "workload") setWorkloadQuery({ publicId, value: fresh as ResourceWorkloadResponse["data"], phase: "ready", lastSuccessAt });
-      else setTargetsQuery({ publicId, value: fresh as AssignmentTargetDto[], phase: "ready", lastSuccessAt });
+      if (source === "workload") setWorkloadQuery({ publicId, value: fresh as ResourceWorkloadResponse["data"], phase: "ready", lastSuccessAt, retrying: false });
+      else setTargetsQuery({ publicId, value: fresh as AssignmentTargetDto[], phase: "ready", lastSuccessAt, retrying: false });
     } catch {
       if (controller.signal.aborted || id !== requestId.current[source] || currentPublicId.current !== publicId) return;
       if (source === "workload") setWorkloadQuery((previous) => ({
-        ...(previous.publicId === publicId ? previous : initialQueryState<ResourceWorkloadResponse["data"]>(publicId)), phase: "error",
+        ...(previous.publicId === publicId ? previous : initialQueryState<ResourceWorkloadResponse["data"]>(publicId)), phase: "error", retrying: false,
       }));
       else setTargetsQuery((previous) => ({
-        ...(previous.publicId === publicId ? previous : initialQueryState<AssignmentTargetDto[]>(publicId)), phase: "error",
+        ...(previous.publicId === publicId ? previous : initialQueryState<AssignmentTargetDto[]>(publicId)), phase: "error", retrying: false,
       }));
     } finally {
       if (requestControllers.current[source] === controller) requestControllers.current[source] = null;
@@ -280,7 +281,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
                 ? data ? `공수 정보 새로고침에 실패했습니다. 마지막 성공 ${confirmedAt(currentWorkload.lastSuccessAt)} 결과를 표시합니다.` : "리소스 공수 정보를 불러오지 못했습니다."
                 : `공수 정보 확인 완료 · ${confirmedAt(currentWorkload.lastSuccessAt)}`}
           </p>
-          {currentWorkload.phase === "error" ? <button className="secondary-button" type="button" onClick={() => void loadSource("workload")}>공수 다시 시도</button> : null}
+          {currentWorkload.phase === "error" || currentWorkload.retrying ? <button className="secondary-button" type="button" aria-disabled={currentWorkload.retrying || undefined} aria-busy={currentWorkload.retrying || undefined} onClick={() => { if (!currentWorkload.retrying) void loadSource("workload", true); }}>{currentWorkload.retrying ? "공수 재시도 중…" : "공수 다시 시도"}</button> : null}
         </div>
         <div className={`resource-workload-status${currentTargets.phase === "error" ? " resource-workload-status-error" : ""}`} data-source="targets" data-state={currentTargets.phase}>
           <p role={currentTargets.phase === "error" ? "alert" : "status"}>
@@ -290,7 +291,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
                 ? currentTargets.value ? `이름·코드·설명 정보 새로고침에 실패했습니다. 마지막 성공 ${confirmedAt(currentTargets.lastSuccessAt)} 정보를 표시합니다.` : "리소스 이름·코드·설명 정보를 불러오지 못했습니다. Group·Resource 기본 이름과 Resource 코드는 유지되며 Group 코드와 설명 검색은 사용할 수 없습니다."
                 : `이름·코드 정보 확인 완료 · ${confirmedAt(currentTargets.lastSuccessAt)}`}
           </p>
-          {currentTargets.phase === "error" ? <button className="secondary-button" type="button" onClick={() => void loadSource("targets")}>이름·코드 다시 시도</button> : null}
+          {currentTargets.phase === "error" || currentTargets.retrying ? <button className="secondary-button" type="button" aria-disabled={currentTargets.retrying || undefined} aria-busy={currentTargets.retrying || undefined} onClick={() => { if (!currentTargets.retrying) void loadSource("targets", true); }}>{currentTargets.retrying ? "이름·코드 재시도 중…" : "이름·코드 다시 시도"}</button> : null}
         </div>
       </div>
 
@@ -326,7 +327,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
             ) : filteredGroups.map((group) => (
               <details className="resource-workload-group" key={group.id ?? "ungrouped"} open>
                 <summary>
-                  <span className="resource-workload-name">{group.name}</span>
+                  <span className="resource-workload-name">{group.id ? targetByKey.get(`group:${group.id}`)?.name ?? group.name : group.name}</span>
                   <span>{group.start ?? "—"} ~ {group.end ?? "—"}</span>
                   <span>{effort(group.effortMd, group.effortMm, unit)}</span>
                   {group.unsetCount ? <span className="status-badge warning">미설정 {group.unsetCount}</span> : null}
@@ -335,7 +336,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
                   {group.resources.map((resource) => (
                     <details className="resource-workload-resource" key={`${group.id ?? "ungrouped"}:${resource.id}`}>
                       <summary>
-                        <span className="resource-workload-name">{resource.name}{resource.code ? ` (${resource.code})` : ""}</span>
+                        <span className="resource-workload-name">{targetByKey.get(`resource:${resource.id}`)?.name ?? resource.name}{(targetByKey.get(`resource:${resource.id}`)?.code ?? resource.code) ? ` (${targetByKey.get(`resource:${resource.id}`)?.code ?? resource.code})` : ""}</span>
                         <span>{resource.start ?? "—"} ~ {resource.end ?? "—"}</span>
                         <span>{effort(resource.effortMd, resource.effortMm, unit)}</span>
                         {!resource.active ? <span className="status-badge">비활성</span> : null}
