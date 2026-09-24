@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 
 const [baseURL, label, outputArg] = process.argv.slice(2);
 if (!baseURL || !label || !outputArg) {
-  console.error("Usage: node scripts/measure-issue-118-layout.mjs <baseURL> <label> <outputDir>");
+  console.error("사용법: node scripts/measure-issue-118-layout.mjs <baseURL> <label> <outputDir>");
   process.exit(2);
 }
 
@@ -15,12 +15,7 @@ const publicId = "a3405d3d-8cb4-4da4-9b0f-43a5de330003";
 const projectPath = `/api/projects/${publicId}`;
 const longTitle = "아주 긴 프로젝트 이름 ".repeat(18);
 const longDescription = "긴 설명 ".repeat(300);
-const viewports = [
-  { width: 390, height: 844 },
-  { width: 768, height: 1024 },
-  { width: 1024, height: 768 },
-  { width: 1440, height: 1000 },
-];
+const viewports = [390, 768, 1024, 1440].map((width) => ({ width, height: 844 }));
 
 function makeTasks() {
   return [
@@ -187,7 +182,7 @@ try {
         gantt.boundingBox(),
         info.boundingBox(),
       ]);
-      if (!ganttRect) throw new Error(`Missing Gantt bounds for ${viewport.width}px ${expectedState}`);
+      if (!ganttRect) throw new Error(`Gantt 영역을 찾을 수 없습니다: ${viewport.width}px ${expectedState}`);
 
       const ganttVisibleHeight = Math.max(
         0,
