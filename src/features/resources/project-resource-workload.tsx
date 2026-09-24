@@ -119,10 +119,10 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     const controller = new AbortController();
     requestControllers.current[source] = controller;
     if (source === "workload") setWorkloadQuery((previous) => ({
-      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading", retrying, retrying,
+      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading", retrying,
     }));
     else setTargetsQuery((previous) => ({
-      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading",
+      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading", retrying,
     }));
     try {
       const endpoint = source === "workload" ? "resource-workload" : "assigned-targets";
