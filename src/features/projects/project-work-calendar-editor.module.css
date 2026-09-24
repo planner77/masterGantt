@@ -1,0 +1,19 @@
+.itemFieldset {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.itemFieldset legend { padding: 0 0.25rem; font-weight: 650; }
+.field { display: grid; gap: 0.3rem; min-width: 0; }
+.field input, .field select { min-width: 0; width: 100%; }
+.dateFields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0.5rem; }
+.fieldError { color: var(--status-error); font-size: 0.82rem; }
+.validationSummary { padding: 0.75rem; border-radius: var(--radius); background: var(--status-error-surface); color: var(--status-error); }
+.validationSummary ul { margin: 0.35rem 0 0; padding-left: 1.2rem; }
+.validationSummary button { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; text-decoration: underline; cursor: pointer; }
+.validationSummary:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+@media (max-width: 48rem) { .dateFields { grid-template-columns: minmax(0,1fr); } }
