@@ -87,6 +87,30 @@ button:focus-visible {
   min-height: 100vh;
 }
 
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link:focus {
+  z-index: 1000;
+  top: 0.5rem;
+  left: 0.75rem;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  padding: 0.6rem 0.8rem;
+  border: 2px solid var(--action-selected);
+  border-radius: var(--radius);
+  background: var(--surface-panel);
+  color: var(--text-default);
+  font-weight: 650;
+}
+
 .site-header {
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--card) 94%, transparent);
