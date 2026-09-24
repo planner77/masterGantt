@@ -1020,7 +1020,7 @@ export function ProjectGantt({
           <button aria-label="Delete" className="project-task-context-menu-danger" disabled={!canDelete} onClick={requestTaskDeleteFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">×</span><span>Delete</span><kbd>Ctrl+D / Backspace</kbd>
           </button>
-          {taskSubmenu && taskSubmenu.placement !== "drilldown" ? <div
+          {taskSubmenu ? <div
             aria-label={taskSubmenu.name}
             className="project-task-context-submenu project-task-context-submenu-flyout"
             data-placement={taskSubmenu.placement}
