@@ -189,6 +189,9 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
         await edit.focus();
         await expect(childMenu).toBeHidden();
         await expect(add).toHaveAttribute("aria-expanded", "false");
+        // Focus movement does not move the physical pointer. Move it away so the next
+        // Add hover represents a fresh pointer-enter intent instead of reusing its old position.
+        await page.mouse.move(0, 0);
         await add.hover();
         await expect(childMenu).toBeVisible();
         await edit.hover();
