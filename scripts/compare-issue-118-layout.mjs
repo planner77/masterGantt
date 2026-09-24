@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 const [beforePath, afterPath, outputArg] = process.argv.slice(2);
 if (!beforePath || !afterPath || !outputArg) {
-  console.error("Usage: node scripts/compare-issue-118-layout.mjs <beforeMetrics> <afterMetrics> <outputDir>");
+  console.error("사용법: node scripts/compare-issue-118-layout.mjs <beforeMetrics> <afterMetrics> <outputDir>");
   process.exit(2);
 }
 
@@ -20,7 +20,7 @@ const comparison = [];
 for (const current of after) {
   const baseline = beforeMap.get(key(current));
   if (!baseline) {
-    failures.push(`Missing baseline for ${key(current)}`);
+    failures.push(`기준 측정값이 없습니다: ${key(current)}`);
     continue;
   }
 
@@ -42,13 +42,13 @@ for (const current of after) {
   comparison.push(item);
 
   if ([390, 768].includes(current.viewport.width) && delta <= 0) {
-    failures.push(`${item.case}: expected Gantt visible height improvement, delta=${delta}px`);
+    failures.push(`${item.case}: Gantt 가시 높이가 개선되어야 합니다. delta=${delta}px`);
   }
   if (current.documentOverflowX) {
-    failures.push(`${item.case}: after state has document horizontal overflow`);
+    failures.push(`${item.case}: 변경 후 문서에 가로 overflow가 있습니다`);
   }
   if (current.infoLineCount !== 1) {
-    failures.push(`${item.case}: info control wraps to ${current.infoLineCount} lines`);
+    failures.push(`${item.case}: 정보 컨트롤이 여러 줄로 줄바꿈됩니다: ${current.infoLineCount}줄`);
   }
 
   rows.push(
@@ -57,20 +57,20 @@ for (const current of after) {
 }
 
 const markdown = [
-  "# Issue #118 before/after layout evidence",
+  "# Issue #118 구현 전/후 레이아웃 증거",
   "",
-  "Baseline: `703a6f08595dea06a918366192df464d7215108e`",
+  "기준(Before): `703a6f08595dea06a918366192df464d7215108e`",
   "",
-  "After: `6386db860af69635cfb0fe626fd1a937905b9a56` (#118 merge SHA)",
+  "변경 후(After): `6386db860af69635cfb0fe626fd1a937905b9a56` (#118 기능 병합 SHA)",
   "",
-  "| Viewport | State | Before visible Gantt px | After visible Gantt px | Delta px |",
+  "| Viewport | 상태 | Before Gantt 가시 높이(px) | After Gantt 가시 높이(px) | 개선(px) |",
   "|---|---|---:|---:|---:|",
   ...rows,
   "",
-  "The workflow uses the same measurement harness, mocked project/task data, viewport, and edit state for both revisions.",
-  "Screenshots and raw metrics are uploaded in the workflow artifact.",
+  "두 revision에 동일 측정 harness, 동일 Project/Task mock 데이터, 동일 viewport, 동일 편집 상태를 적용합니다.",
+  "구현 전/후 screenshot과 원시 측정값은 Workflow artifact에 저장합니다.",
   "",
-  failures.length ? "## Gate: FAIL" : "## Gate: PASS",
+  failures.length ? "## 판정: FAIL" : "## 판정: PASS",
   ...(failures.length ? ["", ...failures.map((failure) => `- ${failure}`)] : []),
   "",
 ].join("\n");
