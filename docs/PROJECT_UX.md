@@ -169,3 +169,11 @@ Resource tab은 공수 계산 결과와 assigned-targets 이름·코드·설명 
 성공한 조회를 새로고침하다 실패하면 마지막 성공 결과를 계속 보여 주되, 실패 상태와 마지막 성공 확인 시각을 함께 표시한다. 재시도 중에도 이 결과는 유지한다. 늦은 이전 요청의 성공·오류는 최신 요청을 덮지 않으며 프로젝트 publicId가 바뀌거나 화면이 해제된 뒤의 응답을 현재 프로젝트에 적용하지 않는다. 공수·메타데이터 상태 안내는 각각 `status` 또는 `alert`로 읽을 수 있다.
 
 재조회·부분 실패는 검색/종류/상태/기간 필터, M/D·M/M 선택, 열어 둔 Group·Resource details, 일정·리소스 tab 상태와 SVAR Gantt instance를 초기화하지 않는다. 좁은 화면에서는 상태 카드가 한 열로 쌓이고 긴 안내는 줄바꿈되며 오류 재시도 버튼은 화면 안에서 조작할 수 있어야 한다. Resource API·domain·권한 계약은 변경하지 않는다. API/DB/스케줄링 문서 영향은 N/A다. 코드와 E2E 명세는 작성했으나 로컬 브라우저·테스트·빌드는 **NOT TESTED**다. 이 변경의 원격 CI는 해당 PR의 head SHA와 run으로 별도 판정한다.
+
+## Issue #118 Project Context와 일정 도구줄
+
+긴 Project 이름은 제목 영역에서만 한 줄 말줄임으로 표시하고 전체 이름은 제목의 tooltip에서 확인한다. 읽기 전용/편집 중 badge, 정보 버튼, 공유·내보내기·설정 등 action의 문구는 글자 단위로 줄바꿈되지 않고 읽을 수 있는 크기와 위치를 유지한다. 정보 panel은 viewport 폭 안에 두고 긴 설명은 panel 내부에서 스크롤한다.
+
+390/768px 일정 도구줄은 첫째 줄에 검색과 필터 버튼, 둘째 줄에 일치 결과와 조건이 있을 때만 표시하는 초기화 버튼을 둔다. 필터 버튼의 `aria-expanded`와 `aria-controls`는 고급 필터 panel의 열린 상태와 연결된다. 열린 panel에서 Escape를 누르면 닫고 필터 버튼으로 focus를 돌린다. 초기화 후에는 검색 입력으로 focus를 돌린다. 1024/1440px는 기존 넓은 도구줄 구성을 유지한다. 도구줄 조정은 Project Workspace에만 적용하며 SVAR Gantt 내부 scale toolbar는 변경하지 않는다.
+
+검색·필터·정보 panel 조작과 일정↔리소스 tab 이동은 canonical Gantt instance를 재생성하지 않는다. Gantt 내부 표시 단위 선택과 차트 가로 스크롤도 유지한다. 390/768/1024/1440px의 readonly/editing 각 상태에서 Gantt의 상단 위치·높이, 문서 가로 overflow와 버튼 접근성을 E2E로 확인할 명세를 작성했다. 명세의 `search-idle`/`search-reset` 캡처는 새 구현 안의 두 조작 상태이며 구현 전후 비교 자료가 아니다. Gantt 높이 개선을 판단하려면 동일 fixture·viewport·상태의 구현 전 baseline과 변경 후 측정이 별도로 필요하다. 기존 다른 높이·fixture의 수치를 합격 기준으로 대체하지 않는다. 코드·명세는 작성했으나 로컬 브라우저·테스트·빌드 및 실제 전후 수치는 **NOT TESTED**이며 원격 PR CI는 해당 head/run으로 별도 판정한다. Project API·DB·Scheduling 계약 변경은 N/A다.
