@@ -127,12 +127,17 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   const relationSnapshotMatches = revision === base.revision && latestTask?.externalId === base.task.externalId;
   const relations = relationSnapshotMatches ? buildTaskRelations(base.task, tasks, links) : null;
   const relationCount = relations ? relations.predecessors.length + relations.successors.length : 0;
+  const taskTypeLabel = base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "마일스톤" : "일반 작업";
 
   return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onCancel={(event) => { event.preventDefault(); close(); }}>
     <header className={styles.header}>
       <div className={styles.headerText}>
         <h2 id="task-editor-title">작업 정보</h2>
-        <p className={styles.headerMeta} id="task-editor-description">{base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "마일스톤" : "일반 작업"} · {base.task.externalId} · Revision {base.revision}</p>
+        <p className={styles.headerMeta} id="task-editor-description">
+          <span className={styles.typeBadge}>{taskTypeLabel}</span>
+          <span>External ID <code>{base.task.externalId}</code></span>
+          <span>Revision {base.revision}</span>
+        </p>
       </div>
       <button className="secondary-button" type="button" disabled={locked} onClick={close} aria-label="작업 편집기 닫기">닫기</button>
     </header>

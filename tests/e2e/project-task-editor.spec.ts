@@ -550,4 +550,91 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     }
   });
 
+  test("Issue #130 Phase 3 편집기 헤더·탭·본문 스크롤·푸터는 다섯 폭에서 유지된다", async ({ page }, testInfo) => {
+    const fixture = await setup(page, { assignmentTargets: true });
+    const ganttInstance = await frame(page).getAttribute("data-project-gantt-api-instance");
+    for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 900 }, { width: 1024, height: 900 }, { width: 1440, height: 900 }, { width: 1600, height: 900 }]) {
+      await page.setViewportSize(viewport);
+      await openRow(page);
+      const dialog = editor(page);
+      const header = dialog.locator("header").first();
+      const tabs = dialog.getByRole("tablist", { name: "작업 편집 정보" });
+      const body = dialog.locator("form > div").first();
+      const footer = dialog.locator("form > footer");
+      await expect(dialog).toContainText("일반 작업");
+      await expect(dialog).toContainText("External ID");
+      await expect(dialog).toContainText("Revision 20");
+      const dialogBox = await dialog.boundingBox();
+      const headerBox = await header.boundingBox();
+      const tabsBox = await tabs.boundingBox();
+      const bodyBox = await body.boundingBox();
+      const footerBox = await footer.boundingBox();
+      expect(dialogBox).not.toBeNull();
+      expect(headerBox).not.toBeNull();
+      expect(tabsBox).not.toBeNull();
+      expect(bodyBox).not.toBeNull();
+      expect(footerBox).not.toBeNull();
+      expect(dialogBox!.x).toBeGreaterThanOrEqual(0);
+      expect(dialogBox!.x + dialogBox!.width).toBeLessThanOrEqual(viewport.width);
+      expect(dialogBox!.y + dialogBox!.height).toBeLessThanOrEqual(viewport.height);
+      expect(headerBox!.y + headerBox!.height).toBeLessThanOrEqual(tabsBox!.y);
+      expect(tabsBox!.y + tabsBox!.height).toBeLessThanOrEqual(bodyBox!.y);
+      expect(bodyBox!.y + bodyBox!.height).toBeLessThanOrEqual(footerBox!.y);
+      expect(await dialog.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+
+      const taskTab = tabs.getByRole("tab", { name: "작업 정보", exact: true });
+      const resourceTab = tabs.getByRole("tab", { name: /리소스/ });
+      const relationTab = tabs.getByRole("tab", { name: /관계/ });
+      await taskTab.focus();
+      await page.keyboard.press("End");
+      await expect(relationTab).toBeFocused();
+      await expect(dialog.getByRole("tabpanel", { name: /관계/ })).toBeVisible();
+      const predecessor = await dialog.getByRole("region", { name: "선행 작업" }).boundingBox();
+      const successor = await dialog.getByRole("region", { name: "후행 작업" }).boundingBox();
+      expect(predecessor).not.toBeNull();
+      expect(successor).not.toBeNull();
+      if (viewport.width >= 1024) expect(successor!.x).toBeGreaterThan(predecessor!.x);
+      else expect(successor!.y).toBeGreaterThan(predecessor!.y);
+      await page.keyboard.press("Home");
+      await expect(taskTab).toBeFocused();
+      const nameBox = await dialog.getByLabel("작업명", { exact: true }).boundingBox();
+      const progressBox = await dialog.getByLabel("진행률 (%)", { exact: true }).boundingBox();
+      const startBox = await dialog.getByLabel("시작일", { exact: true }).boundingBox();
+      const durationBox = await dialog.getByLabel("기간 (근무일)", { exact: true }).boundingBox();
+      expect(nameBox).not.toBeNull();
+      expect(progressBox).not.toBeNull();
+      expect(startBox).not.toBeNull();
+      expect(durationBox).not.toBeNull();
+      if (viewport.width >= 1024) {
+        expect(progressBox!.x).toBeGreaterThan(nameBox!.x);
+        expect(durationBox!.width).toBeLessThan(startBox!.width);
+      } else {
+        expect(progressBox!.y).toBeGreaterThan(nameBox!.y);
+      }
+      await resourceTab.click();
+      await expect(dialog.getByRole("tabpanel", { name: /리소스/ })).toBeVisible();
+      await taskTab.click();
+      await expect(dialog.getByRole("button", { name: "최신 정보 다시 불러오기" })).toBeVisible();
+      await expect(dialog.getByRole("button", { name: "취소", exact: true })).toBeVisible();
+      await expect(save(page)).toBeVisible();
+      await page.screenshot({ path: testInfo.outputPath(`issue-130-phase3-current-${viewport.width}.png`) });
+
+      if (viewport.width <= 768) {
+        const beforeHeader = await header.boundingBox();
+        const beforeFooter = await footer.boundingBox();
+        const bodyOverflow = await body.evaluate((element) => element.scrollHeight - element.clientHeight);
+        if (viewport.width === 390) expect(bodyOverflow).toBeGreaterThan(0);
+        const scrollTop = await body.evaluate((element) => { element.scrollTop = element.scrollHeight; return element.scrollTop; });
+        if (bodyOverflow > 0) expect(scrollTop).toBeGreaterThan(0);
+        expect(await header.boundingBox()).toEqual(beforeHeader);
+        expect(await footer.boundingBox()).toEqual(beforeFooter);
+      }
+      await cancel(page);
+      await expect(row(page, "Beta leaf")).toBeFocused();
+      await expect(frame(page)).toHaveAttribute("data-project-gantt-api-instance", ganttInstance!);
+    }
+    expect(fixture.patches).toHaveLength(0);
+  });
+
 });
