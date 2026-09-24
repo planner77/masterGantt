@@ -202,3 +202,11 @@ Project List는 기존 native table, Project 이름 Link, 행별 More 메뉴와 
 390px에서는 최소 62rem table을 목록 wrapper 안에서 가로 스크롤하며 문서 자체의 가로 스크롤을 만들지 않는다. More 메뉴는 기존 portal의 viewport 배치, Arrow/Home/End·Escape와 focus 복원을 유지한다. Copy/link/delete, 삭제 auth·If-Match·401/412 및 빈 목록과 검색 결과 0건의 서로 다른 상태는 기존 계약을 따른다.
 
 같은 긴 한국어·영어 Project 이름/설명과 소유자, 3개 이상 행 fixture를 390×844·768×900·1024×900·1440×900·1600×900, browser zoom 100%에서 구현 전후 각각 측정·촬영한다. wrapper/client/scroll 폭, 열 폭·행 높이, 문서 overflow, 메뉴 bounds와 keyboard focus를 비교한다. 현재 E2E는 새 구현 상태의 캡처와 동작 assertion을 준비했으며, 구현 전 baseline과 실제 브라우저 수치·이미지는 아직 확보하지 않았다(**NOT TESTED**). 따라서 새 캡처를 전후 개선 증거로 사용하지 않는다. API/DB/Scheduling 계약 문서 영향은 N/A다.
+
+## Issue #130 Phase 2 Project Workspace 시각 정합화
+
+Project Context는 긴 제목만 한 줄 말줄임으로 제한하고, 읽기 전용·편집 중 badge, 정보, 공유·내보내기·설정/잠금 해제와 더보기는 줄바꿈 없이 접근 가능하게 유지한다. 제목·action 사이의 간격과 일정/리소스 탭 높이를 compact하게 정렬하며 배경·테두리·상태·focus에 #120 의미 토큰을 사용한다. 정보와 더보기 disclosure에서 Escape를 누르면 닫고 해당 summary로 focus를 돌린다. 정보 panel은 긴 설명을 내부 스크롤하고 viewport 안에 둔다.
+
+일정/리소스 탭의 ArrowLeft/ArrowRight/Home/End, `aria-selected`·`aria-controls`·tabpanel 연결과 탭 왕복 시 같은 Gantt instance를 유지한다. 주 단위 선택·chart 가로 스크롤, tree·column·selection은 기존 Gantt 회귀 계약을 따른다. #118 일정 검색 도구줄, #121 skip link, #119 forms와 #117 Resource 조회 상태는 변경하지 않는다. API/session/revision/401/412/If-Match/canonical 경로도 그대로다.
+
+같은 긴 제목·설명 fixture의 읽기 전용/편집 중 상태를 390×844·768×900·1024×900·1440×900·1600×900에서 구현 전후 각각 촬영하고 Context·Gantt top/height, Info/More panel bounds, 문서 overflow를 비교한다. 현재 작성한 E2E의 PNG는 **변경 후 상태**만 기록하며 구현 전 같은 fixture의 baseline과 실제 수치는 아직 **NOT TESTED**다. 조회 중·조회 오류/재시도도 별도 E2E 명세로 기록한다. API/DB/Scheduling 계약 문서 변경은 N/A다.

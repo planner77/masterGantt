@@ -1,5 +1,5 @@
 import { expect, test, type Frame, type Request } from "@playwright/test";
-import { expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
+import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
 
 test.describe("Issue #76 Project Workspace UX", () => {
   test("compact context와 일정/리소스 peer view가 Gantt 상태를 보존한다", async ({ page }) => {
@@ -125,4 +125,117 @@ test.describe("Issue #76 Project Workspace UX", () => {
       expect(infoBox!.x + infoBox!.width).toBeLessThanOrEqual(width);
     });
   }
+});
+
+test("Issue #130 Phase 2 Project Context와 tab은 다섯 폭·권한 상태에서 작업공간을 유지한다", async ({ page }, testInfo) => {
+  const fixture = await installStatefulProjectFixture(page);
+  fixture.project.name = "긴 한국어 프로젝트 제목과 English delivery workspace ".repeat(8);
+  fixture.project.description = "상세 설명과 owner metadata ".repeat(80);
+
+  for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900], [1600, 900]] as const) {
+    await page.setViewportSize({ width, height });
+    for (const editing of [false, true]) {
+      fixture.sessionEditable = editing;
+      await page.goto(`/projects/${publicId}`);
+      const title = page.getByRole("heading", { level: 1, name: fixture.project.name });
+      const badge = page.locator(editing ? ".edit-badge" : ".readonly-badge");
+      const context = page.locator(".project-context-bar");
+      const info = page.locator('.project-info-popover > summary[aria-label="프로젝트 정보 보기"]');
+      const more = page.locator('.project-action-menu > summary[aria-label="프로젝트 작업 더보기"]');
+      await expect(badge).toBeVisible();
+      await expect(title).toHaveAttribute("title", fixture.project.name);
+      expect(await title.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+      for (const item of [badge, info, more, ...await context.locator(".project-context-actions > button").all()]) {
+        const box = await item.boundingBox();
+        expect(box).not.toBeNull();
+        expect(box!.x).toBeGreaterThanOrEqual(0);
+        expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+        expect(await item.evaluate((element) => getComputedStyle(element).whiteSpace)).toBe("nowrap");
+      }
+      const gantt = page.locator(".project-gantt-frame");
+      const ganttBox = await gantt.boundingBox();
+      const contextBox = await context.boundingBox();
+      expect(ganttBox).not.toBeNull();
+      expect(contextBox).not.toBeNull();
+      expect(ganttBox!.y).toBeGreaterThan(contextBox!.y + contextBox!.height);
+      expect(ganttBox!.height).toBeGreaterThan(0);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+      const identity = await rememberGanttRoot(page);
+      let chartScrollLeft: number | null = null;
+      if (width === 1440 && editing) {
+        await gantt.getByRole("group", { name: "Gantt 표시 단위" }).getByRole("button", { name: "주", exact: true }).click();
+        const chart = page.locator(".project-gantt-widget .wx-chart").first();
+        await chart.evaluate((element) => { element.scrollLeft = 160; });
+        chartScrollLeft = await chart.evaluate((element) => element.scrollLeft);
+        expect(chartScrollLeft).toBeGreaterThan(0);
+      }
+      await page.screenshot({ path: testInfo.outputPath(`issue-130-phase2-current-${width}-${editing ? "edit" : "readonly"}.png`) });
+
+      await info.click();
+      const infoPanel = page.locator(".project-info-panel");
+      await expect(infoPanel).toBeVisible();
+      const infoBox = await infoPanel.boundingBox();
+      expect(infoBox).not.toBeNull();
+      expect(infoBox!.x).toBeGreaterThanOrEqual(0);
+      expect(infoBox!.x + infoBox!.width).toBeLessThanOrEqual(width);
+      expect(infoBox!.y + infoBox!.height).toBeLessThanOrEqual(height);
+      await info.focus();
+      await page.keyboard.press("Escape");
+      await expect(infoPanel).toBeHidden();
+      await expect(info).toBeFocused();
+
+      await more.click();
+      const morePanel = page.locator(".project-action-menu-panel");
+      await expect(morePanel).toBeVisible();
+      const moreBox = await morePanel.boundingBox();
+      expect(moreBox).not.toBeNull();
+      expect(moreBox!.x).toBeGreaterThanOrEqual(0);
+      expect(moreBox!.x + moreBox!.width).toBeLessThanOrEqual(width);
+      expect(moreBox!.y + moreBox!.height).toBeLessThanOrEqual(height);
+      await morePanel.getByRole("button", { name: "프로젝트 복사" }).focus();
+      await page.keyboard.press("Escape");
+      await expect(morePanel).toBeHidden();
+      await expect(more).toBeFocused();
+
+      const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
+      const schedule = tabs.getByRole("tab", { name: "일정" });
+      const resources = tabs.getByRole("tab", { name: "리소스" });
+      await expect(schedule).toHaveAttribute("aria-controls", "project-panel-schedule");
+      await expect(resources).toHaveAttribute("aria-controls", "project-panel-resources");
+      await schedule.focus();
+      await page.keyboard.press("End");
+      await expect(resources).toBeFocused();
+      await expect(page.getByRole("tabpanel", { name: "리소스" })).toBeVisible();
+      await page.keyboard.press("Home");
+      await expect(schedule).toBeFocused();
+      await expect(page.getByRole("tabpanel", { name: "일정" })).toBeVisible();
+      await expectSameGanttRoot(page, identity);
+      if (chartScrollLeft !== null) {
+        await expect(gantt).toHaveAttribute("data-gantt-scale-mode", "week");
+        expect(await page.locator(".project-gantt-widget .wx-chart").first().evaluate((element) => element.scrollLeft)).toBe(chartScrollLeft);
+      }
+    }
+  }
+});
+
+test("Issue #130 Phase 2 조회 중·오류 상태의 본문과 재시도가 작업공간에 복귀한다", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await installStatefulProjectFixture(page);
+  const releaseLoad = deferred();
+  let fail = true;
+  await page.route(`**/api/projects/${publicId}`, async (route) => {
+    if (!fail) { await route.fallback(); return; }
+    await releaseLoad.promise;
+    await route.fulfill({ status: 503, json: { error: { code: "UNAVAILABLE" } } });
+  });
+  await page.goto(`/projects/${publicId}`);
+  await expect(page.getByText("프로젝트 정보를 불러오는 중입니다.")).toBeVisible();
+  await expect(page.getByRole("main")).toBeVisible();
+  releaseLoad.resolve();
+  await expect(page.getByRole("heading", { name: "프로젝트를 불러올 수 없습니다." })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+  fail = false;
+  await page.getByRole("button", { name: "다시 시도" }).click();
+  await expect(page.getByRole("tablist", { name: "프로젝트 작업공간" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Issue 3 stable Gantt fixture" })).toBeVisible();
 });
