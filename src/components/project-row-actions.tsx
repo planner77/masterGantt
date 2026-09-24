@@ -9,6 +9,7 @@ import type { ProjectListItemDto } from "@/contracts/projects";
 import styles from "./project-row-actions.module.css";
 
 type MenuPosition = { top: number; left: number };
+type TriggerRect = Pick<DOMRect, "top" | "right" | "bottom" | "left">;
 
 function projectPath(publicId: string): string {
   return `/projects/${encodeURIComponent(publicId)}`;
@@ -21,6 +22,7 @@ export function ProjectRowActions({ project, projectUrl, disabled, onDelete }: R
   onDelete: (project: ProjectListItemDto, restoreTarget: HTMLElement) => void | Promise<void>;
 }>) {
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const triggerRectAtOpenRef = useRef<TriggerRect | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
   const [open, setOpen] = useState(false);
@@ -35,6 +37,9 @@ export function ProjectRowActions({ project, projectUrl, disabled, onDelete }: R
     const trigger = triggerRef.current;
     if (!trigger || disabled) return;
     const rect = trigger.getBoundingClientRect();
+    triggerRectAtOpenRef.current = {
+      top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left,
+    };
     const menuWidth = 208;
     const menuHeight = 154;
     const gutter = 8;
@@ -55,16 +60,29 @@ export function ProjectRowActions({ project, projectUrl, disabled, onDelete }: R
       if (menuRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
       setOpen(false);
     }
-    function onViewportChange() {
+    function onResize() {
       setOpen(false);
     }
+    function onScroll() {
+      const trigger = triggerRef.current;
+      const origin = triggerRectAtOpenRef.current;
+      if (!trigger?.isConnected || !origin) {
+        setOpen(false);
+        return;
+      }
+      const current = trigger.getBoundingClientRect();
+      if (Math.abs(current.top - origin.top) > 0.25
+        || Math.abs(current.right - origin.right) > 0.25
+        || Math.abs(current.bottom - origin.bottom) > 0.25
+        || Math.abs(current.left - origin.left) > 0.25) setOpen(false);
+    }
     document.addEventListener("pointerdown", onPointerDown, true);
-    window.addEventListener("resize", onViewportChange);
-    window.addEventListener("scroll", onViewportChange, true);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("scroll", onScroll, true);
     return () => {
       document.removeEventListener("pointerdown", onPointerDown, true);
-      window.removeEventListener("resize", onViewportChange);
-      window.removeEventListener("scroll", onViewportChange, true);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onScroll, true);
     };
   }, [open]);
 

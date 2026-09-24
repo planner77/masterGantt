@@ -31,6 +31,7 @@ export function ProjectPermissionRecheckBoundary({
 }: ProjectPermissionRecheckBoundaryProps) {
   const [rechecking, setRechecking] = useState(false);
   const requestGeneration = useRef(0);
+  const lastLocation = useRef<{ pathAndSearch: string; hash: string } | null>(null);
   const projectPath = `/projects/${encodeURIComponent(publicId)}`;
 
   const recheck = useCallback(async () => {
@@ -61,16 +62,28 @@ export function ProjectPermissionRecheckBoundary({
   }, [projectPath, publicId]);
 
   useEffect(() => {
+    const locationSnapshot = () => ({ pathAndSearch: window.location.pathname + window.location.search, hash: window.location.hash });
+    lastLocation.current = locationSnapshot();
     const handlePageShow = (event: PageTransitionEvent) => {
+      lastLocation.current = locationSnapshot();
       if (event.persisted) void recheck();
     };
-    const handlePopState = () => { void recheck(); };
+    const handlePopState = () => {
+      const previous = lastLocation.current;
+      const current = locationSnapshot();
+      lastLocation.current = current;
+      if (previous && previous.pathAndSearch === current.pathAndSearch && previous.hash !== current.hash) return;
+      void recheck();
+    };
+    const handleHashChange = () => { lastLocation.current = locationSnapshot(); };
     window.addEventListener("pageshow", handlePageShow);
     window.addEventListener("popstate", handlePopState);
+    window.addEventListener("hashchange", handleHashChange);
     return () => {
       requestGeneration.current += 1;
       window.removeEventListener("pageshow", handlePageShow);
       window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("hashchange", handleHashChange);
     };
   }, [recheck]);
 
