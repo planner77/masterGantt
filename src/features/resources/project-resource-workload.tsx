@@ -1,24 +1,93 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import type { AssignedTargetsResponse, AssignmentTargetDto, ResourceWorkloadResponse } from "@/contracts/resources";
+import type { AssignmentTargetDto, ResourceWorkloadResponse } from "@/contracts/resources";
 
 type Unit = "md" | "mm";
 type ActiveFilter = "all" | "active" | "inactive";
 type KindFilter = "all" | "resource" | "group";
 
 type Props = Readonly<{ publicId: string }>;
+type Source = "workload" | "targets";
+type QueryState<T> = Readonly<{
+  publicId: string;
+  value: T | null;
+  phase: "loading" | "ready" | "error";
+  lastSuccessAt: string | null;
+  retrying: boolean;
+}>;
+
+function initialQueryState<T>(publicId: string): QueryState<T> {
+  return { publicId, value: null, phase: "loading", lastSuccessAt: null, retrying: false };
+}
+
+function record(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function nullableString(value: unknown): boolean {
+  return value === null || typeof value === "string";
+}
+
+function nullableNumber(value: unknown): boolean {
+  return value === null || typeof value === "number";
+}
+
+function workloadFrom(body: unknown): ResourceWorkloadResponse["data"] | null {
+  if (!record(body)) return null;
+  const data = body.data;
+  if (!record(data) || typeof data.projectRevision !== "number" || typeof data.catalogRevision !== "number" ||
+    !record(data.range) || typeof data.range.from !== "string" || typeof data.range.to !== "string" ||
+    typeof data.grandTotalMd !== "number" || !nullableNumber(data.grandTotalMm) ||
+    !nullableNumber(data.mdPerMm) || typeof data.unsetCount !== "number" || !Array.isArray(data.groups)) return null;
+  if (!data.groups.every((group: unknown) => record(group) && nullableString(group.id) &&
+    typeof group.name === "string" && typeof group.active === "boolean" &&
+    nullableString(group.start) && nullableString(group.end) &&
+    typeof group.effortMd === "number" && nullableNumber(group.effortMm) &&
+    typeof group.unsetCount === "number" && Array.isArray(group.resources) &&
+    group.resources.every((resource: unknown) => record(resource) &&
+      typeof resource.id === "string" && typeof resource.name === "string" && nullableString(resource.code) &&
+      typeof resource.active === "boolean" && nullableString(resource.start) && nullableString(resource.end) &&
+      typeof resource.effortMd === "number" && nullableNumber(resource.effortMm) &&
+      typeof resource.unsetCount === "number" && typeof resource.overAllocated === "boolean" &&
+      Array.isArray(resource.tasks) && resource.tasks.every((task: unknown) => record(task) &&
+        typeof task.assignmentId === "string" && typeof task.taskId === "string" &&
+        typeof task.taskName === "string" && typeof task.effortConfigured === "boolean" &&
+        typeof task.start === "string" && typeof task.end === "string" &&
+        nullableNumber(task.allocationPercent) && nullableNumber(task.effortMd) && nullableNumber(task.effortMm))))) return null;
+  return data as ResourceWorkloadResponse["data"];
+}
+
+function targetsFrom(body: unknown): AssignmentTargetDto[] | null {
+  if (!record(body) || !record(body.data) ||
+    typeof body.data.projectRevision !== "number" || typeof body.data.catalogRevision !== "number" ||
+    !Array.isArray(body.data.assignments) || !Array.isArray(body.data.targets)) return null;
+  if (!body.data.assignments.every((assignment: unknown) => record(assignment) &&
+    typeof assignment.id === "string" && typeof assignment.taskId === "string" &&
+    record(assignment.target) && (assignment.target.kind === "resource" || assignment.target.kind === "group") &&
+    typeof assignment.target.id === "string")) return null;
+  if (!body.data.targets.every((target: unknown) => record(target) &&
+    (target.kind === "resource" || target.kind === "group") &&
+    typeof target.id === "string" && typeof target.name === "string" &&
+    nullableString(target.code) && typeof target.active === "boolean" &&
+    (target.description === undefined || typeof target.description === "string"))) return null;
+  return body.data.targets as AssignmentTargetDto[];
+}
+
+function confirmedAt(iso: string | null): string {
+  return iso ? new Date(iso).toLocaleString("ko-KR") : "";
+}
 
 function effort(md: number, mm: number | null, unit: Unit): string {
   if (unit === "mm") return mm === null ? "—" : `${mm.toFixed(2)} M/M`;
   return `${md.toFixed(2)} M/D`;
 }
 
-function includesText(target: AssignmentTargetDto | undefined, fallbackName: string, query: string): boolean {
+function includesText(target: AssignmentTargetDto | undefined, fallbackName: string, query: string, fallbackCode: string | null = null): boolean {
   if (!query) return true;
   const needle = query.trim().toLocaleLowerCase();
-  return [target?.name ?? fallbackName, target?.code ?? "", target?.description ?? ""]
+  return [target?.name ?? fallbackName, target?.code ?? fallbackCode ?? "", target?.description ?? ""]
     .some((value) => value.toLocaleLowerCase().includes(needle));
 }
 
@@ -30,10 +99,11 @@ function overlaps(start: string, end: string, from: string, to: string): boolean
 }
 
 export function ProjectResourceWorkload({ publicId }: Props) {
-  const [data, setData] = useState<ResourceWorkloadResponse["data"] | null>(null);
-  const [targets, setTargets] = useState<AssignmentTargetDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [workloadQuery, setWorkloadQuery] = useState<QueryState<ResourceWorkloadResponse["data"]>>(() => initialQueryState(publicId));
+  const [targetsQuery, setTargetsQuery] = useState<QueryState<AssignmentTargetDto[]>>(() => initialQueryState(publicId));
+  const currentPublicId = useRef(publicId);
+  const requestId = useRef<Record<Source, number>>({ workload: 0, targets: 0 });
+  const requestControllers = useRef<Record<Source, AbortController | null>>({ workload: null, targets: null });
   const [unit, setUnit] = useState<Unit>("md");
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>("all");
@@ -41,56 +111,66 @@ export function ProjectResourceWorkload({ publicId }: Props) {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  useLayoutEffect(() => { currentPublicId.current = publicId; }, [publicId]);
+
+  const loadSource = useCallback(async (source: Source, retrying = false) => {
+    const id = ++requestId.current[source];
+    requestControllers.current[source]?.abort();
+    const controller = new AbortController();
+    requestControllers.current[source] = controller;
+    if (source === "workload") setWorkloadQuery((previous) => ({
+      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading", retrying, retrying,
+    }));
+    else setTargetsQuery((previous) => ({
+      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading",
+    }));
     try {
-      const [workloadResponse, targetResponse] = await Promise.all([
-        fetch(`/api/projects/${encodeURIComponent(publicId)}/resource-workload`, { credentials: "same-origin", cache: "no-store" }),
-        fetch(`/api/projects/${encodeURIComponent(publicId)}/assigned-targets`, { credentials: "same-origin", cache: "no-store" }),
-      ]);
-      const workloadBody: unknown = await workloadResponse.json().catch(() => null);
-      const targetBody: unknown = await targetResponse.json().catch(() => null);
-      if (!workloadResponse.ok || !workloadBody || typeof workloadBody !== "object" || !("data" in workloadBody)) {
-        throw new Error("invalid workload response");
-      }
-      setData((workloadBody as ResourceWorkloadResponse).data);
-      if (targetResponse.ok && targetBody && typeof targetBody === "object" && "data" in targetBody) {
-        setTargets((targetBody as AssignedTargetsResponse).data.targets);
-      }
+      const endpoint = source === "workload" ? "resource-workload" : "assigned-targets";
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/${endpoint}`, {
+        credentials: "same-origin", cache: "no-store", signal: controller.signal,
+      });
+      const body: unknown = await response.json().catch(() => null);
+      if (!response.ok) throw new Error("request failed");
+      const fresh = source === "workload" ? workloadFrom(body) : targetsFrom(body);
+      if (!fresh) throw new Error("invalid response");
+      if (controller.signal.aborted || id !== requestId.current[source] || currentPublicId.current !== publicId) return;
+      const lastSuccessAt = new Date().toISOString();
+      if (source === "workload") setWorkloadQuery({ publicId, value: fresh as ResourceWorkloadResponse["data"], phase: "ready", lastSuccessAt, retrying: false });
+      else setTargetsQuery({ publicId, value: fresh as AssignmentTargetDto[], phase: "ready", lastSuccessAt, retrying: false });
     } catch {
-      setError("리소스 공수 정보를 불러오지 못했습니다.");
+      if (controller.signal.aborted || id !== requestId.current[source] || currentPublicId.current !== publicId) return;
+      if (source === "workload") setWorkloadQuery((previous) => ({
+        ...(previous.publicId === publicId ? previous : initialQueryState<ResourceWorkloadResponse["data"]>(publicId)), phase: "error", retrying: false,
+      }));
+      else setTargetsQuery((previous) => ({
+        ...(previous.publicId === publicId ? previous : initialQueryState<AssignmentTargetDto[]>(publicId)), phase: "error", retrying: false,
+      }));
     } finally {
-      setLoading(false);
+      if (requestControllers.current[source] === controller) requestControllers.current[source] = null;
     }
   }, [publicId]);
 
   useEffect(() => {
-    const controller = new AbortController();
-    void (async () => {
-      try {
-        const [workloadResponse, targetResponse] = await Promise.all([
-          fetch(`/api/projects/${encodeURIComponent(publicId)}/resource-workload`, { credentials: "same-origin", cache: "no-store", signal: controller.signal }),
-          fetch(`/api/projects/${encodeURIComponent(publicId)}/assigned-targets`, { credentials: "same-origin", cache: "no-store", signal: controller.signal }),
-        ]);
-        const workloadBody: unknown = await workloadResponse.json().catch(() => null);
-        const targetBody: unknown = await targetResponse.json().catch(() => null);
-        if (controller.signal.aborted) return;
-        if (!workloadResponse.ok || !workloadBody || typeof workloadBody !== "object" || !("data" in workloadBody)) {
-          throw new Error("invalid workload response");
-        }
-        setData((workloadBody as ResourceWorkloadResponse).data);
-        if (targetResponse.ok && targetBody && typeof targetBody === "object" && "data" in targetBody) {
-          setTargets((targetBody as AssignedTargetsResponse).data.targets);
-        }
-      } catch {
-        if (!controller.signal.aborted) setError("리소스 공수 정보를 불러오지 못했습니다.");
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
+    let active = true;
+    queueMicrotask(() => {
+      if (!active) return;
+      void loadSource("workload");
+      void loadSource("targets");
+    });
+    return () => {
+      active = false;
+      for (const source of ["workload", "targets"] as const) {
+        ++requestId.current[source];
+        requestControllers.current[source]?.abort();
+        requestControllers.current[source] = null;
       }
-    })();
-    return () => controller.abort();
-  }, [publicId]);
+    };
+  }, [loadSource]);
+
+  const currentWorkload = workloadQuery.publicId === publicId ? workloadQuery : initialQueryState<ResourceWorkloadResponse["data"]>(publicId);
+  const currentTargets = targetsQuery.publicId === publicId ? targetsQuery : initialQueryState<AssignmentTargetDto[]>(publicId);
+  const data = currentWorkload.value;
+  const targets = currentTargets.value ?? [];
 
   const targetByKey = useMemo(() => new Map(targets.map((target) => [`${target.kind}:${target.id}`, target])), [targets]);
 
@@ -102,7 +182,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
       const groupMatchesActive = activeFilter === "all" || (activeFilter === "active" ? group.active : !group.active);
       const resources = group.resources.flatMap((resource) => {
         const resourceTarget = targetByKey.get(`resource:${resource.id}`);
-        const textMatch = includesText(resourceTarget, resource.name, query);
+        const textMatch = includesText(resourceTarget, resource.name, query, resource.code);
         const activeMatch = activeFilter === "all" || (activeFilter === "active" ? resource.active : !resource.active);
         const tasks = resource.tasks.filter((task) => overlaps(task.start, task.end, dateFrom, dateTo));
         const dateMatch = !dateFrom || !dateTo || tasks.length > 0;
@@ -127,6 +207,12 @@ export function ProjectResourceWorkload({ publicId }: Props) {
         ),
       ).size
     : 0;
+  const workloadLoading = currentWorkload.phase === "loading";
+  const targetsLoading = currentTargets.phase === "loading";
+  const refreshAll = () => {
+    void loadSource("workload");
+    void loadSource("targets");
+  };
 
   return (
     <section aria-labelledby="resource-workload-heading" className="project-resource-workload">
@@ -148,8 +234,8 @@ export function ProjectResourceWorkload({ publicId }: Props) {
               M/M
             </button>
           </div>
-          <button className="secondary-button resource-refresh-button" type="button" onClick={() => void load()} disabled={loading}>
-            {loading ? "조회 중…" : "새로고침"}
+          <button className="secondary-button resource-refresh-button" type="button" onClick={refreshAll} disabled={workloadLoading || targetsLoading}>
+            {workloadLoading || targetsLoading ? "조회 중…" : "새로고침"}
           </button>
         </div>
       </div>
@@ -161,10 +247,33 @@ export function ProjectResourceWorkload({ publicId }: Props) {
         <label>Task 기간 From<input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label>
         <label>Task 기간 To<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
         <button className="secondary-button" type="button" disabled={!filterActive} onClick={() => { setQuery(""); setActiveFilter("all"); setKindFilter("all"); setDateFrom(""); setDateTo(""); }}>초기화</button>
-        <span className="project-filter-result" role="status">그룹 {visibleGroupCount} · 리소스 {visibleResourceCount}</span>
+        <span className="project-filter-result" role="status">{data
+          ? `그룹 ${visibleGroupCount} · 리소스 ${visibleResourceCount}`
+          : currentWorkload.phase === "error" ? "조회 결과 없음 · 공수 조회 실패" : "공수 조회 중…"}</span>
       </div>
 
-      {error ? <p className="resource-workload-error" role="alert">{error}</p> : null}
+      <div className="resource-workload-statuses" aria-label="리소스 조회 상태">
+        <div className={`resource-workload-status${currentWorkload.phase === "error" ? " resource-workload-status-error" : ""}`} data-source="workload" data-state={currentWorkload.phase}>
+          <p role={currentWorkload.phase === "error" ? "alert" : "status"}>
+            {workloadLoading
+              ? data ? `공수 정보를 새로고침하는 중입니다. 마지막 성공 ${confirmedAt(currentWorkload.lastSuccessAt)} 결과를 표시합니다.` : "리소스 공수 정보를 불러오는 중입니다."
+              : currentWorkload.phase === "error"
+                ? data ? `공수 정보 새로고침에 실패했습니다. 마지막 성공 ${confirmedAt(currentWorkload.lastSuccessAt)} 결과를 표시합니다.` : "리소스 공수 정보를 불러오지 못했습니다."
+                : `공수 정보 확인 완료 · ${confirmedAt(currentWorkload.lastSuccessAt)}`}
+          </p>
+          {currentWorkload.phase === "error" || currentWorkload.retrying ? <button className="secondary-button" type="button" disabled={currentWorkload.retrying} aria-busy={currentWorkload.retrying || undefined} onClick={() => void loadSource("workload", true)}>{currentWorkload.retrying ? "공수 재시도 중…" : "공수 다시 시도"}</button> : null}
+        </div>
+        <div className={`resource-workload-status${currentTargets.phase === "error" ? " resource-workload-status-error" : ""}`} data-source="targets" data-state={currentTargets.phase}>
+          <p role={currentTargets.phase === "error" ? "alert" : "status"}>
+            {targetsLoading
+              ? currentTargets.value ? `이름·코드 정보를 새로고침하는 중입니다. 마지막 성공 ${confirmedAt(currentTargets.lastSuccessAt)} 정보를 표시합니다.` : "리소스 이름·코드 정보를 불러오는 중입니다."
+              : currentTargets.phase === "error"
+                ? currentTargets.value ? `이름·코드·설명 정보 새로고침에 실패했습니다. 마지막 성공 ${confirmedAt(currentTargets.lastSuccessAt)} 정보를 표시합니다.` : "리소스 이름·코드·설명 정보를 불러오지 못했습니다. Group·Resource 기본 이름과 Resource 코드는 유지되며 Group 코드와 설명 검색은 사용할 수 없습니다."
+                : `이름·코드 정보 확인 완료 · ${confirmedAt(currentTargets.lastSuccessAt)}`}
+          </p>
+          {currentTargets.phase === "error" || currentTargets.retrying ? <button className="secondary-button" type="button" disabled={currentTargets.retrying} aria-busy={currentTargets.retrying || undefined} onClick={() => void loadSource("targets", true)}>{currentTargets.retrying ? "이름·코드 재시도 중…" : "이름·코드 다시 시도"}</button> : null}
+        </div>
+      </div>
 
       {data ? (
         <>
@@ -198,7 +307,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
             ) : filteredGroups.map((group) => (
               <details className="resource-workload-group" key={group.id ?? "ungrouped"} open>
                 <summary>
-                  <span className="resource-workload-name">{group.name}</span>
+                  <span className="resource-workload-name">{group.id ? targetByKey.get(`group:${group.id}`)?.name ?? group.name : group.name}</span>
                   <span>{group.start ?? "—"} ~ {group.end ?? "—"}</span>
                   <span>{effort(group.effortMd, group.effortMm, unit)}</span>
                   {group.unsetCount ? <span className="status-badge warning">미설정 {group.unsetCount}</span> : null}
@@ -207,7 +316,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
                   {group.resources.map((resource) => (
                     <details className="resource-workload-resource" key={`${group.id ?? "ungrouped"}:${resource.id}`}>
                       <summary>
-                        <span className="resource-workload-name">{resource.name}{resource.code ? ` (${resource.code})` : ""}</span>
+                        <span className="resource-workload-name">{targetByKey.get(`resource:${resource.id}`)?.name ?? resource.name}{(targetByKey.get(`resource:${resource.id}`)?.code ?? resource.code) ? ` (${targetByKey.get(`resource:${resource.id}`)?.code ?? resource.code})` : ""}</span>
                         <span>{resource.start ?? "—"} ~ {resource.end ?? "—"}</span>
                         <span>{effort(resource.effortMd, resource.effortMm, unit)}</span>
                         {!resource.active ? <span className="status-badge">비활성</span> : null}
@@ -245,7 +354,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
             ))}
           </div>
         </>
-      ) : loading ? <p className="resource-workload-note" role="status">리소스 공수 정보를 불러오는 중입니다.</p> : null}
+      ) : null}
     </section>
   );
 }
