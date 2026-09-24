@@ -1,5 +1,9 @@
 # Active execution plan
 
+## UI/UX 순차 개선 — 2026-09-24 착수
+
+원격 상태와 사용자 요청에 따른 최신 작업은 [UI/UX 실행 계획](UI_UX_ROLLOUT.md)을 따른다. #30을 제외하고 #115 → #116 → #117 → #118 → #119 → #121 및 #122 검증, 이어 #130의 Project List → Workspace → Task Editor → Search/Filter 단계를 순서대로 처리한다. 이미 병합된 #120 token을 재사용하고 단계별 PR/main 검증과 변경본 로컬 Docker 실행을 제공한다. 아래 Wxx/과거 이슈 기록은 당시 상태이며 이번 변경의 검증 근거로 재사용하지 않는다.
+
 ## Issue #33 — 운영 헤더 Gantt 데모 메뉴 제거 — 병합 완료 / v0.8.1 릴리스 준비
 
 Issue #33은 운영 상단 주요 메뉴에서 `Gantt 데모` 링크를 제거하고 `/gantt-demo` 자체는 SVAR 통합·timezone/hydration 검증 fixture로 유지하는 범위로 구현했다. 전용 PR #42의 최종 head `62e891609df40cedf3d091cce6c4e0f2fc2d3fad`는 CI #130 (`34906688532`)에서 version/typecheck/lint/Vitest/build/Chromium E2E/Docker/HTTP·HTTPS/Compose gate를 모두 통과했고, `main`에 squash 병합되어 commit `ff12f358b856c33126574f27efbe830a8d8ee125`가 생성되었다. Application version은 SemVer PATCH `0.8.1`이다. 상세 분석·검증 근거는 [Issue #33 기록](../../ISSUE_33_REVIEW.md)과 [Issue #33 실행 계획](ISSUE_33_PLAN.md)을 따른다. 현재 다음 단계는 최종 `main` CI 및 immutable commit image 검증 후 annotated `v0.8.1` tag와 Semantic release image를 발행하는 것이다.
