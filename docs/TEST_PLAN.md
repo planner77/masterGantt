@@ -423,3 +423,10 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - 잘못된 Project 생성은 POST 0회, 잘못된 캘린더 Preview/Save는 각각 POST/PUT 0회, 잘못된 할당은 PUT 0회를 검사한다. 입력 초안·date/percent 값, 키보드 조작과 문서 가로 overflow도 확인한다. 기존 생성 회귀인 `tests/e2e/project-create-and-read.spec.ts`의 단일 오류 text 기대는 새 복수 오류 요약과 필드 오류 링크에 맞춰 갱신하되 정상 생성·조회·복사·삭제 경로는 유지한다.
 - #115의 `tests/e2e/project-work-calendar-preview.spec.ts`는 유효한 초안의 Preview/Save, 상태·실패·401/412·stale 응답을 계속 검증한다. 작업 저장/할당 저장 독립성과 revision·권한 계약은 기존 `tests/e2e/project-task-editor.spec.ts` 및 전체 원격 회귀로 함께 확인한다. 해당 API/domain 코드는 바꾸지 않는다.
 - 로컬 Playwright·lint·typecheck·build·browser는 사용자 지시에 따라 **NOT TESTED**다. 작성된 명세의 PASS를 주장하지 않고 PR head의 `quality/e2e/docker` 실제 run으로 판정한다. API·DB·Scheduling 문서 갱신은 계약 불변으로 N/A다.
+
+## Issue #121 App Shell 본문 바로가기 회귀
+
+- `tests/e2e/skip-link.spec.ts`는 390/1440px에서 첫 Tab이 header 앞의 `본문으로 바로가기`에 도착하고 링크가 viewport 안에서 보이는지, 그 focus 순간의 PNG, `href=#main-content`/main `id`/`tabIndex=-1`, Enter 뒤 main focus, 다음 Tab이 본문 control로 이어지는지 검사한다. 본문 control이 없는 조회 중 상태는 main focus까지만 검사한다.
+- 빈 Project 목록·리소스 관리·생성 화면·Project 조회 중·조회 오류·정상 Gantt 화면에서 같은 landmark를 확인한다. 프로젝트 목록→리소스 관리 Next client navigation에서는 동일 main DOM을 확인하고, reload 뒤 첫 Tab도 검사한다. 테스트용으로 main 높이를 늘려 아래로 스크롤한 뒤 skip을 실행해 scroll 위치가 main 쪽으로 되돌아오는지 확인한다.
+- Modal dialog가 열리면 기존 focus trap 안에 Tab focus가 남고 skip link가 선점하지 않으며 Escape 뒤 설정 trigger focus를 복원하는지 확인한다. Skip 동작 중 API mutation 0회, 동일 Gantt DOM/API instance, document 가로 overflow 부재를 확인한다.
+- Native fragment focus/scroll가 브라우저별로 충분한지 실제 Chromium E2E에서 판정한다. 현재 캡처·SPA·scroll·modal 경로는 작성된 명세이며 실제 브라우저 증거가 아니다. 로컬 Playwright·lint·typecheck·build·browser는 사용자 지시에 따라 **NOT TESTED**이며 PR head의 quality/e2e/docker 결과도 실행 전까지 NOT TESTED다. API/DB/Scheduling 계약은 변경하지 않으므로 관련 문서·테스트 영향은 N/A다.

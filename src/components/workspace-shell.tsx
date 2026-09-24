@@ -5,6 +5,7 @@ import { WorkspaceNavigation } from "@/components/workspace-navigation";
 export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <div className="app-shell">
+      <a className="skip-link" href="#main-content">본문으로 바로가기</a>
       <header className="site-header">
         <div className="header-content">
           <Link className="brand" href="/" aria-label="masterGantt 홈">
@@ -17,7 +18,7 @@ export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) 
           <div id="workspace-notification-slot" className="header-actions" />
         </div>
       </header>
-      <main className="main-content">{children}</main>
+      <main className="main-content" id="main-content" tabIndex={-1}>{children}</main>
     </div>
   );
 }
