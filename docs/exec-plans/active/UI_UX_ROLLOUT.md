@@ -4,7 +4,7 @@
 
 ## 기준과 범위
 
-- 2026-09-24 확인: 원격 main `69fa36aac486bf81bd247595cc0ab2bfbbc8982a`, version `0.27.0`, 열린 PR 없음.
+- 2026-09-24 착수 기준: 원격 main `69fa36aac486bf81bd247595cc0ab2bfbbc8982a`, version `0.27.0`, 열린 PR 없음. 현재 main과 검증 상태는 아래 완료 증거를 따른다.
 - 열린 대상: #115, #116, #117, #118, #119, #121, #122, #130.
 - #120/PR #135 공통 semantic token은 기존 결과를 재사용한다.
 - 독립 감사에서 #120이 `release_required=true / release_authorized=false`인 채 종료된 불일치를 확인했다. 구현/PR/main 임시 GHCR은 PASS이나 정식 릴리스가 미완료이므로 #120을 재개했다. 구현을 반복하지 않고 남은 릴리스 범위·승인·증거를 후속 정리한다.
@@ -15,7 +15,7 @@
 
 | 단계 | 목표 | 현재 상태 |
 | --- | --- | --- |
-| #115 | 캘린더 draft와 미리보기 대응, 실패·revision 변경 처리 | PR #137 원격 E2E locator 회귀 REWORK |
+| #115 | 캘린더 draft와 미리보기 대응, 실패·revision 변경 처리 | 구현·PR/main 임시 GHCR 검증 PASS; 정식 릴리스 범위 확인 및 branch 정리 BLOCKED, Issue 열림 |
 | #116 | 작은 화면·높이의 계층 메뉴 경계 및 키보드 보존 | 대기 |
 | #117 | 리소스 조회 실패 시 이전 결과·부분 실패·재시도 구분 | 대기 |
 | #118 | 모바일/태블릿 도구 모음 밀도와 정보 버튼 개선 | 대기 |
@@ -67,7 +67,7 @@ ui_ux 읽기 전용 검토를 바탕으로 결과가 사라지는 이유와 다�
 
 ## 로컬 확인 환경
 
-기존 `mastergantt-app-1`은 `http://127.0.0.1:8299`에서 실행 중이다. infra가 Compose/volume을 확인하고 기존 데이터를 보존한 채 로컬 변경 이미지로 갱신한다. readiness와 실제 화면을 확인하며 로컬 실행을 정식 GHCR 게시 또는 운영 배포 완료로 보고하지 않는다.
+`mastergantt-app-1`은 기존 Compose project·volume과 8299 포트를 유지한 `mastergantt:preview-issue115-candidate`(application `0.27.1`)로 실행 중이다. 2026-09-24 재확인 시 container healthy, `GET /api/health/ready` 200이었다. 기존 데이터 보존과 실제 읽기 전용 화면은 아래 증거를 따른다. 로컬 실행은 정식 GHCR 게시 또는 운영 배포 완료가 아니다.
 
 ## 완료 증거
 
@@ -86,8 +86,11 @@ ui_ux 읽기 전용 검토를 바탕으로 결과가 사라지는 이유와 다�
 - 후속 head `f040519808840eba14cbddf02d7907a0289c6f9d`의 [run 35951130019](https://github.com/planner77/masterGantt/actions/runs/35951130019) attempt 1: quality/docker PASS, e2e FAIL(77 passed / 1 failed). 모달 알림 및 #115 신규 테스트는 PASS했지만 `project-notifications.spec.ts:39`에서 페이지 스크롤 0→1px와 전체 영역 y 좌표 -1px가 확인됐다. timeout은 아니며 원격 trace를 확보해 클릭 준비/스크롤과 알림 동작을 구분하는 원인 분석을 진행한다. 근거 없이 허용 오차를 늘리거나 실패를 retry로 숨기지 않는다.
 - 원격 trace의 `call@2491`에서 milestone Add 클릭 직전 Playwright `scrolling into view if needed`가 실행됐고, action/after snapshot에 처음 document scroll top 1이 기록됐다. frontend와 Manager가 독립 확인했다. 알림 동작 전에 발생하는 클릭 준비 스크롤이 baseline에 섞인 것이므로 해당 대상에 명시적 scroll 준비를 마친 뒤 baseline을 잡는 최소 테스트 수정을 승인했다. 제품 CSS/코드를 바꾸거나 geometry 허용 오차를 추가하지 않고 실제 클릭과 이후 모든 strict geometry/인스턴스 검증을 유지한다.
 - 해당 원격 trace를 qa_docs도 독립 확인했다. `project-notifications.spec.ts`에서 버튼 scroll 준비 → chart 내부 scroll 설정 → baseline → 실제 클릭 순서로 정리한 뒤, 대상 Chromium 테스트를 3회 반복해 3/3 PASS(14.5초)했다. 해당 spec ESLint와 diff 검사 PASS이며 제품/UX 계약 문서 수정은 N/A다. 후속 head의 required 원격 gate는 모두 새로 판정한다.
-- 로컬 Docker는 `0.27.1`로 교체했고 기존 volume·8299 포트를 보존했다. SQLite integrity `ok`, 외래키 오류 0, 프로젝트 1개/작업 24개, migration 1~7을 확인했다. Manager 브라우저 확인에서도 읽기 전용 Gantt/24개 작업/문서 가로 overflow 없음/readiness 정상이다. 이미지 source tree `7ed0f9f22336f6b39121dbca22136fef367887c4`와 게시 tree는 문서 변경만 차이가 나며 runtime/package는 동일하다. 원격 E2E locator 수정은 runtime 변경이 아니다.
-- main 병합·임시 GHCR은 아직 NOT TESTED다. Git HTTPS 쓰기 인증이 없어 공통 SHA 검증 branch cleanup은 BLOCKED이며 사용자 환경 설정 또는 직접 정리 경로를 확인 중이다.
+- 로컬 Docker는 `0.27.1`로 교체했고 기존 volume·8299 포트를 보존했다. SQLite integrity `ok`, 외래키 오류 0, 프로젝트 1개/작업 24개, migration 1~7을 확인했다. Manager 브라우저 확인에서도 읽기 전용 Gantt/24개 작업/문서 가로 overflow 없음/readiness 정상이다. 이미지 source tree `7ed0f9f22336f6b39121dbca22136fef367887c4`와 최종 #115 게시 tree의 차이는 문서·E2E 테스트이며 제품 runtime/package는 동일하다. 원격 E2E locator 수정은 runtime 변경이 아니다.
+- 최종 PR #137 head `5339d82ad569e36c42d0592df1d07fcaa21dd873`의 [run 35952444601](https://github.com/planner77/masterGantt/actions/runs/35952444601) attempt 1은 quality(62 files/615 tests), e2e(78/78), docker 모두 PASS다. 이전 두 head의 E2E FAIL은 위 기록에 유지한다. qa_docs가 최종 head의 요구사항·코드·테스트·문서와 원격 gate를 독립 확인했고 Manager가 병합을 승인했다.
+- #115의 merge SHA `692ed6dc51674e00eabb096a9ae46696b6b82cfd`에 대한 [main run 35953411571](https://github.com/planner77/masterGantt/actions/runs/35953411571) attempt 1은 quality/e2e/docker 및 임시 GHCR 게시·검증·정리 job이 모두 PASS다. 임시 `ci-<SHA>` digest `sha256:05989b6fa41d4c41d712c48b4f141dd2ac0c2c73067ae0f17151f47f467ef9ff`를 exact pull하여 image policy/readiness/native SQLite/API 권한·재시작 영속성/HTTP·HTTPS를 검증했고, BuildKit SBOM·provenance 생성과 임시 package version 삭제를 infra 및 qa_docs가 확인했다. 정식 version tag·GHCR 게시는 미실행이며 임시 이미지를 운영 artifact로 취급하지 않는다.
+- 사용자 요청에 따라 [PR #139](https://github.com/planner77/masterGantt/pull/139)로 `AGENTS.md`에 향후 UI/UX 작업의 문서별 참조 상황을 명시했다. 문서만 변경해 version `0.27.1`을 유지했고 별도 정식 release는 N/A다. 현재 main `39a3dd7199149ee6394345b070ee35249589e8bc`의 [run 35954491810](https://github.com/planner77/masterGantt/actions/runs/35954491810) attempt 1에서 quality/e2e/docker와 임시 GHCR exact digest smoke, SBOM·provenance, 임시 package version 삭제가 PASS했다. 이 결과는 #115의 정식 릴리스 범위 판단을 대신하지 않는다.
+- #115의 `release_required`는 사용자 범위 답변 전까지 미확정이고 `release_authorized=false`다. 기존 #120의 정식 릴리스 필요성도 답변 범위에 포함했다. Git HTTPS 쓰기 인증이 없어 공통 SHA 검증 branch cleanup은 BLOCKED이며, #115는 열린 상태로 유지한다. 이 선행 경계가 해결되기 전 #116 제품 구현은 시작하지 않는다.
 
 ### 선행 #120 및 로컬 데이터 보존 확인
 
