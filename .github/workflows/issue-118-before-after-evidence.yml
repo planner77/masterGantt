@@ -1,4 +1,4 @@
-name: Issue #118 구현 전후 레이아웃 증거
+name: "Issue #118 구현 전후 레이아웃 증거"
 
 on:
   pull_request:
