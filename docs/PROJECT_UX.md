@@ -226,3 +226,13 @@ Project List, 일정, 리소스의 검색 도구줄은 넓은 화면에서 검�
 Project List의 #84 Quick Search+고급 AND, browser timezone 날짜 및 잘못된 날짜 범위 무시 계약은 그대로다. 일정은 #83 client filter와 canonical Gantt instance를 유지하며, 섹션 설명은 정적 맥락만 보여 주고 동적 결과 수는 도구줄에서 한 번만 표시한다. Resource의 종류·활성·Task 기간 native control은 고급 필터 패널로 모으고, M/D·M/M·새로고침은 별도 공수 도구줄에 남긴다. Resource 날짜가 역순이면 기존처럼 두 날짜 사이 범위로 해석한다고 패널 안에서 알린다. 한쪽 날짜만 입력한 경우 '기간 시작일과 종료일을 모두 입력' 안내를 보여 주고 조건을 적용하지 않는다. 이 미완성 초안은 적용 조건 수 `필터 N`에서 제외하되 초기화로 지울 수 있다. 공수/assigned-targets의 조회 중·첫 실패·stale/부분 실패 상태와 결과 0건은 별개로 유지한다. 오류 카드도 #120 상태 토큰을 사용한다. 필터 조작은 API 재조회나 mutation을 하지 않는다.
 
 같은 fixture의 Project List·일정·리소스 도구줄을 390×844·768×900·1024×900·1440×900·1600×900에서 구현 전후 각각 비교할 계획이다. 현재 명세는 **변경 후 상태**의 배치·focus·overflow·API 불변과 PNG만 작성했고 구현 전 같은 fixture의 baseline, 실제 브라우저 수치와 로컬 실행은 **NOT TESTED**다. API/DB/Scheduling 계약 문서 변경은 N/A다.
+
+## Issue #155 Gantt Grid·Chart 전체화면
+
+일정 화면의 Gantt 표시 단위 도구줄에 `전체화면` 버튼을 둔다. 버튼의 제목과 `aria-keyshortcuts`로 `Ctrl/Cmd+Shift+F`를 안내하며 `.project-gantt-frame`에 브라우저 native Fullscreen API를 요청한다. Grid·Chart·표시 단위·Gantt 내부 열/작업 메뉴만 전체화면에 포함하고 App Shell·프로젝트 정보·검색/필터·리소스 화면은 포함하지 않는다. `Escape` 또는 `전체화면 종료`로 원래 작업공간으로 돌아가며 버튼에 focus를 돌린다. 메뉴가 열린 경우 기존 메뉴 Escape 닫힘을 처리하되 브라우저가 동시에 native fullscreen을 끝낼 수 있다. 이 경우에도 focus가 유효하고 버튼 상태가 실제 `document.fullscreenElement`와 일치해야 한다.
+
+입력 상자·inline 편집·대화상자·메뉴 안에서는 shortcut을 실행하지 않는다. 작업 정보 대화상자는 Gantt frame 밖에 있으므로 Grid/Chart의 편집기 진입 두 경로 모두 원래 호출 대상을 기억하고 **자기 Gantt 전체화면이 실제로 종료된 뒤** 대화상자를 연다. 종료가 거부되면 대화상자를 숨긴 채 오류를 안내하고 원래 대상에 focus를 유지한다. Fullscreen 요청/종료 거부·미지원에서는 상태를 성공으로 앞당기지 않으며 CSS 모의 전체화면으로 대체하지 않는다. Readonly에서도 전체화면 조회가 가능하나 서버 편집 권한은 바뀌지 않는다.
+
+전환은 기존 SVAR 인스턴스를 재생성하지 않으며 Grid/Chart split·열 너비/표시 열·일/주 단위·가로/세로 scroll·선택·Summary 펼침 상태와 canonical snapshot을 유지해야 한다. 390/768/1024/1440px에서 실제 viewport 크기와 버튼·Grid·Chart 접근성을 확인한다. 새 E2E 명세와 변경 후 PNG는 작성했으나 로컬 브라우저·테스트·실제 전후 geometry는 사용자 지시에 따라 **NOT TESTED**다. Chromium 원격 CI와 실제 Edge/Chrome·OS의 fullscreen/키보드 동작은 별도 증거로 판정한다. API·DB·Scheduling 계약 및 문서 변경은 N/A다.
+
+[SVAR 공식 Fullscreen guide](https://docs.svar.dev/react/gantt/guides/fullscreen/)는 React Core `Fullscreen` wrapper를 안내한다(확인 2026-09-24). 설치된 Gantt 2.7.3/Core 2.6.1에서 Core JavaScript export와 TypeScript 선언이 일치하지 않고 요청 거부·입력 guard·Task Editor 선행 종료를 이 화면의 계약에 맞게 제어할 수 없어, 이번 범위는 [표준 Fullscreen API](https://fullscreen.spec.whatwg.org/)로 frame만 전환한다. 공식 sample의 실제 브라우저 조작 비교는 수행하지 않았다.
