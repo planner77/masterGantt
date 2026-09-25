@@ -252,6 +252,37 @@ export function ProjectGantt({
     };
   }, []);
 
+  function captureSummaryToggleState(): Map<string, boolean> {
+    const root = ganttScrollReference.current;
+    const state = new Map<string, boolean>();
+    if (!root) return state;
+    root.querySelectorAll<HTMLElement>('[data-action="open-task"]').forEach((toggle) => {
+      const row = toggle.closest<HTMLElement>(".wx-row");
+      const taskId = row ? taskIdFromElement(row) : null;
+      if (taskId) state.set(taskId, toggle.classList.contains("wxi-menu-right"));
+    });
+    return state;
+  }
+
+  async function restoreFullscreenUiState(
+    savedColumns: readonly IColumnConfig[],
+    summaryState: ReadonlyMap<string, boolean>,
+  ) {
+    const api = apiReference.current;
+    const root = ganttScrollReference.current;
+    if (!api || !root) return;
+    await api.exec("set-columns", { columns: savedColumns });
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    root.querySelectorAll<HTMLElement>('[data-action="open-task"]').forEach((toggle) => {
+      const row = toggle.closest<HTMLElement>(".wx-row");
+      const taskId = row ? taskIdFromElement(row) : null;
+      if (!taskId || !summaryState.has(taskId)) return;
+      const shouldBeCollapsed = summaryState.get(taskId)!;
+      const isCollapsed = toggle.classList.contains("wxi-menu-right");
+      if (isCollapsed !== shouldBeCollapsed) toggle.click();
+    });
+  }
+
   async function toggleFullscreen() {
     const frame = fullscreenFrameReference.current;
     if (!frame || fullscreenPendingReference.current) return;
@@ -263,6 +294,9 @@ export function ProjectGantt({
       // Re-applying columns after fullscreenchange can reset SVAR UI state such as
       // Summary expand/collapse, so settle the existing queue first instead.
       await canonicalSyncQueueReference.current;
+      const api = apiReference.current;
+      const savedColumns = (api?.getState().columns ?? []).map((column) => ({ ...column }));
+      const summaryState = captureSummaryToggleState();
       if (document.fullscreenElement === frame) {
         await document.exitFullscreen();
       } else if (!document.fullscreenElement && typeof frame.requestFullscreen === "function") {
@@ -270,6 +304,7 @@ export function ProjectGantt({
       } else {
         throw new Error("Fullscreen unavailable");
       }
+      if (savedColumns.length > 0) await restoreFullscreenUiState(savedColumns, summaryState);
     } catch {
       setFullscreenMessage("전체화면으로 전환하거나 종료할 수 없습니다. 브라우저 권한을 확인해 주세요.");
     } finally {
@@ -1007,7 +1042,7 @@ export function ProjectGantt({
         >
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
-              columns={columns}
+              columns={initialConfig.columns}
               displayMode="all"
               gridWidth={620}
               highlightTime={scaleMode === "day" ? highlightWeekend : undefined}
