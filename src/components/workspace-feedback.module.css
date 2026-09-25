@@ -40,5 +40,12 @@
 .copyHint { min-height: 1.5em; font-size: 0.875rem; }
 .linkButton { white-space: nowrap; font-size: 0.8125rem !important; padding: 0.4rem 0.625rem !important; }
 .headingActions { display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.fullscreenBell {
+  position: fixed;
+  z-index: 81;
+  top: 1rem;
+  right: 1rem;
+}
+.fullscreenToast { z-index: 82; }
 .bell:focus-visible, .dialog button:focus-visible, .linkButton:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
 @media (max-width: 44rem) { .headingActions { justify-content: flex-start; } }

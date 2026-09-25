@@ -607,6 +607,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   };
   const closeContextDisclosureOnEscape = (event: ReactKeyboardEvent<HTMLDetailsElement>) => {
     if (event.key !== "Escape" || !event.currentTarget.open) return;
+    if (event.target instanceof Element && event.target.closest("dialog")) return;
     event.preventDefault();
     event.stopPropagation();
     const details = event.currentTarget;

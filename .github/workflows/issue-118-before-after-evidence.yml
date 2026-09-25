@@ -1,0 +1,139 @@
+name: "Issue #118 구현 전후 레이아웃 증거"
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/issue-118-before-after-evidence.yml"
+      - "scripts/measure-issue-118-layout.mjs"
+      - "scripts/compare-issue-118-layout.mjs"
+      - "docs/CI_CD.md"
+      - "docs/REMOTE_VALIDATION.md"
+      - "docs/TEST_PLAN.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    name: "#118 기준 화면과 기능 병합 화면 비교"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BASELINE_SHA: 703a6f08595dea06a918366192df464d7215108e
+      AFTER_SHA: 6386db860af69635cfb0fe626fd1a937905b9a56
+    steps:
+      - name: 공통 측정 harness checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          path: harness
+
+      - name: 구현 전 revision checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          ref: ${{ env.BASELINE_SHA }}
+          path: before
+
+      - name: "#118 기능 병합 revision checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          ref: ${{ env.AFTER_SHA }}
+          path: after
+
+      - name: Node.js 준비
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+
+      - name: harness와 두 revision 의존성 설치
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd harness && npm ci)
+          (cd before && npm ci)
+          (cd after && npm ci)
+          (cd harness && npx --no-install playwright install --with-deps chromium)
+
+      - name: 구현 전/후 애플리케이션 시작
+        shell: bash
+        run: |
+          set -euo pipefail
+          (
+            cd before
+            APP_BASE_URL=http://127.0.0.1:3101 \
+            DATABASE_PATH="$RUNNER_TEMP/issue118-before.sqlite3" \
+            NEXT_DIST_DIR=.next-issue118-before \
+            npm run dev -- --hostname 127.0.0.1 --port 3101 \
+              >"$RUNNER_TEMP/issue118-before.log" 2>&1 &
+            echo $! >"$RUNNER_TEMP/issue118-before.pid"
+          )
+          (
+            cd after
+            APP_BASE_URL=http://127.0.0.1:3102 \
+            DATABASE_PATH="$RUNNER_TEMP/issue118-after.sqlite3" \
+            NEXT_DIST_DIR=.next-issue118-after \
+            npm run dev -- --hostname 127.0.0.1 --port 3102 \
+              >"$RUNNER_TEMP/issue118-after.log" 2>&1 &
+            echo $! >"$RUNNER_TEMP/issue118-after.pid"
+          )
+          for port in 3101 3102; do
+            ready=false
+            for _ in $(seq 1 60); do
+              if curl --fail --silent "http://127.0.0.1:$port/" >/dev/null; then
+                ready=true
+                break
+              fi
+              sleep 1
+            done
+            if [[ "$ready" != true ]]; then
+              cat "$RUNNER_TEMP/issue118-before.log" || true
+              cat "$RUNNER_TEMP/issue118-after.log" || true
+              exit 1
+            fi
+          done
+
+      - name: 동일 조건으로 구현 전 측정
+        working-directory: harness
+        run: node scripts/measure-issue-118-layout.mjs http://127.0.0.1:3101 before issue-118-evidence/before
+
+      - name: 동일 조건으로 구현 후 측정
+        working-directory: harness
+        run: node scripts/measure-issue-118-layout.mjs http://127.0.0.1:3102 after issue-118-evidence/after
+
+      - name: Gantt 가시 높이 비교 및 결과 보고서 생성
+        working-directory: harness
+        run: |
+          node scripts/compare-issue-118-layout.mjs \
+            issue-118-evidence/before/metrics.json \
+            issue-118-evidence/after/metrics.json \
+            issue-118-evidence
+          cat issue-118-evidence/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 구현 전후 증거 artifact 업로드
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: issue-118-before-after-evidence
+          path: harness/issue-118-evidence/
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: 실패 시 애플리케이션 로그 출력
+        if: failure()
+        shell: bash
+        run: |
+          cat "$RUNNER_TEMP/issue118-before.log" || true
+          cat "$RUNNER_TEMP/issue118-after.log" || true
+
+      - name: 구현 전후 애플리케이션 종료
+        if: always()
+        shell: bash
+        run: |
+          for file in "$RUNNER_TEMP/issue118-before.pid" "$RUNNER_TEMP/issue118-after.pid"; do
+            if [[ -f "$file" ]]; then
+              kill "$(cat "$file")" 2>/dev/null || true
+            fi
+          done

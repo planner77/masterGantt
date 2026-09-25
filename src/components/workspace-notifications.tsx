@@ -16,9 +16,16 @@ type NotificationApi = {
 };
 const NotificationContext = createContext<NotificationApi | null>(null);
 const subscribeToNotificationSlot = () => () => {};
+const subscribeToFullscreenNotificationSlot = (onStoreChange: () => void) => {
+  document.addEventListener("fullscreenchange", onStoreChange);
+  return () => document.removeEventListener("fullscreenchange", onStoreChange);
+};
 const getNotificationSlotServerSnapshot = () => null;
 function getNotificationSlotSnapshot() {
   return document.getElementById("workspace-notification-slot");
+}
+function getFullscreenNotificationSlotSnapshot() {
+  return document.querySelector<HTMLElement>(".project-gantt-frame:fullscreen");
 }
 
 export function useWorkspaceNotifications(): NotificationApi {
@@ -35,6 +42,11 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
   const notificationSlot = useSyncExternalStore(
     subscribeToNotificationSlot,
     getNotificationSlotSnapshot,
+    getNotificationSlotServerSnapshot,
+  );
+  const fullscreenNotificationSlot = useSyncExternalStore(
+    subscribeToFullscreenNotificationSlot,
+    getFullscreenNotificationSlotSnapshot,
     getNotificationSlotServerSnapshot,
   );
   const notify = useCallback<NotificationApi["notify"]>((kind, message, operation, serverBody) => {
@@ -75,6 +87,17 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
     <div className={`${styles.toast} ${state.toast ? styles.toastVisible : ""}`} role="status" aria-live="polite" aria-atomic="true" data-testid="workspace-toast">
       {state.toast?.message ?? ""}
     </div>
+    {fullscreenNotificationSlot ? createPortal(<>
+      <button type="button" className={`${styles.bell} ${styles.fullscreenBell}`} aria-haspopup="dialog" aria-expanded={state.open}
+        aria-label={unread ? `알림함, 미확인 ${unread}건` : "알림함"}
+        onClick={() => { setCopyHint(""); dispatch({ type: "open" }); }}>
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M9 21h6" /></svg>
+        {unread > 0 ? <span className={styles.badge} aria-hidden="true">{unread}</span> : null}
+      </button>
+      <div className={`${styles.toast} ${styles.fullscreenToast} ${state.toast ? styles.toastVisible : ""}`} role="status" aria-live="polite" aria-atomic="true" data-testid="workspace-toast-fullscreen">
+        {state.toast?.message ?? ""}
+      </div>
+    </>, fullscreenNotificationSlot) : null}
     {state.open ? <WorkspaceDialog title="오류 알림함" feedback={false} onClose={() => dispatch({ type: "close" })}>
       <p className={styles.scope}>{scope} · 현재 화면에서 발생한 오류를 최대 50건 보관합니다.</p>
       <p role="status" className={styles.copyHint}>{copyHint}</p>
