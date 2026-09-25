@@ -106,7 +106,7 @@ test("상태 다중 선택은 검색과 AND이고 기본·초기화·페이지 �
   await search.fill("");
   await expect(page.getByRole("heading", { name: "조건에 맞는 프로젝트가 없습니다." })).toBeVisible();
   await expect(page.getByText("선택한 상태가 없습니다. 프로젝트 상태를 선택하거나 초기화해 주세요.")).toBeVisible();
-  await expect(filterButton).toHaveText("필터 1");
+  await expect(filterButton).toHaveText("필터 2");
   expect(listGets).toBe(initialGets);
 
   await page.getByRole("button", { name: "검색/필터 초기화" }).click();
