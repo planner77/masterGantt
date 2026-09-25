@@ -140,6 +140,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     await expect(ganttRoot(page)).toHaveAttribute("data-gantt-scale-mode", "week");
     await expect(gridHeader.getByText("외부 ID", { exact: true })).toBeVisible();
+    await expect.poll(() => summaryToggle.getAttribute("class")).toBe(summaryClassBeforeFullscreen);
     expect(Math.abs((await taskHeaderCell.boundingBox())!.width - columnWidth)).toBeLessThanOrEqual(1);
     expect(Math.abs((await ganttRoot(page).locator(".wx-table-container").first().boundingBox())!.width - gridWidth)).toBeLessThanOrEqual(1);
     expect(await chart.evaluate((element) => element.scrollLeft)).toBeCloseTo(chartScroll, 0);
