@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 Web Application의 Backend Import와 Excel Export 계획을 정의한다. 현재는 **Planning only** 상태이며, 실제 Excel/DRM/VBA runtime 및 생성 workbook을 검증하지 않았다.
+이 문서는 Web Application의 Backend Import와 Excel Export 초기 계획을 기록한다. 현재 구현된 Export의 실제 계약은 [EXCEL_EXPORT.md](EXCEL_EXPORT.md)가 우선한다. 실제 Excel/DRM/VBA 환경에서의 검증은 별도다.
 
 책임 경계는 다음과 같다.
 
@@ -23,6 +23,7 @@ SQLite read snapshot
 - JSON의 normative field/type 계약은 `docs/IMPORT_SCHEMA.md`가 담당한다.
 - Backend는 contract를 독자적으로 변경하지 않는다.
 - Web Application → `.xlsx` 생성은 Backend 책임이며 VBA나 SVAR PRO export에 의존하지 않는다.
+- 현재 구현된 export의 실제 workbook/API 계약은 [EXCEL_EXPORT.md](EXCEL_EXPORT.md)가 우선한다. Issue #138에서는 `Project` sheet에 상태 표시명을 추가한다. 반면 Import v1의 파일 `project`는 name/description 정보용이고 대상 Project metadata를 변경하지 않으므로 status 입력·변경은 적용하지 않는다.
 - 일정 계산은 `docs/SCHEDULING_ENGINE.md`, 인증과 제한은 `docs/SECURITY.md`, endpoint는 `docs/API.md`를 따른다.
 
 ## 2. DRM 및 조직 정책 경계

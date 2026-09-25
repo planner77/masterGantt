@@ -1,10 +1,12 @@
 import type Database from "better-sqlite3";
+import type { ProjectStatus } from "../../contracts/projects";
 
 export interface ProjectRecord {
   id: number;
   publicId: string;
   name: string;
   description: string;
+  status: ProjectStatus;
   calendarTimezone: string;
   authVersion: number;
   revision: number;
@@ -16,6 +18,7 @@ export interface ProjectListRecord {
   publicId: string;
   name: string;
   description: string;
+  status: ProjectStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -35,6 +38,7 @@ export interface NewProjectRecord {
   publicId: string;
   name: string;
   description: string;
+  status?: ProjectStatus;
   passwordKdf: "scrypt";
   passwordSalt: Buffer;
   passwordHash: Buffer;
@@ -60,6 +64,7 @@ interface ProjectRow {
   public_id: string;
   name: string;
   description: string;
+  status: ProjectStatus;
   calendar_timezone: string;
   auth_version: number;
   revision: number;
@@ -81,6 +86,7 @@ interface ProjectListRow {
   public_id: string;
   name: string;
   description: string;
+  status: ProjectStatus;
   created_at: string;
   updated_at: string;
 }
@@ -91,6 +97,7 @@ function mapProject(row: ProjectRow): ProjectRecord {
     publicId: row.public_id,
     name: row.name,
     description: row.description,
+    status: row.status,
     calendarTimezone: row.calendar_timezone,
     authVersion: row.auth_version,
     revision: row.revision,
@@ -117,6 +124,7 @@ function mapProjectListItem(row: ProjectListRow): ProjectListRecord {
     publicId: row.public_id,
     name: row.name,
     description: row.description,
+    status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -129,7 +137,7 @@ export class ProjectRepository {
     const rows = this.database
       .prepare(
         `
-          SELECT public_id, name, description, created_at, updated_at
+          SELECT public_id, name, description, status, created_at, updated_at
           FROM projects
           ORDER BY updated_at DESC, public_id ASC
         `,
@@ -148,6 +156,7 @@ export class ProjectRepository {
             public_id,
             name,
             description,
+            status,
             calendar_timezone,
             auth_version,
             revision,
@@ -167,7 +176,7 @@ export class ProjectRepository {
       .prepare(
         `
           SELECT
-            id, public_id, name, description, calendar_timezone,
+            id, public_id, name, description, status, calendar_timezone,
             auth_version, revision, created_at, updated_at,
             password_kdf, password_salt, password_hash,
             scrypt_n, scrypt_r, scrypt_p, scrypt_key_length
@@ -184,7 +193,7 @@ export class ProjectRepository {
       .prepare(
         `
           SELECT
-            id, public_id, name, description, calendar_timezone,
+            id, public_id, name, description, status, calendar_timezone,
             auth_version, revision, created_at, updated_at,
             password_kdf, password_salt, password_hash,
             scrypt_n, scrypt_r, scrypt_p, scrypt_key_length
@@ -204,6 +213,7 @@ export class ProjectRepository {
             public_id,
             name,
             description,
+            status,
             password_kdf,
             password_salt,
             password_hash,
@@ -218,6 +228,7 @@ export class ProjectRepository {
             @publicId,
             @name,
             @description,
+            @status,
             @passwordKdf,
             @passwordSalt,
             @passwordHash,
@@ -231,7 +242,7 @@ export class ProjectRepository {
           )
         `,
       )
-      .run(project);
+      .run({ ...project, status: project.status ?? "planned" });
 
     const inserted = this.findById(Number(result.lastInsertRowid));
     if (!inserted) {
@@ -250,6 +261,7 @@ export class ProjectRepository {
             public_id,
             name,
             description,
+            status,
             calendar_timezone,
             auth_version,
             revision,
@@ -266,30 +278,29 @@ export class ProjectRepository {
 
   updateMetadata(
     projectId: number,
-    input: { name?: string; description?: string },
+    input: { name?: string; description?: string; status?: ProjectStatus },
     updatedAt: string,
   ): ProjectRecord {
-    if (input.name !== undefined && input.description !== undefined) {
-      this.database.prepare(
-        `UPDATE projects
-         SET name = ?, description = ?, revision = revision + 1, updated_at = ?
-         WHERE id = ?`,
-      ).run(input.name, input.description, updatedAt, projectId);
-    } else if (input.name !== undefined) {
-      this.database.prepare(
-        `UPDATE projects
-         SET name = ?, revision = revision + 1, updated_at = ?
-         WHERE id = ?`,
-      ).run(input.name, updatedAt, projectId);
-    } else if (input.description !== undefined) {
-      this.database.prepare(
-        `UPDATE projects
-         SET description = ?, revision = revision + 1, updated_at = ?
-         WHERE id = ?`,
-      ).run(input.description, updatedAt, projectId);
-    } else {
+    const assignments: string[] = [];
+    const values: (string | number)[] = [];
+    if (input.name !== undefined) {
+      assignments.push("name = ?");
+      values.push(input.name);
+    }
+    if (input.description !== undefined) {
+      assignments.push("description = ?");
+      values.push(input.description);
+    }
+    if (input.status !== undefined) {
+      assignments.push("status = ?");
+      values.push(input.status);
+    }
+    if (assignments.length === 0) {
       throw new Error("At least one metadata field is required.");
     }
+    this.database.prepare(
+      `UPDATE projects SET ${assignments.join(", ")}, revision = revision + 1, updated_at = ? WHERE id = ?`,
+    ).run(...values, updatedAt, projectId);
 
     const project = this.findById(projectId);
     if (!project) {

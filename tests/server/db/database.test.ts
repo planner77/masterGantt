@@ -129,6 +129,7 @@ describe("SQLite connection and schema", () => {
         "0005_resource_workload.sql",
         "0006_work_calendars.sql",
         "0007_resource_admin_credentials.sql",
+        "0008_project_status.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -247,12 +248,80 @@ describe("SQLite connection and schema", () => {
 });
 
 describe("migration safety", () => {
+  it("backfills existing projects as in progress and keeps new projects planned", () => {
+    const directory = copiedMigrations();
+    const migration8 = join(directory, "0008_project_status.sql");
+    const migration8Contents = readFileSync(migration8);
+    unlinkSync(migration8);
+    const filename = join(temporaryDirectory(), "project-status.sqlite3");
+    const before = openDatabase({ filename, migrationsDirectory: directory });
+    const existingId = insertProject(before.database, "Existing project");
+    before.database.prepare("UPDATE projects SET revision = 7 WHERE id = ?").run(existingId);
+    const preserved = before.database.prepare(
+      "SELECT id, public_id, name, description, revision, updated_at FROM projects WHERE id = ?",
+    ).get(existingId);
+    before.database.close();
+
+    writeFileSync(migration8, migration8Contents);
+    const migrated = openDatabase({ filename, migrationsDirectory: directory });
+    let newId = 0;
+    try {
+      expect(migrated.migrations.applied).toEqual(["0008_project_status.sql"]);
+      expect(migrated.database.prepare("SELECT status FROM projects WHERE id = ?").pluck().get(existingId))
+        .toBe("in_progress");
+      expect(migrated.database.prepare(
+        "SELECT id, public_id, name, description, revision, updated_at FROM projects WHERE id = ?",
+      ).get(existingId)).toEqual(preserved);
+      newId = insertProject(migrated.database, "New project");
+      expect(migrated.database.prepare("SELECT status FROM projects WHERE id = ?").pluck().get(newId))
+        .toBe("planned");
+      expect(() => migrated.database.prepare("UPDATE projects SET status = NULL WHERE id = ?").run(newId)).toThrow();
+      expect(() => migrated.database.prepare("UPDATE projects SET status = 'unknown' WHERE id = ?").run(newId)).toThrow();
+    } finally {
+      migrated.database.close();
+    }
+
+    const reopened = openDatabase({ filename, migrationsDirectory: directory });
+    try {
+      expect(reopened.migrations.applied).toEqual([]);
+      expect(reopened.database.prepare("SELECT id, status FROM projects ORDER BY id").all())
+        .toEqual([{ id: existingId, status: "in_progress" }, { id: newId, status: "planned" }]);
+    } finally {
+      reopened.database.close();
+    }
+  });
+
+  it("rolls back the status column, backfill, and ledger if migration 0008 fails", () => {
+    const directory = copiedMigrations();
+    const migration8 = join(directory, "0008_project_status.sql");
+    const contents = readFileSync(migration8, "utf8");
+    unlinkSync(migration8);
+    const database = new Database(":memory:");
+    try {
+      runMigrations(database, directory);
+      const existingId = insertProject(database, "Rollback project");
+      writeFileSync(migration8, `${contents}\nINVALID SQL;\n`);
+      expect(() => runMigrations(database, directory)).toThrow(MigrationError);
+      expect(database.prepare("SELECT name FROM pragma_table_info('projects') WHERE name = 'status'").get())
+        .toBeUndefined();
+      expect(database.prepare("SELECT name FROM projects WHERE id = ?").pluck().get(existingId))
+        .toBe("Rollback project");
+      expect(database.prepare("SELECT max(version) AS version FROM schema_migrations").get())
+        .toEqual({ version: 7 });
+    } finally {
+      database.close();
+    }
+  });
+
   it("migrates existing project_holidays one-for-one into editable work calendar rules", () => {
     const directory=copiedMigrations();
     const migration6=join(directory,"0006_work_calendars.sql");
     const migration6Contents=readFileSync(migration6);
     const migration7=join(directory,"0007_resource_admin_credentials.sql");
     const migration7Contents=readFileSync(migration7);
+    const migration8=join(directory,"0008_project_status.sql");
+    const migration8Contents=readFileSync(migration8);
+    unlinkSync(migration8);
     unlinkSync(migration7);
     unlinkSync(migration6);
     const database=new Database(":memory:");
@@ -267,7 +336,8 @@ describe("migration safety", () => {
 
       writeFileSync(migration6,migration6Contents);
       writeFileSync(migration7,migration7Contents);
-      expect(runMigrations(database,directory).applied).toEqual(["0006_work_calendars.sql","0007_resource_admin_credentials.sql"]);
+      writeFileSync(migration8,migration8Contents);
+      expect(runMigrations(database,directory).applied).toEqual(["0006_work_calendars.sql","0007_resource_admin_credentials.sql","0008_project_status.sql"]);
 
       expect(database.prepare(
         "SELECT holiday_date, name FROM project_holidays WHERE project_id = ?",
@@ -679,6 +749,7 @@ describe("project isolation and lifecycle", () => {
         publicId: "22222222-2222-4222-8222-222222222222",
         name: "Tie A",
         description: "Tie A description",
+        status: "planned",
         createdAt: "2026-09-12T01:00:00.000Z",
         updatedAt: "2026-09-12T01:00:00.000Z",
       });
@@ -688,6 +759,7 @@ describe("project isolation and lifecycle", () => {
           "description",
           "name",
           "publicId",
+          "status",
           "updatedAt",
         ]);
       }

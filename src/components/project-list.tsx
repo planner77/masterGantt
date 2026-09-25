@@ -7,7 +7,8 @@ import { EmptyProjects } from "@/components/empty-projects";
 import { ProjectRowActions } from "@/components/project-row-actions";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { useWorkspaceNotifications } from "@/components/workspace-notifications";
-import type { ProjectListItemDto } from "@/contracts/projects";
+import type { ProjectListItemDto, ProjectStatus } from "@/contracts/projects";
+import { PROJECT_STATUS_OPTIONS, projectStatusLabel } from "@/features/projects/project-status";
 import {
   EMPTY_PROJECT_FILTER,
   activeProjectFilterCount,
@@ -103,6 +104,14 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
 
   function updateFilter(patch: Partial<ProjectFilterState>) {
     setFilter((current) => ({ ...current, ...patch }));
+  }
+  function toggleStatus(status: ProjectStatus, checked: boolean) {
+    setFilter((current) => ({
+      ...current,
+      statuses: checked
+        ? [...current.statuses, status]
+        : current.statuses.filter((value) => value !== status),
+    }));
   }
   function resetFilter() {
     setFilter(EMPTY_PROJECT_FILTER);
@@ -212,6 +221,16 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
       </div>
 
       {filterOpen ? <div id="project-list-advanced-filter" className="project-filter-panel" aria-label="프로젝트 고급 필터" onKeyDown={onFilterKeyDown}>
+        <fieldset className={styles.statusFilter}>
+          <legend>프로젝트 상태</legend>
+          <div className={styles.statusOptions}>
+            {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <label key={value}>
+              <input type="checkbox" checked={filter.statuses.includes(value)} onChange={(event) => toggleStatus(value, event.target.checked)} />
+              {label}
+            </label>)}
+          </div>
+          <p>처음에는 예정과 진행 중 프로젝트만 표시합니다. 완료 프로젝트는 선택하면 목록에 표시됩니다.</p>
+        </fieldset>
         <div className="project-filter-grid">
           <label>프로젝트명 조건
             <select value={filter.nameOperator} onChange={(event) => updateFilter({ nameOperator: event.target.value as ProjectFilterState["nameOperator"] })}>
@@ -259,13 +278,16 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
 
       {visibleProjects.length === 0 ? <div className={styles.noResults} role="status">
         <h2>조건에 맞는 프로젝트가 없습니다.</h2>
-        <p>검색어나 필터 조건을 변경하거나 전체 조건을 초기화해 주세요.</p>
+        <p>{filter.statuses.length === 0
+          ? "선택한 상태가 없습니다. 프로젝트 상태를 선택하거나 초기화해 주세요."
+          : "검색어나 필터 조건을 변경하거나 초기화해 주세요. 완료 프로젝트는 상태 필터에서 선택할 수 있습니다."}</p>
         <button className="secondary-button" type="button" onClick={resetFilter}>검색/필터 초기화</button>
       </div> : <div className={styles.tableWrap}>
         <table aria-label="프로젝트 목록" className={styles.table}>
-          <thead><tr><th scope="col">프로젝트</th><th scope="col">소유자</th><th scope="col">설명</th><th scope="col">생성</th><th scope="col">최근 변경</th><th scope="col">작업</th></tr></thead>
+          <thead><tr><th scope="col">프로젝트</th><th scope="col">상태</th><th scope="col">소유자</th><th scope="col">설명</th><th scope="col">생성</th><th scope="col">최근 변경</th><th scope="col">작업</th></tr></thead>
           <tbody>{visibleProjects.map((project) => <tr key={project.publicId} data-project-id={project.publicId}>
-            <td className={styles.nameCell}><Link className={styles.nameLink} href={projectPath(project.publicId)}>{project.name}</Link></td>
+            <td className={styles.nameCell}><Link className={styles.nameLink} href={projectPath(project.publicId)} onNavigate={() => { setFilter(EMPTY_PROJECT_FILTER); setFilterOpen(false); }}>{project.name}</Link></td>
+            <td className={styles.statusCell}><span className={styles.statusBadge} data-status={project.status}>{projectStatusLabel(project.status)}</span></td>
             <td>{project.ownerName ?? "미지정"}</td>
             <td className={styles.descriptionCell}><span className={styles.description}>{project.description || "설명이 없습니다."}</span></td>
             <td className={styles.dateCell}>{formatLocaleDateTime(project.createdAt, locales, timeZone)}</td>

@@ -43,6 +43,7 @@ const result: TaskMutationResponse = {
       publicId,
       name: "Project",
       description: "",
+      status: "planned",
       revision: 2,
       calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] },
     },

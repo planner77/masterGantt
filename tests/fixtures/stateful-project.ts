@@ -72,7 +72,7 @@ function applySuccessfulCreate(fixture: StatefulProjectFixture, payload: CreateT
 }
 export async function installStatefulProjectFixture(page: Page): Promise<StatefulProjectFixture> {
   const project: ProjectDto = {
-    publicId, name: "Issue 3 stable Gantt fixture", description: "Stateful canonical snapshot fixture", revision: 40,
+    publicId, name: "Issue 3 stable Gantt fixture", description: "Stateful canonical snapshot fixture", status: "planned", revision: 40,
     calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] },
   };
   const fixture: StatefulProjectFixture = {

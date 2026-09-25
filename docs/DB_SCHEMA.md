@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. Issue #99에서 리소스 관리자 런타임 자격증명 해시를 위한 `0007_resource_admin_credentials.sql`을 추가했다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
+이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. Issue #99에서 리소스 관리자 런타임 자격증명 해시를 위한 `0007_resource_admin_credentials.sql`을 추가했다. Issue #138에서 Project 상태를 위한 `0008_project_status.sql`을 추가한다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
 
 요구사항으로 확정된 전제는 다음과 같다.
 
@@ -64,6 +64,7 @@ resource_catalog_admin_credentials (singleton global admin credential)
 | `public_id` | TEXT | N | UNIQUE, immutable UUID v4 |
 | `name` | TEXT | N | trim 후 빈 문자열 불가, 길이는 API 정책으로 제한 |
 | `description` | TEXT | N | 기본값 빈 문자열 |
+| `status` | TEXT | N | `planned`(예정), `in_progress`(진행 중), `completed`(완료)만 허용; DB 기본값 `planned` |
 | `owner_name` | TEXT | Y | Issue #54 표시용 Owner. 새 HTTP 생성/복사는 trim 후 Unicode code point 1–100자를 요구하며, 기존 Project는 NULL 허용 |
 | `password_kdf` | TEXT | N | 초기값 `scrypt` |
 | `password_salt` | BLOB | N | project별 cryptographic random salt |
@@ -79,6 +80,8 @@ resource_catalog_admin_credentials (singleton global admin credential)
 | `updated_at` | TEXT | N | UTC timestamp |
 
 `owner_name`은 인증 또는 권한 주체가 아니라 사용자에게 표시하는 Project 메타데이터다. `0004_project_owner.sql`은 기존 데이터 호환을 위해 NULL을 허용하며, non-NULL 값은 trim된 1–100자만 허용한다. 신규 HTTP 생성/복사는 API 계층에서 Owner를 필수로 검증하고 Project row 및 최초 edit session과 같은 write transaction 안에서 저장한다. 향후 사용자/조직 식별자를 도입하더라도 현재 문자열은 표시명 역할로 분리한다.
+
+`0008_project_status.sql`은 `status`를 `NOT NULL DEFAULT 'planned'`와 세 값만 허용하는 `CHECK`로 추가한 뒤, 이미 저장된 Project row를 같은 migration transaction에서 `in_progress`로 일괄 이관한다. 기존 row의 revision, 일정, 인증 자료는 변경하지 않는다. 이후 생성되는 Project와 복사본은 `planned`를 저장하며, Project status 변경은 다른 metadata 변경과 마찬가지로 검증된 edit session과 현재 revision을 확인한 한 transaction에서 revision을 정확히 한 번 증가시킨다. 목록 조회는 모든 상태를 반환하며 기본 표시 필터는 UI에서 적용한다.
 
 Password parameter를 row와 함께 저장해 향후 cost 변경 후에도 기존 hash를 검증하고 성공 시 재해시할 수 있게 한다. `public_id`는 접근 편의를 위한 주소이지 authorization secret이 아니다.
 

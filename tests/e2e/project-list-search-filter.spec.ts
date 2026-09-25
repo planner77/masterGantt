@@ -149,9 +149,9 @@ test.describe("Issue #130 Phase 1 Project List 시각·접근성 계약", () => 
         const tableElement = document.querySelector<HTMLTableElement>('table[aria-label="프로젝트 목록"]')!;
         const wrapper = tableElement.parentElement!;
         const firstRow = tableElement.tBodies[0].rows[0];
-        const description = firstRow.cells[2].firstElementChild as HTMLElement;
+        const description = firstRow.cells[3].firstElementChild as HTMLElement;
         const lineHeight = Number.parseFloat(getComputedStyle(description).lineHeight);
-        const action = firstRow.cells[5].getBoundingClientRect();
+        const action = firstRow.cells[6].getBoundingClientRect();
         return {
           documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
           wrapperClientWidth: wrapper.clientWidth,

@@ -103,6 +103,7 @@ describe("ProjectService create", () => {
         name: "Project name",
         description: "Description",
         editPassword: password,
+        status: "in_progress",
       });
 
       expect(observedPassword).toBe(password);
@@ -111,6 +112,7 @@ describe("ProjectService create", () => {
       expect(created.response.data.project).toMatchObject({
         name: "Project name",
         description: "Description",
+        status: "in_progress",
         revision: 1,
         calendar: {
           timezone: "Asia/Seoul",
@@ -131,7 +133,7 @@ describe("ProjectService create", () => {
           `
             SELECT password_kdf, password_salt, password_hash,
               scrypt_n, scrypt_r, scrypt_p, scrypt_key_length,
-              auth_version, revision
+              auth_version, revision, status
             FROM projects
           `,
         )
@@ -145,6 +147,7 @@ describe("ProjectService create", () => {
           scrypt_key_length: number;
           auth_version: number;
           revision: number;
+          status: string;
         };
       expect(project).toEqual({
         password_kdf: "scrypt",
@@ -156,6 +159,7 @@ describe("ProjectService create", () => {
         scrypt_key_length: 32,
         auth_version: 1,
         revision: 1,
+        status: "in_progress",
       });
 
       const session = database
@@ -347,6 +351,7 @@ describe("ProjectService direct read", () => {
               publicId: "22222222-2222-4222-8222-222222222222",
               name: "Tie A",
               description: "Second UUID",
+              status: "planned",
               createdAt: "2026-09-12T01:00:00.000Z",
               updatedAt: "2026-09-12T01:00:00.000Z",
             },
@@ -354,6 +359,7 @@ describe("ProjectService direct read", () => {
               publicId: "33333333-3333-4333-8333-333333333333",
               name: "Tie B",
               description: "Third UUID",
+              status: "planned",
               createdAt: "2026-09-12T01:00:00.000Z",
               updatedAt: "2026-09-12T01:00:00.000Z",
             },
@@ -361,6 +367,7 @@ describe("ProjectService direct read", () => {
               publicId: "11111111-1111-4111-8111-111111111111",
               name: "Older",
               description: "First description",
+              status: "planned",
               createdAt: "2026-09-11T01:00:00.000Z",
               updatedAt: "2026-09-11T01:00:00.000Z",
             },

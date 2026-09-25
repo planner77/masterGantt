@@ -4,6 +4,7 @@ import { readBoundedJson } from "../../../src/server/http/request-core";
 import {
   isCanonicalUuidV4,
   parseCreateProjectInput,
+  parseUpdateProjectInput,
 } from "../../../src/server/projects/project-contract";
 import { serializeEditSessionCookie } from "../../../src/server/security/cookie-core";
 import {
@@ -26,6 +27,24 @@ import {
 } from "../../../src/server/security/session-core";
 
 describe("project input contract", () => {
+  it("accepts known statuses, defaults by omission, and rejects null or unknown status", () => {
+    const base = { name: "Project", ownerName: "Owner", description: "", editPassword: "Pass123456!" };
+    expect(parseCreateProjectInput(base)).toMatchObject({ success: true, data: base });
+    for (const status of ["planned", "in_progress", "completed"]) {
+      expect(parseCreateProjectInput({ ...base, status })).toMatchObject({
+        success: true, data: { ...base, status },
+      });
+      expect(parseUpdateProjectInput({ status })).toMatchObject({
+        success: true, data: { status },
+      });
+    }
+    for (const status of [null, "unknown", "완료", 1]) {
+      expect(parseCreateProjectInput({ ...base, status }).success).toBe(false);
+      expect(parseUpdateProjectInput({ status }).success).toBe(false);
+    }
+    expect(parseUpdateProjectInput({}).success).toBe(false);
+  });
+
   it("trims project name and owner while preserving description and password", () => {
     const password = " 암호 문구 ";
     const result = parseCreateProjectInput({

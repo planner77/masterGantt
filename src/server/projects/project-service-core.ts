@@ -201,6 +201,7 @@ function projectDto(
     publicId: string;
     name: string;
     description: string;
+    status: ProjectDto["status"];
     revision: number;
     calendarTimezone: string;
   },
@@ -214,6 +215,7 @@ function projectDto(
     publicId: project.publicId,
     name: project.name,
     description: project.description,
+    status: project.status,
     revision: project.revision,
     calendar,
   };
@@ -646,6 +648,7 @@ export class ProjectService {
           publicId,
           name: input.name,
           description: input.description,
+          status: input.status ?? "planned",
           passwordKdf: password.algorithm,
           passwordSalt: password.salt,
           passwordHash: password.hash,
@@ -702,6 +705,7 @@ export class ProjectService {
           publicId: project.publicId,
           name: project.name,
           description: project.description,
+          status: project.status,
           createdAt: project.createdAt,
           updatedAt: project.updatedAt,
         })),
@@ -1180,9 +1184,10 @@ export class ProjectService {
       );
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const changedFields: ("name" | "description")[] = [];
+      const changedFields: ("name" | "description" | "status")[] = [];
       if (input.name !== undefined) changedFields.push("name");
       if (input.description !== undefined) changedFields.push("description");
+      if (input.status !== undefined) changedFields.push("status");
       return {
         data: {
           project: projectDto(updated, projectCalendarDto(this.database, project.id)),

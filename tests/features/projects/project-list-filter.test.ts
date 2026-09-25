@@ -17,6 +17,7 @@ const projects: ProjectListItemDto[] = [
     name: "AMR Rollout",
     description: "Vietnam line",
     ownerName: "Automation Team",
+    status: "planned",
     createdAt: "2026-08-31T15:30:00.000Z",
     updatedAt: "2026-09-15T12:00:00.000Z",
   },
@@ -25,12 +26,24 @@ const projects: ProjectListItemDto[] = [
     name: "Stocker Upgrade",
     description: "MLCC stocker",
     ownerName: null,
+    status: "in_progress",
     createdAt: "2026-09-30T15:30:00.000Z",
     updatedAt: "2026-10-01T00:30:00.000Z",
   },
 ];
 
 describe("Issue #84 project list filters", () => {
+  it("defaults to planned and in-progress; status deviations count once and remain AND conditions", () => {
+    const completed: ProjectListItemDto = { ...projects[1], publicId: "gamma", name: "Completed AMR", status: "completed" };
+    const all = [...projects, completed];
+    expect(filterProjectList(all, EMPTY_PROJECT_FILTER, "Asia/Seoul").map(({ publicId }) => publicId)).toEqual(["alpha", "beta"]);
+    expect(activeProjectFilterCount(EMPTY_PROJECT_FILTER)).toBe(0);
+    expect(activeProjectFilterCount({ ...EMPTY_PROJECT_FILTER, statuses: ["planned", "in_progress", "completed"] })).toBe(1);
+    expect(activeProjectFilterCount({ ...EMPTY_PROJECT_FILTER, statuses: [] })).toBe(1);
+    expect(filterProjectList(all, { ...EMPTY_PROJECT_FILTER, statuses: ["completed"], query: "amr" }, "Asia/Seoul")
+      .map(({ publicId }) => publicId)).toEqual(["gamma"]);
+    expect(filterProjectList(all, { ...EMPTY_PROJECT_FILTER, statuses: [] }, "Asia/Seoul")).toEqual([]);
+  });
   it("reuses trim/case-insensitive quick search without searching UI placeholders", () => {
     expect(filterProjectList(projects, { ...EMPTY_PROJECT_FILTER, query: " automation " }, "Asia/Seoul").map((project) => project.publicId)).toEqual(["alpha"]);
     expect(filterProjectList(projects, { ...EMPTY_PROJECT_FILTER, query: "VIETNAM" }, "Asia/Seoul").map((project) => project.publicId)).toEqual(["alpha"]);

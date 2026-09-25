@@ -17,10 +17,12 @@ describe("Issue #54 project owner", () => {
         description: "owner regression",
         ownerName: "Production Engineering",
         editPassword: "owner-regression-password",
+        status: "completed",
       });
       const publicId = created.response.data.project.publicId;
 
       expect(created.response.data.project.ownerName).toBe("Production Engineering");
+      expect(created.response.data.project.status).toBe("completed");
       expect(service.listProjects().data.projects).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ publicId, ownerName: "Production Engineering" }),
@@ -28,6 +30,8 @@ describe("Issue #54 project owner", () => {
       );
       expect(service.getReadonlySnapshot(publicId)?.data.project.ownerName)
         .toBe("Production Engineering");
+      expect(service.listProjects().data.projects[0].status).toBe("completed");
+      expect(service.getReadonlySnapshot(publicId)?.data.project.status).toBe("completed");
       expect(
         database.prepare("SELECT owner_name FROM projects WHERE public_id = ?").pluck().get(publicId),
       ).toBe("Production Engineering");

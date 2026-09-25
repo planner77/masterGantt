@@ -21,6 +21,7 @@ const createResponse: CreateProjectResponse = {
       publicId,
       name: "Plant Expansion",
       description: "Phase 1",
+      status: "planned",
       ownerName: "Plant Owner",
       revision: 1,
       calendar: {
@@ -47,6 +48,7 @@ const listResponse: ProjectListResponse = {
         publicId,
         name: "Plant Expansion",
         description: "Phase 1",
+        status: "planned",
         ownerName: "Plant Owner",
         createdAt: "2026-09-11T01:00:00.000Z",
         updatedAt: "2026-09-12T01:00:00.000Z",
@@ -174,6 +176,17 @@ describe("POST /api/projects handler", () => {
         status: 400,
         code: "INVALID_REQUEST",
       },
+      ...["unknown", null].map((status) => ({
+        request: request(JSON.stringify({
+          name: "Name",
+          ownerName: "Owner",
+          description: "",
+          editPassword: "Pass123456!",
+          status,
+        })),
+        status: 400,
+        code: "INVALID_REQUEST",
+      })),
       {
         request: request("{}", { "Content-Type": "text/plain" }),
         status: 415,

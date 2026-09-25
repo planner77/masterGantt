@@ -70,6 +70,8 @@ Route Handler 안에 SQL이나 일정 알고리즘을 두지 않는다. Client p
 
 Project schedule 전체를 하나의 aggregate로 보고 `projects.revision`을 사용한다.
 
+Issue #138부터 Project 상태 코드는 `planned`(예정), `in_progress`(진행 중), `completed`(완료)다. DB와 API는 이 코드만 사용하며 UI가 한국어 표시명을 결정한다. 기존 Project는 migration 시 `in_progress`로 이관하고 새 Project 및 복사본의 기본 상태는 `planned`다. 상태 변경에는 별도 전환 제약을 두지 않는다.
+
 - Project snapshot과 mutation 성공 응답은 `ETag: "<revision>"` 및 body의 `revision`을 반환한다.
 - Password rotation의 204 응답은 body가 없는 예외이며 새 revision은 ETag로 전달한다.
 - Project 생성, unlock/logout을 제외한 모든 Project mutation은 `If-Match: "<revision>"`가 필수다.
@@ -89,6 +91,7 @@ Project metadata, calendar, task, link, task batch, import commit처럼 schedule
       "publicId": "2fd0c93f-cd37-4b68-9f09-412239d99c79",
       "name": "Plant Expansion",
       "description": "Phase 1 schedule",
+      "status": "completed",
       "ownerName": "Production Engineering",
       "revision": 8,
       "calendar": {
@@ -132,13 +135,14 @@ Project create는 권한 우회가 아니라 독립 bootstrap operation이다. W
 
 Project를 만들고 최초 edit session을 발급한다.
 
-입력은 unknown field를 거부한다. `name`은 trim 후 1–200 Unicode code point, `ownerName`은 trim 후 1–100 Unicode code point로 필수이며 표시용 메타데이터일 뿐 계정/권한과 연결하지 않는다. `description`은 원문을 보존하며 0–4,000 code point, `editPassword`는 trim/정규화 없이 1~12 Unicode code point다. JSON body 상한은 32 KiB다.
+입력은 unknown field를 거부한다. `name`은 trim 후 1–200 Unicode code point, `ownerName`은 trim 후 1–100 Unicode code point로 필수이며 표시용 메타데이터일 뿐 계정/권한과 연결하지 않는다. `description`은 원문을 보존하며 0–4,000 code point, `editPassword`는 trim/정규화 없이 1~12 Unicode code point다. 선택적 `status`는 세 코드값만 허용하고 생략하면 `planned`다. `null`이나 알려지지 않은 상태는 `400 INVALID_REQUEST`다. JSON body 상한은 32 KiB다.
 
 ```json
 {
   "name": "Plant Expansion",
   "ownerName": "Production Engineering",
   "description": "Phase 1 schedule",
+  "status": "planned",
   "editPassword": "user-provided-password"
 }
 ```
@@ -152,6 +156,7 @@ Project를 만들고 최초 edit session을 발급한다.
       "publicId": "2fd0c93f-cd37-4b68-9f09-412239d99c79",
       "name": "Plant Expansion",
       "description": "Phase 1 schedule",
+      "status": "planned",
       "ownerName": "Production Engineering",
       "revision": 1,
       "calendar": {
@@ -169,7 +174,7 @@ Password는 응답하거나 log에 남기지 않는다. UUID collision은 unique
 
 ### `GET /api/projects`
 
-D02 사용자 승인에 따라 앱 접속 가능한 모든 사용자에게 전체 목록을 제공한다. Session은 필요하지 않으며 `200 OK`, `Cache-Control: private, no-store`를 반환한다. 응답은 `{ "data": { "projects": [] } }` 형식이며 각 항목은 `publicId`, `name`, `description`, `ownerName`, `createdAt`, `updatedAt`을 포함한다. 기존 Project의 Owner가 없으면 `ownerName`은 `null`이다. 최신 `updatedAt` 내림차순과 안정적인 동률 정렬을 적용한다. 내부 DB ID, password/hash/salt, session/token과 일정 상세는 포함하지 않는다.
+D02 사용자 승인에 따라 앱 접속 가능한 모든 사용자에게 전체 목록을 제공한다. Session은 필요하지 않으며 `200 OK`, `Cache-Control: private, no-store`를 반환한다. 응답은 `{ "data": { "projects": [] } }` 형식이며 각 항목은 `publicId`, `name`, `description`, `status`, `ownerName`, `createdAt`, `updatedAt`을 포함한다. 모든 상태를 반환하고 Project List가 기본 상태 필터(`planned + in_progress`)와 검색 조건을 함께 적용한다. 기존 Project의 Owner가 없으면 `ownerName`은 `null`이다. 최신 `updatedAt` 내림차순과 안정적인 동률 정렬을 적용한다. 내부 DB ID, password/hash/salt, session/token과 일정 상세는 포함하지 않는다.
 
 DB가 비어 있으면 빈 배열을 반환한다. DB 실패는 공통 sanitized API 오류로 처리하며 빈 목록 성공으로 숨기지 않는다. 이 GET은 session 발급 또는 편집 권한 변경을 수행하지 않는다. 기존 W04의 `405` 비활성 정책은 W23에서 대체했다.
 
@@ -184,6 +189,7 @@ Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 c
       "publicId": "2fd0c93f-cd37-4b68-9f09-412239d99c79",
       "name": "Plant Expansion",
       "description": "Phase 1 schedule",
+      "status": "in_progress",
       "ownerName": "Production Engineering",
       "revision": 7,
       "calendar": {
@@ -220,6 +226,7 @@ Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 c
 - `name`: 기존 Project 생성과 동일하게 trim 후 1–200 Unicode code point.
 - `ownerName`: trim 후 1–100 Unicode code point의 필수 표시용 Owner. 계정 또는 권한 식별자가 아니다.
 - `description`: 0–4,000 Unicode code point, 원문 보존.
+- 복사본의 `status`는 원본 상태와 관계없이 `planned`다. Copy 입력에서 status를 받지 않는다.
 - `editPassword`: 새 Project 전용 비밀번호. 원본 password hash/salt/KDF record를 복사하지 않는다.
 - `resetProgress`: 선택값이며 기본 `false`. `true`이면 leaf task/milestone progress를 0으로 만들고 summary progress를 계층 규칙으로 재집계한다.
 
@@ -234,6 +241,7 @@ Password hashing은 write transaction 밖에서 수행한다. 이후 `IMMEDIATE`
       "publicId": "new-project-uuid",
       "name": "Plant Expansion (복사본)",
       "description": "Next planning cycle",
+      "status": "planned",
       "ownerName": "Production Engineering",
       "revision": 1,
       "calendar": {
@@ -269,25 +277,26 @@ Password hashing은 write transaction 밖에서 수행한다. 이후 `IMMEDIATE`
 
 ### `PATCH /api/projects/{publicId}`
 
-Edit session, exact same-origin `Origin`, 강한 단일 `If-Match: "<positive revision>"`가 필요하다. strict JSON object에서 `name`과 `description` 중 하나 이상만 변경할 수 있다. Empty object, unknown field, `null`, weak/bare/wildcard/multiple ETag는 거부한다. Issue #54의 `ownerName`은 현재 생성/복사 시점 표시 metadata이며 이 PATCH의 mutable allowlist에는 포함하지 않는다. 성공 시 revision이 정확히 1 증가하며 다음 canonical full snapshot을 반환한다.
+Edit session, exact same-origin `Origin`, 강한 단일 `If-Match: "<positive revision>"`가 필요하다. strict JSON object에서 `name`, `description`, `status` 중 하나 이상을 변경할 수 있다. `status`만 포함한 PATCH도 허용하며 세 코드값 외의 문자열과 `null`을 거부한다. Empty object, unknown field, weak/bare/wildcard/multiple ETag도 거부한다. Issue #54의 `ownerName`은 현재 생성/복사 시점 표시 metadata이며 이 PATCH의 mutable allowlist에는 포함하지 않는다. 성공 시 revision이 정확히 1 증가하며 다음 canonical full snapshot을 반환한다.
 
 ```json
 {
   "name": "Plant Expansion — Revised",
-  "description": "Updated scope"
+  "description": "Updated scope",
+  "status": "completed"
 }
 ```
 
 ```json
 {
   "data": {
-    "project": { "publicId": "...", "name": "...", "description": "...", "ownerName": "Production Engineering", "revision": 8, "calendar": { "timezone": "Asia/Seoul", "weekendDays": [6, 0], "holidays": [] } },
+    "project": { "publicId": "...", "name": "...", "description": "...", "status": "completed", "ownerName": "Production Engineering", "revision": 8, "calendar": { "timezone": "Asia/Seoul", "weekendDays": [6, 0], "holidays": [] } },
     "tasks": [],
     "links": [],
     "warnings": [],
     "operation": {
       "kind": "projectMetadata",
-      "changedFields": ["name", "description"]
+      "changedFields": ["name", "description", "status"]
     }
   }
 }
@@ -623,18 +632,16 @@ v1 import는 create-only, all-or-nothing이다.
 
 ## 8. Excel Export API
 
-### `GET /api/projects/{publicId}/exports/excel`
+### `POST /api/projects/{publicId}/exports/excel`
 
-Readonly Project 데이터로 Phase 1 `.xlsx`를 생성한다. 성공 header 예시는 다음과 같다.
+Readonly Project 데이터로 `.xlsx`를 생성한다. exact same-origin `Origin`, strong `If-Match`와 bounded JSON export 옵션을 검사하지만 edit session은 요구하지 않는다. 동일 revision의 canonical snapshot으로 workbook을 만들고 상태 코드는 `Project` sheet 마지막 metadata 행에 한국어 표시명으로 기록한다. 기존 metadata/휴일 행 번호는 유지한다. 현재 workbook 구조와 보안·한도는 [EXCEL_EXPORT.md](EXCEL_EXPORT.md)가 Source of Truth다. 성공 header 예시는 다음과 같다.
 
 ```text
 Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-Content-Disposition: attachment; filename="project-<publicId>.xlsx"
+Content-Disposition: attachment; filename="mastergantt-<publicId>-r<revision>.xlsx"
 ```
 
-Export는 DB read snapshot을 먼저 DTO로 만든 다음 transaction 밖에서 ExcelJS workbook을 생성한다. Project Direct URL은 server 설정 `APP_BASE_URL + /projects/ + project.public_id`로만 만들며 password, Cookie, query token을 포함하지 않는다. 상세 sheet와 안전 규칙은 `docs/IMPORT_EXPORT.md`를 따른다.
-
-Phase 2 Gantt sheet endpoint/option은 Phase 1 검증 후 추가하며 현재 계약에 포함하지 않는다.
+Export는 DB read snapshot을 먼저 DTO로 만든 다음 transaction 밖에서 내부 OOXML/ZIP writer로 Gantt/Tasks/Project 및 선택적 Dependencies sheet를 생성한다. Project 상태는 읽기 전용 metadata로 출력하며 Import의 Project metadata 변경 계약에는 영향을 주지 않는다.
 
 ## 9. 오류와 HTTP status
 

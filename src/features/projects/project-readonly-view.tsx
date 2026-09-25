@@ -10,7 +10,8 @@ import { EMPTY_TASK_FILTER, activeTaskFilterCount, filterTasksWithAncestors, typ
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
-import type { LinkMutationResponse, ProjectMetadataMutationResponse, ProjectSnapshotResponse, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
+import type { LinkMutationResponse, ProjectMetadataMutationResponse, ProjectSnapshotResponse, ProjectStatus, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
+import { PROJECT_STATUS_OPTIONS, projectStatusLabel } from "@/features/projects/project-status";
 import type { AssignedTargetsResponse, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
@@ -39,6 +40,7 @@ function isSnapshot(value: unknown): value is ProjectSnapshotResponse {
   const project = data.project;
   return "name" in project && typeof project.name === "string" &&
     "description" in project && typeof project.description === "string" &&
+    "status" in project && typeof project.status === "string" && ["planned", "in_progress", "completed"].includes(project.status) &&
     "revision" in project && typeof project.revision === "number" &&
     "calendar" in project && typeof project.calendar === "object" && project.calendar !== null &&
     "timezone" in project.calendar && typeof project.calendar.timezone === "string" &&
@@ -145,6 +147,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [ganttResetGeneration, setGanttResetGeneration] = useState(0);
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
+  const [metadataStatus, setMetadataStatus] = useState<ProjectStatus>("planned");
   const [columnVisibility, setColumnVisibility] = useState<ProjectGridColumnVisibility>(INITIAL_COLUMN_VISIBILITY);
   const [pendingTaskDelete, setPendingTaskDelete] = useState<PendingTaskDelete | null>(null);
   const taskMutationReference = useRef(false);
@@ -204,7 +207,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           notify("error", "프로젝트 정보를 불러올 수 없습니다. 다시 시도해 주세요.", "프로젝트 조회", body);
           return;
         }
-        setMetadataName(body.data.project.name); setMetadataDescription(body.data.project.description);
+        setMetadataName(body.data.project.name); setMetadataDescription(body.data.project.description); setMetadataStatus(body.data.project.status);
         setState({ status: "ready", snapshot: body });
         try {
           const current = await fetch(`/api/projects/${encodeURIComponent(publicId)}/edit-sessions/current`, { credentials: "same-origin", signal: controller.signal });
@@ -248,7 +251,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   function applySnapshot(value: unknown): boolean {
     if (!isSnapshot(value)) return false;
     setState({ status: "ready", snapshot: value });
-    setMetadataName(value.data.project.name); setMetadataDescription(value.data.project.description);
+    setMetadataName(value.data.project.name); setMetadataDescription(value.data.project.description); setMetadataStatus(value.data.project.status);
     return true;
   }
   async function fetchCanonicalSnapshot(): Promise<ProjectSnapshotResponse | null> {
@@ -313,7 +316,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, {
         method: "PATCH", credentials: "same-origin", headers: { "Content-Type": "application/json", "If-Match": revisionTag(state.snapshot.data.project.revision) },
-        body: JSON.stringify({ name: metadataName, description: metadataDescription }),
+        body: JSON.stringify({ name: metadataName, description: metadataDescription, status: metadataStatus }),
       });
       const body: unknown = await response.json().catch(() => null);
       const snapshot = snapshotFromMetadataMutation(body);
@@ -624,6 +627,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       <div className="project-context-identity">
         <div className="project-title-row">
           <h1 id="project-heading" title={project.name}>{project.name}</h1>
+          <span className="project-lifecycle-badge" data-status={project.status} aria-label={`프로젝트 상태: ${projectStatusLabel(project.status)}`}>{projectStatusLabel(project.status)}</span>
           <span className={editing ? "edit-badge" : "readonly-badge"}>{editing ? "편집 중" : "읽기 전용"}</span>
           <details className="project-info-popover" onKeyDown={closeContextDisclosureOnEscape}>
             <summary aria-label="프로젝트 정보 보기">정보</summary>
@@ -804,6 +808,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       <form className="project-form compact-form" noValidate onSubmit={saveMetadata}>
         <div className="form-field"><label htmlFor="metadata-name">프로젝트 이름</label><input disabled={busy} id="metadata-name" onChange={(event) => setMetadataName(event.target.value)} value={metadataName} /></div>
         <div className="form-field"><label htmlFor="metadata-description">설명</label><textarea disabled={busy} id="metadata-description" onChange={(event) => setMetadataDescription(event.target.value)} rows={3} value={metadataDescription} /></div>
+        <div className="form-field"><label htmlFor="metadata-status">프로젝트 상태</label>
+          <select disabled={busy} id="metadata-status" value={metadataStatus} onChange={(event) => setMetadataStatus(event.target.value as ProjectStatus)}>
+            {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+          </select>
+        </div>
         <button className="primary-button" disabled={busy} type="submit">{isSavingMetadata ? "저장 중…" : "프로젝트 정보 저장"}</button>
       </form>
       <form className="project-form compact-form" noValidate onSubmit={changePassword}>

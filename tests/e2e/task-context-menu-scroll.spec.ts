@@ -9,7 +9,7 @@ test("화면 밖 막대를 우클릭한 뒤 지연된 스크롤 알림은 무시
   const taskId = "00000000-0000-4000-8000-000000000005";
   const apiPath = `/api/projects/${publicId}`;
   const project: ProjectDto = {
-    publicId, name: "Menu scroll fixture", description: "Issue #22 scroll regression", revision: 20,
+    publicId, name: "Menu scroll fixture", description: "Issue #22 scroll regression", status: "planned", revision: 20,
     calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] },
   };
   // 9월 23일은 이 viewport의 초기 표시 범위 안에 있었다. 초기 작업과 충분히

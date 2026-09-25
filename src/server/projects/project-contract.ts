@@ -48,12 +48,14 @@ const newPassword = wellFormedString.refine((value) => {
   const length = codePointLength(value);
   return length >= 1 && length <= 12;
 });
+const projectStatus = z.enum(["planned", "in_progress", "completed"]);
 
 const createProjectSchema = z.object({
   name: projectName,
   description: projectDescription,
   ownerName: projectOwnerName,
   editPassword: newPassword,
+  status: projectStatus.optional(),
 }).strict();
 
 const copyProjectSchema = z.object({
@@ -116,8 +118,9 @@ const unlockProjectSchema = z.object({
 const updateProjectSchema = z.object({
   name: projectName.optional(),
   description: projectDescription.optional(),
+  status: projectStatus.optional(),
 }).strict().refine(
-  (value) => value.name !== undefined || value.description !== undefined,
+  (value) => value.name !== undefined || value.description !== undefined || value.status !== undefined,
 );
 
 const changeEditPasswordSchema = z.object({

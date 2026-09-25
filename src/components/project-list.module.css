@@ -20,7 +20,7 @@
 }
 .table {
   width: 100%;
-  min-width: 62rem;
+  min-width: 68rem;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -38,12 +38,13 @@
   font-weight: 700;
   letter-spacing: 0;
 }
-.table th:nth-child(1) { width: 23%; }
-.table th:nth-child(2) { width: 15%; }
-.table th:nth-child(3) { width: 32%; }
-.table th:nth-child(4),
-.table th:nth-child(5) { width: 12%; }
-.table th:nth-child(6) { width: 3.75rem; text-align: right; }
+.table th:nth-child(1) { width: 21%; }
+.table th:nth-child(2) { width: 9%; }
+.table th:nth-child(3) { width: 13%; }
+.table th:nth-child(4) { width: 27%; }
+.table th:nth-child(5),
+.table th:nth-child(6) { width: 12%; }
+.table th:nth-child(7) { width: 3.75rem; text-align: right; }
 .table tr:last-child td { border-bottom: 0; }
 .table tbody tr { transition: background 120ms ease-out; }
 .table tbody tr:hover,
@@ -51,7 +52,28 @@
   background: var(--action-selected-subtle);
 }
 .nameCell { font-weight: 700; }
-.table tbody td:nth-child(2) { color: var(--text-muted); }
+.table tbody td:nth-child(3) { color: var(--text-muted); }
+.statusCell { white-space: nowrap; }
+.statusBadge {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 0.125rem 0.45rem;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-subtle);
+  color: var(--text-default);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.statusBadge[data-status="planned"] { border-color: var(--status-info); background: var(--status-info-surface); color: var(--status-info); }
+.statusBadge[data-status="in_progress"] { border-color: var(--action-selected); background: var(--action-selected-subtle); color: var(--action-selected-foreground); }
+.statusBadge[data-status="completed"] { border-color: var(--status-success); background: var(--status-success-surface); color: var(--status-success); }
+.statusFilter { min-width: 0; border: 1px solid var(--border-default); border-radius: var(--radius); padding: 0.75rem; }
+.statusFilter legend { padding-inline: 0.25rem; font-weight: 700; }
+.statusFilter p { margin: 0.5rem 0 0; color: var(--text-muted); font-size: 0.8125rem; }
+.statusOptions { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
+.statusOptions label { display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; }
+.statusOptions input { width: 1rem; height: 1rem; min-height: 0; margin: 0; padding: 0; }
 .descriptionCell { color: var(--text-muted); }
 .description,
 .nameLink {
@@ -85,12 +107,13 @@
 .status { margin: 0; color: var(--status-error-strong); font-size: 0.875rem; }
 
 @media (max-width: 64rem) {
-  .table th:nth-child(1) { width: 22%; }
-  .table th:nth-child(2) { width: 16%; }
-  .table th:nth-child(3) { width: 30%; }
-  .table th:nth-child(4),
-  .table th:nth-child(5) { width: 13%; }
-  .table th:nth-child(6) { width: 3.75rem; }
+  .table th:nth-child(1) { width: 20%; }
+  .table th:nth-child(2) { width: 9%; }
+  .table th:nth-child(3) { width: 13%; }
+  .table th:nth-child(4) { width: 27%; }
+  .table th:nth-child(5),
+  .table th:nth-child(6) { width: 12%; }
+  .table th:nth-child(7) { width: 3.75rem; }
 }
 @media (max-width: 44rem) {
   .tableWrap { margin-inline: -0.25rem; }

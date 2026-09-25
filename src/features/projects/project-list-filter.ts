@@ -1,4 +1,4 @@
-import type { ProjectListItemDto } from "../../contracts/projects";
+import type { ProjectListItemDto, ProjectStatus } from "../../contracts/projects";
 import {
   normalizeFilterText,
   textMatchesFilter,
@@ -8,6 +8,7 @@ import {
 export type ProjectDateOperator = "any" | "equals" | "before" | "after" | "range";
 
 export type ProjectFilterState = Readonly<{
+  statuses: readonly ProjectStatus[];
   query: string;
   nameQuery: string;
   nameOperator: TextOperator;
@@ -25,6 +26,7 @@ export type ProjectFilterState = Readonly<{
 }>;
 
 export const EMPTY_PROJECT_FILTER: ProjectFilterState = {
+  statuses: ["planned", "in_progress"],
   query: "",
   nameQuery: "",
   nameOperator: "contains",
@@ -111,6 +113,7 @@ export function projectMatchesFilter(
   filter: ProjectFilterState,
   timeZone: string,
 ): boolean {
+  if (!filter.statuses.includes(project.status)) return false;
   const query = normalizeFilterText(filter.query);
   if (query) {
     const haystack = [project.name, project.ownerName, project.description].map(normalizeFilterText);
@@ -142,6 +145,7 @@ export function filterProjectList(
 
 export function activeProjectFilterCount(filter: ProjectFilterState): number {
   return [
+    filter.statuses.length !== 2 || !filter.statuses.includes("planned") || !filter.statuses.includes("in_progress"),
     normalizeFilterText(filter.query) !== "",
     normalizeFilterText(filter.nameQuery) !== "",
     normalizeFilterText(filter.ownerQuery) !== "",
