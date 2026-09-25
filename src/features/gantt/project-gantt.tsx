@@ -179,7 +179,6 @@ export function ProjectGantt({
   const canonicalSyncDepthReference = useRef(0);
   const canonicalSyncVersionReference = useRef(0);
   const taskFilterAppliedReference = useRef(false);
-  const summaryToggleStateReference = useRef(new Map<string, boolean>());
   const instanceId = useState(() => `project-gantt-${Math.random().toString(36).slice(2)}`)[0];
   const canonicalSyncQueueReference = useRef<Promise<void>>(Promise.resolve());
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
@@ -232,9 +231,6 @@ export function ProjectGantt({
     canCreateReference.current = editable && !mutationLocked;
     mutationLockedReference.current = mutationLocked;
     tasksByIdReference.current = tasksById;
-    for (const taskId of summaryToggleStateReference.current.keys()) {
-      if (!tasksById.has(taskId)) summaryToggleStateReference.current.delete(taskId);
-    }
   }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkDelete, tasksById]);
 
   useEffect(() => {
@@ -261,16 +257,14 @@ export function ProjectGantt({
   }, []);
 
   function captureSummaryToggleState(): Map<string, boolean> {
-    const root = ganttScrollReference.current;
-    const state = new Map(summaryToggleStateReference.current);
-    if (!root) return state;
-    root.querySelectorAll<HTMLElement>('[data-action="open-task"]').forEach((toggle) => {
-      const row = toggle.closest<HTMLElement>(".wx-row");
-      const taskId = row ? taskIdFromElement(row) : null;
-      if (!taskId) return;
-      const collapsed = toggle.classList.contains("wxi-menu-right");
-      state.set(taskId, collapsed);
-      summaryToggleStateReference.current.set(taskId, collapsed);
+    const api = apiReference.current;
+    const state = new Map<string, boolean>();
+    if (!api) return state;
+    const currentTasks = (api.getState().tasks ?? []) as ITask[];
+    currentTasks.forEach((task) => {
+      if (task.type !== "summary" || (typeof task.id !== "string" && typeof task.id !== "number")) return;
+      const taskId = String(task.id).startsWith(":") ? String(task.id).slice(1) : String(task.id);
+      state.set(taskId, task.open === false);
     });
     return state;
   }
@@ -699,17 +693,6 @@ export function ProjectGantt({
           ? false
           : createTaskAddGateway(interceptNativeTaskAdd)(event),
       { tag: "project-native-add" },
-    );
-    api.detach("project-summary-open-state");
-    api.on(
-      "open-task",
-      (event) => {
-        if (typeof event.id !== "string") return;
-        const taskId = event.id.startsWith(":") ? event.id.slice(1) : event.id;
-        if (tasksByIdReference.current.get(taskId)?.type !== "summary") return;
-        summaryToggleStateReference.current.set(taskId, !event.mode);
-      },
-      { tag: "project-summary-open-state" },
     );
     api.detach("project-summary-update");
     api.intercept(
