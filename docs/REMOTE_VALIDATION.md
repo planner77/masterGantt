@@ -192,3 +192,16 @@ Issue #84는 PR #114에서 기능·테스트·Documentation Sync를 완료하고
 8. Issue #84 완료 댓글에 기능/릴리스 PR, version, main CI, 정식 release run, tag, branch cleanup 결과를 남긴 뒤 completed로 닫는다.
 
 Workflow 파일 존재나 과거 다른 version의 성공 run은 현재 `v0.25.0` release 성공 증거를 대신하지 않는다. GitHub-hosted 검증은 최종 수동 UX/실제 사내 reverse proxy 등 환경별 검증을 자동으로 완료한 것으로 간주하지 않는다.
+
+
+## Issue #118 구현 전후 원격 증거
+
+#118의 동일 fixture 구현 전/후 높이·screenshot 증거는 PR의 `Issue #118 구현 전후 레이아웃 증거` Workflow로 판정한다.
+
+1. 대상 PR head에서 일반 `CI`의 quality/e2e/docker가 completed/success여야 한다.
+2. 같은 PR head에서 `Issue #118 구현 전후 레이아웃 증거` run이 completed/success여야 한다.
+3. 비교 revision은 Before `703a6f08595dea06a918366192df464d7215108e`, After `6386db860af69635cfb0fe626fd1a937905b9a56`로 고정하며 두 revision에 동일 harness를 사용한다.
+4. viewport는 390×844, 768×844, 1024×844, 1440×844이며 editing/readonly 모두 같은 mock Project/Task 데이터를 사용한다.
+5. 390/768의 각 상태에서 Gantt 가시 높이 delta가 양수이고 After의 document horizontal overflow가 없으며 정보 컨트롤이 한 줄이어야 PASS다.
+6. `issue-118-before-after-evidence` artifact에 raw metrics, comparison JSON, Markdown 요약, 각 viewport/state의 before/after screenshot이 존재하는지 확인한다.
+7. 이 증거는 실제 모바일 기기·스크린리더 수동 검증을 완료한 것으로 해석하지 않는다.
