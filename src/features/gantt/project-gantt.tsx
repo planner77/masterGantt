@@ -1007,7 +1007,7 @@ export function ProjectGantt({
         >
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
-              columns={initialConfig.columns}
+              columns={columns}
               displayMode="all"
               gridWidth={620}
               highlightTime={scaleMode === "day" ? highlightWeekend : undefined}
