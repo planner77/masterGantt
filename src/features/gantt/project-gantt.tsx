@@ -273,8 +273,7 @@ export function ProjectGantt({
     summaryState: ReadonlyMap<string, boolean>,
   ) {
     const api = apiReference.current;
-    const root = ganttScrollReference.current;
-    if (!api || !root) return;
+    if (!api) return;
 
     const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     // fullscreenchange updates React state and SVAR performs its own resize/layout work.
@@ -283,22 +282,10 @@ export function ProjectGantt({
     await nextFrame();
     await api.exec("set-columns", { columns: savedColumns });
 
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      await nextFrame();
-      await nextFrame();
-      let changed = false;
-      root.querySelectorAll<HTMLElement>('[data-action="open-task"]').forEach((toggle) => {
-        const row = toggle.closest<HTMLElement>(".wx-row");
-        const taskId = row ? taskIdFromElement(row) : null;
-        if (!taskId || !summaryState.has(taskId)) return;
-        const shouldBeCollapsed = summaryState.get(taskId)!;
-        const isCollapsed = toggle.classList.contains("wxi-menu-right");
-        if (isCollapsed !== shouldBeCollapsed) {
-          toggle.click();
-          changed = true;
-        }
-      });
-      if (!changed) break;
+    // Use SVAR's documented action instead of DOM clicks so the visual toggle and
+    // the internal task-tree state are updated atomically.
+    for (const [taskId, collapsed] of summaryState) {
+      await api.exec("open-task", { id: taskId, mode: !collapsed });
     }
   }
 
