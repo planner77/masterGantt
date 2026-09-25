@@ -161,4 +161,4 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 1일 Task는 해당 날짜 셀 전체 폭을 사용한다.
 - Milestone marker 중심은 해당 로컬 날짜 셀의 시간상 midpoint와 일치한다.
 - Week 보기에서도 실제 요일 위치를 유지하며 주 전체 폭으로 확대하지 않는다.
-- 구현은 Milestone adapter 렌더링 좌표에만 국소 적용하고 저장 날짜·drag 역변환·progress·dependency·revision 계약은 유지한다.
+- 구현은 Milestone bar의 렌더링 위치에만 국소 적용하고 저장 날짜·drag 역변환·progress·revision 계약은 유지한다. bar 전체 이동으로 marker hitbox와 내부 link handle도 함께 이동한다.

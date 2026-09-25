@@ -270,6 +270,6 @@ Next App Router의 `src/app/icon.svg`는 사이트 헤더의 파란 M 마크를 
 
 Project 일정의 `start`/`end`는 종료일을 포함하는 날짜다. Task와 Summary는 기존 inclusive domain date → SVAR exclusive end 변환을 유지하여 시작일 셀 좌측부터 종료일 셀 우측까지 표시한다. 1일 Task는 하루 셀 전체 폭을 사용하고 Day/Week 전환에서도 실제 날짜 위치를 유지한다.
 
-Milestone은 설치된 SVAR Core 2.7.3이 marker 중심을 `start` 좌표에 두는 동작을 이용한다. adapter는 Milestone에 한해 해당 로컬 날짜 00:00과 다음 로컬 날짜 00:00 사이의 실제 경과시간 midpoint를 렌더링 `start`로 전달한다. 고정 12시간 보정이 아니므로 23/25시간 DST 날짜에서도 날짜 셀 중앙을 유지한다. 저장되는 YYYY-MM-DD 날짜, drag 결과의 local-date 역변환, 서버 scheduling/revision 계약은 변경하지 않으며 CSS-only 이동을 사용하지 않아 marker hitbox와 dependency anchor도 동일 좌표를 따른다.
+Milestone은 설치된 SVAR Core 2.7.3이 marker 중심을 `start` 좌표에 두는 동작을 이용한다. 렌더링 계층은 현재 최하위 scale의 실제 cell width를 읽고 Milestone `.wx-bar` 전체를 날짜 셀 폭의 절반만큼 이동한다. Day에서는 cellWidth/2, Week에서는 weekCellWidth/14를 사용하므로 고정 pixel offset에 의존하지 않는다. CSS individual `translate`를 bar 자체에 적용해 Core의 diamond 회전 transform을 덮어쓰지 않으며, bar의 hitbox와 내부 link handle도 함께 이동한다. 저장되는 YYYY-MM-DD 날짜와 drag 역변환, 서버 scheduling/revision 계약은 변경하지 않는다.
 
 전용 E2E는 390/768/1024/1440px의 Day/Week에서 Task/Summary 포함 범위, 1일 폭, horizontal scroll, Gantt instance 보존과 Milestone 중심의 ±1 CSS px 정렬을 검증한다.

@@ -505,5 +505,5 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - 동일 fixture의 Summary, 다일 Task, 1일 Task를 Day/Week에서 측정하여 시작일 좌측·inclusive 종료일 우측·1일 전체 폭을 ±1 CSS px로 검증한다.
 - Milestone은 같은 날짜의 1일 Task 중심과 비교해 marker 중심 편차가 ±1 CSS px 이내인지 390/768/1024/1440px에서 직접 단언한다.
 - horizontal scroll 전후에도 timeline 상대 위치와 Gantt root/API instance가 유지되어야 한다.
-- Milestone 이동 시 저장되는 도메인 날짜는 midpoint 시간값이 아니라 local YYYY-MM-DD로 역변환되며 duration을 파생하지 않는다.
+- Milestone 이동 시 저장되는 도메인 날짜는 기존 local YYYY-MM-DD 변환을 유지하며 duration을 파생하지 않는다. 렌더링 중앙 보정은 저장 payload에 반영하지 않는다.
 - 기존 drag/resize/progress/dependency/link anchor 및 readonly 무변경을 회귀 확인한다.
