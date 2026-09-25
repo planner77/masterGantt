@@ -83,7 +83,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     const identity = await rememberGanttRoot(page);
     const summaryToggle = rowNamed(page, "Stable summary").locator('[data-action="open-task"]');
     await summaryToggle.click();
-    await expect(summaryToggle).toHaveClass(/wxi-menu-(right|down)/);
+    await expect(summaryToggle).toHaveClass(/wxi-menu-right/);
     const summaryClassBeforeFullscreen = await summaryToggle.getAttribute("class");
     const selectedRow = rowNamed(page, "Stable leaf");
     await selectedRow.getByText("Stable leaf", { exact: true }).click();
