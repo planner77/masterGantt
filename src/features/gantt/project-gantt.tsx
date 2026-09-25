@@ -368,7 +368,7 @@ export function ProjectGantt({
 
   useEffect(() => {
     const root = ganttScrollReference.current;
-    if (!root) return;
+    if (!root || !apiInstanceId) return;
     const onSummaryToggleClick = (event: MouseEvent) => {
       const toggle = event.target instanceof Element
         ? event.target.closest<HTMLElement>('[data-action="open-task"]')
@@ -377,14 +377,14 @@ export function ProjectGantt({
       const row = toggle.closest<HTMLElement>(".wx-row");
       const taskId = row ? taskIdFromElement(row) : null;
       if (!taskId || tasksByIdReference.current.get(taskId)?.type !== "summary") return;
-      requestAnimationFrame(() => {
-        if (!toggle.isConnected) return;
-        summaryToggleStateReference.current.set(taskId, toggle.classList.contains("wxi-menu-right"));
-      });
+      // Capture before SVAR handles the click. The next state is the inverse of
+      // the currently rendered icon, so DOM replacement cannot make us lose it.
+      const currentlyCollapsed = toggle.classList.contains("wxi-menu-right");
+      summaryToggleStateReference.current.set(taskId, !currentlyCollapsed);
     };
-    root.addEventListener("click", onSummaryToggleClick);
-    return () => root.removeEventListener("click", onSummaryToggleClick);
-  }, []);
+    root.addEventListener("click", onSummaryToggleClick, true);
+    return () => root.removeEventListener("click", onSummaryToggleClick, true);
+  }, [apiInstanceId]);
 
   useEffect(() => {
     const api = apiReference.current;
