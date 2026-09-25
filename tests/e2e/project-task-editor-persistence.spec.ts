@@ -78,7 +78,7 @@ test("persists explicit editor changes, task details and safe URL click without 
   const decoratedRow = page.locator(".project-gantt-widget .wx-row", { hasText: "Saved via editor" }).first();
   await expect(decoratedRow).toHaveAttribute("data-task-url", taskUrl, { timeout: 5000 });
   const popupPromise = page.waitForEvent("popup");
-  await decoratedRow.getByText("Saved via editor", { exact: true }).click();
+  await page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${child.taskId}"]`).click();
   const popup = await popupPromise;
   await popup.waitForLoadState("domcontentloaded");
   expect(new URL(popup.url()).pathname).toBe("/projects/new");
