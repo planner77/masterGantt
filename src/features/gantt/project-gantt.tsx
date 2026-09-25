@@ -260,7 +260,7 @@ export function ProjectGantt({
     const api = apiReference.current;
     const state = new Map<string, boolean>();
     if (!api) return state;
-    const currentTasks = (api.getState().tasks ?? []) as ITask[];
+    const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
     currentTasks.forEach((task) => {
       if (task.type !== "summary" || (typeof task.id !== "string" && typeof task.id !== "number")) return;
       const taskId = String(task.id).startsWith(":") ? String(task.id).slice(1) : String(task.id);
