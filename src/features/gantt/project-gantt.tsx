@@ -303,8 +303,10 @@ export function ProjectGantt({
     const onFullscreenChange = () => {
       const active = document.fullscreenElement === frame;
       setIsFullscreen(active);
-      if (active) setFullscreenMessage("");
-      else if (fullscreenWasActiveReference.current && frame.isConnected && document.fullscreenElement === null) fullscreenButtonReference.current?.focus({ preventScroll: true });
+      if (active) {
+        setFullscreenMessage("");
+        fullscreenButtonReference.current?.focus({ preventScroll: true });
+      } else if (fullscreenWasActiveReference.current && frame.isConnected && document.fullscreenElement === null) fullscreenButtonReference.current?.focus({ preventScroll: true });
       fullscreenWasActiveReference.current = active;
     };
     const onFullscreenError = () => setFullscreenMessage("전체화면으로 전환할 수 없습니다. 브라우저 권한을 확인해 주세요.");
@@ -835,14 +837,14 @@ export function ProjectGantt({
   }
 
   function handleTaskDoubleClick(event: ReactMouseEvent<HTMLDivElement>) {
-    // SVAR's readonly mode suppresses its native show-editor action. Keep
-    // mutation readonly while still allowing the project's information editor
-    // to open from Grid/Chart double-click.
-    if (editable) return;
+    // Editable, dependency-free name cells belong to the inline editor.
+    // Readonly rows and dependency-protected rows retain the information
+    // editor double-click entry because they cannot open the inline editor.
     const root = ganttScrollReference.current;
     if (!root) return;
     const match = resolveTaskContextTarget(event.target, root, (id) => tasksByIdReference.current.has(id));
     if (!match) return;
+    if (editable && !taskHasDependencyLinks(Array.from(tasksByIdReference.current.values()), match.taskId, linksReference.current)) return;
     event.preventDefault();
     event.stopPropagation();
     onTaskEditorOpenReference.current(match.taskId);
@@ -948,7 +950,12 @@ export function ProjectGantt({
     table.intercept("update-cell", (change) => {
       if (change.column !== "text") return undefined;
       const current = inlineSessionReference.current;
-      if (current && change.id === current.taskId) commitInlineName(change.value, current);
+      if (current && change.id === current.taskId) {
+        // Core may coerce numeric-looking text before update-cell (e.g. "001"
+        // to 1). Capture the editor's raw string while it is still mounted.
+        const rawValue = findInlineNameInput(current.taskId)?.value;
+        commitInlineName(rawValue ?? change.value, current);
+      }
       return false;
     }, { tag: "project-inline-name" });
     table.intercept("close-editor", (change) => {
