@@ -187,6 +187,10 @@ export function ProjectGantt({
   const fullscreenButtonReference = useRef<HTMLButtonElement>(null);
   const fullscreenPendingReference = useRef(false);
   const fullscreenWasActiveReference = useRef(false);
+  const fullscreenUiStateReference = useRef<{
+    columns: IColumnConfig[];
+    summaries: Map<string, boolean>;
+  } | null>(null);
   const columnMenuReference = useRef<HTMLDivElement>(null);
   const columnMenuTriggerReference = useRef<HTMLElement | null>(null);
   const taskMenuReference = useRef<HTMLDivElement>(null);
@@ -298,6 +302,23 @@ export function ProjectGantt({
     }
   }
 
+  useEffect(() => {
+    const saved = fullscreenUiStateReference.current;
+    if (!saved || !apiInstanceId) return;
+    let cancelled = false;
+    void (async () => {
+      await restoreFullscreenUiState(saved.columns, saved.summaries);
+      if (cancelled) return;
+      // A second pass after a macrotask catches SVAR resize work scheduled after
+      // React's fullscreen state commit without recreating the Gantt instance.
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+      if (!cancelled) await restoreFullscreenUiState(saved.columns, saved.summaries);
+    })().catch(() => {
+      if (!cancelled) onCanonicalSyncFailureReference.current();
+    });
+    return () => { cancelled = true; };
+  }, [apiInstanceId, isFullscreen]);
+
   async function toggleFullscreen() {
     const frame = fullscreenFrameReference.current;
     if (!frame || fullscreenPendingReference.current) return;
@@ -312,6 +333,7 @@ export function ProjectGantt({
       const api = apiReference.current;
       const savedColumns = (api?.getState().columns ?? []).map((column) => ({ ...column }));
       const summaryState = captureSummaryToggleState();
+      fullscreenUiStateReference.current = { columns: savedColumns, summaries: summaryState };
       if (document.fullscreenElement === frame) {
         await document.exitFullscreen();
       } else if (!document.fullscreenElement && typeof frame.requestFullscreen === "function") {
@@ -319,7 +341,6 @@ export function ProjectGantt({
       } else {
         throw new Error("Fullscreen unavailable");
       }
-      if (savedColumns.length > 0) await restoreFullscreenUiState(savedColumns, summaryState);
     } catch {
       setFullscreenMessage("전체화면으로 전환하거나 종료할 수 없습니다. 브라우저 권한을 확인해 주세요.");
     } finally {
