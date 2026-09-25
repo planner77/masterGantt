@@ -265,7 +265,7 @@ export function ProjectGantt({
   }
 
   async function restoreFullscreenUiState(
-    savedColumns: readonly IColumnConfig[],
+    savedColumns: IColumnConfig[],
     summaryState: ReadonlyMap<string, boolean>,
   ) {
     const api = apiReference.current;
