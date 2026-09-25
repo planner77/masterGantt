@@ -91,7 +91,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await summaryToggle.click();
     await expect(summaryToggle).toHaveClass(/wxi-menu-right/);
     const selectedRow = rowNamed(page, "Stable leaf");
-    await selectedRow.getByText("Stable leaf", { exact: true }).click();
+    await selectedRow.locator('[role="gridcell"][data-col-id=":projectStart"]').click();
     await expect(selectedRow).toHaveClass(/wx-selected/);
     const gridHeader = ganttRoot(page).locator(".wx-table-container .wx-header").first();
     await gridHeader.click({ button: "right" });
