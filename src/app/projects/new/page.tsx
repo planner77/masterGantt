@@ -1,8 +1,4 @@
-import type { Metadata } from "next";
-
 import { CreateProjectForm } from "@/features/projects/create-project-form";
-
-export const metadata: Metadata = { title: "프로젝트 만들기" };
 
 export default function NewProjectPage() {
   return (

@@ -242,3 +242,9 @@ Project List의 #84 Quick Search+고급 AND, browser timezone 날짜 및 잘못�
 App Shell 브랜드 바로 옆에 `v<SemVer>`를 보조 텍스트로 표시한다. 값은 서버 컴포넌트가 빌드에 포함된 `package.json.version`에서 직접 읽으며 수동 버전 문자열이나 별도 설정값을 두지 않는다. 버전은 홈 링크 바깥에 있어 `masterGantt 홈` 링크의 이름과 이동 동작을 바꾸지 않는다. 544px 이하에서는 보조 버전을 숨기고 브랜드 이름을 우선하며, 400px 이하에서는 기존처럼 M 마크만 남겨 프로젝트·리소스 navigation과 알림 영역의 공간을 확보한다. 헤더 높이와 본문 작업 공간은 늘리지 않는다.
 
 `tests/e2e/workspace-header-version.spec.ts`에 390px의 M 마크, 480px의 브랜드 이름, 768/1024/1440px의 브랜드와 버전, 각 폭의 헤더 높이·navigation·문서 가로 overflow 및 리소스 이동 후 브랜드 홈 복귀 명세를 작성했다. PNG는 변경 후 화면 자료이며 구현 전후 비교나 실제 브라우저 PASS를 뜻하지 않는다. 로컬 테스트·브라우저·빌드는 사용자 지시에 따라 **NOT TESTED**이고 PR head의 원격 CI는 별도로 판정한다. API·DB·Scheduling·권한 계약은 바뀌지 않는다.
+
+## Issue #141 브라우저 제목과 파비콘
+
+브라우저 탭의 비프로젝트 제목은 정확히 `masterGantt`다. 유효한 프로젝트를 열어 canonical 이름을 확인하면 공백 없이 `masterGantt|{프로젝트명}`으로 표시한다. 직접 URL·새로고침의 서버 초기 HTML 제목은 읽기 전용 snapshot의 확정 이름을 사용한다. 클라이언트가 조회 중일 때는 잠시 기본 제목을 허용하고, 조회 완료·설정 저장·재조회 후에는 확정 snapshot의 이름만 반영한다. 입력 중인 이름, 실패한 저장, 401 뒤의 초안은 제목에 반영하지 않는다. 412로 snapshot이 무효화된 재조회 중, 로딩·404·조회 실패 및 App Router 오류 경계에서는 기본 제목을 사용하고 재조회가 성공하면 새 canonical 이름으로 바꾼다. 다른 프로젝트 또는 비프로젝트 화면으로 이동하면 이전 프로젝트 제목을 남기지 않는다. 서로 다른 publicId가 같은 이름을 써도 이전 화면의 cleanup은 현재 URL의 제목을 덮어쓰지 않는다.
+
+Next App Router의 `src/app/icon.svg`는 사이트 헤더의 파란 M 마크를 공유하는 정적 SVG 파비콘이다. 헤더 브랜드·버전 표시는 변경하지 않는다. `tests/e2e/project-browser-title-favicon.spec.ts`에 favicon 응답, 서버 초기 HTML과 hydration 뒤 제목, 비프로젝트 화면, 직접 진입·새로고침·SPA 목록 경유 전환(동일 이름·서로 다른 publicId 포함), 이름 저장과 실패·401·412·조회 실패의 제목 명세를 작성했다. App Router 오류 경계에는 테스트에서 형태가 잘못된 조회 응답을 주입해 화면 오류·재시도 버튼과 기본 제목 복원을 확인한다. 실제 Chromium 결과와 Edge/Chrome/Firefox/Safari 브라우저 탭에서의 시각 확인, 로컬 test/lint/typecheck/build는 **NOT TESTED**이며 PR head CI와 환경별 수동 검증으로 판정한다. API·DB·Scheduling·권한 계약 변경은 N/A다.

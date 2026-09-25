@@ -1,10 +1,4 @@
-import type { Metadata } from "next";
-
 import { ResourceCatalogAdmin } from "@/features/resources/resource-catalog-admin";
-
-export const metadata: Metadata = {
-  title: "리소스 관리",
-};
 
 export default function ResourcesPage() {
   return (

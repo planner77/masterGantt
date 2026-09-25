@@ -11,6 +11,7 @@ export default function Error({
 }>) {
   useEffect(() => {
     console.error(error);
+    document.title = "masterGantt";
   }, [error]);
 
   return (
