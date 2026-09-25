@@ -25,6 +25,8 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
       await expect(exitButton(page)).toHaveAttribute("aria-pressed", "true");
       await expect(exitButton(page)).toHaveAttribute("title", "전체 화면 종료 (Esc)");
       await expect(exitButton(page)).toBeFocused();
+      await expect(ganttRoot(page).getByRole("button", { name: /알림함/ })).toBeVisible();
+      await expect(ganttRoot(page).getByTestId("workspace-toast-fullscreen")).toBeAttached();
       await expectSameGanttRoot(page, identity);
       await expect(ganttRoot(page).locator(".project-gantt-scale-toolbar")).toBeVisible();
       await expect(ganttRoot(page).locator(".wx-table-container").first()).toBeVisible();
