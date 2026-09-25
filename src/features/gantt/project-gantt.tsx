@@ -456,6 +456,36 @@ export function ProjectGantt({
   }, [columns]);
 
   useEffect(() => {
+    const frame = fullscreenFrameReference.current;
+    if (!frame || !apiInstanceId) return;
+    let firstFrame = 0;
+    let secondFrame = 0;
+    const restoreColumnsAfterFullscreenTransition = () => {
+      if (document.fullscreenElement !== null && document.fullscreenElement !== frame) return;
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+      firstFrame = window.requestAnimationFrame(() => {
+        secondFrame = window.requestAnimationFrame(() => {
+          const api = apiReference.current;
+          if (!api || !frame.isConnected) return;
+          const currentColumns = api.getState().columns ?? [];
+          const nextColumns = columns.map((column) => {
+            const current = currentColumns.find((candidate) => candidate.id === column.id);
+            return current ? { ...column, width: current.width, flexgrow: current.flexgrow } : column;
+          });
+          void api.exec("set-columns", { columns: nextColumns }).catch(() => onCanonicalSyncFailureReference.current());
+        });
+      });
+    };
+    document.addEventListener("fullscreenchange", restoreColumnsAfterFullscreenTransition);
+    return () => {
+      document.removeEventListener("fullscreenchange", restoreColumnsAfterFullscreenTransition);
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
+  }, [apiInstanceId, columns]);
+
+  useEffect(() => {
     if (!columnMenuPosition) return;
     const restoreColumnMenuTrigger = () => {
       queueMicrotask(() => columnMenuTriggerReference.current?.focus({ preventScroll: true }));
@@ -985,7 +1015,8 @@ export function ProjectGantt({
           aria-label={isFullscreen ? "Gantt 전체 화면 종료" : "Gantt 전체 화면"} aria-pressed={isFullscreen}
           aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
           title={isFullscreen ? "전체 화면 종료 (Esc)" : "전체 화면 (Ctrl/Cmd+Shift+F)"}
-          disabled={fullscreenPending} onClick={() => void toggleFullscreen()}>
+          aria-busy={fullscreenPending || undefined} aria-disabled={fullscreenPending || undefined}
+          onClick={() => void toggleFullscreen()}>
           {isFullscreen ? "전체 화면 종료" : "전체 화면"}
         </button>
         <span className="project-gantt-fullscreen-status" role="status" aria-live="polite">{fullscreenMessage}</span>
