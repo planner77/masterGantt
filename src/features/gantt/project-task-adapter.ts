@@ -15,6 +15,7 @@ import type { LocalTaskUpdateCommand } from "./command-gateway";
 import {
   dateOnlyFromLocalDate,
   domainDatesToSvarDates,
+  localDateFromDateOnly,
   type DateOnly,
 } from "./date-adapter";
 
@@ -63,12 +64,20 @@ export function normalizeInlineTaskName(value: unknown): { name: string | null; 
     : { name, error: null };
 }
 
+function milestoneDateCenter(value: DateOnly): Date {
+  const start = localDateFromDateOnly(value);
+  const next = localDateFromDateOnly(value);
+  next.setDate(next.getDate() + 1);
+  return new Date(start.getTime() + (next.getTime() - start.getTime()) / 2);
+}
+
 export function projectTasksToSvarTasks(tasks: readonly ProjectTaskDto[]): ITask[] {
   const taskIdsByExternalId = new Map(tasks.map((task) => [task.externalId, task.taskId]));
   return tasks.map((task) => ({
     id: task.taskId,
     text: task.name,
     ...domainDatesToSvarDates({ start: dateOnly(task.start), end: dateOnly(task.end) }),
+    ...(task.type === "milestone" ? { start: milestoneDateCenter(dateOnly(task.start)) } : {}),
     progress: task.progress,
     type: task.type,
     parent: task.parentExternalId === null

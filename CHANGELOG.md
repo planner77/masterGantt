@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.33.0] - 2026-09-26
+
+### Fixed
+
+- Issue #142: Task/Summary의 inclusive 날짜 셀 폭을 회귀 검증하고 Milestone marker를 해당 로컬 날짜 셀의 시간상 중앙에 정렬한다. 날짜 저장·drag 역변환·dependency 계약은 유지한다.
+
 ## [0.32.0] - 2026-09-24
 
 ### Added

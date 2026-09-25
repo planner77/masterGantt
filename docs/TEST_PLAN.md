@@ -499,9 +499,11 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 
 위 항목은 #140의 **검증 계획**이다. 현재 작성된 `tests/e2e/project-gantt-inline-name.spec.ts`는 세 유형의 Enter 저장, Task의 blur 저장, 숫자 문자열·Escape·입력 오류·서버 실패·연결 제한·readonly·재조회·문서 overflow와 4개 폭의 input bounds·390px 오류 bounds를 직접 명세한다. Chart label·열린 Task Editor·Summary 일정 필드 차단·이름 더블클릭·다른 mutation pending·400 응답과 나머지 상태 보존 항목은 해당 전용 spec에서 아직 직접 단언하지 않았으며, 기존 테스트와 연결 증거를 확인하거나 후속 검증으로 남긴다. PR CI 시작 또는 일부 검사 성공만으로 미단언 항목을 PASS로 판정하지 않는다.
 
+
 ## Issue #142 Chart 날짜 셀 정렬 회귀
 
-- 동일 fixture의 Summary, 다일 Task, 1일 Task를 Day/Week 표시에서 측정한다. Summary/Task의 좌측은 시작 날짜 구간의 좌측, 우측은 inclusive 종료일 다음 날짜 구간의 좌측과 각각 ±1 CSS px 이내여야 한다. 1일 Task 폭은 그 날짜 하루 구간 전체다. 서로 다른 요일의 Milestone 시각 중심은 날짜 하루 구간 중앙과 ±1 CSS px 이내가 목표이나, 설치 Core의 공개 좌표 설정으로 안전하게 바꿀 수 없어 이번 PR에서는 **미충족/pending**으로 명시하고 PASS로 세지 않는다.
-- Week 표시에서는 주 셀 전체 폭으로 Task를 확장하거나 Milestone을 주 셀 중심으로 보내지 않는다. 실제 시작·종료 요일의 주 내 소수 좌표를 ISO 주 번호 라벨이 아닌 Core timeline의 주 시작과 7개 calendar day 경계(월·년·DST 전환 포함) 및 실제 header cell 폭으로 산출한다. 제품에는 별도 zoom 조작이 없어 지원 UI인 Day/Week 전환을 검증하고 임의 zoom UI는 N/A다. Day/Week 전환 및 horizontal scroll 뒤에도 같은 timeline 상대 좌표를 만족하고 Gantt root/API instance, 선택·Summary 펼침·Grid 열 상태를 불필요하게 잃지 않아야 한다.
-- 기존 drag/resize의 hitbox와 저장 후 canonical 날짜·revision, progress fill·selected outline·dependency/link anchor를 회귀 확인한다. readonly는 같은 geometry를 보이고 mutation을 만들지 않아야 한다. 390/768/1024/1440px에서 문서 가로 overflow 없이 Chart 내부 가로 스크롤로 대상 막대를 접근할 수 있어야 한다.
-- 위는 검증 계획이며 실제 작성된 전용 E2E의 assertion 범위와 별도로 관리한다. 제품 geometry는 사용자 선택에 따라 변경하지 않으며 Milestone 중앙 정렬은 별도 Core 지원/렌더링 범위 결정 전까지 Issue open으로 유지한다. 사용자 지시에 따라 로컬 test/lint/typecheck/build/browser는 **NOT TESTED**다. #142 PR의 정확한 head에서 `quality/e2e/docker` 실행 시작을 확인하되 결과와 미단언 항목을 PASS로 간주하지 않는다. API/DB/Scheduling/Security 계약 변경은 N/A다.
+- 동일 fixture의 Summary, 다일 Task, 1일 Task를 Day/Week에서 측정하여 시작일 좌측·inclusive 종료일 우측·1일 전체 폭을 ±1 CSS px로 검증한다.
+- Milestone은 같은 날짜의 1일 Task 중심과 비교해 marker 중심 편차가 ±1 CSS px 이내인지 390/768/1024/1440px에서 직접 단언한다.
+- horizontal scroll 전후에도 timeline 상대 위치와 Gantt root/API instance가 유지되어야 한다.
+- Milestone 이동 시 저장되는 도메인 날짜는 midpoint 시간값이 아니라 local YYYY-MM-DD로 역변환되며 duration을 파생하지 않는다.
+- 기존 drag/resize/progress/dependency/link anchor 및 readonly 무변경을 회귀 확인한다.

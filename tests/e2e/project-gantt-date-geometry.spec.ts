@@ -144,12 +144,11 @@ test("Task and Summary span included dates at four widths in day and week views"
       closeTo(summary.x + summary.width, friday.x + friday.width);
       closeTo(spanning.x, friday.x);
       closeTo(spanning.x + spanning.width, nextTuesday.x + nextTuesday.width);
-      // Record the known Core limitation without treating a displaced marker as PASS.
-      markerOffsets.push({
-        width, mode,
-        monday: mondayMilestone.x + mondayMilestone.width / 2 - (monday.x + monday.width / 2),
-        thursday: thursdayMilestone.x + thursdayMilestone.width / 2 - (thursday.x + thursday.width / 2),
-      });
+      const mondayMilestoneOffset = mondayMilestone.x + mondayMilestone.width / 2 - (monday.x + monday.width / 2);
+      const thursdayMilestoneOffset = thursdayMilestone.x + thursdayMilestone.width / 2 - (thursday.x + thursday.width / 2);
+      closeTo(mondayMilestoneOffset, 0);
+      closeTo(thursdayMilestoneOffset, 0);
+      markerOffsets.push({ width, mode, monday: mondayMilestoneOffset, thursday: thursdayMilestoneOffset });
 
       if (mode === "day") {
         const dayCell = containingCell(cells, monday.x + monday.width / 2);
@@ -212,9 +211,4 @@ test("Task and Summary span included dates at four widths in day and week views"
     body: JSON.stringify(markerOffsets, null, 2), contentType: "application/json",
   });
   expect(mutations).toEqual([]);
-});
-
-test.fixme("Milestone centers must match the included date's day-cell center", () => {
-  // Installed SVAR Core 2.7.3 centers the diamond at its start-date boundary.
-  // Reuse the ruler bars above when a supported per-Milestone geometry hook exists.
 });

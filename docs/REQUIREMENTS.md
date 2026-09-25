@@ -59,9 +59,6 @@ Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계�
 | R44 | Calendar 계산은 `Base weekly rule + WORKING/NON_WORKING date exception`을 사용한다. Project Task 일정에는 Project target만, #56 Resource workload에는 Project+Group+Resource NON_WORKING 합집합을 적용한다. Preview/저장은 edit session+Origin+If-Match를 요구하며 Manual conflict/날짜 충돌은 전체 원자 거부한다. | [Scheduling](SCHEDULING_ENGINE.md), [Test Plan](TEST_PLAN.md) |
 | R47 | Project status는 `planned / in_progress / completed`로 저장·조회·편집한다 (#138). 기존 Project는 `in_progress`, 신규 Project와 복사본은 `planned`이며 목록의 기본 보기에서는 완료를 제외한다. | [API](API.md), [DB](DB_SCHEMA.md), [UX 계약](PROJECT_UX.md). 상태 변경에도 edit session·Origin·If-Match와 canonical snapshot/revision 계약을 유지한다. |
 | R48 | Grid의 작업명 열에서 편집 가능한 Summary/Task/Milestone 이름을 한 번 클릭해 인라인 편집한다 (#140). Enter·blur는 저장, Escape는 취소하며 서버 canonical 결과로 Grid·Chart·Task Editor 표시를 일치시킨다. | 기존 Task PATCH의 세션·Origin·If-Match·revision·이름 검증과 연결 endpoint 제한을 유지한다. Summary는 Grid name-only 예외이고 Task Editor의 Summary readonly는 유지한다. [UX 계약](PROJECT_UX.md), [Task Editor](TASK_EDITOR.md), [Test Plan](TEST_PLAN.md) |
-| R49 | Summary/Task 막대는 시작일부터 종료일까지의 날짜 범위를 양 끝 셀 경계까지 표시하고, Milestone 중심은 해당 날짜의 하루 구간 중앙에 둔다 (#142). 주 보기에서도 실제 요일 위치를 유지한다. | 기존 inclusive 도메인 날짜→SVAR exclusive end 변환과 drag/resize·progress·dependency 동작, 저장·revision 계약을 유지한다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
-
-R49의 Milestone 중앙 정렬은 설치 SVAR Core 2.7.3에 별도 막대별 좌표 hook이 없고, 전역 hour 단위 전환은 DST·drag 계약을 바꾸므로 현재 **미충족**이다. #142 PR은 사용자 선택에 따라 기존 동작을 보존하고 안전한 범위의 좌표 검증과 미충족 항목을 기록하며 Issue를 종료하지 않는다.
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 
@@ -156,3 +153,12 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 삭제된 Project를 먼저 제외한 뒤 검색 조건을 적용하고, 전체 Project 0건과 검색 결과 0건을 서로 다른 상태로 표시한다.
 - 검색 입력은 Project API 재조회, page reload, Project mutation을 발생시키지 않으며 같은 page session의 Row Action/Dialog 사용 중 view state를 유지한다.
 - Task/Resource 검색은 Issue #83 구현을 그대로 사용하고 Project List가 별도 검색 프레임워크를 만들지 않는다. 공통 text normalization/operator primitive는 Project/Task predicate가 공유한다.
+
+
+## Issue #142 Chart 날짜 셀 정렬
+
+- Summary/Task bar는 시작일부터 종료일까지의 inclusive 날짜 범위를 양 끝 셀 경계까지 표시한다.
+- 1일 Task는 해당 날짜 셀 전체 폭을 사용한다.
+- Milestone marker 중심은 해당 로컬 날짜 셀의 시간상 midpoint와 일치한다.
+- Week 보기에서도 실제 요일 위치를 유지하며 주 전체 폭으로 확대하지 않는다.
+- 구현은 Milestone adapter 렌더링 좌표에만 국소 적용하고 저장 날짜·drag 역변환·progress·dependency·revision 계약은 유지한다.

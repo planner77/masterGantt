@@ -265,10 +265,11 @@ Next App Router의 `src/app/icon.svg`는 사이트 헤더의 파란 M 마크를 
 
 전용 unit/E2E 명세에는 세 유형, 단일 클릭과 F2, Enter/blur/Escape, 오류·중복·IME, 숫자 원문, 401/409/412/네트워크, 링크 무관 작업, 새로고침 영속성, Grid/Chart 인스턴스 및 390/768/1024/1440px overflow를 포함한다. 이 명세와 구현은 정적 검토만 했으며 실제 로컬 test/lint/typecheck/build/브라우저 조작, 구현 전후 화면 수치는 사용자 지시에 따라 **NOT TESTED**다. 공식 SVAR React Gantt Core 2.7.3의 text column, `getTable(true)`와 Table `open-editor`/`close-editor` API 및 설치 EventBus 순서를 확인했다(2026-09-24); 공식 demo의 실제 조작은 미실행이다. API·DB·Scheduling·Security 계약 문서 변경은 서버 계약 불변으로 N/A다.
 
+
 ## Issue #142 날짜 셀과 Chart 막대 위치
 
-Project 일정의 `start`/`end`는 종료일을 포함하는 날짜다. 기존 `domainDatesToSvarDates()`는 종료일의 다음날 00:00을 SVAR의 배타적 끝으로 전달한다. 설치된 SVAR React Gantt Core 2.7.3은 Task·Summary의 바깥 막대를 시작 좌표와 끝 좌표 차이로 계산하므로, 1일 Task는 하루 셀 폭이고 다일 Task·Summary는 마지막 포함 날짜의 오른쪽 셀 경계까지 표시되는 것이 의도된 동작이다. 일 보기와 주 보기 모두 실제 날짜 위치를 유지하며, 주 보기에서 작업을 주 전체 폭으로 늘리거나 특정 요일을 주 중앙에 놓지 않는다. 이 설명은 설치 소스와 어댑터의 **정적 근거**이며 실제 브라우저 geometry PASS를 뜻하지 않는다.
+Project 일정의 `start`/`end`는 종료일을 포함하는 날짜다. Task와 Summary는 기존 inclusive domain date → SVAR exclusive end 변환을 유지하여 시작일 셀 좌측부터 종료일 셀 우측까지 표시한다. 1일 Task는 하루 셀 전체 폭을 사용하고 Day/Week 전환에서도 실제 날짜 위치를 유지한다.
 
-Milestone에는 아직 알려진 제한이 있다. 설치된 Core는 Milestone의 바깥 막대 중심을 `start` 좌표에 두는데, 날짜만 저장하는 현재 어댑터는 해당 날짜의 00:00을 전달하므로 요구된 하루 구간 중앙보다 앞에 놓일 수 있다. Core의 공개 `taskTemplate`은 막대 내용만 바꾸며 Task 유형별 좌표 hook은 제공하지 않는다. 전역 시간 단위를 hour로 바꾸면 일광절약시간의 23/25시간 날짜에서 일반 Task·Summary 폭과 drag 의미가 바뀐다. CSS로 diamond만 옮기면 클릭 영역·dependency 연결점은 기존 좌표에 남는다. 사용자 결정에 따라 기존 Core 동작을 보존하고 이 Milestone 중앙 정렬 인수 기준은 **미충족/후속 해결 대상**으로 명시한다. 날짜 저장, 서버 일정 계산, 보호 mutation·revision 계약은 변경하지 않는다.
+Milestone은 설치된 SVAR Core 2.7.3이 marker 중심을 `start` 좌표에 두는 동작을 이용한다. adapter는 Milestone에 한해 해당 로컬 날짜 00:00과 다음 로컬 날짜 00:00 사이의 실제 경과시간 midpoint를 렌더링 `start`로 전달한다. 고정 12시간 보정이 아니므로 23/25시간 DST 날짜에서도 날짜 셀 중앙을 유지한다. 저장되는 YYYY-MM-DD 날짜, drag 결과의 local-date 역변환, 서버 scheduling/revision 계약은 변경하지 않으며 CSS-only 이동을 사용하지 않아 marker hitbox와 dependency anchor도 동일 좌표를 따른다.
 
-`tests/e2e/project-gantt-date-geometry.spec.ts`는 동일한 날짜 자 Task를 눈금자로 사용해 Task·Summary의 포함 범위, 1일 폭, 주 내 요일 간격, 가로 스크롤과 Gantt 인스턴스 보존을 390/768/1024/1440px에서 측정하도록 작성했다. 네이티브 Milestone 중심과 대응 날짜 Task 중심의 편차를 첨부 자료로 남기되 이를 PASS assertion으로 오인하지 않도록 별도 `fixme`로 표시한다. 작성된 명세의 로컬 test/lint/typecheck/build/브라우저 실행은 사용자 지시에 따라 **NOT TESTED**이며, 원격 CI 결과는 해당 PR head 기준으로 별도 판정한다. API·DB·Scheduling·Security 계약 문서 변경은 동작 계약 불변으로 N/A다.
+전용 E2E는 390/768/1024/1440px의 Day/Week에서 Task/Summary 포함 범위, 1일 폭, horizontal scroll, Gantt instance 보존과 Milestone 중심의 ±1 CSS px 정렬을 검증한다.
