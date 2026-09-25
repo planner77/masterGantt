@@ -90,7 +90,7 @@ test("상태 다중 선택은 검색과 AND이고 기본·초기화·페이지 �
   await expect(filterButton).toHaveText("필터 2");
   const created = panel.getByRole("group", { name: "생성일" });
   await created.getByLabel("생성일 조건").selectOption("before");
-  await created.getByLabel("날짜").fill(cutoffDate);
+  await created.locator('input[type="date"]').fill(cutoffDate);
   await expect(page.getByRole("heading", { name: "조건에 맞는 프로젝트가 없습니다." })).toBeVisible();
   await created.getByLabel("생성일 조건").selectOption("after");
   await expect(rows).toHaveCount(1);
@@ -170,7 +170,7 @@ test("생성 기본값과 설정 변경은 canonical 상태를 목록·읽기 �
   await expect(readonlyPage.locator(".project-lifecycle-badge")).toHaveText("완료");
   await expect(readonlyPage.getByText("읽기 전용", { exact: true })).toBeVisible();
   await expect(readonlyPage.getByRole("button", { name: "프로젝트 설정", exact: true })).toHaveCount(0);
-  await expect(readonlyPage.getByLabel("프로젝트 상태")).toHaveCount(0);
+  await expect(readonlyPage.getByRole("combobox", { name: "프로젝트 상태", exact: true })).toHaveCount(0);
   await readonlyContext.close();
 
   await page.getByRole("link", { name: "프로젝트", exact: true }).click();

@@ -179,6 +179,7 @@ export function ProjectGantt({
   const canonicalSyncDepthReference = useRef(0);
   const canonicalSyncVersionReference = useRef(0);
   const taskFilterAppliedReference = useRef(false);
+  const summaryToggleStateReference = useRef(new Map<string, boolean>());
   const instanceId = useState(() => `project-gantt-${Math.random().toString(36).slice(2)}`)[0];
   const canonicalSyncQueueReference = useRef<Promise<void>>(Promise.resolve());
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
@@ -187,6 +188,10 @@ export function ProjectGantt({
   const fullscreenButtonReference = useRef<HTMLButtonElement>(null);
   const fullscreenPendingReference = useRef(false);
   const fullscreenWasActiveReference = useRef(false);
+  const fullscreenUiStateReference = useRef<{
+    columns: IColumnConfig[];
+    summaries: Map<string, boolean>;
+  } | null>(null);
   const columnMenuReference = useRef<HTMLDivElement>(null);
   const columnMenuTriggerReference = useRef<HTMLElement | null>(null);
   const taskMenuReference = useRef<HTMLDivElement>(null);
@@ -227,6 +232,15 @@ export function ProjectGantt({
     canCreateReference.current = editable && !mutationLocked;
     mutationLockedReference.current = mutationLocked;
     tasksByIdReference.current = tasksById;
+    const summaries = new Set(
+      Array.from(tasksById.values()).filter((task) => task.type === "summary").map((task) => task.taskId),
+    );
+    for (const taskId of summaries) {
+      if (!summaryToggleStateReference.current.has(taskId)) summaryToggleStateReference.current.set(taskId, false);
+    }
+    for (const taskId of summaryToggleStateReference.current.keys()) {
+      if (!summaries.has(taskId)) summaryToggleStateReference.current.delete(taskId);
+    }
   }, [editable, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkDelete, tasksById]);
 
   useEffect(() => {
@@ -252,6 +266,63 @@ export function ProjectGantt({
     };
   }, []);
 
+  function captureSummaryToggleState(): Map<string, boolean> {
+    const state = new Map(summaryToggleStateReference.current);
+    const root = ganttScrollReference.current;
+    if (!root) return state;
+    root.querySelectorAll<HTMLElement>('[data-action="open-task"]').forEach((toggle) => {
+      const row = toggle.closest<HTMLElement>(".wx-row");
+      const taskId = row ? taskIdFromElement(row) : null;
+      if (!taskId || tasksByIdReference.current.get(taskId)?.type !== "summary") return;
+      const collapsed = toggle.classList.contains("wxi-menu-right");
+      state.set(taskId, collapsed);
+      summaryToggleStateReference.current.set(taskId, collapsed);
+    });
+    return state;
+  }
+
+  async function restoreSummaryToggleState(api: IApi, summaryState: ReadonlyMap<string, boolean>) {
+    for (const [taskId, collapsed] of summaryState) {
+      await api.exec("open-task", { id: taskId, mode: !collapsed });
+    }
+  }
+
+  async function restoreFullscreenUiState(
+    savedColumns: IColumnConfig[],
+    summaryState: ReadonlyMap<string, boolean>,
+  ) {
+    const api = apiReference.current;
+    if (!api) return;
+
+    const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    // fullscreenchange updates React state and SVAR performs its own resize/layout work.
+    // Let those renders settle before restoring mutable widget state.
+    await nextFrame();
+    await nextFrame();
+    await api.exec("set-columns", { columns: savedColumns });
+
+    // Use SVAR's documented action instead of DOM clicks so the visual toggle and
+    // the internal task-tree state are updated atomically.
+    await restoreSummaryToggleState(api, summaryState);
+  }
+
+  useEffect(() => {
+    const saved = fullscreenUiStateReference.current;
+    if (!saved || !apiInstanceId) return;
+    let cancelled = false;
+    void (async () => {
+      await restoreFullscreenUiState(saved.columns, saved.summaries);
+      if (cancelled) return;
+      // A second pass after a macrotask catches SVAR resize work scheduled after
+      // React's fullscreen state commit without recreating the Gantt instance.
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+      if (!cancelled) await restoreFullscreenUiState(saved.columns, saved.summaries);
+    })().catch(() => {
+      if (!cancelled) onCanonicalSyncFailureReference.current();
+    });
+    return () => { cancelled = true; };
+  }, [apiInstanceId, isFullscreen]);
+
   async function toggleFullscreen() {
     const frame = fullscreenFrameReference.current;
     if (!frame || fullscreenPendingReference.current) return;
@@ -259,6 +330,14 @@ export function ProjectGantt({
     setFullscreenPending(true);
     setFullscreenMessage("");
     try {
+      // Flush pending canonical/column state before the browser changes layout.
+      // Re-applying columns after fullscreenchange can reset SVAR UI state such as
+      // Summary expand/collapse, so settle the existing queue first instead.
+      await canonicalSyncQueueReference.current;
+      const api = apiReference.current;
+      const savedColumns = (api?.getState().columns ?? []).map((column) => ({ ...column }));
+      const summaryState = captureSummaryToggleState();
+      fullscreenUiStateReference.current = { columns: savedColumns, summaries: summaryState };
       if (document.fullscreenElement === frame) {
         await document.exitFullscreen();
       } else if (!document.fullscreenElement && typeof frame.requestFullscreen === "function") {
@@ -286,6 +365,26 @@ export function ProjectGantt({
     document.addEventListener("keydown", onShortcut);
     return () => document.removeEventListener("keydown", onShortcut);
   });
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root || !apiInstanceId) return;
+    const onSummaryToggleClick = (event: MouseEvent) => {
+      const toggle = event.target instanceof Element
+        ? event.target.closest<HTMLElement>('[data-action="open-task"]')
+        : null;
+      if (!toggle || !root.contains(toggle)) return;
+      const row = toggle.closest<HTMLElement>(".wx-row");
+      const taskId = row ? taskIdFromElement(row) : null;
+      if (!taskId || tasksByIdReference.current.get(taskId)?.type !== "summary") return;
+      // Capture before SVAR handles the click. The next state is the inverse of
+      // the currently rendered icon, so DOM replacement cannot make us lose it.
+      const currentlyCollapsed = toggle.classList.contains("wxi-menu-right");
+      summaryToggleStateReference.current.set(taskId, !currentlyCollapsed);
+    };
+    root.addEventListener("click", onSummaryToggleClick, true);
+    return () => root.removeEventListener("click", onSummaryToggleClick, true);
+  }, [apiInstanceId]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -389,8 +488,9 @@ export function ProjectGantt({
   const initialConfig = useState(() => ({
     tasks: projectTasksToSvarTasks(tasks),
     links: projectLinksToSvarLinks(links, tasks),
-    columns,
+    columns: columns.map((column) => ({ ...column })),
   }))[0];
+  const ganttColumnsReference = useRef<IColumnConfig[]>(initialConfig.columns);
   const initialRange = useState(() => {
     const fallback = emptyWorkspaceRange();
     const starts = initialConfig.tasks.flatMap((task) => task.start instanceof Date ? [task.start] : []).concat(fallback.start);
@@ -440,12 +540,24 @@ export function ProjectGantt({
       canonicalSyncDepthReference.current += 1;
       try {
         // State columns are optional; retain configured defaults when absent.
+        // set-columns rebuilds presentation state in SVAR, so capture and restore
+        // Summary branches around every column synchronization.
+        const summaryState = captureSummaryToggleState();
         const currentColumns = api.getState().columns ?? [];
         const nextColumns = columns.map((column) => {
           const current = currentColumns.find((candidate) => candidate.id === column.id);
-          return current ? { ...column, width: current.width, flexgrow: current.flexgrow } : column;
+          return current ? { ...column, width: current.width, flexgrow: current.flexgrow } : { ...column };
         });
+        // Keep the prop reference stable so ordinary React renders do not reset
+        // SVAR UI state, but refresh its contents so scale/fullscreen renders
+        // cannot fall back to the mount-time column visibility.
+        ganttColumnsReference.current.splice(
+          0,
+          ganttColumnsReference.current.length,
+          ...nextColumns.map((column) => ({ ...column })),
+        );
         await api.exec("set-columns", { columns: nextColumns });
+        await restoreSummaryToggleState(api, summaryState);
       } catch {
         onCanonicalSyncFailureReference.current();
       } finally {
@@ -985,7 +1097,8 @@ export function ProjectGantt({
           aria-label={isFullscreen ? "Gantt 전체 화면 종료" : "Gantt 전체 화면"} aria-pressed={isFullscreen}
           aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
           title={isFullscreen ? "전체 화면 종료 (Esc)" : "전체 화면 (Ctrl/Cmd+Shift+F)"}
-          disabled={fullscreenPending} onClick={() => void toggleFullscreen()}>
+          aria-busy={fullscreenPending || undefined} aria-disabled={fullscreenPending || undefined}
+          onClick={() => void toggleFullscreen()}>
           {isFullscreen ? "전체 화면 종료" : "전체 화면"}
         </button>
         <span className="project-gantt-fullscreen-status" role="status" aria-live="polite">{fullscreenMessage}</span>
@@ -1002,7 +1115,7 @@ export function ProjectGantt({
         >
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
-              columns={initialConfig.columns}
+              columns={ganttColumnsReference.current}
               displayMode="all"
               gridWidth={620}
               highlightTime={scaleMode === "day" ? highlightWeekend : undefined}
