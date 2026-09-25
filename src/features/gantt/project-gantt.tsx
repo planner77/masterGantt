@@ -428,8 +428,9 @@ export function ProjectGantt({
   const initialConfig = useState(() => ({
     tasks: projectTasksToSvarTasks(tasks),
     links: projectLinksToSvarLinks(links, tasks),
-    columns,
+    columns: columns.map((column) => ({ ...column })),
   }))[0];
+  const ganttColumnsReference = useRef<IColumnConfig[]>(initialConfig.columns);
   const initialRange = useState(() => {
     const fallback = emptyWorkspaceRange();
     const starts = initialConfig.tasks.flatMap((task) => task.start instanceof Date ? [task.start] : []).concat(fallback.start);
@@ -482,8 +483,16 @@ export function ProjectGantt({
         const currentColumns = api.getState().columns ?? [];
         const nextColumns = columns.map((column) => {
           const current = currentColumns.find((candidate) => candidate.id === column.id);
-          return current ? { ...column, width: current.width, flexgrow: current.flexgrow } : column;
+          return current ? { ...column, width: current.width, flexgrow: current.flexgrow } : { ...column };
         });
+        // Keep the prop reference stable so ordinary React renders do not reset
+        // SVAR UI state, but refresh its contents so scale/fullscreen renders
+        // cannot fall back to the mount-time column visibility.
+        ganttColumnsReference.current.splice(
+          0,
+          ganttColumnsReference.current.length,
+          ...nextColumns.map((column) => ({ ...column })),
+        );
         await api.exec("set-columns", { columns: nextColumns });
       } catch {
         onCanonicalSyncFailureReference.current();
@@ -1042,7 +1051,7 @@ export function ProjectGantt({
         >
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
-              columns={initialConfig.columns}
+              columns={ganttColumnsReference.current}
               displayMode="all"
               gridWidth={620}
               highlightTime={scaleMode === "day" ? highlightWeekend : undefined}
