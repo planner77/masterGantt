@@ -1,0 +1,119 @@
+name: Issue 136 릴리스 완료 자동화
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/issue-136-release-helper.yml"
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  release:
+    name: v0.29.0 GHCR 릴리스·브랜치 정리·이슈 종료
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      RELEASE_TAG: v0.29.0
+      FEATURE_BRANCH: feat/issue-136-header-version
+      FEATURE_PR: "158"
+      FEATURE_HEAD_SHA: b82ca1514eb2bd24c2788cbaee7c8831bc186eed
+      FEATURE_MERGE_SHA: d354f7368ac19bc55246ae64564a52aca4da4825
+      FINALIZER_BRANCH: ops/issue-136-release-v0.29.0
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Issue #136 완료 증거 검증
+        shell: bash
+        run: |
+          set -euo pipefail
+          target_sha="$GITHUB_SHA"
+
+          test "$(git show "$target_sha:package.json" | jq -r .version)" = "0.29.0"
+          git merge-base --is-ancestor "$FEATURE_MERGE_SHA" "$target_sha"
+
+          pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$FEATURE_PR")"
+          test "$(jq -r '.merged_at // ""' <<<"$pr")" != ""
+          test "$(jq -r '.base.ref' <<<"$pr")" = "main"
+          test "$(jq -r '.head.ref' <<<"$pr")" = "$FEATURE_BRANCH"
+          test "$(jq -r '.head.sha' <<<"$pr")" = "$FEATURE_HEAD_SHA"
+          test "$(jq -r '.merge_commit_sha' <<<"$pr")" = "$FEATURE_MERGE_SHA"
+
+          main_ci_url=""
+          for _ in $(seq 1 300); do
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=50")"
+            run="$(jq -c --arg sha "$target_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" && "$(jq -r .status <<<"$run")" == "completed" ]]; then
+              test "$(jq -r '.conclusion // ""' <<<"$run")" = "success"
+              main_ci_url="$(jq -r .html_url <<<"$run")"
+              break
+            fi
+            sleep 15
+          done
+          test -n "$main_ci_url"
+          echo "MAIN_CI_URL=$main_ci_url" >> "$GITHUB_ENV"
+          echo "TARGET_SHA=$target_sha" >> "$GITHUB_ENV"
+
+      - name: v0.29.0 annotated tag 생성 및 GHCR release 완료
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "Release $RELEASE_TAG"
+            git push origin "refs/tags/$RELEASE_TAG"
+          fi
+
+          git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          test "$(git cat-file -t "refs/tags/$RELEASE_TAG")" = "tag"
+          test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$TARGET_SHA"
+
+          release_run_url=""
+          existing_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?per_page=100")"
+          successful="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .status == "completed" and .conclusion == "success")] | sort_by(.created_at) | last // empty' <<<"$existing_runs")"
+          if [[ -n "$successful" ]]; then
+            release_run_url="$(jq -r .html_url <<<"$successful")"
+          else
+            dispatched_after="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" -f ref="$RELEASE_TAG"
+            for _ in $(seq 1 480); do
+              runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=100")"
+              run="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" --arg after "$dispatched_after" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .created_at >= $after)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+              if [[ -n "$run" && "$(jq -r .status <<<"$run")" == "completed" ]]; then
+                test "$(jq -r '.conclusion // ""' <<<"$run")" = "success"
+                release_run_url="$(jq -r .html_url <<<"$run")"
+                break
+              fi
+              sleep 15
+            done
+          fi
+          test -n "$release_run_url"
+          echo "RELEASE_RUN_URL=$release_run_url" >> "$GITHUB_ENV"
+
+      - name: Issue #136 작업 브랜치 안전 삭제
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr "$FEATURE_PR"             --branch "$FEATURE_BRANCH"             --target-sha "$TARGET_SHA"             --delete
+
+          owner="${GITHUB_REPOSITORY%%/*}"
+          finalizer_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$FINALIZER_BRANCH&per_page=10" | jq -r '[.[] | select(.merged_at != null)] | sort_by(.merged_at) | last | .number // empty')"
+          test -n "$finalizer_pr"
+          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr "$finalizer_pr"             --branch "$FINALIZER_BRANCH"             --target-sha "$TARGET_SHA"             --delete
+
+      - name: Issue #136 FINAL 기록 및 종료
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(printf '%s\n'             "## FINAL · Issue #136 완료"             ""             "**최종 상태:** COMPLETED"             ""             "- 기능 PR: #158 (merged)"             "- 기능 head: $FEATURE_HEAD_SHA"             "- 기능 merge SHA: $FEATURE_MERGE_SHA"             "- 최종 버전: 0.29.0"             "- 정식 tag: $RELEASE_TAG"             "- main CI: $MAIN_CI_URL"             "- GHCR 정식 release: $RELEASE_RUN_URL"             "- 작업 브랜치 삭제: $FEATURE_BRANCH"             "- finalization 브랜치 삭제: $FINALIZER_BRANCH"             "- 문서 동기화: CHANGELOG / PROJECT_UX / TEST_PLAN"             "- PR CI #840: PASS"             "- main CI #841 및 finalizer 기준 main CI: PASS"             "- 잔여 차단 사항: 없음")"
+          gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/136/comments" -f body="$body"
+          gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/136" -f state="closed" -f state_reason="completed"
