@@ -259,6 +259,10 @@ export function ProjectGantt({
     setFullscreenPending(true);
     setFullscreenMessage("");
     try {
+      // Flush pending canonical/column state before the browser changes layout.
+      // Re-applying columns after fullscreenchange can reset SVAR UI state such as
+      // Summary expand/collapse, so settle the existing queue first instead.
+      await canonicalSyncQueueReference.current;
       if (document.fullscreenElement === frame) {
         await document.exitFullscreen();
       } else if (!document.fullscreenElement && typeof frame.requestFullscreen === "function") {
@@ -454,36 +458,6 @@ export function ProjectGantt({
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [columns]);
-
-  useEffect(() => {
-    const frame = fullscreenFrameReference.current;
-    if (!frame || !apiInstanceId) return;
-    let firstFrame = 0;
-    let secondFrame = 0;
-    const restoreColumnsAfterFullscreenTransition = () => {
-      if (document.fullscreenElement !== null && document.fullscreenElement !== frame) return;
-      window.cancelAnimationFrame(firstFrame);
-      window.cancelAnimationFrame(secondFrame);
-      firstFrame = window.requestAnimationFrame(() => {
-        secondFrame = window.requestAnimationFrame(() => {
-          const api = apiReference.current;
-          if (!api || !frame.isConnected) return;
-          const currentColumns = api.getState().columns ?? [];
-          const nextColumns = columns.map((column) => {
-            const current = currentColumns.find((candidate) => candidate.id === column.id);
-            return current ? { ...column, width: current.width, flexgrow: current.flexgrow } : column;
-          });
-          void api.exec("set-columns", { columns: nextColumns }).catch(() => onCanonicalSyncFailureReference.current());
-        });
-      });
-    };
-    document.addEventListener("fullscreenchange", restoreColumnsAfterFullscreenTransition);
-    return () => {
-      document.removeEventListener("fullscreenchange", restoreColumnsAfterFullscreenTransition);
-      window.cancelAnimationFrame(firstFrame);
-      window.cancelAnimationFrame(secondFrame);
-    };
-  }, [apiInstanceId, columns]);
 
   useEffect(() => {
     if (!columnMenuPosition) return;
