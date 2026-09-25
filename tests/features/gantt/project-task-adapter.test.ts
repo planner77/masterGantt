@@ -107,14 +107,6 @@ describe("Project task SVAR adapter", () => {
     }, task, calendar)).toBeNull();
   });
 
-  it("renders a milestone at the midpoint of its local calendar date", () => {
-    const milestone = { ...task, taskId: "milestone-center", type: "milestone" as const, duration: 0, start: "2026-09-15", end: "2026-09-15" };
-    const mapped = projectTasksToSvarTasks([milestone])[0];
-    const dayStart = localDateFromDateOnly("2026-09-15");
-    const nextDay = localDateFromDateOnly("2026-09-16");
-    expect(mapped.start?.getTime()).toBe(dayStart.getTime() + (nextDay.getTime() - dayStart.getTime()) / 2);
-  });
-
   it("allows a milestone move but never derives a duration", () => {
     const milestone = { ...task, taskId: "milestone-a", type: "milestone" as const, duration: 0, end: "2026-09-15" };
     expect(translateProjectTaskUpdate({

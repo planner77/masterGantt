@@ -734,6 +734,52 @@ export function ProjectGantt({
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root) return;
+    const milestoneIds = new Set(tasks.filter((task) => task.type === "milestone").map((task) => task.taskId));
+    let animationFrame = 0;
+
+    const alignMilestonesToDateCenters = () => {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(() => {
+        const rows = root.querySelectorAll<HTMLElement>(".wx-scale .wx-row");
+        const finestRow = rows.item(rows.length - 1);
+        const referenceCell = finestRow?.querySelector<HTMLElement>(".wx-cell");
+        if (!referenceCell) return;
+        const cellWidth = referenceCell.getBoundingClientRect().width;
+        if (!(cellWidth > 0)) return;
+        const offset = scaleMode === "day" ? cellWidth / 2 : cellWidth / 14;
+
+        root.querySelectorAll<HTMLElement>(".wx-chart .wx-bar.wx-milestone").forEach((bar) => {
+          const taskId = taskIdFromElement(bar);
+          if (!taskId || !milestoneIds.has(taskId)) {
+            bar.style.removeProperty("translate");
+            bar.removeAttribute("data-project-milestone-centered");
+            return;
+          }
+          // Use the CSS individual translate property so Core's milestone
+          // content rotation remains intact. Moving the bar also moves its
+          // hitbox and descendant link handles.
+          bar.style.setProperty("translate", `${offset}px 0`);
+          bar.setAttribute("data-project-milestone-centered", "true");
+        });
+      });
+    };
+
+    alignMilestonesToDateCenters();
+    const mutationObserver = new MutationObserver(alignMilestonesToDateCenters);
+    mutationObserver.observe(root, { childList: true, subtree: true });
+    const resizeObserver = new ResizeObserver(alignMilestonesToDateCenters);
+    resizeObserver.observe(root);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      mutationObserver.disconnect();
+      resizeObserver.disconnect();
+    };
+  }, [scaleMode, tasks]);
+
   const scales = useMemo(() => [
     {
       unit: "month",
