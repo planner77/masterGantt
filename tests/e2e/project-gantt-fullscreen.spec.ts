@@ -135,6 +135,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await expect.poll(async () => Math.abs(await rowBarOffset())).toBeLessThan(2);
     const initialOffset = await rowBarOffset();
     await expect(gridHeader.getByText("외부 ID", { exact: true })).toBeVisible();
+    await expect.poll(() => summaryToggle.getAttribute("class")).toBe(summaryClassBeforeFullscreen);
 
     await fullscreenButton(page).click();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
