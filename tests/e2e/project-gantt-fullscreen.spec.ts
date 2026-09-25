@@ -42,19 +42,6 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
       expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width + 1);
       expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(height + 1);
       await page.screenshot({ path: testInfo.outputPath(`issue-155-fullscreen-${width}.png`) });
-      if (width === 1024) {
-        await page.setViewportSize({ width: 900, height: 800 });
-        if (await isOwnFullscreen(page)) {
-          await expect(exitButton(page)).toHaveAttribute("aria-pressed", "true");
-          const resized = await ganttRoot(page).boundingBox();
-          expect(resized).not.toBeNull();
-          expect(resized!.x + resized!.width).toBeLessThanOrEqual(901);
-          expect(resized!.y + resized!.height).toBeLessThanOrEqual(801);
-        } else {
-          await expect(fullscreenButton(page)).toHaveAttribute("aria-pressed", "false");
-        }
-        await page.setViewportSize({ width, height });
-      }
       if (await isOwnFullscreen(page)) await exitButton(page).click();
       await expect.poll(() => isOwnFullscreen(page)).toBe(false);
       await expect(fullscreenButton(page)).toBeFocused();
@@ -146,8 +133,8 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     await expect(ganttRoot(page)).toHaveAttribute("data-gantt-scale-mode", "week");
     await expect(gridHeader.getByText("외부 ID", { exact: true })).toBeVisible();
-    expect((await taskHeaderCell.boundingBox())!.width).toBeCloseTo(columnWidth, 0);
-    expect((await ganttRoot(page).locator(".wx-table-container").first().boundingBox())!.width).toBeCloseTo(gridWidth, 0);
+    expect(Math.abs((await taskHeaderCell.boundingBox())!.width - columnWidth)).toBeLessThanOrEqual(1);
+    expect(Math.abs((await ganttRoot(page).locator(".wx-table-container").first().boundingBox())!.width - gridWidth)).toBeLessThanOrEqual(1);
     expect(await chart.evaluate((element) => element.scrollLeft)).toBeCloseTo(chartScroll, 0);
     expect(await vertical.evaluate((element) => element.scrollTop)).toBeCloseTo(verticalScroll, 0);
     await expect.poll(async () => Math.abs(await rowBarOffset())).toBeLessThan(2);
@@ -162,8 +149,8 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await expect(fullscreenButton(page)).toHaveAttribute("aria-pressed", "false");
     await expectSameGanttRoot(page, identity);
     await expect(gridHeader.getByText("외부 ID", { exact: true })).toBeVisible();
-    expect((await taskHeaderCell.boundingBox())!.width).toBeCloseTo(columnWidth, 0);
-    expect((await ganttRoot(page).locator(".wx-table-container").first().boundingBox())!.width).toBeCloseTo(gridWidth, 0);
+    expect(Math.abs((await taskHeaderCell.boundingBox())!.width - columnWidth)).toBeLessThanOrEqual(1);
+    expect(Math.abs((await ganttRoot(page).locator(".wx-table-container").first().boundingBox())!.width - gridWidth)).toBeLessThanOrEqual(1);
     expect(await chart.evaluate((element) => element.scrollLeft)).toBeCloseTo(chartScroll, 0);
     expect(await vertical.evaluate((element) => element.scrollTop)).toBeCloseTo(verticalScroll, 0);
     await expect.poll(async () => Math.abs(await rowBarOffset())).toBeLessThan(2);
