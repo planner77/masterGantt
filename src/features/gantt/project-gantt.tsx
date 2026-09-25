@@ -262,11 +262,18 @@ export function ProjectGantt({
     if (!api) return state;
     const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
     currentTasks.forEach((task) => {
-      if (task.type !== "summary" || (typeof task.id !== "string" && typeof task.id !== "number")) return;
+      if (typeof task.id !== "string" && typeof task.id !== "number") return;
       const taskId = String(task.id).startsWith(":") ? String(task.id).slice(1) : String(task.id);
+      if (tasksByIdReference.current.get(taskId)?.type !== "summary") return;
       state.set(taskId, task.open === false);
     });
     return state;
+  }
+
+  async function restoreSummaryToggleState(api: IApi, summaryState: ReadonlyMap<string, boolean>) {
+    for (const [taskId, collapsed] of summaryState) {
+      await api.exec("open-task", { id: taskId, mode: !collapsed });
+    }
   }
 
   async function restoreFullscreenUiState(
@@ -285,9 +292,7 @@ export function ProjectGantt({
 
     // Use SVAR's documented action instead of DOM clicks so the visual toggle and
     // the internal task-tree state are updated atomically.
-    for (const [taskId, collapsed] of summaryState) {
-      await api.exec("open-task", { id: taskId, mode: !collapsed });
-    }
+    await restoreSummaryToggleState(api, summaryState);
   }
 
   useEffect(() => {
@@ -504,6 +509,9 @@ export function ProjectGantt({
       canonicalSyncDepthReference.current += 1;
       try {
         // State columns are optional; retain configured defaults when absent.
+        // set-columns rebuilds presentation state in SVAR, so capture and restore
+        // Summary branches around every column synchronization.
+        const summaryState = captureSummaryToggleState();
         const currentColumns = api.getState().columns ?? [];
         const nextColumns = columns.map((column) => {
           const current = currentColumns.find((candidate) => candidate.id === column.id);
@@ -518,6 +526,7 @@ export function ProjectGantt({
           ...nextColumns.map((column) => ({ ...column })),
         );
         await api.exec("set-columns", { columns: nextColumns });
+        await restoreSummaryToggleState(api, summaryState);
       } catch {
         onCanonicalSyncFailureReference.current();
       } finally {
