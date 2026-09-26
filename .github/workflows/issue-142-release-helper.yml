@@ -20,6 +20,7 @@ jobs:
     timeout-minutes: 240
     env:
       RELEASE_TAG: v0.33.0
+      RELEASE_SHA: 13b2390e65f4f13d0f22a19878146a42fcaaec50
       FEATURE_BRANCH: fix/issue-142-chart-cell-alignment
       FEATURE_PR: "162"
       FEATURE_HEAD_SHA: 214227e96d14ac72cf08f98ab648aa4dfdc431bb
@@ -41,6 +42,7 @@ jobs:
           target_sha="$GITHUB_SHA"
 
           test "$(git show "$target_sha:package.json" | jq -r .version)" = "0.33.0"
+          git merge-base --is-ancestor "$RELEASE_SHA" "$target_sha"
           git merge-base --is-ancestor "$STACK_MERGE_SHA" "$target_sha"
 
           feature_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$FEATURE_PR")"
@@ -77,17 +79,17 @@ jobs:
           if ! git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git tag -a "$RELEASE_TAG" "$TARGET_SHA" -m "Release $RELEASE_TAG"
+            git tag -a "$RELEASE_TAG" "$RELEASE_SHA" -m "Release $RELEASE_TAG"
             git push origin "refs/tags/$RELEASE_TAG"
           fi
 
           git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
           test "$(git cat-file -t "refs/tags/$RELEASE_TAG")" = "tag"
-          test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$TARGET_SHA"
+          test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$RELEASE_SHA"
 
           release_run_url=""
           existing_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?per_page=100")"
-          successful="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .status == "completed" and .conclusion == "success")] | sort_by(.created_at) | last // empty' <<<"$existing_runs")"
+          successful="$(jq -c --arg sha "$RELEASE_SHA" --arg tag "$RELEASE_TAG" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .status == "completed" and .conclusion == "success")] | sort_by(.created_at) | last // empty' <<<"$existing_runs")"
           if [[ -n "$successful" ]]; then
             release_run_url="$(jq -r .html_url <<<"$successful")"
           else
@@ -95,7 +97,7 @@ jobs:
             gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" -f ref="$RELEASE_TAG"
             for _ in $(seq 1 480); do
               runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=100")"
-              run="$(jq -c --arg sha "$TARGET_SHA" --arg tag "$RELEASE_TAG" --arg after "$dispatched_after" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .created_at >= $after)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+              run="$(jq -c --arg sha "$RELEASE_SHA" --arg tag "$RELEASE_TAG" --arg after "$dispatched_after" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .created_at >= $after)] | sort_by(.created_at) | last // empty' <<<"$runs")"
               if [[ -n "$run" && "$(jq -r .status <<<"$run")" == "completed" ]]; then
                 test "$(jq -r '.conclusion // ""' <<<"$run")" = "success"
                 release_run_url="$(jq -r .html_url <<<"$run")"
