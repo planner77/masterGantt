@@ -35,7 +35,8 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   const chart = page.locator(".wx-chart");
   await chart.evaluate((element) => { element.scrollLeft = 200; });
   const before = await geometry(page);
-  await milestoneAdd.click();
+  // Native dispatch avoids Playwright actionability auto-scroll from changing the Grid position.
+  await milestoneAdd.dispatchEvent("click");
   await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업");
   await expect(page.getByRole("button", { name: "알림함, 미확인 1건" })).toBeVisible();
   expect(await geometry(page)).toEqual(before);
