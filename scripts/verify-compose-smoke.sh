@@ -20,7 +20,8 @@ WRONG_RESOURCE_CATALOG_ADMIN_PASSWORD="Wrong123456!"
 export ALLOW_INSECURE_HTTP="false"
 owned=false
 
-dc() { docker compose --env-file /dev/null -f "$root/deploy/compose.yml" "$@"; }
+dc() { docker compose --env-file /dev/null -f "$root/deploy/compose.yml" -f "$root/deploy/compose.build.yml" "$@"; }
+dc_prod() { docker compose --env-file /dev/null -f "$root/deploy/compose.yml" "$@"; }
 cleanup() {
   status=$?
   trap - EXIT
@@ -46,11 +47,19 @@ if env -u RESOURCE_CATALOG_ADMIN_PASSWORD docker compose --env-file /dev/null -f
 fi
 grep -q 'RESOURCE_CATALOG_ADMIN_PASSWORD' "$tmp/missing-resource-admin.err"
 echo 'Compose 리소스 관리자 비밀번호 누락 fail-fast: PASS'
-dc config --format json > "$tmp/compose.json"
-python3 - "$tmp/compose.json" "$root" <<'PY_CONFIG'
+dc_prod config --format json > "$tmp/compose-prod.json"
+dc config --format json > "$tmp/compose-build.json"
+python3 - "$tmp/compose-prod.json" "$tmp/compose-build.json" "$root" <<'PY_CONFIG'
 import json, os, pathlib, sys
-config = json.loads(pathlib.Path(sys.argv[1]).read_text())
-root = pathlib.Path(sys.argv[2]).resolve()
+prod = json.loads(pathlib.Path(sys.argv[1]).read_text())
+config = json.loads(pathlib.Path(sys.argv[2]).read_text())
+root = pathlib.Path(sys.argv[3]).resolve()
+assert prod['name'] == os.environ['COMPOSE_PROJECT_NAME']
+assert set(prod['services']) == {'app'}
+prod_app = prod['services']['app']
+assert 'build' not in prod_app
+assert prod_app['image'] == 'mastergantt:ci'
+assert prod_app['pull_policy'] == 'always'
 assert config['name'] == os.environ['COMPOSE_PROJECT_NAME']
 assert set(config['services']) == {'app'}
 app = config['services']['app']
@@ -59,6 +68,7 @@ assert app['build']['dockerfile'] == 'deploy/docker/Dockerfile'
 assert (root / app['build']['dockerfile']).is_file()
 assert app['build']['args']['VERSION'] == 'layout-ci'
 assert app['image'] == 'mastergantt:ci'
+assert app['pull_policy'] == 'never'
 assert app['restart'] == 'unless-stopped'
 assert app['environment']['NODE_ENV'] == 'production'
 assert app['environment']['DATABASE_PATH'] == '/data/mastergantt.sqlite3'
