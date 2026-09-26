@@ -32,6 +32,14 @@ RETIRED_ISSUE_HELPERS = (
     "issue-97-release-helper.yml",
     "issue-104-release-helper.yml",
     "issue-108-release-helper.yml",
+    "issue-99-release-helper.yml",
+    "issue-99-legacy-branch-cleanup.yml",
+    "issue-115-release-helper.yml",
+    "issue-116-release-helper.yml",
+    "issue-117-release-helper.yml",
+    "issue-119-release-helper.yml",
+    "issue-121-release-helper.yml",
+    "issue-149-release-helper.yml",
 )
 
 
