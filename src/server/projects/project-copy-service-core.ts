@@ -15,12 +15,15 @@ import {
   EditSessionRepository,
   ProjectRepository,
 } from "../repositories/project-repository-core";
+import { ScheduleRepository, type TaskRecord } from "../repositories/schedule-repository-core";
 import {
-  ScheduleRepository,
-  type TaskRecord,
-} from "../repositories/schedule-repository-core";
-import { LogisticsRepository } from "../repositories/logistics-repository-core";
-import { LogisticsCopyNotSupportedYetError } from "../logistics/logistics-service-core";
+  LogisticsRepository,
+  type ProcessRecord,
+  type EquipmentRecord,
+  type LogisticsSystemRecord,
+} from "../repositories/logistics-repository-core";
+import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
+import { LogisticsService, LogisticsCopyNotSupportedYetError } from "../logistics/logistics-service-core";
 import {
   hashEditPassword,
   type PasswordHashRecord,
@@ -104,6 +107,8 @@ export class ProjectCopyService {
   private readonly schedules: ScheduleRepository;
   private readonly calendars: WorkCalendarRepository;
   private readonly logistics: LogisticsRepository;
+  private readonly resourceCatalog: ResourceCatalogRepository;
+  private readonly logisticsService: LogisticsService;
   private readonly clock: () => Date;
   private readonly generatePublicId: () => string;
   private readonly generateTaskPublicId: () => string;
@@ -121,7 +126,9 @@ export class ProjectCopyService {
     this.schedules = new ScheduleRepository(database);
     this.calendars = new WorkCalendarRepository(database);
     this.logistics = new LogisticsRepository(database);
+    this.resourceCatalog = new ResourceCatalogRepository(database);
     this.clock = options.clock ?? (() => new Date());
+    this.logisticsService = new LogisticsService(database, { clock: this.clock });
     this.generatePublicId = options.generatePublicId ?? randomUUID;
     this.generateTaskPublicId = options.generateTaskPublicId ?? randomUUID;
     this.generateLinkPublicId = options.generateLinkPublicId ?? randomUUID;
@@ -154,10 +161,6 @@ export class ProjectCopyService {
         }
         if (!source || source.revision !== expectedRevision) {
           throw new RevisionMismatchError();
-        }
-
-        if (this.logistics.hasLogisticsData(source.id)) {
-          throw new LogisticsCopyNotSupportedYetError();
         }
 
         const sourceTasks = this.schedules.listTasks(source.id);
@@ -339,6 +342,258 @@ export class ProjectCopyService {
           });
         }
 
+        // 1. 태스크 리소스 할당(task_assignments) 복사
+        const sourceAssignments = this.resourceCatalog.listAssignments(source.id);
+        const copiedAssignmentsByTask = new Map<number, Array<{
+          assignmentPublicId: string;
+          kind: "resource" | "group";
+          internalId: number;
+          publicId: string;
+          assignmentStart: string | null;
+          assignmentEnd: string | null;
+          allocationPercent: number | null;
+        }>>();
+
+        for (const sa of sourceAssignments) {
+          const newTask = newBySourceId.get(sa.taskId);
+          if (!newTask) continue;
+          const list = copiedAssignmentsByTask.get(newTask.id) ?? [];
+          list.push({
+            assignmentPublicId: randomUUID(),
+            kind: sa.kind,
+            internalId: sa.targetInternalId,
+            publicId: sa.targetPublicId,
+            assignmentStart: sa.assignmentStart,
+            assignmentEnd: sa.assignmentEnd,
+            allocationPercent: sa.allocationPercent,
+          });
+          copiedAssignmentsByTask.set(newTask.id, list);
+        }
+
+        for (const [newTaskId, targets] of copiedAssignmentsByTask.entries()) {
+          this.resourceCatalog.replaceTaskAssignments({
+            projectId: project.id,
+            taskId: newTaskId,
+            targets,
+            now: nowText,
+          });
+        }
+
+        // 2. 물류 공정(Processes) 복사 (부모 계층 보존)
+        const sourceProcesses = this.logistics.listProcesses(source.id);
+        const newBySourceProcessId = new Map<number, ProcessRecord>();
+        const pendingProcesses = [...sourceProcesses];
+
+        while (pendingProcesses.length > 0) {
+          let insertedCount = 0;
+          for (let i = pendingProcesses.length - 1; i >= 0; i -= 1) {
+            const sp = pendingProcesses[i];
+            if (sp.parentId !== null && !newBySourceProcessId.has(sp.parentId)) {
+              continue;
+            }
+            const newProcess = this.logistics.insertProcess({
+              publicId: randomUUID(),
+              projectId: project.id,
+              code: sp.code,
+              name: sp.name,
+              parentId: sp.parentId === null ? null : newBySourceProcessId.get(sp.parentId)!.id,
+              sortOrder: sp.sortOrder,
+              active: sp.active,
+              now: nowText,
+            });
+            newBySourceProcessId.set(sp.id, newProcess);
+            pendingProcesses.splice(i, 1);
+            insertedCount += 1;
+          }
+          if (insertedCount === 0) {
+            throw new Error("Cycle detected in source process hierarchy.");
+          }
+        }
+
+        // 3. 물류 시스템(Systems) 복사 및 담당 공정, 리소스 역할 복사
+        const sourceSystems = this.logistics.listSystems(source.id);
+        const newBySourceSystemId = new Map<number, LogisticsSystemRecord>();
+
+        for (const ss of sourceSystems) {
+          const newSystem = this.logistics.insertSystem({
+            publicId: randomUUID(),
+            projectId: project.id,
+            code: ss.code,
+            name: ss.name,
+            systemType: ss.systemType,
+            layer: ss.layer,
+            scope: ss.scope,
+            vendor: ss.vendor,
+            description: ss.description,
+            active: ss.active,
+            now: nowText,
+          });
+          newBySourceSystemId.set(ss.id, newSystem);
+
+          // 시스템 담당 공정 복사
+          const sourceProcessIds: number[] = this.logistics.listSystemProcesses(source.id, ss.id);
+          const newProcessIds: number[] = sourceProcessIds
+            .map((spId: number) => newBySourceProcessId.get(spId)?.id)
+            .filter((id): id is number => id !== undefined);
+          if (newProcessIds.length > 0) {
+            this.logistics.setSystemProcesses(project.id, newSystem.id, newProcessIds, nowText);
+          }
+
+          // 시스템 리소스 역할 복사 (글로벌 리소스 ID 보존)
+          const sourceRoles = this.logistics.listSystemResourceRoles(source.id, ss.id);
+          if (sourceRoles.length > 0) {
+            this.logistics.replaceSystemResourceRoles(
+              project.id,
+              newSystem.id,
+              sourceRoles.map((r) => ({
+                resourceId: r.resourceId,
+                role: r.role,
+                isPrimary: r.isPrimary,
+              })),
+              nowText,
+            );
+          }
+        }
+
+        // 4. 시스템 간 조율 링크(System Links) 복사 (모든 시스템 생성 후)
+        for (const ss of sourceSystems) {
+          if (ss.layer === "coordinator") {
+            const sourceLinks = this.logistics.listSystemLinks(source.id);
+            const childSystemIds: number[] = sourceLinks
+              .filter((l) => l.sourceSystemId === ss.id)
+              .map((l) => newBySourceSystemId.get(l.targetSystemId)?.id)
+              .filter((id): id is number => id !== undefined);
+            if (childSystemIds.length > 0) {
+              const newCoordinator = newBySourceSystemId.get(ss.id)!;
+              this.logistics.setCoordinatedSystems(project.id, newCoordinator.id, childSystemIds, nowText);
+            }
+          }
+        }
+
+        // 5. 설비(Equipment) 복사 및 제어 시스템 매핑, 리소스 역할 복사
+        const sourceEquipment = this.logistics.listEquipment(source.id);
+        const newBySourceEquipmentId = new Map<number, EquipmentRecord>();
+
+        for (const se of sourceEquipment) {
+          const newProcess = newBySourceProcessId.get(se.processId);
+          if (!newProcess) {
+            throw new Error(`Referenced process ${se.processId} not found during equipment copy.`);
+          }
+
+          const newEquipment = this.logistics.insertEquipment({
+            publicId: randomUUID(),
+            projectId: project.id,
+            processId: newProcess.id,
+            code: se.code,
+            name: se.name,
+            equipmentType: se.equipmentType,
+            managementUnit: se.managementUnit,
+            quantity: se.quantity,
+            manufacturer: se.manufacturer,
+            model: se.model,
+            description: se.description,
+            active: se.active,
+            now: nowText,
+          });
+          newBySourceEquipmentId.set(se.id, newEquipment);
+
+          // 설비-시스템 매핑 복사
+          const sourceEqSystems = this.logistics.listEquipmentSystems(source.id, se.id);
+          const newEqSystems: Array<{ systemId: number; controlRole: typeof sourceEqSystems[number]["controlRole"] }> = [];
+          for (const es of sourceEqSystems) {
+            const targetSys = newBySourceSystemId.get(es.systemId);
+            if (targetSys) {
+              newEqSystems.push({ systemId: targetSys.id, controlRole: es.controlRole });
+            }
+          }
+          if (newEqSystems.length > 0) {
+            this.logistics.setEquipmentSystems(project.id, newEquipment.id, newEqSystems, nowText);
+          }
+
+          // 설비 리소스 역할 복사 (글로벌 리소스 ID 보존)
+          const sourceRoles = this.logistics.listEquipmentResourceRoles(source.id, se.id);
+          if (sourceRoles.length > 0) {
+            this.logistics.replaceEquipmentResourceRoles(
+              project.id,
+              newEquipment.id,
+              sourceRoles.map((r) => ({
+                resourceId: r.resourceId,
+                role: r.role,
+                isPrimary: r.isPrimary,
+              })),
+              nowText,
+            );
+          }
+        }
+
+        // 6. 태스크 물류 연결(Task Logistics Links) 복사
+        const sourceEqLinks = this.logistics.listAllTaskEquipmentLinks(source.id);
+        const sourceSysLinks = this.logistics.listAllTaskSystemLinks(source.id);
+
+        const linksByTaskId = new Map<number, {
+          equipmentLinks: Array<{ equipmentId: number; scope: "self" | "subtree" }>;
+          systemLinks: Array<{ systemId: number; scope: "self" | "subtree" }>;
+        }>();
+
+        for (const el of sourceEqLinks) {
+          const newEq = newBySourceEquipmentId.get(el.equipmentId);
+          if (!newEq) continue;
+          const entry = linksByTaskId.get(el.taskId) ?? { equipmentLinks: [], systemLinks: [] };
+          entry.equipmentLinks.push({ equipmentId: newEq.id, scope: el.scope });
+          linksByTaskId.set(el.taskId, entry);
+        }
+
+        for (const sl of sourceSysLinks) {
+          const newSys = newBySourceSystemId.get(sl.systemId);
+          if (!newSys) continue;
+          const entry = linksByTaskId.get(sl.taskId) ?? { equipmentLinks: [], systemLinks: [] };
+          entry.systemLinks.push({ systemId: newSys.id, scope: sl.scope });
+          linksByTaskId.set(sl.taskId, entry);
+        }
+
+        for (const [sourceTaskId, links] of linksByTaskId.entries()) {
+          const newTask = newBySourceId.get(sourceTaskId);
+          if (!newTask) continue;
+          if (links.equipmentLinks.length > 0) {
+            this.logistics.replaceTaskEquipmentLinks(project.id, newTask.id, links.equipmentLinks, nowText);
+          }
+          if (links.systemLinks.length > 0) {
+            this.logistics.replaceTaskSystemLinks(project.id, newTask.id, links.systemLinks, nowText);
+          }
+        }
+
+        // 7. 비활성 마스터/리소스 경고 수집
+        const warnings: string[] = [];
+        const hasInactiveMaster =
+          sourceProcesses.some((p) => p.active === 0) ||
+          sourceEquipment.some((e) => e.active === 0) ||
+          sourceSystems.some((s) => s.active === 0);
+
+        if (hasInactiveMaster) {
+          warnings.push("비활성화된 공정·설비·시스템 마스터가 원본 관계를 보존하여 복사되었습니다.");
+        }
+
+        let hasInactiveResourceRole = false;
+        for (const s of sourceSystems) {
+          const roles = this.logistics.listSystemResourceRoles(source.id, s.id);
+          if (roles.some((r) => r.resourceActive === 0)) {
+            hasInactiveResourceRole = true;
+            break;
+          }
+        }
+        if (!hasInactiveResourceRole) {
+          for (const e of sourceEquipment) {
+            const roles = this.logistics.listEquipmentResourceRoles(source.id, e.id);
+            if (roles.some((r) => r.resourceActive === 0)) {
+              hasInactiveResourceRole = true;
+              break;
+            }
+          }
+        }
+        if (hasInactiveResourceRole) {
+          warnings.push("비활성화된 담당자가 지정된 설비·시스템이 포함되어 있습니다.");
+        }
+
         this.sessions.insert({
           projectId: project.id,
           tokenHash: newSession.tokenHash,
@@ -352,6 +607,8 @@ export class ProjectCopyService {
         const externalById = new Map(
           copiedTasks.map((task) => [task.id, task.externalId]),
         );
+
+        const copiedLogistics = this.logisticsService.getLogisticsDto(project.id);
 
         const response: CopyProjectResponse = {
           data: {
@@ -372,6 +629,7 @@ export class ProjectCopyService {
               type: link.type,
               lag: link.lag,
             })),
+            logistics: copiedLogistics,
             permission: "edit",
             operation: {
               kind: "projectCopy",
@@ -381,9 +639,13 @@ export class ProjectCopyService {
                 tasks: copiedTasks.length,
                 links: copiedLinks.length,
                 holidays: sourceHolidays.length,
+                ...(sourceAssignments.length > 0 ? { assignments: sourceAssignments.length } : {}),
+                ...(sourceProcesses.length > 0 ? { processes: sourceProcesses.length } : {}),
+                ...(sourceEquipment.length > 0 ? { equipment: sourceEquipment.length } : {}),
+                ...(sourceSystems.length > 0 ? { systems: sourceSystems.length } : {}),
               },
             },
-            warnings: [],
+            warnings,
           },
         };
 
