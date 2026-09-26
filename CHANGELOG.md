@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.33.0] - 2026-09-26
+
+### Fixed
+
+- Issue #142: Summary Task와 Task를 시작일 셀 좌측부터 종료일 셀 우측까지 inclusive 범위로 표시하고, Milestone을 Day/Week scale의 실제 날짜 셀 중앙에 정렬한다. 가로 스크롤과 390/768/1024/1440px 회귀 검증을 추가하고 기존 drag/resize/progress/dependency 및 날짜 저장 계약을 유지한다.
+
+
 ## [0.32.0] - 2026-09-24
 
 ### Added
