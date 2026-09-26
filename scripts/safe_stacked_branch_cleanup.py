@@ -67,12 +67,17 @@ def main() -> int:
     require(carrier_pr["head"]["repo"]["full_name"] == args.repo, "carrier head repository mismatch")
     require(feature_pr["base"]["ref"] == carrier_pr["head"]["ref"], "feature PR base is not the carrier branch")
 
+    feature_merge = feature_pr.get("merge_commit_sha")
     carrier_head = carrier_pr["head"]["sha"]
     carrier_merge = carrier_pr.get("merge_commit_sha")
+    require(isinstance(feature_merge, str) and SHA_RE.fullmatch(feature_merge) is not None, "invalid feature merge SHA")
     require(SHA_RE.fullmatch(carrier_head) is not None, "invalid carrier head SHA")
     require(isinstance(carrier_merge, str) and SHA_RE.fullmatch(carrier_merge) is not None, "invalid carrier merge SHA")
 
-    compare_contains(api, feature_head, carrier_head)
+    # A stacked PR merge can preserve the feature tree through its merge commit
+    # without making the feature branch head itself an ancestor of the carrier
+    # branch head. Prove the actual stacked merge commit is contained instead.
+    compare_contains(api, feature_merge, carrier_head)
     compare_contains(api, carrier_merge, args.target_sha)
 
     encoded_branch = urllib.parse.quote(args.branch, safe="")
@@ -94,6 +99,7 @@ def main() -> int:
 
     print(
         f"Validated stacked cleanup target: {args.branch} @ {feature_head}; "
+        f"feature merge {feature_merge} is contained in carrier head {carrier_head}; "
         f"carrier PR #{args.carrier_pr} merge {carrier_merge} is contained in {args.target_sha}"
     )
 
