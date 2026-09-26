@@ -4,6 +4,22 @@
 
 ## 기준과 범위
 
+### 현재 상태 — 2026-09-26 동기화
+
+| 대상 | 현재 상태 | 최종 반영 경로 |
+| --- | --- | --- |
+| #119 | closed/completed | 후속 병합 및 lifecycle 완료 |
+| #122 | closed/completed | UI/UX 고도화 검토·추적 완료 |
+| #130 | closed/completed | Phase 1~4 PR #150/#152/#153/#154 모두 `main` 병합 |
+| #140 | closed/completed | PR #161 `main` 병합 |
+| #142 | closed/completed | PR #162가 stacked #140 branch에 병합되고 최종 #140 통합을 통해 `main` 포함 |
+| PR #165 | closed / not merged | 과거 중간 상태 snapshot이 stale해 `superseded` 처리 |
+
+- 현재 기준 `main`은 `749eaca3e3ed836542d576045e27fe3c4389d910`, application version은 `0.34.1`이다.
+- 아래 2026-09-24 실행 순서와 CI 실패/진행 중/Issue open 기록은 당시 증거를 보존한 **역사적 실행 기록**이다. 현재 완료 상태와 충돌할 경우 위 표가 우선한다.
+- PR #165의 `docs/ui-ux-validation-status-sep24` 내용을 재정렬·병합하지 않는다. 최신 상태는 Issue #207의 문서 동기화 PR에서 관리한다.
+- 이번 변경은 문서 상태 정리만 수행한다. API/DB/Scheduling/Security/Deployment/CI 계약 변경은 N/A이며 version은 `0.34.1`을 유지하고 정식 release는 N/A다.
+
 - 2026-09-24 착수 기준: 원격 main `69fa36aac486bf81bd247595cc0ab2bfbbc8982a`, version `0.27.0`, 열린 PR 없음. 현재 main과 검증 상태는 아래 완료 증거를 따른다.
 - 2026-09-24 08:01:35 UTC 원격 갱신: GitHub 이벤트에서 `planner77` 계정이 PR #144를 병합해 main이 `e91bcff22a6e087b510d5706c2e71a75c47ad92f` / application `0.27.2`로 이동했다. 이 작업에서 병합을 실행하지 않았다. [새 main run 35972848516](https://github.com/planner77/masterGantt/actions/runs/35972848516)의 quality/e2e/docker와 임시 GHCR 게시·검증·정리 job은 모두 PASS다. 임시 `ci-e91bcff22a6e087b510d5706c2e71a75c47ad92f` exact digest `sha256:02b24fac87e655c3506890f1edccffe12ff40b4d374fd876136ec7d22a4553ad` pull·policy/API/인증/재시작/HTTP·HTTPS smoke·SBOM/provenance·임시 package version 삭제까지 독립 로그 확인했다. 아래 #155 작업 packet의 `f7f18ee…`는 착수 기준 SHA다.
 - 이후 외부 direct commit `998a65987a60d698256c54d57f7538a29f50d287`(`ci: add Issue #116 lifecycle completion helper`)으로 main이 다시 이동했다. 이 commit은 `.github/workflows/issue-116-release-helper.yml` 한 파일만 추가했으며 본 작업에서 push하지 않았다. 새 main의 CI·release helper 결과는 #141의 검증 근거로 전용하지 않는다.
@@ -14,7 +30,7 @@
 - 기준: [Issue Lifecycle](../../ISSUE_LIFECYCLE.md), [디자인](../../../DESIGN.md), [UI 지침](../../UI_UX_GUIDELINES.md), [원격 검증](../../REMOTE_VALIDATION.md).
 - 최신 승인 범위는 구현·테스트 계획·문서 동기화·PR 생성·해당 head의 CI **시작 확인**과 로컬 확인용 Docker다. 각 Issue는 이 지점에서 다음 Issue로 넘어간다. CI 완료·실패 수정은 후속 재작업으로 기록하고 병합/main 검증은 보류한다. 정식 릴리스는 `release_required=미확정`, `release_authorized=false`이며 tag/정식 GHCR 게시 전에 범위를 확정한다. 미확정을 N/A 또는 전체 완료로 표시하지 않는다.
 
-## 순서
+## 순서 — 역사적 실행 기록
 
 | 단계 | 목표 | 현재 상태 |
 | --- | --- | --- |
