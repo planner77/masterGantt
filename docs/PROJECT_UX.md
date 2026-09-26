@@ -154,6 +154,14 @@ Project List 상단에는 `프로젝트 검색`, 적용 조건 수를 포함한 
 
 상태 저장은 기존 프로젝트 metadata PATCH의 `If-Match` revision 및 401/412 경로를 사용하고, 성공 시 canonical snapshot의 상태로 목록·상세를 표시한다. 실패한 초안 상태를 현재 상태처럼 표시하지 않는다. 목록의 좁은 상태 열을 포함한 table은 390/768px에서 table wrapper 안에서만 가로 스크롤하며 문서 자체에는 가로 overflow를 만들지 않는다. 1024/1440px에서도 헤더·행 작업과 상태 텍스트를 함께 볼 수 있어야 한다. `tests/e2e/project-status.spec.ts`와 기존 List E2E의 열 위치 검증을 갱신했다. 로컬 브라우저·테스트 및 전후 화면 실측은 사용자 지시에 따라 **NOT TESTED**이며 PR CI로 판정한다. API/DB migration 계약 문서는 backend 작성 범위다.
 
+## Issue #181 Project List 고급 필터 패널 밀도
+
+Project List의 검색 도구줄 순서와 `필터 N` accessible name은 유지한다. 고급 필터에서 프로젝트 상태는 항상 보이는 compact checkbox row로 유지하고, `프로젝트 정보`와 `날짜`는 native `details/summary` disclosure로 묶는다. 패널을 새로 열 때 해당 그룹에 활성 조건이 있으면 펼친 상태로 시작하고, 활성 조건이 없으면 접힌 상태로 시작한다. 사용자가 활성 그룹을 다시 접더라도 summary에는 적용 조건 수와 프로젝트명·소유자·설명 값 또는 소유자 지정 여부, 날짜 그룹의 연산자·입력 값을 줄바꿈 가능한 텍스트로 표시해 현재 조건을 숨기지 않는다.
+
+프로젝트 정보의 프로젝트명·소유자·설명·소유자 지정 여부는 1024/1440px에서 2열 compact grid, 390/768px에서 1열로 배치한다. 각 조건의 operator/value/삭제 action은 한 행에 가깝게 배치하되 좁은 폭에서는 세로로 안전하게 쌓인다. 생성일·최근 변경일도 같은 compact group을 사용하며 operator가 `전체`이면 날짜 input과 삭제 action을 렌더링하지 않는다. native summary의 keyboard semantics와 공통 focus outline을 사용하고 별도 custom disclosure state나 새 UI framework는 도입하지 않는다.
+
+#84의 Quick Search+고급 조건 AND predicate, browser-timezone 날짜 비교와 invalid range 미적용, 조건 수·전체 초기화·no-result, #138의 예정+진행 중 기본 상태와 상태 checkbox, #177의 Project List 상태 즉시 변경 및 client-side filter 재평가, API 재조회 없음, Escape/닫기 후 Filter trigger focus 복귀를 변경하지 않는다. 공통 `.project-filter-panel`은 일정/리소스 필터가 공유하므로 #181의 배치 규칙은 Project List CSS module에 한정한다. 390×844·768×900·1024×900·1440×900에서 접힌 패널 geometry, document horizontal overflow, summary keyboard/활성 값 표시와 screenshot을 E2E로 검증한다. 구현 전 동일 fixture의 legacy panel 실측·캡처는 별도 baseline 증거가 확보되기 전까지 **NOT TESTED**다.
+
 ## Issue #115 작업 캘린더 미리보기 상태
 
 프로젝트 설정의 작업 캘린더 초안은 국가, 적용 범위·기간, 휴무일 이름·날짜·대상·대상 선택, 규칙·휴무일 추가·삭제가 바뀔 때마다 이전 미리보기를 즉시 숨긴다. 입력을 원래 값으로 되돌려도 이전 결과를 자동으로 다시 표시하지 않으며, 사용자가 `미리보기 계산`을 다시 실행해야 한다. 결과는 계산 당시의 프로젝트 publicId, revision, 요청 본문과 일치할 때만 표시한다. 다른 프로젝트·revision의 늦은 성공/오류 응답은 현재 상태나 알림을 덮어쓰지 않는다.

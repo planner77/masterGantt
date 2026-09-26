@@ -59,24 +59,49 @@ function DateFilterFields({ prefix, label, operator, from, to, onChange, onClear
   const toKey = `${prefix}To` as const;
   return <fieldset className={styles.filterGroup}>
     <legend>{label}</legend>
-    <label>{label} 조건
-      <select value={operator} onChange={(event) => onChange({ [operatorKey]: event.target.value as ProjectDateOperator })}>
-        <option value="any">전체</option>
-        <option value="equals">날짜가 같음</option>
-        <option value="before">이전</option>
-        <option value="after">이후</option>
-        <option value="range">범위</option>
-      </select>
-    </label>
-    {operator !== "any" ? <label>{operator === "range" ? "From" : "날짜"}
-      <input type="date" value={from} onChange={(event) => onChange({ [fromKey]: event.target.value })} />
-    </label> : null}
-    {operator === "range" ? <label>To
-      <input type="date" value={to} onChange={(event) => onChange({ [toKey]: event.target.value })} />
-    </label> : null}
-    {operator !== "any" ? <button className="secondary-button" type="button" onClick={onClear}>{label} 조건 삭제</button> : null}
+    <div className={styles.filterConditionRow}>
+      <label>{label} 조건
+        <select value={operator} onChange={(event) => onChange({ [operatorKey]: event.target.value as ProjectDateOperator })}>
+          <option value="any">전체</option>
+          <option value="equals">날짜가 같음</option>
+          <option value="before">이전</option>
+          <option value="after">이후</option>
+          <option value="range">범위</option>
+        </select>
+      </label>
+      {operator !== "any" ? <label>{operator === "range" ? "From" : "날짜"}
+        <input type="date" value={from} onChange={(event) => onChange({ [fromKey]: event.target.value })} />
+      </label> : null}
+      {operator === "range" ? <label>To
+        <input type="date" value={to} onChange={(event) => onChange({ [toKey]: event.target.value })} />
+      </label> : null}
+      {operator !== "any" ? <button className="secondary-button" type="button" onClick={onClear}>{label} 조건 삭제</button> : null}
+    </div>
     {error ? <p className={styles.filterError} role="alert">{error}</p> : null}
   </fieldset>;
+}
+
+function infoFilterSummary(filter: ProjectFilterState): string {
+  const parts: string[] = [];
+  if (filter.nameQuery.trim()) parts.push(`프로젝트명 “${filter.nameQuery.trim()}”`);
+  if (filter.ownerQuery.trim()) parts.push(`소유자 “${filter.ownerQuery.trim()}”`);
+  if (filter.descriptionQuery.trim()) parts.push(`설명 “${filter.descriptionQuery.trim()}”`);
+  if (filter.ownerState !== "all") parts.push(`소유자 ${filter.ownerState === "assigned" ? "지정됨" : "미지정"}`);
+  return parts.length ? parts.join(" · ") : "조건 없음";
+}
+
+function dateConditionSummary(label: string, operator: ProjectDateOperator, from: string, to: string): string | null {
+  if (operator === "any") return null;
+  if (operator === "range") return `${label} ${from || "미입력"} ~ ${to || "미입력"}`;
+  const suffix = operator === "equals" ? "같음" : operator === "before" ? "이전" : "이후";
+  return `${label} ${from || "미입력"} ${suffix}`;
+}
+
+function dateFilterSummary(filter: ProjectFilterState): string {
+  return [
+    dateConditionSummary("생성일", filter.createdOperator, filter.createdFrom, filter.createdTo),
+    dateConditionSummary("최근 변경일", filter.updatedOperator, filter.updatedFrom, filter.updatedTo),
+  ].filter((value): value is string => Boolean(value)).join(" · ") || "조건 없음";
 }
 
 export function ProjectList({ projects, projectUrls = {} }: Readonly<{
@@ -92,6 +117,8 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   const [statusError, setStatusError] = useState<string | null>(null);
   const [filter, setFilter] = useState<ProjectFilterState>(EMPTY_PROJECT_FILTER);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [infoFilterOpen, setInfoFilterOpen] = useState(false);
+  const [dateFilterOpen, setDateFilterOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string>();
   const [target, setTarget] = useState<DeleteTarget | null>(null);
   const [password, setPassword] = useState("");
@@ -119,6 +146,8 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   );
   const activeFilters = activeProjectFilterCount(filter);
   const filterApplied = activeFilters > 0;
+  const infoFilters = Number(Boolean(filter.nameQuery.trim())) + Number(Boolean(filter.ownerQuery.trim())) + Number(Boolean(filter.descriptionQuery.trim())) + Number(filter.ownerState !== "all");
+  const dateFilters = Number(filter.createdOperator !== "any") + Number(filter.updatedOperator !== "any");
 
   function updateFilter(patch: Partial<ProjectFilterState>) {
     setFilter((current) => ({ ...current, ...patch }));
@@ -134,6 +163,15 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   function resetFilter() {
     setFilter(EMPTY_PROJECT_FILTER);
     requestAnimationFrame(() => searchInput.current?.focus({ preventScroll: true }));
+  }
+  function toggleFilterPanel() {
+    if (filterOpen) {
+      setFilterOpen(false);
+      return;
+    }
+    setInfoFilterOpen(infoFilters > 0);
+    setDateFilterOpen(dateFilters > 0 || hasValidationError);
+    setFilterOpen(true);
   }
   function closeFilterWithFocus() {
     setFilterOpen(false);
@@ -342,7 +380,7 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
             value={filter.query} onChange={(event) => updateFilter({ query: event.target.value })} />
         </label>
         <button ref={filterTrigger} className={`secondary-button ${styles.filterTrigger}`} type="button" aria-expanded={filterOpen}
-          aria-controls="project-list-advanced-filter" onClick={() => setFilterOpen((open) => !open)}>
+          aria-controls="project-list-advanced-filter" onClick={toggleFilterPanel}>
           필터{activeFilters ? ` ${activeFilters}` : ""}
         </button>
         {filterApplied ? <button className={`secondary-button ${styles.filterReset}`} type="button" onClick={resetFilter}>초기화</button> : null}
@@ -351,7 +389,7 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
         </span>
       </div>
 
-      {filterOpen ? <div id="project-list-advanced-filter" className="project-filter-panel" aria-label="프로젝트 고급 필터" onKeyDown={onFilterKeyDown}>
+      {filterOpen ? <div id="project-list-advanced-filter" className={`project-filter-panel ${styles.advancedFilterPanel}`} aria-label="프로젝트 고급 필터" onKeyDown={onFilterKeyDown}>
         <fieldset className={styles.statusFilter}>
           <legend>프로젝트 상태</legend>
           <div className={styles.statusOptions}>
@@ -362,45 +400,70 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
           </div>
           <p>처음에는 예정과 진행 중 프로젝트만 표시합니다. 완료 프로젝트는 선택하면 목록에 표시됩니다.</p>
         </fieldset>
-        <div className="project-filter-grid">
-          <label>프로젝트명 조건
-            <select value={filter.nameOperator} onChange={(event) => updateFilter({ nameOperator: event.target.value as ProjectFilterState["nameOperator"] })}>
-              <option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option>
-            </select>
-          </label>
-          <label>프로젝트명
-            <input type="text" value={filter.nameQuery} onChange={(event) => updateFilter({ nameQuery: event.target.value })} />
-          </label>
-          {filter.nameQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ nameQuery: "", nameOperator: "contains" })}>프로젝트명 조건 삭제</button> : null}
-          <label>소유자 조건
-            <select value={filter.ownerOperator} onChange={(event) => updateFilter({ ownerOperator: event.target.value as ProjectFilterState["ownerOperator"] })}>
-              <option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option>
-            </select>
-          </label>
-          <label>소유자
-            <input type="text" value={filter.ownerQuery} onChange={(event) => updateFilter({ ownerQuery: event.target.value })} />
-          </label>
-          {filter.ownerQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ ownerQuery: "", ownerOperator: "contains" })}>소유자 조건 삭제</button> : null}
-          <label>설명 조건
-            <select value={filter.descriptionOperator} onChange={(event) => updateFilter({ descriptionOperator: event.target.value as ProjectFilterState["descriptionOperator"] })}>
-              <option value="contains">포함</option><option value="not-contains">포함하지 않음</option>
-            </select>
-          </label>
-          <label>설명
-            <input type="text" value={filter.descriptionQuery} onChange={(event) => updateFilter({ descriptionQuery: event.target.value })} />
-          </label>
-          {filter.descriptionQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ descriptionQuery: "", descriptionOperator: "contains" })}>설명 조건 삭제</button> : null}
-          <label>소유자 지정 여부
-            <select value={filter.ownerState} onChange={(event) => updateFilter({ ownerState: event.target.value as ProjectFilterState["ownerState"] })}>
-              <option value="all">전체</option><option value="assigned">지정됨</option><option value="unassigned">미지정</option>
-            </select>
-          </label>
-          {filter.ownerState !== "all" ? <button className="secondary-button" type="button" onClick={() => updateFilter({ ownerState: "all" })}>소유자 지정 조건 삭제</button> : null}
-        </div>
-        <DateFilterFields prefix="created" label="생성일" operator={filter.createdOperator} from={filter.createdFrom} to={filter.createdTo}
-          onChange={updateFilter} onClear={() => updateFilter({ createdOperator: "any", createdFrom: "", createdTo: "" })} error={validation.created} />
-        <DateFilterFields prefix="updated" label="최근 변경일" operator={filter.updatedOperator} from={filter.updatedFrom} to={filter.updatedTo}
-          onChange={updateFilter} onClear={() => updateFilter({ updatedOperator: "any", updatedFrom: "", updatedTo: "" })} error={validation.updated} />
+
+        <details className={styles.filterDisclosure} open={infoFilterOpen} onToggle={(event) => setInfoFilterOpen(event.currentTarget.open)}>
+          <summary>
+            <span>프로젝트 정보</span>
+            <span className={styles.filterSummary}>{infoFilters ? `${infoFilters}개 · ${infoFilterSummary(filter)}` : "조건 없음"}</span>
+          </summary>
+          <div className={styles.infoFilterGrid}>
+            <div className={styles.filterConditionRow}>
+              <label>프로젝트명 조건
+                <select value={filter.nameOperator} onChange={(event) => updateFilter({ nameOperator: event.target.value as ProjectFilterState["nameOperator"] })}>
+                  <option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option>
+                </select>
+              </label>
+              <label>프로젝트명
+                <input type="text" value={filter.nameQuery} onChange={(event) => updateFilter({ nameQuery: event.target.value })} />
+              </label>
+              {filter.nameQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ nameQuery: "", nameOperator: "contains" })}>프로젝트명 조건 삭제</button> : null}
+            </div>
+            <div className={styles.filterConditionRow}>
+              <label>소유자 조건
+                <select value={filter.ownerOperator} onChange={(event) => updateFilter({ ownerOperator: event.target.value as ProjectFilterState["ownerOperator"] })}>
+                  <option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option>
+                </select>
+              </label>
+              <label>소유자
+                <input type="text" value={filter.ownerQuery} onChange={(event) => updateFilter({ ownerQuery: event.target.value })} />
+              </label>
+              {filter.ownerQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ ownerQuery: "", ownerOperator: "contains" })}>소유자 조건 삭제</button> : null}
+            </div>
+            <div className={styles.filterConditionRow}>
+              <label>설명 조건
+                <select value={filter.descriptionOperator} onChange={(event) => updateFilter({ descriptionOperator: event.target.value as ProjectFilterState["descriptionOperator"] })}>
+                  <option value="contains">포함</option><option value="not-contains">포함하지 않음</option>
+                </select>
+              </label>
+              <label>설명
+                <input type="text" value={filter.descriptionQuery} onChange={(event) => updateFilter({ descriptionQuery: event.target.value })} />
+              </label>
+              {filter.descriptionQuery.trim() ? <button className="secondary-button" type="button" onClick={() => updateFilter({ descriptionQuery: "", descriptionOperator: "contains" })}>설명 조건 삭제</button> : null}
+            </div>
+            <div className={styles.filterConditionRow}>
+              <label>소유자 지정 여부
+                <select value={filter.ownerState} onChange={(event) => updateFilter({ ownerState: event.target.value as ProjectFilterState["ownerState"] })}>
+                  <option value="all">전체</option><option value="assigned">지정됨</option><option value="unassigned">미지정</option>
+                </select>
+              </label>
+              {filter.ownerState !== "all" ? <button className="secondary-button" type="button" onClick={() => updateFilter({ ownerState: "all" })}>소유자 지정 조건 삭제</button> : null}
+            </div>
+          </div>
+        </details>
+
+        <details className={styles.filterDisclosure} open={dateFilterOpen} onToggle={(event) => setDateFilterOpen(event.currentTarget.open)}>
+          <summary>
+            <span>날짜</span>
+            <span className={styles.filterSummary}>{dateFilters ? `${dateFilters}개 · ${dateFilterSummary(filter)}` : "조건 없음"}</span>
+          </summary>
+          <div className={styles.dateFilterGrid}>
+            <DateFilterFields prefix="created" label="생성일" operator={filter.createdOperator} from={filter.createdFrom} to={filter.createdTo}
+              onChange={updateFilter} onClear={() => updateFilter({ createdOperator: "any", createdFrom: "", createdTo: "" })} error={validation.created} />
+            <DateFilterFields prefix="updated" label="최근 변경일" operator={filter.updatedOperator} from={filter.updatedFrom} to={filter.updatedTo}
+              onChange={updateFilter} onClear={() => updateFilter({ updatedOperator: "any", updatedFrom: "", updatedTo: "" })} error={validation.updated} />
+          </div>
+        </details>
+
         <div className={styles.filterFooter}>
           <span>{activeFilters}개 조건 적용 중{hasValidationError ? " · 날짜 조건을 확인해 주세요." : ""}</span>
           <button className="secondary-button" type="button" onClick={closeFilterWithFocus}>필터 닫기</button>

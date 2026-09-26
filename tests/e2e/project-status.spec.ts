@@ -88,6 +88,7 @@ test("상태 다중 선택은 검색과 AND이고 기본·초기화·페이지 �
   await expect(rows).toHaveCount(1);
   await expect(table).toContainText(completed);
   await expect(filterButton).toHaveText("필터 2");
+  await panel.locator("summary").filter({ hasText: "날짜" }).click();
   const created = panel.getByRole("group", { name: "생성일" });
   await created.getByLabel("생성일 조건").selectOption("before");
   await created.locator('input[type="date"]').fill(cutoffDate);

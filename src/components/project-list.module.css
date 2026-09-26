@@ -133,15 +133,68 @@
   .table tbody tr { transition: none; }
 }
 
-.filterGroup {
+.advancedFilterPanel { min-width: 0; }
+.filterDisclosure {
+  min-width: 0;
+  border-top: 1px solid var(--border-default);
+}
+.filterDisclosure > summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.5rem 1rem;
+  min-width: 0;
+  padding: 0.625rem 0.25rem;
+  color: var(--text-default);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.filterDisclosure > summary:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+.filterSummary {
+  min-width: 0;
+  color: var(--text-muted);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.infoFilterGrid,
+.dateFilterGrid {
+  display: grid;
+  gap: 0.625rem;
+  min-width: 0;
+  padding: 0.25rem 0 0.75rem;
+}
+.infoFilterGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.dateFilterGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.filterConditionRow {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 0.8fr) minmax(9rem, 1.2fr) auto;
   align-items: end;
-  border-top: 1px solid var(--border-default) !important;
-  padding-top: 0.75rem !important;
+  gap: 0.5rem;
+  min-width: 0;
 }
-.filterGroup .secondary-button {
+.filterConditionRow > label { min-width: 0; }
+.filterConditionRow input,
+.filterConditionRow select { width: 100%; min-width: 0; }
+.filterConditionRow .secondary-button {
   align-self: end;
+  width: auto;
   margin-top: 0;
+  white-space: normal;
 }
+.filterGroup {
+  display: grid !important;
+  align-content: start;
+  gap: 0.5rem !important;
+  min-width: 0;
+  border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius);
+  padding: 0.625rem !important;
+}
+.filterGroup legend { margin-bottom: 0 !important; }
 .filterError {
   flex-basis: 100%;
   margin: 0;
@@ -181,7 +234,14 @@
   margin-top: 0.25rem;
 }
 
+@media (max-width: 64rem) {
+  .infoFilterGrid,
+  .dateFilterGrid { grid-template-columns: 1fr; }
+}
 @media (max-width: 48rem) {
+  .filterDisclosure > summary { grid-template-columns: 1fr; gap: 0.25rem; }
+  .filterConditionRow { grid-template-columns: 1fr; align-items: stretch; }
+  .filterConditionRow .secondary-button { justify-self: start; }
   .filterToolbar:global(.project-filter-toolbar) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

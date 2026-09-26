@@ -15,6 +15,15 @@
 - 390/768/1024/1440px Resource Admin 진입 화면의 document horizontal overflow 부재를 확인한다. 기존 Task Editor/Project Row Menu E2E가 keyboard/selected interaction 회귀를 계속 담당한다.
 - 실제 모바일 기기와 screen reader는 CI 범위 밖이며 별도 검증 시 결과를 기록한다.
 
+## Issue #181 Project List 고급 필터 밀도
+
+- 기존 `tests/features/projects/project-list-filter.test.ts`의 predicate/조건 수/상태 기본값/invalid date 계약을 그대로 사용하며 domain filter 구현은 변경하지 않는다.
+- `tests/e2e/project-list-search-filter.spec.ts`는 390×844·768×900·1024×900·1440×900에서 프로젝트 정보·날짜 그룹의 기본 접힘, inactive input 비노출, native summary Enter 조작, 활성 조건 값 summary 노출, 재접힘 뒤 값 식별, Escape 뒤 Filter trigger focus 복귀를 검증한다.
+- 같은 E2E는 패널 `scrollHeight`/bounds/목록 시작 위치를 수집하고 변경 후 screenshot을 남기며 document-level horizontal overflow 부재를 확인한다. 기본 접힘 상태에서는 패널 자체가 max-height 때문에 불필요한 내부 scroll을 만들지 않는지 검사한다.
+- 기존 #84 E2E는 disclosure를 명시적으로 펼친 뒤 Quick Search AND, timezone 날짜, invalid range, no-result, 삭제를 계속 검증하고 #130 Phase 4 toolbar E2E도 프로젝트 정보 disclosure를 펼친 뒤 기존 focus 계약을 검증한다. #177의 Project List 상태 즉시 변경 및 필터 재평가 회귀는 기존 status E2E에서 계속 담당한다.
+- **Baseline 상태:** 구현 전 기준 `main@46de39b179eebae5a4b53b3f9d8e4aa2a562744d`의 동일 fixture/viewport `scrollHeight`·bounds·목록 시작 위치와 PNG는 아직 실행 증거가 없어 **NOT TESTED**다. 변경 전후 개선 판정은 이 baseline을 별도로 확보한 뒤 head 결과와 비교한다.
+- 자동 공식 판정은 구현 PR의 동일 head SHA에서 GitHub Actions `quality/e2e/docker`를 사용한다. 실제 screen reader와 모바일 기기는 환경별 별도 검증이다.
+
 ## Issue #83 Project Task / Resource 검색·필터
 
 - Unit: text normalization, inclusive date overlap, contained/start-in/end-in, milestone, type/schedule mode, progress/duration range, assigned/unassigned, Resource/Group ANY·ALL, ancestor context를 검증한다.

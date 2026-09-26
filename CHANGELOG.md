@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.34.1] - 2026-09-26
+
+### Fixed
+
+- Issue #181: Project List 고급 필터의 프로젝트 정보·날짜 조건을 native disclosure로 재배치해 기본 세로 점유를 줄이고, 활성 조건은 접힌 summary에서도 값과 적용 상태를 확인할 수 있게 한다.
+- 1024/1440px에서는 조건 그룹 내부를 2열 compact grid로, 390/768px에서는 1열로 배치하며 기존 Quick Search AND semantics, 상태 기본값과 #177의 상태 즉시 변경, 날짜 오류 처리, 조건 수·초기화·no-result와 Escape focus 복귀 계약을 유지한다.
+- Project List E2E에 390×844·768×900·1024×900·1440×900의 disclosure keyboard, geometry, screenshot, document overflow 회귀를 추가한다. 구현 전 baseline 실측·캡처는 별도 증거 확보 전까지 NOT TESTED다.
+
 ## [0.34.0] - 2026-09-26
 
 ### Added
