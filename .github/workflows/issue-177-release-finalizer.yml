@@ -9,22 +9,19 @@ on:
 permissions:
   contents: write
   actions: write
-  issues: write
   pull-requests: read
 
 jobs:
   release:
-    name: v0.34.0 release, cleanup, and issue close
+    name: v0.34.0 release
     runs-on: ubuntu-latest
     timeout-minutes: 240
     env:
       RELEASE_TAG: v0.34.0
       RELEASE_VERSION: "0.34.0"
-      FEATURE_BRANCH: feat/issue-177-project-status-quick-change
       FEATURE_PR: "194"
       FEATURE_HEAD_SHA: 1169b75a4e33b72c679a410df8efb05b6ca2ea31
       FEATURE_MERGE_SHA: b58878b62bd4e543936e13c34f131272509fd999
-      FINALIZER_BRANCH: ops/issue-177-release-v0.34.0
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -45,7 +42,6 @@ jobs:
           pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$FEATURE_PR")"
           test "$(jq -r '.merged_at // ""' <<<"$pr")" != ""
           test "$(jq -r '.base.ref' <<<"$pr")" = "main"
-          test "$(jq -r '.head.ref' <<<"$pr")" = "$FEATURE_BRANCH"
           test "$(jq -r '.head.sha' <<<"$pr")" = "$FEATURE_HEAD_SHA"
           test "$(jq -r '.merge_commit_sha' <<<"$pr")" = "$FEATURE_MERGE_SHA"
 
@@ -105,54 +101,4 @@ jobs:
             done
           fi
           test -n "$release_run_url"
-          echo "RELEASE_RUN_URL=$release_run_url" >> "$GITHUB_ENV"
-
-      - name: Safely delete merged Issue 177 branches
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          python3 scripts/safe_branch_cleanup.py \
-            --repo "$GITHUB_REPOSITORY" \
-            --pr "$FEATURE_PR" \
-            --branch "$FEATURE_BRANCH" \
-            --target-sha "$TARGET_SHA" \
-            --delete
-
-          owner="${GITHUB_REPOSITORY%%/*}"
-          finalizer_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$FINALIZER_BRANCH&per_page=10" | jq -r '[.[] | select(.merged_at != null)] | sort_by(.merged_at) | last | .number // empty')"
-          test -n "$finalizer_pr"
-
-          python3 scripts/safe_branch_cleanup.py \
-            --repo "$GITHUB_REPOSITORY" \
-            --pr "$finalizer_pr" \
-            --branch "$FINALIZER_BRANCH" \
-            --target-sha "$TARGET_SHA" \
-            --delete
-
-      - name: Record final evidence and close Issue 177
-        shell: bash
-        run: |
-          set -euo pipefail
-          body="$(printf '%s\n' \
-            '## FINAL · Issue #177 완료' \
-            '' \
-            '**최종 상태:** COMPLETED' \
-            '' \
-            '- 기능 PR: #194 (merged)' \
-            "- 기능 head: $FEATURE_HEAD_SHA" \
-            "- 기능 merge SHA: $FEATURE_MERGE_SHA" \
-            "- 최종 release source SHA: $TARGET_SHA" \
-            "- 최종 버전: $RELEASE_VERSION" \
-            "- 정식 annotated tag: $RELEASE_TAG" \
-            "- main CI: $MAIN_CI_URL" \
-            "- GHCR 정식 release: $RELEASE_RUN_URL" \
-            "- 작업 브랜치 삭제: $FEATURE_BRANCH" \
-            "- finalizer 브랜치 삭제: $FINALIZER_BRANCH" \
-            '- PR CI #892: PASS' \
-            '- 기능 merge main CI #893 및 finalizer main CI: PASS' \
-            '- release_required=true / release_authorized=true' \
-            '- 잔여 차단 사항: 없음')"
-
-          gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/177/comments" -f body="$body"
-          gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/177" -f state="closed" -f state_reason="completed"
+          echo "Release completed: $release_run_url"
