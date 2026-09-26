@@ -99,3 +99,7 @@ Issue Lifecycle v2 (#109):
 # - Auto-merge/Ruleset이 문서에만 있고 실제 설정되지 않은 경우 PASS로 판정하지 않는다.
 # - 신규 Issue별 release-helper 생성, quality gate 우회 merge, stale CI evidence 재사용, unsafe branch deletion, 조기 Issue close를 REWORK 사유로 본다.
 # - 범용 lifecycle workflow가 기존 ci.yml/release-image.yml/safe_branch_cleanup.py의 검증을 중복하거나 약화하지 않는지 확인한다.
+
+# Issue #211 review:
+# - 범용 issue-lifecycle.yml의 입력/권한/idempotency/fail-closed 계약을 독립 확인한다.
+# - verify/release/finalize 결과는 실제 PR head checks, exact merge SHA main CI 및 필요한 release evidence와 대조하며 workflow 존재만으로 PASS 처리하지 않는다.

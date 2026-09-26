@@ -103,6 +103,8 @@ jobs:
       - run: node scripts/check-markdown-links.mjs
       - name: 작업 브랜치 cleanup 안전 정책 검증
         run: python3 scripts/verify-safe-branch-cleanup.py
+      - name: 범용 Issue Lifecycle 계약·시나리오 검증
+        run: python3 scripts/verify-issue-lifecycle.py
       - name: Verify deployment shell syntax
         run: |
           sh -n deploy/docker/container-entrypoint.sh

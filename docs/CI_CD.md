@@ -310,3 +310,11 @@ Issue Lifecycle 후반 자동화는 특정 Issue 번호에 종속된 release-hel
 - 범용 `issue-lifecycle.yml`: 위 기능을 중복 구현하지 않고 상태 검증, release dispatch, evidence, cleanup, Issue close를 조율하는 목표 workflow
 
 정식 release는 기존 `release_required=true && release_authorized=true` 승인 경계를 유지한다. Lifecycle finalizer는 진행 중/실패/stale required gate에서 Issue를 닫아서는 안 된다.
+
+## 범용 Issue Lifecycle orchestration (#211)
+
+Issue별 hard-coded release helper 대신 `.github/workflows/issue-lifecycle.yml`을 사용한다. workflow는 `verify / release / finalize` operation을 제공하며 release/finalize target을 입력 SHA가 아닌 PR의 exact `merge_commit_sha`에서 도출한다. exact target SHA의 main `ci.yml` success가 없으면 release/finalize하지 않는다.
+
+정식 GHCR publish 로직은 계속 `release-image.yml`만 소유하며 lifecycle workflow에 `packages: write`를 주지 않는다. 승인된 release는 annotated `v<package-version>` tag와 exact release run을 검증하고, 기존 tag는 동일 target의 성공 evidence가 있을 때만 재사용한다. tag conflict/orphan tag는 이동·덮어쓰기하지 않는다.
+
+CI/GitHub orchestration 또는 docs-only 변경은 application version을 유지하고 `release_required=false`로 formal release를 N/A 처리할 수 있다. 이 경우에도 merge 후 main의 temporary `ci-<SHA>` publish/digest smoke/cleanup evidence는 Lifecycle gate로 확인한다.

@@ -535,3 +535,9 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - Workspace status 전환 전후 실제 `.project-gantt-widget .wx-gantt` DOM identity를 비교해 Gantt remount가 없음을 확인한다. status 변경 자체가 Task scheduling/resource mutation을 발생시키지 않아야 한다.
 - 401/403은 readonly 복귀 또는 재인증 안내, 412는 최신 canonical status 재조회 후 stale draft 폐기, network/5xx는 성공 표시 금지로 검증한다. 같은 Project에서 빠른 중복 조작은 mutation lock으로 직렬화/차단한다.
 - 기존 #138 API/DB status integration 테스트는 그대로 유지하며 신규 migration/API endpoint가 없음을 문서 gate에서 확인한다.
+
+## Issue #211 — 범용 Issue Lifecycle 자동화
+
+PR quality에서 `python3 scripts/verify-issue-lifecycle.py`를 실행한다. 정적 contract는 hard-coded Issue/PR 제거, workflow_dispatch 3 operation, per-Issue concurrency, read-only 기본 권한, `packages: write` 금지, merge API/pull_request_target 금지, exact merge SHA/main CI, 기존 release/cleanup 구성요소 재사용을 확인한다.
+
+pure scenario는 unmerged verify, release N/A finalize readiness, 승인된 release, 미승인 release BLOCKED, version mismatch FAIL, required check/main CI 미완료 NOT TESTED, release 입력 정합성을 검증한다. 원격 integration은 main 병합 후 `operation=verify`를 실제 merged Issue/PR에 실행해 GitHub check-run/workflow-run evidence 조회를 확인한다. tag conflict, successful release reuse, branch already absent/tip changed/open PR 사용, duplicate FINAL은 실제 mutation 대표 검증 또는 격리된 test Issue에서 확인하며 운영 Issue에서 파괴적으로 시험하지 않는다.

@@ -333,3 +333,11 @@ GitHub Issue는 요구사항 Source이자 작업 진행 기록의 기준점이�
 핵심 gate는 `READY_FOR_DEVELOPMENT → READY_FOR_PR → READY_FOR_MERGE → READY_FOR_RELEASE → DONE`으로 관리한다. Manager/Agent는 판단·설계·구현을 담당하고, Actions는 반복 가능한 검증과 release/finalization을 담당한다.
 
 병합은 required checks와 review/conversation resolution을 만족한 뒤 GitHub Auto-merge를 우선한다. PR head가 변경되면 이전 required CI와 최종 QA evidence는 stale이다. 신규 Issue별 release-helper workflow 생성은 금지하며 공용 lifecycle workflow로 수렴한다.
+
+## 10. 범용 Lifecycle orchestration (#211)
+
+Gate E의 반복 운영은 `.github/workflows/issue-lifecycle.yml`을 공식 범용 entry point로 사용한다. `verify`는 읽기 전용으로 현재 evidence를 진단하고, `release`는 승인된 formal release만, `finalize`는 exact main evidence 이후 release(필요 시) → safe cleanup → FINAL → close를 수행한다.
+
+workflow가 신뢰하는 식별 입력은 Issue/PR 번호다. PR base/head/relation, required checks, merge SHA, current main ancestry, target version, exact main CI와 release evidence는 GitHub/repository에서 다시 읽는다. `release_required=true`인데 `release_authorized=false`이면 mutation은 BLOCKED다. `expected_version`은 target commit manifest와 일치 여부만 검증한다.
+
+PR merge 책임은 Ruleset/required checks/GitHub Auto-merge에 남기며 범용 workflow는 merge API를 호출하지 않는다. 정식 image 게시를 복제하지 않고 `release-image.yml`을, branch 삭제는 `safe_branch_cleanup.py`를 재사용한다. 자세한 운영 계약은 [ISSUE_LIFECYCLE_AUTOMATION](ISSUE_LIFECYCLE_AUTOMATION.md)을 따른다.

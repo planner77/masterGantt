@@ -287,3 +287,16 @@ Issue
 ```
 
 이 순서를 기본값으로 사용하되, 사용자 요청 범위가 PR/CI까지만인 경우 해당 gate에서 멈춘다.
+
+## 11. 구현 상태 — Issue #211
+
+Issue #198에서 정의한 목표를 Issue #211에서 `.github/workflows/issue-lifecycle.yml`로 구현한다. 공식 entry point는 `workflow_dispatch`이며 `verify / release / finalize` operation을 제공한다.
+
+- 식별 입력은 Issue/PR 번호이며 branch/SHA/version은 원격 상태에서 재도출한다.
+- PR required checks와 exact PR `merge_commit_sha`의 main CI만 evidence로 인정한다.
+- `release_required / release_authorized / expected_version / authorization_note` 경계를 fail-closed로 검증한다.
+- formal release는 기존 `release-image.yml`, branch 삭제는 `scripts/safe_branch_cleanup.py`를 재사용한다.
+- lifecycle workflow 자체에는 `packages: write`를 부여하지 않는다.
+- FINAL은 `<!-- issue-lifecycle-final:<issue>:<target_sha> -->` marker로 중복 생성과 다른 target 재종료를 방지한다.
+- PR 단계 contract/scenario 검증은 `scripts/verify-issue-lifecycle.py`를 CI quality job에서 수행한다.
+- main 병합 후 non-destructive `verify` 실제 실행을 확보한 다음 기존 Issue별 helper의 퇴역 가능 여부를 판단한다.
