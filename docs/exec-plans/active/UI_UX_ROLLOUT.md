@@ -221,3 +221,16 @@ ui_ux 읽기 전용 검토를 바탕으로 결과가 사라지는 이유와 다�
 - 임시 이미지 digest `sha256:add282cba2d3a3c5d20534408a0334fbeec71a241a33af7482f7557cf5bda3e4`의 exact pull/runtime/API/HTTP·HTTPS smoke, SBOM/provenance 생성과 임시 package version 삭제를 로그로 확인했다. GitHub 별도 Artifact Attestation은 이 증거와 구분한다.
 - 정식 `v0.27.0` tag는 조회 시 없었다. #120의 기존 상태별 before/after 자료 및 병합 전 독립 QA 증거는 이번 감사에서 확인하지 못했다. 구현 dependency 재사용 PASS와 전체 Lifecycle 미완료를 구분한다.
 - 로컬 Docker 교체 전 SQLite 일관 백업을 Git 밖 `/tmp`의 제한된 권한으로 보관했다. 별도 읽기 전용 검사에서 integrity `ok`, 외래키 오류 0, 프로젝트 1개/작업 24개, migration 1~6을 확인했다. 컨테이너 교체 후 같은 데이터 보존을 다시 확인한다.
+
+
+## Issue Work Packet — #177 Project List·Workspace 상태 빠른 변경
+
+- 기준: `main c20873e971324c91f463a20cb8569be829c967bf`, version `0.33.1`; #138의 status schema/API/filter 구현을 선행 dependency로 재사용한다.
+- 목표: List 행과 edit Workspace title row에서 `planned / in_progress / completed`를 직접 바꾸되 server authorization/revision/canonical 계약과 기존 Gantt 상태를 보존한다.
+- 비범위: DB migration, 새 status 값/전이 제한, audit log, 승인 workflow, Task/SVAR status field, 자동 scheduling/resource 재계산.
+- 구현: 공용 status mutation client + List password-on-demand/auth/current-session + client filter 재평가 + Workspace edit header select/canonical recovery. readonly header는 표시 전용 유지.
+- 문서: REQUIREMENTS/PROJECT_UX/TEST_PLAN/ARCHITECTURE/CHANGELOG 갱신, API는 기존 status-only PATCH 계약 불변이므로 별도 계약 변경 N/A, DB_SCHEMA N/A.
+- version: 기능 추가로 `0.34.0` MINOR. `release_required=true`, `release_authorized=false`.
+- 테스트: 기존 #138 status E2E를 갱신하고 List 인증/필터 즉시 반영과 Workspace header status-only PATCH/Gantt DOM identity 보존을 추가한다.
+- 사용자 승인 범위: 작업 branch·구현·문서·PR·정확한 PR head CI 시작까지. 병합/main CI/GHCR/tag/Issue 종료는 후속 승인 범위다.
+- 실행 방식: 연결된 GitHub 도구를 사용한 단일 에이전트 순차 처리. 독립 Sub-Agent QA를 실행했다고 주장하지 않는다.

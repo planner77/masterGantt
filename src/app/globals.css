@@ -622,6 +622,13 @@ h2 {
 .project-lifecycle-badge[data-status="planned"] { border-color: var(--status-info); background: var(--status-info-surface); color: var(--status-info); }
 .project-lifecycle-badge[data-status="in_progress"] { border-color: var(--action-selected); background: var(--action-selected-subtle); color: var(--action-selected-foreground); }
 .project-lifecycle-badge[data-status="completed"] { border-color: var(--status-success); background: var(--status-success-surface); color: var(--status-success); }
+.project-lifecycle-select {
+  min-height: 1.9rem;
+  cursor: pointer;
+  appearance: auto;
+}
+.project-lifecycle-select:disabled { cursor: progress; opacity: var(--state-disabled-opacity); }
+.project-lifecycle-select:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
 
 .unlock-form,
 .edit-panels {

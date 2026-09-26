@@ -12,6 +12,10 @@ import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/
 import feedbackStyles from "@/components/workspace-feedback.module.css";
 import type { LinkMutationResponse, ProjectMetadataMutationResponse, ProjectSnapshotResponse, ProjectStatus, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
 import { PROJECT_STATUS_OPTIONS, projectStatusLabel } from "@/features/projects/project-status";
+import {
+  patchProjectStatus,
+  projectSnapshotFromStatusMutation,
+} from "@/features/projects/project-status-mutation";
 import type { AssignedTargetsResponse, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
@@ -132,6 +136,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [newPassword, setNewPassword] = useState("");
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [isSavingMetadata, setIsSavingMetadata] = useState(false);
+  const [isSavingStatus, setIsSavingStatus] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSavingTask, setIsSavingTask] = useState(false);
@@ -306,6 +311,46 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setPermission("readonly");
     setPermissionCheckState("complete");
     setSettingsOpen(false);
+  }
+
+  async function changeHeaderStatus(nextStatus: ProjectStatus) {
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || isSavingStatus) return;
+    if (nextStatus === state.snapshot.data.project.status) return;
+    setIsSavingStatus(true);
+    clearToast();
+    try {
+      const { response, body, mutation } = await patchProjectStatus(
+        publicId,
+        state.snapshot.data.project.revision,
+        nextStatus,
+      );
+      if (response.ok && mutation) {
+        applySnapshot(projectSnapshotFromStatusMutation(mutation));
+        notify("success", `프로젝트 상태를 ${projectStatusLabel(mutation.data.project.status)}(으)로 변경했습니다.`, "프로젝트 상태 변경");
+        return;
+      }
+      if (response.status === 401 || response.status === 403) {
+        setPermission("readonly");
+        setPermissionCheckState("complete");
+        notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "프로젝트 상태 변경", body);
+        return;
+      }
+      if (response.status === 412) {
+        const recovered = await reloadCanonicalSnapshot();
+        notify("error", recovered
+          ? "다른 편집 내용이 먼저 저장되었습니다. 최신 프로젝트 상태를 반영했습니다. 확인 후 다시 변경해 주세요."
+          : "다른 편집 내용이 먼저 저장되었지만 최신 프로젝트 상태를 불러오지 못했습니다. 다시 조회해 주세요.",
+        "프로젝트 상태 변경", body);
+        return;
+      }
+      await reloadCanonicalSnapshot();
+      notify("error", "프로젝트 상태를 변경할 수 없습니다. 최신 상태를 확인한 뒤 다시 시도해 주세요.", "프로젝트 상태 변경", body);
+    } catch {
+      await reloadCanonicalSnapshot();
+      notify("error", "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", "프로젝트 상태 변경");
+    } finally {
+      setIsSavingStatus(false);
+    }
   }
 
   async function saveMetadata(event: FormEvent<HTMLFormElement>) {
@@ -491,7 +536,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === command.taskId);
     const restriction = taskEditorReadOnlyReason(task, permission === "edit" && permissionCheckState === "complete", task ? taskHasDependencyLinks(state.snapshot.data.tasks, task.taskId, state.snapshot.data.links) : false);
     if (restriction) return { status: "failed", message: restriction };
-    if (isSavingMetadata || isChangingPassword || isLoggingOut) return { status: "failed", message: "프로젝트 변경을 완료한 뒤 다시 시도해 주세요." };
+    if (isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut) return { status: "failed", message: "프로젝트 변경을 완료한 뒤 다시 시도해 주세요." };
     return saveTask("PATCH", command.taskId, command.payload, revision);
   }
   async function reloadEditorTask(taskId: string): Promise<TaskEditorSession | null> {
@@ -603,7 +648,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     (!normalizedTargetQuery || [target.name, target.code ?? ""].some((value) => value.toLocaleLowerCase().includes(normalizedTargetQuery)))
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
-  const busy = isSavingMetadata || isChangingPassword || isLoggingOut || isSavingTask;
+  const busy = isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask;
   const closeTaskFilterOnEscape = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Escape" || !taskFilterOpen) return;
     event.preventDefault();
@@ -630,7 +675,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       <div className="project-context-identity">
         <div className="project-title-row">
           <h1 id="project-heading" title={project.name}>{project.name}</h1>
-          <span className="project-lifecycle-badge" data-status={project.status} aria-label={`프로젝트 상태: ${projectStatusLabel(project.status)}`}>{projectStatusLabel(project.status)}</span>
+          {editing ? <select
+            className="project-lifecycle-badge project-lifecycle-select"
+            data-status={project.status}
+            aria-label="프로젝트 상태 변경"
+            disabled={busy || editorSession !== null || pendingTaskDelete !== null}
+            value={project.status}
+            onChange={(event) => void changeHeaderStatus(event.target.value as ProjectStatus)}
+          >
+            {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+          </select> : <span className="project-lifecycle-badge" data-status={project.status} aria-label={`프로젝트 상태: ${projectStatusLabel(project.status)}`}>{projectStatusLabel(project.status)}</span>}
           <span className={editing ? "edit-badge" : "readonly-badge"}>{editing ? "편집 중" : "읽기 전용"}</span>
           <details className="project-info-popover" onKeyDown={closeContextDisclosureOnEscape}>
             <summary aria-label="프로젝트 정보 보기">정보</summary>

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.34.0] - 2026-09-26
+
+### Added
+
+- Issue #177: Project List의 상태 셀과 편집 중 Project Workspace 제목 영역에서 `예정 / 진행 중 / 완료`를 바로 변경할 수 있다.
+- Project List는 최신 canonical revision을 읽고 기존 edit session을 재사용하며, 세션이 없으면 편집 비밀번호 인증 후 status-only PATCH를 수행한다.
+- Workspace header status 변경은 기존 Gantt 인스턴스와 작업공간 상태를 유지하면서 canonical mutation response를 적용한다.
+
+### Changed
+
+- Project List의 상태 변경 성공 직후 기존 client-side status filter를 다시 평가하여 완료 전환 등으로 필터에서 제외된 행과 결과 건수를 full reload 없이 즉시 갱신한다.
+- List와 Workspace는 공용 status mutation client를 통해 strong `If-Match`, status-only payload, 401/403/412 및 canonical status 계약을 공유한다.
+- 하위 호환 사용자 workflow 추가이므로 Semantic Versioning 정책에 따라 `0.33.1`에서 `0.34.0`으로 증가한다.
+
 ## [0.33.2] - 2026-09-26
 
 ### Fixed
