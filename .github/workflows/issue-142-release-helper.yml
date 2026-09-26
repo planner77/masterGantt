@@ -29,6 +29,9 @@ jobs:
       STACK_MERGE_SHA: f685b6d2f2d9036b5f94efdec4e6ab7301ed6620
       FINALIZER_BRANCH: ops/issue-142-release-v0.33.0
       REPAIR_BRANCH: fix/issue-142-release-helper-stacked-cleanup
+      PROOF_BRANCH: fix/issue-142-stacked-cleanup-merge-proof
+      DISPATCH_BRANCH: fix/issue-142-release-helper-dispatch
+      PIN_BRANCH: fix/issue-142-release-sha-pin
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -127,14 +130,16 @@ jobs:
           test -n "$finalizer_pr"
           python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr "$finalizer_pr" --branch "$FINALIZER_BRANCH" --target-sha "$TARGET_SHA" --delete
 
-          repair_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$REPAIR_BRANCH&per_page=10" | jq -r '[.[] | select(.merged_at != null)] | sort_by(.merged_at) | last | .number // empty')"
-          test -n "$repair_pr"
-          python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr "$repair_pr" --branch "$REPAIR_BRANCH" --target-sha "$TARGET_SHA" --delete
+          for cleanup_branch in "$REPAIR_BRANCH" "$PROOF_BRANCH" "$DISPATCH_BRANCH" "$PIN_BRANCH"; do
+            cleanup_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$cleanup_branch&per_page=10" | jq -r '[.[] | select(.merged_at != null)] | sort_by(.merged_at) | last | .number // empty')"
+            test -n "$cleanup_pr"
+            python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr "$cleanup_pr" --branch "$cleanup_branch" --target-sha "$TARGET_SHA" --delete
+          done
 
       - name: Issue #142 FINAL 기록 및 종료
         shell: bash
         run: |
           set -euo pipefail
-          body="$(printf '%s\n'             "## FINAL · Issue #142 완료"             ""             "**최종 상태:** COMPLETED"             ""             "- 기능 PR: #162 (stacked, merged)"             "- main 통합 PR: #161 (merged)"             "- 기능 head: $FEATURE_HEAD_SHA"             "- 기능 merge SHA: $FEATURE_MERGE_SHA"             "- main 통합 merge SHA: $STACK_MERGE_SHA"             "- 최종 버전: 0.33.0"             "- 정식 tag: $RELEASE_TAG"             "- main CI: $MAIN_CI_URL"             "- GHCR 정식 release: $RELEASE_RUN_URL"             "- 작업 브랜치 삭제: $FEATURE_BRANCH"             "- finalization 브랜치 삭제: $FINALIZER_BRANCH"             "- 문서 동기화: CHANGELOG / PROJECT_UX / REQUIREMENTS / TEST_PLAN"             "- #142 PR CI #857: PASS"             "- 잔여 차단 사항: 없음")"
+          body="$(printf '%s\n'             "## FINAL · Issue #142 완료"             ""             "**최종 상태:** COMPLETED"             ""             "- 기능 PR: #162 (stacked, merged)"             "- main 통합 PR: #161 (merged)"             "- 기능 head: $FEATURE_HEAD_SHA"             "- 기능 merge SHA: $FEATURE_MERGE_SHA"             "- main 통합 merge SHA: $STACK_MERGE_SHA"             "- 최종 버전: 0.33.0"             "- 정식 tag: $RELEASE_TAG"             "- main CI: $MAIN_CI_URL"             "- GHCR 정식 release: $RELEASE_RUN_URL"             "- 작업 브랜치 삭제: $FEATURE_BRANCH"             "- finalization 브랜치 삭제: $FINALIZER_BRANCH"             "- helper 보완 브랜치 삭제: $REPAIR_BRANCH, $PROOF_BRANCH, $DISPATCH_BRANCH, $PIN_BRANCH"             "- 문서 동기화: CHANGELOG / PROJECT_UX / REQUIREMENTS / TEST_PLAN"             "- #142 PR CI #857: PASS"             "- 잔여 차단 사항: 없음")"
           gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/142/comments" -f body="$body"
           gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/142" -f state="closed" -f state_reason="completed"
