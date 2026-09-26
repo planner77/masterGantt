@@ -1,4 +1,15 @@
-# CI/CD, Commit Test Image와 Semantic Container Release
+# CI/CD
+
+## Issue #157 Compose pull/build 경로 검증
+
+- 운영 `deploy/compose.yml`은 `build:`가 없는 image-only 구성이고 `pull_policy: always`를 사용한다.
+- local/CI source build는 `deploy/compose.build.yml` override에서만 `build:`를 추가하며 `pull_policy: never`를 사용한다.
+- `scripts/verify-compose-smoke.sh`는 production Compose config와 build override merged config를 각각 검사한 뒤, build override로 만든 격리 image를 `--pull never --no-build` runtime smoke에 사용한다.
+- 기존 named volume persistence, startup migration/readiness, Resource 관리자 인증 및 secret 비노출 검증은 그대로 유지한다.
+- 운영 rolling tag 배포는 `--pull always --no-build --force-recreate`를 사용하고, exact SemVer 또는 verified digest를 우선한다.
+- `docker compose config` 전체 출력에는 치환된 secret이 포함될 수 있으므로 CI/Issue 증거에는 secret을 기록하지 않는다.
+
+ Commit Test Image와 Semantic Container Release
 
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
