@@ -18,3 +18,12 @@ export {
   type UpdatedLinkRecord,
   type UpdatedTaskRecord,
 } from "./schedule-repository";
+export {
+  LogisticsRepository,
+  type ProcessRecord,
+  type EquipmentRecord,
+  type LogisticsSystemRecord,
+  type EquipmentSystemRecord,
+  type SystemLinkRecord,
+} from "./logistics-repository";
+

@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. Issue #99에서 리소스 관리자 런타임 자격증명 해시를 위한 `0007_resource_admin_credentials.sql`을 추가했다. Issue #138에서 Project 상태를 위한 `0008_project_status.sql`을 추가한다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
+이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. Issue #99에서 리소스 관리자 런타임 자격증명 해시를 위한 `0007_resource_admin_credentials.sql`을 추가했다. Issue #138에서 Project 상태를 위한 `0008_project_status.sql`을 추가했다. Issue #184에서 물류 도메인 공정·설비·제어/조율 시스템 기초 영속 모델을 위한 `0009_logistics_domain.sql`을 추가한다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
 
 요구사항으로 확정된 전제는 다음과 같다.
 
@@ -43,7 +43,11 @@ projects
   ├─< tasks ──(self parent)──> tasks
   │      ├─< links >─┘
   │      └─< task_assignments >─ resources / resource_groups
-  └─< edit_sessions
+  ├─< edit_sessions
+  ├─< project_processes ──(self parent)──> project_processes
+  │      ├─< project_equipment ──< project_equipment_systems >── project_logistics_systems
+  │      └─< project_system_processes >─────────────────────────────┘
+  └─< project_logistics_systems ──< project_system_links >── project_logistics_systems
 
 project_holidays (0006 이후 Project NON_WORKING 호환 VIEW + INSERT trigger)
 resource_catalog_state (singleton revision)
@@ -52,7 +56,7 @@ resource_catalog_admin_sessions (global admin sessions)
 resource_catalog_admin_credentials (singleton global admin credential)
 ```
 
-`project_id`는 단순 조회 filter가 아니라 isolation 경계이다. Task parent와 Link 양 끝은 composite foreign key로 같은 Project에 속함을 DB에서도 강제한다.
+`project_id`는 단순 조회 filter가 아니라 isolation 경계이다. Task parent와 Link 양 끝, Process 계층, Equipment-Process 관계, System 연계 양 끝은 composite foreign key로 같은 Project에 속함을 DB에서도 강제한다.
 
 ## 5. Tables
 
@@ -401,3 +405,106 @@ Project 일정 계산은 Project target rule만 사용한다. Resource workload 
 - 신규 Project는 생성 시 2026 KR `FULL_PROJECT` 국가 rule/date를 materialize한다.
 - 국가 fixture update는 기존 Project row를 조용히 다시 쓰지 않는다. 사용자가 Preview/저장을 수행할 때만 새 candidate가 저장된다.
 - Calendar 교체와 Auto/Summary Task 재계산, Project revision 증가는 하나의 transaction에서 처리한다.
+
+## Issue #184 Logistics Domain 영속 모델 (Migration 0009)
+
+### 5.14 `project_processes`
+
+공정 단계를 정의한다. Project 내 계층 트리(self-parent)와 순서를 가진다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | PK |
+| `public_id` | TEXT | N | UUID public 식별자 (UNIQUE) |
+| `project_id` | INTEGER | N | Project FK, cascade |
+| `code` | TEXT | N | 공정 코드 (Project 내 UNIQUE) |
+| `name` | TEXT | N | 공정명 (1~200자) |
+| `parent_id` | INTEGER | Y | 상위 공정 PK (동일 프로젝트 composite FK, NO ACTION DEFERRED) |
+| `sort_order` | INTEGER | N | 정렬 순서 (기본 0, >= 0) |
+| `active` | INTEGER | N | 활성 여부 (0 또는 1, 기본 1) |
+| `created_at/updated_at` | TEXT | N | UTC timestamp |
+
+### 5.15 `project_equipment`
+
+프로젝트 내 설비를 정의한다. 설비는 반드시 하나의 특정 공정(`process_id`)에 소속된다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | PK |
+| `public_id` | TEXT | N | UUID public 식별자 (UNIQUE) |
+| `project_id` | INTEGER | N | Project FK, cascade |
+| `process_id` | INTEGER | N | 소속 공정 PK (동일 프로젝트 composite FK, NO ACTION DEFERRED) |
+| `code` | TEXT | N | 설비 코드 (Project 내 UNIQUE) |
+| `name` | TEXT | N | 설비명 (1~200자) |
+| `equipment_type` | TEXT | N | `stocker \| agv \| amr \| oht \| conveyor \| other` |
+| `management_unit` | TEXT | N | `unit \| fleet` |
+| `quantity` | INTEGER | N | 수량 (unit=1 고정, fleet>=1 CHECK) |
+| `manufacturer` | TEXT | N | 제조사 (기본 '') |
+| `model` | TEXT | N | 모델명 (기본 '') |
+| `description` | TEXT | N | 설명 (최대 4000자, 기본 '') |
+| `active` | INTEGER | N | 활성 여부 (0 또는 1, 기본 1) |
+| `created_at/updated_at` | TEXT | N | UTC timestamp |
+
+### 5.16 `project_logistics_systems`
+
+프로젝트 내 제어 및 조율 소프트웨어 시스템을 정의한다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | PK |
+| `public_id` | TEXT | N | UUID public 식별자 (UNIQUE) |
+| `project_id` | INTEGER | N | Project FK, cascade |
+| `code` | TEXT | N | 시스템 코드 (Project 내 UNIQUE) |
+| `name` | TEXT | N | 시스템명 (1~200자) |
+| `system_type` | TEXT | N | `scs \| acs \| ocs \| lcs \| mcs \| other` |
+| `layer` | TEXT | N | `controller \| coordinator` |
+| `scope` | TEXT | N | `project \| processes` |
+| `vendor` | TEXT | N | 벤더사 (기본 '') |
+| `description` | TEXT | N | 설명 (최대 4000자, 기본 '') |
+| `active` | INTEGER | N | 활성 여부 (0 또는 1, 기본 1) |
+| `created_at/updated_at` | TEXT | N | UTC timestamp |
+
+### 5.17 `project_system_processes`
+
+Scope가 `processes`인 시스템과 담당 공정 간의 다대다 매핑 테이블이다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | PK |
+| `project_id` | INTEGER | N | Project FK, cascade |
+| `system_id` | INTEGER | N | 시스템 PK (동일 프로젝트 composite FK, cascade) |
+| `process_id` | INTEGER | N | 공정 PK (동일 프로젝트 composite FK, cascade) |
+| `created_at` | TEXT | N | UTC timestamp |
+
+`UNIQUE(project_id, system_id, process_id)`
+
+### 5.18 `project_equipment_systems`
+
+설비와 이를 제어하는 시스템 간의 매핑 테이블이다. 설비당 주 제어 시스템(`primary`)은 최대 1개(`WHERE control_role = 'primary'` partial unique index)만 허용되며, 보조 제어 시스템(`supporting`)은 복수 개 지정 가능하다. 제어 시스템(`controller`) 계층의 시스템만 연결 가능하다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | PK |
+| `project_id` | INTEGER | N | Project FK, cascade |
+| `equipment_id` | INTEGER | N | 설비 PK (동일 프로젝트 composite FK, cascade) |
+| `system_id` | INTEGER | N | 시스템 PK (동일 프로젝트 composite FK, cascade) |
+| `control_role` | TEXT | N | `primary \| supporting` |
+| `created_at` | TEXT | N | UTC timestamp |
+
+`UNIQUE(project_id, equipment_id, system_id)`
+
+### 5.19 `project_system_links`
+
+상위 조율 시스템(`coordinator`)과 하위 제어/조율 시스템 간의 방향성 연계(DAG) 테이블이다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | PK |
+| `project_id` | INTEGER | N | Project FK, cascade |
+| `source_system_id` | INTEGER | N | 상위 조율 시스템 PK (동일 프로젝트 composite FK, cascade) |
+| `target_system_id` | INTEGER | N | 하위 시스템 PK (동일 프로젝트 composite FK, cascade) |
+| `relation_type` | TEXT | N | `coordinates` (CHECK) |
+| `created_at` | TEXT | N | UTC timestamp |
+
+`UNIQUE(project_id, source_system_id, target_system_id)`, `CHECK(source_system_id <> target_system_id)`
+

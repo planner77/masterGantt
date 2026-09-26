@@ -27,6 +27,8 @@ import {
   type NewSessionToken,
 } from "../security/session-core";
 import { isCanonicalUuidV4, type CreateProjectInput } from "./project-contract";
+import { LogisticsService } from "../logistics/logistics-service-core";
+
 import {
   InvalidTaskInputError,
   ProjectService,
@@ -68,6 +70,7 @@ export class TaskFieldProjectService extends ProjectService {
   private readonly sessionsForFields: EditSessionRepository;
   private readonly schedulesForFields: ScheduleRepository;
   private readonly resourcesForFields: ResourceCatalogRepository;
+  private readonly logisticsForFields: LogisticsService;
   private readonly createClock: () => Date;
   private readonly createPublicId: () => string;
   private readonly createHashPassword: (password: string) => Promise<PasswordHashRecord>;
@@ -83,6 +86,7 @@ export class TaskFieldProjectService extends ProjectService {
     this.sessionsForFields = new EditSessionRepository(fieldDatabase);
     this.schedulesForFields = new ScheduleRepository(fieldDatabase);
     this.resourcesForFields = new ResourceCatalogRepository(fieldDatabase);
+    this.logisticsForFields = new LogisticsService(fieldDatabase);
     this.createClock = options.clock ?? (() => new Date());
     this.createPublicId = options.generatePublicId ?? randomUUID;
     this.createHashPassword = options.hashPassword ?? hashEditPassword;
@@ -107,6 +111,7 @@ export class TaskFieldProjectService extends ProjectService {
         },
         tasks: enrichTasks(response.data.tasks, this.schedulesForFields.listTasks(projectId)),
         assignments: assignmentDtos(this.resourcesForFields, projectId),
+        logistics: this.logisticsForFields.getLogisticsDto(projectId),
       },
     } as T;
   }
@@ -215,6 +220,7 @@ export class TaskFieldProjectService extends ProjectService {
         },
         tasks: enrichTasks(response.data.tasks, this.schedulesForFields.listTasks(project.id)),
         assignments: assignmentDtos(this.resourcesForFields, project.id),
+        logistics: this.logisticsForFields.getLogisticsDto(project.id),
       },
     };
   }
