@@ -26,6 +26,7 @@ jobs:
       STACK_PR: "161"
       STACK_MERGE_SHA: f685b6d2f2d9036b5f94efdec4e6ab7301ed6620
       FINALIZER_BRANCH: ops/issue-142-release-v0.33.0
+      REPAIR_BRANCH: fix/issue-142-release-helper-stacked-cleanup
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -39,7 +40,6 @@ jobs:
           target_sha="$GITHUB_SHA"
 
           test "$(git show "$target_sha:package.json" | jq -r .version)" = "0.33.0"
-          git merge-base --is-ancestor "$FEATURE_MERGE_SHA" "$target_sha"
           git merge-base --is-ancestor "$STACK_MERGE_SHA" "$target_sha"
 
           feature_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$FEATURE_PR")"
@@ -110,12 +110,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr "$FEATURE_PR" --branch "$FEATURE_BRANCH" --target-sha "$TARGET_SHA" --delete
-
           owner="${GITHUB_REPOSITORY%%/*}"
+
+          python3 scripts/safe_stacked_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "$FEATURE_PR" \
+            --branch "$FEATURE_BRANCH" \
+            --carrier-pr "$STACK_PR" \
+            --target-sha "$TARGET_SHA" \
+            --delete
+
           finalizer_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$FINALIZER_BRANCH&per_page=10" | jq -r '[.[] | select(.merged_at != null)] | sort_by(.merged_at) | last | .number // empty')"
           test -n "$finalizer_pr"
           python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr "$finalizer_pr" --branch "$FINALIZER_BRANCH" --target-sha "$TARGET_SHA" --delete
+
+          repair_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$REPAIR_BRANCH&per_page=10" | jq -r '[.[] | select(.merged_at != null)] | sort_by(.merged_at) | last | .number // empty')"
+          test -n "$repair_pr"
+          python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr "$repair_pr" --branch "$REPAIR_BRANCH" --target-sha "$TARGET_SHA" --delete
 
       - name: Issue #142 FINAL 기록 및 종료
         shell: bash
