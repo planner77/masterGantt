@@ -36,13 +36,13 @@ docker inspect CONTAINER_ID --format '{{index .Config.Labels "com.docker.compose
 docker inspect CONTAINER_ID --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Name}}{{end}}{{end}}'
 ```
 
-확인한 기존 프로젝트명은 `.env`의 `COMPOSE_PROJECT_NAME`, 기존 `/data` 볼륨명은 `MASTERGANTT_VOLUME_NAME`에 지정한다. Compose 파일은 프로젝트명을 미설정하면 오류로 중단하여 디렉터리 이름 `deploy`로 새 프로젝트가 생기지 않게 한다. override 파일·자동화 명령에 남은 옛 경로도 함께 수정한다.
+확인한 기존 프로젝트명은 `.env`의 `COMPOSE_PROJECT_NAME`, 기존 `/data` 볼륨명은 `MASTERGANTT_VOLUME_NAME`에 지정한다. 운영 `deploy/compose.yml`은 image-only이며 registry pull을 우선하고, local/CI build는 `deploy/compose.build.yml` override에서만 제공한다. Compose 파일은 프로젝트명을 미설정하면 오류로 중단하여 디렉터리 이름 `deploy`로 새 프로젝트가 생기지 않게 한다. override 파일·자동화 명령에 남은 옛 경로도 함께 수정한다.
 
 ```sh
 docker compose --env-file .env -f deploy/compose.yml config --quiet
 docker compose --env-file .env -f deploy/compose.yml ps
 # 운영 변경 승인과 일관된 DB 백업, 기존 프로젝트/volume 일치 확인 후 적용한다.
-docker compose --env-file .env -f deploy/compose.yml up -d --build app
+docker compose --env-file .env -f deploy/compose.yml up -d --pull always --no-build --force-recreate app
 # 같은 프로젝트의 기존 volume을 유지한다. 환경 변수는 recreate 때 반영한다.
 docker compose --env-file .env -f deploy/compose.yml logs --tail 50 app
 ```

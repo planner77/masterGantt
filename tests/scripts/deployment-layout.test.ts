@@ -9,7 +9,12 @@ const text = (path: string) => readFileSync(resolve(root, path), "utf8");
 
 describe("deployment repository layout", () => {
   it("keeps deployment files together and removes the old entry points", () => {
-    for (const path of ["deploy/docker/Dockerfile", "deploy/compose.yml", "deploy/docker/container-entrypoint.sh"]) {
+    for (const path of [
+      "deploy/docker/Dockerfile",
+      "deploy/compose.yml",
+      "deploy/compose.build.yml",
+      "deploy/docker/container-entrypoint.sh",
+    ]) {
       expect(existsSync(resolve(root, path)), path).toBe(true);
     }
     for (const path of ["Dockerfile", "docker-compose.yml", "scripts/container-entrypoint.sh"]) {
@@ -36,16 +41,24 @@ describe("deployment repository layout", () => {
     expect(new Set(bases).size).toBe(1);
   });
 
-  it("uses the root context and explicit project/volume identity", () => {
+  it("separates production image pulls from local/CI source builds", () => {
     const compose = text("deploy/compose.yml");
+    const buildCompose = text("deploy/compose.build.yml");
     expect(compose).toContain("name: ${COMPOSE_PROJECT_NAME:?");
-    expect(compose).toContain("context: ..");
-    expect(compose).toContain("dockerfile: deploy/docker/Dockerfile");
+    expect(compose).toContain("image: ${IMAGE_NAME:?Set IMAGE_NAME");
+    expect(compose).toContain("pull_policy: always");
+    expect(compose).not.toContain("build:");
     expect(compose).toContain("127.0.0.1:${HOST_PORT:-3000}:3000");
     expect(compose).toContain(
       "RESOURCE_CATALOG_ADMIN_PASSWORD: ${RESOURCE_CATALOG_ADMIN_PASSWORD:?Set RESOURCE_CATALOG_ADMIN_PASSWORD}",
     );
     expect(compose).toContain("name: ${MASTERGANTT_VOLUME_NAME:-mastergantt-data}");
+
+    expect(buildCompose).toContain("build:");
+    expect(buildCompose).toContain("context: ..");
+    expect(buildCompose).toContain("dockerfile: deploy/docker/Dockerfile");
+    expect(buildCompose).toContain("VERSION: ${IMAGE_VERSION:-local}");
+    expect(buildCompose).toContain("pull_policy: never");
   });
 
   it("updates all CI/release builds and the Docker dependency scan", () => {

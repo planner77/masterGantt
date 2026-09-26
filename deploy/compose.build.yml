@@ -1,0 +1,9 @@
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/docker/Dockerfile
+      args:
+        VERSION: ${IMAGE_VERSION:-local}
+    # local/CI build 경로에서는 registry pull로 build 결과가 덮이지 않게 한다.
+    pull_policy: never

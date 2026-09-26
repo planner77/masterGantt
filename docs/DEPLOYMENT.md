@@ -31,6 +31,54 @@ HTTPS reverse proxy / load balancer
 - 한 DB volume을 여러 application container가 공유하지 않는다. SQLite WAL은 같은 host의 shared-memory 사용과 sidecar 파일을 전제하므로 network filesystem이나 replica 확장은 별도 적합성 검토 및 DB 전환 결정이 필요하다. [SQLite WAL](https://www.sqlite.org/wal.html)
 - service는 `restart: unless-stopped` 후보를 사용한다. 자동 restart는 장애 원인을 해결하지 않으므로 health/log/backup 관측과 함께 사용한다.
 
+## 2.1. GHCR/prebuilt image와 local build 경로 분리 (#157)
+
+`deploy/compose.yml`은 운영용 **image-only** Compose다. app service는 `IMAGE_NAME`을 필수로 요구하고 `pull_policy: always`를 사용하며, source `build:`를 포함하지 않는다. 따라서 `--no-build`는 local build 금지만 의미하고 registry freshness를 보장하지 않는다는 과거 혼동을 제거한다.
+
+운영 배포는 다음 우선순위로 image를 선택한다.
+
+1. 검증된 immutable digest: `ghcr.io/planner77/mastergantt@sha256:<verified-digest>`
+2. exact SemVer: `ghcr.io/planner77/mastergantt:0.33.1`
+3. rolling tag(`latest`, major/minor): 편의용. registry refresh와 container 재생성을 반드시 함께 적용
+
+rolling tag를 사용할 때의 표준 명령은 다음과 같다.
+
+```sh
+docker compose --env-file .env -f deploy/compose.yml config --quiet
+docker compose --env-file .env -f deploy/compose.yml pull app
+docker compose --env-file .env -f deploy/compose.yml up -d --pull always --no-build --force-recreate app
+docker compose --env-file .env -f deploy/compose.yml ps
+```
+
+- `--no-build`: source에서 image를 build하지 않는다.
+- `--pull always`: registry의 현재 manifest/digest를 확인한다.
+- `--force-recreate`: 기존 container가 이전 image ID를 계속 사용하는 경우를 방지한다.
+- named volume `mastergantt-data` 및 single-instance SQLite 계약은 container 재생성 뒤에도 유지한다.
+
+local/CI source build는 별도 override를 명시한다.
+
+```sh
+IMAGE_NAME=mastergantt:local IMAGE_VERSION=local \
+docker compose --env-file .env \
+  -f deploy/compose.yml -f deploy/compose.build.yml \
+  up -d --build app
+```
+
+`deploy/compose.build.yml`은 `build:`를 추가하고 `pull_policy: never`를 적용하여 local build 결과가 registry pull로 덮이지 않게 한다. 운영 절차에서는 이 override를 사용하지 않는다.
+
+배포 후 tag 문자열만 보지 말고 실제 실행 identity를 확인한다.
+
+```sh
+container_id="$(docker compose --env-file .env -f deploy/compose.yml ps -q app)"
+docker inspect "$container_id" --format 'ConfiguredImage={{.Config.Image}} ImageID={{.Image}}'
+docker image inspect "$(docker inspect "$container_id" --format '{{.Image}}')" \
+  --format 'ID={{.Id}} Version={{index .Config.Labels "org.opencontainers.image.version"}} Revision={{index .Config.Labels "org.opencontainers.image.revision"}}'
+```
+
+forward-only migration 때문에 DB ledger가 실행 image보다 앞서 있으면 startup은 계속 fail-closed해야 한다. image를 임의 rollback하지 말고 compatible DB backup/restore와 검증된 image identity를 먼저 확인한다.
+
+> 보안: `docker compose config`는 환경변수 치환 결과를 출력할 수 있다. 실제 비밀번호/token이 포함된 전체 출력을 Issue/CI log/문서에 붙이지 말고, 공유 전 secret을 마스킹한다. 정상 확인에는 가능한 `config --quiet`를 사용한다.
+
 ## 3. Node, Next.js, native module 원칙
 
 ### 지원 버전 선택
