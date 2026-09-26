@@ -6,7 +6,7 @@ import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectExcelExportButton } from "@/features/projects/project-excel-export-button";
 import { ProjectWorkCalendarEditor } from "@/features/projects/project-work-calendar-editor";
-import { EMPTY_TASK_FILTER, activeTaskFilterCount, filterTasksWithAncestors, type TaskFilterState } from "@/features/projects/project-search-filter";
+import { EMPTY_TASK_FILTER, activeTaskFilterCount, applyTaskQuickView, filterTasksWithAncestors, getTaskQuickView, type TaskFilterState } from "@/features/projects/project-search-filter";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
@@ -641,6 +641,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const { project, tasks, links, assignments } = state.snapshot.data;
   const filteredTasks = filterTasksWithAncestors(tasks, taskFilter, assignments);
   const activeFilters = activeTaskFilterCount(taskFilter);
+  const quickView = getTaskQuickView(taskFilter.types);
   const visibleTaskIds = filteredTasks.tasks.map((task) => task.taskId);
   const normalizedTargetQuery = targetPickerQuery.trim().toLocaleLowerCase();
   const selectableAssignedTargets = assignedTargets.filter((target) =>
@@ -774,6 +775,32 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           <button className="secondary-button project-filter-trigger" type="button" aria-controls="project-task-filter-panel" aria-expanded={taskFilterOpen} ref={taskFilterTriggerReference} onClick={() => setTaskFilterOpen((open) => !open)}>
             필터{activeFilters ? ` ${activeFilters}` : ""}
           </button>
+          <div className="project-filter-quick-views" role="group" aria-label="작업 유형 빠른 보기">
+            <button
+              type="button"
+              className={`project-filter-quick-button${quickView === "all" ? " is-active" : ""}`}
+              aria-pressed={quickView === "all"}
+              onClick={() => setTaskFilter((current) => applyTaskQuickView(current, "all"))}
+            >
+              전체
+            </button>
+            <button
+              type="button"
+              className={`project-filter-quick-button${quickView === "task" ? " is-active" : ""}`}
+              aria-pressed={quickView === "task"}
+              onClick={() => setTaskFilter((current) => applyTaskQuickView(current, "task"))}
+            >
+              Task
+            </button>
+            <button
+              type="button"
+              className={`project-filter-quick-button${quickView === "milestone" ? " is-active" : ""}`}
+              aria-pressed={quickView === "milestone"}
+              onClick={() => setTaskFilter((current) => applyTaskQuickView(current, "milestone"))}
+            >
+              Milestone
+            </button>
+          </div>
           {activeFilters > 0 ? <button className="secondary-button project-filter-reset" type="button" onClick={resetTaskFilter}>초기화</button> : null}
           <span className="project-filter-result" role="status">{filteredTasks.matchCount}개 일치 / 전체 {tasks.length}개 작업</span>
         </div>
