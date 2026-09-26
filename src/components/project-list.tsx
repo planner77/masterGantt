@@ -10,6 +10,12 @@ import { useWorkspaceNotifications } from "@/components/workspace-notifications"
 import type { ProjectListItemDto, ProjectStatus } from "@/contracts/projects";
 import { PROJECT_STATUS_OPTIONS, projectStatusLabel } from "@/features/projects/project-status";
 import {
+  hasCurrentProjectEditSession,
+  patchProjectStatus,
+  readProjectStatusTarget,
+  unlockProjectEditSession,
+} from "@/features/projects/project-status-mutation";
+import {
   EMPTY_PROJECT_FILTER,
   activeProjectFilterCount,
   filterProjectList,
@@ -24,6 +30,7 @@ import styles from "./project-list.module.css";
 function subscribeToLocaleChanges(): () => void { return () => {}; }
 function projectPath(publicId: string): string { return `/projects/${encodeURIComponent(publicId)}`; }
 type DeleteTarget = { publicId: string; name: string; revision: number };
+type StatusTarget = { publicId: string; name: string; revision: number; nextStatus: ProjectStatus };
 
 async function readCurrentProject(publicId: string): Promise<DeleteTarget | null> {
   const response = await fetch(`/api${projectPath(publicId)}`, { cache: "no-store", credentials: "same-origin" });
@@ -78,6 +85,11 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   const router = useRouter();
   const { notify, clearToast } = useWorkspaceNotifications();
   const [deletedIds, setDeletedIds] = useState<ReadonlySet<string>>(() => new Set());
+  const [statusOverrides, setStatusOverrides] = useState<Readonly<Record<string, ProjectStatus>>>({});
+  const [statusBusyId, setStatusBusyId] = useState<string>();
+  const [statusTarget, setStatusTarget] = useState<StatusTarget | null>(null);
+  const [statusPassword, setStatusPassword] = useState("");
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [filter, setFilter] = useState<ProjectFilterState>(EMPTY_PROJECT_FILTER);
   const [filterOpen, setFilterOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string>();
@@ -91,13 +103,19 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   const searchInput = useRef<HTMLInputElement | null>(null);
   const locales = useSyncExternalStore<DisplayLocales>(subscribeToLocaleChanges, browserLocales, () => SSR_DATE_LOCALE);
   const timeZone = useSyncExternalStore(subscribeToLocaleChanges, browserTimeZone, () => SSR_TIME_ZONE);
-  const availableProjects = useMemo(() => projects.filter(({ publicId }) => !deletedIds.has(publicId)), [deletedIds, projects]);
+  const displayProjects = useMemo(
+    () => projects.map((project) => statusOverrides[project.publicId] && statusOverrides[project.publicId] !== project.status
+      ? { ...project, status: statusOverrides[project.publicId] }
+      : project),
+    [projects, statusOverrides],
+  );
+  const availableProjects = useMemo(() => displayProjects.filter(({ publicId }) => !deletedIds.has(publicId)), [deletedIds, displayProjects]);
   const validation = useMemo(() => validateProjectFilter(filter), [filter]);
   const hasValidationError = Boolean(validation.created || validation.updated);
   const effectiveFilter = useMemo(() => sanitizeInvalidProjectDateFilters(filter), [filter]);
   const visibleProjects = useMemo(
-    () => filterProjectList(projects, effectiveFilter, timeZone, deletedIds),
-    [deletedIds, effectiveFilter, projects, timeZone],
+    () => filterProjectList(displayProjects, effectiveFilter, timeZone, deletedIds),
+    [deletedIds, displayProjects, effectiveFilter, timeZone],
   );
   const activeFilters = activeProjectFilterCount(filter);
   const filterApplied = activeFilters > 0;
@@ -127,6 +145,119 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
       closeFilterWithFocus();
     }
   }
+  async function applyStatusChange(target: StatusTarget) {
+    if (mutation.current) return;
+    mutation.current = true;
+    setStatusBusyId(target.publicId);
+    setStatusError(null);
+    clearToast();
+    try {
+      const { response, body, mutation: result } = await patchProjectStatus(target.publicId, target.revision, target.nextStatus);
+      if (response.ok && result) {
+        setStatusOverrides((current) => ({ ...current, [target.publicId]: result.data.project.status }));
+        setStatusTarget(null);
+        setStatusPassword("");
+        notify("success", `${target.name} 상태를 ${projectStatusLabel(result.data.project.status)}(으)로 변경했습니다.`, "프로젝트 상태 변경");
+        return;
+      }
+      if (response.status === 412) {
+        const latest = await readProjectStatusTarget(target.publicId);
+        if (latest) setStatusOverrides((current) => ({ ...current, [target.publicId]: latest.status }));
+        setStatusTarget(null);
+        setStatusPassword("");
+        notify("error", "프로젝트가 다른 곳에서 변경되었습니다. 최신 상태를 반영했습니다. 확인 후 다시 변경해 주세요.", "프로젝트 상태 변경", body);
+        return;
+      }
+      if (response.status === 401 || response.status === 403) {
+        setStatusTarget(null);
+        setStatusPassword("");
+        notify("error", "편집 권한이 만료되었거나 현재 접속 주소에서 변경할 수 없습니다. 다시 상태 변경을 시작해 주세요.", "프로젝트 상태 변경", body);
+        return;
+      }
+      notify("error", "프로젝트 상태를 변경할 수 없습니다. 현재 상태를 확인한 뒤 다시 시도해 주세요.", "프로젝트 상태 변경", body);
+    } catch {
+      notify("error", "서버 응답을 확인하지 못했습니다. 프로젝트 상태를 다시 확인한 뒤 재시도해 주세요.", "프로젝트 상태 변경");
+    } finally {
+      mutation.current = false;
+      setStatusBusyId(undefined);
+    }
+  }
+  async function prepareStatusChange(project: ProjectListItemDto, nextStatus: ProjectStatus) {
+    if (mutation.current || statusBusyId || nextStatus === project.status) return;
+    mutation.current = true;
+    setStatusBusyId(project.publicId);
+    setStatusError(null);
+    clearToast();
+    try {
+      const latest = await readProjectStatusTarget(project.publicId);
+      if (!latest) {
+        notify("error", "프로젝트의 최신 상태를 읽지 못했습니다. 잠시 후 다시 시도해 주세요.", "프로젝트 상태 변경");
+        return;
+      }
+      setStatusOverrides((current) => ({ ...current, [project.publicId]: latest.status }));
+      if (latest.status === nextStatus) return;
+      const target = { publicId: project.publicId, name: project.name, revision: latest.revision, nextStatus };
+      if (await hasCurrentProjectEditSession(project.publicId)) {
+        mutation.current = false;
+        setStatusBusyId(undefined);
+        await applyStatusChange(target);
+        return;
+      }
+      setStatusTarget(target);
+    } catch {
+      notify("error", "편집 권한을 확인하지 못했습니다. 네트워크 연결을 확인해 주세요.", "프로젝트 상태 변경");
+    } finally {
+      if (mutation.current) {
+        mutation.current = false;
+        setStatusBusyId(undefined);
+      }
+    }
+  }
+  async function authorizeStatusChange(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!statusTarget || mutation.current) return;
+    const password = statusPassword;
+    setStatusPassword("");
+    if (Array.from(password).length < 1 || new TextEncoder().encode(password).byteLength > 1024) {
+      setStatusError("편집 비밀번호를 입력해 주세요.");
+      return;
+    }
+    mutation.current = true;
+    setStatusBusyId(statusTarget.publicId);
+    setStatusError(null);
+    clearToast();
+    try {
+      const response = await unlockProjectEditSession(statusTarget.publicId, password);
+      if (response.status !== 204) {
+        const body: unknown = await response.json().catch(() => null);
+        const message = response.status === 401 ? "편집 비밀번호가 올바르지 않습니다. 다시 확인해 주세요."
+          : response.status === 429 ? "시도가 너무 많습니다. 잠시 후 다시 시도해 주세요."
+            : "편집 권한을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.";
+        setStatusError(message);
+        notify("error", message, "프로젝트 상태 변경", body);
+        return;
+      }
+      const target = statusTarget;
+      mutation.current = false;
+      setStatusBusyId(undefined);
+      await applyStatusChange(target);
+    } catch {
+      setStatusError("네트워크 연결을 확인한 뒤 다시 시도해 주세요.");
+      notify("error", "편집 권한을 확인하지 못했습니다. 네트워크 연결을 확인해 주세요.", "프로젝트 상태 변경");
+    } finally {
+      if (mutation.current) {
+        mutation.current = false;
+        setStatusBusyId(undefined);
+      }
+    }
+  }
+  function closeStatusChange() {
+    if (mutation.current) return;
+    setStatusTarget(null);
+    setStatusPassword("");
+    setStatusError(null);
+  }
+
   function reportError(message: string, body?: unknown) {
     setDeleteError(message);
     notify("error", message, "프로젝트 삭제", body);
@@ -287,20 +418,44 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
           <thead><tr><th scope="col">프로젝트</th><th scope="col">상태</th><th scope="col">소유자</th><th scope="col">설명</th><th scope="col">생성</th><th scope="col">최근 변경</th><th scope="col">작업</th></tr></thead>
           <tbody>{visibleProjects.map((project) => <tr key={project.publicId} data-project-id={project.publicId}>
             <td className={styles.nameCell}><Link className={styles.nameLink} href={projectPath(project.publicId)} onNavigate={() => { setFilter(EMPTY_PROJECT_FILTER); setFilterOpen(false); }}>{project.name}</Link></td>
-            <td className={styles.statusCell}><span className={styles.statusBadge} data-status={project.status}>{projectStatusLabel(project.status)}</span></td>
+            <td className={styles.statusCell}>
+              <select
+                aria-label={`${project.name} 프로젝트 상태`}
+                className={`${styles.statusBadge} ${styles.statusSelect}`}
+                data-status={project.status}
+                disabled={statusBusyId === project.publicId || submitting}
+                value={project.status}
+                onChange={(event) => void prepareStatusChange(project, event.target.value as ProjectStatus)}
+              >
+                {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+              </select>
+            </td>
             <td>{project.ownerName ?? "미지정"}</td>
             <td className={styles.descriptionCell}><span className={styles.description}>{project.description || "설명이 없습니다."}</span></td>
             <td className={styles.dateCell}>{formatLocaleDateTime(project.createdAt, locales, timeZone)}</td>
             <td className={styles.dateCell}>{formatLocaleDateTime(project.updatedAt, locales, timeZone)}</td>
             <td className={styles.actions}>
               <ProjectRowActions project={project} projectUrl={projectUrls[project.publicId] ?? null}
-                disabled={deletingId !== undefined || submitting}
+                disabled={deletingId !== undefined || statusBusyId !== undefined || submitting}
                 onDelete={(selected, restoreTarget) => void prepareDelete(selected, restoreTarget)} />
             </td>
           </tr>)}</tbody>
         </table>
       </div>}
     </div>}
+    {statusTarget ? <WorkspaceDialog title="프로젝트 상태 변경" onClose={closeStatusChange} busy={statusBusyId === statusTarget.publicId}>
+      <p>“{statusTarget.name}” 프로젝트 상태를 <strong>{projectStatusLabel(statusTarget.nextStatus)}</strong>(으)로 변경하려면 편집 비밀번호를 입력해 주세요.</p>
+      {statusError ? <p role="alert">{statusError}</p> : null}
+      <form className="project-form compact-form" noValidate onSubmit={authorizeStatusChange}>
+        <div className="form-field"><label htmlFor="status-project-password">편집 비밀번호</label>
+          <input id="status-project-password" type="password" autoComplete="current-password"
+            disabled={statusBusyId === statusTarget.publicId} value={statusPassword}
+            onChange={(event) => setStatusPassword(event.target.value)} /></div>
+        <button className="primary-button" type="submit" disabled={statusBusyId === statusTarget.publicId}>
+          {statusBusyId === statusTarget.publicId ? "변경 중…" : "비밀번호 확인 후 상태 변경"}
+        </button>
+      </form>
+    </WorkspaceDialog> : null}
     {target ? <WorkspaceDialog title="프로젝트 삭제" onClose={closeDelete} busy={submitting} restoreFocusRef={deleteTrigger}>
       <p>“{target.name}” 프로젝트와 포함된 모든 일정이 삭제됩니다. 이 작업은 복구할 수 없습니다.</p>
       <p>삭제하려면 이 프로젝트의 편집 비밀번호를 입력해 주세요.</p>

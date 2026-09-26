@@ -142,3 +142,8 @@ SVAR `add-link`/`delete-link` actions are intercepted before local commit. The P
 Issue #83에서 도입한 Task/Resource view filter와 Project List filter는 UI와 domain predicate를 분리한다. `project-search-filter.ts`의 공통 text normalization/operator primitive를 Task와 Project adapter가 공유하고, Project 전용 날짜/owner 조건은 `project-list-filter.ts`에 둔다. Project List adapter는 `ProjectListItemDto[] + browser timezone + deletedIds + view state`를 입력으로 하는 결정적 read-only 함수이며 API/DB/Project revision에 의존하지 않는다.
 
 처리 순서는 `public summary → deletedIds 제외 → quick search → advanced clauses → visible result`다. client-side list filtering은 서버 authorization 근거가 아니며 Project mutation/security 경계를 변경하지 않는다. Project 수가 실제 client filtering 한계를 넘는 근거가 생기기 전에는 server-side search/pagination을 도입하지 않는다.
+
+
+### Project status client mutation 경계 (#177)
+
+Project-level status 변경은 새 서버 endpoint나 DB 계층을 만들지 않고 기존 metadata PATCH를 재사용한다. `src/features/projects/project-status-mutation.ts`가 List와 Workspace의 공통 client transport 경계를 담당하여 최신 status/revision 조회, current edit-session 확인, unlock 호출, status-only PATCH 및 canonical metadata mutation 판별을 한 곳에 둔다. 인증 dialog와 UI state ownership은 각 화면에 남겨 List의 password-on-demand 흐름과 Workspace의 기존 edit mode를 억지로 합치지 않는다. 412 복구는 canonical snapshot을 다시 적용하고 Gantt reset generation을 변경하지 않아 Project metadata 변경과 SVAR instance lifecycle을 분리한다.

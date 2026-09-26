@@ -68,6 +68,14 @@
 .statusBadge[data-status="planned"] { border-color: var(--status-info); background: var(--status-info-surface); color: var(--status-info); }
 .statusBadge[data-status="in_progress"] { border-color: var(--action-selected); background: var(--action-selected-subtle); color: var(--action-selected-foreground); }
 .statusBadge[data-status="completed"] { border-color: var(--status-success); background: var(--status-success-surface); color: var(--status-success); }
+.statusSelect {
+  min-height: 1.9rem;
+  width: 100%;
+  cursor: pointer;
+  appearance: auto;
+}
+.statusSelect:disabled { cursor: progress; opacity: var(--state-disabled-opacity); }
+.statusSelect:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
 .statusFilter { min-width: 0; border: 1px solid var(--border-default); border-radius: var(--radius); padding: 0.75rem; }
 .statusFilter legend { padding-inline: 0.25rem; font-weight: 700; }
 .statusFilter p { margin: 0.5rem 0 0; color: var(--text-muted); font-size: 0.8125rem; }

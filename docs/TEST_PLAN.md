@@ -504,3 +504,12 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - 390/768/1024/1440px에서 input/오류가 viewport 또는 의도된 Grid 내부 가로 스크롤로 접근 가능하고 문서 overflow가 없는지 확인한다. 로컬 test/lint/typecheck/build/browser는 사용자 지시에 따라 **NOT TESTED**이며, 작성된 테스트의 존재는 PASS 증거가 아니다. #140 PR의 정확한 head에서 `quality/e2e/docker` 실행 시작만 확인하고 완료 여부는 별도 판정한다. API/DB/Scheduling/Security 계약 변경은 현재 계획상 N/A다.
 
 위 항목은 #140의 **검증 계획**이다. 현재 작성된 `tests/e2e/project-gantt-inline-name.spec.ts`는 세 유형의 Enter 저장, Task의 blur 저장, 숫자 문자열·Escape·입력 오류·서버 실패·연결 제한·readonly·재조회·문서 overflow와 4개 폭의 input bounds·390px 오류 bounds를 직접 명세한다. Chart label·열린 Task Editor·Summary 일정 필드 차단·이름 더블클릭·다른 mutation pending·400 응답과 나머지 상태 보존 항목은 해당 전용 spec에서 아직 직접 단언하지 않았으며, 기존 테스트와 연결 증거를 확인하거나 후속 검증으로 남긴다. PR CI 시작 또는 일부 검사 성공만으로 미단언 항목을 PASS로 판정하지 않는다.
+
+### Issue #177 Project 상태 빠른 변경
+
+- Project List Chromium E2E는 상태 select의 accessible name/키보드 조작, 최신 canonical GET, current edit-session 재사용, 세션 없음의 password dialog, 잘못된 password/cancel 시 PATCH 0건, 성공 시 `{status}` 단독 payload와 strong If-Match를 확인한다.
+- 기본 상태 필터에서 `in_progress → completed` 성공 직후 full reload 없이 행/결과 수가 감소하고 완료 필터를 추가하면 canonical completed 행이 다시 나타나는지 확인한다. 유효 session 획득 후 다음 직접 전환은 추가 password 없이 수행한다.
+- Workspace E2E는 readonly badge와 edit-mode header status combobox를 구분하고, header 전환의 request body가 status-only인지, 성공 뒤 Settings select/canonical GET이 같은 값인지 확인한다.
+- Workspace status 전환 전후 실제 `.project-gantt-widget .wx-gantt` DOM identity를 비교해 Gantt remount가 없음을 확인한다. status 변경 자체가 Task scheduling/resource mutation을 발생시키지 않아야 한다.
+- 401/403은 readonly 복귀 또는 재인증 안내, 412는 최신 canonical status 재조회 후 stale draft 폐기, network/5xx는 성공 표시 금지로 검증한다. 같은 Project에서 빠른 중복 조작은 mutation lock으로 직렬화/차단한다.
+- 기존 #138 API/DB status integration 테스트는 그대로 유지하며 신규 migration/API endpoint가 없음을 문서 gate에서 확인한다.

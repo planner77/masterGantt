@@ -270,3 +270,13 @@ Next App Router의 `src/app/icon.svg`는 사이트 헤더의 파란 M 마크를 
 저장 중 재입력을 잠그고 서버 성공 후 canonical snapshot을 기존 Gantt 인스턴스에 동기화한다. 실패·401·412·409에서는 기존 이름과 명시적 오류/권한 상태를 유지하며, 서버의 Origin·session·If-Match·revision 검사와 기존 rollback/재조회 경로를 재사용한다. Task Editor의 Summary readonly와 별도 Task/Assignment 저장 계약은 유지한다. 관계의 양 끝 Task는 기존 409 제한 때문에 이름 editor를 열지 않으며, 관계와 무관한 Task는 편집할 수 있다. 편집 가능한 이름 클릭에서는 작업 URL을 열지 않고, 연결된 이름처럼 editor가 열리지 않는 행과 Chart bar의 기존 URL 동작은 유지한다. Readonly에서는 inline editor가 없다.
 
 전용 unit/E2E 명세에는 세 유형, 단일 클릭과 F2, Enter/blur/Escape, 오류·중복·IME, 숫자 원문, 401/409/412/네트워크, 링크 무관 작업, 새로고침 영속성, Grid/Chart 인스턴스 및 390/768/1024/1440px overflow를 포함한다. 이 명세와 구현은 정적 검토만 했으며 실제 로컬 test/lint/typecheck/build/브라우저 조작, 구현 전후 화면 수치는 사용자 지시에 따라 **NOT TESTED**다. 공식 SVAR React Gantt Core 2.7.3의 text column, `getTable(true)`와 Table `open-editor`/`close-editor` API 및 설치 EventBus 순서를 확인했다(2026-09-24); 공식 demo의 실제 조작은 미실행이다. API·DB·Scheduling·Security 계약 문서 변경은 서버 계약 불변으로 N/A다.
+
+## Issue #177 Project 상태 빠른 변경
+
+Project List의 상태 열은 표시 전용 badge 대신 현재 상태를 유지하는 compact native select를 제공한다. 각 control은 프로젝트명을 포함한 accessible name을 가지며 키보드만으로 `예정 / 진행 중 / 완료`를 선택할 수 있다. 변경을 시작하면 대상 Project의 canonical snapshot을 다시 읽어 최신 revision/status를 확보하고 current edit session이 있으면 그대로 사용한다. 세션이 없으면 기존 편집 비밀번호 dialog를 열며 취소·잘못된 비밀번호·rate limit에서는 status PATCH를 보내지 않는다. 비밀번호는 component state에서 제출 직후 비우며 URL·로그·persistent storage에 저장하지 않는다.
+
+실제 저장은 기존 `PATCH /api/projects/{publicId}`에 `{ status }`만 보내고 strong `If-Match`를 사용한다. 성공 시 canonical mutation response의 status만 목록 표시 override에 반영하여 페이지 전체 reload 없이 기존 검색/고급 필터 predicate를 즉시 다시 계산한다. 따라서 기본 `예정 + 진행 중` 보기에서 `진행 중 → 완료`는 행과 결과 건수가 즉시 줄고, 완료 필터를 선택하면 같은 canonical 상태로 다시 보인다. 412에서는 최신 Project를 다시 읽어 stale 선택을 폐기하고, 401/403에서는 성공처럼 표시하지 않는다. 동일 행 mutation 중 selector와 행 action은 중복 실행을 막는다.
+
+Project Workspace의 title row는 readonly에서 기존 lifecycle badge를 그대로 표시한다. edit mode에서는 같은 위치가 compact native select가 되며 Project Settings를 열지 않고 직접 status-only PATCH를 수행한다. 성공 canonical snapshot은 기존 React workspace state에 적용하고 `ProjectGantt` reset generation이나 route navigation을 바꾸지 않는다. 412와 일반 실패는 canonical snapshot을 재조회해 status draft를 폐기하고, 401/403은 기존 readonly 권한 상태로 되돌린다. Settings를 이후 열면 같은 canonical status를 선택값으로 사용한다.
+
+SVAR Task field에는 Project status를 추가하지 않으며 Gantt editor/instance lifecycle과 독립된 Project-level metadata control로 유지한다. API/DB schema 및 scheduling 계산은 변경하지 않는다.

@@ -39,8 +39,8 @@ test("상태 다중 선택은 검색과 AND이고 기본·초기화·페이지 �
   await expect(table).toContainText(planned);
   await expect(table).toContainText(progressing);
   await expect(table).not.toContainText(completed);
-  await expect(rows.filter({ hasText: planned }).getByRole("cell", { name: "예정" })).toBeVisible();
-  await expect(rows.filter({ hasText: progressing }).getByRole("cell", { name: "진행 중" })).toBeVisible();
+  await expect(rows.filter({ hasText: planned }).getByRole("combobox", { name: `${planned} 프로젝트 상태` })).toHaveValue("planned");
+  await expect(rows.filter({ hasText: progressing }).getByRole("combobox", { name: `${progressing} 프로젝트 상태` })).toHaveValue("in_progress");
   await expect(rows.filter({ hasText: progressing }).locator('[data-status="in_progress"]')).toBeVisible();
   const plannedColor = await rows.filter({ hasText: planned }).locator('[data-status="planned"]').evaluate((element) => getComputedStyle(element).backgroundColor);
   const progressingColor = await rows.filter({ hasText: progressing }).locator('[data-status="in_progress"]').evaluate((element) => getComputedStyle(element).backgroundColor);
@@ -75,7 +75,7 @@ test("상태 다중 선택은 검색과 AND이고 기본·초기화·페이지 �
   await expect(statuses.getByRole("checkbox", { name: "완료" })).toBeChecked();
   await expect(rows).toHaveCount(3);
   await expect(filterButton).toHaveText("필터 1");
-  await expect(rows.filter({ hasText: completed }).getByRole("cell", { name: "완료" })).toBeVisible();
+  await expect(rows.filter({ hasText: completed }).getByRole("combobox", { name: `${completed} 프로젝트 상태` })).toHaveValue("completed");
   const completedColor = await rows.filter({ hasText: completed }).locator('[data-status="completed"]').evaluate((element) => getComputedStyle(element).backgroundColor);
   expect(completedColor).not.toBe(progressingColor);
   await statuses.getByRole("checkbox", { name: "예정" }).uncheck();
@@ -143,15 +143,16 @@ test("생성 기본값과 설정 변경은 canonical 상태를 목록·읽기 �
   await page.waitForURL(/\/projects\/[0-9a-f-]+$/);
   const publicId = page.url().split("/").pop()!;
   const badge = page.locator(".project-lifecycle-badge");
-  await expect(badge).toHaveText("예정");
+  const headerStatus = page.getByRole("combobox", { name: "프로젝트 상태 변경" });
+  await expect(headerStatus).toHaveValue("planned");
 
   await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "프로젝트 설정" });
   await dialog.getByLabel("프로젝트 상태").selectOption("completed");
   await dialog.getByRole("button", { name: "프로젝트 정보 저장" }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(badge).toHaveText("완료");
-  await expect(badge).toHaveAttribute("data-status", "completed");
+  await expect(headerStatus).toHaveValue("completed");
+  await expect(headerStatus).toHaveAttribute("data-status", "completed");
   const completedSnapshot = await (await page.request.get(`/api/projects/${publicId}`)).json();
   expect(completedSnapshot.data.project.status).toBe("completed");
 
@@ -170,7 +171,7 @@ test("생성 기본값과 설정 변경은 canonical 상태를 목록·읽기 �
   await expect(readonlyPage.locator(".project-lifecycle-badge")).toHaveText("완료");
   await expect(readonlyPage.getByText("읽기 전용", { exact: true })).toBeVisible();
   await expect(readonlyPage.getByRole("button", { name: "프로젝트 설정", exact: true })).toHaveCount(0);
-  await expect(readonlyPage.getByRole("combobox", { name: "프로젝트 상태", exact: true })).toHaveCount(0);
+  await expect(readonlyPage.getByRole("combobox", { name: "프로젝트 상태 변경", exact: true })).toHaveCount(0);
   await readonlyContext.close();
 
   await page.getByRole("link", { name: "프로젝트", exact: true }).click();
@@ -178,16 +179,16 @@ test("생성 기본값과 설정 변경은 canonical 상태를 목록·읽기 �
   const filterButton = page.locator('button[aria-controls="project-list-advanced-filter"]');
   await filterButton.click();
   await page.getByRole("group", { name: "프로젝트 상태" }).getByRole("checkbox", { name: "완료" }).check();
-  await expect(page.getByRole("row", { name: new RegExp(name) }).getByRole("cell", { name: "완료" })).toBeVisible();
+  await expect(page.getByRole("row", { name: new RegExp(name) }).getByRole("combobox", { name: `${name} 프로젝트 상태` })).toHaveValue("completed");
   await page.getByRole("link", { name, exact: true }).click();
-  await expect(badge).toHaveText("완료");
+  await expect(headerStatus).toHaveValue("completed");
 
   await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
   await dialog.getByLabel("프로젝트 상태").selectOption("in_progress");
   await dialog.getByRole("button", { name: "프로젝트 정보 저장" }).click();
-  await expect(badge).toHaveText("진행 중");
+  await expect(headerStatus).toHaveValue("in_progress");
   await page.getByRole("link", { name: "프로젝트", exact: true }).click();
-  await expect(page.getByRole("row", { name: new RegExp(name) }).getByRole("cell", { name: "진행 중" })).toBeVisible();
+  await expect(page.getByRole("row", { name: new RegExp(name) }).getByRole("combobox", { name: `${name} 프로젝트 상태` })).toHaveValue("in_progress");
   await page.getByRole("link", { name, exact: true }).click();
   await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
   await dialog.getByLabel("프로젝트 상태").selectOption("planned");
@@ -199,7 +200,80 @@ test("생성 기본값과 설정 변경은 canonical 상태를 목록·읽기 �
   expect(conflicting.status()).toBe(200);
   await dialog.getByRole("button", { name: "프로젝트 정보 저장" }).click();
   await expect(page.getByTestId("workspace-toast")).toContainText("다른 편집 내용이 먼저 저장되었습니다.");
-  await expect(badge).toHaveText("완료");
+  await expect(headerStatus).toHaveValue("completed");
+});
+
+test("Project List 상태 빠른 변경은 기존 세션 또는 비밀번호 인증을 사용하고 필터를 즉시 재평가한다", async ({ browser, page, baseURL }) => {
+  const name = `List quick status ${randomUUID().slice(0, 8)}`;
+  const publicId = await createProject(page, baseURL!, name, "in_progress");
+  const readonlyContext = await browser.newContext({ baseURL });
+  const readonlyPage = await readonlyContext.newPage();
+  await readonlyPage.goto("/");
+  const row = readonlyPage.getByRole("row", { name: new RegExp(name) });
+  const status = row.getByRole("combobox", { name: `${name} 프로젝트 상태` });
+  await expect(status).toHaveValue("in_progress");
+
+  const patchBodies: unknown[] = [];
+  readonlyPage.on("request", (request) => {
+    if (request.method() === "PATCH" && new URL(request.url()).pathname === `/api/projects/${publicId}`) {
+      patchBodies.push(request.postDataJSON());
+      expect(request.headers()["if-match"]).toMatch(/^"\d+"$/);
+    }
+  });
+
+  await status.selectOption("completed");
+  const auth = readonlyPage.getByRole("dialog", { name: "프로젝트 상태 변경" });
+  await expect(auth).toBeVisible();
+  expect(patchBodies).toHaveLength(0);
+  await auth.getByLabel("편집 비밀번호").fill("wrong");
+  await auth.getByRole("button", { name: "비밀번호 확인 후 상태 변경" }).click();
+  await expect(auth.getByRole("alert")).toContainText("올바르지 않습니다");
+  expect(patchBodies).toHaveLength(0);
+  await auth.getByLabel("편집 비밀번호").fill("StatusPwd12!");
+  await auth.getByRole("button", { name: "비밀번호 확인 후 상태 변경" }).click();
+  await expect(auth).toHaveCount(0);
+  await expect(row).toHaveCount(0);
+  expect(patchBodies).toEqual([{ status: "completed" }]);
+
+  const panelButton = readonlyPage.locator('button[aria-controls="project-list-advanced-filter"]');
+  await panelButton.click();
+  await readonlyPage.getByRole("group", { name: "프로젝트 상태" }).getByRole("checkbox", { name: "완료" }).check();
+  const completedRow = readonlyPage.getByRole("row", { name: new RegExp(name) });
+  await expect(completedRow.getByRole("combobox", { name: `${name} 프로젝트 상태` })).toHaveValue("completed");
+  await completedRow.getByRole("combobox", { name: `${name} 프로젝트 상태` }).selectOption("planned");
+  await expect(completedRow.getByRole("combobox", { name: `${name} 프로젝트 상태` })).toHaveValue("planned");
+  expect(patchBodies).toEqual([{ status: "completed" }, { status: "planned" }]);
+  await readonlyContext.close();
+});
+
+test("Workspace edit mode의 header status control은 status-only PATCH 후 Settings와 canonical 값을 공유한다", async ({ page, baseURL }) => {
+  const name = `Workspace quick status ${randomUUID().slice(0, 8)}`;
+  const publicId = await createProject(page, baseURL!, name, "planned");
+  await page.goto(`/projects/${publicId}`);
+  const status = page.getByRole("combobox", { name: "프로젝트 상태 변경" });
+  await expect(status).toHaveValue("planned");
+  const gantt = page.locator(".project-gantt-widget .wx-gantt");
+  await expect(gantt).toBeVisible();
+  const identity = await gantt.evaluate((element) => {
+    (window as typeof window & { __issue177Gantt?: Element }).__issue177Gantt = element;
+    return true;
+  });
+  expect(identity).toBe(true);
+
+  let patchBody: unknown = null;
+  page.on("request", (request) => {
+    if (request.method() === "PATCH" && new URL(request.url()).pathname === `/api/projects/${publicId}`) patchBody = request.postDataJSON();
+  });
+  await status.selectOption("in_progress");
+  await expect(status).toHaveValue("in_progress");
+  expect(patchBody).toEqual({ status: "in_progress" });
+  expect(await gantt.evaluate((element) => (window as typeof window & { __issue177Gantt?: Element }).__issue177Gantt === element)).toBe(true);
+
+  await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "프로젝트 설정" }).getByLabel("프로젝트 상태")).toHaveValue("in_progress");
+  await page.getByRole("dialog", { name: "프로젝트 설정" }).getByRole("button", { name: "프로젝트 정보 저장" }).click();
+  const snapshot = await (await page.request.get(`/api/projects/${publicId}`)).json();
+  expect(snapshot.data.project.status).toBe("in_progress");
 });
 
 test("권한 만료 401은 상태 초안을 canonical 표시로 승격하지 않는다", async ({ page, baseURL }) => {
@@ -207,7 +281,7 @@ test("권한 만료 401은 상태 초안을 canonical 표시로 승격하지 않
   const publicId = await createProject(page, baseURL!, name, "planned");
   await page.goto(`/projects/${publicId}`);
   const badge = page.locator(".project-lifecycle-badge");
-  await expect(badge).toHaveText("예정");
+  await expect(page.getByRole("combobox", { name: "프로젝트 상태 변경" })).toHaveValue("planned");
   await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "프로젝트 설정" });
   await dialog.getByLabel("프로젝트 상태").selectOption("completed");

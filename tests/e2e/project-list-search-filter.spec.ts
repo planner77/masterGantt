@@ -169,9 +169,13 @@ test.describe("Issue #130 Phase 1 Project List 시각·접근성 계약", () => 
       if (width <= 768) expect(geometry.wrapperScrollWidth).toBeGreaterThan(geometry.wrapperClientWidth);
       await page.screenshot({ path: testInfo.outputPath(`issue-130-list-current-${width}.png`), fullPage: true });
 
-      const trigger = rows.filter({ hasText: names[2] }).getByRole("button", { name: `${names[2]} 프로젝트 작업`, exact: true });
+      const targetRow = rows.filter({ hasText: names[2] });
+      const trigger = targetRow.getByRole("button", { name: `${names[2]} 프로젝트 작업`, exact: true });
       if (width === 390) {
-        await rows.filter({ hasText: names[2] }).getByRole("link", { name: names[2], exact: true }).focus();
+        await targetRow.getByRole("link", { name: names[2], exact: true }).focus();
+        await page.keyboard.press("Tab");
+        const statusControl = targetRow.getByRole("combobox", { name: `${names[2]} 프로젝트 상태`, exact: true });
+        await expect(statusControl).toBeFocused();
         await page.keyboard.press("Tab");
         await expect(trigger).toBeFocused();
         await page.keyboard.press("Enter");
