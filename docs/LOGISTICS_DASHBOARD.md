@@ -2,7 +2,7 @@
 
 ## 1. 상태와 목적
 
-[도메인 설계](LOGISTICS_DOMAIN_DESIGN.md)의 read model이다. 구현 대상 [LG-05 #188](https://github.com/planner77/masterGantt/issues/188), 통합 검증 [LG-06 #189](https://github.com/planner77/masterGantt/issues/189). **계획된 계약**이며 현재 dashboard API나 운영 지표가 존재한다는 의미가 아니다.
+[도메인 설계](LOGISTICS_DOMAIN_DESIGN.md)의 read model이다. [LG-05 #188](https://github.com/planner77/masterGantt/issues/188)에서 계산 엔진(`calculateLogisticsDashboardPure`), SQLite 조회 서비스(`LogisticsDashboardService`), REST API(`GET /api/projects/{publicId}/logistics/dashboard`), UI 대시보드 컴포넌트(`ProjectLogisticsDashboard`) 및 일정 drill-down 연동이 구현되었다. 통합 검증은 [LG-06 #189](https://github.com/planner77/masterGantt/issues/189)에서 진행된다.
 
 사용자가 결정할 질문은 '어떤 공정·설비·시스템의 작업이 지연되어 누구와 조정해야 하는가', '어떤 Milestone이 임박했는가', '책임자나 계획 투입 정보가 비어 있는가'다. 운영 설비 가동률/이상탐지/실적 원가가 목적이 아니다.
 

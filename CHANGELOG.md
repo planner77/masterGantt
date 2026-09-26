@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.39.0] - 2026-09-27
+
+### Added
+
+- Issue #188: 공정·설비·시스템·담당자 대시보드 및 중복 없는 집계 구현 (물류 LG-05).
+  - 순수 계산 엔진 `calculateLogisticsDashboardPure` 구현:
+    - 3개 핵심 KPI: 기간 가중 진척률(`Σ(duration * progress) / Σ(duration)`, Summary/Milestone 제외, taskId 중복 없이 정확히 1번 집계), 미완료 지연 일반 작업(`progress < 100 AND end < asOfDate`), 마일스톤 경보(지연: `due < asOfDate`, 임박: `asOfDate <= due <= asOfDate + horizonDays - 1`).
+    - 시스템 조율 범위 roll-up(`systemView: 'coordination'`): Coordinator DAG 순회 및 컨트롤러 제어 설비 합집합 roll-up, 중복 태스크는 정확히 1번만 집계.
+    - 보조 계획 공수 집계: 일반 Leaf task의 리소스 배정(M/D, M/M), assignmentId별 중복 제거, 공수 미설정 작업 카운트.
+    - 데이터 품질 및 구성 진단: 물류 미연결 작업 수 및 %, 주 제어기 미매핑 설비, 주 담당자 미지정 설비, 주 PI 미지정 시스템, 설비 수량 합계.
+    - 공정별, 설비별, 시스템별 세부 breakdown 행 계산.
+  - 단일 읽기 트랜잭션 기반 일관된 스냅샷 조회 서비스 `LogisticsDashboardService` 구현.
+  - REST API `GET /api/projects/:publicId/logistics/dashboard` 핸들러 및 라우트 구현 (Public-read 권한 등록).
+  - UI 컴포넌트 `ProjectLogisticsDashboard` 및 CSS Module 구현:
+    - 상단 필터 바 (기준일, 임박 일수, 시스템 집계 모드, 활성 마스터만 보기, 수동 새로고침).
+    - 4대 핵심 KPI 카드 그리드 (진척률 게이지 바, 지연 작업, 마일스톤 경보, 투입 공수).
+    - 데이터 품질/구성 진단 패널.
+    - 세부 현황 표 3종(공정별/설비별/시스템별 탭 전환) 및 행별 '일정 필터' drill-down 연동(클릭 시 일정 탭 자동 전환 및 필터 적용).
+  - `ProjectLogisticsManagement` 첫 번째 서브탭으로 대시보드(`dashboard`) 통합 (키보드 5개 탭 탐색 지원).
+  - 합성 결정적 픽스처 기반 단위 테스트 및 SQLite 단일 트랜잭션 통합 테스트 작성.
+
 ## [0.38.0] - 2026-09-27
 
 ### Added

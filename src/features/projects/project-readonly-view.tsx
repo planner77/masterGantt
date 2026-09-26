@@ -960,6 +960,15 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           onRequireRefresh={() => {
             void reloadCanonicalSnapshot();
           }}
+          onNavigateToSchedule={(targetFilter) => {
+            setActiveView("schedule");
+            if (targetFilter) {
+              setTaskFilter((prev) => ({
+                ...prev,
+                ...targetFilter,
+              }));
+            }
+          }}
         />
       </section>
     </div>
