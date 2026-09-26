@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/issue-142-release-helper.yml"
+  workflow_dispatch:
 
 permissions:
   contents: write
