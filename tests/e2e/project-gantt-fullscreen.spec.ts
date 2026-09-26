@@ -25,6 +25,19 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
       await expect(exitButton(page)).toHaveAttribute("aria-pressed", "true");
       await expect(exitButton(page)).toHaveAttribute("title", "전체 화면 종료 (Esc)");
       await expect(exitButton(page)).toBeFocused();
+      const notificationButton = ganttRoot(page).getByRole("button", { name: /^알림함/ });
+      await expect(notificationButton).toBeVisible();
+      const fullscreenControlBounds = await exitButton(page).boundingBox();
+      const notificationBounds = await notificationButton.boundingBox();
+      expect(fullscreenControlBounds).not.toBeNull();
+      expect(notificationBounds).not.toBeNull();
+      const controlsOverlap = Math.max(fullscreenControlBounds!.x, notificationBounds!.x) < Math.min(fullscreenControlBounds!.x + fullscreenControlBounds!.width, notificationBounds!.x + notificationBounds!.width)
+        && Math.max(fullscreenControlBounds!.y, notificationBounds!.y) < Math.min(fullscreenControlBounds!.y + fullscreenControlBounds!.height, notificationBounds!.y + notificationBounds!.height);
+      expect(controlsOverlap).toBe(false);
+      await notificationButton.click();
+      await expect(page.getByRole("dialog", { name: "오류 알림함" })).toBeVisible();
+      await page.getByRole("button", { name: "오류 알림함 닫기" }).click();
+      await expect(page.getByRole("dialog", { name: "오류 알림함" })).toHaveCount(0);
       await expectSameGanttRoot(page, identity);
       await expect(ganttRoot(page).locator(".project-gantt-scale-toolbar")).toBeVisible();
       await expect(ganttRoot(page).locator(".wx-table-container").first()).toBeVisible();

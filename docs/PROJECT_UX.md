@@ -245,6 +245,12 @@ Project List의 #84 Quick Search+고급 AND, browser timezone 날짜 및 잘못�
 
 [SVAR 공식 Fullscreen guide](https://docs.svar.dev/react/gantt/guides/fullscreen/)는 React Core `Fullscreen` wrapper를 안내한다(확인 2026-09-24). 설치된 Gantt 2.7.3/Core 2.6.1에서 Core JavaScript export와 TypeScript 선언이 일치하지 않고 요청 거부·입력 guard·Task Editor 선행 종료를 이 화면의 계약에 맞게 제어할 수 없어, 이번 범위는 [표준 Fullscreen API](https://fullscreen.spec.whatwg.org/)로 frame만 전환한다. 공식 sample의 실제 브라우저 조작 비교는 수행하지 않았다.
 
+## Issue #171 전체화면 우측 컨트롤 비중첩
+
+Issue #155의 native fullscreen 계약을 유지하면서, 전체화면 내부 알림 버튼은 우측 상단에 고정된 독립 hit area를 갖고 Gantt scale toolbar는 그 영역을 침범하지 않아야 한다. 따라서 `.project-gantt-frame:fullscreen` 상태에서만 toolbar 우측 여유 공간을 예약한다. 일반 화면의 toolbar/알림 배치, Fullscreen API 대상, 단축키, focus 복귀, Gantt instance/state 보존 계약은 변경하지 않는다.
+
+390/768/1024/1440px에서 전체화면 종료 버튼과 알림 버튼의 실제 bounding box가 겹치지 않아야 하며, 알림 버튼으로 알림함을 열고 닫은 뒤에도 같은 Gantt instance를 유지하고 전체화면 종료 버튼을 계속 사용할 수 있어야 한다. API/DB/Scheduling/권한 계약은 변경하지 않는다.
+
 ## Issue #136 공통 헤더의 빌드 버전
 
 App Shell 브랜드 바로 옆에 `v<SemVer>`를 보조 텍스트로 표시한다. 값은 서버 컴포넌트가 빌드에 포함된 `package.json.version`에서 직접 읽으며 수동 버전 문자열이나 별도 설정값을 두지 않는다. 버전은 홈 링크 바깥에 있어 `masterGantt 홈` 링크의 이름과 이동 동작을 바꾸지 않는다. 544px 이하에서는 보조 버전을 숨기고 브랜드 이름을 우선하며, 400px 이하에서는 기존처럼 M 마크만 남겨 프로젝트·리소스 navigation과 알림 영역의 공간을 확보한다. 헤더 높이와 본문 작업 공간은 늘리지 않는다.

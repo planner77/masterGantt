@@ -465,6 +465,12 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - 같은 spec은 실제 Grid↔Chart splitter와 작업 열 너비를 조정한 뒤 Summary collapse·선택·표시 열·주 단위·Chart 가로 scroll·Gantt 세로 scroll 및 Grid row↔Chart bar 정렬 보존을 확인한다. Fullscreen 안의 작업 메뉴 Escape 뒤 메뉴 닫힘·유효 focus·실제 fullscreen 상태와 버튼 표시 일치, 입력/contenteditable/dialog shortcut guard, 편집 가능한 메뉴 Edit와 readonly 더블클릭의 전체화면 종료 후 Task Editor 진입을 확인한다. 메뉴 Escape가 native fullscreen까지 종료할지는 브라우저에 맡긴다. Request/exit rejection은 브라우저 API를 명시적으로 거부하도록 주입하고 실제 fullscreen 상태/오류 문구/숨겨진 dialog 및 메뉴 Edit 실패 뒤 Task focus 복원을 구분한다. 기존 Task Editor dirty·stale·401/412·If-Match·Assignment 독립 저장은 별도 전용 spec의 계약을 유지한다.
 - Fullscreen API는 사용자 활성화·권한·브라우저 구현에 의존한다. 로컬 Playwright·lint·typecheck·build·브라우저와 실제 Edge/Chrome 수동 동작은 사용자 지시에 따라 **NOT TESTED**다. PR head `quality/e2e/docker`는 새 실행 결과로 판정한다. API/DB/Scheduling 문서는 계약 불변으로 N/A다.
 
+## Issue #171 전체화면 우측 컨트롤 비중첩 회귀
+
+- `tests/e2e/project-gantt-fullscreen.spec.ts`의 기존 390×844·768×900·1024×900·1440×900 반복 검증에서 fullscreen 알림 버튼과 `Gantt 전체 화면 종료` 버튼의 실제 bounding box를 비교해 교차 영역이 없음을 확인한다.
+- 같은 반복에서 알림 버튼을 실제 클릭해 `오류 알림함` dialog를 열고 닫은 뒤 동일 Gantt root/instance가 유지되는지 확인하고, 기존 전체화면 종료 동작을 이어서 검증한다. 단순 z-index 변경이나 pointer-events 우회로 클릭 가능성을 가장하지 않는다.
+- 일반 화면 배치와 Fullscreen API/state/focus/scroll/selection 계약은 #155 회귀가 계속 담당한다. API/DB/Scheduling 문서는 계약 불변으로 N/A이며 로컬 Playwright·lint·typecheck·build·브라우저는 **NOT TESTED**; 정확한 PR head의 `quality/e2e/docker` 결과로 공식 판정한다.
+
 ## Issue #136 공통 헤더 빌드 버전 회귀
 
 - `tests/e2e/workspace-header-version.spec.ts`는 `package.json.version`과 화면의 `v<SemVer>`가 일치하는지 검사한다. Infra가 version을 올린 PR 빌드에서도 테스트가 같은 package 원천을 읽으므로 화면의 수동 고정값을 허용하지 않는다.

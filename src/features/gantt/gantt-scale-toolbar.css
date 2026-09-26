@@ -59,6 +59,11 @@
 .project-gantt-frame:fullscreen .project-gantt-scroll,
 .project-gantt-frame:fullscreen .project-gantt-widget { min-height: 0; }
 
+/* Reserve the fullscreen notification hit area so toolbar controls never sit underneath it. */
+.project-gantt-frame:fullscreen .project-gantt-scale-toolbar {
+  padding-right: 3.5rem;
+}
+
 .project-gantt-scale-controls {
   display: inline-flex;
   align-items: center;
