@@ -535,3 +535,16 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - Workspace status 전환 전후 실제 `.project-gantt-widget .wx-gantt` DOM identity를 비교해 Gantt remount가 없음을 확인한다. status 변경 자체가 Task scheduling/resource mutation을 발생시키지 않아야 한다.
 - 401/403은 readonly 복귀 또는 재인증 안내, 412는 최신 canonical status 재조회 후 stale draft 폐기, network/5xx는 성공 표시 금지로 검증한다. 같은 Project에서 빠른 중복 조작은 mutation lock으로 직렬화/차단한다.
 - 기존 #138 API/DB status integration 테스트는 그대로 유지하며 신규 migration/API endpoint가 없음을 문서 gate에서 확인한다.
+
+### Issue #196 Workspace Task/Milestone 빠른 보기 회귀
+
+- Unit 테스트(`tests/features/projects/project-search-filter.test.ts`)에서 `types` 배열에 따른 `getTaskQuickView` 판정(`all`, `task`, `milestone`, `custom`), `applyTaskQuickView`의 불변성 및 다른 조건 보존, 빠른 보기 적용 상태의 `filterTasksWithAncestors` match count 및 ancestor context 분리를 검증한다.
+- Playwright E2E(`tests/e2e/project-task-quick-view.spec.ts`)에서:
+  - 일정 Toolbar에 빠른 보기 버튼 그룹(`[ 전체 | Task | Milestone ]`) 렌더링 및 기본 `전체` active(`aria-pressed="true"`) 확인
+  - `Task` 클릭 시 일반 Task 필터링, Milestone 제외, ancestor Summary context 보존 확인
+  - `Milestone` 클릭 시 Milestone만 표시, 일반 Task 제외 확인
+  - `전체` 클릭 시 모든 Task/Summary/Milestone 가시성 복원 확인
+  - 검색어 등 다른 조건과의 AND 조합 및 빠른 보기 전환 중 검색어 입력값 보존 확인
+  - 전환 중 API mutation / document reload 0회 및 Gantt root identity 보존 확인
+  - 390px 모바일 및 1024/1440px 데스크톱 뷰포트, readonly 상태 정상 동작 확인
+- DB/API/Scheduling 변경은 없으므로 해당 통합 테스트 영향은 N/A다.

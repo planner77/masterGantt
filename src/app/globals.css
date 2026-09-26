@@ -1715,6 +1715,48 @@ h2 {
   font-weight: 650;
 }
 
+/* Issue #196: Project Schedule Task/Milestone Quick View Buttons */
+.project-filter-quick-views {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  border: 1px solid var(--border-control);
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel);
+  padding: 0.125rem;
+  gap: 0.125rem;
+}
+
+.project-filter-quick-button {
+  min-height: 2rem;
+  border: 0;
+  border-radius: calc(var(--radius) - 0.25rem);
+  background: transparent;
+  color: var(--action-secondary-foreground);
+  cursor: pointer;
+  padding: 0.25rem 0.625rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.project-filter-quick-button:hover:not(.is-active) {
+  background: var(--action-secondary);
+}
+
+.project-filter-quick-button.is-active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 700;
+}
+
+.project-filter-quick-button:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+
 .project-filter-panel {
   display: grid;
   max-height: min(24rem, 45dvh);
@@ -1795,6 +1837,7 @@ h2 {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
+    gap: 0.5rem;
   }
 
   .project-schedule-filter-toolbar .project-filter-search {
@@ -1814,15 +1857,27 @@ h2 {
     width: auto;
   }
 
+  .project-schedule-filter-toolbar .project-filter-quick-views {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    display: flex;
+  }
+
+  .project-schedule-filter-toolbar .project-filter-quick-button {
+    flex: 1 1 0;
+    text-align: center;
+  }
+
   .project-schedule-filter-toolbar .project-filter-result {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 3;
     width: auto;
   }
 
   .project-schedule-filter-toolbar .project-filter-reset {
     grid-column: 2;
-    grid-row: 2;
+    grid-row: 3;
     width: auto;
   }
 
