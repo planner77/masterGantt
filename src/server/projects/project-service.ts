@@ -31,6 +31,7 @@ export function getLinkService() {
   return {
     authorize: project.authorize.bind(project),
     create: links.create.bind(links),
+    update: links.update.bind(links),
     delete: links.delete.bind(links),
   };
 }

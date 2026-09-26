@@ -132,26 +132,40 @@ WBS는 Parent Tree의 형제 순서에 따라 `1`, `1.1`, `1.2`, `2` 형태로 �
 
 `tests/domain/scheduling/hierarchy.test.ts`는 중첩 집계, 비정수 진척, 순수 Milestone 평균, 주말·휴일 경계, 자식 갱신·삭제 후 조상 재계산, WBS와 비연속 입력 순서, 순환/부모 누락/잘못된 Type/빈 Summary, 형제 중복, 날짜·기간·진척 검증, 깊이·노드 상한 및 입력 불변/멱등성을 검증한다. Dependency, Reparent, Calendar 변경은 W24 계층 함수의 범위에 포함하지 않는다. API 권한·Revision·원자적 저장은 Service 통합 테스트에서 별도로 검증한다.
 
-## 7. FS Dependency와 Manual/Auto
+## 7. 의존성 관계(Dependency)와 Lag 계산 규칙
 
-초기 Endpoint는 일반 Task 또는 Milestone만 허용한다. Missing Target, 자기 연결, 중복 선행-후행 연결, Project 밖 참조, Summary Endpoint, Cycle을 거부한다. `SS`, `FF`, `SF`, 양수 Lag, 음수 Lead는 명시적인 미지원 오류로 반환한다. 입력을 FS/0으로 강제 변환하지 않는다.
+지원되는 Endpoint는 일반 Task 또는 Milestone이다. Missing Target, 자기 연결, 동일 선행-후행 중복 연결, Project 밖 참조, Summary Endpoint, Cycle은 거부한다.
 
-선행 A → 후행 B의 FS/0 규칙은 다음과 같다.
+### 4대 의존성 관계 종류 및 Lag 공식
 
-```text
-requiredStart(B, A) = A.end 이후 첫 근무일
-lowerBound(B) = 모든 선행 업무의 requiredStart 중 최댓값
-Auto B.start = max(Calendar로 정규화한 B.requestedStart, lowerBound(B))
-Auto B.end = B.start와 Duration으로 재계산
-```
+선행 작업 A와 후행 작업 B(기간 $D_B$, 0인 경우 마일스톤) 및 정수 Lag(근무일수 단위, 음수 가능)에 대해, B의 시작 가능 하한선(`requiredStart`)은 다음과 같이 결정된다:
 
-선행이 없는 경우 요청 시작일만 사용한다. 모든 날짜는 같은 Project Calendar를 따르므로 여러 선행의 Bound도 근무일이다. 선행 변경, Dependency 추가·삭제, Duration·Calendar 변경 시 같은 규칙을 재적용한다.
+1. **FS (Finish-to-Start, 종료 후 시작)**
+   - 기준: $A$의 종료일 다음 첫 근무일로부터 $Lag$ 근무일 오프셋 이동.
+   - $requiredStart = \text{shiftWorkingDate}(\text{nextWorkingDay}(A.end, \text{false}), Lag)$
+2. **SS (Start-to-Start, 시작 후 시작)**
+   - 기준: $A$의 시작일로부터 $Lag$ 근무일 오프셋 이동.
+   - $requiredStart = \text{shiftWorkingDate}(A.start, Lag)$
+3. **FF (Finish-to-End, 종료 후 종료)**
+   - 기준: $A$의 종료일로부터 $Lag$ 근무일 오프셋 이동한 날짜가 후행 작업의 최소 종료일($requiredEnd$)이 됨.
+   - $requiredEnd = \text{shiftWorkingDate}(A.end, Lag)$
+   - $requiredStart = \text{startFromEnd}(requiredEnd, D_B)$ ($D_B \ge 1$인 경우 $D_B$ 근무일 역산, 마일스톤은 $requiredEnd$ 자체)
+4. **SF (Start-to-End, 시작 후 종료)**
+   - 기준: $A$의 시작일로부터 $Lag$ 근무일 오프셋 이동한 날짜가 후행 작업의 최소 종료일($requiredEnd$)이 됨.
+   - $requiredEnd = \text{shiftWorkingDate}(A.start, Lag)$
+   - $requiredStart = \text{startFromEnd}(requiredEnd, D_B)$
 
-Manual은 요청 날짜·Duration으로 계산한 구간을 고정한다. 들어오는 FS Bound를 만족하면 그대로 두고, 위반하면 `MANUAL_DEPENDENCY_CONFLICT`로 전체 변경을 거부한다. 선행 Manual의 종료일은 후행 Auto의 Bound 계산에 정상 참여한다. Manual도 그래프 Cycle·ID·날짜 검증에서 제외하지 않는다. Calendar 변경이 Manual 시작일이나 제약을 무효화하면 변경 전체를 거부하고 관련 Task를 알린다.
+### 복수 선행 작업 및 스케줄 확정
 
-Manual 날짜 고정을 유지하기 위한 초기 설계 가정으로, Calendar 변경만으로 기존 Manual의 종료일이 달라지는 경우도 `MANUAL_CALENDAR_CONFLICT`로 거부한다. 예를 들어 9/11~9/14의 2일 Manual에 9/14 휴일을 추가하면 종료일을 9/15로 자동 변경하지 않는다. Service가 변경 전 확정 Snapshot과 변경 의도를 Pure 검증에 전달하여 전후 구간을 비교한다. 사용자가 그 Manual의 시작일·Duration을 명시적으로 수정한 경우는 새로운 요청 구간으로 검증할 수 있다. 이 비교에도 DB 접근을 Domain에 넣지 않는다.
-
-Milestone은 특정 업무일의 사건을 나타내며 0일 Duration이다. 그러나 시간 순서를 표현하지 않는 초기 계약에서는 FS 선행의 종료일과 같은 날 후행 Milestone을 놓지 않는다. Milestone → Task 및 Milestone → Milestone 역시 다음 근무일 규칙을 사용한다. 향후 시간 단위 모델로 바꿀 때 Import Version과 마이그레이션 영향을 검토한다.
+- $lowerBound(B) = \max_{A \to B} \{ requiredStart(B, A) \}$
+- 선행 작업이 없는 경우 $lowerBound(B) = \text{Calendar로 정규화한 } B.requestedStart$
+- **Auto Task**:
+  - $B.start = \max(\text{정규화된 } B.requestedStart, lowerBound(B))$
+  - $B.end = \text{endFromStart}(B.start, D_B)$ (재계산)
+- **Manual Task**:
+  - 요청 날짜·Duration으로 고정된 구간을 검증한다.
+  - $B.start < lowerBound(B)$이면 `MANUAL_DEPENDENCY_CONFLICT` 오류로 전체 변경을 거부한다.
+- 선행 변경, Dependency 추가·수정·삭제, Duration·Calendar 변경 시 전체 DAG에 대해 위상 정렬 순서로 이 규칙을 재적용한다.
 
 ## 8. 재계산 절차와 복잡도
 

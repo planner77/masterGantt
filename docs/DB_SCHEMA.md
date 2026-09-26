@@ -159,8 +159,8 @@ FOREIGN KEY(project_id, parent_id)
 | `project_id` | INTEGER | N | FK → `projects.id` ON DELETE CASCADE |
 | `predecessor_task_id` | INTEGER | N | 같은 Project의 predecessor |
 | `successor_task_id` | INTEGER | N | 같은 Project의 successor |
-| `type` | TEXT | N | v1은 `FS`만 허용 |
-| `lag` | INTEGER | N | v1은 `0`만 허용 |
+| `type` | TEXT | N | `FS`, `SS`, `FF`, `SF` 허용 (기본값 `FS`) |
+| `lag` | INTEGER | N | 근무일 단위 정수 `-10000..10000` (기본값 `0`) |
 | `created_at` | TEXT | N | UTC timestamp |
 | `updated_at` | TEXT | N | UTC timestamp |
 
@@ -168,16 +168,16 @@ FOREIGN KEY(project_id, parent_id)
 
 ```text
 CHECK(predecessor_task_id <> successor_task_id)
-CHECK(type = 'FS')
-CHECK(lag = 0)
-UNIQUE(project_id, predecessor_task_id, successor_task_id, type)
+CHECK(type IN ('FS', 'SS', 'FF', 'SF'))
+CHECK(lag BETWEEN -10000 AND 10000)
+UNIQUE(project_id, predecessor_task_id, successor_task_id)
 FOREIGN KEY(project_id, predecessor_task_id)
   REFERENCES tasks(project_id, id) ON DELETE CASCADE
 FOREIGN KEY(project_id, successor_task_id)
   REFERENCES tasks(project_id, id) ON DELETE CASCADE
 ```
 
-Dependency endpoint는 leaf task 또는 milestone만 허용하고 summary endpoint는 거부한다. Circular dependency는 graph 검증이 필요하므로 Scheduling Engine이 탐지한다. 모든 FS successor는 predecessor가 milestone인지와 무관하게 predecessor end 다음의 첫 근무일보다 빠르게 시작할 수 없다.
+Dependency endpoint는 leaf task 또는 milestone만 허용하고 summary endpoint는 거부한다. Circular dependency는 graph 검증이 필요하므로 Scheduling Engine이 탐지한다. 의존성 종류(FS/SS/FF/SF)와 Lag(근무일수)에 따라 후행 작업의 시작일 하한선(earliest successor start)이 스케줄링 엔진에 의해 동적으로 계산된다.
 
 ### 5.5 `edit_sessions`
 

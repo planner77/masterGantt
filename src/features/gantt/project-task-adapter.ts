@@ -79,6 +79,16 @@ export function projectTasksToSvarTasks(tasks: readonly ProjectTaskDto[]): ITask
   }));
 }
 
+function toSvarLinkType(type: string): "s2s" | "s2e" | "e2s" | "e2e" {
+  switch (type) {
+    case "FS": return "e2s";
+    case "SS": return "s2s";
+    case "FF": return "e2e";
+    case "SF": return "s2e";
+    default: return "e2s";
+  }
+}
+
 export function projectLinksToSvarLinks(
   links: readonly ProjectLinkDto[],
   tasks: readonly ProjectTaskDto[],
@@ -89,7 +99,7 @@ export function projectLinksToSvarLinks(
     const target = taskIdsByExternalId.get(link.successorExternalId);
     return source === undefined || target === undefined
       ? []
-      : [{ id: link.id, source, target, type: "e2s" }];
+      : [{ id: link.id, source, target, type: toSvarLinkType(link.type) }];
   });
 }
 

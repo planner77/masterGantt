@@ -377,6 +377,21 @@ Project Workspace의 탭 목록을 `일정 (schedule)`, `리소스 (resources)`,
   - **데이터 독립성 및 오류 처리**: 템플릿이 삭제되어도 생성된 프로젝트는 보존되며, 원본 프로젝트가 삭제되어도 템플릿은 보존된다. 템플릿이 없거나 통신 실패 시 친절한 안내 문구와 재시도 경로를 제공한다.
   - **접근성 및 반응형**: 390px, 768px, 1024px, 1440px viewport에서 카드 그리드가 유연하게 재배치되며 가로 overflow가 발생하지 않는다.
 
+## Issue #200 관계 Context Menu에서 관계 종류(FS/SS/FF/SF)·Lag 설정 및 일정 재계산
+
+- **관계선 컨텍스트 메뉴 (`RelationContextMenu`)**:
+  - Gantt Chart 영역에서 관계선 SVG(`[data-link-id]`)를 우클릭(`contextmenu`)하면 마우스 커서 위치에 관계 설정 컨텍스트 메뉴가 열린다.
+  - 선행 작업명(`from`)과 후행 작업명(`to`)을 안내 라벨로 명확하게 표시한다.
+  - **관계 종류 선택**: `FS` (Finish-to-Start, 종료 후 시작), `SS` (Start-to-Start, 시작 후 시작), `FF` (Finish-to-End, 종료 후 종료), `SF` (Start-to-End, 시작 후 종료) 라디오/셀렉트 선택 제공.
+  - **Lag(지연/선행) 입력**: 근무일수 단위의 정수(음수 선행 lead, 양수 지연 lag)를 입력할 수 있는 숫자 입력 필드 제공.
+  - **동작 및 검증**:
+    - 기존 값과 변경사항이 없을 경우 "저장" 버튼이 자동으로 비활성화(disabled)되어 불필요한 서버 호출을 방지한다.
+    - 저장 시 `PATCH /api/projects/{publicId}/links/{linkId}`를 호출하여 원자적 일정 재계산 및 뷰 갱신을 수행한다.
+    - "관계 삭제" 버튼 클릭 시 기존 DELETE 호출을 통해 관계를 제거한다.
+    - Escape 키를 누르거나 메뉴 외부를 클릭하면 변경을 취소하고 메뉴를 닫는다.
+  - **SVAR React Gantt 시각화 연동**:
+    - 관계선 데이터 변환기(`projectLinksToSvarLinks`)에서 `FS → e2s`, `SS → s2s`, `FF → e2e`, `SF → s2e`로 실시간 매핑하여 차트 상에 연결점이 정확하게 렌더링된다.
+
 
 
 
