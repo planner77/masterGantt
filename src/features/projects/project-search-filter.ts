@@ -161,3 +161,19 @@ export function targetLabel(target: AssignmentTargetDto): string {
   const inactive = target.active ? "" : " · 비활성";
   return `${target.name}${code}${inactive}`;
 }
+
+export type TaskQuickView = "all" | "task" | "milestone";
+
+export function getTaskQuickView(types: readonly ProjectTaskDto["type"][]): TaskQuickView | "custom" {
+  if (types.length === 0) return "all";
+  if (types.length === 1 && types[0] === "task") return "task";
+  if (types.length === 1 && types[0] === "milestone") return "milestone";
+  return "custom";
+}
+
+export function applyTaskQuickView(filter: TaskFilterState, view: TaskQuickView): TaskFilterState {
+  return {
+    ...filter,
+    types: view === "all" ? [] : [view],
+  };
+}

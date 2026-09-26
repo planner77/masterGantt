@@ -288,3 +288,17 @@ Project List의 상태 열은 표시 전용 badge 대신 현재 상태를 유지
 Project Workspace의 title row는 readonly에서 기존 lifecycle badge를 그대로 표시한다. edit mode에서는 같은 위치가 compact native select가 되며 Project Settings를 열지 않고 직접 status-only PATCH를 수행한다. 성공 canonical snapshot은 기존 React workspace state에 적용하고 `ProjectGantt` reset generation이나 route navigation을 바꾸지 않는다. 412와 일반 실패는 canonical snapshot을 재조회해 status draft를 폐기하고, 401/403은 기존 readonly 권한 상태로 되돌린다. Settings를 이후 열면 같은 canonical status를 선택값으로 사용한다.
 
 SVAR Task field에는 Project status를 추가하지 않으며 Gantt editor/instance lifecycle과 독립된 Project-level metadata control로 유지한다. API/DB schema 및 scheduling 계산은 변경하지 않는다.
+
+## Issue #196 일정 Toolbar Task/Milestone 빠른 보기
+
+Project Workspace의 일정(Schedule) 도구줄에 `[ 전체 | Task | Milestone ]` 버튼 그룹(`role="group" aria-label="작업 유형 빠른 보기"`)을 배치한다.
+
+- 사용자는 고급 필터 패널을 열지 않고도 Toolbar에서 일반 Task 또는 Milestone만 빠르게 중심 조회할 수 있다.
+- 버튼 전환은 독립된 별도 필터 상태를 생성하지 않고 기존 #83의 `TaskFilterState.types`를 조작한다.
+  - `전체`: `types = []` (유형 제한만 해제하고 검색어, 기간, 리소스 등 다른 조건은 유지)
+  - `Task`: `types = ["task"]`
+  - `Milestone`: `types = ["milestone"]`
+- 고급 필터 패널에서 복합 유형(예: `["task", "milestone"]`)을 선택한 경우, 빠른 보기 버튼 중 특정 버튼이 선택된 것으로 오인되지 않도록 `aria-pressed="false"`(비활성) 상태를 유지한다.
+- child match 시 필요한 ancestor Summary는 기존 `filterTasksWithAncestors()` 정책에 따라 context row로 유지되며 match count에는 포함하지 않는다.
+- 버튼 전환은 client-side view state로 동작하여 API 재요청, Project mutation, revision 증가, Gantt remount를 유발하지 않으며 SVAR 공개 `filter-tasks` action을 재사용한다.
+- 읽기 전용(readonly)에서도 동일하게 사용 가능하며, 390/768/1024/1440px 및 전체화면 모드에서 컨트롤 겹침 없이 키보드 Tab 및 `aria-pressed` 접근성을 보장한다.

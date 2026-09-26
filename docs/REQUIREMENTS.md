@@ -154,3 +154,13 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 삭제된 Project를 먼저 제외한 뒤 검색 조건을 적용하고, 전체 Project 0건과 검색 결과 0건을 서로 다른 상태로 표시한다.
 - 검색 입력은 Project API 재조회, page reload, Project mutation을 발생시키지 않으며 같은 page session의 Row Action/Dialog 사용 중 view state를 유지한다.
 - Task/Resource 검색은 Issue #83 구현을 그대로 사용하고 Project List가 별도 검색 프레임워크를 만들지 않는다. 공통 text normalization/operator primitive는 Project/Task predicate가 공유한다.
+
+## Issue #196 Project Workspace Task/Milestone 빠른 보기
+
+- Project Workspace의 일정(Schedule) 도구줄에 `[ 전체 | Task | Milestone ]` 빠른 보기 버튼 그룹을 제공한다.
+- 사용자는 고급 필터 패널을 열지 않고도 일반 Task 또는 Milestone을 빠르게 중심 조회할 수 있어야 한다.
+- 빠른 보기 버튼은 기존 #83 `TaskFilterState.types`와 동일한 상태를 조작하며, 검색어/기간/리소스 등 다른 필터 조건을 보존한다.
+- `전체`는 `types = []`, `Task`는 `types = ["task"]`, `Milestone`는 `types = ["milestone"]`를 적용한다.
+- 고급 필터에서 복합 유형을 선택한 경우 빠른 보기 버튼의 단일 active 상태는 해제된다.
+- 버튼 전환은 client-side view state로 동작하여 API 재조회, Project mutation, revision 증가, Gantt remount를 유발하지 않으며 SVAR 공개 `filter-tasks` action을 사용한다.
+- 390/768/1024/1440px 뷰포트와 전체화면 모드에서 컨트롤 겹침이 없어야 하며 키보드 Tab 및 ARIA pressed 상태를 지원한다.

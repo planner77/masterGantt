@@ -4,7 +4,9 @@ import type { ProjectAssignmentDto } from "../../../src/contracts/resources";
 import type { ProjectTaskDto } from "../../../src/contracts/projects";
 import {
   EMPTY_TASK_FILTER,
+  applyTaskQuickView,
   filterTasksWithAncestors,
+  getTaskQuickView,
   taskMatchesFilter,
 } from "../../../src/features/projects/project-search-filter";
 
@@ -136,5 +138,53 @@ describe("Issue #83 project task filters", () => {
     }, assignments);
     expect(result.matchCount).toBe(1);
     expect(result.tasks.map((task) => task.taskId)).toEqual(["summary", "child"]);
+  });
+});
+
+describe("Issue #196 Task/Milestone quick view helpers", () => {
+  it("determines correct quick view mode from types array", () => {
+    expect(getTaskQuickView([])).toBe("all");
+    expect(getTaskQuickView(["task"])).toBe("task");
+    expect(getTaskQuickView(["milestone"])).toBe("milestone");
+    expect(getTaskQuickView(["summary"])).toBe("custom");
+    expect(getTaskQuickView(["task", "milestone"])).toBe("custom");
+  });
+
+  it("applies quick view mode while preserving other filter properties", () => {
+    const baseFilter = {
+      ...EMPTY_TASK_FILTER,
+      query: "AMR",
+      dateFrom: "2026-09-01",
+      dateTo: "2026-09-30",
+      progressMin: 20,
+    };
+
+    const taskView = applyTaskQuickView(baseFilter, "task");
+    expect(taskView.types).toEqual(["task"]);
+    expect(taskView.query).toBe("AMR");
+    expect(taskView.dateFrom).toBe("2026-09-01");
+    expect(taskView.progressMin).toBe(20);
+
+    const milestoneView = applyTaskQuickView(taskView, "milestone");
+    expect(milestoneView.types).toEqual(["milestone"]);
+    expect(milestoneView.query).toBe("AMR");
+
+    const allView = applyTaskQuickView(milestoneView, "all");
+    expect(allView.types).toEqual([]);
+    expect(allView.query).toBe("AMR");
+  });
+
+  it("filters tasks correctly with quick view types and keeps ancestor context", () => {
+    const taskResult = filterTasksWithAncestors(tasks, applyTaskQuickView(EMPTY_TASK_FILTER, "task"), assignments);
+    expect(taskResult.matchCount).toBe(1);
+    expect(taskResult.tasks.map((task) => task.taskId)).toEqual(["summary", "child"]);
+
+    const milestoneResult = filterTasksWithAncestors(tasks, applyTaskQuickView(EMPTY_TASK_FILTER, "milestone"), assignments);
+    expect(milestoneResult.matchCount).toBe(1);
+    expect(milestoneResult.tasks.map((task) => task.taskId)).toEqual(["milestone"]);
+
+    const allResult = filterTasksWithAncestors(tasks, applyTaskQuickView(milestoneResult, "all"), assignments);
+    expect(allResult.matchCount).toBe(3);
+    expect(allResult.tasks.map((task) => task.taskId)).toEqual(["summary", "child", "milestone"]);
   });
 });
