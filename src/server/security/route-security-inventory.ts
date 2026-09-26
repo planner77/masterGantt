@@ -58,6 +58,19 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/work-calendar/preview", method: "POST", policy: "origin-session-if-match", mutatesState: false },
   { template: "/api/projects/{publicId}/work-calendar", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/tasks/{taskId}/assignments", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/logistics/processes", method: "POST", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/processes/{processId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/processes/{processId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/equipment", method: "POST", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/equipment/{equipmentId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/equipment/{equipmentId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/equipment/{equipmentId}/systems", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/systems", method: "POST", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/systems/{systemId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/systems/{systemId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/systems/{systemId}/processes", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/systems/{systemId}/children", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
 ] satisfies readonly RouteSecurityInventoryEntry[]);
 
 export const NEXT_AUTOMATIC_METHOD_SECURITY = Object.freeze({

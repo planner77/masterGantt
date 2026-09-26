@@ -449,6 +449,19 @@ describe("route security inventory", () => {
       "POST /api/projects/{publicId}/work-calendar/preview",
       "PUT /api/projects/{publicId}/work-calendar",
       "PUT /api/projects/{publicId}/tasks/{taskId}/assignments",
+      "GET /api/projects/{publicId}/logistics",
+      "POST /api/projects/{publicId}/logistics/processes",
+      "PATCH /api/projects/{publicId}/logistics/processes/{processId}",
+      "DELETE /api/projects/{publicId}/logistics/processes/{processId}",
+      "POST /api/projects/{publicId}/logistics/equipment",
+      "PATCH /api/projects/{publicId}/logistics/equipment/{equipmentId}",
+      "DELETE /api/projects/{publicId}/logistics/equipment/{equipmentId}",
+      "PUT /api/projects/{publicId}/logistics/equipment/{equipmentId}/systems",
+      "POST /api/projects/{publicId}/logistics/systems",
+      "PATCH /api/projects/{publicId}/logistics/systems/{systemId}",
+      "DELETE /api/projects/{publicId}/logistics/systems/{systemId}",
+      "PUT /api/projects/{publicId}/logistics/systems/{systemId}/processes",
+      "PUT /api/projects/{publicId}/logistics/systems/{systemId}/children",
     ]);
     for (const route of ROUTE_SECURITY_INVENTORY.filter(({ mutatesState }) => mutatesState)) {
       expect(route.method).not.toBe("GET");

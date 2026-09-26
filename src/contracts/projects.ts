@@ -1,3 +1,4 @@
+import type { ProjectLogisticsDto } from "./logistics";
 import type { ProjectAssignmentDto } from "./resources";
 
 export type ProjectStatus = "planned" | "in_progress" | "completed";
@@ -128,6 +129,8 @@ export interface ProjectSnapshotResponse {
     links: ProjectLinkDto[];
     /** Added by the canonical server adapter; optional for legacy fixtures and focused service tests. */
     assignments?: ProjectAssignmentDto[];
+    /** Added by canonical logistics server adapter; optional for legacy fixtures. */
+    logistics?: ProjectLogisticsDto;
     permission: ProjectPermission;
   };
 }
@@ -154,6 +157,7 @@ export interface ProjectMetadataMutationResponse {
     tasks: ProjectTaskDto[];
     links: ProjectLinkDto[];
     assignments?: ProjectAssignmentDto[];
+    logistics?: ProjectLogisticsDto;
     warnings: [];
     operation: {
       kind: "projectMetadata";
@@ -254,6 +258,7 @@ export interface TaskMutationResponse {
     tasks: ProjectTaskDto[];
     links: ProjectLinkDto[];
     assignments?: ProjectAssignmentDto[];
+    logistics?: ProjectLogisticsDto;
     warnings: ScheduleWarningDto[];
     operation: {
       kind: TaskMutationKind;
@@ -300,6 +305,8 @@ export interface LinkMutationResponse {
     project: ProjectDto;
     tasks: ProjectTaskDto[];
     links: ProjectLinkDto[];
+    assignments?: ProjectAssignmentDto[];
+    logistics?: ProjectLogisticsDto;
     warnings: ScheduleWarningDto[];
     operation: {
       kind: LinkMutationKind;
