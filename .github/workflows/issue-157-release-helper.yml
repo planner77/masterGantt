@@ -1,0 +1,140 @@
+name: Issue 157 릴리스 완료 자동화
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/issue-157-release-helper.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  release:
+    name: v0.33.1 GHCR 릴리스·브랜치 정리·이슈 종료
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      RELEASE_TAG: v0.33.1
+      RELEASE_SHA: c20873e971324c91f463a20cb8569be829c967bf
+      FEATURE_BRANCH: fix/issue-157-compose-pull-policy
+      FEATURE_PR: "191"
+      FEATURE_HEAD_SHA: ef04be78c9f6a7fc9a119634d48e87625a864f60
+      FINALIZER_BRANCH: ops/issue-157-release-v0.33.1
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Issue #157 완료 증거와 main CI 검증
+        shell: bash
+        run: |
+          set -euo pipefail
+          target_sha="$GITHUB_SHA"
+
+          test "$(git show "$RELEASE_SHA:package.json" | jq -r .version)" = "0.33.1"
+          git merge-base --is-ancestor "$RELEASE_SHA" "$target_sha"
+
+          feature_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$FEATURE_PR")"
+          test "$(jq -r '.merged_at // ""' <<<"$feature_pr")" != ""
+          test "$(jq -r '.head.ref' <<<"$feature_pr")" = "$FEATURE_BRANCH"
+          test "$(jq -r '.head.sha' <<<"$feature_pr")" = "$FEATURE_HEAD_SHA"
+          test "$(jq -r '.merge_commit_sha' <<<"$feature_pr")" = "$RELEASE_SHA"
+
+          release_ci_url=""
+          for _ in $(seq 1 120); do
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=100")"
+            run="$(jq -c --arg sha "$RELEASE_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" && "$(jq -r .status <<<"$run")" == "completed" ]]; then
+              test "$(jq -r '.conclusion // ""' <<<"$run")" = "success"
+              release_ci_url="$(jq -r .html_url <<<"$run")"
+              break
+            fi
+            sleep 5
+          done
+          test -n "$release_ci_url"
+
+          finalizer_ci_url=""
+          for _ in $(seq 1 240); do
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=100")"
+            run="$(jq -c --arg sha "$target_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" && "$(jq -r .status <<<"$run")" == "completed" ]]; then
+              test "$(jq -r '.conclusion // ""' <<<"$run")" = "success"
+              finalizer_ci_url="$(jq -r .html_url <<<"$run")"
+              break
+            fi
+            sleep 10
+          done
+          test -n "$finalizer_ci_url"
+
+          echo "RELEASE_CI_URL=$release_ci_url" >> "$GITHUB_ENV"
+          echo "FINALIZER_CI_URL=$finalizer_ci_url" >> "$GITHUB_ENV"
+          echo "TARGET_SHA=$target_sha" >> "$GITHUB_ENV"
+
+      - name: v0.33.1 annotated tag 생성 및 GHCR release 완료
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$RELEASE_TAG" "$RELEASE_SHA" -m "Release $RELEASE_TAG"
+            git push origin "refs/tags/$RELEASE_TAG"
+          fi
+
+          git fetch --force origin "refs/tags/$RELEASE_TAG:refs/tags/$RELEASE_TAG"
+          test "$(git cat-file -t "refs/tags/$RELEASE_TAG")" = "tag"
+          test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$RELEASE_SHA"
+
+          release_run_url=""
+          existing_runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?per_page=100")"
+          successful="$(jq -c --arg sha "$RELEASE_SHA" --arg tag "$RELEASE_TAG" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .status == "completed" and .conclusion == "success")] | sort_by(.created_at) | last // empty' <<<"$existing_runs")"
+          if [[ -n "$successful" ]]; then
+            release_run_url="$(jq -r .html_url <<<"$successful")"
+          else
+            dispatched_after="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/dispatches" -f ref="$RELEASE_TAG"
+            for _ in $(seq 1 480); do
+              runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=100")"
+              run="$(jq -c --arg sha "$RELEASE_SHA" --arg tag "$RELEASE_TAG" --arg after "$dispatched_after" '[.workflow_runs[] | select(.head_sha == $sha and .head_branch == $tag and .created_at >= $after)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+              if [[ -n "$run" && "$(jq -r .status <<<"$run")" == "completed" ]]; then
+                test "$(jq -r '.conclusion // ""' <<<"$run")" = "success"
+                release_run_url="$(jq -r .html_url <<<"$run")"
+                break
+              fi
+              sleep 15
+            done
+          fi
+          test -n "$release_run_url"
+          echo "RELEASE_RUN_URL=$release_run_url" >> "$GITHUB_ENV"
+
+      - name: Issue #157 작업 브랜치 안전 정리
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin "refs/heads/$FEATURE_BRANCH" >/dev/null 2>&1; then
+            python3 scripts/safe_branch_cleanup.py               --repo "$GITHUB_REPOSITORY"               --pr "$FEATURE_PR"               --branch "$FEATURE_BRANCH"               --target-sha "$TARGET_SHA"               --delete
+          else
+            echo "Feature branch already absent: $FEATURE_BRANCH"
+          fi
+
+          owner="${GITHUB_REPOSITORY%%/*}"
+          finalizer_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$FINALIZER_BRANCH&per_page=10" | jq -r '[.[] | select(.merged_at != null)] | sort_by(.merged_at) | last | .number // empty')"
+          test -n "$finalizer_pr"
+          if git ls-remote --exit-code --heads origin "refs/heads/$FINALIZER_BRANCH" >/dev/null 2>&1; then
+            python3 scripts/safe_branch_cleanup.py               --repo "$GITHUB_REPOSITORY"               --pr "$finalizer_pr"               --branch "$FINALIZER_BRANCH"               --target-sha "$TARGET_SHA"               --delete
+          fi
+
+      - name: Issue #157 FINAL 기록 및 종료
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(printf '%s\n'             '## FINAL · Issue #157 완료'             ''             '**최종 상태:** COMPLETED'             ''             '- 기능 PR: #191 (merged)'             "- 기능 head: $FEATURE_HEAD_SHA"             "- 기능 merge/release SHA: $RELEASE_SHA"             '- 최종 버전: 0.33.1'             "- 정식 tag: $RELEASE_TAG"             "- 기능 main CI: $RELEASE_CI_URL"             "- finalizer main CI: $FINALIZER_CI_URL"             "- GHCR 정식 release: $RELEASE_RUN_URL"             "- 작업 브랜치: $FEATURE_BRANCH (정리 확인)"             "- finalization 브랜치: $FINALIZER_BRANCH (정리 확인)"             '- 문서 동기화: DEPLOYMENT / CI_CD / HTTP_OPERATION / REPOSITORY_STRUCTURE / README / CHANGELOG / .env.example'             '- 운영 image-only + pull_policy always / local build override 분리 검증 완료'             '- 잔여 차단 사항: 없음')"
+          gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/157/comments" -f body="$body"
+          gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/157" -f state=closed -f state_reason=completed
