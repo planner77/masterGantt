@@ -127,3 +127,11 @@ Issue #198 이후 Lifecycle 자동화와 저장소 보호 설정의 기준은 [I
 따라서 Gate C의 기본 운영은 최신 main을 포함한 PR head에서 세 required checks와 review conversation resolution을 통과한 뒤 GitHub Auto-merge를 사용하는 것이다. Ruleset/check 이름을 변경할 때는 workflow job 이름과 저장소 설정을 함께 검증한다.
 
 관리 API가 제공되지 않는 세션에서는 GitHub Settings UI의 변경 절차와 검증 방법까지만 문서화하며 실제 설정은 BLOCKED/수동 설정으로 기록한다. 설정 미확인을 PASS로 표시하지 않는다.
+
+## 범용 Issue Lifecycle 운영 (#211)
+
+병합 이후 검증/릴리스/정리/종료는 Actions의 **Issue lifecycle** workflow를 사용한다. 신규 Issue 전용 release-helper workflow를 만들지 않는다.
+
+운영자는 `operation`, `issue_number`, `pr_number`, `release_required`, `release_authorized`를 지정한다. formal release가 필요하면 target manifest와 동일한 `expected_version`과 승인 근거 `authorization_note`도 제공한다. 우선 `verify`로 read-only 상태를 확인하고, exact merge SHA main CI가 성공한 뒤에만 `release` 또는 `finalize`를 실행한다.
+
+`finalize`는 `safe_branch_cleanup.py`가 branch 삭제를 거부하면 Issue를 닫지 않는다. FINAL comment는 target SHA marker로 중복 생성을 방지하며 다른 target marker가 있으면 fail-closed로 중단한다.

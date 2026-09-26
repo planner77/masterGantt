@@ -112,3 +112,8 @@ Issue Lifecycle v2 (#109):
 # - Ruleset/Auto-merge/Update branch 설정은 실제 repository metadata와 관리자 설정을 확인한다. 변경 API가 없으면 수동 설정 절차와 BLOCKED 상태를 보고하며 적용 완료를 주장하지 않는다.
 # - merge는 Ruleset/required checks/review gate를 우회하지 않는다. Auto-merge를 사용할 수 있으면 gate 충족 후 GitHub native Auto-merge를 우선한다.
 # - Lifecycle finalizer는 stale/FAIL/NOT TESTED/BLOCKED required evidence에서 branch 삭제나 Issue close를 수행하지 않는다.
+
+# Issue #211:
+# - merged 이후 공통 orchestration은 .github/workflows/issue-lifecycle.yml을 사용한다.
+# - 신규 Issue별 release-helper를 만들지 않으며 verify는 read-only, release/finalize만 승인 범위에서 실행한다.
+# - PR merge는 Ruleset/Auto-merge 책임이고 exact merge SHA main CI, release-image.yml, safe_branch_cleanup.py evidence를 재사용한다.
