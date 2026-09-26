@@ -563,7 +563,7 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 | [tests/domain/scheduling](tests/domain/scheduling), [tests/features/gantt](tests/features/gantt), [tests/e2e](tests/e2e) | Scheduling unit/purity, Gantt adapter와 Chromium runtime·Project workflow 검증 |
 | [package.json](package.json), [package-lock.json](package-lock.json) | 실행 명령, 의존성·재설치 기준 |
 | [.github/workflows](.github/workflows), [.github/dependabot.yml](.github/dependabot.yml) | PR/main CI, main commit image, GHCR release와 pinned dependency update |
-| [deploy/docker/Dockerfile](deploy/docker/Dockerfile), [deploy/compose.yml](deploy/compose.yml), [.dockerignore](.dockerignore) | non-root image, single-instance SQLite volume와 build context 보호 |
+| [deploy/docker/Dockerfile](deploy/docker/Dockerfile), [deploy/compose.yml](deploy/compose.yml), [deploy/compose.build.yml](deploy/compose.build.yml), [.dockerignore](.dockerignore) | 운영 image-only pull, local/CI build override, non-root image와 single-instance SQLite volume 보호 |
 | [AGENTS.md](AGENTS.md), [.codex](.codex) | 개발·협업 원칙과 전문 Agent 설정 |
 | `.next/`, `node_modules/` | 로컬 생성 빌드·의존성, Git 제외 |
 | `.data/mastergantt.sqlite3` 및 WAL/SHM | 위 개발 예제로 생성하는 실제 DB, Git 제외 |
