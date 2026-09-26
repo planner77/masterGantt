@@ -1,0 +1,35 @@
+name: Issue 171 branch cleanup
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/issue-171-cleanup.yml"
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    name: Cleanup Issue 171 branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Safely delete merged feature branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 scripts/safe_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr 193 \
+            --branch "fix/issue-171-fullscreen-controls-overlap" \
+            --target-sha "$GITHUB_SHA" \
+            --delete
