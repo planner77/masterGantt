@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.35.0] - 2026-09-27
+
+### Added
+
+- Issue #184: 물류 도메인 공정·설비·제어시스템 스키마 및 REST API 기반 구현 (물류 LG-01).
+  - 공정(`project_processes`), 설비(`project_equipment`), 제어/조율 시스템(`project_logistics_systems`), 공정-시스템 매핑(`project_system_processes`), 설비-제어시스템 매핑(`project_equipment_systems`), 조율-제어 연계(`project_system_links`) DDL 및 0009 마이그레이션.
+  - 공정·설비·시스템 CRUD 및 관계 교체 REST API 13개 엔드포인트 구현 (세션·Origin·If-Match 검증, 프로젝트 revision 1회 증가 원자적 처리).
+  - 전체 스냅샷 및 태스크/링크 뮤테이션 응답에 `logistics` aggregate 필드 확장.
+  - 물류 구성 데이터가 포함된 프로젝트 복사 요청 시 안전한 차단 가드(`409 LOGISTICS_COPY_NOT_SUPPORTED_YET`) 연동.
+
 ## [0.34.1] - 2026-09-26
 
 ### Fixed

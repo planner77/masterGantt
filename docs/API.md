@@ -739,3 +739,32 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 ### `PUT /api/resource-catalog/admin-password` (Issue #99)
 
 유효한 Resource catalog 관리자 Cookie가 필요하다. body는 `newPassword`와 동일한 `confirmPassword`를 받으며 1~12 Unicode 문자 정책을 적용한다. 성공 시 기존 Resource 관리자 세션을 모두 revoke하고 호출자에게 새 관리자 Cookie를 발급한다. 원문 비밀번호는 DB·응답·로그에 남기지 않는다. 최초 자격증명이 없을 때만 `RESOURCE_CATALOG_ADMIN_PASSWORD`를 seed로 사용하고, DB 자격증명이 생성된 이후에는 환경변수 변경으로 덮어쓰지 않는다.
+
+## Issue #184: Logistics Domain API
+
+물류 공정·설비·시스템 관리 API는 프로젝트 편집 세션(`mastergantt_edit` / `__Host-mastergantt_edit`), 허용된 `Origin`, strong `If-Match: "<revision>"` 검증을 필수로 요구하며, 성공 시 상태 변경과 함께 프로젝트 `revision`을 1 증가시키고 새 ETag와 함께 `200`을 반환한다 (`DELETE`는 `204`).
+모든 스냅샷(`GET /api/projects/{publicId}`) 및 프로젝트/태스크/링크 뮤테이션 응답의 `data`에는 `logistics?: ProjectLogisticsDto` aggregate가 항상 포함된다.
+
+### 1. 물류 도메인 조회
+- `GET /api/projects/{publicId}/logistics`: 프로젝트의 공정, 설비, 시스템 전체 구성을 조회한다 (Public-read).
+
+### 2. 공정 (Processes)
+- `POST /api/projects/{publicId}/logistics/processes`: 공정 생성 (`code`, `name`, `parentId?`, `sortOrder?`, `active?`)
+- `PATCH /api/projects/{publicId}/logistics/processes/{processId}`: 공정 수정 (`code?`, `name?`, `parentId?`, `sortOrder?`, `active?`)
+- `DELETE /api/projects/{publicId}/logistics/processes/{processId}`: 공정 영구 삭제 (하위 공정, 소속 설비, 시스템 매핑이 존재할 경우 `409 PROCESS_IN_USE` 거부. 비활성화는 PATCH active=false)
+
+### 3. 설비 (Equipment)
+- `POST /api/projects/{publicId}/logistics/equipment`: 설비 생성 (`processId`, `code`, `name`, `equipmentType`, `managementUnit`, `quantity`, `manufacturer?`, `model?`, `description?`, `active?`)
+- `PATCH /api/projects/{publicId}/logistics/equipment/{equipmentId}`: 설비 수정
+- `DELETE /api/projects/{publicId}/logistics/equipment/{equipmentId}`: 설비 영구 삭제 (제어 시스템 매핑 등이 존재할 경우 `409 EQUIPMENT_IN_USE` 거부)
+- `PUT /api/projects/{publicId}/logistics/equipment/{equipmentId}/systems`: 설비-시스템 매핑 교체 (`systems: [{ systemId, controlRole: 'primary' | 'supporting' }]`, primary는 최대 1개)
+
+### 4. 제어 및 조율 시스템 (Logistics Systems)
+- `POST /api/projects/{publicId}/logistics/systems`: 시스템 생성 (`code`, `name`, `systemType`, `layer`, `scope`, `vendor?`, `description?`, `active?`)
+- `PATCH /api/projects/{publicId}/logistics/systems/{systemId}`: 시스템 수정
+- `DELETE /api/projects/{publicId}/logistics/systems/{systemId}`: 시스템 영구 삭제 (설비 연결, 연계 링크, 공정 매핑 존재 시 `409 SYSTEM_IN_USE` 거부)
+- `PUT /api/projects/{publicId}/logistics/systems/{systemId}/processes`: 프로세스 스코프 시스템의 담당 공정 매핑 교체 (`processIds: string[]`)
+- `PUT /api/projects/{publicId}/logistics/systems/{systemId}/children`: 상위 조율 시스템의 하위 시스템 연계 교체 (`childSystemIds: string[]`, DAG 순환 방지 검증)
+
+### 5. 프로젝트 복사 시 물류 도메인 보호 가드
+- `POST /api/projects/{publicId}/copy`: 대상 프로젝트에 물류 데이터(공정, 설비, 시스템)가 존재하는 경우 아직 물류 복사를 지원하지 않으므로 `409 LOGISTICS_COPY_NOT_SUPPORTED_YET`으로 안전하게 차단한다 (Issue #189에서 복사 지원 예정).

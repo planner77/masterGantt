@@ -1,8 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
 import {
-  cpSync,
+  copyFileSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   renameSync,
   rmSync,
   unlinkSync,
@@ -32,9 +34,17 @@ function temporaryDirectory(): string {
   return directory;
 }
 
-function copiedMigrations(): string {
+function copiedMigrations(maxVersion?: number): string {
   const directory = join(temporaryDirectory(), "migrations");
-  cpSync(sourceMigrations, directory, { recursive: true });
+  mkdirSync(directory, { recursive: true });
+  for (const file of readdirSync(sourceMigrations)) {
+    if (file.endsWith(".sql")) {
+      const version = Number(file.slice(0, 4));
+      if (maxVersion === undefined || version <= maxVersion) {
+        copyFileSync(join(sourceMigrations, file), join(directory, file));
+      }
+    }
+  }
   return directory;
 }
 
@@ -130,6 +140,7 @@ describe("SQLite connection and schema", () => {
         "0006_work_calendars.sql",
         "0007_resource_admin_credentials.sql",
         "0008_project_status.sql",
+        "0009_logistics_domain.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -145,6 +156,12 @@ describe("SQLite connection and schema", () => {
       expect(tables).toEqual([
         "edit_sessions",
         "links",
+        "project_equipment",
+        "project_equipment_systems",
+        "project_logistics_systems",
+        "project_processes",
+        "project_system_links",
+        "project_system_processes",
         "projects",
         "resource_catalog_admin_credentials",
         "resource_catalog_admin_sessions",
@@ -167,8 +184,18 @@ describe("SQLite connection and schema", () => {
         .all();
       expect(indexes).toEqual([
         "edit_sessions_project_expires_idx",
+        "equipment_systems_one_primary",
         "links_project_predecessor_idx",
         "links_project_successor_idx",
+        "project_equipment_project_process_idx",
+        "project_equipment_systems_equipment_idx",
+        "project_equipment_systems_system_idx",
+        "project_processes_project_parent_idx",
+        "project_processes_project_sort_order_idx",
+        "project_system_links_source_idx",
+        "project_system_links_target_idx",
+        "project_system_processes_process_idx",
+        "project_system_processes_system_idx",
         "resource_admin_sessions_expiry_idx",
         "resource_group_members_resource_idx",
         "task_assignments_group_idx",
@@ -249,7 +276,7 @@ describe("SQLite connection and schema", () => {
 
 describe("migration safety", () => {
   it("backfills existing projects as in progress and keeps new projects planned", () => {
-    const directory = copiedMigrations();
+    const directory = copiedMigrations(8);
     const migration8 = join(directory, "0008_project_status.sql");
     const migration8Contents = readFileSync(migration8);
     unlinkSync(migration8);
@@ -292,7 +319,7 @@ describe("migration safety", () => {
   });
 
   it("rolls back the status column, backfill, and ledger if migration 0008 fails", () => {
-    const directory = copiedMigrations();
+    const directory = copiedMigrations(8);
     const migration8 = join(directory, "0008_project_status.sql");
     const contents = readFileSync(migration8, "utf8");
     unlinkSync(migration8);
@@ -314,7 +341,7 @@ describe("migration safety", () => {
   });
 
   it("migrates existing project_holidays one-for-one into editable work calendar rules", () => {
-    const directory=copiedMigrations();
+    const directory = copiedMigrations(8);
     const migration6=join(directory,"0006_work_calendars.sql");
     const migration6Contents=readFileSync(migration6);
     const migration7=join(directory,"0007_resource_admin_credentials.sql");
@@ -353,6 +380,27 @@ describe("migration safety", () => {
         `SELECT date,day_type,name FROM work_calendar_dates
          WHERE calendar_rule_id=(SELECT id FROM work_calendar_rules WHERE project_id = ?)`,
       ).get(projectId)).toEqual({date:"2026-10-06",day_type:"NON_WORKING",name:"Legacy day"});
+    } finally {
+      database.close();
+    }
+  });
+
+  it("rolls back logistics domain tables and ledger if migration 0009 fails", () => {
+    const directory = copiedMigrations(9);
+    const migration9 = join(directory, "0009_logistics_domain.sql");
+    const contents = readFileSync(migration9, "utf8");
+    unlinkSync(migration9);
+    const database = new Database(":memory:");
+    try {
+      runMigrations(database, directory);
+      expect(database.prepare("SELECT max(version) AS version FROM schema_migrations").get())
+        .toEqual({ version: 8 });
+      writeFileSync(migration9, `${contents}\nINVALID SQL;\n`);
+      expect(() => runMigrations(database, directory)).toThrow(MigrationError);
+      expect(database.prepare("SELECT name FROM sqlite_schema WHERE type = 'table' AND name = 'project_processes'").get())
+        .toBeUndefined();
+      expect(database.prepare("SELECT max(version) AS version FROM schema_migrations").get())
+        .toEqual({ version: 8 });
     } finally {
       database.close();
     }

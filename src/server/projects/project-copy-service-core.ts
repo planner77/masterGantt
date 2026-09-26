@@ -19,6 +19,8 @@ import {
   ScheduleRepository,
   type TaskRecord,
 } from "../repositories/schedule-repository-core";
+import { LogisticsRepository } from "../repositories/logistics-repository-core";
+import { LogisticsCopyNotSupportedYetError } from "../logistics/logistics-service-core";
 import {
   hashEditPassword,
   type PasswordHashRecord,
@@ -36,6 +38,8 @@ import {
   recalculatePersistedHierarchy,
   type AuthorizedEditSession,
 } from "./project-service-core";
+
+export { LogisticsCopyNotSupportedYetError };
 
 const ID_ATTEMPTS = 3;
 const MAX_PROJECT_TASKS = 5_000;
@@ -99,6 +103,7 @@ export class ProjectCopyService {
   private readonly sessions: EditSessionRepository;
   private readonly schedules: ScheduleRepository;
   private readonly calendars: WorkCalendarRepository;
+  private readonly logistics: LogisticsRepository;
   private readonly clock: () => Date;
   private readonly generatePublicId: () => string;
   private readonly generateTaskPublicId: () => string;
@@ -115,6 +120,7 @@ export class ProjectCopyService {
     this.sessions = new EditSessionRepository(database);
     this.schedules = new ScheduleRepository(database);
     this.calendars = new WorkCalendarRepository(database);
+    this.logistics = new LogisticsRepository(database);
     this.clock = options.clock ?? (() => new Date());
     this.generatePublicId = options.generatePublicId ?? randomUUID;
     this.generateTaskPublicId = options.generateTaskPublicId ?? randomUUID;
@@ -148,6 +154,10 @@ export class ProjectCopyService {
         }
         if (!source || source.revision !== expectedRevision) {
           throw new RevisionMismatchError();
+        }
+
+        if (this.logistics.hasLogisticsData(source.id)) {
+          throw new LogisticsCopyNotSupportedYetError();
         }
 
         const sourceTasks = this.schedules.listTasks(source.id);
