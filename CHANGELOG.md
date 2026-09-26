@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.43.0] - 2026-09-27
+
+### Added
+
+- Issue #201: 프로젝트 재진입 시 Gantt Grid의 Summary 접힘/펼침(open/collapsed) 상태 복원 구현.
+  - 순수 헬퍼 모듈 `src/features/gantt/summary-toggle-preference.ts` 구현:
+    - 로컬 스토리지 키 `mastergantt:summary-toggle:<projectPublicId>` 격리.
+    - v1 JSON 스키마 `{ version: 1, collapsedSummaryIds: string[] }` 직렬화/역직렬화 및 유효성 검증.
+    - stale Summary ID(삭제되었거나 Task/Milestone으로 변환된 ID) 자동 필터링 및 QuotaExceededError/SecurityError 예외 안전 처리.
+  - `ProjectGantt` 컴포넌트 연동:
+    - `projectPublicId` prop 전달받아 Gantt API 초기화 및 요약 작업 목록 로딩 시 1회 초기 상태 복원.
+    - 마우스 클릭 및 키보드/단축키를 통한 `open-task` 액션 가로채기(intercept)로 접힘/펼침 상태 실시간 영속화.
+    - Canonical snapshot sync 발생 시 stale ID 자동 정리 및 정규화된 최신 상태 스토리지 갱신.
+    - Fullscreen 전환 및 필터 적용 시 인메모리 상태 보존 및 간섭 방지.
+
 ## [0.42.0] - 2026-09-27
 
 ### Added

@@ -392,6 +392,19 @@ Project Workspace의 탭 목록을 `일정 (schedule)`, `리소스 (resources)`,
   - **SVAR React Gantt 시각화 연동**:
     - 관계선 데이터 변환기(`projectLinksToSvarLinks`)에서 `FS → e2s`, `SS → s2s`, `FF → e2e`, `SF → s2e`로 실시간 매핑하여 차트 상에 연결점이 정확하게 렌더링된다.
 
+## Issue #201 프로젝트 재진입 시 Gantt Grid 접힘/펼침(Summary open/collapsed) 상태 복원
+
+- **접힘/펼침 상태 클라이언트 영속화**:
+  - 프로젝트 단위로 브라우저 `localStorage`(`mastergantt:summary-toggle:<projectPublicId>`)에 접힌 요약 작업 ID 목록(`collapsedSummaryIds`)을 v1 JSON 스키마로 저장한다.
+  - 마우스 클릭(`[data-action="open-task"]`) 및 키보드/단축키를 통한 `open-task` 액션 발생 시 실시간으로 영속화된다.
+  - 동일 브라우저 프로필에서 프로젝트를 나갔다가 재진입하거나 새로고침 시 마지막 접힘/펼침 상태가 정확히 복원된다.
+- **격리 및 안정성 (Stale ID 처리)**:
+  - 다른 프로젝트 간 상태가 섞이지 않도록 projectPublicId 단위로 스토리지가 완전히 격리된다.
+  - 삭제되었거나 일반 Task/Milestone으로 변경된 Summary의 stale ID는 복원 시 안전하게 필터링되며, 스냅샷 변경 시 스토리지에서도 자동으로 정규화된다.
+  - 새로 생성된 Summary는 저장 이력이 없으면 제품 기본 상태(펼침)로 표시된다.
+  - `localStorage` 접근 차단(SecurityError), 용량 초과(QuotaExceededError), 데이터 손상(malformed JSON) 시 에러를 유발하지 않고 안전하게 기본 상태로 폴백한다.
+  - 서버 DB/API/Revision 변경 없이 순수 클라이언트 뷰 상태로 관리된다.
+
 
 
 

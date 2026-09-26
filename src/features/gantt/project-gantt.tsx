@@ -55,6 +55,11 @@ import { resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } fro
 import type { TaskEditorSaveResult } from "./task-editor-model";
 import { captureMenuScrollChange } from "./menu-scroll-guard";
 import {
+  extractCollapsedSummaryIds,
+  loadSummaryTogglePreference,
+  saveSummaryTogglePreference,
+} from "./summary-toggle-preference";
+import {
   createHierarchyCommand,
   createPasteCommand,
   taskContextCapabilities,
@@ -102,6 +107,7 @@ interface ProjectGanttProps {
   readonly tasks: readonly ProjectTaskDto[];
   readonly projectRevision: number;
   readonly visibleTaskIds?: readonly string[] | null;
+  readonly projectPublicId?: string;
 }
 
 const baseProjectColumns: IColumnConfig[] = [
@@ -170,6 +176,7 @@ export function ProjectGantt({
   tasks,
   projectRevision,
   visibleTaskIds = null,
+  projectPublicId,
 }: ProjectGanttProps) {
   const apiReference = useRef<IApi | null>(null);
   const onTaskCreateReference = useRef(onTaskCreate);
@@ -190,6 +197,16 @@ export function ProjectGantt({
   const canonicalSyncVersionReference = useRef(0);
   const taskFilterAppliedReference = useRef(false);
   const summaryToggleStateReference = useRef(new Map<string, boolean>());
+  const projectPublicIdReference = useRef(projectPublicId);
+  const tasksReference = useRef(tasks);
+  const initialPreferenceRestoredReference = useRef(false);
+  const prevProjectPublicIdReference = useRef(projectPublicId);
+
+  if (prevProjectPublicIdReference.current !== projectPublicId) {
+    prevProjectPublicIdReference.current = projectPublicId;
+    initialPreferenceRestoredReference.current = false;
+    summaryToggleStateReference.current.clear();
+  }
   const inlineOpenTokenReference = useRef(0);
   const inlineComposingReference = useRef(false);
   const inlineTableReference = useRef<Awaited<ReturnType<IApi["getTable"]>> | null>(null);
@@ -258,16 +275,29 @@ export function ProjectGantt({
     canCreateReference.current = editable && !mutationLocked;
     mutationLockedReference.current = mutationLocked;
     tasksByIdReference.current = tasksById;
+    projectPublicIdReference.current = projectPublicId;
+    tasksReference.current = tasks;
     const summaries = new Set(
       Array.from(tasksById.values()).filter((task) => task.type === "summary").map((task) => task.taskId),
     );
     for (const taskId of summaries) {
       if (!summaryToggleStateReference.current.has(taskId)) summaryToggleStateReference.current.set(taskId, false);
     }
+    let hasStale = false;
     for (const taskId of summaryToggleStateReference.current.keys()) {
-      if (!summaries.has(taskId)) summaryToggleStateReference.current.delete(taskId);
+      if (!summaries.has(taskId)) {
+        summaryToggleStateReference.current.delete(taskId);
+        hasStale = true;
+      }
     }
-  }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, tasksById]);
+    if (hasStale && projectPublicId && initialPreferenceRestoredReference.current) {
+      const collapsedIds = extractCollapsedSummaryIds(
+        summaryToggleStateReference.current,
+        summaries,
+      );
+      saveSummaryTogglePreference(projectPublicId, collapsedIds);
+    }
+  }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, projectPublicId, tasks, tasksById]);
 
   useEffect(() => () => {
     inlineOpenTokenReference.current += 1;
@@ -445,11 +475,70 @@ export function ProjectGantt({
       const taskId = row ? taskIdFromElement(row) : null;
       if (!taskId || tasksByIdReference.current.get(taskId)?.type !== "summary") return;
       const currentlyCollapsed = toggle.classList.contains("wxi-menu-right");
-      summaryToggleStateReference.current.set(taskId, !currentlyCollapsed);
+      const nextCollapsed = !currentlyCollapsed;
+      summaryToggleStateReference.current.set(taskId, nextCollapsed);
+      if (projectPublicIdReference.current) {
+        const summaries = new Set(
+          tasksReference.current.filter((task) => task.type === "summary").map((task) => task.taskId),
+        );
+        const collapsedIds = extractCollapsedSummaryIds(
+          summaryToggleStateReference.current,
+          summaries,
+        );
+        saveSummaryTogglePreference(projectPublicIdReference.current, collapsedIds);
+      }
     };
     root.addEventListener("click", onSummaryToggleClick, true);
     return () => root.removeEventListener("click", onSummaryToggleClick, true);
   }, [apiInstanceId]);
+
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    const tag = "project-summary-toggle-tracker";
+    api.detach(tag);
+    api.intercept("open-task", (event) => {
+      if (typeof event.id === "string") {
+        const taskId = event.id;
+        const collapsed = !event.mode;
+        summaryToggleStateReference.current.set(taskId, collapsed);
+        if (projectPublicIdReference.current) {
+          const summaries = new Set(
+            tasksReference.current.filter((task) => task.type === "summary").map((task) => task.taskId),
+          );
+          const collapsedIds = extractCollapsedSummaryIds(
+            summaryToggleStateReference.current,
+            summaries,
+          );
+          saveSummaryTogglePreference(projectPublicIdReference.current, collapsedIds);
+        }
+      }
+      return true;
+    }, { tag });
+    return () => api.detach(tag);
+  }, [apiInstanceId]);
+
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId || !projectPublicId) return;
+    if (initialPreferenceRestoredReference.current) return;
+
+    const currentSummaryIds = new Set(
+      tasks.filter((task) => task.type === "summary").map((task) => task.taskId),
+    );
+    if (currentSummaryIds.size === 0) return;
+
+    initialPreferenceRestoredReference.current = true;
+    const collapsedIds = loadSummaryTogglePreference(projectPublicId, currentSummaryIds);
+    if (collapsedIds.length > 0) {
+      void (async () => {
+        for (const id of collapsedIds) {
+          summaryToggleStateReference.current.set(id, true);
+          await api.exec("open-task", { id, mode: false });
+        }
+      })();
+    }
+  }, [apiInstanceId, projectPublicId, tasks]);
 
   useEffect(() => {
     const api = apiReference.current;

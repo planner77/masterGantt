@@ -262,6 +262,7 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | UI13 | Issue #96: 1440/1024px Task Editor에서 작업명·날짜·기간·진행률·Description/URL 및 Resource allocation이 역할별 content-aware 폭을 사용하고, 768/390px에서 1열 전환하며 dialog/document horizontal overflow가 없음. 기존 Task/Assignment/Relation/dirty/stale/readonly 저장 계약 회귀 포함 |
 | UI14 | Issue #104: A↔B Dependency가 있어도 unrelated C의 Context Menu mutation이 edit/busy/hierarchy 경계에 따라 활성화되고, linked A는 기존 fail-closed를 유지한다. Task Editor와 server Task/Hierarchy/Subtree Delete도 동일 task/subtree scope를 사용하며 unrelated Link를 canonical snapshot에 보존 |
 | UI11 | Issue #3 및 PR #23: 지연 POST 대기/성공 동안 동일 Gantt DOM/API, no document navigation, action 열과 scroll/tree/selection/columns 유지; 순차 추가마다 정확히 한 POST 및 canonical row/bar 한 개, root/child/팝업 없는 명시적 Summary 전환·오류 복구 회귀. [현재 UX 계약](PROJECT_UX.md), [과거 검증 기록](ISSUE_3_REVIEW.md) |
+| UI15 | Issue #201: Summary 접힘/펼침(open/collapsed) 상태 localStorage 저장·복원, project별 격리, stale ID 필터링, Quota/Security 예외 graceful fallback, 재진입 및 새로고침 후 동일 트리 상태 유지 |
 
 ## Requirement traceability와 Release gate
 
@@ -283,6 +284,7 @@ POC 필수: VBA 실행/셀 접근, Header 탐색·alias mapping, 필요한 열�
 | R39–R41 | project-notifications / project-modal-feedback / project-links-persistence, workspace-notification-state / project-share-url: 알림·안전한 진단·링크·clipboard 및 fallback |
 | R46 | task-editor-view-model / project-task-editor: 탭 키보드 이동, draft 보존, 반응형 overflow, 기존 Task/Assignment 저장 계약 회귀 |
 | R45 | project-create-and-read / project-links-persistence: 1440px wide content, 행 overflow menu keyboard/Escape/focus, 프로젝트 복사·링크 복사·삭제 회귀와 작은 화면 접근성을 검증 |
+| R50 | summary-toggle-preference / project-gantt: 프로젝트별 localStorage 접힘/펼침 복원, stale ID 정리, Quota/Security 예외 안전 처리, DB/API 불변 |
 
 PR gate는 build/typecheck와 관련 unit/integration/E2E, migration 회귀, dependency/license 검토, 문서 일관성이다. 현재 command는 `npm run build`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:e2e`다. 구현 PR은 test ID에 실제 command·결과를 연결해야 한다.
 
