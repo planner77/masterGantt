@@ -325,3 +325,11 @@ GitHub Issue는 요구사항 Source이자 작업 진행 기록의 기준점이�
 - 중단 후에는 Issue/PR/CI/main을 다시 읽고 현재 상태에서 남은 단계만 실행한다.
 - 이미 게시된 immutable version/tag는 재사용/덮어쓰기하지 않는다.
 - 완료 상태를 과거 대화만으로 복원하지 않는다. 원격 evidence가 기준이다.
+
+## 9. GitHub Actions / Ruleset 자동화 연결
+
+이 문서의 단계별 책임을 GitHub Actions와 GitHub native protection으로 구현하는 상세 기준은 [ISSUE_LIFECYCLE_AUTOMATION.md](ISSUE_LIFECYCLE_AUTOMATION.md)를 Source of Truth로 사용한다.
+
+핵심 gate는 `READY_FOR_DEVELOPMENT → READY_FOR_PR → READY_FOR_MERGE → READY_FOR_RELEASE → DONE`으로 관리한다. Manager/Agent는 판단·설계·구현을 담당하고, Actions는 반복 가능한 검증과 release/finalization을 담당한다.
+
+병합은 required checks와 review/conversation resolution을 만족한 뒤 GitHub Auto-merge를 우선한다. PR head가 변경되면 이전 required CI와 최종 QA evidence는 stale이다. 신규 Issue별 release-helper workflow 생성은 금지하며 공용 lifecycle workflow로 수렴한다.

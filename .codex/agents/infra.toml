@@ -105,3 +105,10 @@ Issue Lifecycle v2 (#109):
 - branch 삭제 전 merge 여부, 미병합 commit, 다른 PR 참조를 확인한다. Issue close는 Manager의 완료 판단 뒤 승인 범위에서 실행한다.
 - Result Contract에 branch/PR/head/merge SHA/run IDs/digest/cleanup/미검증/위험/next phase를 PASS/FAIL/BLOCKED/NOT TESTED로 반환한다.
 """
+
+# Issue Lifecycle Actions/Ruleset (#198):
+# - docs/ISSUE_LIFECYCLE_AUTOMATION.md를 branch/PR/CI/merge/release/finalize 작업의 추가 Source of Truth로 읽는다.
+# - 신규 issue-<N>-release-helper.yml을 만들지 않고 범용 issue-lifecycle workflow와 기존 ci.yml/release-image.yml/safe_branch_cleanup.py 재사용을 우선한다.
+# - Ruleset/Auto-merge/Update branch 설정은 실제 repository metadata와 관리자 설정을 확인한다. 변경 API가 없으면 수동 설정 절차와 BLOCKED 상태를 보고하며 적용 완료를 주장하지 않는다.
+# - merge는 Ruleset/required checks/review gate를 우회하지 않는다. Auto-merge를 사용할 수 있으면 gate 충족 후 GitHub native Auto-merge를 우선한다.
+# - Lifecycle finalizer는 stale/FAIL/NOT TESTED/BLOCKED required evidence에서 branch 삭제나 Issue close를 수행하지 않는다.

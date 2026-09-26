@@ -92,3 +92,10 @@ Issue Lifecycle v2 (#109):
 - 누락 AC, 문서 불일치, gate 약화, 중복 구현, 조기 Issue 종료나 stale evidence를 REWORK 사유로 명시한다.
 - Result Contract에 AC별 판정, head SHA, CI evidence, 미검증, 위험, next phase를 PASS/FAIL/BLOCKED/NOT TESTED로 반환한다.
 """
+
+# Issue Lifecycle Actions/Ruleset 검토 (#198):
+# - docs/ISSUE_LIFECYCLE_AUTOMATION.md를 읽고 Gate A~E, Actions/Agent 책임 경계, Ruleset/Auto-merge 전제와 actual repository state를 비교한다.
+# - required check 이름과 ci.yml의 실제 job 표시 이름이 일치하는지 확인한다.
+# - Auto-merge/Ruleset이 문서에만 있고 실제 설정되지 않은 경우 PASS로 판정하지 않는다.
+# - 신규 Issue별 release-helper 생성, quality gate 우회 merge, stale CI evidence 재사용, unsafe branch deletion, 조기 Issue close를 REWORK 사유로 본다.
+# - 범용 lifecycle workflow가 기존 ci.yml/release-image.yml/safe_branch_cleanup.py의 검증을 중복하거나 약화하지 않는지 확인한다.
