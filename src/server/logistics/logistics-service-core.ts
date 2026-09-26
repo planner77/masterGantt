@@ -7,14 +7,20 @@ import type {
   CreateLogisticsSystemRequest,
   CreateProcessRequest,
   EquipmentDto,
+  EquipmentResourceRoleDto,
+  EquipmentRole,
   LogisticsMutationResponse,
   LogisticsSystemDto,
   ProcessDto,
   ProjectLogisticsDto,
+  SetEquipmentResourceRolesRequest,
   SetEquipmentSystemsRequest,
   SetSystemChildrenRequest,
   SetSystemProcessesRequest,
+  SetSystemResourceRolesRequest,
   SystemLinkDto,
+  SystemResourceRoleDto,
+  SystemRole,
   UpdateEquipmentRequest,
   UpdateLogisticsSystemRequest,
   UpdateProcessRequest,
@@ -29,6 +35,7 @@ import {
 import {
   LogisticsRepository,
 } from "../repositories/logistics-repository-core";
+import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
 import {
   EditSessionInvalidError,
   RevisionMismatchError,
@@ -93,6 +100,7 @@ export class LogisticsService {
   private readonly projectRepo: ProjectRepository;
   private readonly ownerRepo: ProjectOwnerRepository;
   private readonly sessionRepo: EditSessionRepository;
+  private readonly resourceCatalogRepo: ResourceCatalogRepository;
   private readonly clock: () => Date;
   private readonly generatePublicId: () => string;
 
@@ -107,6 +115,7 @@ export class LogisticsService {
     this.projectRepo = new ProjectRepository(database);
     this.ownerRepo = new ProjectOwnerRepository(database);
     this.sessionRepo = new EditSessionRepository(database);
+    this.resourceCatalogRepo = new ResourceCatalogRepository(database);
     this.clock = options.clock ?? (() => new Date());
     this.generatePublicId = options.generatePublicId ?? randomUUID;
   }
@@ -125,6 +134,8 @@ export class LogisticsService {
     const allEqSystems = this.logisticsRepo.listAllEquipmentSystems(projectId);
     const allSysProcesses = this.logisticsRepo.listAllSystemProcesses(projectId);
     const systemLinks = this.logisticsRepo.listSystemLinks(projectId);
+    const allEqRoles = this.logisticsRepo.listEquipmentResourceRoles(projectId);
+    const allSysRoles = this.logisticsRepo.listSystemResourceRoles(projectId);
 
     const processPublicIdById = new Map<number, string>(
       processes.map((p) => [p.id, p.publicId]),
@@ -160,6 +171,34 @@ export class LogisticsService {
       coordinatedBySysId.set(link.sourceSystemId, list);
     }
 
+    const eqRolesByEqId = new Map<number, EquipmentResourceRoleDto[]>();
+    for (const row of allEqRoles) {
+      const list = eqRolesByEqId.get(row.equipmentId) ?? [];
+      list.push({
+        resourceId: row.resourcePublicId,
+        resourceCode: row.resourceCode ?? "",
+        resourceName: row.resourceName,
+        role: row.role,
+        isPrimary: row.isPrimary === 1,
+        active: row.resourceActive === 1,
+      });
+      eqRolesByEqId.set(row.equipmentId, list);
+    }
+
+    const sysRolesBySysId = new Map<number, SystemResourceRoleDto[]>();
+    for (const row of allSysRoles) {
+      const list = sysRolesBySysId.get(row.systemId) ?? [];
+      list.push({
+        resourceId: row.resourcePublicId,
+        resourceCode: row.resourceCode ?? "",
+        resourceName: row.resourceName,
+        role: row.role,
+        isPrimary: row.isPrimary === 1,
+        active: row.resourceActive === 1,
+      });
+      sysRolesBySysId.set(row.systemId, list);
+    }
+
     const processDtos: ProcessDto[] = processes.map((p) => ({
       id: p.publicId,
       code: p.code,
@@ -184,6 +223,7 @@ export class LogisticsService {
       description: e.description,
       active: e.active === 1,
       controlSystems: eqSystemsByEqId.get(e.id) ?? [],
+      resourceRoles: eqRolesByEqId.get(e.id) ?? [],
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
     }));
@@ -197,6 +237,7 @@ export class LogisticsService {
       scope: s.scope,
       processIds: sysProcessesBySysId.get(s.id) ?? [],
       coordinatedSystemIds: coordinatedBySysId.get(s.id) ?? [],
+      resourceRoles: sysRolesBySysId.get(s.id) ?? [],
       vendor: s.vendor,
       description: s.description,
       active: s.active === 1,
@@ -1032,5 +1073,229 @@ export class LogisticsService {
     }
 
     return false;
+  }
+
+  setEquipmentResourceRoles(
+    authorization: AuthorizedEditSession,
+    expectedRevision: number,
+    equipmentPublicId: string,
+    request: SetEquipmentResourceRolesRequest,
+  ): LogisticsMutationResponse {
+    const now = this.clock();
+    const nowText = now.toISOString();
+
+    const transaction = this.database.transaction(() => {
+      this.verifyEditAccess(authorization, expectedRevision, now);
+      const projectId = authorization.projectId;
+
+      const equipment = this.logisticsRepo.findEquipmentByPublicId(
+        projectId,
+        equipmentPublicId,
+      );
+      if (!equipment) {
+        throw new LogisticsEntityNotFoundError("Equipment", equipmentPublicId);
+      }
+
+      const currentRoles = this.logisticsRepo.listEquipmentResourceRoles(
+        projectId,
+        equipment.id,
+      );
+      const currentAssignedPairs = new Set(
+        currentRoles.map((r) => `${r.resourcePublicId}:${r.role}`),
+      );
+
+      const rolesToInsert: Array<{
+        resourceId: number;
+        role: EquipmentRole;
+        isPrimary: number;
+      }> = [];
+      const seenPair = new Set<string>();
+      let primaryCount = 0;
+
+      for (const item of request.roles) {
+        const pairKey = `${item.resourceId}:${item.role}`;
+        if (seenPair.has(pairKey)) {
+          throw new LogisticsValidationError([
+            `Duplicate resource and role pair: ${pairKey}`,
+          ]);
+        }
+        seenPair.add(pairKey);
+
+        const resource = this.resourceCatalogRepo.findResourceByPublicId(
+          item.resourceId,
+        );
+        if (!resource) {
+          throw new LogisticsValidationError([
+            `Resource not found: ${item.resourceId}`,
+          ]);
+        }
+
+        if (!resource.active && !currentAssignedPairs.has(pairKey)) {
+          throw new LogisticsConflictError(
+            "RESOURCE_INACTIVE",
+            `Cannot newly assign inactive resource '${resource.name}' (${resource.publicId}).`,
+          );
+        }
+
+        const isPrimary = item.isPrimary ? 1 : 0;
+        if (isPrimary) {
+          if (item.role !== "owner") {
+            throw new LogisticsValidationError([
+              "Only owner role can be designated as primary.",
+            ]);
+          }
+          primaryCount++;
+        }
+
+        rolesToInsert.push({
+          resourceId: resource.id,
+          role: item.role,
+          isPrimary,
+        });
+      }
+
+      if (primaryCount > 1) {
+        throw new LogisticsValidationError([
+          "At most one primary owner can be designated per equipment.",
+        ]);
+      }
+
+      this.logisticsRepo.replaceEquipmentResourceRoles(
+        projectId,
+        equipment.id,
+        rolesToInsert,
+        nowText,
+      );
+
+      const updatedProject = this.projectRepo.advanceRevision(
+        projectId,
+        expectedRevision,
+        nowText,
+      );
+      if (!updatedProject) {
+        throw new RevisionMismatchError();
+      }
+
+      return this.buildMutationResponse(projectId, {
+        kind: "logisticsMutation",
+        entity: "equipmentResourceRoles",
+        action: "replace",
+        targetPublicId: equipmentPublicId,
+      });
+    });
+
+    return transaction.immediate();
+  }
+
+  setSystemResourceRoles(
+    authorization: AuthorizedEditSession,
+    expectedRevision: number,
+    systemPublicId: string,
+    request: SetSystemResourceRolesRequest,
+  ): LogisticsMutationResponse {
+    const now = this.clock();
+    const nowText = now.toISOString();
+
+    const transaction = this.database.transaction(() => {
+      this.verifyEditAccess(authorization, expectedRevision, now);
+      const projectId = authorization.projectId;
+
+      const system = this.logisticsRepo.findSystemByPublicId(
+        projectId,
+        systemPublicId,
+      );
+      if (!system) {
+        throw new LogisticsEntityNotFoundError("System", systemPublicId);
+      }
+
+      const currentRoles = this.logisticsRepo.listSystemResourceRoles(
+        projectId,
+        system.id,
+      );
+      const currentAssignedPairs = new Set(
+        currentRoles.map((r) => `${r.resourcePublicId}:${r.role}`),
+      );
+
+      const rolesToInsert: Array<{
+        resourceId: number;
+        role: SystemRole;
+        isPrimary: number;
+      }> = [];
+      const seenPair = new Set<string>();
+      let primaryCount = 0;
+
+      for (const item of request.roles) {
+        const pairKey = `${item.resourceId}:${item.role}`;
+        if (seenPair.has(pairKey)) {
+          throw new LogisticsValidationError([
+            `Duplicate resource and role pair: ${pairKey}`,
+          ]);
+        }
+        seenPair.add(pairKey);
+
+        const resource = this.resourceCatalogRepo.findResourceByPublicId(
+          item.resourceId,
+        );
+        if (!resource) {
+          throw new LogisticsValidationError([
+            `Resource not found: ${item.resourceId}`,
+          ]);
+        }
+
+        if (!resource.active && !currentAssignedPairs.has(pairKey)) {
+          throw new LogisticsConflictError(
+            "RESOURCE_INACTIVE",
+            `Cannot newly assign inactive resource '${resource.name}' (${resource.publicId}).`,
+          );
+        }
+
+        const isPrimary = item.isPrimary ? 1 : 0;
+        if (isPrimary) {
+          if (item.role !== "pi") {
+            throw new LogisticsValidationError([
+              "Only PI role can be designated as primary.",
+            ]);
+          }
+          primaryCount++;
+        }
+
+        rolesToInsert.push({
+          resourceId: resource.id,
+          role: item.role,
+          isPrimary,
+        });
+      }
+
+      if (primaryCount > 1) {
+        throw new LogisticsValidationError([
+          "At most one primary PI can be designated per system.",
+        ]);
+      }
+
+      this.logisticsRepo.replaceSystemResourceRoles(
+        projectId,
+        system.id,
+        rolesToInsert,
+        nowText,
+      );
+
+      const updatedProject = this.projectRepo.advanceRevision(
+        projectId,
+        expectedRevision,
+        nowText,
+      );
+      if (!updatedProject) {
+        throw new RevisionMismatchError();
+      }
+
+      return this.buildMutationResponse(projectId, {
+        kind: "logisticsMutation",
+        entity: "systemResourceRoles",
+        action: "replace",
+        targetPublicId: systemPublicId,
+      });
+    });
+
+    return transaction.immediate();
   }
 }

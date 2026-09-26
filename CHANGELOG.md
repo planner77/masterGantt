@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.36.0] - 2026-09-27
+
+### Added
+
+- Issue #185: 설비 담당자 및 시스템 PI·개발자 역할 배정 스키마 및 REST API 구현 (물류 LG-02).
+  - 설비 담당자 배정 테이블(`project_equipment_resource_roles`) 및 시스템 역할 배정 테이블(`project_system_resource_roles`) DDL 및 0010 마이그레이션 (`role IN ('owner', 'contributor')`, `role IN ('pi', 'developer')`, `is_primary` 최대 1개 partial unique index, resources 참조 시 `NO ACTION`으로 삭제 방지).
+  - 설비 담당자 및 시스템 역할 배정 REST API 엔드포인트 구현 (`PUT /api/projects/:publicId/logistics/equipment/:equipmentId/resource-roles`, `PUT /api/projects/:publicId/logistics/systems/:systemId/resource-roles`).
+  - 비활성 리소스 신규 배정 차단(`409 RESOURCE_INACTIVE`) 및 기존 배정 유지 허용 규칙 구현.
+  - 설비·시스템 DTO에 `resourceRoles` 필드 확장 및 스냅샷/뮤테이션 응답 연동.
+
 ## [0.35.0] - 2026-09-27
 
 ### Added

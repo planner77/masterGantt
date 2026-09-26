@@ -35,9 +35,11 @@ import {
   parseCreateEquipmentInput,
   parseCreateLogisticsSystemInput,
   parseCreateProcessInput,
+  parseSetEquipmentResourceRolesInput,
   parseSetEquipmentSystemsInput,
   parseSetSystemChildrenInput,
   parseSetSystemProcessesInput,
+  parseSetSystemResourceRolesInput,
   parseUpdateEquipmentRequest,
   parseUpdateLogisticsSystemInput,
   parseUpdateProcessInput,
@@ -536,6 +538,84 @@ export async function handleSetSystemChildren(
 
     const service = resolve(dependencies.logisticsService);
     const result = service.setCoordinatedSystems(auth, expectedRevision, coordinatorPublicId, parsed.data);
+    return mutationResponse(result, 200);
+  } catch (error) {
+    return mapError(error, requestId);
+  }
+}
+
+export async function handleSetEquipmentResourceRoles(
+  request: Request,
+  publicId: string,
+  equipmentPublicId: string,
+  dependencies: LogisticsHandlerDependencies,
+): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    if (!isCanonicalUuidV4(publicId)) {
+      throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    }
+    const url = appUrl(dependencies);
+    requireOrigin(request, url);
+    const auth = requireAuthorizedSession(request, publicId, dependencies, url);
+    const expectedRevision = parseRequiredIfMatch(request);
+    const raw = await readBoundedJson(request);
+    const parsed = parseSetEquipmentResourceRolesInput(raw);
+    if (!parsed.success) {
+      throw new PublicApiError(
+        400,
+        "INVALID_REQUEST",
+        "The equipment resource roles input is invalid.",
+        toDetails(parsed.details),
+      );
+    }
+
+    const service = resolve(dependencies.logisticsService);
+    const result = service.setEquipmentResourceRoles(
+      auth,
+      expectedRevision,
+      equipmentPublicId,
+      parsed.data,
+    );
+    return mutationResponse(result, 200);
+  } catch (error) {
+    return mapError(error, requestId);
+  }
+}
+
+export async function handleSetSystemResourceRoles(
+  request: Request,
+  publicId: string,
+  systemPublicId: string,
+  dependencies: LogisticsHandlerDependencies,
+): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    if (!isCanonicalUuidV4(publicId)) {
+      throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    }
+    const url = appUrl(dependencies);
+    requireOrigin(request, url);
+    const auth = requireAuthorizedSession(request, publicId, dependencies, url);
+    const expectedRevision = parseRequiredIfMatch(request);
+    const raw = await readBoundedJson(request);
+    const parsed = parseSetSystemResourceRolesInput(raw);
+    if (!parsed.success) {
+      throw new PublicApiError(
+        400,
+        "INVALID_REQUEST",
+        "The system resource roles input is invalid.",
+        toDetails(parsed.details),
+      );
+    }
+
+    const service = resolve(dependencies.logisticsService);
+    const result = service.setSystemResourceRoles(
+      auth,
+      expectedRevision,
+      systemPublicId,
+      parsed.data,
+    );
     return mutationResponse(result, 200);
   } catch (error) {
     return mapError(error, requestId);

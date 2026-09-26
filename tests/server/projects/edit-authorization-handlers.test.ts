@@ -462,6 +462,8 @@ describe("route security inventory", () => {
       "DELETE /api/projects/{publicId}/logistics/systems/{systemId}",
       "PUT /api/projects/{publicId}/logistics/systems/{systemId}/processes",
       "PUT /api/projects/{publicId}/logistics/systems/{systemId}/children",
+      "PUT /api/projects/{publicId}/logistics/equipment/{equipmentId}/resource-roles",
+      "PUT /api/projects/{publicId}/logistics/systems/{systemId}/resource-roles",
     ]);
     for (const route of ROUTE_SECURITY_INVENTORY.filter(({ mutatesState }) => mutatesState)) {
       expect(route.method).not.toBe("GET");

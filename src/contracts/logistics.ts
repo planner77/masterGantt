@@ -24,6 +24,27 @@ export type SystemScope = "project" | "processes";
 
 export type ControlRole = "primary" | "supporting";
 
+export type EquipmentRole = "owner" | "contributor";
+export type SystemRole = "pi" | "developer";
+
+export interface EquipmentResourceRoleDto {
+  resourceId: string; // resource public_id
+  resourceCode: string;
+  resourceName: string;
+  role: EquipmentRole;
+  isPrimary: boolean;
+  active: boolean;
+}
+
+export interface SystemResourceRoleDto {
+  resourceId: string; // resource public_id
+  resourceCode: string;
+  resourceName: string;
+  role: SystemRole;
+  isPrimary: boolean;
+  active: boolean;
+}
+
 export interface ProcessDto {
   id: string; // public_id
   code: string;
@@ -53,6 +74,7 @@ export interface EquipmentDto {
   description: string;
   active: boolean;
   controlSystems: EquipmentControlSystemDto[];
+  resourceRoles: EquipmentResourceRoleDto[];
   createdAt: string;
   updatedAt: string;
 }
@@ -66,6 +88,7 @@ export interface LogisticsSystemDto {
   scope: SystemScope;
   processIds: string[];
   coordinatedSystemIds: string[];
+  resourceRoles: SystemResourceRoleDto[];
   vendor: string;
   description: string;
   active: boolean;
@@ -174,6 +197,22 @@ export interface SetSystemChildrenRequest {
   targetSystemIds: string[];
 }
 
+export interface SetEquipmentResourceRolesRequest {
+  roles: {
+    resourceId: string;
+    role: EquipmentRole;
+    isPrimary?: boolean;
+  }[];
+}
+
+export interface SetSystemResourceRolesRequest {
+  roles: {
+    resourceId: string;
+    role: SystemRole;
+    isPrimary?: boolean;
+  }[];
+}
+
 export interface LogisticsMutationResponse {
   data: {
     project: ProjectDto;
@@ -181,7 +220,15 @@ export interface LogisticsMutationResponse {
     permission: "edit";
     operation: {
       kind: "logisticsMutation";
-      entity: "process" | "equipment" | "system" | "equipmentSystems" | "systemProcesses" | "systemChildren";
+      entity:
+        | "process"
+        | "equipment"
+        | "system"
+        | "equipmentSystems"
+        | "systemProcesses"
+        | "systemChildren"
+        | "equipmentResourceRoles"
+        | "systemResourceRoles";
       action: "create" | "update" | "delete" | "replace";
       targetPublicId?: string;
     };

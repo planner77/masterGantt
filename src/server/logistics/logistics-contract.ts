@@ -3,13 +3,17 @@ import type {
   CreateEquipmentRequest,
   CreateLogisticsSystemRequest,
   CreateProcessRequest,
+  EquipmentRole,
   EquipmentType,
   LogisticsSystemType,
   ManagementUnit,
+  SetEquipmentResourceRolesRequest,
   SetEquipmentSystemsRequest,
   SetSystemChildrenRequest,
   SetSystemProcessesRequest,
+  SetSystemResourceRolesRequest,
   SystemLayer,
+  SystemRole,
   SystemScope,
   UpdateEquipmentRequest,
   UpdateLogisticsSystemRequest,
@@ -53,6 +57,10 @@ const VALID_SYSTEM_LAYERS: Set<SystemLayer> = new Set(["controller", "coordinato
 const VALID_SYSTEM_SCOPES: Set<SystemScope> = new Set(["project", "processes"]);
 
 const VALID_CONTROL_ROLES: Set<ControlRole> = new Set(["primary", "supporting"]);
+
+const VALID_EQUIPMENT_ROLES: Set<EquipmentRole> = new Set(["owner", "contributor"]);
+
+const VALID_SYSTEM_ROLES: Set<SystemRole> = new Set(["pi", "developer"]);
 
 export function parseCreateProcessInput(
   raw: unknown,
@@ -600,4 +608,130 @@ export function parseSetSystemChildrenInput(
     .filter((p) => p.length > 0);
 
   return { success: true, data: { targetSystemIds } };
+}
+
+export function parseSetEquipmentResourceRolesInput(
+  raw: unknown,
+): ValidationResult<SetEquipmentResourceRolesRequest> {
+  if (typeof raw !== "object" || raw === null) {
+    return { success: false, details: ["Request body must be a JSON object."] };
+  }
+  const body = raw as Record<string, unknown>;
+  if (!Array.isArray(body.roles)) {
+    return { success: false, details: ["roles must be an array."] };
+  }
+  const details: string[] = [];
+  const roles: SetEquipmentResourceRolesRequest["roles"] = [];
+  const seenPair = new Set<string>();
+  let primaryCount = 0;
+
+  for (let i = 0; i < body.roles.length; i++) {
+    const item = body.roles[i];
+    if (typeof item !== "object" || item === null) {
+      details.push(`roles[${i}] must be an object.`);
+      continue;
+    }
+    const r = item as Record<string, unknown>;
+    const resourceId = typeof r.resourceId === "string" ? r.resourceId.trim() : "";
+    if (!resourceId) {
+      details.push(`roles[${i}].resourceId must be a non-empty string.`);
+    }
+    const role = typeof r.role === "string" ? (r.role.trim() as EquipmentRole) : ("" as EquipmentRole);
+    if (!VALID_EQUIPMENT_ROLES.has(role)) {
+      details.push(`roles[${i}].role must be one of: owner, contributor.`);
+    }
+    let isPrimary: boolean | undefined = undefined;
+    if (r.isPrimary !== undefined) {
+      if (typeof r.isPrimary === "boolean") {
+        isPrimary = r.isPrimary;
+      } else {
+        details.push(`roles[${i}].isPrimary must be a boolean.`);
+      }
+    }
+    if (isPrimary && role !== "owner") {
+      details.push(`roles[${i}]: Only an owner role can be designated as primary.`);
+    }
+    if (isPrimary) {
+      primaryCount++;
+    }
+    const pairKey = `${resourceId}:${role}`;
+    if (seenPair.has(pairKey)) {
+      details.push(`roles[${i}]: Duplicate resource and role pair (${pairKey}).`);
+    } else {
+      seenPair.add(pairKey);
+    }
+    roles.push({ resourceId, role, isPrimary: isPrimary ?? false });
+  }
+
+  if (primaryCount > 1) {
+    details.push("At most one primary owner role can be designated per equipment.");
+  }
+
+  if (details.length > 0) {
+    return { success: false, details };
+  }
+  return { success: true, data: { roles } };
+}
+
+export function parseSetSystemResourceRolesInput(
+  raw: unknown,
+): ValidationResult<SetSystemResourceRolesRequest> {
+  if (typeof raw !== "object" || raw === null) {
+    return { success: false, details: ["Request body must be a JSON object."] };
+  }
+  const body = raw as Record<string, unknown>;
+  if (!Array.isArray(body.roles)) {
+    return { success: false, details: ["roles must be an array."] };
+  }
+  const details: string[] = [];
+  const roles: SetSystemResourceRolesRequest["roles"] = [];
+  const seenPair = new Set<string>();
+  let primaryCount = 0;
+
+  for (let i = 0; i < body.roles.length; i++) {
+    const item = body.roles[i];
+    if (typeof item !== "object" || item === null) {
+      details.push(`roles[${i}] must be an object.`);
+      continue;
+    }
+    const r = item as Record<string, unknown>;
+    const resourceId = typeof r.resourceId === "string" ? r.resourceId.trim() : "";
+    if (!resourceId) {
+      details.push(`roles[${i}].resourceId must be a non-empty string.`);
+    }
+    const role = typeof r.role === "string" ? (r.role.trim() as SystemRole) : ("" as SystemRole);
+    if (!VALID_SYSTEM_ROLES.has(role)) {
+      details.push(`roles[${i}].role must be one of: pi, developer.`);
+    }
+    let isPrimary: boolean | undefined = undefined;
+    if (r.isPrimary !== undefined) {
+      if (typeof r.isPrimary === "boolean") {
+        isPrimary = r.isPrimary;
+      } else {
+        details.push(`roles[${i}].isPrimary must be a boolean.`);
+      }
+    }
+    if (isPrimary && role !== "pi") {
+      details.push(`roles[${i}]: Only a PI role can be designated as primary.`);
+    }
+    if (isPrimary) {
+      primaryCount++;
+    }
+    const pairKey = `${resourceId}:${role}`;
+    if (seenPair.has(pairKey)) {
+      details.push(`roles[${i}]: Duplicate resource and role pair (${pairKey}).`);
+    } else {
+      seenPair.add(pairKey);
+    }
+    roles.push({ resourceId, role, isPrimary: isPrimary ?? false });
+  }
+
+  if (primaryCount > 1) {
+    details.push("At most one primary PI role can be designated per system.");
+  }
+
+  if (details.length > 0) {
+    return { success: false, details };
+  }
+  return { success: true, data: { roles } };
 }
