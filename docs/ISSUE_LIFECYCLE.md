@@ -10,7 +10,7 @@ Manager는 사용자가 Issue 처리를 요청하면 별도의 역할 선택 질
 
 1. 저장소, Issue 본문/댓글, 관련 코드/문서, 진행 중 PR/branch, main SHA, 현재 version/tag와 CI 상태를 조회한다. 과거 대화의 상태를 현재 상태로 간주하지 않는다.
 2. 목표, 비범위, 인수 기준, 의존성, 위험, 요청된 마지막 단계를 확정한다. 분석만 요청한 작업을 구현/병합/게시로 확대하지 않는다. 여러 이슈를 순차 진행하라는 요청이면 하나를 완료하기 전 다음 이슈를 변경하지 않는다.
-3. `release_required`(정식 릴리스 필요성/범위), `release_authorized`(기본 false인 명시적 게시 승인)와 각각의 근거를 기록한다. 단순 “Issue Lifecycle 전체 진행”만으로 두 값을 true로 간주하지 않는다. 범위가 불명확하면 release_required는 미확정으로 남기고 게시 전에 범위/승인을 확인한다. 사용자가 게시를 제외하거나 PR까지만 요청하면 그 경계에서 멈춘다. 문서/Agent 지침만 변경하고 제품 산출물에 영향이 없으면 정식 release는 N/A로 기록한다. 이 예외로 실제 실행되는 main 임시 GHCR 검증을 생략하지 않는다.
+3. `release_required`(정식 릴리스 필요성/범위), `release_authorized`(기본 false인 명시적 게시 승인)와 각각의 근거를 기록한다. 단순 “Issue Lifecycle 전체 진행”만으로 두 값을 true로 간주하지 않는다. 범위가 불명확하면 release_required는 미확정으로 남기고 게시 전에 범위/승인을 확인한다. 사용자가 게시를 제외하거나 PR까지만 요청하면 그 경계에서 멈춘다. 문서/Agent 지침만 변경하고 제품 산출물에 영향이 없으면 정식 release는 N/A로 기록한다. `main` 변경이 `docs/**` 또는 저장소 루트 Markdown만 포함하는 docs-only merge이면 CI 변경 유형 판정에 따라 임시 GHCR 게시·검증·정리 job도 N/A/SKIPPED로 기록한다. 비문서 파일이 하나라도 포함되거나 판정이 불가능하면 기존 main 임시 GHCR gate를 유지한다.
 4. 실제 사용 가능한 Agent 실행/파일/명령/브라우저/GitHub/Actions 도구, 모델 접근과 권한을 확인한다. 기존 동시 실행 한도는 6이며 실제 runtime 제한이 더 작으면 작은 값을 따른다. 모든 역할을 상시 실행하지 않는다.
 5. 실행 도구가 없으면 `실행 방식: 단일 에이전트 순차 처리`와 미실행 항목을 기록한다. 역할별 검토를 했다는 이유로 독립 Sub-Agent/QA를 실행했다고 하지 않는다. 필수 독립 검토를 확보할 수 없으면 해당 gate는 BLOCKED다.
 
@@ -23,7 +23,7 @@ Manager는 사용자가 Issue 처리를 요청하면 별도의 역할 선택 질
 | release_required=true, release_authorized=true | 기존 CI/tag/registry gate를 통과한 뒤 승인 범위의 정식 게시·검증 |
 | release_required=true, release_authorized=false | BLOCKED/승인 대기. annotated tag·정식 게시·rolling tag 변경 및 전체 이슈 완료 금지 |
 | release_required 미확정 | 범위/승인 확인 전 정식 게시 금지. 미확정을 N/A나 완료로 숨기지 않음 |
-| release_required=false | 승인된 범위 밖이라는 근거로 정식 release N/A. 실제 실행되는 main 임시 GHCR gate는 유지 |
+| release_required=false | 승인된 범위 밖이라는 근거로 정식 release N/A. docs-only main push는 변경 유형 판정에 따라 임시 GHCR job도 N/A/SKIPPED, 그 외 main push는 기존 임시 GHCR gate 유지 |
 
 게시 승인이 있어도 작업 범위를 임의로 확대하거나 운영 배포까지 승인받았다고 간주하지 않는다.
 

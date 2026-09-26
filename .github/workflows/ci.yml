@@ -19,6 +19,61 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  classify_main_change:
+    name: Main 변경 유형 판정
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+    steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: docs-only 변경 판정
+        id: classify
+        shell: bash
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          docs_only=false
+
+          if [[ -z "${BEFORE_SHA:-}" || "$BEFORE_SHA" =~ ^0+$ ]]; then
+            echo "Cannot establish a safe main diff base; keep registry validation enabled."
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          mapfile -d '' -t changed_files < <(git diff --name-only -z "$BEFORE_SHA" "$GITHUB_SHA")
+          if (( ${#changed_files[@]} == 0 )); then
+            echo "No changed files detected; keep registry validation enabled."
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          docs_only=true
+          {
+            echo "## Main change classification"
+            echo
+            echo "- Base: `$BEFORE_SHA`"
+            echo "- Head: `$GITHUB_SHA`"
+            echo "- Changed files:"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          for path in "${changed_files[@]}"; do
+            printf -- "- `%s`\n" "$path" >> "$GITHUB_STEP_SUMMARY"
+            if [[ "$path" == docs/* || ( "$path" != */* && "$path" == *.md ) ]]; then
+              continue
+            fi
+            docs_only=false
+          done
+
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+          echo "- docs_only: `$docs_only`" >> "$GITHUB_STEP_SUMMARY"
+
   quality:
     name: Build, static checks, and unit tests
     runs-on: ubuntu-latest
@@ -174,13 +229,13 @@ jobs:
         run: docker rm --force --volumes mastergantt-ci || true
 
   publish-commit-image:
-    # PR and manual runs stay read-only. A successful push to main may publish a
-    # temporary commit image only long enough to verify registry pull/runtime behavior.
+    # PR/manual runs stay read-only. Docs-only main pushes skip registry publication;
+    # any non-document change keeps the existing publish/pull/runtime/cleanup gate.
     name: Main 임시 commit 이미지 게시·검증·정리
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.classify_main_change.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [quality, e2e, docker]
+    needs: [classify_main_change, quality, e2e, docker]
     permissions:
       contents: read
       packages: write
