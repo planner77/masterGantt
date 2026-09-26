@@ -9,6 +9,11 @@
 
 ## Issue #209 docs-only main image skip
 
+검증 이력:
+- PR #210 / main CI #919에서 workflow·문서 혼합 변경이 docs-only가 아닌 것으로 분류되고 기존 임시 GHCR 게시→exact digest 검증→cleanup 경로가 SUCCESS임을 확인했다.
+- 이 문서-only 후속 변경은 docs-only main merge에서 `publish-commit-image`가 SKIPPED되는지 실제 원격 증거를 만들기 위한 검증 입력이다. 병합 전에는 결과를 PASS로 간주하지 않으며 최종 run은 Issue #209에 기록한다.
+
+
 - `.github/workflows/ci.yml`의 main 변경 유형 판정은 push의 `before..head` diff를 사용한다. 변경 파일이 1개 이상이고 모두 `docs/**` 또는 저장소 루트 Markdown(`*.md`)일 때만 `docs_only=true`다.
 - 기준 SHA가 비어 있거나 all-zero, diff가 비어 있거나 비문서 파일이 하나라도 섞이면 fail-safe로 `docs_only=false`이며 기존 임시 GHCR registry gate가 유지되어야 한다.
 - docs-only main push에서도 `quality`, Chromium E2E, Docker build/runtime smoke는 기존대로 실행하고, `Main 임시 commit 이미지 게시·검증·정리` job만 **SKIPPED**여야 한다. 따라서 GHCR login/publish/digest pull/cleanup 및 `packages: write` job은 시작되지 않는다.
