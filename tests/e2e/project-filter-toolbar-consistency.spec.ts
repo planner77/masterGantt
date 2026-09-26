@@ -48,6 +48,7 @@ test("Issue #130 Phase 4 Project List 검색·필터 상태와 Reset focus를 �
     await filter.click();
     const panel = page.getByLabel("프로젝트 고급 필터");
     await expect(panel).toBeVisible();
+    await panel.locator("summary").filter({ hasText: "프로젝트 정보" }).click();
     await panel.getByRole("textbox", { name: "프로젝트명", exact: true }).focus();
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(0);

@@ -38,6 +38,7 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
     const filterButton = page.getByRole("button", { name: /필터 1/ });
     await filterButton.click();
     const panel = page.getByLabel("프로젝트 고급 필터");
+    await panel.locator("summary").filter({ hasText: "프로젝트 정보" }).click();
     await panel.getByRole("textbox", { name: "프로젝트명", exact: true }).fill("alpha");
     await expect(page.getByRole("button", { name: /필터 2/ })).toBeVisible();
     await panel.getByLabel("소유자 지정 여부").selectOption("assigned");
@@ -66,6 +67,7 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
     const filterButton = page.locator('button[aria-controls="project-list-advanced-filter"]');
     await filterButton.click();
     const panel = page.getByLabel("프로젝트 고급 필터");
+    await panel.locator("summary").filter({ hasText: "날짜" }).click();
     const browserDate = await page.evaluate((value) => {
       const parts = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(value));
       const part = (type: string) => parts.find((item) => item.type === type)!.value;
@@ -119,6 +121,62 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
       await page.setViewportSize({ width, height: 900 });
       await expect(page.getByLabel("프로젝트명, 소유자 또는 설명 검색")).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+    }
+  });
+});
+
+test.describe("Issue #181 Project List 고급 필터 밀도", () => {
+  test("비활성 그룹은 접고 활성 요약·keyboard·responsive geometry를 유지한다", async ({ page, baseURL }, testInfo) => {
+    const suffix = randomUUID().slice(0, 8);
+    await createProject(page, baseURL!, `Density Alpha ${suffix}`, "Automation Team", "긴 한국어 설명과 English description for responsive filter summary", "Pwd181A123!");
+    await createProject(page, baseURL!, `Density Beta ${suffix}`, "Storage Team", "secondary project", "Pwd181B123!");
+    await page.goto("/");
+
+    const filterButton = page.locator('button[aria-controls="project-list-advanced-filter"]');
+    for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900]] as const) {
+      await page.setViewportSize({ width, height });
+      if (await filterButton.getAttribute("aria-expanded") === "true") await filterButton.click();
+      await filterButton.click();
+      const panel = page.getByLabel("프로젝트 고급 필터");
+      const info = panel.locator("details").nth(0);
+      const dates = panel.locator("details").nth(1);
+      await expect(info).not.toHaveAttribute("open", "");
+      await expect(dates).not.toHaveAttribute("open", "");
+      await expect(panel.getByRole("textbox", { name: "프로젝트명", exact: true })).not.toBeVisible();
+      await expect(panel.getByLabel("생성일 조건")).not.toBeVisible();
+
+      const geometry = await panel.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        const list = element.parentElement?.querySelector('[class*="tableWrap"]')?.getBoundingClientRect() ?? null;
+        return {
+          scrollHeight: element.scrollHeight,
+          height: bounds.height,
+          top: bounds.top,
+          bottom: bounds.bottom,
+          listTop: list?.top ?? null,
+          documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        };
+      });
+      expect(geometry.documentOverflow).toBe(false);
+      expect(geometry.height).toBeLessThanOrEqual(Math.min(384, height * 0.45) + 2);
+      expect(geometry.scrollHeight).toBeLessThanOrEqual(geometry.height + 2);
+      await page.screenshot({ path: testInfo.outputPath(`issue-181-filter-collapsed-${width}.png`), fullPage: true });
+
+      const infoSummary = panel.locator("summary").filter({ hasText: "프로젝트 정보" });
+      await infoSummary.focus();
+      await page.keyboard.press("Enter");
+      await expect(info).toHaveAttribute("open", "");
+      await panel.getByRole("textbox", { name: "프로젝트명", exact: true }).fill("Density Alpha");
+      await expect(infoSummary).toContainText("1개");
+      await expect(infoSummary).toContainText("Density Alpha");
+      await infoSummary.click();
+      await expect(info).not.toHaveAttribute("open", "");
+      await expect(infoSummary).toContainText("Density Alpha");
+
+      await page.keyboard.press("Escape");
+      await expect(panel).toHaveCount(0);
+      await expect(filterButton).toBeFocused();
+      await page.getByRole("button", { name: "초기화", exact: true }).click();
     }
   });
 });
@@ -233,7 +291,9 @@ test.describe("Issue #130 Phase 1 Project List 시각·접근성 계약", () => 
     await search.fill("혼합");
     await page.locator('button[aria-controls="project-list-advanced-filter"]').click();
     const panel = page.getByLabel("프로젝트 고급 필터");
+    await panel.locator("summary").filter({ hasText: "프로젝트 정보" }).click();
     await panel.getByRole("textbox", { name: "프로젝트명", exact: true }).fill("Gamma");
+    await panel.locator("summary").filter({ hasText: "날짜" }).click();
     const created = panel.getByRole("group", { name: "생성일" });
     await created.getByLabel("생성일 조건").selectOption("range");
     await created.getByLabel("From").fill("2026-09-18");
