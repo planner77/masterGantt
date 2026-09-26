@@ -1,0 +1,123 @@
+name: Issue 177 cleanup
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/issue-177-cleanup.yml"
+
+permissions:
+  contents: write
+  actions: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  cleanup:
+    name: Issue 177 branch cleanup and close
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FEATURE_BRANCH: feat/issue-177-project-status-quick-change
+      FEATURE_PR: "194"
+      FINALIZER_BRANCH: ops/issue-177-release-v0.34.0
+      FINALIZER_PR: "197"
+      CLEANUP_BRANCH: ops/issue-177-cleanup
+      RELEASE_TAG: v0.34.0
+      RELEASE_SHA: 46de39b179eebae5a4b53b3f9d8e4aa2a562744d
+      RELEASE_RUN_ID: "36232094786"
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Verify release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          target_sha="$GITHUB_SHA"
+
+          git merge-base --is-ancestor "$RELEASE_SHA" "$target_sha"
+
+          tag_ref="$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG")"
+          tag_sha="$(jq -r '.object.sha' <<<"$tag_ref")"
+          tag_obj="$(gh api "/repos/$GITHUB_REPOSITORY/git/tags/$tag_sha")"
+          test "$(jq -r '.object.sha' <<<"$tag_obj")" = "$RELEASE_SHA"
+
+          release_run="$(gh api "/repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID")"
+          test "$(jq -r '.name' <<<"$release_run")" = "Publish release image"
+          test "$(jq -r '.head_branch' <<<"$release_run")" = "$RELEASE_TAG"
+          test "$(jq -r '.head_sha' <<<"$release_run")" = "$RELEASE_SHA"
+          test "$(jq -r '.status' <<<"$release_run")" = "completed"
+          test "$(jq -r '.conclusion' <<<"$release_run")" = "success"
+
+          main_ci=""
+          for _ in $(seq 1 120); do
+            runs="$(gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=100")"
+            run="$(jq -c --arg sha "$target_sha" '[.workflow_runs[] | select(.head_sha == $sha)] | sort_by(.created_at) | last // empty' <<<"$runs")"
+            if [[ -n "$run" && "$(jq -r .status <<<"$run")" == "completed" ]]; then
+              test "$(jq -r '.conclusion // ""' <<<"$run")" = "success"
+              main_ci="$(jq -r .html_url <<<"$run")"
+              break
+            fi
+            sleep 10
+          done
+          test -n "$main_ci"
+          echo "MAIN_CI_URL=$main_ci" >> "$GITHUB_ENV"
+          echo "TARGET_SHA=$target_sha" >> "$GITHUB_ENV"
+
+      - name: Safely delete Issue 177 branches
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 scripts/safe_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "$FEATURE_PR" \
+            --branch "$FEATURE_BRANCH" \
+            --target-sha "$TARGET_SHA" \
+            --delete
+
+          python3 scripts/safe_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "$FINALIZER_PR" \
+            --branch "$FINALIZER_BRANCH" \
+            --target-sha "$TARGET_SHA" \
+            --delete
+
+          owner="${GITHUB_REPOSITORY%%/*}"
+          cleanup_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$CLEANUP_BRANCH&per_page=10" | jq -r '[.[] | select(.merged_at != null)] | sort_by(.merged_at) | last | .number // empty')"
+          test -n "$cleanup_pr"
+
+          python3 scripts/safe_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "$cleanup_pr" \
+            --branch "$CLEANUP_BRANCH" \
+            --target-sha "$TARGET_SHA" \
+            --delete
+
+      - name: Record final evidence and close Issue 177
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(printf '%s\n' \
+            '## FINAL · Issue #177 완료' \
+            '' \
+            '**최종 상태:** COMPLETED' \
+            '' \
+            '- 기능 PR: #194 (merged)' \
+            '- release finalizer PR: #197 (merged)' \
+            "- 최종 main SHA: $TARGET_SHA" \
+            '- 최종 버전: 0.34.0' \
+            '- 정식 annotated tag: v0.34.0' \
+            '- GHCR exact image: ghcr.io/planner77/mastergantt:0.34.0' \
+            '- GHCR digest: sha256:e3d71bd7587a1437bfd9350f89a3f14a21cb27c115616af833243bc3a7c36456' \
+            "- cleanup 기준 main CI: $MAIN_CI_URL" \
+            '- release workflow: https://github.com/planner77/masterGantt/actions/runs/36232094786' \
+            "- branch cleanup: $FEATURE_BRANCH / $FINALIZER_BRANCH / $CLEANUP_BRANCH" \
+            '- release_required=true / release_authorized=true' \
+            '- 잔여 차단 사항: 없음')"
+
+          gh api --method POST "/repos/$GITHUB_REPOSITORY/issues/177/comments" -f body="$body"
+          gh api --method PATCH "/repos/$GITHUB_REPOSITORY/issues/177" -f state=closed -f state_reason=completed
