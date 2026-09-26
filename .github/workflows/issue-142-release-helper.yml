@@ -26,6 +26,7 @@ jobs:
       STACK_PR: "161"
       STACK_MERGE_SHA: f685b6d2f2d9036b5f94efdec4e6ab7301ed6620
       FINALIZER_BRANCH: ops/issue-142-release-v0.33.0
+      REPAIR_BRANCH: fix/issue-142-release-helper-stacked-cleanup
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -39,7 +40,6 @@ jobs:
           target_sha="$GITHUB_SHA"
 
           test "$(git show "$target_sha:package.json" | jq -r .version)" = "0.33.0"
-          git merge-base --is-ancestor "$FEATURE_MERGE_SHA" "$target_sha"
           git merge-base --is-ancestor "$STACK_MERGE_SHA" "$target_sha"
 
           feature_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$FEATURE_PR")"
@@ -110,12 +110,42 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr "$FEATURE_PR" --branch "$FEATURE_BRANCH" --target-sha "$TARGET_SHA" --delete
-
           owner="${GITHUB_REPOSITORY%%/*}"
+
+          # PR #162 is stacked on PR #161, so the common cleanup helper (main-base only)
+          # intentionally refuses it. Validate the stacked relationship explicitly before delete.
+          feature_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$FEATURE_PR")"
+          test "$(jq -r '.merged_at // ""' <<<"$feature_pr")" != ""
+          test "$(jq -r '.head.ref' <<<"$feature_pr")" = "$FEATURE_BRANCH"
+          test "$(jq -r '.head.sha' <<<"$feature_pr")" = "$FEATURE_HEAD_SHA"
+          test "$(jq -r '.merge_commit_sha' <<<"$feature_pr")" = "$FEATURE_MERGE_SHA"
+
+          stack_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$STACK_PR")"
+          stack_head_sha="$(jq -r '.head.sha' <<<"$stack_pr")"
+          compare="$(gh api "/repos/$GITHUB_REPOSITORY/compare/$FEATURE_HEAD_SHA...$stack_head_sha")"
+          test "$(jq -r '.merge_base_commit.sha' <<<"$compare")" = "$FEATURE_HEAD_SHA"
+
+          encoded_branch="$(python3 -c 'import os, urllib.parse; print(urllib.parse.quote(os.environ["FEATURE_BRANCH"], safe=""))')"
+          branch_json="$(gh api "/repos/$GITHUB_REPOSITORY/branches/$encoded_branch")"
+          test "$(jq -r '.commit.sha' <<<"$branch_json")" = "$FEATURE_HEAD_SHA"
+          test "$(jq -r '.protected' <<<"$branch_json")" = "false"
+          open_head="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&head=$owner:$FEATURE_BRANCH&per_page=2" | jq 'length')"
+          open_base="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=open&base=$FEATURE_BRANCH&per_page=2" | jq 'length')"
+          test "$open_head" -eq 0
+          test "$open_base" -eq 0
+          gh api --method DELETE "/repos/$GITHUB_REPOSITORY/git/refs/heads/$encoded_branch"
+          if gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/$encoded_branch" >/dev/null 2>&1; then
+            echo "Stacked feature branch still exists after delete: $FEATURE_BRANCH" >&2
+            exit 1
+          fi
+
           finalizer_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$FINALIZER_BRANCH&per_page=10" | jq -r '[.[] | select(.merged_at != null)] | sort_by(.merged_at) | last | .number // empty')"
           test -n "$finalizer_pr"
           python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr "$finalizer_pr" --branch "$FINALIZER_BRANCH" --target-sha "$TARGET_SHA" --delete
+
+          repair_pr="$(gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$REPAIR_BRANCH&per_page=10" | jq -r '[.[] | select(.merged_at != null)] | sort_by(.merged_at) | last | .number // empty')"
+          test -n "$repair_pr"
+          python3 scripts/safe_branch_cleanup.py --repo "$GITHUB_REPOSITORY" --pr "$repair_pr" --branch "$REPAIR_BRANCH" --target-sha "$TARGET_SHA" --delete
 
       - name: Issue #142 FINAL 기록 및 종료
         shell: bash
