@@ -7,6 +7,14 @@
 
 상태: qa_docs가 작성한 검증 전략. W02–W07, W20과 W21 검증 기록은 [W07_REVIEW.md](W07_REVIEW.md), [W20_REVIEW.md](W20_REVIEW.md), [W21_REVIEW.md](W21_REVIEW.md)를 참조한다. 아래 표는 전체 제품 계획이며 W20의 로컬 container PASS도 원격 Actions/GHCR, production host/backup/restore와 VBA 통과를 뜻하지 않는다.
 
+## Issue #209 docs-only main image skip
+
+- `.github/workflows/ci.yml`의 main 변경 유형 판정은 push의 `before..head` diff를 사용한다. 변경 파일이 1개 이상이고 모두 `docs/**` 또는 저장소 루트 Markdown(`*.md`)일 때만 `docs_only=true`다.
+- 기준 SHA가 비어 있거나 all-zero, diff가 비어 있거나 비문서 파일이 하나라도 섞이면 fail-safe로 `docs_only=false`이며 기존 임시 GHCR registry gate가 유지되어야 한다.
+- docs-only main push에서도 `quality`, Chromium E2E, Docker build/runtime smoke는 기존대로 실행하고, `Main 임시 commit 이미지 게시·검증·정리` job만 **SKIPPED**여야 한다. 따라서 GHCR login/publish/digest pull/cleanup 및 `packages: write` job은 시작되지 않는다.
+- 비문서 main push에서는 기존 `publish-commit-image`가 실행되어 임시 `ci-<SHA>` 게시 → exact digest 검증 → package version 삭제를 수행해야 한다.
+- PR과 `workflow_dispatch`는 기존처럼 registry write를 하지 않는다. PR head의 공식 회귀 판정은 기존 `quality/e2e/docker`를 유지한다.
+
 ## Issue #120 semantic UI state token 회귀
 
 - `tests/e2e/ui-semantic-tokens.spec.ts`: Chromium computed style로 primary/error/warning/info/success 텍스트 대비를 측정하고 4.5:1 이상인지 확인한다.

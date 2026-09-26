@@ -19,7 +19,7 @@
 | --- | --- | --- | --- |
 | Local Fast Feedback | 개발 환경 | 변경과 직접 관련된 Vitest, 필요 시 typecheck/lint, 재현용 명령 | 구현 중 빠른 피드백. 공식 전체 회귀 PASS를 의미하지 않음 |
 | PR Required Validation | GitHub Actions | version check, typecheck, lint, 전체 Vitest, dependency audit, markdown link, production build, Chromium Playwright E2E, Docker build/runtime/SQLite persistence smoke | 코드 변경의 기본 공식 검증 |
-| Main Artifact Validation | GitHub Actions + GHCR | PR 수준 gate + 임시 `ci-<full SHA>` publish + exact digest pull + readiness/API/auth/restart persistence + SBOM/provenance + 검증 후 package version 삭제 | `main` commit registry 경로 검증 |
+| Main Artifact Validation | GitHub Actions + GHCR | 비문서 `main` push: PR 수준 gate + 임시 `ci-<full SHA>` publish + exact digest pull + readiness/API/auth/restart persistence + SBOM/provenance + 검증 후 package version 삭제. docs-only main push는 registry job SKIPPED | runtime/artifact에 영향이 있는 `main` commit registry 경로 검증 |
 | Semantic Release Validation | GitHub Actions + GHCR | release workflow의 version/tag gate, candidate runtime, digest smoke, promotion | 배포 가능한 version artifact 검증 |
 | Environment-specific Validation | 실제 대상 환경 | Windows Excel/VBA/DRM, reverse proxy/TLS, off-host backup/restore, 최종 수동 UX 등 | GitHub-hosted runner로 대체할 수 없는 항목 |
 
@@ -31,8 +31,8 @@
 4. 변경을 원격 branch에 push하고 Pull Request를 생성한다.
 5. PR의 `.github/workflows/ci.yml` 결과를 공식 검증으로 사용한다. `quality`, `e2e`, `docker`가 모두 성공하기 전에는 Manager가 기능을 최종 ACCEPT하지 않는다.
 6. 실패하면 GitHub run → job → step → 최초 오류를 근거로 원인을 분석한다. 로컬에서만 다시 PASS한 것은 원격 실패 해결 증거가 아니다.
-7. PR이 merge되어 `main`에 반영되면 동일 CI gate 후 `publish-commit-image`가 실행되어야 한다.
-8. `main`의 완료 보고에는 대상 commit SHA, CI run 결과, 임시 GHCR `ci-<full SHA>`와 exact digest 검증 결과, package version 삭제 결과를 기록한다. GHCR publish가 필요 없는 문서 전용 변경이라도 현재 workflow가 실행되면 실제 결과를 그대로 기록하며 임의로 PASS를 가정하지 않는다.
+7. PR이 merge되어 `main`에 반영되면 동일 `quality`/`e2e`/`docker` gate를 수행한다. 변경이 `docs/**` 또는 저장소 루트 Markdown만 포함하는 docs-only이면 `publish-commit-image`는 SKIPPED여야 하고, 비문서 파일이 하나라도 있거나 판정이 불가능하면 기존 registry gate가 실행되어야 한다.
+8. `main` 완료 보고에는 대상 commit SHA와 CI 결과를 기록한다. 비문서 main push는 임시 GHCR `ci-<full SHA>` exact digest 검증 및 package 삭제 결과를 기록하고, docs-only main push는 변경 유형 판정 결과와 `publish-commit-image=SKIPPED/N/A`를 기록한다.
 9. Release는 별도 Semantic Version workflow와 승인 절차를 따른다.
 
 ## 3. 로컬에서 기본적으로 반복하지 않는 항목
@@ -79,7 +79,9 @@ PR에서는 GHCR login/publish 또는 registry write를 수행하지 않는다.
 
 ### main push
 
-PR과 동일한 gate를 다시 수행한 뒤 모두 성공한 경우에만:
+PR과 동일한 `quality`/`e2e`/`docker` gate를 다시 수행한다. 별도 `classify_main_change` job은 push의 `before..head` 변경 파일을 판정하며, 모든 파일이 `docs/**` 또는 저장소 루트 Markdown이면 docs-only로 본다. 빈 diff, 기준 SHA 판정 불가, 비문서 파일 혼합은 fail-safe로 docs-only가 아니다.
+
+비문서 main push에서만 다음 registry gate를 수행한다. docs-only main push에서는 `publish-commit-image` job 자체가 SKIPPED이며 `packages: write` job을 시작하지 않는다.
 
 - 임시 `ci-<full SHA>` image를 GHCR에 게시
 - 기존 동일 commit tag overwrite 거부

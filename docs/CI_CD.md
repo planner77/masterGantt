@@ -26,7 +26,7 @@ GitHub Actions로 다음 반복 작업을 대체한다.
 - Chromium E2E: Playwright browser/dependency 설치 후 worker 1로 전체 실행
 - Container CI: clean Docker build, non-root runtime, migration/readiness, native SQLite, 임시 volume 재시작 persistence smoke
 - Dependency audit: production npm dependency 취약점 검사
-- Main commit registry smoke: 위 gate를 모두 통과한 `main` push만 임시 `ci-<full SHA>`를 GHCR에 게시하고 exact digest를 pull하여 HTTP Project/Task authorization·저장·재시작 persistence를 검증한 뒤 package version 삭제
+- Main commit registry smoke: 위 gate를 모두 통과한 **비문서** `main` push만 임시 `ci-<full SHA>`를 GHCR에 게시하고 exact digest를 pull하여 HTTP Project/Task authorization·저장·재시작 persistence를 검증한 뒤 package version 삭제. `docs/**` 또는 저장소 루트 Markdown만 변경된 docs-only main push는 publish job을 SKIPPED
 - Semantic release: 승인된 version tag에서 release-configured candidate를 먼저 runtime smoke한 뒤에만 GHCR build/push, SBOM/provenance, registry digest 재다운로드와 smoke test
 
 Actions는 실제 운영 CPU/storage, reverse proxy/TLS, off-host backup/restore, Windows Excel/VBA/DRM 환경과 수동 UX 검증을 대신하지 않는다.
@@ -64,7 +64,7 @@ Release authority는 package version과 정확히 일치하는 annotated Git tag
 ghcr.io/<owner>/<repository>
 ```
 
-성공한 `main` push의 registry 검증 image는 다음 임시 tag 하나를 게시한다.
+성공한 `main` push 중 docs-only가 아닌 변경의 registry 검증 image는 다음 임시 tag 하나를 게시한다. docs-only는 `before..head`의 모든 변경 파일이 `docs/**` 또는 저장소 루트 Markdown인 경우이며, 빈 diff·기준 판정 불가·비문서 파일 혼합은 docs-only로 보지 않는다.
 
 ```text
 ci-<40-character-commit>
@@ -94,7 +94,7 @@ docker pull ghcr.io/<owner>/<repository>:1.4.2
 docker pull ghcr.io/<owner>/<repository>@sha256:<digest>
 ```
 
-Main commit workflow는 quality, Chromium E2E와 local container smoke가 모두 성공한 뒤 별도 publish job을 실행한다. `ci-<full SHA>`를 push한 후 tag가 아니라 build output의 digest로 다시 pull하고 image content policy, migration/readiness, Project 생성과 edit session, root Task 저장, unauthorized mutation 거부, container restart 뒤 Project/Task 재조회를 검증한다. 검증 성공 여부와 무관하게 push가 완료된 임시 package version은 cleanup step에서 삭제하며 `ci-*`를 배포·rollback용으로 보관하지 않는다.
+Main commit workflow는 먼저 변경 유형을 판정한다. quality, Chromium E2E와 local container smoke는 docs-only 여부와 무관하게 실행하며, docs-only가 아닌 경우에만 별도 publish job을 실행한다. `ci-<full SHA>`를 push한 후 tag가 아니라 build output의 digest로 다시 pull하고 image content policy, migration/readiness, Project 생성과 edit session, root Task 저장, unauthorized mutation 거부, container restart 뒤 Project/Task 재조회를 검증한다. 검증 성공 여부와 무관하게 push가 완료된 임시 package version은 cleanup step에서 삭제하며 `ci-*`를 배포·rollback용으로 보관하지 않는다.
 
 Release workflow는 전체 application/E2E gate 뒤 동일 source·version·platform 설정의 local release candidate를 먼저 build하여 image policy, production runtime config 거부, migration, readiness, native SQLite와 재시작 persistence를 확인한다. 이 pre-publish gate가 통과해야 registry write가 시작된다. Registry에는 commit 고정 `sha-*` candidate를 만들지 않고 exact SemVer tag를 직접 push한 뒤 그 build output digest를 새로 pull해 같은 runtime 동작을 다시 확인한다. Digest 검증과, 활성화된 경우 GitHub Attestation이 성공한 뒤에만 stable rolling alias를 이동한다.
 
@@ -107,7 +107,7 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 | Workflow | Trigger | 권한 | 역할 |
 | --- | --- | --- | --- |
 | `.github/workflows/ci.yml` 검증 jobs | PR, `main` push, manual | `contents: read` | application·browser·container 회귀 |
-| `.github/workflows/ci.yml` commit publish job | 성공한 `main` push만 | `contents: read`, `packages: write`; optional attestation을 위해 job에 `attestations: write`, `id-token: write` 선언 | 임시 `ci-<full SHA>` publish/digest smoke와 검증 후 package cleanup |
+| `.github/workflows/ci.yml` commit publish job | 성공한 비문서 `main` push만; docs-only는 SKIPPED | `contents: read`, `packages: write`; docs-only에서는 job 자체가 시작되지 않아 write 권한을 사용하지 않음 | 임시 `ci-<full SHA>` publish/digest smoke와 검증 후 package cleanup |
 | `.github/workflows/release-image.yml` | strict `v*` tag push 또는 annotated `v*` tag ref의 수동 실행 | publish job만 package/attestation 쓰기와 OIDC 권한 선언 | 동일 SemVer/annotated-tag 검증 후 GHCR publish와 digest smoke |
 | `.github/workflows/ci.yml` branch cleanup policy check | PR, `main` push, manual | `contents: read` | `scripts/verify-safe-branch-cleanup.py`로 완료 Issue helper 재도입과 직접 branch deletion 우회를 차단하고 공통 fail-closed 계약을 회귀 검증 |
 
@@ -189,7 +189,7 @@ CI, release, version, Docker image 또는 registry 계약을 바꾸면 같은 �
 - 현재 작업 상태가 바뀌면 `ISSUE_BREAKDOWN.md`, active `PLAN.md`, milestone review
 - 사용자 설치·release·image 소비 방식이 바뀌면 `README.md`와 `CHANGELOG.md`
 
-Commit publish 변경은 `ci-<SHA>` overwrite 거부, main-only 조건, upstream gate 의존성, PR/manual read-only, digest pull 및 HTTP persistence smoke를 함께 검토한다. Release publish 변경은 `sha-<SHA>` candidate와 SemVer promotion 불변식을 별도로 검토한다.
+Commit publish 변경은 `ci-<SHA>` overwrite 거부, main-only 조건, upstream gate 의존성, PR/manual read-only, docs-only 판정의 fail-safe 동작, digest pull 및 HTTP persistence smoke를 함께 검토한다. Release publish 변경은 `sha-<SHA>` candidate와 SemVer promotion 불변식을 별도로 검토한다.
 
 Action 또는 base image update PR은 full SHA/digest, release note, permissions 변화, build/runtime smoke를 검토한다. 자동 update PR을 merge했다는 사실만으로 production release를 만들지 않는다.
 
