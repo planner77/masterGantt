@@ -143,6 +143,7 @@ describe("SQLite connection and schema", () => {
         "0009_logistics_domain.sql",
         "0010_logistics_resource_roles.sql",
         "0011_task_logistics_links.sql",
+        "0012_project_templates.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -166,6 +167,7 @@ describe("SQLite connection and schema", () => {
         "project_system_links",
         "project_system_processes",
         "project_system_resource_roles",
+        "project_templates",
         "projects",
         "resource_catalog_admin_credentials",
         "resource_catalog_admin_sessions",
@@ -207,6 +209,8 @@ describe("SQLite connection and schema", () => {
         "project_system_processes_system_idx",
         "project_system_resource_roles_resource_idx",
         "project_system_resource_roles_system_idx",
+        "project_templates_active_idx",
+        "project_templates_created_at_idx",
         "resource_admin_sessions_expiry_idx",
         "resource_group_members_resource_idx",
         "system_resource_one_primary",

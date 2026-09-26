@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.41.0] - 2026-09-27
+
+### Added
+
+- Issue #195: 프로젝트 템플릿 등록·관리 및 템플릿 기반 프로젝트 생성 구현.
+  - SQLite 마이그레이션 `0012_project_templates.sql` 추가: `project_templates` 테이블 및 `project_templates_active_idx`, `project_templates_created_at_idx` 인덱스 생성.
+  - 템플릿 계약 인터페이스 `src/contracts/project-templates.ts` 정의 (템플릿 DTO, 작업/링크/배정/물류 스냅샷 인터페이스, 요청/응답 타입).
+  - 저장소 계층 `ProjectTemplateRepository` 및 도메인 서비스 `ProjectTemplateService` 구현:
+    - `createTemplateFromProject`: 기존 프로젝트에서 WBS 계층, FS 링크, 리소스 배정 및 물류 마스터/연결을 근무일 기준 상대 오프셋(`offsetDays`)으로 추출하여 JSON 스냅샷 직렬화 및 템플릿 저장.
+    - `listTemplates`, `getTemplate`, `updateTemplate`, `deleteTemplate`, `duplicateTemplate`: 템플릿 검색 및 CRUD, 독립 사본 복제 지원.
+    - `instantiateProject`: 지정된 기준 시작일(`projectStartDate`) 및 작업 캘린더에 맞춰 근무일 기반 날짜 재계산, WBS 계층/링크 삽입, 스케줄링 순수 엔진(`recalculateFinishStartDependencies`, `recalculateHierarchy`)을 통한 전체 일정/Summary 자동 재계산, 진척률(0%) 초기화, 리소스 배정 및 물류 마스터/연결 복제, 새 편집 세션 토큰 발급.
+    - 원본 프로젝트 삭제 후 템플릿 보존 및 템플릿 삭제 후 생성된 프로젝트 보존(완전한 데이터 독립성 보장).
+  - REST API 라우트 및 핸들러 구현:
+    - `GET /api/project-templates` (템플릿 목록/검색)
+    - `POST /api/project-templates` (프로젝트에서 템플릿 생성, Origin 및 편집 세션 인증)
+    - `GET /api/project-templates/[templateId]` (템플릿 상세)
+    - `PATCH /api/project-templates/[templateId]` (템플릿 수정, Origin 검증)
+    - `DELETE /api/project-templates/[templateId]` (템플릿 삭제, Origin 검증)
+    - `POST /api/project-templates/[templateId]/duplicate` (템플릿 복제, Origin 검증)
+    - `POST /api/project-templates/[templateId]/instantiate` (템플릿 기반 프로젝트 생성, Rate Limiting 및 `Set-Cookie` 세션 발급)
+  - UI 연동:
+    - 프로젝트 상세 읽기 전용 뷰("더보기" 메뉴)에 `ProjectSaveAsTemplateButton` 추가: 원클릭 템플릿 저장 대화상자.
+    - 프로젝트 생성 페이지(`src/app/projects/new/page.tsx`): `NewProjectTabs` 탭 UI 제공 ("빈 프로젝트 만들기" / "템플릿에서 만들기" 전환 지원).
+    - 템플릿 선택 및 생성 폼(`CreateFromTemplateForm`): 등록된 템플릿 검색/선택 카드, 통계 배지(작업, 마일스톤, 물류 공정/설비/시스템 수), 기준 시작일 및 프로젝트 정보 입력 후 생성 지원.
+
 ## [0.40.0] - 2026-09-27
 
 ### Added
