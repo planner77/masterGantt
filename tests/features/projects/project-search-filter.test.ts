@@ -179,11 +179,12 @@ describe("Issue #196 Task/Milestone quick view helpers", () => {
     expect(taskResult.matchCount).toBe(1);
     expect(taskResult.tasks.map((task) => task.taskId)).toEqual(["summary", "child"]);
 
-    const milestoneResult = filterTasksWithAncestors(tasks, applyTaskQuickView(EMPTY_TASK_FILTER, "milestone"), assignments);
+    const milestoneFilter = applyTaskQuickView(EMPTY_TASK_FILTER, "milestone");
+    const milestoneResult = filterTasksWithAncestors(tasks, milestoneFilter, assignments);
     expect(milestoneResult.matchCount).toBe(1);
     expect(milestoneResult.tasks.map((task) => task.taskId)).toEqual(["milestone"]);
 
-    const allResult = filterTasksWithAncestors(tasks, applyTaskQuickView(milestoneResult, "all"), assignments);
+    const allResult = filterTasksWithAncestors(tasks, applyTaskQuickView(milestoneFilter, "all"), assignments);
     expect(allResult.matchCount).toBe(3);
     expect(allResult.tasks.map((task) => task.taskId)).toEqual(["summary", "child", "milestone"]);
   });
