@@ -114,3 +114,7 @@ Issue #74의 3개 탭, body-only scroll, 고정 Footer 구조와 모든 저장/�
 ## Issue #155 — 전체화면에서 작업 정보 진입
 
 Task Editor는 Gantt 전체화면 frame 바깥의 native dialog다. SVAR `show-editor` intercept(메뉴 Edit 포함)와 Readonly Grid/Chart 더블클릭은 호출 대상을 먼저 기억하고 자기 Gantt의 native fullscreen 종료와 `fullscreenchange`를 확인한 뒤에만 기존 편집기를 연다. 종료 거부 시 보이지 않는 dialog를 만들지 않고 오류를 안내하며 원래 대상에 focus를 유지한다. 닫기/Escape 후 호출 대상 또는 기존 taskId fallback으로 복원하는 규칙과 dirty 확인, readonly·revision·If-Match·401/412·Task PATCH/Assignment PUT 계약은 그대로다. 전체화면 전환만으로 작업/할당 API mutation을 보내지 않는다.
+
+## Issue #140 — Grid 작업명 인라인 편집과 Task Editor 경계
+
+Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭은 Core text editor에서 이름만 바꾼다. Enter/blur는 Task PATCH를 한 번 보내고 Escape는 저장 없이 닫는다. 이름은 Task Editor와 같은 trim·well-formed Unicode 1~200자 규칙으로 검증하며, 잘못된 입력은 input focus와 연결된 오류를 유지한다. Task Editor는 메뉴 Edit 및 Chart/비이름 영역의 기존 진입점으로 남는다. Grid에서 변경한 이름과 Task Editor의 이름은 서버 확정 snapshot으로 동기화되고, Task Editor 저장 후 Grid도 동일 canonical snapshot을 표시한다. Grid Summary는 이름만 바꿀 수 있으며 Task Editor의 Summary 일정/정보 readonly는 그대로다. 연결 endpoint Task는 기존 409 제한을 유지한다. 저장 실패·401·412, dirty/stale, Task PATCH/Assignment PUT 분리와 원래 focus 복원 계약은 변경하지 않는다.

@@ -5,6 +5,7 @@ import { localDateFromDateOnly } from "../../../src/features/gantt/date-adapter"
 import {
   projectLinksToSvarLinks,
   projectTasksToSvarTasks,
+  normalizeInlineTaskName,
   translateProjectTaskUpdate,
 } from "../../../src/features/gantt/project-task-adapter";
 
@@ -30,6 +31,22 @@ const task: ProjectTaskDto = {
 };
 
 describe("Project task SVAR adapter", () => {
+  it("normalizes Grid names with the Task Editor Unicode and length boundary", () => {
+    expect(normalizeInlineTaskName("  001  ")).toEqual({ name: "001", error: null });
+    expect(normalizeInlineTaskName(" ")).toMatchObject({ name: null });
+    expect(normalizeInlineTaskName("a".repeat(200))).toMatchObject({ name: "a".repeat(200) });
+    expect(normalizeInlineTaskName("a".repeat(201))).toMatchObject({ name: null });
+    expect(normalizeInlineTaskName("\ud800")).toMatchObject({ name: null });
+    expect(normalizeInlineTaskName("😀")).toMatchObject({ name: "😀" });
+  });
+
+  it("allows summary name only while refusing scheduling or hierarchy changes", () => {
+    const summary = { ...task, type: "summary" as const };
+    const nameOnly = { kind: "update-task" as const, taskId: task.taskId, changes: { text: "  Renamed  ", start: undefined, end: undefined, progress: undefined, parent: undefined } };
+    expect(translateProjectTaskUpdate(nameOnly, summary, calendar)).toEqual({ taskId: task.taskId, payload: { name: "Renamed" } });
+    expect(translateProjectTaskUpdate({ ...nameOnly, changes: { ...nameOnly.changes, parent: "other" } }, summary, calendar)).toBeNull();
+    expect(translateProjectTaskUpdate({ ...nameOnly, changes: { ...nameOnly.changes, start: localDateFromDateOnly("2026-09-16") } }, summary, calendar)).toBeNull();
+  });
   it("maps stable task IDs and external dependency references separately", () => {
     const second = { ...task, taskId: "task-b", externalId: "B", name: "Test" };
     const tasks = projectTasksToSvarTasks([task, second]);

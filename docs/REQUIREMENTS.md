@@ -58,6 +58,7 @@ Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계�
 | R46 | Task Editor는 작업 정보·리소스·관계를 3개 탭으로 분리하고 body-only scroll, 고정 Footer, keyboard tab navigation, 360/768/1024/1440 반응형을 제공한다 (#74). | 기존 Task PATCH/revision/권한/dirty/stale와 Assignment PUT/catalog revision 계약은 유지하며 탭 전환은 mutation을 발생시키지 않는다. [Task Editor](TASK_EDITOR.md), [Test Plan](TEST_PLAN.md) UI12 |
 | R44 | Calendar 계산은 `Base weekly rule + WORKING/NON_WORKING date exception`을 사용한다. Project Task 일정에는 Project target만, #56 Resource workload에는 Project+Group+Resource NON_WORKING 합집합을 적용한다. Preview/저장은 edit session+Origin+If-Match를 요구하며 Manual conflict/날짜 충돌은 전체 원자 거부한다. | [Scheduling](SCHEDULING_ENGINE.md), [Test Plan](TEST_PLAN.md) |
 | R47 | Project status는 `planned / in_progress / completed`로 저장·조회·편집한다 (#138). 기존 Project는 `in_progress`, 신규 Project와 복사본은 `planned`이며 목록의 기본 보기에서는 완료를 제외한다. | [API](API.md), [DB](DB_SCHEMA.md), [UX 계약](PROJECT_UX.md). 상태 변경에도 edit session·Origin·If-Match와 canonical snapshot/revision 계약을 유지한다. |
+| R48 | Grid의 작업명 열에서 편집 가능한 Summary/Task/Milestone 이름을 한 번 클릭해 인라인 편집한다 (#140). Enter·blur는 저장, Escape는 취소하며 서버 canonical 결과로 Grid·Chart·Task Editor 표시를 일치시킨다. | 기존 Task PATCH의 세션·Origin·If-Match·revision·이름 검증과 연결 endpoint 제한을 유지한다. Summary는 Grid name-only 예외이고 Task Editor의 Summary readonly는 유지한다. [UX 계약](PROJECT_UX.md), [Task Editor](TASK_EDITOR.md), [Test Plan](TEST_PLAN.md) |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 

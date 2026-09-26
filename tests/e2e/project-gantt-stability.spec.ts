@@ -22,7 +22,7 @@ test.describe("Issue #3 stable Gantt instance", () => {
     await summaryToggle.click(); await expect(summaryToggle).toHaveClass(/wxi-menu-right/);
     await expect(page.getByRole("grid").getByText("Existing summary child", { exact: true })).toHaveCount(0);
     const selectedRow = rowNamed(page, "Stable leaf");
-    await selectedRow.getByText("Stable leaf", { exact: true }).click();
+    await selectedRow.locator('[role="gridcell"][data-col-id=":projectStart"]').click();
     await expect(selectedRow).toHaveClass(/wx-selected/);
     const gridHeader = page.locator(".project-gantt-widget .wx-table-container .wx-header").first();
     await gridHeader.click({ button: "right" });
