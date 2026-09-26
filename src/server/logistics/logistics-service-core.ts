@@ -9,10 +9,13 @@ import type {
   EquipmentDto,
   EquipmentResourceRoleDto,
   EquipmentRole,
+  InheritedEquipmentLinkItem,
+  InheritedSystemLinkItem,
   LogisticsMutationResponse,
   LogisticsSystemDto,
   ProcessDto,
   ProjectLogisticsDto,
+  ReplaceTaskLogisticsLinksRequest,
   SetEquipmentResourceRolesRequest,
   SetEquipmentSystemsRequest,
   SetSystemChildrenRequest,
@@ -21,6 +24,10 @@ import type {
   SystemLinkDto,
   SystemResourceRoleDto,
   SystemRole,
+  TaskEquipmentLinkItem,
+  TaskLogisticsLinkScope,
+  TaskLogisticsLinksDto,
+  TaskSystemLinkItem,
   UpdateEquipmentRequest,
   UpdateLogisticsSystemRequest,
   UpdateProcessRequest,
@@ -34,8 +41,11 @@ import {
 } from "../repositories/project-repository-core";
 import {
   LogisticsRepository,
+  type TaskEquipmentLinkRecord,
+  type TaskSystemLinkRecord,
 } from "../repositories/logistics-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
+import { ScheduleRepository } from "../repositories/schedule-repository-core";
 import {
   EditSessionInvalidError,
   RevisionMismatchError,
@@ -101,6 +111,7 @@ export class LogisticsService {
   private readonly ownerRepo: ProjectOwnerRepository;
   private readonly sessionRepo: EditSessionRepository;
   private readonly resourceCatalogRepo: ResourceCatalogRepository;
+  private readonly scheduleRepo: ScheduleRepository;
   private readonly clock: () => Date;
   private readonly generatePublicId: () => string;
 
@@ -116,6 +127,7 @@ export class LogisticsService {
     this.ownerRepo = new ProjectOwnerRepository(database);
     this.sessionRepo = new EditSessionRepository(database);
     this.resourceCatalogRepo = new ResourceCatalogRepository(database);
+    this.scheduleRepo = new ScheduleRepository(database);
     this.clock = options.clock ?? (() => new Date());
     this.generatePublicId = options.generatePublicId ?? randomUUID;
   }
@@ -251,11 +263,24 @@ export class LogisticsService {
       relationType: "coordinates",
     }));
 
+    const allTaskEquipmentLinks = this.logisticsRepo.listAllTaskEquipmentLinks(projectId);
+    const allTaskSystemLinks = this.logisticsRepo.listAllTaskSystemLinks(projectId);
+
     return {
       processes: processDtos,
       equipment: equipmentDtos,
       systems: systemDtos,
       systemLinks: systemLinkDtos,
+      taskEquipmentLinks: allTaskEquipmentLinks.map((l) => ({
+        taskId: l.taskPublicId,
+        equipmentId: l.equipmentPublicId,
+        scope: l.scope,
+      })),
+      taskSystemLinks: allTaskSystemLinks.map((l) => ({
+        taskId: l.taskPublicId,
+        systemId: l.systemPublicId,
+        scope: l.scope,
+      })),
     };
   }
 
@@ -658,6 +683,13 @@ export class LogisticsService {
       }
 
       if (hardDelete) {
+        const linkCount = this.logisticsRepo.countTaskEquipmentLinks(projectId, current.id);
+        if (linkCount > 0) {
+          throw new LogisticsConflictError(
+            "EQUIPMENT_IN_USE",
+            `Cannot permanently delete equipment '${equipmentPublicId}' because it is linked to ${linkCount} task(s).`,
+          );
+        }
         this.logisticsRepo.deleteEquipment(projectId, current.id);
       } else {
         this.logisticsRepo.updateEquipment(projectId, current.id, {
@@ -908,6 +940,10 @@ export class LogisticsService {
         const coordinatedTargets = this.logisticsRepo.countCoordinatedTargets(projectId, current.id);
         if (coordinatedTargets > 0) {
           throw new LogisticsConflictError("SYSTEM_IN_USE", `Cannot permanently delete coordinator with ${coordinatedTargets} coordinated systems.`);
+        }
+        const taskLinkCount = this.logisticsRepo.countTaskSystemLinks(projectId, current.id);
+        if (taskLinkCount > 0) {
+          throw new LogisticsConflictError("SYSTEM_IN_USE", `Cannot permanently delete system '${systemPublicId}' because it is linked to ${taskLinkCount} task(s).`);
         }
 
         this.logisticsRepo.deleteSystem(projectId, current.id);
@@ -1293,6 +1329,218 @@ export class LogisticsService {
         entity: "systemResourceRoles",
         action: "replace",
         targetPublicId: systemPublicId,
+      });
+    });
+
+    return transaction.immediate();
+  }
+
+  getTaskLogisticsLinks(projectId: number, taskPublicId: string): TaskLogisticsLinksDto {
+    const task = this.scheduleRepo.findTaskByPublicId(projectId, taskPublicId);
+    if (!task) {
+      throw new LogisticsEntityNotFoundError("Task", taskPublicId);
+    }
+
+    const directEqRecords = this.logisticsRepo.findTaskEquipmentLinks(projectId, task.id);
+    const directSysRecords = this.logisticsRepo.findTaskSystemLinks(projectId, task.id);
+
+    const inheritedEqMap = new Map<
+      number,
+      {
+        record: TaskEquipmentLinkRecord;
+        sourceTaskId: string;
+        sourceTaskName: string;
+      }
+    >();
+
+    const inheritedSysMap = new Map<
+      number,
+      {
+        record: TaskSystemLinkRecord;
+        sourceTaskId: string;
+        sourceTaskName: string;
+      }
+    >();
+
+    let currentParentId = task.parentId;
+    while (currentParentId !== null) {
+      const parentTask = this.scheduleRepo.findTaskById(projectId, currentParentId);
+      if (!parentTask) break;
+      if (parentTask.type === "summary") {
+        const parentEqLinks = this.logisticsRepo.findTaskEquipmentLinks(projectId, parentTask.id);
+        for (const l of parentEqLinks) {
+          if (l.scope === "subtree" && !inheritedEqMap.has(l.equipmentId)) {
+            inheritedEqMap.set(l.equipmentId, {
+              record: l,
+              sourceTaskId: parentTask.publicId,
+              sourceTaskName: parentTask.name,
+            });
+          }
+        }
+        const parentSysLinks = this.logisticsRepo.findTaskSystemLinks(projectId, parentTask.id);
+        for (const l of parentSysLinks) {
+          if (l.scope === "subtree" && !inheritedSysMap.has(l.systemId)) {
+            inheritedSysMap.set(l.systemId, {
+              record: l,
+              sourceTaskId: parentTask.publicId,
+              sourceTaskName: parentTask.name,
+            });
+          }
+        }
+      }
+      currentParentId = parentTask.parentId;
+    }
+
+    const directEquipmentLinks: TaskEquipmentLinkItem[] = directEqRecords.map((r) => ({
+      equipmentId: r.equipmentPublicId,
+      scope: r.scope,
+      equipmentCode: r.equipmentCode,
+      equipmentName: r.equipmentName,
+      equipmentType: r.equipmentType,
+      active: r.equipmentActive === 1,
+    }));
+
+    const inheritedEquipmentLinks: InheritedEquipmentLinkItem[] = Array.from(
+      inheritedEqMap.values(),
+    ).map((item) => ({
+      equipmentId: item.record.equipmentPublicId,
+      scope: item.record.scope,
+      equipmentCode: item.record.equipmentCode,
+      equipmentName: item.record.equipmentName,
+      equipmentType: item.record.equipmentType,
+      active: item.record.equipmentActive === 1,
+      sourceTaskId: item.sourceTaskId,
+      sourceTaskName: item.sourceTaskName,
+    }));
+
+    const effectiveEquipmentIds = Array.from(
+      new Set([
+        ...directEquipmentLinks.map((l) => l.equipmentId),
+        ...inheritedEquipmentLinks.map((l) => l.equipmentId),
+      ]),
+    );
+
+    const directSystemLinks: TaskSystemLinkItem[] = directSysRecords.map((r) => ({
+      systemId: r.systemPublicId,
+      scope: r.scope,
+      systemCode: r.systemCode,
+      systemName: r.systemName,
+      systemType: r.systemType,
+      active: r.systemActive === 1,
+    }));
+
+    const inheritedSystemLinks: InheritedSystemLinkItem[] = Array.from(
+      inheritedSysMap.values(),
+    ).map((item) => ({
+      systemId: item.record.systemPublicId,
+      scope: item.record.scope,
+      systemCode: item.record.systemCode,
+      systemName: item.record.systemName,
+      systemType: item.record.systemType,
+      active: item.record.systemActive === 1,
+      sourceTaskId: item.sourceTaskId,
+      sourceTaskName: item.sourceTaskName,
+    }));
+
+    const effectiveSystemIds = Array.from(
+      new Set([
+        ...directSystemLinks.map((l) => l.systemId),
+        ...inheritedSystemLinks.map((l) => l.systemId),
+      ]),
+    );
+
+    return {
+      taskId: taskPublicId,
+      directEquipmentLinks,
+      inheritedEquipmentLinks,
+      effectiveEquipmentIds,
+      directSystemLinks,
+      inheritedSystemLinks,
+      effectiveSystemIds,
+    };
+  }
+
+  replaceTaskLogisticsLinks(
+    authorization: AuthorizedEditSession,
+    expectedRevision: number,
+    taskPublicId: string,
+    request: ReplaceTaskLogisticsLinksRequest,
+  ): LogisticsMutationResponse {
+    const now = this.clock();
+    const nowText = now.toISOString();
+
+    const transaction = this.database.transaction(() => {
+      this.verifyEditAccess(authorization, expectedRevision, now);
+      const projectId = authorization.projectId;
+
+      const task = this.scheduleRepo.findTaskByPublicId(projectId, taskPublicId);
+      if (!task) {
+        throw new LogisticsEntityNotFoundError("Task", taskPublicId);
+      }
+
+      if (task.type !== "summary") {
+        const hasSubtreeEq = request.equipmentLinks.some((l) => l.scope === "subtree");
+        const hasSubtreeSys = request.systemLinks.some((l) => l.scope === "subtree");
+        if (hasSubtreeEq || hasSubtreeSys) {
+          throw new LogisticsValidationError([
+            "Subtree scope is only allowed for summary tasks.",
+          ]);
+        }
+      }
+
+      const currentEqLinks = this.logisticsRepo.findTaskEquipmentLinks(projectId, task.id);
+      const existingEqPublicIds = new Set(currentEqLinks.map((l) => l.equipmentPublicId));
+
+      const eqToInsert: Array<{ equipmentId: number; scope: TaskLogisticsLinkScope }> = [];
+      for (const item of request.equipmentLinks) {
+        const eqRecord = this.logisticsRepo.findEquipmentByPublicId(projectId, item.equipmentId);
+        if (!eqRecord) {
+          throw new LogisticsEntityNotFoundError("Equipment", item.equipmentId);
+        }
+        if (!existingEqPublicIds.has(item.equipmentId) && eqRecord.active === 0) {
+          throw new LogisticsConflictError(
+            "RESOURCE_INACTIVE",
+            `Cannot link inactive equipment '${eqRecord.code}'.`,
+          );
+        }
+        eqToInsert.push({ equipmentId: eqRecord.id, scope: item.scope });
+      }
+
+      const currentSysLinks = this.logisticsRepo.findTaskSystemLinks(projectId, task.id);
+      const existingSysPublicIds = new Set(currentSysLinks.map((l) => l.systemPublicId));
+
+      const sysToInsert: Array<{ systemId: number; scope: TaskLogisticsLinkScope }> = [];
+      for (const item of request.systemLinks) {
+        const sysRecord = this.logisticsRepo.findSystemByPublicId(projectId, item.systemId);
+        if (!sysRecord) {
+          throw new LogisticsEntityNotFoundError("LogisticsSystem", item.systemId);
+        }
+        if (!existingSysPublicIds.has(item.systemId) && sysRecord.active === 0) {
+          throw new LogisticsConflictError(
+            "RESOURCE_INACTIVE",
+            `Cannot link inactive system '${sysRecord.code}'.`,
+          );
+        }
+        sysToInsert.push({ systemId: sysRecord.id, scope: item.scope });
+      }
+
+      this.logisticsRepo.replaceTaskEquipmentLinks(projectId, task.id, eqToInsert, nowText);
+      this.logisticsRepo.replaceTaskSystemLinks(projectId, task.id, sysToInsert, nowText);
+
+      const updatedProject = this.projectRepo.advanceRevision(
+        projectId,
+        expectedRevision,
+        nowText,
+      );
+      if (!updatedProject) {
+        throw new RevisionMismatchError();
+      }
+
+      return this.buildMutationResponse(projectId, {
+        kind: "logisticsMutation",
+        entity: "taskLogisticsLinks",
+        action: "replace",
+        targetPublicId: taskPublicId,
       });
     });
 

@@ -7,6 +7,7 @@ import type {
   EquipmentType,
   LogisticsSystemType,
   ManagementUnit,
+  ReplaceTaskLogisticsLinksRequest,
   SetEquipmentResourceRolesRequest,
   SetEquipmentSystemsRequest,
   SetSystemChildrenRequest,
@@ -15,6 +16,7 @@ import type {
   SystemLayer,
   SystemRole,
   SystemScope,
+  TaskLogisticsLinkScope,
   UpdateEquipmentRequest,
   UpdateLogisticsSystemRequest,
   UpdateProcessRequest,
@@ -734,4 +736,93 @@ export function parseSetSystemResourceRolesInput(
     return { success: false, details };
   }
   return { success: true, data: { roles } };
+}
+
+const VALID_LINK_SCOPES: Set<TaskLogisticsLinkScope> = new Set(["self", "subtree"]);
+
+export function parseReplaceTaskLogisticsLinksInput(
+  raw: unknown,
+): ValidationResult<ReplaceTaskLogisticsLinksRequest> {
+  if (typeof raw !== "object" || raw === null) {
+    return { success: false, details: ["Request body must be a JSON object."] };
+  }
+  const body = raw as Record<string, unknown>;
+  const details: string[] = [];
+
+  if (!Array.isArray(body.equipmentLinks)) {
+    details.push("equipmentLinks must be an array.");
+  }
+  if (!Array.isArray(body.systemLinks)) {
+    details.push("systemLinks must be an array.");
+  }
+
+  if (details.length > 0) {
+    return { success: false, details };
+  }
+
+  const equipmentLinks: ReplaceTaskLogisticsLinksRequest["equipmentLinks"] = [];
+  const seenEquipment = new Set<string>();
+  const rawEquipmentLinks = body.equipmentLinks as unknown[];
+
+  for (let i = 0; i < rawEquipmentLinks.length; i++) {
+    const item = rawEquipmentLinks[i];
+    if (typeof item !== "object" || item === null) {
+      details.push(`equipmentLinks[${i}] must be an object.`);
+      continue;
+    }
+    const eq = item as Record<string, unknown>;
+    const equipmentId = typeof eq.equipmentId === "string" ? eq.equipmentId.trim() : "";
+    if (!equipmentId) {
+      details.push(`equipmentLinks[${i}].equipmentId must be a non-empty string.`);
+    }
+    const scope = typeof eq.scope === "string" ? (eq.scope.trim() as TaskLogisticsLinkScope) : ("" as TaskLogisticsLinkScope);
+    if (!VALID_LINK_SCOPES.has(scope)) {
+      details.push(`equipmentLinks[${i}].scope must be one of: self, subtree.`);
+    }
+    if (equipmentId && seenEquipment.has(equipmentId)) {
+      details.push(`equipmentLinks[${i}]: Duplicate equipmentId (${equipmentId}).`);
+    } else if (equipmentId) {
+      seenEquipment.add(equipmentId);
+    }
+    equipmentLinks.push({ equipmentId, scope });
+  }
+
+  const systemLinks: ReplaceTaskLogisticsLinksRequest["systemLinks"] = [];
+  const seenSystem = new Set<string>();
+  const rawSystemLinks = body.systemLinks as unknown[];
+
+  for (let i = 0; i < rawSystemLinks.length; i++) {
+    const item = rawSystemLinks[i];
+    if (typeof item !== "object" || item === null) {
+      details.push(`systemLinks[${i}] must be an object.`);
+      continue;
+    }
+    const sys = item as Record<string, unknown>;
+    const systemId = typeof sys.systemId === "string" ? sys.systemId.trim() : "";
+    if (!systemId) {
+      details.push(`systemLinks[${i}].systemId must be a non-empty string.`);
+    }
+    const scope = typeof sys.scope === "string" ? (sys.scope.trim() as TaskLogisticsLinkScope) : ("" as TaskLogisticsLinkScope);
+    if (!VALID_LINK_SCOPES.has(scope)) {
+      details.push(`systemLinks[${i}].scope must be one of: self, subtree.`);
+    }
+    if (systemId && seenSystem.has(systemId)) {
+      details.push(`systemLinks[${i}]: Duplicate systemId (${systemId}).`);
+    } else if (systemId) {
+      seenSystem.add(systemId);
+    }
+    systemLinks.push({ systemId, scope });
+  }
+
+  if (details.length > 0) {
+    return { success: false, details };
+  }
+
+  return {
+    success: true,
+    data: {
+      equipmentLinks,
+      systemLinks,
+    },
+  };
 }

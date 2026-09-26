@@ -300,3 +300,22 @@ Project Workspace의 탭 목록을 `일정 (schedule)`, `리소스 (resources)`,
 - **제어·조율 관계 (relations)**: Coordinator -> Controller -> Controlled Equipment 및 연계된 담당자(PI/Owner)를 한눈에 볼 수 있는 계층 표(Table) 뷰.
 
 읽기 전용 상태에서는 조작 버튼을 숨기고 조회 전용으로 동작하며, 편집 세션이 유효할 때만 추가/수정/삭제 조작이 노출된다. 대화상자는 Escape 취소 및 취소 시 0 mutation을 보장하고, 401/409/412 충돌 시 적절한 피드백을 제공하며 성공 시 작업공간 최신 스냅샷 및 ETag를 동기화한다. 390/768/1024/1440px 반응형 및 문서 가로 overflow 방지를 만족한다.
+
+## Issue #187 일정 화면 공정·설비·시스템 범위 필터 (물류 LG-04)
+
+일정(Gantt) 화면의 고급 검색/필터 패널에 물류 도메인 3개 차원의 범위 필터가 추가되었다:
+
+- **필터 차원**:
+  - `공정 필터 (processIds)`: 프로젝트에 정의된 공정 목록 다중 선택
+  - `설비 필터 (equipmentIds)`: 프로젝트에 등록된 설비 목록 다중 선택
+  - `시스템 필터 (systemIds)`: 프로젝트에 등록된 물류 제어/조율 시스템 목록 다중 선택
+- **상속을 고려한 Effective 매칭**:
+  - 작업의 직접 연결뿐 아니라 상위 Summary의 `subtree` 상속 연결을 종합한 effective 설비/시스템 집합(`buildTaskEffectiveLogisticsMap`)을 계산하여 필터 조건과 대조한다.
+  - 공정 필터의 경우, 작업에 effective 연결된 설비의 소속 공정(`equipment.processId`) 및 연결된 시스템의 담당 공정(`system.processIds`)과의 교집합을 판별하여 일치 여부를 결정한다.
+- **계층 무결성과 Context Row 보존**:
+  - 필터 조건에 일치하는 leaf 작업(Task 또는 Milestone)이 있을 때, 해당 작업의 모든 조상 Summary 작업은 트리 계층 표시를 위해 화면에 컨텍스트 행(context row)으로 보존된다.
+  - 도구줄에 표시되는 검색/필터 일치 결과 수(`일치 / 전체`)에는 실제 일치한 작업 수만 집계하며, 계층 유지를 위해 보존된 context Summary는 카운트에서 제외된다.
+- **클라이언트 전용 필터링 및 Gantt 인스턴스 보존**:
+  - 필터 선택 및 초기화는 서버 mutation이나 API 재조회를 유발하지 않으며, SVAR 공개 `filter-tasks` action을 통해 동일한 Gantt instance에서 렌더링 가시성만 전환한다.
+  - 필터 패널의 Escape 닫기 및 필터 버튼으로의 focus 복귀, 390/768/1024/1440px 반응형 레이아웃 규칙을 유지한다.
+

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.38.0] - 2026-09-27
+
+### Added
+
+- Issue #187: Summary·Task·Milestone의 설비·시스템 연결 및 범위 필터 구현 (물류 LG-04).
+  - DB 마이그레이션 `0011_task_logistics_links.sql` 추가 (`task_equipment_links`, `task_system_links` 테이블 정의, `scope IN ('self', 'subtree')`, tasks cascade, equipment/systems NO ACTION deferrable 제약 및 인덱스).
+  - 작업별 설비/시스템 연결 조회 및 원자적 교체 REST API 구현 (`GET/PUT /api/projects/:publicId/tasks/:taskId/logistics-links`).
+  - Summary 작업의 하위 자손 상속(`subtree`) 지원 및 일반 작업/마일스톤의 `subtree` 지정 차단(`400 INVALID_TASK_LOGISTICS_LINKS`), 비활성 마스터 신규 연결 거부(`409 EQUIPMENT_INACTIVE`, `409 SYSTEM_INACTIVE`).
+  - 설비/시스템 영구 삭제 시 연결된 태스크 링크 존재 보호(`409 EQUIPMENT_IN_USE`, `409 SYSTEM_IN_USE`).
+  - 작업 정보 대화상자(Task Editor)에 4번째 탭 `물류 연결 (logistics)` 추가: 설비/시스템 다중 선택, Summary subtree opt-in, 상속된 연결 및 출처 Summary 표시, 주 담당자(Owner/PI) 메타데이터 표시, 독립 저장 및 If-Match revision 동시성 제어.
+  - 일정(Gantt) 화면 고급 필터에 물류 3개 차원(공정, 설비, 시스템) 범위 필터 추가, effective 상속 매칭, 트리 계층 무결성을 위한 context row 보존 및 일치 카운트 정확성 보장.
+
 ## [0.37.0] - 2026-09-27
 
 ### Added

@@ -1,6 +1,6 @@
 "use client";
 
-export const TASK_EDITOR_TABS = ["task", "resources", "relations"] as const;
+export const TASK_EDITOR_TABS = ["task", "resources", "relations", "logistics"] as const;
 export type TaskEditorTab = (typeof TASK_EDITOR_TABS)[number];
 
 export function taskEditorTabForKey(current: TaskEditorTab, key: string): TaskEditorTab | null {

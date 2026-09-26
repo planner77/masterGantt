@@ -652,8 +652,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   if (state.status === "loading") return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>프로젝트 정보를 불러오는 중입니다.</p></section>;
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
   if (state.status === "error") return <section className="status-page" aria-labelledby="project-load-error-heading"><p className="eyebrow">PROJECT</p><h1 id="project-load-error-heading">프로젝트를 불러올 수 없습니다.</h1><p>네트워크 또는 서버 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="secondary-button" onClick={() => beginRefresh(true)} type="button">다시 시도</button></section>;
-  const { project, tasks, links, assignments } = state.snapshot.data;
-  const filteredTasks = filterTasksWithAncestors(tasks, taskFilter, assignments);
+  const { project, tasks, links, assignments, logistics } = state.snapshot.data;
+  const filteredTasks = filterTasksWithAncestors(tasks, taskFilter, assignments, logistics);
   const activeFilters = activeTaskFilterCount(taskFilter);
   const visibleTaskIds = filteredTasks.tasks.map((task) => task.taskId);
   const normalizedTargetQuery = targetPickerQuery.trim().toLocaleLowerCase();
@@ -834,6 +834,78 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name}{target.code ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
             })}</div>
           </fieldset> : null}
+          {logistics && logistics.processes.length > 0 ? (
+            <fieldset>
+              <legend>공정 필터</legend>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                {logistics.processes.map((proc) => (
+                  <label key={proc.id} style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
+                    <input
+                      type="checkbox"
+                      checked={taskFilter.processIds.includes(proc.id)}
+                      onChange={() =>
+                        setTaskFilter((current) => ({
+                          ...current,
+                          processIds: current.processIds.includes(proc.id)
+                            ? current.processIds.filter((id) => id !== proc.id)
+                            : [...current.processIds, proc.id],
+                        }))
+                      }
+                    />
+                    {proc.name} <code>({proc.code})</code>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ) : null}
+          {logistics && logistics.equipment.length > 0 ? (
+            <fieldset>
+              <legend>설비 필터</legend>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                {logistics.equipment.map((eq) => (
+                  <label key={eq.id} style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
+                    <input
+                      type="checkbox"
+                      checked={taskFilter.equipmentIds.includes(eq.id)}
+                      onChange={() =>
+                        setTaskFilter((current) => ({
+                          ...current,
+                          equipmentIds: current.equipmentIds.includes(eq.id)
+                            ? current.equipmentIds.filter((id) => id !== eq.id)
+                            : [...current.equipmentIds, eq.id],
+                        }))
+                      }
+                    />
+                    {eq.name} <code>({eq.code})</code>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ) : null}
+          {logistics && logistics.systems.length > 0 ? (
+            <fieldset>
+              <legend>물류 시스템 필터</legend>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                {logistics.systems.map((sys) => (
+                  <label key={sys.id} style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
+                    <input
+                      type="checkbox"
+                      checked={taskFilter.systemIds.includes(sys.id)}
+                      onChange={() =>
+                        setTaskFilter((current) => ({
+                          ...current,
+                          systemIds: current.systemIds.includes(sys.id)
+                            ? current.systemIds.filter((id) => id !== sys.id)
+                            : [...current.systemIds, sys.id],
+                        }))
+                      }
+                    />
+                    {sys.name} <code>({sys.code})</code>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          ) : null}
         </div>
         <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}

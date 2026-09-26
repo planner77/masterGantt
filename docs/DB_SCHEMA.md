@@ -540,3 +540,33 @@ Scope가 `processes`인 시스템과 담당 공정 간의 다대다 매핑 테�
 
 `UNIQUE(project_id, system_id, resource_id, role)`
 
+### 5.22 `task_equipment_links`
+
+Task(Summary, Task, Milestone)와 설비 간의 연결 테이블이다. `scope`는 `'self' | 'subtree'`를 가지며, 기본값은 `'self'`이고 Summary 작업에만 `'subtree'`(하위 작업 포함) 지정이 허용된다. Task 삭제 시 cascade 삭제되며 설비 단독 삭제 시 `NO ACTION DEFERRABLE INITIALLY DEFERRED`로 보호된다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | PK |
+| `project_id` | INTEGER | N | Project FK, cascade |
+| `task_id` | INTEGER | N | Task PK (동일 프로젝트 composite FK, cascade) |
+| `equipment_id` | INTEGER | N | 설비 PK (동일 프로젝트 composite FK, NO ACTION) |
+| `scope` | TEXT | N | `self \| subtree` (CHECK) |
+| `created_at/updated_at` | TEXT | N | UTC timestamp |
+
+`UNIQUE(project_id, task_id, equipment_id)`
+
+### 5.23 `task_system_links`
+
+Task(Summary, Task, Milestone)와 물류 시스템 간의 연결 테이블이다. `scope`는 `'self' | 'subtree'`를 가지며, 기본값은 `'self'`이고 Summary 작업에만 `'subtree'`(하위 작업 포함) 지정이 허용된다. Task 삭제 시 cascade 삭제되며 시스템 단독 삭제 시 `NO ACTION DEFERRABLE INITIALLY DEFERRED`로 보호된다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | PK |
+| `project_id` | INTEGER | N | Project FK, cascade |
+| `task_id` | INTEGER | N | Task PK (동일 프로젝트 composite FK, cascade) |
+| `system_id` | INTEGER | N | 시스템 PK (동일 프로젝트 composite FK, NO ACTION) |
+| `scope` | TEXT | N | `self \| subtree` (CHECK) |
+| `created_at/updated_at` | TEXT | N | UTC timestamp |
+
+`UNIQUE(project_id, task_id, system_id)`
+

@@ -4,8 +4,9 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import type { ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
 import { TaskAssignmentEditor } from "./task-assignment-editor";
+import { TaskLogisticsLinkEditor } from "./task-logistics-link-editor";
 import { TASK_EDITOR_TABS, taskEditorTabForKey, type TaskEditorTab } from "./task-editor-view-model";
-import { buildTaskRelations, formatTaskRelationType, type TaskRelationView, type TaskRelationsView } from "./task-relations";
+import { buildTaskRelations, formatTaskRelationType, type TaskRelationView } from "./task-relations";
 import {
   createTaskEditorDraft,
   prepareTaskEditorCommand,
@@ -55,6 +56,7 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   const [confirmation, setConfirmation] = useState<"close" | "reload" | null>(null);
   const [activeTab, setActiveTab] = useState<TaskEditorTab>("task");
   const [assignmentCount, setAssignmentCount] = useState(0);
+  const [logisticsCount, setLogisticsCount] = useState(0);
   const dialogReference = useRef<HTMLDialogElement>(null);
   const tabReferences = useRef<Array<HTMLButtonElement | null>>([]);
   const actionReference = useRef(false);
@@ -158,8 +160,8 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
     <div className={styles.tabs} role="tablist" aria-label="작업 편집 정보">
       {TASK_EDITOR_TABS.map((tab, index) => {
         const selected = activeTab === tab;
-        const label = tab === "task" ? "작업 정보" : tab === "resources" ? "리소스" : "관계";
-        const count = tab === "resources" ? assignmentCount : tab === "relations" ? relationCount : null;
+        const label = tab === "task" ? "작업 정보" : tab === "resources" ? "리소스" : tab === "relations" ? "관계" : "물류 연결";
+        const count = tab === "resources" ? assignmentCount : tab === "relations" ? relationCount : tab === "logistics" ? logisticsCount : null;
         return <button
           key={tab}
           ref={(element) => { tabReferences.current[index] = element; }}
@@ -257,6 +259,25 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
             {!relationSnapshotMatches ? <p className={styles.relationError} role="alert">관계 정보의 기준 Revision이 변경되었습니다. 최신 정보를 다시 불러와 주세요.</p> : null}
             {relations ? <div className={styles.relationColumns}><RelationList title="선행 작업" relations={relations.predecessors} /><RelationList title="후행 작업" relations={relations.successors} /></div> : null}
           </section>
+        </section>
+
+        <section
+          className={styles.tabPanel}
+          id="task-editor-panel-logistics"
+          role="tabpanel"
+          aria-labelledby="task-editor-tab-logistics"
+          hidden={activeTab !== "logistics"}
+          tabIndex={0}
+        >
+          <TaskLogisticsLinkEditor
+            taskId={base.task.taskId}
+            taskType={base.task.type}
+            revision={base.revision}
+            editable={editable}
+            disabled={locked || readOnly || dirty}
+            onApplied={reload}
+            onSelectionCountChange={setLogisticsCount}
+          />
         </section>
       </div>
 
