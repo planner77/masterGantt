@@ -2,7 +2,16 @@
 
 ## UI/UX 순차 개선 — 2026-09-24 착수
 
-현재 #142 [PR #162](https://github.com/planner77/masterGantt/pull/162)의 정확한 head `37d4a38a327abf360228630a99a589cbbfd0d6d2`에서 [CI run 35988517048](https://github.com/planner77/masterGantt/actions/runs/35988517048) 시작까지 확인했다. 10:47 UTC quality/docker PASS, e2e 진행 중이며 전체 CI 판정은 미완이다. Milestone 중앙 정렬은 미충족이고 Issue는 열려 있다.
+### 현재 상태 — 2026-09-26 동기화
+
+- 기준 `main`: `749eaca3e3ed836542d576045e27fe3c4389d910`, application version `0.34.1`.
+- 이 절 아래의 2026-09-24 `main` SHA, `Issue open`, E2E 실패/진행 중 표기는 **당시 실행 증거를 보존한 역사적 기록**이며 현재 상태 판정에 사용하지 않는다.
+- #119, #122, #130, #140, #142는 모두 `closed/completed` 상태다.
+- #130 Phase 1~4의 PR #150/#152/#153/#154는 모두 `main`에 병합됐다. #140 PR #161도 병합됐으며, #142 PR #162는 stacked base였던 #140 branch에 병합된 뒤 최종 #140 통합을 통해 `main`에 포함됐다.
+- 과거 상태 동기화용 PR #165는 관련 구현 완료 후 내용이 stale해져 **superseded / close-without-merge** 처리했다. 해당 PR의 문서 snapshot을 현재 active plan으로 병합하지 않는다.
+- 제품 코드/API/DB/Scheduling/Security/Deployment/CI 계약 변경은 없으며 이 문서 동기화에서 application version은 `0.34.1`을 유지한다.
+
+> 현재 상태는 이 블록을 우선한다. 아래 기록은 원인 분석과 당시 검증 추적을 위해 보존한다.
 
 2026-09-24 10:52 UTC 조회 시 원격 main은 `6386db860af69635cfb0fe626fd1a937905b9a56` / version `0.27.4`다. #116·#117은 다른 작업에서 병합·종료됐고, #118은 외부 병합 뒤 main CI 진행 중·Issue open이다. #141 미리보기(8303)와 후속 변경 미리보기(8305)는 각각 healthy/readiness 200이다. 아래 과거 main·Issue 상태는 당시 기록으로 읽고 최신 상태는 [UI/UX 실행 계획](UI_UX_ROLLOUT.md)을 따른다.
 
