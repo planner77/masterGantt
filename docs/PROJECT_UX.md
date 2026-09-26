@@ -288,3 +288,15 @@ Project List의 상태 열은 표시 전용 badge 대신 현재 상태를 유지
 Project Workspace의 title row는 readonly에서 기존 lifecycle badge를 그대로 표시한다. edit mode에서는 같은 위치가 compact native select가 되며 Project Settings를 열지 않고 직접 status-only PATCH를 수행한다. 성공 canonical snapshot은 기존 React workspace state에 적용하고 `ProjectGantt` reset generation이나 route navigation을 바꾸지 않는다. 412와 일반 실패는 canonical snapshot을 재조회해 status draft를 폐기하고, 401/403은 기존 readonly 권한 상태로 되돌린다. Settings를 이후 열면 같은 canonical status를 선택값으로 사용한다.
 
 SVAR Task field에는 Project status를 추가하지 않으며 Gantt editor/instance lifecycle과 독립된 Project-level metadata control로 유지한다. API/DB schema 및 scheduling 계산은 변경하지 않는다.
+
+## Issue #186 물류 구성 및 담당자 관리 화면 UI (물류 LG-03)
+
+Project Workspace의 탭 목록을 `일정 (schedule)`, `리소스 (resources)`, `물류 구성 (logistics)` 3개 탭으로 확장한다. `ArrowLeft`/`ArrowRight`/`Home`/`End` 키보드 탐색, `aria-selected`, `aria-controls` 연결 및 탭 전환 시 기존 Gantt 인스턴스/DOM 마운트를 그대로 보존(`hidden={activeView !== "logistics"}`)한다.
+
+물류 구성 탭은 상단에 WBS 일정 트리와 물류 설비/시스템 데이터 모델의 분리 및 독립성을 안내하는 배너를 제공하며, 다음과 같은 4개의 서브 탭을 갖는다:
+- **공정 관리 (processes)**: 공정 계층 구조(부모-자식 트리), 코드, 명칭, 정렬 순서, 기본 활성 여부 표시 및 추가/수정/삭제 모달.
+- **설비 관리 (equipment)**: 설비 코드, 명칭, 설비 유형, 배치 공정, 주 제어 시스템(Primary Controller) 매핑, 담당자 배정(Owner/Contributor, Primary 1명 필수 보장, 글로벌 리소스 카탈로그 연동) 관리 및 추가/수정/삭제 모달.
+- **물류 시스템 (systems)**: 시스템 코드, 명칭, 시스템 유형, 계층(Coordinator/Controller), 관리 공정 범위(다중 선택), 하위 조율 시스템 연계(Coordinator layer 한정, DAG 순환 방지 검증), PI 및 개발자 배정(PI/Developer, Primary 1명 필수 보장) 관리 및 추가/수정/삭제 모달.
+- **제어·조율 관계 (relations)**: Coordinator -> Controller -> Controlled Equipment 및 연계된 담당자(PI/Owner)를 한눈에 볼 수 있는 계층 표(Table) 뷰.
+
+읽기 전용 상태에서는 조작 버튼을 숨기고 조회 전용으로 동작하며, 편집 세션이 유효할 때만 추가/수정/삭제 조작이 노출된다. 대화상자는 Escape 취소 및 취소 시 0 mutation을 보장하고, 401/409/412 충돌 시 적절한 피드백을 제공하며 성공 시 작업공간 최신 스냅샷 및 ETag를 동기화한다. 390/768/1024/1440px 반응형 및 문서 가로 overflow 방지를 만족한다.

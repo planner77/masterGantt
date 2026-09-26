@@ -34,8 +34,10 @@ test.describe("Issue #76 Project Workspace UX", () => {
     const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
     const scheduleTab = tabs.getByRole("tab", { name: "일정", exact: true });
     const resourcesTab = tabs.getByRole("tab", { name: "리소스", exact: true });
+    const logisticsTab = tabs.getByRole("tab", { name: "물류 구성", exact: true });
     await expect(scheduleTab).toHaveAttribute("aria-selected", "true");
     await expect(resourcesTab).toHaveAttribute("aria-selected", "false");
+    await expect(logisticsTab).toHaveAttribute("aria-selected", "false");
 
     const identity = await rememberGanttRoot(page);
     const chart = page.locator(".project-gantt-widget .wx-chart").first();
@@ -58,6 +60,8 @@ test.describe("Issue #76 Project Workspace UX", () => {
     expect(await chart.evaluate((element) => element.scrollLeft)).toBeCloseTo(scrollLeft, 0);
 
     await page.keyboard.press("End");
+    await expect(logisticsTab).toBeFocused();
+    await page.keyboard.press("ArrowLeft");
     await expect(resourcesTab).toBeFocused();
     await page.keyboard.press("ArrowLeft");
     await expect(scheduleTab).toBeFocused();
