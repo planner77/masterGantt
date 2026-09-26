@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.33.1] - 2026-09-26
+
+### Fixed
+
+- Issue #157: 운영 Compose를 GHCR/prebuilt image 전용 경로로 분리하고 `pull_policy: always`를 적용해 rolling tag의 stale local image 재사용 가능성을 줄인다.
+- local/CI source build는 `deploy/compose.build.yml` override에서만 허용하고 registry pull을 비활성화하여 운영 image pull과 build 경로를 명확히 분리한다.
+- exact SemVer/verified digest 우선 배포, rolling tag의 명시적 pull/recreate, 실행 image identity 확인, Compose config 출력의 secret 마스킹 절차와 회귀 검증을 문서화한다.
+
 ## [0.33.0] - 2026-09-26
 
 ### Fixed
