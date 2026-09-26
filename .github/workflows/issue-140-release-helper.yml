@@ -119,7 +119,7 @@ jobs:
           set -euo pipefail
           image="$IMAGE_NAME@${{ steps.digest.outputs.digest }}"
           docker pull "$image"
-          docker run --detach --name mastergantt-issue140-release             --env APP_BASE_URL=https://gantt.example.invalid             --publish 127.0.0.1:3000:3000             "$image"
+          docker run --detach --name mastergantt-release-smoke             --env APP_BASE_URL=https://gantt.example.invalid             --publish 127.0.0.1:3000:3000             "$image"
 
       - name: Verify released image readiness, persistence and API
         shell: bash
@@ -132,15 +132,15 @@ jobs:
               fi
               sleep 1
             done
-            docker logs mastergantt-issue140-release
+            docker logs mastergantt-release-smoke
             return 1
           }
           wait_for_ready
-          docker exec mastergantt-issue140-release node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH); db.exec('CREATE TABLE IF NOT EXISTS issue140_release_smoke (value TEXT NOT NULL)'); db.prepare('INSERT INTO issue140_release_smoke (value) VALUES (?)').run('persisted'); db.close()"
-          docker restart mastergantt-issue140-release
+          docker exec mastergantt-release-smoke node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH); db.exec('CREATE TABLE IF NOT EXISTS issue140_release_smoke (value TEXT NOT NULL)'); db.prepare('INSERT INTO issue140_release_smoke (value) VALUES (?)').run('persisted'); db.close()"
+          docker restart mastergantt-release-smoke
           wait_for_ready
-          docker exec mastergantt-issue140-release node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH, { readonly: true }); const row = db.prepare('SELECT COUNT(*) AS count FROM issue140_release_smoke WHERE value = ?').get('persisted'); db.close(); if (row.count !== 1) process.exit(1)"
-          node scripts/verify-registry-api-smoke.mjs http://127.0.0.1:3000 mastergantt-issue140-release
+          docker exec mastergantt-release-smoke node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH, { readonly: true }); const row = db.prepare('SELECT COUNT(*) AS count FROM issue140_release_smoke WHERE value = ?').get('persisted'); db.close(); if (row.count !== 1) process.exit(1)"
+          node scripts/verify-registry-api-smoke.mjs http://127.0.0.1:3000 mastergantt-release-smoke
 
       - name: Verify rolling aliases were not moved backward
         shell: bash
@@ -151,7 +151,7 @@ jobs:
 
       - name: Remove release smoke container
         if: always()
-        run: docker rm --force --volumes mastergantt-issue140-release || true
+        run: docker rm --force --volumes mastergantt-release-smoke || true
 
       - name: Issue #140 작업 브랜치 안전 삭제
         shell: bash
