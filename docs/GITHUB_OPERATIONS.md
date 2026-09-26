@@ -117,3 +117,13 @@ YAML/TOML/API의 key, `jobs.<job_id>`와 step `id`, `needs`, 조건·expression,
 ## Repository layout relocation (#12)
 
 현재 배포 경로와 기존 Compose 프로젝트/volume을 유지하는 전환 절차는 [REPOSITORY_STRUCTURE](REPOSITORY_STRUCTURE.md)를 따른다. CI의 Docker build 4개 참조와 Dependabot 경로를 함께 갱신하고 Docker gate에 `scripts/verify-compose-smoke.sh`를 추가했다. 새 Compose 경로의 config, startup/readiness, restart 및 강제 recreate 후 SQLite 보존을 격리된 CI 리소스로 검사한다. 기존 quality/E2E/runtime/registry 권한·검증 gate는 유지한다. 결과는 해당 PR/run/head의 실제 증거로 판정하며 과거 Wxx 기록을 이번 이동의 PASS로 전용하지 않는다.
+
+## 9. Issue Lifecycle Ruleset / Auto-merge 운영
+
+Issue #198 이후 Lifecycle 자동화와 저장소 보호 설정의 기준은 [ISSUE_LIFECYCLE_AUTOMATION.md](ISSUE_LIFECYCLE_AUTOMATION.md)를 따른다.
+
+2026-09-26 재검증 기준 repository metadata는 `allow_auto_merge=true`, `allow_update_branch=true`다. `main-lifecycle-gate` Ruleset은 Active이며 default branch에 적용된다. PR 필수, conversation resolution, merge commit, branch deletion/force-push 차단, bypass 없음, strict required status checks가 적용되어 있다. Required checks는 GitHub Actions source의 `Build, static checks, and unit tests`, `Chromium end-to-end tests`, `Docker build and runtime smoke test` 세 항목이다. Branch protection 상세 endpoint는 연결된 GitHub App의 administration 권한 제한으로 직접 검증하지 못했다.
+
+따라서 Gate C의 기본 운영은 최신 main을 포함한 PR head에서 세 required checks와 review conversation resolution을 통과한 뒤 GitHub Auto-merge를 사용하는 것이다. Ruleset/check 이름을 변경할 때는 workflow job 이름과 저장소 설정을 함께 검증한다.
+
+관리 API가 제공되지 않는 세션에서는 GitHub Settings UI의 변경 절차와 검증 방법까지만 문서화하며 실제 설정은 BLOCKED/수동 설정으로 기록한다. 설정 미확인을 PASS로 표시하지 않는다.

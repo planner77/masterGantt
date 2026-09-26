@@ -299,3 +299,14 @@ Issue #87의 고정 cleanup workflow와 전용 verifier는 이 공통 기준의 
 - PASS 기준: 390px 및 768px의 editing/readonly에서 After의 viewport 내 Gantt 가시 높이가 Before보다 증가하고, 모든 After 조건에서 document horizontal overflow가 없으며 정보 컨트롤이 한 줄을 유지해야 한다.
 - 증거: raw geometry JSON, comparison JSON, Markdown 요약, 동일 조건 before/after screenshot을 `issue-118-before-after-evidence` artifact로 90일 보관한다.
 - 이 Workflow는 제품 CI `quality/e2e/docker`, main 임시 GHCR 검증, 실제 모바일/스크린리더 검증을 대체하지 않는다. #118/122 종료에는 최신 PR head의 일반 CI와 이 evidence Workflow 결과를 각각 확인한다.
+
+## Issue Lifecycle 공용 orchestration 원칙
+
+Issue Lifecycle 후반 자동화는 특정 Issue 번호에 종속된 release-helper를 반복 생성하지 않고 [ISSUE_LIFECYCLE_AUTOMATION.md](ISSUE_LIFECYCLE_AUTOMATION.md)의 공용 orchestration/finalization 계약으로 수렴한다.
+
+- `ci.yml`: PR/main 검증과 main temporary GHCR digest smoke의 Source of Truth
+- `release-image.yml`: 승인된 annotated SemVer release와 정식 GHCR의 Source of Truth
+- `scripts/safe_branch_cleanup.py`: branch cleanup의 fail-closed Source of Truth
+- 범용 `issue-lifecycle.yml`: 위 기능을 중복 구현하지 않고 상태 검증, release dispatch, evidence, cleanup, Issue close를 조율하는 목표 workflow
+
+정식 release는 기존 `release_required=true && release_authorized=true` 승인 경계를 유지한다. Lifecycle finalizer는 진행 중/실패/stale required gate에서 Issue를 닫아서는 안 된다.

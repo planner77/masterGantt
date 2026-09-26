@@ -296,3 +296,13 @@ Issue 기반 개발은 `docs/ISSUE_LIFECYCLE.md`를 전체 단계 Source of Trut
 - 모든 Agent 결과는 `PASS | FAIL | BLOCKED | NOT TESTED`와 변경 파일/commit 또는 head/실제 검증/미검증/위험/다음 담당을 포함하는 Result Contract로 반환한다.
 - 병합만으로 Lifecycle을 끝내지 않는다. main CI, repository 정책상 임시 GHCR digest 검증/cleanup, 안전한 branch 정리와 Issue 종료까지 필요한 gate를 확인한다. 작업 branch 삭제는 `scripts/safe_branch_cleanup.py`의 merged-head/ancestry/protected/open-PR/ref-race/SHA-lease 검증을 사용하며 Issue별 workflow에 무조건 삭제 로직을 복제하지 않는다.
 - 정식 release는 `release_required=true`이면서 `release_authorized=true`인 경우에만 실행한다.
+
+### Issue Lifecycle Actions / Ruleset 운영
+
+Issue Lifecycle의 GitHub Actions·Ruleset·Auto-merge 책임 경계와 관리자 설정 기준은 [ISSUE_LIFECYCLE_AUTOMATION.md](docs/ISSUE_LIFECYCLE_AUTOMATION.md)를 따른다.
+
+- 요구사항 분석, AC/DoD, 설계·계획, version/release 판단과 구현은 Manager/Domain Agent 책임이다.
+- PR/main/release의 반복 가능한 검증, GHCR digest smoke, 안전한 branch cleanup과 완료 evidence는 GitHub Actions 자동화를 우선한다.
+- 병합 gate는 Ruleset + required checks + conversation resolution + Auto-merge를 기본으로 하며 Actions가 quality gate를 우회해 직접 병합하지 않는다.
+- 신규 Issue별 `issue-<N>-release-helper.yml`을 만들지 않는다. 범용 lifecycle workflow를 우선하고 기존 일회성 helper는 퇴역 기준에 따라 정리한다.
+- 저장소 관리자 설정을 실제로 변경할 수 없는 도구에서는 Ruleset/Auto-merge를 적용했다고 주장하지 않고 BLOCKED/수동 설정으로 기록한다.
