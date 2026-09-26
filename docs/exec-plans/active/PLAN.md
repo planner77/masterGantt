@@ -2,9 +2,11 @@
 
 ## UI/UX 순차 개선 — 2026-09-24 착수
 
-### 현재 상태 — 2026-09-26 동기화
+### 현재 상태 — 2026-09-27 동기화
 
-- 기준 `main`: `749eaca3e3ed836542d576045e27fe3c4389d910`, application version `0.34.1`.
+- Issue #196 Workspace Task/Milestone 빠른 보기 버튼: `feat/issue-196-task-milestone-quick-view` 브랜치에서 구현 완료.
+- 일정 Toolbar `[ 전체 | Task | Milestone ]` 버튼 그룹, `TaskFilterState.types` 연동, CSS 반응형 및 Unit/E2E 테스트, 문서 동기화 완료. Application version: `0.35.0` MINOR.
+- 기준 `main`: `b0743e5`, application version `0.34.1`에서 `0.35.0`으로 증가.
 - 이 절 아래의 2026-09-24 `main` SHA, `Issue open`, E2E 실패/진행 중 표기는 **당시 실행 증거를 보존한 역사적 기록**이며 현재 상태 판정에 사용하지 않는다.
 - #119, #122, #130, #140, #142는 모두 `closed/completed` 상태다.
 - #130 Phase 1~4의 PR #150/#152/#153/#154는 모두 `main`에 병합됐다. #140 PR #161도 병합됐으며, #142 PR #162는 stacked base였던 #140 branch에 병합된 뒤 최종 #140 통합을 통해 `main`에 포함됐다.

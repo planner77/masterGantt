@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.35.0] - 2026-09-27
+
+### Added
+
+- Issue #196: Project Workspace의 일정(Schedule) Toolbar에 `[ 전체 | Task | Milestone ]` 빠른 보기 버튼 그룹을 추가한다.
+- 사용자는 고급 필터 패널을 열지 않고도 일반 Task 또는 Milestone만 빠르게 중심 조회할 수 있다.
+- 빠른 보기 버튼은 기존 #83의 `TaskFilterState.types`와 동일한 Source of Truth를 공유하며, 검색어/기간/리소스 등 다른 필터 조건을 보존한다.
+- 버튼 전환은 client-side view state로 동작하여 API 재조회, Project mutation, revision 증가, Gantt remount 없이 즉시 가시성을 갱신한다.
+- 390/768/1024/1440px 뷰포트 및 전체화면 모드에서 레이아웃 겹침이 없으며 keyboard Tab 및 ARIA pressed 상태를 지원한다.
+
 ## [0.34.1] - 2026-09-26
 
 ### Fixed
