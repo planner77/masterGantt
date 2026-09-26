@@ -38,12 +38,12 @@ MASTERGANTT_VOLUME_NAME=mastergantt-data
 
 Nginx 예제는 [http.conf.example](../deploy/nginx/http.conf.example)에 있다. Linux에서는 기존 `http {}`가 include하는 `/etc/nginx/conf.d/` 등에, Windows에서는 `C:/nginx/conf/nginx.conf`의 기존 `http {}` 안에 포함시킨다. 전체 설정이나 다른 서비스 설정을 덮어쓰지 않는다. 인증서·HTTPS redirect·HSTS를 추가할 필요가 없다.
 
-저장소 루트에서 아래 순서로 적용한다. 기존 DB의 일관된 백업과 프로젝트/volume 일치를 먼저 확인한다.
+저장소 루트에서 아래 순서로 적용한다. 기존 DB의 일관된 백업과 프로젝트/volume 일치를 먼저 확인한다. 운영 Compose는 prebuilt image 전용이며 source build가 필요하면 `deploy/compose.build.yml` override를 명시적으로 추가한다.
 
 ```sh
 # 설정 확인 후 환경 변수를 반영하기 위해 재생성한다. restart만으로 바뀌지 않는다.
 docker compose --env-file .env -f deploy/compose.yml config --quiet
-docker compose --env-file .env -f deploy/compose.yml up -d --build app
+docker compose --env-file .env -f deploy/compose.yml up -d --pull always --no-build --force-recreate app
 docker compose --env-file .env -f deploy/compose.yml ps
 curl -fsS http://127.0.0.1:3000/api/health/ready
 # 실제 Nginx 전체 설정을 검사하고, 성공한 경우에만 reload한다.
