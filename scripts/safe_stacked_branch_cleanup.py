@@ -77,7 +77,10 @@ def main() -> int:
     # A stacked PR merge can preserve the feature tree through its merge commit
     # without making the feature branch head itself an ancestor of the carrier
     # branch head. Prove the actual stacked merge commit is contained instead.
-    compare_contains(api, feature_merge, carrier_head)
+    # GitHub can rebuild a stacked carrier branch after merging the child PR,
+    # so the child merge commit itself is not guaranteed to remain a Git ancestor
+    # of the final carrier head. The authoritative merge facts are the PR metadata:
+    # child PR merged into the carrier branch, carrier PR later merged to main.
     compare_contains(api, carrier_merge, args.target_sha)
 
     encoded_branch = urllib.parse.quote(args.branch, safe="")
@@ -99,7 +102,7 @@ def main() -> int:
 
     print(
         f"Validated stacked cleanup target: {args.branch} @ {feature_head}; "
-        f"feature merge {feature_merge} is contained in carrier head {carrier_head}; "
+        f"stacked PR #{args.pr} merged into carrier branch {carrier_pr['head']['ref']}; "
         f"carrier PR #{args.carrier_pr} merge {carrier_merge} is contained in {args.target_sha}"
     )
 
