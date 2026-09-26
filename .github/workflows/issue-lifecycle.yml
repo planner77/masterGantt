@@ -1,0 +1,127 @@
+name: Issue lifecycle
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Lifecycle operation"
+        required: true
+        type: choice
+        options: [verify, release, finalize]
+      issue_number:
+        description: "GitHub Issue number"
+        required: true
+        type: string
+      pr_number:
+        description: "GitHub Pull Request number"
+        required: true
+        type: string
+      release_required:
+        description: "Whether a formal application release is required"
+        required: true
+        default: false
+        type: boolean
+      release_authorized:
+        description: "Explicit authorization for the formal release"
+        required: true
+        default: false
+        type: boolean
+      expected_version:
+        description: "Expected package version when release_required=true"
+        required: false
+        type: string
+      authorization_note:
+        description: "Authorization evidence/note when release_authorized=true"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+
+concurrency:
+  group: issue-lifecycle-${{ inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify lifecycle evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify lifecycle context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/issue_lifecycle.py verify \
+            --issue "${{ inputs.issue_number }}" \
+            --pr "${{ inputs.pr_number }}" \
+            --release-required "${{ inputs.release_required }}" \
+            --release-authorized "${{ inputs.release_authorized }}" \
+            --expected-version "${{ inputs.expected_version }}" \
+            --authorization-note "${{ inputs.authorization_note }}"
+
+  release:
+    name: Release exact merge target
+    if: inputs.operation == 'release'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: write
+      actions: write
+      issues: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Release approved target
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/issue_lifecycle.py release \
+            --issue "${{ inputs.issue_number }}" \
+            --pr "${{ inputs.pr_number }}" \
+            --release-required "${{ inputs.release_required }}" \
+            --release-authorized "${{ inputs.release_authorized }}" \
+            --expected-version "${{ inputs.expected_version }}" \
+            --authorization-note "${{ inputs.authorization_note }}"
+
+  finalize:
+    name: Finalize lifecycle and close Issue
+    if: inputs.operation == 'finalize'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: write
+      actions: write
+      issues: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - name: Finalize approved lifecycle
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 scripts/issue_lifecycle.py finalize \
+            --issue "${{ inputs.issue_number }}" \
+            --pr "${{ inputs.pr_number }}" \
+            --release-required "${{ inputs.release_required }}" \
+            --release-authorized "${{ inputs.release_authorized }}" \
+            --expected-version "${{ inputs.expected_version }}" \
+            --authorization-note "${{ inputs.authorization_note }}"

@@ -306,3 +306,9 @@ Issue Lifecycle의 GitHub Actions·Ruleset·Auto-merge 책임 경계와 관리�
 - 병합 gate는 Ruleset + required checks + conversation resolution + Auto-merge를 기본으로 하며 Actions가 quality gate를 우회해 직접 병합하지 않는다.
 - 신규 Issue별 `issue-<N>-release-helper.yml`을 만들지 않는다. 범용 lifecycle workflow를 우선하고 기존 일회성 helper는 퇴역 기준에 따라 정리한다.
 - 저장소 관리자 설정을 실제로 변경할 수 없는 도구에서는 Ruleset/Auto-merge를 적용했다고 주장하지 않고 BLOCKED/수동 설정으로 기록한다.
+
+## 13. 범용 Issue Lifecycle workflow (#211)
+
+병합 이후의 공통 orchestration은 `.github/workflows/issue-lifecycle.yml`을 사용한다. 신규 Issue별 release-helper를 만들지 않는다. 공식 입력은 Issue/PR 번호와 Manager가 확정한 release_required/release_authorized이며 branch/SHA/version은 원격 evidence에서 다시 도출한다. `verify`는 read-only, `release`와 `finalize`만 job-scoped write 권한을 가진다. workflow는 PR을 병합하지 않고 Ruleset/Auto-merge를 우회하지 않는다.
+
+release/finalize의 target은 PR의 exact `merge_commit_sha`이고, 해당 SHA의 main `ci.yml` success만 인정한다. formal GHCR publish는 `release-image.yml`, branch 삭제는 `scripts/safe_branch_cleanup.py`를 재사용한다. lifecycle workflow에는 `packages: write`를 부여하지 않는다. 사용법·idempotency·migration은 [ISSUE_LIFECYCLE_AUTOMATION](docs/ISSUE_LIFECYCLE_AUTOMATION.md)을 따른다.
