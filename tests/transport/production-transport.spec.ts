@@ -5,15 +5,27 @@ import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/co
 
 const TRANSPORT_PROJECT_OWNER = "Transport CI";
 
+function isTransientNavigationError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  return error.message.includes("ERR_NETWORK_CHANGED")
+    || error.message.includes("chrome-error://chromewebdata/")
+    || error.message.includes("Navigation to") && error.message.includes("is interrupted by another navigation");
+}
+
 async function gotoProjectCreate(page: Page): Promise<void> {
-  try {
-    await page.goto("/projects/new");
-  } catch (error) {
-    if (!(error instanceof Error) || !error.message.includes("ERR_NETWORK_CHANGED")) throw error;
-    // Docker restart can invalidate Chromium's cached network route for an
-    // already-open production page. Retry navigation once after that explicit
-    // infrastructure transition; mutation requests themselves are never retried.
-    await page.goto("/projects/new");
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await page.goto("/projects/new", { waitUntil: "domcontentloaded" });
+      return;
+    } catch (error) {
+      if (attempt === 0 && isTransientNavigationError(error)) {
+        // The HTTP proxy/container transition can briefly send Chromium through
+        // chrome-error://chromewebdata. Only the idempotent page navigation is
+        // retried; mutation requests are never retried.
+        continue;
+      }
+      throw error;
+    }
   }
 }
 
