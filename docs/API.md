@@ -592,11 +592,24 @@ Batch가 기존 Link를 깨뜨리거나 Manual conflict를 만들면 전체 실�
 }
 ```
 
-W09에서 `POST /api/projects/{publicId}/links`, `PATCH /api/projects/{publicId}/links/{linkId}`, `DELETE /api/projects/{publicId}/links/{linkId}`를 제공한다. 모두 edit session과 `If-Match`가 필요하고, 전체 graph validation/recalculation 및 저장은 원자적이다. 성공은 최신 canonical full snapshot을 반환한다.
+Link 변경 API는 `POST /api/projects/{publicId}/links`, `PATCH /api/projects/{publicId}/links/{linkId}`, `DELETE /api/projects/{publicId}/links/{linkId}`를 제공한다. 모두 Edit Session, exact same-origin `Origin`, 강한 단일 `If-Match: "<positive revision>"`가 필요하며, 그래프 순환 검증 및 일정 재계산, DB 저장이 원자적으로 이루어진다. 성공 시 최신 canonical full snapshot을 반환한다.
 
-v1은 leaf task/milestone endpoint, `FS`, `lag: 0`만 허용한다. Summary endpoint, self-link, duplicate, missing/cross-project target, cycle, SS/FF/SF, non-zero lag/lead를 조용히 바꾸거나 버리지 않고 안정 오류 code로 거부한다.
+지원되는 링크 속성:
+- `type`: 의존성 관계 종류 (`FS`, `SS`, `FF`, `SF`). 기본값은 `FS`.
+- `lag`: 근무일수 기준 지연/선행 정수 (`-10000..10000`). 기본값은 `0`.
 
-FS/0의 earliest successor start는 predecessor end **다음의 첫 근무일**이다. 이 규칙은 predecessor/successor가 milestone이어도 동일하다.
+#### `POST /api/projects/{publicId}/links`
+- Body: `{ "predecessorExternalId": string, "successorExternalId": string, "type"?: "FS" | "SS" | "FF" | "SF", "lag"?: number }` (또는 `predecessorId`, `successorId`)
+- Summary 엔드포인트, 자기 자신 연결, 동일 선행-후행 중복 연결, 그래프 순환(Cycle)은 오류로 거부한다.
+
+#### `PATCH /api/projects/{publicId}/links/{linkId}`
+- Body: `{ "type"?: "FS" | "SS" | "FF" | "SF", "lag"?: number }` (최소 1개 이상 필드 필수)
+- 기존 값과 동일한 no-op 변경인 경우 불필요한 재계산 없이 현재 snapshot을 반환한다.
+- 유효한 변경인 경우 revision이 1 증가하며 스케줄이 재계산된 새 snapshot을 반환한다.
+- 대상 링크가 존재하지 않으면 `404 LINK_NOT_FOUND`, 수동 작업 충돌 등이 발생하면 `409` 계열 오류를 반환한다.
+
+#### `DELETE /api/projects/{publicId}/links/{linkId}`
+- 링크를 삭제하고 revision을 1 증가시키며, 종속성 해제에 따른 최신 canonical full snapshot을 반환한다.
 
 ## 7. Import API
 

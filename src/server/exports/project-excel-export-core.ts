@@ -226,13 +226,15 @@ function stylesXml(): string {
 <cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles></styleSheet>`;
 }
 
+const ALLOWED_DEPENDENCY_TYPES = new Set(["FS", "SS", "FF", "SF"]);
+
 function validateLinks(links: readonly ProjectLinkDto[], tasks: readonly OrderedTask[]): void {
   if (links.length > MAX_DEPENDENCIES) {
     throw new ProjectExcelExportError("EXPORT_LIMIT_EXCEEDED", `Dependency count exceeds ${MAX_DEPENDENCIES}.`);
   }
   const ids = new Set(tasks.map(({ task }) => task.externalId));
   for (const link of links) {
-    if (link.type !== "FS" || link.lag !== 0 || !ids.has(link.predecessorExternalId) || !ids.has(link.successorExternalId)) {
+    if (!ALLOWED_DEPENDENCY_TYPES.has(link.type) || typeof link.lag !== "number" || !Number.isInteger(link.lag) || !ids.has(link.predecessorExternalId) || !ids.has(link.successorExternalId)) {
       throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", `Unsupported dependency: ${link.id}`);
     }
   }

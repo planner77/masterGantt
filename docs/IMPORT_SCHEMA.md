@@ -58,7 +58,7 @@ UTF-8 JSON object, export는 BOM 없이 작성한다. Reader는 파일 맨 앞 U
 
 Summary의 start/end/duration/progress는 선택적인 원본 snapshot이다. 제공하면 기본 날짜·숫자 형식과 범위를 검사하지만 authoritative leaf 계산에 사용하지 않는다. 모든 summary 결과는 자식에서 계산하여 preview 차이로 표시한다. Summary duration snapshot은 0..10000 정수로 제한한다. Empty summary는 거부한다.
 
-Predecessor object는 정확히 `{externalId: string, type: "FS", lag: 0}`이다. `externalId`는 **선행** Task이고 이 object를 포함하는 현재 Task가 후행이다. 중복 edge, 자기 참조, summary endpoint, 누락 참조, cycle을 거부한다. `SS/FF/SF` 및 nonzero lag/lead는 향후 기능이며 `UNSUPPORTED_DEPENDENCY` 오류를 낸다.
+Predecessor object는 `{externalId: string, type?: "FS" | "SS" | "FF" | "SF", lag?: number}`이다 (생략 시 기본값 `type: "FS"`, `lag: 0`). `externalId`는 **선행** Task이고 이 object를 포함하는 현재 Task가 후행이다. 중복 edge, 자기 참조, summary endpoint, 누락 참조, cycle을 거부한다. 지원되는 관계 종류(`FS`, `SS`, `FF`, `SF`) 및 정수 `lag`(-10000..10000)를 수용한다.
 
 별도 `order` field는 없다. 같은 parent에 속한 Task의 입력 배열 출현 순서가 sibling order다. Parent가 배열 뒤에 있어도 전체 ID index를 만든 후 연결하므로 유효하다. WBS는 파생 결과다.
 

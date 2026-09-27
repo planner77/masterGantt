@@ -144,6 +144,7 @@ describe("SQLite connection and schema", () => {
         "0010_logistics_resource_roles.sql",
         "0011_task_logistics_links.sql",
         "0012_project_templates.sql",
+        "0013_link_types_and_lag.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");

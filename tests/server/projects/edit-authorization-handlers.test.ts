@@ -434,6 +434,7 @@ describe("route security inventory", () => {
       "PUT /api/projects/{publicId}/edit-password",
       "POST /api/projects/{publicId}/tasks",
       "POST /api/projects/{publicId}/links",
+      "PATCH /api/projects/{publicId}/links/{linkId}",
       "DELETE /api/projects/{publicId}/links/{linkId}",
       "POST /api/projects/{publicId}/task-commands",
       "PATCH /api/projects/{publicId}/tasks/{taskId}",

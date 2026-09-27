@@ -1,6 +1,13 @@
-import { endFromStart, nextWorkingDay, type WorkingCalendar } from "./calendar";
+import {
+  endFromStart,
+  shiftWorkingDate,
+  startFromEnd,
+  type WorkingCalendar,
+} from "./calendar";
 import { MAX_HIERARCHY_TASKS } from "./hierarchy";
 import { SchedulingError } from "./errors";
+
+export type DependencyType = "FS" | "SS" | "FF" | "SF";
 
 export interface FinishStartDependencyTaskInput {
   readonly taskId: string;
@@ -12,13 +19,15 @@ export interface FinishStartDependencyTaskInput {
   readonly duration: number;
 }
 
-export interface FinishStartDependencyLinkInput {
+export interface DependencyLinkInput {
   readonly id: string;
   readonly predecessorExternalId: string;
   readonly successorExternalId: string;
-  readonly type: "FS";
-  readonly lag: 0;
+  readonly type: DependencyType;
+  readonly lag: number;
 }
+
+export type FinishStartDependencyLinkInput = DependencyLinkInput;
 
 export interface FinishStartDependencyChange {
   readonly taskId: string;
@@ -54,15 +63,22 @@ function invalid(field: string, index?: number): never {
   });
 }
 
+const ALLOWED_DEPENDENCY_TYPES = new Set<string>(["FS", "SS", "FF", "SF"]);
+
+interface IncomingLink {
+  readonly predecessorIndex: number;
+  readonly link: DependencyLinkInput;
+}
+
 /**
- * Apply supported FS/lag=0 constraints to calendar-normalized leaf schedules.
+ * Apply supported FS/SS/FF/SF and signed working-day Lag constraints to calendar-normalized leaf schedules.
  * The caller owns requested-start/calendar normalization. This function owns
  * dependency graph validation, deterministic forward-pass scheduling, and
  * Manual lower-bound conflict detection.
  */
-export function recalculateFinishStartDependencies<T extends FinishStartDependencyTaskInput>(
+export function recalculateDependencies<T extends FinishStartDependencyTaskInput>(
   tasks: readonly T[],
-  links: readonly FinishStartDependencyLinkInput[],
+  links: readonly DependencyLinkInput[],
   calendar: WorkingCalendar,
 ): FinishStartDependencyResult<T> {
   if (!Array.isArray(tasks) || !Array.isArray(links)) invalid("input");
@@ -92,20 +108,20 @@ export function recalculateFinishStartDependencies<T extends FinishStartDependen
   }
 
   const outgoing = tasks.map((): number[] => []);
-  const incoming = tasks.map((): number[] => []);
+  const incoming = tasks.map((): IncomingLink[] => []);
   const indegree = new Uint32Array(tasks.length);
   const linkIds = new Set<string>();
   const edges = new Set<string>();
 
   for (let index = 0; index < links.length; index += 1) {
-    const link = links[index] as FinishStartDependencyLinkInput;
+    const link = links[index] as DependencyLinkInput;
     if (!link || typeof link !== "object" || Array.isArray(link) ||
       typeof link.id !== "string" || link.id.length === 0 ||
       typeof link.predecessorExternalId !== "string" || !link.predecessorExternalId ||
       typeof link.successorExternalId !== "string" || !link.successorExternalId) {
       invalid(`links[${index}]`, index);
     }
-    if (link.type !== "FS" || link.lag !== 0) {
+    if (!ALLOWED_DEPENDENCY_TYPES.has(link.type) || typeof link.lag !== "number" || !Number.isInteger(link.lag) || link.lag < -10000 || link.lag > 10000) {
       throw new SchedulingError("UNSUPPORTED_DEPENDENCY", { field: `links[${index}]`, index });
     }
     if (linkIds.has(link.id)) {
@@ -130,7 +146,7 @@ export function recalculateFinishStartDependencies<T extends FinishStartDependen
     }
     edges.add(edge);
     outgoing[predecessor].push(successor);
-    incoming[successor].push(predecessor);
+    incoming[successor].push({ predecessorIndex: predecessor, link });
     indegree[successor] += 1;
   }
 
@@ -159,9 +175,27 @@ export function recalculateFinishStartDependencies<T extends FinishStartDependen
 
     let requiredStart: string | undefined;
     let boundPredecessors: string[] = [];
-    for (const predecessorIndex of incoming[index]) {
+    for (const { predecessorIndex, link } of incoming[index]) {
       const predecessor = staged[predecessorIndex];
-      const candidate = nextWorkingDay(predecessor.end, calendar, false);
+      let candidate: string;
+
+      if (link.type === "FS") {
+        candidate = shiftWorkingDate(predecessor.end, 1 + link.lag, calendar);
+      } else if (link.type === "SS") {
+        candidate = shiftWorkingDate(predecessor.start, link.lag, calendar);
+      } else if (link.type === "FF") {
+        const requiredEnd = shiftWorkingDate(predecessor.end, link.lag, calendar);
+        candidate = task.type === "milestone"
+          ? requiredEnd
+          : startFromEnd(requiredEnd, task.duration, calendar);
+      } else {
+        // SF
+        const requiredEnd = shiftWorkingDate(predecessor.start, link.lag, calendar);
+        candidate = task.type === "milestone"
+          ? requiredEnd
+          : startFromEnd(requiredEnd, task.duration, calendar);
+      }
+
       if (requiredStart === undefined || candidate > requiredStart) {
         requiredStart = candidate;
         boundPredecessors = [predecessor.externalId];
@@ -205,3 +239,6 @@ export function recalculateFinishStartDependencies<T extends FinishStartDependen
     manualConflicts: Object.freeze(manualConflicts),
   });
 }
+
+export const recalculateFinishStartDependencies = recalculateDependencies;
+

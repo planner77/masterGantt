@@ -2,6 +2,7 @@ import {
   dateToOrdinal,
   MAX_CALENDAR_SPAN_DAYS,
   MAX_DAY_ORDINAL,
+  MIN_DAY_ORDINAL,
   ordinalToDate,
   parseDateOnly,
   type DateOnly,
@@ -189,3 +190,64 @@ export function endFromStart(start: string, duration: number, calendar: WorkingC
   }
   throw new SchedulingError("DATE_OUT_OF_RANGE", { field: "end" });
 }
+
+export function previousWorkingDay(date: string, calendar: WorkingCalendar, inclusive = true): DateOnly {
+  const start = dateToOrdinal(date) - (inclusive ? 0 : 1);
+  for (let ordinal = start; ordinal >= MIN_DAY_ORDINAL; ordinal -= 1) {
+    if (workingOrdinal(ordinal, calendar)) return ordinalToDate(ordinal);
+  }
+  throw new SchedulingError("NO_WORKING_DAY", { field: "date", date });
+}
+
+/**
+ * Shifts a date by N working days.
+ * n = 0: current working day (or next working day if non-working and offset>=0)
+ * n > 0: Nth next working day
+ * n < 0: |N|th previous working day
+ */
+export function shiftWorkingDate(date: string, offset: number, calendar: WorkingCalendar): DateOnly {
+  if (!Number.isInteger(offset)) {
+    throw new SchedulingError("INVALID_DAY_OFFSET", { field: "offset" });
+  }
+  let currentOrdinal = dateToOrdinal(date);
+  if (!workingOrdinal(currentOrdinal, calendar)) {
+    currentOrdinal = dateToOrdinal(
+      offset >= 0
+        ? nextWorkingDay(date, calendar, true)
+        : previousWorkingDay(date, calendar, true)
+    );
+  }
+  if (offset === 0) {
+    return ordinalToDate(currentOrdinal);
+  }
+  let remaining = Math.abs(offset);
+  const step = offset > 0 ? 1 : -1;
+  const bound = offset > 0 ? MAX_DAY_ORDINAL : MIN_DAY_ORDINAL;
+
+  for (let ordinal = currentOrdinal + step; offset > 0 ? ordinal <= bound : ordinal >= bound; ordinal += step) {
+    if (workingOrdinal(ordinal, calendar)) {
+      remaining -= 1;
+      if (remaining === 0) return ordinalToDate(ordinal);
+    }
+  }
+  throw new SchedulingError("DATE_OUT_OF_RANGE", { field: "shiftWorkingDate" });
+}
+
+/**
+ * Calculates start date from end date and working-day duration.
+ * end must be a working day. For duration=1, start=end.
+ */
+export function startFromEnd(end: string, duration: number, calendar: WorkingCalendar): DateOnly {
+  validateTaskDuration(duration);
+  const last = dateToOrdinal(end);
+  if (!workingOrdinal(last, calendar)) {
+    throw new SchedulingError("NON_WORKING_END", { field: "end", date: end });
+  }
+  let remaining = duration;
+  for (let ordinal = last; ordinal >= MIN_DAY_ORDINAL; ordinal -= 1) {
+    if (workingOrdinal(ordinal, calendar)) remaining -= 1;
+    if (remaining === 0) return ordinalToDate(ordinal);
+  }
+  throw new SchedulingError("DATE_OUT_OF_RANGE", { field: "start" });
+}
+

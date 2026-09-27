@@ -61,6 +61,8 @@ import {
   type TaskClipboard,
 } from "./task-context-menu-model";
 import { taskHasDependencyLinks } from "./task-link-scope";
+import { RelationContextMenu } from "./relation-context-menu";
+import type { DependencyType } from "../../contracts/projects";
 import "./task-context-menu.css";
 import "./gantt-scale-toolbar.css";
 
@@ -93,6 +95,7 @@ interface ProjectGanttProps {
   readonly onTaskEditorOpen: (taskId: string) => void;
   readonly onTaskDeleteRequest: (taskId: string, trigger: HTMLElement | null) => void;
   readonly onLinkCreate: (sourceTaskId: string, targetTaskId: string) => void;
+  readonly onLinkUpdate?: (linkId: string, patch: { type: DependencyType; lag: number }) => Promise<void>;
   readonly onLinkDelete: (linkId: string) => void;
   readonly columnVisibility: ProjectGridColumnVisibility;
   readonly onColumnVisibilityChange: (columnId: ProjectGridDataColumnId) => void;
@@ -160,6 +163,7 @@ export function ProjectGantt({
   onTaskEditorOpen,
   onTaskDeleteRequest,
   onLinkCreate,
+  onLinkUpdate,
   onLinkDelete,
   columnVisibility,
   onColumnVisibilityChange,
@@ -178,6 +182,7 @@ export function ProjectGantt({
   const onTaskHierarchyCommandReference = useRef(onTaskHierarchyCommand);
   const onTaskDeleteRequestReference = useRef(onTaskDeleteRequest);
   const onLinkCreateReference = useRef(onLinkCreate);
+  const onLinkUpdateReference = useRef(onLinkUpdate);
   const onLinkDeleteReference = useRef(onLinkDelete);
   const canCreateReference = useRef(editable && !mutationLocked);
   const mutationLockedReference = useRef(mutationLocked);
@@ -219,6 +224,7 @@ export function ProjectGantt({
   const [columnMenuPosition, setColumnMenuPosition] = useState<MenuPosition | null>(null);
   const [taskMenu, setTaskMenu] = useState<TaskMenuState | null>(null);
   const [taskSubmenu, setTaskSubmenu] = useState<TaskSubmenuState | null>(null);
+  const [relationMenu, setRelationMenu] = useState<{ linkId: string; left: number; top: number } | null>(null);
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
@@ -247,6 +253,7 @@ export function ProjectGantt({
     onTaskHierarchyCommandReference.current = onTaskHierarchyCommand;
     onTaskDeleteRequestReference.current = onTaskDeleteRequest;
     onLinkCreateReference.current = onLinkCreate;
+    onLinkUpdateReference.current = onLinkUpdate;
     onLinkDeleteReference.current = onLinkDelete;
     canCreateReference.current = editable && !mutationLocked;
     mutationLockedReference.current = mutationLocked;
@@ -260,7 +267,7 @@ export function ProjectGantt({
     for (const taskId of summaryToggleStateReference.current.keys()) {
       if (!summaries.has(taskId)) summaryToggleStateReference.current.delete(taskId);
     }
-  }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkDelete, tasksById]);
+  }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, tasksById]);
 
   useEffect(() => () => {
     inlineOpenTokenReference.current += 1;
@@ -822,7 +829,25 @@ export function ProjectGantt({
     header.focus({ preventScroll: true });
     columnMenuTriggerReference.current = header;
     setTaskMenu(null);
+    setRelationMenu(null);
     setColumnMenuPosition(clampMenuPosition(x, y, 208, 196));
+  }
+
+  function openRelationMenu(target: EventTarget | null, x: number, y: number): boolean {
+    if (!(target instanceof Element)) return false;
+    const linkElement = target.closest("[data-link-id]");
+    if (!linkElement) return false;
+    const rawId = linkElement.getAttribute("data-link-id");
+    if (!rawId) return false;
+    const linkId = rawId.startsWith(":") ? rawId.slice(1) : rawId;
+    const exists = links.some((l) => l.id === linkId);
+    if (!exists) return false;
+
+    setTaskMenu(null);
+    setTaskSubmenu(null);
+    setColumnMenuPosition(null);
+    setRelationMenu({ linkId, left: x, top: y });
+    return true;
   }
 
   function openTaskMenu(target: EventTarget | null, x?: number, y?: number): boolean {
@@ -925,6 +950,9 @@ export function ProjectGantt({
     if (header) {
       event.preventDefault();
       openColumnMenu(header, event.clientX, event.clientY);
+    } else if (openRelationMenu(event.target, event.clientX, event.clientY)) {
+      event.preventDefault();
+      event.stopPropagation();
     } else if (openTaskMenu(event.target, event.clientX, event.clientY)) {
       event.preventDefault();
       event.stopPropagation();
@@ -1501,6 +1529,25 @@ export function ProjectGantt({
           >{submenuCommands}</div> : null}
           </>}
         </div> : null}
+        {relationMenu ? (
+          <RelationContextMenu
+            key={relationMenu.linkId}
+            editable={editable && !mutationLocked}
+            linkId={relationMenu.linkId}
+            links={links}
+            onClose={() => setRelationMenu(null)}
+            onDelete={async (id) => {
+              onLinkDeleteReference.current(id);
+            }}
+            onSave={async (id, patch) => {
+              if (onLinkUpdateReference.current) {
+                await onLinkUpdateReference.current(id, patch);
+              }
+            }}
+            position={{ left: relationMenu.left, top: relationMenu.top }}
+            tasks={tasks}
+          />
+        ) : null}
       </Willow>
     </div>
   );
