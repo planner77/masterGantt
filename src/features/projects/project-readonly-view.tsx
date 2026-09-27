@@ -161,6 +161,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const taskMutationReference = useRef(false);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
   const [relationEditorLinkId, setRelationEditorLinkId] = useState<string | null>(null);
+  const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
   const editorOpeningReference = useRef(false);
   const deleteTriggerReference = useRef<HTMLElement | null>(null);
@@ -537,10 +538,33 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     });
   }
   async function openRelationEditor(linkId: string) {
-    if (state.status !== "ready") return;
+    if (state.status !== "ready" || relationEditorLinkId) return;
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
-    if (frame && document.fullscreenElement === frame) await exitGanttFullscreen(frame);
-    setRelationEditorLinkId(linkId);
+    try {
+      if (frame && document.fullscreenElement === frame) await exitGanttFullscreen(frame);
+      if (frame && document.fullscreenElement === frame) throw new Error("Gantt fullscreen remains active");
+      relationEditorTriggerReference.current = trigger;
+      setRelationEditorLinkId(linkId);
+    } catch {
+      frame?.dispatchEvent(new Event("project-gantt-fullscreen-exit-error"));
+      notify("error", "전체화면을 종료하지 못해 관계 편집기를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.", "관계 편집기");
+      const root = frame?.querySelector<HTMLElement>(".project-gantt-scroll");
+      const focusTarget = trigger?.isConnected && !trigger.closest(".relation-context-menu")
+        ? trigger
+        : root;
+      focusTarget?.focus({ preventScroll: true });
+    }
+  }
+  function closeRelationEditor() {
+    const trigger = relationEditorTriggerReference.current;
+    setRelationEditorLinkId(null);
+    relationEditorTriggerReference.current = null;
+    requestAnimationFrame(() => {
+      const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
+      const target = trigger?.isConnected && !trigger.closest(".relation-context-menu") ? trigger : root;
+      target?.focus({ preventScroll: true });
+    });
   }
   async function saveEditorTask(command: ProjectTaskUpdateCommand, revision: number): Promise<TaskEditorSaveResult> {
     if (state.status !== "ready") return { status: "failed", message: "프로젝트 정보를 확인할 수 없습니다." };
@@ -602,8 +626,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     targetTaskId?: string,
     linkId?: string,
     linkPatch?: { type?: DependencyType; lag?: number },
-  ) {
-    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return;
+  ): Promise<boolean> {
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return false;
     taskMutationReference.current = true; setIsSavingTask(true); clearToast();
     try {
       const source = sourceTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === sourceTaskId) : undefined;
@@ -629,11 +653,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       const snapshot = snapshotFromLinkMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
         notify("success", method === "POST" ? "작업 관계를 저장했습니다." : method === "PATCH" ? "작업 관계를 변경했습니다." : "작업 관계를 삭제했습니다.", "작업 관계");
-        return;
+        return true;
       }
       await handleTaskFailure(response.status, body, "작업 관계를 변경할 수 없습니다.", "작업 관계");
+      return false;
     } catch {
       await handleTaskFailure(undefined, null, "작업 관계를 변경하지 못했습니다. 최신 서버 상태로 복구합니다.", "작업 관계");
+      return false;
     } finally {
       taskMutationReference.current = false; setIsSavingTask(false);
     }
@@ -930,7 +956,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
-          onTaskEditorOpen={openTaskEditor} onRelationEditorOpen={openRelationEditor} onTaskDeleteRequest={requestTaskDelete} onLinkCreate={(source, target) => void saveLink("POST", source, target)} onLinkUpdate={(linkId, patch) => saveLink("PATCH", undefined, undefined, linkId, patch)} onLinkDelete={(linkId) => void saveLink("DELETE", undefined, undefined, linkId)} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
+          onTaskEditorOpen={openTaskEditor} onRelationEditorOpen={openRelationEditor} onTaskDeleteRequest={requestTaskDelete} onLinkCreate={(source, target) => void saveLink("POST", source, target)} onLinkUpdate={async (linkId, patch) => { await saveLink("PATCH", undefined, undefined, linkId, patch); }} onLinkDelete={(linkId) => void saveLink("DELETE", undefined, undefined, linkId)} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
             const visibleColumnCount = Object.values(current).filter(Boolean).length;
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };
@@ -940,11 +966,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
         {relationEditorLinkId ? (
           <RelationEditorDialog
-            editable={editing && !busy}
+            editable={editing}
             key={relationEditorLinkId}
             linkId={relationEditorLinkId}
             links={links}
-            onClose={() => setRelationEditorLinkId(null)}
+            onClose={closeRelationEditor}
             onCreateLink={async (source, target, options) => {
               await saveLink("POST", source, target, undefined, options);
             }}
