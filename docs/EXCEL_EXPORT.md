@@ -13,11 +13,12 @@ Issue #28에서 구현된 프로젝트 Excel 내보내기의 **현재 구현 계
 
 ## 2. 사용자 흐름
 
-프로젝트 화면의 **Excel 내보내기** 버튼을 누르면 매 실행마다 작업 관계 처리 방식을 선택한다.
+프로젝트 화면의 **Excel 내보내기** 버튼을 누르면 매 실행마다 작업 관계 처리 방식 및 물류 구성 보고서 포함 여부를 선택한다.
 
 1. `관계 포함`
 2. `관계 제외`
-3. `취소`
+3. `물류 구성 보고서 포함` (체크박스, 기본 체크)
+4. `취소`
 
 취소는 export 요청을 전송하지 않는다.
 
@@ -28,6 +29,7 @@ Issue #28에서 구현된 프로젝트 Excel 내보내기의 **현재 구현 계
 ```json
 {
   "includeDependencies": true,
+  "includeLogistics": true,
   "scope": "project",
   "scale": "day",
   "hierarchyDisplay": "expanded",
@@ -41,6 +43,7 @@ Issue #28에서 구현된 프로젝트 Excel 내보내기의 **현재 구현 계
 }
 ```
 
+`includeLogistics`는 선택 필드(boolean)이며 기본값은 false다. true로 지정하고 프로젝트에 물류 데이터가 존재할 경우 `Logistics` 보고용 시트가 추가된다.
 `scope`, `scale`, `hierarchyDisplay`는 현재 각각 `project`, `day`, `expanded`만 허용한다. Grid column ID는 `text`, `externalId`, `projectStart`, `projectDuration`만 허용하며 duplicate column은 거부한다.
 
 ## 4. Workbook 구조
@@ -51,6 +54,7 @@ Issue #28에서 구현된 프로젝트 Excel 내보내기의 **현재 구현 계
 - `Tasks`: 작업의 구조화된 원본/계산 값
 - `Project`: 프로젝트 metadata, revision, timezone, holiday, export 정책
 - `Dependencies`: `includeDependencies=true`일 때만 생성
+- `Logistics`: `includeLogistics=true`이고 프로젝트에 물류 데이터가 존재할 때 생성 (Issue #189 LG-06)
 
 ### Gantt
 
@@ -78,6 +82,23 @@ Issue #28에서 구현된 프로젝트 Excel 내보내기의 **현재 구현 계
 관계 포함을 선택한 경우에만 relation ID, type, lag, predecessor와 successor의 WBS/name/external ID를 기록한다.
 
 관계 제외를 선택하면 `Dependencies` sheet, 관계 전용 열, Drawing relationship을 생성하지 않는다. 관계를 제외하더라도 schedule을 재계산하지 않는다.
+
+### Logistics
+
+물류 구성 보고서 포함(`includeLogistics=true`)을 선택하고 프로젝트에 물류 데이터가 존재할 때 생성된다.
+
+1. **안내 및 프로젝트/물류 구성 요약**:
+   - `본 시트는 물류 구성 보고용 출력물이며, 전체 프로젝트 무손실 재가져오기(Import) 백업 파일이 아닙니다.` 안내 문구.
+   - 프로젝트명, 프로젝트 ID, revision, 산출 기준일, 등록 공정 수, 등록 설비 수(총 수량), 등록 시스템 수, 태스크-물류 연결 수.
+2. **공정 마스터 (Processes)**: 공정 코드, 공정명, 상위 공정 코드/명, 정렬 순서, 활성 상태, 공정 ID.
+3. **설비 마스터 및 제어/역할 (Equipment)**: 설비 코드, 설비명, 유형, 관리 단위, 수량, 소속 공정 코드, 제어 시스템 및 역할, 담당 리소스 및 역할(주담당 표시), 제조사, 모델, 설명, 활성 상태, 설비 ID.
+4. **물류 시스템 마스터 (Systems)**: 시스템 코드, 시스템명, 시스템 유형, 계층(Layer), 관리 범위, 담당 공정 목록, 조율 대상 시스템 목록, 담당 리소스 및 역할(주담당 표시), 공급사(Vendor), 설명, 활성 상태, 시스템 ID.
+5. **태스크-물류 연결 (Task Logistics Links)**: 태스크 WBS, 태스크 명, 외부 ID, 대상 구분(설비/시스템), 대상 코드, 대상 명, 연결 범위(`self` 직접 연결 / `subtree` 하위 계층 포함 상속), 태스크 ID, 대상 ID.
+
+보안 및 무결성을 위해 다음 원칙을 적용한다:
+- 관리 code 및 public ID로 상호 관계를 검증할 수 있게 하고, 직접 연결과 파생 상속 범위를 구분한다.
+- 내부 DB PK, password, session token은 일체 포함하지 않는다.
+- Excel Formula Injection 방지를 위해 `=`, `+`, `-`, `@`로 시작하는 모든 사용자 텍스트 값은 `'` 접두사를 적용하여 안전하게 이스케이프한다.
 
 ## 5. 일정 및 관계 해석
 

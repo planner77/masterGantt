@@ -125,3 +125,10 @@ Error는 stable code, JSON path 또는 CSV logical record number, externalId(알
 Parse/encoding/version/missing field/date/progress/type/duplicate/missing parent/unsupported link/cycle/Manual conflict 중 하나라도 있으면 commit은 0건이다. Warning만 있는 경우 이동 내역과 원본 비교를 preview에서 확인한 후 제출할 수 있다. Commit write 중 실패해도 전체 rollback한다. 부분 성공, silent row skip, 기존 Task upsert·delete, Project metadata 교체는 없다.
 
 Preview 응답과 오류 envelope, HTTP status, auth, revision은 [API.md](API.md), producer 오류 보고·한국어 검증은 [VBA_EXPORT.md](VBA_EXPORT.md), 독립 검증은 [TEST_PLAN.md](TEST_PLAN.md)를 따른다.
+
+## 물류 도메인과의 경계 (Issue #189 LG-06)
+
+- 본 Import 계약 1.0은 순수 일정(Tasks, Predecessors, Calendar)만을 대상으로 하며, 물류 도메인(공정, 설비, 시스템, 태스크-물류 연결)을 포함하지 않는다.
+- `schemaVersion`은 `"1.0"`을 엄격히 유지하며, 임의의 물류 필드가 포함될 경우 unknown field로 거부된다.
+- 이번 물류 MVP의 입력 수단은 웹 UI(물류 구성 화면) 및 프로젝트 복사 기능이며, VBA 매크로 기반 물류 데이터 추출기 및 물류 bulk import는 비범위(Out of Scope)다. 향후 물류 대량 등록이 필요한 경우 backend + excel_vba 공동 검토를 거쳐 승인된 별도 스키마 버전으로 확장한다.
+

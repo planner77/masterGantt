@@ -107,6 +107,8 @@ export interface CopyProjectResponse {
     project: ProjectDto;
     tasks: ProjectTaskDto[];
     links: ProjectLinkDto[];
+    assignments?: ProjectAssignmentDto[];
+    logistics?: ProjectLogisticsDto;
     permission: "edit";
     operation: {
       kind: "projectCopy";
@@ -116,9 +118,13 @@ export interface CopyProjectResponse {
         tasks: number;
         links: number;
         holidays: number;
+        assignments?: number;
+        processes?: number;
+        equipment?: number;
+        systems?: number;
       };
     };
-    warnings: [];
+    warnings: string[];
   };
 }
 
