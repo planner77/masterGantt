@@ -25,6 +25,7 @@ import { createTaskDeletePlan, type TaskDeletePlan } from "@/features/gantt/task
 import { findTaskContextElement } from "@/features/gantt/task-context-target";
 import { taskHasDependencyLinks } from "@/features/gantt/task-link-scope";
 import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
+import { ProjectLogisticsManagement } from "@/features/logistics/project-logistics-management";
 import { todayLocalDateString } from "@/lib/date-display";
 
 const ProjectGantt = dynamic(
@@ -97,7 +98,16 @@ function snapshotFromMetadataMutation(value: unknown): ProjectSnapshotResponse |
   if (!data || typeof data !== "object" || !data.project || typeof data.project !== "object" || !Array.isArray(data.tasks) ||
     !Array.isArray(data.links) || !Array.isArray(data.warnings) || !data.operation || data.operation.kind !== "projectMetadata" ||
     !Array.isArray(data.operation.changedFields)) return null;
-  return { data: { project: data.project, tasks: data.tasks, links: data.links, permission: "readonly" } };
+  return {
+    data: {
+      project: data.project,
+      tasks: data.tasks,
+      links: data.links,
+      ...(data.assignments ? { assignments: data.assignments } : {}),
+      ...(data.logistics ? { logistics: data.logistics } : {}),
+      permission: "readonly",
+    },
+  };
 }
 function snapshotFromTaskMutation(value: unknown): ProjectSnapshotResponse | null {
   if (typeof value !== "object" || value === null) return null;
@@ -107,7 +117,16 @@ function snapshotFromTaskMutation(value: unknown): ProjectSnapshotResponse | nul
     !data.operation || !["taskCreate", "taskUpdate", "taskDelete", "taskHierarchy"].includes(data.operation.kind) ||
     !Array.isArray(data.operation.changedTaskExternalIds) || !Array.isArray(data.operation.deletedTaskExternalIds) ||
     !Array.isArray(data.operation.deletedLinkIds)) return null;
-  return { data: { project: data.project, tasks: data.tasks, links: data.links, permission: "readonly" } };
+  return {
+    data: {
+      project: data.project,
+      tasks: data.tasks,
+      links: data.links,
+      ...(data.assignments ? { assignments: data.assignments } : {}),
+      ...(data.logistics ? { logistics: data.logistics } : {}),
+      permission: "readonly",
+    },
+  };
 }
 function snapshotFromLinkMutation(value: unknown): ProjectSnapshotResponse | null {
   if (typeof value !== "object" || value === null) return null;
@@ -115,7 +134,16 @@ function snapshotFromLinkMutation(value: unknown): ProjectSnapshotResponse | nul
   if (!data || typeof data !== "object" || !data.project || !Array.isArray(data.tasks) ||
     !Array.isArray(data.links) || !Array.isArray(data.warnings) || !data.operation ||
     !["linkCreate", "linkDelete"].includes(data.operation.kind)) return null;
-  return { data: { project: data.project, tasks: data.tasks, links: data.links, permission: "readonly" } };
+  return {
+    data: {
+      project: data.project,
+      tasks: data.tasks,
+      links: data.links,
+      ...(data.assignments ? { assignments: data.assignments } : {}),
+      ...(data.logistics ? { logistics: data.logistics } : {}),
+      permission: "readonly",
+    },
+  };
 }
 
 
@@ -143,7 +171,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
-  const [activeView, setActiveView] = useState<"schedule" | "resources">("schedule");
+  const [activeView, setActiveView] = useState<"schedule" | "resources" | "logistics">("schedule");
   const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
   const [taskFilterOpen, setTaskFilterOpen] = useState(false);
   const [assignedTargets, setAssignedTargets] = useState<AssignmentTargetDto[]>([]);
@@ -166,6 +194,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const focusUnlockAfterSettingsReference = useRef(false);
   const scheduleTabReference = useRef<HTMLButtonElement | null>(null);
   const resourceTabReference = useRef<HTMLButtonElement | null>(null);
+  const logisticsTabReference = useRef<HTMLButtonElement | null>(null);
   const actionMenuReference = useRef<HTMLDetailsElement | null>(null);
   const taskSearchReference = useRef<HTMLInputElement | null>(null);
   const taskFilterTriggerReference = useRef<HTMLButtonElement | null>(null);
@@ -619,17 +648,21 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     }
   }
 
-  function activateWorkspaceView(view: "schedule" | "resources") {
+  function activateWorkspaceView(view: "schedule" | "resources" | "logistics") {
     setActiveView(view);
     requestAnimationFrame(() => {
-      (view === "schedule" ? scheduleTabReference.current : resourceTabReference.current)?.focus({ preventScroll: true });
+      const ref = view === "schedule" ? scheduleTabReference.current : view === "resources" ? resourceTabReference.current : logisticsTabReference.current;
+      ref?.focus({ preventScroll: true });
     });
   }
-  function handleWorkspaceTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, current: "schedule" | "resources") {
-    let next: "schedule" | "resources" | null = null;
-    if (event.key === "ArrowRight" || event.key === "ArrowLeft") next = current === "schedule" ? "resources" : "schedule";
-    else if (event.key === "Home") next = "schedule";
-    else if (event.key === "End") next = "resources";
+  function handleWorkspaceTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, current: "schedule" | "resources" | "logistics") {
+    const views: Array<"schedule" | "resources" | "logistics"> = ["schedule", "resources", "logistics"];
+    const idx = views.indexOf(current);
+    let next: "schedule" | "resources" | "logistics" | null = null;
+    if (event.key === "ArrowRight") next = views[(idx + 1) % views.length];
+    else if (event.key === "ArrowLeft") next = views[(idx - 1 + views.length) % views.length];
+    else if (event.key === "Home") next = views[0];
+    else if (event.key === "End") next = views[views.length - 1];
     if (!next) return;
     event.preventDefault();
     activateWorkspaceView(next);
@@ -747,6 +780,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         onClick={() => setActiveView("resources")}
         onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "resources")}
       >리소스</button>
+      <button
+        ref={logisticsTabReference}
+        id="project-tab-logistics"
+        role="tab"
+        type="button"
+        aria-controls="project-panel-logistics"
+        aria-selected={activeView === "logistics"}
+        tabIndex={activeView === "logistics" ? 0 : -1}
+        onClick={() => setActiveView("logistics")}
+        onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "logistics")}
+      >물류 구성</button>
     </div>
 
     <div className="project-workspace-panels">
@@ -857,6 +901,29 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         className="project-workspace-panel project-resource-panel"
       >
         <ProjectResourceWorkload publicId={publicId} />
+      </section>
+      <section
+        id="project-panel-logistics"
+        role="tabpanel"
+        aria-labelledby="project-tab-logistics"
+        hidden={activeView !== "logistics"}
+        className="project-workspace-panel project-logistics-panel"
+      >
+        <ProjectLogisticsManagement
+          publicId={publicId}
+          revision={project.revision}
+          editable={editing}
+          logistics={state.snapshot.data.logistics}
+          onLogisticsMutated={(newLogistics, newProject) => {
+            setState((current) => {
+              if (current.status !== "ready") return current;
+              return { ...current, snapshot: { ...current.snapshot, data: { ...current.snapshot.data, project: newProject, logistics: newLogistics } } };
+            });
+            notify("success", "물류 구성 변경 사항을 저장했습니다.", "물류 구성");
+          }}
+          onRequireRefresh={() => { void reloadCanonicalSnapshot(); }}
+          onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }}
+        />
       </section>
     </div>
 

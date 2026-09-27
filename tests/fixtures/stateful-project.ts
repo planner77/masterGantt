@@ -1,5 +1,6 @@
 import { expect, type Page, type Request, type Route } from "@playwright/test";
 import type { CreateTaskRequest, ProjectDto, ProjectLinkDto, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
+import type { ProjectLogisticsDto } from "../../src/contracts/logistics";
 
 export const publicId = "a3405d3d-8cb4-4da4-9b0f-43a5de330003";
 export const projectPath = `/api/projects/${publicId}`;
@@ -17,6 +18,7 @@ export interface StatefulProjectFixture {
   readonly project: ProjectDto;
   readonly tasks: ProjectTaskDto[];
   readonly links: ProjectLinkDto[];
+  logistics?: ProjectLogisticsDto;
   sessionEditable: boolean;
   nextPost: PostOutcome;
 }
@@ -42,7 +44,7 @@ function initialTasks(): ProjectTaskDto[] {
   ];
 }
 function snapshot(fixture: StatefulProjectFixture) {
-  return { data: { project: { ...fixture.project }, tasks: fixture.tasks.map((entry) => ({ ...entry })), links: fixture.links.map((entry) => ({ ...entry })), permission: "readonly" as const } };
+  return { data: { project: { ...fixture.project }, tasks: fixture.tasks.map((entry) => ({ ...entry })), links: fixture.links.map((entry) => ({ ...entry })), permission: "readonly" as const, logistics: fixture.logistics ?? { processes: [], equipment: [], systems: [], systemLinks: [] } } };
 }
 function taskMutation(fixture: StatefulProjectFixture, changedTaskExternalIds: string[]): TaskMutationResponse {
   return { data: {
@@ -127,10 +129,21 @@ export async function installStatefulProjectFixture(page: Page): Promise<Statefu
       }
       await route.fulfill({ status: 201, json: applySuccessfulCreate(fixture, payload) }); return;
     }
+    if (pathname === `${projectPath}/logistics` && request.method() === "GET") {
+      await route.fulfill({ json: { data: { project: { ...fixture.project }, logistics: fixture.logistics ?? { processes: [], equipment: [], systems: [], systemLinks: [] }, permission: fixture.sessionEditable ? "edit" : "readonly" } } }); return;
+    }
     if (pathname.startsWith(`${taskPath}/`) && request.method() === "PATCH") {
       fixture.patchRequests.push(request); await route.fulfill({ status: 500, json: errorBody("UNEXPECTED_PATCH") }); return;
     }
     await route.continue();
+  });
+  await page.route("**/api/resources**", async (route: Route) => {
+    await route.fulfill({ json: { data: { revision: 1, resources: [
+      { id: "res-1", name: "홍길동", code: "ENG-01", description: "설비 엔지니어", active: true },
+      { id: "res-2", name: "김철수", code: "DEV-01", description: "시스템 개발자", active: true },
+      { id: "res-3", name: "이영희", code: "PI-01", description: "수석 아키텍트", active: true },
+      { id: "res-inactive", name: "박비활", code: "OLD-01", description: "퇴사자", active: false },
+    ], groups: [] } } });
   });
   return fixture;
 }

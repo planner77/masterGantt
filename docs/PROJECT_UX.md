@@ -302,3 +302,12 @@ Project Workspace의 일정(Schedule) 도구줄에 `[ 전체 | Task | Milestone 
 - child match 시 필요한 ancestor Summary는 기존 `filterTasksWithAncestors()` 정책에 따라 context row로 유지되며 match count에는 포함하지 않는다.
 - 버튼 전환은 client-side view state로 동작하여 API 재요청, Project mutation, revision 증가, Gantt remount를 유발하지 않으며 SVAR 공개 `filter-tasks` action을 재사용한다.
 - 읽기 전용(readonly)에서도 동일하게 사용 가능하며, 390/768/1024/1440px 및 전체화면 모드에서 컨트롤 겹침 없이 키보드 Tab 및 `aria-pressed` 접근성을 보장한다.
+
+
+## Issue #186 물류 구성 및 담당자 관리 화면 UI (물류 LG-03)
+
+Project Workspace의 탭 목록을 `일정 (schedule)`, `리소스 (resources)`, `물류 구성 (logistics)` 3개 탭으로 확장한다. ArrowLeft/ArrowRight/Home/End 키보드 탐색과 ARIA tab 연결을 제공하고, 탭 전환 시 기존 Gantt 인스턴스와 scroll/scale/tree/column/selection 상태를 유지한다.
+
+물류 구성 탭은 공정 관리, 설비 관리, 물류 시스템, 제어·조율 관계의 4개 서브 탭을 제공한다. 공정 WBS와 Gantt WBS를 구분하고, 설비의 제어 시스템 및 Owner/Contributor, 시스템의 process scope/조율 관계 및 PI/Developer를 기존 Project-local 물류 API와 global Resource 카탈로그에 연결한다.
+
+Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutation action을 표시한다. 최신 main API 계약에 따라 조율 관계 교체는 `childSystemIds`를 사용하고 DELETE는 영구 삭제 semantics를 따른다. 401/403은 workspace를 readonly로 강등하며, canonical metadata/task/link mutation 응답의 logistics aggregate를 보존한다. 390/768/1024/1440px, Escape 취소, document overflow 및 Gantt mount 보존을 Chromium E2E로 검증한다.
