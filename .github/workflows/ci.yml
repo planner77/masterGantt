@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main, feat/issue-202-schedule-baseline]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
