@@ -31,6 +31,8 @@ import {
   LogisticsService,
   LogisticsValidationError,
 } from "./logistics-service-core";
+import { LogisticsDashboardService } from "./logistics-dashboard-service";
+import { parseDateOnly } from "../../domain/scheduling/date-only";
 import {
   parseCreateEquipmentInput,
   parseCreateLogisticsSystemInput,
@@ -718,3 +720,90 @@ export async function handleReplaceTaskLogisticsLinks(
     return mapError(error, requestId);
   }
 }
+
+export async function handleGetLogisticsDashboard(
+  request: Request,
+  publicId: string,
+  dependencies: LogisticsHandlerDependencies & {
+    dashboardService: LogisticsDashboardService | (() => LogisticsDashboardService);
+  },
+): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    if (!isCanonicalUuidV4(publicId)) {
+      throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    }
+
+    const url = new URL(request.url);
+    const asOfDate = url.searchParams.get("asOfDate") || undefined;
+    if (asOfDate) {
+      try {
+        parseDateOnly(asOfDate, "asOfDate");
+      } catch {
+        throw new PublicApiError(400, "INVALID_REQUEST", "Invalid asOfDate query parameter.");
+      }
+    }
+
+    const horizonDaysRaw = url.searchParams.get("horizonDays");
+    let horizonDays: number | undefined;
+    if (horizonDaysRaw !== null) {
+      const parsed = Number(horizonDaysRaw);
+      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 90) {
+        throw new PublicApiError(400, "INVALID_REQUEST", "horizonDays must be an integer between 1 and 90.");
+      }
+      horizonDays = parsed;
+    }
+
+    const systemViewRaw = url.searchParams.get("systemView");
+    const systemView = systemViewRaw === "coordination" ? "coordination" : "direct";
+
+    const activeOnly = url.searchParams.get("activeOnly") === "true";
+    const includeDescendantProcesses = url.searchParams.get("includeDescendantProcesses") !== "false";
+
+    const mdPerMmRaw = url.searchParams.get("mdPerMm");
+    let mdPerMm: number | null | undefined;
+    if (mdPerMmRaw !== null && mdPerMmRaw.trim() !== "") {
+      const parsed = Number(mdPerMmRaw);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        mdPerMm = parsed;
+      }
+    }
+
+    const parseQueryArray = (paramName: string): string[] | undefined => {
+      const all = url.searchParams.getAll(paramName);
+      if (all.length === 0) return undefined;
+      const list = all.flatMap((item) => item.split(",")).map((s) => s.trim()).filter(Boolean);
+      return list.length > 0 ? list : undefined;
+    };
+
+    const processIds = parseQueryArray("processIds");
+    const equipmentIds = parseQueryArray("equipmentIds");
+    const systemIds = parseQueryArray("systemIds");
+    const taskAssigneeResourceIds = parseQueryArray("taskAssigneeResourceIds");
+    const roleResourceIds = parseQueryArray("roleResourceIds");
+
+    const service = resolve(dependencies.dashboardService);
+    const dashboard = service.getDashboard(publicId, {
+      asOfDate,
+      horizonDays,
+      systemView,
+      activeOnly,
+      includeDescendantProcesses,
+      mdPerMm,
+      processIds,
+      equipmentIds,
+      systemIds,
+      taskAssigneeResourceIds,
+      roleResourceIds,
+    });
+
+    if (!dashboard) {
+      throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    }
+
+    return Response.json({ data: dashboard }, { status: 200, headers: NO_STORE_HEADERS });
+  } catch (error) {
+    return mapError(error, requestId);
+  }
+}
+
