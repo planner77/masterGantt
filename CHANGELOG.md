@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.44.0] - 2026-09-27
+
+### Added
+
+- Issue #202: 기준 일정 (Baseline) 관리 및 Gantt 차트 오버레이 바 지원.
+  - DB 마이그레이션 `0014_task_baseline.sql`: `tasks` 테이블에 `baseline_start`, `baseline_duration`, `baseline_end` 컬럼 추가.
+  - 순수 계층/일정 도메인 엔진(`src/domain/scheduling/hierarchy.ts`):
+    - Summary 작업의 baseline은 하위 모든 자손(leaf)에 baseline이 설정된 경우에만 `min(baselineStart)`, `max(baselineEnd)`, `workingDaysBetween`으로 자동 파생.
+    - 자손 중 하나라도 baseline이 없으면 Summary baseline은 `null` (부분 바 표시 없음).
+    - Summary baseline의 직접 수동 변경은 차단(`SummaryScheduleReadonlyError`).
+  - 백엔드 서비스 및 API 계약:
+    - `ProjectTaskDto` 및 `UpdateTaskRequest`에 `baselineStart`, `baselineDuration`, `baselineEnd` 필드 추가.
+    - `ProjectService.updateTask`: 작업의 baseline 설정/수정/삭제 처리 및 Summary baseline 자동 파생 갱신.
+    - `ProjectCopyService`: 프로젝트 복제 시 task baseline 컬럼 복제 보존.
+  - 프론트엔드 UI/UX:
+    - `ProjectTaskEditor`: 작업 정보 탭에 "기준 일정 (Baseline)" 섹션 신규 추가. "현재 일정으로 설정", "기준 일정 삭제" 단축 액션 및 Summary 파생 정보 읽기 전용 표시.
+    - `ProjectGantt`: 툴바에 "기준 일정 보기/숨기기" 토글 버튼 추가.
+    - Grid 열 메뉴에 "기준 시작", "기준 종료" 컬럼 가시성 토글 지원.
+    - Gantt 타임라인 차트에 SVAR 네이티브 baseline bar 연동 (현재 작업 바 인터랙션을 방해하지 않는 비침해 렌더링).
+
 ## [0.43.0] - 2026-09-27
 
 ### Added

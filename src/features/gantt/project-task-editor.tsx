@@ -8,6 +8,8 @@ import { TaskLogisticsLinkEditor } from "./task-logistics-link-editor";
 import { TASK_EDITOR_TABS, taskEditorTabForKey, type TaskEditorTab } from "./task-editor-view-model";
 import { buildTaskRelations, formatTaskRelationType, type TaskRelationView } from "./task-relations";
 import {
+  clearBaseline,
+  copyScheduleToBaseline,
   createTaskEditorDraft,
   prepareTaskEditorCommand,
   taskEditorIsDirty,
@@ -210,6 +212,89 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
             </div>
             <label className={styles.field}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={readOnly} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
             <label className={styles.field}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={readOnly} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
+          </div>
+
+          <div className={styles.baselineSection}>
+            <div className={styles.baselineHeader}>
+              <h3 className={styles.baselineTitle}>기준 일정 (Baseline)</h3>
+              {base.task.type !== "summary" && !readOnly ? (
+                <div className={styles.baselineActions}>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    disabled={locked}
+                    onClick={() => {
+                      setDraft((current) => copyScheduleToBaseline(current, base.task));
+                      setError(null);
+                    }}
+                  >
+                    현재 일정으로 설정
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    disabled={locked || (!draft.baselineStart && !base.task.baselineStart)}
+                    onClick={() => {
+                      setDraft((current) => clearBaseline(current));
+                      setError(null);
+                    }}
+                  >
+                    기준 일정 삭제
+                  </button>
+                </div>
+              ) : null}
+            </div>
+
+            {base.task.type === "summary" ? (
+              <div className={styles.scheduleFields}>
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>파생 기준 시작일</span>
+                  <output className={styles.outputField}>{base.task.baselineStart ?? "미설정"}</output>
+                </div>
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>파생 기준 기간</span>
+                  <output className={styles.outputField}>{base.task.baselineDuration !== null && base.task.baselineDuration !== undefined ? `${base.task.baselineDuration}일` : "미설정"}</output>
+                </div>
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>파생 기준 종료일</span>
+                  <output className={styles.outputField}>{base.task.baselineEnd ?? "미설정"}</output>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.scheduleFields}>
+                <label className={styles.field}>
+                  기준 시작일
+                  <input
+                    name="task-baseline-start"
+                    type="date"
+                    min="1900-01-01"
+                    max="2199-12-31"
+                    value={draft.baselineStart}
+                    readOnly={readOnly}
+                    disabled={locked}
+                    onChange={(event) => change("baselineStart", event.target.value)}
+                  />
+                </label>
+                <label className={styles.field}>
+                  기준 기간 (근무일)
+                  <input
+                    name="task-baseline-duration"
+                    type="number"
+                    min={base.task.type === "milestone" ? 0 : 1}
+                    max="10000"
+                    step="1"
+                    value={draft.baselineDuration}
+                    readOnly={readOnly || base.task.type === "milestone"}
+                    disabled={locked}
+                    onChange={(event) => change("baselineDuration", event.target.value)}
+                  />
+                </label>
+                <div className={styles.field}>
+                  <span className={styles.fieldLabel}>기준 종료일</span>
+                  <output className={styles.outputField}>{draft.baselineEnd || base.task.baselineEnd || "미설정"}</output>
+                </div>
+              </div>
+            )}
           </div>
           <details className={styles.metadata} open>
             <summary>서버 확정 정보</summary>

@@ -532,3 +532,21 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - Workspace status 전환 전후 실제 `.project-gantt-widget .wx-gantt` DOM identity를 비교해 Gantt remount가 없음을 확인한다. status 변경 자체가 Task scheduling/resource mutation을 발생시키지 않아야 한다.
 - 401/403은 readonly 복귀 또는 재인증 안내, 412는 최신 canonical status 재조회 후 stale draft 폐기, network/5xx는 성공 표시 금지로 검증한다. 같은 Project에서 빠른 중복 조작은 mutation lock으로 직렬화/차단한다.
 - 기존 #138 API/DB status integration 테스트는 그대로 유지하며 신규 migration/API endpoint가 없음을 문서 gate에서 확인한다.
+
+## Issue #202 기준 일정 (Baseline) 관리 및 차트 오버레이 회귀
+
+- **마이그레이션 및 DB 영속성**:
+  - `0014_task_baseline.sql` 적용 후 `tasks` 테이블에 `baseline_start`, `baseline_duration`, `baseline_end`가 정상 추가되는지 `tests/server/db/database.test.ts` 및 `tests/server/migration-cli.test.ts`에서 검증한다.
+  - 마이그레이션 멱등성 및 롤백 안전성을 확인한다.
+- **순수 계층/일정 도메인 엔진**:
+  - `tests/domain/scheduling/hierarchy.test.ts`: 모든 하위 자손(leaf)에 baseline이 존재할 때 Summary의 baseline이 `min(baselineStart)`, `max(baselineEnd)`, `workingDaysBetween`으로 파생되는지 검증한다.
+  - 자손 중 하나라도 baseline이 null이면 Summary baseline이 null로 계산되는지 검증한다.
+- **Task Editor 및 클라이언트 모델**:
+  - `tests/features/gantt/task-editor-model.test.ts`: draft 초기화 시 task의 baseline 필드가 채워지는지, "현재 일정으로 복사" 및 "기준 일정 삭제" 액션 시 draft와 payload가 올바르게 구성되는지 검증한다.
+  - 마일스톤의 기준 일정 기간 0일 제한 및 유효하지 않은 날짜/기간 입력 거부를 검증한다.
+- **Gantt 어댑터 및 동기화**:
+  - `projectTasksToSvarTasks`가 SVAR ITask 객체에 `base_start`, `base_end`, `base_duration`을 정확히 매핑하는지 검증한다.
+  - `canonical-snapshot-sync.ts`의 `sameTask`가 baseline 변경 사항을 감지하여 `update-task`를 누락 없이 발행하는지 검증한다.
+- **UI 및 차트 오버레이**:
+  - Gantt 툴바의 "기준 일정 보기" 토글(`showBaseline`) 동작과 SVAR `baselines` 연동을 확인한다.
+  - Grid 열 선택 메뉴에서 `baselineStart`, `baselineEnd` 열의 표시/숨김 토글을 확인한다.

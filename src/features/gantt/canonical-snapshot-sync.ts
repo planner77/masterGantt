@@ -25,9 +25,20 @@ function sameDate(first: Date | undefined, second: Date | undefined): boolean {
   return first?.getTime() === second?.getTime();
 }
 
+interface TaskWithBaseline {
+  base_start?: Date;
+  base_end?: Date;
+  base_duration?: number;
+}
+
 function sameTask(first: ITask, second: ITask): boolean {
+  const bFirst = first as unknown as TaskWithBaseline;
+  const bSecond = second as unknown as TaskWithBaseline;
   return first.id === second.id && first.text === second.text &&
     sameDate(first.start, second.start) && sameDate(first.end, second.end) &&
+    sameDate(bFirst.base_start, bSecond.base_start) &&
+    sameDate(bFirst.base_end, bSecond.base_end) &&
+    bFirst.base_duration === bSecond.base_duration &&
     // SVAR derives duration from the exclusive end date. It is not part of
     // the canonical adapter payload and must not cause all rows to update.
     first.progress === second.progress &&

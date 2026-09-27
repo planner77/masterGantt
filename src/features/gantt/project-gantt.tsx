@@ -71,7 +71,13 @@ import type { DependencyType } from "../../contracts/projects";
 import "./task-context-menu.css";
 import "./gantt-scale-toolbar.css";
 
-export type ProjectGridDataColumnId = "text" | "externalId" | "projectStart" | "projectDuration";
+export type ProjectGridDataColumnId =
+  | "text"
+  | "externalId"
+  | "projectStart"
+  | "projectDuration"
+  | "baselineStart"
+  | "baselineEnd";
 
 export type ProjectGridColumnVisibility = Record<ProjectGridDataColumnId, boolean>;
 let nextApiInstanceId = 1;
@@ -118,6 +124,8 @@ const baseProjectColumns: IColumnConfig[] = [
   // localized local-date and canonical working-day duration contract.
   { id: "projectStart", header: "시작", width: 128, align: "center" },
   { id: "projectDuration", header: "기간", width: 84, align: "center" },
+  { id: "baselineStart", header: "기준 시작", width: 110, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineStart ?? "—") },
+  { id: "baselineEnd", header: "기준 종료", width: 110, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineEnd ?? "—") },
   // The Core recognizes this documented ID and renders its native header/row
   // plus controls. Their `add-task` event is intercepted below.
   { id: "add-task", header: "작업 추가", width: 37, align: "center" },
@@ -128,6 +136,8 @@ const dataColumns: ReadonlyArray<Readonly<{ id: ProjectGridDataColumnId; label: 
   { id: "externalId", label: "외부 ID" },
   { id: "projectStart", label: "시작" },
   { id: "projectDuration", label: "기간" },
+  { id: "baselineStart", label: "기준 시작" },
+  { id: "baselineEnd", label: "기준 종료" },
 ];
 
 function emptyWorkspaceRange(): { start: Date; end: Date } {
@@ -245,6 +255,7 @@ export function ProjectGantt({
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
+  const [showBaseline, setShowBaseline] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenPending, setFullscreenPending] = useState(false);
   const [fullscreenMessage, setFullscreenMessage] = useState("");
@@ -1468,6 +1479,16 @@ export function ProjectGantt({
           <button aria-pressed={scaleMode === "day"} onClick={() => setScaleMode("day")} type="button">일</button>
           <button aria-pressed={scaleMode === "week"} onClick={() => setScaleMode("week")} type="button">주</button>
         </div>
+        <div aria-label="기준 일정 표시" className="project-gantt-scale-controls" role="group">
+          <button
+            aria-pressed={showBaseline}
+            onClick={() => setShowBaseline((prev) => !prev)}
+            type="button"
+            className="project-gantt-baseline-toggle"
+          >
+            기준 일정 {showBaseline ? "숨기기" : "보기"}
+          </button>
+        </div>
         <button className="project-gantt-fullscreen-button" ref={fullscreenButtonReference} type="button"
           aria-label={isFullscreen ? "Gantt 전체 화면 종료" : "Gantt 전체 화면"} aria-pressed={isFullscreen}
           aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
@@ -1500,6 +1521,7 @@ export function ProjectGantt({
         >
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
+              baselines={showBaseline}
               columns={ganttColumnsReference.current}
               displayMode="all"
               gridWidth={620}

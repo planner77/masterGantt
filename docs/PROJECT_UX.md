@@ -405,6 +405,23 @@ Project Workspace의 탭 목록을 `일정 (schedule)`, `리소스 (resources)`,
   - `localStorage` 접근 차단(SecurityError), 용량 초과(QuotaExceededError), 데이터 손상(malformed JSON) 시 에러를 유발하지 않고 안전하게 기본 상태로 폴백한다.
   - 서버 DB/API/Revision 변경 없이 순수 클라이언트 뷰 상태로 관리된다.
 
+## Issue #202 기준 일정 (Baseline) 관리 및 Gantt 차트 오버레이 바 지원
 
-
-
+- **기준 일정 (Baseline) 개념**:
+  - 프로젝트 계획 수립 시점의 일정을 기준점(Baseline)으로 고정하여, 작업 진행 중 발생하는 지연·변동을 현재 일정과 비교할 수 있도록 지원한다.
+  - Baseline은 `baselineStart`(시작일), `baselineDuration`(근무일 기간), `baselineEnd`(종료일)로 구성된다.
+- **Task Editor 기준 일정 UI**:
+  - Task Editor 모달의 "작업 정보" 탭에 "기준 일정 (Baseline)" 전용 섹션을 제공한다.
+  - **단축 액션**:
+    - "현재 일정으로 설정": 현재 작업의 시작일, 근무일 기간, 종료일을 기준 일정 필드로 즉시 복사한다.
+    - "기준 일정 삭제": 설정된 기준 일정을 초기화(삭제)한다.
+  - **수동 편집**:
+    - 일반 작업/마일스톤은 기준 시작일과 기준 기간을 직접 입력/수정할 수 있다. (마일스톤은 기준 기간 0).
+  - **요약 작업 (Summary) 파생 표시**:
+    - 요약 작업의 기준 일정은 사용자가 직접 편집할 수 없으며(읽기 전용), 하위 모든 자손(leaf)에 기준 일정이 존재할 때만 자동 계산되어 표시된다(`파생 기준 시작일`, `파생 기준 기간`, `파생 기준 종료일`).
+- **Gantt 툴바 및 차트 오버레이**:
+  - 툴바에 "기준 일정 보기/숨기기" 토글 버튼(`showBaseline`)을 제공한다.
+  - 토글 활성화 시 Gantt 타임라인 차트에 SVAR 네이티브 baseline bar가 현재 일정 바 하단에 함께 렌더링된다.
+  - Baseline bar는 현재 작업 바의 마우스 드래그, 리사이즈, 진행률 변경 및 컨텍스트 메뉴 인터랙션을 방해하지 않는 비침해(`pointer-events: none` 성격) 레이어로 표시된다.
+- **Grid 컬럼 가시성**:
+  - Grid 열 메뉴에서 "기준 시작(`baselineStart`)", "기준 종료(`baselineEnd`)" 열을 선택하여 그리드 상에서 확인할 수 있다.
