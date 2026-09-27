@@ -300,3 +300,40 @@ Issue #198에서 정의한 목표를 Issue #211에서 `.github/workflows/issue-l
 - FINAL은 `<!-- issue-lifecycle-final:<issue>:<target_sha> -->` marker로 중복 생성과 다른 target 재종료를 방지한다.
 - PR 단계 contract/scenario 검증은 `scripts/verify-issue-lifecycle.py`를 CI quality job에서 수행한다.
 - main 병합 후 non-destructive `verify` 실제 실행을 확보한 다음 기존 Issue별 helper의 퇴역 가능 여부를 판단한다.
+
+
+## 12. release와 finalize 통합 운영 (#248)
+
+현재 범용 lifecycle 구현에서 `finalize`는 `release_required=true`이면 내부적으로 정식 release를 확보한 뒤 branch cleanup, FINAL comment, Issue close를 수행한다. 따라서 현재 구현도 한 번의 `finalize` dispatch로 release와 종료를 연속 수행할 수 있다. 그러나 operation 이름만 보면 `release` 후 `finalize`를 별도로 실행해야 하는 것으로 오해하기 쉬우므로 Issue #248에서 명시적인 `release_finalize` operation을 도입한다.
+
+### 목표 operation 의미
+
+| operation | 의미 | Issue close |
+| --- | --- | --- |
+| `verify` | read-only lifecycle evidence 검증 | 아니오 |
+| `release` | 승인된 정식 release만 수행 | 아니오 |
+| `finalize` | release가 불필요한 종료 또는 기존 release evidence를 포함한 종료 | 예 |
+| `release_finalize` | 승인된 정식 release → cleanup → FINAL → Issue close 일괄 수행 | 예 |
+
+`release_finalize`의 필수 입력은 `release_required=true`, `release_authorized=true`, 정확한 `expected_version`, 추적 가능한 `authorization_note`다. 어느 하나라도 누락되거나 exact merge SHA의 main CI가 성공하지 않았으면 mutation을 시작하지 않는다.
+
+### fail-closed 순서
+
+```text
+verify exact Issue/PR/head/merge SHA/version/checks/main CI
+→ ensure formal release
+→ verify exact release-image success evidence
+→ safe branch cleanup
+→ FINAL evidence
+→ Issue completed close
+```
+
+release 실패, timeout, tag 충돌, wrong SHA, lightweight tag, release evidence 부재, branch cleanup 실패, FINAL marker 충돌 중 하나라도 발생하면 Issue를 열린 상태로 유지한다.
+
+### idempotency
+
+동일 merge SHA와 annotated `v<version>` tag에 대해 성공한 `release-image.yml` evidence가 이미 존재하면 게시를 반복하지 않고 다음 단계로 재개한다. 이미 동일 FINAL marker로 종료된 대상은 destructive 작업을 반복하지 않아야 한다. 다른 target SHA의 tag/FINAL marker는 재사용하지 않는다.
+
+### 구현 전 임시 운영
+
+Issue #248 구현 전에는 정식 release+종료를 한 번에 수행해야 할 때 기존 `finalize`를 `release_required=true`, `release_authorized=true`, 정확한 `expected_version`, 승인 근거가 있는 `authorization_note`와 함께 실행할 수 있다. 별도의 `release` 선행 실행은 필수는 아니다.
