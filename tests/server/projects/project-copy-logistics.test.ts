@@ -200,6 +200,7 @@ describe("ProjectCopyService with Logistics (Issue #189 LG-06)", () => {
         systemType: "scs",
         layer: "controller",
         scope: "processes",
+        processIds: [p1PublicId],
       });
       const scsPublicId = scsRes.data.logistics.systems.find((s) => s.code === "SCS")!.id;
 
@@ -209,6 +210,7 @@ describe("ProjectCopyService with Logistics (Issue #189 LG-06)", () => {
         systemType: "acs",
         layer: "controller",
         scope: "processes",
+        processIds: [p2PublicId],
       });
       const acsPublicId = acsRes.data.logistics.systems.find((s) => s.code === "ACS")!.id;
 
