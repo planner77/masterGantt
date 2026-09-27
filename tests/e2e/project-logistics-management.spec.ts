@@ -272,9 +272,10 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     // Switch to Sub-tab 4: Relations
     await page.getByRole("tab", { name: "제어·조율 관계" }).click();
     const relationsPanel = page.locator("#panel-relations");
-    await expect(relationsPanel.getByText("통합 반송 조율 시스템", { exact: true })).toBeVisible();
-    await expect(relationsPanel.getByText("AGV 관제 제어 시스템 (ACS-01)", { exact: true })).toBeVisible();
-    await expect(relationsPanel.getByText("스토커 제어 시스템 (SCS-01)", { exact: true })).toBeVisible();
+    const relationRows = relationsPanel.getByRole("row");
+    await expect(relationRows.filter({ hasText: "통합 반송 조율 시스템" }).first()).toBeVisible();
+    await expect(relationRows.filter({ hasText: "AGV 관제 제어 시스템 (ACS-01)" }).first()).toBeVisible();
+    await expect(relationRows.filter({ hasText: "스토커 제어 시스템 (SCS-01)" }).first()).toBeVisible();
 
     // Switch back to schedule tab and verify Gantt intact
     await scheduleTab.click();
