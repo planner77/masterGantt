@@ -547,6 +547,23 @@ describe("Task Logistics Links REST API Handlers", () => {
     expect(body.data.permission).toBe("edit");
     expect(body.data.links.directEquipmentLinks).toEqual([]);
     expect(body.data.links.effectiveEquipmentIds).toEqual([]);
+
+    const anonymousResponse = await handleGetTaskLogisticsLinks(
+      new Request(
+        "http://localhost:3000/api/projects/22222222-3333-4444-8555-666666666666/tasks/task-01/logistics-links",
+      ),
+      "22222222-3333-4444-8555-666666666666",
+      "task-01",
+      {
+        logisticsService: service,
+        projectService,
+        applicationBaseUrl: "http://localhost:3000",
+        environment: "test",
+      },
+    );
+    expect(anonymousResponse.status).toBe(200);
+    const anonymousBody = await anonymousResponse.json();
+    expect(anonymousBody.data.permission).toBe("readonly");
   });
 
   it("PUT requires valid edit session and If-Match header", async () => {
