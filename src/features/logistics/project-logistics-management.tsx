@@ -59,6 +59,7 @@ export interface ProjectLogisticsManagementProps {
     equipmentIds?: string[];
     systemIds?: string[];
   }) => void;
+  onUnauthorized: () => void;
 }
 
 type SubTab = "dashboard" | "processes" | "equipment" | "systems" | "relations";
@@ -71,6 +72,7 @@ export function ProjectLogisticsManagement({
   onLogisticsMutated,
   onRequireRefresh,
   onNavigateToSchedule,
+  onUnauthorized,
 }: ProjectLogisticsManagementProps) {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
@@ -244,6 +246,7 @@ export function ProjectLogisticsManagement({
       }
 
       if (res.status === 401 || res.status === 403) {
+        onUnauthorized();
         setErrorMessage("편집 권한이 만료되었습니다. 상단의 편집 활성화를 다시 진행해 주세요.");
       } else if (res.status === 412) {
         setErrorMessage("다른 사용자에 의해 프로젝트가 갱신되었습니다. 최신 정보를 불러온 뒤 다시 시도해 주세요.");
