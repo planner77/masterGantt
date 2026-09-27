@@ -118,3 +118,22 @@ Task Editor는 Gantt 전체화면 frame 바깥의 native dialog다. SVAR `show-e
 ## Issue #140 — Grid 작업명 인라인 편집과 Task Editor 경계
 
 Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭은 Core text editor에서 이름만 바꾼다. Enter/blur는 Task PATCH를 한 번 보내고 Escape는 저장 없이 닫는다. 이름은 Task Editor와 같은 trim·well-formed Unicode 1~200자 규칙으로 검증하며, 잘못된 입력은 input focus와 연결된 오류를 유지한다. Task Editor는 메뉴 Edit 및 Chart/비이름 영역의 기존 진입점으로 남는다. Grid에서 변경한 이름과 Task Editor의 이름은 서버 확정 snapshot으로 동기화되고, Task Editor 저장 후 Grid도 동일 canonical snapshot을 표시한다. Grid Summary는 이름만 바꿀 수 있으며 Task Editor의 Summary 일정/정보 readonly는 그대로다. 연결 endpoint Task는 기존 409 제한을 유지한다. 저장 실패·401·412, dirty/stale, Task PATCH/Assignment PUT 분리와 원래 focus 복원 계약은 변경하지 않는다.
+
+## Issue #187 — 작업 정보 대화상자 물류 연결 (logistics) 탭
+
+기존 3개 탭(작업 정보 / 리소스 / 관계)에 이어 4번째 탭으로 **물류 연결 (logistics)** 탭이 추가되었다 (`TASK_EDITOR_TABS = ["info", "resources", "relations", "logistics"]`).
+
+- **정보 구조 및 연결 관리**:
+  - 프로젝트 내 등록된 활성 공정/설비 및 제어·조율 시스템 목록을 표시하고, 체크박스로 현재 작업에 연결할 설비 및 시스템을 선택할 수 있다.
+  - 설비의 주 담당자(Owner) 및 시스템의 주 담당자(PI) 정보가 함께 표시되어 작업-설비-시스템-담당자 간 연계 책임을 즉시 파악할 수 있다.
+- **Summary 하위 상속 (subtree scope)**:
+  - 대상 작업이 `type === 'summary'`인 경우, 설비/시스템 연결 시 `하위 자손 작업 상속(subtree)` 옵션을 선택할 수 있다.
+  - 일반 작업(Task) 또는 마일스톤(Milestone)인 경우 `subtree` 옵션은 비활성화되며 단일 작업 연결(`self`)로 동작한다.
+- **상속된 연결(Inherited Links) 조회**:
+  - 상위 조상 Summary로부터 `subtree` scope로 상속된 설비 및 시스템 목록을 별도 영역에 표시한다.
+  - 상속 출처 작업명(`sourceTaskName`)을 함께 보여주며, 상속된 연결은 현재 작업에서 직접 해제할 수 없고 출처 Summary 작업에서 수정하도록 안내한다.
+- **독립 저장 및 동시성 제어**:
+  - 물류 연결은 작업 기본 정보(Task PATCH)나 리소스 할당(Assignment PUT)과 독립적인 `PUT /api/projects/{publicId}/tasks/{taskId}/logistics-links` 엔드포인트를 통해 저장된다.
+  - 편집 권한이 있고 Task draft가 stale/dirty 상태가 아닐 때 '물류 연결 저장' 버튼이 활성화된다.
+  - 성공 시 프로젝트 `revision`이 1 증가하며 canonical snapshot을 재동기화한다. Stale revision 충돌 시 `412 REVISION_MISMATCH` 오류로 안전하게 차단된다.
+

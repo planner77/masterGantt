@@ -1,5 +1,6 @@
 import type { ProjectAssignmentDto, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectTaskDto } from "@/contracts/projects";
+import type { ProjectLogisticsDto } from "@/contracts/logistics";
 
 export type DateOperator = "overlap" | "contained" | "start-in" | "end-in";
 export type NumberOperator = "eq" | "gte" | "lte" | "range";
@@ -25,6 +26,9 @@ export type TaskFilterState = Readonly<{
   durationMax: number | null;
   targetIds: readonly string[];
   targetMode: "any" | "all";
+  equipmentIds: readonly string[];
+  systemIds: readonly string[];
+  processIds: readonly string[];
 }>;
 
 export const EMPTY_TASK_FILTER: TaskFilterState = {
@@ -47,6 +51,9 @@ export const EMPTY_TASK_FILTER: TaskFilterState = {
   durationMax: null,
   targetIds: [],
   targetMode: "any",
+  equipmentIds: [],
+  systemIds: [],
+  processIds: [],
 };
 
 export function normalizeFilterText(value: string | null | undefined): string {
@@ -76,10 +83,17 @@ function dateMatches(task: ProjectTaskDto, filter: TaskFilterState): boolean {
   return task.start <= to && task.end >= from;
 }
 
+export interface TaskEffectiveLogistics {
+  equipmentIds: Set<string>;
+  systemIds: Set<string>;
+  processIds: Set<string>;
+}
+
 export function taskMatchesFilter(
   task: ProjectTaskDto,
   filter: TaskFilterState,
   assignmentIdsByTask: ReadonlyMap<string, ReadonlySet<string>>,
+  effectiveLogisticsMap?: ReadonlyMap<string, TaskEffectiveLogistics>,
 ): boolean {
   const query = normalizeFilterText(filter.query);
   if (query) {
@@ -106,7 +120,117 @@ export function taskMatchesFilter(
       : filter.targetIds.some((id) => assigned.has(id));
     if (!targetMatch) return false;
   }
+
+  if (effectiveLogisticsMap) {
+    const eff = effectiveLogisticsMap.get(task.taskId);
+    if (filter.equipmentIds.length > 0) {
+      const match = filter.equipmentIds.some((id) => eff?.equipmentIds.has(id));
+      if (!match) return false;
+    }
+    if (filter.systemIds.length > 0) {
+      const match = filter.systemIds.some((id) => eff?.systemIds.has(id));
+      if (!match) return false;
+    }
+    if (filter.processIds.length > 0) {
+      const match = filter.processIds.some((id) => eff?.processIds.has(id));
+      if (!match) return false;
+    }
+  }
+
   return true;
+}
+
+export function buildTaskEffectiveLogisticsMap(
+  tasks: readonly ProjectTaskDto[],
+  logistics: ProjectLogisticsDto | undefined,
+): Map<string, TaskEffectiveLogistics> {
+  const result = new Map<string, TaskEffectiveLogistics>();
+  if (!logistics) {
+    for (const t of tasks) {
+      result.set(t.taskId, {
+        equipmentIds: new Set(),
+        systemIds: new Set(),
+        processIds: new Set(),
+      });
+    }
+    return result;
+  }
+
+  const eqProcessMap = new Map<string, string>();
+  for (const eq of logistics.equipment) {
+    if (eq.processId) eqProcessMap.set(eq.id, eq.processId);
+  }
+
+  const sysProcessesMap = new Map<string, string[]>();
+  for (const sys of logistics.systems) {
+    if (sys.processIds) sysProcessesMap.set(sys.id, sys.processIds);
+  }
+
+  const taskByExternalId = new Map(tasks.map((t) => [t.externalId, t]));
+
+  const directEqByTaskId = new Map<string, Array<{ equipmentId: string; scope: string }>>();
+  for (const l of logistics.taskEquipmentLinks ?? []) {
+    const list = directEqByTaskId.get(l.taskId) ?? [];
+    list.push(l);
+    directEqByTaskId.set(l.taskId, list);
+  }
+
+  const directSysByTaskId = new Map<string, Array<{ systemId: string; scope: string }>>();
+  for (const l of logistics.taskSystemLinks ?? []) {
+    const list = directSysByTaskId.get(l.taskId) ?? [];
+    list.push(l);
+    directSysByTaskId.set(l.taskId, list);
+  }
+
+  for (const task of tasks) {
+    const eqSet = new Set<string>();
+    const sysSet = new Set<string>();
+    const procSet = new Set<string>();
+
+    for (const l of directEqByTaskId.get(task.taskId) ?? []) {
+      eqSet.add(l.equipmentId);
+      const procId = eqProcessMap.get(l.equipmentId);
+      if (procId) procSet.add(procId);
+    }
+    for (const l of directSysByTaskId.get(task.taskId) ?? []) {
+      sysSet.add(l.systemId);
+      for (const p of sysProcessesMap.get(l.systemId) ?? []) {
+        procSet.add(p);
+      }
+    }
+
+    let parentExtId = task.parentExternalId;
+    while (parentExtId) {
+      const parentTask = taskByExternalId.get(parentExtId);
+      if (!parentTask) break;
+      if (parentTask.type === "summary") {
+        for (const l of directEqByTaskId.get(parentTask.taskId) ?? []) {
+          if (l.scope === "subtree") {
+            eqSet.add(l.equipmentId);
+            const procId = eqProcessMap.get(l.equipmentId);
+            if (procId) procSet.add(procId);
+          }
+        }
+        for (const l of directSysByTaskId.get(parentTask.taskId) ?? []) {
+          if (l.scope === "subtree") {
+            sysSet.add(l.systemId);
+            for (const p of sysProcessesMap.get(l.systemId) ?? []) {
+              procSet.add(p);
+            }
+          }
+        }
+      }
+      parentExtId = parentTask.parentExternalId;
+    }
+
+    result.set(task.taskId, {
+      equipmentIds: eqSet,
+      systemIds: sysSet,
+      processIds: procSet,
+    });
+  }
+
+  return result;
 }
 
 export function buildAssignmentIdsByTask(assignments: readonly ProjectAssignmentDto[] | undefined): Map<string, Set<string>> {
@@ -123,9 +247,11 @@ export function filterTasksWithAncestors(
   tasks: readonly ProjectTaskDto[],
   filter: TaskFilterState,
   assignments: readonly ProjectAssignmentDto[] | undefined,
+  logistics?: ProjectLogisticsDto | undefined,
 ): Readonly<{ tasks: ProjectTaskDto[]; matchCount: number }> {
   const assigned = buildAssignmentIdsByTask(assignments);
-  const matching = tasks.filter((task) => taskMatchesFilter(task, filter, assigned));
+  const effectiveLogistics = buildTaskEffectiveLogisticsMap(tasks, logistics);
+  const matching = tasks.filter((task) => taskMatchesFilter(task, filter, assigned, effectiveLogistics));
   const matchingExternalIds = new Set(matching.map((task) => task.externalId));
   const byExternalId = new Map(tasks.map((task) => [task.externalId, task]));
   const visibleExternalIds = new Set(matchingExternalIds);
@@ -153,6 +279,9 @@ export function activeTaskFilterCount(filter: TaskFilterState): number {
     filter.progressMin !== null || filter.progressMax !== null,
     filter.durationMin !== null || filter.durationMax !== null,
     filter.targetIds.length > 0,
+    filter.equipmentIds.length > 0,
+    filter.systemIds.length > 0,
+    filter.processIds.length > 0,
   ].filter(Boolean).length;
 }
 

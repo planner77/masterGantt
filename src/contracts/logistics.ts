@@ -102,11 +102,65 @@ export interface SystemLinkDto {
   relationType: "coordinates";
 }
 
+export type TaskLogisticsLinkScope = "self" | "subtree";
+
+export interface TaskEquipmentLinkItem {
+  equipmentId: string;
+  scope: TaskLogisticsLinkScope;
+  equipmentCode?: string;
+  equipmentName?: string;
+  equipmentType?: EquipmentType;
+  active?: boolean;
+}
+
+export interface TaskSystemLinkItem {
+  systemId: string;
+  scope: TaskLogisticsLinkScope;
+  systemCode?: string;
+  systemName?: string;
+  systemType?: LogisticsSystemType;
+  active?: boolean;
+}
+
+export interface InheritedEquipmentLinkItem extends TaskEquipmentLinkItem {
+  sourceTaskId: string;
+  sourceTaskName: string;
+}
+
+export interface InheritedSystemLinkItem extends TaskSystemLinkItem {
+  sourceTaskId: string;
+  sourceTaskName: string;
+}
+
+export interface TaskLogisticsLinksDto {
+  taskId: string;
+  directEquipmentLinks: TaskEquipmentLinkItem[];
+  inheritedEquipmentLinks: InheritedEquipmentLinkItem[];
+  effectiveEquipmentIds: string[];
+  directSystemLinks: TaskSystemLinkItem[];
+  inheritedSystemLinks: InheritedSystemLinkItem[];
+  effectiveSystemIds: string[];
+}
+
+export interface TaskEquipmentLinkSummaryDto {
+  taskId: string;
+  equipmentId: string;
+  scope: TaskLogisticsLinkScope;
+}
+
+export interface TaskSystemLinkSummaryDto {
+  taskId: string;
+  systemId: string;
+  scope: TaskLogisticsLinkScope;
+}
+
 export interface ProjectLogisticsDto {
   processes: ProcessDto[];
   equipment: EquipmentDto[];
   systems: LogisticsSystemDto[];
   systemLinks: SystemLinkDto[];
+  taskEquipmentLinks?: TaskEquipmentLinkSummaryDto[];
+  taskSystemLinks?: TaskSystemLinkSummaryDto[];
 }
 
 export interface ProjectLogisticsResponse {
@@ -220,6 +274,25 @@ export interface SetSystemResourceRolesRequest {
   }[];
 }
 
+export interface ReplaceTaskLogisticsLinksRequest {
+  equipmentLinks: {
+    equipmentId: string;
+    scope: TaskLogisticsLinkScope;
+  }[];
+  systemLinks: {
+    systemId: string;
+    scope: TaskLogisticsLinkScope;
+  }[];
+}
+
+export interface TaskLogisticsLinksResponse {
+  data: {
+    taskId: string;
+    links: TaskLogisticsLinksDto;
+    permission: ProjectPermission;
+  };
+}
+
 export interface LogisticsMutationResponse {
   data: {
     project: ProjectDto;
@@ -235,7 +308,8 @@ export interface LogisticsMutationResponse {
         | "systemProcesses"
         | "systemChildren"
         | "equipmentResourceRoles"
-        | "systemResourceRoles";
+        | "systemResourceRoles"
+        | "taskLogisticsLinks";
       action: "create" | "update" | "delete" | "replace";
       targetPublicId?: string;
     };
