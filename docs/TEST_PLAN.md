@@ -554,3 +554,17 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 PR quality에서 `python3 scripts/verify-issue-lifecycle.py`를 실행한다. 정적 contract는 hard-coded Issue/PR 제거, workflow_dispatch 3 operation, per-Issue concurrency, read-only 기본 권한, `packages: write` 금지, merge API/pull_request_target 금지, exact merge SHA/main CI, 기존 release/cleanup 구성요소 재사용을 확인한다.
 
 pure scenario는 unmerged verify, release N/A finalize readiness, 승인된 release, 미승인 release BLOCKED, version mismatch FAIL, required check/main CI 미완료 NOT TESTED, release 입력 정합성을 검증한다. 원격 integration은 main 병합 후 `operation=verify`를 실제 merged Issue/PR에 실행해 GitHub check-run/workflow-run evidence 조회를 확인한다. tag conflict, successful release reuse, branch already absent/tip changed/open PR 사용, duplicate FINAL은 실제 mutation 대표 검증 또는 격리된 test Issue에서 확인하며 운영 Issue에서 파괴적으로 시험하지 않는다.
+
+
+## Issue #250 CI 성능 회귀
+
+CI 최적화 자체의 인수 기준은 다음과 같다.
+
+- `.github/workflows/ci.yml`의 기존 required check 표시 이름 3개가 유지된다.
+- node 영향 변경은 policy/typecheck/lint/unit/build가 병렬 실행된다.
+- E2E 영향 변경은 Playwright 4-way shard가 실행되며 각 shard는 기존 `workers: 1` 격리를 유지한다.
+- docs-only/비관련 변경은 heavy Node/E2E/Docker job을 실행하지 않지만 aggregate required checks는 SUCCESS다.
+- `.next/cache`, TypeScript incremental metadata, npm package cache, Docker GHA cache가 각각 정의되어 있다.
+- `workflow_dispatch`는 전체 검증을 실행한다.
+- main 비문서 변경의 임시 GHCR digest 검증·cleanup 계약과 PR read-only 권한은 유지된다.
+- 실제 성능 판정은 변경 전 PR CI run #995와 최적화 PR의 wall-clock을 비교해 기록한다.

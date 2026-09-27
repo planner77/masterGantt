@@ -213,3 +213,15 @@ Workflow 파일 존재나 과거 다른 version의 성공 run은 현재 `v0.25.0
 `.github/workflows/issue-lifecycle.yml`의 `verify`는 비파괴 원격 integration 검증 수단이다. 다음을 같은 실행에서 확인한다: Issue/PR identity, same-repository `main` PR, `Refs #N`, PR final head required checks, merge SHA의 main ancestry, manifest/lock version, exact merge SHA의 main `ci.yml` run.
 
 범용 workflow 자체가 main에 병합되기 전에는 실제 `workflow_dispatch verify` 증거를 만들 수 없으므로 PR 단계에서는 `scripts/verify-issue-lifecycle.py`의 contract/scenario test와 일반 PR quality/e2e/docker를 사용한다. 병합 후 대표 merged Issue/PR에 대해 non-destructive verify 실행을 별도 evidence로 확보한 다음 기존 helper migration을 진행한다.
+
+
+## CI 성능 최적화 원격 검증 (#250)
+
+최적화된 `.github/workflows/ci.yml`은 required check 이름을 변경하지 않는다. 원격 판정 시 다음을 확인한다.
+
+1. `변경 경로 판정` 이후 policy/typecheck/lint/unit/build, E2E shard, Docker smoke가 불필요한 `needs` 직렬화 없이 병렬 시작되는지 확인한다.
+2. 코드/E2E 영향 변경에서는 `Chromium E2E shard 1/4`~`4/4`가 모두 실행되고 aggregate `Chromium end-to-end tests`가 shard 결과를 fail-closed로 집계하는지 확인한다.
+3. docs-only 변경에서는 heavy implementation job이 SKIPPED여도 기존 세 required aggregate check가 SUCCESS인지 확인한다.
+4. `Next.js production build`의 `.next/cache`, TypeScript incremental cache, npm package cache, Docker BuildKit GHA cache restore/save 로그를 확인한다.
+5. PR은 `packages: write`를 받지 않으며 main 비문서 push만 기존 임시 GHCR publish/digest smoke/cleanup을 수행한다.
+6. 최적화 효과는 변경 전 기준 run #995의 wall-clock(quality 약 1분 36초, Docker 약 3분 30초, E2E 약 18분 45초)과 동일·유사 변경의 새 PR run을 비교한다.
