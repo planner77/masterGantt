@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type FocusEvent, type KeyboardEvent } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { CreateProjectForm } from "@/features/projects/create-project-form";
@@ -10,8 +10,24 @@ export function NewProjectTabs() {
   const searchParams = useSearchParams();
   const initialMode = searchParams.get("mode") === "template" ? "template" : "blank";
   const [mode, setMode] = useState<"blank" | "template">(initialMode);
+  const [skipNavigationActive, setSkipNavigationActive] = useState(false);
   const blankTabRef = useRef<HTMLButtonElement | null>(null);
   const templateTabRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const skipLink = document.querySelector<HTMLAnchorElement>('a.skip-link[href="#main-content"]');
+    if (!skipLink) return;
+
+    const handleSkipNavigation = () => setSkipNavigationActive(true);
+    skipLink.addEventListener("click", handleSkipNavigation);
+    return () => skipLink.removeEventListener("click", handleSkipNavigation);
+  }, []);
+
+  function handleContainerFocus(event: FocusEvent<HTMLDivElement>) {
+    if (skipNavigationActive && event.target instanceof HTMLElement && event.target.id === "project-name") {
+      setSkipNavigationActive(false);
+    }
+  }
 
   function selectTab(nextMode: "blank" | "template") {
     setMode(nextMode);
@@ -37,7 +53,7 @@ export function NewProjectTabs() {
   }
 
   return (
-    <div className="new-project-container">
+    <div className="new-project-container" onFocusCapture={handleContainerFocus}>
       <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 생성 방식">
         <button
           ref={blankTabRef}
@@ -46,7 +62,7 @@ export function NewProjectTabs() {
           id="tab-blank"
           aria-selected={mode === "blank"}
           aria-controls="panel-blank"
-          tabIndex={mode === "blank" ? 0 : -1}
+          tabIndex={!skipNavigationActive && mode === "blank" ? 0 : -1}
           className={`tab-button ${mode === "blank" ? "active" : ""}`}
           onClick={() => setMode("blank")}
           onKeyDown={handleTabKeyDown}
@@ -60,7 +76,7 @@ export function NewProjectTabs() {
           id="tab-template"
           aria-selected={mode === "template"}
           aria-controls="panel-template"
-          tabIndex={mode === "template" ? 0 : -1}
+          tabIndex={!skipNavigationActive && mode === "template" ? 0 : -1}
           className={`tab-button ${mode === "template" ? "active" : ""}`}
           onClick={() => setMode("template")}
           onKeyDown={handleTabKeyDown}
