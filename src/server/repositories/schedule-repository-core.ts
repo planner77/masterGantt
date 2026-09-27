@@ -17,6 +17,7 @@ export class ScheduleRepository{
  constructor(private readonly database:Database.Database){}
  listTasks(projectId:number){return(this.database.prepare(`SELECT * FROM tasks WHERE project_id=? ORDER BY parent_id IS NOT NULL,parent_id,sort_order,id`).all(projectId) as TaskRow[]).map(mapTask)}
  findTaskByPublicId(projectId:number,taskPublicId:string){const r=this.database.prepare("SELECT * FROM tasks WHERE project_id=? AND public_id=?").get(projectId,taskPublicId) as TaskRow|undefined;return r?mapTask(r):undefined}
+ findTaskById(projectId:number,id:number){const r=this.database.prepare("SELECT * FROM tasks WHERE project_id=? AND id=?").get(projectId,id) as TaskRow|undefined;return r?mapTask(r):undefined}
  findTaskByExternalId(projectId:number,externalId:string){const r=this.database.prepare("SELECT * FROM tasks WHERE project_id=? AND external_id=?").get(projectId,externalId) as TaskRow|undefined;return r?mapTask(r):undefined}
  taskPublicIdExists(taskPublicId:string){return this.database.prepare("SELECT 1 FROM tasks WHERE public_id=?").pluck().get(taskPublicId)===1}
  countTasks(projectId:number){return this.database.prepare("SELECT count(*) FROM tasks WHERE project_id=?").pluck().get(projectId) as number}
