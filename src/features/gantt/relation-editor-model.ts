@@ -48,6 +48,18 @@ export function getRelatedLinksForAnchor(
   return { predecessors, successors };
 }
 
+export function findNextRelatedLink(
+  deletedLinkId: string,
+  anchorExternalId: string,
+  links: readonly ProjectLinkDto[],
+): ProjectLinkDto | undefined {
+  return links.find(
+    (link) =>
+      link.id !== deletedLinkId &&
+      (link.predecessorExternalId === anchorExternalId || link.successorExternalId === anchorExternalId),
+  );
+}
+
 /**
  * 새 관계 연결을 위한 검색 후보 작업을 필터링한다.
  * 규칙:
