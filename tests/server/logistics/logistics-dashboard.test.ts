@@ -363,6 +363,53 @@ describe("Logistics Dashboard Engine (Deterministic Synthetic Fixture & Edge Cas
     expect(coordResult.effort.plannedMd).toBe(4);
   });
 
+  it("uses the project timezone for the default as-of date and the documented 20 MD/MM default", () => {
+    const fixture = createDeterministicFixture();
+    const result = calculateLogisticsDashboardPure({
+      ...fixture,
+      filter: {},
+      now: new Date("2026-10-08T16:30:00.000Z"),
+    });
+
+    expect(result.asOfDate).toBe("2026-10-09");
+    expect(result.timezone).toBe("Asia/Seoul");
+    expect(result.effort.plannedMd).toBe(4);
+    expect(result.effort.plannedMm).toBe(0.2);
+    expect(result.effort.mdPerMm).toBe(20);
+  });
+
+  it("treats inactive primary resources as missing and removes inactive rows from active-only breakdowns", () => {
+    const fixture = createDeterministicFixture();
+    const inactiveResources = fixture.resources.map((resource) =>
+      resource.id === "r1" ? { ...resource, active: false } : resource,
+    );
+    const inactiveLogistics = {
+      ...fixture.logistics,
+      processes: fixture.logistics.processes.map((process) =>
+        process.id === "p3" ? { ...process, active: false } : process,
+      ),
+      equipment: fixture.logistics.equipment.map((equipment) =>
+        equipment.id === "e3" ? { ...equipment, active: false } : equipment,
+      ),
+      systems: fixture.logistics.systems.map((system) =>
+        system.id === "c3" ? { ...system, active: false } : system,
+      ),
+    };
+
+    const result = calculateLogisticsDashboardPure({
+      ...fixture,
+      resources: inactiveResources,
+      logistics: inactiveLogistics,
+      filter: { asOfDate: "2026-10-09", activeOnly: true },
+    });
+
+    expect(result.quality.equipmentWithoutOwnerCount).toBe(2);
+    expect(result.quality.systemsWithoutPrimaryPICount).toBe(2);
+    expect(result.breakdowns.processes.some((row) => row.id === "p3")).toBe(false);
+    expect(result.breakdowns.equipment.some((row) => row.id === "e3")).toBe(false);
+    expect(result.breakdowns.systems.some((row) => row.id === "c3")).toBe(false);
+  });
+
   it("handles edge case: denominator 0 (no tasks) returns null progress", () => {
     const fixture = createDeterministicFixture();
     const result = calculateLogisticsDashboardPure({
