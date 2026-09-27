@@ -110,7 +110,9 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
 }
 
 async function openRow(page: Page, name = "Beta leaf") {
-  await row(page, name).getByText(name, { exact: true }).click({ button: "right" });
+  const targetRow = row(page, name);
+  await expect(targetRow).toBeVisible();
+  await targetRow.click({ button: "right", position: { x: 24, y: 12 } });
   await chooseTaskInformation(page);
   await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue(name);
   await expect(editor(page)).toHaveCount(1);
