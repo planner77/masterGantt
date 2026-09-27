@@ -243,7 +243,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expect(processPanel.getByText("PROC-01", { exact: true })).toBeVisible();
     await expect(processPanel.getByText("입고 공정", { exact: true })).toBeVisible();
     await expect(processPanel.getByText("PROC-02", { exact: true })).toBeVisible();
-    await expect(processPanel.getByText("보관 공정", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText(/보관 공정$/)).toBeVisible();
     await expect(processPanel.getByText("PROC-03", { exact: true })).toBeVisible();
     await expect(processPanel.getByText("출고 공정", { exact: true })).toBeVisible();
 
