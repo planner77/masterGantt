@@ -519,6 +519,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
   const effort: LogisticsDashboardEffortDto = {
     plannedMd,
     plannedMm,
+    mdPerMm,
     unsetAllocationCount,
     workloadRange: {
       from: minWorkloadDate,
