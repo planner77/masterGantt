@@ -112,14 +112,19 @@ jobs:
 
       - name: 변경 경로 요약
         shell: bash
+        env:
+          NODE_CHANGED: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.node == 'true' }}
+          E2E_CHANGED: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.e2e == 'true' }}
+          DOCKER_CHANGED: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.docker == 'true' }}
+          DOCS_ONLY: ${{ steps.classify.outputs.docs_only || 'N/A' }}
         run: |
           {
             echo "## CI change routing"
             echo
-            echo "- node: `${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.node == 'true' }}`"
-            echo "- e2e: `${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.e2e == 'true' }}`"
-            echo "- docker: `${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.docker == 'true' }}`"
-            echo "- docs_only(main): `${{ steps.classify.outputs.docs_only || 'N/A' }}`"
+            printf -- '- node: `%s`\n' "$NODE_CHANGED"
+            printf -- '- e2e: `%s`\n' "$E2E_CHANGED"
+            printf -- '- docker: `%s`\n' "$DOCKER_CHANGED"
+            printf -- '- docs_only(main): `%s`\n' "$DOCS_ONLY"
           } >> "$GITHUB_STEP_SUMMARY"
 
   policy:
