@@ -28,6 +28,7 @@ export interface LogisticsDashboardKpiDto {
 export interface LogisticsDashboardEffortDto {
   plannedMd: number;
   plannedMm: number | null;
+  mdPerMm: number | null;
   unsetAllocationCount: number;
   workloadRange: {
     from: string | null;
