@@ -58,6 +58,7 @@ describe("migration CLI", () => {
         "0008_project_status.sql",
         "0009_logistics_domain.sql",
         "0010_logistics_resource_roles.sql",
+        "0011_task_logistics_links.sql",
       ],
     });
     expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
@@ -76,7 +77,7 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 10 });
+        .toEqual({ count: 11 });
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT revision FROM resource_catalog_state WHERE id = 1").get())

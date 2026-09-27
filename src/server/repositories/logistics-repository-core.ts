@@ -8,6 +8,7 @@ import type {
   SystemLayer,
   SystemRole,
   SystemScope,
+  TaskLogisticsLinkScope,
 } from "../../contracts/logistics";
 
 export interface ProcessRecord {
@@ -97,6 +98,42 @@ export interface SystemLinkRecord {
   sourceSystemId: number;
   targetSystemId: number;
   relationType: "coordinates";
+}
+
+export interface TaskEquipmentLinkRecord {
+  id: number;
+  projectId: number;
+  taskId: number;
+  equipmentId: number;
+  scope: TaskLogisticsLinkScope;
+  createdAt: string;
+  updatedAt: string;
+  taskPublicId: string;
+  taskName: string;
+  taskType: string;
+  equipmentPublicId: string;
+  equipmentCode: string;
+  equipmentName: string;
+  equipmentType: EquipmentType;
+  equipmentActive: number;
+}
+
+export interface TaskSystemLinkRecord {
+  id: number;
+  projectId: number;
+  taskId: number;
+  systemId: number;
+  scope: TaskLogisticsLinkScope;
+  createdAt: string;
+  updatedAt: string;
+  taskPublicId: string;
+  taskName: string;
+  taskType: string;
+  systemPublicId: string;
+  systemCode: string;
+  systemName: string;
+  systemType: LogisticsSystemType;
+  systemActive: number;
 }
 
 export interface InsertProcessRecord {
@@ -1064,6 +1101,190 @@ export class LogisticsRepository {
         `SELECT count(*) AS count FROM project_system_resource_roles WHERE resource_id = ?`,
       )
       .get(resourceId) as { count: number };
+    return row.count;
+  }
+
+  findTaskEquipmentLinks(projectId: number, taskId: number): TaskEquipmentLinkRecord[] {
+    return this.database
+      .prepare(
+        `
+          SELECT
+            tel.id AS id,
+            tel.project_id AS projectId,
+            tel.task_id AS taskId,
+            tel.equipment_id AS equipmentId,
+            tel.scope AS scope,
+            tel.created_at AS createdAt,
+            tel.updated_at AS updatedAt,
+            t.public_id AS taskPublicId,
+            t.name AS taskName,
+            t.type AS taskType,
+            e.public_id AS equipmentPublicId,
+            e.code AS equipmentCode,
+            e.name AS equipmentName,
+            e.equipment_type AS equipmentType,
+            e.active AS equipmentActive
+          FROM task_equipment_links tel
+          JOIN tasks t ON t.id = tel.task_id AND t.project_id = tel.project_id
+          JOIN project_equipment e ON e.id = tel.equipment_id AND e.project_id = tel.project_id
+          WHERE tel.project_id = ? AND tel.task_id = ?
+          ORDER BY tel.id ASC
+        `,
+      )
+      .all(projectId, taskId) as TaskEquipmentLinkRecord[];
+  }
+
+  findTaskSystemLinks(projectId: number, taskId: number): TaskSystemLinkRecord[] {
+    return this.database
+      .prepare(
+        `
+          SELECT
+            tsl.id AS id,
+            tsl.project_id AS projectId,
+            tsl.task_id AS taskId,
+            tsl.system_id AS systemId,
+            tsl.scope AS scope,
+            tsl.created_at AS createdAt,
+            tsl.updated_at AS updatedAt,
+            t.public_id AS taskPublicId,
+            t.name AS taskName,
+            t.type AS taskType,
+            s.public_id AS systemPublicId,
+            s.code AS systemCode,
+            s.name AS systemName,
+            s.system_type AS systemType,
+            s.active AS systemActive
+          FROM task_system_links tsl
+          JOIN tasks t ON t.id = tsl.task_id AND t.project_id = tsl.project_id
+          JOIN project_logistics_systems s ON s.id = tsl.system_id AND s.project_id = tsl.project_id
+          WHERE tsl.project_id = ? AND tsl.task_id = ?
+          ORDER BY tsl.id ASC
+        `,
+      )
+      .all(projectId, taskId) as TaskSystemLinkRecord[];
+  }
+
+  listAllTaskEquipmentLinks(projectId: number): TaskEquipmentLinkRecord[] {
+    return this.database
+      .prepare(
+        `
+          SELECT
+            tel.id AS id,
+            tel.project_id AS projectId,
+            tel.task_id AS taskId,
+            tel.equipment_id AS equipmentId,
+            tel.scope AS scope,
+            tel.created_at AS createdAt,
+            tel.updated_at AS updatedAt,
+            t.public_id AS taskPublicId,
+            t.name AS taskName,
+            t.type AS taskType,
+            e.public_id AS equipmentPublicId,
+            e.code AS equipmentCode,
+            e.name AS equipmentName,
+            e.equipment_type AS equipmentType,
+            e.active AS equipmentActive
+          FROM task_equipment_links tel
+          JOIN tasks t ON t.id = tel.task_id AND t.project_id = tel.project_id
+          JOIN project_equipment e ON e.id = tel.equipment_id AND e.project_id = tel.project_id
+          WHERE tel.project_id = ?
+          ORDER BY tel.id ASC
+        `,
+      )
+      .all(projectId) as TaskEquipmentLinkRecord[];
+  }
+
+  listAllTaskSystemLinks(projectId: number): TaskSystemLinkRecord[] {
+    return this.database
+      .prepare(
+        `
+          SELECT
+            tsl.id AS id,
+            tsl.project_id AS projectId,
+            tsl.task_id AS taskId,
+            tsl.system_id AS systemId,
+            tsl.scope AS scope,
+            tsl.created_at AS createdAt,
+            tsl.updated_at AS updatedAt,
+            t.public_id AS taskPublicId,
+            t.name AS taskName,
+            t.type AS taskType,
+            s.public_id AS systemPublicId,
+            s.code AS systemCode,
+            s.name AS systemName,
+            s.system_type AS systemType,
+            s.active AS systemActive
+          FROM task_system_links tsl
+          JOIN tasks t ON t.id = tsl.task_id AND t.project_id = tsl.project_id
+          JOIN project_logistics_systems s ON s.id = tsl.system_id AND s.project_id = tsl.project_id
+          WHERE tsl.project_id = ?
+          ORDER BY tsl.id ASC
+        `,
+      )
+      .all(projectId) as TaskSystemLinkRecord[];
+  }
+
+  replaceTaskEquipmentLinks(
+    projectId: number,
+    taskId: number,
+    links: Array<{ equipmentId: number; scope: TaskLogisticsLinkScope }>,
+    now: string,
+  ): void {
+    const deleteStmt = this.database.prepare(
+      `DELETE FROM task_equipment_links WHERE project_id = ? AND task_id = ?`,
+    );
+    const insertStmt = this.database.prepare(
+      `
+        INSERT INTO task_equipment_links (
+          project_id, task_id, equipment_id, scope, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?)
+      `,
+    );
+
+    deleteStmt.run(projectId, taskId);
+    for (const l of links) {
+      insertStmt.run(projectId, taskId, l.equipmentId, l.scope, now, now);
+    }
+  }
+
+  replaceTaskSystemLinks(
+    projectId: number,
+    taskId: number,
+    links: Array<{ systemId: number; scope: TaskLogisticsLinkScope }>,
+    now: string,
+  ): void {
+    const deleteStmt = this.database.prepare(
+      `DELETE FROM task_system_links WHERE project_id = ? AND task_id = ?`,
+    );
+    const insertStmt = this.database.prepare(
+      `
+        INSERT INTO task_system_links (
+          project_id, task_id, system_id, scope, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?)
+      `,
+    );
+
+    deleteStmt.run(projectId, taskId);
+    for (const l of links) {
+      insertStmt.run(projectId, taskId, l.systemId, l.scope, now, now);
+    }
+  }
+
+  countTaskEquipmentLinks(projectId: number, equipmentId: number): number {
+    const row = this.database
+      .prepare(
+        `SELECT count(*) AS count FROM task_equipment_links WHERE project_id = ? AND equipment_id = ?`,
+      )
+      .get(projectId, equipmentId) as { count: number };
+    return row.count;
+  }
+
+  countTaskSystemLinks(projectId: number, systemId: number): number {
+    const row = this.database
+      .prepare(
+        `SELECT count(*) AS count FROM task_system_links WHERE project_id = ? AND system_id = ?`,
+      )
+      .get(projectId, systemId) as { count: number };
     return row.count;
   }
 }

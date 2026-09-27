@@ -35,6 +35,7 @@ import {
   parseCreateEquipmentInput,
   parseCreateLogisticsSystemInput,
   parseCreateProcessInput,
+  parseReplaceTaskLogisticsLinksInput,
   parseSetEquipmentResourceRolesInput,
   parseSetEquipmentSystemsInput,
   parseSetSystemChildrenInput,
@@ -618,6 +619,98 @@ export async function handleSetSystemResourceRoles(
       auth,
       expectedRevision,
       systemPublicId,
+      parsed.data,
+    );
+    return mutationResponse(result, 200);
+  } catch (error) {
+    return mapError(error, requestId);
+  }
+}
+
+export async function handleGetTaskLogisticsLinks(
+  request: Request,
+  publicId: string,
+  taskPublicId: string,
+  dependencies: LogisticsHandlerDependencies,
+): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    if (!isCanonicalUuidV4(publicId)) {
+      throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    }
+    const url = appUrl(dependencies);
+    const cookie = parseEditSessionCookie(
+      request.headers.get("cookie"),
+      dependencies.environment,
+      url,
+    );
+    const pService = resolve(dependencies.projectService);
+    const auth = pService.authorize(
+      publicId,
+      cookie.state === "present" ? cookie.rawToken : undefined,
+    );
+    if (auth.kind === "projectNotFound") {
+      throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    }
+
+    const service = resolve(dependencies.logisticsService);
+    const projectId = service.getProjectIdByPublicId(publicId);
+    if (!projectId) {
+      throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    }
+
+    const links = service.getTaskLogisticsLinks(projectId, taskPublicId);
+    const permission = auth.kind === "authorized" ? "edit" : "readonly";
+
+    return Response.json(
+      {
+        data: {
+          taskId: taskPublicId,
+          links,
+          permission,
+        },
+      },
+      {
+        status: 200,
+        headers: NO_STORE_HEADERS,
+      },
+    );
+  } catch (error) {
+    return mapError(error, requestId);
+  }
+}
+
+export async function handleReplaceTaskLogisticsLinks(
+  request: Request,
+  publicId: string,
+  taskPublicId: string,
+  dependencies: LogisticsHandlerDependencies,
+): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    if (!isCanonicalUuidV4(publicId)) {
+      throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    }
+    const url = appUrl(dependencies);
+    requireOrigin(request, url);
+    const auth = requireAuthorizedSession(request, publicId, dependencies, url);
+    const expectedRevision = parseRequiredIfMatch(request);
+    const raw = await readBoundedJson(request);
+    const parsed = parseReplaceTaskLogisticsLinksInput(raw);
+    if (!parsed.success) {
+      throw new PublicApiError(
+        400,
+        "INVALID_REQUEST",
+        "The task logistics links input is invalid.",
+        toDetails(parsed.details),
+      );
+    }
+
+    const service = resolve(dependencies.logisticsService);
+    const result = service.replaceTaskLogisticsLinks(
+      auth,
+      expectedRevision,
+      taskPublicId,
       parsed.data,
     );
     return mutationResponse(result, 200);

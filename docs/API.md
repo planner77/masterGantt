@@ -771,3 +771,57 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 ### 5. 프로젝트 복사 시 물류 도메인 보호 가드
 - `POST /api/projects/{publicId}/copy`: 대상 프로젝트에 물류 데이터(공정, 설비, 시스템)가 존재하는 경우 아직 물류 복사를 지원하지 않으므로 `409 LOGISTICS_COPY_NOT_SUPPORTED_YET`으로 안전하게 차단한다 (Issue #189에서 복사 지원 예정).
 
+## Issue #187: Task Logistics Links API (Summary·Task·Milestone 설비·시스템 연결)
+
+태스크(Summary, Leaf Task, Milestone)와 물류 도메인(설비, 시스템)을 연결하는 API이다.
+Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비/시스템 연결을 상속할 수 있다.
+
+### 1. 작업별 물류 연결 조회
+- `GET /api/projects/{publicId}/tasks/{taskId}/logistics-links`
+  - Public-read (편집 세션 불필요).
+  - 응답:
+    ```json
+    {
+      "data": {
+        "directEquipmentLinks": [
+          { "equipmentId": "eq-uuid", "scope": "self" }
+        ],
+        "directSystemLinks": [
+          { "systemId": "sys-uuid", "scope": "subtree" }
+        ],
+        "inheritedEquipmentLinks": [
+          {
+            "equipmentId": "eq-uuid-2",
+            "scope": "subtree",
+            "sourceTaskId": "parent-task-uuid",
+            "sourceTaskName": "1단계 Summary"
+          }
+        ],
+        "inheritedSystemLinks": []
+      }
+    }
+    ```
+
+### 2. 작업별 물류 연결 교체
+- `PUT /api/projects/{publicId}/tasks/{taskId}/logistics-links`
+  - 프로젝트 편집 세션, 동일한 `Origin`, 강한 단일 `If-Match: "<revision>"` 필수.
+  - 요청 본문:
+    ```json
+    {
+      "equipmentLinks": [
+        { "equipmentId": "eq-uuid", "scope": "self" }
+      ],
+      "systemLinks": [
+        { "systemId": "sys-uuid", "scope": "subtree" }
+      ]
+    }
+    ```
+  - 제약 및 동작 규칙:
+    - `scope: 'subtree'`는 대상 작업이 `type === 'summary'`인 경우에만 지정 가능. 일반 Task나 Milestone에 `subtree` 지정 시 `400 INVALID_TASK_LOGISTICS_LINKS`로 거부.
+    - 비활성(`active = false`) 설비/시스템의 신규 연결 시도는 `409 EQUIPMENT_INACTIVE` 또는 `409 SYSTEM_INACTIVE`로 거부. 단, 기존에 이미 연결되어 있던 비활성 항목의 유지는 허용.
+    - 유효하지 않거나 다른 프로젝트에 속한 설비/시스템 ID 지정 시 `400 INVALID_TASK_LOGISTICS_LINKS`로 거부.
+    - SQLite immediate transaction 내에서 원자적으로 교체되며, 성공 시 프로젝트 `revision`을 정확히 1 증가시키고 새 ETag와 함께 교체된 연결 목록 및 상속 목록을 반환.
+  - 마스터 삭제 보호:
+    - 설비 또는 시스템에 연결된 태스크 링크(직접 연결)가 1개 이상 존재하는 경우, 설비/시스템 영구 삭제(`DELETE ...?hardDelete=true`) 시 각각 `409 EQUIPMENT_IN_USE`, `409 SYSTEM_IN_USE`로 차단.
+
+
