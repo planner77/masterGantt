@@ -238,12 +238,13 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     ).toBeVisible();
 
     // Verify Sub-tab 1: Processes (Default)
-    await expect(page.getByText("PROC-01")).toBeVisible();
-    await expect(page.getByText("입고 공정")).toBeVisible();
-    await expect(page.getByText("PROC-02")).toBeVisible();
-    await expect(page.getByText("보관 공정")).toBeVisible();
-    await expect(page.getByText("PROC-03")).toBeVisible();
-    await expect(page.getByText("출고 공정")).toBeVisible();
+    const processPanel = page.locator("#panel-processes");
+    await expect(processPanel.getByText("PROC-01", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("입고 공정", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("PROC-02", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("보관 공정", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("PROC-03", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("출고 공정", { exact: true })).toBeVisible();
 
     // Switch to Sub-tab 2: Equipment
     await page.getByRole("tab", { name: "설비 관리" }).click();
@@ -378,8 +379,9 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await page.goto(`/projects/${publicId}`);
     await page.getByRole("tab", { name: "물류 구성" }).click();
 
-    const processRow = page.locator("tr", { hasText: "PROC-01" });
-    await processRow.getByRole("button", { name: "삭제" }).click();
+    const processPanel = page.locator("#panel-processes");
+    const processRow = processPanel.locator("tr").filter({ has: processPanel.getByText("PROC-01", { exact: true }) });
+    await processRow.getByRole("button", { name: "삭제", exact: true }).click();
     const confirm = page.getByRole("dialog", { name: "삭제 확인" });
     await confirm.getByRole("button", { name: "삭제", exact: true }).click();
 
@@ -397,10 +399,13 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       await page.getByRole("tab", { name: "물류 구성" }).click();
       await expect(page.getByRole("heading", { level: 2, name: "물류 구성" })).toBeVisible();
 
-      const hasHorizontalOverflow = await page.evaluate(() => {
-        return document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
-      });
-      expect(hasHorizontalOverflow).toBe(false);
+      const overflow = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      }));
+      expect(overflow.scrollWidth, `viewport ${width}px: document width ${overflow.scrollWidth}px`).toBeLessThanOrEqual(
+        overflow.clientWidth + 1,
+      );
     }
   });
 });
