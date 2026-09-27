@@ -181,6 +181,10 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(prevented).toBe(false);
     await expect(taskContextMenu(page)).toHaveCount(0);
     await expect(editor(page)).toHaveCount(0);
+    if (!(await row(page, "Beta leaf").isVisible())) {
+      await row(page, "Summary").locator('[data-action="open-task"]').click();
+      await expect(row(page, "Beta leaf")).toBeVisible();
+    }
     for (let i = 0; i < 3; i += 1) { await openRow(page); await cancel(page); }
     await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
     expect(fixture.patches).toHaveLength(0);
@@ -295,7 +299,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     const instance = await frame(page).getAttribute("data-project-gantt-instance");
     await openRow(page);
     await editor(page).getByLabel("기간 (근무일)", { exact: true }).fill("2");
-    await expect(editor(page).locator("output")).toHaveText("2026-09-18");
+    await expect(editor(page).locator("output").first()).toHaveText("2026-09-18");
     expect(fixture.patches).toHaveLength(0);
     let release!: () => void;
     fixture.gate = new Promise<void>((resolve) => { release = resolve; });
@@ -486,6 +490,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     const taskTab = dialog.getByRole("tab", { name: "작업 정보", exact: true });
     const resourceTab = dialog.getByRole("tab", { name: /리소스/ });
     const relationTab = dialog.getByRole("tab", { name: /관계/ });
+    const logisticsTab = dialog.getByRole("tab", { name: /물류 연결/ });
 
     await expect(taskTab).toHaveAttribute("aria-selected", "true");
     await dialog.getByLabel("작업명", { exact: true }).fill("탭 전환 초안");
@@ -506,6 +511,11 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
     await resourceTab.focus();
     await page.keyboard.press("End");
+    await expect(logisticsTab).toBeFocused();
+    await expect(logisticsTab).toHaveAttribute("aria-selected", "true");
+    await expect(dialog.getByRole("tabpanel", { name: /물류 연결/ })).toBeVisible();
+
+    await page.keyboard.press("ArrowLeft");
     await expect(relationTab).toBeFocused();
     await expect(relationTab).toHaveAttribute("aria-selected", "true");
 
