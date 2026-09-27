@@ -248,3 +248,26 @@ test("Issue #130 Phase 2 조회 중·오류 상태의 본문과 재시도가 작
   await expect(page.getByRole("tablist", { name: "프로젝트 작업공간" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Issue 3 stable Gantt fixture" })).toBeVisible();
 });
+
+
+test("Issue #195 새 프로젝트 생성 탭은 키보드로 순환 이동한다", async ({ page }) => {
+  await page.goto("/projects/new");
+
+  const tabs = page.getByRole("tablist", { name: "프로젝트 생성 방식" });
+  const blankTab = tabs.getByRole("tab", { name: "빈 프로젝트 만들기", exact: true });
+  const templateTab = tabs.getByRole("tab", { name: "템플릿에서 만들기", exact: true });
+
+  await blankTab.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(templateTab).toBeFocused();
+  await expect(templateTab).toHaveAttribute("aria-selected", "true");
+
+  await page.keyboard.press("ArrowLeft");
+  await expect(blankTab).toBeFocused();
+  await expect(blankTab).toHaveAttribute("aria-selected", "true");
+
+  await page.keyboard.press("End");
+  await expect(templateTab).toBeFocused();
+  await page.keyboard.press("Home");
+  await expect(blankTab).toBeFocused();
+});
