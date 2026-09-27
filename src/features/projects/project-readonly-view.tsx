@@ -971,15 +971,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             linkId={relationEditorLinkId}
             links={links}
             onClose={closeRelationEditor}
-            onCreateLink={async (source, target, options) => {
-              await saveLink("POST", source, target, undefined, options);
-            }}
-            onDeleteLink={async (id) => {
-              await saveLink("DELETE", undefined, undefined, id);
-            }}
-            onUpdateLink={async (id, patch) => {
-              await saveLink("PATCH", undefined, undefined, id, patch);
-            }}
+            onCreateLink={(source, target, options) => saveLink("POST", source, target, undefined, options)}
+            onDeleteLink={(id) => saveLink("DELETE", undefined, undefined, id)}
+            onUpdateLink={(id, patch) => saveLink("PATCH", undefined, undefined, id, patch)}
             tasks={tasks}
           />
         ) : null}
