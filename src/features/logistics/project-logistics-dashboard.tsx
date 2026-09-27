@@ -26,9 +26,9 @@ export function ProjectLogisticsDashboard({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filter state
-  const today = new Date().toISOString().slice(0, 10);
-  const [asOfDate, setAsOfDate] = useState<string>(today);
+  // Filter state. Leave asOfDate empty for the first request so the server
+  // derives the project-local date from the project timezone.
+  const [asOfDate, setAsOfDate] = useState<string>("");
   const [horizonDays, setHorizonDays] = useState<number>(14);
   const [systemView, setSystemView] = useState<"direct" | "coordination">("direct");
   const [activeOnly, setActiveOnly] = useState<boolean>(false);
@@ -68,6 +68,9 @@ export function ProjectLogisticsDashboard({
         const json = await response.json();
         if (!controller.signal.aborted) {
           setDashboard(json.data);
+          if (!asOfDate && json.data?.asOfDate) {
+            setAsOfDate(json.data.asOfDate);
+          }
           setError(null);
         }
       } catch (err) {
@@ -104,9 +107,13 @@ export function ProjectLogisticsDashboard({
     }
   };
 
-  const handleDrillDownToSystem = (sysId: string) => {
+  const handleDrillDownToSystem = (sysId: string, taskIds: string[]) => {
     if (onNavigateToSchedule) {
-      onNavigateToSchedule({ systemIds: [sysId] });
+      if (systemView === "coordination") {
+        onNavigateToSchedule({ taskIds });
+      } else {
+        onNavigateToSchedule({ systemIds: [sysId] });
+      }
     }
   };
 
@@ -633,7 +640,7 @@ export function ProjectLogisticsDashboard({
                               type="button"
                               className={styles.drillBtn}
                               disabled={sys.taskCount === 0}
-                              onClick={() => handleDrillDownToSystem(sys.id)}
+                              onClick={() => handleDrillDownToSystem(sys.id, sys.taskIds)}
                             >
                               일정 필터
                             </button>
