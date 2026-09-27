@@ -508,3 +508,35 @@ Scope가 `processes`인 시스템과 담당 공정 간의 다대다 매핑 테�
 
 `UNIQUE(project_id, source_system_id, target_system_id)`, `CHECK(source_system_id <> target_system_id)`
 
+### 5.20 `project_equipment_resource_roles`
+
+설비 담당자 역할 배정 테이블이다. 기존 리소스 카탈로그(`resources`)의 리소스를 설비에 배정하며, 역할은 설비 담당(`owner`) 또는 참여(`contributor`)이다. 설비당 주 담당자(`is_primary = 1`)는 최대 1개(`WHERE is_primary = 1` partial unique index)만 허용되며, `owner` 역할에만 주 담당자 지정이 가능하다 (`CHECK(is_primary = 0 OR role = 'owner')`). 리소스 삭제 시 배정 데이터 보존을 위해 `FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE NO ACTION`으로 보호된다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | PK |
+| `project_id` | INTEGER | N | Project FK, cascade |
+| `equipment_id` | INTEGER | N | 설비 PK (동일 프로젝트 composite FK, cascade) |
+| `resource_id` | INTEGER | N | 리소스 PK (`resources.id` FK, NO ACTION) |
+| `role` | TEXT | N | `owner \| contributor` |
+| `is_primary` | INTEGER | N | 주 담당자 여부 (0 또는 1, 기본 0) |
+| `created_at/updated_at` | TEXT | N | UTC timestamp |
+
+`UNIQUE(project_id, equipment_id, resource_id, role)`
+
+### 5.21 `project_system_resource_roles`
+
+물류 시스템 PI/개발자 역할 배정 테이블이다. 기존 리소스 카탈로그(`resources`)의 리소스를 시스템에 배정하며, 역할은 책임자(`pi`) 또는 개발자(`developer`)이다. 시스템당 주 책임자(`is_primary = 1`)는 최대 1개(`WHERE is_primary = 1` partial unique index)만 허용되며, `pi` 역할에만 주 책임자 지정이 가능하다 (`CHECK(is_primary = 0 OR role = 'pi')`). 리소스 삭제 시 배정 데이터 보존을 위해 `FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE NO ACTION`으로 보호된다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | PK |
+| `project_id` | INTEGER | N | Project FK, cascade |
+| `system_id` | INTEGER | N | 시스템 PK (동일 프로젝트 composite FK, cascade) |
+| `resource_id` | INTEGER | N | 리소스 PK (`resources.id` FK, NO ACTION) |
+| `role` | TEXT | N | `pi \| developer` |
+| `is_primary` | INTEGER | N | 주 책임자 여부 (0 또는 1, 기본 0) |
+| `created_at/updated_at` | TEXT | N | UTC timestamp |
+
+`UNIQUE(project_id, system_id, resource_id, role)`
+
