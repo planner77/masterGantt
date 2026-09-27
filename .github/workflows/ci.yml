@@ -25,6 +25,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       node: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.node == 'true' }}
+      policy: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.policy == 'true' }}
       e2e: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.e2e == 'true' }}
       docker: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.docker == 'true' }}
       docs_only: ${{ steps.classify.outputs.docs_only }}
@@ -57,6 +58,26 @@ jobs:
               - 'postcss.config.*'
               - 'tailwind.config.*'
               - '.github/workflows/ci.yml'
+              - '.github/actions/**'
+            policy:
+              # 정책 검증의 실제 입력. application code뿐 아니라 문서·workflow·검증 script 변경도 포함한다.
+              - 'src/**'
+              - 'public/**'
+              - 'db/**'
+              - 'scripts/**'
+              - 'tests/**'
+              - 'deploy/**'
+              - 'docs/**'
+              - '*.md'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'tsconfig*.json'
+              - 'next.config.*'
+              - 'eslint.config.*'
+              - 'postcss.config.*'
+              - 'tailwind.config.*'
+              - '.dockerignore'
+              - '.github/workflows/**'
               - '.github/actions/**'
             e2e:
               - 'src/**'
@@ -114,6 +135,7 @@ jobs:
         shell: bash
         env:
           NODE_CHANGED: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.node == 'true' }}
+          POLICY_CHANGED: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.policy == 'true' }}
           E2E_CHANGED: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.e2e == 'true' }}
           DOCKER_CHANGED: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.docker == 'true' }}
           DOCS_ONLY: ${{ steps.classify.outputs.docs_only || 'N/A' }}
@@ -122,6 +144,7 @@ jobs:
             echo "## CI change routing"
             echo
             printf -- '- node: `%s`\n' "$NODE_CHANGED"
+            printf -- '- policy: `%s`\n' "$POLICY_CHANGED"
             printf -- '- e2e: `%s`\n' "$E2E_CHANGED"
             printf -- '- docker: `%s`\n' "$DOCKER_CHANGED"
             printf -- '- docs_only(main): `%s`\n' "$DOCS_ONLY"
@@ -129,7 +152,7 @@ jobs:
 
   policy:
     name: 정책·저장소 계약 검사
-    if: needs.changes.outputs.node == 'true'
+    if: needs.changes.outputs.policy == 'true'
     needs: changes
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -257,7 +280,9 @@ jobs:
       - name: 병렬 quality 결과 집계
         shell: bash
         env:
-          REQUIRED: ${{ needs.changes.outputs.node }}
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          NODE_REQUIRED: ${{ needs.changes.outputs.node }}
+          POLICY_REQUIRED: ${{ needs.changes.outputs.policy }}
           POLICY: ${{ needs.policy.result }}
           TYPECHECK: ${{ needs.typecheck.result }}
           LINT: ${{ needs.lint.result }}
@@ -265,13 +290,21 @@ jobs:
           BUILD: ${{ needs.build.result }}
         run: |
           set -euo pipefail
-          if [[ "$REQUIRED" != "true" ]]; then
-            echo "관련 코드 변경이 없어 heavy quality checks를 생략했습니다."
+          if [[ "$CHANGES_RESULT" != "success" ]]; then
+            echo "변경 경로 판정 job이 실패하거나 취소되어 quality 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
+            exit 1
+          fi
+          if [[ "$POLICY_REQUIRED" == "true" && "$POLICY" != "success" ]]; then
+            echo "정책·저장소 계약 검사가 실패하거나 취소되었습니다: $POLICY" >&2
+            exit 1
+          fi
+          if [[ "$NODE_REQUIRED" != "true" ]]; then
+            echo "관련 코드 변경이 없어 typecheck/lint/unit/build 검사를 생략했습니다."
             exit 0
           fi
-          for result in "$POLICY" "$TYPECHECK" "$LINT" "$UNIT" "$BUILD"; do
+          for result in "$TYPECHECK" "$LINT" "$UNIT" "$BUILD"; do
             [[ "$result" == "success" ]] || {
-              echo "Parallel quality job failed or was cancelled: $result" >&2
+              echo "병렬 quality 구현 job이 실패하거나 취소되었습니다: $result" >&2
               exit 1
             }
           done
@@ -322,16 +355,21 @@ jobs:
       - name: E2E shard 결과 집계
         shell: bash
         env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
           REQUIRED: ${{ needs.changes.outputs.e2e }}
           RESULT: ${{ needs.e2e_shard.result }}
         run: |
           set -euo pipefail
+          if [[ "$CHANGES_RESULT" != "success" ]]; then
+            echo "변경 경로 판정 job이 실패하거나 취소되어 E2E 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
+            exit 1
+          fi
           if [[ "$REQUIRED" != "true" ]]; then
             echo "E2E 관련 변경이 없어 Chromium E2E를 생략했습니다."
             exit 0
           fi
           [[ "$RESULT" == "success" ]] || {
-            echo "One or more Chromium E2E shards failed or were cancelled: $RESULT" >&2
+            echo "하나 이상의 Chromium E2E shard가 실패하거나 취소되었습니다: $RESULT" >&2
             exit 1
           }
 
@@ -430,16 +468,21 @@ jobs:
       - name: Docker smoke 결과 집계
         shell: bash
         env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
           REQUIRED: ${{ needs.changes.outputs.docker }}
           RESULT: ${{ needs.docker_smoke.result }}
         run: |
           set -euo pipefail
+          if [[ "$CHANGES_RESULT" != "success" ]]; then
+            echo "변경 경로 판정 job이 실패하거나 취소되어 Docker smoke 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
+            exit 1
+          fi
           if [[ "$REQUIRED" != "true" ]]; then
             echo "Docker/runtime 관련 변경이 없어 smoke test를 생략했습니다."
             exit 0
           fi
           [[ "$RESULT" == "success" ]] || {
-            echo "Docker smoke failed or was cancelled: $RESULT" >&2
+            echo "Docker smoke 구현 job이 실패하거나 취소되었습니다: $RESULT" >&2
             exit 1
           }
 
@@ -560,8 +603,8 @@ jobs:
           {
             echo "## Verified temporary main commit image"
             echo
-            echo "- Reference: `${{ steps.digest.outputs.image }}`"
-            echo "- Digest: `${{ steps.push.outputs.digest }}`"
+            printf -- '- Reference: `%s`\n' '${{ steps.digest.outputs.image }}'
+            printf -- '- Digest: `%s`\n' '${{ steps.push.outputs.digest }}'
             echo "- BuildKit SBOM/provenance: generated."
           } >> "$GITHUB_STEP_SUMMARY"
       - name: 실패 시 smoke logs
