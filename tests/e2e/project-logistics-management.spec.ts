@@ -255,7 +255,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expect(equipmentPanel.getByText("입고 무인운반차 편대", { exact: true })).toBeVisible();
     await expect(equipmentPanel.getByText("AMR-F1", { exact: true })).toBeVisible();
     // Check primary owner tag
-    await expect(page.getByText("★ 홍길동 (owner)")).toBeVisible();
+    await expect(equipmentPanel.getByText("★ 홍길동 (owner)", { exact: true }).first()).toBeVisible();
 
     // Switch to Sub-tab 3: Systems
     await page.getByRole("tab", { name: "물류 시스템" }).click();
