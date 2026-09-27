@@ -112,11 +112,11 @@ describe("ProjectTemplateService (Issue #195)", () => {
           .run(sourceProjectId, randomUUID(), s1, now, now).lastInsertRowid,
       );
 
-      // 의존관계: T1 -> T2 (FS), T2 -> M1 (FS)
+      // 의존관계: T1 -> T2 (FS/0), T2 -> M1 (FF/-1) — 확장 relation snapshot 보존 검증
       database
         .prepare(
           `INSERT INTO links(public_id, project_id, predecessor_task_id, successor_task_id, type, lag, created_at, updated_at)
-           VALUES (?, ?, ?, ?, 'FS', 0, ?, ?), (?, ?, ?, ?, 'FS', 0, ?, ?)`,
+           VALUES (?, ?, ?, ?, 'FS', 0, ?, ?), (?, ?, ?, ?, 'FF', -1, ?, ?)`,
         )
         .run(randomUUID(), sourceProjectId, t1, t2, now, now, randomUUID(), sourceProjectId, t2, m1, now, now);
 
@@ -288,9 +288,23 @@ describe("ProjectTemplateService (Issue #195)", () => {
       expect(newS1?.start).toBe("2026-11-02");
       expect(newS1?.end).toBe("2026-11-06");
 
-      // 링크 검증: 2개 FS 링크 존재
+      // 링크 검증: 템플릿 snapshot의 relation type/lag를 무손실 보존
       const newLinks = instantiated.response.data.links;
       expect(newLinks.length).toBe(2);
+      expect(newLinks).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          predecessorExternalId: "task-t1",
+          successorExternalId: "task-t2",
+          type: "FS",
+          lag: 0,
+        }),
+        expect.objectContaining({
+          predecessorExternalId: "task-t2",
+          successorExternalId: "task-m1",
+          type: "FF",
+          lag: -1,
+        }),
+      ]));
 
       // 리소스 배정 검증: newT1에 res1 배정 유지
       const newAssignments = instantiated.response.data.assignments;
