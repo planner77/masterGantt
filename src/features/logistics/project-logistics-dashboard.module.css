@@ -1,12 +1,16 @@
 .dashboardContainer {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  max-width: 100%;
   gap: 1.5rem;
   padding: 1rem 0;
 }
 
 .filterBar {
   display: flex;
+  min-width: 0;
+  max-width: 100%;
   flex-wrap: wrap;
   align-items: center;
   gap: 1rem;
@@ -18,7 +22,9 @@
 
 .filterGroup {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  min-width: 0;
   gap: 0.5rem;
   font-size: 0.875rem;
 }
@@ -31,6 +37,8 @@
 
 .filterInput,
 .filterSelect {
+  min-width: 0;
+  max-width: 100%;
   padding: 0.375rem 0.625rem;
   font-size: 0.875rem;
   border: 1px solid var(--border-default, #cbd5e1);
@@ -79,7 +87,7 @@
 /* KPI Cards Grid */
 .kpiGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: 1rem;
 }
 
@@ -365,4 +373,29 @@
   border-radius: 0.375rem;
   color: #991b1b;
   font-size: 0.875rem;
+}
+
+@media (max-width: 600px) {
+  .filterBar {
+    align-items: stretch;
+    padding: 0.75rem;
+  }
+
+  .filterGroup {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .filterSelect {
+    flex: 1 1 12rem;
+  }
+
+  .refreshButton {
+    margin-left: 0;
+  }
+
+  .kpiMetaRow {
+    flex-wrap: wrap;
+    gap: 0.35rem 0.75rem;
+  }
 }
