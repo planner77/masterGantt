@@ -93,6 +93,19 @@ def validate_inputs(
     return int(issue), int(pr)
 
 
+def validate_operation_inputs(args: argparse.Namespace) -> None:
+    if args.operation != "release_finalize":
+        return
+    if not parse_bool(args.release_required):
+        raise LifecycleError("release_finalize requires release_required=true")
+    if not parse_bool(args.release_authorized):
+        raise LifecycleError("release_finalize requires release_authorized=true")
+    if not args.expected_version.strip():
+        raise LifecycleError("release_finalize requires expected_version")
+    if not args.authorization_note.strip():
+        raise LifecycleError("release_finalize requires authorization_note")
+
+
 def mutation_gate(
     *,
     merged: bool,
@@ -434,6 +447,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     try:
+        validate_operation_inputs(args)
         ctx = resolve_context(args)
         if args.operation == "release":
             tag, url = ensure_release(ctx, args)
@@ -442,14 +456,6 @@ def main() -> int:
             finalize(ctx, args)
             print("finalize PASS")
         elif args.operation == "release_finalize":
-            if not parse_bool(args.release_required):
-                raise LifecycleError("release_finalize requires release_required=true")
-            if not parse_bool(args.release_authorized):
-                raise LifecycleError("release_finalize requires release_authorized=true")
-            if not args.expected_version.strip():
-                raise LifecycleError("release_finalize requires expected_version")
-            if not args.authorization_note.strip():
-                raise LifecycleError("release_finalize requires authorization_note")
             finalize(ctx, args)
             print("release_finalize PASS")
         return 0
