@@ -318,3 +318,22 @@ Issue별 hard-coded release helper 대신 `.github/workflows/issue-lifecycle.yml
 정식 GHCR publish 로직은 계속 `release-image.yml`만 소유하며 lifecycle workflow에 `packages: write`를 주지 않는다. 승인된 release는 annotated `v<package-version>` tag와 exact release run을 검증하고, 기존 tag는 동일 target의 성공 evidence가 있을 때만 재사용한다. tag conflict/orphan tag는 이동·덮어쓰기하지 않는다.
 
 CI/GitHub orchestration 또는 docs-only 변경은 application version을 유지하고 `release_required=false`로 formal release를 N/A 처리할 수 있다. 이 경우에도 merge 후 main의 temporary `ci-<SHA>` publish/digest smoke/cleanup evidence는 Lifecycle gate로 확인한다.
+
+
+## Issue #250 CI 실행 시간 최적화
+
+PR/main의 공식 required check 이름은 기존 Ruleset 계약을 유지한다.
+
+- `Build, static checks, and unit tests`
+- `Chromium end-to-end tests`
+- `Docker build and runtime smoke test`
+
+각 required check는 aggregate gate이며 내부 구현 job을 병렬로 집계한다. `quality` 내부의 policy/typecheck/lint/Vitest/Next.js build는 `changes` 이후 동시에 시작하고, E2E와 Docker smoke도 quality 완료를 기다리지 않는다.
+
+`dorny/paths-filter`는 node/E2E/Docker 영향 경로만 heavy job으로 보낸다. workflow-level `paths`는 required workflow를 Pending 상태로 남길 수 있으므로 사용하지 않는다. docs-only 또는 관련 없는 변경에서도 aggregate required check는 실제 SUCCESS를 반환한다. `workflow_dispatch`는 필터와 무관하게 전체 회귀를 강제한다.
+
+Node 의존성은 `actions/setup-node`의 npm cache를 사용한다. `npm ci`가 `node_modules`를 삭제하므로 `node_modules` 자체를 cache하지 않는다. Next.js production build는 `.next/cache`, TypeScript는 `tsconfig.tsbuildinfo`를 `actions/cache`로 commit 간 재사용한다. Docker BuildKit은 repository 전용 GHA cache scope를 공유한다.
+
+Playwright는 기존 `workers: 1` 격리 계약을 유지하면서 GitHub runner 4개에서 `--shard=1/4..4/4`로 file sharding한다. browser binary cache는 만들지 않고 Chromium headless shell만 설치한다. PR CI 실패 시 shard별 HTML report를 보존한다.
+
+main의 비문서 변경은 세 required aggregate gate가 모두 성공한 뒤 기존 임시 `ci-<SHA>` GHCR 게시/digest 재검증/삭제 흐름을 유지한다. PR은 read-only이며 registry write 권한을 받지 않는다.
