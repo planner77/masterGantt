@@ -8,6 +8,7 @@ import type {
   CopyProjectResponse,
   ProjectTaskDto,
 } from "../../contracts/projects";
+import type { ProjectAssignmentDto } from "../../contracts/resources";
 import { recalculateHierarchy } from "../../domain/scheduling";
 import { ProjectOwnerRepository } from "../repositories/project-owner-repository-core";
 import { WorkCalendarRepository } from "../repositories/work-calendar-repository-core";
@@ -80,6 +81,17 @@ function dtoTasks(tasks: readonly TaskRecord[]): ProjectTaskDto[] {
       ? null
       : externalById.get(task.parentId) ?? null,
     siblingOrder: task.sortOrder,
+  }));
+}
+
+function assignmentDtos(repository: ResourceCatalogRepository, projectId: number): ProjectAssignmentDto[] {
+  return repository.listAssignments(projectId).map((assignment) => ({
+    id: assignment.publicId,
+    taskId: assignment.taskPublicId,
+    target: { kind: assignment.kind, id: assignment.targetPublicId },
+    allocation: assignment.kind === "resource"
+      ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
+      : null,
   }));
 }
 
@@ -608,6 +620,7 @@ export class ProjectCopyService {
           copiedTasks.map((task) => [task.id, task.externalId]),
         );
 
+        const copiedAssignments = assignmentDtos(this.resourceCatalog, project.id);
         const copiedLogistics = this.logisticsService.getLogisticsDto(project.id);
 
         const response: CopyProjectResponse = {
@@ -629,6 +642,7 @@ export class ProjectCopyService {
               type: link.type,
               lag: link.lag,
             })),
+            assignments: copiedAssignments,
             logistics: copiedLogistics,
             permission: "edit",
             operation: {
