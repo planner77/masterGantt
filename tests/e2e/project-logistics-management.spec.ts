@@ -237,7 +237,9 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       page.getByText("물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다."),
     ).toBeVisible();
 
-    // Verify Sub-tab 1: Processes (Default)
+    // LG-05 dashboard is the default sub-tab. Move explicitly to process management.
+    await expect(page.getByRole("tab", { name: "KPI 대시보드" })).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("tab", { name: "공정 관리" }).click();
     const processPanel = page.locator("#panel-processes");
     await expect(processPanel.getByText("PROC-01", { exact: true })).toBeVisible();
     await expect(processPanel.getByText("입고 공정", { exact: true })).toBeVisible();
@@ -317,6 +319,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
 
     await page.goto(`/projects/${publicId}`);
     await page.getByRole("tab", { name: "물류 구성" }).click();
+    await page.getByRole("tab", { name: "공정 관리" }).click();
 
     // Open add process dialog
     const addButton = page.getByRole("button", { name: "+ 공정 추가" });
@@ -382,6 +385,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
 
     await page.goto(`/projects/${publicId}`);
     await page.getByRole("tab", { name: "물류 구성" }).click();
+    await page.getByRole("tab", { name: "공정 관리" }).click();
 
     const processPanel = page.locator("#panel-processes");
     const processRow = processPanel.getByRole("row").filter({ hasText: /^PROC-01/ });
