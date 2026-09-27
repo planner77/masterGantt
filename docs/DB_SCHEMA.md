@@ -2,7 +2,7 @@
 
 ## 1. 문서 상태와 범위
 
-이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. Issue #99에서 리소스 관리자 런타임 자격증명 해시를 위한 `0007_resource_admin_credentials.sql`을 추가했다. Issue #138에서 Project 상태를 위한 `0008_project_status.sql`을 추가했다. Issue #184에서 물류 도메인 공정·설비·제어/조율 시스템 기초 영속 모델을 위한 `0009_logistics_domain.sql`을 추가한다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
+이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. Issue #99에서 리소스 관리자 런타임 자격증명 해시를 위한 `0007_resource_admin_credentials.sql`을 추가했다. Issue #138에서 Project 상태를 위한 `0008_project_status.sql`을 추가했다. Issue #184에서 물류 도메인 공정·설비·제어/조율 시스템 기초 영속 모델을 위한 `0009_logistics_domain.sql`을 추가한다. Issue #195에서 프로젝트 템플릿 등록·관리 및 템플릿 기반 인스턴스화를 위한 `0012_project_templates.sql`을 추가한다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
 
 요구사항으로 확정된 전제는 다음과 같다.
 
@@ -569,4 +569,27 @@ Task(Summary, Task, Milestone)와 물류 시스템 간의 연결 테이블이다
 | `created_at/updated_at` | TEXT | N | UTC timestamp |
 
 `UNIQUE(project_id, task_id, system_id)`
+
+### 5.24 `project_templates`
+
+프로젝트 템플릿 등록 및 템플릿 기반 새 프로젝트 생성을 위한 전역 템플릿 보관 테이블이다 (Issue #195, `0012_project_templates.sql`). 기존 프로젝트에서 태스크(상대 근무일 offsetDays 기준), 링크, 리소스 배정, 물류 마스터(공정, 설비, 시스템, 역할, 링크) 스냅샷을 `content_json`에 비정규화 보관한다. 원본 프로젝트가 삭제되어도 템플릿은 보존되며(`source_project_id ON DELETE SET NULL`), 템플릿이 삭제되어도 이미 생성된 프로젝트는 영향받지 않는다.
+
+| Column | Type | Null | 의미 |
+|---|---|---:|---|
+| `id` | INTEGER | N | PK |
+| `public_id` | TEXT | N | 템플릿 Public UUID canonical lowercase (UNIQUE) |
+| `name` | TEXT | N | 템플릿 명칭 (1~200자) |
+| `description` | TEXT | N | 템플릿 설명 (최대 4000자, 기본 `''`) |
+| `source_project_id` | INTEGER | Y | 원본 프로젝트 FK (`projects.id` ON DELETE SET NULL) |
+| `source_project_name` | TEXT | Y | 원본 프로젝트 명칭 (원본 삭제 후에도 표시용 보존) |
+| `active` | INTEGER | N | 활성 상태 (0 또는 1, 기본 1) |
+| `task_count` | INTEGER | N | 작업 수 (마일스톤 제외 일반/요약 작업 수, 기본 0) |
+| `milestone_count` | INTEGER | N | 마일스톤 수 (기본 0) |
+| `content_json` | TEXT | N | 템플릿 전체 스냅샷 JSON (태스크, 링크, 배정, 물류 마스터/연결) |
+| `created_at` | TEXT | N | UTC timestamp |
+| `updated_at` | TEXT | N | UTC timestamp |
+
+인덱스:
+- `project_templates_active_idx ON project_templates(active)`
+- `project_templates_created_at_idx ON project_templates(created_at)`
 
