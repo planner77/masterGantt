@@ -259,14 +259,15 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
 
     // Switch to Sub-tab 3: Systems
     await page.getByRole("tab", { name: "물류 시스템" }).click();
-    await expect(page.getByText("MCS-01")).toBeVisible();
-    await expect(page.getByText("통합 반송 조율 시스템")).toBeVisible();
-    await expect(page.getByText("ACS-01")).toBeVisible();
-    await expect(page.getByText("SCS-01")).toBeVisible();
+    const systemsPanel = page.locator("#panel-systems");
+    await expect(systemsPanel.getByText("MCS-01", { exact: true })).toBeVisible();
+    await expect(systemsPanel.getByText("통합 반송 조율 시스템", { exact: true })).toBeVisible();
+    await expect(systemsPanel.getByText("ACS-01", { exact: true })).toBeVisible();
+    await expect(systemsPanel.getByText("SCS-01", { exact: true })).toBeVisible();
     // Check project-common scope badge
-    await expect(page.getByText("프로젝트 공통")).toBeVisible();
+    await expect(systemsPanel.getByText("프로젝트 공통", { exact: true })).toBeVisible();
     // Check primary PI tag
-    await expect(page.getByText("★ 이영희 (pi)")).toBeVisible();
+    await expect(systemsPanel.getByText("★ 이영희 (pi)", { exact: true })).toBeVisible();
 
     // Switch to Sub-tab 4: Relations
     await page.getByRole("tab", { name: "제어·조율 관계" }).click();
