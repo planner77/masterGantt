@@ -4,10 +4,12 @@
   display: grid;
   gap: 1.25rem;
   padding: 1rem 0;
-  width: 100%;
-  max-width: 1440px;
+  width: min(100%, 1440px);
+  max-width: 100%;
   min-width: 0;
   margin: 0 auto;
+  box-sizing: border-box;
+  overflow-x: clip;
 }
 
 .headerSection {
@@ -189,6 +191,8 @@
 
 .actionsGroup {
   display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
   gap: 0.5rem;
 }
 
@@ -204,6 +208,7 @@
 
 .dataTable {
   width: 100%;
+  max-width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
   text-align: left;
