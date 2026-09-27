@@ -4,6 +4,7 @@ import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { DependencyType, ProjectLinkDto, ProjectTaskDto } from "@/contracts/projects";
 import {
   DEPENDENCY_TYPE_LABELS,
+  findNextRelatedLink,
   getRelatedLinksForAnchor,
   searchCandidateTasks,
 } from "./relation-editor-model";
@@ -15,13 +16,13 @@ export interface RelationEditorDialogProps {
   readonly tasks: readonly ProjectTaskDto[];
   readonly editable: boolean;
   readonly onClose: () => void;
-  readonly onUpdateLink: (linkId: string, patch: { type: DependencyType; lag: number }) => Promise<void>;
-  readonly onDeleteLink: (linkId: string) => Promise<void>;
+  readonly onUpdateLink: (linkId: string, patch: { type: DependencyType; lag: number }) => Promise<boolean>;
+  readonly onDeleteLink: (linkId: string) => Promise<boolean>;
   readonly onCreateLink: (
     sourceTaskId: string,
     targetTaskId: string,
     options: { type: DependencyType; lag: number },
-  ) => Promise<void>;
+  ) => Promise<boolean>;
 }
 
 export function RelationEditorDialog({
@@ -145,7 +146,8 @@ export function RelationEditorDialog({
     setIsSaving(true);
     setLinkError(null);
     try {
-      await onUpdateLink(activeLink.id, { type, lag });
+      const saved = await onUpdateLink(activeLink.id, { type, lag });
+      if (!saved) throw new Error("관계 수정에 실패했습니다.");
     } catch (err) {
       setLinkError(err instanceof Error ? err.message : "관계 수정에 실패했습니다.");
     } finally {
@@ -158,11 +160,10 @@ export function RelationEditorDialog({
     setIsDeleting(true);
     setLinkError(null);
     try {
-      await onDeleteLink(linkToDeleteId);
+      const deleted = await onDeleteLink(linkToDeleteId);
+      if (!deleted) throw new Error("관계 삭제에 실패했습니다.");
       if (linkToDeleteId === activeLinkId) {
-        // If we deleted the active link, fallback to another related link or close if none
-        const remaining = links.filter((l) => l.id !== linkToDeleteId);
-        const nextLink = remaining.find((l) => l.predecessorExternalId === effectiveAnchorExternalId || l.successorExternalId === effectiveAnchorExternalId) ?? remaining[0];
+        const nextLink = findNextRelatedLink(linkToDeleteId, effectiveAnchorExternalId, links);
         if (nextLink) {
           setActiveLinkId(nextLink.id);
         } else {
@@ -187,7 +188,8 @@ export function RelationEditorDialog({
     try {
       const sourceTaskId = addDirection === "predecessor" ? selectedCandidate.taskId : anchorTask.taskId;
       const targetTaskId = addDirection === "predecessor" ? anchorTask.taskId : selectedCandidate.taskId;
-      await onCreateLink(sourceTaskId, targetTaskId, { type: newType, lag: newLag });
+      const created = await onCreateLink(sourceTaskId, targetTaskId, { type: newType, lag: newLag });
+      if (!created) throw new Error("새 관계 추가에 실패했습니다.");
       // Reset form
       setSelectedCandidate(null);
       setSearchQuery("");
