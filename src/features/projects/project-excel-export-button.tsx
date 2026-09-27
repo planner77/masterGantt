@@ -41,6 +41,7 @@ const exportLayout: ProjectExcelExportRequest["layout"] = {
 export function ProjectExcelExportButton({ publicId }: Readonly<{ publicId: string }>) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [includeLogistics, setIncludeLogistics] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -62,6 +63,7 @@ export function ProjectExcelExportButton({ publicId }: Readonly<{ publicId: stri
 
       const request: ProjectExcelExportRequest = {
         includeDependencies,
+        includeLogistics,
         scope: "project",
         scale: "day",
         hierarchyDisplay: "expanded",
@@ -129,6 +131,15 @@ export function ProjectExcelExportButton({ publicId }: Readonly<{ publicId: stri
       <div className="project-form compact-form">
         <p>작업 간 관계를 Excel 파일에 포함하시겠습니까?</p>
         <p>포함하면 Gantt 관계 화살표와 관계 정보 시트가 생성됩니다. 제외하면 관계 정보는 파일에 기록되지 않습니다.</p>
+        <label style={{ display: "flex", alignItems: "center", gap: "8px", margin: "8px 0", cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={includeLogistics}
+            disabled={busy}
+            onChange={(e) => setIncludeLogistics(e.target.checked)}
+          />
+          <span>물류 구성 보고서 포함 (공정·설비·시스템·연결 시트)</span>
+        </label>
         {message ? <p role="status" aria-live="polite">{message}</p> : null}
         <div className="form-actions">
           <button className="primary-button" type="button" disabled={busy} onClick={() => void exportExcel(true)}>

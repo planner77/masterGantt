@@ -195,6 +195,11 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false, on
         : null;
       if (response.status === 201 && data?.operation.kind === "projectCopy") {
         notify("success", "프로젝트 복사본을 생성했습니다. 새 프로젝트로 이동합니다.", "프로젝트 복사");
+        if (data.warnings && data.warnings.length > 0) {
+          for (const warning of data.warnings) {
+            notify("info", warning, "복사 경고");
+          }
+        }
         router.push(`/projects/${encodeURIComponent(data.project.publicId)}`);
         return;
       }
@@ -217,13 +222,18 @@ export function ProjectCopyButton({ publicId, autoOpen = false, busy = false, on
   const project = snapshot?.data.project;
   const tasks = snapshot?.data.tasks ?? [];
   const links = snapshot?.data.links ?? [];
+  const logistics = snapshot?.data.logistics;
+  const hasLogistics = Boolean(
+    logistics &&
+    (logistics.processes.length > 0 || logistics.equipment.length > 0 || logistics.systems.length > 0),
+  );
 
   return <>
     <button ref={trigger} type="button" className="secondary-button" disabled={busy || loading || copying} onClick={() => void show()}>
       {loading ? "확인 중…" : "프로젝트 복사"}
     </button>
     {open ? <WorkspaceDialog title="프로젝트 복사" onClose={close} busy={copying || loading} restoreFocusRef={trigger}>
-      {project ? <p>작업 {tasks.length} · 연결 {links.length} · 휴일 {project.calendar.holidays.length}. 서버에 저장된 최신 일정과 계층을 독립 복사합니다.</p> : null}
+      {project ? <p>작업 {tasks.length} · 연결 {links.length} · 휴일 {project.calendar.holidays.length}{hasLogistics ? ` · 공정 ${logistics?.processes.length} · 설비 ${logistics?.equipment.length} · 시스템 ${logistics?.systems.length}` : ""}. 서버에 저장된 최신 일정·물류 구조를 독립 복사하며, 글로벌 리소스 참조는 그대로 유지됩니다.</p> : null}
       {error ? <p role="alert">{error}</p> : null}
       {project ? <form className="project-form compact-form" noValidate onSubmit={submit}>
         {!authorized ? <div className="form-field"><label htmlFor="detail-copy-source-password">원본 편집 비밀번호</label><input id="detail-copy-source-password" type="password" autoComplete="current-password" value={sourcePassword} disabled={copying} onChange={(event) => setSourcePassword(event.target.value)} /></div> : null}

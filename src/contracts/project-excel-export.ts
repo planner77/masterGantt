@@ -6,6 +6,7 @@ export type ProjectExcelGridColumnId =
 
 export interface ProjectExcelExportRequest {
   includeDependencies: boolean;
+  includeLogistics?: boolean;
   scope: "project";
   scale: "day";
   hierarchyDisplay: "expanded";
