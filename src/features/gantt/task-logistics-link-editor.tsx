@@ -130,7 +130,7 @@ export function TaskLogisticsLinkEditor({
     return () => {
       alive = false;
     };
-  }, [taskId, onSelectionCountChange]);
+  }, [taskId, revision, onSelectionCountChange]);
 
   const toggleEquipment = (equipmentId: string) => {
     if (!editable || disabled || saving) return;
