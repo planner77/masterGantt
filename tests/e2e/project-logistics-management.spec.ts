@@ -249,30 +249,33 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
 
     // Switch to Sub-tab 2: Equipment
     await page.getByRole("tab", { name: "설비 관리" }).click();
-    await expect(page.getByText("STK-01")).toBeVisible();
-    await expect(page.getByText("1번 자동창고 스토커")).toBeVisible();
-    await expect(page.getByText("AGV-F1")).toBeVisible();
-    await expect(page.getByText("입고 무인운반차 편대")).toBeVisible();
-    await expect(page.getByText("AMR-F1")).toBeVisible();
+    const equipmentPanel = page.getByRole("tabpanel", { name: /설비 관리/ });
+    await expect(equipmentPanel.getByText("STK-01", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("1번 자동창고 스토커", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("AGV-F1", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("입고 무인운반차 편대", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("AMR-F1", { exact: true })).toBeVisible();
     // Check primary owner tag
-    await expect(page.getByText("★ 홍길동 (owner)")).toBeVisible();
+    await expect(equipmentPanel.getByText("★ 홍길동 (owner)", { exact: true })).toBeVisible();
 
     // Switch to Sub-tab 3: Systems
     await page.getByRole("tab", { name: "물류 시스템" }).click();
-    await expect(page.getByText("MCS-01")).toBeVisible();
-    await expect(page.getByText("통합 반송 조율 시스템")).toBeVisible();
-    await expect(page.getByText("ACS-01")).toBeVisible();
-    await expect(page.getByText("SCS-01")).toBeVisible();
+    const systemsPanel = page.getByRole("tabpanel", { name: /물류 시스템/ });
+    await expect(systemsPanel.getByText("MCS-01", { exact: true })).toBeVisible();
+    await expect(systemsPanel.getByText("통합 반송 조율 시스템", { exact: true })).toBeVisible();
+    await expect(systemsPanel.getByText("ACS-01", { exact: true })).toBeVisible();
+    await expect(systemsPanel.getByText("SCS-01", { exact: true })).toBeVisible();
     // Check project-common scope badge
-    await expect(page.getByText("프로젝트 공통")).toBeVisible();
+    await expect(systemsPanel.getByText("프로젝트 공통", { exact: true })).toBeVisible();
     // Check primary PI tag
-    await expect(page.getByText("★ 이영희 (pi)")).toBeVisible();
+    await expect(systemsPanel.getByText("★ 이영희 (pi)", { exact: true })).toBeVisible();
 
     // Switch to Sub-tab 4: Relations
     await page.getByRole("tab", { name: "제어·조율 관계" }).click();
-    await expect(page.getByText("통합 반송 조율 시스템")).toBeVisible();
-    await expect(page.getByText("AGV 관제 제어 시스템 (ACS-01)")).toBeVisible();
-    await expect(page.getByText("스토커 제어 시스템 (SCS-01)")).toBeVisible();
+    const relationsPanel = page.getByRole("tabpanel", { name: /제어·조율 관계/ });
+    await expect(relationsPanel.getByText("통합 반송 조율 시스템", { exact: true })).toBeVisible();
+    await expect(relationsPanel.getByText("AGV 관제 제어 시스템 (ACS-01)", { exact: true })).toBeVisible();
+    await expect(relationsPanel.getByText("스토커 제어 시스템 (SCS-01)", { exact: true })).toBeVisible();
 
     // Switch back to schedule tab and verify Gantt intact
     await scheduleTab.click();
