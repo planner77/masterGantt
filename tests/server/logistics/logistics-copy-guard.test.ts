@@ -113,7 +113,7 @@ describe("Logistics Copy Guard (LG-01)", () => {
     expect(copied.response.data.project.name).toBe("Copied Project");
   });
 
-  it("blocks copying a project with logistics data with LogisticsCopyNotSupportedYetError", async () => {
+  it("allows copying a project with logistics data successfully (guard lifted in LG-06)", async () => {
     const db = createTestDatabase();
     const { authSession, now } = setupProjectWithSession(
       db,
@@ -139,13 +139,17 @@ describe("Logistics Copy Guard (LG-01)", () => {
       name: "포장 공정",
     });
 
-    // Try to copy project with logistics data (revision is now 2)
-    await expect(
-      copyService.copy(authSession, 2, {
-        name: "Attempted Copy",
-        description: "Should fail",
-        editPassword: "ValidPassword123!",
-      }),
-    ).rejects.toThrow(LogisticsCopyNotSupportedYetError);
+    // Copy project with logistics data (revision is now 2)
+    const copied = await copyService.copy(authSession, 2, {
+      name: "Copied Logistics Project",
+      description: "Should succeed with copied logistics",
+      editPassword: "ValidPassword123!",
+    });
+
+    expect(copied.response.data.project.publicId).toBeDefined();
+    expect(copied.response.data.project.name).toBe("Copied Logistics Project");
+    expect(copied.response.data.logistics?.processes).toHaveLength(1);
+    expect(copied.response.data.logistics?.processes[0].code).toBe("PACKING");
+    expect(copied.response.data.operation.counts.processes).toBe(1);
   });
 });

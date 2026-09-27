@@ -230,7 +230,7 @@ Readonly schedule snapshot을 반환한다. Project가 없거나 `publicId`가 c
 - `editPassword`: 새 Project 전용 비밀번호. 원본 password hash/salt/KDF record를 복사하지 않는다.
 - `resetProgress`: 선택값이며 기본 `false`. `true`이면 leaf task/milestone progress를 0으로 만들고 summary progress를 계층 규칙으로 재집계한다.
 
-Password hashing은 write transaction 밖에서 수행한다. 이후 `IMMEDIATE` transaction 안에서 원본 session의 Project binding, authVersion, expiry/revocation과 원본 revision을 다시 검사하고 Project/Owner/Task/Link/Holiday/새 edit session을 한 번에 생성한다. 중간 실패 시 전체 rollback한다. 새 Project/Task/Link의 내부·공개 ID는 새로 발급하며 Task `externalId`, 계층/sibling order, Link 관계, 날짜/기간, Project 휴일은 보존한다. 원본 Project의 revision과 일정은 변경하지 않는다.
+Password hashing은 write transaction 밖에서 수행한다. 이후 `IMMEDIATE` transaction 안에서 원본 session의 Project binding, authVersion, expiry/revocation과 원본 revision을 다시 검사하고 Project/Owner/Task/Link/Holiday/새 edit session 및 공정·설비·시스템·조율관계·역할·태스크연결·리소스배정을 한 번에 원자적으로 복제한다. 중간 실패 시 전체 rollback한다. 새 Project/Task/Link 및 물류 마스터의 내부·공개 ID는 새로 발급하며 Task `externalId`, 계층/sibling order, Link 관계, 날짜/기간, Project 휴일, 공정 트리 계층, 설비 수량, 시스템 연계를 보존한다. 글로벌 리소스(담당자) ID는 동일 참조를 유지한다. 원본 Project의 revision과 일정은 변경하지 않는다.
 
 성공은 `201 Created`, `Location: /projects/{newPublicId}`, `ETag: "1"`, `Cache-Control: private, no-store`와 새 Project에 binding된 edit-session `Set-Cookie`를 반환한다. 현재 root cookie 정책상 성공 후 브라우저의 편집 session 대상은 새 Project로 전환된다.
 
@@ -252,12 +252,29 @@ Password hashing은 write transaction 밖에서 수행한다. 이후 `IMMEDIATE`
     },
     "tasks": [],
     "links": [],
+    "assignments": [],
+    "logistics": {
+      "processes": [],
+      "equipment": [],
+      "systems": [],
+      "systemLinks": [],
+      "taskEquipmentLinks": [],
+      "taskSystemLinks": []
+    },
     "permission": "edit",
     "operation": {
       "kind": "projectCopy",
       "sourcePublicId": "source-project-uuid",
       "sourceRevision": 7,
-      "counts": { "tasks": 0, "links": 0, "holidays": 0 }
+      "counts": {
+        "tasks": 0,
+        "links": 0,
+        "holidays": 0,
+        "assignments": 0,
+        "processes": 0,
+        "equipment": 0,
+        "systems": 0
+      }
     },
     "warnings": []
   }
@@ -634,14 +651,17 @@ v1 import는 create-only, all-or-nothing이다.
 
 ### `POST /api/projects/{publicId}/exports/excel`
 
-Readonly Project 데이터로 `.xlsx`를 생성한다. exact same-origin `Origin`, strong `If-Match`와 bounded JSON export 옵션을 검사하지만 edit session은 요구하지 않는다. 동일 revision의 canonical snapshot으로 workbook을 만들고 상태 코드는 `Project` sheet 마지막 metadata 행에 한국어 표시명으로 기록한다. 기존 metadata/휴일 행 번호는 유지한다. 현재 workbook 구조와 보안·한도는 [EXCEL_EXPORT.md](EXCEL_EXPORT.md)가 Source of Truth다. 성공 header 예시는 다음과 같다.
+Readonly Project 데이터로 `.xlsx`를 생성한다. exact same-origin `Origin`, strong `If-Match`와 bounded JSON export 옵션을 검사하지만 edit session은 요구하지 않는다. 동일 revision의 canonical snapshot으로 workbook을 만들고 상태 코드는 `Project` sheet 마지막 metadata 행에 한국어 표시명으로 기록한다. 기존 metadata/휴일 행 번호는 유지한다.
+- 요청 옵션: `includeDependencies: boolean`, `includeLogistics?: boolean` (선택, 기본 false), `scope: "project"`, `scale: "day"`, `hierarchyDisplay: "expanded"`, `layout`.
+- `includeLogistics: true`이고 대상 프로젝트에 물류 데이터가 존재하는 경우, 공정·설비·시스템·제어/조율 관계·담당 역할·태스크-물류 연결 정보를 포함하는 `"Logistics"` 보고용 시트가 추가된다.
+현재 workbook 구조와 보안·한도는 [EXCEL_EXPORT.md](EXCEL_EXPORT.md)가 Source of Truth다. 성공 header 예시는 다음과 같다.
 
 ```text
 Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
 Content-Disposition: attachment; filename="mastergantt-<publicId>-r<revision>.xlsx"
 ```
 
-Export는 DB read snapshot을 먼저 DTO로 만든 다음 transaction 밖에서 내부 OOXML/ZIP writer로 Gantt/Tasks/Project 및 선택적 Dependencies sheet를 생성한다. Project 상태는 읽기 전용 metadata로 출력하며 Import의 Project metadata 변경 계약에는 영향을 주지 않는다.
+Export는 DB read snapshot을 먼저 DTO로 만든 다음 transaction 밖에서 내부 OOXML/ZIP writer로 Gantt/Tasks/Project, 선택적 Dependencies, 선택적 Logistics sheet를 생성한다. Project 상태는 읽기 전용 metadata로 출력하며 Import의 Project metadata 변경 계약에는 영향을 주지 않는다.
 
 ## 9. 오류와 HTTP status
 
@@ -768,8 +788,12 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 - `PUT /api/projects/{publicId}/logistics/systems/{systemId}/children`: 상위 조율 시스템의 하위 시스템 연계 교체 (`childSystemIds: string[]`, DAG 순환 방지 검증)
 - `PUT /api/projects/{publicId}/logistics/systems/{systemId}/resource-roles`: 시스템 PI/개발자 배정 교체 (`roles: [{ resourceId: string, role: 'pi' | 'developer', isPrimary?: boolean }]`, `pi`만 `isPrimary` 가능, `isPrimary` 최대 1개, 비활성 리소스 신규 배정 시 `409 RESOURCE_INACTIVE` 거부, 기존 배정 유지 허용)
 
-### 5. 프로젝트 복사 시 물류 도메인 보호 가드
-- `POST /api/projects/{publicId}/copy`: 대상 프로젝트에 물류 데이터(공정, 설비, 시스템)가 존재하는 경우 아직 물류 복사를 지원하지 않으므로 `409 LOGISTICS_COPY_NOT_SUPPORTED_YET`으로 안전하게 차단한다 (Issue #189에서 복사 지원 예정).
+### 5. 프로젝트 복사·삭제·내보내기 연계 (Issue #189 LG-06)
+- `POST /api/projects/{publicId}/copy`: Issue #184의 임시 복사 가드(`409 LOGISTICS_COPY_NOT_SUPPORTED_YET`)를 해제하고, 동일 transaction 안에서 공정 트리, 설비, 시스템, 제어·조율 관계, 리소스 역할, 태스크 물류 연결 및 리소스 배정을 원자적으로 복제한다.
+  - 새 프로젝트 및 복사 대상 로컬 엔티티에 새로운 UUID v4 public ID 발급, 부모-자식 계층 관계 보존, 글로벌 리소스 ID 동일 참조 유지.
+  - 비활성 마스터/리소스 복사 시 `warnings` 반환, resetProgress 진척률 0% 초기화 및 WBS Summary 엔진 재계산 지원.
+- `DELETE /api/projects/{publicId}`: SQLite 외래 키 cascade를 통해 프로젝트 삭제 시 소속 공정·설비·시스템·역할·태스크 연결이 원자적으로 정리되며, 타 프로젝트 및 글로벌 리소스는 보존된다.
+- `POST /api/projects/{publicId}/exports/excel`: `includeLogistics: true` 요청 시 물류 구성 요약, 공정, 설비, 시스템, 태스크-물류 연결 정보를 포함하는 `"Logistics"` 보고용 시트를 추가한다 (수식 주입 방지 처리 및 비가역 보고용 명시).
 
 ## Issue #187: Task Logistics Links API (Summary·Task·Milestone 설비·시스템 연결)
 
