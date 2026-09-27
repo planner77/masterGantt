@@ -486,6 +486,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     const taskTab = dialog.getByRole("tab", { name: "작업 정보", exact: true });
     const resourceTab = dialog.getByRole("tab", { name: /리소스/ });
     const relationTab = dialog.getByRole("tab", { name: /관계/ });
+    const logisticsTab = dialog.getByRole("tab", { name: /물류 연결/ });
 
     await expect(taskTab).toHaveAttribute("aria-selected", "true");
     await dialog.getByLabel("작업명", { exact: true }).fill("탭 전환 초안");
@@ -506,6 +507,11 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
     await resourceTab.focus();
     await page.keyboard.press("End");
+    await expect(logisticsTab).toBeFocused();
+    await expect(logisticsTab).toHaveAttribute("aria-selected", "true");
+    await expect(dialog.getByRole("tabpanel", { name: /물류 연결/ })).toBeVisible();
+
+    await page.keyboard.press("ArrowLeft");
     await expect(relationTab).toBeFocused();
     await expect(relationTab).toHaveAttribute("aria-selected", "true");
 
@@ -586,8 +592,12 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       const taskTab = tabs.getByRole("tab", { name: "작업 정보", exact: true });
       const resourceTab = tabs.getByRole("tab", { name: /리소스/ });
       const relationTab = tabs.getByRole("tab", { name: /관계/ });
+      const logisticsTab = tabs.getByRole("tab", { name: /물류 연결/ });
       await taskTab.focus();
       await page.keyboard.press("End");
+      await expect(logisticsTab).toBeFocused();
+      await expect(dialog.getByRole("tabpanel", { name: /물류 연결/ })).toBeVisible();
+      await page.keyboard.press("ArrowLeft");
       await expect(relationTab).toBeFocused();
       await expect(dialog.getByRole("tabpanel", { name: /관계/ })).toBeVisible();
       const predecessor = await dialog.getByRole("region", { name: "선행 작업" }).boundingBox();
