@@ -7,7 +7,7 @@ export interface RelationContextMenuProps {
   readonly tasks: readonly ProjectTaskDto[];
   readonly position: { left: number; top: number };
   readonly editable: boolean;
-  readonly onSave: (linkId: string, patch: { type: DependencyType; lag: number }) => Promise<void>;
+  readonly onSave: (linkId: string, patch: { type: DependencyType; lag: number }) => Promise<boolean>;
   readonly onDelete: (linkId: string) => Promise<void>;
   readonly onClose: () => void;
 }
@@ -76,8 +76,8 @@ export function RelationContextMenu({
     setIsSubmitting(true);
     setError(null);
     try {
-      await onSave(linkId, { type, lag });
-      onClose();
+      const saved = await onSave(linkId, { type, lag });
+      if (saved) onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "저장에 실패했습니다.");
     } finally {
