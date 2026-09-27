@@ -1,0 +1,446 @@
+/* Project Logistics Management Styles */
+
+.logisticsContainer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 1rem 0;
+}
+
+.headerSection {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.headerTitleGroup {
+  display: grid;
+  min-width: 0;
+  max-width: 100%;
+  gap: 0.35rem;
+}
+
+.headerTitle {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-default);
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.headerDescription {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.wbsNotice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius);
+  background: var(--status-info-surface);
+  border: 1px solid var(--status-info);
+  color: var(--status-info);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.readonlyNotice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius);
+  background: var(--status-warning-surface);
+  border: 1px solid var(--status-warning-border);
+  color: var(--status-warning);
+  font-size: 0.8rem;
+}
+
+/* Sub Navigation Tabs */
+.subTabList {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--border-default);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.subTabButton {
+  padding: 0.6rem 1.1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: var(--radius) var(--radius) 0 0;
+  transition: all 0.15s ease-in-out;
+}
+
+.subTabButton:hover {
+  color: var(--text-default);
+  background: var(--surface-subtle);
+}
+
+.subTabButton[aria-selected="true"] {
+  color: var(--action-primary);
+  border-bottom-color: var(--action-primary);
+  background: var(--surface-panel);
+}
+
+.subTabButton:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: -2px;
+}
+
+.countBadge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.subTabButton[aria-selected="true"] .countBadge {
+  background: var(--action-selected-subtle);
+  color: var(--action-selected-foreground);
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-panel);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+}
+
+.filtersGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.searchInput {
+  min-height: 36px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border-control);
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel);
+  color: var(--text-default);
+  font-size: 0.875rem;
+  min-width: 200px;
+}
+
+.selectInput {
+  max-width: 100%;
+  min-height: 36px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border-control);
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel);
+  color: var(--text-default);
+  font-size: 0.875rem;
+}
+
+.checkboxLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  color: var(--text-default);
+  cursor: pointer;
+  user-select: none;
+}
+
+.actionsGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* Table Styles */
+.tableContainer {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  background: var(--surface-panel);
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.dataTable th {
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--border-default);
+  white-space: nowrap;
+}
+
+.dataTable td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--border-default);
+  vertical-align: middle;
+}
+
+.dataTable tr:last-child td {
+  border-bottom: none;
+}
+
+.dataTable tr:hover td {
+  background: var(--surface-subtle);
+}
+
+.inactiveRow {
+  opacity: 0.65;
+  background: var(--surface-page);
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badgePrimary {
+  background: var(--action-selected-subtle);
+  color: var(--action-selected-foreground);
+  border: 1px solid var(--action-primary);
+}
+
+.badgeNeutral {
+  background: var(--surface-subtle);
+  color: var(--text-default);
+  border: 1px solid var(--border-default);
+}
+
+.badgeSuccess {
+  background: var(--status-success-surface);
+  color: var(--status-success);
+  border: 1px solid var(--status-success);
+}
+
+.badgeWarning {
+  background: var(--status-warning-surface);
+  color: var(--status-warning);
+  border: 1px solid var(--status-warning-border);
+}
+
+.badgeError {
+  background: var(--status-error-surface);
+  color: var(--status-error);
+  border: 1px solid var(--status-error);
+}
+
+.badgeInactive {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.roleTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-control);
+  margin-right: 0.3rem;
+  margin-bottom: 0.2rem;
+}
+
+.roleTagPrimary {
+  font-weight: 600;
+  border-color: var(--action-primary);
+  background: var(--action-selected-subtle);
+  color: var(--action-selected-foreground);
+}
+
+/* Empty State */
+.emptyState {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.emptyStateTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-default);
+  margin-bottom: 0.5rem;
+}
+
+/* Form in Dialog */
+.dialogForm {
+  display: grid;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem 1rem;
+}
+
+.formFieldFull {
+  grid-column: 1 / -1;
+}
+
+.fieldLabel {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-default);
+}
+
+.fieldInput, .fieldTextarea, .fieldSelect {
+  min-height: 38px;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--border-control);
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel);
+  color: var(--text-default);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.fieldTextarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.fieldInput:focus-visible, .fieldTextarea:focus-visible, .fieldSelect:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+
+.dialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-default);
+}
+
+.errorBanner {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  background: var(--status-error-surface);
+  border: 1px solid var(--status-error);
+  color: var(--status-error);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Hierarchy tree styling */
+.treeItemLevel0 {
+  padding-left: 0.5rem;
+  font-weight: 600;
+}
+
+.treeItemLevel1 {
+  padding-left: 2rem;
+  color: var(--text-default);
+}
+
+.treeItemLevel2 {
+  padding-left: 3.5rem;
+  color: var(--text-muted);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .headerSection,
+  .headerTitleGroup,
+  .toolbar,
+  .filtersGroup,
+  .actionsGroup {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .wbsNotice,
+  .readonlyNotice {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filtersGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .searchInput,
+  .selectInput {
+    min-width: 0;
+    width: 100%;
+  }
+  .subTabList {
+    overscroll-behavior-inline: contain;
+  }
+}

@@ -4,6 +4,11 @@
 
 ### Added
 
+- Issue #186: 공정·설비·물류시스템 구성 및 담당자 관리 화면 UI 구현 (물류 LG-03).
+  - Project Workspace에 `물류 구성` 탭과 공정/설비/물류시스템/제어·조율 관계 관리 화면을 추가하고 기존 Gantt mount/state를 유지한다.
+  - 기존 Resource 카탈로그를 설비 Owner/Contributor와 시스템 PI/Developer 역할에 연결하며 readonly/edit-session, stale revision, 반응형·키보드 접근성 계약을 유지한다.
+  - Review 보완으로 최신 LG-02 API 계약(`childSystemIds`, DELETE 영구 삭제)과 정렬하고 mutation 후 logistics snapshot 보존 및 401/403 readonly 강등 회귀를 검증한다.
+
 - Issue #185: 설비 담당자 및 시스템 PI·개발자 역할 배정 스키마 및 REST API 구현 (물류 LG-02).
   - 설비 담당자 배정 테이블(`project_equipment_resource_roles`) 및 시스템 역할 배정 테이블(`project_system_resource_roles`) DDL 및 0010 마이그레이션 (`role IN ('owner', 'contributor')`, `role IN ('pi', 'developer')`, `is_primary` 최대 1개 partial unique index, resources 참조 시 `NO ACTION`으로 삭제 방지).
   - 설비 담당자 및 시스템 역할 배정 REST API 엔드포인트 구현 (`PUT /api/projects/:publicId/logistics/equipment/:equipmentId/resource-roles`, `PUT /api/projects/:publicId/logistics/systems/:systemId/resource-roles`).
