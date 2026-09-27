@@ -994,6 +994,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             notify("success", "물류 구성 변경 사항을 저장했습니다.", "물류 구성");
           }}
           onRequireRefresh={() => { void reloadCanonicalSnapshot(); }}
+          onNavigateToSchedule={(targetFilter) => {
+            setActiveView("schedule");
+            if (targetFilter) {
+              setTaskFilter((prev) => ({ ...prev, ...targetFilter }));
+            }
+          }}
           onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }}
         />
       </section>
