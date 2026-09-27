@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ProjectLinkDto, ProjectTaskDto } from "../../../src/contracts/projects";
 import {
+  findNextRelatedLink,
   getRelatedLinksForAnchor,
   searchCandidateTasks,
 } from "../../../src/features/gantt/relation-editor-model";
@@ -116,6 +117,45 @@ describe("relation-editor-model", () => {
       const result = getRelatedLinksForAnchor("MS1", sampleLinks, sampleTasks);
       expect(result.predecessors).toHaveLength(0);
       expect(result.successors).toHaveLength(0);
+    });
+  });
+
+
+  describe("findNextRelatedLink", () => {
+    it("selects only another relation connected to the current anchor", () => {
+      const links: ProjectLinkDto[] = [
+        ...sampleLinks,
+        {
+          id: "link-unrelated",
+          predecessorExternalId: "T3",
+          successorExternalId: "MS1",
+          type: "FS",
+          lag: 0,
+        },
+      ];
+
+      expect(findNextRelatedLink("link-1-2", "T2", links)?.id).toBe("link-2-3");
+    });
+
+    it("returns undefined instead of falling back to an unrelated relation", () => {
+      const links: ProjectLinkDto[] = [
+        {
+          id: "link-active",
+          predecessorExternalId: "T1",
+          successorExternalId: "T2",
+          type: "FS",
+          lag: 0,
+        },
+        {
+          id: "link-unrelated",
+          predecessorExternalId: "T3",
+          successorExternalId: "MS1",
+          type: "FS",
+          lag: 0,
+        },
+      ];
+
+      expect(findNextRelatedLink("link-active", "T2", links)).toBeUndefined();
     });
   });
 
