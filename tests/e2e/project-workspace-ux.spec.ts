@@ -204,10 +204,14 @@ test("Issue #130 Phase 2 Project Context와 tab은 다섯 폭·권한 상태에�
       const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
       const schedule = tabs.getByRole("tab", { name: "일정" });
       const resources = tabs.getByRole("tab", { name: "리소스" });
+      const logistics = tabs.getByRole("tab", { name: "물류 구성" });
       await expect(schedule).toHaveAttribute("aria-controls", "project-panel-schedule");
       await expect(resources).toHaveAttribute("aria-controls", "project-panel-resources");
       await schedule.focus();
       await page.keyboard.press("End");
+      await expect(logistics).toBeFocused();
+      await expect(page.getByRole("tabpanel", { name: "물류 구성" })).toBeVisible();
+      await page.keyboard.press("ArrowLeft");
       await expect(resources).toBeFocused();
       await expect(page.getByRole("tabpanel", { name: "리소스" })).toBeVisible();
       await page.keyboard.press("Home");
