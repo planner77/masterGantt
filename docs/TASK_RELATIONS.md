@@ -51,3 +51,26 @@ Editor가 열린 뒤 다른 변경으로 revision이 달라지면 기존 stale �
 ## Issue #97 mutation scope
 
 Gantt link markers now support server-persisted FS/lag=0 create/delete. SVAR local actions are intercepted, sent through the protected Link API, and only the returned canonical snapshot is accepted. Task Editor remains a relation viewer; after a successful mutation it reads the same canonical links immediately.
+
+## Issue #200 Relation Types & Lag
+
+Gantt 관계선 우클릭 시 Relation Context Menu를 제공하여 FS/SS/FF/SF 의존성 유형 및 Lag(일 단위) 변경, 단일 관계 삭제를 지원한다.
+
+## Issue #203 Relation Editor Dialog & Related Item Search
+
+관계선(`[data-link-id]`) 더블클릭 및 Relation Context Menu의 "관계 관리..." 액션을 통해 접근 가능한 전용 Relation Editor 다이얼로그 모달을 제공한다.
+
+1. **선택된 관계 설정**:
+   - 선행 작업 (Predecessor)과 후행 작업 (Successor) 정보 및 Anchor(기준 작업) 전환 지원.
+   - 관계 유형(FS, SS, FF, SF) 및 Lag(일) 수정 및 단일 관계 삭제.
+2. **기준 작업의 연결된 관계 목록**:
+   - Anchor 기준 선행 작업(Incoming) 및 후행 작업(Outgoing) 목록 조회 및 각각의 삭제 액션 제공.
+   - 목록 항목 클릭 시 해당 관계를 선택된 관계로 전환.
+3. **새 관계 추가**:
+   - 연결 방향 선택: "후행 작업으로 추가 (기준 → 대상)" / "선행 작업으로 추가 (대상 → 기준)".
+   - 작업 검색(인라인/드롭다운): Leaf Task 및 Milestone 대상 검색 (Summary 작업 및 자기 자신, 이미 연결된 중복 관계 자동 제외).
+   - 관계 유형 및 Lag 설정 후 "관계 추가"를 통해 단일 인터페이스에서 관계 구성 완료.
+4. **상태 보존 및 접근성**:
+   - Relation Editor 오픈/변경/삭제/추가 중 Gantt 인스턴스, 스크롤 위치, 트리 접힘 상태 보존.
+   - Escape 키 닫기 및 모달 Focus Trap 지원.
+

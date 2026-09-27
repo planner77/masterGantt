@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.45.0] - 2026-09-27
+
+### Added
+
+- Issue #203: 관계선 더블클릭 Relation Editor 및 관련 아이템 검색·추가·삭제 구현.
+  - 전용 Relation Editor 다이얼로그(`RelationEditorDialog`, `relation-editor-dialog.css`):
+    - 관계선(`[data-link-id]`) 더블클릭 및 Relation Context Menu의 "관계 관리... (Relation Editor)" 액션을 통한 접근.
+    - 선택된 관계의 선행(Predecessor)/후행(Successor) 작업 상세 및 Anchor(기준 작업) 전환 지원.
+    - 관계 유형(`FS`, `SS`, `FF`, `SF`) 및 `Lag` 수정, 선택 관계 즉시 삭제.
+    - Anchor 기준 연결된 모든 선행/후행 관계 목록 조회 및 항목별 선택/삭제 액션.
+    - 프로젝트 내 Leaf Task 및 Milestone 대상 검색(인라인/자동완성)을 통한 신규 관계 추가 (Summary 및 자기자신, 중복 관계 자동 제외).
+  - 순수 도메인 및 검색 헬퍼 모델(`src/features/gantt/relation-editor-model.ts`):
+    - `getRelatedLinksForAnchor`, `searchCandidateTasks` 순수 함수 및 단위 테스트 작성.
+  - 화면 안정성 및 접근성:
+    - 다이얼로그 오픈/조작 중 Gantt 인스턴스, 스크롤 위치, 요약 작업 접힘 상태 완벽 보존.
+    - `Escape` 키 닫기 및 다이얼로그 내부 Focus Trap 구현.
+    - `ProjectReadonlyView`의 `saveLink` POST 페이로드에 `type` 및 `lag` 옵션 지원.
+    - 읽기 전용 상태에 대한 안전한 비활성화 처리.
+
 ## [0.44.0] - 2026-09-27
 
 ### Added

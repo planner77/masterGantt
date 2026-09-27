@@ -550,3 +550,23 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - **UI 및 차트 오버레이**:
   - Gantt 툴바의 "기준 일정 보기" 토글(`showBaseline`) 동작과 SVAR `baselines` 연동을 확인한다.
   - Grid 열 선택 메뉴에서 `baselineStart`, `baselineEnd` 열의 표시/숨김 토글을 확인한다.
+
+## Issue #203 Relation Editor 및 관련 아이템 검색·추가·삭제 회귀
+
+- **도메인 및 검색 헬퍼 모델 단위 테스트 (`tests/features/gantt/relation-editor-model.test.ts`)**:
+  - `getRelatedLinksForAnchor`:
+    - 지정한 Anchor 작업의 `externalId`를 기준으로 선행(incoming) 및 후행(outgoing) 관계가 올바르게 분류되는지 검증한다.
+    - 연결된 관계가 없는 작업의 경우 빈 배열을 안전하게 반환하는지 검증한다.
+  - `searchCandidateTasks`:
+    - Summary 작업(`type === "summary"`)이 후보에서 정확히 제외되는지 검증한다.
+    - 자기 자신(`anchorExternalId`)이 후보에서 제외되는지 검증한다.
+    - 이미 선행 또는 후행으로 연결된 작업이 중복 관계 방지를 위해 후보에서 제외되는지 검증한다.
+    - 이름(`name`) 및 식별자(`externalId`) 검색 쿼리 필터링이 대소문자 무관하게 동작하는지 검증한다.
+- **Relation Editor 다이얼로그 및 인터랙션**:
+  - 관계선(`[data-link-id]`) 더블클릭 이벤트 캡처 및 Relation Context Menu의 "관계 관리..." 버튼을 통한 다이얼로그 오픈을 검증한다.
+  - Anchor 전환, 선택된 관계의 유형/Lag 수정, 단일 관계 삭제, 신규 관계 추가(POST) 인터랙션을 확인한다.
+  - `Escape` 키 입력 시 다이얼로그가 닫히고, 다이얼로그 내부에서 Tab/Shift+Tab Focus Trap이 동작하는지 확인한다.
+- **화면 안정성 및 상태 보존**:
+  - Relation Editor 열기/닫기/수정/삭제/추가 작업 중 Gantt 컴포넌트 인스턴스, 스크롤 위치, 요약 작업 접힘 상태가 리셋되지 않고 유지됨을 확인한다.
+  - 읽기 전용(`readonly`) 모드에서 수정/삭제/추가 액션이 비활성화됨을 확인한다.
+
