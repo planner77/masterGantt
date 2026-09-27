@@ -35,9 +35,11 @@ import {
   parseCreateEquipmentInput,
   parseCreateLogisticsSystemInput,
   parseCreateProcessInput,
+  parseSetEquipmentResourceRolesInput,
   parseSetEquipmentSystemsInput,
   parseSetSystemChildrenInput,
   parseSetSystemProcessesInput,
+  parseSetSystemResourceRolesInput,
   parseUpdateEquipmentRequest,
   parseUpdateLogisticsSystemInput,
   parseUpdateProcessInput,
@@ -142,6 +144,16 @@ function mutationResponse(
     headers: {
       ...NO_STORE_HEADERS,
       "Content-Type": "application/json; charset=utf-8",
+      ETag: `"${body.data.project.revision}"`,
+    },
+  });
+}
+
+function deleteMutationResponse(body: LogisticsMutationResponse): Response {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      ...NO_STORE_HEADERS,
       ETag: `"${body.data.project.revision}"`,
     },
   });
@@ -277,11 +289,9 @@ export async function handleDeleteProcess(
     requireOrigin(request, url);
     const auth = requireAuthorizedSession(request, publicId, dependencies, url);
     const expectedRevision = parseRequiredIfMatch(request);
-    const hardDelete = new URL(request.url).searchParams.get("hard") === "true";
-
     const service = resolve(dependencies.logisticsService);
-    const result = service.deleteProcess(auth, expectedRevision, processPublicId, hardDelete);
-    return mutationResponse(result, 200);
+    const result = service.deleteProcess(auth, expectedRevision, processPublicId, true);
+    return deleteMutationResponse(result);
   } catch (error) {
     return mapError(error, requestId);
   }
@@ -361,11 +371,9 @@ export async function handleDeleteEquipment(
     requireOrigin(request, url);
     const auth = requireAuthorizedSession(request, publicId, dependencies, url);
     const expectedRevision = parseRequiredIfMatch(request);
-    const hardDelete = new URL(request.url).searchParams.get("hard") === "true";
-
     const service = resolve(dependencies.logisticsService);
-    const result = service.deleteEquipment(auth, expectedRevision, equipmentPublicId, hardDelete);
-    return mutationResponse(result, 200);
+    const result = service.deleteEquipment(auth, expectedRevision, equipmentPublicId, true);
+    return deleteMutationResponse(result);
   } catch (error) {
     return mapError(error, requestId);
   }
@@ -474,11 +482,9 @@ export async function handleDeleteSystem(
     requireOrigin(request, url);
     const auth = requireAuthorizedSession(request, publicId, dependencies, url);
     const expectedRevision = parseRequiredIfMatch(request);
-    const hardDelete = new URL(request.url).searchParams.get("hard") === "true";
-
     const service = resolve(dependencies.logisticsService);
-    const result = service.deleteSystem(auth, expectedRevision, systemPublicId, hardDelete);
-    return mutationResponse(result, 200);
+    const result = service.deleteSystem(auth, expectedRevision, systemPublicId, true);
+    return deleteMutationResponse(result);
   } catch (error) {
     return mapError(error, requestId);
   }
@@ -536,6 +542,84 @@ export async function handleSetSystemChildren(
 
     const service = resolve(dependencies.logisticsService);
     const result = service.setCoordinatedSystems(auth, expectedRevision, coordinatorPublicId, parsed.data);
+    return mutationResponse(result, 200);
+  } catch (error) {
+    return mapError(error, requestId);
+  }
+}
+
+export async function handleSetEquipmentResourceRoles(
+  request: Request,
+  publicId: string,
+  equipmentPublicId: string,
+  dependencies: LogisticsHandlerDependencies,
+): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    if (!isCanonicalUuidV4(publicId)) {
+      throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    }
+    const url = appUrl(dependencies);
+    requireOrigin(request, url);
+    const auth = requireAuthorizedSession(request, publicId, dependencies, url);
+    const expectedRevision = parseRequiredIfMatch(request);
+    const raw = await readBoundedJson(request);
+    const parsed = parseSetEquipmentResourceRolesInput(raw);
+    if (!parsed.success) {
+      throw new PublicApiError(
+        400,
+        "INVALID_REQUEST",
+        "The equipment resource roles input is invalid.",
+        toDetails(parsed.details),
+      );
+    }
+
+    const service = resolve(dependencies.logisticsService);
+    const result = service.setEquipmentResourceRoles(
+      auth,
+      expectedRevision,
+      equipmentPublicId,
+      parsed.data,
+    );
+    return mutationResponse(result, 200);
+  } catch (error) {
+    return mapError(error, requestId);
+  }
+}
+
+export async function handleSetSystemResourceRoles(
+  request: Request,
+  publicId: string,
+  systemPublicId: string,
+  dependencies: LogisticsHandlerDependencies,
+): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    if (!isCanonicalUuidV4(publicId)) {
+      throw new PublicApiError(404, "PROJECT_NOT_FOUND", "Project not found.");
+    }
+    const url = appUrl(dependencies);
+    requireOrigin(request, url);
+    const auth = requireAuthorizedSession(request, publicId, dependencies, url);
+    const expectedRevision = parseRequiredIfMatch(request);
+    const raw = await readBoundedJson(request);
+    const parsed = parseSetSystemResourceRolesInput(raw);
+    if (!parsed.success) {
+      throw new PublicApiError(
+        400,
+        "INVALID_REQUEST",
+        "The system resource roles input is invalid.",
+        toDetails(parsed.details),
+      );
+    }
+
+    const service = resolve(dependencies.logisticsService);
+    const result = service.setSystemResourceRoles(
+      auth,
+      expectedRevision,
+      systemPublicId,
+      parsed.data,
+    );
     return mutationResponse(result, 200);
   } catch (error) {
     return mapError(error, requestId);

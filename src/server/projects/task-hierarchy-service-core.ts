@@ -13,6 +13,7 @@ import type {
 import { recalculateHierarchy, scheduleLeaf } from "../../domain/scheduling";
 import { EditSessionRepository, ProjectRepository } from "../repositories/project-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
+import { LogisticsService } from "../logistics/logistics-service-core";
 import { ScheduleRepository, type LinkRecord, type TaskRecord } from "../repositories/schedule-repository-core";
 import {
   EditSessionInvalidError,
@@ -166,6 +167,7 @@ export class TaskHierarchyService {
   private readonly sessions: EditSessionRepository;
   private readonly schedules: ScheduleRepository;
   private readonly resources: ResourceCatalogRepository;
+  private readonly logistics: LogisticsService;
   private readonly clock: () => Date;
   private readonly generateTaskPublicId: () => string;
   private readonly generateTaskExternalId: () => string;
@@ -175,6 +177,7 @@ export class TaskHierarchyService {
     this.sessions = new EditSessionRepository(database);
     this.schedules = new ScheduleRepository(database);
     this.resources = new ResourceCatalogRepository(database);
+    this.logistics = new LogisticsService(database);
     this.clock = options.clock ?? (() => new Date());
     this.generateTaskPublicId = options.generateTaskPublicId ?? randomUUID;
     this.generateTaskExternalId = options.generateTaskExternalId ?? randomUUID;
@@ -521,6 +524,7 @@ export class TaskHierarchyService {
           },
           tasks: taskDtos(tasks),
           links: linkDtos(this.schedules.listLinks(project.id), tasks),
+          logistics: this.logistics.getLogisticsDto(project.id),
           warnings,
           operation: {
             kind: "taskHierarchy" as const,

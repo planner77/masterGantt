@@ -141,6 +141,7 @@ describe("SQLite connection and schema", () => {
         "0007_resource_admin_credentials.sql",
         "0008_project_status.sql",
         "0009_logistics_domain.sql",
+        "0010_logistics_resource_roles.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -157,11 +158,13 @@ describe("SQLite connection and schema", () => {
         "edit_sessions",
         "links",
         "project_equipment",
+        "project_equipment_resource_roles",
         "project_equipment_systems",
         "project_logistics_systems",
         "project_processes",
         "project_system_links",
         "project_system_processes",
+        "project_system_resource_roles",
         "projects",
         "resource_catalog_admin_credentials",
         "resource_catalog_admin_sessions",
@@ -184,10 +187,13 @@ describe("SQLite connection and schema", () => {
         .all();
       expect(indexes).toEqual([
         "edit_sessions_project_expires_idx",
+        "equipment_resource_one_primary",
         "equipment_systems_one_primary",
         "links_project_predecessor_idx",
         "links_project_successor_idx",
         "project_equipment_project_process_idx",
+        "project_equipment_resource_roles_equipment_idx",
+        "project_equipment_resource_roles_resource_idx",
         "project_equipment_systems_equipment_idx",
         "project_equipment_systems_system_idx",
         "project_processes_project_parent_idx",
@@ -196,8 +202,11 @@ describe("SQLite connection and schema", () => {
         "project_system_links_target_idx",
         "project_system_processes_process_idx",
         "project_system_processes_system_idx",
+        "project_system_resource_roles_resource_idx",
+        "project_system_resource_roles_system_idx",
         "resource_admin_sessions_expiry_idx",
         "resource_group_members_resource_idx",
+        "system_resource_one_primary",
         "task_assignments_group_idx",
         "task_assignments_group_unique_idx",
         "task_assignments_project_task_idx",
@@ -401,6 +410,27 @@ describe("migration safety", () => {
         .toBeUndefined();
       expect(database.prepare("SELECT max(version) AS version FROM schema_migrations").get())
         .toEqual({ version: 8 });
+    } finally {
+      database.close();
+    }
+  });
+
+  it("rolls back logistics resource role tables and ledger if migration 0010 fails", () => {
+    const directory = copiedMigrations(10);
+    const migration10 = join(directory, "0010_logistics_resource_roles.sql");
+    const contents = readFileSync(migration10, "utf8");
+    unlinkSync(migration10);
+    const database = new Database(":memory:");
+    try {
+      runMigrations(database, directory);
+      expect(database.prepare("SELECT max(version) AS version FROM schema_migrations").get())
+        .toEqual({ version: 9 });
+      writeFileSync(migration10, `${contents}\nINVALID SQL;\n`);
+      expect(() => runMigrations(database, directory)).toThrow(MigrationError);
+      expect(database.prepare("SELECT name FROM sqlite_schema WHERE type = 'table' AND name = 'project_equipment_resource_roles'").get())
+        .toBeUndefined();
+      expect(database.prepare("SELECT max(version) AS version FROM schema_migrations").get())
+        .toEqual({ version: 9 });
     } finally {
       database.close();
     }

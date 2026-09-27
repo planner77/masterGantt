@@ -2,6 +2,7 @@ import type Database from "better-sqlite3";
 
 import type { ProjectTaskDto, TaskMutationResponse } from "../../contracts/projects";
 import { ScheduleRepository, type TaskRecord } from "../repositories/schedule-repository-core";
+import { LogisticsService } from "../logistics/logistics-service-core";
 import {
   TaskSubtreeDeleteService,
   type TaskSubtreeDeleteServiceOptions,
@@ -18,6 +19,7 @@ function enrichTasks(tasks: readonly ProjectTaskDto[], records: readonly TaskRec
 
 export class TaskFieldSubtreeDeleteService extends TaskSubtreeDeleteService {
   private readonly schedulesForFields: ScheduleRepository;
+  private readonly logisticsForFields: LogisticsService;
 
   constructor(
     fieldDatabase: Database.Database,
@@ -25,6 +27,7 @@ export class TaskFieldSubtreeDeleteService extends TaskSubtreeDeleteService {
   ) {
     super(fieldDatabase, options);
     this.schedulesForFields = new ScheduleRepository(fieldDatabase);
+    this.logisticsForFields = new LogisticsService(fieldDatabase);
   }
 
   override deleteTaskSubtree(
@@ -38,6 +41,7 @@ export class TaskFieldSubtreeDeleteService extends TaskSubtreeDeleteService {
       data: {
         ...response.data,
         tasks: enrichTasks(response.data.tasks, this.schedulesForFields.listTasks(authorization.projectId)),
+        logistics: this.logisticsForFields.getLogisticsDto(authorization.projectId),
       },
     };
   }

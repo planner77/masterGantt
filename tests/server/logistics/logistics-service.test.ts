@@ -226,7 +226,13 @@ describe("LogisticsService Core", () => {
     const { authSession, now } = setupProjectWithSession(db);
     const service = new LogisticsService(db, { clock: () => now });
 
-    const s1Res = service.createSystem(authSession, 1, {
+    const processRes = service.createProcess(authSession, 1, {
+      code: "P1",
+      name: "Process 1",
+    });
+    const processId = processRes.data.logistics.processes[0].id;
+
+    const s1Res = service.createSystem(authSession, 2, {
       code: "MCS_TOP",
       name: "Top MCS",
       systemType: "mcs",
@@ -235,37 +241,39 @@ describe("LogisticsService Core", () => {
     });
     const s1Id = s1Res.data.logistics.systems[0].id;
 
-    const s2Res = service.createSystem(authSession, 2, {
+    const s2Res = service.createSystem(authSession, 3, {
       code: "MCS_SUB",
       name: "Sub Coordinator",
       systemType: "mcs",
       layer: "coordinator",
       scope: "processes",
+      processIds: [processId],
     });
     const s2Id = s2Res.data.logistics.systems.find((s) => s.code === "MCS_SUB")!.id;
 
-    const s3Res = service.createSystem(authSession, 3, {
+    const s3Res = service.createSystem(authSession, 4, {
       code: "ACS",
       name: "ACS Controller",
       systemType: "acs",
       layer: "controller",
       scope: "processes",
+      processIds: [processId],
     });
     const s3Id = s3Res.data.logistics.systems.find((s) => s.code === "ACS")!.id;
 
     // S1 coordinates S2
-    service.setCoordinatedSystems(authSession, 4, s1Id, { targetSystemIds: [s2Id] });
+    service.setCoordinatedSystems(authSession, 5, s1Id, { targetSystemIds: [s2Id] });
     // S2 coordinates S3
-    service.setCoordinatedSystems(authSession, 5, s2Id, { targetSystemIds: [s3Id] });
+    service.setCoordinatedSystems(authSession, 6, s2Id, { targetSystemIds: [s3Id] });
 
     // S2 cannot coordinate S1 (would create cycle S1 -> S2 -> S1)
     expect(() => {
-      service.setCoordinatedSystems(authSession, 6, s2Id, { targetSystemIds: [s3Id, s1Id] });
+      service.setCoordinatedSystems(authSession, 7, s2Id, { targetSystemIds: [s3Id, s1Id] });
     }).toThrowError(/cycle/);
 
     // Controller cannot coordinate systems
     expect(() => {
-      service.setCoordinatedSystems(authSession, 6, s3Id, { targetSystemIds: [s1Id] });
+      service.setCoordinatedSystems(authSession, 7, s3Id, { targetSystemIds: [s1Id] });
     }).toThrowError(/Only coordinator layer systems can coordinate other systems/);
   });
 

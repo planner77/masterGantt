@@ -1,10 +1,12 @@
 import type Database from "better-sqlite3";
 import type {
   ControlRole,
+  EquipmentRole,
   EquipmentType,
   LogisticsSystemType,
   ManagementUnit,
   SystemLayer,
+  SystemRole,
   SystemScope,
 } from "../../contracts/logistics";
 
@@ -59,6 +61,36 @@ export interface EquipmentSystemRecord {
   equipmentId: number;
   systemId: number;
   controlRole: ControlRole;
+}
+
+export interface EquipmentResourceRoleRecord {
+  id: number;
+  projectId: number;
+  equipmentId: number;
+  resourceId: number;
+  role: EquipmentRole;
+  isPrimary: number; // 0 | 1
+  createdAt: string;
+  updatedAt: string;
+  resourcePublicId: string;
+  resourceCode: string;
+  resourceName: string;
+  resourceActive: number;
+}
+
+export interface SystemResourceRoleRecord {
+  id: number;
+  projectId: number;
+  systemId: number;
+  resourceId: number;
+  role: SystemRole;
+  isPrimary: number; // 0 | 1
+  createdAt: string;
+  updatedAt: string;
+  resourcePublicId: string;
+  resourceCode: string;
+  resourceName: string;
+  resourceActive: number;
 }
 
 export interface SystemLinkRecord {
@@ -880,6 +912,158 @@ export class LogisticsRepository {
         `,
       )
       .get(projectId, systemId) as { count: number };
+    return row.count;
+  }
+
+  listEquipmentResourceRoles(
+    projectId: number,
+    equipmentId?: number,
+  ): EquipmentResourceRoleRecord[] {
+    const whereClause =
+      equipmentId !== undefined
+        ? "WHERE err.project_id = ? AND err.equipment_id = ?"
+        : "WHERE err.project_id = ?";
+    const params =
+      equipmentId !== undefined ? [projectId, equipmentId] : [projectId];
+
+    return this.database
+      .prepare(
+        `
+          SELECT
+            err.id AS id,
+            err.project_id AS projectId,
+            err.equipment_id AS equipmentId,
+            err.resource_id AS resourceId,
+            err.role AS role,
+            err.is_primary AS isPrimary,
+            err.created_at AS createdAt,
+            err.updated_at AS updatedAt,
+            r.public_id AS resourcePublicId,
+            r.code AS resourceCode,
+            r.name AS resourceName,
+            r.active AS resourceActive
+          FROM project_equipment_resource_roles err
+          JOIN resources r ON r.id = err.resource_id
+          ${whereClause}
+          ORDER BY err.id ASC
+        `,
+      )
+      .all(...params) as EquipmentResourceRoleRecord[];
+  }
+
+  replaceEquipmentResourceRoles(
+    projectId: number,
+    equipmentId: number,
+    roles: Array<{ resourceId: number; role: EquipmentRole; isPrimary: number }>,
+    now: string,
+  ): void {
+    const deleteStmt = this.database.prepare(
+      `DELETE FROM project_equipment_resource_roles WHERE project_id = ? AND equipment_id = ?`,
+    );
+    const insertStmt = this.database.prepare(
+      `
+        INSERT INTO project_equipment_resource_roles (
+          project_id, equipment_id, resource_id, role, is_primary, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      `,
+    );
+
+    deleteStmt.run(projectId, equipmentId);
+    for (const r of roles) {
+      insertStmt.run(
+        projectId,
+        equipmentId,
+        r.resourceId,
+        r.role,
+        r.isPrimary,
+        now,
+        now,
+      );
+    }
+  }
+
+  listSystemResourceRoles(
+    projectId: number,
+    systemId?: number,
+  ): SystemResourceRoleRecord[] {
+    const whereClause =
+      systemId !== undefined
+        ? "WHERE srr.project_id = ? AND srr.system_id = ?"
+        : "WHERE srr.project_id = ?";
+    const params =
+      systemId !== undefined ? [projectId, systemId] : [projectId];
+
+    return this.database
+      .prepare(
+        `
+          SELECT
+            srr.id AS id,
+            srr.project_id AS projectId,
+            srr.system_id AS systemId,
+            srr.resource_id AS resourceId,
+            srr.role AS role,
+            srr.is_primary AS isPrimary,
+            srr.created_at AS createdAt,
+            srr.updated_at AS updatedAt,
+            r.public_id AS resourcePublicId,
+            r.code AS resourceCode,
+            r.name AS resourceName,
+            r.active AS resourceActive
+          FROM project_system_resource_roles srr
+          JOIN resources r ON r.id = srr.resource_id
+          ${whereClause}
+          ORDER BY srr.id ASC
+        `,
+      )
+      .all(...params) as SystemResourceRoleRecord[];
+  }
+
+  replaceSystemResourceRoles(
+    projectId: number,
+    systemId: number,
+    roles: Array<{ resourceId: number; role: SystemRole; isPrimary: number }>,
+    now: string,
+  ): void {
+    const deleteStmt = this.database.prepare(
+      `DELETE FROM project_system_resource_roles WHERE project_id = ? AND system_id = ?`,
+    );
+    const insertStmt = this.database.prepare(
+      `
+        INSERT INTO project_system_resource_roles (
+          project_id, system_id, resource_id, role, is_primary, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      `,
+    );
+
+    deleteStmt.run(projectId, systemId);
+    for (const r of roles) {
+      insertStmt.run(
+        projectId,
+        systemId,
+        r.resourceId,
+        r.role,
+        r.isPrimary,
+        now,
+        now,
+      );
+    }
+  }
+
+  countResourceEquipmentRoles(resourceId: number): number {
+    const row = this.database
+      .prepare(
+        `SELECT count(*) AS count FROM project_equipment_resource_roles WHERE resource_id = ?`,
+      )
+      .get(resourceId) as { count: number };
+    return row.count;
+  }
+
+  countResourceSystemRoles(resourceId: number): number {
+    const row = this.database
+      .prepare(
+        `SELECT count(*) AS count FROM project_system_resource_roles WHERE resource_id = ?`,
+      )
+      .get(resourceId) as { count: number };
     return row.count;
   }
 }

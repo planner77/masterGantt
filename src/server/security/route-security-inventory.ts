@@ -71,6 +71,8 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/logistics/systems/{systemId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/logistics/systems/{systemId}/processes", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/logistics/systems/{systemId}/children", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/equipment/{equipmentId}/resource-roles", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/logistics/systems/{systemId}/resource-roles", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
 ] satisfies readonly RouteSecurityInventoryEntry[]);
 
 export const NEXT_AUTOMATIC_METHOD_SECURITY = Object.freeze({

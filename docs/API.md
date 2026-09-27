@@ -758,6 +758,7 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 - `PATCH /api/projects/{publicId}/logistics/equipment/{equipmentId}`: 설비 수정
 - `DELETE /api/projects/{publicId}/logistics/equipment/{equipmentId}`: 설비 영구 삭제 (제어 시스템 매핑 등이 존재할 경우 `409 EQUIPMENT_IN_USE` 거부)
 - `PUT /api/projects/{publicId}/logistics/equipment/{equipmentId}/systems`: 설비-시스템 매핑 교체 (`systems: [{ systemId, controlRole: 'primary' | 'supporting' }]`, primary는 최대 1개)
+- `PUT /api/projects/{publicId}/logistics/equipment/{equipmentId}/resource-roles`: 설비 담당자 배정 교체 (`roles: [{ resourceId: string, role: 'owner' | 'contributor', isPrimary?: boolean }]`, `owner`만 `isPrimary` 가능, `isPrimary` 최대 1개, 비활성 리소스 신규 배정 시 `409 RESOURCE_INACTIVE` 거부, 기존 배정 유지 허용)
 
 ### 4. 제어 및 조율 시스템 (Logistics Systems)
 - `POST /api/projects/{publicId}/logistics/systems`: 시스템 생성 (`code`, `name`, `systemType`, `layer`, `scope`, `vendor?`, `description?`, `active?`)
@@ -765,6 +766,8 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 - `DELETE /api/projects/{publicId}/logistics/systems/{systemId}`: 시스템 영구 삭제 (설비 연결, 연계 링크, 공정 매핑 존재 시 `409 SYSTEM_IN_USE` 거부)
 - `PUT /api/projects/{publicId}/logistics/systems/{systemId}/processes`: 프로세스 스코프 시스템의 담당 공정 매핑 교체 (`processIds: string[]`)
 - `PUT /api/projects/{publicId}/logistics/systems/{systemId}/children`: 상위 조율 시스템의 하위 시스템 연계 교체 (`childSystemIds: string[]`, DAG 순환 방지 검증)
+- `PUT /api/projects/{publicId}/logistics/systems/{systemId}/resource-roles`: 시스템 PI/개발자 배정 교체 (`roles: [{ resourceId: string, role: 'pi' | 'developer', isPrimary?: boolean }]`, `pi`만 `isPrimary` 가능, `isPrimary` 최대 1개, 비활성 리소스 신규 배정 시 `409 RESOURCE_INACTIVE` 거부, 기존 배정 유지 허용)
 
 ### 5. 프로젝트 복사 시 물류 도메인 보호 가드
 - `POST /api/projects/{publicId}/copy`: 대상 프로젝트에 물류 데이터(공정, 설비, 시스템)가 존재하는 경우 아직 물류 복사를 지원하지 않으므로 `409 LOGISTICS_COPY_NOT_SUPPORTED_YET`으로 안전하게 차단한다 (Issue #189에서 복사 지원 예정).
+

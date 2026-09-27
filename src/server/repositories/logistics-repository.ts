@@ -13,4 +13,6 @@ export {
   type UpdateEquipmentRecord,
   type InsertSystemRecord,
   type UpdateSystemRecord,
+  type EquipmentResourceRoleRecord,
+  type SystemResourceRoleRecord,
 } from "./logistics-repository-core";
