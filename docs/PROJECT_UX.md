@@ -329,3 +329,34 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 - **클라이언트 전용 필터링 및 Gantt 인스턴스 보존**:
   - 필터 선택 및 초기화는 서버 mutation이나 API 재조회를 유발하지 않으며, SVAR 공개 `filter-tasks` action을 통해 동일한 Gantt instance에서 렌더링 가시성만 전환한다.
   - 필터 패널의 Escape 닫기 및 필터 버튼으로의 focus 복귀, 390/768/1024/1440px 반응형 레이아웃 규칙을 유지한다.
+
+## Issue #188 공정·설비·시스템·담당자 대시보드 및 일정 연동 (물류 LG-05)
+
+물류 구성(`logistics`) 탭의 첫 번째 기본 서브탭으로 **물류 대시보드(`dashboard`)**가 추가되었다. (서브탭 목록: `대시보드 (dashboard)`, `공정 관리 (processes)`, `설비 관리 (equipment)`, `물류 시스템 (systems)`, `제어·조율 관계 (relations)` 5종)
+
+- **필터 및 옵션 바**:
+  - 기준일(`asOfDate`): `YYYY-MM-DD` native date input (기본값 오늘).
+  - 임박 기준(`horizonDays`): 1~90일 범위의 숫자 입력 (기본값 14일).
+  - 시스템 집계 범위(`systemView`): `직접 연결만 (direct)` vs `조율 범위 포함 (coordination)`.
+  - 활성 마스터만 보기(`activeOnly`): 체크박스 토글.
+  - 새로고침 버튼: 최신 서버 스냅샷 기반 대시보드 데이터 수동 재조회.
+- **4대 핵심 KPI 카드 그리드**:
+  - **기간 가중 진척률**: `Σ(duration * progress) / Σ(duration)` (Summary 및 Milestone 제외, taskId 중복 없이 정확히 1번 집계)과 시각적 진행 게이지 바, 총 대상 작업 수 및 총 기간(근무일수) 표시.
+  - **미완료 지연 작업**: 기준일 기준 `progress < 100 AND end < asOfDate`인 지연 일반 작업 건수 및 '일정 필터' drill-down 버튼.
+  - **마일스톤 경보**: 기준일 이전 미달성된 지연 마일스톤 수 및 `horizonDays` 이내 도래하는 임박 마일스톤 수 경보 뱃지 및 drill-down 버튼.
+  - **투입 계획 공수**: 대상 작업들에 배정된 리소스 계획 공수의 총 M/D 및 M/M 환산치, 공수 미배정 일반 작업 건수 표시.
+- **데이터 품질 및 구성 진단 패널**:
+  - 물류 미연결 일반 작업 수 및 전체 대비 백분율.
+  - 주 제어기(Primary Controller) 미매핑 설비 건수.
+  - 주 담당자(Primary Owner) 미지정 설비 건수.
+  - 주 책임자(Primary PI) 미지정 물류 시스템 건수.
+  - 프로젝트 전체 설비 수량(`quantity`) 합계.
+- **공정·설비·시스템별 세부 현황 표 및 일정 Drill-down 연동**:
+  - 3개 탭(공정별 / 설비별 / 시스템별)으로 세부 breakdown 테이블 전환.
+  - 각 행마다 코드, 명칭, 유형, 주 제어기/책임자, 매핑 작업 수, 기간 가중 진척률, 지연 작업 수, 계획 공수(M/D)를 표시.
+  - 각 행의 **'일정 필터'** 버튼 클릭 시, Workspace가 `일정 (schedule)` 탭으로 즉시 전환되며 해당 대상의 ID 또는 연계 작업 ID 목록(`taskIds`, `processIds`, `equipmentIds`, `systemIds`)이 일정 화면의 검색/필터 패널에 자동으로 반영되어 관련 작업들만 즉시 필터링 표시된다.
+  - 탭 전환 및 drill-down 과정에서도 기존 Gantt 인스턴스 DOM 및 편집/선택 상태가 보존된다.
+- **접근성 및 반응형**:
+  - `ArrowLeft`/`ArrowRight`/`Home`/`End` 키보드 탐색(5개 서브탭 지원), WAI-ARIA `role="tab"`/`aria-selected`/`aria-controls` 완전 준수.
+  - 390px, 768px, 1024px, 1440px viewport에서 가로 스크롤 테이블 및 유연한 카드 그리드 배치로 레이아웃 깨짐을 방지한다.
+
