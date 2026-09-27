@@ -275,8 +275,12 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await page.getByRole("tab", { name: "제어·조율 관계" }).click();
     const relationsPanel = page.getByRole("tabpanel", { name: /제어·조율 관계/ });
     await expect(relationsPanel.getByText("통합 반송 조율 시스템", { exact: true })).toBeVisible();
-    await expect(relationsPanel.getByText("AGV 관제 제어 시스템 (ACS-01)", { exact: true })).toBeVisible();
-    await expect(relationsPanel.getByText("스토커 제어 시스템 (SCS-01)", { exact: true })).toBeVisible();
+    const acsRelationRow = relationsPanel.getByRole("row", { name: /ACS-01/ });
+    await expect(acsRelationRow.getByText("AGV 관제 제어 시스템", { exact: true })).toBeVisible();
+    await expect(acsRelationRow).toContainText("ACS-01");
+    const scsRelationRow = relationsPanel.getByRole("row", { name: /SCS-01/ });
+    await expect(scsRelationRow.getByText("스토커 제어 시스템", { exact: true })).toBeVisible();
+    await expect(scsRelationRow).toContainText("SCS-01");
 
     // Switch back to schedule tab and verify Gantt intact
     await scheduleTab.click();
