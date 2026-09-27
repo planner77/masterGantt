@@ -1,5 +1,5 @@
 import type { ControlRole, EquipmentRole, EquipmentType, LogisticsSystemType, ManagementUnit, SystemLayer, SystemRole, SystemScope } from "./logistics";
-import type { ProjectDto, ProjectLinkDto, ProjectTaskDto } from "./projects";
+import type { DependencyType, ProjectDto, ProjectLinkDto, ProjectTaskDto } from "./projects";
 import type { ProjectAssignmentDto } from "./resources";
 
 export interface ProjectTemplateDto {
@@ -52,7 +52,7 @@ export interface TemplateTaskSnapshotItem {
 export interface TemplateLinkSnapshotItem {
   predecessorExternalId: string;
   successorExternalId: string;
-  type: "FS";
+  type: DependencyType;
   lag: number;
 }
 

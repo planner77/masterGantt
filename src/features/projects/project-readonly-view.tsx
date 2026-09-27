@@ -11,7 +11,7 @@ import { EMPTY_TASK_FILTER, activeTaskFilterCount, applyTaskQuickView, filterTas
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
-import type { LinkMutationResponse, ProjectMetadataMutationResponse, ProjectSnapshotResponse, ProjectStatus, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
+import type { DependencyType, LinkMutationResponse, ProjectMetadataMutationResponse, ProjectSnapshotResponse, ProjectStatus, TaskHierarchyCommandRequest, TaskMutationResponse } from "@/contracts/projects";
 import { PROJECT_STATUS_OPTIONS, projectStatusLabel } from "@/features/projects/project-status";
 import {
   patchProjectStatus,
@@ -615,8 +615,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return Promise.resolve({ status: "failed", message: "변경할 작업 정보가 없습니다." });
   }
 
-  async function saveLink(method: "POST" | "DELETE", sourceTaskId?: string, targetTaskId?: string, linkId?: string) {
-    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return;
+  async function saveLink(
+    method: "POST" | "DELETE" | "PATCH",
+    sourceTaskId?: string,
+    targetTaskId?: string,
+    linkId?: string,
+    linkPatch?: { type?: DependencyType; lag?: number },
+  ) {
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return false;
     taskMutationReference.current = true; setIsSavingTask(true); clearToast();
     try {
       const source = sourceTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === sourceTaskId) : undefined;
@@ -628,22 +634,24 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       const response = await fetch(url, {
         method, credentials: "same-origin",
         headers: {
-          ...(method === "POST" ? { "Content-Type": "application/json" } : {}),
+          ...(method === "POST" || method === "PATCH" ? { "Content-Type": "application/json" } : {}),
           "If-Match": revisionTag(state.snapshot.data.project.revision),
         },
         ...(method === "POST" ? { body: JSON.stringify({
           predecessorExternalId: source!.externalId, successorExternalId: target!.externalId, type: "FS", lag: 0,
-        }) } : {}),
+        }) } : method === "PATCH" ? { body: JSON.stringify(linkPatch ?? {}) } : {}),
       });
       const body: unknown = await response.json().catch(() => null);
       const snapshot = snapshotFromLinkMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
-        notify("success", method === "POST" ? "작업 관계를 저장했습니다." : "작업 관계를 삭제했습니다.", "작업 관계");
-        return;
+        notify("success", method === "POST" ? "작업 관계를 저장했습니다." : method === "PATCH" ? "작업 관계를 변경했습니다." : "작업 관계를 삭제했습니다.", "작업 관계");
+        return true;
       }
       await handleTaskFailure(response.status, body, "작업 관계를 변경할 수 없습니다.", "작업 관계");
+      return false;
     } catch {
       await handleTaskFailure(undefined, null, "작업 관계를 변경하지 못했습니다. 최신 서버 상태로 복구합니다.", "작업 관계");
+      return false;
     } finally {
       taskMutationReference.current = false; setIsSavingTask(false);
     }
@@ -958,7 +966,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
-          onTaskEditorOpen={openTaskEditor} onTaskDeleteRequest={requestTaskDelete} onLinkCreate={(source, target) => void saveLink("POST", source, target)} onLinkDelete={(linkId) => void saveLink("DELETE", undefined, undefined, linkId)} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
+          onTaskEditorOpen={openTaskEditor} onTaskDeleteRequest={requestTaskDelete} onLinkCreate={(source, target) => void saveLink("POST", source, target)} onLinkUpdate={(linkId, patch) => saveLink("PATCH", undefined, undefined, linkId, patch)} onLinkDelete={(linkId) => void saveLink("DELETE", undefined, undefined, linkId)} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
             const visibleColumnCount = Object.values(current).filter(Boolean).length;
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };

@@ -5,17 +5,22 @@ export {
   MAX_CALENDAR_SPAN_DAYS, type DateOnly,
 } from "./date-only";
 export {
-  createWorkingCalendar, isWorkingDay, nextWorkingDay, workingDaysBetween, endFromStart,
+  createWorkingCalendar, isWorkingDay, nextWorkingDay, previousWorkingDay, workingDaysBetween, endFromStart,
+  shiftWorkingDate, startFromEnd,
   MAX_TASK_DURATION, MAX_CALENDAR_HOLIDAYS, MAX_CALENDAR_EXCEPTIONS,
   type CalendarDayType, type CalendarDayExceptionInput, type HolidayInput, type WorkingCalendarInput, type WorkingCalendar,
 } from "./calendar";
 export { scheduleLeaf, type LeafScheduleInput, type LeafSchedule, type CalendarShiftWarning } from "./leaf";
 export { recalculateHierarchy, MAX_HIERARCHY_TASKS, MAX_HIERARCHY_DEPTH, type HierarchyTaskInput } from "./hierarchy";
 export {
+  recalculateDependencies,
   recalculateFinishStartDependencies,
+  type DependencyType,
+  type DependencyLinkInput,
   type FinishStartDependencyTaskInput,
   type FinishStartDependencyLinkInput,
   type FinishStartDependencyChange,
   type FinishStartManualConflict,
   type FinishStartDependencyResult,
 } from "./dependency";
+

@@ -336,4 +336,75 @@ describe("ProjectTemplateService (Issue #195)", () => {
       database.close();
     }
   });
+
+  it("preserves non-FS dependency type and signed lag when instantiating a template", async () => {
+    const { database } = openDatabase({ filename: ":memory:", migrationsDirectory });
+
+    try {
+      const clockDate = new Date("2026-09-27T00:00:00.000Z");
+      const projectService = new ProjectService(database, {
+        clock: () => clockDate,
+        hashPassword: async () => fixedPasswordHash(3),
+        generateSessionToken: () => ({ rawToken: "src-token-2", tokenHash: hashSessionToken("src-token-2") }),
+      });
+      const templateService = new ProjectTemplateService(database, {
+        clock: () => clockDate,
+        hashPassword: async () => fixedPasswordHash(4),
+        generateSessionToken: () => ({ rawToken: "inst-token-2", tokenHash: hashSessionToken("inst-token-2") }),
+      });
+
+      const created = await projectService.create({
+        name: "관계 보존 원본",
+        description: "",
+        editPassword: "password123",
+      });
+      const sourcePublicId = created.response.data.project.publicId;
+      const sourceAuth = projectService.authorize(sourcePublicId, "src-token-2");
+      expect(sourceAuth.kind).toBe("authorized");
+      if (sourceAuth.kind !== "authorized") throw new Error("Source auth failed");
+
+      const sourceProjectId = (database.prepare("SELECT id FROM projects WHERE public_id = ?").get(sourcePublicId) as { id: number }).id;
+      const now = "2026-09-27T00:00:00.000Z";
+
+      const taskA = Number(database.prepare(
+        `INSERT INTO tasks(project_id, external_id, public_id, name, type, schedule_mode, requested_start, start_date, end_date, duration, progress, parent_id, sort_order, created_at, updated_at)
+         VALUES (?, 'A', ?, 'A', 'task', 'auto', '2026-10-01', '2026-10-01', '2026-10-02', 2, 0, NULL, 1, ?, ?)`
+      ).run(sourceProjectId, randomUUID(), now, now).lastInsertRowid);
+
+      const taskB = Number(database.prepare(
+        `INSERT INTO tasks(project_id, external_id, public_id, name, type, schedule_mode, requested_start, start_date, end_date, duration, progress, parent_id, sort_order, created_at, updated_at)
+         VALUES (?, 'B', ?, 'B', 'task', 'auto', '2026-10-05', '2026-10-05', '2026-10-06', 2, 0, NULL, 2, ?, ?)`
+      ).run(sourceProjectId, randomUUID(), now, now).lastInsertRowid);
+
+      database.prepare(
+        `INSERT INTO links(public_id, project_id, predecessor_task_id, successor_task_id, type, lag, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 'FF', -1, ?, ?)`
+      ).run(randomUUID(), sourceProjectId, taskA, taskB, now, now);
+
+      const template = templateService.createTemplateFromProject(
+        sourceAuth.authorization,
+        1,
+        { name: "관계 보존 템플릿", description: "" },
+      );
+
+      const instantiated = await templateService.instantiateProject(template.id, {
+        name: "관계 보존 생성본",
+        ownerName: "tester",
+        editPassword: "pass1234",
+        projectStartDate: "2026-11-02",
+      });
+
+      expect(instantiated.response.data.links).toEqual([
+        expect.objectContaining({
+          predecessorExternalId: "A",
+          successorExternalId: "B",
+          type: "FF",
+          lag: -1,
+        }),
+      ]);
+    } finally {
+      database.close();
+    }
+  });
+
 });

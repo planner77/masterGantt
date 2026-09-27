@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.42.0] - 2026-09-27
+
+### Added
+
+- Issue #200: 관계 Context Menu에서 관계 종류(FS/SS/FF/SF)·Lag 설정 및 일정 재계산 지원.
+  - DB 마이그레이션 `0013_link_types_and_lag.sql`: `links` 테이블의 `type`을 `FS`, `SS`, `FF`, `SF` 허용으로 확장하고, `lag`를 `-10000..10000` 근무일 범위로 완화, `(project_id, predecessor_task_id, successor_task_id)` 유니크 제약 적용.
+  - 순수 스케줄링 엔진(`src/domain/scheduling/calendar.ts`, `dependency.ts`):
+    - `previousWorkingDay`, `shiftWorkingDate(date, offset, calendar)`, `startFromEnd(end, duration, calendar)` 구현.
+    - 4대 의존성 관계(FS: End-to-Start, SS: Start-to-Start, FF: End-to-End, SF: Start-to-End) 및 근무일 단위 Lag(지연/선행) 계산 공식 적용.
+    - 다중 선행 의존성 중 가장 강한 제약(strongest lower bound)을 적용하며, 기존 FS/0 결과 100% 회귀 보존.
+  - 백엔드 REST API 및 계약:
+    - `PATCH /api/projects/{publicId}/links/{linkId}` 신규 라우트 추가: type/lag 수정, no-op 판별, 순수 엔진 일정 재계산, revision atomic 증가, 412/404/409 오류 처리.
+    - `CreateLinkRequest`에 `type`, `lag` 필드 지원 추가.
+    - `POST /api/projects/{publicId}/links`에서도 FS/SS/FF/SF 및 lag 저장 지원.
+    - `src/server/exports/project-excel-export-core.ts`: Excel 내보내기 시 FS/SS/FF/SF 및 lag 검증 허용.
+  - 프론트엔드 UI/UX:
+    - 관계선 SVG(`[data-link-id]`) 우클릭 시 호출되는 `RelationContextMenu` 신규 구현.
+    - 선행·후행 작업명 표시, 관계 종류(FS/SS/FF/SF) 및 Lag(근무일) 선택/입력, 변경사항 없을 시 저장 비활성화, Escape 닫기, 관계 삭제 지원.
+    - SVAR React Gantt의 link type (`e2s`, `s2s`, `e2e`, `s2e`) 실시간 시각적 양방향 어댑터 매핑.
+
 ## [0.41.0] - 2026-09-27
 
 ### Added

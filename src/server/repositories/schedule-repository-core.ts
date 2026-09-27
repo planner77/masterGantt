@@ -1,14 +1,15 @@
 import type Database from "better-sqlite3";
+import type { DependencyType } from "../../contracts/projects";
 
 export interface TaskRecord { id:number; projectId:number; externalId:string; publicId:string; name:string; description:string|null; url:string|null; type:"task"|"summary"|"milestone"; scheduleMode:"auto"|"manual"; requestedStart:string|null; startDate:string; endDate:string; duration:number; progress:number; parentId:number|null; sortOrder:number; createdAt:string; updatedAt:string }
-export interface LinkRecord { id:number; publicId:string; projectId:number; predecessorTaskId:number; successorTaskId:number; type:"FS"; lag:0; createdAt:string; updatedAt:string }
+export interface LinkRecord { id:number; publicId:string; projectId:number; predecessorTaskId:number; successorTaskId:number; type:DependencyType; lag:number; createdAt:string; updatedAt:string }
 export interface HolidayRecord { id:number; projectId:number; holidayDate:string; name:string|null; createdAt:string }
 export interface NewTaskRecord { projectId:number; externalId:string; publicId:string; name:string; description?:string|null; url?:string|null; type:"task"|"milestone"|"summary"; scheduleMode:"auto"|"manual"; requestedStart:string|null; startDate:string; endDate:string; duration:number; progress:number; parentId:number|null; sortOrder:number; createdAt:string; updatedAt:string }
 export type UpdatedTaskRecord=Omit<NewTaskRecord,"projectId"|"externalId"|"publicId"|"parentId"|"sortOrder"|"createdAt"|"description"|"url">;
-export interface NewLinkRecord { publicId:string; projectId:number; predecessorTaskId:number; successorTaskId:number; type:"FS"; lag:0; createdAt:string; updatedAt:string }
+export interface NewLinkRecord { publicId:string; projectId:number; predecessorTaskId:number; successorTaskId:number; type:DependencyType; lag:number; createdAt:string; updatedAt:string }
 export type UpdatedLinkRecord=Pick<NewLinkRecord,"predecessorTaskId"|"successorTaskId"|"type"|"lag"|"updatedAt">;
 type TaskRow={id:number;project_id:number;external_id:string;public_id:string;name:string;description:string|null;url:string|null;type:TaskRecord["type"];schedule_mode:TaskRecord["scheduleMode"];requested_start:string|null;start_date:string;end_date:string;duration:number;progress:number;parent_id:number|null;sort_order:number;created_at:string;updated_at:string};
-type LinkRow={id:number;public_id:string;project_id:number;predecessor_task_id:number;successor_task_id:number;type:"FS";lag:0;created_at:string;updated_at:string};
+type LinkRow={id:number;public_id:string;project_id:number;predecessor_task_id:number;successor_task_id:number;type:DependencyType;lag:number;created_at:string;updated_at:string};
 type HolidayRow={id:number;project_id:number;holiday_date:string;name:string|null;created_at:string};
 function mapTask(r:TaskRow):TaskRecord{return{id:r.id,projectId:r.project_id,externalId:r.external_id,publicId:r.public_id,name:r.name,description:r.description,url:r.url,type:r.type,scheduleMode:r.schedule_mode,requestedStart:r.requested_start,startDate:r.start_date,endDate:r.end_date,duration:r.duration,progress:r.progress,parentId:r.parent_id,sortOrder:r.sort_order,createdAt:r.created_at,updatedAt:r.updated_at}}
 function mapLink(r:LinkRow):LinkRecord{return{id:r.id,publicId:r.public_id,projectId:r.project_id,predecessorTaskId:r.predecessor_task_id,successorTaskId:r.successor_task_id,type:r.type,lag:r.lag,createdAt:r.created_at,updatedAt:r.updated_at}}

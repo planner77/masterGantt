@@ -67,12 +67,14 @@ export interface ProjectTaskDto {
   siblingOrder: number;
 }
 
+export type DependencyType = "FS" | "SS" | "FF" | "SF";
+
 export interface ProjectLinkDto {
   id: string;
   predecessorExternalId: string;
   successorExternalId: string;
-  type: "FS";
-  lag: 0;
+  type: DependencyType;
+  lag: number;
 }
 
 export type ProjectPermission = "readonly" | "edit";
@@ -300,11 +302,16 @@ export interface ApiErrorResponse {
 export interface CreateLinkRequest {
   predecessorExternalId: string;
   successorExternalId: string;
-  type: "FS";
-  lag: 0;
+  type?: DependencyType;
+  lag?: number;
 }
 
-export type LinkMutationKind = "linkCreate" | "linkDelete";
+export interface UpdateLinkRequest {
+  type?: DependencyType;
+  lag?: number;
+}
+
+export type LinkMutationKind = "linkCreate" | "linkUpdate" | "linkDelete";
 
 export interface LinkMutationResponse {
   data: {
@@ -318,6 +325,7 @@ export interface LinkMutationResponse {
       kind: LinkMutationKind;
       changedTaskExternalIds: string[];
       deletedLinkIds: string[];
+      updatedLinkId?: string;
     };
   };
 }
