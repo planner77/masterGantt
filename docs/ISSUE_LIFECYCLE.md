@@ -341,3 +341,17 @@ Gate E의 반복 운영은 `.github/workflows/issue-lifecycle.yml`을 공식 범
 workflow가 신뢰하는 식별 입력은 Issue/PR 번호다. PR base/head/relation, required checks, merge SHA, current main ancestry, target version, exact main CI와 release evidence는 GitHub/repository에서 다시 읽는다. `release_required=true`인데 `release_authorized=false`이면 mutation은 BLOCKED다. `expected_version`은 target commit manifest와 일치 여부만 검증한다.
 
 PR merge 책임은 Ruleset/required checks/GitHub Auto-merge에 남기며 범용 workflow는 merge API를 호출하지 않는다. 정식 image 게시를 복제하지 않고 `release-image.yml`을, branch 삭제는 `safe_branch_cleanup.py`를 재사용한다. 자세한 운영 계약은 [ISSUE_LIFECYCLE_AUTOMATION](ISSUE_LIFECYCLE_AUTOMATION.md)을 따른다.
+
+
+## release / finalize 통합 사용 규칙 (#248)
+
+현재 `finalize` 구현은 `release_required=true`이면 정식 release를 먼저 확보한 뒤 branch cleanup과 Issue close까지 수행한다. 따라서 구현상 정식 release와 finalize를 한 번에 실행할 수 있다. Issue #248은 이 동작을 운영자에게 명시적으로 드러내는 `release_finalize` operation을 추가한다.
+
+Manager는 operation을 다음처럼 선택한다.
+
+- 릴리스 증거만 만들고 Issue를 계속 열어 둘 필요가 있으면 `release`.
+- 정식 release가 불필요한 Issue를 종료하면 `finalize` + `release_required=false`.
+- 정식 release가 필요하고 명시적 승인까지 확보되어 release부터 종료까지 연속 수행하면 `release_finalize`.
+- Issue #248 구현 전 같은 목적이면 기존 `finalize`에 `release_required=true`와 승인 입력을 사용한다.
+
+`release_finalize`를 선택했다고 해서 승인을 자동 추론하지 않는다. 반드시 동일 Issue/버전 범위에 대한 명시적 `release_authorized=true` 근거와 `authorization_note`가 있어야 한다.
