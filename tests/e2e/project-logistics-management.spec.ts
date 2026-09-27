@@ -237,15 +237,19 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       page.getByText("물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다."),
     ).toBeVisible();
 
-    // Verify Sub-tab 1: Processes (Default)
-    await expect(page.getByText("PROC-01")).toBeVisible();
-    await expect(page.getByText("입고 공정")).toBeVisible();
-    await expect(page.getByText("PROC-02")).toBeVisible();
-    await expect(page.getByText("보관 공정")).toBeVisible();
-    await expect(page.getByText("PROC-03")).toBeVisible();
-    await expect(page.getByText("출고 공정")).toBeVisible();
+    // Dashboard is the default sub-tab since LG-05. Move to process management
+    // before asserting LG-03 master-management content.
+    await expect(page.getByRole("tab", { name: "KPI 대시보드" })).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("tab", { name: "공정 관리" }).click();
+    const processPanel = page.getByRole("tabpanel", { name: "공정 관리" });
+    await expect(processPanel.getByText("PROC-01", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("입고 공정", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("PROC-02", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("보관 공정", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("PROC-03", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("출고 공정", { exact: true })).toBeVisible();
 
-    // Switch to Sub-tab 2: Equipment
+    // Switch to Equipment
     await page.getByRole("tab", { name: "설비 관리" }).click();
     await expect(page.getByText("STK-01")).toBeVisible();
     await expect(page.getByText("1번 자동창고 스토커")).toBeVisible();
@@ -312,6 +316,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
 
     await page.goto(`/projects/${publicId}`);
     await page.getByRole("tab", { name: "물류 구성" }).click();
+    await page.getByRole("tab", { name: "공정 관리" }).click();
 
     // Open add process dialog
     const addButton = page.getByRole("button", { name: "+ 공정 추가" });
