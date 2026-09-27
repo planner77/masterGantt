@@ -181,9 +181,9 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(prevented).toBe(false);
     await expect(taskContextMenu(page)).toHaveCount(0);
     await expect(editor(page)).toHaveCount(0);
-    if (!(await row(page, "Beta leaf").isVisible())) {
+    if (!(await row(page, "Beta leaf").getByText("Beta leaf", { exact: true }).isVisible())) {
       await row(page, "Summary").locator('[data-action="open-task"]').click();
-      await expect(row(page, "Beta leaf")).toBeVisible();
+      await expect(row(page, "Beta leaf").getByText("Beta leaf", { exact: true })).toBeVisible();
     }
     for (let i = 0; i < 3; i += 1) { await openRow(page); await cancel(page); }
     await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
@@ -596,8 +596,12 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       const taskTab = tabs.getByRole("tab", { name: "작업 정보", exact: true });
       const resourceTab = tabs.getByRole("tab", { name: /리소스/ });
       const relationTab = tabs.getByRole("tab", { name: /관계/ });
+      const logisticsTab = tabs.getByRole("tab", { name: /물류 연결/ });
       await taskTab.focus();
       await page.keyboard.press("End");
+      await expect(logisticsTab).toBeFocused();
+      await expect(dialog.getByRole("tabpanel", { name: /물류 연결/ })).toBeVisible();
+      await page.keyboard.press("ArrowLeft");
       await expect(relationTab).toBeFocused();
       await expect(dialog.getByRole("tabpanel", { name: /관계/ })).toBeVisible();
       const predecessor = await dialog.getByRole("region", { name: "선행 작업" }).boundingBox();
