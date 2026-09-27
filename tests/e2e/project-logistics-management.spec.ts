@@ -248,11 +248,12 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
 
     // Switch to Sub-tab 2: Equipment
     await page.getByRole("tab", { name: "설비 관리" }).click();
-    await expect(page.getByText("STK-01")).toBeVisible();
-    await expect(page.getByText("1번 자동창고 스토커")).toBeVisible();
-    await expect(page.getByText("AGV-F1")).toBeVisible();
-    await expect(page.getByText("입고 무인운반차 편대")).toBeVisible();
-    await expect(page.getByText("AMR-F1")).toBeVisible();
+    const equipmentPanel = page.locator("#panel-equipment");
+    await expect(equipmentPanel.getByText("STK-01", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("1번 자동창고 스토커", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("AGV-F1", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("입고 무인운반차 편대", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("AMR-F1", { exact: true })).toBeVisible();
     // Check primary owner tag
     await expect(page.getByText("★ 홍길동 (owner)")).toBeVisible();
 
