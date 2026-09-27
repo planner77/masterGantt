@@ -112,7 +112,9 @@ jobs:
   e2e:
     name: Chromium end-to-end tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Full Chromium suite currently exceeds 20 minutes with workers=1.
+    # Keep a bounded timeout while allowing the complete suite to report all failures.
+    timeout-minutes: 40
     needs: quality
     steps:
       # actions/checkout v7.0.1
