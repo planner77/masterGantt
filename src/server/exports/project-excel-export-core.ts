@@ -482,13 +482,256 @@ function zip(entries: readonly ZipEntry[]): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(Buffer.concat([...local, directory, end]));
 }
 
+function safeText(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  const str = String(value);
+  if (/^[=+\-@]/.test(str)) {
+    return `'${str}`;
+  }
+  return str;
+}
+
+function logisticsSheet(snapshot: ProjectSnapshotResponse, tasks: readonly OrderedTask[]): string {
+  const logistics = snapshot.data.logistics;
+  if (!logistics) {
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData/></worksheet>`;
+  }
+
+  const taskByPublicId = new Map(tasks.map((t) => [t.task.taskId, t]));
+  const processById = new Map(logistics.processes.map((p) => [p.id, p]));
+  const systemById = new Map(logistics.systems.map((s) => [s.id, s]));
+  const equipmentById = new Map(logistics.equipment.map((e) => [e.id, e]));
+
+  const rows: string[] = [];
+  let currentRow = 1;
+
+  const addRow = (cells: Cell[], height?: number) => {
+    rows.push(rowXml(currentRow, cells, 0, height));
+    currentRow += 1;
+  };
+
+  const addSectionHeader = (title: string) => {
+    addRow([{ column: 1, style: STYLE.title, value: safeText(title) }], 24);
+  };
+
+  const addTableHeaders = (headers: string[]) => {
+    addRow(headers.map((value, idx) => ({ column: idx + 1, style: STYLE.header, value: safeText(value) })), 22);
+  };
+
+  // 1. 안내 및 프로젝트/물류 메타데이터 개요
+  addRow([
+    {
+      column: 1,
+      style: STYLE.muted,
+      value: "본 시트는 물류 구성 보고용 출력물이며, 전체 프로젝트 무손실 재가져오기(Import) 백업 파일이 아닙니다.",
+    },
+  ]);
+  currentRow += 1;
+
+  addSectionHeader("1. 프로젝트 및 물류 구성 요약");
+  const totalQuantity = logistics.equipment.reduce((sum, eq) => sum + (eq.quantity || 0), 0);
+  const taskLinksCount = (logistics.taskEquipmentLinks?.length ?? 0) + (logistics.taskSystemLinks?.length ?? 0);
+
+  const summaryPairs: [string, string | number, ("string" | "number")?][] = [
+    ["프로젝트명", snapshot.data.project.name],
+    ["프로젝트 ID", snapshot.data.project.publicId],
+    ["프로젝트 Revision", snapshot.data.project.revision, "number"],
+    ["산출 기준일", new Date().toISOString().slice(0, 10)],
+    ["등록 공정 수", logistics.processes.length, "number"],
+    ["등록 설비 수 (총 수량)", `${logistics.equipment.length}개 (${totalQuantity}대)`],
+    ["등록 시스템 수", logistics.systems.length, "number"],
+    ["태스크-물류 연결 수", taskLinksCount, "number"],
+  ];
+  for (const [k, v, type] of summaryPairs) {
+    addRow([
+      { column: 1, style: STYLE.header, value: safeText(k) },
+      { column: 2, style: STYLE.text, type: type ?? "string", value: typeof v === "number" ? v : safeText(v) },
+    ]);
+  }
+  currentRow += 1;
+
+  // 2. 공정 마스터 (Processes)
+  addSectionHeader("2. 공정 마스터 (Processes)");
+  addTableHeaders(["공정 코드", "공정명", "상위 공정 코드", "상위 공정명", "정렬 순서", "활성 상태", "공정 ID"]);
+  for (const proc of logistics.processes) {
+    const parent = proc.parentProcessId ? processById.get(proc.parentProcessId) : undefined;
+    addRow([
+      { column: 1, style: STYLE.text, value: safeText(proc.code) },
+      { column: 2, style: STYLE.text, value: safeText(proc.name) },
+      { column: 3, style: STYLE.text, value: safeText(parent?.code ?? "-") },
+      { column: 4, style: STYLE.text, value: safeText(parent?.name ?? "-") },
+      { column: 5, style: STYLE.integer, type: "number", value: proc.sortOrder },
+      { column: 6, style: STYLE.text, value: proc.active ? "활성" : "비활성" },
+      { column: 7, style: STYLE.text, value: safeText(proc.id) },
+    ]);
+  }
+  currentRow += 1;
+
+  // 3. 설비 마스터 및 제어/역할 (Equipment)
+  addSectionHeader("3. 설비 마스터 및 제어/역할 (Equipment)");
+  addTableHeaders([
+    "설비 코드",
+    "설비명",
+    "설비 유형",
+    "관리 단위",
+    "수량",
+    "소속 공정 코드",
+    "제어 시스템(역할)",
+    "담당 리소스(역할/주담당)",
+    "제조사",
+    "모델",
+    "설명",
+    "활성 상태",
+    "설비 ID",
+  ]);
+  for (const eq of logistics.equipment) {
+    const proc = processById.get(eq.processId);
+    const controlDesc = eq.controlSystems
+      .map((cs) => {
+        const sys = systemById.get(cs.systemId);
+        const roleLabel = cs.controlRole === "primary" ? "주" : "보조";
+        return `${sys?.code ?? cs.systemId}(${roleLabel})`;
+      })
+      .join(", ");
+    const roleDesc = eq.resourceRoles
+      .map((rr) => {
+        const primaryTag = rr.isPrimary ? "(주)" : "";
+        return `${rr.resourceName}${primaryTag}[${rr.role}]`;
+      })
+      .join(", ");
+
+    addRow([
+      { column: 1, style: STYLE.text, value: safeText(eq.code) },
+      { column: 2, style: STYLE.text, value: safeText(eq.name) },
+      { column: 3, style: STYLE.text, value: safeText(eq.equipmentType) },
+      { column: 4, style: STYLE.text, value: safeText(eq.managementUnit) },
+      { column: 5, style: STYLE.integer, type: "number", value: eq.quantity },
+      { column: 6, style: STYLE.text, value: safeText(proc?.code ?? "-") },
+      { column: 7, style: STYLE.text, value: safeText(controlDesc || "-") },
+      { column: 8, style: STYLE.text, value: safeText(roleDesc || "-") },
+      { column: 9, style: STYLE.text, value: safeText(eq.manufacturer ?? "") },
+      { column: 10, style: STYLE.text, value: safeText(eq.model ?? "") },
+      { column: 11, style: STYLE.text, value: safeText(eq.description ?? "") },
+      { column: 12, style: STYLE.text, value: eq.active ? "활성" : "비활성" },
+      { column: 13, style: STYLE.text, value: safeText(eq.id) },
+    ]);
+  }
+  currentRow += 1;
+
+  // 4. 물류 시스템 마스터 (Systems)
+  addSectionHeader("4. 물류 시스템 마스터 및 조율/역할 (Systems)");
+  addTableHeaders([
+    "시스템 코드",
+    "시스템명",
+    "시스템 유형",
+    "계층(Layer)",
+    "범위(Scope)",
+    "담당 공정",
+    "조율 대상 시스템",
+    "담당 리소스(역할/주담당)",
+    "공급사(Vendor)",
+    "설명",
+    "활성 상태",
+    "시스템 ID",
+  ]);
+  for (const sys of logistics.systems) {
+    const procCodes = (sys.processIds ?? [])
+      .map((pid) => processById.get(pid)?.code ?? pid)
+      .join(", ");
+    const coordCodes = (sys.coordinatedSystemIds ?? [])
+      .map((cid) => systemById.get(cid)?.code ?? cid)
+      .join(", ");
+    const sysRoleDesc = sys.resourceRoles
+      .map((rr) => {
+        const primaryTag = rr.isPrimary ? "(주)" : "";
+        return `${rr.resourceName}${primaryTag}[${rr.role}]`;
+      })
+      .join(", ");
+
+    addRow([
+      { column: 1, style: STYLE.text, value: safeText(sys.code) },
+      { column: 2, style: STYLE.text, value: safeText(sys.name) },
+      { column: 3, style: STYLE.text, value: safeText(sys.systemType) },
+      { column: 4, style: STYLE.text, value: safeText(sys.layer) },
+      { column: 5, style: STYLE.text, value: safeText(sys.scope) },
+      { column: 6, style: STYLE.text, value: safeText(procCodes || "-") },
+      { column: 7, style: STYLE.text, value: safeText(coordCodes || "-") },
+      { column: 8, style: STYLE.text, value: safeText(sysRoleDesc || "-") },
+      { column: 9, style: STYLE.text, value: safeText(sys.vendor ?? "") },
+      { column: 10, style: STYLE.text, value: safeText(sys.description ?? "") },
+      { column: 11, style: STYLE.text, value: sys.active ? "활성" : "비활성" },
+      { column: 12, style: STYLE.text, value: safeText(sys.id) },
+    ]);
+  }
+  currentRow += 1;
+
+  // 5. 태스크-물류 연결 (Task Logistics Links)
+  addSectionHeader("5. 태스크-물류 연결 (Task Logistics Links)");
+  addTableHeaders([
+    "태스크 WBS",
+    "태스크 명",
+    "태스크 외부 ID",
+    "대상 구분",
+    "대상 코드",
+    "대상 명",
+    "연결 범위",
+    "태스크 ID",
+    "대상 ID",
+  ]);
+
+  const eqLinks = logistics.taskEquipmentLinks ?? [];
+  for (const link of eqLinks) {
+    const taskEntry = taskByPublicId.get(link.taskId);
+    const eq = equipmentById.get(link.equipmentId);
+    addRow([
+      { column: 1, style: STYLE.text, value: safeText(taskEntry?.wbs ?? "-") },
+      { column: 2, style: STYLE.text, value: safeText(taskEntry?.task.name ?? "-") },
+      { column: 3, style: STYLE.text, value: safeText(taskEntry?.task.externalId ?? "-") },
+      { column: 4, style: STYLE.text, value: "설비" },
+      { column: 5, style: STYLE.text, value: safeText(eq?.code ?? "-") },
+      { column: 6, style: STYLE.text, value: safeText(eq?.name ?? "-") },
+      { column: 7, style: STYLE.text, value: link.scope === "subtree" ? "하위포함(subtree)" : "단일작업(self)" },
+      { column: 8, style: STYLE.text, value: safeText(link.taskId) },
+      { column: 9, style: STYLE.text, value: safeText(link.equipmentId) },
+    ]);
+  }
+
+  const sysLinks = logistics.taskSystemLinks ?? [];
+  for (const link of sysLinks) {
+    const taskEntry = taskByPublicId.get(link.taskId);
+    const sys = systemById.get(link.systemId);
+    addRow([
+      { column: 1, style: STYLE.text, value: safeText(taskEntry?.wbs ?? "-") },
+      { column: 2, style: STYLE.text, value: safeText(taskEntry?.task.name ?? "-") },
+      { column: 3, style: STYLE.text, value: safeText(taskEntry?.task.externalId ?? "-") },
+      { column: 4, style: STYLE.text, value: "시스템" },
+      { column: 5, style: STYLE.text, value: safeText(sys?.code ?? "-") },
+      { column: 6, style: STYLE.text, value: safeText(sys?.name ?? "-") },
+      { column: 7, style: STYLE.text, value: link.scope === "subtree" ? "하위포함(subtree)" : "단일작업(self)" },
+      { column: 8, style: STYLE.text, value: safeText(link.taskId) },
+      { column: 9, style: STYLE.text, value: safeText(link.systemId) },
+    ]);
+  }
+
+  const maxCol = 13;
+  const lastColName = columnName(maxCol);
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${lastColName}${Math.max(1, currentRow)}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetData>${rows.join("")}</sheetData><pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
+}
+
 export function buildProjectExcelWorkbook(snapshot: ProjectSnapshotResponse, request: ProjectExcelExportRequest): Uint8Array<ArrayBuffer> {
   const tasks = orderedTasks(snapshot.data.tasks);
   const dates = timeline(tasks);
   if (request.includeDependencies) validateLinks(snapshot.data.links, tasks);
   const gantt = ganttSheet(snapshot, tasks, dates, request);
   const drawing = request.includeDependencies && snapshot.data.links.length > 0;
-  const names = ["Gantt", "Tasks", "Project", ...(request.includeDependencies ? ["Dependencies"] : [])];
+  const includeLogistics = Boolean(request.includeLogistics && snapshot.data.logistics);
+  const names = [
+    "Gantt",
+    "Tasks",
+    "Project",
+    ...(request.includeDependencies ? ["Dependencies"] : []),
+    ...(includeLogistics ? ["Logistics"] : []),
+  ];
   const entries: ZipEntry[] = [
     { path: "[Content_Types].xml", content: contentTypes(names.length, drawing) },
     { path: "_rels/.rels", content: ROOT_RELS },
@@ -499,7 +742,15 @@ export function buildProjectExcelWorkbook(snapshot: ProjectSnapshotResponse, req
     { path: "xl/worksheets/sheet2.xml", content: tasksSheet(tasks, request.includeDependencies ? snapshot.data.links : [], request.includeDependencies) },
     { path: "xl/worksheets/sheet3.xml", content: projectSheet(snapshot, tasks.length, request.includeDependencies) },
   ];
-  if (request.includeDependencies) entries.push({ path: "xl/worksheets/sheet4.xml", content: dependenciesSheet(snapshot.data.links, tasks) });
+  let nextSheetIndex = 4;
+  if (request.includeDependencies) {
+    entries.push({ path: `xl/worksheets/sheet${nextSheetIndex}.xml`, content: dependenciesSheet(snapshot.data.links, tasks) });
+    nextSheetIndex += 1;
+  }
+  if (includeLogistics) {
+    entries.push({ path: `xl/worksheets/sheet${nextSheetIndex}.xml`, content: logisticsSheet(snapshot, tasks) });
+    nextSheetIndex += 1;
+  }
   if (drawing) {
     entries.push({ path: "xl/worksheets/_rels/sheet1.xml.rels", content: DRAWING_RELS });
     entries.push({ path: "xl/drawings/drawing1.xml", content: drawingXml(snapshot.data.links, tasks, dates, gantt.timelineStart) });

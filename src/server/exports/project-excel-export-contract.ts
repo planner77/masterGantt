@@ -6,6 +6,7 @@ import type { ProjectExcelExportRequest } from "@/contracts/project-excel-export
 const gridColumnId = z.enum(["text", "externalId", "projectStart", "projectDuration"]);
 const exportSchema = z.object({
   includeDependencies: z.boolean(),
+  includeLogistics: z.boolean().optional(),
   scope: z.literal("project"),
   scale: z.literal("day"),
   hierarchyDisplay: z.literal("expanded"),
