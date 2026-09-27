@@ -3,9 +3,11 @@
 .logisticsContainer {
   display: grid;
   gap: 1.25rem;
-  padding: 1rem 0;
+  width: 100%;
+  min-width: 0;
   max-width: 1440px;
   margin: 0 auto;
+  padding: 1rem 0;
 }
 
 .headerSection {
@@ -29,8 +31,10 @@
   color: var(--text-default);
   margin: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .headerDescription {
@@ -141,6 +145,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .searchInput {
@@ -176,11 +181,16 @@
 
 .actionsGroup {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 /* Table Styles */
 .tableContainer {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   border: 1px solid var(--border-default);
   border-radius: var(--radius);
@@ -387,6 +397,20 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .headerSection,
+  .headerTitleGroup,
+  .toolbar,
+  .filtersGroup,
+  .actionsGroup {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .wbsNotice,
+  .readonlyNotice {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
   .formGrid {
     grid-template-columns: 1fr;
   }
