@@ -660,7 +660,7 @@ export async function handleGetTaskLogisticsLinks(
     }
 
     const links = service.getTaskLogisticsLinks(projectId, taskPublicId);
-    const permission = auth.kind === "authorized" ? "edit" : "read";
+    const permission = auth.kind === "authorized" ? "edit" : "readonly";
 
     return Response.json(
       {
