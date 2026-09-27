@@ -405,3 +405,14 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 
 
 
+
+
+## Issue #201 프로젝트 재진입 시 Gantt Grid 접힘/펼침(Summary open/collapsed) 상태 복원
+
+- 프로젝트 단위로 브라우저 `localStorage`(`mastergantt:summary-toggle:<projectPublicId>`)에 접힌 Summary task ID 목록을 v1 스키마로 저장한다.
+- 마우스 및 키보드 `open-task` 액션 발생 시 최신 상태를 저장하고, 동일 브라우저 프로필에서 재진입/새로고침 시 Gantt API 초기화 후 1회 복원한다.
+- 다른 프로젝트의 상태는 섞이지 않으며 삭제/변환된 stale Summary ID는 로드 시 필터링 후 정규화된 값으로 storage에 다시 기록한다.
+- 새 Summary는 기존 기본 상태를 사용하고, localStorage 접근 실패·용량 초과·malformed JSON은 비파괴적으로 무시한다.
+- 서버 DB/API/Project revision에는 영향을 주지 않는 client-side UI preference다.
+- Fullscreen/필터/일정↔리소스 전환에서는 현재 살아 있는 Gantt interaction state를 persisted preference보다 우선한다.
+
