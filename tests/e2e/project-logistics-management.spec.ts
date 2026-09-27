@@ -237,40 +237,47 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       page.getByText("물류 공정은 물리적/운영 단위의 물류 흐름이며 Gantt WBS와 독립적으로 관리됩니다."),
     ).toBeVisible();
 
-    // Verify Sub-tab 1: Processes (Default)
-    await expect(page.getByText("PROC-01")).toBeVisible();
-    await expect(page.getByText("입고 공정")).toBeVisible();
-    await expect(page.getByText("PROC-02")).toBeVisible();
-    await expect(page.getByText("보관 공정")).toBeVisible();
-    await expect(page.getByText("PROC-03")).toBeVisible();
-    await expect(page.getByText("출고 공정")).toBeVisible();
+    // LG-05 dashboard is the default sub-tab. Move explicitly to process management.
+    await expect(page.getByRole("tab", { name: "KPI 대시보드" })).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("tab", { name: "공정 관리" }).click();
+    const processPanel = page.locator("#panel-processes");
+    await expect(processPanel.getByText("PROC-01", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("입고 공정", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("PROC-02", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("보관 공정")).toBeVisible();
+    await expect(processPanel.getByText("PROC-03", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("출고 공정", { exact: true })).toBeVisible();
 
     // Switch to Sub-tab 2: Equipment
     await page.getByRole("tab", { name: "설비 관리" }).click();
-    await expect(page.getByText("STK-01")).toBeVisible();
-    await expect(page.getByText("1번 자동창고 스토커")).toBeVisible();
-    await expect(page.getByText("AGV-F1")).toBeVisible();
-    await expect(page.getByText("입고 무인운반차 편대")).toBeVisible();
-    await expect(page.getByText("AMR-F1")).toBeVisible();
+    const equipmentPanel = page.locator("#panel-equipment");
+    await expect(equipmentPanel.getByText("STK-01", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("1번 자동창고 스토커", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("AGV-F1", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("입고 무인운반차 편대", { exact: true })).toBeVisible();
+    await expect(equipmentPanel.getByText("AMR-F1", { exact: true })).toBeVisible();
     // Check primary owner tag
-    await expect(page.getByText("★ 홍길동 (owner)")).toBeVisible();
+    await expect(equipmentPanel.getByText("★ 홍길동 (owner)", { exact: true }).first()).toBeVisible();
 
     // Switch to Sub-tab 3: Systems
     await page.getByRole("tab", { name: "물류 시스템" }).click();
-    await expect(page.getByText("MCS-01")).toBeVisible();
-    await expect(page.getByText("통합 반송 조율 시스템")).toBeVisible();
-    await expect(page.getByText("ACS-01")).toBeVisible();
-    await expect(page.getByText("SCS-01")).toBeVisible();
+    const systemsPanel = page.locator("#panel-systems");
+    await expect(systemsPanel.getByText("MCS-01", { exact: true })).toBeVisible();
+    await expect(systemsPanel.getByText("통합 반송 조율 시스템", { exact: true })).toBeVisible();
+    await expect(systemsPanel.getByText("ACS-01", { exact: true })).toBeVisible();
+    await expect(systemsPanel.getByText("SCS-01", { exact: true })).toBeVisible();
     // Check project-common scope badge
-    await expect(page.getByText("프로젝트 공통")).toBeVisible();
+    await expect(systemsPanel.getByText("프로젝트 공통", { exact: true })).toBeVisible();
     // Check primary PI tag
-    await expect(page.getByText("★ 이영희 (pi)")).toBeVisible();
+    await expect(systemsPanel.getByText("★ 이영희 (pi)", { exact: true })).toBeVisible();
 
     // Switch to Sub-tab 4: Relations
     await page.getByRole("tab", { name: "제어·조율 관계" }).click();
-    await expect(page.getByText("통합 반송 조율 시스템")).toBeVisible();
-    await expect(page.getByText("AGV 관제 제어 시스템 (ACS-01)")).toBeVisible();
-    await expect(page.getByText("스토커 제어 시스템 (SCS-01)")).toBeVisible();
+    const relationsPanel = page.locator("#panel-relations");
+    const relationRows = relationsPanel.getByRole("row");
+    await expect(relationRows.filter({ hasText: "통합 반송 조율 시스템" }).first()).toBeVisible();
+    await expect(relationRows.filter({ hasText: "AGV 관제 제어 시스템 (ACS-01)" }).first()).toBeVisible();
+    await expect(relationRows.filter({ hasText: "스토커 제어 시스템 (SCS-01)" }).first()).toBeVisible();
 
     // Switch back to schedule tab and verify Gantt intact
     await scheduleTab.click();
@@ -312,6 +319,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
 
     await page.goto(`/projects/${publicId}`);
     await page.getByRole("tab", { name: "물류 구성" }).click();
+    await page.getByRole("tab", { name: "공정 관리" }).click();
 
     // Open add process dialog
     const addButton = page.getByRole("button", { name: "+ 공정 추가" });
@@ -332,6 +340,64 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     expect(mutationCount).toBe(0);
   });
 
+  test("하위 조율 저장은 childSystemIds 계약을 사용하고 401이면 즉시 읽기 전용으로 전환한다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.sessionEditable = true;
+    fixture.logistics = sampleLogisticsData();
+
+    let requestBody: unknown = null;
+    await page.route(`**/api/projects/${publicId}/logistics/systems/sys-0/children`, async (route) => {
+      requestBody = route.request().postDataJSON();
+      await route.fulfill({
+        status: 401,
+        json: { error: { code: "UNAUTHORIZED", message: "expired", details: [], requestId: "lg-03-review" } },
+      });
+    });
+
+    await page.goto(`/projects/${publicId}`);
+    await page.getByRole("tab", { name: "물류 구성" }).click();
+    await page.getByRole("tab", { name: "물류 시스템" }).click();
+
+    const mcsRow = page.locator("tr", { hasText: "MCS-01" });
+    await mcsRow.getByRole("button", { name: "하위연계" }).click();
+    const dialog = page.getByRole("dialog", { name: /하위 조율 시스템 연계/ });
+    await dialog.getByRole("button", { name: "저장" }).click();
+
+    await expect.poll(() => requestBody).not.toBeNull();
+    expect(requestBody).toEqual({ childSystemIds: ["sys-1", "sys-2"] });
+    await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+    await expect(mcsRow.getByRole("button", { name: "하위연계" })).toHaveCount(0);
+  });
+
+  test("삭제 확인은 최신 main의 영구 삭제 DELETE 계약으로 호출한다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.sessionEditable = true;
+    fixture.logistics = sampleLogisticsData();
+
+    let deleteUrl = "";
+    await page.route(`**/api/projects/${publicId}/logistics/processes/proc-1`, async (route) => {
+      deleteUrl = route.request().url();
+      await route.fulfill({
+        status: 409,
+        json: { error: { code: "PROCESS_IN_USE", message: "in use", details: [], requestId: "lg-03-review" } },
+      });
+    });
+
+    await page.goto(`/projects/${publicId}`);
+    await page.getByRole("tab", { name: "물류 구성" }).click();
+    await page.getByRole("tab", { name: "공정 관리" }).click();
+
+    const processPanel = page.locator("#panel-processes");
+    const processRow = processPanel.getByRole("row").filter({ hasText: /^PROC-01/ });
+    await expect(processRow).toHaveCount(1);
+    await processRow.getByRole("button", { name: "삭제", exact: true }).click();
+    const confirm = page.getByRole("dialog", { name: "삭제 확인" });
+    await confirm.getByRole("button", { name: "삭제", exact: true }).click();
+
+    await expect.poll(() => deleteUrl).toContain("/logistics/processes/proc-1");
+    expect(new URL(deleteUrl).search).toBe("");
+  });
+
   test("반응형 4개 폭(390, 768, 1024, 1440px)에서 가로 overflow가 없다", async ({ page }) => {
     const fixture = await installStatefulProjectFixture(page);
     fixture.logistics = sampleLogisticsData();
@@ -342,10 +408,13 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
       await page.getByRole("tab", { name: "물류 구성" }).click();
       await expect(page.getByRole("heading", { level: 2, name: "물류 구성" })).toBeVisible();
 
-      const hasHorizontalOverflow = await page.evaluate(() => {
-        return document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
-      });
-      expect(hasHorizontalOverflow).toBe(false);
+      const overflow = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+      }));
+      expect(overflow.scrollWidth, `viewport ${width}px: document width ${overflow.scrollWidth}px`).toBeLessThanOrEqual(
+        overflow.clientWidth + 1,
+      );
     }
   });
 });
