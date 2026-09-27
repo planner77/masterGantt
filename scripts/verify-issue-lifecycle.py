@@ -97,3 +97,19 @@ require("release_finalize requires release_required=true" in impl, "release_fina
 require("release_finalize requires release_authorized=true" in impl, "release_finalize authorization fail-closed guard missing")
 require("release_finalize requires expected_version" in impl, "release_finalize expected_version guard missing")
 require("release_finalize requires authorization_note" in impl, "release_finalize authorization_note guard missing")
+require("validate_operation_inputs(args)" in impl, "release_finalize input validation must run before context resolution")
+
+for argv, expected_error in [
+    (["release_finalize", "--issue", "1", "--pr", "2"], True),
+    (["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "true", "--release-authorized", "false", "--expected-version", "1.2.3", "--authorization-note", "approved"], True),
+    (["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "true", "--release-authorized", "true", "--expected-version", "", "--authorization-note", "approved"], True),
+    (["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "true", "--release-authorized", "true", "--expected-version", "1.2.3", "--authorization-note", ""], True),
+    (["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "true", "--release-authorized", "true", "--expected-version", "1.2.3", "--authorization-note", "approved"], False),
+]:
+    args = parser.parse_args(argv)
+    try:
+        module.validate_operation_inputs(args)
+        failed = False
+    except module.LifecycleError:
+        failed = True
+    require(failed == expected_error, f"release_finalize operation input mismatch: {argv}")
