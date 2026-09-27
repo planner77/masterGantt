@@ -598,8 +598,8 @@ export class ProjectTemplateService {
           projectId: project.id,
           predecessorTaskId: pred.id,
           successorTaskId: succ.id,
-          type: "FS",
-          lag: 0,
+          type: link.type,
+          lag: link.lag,
           createdAt: nowText,
           updatedAt: nowText,
         });
