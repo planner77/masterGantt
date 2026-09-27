@@ -978,6 +978,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               }));
             }
           }}
+          onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }}
         />
       </section>
     </div>
