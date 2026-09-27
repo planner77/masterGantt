@@ -139,6 +139,7 @@ export function RelationEditorDialog({
   }, []);
 
   const isDirty = activeLink ? type !== activeLink.type || lag !== activeLink.lag : false;
+  const mutationPending = isSaving || isDeleting || isCreating;
 
   async function handleSaveActiveLink(event: React.FormEvent) {
     event.preventDefault();
@@ -266,6 +267,7 @@ export function RelationEditorDialog({
                     </div>
                     <button
                       className="relation-editor-anchor-btn"
+                      disabled={mutationPending}
                       onClick={() => setAnchorExternalId(activeLink.predecessorExternalId)}
                       type="button"
                     >
@@ -289,6 +291,7 @@ export function RelationEditorDialog({
                     </div>
                     <button
                       className="relation-editor-anchor-btn"
+                      disabled={mutationPending}
                       onClick={() => setAnchorExternalId(activeLink.successorExternalId)}
                       type="button"
                     >
@@ -306,7 +309,7 @@ export function RelationEditorDialog({
                       </label>
                       <select
                         className="relation-editor-select"
-                        disabled={!editable || isSaving}
+                        disabled={!editable || mutationPending}
                         id={`${dialogId}-type`}
                         onChange={(e) => setType(e.target.value as DependencyType)}
                         value={type}
@@ -325,7 +328,7 @@ export function RelationEditorDialog({
                       </label>
                       <input
                         className="relation-editor-input"
-                        disabled={!editable || isSaving}
+                        disabled={!editable || mutationPending}
                         id={`${dialogId}-lag`}
                         onChange={(e) => setLag(parseInt(e.target.value, 10) || 0)}
                         step={1}
@@ -338,14 +341,14 @@ export function RelationEditorDialog({
                       <div className="relation-editor-btn-group">
                         <button
                           className="relation-editor-btn relation-editor-btn-primary"
-                          disabled={!isDirty || isSaving || isDeleting}
+                          disabled={!isDirty || mutationPending}
                           type="submit"
                         >
                           {isSaving ? "저장 중..." : "수정 저장"}
                         </button>
                         <button
                           className="relation-editor-btn relation-editor-btn-danger"
-                          disabled={isSaving || isDeleting}
+                          disabled={mutationPending}
                           onClick={() => handleDeleteLink(activeLink.id)}
                           type="button"
                         >
@@ -406,6 +409,7 @@ export function RelationEditorDialog({
                             {!isItemActive && (
                               <button
                                 className="relation-editor-btn relation-editor-btn-secondary"
+                                disabled={mutationPending}
                                 onClick={() => setActiveLinkId(item.link.id)}
                                 type="button"
                               >
@@ -415,7 +419,7 @@ export function RelationEditorDialog({
                             {editable && (
                               <button
                                 className="relation-editor-btn relation-editor-btn-danger"
-                                disabled={isDeleting}
+                                disabled={mutationPending}
                                 onClick={() => handleDeleteLink(item.link.id)}
                                 type="button"
                               >
@@ -460,6 +464,7 @@ export function RelationEditorDialog({
                             {!isItemActive && (
                               <button
                                 className="relation-editor-btn relation-editor-btn-secondary"
+                                disabled={mutationPending}
                                 onClick={() => setActiveLinkId(item.link.id)}
                                 type="button"
                               >
@@ -469,7 +474,7 @@ export function RelationEditorDialog({
                             {editable && (
                               <button
                                 className="relation-editor-btn relation-editor-btn-danger"
-                                disabled={isDeleting}
+                                disabled={mutationPending}
                                 onClick={() => handleDeleteLink(item.link.id)}
                                 type="button"
                               >
@@ -502,7 +507,7 @@ export function RelationEditorDialog({
                     </label>
                     <select
                       className="relation-editor-select"
-                      disabled={isCreating}
+                      disabled={mutationPending}
                       id={`${dialogId}-direction`}
                       onChange={(e) => {
                         setAddDirection(e.target.value as "predecessor" | "successor");
@@ -540,6 +545,7 @@ export function RelationEditorDialog({
                         </div>
                         <button
                           className="relation-editor-btn relation-editor-btn-secondary"
+                          disabled={mutationPending}
                           onClick={() => {
                             setSelectedCandidate(null);
                             setSearchQuery("");
@@ -555,7 +561,7 @@ export function RelationEditorDialog({
                         <input
                           autoComplete="off"
                           className="relation-editor-input"
-                          disabled={isCreating}
+                          disabled={mutationPending}
                           id={`${dialogId}-search`}
                           onChange={(e) => {
                             setSearchQuery(e.target.value);
@@ -608,7 +614,7 @@ export function RelationEditorDialog({
                     </label>
                     <select
                       className="relation-editor-select"
-                      disabled={isCreating}
+                      disabled={mutationPending}
                       id={`${dialogId}-new-type`}
                       onChange={(e) => setNewType(e.target.value as DependencyType)}
                       value={newType}
@@ -627,7 +633,7 @@ export function RelationEditorDialog({
                     </label>
                     <input
                       className="relation-editor-input"
-                      disabled={isCreating}
+                      disabled={mutationPending}
                       id={`${dialogId}-new-lag`}
                       onChange={(e) => setNewLag(parseInt(e.target.value, 10) || 0)}
                       step={1}
@@ -639,7 +645,7 @@ export function RelationEditorDialog({
                   <div className="relation-editor-btn-group">
                     <button
                       className="relation-editor-btn relation-editor-btn-primary"
-                      disabled={!selectedCandidate || isCreating}
+                      disabled={!selectedCandidate || mutationPending}
                       type="submit"
                     >
                       {isCreating ? "추가 중..." : "관계 추가"}
