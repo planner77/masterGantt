@@ -622,7 +622,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     linkId?: string,
     linkPatch?: { type?: DependencyType; lag?: number },
   ) {
-    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return;
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return false;
     taskMutationReference.current = true; setIsSavingTask(true); clearToast();
     try {
       const source = sourceTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === sourceTaskId) : undefined;
@@ -645,11 +645,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       const snapshot = snapshotFromLinkMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
         notify("success", method === "POST" ? "작업 관계를 저장했습니다." : method === "PATCH" ? "작업 관계를 변경했습니다." : "작업 관계를 삭제했습니다.", "작업 관계");
-        return;
+        return true;
       }
       await handleTaskFailure(response.status, body, "작업 관계를 변경할 수 없습니다.", "작업 관계");
+      return false;
     } catch {
       await handleTaskFailure(undefined, null, "작업 관계를 변경하지 못했습니다. 최신 서버 상태로 복구합니다.", "작업 관계");
+      return false;
     } finally {
       taskMutationReference.current = false; setIsSavingTask(false);
     }
