@@ -95,7 +95,7 @@ interface ProjectGanttProps {
   readonly onTaskEditorOpen: (taskId: string) => void;
   readonly onTaskDeleteRequest: (taskId: string, trigger: HTMLElement | null) => void;
   readonly onLinkCreate: (sourceTaskId: string, targetTaskId: string) => void;
-  readonly onLinkUpdate?: (linkId: string, patch: { type: DependencyType; lag: number }) => Promise<void>;
+  readonly onLinkUpdate?: (linkId: string, patch: { type: DependencyType; lag: number }) => Promise<boolean>;
   readonly onLinkDelete: (linkId: string) => void;
   readonly columnVisibility: ProjectGridColumnVisibility;
   readonly onColumnVisibilityChange: (columnId: ProjectGridDataColumnId) => void;
@@ -1540,9 +1540,8 @@ export function ProjectGantt({
               onLinkDeleteReference.current(id);
             }}
             onSave={async (id, patch) => {
-              if (onLinkUpdateReference.current) {
-                await onLinkUpdateReference.current(id, patch);
-              }
+              if (!onLinkUpdateReference.current) return false;
+              return onLinkUpdateReference.current(id, patch);
             }}
             position={{ left: relationMenu.left, top: relationMenu.top }}
             tasks={tasks}
