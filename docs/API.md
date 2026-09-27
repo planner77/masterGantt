@@ -964,5 +964,160 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
   }
   ```
 
+## 13. 프로젝트 템플릿 API (Issue #195)
+
+프로젝트 템플릿 등록, 관리, 복제 및 템플릿 기반 새 프로젝트 생성을 지원한다.
+작업 일정은 첫 작업 기준 근무일 오프셋(`offsetDays`)으로 직렬화되며, 템플릿 인스턴스화 시 입력받은 프로젝트 시작일과 작업 캘린더를 기반으로 스케줄링 엔진(`recalculateFinishStartDependencies`, `recalculateHierarchy`)을 통해 모든 일정이 자동 재계산된다.
+
+### `GET /api/project-templates`
+
+템플릿 목록을 조회한다.
+
+- 인증: 불필요 (Public-read)
+- Query Parameters:
+  - `activeOnly` (boolean, 기본 `true`): 활성 템플릿만 조회
+  - `search` / `query` (string, 선택): 템플릿 이름 또는 설명 검색어
+- Response: `200 OK`
+  ```json
+  {
+    "data": [
+      {
+        "id": "tmpl-uuid",
+        "name": "표준 입고 자동화 템플릿",
+        "description": "물류 입고 자동화 표준 일정 및 설비 템플릿",
+        "sourceProjectId": "1",
+        "sourceProjectName": "원본 프로젝트",
+        "active": true,
+        "taskCount": 4,
+        "milestoneCount": 1,
+        "processCount": 1,
+        "equipmentCount": 2,
+        "systemCount": 1,
+        "createdAt": "2026-09-27T00:00:00.000Z",
+        "updatedAt": "2026-09-27T00:00:00.000Z"
+      }
+    ]
+  }
+  ```
+
+### `POST /api/project-templates`
+
+기존 프로젝트의 일정(상대 오프셋), WBS 계층, FS 링크, 리소스 배정 및 물류 마스터/연결을 추출하여 템플릿을 생성한다.
+
+- 인증: 프로젝트 편집 세션 필요 (`mastergantt_edit` 쿠키)
+- Headers:
+  - `If-Match: "{revision}"` (필수)
+  - `Content-Type: application/json`
+  - `Origin` (허용된 Origin 검증)
+- Request Body:
+  ```json
+  {
+    "sourceProjectPublicId": "source-project-uuid",
+    "name": "새 템플릿 명칭",
+    "description": "템플릿 설명 (선택)"
+  }
+  ```
+- Response: `201 Created`
+  - `Location: /api/project-templates/{templateId}`
+  - Body: 템플릿 상세 DTO (`data.previewTasks` 포함)
+
+### `GET /api/project-templates/{templateId}`
+
+템플릿 상세 정보 및 작업 미리보기 목록을 조회한다.
+
+- 인증: 불필요 (Public-read)
+- Response: `200 OK`
+  ```json
+  {
+    "data": {
+      "id": "tmpl-uuid",
+      "name": "표준 입고 자동화 템플릿",
+      "description": "설명",
+      "sourceProjectId": "1",
+      "sourceProjectName": "원본 프로젝트",
+      "active": true,
+      "taskCount": 4,
+      "milestoneCount": 1,
+      "processCount": 1,
+      "equipmentCount": 2,
+      "systemCount": 1,
+      "previewTasks": [
+        {
+          "externalId": "task-t1",
+          "name": "설비 설계",
+          "type": "task",
+          "scheduleMode": "auto",
+          "offsetDays": 0,
+          "duration": 2,
+          "parentExternalId": "task-s1",
+          "siblingOrder": 1
+        }
+      ],
+      "sourceRevision": 8,
+      "createdAt": "2026-09-27T00:00:00.000Z",
+      "updatedAt": "2026-09-27T00:00:00.000Z"
+    }
+  }
+  ```
+
+### `PATCH /api/project-templates/{templateId}`
+
+템플릿 이름, 설명, 활성 상태를 수정한다.
+
+- 인증: Origin 검증
+- Request Body:
+  ```json
+  {
+    "name": "수정된 템플릿 명칭",
+    "description": "수정된 설명",
+    "active": true
+  }
+  ```
+- Response: `200 OK`
+
+### `DELETE /api/project-templates/{templateId}`
+
+템플릿을 삭제한다. 이미 인스턴스화된 프로젝트에는 영향을 주지 않는다.
+
+- 인증: Origin 검증
+- Response: `200 OK`
+  ```json
+  { "success": true }
+  ```
+
+### `POST /api/project-templates/{templateId}/duplicate`
+
+템플릿을 복제하여 새로운 독립 사본 템플릿을 생성한다.
+
+- 인증: Origin 검증
+- Request Body: `{ "name": "복제된 템플릿 명칭" }` (선택)
+- Response: `201 Created`
+
+### `POST /api/project-templates/{templateId}/instantiate`
+
+템플릿을 기반으로 지정된 시작일자에 맞춰 일정을 자동 재계산하고 새 프로젝트를 생성한다.
+
+- 보안: Origin 검증 및 프로젝트 생성 rate limit 적용
+- Request Body:
+  ```json
+  {
+    "name": "새 프로젝트 명칭",
+    "ownerName": "담당자 / 소유자 명칭",
+    "editPassword": "새 편집 비밀번호 (1~12자)",
+    "projectStartDate": "2026-11-02",
+    "description": "프로젝트 설명 (선택)"
+  }
+  ```
+- 동작:
+  - 템플릿의 첫 시작일 기준 상대 근무일 오프셋(`offsetDays`)을 지정된 `projectStartDate`에 더해 시작일 계산 (공휴일/주말 회피).
+  - FS 링크 및 WBS Summary 계층 자동 재계산 (`recalculateFinishStartDependencies` + `recalculateHierarchy`).
+  - 모든 진척률(`progress`) 0% 초기화.
+  - 리소스 배정 및 물류 마스터(공정, 설비, 시스템, 역할, 링크) 독립 ID로 복제.
+  - 새 프로젝트의 편집 세션 쿠키(`mastergantt_edit`) 발급.
+- Response: `201 Created`
+  - `Location: /projects/{newProjectPublicId}`
+  - `Set-Cookie: mastergantt_edit=...`
+  - Body: `InstantiateProjectTemplateResponse`
+
 
 
