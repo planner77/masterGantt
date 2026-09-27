@@ -7,7 +7,7 @@ import { chooseTaskInformation, taskContextMenu } from "./helpers/task-context-m
 const publicId = "a3405d3d-8cb4-4da4-9b0f-43a5de330004";
 const apiPath = `/api/projects/${publicId}`;
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
-const row = (page: Page, name: string) => page.locator(".project-gantt-widget .wx-row", { hasText: name }).first();
+const row = (page: Page, name: string) => page.locator(".project-gantt-widget .wx-row:visible", { hasText: name }).first();
 const bar = (page: Page, taskId: string) => page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${taskId}"]`);
 const editor = (page: Page) => page.getByRole("dialog", { name: "작업 정보", exact: true });
 const save = (page: Page) => editor(page).getByRole("button", { name: "저장", exact: true });
@@ -295,7 +295,8 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     const instance = await frame(page).getAttribute("data-project-gantt-instance");
     await openRow(page);
     await editor(page).getByLabel("기간 (근무일)", { exact: true }).fill("2");
-    await expect(editor(page).locator("output")).toHaveText("2026-09-18");
+    const confirmedEnd = editor(page).getByText("서버 확정 종료일", { exact: true }).locator("..").locator("output");
+    await expect(confirmedEnd).toHaveText("2026-09-18");
     expect(fixture.patches).toHaveLength(0);
     let release!: () => void;
     fixture.gate = new Promise<void>((resolve) => { release = resolve; });
@@ -504,8 +505,12 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(dialog.getByRole("checkbox", { name: /Resource A/ })).toBeDisabled();
     expect(fixture.patches).toHaveLength(0);
 
+    const logisticsTab = dialog.getByRole("tab", { name: /물류 연결/ });
     await resourceTab.focus();
     await page.keyboard.press("End");
+    await expect(logisticsTab).toBeFocused();
+    await expect(logisticsTab).toHaveAttribute("aria-selected", "true");
+    await page.keyboard.press("ArrowLeft");
     await expect(relationTab).toBeFocused();
     await expect(relationTab).toHaveAttribute("aria-selected", "true");
 
@@ -586,8 +591,12 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       const taskTab = tabs.getByRole("tab", { name: "작업 정보", exact: true });
       const resourceTab = tabs.getByRole("tab", { name: /리소스/ });
       const relationTab = tabs.getByRole("tab", { name: /관계/ });
+      const logisticsTab = tabs.getByRole("tab", { name: /물류 연결/ });
       await taskTab.focus();
       await page.keyboard.press("End");
+      await expect(logisticsTab).toBeFocused();
+      await expect(dialog.getByRole("tabpanel", { name: /물류 연결/ })).toBeVisible();
+      await page.keyboard.press("ArrowLeft");
       await expect(relationTab).toBeFocused();
       await expect(dialog.getByRole("tabpanel", { name: /관계/ })).toBeVisible();
       const predecessor = await dialog.getByRole("region", { name: "선행 작업" }).boundingBox();
