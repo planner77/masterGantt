@@ -35,6 +35,17 @@ function addDaysToDateString(dateStr: string, days: number): string {
   return ordinalToDate(ordinal);
 }
 
+function dateInTimeZone(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
 export interface EffectiveTaskLogistics {
   directEquipmentIds: Set<string>;
   directSystemIds: Set<string>;
@@ -136,17 +147,18 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
     filter,
   } = input;
 
-  const asOfDate = filter.asOfDate ?? (input.now ? input.now.toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10));
+  const timezone = project.calendar?.timezone ?? "Asia/Seoul";
+  const now = input.now ?? new Date();
+  const asOfDate = filter.asOfDate ?? dateInTimeZone(now, timezone);
   parseDateOnly(asOfDate, "asOfDate");
 
   const horizonDays = Math.max(1, Math.min(90, Math.floor(filter.horizonDays ?? 14)));
   const systemView = filter.systemView ?? "direct";
   const activeOnly = filter.activeOnly ?? false;
   const includeDescendantProcesses = filter.includeDescendantProcesses ?? true;
-  const mdPerMm = filter.mdPerMm ?? null;
+  const mdPerMm = filter.mdPerMm ?? 20;
 
-  const timezone = project.calendar?.timezone ?? "Asia/Seoul";
-  const calculatedAt = (input.now ?? new Date()).toISOString();
+  const calculatedAt = now.toISOString();
 
   // Fast lookups
   const processById = new Map<string, ProcessDto>();
@@ -533,7 +545,12 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
       const hasPrimarySys = eq.controlSystems?.some((s) => s.controlRole === "primary");
       if (!hasPrimarySys) equipmentWithoutPrimaryControllerCount += 1;
 
-      const hasPrimaryOwner = eq.resourceRoles?.some((r) => r.role === "owner" && r.isPrimary);
+      const hasPrimaryOwner = eq.resourceRoles?.some((r) =>
+        r.role === "owner" &&
+        r.isPrimary &&
+        r.active !== false &&
+        resourceById.get(r.resourceId)?.active !== false
+      );
       if (!hasPrimaryOwner) equipmentWithoutOwnerCount += 1;
     }
   }
@@ -541,7 +558,12 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
   let systemsWithoutPrimaryPICount = 0;
   for (const sys of logistics.systems) {
     if (sys.active) {
-      const hasPrimaryPI = sys.resourceRoles?.some((r) => r.role === "pi" && r.isPrimary);
+      const hasPrimaryPI = sys.resourceRoles?.some((r) =>
+        r.role === "pi" &&
+        r.isPrimary &&
+        r.active !== false &&
+        resourceById.get(r.resourceId)?.active !== false
+      );
       if (!hasPrimaryPI) systemsWithoutPrimaryPICount += 1;
     }
   }
@@ -559,7 +581,12 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
 
   // 5. Breakdowns 계산
   // 공정별 집계
-  const processRows: LogisticsDashboardProcessRowDto[] = logistics.processes.map((proc) => {
+  const breakdownTasks = includedTasks;
+  const breakdownProcesses = activeOnly ? logistics.processes.filter((proc) => proc.active) : logistics.processes;
+  const breakdownEquipment = activeOnly ? logistics.equipment.filter((eq) => eq.active) : logistics.equipment;
+  const breakdownSystems = activeOnly ? logistics.systems.filter((sys) => sys.active) : logistics.systems;
+
+  const processRows: LogisticsDashboardProcessRowDto[] = breakdownProcesses.map((proc) => {
     // 해당 공정에 속한 설비들
     const procEqIds = new Set(logistics.equipment.filter((eq) => eq.processId === proc.id).map((eq) => eq.id));
     // 해당 공정에 매핑된 시스템들
@@ -568,8 +595,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
     const matchedTasks: ProjectTaskDto[] = [];
     const matchedTaskIds = new Set<string>();
 
-    for (const t of tasks) {
-      if (t.type !== "task") continue;
+    for (const t of breakdownTasks) {
       const eff = taskLogisticsMap.get(t.taskId);
       if (!eff) continue;
       let match = false;
@@ -625,12 +651,11 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
   });
 
   // 설비별 집계
-  const equipmentRows: LogisticsDashboardEquipmentRowDto[] = logistics.equipment.map((eq) => {
+  const equipmentRows: LogisticsDashboardEquipmentRowDto[] = breakdownEquipment.map((eq) => {
     const matchedTasks: ProjectTaskDto[] = [];
     const matchedTaskIds = new Set<string>();
 
-    for (const t of tasks) {
-      if (t.type !== "task") continue;
+    for (const t of breakdownTasks) {
       const eff = taskLogisticsMap.get(t.taskId);
       if (eff?.effectiveEquipmentIds.has(eq.id)) {
         matchedTasks.push(t);
@@ -687,7 +712,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
   });
 
   // 시스템별 집계
-  const systemRows: LogisticsDashboardSystemRowDto[] = logistics.systems.map((sys) => {
+  const systemRows: LogisticsDashboardSystemRowDto[] = breakdownSystems.map((sys) => {
     const matchedTasks: ProjectTaskDto[] = [];
     const matchedTaskIds = new Set<string>();
 
@@ -706,8 +731,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
       }
     }
 
-    for (const t of tasks) {
-      if (t.type !== "task") continue;
+    for (const t of breakdownTasks) {
       const eff = taskLogisticsMap.get(t.taskId);
       if (!eff) continue;
       let match = false;
