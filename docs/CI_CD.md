@@ -318,3 +318,20 @@ Issue별 hard-coded release helper 대신 `.github/workflows/issue-lifecycle.yml
 정식 GHCR publish 로직은 계속 `release-image.yml`만 소유하며 lifecycle workflow에 `packages: write`를 주지 않는다. 승인된 release는 annotated `v<package-version>` tag와 exact release run을 검증하고, 기존 tag는 동일 target의 성공 evidence가 있을 때만 재사용한다. tag conflict/orphan tag는 이동·덮어쓰기하지 않는다.
 
 CI/GitHub orchestration 또는 docs-only 변경은 application version을 유지하고 `release_required=false`로 formal release를 N/A 처리할 수 있다. 이 경우에도 merge 후 main의 temporary `ci-<SHA>` publish/digest smoke/cleanup evidence는 Lifecycle gate로 확인한다.
+
+
+## Issue Lifecycle 통합 release/finalize 계약 (#248)
+
+정식 SemVer release가 필요한 Issue의 lifecycle 종료는 기존 release 불변식을 그대로 유지한다. Issue #248에서 `release_finalize` operation을 추가하되, 이는 release 정책을 완화하거나 새로운 publish 경로를 만드는 변경이 아니다.
+
+- 대상은 PR의 exact `merge_commit_sha`.
+- exact merge SHA의 main CI가 `completed/success`여야 한다.
+- `release_required=true` 및 `release_authorized=true`가 필수다.
+- `expected_version`은 target SHA의 `package.json` / lockfile version과 일치해야 한다.
+- tag는 annotated `v<version>`이어야 하며 다른 SHA 또는 lightweight tag를 재사용하지 않는다.
+- 정식 GHCR publish/검증은 기존 `release-image.yml`이 담당한다.
+- 동일 target/tag의 성공 release evidence가 이미 있으면 idempotent하게 재사용한다.
+- release 성공 전에 branch cleanup, FINAL, Issue close를 수행하지 않는다.
+- lifecycle workflow 자체에는 `packages: write`를 추가하지 않는다.
+
+Issue #248 구현 전에는 기존 `finalize`가 `release_required=true`일 때 동일 release gate를 내부 수행하므로, 정식 release+종료를 한 번에 처리하는 현재 호환 경로로 사용할 수 있다.
