@@ -135,3 +135,19 @@ Issue #198 이후 Lifecycle 자동화와 저장소 보호 설정의 기준은 [I
 운영자는 `operation`, `issue_number`, `pr_number`, `release_required`, `release_authorized`를 지정한다. formal release가 필요하면 target manifest와 동일한 `expected_version`과 승인 근거 `authorization_note`도 제공한다. 우선 `verify`로 read-only 상태를 확인하고, exact merge SHA main CI가 성공한 뒤에만 `release` 또는 `finalize`를 실행한다.
 
 `finalize`는 `safe_branch_cleanup.py`가 branch 삭제를 거부하면 Issue를 닫지 않는다. FINAL comment는 target SHA marker로 중복 생성을 방지하며 다른 target marker가 있으면 fail-closed로 중단한다.
+
+
+## Issue Lifecycle release_finalize 운영 (#248)
+
+정식 릴리스와 Issue 종료를 한 번에 처리하는 표준 operation으로 `release_finalize`를 추가한다. 이 operation은 별도의 release engine을 만들지 않고 기존 `release-image.yml`, `scripts/issue_lifecycle.py`, `scripts/safe_branch_cleanup.py`를 재사용한다.
+
+infra는 다음 경계를 지킨다.
+
+1. exact merge SHA의 PR required checks와 main CI success를 확인한다.
+2. `release_required=true`, `release_authorized=true`, `expected_version`, `authorization_note`를 검증한다.
+3. annotated version tag와 exact release-image evidence를 확보한다.
+4. release가 성공한 경우에만 branch cleanup을 진행한다.
+5. cleanup 성공 후 FINAL evidence를 기록하고 Issue를 닫는다.
+6. 어떤 단계가 FAIL/BLOCKED이면 이후 destructive 단계로 진행하지 않는다.
+
+Issue #248 구현 전에는 기존 `finalize`가 `release_required=true`일 때 정식 release를 내부 수행하므로 동일 목적에 사용할 수 있다. `release` operation은 정식 publish만 수행하고 cleanup/Issue close를 하지 않는 용도로 구분한다.

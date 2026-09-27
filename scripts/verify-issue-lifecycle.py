@@ -22,7 +22,7 @@ workflow = WORKFLOW.read_text(encoding="utf-8")
 impl = IMPL.read_text(encoding="utf-8")
 
 require("workflow_dispatch:" in workflow, "workflow_dispatch entry point is required")
-require("operation:" in workflow and "verify, release, finalize" in workflow, "three operations are required")
+require("operation:" in workflow and "verify, release, finalize, release_finalize" in workflow, "four operations are required")
 require("group: issue-lifecycle-${{ inputs.issue_number }}" in workflow, "per-Issue concurrency is required")
 require("packages: write" not in workflow, "lifecycle workflow must not receive packages: write")
 require("pull_request_target" not in workflow, "pull_request_target is forbidden")
@@ -32,6 +32,9 @@ require("release-image.yml" in impl, "release-image workflow must be reused")
 require("merge_commit_sha" in impl, "release/finalize target must derive from PR merge_commit_sha")
 require("actions/workflows/ci.yml/runs?event=push&branch=main" in impl, "exact main CI lookup is required")
 require("FINAL_MARKER_PREFIX" in impl, "idempotent FINAL marker is required")
+require("release_finalize" in workflow, "release_finalize workflow operation is required")
+require('"release_finalize"' in impl, "release_finalize CLI operation is required")
+require("if not merged:" in impl and "refs/heads/{head_branch}" in impl, "merged reruns must not require the deleted head branch")
 for check in (
     "Build, static checks, and unit tests",
     "Chromium end-to-end tests",
@@ -79,3 +82,34 @@ for expected_error, values in [
     require(failed == expected_error, f"input scenario mismatch: {values}")
 
 print("issue-lifecycle contract/scenario checks: PASS")
+
+
+# release_finalize must fail closed on the four explicit authorization inputs.
+parser = module.build_parser()
+for argv in [
+    ["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "false", "--release-authorized", "false"],
+    ["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "true", "--release-authorized", "false", "--expected-version", "1.2.3", "--authorization-note", "approved"],
+]:
+    args = parser.parse_args(argv)
+    require(args.operation == "release_finalize", "release_finalize parser contract mismatch")
+
+require("release_finalize requires release_required=true" in impl, "release_finalize release_required fail-closed guard missing")
+require("release_finalize requires release_authorized=true" in impl, "release_finalize authorization fail-closed guard missing")
+require("release_finalize requires expected_version" in impl, "release_finalize expected_version guard missing")
+require("release_finalize requires authorization_note" in impl, "release_finalize authorization_note guard missing")
+require("validate_operation_inputs(args)" in impl, "release_finalize input validation must run before context resolution")
+
+for argv, expected_error in [
+    (["release_finalize", "--issue", "1", "--pr", "2"], True),
+    (["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "true", "--release-authorized", "false", "--expected-version", "1.2.3", "--authorization-note", "approved"], True),
+    (["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "true", "--release-authorized", "true", "--expected-version", "", "--authorization-note", "approved"], True),
+    (["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "true", "--release-authorized", "true", "--expected-version", "1.2.3", "--authorization-note", ""], True),
+    (["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "true", "--release-authorized", "true", "--expected-version", "1.2.3", "--authorization-note", "approved"], False),
+]:
+    args = parser.parse_args(argv)
+    try:
+        module.validate_operation_inputs(args)
+        failed = False
+    except module.LifecycleError:
+        failed = True
+    require(failed == expected_error, f"release_finalize operation input mismatch: {argv}")

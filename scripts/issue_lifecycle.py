@@ -93,6 +93,19 @@ def validate_inputs(
     return int(issue), int(pr)
 
 
+def validate_operation_inputs(args: argparse.Namespace) -> None:
+    if args.operation != "release_finalize":
+        return
+    if not parse_bool(args.release_required):
+        raise LifecycleError("release_finalize requires release_required=true")
+    if not parse_bool(args.release_authorized):
+        raise LifecycleError("release_finalize requires release_authorized=true")
+    if not args.expected_version.strip():
+        raise LifecycleError("release_finalize requires expected_version")
+    if not args.authorization_note.strip():
+        raise LifecycleError("release_finalize requires authorization_note")
+
+
 def mutation_gate(
     *,
     merged: bool,
@@ -188,13 +201,14 @@ def resolve_context(args: argparse.Namespace) -> Context:
     # PR. Fetch both authoritative refs so git-show/ancestry never depends on
     # incidental checkout reachability.
     run("git", "fetch", "--no-tags", "origin", "main")
-    run(
-        "git",
-        "fetch",
-        "--no-tags",
-        "origin",
-        f"refs/heads/{head_branch}:refs/remotes/origin/{head_branch}",
-    )
+    if not merged:
+        run(
+            "git",
+            "fetch",
+            "--no-tags",
+            "origin",
+            f"refs/heads/{head_branch}:refs/remotes/origin/{head_branch}",
+        )
     if merged:
         ancestor = run("git", "merge-base", "--is-ancestor", target_sha, "origin/main", check=False)
         if ancestor.returncode != 0:
@@ -251,7 +265,7 @@ def resolve_context(args: argparse.Namespace) -> Context:
         with open(step_summary, "a", encoding="utf-8") as fp:
             fp.write("\n".join(summary) + "\n")
 
-    if args.operation in {"release", "finalize"} and gate != "PASS":
+    if args.operation in {"release", "finalize", "release_finalize"} and gate != "PASS":
         raise LifecycleError(f"mutation blocked by lifecycle gate: {gate}")
 
     return Context(
@@ -420,7 +434,7 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("operation", choices=("verify", "release", "finalize"))
+    parser.add_argument("operation", choices=("verify", "release", "finalize", "release_finalize"))
     parser.add_argument("--issue", required=True)
     parser.add_argument("--pr", required=True)
     parser.add_argument("--release-required", default="false")
@@ -433,6 +447,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     try:
+        validate_operation_inputs(args)
         ctx = resolve_context(args)
         if args.operation == "release":
             tag, url = ensure_release(ctx, args)
@@ -440,6 +455,9 @@ def main() -> int:
         elif args.operation == "finalize":
             finalize(ctx, args)
             print("finalize PASS")
+        elif args.operation == "release_finalize":
+            finalize(ctx, args)
+            print("release_finalize PASS")
         return 0
     except LifecycleError as exc:
         print(f"Lifecycle error: {exc}", file=sys.stderr)

@@ -312,3 +312,16 @@ Issue Lifecycle의 GitHub Actions·Ruleset·Auto-merge 책임 경계와 관리�
 병합 이후의 공통 orchestration은 `.github/workflows/issue-lifecycle.yml`을 사용한다. 신규 Issue별 release-helper를 만들지 않는다. 공식 입력은 Issue/PR 번호와 Manager가 확정한 release_required/release_authorized이며 branch/SHA/version은 원격 evidence에서 다시 도출한다. `verify`는 read-only, `release`와 `finalize`만 job-scoped write 권한을 가진다. workflow는 PR을 병합하지 않고 Ruleset/Auto-merge를 우회하지 않는다.
 
 release/finalize의 target은 PR의 exact `merge_commit_sha`이고, 해당 SHA의 main `ci.yml` success만 인정한다. formal GHCR publish는 `release-image.yml`, branch 삭제는 `scripts/safe_branch_cleanup.py`를 재사용한다. lifecycle workflow에는 `packages: write`를 부여하지 않는다. 사용법·idempotency·migration은 [ISSUE_LIFECYCLE_AUTOMATION](docs/ISSUE_LIFECYCLE_AUTOMATION.md)을 따른다.
+
+
+### release / finalize / release_finalize 운영 해석 (#248)
+
+현재 `scripts/issue_lifecycle.py finalize`는 `release_required=true`인 경우 내부에서 정식 release evidence를 확보한 뒤 cleanup/FINAL/Issue close를 수행하므로, 구현상 `finalize` 한 번으로 release와 종료가 이어질 수 있다. 다만 Actions UI의 operation 명칭이 이를 충분히 드러내지 않아 운영 혼동이 발생할 수 있으므로 Issue #248에서 명시적인 `release_finalize` operation을 추가한다.
+
+- 정식 release만 수행하고 Issue를 닫지 않을 때: `release`
+- 정식 release 없이 종료할 때: `finalize` + `release_required=false`
+- 정식 release부터 cleanup/FINAL/Issue close까지 한 번에 수행할 때: `release_finalize` + `release_required=true` + `release_authorized=true`
+- `release_finalize`는 `expected_version`과 `authorization_note`를 필수로 하고, release 실패 시 cleanup/close를 실행하지 않는 fail-closed 순서를 유지한다.
+- Issue #248 구현 전까지 정식 release+종료를 한 번에 수행해야 한다면 현재 `finalize`의 release 포함 동작을 사용하되, 동일한 승인/버전 입력 계약을 충족해야 한다.
+
+자세한 운영 계약과 idempotency는 `docs/ISSUE_LIFECYCLE_AUTOMATION.md`를 따른다.
