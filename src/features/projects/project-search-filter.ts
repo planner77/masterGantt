@@ -26,6 +26,7 @@ export type TaskFilterState = Readonly<{
   durationMax: number | null;
   targetIds: readonly string[];
   targetMode: "any" | "all";
+  taskIds: readonly string[];
   equipmentIds: readonly string[];
   systemIds: readonly string[];
   processIds: readonly string[];
@@ -51,6 +52,7 @@ export const EMPTY_TASK_FILTER: TaskFilterState = {
   durationMax: null,
   targetIds: [],
   targetMode: "any",
+  taskIds: [],
   equipmentIds: [],
   systemIds: [],
   processIds: [],
@@ -95,6 +97,8 @@ export function taskMatchesFilter(
   assignmentIdsByTask: ReadonlyMap<string, ReadonlySet<string>>,
   effectiveLogisticsMap?: ReadonlyMap<string, TaskEffectiveLogistics>,
 ): boolean {
+  if (filter.taskIds.length > 0 && !filter.taskIds.includes(task.taskId)) return false;
+
   const query = normalizeFilterText(filter.query);
   if (query) {
     const haystack = [task.name, task.description, task.externalId].map(normalizeFilterText);
@@ -279,6 +283,7 @@ export function activeTaskFilterCount(filter: TaskFilterState): number {
     filter.progressMin !== null || filter.progressMax !== null,
     filter.durationMin !== null || filter.durationMax !== null,
     filter.targetIds.length > 0,
+    filter.taskIds.length > 0,
     filter.equipmentIds.length > 0,
     filter.systemIds.length > 0,
     filter.processIds.length > 0,

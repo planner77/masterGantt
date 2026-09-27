@@ -25,6 +25,7 @@ import type {
 import type { ProjectDto } from "@/contracts/projects";
 import type { ResourceCatalogResponse, ResourceDto } from "@/contracts/resources";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
+import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
 import styles from "./project-logistics-management.module.css";
 
 const EQUIPMENT_TYPE_OPTIONS: { value: EquipmentType; label: string }[] = [
@@ -52,10 +53,16 @@ export interface ProjectLogisticsManagementProps {
   logistics?: ProjectLogisticsDto;
   onLogisticsMutated: (logistics: ProjectLogisticsDto, project: ProjectDto) => void;
   onRequireRefresh: () => void;
+  onNavigateToSchedule?: (filter: {
+    taskIds?: string[];
+    processIds?: string[];
+    equipmentIds?: string[];
+    systemIds?: string[];
+  }) => void;
   onUnauthorized: () => void;
 }
 
-type SubTab = "processes" | "equipment" | "systems" | "relations";
+type SubTab = "dashboard" | "processes" | "equipment" | "systems" | "relations";
 
 export function ProjectLogisticsManagement({
   publicId,
@@ -64,9 +71,10 @@ export function ProjectLogisticsManagement({
   logistics = { processes: [], equipment: [], systems: [], systemLinks: [] },
   onLogisticsMutated,
   onRequireRefresh,
+  onNavigateToSchedule,
   onUnauthorized,
 }: ProjectLogisticsManagementProps) {
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>("processes");
+  const [activeSubTab, setActiveSubTab] = useState<SubTab>("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
   const [processFilter, setProcessFilter] = useState<string>("all");
   const [includeInactive, setIncludeInactive] = useState(false);
@@ -280,7 +288,7 @@ export function ProjectLogisticsManagement({
 
   // Sub-tab button keyboard navigation
   const handleTabKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>, tab: SubTab) => {
-    const tabs: SubTab[] = ["processes", "equipment", "systems", "relations"];
+    const tabs: SubTab[] = ["dashboard", "processes", "equipment", "systems", "relations"];
     const idx = tabs.indexOf(tab);
     let nextTab: SubTab | null = null;
     if (e.key === "ArrowRight") {
@@ -324,6 +332,19 @@ export function ProjectLogisticsManagement({
 
       {/* Sub Navigation */}
       <div className={styles.subTabList} role="tablist" aria-label="물류 구성 세부 영역">
+        <button
+          id="subtab-dashboard"
+          className={styles.subTabButton}
+          role="tab"
+          type="button"
+          aria-selected={activeSubTab === "dashboard"}
+          aria-controls="panel-dashboard"
+          tabIndex={activeSubTab === "dashboard" ? 0 : -1}
+          onClick={() => setActiveSubTab("dashboard")}
+          onKeyDown={(e) => handleTabKeyDown(e, "dashboard")}
+        >
+          KPI 대시보드
+        </button>
         <button
           id="subtab-processes"
           className={styles.subTabButton}
@@ -381,85 +402,87 @@ export function ProjectLogisticsManagement({
         </button>
       </div>
 
-      {/* Toolbar (Filters & Actions) */}
-      <div className={styles.toolbar} role="toolbar" aria-label="물류 필터 및 도구">
-        <div className={styles.filtersGroup}>
-          <input
-            className={styles.searchInput}
-            type="search"
-            placeholder="코드 또는 이름 검색"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="물류 항목 검색"
-          />
-          {activeSubTab === "equipment" || activeSubTab === "systems" ? (
-            <select
-              className={styles.selectInput}
-              value={processFilter}
-              onChange={(e) => setProcessFilter(e.target.value)}
-              aria-label="공정 필터"
-            >
-              <option value="all">전체 공정</option>
-              {logistics.processes.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.code} - {p.name}
-                </option>
-              ))}
-            </select>
-          ) : null}
-          <label className={styles.checkboxLabel}>
+      {/* Toolbar (Filters & Actions) - Only for management subtabs */}
+      {activeSubTab !== "dashboard" ? (
+        <div className={styles.toolbar} role="toolbar" aria-label="물류 필터 및 도구">
+          <div className={styles.filtersGroup}>
             <input
-              type="checkbox"
-              checked={includeInactive}
-              onChange={(e) => setIncludeInactive(e.target.checked)}
+              className={styles.searchInput}
+              type="search"
+              placeholder="코드 또는 이름 검색"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="물류 항목 검색"
             />
-            비활성 항목 포함
-          </label>
-        </div>
+            {activeSubTab === "equipment" || activeSubTab === "systems" ? (
+              <select
+                className={styles.selectInput}
+                value={processFilter}
+                onChange={(e) => setProcessFilter(e.target.value)}
+                aria-label="공정 필터"
+              >
+                <option value="all">전체 공정</option>
+                {logistics.processes.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.code} - {p.name}
+                  </option>
+                ))}
+              </select>
+            ) : null}
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={includeInactive}
+                onChange={(e) => setIncludeInactive(e.target.checked)}
+              />
+              비활성 항목 포함
+            </label>
+          </div>
 
-        <div className={styles.actionsGroup}>
-          {editable && activeSubTab === "processes" ? (
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() => {
-                setErrorMessage(null);
-                setProcessModal({ open: true, mode: "create" });
-              }}
-            >
-              + 공정 추가
-            </button>
-          ) : null}
-          {editable && activeSubTab === "equipment" ? (
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() => {
-                if (logistics.processes.length === 0) {
-                  alert("설비를 등록하려면 먼저 공정을 최소 1개 이상 생성해야 합니다.");
-                  return;
-                }
-                setErrorMessage(null);
-                setEquipmentModal({ open: true, mode: "create" });
-              }}
-            >
-              + 설비 추가
-            </button>
-          ) : null}
-          {editable && activeSubTab === "systems" ? (
-            <button
-              className="primary-button"
-              type="button"
-              onClick={() => {
-                setErrorMessage(null);
-                setSystemModal({ open: true, mode: "create" });
-              }}
-            >
-              + 시스템 추가
-            </button>
-          ) : null}
+          <div className={styles.actionsGroup}>
+            {editable && activeSubTab === "processes" ? (
+              <button
+                className="primary-button"
+                type="button"
+                onClick={() => {
+                  setErrorMessage(null);
+                  setProcessModal({ open: true, mode: "create" });
+                }}
+              >
+                + 공정 추가
+              </button>
+            ) : null}
+            {editable && activeSubTab === "equipment" ? (
+              <button
+                className="primary-button"
+                type="button"
+                onClick={() => {
+                  if (logistics.processes.length === 0) {
+                    alert("설비를 등록하려면 먼저 공정을 최소 1개 이상 생성해야 합니다.");
+                    return;
+                  }
+                  setErrorMessage(null);
+                  setEquipmentModal({ open: true, mode: "create" });
+                }}
+              >
+                + 설비 추가
+              </button>
+            ) : null}
+            {editable && activeSubTab === "systems" ? (
+              <button
+                className="primary-button"
+                type="button"
+                onClick={() => {
+                  setErrorMessage(null);
+                  setSystemModal({ open: true, mode: "create" });
+                }}
+              >
+                + 시스템 추가
+              </button>
+            ) : null}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {/* Error Message banner if any */}
       {errorMessage ? (
@@ -467,6 +490,20 @@ export function ProjectLogisticsManagement({
           {errorMessage}
         </div>
       ) : null}
+
+      {/* Sub-panel 0: Dashboard */}
+      <div
+        id="panel-dashboard"
+        role="tabpanel"
+        aria-labelledby="subtab-dashboard"
+        hidden={activeSubTab !== "dashboard"}
+      >
+        <ProjectLogisticsDashboard
+          publicId={publicId}
+          revision={revision}
+          onNavigateToSchedule={onNavigateToSchedule}
+        />
+      </div>
 
       {/* Sub-panel 1: Processes */}
       <div

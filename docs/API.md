@@ -824,4 +824,121 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
   - 마스터 삭제 보호:
     - 설비 또는 시스템에 연결된 태스크 링크(직접 연결)가 1개 이상 존재하는 경우, 설비/시스템 영구 삭제(`DELETE ...?hardDelete=true`) 시 각각 `409 EQUIPMENT_IN_USE`, `409 SYSTEM_IN_USE`로 차단.
 
+## 13. 물류 대시보드 API (Logistics Dashboard API, #188)
+
+### `GET /api/projects/{publicId}/logistics/dashboard`
+- **권한**: Public-read (프로젝트 직람 가능 시 편집 세션 불필요).
+- **설명**: 물류 프로젝트의 3개 핵심 KPI(기간 가중 진척률, 미완료 지연 작업, 마일스톤 경보), 보조 계획 공수(M/D, M/M), 데이터 품질 진단, 공정·설비·시스템별 세부 집계를 단일 읽기 트랜잭션 내에서 일관된 스냅샷으로 계산하여 반환한다.
+- **쿼리 파라미터**:
+  - `asOfDate` (string, `YYYY-MM-DD`): 기준일 (기본값: 오늘 일자).
+  - `horizonDays` (number, `1`~`90`): 마일스톤 임박 판정 기간 일수 (기본값: `14`).
+  - `systemView` (`"direct"` | `"coordination"`): 시스템 집계 모드 (기본값: `"direct"`).
+    - `direct`: 태스크에 직접 연결된 시스템 기준.
+    - `coordination`: Coordinator DAG를 순회하여 하위 Controller 및 해당 Controller가 제어하는 설비까지 roll-up(중복 태스크는 정확히 1번만 집계).
+  - `activeOnly` (boolean): `true`일 경우 활성(`active = true`) 마스터 항목만 집계에 포함 (기본값: `false`).
+  - `includeDescendantProcesses` (boolean): 공정 필터 시 하위 공정 포함 여부 (기본값: `true`).
+  - `mdPerMm` (number): M/M 환산 기준 M/D 일수 (기본값: `20`, 양수).
+  - `processIds` (string): 콤마로 구분된 공정 ID 목록.
+  - `equipmentIds` (string): 콤마로 구분된 설비 ID 목록.
+  - `systemIds` (string): 콤마로 구분된 시스템 ID 목록.
+  - `taskAssigneeResourceIds` (string): 콤마로 구분된 태스크 배정 리소스 ID 목록.
+  - `roleResourceIds` (string): 콤마로 구분된 설비/시스템 담당 역할 리소스 ID 목록.
+- **성공 응답** (`200 OK`):
+  ```json
+  {
+    "data": {
+      "project": {
+        "publicId": "project-public-id",
+        "name": "스마트 물류센터 프로젝트",
+        "status": "in_progress",
+        "revision": 12
+      },
+      "catalogRevision": 3,
+      "asOfDate": "2026-10-06",
+      "horizonDays": 14,
+      "systemView": "coordination",
+      "kpis": {
+        "progressPercent": 62.5,
+        "overdueLeafTaskCount": 1,
+        "delayedMilestoneCount": 0,
+        "upcomingMilestoneCount": 1,
+        "totalLeafTaskCount": 3,
+        "totalMilestoneCount": 1,
+        "totalDurationDays": 8
+      },
+      "effort": {
+        "plannedTotalMd": 5.0,
+        "plannedTotalMm": 0.25,
+        "unassignedEffortLeafTaskCount": 1,
+        "mdPerMm": 20
+      },
+      "quality": {
+        "unlinkedLeafTaskCount": 0,
+        "totalLeafTaskCount": 3,
+        "unlinkedLeafTaskPercent": 0,
+        "equipmentWithoutPrimaryControllerCount": 0,
+        "equipmentWithoutOwnerCount": 0,
+        "systemsWithoutPrimaryPICount": 0,
+        "totalEquipmentQuantity": 8
+      },
+      "breakdowns": {
+        "processes": [
+          {
+            "id": "proc-id",
+            "code": "P1",
+            "name": "보관공정",
+            "parentProcessId": null,
+            "sortOrder": 1,
+            "active": true,
+            "taskCount": 1,
+            "progressPercent": 50.0,
+            "overdueTaskCount": 1,
+            "plannedMd": 2.0,
+            "taskIds": ["task-1"]
+          }
+        ],
+        "equipment": [
+          {
+            "id": "eq-id",
+            "code": "E1",
+            "name": "Stocker unit1",
+            "equipmentType": "stocker",
+            "quantity": 1,
+            "processId": "proc-id",
+            "processName": "보관공정",
+            "primaryControllerName": "SCS",
+            "ownerName": "홍길동",
+            "active": true,
+            "taskCount": 1,
+            "progressPercent": 50.0,
+            "overdueTaskCount": 1,
+            "plannedMd": 2.0,
+            "taskIds": ["task-1"]
+          }
+        ],
+        "systems": [
+          {
+            "id": "sys-id",
+            "code": "C3",
+            "name": "MCS",
+            "systemType": "mcs",
+            "layer": "coordinator",
+            "scope": "project",
+            "primaryPiName": "홍길동",
+            "active": true,
+            "taskCount": 3,
+            "progressPercent": 62.5,
+            "overdueTaskCount": 1,
+            "plannedMd": 5.0,
+            "taskIds": ["task-1", "task-2", "task-3"]
+          }
+        ]
+      },
+      "includedLeafTaskIds": ["task-1", "task-2", "task-3"],
+      "includedMilestoneIds": ["milestone-1"]
+    }
+  }
+  ```
+
+
 

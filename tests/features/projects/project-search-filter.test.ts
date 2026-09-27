@@ -70,6 +70,16 @@ describe("Issue #83 project task filters", () => {
     expect(result.tasks.map((task) => task.taskId)).toEqual(["summary", "child"]);
   });
 
+  it("filters by exact task IDs for dashboard drill-down while preserving ancestors", () => {
+    const result = filterTasksWithAncestors(
+      tasks,
+      { ...EMPTY_TASK_FILTER, taskIds: ["child"] },
+      assignments,
+    );
+    expect(result.matchCount).toBe(1);
+    expect(result.tasks.map((task) => task.taskId)).toEqual(["summary", "child"]);
+  });
+
   it("supports field-specific text operators", () => {
     const byName = filterTasksWithAncestors(tasks, { ...EMPTY_TASK_FILTER, nameQuery: "install", nameOperator: "contains" }, assignments);
     expect(byName.matchCount).toBe(1);
