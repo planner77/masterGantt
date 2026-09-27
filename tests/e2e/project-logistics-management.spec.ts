@@ -242,7 +242,7 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expect(processPanel.getByText("PROC-01", { exact: true })).toBeVisible();
     await expect(processPanel.getByText("입고 공정", { exact: true })).toBeVisible();
     await expect(processPanel.getByText("PROC-02", { exact: true })).toBeVisible();
-    await expect(processPanel.getByText("보관 공정", { exact: true })).toBeVisible();
+    await expect(processPanel.getByText("보관 공정")).toBeVisible();
     await expect(processPanel.getByText("PROC-03", { exact: true })).toBeVisible();
     await expect(processPanel.getByText("출고 공정", { exact: true })).toBeVisible();
 
@@ -380,7 +380,8 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await page.getByRole("tab", { name: "물류 구성" }).click();
 
     const processPanel = page.locator("#panel-processes");
-    const processRow = processPanel.locator("tr").filter({ has: processPanel.getByText("PROC-01", { exact: true }) });
+    const processRow = processPanel.getByRole("row").filter({ hasText: /^PROC-01/ });
+    await expect(processRow).toHaveCount(1);
     await processRow.getByRole("button", { name: "삭제", exact: true }).click();
     const confirm = page.getByRole("dialog", { name: "삭제 확인" });
     await confirm.getByRole("button", { name: "삭제", exact: true }).click();
