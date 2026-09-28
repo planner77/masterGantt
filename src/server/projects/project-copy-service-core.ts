@@ -319,9 +319,9 @@ export class ProjectCopyService {
               endDate: task.end,
               duration: task.duration,
               progress: task.progress,
-              baselineStart: task.baselineStart,
-              baselineDuration: task.baselineDuration,
-              baselineEnd: task.baselineEnd,
+              baselineStart: task.baselineStart ?? null,
+              baselineDuration: task.baselineDuration ?? null,
+              baselineEnd: task.baselineEnd ?? null,
               updatedAt: nowText,
             })) {
               throw new PersistedScheduleInvalidError();
