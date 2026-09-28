@@ -118,15 +118,15 @@ interface ProjectGanttProps {
 }
 
 const baseProjectColumns: IColumnConfig[] = [
-  { id: "text", header: "작업", width: 224, flexgrow: 1, sort: true },
-  { id: "externalId", header: "외부 ID", width: 128, getter: (task) => task.externalId ?? "—" },
+  { id: "text", header: "작업", width: 180, flexgrow: 1, sort: true },
+  { id: "externalId", header: "외부 ID", width: 108, getter: (task) => task.externalId ?? "—" },
   // Do not use Core's `start`/`duration` IDs here: they install their own
   // calendar-day templates. These display-only IDs preserve the project's
   // localized local-date and canonical working-day duration contract.
-  { id: "projectStart", header: "시작", width: 128, align: "center" },
-  { id: "projectDuration", header: "기간", width: 84, align: "center" },
-  { id: "baselineStart", header: "기준 시작", width: 110, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineStart ?? "—") },
-  { id: "baselineEnd", header: "기준 종료", width: 110, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineEnd ?? "—") },
+  { id: "projectStart", header: "시작", width: 104, align: "center" },
+  { id: "projectDuration", header: "기간", width: 56, align: "center" },
+  { id: "baselineStart", header: "기준 시작", width: 104, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineStart ?? "—") },
+  { id: "baselineEnd", header: "기준 종료", width: 104, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineEnd ?? "—") },
   // The Core recognizes this documented ID and renders its native header/row
   // plus controls. Their `add-task` event is intercepted below.
   { id: "add-task", header: "작업 추가", width: 37, align: "center" },
@@ -258,6 +258,7 @@ export function ProjectGantt({
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
+  const pendingScaleColumnsReference = useRef<IColumnConfig[] | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenPending, setFullscreenPending] = useState(false);
   const [fullscreenMessage, setFullscreenMessage] = useState("");
@@ -634,7 +635,7 @@ export function ProjectGantt({
                 // the Grid contract truthful by reading the scheduler's
                 // canonical working-day duration from the snapshot instead.
                 typeof task.id === "string" && typeof tasksByIdReference.current.get(task.id)?.duration === "number"
-                  ? `${tasksByIdReference.current.get(task.id)!.duration} 근무일`
+                  ? String(tasksByIdReference.current.get(task.id)!.duration)
                   : "—"
               ),
             }
@@ -863,6 +864,36 @@ export function ProjectGantt({
         format: (date: Date) => formatIsoWeek(date),
       },
   ], [locales, scaleMode]);
+
+  function changeScaleMode(nextMode: GanttScaleMode): void {
+    if (nextMode === scaleMode) return;
+    const currentColumns = (apiReference.current?.getState().columns ?? []).map((column) => ({ ...column }));
+    if (currentColumns.length > 0) {
+      pendingScaleColumnsReference.current = currentColumns;
+      ganttColumnsReference.current.splice(
+        0,
+        ganttColumnsReference.current.length,
+        ...currentColumns.map((column) => ({ ...column })),
+      );
+    }
+    setScaleMode(nextMode);
+  }
+
+  useLayoutEffect(() => {
+    const savedColumns = pendingScaleColumnsReference.current;
+    const api = apiReference.current;
+    if (!savedColumns || !api || !apiInstanceId) return;
+    pendingScaleColumnsReference.current = null;
+    let cancelled = false;
+    const restore = async () => {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      if (!cancelled) await api.exec("set-columns", { columns: savedColumns });
+    };
+    void restore().catch(() => {
+      if (!cancelled) onCanonicalSyncFailureReference.current();
+    });
+    return () => { cancelled = true; };
+  }, [apiInstanceId, scaleMode]);
 
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
     if (!canCreateReference.current) {
@@ -1486,13 +1517,13 @@ export function ProjectGantt({
   }, [taskMenu, taskSubmenu]);
 
   return (
-    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
+    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={scaleMode === "day" ? 44 : 68} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
       <Willow>
       <div className="project-gantt-scale-toolbar">
         <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
           <span aria-hidden="true" className="project-gantt-scale-label">표시 단위</span>
-          <button aria-pressed={scaleMode === "day"} onClick={() => setScaleMode("day")} type="button">일</button>
-          <button aria-pressed={scaleMode === "week"} onClick={() => setScaleMode("week")} type="button">주</button>
+          <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">일</button>
+          <button aria-pressed={scaleMode === "week"} onClick={() => changeScaleMode("week")} type="button">주</button>
         </div>
         <button className="project-gantt-fullscreen-button" ref={fullscreenButtonReference} type="button"
           aria-label={isFullscreen ? "Gantt 전체 화면 종료" : "Gantt 전체 화면"} aria-pressed={isFullscreen}
@@ -1526,9 +1557,10 @@ export function ProjectGantt({
         >
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
+              cellWidth={scaleMode === "day" ? 44 : 68}
               columns={ganttColumnsReference.current}
               displayMode="all"
-              gridWidth={620}
+              gridWidth={480}
               highlightTime={scaleMode === "day" ? highlightWeekend : undefined}
               init={initialize}
               links={initialConfig.links}
