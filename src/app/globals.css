@@ -257,6 +257,7 @@ button:focus-visible {
 
 .main-content:has(> .project-list-page) {
   width: min(calc(100% - 3rem), 100rem);
+  padding-block: clamp(1rem, 2vw, 1.5rem);
 }
 
 .page-section {
