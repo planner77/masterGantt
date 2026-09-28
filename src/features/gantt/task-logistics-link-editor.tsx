@@ -32,6 +32,23 @@ function projectIdFromPathname(pathname: string): string | null {
   }
 }
 
+function isValidLogisticsSnapshot(links: TaskLogisticsLinksResponse, logistics: ProjectLogisticsResponse, taskId: string, revision: number): boolean {
+  const value = links?.data?.links;
+  const masters = logistics?.data?.logistics;
+  const strings = (value: unknown): boolean => Array.isArray(value) && value.every((item) => typeof item === "string");
+  const validLinks = (items: unknown, id: string, inherited = false): boolean => Array.isArray(items) && items.every((item) =>
+    item && typeof item === "object" && typeof item[id] === "string" &&
+    (item.scope === "self" || item.scope === "subtree") &&
+    ["equipmentCode", "equipmentName", "systemCode", "systemName"].every((key) => item[key] === undefined || typeof item[key] === "string") &&
+    (!inherited || (typeof item.sourceTaskId === "string" && typeof item.sourceTaskName === "string")));
+  return !!value && links.data.taskId === taskId && value.taskId === taskId && logistics?.data?.project?.revision === revision &&
+    validLinks(value.directEquipmentLinks, "equipmentId") && validLinks(value.directSystemLinks, "systemId") &&
+    validLinks(value.inheritedEquipmentLinks, "equipmentId", true) && validLinks(value.inheritedSystemLinks, "systemId", true) &&
+    strings(value.effectiveEquipmentIds) && strings(value.effectiveSystemIds) && !!masters &&
+    Array.isArray(masters.equipment) && masters.equipment.every((item) => item && typeof item.id === "string" && typeof item.name === "string" && typeof item.code === "string" && typeof item.equipmentType === "string" && Array.isArray(item.resourceRoles) && item.resourceRoles.every((role) => role && typeof role.resourceId === "string" && typeof role.resourceName === "string" && typeof role.role === "string" && typeof role.isPrimary === "boolean")) &&
+    Array.isArray(masters.systems) && masters.systems.every((item) => item && typeof item.id === "string" && typeof item.name === "string" && typeof item.code === "string" && typeof item.systemType === "string" && Array.isArray(item.resourceRoles) && item.resourceRoles.every((role) => role && typeof role.resourceId === "string" && typeof role.resourceName === "string" && typeof role.role === "string" && typeof role.isPrimary === "boolean"));
+}
+
 export function TaskLogisticsLinkEditor({
   taskId,
   taskType,
@@ -58,10 +75,16 @@ export function TaskLogisticsLinkEditor({
   const [error, setError] = useState<string | null>(null);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
+  const [retry, setRetry] = useState(0);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const snapshotKey = `${taskId}:${revision}:${retry}`;
+  const ready = loadedKey === snapshotKey && !loading;
+
   const isSummary = taskType === "summary";
 
   useEffect(() => {
     let alive = true;
+    const controller = new AbortController();
     void (async () => {
       await Promise.resolve();
       if (!alive) return;
@@ -74,17 +97,19 @@ export function TaskLogisticsLinkEditor({
 
       try {
         setLoading(true);
+        setLoadedKey(null);
+        setSuccessNotice(null);
         setError(null);
 
         // Fetch task links and project logistics masters in parallel
         const [linksRes, logisticsRes] = await Promise.all([
           fetch(
             `/api/projects/${encodeURIComponent(publicId)}/tasks/${encodeURIComponent(taskId)}/logistics-links`,
-            { credentials: "same-origin", cache: "no-store" },
+            { credentials: "same-origin", cache: "no-store", signal: controller.signal },
           ),
           fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics`, {
             credentials: "same-origin",
-            cache: "no-store",
+            cache: "no-store", signal: controller.signal,
           }),
         ]);
 
@@ -94,7 +119,9 @@ export function TaskLogisticsLinkEditor({
         const linksBody = (await linksRes.json()) as TaskLogisticsLinksResponse;
         const logisticsBody = (await logisticsRes.json()) as ProjectLogisticsResponse;
 
+        if (!isValidLogisticsSnapshot(linksBody, logisticsBody, taskId, revision)) throw new Error("invalid_snapshot");
         if (!alive) return;
+        setLoadedKey(snapshotKey);
 
         setEquipmentList(logisticsBody.data.logistics.equipment);
         setSystemList(logisticsBody.data.logistics.systems);
@@ -129,11 +156,12 @@ export function TaskLogisticsLinkEditor({
 
     return () => {
       alive = false;
+      controller.abort();
     };
-  }, [taskId, revision, onSelectionCountChange]);
+  }, [taskId, revision, retry, snapshotKey, onSelectionCountChange]);
 
   const toggleEquipment = (equipmentId: string) => {
-    if (!editable || disabled || saving) return;
+    if (!editable || disabled || saving || !ready) return;
     setSuccessNotice(null);
     setSelectedEquipment((prev) => {
       const next = new Map(prev);
@@ -147,7 +175,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleEquipmentScope = (equipmentId: string) => {
-    if (!editable || disabled || saving || !isSummary) return;
+    if (!editable || disabled || saving || !ready || !isSummary) return;
     setSuccessNotice(null);
     setSelectedEquipment((prev) => {
       const next = new Map(prev);
@@ -158,7 +186,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleSystem = (systemId: string) => {
-    if (!editable || disabled || saving) return;
+    if (!editable || disabled || saving || !ready) return;
     setSuccessNotice(null);
     setSelectedSystems((prev) => {
       const next = new Map(prev);
@@ -172,7 +200,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const toggleSystemScope = (systemId: string) => {
-    if (!editable || disabled || saving || !isSummary) return;
+    if (!editable || disabled || saving || !ready || !isSummary) return;
     setSuccessNotice(null);
     setSelectedSystems((prev) => {
       const next = new Map(prev);
@@ -183,7 +211,7 @@ export function TaskLogisticsLinkEditor({
   };
 
   const handleSave = async () => {
-    if (!editable || disabled || saving) return;
+    if (!editable || disabled || saving || !ready) return;
     const publicId = projectIdFromPathname(window.location.pathname);
     if (!publicId) return;
 
@@ -242,8 +270,8 @@ export function TaskLogisticsLinkEditor({
     }
   };
 
-  if (loading) {
-    return <p className={styles.emptyRelation}>물류 연결 정보를 불러오는 중...</p>;
+  if (loading || (loadedKey !== snapshotKey && !error)) {
+    return <p className={styles.emptyRelation} role="status">물류 연결 정보를 불러오는 중…</p>;
   }
 
   return (
@@ -253,6 +281,7 @@ export function TaskLogisticsLinkEditor({
           {error}
         </p>
       ) : null}
+      {!ready && error ? <button type="button" className="secondary-button" onClick={() => setRetry((value) => value + 1)}>물류 연결 다시 시도</button> : null}
       {successNotice ? (
         <p className={styles.note} role="status">
           {successNotice}
@@ -294,7 +323,7 @@ export function TaskLogisticsLinkEditor({
         ) : null}
 
         {/* 직접 설비 선택 리스트 */}
-        {equipmentList.length === 0 ? (
+        {ready && equipmentList.length === 0 ? (
           <p className={styles.emptyRelation}>등록된 설비가 없습니다.</p>
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: 180, overflowY: "auto" }}>
@@ -319,7 +348,7 @@ export function TaskLogisticsLinkEditor({
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      disabled={!editable || disabled || saving}
+                      disabled={!editable || disabled || saving || !ready}
                       onChange={() => toggleEquipment(eq.id)}
                     />
                     <span>
@@ -337,7 +366,7 @@ export function TaskLogisticsLinkEditor({
                       <input
                         type="checkbox"
                         checked={scope === "subtree"}
-                        disabled={!editable || disabled || saving}
+                        disabled={!editable || disabled || saving || !ready}
                         onChange={() => toggleEquipmentScope(eq.id)}
                       />
                       <span>하위 작업 포함</span>
@@ -377,7 +406,7 @@ export function TaskLogisticsLinkEditor({
         ) : null}
 
         {/* 직접 시스템 선택 리스트 */}
-        {systemList.length === 0 ? (
+        {ready && systemList.length === 0 ? (
           <p className={styles.emptyRelation}>등록된 물류 시스템이 없습니다.</p>
         ) : (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: 180, overflowY: "auto" }}>
@@ -402,7 +431,7 @@ export function TaskLogisticsLinkEditor({
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      disabled={!editable || disabled || saving}
+                      disabled={!editable || disabled || saving || !ready}
                       onChange={() => toggleSystem(sys.id)}
                     />
                     <span>
@@ -420,7 +449,7 @@ export function TaskLogisticsLinkEditor({
                       <input
                         type="checkbox"
                         checked={scope === "subtree"}
-                        disabled={!editable || disabled || saving}
+                        disabled={!editable || disabled || saving || !ready}
                         onChange={() => toggleSystemScope(sys.id)}
                       />
                       <span>하위 작업 포함</span>
@@ -439,7 +468,7 @@ export function TaskLogisticsLinkEditor({
           <button
             type="button"
             className="primary-button"
-            disabled={disabled || saving}
+            disabled={disabled || saving || !ready}
             onClick={() => void handleSave()}
           >
             {saving ? "물류 연결 저장 중..." : "물류 연결 저장"}

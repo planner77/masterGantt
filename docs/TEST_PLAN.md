@@ -1,5 +1,13 @@
 # Test Plan
 
+## Issue #263 연결·할당·담당자 조회 준비 상태
+
+- Task 물류 links/master GET 지연·HTTP 오류·network·malformed 응답에서 선택/저장 비활성 및 PUT 0회를 확인한다. 실패를 정상 빈 목록으로 표시하지 않는다.
+- 다시 시도 GET 성공 후 기존 직접 연결·scope를 복원하고 명시적 저장 payload/If-Match를 확인한다. taskId/revision 변경과 늦은 응답이 섞이지 않아야 한다.
+- Assignment는 실제 target reference DTO와 nonempty 할당 응답을 사용해 정상 조회 회귀 및 실패 저장 차단·재시도를 검증한다.
+- 설비/시스템 담당자 dialog는 catalog 실패 안내·재시도·저장 차단과 canonical 담당자 이름 fallback을 확인한다.
+- 변경 화면의 readonly, 390/768/1024/1440px, 긴 이름 및 keyboard 상태를 실제 브라우저에서 확인한다. 원격 quality/e2e/docker 판정은 별도다.
+
 ## Issue #245 Gantt SVG/PNG 내보내기
 
 - 서버 Unit/API: canonical WBS 순서, 전체 Grid+Chart와 기간 Chart-only, 날짜·행·bar/link clip, SVG XML 안전성, 비근무일, Summary/Task/Milestone/progress, 크기 제한, Origin/If-Match/412 및 Excel 회귀를 검증한다.
