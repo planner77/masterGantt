@@ -90,7 +90,17 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       const patch = request.postDataJSON() as UpdateTaskRequest;
       try {
         const calculated = scheduleLeaf({ type: entry.type, requestedStart: patch.start ?? entry.requestedStart ?? entry.start, duration: patch.duration ?? entry.duration, scheduleMode: entry.scheduleMode }, createWorkingCalendar(fixture.project.calendar));
-        Object.assign(entry, { name: patch.name ?? entry.name, progress: patch.progress ?? entry.progress, start: calculated.start, end: calculated.end, duration: calculated.duration, requestedStart: calculated.requestedStart });
+        Object.assign(entry, {
+          name: patch.name ?? entry.name,
+          progress: patch.progress ?? entry.progress,
+          start: calculated.start,
+          end: calculated.end,
+          duration: calculated.duration,
+          requestedStart: calculated.requestedStart,
+          ...(patch.baselineStart !== undefined ? { baselineStart: patch.baselineStart } : {}),
+          ...(patch.baselineDuration !== undefined ? { baselineDuration: patch.baselineDuration } : {}),
+          ...(patch.baselineEnd !== undefined ? { baselineEnd: patch.baselineEnd } : {}),
+        });
         fixture.project.revision += 1;
         await route.fulfill({ json: { data: { ...snapshot().data,
           warnings: calculated.warnings.map((warning) => ({ code: warning.code, path: "start", requestedStart: warning.requestedStart, start: warning.start })),
@@ -398,27 +408,38 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(fixture.patches[1].headers()["if-match"]).toBe('"21"');
   });
 
-  for (const mode of ["readonly", "linked"] as const) {
-    test(`opens information without save access for ${mode} projects`, async ({ page }) => {
-      const fixture = await setup(page, { editable: mode !== "readonly", links: mode === "linked" });
-      await openRow(page);
-      await expect(save(page)).toHaveCount(0);
-      await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
-      await expect(editor(page)).toContainText(mode === "readonly" ? "편집 권한이 없습니다" : "연결이 있는 일정");
-      await cancel(page);
-      await bar(page, id(5)).click({ button: "right" });
-      await chooseTaskInformation(page);
-      await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Milestone");
-      if (mode === "readonly") {
-        await expect(save(page)).toHaveCount(0);
-        await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
-      } else {
-        await expect(save(page)).toBeEnabled();
-        await expect(editor(page).getByLabel("작업명", { exact: true })).not.toHaveAttribute("readonly", "");
-      }
-      expect(fixture.patches).toHaveLength(0);
+  test("opens information without save access for readonly projects", async ({ page }) => {
+    const fixture = await setup(page, { editable: false });
+    await openRow(page);
+    await expect(save(page)).toHaveCount(0);
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
+    await expect(editor(page)).toContainText("편집 권한이 없습니다");
+    await cancel(page);
+    await bar(page, id(5)).click({ button: "right" });
+    await chooseTaskInformation(page);
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Milestone");
+    await expect(save(page)).toHaveCount(0);
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
+    expect(fixture.patches).toHaveLength(0);
+  });
+
+  test("linked tasks keep schedule readonly but allow baseline-only saves", async ({ page }) => {
+    const fixture = await setup(page, { editable: true, links: true });
+    await openRow(page);
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
+    await expect(editor(page).getByLabel("시작일", { exact: true })).toHaveAttribute("readonly", "");
+    await expect(editor(page).getByLabel("기준 시작일", { exact: true })).not.toHaveAttribute("readonly", "");
+    await expect(editor(page)).toContainText("관계가 연결된 작업은 기준 일정만 편집할 수 있습니다.");
+    await editor(page).getByRole("button", { name: "현재 일정으로 설정", exact: true }).click();
+    await save(page).click();
+    await expect(editor(page)).toHaveCount(0);
+    expect(fixture.patches).toHaveLength(1);
+    expect(fixture.patches[0].postDataJSON()).toEqual({
+      baselineStart: "2026-09-18",
+      baselineDuration: 1,
+      baselineEnd: "2026-09-18",
     });
-  }
+  });
 
   test("permits only supported milestone fields and does not change its zero duration", async ({ page }) => {
     const fixture = await setup(page);

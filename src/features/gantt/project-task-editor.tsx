@@ -306,6 +306,7 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
               <dt>기준 Revision</dt><dd>{base.revision}</dd>
             </dl>
           </details>
+          {hasLinks && !readOnly ? <p className={styles.caption}>관계가 연결된 작업은 기준 일정만 편집할 수 있습니다. 이름·일정·진척·설명·URL은 관계 보호를 위해 읽기 전용입니다.</p> : null}
           <p className={styles.caption}>종료일은 저장 전 확정된 값입니다. 변경한 시작일과 근무일 기간의 계산은 저장 시 서버가 수행합니다. URL은 http/https만 허용되며 링크는 일정 화면에서 새 탭으로 열립니다.</p>
         </section>
 
