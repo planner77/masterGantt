@@ -955,109 +955,144 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           {activeFilters > 0 ? <button className="secondary-button project-filter-reset" type="button" onClick={resetTaskFilter}>초기화</button> : null}
           <span className="project-filter-result" role="status">{filteredTasks.matchCount}개 일치 / 전체 {tasks.length}개 작업</span>
         </div>
-        <div className="project-filter-panel" id="project-task-filter-panel" hidden={!taskFilterOpen} aria-label="작업 고급 필터" onKeyDown={closeTaskFilterOnEscape}>
-          <div className="project-filter-grid">
-            <label>작업명 조건<select value={taskFilter.nameOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, nameOperator: event.target.value as TaskFilterState["nameOperator"] }))}><option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option></select></label>
-            <label>작업명<input type="text" value={taskFilter.nameQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, nameQuery: event.target.value }))} /></label>
-            <label>설명 조건<select value={taskFilter.descriptionOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionOperator: event.target.value as TaskFilterState["descriptionOperator"] }))}><option value="contains">포함</option><option value="not-contains">포함하지 않음</option></select></label>
-            <label>설명<input type="text" value={taskFilter.descriptionQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionQuery: event.target.value }))} /></label>
-            <label>External ID 조건<select value={taskFilter.externalIdOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, externalIdOperator: event.target.value as TaskFilterState["externalIdOperator"] }))}><option value="contains">포함</option><option value="equals">같음</option></select></label>
-            <label>External ID<input type="text" value={taskFilter.externalIdQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, externalIdQuery: event.target.value }))} /></label>
-            <label>기간 From<input type="date" value={taskFilter.dateFrom} onChange={(event) => setTaskFilter((current) => ({ ...current, dateFrom: event.target.value }))} /></label>
-            <label>기간 To<input type="date" value={taskFilter.dateTo} onChange={(event) => setTaskFilter((current) => ({ ...current, dateTo: event.target.value }))} /></label>
-            <label>기간 조건<select value={taskFilter.dateOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, dateOperator: event.target.value as TaskFilterState["dateOperator"] }))}>
-              <option value="overlap">기간과 겹침</option><option value="contained">기간 안에 완전히 포함</option><option value="start-in">시작일이 기간 안</option><option value="end-in">종료일이 기간 안</option>
-            </select></label>
-            <label>리소스 할당<select value={taskFilter.assignmentState} onChange={(event) => setTaskFilter((current) => ({ ...current, assignmentState: event.target.value as TaskFilterState["assignmentState"] }))}>
-              <option value="all">전체</option><option value="assigned">할당됨</option><option value="unassigned">미할당</option>
-            </select></label>
-            <label>진행률 최소<input min={0} max={100} type="number" value={taskFilter.progressMin ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, progressMin: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
-            <label>진행률 최대<input min={0} max={100} type="number" value={taskFilter.progressMax ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, progressMax: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
-            <label>기간 최소<input min={0} type="number" value={taskFilter.durationMin ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, durationMin: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
-            <label>기간 최대<input min={0} type="number" value={taskFilter.durationMax ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, durationMax: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
-          </div>
-          <fieldset><legend>Task type</legend>{(["task","summary","milestone"] as const).map((type) => <label key={type}><input type="checkbox" checked={taskFilter.types.includes(type)} onChange={() => setTaskFilter((current) => ({ ...current, types: current.types.includes(type) ? current.types.filter((item) => item !== type) : [...current.types, type] }))} />{type}</label>)}</fieldset>
-          <fieldset><legend>Schedule mode</legend>{(["auto","manual"] as const).map((mode) => <label key={mode}><input type="checkbox" checked={taskFilter.scheduleModes.includes(mode)} onChange={() => setTaskFilter((current) => ({ ...current, scheduleModes: current.scheduleModes.includes(mode) ? current.scheduleModes.filter((item) => item !== mode) : [...current.scheduleModes, mode] }))} />{mode}</label>)}</fieldset>
-          {assignedTargets.length > 0 ? <fieldset><legend>할당 Resource / Group</legend>
-            <label>대상 종류<select value={targetPickerKind} onChange={(event) => setTargetPickerKind(event.target.value as "all" | "resource" | "group")}><option value="all">전체</option><option value="resource">Resource</option><option value="group">Group</option></select></label>
-            <label>대상 검색<input aria-label="할당 Resource 또는 Group 이름과 code 검색" placeholder="이름 또는 code" type="search" value={targetPickerQuery} onChange={(event) => setTargetPickerQuery(event.target.value)} /></label>
-            <label>다중 조건<select value={taskFilter.targetMode} onChange={(event) => setTaskFilter((current) => ({ ...current, targetMode: event.target.value as "any" | "all" }))}><option value="any">ANY</option><option value="all">ALL</option></select></label>
-            <div className="project-filter-targets">{selectableAssignedTargets.map((target) => {
-              const key = `${target.kind}:${target.id}`;
-              return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name}{target.code ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
-            })}</div>
-          </fieldset> : null}
-          {logistics && logistics.processes.length > 0 ? (
-            <fieldset>
-              <legend>공정 필터</legend>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                {logistics.processes.map((proc) => (
-                  <label key={proc.id} style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
-                    <input
-                      type="checkbox"
-                      checked={taskFilter.processIds.includes(proc.id)}
-                      onChange={() =>
-                        setTaskFilter((current) => ({
-                          ...current,
-                          processIds: current.processIds.includes(proc.id)
-                            ? current.processIds.filter((id) => id !== proc.id)
-                            : [...current.processIds, proc.id],
-                        }))
-                      }
-                    />
-                    {proc.name} <code>({proc.code})</code>
-                  </label>
-                ))}
+        <div className="project-filter-panel project-task-filter-panel" id="project-task-filter-panel" hidden={!taskFilterOpen} aria-label="작업 고급 필터" onKeyDown={closeTaskFilterOnEscape}>
+          <section className="project-filter-section" aria-labelledby="project-filter-text-heading">
+            <h3 className="project-filter-section-title" id="project-filter-text-heading">텍스트</h3>
+            <div className="project-filter-section-grid">
+              <div className="project-filter-control-group">
+                <label>작업명 조건<select value={taskFilter.nameOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, nameOperator: event.target.value as TaskFilterState["nameOperator"] }))}><option value="contains">포함</option><option value="not-contains">포함하지 않음</option><option value="equals">같음</option></select></label>
+                <label className="project-filter-control-grow">작업명<input type="text" value={taskFilter.nameQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, nameQuery: event.target.value }))} /></label>
               </div>
-            </fieldset>
-          ) : null}
-          {logistics && logistics.equipment.length > 0 ? (
-            <fieldset>
-              <legend>설비 필터</legend>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                {logistics.equipment.map((eq) => (
-                  <label key={eq.id} style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
-                    <input
-                      type="checkbox"
-                      checked={taskFilter.equipmentIds.includes(eq.id)}
-                      onChange={() =>
-                        setTaskFilter((current) => ({
-                          ...current,
-                          equipmentIds: current.equipmentIds.includes(eq.id)
-                            ? current.equipmentIds.filter((id) => id !== eq.id)
-                            : [...current.equipmentIds, eq.id],
-                        }))
-                      }
-                    />
-                    {eq.name} <code>({eq.code})</code>
-                  </label>
-                ))}
+              <div className="project-filter-control-group">
+                <label>설명 조건<select value={taskFilter.descriptionOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionOperator: event.target.value as TaskFilterState["descriptionOperator"] }))}><option value="contains">포함</option><option value="not-contains">포함하지 않음</option></select></label>
+                <label className="project-filter-control-grow">설명<input type="text" value={taskFilter.descriptionQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, descriptionQuery: event.target.value }))} /></label>
               </div>
-            </fieldset>
-          ) : null}
-          {logistics && logistics.systems.length > 0 ? (
-            <fieldset>
-              <legend>물류 시스템 필터</legend>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                {logistics.systems.map((sys) => (
-                  <label key={sys.id} style={{ display: "flex", alignItems: "center", gap: "0.25rem", fontSize: "0.85rem" }}>
-                    <input
-                      type="checkbox"
-                      checked={taskFilter.systemIds.includes(sys.id)}
-                      onChange={() =>
-                        setTaskFilter((current) => ({
-                          ...current,
-                          systemIds: current.systemIds.includes(sys.id)
-                            ? current.systemIds.filter((id) => id !== sys.id)
-                            : [...current.systemIds, sys.id],
-                        }))
-                      }
-                    />
-                    {sys.name} <code>({sys.code})</code>
-                  </label>
-                ))}
+              <div className="project-filter-control-group">
+                <label>External ID 조건<select value={taskFilter.externalIdOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, externalIdOperator: event.target.value as TaskFilterState["externalIdOperator"] }))}><option value="contains">포함</option><option value="equals">같음</option></select></label>
+                <label className="project-filter-control-grow">External ID<input type="text" value={taskFilter.externalIdQuery} onChange={(event) => setTaskFilter((current) => ({ ...current, externalIdQuery: event.target.value }))} /></label>
               </div>
-            </fieldset>
+            </div>
+          </section>
+
+          <section className="project-filter-section" aria-labelledby="project-filter-schedule-heading">
+            <h3 className="project-filter-section-title" id="project-filter-schedule-heading">일정 · 수치</h3>
+            <div className="project-filter-section-grid project-filter-section-grid-schedule">
+              <div className="project-filter-control-group project-filter-control-group-triple">
+                <label>기간 조건<select value={taskFilter.dateOperator} onChange={(event) => setTaskFilter((current) => ({ ...current, dateOperator: event.target.value as TaskFilterState["dateOperator"] }))}>
+                  <option value="overlap">기간과 겹침</option><option value="contained">기간 안에 완전히 포함</option><option value="start-in">시작일이 기간 안</option><option value="end-in">종료일이 기간 안</option>
+                </select></label>
+                <label>기간 From<input type="date" value={taskFilter.dateFrom} onChange={(event) => setTaskFilter((current) => ({ ...current, dateFrom: event.target.value }))} /></label>
+                <label>기간 To<input type="date" value={taskFilter.dateTo} onChange={(event) => setTaskFilter((current) => ({ ...current, dateTo: event.target.value }))} /></label>
+              </div>
+              <div className="project-filter-control-group project-filter-control-group-even">
+                <label>진행률 최소<input min={0} max={100} type="number" value={taskFilter.progressMin ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, progressMin: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+                <label>진행률 최대<input min={0} max={100} type="number" value={taskFilter.progressMax ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, progressMax: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+              </div>
+              <div className="project-filter-control-group project-filter-control-group-even">
+                <label>기간 최소<input min={0} type="number" value={taskFilter.durationMin ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, durationMin: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+                <label>기간 최대<input min={0} type="number" value={taskFilter.durationMax ?? ""} onChange={(event) => setTaskFilter((current) => ({ ...current, durationMax: event.target.value === "" ? null : Number(event.target.value) }))} /></label>
+              </div>
+            </div>
+          </section>
+
+          <section className="project-filter-section" aria-labelledby="project-filter-assignment-heading">
+            <h3 className="project-filter-section-title" id="project-filter-assignment-heading">유형 · 할당</h3>
+            <div className="project-filter-section-grid project-filter-section-grid-assignment">
+              <fieldset className="project-filter-choice-fieldset"><legend>Task type</legend>{(["task","summary","milestone"] as const).map((type) => <label key={type}><input type="checkbox" checked={taskFilter.types.includes(type)} onChange={() => setTaskFilter((current) => ({ ...current, types: current.types.includes(type) ? current.types.filter((item) => item !== type) : [...current.types, type] }))} />{type}</label>)}</fieldset>
+              <fieldset className="project-filter-choice-fieldset"><legend>Schedule mode</legend>{(["auto","manual"] as const).map((mode) => <label key={mode}><input type="checkbox" checked={taskFilter.scheduleModes.includes(mode)} onChange={() => setTaskFilter((current) => ({ ...current, scheduleModes: current.scheduleModes.includes(mode) ? current.scheduleModes.filter((item) => item !== mode) : [...current.scheduleModes, mode] }))} />{mode}</label>)}</fieldset>
+              <label className="project-filter-compact-control">리소스 할당<select value={taskFilter.assignmentState} onChange={(event) => setTaskFilter((current) => ({ ...current, assignmentState: event.target.value as TaskFilterState["assignmentState"] }))}>
+                <option value="all">전체</option><option value="assigned">할당됨</option><option value="unassigned">미할당</option>
+              </select></label>
+            </div>
+            {assignedTargets.length > 0 ? <fieldset className="project-filter-target-fieldset"><legend>할당 Resource / Group</legend>
+              <div className="project-filter-target-controls">
+                <label>대상 종류<select value={targetPickerKind} onChange={(event) => setTargetPickerKind(event.target.value as "all" | "resource" | "group")}><option value="all">전체</option><option value="resource">Resource</option><option value="group">Group</option></select></label>
+                <label className="project-filter-control-grow">대상 검색<input aria-label="할당 Resource 또는 Group 이름과 code 검색" placeholder="이름 또는 code" type="search" value={targetPickerQuery} onChange={(event) => setTargetPickerQuery(event.target.value)} /></label>
+                <label>다중 조건<select value={taskFilter.targetMode} onChange={(event) => setTaskFilter((current) => ({ ...current, targetMode: event.target.value as "any" | "all" }))}><option value="any">ANY</option><option value="all">ALL</option></select></label>
+              </div>
+              <div className="project-filter-targets">{selectableAssignedTargets.map((target) => {
+                const key = `${target.kind}:${target.id}`;
+                return <label key={key}><input type="checkbox" checked={taskFilter.targetIds.includes(key)} onChange={() => setTaskFilter((current) => ({ ...current, targetIds: current.targetIds.includes(key) ? current.targetIds.filter((item) => item !== key) : [...current.targetIds, key] }))} />{target.name}{target.code ? ` (${target.code})` : ""}{target.active ? "" : " · 비활성"}</label>;
+              })}</div>
+            </fieldset> : null}
+          </section>
+
+          {logistics && (logistics.processes.length > 0 || logistics.equipment.length > 0 || logistics.systems.length > 0) ? (
+            <section className="project-filter-section" aria-labelledby="project-filter-logistics-heading">
+              <h3 className="project-filter-section-title" id="project-filter-logistics-heading">물류</h3>
+              {logistics.processes.length > 0 ? (
+                <fieldset className="project-filter-chip-fieldset">
+                  <legend>공정 필터</legend>
+                  <div className="project-filter-checkbox-list">
+                    {logistics.processes.map((proc) => (
+                      <label key={proc.id}>
+                        <input
+                          type="checkbox"
+                          checked={taskFilter.processIds.includes(proc.id)}
+                          onChange={() =>
+                            setTaskFilter((current) => ({
+                              ...current,
+                              processIds: current.processIds.includes(proc.id)
+                                ? current.processIds.filter((id) => id !== proc.id)
+                                : [...current.processIds, proc.id],
+                            }))
+                          }
+                        />
+                        <span>{proc.name} <code>({proc.code})</code></span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ) : null}
+              {logistics.equipment.length > 0 ? (
+                <fieldset className="project-filter-chip-fieldset">
+                  <legend>설비 필터</legend>
+                  <div className="project-filter-checkbox-list">
+                    {logistics.equipment.map((eq) => (
+                      <label key={eq.id}>
+                        <input
+                          type="checkbox"
+                          checked={taskFilter.equipmentIds.includes(eq.id)}
+                          onChange={() =>
+                            setTaskFilter((current) => ({
+                              ...current,
+                              equipmentIds: current.equipmentIds.includes(eq.id)
+                                ? current.equipmentIds.filter((id) => id !== eq.id)
+                                : [...current.equipmentIds, eq.id],
+                            }))
+                          }
+                        />
+                        <span>{eq.name} <code>({eq.code})</code></span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ) : null}
+              {logistics.systems.length > 0 ? (
+                <fieldset className="project-filter-chip-fieldset">
+                  <legend>물류 시스템 필터</legend>
+                  <div className="project-filter-checkbox-list">
+                    {logistics.systems.map((sys) => (
+                      <label key={sys.id}>
+                        <input
+                          type="checkbox"
+                          checked={taskFilter.systemIds.includes(sys.id)}
+                          onChange={() =>
+                            setTaskFilter((current) => ({
+                              ...current,
+                              systemIds: current.systemIds.includes(sys.id)
+                                ? current.systemIds.filter((id) => id !== sys.id)
+                                : [...current.systemIds, sys.id],
+                            }))
+                          }
+                        />
+                        <span>{sys.name} <code>({sys.code})</code></span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              ) : null}
+            </section>
           ) : null}
         </div>
         <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorLinkId !== null}
