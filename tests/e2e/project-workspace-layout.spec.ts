@@ -60,6 +60,7 @@ for (const variant of [
       await settings.click();
       const dialog = page.getByRole("dialog", { name: "프로젝트 설정", exact: true });
       await expect(dialog.getByRole("button", { name: "프로젝트 정보 저장" })).toBeVisible();
+      await dialog.getByRole("tab", { name: "편집·보안" }).click();
       await expect(dialog.getByRole("button", { name: "편집 비밀번호 변경" })).toBeVisible();
       expect(await Promise.all([projectHeader, gridHeader, chartHeader, gantt].map((locator) => locator.boundingBox()))).toEqual(beforeSettings);
       await page.keyboard.press("Escape");

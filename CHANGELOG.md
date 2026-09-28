@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.48.0] - 2026-09-28
+
+### Added
+
+- Issue #232: 프로젝트 설정 다이얼로그 정보 구조·탭·반응형 폼 레이아웃 개선.
+  - 전용 와이드 모달 및 탭 컴포넌트(`WorkspaceDialog size="wide"`, `ProjectSettingsDialog`, `project-settings-dialog.module.css`):
+    - 공통 다이얼로그의 기본 38rem 폭 외에 settings 전용 와이드 뷰(최대 60rem)를 지원하여 데스크톱 가용 공간 활용.
+    - WAI-ARIA APG 준수 탭 인터페이스(`role="tablist"`, `role="tab"`, `role="tabpanel"`, `aria-selected`, `aria-controls`) 구현.
+    - 키보드 ArrowLeft/ArrowRight 및 Home/End 키를 통한 직관적인 탭 탐색 지원.
+    - 탭 전환 시 컴포넌트를 unmount하지 않고 DOM에 유지(`hidden` 속성)하여 작업 중인 캘린더 규칙/미리보기, 비밀번호, 설명 등의 초안(draft) 상태 100% 보존.
+  - 3개 카테고리 기반 정보 구조(IA):
+    - **기본 정보**: 프로젝트 이름과 상태(compact select)를 2열 그리드로 정렬하고 설명 textarea는 전체 폭으로 배치.
+    - **작업 캘린더**: 기존 `ProjectWorkCalendarEditor`를 통합하고 국가 규칙 및 휴무일 입력 항목을 2열 그리드와 우측 정렬 액션 행으로 정돈하여 항목 밀도 개선.
+    - **편집·보안**: 새 비밀번호 변경 폼과 세션 안내 카드 및 편집 모드 종료 액션을 독립 분리.
+  - 반응형 및 접근성:
+    - 390/768px 모바일에서 1열 스택 레이아웃으로 자연스럽게 전환되어 가로 overflow 방지.
+    - `Escape` 키 닫기 및 닫힘 후 '프로젝트 설정' 트리거 버튼으로의 포커스 복원 보존.
+
 ## [0.47.0] - 2026-09-28
 
 ### Added

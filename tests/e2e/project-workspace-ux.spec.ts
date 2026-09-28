@@ -161,6 +161,7 @@ test.describe("Issue #76 Project Workspace UX", () => {
     const settingsButton = page.getByRole("button", { name: "프로젝트 설정", exact: true });
     await expect(settingsButton).toBeFocused();
     await settingsButton.click();
+    await page.getByRole("tab", { name: "편집·보안" }).click();
     await page.getByRole("button", { name: "편집 모드 종료", exact: true }).click();
 
     await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();

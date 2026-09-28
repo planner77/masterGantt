@@ -48,6 +48,7 @@ for (const width of [390, 768, 1024, 1440]) {
     await page.goto(`/projects/${id}`);
     await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "프로젝트 설정", exact: true });
+    await dialog.getByRole("tab", { name: "작업 캘린더" }).click();
     const writes: string[] = [];
     page.on("request", (request) => {
       const path = new URL(request.url()).pathname;

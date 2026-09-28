@@ -60,9 +60,13 @@ async function unlock(page: Page, password: string): Promise<void> {
 }
 
 async function openSettings(page: Page): Promise<void> {
-  const button = page.getByRole("button", { name: "편집 모드 종료", exact: true });
-  if (!(await button.isVisible())) await page.getByText("프로젝트 설정", { exact: true }).click();
-  await expect(button).toBeVisible();
+  const dialog = page.getByRole("dialog", { name: "프로젝트 설정", exact: true });
+  if (!(await dialog.isVisible().catch(() => false))) {
+    await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
+    await expect(dialog).toBeVisible();
+  }
+  await dialog.getByRole("tab", { name: "편집·보안" }).click();
+  await expect(dialog.getByRole("button", { name: "편집 모드 종료", exact: true })).toBeVisible();
 }
 
 test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀번호 변경·로그아웃", async ({ page, browser, baseURL }, info) => {
