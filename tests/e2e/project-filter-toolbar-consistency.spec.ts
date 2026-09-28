@@ -18,6 +18,67 @@ async function expectTwoToolbarRows(search: Locator, filter: Locator, result: Lo
   expect(resetBox!.y).toBeGreaterThanOrEqual(filterBox!.y + filterBox!.height - 1);
 }
 
+async function expectDirectChildrenDoNotOverlap(container: Locator) {
+  const overlaps = await container.evaluate((root) => {
+    const boxes = Array.from(root.children)
+      .filter((element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+      })
+      .map((element) => ({
+        label: element.getAttribute("aria-label") ?? element.textContent?.trim().slice(0, 40) ?? element.tagName,
+        rect: element.getBoundingClientRect(),
+      }));
+    const collisions: string[] = [];
+    for (let left = 0; left < boxes.length; left += 1) {
+      for (let right = left + 1; right < boxes.length; right += 1) {
+        const a = boxes[left].rect;
+        const b = boxes[right].rect;
+        const horizontal = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+        const vertical = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+        if (horizontal > 1 && vertical > 1) collisions.push(`${boxes[left].label} <> ${boxes[right].label}`);
+      }
+    }
+    return collisions;
+  });
+  expect(overlaps).toEqual([]);
+}
+
+async function expectAdvancedControlsWithinBounds(panel: Locator) {
+  const geometry = await panel.evaluate((root) => {
+    const panelRect = root.getBoundingClientRect();
+    const controls = Array.from(root.querySelectorAll<HTMLElement>("input, select, button"))
+      .filter((element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+      })
+      .map((element, index) => ({
+        index,
+        label: element.getAttribute("aria-label") ?? element.closest("label")?.textContent?.trim().slice(0, 40) ?? element.tagName,
+        rect: element.getBoundingClientRect(),
+      }));
+    const outside = controls
+      .filter(({ rect }) => rect.left < panelRect.left - 1 || rect.right > panelRect.right + 1)
+      .map(({ index, label }) => `${index}:${label}`);
+    const overlaps: string[] = [];
+    for (let left = 0; left < controls.length; left += 1) {
+      for (let right = left + 1; right < controls.length; right += 1) {
+        const a = controls[left].rect;
+        const b = controls[right].rect;
+        const horizontal = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+        const vertical = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+        if (horizontal > 1 && vertical > 1) overlaps.push(`${controls[left].label} <> ${controls[right].label}`);
+      }
+    }
+    return { outside, overlaps };
+  });
+  expect(geometry.outside).toEqual([]);
+  expect(geometry.overlaps).toEqual([]);
+}
+
+
 test("Issue #130 Phase 4 Project List 검색·필터 상태와 Reset focus를 다섯 폭에서 유지한다", async ({ page, baseURL }, testInfo) => {
   const suffix = randomUUID().slice(0, 8);
   for (const name of [`Project Alpha ${suffix}`, `Project Beta ${suffix}`]) {
@@ -62,7 +123,14 @@ test("Issue #130 Phase 4 Project List 검색·필터 상태와 Reset focus를 �
 });
 
 test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API 불변 경계를 유지한다", async ({ page }, testInfo) => {
-  await installStatefulProjectFixture(page);
+  const fixture = await installStatefulProjectFixture(page);
+  const timestamp = "2026-09-28T00:00:00.000Z";
+  fixture.logistics = {
+    processes: [{ id: "process-long-1", code: "PROC-LONG-001", name: "조립 공정 매우 긴 표시 이름", parentProcessId: null, sortOrder: 0, active: true, createdAt: timestamp, updatedAt: timestamp }],
+    equipment: [{ id: "equipment-long-1", processId: "process-long-1", code: "EQUIP-LONG-001", name: "자동 반송 설비 매우 긴 표시 이름", equipmentType: "conveyor", managementUnit: "unit", quantity: 1, manufacturer: "", model: "", description: "", active: true, controlSystems: [], resourceRoles: [], createdAt: timestamp, updatedAt: timestamp }],
+    systems: [{ id: "system-long-1", code: "SYSTEM-LONG-001", name: "물류 제어 시스템 매우 긴 표시 이름", systemType: "mcs", layer: "coordinator", scope: "project", processIds: ["process-long-1"], coordinatedSystemIds: [], resourceRoles: [], vendor: "", description: "", active: true, createdAt: timestamp, updatedAt: timestamp }],
+    systemLinks: [], taskEquipmentLinks: [], taskSystemLinks: [],
+  };
   await page.goto(`/projects/${publicId}`);
   const ganttIdentity = await rememberGanttRoot(page);
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
@@ -88,7 +156,17 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     await expect(taskReset).toBeVisible();
     if (width <= 768) await expectTwoToolbarRows(taskSearch, taskFilter, taskToolbar.getByRole("status"), taskReset, width);
     await taskFilter.click();
-    await page.locator("#project-task-filter-panel").getByLabel("작업명", { exact: true }).focus();
+    const taskAdvanced = page.getByLabel("작업 고급 필터");
+    await expect(taskAdvanced).toBeVisible();
+    await expect(taskAdvanced.getByRole("heading", { name: "텍스트" })).toBeVisible();
+    await expect(taskAdvanced.getByRole("heading", { name: "일정 · 수치" })).toBeVisible();
+    await expect(taskAdvanced.getByRole("heading", { name: "유형 · 할당" })).toBeVisible();
+    await expect(taskAdvanced.getByRole("heading", { name: "물류" })).toBeVisible();
+    await expectDirectChildrenDoNotOverlap(taskToolbar);
+    await expectAdvancedControlsWithinBounds(taskAdvanced);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`issue-260-task-filter-open-${width}.png`) });
+    await taskAdvanced.getByLabel("작업명", { exact: true }).focus();
     await page.keyboard.press("Escape");
     await expect(taskFilter).toBeFocused();
     await taskReset.click();
@@ -116,6 +194,10 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
     await advanced.getByLabel("Task 기간 To").fill("2026-09-16");
     await expect(resourceFilter).toHaveText("필터 3");
     await expect(advanced.getByRole("status")).toContainText("두 날짜 사이");
+    await expectDirectChildrenDoNotOverlap(resourceToolbar);
+    await expectAdvancedControlsWithinBounds(advanced);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`issue-260-resource-filter-open-${width}.png`) });
     await page.keyboard.press("Escape");
     await expect(advanced).toBeHidden();
     await expect(resourceFilter).toBeFocused();

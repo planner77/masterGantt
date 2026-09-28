@@ -517,3 +517,12 @@ Grid/Chart resizer와 column resize는 계속 SVAR 공개 API를 사용한다. D
 - **구성원 액션 푸터 정돈**:
   - `memberFooterActions` 전용 스타일을 적용하여 데스크톱에서 `닫기`(secondary) 좌측, `구성원 저장`(primary) 우측 정렬로 일관되게 배치.
   - 390/768px 모바일에서 자연스러운 flex-wrap 배치로 버튼 겹침 및 가로 overflow 방지.
+
+
+## Issue #260 Project Workspace 필터 영역 밀도와 의미 그룹
+
+일정 Toolbar는 #83/#130/#196의 검색·필터·빠른 보기·Reset·결과 계약을 유지하면서 가용 폭을 우선 활용한다. 1440px 이상은 가능한 한 한 행을 유지하고, 1024px 전후는 최대 두 행의 content-aware grid로 재배치한다. 768px에서는 검색/필터와 빠른 보기/Reset/결과가 불필요하게 전체 폭을 독점하지 않으며, 390px에서만 빠른 보기와 결과 영역을 필요한 만큼 추가 적층한다. Resource Toolbar도 검색+필터와 결과+Reset의 두 의미 행을 사용하고 768px에서 검색 이외 control을 기계적으로 full-width로 만들지 않는다.
+
+Task 고급 필터는 하나의 flat grid 대신 **텍스트 / 일정·수치 / 유형·할당 / 물류** section으로 구분한다. 작업명·설명·External ID의 operator/value, 기간 조건·From·To, 진행률 Min/Max, 기간 Min/Max처럼 함께 해석하는 control은 같은 group에서 읽히도록 배치한다. Resource/Group 대상 picker는 종류·검색·ANY/ALL을 별도 compact grid로 묶고, 공정·설비·시스템 checkbox는 공통 CSS list를 사용해 긴 한국어 이름과 code가 panel 밖으로 밀리지 않게 한다. 기존 inline style은 공통 class로 이동하며 모든 grid child는 intrinsic width로 인한 overlap을 막기 위해 min-width 0 계약을 가진다.
+
+Resource 고급 필터는 종류·상태·Task From/To 계약을 변경하지 않고 1024/768px에서 2열, 390px에서 1열로 reflow한다. 필터 predicate, active count, ancestor Summary context, SVAR `filter-tasks`, canonical Gantt instance, API 재조회 금지, Escape 후 Filter trigger focus 및 Reset 후 search focus는 그대로다. E2E는 390×844·768×900·1024×900·1440×900·1600×900에서 Advanced Panel 열린 상태, 긴 물류 label, direct toolbar child overlap, 모든 input/select의 panel 수평 bounds 및 document-level overflow를 실제 bounding box로 검증한다.
