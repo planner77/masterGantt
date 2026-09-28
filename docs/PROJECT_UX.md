@@ -426,3 +426,25 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 - Project Copy는 Baseline을 보존한다.
 - **Chart Baseline bar/toggle은 이번 Issue #202 범위에서 분리하여 Issue #253에서 처리한다.** SVAR PRO Baseline 기능을 사용하지 않고 Core 공개 API/state 기반 Alignment POC를 먼저 통과해야 한다.
 
+## Issue #203 관계선 더블클릭 Relation Editor 및 관련 아이템 검색·추가·삭제
+
+- **진입 경로 및 인터랙션**:
+  - Gantt 타임라인의 관계선(`[data-link-id]`) 더블클릭 시 Relation Editor 다이얼로그 모달 오픈.
+  - 관계선 우클릭 Relation Context Menu 상단에 "관계 관리... (Relation Editor)" 버튼을 제공하여 키보드/마우스 우클릭 보조 경로 지원.
+- **다이얼로그 구조**:
+  1. **선택된 관계 설정**:
+     - 선행 작업(Predecessor) 및 후행 작업(Successor) 정보(이름, 일정, 기간) 카드 표시.
+     - **Anchor(기준 작업) 선택**: "선행 작업을 기준으로 보기" / "후행 작업을 기준으로 보기" 버튼을 통해 기준 작업 전환.
+     - 관계 유형(`FS/SS/FF/SF`) 셀렉트 및 Lag(일 단위) 입력 필드.
+     - 수정 시 "수정 저장" 활성화, "관계 삭제" 액션 지원.
+  2. **기준 작업의 연결된 관계 목록**:
+     - Anchor 기준 선행 작업(Incoming) 및 후행 작업(Outgoing) 목록을 카드 리스트로 표시.
+     - 각 항목에서 유형/Lag 확인, 선택(현재 편집 대상으로 전환), 삭제 액션 지원.
+  3. **새 관계 추가**:
+     - 연결 방향 선택: "후행 작업으로 추가 (기준 → 대상)" / "선행 작업으로 추가 (대상 → 기준)".
+     - 검색 자동완성: 프로젝트 내 모든 Leaf Task 및 Milestone을 이름/ID로 실시간 검색 (Summary 작업 및 자기 자신, 이미 연결된 중복 관계는 후보에서 자동 제외).
+     - 관계 유형 및 Lag 설정 후 "관계 추가"를 통해 단일 화면에서 신규 의존성 생성.
+- **접근성 및 상태 보존**:
+  - `Escape` 키 닫기 및 모달 내부 Focus Trap 지원.
+  - 모달 열기/닫기/추가/수정/삭제 시 Gantt 차트 인스턴스, 스크롤 위치, Summary 접힘 상태가 초기화되지 않고 유지됨.
+  - 읽기 전용(`readonly`) 모드에서는 정보 조회만 가능하며 편집/삭제/추가 폼 비활성화.

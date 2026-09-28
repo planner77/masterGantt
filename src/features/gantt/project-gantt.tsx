@@ -105,6 +105,7 @@ interface ProjectGanttProps {
   readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest) => void;
   readonly onTaskEditorOpen: (taskId: string) => void;
   readonly onTaskDeleteRequest: (taskId: string, trigger: HTMLElement | null) => void;
+  readonly onRelationEditorOpen?: (linkId: string) => void;
   readonly onLinkCreate: (sourceTaskId: string, targetTaskId: string) => void;
   readonly onLinkUpdate?: (linkId: string, patch: { type: DependencyType; lag: number }) => Promise<boolean>;
   readonly onLinkDelete: (linkId: string) => void;
@@ -178,6 +179,7 @@ export function ProjectGantt({
   onTaskHierarchyCommand,
   onTaskEditorOpen,
   onTaskDeleteRequest,
+  onRelationEditorOpen,
   onLinkCreate,
   onLinkUpdate,
   onLinkDelete,
@@ -196,6 +198,7 @@ export function ProjectGantt({
   const onTaskAddRejectedReference = useRef(onTaskAddRejected);
   const onCanonicalSyncFailureReference = useRef(onCanonicalSyncFailure);
   const onTaskEditorOpenReference = useRef(onTaskEditorOpen);
+  const onRelationEditorOpenReference = useRef(onRelationEditorOpen);
   const onTaskHierarchyCommandReference = useRef(onTaskHierarchyCommand);
   const onTaskDeleteRequestReference = useRef(onTaskDeleteRequest);
   const onLinkCreateReference = useRef(onLinkCreate);
@@ -277,6 +280,7 @@ export function ProjectGantt({
     onTaskAddRejectedReference.current = onTaskAddRejected;
     onCanonicalSyncFailureReference.current = onCanonicalSyncFailure;
     onTaskEditorOpenReference.current = onTaskEditorOpen;
+    onRelationEditorOpenReference.current = onRelationEditorOpen;
     onTaskHierarchyCommandReference.current = onTaskHierarchyCommand;
     onTaskDeleteRequestReference.current = onTaskDeleteRequest;
     onLinkCreateReference.current = onLinkCreate;
@@ -304,7 +308,7 @@ export function ProjectGantt({
       const collapsedIds = extractCollapsedSummaryIds(summaryToggleStateReference.current, summaries);
       saveSummaryTogglePreference(projectPublicId, collapsedIds);
     }
-  }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, projectPublicId, tasks, tasksById]);
+  }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onRelationEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, projectPublicId, tasks, tasksById]);
 
   useEffect(() => () => {
     inlineOpenTokenReference.current += 1;
@@ -1054,6 +1058,23 @@ export function ProjectGantt({
   }
 
   function handleTaskDoubleClick(event: ReactMouseEvent<HTMLDivElement>) {
+    if (event.target instanceof Element) {
+      const linkElement = event.target.closest("[data-link-id]");
+      if (linkElement) {
+        const rawId = linkElement.getAttribute("data-link-id");
+        if (rawId) {
+          const linkId = rawId.startsWith(":") ? rawId.slice(1) : rawId;
+          if (linksReference.current.some((link) => link.id === linkId)) {
+            event.preventDefault();
+            event.stopPropagation();
+            setRelationMenu(null);
+            onRelationEditorOpenReference.current?.(linkId);
+            return;
+          }
+        }
+      }
+    }
+
     // Editable, dependency-free name cells belong to the inline editor.
     // Readonly rows and dependency-protected rows retain the information
     // editor double-click entry because they cannot open the inline editor.
@@ -1630,6 +1651,7 @@ export function ProjectGantt({
             linkId={relationMenu.linkId}
             links={links}
             onClose={() => setRelationMenu(null)}
+            onOpenEditor={(id) => onRelationEditorOpenReference.current?.(id)}
             onDelete={async (id) => {
               onLinkDeleteReference.current(id);
             }}
