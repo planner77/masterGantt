@@ -181,6 +181,8 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(prevented).toBe(false);
     await expect(taskContextMenu(page)).toHaveCount(0);
     await expect(editor(page)).toHaveCount(0);
+    await row(page, "Summary").locator('[data-action="open-task"]').click();
+    await expect(row(page, "Beta leaf").getByText("Beta leaf", { exact: true })).toBeVisible();
     for (let i = 0; i < 3; i += 1) { await openRow(page); await cancel(page); }
     await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
     expect(fixture.patches).toHaveLength(0);
