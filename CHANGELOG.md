@@ -1,6 +1,6 @@
 # Changelog
 
-## Issue #263 — pending release
+## [0.52.1] - 2026-09-29
 
 ### Fixed
 
