@@ -65,6 +65,9 @@ export interface ProjectTaskDto {
   progress: number;
   parentExternalId: string | null;
   siblingOrder: number;
+  baselineStart?: string | null;
+  baselineDuration?: number | null;
+  baselineEnd?: string | null;
 }
 
 export type DependencyType = "FS" | "SS" | "FF" | "SF";
@@ -199,6 +202,13 @@ export interface UpdateTaskRequest {
   end?: string;
   duration?: number;
   progress?: number;
+  baselineStart?: string | null;
+  baselineDuration?: number | null;
+  baselineEnd?: string | null;
+  baseline?: {
+    start: string;
+    duration: number;
+  } | null;
 }
 
 export type TaskHierarchyPlacement = "before" | "after" | "child";

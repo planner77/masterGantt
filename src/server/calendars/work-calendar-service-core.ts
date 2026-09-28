@@ -115,6 +115,9 @@ function taskDtos(tasks:readonly TaskRecord[]):ProjectTaskDto[] {
     progress:task.progress,
     parentExternalId:task.parentId===null?null:externalById.get(task.parentId)??null,
     siblingOrder:task.sortOrder,
+    baselineStart:task.baselineStart,
+    baselineDuration:task.baselineDuration,
+    baselineEnd:task.baselineEnd,
   }));
 }
 
@@ -499,7 +502,8 @@ export class WorkCalendarService {
         if(!current) throw new WorkCalendarInvalidInputError();
         if(task.type==="summary") {
           if(!this.schedules.updateSummarySchedule(project.id,task.taskId,{
-            startDate:task.start,endDate:task.end,duration:task.duration,progress:task.progress,updatedAt:now,
+            startDate:task.start,endDate:task.end,duration:task.duration,progress:task.progress,
+            baselineStart:task.baselineStart??null,baselineDuration:task.baselineDuration??null,baselineEnd:task.baselineEnd??null,updatedAt:now,
           })) throw new WorkCalendarInvalidInputError();
         } else if(task.scheduleMode==="auto") {
           if(!this.schedules.updateTask(project.id,task.taskId,{

@@ -81,6 +81,9 @@ function dtoTasks(tasks: readonly TaskRecord[]): ProjectTaskDto[] {
       ? null
       : externalById.get(task.parentId) ?? null,
     siblingOrder: task.sortOrder,
+    baselineStart: task.baselineStart,
+    baselineDuration: task.baselineDuration,
+    baselineEnd: task.baselineEnd,
   }));
 }
 
@@ -290,6 +293,9 @@ export class ProjectCopyService {
                 ? null
                 : newBySourceId.get(sourceTask.parentId)!.id,
               sortOrder: sourceTask.sortOrder,
+              baselineStart: sourceTask.baselineStart,
+              baselineDuration: sourceTask.baselineDuration,
+              baselineEnd: sourceTask.baselineEnd,
               createdAt: nowText,
               updatedAt: nowText,
             });
@@ -313,6 +319,9 @@ export class ProjectCopyService {
               endDate: task.end,
               duration: task.duration,
               progress: task.progress,
+              baselineStart: task.baselineStart ?? null,
+              baselineDuration: task.baselineDuration ?? null,
+              baselineEnd: task.baselineEnd ?? null,
               updatedAt: nowText,
             })) {
               throw new PersistedScheduleInvalidError();

@@ -53,6 +53,9 @@ function taskDtos(tasks: readonly TaskRecord[]): ProjectTaskDto[] {
       progress: task.progress,
       parentExternalId: parentExternalId ?? null,
       siblingOrder: task.sortOrder,
+      baselineStart: task.baselineStart,
+      baselineDuration: task.baselineDuration,
+      baselineEnd: task.baselineEnd,
     };
   });
 }
@@ -173,13 +176,19 @@ export class TaskSubtreeDeleteService {
         const persisted = persistedByPublicId.get(task.taskId);
         if (!persisted) throw new PersistedScheduleInvalidError();
         const changed = persisted.startDate !== task.start || persisted.endDate !== task.end ||
-          persisted.duration !== task.duration || persisted.progress !== task.progress;
+          persisted.duration !== task.duration || persisted.progress !== task.progress ||
+          persisted.baselineStart !== (task.baselineStart ?? null) ||
+          persisted.baselineDuration !== (task.baselineDuration ?? null) ||
+          persisted.baselineEnd !== (task.baselineEnd ?? null);
         if (!changed) continue;
         if (!this.schedules.updateSummarySchedule(project.id, task.taskId, {
           startDate: task.start,
           endDate: task.end,
           duration: task.duration,
           progress: task.progress,
+          baselineStart: task.baselineStart ?? null,
+          baselineDuration: task.baselineDuration ?? null,
+          baselineEnd: task.baselineEnd ?? null,
           updatedAt: nowText,
         })) {
           throw new PersistedScheduleInvalidError();

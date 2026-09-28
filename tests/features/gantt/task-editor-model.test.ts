@@ -90,4 +90,33 @@ describe("explicit task editor commands", () => {
     expect(taskIdFromElement(element(task.taskId))).toBe(task.taskId);
     for (const raw of ["1", "Task", "", `::${task.taskId}`, "00000000-0000-0000-0000-000000000000"]) expect(taskIdFromElement(element(raw))).toBeNull();
   });
+
+  it("handles baseline draft copying, clearing, and payload generation", () => {
+    const draft = createTaskEditorDraft(task);
+    expect(draft.baselineStart).toBe("");
+    expect(draft.baselineDuration).toBe("");
+    expect(draft.baselineEnd).toBe("");
+
+    const copied = { ...draft, baselineStart: task.start, baselineDuration: String(task.duration), baselineEnd: task.end };
+    const prepared = prepareTaskEditorCommand(task, copied);
+    expect(prepared.command?.payload).toEqual({
+      baselineStart: task.start,
+      baselineDuration: task.duration,
+      baselineEnd: task.end,
+    });
+
+    const populatedTask: ProjectTaskDto = {
+      ...task,
+      baselineStart: "2026-09-22",
+      baselineDuration: 1,
+      baselineEnd: "2026-09-22",
+    };
+    const clearedDraft = { ...createTaskEditorDraft(populatedTask), baselineStart: "", baselineDuration: "", baselineEnd: "" };
+    const clearedPrepared = prepareTaskEditorCommand(populatedTask, clearedDraft);
+    expect(clearedPrepared.command?.payload).toEqual({
+      baselineStart: null,
+      baselineDuration: null,
+      baselineEnd: null,
+    });
+  });
 });

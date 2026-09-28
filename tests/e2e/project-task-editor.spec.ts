@@ -9,6 +9,7 @@ const apiPath = `/api/projects/${publicId}`;
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const row = (page: Page, name: string) => page.locator(".project-gantt-widget .wx-row", { hasText: name }).first();
 const bar = (page: Page, taskId: string) => page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${taskId}"]`);
+const rowByTaskId = (page: Page, taskId: string) => page.locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
 const editor = (page: Page) => page.getByRole("dialog", { name: "작업 정보", exact: true });
 const save = (page: Page) => editor(page).getByRole("button", { name: "저장", exact: true });
 const frame = (page: Page) => page.locator(".project-gantt-frame");
@@ -89,7 +90,17 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       const patch = request.postDataJSON() as UpdateTaskRequest;
       try {
         const calculated = scheduleLeaf({ type: entry.type, requestedStart: patch.start ?? entry.requestedStart ?? entry.start, duration: patch.duration ?? entry.duration, scheduleMode: entry.scheduleMode }, createWorkingCalendar(fixture.project.calendar));
-        Object.assign(entry, { name: patch.name ?? entry.name, progress: patch.progress ?? entry.progress, start: calculated.start, end: calculated.end, duration: calculated.duration, requestedStart: calculated.requestedStart });
+        Object.assign(entry, {
+          name: patch.name ?? entry.name,
+          progress: patch.progress ?? entry.progress,
+          start: calculated.start,
+          end: calculated.end,
+          duration: calculated.duration,
+          requestedStart: calculated.requestedStart,
+          ...(patch.baselineStart !== undefined ? { baselineStart: patch.baselineStart } : {}),
+          ...(patch.baselineDuration !== undefined ? { baselineDuration: patch.baselineDuration } : {}),
+          ...(patch.baselineEnd !== undefined ? { baselineEnd: patch.baselineEnd } : {}),
+        });
         fixture.project.revision += 1;
         await route.fulfill({ json: { data: { ...snapshot().data,
           warnings: calculated.warnings.map((warning) => ({ code: warning.code, path: "start", requestedStart: warning.requestedStart, start: warning.start })),
@@ -110,7 +121,13 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
 }
 
 async function openRow(page: Page, name = "Beta leaf") {
-  await row(page, name).getByText(name, { exact: true }).click({ button: "right" });
+  const targetRow = name === "Beta leaf" ? rowByTaskId(page, id(4)) : name === "Summary" ? rowByTaskId(page, id(1)) : row(page, name);
+  if (name === "Beta leaf" || name === "Summary") {
+    await expect(targetRow).toBeVisible();
+    await targetRow.click({ button: "right", position: { x: 12, y: 19 } });
+  } else {
+    await targetRow.getByText(name, { exact: true }).click({ button: "right" });
+  }
   await chooseTaskInformation(page);
   await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue(name);
   await expect(editor(page)).toHaveCount(1);
@@ -295,7 +312,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     const instance = await frame(page).getAttribute("data-project-gantt-instance");
     await openRow(page);
     await editor(page).getByLabel("기간 (근무일)", { exact: true }).fill("2");
-    await expect(editor(page).locator("output")).toHaveText("2026-09-18");
+    await expect(editor(page).locator("output").first()).toHaveText("2026-09-18");
     expect(fixture.patches).toHaveLength(0);
     let release!: () => void;
     fixture.gate = new Promise<void>((resolve) => { release = resolve; });
@@ -391,27 +408,38 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(fixture.patches[1].headers()["if-match"]).toBe('"21"');
   });
 
-  for (const mode of ["readonly", "linked"] as const) {
-    test(`opens information without save access for ${mode} projects`, async ({ page }) => {
-      const fixture = await setup(page, { editable: mode !== "readonly", links: mode === "linked" });
-      await openRow(page);
-      await expect(save(page)).toHaveCount(0);
-      await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
-      await expect(editor(page)).toContainText(mode === "readonly" ? "편집 권한이 없습니다" : "연결이 있는 일정");
-      await cancel(page);
-      await bar(page, id(5)).click({ button: "right" });
-      await chooseTaskInformation(page);
-      await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Milestone");
-      if (mode === "readonly") {
-        await expect(save(page)).toHaveCount(0);
-        await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
-      } else {
-        await expect(save(page)).toBeEnabled();
-        await expect(editor(page).getByLabel("작업명", { exact: true })).not.toHaveAttribute("readonly", "");
-      }
-      expect(fixture.patches).toHaveLength(0);
+  test("opens information without save access for readonly projects", async ({ page }) => {
+    const fixture = await setup(page, { editable: false });
+    await openRow(page);
+    await expect(save(page)).toHaveCount(0);
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
+    await expect(editor(page)).toContainText("편집 권한이 없습니다");
+    await cancel(page);
+    await bar(page, id(5)).click({ button: "right" });
+    await chooseTaskInformation(page);
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Milestone");
+    await expect(save(page)).toHaveCount(0);
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
+    expect(fixture.patches).toHaveLength(0);
+  });
+
+  test("linked tasks keep schedule readonly but allow baseline-only saves", async ({ page }) => {
+    const fixture = await setup(page, { editable: true, links: true });
+    await openRow(page);
+    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
+    await expect(editor(page).getByLabel("시작일", { exact: true })).toHaveAttribute("readonly", "");
+    await expect(editor(page).getByLabel("기준 시작일", { exact: true })).not.toHaveAttribute("readonly", "");
+    await expect(editor(page)).toContainText("관계가 연결된 작업은 기준 일정만 편집할 수 있습니다.");
+    await editor(page).getByRole("button", { name: "현재 일정으로 설정", exact: true }).click();
+    await save(page).click();
+    await expect(editor(page)).toHaveCount(0);
+    expect(fixture.patches).toHaveLength(1);
+    expect(fixture.patches[0].postDataJSON()).toEqual({
+      baselineStart: "2026-09-18",
+      baselineDuration: 1,
+      baselineEnd: "2026-09-18",
     });
-  }
+  });
 
   test("permits only supported milestone fields and does not change its zero duration", async ({ page }) => {
     const fixture = await setup(page);

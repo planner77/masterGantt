@@ -416,3 +416,13 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 - 서버 DB/API/Project revision에는 영향을 주지 않는 client-side UI preference다.
 - Fullscreen/필터/일정↔리소스 전환에서는 현재 살아 있는 Gantt interaction state를 persisted preference보다 우선한다.
 
+## Issue #202 Schedule Item Baseline 저장·편집·Grid 표시
+
+- Baseline은 현재 일정과 독립적인 계획 스냅샷이며 Task/Milestone에 start/duration/end를 저장한다.
+- Task Editor의 작업 정보 탭에서 Baseline을 현재 일정으로 복사하거나 수정·삭제할 수 있다. Summary는 descendant leaf에서 파생된 값을 읽기 전용으로 표시한다.
+- 모든 descendant leaf에 Baseline이 있는 Summary만 complete Baseline을 가지며, partial Summary는 완전한 Baseline으로 표시하지 않는다.
+- Grid에는 `기준 시작`, `기준 종료` optional column을 제공하며 기본은 숨김이다.
+- Baseline mutation은 기존 edit-session / If-Match / revision / canonical snapshot 계약을 따른다.
+- Project Copy는 Baseline을 보존한다.
+- **Chart Baseline bar/toggle은 이번 Issue #202 범위에서 분리하여 Issue #253에서 처리한다.** SVAR PRO Baseline 기능을 사용하지 않고 Core 공개 API/state 기반 Alignment POC를 먼저 통과해야 한다.
+

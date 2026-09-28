@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.44.0] - 2026-09-28
+
+### Added
+
+- Issue #202: Schedule Item Baseline 저장·편집·Grid 표시 기반 지원.
+  - SQLite migration `0014_task_baseline.sql`로 Task/Milestone Baseline start/duration/end를 저장한다.
+  - 모든 descendant leaf에 Baseline이 있을 때 Summary Baseline을 파생하고 partial Summary는 완전한 Baseline으로 취급하지 않는다.
+  - Task Editor에서 현재 일정 복사, Baseline 수정/삭제, Summary 파생 정보 조회를 지원한다.
+  - Grid 열 메뉴에서 기준 시작/기준 종료를 선택적으로 표시한다.
+  - Project Copy 시 Baseline을 보존한다.
+- Chart Baseline Overlay는 Issue #253으로 분리했다. SVAR PRO `baselines` 및 `base_start/base_end/base_duration`에 의존하지 않으며, Core 공개 API 기반 Alignment POC를 통과한 경우에만 Chart 표시를 구현한다.
+
 ## [0.43.0] - 2026-09-28
 
 ### Added

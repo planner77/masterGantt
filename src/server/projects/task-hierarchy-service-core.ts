@@ -72,6 +72,9 @@ function taskDtos(tasks: readonly TaskRecord[]): ProjectTaskDto[] {
       progress: task.progress,
       parentExternalId: parentExternalId ?? null,
       siblingOrder: task.sortOrder,
+      baselineStart: task.baselineStart,
+      baselineDuration: task.baselineDuration,
+      baselineEnd: task.baselineEnd,
     };
   });
 }
@@ -255,13 +258,19 @@ export class TaskHierarchyService {
         current.duration === task.duration &&
         current.progress === task.progress &&
         current.scheduleMode === "auto" &&
-        current.requestedStart === null
+        current.requestedStart === null &&
+        current.baselineStart === (task.baselineStart ?? null) &&
+        current.baselineDuration === (task.baselineDuration ?? null) &&
+        current.baselineEnd === (task.baselineEnd ?? null)
       ) continue;
       if (!this.schedules.updateSummarySchedule(projectId, task.taskId, {
         startDate: task.start,
         endDate: task.end,
         duration: task.duration,
         progress: task.progress,
+        baselineStart: task.baselineStart ?? null,
+        baselineDuration: task.baselineDuration ?? null,
+        baselineEnd: task.baselineEnd ?? null,
         updatedAt: now,
       })) throw new PersistedScheduleInvalidError();
       changed.add(task.externalId);
