@@ -110,4 +110,52 @@ describe("pure hierarchy calculation", () => {
     expect(result[0]).toMatchObject({ start: "1900-01-01", end: "2199-12-31" });
     expect(result[0].duration).toBeGreaterThan(10_000); // Summary span is not a leaf-duration limit.
   });
+
+  it("derives summary baseline when all descendant leaves have baselines", () => {
+    const tasks = [
+      summary("root"),
+      leaf("first", {
+        parentExternalId: "root",
+        baselineStart: "2026-09-11",
+        baselineDuration: 1,
+        baselineEnd: "2026-09-11",
+      }),
+      leaf("second", {
+        parentExternalId: "root",
+        siblingOrder: 1,
+        baselineStart: "2026-09-15",
+        baselineDuration: 2,
+        baselineEnd: "2026-09-16",
+      }),
+    ];
+    const result = recalculateHierarchy(tasks, calendar);
+    const root = result.find((t) => t.externalId === "root");
+    expect(root?.baselineStart).toBe("2026-09-11");
+    expect(root?.baselineEnd).toBe("2026-09-16");
+    expect(root?.baselineDuration).toBe(3); // 2026-09-11 to 2026-09-16 working days (14th is holiday)
+  });
+
+  it("sets summary baseline to null when any descendant leaf lacks baseline", () => {
+    const tasks = [
+      summary("root"),
+      leaf("first", {
+        parentExternalId: "root",
+        baselineStart: "2026-09-11",
+        baselineDuration: 1,
+        baselineEnd: "2026-09-11",
+      }),
+      leaf("second", {
+        parentExternalId: "root",
+        siblingOrder: 1,
+        baselineStart: null,
+        baselineDuration: null,
+        baselineEnd: null,
+      }),
+    ];
+    const result = recalculateHierarchy(tasks, calendar);
+    const root = result.find((t) => t.externalId === "root");
+    expect(root?.baselineStart).toBeNull();
+    expect(root?.baselineEnd).toBeNull();
+    expect(root?.baselineDuration).toBeNull();
+  });
 });

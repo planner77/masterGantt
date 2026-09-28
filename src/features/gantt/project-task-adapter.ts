@@ -29,6 +29,9 @@ export interface ProjectTaskUpdatePayload {
   readonly progress?: number;
   readonly start?: string;
   readonly duration?: number;
+  readonly baselineStart?: string | null;
+  readonly baselineDuration?: number | null;
+  readonly baselineEnd?: string | null;
 }
 
 export interface ProjectTaskUpdateCommand {
@@ -65,18 +68,25 @@ export function normalizeInlineTaskName(value: unknown): { name: string | null; 
 
 export function projectTasksToSvarTasks(tasks: readonly ProjectTaskDto[]): ITask[] {
   const taskIdsByExternalId = new Map(tasks.map((task) => [task.externalId, task.taskId]));
-  return tasks.map((task) => ({
-    id: task.taskId,
-    text: task.name,
-    ...domainDatesToSvarDates({ start: dateOnly(task.start), end: dateOnly(task.end) }),
-    progress: task.progress,
-    type: task.type,
-    parent: task.parentExternalId === null
-      ? 0
-      : taskIdsByExternalId.get(task.parentExternalId) ?? 0,
-    open: task.type === "summary",
-    externalId: task.externalId,
-  }));
+  return tasks.map((task) => {
+    const dates = domainDatesToSvarDates({ start: dateOnly(task.start), end: dateOnly(task.end) });
+
+    return {
+      id: task.taskId,
+      text: task.name,
+      ...dates,
+      progress: task.progress,
+      type: task.type,
+      parent: task.parentExternalId === null
+        ? 0
+        : taskIdsByExternalId.get(task.parentExternalId) ?? 0,
+      open: task.type === "summary",
+      externalId: task.externalId,
+      baselineStart: task.baselineStart,
+      baselineDuration: task.baselineDuration,
+      baselineEnd: task.baselineEnd,
+    };
+  });
 }
 
 function toSvarLinkType(type: string): "s2s" | "s2e" | "e2s" | "e2e" {

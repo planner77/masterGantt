@@ -100,6 +100,13 @@ const updateTaskSchema = z.object({
   end: dateLabel.optional(),
   duration: duration.optional(),
   progress: progress.optional(),
+  baselineStart: dateLabel.nullable().optional(),
+  baselineDuration: duration.nullable().optional(),
+  baselineEnd: dateLabel.nullable().optional(),
+  baseline: z.object({
+    start: dateLabel,
+    duration: duration,
+  }).nullable().optional(),
 }).strict().refine(
   (value) => Object.keys(value).length > 0,
   { message: "At least one task field is required." },

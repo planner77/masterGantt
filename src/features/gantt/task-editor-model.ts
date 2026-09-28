@@ -11,6 +11,9 @@ export interface TaskEditorDraft {
   readonly progress: string;
   readonly description: string;
   readonly url: string;
+  readonly baselineStart: string;
+  readonly baselineDuration: string;
+  readonly baselineEnd: string;
 }
 export type TaskEditorSaveResult = { readonly status: "saved" } | { readonly status: "failed"; readonly message: string; readonly conflict?: boolean };
 
@@ -40,6 +43,27 @@ export function createTaskEditorDraft(task: ProjectTaskDto): TaskEditorDraft {
     progress: String(task.progress),
     description: task.description ?? "",
     url: task.url ?? "",
+    baselineStart: task.baselineStart ?? "",
+    baselineDuration: task.baselineDuration !== null && task.baselineDuration !== undefined ? String(task.baselineDuration) : "",
+    baselineEnd: task.baselineEnd ?? "",
+  };
+}
+
+export function copyScheduleToBaseline(draft: TaskEditorDraft, task: ProjectTaskDto): TaskEditorDraft {
+  return {
+    ...draft,
+    baselineStart: draft.start,
+    baselineDuration: task.type === "milestone" ? "0" : draft.duration,
+    baselineEnd: task.end,
+  };
+}
+
+export function clearBaseline(draft: TaskEditorDraft): TaskEditorDraft {
+  return {
+    ...draft,
+    baselineStart: "",
+    baselineDuration: "",
+    baselineEnd: "",
   };
 }
 
@@ -73,6 +97,35 @@ export function prepareTaskEditorCommand(task: ProjectTaskDto, draft: TaskEditor
   const description = normalizedDescription(draft.description);
   const url = normalizedUrl(draft.url);
   if (url !== null && (!validHttpUrl(url) || Array.from(url).length > 4_096)) return invalid("URL은 http:// 또는 https:// 형식으로 입력해 주세요.");
+
+  let nextBaselineStart: string | null = null;
+  let nextBaselineDuration: number | null = null;
+  let nextBaselineEnd: string | null = null;
+  const rawBaselineStart = draft.baselineStart.trim();
+  const rawBaselineDuration = draft.baselineDuration.trim();
+  const rawBaselineEnd = draft.baselineEnd.trim();
+
+  const baselineChanged = rawBaselineStart !== (task.baselineStart ?? "") ||
+    rawBaselineDuration !== (task.baselineDuration !== null && task.baselineDuration !== undefined ? String(task.baselineDuration) : "") ||
+    rawBaselineEnd !== (task.baselineEnd ?? "");
+
+  if (baselineChanged) {
+    if (rawBaselineStart.length > 0) {
+      try { parseDateOnly(rawBaselineStart); } catch { return invalid("기준 일정 시작일은 올바른 날짜여야 합니다."); }
+      const bDuration = Number(rawBaselineDuration);
+      if (!rawBaselineDuration || !Number.isSafeInteger(bDuration) || (task.type === "milestone" ? bDuration !== 0 : bDuration < 1 || bDuration > MAX_TASK_DURATION)) {
+        return invalid(task.type === "milestone" ? "마일스톤의 기준 일정 기간은 0일입니다." : "기준 일정 기간은 1~10,000 사이의 정수 근무일로 입력해 주세요.");
+      }
+      nextBaselineStart = rawBaselineStart;
+      nextBaselineDuration = bDuration;
+      nextBaselineEnd = rawBaselineEnd.length > 0 ? rawBaselineEnd : null;
+    } else {
+      nextBaselineStart = null;
+      nextBaselineDuration = null;
+      nextBaselineEnd = null;
+    }
+  }
+
   const payload: ProjectTaskUpdatePayload = {
     ...(name !== task.name ? { name } : {}),
     ...(draft.start !== task.start ? { start: draft.start } : {}),
@@ -80,6 +133,11 @@ export function prepareTaskEditorCommand(task: ProjectTaskDto, draft: TaskEditor
     ...(progress !== task.progress ? { progress } : {}),
     ...(description !== (task.description ?? null) ? { description } : {}),
     ...(url !== (task.url ?? null) ? { url } : {}),
+    ...(baselineChanged ? {
+      baselineStart: nextBaselineStart,
+      baselineDuration: nextBaselineDuration,
+      baselineEnd: nextBaselineEnd,
+    } : {}),
   };
   return { command: Object.keys(payload).length ? { taskId: task.taskId, payload } : null, error: null };
 }

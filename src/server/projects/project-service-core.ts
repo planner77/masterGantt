@@ -22,6 +22,7 @@ import type {
   UpdateProjectRequest,
 } from "../../contracts/projects";
 import {
+  endFromStart,
   recalculateFinishStartDependencies,
   recalculateHierarchy,
   scheduleLeaf,
@@ -247,6 +248,9 @@ function taskDtos(tasks: TaskRecord[]): ProjectTaskDto[] {
       progress: task.progress,
       parentExternalId: parentExternalId ?? null,
       siblingOrder: task.sortOrder,
+      baselineStart: task.baselineStart,
+      baselineDuration: task.baselineDuration,
+      baselineEnd: task.baselineEnd,
     };
   });
 }
@@ -613,13 +617,19 @@ export class ProjectService {
         persisted.duration !== task.duration ||
         persisted.progress !== task.progress ||
         persisted.scheduleMode !== "auto" ||
-        persisted.requestedStart !== null;
+        persisted.requestedStart !== null ||
+        persisted.baselineStart !== (task.baselineStart ?? null) ||
+        persisted.baselineDuration !== (task.baselineDuration ?? null) ||
+        persisted.baselineEnd !== (task.baselineEnd ?? null);
       if (changed) {
         if (!this.schedules.updateSummarySchedule(projectId, task.taskId, {
           startDate: task.start,
           endDate: task.end,
           duration: task.duration,
           progress: task.progress,
+          baselineStart: task.baselineStart ?? null,
+          baselineDuration: task.baselineDuration ?? null,
+          baselineEnd: task.baselineEnd ?? null,
           updatedAt,
         })) {
           throw new PersistedScheduleInvalidError();
@@ -1058,6 +1068,64 @@ export class ProjectService {
         updatedAt: nowText,
       });
       if (!updated) throw new TaskNotFoundError();
+
+      let nextBaselineStart = current.baselineStart;
+      let nextBaselineDuration = current.baselineDuration;
+      let nextBaselineEnd = current.baselineEnd;
+      let baselineChanged = false;
+
+      if (validatedInput.baseline !== undefined) {
+        baselineChanged = true;
+        if (validatedInput.baseline === null) {
+          nextBaselineStart = null;
+          nextBaselineDuration = null;
+          nextBaselineEnd = null;
+        } else {
+          nextBaselineStart = validatedInput.baseline.start;
+          nextBaselineDuration = validatedInput.baseline.duration;
+          if (current.type === "milestone") {
+            nextBaselineDuration = 0;
+            nextBaselineEnd = nextBaselineStart;
+          } else {
+            nextBaselineEnd = endFromStart(nextBaselineStart, nextBaselineDuration, calendar);
+          }
+        }
+      } else if (
+        validatedInput.baselineStart !== undefined ||
+        validatedInput.baselineDuration !== undefined ||
+        validatedInput.baselineEnd !== undefined
+      ) {
+        baselineChanged = true;
+        const bStart = validatedInput.baselineStart !== undefined ? validatedInput.baselineStart : current.baselineStart;
+        const bDur = validatedInput.baselineDuration !== undefined ? validatedInput.baselineDuration : current.baselineDuration;
+        const bEnd = validatedInput.baselineEnd !== undefined ? validatedInput.baselineEnd : current.baselineEnd;
+        if (bStart === null || bDur === null) {
+          nextBaselineStart = null;
+          nextBaselineDuration = null;
+          nextBaselineEnd = null;
+        } else {
+          nextBaselineStart = bStart;
+          nextBaselineDuration = bDur;
+          if (current.type === "milestone") {
+            nextBaselineDuration = 0;
+            nextBaselineEnd = bStart;
+          } else if (bEnd !== null && bEnd !== undefined) {
+            nextBaselineEnd = bEnd;
+          } else {
+            nextBaselineEnd = endFromStart(bStart, bDur, calendar);
+          }
+        }
+      }
+
+      if (baselineChanged) {
+        this.schedules.updateTaskBaseline(project.id, taskPublicId, {
+          baselineStart: nextBaselineStart,
+          baselineDuration: nextBaselineDuration,
+          baselineEnd: nextBaselineEnd,
+          updatedAt: nowText,
+        });
+      }
+
       const changedSummaryExternalIds = this.applySummaryDerivations(
         project.id,
         this.schedules.listTasks(project.id),

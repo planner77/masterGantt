@@ -1,4 +1,4 @@
-import { isWorkingDay, MAX_TASK_DURATION, type WorkingCalendar } from "./calendar";
+import { isWorkingDay, MAX_TASK_DURATION, workingDaysBetween, type WorkingCalendar } from "./calendar";
 import { dateToOrdinal, ordinalToDate, parseDateOnly } from "./date-only";
 import { SchedulingError, type SchedulingErrorCode } from "./errors";
 
@@ -18,6 +18,9 @@ export interface HierarchyTaskInput {
   readonly duration: number;
   readonly progress: number;
   readonly scheduleMode: "auto" | "manual";
+  readonly baselineStart?: string | null;
+  readonly baselineDuration?: number | null;
+  readonly baselineEnd?: string | null;
 }
 
 interface Aggregate {
@@ -27,6 +30,9 @@ interface Aggregate {
   weightedProgress: number;
   milestoneCount: number;
   milestoneProgress: number;
+  allDescendantsHaveBaseline: boolean;
+  baselineStart: string | null;
+  baselineEnd: string | null;
 }
 
 /**
@@ -118,8 +124,18 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
     const task = tasks[index];
     if (task.type !== "summary") {
       if (task.type === "milestone" ? task.start !== task.end : span(task.start, task.end) !== task.duration) fail("END_DURATION_MISMATCH", index, "end");
-      aggregate[index] = { start: task.start, end: task.end, weight: task.duration, weightedProgress: task.duration * task.progress,
-        milestoneCount: Number(task.type === "milestone"), milestoneProgress: task.type === "milestone" ? task.progress : 0 };
+      const hasBaseline = Boolean(task.baselineStart && task.baselineEnd && task.baselineDuration !== null && task.baselineDuration !== undefined);
+      aggregate[index] = {
+        start: task.start,
+        end: task.end,
+        weight: task.duration,
+        weightedProgress: task.duration * task.progress,
+        milestoneCount: Number(task.type === "milestone"),
+        milestoneProgress: task.type === "milestone" ? task.progress : 0,
+        allDescendantsHaveBaseline: hasBaseline,
+        baselineStart: hasBaseline ? (task.baselineStart ?? null) : null,
+        baselineEnd: hasBaseline ? (task.baselineEnd ?? null) : null,
+      };
       output[index] = Object.freeze({ ...task, wbs });
       continue;
     }
@@ -132,11 +148,38 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
       totals.weightedProgress += next.weightedProgress;
       totals.milestoneCount += next.milestoneCount;
       totals.milestoneProgress += next.milestoneProgress;
+      if (!next.allDescendantsHaveBaseline) {
+        totals.allDescendantsHaveBaseline = false;
+        totals.baselineStart = null;
+        totals.baselineEnd = null;
+      } else if (totals.allDescendantsHaveBaseline) {
+        if (totals.baselineStart === null || next.baselineStart! < totals.baselineStart) {
+          totals.baselineStart = next.baselineStart;
+        }
+        if (totals.baselineEnd === null || next.baselineEnd! > totals.baselineEnd) {
+          totals.baselineEnd = next.baselineEnd;
+        }
+      }
     }
     aggregate[index] = totals;
-    output[index] = Object.freeze({ ...task, wbs, start: totals.start, end: totals.end, duration: span(totals.start, totals.end),
+    const summaryBaselineStart = totals.allDescendantsHaveBaseline ? totals.baselineStart : null;
+    const summaryBaselineEnd = totals.allDescendantsHaveBaseline ? totals.baselineEnd : null;
+    const summaryBaselineDuration = summaryBaselineStart && summaryBaselineEnd
+      ? workingDaysBetween(summaryBaselineStart, summaryBaselineEnd, calendar)
+      : null;
+    output[index] = Object.freeze({
+      ...task,
+      wbs,
+      start: totals.start,
+      end: totals.end,
+      duration: span(totals.start, totals.end),
       progress: totals.weight ? totals.weightedProgress / totals.weight : totals.milestoneProgress / totals.milestoneCount,
-      requestedStart: null, scheduleMode: "auto" as const });
+      requestedStart: null,
+      scheduleMode: "auto" as const,
+      baselineStart: summaryBaselineStart,
+      baselineEnd: summaryBaselineEnd,
+      baselineDuration: summaryBaselineDuration,
+    });
   }
   return Object.freeze(output);
 }
