@@ -7,6 +7,7 @@ import type {
   ResourceDto,
   ResourceGroupDto,
 } from "@/contracts/resources";
+import { filterGroups, filterResources } from "./resource-search-filter";
 import styles from "./resource-catalog-admin.module.css";
 
 function isCatalog(value: unknown): value is ResourceCatalogResponse {
@@ -32,6 +33,9 @@ export function ResourceCatalogAdmin() {
   const [groupCode, setGroupCode] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
+  const [resourceQuery, setResourceQuery] = useState("");
+  const [groupQuery, setGroupQuery] = useState("");
+  const [memberQuery, setMemberQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -145,6 +149,7 @@ export function ResourceCatalogAdmin() {
   function selectGroup(group: ResourceGroupDto) {
     setSelectedGroupId(group.id);
     setSelectedMembers(new Set(group.memberResourceIds));
+    setMemberQuery("");
   }
 
   async function saveMembers() {
@@ -185,6 +190,9 @@ export function ResourceCatalogAdmin() {
   }
 
   const selectedGroup = catalog.data.groups.find((group) => group.id === selectedGroupId) ?? null;
+  const filteredResources = filterResources(catalog.data.resources, resourceQuery);
+  const filteredGroups = filterGroups(catalog.data.groups, groupQuery);
+  const filteredMemberResources = filterResources(catalog.data.resources, memberQuery);
 
   return <div className={styles.panel}>
     <div className={styles.toolbar}>
@@ -209,42 +217,102 @@ export function ResourceCatalogAdmin() {
     <div className={styles.columns}>
       <section className={styles.card} aria-labelledby="resources-title">
         <h2 id="resources-title">리소스</h2>
+        <div className={styles.searchBar}>
+          <input
+            placeholder="리소스 검색 (이름 또는 코드)"
+            value={resourceQuery}
+            disabled={busy}
+            onChange={(event) => setResourceQuery(event.target.value)}
+            onKeyDown={(event) => { if (event.key === "Escape") setResourceQuery(""); }}
+            aria-label="리소스 검색"
+          />
+          <span className={styles.matchCount} role="status" aria-live="polite" aria-atomic="true">
+            일치 {filteredResources.length} / 전체 {catalog.data.resources.length}
+          </span>
+        </div>
         <form className={styles.formRow} onSubmit={(event) => void addResource(event)}>
           <label>이름<input value={resourceName} maxLength={200} disabled={busy} onChange={(event) => setResourceName(event.target.value)} /></label>
           <label>코드<input value={resourceCode} maxLength={64} disabled={busy} onChange={(event) => setResourceCode(event.target.value)} /></label>
           <button className="primary-button" type="submit" disabled={busy || !resourceName.trim()}>추가</button>
         </form>
-        <ul className={styles.list}>
-          {catalog.data.resources.map((resource: ResourceDto) => <li key={resource.id} className={`${styles.item} ${resource.active ? "" : styles.inactive}`}>
-            <div><strong>{resource.name}</strong><div className={styles.meta}><span>{resource.code ?? "코드 없음"}</span><span className={styles.badge}>{resource.active ? "활성" : "비활성"}</span></div></div>
-            <button className="secondary-button" type="button" disabled={busy} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
-          </li>)}
-        </ul>
+        {catalog.data.resources.length === 0 ? (
+          <p className={styles.emptyState}>등록된 리소스가 없습니다.</p>
+        ) : filteredResources.length === 0 ? (
+          <p className={styles.emptyState}>검색 조건과 일치하는 리소스가 없습니다.</p>
+        ) : (
+          <ul className={styles.list}>
+            {filteredResources.map((resource: ResourceDto) => <li key={resource.id} className={`${styles.item} ${resource.active ? "" : styles.inactive}`}>
+              <div><strong>{resource.name}</strong><div className={styles.meta}><span>{resource.code ?? "코드 없음"}</span><span className={styles.badge}>{resource.active ? "활성" : "비활성"}</span></div></div>
+              <button className="secondary-button" type="button" disabled={busy} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
+            </li>)}
+          </ul>
+        )}
       </section>
 
       <section className={styles.card} aria-labelledby="groups-title">
         <h2 id="groups-title">리소스 그룹</h2>
+        <div className={styles.searchBar}>
+          <input
+            placeholder="리소스 그룹 검색 (이름 또는 코드)"
+            value={groupQuery}
+            disabled={busy}
+            onChange={(event) => setGroupQuery(event.target.value)}
+            onKeyDown={(event) => { if (event.key === "Escape") setGroupQuery(""); }}
+            aria-label="리소스 그룹 검색"
+          />
+          <span className={styles.matchCount} role="status" aria-live="polite" aria-atomic="true">
+            일치 {filteredGroups.length} / 전체 {catalog.data.groups.length}
+          </span>
+        </div>
         <form className={styles.formRow} onSubmit={(event) => void addGroup(event)}>
           <label>이름<input value={groupName} maxLength={200} disabled={busy} onChange={(event) => setGroupName(event.target.value)} /></label>
           <label>코드<input value={groupCode} maxLength={64} disabled={busy} onChange={(event) => setGroupCode(event.target.value)} /></label>
           <button className="primary-button" type="submit" disabled={busy || !groupName.trim()}>추가</button>
         </form>
-        <ul className={styles.list}>
-          {catalog.data.groups.map((group: ResourceGroupDto) => <li key={group.id} className={`${styles.item} ${group.active ? "" : styles.inactive}`}>
-            <div><strong>{group.name}</strong><div className={styles.meta}><span>{group.code ?? "코드 없음"}</span><span>구성원 {group.memberResourceIds.length}명</span><span className={styles.badge}>{group.active ? "활성" : "비활성"}</span></div></div>
-            <div className={styles.actions}><button className="secondary-button" type="button" disabled={busy} onClick={() => selectGroup(group)}>구성원</button><button className="secondary-button" type="button" disabled={busy} onClick={() => void mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", { active: !group.active })}>{group.active ? "비활성화" : "재활성화"}</button></div>
-          </li>)}
-        </ul>
+        {catalog.data.groups.length === 0 ? (
+          <p className={styles.emptyState}>등록된 리소스 그룹이 없습니다.</p>
+        ) : filteredGroups.length === 0 ? (
+          <p className={styles.emptyState}>검색 조건과 일치하는 리소스 그룹이 없습니다.</p>
+        ) : (
+          <ul className={styles.list}>
+            {filteredGroups.map((group: ResourceGroupDto) => <li key={group.id} className={`${styles.item} ${group.active ? "" : styles.inactive}`}>
+              <div><strong>{group.name}</strong><div className={styles.meta}><span>{group.code ?? "코드 없음"}</span><span>구성원 {group.memberResourceIds.length}명</span><span className={styles.badge}>{group.active ? "활성" : "비활성"}</span></div></div>
+              <div className={styles.actions}><button className="secondary-button" type="button" disabled={busy} onClick={() => selectGroup(group)}>구성원</button><button className="secondary-button" type="button" disabled={busy} onClick={() => void mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", { active: !group.active })}>{group.active ? "비활성화" : "재활성화"}</button></div>
+            </li>)}
+          </ul>
+        )}
       </section>
     </div>
 
     {selectedGroup ? <section className={styles.members} aria-labelledby="members-title">
       <h2 id="members-title">{selectedGroup.name} 구성원</h2>
       <p className={styles.note}>그룹 구성원은 팀 목록이며, 작업의 그룹 할당을 개인 할당으로 자동 복제하지 않습니다.</p>
-      <div className={styles.memberGrid}>
-        {catalog.data.resources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input type="checkbox" checked={selectedMembers.has(resource.id)} disabled={busy} onChange={() => toggleMember(resource.id)} />{resource.name}{resource.code ? ` (${resource.code})` : ""}</label>)}
+      <div className={styles.searchBar}>
+        <input
+          placeholder="구성원 리소스 검색 (이름 또는 코드)"
+          value={memberQuery}
+          disabled={busy}
+          onChange={(event) => setMemberQuery(event.target.value)}
+          onKeyDown={(event) => { if (event.key === "Escape") setMemberQuery(""); }}
+          aria-label={`${selectedGroup.name} 구성원 리소스 검색`}
+        />
+        <span className={styles.matchCount} role="status" aria-live="polite" aria-atomic="true">
+          일치 {filteredMemberResources.length} / 전체 {catalog.data.resources.length} · 선택 {selectedMembers.size}
+        </span>
       </div>
-      <div className={styles.actions}><button className="primary-button" type="button" disabled={busy} onClick={() => void saveMembers()}>구성원 저장</button><button className="secondary-button" type="button" disabled={busy} onClick={() => { setSelectedGroupId(""); setSelectedMembers(new Set()); }}>닫기</button></div>
+      {catalog.data.resources.length === 0 ? (
+        <p className={styles.emptyState}>등록된 리소스가 없습니다.</p>
+      ) : filteredMemberResources.length === 0 ? (
+        <p className={styles.emptyState}>검색 조건과 일치하는 리소스가 없습니다.</p>
+      ) : (
+        <div className={styles.memberGrid}>
+          {filteredMemberResources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input type="checkbox" checked={selectedMembers.has(resource.id)} disabled={busy} onChange={() => toggleMember(resource.id)} />{resource.name}{resource.code ? ` (${resource.code})` : ""}</label>)}
+        </div>
+      )}
+      <div className={styles.memberFooterActions}>
+        <button className="secondary-button" type="button" disabled={busy} onClick={() => { setSelectedGroupId(""); setSelectedMembers(new Set()); setMemberQuery(""); }}>닫기</button>
+        <button className="primary-button" type="button" disabled={busy} onClick={() => void saveMembers()}>구성원 저장</button>
+      </div>
     </section> : null}
   </div>;
 }
