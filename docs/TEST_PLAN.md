@@ -538,7 +538,7 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 - 401/403은 readonly 복귀 또는 재인증 안내, 412는 최신 canonical status 재조회 후 stale draft 폐기, network/5xx는 성공 표시 금지로 검증한다. 같은 Project에서 빠른 중복 조작은 mutation lock으로 직렬화/차단한다.
 - 기존 #138 API/DB status integration 테스트는 그대로 유지하며 신규 migration/API endpoint가 없음을 문서 gate에서 확인한다.
 
-## Issue #202 기준 일정 (Baseline) 관리 및 차트 오버레이 회귀
+## Issue #202 기준 일정 (Baseline) 저장·편집·Grid 회귀
 
 - **마이그레이션 및 DB 영속성**:
   - `0014_task_baseline.sql` 적용 후 `tasks` 테이블에 `baseline_start`, `baseline_duration`, `baseline_end`가 정상 추가되는지 `tests/server/db/database.test.ts` 및 `tests/server/migration-cli.test.ts`에서 검증한다.
@@ -550,11 +550,17 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
   - `tests/features/gantt/task-editor-model.test.ts`: draft 초기화 시 task의 baseline 필드가 채워지는지, "현재 일정으로 복사" 및 "기준 일정 삭제" 액션 시 draft와 payload가 올바르게 구성되는지 검증한다.
   - 마일스톤의 기준 일정 기간 0일 제한 및 유효하지 않은 날짜/기간 입력 거부를 검증한다.
 - **Gantt 어댑터 및 동기화**:
-  - `projectTasksToSvarTasks`가 SVAR ITask 객체에 `base_start`, `base_end`, `base_duration`을 정확히 매핑하는지 검증한다.
+  - `projectTasksToSvarTasks`가 프로젝트 소유 `baselineStart`, `baselineEnd`, `baselineDuration`을 보존하고 SVAR PRO 전용 `base_start`, `base_end`, `base_duration`을 생성하지 않는지 검증한다.
   - `canonical-snapshot-sync.ts`의 `sameTask`가 baseline 변경 사항을 감지하여 `update-task`를 누락 없이 발행하는지 검증한다.
-- **UI 및 차트 오버레이**:
-  - Gantt 툴바의 "기준 일정 보기" 토글(`showBaseline`) 동작과 SVAR `baselines` 연동을 확인한다.
+- **Task Editor 및 Grid UI**:
   - Grid 열 선택 메뉴에서 `baselineStart`, `baselineEnd` 열의 표시/숨김 토글을 확인한다.
+  - Chart 오버레이와 보기 토글은 Issue #253의 Core 공개 API POC 인수 기준을 모두 통과한 뒤에만 구현·검증한다. #202의 저장·편집·Grid PASS를 Chart 표시 PASS로 해석하지 않는다.
+
+## Issue #253 Core Chart Baseline 정렬 POC
+
+- `tests/e2e/baseline-alignment-poc.spec.ts`는 `tests/poc/`의 독립 Core fixture에서 공개 상태·resize-chart 기반 x, 폭, 행 중심 후보와 native DOM oracle을 비교하고 JSON을 attachment로 남긴다. DOM 좌표는 후보 계산 입력으로 사용하지 않는다.
+- 관측 테스트 PASS와 ±1 CSS px 기초 후보 판정은 별개다. 기초 후보 PASS여도 전체 AC를 검증하기 전 `featurePoc`는 NOT TESTED이며, 기초 FAIL이면 제품 구현을 진행하지 않는다.
+- 현재 기초 후보는 FAIL, 나머지 scroll/resizer/collapse/filter/fullscreen/반응형/장기 일정/권한·interaction matrix는 NOT TESTED다. 실행 명령·측정값·문서 영향·후속 결정은 [POC 보고서](ISSUE_253_BASELINE_POC.md)를 따른다.
 
 ## Issue #203 Relation Editor 및 관련 아이템 검색·추가·삭제 회귀
 
