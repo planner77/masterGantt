@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.47.0] - 2026-09-28
+
+### Added
+
+- Issue #231: 프로젝트 화면 '정보' 및 '더보기' 팝오버 포커스 이탈 시 자동 닫힘 개선.
+  - 외부 인터랙션 및 포커스 감지 (`src/features/projects/project-readonly-view.tsx`):
+    - `infoPopoverOpen` state 및 `infoPopoverReference` 추가로 상태 제어 일원화.
+    - document 레벨의 `pointerdown` 및 `focusin` 이벤트 리스너를 통해, 사용자가 팝오버 외부 영역을 클릭하거나 키보드 Tab 등으로 포커스를 이동했을 때 자동으로 팝오버가 닫히도록 개선.
+    - 팝오버 내부 자식 요소(버튼, 링크, 입력창 등)로의 포커스 이동은 유지하여 내부 조작 가능성 보장.
+    - 모달 다이얼로그(`dialog, [role="dialog"]`) 조작 시 부수적인 팝오버 닫힘 이벤트 충돌 방지.
+  - 상호 배타적 오픈 및 접근성:
+    - '정보'와 '더보기'가 동시에 열리지 않도록 상호 배타적 토글 핸들러 적용.
+    - 동일 버튼 클릭 시 기존의 열기/닫기(toggle) 동작 보존.
+    - `Escape` 키 입력 시 열려 있는 팝오버가 즉시 닫히는 표준 접근성 동작 유지.
+  - Review 보완: 외부 클릭, Tab 포커스 이탈, disclosure 상호 배타, 복사 Dialog 예외를 Playwright E2E로 검증.
+
 ## [0.46.0] - 2026-09-28
 
 ### Added

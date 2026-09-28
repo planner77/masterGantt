@@ -173,6 +173,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
+  const [infoPopoverOpen, setInfoPopoverOpen] = useState(false);
   const [activeView, setActiveView] = useState<"schedule" | "resources" | "logistics">("schedule");
   const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
   const [taskFilterOpen, setTaskFilterOpen] = useState(false);
@@ -200,8 +201,46 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const resourceTabReference = useRef<HTMLButtonElement | null>(null);
   const logisticsTabReference = useRef<HTMLButtonElement | null>(null);
   const actionMenuReference = useRef<HTMLDetailsElement | null>(null);
+  const infoPopoverReference = useRef<HTMLDetailsElement | null>(null);
   const taskSearchReference = useRef<HTMLInputElement | null>(null);
   const taskFilterTriggerReference = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (!infoPopoverOpen && !actionMenuOpen) return;
+
+    function handleOutsidePointer(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (target instanceof Element && target.closest('dialog, [role="dialog"]')) return;
+
+      if (infoPopoverOpen && infoPopoverReference.current && !infoPopoverReference.current.contains(target)) {
+        setInfoPopoverOpen(false);
+      }
+      if (actionMenuOpen && actionMenuReference.current && !actionMenuReference.current.contains(target)) {
+        setActionMenuOpen(false);
+      }
+    }
+
+    function handleOutsideFocus(event: FocusEvent) {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (target instanceof Element && target.closest('dialog, [role="dialog"]')) return;
+
+      if (infoPopoverOpen && infoPopoverReference.current && !infoPopoverReference.current.contains(target)) {
+        setInfoPopoverOpen(false);
+      }
+      if (actionMenuOpen && actionMenuReference.current && !actionMenuReference.current.contains(target)) {
+        setActionMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handleOutsidePointer);
+    document.addEventListener("focusin", handleOutsideFocus);
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsidePointer);
+      document.removeEventListener("focusin", handleOutsideFocus);
+    };
+  }, [infoPopoverOpen, actionMenuOpen]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -744,6 +783,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const details = event.currentTarget;
     details.open = false;
     if (details === actionMenuReference.current) setActionMenuOpen(false);
+    if (details === infoPopoverReference.current) setInfoPopoverOpen(false);
     requestAnimationFrame(() => details.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true }));
   };
   const resetTaskFilter = () => {
@@ -766,7 +806,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
           </select> : <span className="project-lifecycle-badge" data-status={project.status} aria-label={`프로젝트 상태: ${projectStatusLabel(project.status)}`}>{projectStatusLabel(project.status)}</span>}
           <span className={editing ? "edit-badge" : "readonly-badge"}>{editing ? "편집 중" : "읽기 전용"}</span>
-          <details className="project-info-popover" onKeyDown={closeContextDisclosureOnEscape}>
+          <details
+            className="project-info-popover"
+            ref={infoPopoverReference}
+            open={infoPopoverOpen}
+            onToggle={(event) => {
+              const nextOpen = event.currentTarget.open;
+              setInfoPopoverOpen(nextOpen);
+              if (nextOpen && actionMenuOpen) setActionMenuOpen(false);
+            }}
+            onKeyDown={closeContextDisclosureOnEscape}
+          >
             <summary aria-label="프로젝트 정보 보기">정보</summary>
             <div className="project-info-panel">
               <dl>
@@ -794,7 +844,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           disabled={isUnlocking || permissionCheckState === "checking"}
           onClick={() => setUnlockOpen(true)}
         >{permissionCheckState === "checking" ? "권한 확인 중…" : "편집 잠금 해제"}</button>}
-        <details className="project-action-menu" ref={actionMenuReference} open={actionMenuOpen} onToggle={(event) => setActionMenuOpen(event.currentTarget.open)} onKeyDown={closeContextDisclosureOnEscape}>
+        <details
+          className="project-action-menu"
+          ref={actionMenuReference}
+          open={actionMenuOpen}
+          onToggle={(event) => {
+            const nextOpen = event.currentTarget.open;
+            setActionMenuOpen(nextOpen);
+            if (nextOpen && infoPopoverOpen) setInfoPopoverOpen(false);
+          }}
+          onKeyDown={closeContextDisclosureOnEscape}
+        >
           <summary aria-label="프로젝트 작업 더보기">더보기</summary>
           <div className="project-action-menu-panel">
             <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} onAutoOpen={() => setActionMenuOpen(true)} />

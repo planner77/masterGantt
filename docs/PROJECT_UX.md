@@ -456,3 +456,17 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 - 48rem 이하에서는 프로젝트 정보와 날짜 조건 행을 세로 배치하고, From/To는 동일 폭 2열로 유지한다. 28rem 이하에서는 날짜 입력을 1열로 전환한다.
 - global filter label 스타일과 충돌하지 않도록 local selector specificity를 확보하며, 공용 `secondary-button`은 `:global(.secondary-button)`으로 선택한다.
 - 기존 Project List 필터 predicate, validation/timezone, Escape focus restore, API/DB/revision 계약은 변경하지 않는다.
+
+## Issue #231 프로젝트 화면 '정보'/'더보기' 팝오버 포커스 이탈 시 자동 닫힘
+
+- **외부 인터랙션 및 포커스 이탈 감지**:
+  - 헤더 영역의 '정보' 및 '더보기' disclosure를 controlled state(`infoPopoverOpen`, `actionMenuOpen`)로 관리한다.
+  - `document` 레벨의 `pointerdown` 및 `focusin` 이벤트 리스너로 클릭 또는 키보드 `Tab` 이동이 trigger + popup 영역 밖으로 벗어나면 자동으로 닫는다.
+  - 팝오버 내부의 버튼, 링크, 입력 요소 사이 포커스 이동은 유지하여 내부 조작 가능성을 보장한다.
+  - 모달 다이얼로그(`dialog`, `[role="dialog"]`) 내부 상호작용은 outside interaction으로 처리하지 않는다.
+- **상호 배타적 오픈 및 접근성**:
+  - '정보'와 '더보기'는 동시에 열리지 않으며, 다른 disclosure를 열면 기존 disclosure를 닫는다.
+  - 동일 trigger 클릭의 toggle 동작과 `Escape` 닫기/trigger 포커스 복원 동작을 유지한다.
+- **회귀 검증**:
+  - Playwright E2E에서 외부 pointer 닫힘, Tab/focus 이탈 닫힘, disclosure 상호 배타, 프로젝트 복사 Dialog 내부 조작 예외를 검증한다.
+
