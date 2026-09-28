@@ -9,6 +9,7 @@ const apiPath = `/api/projects/${publicId}`;
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const row = (page: Page, name: string) => page.locator(".project-gantt-widget .wx-row").filter({ has: page.getByText(name, { exact: true }).filter({ visible: true }) }).first();
 const bar = (page: Page, taskId: string) => page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${taskId}"]`);
+const summaryToggle = (page: Page) => page.locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${id(1)}"] [data-action="open-task"]`).filter({ visible: true }).first();
 const editor = (page: Page) => page.getByRole("dialog", { name: "작업 정보", exact: true });
 const save = (page: Page) => editor(page).getByRole("button", { name: "저장", exact: true });
 const frame = (page: Page) => page.locator(".project-gantt-frame");
@@ -157,7 +158,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await header.getByText("작업", { exact: true }).click();
     await openRow(page, "Alpha leaf");
     await cancel(page);
-    await row(page, "Summary").locator('[data-action="open-task"]').click();
+    await summaryToggle(page).click();
     await openRow(page, "Summary");
     await expect(save(page)).toHaveCount(0);
     await expect(editor(page)).toContainText("하위 작업으로 계산");
@@ -181,7 +182,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(prevented).toBe(false);
     await expect(taskContextMenu(page)).toHaveCount(0);
     await expect(editor(page)).toHaveCount(0);
-    await row(page, "Summary").locator('[data-action="open-task"]').click();
+    await summaryToggle(page).click();
     await expect(row(page, "Beta leaf").getByText("Beta leaf", { exact: true })).toBeVisible();
     for (let i = 0; i < 3; i += 1) { await openRow(page); await cancel(page); }
     await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
