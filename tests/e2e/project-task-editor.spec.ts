@@ -7,9 +7,10 @@ import { chooseTaskInformation, taskContextMenu } from "./helpers/task-context-m
 const publicId = "a3405d3d-8cb4-4da4-9b0f-43a5de330004";
 const apiPath = `/api/projects/${publicId}`;
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
-const row = (page: Page, name: string) => page.locator(".project-gantt-widget .wx-row").filter({ has: page.getByText(name, { exact: true }).filter({ visible: true }) }).first();
+const row = (page: Page, name: string) => page.locator(".project-gantt-widget .wx-row", { hasText: name }).first();
 const bar = (page: Page, taskId: string) => page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${taskId}"]`);
-const summaryToggle = (page: Page) => page.locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${id(1)}"] [data-action="open-task"]`).filter({ visible: true }).first();
+const rowByTaskId = (page: Page, taskId: string) => page.locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
+const summaryToggle = (page: Page) => rowByTaskId(page, id(1)).locator('[data-action="open-task"]');
 const editor = (page: Page) => page.getByRole("dialog", { name: "작업 정보", exact: true });
 const save = (page: Page) => editor(page).getByRole("button", { name: "저장", exact: true });
 const frame = (page: Page) => page.locator(".project-gantt-frame");
@@ -111,7 +112,8 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
 }
 
 async function openRow(page: Page, name = "Beta leaf") {
-  await row(page, name).getByText(name, { exact: true }).click({ button: "right" });
+  const targetRow = name === "Beta leaf" ? rowByTaskId(page, id(4)) : name === "Summary" ? rowByTaskId(page, id(1)) : row(page, name);
+  await targetRow.getByText(name, { exact: true }).click({ button: "right" });
   await chooseTaskInformation(page);
   await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue(name);
   await expect(editor(page)).toHaveCount(1);
@@ -183,7 +185,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(taskContextMenu(page)).toHaveCount(0);
     await expect(editor(page)).toHaveCount(0);
     await summaryToggle(page).click();
-    await expect(row(page, "Beta leaf").getByText("Beta leaf", { exact: true })).toBeVisible();
+    await expect(rowByTaskId(page, id(4)).getByText("Beta leaf", { exact: true })).toBeVisible();
     for (let i = 0; i < 3; i += 1) { await openRow(page); await cancel(page); }
     await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
     expect(fixture.patches).toHaveLength(0);
