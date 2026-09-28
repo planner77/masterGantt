@@ -7,7 +7,7 @@ import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectSaveAsTemplateButton } from "@/features/templates/project-save-as-template-button";
 import { ProjectExcelExportButton } from "@/features/projects/project-excel-export-button";
 import { ProjectWorkCalendarEditor } from "@/features/projects/project-work-calendar-editor";
-import { EMPTY_TASK_FILTER, activeTaskFilterCount, filterTasksWithAncestors, type TaskFilterState } from "@/features/projects/project-search-filter";
+import { EMPTY_TASK_FILTER, activeTaskFilterCount, applyTaskQuickView, filterTasksWithAncestors, getTaskQuickView, type TaskFilterState } from "@/features/projects/project-search-filter";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
 import feedbackStyles from "@/components/workspace-feedback.module.css";
@@ -37,7 +37,7 @@ type LoadState = { status: "loading" } | { status: "ready"; snapshot: ProjectSna
 type Permission = "readonly" | "edit";
 type PermissionCheckState = "checking" | "complete";
 type PendingTaskDelete = TaskDeletePlan & Readonly<{ revision: number }>;
-const INITIAL_COLUMN_VISIBILITY: ProjectGridColumnVisibility = { text: true, externalId: false, projectStart: true, projectDuration: true, baselineStart: false, baselineEnd: false };
+const INITIAL_COLUMN_VISIBILITY: ProjectGridColumnVisibility = { text: true, externalId: false, projectStart: true, projectDuration: true };
 
 function isSnapshot(value: unknown): value is ProjectSnapshotResponse {
   if (typeof value !== "object" || value === null || !("data" in value)) return false;
@@ -99,7 +99,16 @@ function snapshotFromMetadataMutation(value: unknown): ProjectSnapshotResponse |
   if (!data || typeof data !== "object" || !data.project || typeof data.project !== "object" || !Array.isArray(data.tasks) ||
     !Array.isArray(data.links) || !Array.isArray(data.warnings) || !data.operation || data.operation.kind !== "projectMetadata" ||
     !Array.isArray(data.operation.changedFields)) return null;
-  return { data: { project: data.project, tasks: data.tasks, links: data.links, permission: "readonly" } };
+  return {
+    data: {
+      project: data.project,
+      tasks: data.tasks,
+      links: data.links,
+      ...(data.assignments ? { assignments: data.assignments } : {}),
+      ...(data.logistics ? { logistics: data.logistics } : {}),
+      permission: "readonly",
+    },
+  };
 }
 function snapshotFromTaskMutation(value: unknown): ProjectSnapshotResponse | null {
   if (typeof value !== "object" || value === null) return null;
@@ -109,7 +118,16 @@ function snapshotFromTaskMutation(value: unknown): ProjectSnapshotResponse | nul
     !data.operation || !["taskCreate", "taskUpdate", "taskDelete", "taskHierarchy"].includes(data.operation.kind) ||
     !Array.isArray(data.operation.changedTaskExternalIds) || !Array.isArray(data.operation.deletedTaskExternalIds) ||
     !Array.isArray(data.operation.deletedLinkIds)) return null;
-  return { data: { project: data.project, tasks: data.tasks, links: data.links, permission: "readonly" } };
+  return {
+    data: {
+      project: data.project,
+      tasks: data.tasks,
+      links: data.links,
+      ...(data.assignments ? { assignments: data.assignments } : {}),
+      ...(data.logistics ? { logistics: data.logistics } : {}),
+      permission: "readonly",
+    },
+  };
 }
 function snapshotFromLinkMutation(value: unknown): ProjectSnapshotResponse | null {
   if (typeof value !== "object" || value === null) return null;
@@ -117,7 +135,16 @@ function snapshotFromLinkMutation(value: unknown): ProjectSnapshotResponse | nul
   if (!data || typeof data !== "object" || !data.project || !Array.isArray(data.tasks) ||
     !Array.isArray(data.links) || !Array.isArray(data.warnings) || !data.operation ||
     !["linkCreate", "linkDelete"].includes(data.operation.kind)) return null;
-  return { data: { project: data.project, tasks: data.tasks, links: data.links, permission: "readonly" } };
+  return {
+    data: {
+      project: data.project,
+      tasks: data.tasks,
+      links: data.links,
+      ...(data.assignments ? { assignments: data.assignments } : {}),
+      ...(data.logistics ? { logistics: data.logistics } : {}),
+      permission: "readonly",
+    },
+  };
 }
 
 
@@ -595,7 +622,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     linkId?: string,
     linkPatch?: { type?: DependencyType; lag?: number },
   ) {
-    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return;
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return false;
     taskMutationReference.current = true; setIsSavingTask(true); clearToast();
     try {
       const source = sourceTaskId ? state.snapshot.data.tasks.find((task) => task.taskId === sourceTaskId) : undefined;
@@ -618,11 +645,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       const snapshot = snapshotFromLinkMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
         notify("success", method === "POST" ? "작업 관계를 저장했습니다." : method === "PATCH" ? "작업 관계를 변경했습니다." : "작업 관계를 삭제했습니다.", "작업 관계");
-        return;
+        return true;
       }
       await handleTaskFailure(response.status, body, "작업 관계를 변경할 수 없습니다.", "작업 관계");
+      return false;
     } catch {
       await handleTaskFailure(undefined, null, "작업 관계를 변경하지 못했습니다. 최신 서버 상태로 복구합니다.", "작업 관계");
+      return false;
     } finally {
       taskMutationReference.current = false; setIsSavingTask(false);
     }
@@ -631,19 +660,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   function activateWorkspaceView(view: "schedule" | "resources" | "logistics") {
     setActiveView(view);
     requestAnimationFrame(() => {
-      const ref =
-        view === "schedule"
-          ? scheduleTabReference.current
-          : view === "resources"
-            ? resourceTabReference.current
-            : logisticsTabReference.current;
+      const ref = view === "schedule" ? scheduleTabReference.current : view === "resources" ? resourceTabReference.current : logisticsTabReference.current;
       ref?.focus({ preventScroll: true });
     });
   }
-  function handleWorkspaceTabKeyDown(
-    event: ReactKeyboardEvent<HTMLButtonElement>,
-    current: "schedule" | "resources" | "logistics",
-  ) {
+  function handleWorkspaceTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, current: "schedule" | "resources" | "logistics") {
     const views: Array<"schedule" | "resources" | "logistics"> = ["schedule", "resources", "logistics"];
     const idx = views.indexOf(current);
     let next: "schedule" | "resources" | "logistics" | null = null;
@@ -662,6 +683,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const { project, tasks, links, assignments, logistics } = state.snapshot.data;
   const filteredTasks = filterTasksWithAncestors(tasks, taskFilter, assignments, logistics);
   const activeFilters = activeTaskFilterCount(taskFilter);
+  const quickView = getTaskQuickView(taskFilter.types);
   const visibleTaskIds = filteredTasks.tasks.map((task) => task.taskId);
   const normalizedTargetQuery = targetPickerQuery.trim().toLocaleLowerCase();
   const selectableAssignedTargets = assignedTargets.filter((target) =>
@@ -807,6 +829,32 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           <button className="secondary-button project-filter-trigger" type="button" aria-controls="project-task-filter-panel" aria-expanded={taskFilterOpen} ref={taskFilterTriggerReference} onClick={() => setTaskFilterOpen((open) => !open)}>
             필터{activeFilters ? ` ${activeFilters}` : ""}
           </button>
+          <div className="project-filter-quick-views" role="group" aria-label="작업 유형 빠른 보기">
+            <button
+              type="button"
+              className={`project-filter-quick-button${quickView === "all" ? " is-active" : ""}`}
+              aria-pressed={quickView === "all"}
+              onClick={() => setTaskFilter((current) => applyTaskQuickView(current, "all"))}
+            >
+              전체
+            </button>
+            <button
+              type="button"
+              className={`project-filter-quick-button${quickView === "task" ? " is-active" : ""}`}
+              aria-pressed={quickView === "task"}
+              onClick={() => setTaskFilter((current) => applyTaskQuickView(current, "task"))}
+            >
+              Task
+            </button>
+            <button
+              type="button"
+              className={`project-filter-quick-button${quickView === "milestone" ? " is-active" : ""}`}
+              aria-pressed={quickView === "milestone"}
+              onClick={() => setTaskFilter((current) => applyTaskQuickView(current, "milestone"))}
+            >
+              Milestone
+            </button>
+          </div>
           {activeFilters > 0 ? <button className="secondary-button project-filter-reset" type="button" onClick={resetTaskFilter}>초기화</button> : null}
           <span className="project-filter-result" role="status">{filteredTasks.matchCount}개 일치 / 전체 {tasks.length}개 작업</span>
         </div>
@@ -952,30 +1000,15 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           onLogisticsMutated={(newLogistics, newProject) => {
             setState((current) => {
               if (current.status !== "ready") return current;
-              return {
-                ...current,
-                snapshot: {
-                  ...current.snapshot,
-                  data: {
-                    ...current.snapshot.data,
-                    project: newProject,
-                    logistics: newLogistics,
-                  },
-                },
-              };
+              return { ...current, snapshot: { ...current.snapshot, data: { ...current.snapshot.data, project: newProject, logistics: newLogistics } } };
             });
             notify("success", "물류 구성 변경 사항을 저장했습니다.", "물류 구성");
           }}
-          onRequireRefresh={() => {
-            void reloadCanonicalSnapshot();
-          }}
+          onRequireRefresh={() => { void reloadCanonicalSnapshot(); }}
           onNavigateToSchedule={(targetFilter) => {
             setActiveView("schedule");
             if (targetFilter) {
-              setTaskFilter((prev) => ({
-                ...prev,
-                ...targetFilter,
-              }));
+              setTaskFilter((prev) => ({ ...prev, ...targetFilter }));
             }
           }}
           onUnauthorized={() => { setPermission("readonly"); setPermissionCheckState("complete"); }}
