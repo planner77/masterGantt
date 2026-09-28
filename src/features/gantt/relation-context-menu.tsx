@@ -10,6 +10,7 @@ export interface RelationContextMenuProps {
   readonly onSave: (linkId: string, patch: { type: DependencyType; lag: number }) => Promise<boolean>;
   readonly onDelete: (linkId: string) => Promise<void>;
   readonly onClose: () => void;
+  readonly onOpenEditor?: (linkId: string) => void;
 }
 
 const DEPENDENCY_TYPE_LABELS: Record<DependencyType, string> = {
@@ -28,6 +29,7 @@ export function RelationContextMenu({
   onSave,
   onDelete,
   onClose,
+  onOpenEditor,
 }: RelationContextMenuProps) {
   const titleId = useId();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -127,6 +129,21 @@ export function RelationContextMenu({
           ✕
         </button>
       </div>
+
+      {onOpenEditor ? (
+        <div style={{ padding: "0.5rem 0.75rem 0.25rem", borderBottom: "1px solid var(--border-default)" }}>
+          <button
+            className="project-relation-manage-btn"
+            onClick={() => {
+              onClose();
+              onOpenEditor(linkId);
+            }}
+            type="button"
+          >
+            관계 관리... (Relation Editor)
+          </button>
+        </div>
+      ) : null}
 
       <div className="project-relation-context-menu-body">
         <div className="project-relation-endpoints">
