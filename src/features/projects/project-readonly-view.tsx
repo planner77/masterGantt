@@ -6,7 +6,7 @@ import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectSaveAsTemplateButton } from "@/features/templates/project-save-as-template-button";
 import { ProjectExcelExportButton } from "@/features/projects/project-excel-export-button";
-import { ProjectWorkCalendarEditor } from "@/features/projects/project-work-calendar-editor";
+import { ProjectSettingsDialog } from "@/features/projects/project-settings-dialog";
 import { EMPTY_TASK_FILTER, activeTaskFilterCount, applyTaskQuickView, filterTasksWithAncestors, getTaskQuickView, type TaskFilterState } from "@/features/projects/project-search-filter";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { WorkspaceNotifications, useWorkspaceNotifications } from "@/components/workspace-notifications";
@@ -1150,26 +1150,31 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         </div>
       </div>
     </WorkspaceDialog> : null}
-    {settingsOpen && editing ? <WorkspaceDialog title="프로젝트 설정" onClose={() => { if (!busy) { setSettingsOpen(false); setNewPassword(""); } }} busy={busy}>
-      <ProjectWorkCalendarEditor publicId={publicId} revision={project.revision} disabled={busy}
-        onSaved={reloadCanonicalSnapshot}
-        onUnauthorized={() => { closeSettingsAsReadonly(); notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "작업 캘린더 저장"); }}
-        onConflict={(body) => conflict("작업 캘린더 저장", body)} notify={notify} />
-      <form className="project-form compact-form" noValidate onSubmit={saveMetadata}>
-        <div className="form-field"><label htmlFor="metadata-name">프로젝트 이름</label><input disabled={busy} id="metadata-name" onChange={(event) => setMetadataName(event.target.value)} value={metadataName} /></div>
-        <div className="form-field"><label htmlFor="metadata-description">설명</label><textarea disabled={busy} id="metadata-description" onChange={(event) => setMetadataDescription(event.target.value)} rows={3} value={metadataDescription} /></div>
-        <div className="form-field"><label htmlFor="metadata-status">프로젝트 상태</label>
-          <select disabled={busy} id="metadata-status" value={metadataStatus} onChange={(event) => setMetadataStatus(event.target.value as ProjectStatus)}>
-            {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-          </select>
-        </div>
-        <button className="primary-button" disabled={busy} type="submit">{isSavingMetadata ? "저장 중…" : "프로젝트 정보 저장"}</button>
-      </form>
-      <form className="project-form compact-form" noValidate onSubmit={changePassword}>
-        <div className="form-field"><label htmlFor="new-edit-password">새 편집 비밀번호</label><input autoComplete="new-password" disabled={busy} id="new-edit-password" minLength={1} onChange={(event) => setNewPassword(event.target.value)} type="password" value={newPassword} /><p>1~12자로 입력해 주세요.</p></div>
-        <button className="secondary-button" disabled={busy} type="submit">{isChangingPassword ? "변경 중…" : "편집 비밀번호 변경"}</button>
-      </form>
-      <button className="secondary-button logout-button" disabled={busy} onClick={() => void logout()} type="button">{isLoggingOut ? "종료 중…" : "편집 모드 종료"}</button>
-    </WorkspaceDialog> : null}
+    <ProjectSettingsDialog
+      open={settingsOpen && editing}
+      onClose={() => { if (!busy) { setSettingsOpen(false); setNewPassword(""); } }}
+      busy={busy}
+      restoreFocusRef={settingsTriggerReference}
+      publicId={publicId}
+      revision={project.revision}
+      metadataName={metadataName}
+      metadataDescription={metadataDescription}
+      metadataStatus={metadataStatus}
+      onMetadataNameChange={setMetadataName}
+      onMetadataDescriptionChange={setMetadataDescription}
+      onMetadataStatusChange={setMetadataStatus}
+      onSaveMetadata={saveMetadata}
+      isSavingMetadata={isSavingMetadata}
+      newPassword={newPassword}
+      onNewPasswordChange={setNewPassword}
+      onChangePassword={changePassword}
+      isChangingPassword={isChangingPassword}
+      onLogout={() => void logout()}
+      isLoggingOut={isLoggingOut}
+      onCalendarSaved={reloadCanonicalSnapshot}
+      onCalendarUnauthorized={() => { closeSettingsAsReadonly(); notify("error", "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.", "작업 캘린더 저장"); }}
+      onCalendarConflict={(body) => conflict("작업 캘린더 저장", body)}
+      notify={notify}
+    />
   </section>;
 }

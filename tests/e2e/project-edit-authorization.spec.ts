@@ -140,6 +140,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   }
 
   await page.getByText("프로젝트 설정", { exact: true }).click();
+  await page.getByRole("tab", { name: "편집·보안" }).click();
   await page.getByLabel("새 편집 비밀번호").fill(rotatedPassword);
   await page.getByRole("button", { name: "편집 비밀번호 변경" }).click();
   await expect(page.getByTestId("workspace-toast")).toContainText("변경했습니다");
@@ -173,6 +174,7 @@ test("keeps direct reads readonly and enforces the W05 edit session lifecycle", 
   }
 
   await page.getByText("프로젝트 설정", { exact: true }).click();
+  await page.getByRole("tab", { name: "편집·보안" }).click();
   await page.getByRole("button", { name: "편집 모드 종료" }).click();
   await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
   await expect(page.getByTestId("workspace-toast")).toContainText("종료했습니다");

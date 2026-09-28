@@ -1,19 +1,38 @@
 .itemFieldset {
   display: grid;
-  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  align-items: end;
   min-width: 0;
   margin: 0.75rem 0;
-  padding: 0.75rem;
+  padding: 0.875rem 1rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  background: var(--surface-subtle, rgba(0, 0, 0, 0.015));
 }
 .itemFieldset legend { padding: 0 0.25rem; font-weight: 650; }
+.fullRow { grid-column: 1 / -1; }
+.actionsRow {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
 .field { display: grid; gap: 0.3rem; min-width: 0; }
 .field input, .field select { min-width: 0; width: 100%; }
-.dateFields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0.5rem; }
+.dateFields {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+}
 .fieldError { color: var(--status-error); font-size: 0.82rem; }
 .validationSummary { padding: 0.75rem; border-radius: var(--radius); background: var(--status-error-surface); color: var(--status-error); }
 .validationSummary ul { margin: 0.35rem 0 0; padding-left: 1.2rem; }
 .validationSummary button { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; text-decoration: underline; cursor: pointer; }
 .validationSummary:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
-@media (max-width: 48rem) { .dateFields { grid-template-columns: minmax(0,1fr); } }
+@media (max-width: 48rem) {
+  .itemFieldset { grid-template-columns: 1fr; }
+  .dateFields { grid-template-columns: 1fr; }
+}
+

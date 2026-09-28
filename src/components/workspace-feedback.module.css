@@ -23,6 +23,9 @@
   padding: 1.25rem; border: 1px solid var(--border); border-radius: 0.75rem;
   background: var(--card); color: var(--foreground); overflow-wrap: anywhere;
 }
+.dialogWide {
+  width: min(60rem, calc(100vw - 2rem));
+}
 .dialog::backdrop { background: #172b4440; }
 .dialogHeading { display: flex; align-items: start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
 .dialogHeading h2 { margin: 0; font-size: 1.125rem; }

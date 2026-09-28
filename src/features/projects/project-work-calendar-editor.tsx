@@ -289,7 +289,9 @@ export function ProjectWorkCalendarEditor({
           <label className={styles.field}>시작일 <input id={`calendar-rule-${rule.key}-from`} aria-label={`국가 규칙 ${index+1} 시작일`} aria-invalid={showValidation&&issues.some((issue)=>issue.id===`calendar-rule-${rule.key}-from`)} aria-describedby={showValidation&&issues.some((issue)=>issue.id===`calendar-rule-${rule.key}-from`)?`calendar-rule-${rule.key}-from-error`:undefined} type="date" value={rule.effectiveFrom} onChange={(event)=>changeCountryRules((items)=>items.map((item)=>item.key===rule.key?{...item,effectiveFrom:event.target.value}:item))}/>{showValidation?issues.filter((issue)=>issue.id===`calendar-rule-${rule.key}-from`).map((issue)=><span className={styles.fieldError} id={`${issue.id}-error`} key={issue.id}>{issue.message}</span>):null}</label>
           <label className={styles.field}>종료일 <input id={`calendar-rule-${rule.key}-to`} aria-label={`국가 규칙 ${index+1} 종료일`} aria-invalid={showValidation&&issues.some((issue)=>issue.id===`calendar-rule-${rule.key}-to`)} aria-describedby={showValidation&&issues.some((issue)=>issue.id===`calendar-rule-${rule.key}-to`)?`calendar-rule-${rule.key}-to-error`:undefined} type="date" value={rule.effectiveTo} onChange={(event)=>changeCountryRules((items)=>items.map((item)=>item.key===rule.key?{...item,effectiveTo:event.target.value}:item))}/>{showValidation?issues.filter((issue)=>issue.id===`calendar-rule-${rule.key}-to`).map((issue)=><span className={styles.fieldError} id={`${issue.id}-error`} key={issue.id}>{issue.message}</span>):null}</label>
         </div>:null}
-        <button className="secondary-button" type="button" onClick={()=>changeCountryRules((items)=>items.filter((item)=>item.key!==rule.key))}>국가 규칙 삭제 {index+1}</button>
+        <div className={styles.actionsRow}>
+          <button className="secondary-button" type="button" onClick={()=>changeCountryRules((items)=>items.filter((item)=>item.key!==rule.key))}>국가 규칙 삭제 {index+1}</button>
+        </div>
       </fieldset>)}
       <button className="secondary-button" type="button" disabled={countries.length===0} onClick={()=>changeCountryRules((items)=>[...items,{key:key(),countryCode:(countries[0]?.code??"KR"),scope:"FULL_PROJECT",effectiveFrom:"",effectiveTo:""}])}>국가 규칙 추가</button>
     </fieldset>
@@ -306,7 +308,9 @@ export function ProjectWorkCalendarEditor({
           <option value="">대상을 선택하세요</option>
           {targets.filter((target)=>target.kind===(entry.targetType==="RESOURCE"?"resource":"group")).map((target)=><option key={target.id} value={target.id}>{target.name}{target.code?` (${target.code})`:""}</option>)}
         </select>{showValidation?issues.filter((issue)=>issue.id===`calendar-date-${entry.key}-target`).map((issue)=><span className={styles.fieldError} id={`${issue.id}-error`} key={issue.id}>{issue.message}</span>):null}</label>:null}
-        <button className="secondary-button" type="button" onClick={()=>changeCustomDates((items)=>items.filter((item)=>item.key!==entry.key))}>휴무일 삭제 {index+1}</button>
+        <div className={styles.actionsRow}>
+          <button className="secondary-button" type="button" onClick={()=>changeCustomDates((items)=>items.filter((item)=>item.key!==entry.key))}>휴무일 삭제 {index+1}</button>
+        </div>
       </fieldset>)}
       <button className="secondary-button" type="button" onClick={()=>changeCustomDates((items)=>[...items,{key:key(),name:"",date:"",targetType:"PROJECT",targetId:""}])}>휴무일 추가</button>
     </fieldset>

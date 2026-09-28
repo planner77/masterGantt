@@ -4,9 +4,10 @@ import { useContext, useEffect, useId, useRef, type ReactNode, type RefObject } 
 import { WorkspaceMessageContext } from "./workspace-message-context";
 import styles from "./workspace-feedback.module.css";
 
-export function WorkspaceDialog({ title, children, onClose, busy = false, feedback = true, restoreFocusRef }: Readonly<{
+export function WorkspaceDialog({ title, children, onClose, busy = false, feedback = true, restoreFocusRef, size = "standard" }: Readonly<{
   title: string; children: ReactNode; onClose: () => void; busy?: boolean; feedback?: boolean;
   restoreFocusRef?: RefObject<HTMLElement | null>;
+  size?: "standard" | "wide";
 }>) {
   const reference = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -26,7 +27,7 @@ export function WorkspaceDialog({ title, children, onClose, busy = false, feedba
       if (trigger?.isConnected) trigger.focus({ preventScroll: true });
     };
   }, [restoreFocusRef]);
-  return <dialog ref={reference} className={styles.dialog} aria-labelledby={titleId}
+  return <dialog ref={reference} className={`${styles.dialog} ${size === "wide" ? styles.dialogWide : ""}`} aria-labelledby={titleId}
     onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}>
     <div className={styles.dialogHeading}>
       <h2 id={titleId}>{title}</h2>

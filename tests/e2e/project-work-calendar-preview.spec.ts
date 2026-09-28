@@ -13,6 +13,7 @@ async function openCalendar(page: import("@playwright/test").Page, baseURL: stri
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "프로젝트 설정", exact: true });
+  await dialog.getByRole("tab", { name: "작업 캘린더" }).click();
   await expect(dialog.getByRole("button", { name: "미리보기 계산" })).toBeVisible();
   return { publicId, dialog };
 }
@@ -128,6 +129,7 @@ test("모든 초안 변경은 결과를 무효화하고 실패·재시도·늦�
   await expect(country).toBeDisabled();
   await expect(dialog.getByText("적용 날짜 미리보기")).toHaveCount(0);
   await expect.poll(()=>Boolean(releaseHeld)).toBe(true);
+  await dialog.getByRole("tab", { name: "기본 정보" }).click();
   const name = dialog.getByLabel("프로젝트 이름");
   await name.fill("Calendar preview revision changed");
   const metadataResponse = page.waitForResponse((response) => response.request().method() === "PATCH" && new URL(response.url()).pathname === `/api/projects/${publicId}`);
@@ -141,6 +143,7 @@ test("모든 초안 변경은 결과를 무효화하고 실패·재시도·늦�
   releaseHeld?.();
   await expect(page.getByText("Calendar preview revision changed", {exact:true}).first()).toBeVisible();
   await page.getByRole("button", {name:"프로젝트 설정",exact:true}).click();
+  await dialog.getByRole("tab", { name: "작업 캘린더" }).click();
   await expect(dialog.getByRole("button", {name:"미리보기 계산"})).toBeVisible();
   mode="normal";
   await calculate();
@@ -164,6 +167,7 @@ test("모든 초안 변경은 결과를 무효화하고 실패·재시도·늦�
   await expect(dialog).toHaveCount(0);
   await expect(page.getByTestId("workspace-toast")).toContainText("다른 편집 내용이 먼저 저장되었습니다");
   await page.getByRole("button", {name:"프로젝트 설정",exact:true}).click();
+  await dialog.getByRole("tab", { name: "작업 캘린더" }).click();
   await expect(dialog.getByRole("button", {name:"미리보기 계산"})).toBeVisible();
   mode="unauthorized";
   await preview.click();

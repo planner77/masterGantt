@@ -470,3 +470,18 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 - **회귀 검증**:
   - Playwright E2E에서 외부 pointer 닫힘, Tab/focus 이탈 닫힘, disclosure 상호 배타, 프로젝트 복사 Dialog 내부 조작 예외를 검증한다.
 
+## Issue #232 프로젝트 설정 다이얼로그 정보 구조·탭·반응형 폼 레이아웃 개선
+
+- **전용 와이드 다이얼로그 및 WAI-ARIA 탭 구조**:
+  - `WorkspaceDialog`에 `size="wide"`(최대 60rem 폭) 지원을 추가하여 다른 다이얼로그(38rem)에 영향 없이 설정 다이얼로그의 데스크톱 가용 공간 활용.
+  - `ProjectSettingsDialog`를 독립 컴포넌트로 분리하고 WAI-ARIA APG 준수 탭 인터페이스(`role="tablist"`, `role="tab"`, `role="tabpanel"`, `aria-selected`, `aria-controls`) 적용.
+  - 키보드 `ArrowLeft/ArrowRight` 및 `Home/End` 키를 통한 탭 포커스 이동 지원.
+  - 탭 전환 시 각 패널 컴포넌트를 unmount하지 않고 `hidden` 속성으로 제어하여 작업 캘린더 규칙/미리보기, 비밀번호, 설명 등의 초안(draft) 상태 100% 보존.
+- **카테고리별 정보 구조(IA) 및 레이아웃**:
+  - **기본 정보**: 프로젝트 이름과 상태(compact select)를 2열 그리드로 정렬하고 설명 textarea는 전체 폭으로 배치하여 불필요한 단일 세로 스택을 지양.
+  - **작업 캘린더**: 국가 공휴일 규칙 및 휴무일 항목에 2열 그리드와 우측 정렬 액션 행을 적용하여 항목 밀도와 가독성 대폭 향상.
+  - **편집·보안**: 비밀번호 변경 폼과 세션 안내 카드 및 편집 모드 종료 액션을 독립 분리하여 안전하고 명확한 세션 관리 지원.
+- **반응형 및 안정성 보존**:
+  - 390/768px 모바일에서 1열 스택으로 자연스럽게 리플로우되어 가로 overflow 방지.
+  - `Escape` 키 닫기 및 닫힘 후 '프로젝트 설정' 트리거 버튼으로의 포커스 복원 보존.
+  - Gantt 인스턴스, 트리 접힘 상태, 스크롤 위치 보존 및 API/DB 스키마 불변 유지.

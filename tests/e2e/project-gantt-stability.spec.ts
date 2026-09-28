@@ -143,6 +143,7 @@ test.describe("Issue #3 stable Gantt instance", () => {
     expect(fixture.posts[1]).not.toHaveProperty("convertParentToSummary");
     await expectSameGanttRoot(page, initialIdentity);
     await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
+    await page.getByRole("tab", { name: "편집·보안" }).click();
     await page.getByRole("button", { name: "편집 모드 종료" }).click();
     await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
     await expect(rootAdd(page)).toHaveCount(0);
