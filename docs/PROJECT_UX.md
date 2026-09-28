@@ -227,6 +227,12 @@ Project Context는 긴 제목만 한 줄 말줄임으로 제한하고, 읽기 �
 
 같은 긴 제목·설명 fixture의 읽기 전용/편집 중 상태를 390×844·768×900·1024×900·1440×900·1600×900에서 구현 전후 각각 촬영하고 Context·Gantt top/height, Info/More panel bounds, 문서 overflow를 비교한다. 현재 작성한 E2E의 PNG는 **변경 후 상태**만 기록하며 구현 전 같은 fixture의 baseline과 실제 수치는 아직 **NOT TESTED**다. 조회 중·조회 오류/재시도도 별도 E2E 명세로 기록한다. API/DB/Scheduling 계약 문서 변경은 N/A다.
 
+## Issue #245 Gantt 이미지 내보내기
+
+Project Context에는 compact `내보내기` 진입점 하나를 둔다. 공통 대화상자에서 Excel, SVG, PNG를 선택한다. Excel 형식에서는 기존 관계 포함/제외 선택을 유지한다. SVG/PNG 형식에서는 전체 Project 또는 기간 지정 scope를 표시하며 기간 지정에서만 시작일·종료일을 활성화한다. 전체는 펼친 WBS Grid+Chart, 기간 지정은 모든 작업 행을 유지한 Chart만 생성한다. 상세 API와 한도는 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다.
+
+형식·범위와 날짜는 label이 있는 semantic control로 제공한다. 유효하지 않은 기간의 오류는 해당 입력과 연결하며, 작업 중에는 중복 실행을 막는다. Escape/취소와 닫기 후 trigger focus 복원을 유지한다. 390/768/1024/1440px에서 header action overflow가 없고 내보내기 전후 Gantt 선택·스크롤·Editor 초안이 보존되어야 한다. 이 항목의 실제 브라우저 검증은 해당 PR head의 E2E와 별도 수동 확인으로 판정한다.
+
 ## Issue #130 Phase 3 Task Editor 시각 정합화
 
 Task Editor의 modal header는 작업 정보 제목과 작업 유형, External ID, 기준 Revision을 구분해 표시하고 닫기 action을 유지한다. 변경 제한·stale·저장 오류·초안 폐기 확인은 탭 위의 별도 notice 영역에 남긴다. Task/Resource/Relation 탭, 작업 입력과 서버 확정 정보, 관계 조회는 기존 semantic grouping을 유지한다. 좁은 화면에서는 작업 필드와 관계를 한 열로, 1024px 이상에서는 작업명/진행률과 선행/후행 관계를 해당 내용 폭에 맞게 나란히 놓는다.
@@ -359,7 +365,6 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 - **접근성 및 반응형**:
   - `ArrowLeft`/`ArrowRight`/`Home`/`End` 키보드 탐색(5개 서브탭 지원), WAI-ARIA `role="tab"`/`aria-selected`/`aria-controls` 완전 준수.
   - 390px, 768px, 1024px, 1440px viewport에서 가로 스크롤 테이블 및 유연한 카드 그리드 배치로 레이아웃 깨짐을 방지한다.
-
 ## Issue #189: 프로젝트 복사·삭제·내보내기 연계 및 물류 기능 통합 검증 (물류 LG-06)
 
 - **프로젝트 복사 모달 (`ProjectCopyButton`)**:

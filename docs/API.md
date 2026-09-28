@@ -126,6 +126,7 @@ Project metadata, calendar, task, link, task batch, import commit처럼 schedule
 | Metadata/calendar/task/link 변경 | 예 | Project와 session binding을 server에서 확인 |
 | Import preview/commit | 예 | CPU abuse 방지 및 편집 workflow 일관성을 위해 preview도 요구 |
 | Excel export | 아니오 | Project read와 같은 공개 범위. 별도 rate/size limit 적용 |
+| SVG/PNG Gantt export | 아니오 | Project read와 같은 공개 범위. SVG endpoint에 Origin/If-Match/크기 제한 적용 |
 
 Project create는 권한 우회가 아니라 독립 bootstrap operation이다. W04는 정확한 `Origin`, UTF-8 JSON content type, 32 KiB 실제/선언 크기, strict 입력과 process-global 5회/1시간 fail-closed limit을 적용한다. Trusted client IP 경계가 아직 없으므로 forwarded header를 신뢰하지 않는다. 성공 시 생성한 Project에 대한 edit session을 같은 응답에서 발급한다. Proxy/IP 기반 persistent protection은 D03/W16에서 확정한다.
 
@@ -676,6 +677,12 @@ Content-Disposition: attachment; filename="mastergantt-<publicId>-r<revision>.xl
 
 Export는 DB read snapshot을 먼저 DTO로 만든 다음 transaction 밖에서 내부 OOXML/ZIP writer로 Gantt/Tasks/Project, 선택적 Dependencies, 선택적 Logistics sheet를 생성한다. Project 상태는 읽기 전용 metadata로 출력하며 Import의 Project metadata 변경 계약에는 영향을 주지 않는다.
 
+## 8.1. Gantt 이미지 Export API
+
+### `POST /api/projects/{publicId}/exports/gantt-svg`
+
+Readonly Project의 canonical snapshot으로 안전한 SVG를 생성한다. `Origin`, strong `If-Match`, 8 KiB 이하 strict JSON을 검사하며 edit session은 요구하지 않는다. `scope: "project"`는 전체 WBS Grid와 Chart를, `scope: "range"`는 `startDate`부터 `endDate`까지의 Chart만 포함한다. 두 scope 모두 `scale: "day" | "week"`와 `hierarchyDisplay: "expanded"`를 받는다. 기간은 date-only 양끝 포함이며 전체 작업 행을 보존한다. PNG는 별도 API 없이 동일 SVG를 브라우저 Canvas에서 rasterize한다. 성공 MIME은 `image/svg+xml; charset=utf-8`이고 파일명은 `mastergantt-{publicId}-r{revision}[-{startDate}-{endDate}].svg`다. 전체 계약과 한도는 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다.
+
 ## 9. 오류와 HTTP status
 
 | HTTP | 대표 code | 의미 |
@@ -689,6 +696,7 @@ Export는 DB read snapshot을 먼저 DTO로 만든 다음 transaction 밖에서 
 | 413 | `REQUEST_TOO_LARGE`, `IMPORT_TOO_LARGE` | 일반 body 또는 Import byte/entity/depth/date range 상한 초과 |
 | 415 | `UNSUPPORTED_MEDIA_TYPE`, `UNSUPPORTED_IMPORT_FORMAT` | 허용하지 않은 형식 |
 | 422 | `INVALID_DATE`, `INVALID_DURATION`, `END_DURATION_MISMATCH`, `NON_WORKING_MANUAL_START`, `MISSING_PARENT`, `UNSUPPORTED_DEPENDENCY` | 기본 JSON shape은 맞지만 일정 의미 validation 실패 |
+| 422 | `EXPORT_LIMIT_EXCEEDED`, `EXPORT_UNSUPPORTED`, `EXPORT_RANGE_NO_OVERLAP` | Gantt 이미지 생성 한도, 지원되지 않는 구조 또는 기간 미교차 |
 | 428 | `PRECONDITION_REQUIRED` | If-Match 누락 |
 | 429 | `RATE_LIMITED` | rate limit 초과, 가능한 경우 `Retry-After` 포함 |
 | 500 | `INTERNAL_ERROR` | 세부정보를 숨긴 server 오류 |

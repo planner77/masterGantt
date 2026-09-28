@@ -1,0 +1,71 @@
+.form {
+  gap: 0.75rem;
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.form > label {
+  font-weight: 650;
+}
+
+.form > select,
+.form > input[type="date"] {
+  width: 100%;
+  min-height: 2.25rem;
+  border: 1px solid var(--border-control);
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel);
+  color: var(--text-default);
+  font: inherit;
+  padding: 0.375rem 0.625rem;
+}
+
+.form > select:focus-visible,
+.form > input[type="date"]:focus-visible,
+.form input[type="radio"]:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+
+.form fieldset {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.form legend {
+  margin-bottom: 0.5rem;
+  font-weight: 650;
+}
+
+.form fieldset label {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.form fieldset input {
+  margin-top: 0.2rem;
+  accent-color: var(--action-primary);
+}
+
+.form p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.form [role="alert"] {
+  color: var(--status-error);
+}
+
+@media (max-width: 25rem) {
+  .form :global(.form-actions) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

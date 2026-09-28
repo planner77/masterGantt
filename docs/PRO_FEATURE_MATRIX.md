@@ -21,7 +21,7 @@ Core의 Task·Link 표현, 편집, Tree, Grid·Timeline을 공식 API로 사용�
 | 잘못된 Link 처리 | PRO 자동 처리로 명시. [Changelog 2.4.3](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 자체 서버 검증으로 누락·Cycle·미지원 제약 거부 | Scheduler + Backend / 초기 계획 |
 | Summary 자동화 | PRO의 진척 계산·Type 자동 변환. [Changelog 2.5.2](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 날짜·Duration·진척 자체 집계. Type은 명시적으로 검증 | W24 child 기반 집계·원자적 첫 전환 구현; Summary는 이름만 API 변경 가능, 일정 직접 편집·삭제는 후속 |
 | WBS 코드 | PRO. [Changelog 2.7](https://docs.svar.dev/react/gantt/whats-new/changelog/) | Parent와 Sibling Order에서 자체 생성 | W24 Pure Domain 계산 구현; HTTP DTO·Grid 표시와 Reparent는 후속 |
-| Web → Excel Export | PRO의 내장 Export. [Overview](https://docs.svar.dev/react/gantt/overview/) | Backend에서 ExcelJS 검토. 표 Export 후 날짜 Cell Gantt | Backend / 단계적 계획 |
+| Web → Excel Export | PRO의 내장 Export. [Overview](https://docs.svar.dev/react/gantt/overview/) | Backend 내부 OOXML/ZIP writer로 Gantt/Tasks/Project와 선택적 Dependencies sheet 생성 | [EXCEL_EXPORT](EXCEL_EXPORT.md) 구현 |
 | SS·FF·SF 일정 계산, Lag·Lead | Core Link 표현과 별개. 위 공개 설명만으로 모든 계산 지원을 단정하지 않음 | 독립 Constraint 모델로 향후 검토. v1에서는 명시적 거부 | Scheduler / 후속 |
 | Baseline | PRO. [README](https://github.com/svar-widgets/react-gantt) | 불변 Snapshot 설계 후 독립 비교 계산 | Scheduler + Backend / 후속 |
 | Critical Path·Total/Free Slack | Critical Path와 Slack 표현은 PRO. [Overview](https://docs.svar.dev/react/gantt/overview/) | CPM·근무일 Slack 의미 확정 후 독립 구현 | Scheduler / 후속 |
@@ -30,7 +30,7 @@ Core의 Task·Link 표현, 편집, Tree, Grid·Timeline을 공식 API로 사용�
 | Rollup | PRO. [Changelog 2.6](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 별도 표시 집계 모델 검토 | Scheduler + Frontend / 후속 |
 | Split Task | PRO. [README](https://github.com/svar-widgets/react-gantt) | Segment 계약·의존 Endpoint 정의 후 검토 | Scheduler + Frontend / 후속 |
 | Undo/Redo, Vertical Marker, Unscheduled Task | PRO. [README](https://github.com/svar-widgets/react-gantt) | 초기 요구 범위 밖. 자동으로 구현 범위에 추가하지 않음 | 미선정 |
-| PNG/PDF·MS Project 교환 | PRO. [Overview](https://docs.svar.dev/react/gantt/overview/) | 초기 요구 범위 밖 | 미선정 |
+| PNG/PDF·MS Project 교환 | 공식 server-side export는 PRO. [Overview](https://docs.svar.dev/react/gantt/overview/) | Issue #245는 자체 SVG renderer와 브라우저 PNG 변환을 구현하며 PDF/MS Project는 범위 밖 | SVG/PNG는 [IMAGE_EXPORT](IMAGE_EXPORT.md), PDF/MS Project 미선정 |
 
 ## 2. 기능 경계의 주의점
 
