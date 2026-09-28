@@ -12,7 +12,7 @@ import {
 } from "../fixtures/stateful-project";
 
 const id = (ordinal: number) => `00000000-0000-4000-8000-${String(ordinal).padStart(12, "0")}`;
-const nameCell = (page: Page, name: string) => rowNamed(page, name).locator('[role="gridcell"][data-col-id=":text"]');
+const nameCell = (page: Page, name: string) => page.locator(".project-gantt-widget .wx-row:visible").filter({ has: page.getByText(name, { exact: true }) }).first().locator('[role="gridcell"][data-col-id=":text"]');
 const inlineInput = (page: Page) => ganttRoot(page).locator(".wx-table-container .wx-cell.wx-editor input.wx-text");
 
 function barContentBox(bar: Locator) {
@@ -26,6 +26,8 @@ function barContentBox(bar: Locator) {
 
 async function openName(page: Page, name: string) {
   const cell = nameCell(page, name);
+  await expect(cell).toBeVisible();
+  await cell.scrollIntoViewIfNeeded();
   const rowId = await cell.locator("..").getAttribute("data-id");
   expect(rowId).not.toBeNull();
   await cell.locator(".wx-content > .wx-text").click();
@@ -138,6 +140,7 @@ test("invalid input stays focused, Escape cancels, blur saves once, and failures
   await page.goto(`/projects/${publicId}`);
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     const editor = await openName(page, "Stable leaf");
     const bounds = await editor.boundingBox();
     expect(bounds).not.toBeNull();
