@@ -68,37 +68,21 @@ export function normalizeInlineTaskName(value: unknown): { name: string | null; 
 
 export function projectTasksToSvarTasks(tasks: readonly ProjectTaskDto[]): ITask[] {
   const taskIdsByExternalId = new Map(tasks.map((task) => [task.externalId, task.taskId]));
-  return tasks.map((task) => {
-    const dates = domainDatesToSvarDates({ start: dateOnly(task.start), end: dateOnly(task.end) });
-    const baselineDates = task.baselineStart && task.baselineEnd
-      ? domainDatesToSvarDates({ start: dateOnly(task.baselineStart), end: dateOnly(task.baselineEnd) })
-      : undefined;
-
-    return {
-      id: task.taskId,
-      text: task.name,
-      ...dates,
-      ...(baselineDates ? {
-        base_start: baselineDates.start,
-        base_end: baselineDates.end,
-        base_duration: task.baselineDuration ?? undefined,
-      } : {
-        base_start: undefined,
-        base_end: undefined,
-        base_duration: undefined,
-      }),
-      progress: task.progress,
-      type: task.type,
-      parent: task.parentExternalId === null
-        ? 0
-        : taskIdsByExternalId.get(task.parentExternalId) ?? 0,
-      open: task.type === "summary",
-      externalId: task.externalId,
-      baselineStart: task.baselineStart,
-      baselineDuration: task.baselineDuration,
-      baselineEnd: task.baselineEnd,
-    };
-  });
+  return tasks.map((task) => ({
+    id: task.taskId,
+    text: task.name,
+    ...domainDatesToSvarDates({ start: dateOnly(task.start), end: dateOnly(task.end) }),
+    progress: task.progress,
+    type: task.type,
+    parent: task.parentExternalId === null
+      ? 0
+      : taskIdsByExternalId.get(task.parentExternalId) ?? 0,
+    open: task.type === "summary",
+    externalId: task.externalId,
+    baselineStart: task.baselineStart,
+    baselineDuration: task.baselineDuration,
+    baselineEnd: task.baselineEnd,
+  }));
 }
 
 function toSvarLinkType(type: string): "s2s" | "s2e" | "e2s" | "e2e" {
