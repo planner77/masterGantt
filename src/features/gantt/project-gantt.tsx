@@ -486,7 +486,7 @@ export function ProjectGantt({
       const taskId = row ? taskIdFromElement(row) : null;
       if (!taskId || tasksByIdReference.current.get(taskId)?.type !== "summary") return;
       const currentlyCollapsed = toggle.classList.contains("wxi-menu-right");
-      const nextCollapsed = !currentlyCollapsed;
+      const nextCollapsed = currentlyCollapsed;
       summaryToggleStateReference.current.set(taskId, nextCollapsed);
       if (projectPublicIdReference.current) {
         const summaries = new Set(
