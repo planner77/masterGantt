@@ -4,6 +4,10 @@
 
 ### Added
 
+- Issue #235: 리소스 관리 화면의 상단 여백을 compact하게 조정하고, 내부 Catalog Revision 표시를 제거한다.
+- 관리자 비밀번호 변경·새로고침·로그아웃을 하나의 관리 명령 행으로 통합하고, 비밀번호 변경은 접근 가능한 modal dialog로 전환한다. Catalog revision/If-Match/401/412 계약은 유지한다.
+- 390/768/1024/1440px에서 관리 명령 정렬·document overflow·header-to-content spacing과 dialog Escape/focus restore를 E2E로 검증한다.
+
 - Issue #245: Project Gantt를 canonical snapshot에서 SVG로 내보내고, 같은 SVG를 브라우저 Canvas에서 PNG로 변환해 다운로드한다. 전체 Project는 WBS Grid와 Chart를, 기간 지정은 지정한 날짜의 Chart만 포함한다.
 - 내보내기 진입점에서 기존 Excel과 SVG/PNG를 선택하며, 기간·범위 입력, revision 동시성 검사와 크기 제한을 적용한다. 기존 Excel의 관계 및 물류 구성 보고서 옵션은 유지한다.
 
