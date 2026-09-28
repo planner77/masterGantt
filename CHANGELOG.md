@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.46.0] - 2026-09-28
+
+### Added
+
+- Issue #230: 프로젝트 목록 필터 입력 컨트롤 너비 및 날짜 범위 From/To 대칭 정렬 개선.
+  - 프로젝트 정보 필터 dropdown은 9.5rem, text input은 14rem의 compact/content-aware 폭을 사용한다.
+  - 생성일/최근 변경일의 From/To date input을 동일한 폭으로 대칭 배치하고 단일 날짜 입력도 동일 규칙을 사용한다.
+  - 모바일에서 global label 규칙보다 높은 specificity로 column label을 유지하고, 공용 clear button은 CSS Modules의 global class로 정확히 선택한다.
+  - #230 전용 Playwright 회귀 테스트로 desktop compact 폭, From/To 대칭, mobile label 방향, clear button 정렬, horizontal overflow를 검증한다.
+
 ## [0.45.0] - 2026-09-28
 
 ### Added

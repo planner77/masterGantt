@@ -170,20 +170,72 @@
 .infoFilterGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .dateFilterGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .filterConditionRow {
-  display: grid;
-  grid-template-columns: minmax(7.5rem, 0.8fr) minmax(9rem, 1.2fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: end;
   gap: 0.5rem;
   min-width: 0;
 }
-.filterConditionRow > label { min-width: 0; }
-.filterConditionRow input,
-.filterConditionRow select { width: 100%; min-width: 0; }
-.filterConditionRow .secondary-button {
+.filterGroup .filterConditionRow > label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.filterConditionRow select {
+  width: 9.5rem;
+  min-width: 7.5rem;
+}
+.filterConditionRow input[type="text"] {
+  width: 14rem;
+  max-width: 100%;
+  min-width: 8rem;
+}
+.filterConditionRow :global(.secondary-button) {
   align-self: end;
   width: auto;
   margin-top: 0;
-  white-space: normal;
+  white-space: nowrap;
+}
+
+.dateFilterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.filterGroup .dateFilterRow > label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.dateFilterRow select {
+  width: 9.5rem;
+  min-width: 7.5rem;
+}
+.dateInputsGroup {
+  display: flex;
+  align-items: end;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.filterGroup .dateInputsGroup > label {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.dateInputsGroup input[type="date"] {
+  width: 9.5rem;
+  min-width: 8rem;
+}
+.dateFilterRow :global(.secondary-button) {
+  align-self: end;
+  width: auto;
+  margin-top: 0;
+  white-space: nowrap;
 }
 .filterGroup {
   display: grid !important;
@@ -240,8 +292,15 @@
 }
 @media (max-width: 48rem) {
   .filterDisclosure > summary { grid-template-columns: 1fr; gap: 0.25rem; }
-  .filterConditionRow { grid-template-columns: 1fr; align-items: stretch; }
-  .filterConditionRow .secondary-button { justify-self: start; }
+  .filterConditionRow,
+  .dateFilterRow { flex-direction: column; align-items: stretch; }
+  .filterConditionRow select,
+  .filterConditionRow input[type="text"],
+  .dateFilterRow select { width: 100%; max-width: none; }
+  .dateInputsGroup { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .dateInputsGroup input[type="date"] { width: 100%; }
+  .filterConditionRow :global(.secondary-button),
+  .dateFilterRow :global(.secondary-button) { align-self: flex-start; }
   .filterToolbar:global(.project-filter-toolbar) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -255,5 +314,11 @@
   .filterFooter {
     align-items: stretch;
     flex-direction: column;
+  }
+}
+
+@media (max-width: 28rem) {
+  .dateInputsGroup {
+    grid-template-columns: 1fr;
   }
 }

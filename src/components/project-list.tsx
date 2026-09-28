@@ -59,7 +59,7 @@ function DateFilterFields({ prefix, label, operator, from, to, onChange, onClear
   const toKey = `${prefix}To` as const;
   return <fieldset className={styles.filterGroup}>
     <legend>{label}</legend>
-    <div className={styles.filterConditionRow}>
+    <div className={styles.dateFilterRow}>
       <label>{label} 조건
         <select value={operator} onChange={(event) => onChange({ [operatorKey]: event.target.value as ProjectDateOperator })}>
           <option value="any">전체</option>
@@ -69,12 +69,14 @@ function DateFilterFields({ prefix, label, operator, from, to, onChange, onClear
           <option value="range">범위</option>
         </select>
       </label>
-      {operator !== "any" ? <label>{operator === "range" ? "From" : "날짜"}
-        <input type="date" value={from} onChange={(event) => onChange({ [fromKey]: event.target.value })} />
-      </label> : null}
-      {operator === "range" ? <label>To
-        <input type="date" value={to} onChange={(event) => onChange({ [toKey]: event.target.value })} />
-      </label> : null}
+      {operator !== "any" ? <div className={styles.dateInputsGroup}>
+        <label>{operator === "range" ? "From" : "날짜"}
+          <input type="date" value={from} onChange={(event) => onChange({ [fromKey]: event.target.value })} />
+        </label>
+        {operator === "range" ? <label>To
+          <input type="date" value={to} onChange={(event) => onChange({ [toKey]: event.target.value })} />
+        </label> : null}
+      </div> : null}
       {operator !== "any" ? <button className="secondary-button" type="button" onClick={onClear}>{label} 조건 삭제</button> : null}
     </div>
     {error ? <p className={styles.filterError} role="alert">{error}</p> : null}

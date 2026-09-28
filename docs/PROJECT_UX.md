@@ -448,3 +448,11 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
   - `Escape` 키 닫기 및 모달 내부 Focus Trap 지원.
   - 모달 열기/닫기/추가/수정/삭제 시 Gantt 차트 인스턴스, 스크롤 위치, Summary 접힘 상태가 초기화되지 않고 유지됨.
   - 읽기 전용(`readonly`) 모드에서는 정보 조회만 가능하며 편집/삭제/추가 폼 비활성화.
+
+## Issue #230 프로젝트 목록 필터 입력 컨트롤 너비 및 날짜 범위 From/To 정렬 개선
+
+- 프로젝트명·소유자·설명·소유자 지정 여부의 조건 선택 `select`는 compact한 9.5rem 폭을 사용하고, text input은 14rem의 content-aware 폭을 사용한다.
+- 생성일/최근 변경일의 `range` 조건은 From/To date input을 동일한 9.5rem 폭으로 배치하며, 단일 날짜 조건도 같은 date-control 폭을 사용한다.
+- 48rem 이하에서는 프로젝트 정보와 날짜 조건 행을 세로 배치하고, From/To는 동일 폭 2열로 유지한다. 28rem 이하에서는 날짜 입력을 1열로 전환한다.
+- global filter label 스타일과 충돌하지 않도록 local selector specificity를 확보하며, 공용 `secondary-button`은 `:global(.secondary-button)`으로 선택한다.
+- 기존 Project List 필터 predicate, validation/timezone, Escape focus restore, API/DB/revision 계약은 변경하지 않는다.

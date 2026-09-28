@@ -181,6 +181,68 @@ test.describe("Issue #181 Project List 고급 필터 밀도", () => {
   });
 });
 
+
+test.describe("Issue #230 Project List 필터 입력 폭과 날짜 대칭 정렬", () => {
+  test("desktop compact 폭, From/To 대칭, mobile label 방향과 clear button 정렬을 유지한다", async ({ page, baseURL }) => {
+    const suffix = randomUUID().slice(0, 8);
+    await createProject(page, baseURL!, `Filter Width ${suffix}`, "Filter Owner", "filter width regression", "Pwd230A123!");
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto("/");
+
+    const filterButton = page.locator('button[aria-controls="project-list-advanced-filter"]');
+    await filterButton.click();
+    const panel = page.getByLabel("프로젝트 고급 필터");
+    await panel.locator("summary").filter({ hasText: "프로젝트 정보" }).click();
+    await panel.locator("summary").filter({ hasText: "날짜" }).click();
+
+    const nameOperator = panel.getByLabel("프로젝트명 조건");
+    const nameInput = panel.getByRole("textbox", { name: "프로젝트명", exact: true });
+    const ownerOperator = panel.getByLabel("소유자 조건");
+    const desktopWidths = await Promise.all([
+      nameOperator.evaluate((element) => element.getBoundingClientRect().width),
+      ownerOperator.evaluate((element) => element.getBoundingClientRect().width),
+      nameInput.evaluate((element) => element.getBoundingClientRect().width),
+    ]);
+    expect(Math.abs(desktopWidths[0] - desktopWidths[1])).toBeLessThanOrEqual(1);
+    expect(desktopWidths[0]).toBeLessThanOrEqual(160);
+    expect(desktopWidths[2]).toBeLessThanOrEqual(232);
+
+    const created = panel.getByRole("group", { name: "생성일" });
+    await created.getByLabel("생성일 조건").selectOption("range");
+    const from = created.getByLabel("From");
+    const to = created.getByLabel("To");
+    const desktopDateWidths = await Promise.all([
+      from.evaluate((element) => element.getBoundingClientRect().width),
+      to.evaluate((element) => element.getBoundingClientRect().width),
+    ]);
+    expect(Math.abs(desktopDateWidths[0] - desktopDateWidths[1])).toBeLessThanOrEqual(1);
+
+    const clearButton = created.getByRole("button", { name: "생성일 조건 삭제" });
+    const clearStyle = await clearButton.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { marginTop: style.marginTop, whiteSpace: style.whiteSpace };
+    });
+    expect(clearStyle.marginTop).toBe("0px");
+    expect(clearStyle.whiteSpace).toBe("nowrap");
+
+    await page.setViewportSize({ width: 768, height: 900 });
+    const mobileGeometry = await Promise.all([
+      from.evaluate((element) => ({
+        width: element.getBoundingClientRect().width,
+        labelDirection: getComputedStyle(element.closest("label")!).flexDirection,
+      })),
+      to.evaluate((element) => ({
+        width: element.getBoundingClientRect().width,
+        labelDirection: getComputedStyle(element.closest("label")!).flexDirection,
+      })),
+    ]);
+    expect(Math.abs(mobileGeometry[0].width - mobileGeometry[1].width)).toBeLessThanOrEqual(1);
+    expect(mobileGeometry[0].labelDirection).toBe("column");
+    expect(mobileGeometry[1].labelDirection).toBe("column");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  });
+});
+
 test.describe("Issue #130 Phase 1 Project List 시각·접근성 계약", () => {
   test("같은 긴 목록에서 table 내부 스크롤, 열·행 밀도, More 메뉴와 결과 상태를 유지한다", async ({ page, baseURL }, testInfo) => {
     const suffix = randomUUID().slice(0, 8);
