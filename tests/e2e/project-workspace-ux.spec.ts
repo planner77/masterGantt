@@ -75,6 +75,64 @@ test.describe("Issue #76 Project Workspace UX", () => {
     page.off("framenavigated", recordNavigation);
   });
 
+  test("Issue #231 정보/더보기 disclosure는 외부 상호작용·포커스 이탈에서 닫히고 상호 배타적으로 열린다", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await installStatefulProjectFixture(page);
+    await page.goto(`/projects/${publicId}`);
+
+    const info = page.locator('.project-info-popover > summary[aria-label="프로젝트 정보 보기"]');
+    const infoDetails = page.locator(".project-info-popover");
+    const infoPanel = page.locator(".project-info-panel");
+    const more = page.locator('.project-action-menu > summary[aria-label="프로젝트 작업 더보기"]');
+    const moreDetails = page.locator(".project-action-menu");
+    const morePanel = page.locator(".project-action-menu-panel");
+    const heading = page.getByRole("heading", { level: 1, name: "Issue 3 stable Gantt fixture" });
+
+    await info.click();
+    await expect(infoPanel).toBeVisible();
+    await heading.click();
+    await expect(infoDetails).not.toHaveAttribute("open", "");
+
+    await info.click();
+    await expect(infoPanel).toBeVisible();
+    await info.focus();
+    await page.keyboard.press("Tab");
+    await expect(infoDetails).not.toHaveAttribute("open", "");
+
+    await info.click();
+    await expect(infoDetails).toHaveAttribute("open", "");
+    await more.click();
+    await expect(moreDetails).toHaveAttribute("open", "");
+    await expect(infoDetails).not.toHaveAttribute("open", "");
+
+    await info.click();
+    await expect(infoDetails).toHaveAttribute("open", "");
+    await expect(moreDetails).not.toHaveAttribute("open", "");
+
+    await more.click();
+    await expect(morePanel).toBeVisible();
+    await heading.click();
+    await expect(moreDetails).not.toHaveAttribute("open", "");
+  });
+
+  test("Issue #231 더보기에서 연 Dialog 내부 상호작용은 disclosure를 닫지 않는다", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await installStatefulProjectFixture(page);
+    await page.goto(`/projects/${publicId}`);
+
+    const more = page.locator('.project-action-menu > summary[aria-label="프로젝트 작업 더보기"]');
+    const moreDetails = page.locator(".project-action-menu");
+
+    await more.click();
+    await expect(moreDetails).toHaveAttribute("open", "");
+    await page.locator(".project-action-menu-panel").getByRole("button", { name: "프로젝트 복사" }).click();
+
+    const copyDialog = page.getByRole("dialog", { name: "프로젝트 복사", exact: true });
+    await expect(copyDialog).toBeVisible();
+    await copyDialog.click({ position: { x: 10, y: 10 } });
+    await expect(moreDetails).toHaveAttribute("open", "");
+  });
+
   test("copy=1 진입은 overflow disclosure와 복사 Dialog를 함께 연다", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await installStatefulProjectFixture(page);
