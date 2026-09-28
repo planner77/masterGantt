@@ -116,7 +116,7 @@ for (const width of [390, 768, 1024, 1440]) {
     await page.getByRole("button", { name: "담당자", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
     await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
-    await expect(dialog.getByText("기존 담당자 (ENG-01)", { exact: true })).toBeVisible();
+    await expect(dialog.locator("strong").filter({ hasText: "기존 담당자 (ENG-01)" })).toBeVisible();
     await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
     await expect(dialog.getByRole("combobox").first()).toBeDisabled();
     expect(mutations).toBe(0);
@@ -181,14 +181,14 @@ test("재조회 실패 시 이전 catalog cache보다 canonical 담당자 이름
   await page.getByRole("tab", { name: /^설비 관리/ }).click();
   await page.getByRole("button", { name: "담당자", exact: true }).click();
   let dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
-  await expect(dialog.getByText("이전 캐시 이름 (OLD-01)", { exact: true })).toBeVisible();
+  await expect(dialog.locator("strong").filter({ hasText: "이전 캐시 이름 (OLD-01)" })).toBeVisible();
   await page.keyboard.press("Escape");
   fail = true;
   await page.getByRole("button", { name: "담당자", exact: true }).click();
   dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
   await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
   await expect(dialog.getByText("기존 담당자 (ENG-01)", { exact: true })).toBeVisible();
-  await expect(dialog.getByText("이전 캐시 이름 (OLD-01)", { exact: true })).toHaveCount(0);
+  await expect(dialog.locator("strong").filter({ hasText: "이전 캐시 이름 (OLD-01)" })).toHaveCount(0);
   await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
 });
 
