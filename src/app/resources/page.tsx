@@ -2,7 +2,7 @@ import { ResourceCatalogAdmin } from "@/features/resources/resource-catalog-admi
 
 export default function ResourcesPage() {
   return (
-    <section className="workspace-section">
+    <section className="workspace-section resources-page">
       <div className="section-heading">
         <div>
           <p className="eyebrow">Global catalog</p>
