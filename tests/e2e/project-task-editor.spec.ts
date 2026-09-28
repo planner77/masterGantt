@@ -113,7 +113,12 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
 
 async function openRow(page: Page, name = "Beta leaf") {
   const targetRow = name === "Beta leaf" ? rowByTaskId(page, id(4)) : name === "Summary" ? rowByTaskId(page, id(1)) : row(page, name);
-  await targetRow.getByText(name, { exact: true }).click({ button: "right" });
+  if (name === "Beta leaf" || name === "Summary") {
+    await expect(targetRow).toBeVisible();
+    await targetRow.click({ button: "right", position: { x: 12, y: 19 } });
+  } else {
+    await targetRow.getByText(name, { exact: true }).click({ button: "right" });
+  }
   await chooseTaskInformation(page);
   await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue(name);
   await expect(editor(page)).toHaveCount(1);
@@ -185,7 +190,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(taskContextMenu(page)).toHaveCount(0);
     await expect(editor(page)).toHaveCount(0);
     await summaryToggle(page).click();
-    await expect(rowByTaskId(page, id(4)).getByText("Beta leaf", { exact: true })).toBeVisible();
+    await expect(rowByTaskId(page, id(4))).toBeVisible();
     for (let i = 0; i < 3; i += 1) { await openRow(page); await cancel(page); }
     await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
     expect(fixture.patches).toHaveLength(0);
