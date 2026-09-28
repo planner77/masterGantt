@@ -83,9 +83,10 @@
   .adminActionRow {
     gap: 0.375rem;
   }
-  .adminActionRow .secondary-button {
-    padding-inline: 0.625rem;
-    font-size: 0.8125rem;
+  .adminActionRow button {
+    min-width: 0;
+    padding-inline: 0.5rem;
+    font-size: 0.75rem;
   }
 }
 
