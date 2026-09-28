@@ -9,6 +9,7 @@ const apiPath = `/api/projects/${publicId}`;
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const row = (page: Page, name: string) => page.locator(".project-gantt-widget .wx-row", { hasText: name }).first();
 const bar = (page: Page, taskId: string) => page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${taskId}"]`);
+const rowByTaskId = (page: Page, taskId: string) => page.locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
 const editor = (page: Page) => page.getByRole("dialog", { name: "작업 정보", exact: true });
 const save = (page: Page) => editor(page).getByRole("button", { name: "저장", exact: true });
 const frame = (page: Page) => page.locator(".project-gantt-frame");
@@ -110,7 +111,13 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
 }
 
 async function openRow(page: Page, name = "Beta leaf") {
-  await row(page, name).getByText(name, { exact: true }).click({ button: "right" });
+  const targetRow = name === "Beta leaf" ? rowByTaskId(page, id(4)) : name === "Summary" ? rowByTaskId(page, id(1)) : row(page, name);
+  if (name === "Beta leaf" || name === "Summary") {
+    await expect(targetRow).toBeVisible();
+    await targetRow.click({ button: "right", position: { x: 12, y: 19 } });
+  } else {
+    await targetRow.getByText(name, { exact: true }).click({ button: "right" });
+  }
   await chooseTaskInformation(page);
   await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue(name);
   await expect(editor(page)).toHaveCount(1);
@@ -295,7 +302,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     const instance = await frame(page).getAttribute("data-project-gantt-instance");
     await openRow(page);
     await editor(page).getByLabel("기간 (근무일)", { exact: true }).fill("2");
-    await expect(editor(page).locator("output")).toHaveText("2026-09-18");
+    await expect(editor(page).locator("output").first()).toHaveText("2026-09-18");
     expect(fixture.patches).toHaveLength(0);
     let release!: () => void;
     fixture.gate = new Promise<void>((resolve) => { release = resolve; });
