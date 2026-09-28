@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type {
   ControlRole,
   CreateEquipmentRequest,
@@ -81,7 +81,11 @@ export function ProjectLogisticsManagement({
 
   // Catalog resources for assignment picker
   const [catalogResources, setCatalogResources] = useState<ResourceDto[]>([]);
-  const [isFetchingCatalog, setIsFetchingCatalog] = useState(false);
+  const [catalogState, setCatalogState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const catalogRequest = useRef<AbortController | null>(null);
+  const [catalogKey, setCatalogKey] = useState<string | null>(null);
+  const currentCatalogKey = `${publicId}:${revision}`;
+  useEffect(() => () => { catalogRequest.current?.abort(); }, [currentCatalogKey]);
 
   // Dialog states
   const [processModal, setProcessModal] = useState<{
@@ -104,6 +108,7 @@ export function ProjectLogisticsManagement({
   const [equipmentRolesModal, setEquipmentRolesModal] = useState<{
     open: boolean;
     equipment?: EquipmentDto;
+    revision?: number;
   }>({ open: false });
 
   const [systemModal, setSystemModal] = useState<{
@@ -125,6 +130,7 @@ export function ProjectLogisticsManagement({
   const [systemRolesModal, setSystemRolesModal] = useState<{
     open: boolean;
     system?: LogisticsSystemDto;
+    revision?: number;
   }>({ open: false });
 
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{
@@ -139,20 +145,24 @@ export function ProjectLogisticsManagement({
 
   // Fetch catalog resources when needed
   const fetchResourceCatalog = useCallback(async () => {
-    if (catalogResources.length > 0 || isFetchingCatalog) return;
-    setIsFetchingCatalog(true);
+    catalogRequest.current?.abort();
+    const controller = new AbortController();
+    catalogRequest.current = controller;
+
+    setCatalogState("loading");
     try {
-      const res = await fetch("/api/resources", { credentials: "same-origin" });
-      if (res.ok) {
-        const body: ResourceCatalogResponse = await res.json();
-        setCatalogResources(body.data.resources ?? []);
-      }
+      const res = await fetch("/api/resources", { credentials: "same-origin", cache: "no-store", signal: controller.signal });
+      const body: ResourceCatalogResponse = await res.json();
+      if (!res.ok || !Array.isArray(body?.data?.resources) || !body.data.resources.every((resource) => resource && typeof resource.id === "string" && typeof resource.name === "string" && typeof resource.active === "boolean" && (resource.code === null || typeof resource.code === "string"))) throw new Error("catalog");
+      if (controller.signal.aborted) return;
+      setCatalogResources(body.data.resources);
+      setCatalogKey(currentCatalogKey);
+      setCatalogState("ready");
     } catch {
-      // silently ignore catalog load error, can retry
-    } finally {
-      setIsFetchingCatalog(false);
+      if (!controller.signal.aborted) setCatalogState("error");
     }
-  }, [catalogResources.length, isFetchingCatalog]);
+  }, [currentCatalogKey]);
+  const catalogReady = catalogState === "ready" && catalogKey === currentCatalogKey;
 
   // Lookup maps
   const processById = useMemo(() => {
@@ -721,7 +731,7 @@ export function ProjectLogisticsManagement({
                               onClick={() => {
                                 setErrorMessage(null);
                                 void fetchResourceCatalog();
-                                setEquipmentRolesModal({ open: true, equipment: eq });
+                                setEquipmentRolesModal({ open: true, equipment: eq, revision });
                               }}
                             >
                               담당자
@@ -906,7 +916,7 @@ export function ProjectLogisticsManagement({
                               onClick={() => {
                                 setErrorMessage(null);
                                 void fetchResourceCatalog();
-                                setSystemRolesModal({ open: true, system: sys });
+                                setSystemRolesModal({ open: true, system: sys, revision });
                               }}
                             >
                               PI/개발자
@@ -1125,9 +1135,13 @@ export function ProjectLogisticsManagement({
         <EquipmentRolesDialog
           equipment={equipmentRolesModal.equipment}
           catalogResources={catalogResources}
+          catalogReady={catalogReady && equipmentRolesModal.revision === revision}
+          catalogState={equipmentRolesModal.revision !== revision ? "stale" : catalogState}
+          onRetry={() => void fetchResourceCatalog()}
           busy={isSubmitting}
           onClose={() => setEquipmentRolesModal({ open: false })}
           onSubmit={async (roles) => {
+            if (!editable || !catalogReady || isSubmitting || equipmentRolesModal.revision !== revision) return;
             const ok = await executeMutation(
               `/api/projects/${encodeURIComponent(publicId)}/logistics/equipment/${encodeURIComponent(
                 equipmentRolesModal.equipment!.id,
@@ -1208,9 +1222,13 @@ export function ProjectLogisticsManagement({
         <SystemRolesDialog
           system={systemRolesModal.system}
           catalogResources={catalogResources}
+          catalogReady={catalogReady && systemRolesModal.revision === revision}
+          catalogState={systemRolesModal.revision !== revision ? "stale" : catalogState}
+          onRetry={() => void fetchResourceCatalog()}
           busy={isSubmitting}
           onClose={() => setSystemRolesModal({ open: false })}
           onSubmit={async (roles) => {
+            if (!editable || !catalogReady || isSubmitting || systemRolesModal.revision !== revision) return;
             const ok = await executeMutation(
               `/api/projects/${encodeURIComponent(publicId)}/logistics/systems/${encodeURIComponent(
                 systemRolesModal.system!.id,
@@ -1729,12 +1747,18 @@ function EquipmentSystemsDialog({
 function EquipmentRolesDialog({
   equipment,
   catalogResources,
+  catalogReady,
+  catalogState,
+  onRetry,
   busy,
   onClose,
   onSubmit,
 }: {
   equipment: EquipmentDto;
   catalogResources: ResourceDto[];
+  catalogReady: boolean;
+  catalogState: "idle" | "loading" | "ready" | "error" | "stale";
+  onRetry: () => void;
   busy: boolean;
   onClose: () => void;
   onSubmit: (roles: { resourceId: string; role: EquipmentRole; isPrimary?: boolean }[]) => Promise<void>;
@@ -1766,6 +1790,7 @@ function EquipmentRolesDialog({
   }, [catalogResources]);
 
   const handleAdd = () => {
+    if (busy || !catalogReady) return;
     if (!addResourceId) return;
     const exists = selectedRoles.some((r) => r.resourceId === addResourceId && r.role === addRole);
     if (exists) {
@@ -1794,10 +1819,12 @@ function EquipmentRolesDialog({
   };
 
   const handleRemove = (index: number) => {
+    if (busy || !catalogReady) return;
     setSelectedRoles(selectedRoles.filter((_, i) => i !== index));
   };
 
   const handleSetPrimary = (index: number) => {
+    if (busy || !catalogReady) return;
     const target = selectedRoles[index];
     if (target.role !== "owner") {
       alert("주 담당자(Primary)는 '설비 담당(owner)' 역할에만 지정 가능합니다.");
@@ -1813,6 +1840,7 @@ function EquipmentRolesDialog({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (busy || !catalogReady) return;
     void onSubmit(selectedRoles);
   };
 
@@ -1823,6 +1851,13 @@ function EquipmentRolesDialog({
       onClose={onClose}
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
+        {!catalogReady ? <div>
+          <p role={catalogState === "error" || catalogState === "stale" ? "alert" : "status"}>
+            {catalogState === "stale" ? "프로젝트 정보가 변경되어 이전 배정을 저장할 수 없습니다. 취소 후 담당자 배정을 다시 열어 최신 정보를 확인해 주세요." : catalogState === "error" ? "리소스 목록을 불러오지 못했습니다. 기존 배정은 유지되며 최신 목록 확인 전에는 저장할 수 없습니다." : "리소스 목록을 불러오는 중…"}
+          </p>
+          {catalogState === "error" ? <button type="button" className="secondary-button" onClick={onRetry}>리소스 목록 다시 시도</button> : null}
+        </div> : null}
+        <fieldset disabled={busy || !catalogReady} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
         <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>
           리소스 카탈로그에서 인력을 선택하여 설비 담당자(Owner) 또는 참여자(Contributor)로 배정합니다.
           <br />
@@ -1836,7 +1871,8 @@ function EquipmentRolesDialog({
           ) : (
             selectedRoles.map((item, idx) => {
               const res = resourceById.get(item.resourceId);
-              const displayName = res ? `${res.name} (${res.code ?? "코드없음"})` : item.resourceId;
+              const canonical = equipment.resourceRoles.find((role) => role.resourceId === item.resourceId);
+              const displayName = res ? `${res.name} (${res.code ?? "코드없음"})` : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
               const isInactive = res && !res.active;
 
               return (
@@ -1947,11 +1983,12 @@ function EquipmentRolesDialog({
           </span>
         </div>
 
+        </fieldset>
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소
           </button>
-          <button className="primary-button" type="submit" disabled={busy}>
+          <button className="primary-button" type="submit" disabled={busy || !catalogReady}>
             {busy ? "저장 중…" : "저장"}
           </button>
         </div>
@@ -2280,12 +2317,18 @@ function SystemChildrenDialog({
 function SystemRolesDialog({
   system,
   catalogResources,
+  catalogReady,
+  catalogState,
+  onRetry,
   busy,
   onClose,
   onSubmit,
 }: {
   system: LogisticsSystemDto;
   catalogResources: ResourceDto[];
+  catalogReady: boolean;
+  catalogState: "idle" | "loading" | "ready" | "error" | "stale";
+  onRetry: () => void;
   busy: boolean;
   onClose: () => void;
   onSubmit: (roles: { resourceId: string; role: SystemRole; isPrimary?: boolean }[]) => Promise<void>;
@@ -2317,6 +2360,7 @@ function SystemRolesDialog({
   }, [catalogResources]);
 
   const handleAdd = () => {
+    if (busy || !catalogReady) return;
     if (!addResourceId) return;
     const exists = selectedRoles.some((r) => r.resourceId === addResourceId && r.role === addRole);
     if (exists) {
@@ -2344,10 +2388,12 @@ function SystemRolesDialog({
   };
 
   const handleRemove = (index: number) => {
+    if (busy || !catalogReady) return;
     setSelectedRoles(selectedRoles.filter((_, i) => i !== index));
   };
 
   const handleSetPrimary = (index: number) => {
+    if (busy || !catalogReady) return;
     const target = selectedRoles[index];
     if (target.role !== "pi") {
       alert("주 책임자(Primary)는 'PI(책임자)' 역할에만 지정 가능합니다.");
@@ -2363,6 +2409,7 @@ function SystemRolesDialog({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
+    if (busy || !catalogReady) return;
     void onSubmit(selectedRoles);
   };
 
@@ -2373,6 +2420,13 @@ function SystemRolesDialog({
       onClose={onClose}
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
+        {!catalogReady ? <div>
+          <p role={catalogState === "error" || catalogState === "stale" ? "alert" : "status"}>
+            {catalogState === "stale" ? "프로젝트 정보가 변경되어 이전 배정을 저장할 수 없습니다. 취소 후 담당자 배정을 다시 열어 최신 정보를 확인해 주세요." : catalogState === "error" ? "리소스 목록을 불러오지 못했습니다. 기존 배정은 유지되며 최신 목록 확인 전에는 저장할 수 없습니다." : "리소스 목록을 불러오는 중…"}
+          </p>
+          {catalogState === "error" ? <button type="button" className="secondary-button" onClick={onRetry}>리소스 목록 다시 시도</button> : null}
+        </div> : null}
+        <fieldset disabled={busy || !catalogReady} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
         <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted)" }}>
           리소스 카탈로그에서 인력을 선택하여 시스템 책임자(PI) 또는 개발자(Developer)로 배정합니다.
           <br />
@@ -2386,7 +2440,8 @@ function SystemRolesDialog({
           ) : (
             selectedRoles.map((item, idx) => {
               const res = resourceById.get(item.resourceId);
-              const displayName = res ? `${res.name} (${res.code ?? "코드없음"})` : item.resourceId;
+              const canonical = system.resourceRoles.find((role) => role.resourceId === item.resourceId);
+              const displayName = res ? `${res.name} (${res.code ?? "코드없음"})` : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
               const isInactive = res && !res.active;
 
               return (
@@ -2497,11 +2552,12 @@ function SystemRolesDialog({
           </span>
         </div>
 
+        </fieldset>
         <div className={styles.dialogActions}>
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소
           </button>
-          <button className="primary-button" type="submit" disabled={busy}>
+          <button className="primary-button" type="submit" disabled={busy || !catalogReady}>
             {busy ? "저장 중…" : "저장"}
           </button>
         </div>

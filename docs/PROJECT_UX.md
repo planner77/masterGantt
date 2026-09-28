@@ -1,5 +1,9 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #263 물류 담당자 조회 실패 복구
+
+설비·시스템 담당자 dialog는 리소스 후보 조회 중/실패/성공을 구분한다. 최신 목록 확인 전에는 역할 추가·제거·주 담당자 변경·저장을 잠그고 실패에는 다시 시도를 제공한다. 기존 담당자는 물류 snapshot의 이름·코드를 표시하며 조회 실패를 담당자 0명으로 표현하지 않는다. 창을 연 뒤 Project revision이 바뀌면 충돌을 알리고 취소 후 최신 대상에서 다시 열도록 안내하며, 이전 초안을 새 revision으로 저장하지 않는다. 재시도는 조회만 수행하고 역할 교체 mutation은 명시적 저장에만 실행한다. 권한·Project revision·서버 검증 계약은 변경하지 않는다.
+
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
 
