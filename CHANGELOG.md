@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.50.0] - 2026-09-27
+
+### Added
+
+- Issue #234: 리소스 관리 검색 및 그룹 구성원 작업 UX 개선.
+  - 리소스 / 리소스 그룹 / 그룹 구성원 독립 검색 (`src/features/resources/resource-catalog-admin.tsx`, `resource-search-filter.ts`):
+    - 리소스 목록, 리소스 그룹 목록, 그룹 구성원 할당 목록 각각에 실시간 Client-side 검색 바 및 일치 카운트(`일치 n / 전체 N`, 구성원: `일치 n / 전체 N · 선택 M`) 추가.
+    - 이름(`name`) 및 코드(`code`) 대소문자 무시 substring 검색 지원 (trim 처리 및 null code 안전 처리).
+    - `Escape` 키 입력 시 검색어 즉시 초기화 지원.
+    - 데이터 없음(`등록된 리소스가 없습니다.`)과 검색 조건 불일치(`검색 조건과 일치하는 리소스가 없습니다.`) 상태 명확히 분리.
+  - 그룹 구성원 선택 상태 보존:
+    - 구성원 검색으로 일부 리소스가 필터링되더라도 기존 선택 상태(`selectedMembers`)를 100% 보존.
+    - `구성원 저장` 시 필터된 항목만이 아닌 전체 선택 집합을 정확히 전송.
+  - 그룹 구성원 푸터 액션 정렬 (`resource-catalog-admin.module.css`):
+    - `memberFooterActions` 전용 스타일을 도입하여 데스크톱에서 `닫기`(secondary) 좌측, `구성원 저장`(primary) 우측 정렬로 일관되게 배치.
+    - 모바일 뷰포트에서 자연스러운 랩/스택 처리로 오버플로우 방지.
+
 ## [0.49.0] - 2026-09-28
 
 ### Changed
