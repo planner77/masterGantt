@@ -485,3 +485,30 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
   - 390/768px 모바일에서 1열 스택으로 자연스럽게 리플로우되어 가로 overflow 방지.
   - `Escape` 키 닫기 및 닫힘 후 '프로젝트 설정' 트리거 버튼으로의 포커스 복원 보존.
   - Gantt 인스턴스, 트리 접힘 상태, 스크롤 위치 보존 및 API/DB 스키마 불변 유지.
+
+## Issue #233 Project Gantt 정보 밀도
+
+Project Workspace의 일정 화면은 동일 viewport에서 Timeline 가용 면적을 늘리기 위해 다음 기본 geometry를 사용한다.
+
+- 초기 Grid 폭: **480px**
+- 작업/외부 ID/시작/기간 column: **180 / 108 / 104 / 56px**
+- Day scale cellWidth: **44px**
+- Week scale cellWidth: **68px**
+- 기간 cell은 canonical working-day duration 숫자만 표시하며 DB/API/Scheduling 의미는 변경하지 않는다.
+
+Grid/Chart resizer와 column resize는 계속 SVAR 공개 API를 사용한다. Day/Week 전환은 현재 mounted Gantt instance와 사용자가 조정한 column 폭을 보존해야 하며, scale 전환 때문에 사용자 resize 상태를 초기값으로 되돌리지 않는다. 390/768/1024/1440px에서 document-level unintended horizontal overflow를 만들지 않고 Gantt 내부 scroll은 기존 계약대로 허용한다.
+
+## Issue #234 리소스 관리 검색 및 그룹 구성원 작업 UX 개선
+
+- **독립 검색 및 상태 관리**:
+  - `/resources` 관리 화면에서 리소스 목록, 리소스 그룹 목록, 그룹 구성원 할당 목록 각각에 독립적인 실시간 검색 툴바 추가.
+  - 이름(`name`) 및 코드(`code`) 대소문자 무시 substring 일치 지원, 앞뒤 공백 자동 trim, null code 안전 처리.
+  - 일치 건수 카운터(`일치 n / 전체 N`, 구성원: `일치 n / 전체 N · 선택 M`)를 통해 검색 결과 현황을 즉시 파악 가능.
+  - `Escape` 키 입력 시 검색어 즉시 초기화 지원.
+  - 데이터 전체 부재(`등록된 리소스가 없습니다.`)와 검색 결과 부재(`검색 조건과 일치하는 리소스가 없습니다.`) 상태 명확히 분리.
+- **그룹 구성원 선택 상태 보존**:
+  - 검색어로 일부 리소스가 숨겨지더라도 체크 상태(`selectedMembers`)를 100% 보존.
+  - `구성원 저장` 시 검색 필터링 여부와 무관하게 전체 선택된 리소스 ID 목록을 원자적으로 PUT 전송.
+- **구성원 액션 푸터 정돈**:
+  - `memberFooterActions` 전용 스타일을 적용하여 데스크톱에서 `닫기`(secondary) 좌측, `구성원 저장`(primary) 우측 정렬로 일관되게 배치.
+  - 390/768px 모바일에서 자연스러운 flex-wrap 배치로 버튼 겹침 및 가로 overflow 방지.
