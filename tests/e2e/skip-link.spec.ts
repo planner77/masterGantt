@@ -52,9 +52,6 @@ for (const width of [390, 1440]) {
 
     await page.goto("/projects/new");
     await useSkipLink(page, width);
-    const blankProjectTab = page.getByRole("tab", { name: "빈 프로젝트 만들기", exact: true });
-    await expect(blankProjectTab).toBeFocused();
-    await page.keyboard.press("Tab");
     await expect(page.getByLabel("프로젝트 이름", { exact: true })).toBeFocused();
 
     const errorId = "00000000-0000-4000-8000-000000000121";
