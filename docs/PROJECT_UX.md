@@ -517,3 +517,12 @@ Grid/Chart resizer와 column resize는 계속 SVAR 공개 API를 사용한다. D
 - **구성원 액션 푸터 정돈**:
   - `memberFooterActions` 전용 스타일을 적용하여 데스크톱에서 `닫기`(secondary) 좌측, `구성원 저장`(primary) 우측 정렬로 일관되게 배치.
   - 390/768px 모바일에서 자연스러운 flex-wrap 배치로 버튼 겹침 및 가로 overflow 방지.
+
+
+## Issue #235 Resource 관리 화면
+
+`/resources`는 일반 콘텐츠 페이지보다 높은 정보 밀도가 필요한 관리 workspace다. App Shell header와 첫 heading 사이의 top spacing은 Resource route에 한정해 compact하게 유지하며 다른 페이지의 `.main-content` geometry는 변경하지 않는다.
+
+로그인 후 상단 관리 명령은 `관리자 비밀번호 변경 / 새로고침 / 로그아웃`을 하나의 행으로 그룹화한다. 내부 optimistic concurrency 번호인 `Catalog Revision N`은 화면에 표시하지 않지만 catalog `revision`, `If-Match`, 412 stale reload 계약은 그대로 유지한다.
+
+관리자 비밀번호 변경은 상시 카드가 아니라 `WorkspaceDialog`로 제공한다. Dialog는 Escape/cancel 닫기, trigger focus 복원, 닫을 때 비밀번호 state clear를 보장한다. 비밀번호 정책은 서버와 동일하게 1~12 Unicode code point이며 HTML `maxLength`로 UTF-16 code unit 제한을 추가하지 않는다.
