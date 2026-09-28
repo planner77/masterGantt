@@ -564,7 +564,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function saveEditorTask(command: ProjectTaskUpdateCommand, revision: number): Promise<TaskEditorSaveResult> {
     if (state.status !== "ready") return { status: "failed", message: "프로젝트 정보를 확인할 수 없습니다." };
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === command.taskId);
-    const restriction = taskEditorReadOnlyReason(task, permission === "edit" && permissionCheckState === "complete", task ? taskHasDependencyLinks(state.snapshot.data.tasks, task.taskId, state.snapshot.data.links) : false);
+    const payloadFields = Object.keys(command.payload);
+    const baselineOnly = payloadFields.length > 0 && payloadFields.every((field) => field === "baselineStart" || field === "baselineDuration" || field === "baselineEnd");
+    const hasLinks = task ? taskHasDependencyLinks(state.snapshot.data.tasks, task.taskId, state.snapshot.data.links) : false;
+    const restriction = taskEditorReadOnlyReason(task, permission === "edit" && permissionCheckState === "complete", baselineOnly ? false : hasLinks);
     if (restriction) return { status: "failed", message: restriction };
     if (isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut) return { status: "failed", message: "프로젝트 변경을 완료한 뒤 다시 시도해 주세요." };
     return saveTask("PATCH", command.taskId, command.payload, revision);

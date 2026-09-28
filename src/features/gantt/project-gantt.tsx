@@ -634,6 +634,10 @@ export function ProjectGantt({
                   : "—"
               ),
             }
+          : column.id === "baselineStart"
+            ? { ...column, hidden: !columnVisibility.baselineStart }
+          : column.id === "baselineEnd"
+            ? { ...column, hidden: !columnVisibility.baselineEnd }
           : column.id === "text"
             ? {
               ...column,

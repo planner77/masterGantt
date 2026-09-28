@@ -1010,7 +1010,9 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      assertHierarchyMutationCapability(links, [current.id]);
+      const baselineFields = new Set(["baseline", "baselineStart", "baselineDuration", "baselineEnd"]);
+      const baselineOnly = Object.keys(validatedInput).every((field) => baselineFields.has(field));
+      if (!baselineOnly) assertHierarchyMutationCapability(links, [current.id]);
       const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar, links);
       if (current.type === "summary") {
@@ -1107,12 +1109,18 @@ export class ProjectService {
           nextBaselineStart = bStart;
           nextBaselineDuration = bDur;
           if (current.type === "milestone") {
+            if (bDur !== 0 || (bEnd !== null && bEnd !== undefined && bEnd !== bStart)) throw new InvalidTaskInputError();
             nextBaselineDuration = 0;
             nextBaselineEnd = bStart;
-          } else if (bEnd !== null && bEnd !== undefined) {
-            nextBaselineEnd = bEnd;
           } else {
-            nextBaselineEnd = endFromStart(bStart, bDur, calendar);
+            let calculatedEnd: string;
+            try {
+              calculatedEnd = endFromStart(bStart, bDur, calendar);
+            } catch {
+              throw new InvalidTaskInputError();
+            }
+            if (bEnd !== null && bEnd !== undefined && bEnd !== calculatedEnd) throw new InvalidTaskInputError();
+            nextBaselineEnd = calculatedEnd;
           }
         }
       }

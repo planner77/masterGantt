@@ -65,10 +65,11 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   const mountedReference = useRef(false);
   const dirty = taskEditorIsDirty(base.task, draft);
   const stale = conflicted || revision !== base.revision;
-  const restriction = taskEditorReadOnlyReason(latestTask, editable, hasLinks) ??
+  const restriction = taskEditorReadOnlyReason(latestTask, editable, false) ??
     (latestTask?.type !== base.task.type ? "작업 유형이 변경되었습니다. 최신 정보를 다시 불러와 주세요." : null);
   const locked = busy || operation !== null;
   const readOnly = !!restriction || stale;
+  const scheduleReadOnly = readOnly || hasLinks;
 
   useEffect(() => {
     mountedReference.current = true;
@@ -86,6 +87,7 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
 
   function change(field: keyof TaskEditorDraft, value: string) {
     if (locked || restriction || stale) return;
+    if (hasLinks && field !== "baselineStart" && field !== "baselineDuration" && field !== "baselineEnd") return;
     setDraft((current) => ({ ...current, [field]: value }));
     setError(null);
   }
