@@ -125,6 +125,37 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
   });
 });
 
+test.describe("Issue #229 Project List 상단 간격", () => {
+  test("390/768/1024/1440에서 시스템 헤더와 WORKSPACE 사이의 compact spacing을 유지한다", async ({ page, baseURL }) => {
+    const suffix = randomUUID().slice(0, 8);
+    await createProject(page, baseURL!, `Spacing ${suffix}`, "Spacing Team", "project list top spacing", "Pwd2291234!");
+    await page.goto("/");
+
+    for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900]] as const) {
+      await page.setViewportSize({ width, height });
+      const geometry = await page.evaluate(() => {
+        const header = document.querySelector<HTMLElement>(".site-header")!;
+        const section = document.querySelector<HTMLElement>(".project-list-page")!;
+        const workspace = section.querySelector<HTMLElement>(".eyebrow")!;
+        const headerBottom = header.getBoundingClientRect().bottom;
+        const sectionTop = section.getBoundingClientRect().top;
+        const workspaceTop = workspace.getBoundingClientRect().top;
+        return {
+          sectionGap: sectionTop - headerBottom,
+          workspaceGap: workspaceTop - headerBottom,
+          documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        };
+      });
+
+      expect(geometry.documentOverflow).toBe(false);
+      expect(geometry.sectionGap).toBeGreaterThanOrEqual(15);
+      expect(geometry.sectionGap).toBeLessThanOrEqual(25);
+      expect(geometry.workspaceGap).toBeGreaterThanOrEqual(geometry.sectionGap);
+      expect(geometry.workspaceGap).toBeLessThanOrEqual(28);
+    }
+  });
+});
+
 test.describe("Issue #181 Project List 고급 필터 밀도", () => {
   test("비활성 그룹은 접고 활성 요약·keyboard·responsive geometry를 유지한다", async ({ page, baseURL }, testInfo) => {
     const suffix = randomUUID().slice(0, 8);
