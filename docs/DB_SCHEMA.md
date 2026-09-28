@@ -385,7 +385,7 @@ Calendar의 출처와 적용 범위를 저장한다.
 | `source_version` | TEXT | Y | materialized 국가 fixture 버전 |
 | `created_at/updated_at` | TEXT | N | UTC timestamp |
 
-COUNTRY rule은 Project 대상만 허용한다. CUSTOM은 Project/Group/Resource를 허용하며 Issue #57 UI/API에서는 추가 휴무 `NON_WORKING`만 생성한다. `FULL_PROJECT`는 물리적인 Project 최소/최대 날짜를 저장하지 않는 논리 범위다.
+COUNTRY rule은 Project 대상만 허용한다. CUSTOM은 Project/Group/Resource를 허용한다. Issue #261부터 Group/Resource는 `NON_WORKING | WORKING`을 저장하고 Project CUSTOM은 기존 `NON_WORKING`만 허용한다. `FULL_PROJECT`는 물리적인 Project 최소/최대 날짜를 저장하지 않는 논리 범위다.
 
 ### 5.13 `work_calendar_dates`
 
@@ -401,9 +401,13 @@ COUNTRY rule은 Project 대상만 허용한다. CUSTOM은 Project/Group/Resource
 | `source_version` | TEXT | Y | 날짜를 생성한 fixture 버전 |
 | `created_at` | TEXT | N | UTC timestamp |
 
-`UNIQUE(calendar_rule_id,date)`로 한 rule 안의 중복을 막는다. 서로 다른 rule이 같은 날짜·같은 day type을 제공하는 것은 Effective Calendar에서 합집합으로 결합하고 source 목록은 보존한다. 같은 날짜에 `WORKING`과 `NON_WORKING`이 동시에 생성되면 Service가 저장 전에 충돌로 거부한다.
+`UNIQUE(calendar_rule_id,date)`로 한 rule 안의 중복을 막는다. 같은 level의 서로 다른 rule이 같은 Resource/날짜·같은 day type을 제공하면 계산은 한 번 적용하고 source 목록은 보존한다. 동일 Resource에 적용되는 같은 level의 반대 dayType은 Service가 저장 전에 거부한다. 서로 다른 level에서는 더 구체적인 명시 예외가 상위 결과를 override한다. Resource 예외가 Group-level 상호 충돌을 숨길 수 없으며 구성원 없는 동일 Group target 내부 충돌도 거부한다.
 
-Project 일정 계산은 Project target rule만 사용한다. Resource workload 계산은 Project Calendar에 Resource가 속한 모든 Group CUSTOM 휴무와 Resource 개인 CUSTOM 휴무를 union한다. 이 Resource Effective Calendar는 Task row의 `start_date/end_date`를 변경하지 않고 M/D와 일별 allocation 판정에만 사용한다.
+Project 일정 계산은 Project target rule만 사용한다. Resource workload 계산은 `Project < Resource Group < Resource` 순서로 명시적 `WORKING/NON_WORKING`을 override한다. 이 Resource Effective Calendar는 Task row의 `start_date/end_date`를 변경하지 않고 M/D와 일별 allocation 판정에만 사용한다.
+
+Issue #261의 NO_EFFECT 예외도 원래 dayType을 저장한다. 글로벌 Group membership 교체는 하나의 IMMEDIATE transaction 안에서 모든 Project의 결과 Resource Calendar 충돌을 검사하고 실패하면 membership/catalog revision을 rollback한다. Resource 배정 유무나 활성 여부는 불변조건의 적용 범위를 줄이지 않는다.
+
+신규 migration은 N/A다. 기존 `0006_work_calendars.sql`의 `day_type CHECK (day_type IN ('NON_WORKING','WORKING'))`, target 및 날짜 index가 새 계약을 이미 지원하며 column/constraint/index 변경이 없다. 기존 row는 그대로 새 계층 규칙으로 해석한다.
 
 ### Migration 0006 호환 원칙
 

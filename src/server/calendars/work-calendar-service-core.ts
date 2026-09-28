@@ -13,6 +13,8 @@ import type {
   WorkCalendarDateSourceDto,
   WorkCalendarRuleDto,
   WorkCalendarTargetType,
+  WorkCalendarCustomDateDto,
+  ResourceCalendarExceptionEffectDto,
 } from "../../contracts/work-calendar";
 import { WORK_CALENDAR_COUNTRY_CODES } from "../../contracts/work-calendar";
 import {
@@ -24,6 +26,7 @@ import {
   SchedulingError,
 } from "../../domain/scheduling";
 import type { ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
+import { resolveResourceCalendar, type ResourceCalendarException } from "../../domain/scheduling/resource-calendar";
 import { ProjectRepository } from "../repositories/project-repository-core";
 import { EditSessionRepository } from "../repositories/project-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
@@ -189,6 +192,18 @@ function mapRule(record:WorkCalendarRuleRecord):WorkCalendarRuleDto {
   };
 }
 
+function customDateDtos(
+  rules:readonly WorkCalendarRuleDto[],
+  dates:readonly {ruleId:string;date:string;dayType:"NON_WORKING"|"WORKING"}[],
+):WorkCalendarCustomDateDto[] {
+  const ruleById=new Map(rules.map((rule)=>[rule.id,rule]));
+  return dates.flatMap((date)=>{
+    const rule=ruleById.get(date.ruleId);
+    return rule?.kind==="CUSTOM" ? [{id:rule.id,name:rule.name,date:date.date,dayType:date.dayType,
+      targetType:rule.targetType,targetId:rule.targetId}] : [];
+  });
+}
+
 function storedCalendarData(
   revision:number,
   rules:readonly WorkCalendarRuleRecord[],
@@ -200,6 +215,7 @@ function storedCalendarData(
     projectRevision:revision,
     rules:dtoRules,
     projectDates:aggregateProjectDates(dtoRules,dates,internalIdToPublicId),
+    customDates:customDateDtos(dtoRules,dates.map((date)=>({...date,ruleId:internalIdToPublicId.get(date.calendarRuleId)!}))),
   };
 }
 
@@ -331,13 +347,17 @@ export class WorkCalendarService {
       if(!isObject(raw) || typeof raw.name!=="string" || raw.name.trim()!==raw.name || raw.name.length<1 || raw.name.length>200 ||
         typeof raw.date!=="string" || !validTargetType(raw.targetType)) throw new WorkCalendarInvalidInputError();
       const date=parseDateOnly(raw.date,"date");
+      const dayType=raw.dayType===undefined?"NON_WORKING":raw.dayType;
+      if((dayType!=="WORKING" && dayType!=="NON_WORKING") || (raw.targetType==="PROJECT" && dayType==="WORKING")) {
+        throw new WorkCalendarInvalidInputError();
+      }
       const targetId=raw.targetType==="PROJECT"?null:(typeof raw.targetId==="string"?raw.targetId:null);
       this.validateTarget(raw.targetType,targetId);
       const id=nextId();
       candidates.push({
         dto:{id,kind:"CUSTOM",name:raw.name,countryCode:null,targetType:raw.targetType,targetId,scope:"DATE_RANGE",
           effectiveFrom:date,effectiveTo:date,sourceVersion:"custom-v1"},
-        dates:[{date,dayType:"NON_WORKING",name:raw.name,sourceKey:"custom",sourceVersion:"custom-v1"}],
+        dates:[{date,dayType,name:raw.name,sourceKey:"custom",sourceVersion:"custom-v1"}],
       });
     }
 
@@ -347,6 +367,51 @@ export class WorkCalendarService {
       candidates.flatMap((candidate)=>candidate.dates.map((date)=>({...date,ruleId:candidate.dto.id}))),
     );
     return candidates;
+  }
+
+  private resourceEffects(
+    candidates:readonly CandidateRule[],
+    customDates:readonly WorkCalendarCustomDateDto[],
+    projectCalendar:ReturnType<typeof createWorkingCalendar>,
+  ):ResourceCalendarExceptionEffectDto[] {
+    const rules=new Map(candidates.map((candidate)=>[candidate.dto.id,candidate.dto]));
+    const exceptions:ResourceCalendarException[]=candidates.flatMap((candidate)=>{
+      const rule=candidate.dto;
+      if(rule.targetType==="PROJECT" || rule.targetId===null) return [];
+      return candidate.dates.map((date)=>({...date,ruleId:rule.id,ruleName:rule.name,
+        targetType:rule.targetType as "RESOURCE_GROUP"|"RESOURCE",targetId:rule.targetId!}));
+    });
+    const groups=this.resources.listGroups();
+    // A target must remain internally consistent even before it has members.
+    for(const group of groups.filter((group)=>group.memberResourceIds.length===0)) {
+      resolveResourceCalendar({projectCalendar,resourceId:"",groupIds:[group.publicId],exceptions});
+    }
+    const resolutions=this.resources.listResources().map((resource)=>({
+      resource,
+      effects:resolveResourceCalendar({projectCalendar,resourceId:resource.publicId,
+        groupIds:groups.filter((group)=>group.memberResourceIds.includes(resource.publicId)).map((group)=>group.publicId),
+        exceptions}).effects,
+    }));
+    return customDates.flatMap((date,customDateIndex)=>{
+      if(date.targetType==="PROJECT" || date.targetId===null) return [];
+      const affectedResources:ResourceCalendarExceptionEffectDto["affectedResources"]=[];
+      for(const {resource,effects} of resolutions) {
+        const effect=effects.find((effect)=>effect.date===date.date && effect.sources.some((source)=>source.ruleId===date.id));
+        if(!effect) continue;
+        affectedResources.push({resourceId:resource.publicId,resourceName:resource.name,
+          beforeDayType:effect.beforeDayType,effectiveDayType:effect.finalDayType,effect:effect.effect,
+          winningLayer:effect.winningLayer,winningSources:effect.winningSources.map((source)=>{
+            const rule=rules.get(source.ruleId)!;
+            return {ruleId:rule.id,ruleName:rule.name,kind:rule.kind,countryCode:rule.countryCode,
+              targetType:rule.targetType,targetId:rule.targetId,sourceVersion:rule.sourceVersion};
+          })});
+      }
+      const changed=affectedResources.some((resource)=>resource.effect==="CHANGED");
+      return [{ruleId:date.id,customDateIndex,date:date.date,dayType:date.dayType,
+        targetType:date.targetType,targetId:date.targetId,effect:changed?"CHANGED" as const:"NO_EFFECT" as const,
+        warningCode:changed?null:date.dayType==="WORKING"?"REDUNDANT_WORKING_EXCEPTION" as const:"REDUNDANT_NON_WORKING_EXCEPTION" as const,
+        affectedResources}];
+    });
   }
 
   private previewForProject(
@@ -367,6 +432,8 @@ export class WorkCalendarService {
       exceptions:projectDates.map((entry)=>({date:entry.date,dayType:entry.dayType,name:entry.name})),
     });
     const currentCalendar=resolveProjectWorkingCalendar(this.database,projectId);
+    const customDates=customDateDtos(rules,candidateRules.flatMap((candidate)=>candidate.dates.map((date)=>({...date,ruleId:candidate.dto.id}))));
+    const resourceExceptionEffects=this.resourceEffects(candidateRules,customDates,calendar);
     const before=taskDtos(tasks);
     const staged=before.map((task)=>({...task}));
     const calendarChangedTaskIds=new Set<string>();
@@ -456,7 +523,7 @@ export class WorkCalendarService {
     return {
       candidateRules,
       afterTasks:[...after],
-      response:{data:{projectRevision,calendar:{projectRevision,rules,projectDates},changedTasks,manualConflicts}},
+      response:{data:{projectRevision,calendar:{projectRevision,rules,projectDates,customDates},changedTasks,manualConflicts,resourceExceptionEffects}},
     };
   }
 

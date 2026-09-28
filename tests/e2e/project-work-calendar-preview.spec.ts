@@ -71,8 +71,8 @@ test("모든 초안 변경은 결과를 무효화하고 실패·재시도·늦�
   const original = await (await page.request.get(`/api/projects/${publicId}/work-calendar`)).json();
   const previewBody = {
     data: { projectRevision: original.data.projectRevision,
-      calendar: { projectRevision: original.data.projectRevision, rules: original.data.rules, projectDates: [] },
-      changedTasks: [], manualConflicts: [] },
+      calendar: { projectRevision: original.data.projectRevision, rules: original.data.rules, customDates: [], projectDates: [] },
+      changedTasks: [], manualConflicts: [], resourceExceptionEffects: [] },
   };
   let mode: "normal"|"fail"|"malformed"|"hold"|"conflict"|"unauthorized" = "normal";
   let releaseHeld: (()=>void)|undefined;
@@ -101,15 +101,15 @@ test("모든 초안 변경은 결과를 무효화하고 실패·재시도·늦�
   await dialog.getByLabel("종료일").fill("2026-12-31"); await stale(); await calculate();
   await dialog.getByRole("button", { name: "국가 규칙 추가" }).click(); await stale();
   await dialog.getByRole("button", { name: "국가 규칙 삭제" }).last().click(); await stale(); await calculate();
-  await dialog.getByRole("button", { name: "휴무일 추가" }).click(); await stale();
-  await dialog.getByLabel("휴무일 1").fill("팀 휴무"); await stale();
-  await dialog.getByLabel("휴무일 날짜").fill("2026-10-01"); await stale(); await calculate();
-  await dialog.getByLabel("휴무 대상").selectOption("RESOURCE_GROUP"); await stale();
+  await dialog.getByRole("button", { name: "날짜 예외 추가" }).click(); await stale();
+  await dialog.getByLabel("날짜 예외 1").fill("팀 휴무"); await stale();
+  await dialog.getByLabel("예외 날짜").fill("2026-10-01"); await stale(); await calculate();
+  await dialog.getByLabel("예외 대상").selectOption("RESOURCE_GROUP"); await stale();
   await dialog.getByLabel("대상 선택").selectOption("11111111-1111-4111-8111-111111111111"); await stale(); await calculate();
-  await dialog.getByLabel("휴무 대상").selectOption("RESOURCE"); await stale();
+  await dialog.getByLabel("예외 대상").selectOption("RESOURCE"); await stale();
   await dialog.getByLabel("대상 선택").selectOption("22222222-2222-4222-8222-222222222222"); await stale(); await calculate();
-  await dialog.getByLabel("휴무 대상").selectOption("PROJECT"); await stale(); await calculate();
-  await dialog.getByRole("button", { name: "휴무일 삭제" }).click(); await stale(); await calculate();
+  await dialog.getByLabel("예외 대상").selectOption("PROJECT"); await stale(); await calculate();
+  await dialog.getByRole("button", { name: "날짜 예외 삭제" }).click(); await stale(); await calculate();
 
   mode="fail";
   await preview.click();

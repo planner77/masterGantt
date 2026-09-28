@@ -58,8 +58,9 @@ async function stopApplication(child: ChildProcess, closed: Promise<void>): Prom
 }
 
 /** Browser contexts alone cannot isolate a server's process-global rate limiter. */
-export const test = base.extend<{ isolatedApplication: string }>({
-  isolatedApplication: [async ({ browserName }, provide, testInfo) => {
+export const test = base.extend<{ isolatedApplication: string; isolatedResourceAdminPassword: string | undefined }>({
+  isolatedResourceAdminPassword: [undefined, { option: true }],
+  isolatedApplication: [async ({ browserName, isolatedResourceAdminPassword }, provide, testInfo) => {
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
@@ -83,6 +84,7 @@ export const test = base.extend<{ isolatedApplication: string }>({
         APP_BASE_URL: origin,
         DATABASE_PATH: resolve(temporary, "database.sqlite3"),
         NEXT_DIST_DIR: distName,
+        ...(isolatedResourceAdminPassword===undefined?{}:{RESOURCE_CATALOG_ADMIN_PASSWORD:isolatedResourceAdminPassword}),
       };
       // Readiness is deliberately read-only/fileMustExist and cannot bootstrap
       // an empty fixture. Use the existing CLI; never touch another database.

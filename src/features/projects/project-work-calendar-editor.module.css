@@ -36,3 +36,5 @@
   .dateFields { grid-template-columns: 1fr; }
 }
 
+
+.effectWarning { color: var(--status-warning); background: var(--status-warning-surface); padding: 0.5rem; border-radius: var(--radius); }

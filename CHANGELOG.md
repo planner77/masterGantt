@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.53.0] - 2026-09-29
+
+### Added
+
+- Issue #261: Resource Group/Resource 사용자 날짜 예외에 근무일(WORKING)을 추가하고 Project < Group < Resource 순서로 가용 Calendar를 결정한다. 같은 계층 충돌은 Calendar 저장과 그룹 구성원 변경에서 원자적으로 거부한다.
+- Calendar Editor에서 근무·휴무 유형을 저장·복원하고 미리보기에 상위 대비 적용/효과 없음, 리소스별 최종 상태와 출처를 표시한다. 효과 없는 명시 예외도 저장할 수 있다.
+- Resource workload의 M/D·M/M·과투입 계산에 계층형 Calendar를 적용하며 Project Task 일정과 기존 인증·revision 계약을 유지한다.
+
 ## [0.52.0] - 2026-09-29
 
 ### Changed

@@ -47,7 +47,7 @@ flowchart TD
 | `progress` | Leaf는 유한 숫자 `0..100`. Summary는 하위 Leaf에서 계산한다. |
 | Parent·Sibling Order | Parent 참조와 저장된 형제 순서. Import 배열에서 같은 Parent의 등장 순서로 초기 순서를 만든다. |
 | Dependency | 선행 Leaf → 후행 Leaf 방향. 초기 유효 값은 FS, lag=0. |
-| Calendar | Base weekly rule + 날짜별 `NON_WORKING/WORKING` 예외. Project 일정에는 Project target rule만 사용하고 Resource workload에는 Group/Resource NON_WORKING을 추가 union한다. |
+| Calendar | Base weekly rule + 날짜별 `NON_WORKING/WORKING` 예외. Project 일정에는 Project target rule만 사용하고 Resource workload에는 Project < Group < Resource 순서로 명시적 WORKING/NON_WORKING 예외를 적용한다. |
 | Result | 새 Snapshot, 원본 대비 변경 Task, 날짜 이동 이유, 경고, 안정적인 오류 코드와 관련 Task ID. 실패하면 저장 가능한 부분 결과를 반환하지 않는다. |
 
 `requestedStart`를 계산된 `start`로 자동 덮어쓰지 않는다. 예를 들어 B의 요청일이 9월 14일이고 A 때문에 9월 17일로 밀렸다면, A가 앞당겨졌을 때 B는 원래 요청일을 기준으로 다시 계산한다. 화면에서 사용자가 직접 시작일을 변경하는 명령만 새로운 요청일을 만든다. 별도 날짜 고정이 필요하면 `manual`을 사용한다.
@@ -247,16 +247,24 @@ Grouping은 표시 그룹과 실제 Parent Tree를 구분한다. Resource Assign
 
 여러 국가 rule이 같은 날짜에 같은 day type을 만들면 계산에서는 한 번만 적용하고 source는 API Preview에 모두 보존한다. 서로 반대 day type이면 `CALENDAR_EXCEPTION_CONFLICT`로 저장 전에 거부한다. 국가 fixture는 현재 2026년 KR/CN/VN/PH/TH/MX/US만 검증 범위이며 범위 밖 연도는 추정하지 않는다.
 
-### Resource Effective Calendar
+### Resource Effective Calendar (#261)
 
 ```text
 Project Effective Calendar
-+ Resource가 속한 모든 Resource Group CUSTOM NON_WORKING
-+ Resource 개인 CUSTOM NON_WORKING
+→ Resource가 속한 모든 Resource Group CUSTOM WORKING/NON_WORKING
+→ Resource 개인 CUSTOM WORKING/NON_WORKING
 = Resource Effective Calendar
 ```
 
-Group/Resource 휴무는 #56 M/D, M/M 분자와 일별 allocation/과투입 판정에 사용하지만 Project Task의 start/end를 이동시키는 Resource Leveling 입력으로 사용하지 않는다. Project의 명시적 WORKING 날짜도 해당 Resource에 Group/개인 NON_WORKING이 있으면 그 Resource workload 계산에서는 휴무가 된다.
+`src/domain/scheduling/resource-calendar.ts`의 pure `resolveResourceCalendar`는 Project WorkingCalendar, Resource ID, 소속 Group ID 목록과 materialized explicit exception을 받는다. `Project < Group < Resource` 순서로 더 구체적인 명시 예외가 상위 결과를 뒤집는다. Group WORKING은 Project 휴일/주말을 근무일로 만들고, Resource WORKING은 Group 휴무를 되돌린다. 반대로 Resource NON_WORKING은 Group WORKING보다 우선한다. Project CUSTOM은 계속 NON_WORKING만 지원한다.
+
+같은 날짜·같은 level의 동일 dayType은 계산에서 한 번만 적용하고 모든 Rule/Target source를 결정적으로 정렬하여 보존한다. 반대 dayType은 `ResourceCalendarExceptionConflictError` (`RESOURCE_CALENDAR_EXCEPTION_CONFLICT`)로 거부하며 context에는 `date`, `layer`, `resourceId`, `groupIds`, `ruleIds`, `sources`가 포함된다. Group level을 검증한 후 Resource를 적용하므로 Resource override로 Group 충돌을 숨길 수 없다. 입력 예외/그룹/DB 행 순서는 승자를 결정하지 않는다.
+
+결과 `effects`는 날짜·layer별 `beforeDayType`, `dayType`, `CHANGED | NO_EFFECT`, sources 및 최종 `finalDayType`, `winningLayer`, `winningSources`를 반환한다. NO_EFFECT는 해당 layer 직전 상위 effective 상태와 같다는 뜻이며 저장 가능한 의도 명시다. 더 구체적인 Resource에 가려진 Group 효과도 최종 winner와 구분한다. Preview는 candidate 예외로, membership mutation은 candidate 소속 Group 목록으로 같은 resolver를 재사용한다. 저장 전에 모든 Resource(비활성/미할당 포함)와 빈 Group의 자체 충돌도 검증하며 충돌 시 mutation 전체를 rollback한다.
+
+서버 `loadResourceCalendarExceptions`는 저장 Rule/Date를 pure 입력으로 변환하고 `resolveResourceWorkingCalendar`는 workload용 최종 WorkingCalendar를 제공한다. Group/Resource 예외는 #56 M/D, M/M 분자와 일별 allocation/과투입 판정에만 사용한다. Project Task start/end/duration 및 Manual/Dependency/Summary 재계산은 기존 Project Calendar만 사용하며 Resource Leveling으로 확장하지 않는다.
+
+`tests/domain/scheduling/resource-calendar.test.ts`는 계층 override, NO_EFFECT, 중복 source 보존, 순서 독립, Group 충돌 은폐 방지, Resource 자체 충돌, membership 후보, 주말/윤일과 입력 불변을 검증한다. `tests/server/calendars/calendar-resolution.test.ts`는 SQLite adapter, Project 격리 및 기존 Project conflict 보존을 검증한다. API 저장·membership 원자성·workload는 별도 서비스 테스트로 검증한다.
 
 ### Calendar Preview / Commit
 

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { resourceCalendarConflictApiError } from "../calendars/resource-calendar-error-core";
 
 import type {
   CreateCatalogTargetRequest,
@@ -169,6 +170,8 @@ function authorizeProject(
 }
 
 function mapError(error: unknown): unknown {
+  const resourceConflict=resourceCalendarConflictApiError(error,false);
+  if(resourceConflict) return resourceConflict;
   if (error instanceof ResourceCatalogAuthorizationError) {
     return new PublicApiError(401, "RESOURCE_ADMIN_SESSION_REQUIRED", "A valid resource catalog administrator session is required.");
   }

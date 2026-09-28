@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { resourceCalendarConflictApiError } from "./resource-calendar-error-core";
 
 import type { ReplaceProjectWorkCalendarRequest } from "../../contracts/work-calendar";
 import { apiErrorResponse, PublicApiError } from "../http/api-error-core";
@@ -64,6 +65,8 @@ function requireOrigin(request:Request,url:URL):void {
   }
 }
 function mapped(error:unknown):unknown {
+  const resourceConflict=resourceCalendarConflictApiError(error);
+  if(resourceConflict) return resourceConflict;
   if(error instanceof WorkCalendarProjectNotFoundError) return new PublicApiError(404,"PROJECT_NOT_FOUND","Project not found.");
   if(error instanceof WorkCalendarInvalidInputError) return new PublicApiError(400,"INVALID_WORK_CALENDAR","Work calendar input is invalid.");
   if(error instanceof WorkCalendarCountryUnavailableError) return new PublicApiError(

@@ -534,3 +534,13 @@ Grid/Chart resizer와 column resize는 계속 SVAR 공개 API를 사용한다. D
 Task 고급 필터는 하나의 flat grid 대신 **텍스트 / 일정·수치 / 유형·할당 / 물류** section으로 구분한다. 작업명·설명·External ID의 operator/value, 기간 조건·From·To, 진행률 Min/Max, 기간 Min/Max처럼 함께 해석하는 control은 같은 group에서 읽히도록 배치한다. Resource/Group 대상 picker는 종류·검색·ANY/ALL을 별도 compact grid로 묶고, 공정·설비·시스템 checkbox는 공통 CSS list를 사용해 긴 한국어 이름과 code가 panel 밖으로 밀리지 않게 한다. 기존 inline style은 공통 class로 이동하며 모든 grid child는 intrinsic width로 인한 overlap을 막기 위해 min-width 0 계약을 가진다.
 
 Resource 고급 필터는 종류·상태·Task From/To 계약을 변경하지 않고 1024/768px에서 2열, 390px에서 1열로 reflow한다. 필터 predicate, active count, ancestor Summary context, SVAR `filter-tasks`, canonical Gantt instance, API 재조회 금지, Escape 후 Filter trigger focus 및 Reset 후 search focus는 그대로다. E2E는 390×844·768×900·1024×900·1440×900·1600×900에서 Advanced Panel 열린 상태, 긴 물류 label, direct toolbar child overlap, 모든 input/select의 panel 수평 bounds 및 document-level overflow를 실제 bounding box로 검증한다.
+
+## Issue #261 근무·휴무 날짜 예외
+
+기존 설정 → 작업 캘린더에서 `사용자 날짜 예외`를 편집한다. 항목은 이름·날짜·대상·대상 선택·일 유형을 고유 label과 fieldset으로 묶는다. Resource Group/Resource는 근무일(WORKING)과 휴무일(NON_WORKING)을 선택하고 Project 전체는 휴무일만 제공한다. 근무일 항목을 Project 대상으로 바꾸면 휴무일로 정규화하고 polite 상태로 알린다. 기존 semantic token/system font와 좁은 화면의 한 열 리플로우를 유지한다.
+
+미리보기는 프로젝트 일정 영향과 리소스 날짜 예외 영향을 분리한다. 예외별 `적용됨`/`현재 효과 없음`은 바로 위 계층과 비교한 효과이며 더 구체적인 Resource 예외가 최종 결과를 다시 바꿀 수 있다. 상세에서는 Resource별 상위 상태, 해당 예외 효과, 최종 상태와 적용 출처를 구분한다. 대상 0명인 그룹은 그 사실을 표시하며 NO_EFFECT warning만으로 저장을 차단하지 않는다.
+
+같은 수준의 근무/휴무 충돌은 날짜·대상·규칙·영향 Resource를 식별하는 focus 가능한 오류 요약으로 안내하고 입력으로 이동하는 명령을 제공한다. 동일 초안의 저장은 차단하며 입력 변경 시 충돌과 기존 preview를 무효화한다. PUT 충돌에도 과거 성공 preview를 남기지 않는다. publicId/revision 변경 시 이전 컨텍스트의 충돌 상태를 폐기한다.
+
+저장 후 canonical Calendar와 Project snapshot을 다시 조회하여 서버가 정규화한 날짜 유형을 반영한다. Group/Resource 날짜 예외는 Resource workload만 변경하고 Project Task start/end/duration과 기존 Gantt instance/선택/스크롤을 보존한다. 기존 401/412·초안 보호·늦은 응답 방어 계약은 유지한다. 실제 검증과 잔여 미검증은 [Issue #261 설계·검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)을 따른다.

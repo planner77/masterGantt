@@ -35,11 +35,41 @@ export interface WorkCalendarDateDto {
   sources: WorkCalendarDateSourceDto[];
 }
 
+export interface WorkCalendarCustomDateDto {
+  id: string;
+  name: string;
+  date: string;
+  targetType: WorkCalendarTargetType;
+  targetId: string | null;
+  dayType: WorkCalendarDayType;
+}
+
+export interface ResourceCalendarExceptionEffectDto {
+  ruleId: string;
+  customDateIndex: number;
+  date: string;
+  dayType: WorkCalendarDayType;
+  targetType: "RESOURCE_GROUP" | "RESOURCE";
+  targetId: string;
+  effect: "CHANGED" | "NO_EFFECT";
+  warningCode: "REDUNDANT_WORKING_EXCEPTION" | "REDUNDANT_NON_WORKING_EXCEPTION" | null;
+  affectedResources: Array<{
+    resourceId: string;
+    resourceName: string;
+    beforeDayType: WorkCalendarDayType;
+    effectiveDayType: WorkCalendarDayType;
+    effect: "CHANGED" | "NO_EFFECT";
+    winningLayer: "BASE" | "PROJECT" | "RESOURCE_GROUP" | "RESOURCE";
+    winningSources: WorkCalendarDateSourceDto[];
+  }>;
+}
+
 export interface ProjectWorkCalendarResponse {
   data: {
     projectRevision: number;
     rules: WorkCalendarRuleDto[];
     projectDates: WorkCalendarDateDto[];
+    customDates: WorkCalendarCustomDateDto[];
   };
 }
 
@@ -69,6 +99,7 @@ export interface ReplaceProjectWorkCalendarRequest {
     date: string;
     targetType: WorkCalendarTargetType;
     targetId?: string | null;
+    dayType?: WorkCalendarDayType;
   }>;
 }
 
@@ -101,6 +132,7 @@ export interface PreviewProjectWorkCalendarResponse {
     calendar: ProjectWorkCalendarResponse["data"];
     changedTasks: CalendarTaskChangeDto[];
     manualConflicts: CalendarManualConflictDto[];
+    resourceExceptionEffects: ResourceCalendarExceptionEffectDto[];
   };
 }
 
