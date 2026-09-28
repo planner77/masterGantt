@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.49.0] - 2026-09-28
+
+### Changed
+
+- Issue #233: Project Gantt 정보 밀도 개선.
+  - 초기 Grid 폭을 620px에서 480px로 축소하고 주요 Grid column 폭을 재조정해 Timeline 작업 공간을 확대했다.
+  - 기간 column은 canonical working-day duration 의미를 유지하면서 cell 표시를 `N 근무일`에서 숫자 `N`으로 단순화했다.
+  - SVAR 공개 `cellWidth` API를 사용해 Day 44px / Week 68px을 적용했다.
+  - Day/Week 전환 전 현재 column state를 캡처하고 공개 `set-columns` API로 복원하여 사용자가 resize한 column 폭을 유지한다.
+  - Chromium E2E로 480px Grid, 숫자 duration, 44/68 cellWidth 계약과 390/768/1024/1440px document overflow를 검증한다.
+
 ## [0.48.0] - 2026-09-28
 
 ### Added
