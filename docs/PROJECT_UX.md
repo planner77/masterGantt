@@ -485,3 +485,16 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
   - 390/768px 모바일에서 1열 스택으로 자연스럽게 리플로우되어 가로 overflow 방지.
   - `Escape` 키 닫기 및 닫힘 후 '프로젝트 설정' 트리거 버튼으로의 포커스 복원 보존.
   - Gantt 인스턴스, 트리 접힘 상태, 스크롤 위치 보존 및 API/DB 스키마 불변 유지.
+
+## Issue #233 Project Gantt 정보 밀도
+
+Project Workspace의 일정 화면은 동일 viewport에서 Timeline 가용 면적을 늘리기 위해 다음 기본 geometry를 사용한다.
+
+- 초기 Grid 폭: **480px**
+- 작업/외부 ID/시작/기간 column: **180 / 108 / 104 / 56px**
+- Day scale cellWidth: **44px**
+- Week scale cellWidth: **68px**
+- 기간 cell은 canonical working-day duration 숫자만 표시하며 DB/API/Scheduling 의미는 변경하지 않는다.
+
+Grid/Chart resizer와 column resize는 계속 SVAR 공개 API를 사용한다. Day/Week 전환은 현재 mounted Gantt instance와 사용자가 조정한 column 폭을 보존해야 하며, scale 전환 때문에 사용자 resize 상태를 초기값으로 되돌리지 않는다. 390/768/1024/1440px에서 document-level unintended horizontal overflow를 만들지 않고 Gantt 내부 scroll은 기존 계약대로 허용한다.
+
