@@ -199,7 +199,7 @@ test("persists pointer edits, restores rejected writes, and serializes a same-re
   // Grid/Chart layout. Verify the recovered canonical schedule rather than absolute x.
   await expectTaskGridStart(page, winnerTask.name, "2026-09-22");
   const readonlyWinnerRow = page.locator(".project-gantt-widget .wx-table-container .wx-row", { hasText: winnerTask.name }).first();
-  await expect(readonlyWinnerRow).toContainText("2 근무일");
+  await expect(readonlyWinnerRow.getByText("2", { exact: true })).toBeVisible();
   await submitProjectUnlock(page, password);
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   await page.clock.setFixedTime(new Date("2026-09-24T12:00:00Z"));
