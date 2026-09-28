@@ -1,6 +1,6 @@
 # Architecture draft
 
-상태: Manager 통합 설계. W01–W07의 Project·authorization, pure Calendar/Leaf Scheduling과 root Task/Milestone persistence, W20의 CI/CD·최소 container artifact 기반 및 W21의 동기 Grid+Chart 작업공간을 구현했다. W24는 child 저장·Summary 집계와 순수 WBS 계산을 선행하지만 W08 전체 완료는 아니며, WBS DTO/UI·Reparent·FS 재계산, Import/Export와 production 배포 승인은 후속이다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
+상태: Manager 통합 설계. W01–W07의 Project·authorization, pure Calendar/Leaf Scheduling과 root Task/Milestone persistence, W20의 CI/CD·최소 container artifact 기반 및 W21의 동기 Grid+Chart 작업공간을 구현했다. W24는 child 저장·Summary 집계와 순수 WBS 계산을 선행했고 Excel 및 Issue #245 SVG/PNG 내보내기를 추가했다. 이 상태가 Import 전체, W08 전체 또는 production 배포 승인을 뜻하지는 않는다. 요구사항은 [REQUIREMENTS.md](REQUIREMENTS.md), 설계 판단은 [DECISIONS.md](DECISIONS.md)에서 관리한다.
 
 ## 경계
 
@@ -21,11 +21,14 @@ flowchart TD
   Browser -. 동일 Domain으로 preview .-> Domain
   Excel[승인된 Excel / VBA] --> File[JSON / CSV contract]
   File --> Browser
-  Repo --> Export[Backend ExcelJS workbook]
+  Repo --> Export[Backend internal OOXML workbook]
   Export --> XLSX[XLSX download / Project hyperlink]
+  Repo --> SvgExport[Canonical snapshot SVG renderer]
+  SvgExport --> SVG[Safe SVG download]
+  SVG --> PNG[Browser Canvas PNG]
 ```
 
-위 Repository→Export 화살표는 snapshot DTO 전달이다. Export Service가 조회를 조정하며 Repository가 ExcelJS를 import하지 않는다. 모든 persistence 접근은 Service 아래 Repository를 통한다.
+위 Repository→Export 화살표는 snapshot DTO 전달이다. Export Service가 조회를 조정하며 Repository가 OOXML/SVG writer를 import하지 않는다. 모든 persistence 접근은 Service 아래 Repository를 통한다.
 
 | 영역 | 책임 | 금지하는 결합 | 최초 담당 |
 | --- | --- | --- | --- |
@@ -35,7 +38,7 @@ flowchart TD
 | Repository | bound SQL, scope, FK·snapshot·atomic persistence | business scheduling, workbook 생성 | backend |
 | Domain | date/calendar, graph, summary/WBS, deterministic calculation | React, SVAR, DB, network, 현재 시각의 암묵 의존 | scheduler |
 | Excel/VBA | Header mapping, 필요한 셀 정규화, JSON/CSV·오류 보고 | DRM 우회, backend schema 단독 변경 | excel_vba |
-| Export | DB snapshot→Project/Tasks/Dependencies XLSX, Phase 2 Gantt | PRO export, token hyperlink | backend |
+| Export | DB snapshot→XLSX 또는 결정적 SVG; 브라우저에서 SVG→PNG | PRO export, token hyperlink, 외부 변환 서비스 | backend + frontend |
 | Deployment / CI | Node/native build, Actions, Semantic release, GHCR, volume·permission·health·backup | image 안의 DB/secret, PR write token, mutable image를 test 기준으로 사용, 다중 writer instance | infra |
 | QA | 실제 계약과 결과의 독립 비교 | 구현 Agent 보고를 그대로 PASS 처리 | qa_docs |
 
@@ -108,7 +111,7 @@ Excel→VBA→JSON/CSV는 [VBA_EXPORT.md](VBA_EXPORT.md)의 승인된 환경 POC
 
 서버 preview는 정규화와 모든 graph/calendar validation을 수행한다. Commit은 원본 정규화 payload를 다시 검증하고 `If-Match`를 확인한 후 원자적으로 저장한다. 초기 create-only batch는 업데이트·삭제·replace를 수행하지 않는다. Fixture 파일을 이용한 웹 parser 개발과 실제 조직 Excel POC의 통과 상태를 구분한다.
 
-Web export는 일정 DTO의 DB 일관된 snapshot을 얻고 transaction 밖에서 ExcelJS로 생성한다. Phase 1은 표 workbook과 canonical hyperlink, Phase 2는 기간 제한이 있는 날짜 cell Gantt다. [IMPORT_EXPORT.md](IMPORT_EXPORT.md) 참조.
+Web export는 일정 DTO의 DB 일관된 snapshot을 얻고 transaction 밖에서 내부 OOXML/ZIP writer로 Excel workbook을, 자체 renderer로 안전한 SVG를 생성한다. PNG는 브라우저 Canvas가 같은 SVG를 변환한다. 현재 Excel 계약은 [EXCEL_EXPORT.md](EXCEL_EXPORT.md), 이미지 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다. [IMPORT_EXPORT.md](IMPORT_EXPORT.md)의 초기 단계 계획과 충돌하면 현재 구현 계약이 우선한다.
 
 ## Security와 운영
 

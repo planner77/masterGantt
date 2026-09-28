@@ -197,6 +197,10 @@ Next Route의 표준 `Request`만으로 신뢰할 socket peer를 얻지 못하�
 
 CSV는 공동 검토한 IMPORT_SCHEMA.md 1.0을 따른다. Predecessor JSON array cell, 동일 metadata, UTF-8/RFC4180을 검증하고 row 순서를 sibling order로 보존한다. Planning QA는 통과했으며 실제 parser 구현·실행 검증은 아직 미완료다.
 
+### Gantt SVG/PNG export (#245)
+
+SVG export POST는 readonly 경로이지만 exact `Origin`, strong `If-Match`, canonical public ID, 8 KiB JSON 상한과 strict schema를 적용한다. 서버는 canonical snapshot만 SVG로 렌더하며 사용자 문자열을 XML text로 escape하고 script/event handler/`foreignObject`/외부 resource를 생성하지 않는다. URL 필드는 hyperlink로 바꾸지 않고 password/session/secret을 파일이나 로그에 기록하지 않는다. SVG/PNG 크기는 서버 및 브라우저에서 제한하고 오류 시 부분 파일을 내보내지 않는다. 세부 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다.
+
 ### Excel export
 
 - ExcelJS cell에는 user string을 string value로만 넣고 `formula`, rich value, hyperlink object로 해석하지 않는다.

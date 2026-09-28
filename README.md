@@ -2,7 +2,7 @@
 
 소규모 프로젝트의 일정과 진행 상황을 관리하는 웹 애플리케이션이다. SVAR React Gantt Core로 일정을 표시·편집하고, 일정 계산은 독립적인 Scheduling Engine에서 수행하는 구조를 목표로 한다.
 
-프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장, 좌측 계층 Grid와 우측 동기 Chart 중심의 넓은 Project 작업공간을 구현했다. GitHub Actions 검증, `main` commit별 임시 GHCR registry 검증 image와 Semantic Version release image 기반도 추가하며, Summary/WBS·FS 일정, 승인된 Excel/VBA → JSON·CSV Import, Excel Export와 production 배포 검증을 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
+프로젝트별 직접 링크, SQLite 저장, 편집 비밀번호 인증과 root Task/Milestone Gantt 저장, 좌측 계층 Grid와 우측 동기 Chart 중심의 넓은 Project 작업공간을 구현했다. GitHub Actions 검증, `main` commit별 임시 GHCR registry 검증 image와 Semantic Version release image 기반도 추가했다. Excel 및 Gantt SVG/PNG 내보내기를 제공하며, 승인된 Excel/VBA → JSON·CSV Import와 production 배포 검증은 단계적으로 진행한다. DRM 해제·우회 기능은 개발하지 않는다.
 
 이 README는 프로젝트 이해·설치·재설치·실행·진행 상황 확인을 위한 진입 문서다. 상세 요구사항은 [REQUIREMENTS](docs/REQUIREMENTS.md), 최신 작업 상태는 [실행 계획](docs/exec-plans/active/PLAN.md)을 따른다.
 
@@ -57,7 +57,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | SVAR data provider | Core의 transitive 2.7.2, 직접 사용 안 함 | cookie/If-Match/canonical snapshot 계약이 달라 W07 직접 명령 Adapter 유지 |
 | Zod | 4.6.2 | Project·Task request의 strict server schema 검증 |
 | Scheduling Engine | 자체 pure TypeScript | Gregorian ordinal, Project Calendar, 근무일·Leaf Duration; SVAR/DB/시간대 API 비의존 |
-| shadcn/ui / ExcelJS | 도입 예정, 미설치 | 일반 UI / 서버 Excel 생성 |
+| Excel/이미지 내보내기 | 내부 OOXML/ZIP writer와 자체 SVG renderer | 서버 SVG를 브라우저 Canvas에서 PNG로 변환; SVAR PRO·외부 변환 서비스 미사용 |
 | Docker / Docker Compose | W20 기반 구현 | non-root 단일 애플리케이션, startup migration/readiness와 영속 SQLite volume |
 | GitHub Actions / GHCR | W20/W22 기반 구현 | application·browser·container CI, main commit 임시 registry 검증과 Semantic Version release |
 
@@ -578,6 +578,7 @@ Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 relea
 | DB·API·보안 계약 | [DB_SCHEMA](docs/DB_SCHEMA.md), [API](docs/API.md), [SECURITY](docs/SECURITY.md) |
 | 일정 계산과 Core/PRO 경계 | [SCHEDULING_ENGINE](docs/SCHEDULING_ENGINE.md), [PRO_FEATURE_MATRIX](docs/PRO_FEATURE_MATRIX.md) |
 | Excel Import/Export | [IMPORT_EXPORT](docs/IMPORT_EXPORT.md), [IMPORT_SCHEMA](docs/IMPORT_SCHEMA.md), [VBA_EXPORT](docs/VBA_EXPORT.md) |
+| Gantt SVG/PNG 내보내기 | [IMAGE_EXPORT](docs/IMAGE_EXPORT.md), [EXCEL_EXPORT](docs/EXCEL_EXPORT.md) |
 | 셋업·운영·검증 상세 | [CI/CD](docs/CI_CD.md), [DEPLOYMENT](docs/DEPLOYMENT.md), [TEST_PLAN](docs/TEST_PLAN.md), [CHANGELOG](CHANGELOG.md) |
 | Nginx 앞단 운영 예제 | [README Nginx 설정·설명·점검](#nginx-reverse-proxy) |
 | 기술 조사·설계 판단 | [RESEARCH](docs/RESEARCH.md), [DECISIONS](docs/DECISIONS.md) |

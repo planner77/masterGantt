@@ -1,5 +1,11 @@
 # Test Plan
 
+## Issue #245 Gantt SVG/PNG 내보내기
+
+- 서버 Unit/API: canonical WBS 순서, 전체 Grid+Chart와 기간 Chart-only, 날짜·행·bar/link clip, SVG XML 안전성, 비근무일, Summary/Task/Milestone/progress, 크기 제한, Origin/If-Match/412 및 Excel 회귀를 검증한다.
+- Chromium E2E: 내보내기 진입점의 Excel/SVG/PNG, 기간 입력·오류, SVG XML과 PNG signature/크기, keyboard·Escape·focus 복원, 390/768/1024/1440px header, Gantt 상태 보존을 확인한다.
+- Local Fast Feedback은 변경 관련 unit/typecheck/lint/E2E로 기록한다. 공식 전체 회귀는 PR의 동일 head에서 `quality/e2e/docker` 결과로만 판정한다. 실제 screen reader와 브라우저별 Canvas 한도는 환경별 별도 검증이다. 상세 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다.
+
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
 

@@ -214,6 +214,8 @@ Warning은 정보 손실이나 규칙 위반을 숨기는 수단이 아니다. �
 
 ## 9. Excel Export Phase 1
 
+현재 구현된 Excel 계약은 [EXCEL_EXPORT.md](EXCEL_EXPORT.md)가 이 초기 계획보다 우선하며, Issue #245의 SVG/PNG Gantt 산출물은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)에 정의한다. 이미지 내보내기는 Excel→JSON/CSV Import 계약을 변경하지 않는다.
+
 ### 9.1 Library와 생성 위치
 
 Backend Node runtime에서 ExcelJS를 사용해 `.xlsx`를 생성한다. 특정 version은 지원 Node runtime, license, 알려진 compatibility를 공식 repository에서 확인한 후 설치 시점에 고정한다. SVAR PRO export와 VBA를 호출하지 않는다.

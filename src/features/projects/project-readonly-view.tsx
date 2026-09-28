@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent, type Keyboard
 import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectSaveAsTemplateButton } from "@/features/templates/project-save-as-template-button";
-import { ProjectExcelExportButton } from "@/features/projects/project-excel-export-button";
+import { ProjectExportButton } from "@/features/projects/project-excel-export-button";
 import { ProjectSettingsDialog } from "@/features/projects/project-settings-dialog";
 import { EMPTY_TASK_FILTER, activeTaskFilterCount, applyTaskQuickView, filterTasksWithAncestors, getTaskQuickView, type TaskFilterState } from "@/features/projects/project-search-filter";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
@@ -830,7 +830,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       </div>
       <div className="project-context-actions">
         <ProjectLinkButton projectName={project.name} projectUrl={projectUrl} />
-        <ProjectExcelExportButton publicId={publicId} />
+        <ProjectExportButton publicId={publicId} />
         {editing ? <button
           ref={settingsTriggerReference}
           type="button"

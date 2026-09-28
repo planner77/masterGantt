@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.51.0] - 2026-09-28
+
+### Added
+
+- Issue #245: Project Gantt를 canonical snapshot에서 SVG로 내보내고, 같은 SVG를 브라우저 Canvas에서 PNG로 변환해 다운로드한다. 전체 Project는 WBS Grid와 Chart를, 기간 지정은 지정한 날짜의 Chart만 포함한다.
+- 내보내기 진입점에서 기존 Excel과 SVG/PNG를 선택하며, 기간·범위 입력, revision 동시성 검사와 크기 제한을 적용한다. 기존 Excel의 관계 및 물류 구성 보고서 옵션은 유지한다.
+
+
 ## [0.50.0] - 2026-09-27
 
 ### Added
