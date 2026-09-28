@@ -165,6 +165,27 @@ test("Readonly 연결 조회 성공에서도 선택과 mutation을 허용하지 
   expect(mutations).toBe(0);
 });
 
+test("재조회 실패 시 이전 catalog cache보다 canonical 담당자 이름을 우선한다", async ({ page }) => {
+  const fixture = await installStatefulProjectFixture(page);
+  fixture.logistics = JSON.parse(JSON.stringify(logistics()));
+  let fail = false;
+  await page.route("**/api/resources", (route) => route.fulfill(fail ? { status: 500, json: {} } : { json: { data: { resources: [{ id: "res-1", name: "이전 캐시 이름", code: "OLD-01", active: true }] } } } }));
+  await page.goto(`/projects/${publicId}`);
+  await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
+  await page.getByRole("tab", { name: /^설비 관리/ }).click();
+  await page.getByRole("button", { name: "담당자", exact: true }).click();
+  let dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
+  await expect(dialog.getByText("이전 캐시 이름 (OLD-01)", { exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  fail = true;
+  await page.getByRole("button", { name: "담당자", exact: true }).click();
+  dialog = page.getByRole("dialog", { name: /설비 담당자 배정/ });
+  await expect(dialog.getByRole("alert")).toContainText("불러오지 못했습니다");
+  await expect(dialog.getByText("기존 담당자 (ENG-01)", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("이전 캐시 이름 (OLD-01)", { exact: true })).toHaveCount(0);
+  await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
+});
+
 test("시스템 PI의 malformed 후보에서도 canonical 이름과 저장 차단을 유지한다", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
   fixture.logistics = { processes: [], equipment: [], systemLinks: [], systems: [{ id: "sys-1", code: "MCS", name: "조율 시스템", systemType: "mcs", layer: "coordinator", scope: "project", processIds: [], coordinatedSystemIds: [], vendor: "", description: "", active: true, createdAt: "", updatedAt: "", resourceRoles: [{ resourceId: "res-1", resourceCode: "PI-01", resourceName: "기존 PI", role: "pi", isPrimary: true, active: true }] }] };
