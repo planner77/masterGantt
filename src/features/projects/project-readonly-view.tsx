@@ -37,7 +37,7 @@ type LoadState = { status: "loading" } | { status: "ready"; snapshot: ProjectSna
 type Permission = "readonly" | "edit";
 type PermissionCheckState = "checking" | "complete";
 type PendingTaskDelete = TaskDeletePlan & Readonly<{ revision: number }>;
-const INITIAL_COLUMN_VISIBILITY: ProjectGridColumnVisibility = { text: true, externalId: false, projectStart: true, projectDuration: true };
+const INITIAL_COLUMN_VISIBILITY: ProjectGridColumnVisibility = { text: true, externalId: false, projectStart: true, projectDuration: true, baselineStart: false, baselineEnd: false };
 
 function isSnapshot(value: unknown): value is ProjectSnapshotResponse {
   if (typeof value !== "object" || value === null || !("data" in value)) return false;
