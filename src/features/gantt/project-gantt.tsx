@@ -255,7 +255,6 @@ export function ProjectGantt({
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
-  const [showBaseline, setShowBaseline] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenPending, setFullscreenPending] = useState(false);
   const [fullscreenMessage, setFullscreenMessage] = useState("");
@@ -1479,16 +1478,6 @@ export function ProjectGantt({
           <button aria-pressed={scaleMode === "day"} onClick={() => setScaleMode("day")} type="button">일</button>
           <button aria-pressed={scaleMode === "week"} onClick={() => setScaleMode("week")} type="button">주</button>
         </div>
-        <div aria-label="기준 일정 표시" className="project-gantt-scale-controls" role="group">
-          <button
-            aria-pressed={showBaseline}
-            onClick={() => setShowBaseline((prev) => !prev)}
-            type="button"
-            className="project-gantt-baseline-toggle"
-          >
-            기준 일정 {showBaseline ? "숨기기" : "보기"}
-          </button>
-        </div>
         <button className="project-gantt-fullscreen-button" ref={fullscreenButtonReference} type="button"
           aria-label={isFullscreen ? "Gantt 전체 화면 종료" : "Gantt 전체 화면"} aria-pressed={isFullscreen}
           aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
@@ -1521,7 +1510,6 @@ export function ProjectGantt({
         >
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
-              baselines={showBaseline}
               columns={ganttColumnsReference.current}
               displayMode="all"
               gridWidth={620}
