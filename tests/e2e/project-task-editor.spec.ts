@@ -7,7 +7,7 @@ import { chooseTaskInformation, taskContextMenu } from "./helpers/task-context-m
 const publicId = "a3405d3d-8cb4-4da4-9b0f-43a5de330004";
 const apiPath = `/api/projects/${publicId}`;
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
-const row = (page: Page, name: string) => page.locator(".project-gantt-widget .wx-row", { hasText: name }).first();
+const row = (page: Page, name: string) => page.locator(".project-gantt-widget .wx-row:visible").filter({ has: page.getByText(name, { exact: true }) }).first();
 const bar = (page: Page, taskId: string) => page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${taskId}"]`);
 const editor = (page: Page) => page.getByRole("dialog", { name: "작업 정보", exact: true });
 const save = (page: Page) => editor(page).getByRole("button", { name: "저장", exact: true });
@@ -110,7 +110,10 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
 }
 
 async function openRow(page: Page, name = "Beta leaf") {
-  await row(page, name).getByText(name, { exact: true }).click({ button: "right" });
+  const targetRow = row(page, name);
+  await expect(targetRow).toBeVisible();
+  await targetRow.scrollIntoViewIfNeeded();
+  await targetRow.getByText(name, { exact: true }).click({ button: "right" });
   await chooseTaskInformation(page);
   await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue(name);
   await expect(editor(page)).toHaveCount(1);
