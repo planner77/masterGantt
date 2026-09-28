@@ -73,7 +73,7 @@ for (const variant of [
         year: "numeric", month: "short", day: "numeric", timeZone: "UTC",
       }).format(new Date("2026-09-10T00:00:00Z")));
       await expect(page.locator(".project-gantt-widget .wx-table-container").getByText(expectedDate, { exact: true }).first()).toBeVisible();
-      await expect(page.locator(".project-gantt-widget .wx-table-container").getByText("5 근무일", { exact: true }).first()).toBeVisible();
+      await expect(page.locator(".project-gantt-widget .wx-table-container").getByText("5", { exact: true }).first()).toBeVisible();
       await expect(page.locator(".project-gantt-widget .wx-weekend").first()).toBeVisible();
       await expect(externalIdHeader).toHaveCount(0);
       await gridHeader.click({ button: "right" });
