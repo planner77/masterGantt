@@ -260,6 +260,10 @@ button:focus-visible {
   padding-block: clamp(1rem, 2vw, 1.5rem);
 }
 
+.main-content:has(> .resources-page) {
+  padding-block: 1.25rem 2.5rem;
+}
+
 .page-section {
   display: grid;
   gap: 2.25rem;
