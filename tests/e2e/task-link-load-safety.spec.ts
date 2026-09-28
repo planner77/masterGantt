@@ -169,7 +169,13 @@ test("재조회 실패 시 이전 catalog cache보다 canonical 담당자 이름
   const fixture = await installStatefulProjectFixture(page);
   fixture.logistics = JSON.parse(JSON.stringify(logistics()));
   let fail = false;
-  await page.route("**/api/resources", (route) => route.fulfill(fail ? { status: 500, json: {} } : { json: { data: { resources: [{ id: "res-1", name: "이전 캐시 이름", code: "OLD-01", active: true }] } } } }));
+  await page.route("**/api/resources", (route) =>
+    route.fulfill(
+      fail
+        ? { status: 500, json: {} }
+        : { json: { data: { resources: [{ id: "res-1", name: "이전 캐시 이름", code: "OLD-01", active: true }] } } },
+    ),
+  );
   await page.goto(`/projects/${publicId}`);
   await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
   await page.getByRole("tab", { name: /^설비 관리/ }).click();
