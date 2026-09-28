@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.51.1] - 2026-09-28
+
+### Changed
+
+- Issue #260: Project Workspace의 일정/리소스 필터 Toolbar를 content-aware responsive grid로 정돈하여 768/1024px에서 불필요한 full-width 적층을 줄이고 390px에서만 필요한 추가 적층을 허용한다.
+- Task Advanced Filter를 텍스트, 일정·수치, 유형·할당, 물류 의미 section으로 재구성하고 operator/value·From/To·Min/Max·Resource/Group·물류 checkbox의 폭과 wrapping 규칙을 분리해 긴 label/값에서도 overlap과 document overflow를 방지한다.
+- 390/768/1024/1440/1600px E2E에 열린 Advanced Panel, 긴 물류 label, toolbar child 및 input/select bounding-box overlap·bounds 검증을 추가한다.
+
+
 ## [0.51.0] - 2026-09-28
 
 ### Added

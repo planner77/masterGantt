@@ -614,3 +614,11 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - `workflow_dispatch`는 전체 검증을 실행한다.
 - main 비문서 변경의 임시 GHCR digest 검증·cleanup 계약과 PR read-only 권한은 유지된다.
 - 실제 성능 판정은 변경 전 PR CI run #995와 최적화 PR의 wall-clock을 비교해 기록한다.
+
+
+## Issue #260 Project Workspace 필터 배치 회귀
+
+- `tests/e2e/project-filter-toolbar-consistency.spec.ts`는 390×844, 768×900, 1024×900, 1440×900, 1600×900에서 Schedule/Resource Toolbar의 검색, `필터 N`, 빠른 보기, 조건부 Reset, 결과 상태를 검사한다. 직접 자식의 `getBoundingClientRect()` 교차 영역이 1px를 초과하면 overlap 실패로 판정한다.
+- Task Advanced Filter를 열린 상태로 유지해 **텍스트 / 일정·수치 / 유형·할당 / 물류** section heading을 확인하고, operator/value·From/To·Min/Max·Resource/Group picker·긴 공정/설비/시스템 label을 포함한 모든 input/select가 panel 좌우 bounds를 벗어나거나 서로 겹치지 않는지 실제 geometry로 검증한다.
+- Resource Advanced Filter는 종류/상태/Task From/To와 한쪽 날짜 초안·역순 날짜 안내를 유지하면서 동일 geometry 검사를 수행한다. 768/1024에서는 2열 reflow, 390에서는 1열 reflow가 document horizontal overflow 없이 접근 가능해야 한다.
+- 기존 #83/#130/#196의 predicate, active count, Task/Milestone quick view, Grid/Chart visibility, Reset/search focus, Escape/filter trigger focus, Gantt root identity, filter 조작 중 mutation/API 재조회 0회 assertion을 그대로 유지한다. 새 layout 검증은 이 기능 회귀를 대체하지 않는다.
