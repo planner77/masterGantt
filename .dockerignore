@@ -6,6 +6,7 @@
 node_modules
 .next
 .next-e2e
+.runtime-tools
 .data
 *.sqlite
 *.sqlite3
