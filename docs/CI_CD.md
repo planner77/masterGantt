@@ -1,5 +1,18 @@
 # CI/CD
 
+## Issue #283 Docker runtime 슬림화 검증
+
+Docker PR gate는 Next.js standalone 전환의 기능 회귀와 실제 image 감소를 함께 검증한다.
+
+- candidate는 기존 `docker/build-push-action` 경로로 build하고 `scripts/verify-image-policy.sh`가 non-root, secret/data 부재와 함께 `server.js`, static asset, compiled startup 도구, migration 존재 및 전체 `src`/`.next/cache`/`tsx` 부재를 검사한다.
+- PR에서만 `github.event.pull_request.base.sha`를 detached worktree로 준비해 동일 Dockerfile 경로로 baseline image를 별도 build한다.
+- `scripts/verify-image-size-reduction.sh`는 `docker image inspect .Size` 기준 uncompressed size를 비교하며 최소 25% 감소를 hard gate로 사용한다.
+- Workflow summary에는 baseline/candidate size, 주요 runtime directory footprint 및 상위 layer를 기록한다.
+- 기존 invalid production config fail-fast, migration/readiness, `better-sqlite3` native write/restart persistence, HTTP/HTTPS transport, Compose recreate persistence 검증은 삭제하거나 완화하지 않는다.
+- main push에서는 baseline 비교를 반복하지 않지만 candidate image의 기존 runtime gate와 임시 GHCR exact-digest 검증/SBOM/provenance/cleanup 계약을 그대로 유지한다.
+
+이 측정은 Docker daemon의 uncompressed image size 기준이며 GHCR compressed transfer size와 동일하지 않다. 크기 목표를 맞추기 위해 보안·runtime smoke 또는 supply-chain gate를 생략하지 않는다.
+
 ## Issue #157 Compose pull/build 경로 검증
 
 - 운영 `deploy/compose.yml`은 `build:`가 없는 image-only 구성이고 `pull_policy: always`를 사용한다.
