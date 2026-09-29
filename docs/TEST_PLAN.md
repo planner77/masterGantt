@@ -693,3 +693,16 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - 기존 Country WORKING, Project CUSTOM 휴무, Manual/Dependency Calendar 재계산 및 접근성 회귀를 함께 유지한다.
 
 실제 로컬 실행 결과는 [Issue #261 검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)에 기록한다. 사용자 요청 범위는 PR/CI 시작까지이므로 원격 quality/e2e/docker의 완료 판정은 NOT TESTED이며 main/GHCR/정식 release는 이번 작업 범위 밖이다.
+
+## Issue #280 — Logistics Type Catalog
+
+필수 회귀 범위:
+
+- migration 0014 → 0015 적용, 기존 equipment/system row count·id·type code·관계/담당자/task link 보존, FK integrity
+- 기존 12개 default seed 및 custom type 생성/rename/active/inactive/restart 영속성
+- env bootstrap은 최초 1회만 사용, runtime password rotation 후 DB credential 우선, old session revoke
+- 관리자 Origin/session/If-Match 및 stale 412, invalid/duplicate code, secret 비노출
+- 신규 create/type-change는 active catalog만 허용하고 기존 inactive type 유지 편집은 허용
+- `/logistics-admin`과 Project Workspace의 loading/error/retry/session-expired 및 390/768/1024/1440 반응형·keyboard/focus/Escape
+- Project copy/template/dashboard/task logistics link/export 기존 code 보존 회귀
+
