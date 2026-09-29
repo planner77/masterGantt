@@ -711,3 +711,12 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - Project List 상태 회귀는 SSR 렌더 직후 hydration 전 select 조작으로 이벤트가 유실되지 않도록 control 활성화 시점을 검증하고, E2E는 enabled 상태 이후 조작한다.
 
 실제 실행 결과와 실패/재실행 이력은 [Issue #300 기록](ISSUE_300_GRID_DND.md)에 구분한다. 사용자 요청은 PR/CI 시작까지이므로 원격 quality/e2e/docker 결과는 NOT TESTED이며 완료 모니터링은 수행하지 않는다.
+
+
+## Issue #289 프로젝트 기준정보 회귀
+
+- Migration/DB: `0015_project_master_catalog.sql` 적용, 기존 Project NULL 보존, category/code unique, category mismatch 차단, FK RESTRICT와 catalog revision을 검증한다.
+- Service/API: active-only 일반 조회, 관리자 inactive 포함 조회, 별도 관리자 인증/Origin/If-Match/412, 잘못된 category/id, 사용 중 stable code 변경 차단, inactive 신규 선택 거부/기존 참조 보존을 검증한다.
+- Project aggregate: 생성·조회·목록·메타데이터 수정·복사·Template에서 동일 global 참조를 유지하고 rename/inactive가 참조를 깨뜨리지 않는지 검증한다.
+- UI/E2E: 생성/설정 Select의 loading/empty/error/retry/inactive 현재값, 관리자 category/add/edit/activate/deactivate/session expiry와 390/768/1024/1440px keyboard/focus/overflow를 검증한다.
+- 집중 서버 회귀는 `tests/server/projects/project-master-catalog.test.ts`; migration ledger/schema 기대값은 DB 및 migration CLI 테스트에서 0015까지 검증한다. 공식 PASS 판정은 PR exact-head GitHub Actions quality/e2e/docker 결과를 사용한다.
