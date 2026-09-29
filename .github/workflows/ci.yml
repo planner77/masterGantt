@@ -181,6 +181,7 @@ jobs:
         run: |
           sh -n deploy/docker/container-entrypoint.sh
           bash -n scripts/verify-compose-smoke.sh
+          bash -n scripts/verify-image-size-reduction.sh
 
   typecheck:
     name: TypeScript 타입 검사
