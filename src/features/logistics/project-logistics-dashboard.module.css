@@ -417,3 +417,6 @@
     white-space: nowrap;
   }
 }
+
+.fieldError { margin: 0; color: var(--status-error); font-size: .8125rem; max-width: 20rem; }
+.breakdownTabBtn:focus-visible, .tableWrapper:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }

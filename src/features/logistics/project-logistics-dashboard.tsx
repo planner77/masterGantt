@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback, useId } from "react";
+import { useEffect, useState, useId, useRef, type KeyboardEvent } from "react";
 import type { LogisticsDashboardDto } from "@/contracts/logistics-dashboard";
+import { parseDateOnly } from "@/domain/scheduling/date-only";
 import styles from "./project-logistics-dashboard.module.css";
 
 export interface ProjectLogisticsDashboardProps {
@@ -15,6 +16,39 @@ export interface ProjectLogisticsDashboardProps {
   }) => void;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> { return !!value && typeof value === "object" && !Array.isArray(value); }
+function isDashboard(value: unknown): value is LogisticsDashboardDto {
+  if (!isRecord(value)) return false;
+  try {
+    parseDateOnly(value.asOfDate);
+  } catch {
+    return false;
+  }
+  const number = (item: unknown) => typeof item === "number" && Number.isFinite(item);
+  const nullableNumber = (item: unknown) => item === null || number(item);
+  const strings = (item: unknown) => Array.isArray(item) && item.every((entry) => typeof entry === "string");
+  const nullableString = (item: unknown) => item === null || typeof item === "string";
+  const numericFields = (item: unknown, fields: string[]) => isRecord(item) && fields.every((field) => number(item[field]));
+  const kpi = value.kpi;
+  const effort = value.effort;
+  const quality = value.quality;
+  if (!number(value.projectRevision) || typeof value.asOfDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value.asOfDate) || !number(value.horizonDays) || (value.systemView !== "direct" && value.systemView !== "coordination") || typeof value.activeOnly !== "boolean" || !strings(value.includedTaskIds)) return false;
+  if (!numericFields(kpi, ["totalDuration", "taskCount", "overdueTaskCount", "milestoneTotalCount", "milestoneOverdueCount", "milestoneUpcomingCount"]) || !isRecord(kpi) || !nullableNumber(kpi.progressPercent) || !strings(kpi.overdueTaskIds) || !strings(kpi.milestoneOverdueIds) || !strings(kpi.milestoneUpcomingIds)) return false;
+  if (!numericFields(effort, ["plannedMd", "unsetAllocationCount"]) || !isRecord(effort) || !nullableNumber(effort.plannedMm)) return false;
+  if (!numericFields(quality, ["unlinkedLeafTaskCount", "equipmentWithoutPrimaryControllerCount", "equipmentWithoutOwnerCount", "systemsWithoutPrimaryPICount", "totalEquipmentMasterCount", "totalEquipmentQuantity"]) || !isRecord(quality) || !nullableNumber(quality.unlinkedLeafTaskPercent)) return false;
+  if (!isRecord(value.breakdowns)) return false;
+  for (const kind of ["processes", "equipment", "systems"]) {
+    const rows = value.breakdowns[kind];
+    if (!Array.isArray(rows) || !rows.every((row) => {
+      if (!isRecord(row) || !["id", "code", "name"].every((field) => typeof row[field] === "string") || typeof row.active !== "boolean" || !numericFields(row, ["taskCount", "overdueTaskCount", "plannedMd"]) || !nullableNumber(row.progressPercent)) return false;
+      if (kind === "equipment") return typeof row.equipmentType === "string" && number(row.quantity) && ["processName", "primaryControllerName", "ownerName"].every((field) => nullableString(row[field]));
+      if (kind === "systems") return typeof row.systemType === "string" && typeof row.layer === "string" && nullableString(row.primaryPIName) && strings(row.taskIds);
+      return true;
+    })) return false;
+  }
+  return true;
+}
+
 type BreakdownTab = "processes" | "equipment" | "systems";
 
 export function ProjectLogisticsDashboard({
@@ -23,13 +57,12 @@ export function ProjectLogisticsDashboard({
   onNavigateToSchedule,
 }: ProjectLogisticsDashboardProps) {
   const [dashboard, setDashboard] = useState<LogisticsDashboardDto | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<{ key: string | null; status: "loading" | "ready" | "error"; error?: string }>({ key: null, status: "loading" });
 
   // Filter state. Leave asOfDate empty for the first request so the server
   // derives the project-local date from the project timezone.
   const [asOfDate, setAsOfDate] = useState<string>("");
-  const [horizonDays, setHorizonDays] = useState<number>(14);
+  const [horizonDays, setHorizonDays] = useState<string>("14");
   const [systemView, setSystemView] = useState<"direct" | "coordination">("direct");
   const [activeOnly, setActiveOnly] = useState<boolean>(false);
   const [activeBreakdownTab, setActiveBreakdownTab] = useState<BreakdownTab>("processes");
@@ -40,75 +73,76 @@ export function ProjectLogisticsDashboard({
   const systemViewSelectId = useId();
   const activeOnlyCheckboxId = useId();
 
-  const handleRefresh = useCallback(() => {
-    setIsLoading(true);
-    setRefreshKey((k) => k + 1);
-  }, []);
+  const tabId = useId();
+  const tabRefs = useRef<Partial<Record<BreakdownTab, HTMLButtonElement | null>>>({});
+  const horizonNumber = Number(horizonDays);
+  const horizonError = !horizonDays.trim() || !Number.isInteger(horizonNumber) || horizonNumber < 1 || horizonNumber > 90 ? "임박 기준은 1~90 사이의 정수로 입력해 주세요." : null;
+  const requestKey = JSON.stringify([publicId, revision, asOfDate, horizonDays, systemView, activeOnly, refreshKey]);
+  const ready = !horizonError && outcome.key === requestKey && outcome.status === "ready";
+  const isLoading = !horizonError && (outcome.key !== requestKey || outcome.status === "loading");
+  const error = outcome.key === requestKey && outcome.status === "error" ? outcome.error : null;
+
+  function handleRefresh() {
+    if (isLoading || horizonError) return;
+    setRefreshKey((key) => key + 1);
+  }
+  function selectBreakdown(tab: BreakdownTab) {
+    setActiveBreakdownTab(tab);
+    tabRefs.current[tab]?.focus();
+  }
+  function handleTabKey(event: KeyboardEvent<HTMLButtonElement>, current: BreakdownTab) {
+    const tabs: BreakdownTab[] = ["processes", "equipment", "systems"];
+    const index = tabs.indexOf(current);
+    const next = event.key === "ArrowRight" ? tabs[(index + 1) % tabs.length] : event.key === "ArrowLeft" ? tabs[(index + tabs.length - 1) % tabs.length] : event.key === "Home" ? tabs[0] : event.key === "End" ? tabs[2] : null;
+    if (next) { event.preventDefault(); selectBreakdown(next); }
+  }
 
   useEffect(() => {
     const controller = new AbortController();
-
+    if (horizonError) return () => controller.abort();
     void (async () => {
-      const params = new URLSearchParams();
+      await Promise.resolve();
+      if (controller.signal.aborted) return;
+      setOutcome({ key: requestKey, status: "loading" });
+      const params = new URLSearchParams({ horizonDays: String(horizonNumber), systemView });
       if (asOfDate) params.set("asOfDate", asOfDate);
-      if (horizonDays) params.set("horizonDays", String(horizonDays));
-      if (systemView) params.set("systemView", systemView);
       if (activeOnly) params.set("activeOnly", "true");
-
       try {
-        const response = await fetch(
-          `/api/projects/${encodeURIComponent(publicId)}/logistics/dashboard?${params.toString()}`,
-          {
-            signal: controller.signal,
-          },
-        );
-        if (!response.ok) {
-          throw new Error(`대시보드 조회 실패 (HTTP ${response.status})`);
-        }
-        const json = await response.json();
-        if (!controller.signal.aborted) {
-          setDashboard(json.data);
-          if (!asOfDate && json.data?.asOfDate) {
-            setAsOfDate(json.data.asOfDate);
-          }
-          setError(null);
-        }
-      } catch (err) {
-        if (!controller.signal.aborted) {
-          setError(err instanceof Error ? err.message : "대시보드를 불러오는 도중 오류가 발생했습니다.");
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/logistics/dashboard?${params}`, { signal: controller.signal, credentials: "same-origin", cache: "no-store" });
+        if (!response.ok) throw new Error(`대시보드 조회 실패 (HTTP ${response.status})`);
+        const json: unknown = await response.json();
+        const data = isRecord(json) ? json.data : null;
+        if (!isDashboard(data) || data.projectRevision !== revision || data.horizonDays !== horizonNumber || data.systemView !== systemView || data.activeOnly !== activeOnly || (asOfDate && data.asOfDate !== asOfDate)) throw new Error("대시보드 응답이 현재 조회 조건과 일치하지 않습니다. 다시 시도해 주세요.");
+        if (controller.signal.aborted) return;
+        setDashboard(data);
+        setOutcome({ key: requestKey, status: "ready" });
+      } catch (failure) {
+        if (!controller.signal.aborted) setOutcome({ key: requestKey, status: "error", error: failure instanceof Error ? failure.message : "대시보드를 불러오는 도중 오류가 발생했습니다." });
       }
     })();
-
-    return () => {
-      controller.abort();
-    };
-  }, [publicId, asOfDate, horizonDays, systemView, activeOnly, revision, refreshKey]);
+    return () => controller.abort();
+  }, [publicId, asOfDate, horizonNumber, horizonError, systemView, activeOnly, revision, requestKey]);
 
   const handleDrillDownToTasks = (taskIds: string[]) => {
-    if (onNavigateToSchedule) {
+    if (ready && onNavigateToSchedule) {
       onNavigateToSchedule({ taskIds });
     }
   };
 
   const handleDrillDownToProcess = (procId: string) => {
-    if (onNavigateToSchedule) {
+    if (ready && onNavigateToSchedule) {
       onNavigateToSchedule({ processIds: [procId] });
     }
   };
 
   const handleDrillDownToEquipment = (eqId: string) => {
-    if (onNavigateToSchedule) {
+    if (ready && onNavigateToSchedule) {
       onNavigateToSchedule({ equipmentIds: [eqId] });
     }
   };
 
   const handleDrillDownToSystem = (sysId: string, taskIds: string[]) => {
-    if (onNavigateToSchedule) {
+    if (ready && onNavigateToSchedule) {
       if (systemView === "coordination") {
         onNavigateToSchedule({ taskIds });
       } else {
@@ -128,7 +162,7 @@ export function ProjectLogisticsDashboard({
           <input
             id={asOfDateInputId}
             type="date"
-            value={asOfDate}
+            value={asOfDate || dashboard?.asOfDate || ""}
             onChange={(e) => setAsOfDate(e.target.value)}
             className={styles.filterInput}
           />
@@ -144,10 +178,13 @@ export function ProjectLogisticsDashboard({
             min={1}
             max={90}
             value={horizonDays}
-            onChange={(e) => setHorizonDays(Number(e.target.value))}
+            onChange={(e) => setHorizonDays(e.target.value)}
+            aria-invalid={Boolean(horizonError)}
+            aria-describedby={horizonError ? `${horizonDaysInputId}-error` : undefined}
             className={styles.filterInput}
             style={{ width: "4.5rem" }}
           />
+          {horizonError ? <p id={`${horizonDaysInputId}-error`} className={styles.fieldError} role="alert">{horizonError}</p> : null}
         </div>
 
         <div className={styles.filterGroup}>
@@ -178,22 +215,22 @@ export function ProjectLogisticsDashboard({
         <button
           type="button"
           onClick={handleRefresh}
-          disabled={isLoading}
+          disabled={isLoading || Boolean(horizonError)}
           className={styles.refreshButton}
         >
-          {isLoading ? "새로고침 중..." : "새로고침"}
+          {isLoading ? "새로고침 중…" : error ? "다시 시도" : "새로고침"}
         </button>
       </div>
 
-      {error && <div className={styles.errorNotice}>{error}</div>}
+      {error && <div className={styles.errorNotice} role="alert">{error}</div>}
 
-      {isLoading && !dashboard && (
+      {isLoading && (
         <div className={styles.loadingNotice} role="status">
-          물류 KPI 대시보드를 집계하는 중입니다...
+          현재 조회 조건으로 물류 KPI 대시보드를 집계하는 중입니다…
         </div>
       )}
 
-      {dashboard && (
+      {ready && dashboard && (
         <>
           {/* 2. 핵심 KPI 카드 그리드 */}
           <div className={styles.kpiGrid}>
@@ -417,13 +454,20 @@ export function ProjectLogisticsDashboard({
 
           {/* 4. 세부 현황 표 (Breakdown Tables) */}
           <div className={styles.breakdownSection}>
-            <div className={styles.breakdownTabs}>
+            <div className={styles.breakdownTabs} role="tablist" aria-label="물류 세부 현황">
               <button
                 type="button"
                 className={`${styles.breakdownTabBtn} ${
                   activeBreakdownTab === "processes" ? styles.breakdownTabBtnActive : ""
                 }`}
-                onClick={() => setActiveBreakdownTab("processes")}
+                role="tab"
+                id={`${tabId}-tab-processes`}
+                aria-controls={`${tabId}-panel-processes`}
+                aria-selected={activeBreakdownTab === "processes"}
+                tabIndex={activeBreakdownTab === "processes" ? 0 : -1}
+                ref={(node) => { tabRefs.current.processes = node; }}
+                onKeyDown={(event) => handleTabKey(event, "processes")}
+                onClick={() => selectBreakdown("processes")}
               >
                 공정별 현황 ({dashboard.breakdowns.processes.length})
               </button>
@@ -432,7 +476,14 @@ export function ProjectLogisticsDashboard({
                 className={`${styles.breakdownTabBtn} ${
                   activeBreakdownTab === "equipment" ? styles.breakdownTabBtnActive : ""
                 }`}
-                onClick={() => setActiveBreakdownTab("equipment")}
+                role="tab"
+                id={`${tabId}-tab-equipment`}
+                aria-controls={`${tabId}-panel-equipment`}
+                aria-selected={activeBreakdownTab === "equipment"}
+                tabIndex={activeBreakdownTab === "equipment" ? 0 : -1}
+                ref={(node) => { tabRefs.current.equipment = node; }}
+                onKeyDown={(event) => handleTabKey(event, "equipment")}
+                onClick={() => selectBreakdown("equipment")}
               >
                 설비별 현황 ({dashboard.breakdowns.equipment.length})
               </button>
@@ -441,13 +492,21 @@ export function ProjectLogisticsDashboard({
                 className={`${styles.breakdownTabBtn} ${
                   activeBreakdownTab === "systems" ? styles.breakdownTabBtnActive : ""
                 }`}
-                onClick={() => setActiveBreakdownTab("systems")}
+                role="tab"
+                id={`${tabId}-tab-systems`}
+                aria-controls={`${tabId}-panel-systems`}
+                aria-selected={activeBreakdownTab === "systems"}
+                tabIndex={activeBreakdownTab === "systems" ? 0 : -1}
+                ref={(node) => { tabRefs.current.systems = node; }}
+                onKeyDown={(event) => handleTabKey(event, "systems")}
+                onClick={() => selectBreakdown("systems")}
               >
                 물류 시스템별 현황 ({dashboard.breakdowns.systems.length})
               </button>
             </div>
 
-            <div className={styles.tableWrapper}>
+            <div>
+              <div className={styles.tableWrapper} role="tabpanel" id={`${tabId}-panel-processes`} aria-labelledby={`${tabId}-tab-processes`} hidden={activeBreakdownTab !== "processes"} tabIndex={0}>
               {activeBreakdownTab === "processes" && (
                 <table className={styles.table}>
                   <thead>
@@ -511,7 +570,9 @@ export function ProjectLogisticsDashboard({
                   </tbody>
                 </table>
               )}
+              </div>
 
+              <div className={styles.tableWrapper} role="tabpanel" id={`${tabId}-panel-equipment`} aria-labelledby={`${tabId}-tab-equipment`} hidden={activeBreakdownTab !== "equipment"} tabIndex={0}>
               {activeBreakdownTab === "equipment" && (
                 <table className={styles.table}>
                   <thead>
@@ -583,7 +644,9 @@ export function ProjectLogisticsDashboard({
                   </tbody>
                 </table>
               )}
+              </div>
 
+              <div className={styles.tableWrapper} role="tabpanel" id={`${tabId}-panel-systems`} aria-labelledby={`${tabId}-tab-systems`} hidden={activeBreakdownTab !== "systems"} tabIndex={0}>
               {activeBreakdownTab === "systems" && (
                 <table className={styles.table}>
                   <thead>
@@ -651,6 +714,7 @@ export function ProjectLogisticsDashboard({
                   </tbody>
                 </table>
               )}
+              </div>
             </div>
           </div>
         </>

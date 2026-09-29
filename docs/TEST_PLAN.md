@@ -1,5 +1,9 @@
 # Test Plan
 
+## Issue #267 대시보드 조건·응답·탭 정합성
+
+지연/실패/응답 역전 mock으로 조건 변경 시 이전 KPI·drill-down 차단, 최신 요청만 반영, HTTP·네트워크·잘못된 응답의 명시적 재시도를 검사한다. 최초 서버 기준일 표시가 불필요한 추가 GET을 만들지 않는지, 빈 값/0/91/소수 기간은 GET 없이 필드 오류를 제공하는지 확인한다. 세부 탭의 aria 연결·roving Tab·방향키/Home/End와 정상 작업 이동의 Gantt identity를 검증한다. 390/768/1024/1440px에서 빈 결과·오류·긴 이름 및 문서 overflow를 확인한다. KPI 알고리즘·API 전체 회귀는 기존 테스트와 PR CI로 구분한다.
+
 ## Issue #266 관계 Dialog 키보드·초안·요청 보호
 
 후보 Enter/Space 선택과 Escape의 후보 우선 닫기, native dialog Tab/Shift+Tab containment, 실제 호출 위치 focus 복원, 같은 Gantt root/상태 보존을 검사한다. 명시적 Header/Footer 닫기는 후보 popup이 열려 있어도 popup 전용 Escape 처리와 분리되어 즉시 닫기 또는 dirty 확인 흐름으로 진입해야 한다. predecessor 방향을 포함한 관계 생성 성공 후 새 관계 초안은 기본값으로 초기화되어 불필요한 폐기 확인이 없어야 한다. dirty 닫기·다른 관계 선택의 계속 편집/폐기, 대상이 표시된 삭제 확인과 취소 DELETE 0회를 검증한다. 지연 mutation 중 Escape·닫기·선택·중복 요청을 차단하고 실패 후 초안을 보존해야 한다. Readonly와 긴 후보/제목을 포함하여 390/768/1024/1440px 주요 명령 접근·본문 scroll·문서 overflow 및 공통 닫기 버튼 줄바꿈을 확인한다. API/DB/스케줄링 알고리즘은 변경하지 않으며 전체 회귀는 PR CI로 구분한다.
