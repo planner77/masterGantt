@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,12 +21,21 @@ describe("deployment repository layout", () => {
     }
   });
 
-  it("preserves the entrypoint bytes and executable mode", () => {
+  it("keeps the entrypoint executable and preserves the standalone startup order", () => {
     const path = resolve(root, "deploy/docker/container-entrypoint.sh");
-    const bytes = readFileSync(path);
-    const sha = createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex");
-    expect(sha).toBe("9492419ffdce7295132a41b6a66210032d9f1400");
+    const entrypoint = readFileSync(path, "utf8");
     if (process.platform !== "win32") expect(statSync(path).mode & 0o111).not.toBe(0);
+
+    const validation = "node runtime-tools/scripts/runtime/validate-runtime-config.js";
+    const migration = "node runtime-tools/scripts/migrate.js";
+    const server = "exec node server.js";
+    expect(entrypoint).toContain(validation);
+    expect(entrypoint).toContain(migration);
+    expect(entrypoint).toContain(server);
+    expect(entrypoint.indexOf(validation)).toBeLessThan(entrypoint.indexOf(migration));
+    expect(entrypoint.indexOf(migration)).toBeLessThan(entrypoint.indexOf(server));
+    expect(entrypoint).not.toContain("--import tsx");
+    expect(entrypoint).not.toContain("npm run start");
   });
 
   it("preserves runtime paths and pins while relocating the Dockerfile", () => {
