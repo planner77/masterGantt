@@ -4,8 +4,6 @@ import type {
   CreateLogisticsSystemRequest,
   CreateProcessRequest,
   EquipmentRole,
-  EquipmentType,
-  LogisticsSystemType,
   ManagementUnit,
   ReplaceTaskLogisticsLinksRequest,
   SetEquipmentResourceRolesRequest,
@@ -34,25 +32,7 @@ export interface ValidationFailure {
 
 export type ValidationResult<T> = ValidationSuccess<T> | ValidationFailure;
 
-const VALID_EQUIPMENT_TYPES: Set<EquipmentType> = new Set([
-  "stocker",
-  "agv",
-  "amr",
-  "oht",
-  "conveyor",
-  "other",
-]);
-
 const VALID_MANAGEMENT_UNITS: Set<ManagementUnit> = new Set(["unit", "fleet"]);
-
-const VALID_SYSTEM_TYPES: Set<LogisticsSystemType> = new Set([
-  "scs",
-  "acs",
-  "ocs",
-  "lcs",
-  "mcs",
-  "other",
-]);
 
 const VALID_SYSTEM_LAYERS: Set<SystemLayer> = new Set(["controller", "coordinator"]);
 
@@ -213,9 +193,9 @@ export function parseCreateEquipmentInput(
     details.push("Equipment name must be non-empty and at most 200 characters.");
   }
 
-  const equipmentType = body.equipmentType as EquipmentType;
-  if (!VALID_EQUIPMENT_TYPES.has(equipmentType)) {
-    details.push(`equipmentType must be one of: ${[...VALID_EQUIPMENT_TYPES].join(", ")}`);
+  const equipmentType = typeof body.equipmentType === "string" ? body.equipmentType.trim().toLowerCase() : "";
+  if (!equipmentType || equipmentType.length > 64 || !/^[a-z0-9][a-z0-9._-]*$/.test(equipmentType)) {
+    details.push("equipmentType must be a valid logistics catalog code.");
   }
 
   const managementUnit = body.managementUnit as ManagementUnit;
@@ -308,11 +288,11 @@ export function parseUpdateEquipmentRequest(
   }
 
   if (body.equipmentType !== undefined) {
-    const eqType = body.equipmentType as EquipmentType;
-    if (VALID_EQUIPMENT_TYPES.has(eqType)) {
+    const eqType = typeof body.equipmentType === "string" ? body.equipmentType.trim().toLowerCase() : "";
+    if (eqType && eqType.length <= 64 && /^[a-z0-9][a-z0-9._-]*$/.test(eqType)) {
       result.equipmentType = eqType;
     } else {
-      details.push(`equipmentType must be one of: ${[...VALID_EQUIPMENT_TYPES].join(", ")}`);
+      details.push("equipmentType must be a valid logistics catalog code.");
     }
   }
 
@@ -438,9 +418,9 @@ export function parseCreateLogisticsSystemInput(
     details.push("System name must be non-empty and at most 200 characters.");
   }
 
-  const systemType = body.systemType as LogisticsSystemType;
-  if (!VALID_SYSTEM_TYPES.has(systemType)) {
-    details.push(`systemType must be one of: ${[...VALID_SYSTEM_TYPES].join(", ")}`);
+  const systemType = typeof body.systemType === "string" ? body.systemType.trim().toLowerCase() : "";
+  if (!systemType || systemType.length > 64 || !/^[a-z0-9][a-z0-9._-]*$/.test(systemType)) {
+    details.push("systemType must be a valid logistics catalog code.");
   }
 
   const layer = body.layer as SystemLayer;
@@ -526,11 +506,11 @@ export function parseUpdateLogisticsSystemInput(
   }
 
   if (body.systemType !== undefined) {
-    const sType = body.systemType as LogisticsSystemType;
-    if (VALID_SYSTEM_TYPES.has(sType)) {
+    const sType = typeof body.systemType === "string" ? body.systemType.trim().toLowerCase() : "";
+    if (sType && sType.length <= 64 && /^[a-z0-9][a-z0-9._-]*$/.test(sType)) {
       result.systemType = sType;
     } else {
-      details.push(`systemType must be one of: ${[...VALID_SYSTEM_TYPES].join(", ")}`);
+      details.push("systemType must be a valid logistics catalog code.");
     }
   }
 
