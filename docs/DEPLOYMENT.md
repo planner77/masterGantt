@@ -322,3 +322,8 @@ docker compose --env-file .env -f deploy/compose.yml logs -f app
 ```
 
 Docker daemon의 `json-file` 또는 `local` logging driver와 `max-size`/`max-file` 보존 정책은 호스트 운영 기준에 맞춰 별도로 설정한다. daemon 전역 변경은 다른 컨테이너 영향을 먼저 검토한다. Windows Nginx는 `proxy_set_header X-Request-ID $request_id;`를 사용하고 access log에도 `$request_id`를 포함하여 응답 헤더와 Docker 로그를 같은 ID로 조회한다. 상세 기준은 [LOGGING.md](LOGGING.md)를 따른다.
+
+
+## Issue #289 project-master bootstrap
+
+신규 DB에서 프로젝트 기준정보 관리자를 bootstrap하려면 `PROJECT_MASTER_ADMIN_PASSWORD`를 runtime 환경에 제공한다. `deploy/compose.yml`이 이 값을 application container에 명시적으로 전달하며, 값은 최초 credential 생성에만 사용된다. DB credential 생성 이후 환경변수 변경으로 현재 관리자 비밀번호를 덮어쓰지 않는다. 운영 secret은 이미지·소스·로그에 포함하지 않는다.
