@@ -7,7 +7,7 @@ import styles from "./logistics-type-catalog-admin.module.css";
 
 function validCatalog(value:unknown):value is LogisticsTypeCatalogResponse{
   if(!value||typeof value!=="object"||!("data" in value))return false;
-  const data=value.data;return !!data&&typeof data==="object"&&"revision" in data&&Number.isSafeInteger(data.revision)&&
+  const data=value.data;return !!data&&typeof data==="object"&&"revision" in data&&typeof data.revision==="number"&&Number.isSafeInteger(data.revision)&&
     "equipmentTypes" in data&&Array.isArray(data.equipmentTypes)&&"systemTypes" in data&&Array.isArray(data.systemTypes);
 }
 function etag(revision:number){return `"${revision}"`;}
