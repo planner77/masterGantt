@@ -84,6 +84,39 @@ function setupProjectWithSession(database: Database.Database) {
 }
 
 describe("LogisticsService Core", () => {
+  it("generates stable unique process codes when create input omits code", () => {
+    const db = createTestDatabase();
+    const { authSession, now } = setupProjectWithSession(db);
+    const generatedIds = [
+      "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    ];
+    const service = new LogisticsService(db, {
+      clock: () => now,
+      generatePublicId: () => generatedIds.shift()!,
+    });
+
+    const first = service.createProcess(authSession, 1, { name: "자동 코드 공정 1" });
+    const firstProcess = first.data.logistics.processes[0];
+    expect(firstProcess.code).toBe("PROC-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    expect(firstProcess.code.length).toBeLessThanOrEqual(64);
+
+    const second = service.createProcess(authSession, 2, { name: "자동 코드 공정 2" });
+    const autoCodes = second.data.logistics.processes.map((process) => process.code);
+    expect(autoCodes).toContain("PROC-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
+    expect(autoCodes).toContain("PROC-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+    expect(new Set(autoCodes).size).toBe(autoCodes.length);
+
+    const legacy = service.createProcess(authSession, 3, {
+      code: "LEGACY-PROC",
+      name: "명시 코드 공정",
+    });
+    expect(legacy.data.logistics.processes.find((process) => process.name === "명시 코드 공정")?.code).toBe(
+      "LEGACY-PROC",
+    );
+  });
+
   it("creates, updates, and soft-deletes process with revision increment", () => {
     const db = createTestDatabase();
     const { authSession, now } = setupProjectWithSession(db);
