@@ -70,6 +70,7 @@ function taskDtos(tasks: readonly TaskRecord[]): ProjectTaskDto[] {
       end: task.endDate,
       duration: task.duration,
       progress: task.progress,
+      status: task.status,
       parentExternalId: parentExternalId ?? null,
       siblingOrder: task.sortOrder,
       baselineStart: task.baselineStart,
