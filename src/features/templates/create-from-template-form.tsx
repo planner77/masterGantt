@@ -25,8 +25,14 @@ function todayDateString(): string {
   return `${year}-${month}-${day}`;
 }
 
-export function CreateFromTemplateForm() {
+interface SubmissionProps {
+  readonly onBeginSubmission?: () => boolean;
+  readonly onEndSubmission?: () => void;
+}
+
+export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: SubmissionProps = {}) {
   const router = useRouter();
+  const submissionRef = useRef(false);
   const [templates, setTemplates] = useState<ProjectTemplateDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -71,6 +77,7 @@ export function CreateFromTemplateForm() {
   const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
 
   function handleSelectTemplate(t: ProjectTemplateDto) {
+    if (submissionRef.current) return;
     setSelectedTemplateId(t.id);
     setName(`${t.name} 프로젝트`);
     setError(null);
@@ -79,7 +86,7 @@ export function CreateFromTemplateForm() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isSubmitting || !selectedTemplateId) return;
+    if (submissionRef.current || !selectedTemplateId) return;
 
     const issues: Record<string, string> = {};
     if (!name.trim()) issues.name = "프로젝트 이름을 입력해 주세요.";
@@ -104,26 +111,26 @@ export function CreateFromTemplateForm() {
 
     setFieldErrors({});
     setError(null);
+    if (onBeginSubmission && !onBeginSubmission()) return;
+    submissionRef.current = true;
     setIsSubmitting(true);
 
+    const request = {
+      name: name.trim(), ownerName: normOwner, description: description.trim() || undefined,
+      projectStartDate, editPassword,
+    };
+    setEditPassword("");
     try {
       const res = await fetch(`/api/project-templates/${selectedTemplateId}/instantiate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          ownerName: normOwner,
-          description: description.trim() || undefined,
-          projectStartDate,
-          editPassword,
-        }),
+        body: JSON.stringify(request),
       });
 
       if (!res.ok) {
         const errorJson = await res.json().catch(() => null);
         const msg = errorJson?.error?.message ?? "프로젝트를 생성하지 못했습니다.";
         setError(msg);
-        setIsSubmitting(false);
         return;
       }
 
@@ -133,11 +140,14 @@ export function CreateFromTemplateForm() {
         router.push(`/projects/${publicId}`);
       } else {
         setError("생성된 프로젝트 정보를 확인할 수 없습니다.");
-        setIsSubmitting(false);
       }
     } catch {
       setError("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setEditPassword("");
+      submissionRef.current = false;
       setIsSubmitting(false);
+      onEndSubmission?.();
     }
   }
 
@@ -168,6 +178,7 @@ export function CreateFromTemplateForm() {
         <div className="template-search-box">
           <input
             type="search"
+            disabled={isSubmitting}
             placeholder="템플릿 이름 또는 설명 검색…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -183,6 +194,7 @@ export function CreateFromTemplateForm() {
                 key={t.id}
                 type="button"
                 role="radio"
+                disabled={isSubmitting}
                 aria-checked={isSelected}
                 className={`template-card ${isSelected ? "template-card-selected" : ""}`}
                 onClick={() => handleSelectTemplate(t)}
