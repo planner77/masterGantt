@@ -1,18 +1,17 @@
 # syntax=docker/dockerfile:1
-# Node 22는 package.json의 지원 범위와 맞추며, 모든 stage에서 Debian glibc 계열을
-# 사용한다. better-sqlite3 native addon의 Node ABI/libc 불일치를 피하기 위한 것이다.
-FROM node:26-bookworm-slim@sha256:cd9f682fa2885cd1056e830424764158570061c59736a1da836bc3d73df095ae AS production-dependencies
+# 모든 build/runtime stage는 동일한 Debian glibc/Node 계열을 사용해
+# better-sqlite3 native addon의 Node ABI/libc 호환성을 유지한다.
+FROM node:26-bookworm-slim@sha256:cd9f682fa2885cd1056e830424764158570061c59736a1da836bc3d73df095ae AS build
 WORKDIR /app
-COPY package.json package-lock.json ./
-# better-sqlite3 prebuild가 대상 Node patch에 없을 수 있으므로 source build 도구를
-# builder에만 둔다. runtime stage에는 compiler/Python을 복사하지 않는다.
+
+# better-sqlite3 prebuild가 대상 Node patch에 없을 수 있으므로 source build 도구는
+# build stage에만 설치한다. 최종 runtime에는 compiler/Python/npm install 결과 전체를
+# 복사하지 않고 Next.js standalone trace와 startup용 compiled artifact만 전달한다.
 RUN apt-get update \
     && apt-get install --no-install-recommends --yes python3 make g++ \
-    && rm -rf /var/lib/apt/lists/* \
-    && npm ci --omit=dev
+    && rm -rf /var/lib/apt/lists/*
 
-FROM production-dependencies AS build
-WORKDIR /app
+COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
@@ -25,6 +24,7 @@ LABEL org.opencontainers.image.title="masterGantt" \
 
 ENV NODE_ENV=production \
     PORT=3000 \
+    HOSTNAME=0.0.0.0 \
     DATABASE_PATH=/data/mastergantt.sqlite3
 
 WORKDIR /app
@@ -35,14 +35,15 @@ RUN groupadd --system --gid 1001 mastergantt \
     && mkdir /data \
     && chown mastergantt:mastergantt /data
 
-COPY --from=production-dependencies --chown=mastergantt:mastergantt /app/node_modules ./node_modules
-COPY --from=build --chown=mastergantt:mastergantt /app/.next ./.next
-COPY --from=build --chown=mastergantt:mastergantt /app/package.json ./package.json
-COPY --from=build --chown=mastergantt:mastergantt /app/next.config.ts ./next.config.ts
-COPY --from=build --chown=mastergantt:mastergantt /app/db ./db
-COPY --from=build --chown=mastergantt:mastergantt /app/scripts/migrate.ts ./scripts/migrate.ts
-COPY --from=build --chown=mastergantt:mastergantt /app/scripts/validate-runtime-config.ts ./scripts/validate-runtime-config.ts
-COPY --from=build --chown=mastergantt:mastergantt /app/src ./src
+# Next.js output tracing이 선택한 production runtime dependency와 최소 server.js만 복사한다.
+# static asset은 standalone directory에 자동 포함되지 않으므로 별도로 복사한다.
+COPY --from=build --chown=mastergantt:mastergantt /app/.next/standalone ./
+COPY --from=build --chown=mastergantt:mastergantt /app/.next/static ./.next/static
+
+# startup validation/migration은 build-time CommonJS artifact로 실행한다. 전체 src tree,
+# TypeScript source, tsx runtime, .next/cache는 최종 image에 포함하지 않는다.
+COPY --from=build --chown=mastergantt:mastergantt /app/.runtime-tools ./runtime-tools
+COPY --from=build --chown=mastergantt:mastergantt /app/db/migrations ./db/migrations
 COPY --chown=mastergantt:mastergantt deploy/docker/container-entrypoint.sh /usr/local/bin/container-entrypoint
 
 USER mastergantt
