@@ -603,3 +603,15 @@ Task(Summary, Task, Milestone)와 물류 시스템 간의 연결 테이블이다
 - `project_templates_active_idx ON project_templates(active)`
 - `project_templates_created_at_idx ON project_templates(created_at)`
 
+## Issue #280 — Logistics Type Catalog
+
+Migration `0015_logistics_type_catalog.sql`은 다음 글로벌 테이블을 추가한다.
+
+- `logistics_type_catalog_state`: optimistic-concurrency revision
+- `logistics_equipment_types`: `code` PK, display `name`, `active`, `sort_order`
+- `logistics_system_types`: `code` PK, display `name`, `active`, `sort_order`
+- `logistics_catalog_admin_credentials`: scrypt credential 1건
+- `logistics_catalog_admin_sessions`: 전용 관리자 세션
+
+`project_equipment.equipment_type`과 `project_logistics_systems.system_type`은 기존 fixed enum CHECK 대신 각 catalog `code`를 FK로 참조한다. Migration은 기존 관계/역할/task link를 임시 staging 후 원래 id와 type code로 복구하며 `foreign_key_check`를 통과해야 한다.
+
