@@ -1318,7 +1318,7 @@ h2 {
   padding: 0.5rem;
 }
 
-.project-action-menu-panel .secondary-button {
+.project-action-menu-panel > .secondary-button {
   width: 100%;
   min-height: 2.25rem;
   border-color: transparent;
