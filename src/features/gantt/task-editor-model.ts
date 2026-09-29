@@ -1,4 +1,5 @@
-import type { ProjectTaskDto } from "../../contracts/projects";
+import type { ProjectTaskDto, TaskStatus } from "../../contracts/projects";
+import { normalizeTaskStatusProgress, taskStatusFromProgress } from "../../domain/task-status";
 import { MAX_TASK_DURATION } from "../../domain/scheduling/calendar";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
 import type { ProjectTaskUpdateCommand, ProjectTaskUpdatePayload } from "./project-task-adapter";
@@ -9,6 +10,7 @@ export interface TaskEditorDraft {
   readonly start: string;
   readonly duration: string;
   readonly progress: string;
+  readonly status: TaskStatus;
   readonly description: string;
   readonly url: string;
   readonly baselineStart: string;
@@ -41,12 +43,43 @@ export function createTaskEditorDraft(task: ProjectTaskDto): TaskEditorDraft {
     start: task.start,
     duration: String(task.duration),
     progress: String(task.progress),
+    status: task.status ?? taskStatusFromProgress(task.progress),
     description: task.description ?? "",
     url: task.url ?? "",
     baselineStart: task.baselineStart ?? "",
     baselineDuration: task.baselineDuration !== null && task.baselineDuration !== undefined ? String(task.baselineDuration) : "",
     baselineEnd: task.baselineEnd ?? "",
   };
+}
+
+export function updateTaskEditorDraft(
+  draft: TaskEditorDraft,
+  field: keyof TaskEditorDraft,
+  value: string,
+): TaskEditorDraft {
+  if (field === "status") {
+    if (value !== "not_started" && value !== "in_progress" && value !== "completed") return draft;
+    const currentProgress = Number(draft.progress);
+    const normalized = normalizeTaskStatusProgress({
+      currentStatus: draft.status,
+      currentProgress: Number.isFinite(currentProgress) ? currentProgress : 0,
+      status: value,
+    });
+    return { ...draft, status: normalized.status, progress: String(normalized.progress) };
+  }
+  if (field === "progress") {
+    const progress = Number(value);
+    if (value.trim() && Number.isFinite(progress) && progress >= 0 && progress <= 100) {
+      const currentProgress = Number(draft.progress);
+      const normalized = normalizeTaskStatusProgress({
+        currentStatus: draft.status,
+        currentProgress: Number.isFinite(currentProgress) ? currentProgress : 0,
+        progress,
+      });
+      return { ...draft, progress: value, status: normalized.status };
+    }
+  }
+  return { ...draft, [field]: value };
 }
 
 export function copyScheduleToBaseline(draft: TaskEditorDraft, task: ProjectTaskDto): TaskEditorDraft {
@@ -126,11 +159,13 @@ export function prepareTaskEditorCommand(task: ProjectTaskDto, draft: TaskEditor
     }
   }
 
+  const initialStatus = task.status ?? taskStatusFromProgress(task.progress);
   const payload: ProjectTaskUpdatePayload = {
     ...(name !== task.name ? { name } : {}),
     ...(draft.start !== task.start ? { start: draft.start } : {}),
     ...(task.type === "task" && duration !== task.duration ? { duration } : {}),
     ...(progress !== task.progress ? { progress } : {}),
+    ...(draft.status !== initialStatus ? { status: draft.status } : {}),
     ...(description !== (task.description ?? null) ? { description } : {}),
     ...(url !== (task.url ?? null) ? { url } : {}),
     ...(baselineChanged ? {
