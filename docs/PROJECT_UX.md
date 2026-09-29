@@ -612,3 +612,10 @@ Resource 고급 필터는 종류·상태·Task From/To 계약을 변경하지 �
 같은 수준의 근무/휴무 충돌은 날짜·대상·규칙·영향 Resource를 식별하는 focus 가능한 오류 요약으로 안내하고 입력으로 이동하는 명령을 제공한다. 동일 초안의 저장은 차단하며 입력 변경 시 충돌과 기존 preview를 무효화한다. PUT 충돌에도 과거 성공 preview를 남기지 않는다. publicId/revision 변경 시 이전 컨텍스트의 충돌 상태를 폐기한다.
 
 저장 후 canonical Calendar와 Project snapshot을 다시 조회하여 서버가 정규화한 날짜 유형을 반영한다. Group/Resource 날짜 예외는 Resource workload만 변경하고 Project Task start/end/duration과 기존 Gantt instance/선택/스크롤을 보존한다. 기존 401/412·초안 보호·늦은 응답 방어 계약은 유지한다. 실제 검증과 잔여 미검증은 [Issue #261 설계·검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)을 따른다.
+
+## Issue #303 완료 Task 시각 상태
+
+Project Workspace의 Gantt Grid는 canonical Task status가 `completed`인 Task/Milestone의 작업명에 취소선을 적용한다. Summary는 정확한 derived progress가 100일 때 완료로 표시한다. 완료 여부를 색상에만 의존하지 않으며 Chart bar 전체 색상 재설계는 하지 않는다.
+
+Task Editor의 상태 Select와 진행률 Slider는 서로 즉시 동기화된다. 저장 성공 후 canonical snapshot이 동일 Gantt instance에 반영되어 취소선이 추가/제거되며, inline 이름 편집 중에는 입력 가독성과 기존 hit-area/focus 동작을 우선한다. 390/768/1024/1440px에서는 상태/진행률 control이 겹치거나 document overflow를 만들지 않아야 한다.
+
