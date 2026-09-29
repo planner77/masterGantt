@@ -36,7 +36,7 @@ jobs:
             --release-required true \
             --release-authorized true \
             --expected-version 0.54.1 \
-            --authorization-note "User explicitly requested merge, main CI, GHCR publish, and automatic release finalize for Issue #300 on 2026-09-30."
+            --authorization-note "사용자가 2026-09-30에 Issue #300의 병합, main CI, GHCR 게시 및 자동 release finalize 실행을 명시적으로 요청함."
 
       - name: Finalizer PR 확인 및 finalizer 브랜치 안전 정리
         shell: bash
@@ -65,4 +65,4 @@ jobs:
             --release-required true \
             --release-authorized true \
             --expected-version 0.54.1 \
-            --authorization-note "User explicitly requested merge, main CI, GHCR publish, and automatic release finalize for Issue #300 on 2026-09-30."
+            --authorization-note "사용자가 2026-09-30에 Issue #300의 병합, main CI, GHCR 게시 및 자동 release finalize 실행을 명시적으로 요청함."
