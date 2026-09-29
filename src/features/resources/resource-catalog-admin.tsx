@@ -5,11 +5,23 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import type {
   ResourceCatalogResponse,
   ResourceDto,
+  DeveloperGrade,
   ResourceGroupDto,
 } from "@/contracts/resources";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { filterGroups, filterResources } from "./resource-search-filter";
 import styles from "./resource-catalog-admin.module.css";
+
+const DEVELOPER_GRADE_OPTIONS: Array<{ value: DeveloperGrade | ""; label: string }> = [
+  { value: "", label: "미지정" },
+  { value: "BEGINNER", label: "초급" },
+  { value: "INTERMEDIATE", label: "중급" },
+  { value: "ADVANCED", label: "고급" },
+  { value: "EXPERT", label: "특급" },
+];
+function developerGradeLabel(value: DeveloperGrade | null | undefined): string {
+  return DEVELOPER_GRADE_OPTIONS.find((option) => option.value === (value ?? ""))?.label ?? "등급 미지정";
+}
 
 function isCatalog(value: unknown): value is ResourceCatalogResponse {
   if (!value || typeof value !== "object" || !("data" in value)) return false;
@@ -20,7 +32,8 @@ function isCatalog(value: unknown): value is ResourceCatalogResponse {
     "groups" in data && Array.isArray(data.groups) &&
     [...data.resources, ...data.groups].every((item) => item && typeof item === "object" &&
       typeof item.id === "string" && typeof item.name === "string" &&
-      (item.code === null || typeof item.code === "string") && typeof item.active === "boolean") &&
+      (item.code === null || typeof item.code === "string") && typeof item.active === "boolean" &&
+      (!("developerGrade" in item) || item.developerGrade === null || ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"].includes(String(item.developerGrade)))) &&
     data.groups.every((group) => Array.isArray(group.memberResourceIds) &&
       group.memberResourceIds.every((id: unknown) => typeof id === "string"));
 }
@@ -46,6 +59,7 @@ export function ResourceCatalogAdmin() {
   const changePasswordTriggerRef = useRef<HTMLButtonElement>(null);
   const [resourceName, setResourceName] = useState("");
   const [resourceCode, setResourceCode] = useState("");
+  const [resourceDeveloperGrade, setResourceDeveloperGrade] = useState<DeveloperGrade | "">("");
   const [groupName, setGroupName] = useState("");
   const [groupCode, setGroupCode] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
@@ -249,8 +263,8 @@ export function ResourceCatalogAdmin() {
     const name = resourceName.trim();
     const code = resourceCode.trim();
     if (!name) return;
-    if (await mutate("/api/resources", "POST", { name, code: code || null })) {
-      setResourceName(""); setResourceCode("");
+    if (await mutate("/api/resources", "POST", { name, code: code || null, developerGrade: resourceDeveloperGrade || null })) {
+      setResourceName(""); setResourceCode(""); setResourceDeveloperGrade("");
     }
   }
 
@@ -378,6 +392,7 @@ export function ResourceCatalogAdmin() {
         <form className={styles.formRow} onSubmit={(event) => void addResource(event)}>
           <label>이름<input value={resourceName} maxLength={200} disabled={locked} onChange={(event) => setResourceName(event.target.value)} /></label>
           <label>코드<input value={resourceCode} maxLength={64} disabled={locked} onChange={(event) => setResourceCode(event.target.value)} /></label>
+          <label>개발자 등급<select value={resourceDeveloperGrade} disabled={locked} onChange={(event) => setResourceDeveloperGrade(event.target.value as DeveloperGrade | "")}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label>
           <button className="primary-button" type="submit" disabled={locked || !resourceName.trim()}>추가</button>
         </form>
         {catalog.data.resources.length === 0 ? (
@@ -387,8 +402,8 @@ export function ResourceCatalogAdmin() {
         ) : (
           <ul className={styles.list}>
             {filteredResources.map((resource: ResourceDto) => <li key={resource.id} className={`${styles.item} ${resource.active ? "" : styles.inactive}`}>
-              <div><strong>{resource.name}</strong><div className={styles.meta}><span>{resource.code ?? "코드 없음"}</span><span className={styles.badge}>{resource.active ? "활성" : "비활성"}</span></div></div>
-              <button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
+              <div><strong>{resource.name}</strong><div className={styles.meta}><span>{resource.code ?? "코드 없음"}</span><span>개발자 등급: {developerGradeLabel(resource.developerGrade)}</span><span className={styles.badge}>{resource.active ? "활성" : "비활성"}</span></div></div>
+              <div className={styles.resourceActions}><label className={styles.inlineGradeLabel}>개발자 등급<select aria-label={`${resource.name} 개발자 등급`} value={resource.developerGrade ?? ""} disabled={locked} onChange={(event) => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { developerGrade: event.target.value || null })}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label><button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button></div>
             </li>)}
           </ul>
         )}
