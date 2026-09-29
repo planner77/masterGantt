@@ -1,5 +1,9 @@
 # Test Plan
 
+## Issue #264 생성 방식 전환과 초안 보존
+
+`tests/e2e/new-project-draft-preservation.spec.ts`에서 390/768/1024/1440px 양방향 폼 전환 뒤 비민감 입력·선택·검색·기준일 보존, 최초 방문 이후 템플릿 목록 재조회 없음, 숨겨진 panel의 focus 제외를 확인한다. 초기 template mode, 방향키/Home/End와 본문 바로가기 연결을 검사하며, 본문 바로가기 후 활성 panel의 첫 컨트롤에서 Shift+Tab 시 선택된 tab으로 복귀하는 회귀를 포함한다. 양쪽 생성 POST의 지연·실패를 mock하여 중복 제출 및 탭 전환 차단, 실패 후 초안 보존·비밀번호 삭제·명시적 재시도를 검증한다. 서버 API/권한 계약은 변경하지 않으며 공식 전체 회귀는 PR CI로 구분한다.
+
 ## Issue #263 연결·할당·담당자 조회 준비 상태
 
 - Task 물류 links/master GET 지연·HTTP 오류·network·malformed 응답에서 선택/저장 비활성 및 PUT 0회를 확인한다. 실패를 정상 빈 목록으로 표시하지 않는다.

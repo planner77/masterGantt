@@ -10,6 +10,9 @@ export function NewProjectTabs() {
   const searchParams = useSearchParams();
   const initialMode = searchParams.get("mode") === "template" ? "template" : "blank";
   const [mode, setMode] = useState<"blank" | "template">(initialMode);
+  const [visited, setVisited] = useState({ blank: initialMode === "blank", template: initialMode === "template" });
+  const [pending, setPending] = useState(false);
+  const pendingRef = useRef(false);
   const [skipNavigationActive, setSkipNavigationActive] = useState(false);
   const blankTabRef = useRef<HTMLButtonElement | null>(null);
   const templateTabRef = useRef<HTMLButtonElement | null>(null);
@@ -24,15 +27,30 @@ export function NewProjectTabs() {
   }, []);
 
   function handleContainerFocus(event: FocusEvent<HTMLDivElement>) {
-    if (skipNavigationActive && event.target instanceof HTMLElement && event.target.id === "project-name") {
+    if (!skipNavigationActive || !(event.target instanceof HTMLElement)) return;
+    const activePanel = event.target.closest<HTMLElement>('[role="tabpanel"]');
+    if (activePanel?.id === `panel-${mode}`) {
       setSkipNavigationActive(false);
     }
   }
 
   function selectTab(nextMode: "blank" | "template") {
+    if (pendingRef.current) return;
+    setVisited((current) => ({ ...current, [nextMode]: true }));
     setMode(nextMode);
     const target = nextMode === "blank" ? blankTabRef.current : templateTabRef.current;
     target?.focus();
+  }
+
+  function beginSubmission(): boolean {
+    if (pendingRef.current) return false;
+    pendingRef.current = true;
+    setPending(true);
+    return true;
+  }
+  function endSubmission() {
+    pendingRef.current = false;
+    setPending(false);
   }
 
   function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
@@ -64,7 +82,8 @@ export function NewProjectTabs() {
           aria-controls="panel-blank"
           tabIndex={!skipNavigationActive && mode === "blank" ? 0 : -1}
           className={`tab-button ${mode === "blank" ? "active" : ""}`}
-          onClick={() => setMode("blank")}
+          disabled={pending}
+          onClick={() => selectTab("blank")}
           onKeyDown={handleTabKeyDown}
         >
           빈 프로젝트 만들기
@@ -78,7 +97,8 @@ export function NewProjectTabs() {
           aria-controls="panel-template"
           tabIndex={!skipNavigationActive && mode === "template" ? 0 : -1}
           className={`tab-button ${mode === "template" ? "active" : ""}`}
-          onClick={() => setMode("template")}
+          disabled={pending}
+          onClick={() => selectTab("template")}
           onKeyDown={handleTabKeyDown}
         >
           템플릿에서 만들기
@@ -91,7 +111,7 @@ export function NewProjectTabs() {
         aria-labelledby="tab-blank"
         hidden={mode !== "blank"}
       >
-        {mode === "blank" && <CreateProjectForm />}
+        {visited.blank && <CreateProjectForm onBeginSubmission={beginSubmission} onEndSubmission={endSubmission} />}
       </div>
 
       <div
@@ -100,7 +120,7 @@ export function NewProjectTabs() {
         aria-labelledby="tab-template"
         hidden={mode !== "template"}
       >
-        {mode === "template" && <CreateFromTemplateForm />}
+        {visited.template && <CreateFromTemplateForm onBeginSubmission={beginSubmission} onEndSubmission={endSubmission} />}
       </div>
     </div>
   );
