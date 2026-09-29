@@ -337,3 +337,38 @@ release 실패, timeout, tag 충돌, wrong SHA, lightweight tag, release evidenc
 ### 구현 전 임시 운영
 
 Issue #248 구현 전에는 정식 release+종료를 한 번에 수행해야 할 때 기존 `finalize`를 `release_required=true`, `release_authorized=true`, 정확한 `expected_version`, 승인 근거가 있는 `authorization_note`와 함께 실행할 수 있다. 별도의 `release` 선행 실행은 필수는 아니다.
+
+## 13. one-shot finalizer 임시 운영과 재실행
+
+범용 `.github/workflows/issue-lifecycle.yml`의 `workflow_dispatch`가 표준 entry point다. 다만 연결된 실행 도구가 workflow dispatch mutation을 제공하지 않고 사용자가 #283/#266과 동일한 자동 finalize 패턴을 명시적으로 요청한 경우에는, 한 번의 main push로 실행되는 `issue-<N>-finalizer.yml`을 임시 운영 경로로 사용할 수 있다. 이는 범용 lifecycle을 대체하는 새 표준이 아니며, 관성적인 Issue별 helper 생성 금지 원칙의 예외다.
+
+### 실행 식별
+
+one-shot finalizer PR이 main에 병합되면 같은 merge SHA에서 다음이 독립적으로 발생할 수 있다.
+
+1. 일반 `ci.yml` Main CI
+2. `issue-<N>-finalizer.yml`의 finalizer run
+
+따라서 “CI #NNNN” 하나만으로 자동 finalize 성공을 판정하지 않는다. merge SHA의 check-runs/workflow-runs를 조회하여 **workflow 이름, job 이름, run ID**를 각각 확인한다. 예를 들어 일반 Main CI가 성공해도 `Finalize and close Issue <N>` job은 별도 run에서 실패할 수 있다.
+
+### fail-closed 실패와 재개
+
+finalizer는 `scripts/safe_branch_cleanup.py`가 다음과 같은 조건을 발견하면 Issue close 전에 실패해야 한다.
+
+- 다른 Open PR이 feature branch를 base/head로 사용
+- remote branch tip이 merged PR head와 불일치
+- target main이 merged head를 포함하지 않음
+- 보호 branch 또는 삭제 안전 조건 불충족
+
+이 경우 수동 branch 삭제나 Issue close로 우회하지 않는다. 먼저 blocker를 제거한다. stacked PR 때문에 feature branch를 base로 사용 중이었다면 후속 PR을 최신 main 또는 올바른 선행 branch로 재정렬하고 base를 갱신한다.
+
+blocker가 해소된 뒤에는 다음 우선순위를 따른다.
+
+1. 기존 failed finalizer workflow run/job이 재실행 가능한지 확인
+2. 가능하면 **동일 run의 failed job 재실행** 또는 failed workflow rerun
+3. exact merge target/main CI/release evidence를 lifecycle script가 다시 검증하게 함
+4. branch cleanup → FINAL marker → Issue completed close 확인
+5. 기존 run 재사용이 불가능하거나 workflow 파일이 더 이상 유효하지 않을 때만 Manager 승인 하에 새 one-shot finalizer PR을 만든다
+
+재실행 전에는 Issue가 아직 open인지, FINAL marker가 없는지, feature branch가 존재하는지, blocker였던 Open PR 참조가 실제로 제거됐는지 다시 확인한다. 재실행 후에는 일반 Main CI와 finalizer run을 혼동하지 않고 각각의 결과를 Issue STATUS/FINAL에 기록한다.
+
