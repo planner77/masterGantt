@@ -8,6 +8,20 @@
 - Calendar Editor에서 근무·휴무 유형을 저장·복원하고 미리보기에 상위 대비 적용/효과 없음, 리소스별 최종 상태와 출처를 표시한다. 효과 없는 명시 예외도 저장할 수 있다.
 - Resource workload의 M/D·M/M·과투입 계산에 계층형 Calendar를 적용하며 Project Task 일정과 기존 인증·revision 계약을 유지한다.
 
+## [0.52.4] - 2026-09-29
+
+### Fixed
+
+- Issue #265: 템플릿 조회 실패·정상 빈 목록·검색 결과 없음을 구분하고 재시도를 제공한다. Native radio 선택, 검색 결과와 선택 요약, 사용자 이름 보존, 필드 오류 접근성과 반응형 폼 간격을 개선한다.
+
+## [0.52.3] - 2026-09-29
+
+### Changed
+
+- Issue #283: Docker production runtime을 Next.js `output: "standalone"` 기반으로 전환하여 final image가 traced runtime dependency, `.next/static`, SQL migration, build-time compiled startup 도구만 포함하도록 축소한다.
+- container startup validation과 DB migration은 build stage에서 CommonJS JavaScript로 컴파일하여 final image에서 전체 `src`, 전체 `.next`, production `node_modules` 복사와 TypeScript runtime loader 의존을 제거한다. repository의 `npm run db:migrate` source CLI용 `tsx`는 `devDependency`로 이동하고 production dependency/runtime에서는 제거하며, standalone final image에도 포함되지 않는지 정책 검사로 고정한다. source `npm run start`는 static/public/migration 자산을 준비한 generated standalone server를 실행하도록 전환하고 repository-root Next production env files를 먼저 로딩해 기존 hostname/port, `.env.local`, DB migration 경로 사용법을 유지한다.
+- PR Docker gate는 PR base image와 candidate를 동일 runner에서 build하여 uncompressed image size, 주요 runtime artifact footprint와 상위 layer를 기록한다. 최소 25% 감소 hard gate는 이번 non-standalone → standalone migration에만 적용하여 이후 일반 PR을 불필요하게 차단하지 않는다. 기존 non-root, migration-before-server, readiness, native SQLite, restart persistence, transport/Compose smoke는 유지한다.
+
 ## [0.52.2] - 2026-09-29
 
 ### Fixed

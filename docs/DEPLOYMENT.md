@@ -1,5 +1,23 @@
 # Deployment
 
+## Issue #283 standalone production runtime
+
+production container는 Next.js Output File Tracing의 `output: "standalone"` 산출물을 실행한다. build stage는 full dependency와 native build toolchain으로 application을 build한 뒤 `scripts/prepare-standalone-runtime.mjs`가 `.next/static`, optional `public/`, `db/migrations`를 `.next/standalone` tree에 stage한다. final runtime stage에는 이 prepared standalone tree와 build-time compiled startup JavaScript만 복사한다. 전체 production `node_modules`, 전체 `.next`, application `src`, `.next/cache`, TypeScript source/loader는 final image에 복사하지 않는다.
+
+startup 순서는 기존 fail-fast 계약을 유지한다.
+
+```text
+compiled runtime config validation
+→ compiled SQLite migration
+→ node server.js
+```
+
+startup 도구는 `tsconfig.runtime-tools.json`으로 build stage에서 CommonJS JavaScript로 컴파일한다. repository의 `npm run db:migrate`는 source checkout에서의 개발·관리용 CLI로 `devDependency`인 `tsx`를 사용하지만, production dependency/runtime 계약에는 `tsx`가 없다. source production 확인용 `npm run start`는 `scripts/start-standalone.mjs`가 `@next/env`로 repository-root production env files를 먼저 로딩한 뒤 prepared standalone tree를 실행하며 `--hostname`/`--port` 인자를 유지한다. generated server가 standalone directory를 working directory로 사용하더라도 필요한 설정은 이미 `process.env`에 있고 같은 tree 안에 staged된 `db/migrations`를 조회하므로 readiness/DB migration 경로 계약을 유지한다. container는 compiled startup JavaScript와 root `server.js`만 실행하며 final image의 `/app/node_modules/tsx` 부재는 image policy에서 검증한다.
+
+base image digest, Debian/glibc 계열, numeric UID/GID 1001:1001, `/data` volume, healthcheck, single-instance SQLite/WAL 계약은 변경하지 않는다. `better-sqlite3`는 standalone trace에 포함된 native addon을 사용하며 PR Docker smoke에서 실제 load/write/restart persistence로 검증한다. Alpine/musl·distroless 전환은 이 변경의 범위가 아니다.
+
+PR의 Docker gate는 PR base SHA의 기존 image와 candidate를 동일 runner에서 build하고 `docker image inspect`의 uncompressed size를 비교한다. Issue #283의 non-standalone → standalone migration에서는 acceptance 기준에 따라 candidate가 baseline 대비 최소 25% 감소해야 한다. 이 one-time migration gate가 main에 반영된 뒤의 일반 PR에는 추가 25% 감소를 요구하지 않고 비교 결과만 관찰용으로 기록한다. Workflow summary에는 baseline/candidate size, 주요 `/app` directory footprint와 상위 image layer를 남긴다. 실제 registry compressed transfer size는 main/release publish에서 별도 관찰할 수 있으며 이 PR gate의 수치와 혼동하지 않는다.
+
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
 
@@ -163,7 +181,7 @@ Docker `HEALTHCHECK`와 Compose healthcheck는 `ready`를 호출한다. interval
 | `.dockerignore` | `.git`, 모든 `.env*`, `node_modules`, `.next`, DB/WAL/SHM, backups, logs, coverage/test output 제외 | required source, lockfile, migrations |
 | `.env.example` | 환경변수 names와 개발용 예시; secret injection 위치 안내 | 실제 secret, 운영 domain, password, token |
 
-Application package와 lockfile은 존재하며 frozen install은 `npm ci`, 빌드는 `npm run build`, migration CLI는 `npm run db:migrate`다. CLI는 repository root에서 실행하며 환경변수를 명시적으로 주입한다. `tsx`는 CLI 실행에 필요한 runtime dependency다. 현재 image는 `db/migrations`, `scripts/migrate.ts`, 필요한 DB core와 CLI dependency를 포함하며 entrypoint가 Next.js 시작 전에 migration gate를 실행한다.
+Application package와 lockfile은 존재하며 source checkout의 frozen install은 `npm ci`, 빌드는 `npm run build`, 개발·관리용 migration CLI는 `npm run db:migrate`다. 이 source CLI는 repository root에서 환경변수를 명시적으로 주입하고 devDependency `tsx`를 사용한다. production image는 source CLI를 포함하지 않으며 build-time compiled runtime validation/migration JavaScript와 `db/migrations`만 복사해 entrypoint에서 Next.js standalone server 시작 전에 migration gate를 실행한다.
 
 ## 8. Backup, restore, rollback
 

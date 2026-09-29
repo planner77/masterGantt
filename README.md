@@ -178,7 +178,7 @@ npm run build
 npm run start -- --hostname 127.0.0.1 --port 3000
 ```
 
-현재 build script는 Webpack을 사용한다. 직접 실행하는 `npm start`는 DB migration CLI를 자동 실행하지 않지만 Docker entrypoint는 migration 성공 후에만 server를 시작한다. 실제 운영 배포에는 production DB 경로·권한, HTTPS, proxy와 backup/restore 검증이 추가로 필요하다.
+현재 build script는 Webpack으로 standalone output을 생성한 뒤 `.next/static`, optional `public/`, `db/migrations`를 standalone tree에 stage한다. `npm run start -- --hostname ... --port ...`는 repository root에서 Next의 production 환경 파일(`.env.production.local`, `.env.local`, `.env.production`, `.env`)을 먼저 로딩한 뒤 standalone artifact를 실행하며 기존 hostname/port 인자를 환경변수로 전달한다. generated server가 standalone 디렉터리를 working directory로 사용해도 환경값은 이미 `process.env`에 로드되어 있고 staged `db/migrations`로 readiness와 DB migration 파일 해석도 유지된다. 직접 실행하는 `npm start`는 DB migration CLI를 자동 실행하지 않지만 Docker entrypoint는 migration 성공 후에만 server를 시작한다. 실제 운영 배포에는 production DB 경로·권한, HTTPS, proxy와 backup/restore 검증이 추가로 필요하다.
 
 <a id="nginx-reverse-proxy"></a>
 
