@@ -339,3 +339,10 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 ## Issue #99 경량 비밀번호 정책
 
 현재 1~3명 내부 운영 범위에서 Project 편집 및 Resource 관리의 **신규/변경 비밀번호**는 1~12 Unicode 문자이며 문자 종류 조합을 강제하지 않는다. Project 비밀번호는 기존 scrypt 저장을 유지한다. Resource 관리자 비밀번호는 최초 DB 자격증명이 없을 때만 환경변수를 seed로 해시 저장하고 이후 DB 값을 우선한다. 업그레이드 호환성을 위해 이전 정책에서 사용하던 16자 이상 환경변수 값은 bounded legacy bootstrap credential로 최초 로그인에서 허용하고 즉시 DB 해시로 이관할 수 있지만, 이후 UI 변경값에는 1~12자 정책을 적용한다. 변경 시 해당 Resource 관리자 세션을 모두 revoke한 뒤 호출자 세션만 재발급한다. 기존 Project와 Resource 권한 영역은 서로 독립적이다.
+
+
+## Issue #289 — Project master 관리자 보안 경계
+
+프로젝트 기준정보 변경은 Project edit session과 분리된 `PROJECT_MASTER_ADMIN_PASSWORD` bootstrap credential 및 전용 HttpOnly/SameSite=Strict Cookie를 사용한다. bootstrap 값은 DB credential이 없을 때만 seed하며 원문 비밀번호와 session token은 DB·응답·로그에 저장하지 않는다. HTTPS production에서는 `__Host-` Cookie와 Secure 속성을 적용한다.
+
+관리자 mutation은 exact Origin과 catalog revision을 서버에서 다시 검증하며 UI의 로그인 표시를 권한 근거로 사용하지 않는다. Project edit session만으로 global catalog mutation을 수행할 수 없고, 비밀번호 회전 시 기존 project-master 관리자 세션은 모두 revoke한다. 사용 중 stable code 변경과 FK parent 삭제도 fail-closed 처리한다.
