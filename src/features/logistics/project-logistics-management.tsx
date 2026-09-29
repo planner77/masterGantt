@@ -1433,8 +1433,8 @@ function ProcessDialog({
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소
           </button>
-          <button className="primary-button" type="submit" disabled={busy || catalogState !== "ready" || !equipmentType || !code.trim() || !name.trim()}>
-            {busy ? "저장 중…" : catalogState === "error" ? "유형 조회 실패" : "저장"}
+          <button className="primary-button" type="submit" disabled={busy || !code.trim() || !name.trim()}>
+            {busy ? "저장 중…" : "저장"}
           </button>
         </div>
       </form>
@@ -1620,8 +1620,8 @@ function EquipmentDialog({
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소
           </button>
-          <button className="primary-button" type="submit" disabled={busy || !code.trim() || !name.trim()}>
-            {busy ? "저장 중…" : "저장"}
+          <button className="primary-button" type="submit" disabled={busy || catalogState !== "ready" || !equipmentType || !code.trim() || !name.trim()}>
+            {busy ? "저장 중…" : catalogState === "error" ? "유형 조회 실패" : "저장"}
           </button>
         </div>
       </form>
