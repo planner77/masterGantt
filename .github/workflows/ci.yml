@@ -418,6 +418,28 @@ jobs:
             echo "## Docker image size"
             echo
             bash scripts/verify-image-size-reduction.sh mastergantt:baseline mastergantt:ci 25 --summary
+            echo
+            echo "### Runtime artifact footprint"
+            echo
+            echo 'Baseline:'
+            echo '~~~text'
+            docker run --rm --entrypoint sh mastergantt:baseline -c 'du -sh /app/node_modules /app/.next /app/src 2>/dev/null || true'
+            echo '~~~'
+            echo 'Candidate:'
+            echo '~~~text'
+            docker run --rm --entrypoint sh mastergantt:ci -c 'du -sh /app/node_modules /app/.next /app/runtime-tools /app/db 2>/dev/null || true'
+            echo '~~~'
+            echo
+            echo "### Largest image layers"
+            echo
+            echo 'Baseline:'
+            echo '~~~text'
+            docker history --format '{{.Size}}	{{.CreatedBy}}' mastergantt:baseline | head -n 12
+            echo '~~~'
+            echo 'Candidate:'
+            echo '~~~text'
+            docker history --format '{{.Size}}	{{.CreatedBy}}' mastergantt:ci | head -n 12
+            echo '~~~'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: 잘못된 production HTTP 설정 조기 거부 검증
         shell: bash
