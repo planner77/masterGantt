@@ -18,8 +18,8 @@ Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계�
 | R05 | 모든 기존 Project mutation에서 server-side project edit session 검증 | API, Security |
 | R06 | SVAR React Gantt Core와 공식 API 우선, 구현 전 현재 공식 자료 확인 | [Research](RESEARCH.md), [기능 Matrix](PRO_FEATURE_MATRIX.md) |
 | R07 | PRO 비공개 구현 복제 금지; 독립 Scheduling Domain | [Scheduling](SCHEDULING_ENGINE.md) |
-| R08 | 초기 Calendar, weekend, holiday, duration, summary, FS 재계산, WBS | [Scheduling](SCHEDULING_ENGINE.md); Calendar/Leaf Duration은 W06, root 저장 연결은 W07 PASS, 나머지는 W08/W09 |
-| R09 | SS/FF/SF, lag/lead, baseline, CPM/slack, grouping/resource, rollup/split는 후속 검토 | 기능 Matrix |
+| R08 | Calendar, weekend, holiday, duration, summary, dependency 재계산, WBS | 초기 W06/W07/W08/W09 단계 표기는 역사 기록. 현재 FS/SS/FF/SF 및 lag/lead와 연결 Task 변경 재계산은 [Scheduling](SCHEDULING_ENGINE.md), [API](API.md), #200/#202/#258 기준 |
+| R09 | SS/FF/SF 및 lag/lead는 #200/#202 지원, Baseline 필드와 연결 Task 복사는 #258 지원. CPM/slack, grouping/resource leveling, rollup/split는 후속 검토 | [기능 Matrix](PRO_FEATURE_MATRIX.md) |
 | R10 | SQLite, Prisma 금지, better-sqlite3 우선; Route→Service→Repository→DB | [Architecture](ARCHITECTURE.md), DB |
 | R11 | SQL migration, parameter binding, FK와 index, 실제 DB Git 제외 | DB |
 | R12 | DRM 우회 금지, 원본 Workbook 직접 웹 업로드·clipboard 가능 가정 금지 | [VBA](VBA_EXPORT.md) |
@@ -59,7 +59,7 @@ Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계�
 | R46 | Task Editor는 작업 정보·리소스·관계를 3개 탭으로 분리하고 body-only scroll, 고정 Footer, keyboard tab navigation, 360/768/1024/1440 반응형을 제공한다 (#74). | 기존 Task PATCH/revision/권한/dirty/stale와 Assignment PUT/catalog revision 계약은 유지하며 탭 전환은 mutation을 발생시키지 않는다. [Task Editor](TASK_EDITOR.md), [Test Plan](TEST_PLAN.md) UI12 |
 | R44 | Calendar 계산은 `Base weekly rule + WORKING/NON_WORKING date exception`을 사용한다. Project Task 일정에는 Project target만, #56 Resource workload에는 Project < Resource Group < Resource 순서로 명시적 WORKING/NON_WORKING 예외를 적용한다 (#261). 같은 계층의 동일 유형은 중복 계산하지 않고 반대 유형은 Calendar 저장과 그룹 구성원 변경에서 원자 거부한다. 상위 결과와 같은 예외는 NO_EFFECT 경고와 함께 저장 가능하며 Task 일정은 바꾸지 않는다. Preview/저장은 edit session+Origin+If-Match를 요구하며 Manual conflict/날짜 충돌은 전체 원자 거부한다. | [Scheduling](SCHEDULING_ENGINE.md), [Test Plan](TEST_PLAN.md) |
 | R47 | Project status는 `planned / in_progress / completed`로 저장·조회·편집한다 (#138). 기존 Project는 `in_progress`, 신규 Project와 복사본은 `planned`이며 목록의 기본 보기에서는 완료를 제외한다. | [API](API.md), [DB](DB_SCHEMA.md), [UX 계약](PROJECT_UX.md). 상태 변경에도 edit session·Origin·If-Match와 canonical snapshot/revision 계약을 유지한다. |
-| R48 | Grid의 작업명 열에서 편집 가능한 Summary/Task/Milestone 이름을 한 번 클릭해 인라인 편집한다 (#140). Enter·blur는 저장, Escape는 취소하며 서버 canonical 결과로 Grid·Chart·Task Editor 표시를 일치시킨다. | 기존 Task PATCH의 세션·Origin·If-Match·revision·이름 검증과 연결 endpoint 제한을 유지한다. Summary는 Grid name-only 예외이고 Task Editor의 Summary readonly는 유지한다. [UX 계약](PROJECT_UX.md), [Task Editor](TASK_EDITOR.md), [Test Plan](TEST_PLAN.md) |
+| R48 | Grid의 작업명 열에서 편집 가능한 Summary/Task/Milestone 이름을 한 번 클릭해 인라인 편집한다 (#140). Enter·blur는 저장, Escape는 취소하며 서버 canonical 결과로 Grid·Chart·Task Editor 표시를 일치시킨다. | 기존 Task PATCH의 세션·Origin·If-Match·revision·이름 검증을 유지하며 연결 endpoint 이름 제한은 #258에서 해제한다. Summary는 Grid name-only 예외이고 Task Editor의 Summary readonly는 유지한다. [UX 계약](PROJECT_UX.md), [Task Editor](TASK_EDITOR.md), [Test Plan](TEST_PLAN.md) |
 | R49 | Project List와 편집 중 Project Workspace에서 Project 상태를 별도 설정 화면 이동 없이 직접 변경할 수 있다 (#177). | 기존 `planned / in_progress / completed` 값과 edit session·Origin·strong `If-Match`·revision+1·canonical snapshot 계약을 재사용한다. List는 세션이 없으면 기존 편집 비밀번호 인증을 수행하고 성공 직후 client-side filter를 재평가한다. Workspace readonly는 표시 전용이며 edit header 변경은 Gantt remount/navigation을 유발하지 않는다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
 | R50 | 프로젝트 재진입 시 Gantt Grid의 Summary 접힘/펼침 상태를 브라우저 localStorage에 프로젝트별로 저장·복원한다 (#201). | v1 스키마, stale ID 로드 시 정규화 저장, Quota/Security 예외 graceful fallback, 동일 브라우저 프로필 복원, DB/API/Revision 불변. [UX 계약](PROJECT_UX.md) |
 
@@ -78,7 +78,7 @@ W24의 하위 추가는 일반 Task→Summary 전환에 `convertParentToSummary:
 | A03 | Project Calendar의 timezone/base week는 Asia/Seoul, exact weekend `[6,0]`을 유지하고 날짜 예외로 일반화 | W06 기반 + Issue #57 구현. 국가 데이터는 검증된 repository fixture만 사용하며 런타임 추정/API 호출 금지 |
 | A04 | 날짜는 Gregorian YYYY-MM-DD `1900-01-01..2199-12-31`, end 포함, 일반 Task duration `1..10000` 근무일 | W06 구현·검증; 시각 일정 후속 |
 | A05 | `start` 입력과 effective start 분리; Auto 이동은 preview, Manual 충돌은 전체 거부 | 요청값 보존과 일정 재계산의 결정성 |
-| A06 | 초기 dependency는 leaf task/milestone의 FS/0만; milestone도 다음 근무일 FS | 다른 type/lag를 버리지 않고 미지원 오류 |
+| A06 | 초기 dependency는 leaf task/milestone의 FS/0만(역사적 초기 인수 기준). 현재 FS/SS/FF/SF 및 lag/lead 지원은 #200/#202/#258 계약으로 대체 | 현재 적용 범위는 [Scheduling](SCHEDULING_ENGINE.md), [API](API.md) |
 | A07 | Import v1은 기존 Project에 self-contained batch create-only | 기존 데이터 자동 교체·삭제 금지; update merge 별도 설계 |
 | A08 | Summary는 자식에서 계산, empty summary 거부; 생성·재배치는 atomic batch | UI/API가 유효 최종 tree를 한 번에 제출 |
 | A09 | Project aggregate revision + If-Match로 stale write 거부 | 단일 인스턴스여도 여러 편집자 가능 |
@@ -108,10 +108,10 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 
 - 초기 `.condex/` 경로와 지침 `.codex/`의 불일치는 원격 commit `81725bd`에서 해결되었다. [설정 검증](AGENT_CONFIGURATION.md) 참조.
 - `AGENTS.md`가 가리키는 `docs/`는 원래 존재하지 않았다. 상충하는 기존 상세 구현은 없으며 이번 문서가 첫 초안이다.
-- Core가 SS/FF/SF link를 표시할 수 있어도 초기 Domain 지원은 FS뿐이다. 이는 범위 차이며 UI에서 미지원 생성 방지를 해야 한다.
+- 과거 초기 Domain 지원은 FS뿐이었으나 #200/#202에서 SS/FF/SF와 lag/lead를 지원한다. 과거 단계 설명은 현재 제한으로 해석하지 않는다.
 - Project List는 D02 승인 범위에서 앱 접속자 전체에게 제공한다. 목록 공개를 편집 권한 공개로 확대하지 않는다.
 - 대상 Excel에 안정 ID가 없을 수 있다. 승인된 ID 보존 방법이 확인될 때까지 행 번호를 장기 ID로 확정하지 않는다.
-- W01–W07 application source와 초기 migration, Project edit authorization, pure Calendar/Leaf Scheduling, root Task/Milestone Gantt 저장은 구현되었다. W21은 이 저장 경계를 유지하면서 full-width Grid+Chart 작업공간과 생성 직후 표시 회귀를 보완한다. W20은 CI와 최소 container artifact 기반을 선행하지만 production host/backup/restore를 포함한 W16 전체 배포 승인을 대신하지 않는다. VBA macro, Summary/WBS·FS 재계산, Import/Export도 후속 산출물이다.
+- W01–W07 application source와 초기 migration, Project edit authorization, pure Calendar/Leaf Scheduling, root Task/Milestone Gantt 저장은 구현되었다. W21은 이 저장 경계를 유지하면서 full-width Grid+Chart 작업공간과 생성 직후 표시 회귀를 보완한다. W20은 CI와 최소 container artifact 기반을 선행하지만 production host/backup/restore를 포함한 W16 전체 배포 승인을 대신하지 않는다. 이 문단의 W01–W07 단계 기록은 당시 상태다. Summary/WBS·dependency 재계산과 Import/Export의 현행 상태는 관련 문서를 따른다.
 - #18의 과거 부모 전환 확인 유지 조건은 함께 승인된 #11로 대체하며, 서버의 명시적 전환·인증·revision 계약은 유지한다.
 
 ## Issue #72 confirmed addendum
@@ -166,3 +166,7 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 고급 필터에서 복합 유형을 선택한 경우 빠른 보기 버튼의 단일 active 상태는 해제된다.
 - 버튼 전환은 client-side view state로 동작하여 API 재조회, Project mutation, revision 증가, Gantt remount를 유발하지 않으며 SVAR 공개 `filter-tasks` action을 사용한다.
 - 390/768/1024/1440px 뷰포트와 전체화면 모드에서 컨트롤 겹침이 없어야 하며 키보드 Tab 및 ARIA pressed 상태를 지원한다.
+
+## Issue #258 — 연결 Task 필드별 편집
+
+관계가 있는 leaf Task/Milestone의 metadata·progress·Baseline 편집은 현재 적용 날짜/requestedStart를 보존한다. 요청 시작일·duration·scheduleMode 변경은 전체 dependency-aware transaction으로 후행 Auto의 지연/앞당김과 Summary를 다시 계산한다. Manual/resource conflict 및 혼합 payload는 전체 rollback한다. Grid 이름·Chart 완료 gesture와 Editor는 같은 Task PATCH/canonical snapshot 계약을 사용한다. Delete/Convert/계층/Copy·Summary 정보창·권한 보호는 그대로다. R08의 초기 FS 범위 표기는 역사적 단계이며 현재 generic FS/SS/FF/SF와 lag 지원은 Scheduling/API 문서를 따른다.

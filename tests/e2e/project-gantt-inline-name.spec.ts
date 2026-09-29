@@ -66,10 +66,6 @@ async function routeRenames(page: Page, fixture: StatefulProjectFixture) {
     expect(task).toBeTruthy();
     const body = request.postDataJSON() as { name?: string };
     expect(Object.keys(body)).toEqual(["name"]);
-    if (fixture.links.some((link) => link.predecessorExternalId === task!.externalId || link.successorExternalId === task!.externalId)) {
-      await route.fulfill({ status: 409, json: { error: { code: "UNSUPPORTED_SCHEDULE_STRUCTURE", message: "Linked endpoint." } } });
-      return;
-    }
     task!.name = body.name!;
     fixture.project.revision += 1;
     const response: TaskMutationResponse = { data: {
@@ -199,14 +195,12 @@ test("invalid input stays focused, Escape cancels, blur saves once, and failures
   }
   expect(route.patches).toHaveLength(4);
 
-  // A dependency added by another editor after opening reaches the server's
-  // existing 409 protection; the old canonical name remains on screen.
+  // Linked metadata changes keep the canonical schedule intact.
   const linkedRace = await openName(page, "Blur saved");
   fixture.links.push({ id: "late-link", predecessorExternalId: "SUMMARY-CHILD-1", successorExternalId: "LEAF-1", type: "FS", lag: 0 });
-  await linkedRace.fill("Forbidden linked rename");
+  await linkedRace.fill("Allowed linked rename");
   await linkedRace.press("Enter");
-  await expect(nameCell(page, "Blur saved")).toBeVisible();
-  await expect(page.getByTestId("workspace-toast")).toContainText("관계가 연결된 작업");
+  await expect(nameCell(page, "Allowed linked rename")).toBeVisible();
   expect(route.patches).toHaveLength(5);
 
   route.failOnce(401);
@@ -229,18 +223,16 @@ test("linked endpoints, unrelated tasks, readonly state, and narrow layout prese
     window.open = ((url?: string | URL) => { tracked.__openedTaskUrls!.push(String(url)); return null; }) as typeof window.open;
   });
   await page.goto(`/projects/${publicId}`);
-  await expect(nameCell(page, "Stable leaf")).toHaveAttribute("aria-readonly", "true");
-  await expect.poll(() => rowNamed(page, "Stable leaf").getAttribute("data-task-url")).toBe("https://example.invalid/linked");
-  await nameCell(page, "Stable leaf").locator(".wx-content > .wx-text").click();
-  await expect(inlineInput(page)).toHaveCount(0);
-  await expect.poll(async () => (await page.evaluate(() => (window as typeof window & { __openedTaskUrls?: string[] }).__openedTaskUrls))?.length).toBe(1);
-  await expect.poll(() => ganttRoot(page).locator(`.wx-bar[data-task-id=":${id(3)}"]`).getAttribute("data-task-url")).toBe("https://example.invalid/linked");
+  await expect(nameCell(page, "Stable leaf")).not.toHaveAttribute("aria-readonly", "true");
+  const original = { ...fixture.tasks[2] };
+  const linked = await openName(page, "Stable leaf");
+  await linked.fill("Linked rename");
+  await linked.press("Enter");
+  await expect(nameCell(page, "Linked rename")).toBeVisible();
+  expect(fixture.tasks[2]).toMatchObject({ requestedStart: original.requestedStart, start: original.start, end: original.end, duration: original.duration });
+  expect(route.patches).toHaveLength(1);
   await ganttRoot(page).locator(`.wx-bar[data-task-id=":${id(3)}"]`).click();
-  await expect.poll(async () => (await page.evaluate(() => (window as typeof window & { __openedTaskUrls?: string[] }).__openedTaskUrls))?.length).toBe(2);
-  expect(await page.evaluate(() => (window as typeof window & { __openedTaskUrls?: string[] }).__openedTaskUrls)).toEqual([
-    "https://example.invalid/linked", "https://example.invalid/linked",
-  ]);
-  expect(route.patches).toHaveLength(0);
+  await expect.poll(async () => (await page.evaluate(() => (window as typeof window & { __openedTaskUrls?: string[] }).__openedTaskUrls))?.length).toBe(1);
   const unrelated = await openName(page, "Stable milestone");
   await unrelated.fill("Unrelated rename");
   await unrelated.press("Enter");
@@ -250,7 +242,7 @@ test("linked endpoints, unrelated tasks, readonly state, and narrow layout prese
   await page.reload();
   await nameCell(page, "Unrelated rename").locator(".wx-content > .wx-text").click();
   await expect(inlineInput(page)).toHaveCount(0);
-  expect(route.patches).toHaveLength(1);
+  expect(route.patches).toHaveLength(2);
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     await expect(ganttRoot(page).locator(".wx-table-container")).toBeVisible();

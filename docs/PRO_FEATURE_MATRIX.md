@@ -72,3 +72,7 @@ masterGantt의 실제 구현 경계는 다음과 같다.
 확인일: 2026-09-29. 설치 Core는 `@svar-ui/react-gantt` 2.7.3이다. [공식 Calendars guide](https://docs.svar.dev/react/gantt/guides/scheduling/calendars/), [Resource Calendar guide](https://docs.svar.dev/react/gantt/guides/resources/resource-calendar/), [resources API](https://docs.svar.dev/react/gantt/api/properties/resources/)의 PRO 구분과 Task/Resource Calendar 경계를 참조했다. 공식 sample URL 조회와 실제 JavaScript demo 조작은 구분하며 후자는 NOT TESTED다.
 
 자체 순수 Scheduling Domain이 Project < Group < Resource 날짜 예외를 결정하고 서버가 충돌·원자 저장을 검증한다. Group/Resource WORKING으로 상위 휴무를 되돌리면 자체 Resource workload M/D·M/M 분자·일별 allocation·과투입 판정에 포함하지만 Task start/end/duration은 Project Calendar만 따른다. 최신 SVAR guide의 Task/Resource 근무시간 교집합 계산은 이 제품 요구와 다르므로 채택하지 않는다. PRO package/API·비공개 구현 도입, Project CUSTOM WORKING, 시간/반일, Resource Leveling은 범위 밖이다. 세부 계약과 검증 범위는 [Issue #261 설계 기록](ISSUE_261_RESOURCE_CALENDAR.md)을 따른다.
+
+## Issue #258 — 관계 연결 Task 편집
+
+Core 2.7.3의 공개 Grid text editor·Chart move/resize·update-task interaction을 보호된 Task PATCH로 연결한다. 요청 시작일과 적용 일정의 구분, Baseline effective schedule 복사, 전체 successor 재계산·Summary 파생은 자체 domain/server 구현이다. SVAR PRO `schedule`/working calendar/auto-scheduling은 활성화하지 않는다. 구조 명령의 linked 보호는 확대하지 않는다.

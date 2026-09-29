@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProjectTaskDto } from "../../../src/contracts/projects";
-import { createTaskEditorDraft, prepareTaskEditorCommand, taskEditorIsDirty, taskEditorReadOnlyReason } from "../../../src/features/gantt/task-editor-model";
+import { copyScheduleToBaseline, createTaskEditorDraft, prepareTaskEditorCommand, taskEditorIsDirty, taskEditorReadOnlyReason } from "../../../src/features/gantt/task-editor-model";
 import { taskIdFromElement } from "../../../src/features/gantt/task-context-target";
 
 const task: ProjectTaskDto = {
@@ -11,6 +11,14 @@ const task: ProjectTaskDto = {
 };
 
 describe("explicit task editor commands", () => {
+  it("edits requested dates separately and copies only stored effective dates", () => {
+    const draft = createTaskEditorDraft(task);
+    expect(draft.start).toBe(task.requestedStart);
+    expect(prepareTaskEditorCommand(task, { ...draft, start: task.start }).command?.payload).toEqual({ start: task.start });
+    const copied = copyScheduleToBaseline({ ...draft, start: "2026-10-01", duration: "5" }, task);
+    expect(copied).toMatchObject({ baselineStart: task.start, baselineDuration: "1", baselineEnd: task.end });
+    expect(prepareTaskEditorCommand(task, { ...draft, scheduleMode: "manual" }).command?.payload).toEqual({ scheduleMode: "manual" });
+  });
   it("does not send a request when opening or saving an unchanged draft", () => {
     const draft = createTaskEditorDraft(task);
     expect(taskEditorIsDirty(task, draft)).toBe(false);
@@ -80,7 +88,7 @@ describe("explicit task editor commands", () => {
   });
   it("reports readonly, dependency and deleted-task restrictions", () => {
     expect(taskEditorReadOnlyReason(task, false, false)).toContain("권한");
-    expect(taskEditorReadOnlyReason(task, true, true)).toContain("연결");
+    expect(taskEditorReadOnlyReason(task, true, true)).toBeNull();
     expect(taskEditorReadOnlyReason(undefined, true, false)).toContain("찾을 수");
     expect(taskEditorReadOnlyReason(task, true, false)).toBeNull();
   });

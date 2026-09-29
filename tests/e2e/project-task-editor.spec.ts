@@ -329,7 +329,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(fixture.patches[0].headers()["if-match"]).toBe('"20"');
     expect(fixture.tasks.find((entry) => entry.taskId === id(4))).toMatchObject({ start: "2026-09-18", end: "2026-09-22", duration: 2 });
     await openRow(page);
-    await editor(page).getByLabel("시작일", { exact: true }).fill("2026-09-19");
+    await editor(page).getByLabel("요청 시작일", { exact: true }).fill("2026-09-19");
     await save(page).click();
     await expect(editor(page)).toHaveCount(0);
     expect(fixture.patches[1].postDataJSON()).toEqual({ start: "2026-09-19" });
@@ -337,7 +337,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(page.getByTestId("workspace-toast")).toContainText("비근무일 시작");
     await openRow(page);
     await editor(page).getByLabel("작업명", { exact: true }).fill("Edited together");
-    await editor(page).getByLabel("시작일", { exact: true }).fill("2026-09-18");
+    await editor(page).getByLabel("요청 시작일", { exact: true }).fill("2026-09-18");
     await editor(page).getByLabel("기간 (근무일)", { exact: true }).fill("3");
     await editor(page).getByLabel("진행률 (%)", { exact: true }).fill("36");
     await save(page).click();
@@ -423,13 +423,13 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(fixture.patches).toHaveLength(0);
   });
 
-  test("linked tasks keep schedule readonly but allow baseline-only saves", async ({ page }) => {
+  test("linked tasks allow editing and copy the stored applied baseline", async ({ page }) => {
     const fixture = await setup(page, { editable: true, links: true });
     await openRow(page);
-    await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveAttribute("readonly", "");
-    await expect(editor(page).getByLabel("시작일", { exact: true })).toHaveAttribute("readonly", "");
+    await expect(editor(page).getByLabel("작업명", { exact: true })).not.toHaveAttribute("readonly", "");
+    await expect(editor(page).getByLabel("요청 시작일", { exact: true })).not.toHaveAttribute("readonly", "");
     await expect(editor(page).getByLabel("기준 시작일", { exact: true })).not.toHaveAttribute("readonly", "");
-    await expect(editor(page)).toContainText("관계가 연결된 작업은 기준 일정만 편집할 수 있습니다.");
+    await expect(editor(page)).toContainText("후행 작업 일정이 함께 조정됩니다.");
     await editor(page).getByRole("button", { name: "현재 일정으로 설정", exact: true }).click();
     await save(page).click();
     await expect(editor(page)).toHaveCount(0);
@@ -447,7 +447,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await chooseTaskInformation(page);
     await expect(editor(page).getByLabel("기간 (근무일)", { exact: true })).toHaveAttribute("readonly", "");
     await editor(page).getByLabel("작업명", { exact: true }).fill("Updated milestone");
-    await editor(page).getByLabel("시작일", { exact: true }).fill("2026-09-22");
+    await editor(page).getByLabel("요청 시작일", { exact: true }).fill("2026-09-22");
     await save(page).click();
     await expect(editor(page)).toHaveCount(0);
     expect(fixture.patches[0].postDataJSON()).toEqual({ name: "Updated milestone", start: "2026-09-22" });
@@ -474,7 +474,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       expect(mutations).toHaveLength(0);
     };
 
-    await row(page, "Alpha leaf").getByText("Alpha leaf", { exact: true }).dblclick();
+    await row(page, "Alpha leaf").locator('[role="gridcell"][data-col-id=":projectStart"]').dblclick();
     await expect(editor(page).getByLabel("작업명", { exact: true })).toHaveValue("Alpha leaf");
     await expectRelations("successor");
     await cancel(page);
@@ -559,7 +559,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       expect(overflow.body).toBeLessThanOrEqual(1);
 
       const nameBox = await dialog.getByLabel("작업명", { exact: true }).boundingBox();
-      const startBox = await dialog.getByLabel("시작일", { exact: true }).boundingBox();
+      const startBox = await dialog.getByLabel("요청 시작일", { exact: true }).boundingBox();
       const durationBox = await dialog.getByLabel("기간 (근무일)", { exact: true }).boundingBox();
       const progressBox = await dialog.getByLabel("진행률 (%)", { exact: true }).boundingBox();
       expect(nameBox).not.toBeNull();
@@ -638,7 +638,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       await expect(taskTab).toBeFocused();
       const nameBox = await dialog.getByLabel("작업명", { exact: true }).boundingBox();
       const progressBox = await dialog.getByLabel("진행률 (%)", { exact: true }).boundingBox();
-      const startBox = await dialog.getByLabel("시작일", { exact: true }).boundingBox();
+      const startBox = await dialog.getByLabel("요청 시작일", { exact: true }).boundingBox();
       const durationBox = await dialog.getByLabel("기간 (근무일)", { exact: true }).boundingBox();
       expect(nameBox).not.toBeNull();
       expect(progressBox).not.toBeNull();
