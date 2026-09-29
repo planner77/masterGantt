@@ -1156,5 +1156,24 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
   - `Set-Cookie: mastergantt_edit=...`
   - Body: `InstantiateProjectTemplateResponse`
 
+## Logistics Type Catalog API (Issue #280)
 
+일반 읽기:
+
+- `GET /api/logistics-catalog/types` — active 설비/시스템 유형의 `code`, `name`만 반환한다.
+
+관리자 세션:
+
+- `POST /api/logistics-catalog/admin-sessions` — `LOGISTICS_CATALOG_ADMIN_PASSWORD` bootstrap 또는 DB credential로 인증한다.
+- `DELETE /api/logistics-catalog/admin-sessions` — 현재 관리자 세션을 revoke한다.
+- `PUT /api/logistics-catalog/admin-password` — 인증된 관리자가 비밀번호를 변경하고 기존 세션을 revoke한다.
+
+관리자 카탈로그:
+
+- `GET/POST /api/logistics-catalog/admin/equipment-types`
+- `PATCH /api/logistics-catalog/admin/equipment-types/{code}`
+- `GET/POST /api/logistics-catalog/admin/system-types`
+- `PATCH /api/logistics-catalog/admin/system-types/{code}`
+
+Mutation은 정확한 Origin과 `If-Match: "<catalog revision>"`을 요구한다. stale revision은 412, 인증 없음은 401, 중복/DB 무결성 충돌은 409 계열로 처리한다. 1차 API는 hard delete와 stable code 변경을 제공하지 않는다.
 
