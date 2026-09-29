@@ -700,3 +700,14 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - 기존 Country WORKING, Project CUSTOM 휴무, Manual/Dependency Calendar 재계산 및 접근성 회귀를 함께 유지한다.
 
 실제 로컬 실행 결과는 [Issue #261 검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)에 기록한다. 사용자 요청 범위는 PR/CI 시작까지이므로 원격 quality/e2e/docker의 완료 판정은 NOT TESTED이며 main/GHCR/정식 release는 이번 작업 범위 밖이다.
+
+## Issue #303 Task 상태·진행률 동기화
+
+- Domain/Unit: 0/1/50/99.999/100 progress의 상태 파생, completed→0/50 완료 해제, completed/not_started/in_progress 명시 전환과 모순 조합 판정을 검사한다.
+- Contract/Service: create/PATCH에서 status code validation, progress 100→completed, status completed→100, not_started→0, in_progress에서 100→0을 확인한다. 성공은 revision +1이며 DB row와 canonical response가 일치해야 한다.
+- DB: `0015_task_status.sql`이 기존 0/부분/100% row를 결정적으로 backfill하고 reopen 뒤 유지하며 unknown status CHECK가 실패하는지 확인한다.
+- Hierarchy/Summary: fractional Summary progress를 반올림하지 않고 정확히 100인 경우에만 completed로 파생한다. 기존 일정/Link/요청 시작일과 Summary 집계 계약을 보존한다.
+- Chromium E2E: Editor progress 100→완료, 상태 완료→progress 100, 시작 전→0, 저장 후 Grid 취소선/해제, 동일 Gantt instance와 기존 keyboard/focus/readonly 동작을 확인한다.
+- 반응형: 390/768/1024/1440px에서 상태 Select와 진행률 Slider의 overflow/겹침이 없음을 기존 Editor geometry 회귀와 함께 확인한다.
+- 공식 완료 근거는 해당 PR head의 quality/e2e/docker CI이며 과거 PASS를 재사용하지 않는다.
+
