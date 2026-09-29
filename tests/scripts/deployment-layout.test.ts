@@ -57,6 +57,7 @@ describe("deployment repository layout", () => {
     expect(start).toContain('"--hostname"');
     expect(start).toContain('"--port"');
     expect(start).toContain("prepareStandaloneRuntime()");
+    expect(start).not.toContain("process.chdir(");
     expect(start).toContain("await import(pathToFileURL(serverPath).href)");
   });
 
