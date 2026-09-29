@@ -73,9 +73,18 @@ export function parseCreateProcessInput(
   const body = raw as Record<string, unknown>;
   const details: string[] = [];
 
-  const code = typeof body.code === "string" ? body.code.trim() : "";
-  if (!code || code.length > 64) {
-    details.push("Process code must be non-empty and at most 64 characters.");
+  let code: string | undefined;
+  if (body.code !== undefined) {
+    if (typeof body.code !== "string") {
+      details.push("Process code must be non-empty and at most 64 characters.");
+    } else {
+      const trimmedCode = body.code.trim();
+      if (!trimmedCode || trimmedCode.length > 64) {
+        details.push("Process code must be non-empty and at most 64 characters.");
+      } else {
+        code = trimmedCode;
+      }
+    }
   }
 
   const name = typeof body.name === "string" ? body.name.trim() : "";
