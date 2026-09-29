@@ -109,15 +109,17 @@
   display: grid;
   grid-template-columns: minmax(0, 42rem) minmax(16rem, 24rem);
   grid-template-areas:
-    "name progress"
+    "name status"
+    "progress progress"
     "schedule schedule"
     "description description"
     "url url";
   align-items: start;
   gap: 0.75rem 1.25rem;
 }
-.taskFields > :first-child { grid-area: name; }
-.taskFields > :nth-child(2) { grid-area: progress; }
+.nameField { grid-area: name; }
+.statusField { grid-area: status; }
+.progressField { grid-area: progress; }
 .scheduleFields { grid-area: schedule; }
 .taskFields > :nth-last-child(2) { grid-area: description; }
 .taskFields > :last-child { grid-area: url; }
@@ -131,6 +133,7 @@
 .fieldLabel { display: block; }
 .field input,
 .field textarea,
+.field select,
 .filterField select,
 .searchField input {
   width: 100%;
@@ -158,6 +161,7 @@
 }
 .field input:focus-visible,
 .field textarea:focus-visible,
+.field select:focus-visible,
 .filterField select:focus-visible,
 .searchField input:focus-visible,
 .assignmentToggle input:focus-visible,
@@ -370,6 +374,7 @@
     grid-template-columns: 1fr;
     grid-template-areas:
       "name"
+      "status"
       "progress"
       "schedule"
       "description"
