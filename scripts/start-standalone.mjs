@@ -41,6 +41,5 @@ for (let index = 0; index < args.length;) {
   throw new Error(`Unsupported start option: ${args[index]}`);
 }
 
-const { standaloneDir, serverPath } = prepareStandaloneRuntime();
-process.chdir(standaloneDir);
+const { serverPath } = prepareStandaloneRuntime();
 await import(pathToFileURL(serverPath).href);
