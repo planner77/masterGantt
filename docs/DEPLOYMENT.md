@@ -16,7 +16,7 @@ startup 도구는 `tsconfig.runtime-tools.json`으로 build stage에서 CommonJS
 
 base image digest, Debian/glibc 계열, numeric UID/GID 1001:1001, `/data` volume, healthcheck, single-instance SQLite/WAL 계약은 변경하지 않는다. `better-sqlite3`는 standalone trace에 포함된 native addon을 사용하며 PR Docker smoke에서 실제 load/write/restart persistence로 검증한다. Alpine/musl·distroless 전환은 이 변경의 범위가 아니다.
 
-PR의 Docker gate는 PR base SHA의 기존 image와 candidate를 동일 runner에서 build하고 `docker image inspect`의 uncompressed size를 비교한다. Issue #283의 acceptance 기준에 따라 candidate는 baseline 대비 최소 25% 감소해야 한다. Workflow summary에는 baseline/candidate size, 주요 `/app` directory footprint와 상위 image layer를 남긴다. 실제 registry compressed transfer size는 main/release publish에서 별도 관찰할 수 있으며 이 PR gate의 수치와 혼동하지 않는다.
+PR의 Docker gate는 PR base SHA의 기존 image와 candidate를 동일 runner에서 build하고 `docker image inspect`의 uncompressed size를 비교한다. Issue #283의 non-standalone → standalone migration에서는 acceptance 기준에 따라 candidate가 baseline 대비 최소 25% 감소해야 한다. 이 one-time migration gate가 main에 반영된 뒤의 일반 PR에는 추가 25% 감소를 요구하지 않고 비교 결과만 관찰용으로 기록한다. Workflow summary에는 baseline/candidate size, 주요 `/app` directory footprint와 상위 image layer를 남긴다. 실제 registry compressed transfer size는 main/release publish에서 별도 관찰할 수 있으며 이 PR gate의 수치와 혼동하지 않는다.
 
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
