@@ -36,13 +36,12 @@ RUN groupadd --system --gid 1001 mastergantt \
     && chown mastergantt:mastergantt /data
 
 # Next.js output tracing이 선택한 production runtime dependency와 최소 server.js를 복사한다.
-# build script가 .next/static과 optional public/을 standalone directory 안에 미리 stage한다.
+# build script가 .next/static, optional public/, db/migrations를 standalone tree 안에 stage한다.
 COPY --from=build --chown=mastergantt:mastergantt /app/.next/standalone ./
 
 # startup validation/migration은 build-time CommonJS artifact로 실행한다. 전체 src tree,
 # TypeScript source, tsx runtime, .next/cache는 최종 image에 포함하지 않는다.
 COPY --from=build --chown=mastergantt:mastergantt /app/.runtime-tools ./runtime-tools
-COPY --from=build --chown=mastergantt:mastergantt /app/db/migrations ./db/migrations
 COPY --chown=mastergantt:mastergantt deploy/docker/container-entrypoint.sh /usr/local/bin/container-entrypoint
 RUN chmod 0755 /usr/local/bin/container-entrypoint
 
