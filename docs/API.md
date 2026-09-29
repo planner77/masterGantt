@@ -1156,5 +1156,7 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
   - `Set-Cookie: mastergantt_edit=...`
   - Body: `InstantiateProjectTemplateResponse`
 
+### Issue #299 — Chart 수직 작업 재정렬
 
+Chart bar의 수직 Drag & Drop은 새 endpoint를 만들지 않는다. client는 같은 parent의 visible sibling에 대해 `before | after`를 확정한 뒤 기존 `POST /api/projects/{publicId}/task-commands`에 `{ kind: "reparent", taskId, anchorTaskId, placement }`를 전송한다. 따라서 edit session, Origin, strong `If-Match`, project isolation, dependency/hierarchy invariant, transaction, revision 증가와 canonical mutation response 계약은 기존 hierarchy command와 동일하다. 한 vertical gesture는 hierarchy command 1회만 발생시키며 Task PATCH를 함께 보내지 않는다.
 
