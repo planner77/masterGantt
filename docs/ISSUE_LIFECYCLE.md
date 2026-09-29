@@ -355,3 +355,12 @@ Manager는 operation을 다음처럼 선택한다.
 - Issue #248 구현 전 같은 목적이면 기존 `finalize`에 `release_required=true`와 승인 입력을 사용한다.
 
 `release_finalize`를 선택했다고 해서 승인을 자동 추론하지 않는다. 반드시 동일 Issue/버전 범위에 대한 명시적 `release_authorized=true` 근거와 `authorization_note`가 있어야 한다.
+
+## 자동 finalizer 확인·실패 재개 규칙
+
+병합 후 자동 finalize를 요청받은 경우 범용 `issue-lifecycle.yml`의 `workflow_dispatch`를 우선한다. 실행 도구에 dispatch 기능이 보이지 않더라도 즉시 BLOCKED로 결론내리지 않고, 최근 `ops/issue-<N>-finalize` PR과 대상 main merge SHA의 check-runs를 확인하여 이미 one-shot finalizer가 준비·실행되었는지 먼저 확인한다.
+
+one-shot finalizer가 사용된 경우 일반 Main CI와 finalizer workflow는 서로 다른 run이다. Main CI PASS는 Gate D evidence일 뿐 Issue close 성공을 의미하지 않는다. `Finalize and close Issue <N>` 등 finalizer job의 실제 run ID와 결론을 별도로 확인한다.
+
+finalizer가 safe branch cleanup에서 fail-closed로 중단되면 Issue를 유지하고 원인을 제거한다. 특히 다른 Open PR이 feature branch를 base/head로 사용 중이면 해당 PR의 의존성을 정리하고 최신 main/적절한 base로 재정렬한다. blocker 제거 후에는 기존 failed finalizer run/job 재실행을 우선하며, 기존 run을 재사용할 수 있는데 새 one-shot finalizer PR을 반복 생성하거나 수동 branch 삭제/Issue close로 우회하지 않는다.
+
