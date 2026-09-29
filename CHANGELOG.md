@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.53.6] - 2026-09-29
+
+### Fixed
+
+- Issue #300: Grid Drag & Drop의 확정 이동을 기존 Task hierarchy command에 연결하여 작업명 수정·재조회 후에도 새 parent/sibling 순서를 유지한다.
+- 드래그 중 화면 피드백과 서버 저장을 구분하고 canonical 내부 이동의 중복 전송을 차단한다. 기존 권한·revision·실패 복구와 동일 Gantt 인스턴스를 유지한다.
+
 ## [0.53.5] - 2026-09-29
 
 ### Fixed

@@ -142,3 +142,11 @@ Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭�
 물류 연결과 리소스 할당은 조회 중·성공·실패를 구분한다. 현재 taskId/revision에 맞는 유효한 응답을 확보하기 전에는 선택·저장 control과 저장 handler를 모두 차단한다. 이전 작업이나 revision의 늦은 응답은 폐기하고 조회를 취소한다.
 
 조회 실패를 '등록된 설비/시스템 없음'으로 표시하지 않으며 오류 안내와 다시 시도를 제공한다. 재시도는 GET만 수행하고 자동 PUT은 하지 않는다. 정상 응답을 받으면 기존 직접 연결/할당을 초안에 복원하고 그 뒤에 사용자 저장을 허용한다. readonly와 Task PATCH/Assignment PUT/물류 PUT의 독립 저장·서버 권한·If-Match 계약은 유지한다.
+
+## Issue #300 Grid DnD 후 일반 필드 저장
+
+Grid 행 이동은 SVAR Core 2.7.3의 공개 `move-task` action으로 연결한다. `inProgress=true`인 드래그 피드백은 서버를 변경하지 않고, 놓은 최종 action만 기존 `POST /api/projects/{publicId}/task-commands`의 `reparent` 명령으로 변환한다. `before`/`after`는 같은 parent의 순서 변경뿐 아니라 다른 parent의 대상 Task를 기준으로 이동할 수 있으며, 타입·cycle·마지막 child와 Link 제약은 기존 서버 정책을 따른다. Context Menu의 Move Up/Down도 기존 계층 명령을 유지한다. Core 2.7.3의 `inProgress=false` release는 위치 이동을 다시 수행하지 않고 `$reorder`와 drag source를 정리하므로, 보호 명령 전달 후 이 native cleanup은 허용한다. 일반 programmatic 이동은 canonical 응답이 구조를 확정할 때까지 로컬 적용을 차단한다.
+
+확정 응답의 canonical parent/sibling order와 최신 revision을 반영한 뒤 이름·진행률·설명 등의 일반 필드를 저장한다. 이름 변경 PATCH는 `{name}`만 전달하며 parent/sibling order를 다시 지정하지 않는다. canonical 동기화에서 발생하는 내부 `move-task`는 `project-canonical-sync` marker와 실제 sync guard가 함께 있을 때만 허용하고, 이 action을 새 HTTP 요청으로 되돌려 보내지 않는다. 읽기 전용·mutation 진행 중·동기화 중의 사용자 이동과 편집은 차단한다. 이동 실패/412는 기존 확정 snapshot 재조회와 오류 안내로 복구하고, 재조회가 성공하면 Gantt 인스턴스를 유지한다. 재조회까지 실패한 경우의 기존 recovery remount 정책은 유지한다.
+
+2026-09-29 확인: [공식 move-task API](https://docs.svar.dev/react/gantt/api/actions/move-task/)와 [Next.js backend integration](https://docs.svar.dev/react/gantt/integration-guides/nextjs/backend/)의 구조 이동/일반 속성 저장 분리를 참조했다. 설치된 Core Grid source의 `inProgress=true` 이동과 release 시 `inProgress=false` 최종 이동을 확인했다. PRO 기능이나 별도 reorder 저장소를 추가하지 않는다. URL/설치 source 확인과 실제 pointer 재현·원격 CI 결과는 서로 구분한다.

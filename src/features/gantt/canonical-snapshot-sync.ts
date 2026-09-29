@@ -84,13 +84,13 @@ async function syncExistingTaskHierarchy(
     const currentTask = current.find((candidate) => String(candidate.id) === id);
 
     if (parent !== "0" && normalizedParent(currentTask) !== parent && task.parent !== undefined && task.parent !== null) {
-      await api.exec("move-task", { id: taskId, mode: "child", target: task.parent });
+      await api.exec("move-task", { id: taskId, mode: "child", target: task.parent, eventSource: "project-canonical-sync" });
     }
     if (!isCurrent()) return;
     if (previous?.id !== undefined) {
-      await api.exec("move-task", { id: taskId, mode: "after", target: previous.id });
+      await api.exec("move-task", { id: taskId, mode: "after", target: previous.id, eventSource: "project-canonical-sync" });
     } else if (next?.id !== undefined) {
-      await api.exec("move-task", { id: taskId, mode: "before", target: next.id });
+      await api.exec("move-task", { id: taskId, mode: "before", target: next.id, eventSource: "project-canonical-sync" });
     }
   }
 }

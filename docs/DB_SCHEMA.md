@@ -134,6 +134,8 @@ FOREIGN KEY(project_id, parent_id)
 
 `parent_id IS NULL`인 root task도 허용한다. Parent가 summary인지, hierarchy cycle이 없는지는 cross-row domain invariant이므로 Service/Scheduling Engine에서 검증한다. Deferred `NO ACTION`은 일반 parent 단독 삭제를 transaction commit에서 거부하면서 Project aggregate 삭제 시 Project cascade가 전체 task hierarchy를 함께 제거할 수 있게 한다. Project 삭제 API는 이 cascade를 `IMMEDIATE` transaction에서 사용한다.
 
+Issue #300: Grid DnD와 Context Menu의 기존 hierarchy command는 parent별 sibling `sort_order`를 `0..N-1`로 정규화한다. Parent 변경은 이전 family와 새 family를 같은 transaction에서 저장한다. Task 이름 및 다른 비구조 필드 PATCH는 `parent_id/sort_order`를 갱신하지 않으며 재조회 canonical DTO의 `parentExternalId/siblingOrder`는 저장된 관계/순서를 유지한다. 기존 column·constraint·index를 재사용하므로 schema 변경과 신규 migration은 N/A다.
+
 일정 column의 의미는 다음과 같다.
 
 - API/import의 `start`는 요청 시작일이며 `requested_start`에 보존한다.
@@ -602,4 +604,3 @@ Task(Summary, Task, Milestone)와 물류 시스템 간의 연결 테이블이다
 인덱스:
 - `project_templates_active_idx ON project_templates(active)`
 - `project_templates_created_at_idx ON project_templates(created_at)`
-
