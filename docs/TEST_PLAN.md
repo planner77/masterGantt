@@ -1,5 +1,12 @@
 # Test Plan
 
+## Issue #285 공정 코드 자동 생성
+
+- Contract/API: Process POST에서 code 생략은 성공하고 서버 생성 code가 non-empty, 64자 이하, 프로젝트 내 unique인지를 확인한다. 명시적 유효 code는 보존하고 blank/64자 초과 및 duplicate code 오류 계약은 유지한다.
+- Service/transaction: 동일 프로젝트 연속 자동 생성, 기존 명시 code와의 호환, revision 증가와 canonical logistics 응답을 확인한다. 인증/Origin/If-Match 실패에는 공정 row/revision이 생성되지 않는 기존 회귀를 유지한다.
+- Chromium E2E: 공정 추가 모달에 코드 입력이 없고 공정명에 최초 focus가 있으며, 이름만으로 저장 가능하고 POST body에 code가 없는지 확인한다. canonical 응답의 생성 code 표시, Escape 취소 mutation 0회와 trigger focus 복원, edit mode code 입력 유지, readonly 및 390/768/1024/1440px overflow 회귀를 기존 물류 spec과 함께 검증한다.
+- DB schema, 설비/시스템 code 정책, Scheduling/SVAR 계약은 변경하지 않는다. 공식 PASS는 PR head의 quality/e2e/docker 결과를 사용한다.
+
 ## Issue #269 프로젝트 복사·템플릿 저장 인증·원본 복구
 
 두 Dialog의 POST 401 뒤 비밀번호 재입력·focus·일반 초안 보존과 명시적 재인증 성공을 검사한다. POST 412 뒤 기존 snapshot 제출 차단, 최신 원본 GET만 실행, 다음 사용자 제출의 새 If-Match를 확인한다. 복사 직전 GET에서 revision이 바뀌면 POST 0회여야 한다. 최초 GET 실패·잘못된 응답의 재시도, 닫기/다시 열기 후 늦은 응답 무시, 인증부터 시작하는 pending 중복 제출·닫기 차단과 비밀번호 정리를 검사한다. 390/768/1024/1440px에서 오류·긴 이름·주요 명령 접근·focus/문서 overflow와 제목·닫기 버튼 폭을 확인하며 실제 서버 권한·원자성 전체 회귀는 PR CI로 구분한다.
