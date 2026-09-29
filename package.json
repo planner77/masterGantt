@@ -7,8 +7,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack && npm run build:runtime-tools",
-    "start": "next start",
+    "build": "next build --webpack && node scripts/prepare-standalone-runtime.mjs && npm run build:runtime-tools",
+    "start": "node scripts/start-standalone.mjs",
     "version:check": "node scripts/verify-release-version.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
