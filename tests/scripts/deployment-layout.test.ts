@@ -38,6 +38,15 @@ describe("deployment repository layout", () => {
     expect(entrypoint).not.toContain("npm run start");
   });
 
+  it("keeps TypeScript loaders out of production dependencies", () => {
+    const packageJson = JSON.parse(text("package.json")) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    expect(packageJson.dependencies).not.toHaveProperty("tsx");
+    expect(packageJson.devDependencies?.tsx).toBe("4.23.13");
+  });
+
   it("preserves runtime paths and pins while relocating the Dockerfile", () => {
     const dockerfile = text("deploy/docker/Dockerfile");
     expect(dockerfile).toContain("deploy/docker/container-entrypoint.sh /usr/local/bin/container-entrypoint");
