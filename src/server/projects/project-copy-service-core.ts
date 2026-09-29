@@ -77,6 +77,7 @@ function dtoTasks(tasks: readonly TaskRecord[]): ProjectTaskDto[] {
     end: task.endDate,
     duration: task.duration,
     progress: task.progress,
+    status: task.status,
     parentExternalId: task.parentId === null
       ? null
       : externalById.get(task.parentId) ?? null,
@@ -289,6 +290,9 @@ export class ProjectCopyService {
               progress: input.resetProgress && sourceTask.type !== "summary"
                 ? 0
                 : sourceTask.progress,
+              status: input.resetProgress && sourceTask.type !== "summary"
+                ? "not_started"
+                : sourceTask.status,
               parentId: sourceTask.parentId === null
                 ? null
                 : newBySourceId.get(sourceTask.parentId)!.id,
