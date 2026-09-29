@@ -151,3 +151,29 @@ infra는 다음 경계를 지킨다.
 6. 어떤 단계가 FAIL/BLOCKED이면 이후 destructive 단계로 진행하지 않는다.
 
 Issue #248 구현 전에는 기존 `finalize`가 `release_required=true`일 때 정식 release를 내부 수행하므로 동일 목적에 사용할 수 있다. `release` operation은 정식 publish만 수행하고 cleanup/Issue close를 하지 않는 용도로 구분한다.
+
+## 자동 Finalizer run 판별과 재개
+
+자동 finalize 요청을 처리할 때는 “현재 연결 도구에 `workflow_dispatch`가 있는가”만 확인하지 않는다. 먼저 최근 commit/PR과 대상 merge SHA의 check-runs를 조회하여 one-shot finalizer PR이 이미 존재하는지 확인한다. #283/#266에서 사용한 방식처럼 finalizer workflow 파일 자체를 추가하는 PR이 main에 병합되면 그 main push가 실행 trigger가 될 수 있다.
+
+### Main CI와 finalizer 분리
+
+같은 main merge SHA에서 일반 `CI`와 `Issue <N> finalizer`가 각각 실행될 수 있다. 운영 보고에서는 다음을 분리한다.
+
+- Main CI: quality/e2e/docker 및 필요 시 임시 GHCR commit image 검증
+- Finalizer: lifecycle evidence 재검증, feature/finalizer branch cleanup, FINAL comment, Issue close
+
+CI run number가 더 크거나 같은 SHA에 연결되었다는 이유만으로 finalizer run으로 간주하지 않는다. `check-runs`의 job 이름(예: `Finalize and close Issue 267`)과 해당 Actions run ID를 확인한다.
+
+### cleanup 거부 시 처리
+
+`safe branch cleanup refused: another open pull request uses the branch as base`와 같은 오류는 실패를 우회하라는 의미가 아니라 stacked PR 의존성이 아직 남았다는 의미다.
+
+1. feature branch를 base/head로 사용하는 Open PR을 조회한다.
+2. 해당 PR이 선행 변경을 더 이상 필요로 하지 않으면 최신 `main`으로 재정렬하고 base를 변경한다.
+3. 다른 cleanup 불변식도 다시 확인한다.
+4. blocker가 해소되면 **기존 failed finalizer workflow의 실패 job/run 재실행을 우선**한다.
+5. FINAL marker와 Issue close까지 성공한 뒤에만 lifecycle 완료로 보고한다.
+
+기존 failed run 재실행이 가능한 상태에서 새 one-shot finalizer PR을 반복 생성하거나, GitHub UI/API로 feature branch를 직접 삭제하고 Issue를 수동 종료하는 방식은 사용하지 않는다.
+
