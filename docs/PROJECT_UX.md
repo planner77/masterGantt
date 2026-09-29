@@ -619,3 +619,10 @@ Resource 고급 필터는 종류·상태·Task From/To 계약을 변경하지 �
 Grid에서 행을 놓으면 Context Menu와 같은 보호된 계층 명령으로 parent/sibling order를 저장한다. 드래그 중의 표시 순서는 미확정 상태이며 놓은 이동의 서버 저장이 성공해야 확정된다. 이후 이름·진행률 등 일반 필드를 수정하거나 프로젝트를 다시 열어도 확정된 위치를 유지한다. 저장 중 후속 이름 편집·이동은 잠그고, 실패하거나 revision 충돌이 발생하면 최신 canonical 위치와 오류 안내를 표시한다. 재조회가 성공하면 같은 Gantt/API 인스턴스를 사용한다.
 
 기존 Grid/Chart 배치, Light semantic token, Context Menu·inline 이름 편집·Task Editor 흐름을 재사용하는 interaction 결함 수정이다. 새로운 화면 구조·PRO 기능·Undo/Redo·정렬 정책을 추가하지 않으므로 `DESIGN.md`와 `UI_UX_GUIDELINES.md`의 공통 원칙 변경은 N/A다. 390/768/1024/1440px에서는 기존 내부 Grid scroll과 document overflow 기준을 적용한다. 관련 실제 API 회귀는 `tests/e2e/project-grid-reorder-persistence.spec.ts`에서 DnD→rename→일반 필드 수정→Context Move→reload, 실패/412 복구와 Gantt identity를 검증한다. 로컬 실행 결과와 동일 PR head의 원격 `quality/e2e/docker` 판정은 별도로 기록한다.
+
+
+## Issue #289 — 프로젝트 기준정보 UX
+
+`/projects/new` 및 Project 설정의 기본 정보에 사업부·제품·사업장/법인 Select를 추가한다. 세 필드는 선택 사항이며 active catalog만 신규 선택지에 제공한다. catalog 조회 실패는 “선택지 없음”과 구분해 오류/재시도 상태를 표시하고 저장 가능한 정상 빈 목록으로 오인하지 않는다. 기존 선택값이 inactive이면 현재값을 “비활성”으로 유지·표시하고 사용자가 다른 active 값 또는 미지정으로 명시적으로 변경할 수 있다.
+
+전역 `/project-master-admin`은 사업부/제품/사업장·법인을 category별로 관리하며 추가, 표시명 수정, 활성/비활성, 정렬 순서, 사용 Project 수를 제공한다. Project 편집 비밀번호와 별도 관리자 로그인을 사용한다. Project form은 DESIGN.md의 compact/content-aware grid와 390/768/1024/1440px reflow, keyboard/focus/error association 원칙을 유지하며 SVAR Task Editor 내부 모델에는 이 메타데이터를 결합하지 않는다.
