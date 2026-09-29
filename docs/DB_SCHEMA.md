@@ -603,3 +603,9 @@ Task(Summary, Task, Milestone)와 물류 시스템 간의 연결 테이블이다
 - `project_templates_active_idx ON project_templates(active)`
 - `project_templates_created_at_idx ON project_templates(created_at)`
 
+## Issue #303 Task status migration
+
+`0015_task_status.sql`은 `tasks.status TEXT NOT NULL DEFAULT 'not_started'`와 `not_started | in_progress | completed` CHECK를 추가한다. 기존 row는 같은 migration transaction에서 progress에 따라 `0 → not_started`, `0 < progress < 100 → in_progress`, `100 → completed`로 backfill한다.
+
+정상 제품 mutation은 Repository/Service 경계에서 status와 progress를 함께 정규화해 모순 조합을 저장하지 않는다. 기존 import·과거 fixture처럼 status를 제공하지 않는 insert는 Repository가 progress로 상태를 유도한다. Summary status는 파생 progress 저장 시 함께 갱신한다.
+
