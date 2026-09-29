@@ -11,7 +11,12 @@ export type RouteSecurityPolicy =
   | "origin-resource-admin-logout"
   | "origin-resource-admin-password"
   | "origin-resource-admin-if-match"
-  | "project-edit-session-read";
+  | "project-edit-session-read"
+  | "project-master-admin-read"
+  | "origin-project-master-admin-auth"
+  | "origin-project-master-admin-logout"
+  | "origin-project-master-admin-password"
+  | "origin-project-master-admin-if-match";
 
 export interface RouteSecurityInventoryEntry {
   template: string;
@@ -25,6 +30,13 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/health/ready", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects", method: "POST", policy: "origin-and-create-limit", mutatesState: true },
+  { template: "/api/project-master/catalog", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/project-master/admin/items", method: "GET", policy: "project-master-admin-read", mutatesState: false },
+  { template: "/api/project-master/admin/items", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/project-master/admin/items/{itemId}", method: "PATCH", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/project-master/admin-sessions", method: "POST", policy: "origin-project-master-admin-auth", mutatesState: true },
+  { template: "/api/project-master/admin-sessions", method: "DELETE", policy: "origin-project-master-admin-logout", mutatesState: true },
+  { template: "/api/project-master/admin-password", method: "PUT", policy: "origin-project-master-admin-password", mutatesState: true },
   { template: "/api/project-templates", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/project-templates", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/project-templates/{templateId}", method: "GET", policy: "public-read", mutatesState: false },
