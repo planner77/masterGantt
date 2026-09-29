@@ -5,7 +5,7 @@
 ### Changed
 
 - Issue #283: Docker production runtime을 Next.js `output: "standalone"` 기반으로 전환하여 final image가 traced runtime dependency, `.next/static`, SQL migration, build-time compiled startup 도구만 포함하도록 축소한다.
-- container startup validation과 DB migration은 build stage에서 CommonJS JavaScript로 컴파일하여 final image에서 전체 `src`, 전체 `.next`, production `node_modules` 복사와 TypeScript runtime loader 의존을 제거한다. repository의 `npm run db:migrate` 개발/운영 CLI 호환을 위해 package의 `tsx` 선언은 유지하지만 standalone final image에는 포함되지 않는지 정책 검사로 고정한다.
+- container startup validation과 DB migration은 build stage에서 CommonJS JavaScript로 컴파일하여 final image에서 전체 `src`, 전체 `.next`, production `node_modules` 복사와 TypeScript runtime loader 의존을 제거한다. repository의 `npm run db:migrate` source CLI용 `tsx`는 `devDependency`로 이동하고 production dependency/runtime에서는 제거하며, standalone final image에도 포함되지 않는지 정책 검사로 고정한다.
 - PR Docker gate는 PR base image와 candidate를 동일 runner에서 build하여 uncompressed image size, 주요 runtime artifact footprint와 상위 layer를 기록한다. 최소 25% 감소 hard gate는 이번 non-standalone → standalone migration에만 적용하여 이후 일반 PR을 불필요하게 차단하지 않는다. 기존 non-root, migration-before-server, readiness, native SQLite, restart persistence, transport/Compose smoke는 유지한다.
 
 ## [0.52.2] - 2026-09-29
