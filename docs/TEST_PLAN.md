@@ -2,9 +2,9 @@
 
 ## Issue #283 Docker standalone runtime 회귀
 
-- Build: `next.config.ts`의 standalone output과 `tsconfig.runtime-tools.json`의 startup 도구 JavaScript emit이 production build에서 함께 생성되어야 한다.
+- Build: `next.config.ts`의 standalone output과 `tsconfig.runtime-tools.json`의 startup 도구 JavaScript emit이 production build에서 함께 생성되어야 하며, build 후 `.next/static`과 optional `public/`이 prepared standalone tree에 stage되어야 한다.
 - Image layout: final image에는 `server.js`, `.next/static`, compiled runtime validation/migration, `db/migrations`가 있고 전체 `src`, `.next/cache`, `next.config.ts`, `node_modules/tsx`, runtime TypeScript source는 없어야 한다.
-- Startup: production `DATABASE_PATH`/canonical `APP_BASE_URL` validation이 server보다 먼저 실행되고 invalid config 또는 migration 실패 시 server를 시작하지 않아야 한다.
+- Startup: production `DATABASE_PATH`/canonical `APP_BASE_URL` validation이 server보다 먼저 실행되고 invalid config 또는 migration 실패 시 server를 시작하지 않아야 한다. source checkout의 `npm run start -- --hostname ... --port ...`도 `next start`가 아니라 generated standalone server를 실행해야 한다.
 - Native SQLite: `better-sqlite3` load, create/read/write, migration ledger, readiness와 container restart 후 persistence를 기존 Docker smoke로 검증한다.
 - Application/transport: Project/Task API authorization·persistence, HTTP/HTTPS reverse-proxy transport 및 Compose restart/recreate persistence 회귀를 기존 전용 smoke로 유지한다.
 - Size: PR exact base SHA의 baseline image와 candidate를 동일 runner에서 build한다. Issue #283의 non-standalone → standalone 전환에는 `docker image inspect .Size` 기준 최소 25% 감소를 요구하고, 이미 standalone인 후속 PR은 추가 25% 감소를 강제하지 않는다. 모든 경우 summary에 size 비교, 주요 runtime directory footprint와 상위 layer를 기록한다.
