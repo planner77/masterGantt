@@ -29,6 +29,7 @@ export interface ProjectTaskUpdatePayload {
   readonly progress?: number;
   readonly start?: string;
   readonly duration?: number;
+  readonly scheduleMode?: "auto" | "manual";
   readonly baselineStart?: string | null;
   readonly baselineDuration?: number | null;
   readonly baselineEnd?: string | null;

@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { openDatabase } from "../../../src/server/db/core";
-import { InvalidTaskInputError } from "../../../src/server/projects/project-service-core";
+import { TaskScheduleConflictError } from "../../../src/server/projects/project-service-core";
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
 import { EditSessionRepository, ProjectRepository } from "../../../src/server/repositories/project-repository-core";
 import { ScheduleRepository } from "../../../src/server/repositories/schedule-repository-core";
@@ -89,10 +89,17 @@ describe("resource workload integrity", () => {
       expect(assigned.data.projectRevision).toBe(2);
 
       const projects = new TaskFieldProjectService(database, { clock: () => new Date(NOW) });
-      expect(() => projects.updateTask({ ...authorization, projectRevision: 2 }, 2, task.publicId, {
-        start: "2026-02-23",
-        duration: 5,
-      })).toThrow(InvalidTaskInputError);
+      let conflict: unknown;
+      try {
+        projects.updateTask({ ...authorization, projectRevision: 2 }, 2, task.publicId, {
+          start: "2026-02-23",
+          duration: 5,
+        });
+      } catch (error) {
+        conflict = error;
+      }
+      expect(conflict).toBeInstanceOf(TaskScheduleConflictError);
+      expect(conflict).toMatchObject({ code: "RESOURCE_ASSIGNMENT_SCHEDULE_CONFLICT" });
 
       const snapshot = projects.getReadonlySnapshot(project.publicId)!;
       expect(snapshot.data.project.revision).toBe(2);

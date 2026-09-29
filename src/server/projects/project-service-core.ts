@@ -59,6 +59,9 @@ import {
   type CreateProjectInput,
 } from "./project-contract";
 import { parseCreateTaskInput, parseUpdateTaskInput } from "./task-contract";
+import { classifyTaskPatch } from "../../domain/tasks/task-patch-fields";
+import { recalculateTaskCandidate } from "../../domain/scheduling/task-candidate";
+import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
 
 const PUBLIC_ID_ATTEMPTS = 3;
 const MAX_PROJECT_TASKS = 5_000;
@@ -194,6 +197,13 @@ export class SummaryScheduleReadonlyError extends Error {
   constructor() {
     super("Summary schedule fields are derived from child tasks.");
     this.name = "SummaryScheduleReadonlyError";
+  }
+}
+
+export class TaskScheduleConflictError extends Error {
+  constructor(readonly code: "MANUAL_DEPENDENCY_CONFLICT" | "RESOURCE_ASSIGNMENT_SCHEDULE_CONFLICT") {
+    super(code);
+    this.name = "TaskScheduleConflictError";
   }
 }
 
@@ -1010,9 +1020,7 @@ export class ProjectService {
 
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
-      const baselineFields = new Set(["baseline", "baselineStart", "baselineDuration", "baselineEnd"]);
-      const baselineOnly = Object.keys(validatedInput).every((field) => baselineFields.has(field));
-      if (!baselineOnly) assertHierarchyMutationCapability(links, [current.id]);
+      const { hasSchedule } = classifyTaskPatch(validatedInput);
       const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar, links);
       if (current.type === "summary") {
@@ -1051,20 +1059,70 @@ export class ProjectService {
       if (current.requestedStart === null) {
         throw new PersistedScheduleInvalidError();
       }
-      const scheduled = scheduleLeaf({
+      // Field-only edits must retain dependency-adjusted effective dates.
+      const scheduled = hasSchedule ? scheduleLeaf({
         type: current.type,
         requestedStart: validatedInput.start ?? current.requestedStart,
         duration: validatedInput.duration ?? current.duration,
         scheduleMode: validatedInput.scheduleMode ?? current.scheduleMode,
         end: validatedInput.end,
-      }, calendar);
+      }, calendar) : {
+        type: current.type,
+        scheduleMode: current.scheduleMode,
+        requestedStart: current.requestedStart,
+        start: current.startDate,
+        end: current.endDate,
+        duration: current.duration,
+        warnings: [],
+      };
+      let changedLeafExternalIds: string[] = [];
+      let finalStart: string = scheduled.start;
+      let finalEnd: string = scheduled.end;
+      if (hasSchedule) {
+        const candidateInput = taskDtos(tasks).map((task) => task.taskId === current.publicId
+          ? { ...task, requestedStart: scheduled.requestedStart, start: scheduled.start,
+              end: scheduled.end, duration: scheduled.duration, scheduleMode: scheduled.scheduleMode,
+              progress: validatedInput.progress ?? current.progress }
+          : task);
+        const candidate = recalculateTaskCandidate(candidateInput, linkDtos(links, tasks), calendar);
+        if (candidate.manualConflicts.length > 0) {
+          throw new TaskScheduleConflictError("MANUAL_DEPENDENCY_CONFLICT");
+        }
+        const originals = new Map(tasks.map((task) => [task.publicId, task]));
+        const changedLeaves = candidate.tasks.filter((task) => {
+          const before = originals.get(task.taskId)!;
+          return task.type !== "summary" && (task.start !== before.startDate || task.end !== before.endDate);
+        });
+        // One assignment read for the complete final graph, before any write.
+        const changedByPublicId = new Map(changedLeaves.map((task) => [task.taskId, task]));
+        const assignments = new ResourceCatalogRepository(this.database).listAssignments(project.id);
+        for (const assignment of assignments) {
+          const task = changedByPublicId.get(assignment.taskPublicId);
+          if (!task || assignment.kind !== "resource") continue;
+          if ((assignment.assignmentStart !== null &&
+                (assignment.assignmentStart < task.start || assignment.assignmentStart > task.end)) ||
+              (assignment.assignmentEnd !== null &&
+                (assignment.assignmentEnd < task.start || assignment.assignmentEnd > task.end))) {
+            throw new TaskScheduleConflictError("RESOURCE_ASSIGNMENT_SCHEDULE_CONFLICT");
+          }
+        }
+        const successors = changedLeaves.filter((task) => task.taskId !== current.publicId)
+          .map((task) => ({ taskPublicId: task.taskId, startDate: task.start, endDate: task.end }));
+        if (!this.schedules.updateLeafSchedules(project.id, successors, nowText)) {
+          throw new PersistedScheduleInvalidError();
+        }
+        changedLeafExternalIds = changedLeaves.map((task) => task.externalId);
+        const target = candidate.tasks.find((task) => task.taskId === current.publicId)!;
+        finalStart = target.start;
+        finalEnd = target.end;
+      }
       const updated = this.schedules.updateTask(project.id, taskPublicId, {
         name: validatedInput.name ?? current.name,
         type: scheduled.type,
         scheduleMode: scheduled.scheduleMode,
         requestedStart: scheduled.requestedStart,
-        startDate: scheduled.start,
-        endDate: scheduled.end,
+        startDate: finalStart,
+        endDate: finalEnd,
         duration: scheduled.duration,
         progress: validatedInput.progress ?? current.progress,
         updatedAt: nowText,
@@ -1158,6 +1216,7 @@ export class ProjectService {
           kind: "taskUpdate",
           changedTaskExternalIds: [
             updated.externalId,
+            ...changedLeafExternalIds.filter((externalId) => externalId !== updated.externalId),
             ...changedSummaryExternalIds.filter(
               (externalId) => externalId !== updated.externalId,
             ),

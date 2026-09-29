@@ -81,3 +81,10 @@ Gantt 관계선 우클릭 시 Relation Context Menu를 제공하여 FS/SS/FF/SF 
 검색 후보는 native button으로 Enter/Space 선택을 지원한다. 후보가 열렸을 때 Escape는 후보만 닫고 검색 입력으로 focus를 되돌린다. 요청 중에는 닫기·선택 변경·중복 mutation을 UI와 handler 양쪽에서 막는다. 실패 시 편집 초안과 오류를 유지하고 자동 재전송하지 않는다.
 
 저장하지 않은 관계 유형·Lag 또는 새 관계 초안이 있으면 닫기와 다른 관계 선택 전에 inline 확인을 제공한다. `계속 편집`은 입력을 유지하고, 명시적 폐기만 이동·종료한다. 삭제는 선행/후행 작업으로 대상을 알리는 확인 뒤 실행하며 취소는 DELETE를 보내지 않는다. 마지막 관계 삭제로 창이 닫히면서 남은 초안을 버리게 되면 삭제 확인에 이 영향도 명시한다. 확인 중에는 본문 편집을 잠그고, 취소 후에는 관련 입력/명령으로 focus를 돌린다. Readonly는 조회만 허용하며 기존 부모 mutation callback과 canonical/revision 계약을 변경하지 않는다.
+
+
+## Issue #258 — 관계 편집과 연결 Task 편집의 경계
+
+위 #34/#97의 FS-only와 linked-task 보호는 해당 구현 당시의 기록이다. 현재 Relation Editor는 FS/SS/FF/SF 및 signed 근무일 Lag를 지원하며, 연결된 일반 Task/Milestone의 이름/설명/URL/진척/Baseline 편집과 시작/기간/기존 API scheduleMode 변경도 허용한다. Summary는 name-only, 연결 Task의 삭제·변환·계층 변경은 기존 보호를 유지한다.
+
+비일정 저장은 현재 적용 일정과 요청일을 보존한다. 일정 변경은 모든 leaf의 요청일에서 후보를 만들고 Relation API와 동일한 pure dependency 계산을 사용하여 후행 지연/앞당김 및 Summary를 저장한다. Task PATCH는 Link ID/type/lag를 바꾸지 않는다. 관계 변경 뒤 Task Editor도 같은 최신 canonical tasks/links/revision으로 요청일과 적용일을 읽으며 stale 초안은 기존 재조회 계약을 따른다. 자세한 저장·오류 계약은 [API](API.md), 계산은 [SCHEDULING Engine](SCHEDULING_ENGINE.md)을 따른다.

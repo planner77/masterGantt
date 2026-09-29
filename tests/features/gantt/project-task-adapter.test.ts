@@ -31,6 +31,12 @@ const task: ProjectTaskDto = {
 };
 
 describe("Project task SVAR adapter", () => {
+  it("preserves dependency-adjusted requested start on progress and right resize", () => {
+    const linked = { ...task, requestedStart: "2026-09-14", start: "2026-09-17", end: "2026-09-18", duration: 2 };
+    const local = { kind: "update-task" as const, taskId: task.taskId, changes: { text: task.name, start: localDateFromDateOnly("2026-09-17"), end: localDateFromDateOnly("2026-09-19"), progress: 40, parent: 0 } };
+    expect(translateProjectTaskUpdate(local, linked, calendar)?.payload).toEqual({ progress: 40 });
+    expect(translateProjectTaskUpdate({ ...local, diff: 3, changes: { ...local.changes, progress: task.progress, end: localDateFromDateOnly("2026-09-22") } }, linked, calendar)?.payload).toEqual({ duration: 3 });
+  });
   it("normalizes Grid names with the Task Editor Unicode and length boundary", () => {
     expect(normalizeInlineTaskName("  001  ")).toEqual({ name: "001", error: null });
     expect(normalizeInlineTaskName(" ")).toMatchObject({ name: null });

@@ -18,6 +18,7 @@ import {
   UnsupportedScheduleStructureError,
   type AuthorizedEditSession,
 } from "../../../src/server/projects/project-service-core";
+import { LinkService } from "../../../src/server/projects/link-service-core";
 import { createSessionToken } from "../../../src/server/security/session-core";
 
 const migrations = join(process.cwd(), "db", "migrations");
@@ -196,7 +197,7 @@ describe("W07 ProjectService task mutations", () => {
     }
   });
 
-  it("fails closed when a summary, parent, or link exists", async () => {
+  it("allows linked metadata while preserving dates and linked deletion guard", async () => {
     const { database, service, authorization } = await fixture();
     try {
       const first = service.createTask(authorization, 1, createInput);
@@ -206,17 +207,17 @@ describe("W07 ProjectService task mutations", () => {
         externalId: "ACT-200",
         name: "Second",
       });
-      const internal = database.prepare("SELECT id FROM tasks ORDER BY id").pluck().all() as number[];
-      database.prepare(
-        `INSERT INTO links (public_id, project_id, predecessor_task_id, successor_task_id,
-          type, lag, created_at, updated_at) VALUES (?, 1, ?, ?, 'FS', 0, ?, ?)`,
-      ).run(randomUUID(), internal[0], internal[1], now.toISOString(), now.toISOString());
-
-      expect(() => service.updateTask(authorization, 3, firstId, { name: "No" }))
+      new LinkService(database, () => now).create(authorization, 3, {
+        predecessorExternalId: "ACT-100", successorExternalId: "ACT-200",
+      });
+      const before = service.getReadonlySnapshot(authorization.projectPublicId)!;
+      const renamed = service.updateTask(authorization, 4, firstId, { name: "Allowed" });
+      expect(renamed.data.tasks.map(t => [t.requestedStart, t.start, t.end]))
+        .toEqual(before.data.tasks.map(t => [t.requestedStart, t.start, t.end]));
+      expect(renamed.data.tasks[0].name).toBe("Allowed");
+      expect(() => service.deleteTask(authorization, 5, second.data.tasks[1].taskId))
         .toThrow(UnsupportedScheduleStructureError);
-      expect(() => service.deleteTask(authorization, 3, second.data.tasks[1].taskId))
-        .toThrow(UnsupportedScheduleStructureError);
-      expect(database.prepare("SELECT revision FROM projects").pluck().get()).toBe(3);
+      expect(database.prepare("SELECT revision FROM projects").pluck().get()).toBe(5);
       expect(database.prepare("SELECT count(*) FROM tasks").pluck().get()).toBe(2);
       expect(database.prepare("SELECT count(*) FROM links").pluck().get()).toBe(1);
     } finally {

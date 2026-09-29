@@ -4,7 +4,7 @@
 
 프로젝트 Grid의 작업 행 또는 Chart의 작업 막대를 우클릭하면 해당 작업의 **작업 메뉴**를 먼저 연다. 메뉴의 **작업 정보**를 선택해야 기존 작업 정보 대화상자가 열린다. 메뉴를 여는 것만으로 대화상자·저장·삭제가 실행되지 않는다. 선택된 행이나 작업명이 아니라 실제 taskId로 찾는다. Tab으로 작업 행/막대에 포커스를 옮긴 뒤 Shift+F10 또는 ContextMenu 키로 메뉴를 열고, 작업 정보 항목에서 Enter로 진입할 수 있다. Escape는 메뉴를 닫는다. Grid 헤더의 우클릭/Shift+F10은 기존 표시 열 메뉴를 유지하며 두 메뉴는 동시에 표시하지 않는다. 빈 Chart, 링크, 시간축과 입력 상자에는 작업 우클릭 처리를 적용하지 않는다.
 
-일반 작업은 작업명·시작일·기간(근무일)과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 입력 도중에는 저장하지 않는다. 종료일은 마지막 서버 확정값이며 저장 시 서버가 프로젝트의 휴일/주말과 일정 모드로 다시 계산한다. 마일스톤 기간은 0이며 수정할 수 없다. 요약 작업은 조회만 가능하다. 편집 권한이 없거나 **현재 Task가 Dependency endpoint인 경우** 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 프로젝트의 다른 Task에만 연결이 존재하는 것은 현재 Task를 읽기 전용으로 만들지 않는다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
+일반 작업은 작업명·시작일·기간(근무일)과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 입력 도중에는 저장하지 않는다. 종료일은 마지막 서버 확정값이며 저장 시 서버가 프로젝트의 휴일/주말과 일정 모드로 다시 계산한다. 마일스톤 기간은 0이며 수정할 수 없다. 요약 작업은 조회만 가능하다. 편집 권한이 없으면 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 관계 endpoint인 leaf도 아래 #258 계약에 따라 편집한다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
 
 취소/닫기/Escape는 미저장 변경이 있으면 먼저 버리기 확인을 요구한다. 편집기 하나가 열려 있는 동안 다른 작업으로 초안을 조용히 전환하지 않는다. 메뉴의 Escape는 원래 호출 대상으로 포커스를 복구한다. 편집기 종료 시 연결된 원래 대상이 없으면 해당 taskId의 현재 행이나 작업공간을 사용한다. 포커스 복구에는 preventScroll을 사용한다.
 
@@ -65,7 +65,7 @@ PR #16의 초기 시간축 범위 확대 및 canonical sync 종료 시점 입력
 
 ## Issue #72 계층 메뉴 계약
 
-편집 권한이 있고 다른 mutation이 진행 중이지 않으며 **선택 Task가 Dependency endpoint가 아닌 경우** 메뉴는 SVAR Willow의 기본 작업 흐름에 맞춰 **Add → Convert to → Edit → Cut/Copy/Paste → Move → Indent/Outdent → Delete** 순서를 제공한다. Readonly에서는 정보 조회(Edit)만 실제 동작하며 mutation 항목은 비활성화한다.
+편집 권한이 있고 다른 mutation이 진행 중이지 않으면 메뉴는 SVAR Willow의 기본 작업 흐름에 맞춰 **Add → Convert to → Edit → Cut/Copy/Paste → Move → Indent/Outdent → Delete** 순서를 제공한다. **Edit은 관계가 연결된 Task도 허용**한다. Add·Convert·Cut/Copy/Paste·Move·Indent/Outdent·Delete 등 구조 명령은 연결 endpoint에서 기존 guard로 비활성화한다. Readonly에서는 정보 조회(Edit)만 실제 동작하며 mutation 항목은 비활성화한다.
 
 Cut은 선택 Task를 즉시 삭제하거나 이동하지 않는다. Copy와 함께 현재 Project revision을 포함한 client clipboard만 만든다. Paste는 `POST /api/projects/{publicId}/task-commands`를 호출하며 Cut은 `reparent`, Copy는 `copy` 명령으로 변환한다. 성공 응답의 canonical snapshot만 동일 Gantt instance에 동기화하고 revision 변경 시 기존 clipboard는 폐기한다. Canonical snapshot의 parent/sibling 구조 변경은 SVAR의 공개 `move-task` action으로 반영하고, 일반 `update-task`에 parent를 직접 덮어쓰지 않는다. 이 규칙은 hierarchy 변경 뒤 recovery remount 없이 동일 Gantt instance를 유지하기 위한 회귀 계약이다. Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D는 input/textarea/dialog/contenteditable 밖의 실제 Task target에서만 동작한다.
 
@@ -117,7 +117,7 @@ Task Editor는 Gantt 전체화면 frame 바깥의 native dialog다. SVAR `show-e
 
 ## Issue #140 — Grid 작업명 인라인 편집과 Task Editor 경계
 
-Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭은 Core text editor에서 이름만 바꾼다. Enter/blur는 Task PATCH를 한 번 보내고 Escape는 저장 없이 닫는다. 이름은 Task Editor와 같은 trim·well-formed Unicode 1~200자 규칙으로 검증하며, 잘못된 입력은 input focus와 연결된 오류를 유지한다. Task Editor는 메뉴 Edit 및 Chart/비이름 영역의 기존 진입점으로 남는다. Grid에서 변경한 이름과 Task Editor의 이름은 서버 확정 snapshot으로 동기화되고, Task Editor 저장 후 Grid도 동일 canonical snapshot을 표시한다. Grid Summary는 이름만 바꿀 수 있으며 Task Editor의 Summary 일정/정보 readonly는 그대로다. 연결 endpoint Task는 기존 409 제한을 유지한다. 저장 실패·401·412, dirty/stale, Task PATCH/Assignment PUT 분리와 원래 focus 복원 계약은 변경하지 않는다.
+Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭은 Core text editor에서 이름만 바꾼다. Enter/blur는 Task PATCH를 한 번 보내고 Escape는 저장 없이 닫는다. 이름은 Task Editor와 같은 trim·well-formed Unicode 1~200자 규칙으로 검증하며, 잘못된 입력은 input focus와 연결된 오류를 유지한다. Task Editor는 메뉴 Edit 및 Chart/비이름 영역의 기존 진입점으로 남는다. Grid에서 변경한 이름과 Task Editor의 이름은 서버 확정 snapshot으로 동기화되고, Task Editor 저장 후 Grid도 동일 canonical snapshot을 표시한다. Grid Summary는 이름만 바꿀 수 있으며 Task Editor의 Summary 일정/정보 readonly는 그대로다. 연결 endpoint 이름 편집의 과거 409 제한은 #258에서 대체한다. 저장 실패·401·412, dirty/stale, Task PATCH/Assignment PUT 분리와 원래 focus 복원 계약은 변경하지 않는다.
 
 ## Issue #187 — 작업 정보 대화상자 물류 연결 (logistics) 탭
 
@@ -142,6 +142,17 @@ Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭�
 물류 연결과 리소스 할당은 조회 중·성공·실패를 구분한다. 현재 taskId/revision에 맞는 유효한 응답을 확보하기 전에는 선택·저장 control과 저장 handler를 모두 차단한다. 이전 작업이나 revision의 늦은 응답은 폐기하고 조회를 취소한다.
 
 조회 실패를 '등록된 설비/시스템 없음'으로 표시하지 않으며 오류 안내와 다시 시도를 제공한다. 재시도는 GET만 수행하고 자동 PUT은 하지 않는다. 정상 응답을 받으면 기존 직접 연결/할당을 초안에 복원하고 그 뒤에 사용자 저장을 허용한다. readonly와 Task PATCH/Assignment PUT/물류 PUT의 독립 저장·서버 권한·If-Match 계약은 유지한다.
+
+## Issue #258 — 관계 연결 작업 편집과 요청/적용 일정
+
+일반 Task와 Milestone은 incoming/outgoing/both 관계가 있어도 이름·진척·Description·URL·Baseline과 요청 시작일·근무일 기간·Auto/Manual 모드를 편집한다. Summary 정보창은 읽기 전용이며 Grid Summary 이름만 기존 예외로 허용한다. 삭제·변환·계층·Copy 보호 정책은 별도 계약을 유지한다.
+
+- 시작 입력과 dirty 비교는 `requestedStart ?? start` 기준이다. `현재 적용 일정`은 마지막 canonical start/end이며 preview가 아니다. 적용 시작일과 같은 날짜를 새 요청일로 지정한 변경도 저장한다. 미수정 시작일은 duration/progress-only 요청에 첨부하지 않는다.
+- 현재 일정으로 Baseline 설정은 저장된 effective start/duration/end를 복사한다. 미저장 요청일·기간·모드 변경이 있으면 복사 버튼을 잠그고 먼저 저장하도록 설명한다. metadata 초안만 있으면 복사 가능하다. 현재 일정 변경으로 미수정 Baseline을 자동 이동하지 않는다.
+- 성공은 full canonical snapshot으로 Grid/Chart를 동기화하며 요청일과 적용일 차이, 실제 날짜가 바뀐 후행 leaf 건수·이름을 기존 안내에 표시한다. Manual/리소스 충돌은 명시적인 오류와 초안을 유지하고 부분 저장하지 않는다.
+- 권한·stale·busy·dirty 확인·native dialog·탭 keyboard·focus 복원은 기존 계약을 유지한다. 관계가 있는 이름도 single-click/F2/Enter/blur로 name-only PATCH, Escape는 미저장이다.
+
+SVAR 확인일 2026-09-29: 설치 Core 2.7.3의 공개 [update-task](https://docs.svar.dev/react/gantt/api/actions/update-task/) interaction을 사용한다. 공식 [schedule](https://docs.svar.dev/react/gantt/api/properties/schedule/)와 Calendar는 PRO이며 활성화하지 않는다. 재계산은 자체 domain/server engine이다. 공식 demo URL 조회와 실제 widget 동작 검증은 별도 증거다.
 
 ## Issue #300 Grid DnD 후 일반 필드 저장
 

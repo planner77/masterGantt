@@ -466,7 +466,7 @@ Exact same-origin `Origin`이 필요하다. 현재 Project에 binding된 session
 
 ## 5. Task 표현과 API
 
-W24는 root 및 nested `task | milestone` CRUD와 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder는 아래 task-commands, atomic task-batch는 task-batch endpoint 계약을 따른다. WBS 응답 필드와 Link mutation/FS 재계산의 진행 상태는 해당 절을 따른다. Task mutation은 선택 Task 또는 mutation 영향 subtree가 Dependency endpoint를 포함할 때 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다. 프로젝트의 다른 Task에만 Link가 있는 경우에는 mutation을 허용하고 기존 Link를 canonical snapshot에 그대로 보존한다.
+W24는 root 및 nested `task | milestone` CRUD와 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder는 아래 task-commands, atomic task-batch는 task-batch endpoint 계약을 따른다. WBS 응답 필드는 해당 절을 따른다. W24 당시 Link mutation과 FS 재계산은 W09 후속 범위였으며, 현재는 Issue #200의 FS/SS/FF/SF 및 signed lag Link 계약과 Issue #258의 연결 Task 일정 재계산 계약을 따른다. Task 생성·삭제·계층 mutation은 선택 Task 또는 mutation 영향 subtree가 Dependency endpoint를 포함할 때 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다. Issue #258부터 일반 Task/Milestone의 필드 PATCH는 관계 유무와 무관하게 아래 필드별 계약으로 허용한다. 프로젝트의 다른 Task에만 Link가 있는 경우에는 mutation을 허용하고 기존 Link를 canonical snapshot에 그대로 보존한다.
 
 ### Task response
 
@@ -523,7 +523,11 @@ UI 생성에서는 `externalId` 생략을 허용하고 server가 Task `taskId`�
 
 Mutable allowlist는 `name`, `description`, `url`, `scheduleMode`, `start`, `duration`, `progress`, optional assertion `end`, 그리고 기준 일정 필드 `baselineStart`, `baselineDuration`, `baselineEnd`(또는 `{ start, duration }` 형식의 `baseline`)다. `description`은 최대 10,000 Unicode code point이며 공백만 입력하면 `null`로 정규화한다. `url`은 trim 후 최대 4,096 code point의 `http:`/`https:` URL만 허용하고 `javascript:`, `data:`, `vbscript:`, `file:` 등 다른 scheme은 거부한다. Empty object와 unknown field를 거부하며 `taskId`, `externalId`, `type`, parent/order는 불변이다. `start` 변경은 새 `requestedStart`를 만든다. 계산된 `end`만 직접 변경하는 요청은 허용하지 않아 `end`가 있으면 `start` 또는 `duration`도 함께 있어야 한다. `baselineStart`, `baselineDuration`, `baselineEnd`는 기준 일정을 설정하거나 null로 일괄 지정하여 삭제할 수 있으며, 마일스톤의 기준 기간은 0이다. Client Adapter는 이동을 `start`, 좌측 resize를 `start + duration`, 우측 resize를 `duration` 명령으로 변환한다. 기존 persisted `end`를 새 assertion으로 자동 재사용하지 않는다. Nested leaf 변경 후 모든 ancestor Summary를 같은 transaction에서 재계산(일정 및 자손 전원 baseline 존재 시 summary baseline 자동 파생)한다. Summary는 이름만 변경할 수 있고 날짜·기간·진척·기준일정·mode는 `409 SUMMARY_SCHEDULE_READONLY`로 거부한다.
 
-Auto의 비근무 requested start는 다음 근무일로 이동해 `NON_WORKING_START_SHIFTED` warning을 낸다. Manual의 비근무 requested start는 `NON_WORKING_MANUAL_START`, FS violation은 `MANUAL_DEPENDENCY_CONFLICT`로 전체 mutation을 거부한다.
+Issue #258부터 incoming/outgoing/both 관계가 있는 일반 Task/Milestone도 편집할 수 있다. `name/description/url/progress/Baseline`만 보낸 요청은 저장된 effective `start/end`와 `requestedStart`를 그대로 보존하고 필요한 Summary 진척/Baseline만 재집계한다. 일정 필드(`start/duration/scheduleMode/end`)가 있으면 Calendar 정규화 및 optional `end` assertion을 먼저 검사하고 모든 leaf를 각 `requestedStart`에서 다시 만들어 현재 FS/SS/FF/SF와 signed lag 그래프를 재계산한다. `end` assertion은 관계 적용 전 Calendar 계산값에 대한 검증이다. Auto 후행은 지연과 앞당김 모두 가능하며, 명시적으로 바꾸지 않은 후행 요청일과 Baseline은 유지한다.
+
+Auto의 비근무 requested start는 다음 근무일로 이동해 `NON_WORKING_START_SHIFTED` warning을 낸다. Manual의 비근무 requested start는 `422 NON_WORKING_MANUAL_START`, 직접 또는 후행 Manual lower bound 위반은 `409 MANUAL_DEPENDENCY_CONFLICT`다. 최종 날짜가 달라진 모든 leaf의 명시 resource allocation을 한 번 읽어 검사하고 범위를 벗어나면 `409 RESOURCE_ASSIGNMENT_SCHEDULE_CONFLICT`로 거부한다. NULL allocation 날짜는 작업 날짜 상속을 유지한다. metadata/일정/Baseline 혼합 요청도 한 transaction이며 충돌 시 모든 Task/Summary/metadata/Baseline과 revision이 그대로 유지된다.
+
+성공은 revision을 정확히 1 증가시키고 전체 canonical snapshot을 반환한다. `operation.changedTaskExternalIds`는 직접 편집 Task, 원본 effective 일정과 최종 일정이 다른 후행 Task(앞당김 포함), 변경 Summary를 포함한다. Link ID/type/lag, assignment와 logistics 참조는 보존한다. Task PATCH는 type/parent/order/Link를 수정할 수 없으며 연결 작업 삭제·변환·계층 명령의 기존 보호를 우회하지 않는다.
 
 ### `DELETE /api/projects/{publicId}/tasks/{taskId}`
 
@@ -707,7 +711,7 @@ Readonly Project의 canonical snapshot으로 안전한 SVG를 생성한다. `Ori
 | 401 | `EDIT_SESSION_REQUIRED`, `INVALID_CREDENTIALS`, `SESSION_EXPIRED` | 인증 실패 |
 | 403 | `ORIGIN_NOT_ALLOWED` | Same-Origin/CSRF 정책 실패 |
 | 404 | `PROJECT_NOT_FOUND`, `TASK_NOT_FOUND`, `LINK_NOT_FOUND` | Scope 안에서 대상 없음 |
-| 409 | `DUPLICATE_EXTERNAL_ID`, `TASK_LIMIT_EXCEEDED`, `UNSUPPORTED_SCHEDULE_STRUCTURE`, `PARENT_CONVERSION_REQUIRED`, `INVALID_PARENT_TASK`, `EMPTY_SUMMARY_NOT_ALLOWED`, `SUMMARY_DELETE_UNSUPPORTED`, `SUMMARY_SCHEDULE_READONLY`, `DEPENDENCY_CYCLE`, `MANUAL_DEPENDENCY_CONFLICT`, `MANUAL_CALENDAR_CONFLICT` | 현재 aggregate와 domain/capability 충돌 |
+| 409 | `DUPLICATE_EXTERNAL_ID`, `TASK_LIMIT_EXCEEDED`, `UNSUPPORTED_SCHEDULE_STRUCTURE`, `PARENT_CONVERSION_REQUIRED`, `INVALID_PARENT_TASK`, `EMPTY_SUMMARY_NOT_ALLOWED`, `SUMMARY_DELETE_UNSUPPORTED`, `SUMMARY_SCHEDULE_READONLY`, `DEPENDENCY_CYCLE`, `MANUAL_DEPENDENCY_CONFLICT`, `MANUAL_CALENDAR_CONFLICT`, `RESOURCE_ASSIGNMENT_SCHEDULE_CONFLICT` | 현재 aggregate와 domain/capability 충돌 |
 | 412 | `REVISION_MISMATCH` | stale If-Match |
 | 413 | `REQUEST_TOO_LARGE`, `IMPORT_TOO_LARGE` | 일반 body 또는 Import byte/entity/depth/date range 상한 초과 |
 | 415 | `UNSUPPORTED_MEDIA_TYPE`, `UNSUPPORTED_IMPORT_FORMAT` | 허용하지 않은 형식 |
@@ -1159,6 +1163,5 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
   - `Location: /projects/{newProjectPublicId}`
   - `Set-Cookie: mastergantt_edit=...`
   - Body: `InstantiateProjectTemplateResponse`
-
 
 
