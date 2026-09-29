@@ -2,6 +2,14 @@
 
 ## 1. 상태와 목적
 
+### Issue #267 조회 상태와 화면 조건
+
+화면은 Project/revision·기준일·임박 기간·집계 범위·활성 필터·명시적 새로고침별 요청을 구분한다. 조건이 바뀌면 이전 KPI와 drill-down을 즉시 숨기고 조회 상태를 알린다. 현재 조건과 revision에 맞는 최신 성공 응답만 표시하며, 실패·잘못된 응답에는 오류와 명시적 재시도를 제공한다. 이전 응답이 늦게 도착해도 새 결과를 덮어쓰거나 focus를 옮기지 않는다.
+
+최초 기준일은 계속 서버의 Project timezone에서 구한다. 응답 기준일을 화면에 표시하기 위해 동일 조건의 추가 조회를 만들지 않는다. 임박 기간은 편집 문자열을 유지하며 빈 값·0·91·소수 등 1~90 정수가 아닌 입력에는 연결된 필드 오류를 표시하고 GET을 보내지 않는다. 입력을 고치면 현재 조건을 다시 조회한다.
+
+공정·설비·시스템 세부 현황은 tablist/tab/tabpanel을 연결하고 ArrowLeft/ArrowRight/Home/End와 선택된 탭의 단일 Tab 진입을 지원한다. 조회나 탭 전환은 Gantt 인스턴스를 재생성하지 않는다. KPI 계산식·API·timezone·canonical revision 계약 자체는 변경하지 않는다.
+
 [도메인 설계](LOGISTICS_DOMAIN_DESIGN.md)의 read model이다. [LG-05 #188](https://github.com/planner77/masterGantt/issues/188)에서 계산 엔진(`calculateLogisticsDashboardPure`), SQLite 조회 서비스(`LogisticsDashboardService`), REST API(`GET /api/projects/{publicId}/logistics/dashboard`), UI 대시보드 컴포넌트(`ProjectLogisticsDashboard`) 및 일정 drill-down 연동이 구현되었다. 통합 검증은 [LG-06 #189](https://github.com/planner77/masterGantt/issues/189)에서 진행된다.
 
 사용자가 결정할 질문은 '어떤 공정·설비·시스템의 작업이 지연되어 누구와 조정해야 하는가', '어떤 Milestone이 임박했는가', '책임자나 계획 투입 정보가 비어 있는가'다. 운영 설비 가동률/이상탐지/실적 원가가 목적이 아니다.
