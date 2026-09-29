@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProjectTaskDto } from "../../../src/contracts/projects";
-import { createTaskEditorDraft, prepareTaskEditorCommand, taskEditorIsDirty, taskEditorReadOnlyReason } from "../../../src/features/gantt/task-editor-model";
+import { createTaskEditorDraft, prepareTaskEditorCommand, taskEditorIsDirty, taskEditorReadOnlyReason, updateTaskEditorDraft } from "../../../src/features/gantt/task-editor-model";
 import { taskIdFromElement } from "../../../src/features/gantt/task-context-target";
 
 const task: ProjectTaskDto = {
@@ -20,6 +20,25 @@ describe("explicit task editor commands", () => {
     const result = prepareTaskEditorCommand(task, { ...createTaskEditorDraft(task), duration: "3" });
     expect(result.command).toEqual({ taskId: task.taskId, payload: { duration: 3 } });
   });
+  it("synchronizes status and progress in the draft and one PATCH payload", () => {
+    const initial = createTaskEditorDraft(task);
+    expect(initial.status).toBe("in_progress");
+
+    const completed = updateTaskEditorDraft(initial, "progress", "100");
+    expect(completed).toMatchObject({ progress: "100", status: "completed" });
+    expect(prepareTaskEditorCommand(task, completed).command?.payload)
+      .toEqual({ progress: 100, status: "completed" });
+
+    const reopened = createTaskEditorDraft({ ...task, progress: 100, status: "completed" });
+    const lowered = updateTaskEditorDraft(reopened, "progress", "50");
+    expect(lowered).toMatchObject({ progress: "50", status: "in_progress" });
+
+    const notStarted = updateTaskEditorDraft(completed, "status", "not_started");
+    expect(notStarted).toMatchObject({ progress: "0", status: "not_started" });
+    expect(prepareTaskEditorCommand({ ...task, progress: 100, status: "completed" }, notStarted).command?.payload)
+      .toEqual({ progress: 0, status: "not_started" });
+  });
+
   it("keeps dates unchanged on name/progress edits", () => {
     const draft = { ...createTaskEditorDraft(task), name: "  Edited  ", progress: "12" };
     expect(taskEditorIsDirty(task, draft)).toBe(true);
