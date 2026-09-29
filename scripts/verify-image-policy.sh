@@ -10,9 +10,19 @@ fi
 
 docker run --rm --entrypoint sh "$image" -ec '
   test "$(id -u)" -ne 0
-  for forbidden in /app/.git /app/.data /app/tests; do
+  for forbidden in /app/.git /app/.data /app/tests /app/src /app/.next/cache /app/next.config.ts; do
     test ! -e "$forbidden"
   done
+  test -f /app/server.js
+  test -d /app/.next/static
+  test -f /app/runtime-tools/scripts/runtime/validate-runtime-config.js
+  test -f /app/runtime-tools/scripts/migrate.js
+  test -d /app/db/migrations
+  test ! -e /app/node_modules/tsx
+  if find /app/runtime-tools -type f -name "*.ts" -print -quit | grep -q .; then
+    echo "Image contains TypeScript runtime tool source." >&2
+    exit 1
+  fi
   if find /app -name ".env*" -print -quit | grep -q .; then
     echo "Image contains an environment file." >&2
     exit 1

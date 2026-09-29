@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,12 +21,53 @@ describe("deployment repository layout", () => {
     }
   });
 
-  it("preserves the entrypoint bytes and executable mode", () => {
+  it("keeps the entrypoint executable and preserves the standalone startup order", () => {
     const path = resolve(root, "deploy/docker/container-entrypoint.sh");
-    const bytes = readFileSync(path);
-    const sha = createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex");
-    expect(sha).toBe("9492419ffdce7295132a41b6a66210032d9f1400");
+    const entrypoint = readFileSync(path, "utf8");
     if (process.platform !== "win32") expect(statSync(path).mode & 0o111).not.toBe(0);
+
+    const validation = "node runtime-tools/scripts/runtime/validate-runtime-config.js";
+    const migration = "node runtime-tools/scripts/migrate.js";
+    const server = "exec node server.js";
+    expect(entrypoint).toContain(validation);
+    expect(entrypoint).toContain(migration);
+    expect(entrypoint).toContain(server);
+    expect(entrypoint.indexOf(validation)).toBeLessThan(entrypoint.indexOf(migration));
+    expect(entrypoint.indexOf(migration)).toBeLessThan(entrypoint.indexOf(server));
+    expect(entrypoint).not.toContain("--import tsx");
+    expect(entrypoint).not.toContain("npm run start");
+  });
+
+  it("keeps TypeScript loaders out of production dependencies", () => {
+    const packageJson = JSON.parse(text("package.json")) as {
+      scripts?: Record<string, string>;
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    expect(packageJson.dependencies).not.toHaveProperty("tsx");
+    expect(packageJson.dependencies?.["@next/env"]).toBe("16.3.4");
+    expect(packageJson.devDependencies?.tsx).toBe("4.23.13");
+    expect(packageJson.scripts?.build).toContain("node scripts/prepare-standalone-runtime.mjs");
+    expect(packageJson.scripts?.start).toBe("node scripts/start-standalone.mjs");
+
+    const prepare = text("scripts/prepare-standalone-runtime.mjs");
+    const start = text("scripts/start-standalone.mjs");
+    expect(prepare).toContain('resolve(root, distDir, "static")');
+    expect(prepare).toContain('resolve(standaloneDir, distDir, "static")');
+    expect(prepare).toContain('resolve(root, "public")');
+    expect(prepare).toContain('resolve(root, "db", "migrations")');
+    expect(prepare).toContain('resolve(standaloneDir, "db", "migrations")');
+    expect(start).toContain('require("@next/env")');
+    expect(start).toContain("loadEnvConfig(repositoryRoot, false)");
+    expect(start).toContain('process.env.NODE_ENV ??= "production"');
+    expect(start.indexOf("loadEnvConfig(repositoryRoot, false)")).toBeLessThan(
+      start.indexOf("prepareStandaloneRuntime()"),
+    );
+    expect(start).toContain('"--hostname"');
+    expect(start).toContain('"--port"');
+    expect(start).toContain("prepareStandaloneRuntime()");
+    expect(start).not.toContain("process.chdir(");
+    expect(start).toContain("await import(pathToFileURL(serverPath).href)");
   });
 
   it("preserves runtime paths and pins while relocating the Dockerfile", () => {
@@ -35,6 +75,7 @@ describe("deployment repository layout", () => {
     expect(dockerfile).toContain("deploy/docker/container-entrypoint.sh /usr/local/bin/container-entrypoint");
     expect(dockerfile).toContain('ENTRYPOINT ["/usr/local/bin/container-entrypoint"]');
     expect(dockerfile).toContain('VOLUME ["/data"]');
+    expect(dockerfile).not.toContain("/app/db/migrations ./db/migrations");
     expect(dockerfile).toContain("USER mastergantt");
     const bases = Array.from(dockerfile.matchAll(/^FROM (node:\S+@sha256:[a-f0-9]{64}) /gm), ([, base]) => base);
     expect(bases).toHaveLength(2);
@@ -67,6 +108,9 @@ describe("deployment repository layout", () => {
     }
     expect(text(".github/dependabot.yml")).toMatch(/package-ecosystem: docker\n\s+directory: \/deploy\/docker/);
     expect(text(".github/workflows/ci.yml")).toContain("bash scripts/verify-compose-smoke.sh");
+    expect(text(".github/workflows/ci.yml")).toContain(
+      "bash scripts/verify-image-size-reduction.sh mastergantt:baseline mastergantt:ci 0 --summary-only",
+    );
   });
 
   it("keeps secret and test exclusions at the build context root", () => {

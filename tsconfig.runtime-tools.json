@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "rootDir": ".",
+    "outDir": ".runtime-tools",
+    "noEmit": false,
+    "incremental": false,
+    "isolatedModules": false,
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": [
+    "scripts/migrate.ts",
+    "scripts/runtime/validate-runtime-config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    ".next-e2e",
+    ".runtime-tools",
+    "tests"
+  ]
+}

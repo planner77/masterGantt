@@ -15,6 +15,7 @@ backups/
 node_modules/
 .next/
 .next-e2e/
+.runtime-tools/
 coverage/
 playwright-report/
 test-results/

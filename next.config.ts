@@ -6,6 +6,7 @@ if (requestedDistDir && !/^\.next-[a-z0-9-]+$/.test(requestedDistDir)) {
 }
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   poweredByHeader: false,
   ...(requestedDistDir ? { distDir: requestedDistDir } : {}),
 };

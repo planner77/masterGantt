@@ -1,5 +1,16 @@
 # Test Plan
 
+## Issue #283 Docker standalone runtime 회귀
+
+- Build: `next.config.ts`의 standalone output과 `tsconfig.runtime-tools.json`의 startup 도구 JavaScript emit이 production build에서 함께 생성되어야 하며, build 후 `.next/static`, optional `public/`, `db/migrations`가 prepared standalone tree에 stage되어야 한다.
+- Image layout: final image에는 `server.js`, `.next/static`, compiled runtime validation/migration, `db/migrations`가 있고 전체 `src`, `.next/cache`, `next.config.ts`, `node_modules/tsx`, runtime TypeScript source는 없어야 한다.
+- Startup: production `DATABASE_PATH`/canonical `APP_BASE_URL` validation이 server보다 먼저 실행되고 invalid config 또는 migration 실패 시 server를 시작하지 않아야 한다. source checkout의 `npm run start -- --hostname ... --port ...`도 `next start`가 아니라 generated standalone server를 실행해야 한다. generated server import 전에 repository-root Next production env files를 로딩하고, working directory가 standalone tree가 되더라도 로드된 환경값과 staged `db/migrations`로 readiness/DB 경로가 정상이어야 한다.
+- Native SQLite: `better-sqlite3` load, create/read/write, migration ledger, readiness와 container restart 후 persistence를 기존 Docker smoke로 검증한다.
+- Application/transport: Project/Task API authorization·persistence, HTTP/HTTPS reverse-proxy transport 및 Compose restart/recreate persistence 회귀를 기존 전용 smoke로 유지한다.
+- Size: PR exact base SHA의 baseline image와 candidate를 동일 runner에서 build한다. Issue #283의 non-standalone → standalone 전환에는 `docker image inspect .Size` 기준 최소 25% 감소를 요구하고, 이미 standalone인 후속 PR은 추가 25% 감소를 강제하지 않는다. 모든 경우 summary에 size 비교, 주요 runtime directory footprint와 상위 layer를 기록한다.
+- Security/supply chain: pinned Debian/glibc base digest, non-root UID/GID, secret/data 부재와 main/release SBOM/provenance 정책은 유지한다.
+- Local Fast Feedback과 PR 원격 결과를 분리한다. 실제 npm/Docker 실행을 하지 못한 개발 환경에서는 정적 검토를 PASS로 승격하지 않고 PR head의 `quality/e2e/docker` 결과를 공식 증거로 사용한다.
+
 ## Issue #264 생성 방식 전환과 초안 보존
 
 `tests/e2e/new-project-draft-preservation.spec.ts`에서 390/768/1024/1440px 양방향 폼 전환 뒤 비민감 입력·선택·검색·기준일 보존, 최초 방문 이후 템플릿 목록 재조회 없음, 숨겨진 panel의 focus 제외를 확인한다. 초기 template mode, 방향키/Home/End와 본문 바로가기 연결을 검사하며, 본문 바로가기 후 활성 panel의 첫 컨트롤에서 Shift+Tab 시 선택된 tab으로 복귀하는 회귀를 포함한다. 양쪽 생성 POST의 지연·실패를 mock하여 중복 제출 및 탭 전환 차단, 실패 후 초안 보존·비밀번호 삭제·명시적 재시도를 검증한다. 서버 API/권한 계약은 변경하지 않으며 공식 전체 회귀는 PR CI로 구분한다.
