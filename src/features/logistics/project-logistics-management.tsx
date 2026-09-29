@@ -1334,6 +1334,8 @@ function ProcessDialog({
   mode: "create" | "edit";
   process?: ProcessDto;
   allProcesses: ProcessDto[];
+  typeOptions: { code: string; name: string }[];
+  catalogState: "loading" | "ready" | "error";
   busy: boolean;
   onClose: () => void;
   onSubmit: (data: CreateProcessRequest | UpdateProcessRequest) => Promise<void>;
@@ -1431,8 +1433,8 @@ function ProcessDialog({
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소
           </button>
-          <button className="primary-button" type="submit" disabled={busy || !code.trim() || !name.trim()}>
-            {busy ? "저장 중…" : "저장"}
+          <button className="primary-button" type="submit" disabled={busy || catalogState !== "ready" || !equipmentType || !code.trim() || !name.trim()}>
+            {busy ? "저장 중…" : catalogState === "error" ? "유형 조회 실패" : "저장"}
           </button>
         </div>
       </form>
@@ -1444,6 +1446,8 @@ function EquipmentDialog({
   mode,
   equipment,
   allProcesses,
+  typeOptions,
+  catalogState,
   busy,
   onClose,
   onSubmit,
@@ -1458,7 +1462,7 @@ function EquipmentDialog({
   const [processId, setProcessId] = useState(equipment?.processId ?? allProcesses[0]?.id ?? "");
   const [code, setCode] = useState(equipment?.code ?? "");
   const [name, setName] = useState(equipment?.name ?? "");
-  const [equipmentType, setEquipmentType] = useState<EquipmentType>(equipment?.equipmentType ?? "stocker");
+  const [equipmentType, setEquipmentType] = useState<EquipmentType>(equipment?.equipmentType ?? typeOptions[0]?.code ?? "");
   const [managementUnit, setManagementUnit] = useState<ManagementUnit>(equipment?.managementUnit ?? "unit");
   const [quantity, setQuantity] = useState(equipment?.quantity ?? 1);
   const [manufacturer, setManufacturer] = useState(equipment?.manufacturer ?? "");
@@ -1516,10 +1520,11 @@ function EquipmentDialog({
               value={equipmentType}
               onChange={(e) => setEquipmentType(e.target.value as EquipmentType)}
             >
-              {EQUIPMENT_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+              {equipment && !typeOptions.some((opt) => opt.code === equipment.equipmentType) ? (
+                <option value={equipment.equipmentType}>{equipment.equipmentType} (비활성)</option>
+              ) : null}
+              {typeOptions.map((opt) => (
+                <option key={opt.code} value={opt.code}>{opt.name}</option>
               ))}
             </select>
           </label>
@@ -2017,19 +2022,23 @@ function EquipmentRolesDialog({
 function SystemDialog({
   mode,
   system,
+  typeOptions,
+  catalogState,
   busy,
   onClose,
   onSubmit,
 }: {
   mode: "create" | "edit";
   system?: LogisticsSystemDto;
+  typeOptions: { code: string; name: string }[];
+  catalogState: "loading" | "ready" | "error";
   busy: boolean;
   onClose: () => void;
   onSubmit: (data: CreateLogisticsSystemRequest | UpdateLogisticsSystemRequest) => Promise<void>;
 }) {
   const [code, setCode] = useState(system?.code ?? "");
   const [name, setName] = useState(system?.name ?? "");
-  const [systemType, setSystemType] = useState<LogisticsSystemType>(system?.systemType ?? "mcs");
+  const [systemType, setSystemType] = useState<LogisticsSystemType>(system?.systemType ?? typeOptions[0]?.code ?? "");
   const [layer, setLayer] = useState<SystemLayer>(system?.layer ?? "coordinator");
   const [scope, setScope] = useState<SystemScope>(system?.scope ?? "project");
   const [vendor, setVendor] = useState(system?.vendor ?? "");
@@ -2091,10 +2100,11 @@ function SystemDialog({
               value={systemType}
               onChange={(e) => setSystemType(e.target.value as LogisticsSystemType)}
             >
-              {SYSTEM_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+              {system && !typeOptions.some((opt) => opt.code === system.systemType) ? (
+                <option value={system.systemType}>{system.systemType} (비활성)</option>
+              ) : null}
+              {typeOptions.map((opt) => (
+                <option key={opt.code} value={opt.code}>{opt.name}</option>
               ))}
             </select>
           </label>
@@ -2160,8 +2170,8 @@ function SystemDialog({
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소
           </button>
-          <button className="primary-button" type="submit" disabled={busy || !code.trim() || !name.trim()}>
-            {busy ? "저장 중…" : "저장"}
+          <button className="primary-button" type="submit" disabled={busy || catalogState !== "ready" || !systemType || !code.trim() || !name.trim()}>
+            {busy ? "저장 중…" : catalogState === "error" ? "유형 조회 실패" : "저장"}
           </button>
         </div>
       </form>
