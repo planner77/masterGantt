@@ -111,3 +111,8 @@
 @media (max-width: 48rem) {
   .project-gantt-scale-toolbar { justify-content: flex-start; }
 }
+
+
+.project-gantt-frame .wx-table-container .wx-row[data-task-completed="true"] [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text {
+  text-decoration: line-through;
+}
