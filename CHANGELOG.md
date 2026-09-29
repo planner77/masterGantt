@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.55.0] - 2026-09-30
+
+### Added
+
+- Issue #289: Project에 사업부·제품·사업장/법인 nullable 선택형 메타데이터와 전역 project-master catalog/admin API·UI를 추가한다.
+- Migration `0015_project_master_catalog.sql`로 stable master 참조, category 무결성, catalog revision 및 별도 관리자 credential/session을 추가한다.
+
+### Changed
+
+- Project 생성·설정·목록·복사·Template 경로가 동일 global master 참조를 보존하며, inactive 항목은 신규 선택에서 제외하되 기존 참조는 유지한다.
+- Application version을 `0.55.0`으로 증가한다.
+
 ## [0.54.1] - 2026-09-29
 
 ### Fixed
