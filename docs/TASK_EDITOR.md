@@ -142,3 +142,8 @@ Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭�
 물류 연결과 리소스 할당은 조회 중·성공·실패를 구분한다. 현재 taskId/revision에 맞는 유효한 응답을 확보하기 전에는 선택·저장 control과 저장 handler를 모두 차단한다. 이전 작업이나 revision의 늦은 응답은 폐기하고 조회를 취소한다.
 
 조회 실패를 '등록된 설비/시스템 없음'으로 표시하지 않으며 오류 안내와 다시 시도를 제공한다. 재시도는 GET만 수행하고 자동 PUT은 하지 않는다. 정상 응답을 받으면 기존 직접 연결/할당을 초안에 복원하고 그 뒤에 사용자 저장을 허용한다. readonly와 Task PATCH/Assignment PUT/물류 PUT의 독립 저장·서버 권한·If-Match 계약은 유지한다.
+
+### Issue #299 — Chart reorder와 Task mutation
+
+Chart 수직 DnD는 Task의 일정/편집 PATCH가 아니라 hierarchy mutation이다. vertical gesture가 확정된 뒤에는 같은 gesture의 수평 일정 변경을 차단하고, drop 시 기존 `reparent(before|after)` command를 한 번만 제출한다. 따라서 reorder 직후 작업명·Description·URL·일정 편집을 수행해도 후속 canonical mutation은 저장된 `parentExternalId/siblingOrder`를 기준으로 유지해야 한다. 관계가 연결되어 hierarchy mutation이 제한된 Task/anchor는 Chart DnD도 같은 제한을 따른다.
+
