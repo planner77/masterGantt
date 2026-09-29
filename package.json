@@ -1,20 +1,21 @@
 {
   "name": "mastergantt",
-  "version": "0.52.2",
+  "version": "0.52.3",
   "private": true,
   "engines": {
     "node": ">=22"
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack",
+    "build": "next build --webpack && npm run build:runtime-tools",
     "start": "next start",
     "version:check": "node scripts/verify-release-version.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run --config tests/config/vitest.config.ts",
     "test:e2e": "playwright test --config tests/config/playwright.config.ts",
-    "db:migrate": "node --import tsx scripts/migrate.ts"
+    "db:migrate": "node --import tsx scripts/migrate.ts",
+    "build:runtime-tools": "tsc -p tsconfig.runtime-tools.json"
   },
   "dependencies": {
     "@svar-ui/react-gantt": "2.7.3",
