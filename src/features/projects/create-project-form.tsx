@@ -49,8 +49,14 @@ function createdPublicId(response: unknown): string | null {
   return typeof publicId === "string" && publicId.length > 0 ? publicId : null;
 }
 
-export function CreateProjectForm() {
+interface SubmissionProps {
+  readonly onBeginSubmission?: () => boolean;
+  readonly onEndSubmission?: () => void;
+}
+
+export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: SubmissionProps = {}) {
   const router = useRouter();
+  const submissionRef = useRef(false);
   const errorReference = useRef<HTMLDivElement>(null);
   const [name, setName] = useState("");
   const [ownerName, setOwnerName] = useState("");
@@ -71,7 +77,7 @@ export function CreateProjectForm() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (isSubmitting) return;
+    if (submissionRef.current) return;
 
     const issues: Partial<Record<ProjectField,string>> = {};
     if (name.trim().length === 0) issues.name = "프로젝트 이름을 입력해 주세요.";
@@ -89,6 +95,8 @@ export function CreateProjectForm() {
 
     setFieldErrors({});
     setError(null);
+    if (onBeginSubmission && !onBeginSubmission()) return;
+    submissionRef.current = true;
     setIsSubmitting(true);
     const request: CreateProjectRequest = {
       name,
@@ -122,7 +130,9 @@ export function CreateProjectForm() {
       setError("네트워크 연결을 확인한 뒤 다시 시도해 주세요.");
     } finally {
       setEditPassword("");
+      submissionRef.current = false;
       setIsSubmitting(false);
+      onEndSubmission?.();
     }
   }
 

@@ -134,6 +134,11 @@ Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭�
   - 상속 출처 작업명(`sourceTaskName`)을 함께 보여주며, 상속된 연결은 현재 작업에서 직접 해제할 수 없고 출처 Summary 작업에서 수정하도록 안내한다.
 - **독립 저장 및 동시성 제어**:
   - 물류 연결은 작업 기본 정보(Task PATCH)나 리소스 할당(Assignment PUT)과 독립적인 `PUT /api/projects/{publicId}/tasks/{taskId}/logistics-links` 엔드포인트를 통해 저장된다.
-  - 편집 권한이 있고 Task draft가 stale/dirty 상태가 아닐 때 '물류 연결 저장' 버튼이 활성화된다.
+  - 편집 권한이 있고 Task draft가 stale/dirty 상태가 아니며 현재 Task/revision의 연결·물류 목록 조회가 모두 성공했을 때 '물류 연결 저장' 버튼이 활성화된다.
   - 성공 시 프로젝트 `revision`이 1 증가하며 canonical snapshot을 재동기화한다. Stale revision 충돌 시 `412 REVISION_MISMATCH` 오류로 안전하게 차단된다.
 
+## Issue #263 — 연결·할당 조회 준비 상태와 복구
+
+물류 연결과 리소스 할당은 조회 중·성공·실패를 구분한다. 현재 taskId/revision에 맞는 유효한 응답을 확보하기 전에는 선택·저장 control과 저장 handler를 모두 차단한다. 이전 작업이나 revision의 늦은 응답은 폐기하고 조회를 취소한다.
+
+조회 실패를 '등록된 설비/시스템 없음'으로 표시하지 않으며 오류 안내와 다시 시도를 제공한다. 재시도는 GET만 수행하고 자동 PUT은 하지 않는다. 정상 응답을 받으면 기존 직접 연결/할당을 초안에 복원하고 그 뒤에 사용자 저장을 허용한다. readonly와 Task PATCH/Assignment PUT/물류 PUT의 독립 저장·서버 권한·If-Match 계약은 유지한다.

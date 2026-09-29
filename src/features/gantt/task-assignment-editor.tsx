@@ -31,12 +31,22 @@ function isAssignedResponse(value: unknown): value is AssignedTargetsResponse {
   if (!value || typeof value !== "object" || !("data" in value)) return false;
   const data = value.data;
   return !!data && typeof data === "object" && "projectRevision" in data && typeof data.projectRevision === "number" &&
-    "catalogRevision" in data && typeof data.catalogRevision === "number" && "assignments" in data && Array.isArray(data.assignments) && "targets" in data && Array.isArray(data.targets);
+    "catalogRevision" in data && typeof data.catalogRevision === "number" && "assignments" in data && Array.isArray(data.assignments) && data.assignments.every((item) => item && typeof item.taskId === "string" && isTargetRef(item.target) && (!item.allocation || ((item.allocation.start === null || typeof item.allocation.start === "string") && (item.allocation.end === null || typeof item.allocation.end === "string") && (item.allocation.percent === null || typeof item.allocation.percent === "number")))) && "targets" in data && Array.isArray(data.targets) && data.targets.every(isTarget);
 }
 function isTargetsResponse(value: unknown): value is AssignmentTargetsResponse {
   if (!value || typeof value !== "object" || !("data" in value)) return false;
   const data = value.data;
-  return !!data && typeof data === "object" && "catalogRevision" in data && typeof data.catalogRevision === "number" && "targets" in data && Array.isArray(data.targets);
+  return !!data && typeof data === "object" && "catalogRevision" in data && typeof data.catalogRevision === "number" && "targets" in data && Array.isArray(data.targets) && data.targets.every(isTarget);
+}
+function isTargetRef(value: unknown): boolean {
+  return !!value && typeof value === "object" && "id" in value && typeof value.id === "string" &&
+    "kind" in value && (value.kind === "resource" || value.kind === "group");
+}
+function isTarget(value: unknown): value is AssignmentTargetDto {
+  return !!value && typeof value === "object" && "id" in value && typeof value.id === "string" &&
+    "kind" in value && (value.kind === "resource" || value.kind === "group") &&
+    "name" in value && typeof value.name === "string" && "active" in value && typeof value.active === "boolean" &&
+    (!('code' in value) || value.code === null || typeof value.code === "string");
 }
 function targetKey(target: Pick<AssignmentTargetDto, "kind" | "id">): string { return `${target.kind}:${target.id}`; }
 
@@ -54,16 +64,23 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
   const [allocationIssues, setAllocationIssues] = useState<AllocationIssue[]>([]);
   const issueSummary = useRef<HTMLDivElement>(null);
 
+  const [retry, setRetry] = useState(0);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const snapshotKey = `${taskId}:${revision}:${editable}:${retry}`;
+  const ready = loadedKey === snapshotKey && !loading;
+
   useEffect(() => {
     let alive = true;
+    const controller = new AbortController();
     void (async () => {
       await Promise.resolve(); if (!alive) return;
       const publicId = projectIdFromPathname(window.location.pathname);
       if (!publicId) { setLoading(false); setError("프로젝트 경로를 확인할 수 없습니다."); return; }
+      setLoading(true); setLoadedKey(null); setError(null);
       try {
-        const assignedResponse = await fetch(`/api/projects/${encodeURIComponent(publicId)}/assigned-targets`, { credentials: "same-origin", cache: "no-store" });
+        const assignedResponse = await fetch(`/api/projects/${encodeURIComponent(publicId)}/assigned-targets`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
         const assignedBody: unknown = await assignedResponse.json().catch(() => null);
-        if (!assignedResponse.ok || !isAssignedResponse(assignedBody)) throw new Error("assigned");
+        if (!assignedResponse.ok || !isAssignedResponse(assignedBody) || assignedBody.data.projectRevision !== revision) throw new Error("assigned");
         if (!alive) return;
         const taskAssignments = assignedBody.data.assignments.filter((assignment) => assignment.taskId === taskId);
         setSelected(new Set(taskAssignments.map((assignment) => `${assignment.target.kind}:${assignment.target.id}`)));
@@ -78,7 +95,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
         }
         setAllocations(nextAllocations); setTargets(assignedBody.data.targets); setCatalogRevision(assignedBody.data.catalogRevision);
         if (editable) {
-          const candidatesResponse = await fetch(`/api/projects/${encodeURIComponent(publicId)}/assignment-targets`, { credentials: "same-origin", cache: "no-store" });
+          const candidatesResponse = await fetch(`/api/projects/${encodeURIComponent(publicId)}/assignment-targets`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
           const candidatesBody: unknown = await candidatesResponse.json().catch(() => null);
           if (!candidatesResponse.ok || !isTargetsResponse(candidatesBody)) throw new Error("candidates");
           if (!alive) return;
@@ -86,13 +103,15 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
           for (const target of assignedBody.data.targets) merged.set(targetKey(target), target);
           for (const target of candidatesBody.data.targets) merged.set(targetKey(target), target);
           setTargets([...merged.values()].sort((left, right) => left.name.localeCompare(right.name, "ko")));
+          if (candidatesBody.data.catalogRevision !== assignedBody.data.catalogRevision) throw new Error("catalog_changed");
           setCatalogRevision(candidatesBody.data.catalogRevision);
         }
+        setLoadedKey(snapshotKey);
       } catch { if (alive) setError("할당 정보를 불러오지 못했습니다. 편집 권한과 네트워크 상태를 확인해 주세요."); }
       finally { if (alive) setLoading(false); }
     })();
-    return () => { alive = false; };
-  }, [editable, taskId, revision]);
+    return () => { alive = false; controller.abort(); };
+  }, [editable, taskId, revision, retry, snapshotKey]);
 
   const selectedTargets = useMemo(() => targets.filter((target) => selected.has(targetKey(target))), [selected, targets]);
   const visibleTargets = useMemo(() => {
@@ -117,7 +136,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
   }, [onSelectionCountChange, selected]);
 
   function toggle(target: AssignmentTargetDto) {
-    if (!editable || disabled || saving || !target.active) return;
+    if (!editable || disabled || saving || !ready || !target.active) return;
     const key = targetKey(target);
     setSelected((current) => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next; });
     if (target.kind === "resource") setAllocations((current) => ({ ...current, [key]: current[key] ?? { start: "", end: "", percent: "" } }));
@@ -125,6 +144,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
     setError(null);
   }
   function changeAllocation(key: string, field: keyof AllocationDraft, value: string) {
+    if (!editable || disabled || saving || !ready) return;
     setAllocations((current) => ({ ...current, [key]: { ...(current[key] ?? { start: "", end: "", percent: "" }), [field]: value } }));
     setAllocationIssues((current) => current.filter((issue) => issue.key !== key || (field === "start" ? issue.field !== "end" : issue.field !== field)));
     setError(null);
@@ -137,7 +157,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
   }
 
   async function save() {
-    if (!editable || disabled || saving || catalogRevision === null) return;
+    if (!editable || disabled || saving || !ready || catalogRevision === null) return;
     const publicId = projectIdFromPathname(window.location.pathname); if (!publicId) return;
     const requested = [] as Array<{ kind: "resource" | "group"; id: string; allocation?: { start: string | null; end: string | null; percent: number } }>;
     const issues: AllocationIssue[] = [];
@@ -184,6 +204,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
 
     {loading ? <p className={styles.caption} role="status">할당 정보를 불러오는 중…</p> : null}
     {error ? <p className={styles.relationError} role="alert">{error}</p> : null}
+    {!ready && error ? <button type="button" className="secondary-button" onClick={() => setRetry((value) => value + 1)}>할당 정보 다시 시도</button> : null}
     {allocationIssues.length > 0 ? <div className={styles.validationSummary} role="alert" tabIndex={-1} ref={issueSummary}>
       <strong>할당 입력 {allocationIssues.length}곳을 확인해 주세요.</strong>
       <ul>{allocationIssues.map((issue) => <li key={`${issue.key}-${issue.field}`}><button type="button" onClick={() => focusAllocationIssue(issue)}>{issue.label}: {issue.message}</button></li>)}</ul>
@@ -209,7 +230,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
       </label>
     </div> : null}
 
-    {!loading && targets.length === 0 ? <p className={styles.emptyRelation}>등록된 할당 대상이 없습니다.</p> : null}
+    {ready && targets.length === 0 ? <p className={styles.emptyRelation}>등록된 할당 대상이 없습니다.</p> : null}
     {!loading && targets.length > 0 && visibleTargets.length === 0 ? <p className={styles.emptyRelation}>현재 필터 조건에 맞는 대상이 없습니다.</p> : null}
 
     {!loading && visibleTargets.length > 0 ? <div className={styles.assignmentList}>
@@ -223,7 +244,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
         return <article key={key} className={styles.assignmentRow} data-selected={checked || undefined}>
           <div className={styles.assignmentHeader}>
             <label className={styles.assignmentToggle}>
-              <input type="checkbox" checked={checked} disabled={!editable || disabled || saving || (!target.active && !checked)} onChange={() => toggle(target)} />
+              <input type="checkbox" checked={checked} disabled={!editable || disabled || saving || !ready || (!target.active && !checked)} onChange={() => toggle(target)} />
               <span className={styles.assignmentIdentity}>
                 <strong>{target.name}</strong>
                 <span className={styles.assignmentBadges}>
@@ -237,9 +258,9 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
           {checked && target.kind === "resource" ? <fieldset className={styles.allocationFieldset}>
             <legend>{identity} 투입 정보</legend>
             <div className={styles.allocationGrid}>
-              <label className={styles.field}>투입 시작<input id={`allocation-${key}-start`} aria-label={`${identity} 투입 시작`} type="date" value={allocation.start} disabled={!editable || disabled || saving} onChange={(event) => changeAllocation(key, "start", event.target.value)} /></label>
-              <label className={styles.field}>투입 종료<input id={`allocation-${key}-end`} aria-label={`${identity} 투입 종료`} aria-invalid={Boolean(endIssue)} aria-describedby={endIssue ? `allocation-${key}-end-error` : undefined} type="date" value={allocation.end} disabled={!editable || disabled || saving} onChange={(event) => changeAllocation(key, "end", event.target.value)} />{endIssue ? <span className={styles.fieldError} id={`allocation-${key}-end-error`}>{endIssue.message}</span> : null}</label>
-              <label className={styles.field}>투입률 (%)<input id={`allocation-${key}-percent`} aria-label={`${identity} 투입률 (%)`} aria-invalid={Boolean(percentIssue)} aria-describedby={percentIssue ? `allocation-${key}-percent-error` : undefined} type="number" min="0.01" max="100" step="0.01" value={allocation.percent} disabled={!editable || disabled || saving} onChange={(event) => changeAllocation(key, "percent", event.target.value)} />{percentIssue ? <span className={styles.fieldError} id={`allocation-${key}-percent-error`}>{percentIssue.message}</span> : null}</label>
+              <label className={styles.field}>투입 시작<input id={`allocation-${key}-start`} aria-label={`${identity} 투입 시작`} type="date" value={allocation.start} disabled={!editable || disabled || saving || !ready} onChange={(event) => changeAllocation(key, "start", event.target.value)} /></label>
+              <label className={styles.field}>투입 종료<input id={`allocation-${key}-end`} aria-label={`${identity} 투입 종료`} aria-invalid={Boolean(endIssue)} aria-describedby={endIssue ? `allocation-${key}-end-error` : undefined} type="date" value={allocation.end} disabled={!editable || disabled || saving || !ready} onChange={(event) => changeAllocation(key, "end", event.target.value)} />{endIssue ? <span className={styles.fieldError} id={`allocation-${key}-end-error`}>{endIssue.message}</span> : null}</label>
+              <label className={styles.field}>투입률 (%)<input id={`allocation-${key}-percent`} aria-label={`${identity} 투입률 (%)`} aria-invalid={Boolean(percentIssue)} aria-describedby={percentIssue ? `allocation-${key}-percent-error` : undefined} type="number" min="0.01" max="100" step="0.01" value={allocation.percent} disabled={!editable || disabled || saving || !ready} onChange={(event) => changeAllocation(key, "percent", event.target.value)} />{percentIssue ? <span className={styles.fieldError} id={`allocation-${key}-percent-error`}>{percentIssue.message}</span> : null}</label>
             </div>
           </fieldset> : null}
         </article>;
@@ -249,7 +270,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
     <p className={styles.caption}>투입 시작/종료를 비우면 작업의 확정 일정이 적용됩니다. 기존 투입률 미설정 할당은 공수 합계에서 제외됩니다. 그룹 할당은 담당 팀 참조이며 구성원을 개인 할당으로 자동 복제하지 않습니다.</p>
     {editable ? <div className={styles.assignmentFooter}>
       <span className={styles.assignmentScope}>이 버튼은 리소스/그룹 할당만 저장합니다.</span>
-      <button className="secondary-button" type="button" disabled={disabled || saving || loading} onClick={() => void save()}>{saving ? "할당 저장 중…" : "할당 저장 (" + selectedTargets.length + ")"}</button>
+      <button className="secondary-button" type="button" disabled={disabled || saving || !ready} onClick={() => void save()}>{saving ? "할당 저장 중…" : "할당 저장 (" + selectedTargets.length + ")"}</button>
     </div> : null}
   </section>;
 }

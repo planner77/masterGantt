@@ -1,5 +1,17 @@
 # Test Plan
 
+## Issue #264 생성 방식 전환과 초안 보존
+
+`tests/e2e/new-project-draft-preservation.spec.ts`에서 390/768/1024/1440px 양방향 폼 전환 뒤 비민감 입력·선택·검색·기준일 보존, 최초 방문 이후 템플릿 목록 재조회 없음, 숨겨진 panel의 focus 제외를 확인한다. 초기 template mode, 방향키/Home/End와 본문 바로가기 연결을 검사하며, 본문 바로가기 후 활성 panel의 첫 컨트롤에서 Shift+Tab 시 선택된 tab으로 복귀하는 회귀를 포함한다. 양쪽 생성 POST의 지연·실패를 mock하여 중복 제출 및 탭 전환 차단, 실패 후 초안 보존·비밀번호 삭제·명시적 재시도를 검증한다. 서버 API/권한 계약은 변경하지 않으며 공식 전체 회귀는 PR CI로 구분한다.
+
+## Issue #263 연결·할당·담당자 조회 준비 상태
+
+- Task 물류 links/master GET 지연·HTTP 오류·network·malformed 응답에서 선택/저장 비활성 및 PUT 0회를 확인한다. 실패를 정상 빈 목록으로 표시하지 않는다.
+- 다시 시도 GET 성공 후 기존 직접 연결·scope를 복원하고 명시적 저장 payload/If-Match를 확인한다. taskId/revision 변경과 늦은 응답이 섞이지 않아야 한다.
+- Assignment는 실제 target reference DTO와 nonempty 할당 응답을 사용해 정상 조회 회귀 및 실패 저장 차단·재시도를 검증한다.
+- 설비/시스템 담당자 dialog는 catalog 실패 안내·재시도·저장 차단과 canonical 담당자 이름 fallback을 확인한다.
+- 변경 화면의 readonly, 390/768/1024/1440px, 긴 이름 및 keyboard 상태를 실제 브라우저에서 확인한다. 원격 quality/e2e/docker 판정은 별도다.
+
 ## Issue #245 Gantt SVG/PNG 내보내기
 
 - 서버 Unit/API: canonical WBS 순서, 전체 Grid+Chart와 기간 Chart-only, 날짜·행·bar/link clip, SVG XML 안전성, 비근무일, Summary/Task/Milestone/progress, 크기 제한, Origin/If-Match/412 및 Excel 회귀를 검증한다.
