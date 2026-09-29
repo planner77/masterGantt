@@ -226,6 +226,7 @@ export function ProjectGantt({
     startX: number;
     startY: number;
     originalTop: number | null;
+    startScrollTop: number;
     intent: "pending" | "horizontal" | "vertical";
     drop: ChartVerticalDrop | null;
   } | null>(null);
@@ -372,12 +373,14 @@ export function ProjectGantt({
     if (!bar || !root || !api || !root.contains(bar)) return;
     const taskId = taskIdFromElement(bar);
     const task = taskId ? tasksByIdReference.current.get(taskId) : undefined;
-    if (!task || inlineSessionReference.current) return;
+    if (!task || inlineSessionReference.current ||
+      taskHasDependencyLinks(tasksReference.current, taskId, linksReference.current)) return;
 
     const bounds = bar.getBoundingClientRect();
     const edge = bounds.width > 200 ? 40 : bounds.width * 0.2;
-    if (task.type !== "milestone" && (event.clientX - bounds.left < edge || bounds.right - event.clientX < edge)) return;
+    if (task.type === "task" && (event.clientX - bounds.left < edge || bounds.right - event.clientX < edge)) return;
 
+    const verticalScroller = root.querySelector<HTMLElement>(".wx-gantt");
     const svarTask = api.getTask(taskId) as ITask & { $y?: number };
     chartDragReference.current = {
       taskId,
@@ -385,6 +388,7 @@ export function ProjectGantt({
       startX: event.clientX,
       startY: event.clientY,
       originalTop: typeof svarTask.$y === "number" ? svarTask.$y : null,
+      startScrollTop: verticalScroller?.scrollTop ?? 0,
       intent: "pending",
       drop: null,
     };
@@ -409,6 +413,14 @@ export function ProjectGantt({
         return;
       }
 
+      const verticalScroller = root.querySelector<HTMLElement>(".wx-gantt");
+      if (verticalScroller) {
+        const bounds = verticalScroller.getBoundingClientRect();
+        const edge = 32;
+        if (event.clientY < bounds.top + edge) verticalScroller.scrollTop = Math.max(0, verticalScroller.scrollTop - 20);
+        else if (event.clientY > bounds.bottom - edge) verticalScroller.scrollTop += 20;
+      }
+
       const rows = Array.from(root.querySelectorAll<HTMLElement>(".wx-chart .wx-bar[data-task-id]"))
         .map((element) => {
           const taskId = taskIdFromElement(element);
@@ -423,18 +435,20 @@ export function ProjectGantt({
           };
         })
         .filter((row): row is NonNullable<typeof row> => row !== null);
-      const drop = resolveChartVerticalDrop(
+      let drop = resolveChartVerticalDrop(
         drag.taskId,
         drag.sourceParentExternalId,
         event.clientY,
         rows,
       );
+      if (drop && taskHasDependencyLinks(tasksReference.current, drop.anchorTaskId, linksReference.current)) drop = null;
       drag.drop = drop;
       updateChartDropFeedback(drop);
       if (drag.originalTop !== null) {
+        const scrollDelta = (verticalScroller?.scrollTop ?? drag.startScrollTop) - drag.startScrollTop;
         void api.exec("drag-task", {
           id: drag.taskId,
-          top: Math.max(0, drag.originalTop - 4 + dy),
+          top: Math.max(0, drag.originalTop - 4 + dy + scrollDelta),
           inProgress: true,
         });
       }
