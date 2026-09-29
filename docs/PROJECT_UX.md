@@ -606,3 +606,10 @@ Resource 고급 필터는 종류·상태·Task From/To 계약을 변경하지 �
 같은 수준의 근무/휴무 충돌은 날짜·대상·규칙·영향 Resource를 식별하는 focus 가능한 오류 요약으로 안내하고 입력으로 이동하는 명령을 제공한다. 동일 초안의 저장은 차단하며 입력 변경 시 충돌과 기존 preview를 무효화한다. PUT 충돌에도 과거 성공 preview를 남기지 않는다. publicId/revision 변경 시 이전 컨텍스트의 충돌 상태를 폐기한다.
 
 저장 후 canonical Calendar와 Project snapshot을 다시 조회하여 서버가 정규화한 날짜 유형을 반영한다. Group/Resource 날짜 예외는 Resource workload만 변경하고 Project Task start/end/duration과 기존 Gantt instance/선택/스크롤을 보존한다. 기존 401/412·초안 보호·늦은 응답 방어 계약은 유지한다. 실제 검증과 잔여 미검증은 [Issue #261 설계·검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)을 따른다.
+
+## 물류 유형 관리 UX (Issue #280)
+
+전역 navigation의 **물류 관리** → `/logistics-admin`에서 설비 유형과 시스템 유형을 관리한다. 로그인 후 두 category를 전환하며 유형 추가, 표시명 수정, 활성/비활성 전환, 사용 건수 확인, 새로고침, 비밀번호 변경, 로그아웃을 수행한다.
+
+Project Workspace의 설비/시스템 추가·수정 select는 active catalog 이름을 표시하고 payload에는 stable code를 저장한다. 기존 row의 현재 type이 inactive이면 해당 값은 `비활성`으로 유지 표시하고 다른 필드 저장을 막지 않는다. Catalog fetch 실패는 empty state가 아니라 오류 상태로 표시하며 저장을 차단하고 재시도를 제공한다.
+
