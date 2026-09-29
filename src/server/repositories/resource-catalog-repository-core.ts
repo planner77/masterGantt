@@ -71,7 +71,7 @@ export class ResourceCatalogRepository {
   }
 
   listGroups(activeOnly = false): CatalogGroupRecord[] {
-    const rows = this.database.prepare(`SELECT id, public_id, name, code, description, active FROM resource_groups ${activeOnly ? "WHERE active = 1" : ""} ORDER BY lower(name), public_id`).all() as TargetRow[];
+    const rows = this.database.prepare(`SELECT id, public_id, name, code, description, active, NULL AS developer_grade FROM resource_groups ${activeOnly ? "WHERE active = 1" : ""} ORDER BY lower(name), public_id`).all() as TargetRow[];
     const memberRows = this.database.prepare(`SELECT gm.group_id, r.public_id FROM resource_group_members gm JOIN resources r ON r.id = gm.resource_id ORDER BY gm.group_id, lower(r.name), r.public_id`).all() as { group_id: number; public_id: string }[];
     const members = new Map<number, string[]>();
     for (const row of memberRows) {
@@ -88,7 +88,7 @@ export class ResourceCatalogRepository {
   }
 
   findGroupByPublicId(publicId: string): CatalogGroupRecord | undefined {
-    const row = this.database.prepare(`SELECT id, public_id, name, code, description, active FROM resource_groups WHERE public_id = ?`).get(publicId) as TargetRow | undefined;
+    const row = this.database.prepare(`SELECT id, public_id, name, code, description, active, NULL AS developer_grade FROM resource_groups WHERE public_id = ?`).get(publicId) as TargetRow | undefined;
     if (!row) return undefined;
     const members = this.database.prepare(`SELECT r.public_id FROM resource_group_members gm JOIN resources r ON r.id = gm.resource_id WHERE gm.group_id = ? ORDER BY lower(r.name), r.public_id`).all(row.id) as { public_id: string }[];
     return { ...mapTarget(row), memberResourceIds: members.map((member) => member.public_id) };
@@ -102,7 +102,7 @@ export class ResourceCatalogRepository {
 
   insertGroup(input: { publicId: string; name: string; code: string | null; description: string; now: string }): CatalogGroupRecord {
     const result = this.database.prepare(`INSERT INTO resource_groups (public_id, name, code, description, active, created_at, updated_at) VALUES (@publicId, @name, @code, @description, 1, @now, @now)`).run(input);
-    const row = this.database.prepare(`SELECT id, public_id, name, code, description, active FROM resource_groups WHERE id = ?`).get(Number(result.lastInsertRowid)) as TargetRow;
+    const row = this.database.prepare(`SELECT id, public_id, name, code, description, active, NULL AS developer_grade FROM resource_groups WHERE id = ?`).get(Number(result.lastInsertRowid)) as TargetRow;
     return { ...mapTarget(row), memberResourceIds: [] };
   }
 
