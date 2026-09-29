@@ -45,6 +45,7 @@ describe("deployment repository layout", () => {
       devDependencies?: Record<string, string>;
     };
     expect(packageJson.dependencies).not.toHaveProperty("tsx");
+    expect(packageJson.dependencies?.["@next/env"]).toBe("16.3.4");
     expect(packageJson.devDependencies?.tsx).toBe("4.23.13");
     expect(packageJson.scripts?.build).toContain("node scripts/prepare-standalone-runtime.mjs");
     expect(packageJson.scripts?.start).toBe("node scripts/start-standalone.mjs");
@@ -56,6 +57,12 @@ describe("deployment repository layout", () => {
     expect(prepare).toContain('resolve(root, "public")');
     expect(prepare).toContain('resolve(root, "db", "migrations")');
     expect(prepare).toContain('resolve(standaloneDir, "db", "migrations")');
+    expect(start).toContain('require("@next/env")');
+    expect(start).toContain("loadEnvConfig(repositoryRoot, false)");
+    expect(start).toContain('process.env.NODE_ENV ??= "production"');
+    expect(start.indexOf("loadEnvConfig(repositoryRoot, false)")).toBeLessThan(
+      start.indexOf("prepareStandaloneRuntime()"),
+    );
     expect(start).toContain('"--hostname"');
     expect(start).toContain('"--port"');
     expect(start).toContain("prepareStandaloneRuntime()");
