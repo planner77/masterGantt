@@ -1,6 +1,15 @@
-import { pathToFileURL } from "node:url";
+import { createRequire } from "node:module";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { prepareStandaloneRuntime } from "./prepare-standalone-runtime.mjs";
+
+const require = createRequire(import.meta.url);
+const { loadEnvConfig } = require("@next/env");
+const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+process.env.NODE_ENV ??= "production";
+loadEnvConfig(repositoryRoot, false);
 
 function readOption(args, index, longName, shortName) {
   const current = args[index];
