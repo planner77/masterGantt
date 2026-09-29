@@ -1,5 +1,13 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #268 리소스 관리자 실패·재조회 복구
+
+리소스/그룹 추가는 성공한 canonical 응답을 확인한 경우에만 해당 이름·코드를 지운다. 실패·중복 요청 방어로 실행하지 않은 경우는 입력을 유지하며 다른 폼·검색·구성원 선택 초안을 초기화하지 않는다. 목록 조회 중·실패와 정상 결과를 구분하고, 최신 목록을 확인하지 못하면 이전 결과임을 표시하며 revision을 사용하는 mutation을 잠근다. 재시도는 GET만 수행하고 저장은 사용자가 명시적으로 다시 실행한다.
+
+401은 관리자 화면을 해제하고 재로그인 경로를 제공하되 일반 초안은 페이지 메모리에 보존한다. 로그인·비밀번호 변경의 민감 입력은 네트워크 실패를 포함한 요청 종료 경로에서 지운다. 412는 초안을 유지한 채 최신 목록을 조회하고 다시 확인한 후 저장하도록 안내하며 자동 mutation 재전송은 하지 않는다. 결과를 확인할 수 없는 mutation도 목록 재확인 전 재저장을 막는다.
+
+새로고침으로 구성원 초안을 조용히 바꾸지 않는다. 선택 그룹이 없어졌으면 해당 저장을 차단하고 새 선택을 요구한다. 서버 구성원과 초안이 다르면 검토할 수 있게 알린다. 성공 안내는 오류와 구분하여 status로 표시한다. 기존 검색/선택 계약과 서버 인증·Origin·revision 검증은 유지한다. 비밀번호 변경은 catalog revision을 소비하지 않는 기존 인증 경로를 따른다. 390px에서는 관리자 action row를 버튼 3개 구조로 유지하고 긴 리소스 이름은 강제 줄바꿈하여 document-level horizontal overflow를 만들지 않는다.
+
 ## Issue #282 프로젝트 만들기 Wide / Responsive Form 계약
 
 `/projects/new`는 일반 문서형 화면의 75rem cap 대신 Project List/Workspace와 같은 page-specific wide shell을 사용한다. 사이트 헤더 아래 전역 `clamp(2.25rem, 6vw, 5rem)` 상단 padding을 그대로 적용하지 않고, 생성 작업을 바로 시작할 수 있는 compact top gutter를 사용한다. Heading의 읽기 폭과 form/content의 작업 폭은 분리하며 tab underline, blank form, template selection/form은 같은 좌측 정렬과 가용 폭을 공유한다.

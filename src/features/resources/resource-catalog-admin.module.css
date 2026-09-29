@@ -7,6 +7,8 @@
 .columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .list { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
 .item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .75rem; align-items: center; padding: .65rem .75rem; border: 1px solid var(--border-default); border-radius: calc(var(--radius) - 0.0625rem); }
+.item > div { min-width: 0; }
+.item strong, .member { overflow-wrap: anywhere; word-break: break-word; }
 .meta { display: flex; flex-wrap: wrap; gap: .35rem .65rem; color: var(--text-muted); font-size: .82rem; }
 .actions { display: flex; gap: .45rem; align-items: center; flex-wrap: wrap; }
 .badge { display: inline-flex; padding: .1rem .45rem; border-radius: 999px; border: 1px solid currentColor; font-size: .75rem; }
