@@ -1,5 +1,14 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #279 물류 구성 서브탭 overflow 계약
+
+Project Workspace의 물류 구성 하위 탐색은 `KPI 대시보드 / 공정 관리 / 설비 관리 / 물류 시스템 / 제어·조율 관계` 5개 탭을 한 행으로 유지한다. 좁은 viewport에서 폭이 부족하면 tablist 내부의 수평 스크롤을 허용하지만 세로 방향은 scroll container가 되지 않는다. 수평 overflow와 교차축 overflow를 명시적으로 분리하고, active indicator와 focus-visible이 잘리지 않도록 탭 높이를 음수 margin에 의존하지 않는다.
+
+기존 `tablist/tab/tabpanel`, `aria-selected`, `aria-controls`, roving `tabIndex`와 ArrowLeft/ArrowRight/Home/End 키보드 계약을 유지한다. 키보드로 이동한 탭이 수평 viewport 밖에 있으면 해당 탭만 `inline: nearest` 기준으로 보이게 하며, 이 탐색은 API mutation, Project revision 변경 또는 Gantt 재마운트를 만들지 않는다.
+
+반응형 검증 기준은 390/768/1024/1440px이다. 각 폭에서 tablist의 `scrollHeight <= clientHeight`, computed `overflow-y: hidden`, active/focus 탭의 가시성, document-level unintended overflow 부재를 확인한다. 1024/1440px처럼 충분한 폭에서는 불필요한 수평 overflow가 없어야 한다. Linux overlay scrollbar에서 시각적으로 보이지 않는 것만으로 세로 overflow 부재를 판정하지 않고 geometry를 함께 측정한다.
+
+
 ## Issue #269 프로젝트 복사·템플릿 저장 복구
 
 두 대화상자는 열 때 기존 원본의 준비 상태를 해제하고 현재 조회가 성공해야 제출할 수 있다. 조회 실패는 정상 원본으로 취급하지 않으며 다시 시도 버튼을 제공한다. 닫기·다시 열기·새 조회 이후 도착한 이전 응답은 원본·인증·오류 상태를 덮어쓰지 않는다. 새로 연 대화상자의 최초 성공 조회만 기본값을 채우며 복구 조회에서는 이름·담당자·설명·진척률 초기화 등의 일반 초안을 보존한다.

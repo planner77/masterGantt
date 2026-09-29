@@ -1,6 +1,6 @@
 # Issue #300 Grid DnD 이후 이름 수정 시 순서 복귀 수정
 
-기준: `main` `812143fe72efafd3e1169b1f29e798b7a88ecf27`, 2026-09-29. [Issue #300](https://github.com/planner77/masterGantt/issues/300)을 대상으로 한다. 로컬 main을 fast-forward하고 `fix/issue-300-grid-dnd-order-persistence`에서 작업했다. 사용자 output/와 이전 작업 branch는 보존한다. 기존 API를 재사용한 회귀 수정이므로 version 0.53.5 → 0.53.6 PATCH다.
+기준: `main` `812143fe72efafd3e1169b1f29e798b7a88ecf27`, 2026-09-29. [Issue #300](https://github.com/planner77/masterGantt/issues/300)을 대상으로 한다. 로컬 main을 fast-forward하고 `fix/issue-300-grid-dnd-order-persistence`에서 작업했다. 사용자 output/와 이전 작업 branch는 보존한다. 기존 API를 재사용한 회귀 수정이다. 작업 중 main에 #291이 병합되어 0.53.6을 사용했으므로 최종 version은 0.53.7 PATCH로 조정했다.
 
 ## 원인과 수정 경계
 
@@ -62,3 +62,11 @@ infra가 기준 SHA의 별도 `/tmp` archive·합성 SQLite·임시 port에서 �
 
 - [DnD와 이름 변경 이후 순서 및 Grid/Chart 정렬](images/issue-300/after-dnd-rename-1440.png)
 - [390px](images/issue-300/after-reorder-390.png), [768px](images/issue-300/after-reorder-768.png), [1024px](images/issue-300/after-reorder-1024.png), [1440px](images/issue-300/after-reorder-1440.png)
+
+## 최신 main 통합
+
+PR 준비 중 전진한 `main` `7b737a434e8b802b66c27441edcab5e0c8cb7230`(#291, version 0.53.6)을 작업 브랜치에 병합했다. #279의 물류 서브탭 변경과 문서 기록을 유지하고, #300은 version 0.53.7로 분리했다. CHANGELOG 충돌만 양측 항목을 보존하여 해결했으며 PROJECT_UX/TEST_PLAN은 자동 병합됐다.
+
+#300 제품 구현은 보존 커밋 `eeae266`과 동일하다. 새 main의 isolated E2E fixture 변경은 임시 DB/build 출력 정리에 `maxRetries: 5`, `retryDelay: 100`을 추가한 것이며 제품 동작이나 테스트 단언을 바꾸지 않는다. 이에 따라 기존 단위·SQLite·Chromium 4시나리오 PASS를 관련 구현 근거로 재사용하고 최종 통합의 버전·Markdown 링크·typecheck를 별도로 확인한다. 변경 후 화면에 보이는 0.53.6은 main 통합 전 실제 검증 시점의 버전이며 이미지를 수정하지 않고 과거 검증 증거로 보존한다. 최종 PR exact head의 전체 회귀는 원격 CI가 담당한다.
+
+통합 후 빠른 검증: `npm run version:check`(v0.53.7), `node scripts/check-markdown-links.mjs`(88 files), `npm run typecheck`, `git diff --check` 모두 PASS다. #300 구현·테스트가 `eeae266`과 동일하고 main 물류 코드가 원본과 동일함을 diff로 확인했다.

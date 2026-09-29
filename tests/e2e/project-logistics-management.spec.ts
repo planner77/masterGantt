@@ -286,6 +286,69 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expectSameGanttRoot(page, identity);
   });
 
+  for (const width of [390, 768, 1024, 1440]) {
+    test(`Issue #279 물류 서브탭은 수직 스크롤 없이 단일 행과 키보드 가시성을 유지한다 (${width}px)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      const fixture = await installStatefulProjectFixture(page);
+      fixture.sessionEditable = true;
+      fixture.logistics = sampleLogisticsData();
+
+      await page.goto(`/projects/${publicId}`);
+      await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
+
+      const tablist = page.getByRole("tablist", { name: "물류 구성 세부 영역" });
+      const dashboardTab = tablist.getByRole("tab", { name: "KPI 대시보드", exact: true });
+      const relationsTab = tablist.getByRole("tab", { name: "제어·조율 관계", exact: true });
+
+      const metrics = await tablist.evaluate((element) => {
+        const style = getComputedStyle(element);
+        return {
+          clientHeight: element.clientHeight,
+          scrollHeight: element.scrollHeight,
+          clientWidth: element.clientWidth,
+          scrollWidth: element.scrollWidth,
+          overflowX: style.overflowX,
+          overflowY: style.overflowY,
+        };
+      });
+
+      expect(metrics.overflowX).toBe("auto");
+      expect(metrics.overflowY).toBe("hidden");
+      expect(metrics.scrollHeight).toBeLessThanOrEqual(metrics.clientHeight);
+      if (width >= 1024) {
+        expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
+      }
+
+      await dashboardTab.focus();
+      await page.keyboard.press("End");
+      await expect(relationsTab).toBeFocused();
+      await expect(relationsTab).toHaveAttribute("aria-selected", "true");
+
+      const focusedBounds = await tablist.evaluate((element) => {
+        const selected = element.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]');
+        if (!selected) throw new Error("selected logistics sub-tab not found");
+        const listRect = element.getBoundingClientRect();
+        const tabRect = selected.getBoundingClientRect();
+        return {
+          listLeft: listRect.left,
+          listRight: listRect.right,
+          tabLeft: tabRect.left,
+          tabRight: tabRect.right,
+          scrollTop: element.scrollTop,
+        };
+      });
+
+      expect(focusedBounds.tabLeft).toBeGreaterThanOrEqual(focusedBounds.listLeft - 1);
+      expect(focusedBounds.tabRight).toBeLessThanOrEqual(focusedBounds.listRight + 1);
+      expect(focusedBounds.scrollTop).toBe(0);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1),
+      ).toBe(true);
+    });
+  }
+
   test("Readonly 모드에서는 생성/수정/삭제 버튼이 숨겨지고 안내문이 표시된다", async ({ page }) => {
     const fixture = await installStatefulProjectFixture(page);
     fixture.sessionEditable = false;
