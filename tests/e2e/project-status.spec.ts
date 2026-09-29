@@ -213,6 +213,7 @@ test("Project List 상태 빠른 변경은 기존 세션 또는 비밀번호 인
   const row = readonlyPage.getByRole("row", { name: new RegExp(name) });
   const status = row.getByRole("combobox", { name: `${name} 프로젝트 상태` });
   await expect(status).toHaveValue("in_progress");
+  await expect(status).toBeEnabled();
 
   const patchBodies: unknown[] = [];
   readonlyPage.on("request", (request) => {

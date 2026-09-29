@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.54.1] - 2026-09-29
+
+### Fixed
+
+- Issue #300: Grid Drag & Drop의 확정 이동을 기존 Task hierarchy command에 연결하여 작업명 수정·재조회 후에도 새 parent/sibling 순서를 유지한다.
+- 드래그 중 화면 피드백과 서버 저장을 구분하고 canonical 내부 이동의 중복 전송을 차단한다. 기존 권한·revision·실패 복구와 동일 Gantt 인스턴스를 유지한다.
+- CI #1232에서 Project List 상태 E2E가 React hydration 전에 상호작용해 이벤트가 유실되는 race를 확인하고, 상태 변경 control을 hydration 완료 뒤 활성화하도록 보완했다.
+
 ## [0.54.0] - 2026-09-29
 
 ### Added

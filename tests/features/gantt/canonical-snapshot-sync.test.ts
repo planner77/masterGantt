@@ -64,6 +64,15 @@ describe("canonical SVAR snapshot sync", () => {
     expect(plan.deletedTaskIds).toEqual(["grandchild", "branch"]);
   });
 
+  it("renaming a persisted reordered task does not generate a reverse move",async()=>{
+    const tasks=[{id:"a",text:"A",parent:0},{id:"c",text:"C",parent:0},{id:"b",text:"B",parent:0}];
+    const canonical=[tasks[0],tasks[1],{...tasks[2],text:"B renamed"}];
+    const calls:Array<{action:string;payload:unknown}>=[];
+    await applyCanonicalGanttSync({exec:async(action:string,payload:unknown)=>{calls.push({action,payload});}} as never,{tasks,links:[]},{tasks:canonical,links:[]});
+    expect(calls.filter((call)=>call.action==="move-task")).toEqual([]);
+    expect(calls.filter((call)=>call.action==="update-task")).toHaveLength(1);
+  });
+
   it("uses move-task for canonical reparenting instead of rewriting parent through update-task", async () => {
     const parent = { id: "parent", text: "Parent", start: new Date(2026, 8, 14), end: new Date(2026, 8, 16), parent: 0, type: "summary" };
     const currentChild = { id: "child", text: "Child", start: new Date(2026, 8, 15), end: new Date(2026, 8, 16), parent: 0, type: "task" };
@@ -83,7 +92,7 @@ describe("canonical SVAR snapshot sync", () => {
 
     expect(calls).toContainEqual({
       action: "move-task",
-      payload: { id: "child", mode: "child", target: "parent" },
+      payload: { id: "child", mode: "child", target: "parent", eventSource: "project-canonical-sync" },
     });
     const update = calls.find((call) => call.action === "update-task");
     expect(update).toBeDefined();

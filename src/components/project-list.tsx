@@ -132,6 +132,7 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
   const searchInput = useRef<HTMLInputElement | null>(null);
   const locales = useSyncExternalStore<DisplayLocales>(subscribeToLocaleChanges, browserLocales, () => SSR_DATE_LOCALE);
   const timeZone = useSyncExternalStore(subscribeToLocaleChanges, browserTimeZone, () => SSR_TIME_ZONE);
+  const isHydrated = useSyncExternalStore(subscribeToLocaleChanges, () => true, () => false);
   const displayProjects = useMemo(
     () => projects.map((project) => statusOverrides[project.publicId] && statusOverrides[project.publicId] !== project.status
       ? { ...project, status: statusOverrides[project.publicId] }
@@ -488,7 +489,7 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
                 aria-label={`${project.name} 프로젝트 상태`}
                 className={`${styles.statusBadge} ${styles.statusSelect}`}
                 data-status={project.status}
-                disabled={statusBusyId === project.publicId || submitting}
+                disabled={!isHydrated || statusBusyId === project.publicId || submitting}
                 value={project.status}
                 onChange={(event) => void prepareStatusChange(project, event.target.value as ProjectStatus)}
               >

@@ -466,7 +466,7 @@ Exact same-origin `Origin`이 필요하다. 현재 Project에 binding된 session
 
 ## 5. Task 표현과 API
 
-W24는 root 및 nested `task | milestone` CRUD와 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder/task-batch와 WBS 응답 필드는 후속이고, Link mutation과 FS 재계산은 W09 범위다. Task mutation은 선택 Task 또는 mutation 영향 subtree가 Dependency endpoint를 포함할 때 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다. 프로젝트의 다른 Task에만 Link가 있는 경우에는 mutation을 허용하고 기존 Link를 canonical snapshot에 그대로 보존한다.
+W24는 root 및 nested `task | milestone` CRUD와 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder는 아래 task-commands, atomic task-batch는 task-batch endpoint 계약을 따른다. WBS 응답 필드와 Link mutation/FS 재계산의 진행 상태는 해당 절을 따른다. Task mutation은 선택 Task 또는 mutation 영향 subtree가 Dependency endpoint를 포함할 때 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다. 프로젝트의 다른 Task에만 Link가 있는 경우에는 mutation을 허용하고 기존 Link를 canonical snapshot에 그대로 보존한다.
 
 ### Task response
 
@@ -778,7 +778,11 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 
 보호된 Project mutation이다. exact Origin, 유효한 edit session과 strong `If-Match: "<revision>"`가 필요하며 성공은 `200`과 새 ETag/canonical Task snapshot을 반환한다. 한 HTTP 명령은 하나의 SQLite immediate transaction에서 parent/order/type/subtree와 파생 Summary를 저장하고 Project revision을 정확히 1 증가시킨다.
 
-지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste의 실제 저장 동작이고 `copy`는 source subtree에 새 taskId/externalId를 발급한다. 선택 Task 또는 계층 mutation의 영향 subtree가 Dependency endpoint를 포함하면 기존 fail-closed 정책대로 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`를 반환한다. 프로젝트의 unrelated Link만으로는 다른 Task의 계층 명령을 거부하지 않으며 성공 canonical snapshot에 해당 Link를 보존한다.
+지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste와 Grid Drag & Drop의 실제 저장 동작이며 같은 parent 안의 재정렬도 지원한다. `copy`는 source subtree에 새 taskId/externalId를 발급한다. 선택 Task 또는 계층 mutation의 영향 subtree가 Dependency endpoint를 포함하면 기존 fail-closed 정책대로 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`를 반환한다. 프로젝트의 unrelated Link만으로는 다른 Task의 계층 명령을 거부하지 않으며 성공 canonical snapshot에 해당 Link를 보존한다.
+
+Issue #300의 Grid 이동은 기존 `{kind:"reparent", taskId, anchorTaskId, placement:"before"|"after"|"child"}` 입력을 사용한다. Context Menu Up/Down은 기존 `{kind:"move",taskId,direction:"up"|"down"}`이다. 두 경로는 같은 hierarchy service와 sibling 순서 불변조건을 사용한다. Source/target은 SVAR 표시 ID가 아닌 canonical Task public ID로 전달한다. 서버는 이동한 family의 `sort_order`를 `0..N-1`로 정규화하고 parent 변경 시 이전/새 family를 함께 저장한다.
+
+이동 성공 뒤 이름 수정은 최신 revision의 `PATCH /tasks/{taskId}`에 `{name}`만 전달한다. 일반 Task PATCH는 구조 필드(`parentTaskId`, `parentExternalId`, `siblingOrder`, `sort_order`)를 허용하지 않으며 rename/description/progress 변경은 저장된 parent/order를 보존한다. 이동과 후속 이름 저장은 각각 revision +1이며, 후속 PATCH가 이전 revision을 사용하면 `412`로 이름·parent/order를 모두 보존한다. Grid 이동 저장 실패는 canonical 재조회로 복구하고 성공처럼 표시하지 않는다. 새 reorder endpoint/입력 계약은 추가하지 않는다.
 
 경계 이동 등 현재 위치에서 의미 없는 명령은 `409 TASK_COMMAND_NOT_AVAILABLE`, 마지막 child 이동으로 빈 Summary가 생기면 `409 EMPTY_SUMMARY_NOT_ALLOWED`, Resource Assignment가 포함된 subtree Copy는 현재 `409 TASK_COPY_ASSIGNMENTS_UNSUPPORTED`다. stale revision은 `412 REVISION_MISMATCH`이며 부분 저장은 없다.
 

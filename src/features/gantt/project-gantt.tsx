@@ -20,6 +20,8 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 
+import { createTaskMoveGateway } from "./task-move-gateway";
+
 import type {
   ProjectCalendarDto,
   ProjectLinkDto,
@@ -931,6 +933,13 @@ export function ProjectGantt({
           : createTaskAddGateway(interceptNativeTaskAdd)(event),
       { tag: "project-native-add" },
     );
+    api.detach("project-native-move");
+    api.intercept("move-task", createTaskMoveGateway({
+      canMutate: () => canCreateReference.current && inlineSessionReference.current === null,
+      isCanonicalSync: () => canonicalSyncDepthReference.current > 0,
+      hasTask: (id) => tasksByIdReference.current.has(id),
+      dispatch: (command) => onTaskHierarchyCommandReference.current(command),
+    }), { tag: "project-native-move" });
     api.detach("project-summary-update");
     api.intercept(
       "update-task",
