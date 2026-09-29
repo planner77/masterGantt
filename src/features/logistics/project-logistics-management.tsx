@@ -315,6 +315,7 @@ export function ProjectLogisticsManagement({
       setActiveSubTab(nextTab);
       const btn = document.getElementById(`subtab-${nextTab}`);
       btn?.focus();
+      btn?.scrollIntoView({ inline: "nearest", block: "nearest" });
     }
   };
 

@@ -1,5 +1,14 @@
 # Test Plan
 
+## Issue #279 물류 구성 서브탭 overflow 회귀
+
+- Chromium E2E는 390/768/1024/1440px에서 물류 구성 tablist의 `overflow-x: auto`, `overflow-y: hidden`, `scrollHeight <= clientHeight`를 실제 DOM geometry로 검증한다.
+- 1024/1440px에서는 충분한 폭에서 불필요한 수평 overflow가 없는지 확인하고, 좁은 폭에서 수평 overflow가 생기더라도 모든 탭이 키보드로 접근 가능한지 확인한다.
+- KPI 대시보드에서 `End`로 제어·조율 관계까지 이동했을 때 선택/focus 상태와 탭 bounding box가 tablist 가시 영역 안에 들어오는지 검증한다. ArrowLeft/ArrowRight/Home/End 기존 회귀와 readonly/editable 공통 레이아웃을 유지한다.
+- 탭 탐색은 물류 mutation, Project revision 변경, Gantt instance 교체를 만들지 않아야 하며 document-level unintended horizontal overflow를 추가하지 않는다.
+- Linux CI의 overlay scrollbar 유무 대신 `clientHeight/scrollHeight`와 computed overflow를 자동 판정 근거로 사용한다. Windows classic scrollbar의 최종 육안 확인은 환경별 검증으로 별도 기록할 수 있다.
+
+
 ## Issue #269 프로젝트 복사·템플릿 저장 인증·원본 복구
 
 두 Dialog의 POST 401 뒤 비밀번호 재입력·focus·일반 초안 보존과 명시적 재인증 성공을 검사한다. POST 412 뒤 기존 snapshot 제출 차단, 최신 원본 GET만 실행, 다음 사용자 제출의 새 If-Match를 확인한다. 복사 직전 GET에서 revision이 바뀌면 POST 0회여야 한다. 최초 GET 실패·잘못된 응답의 재시도, 닫기/다시 열기 후 늦은 응답 무시, 인증부터 시작하는 pending 중복 제출·닫기 차단과 비밀번호 정리를 검사한다. 390/768/1024/1440px에서 오류·긴 이름·주요 명령 접근·focus/문서 overflow와 제목·닫기 버튼 폭을 확인하며 실제 서버 권한·원자성 전체 회귀는 PR CI로 구분한다.

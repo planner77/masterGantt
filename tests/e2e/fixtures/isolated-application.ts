@@ -139,8 +139,8 @@ export const test = base.extend<{ isolatedApplication: string; isolatedResourceA
     } finally {
       if (child) await stopApplication(child, closed);
       // Remove only paths allocated by this fixture, after its server exits.
-      await rm(temporary, { recursive: true, force: true });
-      await rm(resolve(repositoryRoot, distName), { recursive: true, force: true });
+      await rm(temporary, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+      await rm(resolve(repositoryRoot, distName), { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
   }, { scope: "test", timeout: 120_000 }],
 });

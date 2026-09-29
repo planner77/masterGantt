@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.53.6] - 2026-09-29
+
+### Fixed
+
+- Issue #279: 물류 구성 5개 서브탭의 수평 overflow는 유지하면서 교차축 세로 overflow를 명시적으로 차단하고, 음수 하단 여백에 의존하던 active indicator 정렬을 제거한다.
+- 좁은 화면의 ArrowLeft/ArrowRight/Home/End 키보드 탐색에서 포커스된 탭을 수평 viewport 안으로 보정하며 390/768/1024/1440px의 실제 tablist geometry를 Chromium E2E로 검증한다.
+
+
 ## [0.53.5] - 2026-09-29
 
 ### Fixed
