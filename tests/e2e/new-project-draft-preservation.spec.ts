@@ -47,7 +47,7 @@ for (const width of [390, 768, 1024, 1440]) {
     await expect(template(page).locator("#inst-owner-name")).toHaveValue("템플릿 소유자");
     await expect(template(page).locator("#inst-desc")).toHaveValue("템플릿 설명");
     await expect(template(page).locator("#inst-start-date")).toHaveValue("2026-10-15");
-    await expect(template(page).getByRole("radio", { name: /Beta/ })).toHaveAttribute("aria-checked", "true");
+    await expect(template(page).getByRole("radio", { name: /Beta/ })).toBeChecked();
     await expect(template(page).getByPlaceholder("템플릿 이름 또는 설명 검색…")).toHaveValue("Beta");
     expect(reads()).toBe(initialReads);
     await page.keyboard.press("Tab");

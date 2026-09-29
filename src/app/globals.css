@@ -2174,11 +2174,13 @@ h2 {
 
 .template-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr));
   gap: 1rem;
 }
 
 .template-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -2209,6 +2211,8 @@ h2 {
 }
 
 .template-card-title {
+  min-width: 0;
+  flex: 1;
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
@@ -2253,3 +2257,15 @@ h2 {
   background: var(--primary);
   color: var(--primary-foreground);
 }
+
+.template-picker { border: 0; padding: 0; margin: 0; min-width: 0; }
+.template-picker legend { font-weight: 600; margin-bottom: .5rem; }
+.template-card:focus-within { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+.template-search-status, .template-form-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: space-between; }
+.template-selected-summary { padding: .75rem; border: 1px solid var(--border-default); background: var(--action-selected-subtle); border-radius: var(--radius); overflow-wrap: anywhere; }
+.template-selected-summary p { margin: .5rem 0 0; }
+
+.template-instantiate-container .form-field p.form-field-error { color: var(--status-error); }
+.template-card-header input, .template-card-header .badge { flex-shrink: 0; }
+.template-search-box .search-input:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+.template-card-description { display: block; }

@@ -2,333 +2,354 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-
-import type {
-  InstantiateProjectTemplateResponse,
-  ProjectTemplateDto,
-  ProjectTemplateListResponse,
-} from "@/contracts/project-templates";
-
-const MINIMUM_PASSWORD_LENGTH = 1;
-const MAXIMUM_PASSWORD_LENGTH = 12;
-const MAXIMUM_OWNER_LENGTH = 100;
-
-function codePointLength(value: string): number {
-  return Array.from(value).length;
-}
-
-function todayDateString(): string {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
+import type { ProjectTemplateDto } from "@/contracts/project-templates";
 
 interface SubmissionProps {
   readonly onBeginSubmission?: () => boolean;
   readonly onEndSubmission?: () => void;
 }
+type Field = "name" | "ownerName" | "projectStartDate" | "editPassword";
+const fieldIds: Record<Field, string> = { name: "inst-project-name", ownerName: "inst-owner-name", projectStartDate: "inst-start-date", editPassword: "inst-password" };
+function templateProjectName(name: string): string {
+  return Array.from(`${name} 프로젝트`).slice(0, 200).join("");
+}
+function todayDateString(): string {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+function templatesFromResponse(value: unknown): ProjectTemplateDto[] | null {
+  if (!value || typeof value !== "object" || !("data" in value) || !Array.isArray(value.data)) return null;
+  const counts = ["taskCount", "milestoneCount", "processCount", "equipmentCount", "systemCount"];
+  const ids = new Set<string>();
+  for (const item of value.data) {
+    if (!item || typeof item !== "object" || typeof item.id !== "string" || !item.id || ids.has(item.id) || typeof item.name !== "string" || typeof item.description !== "string" || counts.some((field) => typeof item[field] !== "number" || !Number.isFinite(item[field]) || item[field] < 0)) return null;
+    ids.add(item.id);
+  }
+  return value.data;
+}
 
 export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: SubmissionProps = {}) {
   const router = useRouter();
   const submissionRef = useRef(false);
+  const suggestedName = useRef<string | null>(null);
   const [templates, setTemplates] = useState<ProjectTemplateDto[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
+  const [retry, setRetry] = useState(0);
   const [search, setSearch] = useState("");
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
-
   const [name, setName] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [description, setDescription] = useState("");
   const [projectStartDate, setProjectStartDate] = useState(todayDateString());
   const [editPassword, setEditPassword] = useState("");
-
   const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<Field, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/project-templates?activeOnly=true", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: ProjectTemplateListResponse | null) => {
-        if (data?.data) {
-          setTemplates(data.data);
-          if (data.data.length > 0) {
-            setSelectedTemplateId(data.data[0].id);
-            setName(`${data.data[0].name} 프로젝트`);
-          }
+    const controller = new AbortController();
+    void (async () => {
+      await Promise.resolve();
+      if (controller.signal.aborted) return;
+      setLoadState("loading");
+      try {
+        const response = await fetch("/api/project-templates?activeOnly=true", { cache: "no-store", signal: controller.signal });
+        const body: unknown = await response.json();
+        const list = templatesFromResponse(body);
+        if (!response.ok || list === null) throw new Error("invalid_template_list");
+        if (controller.signal.aborted) return;
+        setTemplates(list);
+        if (list.length > 0 && suggestedName.current === null) {
+          const suggestion = templateProjectName(list[0].name);
+          suggestedName.current = suggestion;
+          setSelectedTemplateId(list[0].id);
+          setName(suggestion);
         }
-      })
-      .catch(() => setError("템플릿 목록을 불러오지 못했습니다."))
-      .finally(() => setLoading(false));
-  }, []);
+        setLoadState("ready");
+      } catch {
+        if (!controller.signal.aborted) setLoadState("error");
+      }
+    })();
+    return () => controller.abort();
+  }, [retry]);
 
-  const filteredTemplates = templates.filter((t) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
-      t.name.toLowerCase().includes(q) ||
-      (t.description && t.description.toLowerCase().includes(q))
-    );
-  });
+  useEffect(() => { if (error) errorRef.current?.focus(); }, [error]);
+  const filteredTemplates = templates.filter((item) => `${item.name} ${item.description}`.toLocaleLowerCase("ko").includes(search.trim().toLocaleLowerCase("ko")));
+  const selectedTemplate = templates.find((item) => item.id === selectedTemplateId);
+  const ready = loadState === "ready";
 
-  const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
-
-  function handleSelectTemplate(t: ProjectTemplateDto) {
-    if (submissionRef.current) return;
-    setSelectedTemplateId(t.id);
-    setName(`${t.name} 프로젝트`);
+  function selectTemplate(item: ProjectTemplateDto) {
+    if (submissionRef.current || !ready) return;
+    const previousSuggestion = suggestedName.current;
+    const nextSuggestion = templateProjectName(item.name);
+    setName((current) => current === previousSuggestion ? nextSuggestion : current);
+    suggestedName.current = nextSuggestion;
+    setSelectedTemplateId(item.id);
     setError(null);
-    setFieldErrors({});
   }
-
+  function clearFieldError(field: Field) {
+    setFieldErrors((current) => { const next = { ...current }; delete next[field]; return next; });
+    setError(null);
+  }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (submissionRef.current || !selectedTemplateId) return;
-
-    const issues: Record<string, string> = {};
+    if (submissionRef.current || !ready || !selectedTemplate) return;
+    const issues: Partial<Record<Field, string>> = {};
     if (!name.trim()) issues.name = "프로젝트 이름을 입력해 주세요.";
-    const normOwner = ownerName.trim();
-    if (!normOwner) issues.ownerName = "소유자를 입력해 주세요.";
-    else if (codePointLength(normOwner) > MAXIMUM_OWNER_LENGTH) {
-      issues.ownerName = `소유자는 ${MAXIMUM_OWNER_LENGTH}자 이하여야 합니다.`;
-    }
-    const pwdLen = codePointLength(editPassword);
-    if (pwdLen < MINIMUM_PASSWORD_LENGTH || pwdLen > MAXIMUM_PASSWORD_LENGTH) {
-      issues.editPassword = "편집 비밀번호는 1~12자로 입력해 주세요.";
-    }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(projectStartDate)) {
-      issues.projectStartDate = "올바른 시작일자(YYYY-MM-DD)를 입력해 주세요.";
-    }
-
+    else if (Array.from(name.trim()).length > 200) issues.name = "프로젝트 이름은 200자 이하여야 합니다.";
+    const owner = ownerName.trim();
+    if (!owner) issues.ownerName = "소유자를 입력해 주세요.";
+    else if (Array.from(owner).length > 100) issues.ownerName = "소유자는 100자 이하여야 합니다.";
+    if (Array.from(editPassword).length < 1 || Array.from(editPassword).length > 12) issues.editPassword = "편집 비밀번호는 1~12자로 입력해 주세요.";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(projectStartDate)) issues.projectStartDate = "올바른 시작일자(YYYY-MM-DD)를 입력해 주세요.";
     if (Object.keys(issues).length > 0) {
       setFieldErrors(issues);
       setError(null);
+      const first = (Object.keys(fieldIds) as Field[]).find((field) => issues[field]);
+      requestAnimationFrame(() => { if (first) document.getElementById(fieldIds[first])?.focus(); });
       return;
     }
-
-    setFieldErrors({});
-    setError(null);
     if (onBeginSubmission && !onBeginSubmission()) return;
     submissionRef.current = true;
-    setIsSubmitting(true);
-
-    const request = {
-      name: name.trim(), ownerName: normOwner, description: description.trim() || undefined,
-      projectStartDate, editPassword,
-    };
+    setIsSubmitting(true); setFieldErrors({}); setError(null);
+    const request = { name: name.trim(), ownerName: owner, description: description.trim() || undefined, projectStartDate, editPassword };
     setEditPassword("");
     try {
-      const res = await fetch(`/api/project-templates/${selectedTemplateId}/instantiate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request),
-      });
-
-      if (!res.ok) {
-        const errorJson = await res.json().catch(() => null);
-        const msg = errorJson?.error?.message ?? "프로젝트를 생성하지 못했습니다.";
-        setError(msg);
-        return;
-      }
-
-      const body: InstantiateProjectTemplateResponse = await res.json();
-      const publicId = body.data?.project?.publicId;
-      if (publicId) {
-        router.push(`/projects/${publicId}`);
-      } else {
-        setError("생성된 프로젝트 정보를 확인할 수 없습니다.");
-      }
-    } catch {
-      setError("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
-    } finally {
-      setEditPassword("");
-      submissionRef.current = false;
-      setIsSubmitting(false);
-      onEndSubmission?.();
-    }
+      const response = await fetch(`/api/project-templates/${encodeURIComponent(selectedTemplate.id)}/instantiate`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) { setError(typeof body?.error?.message === "string" ? body.error.message : "프로젝트를 생성하지 못했습니다."); return; }
+      const publicId = body?.data?.project?.publicId;
+      if (typeof publicId !== "string" || !publicId) { setError("생성된 프로젝트 정보를 확인할 수 없습니다."); return; }
+      router.push(`/projects/${encodeURIComponent(publicId)}`);
+    } catch { setError("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."); }
+    finally { setEditPassword(""); submissionRef.current = false; setIsSubmitting(false); onEndSubmission?.(); }
   }
 
-  if (loading) {
-    return <div className="card-empty-state">템플릿 정보를 불러오는 중입니다…</div>;
-  }
+  if (loadState === "loading") return <p
+    className="card-empty-state"
+    role="status">템플릿 정보를 불러오는 중입니다…</p>;
+  if (loadState === "error") return <div
+    className="card-empty-state">
+    <p
+      className="form-error"
+      role="alert">템플릿 목록을 불러오지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.</p>
+    <button
+      className="secondary-button"
+      type="button"
+      onClick={() => { setLoadState("loading"); setRetry((value) => value + 1); }}>템플릿 목록 다시 시도</button>
+  </div>;
+  if (templates.length === 0) return <div
+    className="card-empty-state">
+    <p>등록된 프로젝트 템플릿이 없습니다.</p>
+    <p
+      className="card-empty-description">기존 프로젝트의 [더보기] 메뉴에서 [템플릿으로 저장]을 선택하여 템플릿을 등록할 수 있습니다.</p>
+  </div>;
 
-  if (templates.length === 0) {
-    return (
-      <div className="card-empty-state">
-        <p>등록된 프로젝트 템플릿이 없습니다.</p>
-        <p className="card-empty-description">
-          기존 프로젝트의 [더보기] 메뉴에서 [템플릿으로 저장]을 선택하여 템플릿을 등록할 수 있습니다.
-        </p>
+  return <div
+    className="template-instantiate-container">
+    <div
+      className="template-selection-section">
+      <label
+        className="template-search-box">템플릿 검색<input
+          type="search"
+          disabled={isSubmitting}
+          placeholder="템플릿 이름 또는 설명 검색…"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          className="search-input"
+        />
+      </label>
+      <div
+        className="template-search-status">
+        <span
+          role="status">검색 결과 {filteredTemplates.length}개 / 전체 {templates.length}개</span>
+        {search ? <button
+          className="secondary-button"
+          disabled={isSubmitting}
+          type="button"
+          onClick={() => setSearch("")}>검색 초기화</button> : null}
       </div>
-    );
-  }
-
-  return (
-    <div className="template-instantiate-container">
-      {error && (
-        <div ref={errorRef} className="form-error-banner" role="alert" tabIndex={-1}>
-          {error}
-        </div>
-      )}
-
-      <div className="template-selection-section">
-        <div className="template-search-box">
-          <input
-            type="search"
-            disabled={isSubmitting}
-            placeholder="템플릿 이름 또는 설명 검색…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="search-input"
-          />
-        </div>
-
-        <div className="template-cards-grid" role="radiogroup" aria-label="템플릿 선택">
-          {filteredTemplates.map((t) => {
-            const isSelected = t.id === selectedTemplateId;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                role="radio"
-                disabled={isSubmitting}
-                aria-checked={isSelected}
-                className={`template-card ${isSelected ? "template-card-selected" : ""}`}
-                onClick={() => handleSelectTemplate(t)}
-              >
-                <div className="template-card-header">
-                  <h3 className="template-card-title">{t.name}</h3>
-                  {isSelected && <span className="badge badge-primary">선택됨</span>}
-                </div>
-                {t.description && <p className="template-card-description">{t.description}</p>}
-                <div className="template-card-stats">
-                  <span className="stat-pill">작업 {t.taskCount}</span>
-                  <span className="stat-pill">마일스톤 {t.milestoneCount}</span>
-                  {t.processCount > 0 && <span className="stat-pill">공정 {t.processCount}</span>}
-                  {t.equipmentCount > 0 && <span className="stat-pill">설비 {t.equipmentCount}</span>}
-                  {t.systemCount > 0 && <span className="stat-pill">시스템 {t.systemCount}</span>}
-                </div>
-              </button>
-            );
+      <fieldset
+        className="template-picker"
+        disabled={isSubmitting}>
+        <legend>템플릿 선택</legend>
+        {filteredTemplates.length === 0 ? <p
+          className="card-empty-description">검색 조건에 맞는 템플릿이 없습니다.</p> : null}
+        <div
+          className="template-cards-grid">
+          {filteredTemplates.map((item) => {
+            const selected = item.id === selectedTemplateId;
+            return <label
+              key={item.id}
+              className={`template-card ${selected ? "template-card-selected" : ""}`}>
+              <span
+                className="template-card-header">
+                <input
+                  type="radio"
+                  name="project-template"
+                  value={item.id}
+                  checked={selected}
+                  onChange={() => selectTemplate(item)}
+                  aria-label={item.name}
+                />
+                <strong
+                  className="template-card-title">
+                  {item.name}
+                </strong>
+                {selected ? <span
+                  className="badge badge-primary">선택됨</span> : null}
+              </span>
+              {item.description ? <span
+                className="template-card-description">
+                {item.description}
+              </span> : null}
+              <span
+                className="template-card-stats">
+                <span
+                  className="stat-pill">작업 {item.taskCount}
+                </span>
+                <span
+                  className="stat-pill">마일스톤 {item.milestoneCount}
+                </span>
+                {item.processCount > 0 ? <span
+                  className="stat-pill">공정 {item.processCount}
+                </span> : null}{item.equipmentCount > 0 ? <span
+                  className="stat-pill">설비 {item.equipmentCount}
+                </span> : null}{item.systemCount > 0 ? <span
+                  className="stat-pill">시스템 {item.systemCount}
+                </span> : null}
+              </span>
+            </label>;
           })}
         </div>
-      </div>
-
-      {selectedTemplate && (
-        <form className="form-grid" onSubmit={handleSubmit} noValidate>
-          <div className="form-field">
-            <label htmlFor="inst-project-name">
-              새 프로젝트 이름 <span className="required-mark">*</span>
-            </label>
-            <input
-              id="inst-project-name"
-              type="text"
-              required
-              maxLength={200}
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setFieldErrors((prev) => ({ ...prev, name: "" }));
-              }}
-              disabled={isSubmitting}
-            />
-            {fieldErrors.name && <p className="field-error">{fieldErrors.name}</p>}
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="inst-owner-name">
-              소유자 / 담당자 <span className="required-mark">*</span>
-            </label>
-            <input
-              id="inst-owner-name"
-              type="text"
-              required
-              maxLength={100}
-              placeholder="예: 홍길동 팀장"
-              value={ownerName}
-              onChange={(e) => {
-                setOwnerName(e.target.value);
-                setFieldErrors((prev) => ({ ...prev, ownerName: "" }));
-              }}
-              disabled={isSubmitting}
-            />
-            {fieldErrors.ownerName && <p className="field-error">{fieldErrors.ownerName}</p>}
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="inst-start-date">
-              프로젝트 시작일 (기준일) <span className="required-mark">*</span>
-            </label>
-            <input
-              id="inst-start-date"
-              type="date"
-              required
-              value={projectStartDate}
-              onChange={(e) => {
-                setProjectStartDate(e.target.value);
-                setFieldErrors((prev) => ({ ...prev, projectStartDate: "" }));
-              }}
-              disabled={isSubmitting}
-            />
-            <p className="field-hint">
-              선택한 시작일을 기준으로 템플릿의 모든 작업 및 의존 일정이 자동 재계산됩니다.
-            </p>
-            {fieldErrors.projectStartDate && (
-              <p className="field-error">{fieldErrors.projectStartDate}</p>
-            )}
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="inst-password">
-              편집 비밀번호 <span className="required-mark">*</span>
-            </label>
-            <input
-              id="inst-password"
-              type="password"
-              required
-              maxLength={12}
-              placeholder="1~12자"
-              value={editPassword}
-              onChange={(e) => {
-                setEditPassword(e.target.value);
-                setFieldErrors((prev) => ({ ...prev, editPassword: "" }));
-              }}
-              disabled={isSubmitting}
-            />
-            <p className="field-hint">이후 프로젝트 일정을 편집할 때 사용할 비밀번호입니다.</p>
-            {fieldErrors.editPassword && <p className="field-error">{fieldErrors.editPassword}</p>}
-          </div>
-
-          <div className="form-field">
-            <label htmlFor="inst-desc">프로젝트 설명 (선택)</label>
-            <textarea
-              id="inst-desc"
-              rows={3}
-              maxLength={4000}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div className="form-actions">
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={isSubmitting}
-              onClick={() => router.back()}
-            >
-              취소
-            </button>
-            <button type="submit" className="primary-button" disabled={isSubmitting}>
-              {isSubmitting ? "프로젝트 생성 중…" : "템플릿에서 프로젝트 생성"}
-            </button>
-          </div>
-        </form>
-      )}
+      </fieldset>
     </div>
-  );
+    {selectedTemplate ? <>
+      <div
+        className="template-selected-summary"
+        role="note">
+        <strong>선택한 템플릿: {selectedTemplate.name}
+        </strong>
+        {!filteredTemplates.some((item) => item.id === selectedTemplateId) ? <p>현재 검색 결과에 없는 템플릿입니다. 생성은 이 선택을 기준으로 진행합니다.</p> : null}
+      </div>
+      <form
+        className="project-form"
+        onSubmit={handleSubmit}
+        noValidate>
+        {error ? <div
+          ref={errorRef}
+          className="form-error"
+          role="alert"
+          tabIndex={-1}>
+          {error}
+        </div> : null}
+        <div
+          className="form-field">
+          <label htmlFor="inst-project-name">새 프로젝트 이름 *</label>
+          <input
+            id="inst-project-name" required
+            maxLength={200}
+            value={name}
+            onChange={(event) => { setName(event.target.value); clearFieldError("name"); }}
+            disabled={isSubmitting}
+            aria-invalid={Boolean(fieldErrors.name)}
+            aria-describedby={fieldErrors.name ? "inst-project-name-error" : undefined}
+          />
+          {fieldErrors.name ? <p
+            className="form-field-error"
+            id="inst-project-name-error">
+            {fieldErrors.name}
+          </p> : null}
+        </div>
+        <div
+          className="form-field">
+          <label htmlFor="inst-owner-name">소유자 / 담당자 *</label>
+          <input
+            id="inst-owner-name" required
+            maxLength={100}
+            placeholder="예: 홍길동 팀장"
+            value={ownerName}
+            onChange={(event) => { setOwnerName(event.target.value); clearFieldError("ownerName"); }}
+            disabled={isSubmitting}
+            aria-invalid={Boolean(fieldErrors.ownerName)}
+            aria-describedby={fieldErrors.ownerName ? "inst-owner-name-error" : undefined}
+          />
+          {fieldErrors.ownerName ? <p
+            className="form-field-error"
+            id="inst-owner-name-error">
+            {fieldErrors.ownerName}
+          </p> : null}
+        </div>
+        <div
+          className="form-field">
+          <label htmlFor="inst-start-date">프로젝트 시작일 (기준일) *</label>
+          <input
+            id="inst-start-date"
+            type="date" required
+            value={projectStartDate}
+            onChange={(event) => { setProjectStartDate(event.target.value); clearFieldError("projectStartDate"); }}
+            disabled={isSubmitting}
+            aria-invalid={Boolean(fieldErrors.projectStartDate)}
+            aria-describedby={`inst-date-help${fieldErrors.projectStartDate ? " inst-start-date-error" : ""}`}
+          />
+          <p
+            id="inst-date-help">선택한 기준일로 템플릿 프로젝트를 생성합니다.</p>
+          {fieldErrors.projectStartDate ? <p
+            className="form-field-error"
+            id="inst-start-date-error">
+            {fieldErrors.projectStartDate}
+          </p> : null}
+        </div>
+        <div
+          className="form-field">
+          <label htmlFor="inst-password">편집 비밀번호 *</label>
+          <input
+            id="inst-password"
+            type="password"
+            autoComplete="new-password" required
+            placeholder="1~12자"
+            value={editPassword}
+            onChange={(event) => { setEditPassword(event.target.value); clearFieldError("editPassword"); }}
+            disabled={isSubmitting}
+            aria-invalid={Boolean(fieldErrors.editPassword)}
+            aria-describedby={`inst-password-help${fieldErrors.editPassword ? " inst-password-error" : ""}`}
+          />
+          <p
+            id="inst-password-help">이후 프로젝트 일정을 편집할 때 사용할 비밀번호입니다. 1~12자로 입력해 주세요.</p>
+          {fieldErrors.editPassword ? <p
+            className="form-field-error"
+            id="inst-password-error">
+            {fieldErrors.editPassword}
+          </p> : null}
+        </div>
+        <div
+          className="form-field">
+          <label htmlFor="inst-desc">프로젝트 설명 (선택)</label>
+          <textarea
+            id="inst-desc"
+            rows={3}
+            maxLength={4000}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            disabled={isSubmitting}
+          />
+        </div>
+        <div
+          className="template-form-actions">
+          <button
+            type="button"
+            className="secondary-button"
+            disabled={isSubmitting}
+            onClick={() => router.back()}>취소</button>
+          <button
+            type="submit"
+            className="primary-button"
+            disabled={isSubmitting || !ready}>
+            {isSubmitting ? "프로젝트 생성 중…" : "템플릿에서 프로젝트 생성"}
+          </button>
+        </div>
+      </form>
+    </> : null}
+  </div>;
 }
