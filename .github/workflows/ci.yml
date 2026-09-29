@@ -433,7 +433,7 @@ jobs:
             echo "## Docker image size"
             echo
             printf -- '- Gate: `%s`\n' "$size_gate"
-            bash scripts/verify-image-size-reduction.sh mastergantt:baseline mastergantt:ci 0 --summary
+            bash scripts/verify-image-size-reduction.sh mastergantt:baseline mastergantt:ci 0 --summary-only
             echo
             echo "### Runtime artifact footprint"
             echo
