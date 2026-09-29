@@ -3,7 +3,7 @@ import { NewProjectTabs } from "@/features/projects/new-project-tabs";
 
 export default function NewProjectPage() {
   return (
-    <section className="page-section" aria-labelledby="new-project-heading">
+    <section className="page-section new-project-page" aria-labelledby="new-project-heading">
       <div className="page-heading">
         <p className="eyebrow">NEW PROJECT</p>
         <h1 id="new-project-heading">프로젝트 만들기</h1>

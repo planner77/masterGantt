@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.53.3] - 2026-09-29
+
+### Changed
+
+- Issue #282: `/projects/new`를 page-specific wide shell로 전환해 사이트 헤더 아래 불필요한 상단 여백과 75rem 본문 cap을 제거한다.
+- 빈 프로젝트와 템플릿 생성 폼을 desktop/tablet의 가용 수평 공간을 활용하는 responsive grid로 정돈하고, 704px 이하에서는 logical one-column flow로 reflow한다.
+- 320/390/768/1024/1440/1600px geometry E2E를 추가해 header spacing, wide form, multi-column/single-column 전환과 document overflow 부재를 검증한다.
+
 ## [0.53.2] - 2026-09-29
 
 ### Fixed
