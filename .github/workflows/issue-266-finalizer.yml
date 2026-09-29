@@ -1,0 +1,56 @@
+name: Issue 266 finalizer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/issue-266-finalizer.yml"
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  finalize:
+    name: Finalize and close Issue 266
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      FEATURE_PR: "273"
+      FINALIZER_BRANCH: ops/issue-266-finalize
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Resolve finalizer PR and safely remove finalizer branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY%%/*}"
+          finalizer_pr="$(
+            gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$FINALIZER_BRANCH&per_page=20" |
+              jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.merged_at != null and .merge_commit_sha == $sha)] | last | .number // empty'
+          )"
+          test -n "$finalizer_pr"
+          python3 scripts/safe_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "$finalizer_pr" \
+            --branch "$FINALIZER_BRANCH" \
+            --target-sha "$GITHUB_SHA" \
+            --delete
+
+      - name: Clean feature branch and close Issue 266
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/issue_lifecycle.py finalize \
+            --issue 266 \
+            --pr "$FEATURE_PR" \
+            --release-required false \
+            --release-authorized false \
+            --expected-version "" \
+            --authorization-note "User explicitly requested automatic finalize using the Issue #283 workflow pattern on 2026-09-29."
