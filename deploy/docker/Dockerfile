@@ -35,10 +35,9 @@ RUN groupadd --system --gid 1001 mastergantt \
     && mkdir /data \
     && chown mastergantt:mastergantt /data
 
-# Next.js output tracing이 선택한 production runtime dependency와 최소 server.js만 복사한다.
-# static asset은 standalone directory에 자동 포함되지 않으므로 별도로 복사한다.
+# Next.js output tracing이 선택한 production runtime dependency와 최소 server.js를 복사한다.
+# build script가 .next/static과 optional public/을 standalone directory 안에 미리 stage한다.
 COPY --from=build --chown=mastergantt:mastergantt /app/.next/standalone ./
-COPY --from=build --chown=mastergantt:mastergantt /app/.next/static ./.next/static
 
 # startup validation/migration은 build-time CommonJS artifact로 실행한다. 전체 src tree,
 # TypeScript source, tsx runtime, .next/cache는 최종 image에 포함하지 않는다.
