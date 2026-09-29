@@ -2,6 +2,7 @@ import { expect, test, type Page, type Request } from "@playwright/test";
 import type { ProjectDto, ProjectLinkDto, ProjectTaskDto, UpdateTaskRequest } from "../../src/contracts/projects";
 import { createWorkingCalendar } from "../../src/domain/scheduling/calendar";
 import { scheduleLeaf } from "../../src/domain/scheduling/leaf";
+import { normalizeTaskStatusProgress, taskStatusFromProgress } from "../../src/domain/task-status";
 import { chooseTaskInformation, taskContextMenu } from "./helpers/task-context-menu";
 
 const publicId = "a3405d3d-8cb4-4da4-9b0f-43a5de330004";
@@ -90,9 +91,16 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       const patch = request.postDataJSON() as UpdateTaskRequest;
       try {
         const calculated = scheduleLeaf({ type: entry.type, requestedStart: patch.start ?? entry.requestedStart ?? entry.start, duration: patch.duration ?? entry.duration, scheduleMode: entry.scheduleMode }, createWorkingCalendar(fixture.project.calendar));
+        const normalizedStatus = normalizeTaskStatusProgress({
+          currentStatus: entry.status ?? taskStatusFromProgress(entry.progress),
+          currentProgress: entry.progress,
+          status: patch.status,
+          progress: patch.progress,
+        });
         Object.assign(entry, {
           name: patch.name ?? entry.name,
-          progress: patch.progress ?? entry.progress,
+          progress: normalizedStatus.progress,
+          status: normalizedStatus.status,
           start: calculated.start,
           end: calculated.end,
           duration: calculated.duration,
@@ -344,6 +352,38 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(editor(page)).toHaveCount(0);
     expect(fixture.patches[2].postDataJSON()).toEqual({ name: "Edited together", start: "2026-09-18", duration: 3, progress: 36 });
     await expect(row(page, "Edited together")).toBeVisible();
+    await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
+  });
+
+  test("synchronizes status with progress and toggles the completed-name strike-through", async ({ page }) => {
+    const fixture = await setup(page);
+    const instance = await frame(page).getAttribute("data-project-gantt-instance");
+
+    await openRow(page);
+    const status = editor(page).getByLabel("상태", { exact: true });
+    const progress = editor(page).getByLabel("진행률 (%)", { exact: true });
+    await expect(status).toHaveValue("in_progress");
+    await progress.fill("100");
+    await expect(status).toHaveValue("completed");
+    await save(page).click();
+    await expect(editor(page)).toHaveCount(0);
+    expect(fixture.patches.at(-1)?.postDataJSON()).toEqual({ progress: 100, status: "completed" });
+    await expect(rowByTaskId(page, id(4))).toHaveAttribute("data-task-completed", "true");
+    expect(await rowByTaskId(page, id(4)).getByText("Beta leaf", { exact: true }).evaluate((element) => getComputedStyle(element).textDecorationLine))
+      .toContain("line-through");
+
+    await openRow(page);
+    await editor(page).getByLabel("상태", { exact: true }).selectOption("not_started");
+    await expect(editor(page).getByLabel("진행률 (%)", { exact: true })).toHaveValue("0");
+    await save(page).click();
+    expect(fixture.patches.at(-1)?.postDataJSON()).toEqual({ progress: 0, status: "not_started" });
+    await expect(rowByTaskId(page, id(4))).toHaveAttribute("data-task-completed", "false");
+
+    await openRow(page);
+    await editor(page).getByLabel("상태", { exact: true }).selectOption("completed");
+    await expect(editor(page).getByLabel("진행률 (%)", { exact: true })).toHaveValue("100");
+    await save(page).click();
+    expect(fixture.patches.at(-1)?.postDataJSON()).toEqual({ progress: 100, status: "completed" });
     await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
   });
 
