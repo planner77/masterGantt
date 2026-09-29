@@ -2,7 +2,7 @@
 
 ## Issue #283 standalone production runtime
 
-production container는 Next.js Output File Tracing의 `output: "standalone"` 산출물을 실행한다. build stage는 full dependency와 native build toolchain으로 application을 build하지만 final runtime stage에는 `.next/standalone`의 traced runtime dependency와 `.next/static`, `db/migrations`, build-time compiled startup JavaScript만 복사한다. 전체 production `node_modules`, 전체 `.next`, application `src`, `.next/cache`, TypeScript source/loader는 final image에 복사하지 않는다.
+production container는 Next.js Output File Tracing의 `output: "standalone"` 산출물을 실행한다. build stage는 full dependency와 native build toolchain으로 application을 build한 뒤 `scripts/prepare-standalone-runtime.mjs`가 `.next/static`과 optional `public/`을 `.next/standalone` tree에 stage한다. final runtime stage에는 이 prepared standalone tree, `db/migrations`, build-time compiled startup JavaScript만 복사한다. 전체 production `node_modules`, 전체 `.next`, application `src`, `.next/cache`, TypeScript source/loader는 final image에 복사하지 않는다.
 
 startup 순서는 기존 fail-fast 계약을 유지한다.
 
@@ -12,7 +12,7 @@ compiled runtime config validation
 → node server.js
 ```
 
-startup 도구는 `tsconfig.runtime-tools.json`으로 build stage에서 CommonJS JavaScript로 컴파일한다. repository의 `npm run db:migrate`는 source checkout에서의 개발·관리용 CLI로 `devDependency`인 `tsx`를 사용하지만, production dependency/runtime 계약에는 `tsx`가 없다. container는 compiled JavaScript만 실행하며 final image의 `/app/node_modules/tsx` 부재는 image policy에서 검증한다.
+startup 도구는 `tsconfig.runtime-tools.json`으로 build stage에서 CommonJS JavaScript로 컴파일한다. repository의 `npm run db:migrate`는 source checkout에서의 개발·관리용 CLI로 `devDependency`인 `tsx`를 사용하지만, production dependency/runtime 계약에는 `tsx`가 없다. source production 확인용 `npm run start`는 `scripts/start-standalone.mjs`가 prepared standalone tree를 실행하며 `--hostname`/`--port` 인자를 유지한다. container는 compiled startup JavaScript와 root `server.js`만 실행하며 final image의 `/app/node_modules/tsx` 부재는 image policy에서 검증한다.
 
 base image digest, Debian/glibc 계열, numeric UID/GID 1001:1001, `/data` volume, healthcheck, single-instance SQLite/WAL 계약은 변경하지 않는다. `better-sqlite3`는 standalone trace에 포함된 native addon을 사용하며 PR Docker smoke에서 실제 load/write/restart persistence로 검증한다. Alpine/musl·distroless 전환은 이 변경의 범위가 아니다.
 
