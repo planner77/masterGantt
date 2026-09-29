@@ -1,5 +1,9 @@
 # Test Plan
 
+## Issue #268 리소스 관리 초안·오류 복구
+
+Resource/Group POST 실패와 성공을 구분해 실패 초안 보존·성공한 폼만 초기화를 검사한다. 지연/실패 새로고침에서 mutation 0회와 명시적 재조회, 401 재로그인 뒤 일반 초안 보존, 412 최신 revision GET 후 명시적 저장의 새 If-Match를 확인한다. 구성원 선택·검색은 재조회와 다른 폼 성공 뒤 유지하고, 사라진 선택 그룹 저장은 차단한다. 인증/비밀번호 변경 네트워크 실패에도 비밀번호를 지우고 성공 status와 오류를 구분한다. 390/768/1024/1440px 오류·긴 이름·keyboard/overflow를 검증하며 API/서버 권한 전체 회귀는 PR CI로 구분한다.
+
 ## Issue #282 프로젝트 생성 Wide / Responsive Layout
 
 - `tests/e2e/project-create-layout.spec.ts`는 320/390/768/1024/1440/1600px에서 `/projects/new`의 site-header→NEW PROJECT 간격, main/form 실제 폭, blank/template field의 같은 행 배치 또는 narrow 단일열 reflow, document-level horizontal overflow 부재를 geometry로 검증한다.

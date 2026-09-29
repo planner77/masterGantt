@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import type {
   ResourceCatalogResponse,
@@ -15,8 +15,14 @@ function isCatalog(value: unknown): value is ResourceCatalogResponse {
   if (!value || typeof value !== "object" || !("data" in value)) return false;
   const data = value.data;
   return !!data && typeof data === "object" && "revision" in data &&
-    typeof data.revision === "number" && "resources" in data && Array.isArray(data.resources) &&
-    "groups" in data && Array.isArray(data.groups);
+    typeof data.revision === "number" && Number.isSafeInteger(data.revision) && data.revision >= 1 &&
+    "resources" in data && Array.isArray(data.resources) &&
+    "groups" in data && Array.isArray(data.groups) &&
+    [...data.resources, ...data.groups].every((item) => item && typeof item === "object" &&
+      typeof item.id === "string" && typeof item.name === "string" &&
+      (item.code === null || typeof item.code === "string") && typeof item.active === "boolean") &&
+    data.groups.every((group) => Array.isArray(group.memberResourceIds) &&
+      group.memberResourceIds.every((id: unknown) => typeof id === "string"));
 }
 
 function revisionTag(revision: number): string {
@@ -25,6 +31,13 @@ function revisionTag(revision: number): string {
 
 export function ResourceCatalogAdmin() {
   const [catalog, setCatalog] = useState<ResourceCatalogResponse | null>(null);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [catalogState, setCatalogState] = useState<"loading" | "ready" | "error">("error");
+  const [notice, setNotice] = useState<string | null>(null);
+  const pending = useRef(false);
+  const request = useRef<AbortController | null>(null);
+  const loginInput = useRef<HTMLInputElement | null>(null);
+  const restoreLoginFocus = useRef(false);
   const [password, setPassword] = useState("");
   const [newAdminPassword, setNewAdminPassword] = useState("");
   const [confirmAdminPassword, setConfirmAdminPassword] = useState("");
@@ -36,6 +49,7 @@ export function ResourceCatalogAdmin() {
   const [groupName, setGroupName] = useState("");
   const [groupCode, setGroupCode] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+  const [selectedGroupSnapshot, setSelectedGroupSnapshot] = useState<ResourceGroupDto | null>(null);
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [resourceQuery, setResourceQuery] = useState("");
   const [groupQuery, setGroupQuery] = useState("");
@@ -43,43 +57,113 @@ export function ResourceCatalogAdmin() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadCatalog(): Promise<ResourceCatalogResponse | null> {
-    const response = await fetch("/api/resources", { credentials: "same-origin", cache: "no-store" });
-    const body: unknown = await response.json().catch(() => null);
-    if (!response.ok || !isCatalog(body)) return null;
-    setCatalog(body);
-    return body;
+  useEffect(() => () => request.current?.abort(), []);
+  useEffect(() => {
+    if (!authenticated && !busy && restoreLoginFocus.current) {
+      loginInput.current?.focus();
+      restoreLoginFocus.current = false;
+    }
+  }, [authenticated, busy]);
+
+  function clearPasswords() {
+    setPassword(""); setNewAdminPassword(""); setConfirmAdminPassword("");
+  }
+
+  function expireSession() {
+    restoreLoginFocus.current = true;
+    setAuthenticated(false);
+    setCatalogState("error");
+    clearPasswords();
+    setError("관리자 세션이 만료되었습니다. 다시 로그인해 주세요.");
+  }
+
+  function beginRequest() {
+    if (pending.current) return null;
+    pending.current = true;
+    const controller = new AbortController();
+    request.current = controller;
+    setBusy(true); setError(null); setNotice(null);
+    return controller;
+  }
+
+  function finishRequest(controller: AbortController) {
+    if (controller.signal.aborted) return;
+    pending.current = false;
+    setBusy(false);
+  }
+
+  async function loadCatalog(controller: AbortController): Promise<boolean> {
+    setCatalogState("loading");
+    try {
+      const response = await fetch("/api/resources", {
+        credentials: "same-origin", cache: "no-store", signal: controller.signal,
+      });
+      const body: unknown = await response.json().catch(() => null);
+      if (controller.signal.aborted) return false;
+      if (response.status === 401) { expireSession(); return false; }
+      if (!response.ok || !isCatalog(body)) {
+        setCatalogState("error");
+        setError("최신 목록을 확인하지 못했습니다. 목록을 다시 불러온 후 변경해 주세요.");
+        return false;
+      }
+      setCatalog(body);
+      setCatalogState("ready");
+      return true;
+    } catch {
+      if (!controller.signal.aborted) {
+        setCatalogState("error");
+        setError("목록에 연결할 수 없습니다. 다시 시도해 주세요.");
+      }
+      return false;
+    }
+  }
+
+  async function refreshCatalog() {
+    if (!authenticated) return;
+    const controller = beginRequest();
+    if (!controller) return;
+    try { await loadCatalog(controller); }
+    finally { finishRequest(controller); }
   }
 
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
-    setBusy(true); setError(null);
+    const controller = beginRequest();
+    if (!controller) return;
+    const submittedPassword = password;
+    setPassword("");
     try {
       const response = await fetch("/api/resource-catalog/admin-sessions", {
         method: "POST",
         credentials: "same-origin",
+        signal: controller.signal,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password: submittedPassword }),
       });
-      setPassword("");
-      if (!response.ok || !(await loadCatalog())) {
+      if (controller.signal.aborted) return;
+      if (!response.ok) {
         setError("리소스 관리자 인증에 실패했습니다. 비밀번호와 서버 설정을 확인해 주세요.");
+        return;
       }
+      setAuthenticated(true);
+      await loadCatalog(controller);
     } catch {
-      setError("리소스 카탈로그에 연결할 수 없습니다.");
+      if (!controller.signal.aborted) setError("리소스 카탈로그에 연결할 수 없습니다.");
     } finally {
-      setBusy(false);
+      setPassword("");
+      finishRequest(controller);
     }
   }
 
-  async function mutate(url: string, method: "POST" | "PATCH" | "PUT", body: unknown) {
-    if (!catalog || busy) return;
-    setBusy(true); setError(null);
+  async function mutate(url: string, method: "POST" | "PATCH" | "PUT", body: unknown): Promise<boolean> {
+    if (!authenticated || !catalog || catalogState !== "ready") return false;
+    const controller = beginRequest();
+    if (!controller) return false;
     try {
       const response = await fetch(url, {
         method,
         credentials: "same-origin",
+        signal: controller.signal,
         headers: {
           "Content-Type": "application/json",
           "If-Match": revisionTag(catalog.data.revision),
@@ -87,47 +171,63 @@ export function ResourceCatalogAdmin() {
         body: JSON.stringify(body),
       });
       const value: unknown = await response.json().catch(() => null);
+      if (controller.signal.aborted) return false;
       if (response.status === 401) {
-        setCatalog(null);
-        setError("관리자 세션이 만료되었습니다. 다시 로그인해 주세요.");
-        return;
+        expireSession();
+        return false;
       }
       if (response.status === 412) {
-        const latest = await loadCatalog();
-        setError(latest ? "다른 관리 변경이 먼저 저장되었습니다. 최신 목록을 다시 불러왔습니다." : "목록이 변경되었습니다. 다시 로그인해 주세요.");
-        return;
+        const latest = await loadCatalog(controller);
+        if (latest) setError("다른 관리 변경이 먼저 저장되었습니다. 최신 목록을 불러왔습니다. 초안을 확인한 후 다시 저장해 주세요.");
+        return false;
       }
       if (!response.ok || !isCatalog(value)) {
-        setError("변경사항을 저장하지 못했습니다. 입력값과 중복 코드를 확인해 주세요.");
-        return;
+        if (response.ok || response.status >= 500) {
+          setCatalogState("error");
+          setError("저장 결과를 확인하지 못했습니다. 목록을 다시 확인한 후 저장해 주세요.");
+        } else {
+          setError("변경사항을 저장하지 못했습니다. 입력값과 중복 코드를 확인해 주세요.");
+        }
+        return false;
       }
       setCatalog(value);
+      setCatalogState("ready");
+      setNotice("변경사항을 저장했습니다.");
+      return true;
     } catch {
-      setError("변경 결과를 확인할 수 없습니다. 목록을 다시 확인해 주세요.");
+      if (!controller.signal.aborted) {
+        setCatalogState("error");
+        setError("변경 결과를 확인할 수 없습니다. 목록을 다시 확인한 후 저장해 주세요.");
+      }
+      return false;
     } finally {
-      setBusy(false);
+      finishRequest(controller);
     }
   }
 
   async function changePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
+    if (!authenticated || pending.current) return;
     const length = Array.from(newAdminPassword).length;
     if (length < 1 || length > 12 || newAdminPassword !== confirmAdminPassword) {
+      setNotice(null);
       setDialogError("새 관리자 비밀번호는 1~12자이며 확인 값이 일치해야 합니다.");
       return;
     }
-    setBusy(true); setDialogError(null);
+    setDialogError(null);
+    const controller = beginRequest();
+    if (!controller) return;
+    const body = { newPassword: newAdminPassword, confirmPassword: confirmAdminPassword };
+    setNewAdminPassword(""); setConfirmAdminPassword("");
     try {
       const response = await fetch("/api/resource-catalog/admin-password", {
-        method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newPassword: newAdminPassword, confirmPassword: confirmAdminPassword }),
+        method: "PUT", credentials: "same-origin", signal: controller.signal,
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
       });
-      setNewAdminPassword(""); setConfirmAdminPassword("");
+      if (controller.signal.aborted) return;
       if (response.status === 401) {
         setPasswordDialogOpen(false);
-        setCatalog(null);
-        setError("관리자 세션이 만료되었습니다. 다시 로그인해 주세요.");
+        expireSession();
         return;
       }
       if (!response.ok) {
@@ -135,11 +235,12 @@ export function ResourceCatalogAdmin() {
         return;
       }
       setPasswordDialogOpen(false);
-      setError("관리자 비밀번호를 변경했습니다.");
+      setNotice("관리자 비밀번호를 변경했습니다.");
     } catch {
-      setDialogError("비밀번호 변경 결과를 확인할 수 없습니다.");
+      if (!controller.signal.aborted) setDialogError("비밀번호 변경 결과를 확인할 수 없습니다.");
     } finally {
-      setBusy(false);
+      setNewAdminPassword(""); setConfirmAdminPassword("");
+      finishRequest(controller);
     }
   }
 
@@ -148,8 +249,9 @@ export function ResourceCatalogAdmin() {
     const name = resourceName.trim();
     const code = resourceCode.trim();
     if (!name) return;
-    await mutate("/api/resources", "POST", { name, code: code || null });
-    setResourceName(""); setResourceCode("");
+    if (await mutate("/api/resources", "POST", { name, code: code || null })) {
+      setResourceName(""); setResourceCode("");
+    }
   }
 
   async function addGroup(event: FormEvent<HTMLFormElement>) {
@@ -157,24 +259,28 @@ export function ResourceCatalogAdmin() {
     const name = groupName.trim();
     const code = groupCode.trim();
     if (!name) return;
-    await mutate("/api/resource-groups", "POST", { name, code: code || null });
-    setGroupName(""); setGroupCode("");
+    if (await mutate("/api/resource-groups", "POST", { name, code: code || null })) {
+      setGroupName(""); setGroupCode("");
+    }
   }
 
   function selectGroup(group: ResourceGroupDto) {
+    if (pending.current || catalogState !== "ready") return;
     setSelectedGroupId(group.id);
+    setSelectedGroupSnapshot(group);
     setSelectedMembers(new Set(group.memberResourceIds));
     setMemberQuery("");
   }
 
   async function saveMembers() {
-    if (!selectedGroupId) return;
+    if (!selectedGroupId || !catalog?.data.groups.some((group) => group.id === selectedGroupId)) return;
     await mutate(`/api/resource-groups/${encodeURIComponent(selectedGroupId)}/members`, "PUT", {
       resourceIds: [...selectedMembers],
     });
   }
 
   function toggleMember(id: string) {
+    if (pending.current || catalogState !== "ready") return;
     setSelectedMembers((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -183,28 +289,52 @@ export function ResourceCatalogAdmin() {
   }
 
   async function logout() {
-    if (busy) return;
-    setBusy(true); setError(null);
+    const controller = beginRequest();
+    if (!controller) return;
     try {
-      await fetch("/api/resource-catalog/admin-sessions", { method: "DELETE", credentials: "same-origin" });
+      const response = await fetch("/api/resource-catalog/admin-sessions", {
+        method: "DELETE", credentials: "same-origin", signal: controller.signal,
+      });
+      if (!response.ok) setError("서버 로그아웃을 확인하지 못했습니다. 관리 화면을 잠갔습니다.");
+    } catch {
+      if (!controller.signal.aborted) setError("서버 로그아웃을 확인하지 못했습니다. 관리 화면을 잠갔습니다.");
     } finally {
-      setCatalog(null); setSelectedGroupId(""); setSelectedMembers(new Set()); setBusy(false);
+      if (!controller.signal.aborted) {
+        setAuthenticated(false); setCatalogState("error"); clearPasswords();
+        setCatalog(null); setSelectedGroupId(""); setSelectedGroupSnapshot(null);
+        setSelectedMembers(new Set()); finishRequest(controller);
+      }
     }
   }
 
-  if (!catalog) {
+  if (!authenticated) {
     return <form className={styles.login} onSubmit={(event) => void login(event)}>
       <h2>관리자 로그인</h2>
       <p className={styles.note}>프로젝트 편집 비밀번호와 별도의 글로벌 리소스 관리자 권한이 필요합니다.</p>
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
       <label className={styles.field}>관리자 비밀번호
-        <input type="password" autoComplete="current-password" value={password} disabled={busy} onChange={(event) => setPassword(event.target.value)} />
+        <input ref={loginInput} type="password" autoComplete="current-password" value={password} disabled={busy} onChange={(event) => setPassword(event.target.value)} />
       </label>
       <div className={styles.actions}><button className="primary-button" type="submit" disabled={busy || password.length < 1}>{busy ? "확인 중…" : "로그인"}</button></div>
     </form>;
   }
 
-  const selectedGroup = catalog.data.groups.find((group) => group.id === selectedGroupId) ?? null;
+  if (!catalog) {
+    return <div className={styles.panel}>
+      {catalogState === "loading" ? <p className={styles.note} role="status">최신 목록을 불러오는 중…</p> : null}
+      {error ? <p className={styles.error} role="alert">{error}</p> : null}
+      <div className={styles.actions}>
+        <button className="secondary-button" type="button" disabled={busy} onClick={() => void refreshCatalog()}>다시 시도</button>
+        <button className="secondary-button" type="button" disabled={busy} onClick={() => void logout()}>로그아웃</button>
+      </div>
+    </div>;
+  }
+
+  const currentGroup = catalog.data.groups.find((group) => group.id === selectedGroupId) ?? null;
+  const selectedGroup = currentGroup ?? selectedGroupSnapshot;
+  const membersDiffer = currentGroup && (currentGroup.memberResourceIds.length !== selectedMembers.size ||
+    currentGroup.memberResourceIds.some((id) => !selectedMembers.has(id)));
+  const locked = busy || catalogState !== "ready";
   const filteredResources = filterResources(catalog.data.resources, resourceQuery);
   const filteredGroups = filterGroups(catalog.data.groups, groupQuery);
   const filteredMemberResources = filterResources(catalog.data.resources, memberQuery);
@@ -221,10 +351,12 @@ export function ResourceCatalogAdmin() {
         >
           관리자 비밀번호 변경
         </button>
-        <button className="secondary-button" type="button" disabled={busy} onClick={() => void loadCatalog()}>새로고침</button>
+        <button className="secondary-button" type="button" disabled={busy} onClick={() => void refreshCatalog()}>{catalogState === "error" ? "다시 시도" : "새로고침"}</button>
         <button className="secondary-button" type="button" disabled={busy} onClick={() => void logout()}>로그아웃</button>
       </div>
       {error ? <p className={styles.error} role="alert">{error}</p> : null}
+      {notice ? <p className={styles.note} role="status">{notice}</p> : null}
+      {catalogState !== "ready" ? <p className={styles.note} role="status">{catalogState === "loading" ? "최신 목록을 불러오는 중… 이전 조회 결과를 표시합니다." : "이전 조회 결과입니다. 최신 목록을 확인하기 전에는 변경할 수 없습니다."}</p> : null}
     </div>
 
     <div className={styles.columns}>
@@ -244,9 +376,9 @@ export function ResourceCatalogAdmin() {
           </span>
         </div>
         <form className={styles.formRow} onSubmit={(event) => void addResource(event)}>
-          <label>이름<input value={resourceName} maxLength={200} disabled={busy} onChange={(event) => setResourceName(event.target.value)} /></label>
-          <label>코드<input value={resourceCode} maxLength={64} disabled={busy} onChange={(event) => setResourceCode(event.target.value)} /></label>
-          <button className="primary-button" type="submit" disabled={busy || !resourceName.trim()}>추가</button>
+          <label>이름<input value={resourceName} maxLength={200} disabled={locked} onChange={(event) => setResourceName(event.target.value)} /></label>
+          <label>코드<input value={resourceCode} maxLength={64} disabled={locked} onChange={(event) => setResourceCode(event.target.value)} /></label>
+          <button className="primary-button" type="submit" disabled={locked || !resourceName.trim()}>추가</button>
         </form>
         {catalog.data.resources.length === 0 ? (
           <p className={styles.emptyState}>등록된 리소스가 없습니다.</p>
@@ -256,7 +388,7 @@ export function ResourceCatalogAdmin() {
           <ul className={styles.list}>
             {filteredResources.map((resource: ResourceDto) => <li key={resource.id} className={`${styles.item} ${resource.active ? "" : styles.inactive}`}>
               <div><strong>{resource.name}</strong><div className={styles.meta}><span>{resource.code ?? "코드 없음"}</span><span className={styles.badge}>{resource.active ? "활성" : "비활성"}</span></div></div>
-              <button className="secondary-button" type="button" disabled={busy} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
+              <button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
             </li>)}
           </ul>
         )}
@@ -278,9 +410,9 @@ export function ResourceCatalogAdmin() {
           </span>
         </div>
         <form className={styles.formRow} onSubmit={(event) => void addGroup(event)}>
-          <label>이름<input value={groupName} maxLength={200} disabled={busy} onChange={(event) => setGroupName(event.target.value)} /></label>
-          <label>코드<input value={groupCode} maxLength={64} disabled={busy} onChange={(event) => setGroupCode(event.target.value)} /></label>
-          <button className="primary-button" type="submit" disabled={busy || !groupName.trim()}>추가</button>
+          <label>이름<input value={groupName} maxLength={200} disabled={locked} onChange={(event) => setGroupName(event.target.value)} /></label>
+          <label>코드<input value={groupCode} maxLength={64} disabled={locked} onChange={(event) => setGroupCode(event.target.value)} /></label>
+          <button className="primary-button" type="submit" disabled={locked || !groupName.trim()}>추가</button>
         </form>
         {catalog.data.groups.length === 0 ? (
           <p className={styles.emptyState}>등록된 리소스 그룹이 없습니다.</p>
@@ -290,7 +422,7 @@ export function ResourceCatalogAdmin() {
           <ul className={styles.list}>
             {filteredGroups.map((group: ResourceGroupDto) => <li key={group.id} className={`${styles.item} ${group.active ? "" : styles.inactive}`}>
               <div><strong>{group.name}</strong><div className={styles.meta}><span>{group.code ?? "코드 없음"}</span><span>구성원 {group.memberResourceIds.length}명</span><span className={styles.badge}>{group.active ? "활성" : "비활성"}</span></div></div>
-              <div className={styles.actions}><button className="secondary-button" type="button" disabled={busy} onClick={() => selectGroup(group)}>구성원</button><button className="secondary-button" type="button" disabled={busy} onClick={() => void mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", { active: !group.active })}>{group.active ? "비활성화" : "재활성화"}</button></div>
+              <div className={styles.actions}><button className="secondary-button" type="button" disabled={locked} onClick={() => selectGroup(group)}>구성원</button><button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", { active: !group.active })}>{group.active ? "비활성화" : "재활성화"}</button></div>
             </li>)}
           </ul>
         )}
@@ -299,6 +431,8 @@ export function ResourceCatalogAdmin() {
 
     {selectedGroup ? <section className={styles.members} aria-labelledby="members-title">
       <h2 id="members-title">{selectedGroup.name} 구성원</h2>
+      {!currentGroup ? <p className={styles.error} role="alert">선택한 그룹이 최신 목록에 없습니다. 구성원 초안을 보존했으며 저장할 수 없습니다.</p> : null}
+      {membersDiffer ? <p className={styles.note}>저장된 구성원과 현재 선택이 다릅니다. 목록을 확인한 후 구성원을 저장해 주세요.</p> : null}
       <p className={styles.note}>그룹 구성원은 팀 목록이며, 작업의 그룹 할당을 개인 할당으로 자동 복제하지 않습니다.</p>
       <div className={styles.searchBar}>
         <input
@@ -319,12 +453,12 @@ export function ResourceCatalogAdmin() {
         <p className={styles.emptyState}>검색 조건과 일치하는 리소스가 없습니다.</p>
       ) : (
         <div className={styles.memberGrid}>
-          {filteredMemberResources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input type="checkbox" checked={selectedMembers.has(resource.id)} disabled={busy} onChange={() => toggleMember(resource.id)} />{resource.name}{resource.code ? ` (${resource.code})` : ""}</label>)}
+          {filteredMemberResources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input type="checkbox" checked={selectedMembers.has(resource.id)} disabled={locked || !currentGroup} onChange={() => toggleMember(resource.id)} />{resource.name}{resource.code ? ` (${resource.code})` : ""}</label>)}
         </div>
       )}
       <div className={styles.memberFooterActions}>
-        <button className="secondary-button" type="button" disabled={busy} onClick={() => { setSelectedGroupId(""); setSelectedMembers(new Set()); setMemberQuery(""); }}>닫기</button>
-        <button className="primary-button" type="button" disabled={busy} onClick={() => void saveMembers()}>구성원 저장</button>
+        <button className="secondary-button" type="button" disabled={busy} onClick={() => { setSelectedGroupId(""); setSelectedGroupSnapshot(null); setSelectedMembers(new Set()); setMemberQuery(""); }}>닫기</button>
+        <button className="primary-button" type="button" disabled={locked || !currentGroup} onClick={() => void saveMembers()}>구성원 저장</button>
       </div>
     </section> : null}
     {passwordDialogOpen ? (
@@ -366,6 +500,5 @@ export function ResourceCatalogAdmin() {
         </form>
       </WorkspaceDialog>
     ) : null}
-
   </div>;
 }
