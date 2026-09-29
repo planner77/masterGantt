@@ -1,5 +1,18 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #282 프로젝트 만들기 Wide / Responsive Form 계약
+
+`/projects/new`는 일반 문서형 화면의 75rem cap 대신 Project List/Workspace와 같은 page-specific wide shell을 사용한다. 사이트 헤더 아래 전역 `clamp(2.25rem, 6vw, 5rem)` 상단 padding을 그대로 적용하지 않고, 생성 작업을 바로 시작할 수 있는 compact top gutter를 사용한다. Heading의 읽기 폭과 form/content의 작업 폭은 분리하며 tab underline, blank form, template selection/form은 같은 좌측 정렬과 가용 폭을 공유한다.
+
+공통 `.project-form` 계약은 변경하지 않는다. Project Create 내부에서만 다음 responsive grid를 적용한다.
+
+- Wide desktop: blank form은 프로젝트명/소유자를 같은 행에 두고 설명을 넓게, 상태/비밀번호를 compact column으로 배치한다. Template instantiate form은 이름/소유자/기준일/비밀번호를 한 행의 content-aware span으로 배치하고 설명과 오류/action은 전체 폭을 사용한다.
+- 768~1024px: 두 열 중심으로 reflow하며 blank form의 설명과 template 설명은 전체 폭을 사용한다.
+- 704px 이하: logical DOM/tab order를 유지한 한 열 stack으로 전환한다. Submit/action은 좁은 화면에서 가용 폭을 사용한다.
+- 320/390/768/1024/1440/1600px에서 document-level horizontal overflow가 없어야 하며, label/error/helper text와 focus-visible이 clipping되지 않아야 한다.
+
+기존 빈 프로젝트/템플릿 생성 API, validation, edit password 보안, draft 보존, tab WAI-ARIA/Arrow/Home/End, template relative schedule 계산과 성공 후 navigation 계약은 변경하지 않는다. Layout 검증은 `tests/e2e/project-create-layout.spec.ts`의 geometry assertion으로 수행하고 기존 생성/초안/템플릿 E2E와 함께 회귀 검증한다.
+
 ## Issue #267 물류 대시보드 조회·탭 상태
 
 조건 변경이나 새로고침 중에는 이전 KPI와 작업 이동을 현재 결과처럼 사용하지 않는다. 최신 조건·revision 조회 성공 후에만 결과를 표시하며 실패 시 오류와 재시도를 제공한다. 임박 기간은 1~90 정수만 조회하고 잘못된 입력은 필드에 안내한다. 공정·설비·시스템 세부 현황의 탭 의미와 방향키/Home/End 탐색을 제공한다. 기준일의 서버 timezone 의미와 Gantt 상태 보존은 [대시보드 계약](LOGISTICS_DASHBOARD.md)을 따른다.

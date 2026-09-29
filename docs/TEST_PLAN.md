@@ -1,5 +1,13 @@
 # Test Plan
 
+## Issue #282 프로젝트 생성 Wide / Responsive Layout
+
+- `tests/e2e/project-create-layout.spec.ts`는 320/390/768/1024/1440/1600px에서 `/projects/new`의 site-header→NEW PROJECT 간격, main/form 실제 폭, blank/template field의 같은 행 배치 또는 narrow 단일열 reflow, document-level horizontal overflow 부재를 geometry로 검증한다.
+- 1440/1600px에서는 main과 blank form이 기존 75rem/42rem cap에 갇히지 않는 것을 실제 bounding box 폭으로 확인한다.
+- 768/1024px에서는 blank와 template form이 2열을 사용하고 320/390px에서는 DOM/tab order와 일치하는 단일열 순서를 확인한다.
+- 기존 `project-create-and-read.spec.ts`, `new-project-draft-preservation.spec.ts`, `template-picker-ux.spec.ts`, `skip-link.spec.ts`를 그대로 유지하여 생성 validation/API, 초안 보존, template 선택/오류, tab/skip-navigation 접근성 회귀를 PR 전체 E2E에서 함께 검증한다.
+- API/DB/Scheduling/Security 계약은 변경하지 않으므로 해당 계층의 신규 계약 테스트는 N/A다.
+
 ## Issue #267 대시보드 조건·응답·탭 정합성
 
 지연/실패/응답 역전 mock으로 조건 변경 시 이전 KPI·drill-down 차단, 최신 요청만 반영, HTTP·네트워크·잘못된 응답의 명시적 재시도를 검사한다. 최초 서버 기준일 표시가 불필요한 추가 GET을 만들지 않는지, 빈 값/0/91/소수 기간은 GET 없이 필드 오류를 제공하는지 확인한다. 세부 탭의 aria 연결·roving Tab·방향키/Home/End와 정상 작업 이동의 Gantt identity를 검증한다. 390/768/1024/1440px에서 빈 결과·오류·긴 이름 및 문서 overflow를 확인한다. KPI 알고리즘·API 전체 회귀는 기존 테스트와 PR CI로 구분한다.

@@ -2269,3 +2269,156 @@ h2 {
 .template-card-header input, .template-card-header .badge { flex-shrink: 0; }
 .template-search-box .search-input:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
 .template-card-description { display: block; }
+
+/* Issue #282: Project Create is a dense working form, not a narrow marketing form. */
+.main-content:has(> .new-project-page) {
+  width: calc(100% - 3rem);
+  padding-block: 0.75rem 2.5rem;
+}
+
+.new-project-page {
+  min-width: 0;
+  gap: 1.5rem;
+}
+
+.new-project-page > .page-heading {
+  max-width: 48rem;
+}
+
+.new-project-page .new-project-container,
+.new-project-page #panel-blank,
+.new-project-page #panel-template,
+.new-project-page .template-instantiate-container,
+.new-project-page .template-selection-section {
+  min-width: 0;
+  width: 100%;
+}
+
+.new-project-page #panel-blank > .project-form,
+.new-project-page .template-instantiate-container > .project-form {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: start;
+  column-gap: clamp(0.875rem, 1.5vw, 1.5rem);
+}
+
+.new-project-page #panel-blank > .project-form > .form-field:has(> #project-name) {
+  grid-column: span 7;
+}
+
+.new-project-page #panel-blank > .project-form > .form-field:has(> #project-owner) {
+  grid-column: span 5;
+}
+
+.new-project-page #panel-blank > .project-form > .form-field:has(> #project-description) {
+  grid-column: span 8;
+  grid-row: span 2;
+}
+
+.new-project-page #panel-blank > .project-form > .form-field:has(> #project-status),
+.new-project-page #panel-blank > .project-form > .form-field:has(> #project-edit-password) {
+  grid-column: span 4;
+}
+
+.new-project-page #panel-blank > .project-form > .form-error,
+.new-project-page #panel-blank > .project-form > .primary-button,
+.new-project-page .template-instantiate-container > .project-form > .form-error,
+.new-project-page .template-instantiate-container > .project-form > .template-form-actions {
+  grid-column: 1 / -1;
+}
+
+.new-project-page #panel-blank > .project-form > .primary-button {
+  justify-self: end;
+}
+
+.new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-project-name) {
+  grid-column: span 4;
+}
+
+.new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-owner-name) {
+  grid-column: span 3;
+}
+
+.new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-start-date) {
+  grid-column: span 2;
+}
+
+.new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-password) {
+  grid-column: span 3;
+}
+
+.new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-desc) {
+  grid-column: 1 / -1;
+}
+
+.new-project-page .template-form-actions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 64rem) {
+  .new-project-page #panel-blank > .project-form,
+  .new-project-page .template-instantiate-container > .project-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-name),
+  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-owner),
+  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-status),
+  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-edit-password),
+  .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-project-name),
+  .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-owner-name),
+  .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-start-date),
+  .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-password) {
+    grid-column: span 1;
+    grid-row: auto;
+  }
+
+  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-description),
+  .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-desc) {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+}
+
+@media (max-width: 44rem) {
+  .main-content:has(> .new-project-page) {
+    width: calc(100% - 2rem);
+    padding-top: 0.75rem;
+  }
+
+  .new-project-page #panel-blank > .project-form,
+  .new-project-page .template-instantiate-container > .project-form {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 1rem;
+  }
+
+  .new-project-page #panel-blank > .project-form > .form-field,
+  .new-project-page .template-instantiate-container > .project-form > .form-field,
+  .new-project-page #panel-blank > .project-form > .form-error,
+  .new-project-page #panel-blank > .project-form > .primary-button,
+  .new-project-page .template-instantiate-container > .project-form > .form-error,
+  .new-project-page .template-instantiate-container > .project-form > .template-form-actions {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .new-project-page #panel-blank > .project-form > .primary-button {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .new-project-page .template-form-actions {
+    justify-content: stretch;
+  }
+
+  .new-project-page .template-form-actions > button {
+    flex: 1 1 12rem;
+  }
+}
+
+@media (max-width: 25rem) {
+  .main-content:has(> .new-project-page) {
+    width: calc(100% - 1.5rem);
+  }
+}
