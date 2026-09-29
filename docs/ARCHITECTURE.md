@@ -150,3 +150,10 @@ Issue #83에서 도입한 Task/Resource view filter와 Project List filter는 UI
 ### Project status client mutation 경계 (#177)
 
 Project-level status 변경은 새 서버 endpoint나 DB 계층을 만들지 않고 기존 metadata PATCH를 재사용한다. `src/features/projects/project-status-mutation.ts`가 List와 Workspace의 공통 client transport 경계를 담당하여 최신 status/revision 조회, current edit-session 확인, unlock 호출, status-only PATCH 및 canonical metadata mutation 판별을 한 곳에 둔다. 인증 dialog와 UI state ownership은 각 화면에 남겨 List의 password-on-demand 흐름과 Workspace의 기존 edit mode를 억지로 합치지 않는다. 412 복구는 canonical snapshot을 다시 적용하고 Gantt reset generation을 변경하지 않아 Project metadata 변경과 SVAR instance lifecycle을 분리한다.
+
+
+## Issue #289 — Project master data boundary
+
+Project classification metadata is application-owned global master data, not SVAR task data. The flow is `Project form/admin UI → project-master Route Handler → ProjectMasterService → ProjectMasterRepository → SQLite`. Project aggregate services resolve stable master public IDs and persist internal FK references inside the same transaction as create/update/copy/template operations.
+
+Project-master administrator authentication is a separate authorization boundary from Project edit sessions. The Gantt/Scheduling Domain receives no new responsibility from these fields; project master selection changes must not remount or mutate the SVAR schedule model.
