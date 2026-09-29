@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { useId, useMemo, useRef, useState } from "react";
 import type { DependencyType, ProjectLinkDto, ProjectTaskDto } from "@/contracts/projects";
 import {
   DEPENDENCY_TYPE_LABELS,
@@ -8,6 +8,7 @@ import {
   getRelatedLinksForAnchor,
   searchCandidateTasks,
 } from "./relation-editor-model";
+import { WorkspaceDialog } from "@/components/workspace-dialog";
 import "./relation-editor-dialog.css";
 
 export interface RelationEditorDialogProps {
@@ -36,9 +37,12 @@ export function RelationEditorDialog({
   onCreateLink,
 }: RelationEditorDialogProps) {
   const dialogId = useId();
-  const titleId = `${dialogId}-title`;
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const pendingRef = useRef(false);
+  const confirmCancelRef = useRef<HTMLButtonElement>(null);
+  const confirmationTrigger = useRef<HTMLElement | null>(null);
+  const [confirmation, setConfirmation] = useState<{ kind: "close" } | { kind: "select" | "delete"; linkId: string } | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const restoringSearchFocus = useRef(false);
 
   // Active link state
   const [activeLinkId, setActiveLinkId] = useState<string>(initialLinkId);
@@ -99,51 +103,65 @@ export function RelationEditorDialog({
     });
   }, [effectiveAnchorExternalId, addDirection, searchQuery, tasks, links]);
 
-  // Keyboard accessibility: Escape to close and focus trap
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-
-      if (event.key === "Tab") {
-        const dialog = dialogRef.current;
-        if (!dialog) return;
-        const focusables = dialog.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
-        );
-        if (focusables.length === 0) return;
-
-        const firstElement = focusables[0];
-        const lastElement = focusables[focusables.length - 1];
-
-        if (event.shiftKey && document.activeElement === firstElement) {
-          event.preventDefault();
-          lastElement.focus();
-        } else if (!event.shiftKey && document.activeElement === lastElement) {
-          event.preventDefault();
-          firstElement.focus();
-        }
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
-  // Focus dialog on mount
-  useEffect(() => {
-    dialogRef.current?.focus();
-  }, []);
-
   const isDirty = activeLink ? type !== activeLink.type || lag !== activeLink.lag : false;
+  const draftDirty = isDirty || selectedCandidate !== null || searchQuery !== "" || newType !== "FS" || newLag !== 0 || addDirection !== "successor";
   const mutationPending = isSaving || isDeleting || isCreating;
+
+  function requestConfirmation(next: NonNullable<typeof confirmation>) {
+    if (pendingRef.current) return;
+    confirmationTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setIsSearchOpen(false);
+    setConfirmation(next);
+    requestAnimationFrame(() => confirmCancelRef.current?.focus());
+  }
+  function cancelConfirmation() {
+    if (pendingRef.current) return;
+    setConfirmation(null);
+    requestAnimationFrame(() => confirmationTrigger.current?.focus());
+  }
+  function resetNewDraft() {
+    setSelectedCandidate(null); setSearchQuery(""); setNewType("FS"); setNewLag(0); setAddDirection("successor"); setIsSearchOpen(false); setCreateError(null);
+  }
+  function selectLink(id: string) {
+    if (pendingRef.current || confirmation) return;
+    if (draftDirty) { requestConfirmation({ kind: "select", linkId: id }); return; }
+    resetNewDraft(); setActiveLinkId(id);
+  }
+  function closeSearchPopup() {
+    setIsSearchOpen(false);
+    requestAnimationFrame(() => { restoringSearchFocus.current = true; searchInputRef.current?.focus(); restoringSearchFocus.current = false; });
+  }
+  function requestClose() {
+    if (pendingRef.current) return;
+    if (confirmation) { cancelConfirmation(); return; }
+    if (draftDirty) { requestConfirmation({ kind: "close" }); return; }
+    onClose();
+  }
+  function requestEscapeClose() {
+    if (pendingRef.current) return;
+    if (isSearchOpen) { closeSearchPopup(); return; }
+    requestClose();
+  }
+  function confirmAction() {
+    if (pendingRef.current || !confirmation) return;
+    const action = confirmation;
+    setConfirmation(null);
+    if (action.kind === "delete") { void handleDeleteLink(action.linkId); return; }
+    if (action.kind === "close") { onClose(); return; }
+    resetNewDraft(); setActiveLinkId(action.linkId);
+  }
+  function handleEscape(event: React.KeyboardEvent) {
+    if (event.key !== "Escape") return;
+    if (pendingRef.current) { event.preventDefault(); event.stopPropagation(); return; }
+    if (isSearchOpen) {
+      event.preventDefault(); event.stopPropagation(); closeSearchPopup();
+    }
+  }
 
   async function handleSaveActiveLink(event: React.FormEvent) {
     event.preventDefault();
-    if (!editable || !activeLink || !isDirty || isSaving) return;
+    if (!editable || !activeLink || !isDirty || pendingRef.current || confirmation !== null) return;
+    pendingRef.current = true;
     setIsSaving(true);
     setLinkError(null);
     try {
@@ -152,12 +170,14 @@ export function RelationEditorDialog({
     } catch (err) {
       setLinkError(err instanceof Error ? err.message : "관계 수정에 실패했습니다.");
     } finally {
+      pendingRef.current = false;
       setIsSaving(false);
     }
   }
 
   async function handleDeleteLink(linkToDeleteId: string) {
-    if (!editable || isDeleting) return;
+    if (!editable || pendingRef.current) return;
+    pendingRef.current = true;
     setIsDeleting(true);
     setLinkError(null);
     try {
@@ -174,16 +194,18 @@ export function RelationEditorDialog({
     } catch (err) {
       setLinkError(err instanceof Error ? err.message : "관계 삭제에 실패했습니다.");
     } finally {
+      pendingRef.current = false;
       setIsDeleting(false);
     }
   }
 
   async function handleCreateLink(event: React.FormEvent) {
     event.preventDefault();
-    if (!editable || !effectiveAnchorExternalId || !selectedCandidate || isCreating) return;
+    if (!editable || !effectiveAnchorExternalId || !selectedCandidate || pendingRef.current || confirmation !== null) return;
     const anchorTask = tasksByExternalId.get(effectiveAnchorExternalId);
     if (!anchorTask) return;
 
+    pendingRef.current = true;
     setIsCreating(true);
     setCreateError(null);
     try {
@@ -191,14 +213,11 @@ export function RelationEditorDialog({
       const targetTaskId = addDirection === "predecessor" ? anchorTask.taskId : selectedCandidate.taskId;
       const created = await onCreateLink(sourceTaskId, targetTaskId, { type: newType, lag: newLag });
       if (!created) throw new Error("새 관계 추가에 실패했습니다.");
-      // Reset form
-      setSelectedCandidate(null);
-      setSearchQuery("");
-      setNewLag(0);
-      setNewType("FS");
+      resetNewDraft();
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : "새 관계 추가에 실패했습니다.");
     } finally {
+      pendingRef.current = false;
       setIsCreating(false);
     }
   }
@@ -207,40 +226,23 @@ export function RelationEditorDialog({
   const successorTask = activeLink ? tasksByExternalId.get(activeLink.successorExternalId) : undefined;
   const anchorTask = tasksByExternalId.get(effectiveAnchorExternalId);
 
-  return (
-    <div
-      className="relation-editor-backdrop"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        aria-labelledby={titleId}
-        aria-modal="true"
-        className="relation-editor-dialog"
-        ref={dialogRef}
-        role="dialog"
-        tabIndex={-1}
-      >
-        {/* Header */}
-        <div className="relation-editor-header">
-          <div>
-            <h2 className="relation-editor-title" id={titleId}>
-              작업 관계 관리 (Relation Editor)
-            </h2>
-          </div>
-          <button
-            aria-label="닫기"
-            className="relation-editor-close-btn"
-            onClick={onClose}
-            type="button"
-          >
-            ✕
-          </button>
-        </div>
+  const deleteTarget = confirmation?.kind === "delete" ? links.find((link) => link.id === confirmation.linkId) : undefined;
+  const relationName = (link: ProjectLinkDto) => `${tasksByExternalId.get(link.predecessorExternalId)?.name ?? link.predecessorExternalId} → ${tasksByExternalId.get(link.successorExternalId)?.name ?? link.successorExternalId}`;
 
+  return (
+    <WorkspaceDialog title="작업 관계 관리 (Relation Editor)" onClose={requestClose} onEscape={requestEscapeClose} busy={mutationPending} size="wide" feedback={false}>
+      <div onKeyDownCapture={handleEscape}>
+        {confirmation ? (
+          <div className="relation-editor-confirmation" role="alert">
+            <p>{confirmation.kind === "delete" && deleteTarget ? `관계 '${relationName(deleteTarget)}'를 삭제하시겠습니까?${draftDirty ? " 마지막 관계가 삭제되어 창이 닫히면 저장하지 않은 변경도 버려집니다." : ""}` : "저장하지 않은 변경이 있습니다. 변경을 버리시겠습니까?"}</p>
+            <div className="relation-editor-btn-group">
+              <button ref={confirmCancelRef} className="relation-editor-btn relation-editor-btn-secondary" type="button" disabled={mutationPending} onClick={cancelConfirmation}>{confirmation.kind === "delete" ? "삭제 취소" : "계속 편집"}</button>
+              <button className="relation-editor-btn relation-editor-btn-danger" type="button" disabled={mutationPending} onClick={confirmAction}>{confirmation.kind === "delete" ? "삭제 확인" : "변경 버리기"}</button>
+            </div>
+          </div>
+        ) : null}
         {/* Body */}
-        <div className="relation-editor-body">
+        <div className="relation-editor-body" inert={confirmation !== null}>
           {/* Section 1: Selected Relation */}
           {activeLink ? (
             <div className="relation-editor-section">
@@ -268,7 +270,7 @@ export function RelationEditorDialog({
                     <button
                       className="relation-editor-anchor-btn"
                       disabled={mutationPending}
-                      onClick={() => setAnchorExternalId(activeLink.predecessorExternalId)}
+                      onClick={() => { if (!pendingRef.current) setAnchorExternalId(activeLink.predecessorExternalId); }}
                       type="button"
                     >
                       {effectiveAnchorExternalId === activeLink.predecessorExternalId ? "기준 작업으로 선택됨" : "선행 작업을 기준으로 보기"}
@@ -292,7 +294,7 @@ export function RelationEditorDialog({
                     <button
                       className="relation-editor-anchor-btn"
                       disabled={mutationPending}
-                      onClick={() => setAnchorExternalId(activeLink.successorExternalId)}
+                      onClick={() => { if (!pendingRef.current) setAnchorExternalId(activeLink.successorExternalId); }}
                       type="button"
                     >
                       {effectiveAnchorExternalId === activeLink.successorExternalId ? "기준 작업으로 선택됨" : "후행 작업을 기준으로 보기"}
@@ -311,7 +313,7 @@ export function RelationEditorDialog({
                         className="relation-editor-select"
                         disabled={!editable || mutationPending}
                         id={`${dialogId}-type`}
-                        onChange={(e) => setType(e.target.value as DependencyType)}
+                        onChange={(e) => { if (!pendingRef.current) setType(e.target.value as DependencyType); }}
                         value={type}
                       >
                         {(Object.keys(DEPENDENCY_TYPE_LABELS) as DependencyType[]).map((t) => (
@@ -330,7 +332,7 @@ export function RelationEditorDialog({
                         className="relation-editor-input"
                         disabled={!editable || mutationPending}
                         id={`${dialogId}-lag`}
-                        onChange={(e) => setLag(parseInt(e.target.value, 10) || 0)}
+                        onChange={(e) => { if (!pendingRef.current) setLag(parseInt(e.target.value, 10) || 0); }}
                         step={1}
                         type="number"
                         value={lag}
@@ -349,7 +351,7 @@ export function RelationEditorDialog({
                         <button
                           className="relation-editor-btn relation-editor-btn-danger"
                           disabled={mutationPending}
-                          onClick={() => handleDeleteLink(activeLink.id)}
+                          onClick={() => requestConfirmation({ kind: "delete", linkId: activeLink.id })}
                           type="button"
                         >
                           {isDeleting ? "삭제 중..." : "관계 삭제"}
@@ -357,7 +359,7 @@ export function RelationEditorDialog({
                       </div>
                     )}
                   </div>
-                  {linkError && <div className="relation-editor-error">{linkError}</div>}
+                  {linkError && <div className="relation-editor-error" role="alert">{linkError}</div>}
                 </form>
               </div>
             </div>
@@ -410,7 +412,7 @@ export function RelationEditorDialog({
                               <button
                                 className="relation-editor-btn relation-editor-btn-secondary"
                                 disabled={mutationPending}
-                                onClick={() => setActiveLinkId(item.link.id)}
+                                onClick={() => selectLink(item.link.id)}
                                 type="button"
                               >
                                 선택
@@ -420,7 +422,7 @@ export function RelationEditorDialog({
                               <button
                                 className="relation-editor-btn relation-editor-btn-danger"
                                 disabled={mutationPending}
-                                onClick={() => handleDeleteLink(item.link.id)}
+                                onClick={() => requestConfirmation({ kind: "delete", linkId: item.link.id })}
                                 type="button"
                               >
                                 삭제
@@ -465,7 +467,7 @@ export function RelationEditorDialog({
                               <button
                                 className="relation-editor-btn relation-editor-btn-secondary"
                                 disabled={mutationPending}
-                                onClick={() => setActiveLinkId(item.link.id)}
+                                onClick={() => selectLink(item.link.id)}
                                 type="button"
                               >
                                 선택
@@ -475,7 +477,7 @@ export function RelationEditorDialog({
                               <button
                                 className="relation-editor-btn relation-editor-btn-danger"
                                 disabled={mutationPending}
-                                onClick={() => handleDeleteLink(item.link.id)}
+                                onClick={() => requestConfirmation({ kind: "delete", linkId: item.link.id })}
                                 type="button"
                               >
                                 삭제
@@ -499,7 +501,7 @@ export function RelationEditorDialog({
               </div>
 
               <form onSubmit={handleCreateLink}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "0.75rem", marginBottom: "0.75rem" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 12rem), 1fr))", gap: "0.75rem", marginBottom: "0.75rem" }}>
                   {/* Direction */}
                   <div className="relation-editor-form-group">
                     <label className="relation-editor-label" htmlFor={`${dialogId}-direction`}>
@@ -510,6 +512,7 @@ export function RelationEditorDialog({
                       disabled={mutationPending}
                       id={`${dialogId}-direction`}
                       onChange={(e) => {
+                        if (pendingRef.current) return;
                         setAddDirection(e.target.value as "predecessor" | "successor");
                         setSelectedCandidate(null);
                       }}
@@ -547,6 +550,7 @@ export function RelationEditorDialog({
                           className="relation-editor-btn relation-editor-btn-secondary"
                           disabled={mutationPending}
                           onClick={() => {
+                            if (pendingRef.current) return;
                             setSelectedCandidate(null);
                             setSearchQuery("");
                             setTimeout(() => searchInputRef.current?.focus(), 0);
@@ -564,10 +568,11 @@ export function RelationEditorDialog({
                           disabled={mutationPending}
                           id={`${dialogId}-search`}
                           onChange={(e) => {
+                            if (pendingRef.current) return;
                             setSearchQuery(e.target.value);
                             setIsSearchOpen(true);
                           }}
-                          onFocus={() => setIsSearchOpen(true)}
+                          onFocus={() => { if (!pendingRef.current && !restoringSearchFocus.current) setIsSearchOpen(true); }}
                           placeholder="작업 이름 또는 ID 검색..."
                           ref={searchInputRef}
                           type="text"
@@ -584,19 +589,20 @@ export function RelationEditorDialog({
                               </div>
                             ) : (
                               candidates.slice(0, 15).map((candidate) => (
-                                <div
+                                <button
+                                  type="button"
+                                  disabled={mutationPending}
                                   className="relation-editor-candidate-item"
                                   key={candidate.taskId}
                                   onClick={() => {
+                                    if (pendingRef.current) return;
                                     setSelectedCandidate(candidate);
                                     setIsSearchOpen(false);
                                   }}
-                                  role="button"
-                                  tabIndex={0}
                                 >
                                   <span>{candidate.name}</span>
                                   <span style={{ fontSize: "0.75rem", color: "#64748b" }}>{candidate.externalId}</span>
-                                </div>
+                                </button>
                               ))
                             )}
                           </div>
@@ -616,7 +622,7 @@ export function RelationEditorDialog({
                       className="relation-editor-select"
                       disabled={mutationPending}
                       id={`${dialogId}-new-type`}
-                      onChange={(e) => setNewType(e.target.value as DependencyType)}
+                      onChange={(e) => { if (!pendingRef.current) setNewType(e.target.value as DependencyType); }}
                       value={newType}
                     >
                       {(Object.keys(DEPENDENCY_TYPE_LABELS) as DependencyType[]).map((t) => (
@@ -635,7 +641,7 @@ export function RelationEditorDialog({
                       className="relation-editor-input"
                       disabled={mutationPending}
                       id={`${dialogId}-new-lag`}
-                      onChange={(e) => setNewLag(parseInt(e.target.value, 10) || 0)}
+                      onChange={(e) => { if (!pendingRef.current) setNewLag(parseInt(e.target.value, 10) || 0); }}
                       step={1}
                       type="number"
                       value={newLag}
@@ -653,7 +659,7 @@ export function RelationEditorDialog({
                   </div>
                 </div>
 
-                {createError && <div className="relation-editor-error">{createError}</div>}
+                {createError && <div className="relation-editor-error" role="alert">{createError}</div>}
               </form>
             </div>
           )}
@@ -663,13 +669,14 @@ export function RelationEditorDialog({
         <div className="relation-editor-footer">
           <button
             className="relation-editor-btn relation-editor-btn-secondary"
-            onClick={onClose}
+            disabled={mutationPending}
+            onClick={requestClose}
             type="button"
           >
             닫기
           </button>
         </div>
       </div>
-    </div>
+    </WorkspaceDialog>
   );
 }

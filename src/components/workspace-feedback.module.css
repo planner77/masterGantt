@@ -28,7 +28,8 @@
 }
 .dialog::backdrop { background: #172b4440; }
 .dialogHeading { display: flex; align-items: start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
-.dialogHeading h2 { margin: 0; font-size: 1.125rem; }
+.dialogHeading h2 { margin: 0; font-size: 1.125rem; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.dialogHeading > button { flex-shrink: 0; white-space: nowrap; }
 .errorList { list-style: none; padding: 0; display: grid; gap: 1rem; }
 .errorList li { display: grid; gap: 0.5rem; border-top: 1px solid var(--border); padding-top: 1rem; }
 .errorList textarea, .copyValue {
