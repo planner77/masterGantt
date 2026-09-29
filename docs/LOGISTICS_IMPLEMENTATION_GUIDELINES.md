@@ -86,3 +86,15 @@ Local Fast Feedback은 직접 영향 Unit/SQLite/타입 검증 위주이며 같�
 최신 head가 바뀌면 기존 head의 원격 gate/QA 결과는 stale다. 독립 QA, 실제 Windows Excel/DRM, 운영 proxy, backup-restore 결과가 없으면 각각 BLOCKED 또는 NOT TESTED로 남긴다. UI는 실제 Chromium keyboard/focus/반응형/상태 보존 증거가 필요하다.
 
 Issue 기록은 PLAN/STATUS/EXCEPTION/DECISION_REQUIRED/RESUME/FINAL의 기존 정책을 따른다. PR은 Refs로 연결하며 docs PR 병합으로 Epic이나 구현 이슈를 자동 종료하지 않는다. 기능 전체와 승인 범위의 Lifecycle이 끝난 뒤에만 종료 판단을 한다.
+
+## 물류 유형 변경 계약 (Issue #280)
+
+물류 유형은 global catalog가 Source of Truth다. UI 상수만 추가하거나 DB CHECK만 우회하는 변경은 금지한다.
+
+1. 일반 Project UI는 `GET /api/logistics-catalog/types`의 active 유형만 사용한다.
+2. create 또는 다른 type으로 변경할 때 서버 service가 catalog 존재/active 상태를 다시 검증한다.
+3. 기존 inactive type을 유지한 update는 허용한다.
+4. 관리자 mutation은 전용 세션 + 정확한 Origin + catalog revision/`If-Match`로 보호하고 stale 요청은 412로 거부한다.
+5. catalog 조회 실패는 빈 목록으로 처리하지 않으며 저장을 차단하고 명시적 재시도를 제공한다.
+6. 변경 시 migration/API/UI/보안/회귀 테스트와 관련 문서를 같은 PR에서 동기화한다.
+
