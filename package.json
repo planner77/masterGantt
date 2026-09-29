@@ -18,14 +18,14 @@
     "build:runtime-tools": "tsc -p tsconfig.runtime-tools.json"
   },
   "dependencies": {
+    "@next/env": "16.3.4",
     "@svar-ui/react-gantt": "2.7.3",
     "better-sqlite3": "13.0.3",
     "next": "16.3.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",
-    "zod": "4.6.2",
-    "@next/env": "16.3.4"
+    "zod": "4.6.2"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
