@@ -18,7 +18,7 @@ function validNew(value:unknown):value is string{return typeof value==="string"&
 function derive(password:string,salt:Buffer):Buffer{return scryptSync(password,salt,32,{N:16384,r:8,p:1,maxmem:64*1024*1024});}
 function text(value:unknown,max:number):string|undefined{if(typeof value!=="string"||value!==value.trim()||!wellFormed(value))return undefined;const n=Array.from(value).length;return n>=1&&n<=max?value:undefined;}
 function code(value:unknown):string|undefined{const v=text(value,64);return v&&/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(v)?v.toLowerCase():undefined;}
-function sortOrder(value:unknown, fallback=0):number|undefined{return value===undefined?fallback:(Number.isSafeInteger(value)&&Number(value)>=0?Number(value):undefined);}
+function sortOrder(value:unknown, fallback=0):number|undefined{return value===undefined?fallback:(typeof value==="number"&&Number.isSafeInteger(value)&&value>=0?value:undefined);}
 
 export class LogisticsTypeCatalogService{
   private readonly catalog:LogisticsTypeCatalogRepository;
