@@ -414,11 +414,26 @@ jobs:
             --tag mastergantt:baseline \
             --build-arg VERSION=baseline-"$BASE_SHA" \
             "$baseline_dir"
-          bash scripts/verify-image-size-reduction.sh mastergantt:baseline mastergantt:ci 25
+
+          baseline_standalone=false
+          candidate_standalone=false
+          grep -Eq 'output:[[:space:]]*"standalone"' "$baseline_dir/next.config.ts" && baseline_standalone=true
+          grep -Eq 'output:[[:space:]]*"standalone"' next.config.ts && candidate_standalone=true
+
+          if [[ "$baseline_standalone" == false && "$candidate_standalone" == true ]]; then
+            # Issue #283의 one-time standalone migration acceptance gate.
+            bash scripts/verify-image-size-reduction.sh mastergantt:baseline mastergantt:ci 25
+            size_gate="standalone migration: >=25% reduction required"
+          else
+            # 이후 PR은 이미 slim한 base 대비 25% 추가 감소를 요구하지 않는다.
+            size_gate="observational comparison only"
+          fi
+
           {
             echo "## Docker image size"
             echo
-            bash scripts/verify-image-size-reduction.sh mastergantt:baseline mastergantt:ci 25 --summary
+            printf -- '- Gate: `%s`\n' "$size_gate"
+            bash scripts/verify-image-size-reduction.sh mastergantt:baseline mastergantt:ci 0 --summary
             echo
             echo "### Runtime artifact footprint"
             echo
@@ -435,11 +450,11 @@ jobs:
             echo
             echo 'Baseline:'
             echo '~~~text'
-            docker history --format '{{.Size}}	{{.CreatedBy}}' mastergantt:baseline | head -n 12
+            docker history --format '{{.Size}}\t{{.CreatedBy}}' mastergantt:baseline | head -n 12
             echo '~~~'
             echo 'Candidate:'
             echo '~~~text'
-            docker history --format '{{.Size}}	{{.CreatedBy}}' mastergantt:ci | head -n 12
+            docker history --format '{{.Size}}\t{{.CreatedBy}}' mastergantt:ci | head -n 12
             echo '~~~'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: 잘못된 production HTTP 설정 조기 거부 검증
