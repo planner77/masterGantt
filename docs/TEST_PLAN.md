@@ -700,3 +700,12 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - 기존 Country WORKING, Project CUSTOM 휴무, Manual/Dependency Calendar 재계산 및 접근성 회귀를 함께 유지한다.
 
 실제 로컬 실행 결과는 [Issue #261 검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)에 기록한다. 사용자 요청 범위는 PR/CI 시작까지이므로 원격 quality/e2e/docker의 완료 판정은 NOT TESTED이며 main/GHCR/정식 release는 이번 작업 범위 밖이다.
+
+## Issue #288 개발자 Resource 등급 회귀
+
+- DB/contract: `0015_resource_developer_grade.sql` 적용 후 기존 Resource는 NULL을 유지하고 4개 canonical 값과 NULL만 저장되며 그 외 문자열·빈 문자열은 거부한다. Repository/API round-trip에서 등급을 보존한다.
+- Resource Catalog: 관리자 Resource 생성/수정/조회에서 미지정/초급/중급/고급/특급을 표시하고 실제 변경만 기존 catalog revision 정책을 따른다. 기존 session/Origin/stale revision 계약은 유지한다.
+- Logistics role: 등급이 있는 Resource의 신규 Developer 배정은 허용하고 grade NULL 신규 배정은 `DEVELOPER_GRADE_REQUIRED`로 거부한다. migration 이전 동일 Developer+NULL 배정 보존은 허용하고, 역할 해제 후 전역 등급은 유지한다. PI/설비 담당/Task assignment는 등급을 요구하지 않는다.
+- Chromium: Resource 관리자에서 등급 생성·목록 표시·수정과 390/768/1024/1440px document overflow를 확인한다. Developer picker는 등급 표시와 미지정 신규 배정 차단 안내를 확인한다.
+- Scheduling/workload: 등급 변경만으로 duration, allocation, M/D·M/M, capacity, 일정 및 resource leveling 결과가 바뀌지 않아야 한다.
+- 공식 전체 회귀 판정은 Issue #288 PR head의 `quality/e2e/docker` 결과를 사용한다.
