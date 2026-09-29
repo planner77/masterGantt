@@ -37,6 +37,16 @@ const EQUIPMENT_TYPE_OPTIONS: { value: EquipmentType; label: string }[] = [
   { value: "other", label: "기타 설비" },
 ];
 
+function developerGradeLabel(grade: ResourceDto["developerGrade"] | undefined): string {
+  switch (grade) {
+    case "BEGINNER": return "초급";
+    case "INTERMEDIATE": return "중급";
+    case "ADVANCED": return "고급";
+    case "EXPERT": return "특급";
+    default: return "등급 미지정";
+  }
+}
+
 const SYSTEM_TYPE_OPTIONS: { value: LogisticsSystemType; label: string }[] = [
   { value: "mcs", label: "MCS (통합 조율 시스템)" },
   { value: "acs", label: "ACS (AGV 제어 시스템)" },
@@ -278,6 +288,8 @@ export function ProjectLogisticsManagement({
           setErrorMessage("설비가 연결되어 있거나 하위 시스템으로 조율 중인 시스템은 삭제할 수 없습니다. 연결을 먼저 해제해 주세요.");
         } else if (code === "RESOURCE_INACTIVE") {
           setErrorMessage("비활성화된 리소스는 새로 배정할 수 없습니다.");
+        } else if (code === "DEVELOPER_GRADE_REQUIRED") {
+          setErrorMessage("개발자 역할을 배정하려면 리소스 관리에서 개발자 등급을 먼저 지정해야 합니다.");
         } else if (code === "CYCLE_DETECTED") {
           setErrorMessage("시스템 조율 관계에서 순환(사이클)이 감지되었습니다. 방향성 연계(DAG) 규칙을 확인해 주세요.");
         } else {
@@ -1818,6 +1830,10 @@ function EquipmentRolesDialog({
       alert("비활성화된 리소스는 새로 배정할 수 없습니다.");
       return;
     }
+    if (addRole === "developer" && !res?.developerGrade) {
+      alert("개발자 역할을 배정하려면 리소스 관리에서 개발자 등급을 먼저 지정해 주세요.");
+      return;
+    }
 
     let next = [...selectedRoles];
     if (addIsPrimary) {
@@ -1889,6 +1905,7 @@ function EquipmentRolesDialog({
               const res = resourceById.get(item.resourceId);
               const canonical = equipment.resourceRoles.find((role) => role.resourceId === item.resourceId);
               const displayName = catalogReady && res ? `${res.name} (${res.code ?? "코드없음"})` : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
+              const gradeText = res ? developerGradeLabel(res.developerGrade) : "등급 미지정";
               const isInactive = catalogReady && res ? !res.active : false;
 
               return (
@@ -1959,7 +1976,7 @@ function EquipmentRolesDialog({
               <option value="">(리소스 선택)</option>
               {catalogResources.map((r) => (
                 <option key={r.id} value={r.id} disabled={!r.active}>
-                  {r.name} ({r.code ?? "코드없음"}) {!r.active ? " · 비활성" : ""}
+                  {r.name} ({r.code ?? "코드없음"}) · {developerGradeLabel(r.developerGrade)} {!r.active ? " · 비활성" : ""}
                 </option>
               ))}
             </select>
@@ -1995,7 +2012,7 @@ function EquipmentRolesDialog({
             </button>
           </div>
           <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-            ※ 카탈로그에 없는 인력은 리소스 관리 메뉴에서 먼저 등록해야 합니다.
+            ※ 카탈로그에 없는 인력은 리소스 관리 메뉴에서 먼저 등록해야 합니다. Developer는 개발자 등급이 지정된 리소스만 새로 배정할 수 있습니다.
           </span>
         </div>
 
@@ -2476,7 +2493,7 @@ function SystemRolesDialog({
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <span>
                       {item.isPrimary ? "★ " : ""}
-                      <strong>{displayName}</strong> - {item.role === "pi" ? "책임자 (PI)" : "개발자 (Developer)"}
+                      <strong>{displayName}</strong> - {item.role === "pi" ? "책임자 (PI)" : `개발자 (Developer) · ${gradeText}`}
                     </span>
                     {isInactive ? (
                       <span className={`${styles.badge} ${styles.badgeInactive}`}>비활성</span>
