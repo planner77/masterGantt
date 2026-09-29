@@ -65,6 +65,7 @@ const externalId = wellFormedString.refine((value) => {
 
 const leafType = z.enum(["task", "milestone"]);
 const scheduleMode = z.enum(["auto", "manual"]);
+const taskStatus = z.enum(["not_started", "in_progress", "completed"]);
 const dateLabel = wellFormedString;
 const duration = z.number().int();
 const progress = z.number().finite().min(0).max(100);
@@ -82,6 +83,7 @@ const createTaskSchema = z.object({
   end: dateLabel.optional(),
   duration,
   progress,
+  status: taskStatus.optional(),
   parentExternalId: z.null().optional(),
 }).strict().refine(
   (value) => value.convertParentToSummary !== true || value.parentTaskId !== undefined,
@@ -100,6 +102,7 @@ const updateTaskSchema = z.object({
   end: dateLabel.optional(),
   duration: duration.optional(),
   progress: progress.optional(),
+  status: taskStatus.optional(),
   baselineStart: dateLabel.nullable().optional(),
   baselineDuration: duration.nullable().optional(),
   baselineEnd: dateLabel.nullable().optional(),
