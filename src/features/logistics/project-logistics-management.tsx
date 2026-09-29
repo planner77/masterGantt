@@ -74,19 +74,27 @@ export function ProjectLogisticsManagement({
   const [typeCatalog, setTypeCatalog] = useState<LogisticsActiveTypeCatalogResponse["data"] | null>(null);
   const [typeCatalogState, setTypeCatalogState] = useState<"loading" | "ready" | "error">("loading");
 
-  useEffect(() => {
+  const typeCatalogRequest = useRef<AbortController | null>(null);
+  const fetchTypeCatalog = useCallback(async () => {
+    typeCatalogRequest.current?.abort();
     const controller = new AbortController();
+    typeCatalogRequest.current = controller;
     setTypeCatalogState("loading");
-    void fetch("/api/logistics-catalog/types", { credentials: "same-origin", cache: "no-store", signal: controller.signal })
-      .then(async (response) => {
-        const body: unknown = await response.json().catch(() => null);
-        if (!response.ok || !isTypeCatalog(body)) throw new Error("invalid catalog");
-        setTypeCatalog(body.data);
-        setTypeCatalogState("ready");
-      })
-      .catch(() => { if (!controller.signal.aborted) setTypeCatalogState("error"); });
-    return () => controller.abort();
+    try {
+      const response = await fetch("/api/logistics-catalog/types", { credentials: "same-origin", cache: "no-store", signal: controller.signal });
+      const body: unknown = await response.json().catch(() => null);
+      if (!response.ok || !isTypeCatalog(body)) throw new Error("invalid catalog");
+      if (controller.signal.aborted) return;
+      setTypeCatalog(body.data);
+      setTypeCatalogState("ready");
+    } catch {
+      if (!controller.signal.aborted) setTypeCatalogState("error");
+    }
   }, []);
+  useEffect(() => {
+    void fetchTypeCatalog();
+    return () => typeCatalogRequest.current?.abort();
+  }, [fetchTypeCatalog]);
 
   const equipmentTypeLabels = useMemo(() => new Map(typeCatalog?.equipmentTypes.map((item) => [item.code, item.name]) ?? []), [typeCatalog]);
   const systemTypeLabels = useMemo(() => new Map(typeCatalog?.systemTypes.map((item) => [item.code, item.name]) ?? []), [typeCatalog]);
@@ -504,6 +512,13 @@ export function ProjectLogisticsManagement({
               </button>
             ) : null}
           </div>
+        </div>
+      ) : null}
+
+      {typeCatalogState === "error" ? (
+        <div className={styles.errorBanner} role="alert">
+          물류 유형 목록을 불러오지 못했습니다. 유형을 확인하기 전에는 설비/시스템 유형을 저장할 수 없습니다.
+          <button className="secondary-button" type="button" onClick={() => void fetchTypeCatalog()}>유형 목록 다시 시도</button>
         </div>
       ) : null}
 
