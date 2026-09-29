@@ -54,6 +54,8 @@ describe("deployment repository layout", () => {
     expect(prepare).toContain('resolve(root, distDir, "static")');
     expect(prepare).toContain('resolve(standaloneDir, distDir, "static")');
     expect(prepare).toContain('resolve(root, "public")');
+    expect(prepare).toContain('resolve(root, "db", "migrations")');
+    expect(prepare).toContain('resolve(standaloneDir, "db", "migrations")');
     expect(start).toContain('"--hostname"');
     expect(start).toContain('"--port"');
     expect(start).toContain("prepareStandaloneRuntime()");
@@ -66,6 +68,7 @@ describe("deployment repository layout", () => {
     expect(dockerfile).toContain("deploy/docker/container-entrypoint.sh /usr/local/bin/container-entrypoint");
     expect(dockerfile).toContain('ENTRYPOINT ["/usr/local/bin/container-entrypoint"]');
     expect(dockerfile).toContain('VOLUME ["/data"]');
+    expect(dockerfile).not.toContain("/app/db/migrations ./db/migrations");
     expect(dockerfile).toContain("USER mastergantt");
     const bases = Array.from(dockerfile.matchAll(/^FROM (node:\S+@sha256:[a-f0-9]{64}) /gm), ([, base]) => base);
     expect(bases).toHaveLength(2);
