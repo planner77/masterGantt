@@ -12,7 +12,7 @@ compiled runtime config validation
 → node server.js
 ```
 
-startup 도구는 `tsconfig.runtime-tools.json`으로 build stage에서 CommonJS JavaScript로 컴파일한다. repository의 `npm run db:migrate`는 로컬/개발 CLI 호환 때문에 기존 `tsx`를 계속 사용하지만, container는 해당 CLI나 `tsx`를 실행하지 않는다. final image의 `/app/node_modules/tsx` 부재는 image policy에서 검증한다.
+startup 도구는 `tsconfig.runtime-tools.json`으로 build stage에서 CommonJS JavaScript로 컴파일한다. repository의 `npm run db:migrate`는 source checkout에서의 개발·관리용 CLI로 `devDependency`인 `tsx`를 사용하지만, production dependency/runtime 계약에는 `tsx`가 없다. container는 compiled JavaScript만 실행하며 final image의 `/app/node_modules/tsx` 부재는 image policy에서 검증한다.
 
 base image digest, Debian/glibc 계열, numeric UID/GID 1001:1001, `/data` volume, healthcheck, single-instance SQLite/WAL 계약은 변경하지 않는다. `better-sqlite3`는 standalone trace에 포함된 native addon을 사용하며 PR Docker smoke에서 실제 load/write/restart persistence로 검증한다. Alpine/musl·distroless 전환은 이 변경의 범위가 아니다.
 
@@ -181,7 +181,7 @@ Docker `HEALTHCHECK`와 Compose healthcheck는 `ready`를 호출한다. interval
 | `.dockerignore` | `.git`, 모든 `.env*`, `node_modules`, `.next`, DB/WAL/SHM, backups, logs, coverage/test output 제외 | required source, lockfile, migrations |
 | `.env.example` | 환경변수 names와 개발용 예시; secret injection 위치 안내 | 실제 secret, 운영 domain, password, token |
 
-Application package와 lockfile은 존재하며 frozen install은 `npm ci`, 빌드는 `npm run build`, migration CLI는 `npm run db:migrate`다. CLI는 repository root에서 실행하며 환경변수를 명시적으로 주입한다. `tsx`는 CLI 실행에 필요한 runtime dependency다. 현재 image는 `db/migrations`, `scripts/migrate.ts`, 필요한 DB core와 CLI dependency를 포함하며 entrypoint가 Next.js 시작 전에 migration gate를 실행한다.
+Application package와 lockfile은 존재하며 source checkout의 frozen install은 `npm ci`, 빌드는 `npm run build`, 개발·관리용 migration CLI는 `npm run db:migrate`다. 이 source CLI는 repository root에서 환경변수를 명시적으로 주입하고 devDependency `tsx`를 사용한다. production image는 source CLI를 포함하지 않으며 build-time compiled runtime validation/migration JavaScript와 `db/migrations`만 복사해 entrypoint에서 Next.js standalone server 시작 전에 migration gate를 실행한다.
 
 ## 8. Backup, restore, rollback
 
