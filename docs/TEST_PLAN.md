@@ -7,7 +7,7 @@
 - Startup: production `DATABASE_PATH`/canonical `APP_BASE_URL` validation이 server보다 먼저 실행되고 invalid config 또는 migration 실패 시 server를 시작하지 않아야 한다.
 - Native SQLite: `better-sqlite3` load, create/read/write, migration ledger, readiness와 container restart 후 persistence를 기존 Docker smoke로 검증한다.
 - Application/transport: Project/Task API authorization·persistence, HTTP/HTTPS reverse-proxy transport 및 Compose restart/recreate persistence 회귀를 기존 전용 smoke로 유지한다.
-- Size: PR exact base SHA의 baseline image와 candidate를 동일 runner에서 build하고 `docker image inspect .Size`를 비교하여 최소 25% 감소를 요구한다. summary에 주요 runtime directory footprint와 상위 layer를 기록한다.
+- Size: PR exact base SHA의 baseline image와 candidate를 동일 runner에서 build한다. Issue #283의 non-standalone → standalone 전환에는 `docker image inspect .Size` 기준 최소 25% 감소를 요구하고, 이미 standalone인 후속 PR은 추가 25% 감소를 강제하지 않는다. 모든 경우 summary에 size 비교, 주요 runtime directory footprint와 상위 layer를 기록한다.
 - Security/supply chain: pinned Debian/glibc base digest, non-root UID/GID, secret/data 부재와 main/release SBOM/provenance 정책은 유지한다.
 - Local Fast Feedback과 PR 원격 결과를 분리한다. 실제 npm/Docker 실행을 하지 못한 개발 환경에서는 정적 검토를 PASS로 승격하지 않고 PR head의 `quality/e2e/docker` 결과를 공식 증거로 사용한다.
 
