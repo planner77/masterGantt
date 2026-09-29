@@ -14,6 +14,7 @@ import {
   prepareTaskEditorCommand,
   taskEditorIsDirty,
   taskEditorReadOnlyReason,
+  updateTaskEditorDraft,
   type TaskEditorDraft,
   type TaskEditorSaveResult,
   type TaskEditorSession,
@@ -88,7 +89,7 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   function change(field: keyof TaskEditorDraft, value: string) {
     if (locked || restriction || stale) return;
     if (hasLinks && field !== "baselineStart" && field !== "baselineDuration" && field !== "baselineEnd") return;
-    setDraft((current) => ({ ...current, [field]: value }));
+    setDraft((current) => updateTaskEditorDraft(current, field, value));
     setError(null);
   }
   function close() {
@@ -196,8 +197,16 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
           tabIndex={0}
         >
           <div className={styles.taskFields}>
-            <label className={styles.field}>작업명<input autoFocus name="task-name" value={draft.name} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("name", event.target.value)} /></label>
-            <div className={styles.field}>
+            <label className={styles.field + " " + styles.nameField}>작업명<input autoFocus name="task-name" value={draft.name} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("name", event.target.value)} /></label>
+            <label className={styles.field + " " + styles.statusField}>
+              상태
+              <select name="task-status" aria-label="상태" value={draft.status} disabled={locked || scheduleReadOnly} onChange={(event) => change("status", event.target.value)}>
+                <option value="not_started">시작 전</option>
+                <option value="in_progress">진행 중</option>
+                <option value="completed">완료</option>
+              </select>
+            </label>
+            <div className={styles.field + " " + styles.progressField}>
               <label htmlFor="task-progress">진행률 (%)</label>
               <span className={styles.sliderRow}>
                 <input id="task-progress" aria-valuetext={draft.progress + "%"} name="task-progress" type="range" min="0" max="100" step="1" value={draft.progress} disabled={locked || scheduleReadOnly} onChange={(event) => change("progress", event.target.value)} />
