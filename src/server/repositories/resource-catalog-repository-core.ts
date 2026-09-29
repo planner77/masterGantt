@@ -1,4 +1,5 @@
 import type Database from "better-sqlite3";
+import type { DeveloperGrade } from "../../contracts/resources";
 
 export interface CatalogTargetRecord {
   id: number;
@@ -7,6 +8,7 @@ export interface CatalogTargetRecord {
   code: string | null;
   description: string;
   active: boolean;
+  developerGrade: DeveloperGrade | null;
 }
 
 export interface CatalogGroupRecord extends CatalogTargetRecord {
@@ -34,6 +36,7 @@ interface TargetRow {
   code: string | null;
   description: string;
   active: number;
+  developer_grade: DeveloperGrade | null;
 }
 
 function mapTarget(row: TargetRow): CatalogTargetRecord {
@@ -44,6 +47,7 @@ function mapTarget(row: TargetRow): CatalogTargetRecord {
     code: row.code,
     description: row.description,
     active: row.active === 1,
+    developerGrade: row.developer_grade,
   };
 }
 
@@ -62,7 +66,7 @@ export class ResourceCatalogRepository {
   }
 
   listResources(activeOnly = false): CatalogTargetRecord[] {
-    const rows = this.database.prepare(`SELECT id, public_id, name, code, description, active FROM resources ${activeOnly ? "WHERE active = 1" : ""} ORDER BY lower(name), public_id`).all() as TargetRow[];
+    const rows = this.database.prepare(`SELECT id, public_id, name, code, description, active, developer_grade FROM resources ${activeOnly ? "WHERE active = 1" : ""} ORDER BY lower(name), public_id`).all() as TargetRow[];
     return rows.map(mapTarget);
   }
 
@@ -79,7 +83,7 @@ export class ResourceCatalogRepository {
   }
 
   findResourceByPublicId(publicId: string): CatalogTargetRecord | undefined {
-    const row = this.database.prepare(`SELECT id, public_id, name, code, description, active FROM resources WHERE public_id = ?`).get(publicId) as TargetRow | undefined;
+    const row = this.database.prepare(`SELECT id, public_id, name, code, description, active, developer_grade FROM resources WHERE public_id = ?`).get(publicId) as TargetRow | undefined;
     return row ? mapTarget(row) : undefined;
   }
 
@@ -90,9 +94,9 @@ export class ResourceCatalogRepository {
     return { ...mapTarget(row), memberResourceIds: members.map((member) => member.public_id) };
   }
 
-  insertResource(input: { publicId: string; name: string; code: string | null; description: string; now: string }): CatalogTargetRecord {
-    const result = this.database.prepare(`INSERT INTO resources (public_id, name, code, description, active, created_at, updated_at) VALUES (@publicId, @name, @code, @description, 1, @now, @now)`).run(input);
-    const row = this.database.prepare(`SELECT id, public_id, name, code, description, active FROM resources WHERE id = ?`).get(Number(result.lastInsertRowid)) as TargetRow;
+  insertResource(input: { publicId: string; name: string; code: string | null; description: string; developerGrade: DeveloperGrade | null; now: string }): CatalogTargetRecord {
+    const result = this.database.prepare(`INSERT INTO resources (public_id, name, code, description, developer_grade, active, created_at, updated_at) VALUES (@publicId, @name, @code, @description, @developerGrade, 1, @now, @now)`).run(input);
+    const row = this.database.prepare(`SELECT id, public_id, name, code, description, active, developer_grade FROM resources WHERE id = ?`).get(Number(result.lastInsertRowid)) as TargetRow;
     return mapTarget(row);
   }
 
@@ -102,15 +106,16 @@ export class ResourceCatalogRepository {
     return { ...mapTarget(row), memberResourceIds: [] };
   }
 
-  updateResource(id: number, input: { name?: string; code?: string | null; description?: string; active?: boolean }, now: string): void { this.updateTarget("resources", id, input, now); }
+  updateResource(id: number, input: { name?: string; code?: string | null; description?: string; active?: boolean; developerGrade?: DeveloperGrade | null }, now: string): void { this.updateTarget("resources", id, input, now); }
   updateGroup(id: number, input: { name?: string; code?: string | null; description?: string; active?: boolean }, now: string): void { this.updateTarget("resource_groups", id, input, now); }
 
-  private updateTarget(table: "resources" | "resource_groups", id: number, input: { name?: string; code?: string | null; description?: string; active?: boolean }, now: string): void {
+  private updateTarget(table: "resources" | "resource_groups", id: number, input: { name?: string; code?: string | null; description?: string; active?: boolean; developerGrade?: DeveloperGrade | null }, now: string): void {
     const sets: string[] = []; const values: unknown[] = [];
     if (input.name !== undefined) { sets.push("name = ?"); values.push(input.name); }
     if (input.code !== undefined) { sets.push("code = ?"); values.push(input.code); }
     if (input.description !== undefined) { sets.push("description = ?"); values.push(input.description); }
     if (input.active !== undefined) { sets.push("active = ?"); values.push(input.active ? 1 : 0); }
+    if (table === "resources" && input.developerGrade !== undefined) { sets.push("developer_grade = ?"); values.push(input.developerGrade); }
     if (sets.length === 0) return;
     sets.push("updated_at = ?"); values.push(now, id);
     this.database.prepare(`UPDATE ${table} SET ${sets.join(", ")} WHERE id = ?`).run(...values);
