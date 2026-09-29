@@ -1156,5 +1156,11 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
   - `Set-Cookie: mastergantt_edit=...`
   - Body: `InstantiateProjectTemplateResponse`
 
+## Issue #303 Task status / progress canonical 계약
 
+Task 응답은 Project status와 별개인 `status`를 포함한다. 값은 `not_started | in_progress | completed`다. 기존 client 호환을 위해 create/update request의 status는 선택적이며 생략 시 progress 및 현재 canonical 상태에서 결정한다.
+
+`PATCH /api/projects/{publicId}/tasks/{taskId}`에서 status와 progress는 하나의 논리 변경이다. progress 100은 completed, completed는 progress 100이다. completed Task의 progress를 100 미만으로 직접 낮추면 in_progress가 된다. not_started는 progress 0으로, in_progress 선택 시 기존 0~99는 유지하고 100이면 0으로 정규화한다. 성공은 기존과 같이 revision을 정확히 1 증가시키며 응답 canonical snapshot에 두 필드를 함께 반환한다. status/progress 변경은 start/end/requestedStart/Link를 암묵적으로 변경하지 않는다.
+
+Summary status는 client 입력 필드가 아니며 서버의 정확한 derived progress로 결정한다. Dependency endpoint Task의 편집 가능 범위는 #258의 구현 상태를 따르며, #303 자체는 기존 Link 보호를 해제하지 않는다.
 
