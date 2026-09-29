@@ -604,3 +604,10 @@ Task(Summary, Task, Milestone)와 물류 시스템 간의 연결 테이블이다
 인덱스:
 - `project_templates_active_idx ON project_templates(active)`
 - `project_templates_created_at_idx ON project_templates(created_at)`
+
+
+## Issue #289 — Project master catalog
+
+Migration `0015_project_master_catalog.sql`은 `project_master_items`와 catalog revision, 전용 관리자 credential/session을 추가하고 `projects.business_unit_id/product_id/site_entity_id`를 nullable FK로 확장한다. 기존 Project는 migration 후 세 참조가 모두 NULL이며 임의 backfill을 하지 않는다.
+
+`project_master_items`는 `BUSINESS_UNIT | PRODUCT | SITE_ENTITY` category, immutable 성격의 public ID/stable code, 표시명, active, sort_order를 가진다. `UNIQUE(category, code)`와 category별 참조 trigger로 잘못된 category 연결을 차단한다. Project FK는 `ON DELETE RESTRICT`로 사용 중 master가 Project 삭제를 유발하지 않게 하며, Project 삭제는 global master row를 삭제하지 않는다.
