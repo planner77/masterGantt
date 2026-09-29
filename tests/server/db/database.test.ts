@@ -146,6 +146,7 @@ describe("SQLite connection and schema", () => {
         "0012_project_templates.sql",
         "0013_link_types_and_lag.sql",
         "0014_task_baseline.sql",
+        "0015_task_status.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -335,6 +336,44 @@ describe("migration safety", () => {
       expect(reopened.migrations.applied).toEqual([]);
       expect(reopened.database.prepare("SELECT id, status FROM projects ORDER BY id").all())
         .toEqual([{ id: existingId, status: "in_progress" }, { id: newId, status: "planned" }]);
+    } finally {
+      reopened.database.close();
+    }
+  });
+
+  it("backfills task status from progress and preserves the result across reopen", () => {
+    const directory = copiedMigrations(15);
+    const migration15 = join(directory, "0015_task_status.sql");
+    const migration15Contents = readFileSync(migration15);
+    unlinkSync(migration15);
+    const filename = join(temporaryDirectory(), "task-status.sqlite3");
+    const before = openDatabase({ filename, migrationsDirectory: directory });
+    const projectId = insertProject(before.database, "Task status migration");
+    const zeroId = insertTask(before.database, { projectId, name: "Zero", progress: 0 });
+    const partialId = insertTask(before.database, { projectId, name: "Partial", progress: 50 });
+    const doneId = insertTask(before.database, { projectId, name: "Done", progress: 100 });
+    before.database.close();
+
+    writeFileSync(migration15, migration15Contents);
+    const migrated = openDatabase({ filename, migrationsDirectory: directory });
+    try {
+      expect(migrated.migrations.applied).toEqual(["0015_task_status.sql"]);
+      expect(migrated.database.prepare("SELECT id, status FROM tasks ORDER BY id").all()).toEqual([
+        { id: zeroId, status: "not_started" },
+        { id: partialId, status: "in_progress" },
+        { id: doneId, status: "completed" },
+      ]);
+      expect(() => migrated.database.prepare("UPDATE tasks SET status = 'unknown' WHERE id = ?").run(zeroId))
+        .toThrow();
+    } finally {
+      migrated.database.close();
+    }
+
+    const reopened = openDatabase({ filename, migrationsDirectory: directory });
+    try {
+      expect(reopened.migrations.applied).toEqual([]);
+      expect(reopened.database.prepare("SELECT status FROM tasks WHERE id = ?").pluck().get(doneId))
+        .toBe("completed");
     } finally {
       reopened.database.close();
     }
