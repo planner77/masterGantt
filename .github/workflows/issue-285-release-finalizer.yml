@@ -1,4 +1,4 @@
-name: Issue 285 release finalizer
+name: Issue 285 릴리스 마무리
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   release_finalize:
-    name: v0.54.0 release and close Issue 285
+    name: v0.54.0 릴리스 및 Issue 285 종료
     runs-on: ubuntu-latest
     timeout-minutes: 240
     env:
@@ -26,7 +26,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Resolve finalizer PR and safely remove finalizer branch
+      - name: v0.54.0 릴리스 검증 및 GHCR 게시
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/issue_lifecycle.py release \
+            --issue 285 \
+            --pr "$FEATURE_PR" \
+            --release-required true \
+            --release-authorized true \
+            --expected-version 0.54.0 \
+            --authorization-note "User explicitly requested merge, main CI, GHCR publish, and automatic release finalize for Issue #285 on 2026-09-29."
+
+      - name: Finalizer PR 확인 및 finalizer 브랜치 안전 정리
         shell: bash
         run: |
           set -euo pipefail
@@ -43,11 +55,11 @@ jobs:
             --target-sha "$GITHUB_SHA" \
             --delete
 
-      - name: Release v0.54.0, clean feature branch, and close Issue 285
+      - name: Issue 285 lifecycle 최종 정리 및 종료
         shell: bash
         run: |
           set -euo pipefail
-          python3 scripts/issue_lifecycle.py release_finalize \
+          python3 scripts/issue_lifecycle.py finalize \
             --issue 285 \
             --pr "$FEATURE_PR" \
             --release-required true \
