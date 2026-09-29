@@ -4,8 +4,8 @@ import { useContext, useEffect, useId, useRef, type ReactNode, type RefObject } 
 import { WorkspaceMessageContext } from "./workspace-message-context";
 import styles from "./workspace-feedback.module.css";
 
-export function WorkspaceDialog({ title, children, onClose, busy = false, feedback = true, restoreFocusRef, size = "standard" }: Readonly<{
-  title: string; children: ReactNode; onClose: () => void; busy?: boolean; feedback?: boolean;
+export function WorkspaceDialog({ title, children, onClose, onEscape, busy = false, feedback = true, restoreFocusRef, size = "standard" }: Readonly<{
+  title: string; children: ReactNode; onClose: () => void; onEscape?: () => void; busy?: boolean; feedback?: boolean;
   restoreFocusRef?: RefObject<HTMLElement | null>;
   size?: "standard" | "wide";
 }>) {
@@ -28,7 +28,7 @@ export function WorkspaceDialog({ title, children, onClose, busy = false, feedba
     };
   }, [restoreFocusRef]);
   return <dialog ref={reference} className={`${styles.dialog} ${size === "wide" ? styles.dialogWide : ""}`} aria-labelledby={titleId}
-    onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}
+    onCancel={(event) => { event.preventDefault(); if (!busy) (onEscape ?? onClose)(); }}
     onKeyDown={(event) => {
       if (event.key !== "Tab" || !(event.target instanceof HTMLElement) || event.target.closest("dialog") !== event.currentTarget) return;
       const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button, input, select, textarea, a[href], summary, [tabindex]'))

@@ -74,7 +74,39 @@ test("명시적 닫기는 후보 popup보다 우선해 dirty 닫기 확인으로
 });
 
 test("선행 방향 관계 생성 성공 후 새 관계 초안이 초기화되어 바로 닫힌다", async ({ page }) => {
-  const { root } = await setup(page);
+  const { fixture, root } = await setup(page);
+  let createRequests = 0;
+  await page.route(`**/api/projects/${publicId}/links`, async (route) => {
+    if (route.request().method() !== "POST") { await route.fallback(); return; }
+    createRequests++;
+    const payload = route.request().postDataJSON() as {
+      predecessorExternalId: string;
+      successorExternalId: string;
+      type: "FS" | "SS" | "FF" | "SF";
+      lag: number;
+    };
+    const createdLink = {
+      id: "00000000-0000-4000-8000-000000000099",
+      predecessorExternalId: payload.predecessorExternalId,
+      successorExternalId: payload.successorExternalId,
+      type: payload.type,
+      lag: payload.lag,
+    };
+    fixture.links.push(createdLink);
+    fixture.project.revision += 1;
+    await route.fulfill({
+      status: 201,
+      json: {
+        data: {
+          project: { ...fixture.project },
+          tasks: fixture.tasks.map((entry) => ({ ...entry })),
+          links: fixture.links.map((entry) => ({ ...entry })),
+          warnings: [],
+          operation: { kind: "linkCreate" },
+        },
+      },
+    });
+  });
   const modal = dialog(page);
 
   await modal.getByLabel("연결 방향").selectOption("predecessor");
@@ -82,6 +114,7 @@ test("선행 방향 관계 생성 성공 후 새 관계 초안이 초기화되�
   await modal.getByRole("button", { name: "후보 작업 CANDIDATE" }).click();
   await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
 
+  await expect.poll(() => createRequests).toBe(1);
   await expect(modal.getByLabel("연결 방향")).toHaveValue("successor");
   await expect(modal.getByPlaceholder("작업 이름 또는 ID 검색...")).toHaveValue("");
   await modal.getByRole("button", { name: "닫기", exact: true }).click();

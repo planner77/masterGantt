@@ -137,6 +137,11 @@ export function RelationEditorDialog({
     if (draftDirty) { requestConfirmation({ kind: "close" }); return; }
     onClose();
   }
+  function requestEscapeClose() {
+    if (pendingRef.current) return;
+    if (isSearchOpen) { closeSearchPopup(); return; }
+    requestClose();
+  }
   function confirmAction() {
     if (pendingRef.current || !confirmation) return;
     const action = confirmation;
@@ -225,7 +230,7 @@ export function RelationEditorDialog({
   const relationName = (link: ProjectLinkDto) => `${tasksByExternalId.get(link.predecessorExternalId)?.name ?? link.predecessorExternalId} → ${tasksByExternalId.get(link.successorExternalId)?.name ?? link.successorExternalId}`;
 
   return (
-    <WorkspaceDialog title="작업 관계 관리 (Relation Editor)" onClose={requestClose} busy={mutationPending} size="wide" feedback={false}>
+    <WorkspaceDialog title="작업 관계 관리 (Relation Editor)" onClose={requestClose} onEscape={requestEscapeClose} busy={mutationPending} size="wide" feedback={false}>
       <div onKeyDownCapture={handleEscape}>
         {confirmation ? (
           <div className="relation-editor-confirmation" role="alert">
