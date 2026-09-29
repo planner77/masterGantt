@@ -64,7 +64,7 @@ MCS를 Project와 동일시하지 않는다. 프로젝트에 MCS가 여러 개�
 
 기본 설비 유형: stocker/agv/amr/oht/conveyor/other. 기본 시스템 유형: scs/acs/ocs/lcs/mcs/other. 다른 현장 명칭은 name과 other로 수용하고 유형 추가는 allowlist·문서·테스트를 같이 변경한다. type으로 특정 vendor 구현을 강제하지 않는다.
 
-code는 trim 후 빈 값 불가, 프로젝트·entity 종류별 UNIQUE, 대소문자 구분이다. name은 표시명이며 유일키가 아니다. 초기 제안 상한은 code 64자, name 200자, 설명 4000 Unicode code points이며 기존 공통 validator와의 일관성을 구현 때 확정한다. 사용자 문자열을 SQL 구조나 HTML로 직접 삽입하지 않는다.
+Persistence의 code는 trim 후 빈 값 불가, 프로젝트·entity 종류별 UNIQUE, 대소문자 구분이다. name은 표시명이며 유일키가 아니다. 공정 생성 UX에서는 code를 사용자 필수 입력으로 요구하지 않고, 생성 요청에서 code가 생략되면 서버가 해당 공정 public UUID를 기반으로 `PROC-<UUID>`를 생성해 이 invariant를 만족시킨다. 명시적 legacy/business code는 기존 API 호환을 위해 허용하고 검증·중복 규칙을 유지한다. 설비·시스템 code 입력 정책은 변경하지 않는다. 상한은 code 64자, name 200자, 설명 4000 Unicode code points이다. 사용자 문자열을 SQL 구조나 HTML로 직접 삽입하지 않는다.
 
 `fleet`는 예를 들어 '포장공정 AMR 3대'를 하나의 관리 대상으로 표현한다. 개별 장비 식별이 필요하면 unit 행으로 관리한다. fleet와 구성 개별 장비를 동시에 등록해 수량을 두 번 세지 않도록 입력 안내를 둔다. fleet 구성원 계보·실시간 차량 식별/위치 추적은 초기 범위 밖이며 자동 분해하지 않는다. AGV/AMR의 process_id는 **주 관리 공정**이지 가능한 모든 주행 공정이나 경로가 아니다.
 
