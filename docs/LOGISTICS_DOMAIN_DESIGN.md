@@ -195,3 +195,7 @@ Excel은 선택적 물류 보고용 sheet를 추가하고 직접/파생, code/pu
 - [SQLite Partial Indexes](https://www.sqlite.org/partialindex.html)
 
 2026-09-26 URL·공식 문서·관련 sample 링크를 조회했다. SPA의 실제 조작/캡처와 설치2.7.3 runtime 검증은 수행하지 않았다. 온라인 Editor 예제의 확장 방식은 참조하되 설치 패키지 API와 Core/PRO 경계를 다시 확인한다. 온라인 기본 Resources tab은 Summary에서 숨겨진다고 설명되어 있어, 3종 Task의 물류 연결을 그것에 의존하지 않고 masterGantt 자체 편집 영역으로 설계했다. 공식 문서 조회를 라이브러리 업그레이드 승인으로 해석하지 않는다.
+
+## Issue #288 Developer grade 확장
+
+시스템의 PI/Developer 역할은 계속 기존 global Resource를 참조한다. 별도 Developer master나 `resourceType`은 추가하지 않는다. Resource의 전역 메타데이터 `developerGrade`를 역할 관계와 조합하며, 신규 Developer 역할은 등급 지정 Resource만 허용한다. 기존 미지정 Developer 역할은 migration 호환을 위해 보존할 수 있고 UI에서 `등급 미지정`으로 식별한다. 역할 해제와 Task assignment는 전역 등급을 변경하지 않는다.
