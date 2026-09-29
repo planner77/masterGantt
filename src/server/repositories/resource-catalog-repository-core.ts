@@ -94,8 +94,8 @@ export class ResourceCatalogRepository {
     return { ...mapTarget(row), memberResourceIds: members.map((member) => member.public_id) };
   }
 
-  insertResource(input: { publicId: string; name: string; code: string | null; description: string; developerGrade: DeveloperGrade | null; now: string }): CatalogTargetRecord {
-    const result = this.database.prepare(`INSERT INTO resources (public_id, name, code, description, developer_grade, active, created_at, updated_at) VALUES (@publicId, @name, @code, @description, @developerGrade, 1, @now, @now)`).run(input);
+  insertResource(input: { publicId: string; name: string; code: string | null; description: string; developerGrade?: DeveloperGrade | null; now: string }): CatalogTargetRecord {
+    const result = this.database.prepare(`INSERT INTO resources (public_id, name, code, description, developer_grade, active, created_at, updated_at) VALUES (@publicId, @name, @code, @description, @developerGrade, 1, @now, @now)`).run({ ...input, developerGrade: input.developerGrade ?? null });
     const row = this.database.prepare(`SELECT id, public_id, name, code, description, active, developer_grade FROM resources WHERE id = ?`).get(Number(result.lastInsertRowid)) as TargetRow;
     return mapTarget(row);
   }
