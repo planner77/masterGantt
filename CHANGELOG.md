@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.55.0] - 2026-09-30
+
+### Added
+
+- Issue #299: Gantt Chart의 Task/Summary/Milestone bar를 수직 Drag & Drop하여 같은 parent의 visible sibling 앞/뒤로 재정렬할 수 있다.
+- vertical gesture는 axis lock 후 기존 수평 일정 이동/resize와 분리되고, 기존 protected hierarchy command에 1회만 저장된다. drop indicator와 긴 프로젝트 edge-scroll을 제공하며 reload와 후속 mutation에서도 canonical 순서를 유지한다.
+
+### Changed
+
+- SVAR React Gantt 2.7.3 Chart가 자체적으로 vertical bar reorder를 제공하지 않는 동작을 public `drag-task(top)` feedback과 기존 `task-commands` server-authoritative hierarchy mutation을 연결하는 Project bridge로 보완한다.
+
 ## [0.54.0] - 2026-09-29
 
 ### Added

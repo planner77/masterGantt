@@ -700,3 +700,11 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - 기존 Country WORKING, Project CUSTOM 휴무, Manual/Dependency Calendar 재계산 및 접근성 회귀를 함께 유지한다.
 
 실제 로컬 실행 결과는 [Issue #261 검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)에 기록한다. 사용자 요청 범위는 PR/CI 시작까지이므로 원격 quality/e2e/docker의 완료 판정은 NOT TESTED이며 main/GHCR/정식 release는 이번 작업 범위 밖이다.
+
+### Issue #299 — Chart vertical DnD
+
+- Unit: axis lock(vertical/horizontal/pending), nearest visible sibling의 before/after, cross-level drop 거부, no-op reorder 차단, hierarchy command mapping.
+- Chromium E2E: 실제 Chart bar pointer gesture로 root sibling을 이동하고 `task-commands` POST 1회 / Task PATCH 0회를 확인한다.
+- E2E에서 canonical root 순서, Grid row 순서, reload persistence, 동일 Gantt/API instance 유지와 drop indicator를 검증한다.
+- 회귀: 기존 horizontal move/resize handle 우선순위, readonly/mutation lock, Dependency hierarchy gate, filter/collapse hidden row, 긴 프로젝트 edge-scroll을 확인한다.
+

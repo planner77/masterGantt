@@ -166,3 +166,12 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 고급 필터에서 복합 유형을 선택한 경우 빠른 보기 버튼의 단일 active 상태는 해제된다.
 - 버튼 전환은 client-side view state로 동작하여 API 재조회, Project mutation, revision 증가, Gantt remount를 유발하지 않으며 SVAR 공개 `filter-tasks` action을 사용한다.
 - 390/768/1024/1440px 뷰포트와 전체화면 모드에서 컨트롤 겹침이 없어야 하며 키보드 Tab 및 ARIA pressed 상태를 지원한다.
+
+### REQ-GANTT-CHART-REORDER — Issue #299
+
+- 편집 권한 사용자는 Gantt Chart bar를 수직 Drag & Drop하여 같은 parent의 작업 순서를 변경할 수 있어야 한다.
+- vertical reorder와 horizontal schedule move/resize는 한 gesture에서 중복 저장되지 않아야 한다.
+- 변경 순서는 canonical `parentExternalId/siblingOrder`로 저장되고 Grid/Chart/reload 및 후속 Task mutation에서 유지되어야 한다.
+- readonly/busy/Dependency 제한과 기존 hierarchy invariant를 우회해서는 안 된다.
+- 다른 hierarchy level로의 implicit reparent는 허용하지 않는다.
+

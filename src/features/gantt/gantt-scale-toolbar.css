@@ -111,3 +111,24 @@
 @media (max-width: 48rem) {
   .project-gantt-scale-toolbar { justify-content: flex-start; }
 }
+
+
+/* Issue #299: keep Chart reorder feedback inside the existing SVAR bar surface. */
+.project-gantt-frame .wx-chart .wx-bar.project-chart-drop-target::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  height: 2px;
+  background: currentColor;
+  content: "";
+  pointer-events: none;
+}
+
+.project-gantt-frame .wx-chart .wx-bar.project-chart-drop-target[data-chart-drop-placement="before"]::after {
+  top: -3px;
+}
+
+.project-gantt-frame .wx-chart .wx-bar.project-chart-drop-target[data-chart-drop-placement="after"]::after {
+  bottom: -3px;
+}

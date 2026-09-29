@@ -72,3 +72,8 @@ masterGantt의 실제 구현 경계는 다음과 같다.
 확인일: 2026-09-29. 설치 Core는 `@svar-ui/react-gantt` 2.7.3이다. [공식 Calendars guide](https://docs.svar.dev/react/gantt/guides/scheduling/calendars/), [Resource Calendar guide](https://docs.svar.dev/react/gantt/guides/resources/resource-calendar/), [resources API](https://docs.svar.dev/react/gantt/api/properties/resources/)의 PRO 구분과 Task/Resource Calendar 경계를 참조했다. 공식 sample URL 조회와 실제 JavaScript demo 조작은 구분하며 후자는 NOT TESTED다.
 
 자체 순수 Scheduling Domain이 Project < Group < Resource 날짜 예외를 결정하고 서버가 충돌·원자 저장을 검증한다. Group/Resource WORKING으로 상위 휴무를 되돌리면 자체 Resource workload M/D·M/M 분자·일별 allocation·과투입 판정에 포함하지만 Task start/end/duration은 Project Calendar만 따른다. 최신 SVAR guide의 Task/Resource 근무시간 교집합 계산은 이 제품 요구와 다르므로 채택하지 않는다. PRO package/API·비공개 구현 도입, Project CUSTOM WORKING, 시간/반일, Resource Leveling은 범위 밖이다. 세부 계약과 검증 범위는 [Issue #261 설계 기록](ISSUE_261_RESOURCE_CALENDAR.md)을 따른다.
+
+## Issue #299 Chart 수직 Drag & Drop
+
+Chart bar의 same-parent `before/after` reorder는 SVAR PRO 기능에 의존하지 않는다. 설치된 Core 2.7.3의 공개 `drag-task(top)` feedback과 masterGantt의 기존 protected hierarchy command를 연결하는 bridge로 구현하며, cross-parent implicit reparent와 별도 PRO package 도입은 범위 밖이다.
+

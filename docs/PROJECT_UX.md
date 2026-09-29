@@ -612,3 +612,10 @@ Resource 고급 필터는 종류·상태·Task From/To 계약을 변경하지 �
 같은 수준의 근무/휴무 충돌은 날짜·대상·규칙·영향 Resource를 식별하는 focus 가능한 오류 요약으로 안내하고 입력으로 이동하는 명령을 제공한다. 동일 초안의 저장은 차단하며 입력 변경 시 충돌과 기존 preview를 무효화한다. PUT 충돌에도 과거 성공 preview를 남기지 않는다. publicId/revision 변경 시 이전 컨텍스트의 충돌 상태를 폐기한다.
 
 저장 후 canonical Calendar와 Project snapshot을 다시 조회하여 서버가 정규화한 날짜 유형을 반영한다. Group/Resource 날짜 예외는 Resource workload만 변경하고 Project Task start/end/duration과 기존 Gantt instance/선택/스크롤을 보존한다. 기존 401/412·초안 보호·늦은 응답 방어 계약은 유지한다. 실제 검증과 잔여 미검증은 [Issue #261 설계·검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)을 따른다.
+
+### Chart bar 수직 Drag & Drop 재정렬 — Issue #299
+
+편집 가능한 Project Workspace에서 Chart의 Task/Summary/Milestone bar를 위·아래로 drag하면 같은 parent의 보이는 sibling 앞/뒤로 순서를 바꿀 수 있다. gesture는 dead-zone 뒤 한 축으로 lock되며 vertical로 확정되면 기존 좌우 일정 이동/resize를 실행하지 않는다. drop 가능 위치는 bar 위/아래 indicator로 표시한다.
+
+검색·필터·Summary 접힘으로 보이지 않는 행은 drop 기준에 포함하지 않는다. 다른 hierarchy level 위에 drop하거나 Dependency link 제한에 걸리는 source/anchor는 reorder 대상으로 인정하지 않는다. 긴 일정에서는 공통 Gantt vertical viewport를 edge-scroll한다. 저장은 canonical hierarchy command로 처리되며 성공 뒤 Grid/Chart가 같은 순서를 표시하고 reload 후에도 유지한다.
+

@@ -284,3 +284,8 @@ Indent는 직전 sibling을 parent로 사용하며 필요한 경우 기존 first
 ## Link mutation recalculation (#97)
 
 Link create/delete rebuilds each leaf from `requestedStart`, applies the complete FS/lag=0 graph with `recalculateFinishStartDependencies`, rejects Manual lower-bound conflicts, then recalculates Summary derivations in the same SQLite transaction. Deleting a constraint can therefore move Auto successors earlier again, bounded by requestedStart and remaining predecessors.
+
+### Issue #299 — Chart vertical reorder의 Scheduling 경계
+
+Chart vertical DnD는 일정 계산 명령이 아니다. axis가 vertical로 lock된 gesture에서는 `start/end/duration` PATCH를 생성하지 않고 기존 hierarchy `reparent` command만 실행한다. 같은 parent 내 sibling reorder는 작업 일정 값을 변경하지 않으며 Project revision은 성공한 hierarchy transaction에 대해 한 번만 증가한다. Summary/Dependency/Calendar 계산 규칙은 기존 서버 canonical snapshot 계약을 그대로 따른다.
+
