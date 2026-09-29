@@ -1340,6 +1340,12 @@ export class LogisticsService {
             `Cannot newly assign inactive resource '${resource.name}' (${resource.publicId}).`,
           );
         }
+        if (item.role === "developer" && resource.developerGrade === null && !currentAssignedPairs.has(pairKey)) {
+          throw new LogisticsConflictError(
+            "DEVELOPER_GRADE_REQUIRED",
+            `Developer grade is required before assigning resource '${resource.name}' (${resource.publicId}) as developer.`,
+          );
+        }
 
         const isPrimary = item.isPrimary ? 1 : 0;
         if (isPrimary) {
