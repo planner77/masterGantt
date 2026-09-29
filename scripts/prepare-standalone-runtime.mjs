@@ -38,6 +38,15 @@ export function prepareStandaloneRuntime({ root = repositoryRoot, env = process.
     cpSync(publicSource, publicTarget, { recursive: true, force: true });
   }
 
+  const migrationsSource = resolve(root, "db", "migrations");
+  const migrationsTarget = resolve(standaloneDir, "db", "migrations");
+  if (!existsSync(migrationsSource)) {
+    throw new Error(`Database migrations were not found at ${migrationsSource}.`);
+  }
+  rmSync(migrationsTarget, { recursive: true, force: true });
+  mkdirSync(dirname(migrationsTarget), { recursive: true });
+  cpSync(migrationsSource, migrationsTarget, { recursive: true, force: true });
+
   return { distDir, standaloneDir, serverPath };
 }
 
