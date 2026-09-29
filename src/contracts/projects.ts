@@ -2,6 +2,7 @@ import type { ProjectLogisticsDto } from "./logistics";
 import type { ProjectAssignmentDto } from "./resources";
 
 export type ProjectStatus = "planned" | "in_progress" | "completed";
+export type TaskStatus = "not_started" | "in_progress" | "completed";
 
 export interface ProjectHolidayDto {
   date: string;
@@ -63,6 +64,8 @@ export interface ProjectTaskDto {
   end: string;
   duration: number;
   progress: number;
+  /** Canonical responses include Task status; optional preserves older fixtures/adapters. */
+  status?: TaskStatus;
   parentExternalId: string | null;
   siblingOrder: number;
   baselineStart?: string | null;
@@ -190,6 +193,7 @@ export interface CreateTaskRequest {
   end?: string;
   duration: number;
   progress: number;
+  status?: TaskStatus;
   parentExternalId?: null;
 }
 
@@ -202,6 +206,7 @@ export interface UpdateTaskRequest {
   end?: string;
   duration?: number;
   progress?: number;
+  status?: TaskStatus;
   baselineStart?: string | null;
   baselineDuration?: number | null;
   baselineEnd?: string | null;
