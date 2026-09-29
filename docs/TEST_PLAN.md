@@ -1,5 +1,9 @@
 # Test Plan
 
+## Issue #265 템플릿 조회·선택·폼 접근성
+
+템플릿 조회 HTTP 오류·네트워크 실패·잘못된 응답을 정상 빈 배열과 구분하고 명시적 재시도 성공을 검증한다. Native radio의 방향키/Space 및 Tab 진입, 검색 label/count/reset·0건·필터 밖 선택 요약, 사용자 프로젝트 이름 보존을 확인한다. 필드 오류의 aria 연결과 focus, 수정 후 해제, 성공 제출 payload와 이동을 검사한다. 긴 카드와 폼은 390/768/1024/1440px에서 document overflow를 검사하고, #264의 초안·지연 제출 회귀도 함께 실행한다. 실제 서버 세션 발급·일정 계산 전체 회귀는 기존 통합 테스트와 PR CI로 구분한다.
+
 ## Issue #283 Docker standalone runtime 회귀
 
 - Build: `next.config.ts`의 standalone output과 `tsconfig.runtime-tools.json`의 startup 도구 JavaScript emit이 production build에서 함께 생성되어야 하며, build 후 `.next/static`, optional `public/`, `db/migrations`가 prepared standalone tree에 stage되어야 한다.
