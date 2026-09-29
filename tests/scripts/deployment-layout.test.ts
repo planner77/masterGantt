@@ -40,11 +40,24 @@ describe("deployment repository layout", () => {
 
   it("keeps TypeScript loaders out of production dependencies", () => {
     const packageJson = JSON.parse(text("package.json")) as {
+      scripts?: Record<string, string>;
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
     };
     expect(packageJson.dependencies).not.toHaveProperty("tsx");
     expect(packageJson.devDependencies?.tsx).toBe("4.23.13");
+    expect(packageJson.scripts?.build).toContain("node scripts/prepare-standalone-runtime.mjs");
+    expect(packageJson.scripts?.start).toBe("node scripts/start-standalone.mjs");
+
+    const prepare = text("scripts/prepare-standalone-runtime.mjs");
+    const start = text("scripts/start-standalone.mjs");
+    expect(prepare).toContain('resolve(root, distDir, "static")');
+    expect(prepare).toContain('resolve(standaloneDir, distDir, "static")');
+    expect(prepare).toContain('resolve(root, "public")');
+    expect(start).toContain('"--hostname"');
+    expect(start).toContain('"--port"');
+    expect(start).toContain("prepareStandaloneRuntime()");
+    expect(start).toContain("await import(pathToFileURL(serverPath).href)");
   });
 
   it("preserves runtime paths and pins while relocating the Dockerfile", () => {
