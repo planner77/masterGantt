@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.54.0] - 2026-09-29
+
+### Added
+
+- Issue #285: 공정 생성 요청에서 `code` 생략을 허용하고 서버가 공정 public UUID를 기반으로 안정적인 내부 코드 `PROC-<UUID>`를 생성한다. 기존 명시적 code API와 수정 화면의 code 편집 계약은 유지한다.
+
+### Changed
+
+- 물류 구성의 공정 추가 모달에서 업무 입력이 아닌 공정 코드 필드를 제거하고 공정명을 첫 focus/필수 입력으로 사용한다. 기존 DB `code NOT NULL / UNIQUE`, Project copy·Template·Excel 조회 계약은 변경하지 않는다.
+
 ## [0.53.5] - 2026-09-29
 
 ### Fixed
