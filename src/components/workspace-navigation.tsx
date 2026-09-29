@@ -7,6 +7,7 @@ export function WorkspaceNavigation() {
   const pathname = usePathname();
   const projectActive = pathname === "/" || pathname.startsWith("/projects");
   const resourceActive = pathname.startsWith("/resources");
+  const projectMasterActive = pathname.startsWith("/project-master-admin");
 
   return (
     <nav aria-label="주요 메뉴">
@@ -15,6 +16,9 @@ export function WorkspaceNavigation() {
       </Link>
       <Link className="nav-link" href="/resources" aria-current={resourceActive ? "page" : undefined}>
         리소스
+      </Link>
+      <Link className="nav-link" href="/project-master-admin" aria-current={projectMasterActive ? "page" : undefined}>
+        프로젝트 기준정보
       </Link>
     </nav>
   );
