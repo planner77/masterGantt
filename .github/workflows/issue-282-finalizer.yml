@@ -1,4 +1,4 @@
-name: Issue #282 자동 release finalize
+name: "Issue #282 자동 release finalize"
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   release_finalize:
-    name: v0.53.3 정식 릴리스 및 Issue #282 종료
+    name: "v0.53.3 정식 릴리스 및 Issue #282 종료"
     runs-on: ubuntu-latest
     timeout-minutes: 240
     env:
@@ -56,7 +56,7 @@ jobs:
             --target-sha "$GITHUB_SHA" \
             --delete
 
-      - name: Feature 브랜치 정리 및 Issue #282 종료
+      - name: "Feature 브랜치 정리 및 Issue #282 종료"
         shell: bash
         run: |
           set -euo pipefail
