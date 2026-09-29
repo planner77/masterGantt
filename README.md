@@ -618,3 +618,8 @@ docker compose --env-file .env -f deploy/compose.yml logs -f app
 ```
 
 장애 조사는 `사용자 requestId → Nginx access log → Docker application log → errorCode/reasonCode/component` 순서로 수행한다. 상세 schema, 보안 금지 필드, readiness 전환 이벤트와 로그 회전 지침은 [운영 로깅 및 요청 추적](docs/LOGGING.md)을 따른다.
+
+### 물류 유형 관리자
+
+전역 **물류 관리** 화면은 설비 유형과 시스템 유형을 글로벌 카탈로그로 관리한다. 신규 설치는 server-only `LOGISTICS_CATALOG_ADMIN_PASSWORD`를 설정해야 하며 Docker Compose에서도 필수다. 이 값은 최초 bootstrap에만 사용되고 이후 관리자 화면에서 변경한 credential은 SQLite에 hash로 유지된다. Project 편집 비밀번호 및 Resource Catalog 관리자 비밀번호와는 별도 권한이다.
+
