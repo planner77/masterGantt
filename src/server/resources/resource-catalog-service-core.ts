@@ -14,6 +14,8 @@ import type {
   UpdateCatalogTargetRequest,
 } from "../../contracts/resources";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
+import { resolveResourceCalendar } from "../../domain/scheduling/resource-calendar";
+import { loadResourceCalendarExceptions, resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
 import { ProjectRepository, EditSessionRepository } from "../repositories/project-repository-core";
 import {
   ResourceCatalogRepository,
@@ -233,6 +235,19 @@ export class ResourceCatalogService {
       const nextIds = [...input.resourceIds].sort(); const currentIds = [...group.memberResourceIds].sort();
       if (nextIds.length === currentIds.length && nextIds.every((id, index) => id === currentIds[index])) return this.getCatalog(rawAdminToken);
       const now = this.clock().toISOString(); this.catalog.replaceGroupMembers(group.id, resources.map((resource) => resource!.id), now);
+      // Membership is global: validate every project, including calendars without
+      // task assignments. Throwing here rolls membership and revision back.
+      for(const project of this.projects.listPublic()) {
+        const record=this.projects.findByPublicId(project.publicId)!;
+        const exceptions=loadResourceCalendarExceptions(this.database,record.id);
+        if(exceptions.length===0) continue;
+        const projectCalendar=resolveProjectWorkingCalendar(this.database,record.id);
+        const groups=this.catalog.listGroups();
+        for(const resourceId of nextIds) {
+          resolveResourceCalendar({projectCalendar,resourceId,
+            groupIds:groups.filter((entry)=>entry.memberResourceIds.includes(resourceId)).map((entry)=>entry.publicId),exceptions});
+        }
+      }
       if (!this.catalog.advanceRevision(expectedRevision, now)) throw new ResourceCatalogRevisionMismatchError(); return this.getCatalog(rawAdminToken);
     }); return mutate.immediate();
   }

@@ -649,3 +649,14 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - Task Advanced Filter를 열린 상태로 유지해 **텍스트 / 일정·수치 / 유형·할당 / 물류** section heading을 확인하고, operator/value·From/To·Min/Max·Resource/Group picker·긴 공정/설비/시스템 label을 포함한 모든 input/select가 panel 좌우 bounds를 벗어나거나 서로 겹치지 않는지 실제 geometry로 검증한다.
 - Resource Advanced Filter는 종류/상태/Task From/To와 한쪽 날짜 초안·역순 날짜 안내를 유지하면서 동일 geometry 검사를 수행한다. 768/1024에서는 2열 reflow, 390에서는 1열 reflow가 document horizontal overflow 없이 접근 가능해야 한다.
 - 기존 #83/#130/#196의 predicate, active count, Task/Milestone quick view, Grid/Chart visibility, Reset/search focus, Escape/filter trigger focus, Gantt root identity, filter 조작 중 mutation/API 재조회 0회 assertion을 그대로 유지한다. 새 layout 검증은 이 기능 회귀를 대체하지 않는다.
+
+## Issue #261 Resource Group/Resource 근무일 예외
+
+- Domain/resolver: Project < Group < Resource 계층 양방향 override, 상위 대비 CHANGED/NO_EFFECT, 동일 유형 dedupe와 출처 보존, 반대 유형 conflict 및 입력/DB 순서 독립성. Resource 예외로 Group conflict가 은폐되지 않음.
+- Calendar service/API: 누락 dayType의 NON_WORKING 정규화, PROJECT WORKING 거부, GET→PUT→GET canonical customDates, preview Resource별 최종 상태/상위 대비 효과/출처, 빈 그룹 충돌, 성공 revision +1/실패 +0, 기존 session/Origin/If-Match.
+- Membership: 여러 프로젝트에 걸쳐 후보 구성원이 새 Group-level 충돌을 만들면 전체 구성원 변경과 catalog revision을 rollback. 할당이 없는 Resource도 검사한다.
+- Workload: 공휴일 특별근무·그룹 휴무를 개인 근무로 복원·개인 휴무 재적용, M/D·M/M 분자와 일별 과투입, 중복 그룹 합산 방지, NO_EFFECT 계산 불변. Task start/end/duration은 어떤 Resource 예외로도 바뀌지 않음.
+- Chromium: Group/Resource WORKING 등록·수정·삭제·재진입, NO_EFFECT 경고와 저장 가능, 충돌 오류 summary focus/입력 연결, 대상/유형/날짜/이름/추가/삭제의 preview stale, Project target 전환의 휴무일 정규화, canonical 재조회 및 Gantt 상태 보존. 390/768/1024/1440px에서 control overlap/document overflow 검사.
+- 기존 Country WORKING, Project CUSTOM 휴무, Manual/Dependency Calendar 재계산 및 접근성 회귀를 함께 유지한다.
+
+실제 로컬 실행 결과는 [Issue #261 검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)에 기록한다. 사용자 요청 범위는 PR/CI 시작까지이므로 원격 quality/e2e/docker의 완료 판정은 NOT TESTED이며 main/GHCR/정식 release는 이번 작업 범위 밖이다.

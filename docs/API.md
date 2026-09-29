@@ -332,7 +332,7 @@ Canonical 형식이 아니거나 존재하지 않는 `publicId`는 동일한 `40
 
 ### 작업 캘린더 API — Issue #57
 
-Issue #57부터 Project Calendar는 단일 holiday 교체 endpoint가 아니라 **국가 규칙 + Custom 휴무 + materialized date exception** 계약을 사용한다. 이전 설계 문서의 `PUT /api/projects/{publicId}/calendar`는 구현 API가 아니며 아래 endpoint로 대체한다.
+Issue #57부터 Project Calendar는 단일 holiday 교체 endpoint가 아니라 **국가 규칙 + Custom 근무/휴무 날짜 예외 + materialized date exception** 계약을 사용한다. 이전 설계 문서의 `PUT /api/projects/{publicId}/calendar`는 구현 API가 아니며 아래 endpoint로 대체한다.
 
 #### `GET /api/work-calendars/countries`
 
@@ -362,7 +362,8 @@ Project edit session이 필요하다. 현재 Project의 Calendar rule과 Project
         "sourceVersion": "KR-2026-law-2026-05-11"
       }
     ],
-    "projectDates": []
+    "projectDates": [],
+    "customDates": []
   }
 }
 ```
@@ -394,26 +395,37 @@ Project edit session이 필요하다. 현재 Project의 Calendar rule과 Project
       "name": "회사 창립기념일",
       "date": "2026-08-16",
       "targetType": "PROJECT",
-      "targetId": null
+      "targetId": null,
+      "dayType": "NON_WORKING"
     }
   ]
 }
 ```
 
-Preview 응답은 후보 rule/date와 함께 `changedTasks`, `manualConflicts`를 반환한다. Issue #68부터 저장된 `FS/lag=0` Dependency가 있으면 후보 Calendar로 Leaf base 일정을 계산한 뒤 Dependency DAG forward-pass와 Summary 집계를 같은 서버 Scheduling Domain에서 수행한다. `changedTasks[].reasons`는 `CALENDAR | DEPENDENCY | SUMMARY`를, `dependencyPredecessorExternalIds`는 해당 FS lower bound를 만든 선행 작업을 표시한다. Manual 후행이 새 FS bound를 만족하지 못하면 Preview에는 `reason: "DEPENDENCY"`가 포함되고 저장은 `409 MANUAL_DEPENDENCY_CONFLICT`로 전체 거부한다.
+Issue #261: `customDates[].dayType`은 `NON_WORKING | WORKING`이다. 기존 입력의 누락값은 `NON_WORKING`으로 정규화한다. `RESOURCE_GROUP/RESOURCE`는 두 값을 허용하고 `PROJECT`의 CUSTOM `WORKING`은 `400 INVALID_WORK_CALENDAR`로 거부한다. GET의 `data.customDates[]` 및 Preview/PUT의 `data.calendar.customDates[]`는 `{id,name,date,targetType,targetId,dayType}` canonical DTO를 반환한다. 국가 rule은 여러 dayType 날짜를 포함할 수 있으므로 rule-level dayType을 추가하지 않는다.
+
+Preview 응답은 후보 rule/date와 함께 `changedTasks`, `manualConflicts`, `resourceExceptionEffects`를 반환한다. Issue #68부터 저장된 `FS/lag=0` Dependency가 있으면 후보 Calendar로 Leaf base 일정을 계산한 뒤 Dependency DAG forward-pass와 Summary 집계를 같은 서버 Scheduling Domain에서 수행한다. `changedTasks[].reasons`는 `CALENDAR | DEPENDENCY | SUMMARY`를, `dependencyPredecessorExternalIds`는 해당 FS lower bound를 만든 선행 작업을 표시한다. Manual 후행이 새 FS bound를 만족하지 못하면 Preview에는 `reason: "DEPENDENCY"`가 포함되고 저장은 `409 MANUAL_DEPENDENCY_CONFLICT`로 전체 거부한다.
+
+`resourceExceptionEffects[]`는 Resource/Group CUSTOM 입력별로 `{ruleId,customDateIndex,date,dayType,targetType,targetId,effect,warningCode,affectedResources}`를 반환한다. `customDateIndex`는 요청 `customDates[]` 위치다. `affectedResources[]`는 `{resourceId,resourceName,beforeDayType,effectiveDayType,effect,winningLayer,winningSources}`이며, `winningSources[]`는 기존 `WorkCalendarDateSourceDto`와 같은 source 목록이다.
+
+- `CHANGED | NO_EFFECT`는 **바로 위 계층 결과 대비** 해당 예외의 효과다. 더 구체적인 Resource 예외에 가려져도 Group 효과는 CHANGED일 수 있으며, 최종 상태는 `effectiveDayType`과 `winningLayer/winningSources`로 확인한다.
+- `winningLayer` 계약은 `BASE | PROJECT | RESOURCE_GROUP | RESOURCE`이며 현재 Resource/Group effect의 최종 승자는 명시적 Resource/Group source다.
+- 하나라도 영향 Resource의 상태를 바꾸면 입력별 `CHANGED`, 모두 같으면 `NO_EFFECT`다. 후자는 dayType에 따라 `REDUNDANT_WORKING_EXCEPTION | REDUNDANT_NON_WORKING_EXCEPTION` warning을 반환하고 저장을 허용한다. 구성원이 없는 그룹은 `affectedResources: []` 및 `NO_EFFECT`로 응답하므로 UI는 대상 리소스 없음도 안내한다.
+- 같은 level의 같은 dayType은 한 번 적용하면서 모든 source를 보존한다. 반대 dayType은 Resource 예외로 가려져도 오류다. 구성원이 없는 동일 Group target 내부 충돌도 거부한다.
 
 #### `PUT /api/projects/{publicId}/work-calendar`
 
 Preview와 같은 입력을 저장한다. exact same-origin Origin, edit session, `If-Match`가 필요하다. Server는 Client가 계산한 휴일 목록을 authority로 신뢰하지 않고 국가 fixture와 Custom 입력을 다시 검증한다.
 
-하나의 SQLite `IMMEDIATE` transaction에서 session/revision 재검증 → 후보 Calendar materialize → Manual conflict 검사 → rule/date 전체 교체 → Auto/Summary 일정 재계산 → Project revision **정확히 1 증가** 순으로 처리한다. 실패 시 Calendar와 Task를 부분 저장하지 않는다. 성공 응답은 Preview shape에 새 `projectRevision`을 포함하며 UI는 canonical Project snapshot을 다시 조회해 기존 Gantt instance에 반영한다.
+하나의 SQLite `IMMEDIATE` transaction에서 session/revision 재검증 → 후보 Calendar materialize 및 Resource same-level 충돌 검사 → Manual conflict 검사 → rule/date 전체 교체 → Auto/Summary 일정 재계산 → Project revision **정확히 1 증가** 순으로 처리한다. 실패 시 Calendar와 Task를 부분 저장하지 않는다. 성공 응답은 Preview shape에 새 `projectRevision`을 포함하며 UI는 canonical Project snapshot을 다시 조회해 기존 Gantt instance에 반영한다.
 
 주요 오류:
 
 - `400 INVALID_WORK_CALENDAR`: 잘못된 국가/대상/범위/날짜/입력 구조
 - `401 EDIT_SESSION_REQUIRED`: 편집 세션 없음·만료·불일치
 - `403 ORIGIN_NOT_ALLOWED`: Origin 불일치
-- `409 CALENDAR_EXCEPTION_CONFLICT`: 동일 날짜의 WORKING/NON_WORKING 충돌
+- `409 CALENDAR_EXCEPTION_CONFLICT`: Project level 동일 날짜의 WORKING/NON_WORKING 충돌
+- `409 RESOURCE_CALENDAR_EXCEPTION_CONFLICT`: 동일 Resource에 적용되는 Group 또는 Resource level 동일 날짜의 반대 dayType 충돌
 - `409 MANUAL_TASK_CALENDAR_CONFLICT`: Manual Task가 후보 Calendar 자체와 충돌
 - `409 MANUAL_DEPENDENCY_CONFLICT`: Manual Task가 후보 Calendar 적용 후 FS lower bound를 위반
 - `409 DEPENDENCY_CYCLE`: 저장된 Dependency graph에 cycle 존재
@@ -422,7 +434,11 @@ Preview와 같은 입력을 저장한다. exact same-origin Origin, edit session
 - `422 COUNTRY_CALENDAR_UNAVAILABLE`: 요청 연도의 검증된 국가 fixture가 없음
 - `428 PRECONDITION_REQUIRED`: `If-Match` 누락
 
-Project Task 일정에는 `PROJECT` 대상 Calendar만 적용한다. `RESOURCE_GROUP/RESOURCE` Custom 휴무는 #56 Resource workload의 Effective Calendar에만 추가되며 Task start/end를 자동 이동시키지 않는다.
+충돌 오류는 공통 `error.details[] = {path,code,message}` 계약을 사용한다. `date`, `layer`, `resourceId`, 반복 `groupIds/ruleIds`, `rules.<ruleId>` source별 설명을 제공한다. 빈 그룹은 `resourceId` 설명이 `대상 리소스 없음`이다. 편집권한을 확인한 Calendar API는 rule name을 포함할 수 있지만 글로벌 Catalog membership API의 설명은 타 Project 사유를 노출하지 않고 rule ID만 제공한다.
+
+Project Task 일정에는 `PROJECT` 대상 Calendar만 적용한다. Resource workload는 `Project < Resource Group < Resource` 순서의 명시적 근무/휴무 override를 M/D, M/M 분자, 일별 allocation과 과투입 판정에 사용하며 Task start/end/duration을 이동시키지 않는다.
+
+글로벌 `PUT /api/resource-groups/{groupId}/members`도 결과 membership의 same-level 불변조건을 **모든 Project**에서 검사한다. 배정이 없는 Project 및 비활성 Resource도 포함한다. 관리자 세션/Origin/카탈로그 If-Match 계약은 유지하며 충돌이면 위 `409`를 반환하고 membership, catalog revision, Project revision은 모두 원상태다. 성공한 실제 membership 변경은 catalog revision만 정확히 1 증가시킨다.
 
 ### `POST /api/projects/{publicId}/edit-sessions`
 

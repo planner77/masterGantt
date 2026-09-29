@@ -26,7 +26,7 @@ Core의 Task·Link 표현, 편집, Tree, Grid·Timeline을 공식 API로 사용�
 | Baseline | PRO. [README](https://github.com/svar-widgets/react-gantt) | 불변 Snapshot 설계 후 독립 비교 계산 | Scheduler + Backend / 후속 |
 | Critical Path·Total/Free Slack | Critical Path와 Slack 표현은 PRO. [Overview](https://docs.svar.dev/react/gantt/overview/) | CPM·근무일 Slack 의미 확정 후 독립 구현 | Scheduler / 후속 |
 | Grouping | PRO. [Changelog 2.7](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 표시 그룹과 Parent 관계를 분리하여 검토 | Frontend + Scheduler / 후속 |
-| Resource Assignment·Workload·Calendar | PRO. [Changelog 2.7](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 용량·단위·Calendar 정책 정의 후 검토 | Scheduler + Backend + Frontend / 후속 |
+| Resource Assignment·Workload·Calendar | PRO. [Changelog 2.7](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 자체 API·SQLite 할당, M/D·M/M workload, Project < Group < Resource 날짜 예외 | Scheduler + Backend + Frontend / #19/#56/#57 기반, #261 WORKING 확장(PR 검증 대상); PRO API 미사용 |
 | Rollup | PRO. [Changelog 2.6](https://docs.svar.dev/react/gantt/whats-new/changelog/) | 별도 표시 집계 모델 검토 | Scheduler + Frontend / 후속 |
 | Split Task | PRO. [README](https://github.com/svar-widgets/react-gantt) | Segment 계약·의존 Endpoint 정의 후 검토 | Scheduler + Frontend / 후속 |
 | Undo/Redo, Vertical Marker, Unscheduled Task | PRO. [README](https://github.com/svar-widgets/react-gantt) | 초기 요구 범위 밖. 자동으로 구현 범위에 추가하지 않음 | 미선정 |
@@ -66,3 +66,9 @@ masterGantt의 실제 구현 경계는 다음과 같다.
 
 
 - Issue #97의 FS/lag=0 Link 생성·삭제와 서버 scheduling은 SVAR Core action interception + 자체 API/SQLite 구현이며 PRO auto-scheduling 기능에 의존하지 않는다.
+
+## Issue #261 Resource 날짜 예외 확장
+
+확인일: 2026-09-29. 설치 Core는 `@svar-ui/react-gantt` 2.7.3이다. [공식 Calendars guide](https://docs.svar.dev/react/gantt/guides/scheduling/calendars/), [Resource Calendar guide](https://docs.svar.dev/react/gantt/guides/resources/resource-calendar/), [resources API](https://docs.svar.dev/react/gantt/api/properties/resources/)의 PRO 구분과 Task/Resource Calendar 경계를 참조했다. 공식 sample URL 조회와 실제 JavaScript demo 조작은 구분하며 후자는 NOT TESTED다.
+
+자체 순수 Scheduling Domain이 Project < Group < Resource 날짜 예외를 결정하고 서버가 충돌·원자 저장을 검증한다. Group/Resource WORKING으로 상위 휴무를 되돌리면 자체 Resource workload M/D·M/M 분자·일별 allocation·과투입 판정에 포함하지만 Task start/end/duration은 Project Calendar만 따른다. 최신 SVAR guide의 Task/Resource 근무시간 교집합 계산은 이 제품 요구와 다르므로 채택하지 않는다. PRO package/API·비공개 구현 도입, Project CUSTOM WORKING, 시간/반일, Resource Leveling은 범위 밖이다. 세부 계약과 검증 범위는 [Issue #261 설계 기록](ISSUE_261_RESOURCE_CALENDAR.md)을 따른다.

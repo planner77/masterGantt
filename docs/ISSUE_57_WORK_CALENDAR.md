@@ -5,7 +5,7 @@
 Project 일정과 Resource 공수 계산에서 사용하는 근무일 규칙을 하나의 Working Calendar 도메인으로 통합한다.
 
 - Project 일정: 주간 기본 규칙 + 국가 공휴일 + 프로젝트 휴무일
-- Resource 공수: Project Calendar + Resource Group 휴무일 + Resource 개인 휴무일
+- Resource 공수: Project Calendar → Resource Group 근무/휴무 예외 → Resource 개인 근무/휴무 예외
 - 외부 공휴일 API에 런타임 의존하지 않는다.
 - SVAR React Gantt PRO Calendar/Auto Scheduling 구현에는 의존하지 않는다.
 
@@ -42,9 +42,9 @@ Scheduling Domain은 다음 두 종류의 명시적 날짜 예외를 지원한�
 
 중국의 주말 보충 근무와 베트남의 교환 근무일은 `WORKING`으로 저장한다.
 
-### 조직·개인 휴무
+### 조직·개인 날짜 예외
 
-CUSTOM 규칙은 Issue #57에서 `NON_WORKING`만 제공한다.
+Issue #57의 NON_WORKING-only CUSTOM은 Issue #261에서 Resource Group/Resource에 `NON_WORKING | WORKING`을 지원하도록 확장했다. Project CUSTOM은 `NON_WORKING`만 허용한다. 이전 요청에서 dayType을 생략하면 `NON_WORKING`으로 정규화한다.
 
 - `PROJECT`: Project 일정과 Resource 공수에 반영
 - `RESOURCE_GROUP`: 해당 그룹 Resource의 공수 계산에만 반영
@@ -66,11 +66,13 @@ Base weekly rule
 
 ```text
 Project Calendar
-  + all Resource Group NON_WORKING dates for groups containing the resource
-  + Resource NON_WORKING dates
+  → all explicit Resource Group WORKING / NON_WORKING dates
+  → explicit Resource WORKING / NON_WORKING dates
 ```
 
-Resource/Group CUSTOM 휴무는 union 방식이므로 Project의 `WORKING` 날짜도 해당 Resource에 대해서는 다시 `NON_WORKING`이 될 수 있다.
+더 구체적인 명시 예외가 상위 결과를 override한다. 국가/Project 휴무를 Group WORKING이 되돌리고, Group 휴무를 Resource WORKING이 되돌릴 수 있다. 같은 level의 같은 dayType은 계산상 한 번만 적용하면서 모든 source를 추적한다. 반대 dayType은 `RESOURCE_CALENDAR_EXCEPTION_CONFLICT`이며 개인 예외가 Group 상호 충돌을 숨기지 않는다. 빈 Group 동일 target 내부 충돌도 거부한다.
+
+이미 상위와 같은 dayType을 명시한 예외는 저장 가능한 NO_EFFECT warning이다. 이 효과는 바로 위 계층과 비교하며 최종 상태/winning layer/source를 별도로 반환한다. 글로벌 Group membership 변경도 모든 Project(미배정 포함)의 동일-level 불변조건을 transaction 안에서 검증하며 실패하면 membership/revision을 rollback한다.
 
 ## 4. 데이터 모델
 
@@ -125,7 +127,7 @@ Issue #57 최초 구현 지원 연도는 **2026년**이다.
 
 ### GET /api/projects/{publicId}/work-calendar
 
-편집 세션을 요구한다. 현재 규칙과 Project 유효 날짜를 조회하며 Resource/Group/개인 휴무 사유가 공개 read API로 노출되지 않도록 한다.
+편집 세션을 요구한다. 현재 규칙과 Project 유효 날짜, 저장한 dayType을 복원하는 canonical `customDates[]`를 조회하며 Resource/Group/개인 휴무 사유가 공개 read API로 노출되지 않도록 한다.
 
 ### POST /api/projects/{publicId}/work-calendar/preview
 
@@ -134,6 +136,7 @@ Issue #57 최초 구현 지원 연도는 **2026년**이다.
 - Project 적용 날짜
 - 자동 일정 변경 Task
 - Manual Task 충돌
+- 입력 Resource/Group 예외별 CHANGED/NO_EFFECT, 영향 Resource, 최종 dayType/winning layer/source
 
 ### PUT /api/projects/{publicId}/work-calendar
 
@@ -143,7 +146,7 @@ Issue #57 최초 구현 지원 연도는 **2026년**이다.
 
 1. edit session 재검증
 2. Project revision 재검증
-3. 후보 Calendar materialize 및 충돌 검사
+3. 후보 Calendar materialize 및 Project/Resource/Group same-level 충돌 검사
 4. Manual Task 충돌 거부
 5. Calendar rule/date 교체
 6. Auto Task 및 Summary 일정 재계산/저장
@@ -172,7 +175,7 @@ Issue #68에서 저장된 `FS/lag=0` dependency link까지 Calendar Preview/저�
 
 `ResourceWorkloadService`는 Resource별 Effective Calendar를 계산한다.
 
-따라서 다음 값이 개인/조직 휴무를 반영한다.
+따라서 다음 값이 개인/조직의 근무/휴무 override를 반영한다.
 
 - M/D
 - M/M 환산의 분자 M/D
@@ -187,9 +190,9 @@ Project 설정에 작업 캘린더 편집기를 배치한다.
 - 국가 규칙 추가/삭제
 - 국가 선택
 - 전체기간/기간지정
-- 프로젝트/그룹/개인 휴무일 등록
+- Project 휴무일 및 그룹/개인 근무·휴무 날짜 예외 등록
 - Preview
-- 변경 Task 수/Manual 충돌 표시
+- 변경 Task 수/Manual 충돌 및 입력 예외별 적용됨/효과 없음 표시
 - 적용 날짜 및 source 확인
 - 저장
 
@@ -206,8 +209,11 @@ Project 설정에 작업 캘린더 편집기를 배치한다.
 5. Manual Task 충돌 시 저장 거부
 6. Resource Effective Calendar가 #56 M/D와 과투입에 반영
 7. UI: Preview/Save, 401/412 처리, canonical snapshot 동기화
+8. Issue #261 SQLite/API: dayType round-trip/누락 정규화, Project WORKING 거부, same-level 충돌 Calendar/membership rollback, 모든 Project 검증, M/D/M/M/일별 과투입 및 Task 일정 불변, NO_EFFECT 저장 허용
 
 GitHub Actions PR head의 quality, Chromium E2E, Docker gate가 전체 회귀의 공식 판정이다.
+
+Issue #261 신규 migration은 N/A다. 기존 0006의 day_type/target CHECK와 index가 필요한 저장 구조를 이미 지원하며 구조 변경 없이 해석 규칙만 확장한다. 세부 응답/오류 계약은 [API](API.md), 영속 불변조건은 [DB_SCHEMA](DB_SCHEMA.md)를 따른다.
 
 ## 11. 후속 제약/확장
 
