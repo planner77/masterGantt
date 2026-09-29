@@ -45,6 +45,7 @@ COPY --from=build --chown=mastergantt:mastergantt /app/.next/static ./.next/stat
 COPY --from=build --chown=mastergantt:mastergantt /app/.runtime-tools ./runtime-tools
 COPY --from=build --chown=mastergantt:mastergantt /app/db/migrations ./db/migrations
 COPY --chown=mastergantt:mastergantt deploy/docker/container-entrypoint.sh /usr/local/bin/container-entrypoint
+RUN chmod 0755 /usr/local/bin/container-entrypoint
 
 USER mastergantt
 VOLUME ["/data"]
