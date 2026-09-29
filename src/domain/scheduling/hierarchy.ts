@@ -1,6 +1,7 @@
 import { isWorkingDay, MAX_TASK_DURATION, workingDaysBetween, type WorkingCalendar } from "./calendar";
 import { dateToOrdinal, ordinalToDate, parseDateOnly } from "./date-only";
 import { SchedulingError, type SchedulingErrorCode } from "./errors";
+import { taskStatusFromProgress } from "../task-status";
 
 export const MAX_HIERARCHY_TASKS = 5_000;
 /** Root is depth 1. */
@@ -17,6 +18,7 @@ export interface HierarchyTaskInput {
   readonly end: string;
   readonly duration: number;
   readonly progress: number;
+  readonly status?: "not_started" | "in_progress" | "completed";
   readonly scheduleMode: "auto" | "manual";
   readonly baselineStart?: string | null;
   readonly baselineDuration?: number | null;
@@ -162,6 +164,7 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
       }
     }
     aggregate[index] = totals;
+    const summaryProgress = totals.weight ? totals.weightedProgress / totals.weight : totals.milestoneProgress / totals.milestoneCount;
     const summaryBaselineStart = totals.allDescendantsHaveBaseline ? totals.baselineStart : null;
     const summaryBaselineEnd = totals.allDescendantsHaveBaseline ? totals.baselineEnd : null;
     const summaryBaselineDuration = summaryBaselineStart && summaryBaselineEnd
@@ -173,7 +176,8 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
       start: totals.start,
       end: totals.end,
       duration: span(totals.start, totals.end),
-      progress: totals.weight ? totals.weightedProgress / totals.weight : totals.milestoneProgress / totals.milestoneCount,
+      progress: summaryProgress,
+      status: taskStatusFromProgress(summaryProgress),
       requestedStart: null,
       scheduleMode: "auto" as const,
       baselineStart: summaryBaselineStart,
