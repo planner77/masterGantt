@@ -12,7 +12,7 @@ compiled runtime config validation
 → node server.js
 ```
 
-startup 도구는 `tsconfig.runtime-tools.json`으로 build stage에서 CommonJS JavaScript로 컴파일한다. repository의 `npm run db:migrate`는 source checkout에서의 개발·관리용 CLI로 `devDependency`인 `tsx`를 사용하지만, production dependency/runtime 계약에는 `tsx`가 없다. source production 확인용 `npm run start`는 `scripts/start-standalone.mjs`가 prepared standalone tree를 실행하며 `--hostname`/`--port` 인자를 유지한다. container는 compiled startup JavaScript와 root `server.js`만 실행하며 final image의 `/app/node_modules/tsx` 부재는 image policy에서 검증한다.
+startup 도구는 `tsconfig.runtime-tools.json`으로 build stage에서 CommonJS JavaScript로 컴파일한다. repository의 `npm run db:migrate`는 source checkout에서의 개발·관리용 CLI로 `devDependency`인 `tsx`를 사용하지만, production dependency/runtime 계약에는 `tsx`가 없다. source production 확인용 `npm run start`는 `scripts/start-standalone.mjs`가 prepared standalone tree를 실행하며 `--hostname`/`--port` 인자를 유지하고 repository root working directory를 바꾸지 않아 `db/migrations` 경로 계약을 보존한다. container는 compiled startup JavaScript와 root `server.js`만 실행하며 final image의 `/app/node_modules/tsx` 부재는 image policy에서 검증한다.
 
 base image digest, Debian/glibc 계열, numeric UID/GID 1001:1001, `/data` volume, healthcheck, single-instance SQLite/WAL 계약은 변경하지 않는다. `better-sqlite3`는 standalone trace에 포함된 native addon을 사용하며 PR Docker smoke에서 실제 load/write/restart persistence로 검증한다. Alpine/musl·distroless 전환은 이 변경의 범위가 아니다.
 
