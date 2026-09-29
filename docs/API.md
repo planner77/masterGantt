@@ -810,7 +810,7 @@ Issue #300의 Grid 이동은 기존 `{kind:"reparent", taskId, anchorTaskId, pla
 - `GET /api/projects/{publicId}/logistics`: 프로젝트의 공정, 설비, 시스템 전체 구성을 조회한다 (Public-read).
 
 ### 2. 공정 (Processes)
-- `POST /api/projects/{publicId}/logistics/processes`: 공정 생성 (`code`, `name`, `parentId?`, `sortOrder?`, `active?`)
+- `POST /api/projects/{publicId}/logistics/processes`: 공정 생성 (`name`, `code?`, `parentId?`, `sortOrder?`, `active?`). `code` 생략 시 서버가 생성한 공정 public UUID로 `PROC-<UUID>` 내부 코드를 만들며, 명시적으로 전달한 유효 code는 기존 호환 계약대로 보존한다. 명시적 blank/64자 초과 code는 validation error이며 생략과 구분한다.
 - `PATCH /api/projects/{publicId}/logistics/processes/{processId}`: 공정 수정 (`code?`, `name?`, `parentId?`, `sortOrder?`, `active?`)
 - `DELETE /api/projects/{publicId}/logistics/processes/{processId}`: 공정 영구 삭제 (하위 공정, 소속 설비, 시스템 매핑이 존재할 경우 `409 PROCESS_IN_USE` 거부. 비활성화는 PATCH active=false)
 
@@ -1159,5 +1159,6 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
   - `Location: /projects/{newProjectPublicId}`
   - `Set-Cookie: mastergantt_edit=...`
   - Body: `InstantiateProjectTemplateResponse`
+
 
 

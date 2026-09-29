@@ -1327,17 +1327,25 @@ function ProcessDialog({
   const [parentProcessId, setParentProcessId] = useState<string>(process?.parentProcessId ?? "");
   const [sortOrder, setSortOrder] = useState<number>(process?.sortOrder ?? 0);
   const [active, setActive] = useState<boolean>(process ? process.active : true);
+  const codeInputRef = useRef<HTMLInputElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const target = mode === "create" ? nameInputRef.current : codeInputRef.current;
+    target?.focus({ preventScroll: true });
+  }, [mode]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!code.trim() || !name.trim()) return;
-    void onSubmit({
-      code: code.trim(),
+    if (!name.trim() || (mode === "edit" && !code.trim())) return;
+
+    const common = {
       name: name.trim(),
       parentProcessId: parentProcessId || null,
       sortOrder,
       active,
-    });
+    };
+    void onSubmit(mode === "create" ? common : { code: code.trim(), ...common });
   };
 
   const eligibleParents = allProcesses.filter((p) => p.id !== process?.id);
@@ -1350,21 +1358,24 @@ function ProcessDialog({
     >
       <form className={styles.dialogForm} onSubmit={handleSubmit}>
         <div className={styles.formGrid}>
-          <label className={styles.fieldLabel}>
-            공정 코드 *
-            <input
-              className={styles.fieldInput}
-              required
-              autoFocus
-              disabled={busy}
-              placeholder="예: PROC-01"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-          </label>
+          {mode === "edit" ? (
+            <label className={styles.fieldLabel}>
+              공정 코드 *
+              <input
+                ref={codeInputRef}
+                className={styles.fieldInput}
+                required
+                disabled={busy}
+                placeholder="예: PROC-01"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+              />
+            </label>
+          ) : null}
           <label className={styles.fieldLabel}>
             공정명 *
             <input
+              ref={nameInputRef}
               className={styles.fieldInput}
               required
               disabled={busy}
@@ -1415,7 +1426,11 @@ function ProcessDialog({
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소
           </button>
-          <button className="primary-button" type="submit" disabled={busy || !code.trim() || !name.trim()}>
+          <button
+            className="primary-button"
+            type="submit"
+            disabled={busy || !name.trim() || (mode === "edit" && !code.trim())}
+          >
             {busy ? "저장 중…" : "저장"}
           </button>
         </div>

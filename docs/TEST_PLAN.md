@@ -1,5 +1,12 @@
 # Test Plan
 
+## Issue #285 공정 코드 자동 생성
+
+- Contract/API: Process POST에서 code 생략은 성공하고 서버 생성 code가 non-empty, 64자 이하, 프로젝트 내 unique인지를 확인한다. 명시적 유효 code는 보존하고 blank/64자 초과 및 duplicate code 오류 계약은 유지한다.
+- Service/transaction: 동일 프로젝트 연속 자동 생성, 기존 명시 code와의 호환, revision 증가와 canonical logistics 응답을 확인한다. 인증/Origin/If-Match 실패에는 공정 row/revision이 생성되지 않는 기존 회귀를 유지한다.
+- Chromium E2E: 공정 추가 모달에 코드 입력이 없고 공정명에 최초 focus가 있으며, 이름만으로 저장 가능하고 POST body에 code가 없는지 확인한다. canonical 응답의 생성 code 표시, Escape 취소 mutation 0회와 trigger focus 복원, edit mode code 입력 유지, readonly 및 390/768/1024/1440px overflow 회귀를 기존 물류 spec과 함께 검증한다.
+- DB schema, 설비/시스템 code 정책, Scheduling/SVAR 계약은 변경하지 않는다. 공식 PASS는 PR head의 quality/e2e/docker 결과를 사용한다.
+
 ## Issue #279 물류 구성 서브탭 overflow 회귀
 
 - Chromium E2E는 390/768/1024/1440px에서 물류 구성 tablist의 `overflow-x: auto`, `overflow-y: hidden`, `scrollHeight <= clientHeight`를 실제 DOM geometry로 검증한다.
@@ -694,11 +701,13 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 
 실제 로컬 실행 결과는 [Issue #261 검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)에 기록한다. 사용자 요청 범위는 PR/CI 시작까지이므로 원격 quality/e2e/docker의 완료 판정은 NOT TESTED이며 main/GHCR/정식 release는 이번 작업 범위 밖이다.
 
+
 ## Issue #300 Grid DnD 순서 영속성
 
 - Gateway Unit: 드래그 중 `inProgress`는 로컬 피드백만, 최종 drop은 기존 reparent/move 명령으로 1회 저장. readonly/mutation lock/잘못된 target을 차단하고 canonical 동기화의 명시적 내부 move는 서버에 재전송하지 않는다.
 - Canonical Unit: A/B/C → A/C/B → B 이름 변경 후 새 구조를 유지하며 불필요한 역방향 이동 명령이 없다. parent와 sibling 이동은 공개 move-task로 반영하고 일반 update-task에는 구조를 싣지 않는다.
 - SQLite/HTTP: 기존 reparent before/after/child 이후 name/description/progress PATCH가 parent_id/sort_order를 보존하는지 실제 DB와 canonical GET으로 확인한다. sibling normalization과 revision +1, 401/403/412/invalid target/cycle/빈 Summary의 원자 거부를 검증한다.
 - Chromium: 실제 pointer Grid DnD → inline rename → reload/reopen, Context Menu Up/Down → rename 비교, 비구조 필드와 접힘/펼침·parent 변경·타입 제한, 실패/412 canonical 복구와 Gantt identity 보존. Desktop에서 실제 DnD를 검증하고 390/768/1024/1440px에서 기존 Grid 접근·스크롤·document overflow를 확인한다.
+- Project List 상태 회귀는 SSR 렌더 직후 hydration 전 select 조작으로 이벤트가 유실되지 않도록 control 활성화 시점을 검증하고, E2E는 enabled 상태 이후 조작한다.
 
 실제 실행 결과와 실패/재실행 이력은 [Issue #300 기록](ISSUE_300_GRID_DND.md)에 구분한다. 사용자 요청은 PR/CI 시작까지이므로 원격 quality/e2e/docker 결과는 NOT TESTED이며 완료 모니터링은 수행하지 않는다.
