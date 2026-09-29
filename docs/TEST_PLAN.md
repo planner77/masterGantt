@@ -1,5 +1,9 @@
 # Test Plan
 
+## Issue #266 관계 Dialog 키보드·초안·요청 보호
+
+후보 Enter/Space 선택과 Escape의 후보 우선 닫기, native dialog Tab/Shift+Tab containment, 실제 호출 위치 focus 복원, 같은 Gantt root/상태 보존을 검사한다. 명시적 Header/Footer 닫기는 후보 popup이 열려 있어도 popup 전용 Escape 처리와 분리되어 즉시 닫기 또는 dirty 확인 흐름으로 진입해야 한다. predecessor 방향을 포함한 관계 생성 성공 후 새 관계 초안은 기본값으로 초기화되어 불필요한 폐기 확인이 없어야 한다. dirty 닫기·다른 관계 선택의 계속 편집/폐기, 대상이 표시된 삭제 확인과 취소 DELETE 0회를 검증한다. 지연 mutation 중 Escape·닫기·선택·중복 요청을 차단하고 실패 후 초안을 보존해야 한다. Readonly와 긴 후보/제목을 포함하여 390/768/1024/1440px 주요 명령 접근·본문 scroll·문서 overflow 및 공통 닫기 버튼 줄바꿈을 확인한다. API/DB/스케줄링 알고리즘은 변경하지 않으며 전체 회귀는 PR CI로 구분한다.
+
 ## Issue #265 템플릿 조회·선택·폼 접근성
 
 템플릿 조회 HTTP 오류·네트워크 실패·잘못된 응답을 정상 빈 배열과 구분하고 명시적 재시도 성공을 검증한다. Native radio의 방향키/Space 및 Tab 진입, 검색 label/count/reset·0건·필터 밖 선택 요약, 사용자 프로젝트 이름 보존을 확인한다. 필드 오류의 aria 연결과 focus, 수정 후 해제, 성공 제출 payload와 이동을 검사한다. 긴 카드와 폼은 390/768/1024/1440px에서 document overflow를 검사하고, #264의 초안·지연 제출 회귀도 함께 실행한다. 실제 서버 세션 발급·일정 계산 전체 회귀는 기존 통합 테스트와 PR CI로 구분한다.

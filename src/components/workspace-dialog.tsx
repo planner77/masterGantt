@@ -28,7 +28,17 @@ export function WorkspaceDialog({ title, children, onClose, busy = false, feedba
     };
   }, [restoreFocusRef]);
   return <dialog ref={reference} className={`${styles.dialog} ${size === "wide" ? styles.dialogWide : ""}`} aria-labelledby={titleId}
-    onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}>
+    onCancel={(event) => { event.preventDefault(); if (!busy) onClose(); }}
+    onKeyDown={(event) => {
+      if (event.key !== "Tab" || !(event.target instanceof HTMLElement) || event.target.closest("dialog") !== event.currentTarget) return;
+      const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('button, input, select, textarea, a[href], summary, [tabindex]'))
+        .filter((element) => element.tabIndex >= 0 && !element.matches(":disabled") && !element.closest("[hidden], [inert]") && element.getClientRects().length > 0);
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (!first || !last) { event.preventDefault(); event.currentTarget.focus(); return; }
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }}>
     <div className={styles.dialogHeading}>
       <h2 id={titleId}>{title}</h2>
       <button className="secondary-button" type="button" disabled={busy} onClick={onClose} aria-label={`${title} 닫기`}>닫기</button>

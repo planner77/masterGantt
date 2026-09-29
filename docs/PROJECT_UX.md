@@ -447,6 +447,10 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 - Project Copy는 Baseline을 보존한다.
 - **Chart Baseline bar/toggle은 이번 Issue #202 범위에서 분리하여 Issue #253에서 처리한다.** SVAR PRO Baseline 기능을 사용하지 않고 Core 공개 API/state 기반 Alignment POC를 먼저 통과해야 한다.
 
+## Issue #266 관계 편집 안전성
+
+Relation Editor는 공통 native Dialog를 사용해 배경 조작과 focus 이탈을 차단한다. 공통 Dialog는 Tab/Shift+Tab 경계에서 활성·표시된 control 사이를 순환하며 disabled/hidden/inert 요소를 제외한다. 후보의 Enter/Space 선택, 후보만 닫는 Escape, dirty 종료/관계 전환 확인, 대상이 명시된 삭제 확인과 요청 중 닫기·중복 실행 방어를 제공한다. 명시적 닫기 버튼은 후보 popup이 열려 있어도 popup만 닫고 멈추지 않고 닫기/dirty 확인 흐름으로 진입한다. 관계 생성 성공 시 새 관계 방향·후보·검색·Type·Lag 초안을 기본값으로 되돌린다. 기존 부모의 호출 위치 focus 복원과 Gantt 상태를 유지하며 상세 동작은 [관계 편집 계약](TASK_RELATIONS.md#issue-266-관계-편집-dialog의-키보드초안요청-보호)을 따른다. 공통 Dialog 헤더는 긴 제목을 줄바꿈하고 닫기 버튼의 글자는 한 줄로 유지한다.
+
 ## Issue #203 관계선 더블클릭 Relation Editor 및 관련 아이템 검색·추가·삭제
 
 - **진입 경로 및 인터랙션**:
