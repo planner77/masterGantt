@@ -1,0 +1,68 @@
+name: Issue 285 릴리스 마무리
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/issue-285-release-finalizer.yml"
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  release_finalize:
+    name: v0.54.0 릴리스 및 Issue 285 종료
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      FEATURE_PR: "298"
+      FINALIZER_BRANCH: ops/issue-285-release-finalize
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: v0.54.0 릴리스 검증 및 GHCR 게시
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/issue_lifecycle.py release \
+            --issue 285 \
+            --pr "$FEATURE_PR" \
+            --release-required true \
+            --release-authorized true \
+            --expected-version 0.54.0 \
+            --authorization-note "User explicitly requested merge, main CI, GHCR publish, and automatic release finalize for Issue #285 on 2026-09-29."
+
+      - name: Finalizer PR 확인 및 finalizer 브랜치 안전 정리
+        shell: bash
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY%%/*}"
+          finalizer_pr="$(
+            gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$FINALIZER_BRANCH&per_page=20" |
+              jq -r --arg sha "$GITHUB_SHA" '[.[] | select(.merged_at != null and .merge_commit_sha == $sha)] | last | .number // empty'
+          )"
+          test -n "$finalizer_pr"
+          python3 scripts/safe_branch_cleanup.py \
+            --repo "$GITHUB_REPOSITORY" \
+            --pr "$finalizer_pr" \
+            --branch "$FINALIZER_BRANCH" \
+            --target-sha "$GITHUB_SHA" \
+            --delete
+
+      - name: Issue 285 lifecycle 최종 정리 및 종료
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/issue_lifecycle.py finalize \
+            --issue 285 \
+            --pr "$FEATURE_PR" \
+            --release-required true \
+            --release-authorized true \
+            --expected-version 0.54.0 \
+            --authorization-note "User explicitly requested merge, main CI, GHCR publish, and automatic release finalize for Issue #285 on 2026-09-29."
