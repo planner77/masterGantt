@@ -4,7 +4,7 @@
 
 Issue #283은 Docker/runtime artifact 계약을 변경하므로 동일 PR head에서 `quality`, `e2e`, `docker`를 모두 새로 검증한다. Local Fast Feedback이 제한되거나 Docker 실행이 불가능한 환경의 정적 검토는 원격 PASS를 대체하지 않는다.
 
-PR `docker` 구현 job은 candidate standalone image를 build한 뒤 image policy, PR base baseline 대비 최소 25% size 감소, 주요 artifact/layer 기록, invalid production config fail-fast, migration/readiness, native SQLite write/restart persistence, transport 및 Compose recreate persistence를 순서대로 검증한다. baseline은 PR 이벤트가 제공한 exact base SHA의 detached worktree에서 build하며 과거 수동 측정값을 재사용하지 않는다.
+PR `docker` 구현 job은 candidate standalone image를 build한 뒤 image policy, 주요 artifact/layer 기록, invalid production config fail-fast, migration/readiness, native SQLite write/restart persistence, transport 및 Compose recreate persistence를 순서대로 검증한다. baseline은 PR 이벤트가 제공한 exact base SHA의 detached worktree에서 build하며 과거 수동 측정값을 재사용하지 않는다. 최소 25% 감소 hard gate는 Issue #283처럼 base가 non-standalone이고 candidate가 standalone으로 전환되는 migration PR에만 적용한다. 이후 일반 PR은 이미 slim한 base 대비 추가 25% 감소를 요구하지 않고 size 비교를 관찰용 summary로만 남긴다.
 
 main 병합 후에는 기존 main gate를 따른다. 즉 merge SHA의 `quality/e2e/docker` 성공 뒤 비문서 변경의 임시 `ci-<full SHA>`를 게시하고 exact digest pull runtime smoke, SBOM/provenance 및 임시 package cleanup을 확인한다. Issue #283의 정식 SemVer/GHCR release는 `release_required=true`이지만 별도 명시적 `release_authorized=true` 근거 없이는 실행하지 않는다.
 
