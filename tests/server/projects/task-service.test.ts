@@ -175,6 +175,51 @@ describe("W07 ProjectService task mutations", () => {
     }
   });
 
+  it("persists task status and progress as one canonical state transition", async () => {
+    const { database, service, authorization } = await fixture({
+      generateTaskPublicId: () => "00000000-0000-4000-8000-000000000303",
+    });
+    try {
+      const created = service.createTask(authorization, 1, createInput);
+      const taskId = created.data.tasks[0].taskId;
+      expect(created.data.tasks[0]).toMatchObject({ progress: 25, status: "in_progress" });
+
+      const completedByProgress = service.updateTask(authorization, 2, taskId, { progress: 100 });
+      expect(completedByProgress.data).toMatchObject({
+        project: { revision: 3 },
+        tasks: [{ progress: 100, status: "completed" }],
+      });
+      expect(database.prepare("SELECT progress, status FROM tasks WHERE public_id = ?").get(taskId))
+        .toEqual({ progress: 100, status: "completed" });
+
+      const completionUndone = service.updateTask(authorization, 3, taskId, { progress: 50 });
+      expect(completionUndone.data).toMatchObject({
+        project: { revision: 4 },
+        tasks: [{ progress: 50, status: "in_progress" }],
+      });
+
+      const completedByStatus = service.updateTask(authorization, 4, taskId, { status: "completed" });
+      expect(completedByStatus.data).toMatchObject({
+        project: { revision: 5 },
+        tasks: [{ progress: 100, status: "completed" }],
+      });
+
+      const notStarted = service.updateTask(authorization, 5, taskId, { status: "not_started" });
+      expect(notStarted.data).toMatchObject({
+        project: { revision: 6 },
+        tasks: [{ progress: 0, status: "not_started" }],
+      });
+
+      const explicitInProgress = service.updateTask(authorization, 6, taskId, { status: "in_progress" });
+      expect(explicitInProgress.data).toMatchObject({
+        project: { revision: 7 },
+        tasks: [{ progress: 0, status: "in_progress" }],
+      });
+    } finally {
+      database.close();
+    }
+  });
+
   it("rejects duplicate IDs, stale revisions, missing tasks, and invalid sessions without writes", async () => {
     const { database, service, authorization } = await fixture();
     try {
