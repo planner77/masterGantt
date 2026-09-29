@@ -38,16 +38,16 @@ describe("LogisticsTypeCatalogService",()=>{
     const {database}=openDatabase({filename:":memory:",migrationsDirectory});
     try{
       const service=new LogisticsTypeCatalogService(database,{clock:()=>new Date("2026-09-29T12:00:00.000Z")});
-      const first=service.unlockAdmin("Bootstrap123!","Bootstrap123!");
+      const first=service.unlockAdmin("Bootstrap123456!","Bootstrap123456!");
       expect(first).toBeDefined();
       if(!first)throw new Error("admin session missing");
-      expect(service.unlockAdmin("ChangedEnv123!","ChangedEnv123!")).toBeUndefined();
+      expect(service.unlockAdmin("ChangedEnv123456!","ChangedEnv123456!")).toBeUndefined();
 
       const rotated=service.changeAdminPassword(first.rawToken,"NewPass123!");
       expect(service.authorizeAdmin(first.rawToken)).toBe(false);
       expect(service.authorizeAdmin(rotated.rawToken)).toBe(true);
-      expect(service.unlockAdmin("Bootstrap123!","Bootstrap123!")).toBeUndefined();
-      expect(service.unlockAdmin("NewPass123!","Bootstrap123!")).toBeDefined();
+      expect(service.unlockAdmin("Bootstrap123456!","Bootstrap123456!")).toBeUndefined();
+      expect(service.unlockAdmin("NewPass123!","Bootstrap123456!")).toBeDefined();
     }finally{database.close();}
   });
 });
