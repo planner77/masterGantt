@@ -79,7 +79,7 @@ export function updateTaskEditorDraft(
       return { ...draft, progress: value, status: normalized.status };
     }
   }
-  return { ...draft, [field]: value };
+  return { ...draft, [field]: value } as TaskEditorDraft;
 }
 
 export function copyScheduleToBaseline(draft: TaskEditorDraft, task: ProjectTaskDto): TaskEditorDraft {
