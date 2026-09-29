@@ -166,3 +166,12 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 고급 필터에서 복합 유형을 선택한 경우 빠른 보기 버튼의 단일 active 상태는 해제된다.
 - 버튼 전환은 client-side view state로 동작하여 API 재조회, Project mutation, revision 증가, Gantt remount를 유발하지 않으며 SVAR 공개 `filter-tasks` action을 사용한다.
 - 390/768/1024/1440px 뷰포트와 전체화면 모드에서 컨트롤 겹침이 없어야 하며 키보드 Tab 및 ARIA pressed 상태를 지원한다.
+
+## Issue #303 Task 상태와 진행률
+
+- 일반 Task/Milestone은 `not_started | in_progress | completed` 상태를 가진다. Project 상태와 별도 타입/계약이다.
+- `progress=100`은 `completed`, `status=completed`는 progress 100으로 같은 mutation에서 동기화한다. 완료 해제와 `not_started/in_progress` 전환도 canonical snapshot에 모순 조합을 남기지 않는다.
+- Summary status는 직접 편집하지 않고 정확한 derived progress에서 계산한다. 99.999%를 반올림해 완료로 판정하지 않는다.
+- 완료 Task/Milestone/Summary는 Grid 작업명 텍스트에 취소선을 표시하며 색상만으로 완료를 표현하지 않는다.
+- 기존 DB/import 입력에 status가 없으면 progress로 유도하며 migration은 기존 row를 같은 규칙으로 backfill한다.
+
