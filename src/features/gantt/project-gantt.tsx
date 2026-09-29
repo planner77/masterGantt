@@ -66,6 +66,7 @@ import {
   type TaskClipboard,
 } from "./task-context-menu-model";
 import { taskHasDependencyLinks } from "./task-link-scope";
+import { taskStatusFromProgress } from "../../domain/task-status";
 import { RelationContextMenu } from "./relation-context-menu";
 import type { DependencyType } from "../../contracts/projects";
 import "./task-context-menu.css";
@@ -349,6 +350,9 @@ export function ProjectGantt({
         const eligible = Boolean(taskId && editable && !mutationLocked && tasksById.has(taskId) &&
           !taskHasDependencyLinks(tasks, taskId, links));
         if (row.dataset.inlineNameEligible !== String(eligible)) row.dataset.inlineNameEligible = String(eligible);
+        const task = taskId ? tasksById.get(taskId) : undefined;
+        const completed = task ? (task.status ?? taskStatusFromProgress(task.progress)) === "completed" : false;
+        if (row.dataset.taskCompleted !== String(completed)) row.dataset.taskCompleted = String(completed);
         const nameCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
         if (nameCell && !eligible && nameCell.getAttribute("aria-readonly") !== "true") nameCell.setAttribute("aria-readonly", "true");
         if (nameCell && eligible && nameCell.hasAttribute("aria-readonly")) nameCell.removeAttribute("aria-readonly");
