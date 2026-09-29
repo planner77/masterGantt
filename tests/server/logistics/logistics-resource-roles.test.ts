@@ -97,17 +97,18 @@ function insertResource(
   name: string,
   code: string,
   active = 1,
+  developerGrade: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT" | null = "ADVANCED",
 ): number {
   const now = "2026-10-01T00:00:00.000Z";
   const result = database
     .prepare(
       `
         INSERT INTO resources (
-          public_id, name, code, description, active, created_at, updated_at
-        ) VALUES (?, ?, ?, '', ?, ?, ?)
+          public_id, name, code, description, developer_grade, active, created_at, updated_at
+        ) VALUES (?, ?, ?, '', ?, ?, ?, ?)
       `,
     )
-    .run(publicId, name, code, active, now, now);
+    .run(publicId, name, code, developerGrade, active, now, now);
   return Number(result.lastInsertRowid);
 }
 
@@ -439,4 +440,43 @@ describe("Logistics Resource Roles (LG-02)", () => {
     const sysJson = await sysRes.json();
     expect(sysJson.data.logistics.systems[0].resourceRoles[0].resourceName).toBe("HTTP 담당자");
   });
+
+  it("requires a developer grade for a new developer role, preserves legacy ungraded assignments, and keeps grade after role removal", () => {
+    const db = createTestDatabase();
+    const { authSession, now } = setupProjectWithSession(db);
+    const service = new LogisticsService(db, { clock: () => now });
+
+    insertResource(db, "res-ungraded-1", "등급 미지정", "R_UNG", 1, null);
+    insertResource(db, "res-graded-1", "등급 보유", "R_GRD", 1, "EXPERT");
+
+    const system = service.createSystem(authSession, 1, {
+      code: "SYS_GRADE",
+      name: "Grade System",
+      systemType: "mcs",
+      layer: "controller",
+      scope: "project",
+    }).data.logistics.systems[0];
+
+    expect(() =>
+      service.setSystemResourceRoles(authSession, 2, system.id, {
+        roles: [{ resourceId: "res-ungraded-1", role: "developer" }],
+      }),
+    ).toThrowError(/Developer grade is required/);
+
+    service.setSystemResourceRoles(authSession, 2, system.id, {
+      roles: [{ resourceId: "res-graded-1", role: "developer" }],
+    });
+    db.prepare("UPDATE resources SET developer_grade = NULL WHERE public_id = ?").run("res-graded-1");
+
+    const preserved = service.setSystemResourceRoles(authSession, 3, system.id, {
+      roles: [{ resourceId: "res-graded-1", role: "developer" }],
+    });
+    expect(preserved.data.project.revision).toBe(4);
+
+    db.prepare("UPDATE resources SET developer_grade = 'EXPERT' WHERE public_id = ?").run("res-graded-1");
+    service.setSystemResourceRoles(authSession, 4, system.id, { roles: [] });
+    const row = db.prepare("SELECT developer_grade FROM resources WHERE public_id = ?").get("res-graded-1") as { developer_grade: string | null };
+    expect(row.developer_grade).toBe("EXPERT");
+  });
+
 });
