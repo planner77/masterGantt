@@ -51,6 +51,12 @@ import {
 } from "./project-task-adapter";
 import { dateOnlyFromLocalDate } from "./date-adapter";
 import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
+import {
+  buildChartReorderCommand,
+  resolveChartDragIntent,
+  resolveChartVerticalDrop,
+  type ChartVerticalDrop,
+} from "./chart-vertical-dnd";
 import { resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import type { TaskEditorSaveResult } from "./task-editor-model";
 import { captureMenuScrollChange } from "./menu-scroll-guard";
@@ -214,6 +220,16 @@ export function ProjectGantt({
   const tasksReference = useRef(tasks);
   const initialPreferenceRestoredReference = useRef(false);
   const prevProjectPublicIdReference = useRef(projectPublicId);
+  const chartDragReference = useRef<{
+    taskId: string;
+    sourceParentExternalId: string | null;
+    startX: number;
+    startY: number;
+    originalTop: number | null;
+    intent: "pending" | "horizontal" | "vertical";
+    drop: ChartVerticalDrop | null;
+  } | null>(null);
+  const chartDragTargetReference = useRef<HTMLElement | null>(null);
 
   if (prevProjectPublicIdReference.current !== projectPublicId) {
     prevProjectPublicIdReference.current = projectPublicId;
@@ -310,6 +326,153 @@ export function ProjectGantt({
       saveSummaryTogglePreference(projectPublicId, collapsedIds);
     }
   }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onRelationEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, projectPublicId, tasks, tasksById]);
+
+  const clearChartDragFeedback = useCallback(() => {
+    const target = chartDragTargetReference.current;
+    if (target) {
+      delete target.dataset.chartDropPlacement;
+      target.classList.remove("project-chart-drop-target");
+    }
+    chartDragTargetReference.current = null;
+    const drag = chartDragReference.current;
+    const api = apiReference.current;
+    if (drag?.intent === "vertical" && api && drag.originalTop !== null) {
+      void api.exec("drag-task", {
+        id: drag.taskId,
+        top: Math.max(0, drag.originalTop - 4),
+        inProgress: false,
+      });
+    }
+  }, []);
+
+  const updateChartDropFeedback = useCallback((drop: ChartVerticalDrop | null) => {
+    const current = chartDragTargetReference.current;
+    if (current) {
+      delete current.dataset.chartDropPlacement;
+      current.classList.remove("project-chart-drop-target");
+    }
+    chartDragTargetReference.current = null;
+    if (!drop) return;
+    const root = ganttScrollReference.current;
+    if (!root) return;
+    const target = Array.from(root.querySelectorAll<HTMLElement>(".wx-chart .wx-bar[data-task-id]"))
+      .find((element) => taskIdFromElement(element) === drop.anchorTaskId) ?? null;
+    if (!target) return;
+    target.dataset.chartDropPlacement = drop.placement;
+    target.classList.add("project-chart-drop-target");
+    chartDragTargetReference.current = target;
+  }, []);
+
+  const handleChartMouseDownCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!editable || mutationLocked || event.button !== 0 || !(event.target instanceof Element)) return;
+    if (event.target.closest(".wx-link, .wx-progress-marker, .wx-delete-button")) return;
+    const bar = event.target.closest<HTMLElement>(".wx-chart .wx-bar[data-task-id]");
+    const root = ganttScrollReference.current;
+    const api = apiReference.current;
+    if (!bar || !root || !api || !root.contains(bar)) return;
+    const taskId = taskIdFromElement(bar);
+    const task = taskId ? tasksByIdReference.current.get(taskId) : undefined;
+    if (!task || inlineSessionReference.current) return;
+
+    const bounds = bar.getBoundingClientRect();
+    const edge = bounds.width > 200 ? 40 : bounds.width * 0.2;
+    if (task.type !== "milestone" && (event.clientX - bounds.left < edge || bounds.right - event.clientX < edge)) return;
+
+    const svarTask = api.getTask(taskId) as ITask & { $y?: number };
+    chartDragReference.current = {
+      taskId,
+      sourceParentExternalId: task.parentExternalId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originalTop: typeof svarTask.$y === "number" ? svarTask.$y : null,
+      intent: "pending",
+      drop: null,
+    };
+  }, [editable, mutationLocked]);
+
+  useEffect(() => {
+    const handleMove = (event: MouseEvent) => {
+      const drag = chartDragReference.current;
+      if (!drag) return;
+      const dx = event.clientX - drag.startX;
+      const dy = event.clientY - drag.startY;
+      if (drag.intent === "pending") drag.intent = resolveChartDragIntent(dx, dy);
+      if (drag.intent !== "vertical") return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      const root = ganttScrollReference.current;
+      const api = apiReference.current;
+      if (!root || !api || !canCreateReference.current || inlineSessionReference.current) {
+        clearChartDragFeedback();
+        chartDragReference.current = null;
+        return;
+      }
+
+      const rows = Array.from(root.querySelectorAll<HTMLElement>(".wx-chart .wx-bar[data-task-id]"))
+        .map((element) => {
+          const taskId = taskIdFromElement(element);
+          const task = taskId ? tasksByIdReference.current.get(taskId) : undefined;
+          if (!task) return null;
+          const bounds = element.getBoundingClientRect();
+          return {
+            taskId: task.taskId,
+            parentExternalId: task.parentExternalId,
+            top: bounds.top,
+            bottom: bounds.bottom,
+          };
+        })
+        .filter((row): row is NonNullable<typeof row> => row !== null);
+      const drop = resolveChartVerticalDrop(
+        drag.taskId,
+        drag.sourceParentExternalId,
+        event.clientY,
+        rows,
+      );
+      drag.drop = drop;
+      updateChartDropFeedback(drop);
+      if (drag.originalTop !== null) {
+        void api.exec("drag-task", {
+          id: drag.taskId,
+          top: Math.max(0, drag.originalTop - 4 + dy),
+          inProgress: true,
+        });
+      }
+    };
+
+    const handleUp = () => {
+      const drag = chartDragReference.current;
+      if (!drag) return;
+      const drop = drag.intent === "vertical" ? drag.drop : null;
+      clearChartDragFeedback();
+      chartDragReference.current = null;
+      if (!drop || !canCreateReference.current || inlineSessionReference.current) return;
+      const command = buildChartReorderCommand(
+        tasksReference.current,
+        drag.taskId,
+        drop.anchorTaskId,
+        drop.placement,
+      );
+      if (command) onTaskHierarchyCommandReference.current(command);
+    };
+
+    const handleBlur = () => {
+      if (!chartDragReference.current) return;
+      clearChartDragFeedback();
+      chartDragReference.current = null;
+    };
+
+    window.addEventListener("mousemove", handleMove, true);
+    window.addEventListener("mouseup", handleUp, true);
+    window.addEventListener("blur", handleBlur);
+    return () => {
+      window.removeEventListener("mousemove", handleMove, true);
+      window.removeEventListener("mouseup", handleUp, true);
+      window.removeEventListener("blur", handleBlur);
+      clearChartDragFeedback();
+      chartDragReference.current = null;
+    };
+  }, [clearChartDragFeedback, updateChartDropFeedback]);
 
   useEffect(() => () => {
     inlineOpenTokenReference.current += 1;
@@ -1539,6 +1702,7 @@ export function ProjectGantt({
         aria-label="프로젝트 일정 Grid와 Gantt 차트"
           className="project-gantt-scroll"
           onContextMenu={handleHeaderContextMenu}
+          onMouseDownCapture={handleChartMouseDownCapture}
           onClick={(event) => { void handleNameClick(event); }}
           onCompositionStart={() => { inlineComposingReference.current = true; }}
           onCompositionEnd={() => { inlineComposingReference.current = false; }}
