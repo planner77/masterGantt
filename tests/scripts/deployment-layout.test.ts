@@ -75,6 +75,9 @@ describe("deployment repository layout", () => {
     }
     expect(text(".github/dependabot.yml")).toMatch(/package-ecosystem: docker\n\s+directory: \/deploy\/docker/);
     expect(text(".github/workflows/ci.yml")).toContain("bash scripts/verify-compose-smoke.sh");
+    expect(text(".github/workflows/ci.yml")).toContain(
+      "bash scripts/verify-image-size-reduction.sh mastergantt:baseline mastergantt:ci 0 --summary-only",
+    );
   });
 
   it("keeps secret and test exclusions at the build context root", () => {
