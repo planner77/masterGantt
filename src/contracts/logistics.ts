@@ -172,7 +172,8 @@ export interface ProjectLogisticsResponse {
 }
 
 export interface CreateProcessRequest {
-  code: string;
+  /** Optional legacy/business code. Omit to let the server generate a stable internal code. */
+  code?: string;
   name: string;
   parentId?: string | null;
   /** @deprecated Compatibility alias; prefer parentId. */

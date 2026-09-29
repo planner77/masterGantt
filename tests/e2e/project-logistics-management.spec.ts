@@ -368,6 +368,87 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     await expect(page.getByRole("button", { name: "+ 시스템 추가" })).toHaveCount(0);
   });
 
+  test("공정 추가는 코드 입력 없이 저장하고 서버 생성 코드를 canonical 응답으로 표시한다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.sessionEditable = true;
+    fixture.logistics = sampleLogisticsData();
+
+    let requestBody: Record<string, unknown> | null = null;
+    await page.route(`**/api/projects/${publicId}/logistics/processes`, async (route) => {
+      if (route.request().method() !== "POST") {
+        await route.fallback();
+        return;
+      }
+
+      requestBody = route.request().postDataJSON() as Record<string, unknown>;
+      const current = sampleLogisticsData();
+      const created = {
+        id: "proc-generated",
+        code: "PROC-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        name: "자동 생성 코드 공정",
+        parentProcessId: null,
+        sortOrder: 0,
+        active: true,
+        createdAt: "2026-09-29T00:00:00.000Z",
+        updatedAt: "2026-09-29T00:00:00.000Z",
+      };
+      await route.fulfill({
+        status: 201,
+        json: {
+          data: {
+            project: { ...fixture.project, revision: fixture.project.revision + 1 },
+            logistics: { ...current, processes: [...current.processes, created] },
+            permission: "edit",
+            operation: {
+              kind: "logisticsMutation",
+              entity: "process",
+              action: "create",
+              targetPublicId: created.id,
+            },
+          },
+        },
+      });
+    });
+
+    await page.goto(`/projects/${publicId}`);
+    await page.getByRole("tab", { name: "물류 구성" }).click();
+    await page.getByRole("tab", { name: "공정 관리" }).click();
+
+    await page.getByRole("button", { name: "+ 공정 추가" }).click();
+    const dialog = page.getByRole("dialog", { name: "공정 추가" });
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByPlaceholder("예: PROC-01")).toHaveCount(0);
+    await expect(dialog.getByText("공정 코드 *", { exact: true })).toHaveCount(0);
+
+    const nameInput = dialog.getByPlaceholder("예: 입고 공정");
+    await expect(nameInput).toBeFocused();
+    await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
+    await nameInput.fill("자동 생성 코드 공정");
+    await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeEnabled();
+    await dialog.getByRole("button", { name: "저장", exact: true }).click();
+
+    await expect.poll(() => requestBody).not.toBeNull();
+    expect(requestBody).toEqual({
+      name: "자동 생성 코드 공정",
+      parentProcessId: null,
+      sortOrder: 0,
+      active: true,
+    });
+    expect(requestBody).not.toHaveProperty("code");
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByText("PROC-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", { exact: true })).toBeVisible();
+    await expect(page.getByText("자동 생성 코드 공정", { exact: true })).toBeVisible();
+
+    const processPanel = page.locator("#panel-processes");
+    const legacyRow = processPanel.getByRole("row").filter({ hasText: /^PROC-01/ });
+    await expect(legacyRow).toHaveCount(1);
+    await legacyRow.getByRole("button", { name: "수정", exact: true }).click();
+    const editDialog = page.getByRole("dialog", { name: "공정 수정" });
+    await expect(editDialog.getByPlaceholder("예: PROC-01")).toHaveValue("PROC-01");
+    await expect(editDialog.getByPlaceholder("예: PROC-01")).toBeFocused();
+    await editDialog.getByRole("button", { name: "취소", exact: true }).click();
+  });
+
   test("Dialog 취소 시 Escape 키로 닫히고 mutation이 발생하지 않는다", async ({ page }) => {
     const fixture = await installStatefulProjectFixture(page);
     fixture.sessionEditable = true;
@@ -391,16 +472,19 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     const dialog = page.getByRole("dialog", { name: "공정 추가" });
     await expect(dialog).toBeVisible();
 
-    // Fill some inputs
-    await dialog.getByPlaceholder("예: PROC-01").fill("DRAFT-99");
-    await dialog.getByPlaceholder("예: 입고 공정").fill("임시 초안 공정");
+    // Create mode has no technical code input and focuses the business name.
+    await expect(dialog.getByPlaceholder("예: PROC-01")).toHaveCount(0);
+    const nameInput = dialog.getByPlaceholder("예: 입고 공정");
+    await expect(nameInput).toBeFocused();
+    await nameInput.fill("임시 초안 공정");
 
     // Press Escape to cancel
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
 
-    // Verify 0 mutations sent
+    // Verify 0 mutations sent and focus returns to the trigger.
     expect(mutationCount).toBe(0);
+    await expect(addButton).toBeFocused();
   });
 
   test("하위 조율 저장은 childSystemIds 계약을 사용하고 401이면 즉시 읽기 전용으로 전환한다", async ({ page }) => {
@@ -461,23 +545,45 @@ test.describe("Issue #186 물류 구성 탭 및 관리 화면 (LG-03)", () => {
     expect(new URL(deleteUrl).search).toBe("");
   });
 
-  test("반응형 4개 폭(390, 768, 1024, 1440px)에서 가로 overflow가 없다", async ({ page }) => {
+  test("반응형 4개 폭(390, 768, 1024, 1440px)에서 공정 추가 모달과 문서에 가로 overflow가 없다", async ({ page }) => {
     const fixture = await installStatefulProjectFixture(page);
+    fixture.sessionEditable = true;
     fixture.logistics = sampleLogisticsData();
 
     for (const width of [390, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/projects/${publicId}`);
       await page.getByRole("tab", { name: "물류 구성" }).click();
+      await page.getByRole("tab", { name: "공정 관리" }).click();
       await expect(page.getByRole("heading", { level: 2, name: "물류 구성" })).toBeVisible();
 
-      const overflow = await page.evaluate(() => ({
-        scrollWidth: document.documentElement.scrollWidth,
-        clientWidth: document.documentElement.clientWidth,
-      }));
-      expect(overflow.scrollWidth, `viewport ${width}px: document width ${overflow.scrollWidth}px`).toBeLessThanOrEqual(
-        overflow.clientWidth + 1,
+      const addButton = page.getByRole("button", { name: "+ 공정 추가" });
+      await addButton.click();
+      const dialog = page.getByRole("dialog", { name: "공정 추가" });
+      await expect(dialog).toBeVisible();
+      await expect(dialog.getByPlaceholder("예: PROC-01")).toHaveCount(0);
+      await expect(dialog.getByPlaceholder("예: 입고 공정")).toBeFocused();
+
+      const geometry = await page.evaluate(() => {
+        const dialog = document.querySelector("dialog[open]");
+        const rect = dialog?.getBoundingClientRect();
+        return {
+          scrollWidth: document.documentElement.scrollWidth,
+          clientWidth: document.documentElement.clientWidth,
+          dialogLeft: rect?.left ?? -1,
+          dialogRight: rect?.right ?? Number.POSITIVE_INFINITY,
+          viewportWidth: window.innerWidth,
+        };
+      });
+      expect(geometry.scrollWidth, `viewport ${width}px: document width ${geometry.scrollWidth}px`).toBeLessThanOrEqual(
+        geometry.clientWidth + 1,
       );
+      expect(geometry.dialogLeft, `viewport ${width}px: dialog left`).toBeGreaterThanOrEqual(0);
+      expect(geometry.dialogRight, `viewport ${width}px: dialog right`).toBeLessThanOrEqual(geometry.viewportWidth + 1);
+
+      await page.keyboard.press("Escape");
+      await expect(dialog).toHaveCount(0);
+      await expect(addButton).toBeFocused();
     }
   });
 });

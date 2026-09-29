@@ -346,8 +346,8 @@ export class LogisticsService {
       this.verifyEditAccess(authorization, expectedRevision, now);
       const projectId = authorization.projectId;
 
-      // Check unique code
-      if (this.logisticsRepo.findProcessByCode(projectId, input.code)) {
+      // Explicit legacy/business codes keep the existing uniqueness contract.
+      if (input.code && this.logisticsRepo.findProcessByCode(projectId, input.code)) {
         throw new LogisticsConflictError("PROCESS_CODE_ALREADY_EXISTS", `Process code '${input.code}' already exists.`);
       }
 
@@ -362,10 +362,15 @@ export class LogisticsService {
       }
 
       const publicId = this.generatePublicId();
+      const code = input.code ?? `PROC-${publicId}`;
+      if (!input.code && this.logisticsRepo.findProcessByCode(projectId, code)) {
+        throw new LogisticsConflictError("PROCESS_CODE_ALREADY_EXISTS", `Process code '${code}' already exists.`);
+      }
+
       const inserted = this.logisticsRepo.insertProcess({
         publicId,
         projectId,
-        code: input.code,
+        code,
         name: input.name,
         parentId,
         sortOrder: input.sortOrder,

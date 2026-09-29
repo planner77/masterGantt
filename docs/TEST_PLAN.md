@@ -1,5 +1,12 @@
 # Test Plan
 
+## Issue #285 공정 코드 자동 생성
+
+- Contract/API: Process POST에서 code 생략은 성공하고 서버 생성 code가 non-empty, 64자 이하, 프로젝트 내 unique인지를 확인한다. 명시적 유효 code는 보존하고 blank/64자 초과 및 duplicate code 오류 계약은 유지한다.
+- Service/transaction: 동일 프로젝트 연속 자동 생성, 기존 명시 code와의 호환, revision 증가와 canonical logistics 응답을 확인한다. 인증/Origin/If-Match 실패에는 공정 row/revision이 생성되지 않는 기존 회귀를 유지한다.
+- Chromium E2E: 공정 추가 모달에 코드 입력이 없고 공정명에 최초 focus가 있으며, 이름만으로 저장 가능하고 POST body에 code가 없는지 확인한다. canonical 응답의 생성 code 표시, Escape 취소 mutation 0회와 trigger focus 복원, edit mode code 입력 유지, readonly 및 390/768/1024/1440px overflow 회귀를 기존 물류 spec과 함께 검증한다.
+- DB schema, 설비/시스템 code 정책, Scheduling/SVAR 계약은 변경하지 않는다. 공식 PASS는 PR head의 quality/e2e/docker 결과를 사용한다.
+
 ## Issue #279 물류 구성 서브탭 overflow 회귀
 
 - Chromium E2E는 390/768/1024/1440px에서 물류 구성 tablist의 `overflow-x: auto`, `overflow-y: hidden`, `scrollHeight <= clientHeight`를 실제 DOM geometry로 검증한다.

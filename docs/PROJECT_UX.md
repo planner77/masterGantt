@@ -1,5 +1,11 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #285 공정 추가 모달 코드 자동 생성
+
+물류 구성 > 공정 관리의 **공정 추가** 모달은 사용자에게 기술 식별자인 공정 코드를 입력받지 않는다. Create mode의 첫 focus는 공정명이며 공정명만 필수로 저장 가능하다. 브라우저 POST payload에는 `code`를 만들거나 포함하지 않고 서버 canonical 응답의 자동 생성 code를 그대로 표시한다.
+
+공정 수정 모달은 기존 code 편집 계약을 유지한다. 기존 공정 row, 검색·표시·Excel/복사/템플릿의 code 소비 계약과 DB의 non-empty/unique invariant도 유지한다. Escape 취소, trigger focus 복원, readonly에서 추가 action 비노출, busy 중 중복 제출 차단은 기존 `WorkspaceDialog` 계약을 그대로 따른다.
+
 ## Issue #279 물류 구성 서브탭 overflow 계약
 
 Project Workspace의 물류 구성 하위 탐색은 `KPI 대시보드 / 공정 관리 / 설비 관리 / 물류 시스템 / 제어·조율 관계` 5개 탭을 한 행으로 유지한다. 좁은 viewport에서 폭이 부족하면 tablist 내부의 수평 스크롤을 허용하지만 세로 방향은 scroll container가 되지 않는다. 수평 overflow와 교차축 overflow를 명시적으로 분리하고, active indicator와 focus-visible이 잘리지 않도록 탭 높이를 음수 margin에 의존하지 않는다.
