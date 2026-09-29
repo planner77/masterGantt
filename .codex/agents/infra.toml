@@ -117,3 +117,9 @@ Issue Lifecycle v2 (#109):
 # - merged 이후 공통 orchestration은 .github/workflows/issue-lifecycle.yml을 사용한다.
 # - 신규 Issue별 release-helper를 만들지 않으며 verify는 read-only, release/finalize만 승인 범위에서 실행한다.
 # - PR merge는 Ruleset/Auto-merge 책임이고 exact merge SHA main CI, release-image.yml, safe_branch_cleanup.py evidence를 재사용한다.
+#
+# Automatic finalizer detection/retry:
+# - 사용자가 #283/#266과 동일한 자동 finalize 패턴을 요청하면 workflow_dispatch 도구 노출 여부만으로 실행 불가를 결론내리지 않는다. 최근 ops/issue-<N>-finalize PR, main merge commit의 check-runs와 별도 finalizer workflow run을 먼저 조회한다.
+# - one-shot finalizer PR main push에서는 일반 Main CI와 finalizer run이 별개로 실행될 수 있으므로 run number만 보고 동일시하지 않는다. workflow/job 이름과 run ID를 구분해 기록한다.
+# - safe_branch_cleanup이 다른 Open PR의 base/head 참조 때문에 실패하면 해당 PR을 최신 main/올바른 base로 재정렬해 blocker를 제거한 뒤 기존 failed finalizer run/job 재실행을 우선한다.
+# - 기존 failed run을 재사용할 수 있는데 새 finalizer PR을 반복 만들거나 수동 branch 삭제/Issue close로 fail-closed gate를 우회하지 않는다.
