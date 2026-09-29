@@ -103,6 +103,16 @@ PR은 read-only이며 registry write를 수행하지 않는다. 검토 대상 he
 
 로컬 Docker PASS나 PR PASS만으로 main GHCR artifact PASS를 주장하지 않는다.
 
+### Lifecycle Finalizer 확인·재실행 규칙
+
+Issue 병합 후 자동 finalize를 요청받으면 `workflow_dispatch` 실행 가능 여부만 보고 종료하지 않는다. 먼저 저장소의 최신 commit/PR/check-run을 조회하여 이미 `ops/issue-<N>-finalize` 형태의 one-shot finalizer PR이 생성·병합되었는지와 해당 merge SHA에서 어떤 workflow가 실행됐는지 확인한다.
+
+- 범용 `.github/workflows/issue-lifecycle.yml`의 `workflow_dispatch`가 기본 경로다. 연결 도구에 dispatch mutation이 없고 사용자가 #283/#266과 동일한 자동 finalizer 패턴을 명시적으로 요청한 경우에만 one-shot finalizer PR을 임시 운영 경로로 사용할 수 있다. 신규 Issue별 helper를 관성적으로 만들지 않는다.
+- one-shot finalizer PR이 main에 병합되면 **일반 Main CI와 finalizer workflow는 별도 run**으로 실행될 수 있다. 같은 merge SHA의 check-runs에서 workflow/job 이름과 run ID를 확인하고, 일반 CI 번호만 보고 finalizer 성공/실패를 추정하지 않는다.
+- finalizer가 `safe_branch_cleanup.py`의 fail-closed 조건(예: 다른 Open PR이 작업 branch를 base/head로 사용)으로 실패하면 Issue를 열린 상태로 유지한다. 참조 중인 PR을 최신 main 등 올바른 base로 재정렬한 뒤 **기존 failed finalizer run/job 재실행을 우선**한다.
+- 기존 failed run을 재실행할 수 있고 workflow 파일/target SHA가 유효한데도 새 finalizer PR을 반복 생성하지 않는다. 수동 branch 삭제나 Issue close로 cleanup gate를 우회하지 않는다.
+- 최종 완료 보고에는 feature PR/merge SHA, exact main CI, finalizer workflow run, cleanup 결과, FINAL marker/Issue 상태를 서로 구분해 기록한다.
+
 ### Environment-specific Validation
 
 GitHub-hosted runner로 대체할 수 없는 Windows Excel/VBA/DRM, 실제 reverse proxy/TLS, off-host backup/restore, production storage, 최종 수동 UX는 별도 환경 검증으로 유지한다. GitHub Actions PASS와 환경별 PASS는 서로 대체하지 않는다.
