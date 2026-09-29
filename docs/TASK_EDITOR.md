@@ -142,3 +142,12 @@ Grid `작업` 이름 텍스트의 single-click·F2·기본 이름 더블클릭�
 물류 연결과 리소스 할당은 조회 중·성공·실패를 구분한다. 현재 taskId/revision에 맞는 유효한 응답을 확보하기 전에는 선택·저장 control과 저장 handler를 모두 차단한다. 이전 작업이나 revision의 늦은 응답은 폐기하고 조회를 취소한다.
 
 조회 실패를 '등록된 설비/시스템 없음'으로 표시하지 않으며 오류 안내와 다시 시도를 제공한다. 재시도는 GET만 수행하고 자동 PUT은 하지 않는다. 정상 응답을 받으면 기존 직접 연결/할당을 초안에 복원하고 그 뒤에 사용자 저장을 허용한다. readonly와 Task PATCH/Assignment PUT/물류 PUT의 독립 저장·서버 권한·If-Match 계약은 유지한다.
+
+## Issue #303 상태 선택과 완료 표시
+
+일반 Task/Milestone의 작업 정보 탭은 진행률 근처에 상태 Select를 표시한다. 선택 항목은 **시작 전 / 진행 중 / 완료**이며 각각 `not_started / in_progress / completed`에 대응한다. progress를 100으로 바꾸면 draft 상태가 즉시 완료가 되고, 상태를 완료로 바꾸면 progress가 즉시 100이 된다. 완료 상태에서 progress를 100 미만으로 낮추면 진행 중으로 바뀐다. 시작 전 선택은 0%, 진행 중 선택 시 100%였던 값은 0%로 정규화한다.
+
+저장은 status와 progress를 별도 PATCH로 나누지 않고 한 Task PATCH에 포함한다. Summary는 기존 파생/readonly 원칙을 유지하고 상태 Select를 제공하지 않는다. #258이 아직 구현되지 않은 Dependency endpoint Task는 기존 보호 정책대로 status/progress를 포함한 일반 필드를 직접 편집하지 않는다.
+
+완료된 Task/Milestone과 정확히 100%인 Summary는 Grid 작업명 텍스트에 취소선을 표시한다. tree toggle, indentation, selection, focus와 inline name editor의 입력 가독성은 유지하며, 완료 해제 또는 canonical reload 뒤 표시도 즉시 갱신한다.
+
