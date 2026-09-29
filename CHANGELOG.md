@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.55.0] - 2026-09-30
+
+### Added
+
+- Issue #303: Task/Milestone에 `시작 전 / 진행 중 / 완료` 상태를 추가하고 Task Editor에서 선택할 수 있도록 한다. 상태는 canonical API와 SQLite에 영속화되며 기존 Task는 progress 기준으로 migration한다.
+- 완료 Task/Milestone과 정확히 100%로 파생된 Summary의 Grid 작업명에 취소선을 표시한다.
+
+### Changed
+
+- progress 100%와 `completed`를 같은 mutation/revision에서 양방향 동기화한다. 완료 해제, `not_started`, `in_progress` 전환도 모순 상태가 저장되지 않도록 공통 domain 규칙으로 정규화한다.
+- Project status와 Task status를 별도 타입으로 유지하며 기존 import/fixture에서 status가 없으면 progress 기반으로 호환한다.
+
 ## [0.54.0] - 2026-09-29
 
 ### Added
