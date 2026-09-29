@@ -20,6 +20,8 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-info}
       # 리소스 카탈로그 관리자 비밀번호는 Docker 배포에서도 필수이며 누락 시 Compose config 단계에서 실패한다.
       RESOURCE_CATALOG_ADMIN_PASSWORD: ${RESOURCE_CATALOG_ADMIN_PASSWORD:?Set RESOURCE_CATALOG_ADMIN_PASSWORD}
+      # 프로젝트 기준정보 관리자 최초 seed. 런타임 변경 후에는 DB 자격증명이 우선한다.
+      PROJECT_MASTER_ADMIN_PASSWORD: ${PROJECT_MASTER_ADMIN_PASSWORD:?Set PROJECT_MASTER_ADMIN_PASSWORD}
       # 조직의 1 M/M 환산 근무일 수. 빈 값이면 M/M 조회를 비활성화한다.
       RESOURCE_MD_PER_MM: "${RESOURCE_MD_PER_MM:-}"
     # Reverse proxy가 같은 Docker network에 있으면 이 port mapping을 제거하고 내부 port만 사용한다.
