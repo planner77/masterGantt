@@ -10,6 +10,7 @@ import type {
   EquipmentRole,
   EquipmentType,
   LogisticsMutationResponse,
+  LogisticsActiveTypeCatalogResponse,
   LogisticsSystemDto,
   LogisticsSystemType,
   ManagementUnit,
@@ -28,23 +29,15 @@ import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
 import styles from "./project-logistics-management.module.css";
 
-const EQUIPMENT_TYPE_OPTIONS: { value: EquipmentType; label: string }[] = [
-  { value: "stocker", label: "Stocker (보관설비)" },
-  { value: "agv", label: "AGV (무인운반차)" },
-  { value: "amr", label: "AMR (자율이동로봇)" },
-  { value: "oht", label: "OHT (천장운반차)" },
-  { value: "conveyor", label: "Conveyor (컨베이어)" },
-  { value: "other", label: "기타 설비" },
-];
-
-const SYSTEM_TYPE_OPTIONS: { value: LogisticsSystemType; label: string }[] = [
-  { value: "mcs", label: "MCS (통합 조율 시스템)" },
-  { value: "acs", label: "ACS (AGV 제어 시스템)" },
-  { value: "scs", label: "SCS (스토커 제어 시스템)" },
-  { value: "ocs", label: "OCS (OHT 제어 시스템)" },
-  { value: "lcs", label: "LCS (반송 제어 시스템)" },
-  { value: "other", label: "기타 시스템" },
-];
+function isTypeCatalog(value: unknown): value is LogisticsActiveTypeCatalogResponse {
+  if (!value || typeof value !== "object" || !("data" in value)) return false;
+  const data = value.data;
+  return !!data && typeof data === "object" &&
+    "equipmentTypes" in data && Array.isArray(data.equipmentTypes) &&
+    "systemTypes" in data && Array.isArray(data.systemTypes) &&
+    [...data.equipmentTypes, ...data.systemTypes].every((item) =>
+      !!item && typeof item === "object" && typeof item.code === "string" && typeof item.name === "string");
+}
 
 export interface ProjectLogisticsManagementProps {
   publicId: string;
@@ -78,6 +71,25 @@ export function ProjectLogisticsManagement({
   const [searchQuery, setSearchQuery] = useState("");
   const [processFilter, setProcessFilter] = useState<string>("all");
   const [includeInactive, setIncludeInactive] = useState(false);
+  const [typeCatalog, setTypeCatalog] = useState<LogisticsActiveTypeCatalogResponse["data"] | null>(null);
+  const [typeCatalogState, setTypeCatalogState] = useState<"loading" | "ready" | "error">("loading");
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setTypeCatalogState("loading");
+    void fetch("/api/logistics-catalog/types", { credentials: "same-origin", cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        const body: unknown = await response.json().catch(() => null);
+        if (!response.ok || !isTypeCatalog(body)) throw new Error("invalid catalog");
+        setTypeCatalog(body.data);
+        setTypeCatalogState("ready");
+      })
+      .catch(() => { if (!controller.signal.aborted) setTypeCatalogState("error"); });
+    return () => controller.abort();
+  }, []);
+
+  const equipmentTypeLabels = useMemo(() => new Map(typeCatalog?.equipmentTypes.map((item) => [item.code, item.name]) ?? []), [typeCatalog]);
+  const systemTypeLabels = useMemo(() => new Map(typeCatalog?.systemTypes.map((item) => [item.code, item.name]) ?? []), [typeCatalog]);
 
   // Catalog resources for assignment picker
   const [catalogResources, setCatalogResources] = useState<ResourceDto[]>([]);
@@ -656,7 +668,7 @@ export function ProjectLogisticsManagement({
                       <td>{eq.name}</td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>
-                          {eq.equipmentType.toUpperCase()}
+                          {equipmentTypeLabels.get(eq.equipmentType) ?? eq.equipmentType}
                         </span>
                       </td>
                       <td>
@@ -810,7 +822,7 @@ export function ProjectLogisticsManagement({
                       <td>{sys.name}</td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>
-                          {sys.systemType.toUpperCase()}
+                          {systemTypeLabels.get(sys.systemType) ?? sys.systemType}
                         </span>
                       </td>
                       <td>
@@ -1093,6 +1105,8 @@ export function ProjectLogisticsManagement({
           mode={equipmentModal.mode}
           equipment={equipmentModal.target}
           allProcesses={logistics.processes}
+          typeOptions={typeCatalog?.equipmentTypes ?? []}
+          catalogState={typeCatalogState}
           busy={isSubmitting}
           onClose={() => setEquipmentModal({ open: false, mode: "create" })}
           onSubmit={async (data) => {
@@ -1160,6 +1174,8 @@ export function ProjectLogisticsManagement({
         <SystemDialog
           mode={systemModal.mode}
           system={systemModal.target}
+          typeOptions={typeCatalog?.systemTypes ?? []}
+          catalogState={typeCatalogState}
           busy={isSubmitting}
           onClose={() => setSystemModal({ open: false, mode: "create" })}
           onSubmit={async (data) => {
