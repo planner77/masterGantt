@@ -1,5 +1,20 @@
 # CI/CD
 
+## Issue #361 CI/CD 실행 인스턴스 추적 표준
+
+GitHub Actions의 workflow 고정 식별자 `name`과 required job/check 이름은 유지하고, Actions 목록에서 사람이 보는 실행 인스턴스 `run-name`만 trace metadata로 확장한다.
+
+- PR CI는 PR 제목, PR 번호, `github.run_number`와 `github.run_attempt`를 표시한다. PR 제목에는 Primary Issue가 `Issue #NNN` 또는 `(#NNN)` 형식으로 포함되어야 한다.
+- PR CI의 첫 lightweight gate인 `scripts/verify-ci-run-trace.py`는 PR 본문의 canonical `Refs #NNN` 1개, head branch의 `issue-NNN`, PR 제목의 Issue가 같은 Primary Issue인지 확인한다. PR title/body/branch 문자열을 inline shell로 재평가하지 않고 GitHub event JSON을 데이터로 읽는다.
+- Main CI는 `push` 이벤트에 PR payload가 없으므로 merge commit message를 표시명에 포함한다. 저장소의 merge commit은 PR 번호와 head branch, PR 제목을 보존하므로 PR 단계에서 확정한 Primary Issue trace를 계승한다. 비-PR main push는 commit-message fallback으로 표시한다.
+- 수동 CI는 선택적 `issue_number` input을 받아 관련 작업이면 `Issue #NNN`을 표시하고, 진단성 실행은 Issue 없이 명시적 fallback 이름을 사용한다.
+- `Issue lifecycle`은 기존 `issue_number`, `pr_number`, `operation` input을 직접 표시한다.
+- Generic Release Finalizer는 triggering `workflow_run.display_title`을 계승하여 Main CI의 Issue/PR trace를 보존하고 자체 `run_number.run_attempt`를 추가한다.
+- 정식 GHCR release를 lifecycle에서 dispatch할 때 `inputs[issue_number]`, `inputs[pr_number]`을 REST `inputs` 객체로 전달한다. tag push 또는 trace input 없는 수동 release는 tag/version 기반 fallback 이름을 사용한다.
+- 재실행은 `run_number`가 동일하고 `run_attempt`만 증가하므로 `Run #N.1`, `Run #N.2`로 구분한다.
+
+이 변경은 observability/운영 metadata만 변경한다. 기존 `CI` workflow name, required check 세 항목, trigger, 권한, exact merge SHA gate, concurrency, release authorization, GHCR digest 검증 및 application version `0.58.5`는 변경하지 않는다.
+
 ## Issue #356 CI 실행시간 1차 최적화
 
 2026-09-30 실행시간 분석에서 PR CI의 critical path는 Chromium E2E였고, Docker smoke에는 일반 기능 PR에서 매번 반복할 필요가 없는 관찰용 baseline image build와 transport browser smoke가 포함되어 있었다.
