@@ -177,3 +177,12 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 시스템의 `developer` 역할을 새로 배정할 때는 해당 Resource에 개발자 등급이 있어야 한다. 기존에 이미 저장된 `developer + grade NULL` 조합은 migration에서 삭제·자동 변환하지 않고 조회/보존할 수 있다.
 - Developer 역할 해제는 Resource의 전역 등급을 지우지 않는다. 등급은 Resource Catalog 관리자만 명시적으로 변경한다.
 - 개발자 등급은 분류·표시·역할 검증용 메타데이터이며 Task duration, allocation, M/D·M/M, capacity, 비용, 일정 자동 조정 및 resource leveling을 암묵적으로 변경하지 않는다.
+
+
+## Issue #289 프로젝트 기준정보
+
+- Project는 사업부(BUSINESS_UNIT), 제품(PRODUCT), 사업장/법인(SITE_ENTITY)을 각각 최대 1개 선택하며 모두 nullable이다.
+- 세 값의 Source of Truth는 전 프로젝트 공통 global master catalog의 stable public ID/code이고 Project row에 표시명을 중복 저장하지 않는다.
+- 신규 선택에는 active 항목만 사용하며, 기존 Project가 참조하는 inactive 항목은 자동 해제하지 않고 비활성 상태로 표시한다.
+- Project 생성/편집/조회/목록/복사/Template 경로에서 동일 참조를 유지한다. Project edit 권한은 global project-master 관리자 권한을 부여하지 않는다.
+- 사업부→제품→사업장 cascading, 다중 선택, ERP/MES 동기화와 해당 값 기반 권한/일정 자동화는 범위 밖이다.
