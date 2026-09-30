@@ -633,3 +633,8 @@ Grid에서 행을 놓으면 Context Menu와 같은 보호된 계층 명령으로
 Project Workspace의 설비/시스템 추가·수정 select는 active catalog 이름을 표시하고 payload에는 stable code를 저장한다. 기존 row의 현재 type이 inactive이면 해당 값은 `비활성`으로 유지 표시한다. Catalog fetch 실패는 empty state로 처리하지 않으며 저장을 차단하고 재시도를 제공한다.
 
 관리자 비밀번호 변경 dialog는 Escape/닫기/취소 등 모든 닫기 경로에서 새 비밀번호 초안을 즉시 지운다. 서버 logout 요청이 실패하거나 네트워크 오류가 나면 UI는 로컬 관리 화면을 잠그되, 서버 session revoke가 확인되지 않았음을 오류로 명시하여 성공한 logout과 구분한다.
+
+
+## Issue #315 Gantt Day Header 상세정보
+
+일정 탭의 Day Header는 #314의 숫자-only 밀도를 유지한다. Header cell hover/focus에서 locale 요일을 표시하고 현재 Project Effective Calendar에 이름이 있는 NON_WORKING 날짜에만 휴일명을 추가한다. Tooltip은 Chart layout을 늘리지 않는 overlay이며 viewport 안으로 보정하고 pointer interaction을 가로채지 않는다. 동일 날짜의 복수 이름은 canonical snapshot projection을 사용하며 WORKING override는 휴일명으로 표시하지 않는다. Week view에는 이번 Tooltip을 확대하지 않는다.
