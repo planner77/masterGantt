@@ -412,7 +412,7 @@ def ensure_release(ctx: Context, args: argparse.Namespace) -> tuple[str, str]:
     gh(
         f"/repos/{repo}/actions/workflows/release-image.yml/dispatches",
         method="POST",
-        fields={"ref": tag},
+        fields={\n            "ref": tag,\n            "inputs[issue_number]": str(ctx.issue_number),\n            "inputs[pr_number]": str(ctx.pr_number),\n        },
     )
     for _ in range(240):
         data = gh(f"/repos/{repo}/actions/workflows/release-image.yml/runs?event=workflow_dispatch&per_page=100")
