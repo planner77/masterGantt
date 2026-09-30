@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.57.0] - 2026-09-30
+
+### Added
+
+- Issue #288: 글로벌 Resource에 nullable 개발자 등급(초급/중급/고급/특급)을 추가하고 Resource 관리자에서 생성·표시·수정할 수 있도록 한다.
+- 시스템 Developer 신규 배정 시 개발자 등급을 필수 검증하고, 기존 미지정 Developer 배정은 migration 호환을 위해 보존한다. 등급은 일정·공수·capacity·비용 계산에 영향을 주지 않는다.
+- `0016_resource_developer_grade.sql`과 DB/역할/Chromium 회귀 테스트를 추가한다.
+
+
 ## [0.56.0] - 2026-09-29
 
 ### Added
