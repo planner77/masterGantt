@@ -9,6 +9,7 @@ export function WorkspaceNavigation() {
   const resourceActive = pathname.startsWith("/resources");
   const logisticsAdminActive = pathname.startsWith("/logistics-admin");
   const projectMasterActive = pathname.startsWith("/project-master-admin");
+  const calendarAdminActive = pathname.startsWith("/calendar-admin");
 
   return (
     <nav aria-label="주요 메뉴">
@@ -23,6 +24,9 @@ export function WorkspaceNavigation() {
       </Link>
       <Link className="nav-link" href="/project-master-admin" aria-label="프로젝트 기준정보" aria-current={projectMasterActive ? "page" : undefined}>
         기준정보
+      </Link>
+      <Link className="nav-link" href="/calendar-admin" aria-label="국가 캘린더 관리" aria-current={calendarAdminActive ? "page" : undefined}>
+        캘린더
       </Link>
     </nav>
   );
