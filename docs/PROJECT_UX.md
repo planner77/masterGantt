@@ -648,3 +648,11 @@ Project Workspace의 설비/시스템 추가·수정 select는 active catalog �
 `/projects/new` 및 Project 설정의 기본 정보에 사업부·제품·사업장/법인 Select를 추가한다. 세 필드는 선택 사항이며 active catalog만 신규 선택지에 제공한다. catalog 조회 실패는 “선택지 없음”과 구분해 오류/재시도 상태를 표시하고 저장 가능한 정상 빈 목록으로 오인하지 않는다. 기본 필드 validation은 catalog loading 여부와 독립적으로 먼저 제공하며, 유효한 제출은 catalog 확인 전에는 저장하지 않는다.
 
 기존 선택값이 inactive이면 현재값을 “비활성”으로 유지·표시하고 사용자가 다른 active 값 또는 미지정으로 명시적으로 변경할 수 있다. 전역 `/project-master-admin`은 사업부/제품/사업장·법인을 category별로 관리하고 WAI-ARIA tablist/tabpanel, roving tabindex, ArrowLeft/ArrowRight/Home/End 탐색을 제공한다. SVAR Task Editor 내부 모델에는 Project master metadata를 결합하지 않는다.
+
+## Issue #342 국가 캘린더 관리자
+
+Global navigation의 캘린더 메뉴는 /calendar-admin으로 이동한다. 화면은 DESIGN.md의 Linear-inspired Light Enterprise Workspace 규칙을 적용한다.
+
+상단 compact toolbar에서 국가와 2026~2037 연도를 선택하고, dataset 상태/출처/건수/수정 시각을 같은 작업 맥락에서 확인한다. Import는 파일 선택 → 업로드 전 검증 → 추가/변경/삭제 Preview → 명시적 적용 순서이며, 선택 국가/연도와 파일 target이 다르면 적용하지 않는다. 날짜 목록은 날짜/요일/이름/dayType/sourceKey/action의 data-dense table로 제공하고 Add/Edit/Delete를 지원한다. 삭제는 확인 Dialog를 거친다.
+
+390/768/1024/1440px에서 form control은 의미 단위로 reflow하고 table 자체는 내부 horizontal scroll을 사용하여 document-level overflow를 만들지 않는다. Dialog의 Escape/focus restore는 공통 WorkspaceDialog 계약을 따른다.
