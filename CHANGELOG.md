@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.57.1] - 2026-09-30
+
+### Changed
+
+- Issue #314: Gantt Day mode의 하위 날짜 Header를 locale 기반 날짜+요일 표기에서 day-of-month 숫자(`1`~`31`)만 표시하도록 간소화한다.
+- SVAR 공개 `scales[].format` API를 사용하며 기존 Month Header, ISO Week, 44/68px cellWidth, 주말 강조, Gantt/API instance identity와 일정 데이터 계약은 유지한다.
+- 숫자 formatter Unit test와 Day → Week → Day Chromium 회귀 검증을 추가한다.
+
 ## [0.57.0] - 2026-09-30
 
 ### Added
