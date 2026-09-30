@@ -114,6 +114,8 @@ function normalizeImport(value: unknown): CountryCalendarImportDataset {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new CountryCalendarCatalogInvalidInputError();
   const input = value as Record<string, unknown>;
   if (!validCountryCode(input.countryCode) || !validYear(input.year)) throw new CountryCalendarCatalogInvalidInputError();
+  const countryCode = input.countryCode;
+  const year = input.year;
   const status = input.status === undefined ? "OFFICIAL" : input.status;
   if (status !== "OFFICIAL") throw new CountryCalendarCatalogInvalidInputError();
   const sourceVersion = text(input.sourceVersion, 200);
@@ -121,11 +123,11 @@ function normalizeImport(value: unknown): CountryCalendarImportDataset {
   if (!sourceVersion || !sourceUrl || !Array.isArray(input.dates) || input.dates.length < 1 || input.dates.length > MAX_IMPORT_DATES) {
     throw new CountryCalendarCatalogInvalidInputError();
   }
-  const dates = input.dates.map((entry) => normalizeDate(entry, input.year));
+  const dates = input.dates.map((entry) => normalizeDate(entry, year));
   const unique = new Set(dates.map((entry) => entry.date));
   if (unique.size !== dates.length) throw new CountryCalendarCatalogInvalidInputError();
   dates.sort((left, right) => left.date.localeCompare(right.date));
-  return { countryCode: input.countryCode, year: input.year, status: "OFFICIAL", sourceVersion, sourceUrl, dates };
+  return { countryCode, year, status: "OFFICIAL", sourceVersion, sourceUrl, dates };
 }
 
 function parseCsvRows(content: string): string[][] {
