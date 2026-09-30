@@ -12,6 +12,7 @@
 SVAR React Gantt의 `scales` 속성은 `day`, `week`, `month` 등의 시간 단위를 조합할 수 있고 formatter가 각 구간의 날짜를 받을 수 있다. 따라서 별도 Pro zoom API를 모사하지 않고 공개 `scales` 계약만 사용한다.
 
 - 일 보기: 월 + 일 scale. 기존 주말 강조(`highlightTime`)를 유지한다.
+- Issue #314 이후 일 scale 하위 Header는 locale 요일/접미사 없이 day-of-month 숫자(`1`~`31`)만 표시한다. 공개 `scales[].format` formatter를 사용하며 cellWidth와 Gantt instance identity는 변경하지 않는다.
 - 주 보기: 월 + 주 scale. Issue #51 이후 하위 scale은 ISO 8601 주차를 `W01`~`W53` 형식으로 표시한다.
 - ISO week 계산은 월요일 시작, 첫 목요일(동등하게 1월 4일 포함 주)을 Week 1로 하는 규칙을 따른다.
 - SVAR formatter의 브라우저 로컬 `Date`에서 달력 연/월/일을 읽고 UTC 계산 값으로 정규화하여 DST와 실행 환경 timezone offset이 week number를 바꾸지 않도록 한다.
@@ -26,6 +27,7 @@ SVAR React Gantt의 `scales` 속성은 `day`, `week`, `month` 등의 시간 단�
 - `주` Header가 `W38`, `W39` 등 ISO Week 형식을 표시하고 `9/14–9/20` 같은 날짜 범위를 표시하지 않는지 Chromium E2E에서 확인한다.
 - 같은 ISO 주, 월 경계, `W52 → W01`, `W53 → W01` 연말·연초 경계를 Vitest로 확인한다.
 - 전환 전후 `data-project-gantt-instance`, `data-project-gantt-api-instance`가 동일한지 확인한다.
+- 일 보기의 Header가 `1`~`31` 숫자만 표시하고 `일` 접미사·요일·괄호가 없으며, Day → Week → Day 전환 뒤에도 숫자-only 형식이 복원되는지 확인한다.
 - 일 보기의 주말 강조가 주 보기에서는 제거되고 다시 일 보기로 돌아오면 복원되는지 Chromium E2E로 확인한다.
 - 기존 CI의 typecheck, lint, Vitest, build, 전체 Chromium E2E, Docker smoke를 통과해야 한다.
 
@@ -33,3 +35,4 @@ SVAR React Gantt의 `scales` 속성은 `day`, `week`, `month` 등의 시간 단�
 
 - Issue #35의 최초 표시 단위 기능은 사용자 노출 신규 기능이므로 `0.8.3`에서 `0.9.0`으로 minor version을 증가시켰다.
 - Issue #51은 기존 `주` 표시의 Header 포맷을 ISO Week로 바로잡는 호환 개선이므로 `0.11.0`에서 `0.11.1`로 patch version을 증가시킨다.
+- Issue #314는 기존 `일` 표시의 Header 문자열만 compact하게 변경하는 호환 개선이므로 `0.57.0`에서 `0.57.1`로 patch version을 증가시킨다.
