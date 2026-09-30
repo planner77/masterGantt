@@ -39,7 +39,7 @@ CI 성공이나 version bump 자체는 release 승인이 아니다.
 
 검증 규칙:
 
-- `author_association`이 `OWNER`, `MEMBER`, `COLLABORATOR` 중 하나인 comment만 신뢰한다.
+- 현재 개인 소유 저장소에서는 `author_association=OWNER`인 comment만 신뢰한다. 조직 저장소로 이전할 경우 별도 permission-check 설계 없이 이 범위를 넓히지 않는다.
 - 최신 trusted marker가 authority다.
 - `expected_version`이 merge target version과 정확히 일치해야 한다.
 - `authorized=false`는 동일 version의 명시적 철회다.
