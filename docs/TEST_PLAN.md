@@ -743,3 +743,12 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - Issue #285의 공정 code optional/server-generated 계약을 포함한 기존 물류 회귀
 
 리뷰 회귀로 duplicate stable code는 HTTP 409 `LOGISTICS_CATALOG_CONFLICT`를 반환하고 revision을 증가시키지 않는지, 비밀번호 dialog 재열기 시 초안이 비어 있는지, 서버 logout 실패 시 로그인 화면으로 로컬 잠금 전환하면서 revoke 미확인 오류를 표시하는지 검증한다.
+
+
+## Issue #289 프로젝트 기준정보 회귀
+
+- Migration/DB: `0016_project_master_catalog.sql` 적용, 기존 Project NULL 보존, category/code unique, category mismatch 차단, FK RESTRICT와 catalog revision을 검증한다.
+- Service/API: active-only 일반 조회, 관리자 inactive 포함 조회, 별도 관리자 인증/Origin/login rate-limit/If-Match/412, 잘못된 category/id, 사용 중 stable code 변경 차단, inactive 신규 선택 거부/기존 참조 보존을 검증한다.
+- Project aggregate: 생성·조회·목록·메타데이터 수정·복사·Template에서 동일 global 참조를 유지하고 rename/inactive가 참조를 깨뜨리지 않는지 검증한다.
+- UI/E2E: 생성 폼은 기본 필드 validation을 catalog loading보다 먼저 수행하며 catalog 미확인 시 유효 저장만 차단한다. 관리자 category는 tablist/tabpanel·roving focus·Arrow/Home/End를 검증하고 390/768/1024/1440px overflow를 회귀 검증한다.
+- 집중 서버 회귀는 `tests/server/projects/project-master-catalog.test.ts`; migration ledger/schema 기대값은 DB 및 migration CLI 테스트에서 0016까지 검증한다. 공식 PASS 판정은 PR exact-head GitHub Actions quality/e2e/docker 결과를 사용한다.
