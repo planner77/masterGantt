@@ -45,6 +45,7 @@ import {
   type TaskSystemLinkRecord,
 } from "../repositories/logistics-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
+import { LogisticsTypeCatalogRepository } from "../repositories/logistics-type-catalog-repository-core";
 import { ScheduleRepository } from "../repositories/schedule-repository-core";
 import {
   EditSessionInvalidError,
@@ -111,6 +112,7 @@ export class LogisticsService {
   private readonly ownerRepo: ProjectOwnerRepository;
   private readonly sessionRepo: EditSessionRepository;
   private readonly resourceCatalogRepo: ResourceCatalogRepository;
+  private readonly typeCatalogRepo: LogisticsTypeCatalogRepository;
   private readonly scheduleRepo: ScheduleRepository;
   private readonly clock: () => Date;
   private readonly generatePublicId: () => string;
@@ -127,6 +129,7 @@ export class LogisticsService {
     this.ownerRepo = new ProjectOwnerRepository(database);
     this.sessionRepo = new EditSessionRepository(database);
     this.resourceCatalogRepo = new ResourceCatalogRepository(database);
+    this.typeCatalogRepo = new LogisticsTypeCatalogRepository(database);
     this.scheduleRepo = new ScheduleRepository(database);
     this.clock = options.clock ?? (() => new Date());
     this.generatePublicId = options.generatePublicId ?? randomUUID;
@@ -562,6 +565,14 @@ export class LogisticsService {
         throw new LogisticsConflictError("EQUIPMENT_CODE_ALREADY_EXISTS", `Equipment code '${input.code}' already exists.`);
       }
 
+      const equipmentType = this.typeCatalogRepo.find("equipment", input.equipmentType);
+      if (!equipmentType) {
+        throw new LogisticsValidationError([`Unknown equipment type '${input.equipmentType}'.`]);
+      }
+      if (!equipmentType.active) {
+        throw new LogisticsConflictError("EQUIPMENT_TYPE_INACTIVE", `Equipment type '${input.equipmentType}' is inactive.`);
+      }
+
       if (input.managementUnit === "unit" && input.quantity !== 1) {
         throw new LogisticsValidationError(["Quantity must be 1 for unit management type."]);
       }
@@ -621,6 +632,16 @@ export class LogisticsService {
         const existing = this.logisticsRepo.findEquipmentByCode(projectId, input.code);
         if (existing && existing.id !== current.id) {
           throw new LogisticsConflictError("EQUIPMENT_CODE_ALREADY_EXISTS", `Equipment code '${input.code}' already exists.`);
+        }
+      }
+
+      if (input.equipmentType !== undefined && input.equipmentType !== current.equipmentType) {
+        const equipmentType = this.typeCatalogRepo.find("equipment", input.equipmentType);
+        if (!equipmentType) {
+          throw new LogisticsValidationError([`Unknown equipment type '${input.equipmentType}'.`]);
+        }
+        if (!equipmentType.active) {
+          throw new LogisticsConflictError("EQUIPMENT_TYPE_INACTIVE", `Equipment type '${input.equipmentType}' is inactive.`);
         }
       }
 
@@ -801,6 +822,13 @@ export class LogisticsService {
       if (this.logisticsRepo.findSystemByCode(projectId, input.code)) {
         throw new LogisticsConflictError("SYSTEM_CODE_ALREADY_EXISTS", `System code '${input.code}' already exists.`);
       }
+      const systemType = this.typeCatalogRepo.find("system", input.systemType);
+      if (!systemType) {
+        throw new LogisticsValidationError([`Unknown system type '${input.systemType}'.`]);
+      }
+      if (!systemType.active) {
+        throw new LogisticsConflictError("SYSTEM_TYPE_INACTIVE", `System type '${input.systemType}' is inactive.`);
+      }
 
       const requestedProcessIds = input.processIds ?? [];
       if (input.scope === "project" && requestedProcessIds.length > 0) {
@@ -875,6 +903,15 @@ export class LogisticsService {
         const existing = this.logisticsRepo.findSystemByCode(projectId, input.code);
         if (existing && existing.id !== current.id) {
           throw new LogisticsConflictError("SYSTEM_CODE_ALREADY_EXISTS", `System code '${input.code}' already exists.`);
+        }
+      }
+      if (input.systemType !== undefined && input.systemType !== current.systemType) {
+        const systemType = this.typeCatalogRepo.find("system", input.systemType);
+        if (!systemType) {
+          throw new LogisticsValidationError([`Unknown system type '${input.systemType}'.`]);
+        }
+        if (!systemType.active) {
+          throw new LogisticsConflictError("SYSTEM_TYPE_INACTIVE", `System type '${input.systemType}' is inactive.`);
         }
       }
 
@@ -1338,12 +1375,6 @@ export class LogisticsService {
           throw new LogisticsConflictError(
             "RESOURCE_INACTIVE",
             `Cannot newly assign inactive resource '${resource.name}' (${resource.publicId}).`,
-          );
-        }
-        if (item.role === "developer" && resource.developerGrade === null && !currentAssignedPairs.has(pairKey)) {
-          throw new LogisticsConflictError(
-            "DEVELOPER_GRADE_REQUIRED",
-            `Developer grade is required before assigning resource '${resource.name}' (${resource.publicId}) as developer.`,
           );
         }
 
