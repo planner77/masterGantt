@@ -170,3 +170,10 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 ## Issue #258 — 연결 Task 필드별 편집
 
 관계가 있는 leaf Task/Milestone의 metadata·progress·Baseline 편집은 현재 적용 날짜/requestedStart를 보존한다. 요청 시작일·duration·scheduleMode 변경은 전체 dependency-aware transaction으로 후행 Auto의 지연/앞당김과 Summary를 다시 계산한다. Manual/resource conflict 및 혼합 payload는 전체 rollback한다. Grid 이름·Chart 완료 gesture와 Editor는 같은 Task PATCH/canonical snapshot 계약을 사용한다. Delete/Convert/계층/Copy·Summary 정보창·권한 보호는 그대로다. R08의 초기 FS 범위 표기는 역사적 단계이며 현재 generic FS/SS/FF/SF와 lag 지원은 Scheduling/API 문서를 따른다.
+
+## Issue #288 개발자 리소스 등급
+
+- 글로벌 Resource는 선택적으로 개발자 등급 `BEGINNER | INTERMEDIATE | ADVANCED | EXPERT`를 가진다. UI 표시명은 각각 초급/중급/고급/특급이며 `null`은 개발자가 아니거나 아직 등급을 지정하지 않은 기존 Resource를 뜻한다.
+- 시스템의 `developer` 역할을 새로 배정할 때는 해당 Resource에 개발자 등급이 있어야 한다. 기존에 이미 저장된 `developer + grade NULL` 조합은 migration에서 삭제·자동 변환하지 않고 조회/보존할 수 있다.
+- Developer 역할 해제는 Resource의 전역 등급을 지우지 않는다. 등급은 Resource Catalog 관리자만 명시적으로 변경한다.
+- 개발자 등급은 분류·표시·역할 검증용 메타데이터이며 Task duration, allocation, M/D·M/M, capacity, 비용, 일정 자동 조정 및 resource leveling을 암묵적으로 변경하지 않는다.
