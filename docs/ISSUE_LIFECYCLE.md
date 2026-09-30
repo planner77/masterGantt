@@ -376,5 +376,9 @@ Release 필요 여부는 merge first parent와 target의 application version 차
 2. release 승인 부족이면 marker를 기록한 뒤 기존 failed generic finalizer job을 재실행한다.
 3. safe branch cleanup이 stacked/open PR dependency 때문에 중단되면 dependency를 최신 main/적절한 base로 정리한 후 기존 run을 재실행한다.
 4. release-image 실패는 exact tag를 이동/덮어쓰지 않고 원인을 보완하여 기존 lifecycle evidence를 재개한다.
-5. `issue-lifecycle.yml workflow_dispatch`는 generic 자동 경로를 사용할 수 없는 복구 fallback으로만 사용한다.
+5. `issue-lifecycle.yml workflow_dispatch`는 generic 자동 경로를 사용할 수 없는 복구 fallback으로만 사용한다.\n\n## Main artifact evidence gate (#352)\n\nGeneric/manual lifecycle의 merged target 검증은 PR required checks와 exact main CI success에 더해 **main 임시 GHCR artifact evidence**를 확인한다.
 
+- exact merge first-parent diff가 docs-only가 아니면 `Main 임시 commit 이미지 게시·검증·정리` job의 completed/success가 필수다.
+- docs-only이면 registry write는 N/A이며 해당 job의 completed/skipped를 기대한다.
+- non-docs에서 job 누락/SKIPPED/FAIL/CANCELLED이면 gate는 `NOT TESTED`로 남고 branch cleanup, FINAL comment, Issue close를 수행하지 않는다.
+- FINAL comment는 실제 job evidence를 기록하며 overall main CI success를 artifact PASS로 대체하지 않는다.\n

@@ -547,7 +547,18 @@ jobs:
 
   publish-commit-image:
     name: Main 임시 commit 이미지 게시·검증·정리
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.docs_only != 'true'
+    # Optional implementation jobs may be skipped while the required aggregate
+    # gates still succeed. always() prevents transitive skip propagation; the
+    # explicit direct-result checks keep this registry mutation fail-closed.
+    if: >-
+      always() &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.changes.result == 'success' &&
+      needs.quality.result == 'success' &&
+      needs.e2e.result == 'success' &&
+      needs.docker.result == 'success' &&
+      needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [changes, quality, e2e, docker]

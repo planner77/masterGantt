@@ -187,4 +187,6 @@ Issue별 one-shot finalizer PR/workflow는 정상 운영 경로에서 사용하�
 
 comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. 승인 판단 전 Issue comment 전체 page를 조회해 최신 trusted marker를 적용한다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
 
-수동 `issue-lifecycle.yml workflow_dispatch`는 장애/복구 fallback이다. Issue별 `release-helper/finalizer/cleanup` workflow 신규 추가는 CI policy가 거부한다.
+수동 `issue-lifecycle.yml workflow_dispatch`는 장애/복구 fallback이다. Issue별 `release-helper/finalizer/cleanup` workflow 신규 추가는 CI policy가 거부한다.\n\n## Main 임시 GHCR lifecycle 증거 (#352)\n\nmain CI 전체 conclusion만으로 임시 GHCR publish/digest smoke/cleanup 성공을 추론하지 않는다. 비문서 변경은 exact main run의 `Main 임시 commit 이미지 게시·검증·정리` job SUCCESS를 별도 증거로 확인한다. docs-only 변경은 registry write를 수행하지 않으며 artifact evidence를 N/A로 기록한다.
+
+CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 SKIPPED라면 dependency-chain skip propagation을 우선 점검한다. `always()`를 사용하더라도 direct aggregate result를 모두 SUCCESS로 명시해 fail-closed를 유지한다.\n
