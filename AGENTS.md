@@ -109,7 +109,7 @@ Issue별 one-shot finalizer workflow를 신규 생성하지 않는다. 정상 �
 
 - merge first parent 대비 application version이 동일하면 `finalize`만 수행한다.
 - version이 변경되면 정식 release가 필요하다고 판정하되, CI 성공/version bump만으로 승인을 추론하지 않는다.
-- 사용자가 정식 GHCR 게시를 명시적으로 승인하면 Manager는 merge 전에 해당 Issue에 `mastergantt-release-authorization:v1` comment marker를 기록한다. 형식과 trusted author 규칙은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다.
+- 사용자가 정식 GHCR 게시를 명시적으로 승인하면 Manager는 merge 전에 해당 Issue에 `mastergantt-release-authorization:v1` comment marker를 기록한다. 형식과 OWNER-only trusted author 규칙은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다.
 - release-required인데 유효한 version-scoped 승인 marker가 없으면 generic finalizer는 fail-closed로 BLOCKED하고 Issue/branch/tag를 변경하지 않는다.
 - blocker 제거 또는 승인 marker 추가 후에는 **기존 failed generic finalizer run/job 재실행을 우선**한다.
 - `issue-lifecycle.yml workflow_dispatch`는 복구 fallback이며 정상 자동 경로를 대체하지 않는다.
