@@ -11,7 +11,7 @@
 ### Changed
 
 - Project Calendar Preview/Save와 신규 Project 기본 Calendar는 최신 OFFICIAL DB override를 built-in보다 우선 사용하며, Catalog 변경만으로 기존 Project의 materialized Calendar/Task는 자동 재계산하지 않는다.
-- Global navigation에 compact한 국가 캘린더 관리 화면을 추가하고 390/768/1024/1440px 반응형 및 Import/CRUD E2E를 검증한다.
+- 프로젝트 기준정보 관리 화면에서 진입하는 compact 국가 캘린더 관리 화면을 추가하고, 전역 header의 기존 4개 메뉴 계약을 유지하면서 390/768/1024/1440px 반응형 및 Import/CRUD E2E를 검증한다.
 - Application version을 0.58.3에서 0.59.0으로 증가한다.
 
 ## [0.58.3] - 2026-09-30
