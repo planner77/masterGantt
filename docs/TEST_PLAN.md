@@ -1,5 +1,15 @@
 # Test Plan
 
+## Issue #315 Gantt Day Header 요일·휴일명 Tooltip
+
+- Unit: date-only weekday locale 변환, SVAR day scale CSS class/date key round-trip, 일반 weekend, named NON_WORKING, 복수 이름 dedupe/order, WORKING 제외, legacy holidays fallback을 검증한다.
+- Server: 동일 Project/date/dayType의 복수 persisted 이름이 Scheduling effective exception 하나를 유지하면서 canonical `ProjectCalendarDto.exceptions[].names`에 모두 보존되는지 검증한다.
+- Chromium E2E: Day Header 일반 평일 hover, 복수 named holiday hover, named weekend focus, WORKING override 이름 제외, Day→Week 시 day target/Tooltip 제거를 검증한다.
+- 기존 #314 숫자-only Header, #51 ISO Week, 주말 강조, Day/Week cellWidth, Gantt/API instance identity, Chart interaction 계약은 유지한다.
+- Local Fast Feedback은 현재 실행 환경의 github.com DNS 해석 실패로 BLOCKED이며, 공식 전체 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+- 상세 설계와 날짜/접근성 계약은 `docs/ISSUE_315_DAY_HEADER_TOOLTIP.md`를 따른다.
+
+
 ## Issue #314 Gantt 일 단위 Header 숫자 표시
 
 - Unit: `formatGanttDayOfMonth`가 1/9/10/22/31을 각각 숫자 문자열로 반환하고 `일` 접미사·요일·괄호를 포함하지 않는지 검증한다.
