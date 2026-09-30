@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FocusEvent as ReactFocusEvent, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectSaveAsTemplateButton } from "@/features/templates/project-save-as-template-button";
@@ -820,6 +820,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (details === infoPopoverReference.current) setInfoPopoverOpen(false);
     requestAnimationFrame(() => details.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true }));
   };
+  const closeContextDisclosureOnBlur = (event: ReactFocusEvent<HTMLDetailsElement>) => {
+    if (!event.currentTarget.open) return;
+    const nextTarget = event.relatedTarget;
+    if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
+    if (nextTarget instanceof Element && nextTarget.closest('dialog, [role="dialog"]')) return;
+
+    const details = event.currentTarget;
+    if (details === actionMenuReference.current) setActionMenuOpen(false);
+    if (details === infoPopoverReference.current) setInfoPopoverOpen(false);
+  };
   const resetTaskFilter = () => {
     setTaskFilter(EMPTY_TASK_FILTER);
     requestAnimationFrame(() => taskSearchReference.current?.focus({ preventScroll: true }));
@@ -850,6 +860,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               if (nextOpen && actionMenuOpen) setActionMenuOpen(false);
             }}
             onKeyDown={closeContextDisclosureOnEscape}
+            onBlur={closeContextDisclosureOnBlur}
           >
             <summary aria-label="프로젝트 정보 보기">정보</summary>
             <div className="project-info-panel">
@@ -888,6 +899,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             if (nextOpen && infoPopoverOpen) setInfoPopoverOpen(false);
           }}
           onKeyDown={closeContextDisclosureOnEscape}
+          onBlur={closeContextDisclosureOnBlur}
         >
           <summary aria-label="프로젝트 작업 더보기">더보기</summary>
           <div className="project-action-menu-panel">
