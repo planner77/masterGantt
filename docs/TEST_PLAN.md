@@ -799,3 +799,30 @@ CI policy/static scenario에서 최소 다음을 검증한다.
 - 최신 trusted revocation/version mismatch는 release BLOCKED
 - Issue별 lifecycle helper/finalizer 파일 재도입 금지
 - generic/release workflow concurrency가 queued work를 보존
+
+## Issue #344 — 작업 삭제 실패 복구 회귀
+
+Unit은 `tests/features/projects/canonical-snapshot-recovery.test.ts`에서 r10 삭제 전→r11 삭제 성공→오래된 r10 복구 거부, 마지막 확정 task set replay, 같은/높은 revision 허용, Project identity 분리를 검증한다. 기존 canonical sync 테스트는 native 임시 변화 복구에 사용하는 공개 SVAR action 경로를 검증한다.
+
+서버 검증은 `tests/server/projects/task-delete-recovery.test.ts`에서 정상 삭제 성공 뒤 마지막 child 삭제 `409 EMPTY_SUMMARY_NOT_ALLOWED`, 기존 성공 삭제·revision 유지, canonical GET 일치와 subtree/unrelated Link 보존·DB 재오픈을 확인한다. 관련 3 files / 23 tests의 실제 실행 근거는 [서버 검증 기록](ISSUE_344_SERVER_VALIDATION.md)을 따른다. 서버 transaction·도메인 정책 변경은 없다.
+
+Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQLite 서버를 사용한다. 일반 Task 삭제 성공→마지막 child 거부를 두 차례 반복하고 Grid/Chart task set, GET revision, 실패 child 유지, 이후 정상 삭제 및 reload를 검증한다. 복구 GET에 삭제 전 낮은 revision snapshot을 주입하는 경우와 GET 자체 실패를 분리한다. `401/412/network` fault injection은 각각 읽기 전용 전환, 충돌 안내, network 오류 안내 뒤 성공 삭제 보존을 확인한다. Gantt identity와 Summary 접힘·스크롤·scale 보존은 해당 시나리오에서 검증한다. fault injection 결과는 정상 서버가 동일 오류 응답을 실제 발생시켰다는 근거로 사용하지 않는다.
+
+| 근거 | 로컬 실행 상태 |
+| --- | --- |
+| 수정 전 main `6532edd8418772454b96fdeb895b90c5ab7d3d6d`, 일반 성공 삭제→정상 409 조합 2회 | PASS — 실제 SQLite/Chromium에서 원증상 미재현 |
+| 수정 전 낮은 revision 복구 GET 주입 | FAIL — 성공 삭제된 `Delete C`가 Grid에 다시 표시됨 |
+| 초기 수정 후 기존 subtree·정상 409 | PASS — 실행 당시 코드 기준 |
+| 초기 수정 후 stale/조회 실패 | FAIL — 추가 조회 실패 알림이 원래 409 toast를 덮어써 오류 문구 assertion 실패; 단일 알림으로 수정 후 재검증 필요 |
+| 중간 테스트 편집 typecheck | FAIL — 기존 subtree 테스트에 잘못 삽입된 변수 범위 오류; 최종 수정 후 재검증 필요 |
+| 확정 snapshot helper Unit | PASS — 3 tests 실제 실행; 전체 원격 회귀를 대체하지 않음 |
+| 삭제된 앞쪽 sibling 때문에 불필요한 이동을 만드는 canonical sync 회귀 | 수정 전 FAIL — delete 뒤 불필요 move 2회; 수정 후 PASS — 살아 있는 sibling 순서 비교, 관련 Unit 2 files / 12 tests |
+| 통합 typecheck·변경 TS 8개 lint·version check | PASS — infra 실행 후 초기 조회 stale fallback 보완을 포함해 독립 QA가 최종 재검증 |
+| 독립 사전 QA | PASS — 직접 5 files / 35 tests·typecheck·lint·version check·Markdown 링크 92개·diff 검증, AC/code/test/docs/화면 근거 비교. 원격 전체 회귀나 최종 코드 ACCEPT를 의미하지 않음 |
+| 최종 삭제 복구 Chromium | PASS — 7 tests / 2.5분. normal/stale/unavailable/401/412/network 각각 두 차례 성공 삭제→거부와 Grid/Chart·같은 widget/API·접힘·가로 scroll·week·reload 확인 |
+| 기존 pointer 저장·거부·GET 실패·same-revision race | PASS — 1 test / 31.8초. GET 실패의 마지막 확정 일정·동일 widget/API·bar geometry 복원을 강화 |
+| PR exact-head `quality/e2e/docker` | NOT TESTED — 이번 요청은 CI 시작까지이며 완료 모니터링 제외 |
+
+수정 전 stale 응답 재현 화면은 [before](../output/playwright/issue344-before.png), 수정 후는 [after](../output/playwright/issue344-after.png)다. 모두 실제 브라우저의 기능 상태 근거이며 날짜·Task 구성·scale이 달라 동일 fixture의 픽셀/배치 개선 비교로 사용하지 않는다. 추가 390/768/1024px 삭제 복구, 세로 scroll·selection 및 독립 keyboard/focus 검사는 NOT TESTED다. 실제 독립 UX 검토는 정적 코드·테스트·화면 비교 PASS다. 초기 전체 조회에서도 오래된 응답이 확정 snapshot을 덮지 않고 loading에 남지 않도록 보완했으며 이 분기의 별도 브라우저 조작은 NOT TESTED다. Network fixture는 요청 abort 경로이며 서버 commit 후 응답 유실·더 높은 canonical GET의 별도 브라우저 조작은 NOT TESTED다.
+
+중간 로컬 공유 개발 서버에 Turbopack HMR panic이 발생하여 해당 실행을 중단했다. 기존 `.next-e2e`를 `/tmp/mastergantt-issue344-e2e-cache-20261001`로 보존 이동한 뒤 새 캐시의 동일 설정·격리 SQLite 테스트에서 위 7개 PASS를 확보했다. CI 설정·검사 gate는 변경하지 않았다. 전체 Lifecycle/main artifact/정식 release/운영 배포의 PASS로 확대하지 않는다.

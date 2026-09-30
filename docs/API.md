@@ -1197,3 +1197,9 @@ Resource Catalog의 Resource 응답은 `developerGrade: "BEGINNER" | "INTERMEDIA
 - `GET|POST /api/project-master/admin/items`, `PATCH /api/project-master/admin/items/{itemId}`: 전체 master 목록/usage count 조회와 추가·표시명·활성 상태·정렬 순서 변경을 제공한다. mutation은 Origin, 관리자 Cookie와 strong `If-Match` catalog revision을 요구한다.
 
 Project create/update request는 `businessUnitId/productId/siteEntityId: string | null`을 선택적으로 받는다. canonical Project DTO/List는 선택된 항목을 `{id, code, name, active}`로 반환한다. 신규 선택은 inactive를 거부하지만 현재 Project의 inactive 참조는 다른 메타데이터 저장 때문에 제거되지 않는다. 사용 중 stable code 변경은 `409 PROJECT_MASTER_ITEM_IN_USE`로 거부한다.
+
+## Issue #344 — Task DELETE 실패 후 frontend canonical 복구
+
+서버 API 계약 변경 없음. frontend의 canonical snapshot 수용·실패 복구를 보완한다. Task DELETE 성공은 기존처럼 revision을 증가시키고 canonical full snapshot을 반환한다. `409 EMPTY_SUMMARY_NOT_ALLOWED`는 현재 transaction만 rollback하며, 이전에 성공한 삭제나 그 revision을 되돌리는 의미가 아니다. 마지막 child·subtree 거부 정책과 unrelated Link 보존, 인증·Origin·strong `If-Match` 계약은 유지한다.
+
+Frontend는 현재 Project `publicId`와 마지막 확정 revision을 기준으로 snapshot을 확인한다. 다른 Project snapshot과 더 낮은 revision은 적용하지 않는다. `401/409/412/network` 실패 뒤 canonical GET은 `cache: "no-store"`로 요청하고, 확인 가능한 같은 revision 이상의 서버 snapshot만 적용한다. GET 실패 또는 오래된 응답에서는 마지막 확정 snapshot을 기존 Gantt 인스턴스에 동기화한다. 이 fallback은 서버의 현재 상태를 새로 확인했다는 의미가 아니며, 오류 안내와 재조회 경로를 유지한다. 실패한 요청을 자동 재전송하지 않는다.

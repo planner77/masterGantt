@@ -29,6 +29,7 @@ import { taskHasDependencyLinks } from "@/features/gantt/task-link-scope";
 import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
 import { ProjectLogisticsManagement } from "@/features/logistics/project-logistics-management";
 import { todayLocalDateString } from "@/lib/date-display";
+import { canAcceptCanonicalSnapshot, replayConfirmedSnapshot } from "./canonical-snapshot-recovery";
 
 const ProjectGantt = dynamic(
   () => import("@/features/gantt/project-gantt").then((module) => module.ProjectGantt),
@@ -159,6 +160,7 @@ export function ProjectReadonlyView({ publicId, projectUrl = null, ownerName }: 
 function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectViewProps) {
   const { notify, clearToast } = useWorkspaceNotifications();
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const confirmedSnapshotReference = useRef<ProjectSnapshotResponse | null>(null);
   const [permission, setPermission] = useState<Permission>("readonly");
   const [permissionCheckState, setPermissionCheckState] = useState<PermissionCheckState>("checking");
   const [retryKey, setRetryKey] = useState(0);
@@ -271,11 +273,20 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     unlockTriggerReference.current?.focus();
   }, [permission, permissionCheckState]);
 
+  const applySnapshot = useCallback((value: unknown): boolean => {
+    if (!isSnapshot(value) || !canAcceptCanonicalSnapshot(confirmedSnapshotReference.current, value, publicId)) return false;
+    confirmedSnapshotReference.current = value;
+    setState({ status: "ready", snapshot: value });
+    setMetadataName(value.data.project.name); setMetadataDescription(value.data.project.description); setMetadataStatus(value.data.project.status);
+    setMasterSelection({ businessUnitId: value.data.project.businessUnit?.id ?? "", productId: value.data.project.product?.id ?? "", siteEntityId: value.data.project.siteEntity?.id ?? "" });
+    return true;
+  }, [publicId]);
+
   useEffect(() => {
     const controller = new AbortController();
     void (async () => {
       try {
-        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", signal: controller.signal });
+        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
         if (controller.signal.aborted) return;
         if (response.status === 404) { setState({ status: "not-found" }); return; }
         const body: unknown = await response.json().catch(() => null);
@@ -285,9 +296,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           notify("error", "프로젝트 정보를 불러올 수 없습니다. 다시 시도해 주세요.", "프로젝트 조회", body);
           return;
         }
-        setMetadataName(body.data.project.name); setMetadataDescription(body.data.project.description); setMetadataStatus(body.data.project.status);
-        setMasterSelection({ businessUnitId: body.data.project.businessUnit?.id ?? "", productId: body.data.project.product?.id ?? "", siteEntityId: body.data.project.siteEntity?.id ?? "" });
-        setState({ status: "ready", snapshot: body });
+        if (!applySnapshot(body)) {
+          const confirmed = confirmedSnapshotReference.current;
+          if (!confirmed || confirmed.data.project.publicId !== publicId) {
+            setState({ status: "error" });
+            notify("error", "현재 프로젝트의 정보를 확인할 수 없습니다. 다시 시도해 주세요.", "프로젝트 조회");
+            return;
+          }
+          // A refresh may have entered loading before a stale response arrived.
+          // Return to the confirmed state instead of leaving the workspace busy.
+          applySnapshot(replayConfirmedSnapshot(confirmed));
+        }
         try {
           const current = await fetch(`/api/projects/${encodeURIComponent(publicId)}/edit-sessions/current`, { credentials: "same-origin", signal: controller.signal });
           const currentBody: unknown = await current.json().catch(() => null);
@@ -309,7 +328,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       }
     })();
     return () => controller.abort();
-  }, [publicId, retryKey, notify]);
+  }, [publicId, retryKey, notify, applySnapshot]);
 
   const canonicalProjectName = state.status === "ready" ? state.snapshot.data.project.name : null;
   useEffect(() => {
@@ -327,16 +346,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setSettingsOpen(false); setUnlockOpen(false); setPendingTaskDelete(null); setPermission("readonly"); setPermissionCheckState("checking");
     setState({ status: "loading" }); setRetryKey((key) => key + 1);
   }
-  function applySnapshot(value: unknown): boolean {
-    if (!isSnapshot(value)) return false;
-    setState({ status: "ready", snapshot: value });
-    setMetadataName(value.data.project.name); setMetadataDescription(value.data.project.description); setMetadataStatus(value.data.project.status);
-    setMasterSelection({ businessUnitId: value.data.project.businessUnit?.id ?? "", productId: value.data.project.product?.id ?? "", siteEntityId: value.data.project.siteEntity?.id ?? "" });
-    return true;
-  }
   async function fetchCanonicalSnapshot(): Promise<ProjectSnapshotResponse | null> {
     try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin" });
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store" });
       const body: unknown = await response.json().catch(() => null);
       return response.ok && isSnapshot(body) && applySnapshot(body) ? body : null;
     } catch { return null; }
@@ -498,10 +510,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function handleTaskFailure(status: number | undefined, error: unknown, fallback: string, operation: string): Promise<string> {
     if (status === 401) { setPermission("readonly"); setPermissionCheckState("complete"); }
     const recovered = await reloadCanonicalSnapshot();
-    // A successful canonical fetch is synchronized into the existing SVAR instance.
-    // Remount only when the fetch itself failed and the last confirmed React snapshot
-    // must be used to discard an unconfirmed local drag/resize.
-    if (!recovered) setGanttResetGeneration((generation) => generation + 1);
+    // Recovery belongs to this request. Never remount or replay an older render's
+    // snapshot: previous successful mutations remain confirmed even if GET fails.
+    if (!recovered && confirmedSnapshotReference.current) {
+      applySnapshot(replayConfirmedSnapshot(confirmedSnapshotReference.current));
+    }
     const code = safeErrorCode(error);
     let message = fallback;
     if (status === 401) message = "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.";
@@ -521,8 +534,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           : code === "PARENT_CONVERSION_REQUIRED" ? "부모 작업 전환을 처리하지 못했습니다. 최신 정보를 확인한 뒤 다시 추가해 주세요."
             : code === "INVALID_PARENT_TASK" ? "마일스톤에는 하위 작업을 추가할 수 없습니다."
               : "작업 정보를 저장할 수 없습니다. 입력과 일정 제약을 확인해 주세요.";
+    if (!recovered && status !== 412) message += " 최신 일정 조회에 실패하여 마지막으로 확인한 일정을 유지합니다. 다시 조회해 주세요.";
     notify("error", message, operation, error);
-    if (!recovered && status !== 412) notify("error", "최신 일정 조회에 실패하여 마지막으로 확인한 일정으로 복구했습니다. 다시 조회해 주세요.", "일정 복구");
     return message;
   }
   async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number, includeDescendants = false): Promise<TaskEditorSaveResult> {
@@ -1164,10 +1177,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           editable={editing}
           logistics={state.snapshot.data.logistics}
           onLogisticsMutated={(newLogistics, newProject) => {
-            setState((current) => {
-              if (current.status !== "ready") return current;
-              return { ...current, snapshot: { ...current.snapshot, data: { ...current.snapshot.data, project: newProject, logistics: newLogistics } } };
-            });
+            const current = confirmedSnapshotReference.current;
+            if (current) applySnapshot({ ...current, data: { ...current.data, project: newProject, logistics: newLogistics } });
             notify("success", "물류 구성 변경 사항을 저장했습니다.", "물류 구성");
           }}
           onRequireRefresh={() => { void reloadCanonicalSnapshot(); }}

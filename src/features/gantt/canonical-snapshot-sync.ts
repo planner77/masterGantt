@@ -50,8 +50,11 @@ function hierarchyChanged(
   if (!currentTask || normalizedParent(currentTask) !== normalizedParent(task)) return true;
 
   const parent = normalizedParent(task);
+  const survivingIds = new Set(canonical.map((candidate) => String(candidate.id)));
   const currentOrder = current
-    .filter((candidate) => normalizedParent(candidate) === parent)
+    // Deleting a preceding sibling changes indices, not the surviving order.
+    // A redundant move can reopen a user-collapsed summary in Core.
+    .filter((candidate) => normalizedParent(candidate) === parent && survivingIds.has(String(candidate.id)))
     .map((candidate) => String(candidate.id));
   const canonicalIds = new Set(current.map((candidate) => String(candidate.id)));
   const canonicalOrder = canonical

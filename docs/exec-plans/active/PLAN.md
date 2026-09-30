@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #344 삭제 실패 복구 — 사전 QA PASS / PR·CI 시작 준비
+
+최신 main, 소유권, 삭제 성공 후 실패의 canonical/revision 보존 기준과 검증 범위는 [Issue #344 실행 계획](ISSUE_344.md)에 기록한다. 이번 요청은 PR 생성과 CI 시작까지이며 CI 완료 모니터링·병합·정식 게시·Issue 종료는 범위 밖이다.
+
 ## Issue #258 관계 연결 작업 편집 — 구현 및 PR 준비 중
 
 최신 기준, 단계별 파일 소유권, 인수 기준, 성능 예산과 문서 영향을 [Issue #258 실행 계획](ISSUE_258.md)에 기록한다. 사용자 요청의 종료점은 PR 생성과 CI 시작이며 CI 완료·병합·GHCR·Issue 종료는 이번 범위 밖이다.
