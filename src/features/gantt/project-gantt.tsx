@@ -637,13 +637,13 @@ export function ProjectGantt({
             ...column,
             hidden: !columnVisibility.projectStart,
             sort: (first: ITask, second: ITask) => {
-              const firstStart = tasksById.get(String(first.id))?.start;
-              const secondStart = tasksById.get(String(second.id))?.start;
+              const firstStart = tasksByIdReference.current.get(String(first.id))?.start;
+              const secondStart = tasksByIdReference.current.get(String(second.id))?.start;
               if (!firstStart || !secondStart) return !firstStart && !secondStart ? 0 : !firstStart ? 1 : -1;
               return firstStart === secondStart ? 0 : firstStart < secondStart ? -1 : 1;
             },
             getter: (task: ITask) => {
-              const start = typeof task.id === "string" ? tasksById.get(task.id)?.start : null;
+              const start = typeof task.id === "string" ? tasksByIdReference.current.get(task.id)?.start : null;
               return start ? formatLocaleDateOnly(start, locales) : "—";
             },
           }
@@ -655,8 +655,8 @@ export function ProjectGantt({
                 // Core renders elapsed calendar duration for its bar. Keep
                 // the Grid contract truthful by reading the scheduler's
                 // canonical working-day duration from the snapshot instead.
-                typeof task.id === "string" && typeof tasksById.get(task.id)?.duration === "number"
-                  ? String(tasksById.get(task.id)!.duration)
+                typeof task.id === "string" && typeof tasksByIdReference.current.get(task.id)?.duration === "number"
+                  ? String(tasksByIdReference.current.get(task.id)!.duration)
                   : "—"
               ),
             }
@@ -675,10 +675,10 @@ export function ProjectGantt({
             }
             : column
     )),
-    // Canonical values can change while Core renderer coordinates do not.
-    // Refresh these captured DTO getters through the public set-columns sync
-    // below; tasksById also keeps the Grid/Chart render boundary synchronized.
-    [columnVisibility, locales, tasksById],
+    // Grid getters read the latest canonical DTO map through a ref. Canonical
+    // task sync itself invalidates affected rows, so the same column functions
+    // can safely render empty Summary values as "—" without capturing stale data.
+    [columnVisibility, locales],
   );
   const initialConfig = useState(() => ({
     tasks: projectTasksToSvarTasks(tasks),

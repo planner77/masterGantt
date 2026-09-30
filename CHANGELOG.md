@@ -11,7 +11,25 @@
 ### Changed
 
 - CI 실행 제목에 PR 제목을 포함해 `Issue #345`와 같은 관련 Issue 번호를 Actions 실행 목록에서 확인할 수 있게 한다. Workflow `CI`와 required check 이름·권한·실행 gate는 유지한다.
-- Application version을 `0.58.4`에서 `0.59.0`으로 증가한다.
+- PR CI #1376의 production dependency audit 대응으로 `next`와 `@next/env`를 16.3.8로 갱신한다.
+- 빈 Summary의 canonical 날짜를 표시하는 Grid getter가 특정 render의 Task map을 캡처하지 않고 최신 canonical ref를 읽도록 변경해, 실패 복구에서도 마지막 확정 일정이 유지되게 한다.
+- migration CLI 회귀 기대값에 `0018_empty_summary_schedule.sql`과 migration ledger 18건을 반영한다.
+- Application version을 `0.58.5`에서 `0.59.0`으로 증가한다.
+
+## [0.58.5] - 2026-10-01
+
+### Changed
+
+- Issue #356: 일반 PR의 Docker baseline image 비교를 standalone/image 구조 변경에만 실행하고, HTTP/HTTPS transport smoke를 deploy/security/http/auth 관련 변경에만 선택 실행하여 필수 candidate/runtime smoke를 유지하면서 불필요한 이중 build·browser setup을 줄인다.
+- main push와 수동 CI에서는 transport smoke를 항상 유지하며 required aggregate check와 fail-closed routing 계약은 변경하지 않는다.
+- 완료된 Issue #118 고정 before/after 레이아웃 evidence workflow를 manual-only historical evidence로 전환하고 workflow contract·원격 검증 문서를 동기화한다.
+- 프로젝트 인증·세션 handler(`src/server/projects/**`) 변경도 PR transport smoke 대상에 포함해 API route 밖 구현 변경이 HTTP/HTTPS 검증을 우회하지 못하도록 한다.
+- CI #1368에서 감지된 Next.js `next/og ImageResponse` critical advisory 대응으로 `next`와 `@next/env`를 16.3.7로 갱신하고 lockfile을 동기화한다.
+- fresh Chromium이 격리 hosts/Nginx 설정 직후 일시적으로 `chrome-error://chromewebdata/`로 전환하는 경우 readiness 확인 뒤 최초 GET navigation만 1회 재시도하며, mutation은 재시도하지 않는다.
+- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 길어질 수 있어 E2E shard timeout을 15분에서 20분으로 조정하되 4-way shard와 `workers: 1` 격리 계약은 유지한다.
+- CI #1369에서 드러난 `@next/env` 고정 버전 회귀 테스트를 Next.js와 동일 exact version을 요구하는 계약으로 변경해 보안 patch 갱신 시 stale 숫자 기대값으로 실패하지 않도록 한다.
+- CI #1372에서 SemVer 회귀 테스트의 과도한 escape를 수정하고, shard 2가 74개 테스트를 모두 PASS한 뒤 cleanup 직전에 20분 timeout으로 취소된 실행을 근거로 E2E shard timeout을 25분으로 조정한다.
+- Application version을 `0.58.4`에서 `0.58.5`로 증가한다.
 
 ## [0.58.4] - 2026-09-30
 

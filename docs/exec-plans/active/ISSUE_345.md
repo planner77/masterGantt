@@ -98,3 +98,12 @@ frontend 최종 쓰기·browser 실행 종료를 확인했다. scheduleDirty의 
 AC12의 별도 서버 프로세스 restart, AC13의 빈 Summary PNG 다운로드, 실제 Windows Excel/VBA/DRM, 보조기술 수동 UX와 원격 quality/e2e/docker는 NOT TESTED다. file SQLite reopen과 SVG→PNG 공통 생산 경로의 정적 정합성만으로 해당 별도 실행 PASS를 주장하지 않는다. 최종 ACCEPT·병합·main artifact·릴리스·cleanup·Issue 종료는 승인하지 않는다.
 
 Manager는 검토된 파일과 이번 캡처 5장만 명시적으로 commit한 뒤 exact commit을 독립 QA 증거에 연결하고 PR·CI 시작으로 전달한다. PR 제목은 승인된 Issue #345 포함 제목을 유지한다. 실제 PR/head/run/표시 제목과 시작 상태는 Issue STATUS와 PR에서 후속 기록하고 CI 완료를 모니터링하지 않는다.
+
+## PR CI #1376 실패 보완 (2026-10-01)
+
+- 원격 PR CI #1376 / run 36777920872는 실패했다.
+- Vitest: 신규 `0018_empty_summary_schedule.sql` 적용은 정상이나 `migration-cli.test.ts`의 예상 migration 목록/ledger count가 0017/17건에 머물러 1건 실패했다. 기대값을 0018/18건으로 갱신한다.
+- production dependency audit: `next 16.3.7`에서 critical advisory가 검출되어 감사 로그가 제시한 16.3.8로 `next`와 `@next/env`를 동기화한다.
+- Chromium E2E shard 3/4: 실패 복구 시 bar는 마지막 확정 위치를 유지했지만 Grid 시작일 getter가 이전 render의 canonical map을 캡처해 2026-09-14를 표시했다. getter/sort/duration을 최신 `tasksByIdReference.current` 기반으로 바꾸고 기존 동일-instance canonical sync를 유지한다.
+- 최신 main의 Issue #356 CI 선택 실행 최적화와 historical evidence 변경을 보존하도록 PR branch를 main과 merge 정렬한다.
+- 보완 commit의 새 PR CI를 공식 검증으로 사용하며, 새 run 시작 전에는 PASS로 승격하지 않는다.

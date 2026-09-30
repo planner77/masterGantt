@@ -1,5 +1,18 @@
 # Test Plan
 
+## Issue #356 CI 비용 선택 실행 회귀
+
+- 일반 UI/feature PR은 Docker candidate/runtime smoke를 유지하되 image/runtime 구조 변경이 없으면 관찰용 baseline image rebuild를 생략한다.
+- PR transport smoke는 deploy/security/http/auth 관련 경로에서만 실행하며, main push와 manual CI에서는 항상 실행한다.
+- `.github/workflows/ci.yml` 또는 `.github/actions/**` 자체 변경은 두 선택 검증을 모두 실행하여 routing 변경을 자기 검증한다.
+- 프로젝트 인증·세션 handler(`src/server/projects/**`) 변경도 transport smoke 대상이어야 한다.
+- Issue #118 before/after evidence는 manual-only historical evidence이며 일반 PR에서 별도 runner를 시작하지 않는다.
+- Next.js 보안 patch 뒤 production dependency audit이 0 critical로 통과하고 `@next/env`와 `next`가 동일 exact patch 버전으로 고정되는지 확인한다.
+- transport smoke의 최초 GET navigation은 일시적 network/error page에 한해 readiness 확인 후 1회만 재시도하고 mutation은 자동 재시도하지 않는다.
+- E2E shard는 4-way 및 `workers: 1` 격리를 유지하며 외부 OS dependency mirror 지연을 허용하기 위해 timeout만 25분으로 둔다.
+- `tests/scripts/test-config-layout.test.ts`와 `tests/scripts/deployment-layout.test.ts`가 위 workflow/dependency contract를 고정한다.
+- 공식 전체 회귀 판정은 최신 main 재정렬 후 동일 PR head의 quality/e2e/docker 결과를 사용한다.
+
 ## Issue #345 빈 Summary 검증
 
 현재 정책은 빈 Summary 생성·마지막 child 삭제/이동 성공이다. 아래 W24/#31/#300/#344의 당시 `EMPTY_SUMMARY_NOT_ALLOWED` 검증은 역사적 근거이며 현재 acceptance를 대체하지 않는다. Leaf 날짜 필수·Summary Dependency 금지·401/Origin/If-Match/412·원자성 보호는 유지한다.
