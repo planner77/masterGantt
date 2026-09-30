@@ -1,5 +1,11 @@
 # GitHub-first 테스트 및 검증 정책
 
+## Issue #361 Actions 실행명 원격 검증
+
+PR 단계의 실제 원격 증거는 Actions run의 `display_title`이 Primary Issue, PR 번호와 `run_number.run_attempt`를 포함하는지 확인하는 것이다. 정적 Python contract만으로 GitHub UI에 적용됐다고 판정하지 않는다. 이 PR에서는 새 `run-name`이 적용된 PR CI와 기존 required `quality/e2e/docker` check 이름을 함께 확인한다.
+
+Main CI/Generic Finalizer/GHCR Release의 표시명은 각 trigger가 실제 발생한 뒤에만 원격 PASS로 판정한다. PR 단계에서는 `scripts/verify-issue-lifecycle.py`와 `scripts/verify-ci-run-trace.py`로 event metadata 전달 계약을 검증하며, 병합 전 Main/Finalizer/Release 표시명을 실제 실행 완료로 과대 보고하지 않는다.
+
 ## Issue #283 원격 Docker 검증
 
 Issue #283은 Docker/runtime artifact 계약을 변경하므로 동일 PR head에서 `quality`, `e2e`, `docker`를 모두 새로 검증한다. Local Fast Feedback이 제한되거나 Docker 실행이 불가능한 환경의 정적 검토는 원격 PASS를 대체하지 않는다.
