@@ -1830,11 +1830,6 @@ function EquipmentRolesDialog({
       alert("비활성화된 리소스는 새로 배정할 수 없습니다.");
       return;
     }
-    if (addRole === "developer" && !res?.developerGrade) {
-      alert("개발자 역할을 배정하려면 리소스 관리에서 개발자 등급을 먼저 지정해 주세요.");
-      return;
-    }
-
     let next = [...selectedRoles];
     if (addIsPrimary) {
       // primary is only 1
@@ -2405,6 +2400,10 @@ function SystemRolesDialog({
       alert("비활성화된 리소스는 새로 배정할 수 없습니다.");
       return;
     }
+    if (addRole === "developer" && !res?.developerGrade) {
+      alert("개발자 역할을 배정하려면 리소스 관리에서 개발자 등급을 먼저 지정해 주세요.");
+      return;
+    }
 
     let next = [...selectedRoles];
     if (addIsPrimary) {
@@ -2475,6 +2474,7 @@ function SystemRolesDialog({
               const res = resourceById.get(item.resourceId);
               const canonical = system.resourceRoles.find((role) => role.resourceId === item.resourceId);
               const displayName = catalogReady && res ? `${res.name} (${res.code ?? "코드없음"})` : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
+              const gradeText = developerGradeLabel(res?.developerGrade);
               const isInactive = catalogReady && res ? !res.active : false;
 
               return (
