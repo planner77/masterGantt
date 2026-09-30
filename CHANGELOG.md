@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.58.2] - 2026-09-30
+
+### Fixed
+
+- Issue #326: 작업 캘린더의 국가 규칙/날짜 예외 draft key 생성을 `crypto.randomUUID()` 직접 호출에서 client-local ID helper로 전환해 HTTP/IP 등 `randomUUID` 미지원 브라우저 컨텍스트에서도 추가 동작이 화면 Error Boundary로 전파되지 않도록 한다.
+- 임시 key는 Web Crypto UUID → `getRandomValues` → 비보안 로컬 fallback 순서로 생성하며 React/local draft 식별에만 사용하고 서버 canonical public ID·인증/세션 난수 정책은 변경하지 않는다.
+- helper Unit test와 `Crypto.prototype.randomUUID`를 제거한 Chromium 작업 캘린더 회귀 테스트를 추가한다.
+- Application version을 `0.58.1`에서 `0.58.2`로 증가한다.
+
 ## [0.58.1] - 2026-09-30
 
 ### Changed
