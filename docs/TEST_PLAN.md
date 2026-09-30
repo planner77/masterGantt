@@ -731,11 +731,15 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 
 실제 실행 결과와 실패/재실행 이력은 [Issue #300 기록](ISSUE_300_GRID_DND.md)에 구분한다. 사용자 요청은 PR/CI 시작까지이므로 원격 quality/e2e/docker 결과는 NOT TESTED이며 완료 모니터링은 수행하지 않는다.
 
-## Issue #288 개발자 Resource 등급 회귀
+## Issue #280 — Logistics Type Catalog
 
-- DB/contract: `0015_resource_developer_grade.sql` 적용 후 기존 Resource는 NULL을 유지하고 4개 canonical 값과 NULL만 저장되며 그 외 문자열·빈 문자열은 거부한다. Repository/API round-trip에서 등급을 보존한다.
-- Resource Catalog: 관리자 Resource 생성/수정/조회에서 미지정/초급/중급/고급/특급을 표시하고 실제 변경만 기존 catalog revision 정책을 따른다. 기존 session/Origin/stale revision 계약은 유지한다.
-- Logistics role: 등급이 있는 Resource의 신규 Developer 배정은 허용하고 grade NULL 신규 배정은 `DEVELOPER_GRADE_REQUIRED`로 거부한다. migration 이전 동일 Developer+NULL 배정 보존은 허용하고, 역할 해제 후 전역 등급은 유지한다. PI/설비 담당/Task assignment는 등급을 요구하지 않는다.
-- Chromium: Resource 관리자에서 등급 생성·목록 표시·수정과 390/768/1024/1440px document overflow를 확인한다. Developer picker는 등급 표시와 미지정 신규 배정 차단 안내를 확인한다.
-- Scheduling/workload: 등급 변경만으로 duration, allocation, M/D·M/M, capacity, 일정 및 resource leveling 결과가 바뀌지 않아야 한다.
-- 공식 전체 회귀 판정은 Issue #288 PR head의 `quality/e2e/docker` 결과를 사용한다.
+필수 회귀 범위:
+- migration 0014 → 0015 적용, 기존 equipment/system row count·id·type code·관계/담당자/task link 보존과 FK integrity
+- 기존 12개 default seed 및 custom type 생성/rename/active/inactive/restart 영속성
+- env bootstrap 최초 1회, runtime password rotation 후 DB credential 우선, old session revoke
+- 관리자 Origin/session/If-Match 및 stale 412, invalid/duplicate code, secret 비노출
+- 신규 create/type-change는 active catalog만 허용하고 기존 inactive type 유지 편집 허용
+- `/logistics-admin`과 Project Workspace의 loading/error/retry/session-expired 및 390/768/1024/1440 반응형·keyboard/focus/Escape
+- Issue #285의 공정 code optional/server-generated 계약을 포함한 기존 물류 회귀
+
+리뷰 회귀로 duplicate stable code는 HTTP 409 `LOGISTICS_CATALOG_CONFLICT`를 반환하고 revision을 증가시키지 않는지, 비밀번호 dialog 재열기 시 초안이 비어 있는지, 서버 logout 실패 시 로그인 화면으로 로컬 잠금 전환하면서 revoke 미확인 오류를 표시하는지 검증한다.
