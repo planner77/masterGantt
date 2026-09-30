@@ -356,11 +356,25 @@ Manager는 operation을 다음처럼 선택한다.
 
 `release_finalize`를 선택했다고 해서 승인을 자동 추론하지 않는다. 반드시 동일 Issue/버전 범위에 대한 명시적 `release_authorized=true` 근거와 `authorization_note`가 있어야 한다.
 
-## 자동 finalizer 확인·실패 재개 규칙
+## Generic 자동 finalizer 및 실패 재개 규칙
 
-병합 후 자동 finalize를 요청받은 경우 범용 `issue-lifecycle.yml`의 `workflow_dispatch`를 우선한다. 실행 도구에 dispatch 기능이 보이지 않더라도 즉시 BLOCKED로 결론내리지 않고, 최근 `ops/issue-<N>-finalize` PR과 대상 main merge SHA의 check-runs를 확인하여 이미 one-shot finalizer가 준비·실행되었는지 먼저 확인한다.
+정상 경로는 `.github/workflows/release-finalizer.yml`이다. `CI`의 main push run이 성공하면 generic finalizer가 exact `workflow_run.head_sha`를 기준으로 merged PR 하나와 canonical `Refs #Issue` 하나를 resolve한다. Issue/PR/version을 hard-code한 one-shot workflow는 사용하지 않는다.
 
-one-shot finalizer가 사용된 경우 일반 Main CI와 finalizer workflow는 서로 다른 run이다. Main CI PASS는 Gate D evidence일 뿐 Issue close 성공을 의미하지 않는다. `Finalize and close Issue <N>` 등 finalizer job의 실제 run ID와 결론을 별도로 확인한다.
+Release 필요 여부는 merge first parent와 target의 application version 차이로 판정한다. version이 동일하면 `finalize`, version이 변경되면 정식 release 대상이다. 단, release-required라는 사실과 release 승인 여부는 분리한다.
 
-finalizer가 safe branch cleanup에서 fail-closed로 중단되면 Issue를 유지하고 원인을 제거한다. 특히 다른 Open PR이 feature branch를 base/head로 사용 중이면 해당 PR의 의존성을 정리하고 최신 main/적절한 base로 재정렬한다. blocker 제거 후에는 기존 failed finalizer run/job 재실행을 우선하며, 기존 run을 재사용할 수 있는데 새 one-shot finalizer PR을 반복 생성하거나 수동 branch 삭제/Issue close로 우회하지 않는다.
+정식 release 승인은 Issue의 trusted maintainer comment에 아래 version-scoped marker로 기록한다.
+
+```text
+<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"0.59.0","note":"사용자가 정식 GHCR 게시를 승인함"} -->
+```
+
+최신 trusted marker가 authority이며 자세한 형식/author association/revocation 규칙은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다. 승인 부족은 BLOCKED이며 mutation하지 않는다.
+
+실패 재개 원칙:
+
+1. main CI 실패는 finalizer mutation 없이 종료한다.
+2. release 승인 부족이면 marker를 기록한 뒤 기존 failed generic finalizer job을 재실행한다.
+3. safe branch cleanup이 stacked/open PR dependency 때문에 중단되면 dependency를 최신 main/적절한 base로 정리한 후 기존 run을 재실행한다.
+4. release-image 실패는 exact tag를 이동/덮어쓰지 않고 원인을 보완하여 기존 lifecycle evidence를 재개한다.
+5. `issue-lifecycle.yml workflow_dispatch`는 generic 자동 경로를 사용할 수 없는 복구 fallback으로만 사용한다.
 

@@ -786,3 +786,16 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - Project aggregate: 생성·조회·목록·메타데이터 수정·복사·Template에서 동일 global 참조를 유지하고 rename/inactive가 참조를 깨뜨리지 않는지 검증한다.
 - UI/E2E: 생성 폼은 기본 필드 validation을 catalog loading보다 먼저 수행하며 catalog 미확인 시 유효 저장만 차단한다. 관리자 category는 tablist/tabpanel·roving focus·Arrow/Home/End를 검증하고 390/768/1024/1440px overflow를 회귀 검증한다.
 - 집중 서버 회귀는 `tests/server/projects/project-master-catalog.test.ts`; migration ledger/schema 기대값은 DB 및 migration CLI 테스트에서 0017까지 검증한다. 공식 PASS 판정은 PR exact-head GitHub Actions quality/e2e/docker 결과를 사용한다.
+
+## Generic Release Finalizer contract (#350)
+
+CI policy/static scenario에서 최소 다음을 검증한다.
+
+- PR CI/수동 CI/실패 main CI는 lifecycle mutation 대상이 아님
+- exact merge SHA에 대응하는 PR이 0건이면 skip, 복수면 fail-closed
+- canonical `Refs #Issue`가 누락/복수이면 fail-closed
+- version 동일은 finalize, version 변경은 release authorization 필요
+- untrusted comment marker는 승인으로 인정하지 않음
+- 최신 trusted revocation/version mismatch는 release BLOCKED
+- Issue별 lifecycle helper/finalizer 파일 재도입 금지
+- generic/release workflow concurrency가 queued work를 보존

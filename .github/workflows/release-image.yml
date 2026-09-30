@@ -12,8 +12,10 @@ on:
 # A release tag must never have its publish run cancelled by a later push.
 concurrency:
   # 모든 version을 직렬화해 mutable stable alias가 병렬 release로 역행하지 않게 한다.
+  # queue:max로 근접한 여러 release 요청도 pending 교체 없이 순차 보존한다.
   group: ghcr-release-${{ github.repository }}
   cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: read

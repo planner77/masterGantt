@@ -1,0 +1,40 @@
+name: 범용 Release Finalizer
+
+run-name: "범용 Finalizer · ${{ github.event.workflow_run.head_sha }}"
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: mastergantt-release-finalizer
+  queue: max
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: read
+
+jobs:
+  finalize:
+    name: 정확한 Merge Lifecycle Finalize
+    if: >-
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: 정확한 merge lifecycle 해석 및 실행
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: python3 scripts/auto_release_finalizer.py --target-sha "$TARGET_SHA"

@@ -414,7 +414,7 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
                 "- GHCR exact digest: release-image workflow evidence when formal release is required; otherwise N/A",
                 "- branch cleanup: PASS",
                 "- environment-specific validation: N/A for CI/GitHub orchestration change",
-                "- remaining risks: existing per-Issue helpers remain until migration verification is complete",
+                "- lifecycle orchestration: generic auto-finalizer; per-Issue helper workflows are not used.",
             ]
         )
         gh(

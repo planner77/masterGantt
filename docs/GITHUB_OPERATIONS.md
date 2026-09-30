@@ -177,3 +177,14 @@ CI run number가 더 크거나 같은 SHA에 연결되었다는 이유만으로 
 
 기존 failed run 재실행이 가능한 상태에서 새 one-shot finalizer PR을 반복 생성하거나, GitHub UI/API로 feature branch를 직접 삭제하고 Issue를 수동 종료하는 방식은 사용하지 않는다.
 
+## Generic 자동 Release Finalizer 운영 (#350)
+
+Issue별 one-shot finalizer PR/workflow는 정상 운영 경로에서 사용하지 않는다. 사용자가 정식 release를 승인한 경우 Manager는 **merge 전에** 대상 Issue에 다음 comment marker를 기록한다.
+
+```text
+<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"<package version>","note":"<승인 근거>"} -->
+```
+
+comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
+
+수동 `issue-lifecycle.yml workflow_dispatch`는 장애/복구 fallback이다. Issue별 `release-helper/finalizer/cleanup` workflow 신규 추가는 CI policy가 거부한다.
