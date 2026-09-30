@@ -651,7 +651,7 @@ Project Workspace의 설비/시스템 추가·수정 select는 active catalog �
 
 ## Issue #342 국가 캘린더 관리자
 
-Global navigation의 캘린더 메뉴는 /calendar-admin으로 이동한다. 화면은 DESIGN.md의 Linear-inspired Light Enterprise Workspace 규칙을 적용한다.
+전역 header의 기존 4개 메뉴 계약은 유지하고, 프로젝트 기준정보 관리 화면의 보조 action에서 /calendar-admin으로 이동한다. 화면은 DESIGN.md의 Linear-inspired Light Enterprise Workspace 규칙을 적용한다.
 
 상단 compact toolbar에서 국가와 2026~2037 연도를 선택하고, dataset 상태/출처/건수/수정 시각을 같은 작업 맥락에서 확인한다. Import는 파일 선택 → 업로드 전 검증 → 추가/변경/삭제 Preview → 명시적 적용 순서이며, 선택 국가/연도와 파일 target이 다르면 적용하지 않는다. 날짜 목록은 날짜/요일/이름/dayType/sourceKey/action의 data-dense table로 제공하고 Add/Edit/Delete를 지원한다. 삭제는 확인 Dialog를 거친다.
 
