@@ -146,6 +146,7 @@ describe("SQLite connection and schema", () => {
         "0012_project_templates.sql",
         "0013_link_types_and_lag.sql",
         "0014_task_baseline.sql",
+        "0015_logistics_type_catalog.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -161,6 +162,11 @@ describe("SQLite connection and schema", () => {
       expect(tables).toEqual([
         "edit_sessions",
         "links",
+        "logistics_catalog_admin_credentials",
+        "logistics_catalog_admin_sessions",
+        "logistics_equipment_types",
+        "logistics_system_types",
+        "logistics_type_catalog_state",
         "project_equipment",
         "project_equipment_resource_roles",
         "project_equipment_systems",
@@ -198,6 +204,7 @@ describe("SQLite connection and schema", () => {
         "equipment_systems_one_primary",
         "links_project_predecessor_idx",
         "links_project_successor_idx",
+        "logistics_catalog_admin_sessions_expiry_idx",
         "project_equipment_project_process_idx",
         "project_equipment_resource_roles_equipment_idx",
         "project_equipment_resource_roles_resource_idx",

@@ -1,22 +1,48 @@
 import type { ProjectDto, ProjectPermission } from "./projects";
 
-export type EquipmentType =
-  | "stocker"
-  | "agv"
-  | "amr"
-  | "oht"
-  | "conveyor"
-  | "other";
+export type EquipmentType = string;
 
 export type ManagementUnit = "unit" | "fleet";
 
-export type LogisticsSystemType =
-  | "scs"
-  | "acs"
-  | "ocs"
-  | "lcs"
-  | "mcs"
-  | "other";
+export type LogisticsSystemType = string;
+
+export type LogisticsTypeKind = "equipment" | "system";
+
+export interface LogisticsTypeCatalogItemDto {
+  code: string;
+  name: string;
+  active: boolean;
+  sortOrder: number;
+  usageCount: number;
+}
+
+export interface LogisticsTypeCatalogResponse {
+  data: {
+    revision: number;
+    equipmentTypes: LogisticsTypeCatalogItemDto[];
+    systemTypes: LogisticsTypeCatalogItemDto[];
+  };
+}
+
+export interface LogisticsActiveTypeCatalogResponse {
+  data: {
+    equipmentTypes: Array<Pick<LogisticsTypeCatalogItemDto, "code" | "name">>;
+    systemTypes: Array<Pick<LogisticsTypeCatalogItemDto, "code" | "name">>;
+  };
+}
+
+export interface CreateLogisticsTypeRequest {
+  code: string;
+  name: string;
+  active?: boolean;
+  sortOrder?: number;
+}
+
+export interface UpdateLogisticsTypeRequest {
+  name?: string;
+  active?: boolean;
+  sortOrder?: number;
+}
 
 export type SystemLayer = "controller" | "coordinator";
 

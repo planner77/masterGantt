@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.56.0] - 2026-09-29
+
+### Added
+
+- Issue #280: 설비 유형과 물류 시스템 유형을 고정 allowlist가 아닌 글로벌 관리 카탈로그로 전환하고, 전용 `/logistics-admin` 관리자 화면에서 유형 추가·표시명 수정·활성/비활성·사용 건수를 관리한다.
+- `LOGISTICS_CATALOG_ADMIN_PASSWORD` bootstrap credential, 별도 HttpOnly 관리자 세션, 런타임 비밀번호 변경, catalog revision/`If-Match` 동시성 제어를 추가한다.
+- migration `0015_logistics_type_catalog.sql`에서 기존 12개 type code와 프로젝트 물류 데이터를 보존하면서 DB 고정 type CHECK를 catalog FK로 전환한다.
+- Project Workspace의 설비/시스템 추가·수정은 active catalog를 사용하고, 기존 inactive type은 참조를 보존한 채 편집할 수 있다.
+
 ## [0.55.0] - 2026-09-29
 
 ### Added

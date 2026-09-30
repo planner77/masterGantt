@@ -730,3 +730,14 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - Project List 상태 회귀는 SSR 렌더 직후 hydration 전 select 조작으로 이벤트가 유실되지 않도록 control 활성화 시점을 검증하고, E2E는 enabled 상태 이후 조작한다.
 
 실제 실행 결과와 실패/재실행 이력은 [Issue #300 기록](ISSUE_300_GRID_DND.md)에 구분한다. 사용자 요청은 PR/CI 시작까지이므로 원격 quality/e2e/docker 결과는 NOT TESTED이며 완료 모니터링은 수행하지 않는다.
+
+## Issue #280 — Logistics Type Catalog
+
+필수 회귀 범위:
+- migration 0014 → 0015 적용, 기존 equipment/system row count·id·type code·관계/담당자/task link 보존과 FK integrity
+- 기존 12개 default seed 및 custom type 생성/rename/active/inactive/restart 영속성
+- env bootstrap 최초 1회, runtime password rotation 후 DB credential 우선, old session revoke
+- 관리자 Origin/session/If-Match 및 stale 412, invalid/duplicate code, secret 비노출
+- 신규 create/type-change는 active catalog만 허용하고 기존 inactive type 유지 편집 허용
+- `/logistics-admin`과 Project Workspace의 loading/error/retry/session-expired 및 390/768/1024/1440 반응형·keyboard/focus/Escape
+- Issue #285의 공정 code optional/server-generated 계약을 포함한 기존 물류 회귀

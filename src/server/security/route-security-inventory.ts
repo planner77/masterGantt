@@ -11,7 +11,13 @@ export type RouteSecurityPolicy =
   | "origin-resource-admin-logout"
   | "origin-resource-admin-password"
   | "origin-resource-admin-if-match"
-  | "project-edit-session-read";
+  | "project-edit-session-read"
+  | "logistics-catalog-read"
+  | "logistics-admin-read"
+  | "origin-logistics-admin-auth"
+  | "origin-logistics-admin-logout"
+  | "origin-logistics-admin-password"
+  | "origin-logistics-admin-if-match";
 
 export interface RouteSecurityInventoryEntry {
   template: string;
@@ -59,6 +65,16 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/resource-groups", method: "POST", policy: "origin-resource-admin-if-match", mutatesState: true },
   { template: "/api/resource-groups/{groupId}", method: "PATCH", policy: "origin-resource-admin-if-match", mutatesState: true },
   { template: "/api/resource-groups/{groupId}/members", method: "PUT", policy: "origin-resource-admin-if-match", mutatesState: true },
+  { template: "/api/logistics-catalog/types", method: "GET", policy: "logistics-catalog-read", mutatesState: false },
+  { template: "/api/logistics-catalog/admin-sessions", method: "POST", policy: "origin-logistics-admin-auth", mutatesState: true },
+  { template: "/api/logistics-catalog/admin-sessions", method: "DELETE", policy: "origin-logistics-admin-logout", mutatesState: true },
+  { template: "/api/logistics-catalog/admin-password", method: "PUT", policy: "origin-logistics-admin-password", mutatesState: true },
+  { template: "/api/logistics-catalog/admin/equipment-types", method: "GET", policy: "logistics-admin-read", mutatesState: false },
+  { template: "/api/logistics-catalog/admin/equipment-types", method: "POST", policy: "origin-logistics-admin-if-match", mutatesState: true },
+  { template: "/api/logistics-catalog/admin/equipment-types/{code}", method: "PATCH", policy: "origin-logistics-admin-if-match", mutatesState: true },
+  { template: "/api/logistics-catalog/admin/system-types", method: "GET", policy: "logistics-admin-read", mutatesState: false },
+  { template: "/api/logistics-catalog/admin/system-types", method: "POST", policy: "origin-logistics-admin-if-match", mutatesState: true },
+  { template: "/api/logistics-catalog/admin/system-types/{code}", method: "PATCH", policy: "origin-logistics-admin-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/assignment-targets", method: "GET", policy: "project-edit-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/assigned-targets", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-workload", method: "GET", policy: "public-read", mutatesState: false },
