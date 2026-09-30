@@ -7,6 +7,7 @@ import { logisticsAdminUnlockRateLimiter, UNATTRIBUTED_LOGISTICS_ADMIN_RATE_KEY 
 import { parseLogisticsCatalogAdminCookie, serializeExpiredLogisticsCatalogAdminCookie, serializeLogisticsCatalogAdminCookie } from "../security/logistics-catalog-cookie-core";
 import {
   LogisticsCatalogAuthorizationError,
+  LogisticsCatalogConflictError,
   LogisticsCatalogInvalidInputError,
   LogisticsCatalogNotFoundError,
   LogisticsCatalogRevisionMismatchError,
@@ -34,6 +35,7 @@ function mapError(error:unknown):unknown{
   if(error instanceof LogisticsCatalogRevisionMismatchError)return new PublicApiError(412,"LOGISTICS_CATALOG_REVISION_MISMATCH","Logistics type catalog changed. Reload and retry.");
   if(error instanceof LogisticsCatalogNotFoundError)return new PublicApiError(404,"LOGISTICS_TYPE_NOT_FOUND","Logistics type not found.");
   if(error instanceof LogisticsCatalogTypeInactiveError)return new PublicApiError(409,"LOGISTICS_TYPE_INACTIVE","Inactive logistics types cannot be newly assigned.");
+  if(error instanceof LogisticsCatalogConflictError)return new PublicApiError(409,"LOGISTICS_CATALOG_CONFLICT","The logistics catalog change conflicts with existing data.");
   if(error instanceof LogisticsCatalogInvalidInputError)return new PublicApiError(400,"INVALID_REQUEST","The logistics type catalog request is invalid.");
   const code=(error as {code?:unknown}|null)?.code;if(typeof code==="string"&&code.startsWith("SQLITE_CONSTRAINT"))return new PublicApiError(409,"LOGISTICS_CATALOG_CONFLICT","The logistics catalog change conflicts with existing data.");
   return error;
