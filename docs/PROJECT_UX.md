@@ -640,3 +640,16 @@ Project Workspace의 설비/시스템 추가·수정 select는 active catalog �
 `/projects/new` 및 Project 설정의 기본 정보에 사업부·제품·사업장/법인 Select를 추가한다. 세 필드는 선택 사항이며 active catalog만 신규 선택지에 제공한다. catalog 조회 실패는 “선택지 없음”과 구분해 오류/재시도 상태를 표시하고 저장 가능한 정상 빈 목록으로 오인하지 않는다. 기본 필드 validation은 catalog loading 여부와 독립적으로 먼저 제공하며, 유효한 제출은 catalog 확인 전에는 저장하지 않는다.
 
 기존 선택값이 inactive이면 현재값을 “비활성”으로 유지·표시하고 사용자가 다른 active 값 또는 미지정으로 명시적으로 변경할 수 있다. 전역 `/project-master-admin`은 사업부/제품/사업장·법인을 category별로 관리하고 WAI-ARIA tablist/tabpanel, roving tabindex, ArrowLeft/ArrowRight/Home/End 탐색을 제공한다. SVAR Task Editor 내부 모델에는 Project master metadata를 결합하지 않는다.
+
+## Issue #332 — 프로젝트 기준정보 관리자 정보 계층 및 상태 필터
+
+전역 `/project-master-admin`은 Project edit 화면과 분리된 글로벌 기준정보 관리자라는 점을 화면 구조에서도 명확하게 표현한다.
+
+- 인증 전에는 관리자 인증 제목·설명·비밀번호·로그인 액션을 하나의 section으로 묶고 일반 기준정보 입력과 혼동되지 않도록 divider/surface 차이를 사용한다.
+- 인증 후에는 현재 관리자 인증 상태와 비밀번호 변경·새로고침·로그아웃 액션을 별도 section으로 유지하고, 그 아래에 프로젝트 기준정보 관리 section을 둔다.
+- 사업부/제품/사업장·법인 category는 기존 WAI-ARIA `tablist`/`tabpanel`, roving tabindex, ArrowLeft/ArrowRight/Home/End 계약을 유지한다.
+- category panel 안에서 **항목 추가**와 **목록**을 hairline divider와 heading hierarchy로 구분한다. 목록은 이름/코드/정렬/상태·사용/작업 column header가 있는 semantic table을 사용한다.
+- 목록 상태 필터는 `전체 / 활성 / 비활성` 3개 button group이며 기본값은 전체다. 필터는 이미 조회한 catalog snapshot에만 적용하는 client-side view state이고 catalog mutation이나 revision 증가를 발생시키지 않는다.
+- 상태 필터는 category를 바꾸어도 유지하여 동일 관리 화면에서 필터 의미가 갑자기 바뀌지 않도록 한다. 필터 결과가 0건이면 현재 선택 상태에 맞는 empty state를 표시한다.
+- 좁은 화면에서는 document 자체를 넓히지 않고 목록 table wrapper 안에서만 수평 scroll을 허용한다. 390/768/1024/1440px에서 category/filter/action control은 접근 가능해야 한다.
+- Project Master 관리자 session, Origin, login rate-limit, bootstrap credential, `If-Match` revision, CRUD 및 inactive 참조 보존 계약은 #289/#327의 기존 동작을 그대로 유지한다.
