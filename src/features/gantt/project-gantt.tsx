@@ -21,6 +21,12 @@ import {
 } from "react";
 
 import { createTaskMoveGateway } from "./task-move-gateway";
+import {
+  buildGanttDayHeaderTooltipDataForDateOnly,
+  dateOnlyFromGanttDayScaleClassName,
+  ganttDayScaleClassName,
+  type GanttDayHeaderTooltipData,
+} from "./day-header-tooltip";
 
 import type {
   ProjectCalendarDto,
@@ -90,6 +96,12 @@ type TaskMenuState = MenuPosition & Readonly<{ taskId: string }>;
 type TaskSubmenuName = "Add" | "Convert to" | "Paste" | "Move";
 type TaskSubmenuState = Readonly<{ name: TaskSubmenuName; placement: "right" | "left" | "drilldown"; left: number; top: number }>;
 type GanttScaleMode = "day" | "week";
+type DayHeaderTooltipState = Readonly<{
+  data: GanttDayHeaderTooltipData;
+  left: number;
+  top: number;
+  anchorTop: number;
+}>;
 
 function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) return true;
@@ -239,6 +251,7 @@ export function ProjectGantt({
   const ganttScrollReference = useRef<HTMLDivElement>(null);
   const fullscreenFrameReference = useRef<HTMLDivElement>(null);
   const fullscreenButtonReference = useRef<HTMLButtonElement>(null);
+  const dayHeaderTooltipReference = useRef<HTMLDivElement>(null);
   const fullscreenPendingReference = useRef(false);
   const fullscreenWasActiveReference = useRef(false);
   const fullscreenUiStateReference = useRef<{
@@ -261,6 +274,7 @@ export function ProjectGantt({
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
+  const [dayHeaderTooltip, setDayHeaderTooltip] = useState<DayHeaderTooltipState | null>(null);
   const pendingScaleColumnsReference = useRef<IColumnConfig[] | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenPending, setFullscreenPending] = useState(false);
@@ -269,6 +283,7 @@ export function ProjectGantt({
   const [inlineNameError, setInlineNameError] = useState(false);
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
+  const dayHeaderTooltipId = `${instanceId}-day-header-tooltip`;
   const highlightWeekend = useCallback(
     (date: Date, unit: "day" | "hour") => unit === "day" && isWeekend(date) ? "wx-weekend" : "",
     [],
@@ -841,6 +856,122 @@ export function ProjectGantt({
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root || scaleMode !== "day") {
+      setDayHeaderTooltip(null);
+      return;
+    }
+
+    const selector = ".project-gantt-day-scale";
+    let activeCell: HTMLElement | null = null;
+
+    const tooltipData = (cell: HTMLElement): GanttDayHeaderTooltipData | null => {
+      const date = dateOnlyFromGanttDayScaleClassName(cell.className);
+      return date ? buildGanttDayHeaderTooltipDataForDateOnly(date, calendar, locales) : null;
+    };
+
+    const markCells = () => {
+      root.querySelectorAll<HTMLElement>(selector).forEach((cell) => {
+        if (!cell.hasAttribute("tabindex")) cell.tabIndex = 0;
+        const data = tooltipData(cell);
+        if (data) cell.setAttribute("aria-label", data.ariaLabel);
+      });
+    };
+
+    const findCell = (target: EventTarget | null): HTMLElement | null => {
+      if (!(target instanceof Element)) return null;
+      const cell = target.closest<HTMLElement>(selector);
+      return cell && root.contains(cell) ? cell : null;
+    };
+
+    const show = (cell: HTMLElement) => {
+      const data = tooltipData(cell);
+      if (!data) return;
+      if (activeCell && activeCell !== cell && activeCell.getAttribute("aria-describedby") === dayHeaderTooltipId) {
+        activeCell.removeAttribute("aria-describedby");
+      }
+      activeCell = cell;
+      cell.setAttribute("aria-describedby", dayHeaderTooltipId);
+      const bounds = cell.getBoundingClientRect();
+      setDayHeaderTooltip({
+        data,
+        left: bounds.left + bounds.width / 2,
+        top: bounds.bottom + 6,
+        anchorTop: bounds.top,
+      });
+    };
+
+    const hide = (cell?: HTMLElement | null) => {
+      const target = cell ?? activeCell;
+      if (target?.getAttribute("aria-describedby") === dayHeaderTooltipId) target.removeAttribute("aria-describedby");
+      if (!cell || cell === activeCell) activeCell = null;
+      setDayHeaderTooltip(null);
+    };
+
+    const onPointerOver = (event: PointerEvent) => {
+      if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
+      const cell = findCell(event.target);
+      if (cell) show(cell);
+    };
+    const onPointerOut = (event: PointerEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      const related = findCell(event.relatedTarget);
+      if (related === cell) return;
+      hide(cell);
+    };
+    const onFocusIn = (event: FocusEvent) => {
+      const cell = findCell(event.target);
+      if (cell) show(cell);
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      const related = findCell(event.relatedTarget);
+      if (related === cell) return;
+      hide(cell);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && activeCell) hide();
+    };
+
+    markCells();
+    const observer = new MutationObserver(markCells);
+    observer.observe(root, { childList: true, subtree: true });
+    root.addEventListener("pointerover", onPointerOver);
+    root.addEventListener("pointerout", onPointerOut);
+    root.addEventListener("focusin", onFocusIn);
+    root.addEventListener("focusout", onFocusOut);
+    root.addEventListener("keydown", onKeyDown);
+    return () => {
+      observer.disconnect();
+      root.removeEventListener("pointerover", onPointerOver);
+      root.removeEventListener("pointerout", onPointerOut);
+      root.removeEventListener("focusin", onFocusIn);
+      root.removeEventListener("focusout", onFocusOut);
+      root.removeEventListener("keydown", onKeyDown);
+      if (activeCell?.getAttribute("aria-describedby") === dayHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
+      setDayHeaderTooltip(null);
+    };
+  }, [calendar, dayHeaderTooltipId, locales, scaleMode]);
+
+  useLayoutEffect(() => {
+    const tooltip = dayHeaderTooltipReference.current;
+    if (!tooltip || !dayHeaderTooltip) return;
+    const bounds = tooltip.getBoundingClientRect();
+    let left = dayHeaderTooltip.left;
+    let top = dayHeaderTooltip.top;
+    const gutter = 8;
+    if (bounds.left < gutter) left += gutter - bounds.left;
+    else if (bounds.right > window.innerWidth - gutter) left -= bounds.right - (window.innerWidth - gutter);
+    if (bounds.bottom > window.innerHeight - gutter) top = dayHeaderTooltip.anchorTop - bounds.height - 6;
+    if (top < gutter) top = gutter;
+    if (Math.abs(left - dayHeaderTooltip.left) >= 1 || Math.abs(top - dayHeaderTooltip.top) >= 1) {
+      setDayHeaderTooltip((current) => current ? { ...current, left, top } : current);
+    }
+  }, [dayHeaderTooltip]);
   const scales = useMemo(() => [
     {
       unit: "month",
@@ -855,6 +986,7 @@ export function ProjectGantt({
         unit: "day",
         step: 1,
         format: (date: Date) => formatGanttDayOfMonth(date),
+        css: (date: Date) => ganttDayScaleClassName(date),
       }
       : {
         unit: "week",
@@ -1577,6 +1709,20 @@ export function ProjectGantt({
             />
           </div>
         </div>
+        {dayHeaderTooltip ? (
+          <div
+            className="project-gantt-day-header-tooltip"
+            id={dayHeaderTooltipId}
+            ref={dayHeaderTooltipReference}
+            role="tooltip"
+            style={{ left: dayHeaderTooltip.left, top: dayHeaderTooltip.top }}
+          >
+            <span className="project-gantt-day-header-tooltip-weekday">{dayHeaderTooltip.data.weekday}</span>
+            {dayHeaderTooltip.data.holidayNames.map((name) => (
+              <span className="project-gantt-day-header-tooltip-holiday" key={name}>{name}</span>
+            ))}
+          </div>
+        ) : null}
         {inlineNameMessage ? <p className="project-gantt-inline-name-status" role={inlineNameError ? "alert" : "status"} id={`${instanceId}-inline-name-status`}>{inlineNameMessage}</p> : null}
         {columnMenuPosition ? <div
           aria-label="표시 열 선택"
