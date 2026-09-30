@@ -189,7 +189,8 @@ def exact_main_ci(
     repo: str, sha: str, *, docs_only: bool
 ) -> tuple[bool, str | None, bool, str]:
     data = gh(
-        f"/repos/{repo}/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=100"
+        f"/repos/{repo}/actions/workflows/ci.yml/runs"
+        f"?event=push&branch=main&head_sha={sha}&per_page=100"
     )
     runs = [r for r in data.get("workflow_runs", []) if r.get("head_sha") == sha]
     if not runs:

@@ -257,3 +257,9 @@ PR 단계에서는 `scripts/verify-issue-lifecycle.py`가 trigger/filter, exact 
 4. docs-only merge에서는 artifact job SKIPPED와 lifecycle의 `N/A — docs-only` evidence가 일치.
 
 Optional shard/implementation job의 SKIPPED가 있어도 aggregate required checks가 SUCCESS이면 비문서 main artifact job이 skip propagation으로 누락되지 않아야 한다.
+
+## exact main CI SHA binding (#354)
+
+Lifecycle의 exact main CI 조회는 repository의 최근 run 목록을 넓게 가져와 client-side에서 추정하지 않는다. GitHub Actions workflow-runs API에 `head_sha=<merge SHA>`를 직접 전달하고, 반환된 run에서도 `head_sha`가 target과 일치하는지 다시 검증한다. 이후 같은 exact run의 latest attempt jobs에서 main 임시 GHCR artifact evidence를 확인한다.
+
+다른 SHA의 성공 run, head_sha binding 없는 최근 run 목록, overall CI success만으로 lifecycle mutation을 허용하지 않는다.

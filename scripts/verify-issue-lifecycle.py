@@ -40,7 +40,8 @@ require("merge_pull_request" not in workflow and "/merges" not in workflow, "wor
 require("scripts/safe_branch_cleanup.py" in impl, "safe branch cleanup must be reused")
 require("release-image.yml" in impl, "release-image workflow must be reused")
 require("merge_commit_sha" in impl, "release/finalize target must derive from PR merge_commit_sha")
-require("actions/workflows/ci.yml/runs?event=push&branch=main" in impl, "exact main CI lookup is required")
+require("actions/workflows/ci.yml/runs" in impl, "exact main CI lookup is required")
+require("head_sha={sha}" in impl, "exact main CI query must bind head_sha server-side")
 require("FINAL_MARKER_PREFIX" in impl, "idempotent FINAL marker is required")
 require("release_finalize" in workflow, "release_finalize workflow operation is required")
 require('"release_finalize"' in impl, "release_finalize CLI operation is required")
@@ -147,6 +148,72 @@ require(module.main_artifact_gate(artifact_success, docs_only=False)[0], "non-do
 require(not module.main_artifact_gate(artifact_skipped, docs_only=False)[0], "non-docs skipped artifact must fail closed")
 require(module.main_artifact_gate(artifact_skipped, docs_only=True)[0], "docs-only skipped artifact must be N/A/PASS")
 require(not module.main_artifact_gate([], docs_only=False)[0], "missing main artifact job must fail closed")
+# exact_main_ci must bind the SHA in the API query and reject wrong-SHA data.
+test_repo = "owner/repo"
+test_sha = "a" * 40
+saved_lifecycle_gh = module.gh
+requested_paths = []
+def fake_lifecycle_gh(path: str, *, method: str = "GET", fields=None):
+    requested_paths.append(path)
+    if "/actions/workflows/ci.yml/runs" in path:
+        return {
+            "workflow_runs": [
+                {
+                    "id": 77,
+                    "head_sha": test_sha,
+                    "status": "completed",
+                    "conclusion": "success",
+                    "created_at": "2026-09-30T00:00:00Z",
+                    "html_url": "https://example.invalid/run/77",
+                }
+            ]
+        }
+    if "/actions/runs/77/jobs" in path:
+        return {
+            "jobs": [
+                {
+                    "name": module.MAIN_ARTIFACT_JOB,
+                    "status": "completed",
+                    "conclusion": "success",
+                    "html_url": "https://example.invalid/job/77",
+                }
+            ]
+        }
+    return {}
+module.gh = fake_lifecycle_gh
+try:
+    ci_ok, ci_url, artifact_ok, artifact_evidence = module.exact_main_ci(
+        test_repo, test_sha, docs_only=False
+    )
+    require(ci_ok and artifact_ok, "exact SHA main CI/artifact evidence must pass")
+    require(ci_url.endswith("/run/77"), "exact main CI URL must be preserved")
+    require(any(f"head_sha={test_sha}" in path for path in requested_paths), "exact main CI request must include head_sha")
+finally:
+    module.gh = saved_lifecycle_gh
+
+saved_lifecycle_gh = module.gh
+def fake_wrong_sha(path: str, *, method: str = "GET", fields=None):
+    if "/actions/workflows/ci.yml/runs" in path:
+        return {
+            "workflow_runs": [
+                {
+                    "id": 78,
+                    "head_sha": "b" * 40,
+                    "status": "completed",
+                    "conclusion": "success",
+                    "created_at": "2026-09-30T00:00:00Z",
+                    "html_url": "https://example.invalid/run/78",
+                }
+            ]
+        }
+    return {}
+module.gh = fake_wrong_sha
+try:
+    ci_ok, ci_url, artifact_ok, _ = module.exact_main_ci(test_repo, test_sha, docs_only=False)
+    require(not ci_ok and ci_url is None and not artifact_ok, "wrong SHA main CI must fail closed")
+finally:
+    module.gh = saved_lifecycle_gh
+
 
 sha = "a" * 40
 repo = "owner/repo"
