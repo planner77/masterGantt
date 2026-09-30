@@ -741,3 +741,5 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - 신규 create/type-change는 active catalog만 허용하고 기존 inactive type 유지 편집 허용
 - `/logistics-admin`과 Project Workspace의 loading/error/retry/session-expired 및 390/768/1024/1440 반응형·keyboard/focus/Escape
 - Issue #285의 공정 code optional/server-generated 계약을 포함한 기존 물류 회귀
+
+리뷰 회귀로 duplicate stable code는 HTTP 409 `LOGISTICS_CATALOG_CONFLICT`를 반환하고 revision을 증가시키지 않는지, 비밀번호 dialog 재열기 시 초안이 비어 있는지, 서버 logout 실패 시 로그인 화면으로 로컬 잠금 전환하면서 revoke 미확인 오류를 표시하는지 검증한다.
