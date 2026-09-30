@@ -32,8 +32,15 @@ export async function dragRowAfter(page: Page, source: string, target: string) {
   await page.mouse.up();
 }
 export async function renameInline(page: Page, name: string, nextName: string) {
-  await taskRow(page, name).locator('[data-col-id=":text"] .wx-content > .wx-text').click();
-  const input = page.locator('.project-gantt-widget .wx-cell.wx-editor input.wx-text');
+  const frame = page.locator(".project-gantt-frame");
+  await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+
+  const row = taskRow(page, name);
+  await expect(row).toBeVisible();
+  const cellText = row.locator('[data-col-id=":text"] .wx-content > .wx-text');
+  await cellText.click();
+
+  const input = row.locator('.wx-cell.wx-editor input.wx-text');
   await expect(input).toBeFocused();
   await input.fill(nextName);
   await input.press("Enter");
