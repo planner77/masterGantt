@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type {
   ProjectMasterAdminResponse,
   ProjectMasterCategory,
@@ -43,6 +43,7 @@ export function ProjectMasterAdmin() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const passwordTrigger = useRef<HTMLButtonElement>(null);
   const loginInput = useRef<HTMLInputElement>(null);
+  const categoryTabs = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!authenticated && !busy) loginInput.current?.focus();
@@ -178,6 +179,20 @@ export function ProjectMasterAdmin() {
     finally { setNewPassword(""); setConfirmPassword(""); setBusy(false); }
   }
 
+  function handleCategoryKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let target = -1;
+    if (event.key === "ArrowRight") target = (index + 1) % CATEGORIES.length;
+    else if (event.key === "ArrowLeft") target = (index - 1 + CATEGORIES.length) % CATEGORIES.length;
+    else if (event.key === "Home") target = 0;
+    else if (event.key === "End") target = CATEGORIES.length - 1;
+    if (target < 0) return;
+    event.preventDefault();
+    const next = CATEGORIES[target];
+    if (!next) return;
+    setCategory(next.value);
+    categoryTabs.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[target]?.focus();
+  }
+
   const items = useMemo(() => catalog?.data.items.filter((item) => item.category === category) ?? [], [catalog, category]);
 
   if (!authenticated) return (
@@ -195,10 +210,22 @@ export function ProjectMasterAdmin() {
 
   return <div className={styles.panel}>
     <div className={styles.toolbar}>
-      <div className={styles.tabs} role="tablist" aria-label="프로젝트 기준정보 범주">
-        {CATEGORIES.map((entry) => <button key={entry.value} type="button" role="tab"
-          className={`secondary-button ${styles.tab}`} aria-selected={category === entry.value}
-          onClick={() => setCategory(entry.value)}>{entry.label}</button>)}
+      <div ref={categoryTabs} className={styles.tabs} role="tablist" aria-label="프로젝트 기준정보 범주">
+        {CATEGORIES.map((entry, index) => {
+          const selected = category === entry.value;
+          return <button
+            key={entry.value}
+            id={`project-master-tab-${entry.value.toLowerCase()}`}
+            type="button"
+            role="tab"
+            className={`secondary-button ${styles.tab}`}
+            aria-selected={selected}
+            aria-controls="project-master-category-panel"
+            tabIndex={selected ? 0 : -1}
+            onClick={() => setCategory(entry.value)}
+            onKeyDown={(event) => handleCategoryKeyDown(event, index)}
+          >{entry.label}</button>;
+        })}
       </div>
       <div className={styles.actions}>
         <button ref={passwordTrigger} className="secondary-button" type="button" disabled={busy}
@@ -211,7 +238,12 @@ export function ProjectMasterAdmin() {
     {notice ? <p className={styles.note} role="status">{notice}</p> : null}
     {state !== "ready" ? <p className={styles.note} role="status">{state === "loading" ? "최신 기준정보를 불러오는 중…" : "최신 목록 확인 전에는 변경할 수 없습니다."}</p> : null}
 
-    <section className={styles.card}>
+    <section
+      id="project-master-category-panel"
+      className={styles.card}
+      role="tabpanel"
+      aria-labelledby={`project-master-tab-${category.toLowerCase()}`}
+    >
       <h2>{CATEGORIES.find((entry) => entry.value === category)?.label}</h2>
       <form className={styles.formGrid} onSubmit={(event) => void addItem(event)}>
         <label className={styles.field}>이름<input maxLength={200} disabled={busy || state !== "ready"} value={name} onChange={(event) => setName(event.target.value)} /></label>
