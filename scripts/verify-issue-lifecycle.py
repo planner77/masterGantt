@@ -158,9 +158,9 @@ except auto.AutoFinalizerBlocked:
 # cannot be ignored.
 saved_gh = auto.gh
 def fake_gh(path: str):
-    if "page=1" in path:
+    if path.endswith("page=1"):
         return [{"id": index} for index in range(1, 101)]
-    if "page=2" in path:
+    if path.endswith("page=2"):
         return [{"id": 101}]
     return []
 auto.gh = fake_gh
