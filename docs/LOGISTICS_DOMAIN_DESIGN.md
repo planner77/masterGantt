@@ -206,3 +206,6 @@ Excel은 선택적 물류 보고용 sheet를 추가하고 직접/파생, code/pu
 - Project Copy/Template/Task Logistics Link/Dashboard/Export는 stable type code를 보존한다.
 - migration 0015는 기존 12개 code를 seed하고 기존 물류 row의 type 값을 보존한 채 fixed `CHECK IN (...)`을 catalog FK로 전환한다.
 
+## Issue #288 Developer grade 확장
+
+시스템의 PI/Developer 역할은 계속 기존 global Resource를 참조한다. 별도 Developer master나 `resourceType`은 추가하지 않는다. Resource의 전역 메타데이터 `developerGrade`를 역할 관계와 조합하며, 신규 Developer 역할은 등급 지정 Resource만 허용한다. 기존 미지정 Developer 역할은 migration 호환을 위해 보존할 수 있고 UI에서 `등급 미지정`으로 식별한다. 역할 해제와 Task assignment는 전역 등급을 변경하지 않는다.
