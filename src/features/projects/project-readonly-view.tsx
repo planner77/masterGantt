@@ -822,13 +822,23 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   };
   const closeContextDisclosureOnBlur = (event: ReactFocusEvent<HTMLDetailsElement>) => {
     if (!event.currentTarget.open) return;
+    const details = event.currentTarget;
     const nextTarget = event.relatedTarget;
-    if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) return;
+    if (nextTarget instanceof Node && details.contains(nextTarget)) return;
     if (nextTarget instanceof Element && nextTarget.closest('dialog, [role="dialog"]')) return;
 
-    const details = event.currentTarget;
-    if (details === actionMenuReference.current) setActionMenuOpen(false);
-    if (details === infoPopoverReference.current) setInfoPopoverOpen(false);
+    // Native dialog focus can temporarily report relatedTarget=null while the
+    // top-layer dialog is being opened. Defer one frame and inspect the actual
+    // focused element so opening a child dialog does not collapse its parent
+    // disclosure, while keyboard Tab leaving the disclosure still closes it.
+    requestAnimationFrame(() => {
+      if (!details.open) return;
+      const activeElement = document.activeElement;
+      if (activeElement instanceof Node && details.contains(activeElement)) return;
+      if (activeElement instanceof Element && activeElement.closest('dialog, [role="dialog"]')) return;
+      if (details === actionMenuReference.current) setActionMenuOpen(false);
+      if (details === infoPopoverReference.current) setInfoPopoverOpen(false);
+    });
   };
   const resetTaskFilter = () => {
     setTaskFilter(EMPTY_TASK_FILTER);
