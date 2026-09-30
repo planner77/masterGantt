@@ -116,6 +116,11 @@ export interface TemplateTaskSystemLinkSnapshotItem {
 
 export interface ProjectTemplateSnapshot {
   sourceRevision: number;
+  projectMaster?: {
+    businessUnitId: string | null;
+    productId: string | null;
+    siteEntityId: string | null;
+  };
   calendar: {
     timezone: string;
     weekendDays: number[];
