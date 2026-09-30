@@ -46,7 +46,7 @@ describe("deployment repository layout", () => {
     };
     expect(packageJson.dependencies).not.toHaveProperty("tsx");
     const nextVersion = packageJson.dependencies?.next;
-    expect(nextVersion).toMatch(/^\\d+\\.\\d+\\.\\d+$/);
+    expect(nextVersion).toMatch(/^\d+\.\d+\.\d+$/);
     expect(packageJson.dependencies?.["@next/env"]).toBe(nextVersion);
     expect(packageJson.devDependencies?.tsx).toBe("4.23.13");
     expect(packageJson.scripts?.build).toContain("node scripts/prepare-standalone-runtime.mjs");

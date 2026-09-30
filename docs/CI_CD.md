@@ -9,7 +9,7 @@
 - PR의 **HTTP/HTTPS transport smoke**는 deploy, transport test/script, security/http server, 인증·Origin/cookie 계약과 연결된 API 또는 CI workflow/action 변경에서만 실행한다. `main` push와 수동 `workflow_dispatch`는 항상 transport smoke를 수행해 release 전 운영 경로 검증을 축소하지 않는다.
 - `Issue #118 구현 전후 레이아웃 증거` workflow는 고정 baseline/after revision을 비교하는 완료된 one-time evidence이므로 자동 PR trigger를 제거하고 수동 `workflow_dispatch` 재현만 남긴다.
 - Required aggregate check 이름과 fail-closed routing은 변경하지 않는다. 선택 step이 생략되어도 Docker aggregate는 candidate/runtime 필수 검증 결과를 기준으로 판정한다.
-- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 늘어나는 경우를 고려해 shard timeout은 20분으로 둔다. 이는 실행시간 최적화 자체가 아니라 외부 setup 지연으로 정상 테스트가 취소되는 것을 막는 안정성 여유이며, 4-way shard와 `workers: 1` 계약은 유지한다.
+- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 늘어나는 경우를 고려해 shard timeout은 25분으로 둔다. 이는 실행시간 최적화 자체가 아니라 외부 setup 지연으로 정상 테스트가 취소되는 것을 막는 안정성 여유이며, 4-way shard와 `workers: 1` 계약은 유지한다.
 - Phase 2는 process/DB 격리를 유지한 prebuilt E2E runtime과 historical timing 기반 shard 균형화를 별도 검증한다. Phase 3는 exact main CI evidence를 release에서 재사용할 수 있는지 별도 검증한다.
 
 ## Issue #283 Docker runtime 슬림화 검증

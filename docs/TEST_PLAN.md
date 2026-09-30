@@ -9,7 +9,7 @@
 - Issue #118 before/after evidence는 manual-only historical evidence이며 일반 PR에서 별도 runner를 시작하지 않는다.
 - Next.js 보안 patch 뒤 production dependency audit이 0 critical로 통과하고 `@next/env`와 `next`가 동일 exact patch 버전으로 고정되는지 확인한다.
 - transport smoke의 최초 GET navigation은 일시적 network/error page에 한해 readiness 확인 후 1회만 재시도하고 mutation은 자동 재시도하지 않는다.
-- E2E shard는 4-way 및 `workers: 1` 격리를 유지하며 외부 OS dependency mirror 지연을 허용하기 위해 timeout만 20분으로 둔다.
+- E2E shard는 4-way 및 `workers: 1` 격리를 유지하며 외부 OS dependency mirror 지연을 허용하기 위해 timeout만 25분으로 둔다.
 - `tests/scripts/test-config-layout.test.ts`와 `tests/scripts/deployment-layout.test.ts`가 위 workflow/dependency contract를 고정한다.
 - 공식 전체 회귀 판정은 최신 main 재정렬 후 동일 PR head의 quality/e2e/docker 결과를 사용한다.
 
