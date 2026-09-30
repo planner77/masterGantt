@@ -616,3 +616,10 @@ Migration `0015_logistics_type_catalog.sql`은 다음 글로벌 테이블을 추
 - `logistics_catalog_admin_sessions`: 전용 관리자 세션
 
 `project_equipment.equipment_type`과 `project_logistics_systems.system_type`은 기존 fixed enum CHECK 대신 각 catalog `code`를 FK로 참조한다. Migration은 기존 관계/역할/task link를 임시 staging 후 원래 id와 type code로 복구하며 `foreign_key_check`를 통과해야 한다.
+
+
+## Issue #289 — Project master catalog
+
+Migration `0016_project_master_catalog.sql`은 `project_master_items`와 catalog revision, 전용 관리자 credential/session을 추가하고 `projects.business_unit_id/product_id/site_entity_id`를 nullable FK로 확장한다. 기존 Project는 migration 후 세 참조가 모두 NULL이며 임의 backfill을 하지 않는다.
+
+`project_master_items`는 `BUSINESS_UNIT | PRODUCT | SITE_ENTITY` category, stable public ID/code, 표시명, active, sort_order를 가진다. `UNIQUE(category, code)`와 category별 참조 trigger로 잘못된 category 연결을 차단한다. Project FK는 `ON DELETE RESTRICT`이며 Project 삭제가 global master row를 삭제하지 않는다. `0015_logistics_type_catalog.sql` 이후 순차 적용한다.
