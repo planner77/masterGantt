@@ -899,3 +899,12 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - Codex P1은 same-Issue coalescing이 latest docs-only merge만 선택하면 앞선 non-docs merge의 E2E/Docker/임시 GHCR evidence를 우회할 수 있음을 지적했다. 보완 후 immediate first-parent diff의 docs-only scope가 서로 다르면 coalesce하지 않는다.
 - Codex P2는 coalescing 과정에서 earlier PR identity가 사라져 branch cleanup이 누락될 수 있음을 지적했다. 보완 후 earlier PR 번호를 cleanup obligation으로 보존해 `issue_lifecycle.py`에 반복 `--cleanup-pr`로 전달하고, formal release 성공 후 모든 branch를 공통 safe cleanup으로 정리한 뒤에만 FINAL/Issue close가 가능하다.
 - pure/static lifecycle scenario에 동일 scope 수렴, scope mismatch 비수렴, cleanup PR 전달·반복 parser 계약을 추가한다. CI #1384는 이 후속 수정 이전 head의 결과이므로 새 head PR CI로 전체 gate를 다시 판정한다.
+
+
+### Issue #344 / PR #359 — release-finalizer blocker recovery
+
+- 현재 main `af2b4f3260e9bb0a614771dd9c327d8120729713`의 Generic Finalizer #5는 pending first-parent merges 2건을 발견했으나, 과거 Issue #344 merge `714bf2fd2c1a290bf2ae1d1541f0e2068bc6b2bb`의 exact main CI #1370 실패 때문에 DEFERRED됐다. 그 결과 뒤의 Issue #356도 아직 lifecycle 처리되지 않았다.
+- 단순 #359 병합만으로는 pending이 #344(failed) → #356(Green) → #344(corrective) 순서가 되어 동일 blocker가 반복된다.
+- 보완은 실패한 older attempt와 later same-Issue corrective target을 연결하되, corrective exact main CI SUCCESS와 validation-scope coverage를 필수로 한다. 중간 Issue는 목록에서 제거하거나 재정렬하지 않는다.
+- superseded older attempt에는 release/finalize mutation을 하지 않고 branch cleanup 의무만 later corrective target으로 이관한다. middle Issue #356은 자체 exact CI/release authorization으로 먼저 처리되고, 이후 corrective #344 target이 처리된다.
+- docs-only corrective target이 non-docs 실패 attempt를 대체하지 못하는 시나리오와 corrective CI가 Green이 아니면 기존 blocker를 유지하는 시나리오를 정적 contract test에 추가한다.
