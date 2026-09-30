@@ -881,3 +881,11 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - stale 16.3.6 lockfile 및 중복 @next/env 고정버전 수정은 최종 tree에 포함하지 않는다. tests/scripts/deployment-layout.test.ts는 최신 main의 exact Next/@next-env equality 계약을 사용한다.
 - 최신 main 통합 head에서 PR quality/e2e/docker를 새로 판정하며 이전 #1373/#1374/#1378/#1379 결과를 최종 PASS로 재사용하지 않는다.
 
+
+
+### Issue #344 / PR #359 — CI #1382 follow-up
+
+- 최신 main 통합 head의 CI #1382에서 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 1/3/4는 PASS했다. disclosure/Dialog 보완은 원격 E2E에서 회귀 없이 통과했다.
+- shard 2/4의 Grid reorder 4건은 공통 `renameInline` helper에서 발생했다. helper가 `hasText(name)`으로 row locator를 만든 뒤 클릭했고, SVAR editor가 열리며 표시 텍스트가 input으로 교체되자 해당 filtered row locator가 더 이상 일치하지 않아 `input element(s) not found`로 오판했다.
+- 수정은 클릭 전에 row의 stable `data-id`를 저장하고, editor open 후 해당 `data-id`로 정확한 row/input을 다시 찾는다. 또한 mutation lock 해제와 `data-task-inline-editable=true`를 명시적으로 확인한다.
+- 이는 제품 코드 수정이나 테스트 완화가 아니라 editor DOM 전환 이후에도 동일 행을 추적하는 locator 안정화다. CI #1382 실패를 PASS로 대체하지 않는다.
