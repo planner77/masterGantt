@@ -1,5 +1,12 @@
 # Test Plan
 
+## Issue #314 Gantt 일 단위 Header 숫자 표시
+
+- Unit: `formatGanttDayOfMonth`가 1/9/10/22/31을 각각 숫자 문자열로 반환하고 `일` 접미사·요일·괄호를 포함하지 않는지 검증한다.
+- Chromium E2E: Day mode 하위 scale에서 `14`, `22` 등 숫자-only Header를 확인하고 legacy `일`/괄호 문자열이 없음을 검증한다. Day → Week → Day 전환 후 숫자-only 형식 복원, Week `W38/W39`, weekend highlight, Gantt/API instance identity 유지 회귀를 기존 scale spec에서 함께 확인한다.
+- Month scale format, Day/Week cellWidth(44/68), scheduling/calendar/task/link/Grid/API/DB 계약은 변경하지 않는다.
+- 공식 전체 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다. #315/#316 Tooltip은 별도 Issue이며 이번 범위에 포함하지 않는다.
+
 ## Issue #285 공정 코드 자동 생성
 
 - Contract/API: Process POST에서 code 생략은 성공하고 서버 생성 code가 non-empty, 64자 이하, 프로젝트 내 unique인지를 확인한다. 명시적 유효 code는 보존하고 blank/64자 초과 및 duplicate code 오류 계약은 유지한다.
