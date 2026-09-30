@@ -73,6 +73,20 @@ describe("canonical SVAR snapshot sync", () => {
     expect(calls.filter((call)=>call.action==="update-task")).toHaveLength(1);
   });
 
+  it("does not move surviving siblings when a preceding task was deleted", async () => {
+    const removed = { id: "removed", text: "Removed", parent: 0 };
+    const summary = { id: "summary", text: "Collapsed", parent: 0, type: "summary", open: false };
+    const child = { id: "child", text: "Child", parent: "summary" };
+    const sibling = { id: "sibling", text: "Sibling", parent: 0 };
+    const calls: Array<{ action: string; payload: unknown }> = [];
+    await applyCanonicalGanttSync({
+      exec: async (action: string, payload: unknown) => { calls.push({ action, payload }); },
+    } as never, { tasks: [removed, summary, child, sibling], links: [] }, {
+      tasks: [summary, child, sibling], links: [],
+    });
+    expect(calls).toEqual([{ action: "delete-task", payload: { id: "removed" } }]);
+  });
+
   it("uses move-task for canonical reparenting instead of rewriting parent through update-task", async () => {
     const parent = { id: "parent", text: "Parent", start: new Date(2026, 8, 14), end: new Date(2026, 8, 16), parent: 0, type: "summary" };
     const currentChild = { id: "child", text: "Child", start: new Date(2026, 8, 15), end: new Date(2026, 8, 16), parent: 0, type: "task" };
