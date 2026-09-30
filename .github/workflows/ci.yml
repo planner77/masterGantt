@@ -124,6 +124,7 @@ jobs:
               - 'tests/config/transport.config.ts'
               - 'src/server/security/**'
               - 'src/server/http/**'
+              - 'src/server/projects/**'
               - 'src/app/api/projects/**'
               - 'src/app/api/resource-catalog/**'
               - 'src/app/api/logistics-catalog/**'

@@ -47,6 +47,7 @@ describe("test configuration repository layout", () => {
     expect(ci).toContain("if: needs.changes.outputs.docker_baseline == 'true'");
     expect(ci).toContain("if: needs.changes.outputs.transport == 'true'");
     expect(ci).toContain("github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true'");
+    expect(ci).toContain("- 'src/server/projects/**'");
   });
   it("keeps completed Issue #118 evidence manual-only", () => {
     const evidence = text(".github/workflows/issue-118-before-after-evidence.yml");
