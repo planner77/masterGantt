@@ -61,7 +61,7 @@ test("#136 공통 헤더에 빌드 버전을 표시하고 홈 링크와 탐색�
     expect(geometry.actionsRight).toBeLessThanOrEqual(width);
     expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth + 1);
     if (geometry.versionVisible) expect(geometry.versionFontSize).toBeLessThan(geometry.nameFontSize);
-    expect(geometry.nameVisible).toBe(width > 400);
+    expect(geometry.nameVisible).toBe(width > 416);
     await page.screenshot({ path: testInfo.outputPath(`workspace-header-version-${width}.png`) });
   }
 

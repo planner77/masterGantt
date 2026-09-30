@@ -322,3 +322,8 @@ docker compose --env-file .env -f deploy/compose.yml logs -f app
 ```
 
 Docker daemon의 `json-file` 또는 `local` logging driver와 `max-size`/`max-file` 보존 정책은 호스트 운영 기준에 맞춰 별도로 설정한다. daemon 전역 변경은 다른 컨테이너 영향을 먼저 검토한다. Windows Nginx는 `proxy_set_header X-Request-ID $request_id;`를 사용하고 access log에도 `$request_id`를 포함하여 응답 헤더와 Docker 로그를 같은 ID로 조회한다. 상세 기준은 [LOGGING.md](LOGGING.md)를 따른다.
+
+## Logistics Catalog bootstrap secret (Issue #280)
+
+Docker Compose 배포는 `LOGISTICS_CATALOG_ADMIN_PASSWORD`를 app container에 명시적으로 전달하며 값 누락 시 Compose config 단계에서 실패한다. 이 값은 신규 DB의 최초 credential seed 용도이며, 관리자 화면에서 비밀번호를 변경한 뒤에는 SQLite credential이 우선한다. 실제 운영 secret은 저장소에 커밋하지 않는다.
+

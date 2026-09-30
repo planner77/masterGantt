@@ -17,6 +17,8 @@ export TRUST_PROXY="false"
 export LOG_LEVEL="info"
 export RESOURCE_CATALOG_ADMIN_PASSWORD="Admin123456!"
 WRONG_RESOURCE_CATALOG_ADMIN_PASSWORD="Wrong123456!"
+export LOGISTICS_CATALOG_ADMIN_PASSWORD="Logi123456!"
+WRONG_LOGISTICS_CATALOG_ADMIN_PASSWORD="WrongLogi1!"
 export ALLOW_INSECURE_HTTP="false"
 owned=false
 
@@ -47,6 +49,12 @@ if env -u RESOURCE_CATALOG_ADMIN_PASSWORD docker compose --env-file /dev/null -f
 fi
 grep -q 'RESOURCE_CATALOG_ADMIN_PASSWORD' "$tmp/missing-resource-admin.err"
 echo 'Compose 리소스 관리자 비밀번호 누락 fail-fast: PASS'
+if env -u LOGISTICS_CATALOG_ADMIN_PASSWORD docker compose --env-file /dev/null -f "$root/deploy/compose.yml" config --quiet >"$tmp/missing-logistics-admin.out" 2>"$tmp/missing-logistics-admin.err"; then
+  echo "LOGISTICS_CATALOG_ADMIN_PASSWORD가 없으면 Compose config가 실패해야 합니다." >&2
+  exit 1
+fi
+grep -q 'LOGISTICS_CATALOG_ADMIN_PASSWORD' "$tmp/missing-logistics-admin.err"
+echo 'Compose 물류 관리자 비밀번호 누락 fail-fast: PASS'
 dc_prod config --format json > "$tmp/compose-prod.json"
 dc config --format json > "$tmp/compose-build.json"
 python3 - "$tmp/compose-prod.json" "$tmp/compose-build.json" "$root" <<'PY_CONFIG'
@@ -76,6 +84,7 @@ assert app['environment']['APP_BASE_URL'] == os.environ['APP_BASE_URL']
 assert str(app['environment']['PORT']) == '3000'
 assert str(app['environment']['ALLOW_INSECURE_HTTP']).lower() == 'false'
 assert app['environment']['RESOURCE_CATALOG_ADMIN_PASSWORD'] == os.environ['RESOURCE_CATALOG_ADMIN_PASSWORD']
+assert app['environment']['LOGISTICS_CATALOG_ADMIN_PASSWORD'] == os.environ['LOGISTICS_CATALOG_ADMIN_PASSWORD']
 assert 'SESSION_COOKIE_SECURE' not in app['environment']
 assert len(app['ports']) == 1
 assert app['ports'][0]['host_ip'] == '127.0.0.1'
@@ -131,6 +140,25 @@ if grep -Fq "$RESOURCE_CATALOG_ADMIN_PASSWORD" <<<"$auth_logs" || grep -Fq "$WRO
   exit 1
 fi
 echo 'Compose 리소스 관리자 인증 성공·거부 및 인증 로그 비밀정보 비노출: PASS'
+logistics_auth_status="$(curl --silent --output "$tmp/logistics-auth-ok.json" --write-out '%{http_code}' \
+  --request POST "http://$published/api/logistics-catalog/admin-sessions" \
+  --header "Origin: $APP_BASE_URL" \
+  --header "Content-Type: application/json" \
+  --data "{\"password\":\"$LOGISTICS_CATALOG_ADMIN_PASSWORD\"}")"
+[[ "$logistics_auth_status" == "201" ]]
+logistics_bad_auth_status="$(curl --silent --output "$tmp/logistics-auth-bad.json" --write-out '%{http_code}' \
+  --request POST "http://$published/api/logistics-catalog/admin-sessions" \
+  --header "Origin: $APP_BASE_URL" \
+  --header "Content-Type: application/json" \
+  --data "{\"password\":\"$WRONG_LOGISTICS_CATALOG_ADMIN_PASSWORD\"}")"
+[[ "$logistics_bad_auth_status" == "401" ]]
+grep -q 'LOGISTICS_ADMIN_AUTH_FAILED' "$tmp/logistics-auth-bad.json"
+auth_logs="$(dc logs --no-color app 2>&1)"
+if grep -Fq "$LOGISTICS_CATALOG_ADMIN_PASSWORD" <<<"$auth_logs" || grep -Fq "$WRONG_LOGISTICS_CATALOG_ADMIN_PASSWORD" <<<"$auth_logs"; then
+  echo "물류 관리자 인증 로그에 비밀번호 원문이 노출되었습니다." >&2
+  exit 1
+fi
+echo 'Compose 물류 관리자 인증 성공·거부 및 비밀정보 비노출: PASS'
 before="$(dc ps --quiet app)"
 [[ -n "$before" && "$(volume_name "$before")" == "$MASTERGANTT_VOLUME_NAME" ]]
 dc exec -T app node -e "const D=require('better-sqlite3'); const d=new D(process.env.DATABASE_PATH); d.exec('CREATE TABLE layout_smoke (value TEXT NOT NULL)'); d.prepare('INSERT INTO layout_smoke(value) VALUES (?)').run('preserved'); d.close()"
@@ -147,7 +175,7 @@ logs="$(dc logs --no-color app 2>&1)"
 grep -q '"event":"runtime_configuration_validated"' <<<"$logs"
 grep -q '"event":"database_migration_completed"' <<<"$logs"
 grep -q '"event":"application_started"' <<<"$logs"
-if grep -Fq "$RESOURCE_CATALOG_ADMIN_PASSWORD" <<<"$logs" || grep -Fq "$WRONG_RESOURCE_CATALOG_ADMIN_PASSWORD" <<<"$logs"; then
+if grep -Fq "$RESOURCE_CATALOG_ADMIN_PASSWORD" <<<"$logs" || grep -Fq "$WRONG_RESOURCE_CATALOG_ADMIN_PASSWORD" <<<"$logs" || grep -Fq "$LOGISTICS_CATALOG_ADMIN_PASSWORD" <<<"$logs" || grep -Fq "$WRONG_LOGISTICS_CATALOG_ADMIN_PASSWORD" <<<"$logs"; then
   echo "재생성 후 애플리케이션 로그에 리소스 관리자 비밀번호 원문이 노출되었습니다." >&2
   exit 1
 fi

@@ -218,6 +218,13 @@ button:focus-visible {
   }
 }
 
+
+@media (max-width: 26rem) {
+  .brand-name {
+    display: none;
+  }
+}
+
 @media (max-width: 25rem) {
   .header-content {
     gap: 0.5rem;

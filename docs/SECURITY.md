@@ -339,3 +339,10 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 ## Issue #99 경량 비밀번호 정책
 
 현재 1~3명 내부 운영 범위에서 Project 편집 및 Resource 관리의 **신규/변경 비밀번호**는 1~12 Unicode 문자이며 문자 종류 조합을 강제하지 않는다. Project 비밀번호는 기존 scrypt 저장을 유지한다. Resource 관리자 비밀번호는 최초 DB 자격증명이 없을 때만 환경변수를 seed로 해시 저장하고 이후 DB 값을 우선한다. 업그레이드 호환성을 위해 이전 정책에서 사용하던 16자 이상 환경변수 값은 bounded legacy bootstrap credential로 최초 로그인에서 허용하고 즉시 DB 해시로 이관할 수 있지만, 이후 UI 변경값에는 1~12자 정책을 적용한다. 변경 시 해당 Resource 관리자 세션을 모두 revoke한 뒤 호출자 세션만 재발급한다. 기존 Project와 Resource 권한 영역은 서로 독립적이다.
+
+## Logistics Catalog Administrator (Issue #280)
+
+물류 유형 관리 권한은 Project edit 및 Resource Catalog 관리자와 분리한 `logistics_catalog_admin` 경계다. `LOGISTICS_CATALOG_ADMIN_PASSWORD`는 신규 DB에 credential이 없을 때만 bootstrap seed로 사용하며 평문을 DB/API/log에 저장하지 않는다. 실제 credential은 scrypt hash+salt로 SQLite에 저장된다.
+
+관리 세션은 별도 HttpOnly/SameSite=Strict cookie를 사용하고 HTTPS에서는 Secure/`__Host-` 규칙을 적용한다. 로그인과 모든 mutation은 canonical `APP_BASE_URL`의 exact Origin 검사를 수행하며 로그인은 fixed-window rate limit을 적용한다. 비밀번호 변경 시 기존 물류 관리자 세션을 revoke하고 호출자에게 새 세션을 발급한다.
+
