@@ -1278,7 +1278,10 @@ export function ProjectGantt({
     try {
       const table = await api.getTable(true);
       if (token !== inlineOpenTokenReference.current || apiReference.current !== api || !root.isConnected ||
-        !cell.isConnected || !canCreateReference.current) return;
+        !canCreateReference.current) return;
+      // SVAR may replace the clicked row/cell while applying selection before
+      // getTable() resolves. The open-editor interceptor resolves the current
+      // row/cell again by taskId, so a stale clicked cell must not cancel edit.
       installInlineTableHandlers(table);
       await table.exec("open-editor", { id: taskId, column: "text" });
     } catch {
@@ -1286,7 +1289,7 @@ export function ProjectGantt({
       inlineSessionReference.current = null;
       setInlineNameError(true);
       setInlineNameMessage("작업명 편집기를 열 수 없습니다. 다시 시도해 주세요.");
-      cell.focus({ preventScroll: true });
+      focusInlineNameCell(taskId, cell);
     }
   }
 
