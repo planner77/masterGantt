@@ -103,7 +103,7 @@ test("Issue #342: 관리자에서 Import Preview/Apply와 휴일 CRUD를 완료�
   const edited=page.getByRole("row").filter({hasText:"연말 휴일 수정"});
   await edited.getByRole("button",{name:"삭제"}).click();
   await expect(page.getByRole("dialog",{name:"캘린더 날짜 삭제"})).toBeVisible();
-  await page.getByRole("dialog").getByRole("button",{name:"삭제"}).click();
+  await page.getByRole("dialog").getByRole("button",{name:"삭제",exact:true}).click();
   await expect(page.getByText("연말 휴일 수정")).toHaveCount(0);
 });
 
