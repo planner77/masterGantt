@@ -374,4 +374,4 @@ Issue #248 구현 전에는 기존 `finalize`가 `release_required=true`일 때 
 
 Main CI의 후속 lifecycle mutation은 `.github/workflows/release-finalizer.yml` 하나가 담당한다. `workflow_run.branches: [main]`과 push/success gate로 PR CI 및 수동 CI를 배제한다. exact merge SHA에서 PR/Issue를 자동 resolve하며 application version이 동일하면 finalize, 변경되면 trusted version-scoped release 승인 marker가 있는 경우에만 release_finalize를 수행한다.
 
-Generic finalizer와 `release-image.yml`은 `concurrency.queue: max`로 직렬 대기하여 근접한 main merge/release의 pending replacement와 stable alias 역행 위험을 막는다. 상세 계약은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다.
+Generic finalizer와 `release-image.yml`은 `concurrency.queue: max`로 burst pending run을 보존한다. 단, concurrency의 실행 순서는 semantic version/main history 순서를 보장하지 않으므로 Generic Finalizer가 current main의 first-parent backlog를 oldest → newest로 처리해 release 순서를 확정한다. 상세 계약은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다.

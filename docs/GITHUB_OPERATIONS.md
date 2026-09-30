@@ -185,6 +185,6 @@ Issue별 one-shot finalizer PR/workflow는 정상 운영 경로에서 사용하�
 <!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"<package version>","note":"<승인 근거>"} -->
 ```
 
-comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
+comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. 승인 판단 전 Issue comment 전체 page를 조회해 최신 trusted marker를 적용한다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
 
 수동 `issue-lifecycle.yml workflow_dispatch`는 장애/복구 fallback이다. Issue별 `release-helper/finalizer/cleanup` workflow 신규 추가는 CI policy가 거부한다.

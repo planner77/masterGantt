@@ -243,6 +243,6 @@ PR 단계에서는 `scripts/verify-issue-lifecycle.py`가 trigger/filter, exact 
 - no-release merge는 `finalize`만 수행
 - release-required merge는 승인 marker가 없으면 BLOCKED
 - 승인된 release는 exact `release-image.yml` 및 digest evidence 뒤 finalize
-- 근접한 여러 merge는 queue에서 유실되지 않음
+- 근접한 여러 merge의 CI 완료 순서가 뒤집혀도 current main first-parent backlog를 oldest → newest로 처리하며 queue burst에서도 target이 유실되지 않음
 
 실패 후에는 원인을 제거하고 기존 failed run/job 재실행을 우선한다.

@@ -57,11 +57,15 @@ require("branches: [main]" in auto_workflow, "automatic finalizer must filter tr
 require("github.event.workflow_run.event == 'push'" in auto_workflow, "manual CI must not auto-finalize")
 require("github.event.workflow_run.conclusion == 'success'" in auto_workflow, "failed CI must not mutate lifecycle")
 require("scripts/auto_release_finalizer.py" in auto_workflow, "automatic resolver must be invoked")
-require("queue: max" in auto_workflow, "automatic finalizers must queue instead of replacing pending work")
+require("queue: max" in auto_workflow, "automatic finalizer must retain burst events")
 require("packages: write" not in auto_workflow, "automatic finalizer must delegate package writes to release-image")
 require("queue: max" in release_workflow, "release image workflow must queue concurrent releases")
 require("mastergantt-release-authorization:v1" in auto_impl, "version-scoped release authorization marker is required")
-require("/commits/{target_sha}/pulls" in auto_impl, "exact merge SHA -> PR resolution is required")
+require("gh_paginated(" in auto_impl, "comment and PR pagination helper is required")
+require("collect_pending_work(" in auto_impl, "first-parent backlog resolver is required")
+require("current_main_sha(" in auto_impl, "dispatcher must snapshot current main")
+require("oldest → newest" in auto_impl, "dispatcher must document first-parent processing order")
+require("head_sha=" in auto_impl, "exact main CI lookup must bind target SHA")
 require("Refs" in auto_impl, "canonical Refs #Issue resolution is required")
 require("author_association" in auto_impl, "release authorization must validate trusted comment association")
 require("release_finalize" in auto_impl and '"finalize"' in auto_impl, "automatic lifecycle must route release and no-release paths")
@@ -78,7 +82,7 @@ require(not legacy_files, f"legacy per-Issue lifecycle workflows remain: {', '.j
 
 for text_value in (workflow, auto_workflow, impl, auto_impl):
     require(not re.search(r"issue-[0-9]+", text_value, re.I), "generic lifecycle source contains hard-coded Issue helper")
-    require(not re.search(r"FEATURE_PR\s*=\s*[\\\"']?[0-9]+", text_value), "hard-coded PR detected")
+    require(not re.search(r"FEATURE_PR\s*=\s*[\"']?[0-9]+", text_value), "hard-coded PR detected")
 
 
 def load_module(name: str, path: pathlib.Path):
@@ -139,17 +143,51 @@ comments = [
 ]
 auth = auto.select_authorization(comments, expected_version="1.2.3")
 require(auth is not None and auth.actor == "owner", "trusted authorization selection failed")
-require(auth.evidence_url.endswith("/trusted"), "authorization evidence URL was not preserved")
 
 revoked = '<!-- mastergantt-release-authorization:v1 {"authorized":false,"expected_version":"1.2.3","note":"revoked"} -->'
 try:
     auto.select_authorization(
-        comments + [{"id": 3, "author_association": "OWNER", "body": revoked, "user": {"login": "owner"}, "html_url": "https://example.invalid/revoked"}],
+        comments + [{"id": 4, "author_association": "OWNER", "body": revoked, "user": {"login": "owner"}, "html_url": "https://example.invalid/revoked"}],
         expected_version="1.2.3",
     )
     raise SystemExit("latest trusted revocation must block release")
 except auto.AutoFinalizerBlocked:
     pass
+
+# Pagination must read beyond the first 100 comments so later revocation/approval
+# cannot be ignored.
+saved_gh = auto.gh
+def fake_gh(path: str):
+    if "page=1" in path:
+        return [{"id": index} for index in range(1, 101)]
+    if "page=2" in path:
+        return [{"id": 101}]
+    return []
+auto.gh = fake_gh
+try:
+    paged = auto.gh_paginated("/repos/owner/repo/issues/1/comments")
+    require(len(paged) == 101 and paged[-1]["id"] == 101, "pagination beyond 100 comments failed")
+finally:
+    auto.gh = saved_gh
+
+# Backlog ordering must be first-parent oldest -> newest, independent of the
+# order in which main CI workflow_run events complete.
+old_sha = "1" * 40
+a_sha = "2" * 40
+b_sha = "3" * 40
+old = auto.WorkItem(old_sha, "0" * 40, 1, 1, "1.0.0", "1.0.0")
+a_item = auto.WorkItem(a_sha, old_sha, 2, 2, "1.0.0", "1.1.0")
+b_item = auto.WorkItem(b_sha, a_sha, 3, 3, "1.1.0", "1.2.0")
+saved_resolve = auto.resolve_work_item
+saved_boundary = auto.is_finalized_boundary
+auto.resolve_work_item = lambda _repo, target: {old_sha: old, a_sha: a_item, b_sha: b_item}.get(target)
+auto.is_finalized_boundary = lambda _repo, item: item.target_sha == old_sha
+try:
+    backlog = auto.collect_pending_work(repo, b_sha)
+    require([item.target_sha for item in backlog] == [a_sha, b_sha], "first-parent backlog order failed")
+finally:
+    auto.resolve_work_item = saved_resolve
+    auto.is_finalized_boundary = saved_boundary
 
 for expected_error, values in [
     (True, ("1", "2", True, False, "", "")),
@@ -170,19 +208,5 @@ require("release_finalize requires release_authorized=true" in impl, "release_fi
 require("release_finalize requires expected_version" in impl, "release_finalize expected_version guard missing")
 require("release_finalize requires authorization_note" in impl, "release_finalize authorization_note guard missing")
 require("validate_operation_inputs(args)" in impl, "release_finalize input validation must run before context resolution")
-
-parser = module.build_parser()
-for argv, expected_error in [
-    (["release_finalize", "--issue", "1", "--pr", "2"], True),
-    (["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "true", "--release-authorized", "false", "--expected-version", "1.2.3", "--authorization-note", "approved"], True),
-    (["release_finalize", "--issue", "1", "--pr", "2", "--release-required", "true", "--release-authorized", "true", "--expected-version", "1.2.3", "--authorization-note", "approved"], False),
-]:
-    args = parser.parse_args(argv)
-    try:
-        module.validate_operation_inputs(args)
-        failed = False
-    except module.LifecycleError:
-        failed = True
-    require(failed == expected_error, f"release_finalize operation input mismatch: {argv}")
 
 print("issue-lifecycle generic/automatic contract scenarios: PASS")

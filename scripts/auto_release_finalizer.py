@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resolve and execute lifecycle for the exact main merge that triggered CI."""
+"""Resolve and execute lifecycle for main merges in first-parent order."""
 
 from __future__ import annotations
 
@@ -18,7 +18,9 @@ AUTH_MARKER_RE = re.compile(
     r"<!--\s*mastergantt-release-authorization:v1\s+({.*?})\s*-->",
     re.DOTALL,
 )
+FINAL_MARKER_PREFIX = "<!-- issue-lifecycle-final:"
 TRUSTED_ASSOCIATIONS = {"OWNER"}
+MAX_BACKLOG_DEPTH = 100
 
 
 class AutoFinalizerError(RuntimeError):
@@ -38,6 +40,16 @@ class Authorization:
     evidence_url: str
 
 
+@dataclass(frozen=True)
+class WorkItem:
+    target_sha: str
+    first_parent_sha: str
+    pr_number: int
+    issue_number: int
+    previous_version: str
+    current_version: str
+
+
 def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
     result = subprocess.run(args, text=True, capture_output=True)
     if check and result.returncode != 0:
@@ -51,6 +63,22 @@ def gh(path: str) -> Any:
     result = run("gh", "api", path)
     text_value = result.stdout.strip()
     return json.loads(text_value) if text_value else None
+
+
+def gh_paginated(path: str) -> list[dict[str, Any]]:
+    items: list[dict[str, Any]] = []
+    page = 1
+    while True:
+        separator = "&" if "?" in path else "?"
+        batch = gh(f"{path}{separator}per_page=100&page={page}")
+        if not isinstance(batch, list):
+            raise AutoFinalizerError(f"paginated GitHub API response is not a list: {path}")
+        items.extend(batch)
+        if len(batch) < 100:
+            return items
+        page += 1
+        if page > 1000:
+            raise AutoFinalizerError(f"pagination safety limit exceeded: {path}")
 
 
 def write_summary(lines: list[str]) -> None:
@@ -181,6 +209,96 @@ def resolve_versions(target_sha: str) -> tuple[str, str, str]:
     return first_parent, previous, current
 
 
+def resolve_work_item(repo: str, target_sha: str) -> WorkItem | None:
+    pulls = gh_paginated(f"/repos/{repo}/commits/{target_sha}/pulls")
+    pr = select_exact_pull_request(pulls, repo=repo, target_sha=target_sha)
+    if pr is None:
+        return None
+    pr_number = int(pr["number"])
+    issue_number = resolve_issue_number(pr.get("body") or "")
+    first_parent, previous_version, current_version = resolve_versions(target_sha)
+    return WorkItem(
+        target_sha=target_sha,
+        first_parent_sha=first_parent,
+        pr_number=pr_number,
+        issue_number=issue_number,
+        previous_version=previous_version,
+        current_version=current_version,
+    )
+
+
+def final_marker(issue_number: int, target_sha: str) -> str:
+    return f"{FINAL_MARKER_PREFIX}{issue_number}:{target_sha} -->"
+
+
+def issue_comments(repo: str, issue_number: int) -> list[dict[str, Any]]:
+    return gh_paginated(f"/repos/{repo}/issues/{issue_number}/comments")
+
+
+def is_finalized_boundary(repo: str, item: WorkItem) -> bool:
+    issue = gh(f"/repos/{repo}/issues/{item.issue_number}")
+    if not isinstance(issue, dict):
+        raise AutoFinalizerError(f"Issue #{item.issue_number} 응답 형식이 올바르지 않습니다")
+    comments = issue_comments(repo, item.issue_number)
+    marker = final_marker(item.issue_number, item.target_sha)
+    if any(
+        line.strip() == marker
+        for comment in comments
+        for line in (comment.get("body") or "").splitlines()
+    ):
+        return True
+
+    # Legacy lifecycle before #350 may have closed an Issue without the generic
+    # marker. Treat a closed Issue as a historical boundary and never reopen it.
+    return issue.get("state") == "closed"
+
+
+def collect_pending_work(
+    repo: str, latest_main_sha: str, *, max_depth: int = MAX_BACKLOG_DEPTH
+) -> list[WorkItem]:
+    pending_newest_first: list[WorkItem] = []
+    cursor = latest_main_sha
+
+    for _ in range(max_depth):
+        item = resolve_work_item(repo, cursor)
+        if item is None:
+            # A non-PR main commit is a safe historical boundary. The repository
+            # ruleset normally prevents this, but the dispatcher must fail closed
+            # rather than inventing an Issue identity.
+            return list(reversed(pending_newest_first))
+        if is_finalized_boundary(repo, item):
+            return list(reversed(pending_newest_first))
+        pending_newest_first.append(item)
+        cursor = item.first_parent_sha
+
+    raise AutoFinalizerError(
+        f"최근 {max_depth}개의 first-parent merge 안에서 finalized boundary를 찾지 못했습니다"
+    )
+
+
+def current_main_sha(repo: str) -> str:
+    data = gh(f"/repos/{repo}/git/ref/heads/main")
+    sha = ((data or {}).get("object") or {}).get("sha", "")
+    if SHA_RE.fullmatch(sha) is None:
+        raise AutoFinalizerError("현재 main SHA를 확인할 수 없습니다")
+    return sha
+
+
+def exact_main_ci_success(repo: str, sha: str) -> tuple[bool, str | None]:
+    data = gh(
+        f"/repos/{repo}/actions/workflows/ci.yml/runs"
+        f"?event=push&branch=main&head_sha={sha}&per_page=100"
+    )
+    if not isinstance(data, dict):
+        raise AutoFinalizerError("main CI 조회 응답 형식이 올바르지 않습니다")
+    runs = [run_data for run_data in data.get("workflow_runs", []) if run_data.get("head_sha") == sha]
+    if not runs:
+        return False, None
+    latest = sorted(runs, key=lambda run_data: run_data.get("created_at", ""))[-1]
+    ok = latest.get("status") == "completed" and latest.get("conclusion") == "success"
+    return ok, latest.get("html_url")
+
+
 def lifecycle_command(
     *,
     operation: str,
@@ -210,51 +328,23 @@ def lifecycle_command(
     ]
 
 
-def execute(target_sha: str) -> int:
-    repo = os.environ.get("GITHUB_REPOSITORY", "")
-    if not repo:
-        raise AutoFinalizerError("GITHUB_REPOSITORY가 필요합니다")
-    if SHA_RE.fullmatch(target_sha) is None:
-        raise AutoFinalizerError("target SHA는 40자리 SHA여야 합니다")
-
-    pulls = gh(f"/repos/{repo}/commits/{target_sha}/pulls?per_page=100")
-    if not isinstance(pulls, list):
-        raise AutoFinalizerError("associated pull request 응답 형식이 올바르지 않습니다")
-    pr = select_exact_pull_request(pulls, repo=repo, target_sha=target_sha)
-    if pr is None:
-        write_summary(
-            [
-                "## 범용 Release Finalizer",
-                "",
-                f"- 대상 main SHA: `{target_sha}`",
-                "- 결과: `SKIPPED`",
-                "- 사유: target SHA와 정확히 일치하는 merged PR을 찾지 못해 mutation을 수행하지 않았습니다.",
-            ]
-        )
-        return 0
-
-    pr_number = int(pr["number"])
-    issue_number = resolve_issue_number(pr.get("body") or "")
-    issue = gh(f"/repos/{repo}/issues/{issue_number}")
-    if not isinstance(issue, dict) or "number" not in issue:
-        raise AutoFinalizerError(f"Issue #{issue_number}을 확인할 수 없습니다")
-
-    first_parent, previous_version, current_version = resolve_versions(target_sha)
-    release_required = previous_version != current_version
+def process_item(repo: str, item: WorkItem) -> None:
+    release_required = item.previous_version != item.current_version
     operation = "finalize"
     release_authorized = False
     authorization_note = ""
     evidence = "N/A"
 
     if release_required:
-        comments = gh(f"/repos/{repo}/issues/{issue_number}/comments?per_page=100")
-        if not isinstance(comments, list):
-            raise AutoFinalizerError("Issue comments 응답 형식이 올바르지 않습니다")
-        authorization = select_authorization(comments, expected_version=current_version)
+        comments = issue_comments(repo, item.issue_number)
+        authorization = select_authorization(
+            comments, expected_version=item.current_version
+        )
         if authorization is None:
             raise AutoFinalizerBlocked(
-                f"application version이 {previous_version} -> {current_version}으로 변경됐지만 "
-                f"{current_version}에 대한 신뢰 가능한 release 승인 marker가 없습니다"
+                f"Issue #{item.issue_number}: application version이 "
+                f"{item.previous_version} -> {item.current_version}으로 변경됐지만 "
+                f"{item.current_version}에 대한 신뢰 가능한 release 승인 marker가 없습니다"
             )
         release_authorized = True
         operation = "release_finalize"
@@ -265,13 +355,13 @@ def execute(target_sha: str) -> int:
 
     write_summary(
         [
-            "## 범용 Release Finalizer",
+            "### Lifecycle target",
             "",
-            f"- 대상 main SHA: `{target_sha}`",
-            f"- merge first parent: `{first_parent}`",
-            f"- 정확한 PR: #{pr_number}",
-            f"- 정확한 Issue: #{issue_number}",
-            f"- application version: `{previous_version}` → `{current_version}`",
+            f"- main SHA: `{item.target_sha}`",
+            f"- first parent: `{item.first_parent_sha}`",
+            f"- PR: #{item.pr_number}",
+            f"- Issue: #{item.issue_number}",
+            f"- application version: `{item.previous_version}` → `{item.current_version}`",
             f"- release_required: `{str(release_required).lower()}`",
             f"- release_authorized: `{str(release_authorized).lower()}`",
             f"- 승인 근거: {evidence}",
@@ -279,19 +369,78 @@ def execute(target_sha: str) -> int:
         ]
     )
 
-    command = lifecycle_command(
-        operation=operation,
-        issue_number=issue_number,
-        pr_number=pr_number,
-        release_required=release_required,
-        release_authorized=release_authorized,
-        expected_version=current_version if release_required else "",
-        authorization_note=authorization_note,
+    result = run(
+        *lifecycle_command(
+            operation=operation,
+            issue_number=item.issue_number,
+            pr_number=item.pr_number,
+            release_required=release_required,
+            release_authorized=release_authorized,
+            expected_version=item.current_version if release_required else "",
+            authorization_note=authorization_note,
+        ),
+        check=False,
     )
-    result = run(*command, check=False)
     sys.stdout.write(result.stdout)
     sys.stderr.write(result.stderr)
-    return result.returncode
+    if result.returncode != 0:
+        raise AutoFinalizerError(
+            f"Issue #{item.issue_number} lifecycle command failed with {result.returncode}"
+        )
+
+
+def execute(trigger_sha: str) -> int:
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    if not repo:
+        raise AutoFinalizerError("GITHUB_REPOSITORY가 필요합니다")
+    if SHA_RE.fullmatch(trigger_sha) is None:
+        raise AutoFinalizerError("trigger SHA는 40자리 SHA여야 합니다")
+
+    latest_main = current_main_sha(repo)
+    pending = collect_pending_work(repo, latest_main)
+
+    if not pending:
+        write_summary(
+            [
+                "## 범용 Release Finalizer",
+                "",
+                f"- triggering CI SHA: `{trigger_sha}`",
+                f"- dispatcher main snapshot: `{latest_main}`",
+                "- 결과: `SKIPPED`",
+                "- 사유: 처리할 미완료 first-parent lifecycle이 없습니다.",
+            ]
+        )
+        return 0
+
+    write_summary(
+        [
+            "## 범용 Release Finalizer",
+            "",
+            f"- triggering CI SHA: `{trigger_sha}`",
+            f"- dispatcher main snapshot: `{latest_main}`",
+            f"- pending first-parent merges: `{len(pending)}`",
+            "- 처리 순서: oldest → newest",
+        ]
+    )
+
+    for item in pending:
+        ci_ok, ci_url = exact_main_ci_success(repo, item.target_sha)
+        if not ci_ok:
+            write_summary(
+                [
+                    "### DEFERRED",
+                    "",
+                    f"- SHA: `{item.target_sha}`",
+                    f"- Issue: #{item.issue_number}",
+                    f"- exact main CI: {ci_url or 'N/A'}",
+                    "- 사유: first-parent 순서상 선행 target의 exact main CI SUCCESS를 기다립니다.",
+                    "- mutation: 없음",
+                ]
+            )
+            return 0
+        process_item(repo, item)
+
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -324,7 +473,7 @@ def main() -> int:
                 "",
                 "- 결과: `FAIL`",
                 f"- 사유: {exc}",
-                "- mutation: 없음",
+                "- 이후 target mutation: 중단",
             ]
         )
         print(f"범용 finalizer FAIL: {exc}", file=sys.stderr)

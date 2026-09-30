@@ -358,7 +358,7 @@ Manager는 operation을 다음처럼 선택한다.
 
 ## Generic 자동 finalizer 및 실패 재개 규칙
 
-정상 경로는 `.github/workflows/release-finalizer.yml`이다. `CI`의 main push run이 성공하면 generic finalizer가 exact `workflow_run.head_sha`를 기준으로 merged PR 하나와 canonical `Refs #Issue` 하나를 resolve한다. Issue/PR/version을 hard-code한 one-shot workflow는 사용하지 않는다.
+정상 경로는 `.github/workflows/release-finalizer.yml`이다. `CI`의 main push run이 성공하면 generic finalizer가 실행 시점의 current main snapshot에서 first-parent backlog를 계산하고, 각 merge의 exact PR과 canonical `Refs #Issue`를 resolve하여 oldest → newest 순서로 처리한다. `workflow_run` 도착 순서 자체는 release 순서 근거로 사용하지 않는다. Issue/PR/version을 hard-code한 one-shot workflow는 사용하지 않는다.
 
 Release 필요 여부는 merge first parent와 target의 application version 차이로 판정한다. version이 동일하면 `finalize`, version이 변경되면 정식 release 대상이다. 단, release-required라는 사실과 release 승인 여부는 분리한다.
 
@@ -368,7 +368,7 @@ Release 필요 여부는 merge first parent와 target의 application version 차
 <!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"0.59.0","note":"사용자가 정식 GHCR 게시를 승인함"} -->
 ```
 
-현재 개인 소유 저장소에서는 `author_association=OWNER` marker만 신뢰한다. 최신 trusted marker가 authority이며 자세한 형식/revocation 규칙은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다. 승인 부족은 BLOCKED이며 mutation하지 않는다.
+현재 개인 소유 저장소에서는 `author_association=OWNER` marker만 신뢰한다. 모든 Issue comment page를 조회한 뒤 최신 trusted marker가 authority이며 자세한 형식/revocation 규칙은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다. 승인 부족은 BLOCKED이며 mutation하지 않는다.
 
 실패 재개 원칙:
 
