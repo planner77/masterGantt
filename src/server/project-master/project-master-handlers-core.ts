@@ -5,6 +5,10 @@ import { apiErrorResponse, PublicApiError } from "../http/api-error-core";
 import { parseRequiredIfMatch, readBoundedJson } from "../http/request-core";
 import { ConfigurationError, isExactAllowedOrigin, parseApplicationBaseUrl } from "../security/origin-core";
 import {
+  projectMasterAdminUnlockRateLimiter,
+  UNATTRIBUTED_PROJECT_MASTER_ADMIN_RATE_KEY,
+} from "../security/rate-limit-core";
+import {
   parseProjectMasterAdminCookie,
   serializeExpiredProjectMasterAdminCookie,
   serializeProjectMasterAdminCookie,
@@ -124,7 +128,19 @@ export async function handleUnlockProjectMasterAdmin(request: Request, dependenc
   try {
     const url = appUrl(dependencies); requireOrigin(request, url);
     const body = await readBoundedJson(request, 4 * 1024) as { password?: unknown };
-    if (!body || typeof body.password !== "string") throw new PublicApiError(400, "INVALID_REQUEST", "Administrator password is invalid.");
+    if (!body || typeof body.password !== "string" || body.password.length > 512) {
+      throw new PublicApiError(400, "INVALID_REQUEST", "Administrator password is invalid.");
+    }
+    const decision = projectMasterAdminUnlockRateLimiter.consume(UNATTRIBUTED_PROJECT_MASTER_ADMIN_RATE_KEY);
+    if (!decision.allowed) {
+      throw new PublicApiError(
+        429,
+        "RATE_LIMITED",
+        "Too many administrator authentication attempts. Retry later.",
+        [],
+        { "Retry-After": String(decision.retryAfterSeconds) },
+      );
+    }
     const unlocked = resolve(dependencies.service).unlockAdmin(body.password, dependencies.adminPassword);
     if (!unlocked) throw new PublicApiError(401, "PROJECT_MASTER_ADMIN_AUTH_FAILED", "Project master administrator authentication failed.");
     const result = response({ data: { permission: "project_master_admin", expiresAt: unlocked.expiresAt } }, 201);
