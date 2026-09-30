@@ -631,3 +631,5 @@ Grid에서 행을 놓으면 Context Menu와 같은 보호된 계층 명령으로
 전역 navigation의 **물류 관리** → `/logistics-admin`에서 설비 유형과 시스템 유형을 관리한다. 로그인 후 category 전환, 유형 추가, 표시명 수정, 활성/비활성 전환, 사용 건수 확인, 새로고침, 비밀번호 변경, 로그아웃을 제공한다.
 
 Project Workspace의 설비/시스템 추가·수정 select는 active catalog 이름을 표시하고 payload에는 stable code를 저장한다. 기존 row의 현재 type이 inactive이면 해당 값은 `비활성`으로 유지 표시한다. Catalog fetch 실패는 empty state로 처리하지 않으며 저장을 차단하고 재시도를 제공한다.
+
+관리자 비밀번호 변경 dialog는 Escape/닫기/취소 등 모든 닫기 경로에서 새 비밀번호 초안을 즉시 지운다. 서버 logout 요청이 실패하거나 네트워크 오류가 나면 UI는 로컬 관리 화면을 잠그되, 서버 session revoke가 확인되지 않았음을 오류로 명시하여 성공한 logout과 구분한다.
