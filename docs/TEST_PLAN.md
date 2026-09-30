@@ -786,3 +786,13 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - Project aggregate: 생성·조회·목록·메타데이터 수정·복사·Template에서 동일 global 참조를 유지하고 rename/inactive가 참조를 깨뜨리지 않는지 검증한다.
 - UI/E2E: 생성 폼은 기본 필드 validation을 catalog loading보다 먼저 수행하며 catalog 미확인 시 유효 저장만 차단한다. 관리자 category는 tablist/tabpanel·roving focus·Arrow/Home/End를 검증하고 390/768/1024/1440px overflow를 회귀 검증한다.
 - 집중 서버 회귀는 `tests/server/projects/project-master-catalog.test.ts`; migration ledger/schema 기대값은 DB 및 migration CLI 테스트에서 0017까지 검증한다. 공식 PASS 판정은 PR exact-head GitHub Actions quality/e2e/docker 결과를 사용한다.
+
+## Issue #342 국가 캘린더 2026~2037 / Import / 관리자 CRUD
+
+- Dataset: 7개 국가의 2026~2037 관리 슬롯, 2026 built-in, 미래 미등록 연도 UNAVAILABLE, supportedYears=OFFICIAL only, CN/VN WORKING 유지.
+- Import parser: canonical JSON과 UTF-8 CSV, country/year/date/dayType/source metadata 검증, year/date mismatch와 duplicate/conflict 거부, 1 MiB/500 date 제한.
+- Service: Preview additions/changes/deletions/unchanged, atomic full replacement, source metadata round-trip, stale catalog revision 거부, built-in first-edit clone, OFFICIAL 승격 조건.
+- DB: migration 0018 tables/indexes/FK/revision 및 재실행 ledger.
+- Integration: WorkCalendarService와 신규 Project default Calendar가 built-in보다 DB OFFICIAL override를 우선하고 UNAVAILABLE/SUPERSEDED를 Scheduling에 사용하지 않는다. 기존 materialized Project는 Catalog 변경만으로 재계산하지 않는다.
+- E2E: /calendar-admin 로그인, upload Preview/Apply, date add/edit/delete, 390/768/1024/1440 document overflow 회귀.
+- PR head에서 quality, Chromium E2E, Docker gate를 기존 정책대로 모두 수행한다.
