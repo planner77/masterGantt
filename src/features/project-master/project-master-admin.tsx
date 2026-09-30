@@ -15,6 +15,14 @@ const CATEGORIES: Array<{ value: ProjectMasterCategory; label: string }> = [
   { value: "SITE_ENTITY", label: "사업장/법인" },
 ];
 
+type StatusFilter = "all" | "active" | "inactive";
+
+const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
+  { value: "all", label: "전체" },
+  { value: "active", label: "활성" },
+  { value: "inactive", label: "비활성" },
+];
+
 function isAdminCatalog(value: unknown): value is ProjectMasterAdminResponse {
   if (!value || typeof value !== "object" || !("data" in value)) return false;
   const data = value.data;
@@ -30,6 +38,7 @@ export function ProjectMasterAdmin() {
   const [catalog, setCatalog] = useState<ProjectMasterAdminResponse | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("error");
   const [category, setCategory] = useState<ProjectMasterCategory>("BUSINESS_UNIT");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -193,39 +202,62 @@ export function ProjectMasterAdmin() {
     categoryTabs.current?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[target]?.focus();
   }
 
-  const items = useMemo(() => catalog?.data.items.filter((item) => item.category === category) ?? [], [catalog, category]);
+  const categoryLabel = CATEGORIES.find((entry) => entry.value === category)?.label ?? "";
+  const categoryItems = useMemo(
+    () => catalog?.data.items.filter((item) => item.category === category) ?? [],
+    [catalog, category],
+  );
+  const items = useMemo(
+    () => categoryItems.filter((item) => {
+      if (statusFilter === "active") return item.active;
+      if (statusFilter === "inactive") return !item.active;
+      return true;
+    }),
+    [categoryItems, statusFilter],
+  );
+  const emptyMessage = categoryItems.length === 0
+    ? "등록된 항목이 없습니다."
+    : statusFilter === "active"
+      ? "활성 상태의 항목이 없습니다."
+      : statusFilter === "inactive"
+        ? "비활성 상태의 항목이 없습니다."
+        : "등록된 항목이 없습니다.";
 
   if (!authenticated) return (
-    <form className={styles.login} onSubmit={(event) => void login(event)}>
-      <h2>관리자 로그인</h2>
-      <p className={styles.note}>프로젝트 편집 비밀번호와 별도의 글로벌 기준정보 관리자 권한이 필요합니다.</p>
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
-      <label className={styles.field}>관리자 비밀번호
-        <input ref={loginInput} type="password" autoComplete="current-password" value={password} disabled={busy}
-          onChange={(event) => setPassword(event.target.value)} />
-      </label>
-      <div className={styles.actions}><button className="primary-button" disabled={busy || !password} type="submit">{busy ? "확인 중…" : "로그인"}</button></div>
-    </form>
+    <section className={styles.authSection} aria-labelledby="project-master-auth-title">
+      <div className={styles.sectionHeading}>
+        <p className={styles.eyebrow}>관리자 인증</p>
+        <h2 id="project-master-auth-title">프로젝트 기준정보 관리자 로그인</h2>
+        <p className={styles.note}>프로젝트 편집 비밀번호와 별도의 글로벌 기준정보 관리자 권한이 필요합니다.</p>
+      </div>
+      <form className={styles.loginForm} onSubmit={(event) => void login(event)}>
+        {error ? <p id="project-master-login-error" className={styles.error} role="alert">{error}</p> : null}
+        <div className={styles.loginControls}>
+          <label className={styles.field}>관리자 비밀번호
+            <input
+              ref={loginInput}
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              disabled={busy}
+              aria-describedby={error ? "project-master-login-error" : undefined}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </label>
+          <button className="primary-button" disabled={busy || !password} type="submit">
+            {busy ? "확인 중…" : "로그인"}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 
   return <div className={styles.panel}>
-    <div className={styles.toolbar}>
-      <div ref={categoryTabs} className={styles.tabs} role="tablist" aria-label="프로젝트 기준정보 범주">
-        {CATEGORIES.map((entry, index) => {
-          const selected = category === entry.value;
-          return <button
-            key={entry.value}
-            id={`project-master-tab-${entry.value.toLowerCase()}`}
-            type="button"
-            role="tab"
-            className={`secondary-button ${styles.tab}`}
-            aria-selected={selected}
-            aria-controls="project-master-category-panel"
-            tabIndex={selected ? 0 : -1}
-            onClick={() => setCategory(entry.value)}
-            onKeyDown={(event) => handleCategoryKeyDown(event, index)}
-          >{entry.label}</button>;
-        })}
+    <section className={styles.sessionSection} aria-labelledby="project-master-session-title">
+      <div className={styles.sectionHeading}>
+        <p className={styles.eyebrow}>관리자 인증</p>
+        <h2 id="project-master-session-title">프로젝트 기준정보 관리자 인증됨</h2>
+        <p className={styles.note}>전 프로젝트 공통 기준정보를 편집할 수 있습니다.</p>
       </div>
       <div className={styles.actions}>
         <button ref={passwordTrigger} className="secondary-button" type="button" disabled={busy}
@@ -233,43 +265,135 @@ export function ProjectMasterAdmin() {
         <button className="secondary-button" type="button" disabled={busy} onClick={() => void loadCatalog()}>새로고침</button>
         <button className="secondary-button" type="button" disabled={busy} onClick={() => void logout()}>로그아웃</button>
       </div>
-    </div>
-    {error ? <p className={styles.error} role="alert">{error}</p> : null}
-    {notice ? <p className={styles.note} role="status">{notice}</p> : null}
-    {state !== "ready" ? <p className={styles.note} role="status">{state === "loading" ? "최신 기준정보를 불러오는 중…" : "최신 목록 확인 전에는 변경할 수 없습니다."}</p> : null}
+    </section>
 
-    <section
-      id="project-master-category-panel"
-      className={styles.card}
-      role="tabpanel"
-      aria-labelledby={`project-master-tab-${category.toLowerCase()}`}
-    >
-      <h2>{CATEGORIES.find((entry) => entry.value === category)?.label}</h2>
-      <form className={styles.formGrid} onSubmit={(event) => void addItem(event)}>
-        <label className={styles.field}>이름<input maxLength={200} disabled={busy || state !== "ready"} value={name} onChange={(event) => setName(event.target.value)} /></label>
-        <label className={styles.field}>코드<input maxLength={64} disabled={busy || state !== "ready"} value={code} onChange={(event) => setCode(event.target.value)} /></label>
-        <label className={styles.field}>정렬<input min={0} max={1000000} type="number" disabled={busy || state !== "ready"} value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} /></label>
-        <button className="primary-button" type="submit" disabled={busy || state !== "ready" || !name.trim() || !code.trim()}>항목 추가</button>
-      </form>
-      {items.length === 0 ? <p className={styles.empty}>등록된 항목이 없습니다.</p> : <ul className={styles.list}>
-        {items.map((item) => {
-          const draft = drafts[item.id] ?? { name: item.name, code: item.code, sortOrder: item.sortOrder };
-          return <li key={item.id} className={`${styles.item} ${item.active ? "" : styles.inactive}`}>
-            <input aria-label={`${item.name} 이름`} value={draft.name} disabled={busy}
-              onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, name: event.target.value } }))} />
-            <input aria-label={`${item.name} 코드`} value={draft.code} disabled={busy || (item.usageCount ?? 0) > 0}
-              title={(item.usageCount ?? 0) > 0 ? "사용 중인 안정 코드는 변경할 수 없습니다." : undefined}
-              onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, code: event.target.value } }))} />
-            <input aria-label={`${item.name} 정렬 순서`} type="number" min={0} value={draft.sortOrder} disabled={busy}
-              onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, sortOrder: Number(event.target.value) } }))} />
-            <span className={styles.meta}>사용 프로젝트 {item.usageCount ?? 0} · {item.active ? "활성" : "비활성"}</span>
-            <div className={`${styles.actions} ${styles.itemActions}`}>
-              <button className="secondary-button" type="button" disabled={busy || state !== "ready"} onClick={() => void saveItem(item)}>저장</button>
-              <button className="secondary-button" type="button" disabled={busy || state !== "ready"} onClick={() => void toggleItem(item)}>{item.active ? "비활성화" : "재활성화"}</button>
+    <div className={styles.feedback} aria-live="polite">
+      {error ? <p className={styles.error} role="alert">{error}</p> : null}
+      {notice ? <p className={styles.note} role="status">{notice}</p> : null}
+      {state !== "ready" ? <p className={styles.note} role="status">{state === "loading" ? "최신 기준정보를 불러오는 중…" : "최신 목록 확인 전에는 변경할 수 없습니다."}</p> : null}
+    </div>
+
+    <section className={styles.catalogSection} aria-labelledby="project-master-catalog-title">
+      <div className={styles.catalogHeader}>
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>기준정보 관리</p>
+          <h2 id="project-master-catalog-title">프로젝트 기준정보</h2>
+          <p className={styles.note}>관리할 범주를 선택한 뒤 항목을 추가하거나 목록에서 수정합니다.</p>
+        </div>
+        <div ref={categoryTabs} className={styles.tabs} role="tablist" aria-label="프로젝트 기준정보 범주">
+          {CATEGORIES.map((entry, index) => {
+            const selected = category === entry.value;
+            return <button
+              key={entry.value}
+              id={`project-master-tab-${entry.value.toLowerCase()}`}
+              type="button"
+              role="tab"
+              className={`secondary-button ${styles.tab}`}
+              aria-selected={selected}
+              aria-controls="project-master-category-panel"
+              tabIndex={selected ? 0 : -1}
+              onClick={() => setCategory(entry.value)}
+              onKeyDown={(event) => handleCategoryKeyDown(event, index)}
+            >{entry.label}</button>;
+          })}
+        </div>
+      </div>
+
+      <div
+        id="project-master-category-panel"
+        className={styles.categoryPanel}
+        role="tabpanel"
+        aria-labelledby={`project-master-tab-${category.toLowerCase()}`}
+      >
+        <h2 className={styles.categoryTitle}>{categoryLabel}</h2>
+
+        <section className={styles.editorSection} aria-labelledby="project-master-editor-title">
+          <div className={styles.subsectionHeading}>
+            <h3 id="project-master-editor-title">항목 추가</h3>
+            <p className={styles.note}>이름, 안정 코드, 정렬 순서를 입력합니다.</p>
+          </div>
+          <form className={styles.formGrid} onSubmit={(event) => void addItem(event)}>
+            <label className={styles.field}>이름<input maxLength={200} disabled={busy || state !== "ready"} value={name} onChange={(event) => setName(event.target.value)} /></label>
+            <label className={styles.field}>코드<input maxLength={64} disabled={busy || state !== "ready"} value={code} onChange={(event) => setCode(event.target.value)} /></label>
+            <label className={styles.field}>정렬<input min={0} max={1000000} type="number" disabled={busy || state !== "ready"} value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} /></label>
+            <button className="primary-button" type="submit" disabled={busy || state !== "ready" || !name.trim() || !code.trim()}>항목 추가</button>
+          </form>
+        </section>
+
+        <section className={styles.listSection} aria-labelledby="project-master-list-title">
+          <div className={styles.listToolbar}>
+            <div className={styles.subsectionHeading}>
+              <h3 id="project-master-list-title">{categoryLabel} 목록</h3>
+              <p className={styles.note}>전체 {categoryItems.length}건 · 표시 {items.length}건</p>
             </div>
-          </li>;
-        })}
-      </ul>}
+            <div className={styles.statusFilters} role="group" aria-label={`${categoryLabel} 상태 필터`}>
+              {STATUS_FILTERS.map((filter) => (
+                <button
+                  key={filter.value}
+                  className={`secondary-button ${styles.statusFilterButton}`}
+                  type="button"
+                  aria-pressed={statusFilter === filter.value}
+                  onClick={() => setStatusFilter(filter.value)}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {items.length === 0 ? (
+            <p className={styles.empty} role="status">{emptyMessage}</p>
+          ) : (
+            <div className={styles.tableScroll} data-testid="project-master-table-scroll">
+              <table className={styles.table} aria-label={`${categoryLabel} 기준정보 목록`}>
+                <thead>
+                  <tr>
+                    <th scope="col">이름</th>
+                    <th scope="col">코드</th>
+                    <th scope="col">정렬</th>
+                    <th scope="col">상태 / 사용</th>
+                    <th scope="col">작업</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => {
+                    const draft = drafts[item.id] ?? { name: item.name, code: item.code, sortOrder: item.sortOrder };
+                    return <tr key={item.id} className={item.active ? undefined : styles.inactive}>
+                      <td>
+                        <input aria-label={`${item.name} 이름`} value={draft.name} disabled={busy}
+                          onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, name: event.target.value } }))} />
+                      </td>
+                      <td>
+                        <input aria-label={`${item.name} 코드`} value={draft.code} disabled={busy || (item.usageCount ?? 0) > 0}
+                          title={(item.usageCount ?? 0) > 0 ? "사용 중인 안정 코드는 변경할 수 없습니다." : undefined}
+                          onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, code: event.target.value } }))} />
+                      </td>
+                      <td className={styles.sortCell}>
+                        <input aria-label={`${item.name} 정렬 순서`} type="number" min={0} value={draft.sortOrder} disabled={busy}
+                          onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, sortOrder: Number(event.target.value) } }))} />
+                      </td>
+                      <td>
+                        <div className={styles.statusMeta}>
+                          <span className={`${styles.statusBadge} ${item.active ? styles.statusActive : styles.statusInactive}`}>
+                            {item.active ? "활성" : "비활성"}
+                          </span>
+                          <span className={styles.usage}>사용 프로젝트 {item.usageCount ?? 0}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className={`${styles.actions} ${styles.itemActions}`}>
+                          <button className="secondary-button" type="button" disabled={busy || state !== "ready"} onClick={() => void saveItem(item)}>저장</button>
+                          <button className="secondary-button" type="button" disabled={busy || state !== "ready"} onClick={() => void toggleItem(item)}>{item.active ? "비활성화" : "재활성화"}</button>
+                        </div>
+                      </td>
+                    </tr>;
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      </div>
     </section>
 
     {passwordOpen ? <WorkspaceDialog title="프로젝트 기준정보 관리자 비밀번호 변경" restoreFocusRef={passwordTrigger} busy={busy}
