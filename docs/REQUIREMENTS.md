@@ -170,3 +170,12 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 ## Issue #258 — 연결 Task 필드별 편집
 
 관계가 있는 leaf Task/Milestone의 metadata·progress·Baseline 편집은 현재 적용 날짜/requestedStart를 보존한다. 요청 시작일·duration·scheduleMode 변경은 전체 dependency-aware transaction으로 후행 Auto의 지연/앞당김과 Summary를 다시 계산한다. Manual/resource conflict 및 혼합 payload는 전체 rollback한다. Grid 이름·Chart 완료 gesture와 Editor는 같은 Task PATCH/canonical snapshot 계약을 사용한다. Delete/Convert/계층/Copy·Summary 정보창·권한 보호는 그대로다. R08의 초기 FS 범위 표기는 역사적 단계이며 현재 generic FS/SS/FF/SF와 lag 지원은 Scheduling/API 문서를 따른다.
+
+
+## Issue #289 프로젝트 기준정보
+
+- Project는 사업부(BUSINESS_UNIT), 제품(PRODUCT), 사업장/법인(SITE_ENTITY)을 각각 최대 1개 선택하며 모두 nullable이다.
+- 세 값의 Source of Truth는 전 프로젝트 공통 global master catalog의 stable public ID/code이고 Project row에 표시명을 중복 저장하지 않는다.
+- 신규 선택에는 active 항목만 사용하며, 기존 Project가 참조하는 inactive 항목은 자동 해제하지 않고 비활성 상태로 표시한다.
+- Project 생성/편집/조회/목록/복사/Template 경로에서 동일 참조를 유지한다. Project edit 권한은 global project-master 관리자 권한을 부여하지 않는다.
+- 사업부→제품→사업장 cascading, 다중 선택, ERP/MES 동기화와 해당 값 기반 권한/일정 자동화는 범위 밖이다.
