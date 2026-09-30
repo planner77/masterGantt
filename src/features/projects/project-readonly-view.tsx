@@ -809,16 +809,30 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setTaskFilterOpen(false);
     requestAnimationFrame(() => taskFilterTriggerReference.current?.focus({ preventScroll: true }));
   };
-  const closeContextDisclosureOnEscape = (event: ReactKeyboardEvent<HTMLDetailsElement>) => {
-    if (event.key !== "Escape" || !event.currentTarget.open) return;
-    if (event.target instanceof Element && event.target.closest("dialog")) return;
-    event.preventDefault();
-    event.stopPropagation();
+  const handleContextDisclosureKeyDown = (event: ReactKeyboardEvent<HTMLDetailsElement>) => {
     const details = event.currentTarget;
-    details.open = false;
-    if (details === actionMenuReference.current) setActionMenuOpen(false);
-    if (details === infoPopoverReference.current) setInfoPopoverOpen(false);
-    requestAnimationFrame(() => details.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true }));
+    if (!details.open) return;
+
+    if (event.key === "Escape") {
+      if (event.target instanceof Element && event.target.closest("dialog")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      details.open = false;
+      if (details === actionMenuReference.current) setActionMenuOpen(false);
+      if (details === infoPopoverReference.current) setInfoPopoverOpen(false);
+      requestAnimationFrame(() => details.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true }));
+      return;
+    }
+
+    if (event.key !== "Tab") return;
+    requestAnimationFrame(() => {
+      if (!details.open) return;
+      const activeElement = document.activeElement;
+      if (activeElement instanceof Node && details.contains(activeElement)) return;
+      if (activeElement instanceof Element && activeElement.closest('dialog, [role="dialog"]')) return;
+      if (details === actionMenuReference.current) setActionMenuOpen(false);
+      if (details === infoPopoverReference.current) setInfoPopoverOpen(false);
+    });
   };
   const resetTaskFilter = () => {
     setTaskFilter(EMPTY_TASK_FILTER);
@@ -849,7 +863,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               setInfoPopoverOpen(nextOpen);
               if (nextOpen && actionMenuOpen) setActionMenuOpen(false);
             }}
-            onKeyDown={closeContextDisclosureOnEscape}
+            onKeyDown={handleContextDisclosureKeyDown}
           >
             <summary aria-label="프로젝트 정보 보기">정보</summary>
             <div className="project-info-panel">
@@ -887,7 +901,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             setActionMenuOpen(nextOpen);
             if (nextOpen && infoPopoverOpen) setInfoPopoverOpen(false);
           }}
-          onKeyDown={closeContextDisclosureOnEscape}
+          onKeyDown={handleContextDisclosureKeyDown}
         >
           <summary aria-label="프로젝트 작업 더보기">더보기</summary>
           <div className="project-action-menu-panel">

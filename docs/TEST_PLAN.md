@@ -812,6 +812,8 @@ CI policy/static scenario에서 최소 다음을 검증한다.
 - 최신 trusted revocation/version mismatch는 release BLOCKED
 - Issue별 lifecycle helper/finalizer 파일 재도입 금지
 - generic/release workflow concurrency가 queued work를 보존
+- 인접 same-Issue corrective merge는 docs-only/non-docs validation scope가 동일할 때만 수렴하고, scope가 다르면 앞선 failed main CI를 우회하지 않음
+- 수렴된 모든 PR identity가 `--cleanup-pr`로 lifecycle에 전달되고, 모든 branch safe cleanup PASS 전에는 FINAL/Issue close가 불가능함
 
 ## Issue #344 — 작업 삭제 실패 복구 회귀
 
@@ -839,3 +841,70 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 수정 전 stale 응답 재현 화면은 [before](../output/playwright/issue344-before.png), 수정 후는 [after](../output/playwright/issue344-after.png)다. 모두 실제 브라우저의 기능 상태 근거이며 날짜·Task 구성·scale이 달라 동일 fixture의 픽셀/배치 개선 비교로 사용하지 않는다. 추가 390/768/1024px 삭제 복구, 세로 scroll·selection 및 독립 keyboard/focus 검사는 NOT TESTED다. 실제 독립 UX 검토는 정적 코드·테스트·화면 비교 PASS다. 초기 전체 조회에서도 오래된 응답이 확정 snapshot을 덮지 않고 loading에 남지 않도록 보완했으며 이 분기의 별도 브라우저 조작은 NOT TESTED다. Network fixture는 요청 abort 경로이며 서버 commit 후 응답 유실·더 높은 canonical GET의 별도 브라우저 조작은 NOT TESTED다.
 
 중간 로컬 공유 개발 서버에 Turbopack HMR panic이 발생하여 해당 실행을 중단했다. 기존 `.next-e2e`를 `/tmp/mastergantt-issue344-e2e-cache-20261001`로 보존 이동한 뒤 새 캐시의 동일 설정·격리 SQLite 테스트에서 위 7개 PASS를 확보했다. CI 설정·검사 gate는 변경하지 않았다. 전체 Lifecycle/main artifact/정식 release/운영 배포의 PASS로 확대하지 않는다.
+
+
+### Issue #344 / PR #359 — CI #1373 follow-up
+
+- PR CI #1373에서 production dependency audit, policy/lifecycle static checks, typecheck, lint, Next production build, Docker smoke와 Chromium shards 1/2/4는 PASS했다.
+- Vitest는 `tests/scripts/deployment-layout.test.ts`가 `@next/env === 16.3.4`를 과거 버전으로 고정해 16.3.6 보안 패치와 불일치하여 1건 실패했다. 검증 의도는 특정 과거 버전이 아니라 standalone runtime의 `@next/env`가 framework `next`와 같은 버전으로 pin되는지이므로 동등성 검사로 수정한다.
+- Chromium shard 3/4의 단일 실패는 `project-status.spec.ts`의 readonly canonical GET에서 `read ECONNRESET`이 발생한 transport reset이다. assertion 실패, HTTP 오류 응답 또는 서버 계약 불일치가 아니며 같은 shard의 다른 테스트는 계속 PASS했다. 제품 코드를 우회하지 않고 새 PR head 전체 E2E에서 재검증한다.
+- CI #1373의 실패를 PASS로 대체하지 않는다. 후속 head의 원격 quality/E2E/Docker 결과를 별도 증거로 사용한다.
+
+
+### Issue #344 / PR #359 — CI #1374 follow-up
+
+- CI #1374의 quality, production dependency audit, lifecycle policy, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 1/2/4는 PASS했다.
+- 실패는 Chromium shard 3/4의 `project-workspace-ux.spec.ts` 1건이다. `정보` disclosure의 summary에 focus 후 Tab으로 subtree 밖으로 이동했지만 `<details open>`이 닫히지 않았다. 77개 다른 shard 테스트는 PASS했다.
+- 기존 구현은 document `focusin` listener로 외부 focus를 감지했다. disclosure 자체의 React `onBlur`에서도 `relatedTarget`이 현재 details subtree 밖이면 닫도록 보완해 keyboard focus 이동을 구성요소 경계에서 직접 처리한다. Dialog/role=dialog로 이동하는 기존 예외는 유지한다.
+- CI #1374의 실패를 PASS로 대체하지 않으며, 새 head의 원격 E2E 전체 결과를 별도 증거로 사용한다.
+
+
+### Issue #344 / PR #359 — CI #1378 follow-up
+
+- CI #1378의 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 3/4·4/4는 PASS했다.
+- shard 1/4의 13건 실패는 CI #1374 보완에서 추가한 disclosure `onBlur`가 native Dialog open 전환 중 `relatedTarget=null`을 외부 focus 이탈로 오인하여 action-menu `details`를 닫은 회귀다. 그 결과 Copy/Template Dialog가 닫힌 details 내부에서 접근 불가능해져 재인증·412·focus 복원 테스트가 연쇄 실패했다.
+- `onBlur`는 즉시 닫지 않고 다음 animation frame에 `document.activeElement`를 확인한다. 실제 focus가 details 내부 또는 `dialog/[role=dialog]`에 있으면 유지하고, 그 밖으로 이동한 경우에만 닫는다. 따라서 CI #1374의 Tab 외부 이탈 요구와 Dialog 내부 상호작용 요구를 동시에 만족하도록 한다.
+- shard 2/4의 Grid inline rename 1건은 editor input이 생성되지 않은 단일 focus 실패다. 이번 변경 영역과 독립적이고 직전 CI #1374에서 해당 shard가 PASS했으므로 제품 수정 근거로 단정하지 않고 새 head 전체 E2E에서 재검증한다.
+- CI #1378의 실패를 PASS로 대체하지 않는다.
+
+
+### Issue #344 / PR #359 — CI #1379 follow-up
+
+- CI #1379의 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 3/4·4/4는 PASS했다.
+- shard 1/4의 9건 실패는 disclosure `onBlur`가 native Dialog open lifecycle과 여전히 충돌해 Copy/Template dialog가 사라지는 동일 계열 회귀다. `onBlur` 방식은 제거한다. 일반 외부 focus는 기존 document `focusin` 계약을 유지하고, CI #1374에서 필요했던 keyboard Tab 경로는 details의 `keydown(Tab)` 후 animation frame에서 실제 `document.activeElement`가 subtree 밖인지 검사해 닫는다. Dialog 클릭/open 흐름에는 이 처리가 개입하지 않는다.
+- shard 2/4의 Grid inline rename 실패가 CI #1378과 #1379에서 구조 이동 직후 서로 다른 테스트에 반복됐다. 서버 move response와 Grid order 확인만으로 frontend canonical mutation lock 해제를 보장하지 않으므로, 공통 `renameInline` helper가 `data-task-mutation-locked != true`를 확인한 뒤 현재 row에서 editor input을 열도록 한다. 이는 제품 동작을 완화하는 것이 아니라 비동기 canonical sync 완료 경계를 테스트가 준수하게 하는 수정이다.
+- 테스트 skip/재시도 횟수 증가는 적용하지 않으며 CI #1379 실패를 PASS로 대체하지 않는다.
+
+
+### Issue #344 / PR #359 — latest main realignment
+
+- PR #359 작업 중 main에 Issue #356 변경이 먼저 병합되어 branch가 8 commits 뒤처지고 merge conflict 상태가 되었다. 최신 main은 application 0.58.5 및 Next.js/@next/env 16.3.7 보안 패치를 포함한다.
+- 충돌 해소는 최신 main의 CI/보안 변경과 16.3.7 dependency graph를 보존하고, #344 고유 lifecycle/focus/E2E 안정화만 적용한다. application version은 다음 PATCH인 0.58.6으로 증가한다.
+- stale 16.3.6 lockfile 및 중복 @next/env 고정버전 수정은 최종 tree에 포함하지 않는다. tests/scripts/deployment-layout.test.ts는 최신 main의 exact Next/@next-env equality 계약을 사용한다.
+- 최신 main 통합 head에서 PR quality/e2e/docker를 새로 판정하며 이전 #1373/#1374/#1378/#1379 결과를 최종 PASS로 재사용하지 않는다.
+
+
+
+### Issue #344 / PR #359 — CI #1382 follow-up
+
+- 최신 main 통합 head의 CI #1382에서 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 1/3/4는 PASS했다. disclosure/Dialog 보완은 원격 E2E에서 회귀 없이 통과했다.
+- shard 2/4의 Grid reorder 4건은 공통 `renameInline` helper에서 발생했다. helper가 `hasText(name)`으로 row locator를 만든 뒤 클릭했고, SVAR editor가 열리며 표시 텍스트가 input으로 교체되자 해당 filtered row locator가 더 이상 일치하지 않아 `input element(s) not found`로 오판했다.
+- 수정은 클릭 전에 row의 stable `data-id`를 저장하고, editor open 후 해당 `data-id`로 정확한 row/input을 다시 찾는다. 또한 mutation lock 해제와 `data-task-inline-editable=true`를 명시적으로 확인한다.
+- 이는 제품 코드 수정이나 테스트 완화가 아니라 editor DOM 전환 이후에도 동일 행을 추적하는 locator 안정화다. CI #1382 실패를 PASS로 대체하지 않는다.
+
+
+### Issue #344 / PR #359 — CI #1384 이후 Codex review 보완
+
+- 최신 head `fcbf770a1e1f9bb77c9bcab4794c48a16817e832`의 CI #1384는 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke 및 Chromium 4개 shard가 모두 PASS했다.
+- Codex P1은 same-Issue coalescing이 latest docs-only merge만 선택하면 앞선 non-docs merge의 E2E/Docker/임시 GHCR evidence를 우회할 수 있음을 지적했다. 보완 후 immediate first-parent diff의 docs-only scope가 서로 다르면 coalesce하지 않는다.
+- Codex P2는 coalescing 과정에서 earlier PR identity가 사라져 branch cleanup이 누락될 수 있음을 지적했다. 보완 후 earlier PR 번호를 cleanup obligation으로 보존해 `issue_lifecycle.py`에 반복 `--cleanup-pr`로 전달하고, formal release 성공 후 모든 branch를 공통 safe cleanup으로 정리한 뒤에만 FINAL/Issue close가 가능하다.
+- pure/static lifecycle scenario에 동일 scope 수렴, scope mismatch 비수렴, cleanup PR 전달·반복 parser 계약을 추가한다. CI #1384는 이 후속 수정 이전 head의 결과이므로 새 head PR CI로 전체 gate를 다시 판정한다.
+
+
+### Issue #344 / PR #359 — release-finalizer blocker recovery
+
+- 현재 main `af2b4f3260e9bb0a614771dd9c327d8120729713`의 Generic Finalizer #5는 pending first-parent merges 2건을 발견했으나, 과거 Issue #344 merge `714bf2fd2c1a290bf2ae1d1541f0e2068bc6b2bb`의 exact main CI #1370 실패 때문에 DEFERRED됐다. 그 결과 뒤의 Issue #356도 아직 lifecycle 처리되지 않았다.
+- 단순 #359 병합만으로는 pending이 #344(failed) → #356(Green) → #344(corrective) 순서가 되어 동일 blocker가 반복된다.
+- 보완은 실패한 older attempt와 later same-Issue corrective target을 연결하되, corrective exact main CI SUCCESS와 validation-scope coverage를 필수로 한다. 중간 Issue는 목록에서 제거하거나 재정렬하지 않는다.
+- superseded older attempt에는 release/finalize mutation을 하지 않고 branch cleanup 의무만 later corrective target으로 이관한다. middle Issue #356은 자체 exact CI/release authorization으로 먼저 처리되고, 이후 corrective #344 target이 처리된다.
+- docs-only corrective target이 non-docs 실패 attempt를 대체하지 못하는 시나리오와 corrective CI가 Green이 아니면 기존 blocker를 유지하는 시나리오를 정적 contract test에 추가한다.
