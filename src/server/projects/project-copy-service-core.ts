@@ -25,6 +25,7 @@ import {
 } from "../repositories/logistics-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
 import { LogisticsService, LogisticsCopyNotSupportedYetError } from "../logistics/logistics-service-core";
+import { ProjectMasterService } from "../project-master/project-master-service-core";
 import {
   hashEditPassword,
   type PasswordHashRecord,
@@ -124,6 +125,7 @@ export class ProjectCopyService {
   private readonly logistics: LogisticsRepository;
   private readonly resourceCatalog: ResourceCatalogRepository;
   private readonly logisticsService: LogisticsService;
+  private readonly projectMaster: ProjectMasterService;
   private readonly clock: () => Date;
   private readonly generatePublicId: () => string;
   private readonly generateTaskPublicId: () => string;
@@ -144,6 +146,7 @@ export class ProjectCopyService {
     this.resourceCatalog = new ResourceCatalogRepository(database);
     this.clock = options.clock ?? (() => new Date());
     this.logisticsService = new LogisticsService(database, { clock: this.clock });
+    this.projectMaster = new ProjectMasterService(database, { clock: this.clock });
     this.generatePublicId = options.generatePublicId ?? randomUUID;
     this.generateTaskPublicId = options.generateTaskPublicId ?? randomUUID;
     this.generateLinkPublicId = options.generateLinkPublicId ?? randomUUID;
@@ -210,6 +213,7 @@ export class ProjectCopyService {
         if (!this.owners.setByPublicId(newPublicId, ownerName)) {
           throw new Error("Copied project owner metadata could not be persisted.");
         }
+        const masterWarnings = this.projectMaster.copyProjectSelection(source.id, project.id);
 
         const datesByRule = new Map<number, typeof sourceCalendarDates>();
         for (const date of sourceCalendarDates) {
@@ -584,7 +588,7 @@ export class ProjectCopyService {
         }
 
         // 7. 비활성 마스터/리소스 경고 수집
-        const warnings: string[] = [];
+        const warnings: string[] = [...masterWarnings];
         const hasInactiveMaster =
           sourceProcesses.some((p) => p.active === 0) ||
           sourceEquipment.some((e) => e.active === 0) ||
@@ -640,6 +644,7 @@ export class ProjectCopyService {
               description: project.description,
               status: project.status,
               ownerName,
+              ...this.projectMaster.projectSelectionDto(project.id),
               revision: project.revision,
               calendar: projectCalendarDto(this.database, project.id),
             },
