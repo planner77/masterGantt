@@ -99,6 +99,8 @@ scenarios = [
     (dict(merged=True, checks_ok=True, main_ci_ok=True, release_required=True, release_authorized=True, version_ok=True), "PASS"),
     (dict(merged=True, checks_ok=True, main_ci_ok=True, release_required=True, release_authorized=False, version_ok=True), "BLOCKED"),
     (dict(merged=True, checks_ok=True, main_ci_ok=False, release_required=False, release_authorized=False, version_ok=True), "NOT TESTED"),
+    (dict(merged=True, checks_ok=True, main_ci_ok=True, release_required=True, release_authorized=True, version_ok=False), "FAIL"),
+    (dict(merged=True, checks_ok=False, main_ci_ok=True, release_required=False, release_authorized=False, version_ok=True), "NOT TESTED"),
 ]
 for kwargs, expected in scenarios:
     actual = module.mutation_gate(**kwargs)
@@ -132,7 +134,8 @@ for body in ("No issue", "Refs #1\nRefs #2\n", "Refs #1\nRefs #1\n"):
 marker = '<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"1.2.3","note":"owner approved"} -->'
 comments = [
     {"id": 1, "author_association": "CONTRIBUTOR", "body": marker, "user": {"login": "untrusted"}, "html_url": "https://example.invalid/untrusted"},
-    {"id": 2, "author_association": "OWNER", "body": marker, "user": {"login": "owner"}, "html_url": "https://example.invalid/trusted"},
+    {"id": 2, "author_association": "MEMBER", "body": marker, "user": {"login": "member"}, "html_url": "https://example.invalid/member"},
+    {"id": 3, "author_association": "OWNER", "body": marker, "user": {"login": "owner"}, "html_url": "https://example.invalid/trusted"},
 ]
 auth = auto.select_authorization(comments, expected_version="1.2.3")
 require(auth is not None and auth.actor == "owner", "trusted authorization selection failed")
@@ -147,6 +150,26 @@ try:
     raise SystemExit("latest trusted revocation must block release")
 except auto.AutoFinalizerBlocked:
     pass
+
+for expected_error, values in [
+    (True, ("1", "2", True, False, "", "")),
+    (True, ("1", "2", False, True, "", "approved")),
+    (True, ("1", "2", True, True, "1.2.3", "")),
+    (False, ("1", "2", False, False, "", "")),
+    (False, ("1", "2", True, True, "1.2.3", "maintainer approval")),
+]:
+    try:
+        module.validate_inputs(*values)
+        failed = False
+    except module.LifecycleError:
+        failed = True
+    require(failed == expected_error, f"input scenario mismatch: {values}")
+
+require("release_finalize requires release_required=true" in impl, "release_finalize release_required fail-closed guard missing")
+require("release_finalize requires release_authorized=true" in impl, "release_finalize authorization fail-closed guard missing")
+require("release_finalize requires expected_version" in impl, "release_finalize expected_version guard missing")
+require("release_finalize requires authorization_note" in impl, "release_finalize authorization_note guard missing")
+require("validate_operation_inputs(args)" in impl, "release_finalize input validation must run before context resolution")
 
 parser = module.build_parser()
 for argv, expected_error in [
