@@ -842,3 +842,12 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - 실패는 Chromium shard 3/4의 `project-workspace-ux.spec.ts` 1건이다. `정보` disclosure의 summary에 focus 후 Tab으로 subtree 밖으로 이동했지만 `<details open>`이 닫히지 않았다. 77개 다른 shard 테스트는 PASS했다.
 - 기존 구현은 document `focusin` listener로 외부 focus를 감지했다. disclosure 자체의 React `onBlur`에서도 `relatedTarget`이 현재 details subtree 밖이면 닫도록 보완해 keyboard focus 이동을 구성요소 경계에서 직접 처리한다. Dialog/role=dialog로 이동하는 기존 예외는 유지한다.
 - CI #1374의 실패를 PASS로 대체하지 않으며, 새 head의 원격 E2E 전체 결과를 별도 증거로 사용한다.
+
+
+### Issue #344 / PR #359 — CI #1378 follow-up
+
+- CI #1378의 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 3/4·4/4는 PASS했다.
+- shard 1/4의 13건 실패는 CI #1374 보완에서 추가한 disclosure `onBlur`가 native Dialog open 전환 중 `relatedTarget=null`을 외부 focus 이탈로 오인하여 action-menu `details`를 닫은 회귀다. 그 결과 Copy/Template Dialog가 닫힌 details 내부에서 접근 불가능해져 재인증·412·focus 복원 테스트가 연쇄 실패했다.
+- `onBlur`는 즉시 닫지 않고 다음 animation frame에 `document.activeElement`를 확인한다. 실제 focus가 details 내부 또는 `dialog/[role=dialog]`에 있으면 유지하고, 그 밖으로 이동한 경우에만 닫는다. 따라서 CI #1374의 Tab 외부 이탈 요구와 Dialog 내부 상호작용 요구를 동시에 만족하도록 한다.
+- shard 2/4의 Grid inline rename 1건은 editor input이 생성되지 않은 단일 focus 실패다. 이번 변경 영역과 독립적이고 직전 CI #1374에서 해당 shard가 PASS했으므로 제품 수정 근거로 단정하지 않고 새 head 전체 E2E에서 재검증한다.
+- CI #1378의 실패를 PASS로 대체하지 않는다.
