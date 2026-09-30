@@ -23,6 +23,7 @@ import {
   parseApplicationBaseUrl,
 } from "../security/origin-core";
 import { PasswordHashCapacityError } from "../security/password-core";
+import { ProjectMasterInvalidInputError, ProjectMasterItemInactiveError, ProjectMasterItemNotFoundError } from "../project-master/project-master-service-core";
 import {
   UNATTRIBUTED_CREATE_RATE_KEY,
   type FixedWindowRateLimiter,
@@ -184,6 +185,12 @@ export async function handleCreateProject(
           { "Retry-After": "1" },
         );
       }
+      if (error instanceof ProjectMasterInvalidInputError || error instanceof ProjectMasterItemNotFoundError) {
+        throw new PublicApiError(400, "INVALID_PROJECT_MASTER", "The selected project master item is invalid.");
+      }
+      if (error instanceof ProjectMasterItemInactiveError) {
+        throw new PublicApiError(409, "PROJECT_MASTER_INACTIVE", "The selected project master item is inactive.");
+      }
       throw error;
     }
 
@@ -332,11 +339,22 @@ export async function handleUpdateProject(
       );
     }
     const expectedRevision = parseRequiredIfMatch(request);
-    const result = service.updateMetadata(
-      authorization.authorization,
-      expectedRevision,
-      parsed.data,
-    );
+    let result: ProjectMetadataMutationResponse;
+    try {
+      result = service.updateMetadata(
+        authorization.authorization,
+        expectedRevision,
+        parsed.data,
+      );
+    } catch (error) {
+      if (error instanceof ProjectMasterInvalidInputError || error instanceof ProjectMasterItemNotFoundError) {
+        throw new PublicApiError(400, "INVALID_PROJECT_MASTER", "The selected project master item is invalid.");
+      }
+      if (error instanceof ProjectMasterItemInactiveError) {
+        throw new PublicApiError(409, "PROJECT_MASTER_INACTIVE", "The selected project master item is inactive.");
+      }
+      throw error;
+    }
     return Response.json(result, {
       status: 200,
       headers: {
