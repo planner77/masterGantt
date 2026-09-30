@@ -174,3 +174,25 @@ test("모든 초안 변경은 결과를 무효화하고 실패·재시도·늦�
   await expect(dialog).toHaveCount(0);
   await expect(page.getByText("읽기 전용",{exact:true})).toBeVisible();
 });
+
+
+test("crypto.randomUUID 미지원 Chromium에서도 국가 규칙과 날짜 예외를 추가한다", async ({ page, baseURL }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(Crypto.prototype, "randomUUID", {
+      configurable: true,
+      value: undefined,
+    });
+  });
+
+  const { dialog } = await openCalendar(page, baseURL!);
+  await expect(page.getByText("문제가 발생했습니다", { exact: true })).toHaveCount(0);
+
+  await dialog.getByRole("button", { name: "국가 규칙 추가" }).click();
+  await expect(dialog.getByRole("group", { name: "국가 규칙 2", exact: true })).toBeVisible();
+
+  await dialog.getByRole("button", { name: "날짜 예외 추가" }).click();
+  await expect(dialog.getByRole("group", { name: "날짜 예외 항목 1", exact: true })).toBeVisible();
+
+  await expect(page.getByText("문제가 발생했습니다", { exact: true })).toHaveCount(0);
+  await expect(dialog.getByRole("button", { name: "작업 캘린더 저장" })).toBeVisible();
+});
