@@ -9,7 +9,8 @@ export interface ResourceDto {
   code: string | null;
   description: string;
   active: boolean;
-  developerGrade: DeveloperGrade | null;
+  /** Always present in Resource Catalog API responses; optional keeps legacy fixtures/adapters source-compatible. */
+  developerGrade?: DeveloperGrade | null;
 }
 
 export interface ResourceGroupDto {
