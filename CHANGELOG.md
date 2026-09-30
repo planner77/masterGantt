@@ -6,6 +6,7 @@
 
 - CI #1370에서 새로 감지된 Next.js critical advisory `GHSA-vcvr-r3jv-pc5j` 대응으로 `next`, `@next/env`, `eslint-config-next` 및 연동 lock entries를 `16.3.4 → 16.3.6`으로 갱신한다.
 - Issue #344의 첫 merge가 main CI 실패로 미완료 상태에 남은 뒤 즉시 같은 Issue 보완 merge가 이어질 때, Generic Release Finalizer가 인접한 동일-Issue merge를 최신 검증 SHA로 수렴하고 전체 version span을 보존하도록 한다. 다른 Issue 경계를 넘겨 수렴하지 않는다.
+- 프로젝트 정보/더보기 disclosure가 document-level focus 이벤트 누락에도 keyboard Tab 포커스 이탈을 직접 감지하도록 subtree `onBlur` 복구를 추가하며, Dialog 내부로 포커스가 이동하는 예외는 유지한다.
 - Application version을 `0.58.4`에서 `0.58.5`로 증가한다.
 
 ## [0.58.4] - 2026-09-30
