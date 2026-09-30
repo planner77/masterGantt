@@ -13,20 +13,42 @@ import { WorkCalendarRepository } from "../repositories/work-calendar-repository
 
 export class PersistedWorkCalendarConflictError extends Error {}
 
-function projectExceptions(database:Database.Database,projectId:number):Map<string,CalendarDayExceptionInput> {
+interface ProjectDateAggregate extends CalendarDayExceptionInput {
+  names: string[];
+}
+
+function projectDateAggregates(database:Database.Database,projectId:number):Map<string,ProjectDateAggregate> {
   const repo=new WorkCalendarRepository(database);
   const rules=repo.listRules(projectId);
   const dates=repo.listDates(projectId);
   const ruleById=new Map(rules.map((rule)=>[rule.id,rule]));
-  const result=new Map<string,CalendarDayExceptionInput>();
+  const result=new Map<string,ProjectDateAggregate>();
   for(const date of dates) {
     const rule=ruleById.get(date.calendarRuleId);
     if(!rule || rule.targetType!=="PROJECT") continue;
     const existing=result.get(date.date);
     if(existing && existing.dayType!==date.dayType) throw new PersistedWorkCalendarConflictError();
-    result.set(date.date,{date:date.date,dayType:date.dayType,name:date.name});
+    const names=existing ? [...existing.names] : [];
+    const normalizedName=date.name?.trim();
+    if(normalizedName && !names.includes(normalizedName)) names.push(normalizedName);
+    result.set(date.date,{
+      date:date.date,
+      dayType:date.dayType,
+      // Preserve the legacy single-name projection: repository order previously
+      // made the latest persisted source win for a duplicated effective date.
+      name:date.name,
+      names,
+    });
   }
+  for(const aggregate of result.values()) aggregate.names.sort((a,b)=>a.localeCompare(b));
   return result;
+}
+
+function projectExceptions(database:Database.Database,projectId:number):Map<string,CalendarDayExceptionInput> {
+  return new Map([...projectDateAggregates(database,projectId)].map(([date,entry])=>[
+    date,
+    {date:entry.date,dayType:entry.dayType,name:entry.name},
+  ]));
 }
 
 export function resolveProjectWorkingCalendar(
@@ -75,7 +97,16 @@ export function projectCalendarDto(
   database:Database.Database,
   projectId:number,
 ):ProjectCalendarDto {
-  const calendar=resolveProjectWorkingCalendar(database,projectId);
+  const aggregates=projectDateAggregates(database,projectId);
+  const calendar=createWorkingCalendar({
+    timezone:"Asia/Seoul",
+    weekendDays:[6,0],
+    exceptions:[...aggregates.values()].map((entry)=>({
+      date:entry.date,
+      dayType:entry.dayType,
+      name:entry.name,
+    })),
+  });
   return {
     timezone:"Asia/Seoul",
     weekendDays:[6,0],
@@ -84,6 +115,7 @@ export function projectCalendarDto(
       date:entry.date,
       dayType:entry.dayType,
       name:entry.name??null,
+      names:[...(aggregates.get(entry.date)?.names ?? [])],
     })),
   };
 }
