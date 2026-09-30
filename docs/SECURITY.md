@@ -346,3 +346,10 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 
 관리 세션은 별도 HttpOnly/SameSite=Strict cookie를 사용하고 HTTPS에서는 Secure/`__Host-` 규칙을 적용한다. 로그인과 모든 mutation은 canonical `APP_BASE_URL`의 exact Origin 검사를 수행하며 로그인은 fixed-window rate limit을 적용한다. 비밀번호 변경 시 기존 물류 관리자 세션을 revoke하고 호출자에게 새 세션을 발급한다.
 
+
+
+## Issue #289 — Project master 관리자 보안 경계
+
+프로젝트 기준정보 변경은 Project edit session 및 Resource/Logistics 관리자와 분리된 `PROJECT_MASTER_ADMIN_PASSWORD` bootstrap credential과 전용 HttpOnly/SameSite=Strict Cookie를 사용한다. bootstrap 값은 DB credential이 없을 때만 seed하며 원문 비밀번호와 session token은 DB·응답·로그에 저장하지 않는다. HTTPS production에서는 `__Host-` Cookie와 Secure 속성을 적용한다.
+
+관리자 로그인은 #280 물류 관리자와 같은 bounded process-global 제한(20회/15분)을 적용한 뒤 KDF를 수행한다. 관리자 mutation은 exact Origin과 catalog revision을 서버에서 다시 검증하며 UI 로그인 상태를 권한 근거로 사용하지 않는다. 비밀번호 회전 시 기존 project-master 관리자 세션은 모두 revoke하고, 사용 중 stable code 변경과 FK parent 삭제는 fail-closed 처리한다.

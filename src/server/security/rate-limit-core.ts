@@ -98,3 +98,11 @@ export const logisticsAdminUnlockRateLimiter = new FixedWindowRateLimiter(
 );
 
 export const UNATTRIBUTED_LOGISTICS_ADMIN_RATE_KEY = "logistics-admin-unattributed";
+
+export const projectMasterAdminUnlockRateLimiter = new FixedWindowRateLimiter(
+  20,
+  15 * 60 * 1_000,
+  1,
+);
+
+export const UNATTRIBUTED_PROJECT_MASTER_ADMIN_RATE_KEY = "project-master-admin-unattributed";

@@ -22,6 +22,8 @@ services:
       RESOURCE_CATALOG_ADMIN_PASSWORD: ${RESOURCE_CATALOG_ADMIN_PASSWORD:?Set RESOURCE_CATALOG_ADMIN_PASSWORD}
       # 물류 유형 글로벌 카탈로그 관리자 bootstrap 비밀번호. 런타임 변경 후에는 DB credential이 우선한다.
       LOGISTICS_CATALOG_ADMIN_PASSWORD: ${LOGISTICS_CATALOG_ADMIN_PASSWORD:?Set LOGISTICS_CATALOG_ADMIN_PASSWORD}
+      # 프로젝트 기준정보 글로벌 카탈로그 관리자 bootstrap 비밀번호. 런타임 변경 후에는 DB credential이 우선한다.
+      PROJECT_MASTER_ADMIN_PASSWORD: ${PROJECT_MASTER_ADMIN_PASSWORD:?Set PROJECT_MASTER_ADMIN_PASSWORD}
       # 조직의 1 M/M 환산 근무일 수. 빈 값이면 M/M 조회를 비활성화한다.
       RESOURCE_MD_PER_MM: "${RESOURCE_MD_PER_MM:-}"
     # Reverse proxy가 같은 Docker network에 있으면 이 port mapping을 제거하고 내부 port만 사용한다.

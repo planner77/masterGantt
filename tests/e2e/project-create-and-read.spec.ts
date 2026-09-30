@@ -1,4 +1,4 @@
-import { E2E_PROJECT_OWNER, expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
+import { E2E_PROJECT_OWNER, expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated, waitForProjectMasterCatalogReady } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
 function uniqueSuffix(): string { return `${Date.now()}-${Math.random().toString(16).slice(2)}`; }
@@ -213,6 +213,7 @@ test("clears a password after a safe server validation error and permits recover
   await page.getByLabel("소유자").fill(E2E_PROJECT_OWNER);
   await page.getByLabel("설명 (선택)").fill("x".repeat(4_001));
   await page.getByLabel("편집 비밀번호").fill(password);
+  await waitForProjectMasterCatalogReady(page);
   await page.getByRole("button", { name: "프로젝트 만들기" }).click();
   await expect(page.locator(".form-error")).toHaveText("프로젝트 입력값을 확인해 주세요.");
   await expect(page.getByLabel("편집 비밀번호")).toHaveValue("");

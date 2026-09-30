@@ -1187,3 +1187,13 @@ Mutation은 exact Origin과 `If-Match: "<catalog revision>"`을 요구한다. st
 Resource Catalog의 Resource 응답은 `developerGrade: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT" | null`을 포함한다. Resource 생성/수정 요청은 동일한 `developerGrade` 값을 선택적으로 받으며 빈 문자열·대소문자 변형·지원하지 않는 값은 `400 INVALID_REQUEST`로 거부한다. Group에는 개발자 등급 의미를 부여하지 않는다.
 
 `PUT /api/projects/{publicId}/logistics/systems/{systemId}/resource-roles`에서 새로운 `developer` 역할 조합은 대상 Resource의 `developerGrade`가 필수다. 미지정이면 `409 DEVELOPER_GRADE_REQUIRED`를 반환한다. migration 이전부터 존재하던 동일 `developer + grade NULL` 조합을 그대로 보존하는 요청은 호환성을 위해 허용하며, 역할 해제는 Resource 등급을 수정하지 않는다. 기존 edit-session, Origin, strong `If-Match`, project revision 계약은 유지한다.
+
+
+## Issue #289 — Project master catalog API
+
+- `GET /api/project-master/catalog`: Project 생성/편집용 active 사업부·제품·사업장/법인과 catalog revision을 반환한다.
+- `POST|DELETE /api/project-master/admin-sessions`: 별도 project-master 관리자 세션을 생성/종료하며 로그인은 bounded rate-limit을 적용한다.
+- `PUT /api/project-master/admin-password`: 인증된 관리자 비밀번호를 회전하고 기존 세션을 revoke한다.
+- `GET|POST /api/project-master/admin/items`, `PATCH /api/project-master/admin/items/{itemId}`: 전체 master 목록/usage count 조회와 추가·표시명·활성 상태·정렬 순서 변경을 제공한다. mutation은 Origin, 관리자 Cookie와 strong `If-Match` catalog revision을 요구한다.
+
+Project create/update request는 `businessUnitId/productId/siteEntityId: string | null`을 선택적으로 받는다. canonical Project DTO/List는 선택된 항목을 `{id, code, name, active}`로 반환한다. 신규 선택은 inactive를 거부하지만 현재 Project의 inactive 참조는 다른 메타데이터 저장 때문에 제거되지 않는다. 사용 중 stable code 변경은 `409 PROJECT_MASTER_ITEM_IN_USE`로 거부한다.

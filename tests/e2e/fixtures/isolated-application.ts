@@ -126,7 +126,7 @@ export const test = base.extend<{ isolatedApplication: string; isolatedResourceA
       // Read-only route warmup belongs to fixture setup, not the test's 30s
       // behavior budget. GET/405 does not consume create/unlock attempts.
       const missing = "00000000-0000-4000-8000-000000000001";
-      const paths = ["/", "/projects/new", `/projects/${missing}`, "/api/projects", `/api/projects/${missing}`, `/api/projects/${missing}/edit-sessions`, `/api/projects/${missing}/edit-sessions/current`, `/api/projects/${missing}/edit-password`, `/api/projects/${missing}/tasks`, `/api/projects/${missing}/tasks/${missing}`];
+      const paths = ["/", "/projects/new", "/api/project-master/catalog", `/projects/${missing}`, "/api/projects", `/api/projects/${missing}`, `/api/projects/${missing}/edit-sessions`, `/api/projects/${missing}/edit-sessions/current`, `/api/projects/${missing}/edit-password`, `/api/projects/${missing}/tasks`, `/api/projects/${missing}/tasks/${missing}`];
       for (const path of paths) {
         const remaining = deadline - Date.now();
         if (remaining <= 0) throw new Error("Isolated E2E route warmup exceeded its startup budget.");
@@ -163,12 +163,17 @@ export async function submitProjectUnlock(page: Page, password: string): Promise
   await dialog.getByRole("button", { name: "편집 활성화", exact: true }).click();
 }
 
+export async function waitForProjectMasterCatalogReady(page: Page): Promise<void> {
+  await expect(page.locator("#project-business-unit")).toBeVisible();
+}
+
 /** Report the actual HTTP failure rather than a misleading navigation timeout. */
 export async function submitProjectAndExpectCreated(page: Page, ownerName = E2E_PROJECT_OWNER): Promise<void> {
   const owner = page.getByLabel("소유자", { exact: true });
   if (await owner.count() > 0 && (await owner.inputValue()).trim().length === 0) {
     await owner.fill(ownerName);
   }
+  await waitForProjectMasterCatalogReady(page);
   const [response] = await Promise.all([
     page.waitForResponse((candidate) => candidate.request().method() === "POST" && new URL(candidate.url()).pathname === "/api/projects"),
     page.getByRole("button", { name: "프로젝트 만들기", exact: true }).click(),

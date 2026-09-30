@@ -41,6 +41,7 @@ async function createProject(page: Page, name: string, password: string): Promis
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(name);
   await page.getByLabel("소유자", { exact: true }).fill(TRANSPORT_PROJECT_OWNER);
   await page.getByLabel("편집 비밀번호", { exact: true }).fill(password);
+  await expect(page.locator("#project-business-unit")).toBeVisible();
   const pending = page.waitForResponse((r) => new URL(r.url()).pathname === "/api/projects" && r.request().method() === "POST");
   await page.getByRole("button", { name: "프로젝트 만들기" }).click();
   expect((await pending).status()).toBe(201);
