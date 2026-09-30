@@ -851,3 +851,11 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - `onBlur`는 즉시 닫지 않고 다음 animation frame에 `document.activeElement`를 확인한다. 실제 focus가 details 내부 또는 `dialog/[role=dialog]`에 있으면 유지하고, 그 밖으로 이동한 경우에만 닫는다. 따라서 CI #1374의 Tab 외부 이탈 요구와 Dialog 내부 상호작용 요구를 동시에 만족하도록 한다.
 - shard 2/4의 Grid inline rename 1건은 editor input이 생성되지 않은 단일 focus 실패다. 이번 변경 영역과 독립적이고 직전 CI #1374에서 해당 shard가 PASS했으므로 제품 수정 근거로 단정하지 않고 새 head 전체 E2E에서 재검증한다.
 - CI #1378의 실패를 PASS로 대체하지 않는다.
+
+
+### Issue #344 / PR #359 — CI #1379 follow-up
+
+- CI #1379의 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 3/4·4/4는 PASS했다.
+- shard 1/4의 9건 실패는 disclosure `onBlur`가 native Dialog open lifecycle과 여전히 충돌해 Copy/Template dialog가 사라지는 동일 계열 회귀다. `onBlur` 방식은 제거한다. 일반 외부 focus는 기존 document `focusin` 계약을 유지하고, CI #1374에서 필요했던 keyboard Tab 경로는 details의 `keydown(Tab)` 후 animation frame에서 실제 `document.activeElement`가 subtree 밖인지 검사해 닫는다. Dialog 클릭/open 흐름에는 이 처리가 개입하지 않는다.
+- shard 2/4의 Grid inline rename 실패가 CI #1378과 #1379에서 구조 이동 직후 서로 다른 테스트에 반복됐다. 서버 move response와 Grid order 확인만으로 frontend canonical mutation lock 해제를 보장하지 않으므로, 공통 `renameInline` helper가 `data-task-mutation-locked != true`를 확인한 뒤 현재 row에서 editor input을 열도록 한다. 이는 제품 동작을 완화하는 것이 아니라 비동기 canonical sync 완료 경계를 테스트가 준수하게 하는 수정이다.
+- 테스트 skip/재시도 횟수 증가는 적용하지 않으며 CI #1379 실패를 PASS로 대체하지 않는다.
