@@ -1,0 +1,66 @@
+name: Issue 314 release finalizer
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: issue-314-release-finalize
+  cancel-in-progress: false
+
+jobs:
+  release_finalize:
+    name: v0.58.1 release and close Issue 314
+    if: >-
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      FEATURE_PR: "322"
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Verify this is the exact Issue 314 feature merge CI
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          pr_json="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$FEATURE_PR")"
+          merged="$(jq -r '.merged // false' <<<"$pr_json")"
+          merge_sha="$(jq -r '.merge_commit_sha // empty' <<<"$pr_json")"
+          ci_sha="${{ github.event.workflow_run.head_sha }}"
+
+          if [[ "$merged" != "true" || -z "$merge_sha" || "$ci_sha" != "$merge_sha" ]]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skip: completed main CI does not belong to merged PR #$FEATURE_PR."
+            exit 0
+          fi
+
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "merge_sha=$merge_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Release v0.58.1, clean feature branch, and close Issue 314
+        if: steps.gate.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/issue_lifecycle.py release_finalize \
+            --issue 314 \
+            --pr "$FEATURE_PR" \
+            --release-required true \
+            --release-authorized true \
+            --expected-version 0.58.1 \
+            --authorization-note "사용자가 2026-09-30에 Issue #314의 GHCR 게시를 포함한 release finalizer 설정 후 병합 및 main CI 시작을 명시적으로 요청함."

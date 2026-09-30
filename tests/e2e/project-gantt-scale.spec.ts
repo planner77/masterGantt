@@ -46,6 +46,10 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(day).toHaveAttribute("aria-pressed", "true");
   await expect(week).toHaveAttribute("aria-pressed", "false");
   await expect(page.locator(".project-gantt-widget .wx-weekend").first()).toBeVisible();
+  const dayScale = page.locator(".project-gantt-widget .wx-scale > .wx-row").nth(1);
+  await expect(dayScale.getByText("14", { exact: true })).toBeVisible();
+  await expect(dayScale.getByText("22", { exact: true })).toBeVisible();
+  await expect(dayScale.getByText(/일|[()]/)).toHaveCount(0);
   await expect(gantt.getByText("W38", { exact: true })).toHaveCount(0);
   const instanceId = await frame.getAttribute("data-project-gantt-instance");
   const apiInstanceId = await frame.getAttribute("data-project-gantt-api-instance");
@@ -68,6 +72,9 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instanceId!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstanceId!);
   await expect(page.locator(".project-gantt-widget .wx-weekend").first()).toBeVisible();
+  await expect(dayScale.getByText("14", { exact: true })).toBeVisible();
+  await expect(dayScale.getByText("22", { exact: true })).toBeVisible();
+  await expect(dayScale.getByText(/일|[()]/)).toHaveCount(0);
   await expect(gantt.getByText("W38", { exact: true })).toHaveCount(0);
 
   await week.click();

@@ -33,6 +33,7 @@ import {
   formatLocaleDateOnly,
   todayLocalDateString,
 } from "@/lib/date-display";
+import { formatGanttDayOfMonth } from "@/lib/gantt-scale-format";
 import { formatIsoWeek } from "@/lib/iso-week";
 
 import {
@@ -853,10 +854,7 @@ export function ProjectGantt({
       ? {
         unit: "day",
         step: 1,
-        format: (date: Date) => new Intl.DateTimeFormat(locales, {
-          day: "numeric",
-          weekday: "narrow",
-        }).format(date),
+        format: (date: Date) => formatGanttDayOfMonth(date),
       }
       : {
         unit: "week",
@@ -1265,7 +1263,18 @@ export function ProjectGantt({
   }, [apiInstanceId, installInlineTableHandlers]);
 
   async function handleNameClick(event: ReactMouseEvent<HTMLDivElement>) {
-    if (!editable || mutationLocked || event.button !== 0 || inlineSessionReference.current) return;
+    if (!editable || mutationLocked || event.button !== 0) return;
+    const currentInline = inlineSessionReference.current;
+    if (currentInline) {
+      const editor = currentInline.table.getState().editor;
+      const input = findInlineNameInput(currentInline.taskId);
+      const activeEditor = editor?.id === currentInline.taskId && editor.column === "text" && input?.isConnected;
+      if (activeEditor) return;
+      // Drag/reorder or selection can leave an intercepted open-editor session
+      // without a mounted editor. Do not let that stale session block the next
+      // explicit name click.
+      inlineSessionReference.current = null;
+    }
     const root = ganttScrollReference.current;
     const api = apiReference.current;
     if (!root || !api || !(event.target instanceof Element)) return;
@@ -1280,7 +1289,10 @@ export function ProjectGantt({
     try {
       const table = await api.getTable(true);
       if (token !== inlineOpenTokenReference.current || apiReference.current !== api || !root.isConnected ||
-        !cell.isConnected || !canCreateReference.current) return;
+        !canCreateReference.current) return;
+      // SVAR may replace the clicked row/cell while applying selection before
+      // getTable() resolves. The open-editor interceptor resolves the current
+      // row/cell again by taskId, so a stale clicked cell must not cancel edit.
       installInlineTableHandlers(table);
       await table.exec("open-editor", { id: taskId, column: "text" });
     } catch {
@@ -1288,7 +1300,7 @@ export function ProjectGantt({
       inlineSessionReference.current = null;
       setInlineNameError(true);
       setInlineNameMessage("작업명 편집기를 열 수 없습니다. 다시 시도해 주세요.");
-      cell.focus({ preventScroll: true });
+      focusInlineNameCell(taskId, cell);
     }
   }
 
