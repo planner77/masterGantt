@@ -227,3 +227,11 @@ Issue #57 범위 밖:
 - SVAR PRO Calendar 구현 복제
 
 향후 국가 fixture의 지원 연도를 추가할 때 기존 source version을 덮어쓰지 않고 연도별 source/version을 보존한다.
+
+## Issue #342 확장 — Country Calendar Catalog
+
+Issue #342부터 국가별 관리 범위는 2026~2037이며 실제 Scheduling 가능 연도는 OFFICIAL dataset이 존재하는 연도만이다. 2026 built-in fixture는 초기 baseline으로 유지하고, 관리자 Import/CRUD로 생성한 DB override를 우선한다. UNAVAILABLE/SUPERSEDED 연도는 COUNTRY_CALENDAR_UNAVAILABLE로 거부한다.
+
+Catalog 변경은 기존 Project의 materialized Calendar와 Task를 자동 갱신하지 않는다. 사용자가 Project Calendar Preview/저장을 명시적으로 수행하는 시점에 최신 OFFICIAL dataset이 반영된다.
+
+국가별 공식 source, JSON/CSV 형식, 검증/정정 절차는 docs/COUNTRY_CALENDAR_DATA.md를 따른다.

@@ -149,6 +149,7 @@ describe("SQLite connection and schema", () => {
         "0015_logistics_type_catalog.sql",
         "0016_resource_developer_grade.sql",
         "0017_project_master_catalog.sql",
+        "0018_country_calendar_catalog.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -162,6 +163,9 @@ describe("SQLite connection and schema", () => {
         .pluck()
         .all();
       expect(tables).toEqual([
+        "country_calendar_catalog_state",
+        "country_calendar_datasets",
+        "country_calendar_dates",
         "edit_sessions",
         "links",
         "logistics_catalog_admin_credentials",
@@ -205,6 +209,8 @@ describe("SQLite connection and schema", () => {
         .pluck()
         .all();
       expect(indexes).toEqual([
+        "country_calendar_datasets_country_year_idx",
+        "country_calendar_dates_dataset_date_idx",
         "edit_sessions_project_expires_idx",
         "equipment_resource_one_primary",
         "equipment_systems_one_primary",

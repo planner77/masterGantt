@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ProjectMasterAdmin } from "@/features/project-master/project-master-admin";
 
 export default function ProjectMasterAdminPage() {
@@ -9,6 +10,7 @@ export default function ProjectMasterAdminPage() {
           <h1>프로젝트 기준정보 관리</h1>
           <p>사업부, 제품, 사업장/법인을 전 프로젝트 공통 기준정보로 관리합니다.</p>
         </div>
+        <Link className="secondary-button" href="/calendar-admin">국가 캘린더 관리</Link>
       </div>
       <ProjectMasterAdmin />
     </section>

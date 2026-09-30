@@ -629,3 +629,14 @@ Migration `0016_resource_developer_grade.sql`은 `resources.developer_grade TEXT
 Migration `0017_project_master_catalog.sql`은 `project_master_items`와 catalog revision, 전용 관리자 credential/session을 추가하고 `projects.business_unit_id/product_id/site_entity_id`를 nullable FK로 확장한다. 기존 Project는 migration 후 세 참조가 모두 NULL이며 임의 backfill을 하지 않는다.
 
 `project_master_items`는 `BUSINESS_UNIT | PRODUCT | SITE_ENTITY` category, stable public ID/code, 표시명, active, sort_order를 가진다. `UNIQUE(category, code)`와 category별 참조 trigger로 잘못된 category 연결을 차단한다. Project FK는 `ON DELETE RESTRICT`이며 Project 삭제가 global master row를 삭제하지 않는다. `0016_resource_developer_grade.sql` 이후 순차 적용한다.
+
+## Issue #342 Country Calendar Catalog
+
+migration 0018_country_calendar_catalog.sql은 Project별 materialized Calendar와 분리된 글로벌 국가 Calendar Catalog를 추가한다.
+
+- country_calendar_catalog_state: 관리자 optimistic concurrency용 단일 revision row
+- country_calendar_datasets: country_code + calendar_year unique, OFFICIAL/UNAVAILABLE/SUPERSEDED status, sourceVersion/sourceUrl, updated_at
+- country_calendar_dates: dataset별 ISO date, name, NON_WORKING/WORKING, sourceKey. dataset 삭제 시 cascade
+- 관리 가능 year CHECK 범위: 2026..2037
+
+Repository built-in 2026 fixture는 DB로 복제하지 않는다. override가 필요할 때 첫 mutation이 built-in dataset을 DB에 clone하고 이후 DB가 resolution 우선권을 가진다. 기존 work_calendar_rules/work_calendar_dates는 Project snapshot이므로 Catalog mutation으로 수정되지 않는다.

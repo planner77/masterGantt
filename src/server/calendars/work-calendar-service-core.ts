@@ -42,7 +42,7 @@ import {
 } from "../repositories/work-calendar-repository-core";
 import type { AuthorizedEditSession } from "../projects/project-service-core";
 import { resolveProjectWorkingCalendar } from "./calendar-resolution-core";
-import { getCountryCalendarDataset, listCountryCalendarDescriptors } from "./country-calendar-data";
+import { getEffectiveCountryCalendarDataset, listEffectiveCountryCalendarDescriptors } from "./country-calendar-catalog-core";
 
 const MAX_COUNTRY_RULES = 32;
 const MAX_CUSTOM_DATES = 2_000;
@@ -244,7 +244,7 @@ export class WorkCalendarService {
   }
 
   listCountries():CountryCalendarListResponse {
-    return {data:{countries:listCountryCalendarDescriptors()}};
+    return {data:{countries:listEffectiveCountryCalendarDescriptors(this.database)}};
   }
 
   get(projectPublicId:string):ProjectWorkCalendarResponse|undefined {
@@ -323,7 +323,7 @@ export class WorkCalendarService {
       const rangeFrom=raw.scope==="FULL_PROJECT" ? `${dateYear(logicalFrom)}-01-01` : logicalFrom;
       const rangeTo=raw.scope==="FULL_PROJECT" ? `${dateYear(logicalTo)}-12-31` : logicalTo;
       const datasets=yearRange(rangeFrom,rangeTo).map((year)=>{
-        const dataset=getCountryCalendarDataset(raw.countryCode,year);
+        const dataset=getEffectiveCountryCalendarDataset(this.database,raw.countryCode,year);
         if(!dataset) throw new WorkCalendarCountryUnavailableError(raw.countryCode,year);
         return dataset;
       });
@@ -596,7 +596,7 @@ export class WorkCalendarService {
 }
 
 function datasetVersion(
-  datasets:readonly ReturnType<typeof getCountryCalendarDataset>[],
+  datasets:readonly ReturnType<typeof getEffectiveCountryCalendarDataset>[],
   date:string,
 ):string|null {
   const year=dateYear(date);
