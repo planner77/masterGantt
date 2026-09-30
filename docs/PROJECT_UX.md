@@ -1,5 +1,13 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #330 물류 유형 관리자 compact/filter 계약
+
+`/logistics-admin`의 설비 유형/시스템 유형 전환은 동일 높이의 버튼 그룹과 `aria-pressed` 상태를 사용하며 선택 상태가 바뀌어도 layout shift를 만들지 않는다. 목록 상태 필터는 `전체 / 활성 / 비활성` 세 값이며 기본값은 전체다. 필터는 이미 조회한 catalog snapshot에만 적용하고 API 재조회, mutation, catalog revision 증가를 만들지 않으며 설비/시스템 전환 뒤에도 현재 필터를 유지한다.
+
+추가 폼은 유형명/코드/정렬/유형 추가를 content-aware grid로 배치하고 각 grid item/control의 intrinsic width가 인접 control을 침범하지 않게 한다. 가용 폭이 줄면 2열, 이후 1열로 의미 단위 reflow하며 390/768/1024/1440px에서 document-level unintended horizontal overflow를 만들지 않는다. 목록은 header/body 구분과 기존 조작 가능한 action 크기를 유지한 채 row 상하 padding을 줄인다. 필터 결과 0건은 현재 조건에 맞는 empty state로 표시한다.
+
+관리자 로그인/로그아웃/비밀번호 변경, catalog CRUD, 사용 건수, inactive 참조, session/Origin/If-Match/revision/stale 처리 계약은 변경하지 않는다. 이 화면은 SVAR Gantt 내부 UI가 아니므로 SVAR API/PRO 기능을 추가하지 않는다.
+
 ## Issue #285 공정 추가 모달 코드 자동 생성
 
 물류 구성 > 공정 관리의 **공정 추가** 모달은 사용자에게 기술 식별자인 공정 코드를 입력받지 않는다. Create mode의 첫 focus는 공정명이며 공정명만 필수로 저장 가능하다. 브라우저 POST payload에는 `code`를 만들거나 포함하지 않고 서버 canonical 응답의 자동 생성 code를 그대로 표시한다.
