@@ -1,5 +1,13 @@
 # Test Plan
 
+## Issue #330 물류 유형 관리 화면 정렬·상태 필터·밀도 개선
+
+- Chromium E2E는 설비 유형/시스템 유형 전환 버튼의 `aria-pressed`와 동일한 control 높이를 확인하고, 전체/활성/비활성 필터가 이미 조회한 catalog snapshot에서 client-side로만 동작하여 추가 GET·mutation·catalog revision 변경을 만들지 않는지 검증한다.
+- active/inactive가 혼재한 설비 fixture에서 필터 결과를 확인하고, 같은 비활성 필터를 유지한 채 시스템 유형으로 전환했을 때 0건 empty state를 표시하는지 확인한다.
+- 390/768/1024/1440px에서 유형명/코드/정렬/유형 추가 control의 bounding box가 서로 겹치지 않고 document-level unintended horizontal overflow가 없는지 geometry로 검증한다.
+- 목록 행은 compact padding으로 동일 viewport의 정보 밀도를 높이되 기존 이름 수정/활성·비활성 전환 버튼의 조작성, 관리자 인증/session, If-Match/catalog revision/stale 계약은 유지한다.
+- DB/API/Scheduling/SVAR 계약은 변경하지 않는다. 공식 전체 회귀 판정은 동일 PR head의 quality/e2e/docker 결과를 사용한다.
+
 ## Issue #314 Gantt 일 단위 Header 숫자 표시
 
 - Unit: `formatGanttDayOfMonth`가 1/9/10/22/31을 각각 숫자 문자열로 반환하고 `일` 접미사·요일·괄호를 포함하지 않는지 검증한다.

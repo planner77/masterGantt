@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.58.3] - 2026-09-30
+
+### Fixed
+
+- Issue #330: 물류 유형 관리 화면의 설비/시스템 전환 버튼 정렬과 유형 추가 폼의 정렬 입력·추가 버튼 겹침을 수정하고, 390/768/1024/1440px에서 content-aware reflow와 document overflow 회귀 검증을 추가한다.
+- 목록에 전체/활성/비활성 client-side 상태 필터와 필터 결과 empty state를 추가하고, 목록 행의 세로 여백을 줄여 기존 조작성과 관리자 인증/session/catalog revision 계약을 유지한 채 정보 밀도를 높인다.
+- Application version을 `0.58.2`에서 `0.58.3`으로 증가한다.
+
 ## [0.58.2] - 2026-09-30
 
 ### Fixed
