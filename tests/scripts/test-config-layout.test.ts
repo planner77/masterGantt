@@ -40,4 +40,17 @@ describe("test configuration repository layout", () => {
     expect(text(".dockerignore").split(/\r?\n/)).toContain("tests");
     expect(JSON.parse(text("tsconfig.json")).include).toContain("tests/**/*.ts");
   });
+  it("routes expensive Docker evidence only when its contract can change", () => {
+    const ci = text(".github/workflows/ci.yml");
+    expect(ci).toContain("docker_baseline:");
+    expect(ci).toContain("transport:");
+    expect(ci).toContain("if: needs.changes.outputs.docker_baseline == 'true'");
+    expect(ci).toContain("if: needs.changes.outputs.transport == 'true'");
+    expect(ci).toContain("github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true'");
+  });
+  it("keeps completed Issue #118 evidence manual-only", () => {
+    const evidence = text(".github/workflows/issue-118-before-after-evidence.yml");
+    expect(evidence).toContain("workflow_dispatch:");
+    expect(evidence).not.toContain("pull_request:");
+  });
 });

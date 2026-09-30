@@ -1,5 +1,15 @@
 # Test Plan
 
+## Issue #356 CI 비용 선택 실행 회귀
+
+- 일반 UI/feature PR은 Docker candidate/runtime smoke를 유지하되 image/runtime 구조 변경이 없으면 관찰용 baseline image rebuild를 생략한다.
+- PR transport smoke는 deploy/security/http/auth 관련 경로에서만 실행하며, main push와 manual CI에서는 항상 실행한다.
+- `.github/workflows/ci.yml` 또는 `.github/actions/**` 자체 변경은 두 선택 검증을 모두 실행하여 routing 변경을 자기 검증한다.
+- Issue #118 before/after evidence는 manual-only이며 일반 PR에서 별도 runner를 시작하지 않는다.
+- `tests/scripts/test-config-layout.test.ts`가 위 workflow contract를 문자열 수준에서 고정하고, 실제 PR CI로 GitHub expression/routing 동작을 검증한다.
+- E2E worker/process/DB 격리 계약은 Phase 1에서 변경하지 않는다.
+
+
 ## Issue #330 물류 유형 관리 화면 정렬·상태 필터·밀도 개선
 
 - Chromium E2E는 설비 유형/시스템 유형 전환 버튼의 `aria-pressed`와 동일한 control 높이를 확인하고, 전체/활성/비활성 필터가 이미 조회한 catalog snapshot에서 client-side로만 동작하여 추가 GET·mutation·catalog revision 변경을 만들지 않는지 검증한다.

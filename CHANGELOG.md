@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.58.4] - 2026-09-30
+
+### Changed
+
+- Issue #356: 일반 PR의 Docker baseline image 비교를 standalone/image 구조 변경에만 실행하고, HTTP/HTTPS transport smoke를 deploy/security/http/auth 관련 변경에만 선택 실행하여 필수 candidate/runtime smoke를 유지하면서 불필요한 이중 build·browser setup을 줄인다.
+- main push와 수동 CI에서는 transport smoke를 항상 유지하며 required aggregate check와 fail-closed routing 계약은 변경하지 않는다.
+- 완료된 Issue #118 고정 before/after 레이아웃 evidence workflow를 manual-only로 전환하고 workflow contract 회귀 테스트·CI 문서를 갱신한다.
+- Application version을 `0.58.3`에서 `0.58.4`로 증가한다.
+
 ## [0.58.3] - 2026-09-30
 
 ### Fixed
