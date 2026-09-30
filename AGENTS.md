@@ -120,18 +120,20 @@ GitHub-hosted runner로 대체할 수 없는 Windows Excel/VBA/DRM, 실제 rever
 ## 5. Multi-Agent Model and Responsibilities
 
 ```text
-Main / Manager → GPT-6 Astra / High
+Main / Manager → GPT-6.1 Sol / High
 researcher     → GPT-6 Luna / Medium
-ui_ux          → GPT-6 Sol / High
-frontend       → GPT-6 Sol / Medium
-backend        → GPT-6 Sol / High
-scheduler      → GPT-6 Astra / High
-excel_vba      → GPT-6 Sol / Medium
-infra          → GPT-6 Astra / High
-qa_docs        → GPT-6 Sol / High
+ui_ux          → GPT-6.1 Sol / Medium
+frontend       → GPT-6.1 Sol / Medium
+backend        → GPT-6.1 Sol / High
+scheduler      → GPT-6.1 Sol / High
+excel_vba      → GPT-6 Luna / Medium
+infra          → GPT-6.1 Sol / High
+qa_docs        → GPT-6.1 Sol / High
 ```
 
 실제 model/effort 지원 여부는 실행 환경에서 확인하며 설정값을 실제 실행 검증으로 과대 표시하지 않는다.
+
+비용 효율 기본값은 GPT-6.1 Sol이며, Astra는 Manager가 작업의 실제 난이도·위험이 Sol High를 초과한다고 판단한 경우에만 해당 작업/세션에 일시 승격한다. 반복적 공식 문서 조사와 정형 Excel/VBA 변환은 GPT-6 Luna를 기본값으로 사용한다.
 
 ### Manager
 

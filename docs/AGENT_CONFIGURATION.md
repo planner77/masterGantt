@@ -1,5 +1,36 @@
 # Agent configuration validation
 
+## 2026-09-30: GPT-6.1 Sol 가성비 중심 역할 재배치 (#347)
+
+GPT-6.1 Sol 출시를 반영하여 상시 Astra 배치를 제거하고, 복잡 작업의 기본 모델을 GPT-6.1 Sol로 통일한다. OpenAI 공식 모델 가이드에서 GPT-6.1 Sol은 복잡한 coding, computer use, professional work에 대해 near-Astra 성능을 더 낮은 비용으로 제공하는 균형형 모델로 안내된다. GPT-6 Luna는 focused/high-volume 작업의 비용 효율 모델로 유지한다.
+
+| 역할 | 설정 | 배치 근거 |
+| --- | --- | --- |
+| Main / Manager | `gpt-6.1-sol` / high | 복잡한 요구사항/통합 판단의 기본값. Astra는 예외적 수동 승격 |
+| researcher | `gpt-6-luna` / medium / read-only | 반복 문서 탐색·비교 중심 |
+| ui_ux | `gpt-6.1-sol` / medium / read-only | 설계/검토는 복합 추론이 필요하지만 코드 구현 책임 없음 |
+| frontend | `gpt-6.1-sol` / medium | UI 구현·테스트의 균형형 기본값 |
+| backend | `gpt-6.1-sol` / high | API/DB/Auth 계약과 보안 영향 |
+| scheduler | `gpt-6.1-sol` / high | 일정 알고리즘과 경계조건 추론 |
+| excel_vba | `gpt-6-luna` / medium | 명확한 schema 기반 정형 변환 작업 중심 |
+| infra | `gpt-6.1-sol` / high | CI/CD·GHCR·권한·release fail-closed 판단 |
+| qa_docs | `gpt-6.1-sol` / high / read-only | 독립 검토와 교차 계약 확인 |
+
+### 비용/품질 정책
+
+- Standard short-context API 기준 GPT-6 Astra는 입력 $10/1M, 출력 $50/1M이며 GPT-6.1 Sol은 입력 $2/1M, 출력 $10/1M으로 단가가 약 5배 차이 난다.
+- GPT-6.1 Sol은 GPT-6 Sol과 uncached 입력/출력 단가가 같고 cached input 단가는 더 낮다.
+- 따라서 Astra를 역할에 고정하지 않는다. Manager가 보안/Architecture/release/복잡 알고리즘 등에서 GPT-6.1 Sol High 결과가 충분하지 않다고 판단하는 경우에만 해당 작업을 Astra로 일시 승격한다.
+- Luna 배치는 범위가 명확하고 반복성이 높은 역할로 제한한다. 작업 중 계약 변경·보안 판단·복잡한 디버깅이 필요해지면 Manager에게 반환하여 GPT-6.1 Sol로 승격한다.
+- reasoning effort, sandbox 경계, 역할 책임, 동시 실행 한도 6은 이 변경으로 완화하지 않는다.
+
+공식 근거:
+- OpenAI GPT-6.1 Sol model page: `https://developers.openai.com/api/docs/models/gpt-6.1-sol`
+- OpenAI GPT-6 model guide: `https://developers.openai.com/api/docs/guides/latest-model`
+- OpenAI pricing: `https://developers.openai.com/api/docs/pricing`
+
+이 변경은 Agent 설정/운영 문서에 한정되므로 application version 변경과 정식 제품 release는 N/A다. 저장소의 model 문자열은 실행 환경에 대한 요청값이며 실제 모델 접근 가능 여부와 runtime metadata는 새 세션에서 별도로 검증한다.
+
 ## 2026-09-24: GitHub Issue Progress Log 운영 계약 (#149)
 
 사용자가 요구사항을 GitHub Issue로 등록하는 운영 방식을 기준으로, Issue를 요구사항 Source뿐 아니라 작업 진행 기록의 기준점으로 사용하도록 Agent 계약을 보강했다.
