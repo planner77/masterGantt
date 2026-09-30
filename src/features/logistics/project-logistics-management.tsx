@@ -10,6 +10,7 @@ import type {
   EquipmentRole,
   EquipmentType,
   LogisticsMutationResponse,
+  LogisticsActiveTypeCatalogResponse,
   LogisticsSystemDto,
   LogisticsSystemType,
   ManagementUnit,
@@ -28,33 +29,15 @@ import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { ProjectLogisticsDashboard } from "./project-logistics-dashboard";
 import styles from "./project-logistics-management.module.css";
 
-const EQUIPMENT_TYPE_OPTIONS: { value: EquipmentType; label: string }[] = [
-  { value: "stocker", label: "Stocker (보관설비)" },
-  { value: "agv", label: "AGV (무인운반차)" },
-  { value: "amr", label: "AMR (자율이동로봇)" },
-  { value: "oht", label: "OHT (천장운반차)" },
-  { value: "conveyor", label: "Conveyor (컨베이어)" },
-  { value: "other", label: "기타 설비" },
-];
-
-function developerGradeLabel(grade: ResourceDto["developerGrade"] | undefined): string {
-  switch (grade) {
-    case "BEGINNER": return "초급";
-    case "INTERMEDIATE": return "중급";
-    case "ADVANCED": return "고급";
-    case "EXPERT": return "특급";
-    default: return "등급 미지정";
-  }
+function isTypeCatalog(value: unknown): value is LogisticsActiveTypeCatalogResponse {
+  if (!value || typeof value !== "object" || !("data" in value)) return false;
+  const data = value.data;
+  return !!data && typeof data === "object" &&
+    "equipmentTypes" in data && Array.isArray(data.equipmentTypes) &&
+    "systemTypes" in data && Array.isArray(data.systemTypes) &&
+    [...data.equipmentTypes, ...data.systemTypes].every((item) =>
+      !!item && typeof item === "object" && typeof item.code === "string" && typeof item.name === "string");
 }
-
-const SYSTEM_TYPE_OPTIONS: { value: LogisticsSystemType; label: string }[] = [
-  { value: "mcs", label: "MCS (통합 조율 시스템)" },
-  { value: "acs", label: "ACS (AGV 제어 시스템)" },
-  { value: "scs", label: "SCS (스토커 제어 시스템)" },
-  { value: "ocs", label: "OCS (OHT 제어 시스템)" },
-  { value: "lcs", label: "LCS (반송 제어 시스템)" },
-  { value: "other", label: "기타 시스템" },
-];
 
 export interface ProjectLogisticsManagementProps {
   publicId: string;
@@ -88,6 +71,46 @@ export function ProjectLogisticsManagement({
   const [searchQuery, setSearchQuery] = useState("");
   const [processFilter, setProcessFilter] = useState<string>("all");
   const [includeInactive, setIncludeInactive] = useState(false);
+  const [typeCatalog, setTypeCatalog] = useState<LogisticsActiveTypeCatalogResponse["data"] | null>(null);
+  const [typeCatalogState, setTypeCatalogState] = useState<"loading" | "ready" | "error">("loading");
+  const typeCatalogRequest = useRef<AbortController | null>(null);
+  const requestTypeCatalog = useCallback(async (controller: AbortController) => {
+    const response = await fetch("/api/logistics-catalog/types", { credentials: "same-origin", cache: "no-store", signal: controller.signal });
+    const body: unknown = await response.json().catch(() => null);
+    if (!response.ok || !isTypeCatalog(body)) throw new Error("invalid catalog");
+    return body.data;
+  }, []);
+  const retryTypeCatalog = useCallback(async () => {
+    typeCatalogRequest.current?.abort();
+    const controller = new AbortController();
+    typeCatalogRequest.current = controller;
+    setTypeCatalogState("loading");
+    try {
+      const data = await requestTypeCatalog(controller);
+      if (controller.signal.aborted) return;
+      setTypeCatalog(data);
+      setTypeCatalogState("ready");
+    } catch {
+      if (!controller.signal.aborted) setTypeCatalogState("error");
+    }
+  }, [requestTypeCatalog]);
+  useEffect(() => {
+    const controller = new AbortController();
+    typeCatalogRequest.current = controller;
+    void requestTypeCatalog(controller)
+      .then((data) => {
+        if (controller.signal.aborted) return;
+        setTypeCatalog(data);
+        setTypeCatalogState("ready");
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setTypeCatalogState("error");
+      });
+    return () => controller.abort();
+  }, [requestTypeCatalog]);
+
+  const equipmentTypeLabels = useMemo(() => new Map(typeCatalog?.equipmentTypes.map((item) => [item.code, item.name]) ?? []), [typeCatalog]);
+  const systemTypeLabels = useMemo(() => new Map(typeCatalog?.systemTypes.map((item) => [item.code, item.name]) ?? []), [typeCatalog]);
 
   // Catalog resources for assignment picker
   const [catalogResources, setCatalogResources] = useState<ResourceDto[]>([]);
@@ -288,8 +311,6 @@ export function ProjectLogisticsManagement({
           setErrorMessage("설비가 연결되어 있거나 하위 시스템으로 조율 중인 시스템은 삭제할 수 없습니다. 연결을 먼저 해제해 주세요.");
         } else if (code === "RESOURCE_INACTIVE") {
           setErrorMessage("비활성화된 리소스는 새로 배정할 수 없습니다.");
-        } else if (code === "DEVELOPER_GRADE_REQUIRED") {
-          setErrorMessage("개발자 역할을 배정하려면 리소스 관리에서 개발자 등급을 먼저 지정해야 합니다.");
         } else if (code === "CYCLE_DETECTED") {
           setErrorMessage("시스템 조율 관계에서 순환(사이클)이 감지되었습니다. 방향성 연계(DAG) 규칙을 확인해 주세요.");
         } else {
@@ -507,6 +528,13 @@ export function ProjectLogisticsManagement({
         </div>
       ) : null}
 
+      {typeCatalogState === "error" ? (
+        <div className={styles.errorBanner} role="alert">
+          물류 유형 목록을 불러오지 못했습니다. 유형을 확인하기 전에는 설비/시스템 유형을 저장할 수 없습니다.
+          <button className="secondary-button" type="button" onClick={() => void retryTypeCatalog()}>유형 목록 다시 시도</button>
+        </div>
+      ) : null}
+
       {/* Error Message banner if any */}
       {errorMessage ? (
         <div className={styles.errorBanner} role="alert">
@@ -668,7 +696,7 @@ export function ProjectLogisticsManagement({
                       <td>{eq.name}</td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>
-                          {eq.equipmentType.toUpperCase()}
+                          {equipmentTypeLabels.get(eq.equipmentType) ?? eq.equipmentType}
                         </span>
                       </td>
                       <td>
@@ -822,7 +850,7 @@ export function ProjectLogisticsManagement({
                       <td>{sys.name}</td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>
-                          {sys.systemType.toUpperCase()}
+                          {systemTypeLabels.get(sys.systemType) ?? sys.systemType}
                         </span>
                       </td>
                       <td>
@@ -1105,6 +1133,8 @@ export function ProjectLogisticsManagement({
           mode={equipmentModal.mode}
           equipment={equipmentModal.target}
           allProcesses={logistics.processes}
+          typeOptions={typeCatalog?.equipmentTypes ?? []}
+          catalogState={typeCatalogState}
           busy={isSubmitting}
           onClose={() => setEquipmentModal({ open: false, mode: "create" })}
           onSubmit={async (data) => {
@@ -1172,6 +1202,8 @@ export function ProjectLogisticsManagement({
         <SystemDialog
           mode={systemModal.mode}
           system={systemModal.target}
+          typeOptions={typeCatalog?.systemTypes ?? []}
+          catalogState={typeCatalogState}
           busy={isSubmitting}
           onClose={() => setSystemModal({ open: false, mode: "create" })}
           onSubmit={async (data) => {
@@ -1455,6 +1487,8 @@ function EquipmentDialog({
   mode,
   equipment,
   allProcesses,
+  typeOptions,
+  catalogState,
   busy,
   onClose,
   onSubmit,
@@ -1462,6 +1496,8 @@ function EquipmentDialog({
   mode: "create" | "edit";
   equipment?: EquipmentDto;
   allProcesses: ProcessDto[];
+  typeOptions: { code: string; name: string }[];
+  catalogState: "loading" | "ready" | "error";
   busy: boolean;
   onClose: () => void;
   onSubmit: (data: CreateEquipmentRequest | UpdateEquipmentRequest) => Promise<void>;
@@ -1469,7 +1505,7 @@ function EquipmentDialog({
   const [processId, setProcessId] = useState(equipment?.processId ?? allProcesses[0]?.id ?? "");
   const [code, setCode] = useState(equipment?.code ?? "");
   const [name, setName] = useState(equipment?.name ?? "");
-  const [equipmentType, setEquipmentType] = useState<EquipmentType>(equipment?.equipmentType ?? "stocker");
+  const [equipmentType, setEquipmentType] = useState<EquipmentType>(equipment?.equipmentType ?? typeOptions[0]?.code ?? "");
   const [managementUnit, setManagementUnit] = useState<ManagementUnit>(equipment?.managementUnit ?? "unit");
   const [quantity, setQuantity] = useState(equipment?.quantity ?? 1);
   const [manufacturer, setManufacturer] = useState(equipment?.manufacturer ?? "");
@@ -1527,10 +1563,11 @@ function EquipmentDialog({
               value={equipmentType}
               onChange={(e) => setEquipmentType(e.target.value as EquipmentType)}
             >
-              {EQUIPMENT_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+              {equipment && !typeOptions.some((opt) => opt.code === equipment.equipmentType) ? (
+                <option value={equipment.equipmentType}>{equipment.equipmentType} (비활성)</option>
+              ) : null}
+              {typeOptions.map((opt) => (
+                <option key={opt.code} value={opt.code}>{opt.name}</option>
               ))}
             </select>
           </label>
@@ -1626,8 +1663,8 @@ function EquipmentDialog({
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소
           </button>
-          <button className="primary-button" type="submit" disabled={busy || !code.trim() || !name.trim()}>
-            {busy ? "저장 중…" : "저장"}
+          <button className="primary-button" type="submit" disabled={busy || catalogState !== "ready" || !equipmentType || !code.trim() || !name.trim()}>
+            {busy ? "저장 중…" : catalogState === "error" ? "유형 조회 실패" : "저장"}
           </button>
         </div>
       </form>
@@ -1830,6 +1867,7 @@ function EquipmentRolesDialog({
       alert("비활성화된 리소스는 새로 배정할 수 없습니다.");
       return;
     }
+
     let next = [...selectedRoles];
     if (addIsPrimary) {
       // primary is only 1
@@ -1900,7 +1938,6 @@ function EquipmentRolesDialog({
               const res = resourceById.get(item.resourceId);
               const canonical = equipment.resourceRoles.find((role) => role.resourceId === item.resourceId);
               const displayName = catalogReady && res ? `${res.name} (${res.code ?? "코드없음"})` : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
-              const gradeText = res ? developerGradeLabel(res.developerGrade) : "등급 미지정";
               const isInactive = catalogReady && res ? !res.active : false;
 
               return (
@@ -1971,7 +2008,7 @@ function EquipmentRolesDialog({
               <option value="">(리소스 선택)</option>
               {catalogResources.map((r) => (
                 <option key={r.id} value={r.id} disabled={!r.active}>
-                  {r.name} ({r.code ?? "코드없음"}) · {developerGradeLabel(r.developerGrade)} {!r.active ? " · 비활성" : ""}
+                  {r.name} ({r.code ?? "코드없음"}) {!r.active ? " · 비활성" : ""}
                 </option>
               ))}
             </select>
@@ -2007,7 +2044,7 @@ function EquipmentRolesDialog({
             </button>
           </div>
           <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-            ※ 카탈로그에 없는 인력은 리소스 관리 메뉴에서 먼저 등록해야 합니다. Developer는 개발자 등급이 지정된 리소스만 새로 배정할 수 있습니다.
+            ※ 카탈로그에 없는 인력은 리소스 관리 메뉴에서 먼저 등록해야 합니다.
           </span>
         </div>
 
@@ -2028,19 +2065,23 @@ function EquipmentRolesDialog({
 function SystemDialog({
   mode,
   system,
+  typeOptions,
+  catalogState,
   busy,
   onClose,
   onSubmit,
 }: {
   mode: "create" | "edit";
   system?: LogisticsSystemDto;
+  typeOptions: { code: string; name: string }[];
+  catalogState: "loading" | "ready" | "error";
   busy: boolean;
   onClose: () => void;
   onSubmit: (data: CreateLogisticsSystemRequest | UpdateLogisticsSystemRequest) => Promise<void>;
 }) {
   const [code, setCode] = useState(system?.code ?? "");
   const [name, setName] = useState(system?.name ?? "");
-  const [systemType, setSystemType] = useState<LogisticsSystemType>(system?.systemType ?? "mcs");
+  const [systemType, setSystemType] = useState<LogisticsSystemType>(system?.systemType ?? typeOptions[0]?.code ?? "");
   const [layer, setLayer] = useState<SystemLayer>(system?.layer ?? "coordinator");
   const [scope, setScope] = useState<SystemScope>(system?.scope ?? "project");
   const [vendor, setVendor] = useState(system?.vendor ?? "");
@@ -2102,10 +2143,11 @@ function SystemDialog({
               value={systemType}
               onChange={(e) => setSystemType(e.target.value as LogisticsSystemType)}
             >
-              {SYSTEM_TYPE_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
+              {system && !typeOptions.some((opt) => opt.code === system.systemType) ? (
+                <option value={system.systemType}>{system.systemType} (비활성)</option>
+              ) : null}
+              {typeOptions.map((opt) => (
+                <option key={opt.code} value={opt.code}>{opt.name}</option>
               ))}
             </select>
           </label>
@@ -2171,8 +2213,8 @@ function SystemDialog({
           <button className="secondary-button" type="button" disabled={busy} onClick={onClose}>
             취소
           </button>
-          <button className="primary-button" type="submit" disabled={busy || !code.trim() || !name.trim()}>
-            {busy ? "저장 중…" : "저장"}
+          <button className="primary-button" type="submit" disabled={busy || catalogState !== "ready" || !systemType || !code.trim() || !name.trim()}>
+            {busy ? "저장 중…" : catalogState === "error" ? "유형 조회 실패" : "저장"}
           </button>
         </div>
       </form>
@@ -2400,10 +2442,6 @@ function SystemRolesDialog({
       alert("비활성화된 리소스는 새로 배정할 수 없습니다.");
       return;
     }
-    if (addRole === "developer" && !res?.developerGrade) {
-      alert("개발자 역할을 배정하려면 리소스 관리에서 개발자 등급을 먼저 지정해 주세요.");
-      return;
-    }
 
     let next = [...selectedRoles];
     if (addIsPrimary) {
@@ -2474,7 +2512,6 @@ function SystemRolesDialog({
               const res = resourceById.get(item.resourceId);
               const canonical = system.resourceRoles.find((role) => role.resourceId === item.resourceId);
               const displayName = catalogReady && res ? `${res.name} (${res.code ?? "코드없음"})` : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
-              const gradeText = developerGradeLabel(res?.developerGrade);
               const isInactive = catalogReady && res ? !res.active : false;
 
               return (
@@ -2493,7 +2530,7 @@ function SystemRolesDialog({
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <span>
                       {item.isPrimary ? "★ " : ""}
-                      <strong>{displayName}</strong> - {item.role === "pi" ? "책임자 (PI)" : `개발자 (Developer) · ${gradeText}`}
+                      <strong>{displayName}</strong> - {item.role === "pi" ? "책임자 (PI)" : "개발자 (Developer)"}
                     </span>
                     {isInactive ? (
                       <span className={`${styles.badge} ${styles.badgeInactive}`}>비활성</span>
