@@ -12,6 +12,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "issue-lifecycle.yml"
 AUTO_WORKFLOW = ROOT / ".github" / "workflows" / "release-finalizer.yml"
 RELEASE_WORKFLOW = ROOT / ".github" / "workflows" / "release-image.yml"
+CI_WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 IMPL = ROOT / "scripts" / "issue_lifecycle.py"
 AUTO_IMPL = ROOT / "scripts" / "auto_release_finalizer.py"
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
@@ -25,6 +26,7 @@ def require(condition: bool, message: str) -> None:
 workflow = WORKFLOW.read_text(encoding="utf-8")
 auto_workflow = AUTO_WORKFLOW.read_text(encoding="utf-8")
 release_workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
+ci_workflow = CI_WORKFLOW.read_text(encoding="utf-8")
 impl = IMPL.read_text(encoding="utf-8")
 auto_impl = AUTO_IMPL.read_text(encoding="utf-8")
 
@@ -60,6 +62,20 @@ require("scripts/auto_release_finalizer.py" in auto_workflow, "automatic resolve
 require("queue: max" in auto_workflow, "automatic finalizer must retain burst events")
 require("packages: write" not in auto_workflow, "automatic finalizer must delegate package writes to release-image")
 require("queue: max" in release_workflow, "release image workflow must queue concurrent releases")
+require("publish-commit-image:" in ci_workflow, "main temporary GHCR publish job is required")
+require("always() &&" in ci_workflow, "main temporary GHCR job must defeat transitive skip propagation")
+for result_check in (
+    "needs.changes.result == 'success'",
+    "needs.quality.result == 'success'",
+    "needs.e2e.result == 'success'",
+    "needs.docker.result == 'success'",
+):
+    require(result_check in ci_workflow, f"main temporary GHCR fail-closed result check missing: {result_check}")
+require("needs.changes.outputs.docs_only != 'true'" in ci_workflow, "docs-only main pushes must not publish temporary GHCR images")
+require("MAIN_ARTIFACT_JOB" in impl, "lifecycle must name the main artifact job")
+require("main_change_docs_only" in impl, "lifecycle must independently classify docs-only merge targets")
+require("main_artifact_gate" in impl, "lifecycle must inspect exact main artifact job result")
+require("filter=latest&per_page=100" in impl, "lifecycle must inspect latest-attempt main CI jobs")
 require("mastergantt-release-authorization:v1" in auto_impl, "version-scoped release authorization marker is required")
 require("gh_paginated(" in auto_impl, "comment and PR pagination helper is required")
 require("collect_pending_work(" in auto_impl, "first-parent backlog resolver is required")
@@ -98,17 +114,39 @@ module = load_module("issue_lifecycle", IMPL)
 auto = load_module("auto_release_finalizer", AUTO_IMPL)
 
 scenarios = [
-    (dict(merged=False, checks_ok=False, main_ci_ok=False, release_required=False, release_authorized=False, version_ok=True), "BLOCKED"),
-    (dict(merged=True, checks_ok=True, main_ci_ok=True, release_required=False, release_authorized=False, version_ok=True), "PASS"),
-    (dict(merged=True, checks_ok=True, main_ci_ok=True, release_required=True, release_authorized=True, version_ok=True), "PASS"),
-    (dict(merged=True, checks_ok=True, main_ci_ok=True, release_required=True, release_authorized=False, version_ok=True), "BLOCKED"),
-    (dict(merged=True, checks_ok=True, main_ci_ok=False, release_required=False, release_authorized=False, version_ok=True), "NOT TESTED"),
-    (dict(merged=True, checks_ok=True, main_ci_ok=True, release_required=True, release_authorized=True, version_ok=False), "FAIL"),
-    (dict(merged=True, checks_ok=False, main_ci_ok=True, release_required=False, release_authorized=False, version_ok=True), "NOT TESTED"),
+    (dict(merged=False, checks_ok=False, main_ci_ok=False, main_artifact_ok=False, release_required=False, release_authorized=False, version_ok=True), "BLOCKED"),
+    (dict(merged=True, checks_ok=True, main_ci_ok=True, main_artifact_ok=True, release_required=False, release_authorized=False, version_ok=True), "PASS"),
+    (dict(merged=True, checks_ok=True, main_ci_ok=True, main_artifact_ok=True, release_required=True, release_authorized=True, version_ok=True), "PASS"),
+    (dict(merged=True, checks_ok=True, main_ci_ok=True, main_artifact_ok=True, release_required=True, release_authorized=False, version_ok=True), "BLOCKED"),
+    (dict(merged=True, checks_ok=True, main_ci_ok=False, main_artifact_ok=False, release_required=False, release_authorized=False, version_ok=True), "NOT TESTED"),
+    (dict(merged=True, checks_ok=True, main_ci_ok=True, main_artifact_ok=True, release_required=True, release_authorized=True, version_ok=False), "FAIL"),
+    (dict(merged=True, checks_ok=False, main_ci_ok=True, main_artifact_ok=True, release_required=False, release_authorized=False, version_ok=True), "NOT TESTED"),
 ]
 for kwargs, expected in scenarios:
     actual = module.mutation_gate(**kwargs)
     require(actual == expected, f"scenario mismatch: {kwargs} => {actual}, expected {expected}")
+
+artifact_missing = dict(
+    merged=True,
+    checks_ok=True,
+    main_ci_ok=True,
+    main_artifact_ok=False,
+    release_required=False,
+    release_authorized=False,
+    version_ok=True,
+)
+require(module.mutation_gate(**artifact_missing) == "NOT TESTED", "missing main artifact evidence must fail closed")
+
+require(module.docs_only_paths(["docs/CI_CD.md", "README.md"]), "docs/root Markdown must classify docs-only")
+require(not module.docs_only_paths(["docs/CI_CD.md", "scripts/tool.py"]), "non-doc file must defeat docs-only classification")
+require(not module.docs_only_paths([]), "empty diff must fail safe as non-docs")
+
+artifact_success = [{"name": module.MAIN_ARTIFACT_JOB, "status": "completed", "conclusion": "success", "html_url": "https://example.invalid/job"}]
+artifact_skipped = [{"name": module.MAIN_ARTIFACT_JOB, "status": "completed", "conclusion": "skipped", "html_url": "https://example.invalid/job"}]
+require(module.main_artifact_gate(artifact_success, docs_only=False)[0], "non-docs main artifact SUCCESS must pass")
+require(not module.main_artifact_gate(artifact_skipped, docs_only=False)[0], "non-docs skipped artifact must fail closed")
+require(module.main_artifact_gate(artifact_skipped, docs_only=True)[0], "docs-only skipped artifact must be N/A/PASS")
+require(not module.main_artifact_gate([], docs_only=False)[0], "missing main artifact job must fail closed")
 
 sha = "a" * 40
 repo = "owner/repo"

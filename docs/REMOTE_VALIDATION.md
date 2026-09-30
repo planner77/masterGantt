@@ -246,3 +246,14 @@ PR 단계에서는 `scripts/verify-issue-lifecycle.py`가 trigger/filter, exact 
 - 근접한 여러 merge의 CI 완료 순서가 뒤집혀도 current main first-parent backlog를 oldest → newest로 처리하며 queue burst에서도 target이 유실되지 않음
 
 실패 후에는 원인을 제거하고 기존 failed run/job 재실행을 우선한다.
+
+## Main 임시 GHCR evidence 원격 검증 (#352)
+
+비문서 main merge에서는 exact SHA의 main CI에서 다음을 서로 분리해 확인한다.
+
+1. required aggregate checks가 SUCCESS.
+2. `Main 임시 commit 이미지 게시·검증·정리` job이 실제로 생성되어 SUCCESS.
+3. Generic Finalizer가 위 artifact job evidence를 PASS로 읽은 뒤에만 lifecycle mutation을 수행.
+4. docs-only merge에서는 artifact job SKIPPED와 lifecycle의 `N/A — docs-only` evidence가 일치.
+
+Optional shard/implementation job의 SKIPPED가 있어도 aggregate required checks가 SUCCESS이면 비문서 main artifact job이 skip propagation으로 누락되지 않아야 한다.
