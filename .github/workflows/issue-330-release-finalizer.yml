@@ -1,0 +1,74 @@
+name: Issue 330 release finalizer
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: write
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: issue-330-release-finalize
+  cancel-in-progress: false
+
+jobs:
+  release_finalize:
+    name: v0.58.3 release and close Issue 330
+    if: >-
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    env:
+      FEATURE_PR: "338"
+      FINALIZER_BRANCH: ops/issue-330-release-finalize
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Verify this is the exact Issue 330 feature merge CI
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          pr_json="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/$FEATURE_PR")"
+          merged="$(jq -r '.merged // false' <<<"$pr_json")"
+          merge_sha="$(jq -r '.merge_commit_sha // empty' <<<"$pr_json")"
+          ci_sha="${{ github.event.workflow_run.head_sha }}"
+
+          if [[ "$merged" != "true" || -z "$merge_sha" || "$ci_sha" != "$merge_sha" ]]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Skip: completed main CI does not belong to merged PR #$FEATURE_PR."
+            exit 0
+          fi
+
+          echo "run=true" >> "$GITHUB_OUTPUT"
+          echo "merge_sha=$merge_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Safely remove finalizer branch
+        if: steps.gate.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY%%/*}"
+          finalizer_pr="$(
+            gh api "/repos/$GITHUB_REPOSITORY/pulls?state=closed&base=main&head=$owner:$FINALIZER_BRANCH&per_page=20" |
+              jq -r '[.[] | select(.merged_at != null)] | last | .number // empty'
+          )"
+          test -n "$finalizer_pr"
+          python3 scripts/safe_branch_cleanup.py             --repo "$GITHUB_REPOSITORY"             --pr "$finalizer_pr"             --branch "$FINALIZER_BRANCH"             --target-sha "${{ steps.gate.outputs.merge_sha }}"             --delete
+
+      - name: Release v0.58.3, clean feature branch, and close Issue 330
+        if: steps.gate.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/issue_lifecycle.py release_finalize             --issue 330             --pr "$FEATURE_PR"             --release-required true             --release-authorized true             --expected-version 0.58.3             --authorization-note "사용자가 2026-09-30에 Issue #330의 GHCR 게시를 포함한 release finalizer 자동 실행 설정 후 병합 및 main CI 시작을 명시적으로 요청함."
