@@ -1,3 +1,4 @@
+import { hasTaskSchedule } from "./task-schedule-guard";
 import { randomUUID } from "node:crypto";
 
 import type Database from "better-sqlite3";
@@ -437,8 +438,8 @@ function validatePersistedScheduleShape(
         !validPersistedExternalId(task.externalId) ||
         !validPersistedName(task.name) ||
         !Number.isInteger(task.sortOrder) || task.sortOrder < 0 ||
-        !Number.isFinite(task.progress) ||
-        task.progress < 0 || task.progress > 100
+        (task.type !== "summary" && (task.progress === null || !Number.isFinite(task.progress) ||
+        task.progress < 0 || task.progress > 100))
       ) {
         throw new PersistedScheduleInvalidError();
       }
@@ -450,7 +451,7 @@ function validatePersistedScheduleShape(
       }
       if (
         (task.type !== "task" && task.type !== "milestone") ||
-        task.requestedStart === null
+        task.requestedStart === null || task.duration === null || task.progress === null || task.startDate === null || task.endDate === null
       ) {
         throw new PersistedScheduleInvalidError();
       }
@@ -902,7 +903,10 @@ export class ProjectService {
       ) {
         throw new ParentConversionRequiredError();
       }
-      const scheduled = scheduleLeaf({
+      const scheduled = validatedInput.type === "summary"
+        ? { type: "summary" as const, scheduleMode: "auto" as const, requestedStart: null,
+            start: null, end: null, duration: null, warnings: [] }
+        : scheduleLeaf({
         type: validatedInput.type,
         requestedStart: validatedInput.start,
         duration: validatedInput.duration,
@@ -934,7 +938,7 @@ export class ProjectService {
           startDate: scheduled.start,
           endDate: scheduled.end,
           duration: scheduled.duration,
-          progress: validatedInput.progress,
+          progress: validatedInput.type === "summary" ? null : validatedInput.progress,
           parentId: parent?.id ?? null,
           sortOrder: this.schedules.nextSiblingSortOrder(
             project.id,
@@ -1089,7 +1093,7 @@ export class ProjectService {
           throw new TaskScheduleConflictError("MANUAL_DEPENDENCY_CONFLICT");
         }
         const originals = new Map(tasks.map((task) => [task.publicId, task]));
-        const changedLeaves = candidate.tasks.filter((task) => {
+        const changedLeaves = candidate.tasks.filter(hasTaskSchedule).filter((task) => {
           const before = originals.get(task.taskId)!;
           return task.type !== "summary" && (task.start !== before.startDate || task.end !== before.endDate);
         });
@@ -1113,6 +1117,7 @@ export class ProjectService {
         }
         changedLeafExternalIds = changedLeaves.map((task) => task.externalId);
         const target = candidate.tasks.find((task) => task.taskId === current.publicId)!;
+        if (!hasTaskSchedule(target)) throw new PersistedScheduleInvalidError();
         finalStart = target.start;
         finalEnd = target.end;
       }
@@ -1249,14 +1254,8 @@ export class ProjectService {
       assertHierarchyMutationCapability(links, [current.id]);
       const calendar = workingCalendar(this.database, project, project.id);
       recalculatePersistedHierarchy(tasks, calendar, links);
-      if (current.type === "summary") {
+      if (current.type === "summary" && tasks.some((task) => task.parentId === current.id)) {
         throw new SummaryTaskDeleteUnsupportedError();
-      }
-      if (
-        current.parentId !== null &&
-        tasks.filter((task) => task.parentId === current.parentId).length === 1
-      ) {
-        throw new EmptySummaryNotAllowedError();
       }
       if (!this.schedules.deleteTask(project.id, taskPublicId)) {
         throw new TaskNotFoundError();

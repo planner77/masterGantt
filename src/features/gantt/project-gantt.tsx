@@ -3,6 +3,7 @@
 import {
   Gantt,
   Willow,
+  defaultTaskTypes,
   type IApi,
   type IColumnConfig,
   type ILink,
@@ -52,7 +53,6 @@ import {
   type ProjectTaskCreateCommand,
   type ProjectTaskUpdateCommand,
 } from "./project-task-adapter";
-import { dateOnlyFromLocalDate } from "./date-adapter";
 import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
 import { resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import type { TaskEditorSaveResult } from "./task-editor-model";
@@ -84,6 +84,7 @@ export type ProjectGridDataColumnId =
 
 export type ProjectGridColumnVisibility = Record<ProjectGridDataColumnId, boolean>;
 let nextApiInstanceId = 1;
+const projectTaskTypes = [...defaultTaskTypes, { id: "summary-container", label: "요약 작업 (일정 미산정)" }];
 
 type MenuPosition = Readonly<{ left: number; top: number }>;
 type TaskMenuState = MenuPosition & Readonly<{ taskId: string }>;
@@ -352,6 +353,19 @@ export function ProjectGantt({
         const eligible = Boolean(taskId && editable && !mutationLocked && tasksById.has(taskId));
         if (row.dataset.inlineNameEligible !== String(eligible)) row.dataset.inlineNameEligible = String(eligible);
         const nameCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
+        const task = taskId ? tasksById.get(taskId) : undefined;
+        const summaryState = task?.type === "summary" && task.start === null
+          ? tasks.some((candidate) => candidate.parentExternalId === task.externalId) ? "일정 있는 하위 작업 없음" : "하위 작업 없음"
+          : null;
+        if (nameCell && summaryState) {
+          nameCell.dataset.summaryState = summaryState;
+          nameCell.setAttribute("aria-description", `요약 작업: ${summaryState}`);
+          nameCell.title = `${task!.name} · ${summaryState}`;
+        } else if (nameCell) {
+          delete nameCell.dataset.summaryState;
+          nameCell.removeAttribute("aria-description");
+          nameCell.removeAttribute("title");
+        }
         if (nameCell && !eligible && nameCell.getAttribute("aria-readonly") !== "true") nameCell.setAttribute("aria-readonly", "true");
         if (nameCell && eligible && nameCell.hasAttribute("aria-readonly")) nameCell.removeAttribute("aria-readonly");
       });
@@ -404,6 +418,8 @@ export function ProjectGantt({
 
   async function restoreSummaryToggleState(api: IApi, summaryState: ReadonlyMap<string, boolean>) {
     for (const [taskId, collapsed] of summaryState) {
+      const task = tasksByIdReference.current.get(taskId);
+      if (!task || !tasksReference.current.some((candidate) => candidate.parentExternalId === task.externalId)) continue;
       await api.exec("open-task", { id: taskId, mode: !collapsed });
     }
   }
@@ -621,12 +637,15 @@ export function ProjectGantt({
             ...column,
             hidden: !columnVisibility.projectStart,
             sort: (first: ITask, second: ITask) => {
-              const difference = (first.start?.getTime() ?? 0) - (second.start?.getTime() ?? 0);
-              return difference === 0 ? 0 : difference < 0 ? -1 : 1;
+              const firstStart = tasksById.get(String(first.id))?.start;
+              const secondStart = tasksById.get(String(second.id))?.start;
+              if (!firstStart || !secondStart) return !firstStart && !secondStart ? 0 : !firstStart ? 1 : -1;
+              return firstStart === secondStart ? 0 : firstStart < secondStart ? -1 : 1;
             },
-            getter: (task: ITask) => task.start instanceof Date
-              ? formatLocaleDateOnly(dateOnlyFromLocalDate(task.start), locales)
-              : "—",
+            getter: (task: ITask) => {
+              const start = typeof task.id === "string" ? tasksById.get(task.id)?.start : null;
+              return start ? formatLocaleDateOnly(start, locales) : "—";
+            },
           }
           : column.id === "projectDuration"
             ? {
@@ -636,8 +655,8 @@ export function ProjectGantt({
                 // Core renders elapsed calendar duration for its bar. Keep
                 // the Grid contract truthful by reading the scheduler's
                 // canonical working-day duration from the snapshot instead.
-                typeof task.id === "string" && typeof tasksByIdReference.current.get(task.id)?.duration === "number"
-                  ? String(tasksByIdReference.current.get(task.id)!.duration)
+                typeof task.id === "string" && typeof tasksById.get(task.id)?.duration === "number"
+                  ? String(tasksById.get(task.id)!.duration)
                   : "—"
               ),
             }
@@ -651,12 +670,15 @@ export function ProjectGantt({
               hidden: !columnVisibility.text,
               editor: (row?: Record<string, unknown>) => {
                 const taskId = typeof row?.id === "string" ? row.id : null;
-                return editable && !mutationLocked && taskId && tasksById.has(taskId) ? "text" : null;
+                return canCreateReference.current && taskId && tasksByIdReference.current.has(taskId) ? "text" : null;
               },
             }
             : column
     )),
-    [columnVisibility, editable, locales, mutationLocked, tasksById],
+    // Canonical values can change while Core renderer coordinates do not.
+    // Refresh these captured DTO getters through the public set-columns sync
+    // below; tasksById also keeps the Grid/Chart render boundary synchronized.
+    [columnVisibility, locales, tasksById],
   );
   const initialConfig = useState(() => ({
     tasks: projectTasksToSvarTasks(tasks),
@@ -1503,6 +1525,9 @@ export function ProjectGantt({
     switch (taskSubmenu.name) {
       case "Add": return <>
         <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canAddChild} onClick={() => createTaskFromMenu("child")} role="menuitem" type="button">Child task</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canAddChild} onClick={() => {
+          executeHierarchyCommand({ kind: "create", anchorTaskId: taskMenu.taskId, placement: "child", task: { name: "새 요약 작업", type: "summary" } });
+        }} role="menuitem" type="button">요약 작업 추가</button>
         <button className="project-task-context-submenu-command" disabled={!canMutate} onClick={() => createTaskFromMenu("before")} role="menuitem" type="button">Task above</button>
         <button className="project-task-context-submenu-command" disabled={!canMutate} onClick={() => createTaskFromMenu("after")} role="menuitem" type="button">Task below</button>
       </>;
@@ -1540,6 +1565,7 @@ export function ProjectGantt({
           <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">일</button>
           <button aria-pressed={scaleMode === "week"} onClick={() => changeScaleMode("week")} type="button">주</button>
         </div>
+        {editable ? <button className="project-gantt-fullscreen-button" disabled={mutationLocked} onClick={() => onTaskCreateReference.current({ name: "새 요약 작업", type: "summary" })} type="button">요약 작업 추가</button> : null}
         <button className="project-gantt-fullscreen-button" ref={fullscreenButtonReference} type="button"
           aria-label={isFullscreen ? "Gantt 전체 화면 종료" : "Gantt 전체 화면"} aria-pressed={isFullscreen}
           aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
@@ -1585,6 +1611,7 @@ export function ProjectGantt({
               end={initialRange.end}
               start={initialRange.start}
               tasks={initialConfig.tasks}
+              taskTypes={projectTaskTypes}
             />
           </div>
         </div>

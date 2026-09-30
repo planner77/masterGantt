@@ -135,7 +135,8 @@ function orderedTasks(tasks: readonly ProjectTaskDto[]): OrderedTask[] {
       throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Duplicate externalId in canonical snapshot.");
     }
     byExternalId.set(task.externalId, task);
-    if (!validDateOnly(task.start) || !validDateOnly(task.end) || epochDay(task.end) < epochDay(task.start)) {
+    const unscheduled = task.type === "summary" && task.start === null && task.end === null && task.duration === null && task.progress === null;
+    if (!unscheduled && (task.start === null || task.end === null || task.duration === null || task.progress === null || !validDateOnly(task.start) || !validDateOnly(task.end) || epochDay(task.end) < epochDay(task.start))) {
       throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", `Invalid task schedule: ${task.externalId}`);
     }
   }
@@ -178,9 +179,11 @@ function timeline(tasks: readonly OrderedTask[]): string[] {
   let first = Number.POSITIVE_INFINITY;
   let last = Number.NEGATIVE_INFINITY;
   for (const { task } of tasks) {
+    if (task.start === null || task.end === null) continue;
     first = Math.min(first, epochDay(task.start));
     last = Math.max(last, epochDay(task.end));
   }
+  if (!Number.isFinite(first)) return [];
   const days = last - first + 1;
   if (days > MAX_TIMELINE_DAYS) {
     throw new ProjectExcelExportError("EXPORT_LIMIT_EXCEEDED", `Timeline exceeds ${MAX_TIMELINE_DAYS} days.`);
@@ -283,10 +286,10 @@ function ganttSheet(snapshot: ProjectSnapshotResponse, tasks: readonly OrderedTa
     cells.push({ column: column++, style: STYLE.text, value: entry.wbs });
     cells.push({ column: column++, style: STYLE.text, value: `${"  ".repeat(Math.min(entry.depth, MAX_OUTLINE_LEVEL))}${entry.task.name}` });
     if (selected.has("externalId")) cells.push({ column: column++, style: STYLE.text, value: entry.task.externalId });
-    cells.push({ column: column++, style: STYLE.date, type: "number", value: excelSerial(entry.task.start) });
-    cells.push({ column: column++, style: STYLE.integer, type: "number", value: entry.task.duration });
-    const start = epochDay(entry.task.start);
-    const end = epochDay(entry.task.end);
+    cells.push({ column: column++, style: STYLE.date, type: "number", value: entry.task.start === null ? undefined : excelSerial(entry.task.start) });
+    cells.push({ column: column++, style: STYLE.integer, type: "number", value: entry.task.duration ?? undefined });
+    const start = entry.task.start === null ? null : epochDay(entry.task.start);
+    const end = entry.task.end === null ? null : epochDay(entry.task.end);
     dates.forEach((date, index) => {
       const current = epochDay(date);
       const weekday = new Date(current * DAY_MS).getUTCDay();
@@ -297,7 +300,7 @@ function ganttSheet(snapshot: ProjectSnapshotResponse, tasks: readonly OrderedTa
       if (entry.task.type === "milestone" && date === entry.task.start) {
         style = STYLE.milestone;
         value = "◆";
-      } else if (current >= start && current <= end) {
+      } else if (start !== null && end !== null && current >= start && current <= end) {
         style = entry.task.type === "summary" ? STYLE.summaryBar : STYLE.taskBar;
       }
       if (style !== STYLE.default || value !== undefined) cells.push({ column: timelineStart + index, style, value });
@@ -348,10 +351,10 @@ function tasksSheet(tasks: readonly OrderedTask[], links: readonly ProjectLinkDt
       { column: 2, style: STYLE.text, value: task.name },
       { column: 3, style: STYLE.text, value: task.externalId },
       { column: 4, style: STYLE.text, value: task.type },
-      { column: 5, style: STYLE.date, type: "number", value: excelSerial(task.start) },
-      { column: 6, style: STYLE.date, type: "number", value: excelSerial(task.end) },
-      { column: 7, style: STYLE.integer, type: "number", value: task.duration },
-      { column: 8, style: STYLE.percent, type: "number", value: task.progress / 100 },
+      { column: 5, style: STYLE.date, type: "number", value: task.start === null ? undefined : excelSerial(task.start) },
+      { column: 6, style: STYLE.date, type: "number", value: task.end === null ? undefined : excelSerial(task.end) },
+      { column: 7, style: STYLE.integer, type: "number", value: task.duration ?? undefined },
+      { column: 8, style: STYLE.percent, type: "number", value: task.progress === null ? undefined : task.progress / 100 },
       { column: 9, style: STYLE.text, value: task.description ?? "" },
       { column: 10, style: STYLE.text, value: task.url ?? "" },
     ];
@@ -409,6 +412,7 @@ function drawingXml(links: readonly ProjectLinkDto[], tasks: readonly OrderedTas
   const connectors = links.map((link, index) => {
     const predecessor = byId.get(link.predecessorExternalId)!;
     const successor = byId.get(link.successorExternalId)!;
+    if (predecessor.task.end === null || successor.task.start === null) throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Unscheduled dependency endpoint.");
     const fromCol = timelineStart - 1 + (dateIndex.get(predecessor.task.end) ?? 0);
     const toCol = timelineStart - 1 + (dateIndex.get(successor.task.start) ?? 0);
     const fromRow = predecessor.row - 1;

@@ -65,8 +65,8 @@ export function taskContextCapabilities(
     canPaste: available && clipboard !== null && clipboard.taskId !== task.taskId,
     canConvertToTask: available && task.type === "milestone" && !hasChildren,
     canConvertToMilestone: available && task.type === "task" && !hasChildren,
-    // Canonical masterGantt summaries are derived and may not be empty.
-    // A direct leaf→summary command therefore has no valid persisted state.
+    // Empty summaries are created explicitly. Standalone leaf conversion is
+    // still outside this command contract; first-child conversion is separate.
     canConvertToSummary: false,
   };
 }

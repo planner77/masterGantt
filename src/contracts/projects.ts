@@ -66,10 +66,10 @@ export interface ProjectTaskDto {
   type: "task" | "summary" | "milestone";
   scheduleMode: "auto" | "manual";
   requestedStart: string | null;
-  start: string;
-  end: string;
-  duration: number;
-  progress: number;
+  start: string | null;
+  end: string | null;
+  duration: number | null;
+  progress: number | null;
   parentExternalId: string | null;
   siblingOrder: number;
   baselineStart?: string | null;
@@ -190,21 +190,22 @@ export interface ProjectMetadataMutationResponse {
   };
 }
 
-export interface CreateTaskRequest {
+interface CreateTaskCommon {
   externalId?: string;
   parentTaskId?: string;
   convertParentToSummary?: true;
   name: string;
   description?: string | null;
   url?: string | null;
-  type: "task" | "milestone";
-  scheduleMode?: "auto" | "manual";
-  start: string;
-  end?: string;
-  duration: number;
-  progress: number;
   parentExternalId?: null;
 }
+
+export type CreateTaskRequest = CreateTaskCommon & (
+  | { type: "task" | "milestone"; scheduleMode?: "auto" | "manual";
+      start: string; end?: string; duration: number; progress: number }
+  | { type: "summary"; scheduleMode?: "auto";
+      start?: null; end?: null; duration?: null; progress?: null }
+);
 
 export interface UpdateTaskRequest {
   name?: string;
@@ -234,17 +235,12 @@ export type TaskHierarchyCommandKind =
   | "reparent"
   | "copy";
 
-export interface TaskHierarchyCreateSeed {
-  name: string;
-  description?: string | null;
-  url?: string | null;
-  type: "task" | "milestone";
-  scheduleMode?: "auto" | "manual";
-  start: string;
-  end?: string;
-  duration: number;
-  progress: number;
-}
+export type TaskHierarchyCreateSeed = Omit<CreateTaskRequest, "externalId" | "parentTaskId" | "convertParentToSummary" | "parentExternalId"> & (
+  | { type: "task" | "milestone"; scheduleMode?: "auto" | "manual";
+      start: string; end?: string; duration: number; progress: number }
+  | { type: "summary"; scheduleMode?: "auto";
+      start?: null; end?: null; duration?: null; progress?: null }
+);
 
 export type TaskHierarchyCommandRequest =
   | {

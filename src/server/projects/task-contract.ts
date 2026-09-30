@@ -69,21 +69,21 @@ const dateLabel = wellFormedString;
 const duration = z.number().int();
 const progress = z.number().finite().min(0).max(100);
 
-const createTaskSchema = z.object({
+const createTaskCommon = {
   externalId: externalId.optional(),
   parentTaskId: z.string().refine(isCanonicalUuidV4).optional(),
   convertParentToSummary: z.literal(true).optional(),
   name: taskName,
   description: taskDescription.optional(),
   url: taskUrl.optional(),
-  type: leafType,
-  scheduleMode: scheduleMode.optional(),
-  start: dateLabel,
-  end: dateLabel.optional(),
-  duration,
-  progress,
   parentExternalId: z.null().optional(),
-}).strict().refine(
+};
+const createTaskSchema = z.union([
+  z.object({ ...createTaskCommon, type: leafType, scheduleMode: scheduleMode.optional(),
+    start: dateLabel, end: dateLabel.optional(), duration, progress }).strict(),
+  z.object({ ...createTaskCommon, type: z.literal("summary"), scheduleMode: z.literal("auto").optional(),
+    start: z.null().optional(), end: z.null().optional(), duration: z.null().optional(), progress: z.null().optional() }).strict(),
+]).refine(
   (value) => value.convertParentToSummary !== true || value.parentTaskId !== undefined,
   {
     path: ["convertParentToSummary"],

@@ -35,3 +35,7 @@ SVG와 PNG는 같은 서버 SVG를 사용한다. PNG는 브라우저에서 SVG�
 서버는 Task 5,000개, Link 20,000개, Timeline 3,650일, Task×날짜 1,000,000셀, SVG 한 변 16,384px, SVG 16 MiB, text 32,767 Unicode code point를 상한으로 둔다. 초과는 `422 EXPORT_LIMIT_EXCEEDED`, 지원되지 않는 canonical 구조는 `422 EXPORT_UNSUPPORTED`, 선택 기간과 Project 일정의 미교차는 `422 EXPORT_RANGE_NO_OVERLAP`으로 처리한다. 브라우저는 PNG의 한 변 16,384px 및 총 32,000,000 pixel을 SVG decode 전에 검사하고 초과 시 더 짧은 기간 또는 SVG 내보내기를 안내한다. Canvas는 흰 배경 위에 그린다.
 
 서버 Unit/API 검증은 hierarchy 순서, geometry·clip, XML 안전성, 유효하지 않은 기간, revision/Origin, 크기 제한과 Excel 회귀를 포함한다. Chromium E2E는 Excel/SVG/PNG 선택·다운로드, 이미지 크기/서명, keyboard·focus/Escape, 반응형 header와 기존 Gantt 상태를 검증한다. PR 원격 `quality/e2e/docker` 결과는 해당 head에서 별도로 판정한다.
+
+## Issue #345: 일정 없는 Summary
+
+프로젝트 전체 Export는 빈 Summary와 빈 Summary만 중첩된 행도 canonical 순서/높이대로 유지한다. Grid의 일정은 —로 표시하고 Chart에는 해당 bar/진척을 그리지 않는다. timeline min/max는 실제 날짜가 있는 행에서만 계산한다. 전체가 미산정이면 renderer의 표시용 기본 범위를 사용하며 이를 Task 일정으로 저장하지 않는다. 기간 지정 Export의 기존 전 행 유지 계약은 같고 실제 Project 일정과 미교차(전체 미산정 포함)는 `EXPORT_RANGE_NO_OVERLAP`이다. PNG는 같은 SVG를 사용하므로 null을 숫자 날짜나 0% bar로 바꾸지 않는다.

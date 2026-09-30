@@ -102,7 +102,7 @@ describe("Issue #258 real linked Task PATCH", () => {
         expect(response.status).toBe(200);
         const body = await response.json() as TaskMutationResponse;
         const calendar = createWorkingCalendar({ timezone: "Asia/Seoul", weekendDays: [6, 0] });
-        const normalized = before.tasks.map(t => t.type === "summary" ? t : { ...t, ...scheduleLeaf({ type: t.type, requestedStart: t.requestedStart!, duration: t.externalId === "A" ? 5 : t.duration, scheduleMode: t.scheduleMode }, calendar) });
+        const normalized = before.tasks.map(t => t.type === "summary" ? t : { ...t, ...scheduleLeaf({ type: t.type, requestedStart: t.requestedStart!, duration: t.externalId === "A" ? 5 : t.duration!, scheduleMode: t.scheduleMode }, calendar) });
         const expected = recalculateDependencies(normalized, before.links, calendar);
         expect(dates(body.data.tasks)).toEqual(dates([...expected.tasks]));
         expect(body.data.links).toEqual(before.links);

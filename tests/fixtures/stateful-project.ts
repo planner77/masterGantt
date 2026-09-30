@@ -62,12 +62,12 @@ function applySuccessfulCreate(fixture: StatefulProjectFixture, payload: CreateT
   const changedTaskExternalIds = [externalId];
   if (parent?.type === "task" && payload.convertParentToSummary) {
     parent.type = "summary"; parent.requestedStart = null;
-    parent.start = payload.start; parent.end = payload.start; parent.duration = payload.duration; parent.progress = payload.progress;
+    parent.start = payload.start ?? null; parent.end = payload.start ?? null; parent.duration = payload.duration ?? null; parent.progress = payload.progress ?? null;
     changedTaskExternalIds.unshift(parent.externalId);
   }
   const created = task(sequence, externalId, payload.name, {
-    type: payload.type, requestedStart: payload.start, start: payload.start, end: payload.start,
-    duration: payload.duration, progress: payload.progress, parentExternalId: parent?.externalId ?? null,
+    type: payload.type, requestedStart: payload.start ?? null, start: payload.start ?? null, end: payload.start ?? null,
+    duration: payload.duration ?? null, progress: payload.progress ?? null, parentExternalId: parent?.externalId ?? null,
     siblingOrder: fixture.tasks.filter((entry) => entry.parentExternalId === (parent?.externalId ?? null)).length,
   });
   fixture.tasks.push(created); fixture.createdTaskIds.push(created.taskId); fixture.project.revision += 1;

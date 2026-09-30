@@ -30,6 +30,11 @@ ci_workflow = CI_WORKFLOW.read_text(encoding="utf-8")
 impl = IMPL.read_text(encoding="utf-8")
 auto_impl = AUTO_IMPL.read_text(encoding="utf-8")
 
+require(re.search(r"^name: CI$", ci_workflow, re.MULTILINE) is not None, "Finalizer가 참조하는 CI workflow 이름을 유지해야 합니다")
+run_name = next((line for line in ci_workflow.splitlines() if line.startswith("run-name:")), "")
+require("github.event.pull_request.title" in run_name, "PR CI 실행 제목에 Issue 번호를 포함한 PR 제목이 필요합니다")
+require("github.event.head_commit.message" in run_name and "github.ref_name" in run_name, "main·수동 CI 실행 제목의 대체값이 필요합니다")
+
 require("workflow_dispatch:" in workflow, "workflow_dispatch entry point is required")
 require("operation:" in workflow and "verify, release, finalize, release_finalize" in workflow, "four operations are required")
 require("group: issue-lifecycle-${{ inputs.issue_number }}" in workflow, "per-Issue concurrency is required")

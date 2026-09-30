@@ -209,3 +209,7 @@ Excel은 선택적 물류 보고용 sheet를 추가하고 직접/파생, code/pu
 ## Issue #288 Developer grade 확장
 
 시스템의 PI/Developer 역할은 계속 기존 global Resource를 참조한다. 별도 Developer master나 `resourceType`은 추가하지 않는다. Resource의 전역 메타데이터 `developerGrade`를 역할 관계와 조합하며, 신규 Developer 역할은 등급 지정 Resource만 허용한다. 기존 미지정 Developer 역할은 migration 호환을 위해 보존할 수 있고 UI에서 `등급 미지정`으로 식별한다. 역할 해제와 Task assignment는 전역 등급을 변경하지 않는다.
+
+## Issue #345: 빈 컨테이너의 연결
+
+Summary는 자손 0개여도 `self/subtree` 연결을 그대로 보존한다. 마지막 자식 삭제·이동은 부모 연결의 scope를 바꾸거나 삭제하지 않으며 나중에 추가되는 실제 자손은 기존 ancestor subtree 상속 규칙을 적용받는다. 미산정 Summary는 날짜 있는 Leaf로 취급하지 않는다. 명시적으로 Summary 자체를 삭제할 때만 그 row의 직접 연결이 기존 FK 삭제 계약을 따른다.

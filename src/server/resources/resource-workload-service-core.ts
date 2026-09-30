@@ -46,7 +46,7 @@ export class ResourceWorkloadService {
     const assignments = this.catalog.listAssignments(project.id).filter((assignment) => assignment.kind === "resource");
     const resources = this.catalog.listResources();
     const groups = this.catalog.listGroups();
-    const taskDates = tasks.flatMap((task) => [task.startDate, task.endDate]);
+    const taskDates = tasks.flatMap((task) => [task.startDate, task.endDate]).filter((date): date is string => date !== null);
     const fallback = new Date().toISOString().slice(0, 10);
     const from = fromInput ?? (taskDates.length ? taskDates.reduce((a, b) => a < b ? a : b) : fallback);
     const to = toInput ?? (taskDates.length ? taskDates.reduce((a, b) => a > b ? a : b) : from);
