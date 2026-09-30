@@ -24,11 +24,13 @@ export function useProjectMasterSelectionCatalog() {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [generation, setGeneration] = useState(0);
 
-  const reload = useCallback(() => setGeneration((value) => value + 1), []);
+  const reload = useCallback(() => {
+    setState("loading");
+    setGeneration((value) => value + 1);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
-    setState("loading");
     void (async () => {
       try {
         const response = await fetch("/api/project-master/catalog", {
