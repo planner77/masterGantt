@@ -11,12 +11,12 @@ CREATE TABLE project_master_items (
   id INTEGER PRIMARY KEY,
   public_id TEXT NOT NULL UNIQUE,
   category TEXT NOT NULL CHECK (category IN ('BUSINESS_UNIT', 'PRODUCT', 'SITE_ENTITY')),
-  code TEXT NOT NULL,
-  name TEXT NOT NULL,
+  code TEXT NOT NULL CHECK (length(trim(code)) BETWEEN 1 AND 64),
+  name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 200),
   active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
-  sort_order INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL,
-  updated_at TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0 CHECK (sort_order BETWEEN 0 AND 1000000),
+  created_at TEXT NOT NULL CHECK (length(created_at) > 0),
+  updated_at TEXT NOT NULL CHECK (length(updated_at) > 0),
   UNIQUE (category, code)
 ) STRICT;
 
@@ -82,16 +82,16 @@ END;
 CREATE TABLE project_master_admin_credentials (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   password_kdf TEXT NOT NULL CHECK (password_kdf = 'scrypt'),
-  password_salt BLOB NOT NULL,
-  password_hash BLOB NOT NULL,
-  updated_at TEXT NOT NULL
+  password_salt BLOB NOT NULL CHECK (length(password_salt) >= 16),
+  password_hash BLOB NOT NULL CHECK (length(password_hash) = 32),
+  updated_at TEXT NOT NULL CHECK (length(updated_at) > 0)
 ) STRICT;
 
 CREATE TABLE project_master_admin_sessions (
   id INTEGER PRIMARY KEY,
-  token_hash BLOB NOT NULL UNIQUE,
-  created_at TEXT NOT NULL,
-  expires_at TEXT NOT NULL,
+  token_hash BLOB NOT NULL UNIQUE CHECK (length(token_hash) = 32),
+  created_at TEXT NOT NULL CHECK (length(created_at) > 0),
+  expires_at TEXT NOT NULL CHECK (length(expires_at) > 0),
   revoked_at TEXT
 ) STRICT;
 
