@@ -698,6 +698,15 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - Resource Advanced Filter는 종류/상태/Task From/To와 한쪽 날짜 초안·역순 날짜 안내를 유지하면서 동일 geometry 검사를 수행한다. 768/1024에서는 2열 reflow, 390에서는 1열 reflow가 document horizontal overflow 없이 접근 가능해야 한다.
 - 기존 #83/#130/#196의 predicate, active count, Task/Milestone quick view, Grid/Chart visibility, Reset/search focus, Escape/filter trigger focus, Gantt root identity, filter 조작 중 mutation/API 재조회 0회 assertion을 그대로 유지한다. 새 layout 검증은 이 기능 회귀를 대체하지 않는다.
 
+
+## Issue #326 작업 캘린더 client draft key 호환성
+
+- Unit: `createClientLocalId`가 `crypto.randomUUID` 지원 시 UUID 경로를 사용하고, 미지원 시 `getRandomValues` 또는 client-local 비보안 fallback으로 정상 생성되며 연속 key가 충돌하지 않는지 검증한다.
+- Chromium: page init 단계에서 `Crypto.prototype.randomUUID`를 제거한 뒤 Project 설정 → 작업 캘린더에서 국가 규칙 추가와 날짜 예외 추가를 실행하고 새 row가 표시되며 Error Boundary로 전환되지 않는지 검증한다.
+- 저장/Preview/API/Revision/Calendar scheduling 계약은 변경하지 않는다. 서버 `node:crypto.randomUUID`와 canonical public ID, 인증·세션용 난수 정책은 이번 회귀 범위 밖이며 기존 테스트를 유지한다.
+- Console의 password form username 접근성 경고는 이번 crash의 직접 원인으로 취급하지 않으며, 구조 변경이 필요하면 별도 접근성 Issue에서 추적한다.
+- 공식 전체 회귀 판정은 Issue #326 PR exact head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다. 실제 HTTP/IP reverse proxy 환경은 환경별 검증으로 별도 판정한다.
+
 ## Issue #261 Resource Group/Resource 근무일 예외
 
 - Domain/resolver: Project < Group < Resource 계층 양방향 override, 상위 대비 CHANGED/NO_EFFECT, 동일 유형 dedupe와 출처 보존, 반대 유형 conflict 및 입력/DB 순서 독립성. Resource 예외로 Group conflict가 은폐되지 않음.
