@@ -18,7 +18,7 @@ AUTH_MARKER_RE = re.compile(
     r"<!--\s*mastergantt-release-authorization:v1\s+({.*?})\s*-->",
     re.DOTALL,
 )
-TRUSTED_ASSOCIATIONS = {"OWNER", "MEMBER", "COLLABORATOR"}
+TRUSTED_ASSOCIATIONS = {"OWNER"}
 
 
 class AutoFinalizerError(RuntimeError):
