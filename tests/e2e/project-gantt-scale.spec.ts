@@ -46,7 +46,7 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(day).toHaveAttribute("aria-pressed", "true");
   await expect(week).toHaveAttribute("aria-pressed", "false");
   await expect(page.locator(".project-gantt-widget .wx-weekend").first()).toBeVisible();
-  const dayScale = page.locator(".project-gantt-widget .wx-scale").nth(1);
+  const dayScale = page.locator(".project-gantt-widget .wx-scale > .wx-row").nth(1);
   await expect(dayScale.getByText("14", { exact: true })).toBeVisible();
   await expect(dayScale.getByText("22", { exact: true })).toBeVisible();
   await expect(dayScale.getByText(/일|[()]/)).toHaveCount(0);
