@@ -80,6 +80,7 @@ require("filter=latest&per_page=100" in impl, "lifecycle must inspect latest-att
 require("mastergantt-release-authorization:v1" in auto_impl, "version-scoped release authorization marker is required")
 require("gh_paginated(" in auto_impl, "comment and PR pagination helper is required")
 require("collect_pending_work(" in auto_impl, "first-parent backlog resolver is required")
+require("coalesce_consecutive_issue_retries(" in auto_impl, "same-Issue corrective merge convergence is required")
 require("current_main_sha(" in auto_impl, "dispatcher must snapshot current main")
 require("oldest → newest" in auto_impl, "dispatcher must document first-parent processing order")
 require("head_sha=" in auto_impl, "exact main CI lookup must bind target SHA")
@@ -293,6 +294,21 @@ try:
 finally:
     auto.resolve_work_item = saved_resolve
     auto.is_finalized_boundary = saved_boundary
+
+# Adjacent corrective merges for the same Issue converge to the latest target,
+# preserving the version span from before the first attempt. A different Issue
+# boundary prevents convergence.
+retry_one = auto.WorkItem("4" * 40, old_sha, 10, 344, "0.58.3", "0.58.4")
+retry_two = auto.WorkItem("5" * 40, "4" * 40, 11, 344, "0.58.4", "0.58.5")
+collapsed = auto.coalesce_consecutive_issue_retries([retry_one, retry_two])
+require(len(collapsed) == 1, "adjacent same-Issue retries must converge")
+require(collapsed[0].target_sha == retry_two.target_sha, "latest retry target must win")
+require(collapsed[0].pr_number == retry_two.pr_number, "latest retry PR must win")
+require(collapsed[0].first_parent_sha == retry_one.first_parent_sha, "version span must start before first retry")
+require(collapsed[0].previous_version == "0.58.3" and collapsed[0].current_version == "0.58.5", "version span must cover all adjacent retries")
+other_issue = auto.WorkItem("6" * 40, retry_one.target_sha, 12, 999, "0.58.4", "0.58.4")
+not_collapsed = auto.coalesce_consecutive_issue_retries([retry_one, other_issue, retry_two])
+require(len(not_collapsed) == 3, "different Issue boundary must prevent convergence")
 
 for expected_error, values in [
     (True, ("1", "2", True, False, "", "")),
