@@ -34,13 +34,19 @@ export async function dragRowAfter(page: Page, source: string, target: string) {
 export async function renameInline(page: Page, name: string, nextName: string) {
   const frame = page.locator(".project-gantt-frame");
   await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+  await expect(frame).toHaveAttribute("data-task-inline-editable", "true");
 
   const row = taskRow(page, name);
   await expect(row).toBeVisible();
-  const cellText = row.locator('[data-col-id=":text"] .wx-content > .wx-text');
-  await cellText.click();
+  const rowId = await row.getAttribute("data-id");
+  expect(rowId).not.toBeNull();
 
-  const input = row.locator('.wx-cell.wx-editor input.wx-text');
+  await row.locator('[data-col-id=":text"] .wx-content > .wx-text').click();
+
+  // Once SVAR opens the editor, the visible text node is replaced by an input,
+  // so a locator filtered by hasText(name) no longer matches that row. Re-find
+  // the same row through its stable data-id instead.
+  const input = page.locator(`.project-gantt-widget .wx-row[data-id="${rowId}"] .wx-cell.wx-editor input.wx-text`);
   await expect(input).toBeFocused();
   await input.fill(nextName);
   await input.press("Enter");
