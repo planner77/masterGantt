@@ -46,7 +46,7 @@ export function CountryCalendarAdmin(){
   const [country,setCountry]=useState<WorkCalendarCountryCode>("KR");
   const [year,setYear]=useState<number>(2026);
   const [snapshot,setSnapshot]=useState<CountryCalendarAdminResponse|null>(null);
-  const [busy,setBusy]=useState(false);
+  const [busy,setBusy]=useState(true);
   const [error,setError]=useState<string|null>(null);
   const [notice,setNotice]=useState<string|null>(null);
   const [file,setFile]=useState<File|null>(null);
@@ -105,7 +105,7 @@ export function CountryCalendarAdmin(){
   }
   useEffect(()=>{
     const controller=new AbortController();
-    request.current=controller;setBusy(true);
+    request.current=controller;
     void load(controller).finally(()=>{if(!controller.signal.aborted)setBusy(false);});
     return()=>controller.abort();
     // Initial session probe only.
