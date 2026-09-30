@@ -834,3 +834,11 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - Vitest는 `tests/scripts/deployment-layout.test.ts`가 `@next/env === 16.3.4`를 과거 버전으로 고정해 16.3.6 보안 패치와 불일치하여 1건 실패했다. 검증 의도는 특정 과거 버전이 아니라 standalone runtime의 `@next/env`가 framework `next`와 같은 버전으로 pin되는지이므로 동등성 검사로 수정한다.
 - Chromium shard 3/4의 단일 실패는 `project-status.spec.ts`의 readonly canonical GET에서 `read ECONNRESET`이 발생한 transport reset이다. assertion 실패, HTTP 오류 응답 또는 서버 계약 불일치가 아니며 같은 shard의 다른 테스트는 계속 PASS했다. 제품 코드를 우회하지 않고 새 PR head 전체 E2E에서 재검증한다.
 - CI #1373의 실패를 PASS로 대체하지 않는다. 후속 head의 원격 quality/E2E/Docker 결과를 별도 증거로 사용한다.
+
+
+### Issue #344 / PR #359 — CI #1374 follow-up
+
+- CI #1374의 quality, production dependency audit, lifecycle policy, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 1/2/4는 PASS했다.
+- 실패는 Chromium shard 3/4의 `project-workspace-ux.spec.ts` 1건이다. `정보` disclosure의 summary에 focus 후 Tab으로 subtree 밖으로 이동했지만 `<details open>`이 닫히지 않았다. 77개 다른 shard 테스트는 PASS했다.
+- 기존 구현은 document `focusin` listener로 외부 focus를 감지했다. disclosure 자체의 React `onBlur`에서도 `relatedTarget`이 현재 details subtree 밖이면 닫도록 보완해 keyboard focus 이동을 구성요소 경계에서 직접 처리한다. Dialog/role=dialog로 이동하는 기존 예외는 유지한다.
+- CI #1374의 실패를 PASS로 대체하지 않으며, 새 head의 원격 E2E 전체 결과를 별도 증거로 사용한다.
