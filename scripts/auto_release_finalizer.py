@@ -13,9 +13,9 @@ from dataclasses import dataclass
 from typing import Any
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
-REF_RE = re.compile(r"(?im)^\\s*Refs\\s+#\\s*([1-9][0-9]*)\\s*$")
+REF_RE = re.compile(r"(?im)^\s*Refs\s+#\s*([1-9][0-9]*)\s*$")
 AUTH_MARKER_RE = re.compile(
-    r"<!--\\s*mastergantt-release-authorization:v1\\s+({.*?})\\s*-->",
+    r"<!--\s*mastergantt-release-authorization:v1\s+({.*?})\s*-->",
     re.DOTALL,
 )
 TRUSTED_ASSOCIATIONS = {"OWNER", "MEMBER", "COLLABORATOR"}
@@ -42,7 +42,7 @@ def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
     result = subprocess.run(args, text=True, capture_output=True)
     if check and result.returncode != 0:
         raise AutoFinalizerError(
-            f"command failed ({result.returncode}): {' '.join(args)}\\n{result.stderr.strip()}"
+            f"command failed ({result.returncode}): {' '.join(args)}\n{result.stderr.strip()}"
         )
     return result
 
@@ -54,12 +54,12 @@ def gh(path: str) -> Any:
 
 
 def write_summary(lines: list[str]) -> None:
-    text_value = "\\n".join(lines)
+    text_value = "\n".join(lines)
     print(text_value)
     path = os.environ.get("GITHUB_STEP_SUMMARY")
     if path:
         with open(path, "a", encoding="utf-8") as fp:
-            fp.write(text_value + "\\n")
+            fp.write(text_value + "\n")
 
 
 def select_exact_pull_request(
@@ -226,8 +226,8 @@ def execute(target_sha: str) -> int:
             [
                 "## 범용 Release Finalizer",
                 "",
-                f"- 대상 main SHA: \`{target_sha}\`",
-                "- 결과: \`SKIPPED\`",
+                f"- 대상 main SHA: `{target_sha}`",
+                "- 결과: `SKIPPED`",
                 "- 사유: target SHA와 정확히 일치하는 merged PR을 찾지 못해 mutation을 수행하지 않았습니다.",
             ]
         )
@@ -267,15 +267,15 @@ def execute(target_sha: str) -> int:
         [
             "## 범용 Release Finalizer",
             "",
-            f"- 대상 main SHA: \`{target_sha}\`",
-            f"- merge first parent: \`{first_parent}\`",
+            f"- 대상 main SHA: `{target_sha}`",
+            f"- merge first parent: `{first_parent}`",
             f"- 정확한 PR: #{pr_number}",
             f"- 정확한 Issue: #{issue_number}",
-            f"- application version: \`{previous_version}\` → \`{current_version}\`",
-            f"- release_required: \`{str(release_required).lower()}\`",
-            f"- release_authorized: \`{str(release_authorized).lower()}\`",
+            f"- application version: `{previous_version}` → `{current_version}`",
+            f"- release_required: `{str(release_required).lower()}`",
+            f"- release_authorized: `{str(release_authorized).lower()}`",
             f"- 승인 근거: {evidence}",
-            f"- operation: \`{operation}\`",
+            f"- operation: `{operation}`",
         ]
     )
 
@@ -309,7 +309,7 @@ def main() -> int:
             [
                 "## 범용 Release Finalizer",
                 "",
-                "- 결과: \`BLOCKED\`",
+                "- 결과: `BLOCKED`",
                 f"- 사유: {exc}",
                 "- mutation: 없음",
                 "- 복구: 신뢰 가능한 version-scoped release 승인 marker를 기록한 뒤 이 failed job을 재실행합니다.",
@@ -322,7 +322,7 @@ def main() -> int:
             [
                 "## 범용 Release Finalizer",
                 "",
-                "- 결과: \`FAIL\`",
+                "- 결과: `FAIL`",
                 f"- 사유: {exc}",
                 "- mutation: 없음",
             ]
