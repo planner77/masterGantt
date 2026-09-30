@@ -1,10 +1,18 @@
 name: CI
 
+run-name: >-
+  ${{ github.event_name == 'pull_request' && format('PR CI · {0} · PR #{1} · Run #{2}.{3}', github.event.pull_request.title, github.event.pull_request.number, github.run_number, github.run_attempt) || github.event_name == 'push' && format('Main CI · {0} · Run #{1}.{2}', github.event.head_commit.message, github.run_number, github.run_attempt) || inputs.issue_number != '' && format('수동 CI · Issue #{0} · {1} · Run #{2}.{3}', inputs.issue_number, github.ref_name, github.run_number, github.run_attempt) || format('수동 CI · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
+
 on:
   pull_request:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "관련 Primary Issue 번호(선택; 진단 실행은 비워 둘 수 있음)"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -37,6 +45,9 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: ${{ github.event_name == 'push' && 0 || 1 }}
+
+      - name: CI 실행 추적 메타데이터 검증
+        run: python3 scripts/verify-ci-run-trace.py
 
       # dorny/paths-filter v4.0.3
       # workflow-level paths는 required check를 Pending으로 남길 수 있어 사용하지 않는다.
