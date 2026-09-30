@@ -184,6 +184,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [metadataName, setMetadataName] = useState("");
   const [metadataDescription, setMetadataDescription] = useState("");
   const [metadataStatus, setMetadataStatus] = useState<ProjectStatus>("planned");
+  const [masterSelection, setMasterSelection] = useState({ businessUnitId: "", productId: "", siteEntityId: "" });
   const [columnVisibility, setColumnVisibility] = useState<ProjectGridColumnVisibility>(INITIAL_COLUMN_VISIBILITY);
   const [pendingTaskDelete, setPendingTaskDelete] = useState<PendingTaskDelete | null>(null);
   const taskMutationReference = useRef(false);
@@ -285,6 +286,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           return;
         }
         setMetadataName(body.data.project.name); setMetadataDescription(body.data.project.description); setMetadataStatus(body.data.project.status);
+        setMasterSelection({ businessUnitId: body.data.project.businessUnit?.id ?? "", productId: body.data.project.product?.id ?? "", siteEntityId: body.data.project.siteEntity?.id ?? "" });
         setState({ status: "ready", snapshot: body });
         try {
           const current = await fetch(`/api/projects/${encodeURIComponent(publicId)}/edit-sessions/current`, { credentials: "same-origin", signal: controller.signal });
@@ -329,6 +331,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (!isSnapshot(value)) return false;
     setState({ status: "ready", snapshot: value });
     setMetadataName(value.data.project.name); setMetadataDescription(value.data.project.description); setMetadataStatus(value.data.project.status);
+    setMasterSelection({ businessUnitId: value.data.project.businessUnit?.id ?? "", productId: value.data.project.product?.id ?? "", siteEntityId: value.data.project.siteEntity?.id ?? "" });
     return true;
   }
   async function fetchCanonicalSnapshot(): Promise<ProjectSnapshotResponse | null> {
@@ -433,7 +436,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, {
         method: "PATCH", credentials: "same-origin", headers: { "Content-Type": "application/json", "If-Match": revisionTag(state.snapshot.data.project.revision) },
-        body: JSON.stringify({ name: metadataName, description: metadataDescription, status: metadataStatus }),
+        body: JSON.stringify({
+          name: metadataName,
+          description: metadataDescription,
+          status: metadataStatus,
+          businessUnitId: masterSelection.businessUnitId || null,
+          productId: masterSelection.productId || null,
+          siteEntityId: masterSelection.siteEntityId || null,
+        }),
       });
       const body: unknown = await response.json().catch(() => null);
       const snapshot = snapshotFromMetadataMutation(body);
@@ -1209,6 +1219,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       onMetadataNameChange={setMetadataName}
       onMetadataDescriptionChange={setMetadataDescription}
       onMetadataStatusChange={setMetadataStatus}
+      masterSelection={masterSelection}
+      onMasterSelectionChange={setMasterSelection}
+      currentMaster={{ businessUnit: project.businessUnit, product: project.product, siteEntity: project.siteEntity }}
       onSaveMetadata={saveMetadata}
       isSavingMetadata={isSavingMetadata}
       newPassword={newPassword}
