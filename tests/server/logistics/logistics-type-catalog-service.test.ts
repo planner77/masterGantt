@@ -2,6 +2,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { openDatabase } from "../../../src/server/db/core";
 import {
+  LogisticsCatalogConflictError,
   LogisticsCatalogRevisionMismatchError,
   LogisticsCatalogTypeInactiveError,
   LogisticsTypeCatalogService,
@@ -23,6 +24,7 @@ describe("LogisticsTypeCatalogService",()=>{
       if(!admin)throw new Error("fixture admin session missing");
 
       let catalog=service.create("equipment",admin.rawToken,1,{code:"shuttle",name:"Shuttle",sortOrder:25});
+      expect(()=>service.create("equipment",admin.rawToken,2,{code:"shuttle",name:"Duplicate"})).toThrow(LogisticsCatalogConflictError);
       expect(catalog.data.revision).toBe(2);
       expect(catalog.data.equipmentTypes.find(x=>x.code==="shuttle")).toMatchObject({name:"Shuttle",active:true,usageCount:0});
 
