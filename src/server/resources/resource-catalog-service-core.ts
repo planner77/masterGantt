@@ -219,6 +219,7 @@ export class ResourceCatalogService {
     return { data: { revision: this.catalog.getRevision(), resources: this.catalog.listResources().map((r) => ({ id:r.publicId,name:r.name,code:r.code,description:r.description,active:r.active,developerGrade:r.developerGrade })), groups: this.catalog.listGroups().map((g) => ({ id:g.publicId,name:g.name,code:g.code,description:g.description,active:g.active,memberResourceIds:g.memberResourceIds })) } };
   }
   createTarget(kind: "resource" | "group", rawAdminToken: string | undefined, expectedRevision: number, input: CreateCatalogTargetRequest): ResourceCatalogResponse {
+    if (kind === "group" && input?.developerGrade !== undefined) throw new ResourceCatalogInvalidInputError();
     const canonical = canonicalCreate(input); const mutate = this.database.transaction(() => {
       this.requireAdmin(rawAdminToken); if (this.catalog.getRevision() !== expectedRevision) throw new ResourceCatalogRevisionMismatchError();
       const publicId = this.generatePublicId(); if (!isCanonicalUuidV4(publicId)) throw new ResourceCatalogInvalidInputError(); const now = this.clock().toISOString();
@@ -227,6 +228,7 @@ export class ResourceCatalogService {
     }); return mutate.immediate();
   }
   updateTarget(kind: "resource" | "group", publicId: string, rawAdminToken: string | undefined, expectedRevision: number, input: UpdateCatalogTargetRequest): ResourceCatalogResponse {
+    if (kind === "group" && input?.developerGrade !== undefined) throw new ResourceCatalogInvalidInputError();
     const canonical = canonicalUpdate(input); const mutate = this.database.transaction(() => {
       this.requireAdmin(rawAdminToken); if (this.catalog.getRevision() !== expectedRevision) throw new ResourceCatalogRevisionMismatchError();
       const current = kind === "resource" ? this.catalog.findResourceByPublicId(publicId) : this.catalog.findGroupByPublicId(publicId);
