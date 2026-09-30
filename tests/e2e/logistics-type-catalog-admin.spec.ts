@@ -55,5 +55,5 @@ test("Issue #280: logistics admin clears password drafts and reports unconfirmed
 
   await page.getByRole("button", { name: "로그아웃", exact: true }).click();
   await expect(page.getByRole("heading", { name: "관리자 로그인", exact: true })).toBeVisible();
-  await expect(page.getByRole("alert")).toContainText("서버 로그아웃을 확인하지 못했습니다. 관리 화면을 잠갔습니다.");
+  await expect(page.getByRole("alert").first()).toContainText("서버 로그아웃을 확인하지 못했습니다. 관리 화면을 잠갔습니다.");
 });
