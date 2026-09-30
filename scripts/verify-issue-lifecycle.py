@@ -67,7 +67,7 @@ require("author_association" in auto_impl, "release authorization must validate 
 require("release_finalize" in auto_impl and '"finalize"' in auto_impl, "automatic lifecycle must route release and no-release paths")
 
 legacy_pattern = re.compile(
-    r"^issue-[0-9]+.*(?:release-helper|release-finalizer|finalizer|cleanup)\\.ya?ml$",
+    r"^issue-[0-9]+.*(?:release-helper|release-finalizer|finalizer|cleanup)\.ya?ml$",
     re.IGNORECASE,
 )
 legacy_files = sorted(
@@ -78,7 +78,7 @@ require(not legacy_files, f"legacy per-Issue lifecycle workflows remain: {', '.j
 
 for text_value in (workflow, auto_workflow, impl, auto_impl):
     require(not re.search(r"issue-[0-9]+", text_value, re.I), "generic lifecycle source contains hard-coded Issue helper")
-    require(not re.search(r"FEATURE_PR\\s*=\\s*[\\\"']?[0-9]+", text_value), "hard-coded PR detected")
+    require(not re.search(r"FEATURE_PR\s*=\s*[\\\"']?[0-9]+", text_value), "hard-coded PR detected")
 
 
 def load_module(name: str, path: pathlib.Path):
@@ -121,8 +121,8 @@ try:
 except auto.AutoFinalizerError:
     pass
 
-require(auto.resolve_issue_number("Summary\\n\\nRefs #350\\n") == 350, "canonical Refs parsing failed")
-for body in ("No issue", "Refs #1\\nRefs #2\\n", "Refs #1\\nRefs #1\\n"):
+require(auto.resolve_issue_number("Summary\n\nRefs #350\n") == 350, "canonical Refs parsing failed")
+for body in ("No issue", "Refs #1\nRefs #2\n", "Refs #1\nRefs #1\n"):
     try:
         auto.resolve_issue_number(body)
         raise SystemExit(f"ambiguous/missing Refs must fail closed: {body!r}")
