@@ -349,7 +349,10 @@ jobs:
     if: needs.changes.outputs.e2e == 'true'
     needs: changes
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Playwright OS dependency install occasionally stalls on Ubuntu mirrors.
+    # Keep the four-way shard topology but allow transient setup latency without
+    # converting otherwise healthy browser tests into a 15-minute cancellation.
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:

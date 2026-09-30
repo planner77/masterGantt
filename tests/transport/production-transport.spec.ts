@@ -5,14 +5,28 @@ import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/co
 
 const TRANSPORT_PROJECT_OWNER = "Transport CI";
 
+function isRetriableTransportNavigation(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  return error.message.includes("ERR_NETWORK_CHANGED")
+    || error.message.includes("chrome-error://chromewebdata/");
+}
+
 async function gotoProjectCreate(page: Page): Promise<void> {
   try {
     await page.goto("/projects/new");
   } catch (error) {
-    if (!(error instanceof Error) || !error.message.includes("ERR_NETWORK_CHANGED")) throw error;
-    // Docker restart can invalidate Chromium's cached network route for an
-    // already-open production page. Retry navigation once after that explicit
-    // infrastructure transition; mutation requests themselves are never retried.
+    if (!isRetriableTransportNavigation(error)) throw error;
+    // A fresh Chromium process can briefly observe a network-change/error page
+    // immediately after the isolated hosts/Nginx setup. No mutation has started,
+    // so wait for the same origin readiness and retry this navigation once.
+    await expect.poll(async () => {
+      try {
+        return (await page.request.get("/api/health/ready", { timeout: 2_000 })).status();
+      } catch {
+        return 0;
+      }
+    }, { timeout: 15_000 }).toBe(200);
+    await page.waitForTimeout(250);
     await page.goto("/projects/new");
   }
 }
