@@ -93,6 +93,9 @@ describe("deployment repository layout", () => {
     expect(compose).toContain(
       "RESOURCE_CATALOG_ADMIN_PASSWORD: ${RESOURCE_CATALOG_ADMIN_PASSWORD:?Set RESOURCE_CATALOG_ADMIN_PASSWORD}",
     );
+    expect(compose).toContain(
+      "LOGISTICS_CATALOG_ADMIN_PASSWORD: ${LOGISTICS_CATALOG_ADMIN_PASSWORD:?Set LOGISTICS_CATALOG_ADMIN_PASSWORD}",
+    );
     expect(compose).toContain("name: ${MASTERGANTT_VOLUME_NAME:-mastergantt-data}");
 
     expect(buildCompose).toContain("build:");

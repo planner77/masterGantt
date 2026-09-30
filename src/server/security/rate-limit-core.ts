@@ -89,3 +89,12 @@ export const resourceAdminUnlockRateLimiter = new FixedWindowRateLimiter(
 );
 
 export const UNATTRIBUTED_RESOURCE_ADMIN_RATE_KEY = "resource-admin-unattributed";
+
+
+export const logisticsAdminUnlockRateLimiter = new FixedWindowRateLimiter(
+  20,
+  15 * 60 * 1_000,
+  1,
+);
+
+export const UNATTRIBUTED_LOGISTICS_ADMIN_RATE_KEY = "logistics-admin-unattributed";

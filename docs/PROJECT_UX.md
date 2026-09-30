@@ -319,7 +319,7 @@ Issue #155의 native fullscreen 계약을 유지하면서, 전체화면 내부 �
 
 ## Issue #136 공통 헤더의 빌드 버전
 
-App Shell 브랜드 바로 옆에 `v<SemVer>`를 보조 텍스트로 표시한다. 값은 서버 컴포넌트가 빌드에 포함된 `package.json.version`에서 직접 읽으며 수동 버전 문자열이나 별도 설정값을 두지 않는다. 버전은 홈 링크 바깥에 있어 `masterGantt 홈` 링크의 이름과 이동 동작을 바꾸지 않는다. 544px 이하에서는 보조 버전을 숨기고 브랜드 이름을 우선하며, 400px 이하에서는 기존처럼 M 마크만 남겨 프로젝트·리소스 navigation과 알림 영역의 공간을 확보한다. 헤더 높이와 본문 작업 공간은 늘리지 않는다.
+App Shell 브랜드 바로 옆에 `v<SemVer>`를 보조 텍스트로 표시한다. 값은 서버 컴포넌트가 빌드에 포함된 `package.json.version`에서 직접 읽으며 수동 버전 문자열이나 별도 설정값을 두지 않는다. 버전은 홈 링크 바깥에 있어 `masterGantt 홈` 링크의 이름과 이동 동작을 바꾸지 않는다. 544px 이하에서는 보조 버전을 숨기고 브랜드 이름을 우선하며, 416px 이하에서는 M 마크만 남겨 프로젝트·리소스·물류 관리 navigation과 알림 영역의 공간을 확보한다. 헤더 높이와 본문 작업 공간은 늘리지 않는다.
 
 `tests/e2e/workspace-header-version.spec.ts`에 390px의 M 마크, 480px의 브랜드 이름, 768/1024/1440px의 브랜드와 버전, 각 폭의 헤더 높이·navigation·문서 가로 overflow 및 리소스 이동 후 브랜드 홈 복귀 명세를 작성했다. PNG는 변경 후 화면 자료이며 구현 전후 비교나 실제 브라우저 PASS를 뜻하지 않는다. 로컬 테스트·브라우저·빌드는 사용자 지시에 따라 **NOT TESTED**이고 PR head의 원격 CI는 별도로 판정한다. API·DB·Scheduling·권한 계약은 바뀌지 않는다.
 
@@ -625,3 +625,11 @@ Grid 연결 Task의 이름과 Task Editor의 metadata/progress/Baseline 편집�
 Grid에서 행을 놓으면 Context Menu와 같은 보호된 계층 명령으로 parent/sibling order를 저장한다. 드래그 중의 표시 순서는 미확정 상태이며 놓은 이동의 서버 저장이 성공해야 확정된다. 이후 이름·진행률 등 일반 필드를 수정하거나 프로젝트를 다시 열어도 확정된 위치를 유지한다. 저장 중 후속 이름 편집·이동은 잠그고, 실패하거나 revision 충돌이 발생하면 최신 canonical 위치와 오류 안내를 표시한다. 재조회가 성공하면 같은 Gantt/API 인스턴스를 사용한다.
 
 기존 Grid/Chart 배치, Light semantic token, Context Menu·inline 이름 편집·Task Editor 흐름을 재사용하는 interaction 결함 수정이다. 새로운 화면 구조·PRO 기능·Undo/Redo·정렬 정책을 추가하지 않으므로 `DESIGN.md`와 `UI_UX_GUIDELINES.md`의 공통 원칙 변경은 N/A다. 390/768/1024/1440px에서는 기존 내부 Grid scroll과 document overflow 기준을 적용한다. 관련 실제 API 회귀는 `tests/e2e/project-grid-reorder-persistence.spec.ts`에서 DnD→rename→일반 필드 수정→Context Move→reload, 실패/412 복구와 Gantt identity를 검증한다. 로컬 실행 결과와 동일 PR head의 원격 `quality/e2e/docker` 판정은 별도로 기록한다.
+
+## 물류 유형 관리 UX (Issue #280)
+
+전역 navigation의 **물류 관리** → `/logistics-admin`에서 설비 유형과 시스템 유형을 관리한다. 로그인 후 category 전환, 유형 추가, 표시명 수정, 활성/비활성 전환, 사용 건수 확인, 새로고침, 비밀번호 변경, 로그아웃을 제공한다.
+
+Project Workspace의 설비/시스템 추가·수정 select는 active catalog 이름을 표시하고 payload에는 stable code를 저장한다. 기존 row의 현재 type이 inactive이면 해당 값은 `비활성`으로 유지 표시한다. Catalog fetch 실패는 empty state로 처리하지 않으며 저장을 차단하고 재시도를 제공한다.
+
+관리자 비밀번호 변경 dialog는 Escape/닫기/취소 등 모든 닫기 경로에서 새 비밀번호 초안을 즉시 지운다. 서버 logout 요청이 실패하거나 네트워크 오류가 나면 UI는 로컬 관리 화면을 잠그되, 서버 session revoke가 확인되지 않았음을 오류로 명시하여 성공한 logout과 구분한다.
