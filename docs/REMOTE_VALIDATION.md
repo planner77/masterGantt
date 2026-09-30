@@ -233,3 +233,9 @@ Workflow 파일 존재나 과거 다른 version의 성공 run은 현재 `v0.25.0
 4. `Next.js production build`의 `.next/cache`, TypeScript incremental cache, npm package cache, Docker BuildKit GHA cache restore/save 로그를 확인한다.
 5. PR은 `packages: write`를 받지 않으며 main 비문서 push만 기존 임시 GHCR publish/digest smoke/cleanup을 수행한다.
 6. 최적화 효과는 변경 전 기준 run #995의 wall-clock(quality 약 1분 36초, Docker 약 3분 30초, E2E 약 18분 45초)과 동일·유사 변경의 새 PR run을 비교한다.
+
+## Issue #342 원격 검증
+
+Country Calendar Catalog는 migration/API/admin UI/Scheduling resolution을 함께 변경하므로 동일 PR head의 quality/e2e/docker gate를 모두 요구한다. quality는 migration 0018, Catalog JSON/CSV parser와 transaction/revision, effective OFFICIAL resolution 및 route inventory를 검증한다. Chromium E2E는 /calendar-admin에서 관리자 로그인, Import Preview/Apply, 날짜 Add/Edit/Delete와 390/768/1024/1440px document overflow를 검증한다. Docker gate는 신규 migration이 빈 DB와 기존 DB에서 startup 계약을 깨지 않는지 기존 smoke로 재검증한다.
+
+공식 데이터 자체의 최신성은 GitHub runner가 외부 정부 사이트를 런타임 호출하여 자동 판정하지 않는다. 운영자가 docs/COUNTRY_CALENDAR_DATA.md의 공식 source를 확인한 뒤 Import Preview와 sourceVersion/sourceUrl provenance를 사용한다.
