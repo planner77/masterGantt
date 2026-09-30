@@ -40,7 +40,7 @@ function projectDateAggregates(database:Database.Database,projectId:number):Map<
       names,
     });
   }
-  for(const aggregate of result.values()) aggregate.names.sort((a,b)=>a.localeCompare(b));
+  for(const aggregate of result.values()) aggregate.names.sort((a,b)=>a < b ? -1 : a > b ? 1 : 0);
   return result;
 }
 
