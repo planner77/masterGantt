@@ -2529,6 +2529,7 @@ function SystemRolesDialog({
               const res = resourceById.get(item.resourceId);
               const canonical = system.resourceRoles.find((role) => role.resourceId === item.resourceId);
               const displayName = catalogReady && res ? `${res.name} (${res.code ?? "코드없음"})` : canonical ? `${canonical.resourceName} (${canonical.resourceCode})` : "등록 정보를 확인할 수 없는 인력";
+              const gradeText = developerGradeLabel(res?.developerGrade);
               const isInactive = catalogReady && res ? !res.active : false;
 
               return (
