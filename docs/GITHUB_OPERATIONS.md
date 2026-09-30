@@ -1,5 +1,21 @@
 # GitHub / CI / GHCR 운영 담당과 작업 절차
 
+## Issue #361 Workflow 실행명 운영 규칙
+
+Actions 목록에서 하나의 업무 lifecycle을 검색할 때 **Primary Issue**를 공통 추적 키로 사용한다. 한 PR에는 canonical `Refs #NNN` 1개를 두고 branch는 `*/issue-NNN-*`, PR 제목은 새 작업부터 `[Issue #NNN] ...` 형식을 우선한다. 호환을 위해 기존 `Issue #NNN` 또는 `(#NNN)` 제목도 허용하지만 Primary Issue는 branch/body/title 사이에 일치해야 한다. Related Issue는 PR 본문 설명에만 기록하고 workflow run-name의 owner로 사용하지 않는다.
+
+표시 예시는 다음과 같다.
+
+```text
+PR CI · [Issue #361] ... · PR #<PR> · Run #<run>.<attempt>
+Main CI · Merge pull request #<PR> ... [Issue #361] ... · Run #<run>.<attempt>
+Lifecycle · Issue #361 · PR #<PR> · verify|release|finalize|release_finalize · Run #<run>.<attempt>
+Finalizer · <triggering Main CI display title> · Finalizer Run #<run>.<attempt>
+GHCR Release · Issue #361 · PR #<PR> · v<version> · Run #<run>.<attempt>
+```
+
+PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, title Issue의 일치를 먼저 검증한다. Main CI에서는 별도 PR payload가 없으므로 merge commit metadata가 trace source다. Generic Finalizer는 `workflow_run.display_title`, Release workflow는 lifecycle dispatch input을 사용한다. 표시명 개선을 이유로 required check/job `name`, workflow `name: CI`, release 권한 또는 lifecycle mutation 순서를 변경하지 않는다.
+
 최초 결정일: 2026-09-12, 모델 배치 갱신: 2026-09-30 (#347). 주 담당은 기존 `infra` Sub-Agent이며 현재 설정은 `.codex/agents/infra.toml`의 `gpt-6.1-sol` / `high`다. Astra는 기본 배치가 아니라 Manager가 Sol High로 충분하지 않다고 판단한 고난도 작업의 일시 승격용이다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_docs`는 독립 검토한다.
 
 이 문서는 **담당자, 배정 조건, 승인 경계와 보고 절차**의 기준이다. Workflow·tag·image의 기술 계약은 [CI_CD.md](CI_CD.md), runtime과 persistence는 [DEPLOYMENT.md](DEPLOYMENT.md), 보안은 [SECURITY.md](SECURITY.md), 기존 결정은 [DECISIONS.md](DECISIONS.md)가 기준이다. 역할 확장은 기존 release 정책이나 D05를 변경하지 않는다.
