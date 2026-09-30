@@ -11,7 +11,34 @@ test("switches the Gantt timeline between day and ISO week headers without remou
         description: "Day/ISO-week timeline scale verification",
         status: "planned",
         revision: 1,
-        calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] },
+        calendar: {
+          timezone: "Asia/Seoul",
+          weekendDays: [6, 0],
+          holidays: [
+            { date: "2026-09-22", name: "Fixture holiday" },
+            { date: "2026-09-26", name: "Weekend named holiday" },
+          ],
+          exceptions: [
+            {
+              date: "2026-09-22",
+              dayType: "NON_WORKING",
+              name: "Fixture holiday",
+              names: ["Fixture holiday", "Company anniversary"],
+            },
+            {
+              date: "2026-09-26",
+              dayType: "NON_WORKING",
+              name: "Weekend named holiday",
+              names: ["Weekend named holiday"],
+            },
+            {
+              date: "2026-09-27",
+              dayType: "WORKING",
+              name: "Sunday working override",
+              names: ["Sunday working override"],
+            },
+          ],
+        },
       },
       tasks: [{
         taskId: "35000000-0000-4000-8000-000000000001",
@@ -50,6 +77,33 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(dayScale.getByText("14", { exact: true })).toBeVisible();
   await expect(dayScale.getByText("22", { exact: true })).toBeVisible();
   await expect(dayScale.getByText(/일|[()]/)).toHaveCount(0);
+
+  const ordinaryDay = page.locator(".project-gantt-day-date-20260921");
+  const namedHoliday = page.locator(".project-gantt-day-date-20260922");
+  const namedWeekend = page.locator(".project-gantt-day-date-20260926");
+  const workingOverride = page.locator(".project-gantt-day-date-20260927");
+  const tooltip = page.getByRole("tooltip");
+
+  await ordinaryDay.hover();
+  await expect(tooltip).toBeVisible();
+  await expect(ordinaryDay).toHaveAttribute("aria-label", /2026-09-21/);
+  await expect(tooltip).not.toContainText("Fixture holiday");
+  await expect(tooltip).not.toContainText("Sunday working override");
+
+  await namedHoliday.hover();
+  await expect(tooltip).toContainText("Fixture holiday");
+  await expect(tooltip).toContainText("Company anniversary");
+  await expect(namedHoliday).toHaveAttribute("aria-describedby", /day-header-tooltip/);
+
+  await namedWeekend.focus();
+  await expect(tooltip).toBeVisible();
+  await expect(tooltip).toContainText("Weekend named holiday");
+
+  await workingOverride.hover();
+  await expect(tooltip).toBeVisible();
+  await expect(workingOverride).toHaveAttribute("aria-label", /2026-09-27/);
+  await expect(tooltip).not.toContainText("Sunday working override");
+
   await expect(gantt.getByText("W38", { exact: true })).toHaveCount(0);
   const instanceId = await frame.getAttribute("data-project-gantt-instance");
   const apiInstanceId = await frame.getAttribute("data-project-gantt-api-instance");
@@ -63,6 +117,8 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instanceId!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstanceId!);
   await expect(page.locator(".project-gantt-widget .wx-weekend")).toHaveCount(0);
+  await expect(page.locator(".project-gantt-day-scale")).toHaveCount(0);
+  await expect(tooltip).toHaveCount(0);
   await expect(gantt.getByText("W38", { exact: true })).toBeVisible();
   await expect(gantt.getByText("W39", { exact: true })).toBeVisible();
   await expect(gantt.getByText(/9\/14.*9\/20/)).toHaveCount(0);
