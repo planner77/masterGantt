@@ -374,7 +374,11 @@ Issue #248 구현 전에는 기존 `finalize`가 `release_required=true`일 때 
 
 Main CI의 후속 lifecycle mutation은 `.github/workflows/release-finalizer.yml` 하나가 담당한다. `workflow_run.branches: [main]`과 push/success gate로 PR CI 및 수동 CI를 배제한다. exact merge SHA에서 PR/Issue를 자동 resolve하며 application version이 동일하면 finalize, 변경되면 trusted version-scoped release 승인 marker가 있는 경우에만 release_finalize를 수행한다.
 
-Generic finalizer와 `release-image.yml`은 `concurrency.queue: max`로 burst pending run을 보존한다. 단, concurrency의 실행 순서는 semantic version/main history 순서를 보장하지 않으므로 Generic Finalizer가 current main의 first-parent backlog를 oldest → newest로 처리해 release 순서를 확정한다. 상세 계약은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다.\n\n## Main 임시 GHCR evidence gate (#352)\n\n비문서 main push의 `publish-commit-image`는 optional implementation job의 SKIPPED 상태가 dependency chain을 통해 전파되어 통째로 SKIPPED되지 않도록 job condition에 `always()`를 사용한다. 단, registry mutation을 허용하는 조건은 다음 direct aggregate 결과를 모두 명시적으로 SUCCESS로 요구한다.
+Generic finalizer와 `release-image.yml`은 `concurrency.queue: max`로 burst pending run을 보존한다. 단, concurrency의 실행 순서는 semantic version/main history 순서를 보장하지 않으므로 Generic Finalizer가 current main의 first-parent backlog를 oldest → newest로 처리해 release 순서를 확정한다. 상세 계약은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다.
+
+## Main 임시 GHCR evidence gate (#352)
+
+비문서 main push의 `publish-commit-image`는 optional implementation job의 SKIPPED 상태가 dependency chain을 통해 전파되어 통째로 SKIPPED되지 않도록 job condition에 `always()`를 사용한다. 단, registry mutation을 허용하는 조건은 다음 direct aggregate 결과를 모두 명시적으로 SUCCESS로 요구한다.
 
 - `changes`
 - `quality`
@@ -384,4 +388,4 @@ Generic finalizer와 `release-image.yml`은 `concurrency.queue: max`로 burst pe
 
 따라서 `always()`는 skip propagation만 해제하며 실패/cancelled gate를 우회하지 않는다.
 
-Issue Lifecycle은 exact merge target의 first-parent diff를 CI와 동일한 docs-only 규칙으로 독립 판정한다. 비문서 merge는 exact main CI의 `Main 임시 commit 이미지 게시·검증·정리` job이 completed/success여야 finalize할 수 있다. docs-only merge는 해당 job의 completed/skipped를 정상 N/A evidence로 인정한다. overall main CI success만으로 임시 GHCR publish/digest smoke/cleanup PASS를 주장하지 않는다.\n
+Issue Lifecycle은 exact merge target의 first-parent diff를 CI와 동일한 docs-only 규칙으로 독립 판정한다. 비문서 merge는 exact main CI의 `Main 임시 commit 이미지 게시·검증·정리` job이 completed/success여야 finalize할 수 있다. docs-only merge는 해당 job의 completed/skipped를 정상 N/A evidence로 인정한다. overall main CI success만으로 임시 GHCR publish/digest smoke/cleanup PASS를 주장하지 않는다.
