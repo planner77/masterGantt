@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent } from "react";
 
 import type {
   CountryCalendarAdminDateDto,
@@ -170,7 +170,7 @@ export function CountryCalendarAdmin(){
       setNewDate("");setNewName("");setNewDayType("NON_WORKING");setNewSourceKey("");
     }
   }
-  function openEdit(item:CountryCalendarAdminDateDto,event:React.MouseEvent<HTMLButtonElement>){
+  function openEdit(item:CountryCalendarAdminDateDto,event:MouseEvent<HTMLButtonElement>){
     editTriggerRef.current=event.currentTarget;setEditing(item);setEditDate(item.date);setEditName(item.name);
     setEditDayType(item.dayType);setEditSourceKey(item.sourceKey);
   }
@@ -181,7 +181,7 @@ export function CountryCalendarAdmin(){
       "PATCH",{date:editDate,name:editName.trim(),dayType:editDayType,sourceKey:editSourceKey.trim()},
     ))setEditing(null);
   }
-  function openDelete(item:CountryCalendarAdminDateDto,event:React.MouseEvent<HTMLButtonElement>){
+  function openDelete(item:CountryCalendarAdminDateDto,event:MouseEvent<HTMLButtonElement>){
     deleteTriggerRef.current=event.currentTarget;setDeleting(item);
   }
   async function confirmDelete(){
@@ -212,6 +212,7 @@ export function CountryCalendarAdmin(){
       const value:unknown=await response.json().catch(()=>null);
       if(response.status===401){expire();return;}
       if(!response.ok||!validPreview(value)){setError("업로드 검증에 실패했습니다. 국가·연도·날짜·중복·source metadata를 확인해 주세요.");return;}
+      if(value.data.importDataset.countryCode!==country||value.data.importDataset.year!==year){setError(`선택한 ${country} ${year}과 파일의 ${value.data.importDataset.countryCode} ${value.data.importDataset.year}이 일치하지 않습니다.`);return;}
       setPreview(value);setNotice("검증이 완료되었습니다. 변경 예상 건수를 확인한 뒤 적용하세요.");
     }catch{if(!controller.signal.aborted)setError("업로드 검증 결과를 확인할 수 없습니다.");}
     finally{end(controller);}
