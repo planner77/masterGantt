@@ -62,7 +62,7 @@ describe("migration CLI", () => {
         "0012_project_templates.sql",
         "0013_link_types_and_lag.sql",
         "0014_task_baseline.sql",
-        "0015_resource_developer_grade.sql",
+        "0015_logistics_type_catalog.sql",
       ],
     });
     expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
