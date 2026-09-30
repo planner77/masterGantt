@@ -276,6 +276,32 @@ def collect_pending_work(
     )
 
 
+def coalesce_consecutive_issue_retries(items: list[WorkItem]) -> list[WorkItem]:
+    """Collapse only adjacent follow-up merges for the same Issue.
+
+    A failed main CI can leave an Issue's first merge unfinalized. When the very
+    next merge is a corrective follow-up for the same Issue, the later merge
+    contains the earlier change in its first-parent history. Validate/release
+    the latest target once, while preserving the version span from before the
+    first attempt. Never collapse across a different Issue boundary.
+    """
+    coalesced: list[WorkItem] = []
+    for item in items:
+        if coalesced and coalesced[-1].issue_number == item.issue_number:
+            previous = coalesced[-1]
+            coalesced[-1] = WorkItem(
+                target_sha=item.target_sha,
+                first_parent_sha=previous.first_parent_sha,
+                pr_number=item.pr_number,
+                issue_number=item.issue_number,
+                previous_version=previous.previous_version,
+                current_version=item.current_version,
+            )
+            continue
+        coalesced.append(item)
+    return coalesced
+
+
 def current_main_sha(repo: str) -> str:
     data = gh(f"/repos/{repo}/git/ref/heads/main")
     sha = ((data or {}).get("object") or {}).get("sha", "")
@@ -397,7 +423,8 @@ def execute(trigger_sha: str) -> int:
         raise AutoFinalizerError("trigger SHA는 40자리 SHA여야 합니다")
 
     latest_main = current_main_sha(repo)
-    pending = collect_pending_work(repo, latest_main)
+    pending_raw = collect_pending_work(repo, latest_main)
+    pending = coalesce_consecutive_issue_retries(pending_raw)
 
     if not pending:
         write_summary(
@@ -418,7 +445,8 @@ def execute(trigger_sha: str) -> int:
             "",
             f"- triggering CI SHA: `{trigger_sha}`",
             f"- dispatcher main snapshot: `{latest_main}`",
-            f"- pending first-parent merges: `{len(pending)}`",
+            f"- pending first-parent merges: `{len(pending_raw)}`",
+            f"- lifecycle targets after consecutive same-Issue convergence: `{len(pending)}`",
             "- 처리 순서: oldest → newest",
         ]
     )
