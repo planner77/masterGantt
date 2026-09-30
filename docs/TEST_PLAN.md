@@ -778,3 +778,15 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - Project aggregate: 생성·조회·목록·메타데이터 수정·복사·Template에서 동일 global 참조를 유지하고 rename/inactive가 참조를 깨뜨리지 않는지 검증한다.
 - UI/E2E: 생성 폼은 기본 필드 validation을 catalog loading보다 먼저 수행하며 catalog 미확인 시 유효 저장만 차단한다. 관리자 category는 tablist/tabpanel·roving focus·Arrow/Home/End를 검증하고 390/768/1024/1440px overflow를 회귀 검증한다.
 - 집중 서버 회귀는 `tests/server/projects/project-master-catalog.test.ts`; migration ledger/schema 기대값은 DB 및 migration CLI 테스트에서 0017까지 검증한다. 공식 PASS 판정은 PR exact-head GitHub Actions quality/e2e/docker 결과를 사용한다.
+
+## Issue #332 프로젝트 기준정보 관리자 UI 회귀
+
+- 인증/정보 계층: 로그인 전 관리자 인증 section과 인증 후 session section, 기준정보 관리 section, 항목 추가 section, 목록 section의 heading/구분을 확인한다.
+- 목록 구조: 이름/코드/정렬/상태·사용/작업 column header와 body row 정렬, active/inactive 상태 표시, 기존 저장·활성/비활성 action 접근성을 검증한다.
+- 상태 필터: 기본 `전체`, `활성`, `비활성` 결과를 혼합 fixture로 검증하고 필터 조작만으로 `/api/project-master/admin/items` mutation이 발생하지 않는지 확인한다.
+- category 일관성: 사업부 → 제품 → 사업장/법인 전환 뒤에도 현재 상태 필터가 유지되며 각 category 데이터에 동일 predicate가 적용되는지 확인한다.
+- empty state: 실제 category 데이터 없음과 활성/비활성 필터 결과 0건을 구분해 안내한다.
+- 접근성: category tab의 기존 roving focus와 Arrow/Home/End 계약을 유지하고 상태 필터의 accessible group name 및 `aria-pressed` 상태를 검증한다.
+- Responsive: 390/768/1024/1440px에서 document-level horizontal overflow가 없고, 좁은 viewport에서는 table wrapper의 의도된 내부 수평 scroll만 발생하는지 확인한다.
+- Regression: #289의 관리자 인증/session/Origin/login rate-limit/`If-Match`/412 및 catalog CRUD 의미와 Project 생성·편집의 inactive 참조 보존 계약을 변경하지 않는다.
+- 공식 전체 PASS 판정은 Issue #332 PR exact head의 GitHub Actions `quality` / `e2e` / `docker` 결과를 사용한다.
