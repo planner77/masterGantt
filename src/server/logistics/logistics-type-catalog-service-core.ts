@@ -9,6 +9,7 @@ export class LogisticsCatalogAuthorizationError extends Error {}
 export class LogisticsCatalogRevisionMismatchError extends Error {}
 export class LogisticsCatalogNotFoundError extends Error {}
 export class LogisticsCatalogInvalidInputError extends Error {}
+export class LogisticsCatalogConflictError extends Error {}
 export class LogisticsCatalogTypeInactiveError extends Error {}
 
 function wellFormed(value:string):boolean{for(let i=0;i<value.length;i++){const c=value.charCodeAt(i);if(c>=0xd800&&c<=0xdbff){if(i+1>=value.length)return false;const n=value.charCodeAt(++i);if(n<0xdc00||n>0xdfff)return false;}else if(c>=0xdc00&&c<=0xdfff)return false;}return true;}
@@ -43,7 +44,7 @@ export class LogisticsTypeCatalogService{
   assertActiveType(kind:LogisticsTypeKind,value:string):void{const item=this.catalog.find(kind,value);if(!item)throw new LogisticsCatalogNotFoundError();if(!item.active)throw new LogisticsCatalogTypeInactiveError();}
   create(kind:LogisticsTypeKind,rawToken:string|undefined,expectedRevision:number,input:CreateLogisticsTypeRequest):LogisticsTypeCatalogResponse{
     if(!this.authorizeAdmin(rawToken))throw new LogisticsCatalogAuthorizationError();const canonicalCode=code(input?.code),name=text(input?.name,200),order=sortOrder(input?.sortOrder);if(!canonicalCode||!name||order===undefined|| (input.active!==undefined&&typeof input.active!=="boolean"))throw new LogisticsCatalogInvalidInputError();
-    const tx=this.database.transaction(()=>{if(this.catalog.getRevision()!==expectedRevision)throw new LogisticsCatalogRevisionMismatchError();if(this.catalog.find(kind,canonicalCode))throw new LogisticsCatalogInvalidInputError();const now=this.clock().toISOString();this.catalog.insert(kind,{code:canonicalCode,name,active:input.active??true,sortOrder:order,now});if(!this.catalog.advanceRevision(expectedRevision,now))throw new LogisticsCatalogRevisionMismatchError();return this.getCatalog(rawToken);});return tx.immediate();
+    const tx=this.database.transaction(()=>{if(this.catalog.getRevision()!==expectedRevision)throw new LogisticsCatalogRevisionMismatchError();if(this.catalog.find(kind,canonicalCode))throw new LogisticsCatalogConflictError();const now=this.clock().toISOString();this.catalog.insert(kind,{code:canonicalCode,name,active:input.active??true,sortOrder:order,now});if(!this.catalog.advanceRevision(expectedRevision,now))throw new LogisticsCatalogRevisionMismatchError();return this.getCatalog(rawToken);});return tx.immediate();
   }
   update(kind:LogisticsTypeKind,typeCode:string,rawToken:string|undefined,expectedRevision:number,input:UpdateLogisticsTypeRequest):LogisticsTypeCatalogResponse{
     if(!this.authorizeAdmin(rawToken))throw new LogisticsCatalogAuthorizationError();const keys=Object.keys(input??{});if(keys.length===0||keys.some(k=>!["name","active","sortOrder"].includes(k)))throw new LogisticsCatalogInvalidInputError();const name=input.name===undefined?undefined:text(input.name,200),order=input.sortOrder===undefined?undefined:sortOrder(input.sortOrder);if(input.name!==undefined&&!name||input.sortOrder!==undefined&&order===undefined||input.active!==undefined&&typeof input.active!=="boolean")throw new LogisticsCatalogInvalidInputError();
