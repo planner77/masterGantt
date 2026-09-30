@@ -826,3 +826,11 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 수정 전 stale 응답 재현 화면은 [before](../output/playwright/issue344-before.png), 수정 후는 [after](../output/playwright/issue344-after.png)다. 모두 실제 브라우저의 기능 상태 근거이며 날짜·Task 구성·scale이 달라 동일 fixture의 픽셀/배치 개선 비교로 사용하지 않는다. 추가 390/768/1024px 삭제 복구, 세로 scroll·selection 및 독립 keyboard/focus 검사는 NOT TESTED다. 실제 독립 UX 검토는 정적 코드·테스트·화면 비교 PASS다. 초기 전체 조회에서도 오래된 응답이 확정 snapshot을 덮지 않고 loading에 남지 않도록 보완했으며 이 분기의 별도 브라우저 조작은 NOT TESTED다. Network fixture는 요청 abort 경로이며 서버 commit 후 응답 유실·더 높은 canonical GET의 별도 브라우저 조작은 NOT TESTED다.
 
 중간 로컬 공유 개발 서버에 Turbopack HMR panic이 발생하여 해당 실행을 중단했다. 기존 `.next-e2e`를 `/tmp/mastergantt-issue344-e2e-cache-20261001`로 보존 이동한 뒤 새 캐시의 동일 설정·격리 SQLite 테스트에서 위 7개 PASS를 확보했다. CI 설정·검사 gate는 변경하지 않았다. 전체 Lifecycle/main artifact/정식 release/운영 배포의 PASS로 확대하지 않는다.
+
+
+### Issue #344 / PR #359 — CI #1373 follow-up
+
+- PR CI #1373에서 production dependency audit, policy/lifecycle static checks, typecheck, lint, Next production build, Docker smoke와 Chromium shards 1/2/4는 PASS했다.
+- Vitest는 `tests/scripts/deployment-layout.test.ts`가 `@next/env === 16.3.4`를 과거 버전으로 고정해 16.3.6 보안 패치와 불일치하여 1건 실패했다. 검증 의도는 특정 과거 버전이 아니라 standalone runtime의 `@next/env`가 framework `next`와 같은 버전으로 pin되는지이므로 동등성 검사로 수정한다.
+- Chromium shard 3/4의 단일 실패는 `project-status.spec.ts`의 readonly canonical GET에서 `read ECONNRESET`이 발생한 transport reset이다. assertion 실패, HTTP 오류 응답 또는 서버 계약 불일치가 아니며 같은 shard의 다른 테스트는 계속 PASS했다. 제품 코드를 우회하지 않고 새 PR head 전체 E2E에서 재검증한다.
+- CI #1373의 실패를 PASS로 대체하지 않는다. 후속 head의 원격 quality/E2E/Docker 결과를 별도 증거로 사용한다.
