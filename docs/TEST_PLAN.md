@@ -812,6 +812,8 @@ CI policy/static scenario에서 최소 다음을 검증한다.
 - 최신 trusted revocation/version mismatch는 release BLOCKED
 - Issue별 lifecycle helper/finalizer 파일 재도입 금지
 - generic/release workflow concurrency가 queued work를 보존
+- 인접 same-Issue corrective merge는 docs-only/non-docs validation scope가 동일할 때만 수렴하고, scope가 다르면 앞선 failed main CI를 우회하지 않음
+- 수렴된 모든 PR identity가 `--cleanup-pr`로 lifecycle에 전달되고, 모든 branch safe cleanup PASS 전에는 FINAL/Issue close가 불가능함
 
 ## Issue #344 — 작업 삭제 실패 복구 회귀
 
@@ -889,3 +891,11 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - shard 2/4의 Grid reorder 4건은 공통 `renameInline` helper에서 발생했다. helper가 `hasText(name)`으로 row locator를 만든 뒤 클릭했고, SVAR editor가 열리며 표시 텍스트가 input으로 교체되자 해당 filtered row locator가 더 이상 일치하지 않아 `input element(s) not found`로 오판했다.
 - 수정은 클릭 전에 row의 stable `data-id`를 저장하고, editor open 후 해당 `data-id`로 정확한 row/input을 다시 찾는다. 또한 mutation lock 해제와 `data-task-inline-editable=true`를 명시적으로 확인한다.
 - 이는 제품 코드 수정이나 테스트 완화가 아니라 editor DOM 전환 이후에도 동일 행을 추적하는 locator 안정화다. CI #1382 실패를 PASS로 대체하지 않는다.
+
+
+### Issue #344 / PR #359 — CI #1384 이후 Codex review 보완
+
+- 최신 head `fcbf770a1e1f9bb77c9bcab4794c48a16817e832`의 CI #1384는 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke 및 Chromium 4개 shard가 모두 PASS했다.
+- Codex P1은 same-Issue coalescing이 latest docs-only merge만 선택하면 앞선 non-docs merge의 E2E/Docker/임시 GHCR evidence를 우회할 수 있음을 지적했다. 보완 후 immediate first-parent diff의 docs-only scope가 서로 다르면 coalesce하지 않는다.
+- Codex P2는 coalescing 과정에서 earlier PR identity가 사라져 branch cleanup이 누락될 수 있음을 지적했다. 보완 후 earlier PR 번호를 cleanup obligation으로 보존해 `issue_lifecycle.py`에 반복 `--cleanup-pr`로 전달하고, formal release 성공 후 모든 branch를 공통 safe cleanup으로 정리한 뒤에만 FINAL/Issue close가 가능하다.
+- pure/static lifecycle scenario에 동일 scope 수렴, scope mismatch 비수렴, cleanup PR 전달·반복 parser 계약을 추가한다. CI #1384는 이 후속 수정 이전 head의 결과이므로 새 head PR CI로 전체 gate를 다시 판정한다.

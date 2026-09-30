@@ -81,6 +81,8 @@ require("mastergantt-release-authorization:v1" in auto_impl, "version-scoped rel
 require("gh_paginated(" in auto_impl, "comment and PR pagination helper is required")
 require("collect_pending_work(" in auto_impl, "first-parent backlog resolver is required")
 require("coalesce_consecutive_issue_retries(" in auto_impl, "same-Issue corrective merge convergence is required")
+require("validation_docs_only" in auto_impl, "coalescing must preserve validation scope")
+require("--cleanup-pr" in auto_impl and "--cleanup-pr" in impl, "coalesced PR cleanup identities must reach lifecycle finalize")
 require("current_main_sha(" in auto_impl, "dispatcher must snapshot current main")
 require("oldest → newest" in auto_impl, "dispatcher must document first-parent processing order")
 require("head_sha=" in auto_impl, "exact main CI lookup must bind target SHA")
@@ -295,20 +297,39 @@ finally:
     auto.resolve_work_item = saved_resolve
     auto.is_finalized_boundary = saved_boundary
 
-# Adjacent corrective merges for the same Issue converge to the latest target,
-# preserving the version span from before the first attempt. A different Issue
-# boundary prevents convergence.
-retry_one = auto.WorkItem("4" * 40, old_sha, 10, 344, "0.58.3", "0.58.4")
-retry_two = auto.WorkItem("5" * 40, "4" * 40, 11, 344, "0.58.4", "0.58.5")
+# Adjacent corrective merges for the same Issue converge only when their
+# validation scope is equivalent. Collapsed PR identities remain cleanup
+# obligations. Different Issue or docs-only/non-docs scope prevents convergence.
+retry_one = auto.WorkItem("4" * 40, old_sha, 10, 344, "0.58.3", "0.58.4", False)
+retry_two = auto.WorkItem("5" * 40, "4" * 40, 11, 344, "0.58.4", "0.58.5", False)
 collapsed = auto.coalesce_consecutive_issue_retries([retry_one, retry_two])
-require(len(collapsed) == 1, "adjacent same-Issue retries must converge")
+require(len(collapsed) == 1, "adjacent same-Issue retries with equal scope must converge")
 require(collapsed[0].target_sha == retry_two.target_sha, "latest retry target must win")
 require(collapsed[0].pr_number == retry_two.pr_number, "latest retry PR must win")
+require(collapsed[0].cleanup_pr_numbers == (retry_one.pr_number,), "earlier retry PR must remain a cleanup obligation")
 require(collapsed[0].first_parent_sha == retry_one.first_parent_sha, "version span must start before first retry")
 require(collapsed[0].previous_version == "0.58.3" and collapsed[0].current_version == "0.58.5", "version span must cover all adjacent retries")
-other_issue = auto.WorkItem("6" * 40, retry_one.target_sha, 12, 999, "0.58.4", "0.58.4")
+docs_followup = auto.WorkItem("6" * 40, retry_one.target_sha, 12, 344, "0.58.4", "0.58.4", True)
+scope_split = auto.coalesce_consecutive_issue_retries([retry_one, docs_followup])
+require(len(scope_split) == 2, "docs-only/non-docs validation scope mismatch must prevent convergence")
+other_issue = auto.WorkItem("7" * 40, retry_one.target_sha, 13, 999, "0.58.4", "0.58.4", False)
 not_collapsed = auto.coalesce_consecutive_issue_retries([retry_one, other_issue, retry_two])
 require(len(not_collapsed) == 3, "different Issue boundary must prevent convergence")
+cleanup_command = auto.lifecycle_command(
+    operation="finalize",
+    issue_number=344,
+    pr_number=11,
+    release_required=False,
+    release_authorized=False,
+    expected_version="",
+    authorization_note="",
+    cleanup_pr_numbers=(10,),
+)
+require(cleanup_command[-2:] == ["--cleanup-pr", "10"], "collapsed cleanup PR must be forwarded to lifecycle")
+parsed_cleanup = module.build_parser().parse_args(
+    ["finalize", "--issue", "344", "--pr", "11", "--cleanup-pr", "10", "--cleanup-pr", "9"]
+)
+require(parsed_cleanup.cleanup_pr == [10, 9], "lifecycle must accept repeated cleanup PR identities")
 
 for expected_error, values in [
     (True, ("1", "2", True, False, "", "")),

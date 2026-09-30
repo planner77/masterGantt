@@ -48,6 +48,8 @@ class WorkItem:
     issue_number: int
     previous_version: str
     current_version: str
+    validation_docs_only: bool = False
+    cleanup_pr_numbers: tuple[int, ...] = ()
 
 
 def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -209,6 +211,27 @@ def resolve_versions(target_sha: str) -> tuple[str, str, str]:
     return first_parent, previous, current
 
 
+def docs_only_paths(paths: list[str]) -> bool:
+    if not paths:
+        return False
+    return all(
+        path.startswith("docs/") or ("/" not in path and path.endswith(".md"))
+        for path in paths
+    )
+
+
+def validation_scope_docs_only(first_parent_sha: str, target_sha: str) -> bool:
+    raw = run(
+        "git",
+        "diff",
+        "--name-only",
+        "-z",
+        first_parent_sha,
+        target_sha,
+    ).stdout
+    return docs_only_paths([path for path in raw.split("\0") if path])
+
+
 def resolve_work_item(repo: str, target_sha: str) -> WorkItem | None:
     pulls = gh_paginated(f"/repos/{repo}/commits/{target_sha}/pulls")
     pr = select_exact_pull_request(pulls, repo=repo, target_sha=target_sha)
@@ -224,6 +247,8 @@ def resolve_work_item(repo: str, target_sha: str) -> WorkItem | None:
         issue_number=issue_number,
         previous_version=previous_version,
         current_version=current_version,
+        validation_docs_only=validation_scope_docs_only(first_parent, target_sha),
+        cleanup_pr_numbers=(),
     )
 
 
@@ -277,18 +302,32 @@ def collect_pending_work(
 
 
 def coalesce_consecutive_issue_retries(items: list[WorkItem]) -> list[WorkItem]:
-    """Collapse only adjacent follow-up merges for the same Issue.
+    """Collapse adjacent same-Issue retries only when validation scope matches.
 
-    A failed main CI can leave an Issue's first merge unfinalized. When the very
-    next merge is a corrective follow-up for the same Issue, the later merge
-    contains the earlier change in its first-parent history. Validate/release
-    the latest target once, while preserving the version span from before the
-    first attempt. Never collapse across a different Issue boundary.
+    The latest target can stand in for earlier attempts only when both merges
+    require the same docs-only/non-docs main validation scope. This prevents a
+    docs-only follow-up from masking an earlier code merge whose exact main CI
+    never produced the required E2E/Docker/GHCR evidence. Every collapsed PR
+    identity is retained so all merged branches can be safely cleaned before
+    FINAL/Issue close.
     """
     coalesced: list[WorkItem] = []
     for item in items:
-        if coalesced and coalesced[-1].issue_number == item.issue_number:
+        if (
+            coalesced
+            and coalesced[-1].issue_number == item.issue_number
+            and coalesced[-1].validation_docs_only == item.validation_docs_only
+        ):
             previous = coalesced[-1]
+            cleanup_pr_numbers = tuple(
+                dict.fromkeys(
+                    (
+                        *previous.cleanup_pr_numbers,
+                        previous.pr_number,
+                        *item.cleanup_pr_numbers,
+                    )
+                )
+            )
             coalesced[-1] = WorkItem(
                 target_sha=item.target_sha,
                 first_parent_sha=previous.first_parent_sha,
@@ -296,6 +335,8 @@ def coalesce_consecutive_issue_retries(items: list[WorkItem]) -> list[WorkItem]:
                 issue_number=item.issue_number,
                 previous_version=previous.previous_version,
                 current_version=item.current_version,
+                validation_docs_only=item.validation_docs_only,
+                cleanup_pr_numbers=cleanup_pr_numbers,
             )
             continue
         coalesced.append(item)
@@ -334,8 +375,9 @@ def lifecycle_command(
     release_authorized: bool,
     expected_version: str,
     authorization_note: str,
+    cleanup_pr_numbers: tuple[int, ...] = (),
 ) -> list[str]:
-    return [
+    command = [
         "python3",
         "scripts/issue_lifecycle.py",
         operation,
@@ -352,6 +394,9 @@ def lifecycle_command(
         "--authorization-note",
         authorization_note,
     ]
+    for cleanup_pr_number in cleanup_pr_numbers:
+        command.extend(["--cleanup-pr", str(cleanup_pr_number)])
+    return command
 
 
 def process_item(repo: str, item: WorkItem) -> None:
@@ -388,6 +433,8 @@ def process_item(repo: str, item: WorkItem) -> None:
             f"- PR: #{item.pr_number}",
             f"- Issue: #{item.issue_number}",
             f"- application version: `{item.previous_version}` → `{item.current_version}`",
+            f"- validation scope docs-only: `{str(item.validation_docs_only).lower()}`",
+            f"- additional cleanup PRs: {', '.join(f'#{number}' for number in item.cleanup_pr_numbers) or 'none'}",
             f"- release_required: `{str(release_required).lower()}`",
             f"- release_authorized: `{str(release_authorized).lower()}`",
             f"- 승인 근거: {evidence}",
@@ -404,6 +451,7 @@ def process_item(repo: str, item: WorkItem) -> None:
             release_authorized=release_authorized,
             expected_version=item.current_version if release_required else "",
             authorization_note=authorization_note,
+            cleanup_pr_numbers=item.cleanup_pr_numbers,
         ),
         check=False,
     )

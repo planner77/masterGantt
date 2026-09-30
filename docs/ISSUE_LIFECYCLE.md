@@ -390,12 +390,15 @@ Generic/manual lifecycle의 merged target 검증은 PR required checks와 exact 
 
 ## 연속 동일 Issue 보완 merge 수렴
 
-main CI가 실패한 merge는 release/finalize 근거가 아니므로 그대로 게시하거나 종료하지 않는다. 다만 그 merge 직후 같은 Issue를 참조하는 보완 PR이 연속으로 merge된 경우, 후속 merge는 first-parent history에 앞선 변경을 포함하므로 Generic Release Finalizer는 **서로 인접한 동일 Issue merge만** 최신 target으로 수렴시킨다.
+main CI가 실패한 merge는 release/finalize 근거가 아니므로 그대로 게시하거나 종료하지 않는다. 그 merge 직후 같은 Issue를 참조하는 보완 PR이 연속으로 merge된 경우에도 **검증 scope가 동등한 경우에만** 최신 target으로 수렴시킨다.
 
-- 다른 Issue merge가 사이에 있으면 수렴하지 않고 기존 oldest → newest 순서를 유지한다.
+- 각 merge의 immediate first-parent diff를 동일 docs-only 규칙으로 판정한다. 모두 docs-only이거나 모두 non-docs일 때만 coalesce한다.
+- 앞선 merge가 non-docs인데 최신 corrective merge가 docs-only인 경우처럼 scope가 다르면 수렴하지 않는다. 최신 docs-only main CI가 이전 code change의 E2E/Docker/임시 GHCR evidence를 대신할 수 없기 때문이다.
+- 다른 Issue merge가 사이에 있어도 수렴하지 않고 기존 oldest → newest 순서를 유지한다.
 - 수렴 target은 최신 merge SHA/PR을 사용하지만 release 필요 여부는 첫 시도 이전 version → 최신 version의 전체 span으로 판정한다.
-- 따라서 실패한 중간 version artifact를 게시하지 않고 최신 successful main CI SHA만 검증·게시한다.
-- 최신 target의 exact main CI와 임시 GHCR artifact gate, PR required checks, version-scoped OWNER release authorization은 그대로 필수다.
+- coalesce된 모든 PR 번호를 cleanup obligation으로 보존한다. formal release가 필요하면 release 성공 후, 필요 없으면 gate PASS 후 각 merged PR branch를 공통 `safe_branch_cleanup.py`로 검증·삭제한다.
+- 이전 PR branch가 이미 없으면 safe cleanup의 idempotent 경로로 통과할 수 있지만, 보호/open dependency/tip 변경 등 하나라도 cleanup이 거부되면 FINAL marker와 Issue close를 수행하지 않는다.
+- 최신 target의 exact main CI, main artifact gate, latest PR required checks와 version-scoped OWNER release authorization은 그대로 필수다.
 - 동일 Issue라는 이유만으로 임의의 과거 merge를 건너뛰거나 다른 Issue의 실패를 우회하지 않는다.
 
 Issue #344의 CI #1370 후속 보완이 이 복구 경로의 첫 적용 사례다.
