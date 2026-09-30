@@ -49,6 +49,7 @@ const newPassword = wellFormedString.refine((value) => {
   return length >= 1 && length <= 12;
 });
 const projectStatus = z.enum(["planned", "in_progress", "completed"]);
+const projectMasterId = z.string().uuid().nullable();
 
 const createProjectSchema = z.object({
   name: projectName,
@@ -56,6 +57,9 @@ const createProjectSchema = z.object({
   ownerName: projectOwnerName,
   editPassword: newPassword,
   status: projectStatus.optional(),
+  businessUnitId: projectMasterId.optional(),
+  productId: projectMasterId.optional(),
+  siteEntityId: projectMasterId.optional(),
 }).strict();
 
 const copyProjectSchema = z.object({
@@ -119,8 +123,12 @@ const updateProjectSchema = z.object({
   name: projectName.optional(),
   description: projectDescription.optional(),
   status: projectStatus.optional(),
+  businessUnitId: projectMasterId.optional(),
+  productId: projectMasterId.optional(),
+  siteEntityId: projectMasterId.optional(),
 }).strict().refine(
-  (value) => value.name !== undefined || value.description !== undefined || value.status !== undefined,
+  (value) => value.name !== undefined || value.description !== undefined || value.status !== undefined ||
+    value.businessUnitId !== undefined || value.productId !== undefined || value.siteEntityId !== undefined,
 );
 
 const changeEditPasswordSchema = z.object({
