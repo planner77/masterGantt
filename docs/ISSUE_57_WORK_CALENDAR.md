@@ -227,3 +227,10 @@ Issue #57 범위 밖:
 - SVAR PRO Calendar 구현 복제
 
 향후 국가 fixture의 지원 연도를 추가할 때 기존 source version을 덮어쓰지 않고 연도별 source/version을 보존한다.
+
+
+## Issue #315 Project snapshot 표시용 이름 projection
+
+Gantt Day Header처럼 읽기 전용 canonical Project snapshot만 사용하는 화면에서 Effective Calendar 이름을 재사용할 수 있도록 `ProjectCalendarDto.exceptions[]`에 optional `names`를 제공한다. 같은 Project/date/effective dayType에 저장된 `work_calendar_dates.name`을 trim·중복 제거·deterministic order로 모은 **표시용 projection**이다.
+
+Scheduling Engine은 계속 날짜당 effective exception 하나만 사용한다. `names` 추가는 근무일 판정, COUNTRY/CUSTOM precedence, 충돌 규칙, DB schema를 바꾸지 않는다. `WORKING` 이름도 snapshot에는 보존할 수 있으나 #315 Tooltip은 이를 NON_WORKING 휴일명으로 표시하지 않는다.
