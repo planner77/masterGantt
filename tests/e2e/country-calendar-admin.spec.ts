@@ -85,7 +85,7 @@ test("Issue #342: 관리자에서 Import Preview/Apply와 휴일 CRUD를 완료�
   await page.getByRole("button",{name:"업로드 전 검증"}).click();
   await expect(page.getByText("추가 1")).toBeVisible();
   await page.getByRole("button",{name:"검증 결과 적용"}).click();
-  await expect(page.getByText("KR-2026-upload-2")).toBeVisible();
+  await expect(page.getByLabel("Source version")).toHaveValue("KR-2026-upload-2");
   await expect(page.getByText("기독탄신일")).toBeVisible();
 
   await page.getByLabel("날짜",{exact:true}).first().fill("2026-12-31");
