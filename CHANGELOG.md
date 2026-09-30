@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.59.0] - 2026-09-30
+
+### Added
+
+- Issue #342: KR/CN/VN/PH/TH/MX/US의 2026~2037 국가 Calendar 관리 범위를 정의하고, 공식 데이터가 없는 미래 연도는 추정하지 않는 DB override Catalog를 추가한다.
+- 기존 2026 built-in fixture를 초기 baseline으로 유지하면서 국가/연도 status, sourceVersion/sourceUrl, NON_WORKING/WORKING 날짜를 관리자 화면에서 JSON/CSV Preview·Import 및 CRUD할 수 있도록 한다.
+- 국가별 공식 데이터 확보·검증·정정 절차와 sourceVersion 규칙을 docs/COUNTRY_CALENDAR_DATA.md에 문서화한다.
+
+### Changed
+
+- Project Calendar Preview/Save와 신규 Project 기본 Calendar는 최신 OFFICIAL DB override를 built-in보다 우선 사용하며, Catalog 변경만으로 기존 Project의 materialized Calendar/Task는 자동 재계산하지 않는다.
+- Global navigation에 compact한 국가 캘린더 관리 화면을 추가하고 390/768/1024/1440px 반응형 및 Import/CRUD E2E를 검증한다.
+- Application version을 0.58.3에서 0.59.0으로 증가한다.
+
 ## [0.58.3] - 2026-09-30
 
 ### Fixed
