@@ -69,7 +69,8 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
     (latestTask?.type !== base.task.type ? "작업 유형이 변경되었습니다. 최신 정보를 다시 불러와 주세요." : null);
   const locked = busy || operation !== null;
   const readOnly = !!restriction || stale;
-  const scheduleReadOnly = readOnly || hasLinks;
+  const scheduleReadOnly = readOnly;
+  const scheduleDirty = draft.start !== (base.task.requestedStart ?? base.task.start) || draft.duration !== String(base.task.duration) || draft.scheduleMode !== base.task.scheduleMode;
 
   useEffect(() => {
     mountedReference.current = true;
@@ -87,7 +88,6 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
 
   function change(field: keyof TaskEditorDraft, value: string) {
     if (locked || restriction || stale) return;
-    if (hasLinks && field !== "baselineStart" && field !== "baselineDuration" && field !== "baselineEnd") return;
     setDraft((current) => ({ ...current, [field]: value }));
     setError(null);
   }
@@ -205,13 +205,18 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
               </span>
             </div>
             <div className={styles.scheduleFields}>
-              <label className={styles.field}>시작일<input name="task-start" type="date" min="1900-01-01" max="2199-12-31" value={draft.start} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("start", event.target.value)} /></label>
+              <label className={styles.field}>요청 시작일<input name="task-start" type="date" min="1900-01-01" max="2199-12-31" value={draft.start} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("start", event.target.value)} /></label>
               <label className={styles.field}>기간 (근무일)<input name="task-duration" type="number" min={base.task.type === "milestone" ? 0 : 1} max="10000" step="1" value={draft.duration} readOnly={scheduleReadOnly || base.task.type === "milestone"} disabled={locked} onChange={(event) => change("duration", event.target.value)} /></label>
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>서버 확정 종료일</span>
-                <output className={styles.outputField}>{base.task.end}</output>
+                <span className={styles.fieldLabel}>적용 시작일</span>
+                <output className={styles.outputField} aria-label="적용 시작일">{base.task.start}</output>
+              </div>
+              <div className={styles.field}>
+                <span className={styles.fieldLabel}>적용 종료일</span>
+                <output className={styles.outputField} aria-label="적용 종료일">{base.task.end}</output>
               </div>
             </div>
+            <label className={styles.field}>일정 모드<select name="task-schedule-mode" value={draft.scheduleMode} disabled={locked || readOnly} onChange={(event) => change("scheduleMode", event.target.value)}><option value="auto">자동 (Auto)</option><option value="manual">수동 (Manual)</option></select></label>
             <label className={styles.field}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
             <label className={styles.field}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
           </div>
@@ -224,7 +229,8 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
                   <button
                     type="button"
                     className="secondary-button"
-                    disabled={locked}
+                    disabled={locked || scheduleDirty}
+                    aria-describedby={scheduleDirty ? "baseline-copy-reason" : undefined}
                     onClick={() => {
                       setDraft((current) => copyScheduleToBaseline(current, base.task));
                       setError(null);
@@ -247,6 +253,7 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
               ) : null}
             </div>
 
+            {scheduleDirty ? <p id="baseline-copy-reason" className={styles.caption}>변경한 일정을 먼저 저장한 뒤 현재 적용 일정으로 기준 일정을 설정해 주세요.</p> : null}
             {base.task.type === "summary" ? (
               <div className={styles.scheduleFields}>
                 <div className={styles.field}>
@@ -306,8 +313,8 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
               <dt>기준 Revision</dt><dd>{base.revision}</dd>
             </dl>
           </details>
-          {hasLinks && !readOnly ? <p className={styles.caption}>관계가 연결된 작업은 기준 일정만 편집할 수 있습니다. 이름·일정·진척·설명·URL은 관계 보호를 위해 읽기 전용입니다.</p> : null}
-          <p className={styles.caption}>종료일은 저장 전 확정된 값입니다. 변경한 시작일과 근무일 기간의 계산은 저장 시 서버가 수행합니다. URL은 http/https만 허용되며 링크는 일정 화면에서 새 탭으로 열립니다.</p>
+          {hasLinks && !readOnly ? <p className={styles.caption}>관계에 따라 현재 적용 일정과 후행 작업 일정이 함께 조정됩니다.</p> : null}
+          <p className={styles.caption}>현재 적용 일정은 마지막으로 저장된 값입니다. 변경한 요청 시작일과 기간은 저장 시 캘린더와 관계를 반영해 계산합니다. URL은 http/https만 허용되며 링크는 일정 화면에서 새 탭으로 열립니다.</p>
         </section>
 
         <section

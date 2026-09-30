@@ -333,7 +333,7 @@ Next App Router의 `src/app/icon.svg`는 사이트 헤더의 파란 M 마크를 
 
 편집 가능한 프로젝트의 Grid `작업` 열에서 Summary·Task·Milestone의 이름 텍스트를 한 번 클릭하면 SVAR Core text editor가 열린다. 셀 여백, Summary 펼침 아이콘, 다른 열, Chart와 Context Menu는 이 진입점이 아니다. Grid의 기본 키보드/F2와 이름 더블클릭도 같은 이름 전용 검증·저장 경로를 사용한다. Enter 또는 일반 blur에서 trim한 이름을 보호 Task PATCH로 한 번 저장하고, Escape는 `close-editor({ignore:true})`로 취소한다. 한글 IME 조합 확정 Enter는 저장으로 취급하지 않는다. 빈 값·공백만·well-formed Unicode가 아닌 값·200자 초과는 요청 없이 input을 열어 둔 채 해당 input의 `aria-invalid`/`aria-describedby`와 오류 안내를 제공한다. 숫자처럼 보이는 `001`도 문자열 그대로 저장한다.
 
-저장 중 재입력을 잠그고 서버 성공 후 canonical snapshot을 기존 Gantt 인스턴스에 동기화한다. 실패·401·412·409에서는 기존 이름과 명시적 오류/권한 상태를 유지하며, 서버의 Origin·session·If-Match·revision 검사와 기존 rollback/재조회 경로를 재사용한다. Task Editor의 Summary readonly와 별도 Task/Assignment 저장 계약은 유지한다. 관계의 양 끝 Task는 기존 409 제한 때문에 이름 editor를 열지 않으며, 관계와 무관한 Task는 편집할 수 있다. 편집 가능한 이름 클릭에서는 작업 URL을 열지 않고, 연결된 이름처럼 editor가 열리지 않는 행과 Chart bar의 기존 URL 동작은 유지한다. Readonly에서는 inline editor가 없다.
+저장 중 재입력을 잠그고 서버 성공 후 canonical snapshot을 기존 Gantt 인스턴스에 동기화한다. 실패·401·412·409에서는 기존 이름과 명시적 오류/권한 상태를 유지하며, 서버의 Origin·session·If-Match·revision 검사와 기존 rollback/재조회 경로를 재사용한다. Task Editor의 Summary readonly와 별도 Task/Assignment 저장 계약은 유지한다. 관계 양 끝 Task의 과거 이름 제한은 #258에서 대체하여 linked leaf도 이름 editor를 연다. 편집 가능한 이름 클릭에서는 작업 URL을 열지 않고, readonly 이름처럼 editor가 열리지 않는 행과 Chart bar의 기존 URL 동작은 유지한다. Readonly에서는 inline editor가 없다.
 
 전용 unit/E2E 명세에는 세 유형, 단일 클릭과 F2, Enter/blur/Escape, 오류·중복·IME, 숫자 원문, 401/409/412/네트워크, 링크 무관 작업, 새로고침 영속성, Grid/Chart 인스턴스 및 390/768/1024/1440px overflow를 포함한다. 이 명세와 구현은 정적 검토만 했으며 실제 로컬 test/lint/typecheck/build/브라우저 조작, 구현 전후 화면 수치는 사용자 지시에 따라 **NOT TESTED**다. 공식 SVAR React Gantt Core 2.7.3의 text column, `getTable(true)`와 Table `open-editor`/`close-editor` API 및 설치 EventBus 순서를 확인했다(2026-09-24); 공식 demo의 실제 조작은 미실행이다. API·DB·Scheduling·Security 계약 문서 변경은 서버 계약 불변으로 N/A다.
 
@@ -612,3 +612,16 @@ Resource 고급 필터는 종류·상태·Task From/To 계약을 변경하지 �
 같은 수준의 근무/휴무 충돌은 날짜·대상·규칙·영향 Resource를 식별하는 focus 가능한 오류 요약으로 안내하고 입력으로 이동하는 명령을 제공한다. 동일 초안의 저장은 차단하며 입력 변경 시 충돌과 기존 preview를 무효화한다. PUT 충돌에도 과거 성공 preview를 남기지 않는다. publicId/revision 변경 시 이전 컨텍스트의 충돌 상태를 폐기한다.
 
 저장 후 canonical Calendar와 Project snapshot을 다시 조회하여 서버가 정규화한 날짜 유형을 반영한다. Group/Resource 날짜 예외는 Resource workload만 변경하고 Project Task start/end/duration과 기존 Gantt instance/선택/스크롤을 보존한다. 기존 401/412·초안 보호·늦은 응답 방어 계약은 유지한다. 실제 검증과 잔여 미검증은 [Issue #261 설계·검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)을 따른다.
+
+## Issue #258 — Dependency-aware 편집 결과
+
+Grid 연결 Task의 이름과 Task Editor의 metadata/progress/Baseline 편집을 허용한다. 요청 시작일은 canonical `requestedStart`로 표시하고 적용 start/end는 저장된 값으로 별도 표시한다. 일정 변경은 서버의 전체 graph 계산 결과로 한 번 확정한다. Chart move는 start-only, 왼쪽 resize는 start+근무일 duration, 오른쪽 resize는 duration-only, progress는 progress-only다. inProgress pointer와 내부 canonical 동기화는 mutation을 만들지 않는다.
+
+저장 결과 안내는 요청일→적용일 차이와 변경된 후행 leaf 건수 및 최대 3개 Task 이름/externalId를 표시한다. Manual/리소스 충돌은 초안을 유지하고 원본 canonical 화면을 복구한다. filter-hidden successor도 응답 full snapshot에 포함되며 Gantt instance/filter/scroll/tree/scale/selection 유지 경로를 재사용한다. linked 구조 명령 보호와 readonly/stale/busy 계약은 유지한다. Baseline 복사는 저장된 적용 일정 기준이며 미저장 일정 초안은 먼저 저장하도록 안내한다.
+
+
+## Issue #300 Grid 작업 행 이동 영속성
+
+Grid에서 행을 놓으면 Context Menu와 같은 보호된 계층 명령으로 parent/sibling order를 저장한다. 드래그 중의 표시 순서는 미확정 상태이며 놓은 이동의 서버 저장이 성공해야 확정된다. 이후 이름·진행률 등 일반 필드를 수정하거나 프로젝트를 다시 열어도 확정된 위치를 유지한다. 저장 중 후속 이름 편집·이동은 잠그고, 실패하거나 revision 충돌이 발생하면 최신 canonical 위치와 오류 안내를 표시한다. 재조회가 성공하면 같은 Gantt/API 인스턴스를 사용한다.
+
+기존 Grid/Chart 배치, Light semantic token, Context Menu·inline 이름 편집·Task Editor 흐름을 재사용하는 interaction 결함 수정이다. 새로운 화면 구조·PRO 기능·Undo/Redo·정렬 정책을 추가하지 않으므로 `DESIGN.md`와 `UI_UX_GUIDELINES.md`의 공통 원칙 변경은 N/A다. 390/768/1024/1440px에서는 기존 내부 Grid scroll과 document overflow 기준을 적용한다. 관련 실제 API 회귀는 `tests/e2e/project-grid-reorder-persistence.spec.ts`에서 DnD→rename→일반 필드 수정→Context Move→reload, 실패/412 복구와 Gantt identity를 검증한다. 로컬 실행 결과와 동일 PR head의 원격 `quality/e2e/docker` 판정은 별도로 기록한다.

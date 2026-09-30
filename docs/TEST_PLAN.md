@@ -700,3 +700,33 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - 기존 Country WORKING, Project CUSTOM 휴무, Manual/Dependency Calendar 재계산 및 접근성 회귀를 함께 유지한다.
 
 실제 로컬 실행 결과는 [Issue #261 검증 기록](ISSUE_261_RESOURCE_CALENDAR.md)에 기록한다. 사용자 요청 범위는 PR/CI 시작까지이므로 원격 quality/e2e/docker의 완료 판정은 NOT TESTED이며 main/GHCR/정식 release는 이번 작업 범위 밖이다.
+
+
+## Issue #258 Backend/Domain 검증
+
+`tests/domain/scheduling/task-candidate.test.ts`는 필드 분류(unknown 포함), 요청일 기반 앞당김과 결정성/입력 불변, 4 관계 × signed lag와 strongest bound, Manual conflict, WORKING/NON_WORKING 예외 및 연도 경계 Milestone을 검증한다. 기존 dependency/calendar/hierarchy domain 테스트는 세부 날짜·상한 공식의 회귀를 담당한다.
+
+`tests/server/projects/task-dependency-edit.test.ts`는 실제 SQLite에 Link API로 늦춰진 월~금 A→B→C를 만들고 HTTP PATCH로 metadata/progress/Baseline 일정 불변, 기간 3→5/1의 지연/앞당김 및 전체 diff, Auto/Manual 전환, 직접/후행 resource와 Manual mixed rollback, NULL 할당 보존, populated logistics/Link 보존, strict end/unknown, revision/stale/session/Origin 보호와 SQLite reopen을 확인한다. FS/SS/FF/SF × lead/lag 및 추가 predecessor도 실제 저장 경로로 검증한다. 기존 TaskService linked guard 테스트는 실제 Link API fixture의 정상 metadata 저장 + 날짜 불변 + 삭제 보호로 대체했다. 계층/subtree delete guard와 Link/resource canonical 회귀를 함께 실행한다.
+
+2026-09-29 Local Fast Feedback: 관련 11 파일 119 tests PASS. 이는 원격 전체 CI PASS가 아니며 PR quality/e2e/docker 판정은 해당 head의 Actions 결과를 사용한다.
+
+5,000 Task 벤치마크는 `RUN_TASK_DEPENDENCY_BENCHMARK=1 npx vitest run --config tests/config/vitest.config.ts tests/server/projects/task-dependency-performance.test.ts`로 명시 실행한다. 기본 CI에서는 성능 시나리오를 skip하며 정확성 검증은 위 테스트가 담당한다. 출력은 `TASK_BENCHMARK_REPORT` 또는 `/tmp/mastergantt-issue258-benchmark.jsonl`이다. chain/branch 각 4,999 links, join 9,997 links; 1회 warmup 후 3회 기록한다. 환경: Node v22.14.0, Linux 6.6.87.2 WSL2, Intel Core Ultra 7 255H, in-memory SQLite, 월~금/추가 휴일 없음. 잠정 예산 pure engine 2초 / 실제 HTTP Handler-Service-SQLite PATCH 5초다.
+
+| 모양 | 변경 전 aggregate 검증 engine(ms) | 변경 후 같은 검증 engine(ms) | 새 pure candidate engine(ms) | 변경 후 성공 PATCH(ms) |
+| --- | --- | --- | --- | --- |
+| chain | 44 / 38 / 43 | 44 / 44 / 40 | 33 / 25 / 25 | 146 / 135 / 139 |
+| branch | 43 / 36 / 37 | 34 / 35 / 36 | 21 / 21 / 22 | 124 / 149 / 122 |
+| join | 36 / 39 / 41 | 40 / 36 / 39 | 24 / 24 / 30 | 139 / 144 / 148 |
+
+변경 전 동일 linked schedule PATCH는 계산을 지원하지 않아 409(8–13ms)였으므로 성공 PATCH 시간과 기능 동등 비교는 불가능하다. 후행 날짜 저장은 prepared UPDATE를 재사용하여 Task별 SELECT 재조회를 피하고 할당도 한 번 읽는다. 변경 후 실제 PATCH는 모두 200이고 engine/PATCH 예산을 통과했다. 이는 해당 로컬 fixture의 측정이며 Calendar 탐색/운영 디스크/원격 runner 일반 성능 보장은 아니다. 원격 CI와 최종 수동 UX 검증 상태는 별도 기록한다.
+
+
+## Issue #300 Grid DnD 순서 영속성
+
+- Gateway Unit: 드래그 중 `inProgress`는 로컬 피드백만, 최종 drop은 기존 reparent/move 명령으로 1회 저장. readonly/mutation lock/잘못된 target을 차단하고 canonical 동기화의 명시적 내부 move는 서버에 재전송하지 않는다.
+- Canonical Unit: A/B/C → A/C/B → B 이름 변경 후 새 구조를 유지하며 불필요한 역방향 이동 명령이 없다. parent와 sibling 이동은 공개 move-task로 반영하고 일반 update-task에는 구조를 싣지 않는다.
+- SQLite/HTTP: 기존 reparent before/after/child 이후 name/description/progress PATCH가 parent_id/sort_order를 보존하는지 실제 DB와 canonical GET으로 확인한다. sibling normalization과 revision +1, 401/403/412/invalid target/cycle/빈 Summary의 원자 거부를 검증한다.
+- Chromium: 실제 pointer Grid DnD → inline rename → reload/reopen, Context Menu Up/Down → rename 비교, 비구조 필드와 접힘/펼침·parent 변경·타입 제한, 실패/412 canonical 복구와 Gantt identity 보존. Desktop에서 실제 DnD를 검증하고 390/768/1024/1440px에서 기존 Grid 접근·스크롤·document overflow를 확인한다.
+- Project List 상태 회귀는 SSR 렌더 직후 hydration 전 select 조작으로 이벤트가 유실되지 않도록 control 활성화 시점을 검증하고, E2E는 enabled 상태 이후 조작한다.
+
+실제 실행 결과와 실패/재실행 이력은 [Issue #300 기록](ISSUE_300_GRID_DND.md)에 구분한다. 사용자 요청은 PR/CI 시작까지이므로 원격 quality/e2e/docker 결과는 NOT TESTED이며 완료 모니터링은 수행하지 않는다.

@@ -20,6 +20,8 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 
+import { createTaskMoveGateway } from "./task-move-gateway";
+
 import type {
   ProjectCalendarDto,
   ProjectLinkDto,
@@ -346,8 +348,7 @@ export function ProjectGantt({
     const markRows = () => {
       root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]").forEach((row) => {
         const taskId = taskIdFromElement(row);
-        const eligible = Boolean(taskId && editable && !mutationLocked && tasksById.has(taskId) &&
-          !taskHasDependencyLinks(tasks, taskId, links));
+        const eligible = Boolean(taskId && editable && !mutationLocked && tasksById.has(taskId));
         if (row.dataset.inlineNameEligible !== String(eligible)) row.dataset.inlineNameEligible = String(eligible);
         const nameCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
         if (nameCell && !eligible && nameCell.getAttribute("aria-readonly") !== "true") nameCell.setAttribute("aria-readonly", "true");
@@ -649,13 +650,12 @@ export function ProjectGantt({
               hidden: !columnVisibility.text,
               editor: (row?: Record<string, unknown>) => {
                 const taskId = typeof row?.id === "string" ? row.id : null;
-                return editable && !mutationLocked && taskId && tasksById.has(taskId) &&
-                  !taskHasDependencyLinks(tasks, taskId, links) ? "text" : null;
+                return editable && !mutationLocked && taskId && tasksById.has(taskId) ? "text" : null;
               },
             }
             : column
     )),
-    [columnVisibility, editable, links, locales, mutationLocked, tasks, tasksById],
+    [columnVisibility, editable, locales, mutationLocked, tasksById],
   );
   const initialConfig = useState(() => ({
     tasks: projectTasksToSvarTasks(tasks),
@@ -931,6 +931,13 @@ export function ProjectGantt({
           : createTaskAddGateway(interceptNativeTaskAdd)(event),
       { tag: "project-native-add" },
     );
+    api.detach("project-native-move");
+    api.intercept("move-task", createTaskMoveGateway({
+      canMutate: () => canCreateReference.current && inlineSessionReference.current === null,
+      isCanonicalSync: () => canonicalSyncDepthReference.current > 0,
+      hasTask: (id) => tasksByIdReference.current.has(id),
+      dispatch: (command) => onTaskHierarchyCommandReference.current(command),
+    }), { tag: "project-native-move" });
     api.detach("project-summary-update");
     api.intercept(
       "update-task",
@@ -1106,14 +1113,13 @@ export function ProjectGantt({
       }
     }
 
-    // Editable, dependency-free name cells belong to the inline editor.
-    // Readonly rows and dependency-protected rows retain the information
-    // editor double-click entry because they cannot open the inline editor.
+    // Editable name cells belong to the inline editor.
+    // Readonly names retain the information editor double-click entry.
     const root = ganttScrollReference.current;
     if (!root) return;
     const match = resolveTaskContextTarget(event.target, root, (id) => tasksByIdReference.current.has(id));
     if (!match) return;
-    if (editable && !taskHasDependencyLinks(Array.from(tasksByIdReference.current.values()), match.taskId, linksReference.current)) return;
+    if (editable) return;
     event.preventDefault();
     event.stopPropagation();
     onTaskEditorOpenReference.current(match.taskId);
@@ -1143,8 +1149,7 @@ export function ProjectGantt({
 
   const commitInlineName = useCallback((value: unknown, session: NonNullable<typeof inlineSessionReference.current>): void => {
     if (session.committed) return;
-    if (!canCreateReference.current || session.revision !== projectRevisionReference.current ||
-      taskHasDependencyLinks(Array.from(tasksByIdReference.current.values()), session.taskId, linksReference.current)) {
+    if (!canCreateReference.current || session.revision !== projectRevisionReference.current) {
       inlineSessionReference.current = null;
       return;
     }
@@ -1200,8 +1205,7 @@ export function ProjectGantt({
       const root = ganttScrollReference.current;
       const taskId = typeof request.id === "string" ? request.id : null;
       const task = taskId ? tasksByIdReference.current.get(taskId) : null;
-      if (!root || !taskId || !task || !canCreateReference.current ||
-        taskHasDependencyLinks(Array.from(tasksByIdReference.current.values()), taskId, linksReference.current)) return false;
+      if (!root || !taskId || !task || !canCreateReference.current) return false;
       const row = Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]"))
         .find((candidate) => taskIdFromElement(candidate) === taskId);
       const cell = row?.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
@@ -1269,8 +1273,7 @@ export function ProjectGantt({
     const cell = text?.closest<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
     const row = cell?.closest<HTMLElement>(".wx-row[data-id]");
     const taskId = row ? taskIdFromElement(row) : null;
-    if (!text || !cell || !taskId || !root.contains(cell) || !tasksByIdReference.current.has(taskId) ||
-      taskHasDependencyLinks(tasks, taskId, links)) return;
+    if (!text || !cell || !taskId || !root.contains(cell) || !tasksByIdReference.current.has(taskId)) return;
     const token = ++inlineOpenTokenReference.current;
     setInlineNameMessage("");
     setInlineNameError(false);

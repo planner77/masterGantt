@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.55.0] - 2026-09-29
+
+### Added
+
+- Issue #258: 관계가 있는 작업의 이름·진행률 등 메타데이터를 유효 일정 보존 상태로 편집하고, 일정 필드 변경 시 `requestedStart`와 전체 의존관계를 기준으로 일정을 재계산한다. Manual 충돌이나 할당 기간 위반은 작업·일정·revision 변경을 원자적으로 취소한다.
+
+### Changed
+
+- 작업 편집기·Grid·차트의 편집 제한을 필드별로 분리해 관계 작업의 메타데이터 편집과 서버 검증을 거치는 일정 편집을 허용한다. readonly·요약 작업·pending·stale 상태의 보호 계약은 유지한다.
+
+## [0.54.1] - 2026-09-29
+
+### Fixed
+
+- Issue #300: Grid Drag & Drop의 확정 이동을 기존 Task hierarchy command에 연결하여 작업명 수정·재조회 후에도 새 parent/sibling 순서를 유지한다.
+- 드래그 중 화면 피드백과 서버 저장을 구분하고 canonical 내부 이동의 중복 전송을 차단한다. 기존 권한·revision·실패 복구와 동일 Gantt 인스턴스를 유지한다.
+- CI #1232에서 Project List 상태 E2E가 React hydration 전에 상호작용해 이벤트가 유실되는 race를 확인하고, 상태 변경 control을 hydration 완료 뒤 활성화하도록 보완했다.
+
 ## [0.54.0] - 2026-09-29
 
 ### Added

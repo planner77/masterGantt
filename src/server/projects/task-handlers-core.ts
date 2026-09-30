@@ -26,6 +26,7 @@ import {
   RevisionMismatchError,
   TaskLimitExceededError,
   TaskNotFoundError,
+  TaskScheduleConflictError,
   SummaryScheduleReadonlyError,
   SummaryTaskDeleteUnsupportedError,
   UnsupportedScheduleStructureError,
@@ -150,6 +151,11 @@ function finishError(error: unknown, requestId: string): Response {
       "INVALID_REQUEST",
       "The task input is invalid.",
     );
+  } else if (error instanceof TaskScheduleConflictError) {
+    mapped = new PublicApiError(409, error.code,
+      error.code === "MANUAL_DEPENDENCY_CONFLICT"
+        ? "A Manual task conflicts with the dependency schedule."
+        : "A resource allocation is outside the resulting task schedule.");
   } else if (error instanceof DuplicateExternalIdError) {
     mapped = new PublicApiError(
       409,

@@ -276,7 +276,9 @@ Preview는 DB를 변경하지 않으며 edit session, Origin, If-Match를 검증
 
 ## Issue #72 hierarchy mutation integration
 
-Context Menu의 reorder/reparent/copy는 Scheduling Domain의 날짜 계산 규칙을 새로 정의하지 않는다. 서버 서비스가 먼저 현재 persisted hierarchy를 검증한 뒤 parent와 sibling order를 원자적으로 변경하고, 동일 transaction에서 `recalculateHierarchy`로 모든 영향 Summary의 start/end/duration/progress를 다시 파생한다. Leaf의 `requestedStart`는 이동·복사만으로 변경하지 않는다.
+Grid DnD와 Context Menu의 reorder/reparent/copy는 Scheduling Domain의 날짜 계산 규칙을 새로 정의하지 않는다. 서버 서비스가 먼저 현재 persisted hierarchy를 검증한 뒤 parent와 sibling order를 원자적으로 변경하고, 동일 transaction에서 `recalculateHierarchy`로 모든 영향 Summary의 start/end/duration/progress를 다시 파생한다. Leaf의 `requestedStart`는 이동·복사만으로 변경하지 않는다.
+
+Issue #300은 Grid의 `before/after/child` 이동을 기존 `reparent` 명령에 연결한다. 같은 parent 안의 sibling 재정렬과 parent 변경 모두 기존 service의 순서 정규화·cycle·empty summary·Milestone parent 제한을 재사용한다. 후속 이름/비구조 필드 변경은 저장된 parent/sibling order를 보존한다. 별도 scheduling algorithm/domain 변경은 N/A다.
 
 Indent는 직전 sibling을 parent로 사용하며 필요한 경우 기존 first-child 정책과 동일하게 leaf Task parent를 Summary로 전환한다. Outdent는 현재 parent의 바로 다음 sibling 위치로 이동한다. 어떤 명령도 기존 Summary를 child 0개 상태로 남기지 않으며, 해당 경우 전체 mutation을 거부한다. 현재 Dependency Link가 있는 hierarchy mutation은 기존 제한을 유지하므로 FS 재계산과 계층 이동을 한 명령에 혼합하지 않는다.
 
@@ -284,3 +286,14 @@ Indent는 직전 sibling을 parent로 사용하며 필요한 경우 기존 first
 ## Link mutation recalculation (#97)
 
 Link create/delete rebuilds each leaf from `requestedStart`, applies the complete FS/lag=0 graph with `recalculateFinishStartDependencies`, rejects Manual lower-bound conflicts, then recalculates Summary derivations in the same SQLite transaction. Deleting a constraint can therefore move Auto successors earlier again, bounded by requestedStart and remaining predecessors.
+
+
+## Issue #258 — Dependency-aware Task PATCH
+
+현재 generic dependency 지원은 `recalculateDependencies`의 FS/SS/FF/SF 및 `-10000..10000` 근무일 lag다. `recalculateFinishStartDependencies`는 같은 함수의 호환 alias이며 위 W09/#68 초기 FS-only 이력을 현재 generic 지원 제한으로 해석하지 않는다.
+
+`recalculateTaskCandidate(tasks, links, calendar)`는 pure orchestration이다. 모든 leaf를 각 requestedStart와 기간/mode에서 `scheduleLeaf`로 정규화한 뒤 기존 graph 계산을 적용하고 최종 Summary를 파생한다. 원본 effective 날짜를 후보의 시작 기준으로 쓰지 않으므로 선행 기간 축소 시 후행도 요청일과 남은 strongest predecessor bound까지 앞당겨진다. 여러 predecessor, signed lag, Milestone, Calendar 근무/휴무 예외와 기존 날짜 상한을 같은 domain 함수가 처리한다. 입력 배열/Task/Link/Baseline을 변경하지 않고 Manual conflicts를 caller에게 돌려준다.
+
+직접 Task의 optional end assertion은 dependency 전 Calendar 계산에 적용한다. metadata/progress/Baseline-only 저장은 leaf schedule을 새로 저장하지 않고 기존 effective/requested 날짜를 유지한다. 진척과 기준일정은 Summary만 재집계한다. 일정 변경 때 명시적으로 수정하지 않은 leaf Baseline은 이동하지 않으며 Summary Baseline은 기존 자손 집계 규칙을 따른다.
+
+Service는 원본 persisted↔최종 candidate 날짜를 비교하여 target/앞당겨진 후행/지연된 후행을 찾는다. 최종 candidate의 Manual lower-bound conflict 또는 영향 leaf의 명시 resource allocation 범위 위반은 전체 transaction을 거부한다. 후보 계산 중간 날짜와 비교하거나 직접 Task의 할당만 검사하지 않는다. 성공 operation에는 직접 Task와 실제 날짜 변경 후행 및 변경 Summary가 포함된다. 전체 snapshot이 최종 저장된 값이며 Link/assignment/logistics를 수정하지 않는다.

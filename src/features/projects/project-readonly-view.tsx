@@ -498,7 +498,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     else if (status === 412) message = recovered
       ? "다른 편집 내용이 먼저 저장되었습니다. 최신 정보를 불러왔습니다. 내용을 확인한 뒤 다시 저장해 주세요."
       : "다른 편집 내용이 먼저 저장되었지만 최신 정보를 불러오지 못했습니다. 마지막 확인 일정으로 복구했습니다. 다시 조회해 주세요.";
-    else if (status === 400 || status === 409 || status === 422) message = code === "UNSUPPORTED_SCHEDULE_STRUCTURE"
+    else if (status === 400 || status === 409 || status === 422) message = code === "MANUAL_DEPENDENCY_CONFLICT"
+      ? "수동 일정이 관계 조건을 만족하지 않습니다. 요청 시작일·기간 또는 관계 설정을 확인해 주세요. 입력 내용은 유지됩니다."
+      : code === "RESOURCE_ASSIGNMENT_SCHEDULE_CONFLICT"
+      ? "변경된 일정이 리소스 배정 기간을 벗어납니다. 일정이나 리소스 배정 기간을 확인해 주세요. 입력 내용은 유지됩니다."
+      : code === "UNSUPPORTED_SCHEDULE_STRUCTURE"
       ? "관계가 연결된 작업은 이 방법으로 변경할 수 없습니다. 최신 일정을 확인해 주세요."
       : code === "END_DURATION_MISMATCH"
       ? "일정 기간을 확인해 주세요."
@@ -531,7 +535,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       if (response.ok && snapshot && applySnapshot(snapshot)) {
         const success = method === "POST" ? "작업을 추가했습니다." : method === "DELETE" ? "작업을 삭제했습니다." : "작업을 저장했습니다.";
         const shifted = (body as TaskMutationResponse).data.warnings.some((warning) => warning.code === "NON_WORKING_START_SHIFTED");
-        notify("success", shifted ? `${success} 비근무일 시작은 다음 근무일로 조정되었습니다.` : success, operation);
+        const beforeTasks = new Map(state.snapshot.data.tasks.map((task) => [task.taskId, task]));
+        const successors = snapshot.data.tasks.filter((task) => {
+          const before = beforeTasks.get(task.taskId);
+          return task.type !== "summary" && task.taskId !== taskId && before &&
+            (before.start !== task.start || before.end !== task.end || before.duration !== task.duration);
+        });
+        const currentTask = snapshot.data.tasks.find((task) => task.taskId === taskId);
+        const adjusted = currentTask?.requestedStart && currentTask.requestedStart !== currentTask.start
+          ? ` 요청 시작일 ${currentTask.requestedStart} → 적용 시작일 ${currentTask.start}.` : "";
+        const changed = successors.length ? ` 후행 작업 ${successors.length}건의 일정이 조정되었습니다: ${successors.slice(0, 3).map((task) => `${task.name} (${task.externalId})`).join(", ")}${successors.length > 3 ? ` 외 ${successors.length - 3}건` : ""}.` : "";
+        notify("success", `${success}${shifted ? " 비근무일 시작은 다음 근무일로 조정되었습니다." : ""}${adjusted}${changed}`, operation);
         return { status: "saved" };
       }
       const message = await handleTaskFailure(response.status, body, "작업을 저장할 수 없습니다. 잠시 후 다시 시도해 주세요.", operation);
@@ -634,10 +648,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function saveEditorTask(command: ProjectTaskUpdateCommand, revision: number): Promise<TaskEditorSaveResult> {
     if (state.status !== "ready") return { status: "failed", message: "프로젝트 정보를 확인할 수 없습니다." };
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === command.taskId);
-    const payloadFields = Object.keys(command.payload);
-    const baselineOnly = payloadFields.length > 0 && payloadFields.every((field) => field === "baselineStart" || field === "baselineDuration" || field === "baselineEnd");
-    const hasLinks = task ? taskHasDependencyLinks(state.snapshot.data.tasks, task.taskId, state.snapshot.data.links) : false;
-    const restriction = taskEditorReadOnlyReason(task, permission === "edit" && permissionCheckState === "complete", baselineOnly ? false : hasLinks);
+    const restriction = taskEditorReadOnlyReason(task, permission === "edit" && permissionCheckState === "complete", false);
     if (restriction) return { status: "failed", message: restriction };
     if (isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut) return { status: "failed", message: "프로젝트 변경을 완료한 뒤 다시 시도해 주세요." };
     return saveTask("PATCH", command.taskId, command.payload, revision);

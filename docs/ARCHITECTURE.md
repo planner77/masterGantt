@@ -103,7 +103,7 @@ Empty summary가 금지되므로 새 summary와 자식 생성·재배치 같은 
 
 ## Scheduling
 
-Input에는 사용자 요청 `requestedStart`와 duration, mode, parent/order, calendar, FS edges가 있다. Output에는 effective start/end, summary, WBS, 변경 이유·오류가 있다. W06은 자체 Gregorian ordinal 기반 date-only·Calendar·Leaf/Milestone 계산을 먼저 구현했으며 system timezone과 `Date` instant API에 의존하지 않는다. W24는 Parent graph를 검증하고 child Leaf에서 Summary와 WBS를 계산하지만 WBS를 저장·전송·표시하지 않으며 Reparent와 FS 계산도 수행하지 않는다. Service가 요청값과 계산값을 분리 저장하므로 향후 dependency 제거·앞당김 시 원래 요청일로 복귀할 수 있다. Server의 계산이 권위이며 browser preview는 같은 pure code를 사용해도 저장 권한은 없다. 상세 규칙은 [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md)만이 정의한다.
+Input에는 사용자 요청 `requestedStart`와 duration, mode, parent/order, calendar, FS/SS/FF/SF 및 signed lag 관계가 있다. Output에는 effective start/end, summary, WBS, 변경 이유·오류가 있다. W06은 자체 Gregorian ordinal 기반 date-only·Calendar·Leaf/Milestone 계산을 먼저 구현했으며 system timezone과 `Date` instant API에 의존하지 않는다. W24 당시에는 Parent graph를 검증하고 child Leaf에서 Summary와 WBS를 계산했으나 WBS를 저장·전송·표시하지 않았고 Reparent와 FS 계산도 후속 범위였다. 현재 관계 계산은 generic dependency engine을 사용하며, Service가 요청값과 계산값을 분리 저장하므로 dependency 제거·앞당김 시 원래 요청일로 복귀할 수 있다. Server의 계산이 권위이며 browser preview는 같은 pure code를 사용해도 저장 권한은 없다. 상세 규칙은 [SCHEDULING_ENGINE.md](SCHEDULING_ENGINE.md)만이 정의한다.
 
 ## Import / Export
 
@@ -150,3 +150,12 @@ Issue #83에서 도입한 Task/Resource view filter와 Project List filter는 UI
 ### Project status client mutation 경계 (#177)
 
 Project-level status 변경은 새 서버 endpoint나 DB 계층을 만들지 않고 기존 metadata PATCH를 재사용한다. `src/features/projects/project-status-mutation.ts`가 List와 Workspace의 공통 client transport 경계를 담당하여 최신 status/revision 조회, current edit-session 확인, unlock 호출, status-only PATCH 및 canonical metadata mutation 판별을 한 곳에 둔다. 인증 dialog와 UI state ownership은 각 화면에 남겨 List의 password-on-demand 흐름과 Workspace의 기존 edit mode를 억지로 합치지 않는다. 412 복구는 canonical snapshot을 다시 적용하고 Gantt reset generation을 변경하지 않아 Project metadata 변경과 SVAR instance lifecycle을 분리한다.
+
+
+## Issue #258 — Task 필드 PATCH와 일정 후보 경계
+
+`src/domain/tasks/task-patch-fields.ts`의 pure `classifyTaskPatch`가 Client와 Service의 일정/비일정 필드 분류를 공유한다. 권한과 strict 입력 검증은 기존 Route/Service가 수행하며 분류 결과 자체는 권한이 아니다.
+
+`ProjectService.updateTask`는 현재 aggregate 유효성을 확인한 뒤 field-only 요청에서는 저장된 effective start/end/requestedStart를 쓰고 Summary 진척/Baseline을 파생한다. 일정 요청에서는 직접 Task의 Calendar 계산과 end assertion을 먼저 검증하고 `src/domain/scheduling/task-candidate.ts`의 `recalculateTaskCandidate`에 전체 Project Task/Link를 넘긴다. 후보는 leaf requestedStart 재생성 → 기존 generic dependency forward-pass → Summary 계산 순서로 만든다. Service는 원본↔최종 날짜 diff로 모든 영향 leaf의 할당 범위를 한 번 읽어 검증한 뒤 후보 leaf/직접 편집/Baseline/Summary와 revision을 같은 IMMEDIATE transaction에 저장한다. `ScheduleRepository.updateLeafSchedules`는 prepared UPDATE를 재사용하고 후행별 SELECT 재조회를 하지 않는다.
+
+Manual/resource conflict는 Task 전용 오류로 Handler에서 HTTP 409로 매핑한다. `TaskFieldProjectService`는 같은 외부 transaction에서 description/url을 저장하고 canonical assignment/logistics를 enrich하므로 부분 저장이나 별도 revision 증가가 없다. Task Service에서 LinkService의 공개 mutation을 호출하지 않으며 순환 service 의존성도 추가하지 않는다. Link와 Calendar 경로는 기존 domain 공식을 계속 사용한다. 구조 명령/삭제의 linked guard는 유지한다. DB schema, migration, auth/session/Origin 계약과 CI workflow는 바뀌지 않는다.
