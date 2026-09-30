@@ -33,6 +33,7 @@ import {
   formatLocaleDateOnly,
   todayLocalDateString,
 } from "@/lib/date-display";
+import { formatGanttDayOfMonth } from "@/lib/gantt-scale-format";
 import { formatIsoWeek } from "@/lib/iso-week";
 
 import {
@@ -853,10 +854,7 @@ export function ProjectGantt({
       ? {
         unit: "day",
         step: 1,
-        format: (date: Date) => new Intl.DateTimeFormat(locales, {
-          day: "numeric",
-          weekday: "narrow",
-        }).format(date),
+        format: (date: Date) => formatGanttDayOfMonth(date),
       }
       : {
         unit: "week",
