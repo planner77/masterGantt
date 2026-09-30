@@ -9,6 +9,7 @@ import type {
   ProjectStatus,
 } from "@/contracts/projects";
 import { PROJECT_STATUS_OPTIONS } from "./project-status";
+import { ProjectMasterSelectFields, useProjectMasterSelectionCatalog } from "./project-master-select-fields";
 
 const MINIMUM_PASSWORD_LENGTH = 1;
 const MAXIMUM_PASSWORD_LENGTH = 12;
@@ -63,6 +64,8 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<ProjectStatus>("planned");
   const [editPassword, setEditPassword] = useState("");
+  const [masterSelection, setMasterSelection] = useState({ businessUnitId: "", productId: "", siteEntityId: "" });
+  const masterCatalog = useProjectMasterSelectionCatalog();
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<ProjectField,string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,6 +95,12 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
       requestAnimationFrame(() => errorReference.current?.focus({ preventScroll: true }));
       return;
     }
+    if (masterCatalog.state !== "ready" || !masterCatalog.catalog) {
+      setFieldErrors({});
+      setError("프로젝트 기준정보를 확인하지 못했습니다. 다시 불러온 후 프로젝트를 만들어 주세요.");
+      requestAnimationFrame(() => errorReference.current?.focus({ preventScroll: true }));
+      return;
+    }
 
     setFieldErrors({});
     setError(null);
@@ -104,6 +113,9 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
       status,
       ownerName: normalizedOwnerName,
       editPassword,
+      businessUnitId: masterSelection.businessUnitId || null,
+      productId: masterSelection.productId || null,
+      siteEntityId: masterSelection.siteEntityId || null,
     };
     setEditPassword("");
 
@@ -170,6 +182,20 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
         <p id="project-owner-help">프로젝트 담당자를 표시하는 정보이며 계정/권한과는 연결되지 않습니다. Unicode 문자 기준 최대 100자입니다.</p>
         {fieldErrors.ownerName ? <p className="form-field-error" id="project-owner-error">{fieldErrors.ownerName}</p> : null}
       </div>
+
+      {masterCatalog.state === "ready" && masterCatalog.catalog ? (
+        <ProjectMasterSelectFields
+          value={masterSelection}
+          onChange={setMasterSelection}
+          disabled={isSubmitting}
+          catalog={masterCatalog.catalog}
+        />
+      ) : (
+        <div className="form-error" role={masterCatalog.state === "error" ? "alert" : "status"}>
+          <span>{masterCatalog.state === "loading" ? "프로젝트 기준정보를 불러오는 중…" : "프로젝트 기준정보를 불러오지 못했습니다."}</span>
+          {masterCatalog.state === "error" ? <button className="secondary-button" type="button" onClick={masterCatalog.reload}>다시 시도</button> : null}
+        </div>
+      )}
 
       <div className="form-field">
         <label htmlFor="project-description">설명 <span>(선택)</span></label>
