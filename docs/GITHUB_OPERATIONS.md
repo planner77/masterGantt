@@ -1,6 +1,6 @@
 # GitHub / CI / GHCR 운영 담당과 작업 절차
 
-결정일: 2026-09-12. 주 담당은 기존 `infra` Sub-Agent이며 설정은 `.codex/agents/infra.toml`의 `gpt-6-astra` / `high`다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_docs`는 독립 검토한다.
+최초 결정일: 2026-09-12, 모델 배치 갱신: 2026-09-30 (#347). 주 담당은 기존 `infra` Sub-Agent이며 현재 설정은 `.codex/agents/infra.toml`의 `gpt-6.1-sol` / `high`다. Astra는 기본 배치가 아니라 Manager가 Sol High로 충분하지 않다고 판단한 고난도 작업의 일시 승격용이다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_docs`는 독립 검토한다.
 
 이 문서는 **담당자, 배정 조건, 승인 경계와 보고 절차**의 기준이다. Workflow·tag·image의 기술 계약은 [CI_CD.md](CI_CD.md), runtime과 persistence는 [DEPLOYMENT.md](DEPLOYMENT.md), 보안은 [SECURITY.md](SECURITY.md), 기존 결정은 [DECISIONS.md](DECISIONS.md)가 기준이다. 역할 확장은 기존 release 정책이나 D05를 변경하지 않는다.
 
@@ -55,7 +55,7 @@ Force push, tag 이동/재발행, quality gate 우회, 무조건 재시도, 비�
 
 ```text
 담당 에이전트: infra
-요청 모델 / 추론 수준: gpt-6-astra / high
+요청 모델 / 추론 수준: gpt-6.1-sol / high
 저장소 / Ref / Commit:
 관련 Issue / PR / Run / Job / Attempt:
 범위 / 승인:
