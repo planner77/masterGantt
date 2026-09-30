@@ -196,6 +196,13 @@ Excel은 선택적 물류 보고용 sheet를 추가하고 직접/파생, code/pu
 
 2026-09-26 URL·공식 문서·관련 sample 링크를 조회했다. SPA의 실제 조작/캡처와 설치2.7.3 runtime 검증은 수행하지 않았다. 온라인 Editor 예제의 확장 방식은 참조하되 설치 패키지 API와 Core/PRO 경계를 다시 확인한다. 온라인 기본 Resources tab은 Summary에서 숨겨진다고 설명되어 있어, 3종 Task의 물류 연결을 그것에 의존하지 않고 masterGantt 자체 편집 영역으로 설계했다. 공식 문서 조회를 라이브러리 업그레이드 승인으로 해석하지 않는다.
 
-## Issue #288 Developer grade 확장
+## 관리형 물류 유형 카탈로그 (Issue #280)
 
-시스템의 PI/Developer 역할은 계속 기존 global Resource를 참조한다. 별도 Developer master나 `resourceType`은 추가하지 않는다. Resource의 전역 메타데이터 `developerGrade`를 역할 관계와 조합하며, 신규 Developer 역할은 등급 지정 Resource만 허용한다. 기존 미지정 Developer 역할은 migration 호환을 위해 보존할 수 있고 UI에서 `등급 미지정`으로 식별한다. 역할 해제와 Task assignment는 전역 등급을 변경하지 않는다.
+설비 `equipment_type`과 시스템 `system_type`은 전 프로젝트 공통 글로벌 카탈로그의 stable `code`를 저장 기준으로 사용하고 사용자 화면은 `name`을 표시한다.
+
+- 신규/변경 선택에는 `active = 1` 유형만 허용한다.
+- 기존 엔티티가 비활성 유형을 사용 중이면 참조와 표시는 유지하며 다른 필드 수정도 허용한다.
+- 사용 중인 유형의 code는 변경/삭제하지 않고 활성/비활성 lifecycle을 사용한다.
+- Project Copy/Template/Task Logistics Link/Dashboard/Export는 stable type code를 보존한다.
+- migration 0015는 기존 12개 code를 seed하고 기존 물류 row의 type 값을 보존한 채 fixed `CHECK IN (...)`을 catalog FK로 전환한다.
+
