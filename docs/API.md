@@ -1197,3 +1197,17 @@ Resource Catalog의 Resource 응답은 `developerGrade: "BEGINNER" | "INTERMEDIA
 - `GET|POST /api/project-master/admin/items`, `PATCH /api/project-master/admin/items/{itemId}`: 전체 master 목록/usage count 조회와 추가·표시명·활성 상태·정렬 순서 변경을 제공한다. mutation은 Origin, 관리자 Cookie와 strong `If-Match` catalog revision을 요구한다.
 
 Project create/update request는 `businessUnitId/productId/siteEntityId: string | null`을 선택적으로 받는다. canonical Project DTO/List는 선택된 항목을 `{id, code, name, active}`로 반환한다. 신규 선택은 inactive를 거부하지만 현재 Project의 inactive 참조는 다른 메타데이터 저장 때문에 제거되지 않는다. 사용 중 stable code 변경은 `409 PROJECT_MASTER_ITEM_IN_USE`로 거부한다.
+
+## Issue #342 Country Calendar 관리자 API
+
+Project 기준정보 관리자 세션을 재사용하며, mutation은 exact Origin과 Catalog revision If-Match를 요구한다. 응답은 최신 revision ETag를 반환한다.
+
+- GET /api/admin/work-calendars/countries/{countryCode}/years/{year}: 국가/연도 dataset, status/source/date 목록 조회
+- PATCH /api/admin/work-calendars/countries/{countryCode}/years/{year}: status/sourceVersion/sourceUrl 수정
+- POST /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates: 날짜 추가
+- PATCH /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}: 날짜/이름/dayType/sourceKey 수정
+- DELETE /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}: 날짜 삭제
+- POST /api/admin/work-calendars/import/preview: JSON/CSV Import 검증과 추가/변경/삭제/동일 건수 Preview
+- POST /api/admin/work-calendars/import/apply: 검증된 연도 dataset 전체를 transaction으로 교체
+
+Import apply와 CRUD는 country_calendar_catalog_state.revision을 별도로 증가시키며 Project revision은 변경하지 않는다. 기존 GET /api/work-calendars/countries의 supportedYears는 built-in + DB override 중 OFFICIAL로 Scheduling 가능한 연도만 반환한다. Project Preview/Save에서 비공식/미확보 연도는 422 COUNTRY_CALENDAR_UNAVAILABLE과 country/year detail을 반환한다.
