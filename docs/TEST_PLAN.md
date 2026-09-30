@@ -6,7 +6,7 @@
 - Chromium E2E: Day mode 하위 scale에서 `14`, `22` 등 숫자-only Header를 확인하고 legacy `일`/괄호 문자열이 없음을 검증한다. Day → Week → Day 전환 후 숫자-only 형식 복원, Week `W38/W39`, weekend highlight, Gantt/API instance identity 유지 회귀를 기존 scale spec에서 함께 확인한다.
 - Month scale format, Day/Week cellWidth(44/68), scheduling/calendar/task/link/Grid/API/DB 계약은 변경하지 않는다.
 - PR 회귀 보완: Grid DnD 후 parent 변경/selection 리렌더를 거친 Task에서도 stale inline edit session이 다음 작업명 클릭을 차단하지 않고 inline rename이 열리는지 기존 #300 Chromium 시나리오로 검증한다.
-- 공식 전체 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다. #315/#316 Tooltip은 별도 Issue이며 이번 범위에 포함하지 않는다.
+- 공식 전체 회귀 판정은 최신 `main` 재정렬 후 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다. #315/#316 Tooltip은 별도 Issue이며 이번 범위에 포함하지 않는다.
 
 ## Issue #285 공정 코드 자동 생성
 
