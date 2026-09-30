@@ -191,7 +191,7 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
           catalog={masterCatalog.catalog}
         />
       ) : (
-        <div className="form-error" role={masterCatalog.state === "error" ? "alert" : "status"}>
+        <div className={masterCatalog.state === "error" ? "form-error" : "form-status"} role={masterCatalog.state === "error" ? "alert" : "status"}>
           <span>{masterCatalog.state === "loading" ? "프로젝트 기준정보를 불러오는 중…" : "프로젝트 기준정보를 불러오지 못했습니다."}</span>
           {masterCatalog.state === "error" ? <button className="secondary-button" type="button" onClick={masterCatalog.reload}>다시 시도</button> : null}
         </div>
