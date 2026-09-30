@@ -45,7 +45,7 @@ describe("deployment repository layout", () => {
       devDependencies?: Record<string, string>;
     };
     expect(packageJson.dependencies).not.toHaveProperty("tsx");
-    expect(packageJson.dependencies?.["@next/env"]).toBe("16.3.4");
+    expect(packageJson.dependencies?.["@next/env"]).toBe(packageJson.dependencies?.next);
     expect(packageJson.devDependencies?.tsx).toBe("4.23.13");
     expect(packageJson.scripts?.build).toContain("node scripts/prepare-standalone-runtime.mjs");
     expect(packageJson.scripts?.start).toBe("node scripts/start-standalone.mjs");
