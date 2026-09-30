@@ -149,6 +149,8 @@ require(not module.main_artifact_gate(artifact_skipped, docs_only=False)[0], "no
 require(module.main_artifact_gate(artifact_skipped, docs_only=True)[0], "docs-only skipped artifact must be N/A/PASS")
 require(not module.main_artifact_gate([], docs_only=False)[0], "missing main artifact job must fail closed")
 # exact_main_ci must bind the SHA in the API query and reject wrong-SHA data.
+test_repo = "owner/repo"
+test_sha = "a" * 40
 saved_lifecycle_gh = module.gh
 requested_paths = []
 def fake_lifecycle_gh(path: str, *, method: str = "GET", fields=None):
@@ -158,7 +160,7 @@ def fake_lifecycle_gh(path: str, *, method: str = "GET", fields=None):
             "workflow_runs": [
                 {
                     "id": 77,
-                    "head_sha": sha,
+                    "head_sha": test_sha,
                     "status": "completed",
                     "conclusion": "success",
                     "created_at": "2026-09-30T00:00:00Z",
@@ -181,11 +183,11 @@ def fake_lifecycle_gh(path: str, *, method: str = "GET", fields=None):
 module.gh = fake_lifecycle_gh
 try:
     ci_ok, ci_url, artifact_ok, artifact_evidence = module.exact_main_ci(
-        repo, sha, docs_only=False
+        test_repo, test_sha, docs_only=False
     )
     require(ci_ok and artifact_ok, "exact SHA main CI/artifact evidence must pass")
     require(ci_url.endswith("/run/77"), "exact main CI URL must be preserved")
-    require(any(f"head_sha={sha}" in path for path in requested_paths), "exact main CI request must include head_sha")
+    require(any(f"head_sha={test_sha}" in path for path in requested_paths), "exact main CI request must include head_sha")
 finally:
     module.gh = saved_lifecycle_gh
 
@@ -207,7 +209,7 @@ def fake_wrong_sha(path: str, *, method: str = "GET", fields=None):
     return {}
 module.gh = fake_wrong_sha
 try:
-    ci_ok, ci_url, artifact_ok, _ = module.exact_main_ci(repo, sha, docs_only=False)
+    ci_ok, ci_url, artifact_ok, _ = module.exact_main_ci(test_repo, test_sha, docs_only=False)
     require(not ci_ok and ci_url is None and not artifact_ok, "wrong SHA main CI must fail closed")
 finally:
     module.gh = saved_lifecycle_gh
