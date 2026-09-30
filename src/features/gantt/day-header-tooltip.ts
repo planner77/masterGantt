@@ -70,18 +70,25 @@ export function projectHolidayNamesForDate(
   );
 }
 
+export function buildGanttDayHeaderTooltipDataForDateOnly(
+  date: DateOnly,
+  calendar: ProjectCalendarDto,
+  locales: Intl.LocalesArgument,
+): GanttDayHeaderTooltipData {
+  const weekday = formatDateOnlyWeekday(date, locales);
+  const holidayNames = projectHolidayNamesForDate(calendar, date);
+  return {
+    date,
+    weekday,
+    holidayNames,
+    ariaLabel: [date, weekday, ...holidayNames].filter(Boolean).join(", "),
+  };
+}
+
 export function buildGanttDayHeaderTooltipData(
   date: Date,
   calendar: ProjectCalendarDto,
   locales: Intl.LocalesArgument,
 ): GanttDayHeaderTooltipData {
-  const dateOnly = dateOnlyFromLocalDate(date);
-  const weekday = formatDateOnlyWeekday(dateOnly, locales);
-  const holidayNames = projectHolidayNamesForDate(calendar, dateOnly);
-  return {
-    date: dateOnly,
-    weekday,
-    holidayNames,
-    ariaLabel: [dateOnly, weekday, ...holidayNames].filter(Boolean).join(", "),
-  };
+  return buildGanttDayHeaderTooltipDataForDateOnly(dateOnlyFromLocalDate(date), calendar, locales);
 }
