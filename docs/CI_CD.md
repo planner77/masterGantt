@@ -369,3 +369,9 @@ main의 비문서 변경은 세 required aggregate gate가 모두 성공한 뒤 
 - lifecycle workflow 자체에는 `packages: write`를 추가하지 않는다.
 
 Issue #248 구현 전에는 기존 `finalize`가 `release_required=true`일 때 동일 release gate를 내부 수행하므로, 정식 release+종료를 한 번에 처리하는 현재 호환 경로로 사용할 수 있다.
+
+## Generic Release Finalizer (#350)
+
+Main CI의 후속 lifecycle mutation은 `.github/workflows/release-finalizer.yml` 하나가 담당한다. `workflow_run.branches: [main]`과 push/success gate로 PR CI 및 수동 CI를 배제한다. exact merge SHA에서 PR/Issue를 자동 resolve하며 application version이 동일하면 finalize, 변경되면 trusted version-scoped release 승인 marker가 있는 경우에만 release_finalize를 수행한다.
+
+Generic finalizer와 `release-image.yml`은 `concurrency.queue: max`로 burst pending run을 보존한다. 단, concurrency의 실행 순서는 semantic version/main history 순서를 보장하지 않으므로 Generic Finalizer가 current main의 first-parent backlog를 oldest → newest로 처리해 release 순서를 확정한다. 상세 계약은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다.

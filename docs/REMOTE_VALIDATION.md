@@ -233,3 +233,16 @@ Workflow 파일 존재나 과거 다른 version의 성공 run은 현재 `v0.25.0
 4. `Next.js production build`의 `.next/cache`, TypeScript incremental cache, npm package cache, Docker BuildKit GHA cache restore/save 로그를 확인한다.
 5. PR은 `packages: write`를 받지 않으며 main 비문서 push만 기존 임시 GHCR publish/digest smoke/cleanup을 수행한다.
 6. 최적화 효과는 변경 전 기준 run #995의 wall-clock(quality 약 1분 36초, Docker 약 3분 30초, E2E 약 18분 45초)과 동일·유사 변경의 새 PR run을 비교한다.
+
+## Generic Release Finalizer 원격 검증 (#350)
+
+PR 단계에서는 `scripts/verify-issue-lifecycle.py`가 trigger/filter, exact mapping, authorization parser, concurrency, legacy workflow 부재를 정적으로 검증한다. Migration merge 이후에는 exact main CI 완료 뒤 다음 원격 증거를 확인한다.
+
+- Generic Release Finalizer run이 정확히 1개 생성됨
+- 삭제된 Issue별 helper/finalizer run이 새로 생성되지 않음
+- no-release merge는 `finalize`만 수행
+- release-required merge는 승인 marker가 없으면 BLOCKED
+- 승인된 release는 exact `release-image.yml` 및 digest evidence 뒤 finalize
+- 근접한 여러 merge의 CI 완료 순서가 뒤집혀도 current main first-parent backlog를 oldest → newest로 처리하며 queue burst에서도 target이 유실되지 않음
+
+실패 후에는 원인을 제거하고 기존 failed run/job 재실행을 우선한다.
