@@ -54,6 +54,7 @@ describe("ProjectTemplateService (Issue #195)", () => {
         code: "RES-TEMP-01",
         name: "템플릿담당자",
         description: "테스트 리소스",
+        developerGrade: "ADVANCED",
         now: "2026-09-27T00:00:00.000Z",
       });
 

@@ -56,6 +56,7 @@ describe("ProjectCopyService with Logistics (Issue #189 LG-06)", () => {
         code: "RES-02",
         name: "김철수",
         description: "개발자",
+        developerGrade: "ADVANCED",
         now: "2026-09-27T00:00:00.000Z",
       });
 

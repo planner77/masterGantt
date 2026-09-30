@@ -63,6 +63,7 @@ describe("migration CLI", () => {
         "0013_link_types_and_lag.sql",
         "0014_task_baseline.sql",
         "0015_logistics_type_catalog.sql",
+        "0016_resource_developer_grade.sql",
       ],
     });
     expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
@@ -81,7 +82,7 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 15 });
+        .toEqual({ count: 16 });
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT revision FROM resource_catalog_state WHERE id = 1").get())

@@ -12,6 +12,7 @@ import type {
   ReplaceTaskAssignmentsRequest,
   ResourceCatalogResponse,
   UpdateCatalogTargetRequest,
+  DeveloperGrade,
 } from "../../contracts/resources";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
 import { resolveResourceCalendar } from "../../domain/scheduling/resource-calendar";
@@ -67,28 +68,36 @@ function normalizeCode(value: unknown): string | null | undefined {
   const text = normalizedText(value, 64);
   return text === undefined ? undefined : text;
 }
-function canonicalCreate(input: CreateCatalogTargetRequest): { name: string; code: string | null; description: string } {
+const DEVELOPER_GRADES = new Set<DeveloperGrade>(["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]);
+function normalizeDeveloperGrade(value: unknown): DeveloperGrade | null | undefined {
+  if (value === null) return null;
+  return typeof value === "string" && DEVELOPER_GRADES.has(value as DeveloperGrade) ? value as DeveloperGrade : undefined;
+}
+function canonicalCreate(input: CreateCatalogTargetRequest): { name: string; code: string | null; description: string; developerGrade: DeveloperGrade | null } {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new ResourceCatalogInvalidInputError();
   const name = normalizedText(input.name, 200);
   const code = input.code === undefined ? null : normalizeCode(input.code);
   const description = input.description === undefined ? "" : normalizedText(input.description, 2000, true);
-  if (name === undefined || code === undefined || description === undefined) throw new ResourceCatalogInvalidInputError();
-  return { name, code, description };
+  const developerGrade = input.developerGrade === undefined ? null : normalizeDeveloperGrade(input.developerGrade);
+  if (name === undefined || code === undefined || description === undefined || developerGrade === undefined) throw new ResourceCatalogInvalidInputError();
+  return { name, code, description, developerGrade };
 }
 function canonicalUpdate(input: UpdateCatalogTargetRequest): UpdateCatalogTargetRequest {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new ResourceCatalogInvalidInputError();
-  const allowed = new Set(["name", "code", "description", "active"]);
+  const allowed = new Set(["name", "code", "description", "active", "developerGrade"]);
   if (Object.keys(input).some((key) => !allowed.has(key)) || Object.keys(input).length === 0) throw new ResourceCatalogInvalidInputError();
   const result: UpdateCatalogTargetRequest = {};
   if (input.name !== undefined) { const name = normalizedText(input.name, 200); if (name === undefined) throw new ResourceCatalogInvalidInputError(); result.name = name; }
   if (input.code !== undefined) { const code = normalizeCode(input.code); if (code === undefined) throw new ResourceCatalogInvalidInputError(); result.code = code; }
   if (input.description !== undefined) { const description = normalizedText(input.description, 2000, true); if (description === undefined) throw new ResourceCatalogInvalidInputError(); result.description = description; }
   if (input.active !== undefined) { if (typeof input.active !== "boolean") throw new ResourceCatalogInvalidInputError(); result.active = input.active; }
+  if (input.developerGrade !== undefined) { const grade = normalizeDeveloperGrade(input.developerGrade); if (grade === undefined) throw new ResourceCatalogInvalidInputError(); result.developerGrade = grade; }
   return result;
 }
 function sameTarget(current: CatalogTargetRecord, update: UpdateCatalogTargetRequest): boolean {
   return (update.name === undefined || update.name === current.name) && (update.code === undefined || update.code === current.code) &&
-    (update.description === undefined || update.description === current.description) && (update.active === undefined || update.active === current.active);
+    (update.description === undefined || update.description === current.description) && (update.active === undefined || update.active === current.active) &&
+    (update.developerGrade === undefined || update.developerGrade === current.developerGrade);
 }
 function targetDto(kind: "resource" | "group", target: CatalogTargetRecord): AssignmentTargetDto {
   return { kind, id: target.publicId, name: target.name, code: target.code, description: target.description, active: target.active };
@@ -207,17 +216,19 @@ export class ResourceCatalogService {
 
   getCatalog(rawAdminToken: string | undefined): ResourceCatalogResponse {
     this.requireAdmin(rawAdminToken);
-    return { data: { revision: this.catalog.getRevision(), resources: this.catalog.listResources().map((r) => ({ id:r.publicId,name:r.name,code:r.code,description:r.description,active:r.active })), groups: this.catalog.listGroups().map((g) => ({ id:g.publicId,name:g.name,code:g.code,description:g.description,active:g.active,memberResourceIds:g.memberResourceIds })) } };
+    return { data: { revision: this.catalog.getRevision(), resources: this.catalog.listResources().map((r) => ({ id:r.publicId,name:r.name,code:r.code,description:r.description,active:r.active,developerGrade:r.developerGrade })), groups: this.catalog.listGroups().map((g) => ({ id:g.publicId,name:g.name,code:g.code,description:g.description,active:g.active,memberResourceIds:g.memberResourceIds })) } };
   }
   createTarget(kind: "resource" | "group", rawAdminToken: string | undefined, expectedRevision: number, input: CreateCatalogTargetRequest): ResourceCatalogResponse {
+    if (kind === "group" && input?.developerGrade !== undefined) throw new ResourceCatalogInvalidInputError();
     const canonical = canonicalCreate(input); const mutate = this.database.transaction(() => {
       this.requireAdmin(rawAdminToken); if (this.catalog.getRevision() !== expectedRevision) throw new ResourceCatalogRevisionMismatchError();
       const publicId = this.generatePublicId(); if (!isCanonicalUuidV4(publicId)) throw new ResourceCatalogInvalidInputError(); const now = this.clock().toISOString();
-      if (kind === "resource") this.catalog.insertResource({ publicId, ...canonical, now }); else this.catalog.insertGroup({ publicId, ...canonical, now });
+      if (kind === "resource") this.catalog.insertResource({ publicId, ...canonical, now }); else this.catalog.insertGroup({ publicId, name: canonical.name, code: canonical.code, description: canonical.description, now });
       if (!this.catalog.advanceRevision(expectedRevision, now)) throw new ResourceCatalogRevisionMismatchError(); return this.getCatalog(rawAdminToken);
     }); return mutate.immediate();
   }
   updateTarget(kind: "resource" | "group", publicId: string, rawAdminToken: string | undefined, expectedRevision: number, input: UpdateCatalogTargetRequest): ResourceCatalogResponse {
+    if (kind === "group" && input?.developerGrade !== undefined) throw new ResourceCatalogInvalidInputError();
     const canonical = canonicalUpdate(input); const mutate = this.database.transaction(() => {
       this.requireAdmin(rawAdminToken); if (this.catalog.getRevision() !== expectedRevision) throw new ResourceCatalogRevisionMismatchError();
       const current = kind === "resource" ? this.catalog.findResourceByPublicId(publicId) : this.catalog.findGroupByPublicId(publicId);

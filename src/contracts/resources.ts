@@ -1,6 +1,7 @@
 import type { ProjectDto, ProjectLinkDto, ProjectTaskDto } from "./projects";
 
 export type AssignmentTargetKind = "resource" | "group";
+export type DeveloperGrade = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT";
 
 export interface ResourceDto {
   id: string;
@@ -8,6 +9,8 @@ export interface ResourceDto {
   code: string | null;
   description: string;
   active: boolean;
+  /** Always present in Resource Catalog API responses; optional keeps legacy fixtures/adapters source-compatible. */
+  developerGrade?: DeveloperGrade | null;
 }
 
 export interface ResourceGroupDto {
@@ -42,6 +45,7 @@ export interface CreateCatalogTargetRequest {
   name: string;
   code?: string | null;
   description?: string;
+  developerGrade?: DeveloperGrade | null;
 }
 
 export interface UpdateCatalogTargetRequest {
@@ -49,6 +53,7 @@ export interface UpdateCatalogTargetRequest {
   code?: string | null;
   description?: string;
   active?: boolean;
+  developerGrade?: DeveloperGrade | null;
 }
 
 export interface ReplaceResourceGroupMembersRequest {

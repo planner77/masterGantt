@@ -1181,3 +1181,9 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
 - `PATCH /api/logistics-catalog/admin/system-types/{code}`
 
 Mutation은 exact Origin과 `If-Match: "<catalog revision>"`을 요구한다. stale revision은 412, 인증 없음은 401, 중복/DB 무결성 충돌은 409 계열로 처리한다. hard delete와 stable code 변경은 제공하지 않는다.
+
+## Issue #288 Resource developer grade
+
+Resource Catalog의 Resource 응답은 `developerGrade: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT" | null`을 포함한다. Resource 생성/수정 요청은 동일한 `developerGrade` 값을 선택적으로 받으며 빈 문자열·대소문자 변형·지원하지 않는 값은 `400 INVALID_REQUEST`로 거부한다. Group에는 개발자 등급 의미를 부여하지 않는다.
+
+`PUT /api/projects/{publicId}/logistics/systems/{systemId}/resource-roles`에서 새로운 `developer` 역할 조합은 대상 Resource의 `developerGrade`가 필수다. 미지정이면 `409 DEVELOPER_GRADE_REQUIRED`를 반환한다. migration 이전부터 존재하던 동일 `developer + grade NULL` 조합을 그대로 보존하는 요청은 호환성을 위해 허용하며, 역할 해제는 Resource 등급을 수정하지 않는다. 기존 edit-session, Origin, strong `If-Match`, project revision 계약은 유지한다.
