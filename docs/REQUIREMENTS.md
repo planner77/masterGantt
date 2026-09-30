@@ -186,3 +186,11 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 신규 선택에는 active 항목만 사용하며, 기존 Project가 참조하는 inactive 항목은 자동 해제하지 않고 비활성 상태로 표시한다.
 - Project 생성/편집/조회/목록/복사/Template 경로에서 동일 참조를 유지한다. Project edit 권한은 global project-master 관리자 권한을 부여하지 않는다.
 - 사업부→제품→사업장 cascading, 다중 선택, ERP/MES 동기화와 해당 값 기반 권한/일정 자동화는 범위 밖이다.
+
+## Issue #344 — 삭제 실패의 mutation 범위와 revision 단조성
+
+- 성공한 Task 삭제와 증가한 Project revision은 이후 다른 삭제 요청의 `401/409/412/network` 실패로 되돌리지 않는다. 실패한 삭제 대상은 최신 서버 canonical 상태에 따라 유지한다.
+- 현재 Project `publicId`와 다른 snapshot 또는 마지막 확정 revision보다 낮은 snapshot을 Workspace의 authority로 적용하지 않는다. 같은 revision과 더 높은 revision의 정상 canonical 응답은 적용할 수 있다.
+- 오류 복구 GET은 캐시를 사용하지 않는다. 재조회가 실패하거나 응답 revision이 오래되면 마지막 확정 snapshot을 같은 SVAR 인스턴스에 동기화하며, page reload/remount를 오류 복구 수단으로 사용하지 않는다. Grid/Chart task 집합, Summary 접힘, 스크롤과 scale을 보존한다.
+- `EMPTY_SUMMARY_NOT_ALLOWED`, subtree 삭제, unrelated Link 보존 및 server-side session/Origin/If-Match/transaction 계약은 변경하지 않는다. network 실패 뒤 더 높은 canonical revision이 확인되면 서버 확정 결과를 반영하며, 자동 mutation 재전송은 하지 않는다.
+- 일반 정상 409 흐름의 baseline 미재현 결과와 오래된 복구 GET을 주입한 결함 재현 결과를 구분한다. 테스트 및 공식 원격 회귀 상태는 [TEST_PLAN](TEST_PLAN.md#issue-344--작업-삭제-실패-복구-회귀)에 기록한다.
