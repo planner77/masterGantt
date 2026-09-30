@@ -1,5 +1,15 @@
 # Test Plan
 
+## Issue #361 Workflow 실행 추적 회귀
+
+- 정적 contract: `ci.yml`, `issue-lifecycle.yml`, `release-finalizer.yml`, `release-image.yml`에 각각 목적에 맞는 `run-name`이 있고 `github.run_number`/`github.run_attempt`로 재실행을 구분하는지 확인한다.
+- PR trace: canonical `Refs #361`, `ci/issue-361-...` branch, `[Issue #361]` 또는 호환 제목이 일치하면 PASS하고, 제목/branch/body가 다른 Issue를 가리키면 FAIL해야 한다.
+- Main trace: merge commit message에서 PR 번호와 단일 Primary Issue를 식별하고, 비-PR main push는 mutation identity를 추론하지 않은 채 fallback 표시를 사용한다.
+- Lifecycle/Finalizer: Lifecycle 표시명은 input의 Issue/PR/operation을 직접 사용하고 Generic Finalizer는 triggering Main CI의 `display_title`을 계승해야 한다.
+- Release trace: `issue_lifecycle.py`가 `release-image.yml` dispatch에 `inputs[issue_number]`, `inputs[pr_number]`을 전달하고 Release 표시명이 Issue/PR/tag/run attempt를 포함해야 한다.
+- 불변식: workflow `name: CI`, required check 세 항목, trigger/permission/concurrency, exact merge SHA, release authorization와 GHCR digest gate는 변경되지 않아야 한다.
+- 공식 원격 증거: PR 생성 후 Actions 목록의 PR CI 표시명에 Issue #361/PR 번호/run attempt가 실제로 노출되고 quality/e2e/docker required checks가 기존 이름으로 실행되는지 확인한다.
+
 ## Issue #356 CI 비용 선택 실행 회귀
 
 - 일반 UI/feature PR은 Docker candidate/runtime smoke를 유지하되 image/runtime 구조 변경이 없으면 관찰용 baseline image rebuild를 생략한다.
