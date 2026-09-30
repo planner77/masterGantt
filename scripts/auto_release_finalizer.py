@@ -343,6 +343,75 @@ def coalesce_consecutive_issue_retries(items: list[WorkItem]) -> list[WorkItem]:
     return coalesced
 
 
+def validation_scope_covers(older: WorkItem, replacement: WorkItem) -> bool:
+    """Return whether replacement CI scope can validate the older attempt."""
+    if not replacement.validation_docs_only:
+        return True
+    return older.validation_docs_only
+
+
+def supersede_failed_issue_retries(
+    items: list[WorkItem],
+    ci_success: dict[str, bool],
+) -> tuple[list[WorkItem], list[tuple[WorkItem, WorkItem]]]:
+    """Defer a failed attempt to a later Green merge for the same Issue.
+
+    Unlike adjacent coalescing, this keeps intervening Issues in first-parent
+    order. The failed attempt is omitted only when a later same-Issue target
+    already has exact main CI SUCCESS and its validation scope is at least as
+    strong. The superseded PR remains a cleanup obligation of that later target.
+    """
+    superseded_indices: set[int] = set()
+    cleanup_by_index: dict[int, list[int]] = {}
+    superseded: list[tuple[WorkItem, WorkItem]] = []
+
+    for index, item in enumerate(items):
+        if ci_success.get(item.target_sha, False):
+            continue
+        replacement_index: int | None = None
+        for candidate_index in range(index + 1, len(items)):
+            candidate = items[candidate_index]
+            if candidate.issue_number != item.issue_number:
+                continue
+            if not ci_success.get(candidate.target_sha, False):
+                continue
+            if not validation_scope_covers(item, candidate):
+                continue
+            replacement_index = candidate_index
+            break
+        if replacement_index is None:
+            continue
+
+        replacement = items[replacement_index]
+        superseded_indices.add(index)
+        cleanup_by_index.setdefault(replacement_index, []).extend(
+            [*item.cleanup_pr_numbers, item.pr_number]
+        )
+        superseded.append((item, replacement))
+
+    planned: list[WorkItem] = []
+    for index, item in enumerate(items):
+        if index in superseded_indices:
+            continue
+        extra_cleanup = cleanup_by_index.get(index, [])
+        if extra_cleanup:
+            cleanup = tuple(
+                dict.fromkeys((*item.cleanup_pr_numbers, *extra_cleanup))
+            )
+            item = WorkItem(
+                target_sha=item.target_sha,
+                first_parent_sha=item.first_parent_sha,
+                pr_number=item.pr_number,
+                issue_number=item.issue_number,
+                previous_version=item.previous_version,
+                current_version=item.current_version,
+                validation_docs_only=item.validation_docs_only,
+                cleanup_pr_numbers=cleanup,
+            )
+        planned.append(item)
+    return planned, superseded
+
+
 def current_main_sha(repo: str) -> str:
     data = gh(f"/repos/{repo}/git/ref/heads/main")
     sha = ((data or {}).get("object") or {}).get("sha", "")
@@ -472,7 +541,15 @@ def execute(trigger_sha: str) -> int:
 
     latest_main = current_main_sha(repo)
     pending_raw = collect_pending_work(repo, latest_main)
-    pending = coalesce_consecutive_issue_retries(pending_raw)
+    pending_coalesced = coalesce_consecutive_issue_retries(pending_raw)
+    ci_evidence = {
+        item.target_sha: exact_main_ci_success(repo, item.target_sha)
+        for item in pending_coalesced
+    }
+    pending, superseded = supersede_failed_issue_retries(
+        pending_coalesced,
+        {sha: evidence[0] for sha, evidence in ci_evidence.items()},
+    )
 
     if not pending:
         write_summary(
@@ -494,13 +571,36 @@ def execute(trigger_sha: str) -> int:
             f"- triggering CI SHA: `{trigger_sha}`",
             f"- dispatcher main snapshot: `{latest_main}`",
             f"- pending first-parent merges: `{len(pending_raw)}`",
-            f"- lifecycle targets after consecutive same-Issue convergence: `{len(pending)}`",
-            "- 처리 순서: oldest → newest",
+            f"- targets after adjacent same-Issue convergence: `{len(pending_coalesced)}`",
+            f"- superseded failed attempts: `{len(superseded)}`",
+            f"- lifecycle targets: `{len(pending)}`",
+            "- 처리 순서: oldest → newest; intervening Issues retain their position",
         ]
     )
 
+    for older, replacement in superseded:
+        _, older_ci_url = ci_evidence[older.target_sha]
+        _, replacement_ci_url = ci_evidence[replacement.target_sha]
+        write_summary(
+            [
+                "### SUPERSEDED ATTEMPT",
+                "",
+                f"- failed SHA: `{older.target_sha}`",
+                f"- Issue: #{older.issue_number}",
+                f"- failed exact main CI: {older_ci_url or 'N/A'}",
+                f"- corrective SHA: `{replacement.target_sha}`",
+                f"- corrective exact main CI: {replacement_ci_url or 'N/A'}",
+                f"- validation scope: older docs-only={str(older.validation_docs_only).lower()}, corrective docs-only={str(replacement.validation_docs_only).lower()}",
+                f"- cleanup deferred to PR #{replacement.pr_number}",
+                "- release/finalize mutation: 없음 (corrective target 처리 시 수행)",
+            ]
+        )
+
     for item in pending:
-        ci_ok, ci_url = exact_main_ci_success(repo, item.target_sha)
+        ci_ok, ci_url = ci_evidence.get(
+            item.target_sha,
+            exact_main_ci_success(repo, item.target_sha),
+        )
         if not ci_ok:
             write_summary(
                 [
