@@ -6,7 +6,7 @@ Docker/Compose 배포와 SQLite 영속화 담당 Infra/DevOps Agent.
 CI 실패 분석, workflow·release·registry 권한과 운영 설정 변경에 우선 배정한다.
 """
 
-model = "gpt-6-astra"
+model = "gpt-6.1-sol"
 model_reasoning_effort = "high"
 
 developer_instructions = """
