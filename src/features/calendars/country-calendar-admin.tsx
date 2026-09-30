@@ -106,8 +106,13 @@ export function CountryCalendarAdmin(){
   useEffect(()=>{
     const controller=new AbortController();
     request.current=controller;
-    void load(controller).finally(()=>{if(!controller.signal.aborted)setBusy(false);});
-    return()=>controller.abort();
+    const timer=window.setTimeout(()=>{
+      void load(controller).finally(()=>{if(!controller.signal.aborted)setBusy(false);});
+    },0);
+    return()=>{
+      window.clearTimeout(timer);
+      controller.abort();
+    };
     // Initial session probe only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   },[]);
