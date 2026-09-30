@@ -368,7 +368,7 @@ Release 필요 여부는 merge first parent와 target의 application version 차
 <!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"0.59.0","note":"사용자가 정식 GHCR 게시를 승인함"} -->
 ```
 
-최신 trusted marker가 authority이며 자세한 형식/author association/revocation 규칙은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다. 승인 부족은 BLOCKED이며 mutation하지 않는다.
+현재 개인 소유 저장소에서는 `author_association=OWNER` marker만 신뢰한다. 최신 trusted marker가 authority이며 자세한 형식/revocation 규칙은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다. 승인 부족은 BLOCKED이며 mutation하지 않는다.
 
 실패 재개 원칙:
 
