@@ -743,3 +743,12 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - Issue #285의 공정 code optional/server-generated 계약을 포함한 기존 물류 회귀
 
 리뷰 회귀로 duplicate stable code는 HTTP 409 `LOGISTICS_CATALOG_CONFLICT`를 반환하고 revision을 증가시키지 않는지, 비밀번호 dialog 재열기 시 초안이 비어 있는지, 서버 logout 실패 시 로그인 화면으로 로컬 잠금 전환하면서 revoke 미확인 오류를 표시하는지 검증한다.
+
+## Issue #288 개발자 Resource 등급 회귀
+
+- DB/contract: `0016_resource_developer_grade.sql` 적용 후 기존 Resource는 NULL을 유지하고 4개 canonical 값과 NULL만 저장되며 그 외 문자열·빈 문자열은 거부한다. Repository/API round-trip에서 등급을 보존한다.
+- Resource Catalog: 관리자 Resource 생성/수정/조회에서 미지정/초급/중급/고급/특급을 표시하고 실제 변경만 기존 catalog revision 정책을 따른다. 기존 session/Origin/stale revision 계약은 유지한다.
+- Logistics role: 등급이 있는 Resource의 신규 Developer 배정은 허용하고 grade NULL 신규 배정은 `DEVELOPER_GRADE_REQUIRED`로 거부한다. migration 이전 동일 Developer+NULL 배정 보존은 허용하고, 역할 해제 후 전역 등급은 유지한다. PI/설비 담당/Task assignment는 등급을 요구하지 않는다.
+- Chromium: Resource 관리자에서 등급 생성·목록 표시·수정과 390/768/1024/1440px document overflow를 확인한다. Developer picker는 등급 표시와 미지정 신규 배정 차단 안내를 확인한다.
+- Scheduling/workload: 등급 변경만으로 duration, allocation, M/D·M/M, capacity, 일정 및 resource leveling 결과가 바뀌지 않아야 한다.
+- 공식 전체 회귀 판정은 Issue #288 PR head의 `quality/e2e/docker` 결과를 사용한다.
