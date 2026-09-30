@@ -1,6 +1,6 @@
 name: 범용 Release Finalizer
 
-run-name: "범용 Finalizer · ${{ github.event.workflow_run.head_sha }}"
+run-name: "Finalizer · ${{ github.event.workflow_run.display_title }} · Finalizer Run #${{ github.run_number }}.${{ github.run_attempt }}"
 
 on:
   workflow_run:
