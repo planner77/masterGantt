@@ -24,8 +24,8 @@ describe("createClientLocalId", () => {
   });
 
   it("keeps consecutive fallback IDs distinct without Web Crypto", () => {
-    const first = createClientLocalId(undefined);
-    const second = createClientLocalId(undefined);
+    const first = createClientLocalId({});
+    const second = createClientLocalId({});
 
     expect(first).not.toBe(second);
     expect(first).toMatch(/^draft-/);
