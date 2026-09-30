@@ -1263,7 +1263,18 @@ export function ProjectGantt({
   }, [apiInstanceId, installInlineTableHandlers]);
 
   async function handleNameClick(event: ReactMouseEvent<HTMLDivElement>) {
-    if (!editable || mutationLocked || event.button !== 0 || inlineSessionReference.current) return;
+    if (!editable || mutationLocked || event.button !== 0) return;
+    const currentInline = inlineSessionReference.current;
+    if (currentInline) {
+      const editor = currentInline.table.getState().editor;
+      const input = findInlineNameInput(currentInline.taskId);
+      const activeEditor = editor?.id === currentInline.taskId && editor.column === "text" && input?.isConnected;
+      if (activeEditor) return;
+      // Drag/reorder or selection can leave an intercepted open-editor session
+      // without a mounted editor. Do not let that stale session block the next
+      // explicit name click.
+      inlineSessionReference.current = null;
+    }
     const root = ganttScrollReference.current;
     const api = apiReference.current;
     if (!root || !api || !(event.target instanceof Element)) return;
