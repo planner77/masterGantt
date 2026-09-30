@@ -605,8 +605,14 @@ Task(Summary, Task, Milestone)와 물류 시스템 간의 연결 테이블이다
 - `project_templates_active_idx ON project_templates(active)`
 - `project_templates_created_at_idx ON project_templates(created_at)`
 
-## Issue #288 Resource developer grade
+## Issue #280 — Logistics Type Catalog
 
-Migration `0015_resource_developer_grade.sql`은 `resources.developer_grade TEXT NULL`을 추가한다.
+Migration `0015_logistics_type_catalog.sql`은 다음 글로벌 테이블을 추가한다.
 
-허용값은 `BEGINNER`, `INTERMEDIATE`, `ADVANCED`, `EXPERT` 또는 `NULL`뿐이며 DB `CHECK`로 방어한다. 기존 Resource는 migration 후 `NULL`을 유지하고, 기존 `project_system_resource_roles.role = 'developer'` row는 변경하지 않는다. 역할 제거도 이 전역 속성을 자동 수정하지 않는다.
+- `logistics_type_catalog_state`: optimistic-concurrency revision
+- `logistics_equipment_types`: `code` PK, display `name`, `active`, `sort_order`
+- `logistics_system_types`: `code` PK, display `name`, `active`, `sort_order`
+- `logistics_catalog_admin_credentials`: scrypt credential 1건
+- `logistics_catalog_admin_sessions`: 전용 관리자 세션
+
+`project_equipment.equipment_type`과 `project_logistics_systems.system_type`은 기존 fixed enum CHECK 대신 각 catalog `code`를 FK로 참조한다. Migration은 기존 관계/역할/task link를 임시 staging 후 원래 id와 type code로 복구하며 `foreign_key_check`를 통과해야 한다.
