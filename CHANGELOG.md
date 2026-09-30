@@ -1,13 +1,13 @@
 # Changelog
 
-## [0.56.0] - 2026-09-30
+## [0.56.0] - 2026-09-29
 
 ### Added
 
-- Issue #288: 글로벌 Resource에 nullable 개발자 등급(초급/중급/고급/특급)을 추가하고 Resource 관리자에서 생성·표시·수정할 수 있도록 한다.
-- 시스템 Developer 신규 배정 시 개발자 등급을 필수 검증하고, 기존 미지정 Developer 배정은 migration 호환을 위해 보존한다. 등급은 일정·공수·capacity·비용 계산에 영향을 주지 않는다.
-- `0015_resource_developer_grade.sql`과 DB/역할/Chromium 회귀 테스트를 추가한다.
-
+- Issue #280: 설비 유형과 물류 시스템 유형을 고정 allowlist가 아닌 글로벌 관리 카탈로그로 전환하고, 전용 `/logistics-admin` 관리자 화면에서 유형 추가·표시명 수정·활성/비활성·사용 건수를 관리한다.
+- `LOGISTICS_CATALOG_ADMIN_PASSWORD` bootstrap credential, 별도 HttpOnly 관리자 세션, 런타임 비밀번호 변경, catalog revision/`If-Match` 동시성 제어를 추가한다.
+- migration `0015_logistics_type_catalog.sql`에서 기존 12개 type code와 프로젝트 물류 데이터를 보존하면서 DB 고정 type CHECK를 catalog FK로 전환한다.
+- Project Workspace의 설비/시스템 추가·수정은 active catalog를 사용하고, 기존 inactive type은 참조를 보존한 채 편집할 수 있다.
 
 ## [0.55.0] - 2026-09-29
 
