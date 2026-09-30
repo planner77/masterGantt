@@ -3,9 +3,11 @@
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from "react";
 import { WorkspaceDialog } from "../../components/workspace-dialog";
 import type { ProjectStatus } from "../../contracts/projects";
+import type { ProjectMasterItemDto } from "../../contracts/project-master";
 import { PROJECT_STATUS_OPTIONS } from "./project-status";
 import { ProjectWorkCalendarEditor } from "./project-work-calendar-editor";
 import styles from "./project-settings-dialog.module.css";
+import { ProjectMasterSelectFields, useProjectMasterSelectionCatalog, type ProjectMasterSelectionValue } from "./project-master-select-fields";
 
 export type ProjectSettingsTabId = "general" | "calendar" | "security";
 
@@ -22,6 +24,9 @@ interface ProjectSettingsDialogProps {
   onMetadataNameChange: (value: string) => void;
   onMetadataDescriptionChange: (value: string) => void;
   onMetadataStatusChange: (value: ProjectStatus) => void;
+  masterSelection: ProjectMasterSelectionValue;
+  onMasterSelectionChange: (value: ProjectMasterSelectionValue) => void;
+  currentMaster: { businessUnit?: ProjectMasterItemDto | null; product?: ProjectMasterItemDto | null; siteEntity?: ProjectMasterItemDto | null };
   onSaveMetadata: (event: FormEvent<HTMLFormElement>) => void;
   isSavingMetadata: boolean;
   newPassword: string;
@@ -55,6 +60,9 @@ export function ProjectSettingsDialog({
   onMetadataNameChange,
   onMetadataDescriptionChange,
   onMetadataStatusChange,
+  masterSelection,
+  onMasterSelectionChange,
+  currentMaster,
   onSaveMetadata,
   isSavingMetadata,
   newPassword,
@@ -71,6 +79,7 @@ export function ProjectSettingsDialog({
   const [activeTab, setActiveTab] = useState<ProjectSettingsTabId>("general");
   const tabListReference = useRef<HTMLDivElement>(null);
   const baseId = useId();
+  const masterCatalog = useProjectMasterSelectionCatalog();
 
   if (!open) return null;
 
@@ -166,6 +175,22 @@ export function ProjectSettingsDialog({
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className={styles.fullWidthField}>
+                {masterCatalog.state === "ready" && masterCatalog.catalog ? (
+                  <ProjectMasterSelectFields
+                    value={masterSelection}
+                    onChange={onMasterSelectionChange}
+                    disabled={busy}
+                    catalog={masterCatalog.catalog}
+                    current={currentMaster}
+                  />
+                ) : (
+                  <div className="form-error" role={masterCatalog.state === "error" ? "alert" : "status"}>
+                    <span>{masterCatalog.state === "loading" ? "프로젝트 기준정보를 불러오는 중…" : "프로젝트 기준정보를 불러오지 못했습니다."}</span>
+                    {masterCatalog.state === "error" ? <button className="secondary-button" type="button" onClick={masterCatalog.reload}>다시 시도</button> : null}
+                  </div>
+                )}
               </div>
               <div className={`form-field ${styles.fullWidthField}`}>
                 <label htmlFor="metadata-description">설명</label>

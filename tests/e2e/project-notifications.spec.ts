@@ -154,14 +154,16 @@ for (const width of [320, 360, 361, 375, 390, 400, 401, 414, 768, 1440]) {
     const projectLink = navigation.getByRole("link", { name: "프로젝트", exact: true });
     const resourceLink = navigation.getByRole("link", { name: "리소스", exact: true });
     const logisticsAdminLink = navigation.getByRole("link", { name: "물류 관리", exact: true });
+    const projectMasterLink = navigation.getByRole("link", { name: "프로젝트 기준정보", exact: true });
     const demoLink = navigation.getByRole("link", { name: "Gantt 데모", exact: true });
     const brand = page.getByRole("link", { name: "masterGantt 홈", exact: true });
     const bell = page.getByRole("button", { name: "알림함", exact: true });
     const notificationSlot = page.locator("#workspace-notification-slot");
-    await expect(navigationLinks).toHaveCount(3);
+    await expect(navigationLinks).toHaveCount(4);
     await expect(projectLink).toBeVisible();
     await expect(resourceLink).toBeVisible();
     await expect(logisticsAdminLink).toBeVisible();
+    await expect(projectMasterLink).toBeVisible();
     await expect(demoLink).toHaveCount(0);
     await expect(bell).toBeVisible();
     const slotBox = await notificationSlot.boundingBox();

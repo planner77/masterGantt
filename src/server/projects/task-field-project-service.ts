@@ -28,6 +28,7 @@ import {
 } from "../security/session-core";
 import { isCanonicalUuidV4, type CreateProjectInput } from "./project-contract";
 import { LogisticsService } from "../logistics/logistics-service-core";
+import { ProjectMasterService } from "../project-master/project-master-service-core";
 
 import {
   InvalidTaskInputError,
@@ -71,6 +72,7 @@ export class TaskFieldProjectService extends ProjectService {
   private readonly schedulesForFields: ScheduleRepository;
   private readonly resourcesForFields: ResourceCatalogRepository;
   private readonly logisticsForFields: LogisticsService;
+  private readonly projectMasterForFields: ProjectMasterService;
   private readonly createClock: () => Date;
   private readonly createPublicId: () => string;
   private readonly createHashPassword: (password: string) => Promise<PasswordHashRecord>;
@@ -87,6 +89,7 @@ export class TaskFieldProjectService extends ProjectService {
     this.schedulesForFields = new ScheduleRepository(fieldDatabase);
     this.resourcesForFields = new ResourceCatalogRepository(fieldDatabase);
     this.logisticsForFields = new LogisticsService(fieldDatabase);
+    this.projectMasterForFields = new ProjectMasterService(fieldDatabase, { clock: options.clock });
     this.createClock = options.clock ?? (() => new Date());
     this.createPublicId = options.generatePublicId ?? randomUUID;
     this.createHashPassword = options.hashPassword ?? hashEditPassword;
@@ -108,6 +111,7 @@ export class TaskFieldProjectService extends ProjectService {
         project: {
           ...response.data.project,
           ownerName: this.ownerByProjectId(projectId),
+          ...this.projectMasterForFields.projectSelectionDto(projectId),
         },
         tasks: enrichTasks(response.data.tasks, this.schedulesForFields.listTasks(projectId)),
         assignments: assignmentDtos(this.resourcesForFields, projectId),
@@ -148,6 +152,12 @@ export class TaskFieldProjectService extends ProjectService {
         if (!this.ownersForFields.setByPublicId(publicId, ownerName)) {
           throw new Error("Created project owner metadata could not be persisted.");
         }
+        const resolvedMaster = this.projectMasterForFields.resolveProjectSelection({
+          businessUnitId: input.businessUnitId,
+          productId: input.productId,
+          siteEntityId: input.siteEntityId,
+        }, { allowInactive: false });
+        this.projectMasterForFields.setProjectSelection(project.id, resolvedMaster);
         seedDefaultProjectCalendar(
           this.fieldDatabase,
           project.id,
@@ -175,6 +185,7 @@ export class TaskFieldProjectService extends ProjectService {
                 description: project.description,
                 status: project.status,
                 ownerName,
+                ...this.projectMasterForFields.projectSelectionDto(project.id),
                 revision: project.revision,
                 calendar: projectCalendarDto(this.fieldDatabase, project.id),
               },
@@ -197,10 +208,16 @@ export class TaskFieldProjectService extends ProjectService {
     const owners = this.ownersForFields.list();
     return {
       data: {
-        projects: response.data.projects.map((project) => ({
-          ...project,
-          ownerName: owners.get(project.publicId) ?? null,
-        })),
+        projects: response.data.projects.map((project) => {
+          const record = this.projectsForFields.findByPublicId(project.publicId);
+          return {
+            ...project,
+            ownerName: owners.get(project.publicId) ?? null,
+            ...(record ? this.projectMasterForFields.projectSelectionDto(record.id) : {
+              businessUnit: null, product: null, siteEntity: null,
+            }),
+          };
+        }),
       },
     };
   }
@@ -217,6 +234,7 @@ export class TaskFieldProjectService extends ProjectService {
         project: {
           ...response.data.project,
           ownerName: this.ownersForFields.findByPublicId(publicId) ?? null,
+          ...this.projectMasterForFields.projectSelectionDto(project.id),
         },
         tasks: enrichTasks(response.data.tasks, this.schedulesForFields.listTasks(project.id)),
         assignments: assignmentDtos(this.resourcesForFields, project.id),
@@ -295,9 +313,44 @@ export class TaskFieldProjectService extends ProjectService {
     expectedRevision: number,
     input: UpdateProjectRequest,
   ): ProjectMetadataMutationResponse {
-    return this.enrichMutation(
-      super.updateMetadata(authorization, expectedRevision, input),
-      authorization.projectId,
-    );
+    const mutation = this.fieldDatabase.transaction(() => {
+      const hasMasterChange = input.businessUnitId !== undefined ||
+        input.productId !== undefined || input.siteEntityId !== undefined;
+      const baseInput: UpdateProjectRequest = {
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.description !== undefined ? { description: input.description } : {}),
+        ...(input.status !== undefined ? { status: input.status } : {}),
+      };
+      const current = this.projectsForFields.findById(authorization.projectId);
+      if (!current) throw new Error("Project not found.");
+      const baseHasChange = Object.keys(baseInput).length > 0;
+      const response = super.updateMetadata(
+        authorization,
+        expectedRevision,
+        baseHasChange ? baseInput : { status: current.status },
+      );
+      if (hasMasterChange) {
+        const resolved = this.projectMasterForFields.resolveProjectSelectionForUpdate(authorization.projectId, {
+          businessUnitId: input.businessUnitId,
+          productId: input.productId,
+          siteEntityId: input.siteEntityId,
+        });
+        this.projectMasterForFields.setProjectSelection(authorization.projectId, resolved);
+      }
+      const changedFields = [
+        ...(baseHasChange ? response.data.operation.changedFields : []),
+        ...(input.businessUnitId !== undefined ? ["businessUnitId" as const] : []),
+        ...(input.productId !== undefined ? ["productId" as const] : []),
+        ...(input.siteEntityId !== undefined ? ["siteEntityId" as const] : []),
+      ];
+      return this.enrichMutation({
+        ...response,
+        data: {
+          ...response.data,
+          operation: { ...response.data.operation, changedFields },
+        },
+      }, authorization.projectId);
+    });
+    return mutation.immediate();
   }
 }

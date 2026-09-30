@@ -327,3 +327,8 @@ Docker daemon의 `json-file` 또는 `local` logging driver와 `max-size`/`max-fi
 
 Docker Compose 배포는 `LOGISTICS_CATALOG_ADMIN_PASSWORD`를 app container에 명시적으로 전달하며 값 누락 시 Compose config 단계에서 실패한다. 이 값은 신규 DB의 최초 credential seed 용도이며, 관리자 화면에서 비밀번호를 변경한 뒤에는 SQLite credential이 우선한다. 실제 운영 secret은 저장소에 커밋하지 않는다.
 
+
+
+## Issue #289 project-master bootstrap
+
+신규 DB에서 프로젝트 기준정보 관리자를 bootstrap하려면 `PROJECT_MASTER_ADMIN_PASSWORD`를 runtime 환경에 제공한다. `deploy/compose.yml`이 이 값을 application container에 명시적으로 전달하고 누락 시 Compose config 단계에서 fail-fast한다. 값은 최초 credential 생성에만 사용되며 DB credential 생성 이후 환경변수 변경으로 현재 관리자 비밀번호를 덮어쓰지 않는다. 운영 secret은 이미지·소스·로그에 포함하지 않는다.

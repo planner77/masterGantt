@@ -148,6 +148,7 @@ describe("SQLite connection and schema", () => {
         "0014_task_baseline.sql",
         "0015_logistics_type_catalog.sql",
         "0016_resource_developer_grade.sql",
+        "0017_project_master_catalog.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -172,6 +173,10 @@ describe("SQLite connection and schema", () => {
         "project_equipment_resource_roles",
         "project_equipment_systems",
         "project_logistics_systems",
+        "project_master_admin_credentials",
+        "project_master_admin_sessions",
+        "project_master_catalog_state",
+        "project_master_items",
         "project_processes",
         "project_system_links",
         "project_system_processes",
@@ -211,6 +216,8 @@ describe("SQLite connection and schema", () => {
         "project_equipment_resource_roles_resource_idx",
         "project_equipment_systems_equipment_idx",
         "project_equipment_systems_system_idx",
+        "project_master_admin_sessions_expiry_idx",
+        "project_master_items_category_active_sort_idx",
         "project_processes_project_parent_idx",
         "project_processes_project_sort_order_idx",
         "project_system_links_source_idx",
@@ -221,6 +228,9 @@ describe("SQLite connection and schema", () => {
         "project_system_resource_roles_system_idx",
         "project_templates_active_idx",
         "project_templates_created_at_idx",
+        "projects_business_unit_idx",
+        "projects_product_idx",
+        "projects_site_entity_idx",
         "resource_admin_sessions_expiry_idx",
         "resource_group_members_resource_idx",
         "system_resource_one_primary",

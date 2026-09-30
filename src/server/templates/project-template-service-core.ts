@@ -34,6 +34,7 @@ import {
   resolveProjectWorkingCalendar,
 } from "../calendars/calendar-resolution-core";
 import { LogisticsService } from "../logistics/logistics-service-core";
+import { ProjectMasterService } from "../project-master/project-master-service-core";
 import { ProjectOwnerRepository } from "../repositories/project-owner-repository-core";
 import { WorkCalendarRepository } from "../repositories/work-calendar-repository-core";
 import {
@@ -119,6 +120,7 @@ export class ProjectTemplateService {
   private readonly logisticsService: LogisticsService;
   private readonly sessions: EditSessionRepository;
   private readonly owners: ProjectOwnerRepository;
+  private readonly projectMaster: ProjectMasterService;
   private readonly clock: () => Date;
   private readonly hashPassword: (password: string) => Promise<PasswordHashRecord>;
   private readonly generateSessionToken: () => NewSessionToken;
@@ -136,6 +138,7 @@ export class ProjectTemplateService {
     this.logisticsService = new LogisticsService(database, options);
     this.sessions = new EditSessionRepository(database);
     this.owners = new ProjectOwnerRepository(database);
+    this.projectMaster = new ProjectMasterService(database, { clock: options.clock });
     this.clock = options.clock ?? (() => new Date());
     this.hashPassword = options.hashPassword ?? ((password: string) => hashEditPassword(password));
     this.generateSessionToken = options.generateSessionToken ?? (() => createSessionToken());
@@ -333,8 +336,14 @@ export class ProjectTemplateService {
         };
       }).filter((l) => l.taskExternalId && l.systemCode);
 
+      const selectedMaster = this.projectMaster.projectSelectionDto(source.id);
       const snapshot: ProjectTemplateSnapshot = {
         sourceRevision: source.revision,
+        projectMaster: {
+          businessUnitId: selectedMaster.businessUnit?.id ?? null,
+          productId: selectedMaster.product?.id ?? null,
+          siteEntityId: selectedMaster.siteEntity?.id ?? null,
+        },
         calendar: {
           timezone: source.calendarTimezone,
           weekendDays: [6, 0],
@@ -496,6 +505,14 @@ export class ProjectTemplateService {
       });
 
       this.owners.setByPublicId(newPublicId, normalizedOwner);
+      if (snapshot.projectMaster) {
+        const resolvedMaster = this.projectMaster.resolveProjectSelection(snapshot.projectMaster, { allowInactive: true });
+        this.projectMaster.setProjectSelection(project.id, resolvedMaster);
+        const selected = this.projectMaster.projectSelectionDto(project.id);
+        if ([selected.businessUnit, selected.product, selected.siteEntity].some((item) => item && !item.active)) {
+          warnings.push("템플릿의 비활성 프로젝트 기준정보 참조를 그대로 보존했습니다.");
+        }
+      }
 
       // 2. 캘린더 규칙/휴일 생성
       const defaultRule = this.calendars.insertRule({
@@ -902,6 +919,7 @@ export class ProjectTemplateService {
         description: project.description,
         status: "planned",
         ownerName: normalizedOwner,
+        ...this.projectMaster.projectSelectionDto(project.id),
         revision: 1,
         calendar: projectCalendarDto(this.database, project.id),
       };

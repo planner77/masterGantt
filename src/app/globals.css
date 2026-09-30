@@ -543,6 +543,18 @@ h2 {
   resize: vertical;
 }
 
+.project-master-field-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 48rem) {
+  .project-master-field-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .form-field input:focus-visible,
 .form-field textarea:focus-visible {
   outline: var(--focus-outline);

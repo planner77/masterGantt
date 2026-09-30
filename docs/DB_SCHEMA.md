@@ -622,3 +622,10 @@ Migration `0015_logistics_type_catalog.sql`은 다음 글로벌 테이블을 추
 Migration `0016_resource_developer_grade.sql`은 `resources.developer_grade TEXT NULL`을 추가한다.
 
 허용값은 `BEGINNER`, `INTERMEDIATE`, `ADVANCED`, `EXPERT` 또는 `NULL`뿐이며 DB `CHECK`로 방어한다. 기존 Resource는 migration 후 `NULL`을 유지하고, 기존 `project_system_resource_roles.role = 'developer'` row는 변경하지 않는다. 역할 제거도 이 전역 속성을 자동 수정하지 않는다.
+
+
+## Issue #289 — Project master catalog
+
+Migration `0017_project_master_catalog.sql`은 `project_master_items`와 catalog revision, 전용 관리자 credential/session을 추가하고 `projects.business_unit_id/product_id/site_entity_id`를 nullable FK로 확장한다. 기존 Project는 migration 후 세 참조가 모두 NULL이며 임의 backfill을 하지 않는다.
+
+`project_master_items`는 `BUSINESS_UNIT | PRODUCT | SITE_ENTITY` category, stable public ID/code, 표시명, active, sort_order를 가진다. `UNIQUE(category, code)`와 category별 참조 trigger로 잘못된 category 연결을 차단한다. Project FK는 `ON DELETE RESTRICT`이며 Project 삭제가 global master row를 삭제하지 않는다. `0016_resource_developer_grade.sql` 이후 순차 적용한다.

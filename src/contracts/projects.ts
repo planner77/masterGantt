@@ -1,4 +1,5 @@
 import type { ProjectLogisticsDto } from "./logistics";
+import type { ProjectMasterItemDto } from "./project-master";
 import type { ProjectAssignmentDto } from "./resources";
 
 export type ProjectStatus = "planned" | "in_progress" | "completed";
@@ -27,6 +28,9 @@ export interface ProjectDto {
   status: ProjectStatus;
   /** Canonical API responses include this field; null represents a pre-Issue-54 project. */
   ownerName?: string | null;
+  businessUnit?: ProjectMasterItemDto | null;
+  product?: ProjectMasterItemDto | null;
+  siteEntity?: ProjectMasterItemDto | null;
   revision: number;
   calendar: ProjectCalendarDto;
 }
@@ -38,6 +42,9 @@ export interface ProjectListItemDto {
   status: ProjectStatus;
   /** Canonical API responses include this field; null represents a pre-Issue-54 project. */
   ownerName?: string | null;
+  businessUnit?: ProjectMasterItemDto | null;
+  product?: ProjectMasterItemDto | null;
+  siteEntity?: ProjectMasterItemDto | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -89,6 +96,9 @@ export interface CreateProjectRequest {
   editPassword: string;
   /** Omission remains compatible with older clients and creates a planned project. */
   status?: ProjectStatus;
+  businessUnitId?: string | null;
+  productId?: string | null;
+  siteEntityId?: string | null;
 }
 
 export interface CreateProjectResponse {
@@ -160,6 +170,9 @@ export interface UpdateProjectRequest {
   name?: string;
   description?: string;
   status?: ProjectStatus;
+  businessUnitId?: string | null;
+  productId?: string | null;
+  siteEntityId?: string | null;
 }
 
 export interface ProjectMetadataMutationResponse {
@@ -172,7 +185,7 @@ export interface ProjectMetadataMutationResponse {
     warnings: [];
     operation: {
       kind: "projectMetadata";
-      changedFields: ("name" | "description" | "status")[];
+      changedFields: ("name" | "description" | "status" | "businessUnitId" | "productId" | "siteEntityId")[];
     };
   };
 }
