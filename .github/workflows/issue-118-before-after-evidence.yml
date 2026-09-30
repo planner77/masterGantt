@@ -1,14 +1,8 @@
 name: "Issue #118 구현 전후 레이아웃 증거"
 
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/issue-118-before-after-evidence.yml"
-      - "scripts/measure-issue-118-layout.mjs"
-      - "scripts/compare-issue-118-layout.mjs"
-      - "docs/CI_CD.md"
-      - "docs/REMOTE_VALIDATION.md"
-      - "docs/TEST_PLAN.md"
+  # Issue #118의 고정 before/after 증거는 완료된 one-time 검증이다.
+  # 일반 PR runner를 점유하지 않고 필요할 때만 명시적으로 재현한다.
   workflow_dispatch:
 
 permissions:

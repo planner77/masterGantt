@@ -1,5 +1,17 @@
 # CI/CD
 
+## Issue #356 CI 실행시간 1차 최적화
+
+2026-09-30 실행시간 분석에서 PR CI의 critical path는 Chromium E2E였고, Docker smoke에는 일반 기능 PR에서 매번 반복할 필요가 없는 관찰용 baseline image build와 transport browser smoke가 포함되어 있었다.
+
+- `docker_smoke` 자체는 기존 `docker` 변경 분류를 유지하여 candidate image build, image policy, production 설정 fail-fast, migration/readiness, SQLite restart persistence, Compose smoke를 계속 수행한다.
+- PR의 **baseline image 비교**는 `deploy/docker/**`, `.dockerignore`, `next.config.*`, standalone runtime/image-policy/size 검증 script 또는 CI workflow/action이 바뀔 때만 실행한다. Issue #283의 non-standalone → standalone 25% 감소 hard gate는 이미 완료되었고 후속 baseline 비교는 관찰용이므로, 일반 기능·버전 변경에서 이중 Docker build를 반복하지 않는다.
+- PR의 **HTTP/HTTPS transport smoke**는 deploy, transport test/script, security/http server, 인증·Origin/cookie 계약과 연결된 API 또는 CI workflow/action 변경에서만 실행한다. `main` push와 수동 `workflow_dispatch`는 항상 transport smoke를 수행해 release 전 운영 경로 검증을 축소하지 않는다.
+- `Issue #118 구현 전후 레이아웃 증거` workflow는 고정 baseline/after revision을 비교하는 완료된 one-time evidence이므로 자동 PR trigger를 제거하고 수동 `workflow_dispatch` 재현만 남긴다.
+- Required aggregate check 이름과 fail-closed routing은 변경하지 않는다. 선택 step이 생략되어도 Docker aggregate는 candidate/runtime 필수 검증 결과를 기준으로 판정한다.
+- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 늘어나는 경우를 고려해 shard timeout은 25분으로 둔다. 이는 실행시간 최적화 자체가 아니라 외부 setup 지연으로 정상 테스트가 취소되는 것을 막는 안정성 여유이며, 4-way shard와 `workers: 1` 계약은 유지한다.
+- Phase 2는 process/DB 격리를 유지한 prebuilt E2E runtime과 historical timing 기반 shard 균형화를 별도 검증한다. Phase 3는 exact main CI evidence를 release에서 재사용할 수 있는지 별도 검증한다.
+
 ## Issue #283 Docker runtime 슬림화 검증
 
 Docker PR gate는 Next.js standalone 전환의 기능 회귀와 실제 image 감소를 함께 검증한다.
@@ -306,14 +318,14 @@ Issue #87의 고정 cleanup workflow와 전용 verifier는 이 공통 기준의 
 
 ## Issue #118 구현 전후 레이아웃 증거 Workflow
 
-`.github/workflows/issue-118-before-after-evidence.yml`은 #118 Acceptance Criteria의 동일 조건 구현 전/후 증거를 생성하는 검증 전용 Workflow다.
+`.github/workflows/issue-118-before-after-evidence.yml`은 #118 Acceptance Criteria의 동일 조건 구현 전/후 증거를 필요할 때 재현하는 **historical evidence 전용 Workflow**다. #118 구현은 이미 완료되었으므로 일반 PR에서 자동 실행하지 않는다.
 
-- Trigger: 해당 Workflow, 측정/비교 script 또는 관련 검증 문서가 변경된 PR과 수동 `workflow_dispatch`.
+- Trigger는 수동 `workflow_dispatch`만 사용한다. 재현 시 검토하려는 ref에서 명시적으로 실행하고 run의 ref/head SHA를 증거에 함께 기록한다.
 - 비교 revision은 Before `703a6f08595dea06a918366192df464d7215108e`, After `6386db860af69635cfb0fe626fd1a937905b9a56`(#118 기능 병합 SHA)로 고정한다.
-- 두 revision에 PR head의 **동일 측정 harness**를 적용하고 390/768/1024/1440px 모두 높이 844px, editing/readonly 동일 mock fixture로 실행한다.
+- 두 고정 revision에 선택한 workflow ref의 **동일 측정 harness**를 적용하고 390/768/1024/1440px 모두 높이 844px, editing/readonly 동일 mock fixture로 실행한다.
 - PASS 기준: 390px 및 768px의 editing/readonly에서 After의 viewport 내 Gantt 가시 높이가 Before보다 증가하고, 모든 After 조건에서 document horizontal overflow가 없으며 정보 컨트롤이 한 줄을 유지해야 한다.
 - 증거: raw geometry JSON, comparison JSON, Markdown 요약, 동일 조건 before/after screenshot을 `issue-118-before-after-evidence` artifact로 90일 보관한다.
-- 이 Workflow는 제품 CI `quality/e2e/docker`, main 임시 GHCR 검증, 실제 모바일/스크린리더 검증을 대체하지 않는다. #118/122 종료에는 최신 PR head의 일반 CI와 이 evidence Workflow 결과를 각각 확인한다.
+- 이 Workflow는 현재 PR의 required check가 아니며 제품 CI `quality/e2e/docker`, main 임시 GHCR 검증, 실제 모바일/스크린리더 검증을 대체하지 않는다.
 
 ## Issue Lifecycle 공용 orchestration 원칙
 
