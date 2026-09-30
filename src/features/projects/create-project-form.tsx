@@ -81,10 +81,6 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submissionRef.current) return;
-    if (masterCatalog.state !== "ready" || !masterCatalog.catalog) {
-      setError("프로젝트 기준정보를 확인하지 못했습니다. 다시 불러온 후 프로젝트를 만들어 주세요.");
-      return;
-    }
 
     const issues: Partial<Record<ProjectField,string>> = {};
     if (name.trim().length === 0) issues.name = "프로젝트 이름을 입력해 주세요.";
@@ -96,6 +92,12 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
     if (Object.keys(issues).length > 0) {
       setFieldErrors(issues);
       setError(null);
+      requestAnimationFrame(() => errorReference.current?.focus({ preventScroll: true }));
+      return;
+    }
+    if (masterCatalog.state !== "ready" || !masterCatalog.catalog) {
+      setFieldErrors({});
+      setError("프로젝트 기준정보를 확인하지 못했습니다. 다시 불러온 후 프로젝트를 만들어 주세요.");
       requestAnimationFrame(() => errorReference.current?.focus({ preventScroll: true }));
       return;
     }
@@ -245,7 +247,7 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
         </div>
       ) : null}
 
-      <button className="primary-button" disabled={isSubmitting || masterCatalog.state !== "ready"} type="submit">
+      <button className="primary-button" disabled={isSubmitting} type="submit">
         {isSubmitting ? "프로젝트를 만드는 중…" : "프로젝트 만들기"}
       </button>
     </form>
