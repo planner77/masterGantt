@@ -146,6 +146,7 @@ describe("SQLite connection and schema", () => {
         "0012_project_templates.sql",
         "0013_link_types_and_lag.sql",
         "0014_task_baseline.sql",
+        "0015_resource_developer_grade.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
