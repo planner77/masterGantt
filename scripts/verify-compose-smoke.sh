@@ -19,6 +19,7 @@ export RESOURCE_CATALOG_ADMIN_PASSWORD="Admin123456!"
 WRONG_RESOURCE_CATALOG_ADMIN_PASSWORD="Wrong123456!"
 export LOGISTICS_CATALOG_ADMIN_PASSWORD="Logi123456!"
 WRONG_LOGISTICS_CATALOG_ADMIN_PASSWORD="WrongLogi1!"
+export PROJECT_MASTER_ADMIN_PASSWORD="ProjectMaster123!"
 export ALLOW_INSECURE_HTTP="false"
 owned=false
 
@@ -55,6 +56,12 @@ if env -u LOGISTICS_CATALOG_ADMIN_PASSWORD docker compose --env-file /dev/null -
 fi
 grep -q 'LOGISTICS_CATALOG_ADMIN_PASSWORD' "$tmp/missing-logistics-admin.err"
 echo 'Compose 물류 관리자 비밀번호 누락 fail-fast: PASS'
+if env -u PROJECT_MASTER_ADMIN_PASSWORD docker compose --env-file /dev/null -f "$root/deploy/compose.yml" config --quiet >"$tmp/missing-project-master-admin.out" 2>"$tmp/missing-project-master-admin.err"; then
+  echo "PROJECT_MASTER_ADMIN_PASSWORD가 없으면 Compose config가 실패해야 합니다." >&2
+  exit 1
+fi
+grep -q 'PROJECT_MASTER_ADMIN_PASSWORD' "$tmp/missing-project-master-admin.err"
+echo 'Compose 프로젝트 기준정보 관리자 비밀번호 누락 fail-fast: PASS'
 dc_prod config --format json > "$tmp/compose-prod.json"
 dc config --format json > "$tmp/compose-build.json"
 python3 - "$tmp/compose-prod.json" "$tmp/compose-build.json" "$root" <<'PY_CONFIG'
@@ -85,6 +92,7 @@ assert str(app['environment']['PORT']) == '3000'
 assert str(app['environment']['ALLOW_INSECURE_HTTP']).lower() == 'false'
 assert app['environment']['RESOURCE_CATALOG_ADMIN_PASSWORD'] == os.environ['RESOURCE_CATALOG_ADMIN_PASSWORD']
 assert app['environment']['LOGISTICS_CATALOG_ADMIN_PASSWORD'] == os.environ['LOGISTICS_CATALOG_ADMIN_PASSWORD']
+assert app['environment']['PROJECT_MASTER_ADMIN_PASSWORD'] == os.environ['PROJECT_MASTER_ADMIN_PASSWORD']
 assert 'SESSION_COOKIE_SECURE' not in app['environment']
 assert len(app['ports']) == 1
 assert app['ports'][0]['host_ip'] == '127.0.0.1'
