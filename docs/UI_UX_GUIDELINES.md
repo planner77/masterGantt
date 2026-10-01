@@ -68,7 +68,7 @@ selected는 `aria-selected` 등 의미와 색을 함께 사용한다. readonly/o
 | UX-09 | 의미에 맞는 요소를 사용한다. | 이동은 link, 명령은 button, view 전환은 tab이며 아이콘에 이름이 있는가? |
 | UX-10 | 반응형/접근성을 기본 검증한다. | keyboard/focus/Escape/복원/overflow를 실제 동작으로 확인했는가? |
 | UX-11 | UI 변경으로 domain 계약을 바꾸지 않는다. | revision/If-Match/session/Origin/API/canonical snapshot 계약을 유지하는가? |
-| UX-12 | 사용자의 작업 상태를 보존한다. | tab/modal 전환으로 scroll/tree/column/scale/selection을 불필요하게 초기화하지 않는가? |
+| UX-12 | 사용자의 작업 상태를 보존한다. | tab/modal 전환으로 scroll/tree/column/scale/selection/fullscreen을 불필요하게 초기화하지 않는가? |
 
 ## SVAR 데모와 API 확인
 
