@@ -235,8 +235,8 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
               </span>
             </div>
             <div className={styles.scheduleFields}>
-              <label className={styles.field}>
-                요청 시작일
+              <div className={styles.field}>
+                <label htmlFor="task-start">요청 시작일</label>
                 <input
                   id="task-start"
                   name="task-start"
@@ -251,9 +251,9 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
                   onChange={(event) => base.task.type === "task" ? changeSchedule("start", event.target.value) : change("start", event.target.value)}
                 />
                 {scheduleIssue?.field === "start" ? <span id="task-start-error" className={styles.fieldError}>{scheduleIssue.message}</span> : null}
-              </label>
-              <label className={styles.field}>
-                기간 (근무일)
+              </div>
+              <div className={styles.field}>
+                <label htmlFor="task-duration">기간 (근무일)</label>
                 {base.task.duration === null ? <output className={styles.outputField} aria-label="기간 미산정">—</output> : <input
                   id="task-duration"
                   name="task-duration"
@@ -269,9 +269,9 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
                   onChange={(event) => base.task.type === "task" ? changeSchedule("duration", event.target.value) : change("duration", event.target.value)}
                 />}
                 {scheduleIssue?.field === "duration" ? <span id="task-duration-error" className={styles.fieldError}>{scheduleIssue.message}</span> : null}
-              </label>
-              {base.task.type === "task" ? <label className={styles.field}>
-                요청 종료일
+              </div>
+              {base.task.type === "task" ? <div className={styles.field}>
+                <label htmlFor="task-requested-end">요청 종료일</label>
                 <input
                   id="task-requested-end"
                   name="task-requested-end"
@@ -286,7 +286,7 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
                   onChange={(event) => changeSchedule("requestedEnd", event.target.value)}
                 />
                 {scheduleIssue?.field === "requestedEnd" ? <span id="task-requested-end-error" className={styles.fieldError}>{scheduleIssue.message}</span> : null}
-              </label> : null}
+              </div> : null}
             </div>
             <label className={styles.field}>일정 모드<select name="task-schedule-mode" value={draft.scheduleMode} disabled={locked || readOnly} onChange={(event) => changeScheduleMode(event.target.value as "auto" | "manual")}><option value="auto">자동 (Auto)</option><option value="manual">수동 (Manual)</option></select></label>
             <label className={styles.field}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
