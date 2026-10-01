@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ProjectLinkDto, ProjectTaskDto } from "../../../src/contracts/projects";
-import { buildTaskRelations, formatTaskRelationType } from "../../../src/features/gantt/task-relations";
+import { buildTaskRelations, formatTaskRelationType, getTaskRelationMutationBlockReason } from "../../../src/features/gantt/task-relations";
 
 function task(externalId: string, name: string): ProjectTaskDto {
   return {
@@ -94,5 +94,15 @@ describe("Task Editor 관계 표시 모델", () => {
     expect(formatTaskRelationType("FF")).toBe("FF (종료 → 종료)");
     expect(formatTaskRelationType("SF")).toBe("SF (시작 → 종료)");
     expect(formatTaskRelationType("CUSTOM")).toBe("CUSTOM");
+  });
+
+  it("관계 mutation은 readonly/summary/stale/dirty/busy 상태를 일관되게 차단한다", () => {
+    const base = { editable: true, taskType: "task" as const, stale: false, dirty: false, busy: false };
+    expect(getTaskRelationMutationBlockReason(base)).toBeNull();
+    expect(getTaskRelationMutationBlockReason({ ...base, editable: false })).toBe("readonly");
+    expect(getTaskRelationMutationBlockReason({ ...base, taskType: "summary" })).toBe("summary");
+    expect(getTaskRelationMutationBlockReason({ ...base, stale: true })).toBe("stale");
+    expect(getTaskRelationMutationBlockReason({ ...base, dirty: true })).toBe("dirty");
+    expect(getTaskRelationMutationBlockReason({ ...base, busy: true })).toBe("busy");
   });
 });

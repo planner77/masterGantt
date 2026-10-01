@@ -64,7 +64,7 @@ Editor가 열린 뒤 다른 변경으로 revision이 달라지면 기존 stale �
 
 ## Issue #97 mutation scope
 
-Gantt link markers now support server-persisted FS/lag=0 create/delete. SVAR local actions are intercepted, sent through the protected Link API, and only the returned canonical snapshot is accepted. Task Editor remains a relation viewer; after a successful mutation it reads the same canonical links immediately.
+Gantt link markers now support server-persisted FS/lag=0 create/delete. SVAR local actions are intercepted, sent through the protected Link API, and only the returned canonical snapshot is accepted. Issue #97 당시 Task Editor는 relation viewer였으며 현재 관계 탭 mutation 진입 계약은 아래 #377을 따른다.
 
 ## Issue #200 Relation Types & Lag
 
@@ -102,3 +102,17 @@ Gantt 관계선 우클릭 시 Relation Context Menu를 제공하여 FS/SS/FF/SF 
 위 #34/#97의 FS-only와 linked-task 보호는 해당 구현 당시의 기록이다. 현재 Relation Editor는 FS/SS/FF/SF 및 signed 근무일 Lag를 지원하며, 연결된 일반 Task/Milestone의 이름/설명/URL/진척/Baseline 편집과 시작/기간/기존 API scheduleMode 변경도 허용한다. Summary는 name-only, 연결 Task의 삭제·변환·계층 변경은 기존 보호를 유지한다.
 
 비일정 저장은 현재 적용 일정과 요청일을 보존한다. 일정 변경은 모든 leaf의 요청일에서 후보를 만들고 Relation API와 동일한 pure dependency 계산을 사용하여 후행 지연/앞당김 및 Summary를 저장한다. Task PATCH는 Link ID/type/lag를 바꾸지 않는다. 관계 변경 뒤 Task Editor도 같은 최신 canonical tasks/links/revision으로 요청일과 적용일을 읽으며 stale 초안은 기존 재조회 계약을 따른다. 자세한 저장·오류 계약은 [API](API.md), 계산은 [SCHEDULING Engine](SCHEDULING_ENGINE.md)을 따른다.
+
+
+## Issue #377 Task Editor 관계 탭 관리 진입
+
+Task Editor 관계 탭은 #203 Relation Editor와 #200 Link mutation의 추가 진입점이며 관계 도메인이나 별도 cache를 복제하지 않는다.
+
+- 기존 관계 **편집**은 canonical linkId로 Relation Editor를 열고, **삭제**는 predecessor→successor/type/lag를 식별하는 확인 뒤 기존 DELETE를 사용한다.
+- **관계 추가**는 `anchorTaskId`로 Relation Editor를 열 수 있다. 선택된 Link가 없어도 현재 Task/Milestone externalId를 Anchor로 후보 검색과 predecessor/successor 생성 흐름을 제공한다.
+- Anchor mode에서 마지막 관계를 삭제해도 원래 Task Anchor가 유효하면 Dialog를 유지해 계속 관계를 추가할 수 있다.
+- Task Editor dirty/stale/readonly/pending 및 Summary는 relation mutation을 fail-closed한다.
+- Link mutation 성공 응답의 canonical `tasks + links + project.revision`은 Workspace와 열린 Task Editor local canonical session에 함께 반영한다. 부모의 `editorSession` 객체를 교체해 Task Editor native dialog를 재등록하지 않는다.
+- Relation Editor의 dirty/confirm/pending/Escape/focus contract는 #266을 유지한다. Task Editor 직접 삭제 confirmation도 trigger→confirmation→trigger focus 흐름을 보장한다.
+
+Summary endpoint, graph validation, FS/SS/FF/SF 계산, Lag/Lead, Link API/DB schema는 변경하지 않는다.

@@ -266,7 +266,7 @@ Resource/Group POST 실패와 성공을 구분해 실패 초안 보존·성공�
 - Unit: predecessor/successor externalId 방향, 동일 이름, dangling reference, 관계 없음, multiple relation과 type/lag 보존을 검증한다.
 - Chromium E2E: A → B fixture를 canonical snapshot으로 구성하고 Grid 더블클릭, Chart 더블클릭, Context Menu → Edit 각각에서 A의 후행 B/B의 선행 A 및 이름/externalId/type/lag를 확인한다.
 - 관계 표시는 상위 canonical snapshot을 사용해 별도 관계용 `GET /api/projects/{publicId}`에 의존하지 않으며, Editor open만으로 mutation이 발생하지 않는지 검증한다.
-- Readonly 및 Link 포함 일정에서도 Grid/Chart 더블클릭과 Context Menu로 조회용 Editor가 열리고 관계 탭 조회가 가능하며 Save는 제공되지 않는지 검증한다.
+- Readonly 및 Link 포함 일정에서도 Grid/Chart 더블클릭과 Context Menu로 Editor가 열리고 관계 탭 조회가 가능하며 Task Save와 관계 추가/편집/삭제 mutation action은 제공되지 않는지 검증한다.
 - 기존 401/412/draft/reload/Gantt instance, Context Menu #77 focus 정책 및 no document navigation 회귀를 유지한다.
 - PR의 `quality`, 전체 Chromium E2E, Docker smoke와 병합 후 main GHCR exact digest smoke를 공식 PASS 근거로 사용한다.
 
@@ -1001,3 +1001,18 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - 보완은 실패한 older attempt와 later same-Issue corrective target을 연결하되, corrective exact main CI SUCCESS와 validation-scope coverage를 필수로 한다. 중간 Issue는 목록에서 제거하거나 재정렬하지 않는다.
 - superseded older attempt에는 release/finalize mutation을 하지 않고 branch cleanup 의무만 later corrective target으로 이관한다. middle Issue #356은 자체 exact CI/release authorization으로 먼저 처리되고, 이후 corrective #344 target이 처리된다.
 - docs-only corrective target이 non-docs 실패 attempt를 대체하지 못하는 시나리오와 corrective CI가 Green이 아니면 기존 blocker를 유지하는 시나리오를 정적 contract test에 추가한다.
+
+
+## Issue #377 Task Editor 관계 탭 관리 회귀
+
+- Unit: relation mutation eligibility가 editable Task/Milestone만 허용하고 readonly, Summary, stale, dirty, busy를 fail-closed하는지 검증한다.
+- Chromium E2E:
+  - 기존 relation row **편집**으로 Relation Editor를 열어 type/lag PATCH 후 Relation Editor가 계속 topmost이며 닫을 수 있는지, 같은 관계 탭과 최신 revision이 즉시 반영되는지 확인한다.
+  - relation row 직접 **삭제**는 keyboard로 실행했을 때 confirmation 취소 버튼으로 focus가 이동하고 취소 후 원래 삭제 trigger로 복원되는지 확인한다.
+  - 삭제 확인 뒤 DELETE 1회만 보내고 row/count/revision을 canonical 응답으로 갱신하는지 확인한다.
+  - 관계가 0건인 Milestone에서 **관계 추가**가 task Anchor mode Relation Editor를 열고 FS/SS/FF/SF 및 signed Lag를 기존 POST 계약으로 저장한 뒤에도 top-layer 순서를 유지하는지 확인한다.
+  - Task draft dirty 상태에서는 add/edit/delete가 disabled되고 Link mutation이 발생하지 않는지 확인한다.
+  - readonly에서는 관계 조회만 가능하고 relation mutation action이 존재하지 않는지 확인한다.
+  - 기존 Task Editor 390/768/1024/1440px 관계 layout과 dialog/document overflow를 검증한다.
+- 기존 관계선 double-click/Context Menu Relation Editor #203/#266 및 #372 fullscreen E2E를 유지해 신규 Task Editor 진입점이 기존 경로를 회귀시키지 않는지 확인한다.
+- 공식 자동 판정은 동일 PR head의 required `quality`, `e2e`, `docker` 결과를 사용한다.
