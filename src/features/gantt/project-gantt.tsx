@@ -1250,15 +1250,23 @@ export function ProjectGantt({
     if (!root) return false;
     const match = resolveTaskContextTarget(event.target, root, (id) => tasksByIdReference.current.has(id));
     if (!match) return false;
-    const canMutate = editable && !mutationLocked && !taskHasDependencyLinks(tasksByIdReference.current.size ? Array.from(tasksByIdReference.current.values()) : tasks, match.taskId, links);
+    const selectedHasLinks = taskHasDependencyLinks(
+      tasksByIdReference.current.size ? Array.from(tasksByIdReference.current.values()) : tasks,
+      match.taskId,
+      links,
+    );
+    const canCopy = editable && !mutationLocked;
+    const canHierarchyMutate = canCopy && !selectedHasLinks;
+    const canPaste = !!activeClipboard && activeClipboard.taskId !== match.taskId &&
+      (activeClipboard.mode === "copy" ? canCopy : canHierarchyMutate);
     const modifier = event.ctrlKey || event.metaKey;
-    if (modifier && event.key.toLowerCase() === "c" && canMutate) {
+    if (modifier && event.key.toLowerCase() === "c" && canCopy) {
       setTaskClipboard({ mode: "copy", taskId: match.taskId, revision: projectRevision });
-    } else if (modifier && event.key.toLowerCase() === "x" && canMutate) {
+    } else if (modifier && event.key.toLowerCase() === "x" && canHierarchyMutate) {
       setTaskClipboard({ mode: "cut", taskId: match.taskId, revision: projectRevision });
-    } else if (modifier && event.key.toLowerCase() === "v" && canMutate && activeClipboard && activeClipboard.taskId !== match.taskId) {
+    } else if (modifier && event.key.toLowerCase() === "v" && canPaste && activeClipboard) {
       onTaskHierarchyCommandReference.current(createPasteCommand(activeClipboard, match.taskId));
-    } else if ((event.key === "Delete" || event.key === "Backspace" || (modifier && event.key.toLowerCase() === "d")) && canMutate) {
+    } else if ((event.key === "Delete" || event.key === "Backspace" || (modifier && event.key.toLowerCase() === "d")) && canHierarchyMutate) {
       onTaskDeleteRequestReference.current(match.taskId, match.element);
     } else {
       return false;
@@ -1681,7 +1689,8 @@ export function ProjectGantt({
   }
 
   const selectedTaskHasLinks = taskMenu ? taskHasDependencyLinks(tasks, taskMenu.taskId, links) : false;
-  const canMutate = editable && !mutationLocked && !selectedTaskHasLinks;
+  const canCopy = editable && !mutationLocked;
+  const canMutate = canCopy && !selectedTaskHasLinks;
   const canDelete = canMutate;
   const activeClipboard = taskClipboard?.revision === projectRevision ? taskClipboard : null;
   const menuCapabilities = taskMenu
@@ -1864,7 +1873,7 @@ export function ProjectGantt({
           <button aria-label="Cut" disabled={!canMutate} onClick={() => storeClipboard("cut")} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">✂</span><span>Cut</span><kbd>Ctrl+X</kbd>
           </button>
-          <button aria-label="Copy" disabled={!canMutate} onClick={() => storeClipboard("copy")} role="menuitem" type="button">
+          <button aria-label="Copy" disabled={!canCopy} onClick={() => storeClipboard("copy")} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">□</span><span>Copy</span><kbd>Ctrl+C</kbd>
           </button>
           <div className="project-task-context-submenu-host" data-submenu="Paste">
