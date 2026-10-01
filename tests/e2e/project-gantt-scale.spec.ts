@@ -112,16 +112,16 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   // the live right-most Day cell instead of assuming that date stays mounted.
   const edgeDay = page.locator(".project-gantt-day-scale").last();
   await expect(edgeDay).toBeVisible();
-  await edgeDay.focus();
+  // Focus accessibility is verified above on namedWeekend. After a viewport
+  // resize SVAR may replace virtualized scale cells during focus dispatch, so
+  // use the pointer path here to isolate viewport-edge positioning from the
+  // already-covered keyboard/focus contract.
+  await edgeDay.hover();
   await expect(tooltip).toBeVisible();
+  await expect(edgeDay).toHaveAttribute("aria-describedby", /day-header-tooltip/);
   await expect.poll(async () => {
     const box = await tooltip.boundingBox();
-    const describedBy = await edgeDay.getAttribute("aria-describedby");
-    return Boolean(
-      box
-      && box.x + box.width <= 1016
-      && describedBy?.includes("day-header-tooltip"),
-    );
+    return Boolean(box && box.x + box.width <= 1016);
   }).toBe(true);
   await page.setViewportSize({ width: 1280, height: 900 });
 
