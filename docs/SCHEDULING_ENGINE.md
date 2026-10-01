@@ -1,5 +1,18 @@
 # Scheduling Engine 설계
 
+## Issue #378 — Dependency가 포함된 subtree Copy 재계산
+
+Subtree Copy는 저장된 effective start/end를 그대로 복제해 고정하지 않는다. 외부 Dependency를 제외한 복사본 그래프가 원본 그래프와 다를 수 있기 때문이다.
+
+1. copied leaf의 `requestedStart`, duration, scheduleMode를 원본에서 보존한다.
+2. Project Effective Calendar로 각 leaf의 base schedule을 재구성한다.
+3. 새로 복제한 internal Dependency와 기존 프로젝트 전체 Dependency를 `recalculateDependencies()`에 적용한다.
+4. Auto Task는 남은 lower bound에 맞춰 이동하고 Manual Task의 기존 conflict/graph validation을 유지한다.
+5. leaf 확정 후 Summary 일정/진척/Baseline 파생을 기존 hierarchy engine으로 다시 계산한다.
+
+외부 predecessor가 Copy 집합 밖이면 copied Task에는 그 제약을 생성하지 않으므로 Auto Task가 requestedStart 쪽으로 앞당겨질 수 있다. 이는 정상이며 effective date를 requestedStart로 오염시키지 않는다. FS/SS/FF/SF, signed lag/lead, Milestone duration 0, Summary endpoint 금지 계약은 그대로 유지한다.
+
+
 상태: W06 Working Calendar/Duration과 W07 root Leaf/Milestone 저장 연결을 기반으로, Issue #57에서 Working Calendar를 `Base weekly rule + WORKING/NON_WORKING date exception`으로 일반화하고 Project Calendar Preview/저장 및 Resource Effective Calendar를 연결했다. Gregorian date-only, 근무일 연산과 Leaf/Summary 계산은 `src/domain/scheduling/`의 pure API를 유지한다. W24의 Summary/WBS 계층 계산을 유지하며 Issue #68에서 Calendar mutation 경로에 `FS/lag=0` Dependency forward-pass를 연결했다. 근거는 [W06_REVIEW.md](W06_REVIEW.md), [W07_REVIEW.md](W07_REVIEW.md), 외부 입력 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)이다.
 
 ## 1. 범위와 결정 구분
