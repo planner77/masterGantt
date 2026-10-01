@@ -79,6 +79,7 @@ import {
   type TaskClipboard,
 } from "./task-context-menu-model";
 import { taskHasDependencyLinks } from "./task-link-scope";
+import { canOpenTaskAsSubtreeRoot, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
 import { RelationContextMenu } from "./relation-context-menu";
 import type { DependencyType } from "../../contracts/projects";
 import "./task-context-menu.css";
@@ -132,6 +133,7 @@ interface ProjectGanttProps {
   readonly onTaskCommand: (command: ProjectTaskUpdateCommand, expectedRevision?: number) => Promise<TaskEditorSaveResult>;
   readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest) => void;
   readonly onTaskEditorOpen: (taskId: string) => void;
+  readonly onTaskOpenAsRoot: (taskId: string) => void;
   readonly onTaskDeleteRequest: (taskId: string, trigger: HTMLElement | null) => void;
   readonly onRelationEditorOpen?: (linkId: string) => void;
   readonly onLinkCreate: (sourceTaskId: string, targetTaskId: string) => void;
@@ -142,6 +144,7 @@ interface ProjectGanttProps {
   readonly tasks: readonly ProjectTaskDto[];
   readonly projectRevision: number;
   readonly visibleTaskIds?: readonly string[] | null;
+  readonly viewRootTaskId?: string | null;
   readonly projectPublicId?: string;
 }
 
@@ -206,6 +209,7 @@ export function ProjectGantt({
   onTaskCommand,
   onTaskHierarchyCommand,
   onTaskEditorOpen,
+  onTaskOpenAsRoot,
   onTaskDeleteRequest,
   onRelationEditorOpen,
   onLinkCreate,
@@ -216,6 +220,7 @@ export function ProjectGantt({
   tasks,
   projectRevision,
   visibleTaskIds = null,
+  viewRootTaskId = null,
   projectPublicId,
 }: ProjectGanttProps) {
   const apiReference = useRef<IApi | null>(null);
@@ -239,15 +244,17 @@ export function ProjectGantt({
   const taskFilterAppliedReference = useRef(false);
   const summaryToggleStateReference = useRef(new Map<string, boolean>());
   const projectPublicIdReference = useRef(projectPublicId);
+  const viewRootTaskIdReference = useRef(viewRootTaskId);
   const tasksReference = useRef(tasks);
   const initialPreferenceRestoredReference = useRef(false);
   const prevProjectPublicIdReference = useRef(projectPublicId);
 
-  if (prevProjectPublicIdReference.current !== projectPublicId) {
+  useEffect(() => {
+    if (prevProjectPublicIdReference.current === projectPublicId) return;
     prevProjectPublicIdReference.current = projectPublicId;
     initialPreferenceRestoredReference.current = false;
     summaryToggleStateReference.current.clear();
-  }
+  }, [projectPublicId]);
   const inlineOpenTokenReference = useRef(0);
   const inlineComposingReference = useRef(false);
   const inlineTableReference = useRef<Awaited<ReturnType<IApi["getTable"]>> | null>(null);
@@ -329,6 +336,7 @@ export function ProjectGantt({
     mutationLockedReference.current = mutationLocked;
     tasksByIdReference.current = tasksById;
     projectPublicIdReference.current = projectPublicId;
+    viewRootTaskIdReference.current = viewRootTaskId;
     tasksReference.current = tasks;
     const summaries = new Set(
       Array.from(tasksById.values()).filter((task) => task.type === "summary").map((task) => task.taskId),
@@ -347,7 +355,7 @@ export function ProjectGantt({
       const collapsedIds = extractCollapsedSummaryIds(summaryToggleStateReference.current, summaries);
       saveSummaryTogglePreference(projectPublicId, collapsedIds);
     }
-  }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onRelationEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, projectPublicId, tasks, tasksById]);
+  }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onRelationEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, projectPublicId, tasks, tasksById, viewRootTaskId]);
 
   useEffect(() => () => {
     inlineOpenTokenReference.current += 1;
@@ -653,15 +661,15 @@ export function ProjectGantt({
     if (!root) return;
     const setNativeAddAccessibility = () => {
       root.querySelectorAll<HTMLElement>('[data-action="add-task"]').forEach((action) => {
-        action.setAttribute("aria-disabled", String(mutationLocked));
+        action.setAttribute("aria-disabled", String(mutationLocked || viewRootTaskId !== null));
       });
     };
     setNativeAddAccessibility();
     const observer = new MutationObserver(setNativeAddAccessibility);
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [mutationLocked]);
-  const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks), [tasks]);
+  }, [mutationLocked, viewRootTaskId]);
+  const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
   const taskUpdateGateway = useMemo(
     () => createTaskUpdateGateway((local) => {
@@ -732,7 +740,7 @@ export function ProjectGantt({
     [columnVisibility, locales, tasksById],
   );
   const initialConfig = useState(() => ({
-    tasks: projectTasksToSvarTasks(tasks),
+    tasks: projectTasksToSvarTasks(tasks, viewRootTaskId),
     links: projectLinksToSvarLinks(links, tasks),
     columns: columns.map((column) => ({ ...column })),
   }))[0];
@@ -1118,7 +1126,7 @@ export function ProjectGantt({
   }, [apiInstanceId, scaleMode]);
 
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
-    if (!canCreateReference.current) {
+    if (!canCreateReference.current || viewRootTaskIdReference.current !== null) {
       if (!mutationLockedReference.current) onTaskAddRejectedReference.current();
       return;
     }
@@ -1158,6 +1166,11 @@ export function ProjectGantt({
       canMutate: () => canCreateReference.current && inlineSessionReference.current === null,
       isCanonicalSync: () => canonicalSyncDepthReference.current > 0,
       hasTask: (id) => tasksByIdReference.current.has(id),
+      canApply: (command) => taskHierarchyCommandStaysInSubtree(
+        Array.from(tasksByIdReference.current.values()),
+        viewRootTaskIdReference.current,
+        command,
+      ),
       dispatch: (command) => onTaskHierarchyCommandReference.current(command),
     }), { tag: "project-native-move" });
     api.detach("project-summary-update");
@@ -1226,7 +1239,7 @@ export function ProjectGantt({
     setTaskSubmenu(null);
     suppressTaskSubmenuFocusOpenReference.current = null;
     focusTaskMenuOnOpenReference.current = true;
-    setTaskMenu({ taskId: match.taskId, ...clampMenuPosition(anchorX, anchorY, rootWidth, Math.min(452, window.innerHeight - 16)) });
+    setTaskMenu({ taskId: match.taskId, ...clampMenuPosition(anchorX, anchorY, rootWidth, Math.min(488, window.innerHeight - 16)) });
     return true;
   }
 
@@ -1238,6 +1251,13 @@ export function ProjectGantt({
     void api.exec("show-editor", { id: taskId });
   }
 
+  function openTaskAsRootFromMenu() {
+    if (!taskMenu || !canOpenTaskAsSubtreeRoot(tasks, taskMenu.taskId)) return;
+    const taskId = taskMenu.taskId;
+    closeTaskMenu();
+    onTaskOpenAsRoot(taskId);
+  }
+
   function requestTaskDeleteFromMenu() {
     if (!taskMenu) return;
     const taskId = taskMenu.taskId;
@@ -1247,6 +1267,10 @@ export function ProjectGantt({
   }
 
   function executeHierarchyCommand(command: TaskHierarchyCommandRequest) {
+    if (!taskHierarchyCommandStaysInSubtree(tasks, viewRootTaskId, command)) {
+      closeTaskMenu();
+      return;
+    }
     setTaskMenu(null);
     onTaskHierarchyCommandReference.current(command);
   }
@@ -1292,15 +1316,21 @@ export function ProjectGantt({
     );
     const canCopy = editable && !mutationLocked;
     const canHierarchyMutate = canCopy && !selectedHasLinks;
-    const canPaste = !!activeClipboard && activeClipboard.taskId !== match.taskId &&
-      (activeClipboard.mode === "copy" ? canCopy : canHierarchyMutate);
+    const canCut = canHierarchyMutate && match.taskId !== viewRootTaskId;
+    const pasteCommand = activeClipboard ? createPasteCommand(activeClipboard, match.taskId) : null;
+    const canPaste = Boolean(
+      pasteCommand &&
+      activeClipboard?.taskId !== match.taskId &&
+      (activeClipboard?.mode === "copy" ? canCopy : canHierarchyMutate) &&
+      taskHierarchyCommandStaysInSubtree(tasks, viewRootTaskId, pasteCommand),
+    );
     const modifier = event.ctrlKey || event.metaKey;
     if (modifier && event.key.toLowerCase() === "c" && canCopy) {
       setTaskClipboard({ mode: "copy", taskId: match.taskId, revision: projectRevision });
-    } else if (modifier && event.key.toLowerCase() === "x" && canHierarchyMutate) {
+    } else if (modifier && event.key.toLowerCase() === "x" && canCut) {
       setTaskClipboard({ mode: "cut", taskId: match.taskId, revision: projectRevision });
-    } else if (modifier && event.key.toLowerCase() === "v" && canPaste && activeClipboard) {
-      onTaskHierarchyCommandReference.current(createPasteCommand(activeClipboard, match.taskId));
+    } else if (modifier && event.key.toLowerCase() === "v" && canPaste && pasteCommand) {
+      onTaskHierarchyCommandReference.current(pasteCommand);
     } else if ((event.key === "Delete" || event.key === "Backspace" || (modifier && event.key.toLowerCase() === "d")) && canHierarchyMutate) {
       onTaskDeleteRequestReference.current(match.taskId, match.element);
     } else {
@@ -1514,7 +1544,7 @@ export function ProjectGantt({
     }).finally(() => {
       if (inlineSessionReference.current === session) inlineSessionReference.current = null;
     });
-  }, [findInlineNameInput, focusInlineNameCell, instanceId]);
+  }, [findInlineNameInput, focusInlineNameCell, instanceId, setInlineNameError, setInlineNameMessage]);
 
   const installInlineTableHandlers = useCallback((table: Awaited<ReturnType<IApi["getTable"]>>): void => {
     if (inlineTableReference.current === table) return;
@@ -1575,7 +1605,7 @@ export function ProjectGantt({
         setInlineNameMessage("");
       }
     }, { tag: "project-inline-name" });
-  }, [commitInlineName, findInlineNameInput, instanceId]);
+  }, [commitInlineName, findInlineNameInput, instanceId, setInlineNameError, setInlineNameMessage]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -1782,8 +1812,11 @@ export function ProjectGantt({
     if (!scroller) return;
     const itemBounds = item.getBoundingClientRect();
     const scrollBounds = scroller.getBoundingClientRect();
-    if (itemBounds.bottom > scrollBounds.bottom - 4) scroller.scrollTop += itemBounds.bottom - scrollBounds.bottom + 4;
-    else if (itemBounds.top < scrollBounds.top + 4) scroller.scrollTop -= scrollBounds.top - itemBounds.top + 4;
+    if (itemBounds.bottom > scrollBounds.bottom - 4) {
+      scroller.scrollTo({ top: scroller.scrollTop + itemBounds.bottom - scrollBounds.bottom + 4 });
+    } else if (itemBounds.top < scrollBounds.top + 4) {
+      scroller.scrollTo({ top: scroller.scrollTop - (scrollBounds.top - itemBounds.top + 4) });
+    }
   }
 
   function closeTaskSubmenuForOrdinaryRootItem(target: EventTarget | null) {
@@ -1865,12 +1898,16 @@ export function ProjectGantt({
   }
 
   const selectedTaskHasLinks = taskMenu ? taskHasDependencyLinks(tasks, taskMenu.taskId, links) : false;
+  const canOpenAsRoot = taskMenu
+    ? taskMenu.taskId !== viewRootTaskId && canOpenTaskAsSubtreeRoot(tasks, taskMenu.taskId)
+    : false;
   const canCopy = editable && !mutationLocked;
   const canMutate = canCopy && !selectedTaskHasLinks;
+  const canCut = canMutate && taskMenu?.taskId !== viewRootTaskId;
   const canDelete = canMutate;
   const activeClipboard = taskClipboard?.revision === projectRevision ? taskClipboard : null;
   const menuCapabilities = taskMenu
-    ? taskContextCapabilities(tasks, taskMenu.taskId, editable, mutationLocked, links, activeClipboard)
+    ? taskContextCapabilities(tasks, taskMenu.taskId, editable, mutationLocked, links, activeClipboard, viewRootTaskId)
     : null;
   const submenuId = taskSubmenu ? `${instanceId}-${taskSubmenu.name.replaceAll(" ", "-")}-submenu` : undefined;
   const submenuCommands = taskMenu && menuCapabilities && taskSubmenu ? (() => {
@@ -1880,8 +1917,8 @@ export function ProjectGantt({
         <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canAddChild} onClick={() => {
           executeHierarchyCommand({ kind: "create", anchorTaskId: taskMenu.taskId, placement: "child", task: { name: "새 요약 작업", type: "summary" } });
         }} role="menuitem" type="button">요약 작업 추가</button>
-        <button className="project-task-context-submenu-command" disabled={!canMutate} onClick={() => createTaskFromMenu("before")} role="menuitem" type="button">Task above</button>
-        <button className="project-task-context-submenu-command" disabled={!canMutate} onClick={() => createTaskFromMenu("after")} role="menuitem" type="button">Task below</button>
+        <button className="project-task-context-submenu-command" disabled={!canMutate || taskMenu.taskId === viewRootTaskId} onClick={() => createTaskFromMenu("before")} role="menuitem" type="button">Task above</button>
+        <button className="project-task-context-submenu-command" disabled={!canMutate || taskMenu.taskId === viewRootTaskId} onClick={() => createTaskFromMenu("after")} role="menuitem" type="button">Task below</button>
       </>;
       case "Convert to": return <>
         <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canConvertToTask} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "task" })} role="menuitem" type="button">Task</button>
@@ -1890,8 +1927,8 @@ export function ProjectGantt({
       </>;
       case "Paste": return <>
         <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || !menuCapabilities.canAddChild} onClick={() => pasteFromMenu("child")} role="menuitem" type="button">As child</button>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste} onClick={() => pasteFromMenu("before")} role="menuitem" type="button">Above</button>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste} onClick={() => pasteFromMenu("after")} role="menuitem" type="button">Below</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || taskMenu.taskId === viewRootTaskId} onClick={() => pasteFromMenu("before")} role="menuitem" type="button">Above</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || taskMenu.taskId === viewRootTaskId} onClick={() => pasteFromMenu("after")} role="menuitem" type="button">Below</button>
       </>;
       case "Move": return <>
         <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canMoveUp} onClick={() => executeHierarchyCommand(createHierarchyCommand("move-up", taskMenu.taskId))} role="menuitem" type="button">Move up</button>
@@ -1909,7 +1946,7 @@ export function ProjectGantt({
   }, [taskMenu, taskSubmenu]);
 
   return (
-    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={scaleMode === "day" ? 44 : 68} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
+    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={scaleMode === "day" ? 44 : 68} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-add-disabled={viewRootTaskId !== null || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
       <Willow>
       <div className="project-gantt-scale-toolbar">
         <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
@@ -1917,7 +1954,7 @@ export function ProjectGantt({
           <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">일</button>
           <button aria-pressed={scaleMode === "week"} onClick={() => changeScaleMode("week")} type="button">주</button>
         </div>
-        {editable ? <button className="project-gantt-fullscreen-button" disabled={mutationLocked} onClick={() => onTaskCreateReference.current({ name: "새 요약 작업", type: "summary" })} type="button">요약 작업 추가</button> : null}
+        {editable && viewRootTaskId === null ? <button className="project-gantt-fullscreen-button" disabled={mutationLocked} onClick={() => onTaskCreateReference.current({ name: "새 요약 작업", type: "summary" })} type="button">요약 작업 추가</button> : null}
         <button className="project-gantt-fullscreen-button" ref={fullscreenButtonReference} type="button"
           aria-label={isFullscreen ? "Gantt 전체 화면 종료" : "Gantt 전체 화면"} aria-pressed={isFullscreen}
           aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
@@ -1952,7 +1989,7 @@ export function ProjectGantt({
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
               cellWidth={scaleMode === "day" ? 44 : 68}
-              columns={ganttColumnsReference.current}
+              columns={initialConfig.columns}
               displayMode="all"
               gridWidth={480}
               highlightTime={scaleMode === "day" ? highlightWeekend : undefined}
@@ -2068,8 +2105,11 @@ export function ProjectGantt({
           <button aria-label="Edit" onClick={openTaskEditorFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">i</span><span>Edit</span>
           </button>
+          {canOpenAsRoot ? <button aria-label="최상위로 열기 (새 탭)" onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">↗</span><span>최상위로 열기</span>
+          </button> : null}
           <div className="project-task-context-menu-separator" role="separator" />
-          <button aria-label="Cut" disabled={!canMutate} onClick={() => storeClipboard("cut")} role="menuitem" type="button">
+          <button aria-label="Cut" disabled={!canCut} onClick={() => storeClipboard("cut")} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">✂</span><span>Cut</span><kbd>Ctrl+X</kbd>
           </button>
           <button aria-label="Copy" disabled={!canCopy} onClick={() => storeClipboard("copy")} role="menuitem" type="button">
