@@ -122,7 +122,7 @@ describe("ProjectService create", () => {
             { date: "2026-12-25", name: "기독탄신일" },
           ]),
           exceptions: expect.arrayContaining([
-            { date: "2026-01-01", dayType: "NON_WORKING", name: "신정" },
+            { date: "2026-01-01", dayType: "NON_WORKING", name: "신정", names: ["신정"] },
           ]),
         },
       });

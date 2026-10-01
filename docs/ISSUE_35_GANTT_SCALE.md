@@ -36,3 +36,9 @@ SVAR React Gantt의 `scales` 속성은 `day`, `week`, `month` 등의 시간 단�
 - Issue #35의 최초 표시 단위 기능은 사용자 노출 신규 기능이므로 `0.8.3`에서 `0.9.0`으로 minor version을 증가시켰다.
 - Issue #51은 기존 `주` 표시의 Header 포맷을 ISO Week로 바로잡는 호환 개선이므로 `0.11.0`에서 `0.11.1`로 patch version을 증가시킨다.
 - Issue #314는 기존 `일` 표시의 Header 문자열만 compact하게 변경하는 호환 개선이므로 `0.58.0`에서 `0.58.1`로 patch version을 증가시킨다.
+
+## Issue #315 Day Header Tooltip
+
+Issue #314의 숫자-only Day Header는 그대로 유지하고 상세 정보는 hover/focus Tooltip으로 progressive disclosure 한다. Day scale은 SVAR 공개 `scales[].css(date)`로 masterGantt-owned `project-gantt-day-date-YYYYMMDD` class를 부여한다. Tooltip 날짜 lookup은 이 class만 사용하며 SVAR 내부 Header DOM 구조에서 날짜를 역추론하지 않는다.
+
+Tooltip은 locale weekday를 항상 표시하고 Effective Project Calendar의 named `NON_WORKING` date에만 canonical name 목록을 추가한다. 일반 weekend는 요일만 표시하며 `WORKING` override 이름은 휴일로 표시하지 않는다. Week scale에서는 해당 class와 Tooltip 동작을 적용하지 않는다. 상세 계약은 [Issue #315 설계](ISSUE_315_DAY_HEADER_TOOLTIP.md)를 따른다.

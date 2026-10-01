@@ -117,3 +117,36 @@
 @media (max-width: 48rem) {
   .project-gantt-scale-toolbar { justify-content: flex-start; }
 }
+
+
+.project-gantt-day-scale:focus-visible {
+  outline: 3px solid var(--focus-ring, var(--ring));
+  outline-offset: -3px;
+}
+
+.project-gantt-day-header-tooltip {
+  position: fixed;
+  z-index: 1200;
+  display: grid;
+  gap: 0.125rem;
+  max-width: min(18rem, calc(100vw - 1rem));
+  transform: translateX(-50%);
+  border: 1px solid var(--border-default, var(--border));
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel, var(--card));
+  color: var(--text-default, var(--foreground));
+  box-shadow: 0 0.375rem 1rem rgb(15 23 42 / 0.16);
+  padding: 0.375rem 0.5rem;
+  pointer-events: none;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.project-gantt-day-header-tooltip-weekday {
+  font-weight: 650;
+}
+
+.project-gantt-day-header-tooltip-holiday {
+  color: var(--text-muted, var(--muted-foreground));
+}

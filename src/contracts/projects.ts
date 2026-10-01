@@ -11,6 +11,8 @@ export interface ProjectHolidayDto {
 
 export interface ProjectCalendarExceptionDto extends ProjectHolidayDto {
   dayType: "NON_WORKING" | "WORKING";
+  /** Deterministic display projection of every meaningful persisted name for this effective date. */
+  names?: string[];
 }
 
 export interface ProjectCalendarDto {

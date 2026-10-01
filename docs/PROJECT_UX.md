@@ -653,6 +653,11 @@ Project Workspace의 설비/시스템 추가·수정 select는 active catalog �
 관리자 비밀번호 변경 dialog는 Escape/닫기/취소 등 모든 닫기 경로에서 새 비밀번호 초안을 즉시 지운다. 서버 logout 요청이 실패하거나 네트워크 오류가 나면 UI는 로컬 관리 화면을 잠그되, 서버 session revoke가 확인되지 않았음을 오류로 명시하여 성공한 logout과 구분한다.
 
 
+## Issue #315 Gantt Day Header 상세정보
+
+일정 탭의 Day Header는 #314의 숫자-only 밀도를 유지한다. Header cell hover/focus에서 locale 요일을 표시하고 현재 Project Effective Calendar에 이름이 있는 NON_WORKING 날짜에만 휴일명을 추가한다. Tooltip은 Chart layout을 늘리지 않는 overlay이며 viewport 안으로 보정하고 pointer interaction을 가로채지 않는다. 동일 날짜의 복수 이름은 canonical snapshot projection을 사용하며 WORKING override는 휴일명으로 표시하지 않는다. Week view에는 이번 Tooltip을 확대하지 않는다.
+
+
 ## Issue #289 — 프로젝트 기준정보 UX
 
 `/projects/new` 및 Project 설정의 기본 정보에 사업부·제품·사업장/법인 Select를 추가한다. 세 필드는 선택 사항이며 active catalog만 신규 선택지에 제공한다. catalog 조회 실패는 “선택지 없음”과 구분해 오류/재시도 상태를 표시하고 저장 가능한 정상 빈 목록으로 오인하지 않는다. 기본 필드 validation은 catalog loading 여부와 독립적으로 먼저 제공하며, 유효한 제출은 catalog 확인 전에는 저장하지 않는다.
