@@ -266,6 +266,14 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await expect.poll(() => isOwnFullscreen(page)).toBe(false);
     await expect(ganttRoot(page).locator(".project-gantt-fullscreen-status")).toContainText("전체화면으로 전환하거나 종료할 수 없습니다");
     await fullscreenButton(page).evaluate((button) => { Reflect.deleteProperty(button.closest(".project-gantt-frame") as HTMLElement, "requestFullscreen"); });
+    await fullscreenButton(page).evaluate((button) => {
+      const frame = button.closest(".project-gantt-frame") as HTMLElement;
+      Object.defineProperty(frame, "requestFullscreen", { configurable: true, value: () => Promise.reject(new DOMException("Denied", "NotAllowedError")) });
+    });
+    await fullscreenButton(page).click();
+    await expect.poll(() => isOwnFullscreen(page)).toBe(false);
+    await expect(ganttRoot(page).locator(".project-gantt-fullscreen-status")).toContainText("전체화면으로 전환하거나 종료할 수 없습니다");
+    await fullscreenButton(page).evaluate((button) => { Reflect.deleteProperty(button.closest(".project-gantt-frame") as HTMLElement, "requestFullscreen"); });
     await fullscreenButton(page).click();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     await guardExitFullscreen(page);
