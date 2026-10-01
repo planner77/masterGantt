@@ -6,7 +6,7 @@
 
 명령은 opener의 React memory에 의존하지 않는 `/projects/{publicId}?rootTask={summaryTaskId}` deep link를 새 탭으로 연다. Project public ID와 Task public ID 이외의 password/session/internal DB ID는 URL에 넣지 않는다. 새 탭 생성이 차단되면 오류를 알리고 원래 탭을 이동시키지 않는다. scoped view에서는 Resource/Logistics 전체 Project 탭을 같은 범위 화면으로 오인하지 않도록 일정 workspace만 제공하고 compact scope bar에 `하위 범위 보기`, root Summary 이름, `전체 프로젝트 보기`를 표시한다.
 
-표시 범위는 root Summary + 모든 descendants다. ancestor/sibling/다른 branch는 숨기지만 삭제하거나 별도 Project로 복제하지 않는다. 전체 canonical Project snapshot을 유지한 채 scope 안 task IDs와 기존 search/filter 결과의 교집합을 `visibleTaskIds`로 전달하고 SVAR 공개 `filter-tasks` action을 재사용한다. 필터 초기화는 subtree 전체로 복원하며 전체 Project로 전환하지 않는다. Task/Relation Editor에는 전체 canonical tasks/links를 계속 전달하여 scope 밖 endpoint Dependency도 관계 정보에서 유실되지 않게 한다.
+표시 범위는 root Summary + 모든 descendants다. ancestor/sibling/다른 branch는 숨기지만 삭제하거나 별도 Project로 복제하지 않는다. 전체 canonical Project snapshot을 유지한 채 scope 안 task IDs와 기존 search/filter 결과의 교집합을 `visibleTaskIds`로 전달하고 SVAR 공개 `filter-tasks` action을 재사용한다. 선택 Summary의 canonical `parentExternalId`는 바꾸지 않고 Gantt 표시 adapter에서만 해당 Summary의 SVAR `parent`를 `0`으로 투영하여 실제 최상위 row처럼 표시한다. 필터 초기화는 subtree 전체로 복원하며 전체 Project로 전환하지 않는다. Task/Relation Editor에는 전체 canonical tasks/links를 계속 전달하여 scope 밖 endpoint Dependency도 관계 정보에서 유실되지 않게 한다.
 
 동일 browser profile의 다른 탭에서 scoped mutation으로 더 높은 Project revision이 저장되면 revision 값만 localStorage event로 알리고, 수신 탭은 기존 read-only Project GET으로 canonical snapshot을 다시 확인한다. revision 신호는 권한이나 데이터를 저장하는 source of truth가 아니며 localStorage 실패는 기존 server revision 계약을 약화시키지 않는다. refresh는 동일 Gantt key를 유지하여 scroll/tree/column/scale/filter를 불필요하게 초기화하지 않는다.
 
