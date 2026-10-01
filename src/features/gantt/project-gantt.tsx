@@ -132,6 +132,7 @@ interface ProjectGanttProps {
   readonly tasks: readonly ProjectTaskDto[];
   readonly projectRevision: number;
   readonly visibleTaskIds?: readonly string[] | null;
+  readonly viewRootTaskId?: string | null;
   readonly projectPublicId?: string;
 }
 
@@ -207,6 +208,7 @@ export function ProjectGantt({
   tasks,
   projectRevision,
   visibleTaskIds = null,
+  viewRootTaskId = null,
   projectPublicId,
 }: ProjectGanttProps) {
   const apiReference = useRef<IApi | null>(null);
@@ -629,7 +631,7 @@ export function ProjectGantt({
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, [mutationLocked]);
-  const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks), [tasks]);
+  const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
   const taskUpdateGateway = useMemo(
     () => createTaskUpdateGateway((local) => {
@@ -700,7 +702,7 @@ export function ProjectGantt({
     [columnVisibility, locales, tasksById],
   );
   const initialConfig = useState(() => ({
-    tasks: projectTasksToSvarTasks(tasks),
+    tasks: projectTasksToSvarTasks(tasks, viewRootTaskId),
     links: projectLinksToSvarLinks(links, tasks),
     columns: columns.map((column) => ({ ...column })),
   }))[0];
@@ -1692,7 +1694,9 @@ export function ProjectGantt({
   }
 
   const selectedTaskHasLinks = taskMenu ? taskHasDependencyLinks(tasks, taskMenu.taskId, links) : false;
-  const canOpenAsRoot = taskMenu ? canOpenTaskAsSubtreeRoot(tasks, taskMenu.taskId) : false;
+  const canOpenAsRoot = taskMenu
+    ? taskMenu.taskId !== viewRootTaskId && canOpenTaskAsSubtreeRoot(tasks, taskMenu.taskId)
+    : false;
   const canMutate = editable && !mutationLocked && !selectedTaskHasLinks;
   const canDelete = canMutate;
   const activeClipboard = taskClipboard?.revision === projectRevision ? taskClipboard : null;
