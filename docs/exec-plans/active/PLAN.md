@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #370 Grid 시작일 Date Picker — 구현 및 PR CI 시작 준비
+
+Grid 시작일 single-click Date Picker, start-only 서버 명령, canonical 복구와 접근성/회귀 검증 범위는 [Issue #370 실행 계획](ISSUE_370.md)을 따른다. 이번 요청의 종료점은 PR 생성과 CI 시작 확인이며 CI 완료·병합·Main CI·GHCR·Issue 종료는 범위 밖이다.
+
 ## Issue #345 빈 Summary WBS 컨테이너 — 독립 사전 QA PASS / PR·CI 시작 준비
 
 최신 main·nullable Summary 계약·migration·표시·Import 범위·소유권과 검증은 [Issue #345 실행 계획](ISSUE_345.md)을 따른다. 이번 요청은 Issue 번호가 포함된 CI 실행 시작까지이며 완료 모니터링·병합·릴리스·Issue 종료는 범위 밖이다.
