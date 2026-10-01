@@ -43,6 +43,7 @@ require("github.event.head_commit.message" in ci_workflow, "main CI run-name mus
 require("inputs.issue_number" in ci_workflow, "manual CI run-name must support an optional Primary Issue")
 require("github.run_number" in ci_workflow and "github.run_attempt" in ci_workflow, "CI run-name must distinguish run and re-run attempt")
 require("scripts/verify-ci-run-trace.py" in ci_workflow, "CI must validate Primary Issue trace metadata before heavy jobs")
+require("types: [opened, reopened, synchronize, edited]" in ci_workflow, "pull_request edited event must rerun trace validation")
 
 require("run-name:" in workflow, "Issue lifecycle run-name is required")
 for token in ("inputs.issue_number", "inputs.pr_number", "inputs.operation", "github.run_number", "github.run_attempt"):
@@ -158,6 +159,25 @@ trace_pr_payload = {
     },
 }
 require(trace.validate_pull_request(trace_pr_payload) == (361, 362), "valid PR trace metadata must pass")
+
+dependabot_payload = {
+    "number": 900,
+    "repository": {"full_name": "planner77/masterGantt"},
+    "pull_request": {
+        "number": 900,
+        "title": "Bump docker/login-action from ...",
+        "body": "Bumps docker/login-action.",
+        "user": {"login": "dependabot[bot]"},
+        "head": {
+            "ref": "dependabot/github_actions/docker/login-action-4",
+            "repo": {"full_name": "planner77/masterGantt"},
+        },
+    },
+}
+require(
+    trace.validate_pull_request(dependabot_payload) == (None, 900),
+    "Dependabot PR trace metadata must use the trusted automation exception",
+)
 try:
     trace.validate_pull_request(
         {
@@ -174,6 +194,23 @@ except trace.TraceError:
     pass
 else:
     raise SystemExit("mismatched PR title/Primary Issue must fail")
+
+try:
+    trace.validate_pull_request(
+        {
+            "number": 362,
+            "pull_request": {
+                "number": 362,
+                "title": "[Issue #361] 추적 개선 (#999)",
+                "body": "Refs #361\n",
+                "head": {"ref": "ci/issue-361-workflow-run-trace"},
+            },
+        }
+    )
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("multi-Issue PR title must fail")
 
 trace_push_payload = {
     "ref": "refs/heads/main",
