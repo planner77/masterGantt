@@ -8,6 +8,38 @@ const fullscreenButton = (page: import("@playwright/test").Page) => ganttRoot(pa
 const exitButton = (page: import("@playwright/test").Page) => ganttRoot(page).getByRole("button", { name: "Gantt 전체 화면 종료", exact: true });
 const isOwnFullscreen = (page: import("@playwright/test").Page) => page.evaluate(() => document.fullscreenElement === document.querySelector(".project-gantt-frame"));
 
+const taskEditor = (page: import("@playwright/test").Page) => page.getByRole("dialog", { name: "작업 정보", exact: true });
+const stableLeafId = "00000000-0000-4000-8000-000000000003";
+const stableLeafBar = (page: import("@playwright/test").Page) => ganttRoot(page).locator(`.wx-bar[data-task-id=":${stableLeafId}"]`);
+
+async function guardExitFullscreen(page: import("@playwright/test").Page) {
+  await page.evaluate(() => {
+    Reflect.set(window, "__issue372OriginalExitFullscreen", document.exitFullscreen.bind(document));
+    Reflect.set(window, "__issue372ExitFullscreenCalls", 0);
+    Object.defineProperty(document, "exitFullscreen", {
+      configurable: true,
+      value: () => {
+        const calls = Number(Reflect.get(window, "__issue372ExitFullscreenCalls") ?? 0);
+        Reflect.set(window, "__issue372ExitFullscreenCalls", calls + 1);
+        return Promise.reject(new DOMException("Issue #372 guard", "NotAllowedError"));
+      },
+    });
+  });
+}
+
+async function exitFullscreenCalls(page: import("@playwright/test").Page) {
+  return page.evaluate(() => Number(Reflect.get(window, "__issue372ExitFullscreenCalls") ?? 0));
+}
+
+async function restoreExitFullscreen(page: import("@playwright/test").Page) {
+  await page.evaluate(() => {
+    const original = Reflect.get(window, "__issue372OriginalExitFullscreen");
+    if (typeof original === "function") Object.defineProperty(document, "exitFullscreen", { configurable: true, value: original });
+    Reflect.deleteProperty(window, "__issue372OriginalExitFullscreen");
+    Reflect.deleteProperty(window, "__issue372ExitFullscreenCalls");
+  });
+}
+
 test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
   test("버튼·Ctrl/Cmd+Shift+F·Escape와 네 폭 layout은 같은 Gantt를 유지한다", async ({ page }, testInfo) => {
     const fixture = await installStatefulProjectFixture(page);
@@ -178,7 +210,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     expect(await summaryToggle.getAttribute("class")).toBe(summaryClassBeforeFullscreen);
   });
 
-  test("입력·inline edit·dialog에서는 shortcut을 무시하고 편집기는 own 종료 후 연다", async ({ page }) => {
+  test("입력·inline edit·dialog에서는 shortcut을 무시하고 Task Editor가 fullscreen을 유지한다", async ({ page }) => {
     const fixture = await installStatefulProjectFixture(page);
     await page.goto(`/projects/${publicId}`);
     const identity = await rememberGanttRoot(page);
@@ -200,22 +232,29 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
 
     await fullscreenButton(page).click();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
+    await guardExitFullscreen(page);
     await rowNamed(page, "Stable leaf").getByText("Stable leaf", { exact: true }).click({ button: "right" });
     await page.getByRole("menu", { name: "작업 메뉴" }).getByRole("menuitem", { name: "Edit" }).click();
-    const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+    const editor = taskEditor(page);
     await expect(editor).toBeVisible();
-    await expect.poll(() => isOwnFullscreen(page)).toBe(false);
+    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
+    await expect.poll(() => exitFullscreenCalls(page)).toBe(0);
     await editor.getByLabel("작업명", { exact: true }).focus();
     await page.keyboard.press("Control+Shift+f");
-    await expect.poll(() => isOwnFullscreen(page)).toBe(false);
+    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     await editor.getByRole("button", { name: "취소", exact: true }).click();
     await expect(editor).toHaveCount(0);
+    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     await expectSameGanttRoot(page, identity);
+    await expect.poll(() => exitFullscreenCalls(page)).toBe(0);
     expect(fixture.posts).toHaveLength(0);
     expect(fixture.patchRequests).toHaveLength(0);
+    await restoreExitFullscreen(page);
+    await exitButton(page).click();
+    await expect.poll(() => isOwnFullscreen(page)).toBe(false);
   });
 
-  test("readonly도 전체화면을 쓰고 종료 거부는 표시 상태를 바꾸지 않으며 editor를 숨겨 열지 않는다", async ({ page }) => {
+  test("readonly도 fullscreen 진입 실패를 정확히 표시하고 Task Editor는 exitFullscreen 없이 연다", async ({ page }) => {
     const fixture = await installStatefulProjectFixture(page);
     fixture.sessionEditable = false;
     await page.goto(`/projects/${publicId}`);
@@ -225,52 +264,84 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     });
     await fullscreenButton(page).click();
     await expect.poll(() => isOwnFullscreen(page)).toBe(false);
-    await expect(ganttRoot(page).locator(".project-gantt-fullscreen-status")).toHaveAttribute("role", "status");
-    await expect(ganttRoot(page).locator(".project-gantt-fullscreen-status")).toContainText("전체화면으로 전환하거나 종료할 수 없습니다");
-    await fullscreenButton(page).evaluate((button) => { Reflect.deleteProperty(button.closest(".project-gantt-frame") as HTMLElement, "requestFullscreen"); });
-    await fullscreenButton(page).evaluate((button) => {
-      const frame = button.closest(".project-gantt-frame") as HTMLElement;
-      Object.defineProperty(frame, "requestFullscreen", { configurable: true, value: () => Promise.reject(new DOMException("Denied", "NotAllowedError")) });
-    });
-    await fullscreenButton(page).click();
-    await expect.poll(() => isOwnFullscreen(page)).toBe(false);
     await expect(ganttRoot(page).locator(".project-gantt-fullscreen-status")).toContainText("전체화면으로 전환하거나 종료할 수 없습니다");
     await fullscreenButton(page).evaluate((button) => { Reflect.deleteProperty(button.closest(".project-gantt-frame") as HTMLElement, "requestFullscreen"); });
     await fullscreenButton(page).click();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
-    await page.evaluate(() => { Object.defineProperty(document, "exitFullscreen", { configurable: true, value: () => Promise.reject(new DOMException("Denied", "NotAllowedError")) }); });
+    await guardExitFullscreen(page);
     await rowNamed(page, "Stable leaf").getByText("Stable leaf", { exact: true }).dblclick();
-    await expect(page.getByRole("dialog", { name: "작업 정보", exact: true })).toHaveCount(0);
-    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
-    await expect(ganttRoot(page).locator(".project-gantt-fullscreen-status")).toContainText("작업 정보를 열 수 없습니다");
-    await page.evaluate(() => { Reflect.deleteProperty(document, "exitFullscreen"); });
-    await exitButton(page).click();
-    await expect.poll(() => isOwnFullscreen(page)).toBe(false);
-    await fullscreenButton(page).click();
-    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
-    await rowNamed(page, "Stable leaf").getByText("Stable leaf", { exact: true }).dblclick();
-    const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
-    await expect.poll(() => isOwnFullscreen(page)).toBe(false);
+    const editor = taskEditor(page);
     await expect(editor).toBeVisible();
-    expect(await editor.evaluate((dialog) => dialog.contains(document.activeElement))).toBe(true);
+    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
+    await expect.poll(() => exitFullscreenCalls(page)).toBe(0);
+    await editor.getByRole("button", { name: "취소", exact: true }).click();
+    await expect(editor).toHaveCount(0);
+    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
     expect(fixture.posts).toHaveLength(0);
     expect(fixture.patchRequests).toHaveLength(0);
+    await restoreExitFullscreen(page);
+    await exitButton(page).click();
+    await expect.poll(() => isOwnFullscreen(page)).toBe(false);
   });
 
-  test("메뉴 Edit에서 전체 화면 종료가 거부되면 연결된 Task 대상으로 focus를 복원한다", async ({ page }) => {
-    await installStatefulProjectFixture(page);
+  test("Grid·Chart의 double click과 Context Menu Edit이 모두 fullscreen Task Editor를 유지한다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
     await page.goto(`/projects/${publicId}`);
+    const identity = await rememberGanttRoot(page);
     await fullscreenButton(page).click();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
-    await page.evaluate(() => { Object.defineProperty(document, "exitFullscreen", { configurable: true, value: () => Promise.reject(new DOMException("Denied", "NotAllowedError")) }); });
+    await guardExitFullscreen(page);
     const row = rowNamed(page, "Stable leaf");
+    await row.locator('[role="gridcell"][data-col-id=":projectStart"]').dblclick();
+    await expect(taskEditor(page)).toBeVisible();
+    await taskEditor(page).getByRole("button", { name: "취소", exact: true }).click();
+    await stableLeafBar(page).dblclick();
+    await expect(taskEditor(page)).toBeVisible();
+    await taskEditor(page).getByRole("button", { name: "취소", exact: true }).click();
     await row.getByText("Stable leaf", { exact: true }).click({ button: "right" });
     await page.getByRole("menu", { name: "작업 메뉴" }).getByRole("menuitem", { name: "Edit" }).click();
-    await expect(page.getByRole("dialog", { name: "작업 정보", exact: true })).toHaveCount(0);
+    await expect(taskEditor(page)).toBeVisible();
+    await taskEditor(page).getByRole("button", { name: "취소", exact: true }).click();
+    await stableLeafBar(page).click({ button: "right" });
+    await page.getByRole("menu", { name: "작업 메뉴" }).getByRole("menuitem", { name: "Edit" }).click();
+    await expect(taskEditor(page)).toBeVisible();
+    await taskEditor(page).getByRole("button", { name: "취소", exact: true }).click();
     await expect.poll(() => isOwnFullscreen(page)).toBe(true);
-    await expect(ganttRoot(page).locator(".project-gantt-fullscreen-status")).toContainText("작업 정보를 열 수 없습니다");
-    await expect.poll(() => row.evaluate((element) => element === document.activeElement || element.contains(document.activeElement))).toBe(true);
-    await page.evaluate(() => { Reflect.deleteProperty(document, "exitFullscreen"); });
+    await expect.poll(() => exitFullscreenCalls(page)).toBe(0);
+    await expectSameGanttRoot(page, identity);
+    expect(fixture.posts).toHaveLength(0);
+    expect(fixture.patchRequests).toHaveLength(0);
+    await restoreExitFullscreen(page);
+    await exitButton(page).click();
+    await expect.poll(() => isOwnFullscreen(page)).toBe(false);
+  });
+
+  test("Relation Editor도 공통 dialog 경로에서 fullscreen을 유지한다", async ({ page }) => {
+    const fixture = await installStatefulProjectFixture(page);
+    for (const item of fixture.tasks) {
+      item.start = "2026-09-16";
+      item.end = "2026-09-17";
+      item.requestedStart = item.type === "summary" ? null : item.start;
+    }
+    const linkId = "00000000-0000-4000-8000-000000000090";
+    fixture.links.push({ id: linkId, predecessorExternalId: "LEAF-1", successorExternalId: "MILESTONE-1", type: "FS", lag: 0 });
+    await page.goto(`/projects/${publicId}`);
+    const identity = await rememberGanttRoot(page);
+    await fullscreenButton(page).click();
+    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
+    await guardExitFullscreen(page);
+    const link = page.locator(`[data-link-id=":${linkId}"]`).first();
+    await expect(link).toBeVisible();
+    await link.dblclick({ force: true });
+    const dialog = page.getByRole("dialog", { name: "작업 관계 관리 (Relation Editor)", exact: true });
+    await expect(dialog).toBeVisible();
+    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
+    await expect.poll(() => exitFullscreenCalls(page)).toBe(0);
+    await dialog.getByRole("button", { name: "작업 관계 관리 (Relation Editor) 닫기" }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect.poll(() => isOwnFullscreen(page)).toBe(true);
+    await expectSameGanttRoot(page, identity);
+    await restoreExitFullscreen(page);
     await exitButton(page).click();
     await expect.poll(() => isOwnFullscreen(page)).toBe(false);
   });
