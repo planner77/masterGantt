@@ -76,7 +76,7 @@ describe("Issue #368 requested end draft synchronization", () => {
   it("rejects a non-working requested end without leaking it into the update payload", () => {
     const draft = synchronizeTaskEditorScheduleDraft(
       task,
-      { ...createTaskEditorDraft(task, calendar), requestedEnd: "2026-09-21" },
+      { ...createTaskEditorDraft(task, calendar), requestedEnd: "2026-09-27" },
       calendar,
       "end",
     );
