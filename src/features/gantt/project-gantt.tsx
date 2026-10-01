@@ -237,11 +237,12 @@ export function ProjectGantt({
   const initialPreferenceRestoredReference = useRef(false);
   const prevProjectPublicIdReference = useRef(projectPublicId);
 
-  if (prevProjectPublicIdReference.current !== projectPublicId) {
+  useEffect(() => {
+    if (prevProjectPublicIdReference.current === projectPublicId) return;
     prevProjectPublicIdReference.current = projectPublicId;
     initialPreferenceRestoredReference.current = false;
     summaryToggleStateReference.current.clear();
-  }
+  }, [projectPublicId]);
   const inlineOpenTokenReference = useRef(0);
   const inlineComposingReference = useRef(false);
   const inlineTableReference = useRef<Awaited<ReturnType<IApi["getTable"]>> | null>(null);
@@ -1414,7 +1415,7 @@ export function ProjectGantt({
     }).finally(() => {
       if (inlineSessionReference.current === session) inlineSessionReference.current = null;
     });
-  }, [findInlineNameInput, focusInlineNameCell, instanceId]);
+  }, [findInlineNameInput, focusInlineNameCell, instanceId, setInlineNameError, setInlineNameMessage]);
 
   const installInlineTableHandlers = useCallback((table: Awaited<ReturnType<IApi["getTable"]>>): void => {
     if (inlineTableReference.current === table) return;
@@ -1475,7 +1476,7 @@ export function ProjectGantt({
         setInlineNameMessage("");
       }
     }, { tag: "project-inline-name" });
-  }, [commitInlineName, findInlineNameInput, instanceId]);
+  }, [commitInlineName, findInlineNameInput, instanceId, setInlineNameError, setInlineNameMessage]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -1634,8 +1635,11 @@ export function ProjectGantt({
     if (!scroller) return;
     const itemBounds = item.getBoundingClientRect();
     const scrollBounds = scroller.getBoundingClientRect();
-    if (itemBounds.bottom > scrollBounds.bottom - 4) scroller.scrollTop += itemBounds.bottom - scrollBounds.bottom + 4;
-    else if (itemBounds.top < scrollBounds.top + 4) scroller.scrollTop -= scrollBounds.top - itemBounds.top + 4;
+    if (itemBounds.bottom > scrollBounds.bottom - 4) {
+      scroller.scrollTo({ top: scroller.scrollTop + itemBounds.bottom - scrollBounds.bottom + 4 });
+    } else if (itemBounds.top < scrollBounds.top + 4) {
+      scroller.scrollTo({ top: scroller.scrollTop - (scrollBounds.top - itemBounds.top + 4) });
+    }
   }
 
   function closeTaskSubmenuForOrdinaryRootItem(target: EventTarget | null) {
@@ -1807,7 +1811,7 @@ export function ProjectGantt({
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
               cellWidth={scaleMode === "day" ? 44 : 68}
-              columns={ganttColumnsReference.current}
+              columns={initialConfig.columns}
               displayMode="all"
               gridWidth={480}
               highlightTime={scaleMode === "day" ? highlightWeekend : undefined}
