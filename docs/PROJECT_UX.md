@@ -12,7 +12,7 @@ scoped view의 구조 mutation은 결과가 현재 subtree 밖으로 나가지 �
 
 물류 effective filter 계산은 hidden ancestor의 `scope=subtree` 연결을 잃지 않도록 전체 Project hierarchy를 context로 계산한 뒤 결과 task만 현재 subtree와 교집합한다.
 
-동일 browser profile의 다른 탭에서 scoped mutation으로 더 높은 Project revision이 저장되면 revision 값만 localStorage event로 알리고, 수신 탭은 기존 read-only Project GET으로 canonical snapshot을 다시 확인한다. refresh 진행 중 더 높은 revision 이벤트가 도착하면 버리지 않고 최고 pending revision을 누적하며 canonical snapshot이 그 revision 이상에 도달할 때까지 순차 재조회한다. revision 신호는 권한이나 데이터를 저장하는 source of truth가 아니며 localStorage 실패는 기존 server revision 계약을 약화시키지 않는다. refresh는 동일 Gantt key를 유지하여 scroll/tree/column/scale/filter를 불필요하게 초기화하지 않는다.
+동일 browser profile의 다른 탭에서 scoped mutation으로 더 높은 Project revision이 저장되면 revision 값만 localStorage event로 알리고, 수신 탭은 기존 read-only Project GET으로 canonical snapshot을 다시 확인한다. initial load 또는 refresh가 아직 `loading`인 동안 도착한 revision 이벤트도 버리지 않고 최고 pending revision을 누적한다. 화면이 `ready`가 되는 즉시 pending revision과 비교하고 canonical snapshot이 그 revision 이상에 도달할 때까지 순차 재조회한다. revision 신호는 권한이나 데이터를 저장하는 source of truth가 아니며 localStorage 실패는 기존 server revision 계약을 약화시키지 않는다. refresh는 동일 Gantt key를 유지하여 scroll/tree/column/scale/filter를 불필요하게 초기화하지 않는다.
 
 root의 모든 child가 없어져도 #345의 빈 Summary는 유효한 scope로 남는다. root가 삭제되거나 Summary가 아닌 type으로 변경되면 다른 scope로 조용히 fallback하지 않고 scoped Gantt를 숨기고 오류 및 전체 Project 복귀 경로를 제공한다. 이번 기능은 DB/API/Scheduling/Security 계약을 변경하지 않는다.
 
