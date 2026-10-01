@@ -15,6 +15,7 @@ RELEASE_WORKFLOW = ROOT / ".github" / "workflows" / "release-image.yml"
 CI_WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 IMPL = ROOT / "scripts" / "issue_lifecycle.py"
 AUTO_IMPL = ROOT / "scripts" / "auto_release_finalizer.py"
+TRACE_IMPL = ROOT / "scripts" / "verify-ci-run-trace.py"
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
 
 
@@ -29,11 +30,35 @@ release_workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
 ci_workflow = CI_WORKFLOW.read_text(encoding="utf-8")
 impl = IMPL.read_text(encoding="utf-8")
 auto_impl = AUTO_IMPL.read_text(encoding="utf-8")
+trace_impl = TRACE_IMPL.read_text(encoding="utf-8")
 
 require(re.search(r"^name: CI$", ci_workflow, re.MULTILINE) is not None, "Finalizer가 참조하는 CI workflow 이름을 유지해야 합니다")
-run_name = next((line for line in ci_workflow.splitlines() if line.startswith("run-name:")), "")
-require("github.event.pull_request.title" in run_name, "PR CI 실행 제목에 Issue 번호를 포함한 PR 제목이 필요합니다")
-require("github.event.head_commit.message" in run_name and "github.ref_name" in run_name, "main·수동 CI 실행 제목의 대체값이 필요합니다")
+require("github.event.pull_request.title" in ci_workflow, "PR CI 실행 제목에 Issue 번호를 포함한 PR 제목이 필요합니다")
+require("github.event.head_commit.message" in ci_workflow and "github.ref_name" in ci_workflow, "main·수동 CI 실행 제목의 대체값이 필요합니다")
+
+require("run-name:" in ci_workflow, "CI workflow run-name is required")
+require("github.event.pull_request.title" in ci_workflow, "PR CI run-name must carry the PR title/Primary Issue trace")
+require("github.event.pull_request.number" in ci_workflow, "PR CI run-name must carry the PR number")
+require("github.event.head_commit.message" in ci_workflow, "main CI run-name must carry merge commit trace metadata")
+require("inputs.issue_number" in ci_workflow, "manual CI run-name must support an optional Primary Issue")
+require("github.run_number" in ci_workflow and "github.run_attempt" in ci_workflow, "CI run-name must distinguish run and re-run attempt")
+require("scripts/verify-ci-run-trace.py" in ci_workflow, "CI must validate Primary Issue trace metadata before heavy jobs")
+require("types: [opened, reopened, synchronize, edited]" in ci_workflow, "pull_request edited event must rerun trace validation")
+
+require("run-name:" in workflow, "Issue lifecycle run-name is required")
+for token in ("inputs.issue_number", "inputs.pr_number", "inputs.operation", "github.run_number", "github.run_attempt"):
+    require(token in workflow, f"Issue lifecycle run-name trace token missing: {token}")
+
+require("run-name:" in auto_workflow, "automatic finalizer run-name is required")
+require("github.event.workflow_run.display_title" in auto_workflow, "finalizer must inherit the triggering Main CI display title")
+require("github.run_number" in auto_workflow and "github.run_attempt" in auto_workflow, "finalizer run-name must distinguish attempts")
+
+require("run-name:" in release_workflow, "release image run-name is required")
+for token in ("inputs.issue_number", "inputs.pr_number", "github.ref_name", "github.run_number", "github.run_attempt"):
+    require(token in release_workflow, f"release run-name trace token missing: {token}")
+require("issue_number:" in release_workflow and "pr_number:" in release_workflow, "release workflow_dispatch trace inputs are required")
+require('"inputs[issue_number]"' in impl and '"inputs[pr_number]"' in impl, "lifecycle release dispatch must forward Issue/PR trace inputs")
+require("REF_RE" in trace_impl and "BRANCH_ISSUE_RE" in trace_impl and "TITLE_ISSUE_RE" in trace_impl, "CI trace validator contracts are required")
 
 require("workflow_dispatch:" in workflow, "workflow_dispatch entry point is required")
 require("operation:" in workflow and "verify, release, finalize, release_finalize" in workflow, "four operations are required")
@@ -122,6 +147,84 @@ def load_module(name: str, path: pathlib.Path):
 
 module = load_module("issue_lifecycle", IMPL)
 auto = load_module("auto_release_finalizer", AUTO_IMPL)
+trace = load_module("verify_ci_run_trace", TRACE_IMPL)
+
+trace_pr_payload = {
+    "number": 362,
+    "pull_request": {
+        "number": 362,
+        "title": "[Issue #361] ci: Workflow 실행 추적 표준화",
+        "body": "요약\n\nRefs #361\n",
+        "head": {"ref": "ci/issue-361-workflow-run-trace"},
+    },
+}
+require(trace.validate_pull_request(trace_pr_payload) == (361, 362), "valid PR trace metadata must pass")
+
+dependabot_payload = {
+    "number": 900,
+    "repository": {"full_name": "planner77/masterGantt"},
+    "pull_request": {
+        "number": 900,
+        "title": "Bump docker/login-action from ...",
+        "body": "Bumps docker/login-action.",
+        "user": {"login": "dependabot[bot]"},
+        "head": {
+            "ref": "dependabot/github_actions/docker/login-action-4",
+            "repo": {"full_name": "planner77/masterGantt"},
+        },
+    },
+}
+require(
+    trace.validate_pull_request(dependabot_payload) == (None, 900),
+    "Dependabot PR trace metadata must use the trusted automation exception",
+)
+try:
+    trace.validate_pull_request(
+        {
+            "number": 362,
+            "pull_request": {
+                "number": 362,
+                "title": "[Issue #360] 잘못된 추적",
+                "body": "Refs #361\n",
+                "head": {"ref": "ci/issue-361-workflow-run-trace"},
+            },
+        }
+    )
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("mismatched PR title/Primary Issue must fail")
+
+try:
+    trace.validate_pull_request(
+        {
+            "number": 362,
+            "pull_request": {
+                "number": 362,
+                "title": "[Issue #361] 추적 개선 (#999)",
+                "body": "Refs #361\n",
+                "head": {"ref": "ci/issue-361-workflow-run-trace"},
+            },
+        }
+    )
+except trace.TraceError:
+    pass
+else:
+    raise SystemExit("multi-Issue PR title must fail")
+
+trace_push_payload = {
+    "ref": "refs/heads/main",
+    "head_commit": {
+        "message": (
+            "Merge pull request #362 from planner77/ci/issue-361-workflow-run-trace\n\n"
+            "[Issue #361] ci: Workflow 실행 추적 표준화"
+        )
+    },
+}
+require(trace.validate_push(trace_push_payload) == (361, 362), "merge commit trace metadata must resolve Issue/PR")
+require(trace.validate_dispatch({"inputs": {"issue_number": "361"}}) == (361, None), "manual CI Primary Issue must validate")
+require(trace.validate_dispatch({"inputs": {}}) == (None, None), "manual CI without Issue must use fallback")
+
 
 scenarios = [
     (dict(merged=False, checks_ok=False, main_ci_ok=False, main_artifact_ok=False, release_required=False, release_authorized=False, version_ok=True), "BLOCKED"),
