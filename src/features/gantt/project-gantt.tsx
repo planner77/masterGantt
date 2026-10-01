@@ -889,6 +889,9 @@ export function ProjectGantt({
 
     const selector = ".project-gantt-day-scale";
     let activeCell: HTMLElement | null = null;
+    let hoveredCell: HTMLElement | null = null;
+    let focusedCell: HTMLElement | null = null;
+    let repositionFrame: number | null = null;
 
     const tooltipData = (cell: HTMLElement): GanttDayHeaderTooltipData | null => {
       const date = dateOnlyFromGanttDayScaleClassName(cell.className);
@@ -926,38 +929,62 @@ export function ProjectGantt({
       });
     };
 
-    const hide = (cell?: HTMLElement | null) => {
-      const target = cell ?? activeCell;
-      if (target?.getAttribute("aria-describedby") === dayHeaderTooltipId) target.removeAttribute("aria-describedby");
-      if (!cell || cell === activeCell) activeCell = null;
+    const hide = () => {
+      if (activeCell?.getAttribute("aria-describedby") === dayHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
+      activeCell = null;
       setDayHeaderTooltip(null);
+    };
+
+    const showTrackedCell = () => {
+      const hover = hoveredCell?.isConnected ? hoveredCell : null;
+      const focus = focusedCell?.isConnected ? focusedCell : null;
+      if (hover) show(hover);
+      else if (focus) show(focus);
+      else hide();
     };
 
     const onPointerOver = (event: PointerEvent) => {
       if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
       const cell = findCell(event.target);
-      if (cell) show(cell);
+      if (!cell) return;
+      hoveredCell = cell;
+      show(cell);
     };
     const onPointerOut = (event: PointerEvent) => {
       const cell = findCell(event.target);
       if (!cell) return;
       const related = findCell(event.relatedTarget);
       if (related === cell) return;
-      hide(cell);
+      if (hoveredCell === cell) hoveredCell = related;
+      showTrackedCell();
     };
     const onFocusIn = (event: FocusEvent) => {
       const cell = findCell(event.target);
-      if (cell) show(cell);
+      if (!cell) return;
+      focusedCell = cell;
+      if (!hoveredCell?.isConnected) show(cell);
     };
     const onFocusOut = (event: FocusEvent) => {
       const cell = findCell(event.target);
       if (!cell) return;
       const related = findCell(event.relatedTarget);
       if (related === cell) return;
-      hide(cell);
+      if (focusedCell === cell) focusedCell = related;
+      showTrackedCell();
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && activeCell) hide();
+      if (event.key !== "Escape" || !activeCell) return;
+      hoveredCell = null;
+      focusedCell = null;
+      hide();
+    };
+    const onViewportChange = () => {
+      if (repositionFrame !== null) return;
+      repositionFrame = window.requestAnimationFrame(() => {
+        repositionFrame = null;
+        if (activeCell?.isConnected) show(activeCell);
+        else showTrackedCell();
+      });
     };
 
     markCells();
@@ -968,6 +995,8 @@ export function ProjectGantt({
     root.addEventListener("focusin", onFocusIn);
     root.addEventListener("focusout", onFocusOut);
     root.addEventListener("keydown", onKeyDown);
+    window.addEventListener("resize", onViewportChange);
+    window.addEventListener("scroll", onViewportChange, true);
     return () => {
       observer.disconnect();
       root.removeEventListener("pointerover", onPointerOver);
@@ -975,6 +1004,9 @@ export function ProjectGantt({
       root.removeEventListener("focusin", onFocusIn);
       root.removeEventListener("focusout", onFocusOut);
       root.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("resize", onViewportChange);
+      window.removeEventListener("scroll", onViewportChange, true);
+      if (repositionFrame !== null) window.cancelAnimationFrame(repositionFrame);
       if (activeCell?.getAttribute("aria-describedby") === dayHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
       setDayHeaderTooltip(null);
     };
