@@ -14,6 +14,53 @@
   font-size: 0.75rem;
 }
 
+
+.project-gantt-widget [role="gridcell"][data-col-id=":projectStart"][data-inline-start-editable="true"] {
+  cursor: pointer;
+}
+
+.project-gantt-widget [role="gridcell"][data-col-id=":projectStart"][data-inline-start-editable="true"]:focus-visible {
+  outline: 3px solid var(--focus-ring, var(--ring));
+  outline-offset: -3px;
+}
+
+
+.project-gantt-start-date-picker {
+  position: fixed;
+  z-index: 1300;
+  display: grid;
+  gap: 0.25rem;
+  max-width: calc(100vw - 1rem);
+  border: 1px solid var(--border-control, var(--border));
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel, var(--card));
+  box-shadow: 0 0.375rem 1rem rgb(15 23 42 / 0.16);
+  padding: 0.375rem;
+}
+
+.project-gantt-start-date-picker label {
+  color: var(--text-muted, var(--muted-foreground));
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.project-gantt-start-date-picker input[type="date"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.25rem;
+  border: 1px solid var(--border-control, var(--border));
+  border-radius: calc(var(--radius) - 0.25rem);
+  background: var(--surface-page, var(--background));
+  color: var(--text-default, var(--foreground));
+  font: inherit;
+  padding: 0.25rem 0.375rem;
+}
+
+.project-gantt-start-date-picker input[type="date"]:focus-visible {
+  outline: 3px solid var(--focus-ring, var(--ring));
+  outline-offset: 1px;
+}
+
 .project-gantt-fullscreen-button {
   min-height: 2.5rem;
   border: 1px solid var(--border-control, var(--border));
