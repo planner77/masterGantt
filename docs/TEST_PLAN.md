@@ -8,6 +8,7 @@
 - 회귀: scoped view의 검색/필터는 subtree와 AND로 적용되고 초기화가 전체 Project로 확장되지 않아야 한다. hidden ancestor의 `scope=subtree` 설비/시스템 연결도 full hierarchy context에서 effective filter로 상속되어야 한다. Task/Relation Editor에는 전체 canonical tasks/links가 남아 scope 밖 Dependency를 삭제된 것으로 오인하지 않는다. 빈 Summary root 유지, missing/type-changed root 오류, popup 차단 오류는 구현 contract와 unit/component 경계에서 확인한다.
 - Scoped hierarchy boundary: native Grid `+`와 root toolbar add가 비활성/비노출되고, 가상 root의 Above/Below 및 root 직계 child Outdent 등 scope 밖 구조 mutation을 unit/E2E로 거부한다. Context Menu, shortcut, DnD가 같은 scope guard를 우회하지 않아야 한다.
 - Cross-tab burst: 첫 revision의 original-tab GET을 지연한 상태에서 scoped tab에서 두 번째 mutation을 완료하여 N+1 storage event가 in-flight 중 도착하도록 하고, 첫 N snapshot 반영 뒤 자동으로 N+1 canonical GET을 수행해 최종 이름까지 수렴하는지 검증한다.
+- Cross-tab loading: 새 수신 탭의 최초 Project GET을 revision N에 고정한 채 loading 중 scoped tab에서 N+1 mutation을 저장한다. stale N 응답으로 화면이 ready가 된 뒤 pending N+1을 감지해 추가 canonical GET을 수행하고 최종 값으로 수렴하는지 검증한다.
 - 접근성/반응형: 기존 #72 Context Menu keyboard/Escape/focus와 390/768/1024/1440px 메뉴 clipping을 유지한다. scope bar는 긴 Project/Summary 이름에서도 ellipsis/wrap으로 document-level unintended horizontal overflow를 만들지 않는다.
 - API/DB/Scheduling/Security: 새 endpoint/migration/algorithm/auth 모델은 없다. 기존 Project GET, Task/Link mutation, edit session/Origin/strong If-Match/revision/canonical snapshot을 그대로 검증한다.
 - 공식 전체 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다. PR CI 시작 전에는 원격 PASS를 주장하지 않는다.
