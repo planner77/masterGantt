@@ -136,9 +136,11 @@ Issue #74의 3개 탭, body-only scroll, 고정 Footer 구조와 모든 저장/�
 
 검증 기준은 390/768/1024/1440px에서 input geometry와 horizontal overflow를 확인하고 기존 Task Editor 상호작용 회귀를 함께 실행한다.
 
-## Issue #155 — 전체화면에서 작업 정보 진입
+## Issue #155 / #372 — 전체화면에서 작업 정보 진입
 
-Task Editor는 Gantt 전체화면 frame 바깥의 native dialog다. SVAR `show-editor` intercept(메뉴 Edit 포함)와 Readonly Grid/Chart 더블클릭은 호출 대상을 먼저 기억하고 자기 Gantt의 native fullscreen 종료와 `fullscreenchange`를 확인한 뒤에만 기존 편집기를 연다. 종료 거부 시 보이지 않는 dialog를 만들지 않고 오류를 안내하며 원래 대상에 focus를 유지한다. 닫기/Escape 후 호출 대상 또는 기존 taskId fallback으로 복원하는 규칙과 dirty 확인, readonly·revision·If-Match·401/412·Task PATCH/Assignment PUT 계약은 그대로다. 전체화면 전환만으로 작업/할당 API mutation을 보내지 않는다.
+Issue #155에서 도입한 Gantt native fullscreen은 Issue #372부터 **Task Editor 진입의 부수 효과로 종료하지 않는다.** SVAR `show-editor` intercept(메뉴 Edit 포함), Grid/Chart double click 및 readonly 정보 조회는 호출 대상을 기억한 뒤 현재 native `<dialog>.showModal()`을 열며, 앱은 Editor를 열기 위해 `document.exitFullscreen()`을 호출하지 않는다. 따라서 저장·취소·닫기 후에도 사용자가 전체화면 버튼/Escape 등으로 직접 종료하지 않았다면 동일 `.project-gantt-frame` fullscreen과 Gantt instance를 유지한다.
+
+Task Editor가 열린 동안 기존 shortcut guard, modal focus/Tab 처리, dirty 확인, readonly·revision·If-Match·401/412·Task PATCH/Assignment PUT 계약은 그대로다. 닫은 뒤에는 원래 호출 대상 또는 taskId fallback으로 `preventScroll` focus를 복원하고 Grid/Chart scroll·tree·column·scale·selection/filter를 초기화하지 않는다. 같은 fullscreen-aware dialog 원칙은 Relation Editor에도 적용하며, 사용자 에이전트가 Escape로 native fullscreen 자체를 종료하면 `fullscreenchange`가 실제 `document.fullscreenElement`를 source of truth로 UI 상태를 동기화한다. Editor open/close 자체는 작업·관계·할당 API mutation을 보내지 않는다.
 
 ## Issue #140 — Grid 작업명 인라인 편집과 Task Editor 경계
 
