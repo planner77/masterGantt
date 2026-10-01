@@ -10,7 +10,7 @@
 
 프로젝트 Grid의 작업 행 또는 Chart의 작업 막대를 우클릭하면 해당 작업의 **작업 메뉴**를 먼저 연다. 메뉴의 **작업 정보**를 선택해야 기존 작업 정보 대화상자가 열린다. 메뉴를 여는 것만으로 대화상자·저장·삭제가 실행되지 않는다. 선택된 행이나 작업명이 아니라 실제 taskId로 찾는다. Tab으로 작업 행/막대에 포커스를 옮긴 뒤 Shift+F10 또는 ContextMenu 키로 메뉴를 열고, 작업 정보 항목에서 Enter로 진입할 수 있다. Escape는 메뉴를 닫는다. Grid 헤더의 우클릭/Shift+F10은 기존 표시 열 메뉴를 유지하며 두 메뉴는 동시에 표시하지 않는다. 빈 Chart, 링크, 시간축과 입력 상자에는 작업 우클릭 처리를 적용하지 않는다.
 
-일반 작업은 작업명·시작일·기간(근무일)과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 입력 도중에는 저장하지 않는다. 종료일은 마지막 서버 확정값이며 저장 시 서버가 프로젝트의 휴일/주말과 일정 모드로 다시 계산한다. 마일스톤 기간은 0이며 수정할 수 없다. 요약 작업은 조회만 가능하다. 편집 권한이 없으면 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 관계 endpoint인 leaf도 아래 #258 계약에 따라 편집한다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
+일반 작업은 작업명·요청 시작일·기간(근무일)·요청 종료일과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 요청 종료일은 별도 저장 필드가 아니라 현재 Project Effective Calendar로 `requestedStart + duration`에서 도출하는 편집 초안이다. 사용자가 기간을 바꾸면 요청 종료일을 계산하고, 요청 종료일을 바꾸면 기간을 역산한다. 마지막 명시 입력이 기간인지 종료일인지 기억해 요청 시작일 변경 시 반대 필드를 재계산한다. 서버 확정 시작/종료일은 별도 secondary 정보로 표시하며 저장 시 서버가 최신 휴일/주말·WORKING/NON_WORKING 예외, 일정 모드와 Dependency를 다시 적용한다. 마일스톤 기간은 0이며 요청 종료일 양방향 편집을 적용하지 않는다. 요약 작업은 조회만 가능하다. 편집 권한이 없으면 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 관계 endpoint인 leaf도 아래 #258 계약에 따라 편집한다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
 
 취소/닫기/Escape는 미저장 변경이 있으면 먼저 버리기 확인을 요구한다. 편집기 하나가 열려 있는 동안 다른 작업으로 초안을 조용히 전환하지 않는다. 메뉴의 Escape는 원래 호출 대상으로 포커스를 복구한다. 편집기 종료 시 연결된 원래 대상이 없으면 해당 taskId의 현재 행이나 작업공간을 사용한다. 포커스 복구에는 preventScroll을 사용한다.
 
@@ -31,7 +31,7 @@
 
 - 메뉴의 작업 정보 선택은 공개 SVAR `show-editor` action을 실행하고 `api.intercept`로 프로젝트 편집기에 연결한다. 기존 double-click/native show-editor 경로를 메뉴 클릭으로 대체하지 않는다. 초기화/해제 tag는 `project-task-editor`이며 native add/update 동기화 가드는 변경하지 않는다.
 - `task-context-target.ts`만 SVAR의 행/막대 DOM 속성을 해석한다. `data-id` / `data-task-id`의 문자열 ID 접두사를 해석한 뒤 UUID와 현재 canonical task 목록 양쪽을 확인한다. 이름·선택·정렬 순번으로 fallback하지 않는다.
-- `task-editor-model.ts`는 DTO를 초안으로 복사하고 변경된 name/start/duration/progress/description/url만 command로 만든다. 시작일은 date-only 문자열이며 duration은 직접 입력한 근무일이다. Pointer resize의 달력 span 변환기를 통과시키지 않는다. name/progress-only PATCH는 start를 포함하지 않으므로 requestedStart를 보존한다.
+- `task-editor-model.ts`는 DTO와 해당 Project Calendar를 초안으로 복사하고 변경된 name/start/duration/progress/description/url만 command로 만든다. 일반 Task의 `requestedEnd`는 UI-only 파생값이며 command whitelist에 포함하지 않는다. 시작일은 date-only 문자열이고 duration은 직접 입력·역산한 근무일이다. 기간 기준이면 `endFromStart`, 종료일 기준이면 `workingDaysBetween`을 기존 pure Scheduling Domain과 동일한 Effective Calendar로 사용한다. Auto 비근무 요청 시작일은 preview에서도 다음 근무일로 정규화하지만 서버가 최종 authority이며, Manual 비근무 시작일과 비근무 요청 종료일은 필드 오류로 저장을 막는다. Pointer resize의 달력 span 변환기를 통과시키지 않는다. name/progress-only PATCH는 start를 포함하지 않으므로 requestedStart를 보존한다.
 - 기존 `ProjectReadonlyView.saveTask`가 credentials:same-origin, Content-Type과 If-Match를 포함해 동일 PATCH API를 호출한다. 편집기를 열었을 때의 revision을 명시적으로 전달한다. 서버 session/Origin/revision/스케줄러 계약을 유지하며, Issue #36의 Description/URL은 동일 PATCH 경로와 SQLite migration/canonical snapshot 계약으로 저장한다.
 - 편집기 ref mutex와 기존 aggregate mutation mutex로 연속 클릭/Enter 중복 요청을 차단한다. 저장 중 입력/닫기를 막고, 성공한 canonical 응답만 Gantt에 반영한 후 닫는다. 정상 처리에서는 문서 reload, loading 화면이나 Gantt key 변경이 없다.
 - 400/409/422/5xx/network 오류는 기존 `handleTaskFailure`로 확정 상태를 다시 읽는다. Gantt만 복구할 수 있으며 편집기는 recovery key 바깥에 있으므로 초안을 보존한다. 검증 오류를 수정하거나 사용자가 명시적으로 재시도할 수 있다.
@@ -44,7 +44,16 @@
 
 프로젝트 편집기는 React/native dialog/CSS Module 기반이다. 기본 Editor의 즉시 로컬 update와 달력일 기간 의미가 프로젝트의 명시적 PATCH/근무일 계약과 다르므로 기존 프로젝트 편집기를 유지한다. 이 사유는 상세 편집기의 선택 이유이며, 공식 ContextMenu helper가 사용 불가능하다는 의미는 아니다. 지정 데모의 실제 화면 실측·pixel 비교와 helper 대비 접근성 적합성 판단은 자동 CI 결과와 별도로 검증해야 한다.
 
-프런트는 서버/DB 모듈을 import하지 않는다. 날짜 형식 검증만 기존 pure domain의 parseDateOnly를 사용하며 종료일 계산은 서버에 맡긴다. 관련 계약은 [Architecture](ARCHITECTURE.md), [API](API.md), [Scheduling](SCHEDULING_ENGINE.md), [Security](SECURITY.md), [원격 검증](REMOTE_VALIDATION.md)을 따른다.
+프런트는 서버/DB 모듈을 import하지 않는다. 요청 종료일의 **편집 미리보기**에는 기존 pure Scheduling Domain의 date-only/Working Calendar 함수를 재사용하며 별도 날짜 알고리즘을 만들지 않는다. 이 미리보기는 persisted schedule이 아니고 저장 payload의 canonical source는 계속 `requestedStart + duration`이다. 최종 `start/end` 계산과 Dependency/Manual conflict 판정은 서버가 담당한다. 관련 계약은 [Architecture](ARCHITECTURE.md), [API](API.md), [Scheduling](SCHEDULING_ENGINE.md), [Security](SECURITY.md), [원격 검증](REMOTE_VALIDATION.md)을 따른다.
+
+
+## Issue #368 — 요청 종료일과 기간 양방향 편집
+
+일반 Task의 일정 입력은 `요청 시작일 / 기간(근무일) / 요청 종료일` 3개를 한 의미 그룹으로 표시한다. 최초 기준은 기간이며, 사용자가 기간을 직접 바꾸면 요청 종료일을, 요청 종료일을 직접 바꾸면 기간을 즉시 계산한다. 이후 요청 시작일을 바꿀 때는 마지막 명시 입력 기준을 유지해 반대 필드만 갱신한다. 계산은 Project canonical snapshot의 Effective Calendar를 사용하고 양 끝 포함 근무일 규칙을 따른다.
+
+`requestedEnd`는 UI draft에만 존재하며 DB/API DTO에 새 영속 필드를 추가하지 않는다. Task PATCH는 기존처럼 변경된 `start`(requestedStart 의미)와 `duration`만 전송하고 `end` 또는 `requestedEnd`를 독립 입력으로 보내지 않는다. 서버 확정 정보에는 저장된 요청 시작일, 적용 시작일, 확정 종료일을 분리해 보여 준다. Dependency로 실제 일정이 이동해도 사용자의 요청 의도와 server canonical result를 혼동하지 않는다.
+
+Auto의 비근무 요청 시작일은 preview에서도 다음 Project 근무일로 보정하여 종료일/기간을 계산하고, Manual의 비근무 요청 시작일은 오류다. 요청 종료일은 Effective Calendar의 근무일이어야 하며 시작일보다 빠르거나 계산 기간이 1~10,000 범위를 벗어나면 해당 필드와 `aria-invalid/aria-describedby`로 연결해 저장을 막는다. 오류 초안은 유지한다. Summary readonly, Milestone `duration=0`, dirty/stale/revision/401/412, 관계 연결 Task의 dependency-aware 저장 계약은 변경하지 않는다.
 
 ## 검증 계획과 상태
 
@@ -110,7 +119,7 @@ Task Editor의 관계 탭은 상위 Project 화면이 이미 사용 중인 canon
 Issue #74의 3개 탭, body-only scroll, 고정 Footer 구조와 모든 저장/권한 계약은 유지하고 presentation density만 조정한다.
 
 - Desktop 작업 정보 탭은 content-aware 2열 grid를 사용한다. 작업명·일정·Description·URL은 주 content 폭을 사용하고 진행률은 보조 열에서 최대 24rem 범위로 제한한다.
-- 일정은 시작일 10~13rem, 기간 7~9rem, 서버 확정 종료일 10~13rem 방향으로 배치해 기간 입력이 날짜 필드와 같은 폭을 강제받지 않는다.
+- 일정은 요청 시작일 10~13rem, 기간 7~9rem, 요청 종료일 10~13rem 방향의 3열 입력으로 배치해 기간 입력이 날짜 필드와 같은 폭을 강제받지 않는다. 적용 시작일·확정 종료일은 서버 확정 secondary metadata로 분리한다.
 - Resource allocation은 시작/종료 10~13rem, 투입률 7~9rem을 사용하며 Search는 flexible, Type은 compact, Assigned only는 intrinsic sizing 계약을 유지한다.
 - 768px 이하에서는 Task/일정/Resource allocation을 1열로 전환하고 480px 이하에서는 진행률 값도 자연스럽게 stack한다. document/dialog horizontal overflow는 허용하지 않는다.
 - 변경은 CSS Module에 한정하며 JSX inline width, Task API, canonical snapshot, revision/If-Match, 401/412, dirty/stale, Relation 및 Assignment 별도 저장 계약을 변경하지 않는다.
