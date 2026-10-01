@@ -1,5 +1,15 @@
 # Requirements baseline
 
+## Issue #378 — Subtree Copy 내부 Dependency 복제
+
+- Task 또는 Summary subtree Copy 집합 안에 predecessor와 successor가 모두 포함된 Dependency Link는 새 Task ID에 맞춰 복제한다.
+- 복사 집합 경계를 넘는 외부→내부, 내부→외부 Link는 기본적으로 복제하지 않아 원본 주변 일정과 복사본을 암묵적으로 결합하지 않는다.
+- 복제 Link는 새 ID를 사용하고 type(FS/SS/FF/SF)과 signed lag/lead를 보존한다.
+- copied leaf는 requestedStart/duration/scheduleMode를 보존하고 Project Calendar + 기존 Dependency engine으로 effective schedule을 다시 계산한다. 원본 effective date를 requestedStart로 사용하지 않는다.
+- Task/Link 생성, dependency 재계산, Summary 파생, revision +1은 하나의 서버 transaction이다. 실패 시 부분 Task/Link를 남기지 않는다.
+- linked Task의 Copy 및 copy-clipboard의 before/after Paste는 허용하되 Cut-Paste/reparent/Indent/Outdent/Delete/Convert와 linked leaf anchor의 child Paste 보호는 유지한다. Resource assignment copy 정책은 별도 범위다.
+
+
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
 
