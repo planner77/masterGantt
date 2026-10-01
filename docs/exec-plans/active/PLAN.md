@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #372 fullscreen 편집기 상태 보존 — main 재정렬·E2E 보완 / PR CI 재시작
+
+최신 main `5452e7c7b2014ebf80fee91d92ec8b867bd023dc` / `0.63.0` 기준으로 재정렬한다. 이전 PR CI #1448.1은 Task Editor 신규 fullscreen 시나리오와 quality/docker가 통과했으나 Relation Editor E2E가 off-viewport 관계선 locator timeout으로 실패했다. Relation fixture endpoint 날짜를 같은 가시 구간에 배치하고 link visibility를 먼저 검증한 뒤 double click하도록 보완한다. Task/Relation Editor의 강제 `document.exitFullscreen()` 제거와 문서 계약을 최신 main에 재적용하며 후보 version은 PATCH `0.63.1`이다. 이번 요청 범위는 같은 PR #381의 새 head PR CI 재시작까지다. 상세는 [Issue #372 실행 계획](ISSUE_372.md)을 따른다.
+
 ## Issue #373 Summary 하위 WBS scoped view — 구현 / PR·CI 시작
 
 기준 main은 `9e22ebd1534471a67938a0d22adb2ba947066a83` / application `0.62.0`, 작업 branch는 `feat/issue-373-summary-root-view`다. Context Menu navigation, `rootTask` deep link, existing `filter-tasks` scoped visibility, same-origin cross-tab revision freshness와 문서/테스트를 구현한다. 상세 범위·N/A 계약·검증은 [Issue #373 실행 계획](ISSUE_373.md)을 따른다. Issue #378이 `0.62.0`으로 main에 병합된 뒤 재정렬했으며 후보 version은 다음 minor인 `0.63.0`이다. 사용자 요청 종료점은 PR 생성과 PR CI 시작 확인이며 CI 완료 모니터링·병합·main CI·GHCR·Issue 종료는 이번 범위 밖이다.
