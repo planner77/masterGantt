@@ -66,11 +66,31 @@ describe("task context menu model", () => {
     });
   });
 
-  it("fails closed for readonly, busy, links and stale/empty clipboard targets", () => {
+  it("keeps hierarchy mutations fail-closed for links while allowing safe copy-paste targets", () => {
     const tasks = [task("a", "A", null, 0), task("b", "B", null, 1)];
+    const links: ProjectLinkDto[] = [
+      { id: "link", predecessorExternalId: "A", successorExternalId: "B", type: "FS", lag: 0 },
+    ];
     expect(taskContextCapabilities(tasks, "a", false, false, noLinks, null).canMoveDown).toBe(false);
     expect(taskContextCapabilities(tasks, "a", true, true, noLinks, null).canMoveDown).toBe(false);
-    expect(taskContextCapabilities(tasks, "a", true, false, [{ id: "link", predecessorExternalId: "A", successorExternalId: "B", type: "FS", lag: 0 }], null).canMoveDown).toBe(false);
+
+    const linkedCopyTarget = taskContextCapabilities(tasks, "a", true, false, links, {
+      mode: "copy",
+      taskId: "b",
+      revision: 1,
+    });
+    expect(linkedCopyTarget).toMatchObject({
+      canAddChild: false,
+      canMoveDown: false,
+      canIndent: false,
+      canPaste: true,
+    });
+
+    expect(taskContextCapabilities(tasks, "a", true, false, links, {
+      mode: "cut",
+      taskId: "b",
+      revision: 1,
+    }).canPaste).toBe(false);
     expect(taskContextCapabilities(tasks, "a", true, false, noLinks, {
       mode: "copy",
       taskId: "a",
