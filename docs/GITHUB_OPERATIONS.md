@@ -14,7 +14,7 @@ Finalizer · <triggering Main CI display title> · Finalizer Run #<run>.<attempt
 GHCR Release · Issue #361 · PR #<PR> · v<version> · Run #<run>.<attempt>
 ```
 
-PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, title Issue의 일치를 먼저 검증한다. Main CI에서는 별도 PR payload가 없으므로 merge commit metadata가 trace source다. Generic Finalizer는 `workflow_run.display_title`, Release workflow는 lifecycle dispatch input을 사용한다. 표시명 개선을 이유로 required check/job `name`, workflow `name: CI`, release 권한 또는 lifecycle mutation 순서를 변경하지 않는다.
+PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, title Issue가 정확히 하나의 Primary Issue로 일치하는지 먼저 검증한다. Title/body 편집도 `pull_request.edited`로 재검증한다. Dependabot은 작성자 `dependabot[bot]` + 동일 저장소 + `dependabot/` branch 조건이 모두 맞는 경우에만 automation 예외로 취급한다. Main CI에서는 별도 PR payload가 없으므로 merge commit metadata가 trace source다. Generic Finalizer는 `workflow_run.display_title`, Release workflow는 lifecycle dispatch input을 사용한다. 표시명 개선을 이유로 required check/job `name`, workflow `name: CI`, release 권한 또는 lifecycle mutation 순서를 변경하지 않는다.
 
 최초 결정일: 2026-09-12, 모델 배치 갱신: 2026-09-30 (#347). 주 담당은 기존 `infra` Sub-Agent이며 현재 설정은 `.codex/agents/infra.toml`의 `gpt-6.1-sol` / `high`다. Astra는 기본 배치가 아니라 Manager가 Sol High로 충분하지 않다고 판단한 고난도 작업의 일시 승격용이다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_docs`는 독립 검토한다.
 
