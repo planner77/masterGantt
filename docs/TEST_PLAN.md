@@ -2,7 +2,7 @@
 
 ## Issue #373 Summary subtree 새 탭 scoped view
 
-- Unit: `task-subtree-scope.test.ts`에서 child가 있는 Summary만 Context Menu 진입 대상인지, root + 모든 depth descendant ID 집합이 ancestor/sibling을 제외하는지, 빈 Summary deep link는 유효한지, missing/non-Summary root를 구분하는지 검증한다.
+- Unit: `task-subtree-scope.test.ts`에서 child가 있는 Summary만 Context Menu 진입 대상인지, root + 모든 depth descendant ID 집합이 ancestor/sibling을 제외하는지, 빈 Summary deep link는 유효한지, missing/non-Summary root를 구분한다. `project-task-adapter.test.ts`는 scoped Summary만 SVAR `parent=0`으로 투영하면서 canonical `parentExternalId`는 변하지 않는지 검증한다.
 - Chromium E2E: 실제 Project에서 root Task를 Summary로 전환할 child를 추가한 뒤 Grid Context Menu의 `최상위로 열기`가 생기고 leaf에는 생기지 않는지 확인한다. 새 탭 URL의 `rootTask`, compact scope 상태/전체 Project 링크, root+child 가시성과 sibling 비가시성, 같은 edit session 상속을 검증한다.
 - Scoped edit / cross-tab: 새 탭 Task Editor에서 child 이름을 저장하면 기존 Task PATCH/revision을 사용하고 subtree scope를 유지한다. 원래 탭은 same-origin revision storage event를 받아 canonical GET으로 최신 이름을 반영하면서 전체 branch의 sibling을 계속 표시한다. 새 탭 reload 뒤에도 scope가 유지되어야 한다.
 - 회귀: scoped view의 검색/필터는 subtree와 AND로 적용되고 초기화가 전체 Project로 확장되지 않아야 한다. Task/Relation Editor에는 전체 canonical tasks/links가 남아 scope 밖 Dependency를 삭제된 것으로 오인하지 않는다. 빈 Summary root 유지, missing/type-changed root 오류, popup 차단 오류는 구현 contract와 unit/component 경계에서 확인한다.
