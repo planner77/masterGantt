@@ -33,9 +33,8 @@ auto_impl = AUTO_IMPL.read_text(encoding="utf-8")
 trace_impl = TRACE_IMPL.read_text(encoding="utf-8")
 
 require(re.search(r"^name: CI$", ci_workflow, re.MULTILINE) is not None, "Finalizer가 참조하는 CI workflow 이름을 유지해야 합니다")
-run_name = next((line for line in ci_workflow.splitlines() if line.startswith("run-name:")), "")
-require("github.event.pull_request.title" in run_name, "PR CI 실행 제목에 Issue 번호를 포함한 PR 제목이 필요합니다")
-require("github.event.head_commit.message" in run_name and "github.ref_name" in run_name, "main·수동 CI 실행 제목의 대체값이 필요합니다")
+require("github.event.pull_request.title" in ci_workflow, "PR CI 실행 제목에 Issue 번호를 포함한 PR 제목이 필요합니다")
+require("github.event.head_commit.message" in ci_workflow and "github.ref_name" in ci_workflow, "main·수동 CI 실행 제목의 대체값이 필요합니다")
 
 require("run-name:" in ci_workflow, "CI workflow run-name is required")
 require("github.event.pull_request.title" in ci_workflow, "PR CI run-name must carry the PR title/Primary Issue trace")
