@@ -49,6 +49,19 @@ Project Workspace의 물류 구성 하위 탐색은 `KPI 대시보드 / 공정 �
 
 새로고침으로 구성원 초안을 조용히 바꾸지 않는다. 선택 그룹이 없어졌으면 해당 저장을 차단하고 새 선택을 요구한다. 서버 구성원과 초안이 다르면 검토할 수 있게 알린다. 성공 안내는 오류와 구분하여 status로 표시한다. 기존 검색/선택 계약과 서버 인증·Origin·revision 검증은 유지한다. 비밀번호 변경은 catalog revision을 소비하지 않는 기존 인증 경로를 따른다. 390px에서는 관리자 action row를 버튼 3개 구조로 유지하고 긴 리소스 이름은 강제 줄바꿈하여 document-level horizontal overflow를 만들지 않는다.
 
+## Issue #363 빈 프로젝트 생성 Form semantic grouping / content-aware width 계약
+
+`/projects/new`의 **빈 프로젝트 만들기**는 #282의 wide page/compact top gutter를 유지하면서, 입력을 outer 12-column auto-placement에 직접 섞지 않고 의미 단위 section으로 조직한다. 시각적 구분은 별도 card를 중첩하지 않고 heading, spacing, hairline divider를 사용한다.
+
+- **기본 정보**: 프로젝트 이름 / 소유자 / 상태. Wide desktop에서는 이름을 가장 넓게, 소유자를 중간 폭, 상태를 enum 길이에 맞는 compact 폭으로 배치한다. 1024px 이하에서는 이름·소유자 중심 2열 후 상태가 다음 행으로 reflow한다.
+- **프로젝트 분류**: 사업부 / 제품 / 사업장·법인을 하나의 full-width semantic group으로 취급한다. #289의 `.project-master-field-grid`는 outer form의 좁은 auto-placement cell에 들어가지 않고, 긴 catalog label을 고려한 responsive auto-fit grid를 사용한다.
+- **설명**: 긴 텍스트 입력용 주요 폭을 사용하며 짧은 select/password와 같은 폭으로 제한하지 않는다.
+- **편집 권한**: 편집 비밀번호는 상태/분류와 분리하고 최대 12자 입력과 helper text에 맞는 compact/medium 폭을 사용한다.
+
+390/768/1024/1440/wide desktop에서 section 순서와 DOM/tab order를 일치시키고 document-level unintended horizontal overflow를 만들지 않는다. 좁은 폭에서는 각 semantic group 내부가 1열로 reflow한다. 기존 label, `aria-describedby`, `aria-invalid`, validation summary focus와 생성/tab draft 계약은 유지한다.
+
+Project 생성 API/DB, 기준정보 catalog, Owner 의미, password/session/Origin/rate-limit, Template 생성 계약은 변경하지 않는다. SVAR Gantt Editor를 Project Create form에 도입하지 않는다.
+
 ## Issue #282 프로젝트 만들기 Wide / Responsive Form 계약
 
 `/projects/new`는 일반 문서형 화면의 75rem cap 대신 Project List/Workspace와 같은 page-specific wide shell을 사용한다. 사이트 헤더 아래 전역 `clamp(2.25rem, 6vw, 5rem)` 상단 padding을 그대로 적용하지 않고, 생성 작업을 바로 시작할 수 있는 compact top gutter를 사용한다. Heading의 읽기 폭과 form/content의 작업 폭은 분리하며 tab underline, blank form, template selection/form은 같은 좌측 정렬과 가용 폭을 공유한다.

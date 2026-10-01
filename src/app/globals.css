@@ -2289,7 +2289,8 @@ h2 {
 .template-search-box .search-input:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
 .template-card-description { display: block; }
 
-/* Issue #282: Project Create is a dense working form, not a narrow marketing form. */
+/* Issue #282: Project Create is a dense working form, not a narrow marketing form.
+   Issue #363: Blank Project fields are grouped by meaning and sized by content. */
 .main-content:has(> .new-project-page) {
   width: calc(100% - 3rem);
   padding-block: 0.75rem 2.5rem;
@@ -2317,27 +2318,85 @@ h2 {
 .new-project-page .template-instantiate-container > .project-form {
   width: 100%;
   max-width: none;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
   align-items: start;
   column-gap: clamp(0.875rem, 1.5vw, 1.5rem);
 }
 
-.new-project-page #panel-blank > .project-form > .form-field:has(> #project-name) {
-  grid-column: span 7;
+.new-project-page #panel-blank > .project-form {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
 }
 
-.new-project-page #panel-blank > .project-form > .form-field:has(> #project-owner) {
-  grid-column: span 5;
+.new-project-page .template-instantiate-container > .project-form {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
-.new-project-page #panel-blank > .project-form > .form-field:has(> #project-description) {
-  grid-column: span 8;
-  grid-row: span 2;
+.new-project-page .project-create-section {
+  display: grid;
+  min-width: 0;
+  gap: 0.75rem;
+  margin: 0;
 }
 
-.new-project-page #panel-blank > .project-form > .form-field:has(> #project-status),
-.new-project-page #panel-blank > .project-form > .form-field:has(> #project-edit-password) {
-  grid-column: span 4;
+.new-project-page .project-create-section + .project-create-section {
+  border-top: 1px solid var(--border-default);
+  padding-top: 1rem;
+}
+
+.new-project-page .project-create-section-title {
+  margin: 0;
+  color: var(--text-default);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.new-project-page .project-create-section-grid {
+  display: grid;
+  min-width: 0;
+  align-items: start;
+  gap: 0.75rem 1rem;
+}
+
+.new-project-page .project-create-basic-grid {
+  grid-template-columns:
+    minmax(18rem, 2fr)
+    minmax(14rem, 1.25fr)
+    minmax(9rem, 12rem);
+}
+
+.new-project-page .project-create-basic-grid > .form-field,
+.new-project-page .project-create-classification-section .project-master-field-grid > .form-field {
+  min-width: 0;
+}
+
+.new-project-page .project-create-status-field select {
+  width: min(100%, 11rem);
+}
+
+.new-project-page .project-create-classification-section .project-master-field-grid {
+  min-width: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.new-project-page .project-create-classification-section .project-master-field-grid select {
+  width: 100%;
+  min-width: 0;
+}
+
+.new-project-page .project-create-description-field {
+  width: 100%;
+  max-width: 72rem;
+}
+
+.new-project-page .project-create-password-field {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.new-project-page .project-create-password-field input {
+  width: min(100%, 20rem);
 }
 
 .new-project-page #panel-blank > .project-form > .form-error,
@@ -2376,15 +2435,20 @@ h2 {
 }
 
 @media (max-width: 64rem) {
-  .new-project-page #panel-blank > .project-form,
+  .new-project-page .project-create-basic-grid {
+    grid-template-columns: minmax(0, 1.5fr) minmax(14rem, 1fr);
+  }
+
+  .new-project-page .project-create-status-field {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 12rem;
+  }
+
   .new-project-page .template-instantiate-container > .project-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-name),
-  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-owner),
-  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-status),
-  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-edit-password),
   .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-project-name),
   .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-owner-name),
   .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-start-date),
@@ -2393,7 +2457,6 @@ h2 {
     grid-row: auto;
   }
 
-  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-description),
   .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-desc) {
     grid-column: 1 / -1;
     grid-row: auto;
@@ -2412,10 +2475,18 @@ h2 {
     padding: 1rem;
   }
 
-  .new-project-page #panel-blank > .project-form > .form-field,
-  .new-project-page .template-instantiate-container > .project-form > .form-field,
+  .new-project-page .project-create-basic-grid,
+  .new-project-page .project-create-classification-section .project-master-field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .new-project-page .project-create-status-field {
+    grid-column: auto;
+  }
+
   .new-project-page #panel-blank > .project-form > .form-error,
   .new-project-page #panel-blank > .project-form > .primary-button,
+  .new-project-page .template-instantiate-container > .project-form > .form-field,
   .new-project-page .template-instantiate-container > .project-form > .form-error,
   .new-project-page .template-instantiate-container > .project-form > .template-form-actions {
     grid-column: 1;

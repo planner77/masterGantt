@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.60.1] - 2026-10-01
+
+### Fixed
+
+- Issue #363: 빈 프로젝트 생성 폼을 기본 정보 / 프로젝트 분류 / 설명 / 편집 권한의 semantic section으로 재구성해 관련 없는 필드가 grid 잔여 공간 때문에 인접해 보이던 문제를 수정한다.
+- 사업부·제품·사업장/법인 기준정보 group을 full-width responsive 영역으로 분리하고 프로젝트 이름·소유자·상태·설명·편집 비밀번호에 content-aware 폭을 적용한다.
+- 320/390/768/1024/1440/1600px geometry 회귀 검증에 긴 기준정보 label과 semantic group 순서/폭/overflow 검사를 추가한다.
+- 기존 Project 생성 API/DB/validation, #282 wide page, #289 기준정보 저장, tab/draft/accessibility 계약은 유지한다.
+- Application version을 `0.60.0`에서 `0.60.1`로 증가한다.
+
 ## [0.60.0] - 2026-10-01
 
 ### Added
