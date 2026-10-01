@@ -174,6 +174,34 @@ test("Issue #373 Summary subtree opens in a new tab and edits refresh the origin
     await expect(row(scopedPage, "Scope Alpha")).toBeVisible();
     await expect(row(scopedPage, child!.name)).toBeVisible();
     await expect(row(scopedPage, "Keep sibling")).toHaveCount(0);
+    await expect(scopedPage.getByRole("button", { name: "요약 작업 추가", exact: true })).toHaveCount(0);
+    await expect(scopedPage.locator('[data-action="add-task"][aria-disabled="true"]')).not.toHaveCount(0);
+
+    const rootScopedMenu = await openMenu(scopedPage, "Scope Alpha");
+    await rootScopedMenu.getByRole("menuitem", { name: "Add", exact: true }).hover();
+    const addSubmenu = scopedPage.getByRole("menu", { name: "Add", exact: true });
+    await expect(addSubmenu.getByRole("menuitem", { name: "Child task", exact: true })).toBeEnabled();
+    await expect(addSubmenu.getByRole("menuitem", { name: "Task above", exact: true })).toBeDisabled();
+    await expect(addSubmenu.getByRole("menuitem", { name: "Task below", exact: true })).toBeDisabled();
+    await page.keyboard.press("Escape").catch(() => {});
+    await scopedPage.keyboard.press("Escape");
+
+    let firstMutationSnapshot: unknown = null;
+    let releaseFirstRefresh!: () => void;
+    let markFirstMutationReady!: () => void;
+    const firstRefreshGate = new Promise<void>((resolve) => { releaseFirstRefresh = resolve; });
+    const firstMutationReady = new Promise<void>((resolve) => { markFirstMutationReady = resolve; });
+    let holdFirstCrossTabRead = true;
+    await page.route((url) => url.pathname === api, async (route) => {
+      if (route.request().method() !== "GET" || !holdFirstCrossTabRead) {
+        await route.continue();
+        return;
+      }
+      holdFirstCrossTabRead = false;
+      await firstMutationReady;
+      await firstRefreshGate;
+      await route.fulfill({ json: firstMutationSnapshot });
+    });
 
     await openMenu(scopedPage, child!.name);
     await menu(scopedPage).getByRole("menuitem", { name: "Edit", exact: true }).click();
@@ -188,16 +216,33 @@ test("Issue #373 Summary subtree opens in a new tab and edits refresh the origin
       editor.getByRole("button", { name: "저장", exact: true }).click(),
     ]);
     expect(saved.ok(), `scoped task edit: HTTP ${saved.status()}`).toBe(true);
+    firstMutationSnapshot = await saved.json();
+    markFirstMutationReady();
     await expect(row(scopedPage, "Scoped child renamed")).toBeVisible();
     await expect(row(scopedPage, "Keep sibling")).toHaveCount(0);
 
+    await openMenu(scopedPage, "Scoped child renamed");
+    await menu(scopedPage).getByRole("menuitem", { name: "Edit", exact: true }).click();
+    await expect(editor).toBeVisible();
+    await editor.getByLabel("작업명", { exact: true }).fill("Scoped child renamed twice");
+    const [secondSaved] = await Promise.all([
+      scopedPage.waitForResponse((response) =>
+        response.request().method() === "PATCH" &&
+        new URL(response.url()).pathname === `${api}/tasks/${child!.taskId}`,
+      ),
+      editor.getByRole("button", { name: "저장", exact: true }).click(),
+    ]);
+    expect(secondSaved.ok(), `second scoped task edit: HTTP ${secondSaved.status()}`).toBe(true);
+    await expect(row(scopedPage, "Scoped child renamed twice")).toBeVisible();
+
+    releaseFirstRefresh();
     await page.bringToFront();
-    await expect(row(page, "Scoped child renamed")).toBeVisible();
+    await expect(row(page, "Scoped child renamed twice")).toBeVisible();
     await expect(row(page, "Keep sibling")).toBeVisible();
 
     await scopedPage.reload();
     await expect(scopedPage.getByLabel("하위 WBS 범위")).toContainText("Scope Alpha");
-    await expect(row(scopedPage, "Scoped child renamed")).toBeVisible();
+    await expect(row(scopedPage, "Scoped child renamed twice")).toBeVisible();
     await expect(row(scopedPage, "Keep sibling")).toHaveCount(0);
   } finally {
     await scopedPage.close();
