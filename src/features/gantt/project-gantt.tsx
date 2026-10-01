@@ -412,14 +412,11 @@ export function ProjectGantt({
       fullscreenWasActiveReference.current = active;
     };
     const onFullscreenError = () => setFullscreenMessage("전체화면으로 전환할 수 없습니다. 브라우저 권한을 확인해 주세요.");
-    const onEditorExitError = () => setFullscreenMessage("전체화면을 종료하지 못해 작업 정보를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.");
     document.addEventListener("fullscreenchange", onFullscreenChange);
     document.addEventListener("fullscreenerror", onFullscreenError);
-    frame.addEventListener("project-gantt-fullscreen-exit-error", onEditorExitError);
     return () => {
       document.removeEventListener("fullscreenchange", onFullscreenChange);
       document.removeEventListener("fullscreenerror", onFullscreenError);
-      frame.removeEventListener("project-gantt-fullscreen-exit-error", onEditorExitError);
       if (document.fullscreenElement === frame) void document.exitFullscreen().catch(() => {});
     };
   }, []);
