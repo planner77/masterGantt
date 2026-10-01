@@ -1,3 +1,4 @@
+import { PersistedScheduleInvalidError } from "../projects/project-service-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -34,6 +35,7 @@ import {
   resolveProjectWorkingCalendar,
 } from "../calendars/calendar-resolution-core";
 import { LogisticsService } from "../logistics/logistics-service-core";
+import { ProjectMasterService } from "../project-master/project-master-service-core";
 import { ProjectOwnerRepository } from "../repositories/project-owner-repository-core";
 import { WorkCalendarRepository } from "../repositories/work-calendar-repository-core";
 import {
@@ -119,6 +121,7 @@ export class ProjectTemplateService {
   private readonly logisticsService: LogisticsService;
   private readonly sessions: EditSessionRepository;
   private readonly owners: ProjectOwnerRepository;
+  private readonly projectMaster: ProjectMasterService;
   private readonly clock: () => Date;
   private readonly hashPassword: (password: string) => Promise<PasswordHashRecord>;
   private readonly generateSessionToken: () => NewSessionToken;
@@ -136,6 +139,7 @@ export class ProjectTemplateService {
     this.logisticsService = new LogisticsService(database, options);
     this.sessions = new EditSessionRepository(database);
     this.owners = new ProjectOwnerRepository(database);
+    this.projectMaster = new ProjectMasterService(database, { clock: options.clock });
     this.clock = options.clock ?? (() => new Date());
     this.hashPassword = options.hashPassword ?? ((password: string) => hashEditPassword(password));
     this.generateSessionToken = options.generateSessionToken ?? (() => createSessionToken());
@@ -190,25 +194,21 @@ export class ProjectTemplateService {
 
       // 기준 시작일: 가장 빠른 태스크 시작일 (없으면 프로젝트 생성일자)
       let refStart = source.createdAt.slice(0, 10);
-      if (tasks.length > 0) {
-        let earliest = tasks[0].startDate;
-        for (const t of tasks) {
-          if (t.startDate < earliest) earliest = t.startDate;
-        }
-        refStart = earliest;
-      }
+      const scheduledDates = tasks.flatMap((task) => task.startDate === null ? [] : [task.startDate]);
+      if (scheduledDates.length > 0) refStart = scheduledDates.reduce((a,b) => a < b ? a : b);
       if (!isWorkingDay(refStart, calendar)) {
         refStart = nextWorkingDay(refStart, calendar, true);
       }
 
       const taskExternalById = new Map(tasks.map((t) => [t.id, t.externalId]));
       const taskSnapshots: TemplateTaskSnapshotItem[] = tasks.map((t) => {
-        let offsetDays = 0;
+        let offsetDays: number | null = null;
         try {
+          if (t.startDate === null) throw new Error("Unscheduled summary");
           const days = workingDaysBetween(refStart, t.startDate, calendar);
           offsetDays = Math.max(0, days - 1);
         } catch {
-          offsetDays = 0;
+          offsetDays = t.startDate === null ? null : 0;
         }
         return {
           externalId: t.externalId,
@@ -333,8 +333,14 @@ export class ProjectTemplateService {
         };
       }).filter((l) => l.taskExternalId && l.systemCode);
 
+      const selectedMaster = this.projectMaster.projectSelectionDto(source.id);
       const snapshot: ProjectTemplateSnapshot = {
         sourceRevision: source.revision,
+        projectMaster: {
+          businessUnitId: selectedMaster.businessUnit?.id ?? null,
+          productId: selectedMaster.product?.id ?? null,
+          siteEntityId: selectedMaster.siteEntity?.id ?? null,
+        },
         calendar: {
           timezone: source.calendarTimezone,
           weekendDays: [6, 0],
@@ -496,6 +502,14 @@ export class ProjectTemplateService {
       });
 
       this.owners.setByPublicId(newPublicId, normalizedOwner);
+      if (snapshot.projectMaster) {
+        const resolvedMaster = this.projectMaster.resolveProjectSelection(snapshot.projectMaster, { allowInactive: true });
+        this.projectMaster.setProjectSelection(project.id, resolvedMaster);
+        const selected = this.projectMaster.projectSelectionDto(project.id);
+        if ([selected.businessUnit, selected.product, selected.siteEntity].some((item) => item && !item.active)) {
+          warnings.push("템플릿의 비활성 프로젝트 기준정보 참조를 그대로 보존했습니다.");
+        }
+      }
 
       // 2. 캘린더 규칙/휴일 생성
       const defaultRule = this.calendars.insertRule({
@@ -545,10 +559,13 @@ export class ProjectTemplateService {
           }
 
           const taskPublicId = randomUUID();
-          const startDate = endFromStart(projectStart, t.offsetDays + 1, calendar);
-          const endDate = t.type === "milestone"
+          if (t.type !== "summary" && (t.offsetDays === null || t.duration === null)) {
+            throw new PersistedScheduleInvalidError();
+          }
+          const startDate = t.type === "summary" ? null : endFromStart(projectStart, t.offsetDays! + 1, calendar);
+          const endDate = t.type === "summary" ? null : t.type === "milestone"
             ? startDate
-            : endFromStart(startDate, Math.max(1, t.duration), calendar);
+            : endFromStart(startDate!, Math.max(1, t.duration!), calendar);
 
           const parentRecord = t.parentExternalId ? newByExternalId.get(t.parentExternalId) : undefined;
           const insertedTask = this.schedules.insertTask({
@@ -562,8 +579,8 @@ export class ProjectTemplateService {
             requestedStart: t.type === "summary" ? null : startDate,
             startDate,
             endDate,
-            duration: t.type === "milestone" ? 0 : Math.max(1, t.duration),
-            progress: 0,
+            duration: t.type === "summary" ? null : t.type === "milestone" ? 0 : Math.max(1, t.duration!),
+            progress: t.type === "summary" ? null : 0,
             sortOrder: t.siblingOrder,
             description: t.description ?? null,
             url: t.url ?? null,
@@ -902,6 +919,7 @@ export class ProjectTemplateService {
         description: project.description,
         status: "planned",
         ownerName: normalizedOwner,
+        ...this.projectMaster.projectSelectionDto(project.id),
         revision: 1,
         calendar: projectCalendarDto(this.database, project.id),
       };

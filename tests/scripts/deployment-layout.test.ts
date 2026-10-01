@@ -45,7 +45,9 @@ describe("deployment repository layout", () => {
       devDependencies?: Record<string, string>;
     };
     expect(packageJson.dependencies).not.toHaveProperty("tsx");
-    expect(packageJson.dependencies?.["@next/env"]).toBe("16.3.4");
+    const nextVersion = packageJson.dependencies?.next;
+    expect(nextVersion).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(packageJson.dependencies?.["@next/env"]).toBe(nextVersion);
     expect(packageJson.devDependencies?.tsx).toBe("4.23.13");
     expect(packageJson.scripts?.build).toContain("node scripts/prepare-standalone-runtime.mjs");
     expect(packageJson.scripts?.start).toBe("node scripts/start-standalone.mjs");
@@ -95,6 +97,9 @@ describe("deployment repository layout", () => {
     );
     expect(compose).toContain(
       "LOGISTICS_CATALOG_ADMIN_PASSWORD: ${LOGISTICS_CATALOG_ADMIN_PASSWORD:?Set LOGISTICS_CATALOG_ADMIN_PASSWORD}",
+    );
+    expect(compose).toContain(
+      "PROJECT_MASTER_ADMIN_PASSWORD: ${PROJECT_MASTER_ADMIN_PASSWORD:?Set PROJECT_MASTER_ADMIN_PASSWORD}",
     );
     expect(compose).toContain("name: ${MASTERGANTT_VOLUME_NAME:-mastergantt-data}");
 

@@ -1,6 +1,6 @@
 # GitHub / CI / GHCR 운영 담당과 작업 절차
 
-결정일: 2026-09-12. 주 담당은 기존 `infra` Sub-Agent이며 설정은 `.codex/agents/infra.toml`의 `gpt-6-astra` / `high`다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_docs`는 독립 검토한다.
+최초 결정일: 2026-09-12, 모델 배치 갱신: 2026-09-30 (#347). 주 담당은 기존 `infra` Sub-Agent이며 현재 설정은 `.codex/agents/infra.toml`의 `gpt-6.1-sol` / `high`다. Astra는 기본 배치가 아니라 Manager가 Sol High로 충분하지 않다고 판단한 고난도 작업의 일시 승격용이다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_docs`는 독립 검토한다.
 
 이 문서는 **담당자, 배정 조건, 승인 경계와 보고 절차**의 기준이다. Workflow·tag·image의 기술 계약은 [CI_CD.md](CI_CD.md), runtime과 persistence는 [DEPLOYMENT.md](DEPLOYMENT.md), 보안은 [SECURITY.md](SECURITY.md), 기존 결정은 [DECISIONS.md](DECISIONS.md)가 기준이다. 역할 확장은 기존 release 정책이나 D05를 변경하지 않는다.
 
@@ -55,7 +55,7 @@ Force push, tag 이동/재발행, quality gate 우회, 무조건 재시도, 비�
 
 ```text
 담당 에이전트: infra
-요청 모델 / 추론 수준: gpt-6-astra / high
+요청 모델 / 추론 수준: gpt-6.1-sol / high
 저장소 / Ref / Commit:
 관련 Issue / PR / Run / Job / Attempt:
 범위 / 승인:
@@ -96,6 +96,8 @@ YAML/TOML/API의 key, `jobs.<job_id>`와 step `id`, `needs`, 조건·expression,
 표시용 `name`도 required status checks/ruleset, `workflow_run.workflows`, 상태 조회 스크립트나 외부 자동화의 참조가 될 수 있으므로 무조건 치환하지 않는다. 먼저 참조와 실제 변경 권한을 확인하고, 연동 수정과 동일 head SHA의 필요한 검증을 함께 수행할 수 있을 때 변경한다. 권한 부족이나 참조 미확인 상태에서는 기존 이름을 유지하고 한글 적용 예외·사유·필요 조치를 기록한다. required checks 삭제, 보호 규칙 약화나 gate 생략으로 한글화를 적용하지 않는다. `run-name`의 표시 문구를 수정하더라도 expression과 이벤트 처리 의미는 유지한다.
 
 신규 문구와 참조 영향이 없는 문구부터 적용한다. 이 정책은 새로 작성하거나 수정하는 CI 관련 콘텐츠의 기준이며, 과거 실행 기록을 다시 쓰거나 요청 범위 밖의 기존 workflow를 일괄 변경하라는 지시가 아니다. 다른 범위가 명시되지 않은 지침 변경 작업에서는 workflow 실행 로직과 application version을 변경하지 않는다.
+
+Issue 기반 PR은 제목에 `Issue #345`처럼 실제 Issue 번호를 포함한다. `ci.yml`의 실행 `run-name`은 `CI 검증 · <PR 제목>`으로 표시하며 main push는 commit message, 수동 실행은 ref 이름을 사용한다. Workflow `name: CI`는 Generic Finalizer의 `workflow_run.workflows` 참조를 보존하기 위해 유지한다. Required check 이름·job 식별자·권한·trigger·gate를 바꾸지 않으며, 표시 제목만으로 실행 대상이나 성공 여부를 판단하지 않고 exact head SHA와 run/job evidence를 함께 확인한다.
 
 ### 담당과 검토
 
@@ -177,3 +179,20 @@ CI run number가 더 크거나 같은 SHA에 연결되었다는 이유만으로 
 
 기존 failed run 재실행이 가능한 상태에서 새 one-shot finalizer PR을 반복 생성하거나, GitHub UI/API로 feature branch를 직접 삭제하고 Issue를 수동 종료하는 방식은 사용하지 않는다.
 
+## Generic 자동 Release Finalizer 운영 (#350)
+
+Issue별 one-shot finalizer PR/workflow는 정상 운영 경로에서 사용하지 않는다. 사용자가 정식 release를 승인한 경우 Manager는 **merge 전에** 대상 Issue에 다음 comment marker를 기록한다.
+
+```text
+<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"<package version>","note":"<승인 근거>"} -->
+```
+
+comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. 승인 판단 전 Issue comment 전체 page를 조회해 최신 trusted marker를 적용한다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
+
+수동 `issue-lifecycle.yml workflow_dispatch`는 장애/복구 fallback이다. Issue별 `release-helper/finalizer/cleanup` workflow 신규 추가는 CI policy가 거부한다.
+
+## Main 임시 GHCR lifecycle 증거 (#352)
+
+main CI 전체 conclusion만으로 임시 GHCR publish/digest smoke/cleanup 성공을 추론하지 않는다. 비문서 변경은 exact main run의 `Main 임시 commit 이미지 게시·검증·정리` job SUCCESS를 별도 증거로 확인한다. docs-only 변경은 registry write를 수행하지 않으며 artifact evidence를 N/A로 기록한다.
+
+CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 SKIPPED라면 dependency-chain skip propagation을 우선 점검한다. `always()`를 사용하더라도 direct aggregate result를 모두 SUCCESS로 명시해 fail-closed를 유지한다.

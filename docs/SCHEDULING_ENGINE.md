@@ -34,17 +34,17 @@ flowchart TD
 
 ## 3. Domain 입력·출력 개념
 
-아래는 설계용 개념이며 TypeScript 구현이나 별도 Import Schema가 아니다. Import Version은 `1.0`이며 필드의 필수 여부·JSON 형태는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)가 우선한다.
+아래는 설계용 개념이며 TypeScript 구현이나 별도 Import Schema가 아니다. Import의 필수 여부·JSON 형태와 호환성은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)가 우선한다.
 
 | 개념 | 의미와 불변 조건 |
 | --- | --- |
 | Task 식별 | Snapshot 내부의 안정적인 문자열 키. Import `externalId`를 Service가 대응한다. Project 밖의 ID는 허용하지 않는다. 행 번호·WBS를 참조 키로 쓰지 않는다. |
 | `type` | `task`, `summary`, `milestone`만 허용한다. |
 | `requestedStart` | 사용자가 요청한 시작일. Import·Mutation 입력의 `start`가 이 값으로 정규화된다. 저장하여 재계산 때 재사용한다. |
-| `start`, `end` | Calendar와 Dependency 적용 후 확정되는 계산 날짜. API 조회 결과는 `requestedStart`와 구별하여 제공한다. |
-| `duration` | Task는 정수 `>=1`, Milestone은 `0`, Summary는 하위 일정으로 계산한다. |
+| `start`, `end` | Calendar와 Dependency 적용 후 확정되는 계산 날짜. API 조회 결과는 `requestedStart`와 구별하여 제공한다. 일정 있는 Leaf 자손이 없는 Summary는 둘 다 `null`이다. |
+| `duration` | Task는 정수 `>=1`, Milestone은 `0`, Summary는 하위 일정으로 계산한다. 집계 대상 Leaf가 없으면 `null`이다. |
 | `scheduleMode` | Leaf의 `auto` 또는 `manual`. Summary는 항상 파생 계산 대상이다. |
-| `progress` | Leaf는 유한 숫자 `0..100`. Summary는 하위 Leaf에서 계산한다. |
+| `progress` | Leaf는 유한 숫자 `0..100`. Summary는 하위 Leaf에서 계산하며 대상이 없으면 `null`이다. `null`은 0%/100% 완료가 아니다. |
 | Parent·Sibling Order | Parent 참조와 저장된 형제 순서. Import 배열에서 같은 Parent의 등장 순서로 초기 순서를 만든다. |
 | Dependency | 선행 Leaf → 후행 Leaf 방향. 초기 유효 값은 FS, lag=0. |
 | Calendar | Base weekly rule + 날짜별 `NON_WORKING/WORKING` 예외. Project 일정에는 Project target rule만 사용하고 Resource workload에는 Project < Group < Resource 순서로 명시적 WORKING/NON_WORKING 예외를 적용한다. |
@@ -105,7 +105,7 @@ Resize는 Adapter가 사용자가 선택한 구간을 근무일 Duration으로 �
 
 Parent Tree와 Dependency Graph는 별개로 검증한다. 최종 Snapshot의 Parent는 같은 Project에 존재하는 `summary`만 가능하다. 자기 Parent, Missing Parent, Parent Cycle을 거부한다. 일반 Task와 Milestone은 자식을 갖지 않는다. 잘못된 Type을 Engine에서 자동 변환하지 않는다. W24의 첫 하위 작업 추가는 UI 확인과 명시적 `convertParentToSummary: true` 명령을 받은 Service가 기존 일반 Task를 Summary로 바꾸고 자식을 함께 생성하는 원자적 변경이다. Milestone은 Parent로 전환하지 않는다.
 
-Empty Summary는 거부한다. Summary와 자식을 한 번의 변경으로 생성할 수 있으며 검증 대상은 변경 후 전체 Snapshot이다. W24에서는 마지막 자식 삭제 및 Summary 직접 삭제를 거부하여 Empty Summary 또는 암묵적인 하위 전체 삭제가 발생하지 않게 한다. 향후 마지막 자식 삭제를 허용하려면 Summary 삭제·명시적 Type 변경을 포함하는 유효한 변경 묶음과 별도 UI 명령 계약이 필요하다.
+Issue #345부터 Summary는 자식이 없어도 유효한 WBS 컨테이너다. 직접 자식이 없는 Summary와, 자식이 모두 일정 미산정 Summary인 상위 Summary 모두 `type: summary`를 유지한다. 첫 Leaf 추가 시 일정이 산정되고 마지막 Leaf 삭제/이동 시 미산정 상태로 돌아간다. 부모를 자동 삭제하거나 일반 Task로 전환하지 않는다. Summary 자체 삭제와 명시적 subtree 삭제는 [API](API.md)의 범위 확인·권한·revision 계약을 따른다. W24/#31/#344의 과거 빈 Summary 거부 정책은 이 정의가 대체하며 실패 복구 정합성 계약은 유지한다.
 
 하위에서 상위 순서로 다음 값을 계산한다.
 
@@ -114,23 +114,27 @@ Empty Summary는 거부한다. Summary와 자식을 한 번의 변경으로 생�
 - `duration`: 위 구간의 근무일 수. 자식 Duration의 합이 아니다. Milestone만 같은 날짜에 있는 Summary도 구간 표현이므로 근무일 Span은 1이다.
 - `progress`: 하위 일반 Task의 `sum(duration × progress) / sum(duration)`. 중첩 Summary의 Span을 가중치로 다시 더하지 않는다. Milestone은 Duration 0이므로 이 가중합에서 제외한다. 일반 Task가 전혀 없는 Summary는 하위 Milestone Progress의 산술 평균으로 계산한다. 계산 중간 값을 반올림하지 않고 표시 정밀도만 UI에서 처리한다.
 
+집계할 Task/Milestone Leaf가 0개이면 `requestedStart/start/end/duration/progress`는 모두 `null`, `scheduleMode`는 `auto`다. 빈 Summary는 상위 min/max, 진척 가중합과 평균의 분모에 기여하지 않는다. 날짜가 있는 Milestone은 기간이 0이어도 Leaf 1개로 센다. 전체가 Summary인 트리는 날짜 min/max나 근무일 Span을 호출하지 않고 WBS만 계산한다. 오늘·프로젝트 시작일·이전 자식 날짜·기간 0/1을 대체값으로 저장하지 않는다.
+
+Summary Baseline도 실제 Leaf에서 파생한다. 빈 Summary는 Baseline 완비성 검사의 중립 요소이며 실제 Leaf 중 하나라도 Baseline이 없으면 기존 규칙대로 상위 파생 Baseline은 `null`이다. 실제 Leaf가 0개이면 파생 `baselineStart/baselineEnd/baselineDuration`은 모두 `null`이다. 실제 Leaf Baseline은 재계산으로 변경하지 않는다.
+
 Summary 입력 날짜·Duration·Progress를 최종 계산에 사용하지 않는다. Import에서 제공되었다면 원본과 파생 결과의 차이를 Preview로 알리는 방식은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)에 따른다. 자식 일정·진척·Parent 변경과 삭제 후 모든 조상 Summary를 다시 계산한다. 필터로 숨긴 자식도 계산에 포함한다.
 
 WBS는 Parent Tree의 형제 순서에 따라 `1`, `1.1`, `1.2`, `2` 형태로 계산한다. Root도 저장된 순서를 따른다. 화면 정렬·필터는 저장 순서를 바꾸지 않는다. 명시적 Reorder·Reparent 후 WBS를 다시 계산한다. 배열에서 자식이 Parent보다 먼저 나와도 모든 ID를 먼저 등록하여 처리한다. WBS가 달라져도 External ID와 Dependency 참조는 유지된다.
 
 ### W24 공개 계층 API와 계산 경계
 
-`recalculateHierarchy(tasks, calendar)`는 canonical Leaf 일정과 변경 후 전체 Project Task Snapshot을 받아 Summary와 WBS를 계산한다. 입력 필드는 `taskId`, `externalId`, `parentExternalId`, `siblingOrder`, `type`, `requestedStart`, `start`, `end`, `duration`, `progress`, `scheduleMode`다. 다른 DTO 필드를 보존하며 입력 배열 순서를 유지한 새 동결 배열과 새 동결 Task 객체를 반환한다. WBS는 Domain 결과에 포함하지만 W24 HTTP DTO에 새 필드를 요구하지 않는다.
+`recalculateHierarchy(tasks, calendar)`는 canonical Leaf 일정과 변경 후 전체 Project Task Snapshot을 받아 Summary와 WBS를 계산한다. 입력 필드는 `taskId`, `externalId`, `parentExternalId`, `siblingOrder`, `type`, `requestedStart`, `start`, `end`, `duration`, `progress`, `scheduleMode`다. Summary의 미산정 상태를 위해 일정 필드의 TypeScript 입력은 nullable이며 Leaf 날짜·기간·진척의 runtime 필수 검증은 그대로 유지한다. 결과 타입 `HierarchyTaskResult<T>`는 일정 필드를 nullable로 명시하므로 이전 일정이 있던 Summary도 `null`이 될 수 있음을 호출자에게 전달한다. 다른 DTO 필드를 보존하며 입력 배열 순서를 유지한 새 동결 배열과 새 동결 Task 객체를 반환한다. WBS는 Domain 결과에 포함하지만 W24 HTTP DTO에 새 필드를 요구하지 않는다.
 
 - Service는 변경 Leaf를 `scheduleLeaf`로 먼저 계산하고 명시적인 Task→Summary 전환을 완료한 Snapshot을 전달한다. Engine은 Parent/Type을 바꾸지 않고 Leaf를 다시 스케줄하지 않는다.
 - Summary의 기존 날짜·기간·진척·모드는 계산에 사용하지 않는다. 결과는 하위 Leaf만을 집계하며 `scheduleMode: auto`, `requestedStart: null`이다. 중첩 Summary의 중간 진척률을 반올림하거나 Span을 가중치로 중복 집계하지 않는다.
 - Leaf 시작/종료 날짜는 유효한 근무일이어야 하며 기간과 양 끝 포함 근무일 수가 일치해야 한다. Milestone은 기간 0, 시작=종료다. Leaf Progress는 유한한 `0..100`이다. 자동/수동 요청 시작일의 실제 스케줄 정규화는 앞 단계 `scheduleLeaf`의 책임이다.
 - ID와 External ID는 각각 유일하고 Parent는 Snapshot 안의 Summary여야 한다. 형제 순서는 0 이상 Safe Integer이고 같은 Parent 안에서 중복할 수 없다. 삭제로 생긴 번호 간격은 허용하며 WBS 표시 번호는 형제 정렬 순서로 다시 계산한다.
-- 상한은 기존 API 기준으로 `MAX_HIERARCHY_TASKS=5000`, `MAX_HIERARCHY_DEPTH=64`(Root 깊이 1)다. 배열이 비었으면 유효한 빈 결과다. 순환·부모 누락·빈 Summary·상한 초과는 `SchedulingError`로 전체 실패한다. 부분 결과는 반환하지 않는다.
+- 상한은 기존 API 기준으로 `MAX_HIERARCHY_TASKS=5000`, `MAX_HIERARCHY_DEPTH=64`(Root 깊이 1)다. 배열이 비었거나 Summary들로만 구성되어도 유효하다. 순환·부모 누락·상한 초과는 `SchedulingError`로 전체 실패한다. 부분 결과는 반환하지 않는다.
 - ID Map과 Root-first 반복 순회로 Parent Graph를 검증한다. 방문하지 못한 노드가 있으면 Parent Cycle이며 잔여 모든 노드를 실제 Cycle 경로라고 과대 표시하지 않는다. 역순 순회로 조상 집계를 수행해 JavaScript 재귀 Stack에 의존하지 않는다.
-- Leaf 전체 날짜 Span에 근무일 Prefix Count를 한 번 작성한다. Calendar Span은 기존 날짜 범위 안의 최대 109,573일이며 Summary Span/Leaf 기간 검증은 Prefix 조회로 처리한다. 형제 정렬을 포함한 비용은 `O(N log N + D log(H+1) + W)`, 메모리는 `O(N + D + W)`다. N은 Task 수, D는 전체 날짜 Span, H는 Holiday 수, W는 WBS 문자열 총 길이다. Calendar Prefix를 제외한 알고리즘만 O(N)이라고 전체 성능을 표시하지 않는다.
+- Leaf 전체 날짜 Span에 근무일 Prefix Count를 한 번 작성한다. Calendar Span은 기존 날짜 범위 안의 최대 109,573일이며 Summary Span/Leaf 기간 검증은 Prefix 조회로 처리한다. Leaf가 없으면 Span 탐색을 하지 않고 최소 Prefix 저장소만 생성한다. 역순 집계에서 `leafCount=0`인 자식은 일정/Baseline에 기여하지 않는다. 형제 정렬을 포함한 비용은 `O(N log N + D log(H+1) + W)`, 메모리는 `O(N + D + W)`다. N은 Task 수, D는 전체 날짜 Span(Leaf가 없으면 0), H는 Holiday 수, W는 WBS 문자열 총 길이다. Calendar Prefix를 제외한 알고리즘만 O(N)이라고 전체 성능을 표시하지 않는다.
 
-`tests/domain/scheduling/hierarchy.test.ts`는 중첩 집계, 비정수 진척, 순수 Milestone 평균, 주말·휴일 경계, 자식 갱신·삭제 후 조상 재계산, WBS와 비연속 입력 순서, 순환/부모 누락/잘못된 Type/빈 Summary, 형제 중복, 날짜·기간·진척 검증, 깊이·노드 상한 및 입력 불변/멱등성을 검증한다. Dependency, Reparent, Calendar 변경은 W24 계층 함수의 범위에 포함하지 않는다. API 권한·Revision·원자적 저장은 Service 통합 테스트에서 별도로 검증한다.
+`tests/domain/scheduling/hierarchy.test.ts`는 중첩 집계, 비정수 진척, 순수 Milestone 평균, 주말·휴일 경계, 자식 갱신·삭제 후 조상 재계산, WBS와 비연속 입력 순서, 순환/부모 누락/잘못된 Type, 형제 중복, 날짜·기간·진척 검증, 깊이·노드 상한 및 입력 불변/멱등성을 검증한다. `empty-summary.test.ts`는 빈 루트/중첩 Summary, 실제 Leaf와 빈 분기의 진척/Baseline 혼합, 첫/마지막 Leaf 추가·삭제·이동, 전체 미산정 트리 상한 및 nullable Leaf 거부를 검증한다. 계층 함수는 Reparent 명령이나 Leaf 재스케줄을 직접 수행하지 않고 변경 후 Snapshot을 계산한다. API 권한·Revision·원자적 저장은 Service 통합 테스트에서 별도로 검증한다.
 
 ## 7. 의존성 관계(Dependency)와 Lag 계산 규칙
 
@@ -216,7 +220,7 @@ W06 범위인 날짜·Calendar·Leaf Duration·Milestone·단일 Leaf Manual 시
 | Duration | 1일, 장기 기간, 0/음수/소수 Task 거부, Milestone 0일, end 불일치, Dependency 전 검증 순서 |
 | Graph | 단일 FS, 여러 선행, 분기·합류, 자기 연결, 중복 연결, Missing Target, Summary Endpoint, SS/FF/SF/Lag/Lead 거부 |
 | Cycle | Parent Cycle과 Dependency Cycle 각각, Manual을 통과하는 Cycle, Cycle 뒤에 붙은 비순환 노드를 오진하지 않는 오류 경로 |
-| Summary | 중첩, 자식 이동·삭제·Reparent, 숨긴 자식 포함, 가중 진척, Milestone-only, Empty Summary 거부 |
+| Summary | 중첩, 자식 이동·삭제·Reparent, 숨긴 자식 포함, 가중 진척, Milestone-only, Empty Summary의 null 일정·진척/Baseline과 WBS 유지 |
 | WBS | 비연속 Import 배열, Parent 뒤에 나온 자식·앞에 나온 자식, Reorder, Reparent, UI Sort/Filter로 불변 |
 | 재계산 | 선행을 뒤·앞으로 이동, 연결 삭제로 복귀, Calendar 변경, 동일 입력의 동일 결과, 재계산 멱등성 |
 | Mixed Mode | Manual 유지, Manual 선행→Auto 후행, Auto 선행→Manual 충돌, Calendar만 변경 시 Manual 종료 이동 거부, 명시적 Manual 수정, 전체 실패 시 원본 Snapshot 불변 |
@@ -278,9 +282,9 @@ Preview는 DB를 변경하지 않으며 edit session, Origin, If-Match를 검증
 
 Grid DnD와 Context Menu의 reorder/reparent/copy는 Scheduling Domain의 날짜 계산 규칙을 새로 정의하지 않는다. 서버 서비스가 먼저 현재 persisted hierarchy를 검증한 뒤 parent와 sibling order를 원자적으로 변경하고, 동일 transaction에서 `recalculateHierarchy`로 모든 영향 Summary의 start/end/duration/progress를 다시 파생한다. Leaf의 `requestedStart`는 이동·복사만으로 변경하지 않는다.
 
-Issue #300은 Grid의 `before/after/child` 이동을 기존 `reparent` 명령에 연결한다. 같은 parent 안의 sibling 재정렬과 parent 변경 모두 기존 service의 순서 정규화·cycle·empty summary·Milestone parent 제한을 재사용한다. 후속 이름/비구조 필드 변경은 저장된 parent/sibling order를 보존한다. 별도 scheduling algorithm/domain 변경은 N/A다.
+Issue #300은 Grid의 `before/after/child` 이동을 기존 `reparent` 명령에 연결한다. 같은 parent 안의 sibling 재정렬과 parent 변경 모두 기존 service의 순서 정규화·cycle·Milestone parent 제한을 재사용한다. Issue #345부터 기존 부모가 빈 Summary가 되는 것은 허용한다. 후속 이름/비구조 필드 변경은 저장된 parent/sibling order를 보존한다.
 
-Indent는 직전 sibling을 parent로 사용하며 필요한 경우 기존 first-child 정책과 동일하게 leaf Task parent를 Summary로 전환한다. Outdent는 현재 parent의 바로 다음 sibling 위치로 이동한다. 어떤 명령도 기존 Summary를 child 0개 상태로 남기지 않으며, 해당 경우 전체 mutation을 거부한다. 현재 Dependency Link가 있는 hierarchy mutation은 기존 제한을 유지하므로 FS 재계산과 계층 이동을 한 명령에 혼합하지 않는다.
+Indent는 직전 sibling을 parent로 사용하며 필요한 경우 기존 first-child 정책과 동일하게 leaf Task parent를 Summary로 전환한다. Outdent는 현재 parent의 바로 다음 sibling 위치로 이동한다. Issue #345부터 기존 Summary는 child 0개가 되어도 타입/ID를 유지하고 일정만 미산정 상태로 재계산한다. 현재 Dependency Link가 있는 hierarchy mutation은 기존 제한을 유지하므로 FS 재계산과 계층 이동을 한 명령에 혼합하지 않는다.
 
 
 ## Link mutation recalculation (#97)

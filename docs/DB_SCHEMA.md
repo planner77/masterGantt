@@ -110,10 +110,10 @@ Password parameter를 row와 함께 저장해 향후 cost 변경 후에도 기�
 | `type` | TEXT | N | `task`, `summary`, `milestone` CHECK |
 | `schedule_mode` | TEXT | N | `auto`, `manual` CHECK; summary는 항상 auto로 정규화, 날짜는 파생 |
 | `requested_start` | TEXT | Y | leaf의 사용자 요청 시작일; summary는 NULL |
-| `start_date` | TEXT | N | Scheduling Engine이 계산한 effective start |
-| `end_date` | TEXT | N | Scheduling Engine이 계산한 inclusive effective end |
-| `duration` | INTEGER | N | working-day 단위, 0 이상 |
-| `progress` | REAL | N | finite 0..100, 계산 중 반올림하지 않음 |
+| `start_date` | TEXT | Y | 일정 산정 Summary/Leaf의 effective start, 미산정 Summary만 NULL (0018) |
+| `end_date` | TEXT | Y | inclusive effective end, 미산정 Summary만 NULL (0018) |
+| `duration` | INTEGER | Y | working-day 단위, 미산정 Summary만 NULL; 0은 Milestone 등 실제 계산값 |
+| `progress` | REAL | Y | finite 0..100, 미산정 Summary만 NULL; 완료나 0%로 해석하지 않음 |
 | `parent_id` | INTEGER | Y | 같은 Project의 summary task만 허용 |
 | `sort_order` | INTEGER | N | 같은 parent 아래 sibling의 안정적인 순서, 0 이상 |
 | `baseline_start` | TEXT | Y | 기준 일정 시작일 (ISO date YYYY-MM-DD); 미설정 시 NULL (0014 추가) |
@@ -147,14 +147,14 @@ Issue #300: Grid DnD와 Context Menu의 기존 hierarchy command는 parent별 si
 - Milestone은 duration 0이고 `start_date = end_date`이다.
 - Summary의 requested start는 NULL이고 날짜, duration, progress는 자식으로부터 계산한 파생값이다. Import가 summary snapshot을 제공해도 비교/preview용일 뿐 저장 계산의 authority가 아니다.
 - Summary span duration은 모든 descendant leaf의 최소 start부터 최대 end까지의 working-day 수이며 자식 duration의 합이 아니다.
-- Empty summary는 최종 snapshot에서 허용하지 않는다. Parent가 될 수 있는 type은 summary뿐이다.
+- 빈 Summary와 빈 Summary만 중첩된 구조를 최종 snapshot에서 허용한다. Parent가 될 수 있는 type은 summary뿐이다.
 - `baseline_start`, `baseline_duration`, `baseline_end`(0014)는 프로젝트 계획 기준점(Baseline) 일정이다.
   - Leaf 작업(일반 작업, 마일스톤)은 사용자가 직접 지정하거나 현재 일정에서 복사해 저장할 수 있다.
-  - Summary 작업의 baseline은 모든 하위 자손(leaf)에 baseline이 존재할 때만 자손들로부터 파생(`min(baseline_start)`, `max(baseline_end)`, `workingDaysBetween`)된다. 자손 중 하나라도 baseline이 없으면 Summary baseline은 NULL이다. Summary baseline의 직접 수동 수정은 허용되지 않는다(`SummaryScheduleReadonlyError`).
+  - Summary 작업의 baseline은 모든 하위 자손(leaf)에 baseline이 존재할 때만 자손들로부터 파생(`min(baseline_start)`, `max(baseline_end)`, `workingDaysBetween`)된다. 실제 Task/Milestone 자손 중 하나라도 baseline이 없으면 Summary baseline은 NULL이다. 빈 Summary는 baseline 완비성에서 중립이고 실제 Leaf가 하나도 없으면 파생 Summary baseline은 NULL이다. Summary baseline의 직접 수동 수정은 허용되지 않는다(`SummaryScheduleReadonlyError`).
 
 이 규칙은 DB trigger로 중복 구현하지 않고 Scheduling Engine을 단일 계산 소스로 사용한다. 저장 직전 Service가 전체 aggregate 결과를 검증한다.
 
-최종 persisted snapshot은 empty summary를 허용하지 않으므로 summary도 계산된 `start_date/end_date`가 항상 존재한다. Batch 처리 중간 candidate는 메모리에만 있고 불완전 row를 DB에 먼저 넣지 않는다. 일반 task duration은 1..10000, milestone은 0이다. Summary duration은 descendant 전체 span의 계산 결과이므로 일반 task의 10000 제한을 적용하지 않고 Scheduling Engine의 지원 date range로 제한한다. Progress는 `100/3` 같은 파생값을 보존하도록 REAL을 사용하고 UI 표시 단계 전에는 반올림하지 않는다. Service는 `NaN`/무한대를 거부한다.
+최종 persisted snapshot의 미산정 Summary는 `start_date/end_date/duration/progress`를 모두 NULL로 저장한다. 부분 NULL이나 불완전 Leaf row는 DB에 넣지 않는다. 일반 task duration은 1..10000, milestone은 0이다. Summary duration은 descendant 전체 span의 계산 결과이므로 일반 task의 10000 제한을 적용하지 않고 Scheduling Engine의 지원 date range로 제한한다. Progress는 `100/3` 같은 파생값을 보존하도록 REAL을 사용하고 UI 표시 단계 전에는 반올림하지 않는다. Service는 `NaN`/무한대를 거부한다.
 
 ### 5.4 `links`
 
@@ -622,3 +622,20 @@ Migration `0015_logistics_type_catalog.sql`은 다음 글로벌 테이블을 추
 Migration `0016_resource_developer_grade.sql`은 `resources.developer_grade TEXT NULL`을 추가한다.
 
 허용값은 `BEGINNER`, `INTERMEDIATE`, `ADVANCED`, `EXPERT` 또는 `NULL`뿐이며 DB `CHECK`로 방어한다. 기존 Resource는 migration 후 `NULL`을 유지하고, 기존 `project_system_resource_roles.role = 'developer'` row는 변경하지 않는다. 역할 제거도 이 전역 속성을 자동 수정하지 않는다.
+
+
+## Issue #289 — Project master catalog
+
+Migration `0017_project_master_catalog.sql`은 `project_master_items`와 catalog revision, 전용 관리자 credential/session을 추가하고 `projects.business_unit_id/product_id/site_entity_id`를 nullable FK로 확장한다. 기존 Project는 migration 후 세 참조가 모두 NULL이며 임의 backfill을 하지 않는다.
+
+`project_master_items`는 `BUSINESS_UNIT | PRODUCT | SITE_ENTITY` category, stable public ID/code, 표시명, active, sort_order를 가진다. `UNIQUE(category, code)`와 category별 참조 trigger로 잘못된 category 연결을 차단한다. Project FK는 `ON DELETE RESTRICT`이며 Project 삭제가 global master row를 삭제하지 않는다. `0016_resource_developer_grade.sql` 이후 순차 적용한다.
+
+## Issue #345: 미산정 Summary와 migration 0018
+
+`0018_empty_summary_schedule.sql`은 tasks를 재생성하고 모든 ID·외부 ID·parent/order·description/URL·Baseline·timestamp를 그대로 복사한다. 기존 migration checksum은 변경하지 않는다. leaf의 날짜/기간/진척 필수 규칙 및 Task/Milestone 기간 CHECK를 유지한다. Summary는 `auto/requested_start=NULL`이고 일정 4필드가 모두 NULL이거나 모두 유효한 값이어야 한다. 부분 NULL 조합은 DB CHECK로 거부한다.
+
+미산정 Summary는 직접 자식이 0개이거나 자손이 빈 Summary들뿐인 경우다. 서버가 전체 계층에서 재계산하여 `start_date/end_date/duration/progress=NULL`을 저장하며 ID·type·직접 할당·물류 연결은 유지한다. 첫 실제 Leaf가 추가되면 집계값을 저장한다. 날짜가 있는 Milestone은 일정 있는 Leaf이며 기간 0을 미산정 판별에 쓰지 않는다.
+
+참조되는 tasks table의 DROP이 Link/Assignment/물류 연결을 cascade 삭제하지 않게 migration runner가 해당 pending migration의 선언을 확인하고 **BEGIN 밖에서** FK enforcement를 잠시 끈다. 같은 IMMEDIATE transaction 안에서 재생성·ledger 기록·`foreign_key_check`를 완료한 뒤 commit하며 모든 실패를 rollback한다. finally에서 원래 FK 설정을 복원한다. 활성 transaction 안에서 이 재생성을 중첩 실행하지 않는다. 기존 table을 먼저 rename하는 방식은 사용하지 않는다.
+
+실제 파일 SQLite 업그레이드/reopen과 SQL 실패·FK 위반 주입 rollback, ID/Link/Assignment/Baseline 보존은 `tests/server/db/database.test.ts`가 검증한다. 새 서버 시작 시 기본 FK ON 정책은 유지한다.

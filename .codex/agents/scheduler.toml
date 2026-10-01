@@ -5,7 +5,7 @@ SVAR와 독립적인 Project Scheduling Engine을
 설계하고 구현하는 Domain Specialist Agent
 """
 
-model = "gpt-6-astra"
+model = "gpt-6.1-sol"
 model_reasoning_effort = "high"
 
 developer_instructions = """

@@ -441,7 +441,7 @@ export class WorkCalendarService {
 
     for(const task of staged) {
       if(task.type==="summary") continue;
-      if(task.requestedStart===null) throw new WorkCalendarInvalidInputError();
+      if(task.requestedStart===null || task.duration===null) throw new WorkCalendarInvalidInputError();
       try {
         const scheduled=scheduleLeaf({
           type:task.type,requestedStart:task.requestedStart,duration:task.duration,scheduleMode:task.scheduleMode,

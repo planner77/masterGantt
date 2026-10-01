@@ -11,7 +11,7 @@ export {
   type CalendarDayType, type CalendarDayExceptionInput, type HolidayInput, type WorkingCalendarInput, type WorkingCalendar,
 } from "./calendar";
 export { scheduleLeaf, type LeafScheduleInput, type LeafSchedule, type CalendarShiftWarning } from "./leaf";
-export { recalculateHierarchy, MAX_HIERARCHY_TASKS, MAX_HIERARCHY_DEPTH, type HierarchyTaskInput } from "./hierarchy";
+export { recalculateHierarchy, MAX_HIERARCHY_TASKS, MAX_HIERARCHY_DEPTH, type HierarchyTaskInput, type HierarchyTaskResult } from "./hierarchy";
 export {
   recalculateDependencies,
   recalculateFinishStartDependencies,
@@ -23,4 +23,3 @@ export {
   type FinishStartManualConflict,
   type FinishStartDependencyResult,
 } from "./dependency";
-

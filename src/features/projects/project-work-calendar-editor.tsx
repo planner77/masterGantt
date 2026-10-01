@@ -14,6 +14,7 @@ import type {
   WorkCalendarTargetType,
 } from "../../contracts/work-calendar";
 import type { AssignmentTargetDto, AssignmentTargetsResponse } from "../../contracts/resources";
+import { createClientLocalId } from "../../lib/client-local-id";
 import styles from "./project-work-calendar-editor.module.css";
 
 interface Props {
@@ -42,7 +43,6 @@ interface CustomDraft {
   dayType:WorkCalendarDayType;
 }
 type CalendarIssue={id:string;label:string;message:string};
-const key=()=>crypto.randomUUID();
 const reasonLabel=(reason:CalendarTaskChangeReason)=>reason==="CALENDAR"?"캘린더":reason==="DEPENDENCY"?"FS 선행 관계":"상위 요약";
 type PreviewOrigin = {publicId:string;revision:number;fingerprint:string};
 type PreviewState = {kind:"idle"|"stale"|"pending"|"error";origin?:PreviewOrigin} |
@@ -342,7 +342,7 @@ export function ProjectWorkCalendarEditor({
           <button className="secondary-button" type="button" onClick={()=>changeCountryRules((items)=>items.filter((item)=>item.key!==rule.key))}>국가 규칙 삭제 {index+1}</button>
         </div>
       </fieldset>)}
-      <button className="secondary-button" type="button" disabled={countries.length===0} onClick={()=>changeCountryRules((items)=>[...items,{key:key(),countryCode:(countries[0]?.code??"KR"),scope:"FULL_PROJECT",effectiveFrom:"",effectiveTo:""}])}>국가 규칙 추가</button>
+      <button className="secondary-button" type="button" disabled={countries.length===0} onClick={()=>changeCountryRules((items)=>[...items,{key:createClientLocalId(),countryCode:(countries[0]?.code??"KR"),scope:"FULL_PROJECT",effectiveFrom:"",effectiveTo:""}])}>국가 규칙 추가</button>
     </fieldset>
     <fieldset disabled={disabled||working!==null}>
       <legend>사용자 날짜 예외</legend>
@@ -374,7 +374,7 @@ export function ProjectWorkCalendarEditor({
           }}>날짜 예외 삭제 {index+1}</button>
         </div>
       </fieldset>)}
-      <button ref={addCustomDateButton} className="secondary-button" type="button" onClick={()=>changeCustomDates((items)=>[...items,{key:key(),name:"",date:"",targetType:"PROJECT",targetId:"",dayType:"NON_WORKING"}])}>날짜 예외 추가</button>
+      <button ref={addCustomDateButton} className="secondary-button" type="button" onClick={()=>changeCustomDates((items)=>[...items,{key:createClientLocalId(),name:"",date:"",targetType:"PROJECT",targetId:"",dayType:"NON_WORKING"}])}>날짜 예외 추가</button>
     </fieldset>
     <p role="status" aria-live="polite">{normalizationNotice}</p>
     {serverConflict?<div id="calendar-exception-conflict" className={styles.validationSummary} role="alert" tabIndex={-1} ref={conflictSummary}>

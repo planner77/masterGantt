@@ -1,4 +1,5 @@
 import type { ProjectLogisticsDto } from "./logistics";
+import type { ProjectMasterItemDto } from "./project-master";
 import type { ProjectAssignmentDto } from "./resources";
 
 export type ProjectStatus = "planned" | "in_progress" | "completed";
@@ -29,6 +30,9 @@ export interface ProjectDto {
   status: ProjectStatus;
   /** Canonical API responses include this field; null represents a pre-Issue-54 project. */
   ownerName?: string | null;
+  businessUnit?: ProjectMasterItemDto | null;
+  product?: ProjectMasterItemDto | null;
+  siteEntity?: ProjectMasterItemDto | null;
   revision: number;
   calendar: ProjectCalendarDto;
 }
@@ -40,6 +44,9 @@ export interface ProjectListItemDto {
   status: ProjectStatus;
   /** Canonical API responses include this field; null represents a pre-Issue-54 project. */
   ownerName?: string | null;
+  businessUnit?: ProjectMasterItemDto | null;
+  product?: ProjectMasterItemDto | null;
+  siteEntity?: ProjectMasterItemDto | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -61,10 +68,10 @@ export interface ProjectTaskDto {
   type: "task" | "summary" | "milestone";
   scheduleMode: "auto" | "manual";
   requestedStart: string | null;
-  start: string;
-  end: string;
-  duration: number;
-  progress: number;
+  start: string | null;
+  end: string | null;
+  duration: number | null;
+  progress: number | null;
   parentExternalId: string | null;
   siblingOrder: number;
   baselineStart?: string | null;
@@ -91,6 +98,9 @@ export interface CreateProjectRequest {
   editPassword: string;
   /** Omission remains compatible with older clients and creates a planned project. */
   status?: ProjectStatus;
+  businessUnitId?: string | null;
+  productId?: string | null;
+  siteEntityId?: string | null;
 }
 
 export interface CreateProjectResponse {
@@ -162,6 +172,9 @@ export interface UpdateProjectRequest {
   name?: string;
   description?: string;
   status?: ProjectStatus;
+  businessUnitId?: string | null;
+  productId?: string | null;
+  siteEntityId?: string | null;
 }
 
 export interface ProjectMetadataMutationResponse {
@@ -174,26 +187,27 @@ export interface ProjectMetadataMutationResponse {
     warnings: [];
     operation: {
       kind: "projectMetadata";
-      changedFields: ("name" | "description" | "status")[];
+      changedFields: ("name" | "description" | "status" | "businessUnitId" | "productId" | "siteEntityId")[];
     };
   };
 }
 
-export interface CreateTaskRequest {
+interface CreateTaskCommon {
   externalId?: string;
   parentTaskId?: string;
   convertParentToSummary?: true;
   name: string;
   description?: string | null;
   url?: string | null;
-  type: "task" | "milestone";
-  scheduleMode?: "auto" | "manual";
-  start: string;
-  end?: string;
-  duration: number;
-  progress: number;
   parentExternalId?: null;
 }
+
+export type CreateTaskRequest = CreateTaskCommon & (
+  | { type: "task" | "milestone"; scheduleMode?: "auto" | "manual";
+      start: string; end?: string; duration: number; progress: number }
+  | { type: "summary"; scheduleMode?: "auto";
+      start?: null; end?: null; duration?: null; progress?: null }
+);
 
 export interface UpdateTaskRequest {
   name?: string;
@@ -223,17 +237,12 @@ export type TaskHierarchyCommandKind =
   | "reparent"
   | "copy";
 
-export interface TaskHierarchyCreateSeed {
-  name: string;
-  description?: string | null;
-  url?: string | null;
-  type: "task" | "milestone";
-  scheduleMode?: "auto" | "manual";
-  start: string;
-  end?: string;
-  duration: number;
-  progress: number;
-}
+export type TaskHierarchyCreateSeed = Omit<CreateTaskRequest, "externalId" | "parentTaskId" | "convertParentToSummary" | "parentExternalId"> & (
+  | { type: "task" | "milestone"; scheduleMode?: "auto" | "manual";
+      start: string; end?: string; duration: number; progress: number }
+  | { type: "summary"; scheduleMode?: "auto";
+      start?: null; end?: null; duration?: null; progress?: null }
+);
 
 export type TaskHierarchyCommandRequest =
   | {

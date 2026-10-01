@@ -8,6 +8,12 @@
   padding: 0 0 0.5rem;
 }
 
+.project-gantt-widget [data-summary-state]::after {
+  content: " · " attr(data-summary-state);
+  color: var(--text-muted, var(--muted-foreground));
+  font-size: 0.75rem;
+}
+
 .project-gantt-fullscreen-button {
   min-height: 2.5rem;
   border: 1px solid var(--border-control, var(--border));

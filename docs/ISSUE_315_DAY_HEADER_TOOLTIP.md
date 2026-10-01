@@ -100,7 +100,7 @@ Canonical Project snapshot의 `ProjectCalendarExceptionDto`에 optional `names: 
 ## 버전 / 릴리스
 
 - Issue #314 stacked base: `0.57.1`
-- Issue #315: 하위 호환 사용자 기능 추가이므로 `0.58.0` (MINOR)
+- Issue #315: 하위 호환 사용자 기능 추가이므로 `0.60.0` (MINOR)
 - `release_required=true`
 - 사용자 요청 범위는 PR CI 시작까지이므로 `release_authorized=false`
 - 이번 단계에서 merge, tag, 정식 GHCR publish, lifecycle finalize는 수행하지 않는다.

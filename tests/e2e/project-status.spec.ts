@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
+import { expect, test, isolatedApplicationOptions, waitForProjectMasterCatalogReady } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
 
@@ -140,6 +140,7 @@ test("생성 기본값과 설정 변경은 canonical 상태를 목록·읽기 �
   await page.getByLabel("프로젝트 이름").fill(name);
   await page.getByLabel("소유자").fill("Status Team");
   await page.getByLabel("편집 비밀번호").fill("StatusPwd12!");
+  await waitForProjectMasterCatalogReady(page);
   await page.getByRole("button", { name: "프로젝트 만들기" }).click();
   await page.waitForURL(/\/projects\/[0-9a-f-]+$/);
   const publicId = page.url().split("/").pop()!;

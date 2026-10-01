@@ -64,6 +64,8 @@ describe("migration CLI", () => {
         "0014_task_baseline.sql",
         "0015_logistics_type_catalog.sql",
         "0016_resource_developer_grade.sql",
+        "0017_project_master_catalog.sql",
+        "0018_empty_summary_schedule.sql",
       ],
     });
     expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
@@ -82,11 +84,15 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 16 });
+        .toEqual({ count: 18 });
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT revision FROM resource_catalog_state WHERE id = 1").get())
         .toEqual({ revision: 1 });
+      expect(database.prepare("SELECT revision FROM project_master_catalog_state WHERE id = 1").get())
+        .toEqual({ revision: 1 });
+      expect(database.prepare("SELECT count(*) AS count FROM project_master_items").get())
+        .toEqual({ count: 0 });
       const ownerColumn = database.prepare("SELECT name, \"notnull\" AS required FROM pragma_table_info('projects') WHERE name = 'owner_name'").get();
       expect(ownerColumn).toEqual({ name: "owner_name", required: 0 });
       const allocationColumn = database.prepare("SELECT name, type FROM pragma_table_info('task_assignments') WHERE name = 'allocation_percent'").get();

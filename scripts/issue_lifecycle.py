@@ -22,6 +22,7 @@ REQUIRED_CHECKS = (
     "Chromium end-to-end tests",
     "Docker build and runtime smoke test",
 )
+MAIN_ARTIFACT_JOB = "Main 임시 commit 이미지 게시·검증·정리"
 FINAL_MARKER_PREFIX = "<!-- issue-lifecycle-final:"
 
 
@@ -42,6 +43,9 @@ class Context:
     pr_checks_ok: bool
     main_ci_url: str | None
     main_ci_ok: bool
+    main_docs_only: bool
+    main_artifact_ok: bool
+    main_artifact_evidence: str
     merged: bool
 
 
@@ -111,6 +115,7 @@ def mutation_gate(
     merged: bool,
     checks_ok: bool,
     main_ci_ok: bool,
+    main_artifact_ok: bool,
     release_required: bool,
     release_authorized: bool,
     version_ok: bool,
@@ -119,7 +124,7 @@ def mutation_gate(
         return "FAIL"
     if not merged:
         return "BLOCKED"
-    if not checks_ok or not main_ci_ok:
+    if not checks_ok or not main_ci_ok or not main_artifact_ok:
         return "NOT TESTED"
     if release_required and not release_authorized:
         return "BLOCKED"
@@ -131,16 +136,82 @@ def git_show_json(sha: str, path: str) -> Any:
     return json.loads(text)
 
 
-def exact_main_ci(repo: str, sha: str) -> tuple[bool, str | None]:
+def docs_only_paths(paths: list[str]) -> bool:
+    if not paths:
+        return False
+    return all(
+        path.startswith("docs/") or ("/" not in path and path.endswith(".md"))
+        for path in paths
+    )
+
+
+def main_change_docs_only(target_sha: str) -> bool:
+    parents = run("git", "rev-list", "--parents", "-n", "1", target_sha).stdout.strip().split()
+    if len(parents) < 2:
+        return False
+    first_parent = parents[1]
+    raw = run("git", "diff", "--name-only", "-z", first_parent, target_sha).stdout
+    paths = [path for path in raw.split("\0") if path]
+    return docs_only_paths(paths)
+
+
+def main_artifact_gate(
+    jobs: list[dict[str, Any]], *, docs_only: bool
+) -> tuple[bool, str]:
+    matches = [job for job in jobs if job.get("name") == MAIN_ARTIFACT_JOB]
+    if len(matches) != 1:
+        return False, f"NOT TESTED — expected one {MAIN_ARTIFACT_JOB} job, found {len(matches)}"
+
+    job = matches[0]
+    status = job.get("status")
+    conclusion = job.get("conclusion")
+    url = job.get("html_url") or job.get("url") or "N/A"
+
+    if docs_only:
+        ok = status == "completed" and conclusion == "skipped"
+        evidence = (
+            f"N/A — docs-only; artifact job skipped as expected ({url})"
+            if ok
+            else f"NOT TESTED — docs-only artifact job expected skipped, got {status}/{conclusion} ({url})"
+        )
+        return ok, evidence
+
+    ok = status == "completed" and conclusion == "success"
+    evidence = (
+        f"PASS — {url}"
+        if ok
+        else f"NOT TESTED — non-docs artifact job is {status}/{conclusion} ({url})"
+    )
+    return ok, evidence
+
+
+def exact_main_ci(
+    repo: str, sha: str, *, docs_only: bool
+) -> tuple[bool, str | None, bool, str]:
     data = gh(
-        f"/repos/{repo}/actions/workflows/ci.yml/runs?event=push&branch=main&per_page=100"
+        f"/repos/{repo}/actions/workflows/ci.yml/runs"
+        f"?event=push&branch=main&head_sha={sha}&per_page=100"
     )
     runs = [r for r in data.get("workflow_runs", []) if r.get("head_sha") == sha]
     if not runs:
-        return False, None
+        return False, None, False, "NOT TESTED — exact main CI run not found"
+
     run_data = sorted(runs, key=lambda r: r.get("created_at", ""))[-1]
-    ok = run_data.get("status") == "completed" and run_data.get("conclusion") == "success"
-    return ok, run_data.get("html_url")
+    run_ok = (
+        run_data.get("status") == "completed"
+        and run_data.get("conclusion") == "success"
+    )
+    run_url = run_data.get("html_url")
+    run_id = run_data.get("id")
+    if not run_id:
+        return run_ok, run_url, False, "NOT TESTED — main CI run id is missing"
+
+    jobs_data = gh(
+        f"/repos/{repo}/actions/runs/{run_id}/jobs?filter=latest&per_page=100"
+    )
+    jobs = jobs_data.get("jobs", []) if isinstance(jobs_data, dict) else []
+    artifact_ok, artifact_evidence = main_artifact_gate(jobs, docs_only=docs_only)
+    return run_ok, run_url, artifact_ok, artifact_evidence
 
 
 def required_checks_ok(repo: str, sha: str) -> tuple[bool, list[str]]:
@@ -197,9 +268,6 @@ def resolve_context(args: argparse.Namespace) -> Context:
     if not target_sha:
         raise LifecycleError("could not resolve PR target SHA")
 
-    # workflow_dispatch may run from main while verifying another same-repository
-    # PR. Fetch both authoritative refs so git-show/ancestry never depends on
-    # incidental checkout reachability.
     run("git", "fetch", "--no-tags", "origin", "main")
     if not merged:
         run(
@@ -227,9 +295,19 @@ def resolve_context(args: argparse.Namespace) -> Context:
         version_ok = args.expected_version.strip() == version
 
     checks_ok, missing_checks = required_checks_ok(repo, head_sha)
-    main_ci_ok, main_ci_url = (False, None)
+    main_ci_ok = False
+    main_ci_url: str | None = None
+    main_docs_only = False
+    main_artifact_ok = False
+    main_artifact_evidence = "NOT TESTED — PR not merged"
     if merged and merge_sha:
-        main_ci_ok, main_ci_url = exact_main_ci(repo, merge_sha)
+        main_docs_only = main_change_docs_only(merge_sha)
+        (
+            main_ci_ok,
+            main_ci_url,
+            main_artifact_ok,
+            main_artifact_evidence,
+        ) = exact_main_ci(repo, merge_sha, docs_only=main_docs_only)
 
     current_main = gh(f"/repos/{repo}/git/ref/heads/main")
     current_main_sha = current_main.get("object", {}).get("sha", "")
@@ -238,6 +316,7 @@ def resolve_context(args: argparse.Namespace) -> Context:
         merged=merged,
         checks_ok=checks_ok,
         main_ci_ok=main_ci_ok,
+        main_artifact_ok=main_artifact_ok,
         release_required=release_required,
         release_authorized=release_authorized,
         version_ok=version_ok,
@@ -255,6 +334,8 @@ def resolve_context(args: argparse.Namespace) -> Context:
         f"- PR required checks: {'PASS' if checks_ok else 'NOT TESTED'}",
         f"- missing/failed checks: {', '.join(missing_checks) if missing_checks else 'none'}",
         f"- exact target main CI: {main_ci_url or 'N/A'}",
+        f"- main change docs-only: {str(main_docs_only).lower()}",
+        f"- temporary GHCR validation/cleanup: {main_artifact_evidence}",
         f"- release_required: {str(release_required).lower()}",
         f"- release_authorized: {str(release_authorized).lower()}",
         f"- gate: {gate}",
@@ -280,6 +361,9 @@ def resolve_context(args: argparse.Namespace) -> Context:
         pr_checks_ok=checks_ok,
         main_ci_url=main_ci_url,
         main_ci_ok=main_ci_ok,
+        main_docs_only=main_docs_only,
+        main_artifact_ok=main_artifact_ok,
+        main_artifact_evidence=main_artifact_evidence,
         merged=merged,
     )
 
@@ -351,6 +435,49 @@ def final_marker(issue_number: int, target_sha: str) -> str:
     return f"{FINAL_MARKER_PREFIX}{issue_number}:{target_sha} -->"
 
 
+def cleanup_merged_pr_branches(
+    repo: str,
+    ctx: Context,
+    extra_pr_numbers: list[int],
+) -> list[str]:
+    cleanup_numbers = list(dict.fromkeys([*extra_pr_numbers, ctx.pr_number]))
+    evidence: list[str] = []
+    for pr_number in cleanup_numbers:
+        pr = gh(f"/repos/{repo}/pulls/{pr_number}")
+        if not pr.get("merged"):
+            raise LifecycleError(f"cleanup PR #{pr_number} is not merged")
+        if pr.get("base", {}).get("ref") != "main":
+            raise LifecycleError(f"cleanup PR #{pr_number} base must be main")
+        if pr.get("head", {}).get("repo", {}).get("full_name") != repo:
+            raise LifecycleError(f"cleanup PR #{pr_number} head repository mismatch")
+        refs = re.findall(
+            r"(?im)^\s*Refs\s+#\s*([1-9][0-9]*)\s*$",
+            pr.get("body") or "",
+        )
+        if refs != [str(ctx.issue_number)]:
+            raise LifecycleError(
+                f"cleanup PR #{pr_number} must contain exactly one canonical Refs #{ctx.issue_number}"
+            )
+        branch = pr.get("head", {}).get("ref") or ""
+        if not branch:
+            raise LifecycleError(f"cleanup PR #{pr_number} head branch is missing")
+        run(
+            "python3",
+            "scripts/safe_branch_cleanup.py",
+            "--repo",
+            repo,
+            "--pr",
+            str(pr_number),
+            "--branch",
+            branch,
+            "--target-sha",
+            ctx.merge_sha or "",
+            "--delete",
+        )
+        evidence.append(f"#{pr_number} `{branch}`")
+    return evidence
+
+
 def finalize(ctx: Context, args: argparse.Namespace) -> None:
     repo = os.environ["GITHUB_REPOSITORY"]
     if not ctx.merge_sha:
@@ -362,19 +489,7 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
     if release_required:
         tag, release_url = ensure_release(ctx, args)
 
-    run(
-        "python3",
-        "scripts/safe_branch_cleanup.py",
-        "--repo",
-        repo,
-        "--pr",
-        str(ctx.pr_number),
-        "--branch",
-        ctx.head_branch,
-        "--target-sha",
-        ctx.merge_sha,
-        "--delete",
-    )
+    cleanup_evidence = cleanup_merged_pr_branches(repo, ctx, args.cleanup_pr)
 
     marker = final_marker(ctx.issue_number, ctx.merge_sha)
     comments = gh(f"/repos/{repo}/issues/{ctx.issue_number}/comments?per_page=100")
@@ -405,16 +520,17 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
                 f"- application version: `{ctx.version}`",
                 "- PR required checks: PASS",
                 f"- exact main CI: {ctx.main_ci_url}",
-                "- temporary GHCR validation/cleanup: PASS via exact successful main CI",
+                f"- main change docs-only: {str(ctx.main_docs_only).lower()}",
+                f"- temporary GHCR validation/cleanup: {ctx.main_artifact_evidence}",
                 f"- release_required: {str(release_required).lower()}",
                 f"- release_authorized: {args.release_authorized}",
                 f"- authorization actor: {os.environ.get('GITHUB_ACTOR', 'unknown')}",
                 f"- authorization note: {args.authorization_note or 'N/A'}",
                 f"- formal release: {formal}",
                 "- GHCR exact digest: release-image workflow evidence when formal release is required; otherwise N/A",
-                "- branch cleanup: PASS",
+                f"- branch cleanup: PASS ({', '.join(cleanup_evidence)})",
                 "- environment-specific validation: N/A for CI/GitHub orchestration change",
-                "- remaining risks: existing per-Issue helpers remain until migration verification is complete",
+                "- lifecycle orchestration: generic auto-finalizer; per-Issue helper workflows are not used.",
             ]
         )
         gh(
@@ -441,6 +557,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--release-authorized", default="false")
     parser.add_argument("--expected-version", default="")
     parser.add_argument("--authorization-note", default="")
+    parser.add_argument(
+        "--cleanup-pr",
+        action="append",
+        type=int,
+        default=[],
+        help="additional merged PR whose branch must be safely cleaned before FINAL/close",
+    )
     return parser
 
 

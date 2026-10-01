@@ -1,5 +1,23 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #345 빈 Summary 현재 정책
+
+Summary는 자식이 없어도 유지되는 WBS 컨테이너다. 마지막 child 삭제·이동은 기존 부모를 지우거나 Task로 바꾸지 않는다. 아래 과거 Issue 기록의 빈 Summary 금지·마지막 child 거부 부분은 이 정책으로 대체한다. 권한·revision·Dependency 제약과 #344 실패 복구 계약은 유지한다.
+
+편집 화면의 일정 도구 모음 `요약 작업 추가`는 Root에 `새 요약 작업`을 날짜 입력 없이 즉시 생성한다. 기존 Grid 이름 편집으로 이름을 바꾼다. Context Menu의 Add → `요약 작업 추가`는 선택 작업 하위에 생성하며, Task 부모는 기존 명시적 전환 계약을 따른다. 일반 `+`의 Task 추가 의미는 유지한다. Milestone에는 child를 추가할 수 없다.
+
+자식 0개는 `하위 작업 없음`, 빈 Summary만 자손에 있으면 `일정 있는 하위 작업 없음`으로 설명한다. 날짜·기간·진척은 미산정(`null`/`—`)이며 완료로 취급하지 않는다. 전체 미산정 트리는 작업 없음과 구분한다. 날짜·기간·진척 필터에서는 미산정 값을 직접 매칭하지 않고 기존 조상 context 정책을 유지한다. 이름 검색·유형 검색은 정상 지원한다.
+
+Core 표현과 Renderer 좌표의 분리, 시험 결과는 [PRO_FEATURE_MATRIX.md](PRO_FEATURE_MATRIX.md#issue-345-빈-summary-core-273-표현)를 따른다. 첫/마지막 child 변경은 동일 Core 인스턴스에서 동기화하며 Tree·scale·스크롤 상태를 보존한다.
+
+## Issue #330 물류 유형 관리자 compact/filter 계약
+
+`/logistics-admin`의 설비 유형/시스템 유형 전환은 동일 높이의 버튼 그룹과 `aria-pressed` 상태를 사용하며 선택 상태가 바뀌어도 layout shift를 만들지 않는다. 목록 상태 필터는 `전체 / 활성 / 비활성` 세 값이며 기본값은 전체다. 필터는 이미 조회한 catalog snapshot에만 적용하고 API 재조회, mutation, catalog revision 증가를 만들지 않으며 설비/시스템 전환 뒤에도 현재 필터를 유지한다.
+
+추가 폼은 유형명/코드/정렬/유형 추가를 content-aware grid로 배치하고 각 grid item/control의 intrinsic width가 인접 control을 침범하지 않게 한다. 가용 폭이 줄면 2열, 이후 1열로 의미 단위 reflow하며 390/768/1024/1440px에서 document-level unintended horizontal overflow를 만들지 않는다. 목록은 header/body 구분과 기존 조작 가능한 action 크기를 유지한 채 row 상하 padding을 줄인다. 필터 결과 0건은 현재 조건에 맞는 empty state로 표시한다.
+
+관리자 로그인/로그아웃/비밀번호 변경, catalog CRUD, 사용 건수, inactive 참조, session/Origin/If-Match/revision/stale 처리 계약은 변경하지 않는다. 이 화면은 SVAR Gantt 내부 UI가 아니므로 SVAR API/PRO 기능을 추가하지 않는다.
+
 ## Issue #285 공정 추가 모달 코드 자동 생성
 
 물류 구성 > 공정 관리의 **공정 추가** 모달은 사용자에게 기술 식별자인 공정 코드를 입력받지 않는다. Create mode의 첫 focus는 공정명이며 공정명만 필수로 저장 가능하다. 브라우저 POST payload에는 `code`를 만들거나 포함하지 않고 서버 canonical 응답의 자동 생성 code를 그대로 표시한다.
@@ -67,7 +85,7 @@ Project Workspace의 물류 구성 하위 탐색은 `KPI 대시보드 / 공정 �
 | --- | --- | --- |
 | #9 | 프로젝트명 아래 Revision/시간대/휴일/작업/연결 정보와 펼침 설정 패널을 제거한다. 기존 프로젝트 정보·비밀번호 변경·편집 종료 기능은 헤더의 설정 버튼과 별도 모달에 보존한다. | 데이터와 revision은 삭제하지 않는다. 설정 열기·닫기는 Gantt를 재마운트하지 않는다. |
 | #10 | 프로젝트 목록에 삭제 버튼을 항상 표시한다. 클릭 시 최신 이름/revision을 조회하고 파괴적 삭제 경고와 비밀번호 입력 창을 표시한다. 기존 편집 세션이 있어도 새로 입력한 비밀번호 확인이 성공해야 DELETE를 전송한다. | 기존 session/Origin/If-Match 서버 검증, rate limit, transaction, cascade와 rollback을 유지한다. |
-| #11 | Grid 행 +의 첫 하위 작업은 확인 팝업 없이 추가한다. 일반 leaf 부모에는 기존 `convertParentToSummary: true`를 명시한다. | 마일스톤 부모 금지, 빈 Summary 금지, 근무일 보정, 상위 일정·진척 집계, 중복 mutation 차단을 유지한다. |
+| #11 | Grid 행 +의 첫 하위 작업은 확인 팝업 없이 추가한다. 일반 leaf 부모에는 기존 `convertParentToSummary: true`를 명시한다. | 마일스톤 부모 금지, 근무일 보정, 상위 일정·진척 집계, 중복 mutation 차단을 유지한다. 빈 Summary는 #345 현재 정책을 따른다. |
 | #18 | 정상 결과는 5초 하단 overlay Toast, 오류는 우측 상단 알림함과 복사 가능한 내용으로 제공한다. | 알림 때문에 화면 공간·scroll·focus·Gantt 인스턴스를 변경하지 않는다. 기존 명시적 오류 복구는 유지한다. |
 | #21 | 목록 행과 상세 헤더에 동일한 공용 링크 복사 버튼을 제공한다. 읽기 전용에서도 사용한다. | 서버의 `APP_BASE_URL` 검증과 publicId 직접 접근·인증을 유지한다. 복사는 navigation/DB mutation/revision 변경을 수행하지 않는다. |
 
@@ -97,7 +115,7 @@ Project Workspace의 물류 구성 하위 탐색은 `KPI 대시보드 / 공정 �
 
 오류는 최신순 최대 50건이다. 한도를 넘은 이전 항목의 제외 건수를 표시한다. 패널을 열면 표시 중인 항목을 읽음 처리하고 열린 동안 도착한 오류도 읽음으로 처리한다. “읽은 알림 지우기”는 명시적 사용자 동작이다. 이 보관 상한·읽음 시점은 구현 정책이며 사용자가 숫자를 지정한 것으로 표현하지 않는다.
 
-비근무일 시작의 다음 근무일 보정은 성공 Toast의 부가 안내다. 권한/검증/충돌/네트워크/서버/화면 복구 실패는 보관하는 오류다. 412 후 canonical 재조회에 실패하면 성공적으로 재조회했다고 알리지 않는다. 명시적인 실패 복구에서만 기존 Gantt reset 경로를 사용한다.
+비근무일 시작의 다음 근무일 보정은 성공 Toast의 부가 안내다. 권한/검증/충돌/네트워크/서버/화면 복구 실패는 보관하는 오류다. 412 후 canonical 재조회에 실패하면 성공적으로 재조회했다고 알리지 않는다. Task mutation 실패의 canonical 재조회가 실패해도 같은 Gantt 인스턴스에 마지막 확정 일정을 다시 동기화한다(#344). 기존 Gantt reset은 공개 SVAR 동기화 자체가 예외를 낸 최후 복구 경로에만 사용한다.
 
 `WorkspaceDialog`는 native dialog의 top layer를 사용한다. 설정 모달 안에서도 안내가 보이도록 해당 dialog 안에 live region을 둔다. 알림함에는 자체 복사 안내 live region을 사용한다. Escape/닫기 후 원래 버튼으로 `preventScroll` focus를 복귀한다. 전송 중인 파괴적 동작은 중복 제출과 닫기를 차단한다. 좁은 화면과 긴 내용은 최대 viewport 크기 및 내부 스크롤/줄바꿈으로 처리한다.
 
@@ -638,3 +656,24 @@ Project Workspace의 설비/시스템 추가·수정 select는 active catalog �
 ## Issue #315 Gantt Day Header 상세정보
 
 일정 탭의 Day Header는 #314의 숫자-only 밀도를 유지한다. Header cell hover/focus에서 locale 요일을 표시하고 현재 Project Effective Calendar에 이름이 있는 NON_WORKING 날짜에만 휴일명을 추가한다. Tooltip은 Chart layout을 늘리지 않는 overlay이며 viewport 안으로 보정하고 pointer interaction을 가로채지 않는다. 동일 날짜의 복수 이름은 canonical snapshot projection을 사용하며 WORKING override는 휴일명으로 표시하지 않는다. Week view에는 이번 Tooltip을 확대하지 않는다.
+
+
+## Issue #289 — 프로젝트 기준정보 UX
+
+`/projects/new` 및 Project 설정의 기본 정보에 사업부·제품·사업장/법인 Select를 추가한다. 세 필드는 선택 사항이며 active catalog만 신규 선택지에 제공한다. catalog 조회 실패는 “선택지 없음”과 구분해 오류/재시도 상태를 표시하고 저장 가능한 정상 빈 목록으로 오인하지 않는다. 기본 필드 validation은 catalog loading 여부와 독립적으로 먼저 제공하며, 유효한 제출은 catalog 확인 전에는 저장하지 않는다.
+
+기존 선택값이 inactive이면 현재값을 “비활성”으로 유지·표시하고 사용자가 다른 active 값 또는 미지정으로 명시적으로 변경할 수 있다. 전역 `/project-master-admin`은 사업부/제품/사업장·법인을 category별로 관리하고 WAI-ARIA tablist/tabpanel, roving tabindex, ArrowLeft/ArrowRight/Home/End 탐색을 제공한다. SVAR Task Editor 내부 모델에는 Project master metadata를 결합하지 않는다.
+
+## Issue #344 — 작업 삭제 실패와 확정 일정 보존
+
+아래 `EMPTY_SUMMARY_NOT_ALLOWED`는 #344 조사 당시 정책과 재현 기록이다. #345 이후 마지막 child 삭제는 성공하고 빈 Summary는 유지된다. 현재 #344 실패 복구 회귀는 유효한 Dependency409/401/412/network를 사용하며 확정 snapshot 보존 계약은 동일하다.
+
+Task C 삭제가 서버에서 성공한 뒤 Summary의 마지막 child 삭제가 `409 EMPTY_SUMMARY_NOT_ALLOWED`로 거부되면, 마지막 child는 유지되고 이미 삭제된 Task C는 Grid/Chart에 다시 나타나지 않아야 한다. 실패 복구의 범위는 현재 요청에서 발생한 미확정 변화다. 빈 Summary를 자동 삭제하거나 일반 Task로 전환하지 않는다.
+
+Workspace는 서버에서 마지막으로 확정된 Project snapshot을 보관한다. Snapshot 적용 시 현재 Project의 `publicId`와 revision을 확인하고, 다른 Project이거나 확정 revision보다 낮은 응답은 적용하지 않는다. 초기 조회와 오류 복구 GET은 `cache: "no-store"`를 사용한다. 재조회가 실패하거나 오래된 응답을 반환하면 마지막 확정 snapshot을 기존 SVAR API 동기화 경로로 다시 적용한다. 삭제 실패를 처리하기 위해 page reload나 Gantt remount를 사용하지 않으며, Summary 접힘·스크롤·scale과 기존 인스턴스를 보존한다. 조회 실패 안내는 원래 mutation 오류와 함께 표시해 `EMPTY_SUMMARY_NOT_ALLOWED` 원인을 가리지 않는다.
+
+`401`은 읽기 전용으로 전환하고 편집 잠금 해제를 안내한다. `412`는 최신 일정을 확인하도록 안내하며, network 실패는 서버 저장 여부를 단정하지 않고 canonical GET 결과를 확인한다. GET이 현재 확정 revision 이상이면 해당 서버 상태를 적용하고, 조회할 수 없으면 마지막 확인 상태를 유지한다. 실패 요청을 자동 재전송하지 않는다. 서버 authorization·Origin·revision 계약과 Task Editor 초안 정책은 기존 계약을 따른다.
+
+성공 삭제의 canonical 동기화는 남아 있는 sibling끼리의 순서를 비교한다. 삭제된 앞쪽 sibling 때문에 index가 줄어든 것을 reorder로 해석하지 않으며, 불필요한 `move-task`로 기존 Summary의 접힘 상태를 바꾸지 않는다.
+
+조사 기준 main `6532edd8418772454b96fdeb895b90c5ab7d3d6d`에서 실제 SQLite/Chromium의 일반 삭제 성공→정상 409→현재 canonical GET 조합을 두 차례 반복했을 때 원증상은 재현되지 않았다. 별도로 복구 GET에 낮은 revision의 삭제 전 snapshot을 주입하면 성공 삭제 Task가 다시 표시되는 결함은 재현됐다. 따라서 이 변경은 오래된 응답의 무조건 적용과 복구 GET 실패 시 remount 경로를 보완하며, 정상 409가 반드시 오래된 응답을 생성한다고 단정하지 않는다. 검증 상세와 상태는 [TEST_PLAN](TEST_PLAN.md#issue-344--작업-삭제-실패-복구-회귀)을 따른다.

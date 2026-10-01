@@ -44,6 +44,7 @@ permissions:
 concurrency:
   group: issue-lifecycle-${{ inputs.issue_number }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   verify:

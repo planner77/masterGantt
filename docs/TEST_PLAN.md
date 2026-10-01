@@ -9,13 +9,54 @@
 - Local Fast Feedback은 현재 실행 환경의 github.com DNS 해석 실패로 BLOCKED이며, 공식 전체 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
 - 상세 설계와 날짜/접근성 계약은 `docs/ISSUE_315_DAY_HEADER_TOOLTIP.md`를 따른다.
 
+## Issue #356 CI 비용 선택 실행 회귀
+
+- 일반 UI/feature PR은 Docker candidate/runtime smoke를 유지하되 image/runtime 구조 변경이 없으면 관찰용 baseline image rebuild를 생략한다.
+- PR transport smoke는 deploy/security/http/auth 관련 경로에서만 실행하며, main push와 manual CI에서는 항상 실행한다.
+- `.github/workflows/ci.yml` 또는 `.github/actions/**` 자체 변경은 두 선택 검증을 모두 실행하여 routing 변경을 자기 검증한다.
+- 프로젝트 인증·세션 handler(`src/server/projects/**`) 변경도 transport smoke 대상이어야 한다.
+- Issue #118 before/after evidence는 manual-only historical evidence이며 일반 PR에서 별도 runner를 시작하지 않는다.
+- Next.js 보안 patch 뒤 production dependency audit이 0 critical로 통과하고 `@next/env`와 `next`가 동일 exact patch 버전으로 고정되는지 확인한다.
+- transport smoke의 최초 GET navigation은 일시적 network/error page에 한해 readiness 확인 후 1회만 재시도하고 mutation은 자동 재시도하지 않는다.
+- E2E shard는 4-way 및 `workers: 1` 격리를 유지하며 외부 OS dependency mirror 지연을 허용하기 위해 timeout만 25분으로 둔다.
+- `tests/scripts/test-config-layout.test.ts`와 `tests/scripts/deployment-layout.test.ts`가 위 workflow/dependency contract를 고정한다.
+- 공식 전체 회귀 판정은 최신 main 재정렬 후 동일 PR head의 quality/e2e/docker 결과를 사용한다.
+
+## Issue #345 빈 Summary 검증
+
+현재 정책은 빈 Summary 생성·마지막 child 삭제/이동 성공이다. 아래 W24/#31/#300/#344의 당시 `EMPTY_SUMMARY_NOT_ALLOWED` 검증은 역사적 근거이며 현재 acceptance를 대체하지 않는다. Leaf 날짜 필수·Summary Dependency 금지·401/Origin/If-Match/412·원자성 보호는 유지한다.
+
+- `project-task-adapter.test.ts`: UI custom type 영폭 좌표의 유효성, 원본 null DTO 불변성, Renderer 날짜/진척 역전송 거부와 이름-only 변경.
+- `project-search-filter.test.ts`: 이름/type 검색, 미산정 날짜·진척·기간의 직접 매칭 제외.
+- `project-empty-summary.spec.ts`: 설치 Core 2.7.3 실제 Grid 행과 bar wrapper 0개, 전체 미산정 중첩 Summary의 no-bar/`—`/readonly 생성 차단.
+- `project-empty-summary-persistence.spec.ts`: 실제 SQLite/API Root Summary 이름-only payload와 null canonical, 390/768/1024/1440px overflow·화면 근거, 첫 child/마지막 child 2회 전환, 같은 Core API instance/scale/재조회 보존.
+- `project-task-delete-context.spec.ts`: #344 6가지 실패 복구는 현재도 유효한 Dependency409/401/412/network 주입을 사용하며 앞선 성공 삭제·Tree/scroll/scale/instance 보존을 검증한다. fault injection은 실제 서버 오류 발생 근거와 구분한다.
+
+초기 browser probe의 날짜 없는 native Summary는 Core parse 예외로 FAIL, 날짜 없는 custom type은 no-bar 실패였다. [승인된 Renderer 전용 adapter](PRO_FEATURE_MATRIX.md#issue-345-빈-summary-core-273-표현)는 가짜 날짜를 canonical에 저장하거나 DOM bar를 숨기지 않는다. 최초 실제 persistence test는 test 비밀번호가 12자 상한을 넘어서 프로젝트 생성 전 validation으로 FAIL했고, readonly fixture assert는 fixture의 기본 편집 session을 끄지 않아 FAIL했다. 두 fixture를 수정했으며 제품 회귀와 구분한다. 로컬 최종 결과는 Issue/PR에 기록하며 원격 CI 완료 전 `quality/e2e/docker`는 NOT TESTED다.
+
+CI 시작 증거는 exact PR head SHA, run ID/URL, 실제 실행 제목의 `Issue #345`를 함께 확인한다. 기존 Workflow name `CI`, required `quality/e2e/docker` check 식별자와 policy gate는 유지한다. 실행 시작 확인은 최종 원격 회귀 PASS를 의미하지 않으며 이번 요청에서 CI 모니터링·병합·릴리스는 수행하지 않는다.
+
+로컬 실제 결과(2026-10-01): 관련 Unit 5 files / 80 tests PASS. Chromium 후속 21 tests(빈 Summary 3 + 기존 Editor 18) PASS, #344 recovery 6 + subtree 1 PASS. 추가 실제 초기 빈 프로젝트→Summary 생성 직후 Grid 이름 편집은 초기 columns editor가 빈 Task map을 캡처하여 FAIL했다. current ref를 읽는 editor 자격 판단으로 수정했고 긴 한국어 이름 저장·4폭 캡처·keyboard Enter 생성·nested collapse/expand·last child Outdent까지 강화한 최종 persistence 1 test PASS(9.4초, 전체 실행 28.1초). mock Core 2 tests도 PASS다. 관련 변경에서 실제 실행한 범위이며 전체 원격 회귀 PASS는 아니다. 시각 근거는 `output/playwright/issue345-empty-{390,768,1024,1440}.png`와 `output/playwright/issue345-nested-1440.png`다.
+
+독립 UX 검토에서 null Editor의 초기 schedule dirty 비교가 빈 문자열과 null을 다르게 취급해 저장 안내를 잘못 표시함을 확인하고 normalize했다. 최종 persistence 시나리오는 기간·진척 `—`, 잘못된 저장 안내 없음, Escape 닫기도 검증한다. columns dependency 정리 중 captured canonical map 갱신을 제거하면 last child Outdent 후 Core bar가 남는 FAIL이 발생했다. `tasksById`를 읽는 canonical Grid getter와 공개 `set-columns` 동기화를 유지하도록 수정했으며 최종 persistence 1 test PASS(7.2초, 전체 실행 19.4초), 관련 Unit 80 tests PASS다. 이 변경에서 새로 발생한 실패를 이전 PASS로 숨기지 않는다.
+
+CI #1381은 quality/audit/build/Docker 및 Chromium shard 1/3/4가 PASS하고 shard 2/4의 `project-empty-summary-persistence.spec.ts` 1건만 실패했다. API/DB에서는 Outdent 후 nested Summary가 `start=null`로 정상 전환됐지만 Core bar가 남았다. 원인은 #1376 stale Grid 보완에서 getter를 latest ref로 바꾸면서 `columns`의 `tasksById` dependency까지 제거해 public `set-columns` refresh trigger가 사라진 것이다. getter는 latest ref를 유지하고 dependency만 복원해 stale Grid와 empty-Summary bar 제거 요구를 동시에 만족하도록 한다. CI #1381 실패는 PASS로 재사용하지 않는다.
+
+## Issue #330 물류 유형 관리 화면 정렬·상태 필터·밀도 개선
+
+- Chromium E2E는 설비 유형/시스템 유형 전환 버튼의 `aria-pressed`와 동일한 control 높이를 확인하고, 전체/활성/비활성 필터가 이미 조회한 catalog snapshot에서 client-side로만 동작하여 추가 GET·mutation·catalog revision 변경을 만들지 않는지 검증한다.
+- active/inactive가 혼재한 설비 fixture에서 필터 결과를 확인하고, 같은 비활성 필터를 유지한 채 시스템 유형으로 전환했을 때 0건 empty state를 표시하는지 확인한다.
+- 390/768/1024/1440px에서 유형명/코드/정렬/유형 추가 control의 bounding box가 서로 겹치지 않고 document-level unintended horizontal overflow가 없는지 geometry로 검증한다.
+- 목록 행은 compact padding으로 동일 viewport의 정보 밀도를 높이되 기존 이름 수정/활성·비활성 전환 버튼의 조작성, 관리자 인증/session, If-Match/catalog revision/stale 계약은 유지한다.
+- DB/API/Scheduling/SVAR 계약은 변경하지 않는다. 공식 전체 회귀 판정은 동일 PR head의 quality/e2e/docker 결과를 사용한다.
 
 ## Issue #314 Gantt 일 단위 Header 숫자 표시
 
 - Unit: `formatGanttDayOfMonth`가 1/9/10/22/31을 각각 숫자 문자열로 반환하고 `일` 접미사·요일·괄호를 포함하지 않는지 검증한다.
 - Chromium E2E: Day mode 하위 scale에서 `14`, `22` 등 숫자-only Header를 확인하고 legacy `일`/괄호 문자열이 없음을 검증한다. Day → Week → Day 전환 후 숫자-only 형식 복원, Week `W38/W39`, weekend highlight, Gantt/API instance identity 유지 회귀를 기존 scale spec에서 함께 확인한다.
 - Month scale format, Day/Week cellWidth(44/68), scheduling/calendar/task/link/Grid/API/DB 계약은 변경하지 않는다.
-- 공식 전체 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다. #315/#316 Tooltip은 별도 Issue이며 이번 범위에 포함하지 않는다.
+- PR 회귀 보완: Grid DnD 후 parent 변경/selection 리렌더를 거친 Task에서도 stale inline edit session이 다음 작업명 클릭을 차단하지 않고 inline rename이 열리는지 기존 #300 Chromium 시나리오로 검증한다.
+- 공식 전체 회귀 판정은 최신 `main` 재정렬 후 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다. #315/#316 Tooltip은 별도 Issue이며 이번 범위에 포함하지 않는다.
 
 ## Issue #285 공정 코드 자동 생성
 
@@ -170,12 +211,12 @@ Resource/Group POST 실패와 성공을 구분해 실패 초안 보존·성공�
 ### Issue #31 작업 subtree 삭제
 
 - Unit: 실제 taskId 기준 자손 탐색이 모든 깊이를 포함하고 형제를 제외하며 cycle/unknown을 안전하게 처리한다.
-- SQLite service: subtree를 child-first로 같은 transaction에서 삭제하고 남은 Summary를 재계산한다. root 전체 subtree는 허용하되 선택 범위 밖 Summary가 비면 `EMPTY_SUMMARY_NOT_ALLOWED`로 rollback한다.
+- SQLite service: subtree를 child-first로 같은 transaction에서 삭제하고 남은 Summary를 재계산한다. 선택 범위 밖 Summary가 비면 같은 ID/type을 유지하며 일정만 null로 만든다(#345). Link·권한 등 유효한 거부는 rollback한다.
 - API/security: 기본 DELETE는 기존 단건 의미를 유지하고 `includeDescendants=true`만 subtree를 활성화한다. session/Origin/If-Match/Project isolation, stale 412, Link 포함 409, revision 정확히 1 증가를 검증한다.
 - Chromium 실제 API: Grid/Chart 우클릭의 정확한 target, 삭제 메뉴, 자손 확인의 작업명/개수, 취소 전 DELETE 0회, 확인 후 subtree DELETE 1회, sibling 보존, canonical Grid/Chart 동기화, Gantt instance 유지와 reload persistence를 검증한다.
 - GitHub Actions `quality/e2e/docker`의 최종 동일 head 실행을 공식 회귀 근거로 사용한다. 실제 스크린리더·Windows/사내 브라우저 최종 UX는 별도 환경 검증이다.
 
-W24: Project 목록 table 및 authorized DELETE 확인/취소/성공/실패, 401/403/404/412/428과 cascade/rollback/isolation을 검증한다. Gantt Header root·row child 추가, first-child 명시 Summary 전환, nested leaf 변경 후 ancestor 집계·reload, milestone parent와 마지막 child 삭제 거부를 포함한다. Default browser-local today/1day, locale/date-only timezone, 토/일 음영, 외부ID 표시 토글, Project 및 Grid/Chart header의 내부 scroll 중 위치 유지도 검증한다. 실제 결과는 [W24_REVIEW.md](W24_REVIEW.md)에 기록한다.
+당시 W24: Project 목록 table 및 authorized DELETE 확인/취소/성공/실패, 401/403/404/412/428과 cascade/rollback/isolation을 검증했다. Gantt Header root·row child 추가, first-child 명시 Summary 전환, nested leaf 변경 후 ancestor 집계·reload, milestone parent와 마지막 child 삭제 거부를 포함했다(마지막 child는 #345 이후 성공). Default browser-local today/1day, locale/date-only timezone, 토/일 음영, 외부ID 표시 토글, Project 및 Grid/Chart header의 내부 scroll 중 위치 유지도 검증했다. 실제 결과는 [W24_REVIEW.md](W24_REVIEW.md)에 기록한다.
 
 W23 목록 검증: D02 공개 summary 필드 allowlist, 인증 없이 GET 200/no-store, 빈 목록과 DB 오류 구분, 최신 수정순·동률 정렬, 생성→목록 복귀→reload→새 브라우저 direct Readonly, 기존 Mutation 무인증 거부 회귀. 결과는 [W23_REVIEW.md](W23_REVIEW.md)에 기록한다. W04 당시 collection GET 405 검증은 역사적 기록이며 W23에서 200 계약으로 대체한다.
 
@@ -707,6 +748,15 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - Resource Advanced Filter는 종류/상태/Task From/To와 한쪽 날짜 초안·역순 날짜 안내를 유지하면서 동일 geometry 검사를 수행한다. 768/1024에서는 2열 reflow, 390에서는 1열 reflow가 document horizontal overflow 없이 접근 가능해야 한다.
 - 기존 #83/#130/#196의 predicate, active count, Task/Milestone quick view, Grid/Chart visibility, Reset/search focus, Escape/filter trigger focus, Gantt root identity, filter 조작 중 mutation/API 재조회 0회 assertion을 그대로 유지한다. 새 layout 검증은 이 기능 회귀를 대체하지 않는다.
 
+
+## Issue #326 작업 캘린더 client draft key 호환성
+
+- Unit: `createClientLocalId`가 `crypto.randomUUID` 지원 시 UUID 경로를 사용하고, 미지원 시 `getRandomValues` 또는 client-local 비보안 fallback으로 정상 생성되며 연속 key가 충돌하지 않는지 검증한다.
+- Chromium: page init 단계에서 `Crypto.prototype.randomUUID`를 제거한 뒤 Project 설정 → 작업 캘린더에서 국가 규칙 추가와 날짜 예외 추가를 실행하고 새 row가 표시되며 Error Boundary로 전환되지 않는지 검증한다.
+- 저장/Preview/API/Revision/Calendar scheduling 계약은 변경하지 않는다. 서버 `node:crypto.randomUUID`와 canonical public ID, 인증·세션용 난수 정책은 이번 회귀 범위 밖이며 기존 테스트를 유지한다.
+- Console의 password form username 접근성 경고는 이번 crash의 직접 원인으로 취급하지 않으며, 구조 변경이 필요하면 별도 접근성 Issue에서 추적한다.
+- 공식 전체 회귀 판정은 Issue #326 PR exact head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다. 실제 HTTP/IP reverse proxy 환경은 환경별 검증으로 별도 판정한다.
+
 ## Issue #261 Resource Group/Resource 근무일 예외
 
 - Domain/resolver: Project < Group < Resource 계층 양방향 override, 상위 대비 CHANGED/NO_EFFECT, 동일 유형 dedupe와 출처 보존, 반대 유형 conflict 및 입력/DB 순서 독립성. Resource 예외로 Group conflict가 은폐되지 않음.
@@ -769,3 +819,121 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 - Chromium: Resource 관리자에서 등급 생성·목록 표시·수정과 390/768/1024/1440px document overflow를 확인한다. Developer picker는 등급 표시와 미지정 신규 배정 차단 안내를 확인한다.
 - Scheduling/workload: 등급 변경만으로 duration, allocation, M/D·M/M, capacity, 일정 및 resource leveling 결과가 바뀌지 않아야 한다.
 - 공식 전체 회귀 판정은 Issue #288 PR head의 `quality/e2e/docker` 결과를 사용한다.
+
+
+## Issue #289 프로젝트 기준정보 회귀
+
+- Migration/DB: `0017_project_master_catalog.sql` 적용, 기존 Project NULL 보존, category/code unique, category mismatch 차단, FK RESTRICT와 catalog revision을 검증한다.
+- Service/API: active-only 일반 조회, 관리자 inactive 포함 조회, 별도 관리자 인증/Origin/login rate-limit/If-Match/412, 잘못된 category/id, 사용 중 stable code 변경 차단, inactive 신규 선택 거부/기존 참조 보존을 검증한다.
+- Project aggregate: 생성·조회·목록·메타데이터 수정·복사·Template에서 동일 global 참조를 유지하고 rename/inactive가 참조를 깨뜨리지 않는지 검증한다.
+- UI/E2E: 생성 폼은 기본 필드 validation을 catalog loading보다 먼저 수행하며 catalog 미확인 시 유효 저장만 차단한다. 관리자 category는 tablist/tabpanel·roving focus·Arrow/Home/End를 검증하고 390/768/1024/1440px overflow를 회귀 검증한다.
+- 집중 서버 회귀는 `tests/server/projects/project-master-catalog.test.ts`; migration ledger/schema 기대값은 DB 및 migration CLI 테스트에서 0017까지 검증한다. 공식 PASS 판정은 PR exact-head GitHub Actions quality/e2e/docker 결과를 사용한다.
+
+## Generic Release Finalizer contract (#350)
+
+CI policy/static scenario에서 최소 다음을 검증한다.
+
+- PR CI/수동 CI/실패 main CI는 lifecycle mutation 대상이 아님
+- exact merge SHA에 대응하는 PR이 0건이면 skip, 복수면 fail-closed
+- canonical `Refs #Issue`가 누락/복수이면 fail-closed
+- version 동일은 finalize, version 변경은 release authorization 필요
+- untrusted comment marker는 승인으로 인정하지 않음
+- 최신 trusted revocation/version mismatch는 release BLOCKED
+- Issue별 lifecycle helper/finalizer 파일 재도입 금지
+- generic/release workflow concurrency가 queued work를 보존
+- 인접 same-Issue corrective merge는 docs-only/non-docs validation scope가 동일할 때만 수렴하고, scope가 다르면 앞선 failed main CI를 우회하지 않음
+- 수렴된 모든 PR identity가 `--cleanup-pr`로 lifecycle에 전달되고, 모든 branch safe cleanup PASS 전에는 FINAL/Issue close가 불가능함
+
+## Issue #344 — 작업 삭제 실패 복구 회귀
+
+Unit은 `tests/features/projects/canonical-snapshot-recovery.test.ts`에서 r10 삭제 전→r11 삭제 성공→오래된 r10 복구 거부, 마지막 확정 task set replay, 같은/높은 revision 허용, Project identity 분리를 검증한다. 기존 canonical sync 테스트는 native 임시 변화 복구에 사용하는 공개 SVAR action 경로를 검증한다.
+
+당시 #344 서버 검증은 `tests/server/projects/task-delete-recovery.test.ts`에서 정상 삭제 성공 뒤 마지막 child 삭제 `409 EMPTY_SUMMARY_NOT_ALLOWED`, 기존 성공 삭제·revision 유지, canonical GET 일치와 subtree/unrelated Link 보존·DB 재오픈을 확인했다. 관련 3 files / 23 tests의 실제 실행 근거는 [서버 검증 기록](ISSUE_344_SERVER_VALIDATION.md)을 따른다. 당시 서버 transaction·도메인 정책 변경은 없었으며 #345는 빈 Summary 허용으로 이를 대체한다.
+
+Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQLite 서버를 사용한다. 일반 Task 삭제 성공→마지막 child 거부를 두 차례 반복하고 Grid/Chart task set, GET revision, 실패 child 유지, 이후 정상 삭제 및 reload를 검증한다. 복구 GET에 삭제 전 낮은 revision snapshot을 주입하는 경우와 GET 자체 실패를 분리한다. `401/412/network` fault injection은 각각 읽기 전용 전환, 충돌 안내, network 오류 안내 뒤 성공 삭제 보존을 확인한다. Gantt identity와 Summary 접힘·스크롤·scale 보존은 해당 시나리오에서 검증한다. fault injection 결과는 정상 서버가 동일 오류 응답을 실제 발생시켰다는 근거로 사용하지 않는다.
+
+| 근거 | 로컬 실행 상태 |
+| --- | --- |
+| 수정 전 main `6532edd8418772454b96fdeb895b90c5ab7d3d6d`, 일반 성공 삭제→정상 409 조합 2회 | PASS — 실제 SQLite/Chromium에서 원증상 미재현 |
+| 수정 전 낮은 revision 복구 GET 주입 | FAIL — 성공 삭제된 `Delete C`가 Grid에 다시 표시됨 |
+| 초기 수정 후 기존 subtree·정상 409 | PASS — 실행 당시 코드 기준 |
+| 초기 수정 후 stale/조회 실패 | FAIL — 추가 조회 실패 알림이 원래 409 toast를 덮어써 오류 문구 assertion 실패; 단일 알림으로 수정 후 재검증 필요 |
+| 중간 테스트 편집 typecheck | FAIL — 기존 subtree 테스트에 잘못 삽입된 변수 범위 오류; 최종 수정 후 재검증 필요 |
+| 확정 snapshot helper Unit | PASS — 3 tests 실제 실행; 전체 원격 회귀를 대체하지 않음 |
+| 삭제된 앞쪽 sibling 때문에 불필요한 이동을 만드는 canonical sync 회귀 | 수정 전 FAIL — delete 뒤 불필요 move 2회; 수정 후 PASS — 살아 있는 sibling 순서 비교, 관련 Unit 2 files / 12 tests |
+| 통합 typecheck·변경 TS 8개 lint·version check | PASS — infra 실행 후 초기 조회 stale fallback 보완을 포함해 독립 QA가 최종 재검증 |
+| 독립 사전 QA | PASS — 직접 5 files / 35 tests·typecheck·lint·version check·Markdown 링크 92개·diff 검증, AC/code/test/docs/화면 근거 비교. 원격 전체 회귀나 최종 코드 ACCEPT를 의미하지 않음 |
+| 최종 삭제 복구 Chromium | PASS — 7 tests / 2.5분. normal/stale/unavailable/401/412/network 각각 두 차례 성공 삭제→거부와 Grid/Chart·같은 widget/API·접힘·가로 scroll·week·reload 확인 |
+| 기존 pointer 저장·거부·GET 실패·same-revision race | PASS — 1 test / 31.8초. GET 실패의 마지막 확정 일정·동일 widget/API·bar geometry 복원을 강화 |
+| PR exact-head `quality/e2e/docker` | NOT TESTED — 이번 요청은 CI 시작까지이며 완료 모니터링 제외 |
+
+수정 전 stale 응답 재현 화면은 [before](../output/playwright/issue344-before.png), 수정 후는 [after](../output/playwright/issue344-after.png)다. 모두 실제 브라우저의 기능 상태 근거이며 날짜·Task 구성·scale이 달라 동일 fixture의 픽셀/배치 개선 비교로 사용하지 않는다. 추가 390/768/1024px 삭제 복구, 세로 scroll·selection 및 독립 keyboard/focus 검사는 NOT TESTED다. 실제 독립 UX 검토는 정적 코드·테스트·화면 비교 PASS다. 초기 전체 조회에서도 오래된 응답이 확정 snapshot을 덮지 않고 loading에 남지 않도록 보완했으며 이 분기의 별도 브라우저 조작은 NOT TESTED다. Network fixture는 요청 abort 경로이며 서버 commit 후 응답 유실·더 높은 canonical GET의 별도 브라우저 조작은 NOT TESTED다.
+
+중간 로컬 공유 개발 서버에 Turbopack HMR panic이 발생하여 해당 실행을 중단했다. 기존 `.next-e2e`를 `/tmp/mastergantt-issue344-e2e-cache-20261001`로 보존 이동한 뒤 새 캐시의 동일 설정·격리 SQLite 테스트에서 위 7개 PASS를 확보했다. CI 설정·검사 gate는 변경하지 않았다. 전체 Lifecycle/main artifact/정식 release/운영 배포의 PASS로 확대하지 않는다.
+
+
+### Issue #344 / PR #359 — CI #1373 follow-up
+
+- PR CI #1373에서 production dependency audit, policy/lifecycle static checks, typecheck, lint, Next production build, Docker smoke와 Chromium shards 1/2/4는 PASS했다.
+- Vitest는 `tests/scripts/deployment-layout.test.ts`가 `@next/env === 16.3.4`를 과거 버전으로 고정해 16.3.6 보안 패치와 불일치하여 1건 실패했다. 검증 의도는 특정 과거 버전이 아니라 standalone runtime의 `@next/env`가 framework `next`와 같은 버전으로 pin되는지이므로 동등성 검사로 수정한다.
+- Chromium shard 3/4의 단일 실패는 `project-status.spec.ts`의 readonly canonical GET에서 `read ECONNRESET`이 발생한 transport reset이다. assertion 실패, HTTP 오류 응답 또는 서버 계약 불일치가 아니며 같은 shard의 다른 테스트는 계속 PASS했다. 제품 코드를 우회하지 않고 새 PR head 전체 E2E에서 재검증한다.
+- CI #1373의 실패를 PASS로 대체하지 않는다. 후속 head의 원격 quality/E2E/Docker 결과를 별도 증거로 사용한다.
+
+
+### Issue #344 / PR #359 — CI #1374 follow-up
+
+- CI #1374의 quality, production dependency audit, lifecycle policy, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 1/2/4는 PASS했다.
+- 실패는 Chromium shard 3/4의 `project-workspace-ux.spec.ts` 1건이다. `정보` disclosure의 summary에 focus 후 Tab으로 subtree 밖으로 이동했지만 `<details open>`이 닫히지 않았다. 77개 다른 shard 테스트는 PASS했다.
+- 기존 구현은 document `focusin` listener로 외부 focus를 감지했다. disclosure 자체의 React `onBlur`에서도 `relatedTarget`이 현재 details subtree 밖이면 닫도록 보완해 keyboard focus 이동을 구성요소 경계에서 직접 처리한다. Dialog/role=dialog로 이동하는 기존 예외는 유지한다.
+- CI #1374의 실패를 PASS로 대체하지 않으며, 새 head의 원격 E2E 전체 결과를 별도 증거로 사용한다.
+
+
+### Issue #344 / PR #359 — CI #1378 follow-up
+
+- CI #1378의 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 3/4·4/4는 PASS했다.
+- shard 1/4의 13건 실패는 CI #1374 보완에서 추가한 disclosure `onBlur`가 native Dialog open 전환 중 `relatedTarget=null`을 외부 focus 이탈로 오인하여 action-menu `details`를 닫은 회귀다. 그 결과 Copy/Template Dialog가 닫힌 details 내부에서 접근 불가능해져 재인증·412·focus 복원 테스트가 연쇄 실패했다.
+- `onBlur`는 즉시 닫지 않고 다음 animation frame에 `document.activeElement`를 확인한다. 실제 focus가 details 내부 또는 `dialog/[role=dialog]`에 있으면 유지하고, 그 밖으로 이동한 경우에만 닫는다. 따라서 CI #1374의 Tab 외부 이탈 요구와 Dialog 내부 상호작용 요구를 동시에 만족하도록 한다.
+- shard 2/4의 Grid inline rename 1건은 editor input이 생성되지 않은 단일 focus 실패다. 이번 변경 영역과 독립적이고 직전 CI #1374에서 해당 shard가 PASS했으므로 제품 수정 근거로 단정하지 않고 새 head 전체 E2E에서 재검증한다.
+- CI #1378의 실패를 PASS로 대체하지 않는다.
+
+
+### Issue #344 / PR #359 — CI #1379 follow-up
+
+- CI #1379의 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 3/4·4/4는 PASS했다.
+- shard 1/4의 9건 실패는 disclosure `onBlur`가 native Dialog open lifecycle과 여전히 충돌해 Copy/Template dialog가 사라지는 동일 계열 회귀다. `onBlur` 방식은 제거한다. 일반 외부 focus는 기존 document `focusin` 계약을 유지하고, CI #1374에서 필요했던 keyboard Tab 경로는 details의 `keydown(Tab)` 후 animation frame에서 실제 `document.activeElement`가 subtree 밖인지 검사해 닫는다. Dialog 클릭/open 흐름에는 이 처리가 개입하지 않는다.
+- shard 2/4의 Grid inline rename 실패가 CI #1378과 #1379에서 구조 이동 직후 서로 다른 테스트에 반복됐다. 서버 move response와 Grid order 확인만으로 frontend canonical mutation lock 해제를 보장하지 않으므로, 공통 `renameInline` helper가 `data-task-mutation-locked != true`를 확인한 뒤 현재 row에서 editor input을 열도록 한다. 이는 제품 동작을 완화하는 것이 아니라 비동기 canonical sync 완료 경계를 테스트가 준수하게 하는 수정이다.
+- 테스트 skip/재시도 횟수 증가는 적용하지 않으며 CI #1379 실패를 PASS로 대체하지 않는다.
+
+
+### Issue #344 / PR #359 — latest main realignment
+
+- PR #359 작업 중 main에 Issue #356 변경이 먼저 병합되어 branch가 8 commits 뒤처지고 merge conflict 상태가 되었다. 최신 main은 application 0.58.5 및 Next.js/@next/env 16.3.7 보안 패치를 포함한다.
+- 충돌 해소는 최신 main의 CI/보안 변경과 16.3.7 dependency graph를 보존하고, #344 고유 lifecycle/focus/E2E 안정화만 적용한다. application version은 다음 PATCH인 0.58.6으로 증가한다.
+- stale 16.3.6 lockfile 및 중복 @next/env 고정버전 수정은 최종 tree에 포함하지 않는다. tests/scripts/deployment-layout.test.ts는 최신 main의 exact Next/@next-env equality 계약을 사용한다.
+- 최신 main 통합 head에서 PR quality/e2e/docker를 새로 판정하며 이전 #1373/#1374/#1378/#1379 결과를 최종 PASS로 재사용하지 않는다.
+
+
+
+### Issue #344 / PR #359 — CI #1382 follow-up
+
+- 최신 main 통합 head의 CI #1382에서 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke와 Chromium shards 1/3/4는 PASS했다. disclosure/Dialog 보완은 원격 E2E에서 회귀 없이 통과했다.
+- shard 2/4의 Grid reorder 4건은 공통 `renameInline` helper에서 발생했다. helper가 `hasText(name)`으로 row locator를 만든 뒤 클릭했고, SVAR editor가 열리며 표시 텍스트가 input으로 교체되자 해당 filtered row locator가 더 이상 일치하지 않아 `input element(s) not found`로 오판했다.
+- 수정은 클릭 전에 row의 stable `data-id`를 저장하고, editor open 후 해당 `data-id`로 정확한 row/input을 다시 찾는다. 또한 mutation lock 해제와 `data-task-inline-editable=true`를 명시적으로 확인한다.
+- 이는 제품 코드 수정이나 테스트 완화가 아니라 editor DOM 전환 이후에도 동일 행을 추적하는 locator 안정화다. CI #1382 실패를 PASS로 대체하지 않는다.
+
+
+### Issue #344 / PR #359 — CI #1384 이후 Codex review 보완
+
+- 최신 head `fcbf770a1e1f9bb77c9bcab4794c48a16817e832`의 CI #1384는 quality, policy/audit, TypeScript, ESLint, Vitest, Next build, Docker smoke 및 Chromium 4개 shard가 모두 PASS했다.
+- Codex P1은 same-Issue coalescing이 latest docs-only merge만 선택하면 앞선 non-docs merge의 E2E/Docker/임시 GHCR evidence를 우회할 수 있음을 지적했다. 보완 후 immediate first-parent diff의 docs-only scope가 서로 다르면 coalesce하지 않는다.
+- Codex P2는 coalescing 과정에서 earlier PR identity가 사라져 branch cleanup이 누락될 수 있음을 지적했다. 보완 후 earlier PR 번호를 cleanup obligation으로 보존해 `issue_lifecycle.py`에 반복 `--cleanup-pr`로 전달하고, formal release 성공 후 모든 branch를 공통 safe cleanup으로 정리한 뒤에만 FINAL/Issue close가 가능하다.
+- pure/static lifecycle scenario에 동일 scope 수렴, scope mismatch 비수렴, cleanup PR 전달·반복 parser 계약을 추가한다. CI #1384는 이 후속 수정 이전 head의 결과이므로 새 head PR CI로 전체 gate를 다시 판정한다.
+
+
+### Issue #344 / PR #359 — release-finalizer blocker recovery
+
+- 현재 main `af2b4f3260e9bb0a614771dd9c327d8120729713`의 Generic Finalizer #5는 pending first-parent merges 2건을 발견했으나, 과거 Issue #344 merge `714bf2fd2c1a290bf2ae1d1541f0e2068bc6b2bb`의 exact main CI #1370 실패 때문에 DEFERRED됐다. 그 결과 뒤의 Issue #356도 아직 lifecycle 처리되지 않았다.
+- 단순 #359 병합만으로는 pending이 #344(failed) → #356(Green) → #344(corrective) 순서가 되어 동일 blocker가 반복된다.
+- 보완은 실패한 older attempt와 later same-Issue corrective target을 연결하되, corrective exact main CI SUCCESS와 validation-scope coverage를 필수로 한다. 중간 Issue는 목록에서 제거하거나 재정렬하지 않는다.
+- superseded older attempt에는 release/finalize mutation을 하지 않고 branch cleanup 의무만 later corrective target으로 이관한다. middle Issue #356은 자체 exact CI/release authorization으로 먼저 처리되고, 이후 corrective #344 target이 처리된다.
+- docs-only corrective target이 non-docs 실패 attempt를 대체하지 못하는 시나리오와 corrective CI가 Green이 아니면 기존 blocker를 유지하는 시나리오를 정적 contract test에 추가한다.

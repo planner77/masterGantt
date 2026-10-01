@@ -17,7 +17,6 @@ import { LogisticsService } from "../logistics/logistics-service-core";
 import { ScheduleRepository, type LinkRecord, type TaskRecord } from "../repositories/schedule-repository-core";
 import {
   EditSessionInvalidError,
-  EmptySummaryNotAllowedError,
   InvalidParentTaskError,
   InvalidTaskInputError,
   PersistedScheduleInvalidError,
@@ -277,12 +276,6 @@ export class TaskHierarchyService {
     }
   }
 
-  private ensureOldParentRemainsValid(task: TaskRecord, tasks: readonly TaskRecord[]): void {
-    if (task.parentId === null) return;
-    if (orderedSiblings(tasks, task.parentId).length === 1) {
-      throw new EmptySummaryNotAllowedError();
-    }
-  }
 
   private makeIds(projectId: number): { publicId: string; externalId: string } {
     for (let attempt = 0; attempt < ID_ATTEMPTS; attempt += 1) {
@@ -326,7 +319,10 @@ export class TaskHierarchyService {
         assertTasksNotLinked(links, [anchor.id]);
         const target = insertionTarget(anchor, command.placement, initialTasks);
         if (command.placement === "child") this.assertParentCanContain(project.id, anchor, initialTasks, nowText, changed);
-        const scheduled = scheduleLeaf({
+        const scheduled = command.task.type === "summary"
+          ? { type: "summary" as const, scheduleMode: "auto" as const, requestedStart: null,
+              start: null, end: null, duration: null, warnings: [] }
+          : scheduleLeaf({
           type: command.task.type,
           requestedStart: command.task.start,
           duration: command.task.duration,
@@ -348,7 +344,7 @@ export class TaskHierarchyService {
           startDate: scheduled.start,
           endDate: scheduled.end,
           duration: scheduled.duration,
-          progress: command.task.progress,
+          progress: command.task.type === "summary" ? null : command.task.progress,
           parentId: target.parentId,
           sortOrder: this.schedules.nextSiblingSortOrder(project.id, target.parentId),
           createdAt: nowText,
@@ -409,7 +405,6 @@ export class TaskHierarchyService {
         if (index <= 0) throw new TaskHierarchyNoopError();
         const parent = siblings[index - 1];
         assertTasksNotLinked(links, [task.id, parent.id]);
-        this.ensureOldParentRemainsValid(task, initialTasks);
         this.assertParentCanContain(project.id, parent, initialTasks, nowText, changed);
         const oldFamily = siblings.filter((candidate) => candidate.id !== task.id);
         this.rewriteFamily(project.id, task.parentId, oldFamily, nowText);
@@ -424,7 +419,6 @@ export class TaskHierarchyService {
         if (task.parentId === null) throw new TaskHierarchyNoopError();
         const parent = initialTasks.find((candidate) => candidate.id === task.parentId);
         if (!parent) throw new PersistedScheduleInvalidError();
-        this.ensureOldParentRemainsValid(task, initialTasks);
         const oldFamily = orderedSiblings(initialTasks, task.parentId).filter((candidate) => candidate.id !== task.id);
         this.rewriteFamily(project.id, task.parentId, oldFamily, nowText);
         const upper = orderedSiblings(this.schedules.listTasks(project.id), parent.parentId);
@@ -449,8 +443,7 @@ export class TaskHierarchyService {
           family.splice(Math.min(index, family.length), 0, task);
           this.rewriteFamily(project.id, task.parentId, family, nowText);
         } else {
-          this.ensureOldParentRemainsValid(task, initialTasks);
-          if (command.placement === "child") this.assertParentCanContain(project.id, anchor, initialTasks, nowText, changed);
+            if (command.placement === "child") this.assertParentCanContain(project.id, anchor, initialTasks, nowText, changed);
           const oldFamily = orderedSiblings(initialTasks, task.parentId).filter((candidate) => candidate.id !== task.id);
           this.rewriteFamily(project.id, task.parentId, oldFamily, nowText);
           const refreshed = this.schedules.listTasks(project.id);

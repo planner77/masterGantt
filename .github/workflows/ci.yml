@@ -1,4 +1,5 @@
 name: CI
+run-name: "CI 검증 · ${{ github.event_name == 'pull_request' && github.event.pull_request.title || github.event_name == 'push' && github.event.head_commit.message || github.ref_name }}"
 
 on:
   pull_request:
@@ -28,6 +29,8 @@ jobs:
       policy: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.policy == 'true' }}
       e2e: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.e2e == 'true' }}
       docker: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.docker == 'true' }}
+      docker_baseline: ${{ github.event_name == 'pull_request' && steps.filter.outputs.docker_baseline == 'true' }}
+      transport: ${{ github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true' }}
       docs_only: ${{ steps.classify.outputs.docs_only }}
     steps:
       # actions/checkout v7.0.1
@@ -102,6 +105,33 @@ jobs:
               - 'next.config.*'
               - '.github/workflows/ci.yml'
               - '.github/actions/**'
+            docker_baseline:
+              # Standalone migration hard gate는 완료됐다. 후속 PR의 baseline 비교는
+              # image/runtime 구조 변경에만 실행해 일반 기능 PR의 이중 build를 피한다.
+              - 'deploy/docker/**'
+              - '.dockerignore'
+              - 'next.config.*'
+              - 'scripts/prepare-standalone-runtime.mjs'
+              - 'scripts/verify-image-policy.sh'
+              - 'scripts/verify-image-size-reduction.sh'
+              - '.github/workflows/ci.yml'
+              - '.github/actions/**'
+            transport:
+              # PR에서는 Origin/cookie/auth/reverse-proxy 계약에 영향을 주는 변경에만
+              # browser transport smoke를 실행한다. main/manual은 output에서 항상 true다.
+              - 'deploy/**'
+              - 'scripts/verify-transport-smoke.sh'
+              - 'tests/transport/**'
+              - 'tests/config/transport.config.ts'
+              - 'src/server/security/**'
+              - 'src/server/http/**'
+              - 'src/server/projects/**'
+              - 'src/app/api/projects/**'
+              - 'src/app/api/resource-catalog/**'
+              - 'src/app/api/logistics-catalog/**'
+              - 'src/app/api/project-master/**'
+              - '.github/workflows/ci.yml'
+              - '.github/actions/**'
 
       - name: main docs-only 변경 판정
         id: classify
@@ -138,6 +168,8 @@ jobs:
           POLICY_CHANGED: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.policy == 'true' }}
           E2E_CHANGED: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.e2e == 'true' }}
           DOCKER_CHANGED: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.docker == 'true' }}
+          DOCKER_BASELINE: ${{ github.event_name == 'pull_request' && steps.filter.outputs.docker_baseline == 'true' }}
+          TRANSPORT: ${{ github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true' }}
           DOCS_ONLY: ${{ steps.classify.outputs.docs_only || 'N/A' }}
         run: |
           {
@@ -147,6 +179,8 @@ jobs:
             printf -- '- policy: `%s`\n' "$POLICY_CHANGED"
             printf -- '- e2e: `%s`\n' "$E2E_CHANGED"
             printf -- '- docker: `%s`\n' "$DOCKER_CHANGED"
+            printf -- '- docker_baseline(PR): `%s`\n' "$DOCKER_BASELINE"
+            printf -- '- transport(PR selective, main/manual full): `%s`\n' "$TRANSPORT"
             printf -- '- docs_only(main): `%s`\n' "$DOCS_ONLY"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -316,7 +350,10 @@ jobs:
     if: needs.changes.outputs.e2e == 'true'
     needs: changes
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Playwright OS dependency install occasionally stalls on Ubuntu mirrors.
+    # Keep the four-way shard topology but allow transient setup latency without
+    # converting otherwise healthy browser tests into a 15-minute cancellation.
+    timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
@@ -401,7 +438,7 @@ jobs:
       - name: image content policy 검증
         run: sh scripts/verify-image-policy.sh mastergantt:ci
       - name: PR 기준 image와 크기 비교
-        if: github.event_name == 'pull_request'
+        if: needs.changes.outputs.docker_baseline == 'true'
         shell: bash
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -496,12 +533,14 @@ jobs:
           test "$ready" = true
           docker exec mastergantt-ci node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH, { readonly: true }); const row = db.prepare('SELECT COUNT(*) AS count FROM ci_smoke WHERE value = ?').get('persisted'); db.close(); if (row.count !== 1) process.exit(1)"
       - name: transport smoke용 Node 준비
+        if: needs.changes.outputs.transport == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: package-lock.json
       - name: production HTTP·HTTPS 전송 정책 검증
+        if: needs.changes.outputs.transport == 'true'
         run: |
           npm ci --prefer-offline --no-audit
           npx --no-install playwright install --with-deps --only-shell chromium
@@ -547,7 +586,18 @@ jobs:
 
   publish-commit-image:
     name: Main 임시 commit 이미지 게시·검증·정리
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.changes.outputs.docs_only != 'true'
+    # Optional implementation jobs may be skipped while the required aggregate
+    # gates still succeed. always() prevents transitive skip propagation; the
+    # explicit direct-result checks keep this registry mutation fail-closed.
+    if: >-
+      always() &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.changes.result == 'success' &&
+      needs.quality.result == 'success' &&
+      needs.e2e.result == 'success' &&
+      needs.docker.result == 'success' &&
+      needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [changes, quality, e2e, docker]

@@ -2,10 +2,12 @@ import {
   endFromStart,
   shiftWorkingDate,
   startFromEnd,
+  validateTaskDuration,
   type WorkingCalendar,
 } from "./calendar";
 import { MAX_HIERARCHY_TASKS } from "./hierarchy";
 import { SchedulingError } from "./errors";
+import { parseDateOnly } from "./date-only";
 
 export type DependencyType = "FS" | "SS" | "FF" | "SF";
 
@@ -14,9 +16,9 @@ export interface FinishStartDependencyTaskInput {
   readonly externalId: string;
   readonly type: "task" | "summary" | "milestone";
   readonly scheduleMode: "auto" | "manual";
-  readonly start: string;
-  readonly end: string;
-  readonly duration: number;
+  readonly start: string | null;
+  readonly end: string | null;
+  readonly duration: number | null;
 }
 
 export interface DependencyLinkInput {
@@ -54,7 +56,9 @@ export interface FinishStartDependencyResult<T extends FinishStartDependencyTask
 }
 
 type MutableTask<T extends FinishStartDependencyTaskInput> =
-  Omit<T, "start" | "end"> & { start: string; end: string };
+  Omit<T, "start" | "end"> & { start: string | null; end: string | null };
+type ValidatedLeaf<T extends FinishStartDependencyTaskInput> =
+  MutableTask<T> & { start: string; end: string; duration: number };
 
 function invalid(field: string, index?: number): never {
   throw new SchedulingError("INVALID_DEPENDENCY_INPUT", {
@@ -104,7 +108,15 @@ export function recalculateDependencies<T extends FinishStartDependencyTaskInput
     }
     taskIds.add(task.taskId);
     byExternalId.set(task.externalId, index);
-    if (task.type !== "summary") leafIndexes.push(index);
+    if (task.type !== "summary") {
+      // Nullable schedules are exclusively Summary state, never an undated leaf.
+      const start = parseDateOnly(task.start as string, "start");
+      const end = parseDateOnly(task.end as string, "end");
+      if (start > end) throw new SchedulingError("INVALID_DATE_INTERVAL", { field: "end", index });
+      if (task.type === "task") validateTaskDuration(task.duration as number);
+      else if (task.duration !== 0) throw new SchedulingError("INVALID_DURATION", { field: "duration", index });
+      leafIndexes.push(index);
+    }
   }
 
   const outgoing = tasks.map((): number[] => []);
@@ -170,13 +182,13 @@ export function recalculateDependencies<T extends FinishStartDependencyTaskInput
   const manualConflicts: FinishStartManualConflict[] = [];
 
   for (const index of order) {
-    const task = staged[index];
+    const task = staged[index] as ValidatedLeaf<T>;
     if (incoming[index].length === 0) continue;
 
     let requiredStart: string | undefined;
     let boundPredecessors: string[] = [];
     for (const { predecessorIndex, link } of incoming[index]) {
-      const predecessor = staged[predecessorIndex];
+      const predecessor = staged[predecessorIndex] as ValidatedLeaf<T>;
       let candidate: string;
 
       if (link.type === "FS") {
@@ -241,4 +253,3 @@ export function recalculateDependencies<T extends FinishStartDependencyTaskInput
 }
 
 export const recalculateFinishStartDependencies = recalculateDependencies;
-

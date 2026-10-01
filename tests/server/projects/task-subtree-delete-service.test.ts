@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 
 import { openDatabase } from "../../../src/server/db/core";
 import {
-  EmptySummaryNotAllowedError,
   PersistedScheduleInvalidError,
   ProjectService,
 } from "../../../src/server/projects/project-service-core";
@@ -120,7 +119,7 @@ describe("TaskSubtreeDeleteService", () => {
     }
   });
 
-  it("allows deleting a whole root subtree but rejects a subtree that would leave an outside summary empty", async () => {
+  it("allows deleting a whole root subtree and keeps an outside summary empty", async () => {
     const first = await fixture();
     try {
       const root = first.service.createTask(first.authorization, 1, input("ROOT")).data.tasks[0];
@@ -141,10 +140,11 @@ describe("TaskSubtreeDeleteService", () => {
       const child = second.service.createTask(second.authorization, 2, {
         ...input("ONLY"), parentTaskId: root.taskId, convertParentToSummary: true,
       }).data.tasks.find((task) => task.externalId === "ONLY")!;
-      expect(() => second.subtree.deleteTaskSubtree(second.authorization, 3, child.taskId))
-        .toThrow(EmptySummaryNotAllowedError);
-      expect(second.database.prepare("SELECT count(*) FROM tasks").pluck().get()).toBe(2);
-      expect(second.database.prepare("SELECT revision FROM projects").pluck().get()).toBe(3);
+      const deleted = second.subtree.deleteTaskSubtree(second.authorization, 3, child.taskId);
+      expect(deleted.data.tasks).toMatchObject([{ taskId: root.taskId, type: "summary",
+        start: null, end: null, duration: null, progress: null }]);
+      expect(second.database.prepare("SELECT count(*) FROM tasks").pluck().get()).toBe(1);
+      expect(second.database.prepare("SELECT revision FROM projects").pluck().get()).toBe(4);
     } finally {
       second.database.close();
     }

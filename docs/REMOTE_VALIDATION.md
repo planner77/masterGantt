@@ -37,6 +37,7 @@ main 병합 후에는 기존 main gate를 따른다. 즉 merge SHA의 `quality/e
 2. `main`에서 작업 branch/worktree를 만든다.
 3. 구현 중에는 변경과 직접 관련된 최소 로컬 테스트만 반복한다. 실패 재현을 위해 필요한 경우 범위를 확대한다.
 4. 변경을 원격 branch에 push하고 Pull Request를 생성한다.
+   Issue 기반 PR 제목에는 `Issue #345`처럼 실제 Issue 번호를 포함한다. CI 실행 제목은 PR 제목을 사용하므로 Actions 목록에서 같은 번호를 확인하고, 실제 검증 대상은 계속 exact head SHA와 run ID로 식별한다. Main push는 commit message, 수동 실행은 ref 이름이 표시되며 workflow `CI`와 required check 계약은 유지한다.
 5. PR의 `.github/workflows/ci.yml` 결과를 공식 검증으로 사용한다. `quality`, `e2e`, `docker`가 모두 성공하기 전에는 Manager가 기능을 최종 ACCEPT하지 않는다.
 6. 실패하면 GitHub run → job → step → 최초 오류를 근거로 원인을 분석한다. 로컬에서만 다시 PASS한 것은 원격 실패 해결 증거가 아니다.
 7. PR이 merge되어 `main`에 반영되면 동일 `quality`/`e2e`/`docker` gate를 수행한다. 변경이 `docs/**` 또는 저장소 루트 Markdown만 포함하는 docs-only이면 `publish-commit-image`는 SKIPPED여야 하고, 비문서 파일이 하나라도 있거나 판정이 불가능하면 기존 registry gate가 실행되어야 한다.
@@ -206,15 +207,14 @@ Workflow 파일 존재나 과거 다른 version의 성공 run은 현재 `v0.25.0
 
 ## Issue #118 구현 전후 원격 증거
 
-#118의 동일 fixture 구현 전/후 높이·screenshot 증거는 PR의 `Issue #118 구현 전후 레이아웃 증거` Workflow로 판정한다.
+#118의 동일 fixture 구현 전/후 높이·screenshot 증거는 완료된 기능의 **historical evidence**다. 일반 PR에서는 자동 실행하거나 required check로 기다리지 않으며, 재현이 필요한 경우에만 `Issue #118 구현 전후 레이아웃 증거` Workflow를 `workflow_dispatch`로 실행한다.
 
-1. 대상 PR head에서 일반 `CI`의 quality/e2e/docker가 completed/success여야 한다.
-2. 같은 PR head에서 `Issue #118 구현 전후 레이아웃 증거` run이 completed/success여야 한다.
-3. 비교 revision은 Before `703a6f08595dea06a918366192df464d7215108e`, After `6386db860af69635cfb0fe626fd1a937905b9a56`로 고정하며 두 revision에 동일 harness를 사용한다.
-4. viewport는 390×844, 768×844, 1024×844, 1440×844이며 editing/readonly 모두 같은 mock Project/Task 데이터를 사용한다.
-5. 390/768의 각 상태에서 Gantt 가시 높이 delta가 양수이고 After의 document horizontal overflow가 없으며 정보 컨트롤이 한 줄이어야 PASS다.
-6. `issue-118-before-after-evidence` artifact에 raw metrics, comparison JSON, Markdown 요약, 각 viewport/state의 before/after screenshot이 존재하는지 확인한다.
-7. 이 증거는 실제 모바일 기기·스크린리더 수동 검증을 완료한 것으로 해석하지 않는다.
+1. 재현이 필요하면 검토할 ref를 명시해 수동 실행하고 해당 run의 ref/head SHA를 기록한다.
+2. 비교 revision은 Before `703a6f08595dea06a918366192df464d7215108e`, After `6386db860af69635cfb0fe626fd1a937905b9a56`로 고정하며 두 revision에 선택한 workflow ref의 동일 harness를 사용한다.
+3. viewport는 390×844, 768×844, 1024×844, 1440×844이며 editing/readonly 모두 같은 mock Project/Task 데이터를 사용한다.
+4. 390/768의 각 상태에서 Gantt 가시 높이 delta가 양수이고 After의 document horizontal overflow가 없으며 정보 컨트롤이 한 줄이어야 PASS다.
+5. `issue-118-before-after-evidence` artifact에 raw metrics, comparison JSON, Markdown 요약, 각 viewport/state의 before/after screenshot이 존재하는지 확인한다.
+6. 이 historical evidence는 현재 PR의 일반 `CI` quality/e2e/docker나 main 검증을 대체하지 않으며, 실제 모바일 기기·스크린리더 수동 검증을 완료한 것으로 해석하지 않는다.
 
 ## Issue Lifecycle 원격 검증 (#211)
 
@@ -233,3 +233,33 @@ Workflow 파일 존재나 과거 다른 version의 성공 run은 현재 `v0.25.0
 4. `Next.js production build`의 `.next/cache`, TypeScript incremental cache, npm package cache, Docker BuildKit GHA cache restore/save 로그를 확인한다.
 5. PR은 `packages: write`를 받지 않으며 main 비문서 push만 기존 임시 GHCR publish/digest smoke/cleanup을 수행한다.
 6. 최적화 효과는 변경 전 기준 run #995의 wall-clock(quality 약 1분 36초, Docker 약 3분 30초, E2E 약 18분 45초)과 동일·유사 변경의 새 PR run을 비교한다.
+
+## Generic Release Finalizer 원격 검증 (#350)
+
+PR 단계에서는 `scripts/verify-issue-lifecycle.py`가 trigger/filter, exact mapping, authorization parser, concurrency, legacy workflow 부재를 정적으로 검증한다. Migration merge 이후에는 exact main CI 완료 뒤 다음 원격 증거를 확인한다.
+
+- Generic Release Finalizer run이 정확히 1개 생성됨
+- 삭제된 Issue별 helper/finalizer run이 새로 생성되지 않음
+- no-release merge는 `finalize`만 수행
+- release-required merge는 승인 marker가 없으면 BLOCKED
+- 승인된 release는 exact `release-image.yml` 및 digest evidence 뒤 finalize
+- 근접한 여러 merge의 CI 완료 순서가 뒤집혀도 current main first-parent backlog를 oldest → newest로 처리하며 queue burst에서도 target이 유실되지 않음
+
+실패 후에는 원인을 제거하고 기존 failed run/job 재실행을 우선한다.
+
+## Main 임시 GHCR evidence 원격 검증 (#352)
+
+비문서 main merge에서는 exact SHA의 main CI에서 다음을 서로 분리해 확인한다.
+
+1. required aggregate checks가 SUCCESS.
+2. `Main 임시 commit 이미지 게시·검증·정리` job이 실제로 생성되어 SUCCESS.
+3. Generic Finalizer가 위 artifact job evidence를 PASS로 읽은 뒤에만 lifecycle mutation을 수행.
+4. docs-only merge에서는 artifact job SKIPPED와 lifecycle의 `N/A — docs-only` evidence가 일치.
+
+Optional shard/implementation job의 SKIPPED가 있어도 aggregate required checks가 SUCCESS이면 비문서 main artifact job이 skip propagation으로 누락되지 않아야 한다.
+
+## exact main CI SHA binding (#354)
+
+Lifecycle의 exact main CI 조회는 repository의 최근 run 목록을 넓게 가져와 client-side에서 추정하지 않는다. GitHub Actions workflow-runs API에 `head_sha=<merge SHA>`를 직접 전달하고, 반환된 run에서도 `head_sha`가 target과 일치하는지 다시 검증한다. 이후 같은 exact run의 latest attempt jobs에서 main 임시 GHCR artifact evidence를 확인한다.
+
+다른 SHA의 성공 run, head_sha binding 없는 최근 run 목록, overall CI success만으로 lifecycle mutation을 허용하지 않는다.

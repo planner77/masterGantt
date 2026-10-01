@@ -466,7 +466,7 @@ Exact same-origin `Origin`이 필요하다. 현재 Project에 binding된 session
 
 ## 5. Task 표현과 API
 
-W24는 root 및 nested `task | milestone` CRUD와 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder는 아래 task-commands, atomic task-batch는 task-batch endpoint 계약을 따른다. WBS 응답 필드는 해당 절을 따른다. W24 당시 Link mutation과 FS 재계산은 W09 후속 범위였으며, 현재는 Issue #200의 FS/SS/FF/SF 및 signed lag Link 계약과 Issue #258의 연결 Task 일정 재계산 계약을 따른다. Task 생성·삭제·계층 mutation은 선택 Task 또는 mutation 영향 subtree가 Dependency endpoint를 포함할 때 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다. Issue #258부터 일반 Task/Milestone의 필드 PATCH는 관계 유무와 무관하게 아래 필드별 계약으로 허용한다. 프로젝트의 다른 Task에만 Link가 있는 경우에는 mutation을 허용하고 기존 Link를 canonical snapshot에 그대로 보존한다.
+현재 root 및 nested `task | milestone | summary` 생성과 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder는 아래 task-commands, atomic task-batch는 task-batch endpoint 계약을 따른다. WBS 응답 필드는 해당 절을 따른다. W24 당시 Link mutation과 FS 재계산은 W09 후속 범위였으며, 현재는 Issue #200의 FS/SS/FF/SF 및 signed lag Link 계약과 Issue #258의 연결 Task 일정 재계산 계약을 따른다. Task 생성·삭제·계층 mutation은 선택 Task 또는 mutation 영향 subtree가 Dependency endpoint를 포함할 때 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다. Issue #258부터 일반 Task/Milestone의 필드 PATCH는 관계 유무와 무관하게 아래 필드별 계약으로 허용한다. 프로젝트의 다른 Task에만 Link가 있는 경우에는 mutation을 허용하고 기존 Link를 canonical snapshot에 그대로 보존한다.
 
 ### Task response
 
@@ -493,7 +493,7 @@ W24는 root 및 nested `task | milestone` CRUD와 명시적 첫-child 생성에 
 - Summary의 requestedStart는 null, scheduleMode는 auto이며 start/end/duration/progress/WBS는 Scheduling Engine 결과다. Summary mode 생략은 auto로 정규화하고 manual은 거부한다. W24 API는 Summary와 parent 관계를 공개하지만 WBS 필드는 아직 HTTP DTO에 추가하지 않는다.
 - Summary span duration은 descendant leaf의 최소 start부터 최대 end까지의 working-day 수이며 자식 duration 합이 아니다.
 - Summary progress는 일반 descendant task의 duration-weighted finite 0..100 값이며 계산/저장 단계에서 반올림하지 않는다. 일반 task가 하나도 없는 milestone-only summary 정책은 Scheduling 문서를 따른다. Import의 summary date/duration/progress는 optional snapshot이고 authority가 아니며 preview가 파생 결과와의 차이를 보고한다.
-- Parent는 같은 Project의 summary만 가능하다. Empty summary, missing parent, hierarchy cycle을 거부한다.
+- Parent는 같은 Project의 summary만 가능하다. 빈 Summary를 허용하며 missing parent와 hierarchy cycle은 거부한다.
 
 ### `POST /api/projects/{publicId}/tasks`
 
@@ -531,7 +531,7 @@ Auto의 비근무 requested start는 다음 근무일로 이동해 `NON_WORKING_
 
 ### `DELETE /api/projects/{publicId}/tasks/{taskId}`
 
-기본 요청은 기존 계약을 유지하여 Root 또는 nested Leaf/Milestone **한 작업만** 삭제한다. Nested leaf 삭제 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. 마지막 child 삭제는 `EMPTY_SUMMARY_NOT_ALLOWED`, child가 있는 Summary를 명시적 subtree 의도 없이 삭제하면 `SUMMARY_DELETE_UNSUPPORTED`로 거부한다. 삭제 대상 Task가 Dependency endpoint이면 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 Task·Link·revision을 모두 보존한다. 다른 Task 사이에만 Link가 있으면 해당 Link를 보존한 채 삭제를 허용한다.
+기본 요청은 기존 계약을 유지하여 Root 또는 nested Leaf/Milestone **한 작업만** 삭제한다. Nested leaf 삭제 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. 마지막 child 삭제는 성공하고 부모 Summary를 미산정 상태로 유지한다. 자식이 없는 Summary 자체는 단건 삭제할 수 있다. child가 있는 Summary를 명시적 subtree 의도 없이 삭제하면 `SUMMARY_DELETE_UNSUPPORTED`로 거부한다. 삭제 대상 Task가 Dependency endpoint이면 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 Task·Link·revision을 모두 보존한다. 다른 Task 사이에만 Link가 있으면 해당 Link를 보존한 채 삭제를 허용한다.
 
 Issue #31부터 선택 작업과 모든 깊이의 자손을 함께 삭제할 때는 다음처럼 명시적인 query를 사용한다.
 
@@ -543,10 +543,11 @@ If-Match: "<current revision>"
 
 `includeDescendants=true`는 삭제 범위 의도이며 인증을 대체하지 않는다. 기존 Task DELETE와 동일하게 edit session, exact Origin, strong If-Match가 필요하다. 서버는 client가 전달한 자손 ID/개수를 신뢰하지 않고 write transaction 안에서 현재 저장된 parent 관계로 target subtree를 다시 계산한다. child-first로 target+전체 자손을 제거하고 남은 ancestor Summary를 재계산한 뒤 Project revision을 정확히 1 증가시킨다. 응답의 `operation.deletedTaskExternalIds`에는 실제 삭제한 전체 집합을 기록하고 canonical full snapshot을 반환한다.
 
+선택 범위 밖의 parent Summary가 비어도 삭제는 성공하고 해당 부모의 ID/type과 연결을 유지한다.
+
 다음 경우는 전체 rollback한다.
 
 - Task가 존재하지 않거나 다른 Project에 속한다.
-- 선택 범위 밖의 parent Summary가 비게 된다 (`EMPTY_SUMMARY_NOT_ALLOWED`).
 - 확인 이후 다른 write로 revision이 바뀐다 (`REVISION_MISMATCH` / HTTP 412).
 - 선택 Task/삭제 subtree에 Dependency endpoint가 포함되어 hierarchy mutation 정책을 만족하지 않는다 (`UNSUPPORTED_SCHEDULE_STRUCTURE`).
 - 저장된 계층이 cycle/고아/일정 불일치 등으로 유효하지 않다.
@@ -555,7 +556,7 @@ UI는 canonical snapshot의 자손 수를 확인창에 표시하지만 이는 �
 
 ### `POST /api/projects/{publicId}/task-batches` — W08 계획, 현재 Route 없음
 
-Empty summary를 금지하면서 summary와 첫 child를 만들거나 마지막 child를 옮기고 빈 summary를 삭제할 수 있도록 작은 atomic command endpoint를 제공한다. Edit session과 `If-Match`가 필요하다.
+다음은 후속 atomic batch endpoint 계약이다. 빈 Summary 생성·마지막 child 이동은 현재 단건/hierarchy 명령에서도 유효하며, batch에서도 Summary 유형을 유지한다. Edit session과 `If-Match`가 필요하다.
 
 ```json
 {
@@ -590,7 +591,7 @@ Batch target은 JSON externalId로 참조하며 URL CRUD의 taskId와 구분한�
 2. 현재 snapshot의 메모리 복사본에 배열 순서대로 operation을 적용한다.
 3. 같은 batch에서 먼저 생성한 external ID를 뒤 operation이 참조할 수 있다. Update/delete 대상이 그 시점에 없거나 이미 삭제되었으면 전체를 거부한다.
 4. Sibling order를 최종 parent별 contiguous 순서로 정규화한다.
-5. **최종 candidate snapshot 한 번**에 parent type, empty summary, hierarchy/dependency cycle, calendar, Manual/Auto, Summary/WBS 계산을 수행한다. 중간 candidate의 empty summary는 허용하지만 final snapshot에는 허용하지 않는다.
+5. **최종 candidate snapshot 한 번**에 parent type, empty summary, hierarchy/dependency cycle, calendar, Manual/Auto, Summary/WBS 계산을 수행한다. 중간 및 final snapshot 모두 빈 Summary와 미산정 Summary를 허용하며 부분 NULL Leaf는 거부한다.
 6. Revision을 다시 확인하고 하나의 transaction으로 저장한 뒤 canonical full snapshot을 반환한다.
 
 예를 들어 새 summary와 child를 함께 생성하거나, 기존 task를 새 summary로 감싸거나, 기존 summary의 모든 child를 명시적으로 reparent/delete한 뒤 summary를 삭제할 수 있다. `delete`는 지정한 task 하나만 삭제하며 descendant를 암묵적으로 cascade하지 않는다. 지정 task의 incident Link 삭제는 단일 delete와 동일하게 결과의 `deletedLinkIds`에 명시한다.
@@ -711,7 +712,7 @@ Readonly Project의 canonical snapshot으로 안전한 SVG를 생성한다. `Ori
 | 401 | `EDIT_SESSION_REQUIRED`, `INVALID_CREDENTIALS`, `SESSION_EXPIRED` | 인증 실패 |
 | 403 | `ORIGIN_NOT_ALLOWED` | Same-Origin/CSRF 정책 실패 |
 | 404 | `PROJECT_NOT_FOUND`, `TASK_NOT_FOUND`, `LINK_NOT_FOUND` | Scope 안에서 대상 없음 |
-| 409 | `DUPLICATE_EXTERNAL_ID`, `TASK_LIMIT_EXCEEDED`, `UNSUPPORTED_SCHEDULE_STRUCTURE`, `PARENT_CONVERSION_REQUIRED`, `INVALID_PARENT_TASK`, `EMPTY_SUMMARY_NOT_ALLOWED`, `SUMMARY_DELETE_UNSUPPORTED`, `SUMMARY_SCHEDULE_READONLY`, `DEPENDENCY_CYCLE`, `MANUAL_DEPENDENCY_CONFLICT`, `MANUAL_CALENDAR_CONFLICT`, `RESOURCE_ASSIGNMENT_SCHEDULE_CONFLICT` | 현재 aggregate와 domain/capability 충돌 |
+| 409 | `DUPLICATE_EXTERNAL_ID`, `TASK_LIMIT_EXCEEDED`, `UNSUPPORTED_SCHEDULE_STRUCTURE`, `PARENT_CONVERSION_REQUIRED`, `INVALID_PARENT_TASK`, `SUMMARY_DELETE_UNSUPPORTED`, `SUMMARY_SCHEDULE_READONLY`, `DEPENDENCY_CYCLE`, `MANUAL_DEPENDENCY_CONFLICT`, `MANUAL_CALENDAR_CONFLICT`, `RESOURCE_ASSIGNMENT_SCHEDULE_CONFLICT` | 현재 aggregate와 domain/capability 충돌 |
 | 412 | `REVISION_MISMATCH` | stale If-Match |
 | 413 | `REQUEST_TOO_LARGE`, `IMPORT_TOO_LARGE` | 일반 body 또는 Import byte/entity/depth/date range 상한 초과 |
 | 415 | `UNSUPPORTED_MEDIA_TYPE`, `UNSUPPORTED_IMPORT_FORMAT` | 허용하지 않은 형식 |
@@ -788,7 +789,7 @@ Issue #300의 Grid 이동은 기존 `{kind:"reparent", taskId, anchorTaskId, pla
 
 이동 성공 뒤 이름 수정은 최신 revision의 `PATCH /tasks/{taskId}`에 `{name}`만 전달한다. 일반 Task PATCH는 구조 필드(`parentTaskId`, `parentExternalId`, `siblingOrder`, `sort_order`)를 허용하지 않으며 rename/description/progress 변경은 저장된 parent/order를 보존한다. 이동과 후속 이름 저장은 각각 revision +1이며, 후속 PATCH가 이전 revision을 사용하면 `412`로 이름·parent/order를 모두 보존한다. Grid 이동 저장 실패는 canonical 재조회로 복구하고 성공처럼 표시하지 않는다. 새 reorder endpoint/입력 계약은 추가하지 않는다.
 
-경계 이동 등 현재 위치에서 의미 없는 명령은 `409 TASK_COMMAND_NOT_AVAILABLE`, 마지막 child 이동으로 빈 Summary가 생기면 `409 EMPTY_SUMMARY_NOT_ALLOWED`, Resource Assignment가 포함된 subtree Copy는 현재 `409 TASK_COPY_ASSIGNMENTS_UNSUPPORTED`다. stale revision은 `412 REVISION_MISMATCH`이며 부분 저장은 없다.
+경계 이동 등 현재 위치에서 의미 없는 명령은 `409 TASK_COMMAND_NOT_AVAILABLE`, 마지막 child 이동은 기존 부모 Summary를 미산정 상태로 유지하며, Resource Assignment가 포함된 subtree Copy는 현재 `409 TASK_COPY_ASSIGNMENTS_UNSUPPORTED`다. stale revision은 `412 REVISION_MISMATCH`이며 부분 저장은 없다.
 
 
 ## Issue #97 — Link mutation API (implemented)
@@ -1187,3 +1188,31 @@ Mutation은 exact Origin과 `If-Match: "<catalog revision>"`을 요구한다. st
 Resource Catalog의 Resource 응답은 `developerGrade: "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT" | null`을 포함한다. Resource 생성/수정 요청은 동일한 `developerGrade` 값을 선택적으로 받으며 빈 문자열·대소문자 변형·지원하지 않는 값은 `400 INVALID_REQUEST`로 거부한다. Group에는 개발자 등급 의미를 부여하지 않는다.
 
 `PUT /api/projects/{publicId}/logistics/systems/{systemId}/resource-roles`에서 새로운 `developer` 역할 조합은 대상 Resource의 `developerGrade`가 필수다. 미지정이면 `409 DEVELOPER_GRADE_REQUIRED`를 반환한다. migration 이전부터 존재하던 동일 `developer + grade NULL` 조합을 그대로 보존하는 요청은 호환성을 위해 허용하며, 역할 해제는 Resource 등급을 수정하지 않는다. 기존 edit-session, Origin, strong `If-Match`, project revision 계약은 유지한다.
+
+
+## Issue #289 — Project master catalog API
+
+- `GET /api/project-master/catalog`: Project 생성/편집용 active 사업부·제품·사업장/법인과 catalog revision을 반환한다.
+- `POST|DELETE /api/project-master/admin-sessions`: 별도 project-master 관리자 세션을 생성/종료하며 로그인은 bounded rate-limit을 적용한다.
+- `PUT /api/project-master/admin-password`: 인증된 관리자 비밀번호를 회전하고 기존 세션을 revoke한다.
+- `GET|POST /api/project-master/admin/items`, `PATCH /api/project-master/admin/items/{itemId}`: 전체 master 목록/usage count 조회와 추가·표시명·활성 상태·정렬 순서 변경을 제공한다. mutation은 Origin, 관리자 Cookie와 strong `If-Match` catalog revision을 요구한다.
+
+Project create/update request는 `businessUnitId/productId/siteEntityId: string | null`을 선택적으로 받는다. canonical Project DTO/List는 선택된 항목을 `{id, code, name, active}`로 반환한다. 신규 선택은 inactive를 거부하지만 현재 Project의 inactive 참조는 다른 메타데이터 저장 때문에 제거되지 않는다. 사용 중 stable code 변경은 `409 PROJECT_MASTER_ITEM_IN_USE`로 거부한다.
+
+## Issue #344 — Task DELETE 실패 후 frontend canonical 복구
+
+서버 API 계약 변경 없음. frontend의 canonical snapshot 수용·실패 복구를 보완한다. Task DELETE 성공은 기존처럼 revision을 증가시키고 canonical full snapshot을 반환한다. Issue #345 이후 마지막 child 삭제·이동은 성공한다. 유효한 거부 조건(401/412 또는 보호되는 Dependency endpoint 등)은 현재 mutation만 거부하며, 이전 성공 삭제나 revision을 되돌리지 않는다. unrelated Link 보존, 인증·Origin·strong `If-Match` 계약은 유지한다.
+
+Frontend는 현재 Project `publicId`와 마지막 확정 revision을 기준으로 snapshot을 확인한다. 다른 Project snapshot과 더 낮은 revision은 적용하지 않는다. `401/409/412/network` 실패 뒤 canonical GET은 `cache: "no-store"`로 요청하고, 확인 가능한 같은 revision 이상의 서버 snapshot만 적용한다. GET 실패 또는 오래된 응답에서는 마지막 확정 snapshot을 기존 Gantt 인스턴스에 동기화한다. 이 fallback은 서버의 현재 상태를 새로 확인했다는 의미가 아니며, 오류 안내와 재조회 경로를 유지한다. 실패한 요청을 자동 재전송하지 않는다.
+
+## Issue #345: 빈 Summary API 계약
+
+Summary는 자식 수와 무관하게 유효한 WBS 컨테이너다. 모든 canonical GET/mutation 응답에서 일정 있는 Task/Milestone 자손이 없으면 `type: summary`, `scheduleMode: auto`, `requestedStart/start/end/duration/progress: null`을 반환한다. 빈 Summary들만 중첩된 경우도 동일하다. 이름/ID/parent/order·직접 Resource/Group·물류 `self/subtree` 연결은 유지한다. Leaf의 필수 날짜·기간·진척, Summary Dependency endpoint 금지는 유지한다.
+
+`POST /api/projects/{publicId}/tasks`는 `{ "name": "설계", "type": "summary" }`와 선택적인 `parentTaskId`로 빈 Summary를 직접 생성한다. Summary의 `start/end/duration/progress` 입력은 생략 또는 명시적 null만 허용하고 `scheduleMode`는 생략/auto만 허용한다. `requestedStart`는 파생 응답 필드이며 create 입력 allowlist에 없으므로 명시하면 unknown field로 거부한다. Task/Milestone은 기존 strict schedule 입력이 필요하다. hierarchy `kind:create`의 task seed도 동일하다. Summary PATCH는 기존 이름 변경 정책을 유지하며 일정 수동 입력을 허용하지 않는다. 생성/복사 시 저장한 description/URL은 부모가 비어도 보존한다.
+
+단건 DELETE는 빈 Summary 자체를 삭제할 수 있다. 자손이 있는 Summary는 기존 `includeDescendants=true` 확인 경로를 이용한다. 마지막 child/선택 subtree 삭제 또는 reparent/indent/outdent 이후에도 범위 밖 부모가 비었다는 이유로 `EMPTY_SUMMARY_NOT_ALLOWED`를 반환하지 않는다. 한 논리적 변경의 transaction/revision/changed/deleted ID 계약과 보호 정책은 유지한다. 과거 오류 코드는 legacy error adapter의 호환 mapping만 남아 있으며 이 조건에서는 발생하지 않는다.
+
+프로젝트/Subtree copy는 null 일정 상태를 보존한다. Template preview의 `offsetDays/duration`은 미산정 Summary에 null이며 인스턴스화의 날짜 이동은 실제 Leaf에만 적용한 뒤 Summary를 재파생한다. calendar preview의 before/after 날짜 필드는 미산정 Summary에 null을 표현할 수 있다. Excel Export는 해당 행을 유지하고 null 일정 셀을 공란으로, SVG/PNG는 행을 유지하고 Grid는 —/Chart는 bar 없이 처리한다.
+
+Import는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)의 pure payload validator만 이번 범위에 포함한다. 새 Import 화면/preview/commit API는 구현하지 않으며 실제 transaction Import 성공을 주장하지 않는다.

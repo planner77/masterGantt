@@ -31,8 +31,8 @@ interface Row {
   task: ProjectTaskDto;
   depth: number;
   wbs: string;
-  start: number;
-  end: number;
+  start: number | null;
+  end: number | null;
 }
 
 function xml(value: string): string {
@@ -98,9 +98,10 @@ function orderedRows(tasks: readonly ProjectTaskDto[]): Row[] {
       throw new ProjectSvgExportError("EXPORT_UNSUPPORTED", "Canonical snapshot has an invalid task hierarchy.");
     }
     seen.add(task.externalId);
-    const start = ordinal(task.start);
-    const end = ordinal(task.end);
-    if (end < start || !Number.isFinite(task.duration) || !Number.isFinite(task.progress)) {
+    const unscheduled = task.type === "summary" && task.start === null && task.end === null && task.duration === null && task.progress === null;
+    const start = task.start === null ? null : ordinal(task.start);
+    const end = task.end === null ? null : ordinal(task.end);
+    if (!unscheduled && (start === null || end === null || end < start || task.duration === null || task.progress === null || !Number.isFinite(task.duration) || !Number.isFinite(task.progress))) {
       throw new ProjectSvgExportError("EXPORT_UNSUPPORTED", "Canonical snapshot has an invalid task schedule.");
     }
     rows.push({ task, depth, wbs, start, end });
@@ -140,8 +141,9 @@ export function buildProjectGanttSvg(snapshot: ProjectSnapshotResponse, request:
   if (snapshot.data.links.length > MAX_LINKS) {
     throw new ProjectSvgExportError("EXPORT_LIMIT_EXCEEDED", "Dependency count exceeds the SVG export limit.");
   }
-  const projectFirst = rows.length ? Math.min(...rows.map((row) => row.start)) : null;
-  const projectLast = rows.length ? Math.max(...rows.map((row) => row.end)) : null;
+  const scheduledRows = rows.filter((row): row is Row & {start:number;end:number} => row.start !== null && row.end !== null);
+  const projectFirst = scheduledRows.length ? Math.min(...scheduledRows.map((row) => row.start)) : null;
+  const projectLast = scheduledRows.length ? Math.max(...scheduledRows.map((row) => row.end)) : null;
   const first = request.scope === "range"
     ? ordinal(request.startDate)
     : projectFirst ?? ordinal("2000-01-01");
@@ -235,8 +237,8 @@ export function buildProjectGanttSvg(snapshot: ProjectSnapshotResponse, request:
       const y = rowTop + index * ROW_HEIGHT;
       const name = `${row.wbs} ${row.task.name}`;
       parts.push(`<g clip-path="url(#grid-name-clip)"><text x="${Math.min(12 + row.depth * 14, 178)}" y="${y + 18}" font-family="Arial,sans-serif" font-size="12" ${row.task.type === "summary" ? 'font-weight="700"' : ""} fill="#1e293b">${label(name, Math.max(8, 42 - row.depth * 2))}</text></g>`);
-      parts.push(`<text x="326" y="${y + 18}" font-family="Arial,sans-serif" font-size="11" fill="#475569">${row.task.start}</text>`);
-      parts.push(`<text x="430" y="${y + 18}" font-family="Arial,sans-serif" font-size="11" fill="#475569">${row.task.duration}</text>`);
+      parts.push(`<text x="326" y="${y + 18}" font-family="Arial,sans-serif" font-size="11" fill="#475569">${row.task.start ?? "—"}</text>`);
+      parts.push(`<text x="430" y="${y + 18}" font-family="Arial,sans-serif" font-size="11" fill="#475569">${row.task.duration ?? "—"}</text>`);
     });
     parts.push("</g>");
   }
@@ -252,6 +254,7 @@ export function buildProjectGanttSvg(snapshot: ProjectSnapshotResponse, request:
     if (!source || !target) {
       throw new ProjectSvgExportError("EXPORT_UNSUPPORTED", "Canonical snapshot has an unknown dependency endpoint.");
     }
+    if (source.row.end === null || target.row.start === null || source.row.task.type === "summary" || target.row.task.type === "summary") throw new ProjectSvgExportError("EXPORT_UNSUPPORTED", "Invalid dependency endpoint.");
     const x1 = chartX + (source.row.end - first + 1) * dayWidth;
     const x2 = chartX + (target.row.start - first) * dayWidth;
     if (Math.max(x1, x2) < chartX || Math.min(x1, x2) > chartX + chartWidth) continue;
@@ -261,7 +264,7 @@ export function buildProjectGanttSvg(snapshot: ProjectSnapshotResponse, request:
     parts.push(`<path d="M${x1} ${y1} H${middle} V${y2} H${x2}" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#link-arrow)"/>`);
   }
   rows.forEach((row, index) => {
-    if (row.end < first || row.start > last) return;
+    if (row.start === null || row.end === null || row.task.progress === null || row.end < first || row.start > last) return;
     const visibleStart = Math.max(row.start, first);
     const visibleEnd = Math.min(row.end, last);
     const x = chartX + (visibleStart - first) * dayWidth;

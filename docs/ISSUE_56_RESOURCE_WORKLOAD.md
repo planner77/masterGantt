@@ -116,3 +116,7 @@ Issue #56 구현 과정에서 신규 공수 영역을 `.project-page-shell`의 �
 ## Issue #76 화면 배치 갱신
 
 Issue #56 당시 Gantt 폭 회귀를 피하기 위해 사용한 page 하단 portal 배치는 Issue #76에서 폐기한다. Workload API/계산/assignment 계약은 그대로 유지하되, 표시 영역은 Project Workspace의 `리소스` tab으로 이동한다. 일정 tab과 리소스 tab은 sibling flex column으로 Gantt 폭을 나누지 않으며, tab 전환 중 Gantt panel mount를 유지해 기존 Gantt instance/state 보존 계약을 유지한다.
+
+## Issue #345: 일정 미산정 Summary
+
+Summary 직접 Resource/Group assignment는 자식이 없어도 보존한다. 공수 계산은 기존 일반 Task 직접 Resource assignment만 대상으로 하며 Summary의 null 날짜/기간/진척으로 공수를 만들지 않는다. 기본 조회 기간 min/max에서 null 날짜를 제외하고 실제 일정이 없으면 기존 표시용 조회 범위를 사용한다. 표시용 날짜를 Summary DB schedule로 저장하지 않는다.

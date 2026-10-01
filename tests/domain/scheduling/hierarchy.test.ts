@@ -77,7 +77,6 @@ describe("pure hierarchy calculation", () => {
     ["cycle and descendant", [summary("a", { parentExternalId: "b" }), summary("b", { parentExternalId: "a" }), leaf("c", { parentExternalId: "a", siblingOrder: 1 })], "PARENT_CYCLE"],
     ["task parent", [leaf("a"), leaf("b", { parentExternalId: "a" })], "INVALID_PARENT_TYPE"],
     ["milestone parent", [leaf("a", { type: "milestone", duration: 0 }), leaf("b", { parentExternalId: "a" })], "INVALID_PARENT_TYPE"],
-    ["empty summary", [summary("a")], "EMPTY_SUMMARY"],
     ["negative order", [leaf("a", { siblingOrder: -1 })], "INVALID_SIBLING_ORDER"],
     ["fractional order", [leaf("a", { siblingOrder: 0.1 })], "INVALID_SIBLING_ORDER"],
     ["duplicate sibling order", [leaf("a"), leaf("b")], "DUPLICATE_SIBLING_ORDER"],

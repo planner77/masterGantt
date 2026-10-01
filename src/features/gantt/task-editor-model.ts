@@ -39,10 +39,10 @@ function validHttpUrl(value: string): boolean {
 export function createTaskEditorDraft(task: ProjectTaskDto): TaskEditorDraft {
   return {
     name: task.name,
-    start: task.requestedStart ?? task.start,
-    duration: String(task.duration),
+    start: task.requestedStart ?? task.start ?? "",
+    duration: task.duration === null ? "" : String(task.duration),
     scheduleMode: task.scheduleMode,
-    progress: String(task.progress),
+    progress: task.progress === null ? "" : String(task.progress),
     description: task.description ?? "",
     url: task.url ?? "",
     baselineStart: task.baselineStart ?? "",
@@ -54,9 +54,9 @@ export function createTaskEditorDraft(task: ProjectTaskDto): TaskEditorDraft {
 export function copyScheduleToBaseline(draft: TaskEditorDraft, task: ProjectTaskDto): TaskEditorDraft {
   return {
     ...draft,
-    baselineStart: task.start,
-    baselineDuration: String(task.duration),
-    baselineEnd: task.end,
+    baselineStart: task.start ?? "",
+    baselineDuration: task.duration === null ? "" : String(task.duration),
+    baselineEnd: task.end ?? "",
   };
 }
 

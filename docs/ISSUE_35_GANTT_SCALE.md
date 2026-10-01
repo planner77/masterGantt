@@ -35,8 +35,7 @@ SVAR React Gantt의 `scales` 속성은 `day`, `week`, `month` 등의 시간 단�
 
 - Issue #35의 최초 표시 단위 기능은 사용자 노출 신규 기능이므로 `0.8.3`에서 `0.9.0`으로 minor version을 증가시켰다.
 - Issue #51은 기존 `주` 표시의 Header 포맷을 ISO Week로 바로잡는 호환 개선이므로 `0.11.0`에서 `0.11.1`로 patch version을 증가시킨다.
-- Issue #314는 기존 `일` 표시의 Header 문자열만 compact하게 변경하는 호환 개선이므로 `0.57.0`에서 `0.57.1`로 patch version을 증가시킨다.
-
+- Issue #314는 기존 `일` 표시의 Header 문자열만 compact하게 변경하는 호환 개선이므로 `0.58.0`에서 `0.58.1`로 patch version을 증가시킨다.
 
 ## Issue #315 Day Header Tooltip
 

@@ -356,11 +356,63 @@ Manager는 operation을 다음처럼 선택한다.
 
 `release_finalize`를 선택했다고 해서 승인을 자동 추론하지 않는다. 반드시 동일 Issue/버전 범위에 대한 명시적 `release_authorized=true` 근거와 `authorization_note`가 있어야 한다.
 
-## 자동 finalizer 확인·실패 재개 규칙
+## Generic 자동 finalizer 및 실패 재개 규칙
 
-병합 후 자동 finalize를 요청받은 경우 범용 `issue-lifecycle.yml`의 `workflow_dispatch`를 우선한다. 실행 도구에 dispatch 기능이 보이지 않더라도 즉시 BLOCKED로 결론내리지 않고, 최근 `ops/issue-<N>-finalize` PR과 대상 main merge SHA의 check-runs를 확인하여 이미 one-shot finalizer가 준비·실행되었는지 먼저 확인한다.
+정상 경로는 `.github/workflows/release-finalizer.yml`이다. `CI`의 main push run이 성공하면 generic finalizer가 실행 시점의 current main snapshot에서 first-parent backlog를 계산하고, 각 merge의 exact PR과 canonical `Refs #Issue`를 resolve하여 oldest → newest 순서로 처리한다. `workflow_run` 도착 순서 자체는 release 순서 근거로 사용하지 않는다. Issue/PR/version을 hard-code한 one-shot workflow는 사용하지 않는다.
 
-one-shot finalizer가 사용된 경우 일반 Main CI와 finalizer workflow는 서로 다른 run이다. Main CI PASS는 Gate D evidence일 뿐 Issue close 성공을 의미하지 않는다. `Finalize and close Issue <N>` 등 finalizer job의 실제 run ID와 결론을 별도로 확인한다.
+Release 필요 여부는 merge first parent와 target의 application version 차이로 판정한다. version이 동일하면 `finalize`, version이 변경되면 정식 release 대상이다. 단, release-required라는 사실과 release 승인 여부는 분리한다.
 
-finalizer가 safe branch cleanup에서 fail-closed로 중단되면 Issue를 유지하고 원인을 제거한다. 특히 다른 Open PR이 feature branch를 base/head로 사용 중이면 해당 PR의 의존성을 정리하고 최신 main/적절한 base로 재정렬한다. blocker 제거 후에는 기존 failed finalizer run/job 재실행을 우선하며, 기존 run을 재사용할 수 있는데 새 one-shot finalizer PR을 반복 생성하거나 수동 branch 삭제/Issue close로 우회하지 않는다.
+정식 release 승인은 Issue의 trusted maintainer comment에 아래 version-scoped marker로 기록한다.
 
+```text
+<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"0.59.0","note":"사용자가 정식 GHCR 게시를 승인함"} -->
+```
+
+현재 개인 소유 저장소에서는 `author_association=OWNER` marker만 신뢰한다. 모든 Issue comment page를 조회한 뒤 최신 trusted marker가 authority이며 자세한 형식/revocation 규칙은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다. 승인 부족은 BLOCKED이며 mutation하지 않는다.
+
+실패 재개 원칙:
+
+1. main CI 실패는 finalizer mutation 없이 종료한다.
+2. release 승인 부족이면 marker를 기록한 뒤 기존 failed generic finalizer job을 재실행한다.
+3. safe branch cleanup이 stacked/open PR dependency 때문에 중단되면 dependency를 최신 main/적절한 base로 정리한 후 기존 run을 재실행한다.
+4. release-image 실패는 exact tag를 이동/덮어쓰지 않고 원인을 보완하여 기존 lifecycle evidence를 재개한다.
+5. `issue-lifecycle.yml workflow_dispatch`는 generic 자동 경로를 사용할 수 없는 복구 fallback으로만 사용한다.
+
+## Main artifact evidence gate (#352)
+
+Generic/manual lifecycle의 merged target 검증은 PR required checks와 exact main CI success에 더해 **main 임시 GHCR artifact evidence**를 확인한다.
+
+- exact merge first-parent diff가 docs-only가 아니면 `Main 임시 commit 이미지 게시·검증·정리` job의 completed/success가 필수다.
+- docs-only이면 registry write는 N/A이며 해당 job의 completed/skipped를 기대한다.
+- non-docs에서 job 누락/SKIPPED/FAIL/CANCELLED이면 gate는 `NOT TESTED`로 남고 branch cleanup, FINAL comment, Issue close를 수행하지 않는다.
+- FINAL comment는 실제 job evidence를 기록하며 overall main CI success를 artifact PASS로 대체하지 않는다.
+
+
+## 연속 동일 Issue 보완 merge 수렴
+
+main CI가 실패한 merge는 release/finalize 근거가 아니므로 그대로 게시하거나 종료하지 않는다. 그 merge 직후 같은 Issue를 참조하는 보완 PR이 연속으로 merge된 경우에도 **검증 scope가 동등한 경우에만** 최신 target으로 수렴시킨다.
+
+- 각 merge의 immediate first-parent diff를 동일 docs-only 규칙으로 판정한다. 모두 docs-only이거나 모두 non-docs일 때만 coalesce한다.
+- 앞선 merge가 non-docs인데 최신 corrective merge가 docs-only인 경우처럼 scope가 다르면 수렴하지 않는다. 최신 docs-only main CI가 이전 code change의 E2E/Docker/임시 GHCR evidence를 대신할 수 없기 때문이다.
+- 다른 Issue merge가 사이에 있어도 수렴하지 않고 기존 oldest → newest 순서를 유지한다.
+- 수렴 target은 최신 merge SHA/PR을 사용하지만 release 필요 여부는 첫 시도 이전 version → 최신 version의 전체 span으로 판정한다.
+- coalesce된 모든 PR 번호를 cleanup obligation으로 보존한다. formal release가 필요하면 release 성공 후, 필요 없으면 gate PASS 후 각 merged PR branch를 공통 `safe_branch_cleanup.py`로 검증·삭제한다.
+- 이전 PR branch가 이미 없으면 safe cleanup의 idempotent 경로로 통과할 수 있지만, 보호/open dependency/tip 변경 등 하나라도 cleanup이 거부되면 FINAL marker와 Issue close를 수행하지 않는다.
+- 최신 target의 exact main CI, main artifact gate, latest PR required checks와 version-scoped OWNER release authorization은 그대로 필수다.
+- 동일 Issue라는 이유만으로 임의의 과거 merge를 건너뛰거나 다른 Issue의 실패를 우회하지 않는다.
+
+Issue #344의 CI #1370 후속 보완이 이 복구 경로의 첫 적용 사례다.
+
+
+## 실패 attempt의 후속 corrective merge 대체 검증
+
+과거 main merge의 exact CI가 실패했더라도 동일 Issue의 후속 corrective merge가 나중에 존재하고 그 **exact main CI가 SUCCESS**이면, Generic Release Finalizer는 과거 attempt 자체를 release/finalize하지 않고 후속 corrective target으로 대체할 수 있다. 이때 중간에 다른 Issue merge가 있어도 해당 Issue들은 first-parent 순서를 그대로 유지하며 각각 자신의 exact main CI와 release 조건을 독립적으로 통과해야 한다.
+
+- 후속 corrective target은 과거 attempt와 같은 Issue를 참조해야 한다.
+- corrective target의 validation scope가 과거 attempt보다 약하면 대체하지 않는다. non-docs 실패는 docs-only corrective CI로 덮을 수 없다.
+- corrective exact main CI가 아직 Green이 아니면 과거 실패 attempt는 그대로 blocker다.
+- superseded attempt에는 release/finalize mutation을 수행하지 않는다. 해당 PR branch cleanup 의무는 corrective target으로 이관한다.
+- 중간 Issue의 release/finalize 순서는 건너뛰거나 재정렬하지 않는다.
+- 이 규칙은 실패한 중간 version을 별도 정식 release하지 않고, 검증된 corrective version에서 원 Issue를 마무리하기 위한 것이다.
+
+Issue #344의 `714bf2fd…` 실패 attempt → Issue #356 `af2b4f3…` → 후속 Issue #344 corrective merge가 대표 복구 시나리오다.

@@ -77,6 +77,7 @@ function inRange(value: string, from: string, to: string): boolean {
 
 function dateMatches(task: ProjectTaskDto, filter: TaskFilterState): boolean {
   if (!filter.dateFrom || !filter.dateTo) return true;
+  if (task.start === null || task.end === null) return false;
   const from = filter.dateFrom <= filter.dateTo ? filter.dateFrom : filter.dateTo;
   const to = filter.dateFrom <= filter.dateTo ? filter.dateTo : filter.dateFrom;
   if (filter.dateOperator === "contained") return task.start >= from && task.end <= to;
@@ -110,10 +111,10 @@ export function taskMatchesFilter(
   if (!dateMatches(task, filter)) return false;
   if (filter.types.length > 0 && !filter.types.includes(task.type)) return false;
   if (filter.scheduleModes.length > 0 && !filter.scheduleModes.includes(task.scheduleMode)) return false;
-  if (filter.progressMin !== null && task.progress < filter.progressMin) return false;
-  if (filter.progressMax !== null && task.progress > filter.progressMax) return false;
-  if (filter.durationMin !== null && task.duration < filter.durationMin) return false;
-  if (filter.durationMax !== null && task.duration > filter.durationMax) return false;
+  if (filter.progressMin !== null && (task.progress === null || task.progress < filter.progressMin)) return false;
+  if (filter.progressMax !== null && (task.progress === null || task.progress > filter.progressMax)) return false;
+  if (filter.durationMin !== null && (task.duration === null || task.duration < filter.durationMin)) return false;
+  if (filter.durationMax !== null && (task.duration === null || task.duration > filter.durationMax)) return false;
 
   const assigned = assignmentIdsByTask.get(task.taskId) ?? new Set<string>();
   if (filter.assignmentState === "assigned" && assigned.size === 0) return false;

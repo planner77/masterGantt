@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.58.0] - 2026-09-30
+## [0.60.0] - 2026-10-01
 
 ### Added
 
@@ -8,14 +8,97 @@
 - 동일 날짜의 복수 Project-level 휴일명은 canonical snapshot의 optional `exceptions[].names` projection으로 중복 없이 deterministic하게 제공한다.
 - SVAR 공개 `scales[].css(date)`로 masterGantt-owned 날짜 class를 부여하고, viewport-safe `role="tooltip"` overlay를 연결한다. WORKING override와 일반 weekend에는 별도 휴일명을 추가하지 않는다.
 
+## [0.59.0] - 2026-10-01
 
-## [0.57.1] - 2026-09-30
+### Added
+
+- Issue #345: Summary를 WBS 컨테이너로 정의해 자식이 없는 Summary의 직접 생성과 마지막 자식 삭제·이동 이후 유형·ID 유지를 지원한다.
+- 일정 있는 Task/Milestone 자손이 없는 Summary의 날짜·기간·진척을 `null`로 표현하고 저장·집계·Grid/Chart·Import/Export·복사/템플릿 경로를 정합화한다. 일반 Task/Milestone의 필수 일정과 보안·revision 계약은 유지한다.
+- Import는 schema 1.0 순수 검증기·null 계약·VBA 예제까지만 추가하며 신규 preview/commit 화면/API는 #30 후속 범위다.
+
+### Changed
+
+- CI 실행 제목에 PR 제목을 포함해 `Issue #345`와 같은 관련 Issue 번호를 Actions 실행 목록에서 확인할 수 있게 한다. Workflow `CI`와 required check 이름·권한·실행 gate는 유지한다.
+- PR CI #1376의 production dependency audit 대응으로 `next`와 `@next/env`를 16.3.8로 갱신한다.
+- 빈 Summary의 canonical 날짜를 표시하는 Grid getter가 특정 render의 Task map을 캡처하지 않고 최신 canonical ref를 읽도록 변경해, 실패 복구에서도 마지막 확정 일정이 유지되게 한다.
+- migration CLI 회귀 기대값에 `0018_empty_summary_schedule.sql`과 migration ledger 18건을 반영한다.\n- CI #1381에서 확인된 빈 Summary Outdent 후 잔존 bar 회귀를 보완하기 위해 latest-ref Grid getter는 유지하고 `tasksById` 기반 column refresh trigger를 복원한다.
+- Application version을 `0.58.6`에서 `0.59.0`으로 증가한다.
+
+## [0.58.6] - 2026-10-01
+
+### Fixed
+
+- Issue #344 후속: 실패한 main CI 이후 같은 Issue의 corrective merge는 docs-only/non-docs 검증 scope가 동일할 때만 Generic Release Finalizer가 수렴하도록 하고, scope가 다르면 앞선 실패 merge를 우회하지 않는다.
+- coalesce된 모든 PR identity를 보존해 formal release 성공 후 각 branch를 공통 safe cleanup으로 검증·삭제하며, 하나라도 cleanup이 완료되지 않으면 FINAL marker와 Issue close를 금지한다.
+- 프로젝트 정보/더보기 disclosure는 native Dialog open과 충돌하는 blur 기반 닫기를 제거하고, keyboard Tab 이후 실제 focus가 disclosure 밖으로 이동한 경우에만 닫도록 보완한다.
+- Grid DnD/구조 이동 직후 inline rename 회귀 테스트는 frontend canonical mutation lock 해제를 확인한 뒤 편집을 시작해 서버 응답과 UI 동기화 완료 사이의 race를 제거한다.
+- 최신 main의 Next.js 16.3.7 보안 패치와 CI 최적화를 그대로 유지하며 이전 16.3.6 의존성 상태로 되돌리지 않는다.
+- Application version을 `0.58.5`에서 `0.58.6`으로 증가한다.
+
+## [0.58.5] - 2026-10-01
+
+### Changed
+
+- Issue #356: 일반 PR의 Docker baseline image 비교를 standalone/image 구조 변경에만 실행하고, HTTP/HTTPS transport smoke를 deploy/security/http/auth 관련 변경에만 선택 실행하여 필수 candidate/runtime smoke를 유지하면서 불필요한 이중 build·browser setup을 줄인다.
+- main push와 수동 CI에서는 transport smoke를 항상 유지하며 required aggregate check와 fail-closed routing 계약은 변경하지 않는다.
+- 완료된 Issue #118 고정 before/after 레이아웃 evidence workflow를 manual-only historical evidence로 전환하고 workflow contract·원격 검증 문서를 동기화한다.
+- 프로젝트 인증·세션 handler(`src/server/projects/**`) 변경도 PR transport smoke 대상에 포함해 API route 밖 구현 변경이 HTTP/HTTPS 검증을 우회하지 못하도록 한다.
+- CI #1368에서 감지된 Next.js `next/og ImageResponse` critical advisory 대응으로 `next`와 `@next/env`를 16.3.7로 갱신하고 lockfile을 동기화한다.
+- fresh Chromium이 격리 hosts/Nginx 설정 직후 일시적으로 `chrome-error://chromewebdata/`로 전환하는 경우 readiness 확인 뒤 최초 GET navigation만 1회 재시도하며, mutation은 재시도하지 않는다.
+- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 길어질 수 있어 E2E shard timeout을 15분에서 20분으로 조정하되 4-way shard와 `workers: 1` 격리 계약은 유지한다.
+- CI #1369에서 드러난 `@next/env` 고정 버전 회귀 테스트를 Next.js와 동일 exact version을 요구하는 계약으로 변경해 보안 patch 갱신 시 stale 숫자 기대값으로 실패하지 않도록 한다.
+- CI #1372에서 SemVer 회귀 테스트의 과도한 escape를 수정하고, shard 2가 74개 테스트를 모두 PASS한 뒤 cleanup 직전에 20분 timeout으로 취소된 실행을 근거로 E2E shard timeout을 25분으로 조정한다.
+- Application version을 `0.58.4`에서 `0.58.5`로 증가한다.
+
+## [0.58.4] - 2026-09-30
+
+### Fixed
+
+- Issue #344: 정상 삭제 성공 후 `EMPTY_SUMMARY_NOT_ALLOWED` 응답만으로 작업이 부활하는 원증상은 최신 main에서 재현되지 않았으며, 실패 복구 GET이 오래된 snapshot을 반환하는 경로에서 이전 삭제 결과를 덮어쓰는 문제를 재현하고 수정한다.
+- canonical revision guard와 `no-store` 조회, 최신 snapshot 기반 in-place 복구를 적용해 오래된 응답 또는 복구 GET 실패 이후에도 성공한 삭제 결과를 보존하며, 마지막 자식 삭제를 거부하는 도메인 정책은 유지한다.
+- 삭제 이후 남은 형제 작업의 상대 순서를 비교해 불필요한 이동 명령을 방지하고 Summary 접힘 상태를 보존한다. 복구 실패·오래된 응답·readonly 전환과 실제 포인터 편집 회귀 검증을 추가한다.
+- Application version을 `0.58.3`에서 `0.58.4`로 증가한다.
+
+## [0.58.3] - 2026-09-30
+
+### Fixed
+
+- Issue #330: 물류 유형 관리 화면의 설비/시스템 전환 버튼 정렬과 유형 추가 폼의 정렬 입력·추가 버튼 겹침을 수정하고, 390/768/1024/1440px에서 content-aware reflow와 document overflow 회귀 검증을 추가한다.
+- 목록에 전체/활성/비활성 client-side 상태 필터와 필터 결과 empty state를 추가하고, 목록 행의 세로 여백을 줄여 기존 조작성과 관리자 인증/session/catalog revision 계약을 유지한 채 정보 밀도를 높인다.
+- Application version을 `0.58.2`에서 `0.58.3`으로 증가한다.
+
+## [0.58.2] - 2026-09-30
+
+### Fixed
+
+- Issue #326: 작업 캘린더의 국가 규칙/날짜 예외 draft key 생성을 `crypto.randomUUID()` 직접 호출에서 client-local ID helper로 전환해 HTTP/IP 등 `randomUUID` 미지원 브라우저 컨텍스트에서도 추가 동작이 화면 Error Boundary로 전파되지 않도록 한다.
+- 임시 key는 Web Crypto UUID → `getRandomValues` → 비보안 로컬 fallback 순서로 생성하며 React/local draft 식별에만 사용하고 서버 canonical public ID·인증/세션 난수 정책은 변경하지 않는다.
+- helper Unit test와 `Crypto.prototype.randomUUID`를 제거한 Chromium 작업 캘린더 회귀 테스트를 추가한다.
+- Application version을 `0.58.1`에서 `0.58.2`로 증가한다.
+
+## [0.58.1] - 2026-09-30
 
 ### Changed
 
 - Issue #314: Gantt Day mode의 하위 날짜 Header를 locale 기반 날짜+요일 표기에서 day-of-month 숫자(`1`~`31`)만 표시하도록 간소화한다.
 - SVAR 공개 `scales[].format` API를 사용하며 기존 Month Header, ISO Week, 44/68px cellWidth, 주말 강조, Gantt/API instance identity와 일정 데이터 계약은 유지한다.
 - 숫자 formatter Unit test와 Day → Week → Day Chromium 회귀 검증을 추가한다.
+- PR 회귀에서 확인된 Grid DnD/selection 후 stale inline edit session을 정리해 다음 작업명 클릭이 편집기로 정상 진입하도록 보완한다.
+- Application version을 `0.58.0`에서 `0.58.1`로 증가한다.
+
+## [0.58.0] - 2026-09-30
+
+### Added
+
+- Issue #289: Project에 사업부·제품·사업장/법인 nullable 선택형 메타데이터와 전역 project-master catalog/admin API·UI를 추가한다.
+- migration `0017_project_master_catalog.sql`로 stable master 참조, category 무결성, catalog revision 및 별도 관리자 credential/session을 추가한다.
+- 전역 `/project-master-admin` 관리 화면에서 category별 항목 추가·표시명 수정·활성/비활성·정렬 순서·사용 Project 수를 관리한다.
+
+### Changed
+
+- Project 생성·설정·목록·복사·Template 경로가 동일 global master 참조를 보존하며 inactive 항목은 신규 선택에서 제외하되 기존 참조는 유지한다.
+- #280의 물류 관리자와 동일한 bounded 관리자 로그인 rate-limit 패턴을 project-master 관리자 인증에도 적용한다.
+- Application version을 `0.58.0`으로 증가한다.
 
 ## [0.57.0] - 2026-09-30
 
