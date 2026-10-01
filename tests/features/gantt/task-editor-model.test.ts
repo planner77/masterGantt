@@ -1,7 +1,25 @@
 import { describe, expect, it } from "vitest";
-import type { ProjectTaskDto } from "../../../src/contracts/projects";
-import { copyScheduleToBaseline, createTaskEditorDraft, prepareTaskEditorCommand, taskEditorIsDirty, taskEditorReadOnlyReason } from "../../../src/features/gantt/task-editor-model";
+import type { ProjectCalendarDto, ProjectTaskDto } from "../../../src/contracts/projects";
+import {
+  copyScheduleToBaseline,
+  createTaskEditorDraft,
+  prepareTaskEditorCommand,
+  synchronizeTaskEditorScheduleDraft,
+  taskEditorIsDirty,
+  taskEditorReadOnlyReason,
+  validateTaskEditorSchedule,
+} from "../../../src/features/gantt/task-editor-model";
 import { taskIdFromElement } from "../../../src/features/gantt/task-context-target";
+
+const calendar: ProjectCalendarDto = {
+  timezone: "Asia/Seoul",
+  weekendDays: [6, 0],
+  holidays: [],
+  exceptions: [
+    { date: "2026-09-21", dayType: "NON_WORKING", name: "Plant holiday" },
+    { date: "2026-09-26", dayType: "WORKING", name: "Weekend work" },
+  ],
+};
 
 const task: ProjectTaskDto = {
   taskId: "00000000-0000-4000-8000-000000000003", externalId: "LEAF", name: "Task",
@@ -9,6 +27,81 @@ const task: ProjectTaskDto = {
   type: "task", scheduleMode: "auto", requestedStart: "2026-09-19", start: "2026-09-22",
   end: "2026-09-22", duration: 1, progress: 10, parentExternalId: null, siblingOrder: 0,
 };
+
+describe("Issue #368 requested end draft synchronization", () => {
+  it("derives requested end from normalized requested start and working-day duration", () => {
+    const draft = createTaskEditorDraft(task, calendar);
+    expect(draft.requestedEnd).toBe("2026-09-22");
+
+    const durationBasis = synchronizeTaskEditorScheduleDraft(
+      task,
+      { ...draft, duration: "4" },
+      calendar,
+      "duration",
+    );
+    expect(durationBasis.requestedEnd).toBe("2026-09-25");
+    expect(validateTaskEditorSchedule(task, durationBasis, calendar, "duration")).toBeNull();
+  });
+
+  it("derives duration from requested end and respects explicit WORKING weekend exceptions", () => {
+    const draft = createTaskEditorDraft(task, calendar);
+    const endBasis = synchronizeTaskEditorScheduleDraft(
+      task,
+      { ...draft, requestedEnd: "2026-09-26" },
+      calendar,
+      "end",
+    );
+    expect(endBasis.duration).toBe("5");
+    expect(endBasis.requestedEnd).toBe("2026-09-26");
+    expect(validateTaskEditorSchedule(task, endBasis, calendar, "end")).toBeNull();
+  });
+
+  it("keeps the last explicit end date when start changes and recalculates duration", () => {
+    const draft = synchronizeTaskEditorScheduleDraft(
+      task,
+      { ...createTaskEditorDraft(task, calendar), requestedEnd: "2026-09-25" },
+      calendar,
+      "end",
+    );
+    const moved = synchronizeTaskEditorScheduleDraft(
+      task,
+      { ...draft, start: "2026-09-17" },
+      calendar,
+      "end",
+    );
+    expect(moved.requestedEnd).toBe("2026-09-25");
+    expect(moved.duration).toBe("6");
+  });
+
+  it("rejects a non-working requested end without leaking it into the update payload", () => {
+    const draft = synchronizeTaskEditorScheduleDraft(
+      task,
+      { ...createTaskEditorDraft(task, calendar), requestedEnd: "2026-09-21" },
+      calendar,
+      "end",
+    );
+    expect(draft.duration).toBe("");
+    expect(validateTaskEditorSchedule(task, draft, calendar, "end")).toEqual({
+      field: "requestedEnd",
+      message: "요청 종료일은 현재 프로젝트 캘린더의 근무일이어야 합니다.",
+    });
+    expect(prepareTaskEditorCommand(task, draft).command).toBeNull();
+  });
+
+  it("keeps requestedEnd UI-only and sends only start plus duration", () => {
+    const draft = synchronizeTaskEditorScheduleDraft(
+      task,
+      { ...createTaskEditorDraft(task, calendar), start: "2026-09-17", duration: "5" },
+      calendar,
+      "duration",
+    );
+    expect(draft.requestedEnd).toBe("2026-09-24");
+    expect(prepareTaskEditorCommand(task, draft).command?.payload).toEqual({
+      start: "2026-09-17",
+      duration: 5,
+    });
+  });
+});
 
 describe("explicit task editor commands", () => {
   it("edits requested dates separately and copies only stored effective dates", () => {
