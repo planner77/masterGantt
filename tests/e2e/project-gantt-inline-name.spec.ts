@@ -120,11 +120,16 @@ test("single-click names use one canonical PATCH across Summary, Task and Milest
   await page.reload();
   for (const name of ["Renamed summary", "002", "Renamed milestone"]) await expect(nameCell(page, name)).toBeVisible();
 
-  // Other cells and tree controls keep their native behavior and do not open an editor.
+  // Tree controls still do not open the name editor. Start-date cells now own
+  // a separate Date Picker and must not dispatch a name PATCH just by opening.
   await nameCell(page, "Renamed summary").locator('[data-action="open-task"]').click();
   await expect(inlineInput(page)).toHaveCount(0);
-  await rowNamed(page, "Renamed milestone").locator('[role="gridcell"][data-col-id=":projectStart"]').click();
+  const start = rowNamed(page, "Renamed milestone").locator('[role="gridcell"][data-col-id=":projectStart"]');
+  await start.click();
   await expect(inlineInput(page)).toHaveCount(0);
+  const datePicker = ganttRoot(page).getByRole("dialog", { name: "시작일 날짜 선택", exact: true });
+  await expect(datePicker).toBeVisible();
+  await datePicker.getByLabel("시작일 선택", { exact: true }).press("Escape");
   expect(route.patches).toHaveLength(4);
 });
 
