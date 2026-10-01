@@ -176,6 +176,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const confirmedSnapshotReference = useRef<ProjectSnapshotResponse | null>(null);
   const crossTabRefreshInFlightReference = useRef(false);
+  const crossTabPendingRevisionReference = useRef(0);
   const [permission, setPermission] = useState<Permission>("readonly");
   const [permissionCheckState, setPermissionCheckState] = useState<PermissionCheckState>("checking");
   const [retryKey, setRetryKey] = useState(0);
@@ -376,27 +377,53 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
 
   useEffect(() => {
     const key = projectRevisionStorageKey(publicId);
+
+    const refreshToPendingRevision = async () => {
+      if (crossTabRefreshInFlightReference.current || state.status !== "ready") return;
+      crossTabRefreshInFlightReference.current = true;
+      try {
+        while (true) {
+          const currentRevision = confirmedSnapshotReference.current?.data.project.revision ?? 0;
+          const targetRevision = crossTabPendingRevisionReference.current;
+          if (targetRevision <= currentRevision) break;
+
+          const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store" });
+          const body: unknown = await response.json().catch(() => null);
+          if (!response.ok || !isSnapshot(body)) {
+            notify("error", "다른 탭의 변경 사항을 확인하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인", body);
+            break;
+          }
+
+          const fetchedRevision = body.data.project.revision;
+          if (!applySnapshot(body)) {
+            notify("error", "다른 탭의 변경 사항을 현재 화면에 반영하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인", body);
+            break;
+          }
+          if (fetchedRevision <= currentRevision && crossTabPendingRevisionReference.current > fetchedRevision) {
+            notify("error", "다른 탭의 최신 변경이 아직 조회되지 않았습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인");
+            break;
+          }
+        }
+      } catch {
+        notify("error", "다른 탭의 변경 사항을 확인하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인");
+      } finally {
+        crossTabRefreshInFlightReference.current = false;
+      }
+    };
+
     const handleStorage = (event: StorageEvent) => {
-      if (event.key !== key || crossTabRefreshInFlightReference.current || state.status !== "ready") return;
+      if (event.key !== key || state.status !== "ready") return;
       const announcedRevision = Number(event.newValue);
       const currentRevision = confirmedSnapshotReference.current?.data.project.revision ?? 0;
       if (!Number.isFinite(announcedRevision) || announcedRevision <= currentRevision) return;
 
-      crossTabRefreshInFlightReference.current = true;
-      void (async () => {
-        try {
-          const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store" });
-          const body: unknown = await response.json().catch(() => null);
-          if (!response.ok || !isSnapshot(body) || !applySnapshot(body)) {
-            notify("error", "다른 탭의 변경 사항을 확인하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인", body);
-          }
-        } catch {
-          notify("error", "다른 탭의 변경 사항을 확인하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인");
-        } finally {
-          crossTabRefreshInFlightReference.current = false;
-        }
-      })();
+      crossTabPendingRevisionReference.current = Math.max(
+        crossTabPendingRevisionReference.current,
+        announcedRevision,
+      );
+      void refreshToPendingRevision();
     };
+
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
   }, [publicId, state.status, applySnapshot, notify]);
