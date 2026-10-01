@@ -552,6 +552,16 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 
 Relation Editor는 공통 native Dialog를 사용해 배경 조작과 focus 이탈을 차단한다. 공통 Dialog는 Tab/Shift+Tab 경계에서 활성·표시된 control 사이를 순환하며 disabled/hidden/inert 요소를 제외한다. 후보의 Enter/Space 선택, 후보만 닫는 Escape, dirty 종료/관계 전환 확인, 대상이 명시된 삭제 확인과 요청 중 닫기·중복 실행 방어를 제공한다. 명시적 닫기 버튼은 후보 popup이 열려 있어도 popup만 닫고 멈추지 않고 닫기/dirty 확인 흐름으로 진입한다. 관계 생성 성공 시 새 관계 방향·후보·검색·Type·Lag 초안을 기본값으로 되돌린다. 기존 부모의 호출 위치 focus 복원과 Gantt 상태를 유지하며 상세 동작은 [관계 편집 계약](TASK_RELATIONS.md#issue-266-관계-편집-dialog의-키보드초안요청-보호)을 따른다. 공통 Dialog 헤더는 긴 제목을 줄바꿈하고 닫기 버튼의 글자는 한 줄로 유지한다.
 
+## Issue #377 Task Editor 관계 탭 → Relation Editor
+
+Task Editor 관계 탭은 정보와 핵심 command를 한 곳에 두고 상세 관계 설정은 기존 Relation Editor로 progressive disclosure한다.
+
+- 편집 가능한 Task/Milestone은 관계 탭 상단의 **관계 추가**와 각 relation row의 **편집 / 삭제**를 사용한다. Readonly와 Summary는 조회 의미를 유지하고 mutation action을 노출하지 않는다.
+- 저장하지 않은 Task draft가 있으면 relation command를 disabled하고 사유를 같은 탭에 표시한다. 관계 mutation 전에 Task 초안을 강제로 폐기하거나 자동 저장하지 않는다.
+- Relation Editor를 열 때 Task Editor component/draft/active tab/scroll을 보존한다. canonical relation mutation 결과는 imperative sync로 Task Editor base에 반영하되 native Task Editor dialog를 다시 top layer에 등록하지 않는다.
+- Relation Editor를 닫으면 실제 호출 버튼으로 focus를 복귀한다. 직접 삭제 confirmation은 keyboard trigger를 기억하고 취소 버튼에 focus를 이동한 뒤 취소 시 trigger로 복원한다.
+- 390/768px에서는 relation row action이 자연스럽게 stack/wrap되고 1024/1440px에서는 선행/후행 2열 data-dense 구조를 유지한다. document/dialog horizontal overflow를 허용하지 않는다.
+
 ## Issue #203 관계선 더블클릭 Relation Editor 및 관련 아이템 검색·추가·삭제
 
 - **진입 경로 및 인터랙션**:
