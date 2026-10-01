@@ -195,6 +195,14 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 버튼 전환은 client-side view state로 동작하여 API 재조회, Project mutation, revision 증가, Gantt remount를 유발하지 않으며 SVAR 공개 `filter-tasks` action을 사용한다.
 - 390/768/1024/1440px 뷰포트와 전체화면 모드에서 컨트롤 겹침이 없어야 하며 키보드 Tab 및 ARIA pressed 상태를 지원한다.
 
+## Issue #372 — Gantt fullscreen에서 편집기 상태 보존
+
+- Gantt native fullscreen 상태에서 Task Editor를 Grid/Chart double click 또는 Context Menu → Edit으로 열 때 애플리케이션은 `document.exitFullscreen()`을 호출하지 않는다.
+- Task Editor의 저장·취소·닫기와 Relation Editor의 open/close/mutation은 사용자가 직접 fullscreen을 종료하지 않는 한 동일 `.project-gantt-frame` fullscreen과 Gantt instance를 유지한다.
+- Editor open/close는 Grid/Chart scroll, splitter, column width/visibility, Day/Week scale, selection, Summary expand/collapse, filter를 초기화하거나 API mutation을 발생시키지 않는다.
+- Readonly에서도 동일한 fullscreen 보존 규칙을 사용하고, 브라우저가 Escape 등으로 fullscreen을 종료하면 실제 `document.fullscreenElement`와 UI 상태를 동기화한다.
+- 기존 session/Origin/If-Match/revision/canonical snapshot/Task·Relation·Assignment 저장 계약은 변경하지 않는다.
+
 ## Issue #258 — 연결 Task 필드별 편집
 
 관계가 있는 leaf Task/Milestone의 metadata·progress·Baseline 편집은 현재 적용 날짜/requestedStart를 보존한다. 요청 시작일·duration·scheduleMode 변경은 전체 dependency-aware transaction으로 후행 Auto의 지연/앞당김과 Summary를 다시 계산한다. Manual/resource conflict 및 혼합 payload는 전체 rollback한다. Grid 이름·Chart 완료 gesture와 Editor는 같은 Task PATCH/canonical snapshot 계약을 사용한다. Delete/Convert/계층/Copy·Summary 정보창·권한 보호는 그대로다. R08의 초기 FS 범위 표기는 역사적 단계이며 현재 generic FS/SS/FF/SF와 lag 지원은 Scheduling/API 문서를 따른다.
