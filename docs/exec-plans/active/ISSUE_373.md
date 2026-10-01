@@ -19,6 +19,8 @@
 5. 기존 edit session이 있으면 같은 origin 새 탭에서도 기존 Task/Relation edit 계약을 사용한다. readonly에서도 navigation은 가능하다.
 6. successful higher revision을 localStorage revision event로 다른 same-origin tab에 알리고 수신 탭은 canonical Project GET으로 최신 상태를 확인한다. localStorage는 데이터/권한 source of truth가 아니다.
 7. 빈 Summary root는 유지하고 missing/non-Summary root는 scope 오류와 전체 Project 복귀를 제공한다.
+8. Review 보완: scoped root 밖으로 나가는 native/menu/shortcut/DnD hierarchy mutation을 공통 guard로 차단하고, hidden ancestor 물류 상속은 full hierarchy context에서 계산한다.
+9. Review 보완: cross-tab refresh 중 더 높은 revision이 도착하면 최고 pending revision을 누적하여 canonical snapshot이 해당 revision까지 수렴할 때까지 재조회한다.
 
 ## 파일 소유권
 
