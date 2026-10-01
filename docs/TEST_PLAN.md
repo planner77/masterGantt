@@ -82,6 +82,15 @@ CI #1381은 quality/audit/build/Docker 및 Chromium shard 1/3/4가 PASS하고 sh
 
 Resource/Group POST 실패와 성공을 구분해 실패 초안 보존·성공한 폼만 초기화를 검사한다. 지연/실패 새로고침에서 mutation 0회와 명시적 재조회, 401 재로그인 뒤 일반 초안 보존, 412 최신 revision GET 후 명시적 저장의 새 If-Match를 확인한다. 구성원 선택·검색은 재조회와 다른 폼 성공 뒤 유지하고, 사라진 선택 그룹 저장은 차단한다. 인증/비밀번호 변경 네트워크 실패에도 비밀번호를 지우고 성공 status와 오류를 구분한다. 390/768/1024/1440px 오류·긴 이름·keyboard/overflow를 검증하며 API/서버 권한 전체 회귀는 PR CI로 구분한다.
 
+## Issue #363 빈 프로젝트 생성 semantic grouping / content-aware width
+
+- `tests/e2e/project-create-layout.spec.ts`에서 project-master catalog를 긴 label fixture로 고정하고 기본 정보 → 프로젝트 분류 → 설명 → 편집 권한 section의 실제 vertical geometry 순서를 검증한다.
+- 1440/1600px에서는 프로젝트 이름 > 소유자 > 상태의 content-aware 폭 관계, 기준정보 group의 full-width 사용, 설명 영역이 편집 비밀번호보다 충분히 넓은 것을 bounding box로 확인한다.
+- 1024px에서는 기본 정보가 이름/소유자 2열 + 상태 다음 행으로 reflow하고 사업부/제품/사업장·법인이 충분한 폭에서 동일 행을 공유하는지 확인한다.
+- 768px에서는 기준정보가 2열 + 다음 행으로, 320/390px에서는 기본 정보와 기준정보가 logical DOM/tab order를 유지한 1열로 reflow하는지 확인한다.
+- 모든 검증 폭에서 document-level horizontal overflow 부재를 유지하고 기존 생성 validation/API, 기준정보 loading/error/retry, draft 보존, tab/skip-navigation 접근성 회귀는 기존 전체 E2E와 함께 실행한다.
+- API/DB/Scheduling/Security 계약은 변경하지 않으며 실제 사용자 시각 평가는 browser evidence와 별도로 구분한다.
+
 ## Issue #282 프로젝트 생성 Wide / Responsive Layout
 
 - `tests/e2e/project-create-layout.spec.ts`는 320/390/768/1024/1440/1600px에서 `/projects/new`의 site-header→NEW PROJECT 간격, main/form 실제 폭, blank/template field의 같은 행 배치 또는 narrow 단일열 reflow, document-level horizontal overflow 부재를 geometry로 검증한다.

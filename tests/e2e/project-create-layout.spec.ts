@@ -18,9 +18,30 @@ const templates = [
   },
 ];
 
+const projectMasterCatalog = {
+  data: {
+    revision: 1,
+    businessUnits: [
+      { id: "bu-1", category: "BUSINESS_UNIT", code: "SMART-FACTORY-BUSINESS", name: "스마트팩토리 자동화 사업부", active: true, sortOrder: 10 },
+    ],
+    products: [
+      { id: "product-1", category: "PRODUCT", code: "MASTER-GANTT-LOGISTICS", name: "물류자동화 통합 제어 제품군", active: true, sortOrder: 10 },
+    ],
+    siteEntities: [
+      { id: "site-1", category: "SITE_ENTITY", code: "VIETNAM-MANUFACTURING-CORP", name: "베트남 생산 법인 및 장기 명칭 사업장", active: true, sortOrder: 10 },
+    ],
+  },
+};
+
 async function installTemplates(page: Page) {
   await page.route("**/api/project-templates?activeOnly=true", (route) =>
     route.fulfill({ json: { data: templates } }),
+  );
+}
+
+async function installProjectMasterCatalog(page: Page) {
+  await page.route("**/api/project-master/catalog", (route) =>
+    route.fulfill({ json: projectMasterCatalog }),
   );
 }
 
@@ -38,7 +59,9 @@ for (const width of [320, 390, 768, 1024, 1440, 1600]) {
   test(`Issue #282: 프로젝트 생성 화면이 ${width}px에서 wide/reflow 계약을 지킨다`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await installTemplates(page);
+    await installProjectMasterCatalog(page);
     await page.goto("/projects/new");
+    await expect(page.locator("#project-business-unit")).toBeVisible();
 
     const header = await box(page.locator("header.site-header"));
     const eyebrow = await box(page.locator(".new-project-page .eyebrow"));
@@ -53,20 +76,51 @@ for (const width of [320, 390, 768, 1024, 1440, 1600]) {
       expect(blankForm.width).toBeGreaterThan(1000);
     }
 
+    const basicSection = await box(page.locator(".project-create-basic-section"));
+    const classificationSection = await box(page.locator(".project-create-classification-section"));
+    const descriptionSection = await box(page.locator(".project-create-description-section"));
+    const permissionSection = await box(page.locator(".project-create-permission-section"));
+
+    expect(classificationSection.y).toBeGreaterThan(basicSection.y + basicSection.height - 2);
+    expect(descriptionSection.y).toBeGreaterThan(classificationSection.y + classificationSection.height - 2);
+    expect(permissionSection.y).toBeGreaterThan(descriptionSection.y + descriptionSection.height - 2);
+
     const blankName = await box(page.locator("#project-name").locator(".."));
     const blankOwner = await box(page.locator("#project-owner").locator(".."));
-    const blankDescription = await box(page.locator("#project-description").locator(".."));
     const blankStatus = await box(page.locator("#project-status").locator(".."));
+    const businessUnit = await box(page.locator("#project-business-unit").locator(".."));
+    const product = await box(page.locator("#project-product").locator(".."));
+    const siteEntity = await box(page.locator("#project-site-entity").locator(".."));
+    const blankDescription = await box(page.locator("#project-description").locator(".."));
     const blankPassword = await box(page.locator("#project-edit-password").locator(".."));
 
-    if (width >= 768) {
+    if (width > 1024) {
       expect(sameRow(blankName, blankOwner)).toBe(true);
-      if (width <= 1024) expect(sameRow(blankStatus, blankPassword)).toBe(true);
+      expect(sameRow(blankName, blankStatus)).toBe(true);
+      expect(blankName.width).toBeGreaterThan(blankOwner.width);
+      expect(blankOwner.width).toBeGreaterThan(blankStatus.width);
+    } else if (width >= 768) {
+      expect(sameRow(blankName, blankOwner)).toBe(true);
+      expect(blankStatus.y).toBeGreaterThan(blankName.y + blankName.height - 2);
     } else {
       expect(blankOwner.y).toBeGreaterThan(blankName.y + blankName.height - 2);
-      expect(blankDescription.y).toBeGreaterThan(blankOwner.y + blankOwner.height - 2);
-      expect(blankStatus.y).toBeGreaterThan(blankDescription.y + blankDescription.height - 2);
-      expect(blankPassword.y).toBeGreaterThan(blankStatus.y + blankStatus.height - 2);
+      expect(blankStatus.y).toBeGreaterThan(blankOwner.y + blankOwner.height - 2);
+    }
+
+    if (width >= 1024) {
+      expect(sameRow(businessUnit, product)).toBe(true);
+      expect(sameRow(product, siteEntity)).toBe(true);
+    } else if (width >= 768) {
+      expect(sameRow(businessUnit, product)).toBe(true);
+      expect(siteEntity.y).toBeGreaterThan(businessUnit.y + businessUnit.height - 2);
+    } else {
+      expect(product.y).toBeGreaterThan(businessUnit.y + businessUnit.height - 2);
+      expect(siteEntity.y).toBeGreaterThan(product.y + product.height - 2);
+    }
+
+    if (width >= 1440) {
+      expect(classificationSection.width).toBeGreaterThan(blankForm.width - 100);
+      expect(blankDescription.width).toBeGreaterThan(blankPassword.width * 2);
     }
 
     await page.getByRole("tab", { name: "템플릿에서 만들기", exact: true }).click();
