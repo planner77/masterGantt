@@ -87,6 +87,21 @@ describe("Project task SVAR adapter", () => {
     ]);
   });
 
+  it("promotes only the scoped Summary to a visual root without changing canonical hierarchy", () => {
+    const ancestor = { ...task, taskId: "ancestor-a", externalId: "ANCESTOR", type: "summary" as const, siblingOrder: 0 };
+    const scoped = { ...task, taskId: "scoped-a", externalId: "SCOPED", type: "summary" as const, parentExternalId: "ANCESTOR", siblingOrder: 0 };
+    const child = { ...task, taskId: "child-a", externalId: "CHILD", parentExternalId: "SCOPED", siblingOrder: 0 };
+
+    const mapped = projectTasksToSvarTasks([ancestor, scoped, child], scoped.taskId);
+
+    expect(mapped).toMatchObject([
+      { id: "ancestor-a", parent: 0 },
+      { id: "scoped-a", parent: 0 },
+      { id: "child-a", parent: "scoped-a" },
+    ]);
+    expect(scoped.parentExternalId).toBe("ANCESTOR");
+  });
+
   it("turns a final bar move into start only, preserving server duration", () => {
     expect(translateProjectTaskUpdate({
       kind: "update-task", taskId: "task-a", diff: 2,

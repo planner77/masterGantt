@@ -73,7 +73,10 @@ export function normalizeInlineTaskName(value: unknown): { name: string | null; 
     : { name, error: null };
 }
 
-export function projectTasksToSvarTasks(tasks: readonly ProjectTaskDto[]): ITask[] {
+export function projectTasksToSvarTasks(
+  tasks: readonly ProjectTaskDto[],
+  viewRootTaskId: string | null = null,
+): ITask[] {
   const taskIdsByExternalId = new Map(tasks.map((task) => [task.externalId, task.taskId]));
   // Core cannot parse a date-less native summary. Its public custom type and
   // zero-length renderer coordinates preserve a row without drawing a bar.
@@ -92,7 +95,10 @@ export function projectTasksToSvarTasks(tasks: readonly ProjectTaskDto[]): ITask
       ...dates,
       ...(task.progress !== null ? { progress: task.progress } : {}),
       type: task.type === "summary" && task.start === null ? "summary-container" : task.type,
-      parent: task.parentExternalId === null
+      // A scoped WBS view may promote one Summary to a visual root. The
+      // canonical DTO parent remains unchanged and all mutations still use the
+      // full Project hierarchy.
+      parent: task.taskId === viewRootTaskId || task.parentExternalId === null
         ? 0
         : taskIdsByExternalId.get(task.parentExternalId) ?? 0,
       open: task.type === "summary" && tasks.some((candidate) => candidate.parentExternalId === task.externalId),
