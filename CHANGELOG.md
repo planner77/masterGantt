@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.63.1] - 2026-10-02
+
+### Fixed
+
+- Issue #372: Gantt native fullscreen에서 Grid/Chart 작업을 더블클릭하거나 Context Menu → Edit으로 Task Editor를 열 때 애플리케이션이 `document.exitFullscreen()`을 강제 호출하던 동작을 제거한다.
+- Task Editor의 저장·취소·닫기와 Relation Editor의 open/close가 동일 fullscreen/Gantt instance를 유지하고, 기존 scroll·tree·column·scale·selection/filter 및 focus 복원 계약을 보존한다.
+- fullscreen Editor 회귀 E2E에서 Grid/Chart 진입 경로, readonly, Relation Editor, shortcut guard와 강제 `exitFullscreen()` 호출 0회를 검증한다. Relation Link fixture는 endpoint 날짜를 가시 구간으로 정렬해 off-viewport locator timeout을 방지한다.
+- Application version을 `0.63.0`에서 `0.63.1`로 증가한다.
+
 ## [0.63.0] - 2026-10-01
 
 ### Added
