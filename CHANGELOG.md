@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.62.0] - 2026-10-01
+
+### Added
+
+- Issue #370: Project Workspace Grid의 `시작` 셀에서 Task/Milestone 시작일을 single click Date Picker로 빠르게 변경할 수 있다.
+- getter-only `projectStart` 열은 서버 확정 effective `start` 표시만 유지하고, masterGantt 소유의 compact `input[type=date]` overlay가 선택값을 기존 dependency-aware Task PATCH의 requested start 입력으로 전달한다.
+- Summary/readonly/mutation lock에서는 시작일 편집을 차단하고 Enter/Space 진입, Escape 취소/focus 복귀, 실패 시 canonical 일정 유지 및 390/768/1024/1440px 회귀 검증을 추가한다.
+
+### Changed
+
+- 시작일 셀 double-click은 기존 Task Editor 진입을 유지하며 Grid quick edit은 Core row에 임시 `projectStart` 값을 저장하지 않는다.
+- CI 시각에 따라 만료되던 logistics handler 단위 테스트의 ProjectService clock을 fixture clock과 일치시켜 결정적으로 만든다.
+- 최신 main의 Issue #368 `0.61.0`을 보존하고 하위 호환 사용자 기능 추가로 Application version을 `0.62.0`으로 증가한다.
+
 ## [0.61.0] - 2026-10-01
 
 ### Added
