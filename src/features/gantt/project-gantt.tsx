@@ -1131,11 +1131,12 @@ export function ProjectGantt({
       canMutate: () => canCreateReference.current && inlineSessionReference.current === null,
       isCanonicalSync: () => canonicalSyncDepthReference.current > 0,
       hasTask: (id) => tasksByIdReference.current.has(id),
-      dispatch: (command) => {
-        const tasks = Array.from(tasksByIdReference.current.values());
-        if (!taskHierarchyCommandStaysInSubtree(tasks, viewRootTaskIdReference.current, command)) return;
-        onTaskHierarchyCommandReference.current(command);
-      },
+      canApply: (command) => taskHierarchyCommandStaysInSubtree(
+        Array.from(tasksByIdReference.current.values()),
+        viewRootTaskIdReference.current,
+        command,
+      ),
+      dispatch: (command) => onTaskHierarchyCommandReference.current(command),
     }), { tag: "project-native-move" });
     api.detach("project-summary-update");
     api.intercept(
