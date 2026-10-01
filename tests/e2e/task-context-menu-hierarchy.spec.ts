@@ -183,7 +183,6 @@ test("Issue #373 Summary subtree opens in a new tab and edits refresh the origin
     await expect(addSubmenu.getByRole("menuitem", { name: "Child task", exact: true })).toBeEnabled();
     await expect(addSubmenu.getByRole("menuitem", { name: "Task above", exact: true })).toBeDisabled();
     await expect(addSubmenu.getByRole("menuitem", { name: "Task below", exact: true })).toBeDisabled();
-    await page.keyboard.press("Escape").catch(() => {});
     await scopedPage.keyboard.press("Escape");
 
     let firstMutationSnapshot: unknown = null;
