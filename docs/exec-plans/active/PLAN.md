@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #377 Task Editor 관계 탭 관리 — REWORK / 최신 main 재정렬·보완
+
+PR #382의 최초 head `76106b7ba939b70f90312096b4e20dc49983d7ff` CI #1449에서 ESLint와 Chromium E2E가 실패했다. 원인은 관계 mutation 성공 시 부모 `editorSession` 객체 교체로 Task Editor native dialog effect가 다시 실행되어 Relation Editor 위로 올라온 점과, 직접 삭제 confirmation의 keyboard focus handoff가 없던 점이다. 최신 main `fbcbfc9669035b153cfd029545c969596c128731` / `0.63.2`로 재정렬하고 imperative canonical sync + confirmation focus restore로 보완한다. application version은 최신 main 기준 MINOR `0.64.0`이다. 상세는 [Issue #377 실행 계획](ISSUE_377.md)을 따른다.
+
 ## Issue #372 fullscreen 편집기 상태 보존 — 최신 main 재정렬·충돌 해결 / PR CI 재시작
 
 최신 main `5fda7d963b0ba5e2e09414c1328103f9e943b564` / `0.63.1` 기준으로 다시 재정렬한다. PR CI #1485.1은 quality/e2e/docker 전체 PASS했지만 이후 Issue #375 병합이 `CHANGELOG.md`, `PROJECT_UX.md`, `TEST_PLAN.md`, `package*.json`을 변경하면서 PR #381이 behind 2 / mergeable_state dirty가 되었다. #375의 Summary bar 계약을 보존한 최신 main 위에 #372 fullscreen Editor 변경만 재적용하고 후보 version을 PATCH `0.63.2`로 조정한다. Relation E2E의 viewport fixture 안정화와 기존 fullscreen 요청 거부 회귀도 유지한다. 이번 요청 범위는 같은 PR #381의 새 head PR CI 시작까지다. 상세는 [Issue #372 실행 계획](ISSUE_372.md)을 따른다.
