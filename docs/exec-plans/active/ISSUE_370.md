@@ -102,3 +102,10 @@ Project Workspace Grid의 `시작` 셀에서 Date Picker로 Task/Milestone reque
 - CI #1452 이후 main에 Issue #378이 병합되어 application version이 0.62.0으로 상승하고 `project-gantt.tsx`의 Copy/linked-task 보호가 변경됐다.
 - #378의 linked subtree Copy/keyboard/menu 계약을 보존한 채 #370 Date Picker 변경만 최신 main에 재적용한다.
 - #370은 다음 하위 호환 기능 버전인 0.63.0으로 조정하고 새 PR head 전체 CI로 검증한다.
+
+
+## CI #1452 이후 최신 main 재정렬
+
+- main에 Issue #378이 병합되어 0.62.0과 linked subtree Copy/keyboard/menu 계약이 추가됐다.
+- #370 재정렬은 해당 변경을 보존하고 최신 main `9e22ebd1534471a67938a0d22adb2ba947066a83` 위에 Date Picker 변경만 다시 적용했다.
+- Application version은 0.63.0이며, 이 head의 PR CI 결과만 최종 검증 증거로 사용한다.
