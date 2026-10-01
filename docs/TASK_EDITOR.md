@@ -1,5 +1,11 @@
 # Issue #4 / #22 / #31 / #72 — 작업 메뉴와 Grid / Chart 작업 명령
 
+## Issue #345 미산정 Summary 계약
+
+빈 Summary 생성은 일정 도구 모음과 Context Add의 `요약 작업 추가`에서 이름·위치만 전송한다. 날짜 입력이나 임시 Task 삭제를 요구하지 않는다. 이름 수정은 기존 Grid inline 편집이며 Summary의 일정 필드 직접 편집 권한은 확대하지 않는다. Summary 정보는 readonly 파생 값이며 시작·종료·기간·진척 미산정 값은 `—`로 표시하고 진척 slider의 가짜 0%를 표시하지 않는다.
+
+마지막 child 삭제·이동 후 부모는 같은 ID/type의 Summary로 남는다. 자식 없는 Summary 자체 삭제는 기존 단일 작업 삭제이고, 자손 있는 Summary의 포함 삭제 확인은 유지한다. 아래 과거 빈 Summary/마지막 child 거부 설명은 이 현재 정책으로 대체하며 401/412/Dependency 제약과 canonical 복구 정책은 유지한다. Core adapter Renderer 좌표는 이름·일정 수정 payload에 역변환하지 않는다.
+
 ## 사용 방법과 범위
 
 프로젝트 Grid의 작업 행 또는 Chart의 작업 막대를 우클릭하면 해당 작업의 **작업 메뉴**를 먼저 연다. 메뉴의 **작업 정보**를 선택해야 기존 작업 정보 대화상자가 열린다. 메뉴를 여는 것만으로 대화상자·저장·삭제가 실행되지 않는다. 선택된 행이나 작업명이 아니라 실제 taskId로 찾는다. Tab으로 작업 행/막대에 포커스를 옮긴 뒤 Shift+F10 또는 ContextMenu 키로 메뉴를 열고, 작업 정보 항목에서 Enter로 진입할 수 있다. Escape는 메뉴를 닫는다. Grid 헤더의 우클릭/Shift+F10은 기존 표시 열 메뉴를 유지하며 두 메뉴는 동시에 표시하지 않는다. 빈 Chart, 링크, 시간축과 입력 상자에는 작업 우클릭 처리를 적용하지 않는다.
@@ -15,7 +21,7 @@
 | 작업 정보 | 제공 | 기존 보호된 편집기에서 조회/편집 여부를 판단한다. 읽기 전용 프로젝트에도 정보 조회를 제공한다. |
 | 작업 삭제 | 제공 (#31) | Edit·무연결 일정에서 실제 우클릭 taskId를 대상으로 한다. 자손이 있으면 범위 확인 후 `includeDescendants=true`로 원자 삭제한다. |
 | Add / Cut / Copy / Paste | 제공 (#72) | Cut/Copy는 프로젝트 화면의 clipboard 상태만 갱신하고 Paste 시 서버의 원자 계층 명령을 호출한다. Add는 child/above/below 위치를 명시한다. |
-| Convert / Move / Indent / Outdent | 제공 (#72) | 현재 canonical hierarchy에서 유효한 명령만 활성화하고 서버가 parent/sibling order와 Summary를 재계산한다. 빈 Summary 또는 Link 포함 일정은 fail-closed한다. |
+| Convert / Move / Indent / Outdent | 제공 (#72) | 현재 canonical hierarchy에서 유효한 명령만 활성화하고 서버가 parent/sibling order와 Summary를 재계산한다. Link 포함 일정은 fail-closed하며 빈 Summary는 #345 현재 정책에 따라 유지한다. |
 
 삭제 메뉴는 Readonly·mutation 진행 중이거나 **선택 Task/삭제 subtree가 Link endpoint를 포함하는 경우** 비활성화 또는 서버에서 거부한다. 프로젝트의 unrelated Link만으로는 선택 Task를 잠그지 않는다. 자손 없는 작업은 기존 단건 DELETE, 자손이 있는 작업은 작업명·자손 수·총 삭제 수를 보여주는 확인창을 거쳐 명시적 subtree DELETE를 사용한다. 취소/Escape/닫기는 DELETE 0회이며 확인 시점 revision이 바뀌면 412 후 최신 범위를 다시 확인한다.
 
@@ -69,7 +75,7 @@ PR #16의 초기 시간축 범위 확대 및 canonical sync 종료 시점 입력
 
 Cut은 선택 Task를 즉시 삭제하거나 이동하지 않는다. Copy와 함께 현재 Project revision을 포함한 client clipboard만 만든다. Paste는 `POST /api/projects/{publicId}/task-commands`를 호출하며 Cut은 `reparent`, Copy는 `copy` 명령으로 변환한다. 성공 응답의 canonical snapshot만 동일 Gantt instance에 동기화하고 revision 변경 시 기존 clipboard는 폐기한다. Canonical snapshot의 parent/sibling 구조 변경은 SVAR의 공개 `move-task` action으로 반영하고, 일반 `update-task`에 parent를 직접 덮어쓰지 않는다. 이 규칙은 hierarchy 변경 뒤 recovery remount 없이 동일 Gantt instance를 유지하기 위한 회귀 계약이다. Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D는 input/textarea/dialog/contenteditable 밖의 실제 Task target에서만 동작한다.
 
-Leaf→Summary는 빈 Summary를 영속화하지 않는 기존 모델 때문에 직접 변환 항목을 비활성화한다. Task↔Milestone은 자식이 없는 Leaf에서만 허용한다. Task를 child parent로 사용하는 Add/Indent/Paste는 기존 first-child 정책과 동일하게 해당 Task를 transaction 안에서 Summary로 전환한다. subtree Copy에 Resource Assignment가 존재하면 조용히 누락하지 않고 현재 단계에서는 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 거부한다.
+Leaf→Summary의 명시적인 Convert 명령 확대는 #345 범위 밖이므로 직접 변환 항목은 비활성화한다. 이는 빈 Summary 자체의 생성·영속화 금지라는 의미가 아니다. Task↔Milestone은 자식이 없는 Leaf에서만 허용한다. Task를 child parent로 사용하는 Add/Indent/Paste는 기존 first-child 정책과 동일하게 해당 Task를 transaction 안에서 Summary로 전환한다. subtree Copy에 Resource Assignment가 존재하면 조용히 누락하지 않고 현재 단계에서는 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 거부한다.
 
 
 ## Issue #74 — 탭 기반 Task Editor UX

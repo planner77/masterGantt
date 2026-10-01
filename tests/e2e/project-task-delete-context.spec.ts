@@ -105,7 +105,7 @@ test("confirms and atomically deletes the right-clicked task subtree without rem
 });
 
 
-for (const recovery of ["normal", "stale", "unavailable", "401", "412", "network"] as const) test(`keeps confirmed deletions after repeated last-child rejection (${recovery})`, async ({ page }, testInfo) => {
+for (const recovery of ["normal", "stale", "unavailable", "401", "412", "network"] as const) test(`keeps confirmed deletions after repeated mutation rejection (${recovery})`, async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/projects/new");
@@ -167,13 +167,14 @@ for (const recovery of ["normal", "stale", "unavailable", "401", "412", "network
         if (recovery === "stale") await route.fulfill({ json: snapshot });
         else await route.abort("failed");
       });
-      if (["401", "412", "network"].includes(recovery)) await page.route(`**${api}/tasks/${snapshot.data.tasks.find((task) => task.name === "Keep last child")!.taskId}`, async (route) => {
+      // Empty Summary is now valid. Preserve #344 recovery coverage with a
+      // still-valid dependency rejection rather than the retired empty-parent policy.
+      await page.route(`**${api}/tasks/${snapshot.data.tasks.find((task) => task.name === "Keep last child")!.taskId}`, async (route) => {
         if (recovery === "network") await route.abort("failed");
-        else await route.fulfill({ status: Number(recovery), json: { error: { code: recovery === "401" ? "EDIT_SESSION_REQUIRED" : "REVISION_MISMATCH", message: "Injected recovery rejection", details: [] } } });
+        else await route.fulfill({ status: recovery === "401" ? 401 : recovery === "412" ? 412 : 409, json: { error: { code: recovery === "401" ? "EDIT_SESSION_REQUIRED" : recovery === "412" ? "REVISION_MISMATCH" : "UNSUPPORTED_SCHEDULE_STRUCTURE", message: "Injected recovery rejection", details: [] } } });
       });
       await deleteThroughGrid("Keep last child");
-      await expect(page.getByTestId("workspace-toast")).toContainText(recovery === "401" ? "편집 권한이 만료" : recovery === "412" ? "다른 편집 내용" : recovery === "network" ? "네트워크 연결" : "상위 요약 작업이 비게 됩니다");
-      if (recovery === "stale") await page.screenshot({ path: "output/playwright/issue344-after.png" });
+      await expect(page.getByTestId("workspace-toast")).toContainText(recovery === "401" ? "편집 권한이 만료" : recovery === "412" ? "다른 편집 내용" : recovery === "network" ? "네트워크 연결" : "관계가 연결된 작업");
       for (const entry of deleted) await expect(page.getByRole("grid").getByText(entry, { exact: true })).toHaveCount(0);
       await expect(page.getByRole("grid").getByText("Keep last child", { exact: true })).toBeVisible();
       await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);

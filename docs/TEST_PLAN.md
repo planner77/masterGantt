@@ -13,6 +13,26 @@
 - `tests/scripts/test-config-layout.test.ts`와 `tests/scripts/deployment-layout.test.ts`가 위 workflow/dependency contract를 고정한다.
 - 공식 전체 회귀 판정은 최신 main 재정렬 후 동일 PR head의 quality/e2e/docker 결과를 사용한다.
 
+## Issue #345 빈 Summary 검증
+
+현재 정책은 빈 Summary 생성·마지막 child 삭제/이동 성공이다. 아래 W24/#31/#300/#344의 당시 `EMPTY_SUMMARY_NOT_ALLOWED` 검증은 역사적 근거이며 현재 acceptance를 대체하지 않는다. Leaf 날짜 필수·Summary Dependency 금지·401/Origin/If-Match/412·원자성 보호는 유지한다.
+
+- `project-task-adapter.test.ts`: UI custom type 영폭 좌표의 유효성, 원본 null DTO 불변성, Renderer 날짜/진척 역전송 거부와 이름-only 변경.
+- `project-search-filter.test.ts`: 이름/type 검색, 미산정 날짜·진척·기간의 직접 매칭 제외.
+- `project-empty-summary.spec.ts`: 설치 Core 2.7.3 실제 Grid 행과 bar wrapper 0개, 전체 미산정 중첩 Summary의 no-bar/`—`/readonly 생성 차단.
+- `project-empty-summary-persistence.spec.ts`: 실제 SQLite/API Root Summary 이름-only payload와 null canonical, 390/768/1024/1440px overflow·화면 근거, 첫 child/마지막 child 2회 전환, 같은 Core API instance/scale/재조회 보존.
+- `project-task-delete-context.spec.ts`: #344 6가지 실패 복구는 현재도 유효한 Dependency409/401/412/network 주입을 사용하며 앞선 성공 삭제·Tree/scroll/scale/instance 보존을 검증한다. fault injection은 실제 서버 오류 발생 근거와 구분한다.
+
+초기 browser probe의 날짜 없는 native Summary는 Core parse 예외로 FAIL, 날짜 없는 custom type은 no-bar 실패였다. [승인된 Renderer 전용 adapter](PRO_FEATURE_MATRIX.md#issue-345-빈-summary-core-273-표현)는 가짜 날짜를 canonical에 저장하거나 DOM bar를 숨기지 않는다. 최초 실제 persistence test는 test 비밀번호가 12자 상한을 넘어서 프로젝트 생성 전 validation으로 FAIL했고, readonly fixture assert는 fixture의 기본 편집 session을 끄지 않아 FAIL했다. 두 fixture를 수정했으며 제품 회귀와 구분한다. 로컬 최종 결과는 Issue/PR에 기록하며 원격 CI 완료 전 `quality/e2e/docker`는 NOT TESTED다.
+
+CI 시작 증거는 exact PR head SHA, run ID/URL, 실제 실행 제목의 `Issue #345`를 함께 확인한다. 기존 Workflow name `CI`, required `quality/e2e/docker` check 식별자와 policy gate는 유지한다. 실행 시작 확인은 최종 원격 회귀 PASS를 의미하지 않으며 이번 요청에서 CI 모니터링·병합·릴리스는 수행하지 않는다.
+
+로컬 실제 결과(2026-10-01): 관련 Unit 5 files / 80 tests PASS. Chromium 후속 21 tests(빈 Summary 3 + 기존 Editor 18) PASS, #344 recovery 6 + subtree 1 PASS. 추가 실제 초기 빈 프로젝트→Summary 생성 직후 Grid 이름 편집은 초기 columns editor가 빈 Task map을 캡처하여 FAIL했다. current ref를 읽는 editor 자격 판단으로 수정했고 긴 한국어 이름 저장·4폭 캡처·keyboard Enter 생성·nested collapse/expand·last child Outdent까지 강화한 최종 persistence 1 test PASS(9.4초, 전체 실행 28.1초). mock Core 2 tests도 PASS다. 관련 변경에서 실제 실행한 범위이며 전체 원격 회귀 PASS는 아니다. 시각 근거는 `output/playwright/issue345-empty-{390,768,1024,1440}.png`와 `output/playwright/issue345-nested-1440.png`다.
+
+독립 UX 검토에서 null Editor의 초기 schedule dirty 비교가 빈 문자열과 null을 다르게 취급해 저장 안내를 잘못 표시함을 확인하고 normalize했다. 최종 persistence 시나리오는 기간·진척 `—`, 잘못된 저장 안내 없음, Escape 닫기도 검증한다. columns dependency 정리 중 captured canonical map 갱신을 제거하면 last child Outdent 후 Core bar가 남는 FAIL이 발생했다. `tasksById`를 읽는 canonical Grid getter와 공개 `set-columns` 동기화를 유지하도록 수정했으며 최종 persistence 1 test PASS(7.2초, 전체 실행 19.4초), 관련 Unit 80 tests PASS다. 이 변경에서 새로 발생한 실패를 이전 PASS로 숨기지 않는다.
+
+CI #1381은 quality/audit/build/Docker 및 Chromium shard 1/3/4가 PASS하고 shard 2/4의 `project-empty-summary-persistence.spec.ts` 1건만 실패했다. API/DB에서는 Outdent 후 nested Summary가 `start=null`로 정상 전환됐지만 Core bar가 남았다. 원인은 #1376 stale Grid 보완에서 getter를 latest ref로 바꾸면서 `columns`의 `tasksById` dependency까지 제거해 public `set-columns` refresh trigger가 사라진 것이다. getter는 latest ref를 유지하고 dependency만 복원해 stale Grid와 empty-Summary bar 제거 요구를 동시에 만족하도록 한다. CI #1381 실패는 PASS로 재사용하지 않는다.
+
 ## Issue #330 물류 유형 관리 화면 정렬·상태 필터·밀도 개선
 
 - Chromium E2E는 설비 유형/시스템 유형 전환 버튼의 `aria-pressed`와 동일한 control 높이를 확인하고, 전체/활성/비활성 필터가 이미 조회한 catalog snapshot에서 client-side로만 동작하여 추가 GET·mutation·catalog revision 변경을 만들지 않는지 검증한다.
@@ -182,12 +202,12 @@ Resource/Group POST 실패와 성공을 구분해 실패 초안 보존·성공�
 ### Issue #31 작업 subtree 삭제
 
 - Unit: 실제 taskId 기준 자손 탐색이 모든 깊이를 포함하고 형제를 제외하며 cycle/unknown을 안전하게 처리한다.
-- SQLite service: subtree를 child-first로 같은 transaction에서 삭제하고 남은 Summary를 재계산한다. root 전체 subtree는 허용하되 선택 범위 밖 Summary가 비면 `EMPTY_SUMMARY_NOT_ALLOWED`로 rollback한다.
+- SQLite service: subtree를 child-first로 같은 transaction에서 삭제하고 남은 Summary를 재계산한다. 선택 범위 밖 Summary가 비면 같은 ID/type을 유지하며 일정만 null로 만든다(#345). Link·권한 등 유효한 거부는 rollback한다.
 - API/security: 기본 DELETE는 기존 단건 의미를 유지하고 `includeDescendants=true`만 subtree를 활성화한다. session/Origin/If-Match/Project isolation, stale 412, Link 포함 409, revision 정확히 1 증가를 검증한다.
 - Chromium 실제 API: Grid/Chart 우클릭의 정확한 target, 삭제 메뉴, 자손 확인의 작업명/개수, 취소 전 DELETE 0회, 확인 후 subtree DELETE 1회, sibling 보존, canonical Grid/Chart 동기화, Gantt instance 유지와 reload persistence를 검증한다.
 - GitHub Actions `quality/e2e/docker`의 최종 동일 head 실행을 공식 회귀 근거로 사용한다. 실제 스크린리더·Windows/사내 브라우저 최종 UX는 별도 환경 검증이다.
 
-W24: Project 목록 table 및 authorized DELETE 확인/취소/성공/실패, 401/403/404/412/428과 cascade/rollback/isolation을 검증한다. Gantt Header root·row child 추가, first-child 명시 Summary 전환, nested leaf 변경 후 ancestor 집계·reload, milestone parent와 마지막 child 삭제 거부를 포함한다. Default browser-local today/1day, locale/date-only timezone, 토/일 음영, 외부ID 표시 토글, Project 및 Grid/Chart header의 내부 scroll 중 위치 유지도 검증한다. 실제 결과는 [W24_REVIEW.md](W24_REVIEW.md)에 기록한다.
+당시 W24: Project 목록 table 및 authorized DELETE 확인/취소/성공/실패, 401/403/404/412/428과 cascade/rollback/isolation을 검증했다. Gantt Header root·row child 추가, first-child 명시 Summary 전환, nested leaf 변경 후 ancestor 집계·reload, milestone parent와 마지막 child 삭제 거부를 포함했다(마지막 child는 #345 이후 성공). Default browser-local today/1day, locale/date-only timezone, 토/일 음영, 외부ID 표시 토글, Project 및 Grid/Chart header의 내부 scroll 중 위치 유지도 검증했다. 실제 결과는 [W24_REVIEW.md](W24_REVIEW.md)에 기록한다.
 
 W23 목록 검증: D02 공개 summary 필드 allowlist, 인증 없이 GET 200/no-store, 빈 목록과 DB 오류 구분, 최신 수정순·동률 정렬, 생성→목록 복귀→reload→새 브라우저 direct Readonly, 기존 Mutation 무인증 거부 회귀. 결과는 [W23_REVIEW.md](W23_REVIEW.md)에 기록한다. W04 당시 collection GET 405 검증은 역사적 기록이며 W23에서 200 계약으로 대체한다.
 
@@ -819,7 +839,7 @@ CI policy/static scenario에서 최소 다음을 검증한다.
 
 Unit은 `tests/features/projects/canonical-snapshot-recovery.test.ts`에서 r10 삭제 전→r11 삭제 성공→오래된 r10 복구 거부, 마지막 확정 task set replay, 같은/높은 revision 허용, Project identity 분리를 검증한다. 기존 canonical sync 테스트는 native 임시 변화 복구에 사용하는 공개 SVAR action 경로를 검증한다.
 
-서버 검증은 `tests/server/projects/task-delete-recovery.test.ts`에서 정상 삭제 성공 뒤 마지막 child 삭제 `409 EMPTY_SUMMARY_NOT_ALLOWED`, 기존 성공 삭제·revision 유지, canonical GET 일치와 subtree/unrelated Link 보존·DB 재오픈을 확인한다. 관련 3 files / 23 tests의 실제 실행 근거는 [서버 검증 기록](ISSUE_344_SERVER_VALIDATION.md)을 따른다. 서버 transaction·도메인 정책 변경은 없다.
+당시 #344 서버 검증은 `tests/server/projects/task-delete-recovery.test.ts`에서 정상 삭제 성공 뒤 마지막 child 삭제 `409 EMPTY_SUMMARY_NOT_ALLOWED`, 기존 성공 삭제·revision 유지, canonical GET 일치와 subtree/unrelated Link 보존·DB 재오픈을 확인했다. 관련 3 files / 23 tests의 실제 실행 근거는 [서버 검증 기록](ISSUE_344_SERVER_VALIDATION.md)을 따른다. 당시 서버 transaction·도메인 정책 변경은 없었으며 #345는 빈 Summary 허용으로 이를 대체한다.
 
 Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQLite 서버를 사용한다. 일반 Task 삭제 성공→마지막 child 거부를 두 차례 반복하고 Grid/Chart task set, GET revision, 실패 child 유지, 이후 정상 삭제 및 reload를 검증한다. 복구 GET에 삭제 전 낮은 revision snapshot을 주입하는 경우와 GET 자체 실패를 분리한다. `401/412/network` fault injection은 각각 읽기 전용 전환, 충돌 안내, network 오류 안내 뒤 성공 삭제 보존을 확인한다. Gantt identity와 Summary 접힘·스크롤·scale 보존은 해당 시나리오에서 검증한다. fault injection 결과는 정상 서버가 동일 오류 응답을 실제 발생시켰다는 근거로 사용하지 않는다.
 

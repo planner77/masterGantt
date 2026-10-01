@@ -11,17 +11,14 @@ import { parseCreateTaskInput } from "./task-contract";
 const uuid = z.string().refine(isCanonicalUuidV4);
 const placement = z.enum(["before", "after", "child"]);
 
-const createSeed = z.object({
-  name: z.string(),
-  description: z.string().nullable().optional(),
-  url: z.string().nullable().optional(),
-  type: z.enum(["task", "milestone"]),
-  scheduleMode: z.enum(["auto", "manual"]).optional(),
-  start: z.string(),
-  end: z.string().optional(),
-  duration: z.number().int(),
-  progress: z.number().finite(),
-}).strict();
+const createSeed = z.union([
+  z.object({ name: z.string(), description: z.string().nullable().optional(), url: z.string().nullable().optional(),
+    type: z.enum(["task", "milestone"]), scheduleMode: z.enum(["auto", "manual"]).optional(),
+    start: z.string(), end: z.string().optional(), duration: z.number().int(), progress: z.number().finite() }).strict(),
+  z.object({ name: z.string(), description: z.string().nullable().optional(), url: z.string().nullable().optional(),
+    type: z.literal("summary"), scheduleMode: z.literal("auto").optional(),
+    start: z.null().optional(), end: z.null().optional(), duration: z.null().optional(), progress: z.null().optional() }).strict(),
+]);
 
 const commandSchema = z.discriminatedUnion("kind", [
   z.object({

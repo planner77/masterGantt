@@ -227,15 +227,6 @@ describe("Issue #300 hierarchy persistence after Grid move and non-structural ed
         [
           {
             kind: "reparent",
-            taskId: f.ids.B,
-            anchorTaskId: f.ids.C,
-            placement: "after"
-          },
-          409, "EMPTY_SUMMARY_NOT_ALLOWED"
-        ],
-        [
-          {
-            kind: "reparent",
             taskId: f.ids.A,
             anchorTaskId: f.ids.C,
             placement: "child"

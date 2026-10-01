@@ -1,5 +1,11 @@
 # masterGantt 공통 UI/UX 기준
 
+## Issue #345 Summary 구조와 미산정 일정 구분
+
+Summary의 유형·이름·계층과 일정의 유무는 별개다. 일정 없는 Summary도 Grid/Chart의 동일 행에 남고 bar만 없다. Grid 이름의 보조 설명과 접근 가능한 `aria-description`은 실제 전체 계층에서 자식 0개와 일정 있는 자손 0개를 구분한다. 접기·검색으로 숨겨진 child 수를 빈 상태로 오인하지 않는다. readonly에서는 생성 명령을 노출하지 않고 saving에서는 중복 생성·편집을 차단한다. 기존 메뉴 keyboard/Escape/focus 복원을 재사용하며 도구 모음은 작은 폭에서 wrap한다.
+
+Renderer 좌표는 [빈 Summary Core adapter 계약](PRO_FEATURE_MATRIX.md#issue-345-빈-summary-core-273-표현)에 한정한다. 필드 표시·정렬·검색·진척·완료·Mutation·Export는 서버 canonical 값만 사용한다. 실제 browser 검증은 [TEST_PLAN.md](TEST_PLAN.md)의 #345 기록과 원격 CI 결과를 구분한다.
+
 적용: Issue #87, 2026-09-22. Issue #76의 UX-01~12를 공통 설계 기준으로 선행 정리한다. 이 문서 추가는 #76 Workspace나 다른 화면 재설계의 구현 완료를 뜻하지 않는다. 제품 시각 언어와 화면 설계 방향은 저장소 루트의 [DESIGN.md](../DESIGN.md)를 Source of Truth로 사용한다. 이 문서는 interaction·접근성·반응형·검증 규칙을 구체화한다. 기존 동작 계약은 [PROJECT_UX.md](PROJECT_UX.md), 도메인/권한은 [REQUIREMENTS.md](REQUIREMENTS.md)와 [SECURITY.md](SECURITY.md)를 함께 따른다.
 
 ## 책임과 적용

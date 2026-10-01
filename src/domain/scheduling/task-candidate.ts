@@ -16,7 +16,7 @@ export function recalculateTaskCandidate<T extends HierarchyTaskInput>(
     const scheduled = scheduleLeaf({
       type: task.type,
       requestedStart: task.requestedStart as string,
-      duration: task.duration,
+      duration: task.duration as number,
       scheduleMode: task.scheduleMode,
     }, calendar);
     return { ...task, start: scheduled.start, end: scheduled.end };

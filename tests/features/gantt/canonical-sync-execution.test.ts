@@ -11,6 +11,14 @@ function firstChildSnapshot() {
 }
 
 describe("canonical SVAR action execution", () => {
+  it("opens a previously empty renderer container only after its first nested container is inserted", async () => {
+    const parent: ITask = { id: "parent", type: "summary-container", parent: 0, open: false };
+    const child: ITask = { id: "child", type: "summary-container", parent: "parent", open: false };
+    const exec = vi.fn().mockResolvedValue(undefined);
+    await applyCanonicalGanttSync({ exec }, { tasks: [parent], links: [] }, { tasks: [parent, child], links: [] });
+    expect(exec.mock.calls.map(([action]) => action)).toEqual(["add-task", "open-task"]);
+    expect(exec).toHaveBeenLastCalledWith("open-task", { id: "parent", mode: true });
+  });
   it("inserts the first child before opening its converted parent, even with live snapshot objects", async () => {
     const { leaf, summary, child } = firstChildSnapshot();
     let childInserted = false;

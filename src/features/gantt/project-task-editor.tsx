@@ -70,7 +70,7 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   const locked = busy || operation !== null;
   const readOnly = !!restriction || stale;
   const scheduleReadOnly = readOnly;
-  const scheduleDirty = draft.start !== (base.task.requestedStart ?? base.task.start) || draft.duration !== String(base.task.duration) || draft.scheduleMode !== base.task.scheduleMode;
+  const scheduleDirty = draft.start !== (base.task.requestedStart ?? base.task.start ?? "") || draft.duration !== (base.task.duration === null ? "" : String(base.task.duration)) || draft.scheduleMode !== base.task.scheduleMode;
 
   useEffect(() => {
     mountedReference.current = true;
@@ -200,20 +200,20 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
             <div className={styles.field}>
               <label htmlFor="task-progress">진행률 (%)</label>
               <span className={styles.sliderRow}>
-                <input id="task-progress" aria-valuetext={draft.progress + "%"} name="task-progress" type="range" min="0" max="100" step="1" value={draft.progress} disabled={locked || scheduleReadOnly} onChange={(event) => change("progress", event.target.value)} />
-                <span className={styles.progressValue} aria-live="polite">{draft.progress}%</span>
+                {base.task.progress === null ? <output id="task-progress" aria-label="진행률 미산정">—</output> : <input id="task-progress" aria-valuetext={draft.progress + "%"} name="task-progress" type="range" min="0" max="100" step="1" value={draft.progress} disabled={locked || scheduleReadOnly} onChange={(event) => change("progress", event.target.value)} />}
+                <span className={styles.progressValue} aria-live="polite">{base.task.progress === null ? "미산정" : `${draft.progress}%`}</span>
               </span>
             </div>
             <div className={styles.scheduleFields}>
               <label className={styles.field}>요청 시작일<input name="task-start" type="date" min="1900-01-01" max="2199-12-31" value={draft.start} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("start", event.target.value)} /></label>
-              <label className={styles.field}>기간 (근무일)<input name="task-duration" type="number" min={base.task.type === "milestone" ? 0 : 1} max="10000" step="1" value={draft.duration} readOnly={scheduleReadOnly || base.task.type === "milestone"} disabled={locked} onChange={(event) => change("duration", event.target.value)} /></label>
+              <label className={styles.field}>기간 (근무일){base.task.duration === null ? <output className={styles.outputField} aria-label="기간 미산정">—</output> : <input name="task-duration" type="number" min={base.task.type === "milestone" ? 0 : 1} max="10000" step="1" value={draft.duration} readOnly={scheduleReadOnly || base.task.type === "milestone"} disabled={locked} onChange={(event) => change("duration", event.target.value)} />}</label>
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>적용 시작일</span>
-                <output className={styles.outputField} aria-label="적용 시작일">{base.task.start}</output>
+                <output className={styles.outputField} aria-label="적용 시작일">{base.task.start ?? "—"}</output>
               </div>
               <div className={styles.field}>
                 <span className={styles.fieldLabel}>적용 종료일</span>
-                <output className={styles.outputField} aria-label="적용 종료일">{base.task.end}</output>
+                <output className={styles.outputField} aria-label="적용 종료일">{base.task.end ?? "—"}</output>
               </div>
             </div>
             <label className={styles.field}>일정 모드<select name="task-schedule-mode" value={draft.scheduleMode} disabled={locked || readOnly} onChange={(event) => change("scheduleMode", event.target.value)}><option value="auto">자동 (Auto)</option><option value="manual">수동 (Manual)</option></select></label>

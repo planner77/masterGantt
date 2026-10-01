@@ -349,6 +349,8 @@ CI/GitHub orchestration 또는 docs-only 변경은 application version을 유지
 
 ## Issue #250 CI 실행 시간 최적화
 
+CI 실행 표시 제목은 `run-name`의 `CI 검증 · <PR 제목>` 형식이다. Issue 기반 PR 제목에는 `Issue #345`처럼 실제 Issue 번호를 포함해 Actions 목록에서 대상 업무를 식별한다. Main push는 commit message, 수동 실행은 ref 이름을 대체값으로 사용한다. `run-name`은 표시용이며 Generic Finalizer가 참조하는 workflow `name: CI`, required check 이름·job 식별자, event·permission·quality gate는 변경하지 않는다. [GitHub run-name 공식 문서](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#run-name)를 기준으로 `github` context를 사용한다.
+
 PR/main의 공식 required check 이름은 기존 Ruleset 계약을 유지한다.
 
 - `Build, static checks, and unit tests`
