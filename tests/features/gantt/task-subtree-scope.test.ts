@@ -4,6 +4,7 @@ import type { ProjectTaskDto } from "../../../src/contracts/projects";
 import {
   canOpenTaskAsSubtreeRoot,
   resolveTaskSubtreeScope,
+  taskHierarchyCommandStaysInSubtree,
 } from "../../../src/features/gantt/task-subtree-scope";
 
 function task(
@@ -62,6 +63,46 @@ describe("Issue #373 task subtree scope", () => {
     expect(scope.kind).toBe("valid");
     if (scope.kind !== "valid") throw new Error("expected valid scope");
     expect(scope.taskIds).toEqual(["empty"]);
+  });
+
+  it("blocks hierarchy commands that would escape the scoped root", () => {
+    expect(taskHierarchyCommandStaysInSubtree(tasks, "root", {
+      kind: "create",
+      anchorTaskId: "root",
+      placement: "before",
+      task: { name: "Outside", type: "task", start: "2026-10-01", duration: 1, progress: 0 },
+    })).toBe(false);
+    expect(taskHierarchyCommandStaysInSubtree(tasks, "root", {
+      kind: "create",
+      anchorTaskId: "root",
+      placement: "child",
+      task: { name: "Inside", type: "task", start: "2026-10-01", duration: 1, progress: 0 },
+    })).toBe(true);
+    expect(taskHierarchyCommandStaysInSubtree(tasks, "root", {
+      kind: "outdent",
+      taskId: "child",
+    })).toBe(false);
+    expect(taskHierarchyCommandStaysInSubtree(tasks, "root", {
+      kind: "outdent",
+      taskId: "grandchild",
+    })).toBe(true);
+    expect(taskHierarchyCommandStaysInSubtree(tasks, "root", {
+      kind: "reparent",
+      taskId: "child",
+      anchorTaskId: "root",
+      placement: "after",
+    })).toBe(false);
+    expect(taskHierarchyCommandStaysInSubtree(tasks, "root", {
+      kind: "copy",
+      taskId: "child",
+      anchorTaskId: "root",
+      placement: "child",
+    })).toBe(true);
+    expect(taskHierarchyCommandStaysInSubtree(tasks, null, {
+      kind: "move",
+      taskId: "root",
+      direction: "up",
+    })).toBe(true);
   });
 
   it("distinguishes missing and non-summary deep links and supports the unscoped view", () => {
