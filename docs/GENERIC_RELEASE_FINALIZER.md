@@ -1,5 +1,11 @@
 # Generic Release Finalizer
 
+## 실행 인스턴스 추적 (#361)
+
+Generic Finalizer의 workflow 식별자와 trigger는 그대로 유지하면서 `run-name`은 triggering Main CI의 `workflow_run.display_title`을 계승한다. 따라서 PR 단계에서 검증된 Primary Issue/PR trace가 Main CI 표시명에 보존되어 있으면 Finalizer Actions 목록에서도 같은 문자열을 검색할 수 있다. Finalizer 자체 재실행은 별도의 `github.run_number.github.run_attempt`로 구분한다.
+
+승인된 release 경로에서 `issue_lifecycle.py`는 `release-image.yml` workflow dispatch에 Primary Issue와 PR 번호를 input으로 전달한다. 이 metadata는 표시용이며 release authorization, version/tag authority, exact SHA/digest 검증이나 first-parent 처리 순서를 대체하지 않는다.
+
 Issue #350에서 Issue별 one-shot finalizer를 제거하고 main CI 이후 lifecycle을 하나의 공용 경로로 통합한다.
 
 ## Trigger

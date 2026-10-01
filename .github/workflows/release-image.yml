@@ -1,5 +1,8 @@
 name: Publish release image
 
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch' && inputs.issue_number != '' && inputs.pr_number != '' && format('GHCR Release · Issue #{0} · PR #{1} · {2} · Run #{3}.{4}', inputs.issue_number, inputs.pr_number, github.ref_name, github.run_number, github.run_attempt) || format('GHCR Release · {0} · Run #{1}.{2}', github.ref_name, github.run_number, github.run_attempt) }}
+
 on:
   push:
     tags:
@@ -8,6 +11,15 @@ on:
   # 새 workflow를 재귀 실행하지 않으므로, 같은 tag ref를 명시해 수동 실행할 수 있다.
   # prepare job의 SemVer/package 일치 및 annotated tag 검증은 동일하게 적용된다.
   workflow_dispatch:
+    inputs:
+      issue_number:
+        description: "관련 Primary Issue 번호(자동 lifecycle 경로에서 전달)"
+        required: false
+        type: string
+      pr_number:
+        description: "관련 Pull Request 번호(자동 lifecycle 경로에서 전달)"
+        required: false
+        type: string
 
 # A release tag must never have its publish run cancelled by a later push.
 concurrency:
