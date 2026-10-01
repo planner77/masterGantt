@@ -475,7 +475,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
 });
 
 
-test("Issue #104 unrelated task context actions stay enabled when other tasks are linked", async ({ page }) => {
+test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/Paste", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
@@ -524,7 +524,22 @@ test("Issue #104 unrelated task context actions stay enabled when other tasks ar
 
   const linkedMenu = await openTaskMenu(page, "Linked A");
   await expect(linkedMenu.getByRole("menuitem", { name: "Edit", exact: true })).toBeEnabled();
-  for (const name of ["Add", "Convert to", "Cut", "Copy", "Move", "Delete"]) {
+  await expect(linkedMenu.getByRole("menuitem", { name: "Copy", exact: true })).toBeEnabled();
+  for (const name of ["Add", "Convert to", "Cut", "Move", "Delete"]) {
     await expect(linkedMenu.getByRole("menuitem", { name, exact: true })).toBeDisabled();
   }
+
+  await linkedMenu.getByRole("menuitem", { name: "Copy", exact: true }).click();
+  const linkedTargetMenu = await openTaskMenu(page, "Linked B");
+  await expect(linkedTargetMenu.getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
+  await runSubmenu(page, "Paste", "Below");
+  await expectStructureToast(page);
+
+  const afterCopy = await snapshot(page, api);
+  expect(afterCopy.data.tasks.filter((task) => task.name === "Linked A")).toHaveLength(2);
+  expect(afterCopy.data.links).toHaveLength(1);
+  expect(afterCopy.data.links[0]).toMatchObject({
+    predecessorExternalId: a.externalId,
+    successorExternalId: b.externalId,
+  });
 });
