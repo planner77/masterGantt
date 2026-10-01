@@ -132,7 +132,7 @@ test("Issue #373 Summary subtree opens in a new tab and edits refresh the origin
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Subtree scope ${suffix}`);
-  await page.getByLabel("편집 비밀번호", { exact: true }).fill("ScopePwd1234!");
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("ScopePwd123!");
   await submitProjectAndExpectCreated(page);
   await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
 
@@ -220,7 +220,7 @@ test("Issue #72 hierarchy commands persist across reload without remounting the 
   const initial = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
   const a = await createRootTask(page, api, origin, initial.data.project.revision, "Alpha");
   const b = await createRootTask(page, api, origin, a.data.project.revision, "Beta");
-  const c = await createRootTask(page, api, origin, b.data.project.revision, "Gamma");
+  await createRootTask(page, api, origin, b.data.project.revision, "Gamma");
 
   await page.reload();
   await expect(row(page, "Gamma")).toBeVisible();
