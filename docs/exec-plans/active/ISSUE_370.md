@@ -52,3 +52,10 @@ Project Workspace Grid의 `시작` 셀에서 Date Picker로 Task/Milestone reque
 - Chromium shard 2에서 pointer single click은 SVAR Grid가 bubble click을 소비해 부모 onClick까지 도달하지 않는 경우가 있어 Picker가 열리지 않았다. 시작일 quick-edit 진입은 onClickCapture에서 처리한다.
 - keyboard Enter 경로는 Picker가 정상 open됐지만 native input[type=date]가 Escape를 bubble 전에 소비해 overlay가 남았다. Picker input의 onKeyDownCapture에서 Escape를 선점하여 닫고 원래 셀 focus를 복원한다.
 - #1438 실패를 PASS로 대체하지 않으며 새 head의 전체 PR CI 결과로 다시 판정한다.
+
+
+## 최신 main 재정렬 — CI #1441 전
+
+- CI #1438 보완 직후 main에 PR #376의 동일 logistics session clock 결정화가 병합되어 branch가 2 commits 뒤처졌다.
+- 해당 main 변경은 #370 branch에 이미 동일 내용으로 포함되어 있었으므로 최신 main `2dc06f772390ba41c0687ab2a22353f6c077fc80`을 기준으로 #370 변경만 다시 적용했다.
+- 재정렬 head의 PR CI를 새로 시작하며 이전 #1441 pending 실행은 최종 검증 근거로 사용하지 않는다.
