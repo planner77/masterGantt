@@ -253,9 +253,10 @@ export function filterTasksWithAncestors(
   filter: TaskFilterState,
   assignments: readonly ProjectAssignmentDto[] | undefined,
   logistics?: ProjectLogisticsDto | undefined,
+  logisticsContextTasks: readonly ProjectTaskDto[] = tasks,
 ): Readonly<{ tasks: ProjectTaskDto[]; matchCount: number }> {
   const assigned = buildAssignmentIdsByTask(assignments);
-  const effectiveLogistics = buildTaskEffectiveLogisticsMap(tasks, logistics);
+  const effectiveLogistics = buildTaskEffectiveLogisticsMap(logisticsContextTasks, logistics);
   const matching = tasks.filter((task) => taskMatchesFilter(task, filter, assigned, effectiveLogistics));
   const matchingExternalIds = new Set(matching.map((task) => task.externalId));
   const byExternalId = new Map(tasks.map((task) => [task.externalId, task]));
