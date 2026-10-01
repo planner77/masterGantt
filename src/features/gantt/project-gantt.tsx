@@ -1211,8 +1211,7 @@ export function ProjectGantt({
   function openTaskAsRootFromMenu() {
     if (!taskMenu || !canOpenTaskAsSubtreeRoot(tasks, taskMenu.taskId)) return;
     const taskId = taskMenu.taskId;
-    setTaskMenu(null);
-    setTaskSubmenu(null);
+    closeTaskMenu();
     onTaskOpenAsRoot(taskId);
   }
 
