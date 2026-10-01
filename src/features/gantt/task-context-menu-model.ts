@@ -37,6 +37,7 @@ export function taskContextCapabilities(
   mutationLocked: boolean,
   links: readonly ProjectLinkDto[],
   clipboard: TaskClipboard | null,
+  scopeRootTaskId: string | null = null,
 ): TaskContextCapabilities {
   const task = tasks.find((candidate) => candidate.taskId === taskId);
   const mutationAvailable = editable && !mutationLocked && task !== undefined;
@@ -57,14 +58,17 @@ export function taskContextCapabilities(
   const siblings = orderedSiblings(tasks, task);
   const index = siblings.findIndex((candidate) => candidate.taskId === task.taskId);
   const hasChildren = tasks.some((candidate) => candidate.parentExternalId === task.externalId);
+  const scopeRoot = scopeRootTaskId ? tasks.find((candidate) => candidate.taskId === scopeRootTaskId) : undefined;
+  const isScopeRoot = task.taskId === scopeRootTaskId;
+  const isDirectScopeChild = Boolean(scopeRoot && task.parentExternalId === scopeRoot.externalId);
   const pasteAvailable = clipboard !== null && clipboard.taskId !== task.taskId &&
     (clipboard.mode === "copy" ? mutationAvailable : hierarchyAvailable);
   return {
     canAddChild: hierarchyAvailable && task.type !== "milestone",
-    canMoveUp: hierarchyAvailable && index > 0,
-    canMoveDown: hierarchyAvailable && index >= 0 && index < siblings.length - 1,
-    canIndent: hierarchyAvailable && index > 0,
-    canOutdent: hierarchyAvailable && task.parentExternalId !== null,
+    canMoveUp: hierarchyAvailable && !isScopeRoot && index > 0,
+    canMoveDown: hierarchyAvailable && !isScopeRoot && index >= 0 && index < siblings.length - 1,
+    canIndent: hierarchyAvailable && !isScopeRoot && index > 0,
+    canOutdent: hierarchyAvailable && !isScopeRoot && !isDirectScopeChild && task.parentExternalId !== null,
     canPaste: pasteAvailable,
     canConvertToTask: hierarchyAvailable && task.type === "milestone" && !hasChildren,
     canConvertToMilestone: hierarchyAvailable && task.type === "task" && !hasChildren,
