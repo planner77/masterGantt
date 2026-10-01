@@ -28,6 +28,10 @@ import {
   ganttDayScaleClassName,
   type GanttDayHeaderTooltipData,
 } from "./day-header-tooltip";
+import {
+  canEditGridStartDate,
+  createGridStartDateCommand,
+} from "./grid-start-date-editor";
 
 import type {
   ProjectCalendarDto,
@@ -102,6 +106,14 @@ type DayHeaderTooltipState = Readonly<{
   left: number;
   top: number;
   anchorTop: number;
+}>;
+type StartDatePickerState = Readonly<{
+  taskId: string;
+  revision: number;
+  value: string;
+  left: number;
+  top: number;
+  width: number;
 }>;
 
 function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
@@ -246,6 +258,9 @@ export function ProjectGantt({
     table: Awaited<ReturnType<IApi["getTable"]>>;
     committed: boolean;
   } | null>(null);
+  const startDateTriggerReference = useRef<HTMLElement | null>(null);
+  const startDatePickerReference = useRef<HTMLDivElement>(null);
+  const startDateInputReference = useRef<HTMLInputElement>(null);
   const instanceId = useState(() => `project-gantt-${Math.random().toString(36).slice(2)}`)[0];
   const canonicalSyncQueueReference = useRef<Promise<void>>(Promise.resolve());
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
@@ -282,6 +297,9 @@ export function ProjectGantt({
   const [fullscreenMessage, setFullscreenMessage] = useState("");
   const [inlineNameMessage, setInlineNameMessage] = useState("");
   const [inlineNameError, setInlineNameError] = useState(false);
+  const [startDatePicker, setStartDatePicker] = useState<StartDatePickerState | null>(null);
+  const [inlineStartMessage, setInlineStartMessage] = useState("");
+  const [inlineStartError, setInlineStartError] = useState(false);
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
   const dayHeaderTooltipId = `${instanceId}-day-header-tooltip`;
@@ -339,6 +357,7 @@ export function ProjectGantt({
 
   useEffect(() => {
     if (editable && !mutationLocked) return;
+    queueMicrotask(() => setStartDatePicker(null));
     const session = inlineSessionReference.current;
     if (!session || session.committed) return;
     inlineOpenTokenReference.current += 1;
@@ -354,8 +373,11 @@ export function ProjectGantt({
     inlineSessionReference.current = null;
     if (session && !session.committed) void session.table.exec("close-editor", { ignore: true });
     queueMicrotask(() => {
+      setStartDatePicker(null);
       setInlineNameError(false);
       setInlineNameMessage("");
+      setInlineStartError(false);
+      setInlineStartMessage("");
     });
   }, [projectRevision]);
 
@@ -368,7 +390,9 @@ export function ProjectGantt({
         const eligible = Boolean(taskId && editable && !mutationLocked && tasksById.has(taskId));
         if (row.dataset.inlineNameEligible !== String(eligible)) row.dataset.inlineNameEligible = String(eligible);
         const nameCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
+        const startCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":projectStart"]');
         const task = taskId ? tasksById.get(taskId) : undefined;
+        const startEditable = Boolean(task && canEditGridStartDate(task, editable && !mutationLocked));
         const summaryState = task?.type === "summary" && task.start === null
           ? tasks.some((candidate) => candidate.parentExternalId === task.externalId) ? "일정 있는 하위 작업 없음" : "하위 작업 없음"
           : null;
@@ -383,6 +407,15 @@ export function ProjectGantt({
         }
         if (nameCell && !eligible && nameCell.getAttribute("aria-readonly") !== "true") nameCell.setAttribute("aria-readonly", "true");
         if (nameCell && eligible && nameCell.hasAttribute("aria-readonly")) nameCell.removeAttribute("aria-readonly");
+        if (startCell) {
+          if (startEditable) {
+            if (startCell.dataset.inlineStartEditable !== "true") startCell.dataset.inlineStartEditable = "true";
+            if (startCell.hasAttribute("aria-readonly")) startCell.removeAttribute("aria-readonly");
+          } else {
+            if (startCell.hasAttribute("data-inline-start-editable")) delete startCell.dataset.inlineStartEditable;
+            if (startCell.getAttribute("aria-readonly") !== "true") startCell.setAttribute("aria-readonly", "true");
+          }
+        }
       });
     };
     markRows();
@@ -1284,6 +1317,9 @@ export function ProjectGantt({
 
   function handleTaskDoubleClick(event: ReactMouseEvent<HTMLDivElement>) {
     if (event.target instanceof Element) {
+      if (event.target.closest('[role="gridcell"][data-col-id=":projectStart"]')) {
+        setStartDatePicker(null);
+      }
       const linkElement = event.target.closest("[data-link-id]");
       if (linkElement) {
         const rawId = linkElement.getAttribute("data-link-id");
@@ -1320,6 +1356,83 @@ export function ProjectGantt({
     const target = cell ?? (fallback.isConnected ? fallback : null);
     target?.focus({ preventScroll: true });
   }, []);
+
+  function startDateCellFrom(target: EventTarget | null): HTMLElement | null {
+    const root = ganttScrollReference.current;
+    if (!root || !(target instanceof Element)) return null;
+    const cell = target.closest<HTMLElement>('[role="gridcell"][data-col-id=":projectStart"]');
+    return cell && root.contains(cell) ? cell : null;
+  }
+
+  function focusStartDateCell(): void {
+    const cell = startDateTriggerReference.current;
+    if (cell?.isConnected) cell.focus({ preventScroll: true });
+  }
+
+  function closeStartDatePicker(restoreFocus = true): void {
+    setStartDatePicker(null);
+    if (restoreFocus) requestAnimationFrame(focusStartDateCell);
+  }
+
+  function openStartDatePicker(taskId: string, cell: HTMLElement): void {
+    const task = tasksByIdReference.current.get(taskId);
+    if (!task || !task.start || !canEditGridStartDate(task, canCreateReference.current)) return;
+    const bounds = cell.getBoundingClientRect();
+    const width = Math.min(Math.max(bounds.width, 176), Math.max(176, window.innerWidth - 16));
+    const position = clampMenuPosition(bounds.left, bounds.bottom + 4, width, 72);
+    cell.focus({ preventScroll: true });
+    startDateTriggerReference.current = cell;
+    setInlineStartError(false);
+    setInlineStartMessage("");
+    setStartDatePicker({
+      taskId,
+      revision: projectRevisionReference.current,
+      value: task.start,
+      left: position.left,
+      top: position.top,
+      width,
+    });
+  }
+
+  function handleStartClick(event: ReactMouseEvent<HTMLDivElement>): void {
+    if (!editable || mutationLocked || event.button !== 0) return;
+    const cell = startDateCellFrom(event.target);
+    const row = cell?.closest<HTMLElement>(".wx-row[data-id]");
+    const taskId = row ? taskIdFromElement(row) : null;
+    const task = taskId ? tasksByIdReference.current.get(taskId) : undefined;
+    if (!cell || !taskId || !task || !canEditGridStartDate(task, true)) return;
+    openStartDatePicker(taskId, cell);
+  }
+
+  function commitStartDate(value: string): void {
+    const picker = startDatePicker;
+    if (!picker || picker.revision !== projectRevisionReference.current || !canCreateReference.current) {
+      closeStartDatePicker(false);
+      return;
+    }
+    const task = tasksByIdReference.current.get(picker.taskId);
+    if (!task) {
+      closeStartDatePicker();
+      return;
+    }
+    const command = createGridStartDateCommand(task, value);
+    if (!command) {
+      closeStartDatePicker();
+      return;
+    }
+    setStartDatePicker(null);
+    setInlineStartError(false);
+    setInlineStartMessage("시작일을 저장하는 중…");
+    void onTaskCommandReference.current(command, picker.revision).then((result) => {
+      if (result.status === "saved") {
+        setInlineStartMessage("시작일을 저장했습니다.");
+      } else {
+        setInlineStartError(true);
+        setInlineStartMessage(result.message);
+        requestAnimationFrame(focusStartDateCell);
+      }
+    });
+  }
 
   const findInlineNameInput = useCallback((taskId: string): HTMLInputElement | null => {
     const root = ganttScrollReference.current;
@@ -1451,6 +1564,28 @@ export function ProjectGantt({
     return () => { active = false; };
   }, [apiInstanceId, installInlineTableHandlers]);
 
+  useEffect(() => {
+    if (!startDatePicker) return;
+    const input = startDateInputReference.current;
+    input?.focus({ preventScroll: true });
+    try { input?.showPicker?.(); } catch { /* Browser may require a stricter user-activation window. */ }
+
+    const closeForOutsidePointer = (event: PointerEvent) => {
+      if (event.target instanceof Node && startDatePickerReference.current?.contains(event.target)) return;
+      if (event.target instanceof Node && startDateTriggerReference.current?.contains(event.target)) return;
+      closeStartDatePicker(false);
+    };
+    const closeForViewportChange = () => closeStartDatePicker(false);
+    document.addEventListener("pointerdown", closeForOutsidePointer, true);
+    window.addEventListener("resize", closeForViewportChange);
+    document.addEventListener("scroll", closeForViewportChange, true);
+    return () => {
+      document.removeEventListener("pointerdown", closeForOutsidePointer, true);
+      window.removeEventListener("resize", closeForViewportChange);
+      document.removeEventListener("scroll", closeForViewportChange, true);
+    };
+  }, [startDatePicker]);
+
   async function handleNameClick(event: ReactMouseEvent<HTMLDivElement>) {
     if (!editable || mutationLocked || event.button !== 0) return;
     const currentInline = inlineSessionReference.current;
@@ -1520,6 +1655,18 @@ export function ProjectGantt({
       return;
     }
     if (handleInlineEscape(event)) return;
+    if (!startDatePicker && (event.key === "Enter" || event.key === " ")) {
+      const cell = startDateCellFrom(event.target);
+      const row = cell?.closest<HTMLElement>(".wx-row[data-id]");
+      const taskId = row ? taskIdFromElement(row) : null;
+      const task = taskId ? tasksByIdReference.current.get(taskId) : undefined;
+      if (cell && taskId && task && canEditGridStartDate(task, editable && !mutationLocked)) {
+        event.preventDefault();
+        event.stopPropagation();
+        openStartDatePicker(taskId, cell);
+        return;
+      }
+    }
     if (runTaskShortcut(event)) return;
     if (event.key !== "ContextMenu" && !(event.key === "F10" && event.shiftKey)) return;
     const header = headerFrom(event.target);
@@ -1748,6 +1895,7 @@ export function ProjectGantt({
           className="project-gantt-scroll"
           onContextMenu={handleHeaderContextMenu}
           onClick={(event) => { void handleNameClick(event); }}
+          onClickCapture={handleStartClick}
           onCompositionStart={() => { inlineComposingReference.current = true; }}
           onCompositionEnd={() => { inlineComposingReference.current = false; }}
           onInput={(event) => {
@@ -1782,6 +1930,33 @@ export function ProjectGantt({
             />
           </div>
         </div>
+        {startDatePicker ? (
+          <div
+            aria-label="시작일 날짜 선택"
+            className="project-gantt-start-date-picker"
+            ref={startDatePickerReference}
+            role="dialog"
+            style={{ left: startDatePicker.left, top: startDatePicker.top, width: startDatePicker.width }}
+          >
+            <label htmlFor={`${instanceId}-start-date-input`}>시작일</label>
+            <input
+              aria-label="시작일 선택"
+              id={`${instanceId}-start-date-input`}
+              max="2199-12-31"
+              min="1900-01-01"
+              onChange={(event) => commitStartDate(event.target.value)}
+              onKeyDownCapture={(event) => {
+                if (event.key !== "Escape") return;
+                event.preventDefault();
+                event.stopPropagation();
+                closeStartDatePicker();
+              }}
+              ref={startDateInputReference}
+              type="date"
+              value={startDatePicker.value}
+            />
+          </div>
+        ) : null}
         {dayHeaderTooltip ? (
           <div
             className="project-gantt-day-header-tooltip"
@@ -1797,6 +1972,7 @@ export function ProjectGantt({
           </div>
         ) : null}
         {inlineNameMessage ? <p className="project-gantt-inline-name-status" role={inlineNameError ? "alert" : "status"} id={`${instanceId}-inline-name-status`}>{inlineNameMessage}</p> : null}
+        {inlineStartMessage ? <p className="project-gantt-inline-name-status" role={inlineStartError ? "alert" : "status"} id={`${instanceId}-inline-start-status`}>{inlineStartMessage}</p> : null}
         {columnMenuPosition ? <div
           aria-label="표시 열 선택"
           className="project-column-menu"
