@@ -412,7 +412,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     };
 
     const handleStorage = (event: StorageEvent) => {
-      if (event.key !== key || state.status !== "ready") return;
+      if (event.key !== key) return;
       const announcedRevision = Number(event.newValue);
       const currentRevision = confirmedSnapshotReference.current?.data.project.revision ?? 0;
       if (!Number.isFinite(announcedRevision) || announcedRevision <= currentRevision) return;
@@ -421,10 +421,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         crossTabPendingRevisionReference.current,
         announcedRevision,
       );
-      void refreshToPendingRevision();
+      if (state.status === "ready") void refreshToPendingRevision();
     };
 
     window.addEventListener("storage", handleStorage);
+    // A revision event may have arrived while the initial load or beginRefresh
+    // was still pending. Once a canonical snapshot makes the workspace ready,
+    // converge immediately to the highest queued revision.
+    if (state.status === "ready") void refreshToPendingRevision();
     return () => window.removeEventListener("storage", handleStorage);
   }, [publicId, state.status, applySnapshot, notify]);
 
