@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
@@ -26,6 +27,7 @@ import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSes
 import { createTaskDeletePlan, type TaskDeletePlan } from "@/features/gantt/task-delete-model";
 import { findTaskContextElement } from "@/features/gantt/task-context-target";
 import { taskHasDependencyLinks } from "@/features/gantt/task-link-scope";
+import { resolveTaskSubtreeScope } from "@/features/gantt/task-subtree-scope";
 import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
 import { ProjectLogisticsManagement } from "@/features/logistics/project-logistics-management";
 import { todayLocalDateString } from "@/lib/date-display";
@@ -70,6 +72,16 @@ function safeErrorCode(value: unknown): string | null {
 function unlockPasswordValid(value: string): boolean { return Array.from(value).length >= 1 && new TextEncoder().encode(value).byteLength <= 1024; }
 function newPasswordValid(value: string): boolean { const length = Array.from(value).length; return length >= 1 && length <= 12; }
 function revisionTag(revision: number): string { return `"${revision}"`; }
+function projectRevisionStorageKey(publicId: string): string { return `mastergantt:project-revision:${publicId}`; }
+function announceProjectRevision(publicId: string, revision: number): void {
+  try {
+    const key = projectRevisionStorageKey(publicId);
+    const previous = Number(window.localStorage.getItem(key) ?? "0");
+    if (!Number.isFinite(previous) || revision > previous) window.localStorage.setItem(key, String(revision));
+  } catch {
+    // Cross-tab freshness is best-effort. The canonical API/revision remains authoritative.
+  }
+}
 function exitGanttFullscreen(frame: HTMLElement): Promise<void> {
   if (document.fullscreenElement !== frame) return Promise.resolve();
   return new Promise((resolve, reject) => {
@@ -158,9 +170,12 @@ export function ProjectReadonlyView({ publicId, projectUrl = null, ownerName }: 
 }
 
 function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectViewProps) {
+  const searchParams = useSearchParams();
+  const rootTaskId = searchParams.get("rootTask")?.trim() || null;
   const { notify, clearToast } = useWorkspaceNotifications();
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const confirmedSnapshotReference = useRef<ProjectSnapshotResponse | null>(null);
+  const crossTabRefreshInFlightReference = useRef(false);
   const [permission, setPermission] = useState<Permission>("readonly");
   const [permissionCheckState, setPermissionCheckState] = useState<PermissionCheckState>("checking");
   const [retryKey, setRetryKey] = useState(0);
@@ -190,6 +205,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [columnVisibility, setColumnVisibility] = useState<ProjectGridColumnVisibility>(INITIAL_COLUMN_VISIBILITY);
   const [pendingTaskDelete, setPendingTaskDelete] = useState<PendingTaskDelete | null>(null);
   const taskMutationReference = useRef(false);
+
+  useEffect(() => {
+    if (rootTaskId) setActiveView("schedule");
+  }, [rootTaskId]);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
   const [relationEditorLinkId, setRelationEditorLinkId] = useState<string | null>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
@@ -275,8 +294,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
 
   const applySnapshot = useCallback((value: unknown): boolean => {
     if (!isSnapshot(value) || !canAcceptCanonicalSnapshot(confirmedSnapshotReference.current, value, publicId)) return false;
+    const previousRevision = confirmedSnapshotReference.current?.data.project.revision ?? null;
     confirmedSnapshotReference.current = value;
     setState({ status: "ready", snapshot: value });
+    if (previousRevision !== null && value.data.project.revision > previousRevision) {
+      announceProjectRevision(publicId, value.data.project.revision);
+    }
     setMetadataName(value.data.project.name); setMetadataDescription(value.data.project.description); setMetadataStatus(value.data.project.status);
     setMasterSelection({ businessUnitId: value.data.project.businessUnit?.id ?? "", productId: value.data.project.product?.id ?? "", siteEntityId: value.data.project.siteEntity?.id ?? "" });
     return true;
@@ -354,6 +377,53 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     } catch { return null; }
   }
   async function reloadCanonicalSnapshot(): Promise<boolean> { return (await fetchCanonicalSnapshot()) !== null; }
+
+  useEffect(() => {
+    const key = projectRevisionStorageKey(publicId);
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== key || crossTabRefreshInFlightReference.current || state.status !== "ready") return;
+      const announcedRevision = Number(event.newValue);
+      const currentRevision = confirmedSnapshotReference.current?.data.project.revision ?? 0;
+      if (!Number.isFinite(announcedRevision) || announcedRevision <= currentRevision) return;
+
+      crossTabRefreshInFlightReference.current = true;
+      void (async () => {
+        try {
+          const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store" });
+          const body: unknown = await response.json().catch(() => null);
+          if (!response.ok || !isSnapshot(body) || !applySnapshot(body)) {
+            notify("error", "다른 탭의 변경 사항을 확인하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인", body);
+          }
+        } catch {
+          notify("error", "다른 탭의 변경 사항을 확인하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인");
+        } finally {
+          crossTabRefreshInFlightReference.current = false;
+        }
+      })();
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [publicId, state.status, applySnapshot, notify]);
+
+  function openTaskAsRoot(taskId: string): void {
+    const target = new URL(window.location.href);
+    target.search = "";
+    target.hash = "";
+    target.searchParams.set("rootTask", taskId);
+    const opened = window.open("about:blank", "_blank");
+    if (!opened) {
+      notify("error", "새 탭을 열 수 없습니다. 브라우저의 팝업 차단 설정을 확인해 주세요.", "최상위로 열기");
+      return;
+    }
+    try {
+      opened.opener = null;
+      opened.location.replace(target.toString());
+    } catch {
+      opened.close();
+      notify("error", "새 탭으로 Summary 범위를 열지 못했습니다. 다시 시도해 주세요.", "최상위로 열기");
+    }
+  }
+
   function conflict(operation: string, body?: unknown) {
     setPermission("readonly");
     notify("error", "다른 편집 내용이 먼저 저장되었습니다. 최신 정보를 다시 불러옵니다. 내용을 확인한 뒤 다시 저장해 주세요.", operation, body);
@@ -792,10 +862,19 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
   if (state.status === "error") return <section className="status-page" aria-labelledby="project-load-error-heading"><p className="eyebrow">PROJECT</p><h1 id="project-load-error-heading">프로젝트를 불러올 수 없습니다.</h1><p>네트워크 또는 서버 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="secondary-button" onClick={() => beginRefresh(true)} type="button">다시 시도</button></section>;
   const { project, tasks, links, assignments, logistics } = state.snapshot.data;
-  const filteredTasks = filterTasksWithAncestors(tasks, taskFilter, assignments, logistics);
+  const subtreeScope = resolveTaskSubtreeScope(tasks, rootTaskId);
+  const scopedTaskIdSet = subtreeScope.kind === "valid" ? new Set(subtreeScope.taskIds) : null;
+  const scopedTasks = subtreeScope.kind === "all"
+    ? tasks
+    : subtreeScope.kind === "valid"
+      ? tasks.filter((task) => scopedTaskIdSet?.has(task.taskId))
+      : [];
+  const filteredTasks = filterTasksWithAncestors(scopedTasks, taskFilter, assignments, logistics);
   const activeFilters = activeTaskFilterCount(taskFilter);
   const quickView = getTaskQuickView(taskFilter.types);
   const visibleTaskIds = filteredTasks.tasks.map((task) => task.taskId);
+  const ganttVisibleTaskIds = subtreeScope.kind === "all" && activeFilters === 0 ? null : visibleTaskIds;
+  const subtreeScopeInvalid = subtreeScope.kind === "missing" || subtreeScope.kind === "not-summary";
   const normalizedTargetQuery = targetPickerQuery.trim().toLocaleLowerCase();
   const selectableAssignedTargets = assignedTargets.filter((target) =>
     (targetPickerKind === "all" || target.kind === targetPickerKind) &&
@@ -913,7 +992,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       </div>
     </header>
 
-    <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 작업공간">
+    {subtreeScope.kind === "all" ? <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 작업공간">
       <button
         ref={scheduleTabReference}
         id="project-tab-schedule"
@@ -947,18 +1026,30 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         onClick={() => setActiveView("logistics")}
         onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "logistics")}
       >물류 구성</button>
-    </div>
+    </div> : <div className="project-subtree-scope-bar" aria-label="하위 WBS 범위">
+      <div className="project-subtree-scope-copy">
+        <span className="project-subtree-scope-label">하위 범위 보기</span>
+        <strong title={subtreeScope.kind === "valid" ? subtreeScope.root.name : undefined}>
+          {subtreeScope.kind === "valid"
+            ? subtreeScope.root.name
+            : subtreeScope.kind === "not-summary"
+              ? `${subtreeScope.root.name} · Summary가 아님`
+              : "선택한 Summary를 찾을 수 없음"}
+        </strong>
+      </div>
+      <a className="secondary-button project-subtree-scope-link" href={`/projects/${encodeURIComponent(publicId)}`}>전체 프로젝트 보기</a>
+    </div>}
 
     <div className="project-workspace-panels">
       <section
         id="project-panel-schedule"
-        role="tabpanel"
-        aria-labelledby="project-tab-schedule"
-        hidden={activeView !== "schedule"}
+        role={subtreeScope.kind === "all" ? "tabpanel" : "region"}
+        aria-labelledby={subtreeScope.kind === "all" ? "project-tab-schedule" : "schedule-heading"}
+        hidden={subtreeScope.kind === "all" ? activeView !== "schedule" : false}
         aria-busy={isSavingTask || undefined}
         className="project-schedule project-workspace-panel"
       >
-        <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{tasks.length === 0 ? "아직 등록된 작업이 없습니다." : tasks.every((task) => task.start === null) ? "일정이 있는 하위 작업이 없습니다." : "작업 일정을 확인하고 관리합니다."}</p></div>
+        <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{scopedTasks.length === 0 ? "표시할 작업이 없습니다." : scopedTasks.every((task) => task.start === null) ? "일정이 있는 하위 작업이 없습니다." : "작업 일정을 확인하고 관리합니다."}</p></div>
           {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}</div>
         <div className="project-filter-toolbar project-schedule-filter-toolbar" role="toolbar" aria-label="작업 검색과 필터" onKeyDown={closeTaskFilterOnEscape}>
           <label className="project-filter-search">
@@ -1002,7 +1093,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             </button>
           </div>
           {activeFilters > 0 ? <button className="secondary-button project-filter-reset" type="button" onClick={resetTaskFilter}>초기화</button> : null}
-          <span className="project-filter-result" role="status">{filteredTasks.matchCount}개 일치 / 전체 {tasks.length}개 작업</span>
+          <span className="project-filter-result" role="status">{filteredTasks.matchCount}개 일치 / {subtreeScope.kind === "valid" ? "범위" : "전체"} {scopedTasks.length}개 작업</span>
         </div>
         <div className="project-filter-panel project-task-filter-panel" id="project-task-filter-panel" hidden={!taskFilterOpen} aria-label="작업 고급 필터" onKeyDown={closeTaskFilterOnEscape}>
           <section className="project-filter-section" aria-labelledby="project-filter-text-heading">
@@ -1144,15 +1235,21 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             </section>
           ) : null}
         </div>
-        <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorLinkId !== null}
+        {subtreeScopeInvalid ? <div className="schedule-scope-note" role="alert">
+          <strong>선택한 Summary 범위를 열 수 없습니다.</strong>{" "}
+          {subtreeScope.kind === "not-summary"
+            ? "선택한 작업이 더 이상 Summary가 아닙니다."
+            : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
+          <a href={`/projects/${encodeURIComponent(publicId)}`}>전체 프로젝트로 돌아가기</a>
+        </div> : <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorLinkId !== null}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
-          onTaskEditorOpen={openTaskEditor} onRelationEditorOpen={openRelationEditor} onTaskDeleteRequest={requestTaskDelete} onLinkCreate={(source, target) => void saveLink("POST", source, target)} onLinkUpdate={(linkId, patch) => saveLink("PATCH", undefined, undefined, linkId, patch)} onLinkDelete={(linkId) => void saveLink("DELETE", undefined, undefined, linkId)} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
+          onTaskEditorOpen={openTaskEditor} onTaskOpenAsRoot={openTaskAsRoot} onRelationEditorOpen={openRelationEditor} onTaskDeleteRequest={requestTaskDelete} onLinkCreate={(source, target) => void saveLink("POST", source, target)} onLinkUpdate={(linkId, patch) => saveLink("PATCH", undefined, undefined, linkId, patch)} onLinkDelete={(linkId) => void saveLink("DELETE", undefined, undefined, linkId)} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
             const visibleColumnCount = Object.values(current).filter(Boolean).length;
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };
-          })} tasks={tasks} visibleTaskIds={activeFilters > 0 ? visibleTaskIds : null} />
+          })} tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} />}
         {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
           editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
