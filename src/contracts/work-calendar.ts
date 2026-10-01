@@ -109,10 +109,10 @@ export interface CalendarTaskChangeDto {
   taskId: string;
   externalId: string;
   name: string;
-  beforeStart: string;
-  beforeEnd: string;
-  afterStart: string;
-  afterEnd: string;
+  beforeStart: string | null;
+  beforeEnd: string | null;
+  afterStart: string | null;
+  afterEnd: string | null;
   reasons: CalendarTaskChangeReason[];
   dependencyPredecessorExternalIds: string[];
 }

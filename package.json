@@ -1,6 +1,6 @@
 {
   "name": "mastergantt",
-  "version": "0.58.5",
+  "version": "0.60.0",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -18,10 +18,10 @@
     "build:runtime-tools": "tsc -p tsconfig.runtime-tools.json"
   },
   "dependencies": {
-    "@next/env": "16.3.7",
+    "@next/env": "16.3.8",
     "@svar-ui/react-gantt": "2.7.3",
     "better-sqlite3": "13.0.3",
-    "next": "16.3.7",
+    "next": "16.3.8",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",

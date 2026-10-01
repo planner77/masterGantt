@@ -332,3 +332,9 @@ Docker Compose 배포는 `LOGISTICS_CATALOG_ADMIN_PASSWORD`를 app container에 
 ## Issue #289 project-master bootstrap
 
 신규 DB에서 프로젝트 기준정보 관리자를 bootstrap하려면 `PROJECT_MASTER_ADMIN_PASSWORD`를 runtime 환경에 제공한다. `deploy/compose.yml`이 이 값을 application container에 명시적으로 전달하고 누락 시 Compose config 단계에서 fail-fast한다. 값은 최초 credential 생성에만 사용되며 DB credential 생성 이후 환경변수 변경으로 현재 관리자 비밀번호를 덮어쓰지 않는다. 운영 secret은 이미지·소스·로그에 포함하지 않는다.
+
+## Issue #345: SQLite 일정 schema 업그레이드
+
+0.59.0의 `0018_empty_summary_schedule.sql`은 기존 tasks ID/parent/order/일정·Baseline·속성 및 참조를 보존하며 Summary에 한정한 일정 all-null 저장을 추가한다. 기존 migration 파일은 수정하지 않는다. 최초 연결의 migration runner가 참조 table 재생성에 필요한 FK OFF를 transaction 밖에서 한정 적용하고 commit 전 FK 무결성을 검사한다. 실패 시 schema·rows·ledger 모두 rollback하고 FK 설정을 복원하므로 준비 상태를 성공으로 보고하지 않는다.
+
+운영 upgrade 전 기존 backup 절차를 수행하고 새 버전의 migrations 전체를 함께 배포한다. 변경된 schema의 null Summary를 이전 application binary가 처리할 수 있다고 가정하지 않는다. rollback은 이전 이미지로의 단순 교체가 아닌 검증된 backup/schema 복구 절차를 따른다. 실제 production upgrade/backup 복구는 NOT TESTED이며 파일 SQLite upgrade/reopen/참조·실패 rollback은 로컬 자동 테스트로 구분한다. Docker/Compose/volume/security 정책 변경은 없다.

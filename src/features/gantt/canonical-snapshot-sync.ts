@@ -162,10 +162,12 @@ export async function applyCanonicalGanttSync(
   const plan = planCanonicalGanttSync(current, canonical);
   const currentById = new Map(current.tasks.map((task) => [task.id, task]));
   const parentIds = new Set(canonical.tasks.map((task) => task.parent));
+  const currentParentIds = new Set(current.tasks.map((task) => task.parent));
   // Capture transitions before exec can mutate objects returned by serialize.
-  const summaryIdsToOpen = plan.updatedTasks.flatMap((task) => (
-    task.id !== undefined && task.type === "summary" &&
-    currentById.get(task.id)?.type !== "summary" && parentIds.has(task.id)
+  const summaryIdsToOpen = canonical.tasks.flatMap((task) => (
+    task.id !== undefined && (task.type === "summary" || task.type === "summary-container") &&
+    parentIds.has(task.id) && ((!currentParentIds.has(task.id) && currentById.get(task.id)?.type === "summary-container") ||
+      !["summary", "summary-container"].includes(currentById.get(task.id)?.type ?? ""))
       ? [task.id]
       : []
   ));

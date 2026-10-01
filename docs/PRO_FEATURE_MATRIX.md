@@ -1,5 +1,15 @@
 # SVAR Core 활용과 독립 기능 계획
 
+## Issue #345 빈 Summary Core 2.7.3 표현
+
+2026-10-01 설치 Core 2.7.3 실제 Chromium probe에서 날짜 없는 native `summary`는 `Summary tasks must have start and end dates if they have no subtasks`로 초기 로드가 실패했다. 날짜 없는 public custom type은 행을 남기지만 유효하지 않은 bar 좌표를 만들었다. 이 두 경로를 채택하지 않는다. 공식 [taskTypes](https://docs.svar.dev/react/gantt/api/properties/tasktypes/) 확장과 앱 adapter로 Renderer 전용 `summary-container`를 사용한다. PRO `unscheduledTasks`/`summary` 옵션과 비공개 `$skip` 조작은 사용하지 않는다.
+
+canonical Summary의 `start/end/duration/progress`는 계속 `null`이다. Renderer만 날짜 있는 실제 Leaf의 최소 시작일(모두 미산정이면 표시용 오늘 범위)에 `start=end`인 영폭 좌표를 준다. Core의 공개 Task 입력 계산은 이 영폭의 bar wrapper를 만들지 않는다. 이는 일정이나 duration 0 Milestone이 아니다. `summary-container`는 Domain/API/DB/Import/Export에 존재하지 않는다.
+
+Grid의 날짜·정렬·기간, Editor, 필터, 진척과 완료, 이미지/Excel Export는 원본 DTO를 사용한다. Renderer serialize의 영폭 날짜는 저장/복사/계층 명령의 일정 입력으로 재사용하지 않는다. reverse adapter는 null Summary에 날짜/진척/resize 명령을 거부하고 명시적 이름 변경만 허용한다. native Summary drag/resize intercept와 no-bar 표현을 유지한다. 마지막 child를 잃은 노드에는 `open-task`를 복원하지 않아 Core의 빈 child collection 예외를 방지한다.
+
+실제 probe는 `tests/e2e/project-empty-summary.spec.ts`, 실제 SQLite/API first/last child·same-instance·재조회는 `tests/e2e/project-empty-summary-persistence.spec.ts`로 검증한다. URL/문서 확인과 browser 조작 증거는 구분하며 CI 완료 전 전체 회귀는 NOT TESTED다.
+
 상태: W03 Core-only 최소 통합, W06 독립 Calendar/Leaf Scheduling과 W07 root Task/Milestone persistence 완료. 확인일: 2026-09-12. W24는 명시적으로 확인한 첫 child 생성과 Summary 집계, 순수 WBS 계산을 선행 구현했지만 W08 전체를 완료한 것은 아니다. Reparent, WBS HTTP DTO/UI와 FS 재계산은 후속이다. 무료 Core가 표현할 수 있는 Link가 곧 본 시스템의 Scheduling 지원 범위인 것은 아니다.
 
 ## 1. 원칙과 근거

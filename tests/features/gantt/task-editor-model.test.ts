@@ -14,7 +14,7 @@ describe("explicit task editor commands", () => {
   it("edits requested dates separately and copies only stored effective dates", () => {
     const draft = createTaskEditorDraft(task);
     expect(draft.start).toBe(task.requestedStart);
-    expect(prepareTaskEditorCommand(task, { ...draft, start: task.start }).command?.payload).toEqual({ start: task.start });
+    expect(prepareTaskEditorCommand(task, { ...draft, start: task.start! }).command?.payload).toEqual({ start: task.start });
     const copied = copyScheduleToBaseline({ ...draft, start: "2026-10-01", duration: "5" }, task);
     expect(copied).toMatchObject({ baselineStart: task.start, baselineDuration: "1", baselineEnd: task.end });
     expect(prepareTaskEditorCommand(task, { ...draft, scheduleMode: "manual" }).command?.payload).toEqual({ scheduleMode: "manual" });
@@ -105,7 +105,7 @@ describe("explicit task editor commands", () => {
     expect(draft.baselineDuration).toBe("");
     expect(draft.baselineEnd).toBe("");
 
-    const copied = { ...draft, baselineStart: task.start, baselineDuration: String(task.duration), baselineEnd: task.end };
+    const copied = { ...draft, baselineStart: task.start!, baselineDuration: String(task.duration), baselineEnd: task.end! };
     const prepared = prepareTaskEditorCommand(task, copied);
     expect(prepared.command?.payload).toEqual({
       baselineStart: task.start,

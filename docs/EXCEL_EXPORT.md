@@ -169,3 +169,7 @@ PR #55 최종 head `6d30120bbd8b075d7a1b90ed485fddffa3ebc5b7`, GitHub Actions CI
 - relocated Compose persistence
 
 Windows Excel 2021과 조직 DRM 환경에서 실제 `.xlsx` 열기 및 DrawingML 렌더링 검증은 GitHub-hosted runner로 대체하지 않으며 별도 Environment-specific Validation 항목으로 유지한다.
+
+## Issue #345: 미산정 Summary 행
+
+빈 Summary와 빈 Summary만 중첩된 행을 WBS/유형/이름/outline 순서대로 유지한다. canonical null 날짜·기간·진척 셀은 공란이며 Excel serial 0 또는 0%/100%로 생성하지 않는다. Gantt timeline은 날짜 있는 행만으로 계산하고 미산정 Summary bar는 그리지 않는다. 전체가 미산정이면 날짜 열 집합은 비어도 작업 행은 남는다. 실제 Task/Milestone의 날짜/기간/진척 검증과 Project direct hyperlink 계약은 유지한다.

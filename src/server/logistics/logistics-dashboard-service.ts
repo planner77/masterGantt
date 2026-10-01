@@ -1,3 +1,4 @@
+import { hasTaskSchedule } from "../projects/task-schedule-guard";
 import type Database from "better-sqlite3";
 import type {
   LogisticsDashboardDto,
@@ -303,8 +304,8 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
     : null;
 
   // Leaf 태스크 및 마일스톤 분류 및 필터링
-  const includedTasks: ProjectTaskDto[] = [];
-  const includedMilestones: ProjectTaskDto[] = [];
+  const includedTasks: (ProjectTaskDto & {start:string;end:string;duration:number;progress:number})[] = [];
+  const includedMilestones: (ProjectTaskDto & {start:string;end:string;duration:number;progress:number})[] = [];
 
   for (const t of tasks) {
     if (t.type === "summary") continue; // Summary는 KPI 직접 대상 아님
@@ -429,6 +430,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
       }
     }
 
+    if (!hasTaskSchedule(t)) throw new Error("Canonical leaf schedule is missing.");
     if (t.type === "task") {
       includedTasks.push(t);
     } else if (t.type === "milestone") {
@@ -495,7 +497,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
     if (!includedTaskIdSet.has(a.taskId)) continue;
 
     const task = tasks.find((t) => t.taskId === a.taskId);
-    if (!task || task.type !== "task") continue;
+    if (!task || task.type !== "task" || !hasTaskSchedule(task)) continue;
 
     const effectiveStart = a.allocation?.start ?? task.start;
     const effectiveEnd = a.allocation?.end ?? task.end;
@@ -528,7 +530,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
   };
 
   // 4. 품질 진단 계산
-  const allLeafTasks = tasks.filter((t) => t.type !== "summary");
+  const allLeafTasks = tasks.filter(hasTaskSchedule).filter((t) => t.type !== "summary");
   let unlinkedLeafTaskCount = 0;
   for (const lt of allLeafTasks) {
     const eff = taskLogisticsMap.get(lt.taskId);
@@ -593,7 +595,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
     // 해당 공정에 매핑된 시스템들
     const procSysIds = new Set(logistics.systems.filter((s) => s.processIds?.includes(proc.id)).map((s) => s.id));
 
-    const matchedTasks: ProjectTaskDto[] = [];
+    const matchedTasks: (ProjectTaskDto & {start:string;end:string;duration:number;progress:number})[] = [];
     const matchedTaskIds = new Set<string>();
 
     for (const t of breakdownTasks) {
@@ -629,7 +631,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
     for (const a of assignments) {
       if (a.target.kind === "resource" && matchedTaskIds.has(a.taskId) && a.allocation?.percent) {
         const t = tasks.find((item) => item.taskId === a.taskId);
-        if (t && t.type === "task") {
+        if (t && t.type === "task" && hasTaskSchedule(t)) {
           const s = a.allocation.start ?? t.start;
           const e = a.allocation.end ?? t.end;
           const cal = calendarForResource(a.target.id);
@@ -653,7 +655,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
 
   // 설비별 집계
   const equipmentRows: LogisticsDashboardEquipmentRowDto[] = breakdownEquipment.map((eq) => {
-    const matchedTasks: ProjectTaskDto[] = [];
+    const matchedTasks: (ProjectTaskDto & {start:string;end:string;duration:number;progress:number})[] = [];
     const matchedTaskIds = new Set<string>();
 
     for (const t of breakdownTasks) {
@@ -678,7 +680,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
     for (const a of assignments) {
       if (a.target.kind === "resource" && matchedTaskIds.has(a.taskId) && a.allocation?.percent) {
         const t = tasks.find((item) => item.taskId === a.taskId);
-        if (t && t.type === "task") {
+        if (t && t.type === "task" && hasTaskSchedule(t)) {
           const s = a.allocation.start ?? t.start;
           const e = a.allocation.end ?? t.end;
           const cal = calendarForResource(a.target.id);
@@ -714,7 +716,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
 
   // 시스템별 집계
   const systemRows: LogisticsDashboardSystemRowDto[] = breakdownSystems.map((sys) => {
-    const matchedTasks: ProjectTaskDto[] = [];
+    const matchedTasks: (ProjectTaskDto & {start:string;end:string;duration:number;progress:number})[] = [];
     const matchedTaskIds = new Set<string>();
 
     const targetSysIds = systemView === "coordination"
@@ -764,7 +766,7 @@ export function calculateLogisticsDashboardPure(input: CalculateDashboardInput):
     for (const a of assignments) {
       if (a.target.kind === "resource" && matchedTaskIds.has(a.taskId) && a.allocation?.percent) {
         const t = tasks.find((item) => item.taskId === a.taskId);
-        if (t && t.type === "task") {
+        if (t && t.type === "task" && hasTaskSchedule(t)) {
           const s = a.allocation.start ?? t.start;
           const e = a.allocation.end ?? t.end;
           const cal = calendarForResource(a.target.id);

@@ -439,6 +439,49 @@ def final_marker(issue_number: int, target_sha: str) -> str:
     return f"{FINAL_MARKER_PREFIX}{issue_number}:{target_sha} -->"
 
 
+def cleanup_merged_pr_branches(
+    repo: str,
+    ctx: Context,
+    extra_pr_numbers: list[int],
+) -> list[str]:
+    cleanup_numbers = list(dict.fromkeys([*extra_pr_numbers, ctx.pr_number]))
+    evidence: list[str] = []
+    for pr_number in cleanup_numbers:
+        pr = gh(f"/repos/{repo}/pulls/{pr_number}")
+        if not pr.get("merged"):
+            raise LifecycleError(f"cleanup PR #{pr_number} is not merged")
+        if pr.get("base", {}).get("ref") != "main":
+            raise LifecycleError(f"cleanup PR #{pr_number} base must be main")
+        if pr.get("head", {}).get("repo", {}).get("full_name") != repo:
+            raise LifecycleError(f"cleanup PR #{pr_number} head repository mismatch")
+        refs = re.findall(
+            r"(?im)^\s*Refs\s+#\s*([1-9][0-9]*)\s*$",
+            pr.get("body") or "",
+        )
+        if refs != [str(ctx.issue_number)]:
+            raise LifecycleError(
+                f"cleanup PR #{pr_number} must contain exactly one canonical Refs #{ctx.issue_number}"
+            )
+        branch = pr.get("head", {}).get("ref") or ""
+        if not branch:
+            raise LifecycleError(f"cleanup PR #{pr_number} head branch is missing")
+        run(
+            "python3",
+            "scripts/safe_branch_cleanup.py",
+            "--repo",
+            repo,
+            "--pr",
+            str(pr_number),
+            "--branch",
+            branch,
+            "--target-sha",
+            ctx.merge_sha or "",
+            "--delete",
+        )
+        evidence.append(f"#{pr_number} `{branch}`")
+    return evidence
+
+
 def finalize(ctx: Context, args: argparse.Namespace) -> None:
     repo = os.environ["GITHUB_REPOSITORY"]
     if not ctx.merge_sha:
@@ -450,19 +493,7 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
     if release_required:
         tag, release_url = ensure_release(ctx, args)
 
-    run(
-        "python3",
-        "scripts/safe_branch_cleanup.py",
-        "--repo",
-        repo,
-        "--pr",
-        str(ctx.pr_number),
-        "--branch",
-        ctx.head_branch,
-        "--target-sha",
-        ctx.merge_sha,
-        "--delete",
-    )
+    cleanup_evidence = cleanup_merged_pr_branches(repo, ctx, args.cleanup_pr)
 
     marker = final_marker(ctx.issue_number, ctx.merge_sha)
     comments = gh(f"/repos/{repo}/issues/{ctx.issue_number}/comments?per_page=100")
@@ -501,7 +532,7 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
                 f"- authorization note: {args.authorization_note or 'N/A'}",
                 f"- formal release: {formal}",
                 "- GHCR exact digest: release-image workflow evidence when formal release is required; otherwise N/A",
-                "- branch cleanup: PASS",
+                f"- branch cleanup: PASS ({', '.join(cleanup_evidence)})",
                 "- environment-specific validation: N/A for CI/GitHub orchestration change",
                 "- lifecycle orchestration: generic auto-finalizer; per-Issue helper workflows are not used.",
             ]
@@ -530,6 +561,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--release-authorized", default="false")
     parser.add_argument("--expected-version", default="")
     parser.add_argument("--authorization-note", default="")
+    parser.add_argument(
+        "--cleanup-pr",
+        action="append",
+        type=int,
+        default=[],
+        help="additional merged PR whose branch must be safely cleaned before FINAL/close",
+    )
     return parser
 
 

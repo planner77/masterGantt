@@ -89,7 +89,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       if (!entry || entry.type === "summary") { await route.fulfill({ status: 422, json: { error: { code: "INVALID_TASK" } } }); return; }
       const patch = request.postDataJSON() as UpdateTaskRequest;
       try {
-        const calculated = scheduleLeaf({ type: entry.type, requestedStart: patch.start ?? entry.requestedStart ?? entry.start, duration: patch.duration ?? entry.duration, scheduleMode: entry.scheduleMode }, createWorkingCalendar(fixture.project.calendar));
+        const calculated = scheduleLeaf({ type: entry.type, requestedStart: patch.start ?? entry.requestedStart ?? entry.start!, duration: patch.duration ?? entry.duration!, scheduleMode: entry.scheduleMode }, createWorkingCalendar(fixture.project.calendar));
         Object.assign(entry, {
           name: patch.name ?? entry.name,
           progress: patch.progress ?? entry.progress,

@@ -149,6 +149,7 @@ describe("SQLite connection and schema", () => {
         "0015_logistics_type_catalog.sql",
         "0016_resource_developer_grade.sql",
         "0017_project_master_catalog.sql",
+        "0018_empty_summary_schedule.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -954,5 +955,62 @@ describe("database path policy", () => {
     expect(() =>
       validateDatabasePath("/data/../tmp/mastergantt.sqlite3", "production"),
     ).toThrow();
+  });
+});
+
+describe("Issue #345 referenced tasks rebuild", () => {
+  function legacyGraph(database:Database.Database) {
+    const projectId=insertProject(database,"Legacy graph");
+    const parent=insertTask(database,{projectId,name:"S",type:"summary"});
+    const child=insertTask(database,{projectId,name:"T",parentId:parent});
+    const other=insertTask(database,{projectId,name:"U"});
+    const now=new Date().toISOString();
+    database.prepare("UPDATE tasks SET description='보존',url='https://example.com/task',baseline_start='2026-09-14',baseline_end='2026-09-14',baseline_duration=1 WHERE id=?").run(child);
+    database.prepare("INSERT INTO links(public_id,project_id,predecessor_task_id,successor_task_id,type,lag,created_at,updated_at) VALUES(?,?,?,?,'FF',-1,?,?)").run(randomUUID(),projectId,child,other,now,now);
+    const group=Number(database.prepare("INSERT INTO resource_groups(public_id,name,created_at,updated_at) VALUES(?,'직접 그룹',?,?)").run(randomUUID(),now,now).lastInsertRowid);
+    database.prepare("INSERT INTO task_assignments(public_id,project_id,task_id,group_id,created_at,updated_at) VALUES(?,?,?,?,?,?)").run(randomUUID(),projectId,parent,group,now,now);
+    const process=Number(database.prepare("INSERT INTO project_processes(public_id,project_id,code,name,created_at,updated_at) VALUES(?,?,'P','공정',?,?)").run(randomUUID(),projectId,now,now).lastInsertRowid);
+    const equipment=Number(database.prepare("INSERT INTO project_equipment(public_id,project_id,process_id,code,name,equipment_type,management_unit,quantity,created_at,updated_at) VALUES(?,?,?,'E','설비','conveyor','unit',1,?,?)").run(randomUUID(),projectId,process,now,now).lastInsertRowid);
+    const system=Number(database.prepare("INSERT INTO project_logistics_systems(public_id,project_id,code,name,system_type,layer,scope,created_at,updated_at) VALUES(?,?,'SYS','시스템','scs','controller','project',?,?)").run(randomUUID(),projectId,now,now).lastInsertRowid);
+    database.prepare("INSERT INTO task_equipment_links(project_id,task_id,equipment_id,scope,created_at,updated_at) VALUES(?,?,?,'subtree',?,?)").run(projectId,parent,equipment,now,now);
+    database.prepare("INSERT INTO task_system_links(project_id,task_id,system_id,scope,created_at,updated_at) VALUES(?,?,?,'self',?,?)").run(projectId,child,system,now,now);
+    return {projectId,parent,child,tasks:database.prepare("SELECT * FROM tasks ORDER BY id").all(),links:database.prepare("SELECT * FROM links").all(),assignments:database.prepare("SELECT * FROM task_assignments").all(),equipmentLinks:database.prepare("SELECT * FROM task_equipment_links").all(),systemLinks:database.prepare("SELECT * FROM task_system_links").all()};
+  }
+  it("preserves referenced IDs, attributes, baselines and graph while allowing only summary absence",()=>{
+    const directory=copiedMigrations(17),filename=join(temporaryDirectory(),"upgrade.sqlite3");
+    const database=openDatabase({filename,migrationsDirectory:directory}).database;
+    try {
+      const before=legacyGraph(database);
+      copyFileSync(join(sourceMigrations,"0018_empty_summary_schedule.sql"),join(directory,"0018_empty_summary_schedule.sql"));
+      expect(runMigrations(database,directory).applied).toEqual(["0018_empty_summary_schedule.sql"]);
+      expect(database.prepare("SELECT * FROM tasks ORDER BY id").all()).toEqual(before.tasks);
+      expect(database.prepare("SELECT * FROM links").all()).toEqual(before.links);
+      expect(database.prepare("SELECT * FROM task_assignments").all()).toEqual(before.assignments);
+      expect(database.prepare("SELECT * FROM task_equipment_links").all()).toEqual(before.equipmentLinks);
+      expect(database.prepare("SELECT * FROM task_system_links").all()).toEqual(before.systemLinks);
+      expect(database.pragma("foreign_key_check")).toEqual([]);expect(database.pragma("foreign_keys",{simple:true})).toBe(1);
+      database.prepare("UPDATE tasks SET start_date=NULL,end_date=NULL,duration=NULL,progress=NULL WHERE id=?").run(before.parent);
+      expect(()=>database.prepare("UPDATE tasks SET start_date=NULL,end_date=NULL,duration=NULL,progress=NULL WHERE id=?").run(before.child)).toThrow();
+      expect(()=>database.prepare("UPDATE tasks SET start_date='2026-09-14' WHERE id=?").run(before.parent)).toThrow();
+      expect(runMigrations(database,directory).applied).toEqual([]);
+    } finally {database.close();}
+    const reopened=openDatabase({filename,migrationsDirectory:directory}).database;
+    try {expect(reopened.prepare("SELECT start_date,duration FROM tasks WHERE type='summary'").get()).toEqual({start_date:null,duration:null});expect(reopened.pragma("foreign_key_check")).toEqual([]);} finally{reopened.close();}
+  });
+  it.each(["INVALID SQL;","INSERT INTO tasks_new SELECT * FROM tasks_new;", "UPDATE tasks SET parent_id=999999;"])("rolls back schema, all rows, ledger and FK setting on failed rebuild %s", failure=>{
+    const directory=copiedMigrations(17),database=openDatabase({filename:":memory:",migrationsDirectory:directory}).database;
+    try {
+      const before=legacyGraph(database),migration=readFileSync(join(sourceMigrations,"0018_empty_summary_schedule.sql"),"utf8");
+      writeFileSync(join(directory,"0018_empty_summary_schedule.sql"),`${migration}\n${failure}`);
+      expect(()=>runMigrations(database,directory)).toThrow(MigrationError);
+      expect(database.prepare("SELECT * FROM tasks ORDER BY id").all()).toEqual(before.tasks);
+      expect(database.prepare("SELECT * FROM links").all()).toEqual(before.links);
+      expect(database.prepare("SELECT * FROM task_assignments").all()).toEqual(before.assignments);
+      expect(database.prepare("SELECT * FROM task_equipment_links").all()).toEqual(before.equipmentLinks);
+      expect(database.prepare("SELECT * FROM task_system_links").all()).toEqual(before.systemLinks);
+      expect(database.prepare("SELECT max(version) FROM schema_migrations").pluck().get()).toBe(17);
+      expect(database.pragma("foreign_keys",{simple:true})).toBe(1);expect(database.pragma("foreign_key_check")).toEqual([]);
+      expect(()=>database.prepare("UPDATE tasks SET start_date=NULL WHERE id=?").run(before.parent)).toThrow();
+    }finally{database.close();}
   });
 });

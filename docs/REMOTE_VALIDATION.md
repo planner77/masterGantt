@@ -43,6 +43,7 @@ main 병합 후에는 기존 main gate를 따른다. 즉 merge SHA의 `quality/e
 2. `main`에서 작업 branch/worktree를 만든다.
 3. 구현 중에는 변경과 직접 관련된 최소 로컬 테스트만 반복한다. 실패 재현을 위해 필요한 경우 범위를 확대한다.
 4. 변경을 원격 branch에 push하고 Pull Request를 생성한다.
+   Issue 기반 PR 제목에는 `Issue #345`처럼 실제 Issue 번호를 포함한다. CI 실행 제목은 PR 제목을 사용하므로 Actions 목록에서 같은 번호를 확인하고, 실제 검증 대상은 계속 exact head SHA와 run ID로 식별한다. Main push는 commit message, 수동 실행은 ref 이름이 표시되며 workflow `CI`와 required check 계약은 유지한다.
 5. PR의 `.github/workflows/ci.yml` 결과를 공식 검증으로 사용한다. `quality`, `e2e`, `docker`가 모두 성공하기 전에는 Manager가 기능을 최종 ACCEPT하지 않는다.
 6. 실패하면 GitHub run → job → step → 최초 오류를 근거로 원인을 분석한다. 로컬에서만 다시 PASS한 것은 원격 실패 해결 증거가 아니다.
 7. PR이 merge되어 `main`에 반영되면 동일 `quality`/`e2e`/`docker` gate를 수행한다. 변경이 `docs/**` 또는 저장소 루트 Markdown만 포함하는 docs-only이면 `publish-commit-image`는 SKIPPED여야 하고, 비문서 파일이 하나라도 있거나 판정이 불가능하면 기존 registry gate가 실행되어야 한다.

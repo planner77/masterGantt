@@ -125,7 +125,7 @@ async function canonicalGet(service: ProjectService, publicId: string, revision:
 
 describe("Issue #344 deletion recovery through Handler-Service-SQLite", () => {
   it.each([false, true])(
-    "preserves committed deletes across repeated empty-summary failures (subtree=%s) and reopen",
+    "preserves committed deletes across repeated stale-revision failures (subtree=%s) and reopen",
     async (includeDescendants) => {
       const value = await fixture(includeDescendants);
       try {
@@ -146,9 +146,9 @@ describe("Issue #344 deletion recovery through Handler-Service-SQLite", () => {
           expect(beforeFailure.links).toEqual(committed.data.links);
           const rows = storedAggregate(value);
 
-          const rejected = value.remove(value.lastChild.taskId, revision, { subtree: includeDescendants });
-          expect(rejected.status).toBe(409);
-          expect(await rejected.json()).toMatchObject({ error: { code: "EMPTY_SUMMARY_NOT_ALLOWED" } });
+          const rejected = value.remove(value.lastChild.taskId, revision - 1, { subtree: includeDescendants });
+          expect(rejected.status).toBe(412);
+          expect(await rejected.json()).toMatchObject({ error: { code: "REVISION_MISMATCH" } });
           expect(storedAggregate(value)).toEqual(rows);
           const recovered = await canonicalGet(value.service, value.publicId, revision);
           expect(recovered).toEqual(beforeFailure);

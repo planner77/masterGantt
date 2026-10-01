@@ -1,11 +1,39 @@
 # Changelog
 
-## [Unreleased]
+## [0.60.0] - 2026-10-01
+
+### Added
+
+- Issue #315: Gantt Day Header hover/focus Tooltip에서 locale 요일과 Effective Project Calendar의 명명된 NON_WORKING 휴일명을 표시한다.
+- 동일 날짜의 복수 Project-level 휴일명은 canonical snapshot의 optional `exceptions[].names` projection으로 중복 없이 deterministic하게 제공한다.
+- SVAR 공개 `scales[].css(date)`로 masterGantt-owned 날짜 class를 부여하고, viewport-safe `role="tooltip"` overlay를 연결한다. WORKING override와 일반 weekend에는 별도 휴일명을 추가하지 않는다.
+
+## [0.59.0] - 2026-10-01
+
+### Added
+
+- Issue #345: Summary를 WBS 컨테이너로 정의해 자식이 없는 Summary의 직접 생성과 마지막 자식 삭제·이동 이후 유형·ID 유지를 지원한다.
+- 일정 있는 Task/Milestone 자손이 없는 Summary의 날짜·기간·진척을 `null`로 표현하고 저장·집계·Grid/Chart·Import/Export·복사/템플릿 경로를 정합화한다. 일반 Task/Milestone의 필수 일정과 보안·revision 계약은 유지한다.
+- Import는 schema 1.0 순수 검증기·null 계약·VBA 예제까지만 추가하며 신규 preview/commit 화면/API는 #30 후속 범위다.
 
 ### Changed
 
-- Issue #361: PR CI, Main CI, Issue Lifecycle, Generic Release Finalizer, GHCR Release 실행 인스턴스 이름에 Primary Issue/PR/run attempt 추적 정보를 연결하고 PR branch/body/title의 Primary Issue 일치를 초기 CI gate에서 검증한다.
-- Lifecycle가 정식 release workflow를 dispatch할 때 Issue/PR trace input을 함께 전달하되 required check 이름, release 권한·승인·digest gate와 application version `0.58.5`는 변경하지 않는다.
+- CI 실행 제목에 PR 제목을 포함해 `Issue #345`와 같은 관련 Issue 번호를 Actions 실행 목록에서 확인할 수 있게 한다. Workflow `CI`와 required check 이름·권한·실행 gate는 유지한다.
+- PR CI #1376의 production dependency audit 대응으로 `next`와 `@next/env`를 16.3.8로 갱신한다.
+- 빈 Summary의 canonical 날짜를 표시하는 Grid getter가 특정 render의 Task map을 캡처하지 않고 최신 canonical ref를 읽도록 변경해, 실패 복구에서도 마지막 확정 일정이 유지되게 한다.
+- migration CLI 회귀 기대값에 `0018_empty_summary_schedule.sql`과 migration ledger 18건을 반영한다.\n- CI #1381에서 확인된 빈 Summary Outdent 후 잔존 bar 회귀를 보완하기 위해 latest-ref Grid getter는 유지하고 `tasksById` 기반 column refresh trigger를 복원한다.
+- Application version을 `0.58.6`에서 `0.59.0`으로 증가한다.
+
+## [0.58.6] - 2026-10-01
+
+### Fixed
+
+- Issue #344 후속: 실패한 main CI 이후 같은 Issue의 corrective merge는 docs-only/non-docs 검증 scope가 동일할 때만 Generic Release Finalizer가 수렴하도록 하고, scope가 다르면 앞선 실패 merge를 우회하지 않는다.
+- coalesce된 모든 PR identity를 보존해 formal release 성공 후 각 branch를 공통 safe cleanup으로 검증·삭제하며, 하나라도 cleanup이 완료되지 않으면 FINAL marker와 Issue close를 금지한다.
+- 프로젝트 정보/더보기 disclosure는 native Dialog open과 충돌하는 blur 기반 닫기를 제거하고, keyboard Tab 이후 실제 focus가 disclosure 밖으로 이동한 경우에만 닫도록 보완한다.
+- Grid DnD/구조 이동 직후 inline rename 회귀 테스트는 frontend canonical mutation lock 해제를 확인한 뒤 편집을 시작해 서버 응답과 UI 동기화 완료 사이의 race를 제거한다.
+- 최신 main의 Next.js 16.3.7 보안 패치와 CI 최적화를 그대로 유지하며 이전 16.3.6 의존성 상태로 되돌리지 않는다.
+- Application version을 `0.58.5`에서 `0.58.6`으로 증가한다.
 
 ## [0.58.5] - 2026-10-01
 

@@ -113,6 +113,8 @@ YAML/TOML/API의 key, `jobs.<job_id>`와 step `id`, `needs`, 조건·expression,
 
 신규 문구와 참조 영향이 없는 문구부터 적용한다. 이 정책은 새로 작성하거나 수정하는 CI 관련 콘텐츠의 기준이며, 과거 실행 기록을 다시 쓰거나 요청 범위 밖의 기존 workflow를 일괄 변경하라는 지시가 아니다. 다른 범위가 명시되지 않은 지침 변경 작업에서는 workflow 실행 로직과 application version을 변경하지 않는다.
 
+Issue 기반 PR은 제목에 `Issue #345`처럼 실제 Issue 번호를 포함한다. `ci.yml`의 실행 `run-name`은 `CI 검증 · <PR 제목>`으로 표시하며 main push는 commit message, 수동 실행은 ref 이름을 사용한다. Workflow `name: CI`는 Generic Finalizer의 `workflow_run.workflows` 참조를 보존하기 위해 유지한다. Required check 이름·job 식별자·권한·trigger·gate를 바꾸지 않으며, 표시 제목만으로 실행 대상이나 성공 여부를 판단하지 않고 exact head SHA와 run/job evidence를 함께 확인한다.
+
 ### 담당과 검토
 
 `infra`는 한글 문구 작성, 연동 영향 확인, 변경·예외 및 검증 근거 보고를 담당한다. `qa_docs`는 대상 문구의 한글 적용, 식별자·권한·gate 보존과 문서 일관성을 독립 검토한다. Manager는 업무 배정과 인수 기준에 이 정책을 포함하고 최종 보고를 한글로 작성한다.

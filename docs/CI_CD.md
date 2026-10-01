@@ -13,7 +13,7 @@ GitHub Actions의 workflow 고정 식별자 `name`과 required job/check 이름�
 - 정식 GHCR release를 lifecycle에서 dispatch할 때 `inputs[issue_number]`, `inputs[pr_number]`을 REST `inputs` 객체로 전달한다. tag push 또는 trace input 없는 수동 release는 tag/version 기반 fallback 이름을 사용한다.
 - 재실행은 `run_number`가 동일하고 `run_attempt`만 증가하므로 `Run #N.1`, `Run #N.2`로 구분한다.
 
-이 변경은 observability/운영 metadata만 변경한다. 기존 `CI` workflow name, required check 세 항목, trigger, 권한, exact merge SHA gate, concurrency, release authorization, GHCR digest 검증 및 application version `0.58.5`는 변경하지 않는다.
+이 변경은 observability/운영 metadata만 변경한다. 기존 `CI` workflow name, required check 세 항목, trigger, 권한, exact merge SHA gate, concurrency, release authorization, GHCR digest 검증은 변경하지 않는다.
 
 ## Issue #356 CI 실행시간 1차 최적화
 
@@ -363,6 +363,8 @@ CI/GitHub orchestration 또는 docs-only 변경은 application version을 유지
 
 
 ## Issue #250 CI 실행 시간 최적화
+
+CI 실행 표시 제목은 `run-name`의 `CI 검증 · <PR 제목>` 형식이다. Issue 기반 PR 제목에는 `Issue #345`처럼 실제 Issue 번호를 포함해 Actions 목록에서 대상 업무를 식별한다. Main push는 commit message, 수동 실행은 ref 이름을 대체값으로 사용한다. `run-name`은 표시용이며 Generic Finalizer가 참조하는 workflow `name: CI`, required check 이름·job 식별자, event·permission·quality gate는 변경하지 않는다. [GitHub run-name 공식 문서](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#run-name)를 기준으로 `github` context를 사용한다.
 
 PR/main의 공식 required check 이름은 기존 Ruleset 계약을 유지한다.
 

@@ -3,6 +3,7 @@
 import {
   Gantt,
   Willow,
+  defaultTaskTypes,
   type IApi,
   type IColumnConfig,
   type ILink,
@@ -21,6 +22,12 @@ import {
 } from "react";
 
 import { createTaskMoveGateway } from "./task-move-gateway";
+import {
+  buildGanttDayHeaderTooltipDataForDateOnly,
+  dateOnlyFromGanttDayScaleClassName,
+  ganttDayScaleClassName,
+  type GanttDayHeaderTooltipData,
+} from "./day-header-tooltip";
 
 import type {
   ProjectCalendarDto,
@@ -52,7 +59,6 @@ import {
   type ProjectTaskCreateCommand,
   type ProjectTaskUpdateCommand,
 } from "./project-task-adapter";
-import { dateOnlyFromLocalDate } from "./date-adapter";
 import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
 import { resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import type { TaskEditorSaveResult } from "./task-editor-model";
@@ -84,12 +90,19 @@ export type ProjectGridDataColumnId =
 
 export type ProjectGridColumnVisibility = Record<ProjectGridDataColumnId, boolean>;
 let nextApiInstanceId = 1;
+const projectTaskTypes = [...defaultTaskTypes, { id: "summary-container", label: "요약 작업 (일정 미산정)" }];
 
 type MenuPosition = Readonly<{ left: number; top: number }>;
 type TaskMenuState = MenuPosition & Readonly<{ taskId: string }>;
 type TaskSubmenuName = "Add" | "Convert to" | "Paste" | "Move";
 type TaskSubmenuState = Readonly<{ name: TaskSubmenuName; placement: "right" | "left" | "drilldown"; left: number; top: number }>;
 type GanttScaleMode = "day" | "week";
+type DayHeaderTooltipState = Readonly<{
+  data: GanttDayHeaderTooltipData;
+  left: number;
+  top: number;
+  anchorTop: number;
+}>;
 
 function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) return true;
@@ -239,6 +252,7 @@ export function ProjectGantt({
   const ganttScrollReference = useRef<HTMLDivElement>(null);
   const fullscreenFrameReference = useRef<HTMLDivElement>(null);
   const fullscreenButtonReference = useRef<HTMLButtonElement>(null);
+  const dayHeaderTooltipReference = useRef<HTMLDivElement>(null);
   const fullscreenPendingReference = useRef(false);
   const fullscreenWasActiveReference = useRef(false);
   const fullscreenUiStateReference = useRef<{
@@ -261,6 +275,7 @@ export function ProjectGantt({
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
+  const [dayHeaderTooltip, setDayHeaderTooltip] = useState<DayHeaderTooltipState | null>(null);
   const pendingScaleColumnsReference = useRef<IColumnConfig[] | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenPending, setFullscreenPending] = useState(false);
@@ -269,6 +284,7 @@ export function ProjectGantt({
   const [inlineNameError, setInlineNameError] = useState(false);
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
+  const dayHeaderTooltipId = `${instanceId}-day-header-tooltip`;
   const highlightWeekend = useCallback(
     (date: Date, unit: "day" | "hour") => unit === "day" && isWeekend(date) ? "wx-weekend" : "",
     [],
@@ -352,6 +368,19 @@ export function ProjectGantt({
         const eligible = Boolean(taskId && editable && !mutationLocked && tasksById.has(taskId));
         if (row.dataset.inlineNameEligible !== String(eligible)) row.dataset.inlineNameEligible = String(eligible);
         const nameCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
+        const task = taskId ? tasksById.get(taskId) : undefined;
+        const summaryState = task?.type === "summary" && task.start === null
+          ? tasks.some((candidate) => candidate.parentExternalId === task.externalId) ? "일정 있는 하위 작업 없음" : "하위 작업 없음"
+          : null;
+        if (nameCell && summaryState) {
+          nameCell.dataset.summaryState = summaryState;
+          nameCell.setAttribute("aria-description", `요약 작업: ${summaryState}`);
+          nameCell.title = `${task!.name} · ${summaryState}`;
+        } else if (nameCell) {
+          delete nameCell.dataset.summaryState;
+          nameCell.removeAttribute("aria-description");
+          nameCell.removeAttribute("title");
+        }
         if (nameCell && !eligible && nameCell.getAttribute("aria-readonly") !== "true") nameCell.setAttribute("aria-readonly", "true");
         if (nameCell && eligible && nameCell.hasAttribute("aria-readonly")) nameCell.removeAttribute("aria-readonly");
       });
@@ -404,6 +433,8 @@ export function ProjectGantt({
 
   async function restoreSummaryToggleState(api: IApi, summaryState: ReadonlyMap<string, boolean>) {
     for (const [taskId, collapsed] of summaryState) {
+      const task = tasksByIdReference.current.get(taskId);
+      if (!task || !tasksReference.current.some((candidate) => candidate.parentExternalId === task.externalId)) continue;
       await api.exec("open-task", { id: taskId, mode: !collapsed });
     }
   }
@@ -621,12 +652,15 @@ export function ProjectGantt({
             ...column,
             hidden: !columnVisibility.projectStart,
             sort: (first: ITask, second: ITask) => {
-              const difference = (first.start?.getTime() ?? 0) - (second.start?.getTime() ?? 0);
-              return difference === 0 ? 0 : difference < 0 ? -1 : 1;
+              const firstStart = tasksByIdReference.current.get(String(first.id))?.start;
+              const secondStart = tasksByIdReference.current.get(String(second.id))?.start;
+              if (!firstStart || !secondStart) return !firstStart && !secondStart ? 0 : !firstStart ? 1 : -1;
+              return firstStart === secondStart ? 0 : firstStart < secondStart ? -1 : 1;
             },
-            getter: (task: ITask) => task.start instanceof Date
-              ? formatLocaleDateOnly(dateOnlyFromLocalDate(task.start), locales)
-              : "—",
+            getter: (task: ITask) => {
+              const start = typeof task.id === "string" ? tasksByIdReference.current.get(task.id)?.start : null;
+              return start ? formatLocaleDateOnly(start, locales) : "—";
+            },
           }
           : column.id === "projectDuration"
             ? {
@@ -651,12 +685,16 @@ export function ProjectGantt({
               hidden: !columnVisibility.text,
               editor: (row?: Record<string, unknown>) => {
                 const taskId = typeof row?.id === "string" ? row.id : null;
-                return editable && !mutationLocked && taskId && tasksById.has(taskId) ? "text" : null;
+                return canCreateReference.current && taskId && tasksByIdReference.current.has(taskId) ? "text" : null;
               },
             }
             : column
     )),
-    [columnVisibility, editable, locales, mutationLocked, tasksById],
+    // Grid getters read the latest canonical DTO map through a ref, avoiding
+    // stale values after failed mutations. Keep tasksById as a dependency so a
+    // canonical Task change also re-runs the public set-columns synchronization;
+    // Core needs that refresh when a dated Summary becomes an empty container.
+    [columnVisibility, locales, tasksById],
   );
   const initialConfig = useState(() => ({
     tasks: projectTasksToSvarTasks(tasks),
@@ -841,6 +879,156 @@ export function ProjectGantt({
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root || scaleMode !== "day") {
+      setDayHeaderTooltip(null);
+      return;
+    }
+
+    const selector = ".project-gantt-day-scale";
+    let activeCell: HTMLElement | null = null;
+    let hoveredCell: HTMLElement | null = null;
+    let focusedCell: HTMLElement | null = null;
+    let repositionFrame: number | null = null;
+
+    const tooltipData = (cell: HTMLElement): GanttDayHeaderTooltipData | null => {
+      const date = dateOnlyFromGanttDayScaleClassName(cell.className);
+      return date ? buildGanttDayHeaderTooltipDataForDateOnly(date, calendar, locales) : null;
+    };
+
+    const markCells = () => {
+      root.querySelectorAll<HTMLElement>(selector).forEach((cell) => {
+        if (!cell.hasAttribute("tabindex")) cell.tabIndex = 0;
+        const data = tooltipData(cell);
+        if (data) cell.setAttribute("aria-label", data.ariaLabel);
+      });
+    };
+
+    const findCell = (target: EventTarget | null): HTMLElement | null => {
+      if (!(target instanceof Element)) return null;
+      const cell = target.closest<HTMLElement>(selector);
+      return cell && root.contains(cell) ? cell : null;
+    };
+
+    const show = (cell: HTMLElement) => {
+      const data = tooltipData(cell);
+      if (!data) return;
+      if (activeCell && activeCell !== cell && activeCell.getAttribute("aria-describedby") === dayHeaderTooltipId) {
+        activeCell.removeAttribute("aria-describedby");
+      }
+      activeCell = cell;
+      cell.setAttribute("aria-describedby", dayHeaderTooltipId);
+      const bounds = cell.getBoundingClientRect();
+      setDayHeaderTooltip({
+        data,
+        left: bounds.left + bounds.width / 2,
+        top: bounds.bottom + 6,
+        anchorTop: bounds.top,
+      });
+    };
+
+    const hide = () => {
+      if (activeCell?.getAttribute("aria-describedby") === dayHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
+      activeCell = null;
+      setDayHeaderTooltip(null);
+    };
+
+    const showTrackedCell = () => {
+      const hover = hoveredCell?.isConnected ? hoveredCell : null;
+      const focus = focusedCell?.isConnected ? focusedCell : null;
+      if (hover) show(hover);
+      else if (focus) show(focus);
+      else hide();
+    };
+
+    const onPointerOver = (event: PointerEvent) => {
+      if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
+      const cell = findCell(event.target);
+      if (!cell) return;
+      hoveredCell = cell;
+      show(cell);
+    };
+    const onPointerOut = (event: PointerEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      const related = findCell(event.relatedTarget);
+      if (related === cell) return;
+      if (hoveredCell === cell) hoveredCell = related;
+      showTrackedCell();
+    };
+    const onFocusIn = (event: FocusEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      focusedCell = cell;
+      // Explicit keyboard/programmatic focus must immediately expose the focused
+      // date even when the pointer is still resting on another day cell.
+      show(cell);
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      const related = findCell(event.relatedTarget);
+      if (related === cell) return;
+      if (focusedCell === cell) focusedCell = related;
+      showTrackedCell();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || !activeCell) return;
+      hoveredCell = null;
+      focusedCell = null;
+      hide();
+    };
+    const onViewportChange = () => {
+      if (repositionFrame !== null) return;
+      repositionFrame = window.requestAnimationFrame(() => {
+        repositionFrame = null;
+        if (activeCell?.isConnected) show(activeCell);
+        else showTrackedCell();
+      });
+    };
+
+    markCells();
+    const observer = new MutationObserver(markCells);
+    observer.observe(root, { childList: true, subtree: true });
+    root.addEventListener("pointerover", onPointerOver);
+    root.addEventListener("pointerout", onPointerOut);
+    root.addEventListener("focusin", onFocusIn);
+    root.addEventListener("focusout", onFocusOut);
+    root.addEventListener("keydown", onKeyDown);
+    window.addEventListener("resize", onViewportChange);
+    window.addEventListener("scroll", onViewportChange, true);
+    return () => {
+      observer.disconnect();
+      root.removeEventListener("pointerover", onPointerOver);
+      root.removeEventListener("pointerout", onPointerOut);
+      root.removeEventListener("focusin", onFocusIn);
+      root.removeEventListener("focusout", onFocusOut);
+      root.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("resize", onViewportChange);
+      window.removeEventListener("scroll", onViewportChange, true);
+      if (repositionFrame !== null) window.cancelAnimationFrame(repositionFrame);
+      if (activeCell?.getAttribute("aria-describedby") === dayHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
+      setDayHeaderTooltip(null);
+    };
+  }, [calendar, dayHeaderTooltipId, locales, scaleMode]);
+
+  useLayoutEffect(() => {
+    const tooltip = dayHeaderTooltipReference.current;
+    if (!tooltip || !dayHeaderTooltip) return;
+    const bounds = tooltip.getBoundingClientRect();
+    let left = dayHeaderTooltip.left;
+    let top = dayHeaderTooltip.top;
+    const gutter = 8;
+    if (bounds.left < gutter) left += gutter - bounds.left;
+    else if (bounds.right > window.innerWidth - gutter) left -= bounds.right - (window.innerWidth - gutter);
+    if (bounds.bottom > window.innerHeight - gutter) top = dayHeaderTooltip.anchorTop - bounds.height - 6;
+    if (top < gutter) top = gutter;
+    if (Math.abs(left - dayHeaderTooltip.left) >= 1 || Math.abs(top - dayHeaderTooltip.top) >= 1) {
+      setDayHeaderTooltip((current) => current ? { ...current, left, top } : current);
+    }
+  }, [dayHeaderTooltip]);
   const scales = useMemo(() => [
     {
       unit: "month",
@@ -855,6 +1043,7 @@ export function ProjectGantt({
         unit: "day",
         step: 1,
         format: (date: Date) => formatGanttDayOfMonth(date),
+        css: (date: Date) => ganttDayScaleClassName(date),
       }
       : {
         unit: "week",
@@ -1503,6 +1692,9 @@ export function ProjectGantt({
     switch (taskSubmenu.name) {
       case "Add": return <>
         <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canAddChild} onClick={() => createTaskFromMenu("child")} role="menuitem" type="button">Child task</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canAddChild} onClick={() => {
+          executeHierarchyCommand({ kind: "create", anchorTaskId: taskMenu.taskId, placement: "child", task: { name: "새 요약 작업", type: "summary" } });
+        }} role="menuitem" type="button">요약 작업 추가</button>
         <button className="project-task-context-submenu-command" disabled={!canMutate} onClick={() => createTaskFromMenu("before")} role="menuitem" type="button">Task above</button>
         <button className="project-task-context-submenu-command" disabled={!canMutate} onClick={() => createTaskFromMenu("after")} role="menuitem" type="button">Task below</button>
       </>;
@@ -1540,6 +1732,7 @@ export function ProjectGantt({
           <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">일</button>
           <button aria-pressed={scaleMode === "week"} onClick={() => changeScaleMode("week")} type="button">주</button>
         </div>
+        {editable ? <button className="project-gantt-fullscreen-button" disabled={mutationLocked} onClick={() => onTaskCreateReference.current({ name: "새 요약 작업", type: "summary" })} type="button">요약 작업 추가</button> : null}
         <button className="project-gantt-fullscreen-button" ref={fullscreenButtonReference} type="button"
           aria-label={isFullscreen ? "Gantt 전체 화면 종료" : "Gantt 전체 화면"} aria-pressed={isFullscreen}
           aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
@@ -1585,9 +1778,24 @@ export function ProjectGantt({
               end={initialRange.end}
               start={initialRange.start}
               tasks={initialConfig.tasks}
+              taskTypes={projectTaskTypes}
             />
           </div>
         </div>
+        {dayHeaderTooltip ? (
+          <div
+            className="project-gantt-day-header-tooltip"
+            id={dayHeaderTooltipId}
+            ref={dayHeaderTooltipReference}
+            role="tooltip"
+            style={{ left: dayHeaderTooltip.left, top: dayHeaderTooltip.top }}
+          >
+            <span className="project-gantt-day-header-tooltip-weekday">{dayHeaderTooltip.data.weekday}</span>
+            {dayHeaderTooltip.data.holidayNames.map((name) => (
+              <span className="project-gantt-day-header-tooltip-holiday" key={name}>{name}</span>
+            ))}
+          </div>
+        ) : null}
         {inlineNameMessage ? <p className="project-gantt-inline-name-status" role={inlineNameError ? "alert" : "status"} id={`${instanceId}-inline-name-status`}>{inlineNameMessage}</p> : null}
         {columnMenuPosition ? <div
           aria-label="표시 열 선택"

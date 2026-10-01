@@ -26,7 +26,9 @@ Issue #350에서 Issue별 one-shot finalizer를 제거하고 main CI 이후 life
 2. PR body에는 정확히 하나의 canonical `Refs #<Issue>` 줄이 있어야 한다.
 3. 선행 merge의 exact main CI가 아직 SUCCESS가 아니면 mutation 없이 `DEFERRED`하고, 이후 main CI 완료 이벤트가 backlog를 다시 계산한다.
 4. CI 완료 이벤트 순서가 main first-parent 순서와 달라도 release/finalize는 first-parent oldest → newest 순서를 유지한다.
-5. ambiguity 또는 누락은 fail-closed이며 branch/tag/Issue mutation을 하지 않는다.
+5. 인접한 same-Issue corrective merge는 각 merge의 immediate first-parent diff가 모두 docs-only이거나 모두 non-docs인 경우에만 최신 target으로 수렴한다. 검증 scope가 다르면 coalesce하지 않아 앞선 실패 merge를 우회하지 않는다.
+6. coalesce된 모든 PR identity를 보존하고 formal release가 필요하면 release 성공 후 각 merged branch를 `safe_branch_cleanup.py`로 검증·정리한다. 모든 branch cleanup이 PASS하기 전에는 FINAL marker와 Issue close를 수행하지 않는다.
+7. ambiguity 또는 누락은 fail-closed이며 branch/tag/Issue mutation을 하지 않는다.
 
 ## Release required 판정
 
@@ -56,9 +58,9 @@ CI 성공이나 version bump 자체는 release 승인이 아니다.
 
 ## Release / Finalize
 
-승인된 release는 기존 `scripts/issue_lifecycle.py release_finalize`를 호출한다. 이 경로는 annotated SemVer tag, `release-image.yml`, GHCR exact image/digest smoke, stable alias promotion, safe branch cleanup, FINAL marker, Issue close를 그대로 재사용한다.
+승인된 release는 기존 `scripts/issue_lifecycle.py release_finalize`를 호출한다. 이 경로는 annotated SemVer tag, `release-image.yml`, GHCR exact image/digest smoke, stable alias promotion, safe branch cleanup, FINAL marker, Issue close를 그대로 재사용한다. same-Issue corrective merge가 수렴된 경우에는 latest PR뿐 아니라 함께 보존한 이전 PR branch도 모두 cleanup 대상이다.
 
-No-release 변경은 `finalize`만 호출하여 safe branch cleanup, FINAL marker, Issue close를 수행한다.
+No-release 변경은 `finalize`만 호출하여 동일한 multi-PR safe branch cleanup을 완료한 뒤 FINAL marker와 Issue close를 수행한다.
 
 ## Concurrency
 

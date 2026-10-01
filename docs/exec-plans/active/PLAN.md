@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #345 빈 Summary WBS 컨테이너 — 독립 사전 QA PASS / PR·CI 시작 준비
+
+최신 main·nullable Summary 계약·migration·표시·Import 범위·소유권과 검증은 [Issue #345 실행 계획](ISSUE_345.md)을 따른다. 이번 요청은 Issue 번호가 포함된 CI 실행 시작까지이며 완료 모니터링·병합·릴리스·Issue 종료는 범위 밖이다.
+
 ## Issue #344 삭제 실패 복구 — 사전 QA PASS / PR·CI 시작 준비
 
 최신 main, 소유권, 삭제 성공 후 실패의 canonical/revision 보존 기준과 검증 범위는 [Issue #344 실행 계획](ISSUE_344.md)에 기록한다. 이번 요청은 PR 생성과 CI 시작까지이며 CI 완료 모니터링·병합·정식 게시·Issue 종료는 범위 밖이다.

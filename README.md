@@ -45,7 +45,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | --- | --- | --- |
 | masterGantt | 0.17.0 | Issue #68 작업 캘린더 변경 시 FS/lag=0 Dependency 재계산 기능 버전 |
 | Node.js | 최소 22, 검증 22.14.0 | 서버와 CLI 실행 |
-| Next.js | 16.3.4 | App Router, 서버 Route Handler, 빌드 |
+| Next.js | 16.3.7 | App Router, 서버 Route Handler, 빌드 |
 | React / React DOM | 19.3.0 | 화면 컴포넌트 |
 | TypeScript | 5.8.3 | 타입 검사 |
 | Tailwind CSS | 4.3.3 | UI 스타일 도구; 현재 기본 화면은 CSS도 사용 |

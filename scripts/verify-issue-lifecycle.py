@@ -32,6 +32,11 @@ impl = IMPL.read_text(encoding="utf-8")
 auto_impl = AUTO_IMPL.read_text(encoding="utf-8")
 trace_impl = TRACE_IMPL.read_text(encoding="utf-8")
 
+require(re.search(r"^name: CI$", ci_workflow, re.MULTILINE) is not None, "Finalizer가 참조하는 CI workflow 이름을 유지해야 합니다")
+run_name = next((line for line in ci_workflow.splitlines() if line.startswith("run-name:")), "")
+require("github.event.pull_request.title" in run_name, "PR CI 실행 제목에 Issue 번호를 포함한 PR 제목이 필요합니다")
+require("github.event.head_commit.message" in run_name and "github.ref_name" in run_name, "main·수동 CI 실행 제목의 대체값이 필요합니다")
+
 require("run-name:" in ci_workflow, "CI workflow run-name is required")
 require("github.event.pull_request.title" in ci_workflow, "PR CI run-name must carry the PR title/Primary Issue trace")
 require("github.event.pull_request.number" in ci_workflow, "PR CI run-name must carry the PR number")
@@ -105,6 +110,10 @@ require("filter=latest&per_page=100" in impl, "lifecycle must inspect latest-att
 require("mastergantt-release-authorization:v1" in auto_impl, "version-scoped release authorization marker is required")
 require("gh_paginated(" in auto_impl, "comment and PR pagination helper is required")
 require("collect_pending_work(" in auto_impl, "first-parent backlog resolver is required")
+require("coalesce_consecutive_issue_retries(" in auto_impl, "same-Issue corrective merge convergence is required")
+require("supersede_failed_issue_retries(" in auto_impl, "non-adjacent same-Issue retry supersession is required")
+require("validation_docs_only" in auto_impl, "coalescing must preserve validation scope")
+require("--cleanup-pr" in auto_impl and "--cleanup-pr" in impl, "coalesced PR cleanup identities must reach lifecycle finalize")
 require("current_main_sha(" in auto_impl, "dispatcher must snapshot current main")
 require("oldest → newest" in auto_impl, "dispatcher must document first-parent processing order")
 require("head_sha=" in auto_impl, "exact main CI lookup must bind target SHA")
@@ -179,6 +188,7 @@ trace_push_payload = {
 require(trace.validate_push(trace_push_payload) == (361, 362), "merge commit trace metadata must resolve Issue/PR")
 require(trace.validate_dispatch({"inputs": {"issue_number": "361"}}) == (361, None), "manual CI Primary Issue must validate")
 require(trace.validate_dispatch({"inputs": {}}) == (None, None), "manual CI without Issue must use fallback")
+
 
 scenarios = [
     (dict(merged=False, checks_ok=False, main_ci_ok=False, main_artifact_ok=False, release_required=False, release_authorized=False, version_ok=True), "BLOCKED"),
@@ -359,6 +369,70 @@ try:
 finally:
     auto.resolve_work_item = saved_resolve
     auto.is_finalized_boundary = saved_boundary
+
+# Adjacent corrective merges for the same Issue converge only when their
+# validation scope is equivalent. Collapsed PR identities remain cleanup
+# obligations. Different Issue or docs-only/non-docs scope prevents convergence.
+retry_one = auto.WorkItem("4" * 40, old_sha, 10, 344, "0.58.3", "0.58.4", False)
+retry_two = auto.WorkItem("5" * 40, "4" * 40, 11, 344, "0.58.4", "0.58.5", False)
+collapsed = auto.coalesce_consecutive_issue_retries([retry_one, retry_two])
+require(len(collapsed) == 1, "adjacent same-Issue retries with equal scope must converge")
+require(collapsed[0].target_sha == retry_two.target_sha, "latest retry target must win")
+require(collapsed[0].pr_number == retry_two.pr_number, "latest retry PR must win")
+require(collapsed[0].cleanup_pr_numbers == (retry_one.pr_number,), "earlier retry PR must remain a cleanup obligation")
+require(collapsed[0].first_parent_sha == retry_one.first_parent_sha, "version span must start before first retry")
+require(collapsed[0].previous_version == "0.58.3" and collapsed[0].current_version == "0.58.5", "version span must cover all adjacent retries")
+docs_followup = auto.WorkItem("6" * 40, retry_one.target_sha, 12, 344, "0.58.4", "0.58.4", True)
+scope_split = auto.coalesce_consecutive_issue_retries([retry_one, docs_followup])
+require(len(scope_split) == 2, "docs-only/non-docs validation scope mismatch must prevent convergence")
+other_issue = auto.WorkItem("7" * 40, retry_one.target_sha, 13, 999, "0.58.4", "0.58.4", False)
+not_collapsed = auto.coalesce_consecutive_issue_retries([retry_one, other_issue, retry_two])
+require(len(not_collapsed) == 3, "different Issue boundary must prevent convergence")
+cleanup_command = auto.lifecycle_command(
+    operation="finalize",
+    issue_number=344,
+    pr_number=11,
+    release_required=False,
+    release_authorized=False,
+    expected_version="",
+    authorization_note="",
+    cleanup_pr_numbers=(10,),
+)
+require(cleanup_command[-2:] == ["--cleanup-pr", "10"], "collapsed cleanup PR must be forwarded to lifecycle")
+parsed_cleanup = module.build_parser().parse_args(
+    ["finalize", "--issue", "344", "--pr", "11", "--cleanup-pr", "10", "--cleanup-pr", "9"]
+)
+require(parsed_cleanup.cleanup_pr == [10, 9], "lifecycle must accept repeated cleanup PR identities")
+
+# A failed older attempt may be superseded by a later Green corrective merge
+# for the same Issue even when independent Issues are in between. Intervening
+# work keeps first-parent order and the older branch becomes cleanup debt of
+# the corrective target.
+failed_344 = auto.WorkItem("8" * 40, "0" * 40, 20, 344, "0.58.3", "0.58.4", False)
+middle_356 = auto.WorkItem("9" * 40, "8" * 40, 21, 356, "0.58.4", "0.58.5", False)
+fixed_344 = auto.WorkItem("a" * 40, "9" * 40, 22, 344, "0.58.5", "0.58.6", False)
+planned, superseded = auto.supersede_failed_issue_retries(
+    [failed_344, middle_356, fixed_344],
+    {failed_344.target_sha: False, middle_356.target_sha: True, fixed_344.target_sha: True},
+)
+require([item.issue_number for item in planned] == [356, 344], "intervening Issue order must be preserved")
+require(len(superseded) == 1 and superseded[0] == (failed_344, fixed_344), "failed attempt must map to later corrective target")
+require(planned[-1].cleanup_pr_numbers == (20,), "superseded PR must become corrective cleanup obligation")
+
+docs_repair = auto.WorkItem("b" * 40, "9" * 40, 23, 344, "0.58.5", "0.58.5", True)
+not_planned, not_superseded = auto.supersede_failed_issue_retries(
+    [failed_344, middle_356, docs_repair],
+    {failed_344.target_sha: False, middle_356.target_sha: True, docs_repair.target_sha: True},
+)
+require(not_superseded == [], "docs-only corrective target must not cover failed non-docs attempt")
+require(not_planned[0] == failed_344, "uncovered failed attempt must remain the first blocker")
+
+waiting_planned, waiting_superseded = auto.supersede_failed_issue_retries(
+    [failed_344, middle_356, fixed_344],
+    {failed_344.target_sha: False, middle_356.target_sha: True, fixed_344.target_sha: False},
+)
+require(waiting_superseded == [], "non-Green corrective target must not supersede earlier failure")
+require(waiting_planned[0] == failed_344, "failed attempt must remain until corrective exact main CI succeeds")
 
 for expected_error, values in [
     (True, ("1", "2", True, False, "", "")),

@@ -48,6 +48,8 @@ class WorkItem:
     issue_number: int
     previous_version: str
     current_version: str
+    validation_docs_only: bool = False
+    cleanup_pr_numbers: tuple[int, ...] = ()
 
 
 def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -209,6 +211,27 @@ def resolve_versions(target_sha: str) -> tuple[str, str, str]:
     return first_parent, previous, current
 
 
+def docs_only_paths(paths: list[str]) -> bool:
+    if not paths:
+        return False
+    return all(
+        path.startswith("docs/") or ("/" not in path and path.endswith(".md"))
+        for path in paths
+    )
+
+
+def validation_scope_docs_only(first_parent_sha: str, target_sha: str) -> bool:
+    raw = run(
+        "git",
+        "diff",
+        "--name-only",
+        "-z",
+        first_parent_sha,
+        target_sha,
+    ).stdout
+    return docs_only_paths([path for path in raw.split("\0") if path])
+
+
 def resolve_work_item(repo: str, target_sha: str) -> WorkItem | None:
     pulls = gh_paginated(f"/repos/{repo}/commits/{target_sha}/pulls")
     pr = select_exact_pull_request(pulls, repo=repo, target_sha=target_sha)
@@ -224,6 +247,8 @@ def resolve_work_item(repo: str, target_sha: str) -> WorkItem | None:
         issue_number=issue_number,
         previous_version=previous_version,
         current_version=current_version,
+        validation_docs_only=validation_scope_docs_only(first_parent, target_sha),
+        cleanup_pr_numbers=(),
     )
 
 
@@ -276,6 +301,117 @@ def collect_pending_work(
     )
 
 
+def coalesce_consecutive_issue_retries(items: list[WorkItem]) -> list[WorkItem]:
+    """Collapse adjacent same-Issue retries only when validation scope matches.
+
+    The latest target can stand in for earlier attempts only when both merges
+    require the same docs-only/non-docs main validation scope. This prevents a
+    docs-only follow-up from masking an earlier code merge whose exact main CI
+    never produced the required E2E/Docker/GHCR evidence. Every collapsed PR
+    identity is retained so all merged branches can be safely cleaned before
+    FINAL/Issue close.
+    """
+    coalesced: list[WorkItem] = []
+    for item in items:
+        if (
+            coalesced
+            and coalesced[-1].issue_number == item.issue_number
+            and coalesced[-1].validation_docs_only == item.validation_docs_only
+        ):
+            previous = coalesced[-1]
+            cleanup_pr_numbers = tuple(
+                dict.fromkeys(
+                    (
+                        *previous.cleanup_pr_numbers,
+                        previous.pr_number,
+                        *item.cleanup_pr_numbers,
+                    )
+                )
+            )
+            coalesced[-1] = WorkItem(
+                target_sha=item.target_sha,
+                first_parent_sha=previous.first_parent_sha,
+                pr_number=item.pr_number,
+                issue_number=item.issue_number,
+                previous_version=previous.previous_version,
+                current_version=item.current_version,
+                validation_docs_only=item.validation_docs_only,
+                cleanup_pr_numbers=cleanup_pr_numbers,
+            )
+            continue
+        coalesced.append(item)
+    return coalesced
+
+
+def validation_scope_covers(older: WorkItem, replacement: WorkItem) -> bool:
+    """Return whether replacement CI scope can validate the older attempt."""
+    if not replacement.validation_docs_only:
+        return True
+    return older.validation_docs_only
+
+
+def supersede_failed_issue_retries(
+    items: list[WorkItem],
+    ci_success: dict[str, bool],
+) -> tuple[list[WorkItem], list[tuple[WorkItem, WorkItem]]]:
+    """Defer a failed attempt to a later Green merge for the same Issue.
+
+    Unlike adjacent coalescing, this keeps intervening Issues in first-parent
+    order. The failed attempt is omitted only when a later same-Issue target
+    already has exact main CI SUCCESS and its validation scope is at least as
+    strong. The superseded PR remains a cleanup obligation of that later target.
+    """
+    superseded_indices: set[int] = set()
+    cleanup_by_index: dict[int, list[int]] = {}
+    superseded: list[tuple[WorkItem, WorkItem]] = []
+
+    for index, item in enumerate(items):
+        if ci_success.get(item.target_sha, False):
+            continue
+        replacement_index: int | None = None
+        for candidate_index in range(index + 1, len(items)):
+            candidate = items[candidate_index]
+            if candidate.issue_number != item.issue_number:
+                continue
+            if not ci_success.get(candidate.target_sha, False):
+                continue
+            if not validation_scope_covers(item, candidate):
+                continue
+            replacement_index = candidate_index
+            break
+        if replacement_index is None:
+            continue
+
+        replacement = items[replacement_index]
+        superseded_indices.add(index)
+        cleanup_by_index.setdefault(replacement_index, []).extend(
+            [*item.cleanup_pr_numbers, item.pr_number]
+        )
+        superseded.append((item, replacement))
+
+    planned: list[WorkItem] = []
+    for index, item in enumerate(items):
+        if index in superseded_indices:
+            continue
+        extra_cleanup = cleanup_by_index.get(index, [])
+        if extra_cleanup:
+            cleanup = tuple(
+                dict.fromkeys((*item.cleanup_pr_numbers, *extra_cleanup))
+            )
+            item = WorkItem(
+                target_sha=item.target_sha,
+                first_parent_sha=item.first_parent_sha,
+                pr_number=item.pr_number,
+                issue_number=item.issue_number,
+                previous_version=item.previous_version,
+                current_version=item.current_version,
+                validation_docs_only=item.validation_docs_only,
+                cleanup_pr_numbers=cleanup,
+            )
+        planned.append(item)
+    return planned, superseded
+
+
 def current_main_sha(repo: str) -> str:
     data = gh(f"/repos/{repo}/git/ref/heads/main")
     sha = ((data or {}).get("object") or {}).get("sha", "")
@@ -308,8 +444,9 @@ def lifecycle_command(
     release_authorized: bool,
     expected_version: str,
     authorization_note: str,
+    cleanup_pr_numbers: tuple[int, ...] = (),
 ) -> list[str]:
-    return [
+    command = [
         "python3",
         "scripts/issue_lifecycle.py",
         operation,
@@ -326,6 +463,9 @@ def lifecycle_command(
         "--authorization-note",
         authorization_note,
     ]
+    for cleanup_pr_number in cleanup_pr_numbers:
+        command.extend(["--cleanup-pr", str(cleanup_pr_number)])
+    return command
 
 
 def process_item(repo: str, item: WorkItem) -> None:
@@ -362,6 +502,8 @@ def process_item(repo: str, item: WorkItem) -> None:
             f"- PR: #{item.pr_number}",
             f"- Issue: #{item.issue_number}",
             f"- application version: `{item.previous_version}` → `{item.current_version}`",
+            f"- validation scope docs-only: `{str(item.validation_docs_only).lower()}`",
+            f"- additional cleanup PRs: {', '.join(f'#{number}' for number in item.cleanup_pr_numbers) or 'none'}",
             f"- release_required: `{str(release_required).lower()}`",
             f"- release_authorized: `{str(release_authorized).lower()}`",
             f"- 승인 근거: {evidence}",
@@ -378,6 +520,7 @@ def process_item(repo: str, item: WorkItem) -> None:
             release_authorized=release_authorized,
             expected_version=item.current_version if release_required else "",
             authorization_note=authorization_note,
+            cleanup_pr_numbers=item.cleanup_pr_numbers,
         ),
         check=False,
     )
@@ -397,7 +540,16 @@ def execute(trigger_sha: str) -> int:
         raise AutoFinalizerError("trigger SHA는 40자리 SHA여야 합니다")
 
     latest_main = current_main_sha(repo)
-    pending = collect_pending_work(repo, latest_main)
+    pending_raw = collect_pending_work(repo, latest_main)
+    pending_coalesced = coalesce_consecutive_issue_retries(pending_raw)
+    ci_evidence = {
+        item.target_sha: exact_main_ci_success(repo, item.target_sha)
+        for item in pending_coalesced
+    }
+    pending, superseded = supersede_failed_issue_retries(
+        pending_coalesced,
+        {sha: evidence[0] for sha, evidence in ci_evidence.items()},
+    )
 
     if not pending:
         write_summary(
@@ -418,13 +570,37 @@ def execute(trigger_sha: str) -> int:
             "",
             f"- triggering CI SHA: `{trigger_sha}`",
             f"- dispatcher main snapshot: `{latest_main}`",
-            f"- pending first-parent merges: `{len(pending)}`",
-            "- 처리 순서: oldest → newest",
+            f"- pending first-parent merges: `{len(pending_raw)}`",
+            f"- targets after adjacent same-Issue convergence: `{len(pending_coalesced)}`",
+            f"- superseded failed attempts: `{len(superseded)}`",
+            f"- lifecycle targets: `{len(pending)}`",
+            "- 처리 순서: oldest → newest; intervening Issues retain their position",
         ]
     )
 
+    for older, replacement in superseded:
+        _, older_ci_url = ci_evidence[older.target_sha]
+        _, replacement_ci_url = ci_evidence[replacement.target_sha]
+        write_summary(
+            [
+                "### SUPERSEDED ATTEMPT",
+                "",
+                f"- failed SHA: `{older.target_sha}`",
+                f"- Issue: #{older.issue_number}",
+                f"- failed exact main CI: {older_ci_url or 'N/A'}",
+                f"- corrective SHA: `{replacement.target_sha}`",
+                f"- corrective exact main CI: {replacement_ci_url or 'N/A'}",
+                f"- validation scope: older docs-only={str(older.validation_docs_only).lower()}, corrective docs-only={str(replacement.validation_docs_only).lower()}",
+                f"- cleanup deferred to PR #{replacement.pr_number}",
+                "- release/finalize mutation: 없음 (corrective target 처리 시 수행)",
+            ]
+        )
+
     for item in pending:
-        ci_ok, ci_url = exact_main_ci_success(repo, item.target_sha)
+        ci_ok, ci_url = ci_evidence.get(
+            item.target_sha,
+            exact_main_ci_success(repo, item.target_sha),
+        )
         if not ci_ok:
             write_summary(
                 [
