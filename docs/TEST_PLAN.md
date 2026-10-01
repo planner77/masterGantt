@@ -1,5 +1,15 @@
 # Test Plan
 
+## Issue #373 Summary subtree 새 탭 scoped view
+
+- Unit: `task-subtree-scope.test.ts`에서 child가 있는 Summary만 Context Menu 진입 대상인지, root + 모든 depth descendant ID 집합이 ancestor/sibling을 제외하는지, 빈 Summary deep link는 유효한지, missing/non-Summary root를 구분하는지 검증한다.
+- Chromium E2E: 실제 Project에서 root Task를 Summary로 전환할 child를 추가한 뒤 Grid Context Menu의 `최상위로 열기`가 생기고 leaf에는 생기지 않는지 확인한다. 새 탭 URL의 `rootTask`, compact scope 상태/전체 Project 링크, root+child 가시성과 sibling 비가시성, 같은 edit session 상속을 검증한다.
+- Scoped edit / cross-tab: 새 탭 Task Editor에서 child 이름을 저장하면 기존 Task PATCH/revision을 사용하고 subtree scope를 유지한다. 원래 탭은 same-origin revision storage event를 받아 canonical GET으로 최신 이름을 반영하면서 전체 branch의 sibling을 계속 표시한다. 새 탭 reload 뒤에도 scope가 유지되어야 한다.
+- 회귀: scoped view의 검색/필터는 subtree와 AND로 적용되고 초기화가 전체 Project로 확장되지 않아야 한다. Task/Relation Editor에는 전체 canonical tasks/links가 남아 scope 밖 Dependency를 삭제된 것으로 오인하지 않는다. 빈 Summary root 유지, missing/type-changed root 오류, popup 차단 오류는 구현 contract와 unit/component 경계에서 확인한다.
+- 접근성/반응형: 기존 #72 Context Menu keyboard/Escape/focus와 390/768/1024/1440px 메뉴 clipping을 유지한다. scope bar는 긴 Project/Summary 이름에서도 ellipsis/wrap으로 document-level unintended horizontal overflow를 만들지 않는다.
+- API/DB/Scheduling/Security: 새 endpoint/migration/algorithm/auth 모델은 없다. 기존 Project GET, Task/Link mutation, edit session/Origin/strong If-Match/revision/canonical snapshot을 그대로 검증한다.
+- 공식 전체 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다. PR CI 시작 전에는 원격 PASS를 주장하지 않는다.
+
 ## Issue #368 Task Editor 요청 종료일·기간 양방향 계산
 
 - Unit: Project Effective Calendar를 그대로 사용하여 duration→requestedEnd, requestedEnd→duration의 양 끝 포함 근무일 계산을 검증한다. 주말, NON_WORKING 공휴일, WORKING 주말 예외와 Auto 비근무 requestedStart의 다음 근무일 정규화, Manual 비근무 시작 오류, 잘못된/역순/비근무 요청 종료일 및 1~10,000 duration 경계를 포함한다.
