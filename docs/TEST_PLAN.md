@@ -1,5 +1,14 @@
 # Test Plan
 
+## Issue #368 Task Editor 요청 종료일·기간 양방향 계산
+
+- Unit: Project Effective Calendar를 그대로 사용하여 duration→requestedEnd, requestedEnd→duration의 양 끝 포함 근무일 계산을 검증한다. 주말, NON_WORKING 공휴일, WORKING 주말 예외와 Auto 비근무 requestedStart의 다음 근무일 정규화, Manual 비근무 시작 오류, 잘못된/역순/비근무 요청 종료일 및 1~10,000 duration 경계를 포함한다.
+- Model/command: 마지막 명시 입력 기준(duration/end)을 유지해 requestedStart 변경 시 반대 필드만 재계산하고, UI-only requestedEnd가 dirty source나 PATCH whitelist에 포함되지 않으며 저장 payload는 기존 start(requestedStart 의미)+duration만 사용하는지 확인한다.
+- Chromium E2E: 작업 정보에서 기간 변경 즉시 요청 종료일 갱신, 요청 종료일 변경 즉시 기간 갱신, 공휴일 종료 입력의 field-level aria-invalid/aria-describedby 및 mutation 0회, 수정 후 저장 성공과 재오픈 재도출을 검증한다. Dependency-linked Auto Task의 요청/적용 일정 분리, Manual conflict, Summary readonly, Milestone duration=0 회귀를 기존 Editor 시나리오와 함께 유지한다.
+- Responsive/Accessibility: 390/768/1024/1440px에서 요청 시작일·기간·요청 종료일이 content-aware 3열 또는 1열로 재배치되고 dialog/document unintended horizontal overflow가 없으며 keyboard-only 입력/저장과 자동 갱신 중 focus 보존을 확인한다.
+- API/DB: 새 persisted requestedEnd 필드와 migration은 추가하지 않는다. 기존 Task PATCH, edit session, Origin, strong If-Match/revision, canonical snapshot과 401/412/422/5xx/network 초안 보존을 유지한다.
+- 공식 전체 회귀 판정은 최신 main 정렬 후 동일 PR head의 GitHub Actions quality/e2e/docker 결과를 사용한다. PR CI가 시작되기 전에는 원격 PASS를 주장하지 않는다.
+
 ## Issue #361 Workflow 실행 추적 회귀
 
 - 정적 contract: `ci.yml`, `issue-lifecycle.yml`, `release-finalizer.yml`, `release-image.yml`에 각각 목적에 맞는 `run-name`이 있고 `github.run_number`/`github.run_attempt`로 재실행을 구분하는지 확인한다.

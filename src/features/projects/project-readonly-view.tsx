@@ -618,7 +618,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       if (frame && document.fullscreenElement === frame) await exitGanttFullscreen(frame);
       if (frame && document.fullscreenElement === frame) throw new Error("Gantt fullscreen remains active");
       editorTriggerReference.current = trigger;
-      setEditorSession({ task: { ...task }, revision: state.snapshot.data.project.revision });
+      setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
     } catch {
       editorOpeningReference.current = false;
       frame?.dispatchEvent(new Event("project-gantt-fullscreen-exit-error"));
@@ -679,7 +679,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function reloadEditorTask(taskId: string): Promise<TaskEditorSession | null> {
     const snapshot = await fetchCanonicalSnapshot();
     const task = snapshot?.data.tasks.find((entry) => entry.taskId === taskId);
-    return task && snapshot ? { task: { ...task }, revision: snapshot.data.project.revision } : null;
+    return task && snapshot ? { task: { ...task }, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision } : null;
   }
   function createNativeTask(command: ProjectTaskCreateCommand) {
     if (state.status !== "ready" || taskMutationReference.current || pendingTaskDelete) return;

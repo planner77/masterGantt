@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.61.0] - 2026-10-01
+
+### Added
+
+- Issue #368: Task Editor의 일반 Task 일정 입력에 `요청 종료일`을 추가하고, Project Effective Calendar의 양 끝 포함 근무일 규칙으로 기간↔요청 종료일을 양방향 계산한다.
+- 마지막으로 직접 수정한 기간 또는 요청 종료일을 기준으로 요청 시작일 변경 시 반대 값을 재계산하며, 공휴일/NON_WORKING/WORKING 예외와 Auto 비근무 시작일 보정을 동일 Scheduling Domain 함수로 적용한다.
+- 요청 종료일은 UI-only draft로 유지해 Task PATCH와 DB의 canonical `requestedStart + duration` 계약을 변경하지 않고, 서버 확정 시작/종료일과 Dependency 재계산 결과를 별도 정보로 표시한다.
+- 필드별 오류 연결과 390/768/1024/1440px 반응형 계약을 유지하고, 단위/E2E 회귀 검증을 추가한다.
+- Application version을 `0.60.1`에서 `0.61.0`으로 증가한다.
+
 ## [0.60.1] - 2026-10-01
 
 ### Fixed

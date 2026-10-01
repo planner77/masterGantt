@@ -128,13 +128,13 @@ export function projectLinksToSvarLinks(
   });
 }
 
-function calendarFromDto(calendar: ProjectCalendarDto) {
+export function workingCalendarFromProjectCalendar(calendar: ProjectCalendarDto) {
   return calendar.exceptions
     ? createWorkingCalendar({ timezone: calendar.timezone, weekendDays: calendar.weekendDays, exceptions: calendar.exceptions })
     : createWorkingCalendar({ timezone: calendar.timezone, weekendDays: calendar.weekendDays, holidays: calendar.holidays });
 }
 function durationFromRange(start: string, end: string, calendar: ProjectCalendarDto): number {
-  return workingDaysBetween(start, end, calendarFromDto(calendar));
+  return workingDaysBetween(start, end, workingCalendarFromProjectCalendar(calendar));
 }
 function dateFromSvarExclusiveEnd(value: Date): string {
   return addCalendarDays(dateOnlyFromLocalDate(value), -1);

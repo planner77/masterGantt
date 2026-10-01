@@ -91,6 +91,8 @@ Local 자정 Timestamp 차이를 `86,400,000`으로 나누어 일수를 계산�
 
 일반 Task는 `requestedStart + duration`을 기준으로 한다. Milestone은 `duration=0`, 계산된 `start=end`다. Duration이 0인 일반 Task를 Milestone으로 조용히 변환하지 않는다. Progress 100이라고 날짜·Duration을 줄이지 않는다.
 
+Issue #368의 Task Editor는 입력 편의를 위해 UI draft `requestedEnd`를 보여 줄 수 있다. 이 값은 저장/Domain source가 아니며 Project canonical Calendar로 `endFromStart(normalizedRequestedStart, duration)`에서 도출한다. 사용자가 요청 종료일을 직접 입력한 경우 같은 Calendar의 `workingDaysBetween(normalizedRequestedStart, requestedEnd)`으로 duration을 역산한 뒤 기존 `requestedStart + duration` command만 서버에 보낸다. 요청 종료일이 비근무일이거나 시작일보다 빠르면 client field validation으로 저장을 막지만, 최종 Calendar/Dependency/Manual 검증과 canonical `start/end` authority는 계속 서버다.
+
 아래 순서는 hierarchy와 dependency를 포함한 전체 Engine의 목표 순서다. W06 `scheduleLeaf`는 date/type/duration/mode/optional end만 입력받으며 progress, hierarchy와 dependency 검증은 W07–W09에서 이 순서에 연결한다.
 
 1. 입력 날짜, Type, Duration, Progress를 검증한다.
