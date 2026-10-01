@@ -176,3 +176,9 @@ Grid 행 이동은 SVAR Core 2.7.3의 공개 `move-task` action으로 연결한�
 확정 응답의 canonical parent/sibling order와 최신 revision을 반영한 뒤 이름·진행률·설명 등의 일반 필드를 저장한다. 이름 변경 PATCH는 `{name}`만 전달하며 parent/sibling order를 다시 지정하지 않는다. canonical 동기화에서 발생하는 내부 `move-task`는 `project-canonical-sync` marker와 실제 sync guard가 함께 있을 때만 허용하고, 이 action을 새 HTTP 요청으로 되돌려 보내지 않는다. 읽기 전용·mutation 진행 중·동기화 중의 사용자 이동과 편집은 차단한다. 이동 실패/412는 기존 확정 snapshot 재조회와 오류 안내로 복구하고, 재조회가 성공하면 Gantt 인스턴스를 유지한다. 재조회까지 실패한 경우의 기존 recovery remount 정책은 유지한다.
 
 2026-09-29 확인: [공식 move-task API](https://docs.svar.dev/react/gantt/api/actions/move-task/)와 [Next.js backend integration](https://docs.svar.dev/react/gantt/integration-guides/nextjs/backend/)의 구조 이동/일반 속성 저장 분리를 참조했다. 설치된 Core Grid source의 `inProgress=true` 이동과 release 시 `inProgress=false` 최종 이동을 확인했다. PRO 기능이나 별도 reorder 저장소를 추가하지 않는다. URL/설치 source 확인과 실제 pointer 재현·원격 CI 결과는 서로 구분한다.
+
+## Grid quick start edit와 Task Editor의 일정 계약 (Issue #370)
+
+Project Workspace Grid의 `시작` 셀 Date Picker는 Task Editor를 대체하지 않는 빠른 편집 진입점이다. Grid는 effective canonical `start`를 보여 주지만 Picker에서 선택한 날짜는 Task Editor의 **요청 시작일**과 같은 의미의 `start` mutation 입력으로 처리한다. 저장은 #258의 dependency-aware 서버 경로를 사용하며 서버 확정 `start/end`가 선택일과 달라질 수 있다.
+
+Grid quick edit은 시작일만 변경한다. 기간, 요청 종료일(#368 범위), schedule mode, metadata와 관계 편집은 기존 Task Editor에서 수행한다. Summary 일정 직접 편집 금지와 Milestone `duration=0` 규칙도 동일하게 유지한다.
