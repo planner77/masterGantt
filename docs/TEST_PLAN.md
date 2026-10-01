@@ -103,6 +103,8 @@ Resource/Group POST 실패와 성공을 구분해 실패 초안 보존·성공�
 - 모든 검증 폭에서 document-level horizontal overflow 부재를 유지하고 기존 생성 validation/API, 기준정보 loading/error/retry, draft 보존, tab/skip-navigation 접근성 회귀는 기존 전체 E2E와 함께 실행한다.
 - API/DB/Scheduling/Security 계약은 변경하지 않으며 실제 사용자 시각 평가는 browser evidence와 별도로 구분한다.
 
+- Generic Finalizer 회귀: 같은 PR head SHA에 이전 실패/cancelled required check와 최신 성공 check가 공존할 때 최신 check-run ID만 채택해 PASS하고, 그보다 새로운 실패 check-run이 추가되면 FAIL/NOT TESTED로 차단하는 순수 lifecycle scenario를 검증한다.
+
 ## Issue #282 프로젝트 생성 Wide / Responsive Layout
 
 - `tests/e2e/project-create-layout.spec.ts`는 320/390/768/1024/1440/1600px에서 `/projects/new`의 site-header→NEW PROJECT 간격, main/form 실제 폭, blank/template field의 같은 행 배치 또는 narrow 단일열 reflow, document-level horizontal overflow 부재를 geometry로 검증한다.

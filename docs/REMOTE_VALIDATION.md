@@ -242,7 +242,9 @@ Workflow 파일 존재나 과거 다른 version의 성공 run은 현재 `v0.25.0
 
 ## Generic Release Finalizer 원격 검증 (#350)
 
-PR 단계에서는 `scripts/verify-issue-lifecycle.py`가 trigger/filter, exact mapping, authorization parser, concurrency, legacy workflow 부재를 정적으로 검증한다. Migration merge 이후에는 exact main CI 완료 뒤 다음 원격 증거를 확인한다.
+PR 단계에서는 `scripts/verify-issue-lifecycle.py`가 trigger/filter, exact mapping, authorization parser, concurrency, legacy workflow 부재를 정적으로 검증한다. 동일 PR head SHA를 재실행한 경우에는 `/commits/{sha}/check-runs`에 이전 실패/cancelled check와 최신 성공 check가 함께 존재할 수 있으므로, required check 이름별 **가장 큰 check-run ID**가 실제 최신 결과인지 확인한다. 오래된 실패가 최신 성공을 덮어쓰거나 오래된 성공이 최신 실패를 가리는 판정은 FAIL이다. 순수 scenario test는 `older failure + newer success → PASS`, `newer failure + older success → fail-closed`를 모두 고정한다.
+
+Migration merge 이후에는 exact main CI 완료 뒤 다음 원격 증거를 확인한다.
 
 - Generic Release Finalizer run이 정확히 1개 생성됨
 - 삭제된 Issue별 helper/finalizer run이 새로 생성되지 않음

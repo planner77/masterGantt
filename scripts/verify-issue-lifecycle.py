@@ -239,6 +239,76 @@ for kwargs, expected in scenarios:
     actual = module.mutation_gate(**kwargs)
     require(actual == expected, f"scenario mismatch: {kwargs} => {actual}, expected {expected}")
 
+saved_lifecycle_gh = module.gh
+required_check_payloads = [
+    {
+        "id": 201,
+        "name": "Build, static checks, and unit tests",
+        "status": "completed",
+        "conclusion": "success",
+        "app": {"slug": "github-actions"},
+    },
+    {
+        "id": 101,
+        "name": "Build, static checks, and unit tests",
+        "status": "completed",
+        "conclusion": "failure",
+        "app": {"slug": "github-actions"},
+    },
+    {
+        "id": 202,
+        "name": "Chromium end-to-end tests",
+        "status": "completed",
+        "conclusion": "success",
+        "app": {"slug": "github-actions"},
+    },
+    {
+        "id": 102,
+        "name": "Chromium end-to-end tests",
+        "status": "completed",
+        "conclusion": "cancelled",
+        "app": {"slug": "github-actions"},
+    },
+    {
+        "id": 203,
+        "name": "Docker build and runtime smoke test",
+        "status": "completed",
+        "conclusion": "success",
+        "app": {"slug": "github-actions"},
+    },
+    {
+        "id": 103,
+        "name": "Docker build and runtime smoke test",
+        "status": "completed",
+        "conclusion": "failure",
+        "app": {"slug": "github-actions"},
+    },
+]
+def fake_required_checks(path: str, *, method: str = "GET", fields=None):
+    if "/check-runs" in path:
+        return {"check_runs": required_check_payloads}
+    return {}
+module.gh = fake_required_checks
+try:
+    checks_ok, missing = module.required_checks_ok("owner/repo", "a" * 40)
+    require(checks_ok and not missing, "latest successful duplicate required checks must pass")
+    required_check_payloads.append(
+        {
+            "id": 301,
+            "name": "Chromium end-to-end tests",
+            "status": "completed",
+            "conclusion": "failure",
+            "app": {"slug": "github-actions"},
+        }
+    )
+    checks_ok, missing = module.required_checks_ok("owner/repo", "a" * 40)
+    require(
+        not checks_ok and missing == ["Chromium end-to-end tests"],
+        "newer failed required check must override older success",
+    )
+finally:
+    module.gh = saved_lifecycle_gh
+
 artifact_missing = dict(
     merged=True,
     checks_ok=True,

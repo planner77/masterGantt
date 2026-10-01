@@ -216,18 +216,28 @@ def exact_main_ci(
 
 def required_checks_ok(repo: str, sha: str) -> tuple[bool, list[str]]:
     data = gh(f"/repos/{repo}/commits/{sha}/check-runs?per_page=100")
-    found: dict[str, bool] = {}
+    latest: dict[str, dict[str, Any]] = {}
     for item in data.get("check_runs", []):
         name = item.get("name")
         if name not in REQUIRED_CHECKS:
             continue
         app = item.get("app") or {}
-        from_actions = app.get("slug") == "github-actions"
-        found[name] = (
-            from_actions
-            and item.get("status") == "completed"
+        if app.get("slug") != "github-actions":
+            continue
+
+        previous = latest.get(name)
+        current_id = int(item.get("id") or 0)
+        previous_id = int(previous.get("id") or 0) if previous else -1
+        if previous is None or current_id > previous_id:
+            latest[name] = item
+
+    found = {
+        name: (
+            item.get("status") == "completed"
             and item.get("conclusion") == "success"
         )
+        for name, item in latest.items()
+    }
     missing = [name for name in REQUIRED_CHECKS if not found.get(name, False)]
     return not missing, missing
 

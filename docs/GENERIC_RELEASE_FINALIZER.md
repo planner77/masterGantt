@@ -1,5 +1,10 @@
 # Generic Release Finalizer
 
+
+### 동일 SHA의 PR required check 재실행 선택
+
+GitHub는 같은 PR head SHA에서 이전 attempt의 실패/cancelled check-run과 최신 재실행의 성공 check-run을 함께 반환할 수 있다. Generic Finalizer는 required check 이름별로 **가장 큰 check-run ID(최신 실행)** 하나만 판정하며, 오래된 실패가 최신 성공을 덮어쓰거나 오래된 성공이 최신 실패를 가리는 것을 허용하지 않는다. 최신 required check가 모두 GitHub Actions SUCCESS인 경우에만 PR gate를 PASS로 취급한다.
+
 ## 실행 인스턴스 추적 (#361)
 
 Generic Finalizer의 workflow 식별자와 trigger는 그대로 유지하면서 `run-name`은 triggering Main CI의 `workflow_run.display_title`을 계승한다. 따라서 PR 단계에서 검증된 Primary Issue/PR trace가 Main CI 표시명에 보존되어 있으면 Finalizer Actions 목록에서도 같은 문자열을 검색할 수 있다. Finalizer 자체 재실행은 별도의 `github.run_number.github.run_attempt`로 구분한다.
