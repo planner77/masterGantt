@@ -14,7 +14,7 @@
 
 1. child가 있는 Summary의 기존 Grid/Chart Context Menu에 조회/navigation 명령 `최상위로 열기` 추가.
 2. `/projects/{publicId}?rootTask={taskId}` deep link를 새 탭으로 열고 secret/internal ID를 URL에 넣지 않는다.
-3. 전체 canonical Project snapshot은 유지하고 선택 Summary + descendants만 existing `visibleTaskIds → SVAR filter-tasks`로 표시한다.
+3. 전체 canonical Project snapshot은 유지하고 선택 Summary + descendants만 existing `visibleTaskIds → SVAR filter-tasks`로 표시한다. 선택 Summary의 canonical parent는 그대로 두고 SVAR adapter에서만 `parent=0`으로 투영한다.
 4. 기존 search/filter/quick view는 subtree 안에서만 적용한다. scoped view는 schedule workspace만 보여 전체 Project Resource/Logistics 화면을 subtree 범위로 오인시키지 않는다.
 5. 기존 edit session이 있으면 같은 origin 새 탭에서도 기존 Task/Relation edit 계약을 사용한다. readonly에서도 navigation은 가능하다.
 6. successful higher revision을 localStorage revision event로 다른 same-origin tab에 알리고 수신 탭은 canonical Project GET으로 최신 상태를 확인한다. localStorage는 데이터/권한 source of truth가 아니다.
