@@ -205,10 +205,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [columnVisibility, setColumnVisibility] = useState<ProjectGridColumnVisibility>(INITIAL_COLUMN_VISIBILITY);
   const [pendingTaskDelete, setPendingTaskDelete] = useState<PendingTaskDelete | null>(null);
   const taskMutationReference = useRef(false);
-
-  useEffect(() => {
-    if (rootTaskId) setActiveView("schedule");
-  }, [rootTaskId]);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
   const [relationEditorLinkId, setRelationEditorLinkId] = useState<string | null>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
@@ -1249,7 +1245,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             const visibleColumnCount = Object.values(current).filter(Boolean).length;
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };
-          })} tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} />}
+          })} tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />}
         {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
           editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
