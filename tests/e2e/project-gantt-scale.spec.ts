@@ -95,6 +95,7 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(tooltip).toContainText("Company anniversary");
   await expect(namedHoliday).toHaveAttribute("aria-describedby", /day-header-tooltip/);
 
+  await page.mouse.move(1, 1);
   await namedWeekend.focus();
   await expect(tooltip).toBeVisible();
   await expect(tooltip).toContainText("Weekend named holiday");
