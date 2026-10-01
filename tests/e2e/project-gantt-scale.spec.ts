@@ -107,11 +107,16 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(namedWeekend).toHaveAttribute("aria-describedby", /day-header-tooltip/);
 
   await page.setViewportSize({ width: 1024, height: 900 });
-  await expect(tooltip).toBeVisible();
   await expect.poll(async () => {
+    if (await tooltip.count() === 0) return true;
     const box = await tooltip.boundingBox();
-    return box ? box.x + box.width : Number.POSITIVE_INFINITY;
-  }).toBeLessThanOrEqual(1016);
+    const describedBy = await namedWeekend.getAttribute("aria-describedby");
+    return Boolean(
+      box
+      && box.x + box.width <= 1016
+      && describedBy?.includes("day-header-tooltip"),
+    );
+  }).toBe(true);
   await page.setViewportSize({ width: 1280, height: 900 });
 
   await workingOverride.hover();
