@@ -299,7 +299,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setMetadataName(value.data.project.name); setMetadataDescription(value.data.project.description); setMetadataStatus(value.data.project.status);
     setMasterSelection({ businessUnitId: value.data.project.businessUnit?.id ?? "", productId: value.data.project.product?.id ?? "", siteEntityId: value.data.project.siteEntity?.id ?? "" });
     return true;
-  }, [publicId]);
+  }, [publicId, setMasterSelection, setMetadataDescription, setMetadataName, setMetadataStatus]);
 
   useEffect(() => {
     const controller = new AbortController();
