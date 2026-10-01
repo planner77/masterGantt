@@ -115,6 +115,27 @@ Project metadata, calendar, task, link, task batch, import commit처럼 schedule
 
 `operation`의 detail은 operation별로 달라도 `project/tasks/links/warnings` shape은 바꾸지 않는다. 배열 순서는 저장된 hierarchy/sibling 순서와 안정적인 Link 순서를 따른다. Response `ETag`은 body revision과 같다. 이 정책은 초기 소규모 Project에 맞춘 것이며 측정 없이 부분 patch protocol로 바꾸지 않는다. Issue #54 이전 데이터는 `ownerName: null`로 조회될 수 있으며 UI는 이를 `미지정`으로 표시한다.
 
+#### Calendar exception 이름 projection — Issue #315
+
+Canonical Project snapshot의 `project.calendar.exceptions[]`는 Effective Project Calendar의 날짜별 예외를 반환하며, 현재 서버 응답은 표시용 복수 이름 projection인 `names`를 포함할 수 있다.
+
+```json
+{
+  "date": "2026-12-25",
+  "dayType": "NON_WORKING",
+  "name": "기독탄신일",
+  "names": ["기독탄신일", "회사 휴무"]
+}
+```
+
+- `name`은 기존 단일 이름 호환 projection을 유지한다.
+- `names`는 같은 날짜에 저장된 의미 있는 Project-level 이름을 trim한 뒤 빈 값을 제외하고, 중복을 제거한 deterministic 정렬 결과다.
+- `names`는 표시 metadata이며 Scheduling의 날짜별 effective `dayType` 또는 working-day 계산을 추가로 변경하지 않는다.
+- `dayType: "NON_WORKING"`인 항목의 이름은 휴일/비근무 사유로 표시할 수 있다. `dayType: "WORKING"`의 이름은 근무 override 사유일 수 있으므로 휴일명으로 해석하면 안 된다.
+- 오래된 fixture/client 호환을 위해 TypeScript 계약에서는 `exceptions`와 `names`가 optional이지만, 현재 canonical server snapshot은 materialized exception 정보를 제공한다.
+- `holidays[]`는 기존 non-working holiday 호환 projection이며, 복수 source 이름이 필요한 새 UI는 `exceptions[].names`를 우선 사용한다.
+
+
 ## 3. 권한 모델
 
 | Operation | Session 필요 | 비고 |
