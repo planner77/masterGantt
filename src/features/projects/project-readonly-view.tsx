@@ -1267,7 +1267,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         id="project-panel-resources"
         role="tabpanel"
         aria-labelledby="project-tab-resources"
-        hidden={activeView !== "resources"}
+        hidden={subtreeScope.kind !== "all" || activeView !== "resources"}
         className="project-workspace-panel project-resource-panel"
       >
         <ProjectResourceWorkload publicId={publicId} />
@@ -1276,7 +1276,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         id="project-panel-logistics"
         role="tabpanel"
         aria-labelledby="project-tab-logistics"
-        hidden={activeView !== "logistics"}
+        hidden={subtreeScope.kind !== "all" || activeView !== "logistics"}
         className="project-workspace-panel project-logistics-panel"
       >
         <ProjectLogisticsManagement
