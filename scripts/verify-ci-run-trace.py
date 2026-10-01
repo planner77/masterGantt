@@ -38,6 +38,19 @@ def _branch_issue_numbers(branch: str) -> set[int]:
     return {int(value) for value in BRANCH_ISSUE_RE.findall(branch)}
 
 
+def _is_dependabot_pull_request(payload: dict[str, Any], pr: dict[str, Any]) -> bool:
+    user = pr.get("user") or {}
+    head = pr.get("head") or {}
+    head_repo = head.get("repo") or {}
+    repository = payload.get("repository") or {}
+    return (
+        user.get("login") == "dependabot[bot]"
+        and str(head.get("ref") or "").startswith("dependabot/")
+        and bool(repository.get("full_name"))
+        and head_repo.get("full_name") == repository.get("full_name")
+    )
+
+
 def validate_pull_request(payload: dict[str, Any]) -> tuple[int, int]:
     pr = payload.get("pull_request")
     if not isinstance(pr, dict):
@@ -46,6 +59,11 @@ def validate_pull_request(payload: dict[str, Any]) -> tuple[int, int]:
     number = int(pr.get("number") or payload.get("number") or 0)
     if number <= 0:
         raise TraceError("PR 번호를 확인할 수 없습니다")
+
+    if _is_dependabot_pull_request(payload, pr):
+        branch = str((pr.get("head") or {}).get("ref") or "")
+        print(f"Dependabot PR 실행 추적 PASS: PR #{number} · branch {branch}")
+        return 0, number
 
     body = str(pr.get("body") or "")
     refs = [int(value) for value in REF_RE.findall(body)]
@@ -66,9 +84,10 @@ def validate_pull_request(payload: dict[str, Any]) -> tuple[int, int]:
 
     title = str(pr.get("title") or "")
     title_issues = _title_issue_numbers(title)
-    if primary not in title_issues:
+    if title_issues != {primary}:
         raise TraceError(
-            f"PR 제목에는 Primary Issue #{primary}를 'Issue #{primary}' 또는 '(#{primary})' 형식으로 포함해야 합니다"
+            f"PR 제목의 Issue 표기는 Primary Issue #{primary} 하나만 허용합니다: "
+            f"title Issues={sorted(title_issues)}"
         )
 
     print(
