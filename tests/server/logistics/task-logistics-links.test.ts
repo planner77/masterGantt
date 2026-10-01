@@ -499,7 +499,7 @@ describe("Task Logistics Links REST API Handlers", () => {
       "22222222-3333-4444-8555-666666666666",
     );
     const service = new LogisticsService(database, { clock: () => now });
-    const projectService = new TaskFieldProjectService(database);
+    const projectService = new TaskFieldProjectService(database, { clock: () => now });
     const scheduleRepo = new ScheduleRepository(database);
 
     scheduleRepo.insertTask({
