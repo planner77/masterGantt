@@ -1,4 +1,4 @@
-import type { ProjectTaskDto } from "@/contracts/projects";
+import type { ProjectTaskDto, TaskHierarchyCommandRequest } from "@/contracts/projects";
 
 export type TaskSubtreeScope =
   | Readonly<{ kind: "all"; root: null; taskIds: null }>
@@ -48,4 +48,48 @@ export function resolveTaskSubtreeScope(
   }
 
   return { kind: "valid", root, taskIds };
+}
+
+
+export function taskHierarchyCommandStaysInSubtree(
+  tasks: readonly ProjectTaskDto[],
+  rootTaskId: string | null,
+  command: TaskHierarchyCommandRequest,
+): boolean {
+  if (!rootTaskId) return true;
+  const scope = resolveTaskSubtreeScope(tasks, rootTaskId);
+  if (scope.kind !== "valid") return false;
+
+  const taskIds = new Set(scope.taskIds);
+  const root = scope.root;
+  const taskById = new Map(tasks.map((task) => [task.taskId, task]));
+
+  switch (command.kind) {
+    case "create":
+      return taskIds.has(command.anchorTaskId) &&
+        !(command.anchorTaskId === rootTaskId && command.placement !== "child");
+    case "convert":
+      return taskIds.has(command.taskId);
+    case "move":
+    case "indent":
+      return taskIds.has(command.taskId) && command.taskId !== rootTaskId;
+    case "outdent": {
+      const task = taskById.get(command.taskId);
+      return Boolean(
+        task &&
+        taskIds.has(command.taskId) &&
+        command.taskId !== rootTaskId &&
+        task.parentExternalId !== root.externalId,
+      );
+    }
+    case "reparent":
+      return taskIds.has(command.taskId) &&
+        taskIds.has(command.anchorTaskId) &&
+        command.taskId !== rootTaskId &&
+        !(command.anchorTaskId === rootTaskId && command.placement !== "child");
+    case "copy":
+      return taskIds.has(command.taskId) &&
+        taskIds.has(command.anchorTaskId) &&
+        !(command.anchorTaskId === rootTaskId && command.placement !== "child");
+  }
 }
