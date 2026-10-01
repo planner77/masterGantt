@@ -82,31 +82,6 @@ function announceProjectRevision(publicId: string, revision: number): void {
     // Cross-tab freshness is best-effort. The canonical API/revision remains authoritative.
   }
 }
-function exitGanttFullscreen(frame: HTMLElement): Promise<void> {
-  if (document.fullscreenElement !== frame) return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const cleanup = () => {
-      document.removeEventListener("fullscreenchange", onChange);
-      document.removeEventListener("fullscreenerror", onError);
-    };
-    const onChange = () => {
-      if (document.fullscreenElement === frame) return;
-      cleanup();
-      resolve();
-    };
-    const onError = () => {
-      cleanup();
-      reject(new Error("Gantt fullscreen exit failed"));
-    };
-    document.addEventListener("fullscreenchange", onChange);
-    document.addEventListener("fullscreenerror", onError);
-    try {
-      void document.exitFullscreen().then(onChange, onError);
-    } catch {
-      onError();
-    }
-  });
-}
 function snapshotFromMetadataMutation(value: unknown): ProjectSnapshotResponse | null {
   if (typeof value !== "object" || value === null) return null;
   const data = (value as Partial<ProjectMetadataMutationResponse>).data;
@@ -704,27 +679,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     }
   }
 
-  async function openTaskEditor(taskId: string) {
+  function openTaskEditor(taskId: string) {
     if (state.status !== "ready" || editorSession || editorOpeningReference.current || settingsOpen || pendingTaskDelete) return;
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
     if (!task) return;
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
     editorOpeningReference.current = true;
-    try {
-      if (frame && document.fullscreenElement === frame) await exitGanttFullscreen(frame);
-      if (frame && document.fullscreenElement === frame) throw new Error("Gantt fullscreen remains active");
-      editorTriggerReference.current = trigger;
-      setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
-    } catch {
-      editorOpeningReference.current = false;
-      frame?.dispatchEvent(new Event("project-gantt-fullscreen-exit-error"));
-      notify("error", "전체화면을 종료하지 못해 작업 정보를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.", "작업 정보");
-      const root = frame?.querySelector<HTMLElement>(".project-gantt-scroll");
-      const focusTarget = trigger?.isConnected && !trigger.closest(".project-task-context-menu")
-        ? trigger : root ? findTaskContextElement(root, taskId) ?? root : null;
-      focusTarget?.focus({ preventScroll: true });
-    }
+    editorTriggerReference.current = trigger;
+    setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
   }
   function closeTaskEditor() {
     const taskId = editorSession?.task.taskId;
@@ -737,22 +699,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       target?.focus({ preventScroll: true });
     });
   }
-  async function openRelationEditor(linkId: string) {
+  function openRelationEditor(linkId: string) {
     if (state.status !== "ready" || relationEditorLinkId) return;
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
-    try {
-      if (frame && document.fullscreenElement === frame) await exitGanttFullscreen(frame);
-      if (frame && document.fullscreenElement === frame) throw new Error("Gantt fullscreen remains active");
-      relationEditorTriggerReference.current = trigger;
-      setRelationEditorLinkId(linkId);
-    } catch {
-      frame?.dispatchEvent(new Event("project-gantt-fullscreen-exit-error"));
-      notify("error", "전체화면을 종료하지 못해 관계 편집기를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.", "관계 편집기");
-      const root = frame?.querySelector<HTMLElement>(".project-gantt-scroll");
-      const focusTarget = trigger?.isConnected && !trigger.closest(".project-relation-context-menu") ? trigger : root;
-      focusTarget?.focus({ preventScroll: true });
-    }
+    relationEditorTriggerReference.current = trigger;
+    setRelationEditorLinkId(linkId);
   }
   function closeRelationEditor() {
     const trigger = relationEditorTriggerReference.current;
