@@ -63,6 +63,7 @@ Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계�
 | R49 | Project List와 편집 중 Project Workspace에서 Project 상태를 별도 설정 화면 이동 없이 직접 변경할 수 있다 (#177). | 기존 `planned / in_progress / completed` 값과 edit session·Origin·strong `If-Match`·revision+1·canonical snapshot 계약을 재사용한다. List는 세션이 없으면 기존 편집 비밀번호 인증을 수행하고 성공 직후 client-side filter를 재평가한다. Workspace readonly는 표시 전용이며 edit header 변경은 Gantt remount/navigation을 유발하지 않는다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
 | R50 | 프로젝트 재진입 시 Gantt Grid의 Summary 접힘/펼침 상태를 브라우저 localStorage에 프로젝트별로 저장·복원한다 (#201). | v1 스키마, stale ID 로드 시 정규화 저장, Quota/Security 예외 graceful fallback, 동일 브라우저 프로필 복원, DB/API/Revision 불변. [UX 계약](PROJECT_UX.md) |
 | R51 | 일반 Task Editor는 요청 시작일·기간(근무일)·요청 종료일을 함께 제공하고 기간↔요청 종료일을 Project Effective Calendar 기준으로 양방향 계산한다 (#368). | requestedEnd는 UI-only draft이며 canonical 저장은 기존 `requestedStart + duration`을 유지한다. Auto 비근무 시작 보정, Manual/비근무 종료 오류, Dependency 적용 뒤 서버 확정 일정 분리, Summary/Milestone 계약 유지. [Task Editor](TASK_EDITOR.md), [Scheduling](SCHEDULING_ENGINE.md), [Test Plan](TEST_PLAN.md) |
+| R52 | 하위 작업이 있는 Summary의 Context Menu에서 `최상위로 열기`를 선택하면 선택 Summary와 모든 자손만 동일 Project의 새 탭 scoped view로 표시한다 (#373). | `rootTask` deep link + 기존 client-side `filter-tasks`를 사용하고 전체 canonical snapshot/Dependency/Resource·Logistics 데이터와 edit session·Origin·If-Match·revision 권한 계약을 유지한다. 빈 Summary가 된 root는 유지하고 삭제/type 변경 root는 오류·전체 Project 복귀를 제공하며, 다른 탭의 higher revision은 canonical GET으로 동기화한다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 
@@ -75,6 +76,14 @@ W24의 하위 추가는 일반 Task→Summary 전환에 `convertParentToSummary:
 Grid/Editor는 미산정 값을 `—`로 표시하고 Chart 행을 유지하면서 현재 일정 bar를 그리지 않는다. 검색·필터·접기만으로 실제 구조/집계 상태를 바꾸지 않는다. Resource/Group·물류 self/subtree 연결과 후속 child 상속을 유지하며 copy/template·Import 계약·Excel/SVG/PNG Export의 null 처리도 정합화한다. 일반 Task/Milestone과 Dependency·보안·revision 필수 검증을 완화하지 않는다. #344의 이전 확정 mutation 보존은 별도의 유효한 거부 조건에서 계속 검사한다.
 
 구현 단계·실제 검증 및 Import 범위 결정은 [Issue #345 계획](exec-plans/active/ISSUE_345.md)을 따른다. 과거 empty-summary 거부의 실행 기록은 당시 사실로 보존한다.
+
+## Issue #373 — Summary 하위 WBS scoped view
+
+하위 작업이 있는 Summary에는 조회/navigation 명령 `최상위로 열기`를 제공한다. 명령은 새 탭의 `/projects/{publicId}?rootTask={taskId}` deep link를 열며 원래 탭을 reload/navigation하지 않는다. scoped view의 visible set은 선택 Summary 자신과 모든 depth의 자손이고 ancestor, sibling, 다른 root branch는 숨긴다. 검색·고급 필터·Task/Milestone 빠른 보기는 이 scope 안에서만 적용하며 초기화해도 전체 Project로 범위가 확장되지 않는다.
+
+scope는 authorization 또는 별도 aggregate가 아니다. client는 전체 Project canonical snapshot과 links/assignments/logistics를 계속 보유하고 기존 mutation API, edit session, Origin, strong If-Match와 Project revision을 사용한다. 따라서 scope 밖 endpoint를 가진 Dependency도 삭제·유실하지 않으며 Task/Relation Editor는 전체 canonical 관계를 확인할 수 있다. scoped tab의 성공 mutation이 higher revision을 만들면 same-origin 다른 Project tab은 revision 신호를 받고 canonical GET으로 최신 상태를 재확인한다.
+
+root Summary의 마지막 child가 제거되면 #345에 따라 빈 Summary scoped view를 유지한다. root가 삭제되거나 Summary가 아니게 되면 다른 Task나 전체 Project로 자동 fallback하지 않고 명확한 오류와 전체 Project 복귀 링크를 제공한다. DB schema, 새 API, 별도 Scheduling algorithm은 추가하지 않는다.
 
 ## Assumption
 
