@@ -75,6 +75,7 @@ import {
   type TaskClipboard,
 } from "./task-context-menu-model";
 import { taskHasDependencyLinks } from "./task-link-scope";
+import { canOpenTaskAsSubtreeRoot } from "./task-subtree-scope";
 import { RelationContextMenu } from "./relation-context-menu";
 import type { DependencyType } from "../../contracts/projects";
 import "./task-context-menu.css";
@@ -120,6 +121,7 @@ interface ProjectGanttProps {
   readonly onTaskCommand: (command: ProjectTaskUpdateCommand, expectedRevision?: number) => Promise<TaskEditorSaveResult>;
   readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest) => void;
   readonly onTaskEditorOpen: (taskId: string) => void;
+  readonly onTaskOpenAsRoot: (taskId: string) => void;
   readonly onTaskDeleteRequest: (taskId: string, trigger: HTMLElement | null) => void;
   readonly onRelationEditorOpen?: (linkId: string) => void;
   readonly onLinkCreate: (sourceTaskId: string, targetTaskId: string) => void;
@@ -194,6 +196,7 @@ export function ProjectGantt({
   onTaskCommand,
   onTaskHierarchyCommand,
   onTaskEditorOpen,
+  onTaskOpenAsRoot,
   onTaskDeleteRequest,
   onRelationEditorOpen,
   onLinkCreate,
@@ -1191,7 +1194,7 @@ export function ProjectGantt({
     setTaskSubmenu(null);
     suppressTaskSubmenuFocusOpenReference.current = null;
     focusTaskMenuOnOpenReference.current = true;
-    setTaskMenu({ taskId: match.taskId, ...clampMenuPosition(anchorX, anchorY, rootWidth, Math.min(452, window.innerHeight - 16)) });
+    setTaskMenu({ taskId: match.taskId, ...clampMenuPosition(anchorX, anchorY, rootWidth, Math.min(488, window.innerHeight - 16)) });
     return true;
   }
 
@@ -1201,6 +1204,14 @@ export function ProjectGantt({
     const taskId = taskMenu.taskId;
     setTaskMenu(null);
     void api.exec("show-editor", { id: taskId });
+  }
+
+  function openTaskAsRootFromMenu() {
+    if (!taskMenu || !canOpenTaskAsSubtreeRoot(tasks, taskMenu.taskId)) return;
+    const taskId = taskMenu.taskId;
+    setTaskMenu(null);
+    setTaskSubmenu(null);
+    onTaskOpenAsRoot(taskId);
   }
 
   function requestTaskDeleteFromMenu() {
@@ -1681,6 +1692,7 @@ export function ProjectGantt({
   }
 
   const selectedTaskHasLinks = taskMenu ? taskHasDependencyLinks(tasks, taskMenu.taskId, links) : false;
+  const canOpenAsRoot = taskMenu ? canOpenTaskAsSubtreeRoot(tasks, taskMenu.taskId) : false;
   const canMutate = editable && !mutationLocked && !selectedTaskHasLinks;
   const canDelete = canMutate;
   const activeClipboard = taskClipboard?.revision === projectRevision ? taskClipboard : null;
@@ -1860,6 +1872,9 @@ export function ProjectGantt({
           <button aria-label="Edit" onClick={openTaskEditorFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">i</span><span>Edit</span>
           </button>
+          {canOpenAsRoot ? <button aria-label="최상위로 열기 (새 탭)" onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">↗</span><span>최상위로 열기</span>
+          </button> : null}
           <div className="project-task-context-menu-separator" role="separator" />
           <button aria-label="Cut" disabled={!canMutate} onClick={() => storeClipboard("cut")} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">✂</span><span>Cut</span><kbd>Ctrl+X</kbd>
