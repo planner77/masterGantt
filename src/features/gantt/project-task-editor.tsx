@@ -12,10 +12,14 @@ import {
   copyScheduleToBaseline,
   createTaskEditorDraft,
   prepareTaskEditorCommand,
+  synchronizeTaskEditorScheduleDraft,
   taskEditorIsDirty,
   taskEditorReadOnlyReason,
+  validateTaskEditorSchedule,
   type TaskEditorDraft,
   type TaskEditorSaveResult,
+  type TaskEditorScheduleBasis,
+  type TaskEditorScheduleField,
   type TaskEditorSession,
 } from "./task-editor-model";
 import styles from "./project-task-editor.module.css";
@@ -51,7 +55,8 @@ function RelationList({ title, relations }: Readonly<{ title: string; relations:
 
 export function ProjectTaskEditor({ session, latestTask, tasks, links, revision, editable, hasLinks, busy, onSave, onReload, onClose }: Props) {
   const [base, setBase] = useState(session);
-  const [draft, setDraft] = useState(() => createTaskEditorDraft(session.task));
+  const [draft, setDraft] = useState(() => createTaskEditorDraft(session.task, session.calendar));
+  const [scheduleBasis, setScheduleBasis] = useState<TaskEditorScheduleBasis>("duration");
   const [error, setError] = useState<string | null>(null);
   const [conflicted, setConflicted] = useState(false);
   const [operation, setOperation] = useState<"save" | "reload" | null>(null);
@@ -91,6 +96,28 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
     setDraft((current) => ({ ...current, [field]: value }));
     setError(null);
   }
+  function changeSchedule(field: TaskEditorScheduleField, value: string) {
+    if (locked || restriction || stale || base.task.type !== "task") return;
+    const nextBasis: TaskEditorScheduleBasis = field === "requestedEnd" ? "end" : field === "duration" ? "duration" : scheduleBasis;
+    setScheduleBasis(nextBasis);
+    setDraft((current) => synchronizeTaskEditorScheduleDraft(
+      base.task,
+      { ...current, [field]: value },
+      base.calendar,
+      nextBasis,
+    ));
+    setError(null);
+  }
+  function changeScheduleMode(value: "auto" | "manual") {
+    if (locked || restriction || stale) return;
+    setDraft((current) => synchronizeTaskEditorScheduleDraft(
+      base.task,
+      { ...current, scheduleMode: value },
+      base.calendar,
+      scheduleBasis,
+    ));
+    setError(null);
+  }
   function close() {
     if (locked || actionReference.current) return;
     if (dirty) setConfirmation("close"); else onClose();
@@ -102,7 +129,7 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
       const next = await onReload(base.task.taskId);
       if (!mountedReference.current) return;
       if (!next) { setError("최신 정보를 불러올 수 없습니다. 작업이 존재하는지와 네트워크 연결을 확인해 주세요."); return; }
-      setBase(next); setDraft(createTaskEditorDraft(next.task)); setConflicted(false); setError(null);
+      setBase(next); setDraft(createTaskEditorDraft(next.task, next.calendar)); setScheduleBasis("duration"); setConflicted(false); setError(null);
     } catch { if (mountedReference.current) setError("최신 정보를 불러올 수 없습니다. 입력 내용은 유지됩니다."); }
     finally { actionReference.current = false; if (mountedReference.current) setOperation(null); }
   }
@@ -117,6 +144,8 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (locked || actionReference.current || restriction || stale) return;
+    const scheduleIssue = validateTaskEditorSchedule(base.task, draft, base.calendar, scheduleBasis);
+    if (scheduleIssue) { setError("일정 입력을 확인해 주세요."); return; }
     const prepared = prepareTaskEditorCommand(base.task, draft);
     if (prepared.error) { setError(prepared.error); return; }
     if (!prepared.command) { onClose(); return; }
@@ -134,6 +163,7 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   const relations = relationSnapshotMatches ? buildTaskRelations(base.task, tasks, links) : null;
   const relationCount = relations ? relations.predecessors.length + relations.successors.length : 0;
   const taskTypeLabel = base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "마일스톤" : "일반 작업";
+  const scheduleIssue = validateTaskEditorSchedule(base.task, draft, base.calendar, scheduleBasis);
 
   return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onCancel={(event) => { event.preventDefault(); close(); }}>
     <header className={styles.header}>
@@ -205,18 +235,60 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
               </span>
             </div>
             <div className={styles.scheduleFields}>
-              <label className={styles.field}>요청 시작일<input name="task-start" type="date" min="1900-01-01" max="2199-12-31" value={draft.start} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("start", event.target.value)} /></label>
-              <label className={styles.field}>기간 (근무일){base.task.duration === null ? <output className={styles.outputField} aria-label="기간 미산정">—</output> : <input name="task-duration" type="number" min={base.task.type === "milestone" ? 0 : 1} max="10000" step="1" value={draft.duration} readOnly={scheduleReadOnly || base.task.type === "milestone"} disabled={locked} onChange={(event) => change("duration", event.target.value)} />}</label>
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>적용 시작일</span>
-                <output className={styles.outputField} aria-label="적용 시작일">{base.task.start ?? "—"}</output>
-              </div>
-              <div className={styles.field}>
-                <span className={styles.fieldLabel}>적용 종료일</span>
-                <output className={styles.outputField} aria-label="적용 종료일">{base.task.end ?? "—"}</output>
-              </div>
+              <label className={styles.field}>
+                요청 시작일
+                <input
+                  id="task-start"
+                  name="task-start"
+                  type="date"
+                  min="1900-01-01"
+                  max="2199-12-31"
+                  value={draft.start}
+                  readOnly={scheduleReadOnly}
+                  disabled={locked}
+                  aria-invalid={scheduleIssue?.field === "start" || undefined}
+                  aria-describedby={scheduleIssue?.field === "start" ? "task-start-error" : undefined}
+                  onChange={(event) => base.task.type === "task" ? changeSchedule("start", event.target.value) : change("start", event.target.value)}
+                />
+                {scheduleIssue?.field === "start" ? <span id="task-start-error" className={styles.fieldError}>{scheduleIssue.message}</span> : null}
+              </label>
+              <label className={styles.field}>
+                기간 (근무일)
+                {base.task.duration === null ? <output className={styles.outputField} aria-label="기간 미산정">—</output> : <input
+                  id="task-duration"
+                  name="task-duration"
+                  type="number"
+                  min={base.task.type === "milestone" ? 0 : 1}
+                  max="10000"
+                  step="1"
+                  value={draft.duration}
+                  readOnly={scheduleReadOnly || base.task.type === "milestone"}
+                  disabled={locked}
+                  aria-invalid={scheduleIssue?.field === "duration" || undefined}
+                  aria-describedby={scheduleIssue?.field === "duration" ? "task-duration-error" : undefined}
+                  onChange={(event) => base.task.type === "task" ? changeSchedule("duration", event.target.value) : change("duration", event.target.value)}
+                />}
+                {scheduleIssue?.field === "duration" ? <span id="task-duration-error" className={styles.fieldError}>{scheduleIssue.message}</span> : null}
+              </label>
+              {base.task.type === "task" ? <label className={styles.field}>
+                요청 종료일
+                <input
+                  id="task-requested-end"
+                  name="task-requested-end"
+                  type="date"
+                  min="1900-01-01"
+                  max="2199-12-31"
+                  value={draft.requestedEnd}
+                  readOnly={scheduleReadOnly}
+                  disabled={locked}
+                  aria-invalid={scheduleIssue?.field === "requestedEnd" || undefined}
+                  aria-describedby={scheduleIssue?.field === "requestedEnd" ? "task-requested-end-error" : undefined}
+                  onChange={(event) => changeSchedule("requestedEnd", event.target.value)}
+                />
+                {scheduleIssue?.field === "requestedEnd" ? <span id="task-requested-end-error" className={styles.fieldError}>{scheduleIssue.message}</span> : null}
+              </label> : null}
             </div>
-            <label className={styles.field}>일정 모드<select name="task-schedule-mode" value={draft.scheduleMode} disabled={locked || readOnly} onChange={(event) => change("scheduleMode", event.target.value)}><option value="auto">자동 (Auto)</option><option value="manual">수동 (Manual)</option></select></label>
+            <label className={styles.field}>일정 모드<select name="task-schedule-mode" value={draft.scheduleMode} disabled={locked || readOnly} onChange={(event) => changeScheduleMode(event.target.value as "auto" | "manual")}><option value="auto">자동 (Auto)</option><option value="manual">수동 (Manual)</option></select></label>
             <label className={styles.field}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
             <label className={styles.field}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
           </div>
@@ -308,13 +380,14 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
           <details className={styles.metadata} open>
             <summary>서버 확정 정보</summary>
             <dl className={styles.confirmed}>
-              <dt>요청 시작일</dt><dd>{base.task.requestedStart ?? "하위 작업 기준"}</dd>
-              <dt>확정 종료일</dt><dd>{base.task.end}</dd>
+              <dt>저장된 요청 시작일</dt><dd>{base.task.requestedStart ?? "하위 작업 기준"}</dd>
+              <dt>적용 시작일</dt><dd><output aria-label="적용 시작일">{base.task.start ?? "—"}</output></dd>
+              <dt>확정 종료일</dt><dd><output aria-label="적용 종료일">{base.task.end ?? "—"}</output></dd>
               <dt>기준 Revision</dt><dd>{base.revision}</dd>
             </dl>
           </details>
           {hasLinks && !readOnly ? <p className={styles.caption}>관계에 따라 현재 적용 일정과 후행 작업 일정이 함께 조정됩니다.</p> : null}
-          <p className={styles.caption}>현재 적용 일정은 마지막으로 저장된 값입니다. 변경한 요청 시작일과 기간은 저장 시 캘린더와 관계를 반영해 계산합니다. URL은 http/https만 허용되며 링크는 일정 화면에서 새 탭으로 열립니다.</p>
+          <p className={styles.caption}>요청 종료일은 요청 시작일과 기간을 현재 프로젝트 작업 캘린더로 계산한 편집 값입니다. 저장 시에는 요청 시작일과 기간만 전송하며, 서버가 최신 캘린더와 관계를 적용해 확정 시작일·종료일을 다시 계산합니다. URL은 http/https만 허용되며 링크는 일정 화면에서 새 탭으로 열립니다.</p>
         </section>
 
         <section
