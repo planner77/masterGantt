@@ -674,6 +674,80 @@ describe("Task Logistics Links REST API Handlers", () => {
 });
 
 describe("Logistics Scope Filtering (buildTaskEffectiveLogisticsMap & filterTasksWithAncestors)", () => {
+  it("keeps hidden ancestor subtree logistics inheritance inside a scoped WBS filter", () => {
+    const allTasks: ProjectTaskDto[] = [
+      {
+        taskId: "ancestor",
+        externalId: "ANCESTOR",
+        name: "Hidden ancestor",
+        type: "summary",
+        scheduleMode: "auto",
+        requestedStart: null,
+        start: "2026-10-01",
+        end: "2026-10-10",
+        duration: 10,
+        progress: 0,
+        parentExternalId: null,
+        siblingOrder: 0,
+      },
+      {
+        taskId: "scope-root",
+        externalId: "SCOPE",
+        name: "Scoped summary",
+        type: "summary",
+        scheduleMode: "auto",
+        requestedStart: null,
+        start: "2026-10-01",
+        end: "2026-10-05",
+        duration: 5,
+        progress: 0,
+        parentExternalId: "ANCESTOR",
+        siblingOrder: 0,
+      },
+      {
+        taskId: "scope-leaf",
+        externalId: "LEAF",
+        name: "Scoped leaf",
+        type: "task",
+        scheduleMode: "auto",
+        requestedStart: "2026-10-01",
+        start: "2026-10-01",
+        end: "2026-10-05",
+        duration: 5,
+        progress: 0,
+        parentExternalId: "SCOPE",
+        siblingOrder: 0,
+      },
+    ];
+    const logistics: ProjectLogisticsDto = {
+      processes: [{
+        id: "proc-hidden", code: "P-H", name: "상위 공정", parentProcessId: null,
+        sortOrder: 0, active: true, createdAt: "", updatedAt: "",
+      }],
+      equipment: [{
+        id: "eq-hidden", processId: "proc-hidden", code: "EQ-H", name: "상위 설비",
+        equipmentType: "stocker", managementUnit: "unit", quantity: 1,
+        manufacturer: "", model: "", description: "", active: true,
+        controlSystems: [], resourceRoles: [], createdAt: "", updatedAt: "",
+      }],
+      systems: [],
+      systemLinks: [],
+      taskEquipmentLinks: [{ taskId: "ancestor", equipmentId: "eq-hidden", scope: "subtree" }],
+      taskSystemLinks: [],
+    };
+    const scopedTasks = allTasks.filter((task) => task.taskId !== "ancestor");
+    const result = filterTasksWithAncestors(
+      scopedTasks,
+      { ...EMPTY_TASK_FILTER, equipmentIds: ["eq-hidden"] },
+      [],
+      logistics,
+      allTasks,
+    );
+
+    expect(result.matchCount).toBe(2);
+    expect(result.tasks.map((task) => task.taskId)).toEqual(["scope-root", "scope-leaf"]);
+  });
+
   it("filters tasks by effective equipment, system, and process while preserving ancestor summaries as context rows", () => {
     // Construct simulated DTOs
     const mockTasks: ProjectTaskDto[] = [

@@ -831,7 +831,8 @@ h2 {
   background: var(--card);
 }
 
-.project-gantt-frame[data-task-mutation-locked="true"] [data-action="add-task"] {
+.project-gantt-frame[data-task-mutation-locked="true"] [data-action="add-task"],
+.project-gantt-frame[data-task-add-disabled="true"] [data-action="add-task"] {
   cursor: not-allowed;
   opacity: 0.45;
   pointer-events: none;
@@ -1376,6 +1377,57 @@ h2 {
   outline-offset: var(--focus-offset);
 }
 
+.project-subtree-scope-bar {
+  display: flex;
+  min-width: 0;
+  min-height: 2.25rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--border-default);
+  padding-block: 0.25rem;
+}
+
+.project-subtree-scope-copy {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.project-subtree-scope-copy strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-default);
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-subtree-scope-label {
+  flex: 0 0 auto;
+  border: 1px solid var(--border-control);
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.project-subtree-scope-link.secondary-button {
+  display: inline-flex;
+  min-height: 2.25rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 .project-readonly > .project-workspace-panels {
   position: relative;
   display: flex;
@@ -1617,6 +1669,15 @@ h2 {
   .project-context-actions {
     width: 100%;
     flex-wrap: wrap;
+  }
+
+  .project-subtree-scope-bar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .project-subtree-scope-copy {
+    max-width: 100%;
   }
 
   .project-context-actions > .secondary-button {

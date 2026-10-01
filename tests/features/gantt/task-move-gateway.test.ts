@@ -39,6 +39,23 @@ describe("Grid move persistence gateway", () => {
       expect(gateway(event)).toBe(false);
     expect(dispatch).not.toHaveBeenCalled();
   });
+  it("rejects disallowed moves before provisional Core feedback", () => {
+    const dispatch = vi.fn();
+    const canApply = vi.fn((command) => command.kind !== "reparent" || command.placement !== "after");
+    const gateway = createTaskMoveGateway({
+      canMutate: () => true,
+      isCanonicalSync: () => false,
+      hasTask: (id) => ["a", "b"].includes(id),
+      canApply,
+      dispatch,
+    });
+    const event = { id: "b", mode: "after" as const, target: "a" };
+    expect(gateway({ ...event, inProgress: true })).toBe(false);
+    expect(gateway({ ...event, inProgress: false })).toBe(false);
+    expect(canApply).toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
   it("maps sibling, parent and directional actions to existing commands", () => {
     const { gateway, dispatch } = setup();
     gateway({ id: "b", mode: "before", target: "a" });

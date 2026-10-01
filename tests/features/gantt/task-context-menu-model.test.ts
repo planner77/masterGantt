@@ -116,6 +116,30 @@ describe("task context menu model", () => {
     });
   });
 
+  it("disables move/outdent controls that would cross a scoped root boundary", () => {
+    const tasks = [
+      task("root", "ROOT", null, 0, "summary"),
+      task("child-a", "A", "ROOT", 0),
+      task("child-b", "B", "ROOT", 1, "summary"),
+      task("grandchild", "B1", "B", 0),
+    ];
+
+    expect(taskContextCapabilities(tasks, "root", true, false, noLinks, null, "root")).toMatchObject({
+      canMoveUp: false,
+      canMoveDown: false,
+      canIndent: false,
+      canOutdent: false,
+      canAddChild: true,
+    });
+    expect(taskContextCapabilities(tasks, "child-a", true, false, noLinks, null, "root")).toMatchObject({
+      canMoveDown: true,
+      canOutdent: false,
+    });
+    expect(taskContextCapabilities(tasks, "grandchild", true, false, noLinks, null, "root")).toMatchObject({
+      canOutdent: true,
+    });
+  });
+
   it("maps shortcuts/menu intents to atomic hierarchy commands", () => {
     expect(createHierarchyCommand("move-up", "a")).toEqual({
       kind: "move",

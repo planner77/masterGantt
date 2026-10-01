@@ -1,5 +1,21 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #373 Summary 하위 WBS를 최상위 범위로 열기
+
+하위 child가 있는 Summary의 Grid/Chart Context Menu에는 `최상위로 열기`를 조회/navigation 명령으로 표시한다. 일반 Task, Milestone, 자식이 없는 빈 Summary에는 진입 명령을 표시하지 않는다. readonly에서도 사용할 수 있으며 mutation lock과 무관하게 새 탭 조회를 열 수 있다. visible label은 `최상위로 열기`이고 accessible name은 새 탭 동작을 함께 설명한다. 기존 #72 메뉴의 keyboard 탐색, Shift+F10/ContextMenu, Escape와 focus 복귀를 유지한다.
+
+명령은 opener의 React memory에 의존하지 않는 `/projects/{publicId}?rootTask={summaryTaskId}` deep link를 새 탭으로 연다. Project public ID와 Task public ID 이외의 password/session/internal DB ID는 URL에 넣지 않는다. 새 탭 생성이 차단되면 오류를 알리고 원래 탭을 이동시키지 않는다. scoped view에서는 Resource/Logistics 전체 Project 탭을 같은 범위 화면으로 오인하지 않도록 일정 workspace만 제공하고 compact scope bar에 `하위 범위 보기`, root Summary 이름, `전체 프로젝트 보기`를 표시한다.
+
+표시 범위는 root Summary + 모든 descendants다. ancestor/sibling/다른 branch는 숨기지만 삭제하거나 별도 Project로 복제하지 않는다. 전체 canonical Project snapshot을 유지한 채 scope 안 task IDs와 기존 search/filter 결과의 교집합을 `visibleTaskIds`로 전달하고 SVAR 공개 `filter-tasks` action을 재사용한다. 선택 Summary의 canonical `parentExternalId`는 바꾸지 않고 Gantt 표시 adapter에서만 해당 Summary의 SVAR `parent`를 `0`으로 투영하여 실제 최상위 row처럼 표시한다. 필터 초기화는 subtree 전체로 복원하며 전체 Project로 전환하지 않는다. Task/Relation Editor에는 전체 canonical tasks/links를 계속 전달하여 scope 밖 endpoint Dependency도 관계 정보에서 유실되지 않게 한다.
+
+scoped view의 구조 mutation은 결과가 현재 subtree 밖으로 나가지 않는 경우만 허용한다. native Grid `+`와 toolbar의 root `요약 작업 추가`는 scoped view에서 비활성/비노출한다. 가상 root의 Above/Below·Move·Indent/Outdent·Cut 및 root 옆 Paste는 막고 Child 추가는 허용한다. root의 직계 child는 Outdent로 root 밖에 나갈 수 없으며, 더 깊은 descendant의 subtree 내부 Move/Indent/Outdent와 기존 일반 필드 편집은 허용한다. DnD/shortcut도 같은 pure scope guard를 사용해 메뉴만 막고 다른 경로로 우회하지 못한다. DnD는 release 시 서버 명령만 막는 것이 아니라 Core의 provisional `move-task` 단계 전에 guard를 적용해 invalid 이동이 로컬 Tree에 남지 않게 한다.
+
+물류 effective filter 계산은 hidden ancestor의 `scope=subtree` 연결을 잃지 않도록 전체 Project hierarchy를 context로 계산한 뒤 결과 task만 현재 subtree와 교집합한다.
+
+동일 browser profile의 다른 탭에서 scoped mutation으로 더 높은 Project revision이 저장되면 revision 값만 localStorage event로 알리고, 수신 탭은 기존 read-only Project GET으로 canonical snapshot을 다시 확인한다. initial load 또는 refresh가 아직 `loading`인 동안 도착한 revision 이벤트도 버리지 않고 최고 pending revision을 누적한다. 화면이 `ready`가 되는 즉시 pending revision과 비교하고 canonical snapshot이 그 revision 이상에 도달할 때까지 순차 재조회한다. revision 신호는 권한이나 데이터를 저장하는 source of truth가 아니며 localStorage 실패는 기존 server revision 계약을 약화시키지 않는다. refresh는 동일 Gantt key를 유지하여 scroll/tree/column/scale/filter를 불필요하게 초기화하지 않는다.
+
+root의 모든 child가 없어져도 #345의 빈 Summary는 유효한 scope로 남는다. root가 삭제되거나 Summary가 아닌 type으로 변경되면 다른 scope로 조용히 fallback하지 않고 scoped Gantt를 숨기고 오류 및 전체 Project 복귀 경로를 제공한다. 이번 기능은 DB/API/Scheduling/Security 계약을 변경하지 않는다.
+
 ## Issue #345 빈 Summary 현재 정책
 
 Summary는 자식이 없어도 유지되는 WBS 컨테이너다. 마지막 child 삭제·이동은 기존 부모를 지우거나 Task로 바꾸지 않는다. 아래 과거 Issue 기록의 빈 Summary 금지·마지막 child 거부 부분은 이 정책으로 대체한다. 권한·revision·Dependency 제약과 #344 실패 복구 계약은 유지한다.
