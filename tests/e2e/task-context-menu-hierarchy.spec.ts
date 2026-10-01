@@ -239,9 +239,51 @@ test("Issue #373 Summary subtree opens in a new tab and edits refresh the origin
     await expect(row(page, "Scoped child renamed twice")).toBeVisible();
     await expect(row(page, "Keep sibling")).toBeVisible();
 
+    // A second receiver can still be loading when a newer revision arrives.
+    // Hold its initial canonical GET at revision N, save revision N+1 from the
+    // scoped tab, then release the stale response. The queued revision must
+    // trigger a follow-up GET after the receiver becomes ready.
+    const staleBeforeThird = await (await scopedPage.request.get(api)).json() as ProjectSnapshotResponse;
+    const loadingPage = await page.context().newPage();
+    let releaseLoadingRead!: () => void;
+    let markLoadingReadStarted!: () => void;
+    const loadingReadGate = new Promise<void>((resolve) => { releaseLoadingRead = resolve; });
+    const loadingReadStarted = new Promise<void>((resolve) => { markLoadingReadStarted = resolve; });
+    let holdInitialLoadingRead = true;
+    await loadingPage.route((url) => url.pathname === api, async (route) => {
+      if (route.request().method() !== "GET" || !holdInitialLoadingRead) {
+        await route.continue();
+        return;
+      }
+      holdInitialLoadingRead = false;
+      markLoadingReadStarted();
+      await loadingReadGate;
+      await route.fulfill({ json: staleBeforeThird });
+    });
+    const loadingNavigation = loadingPage.goto(`${origin}${path}`);
+    await loadingReadStarted;
+
+    await scopedPage.bringToFront();
+    await openMenu(scopedPage, "Scoped child renamed twice");
+    await menu(scopedPage).getByRole("menuitem", { name: "Edit", exact: true }).click();
+    await expect(editor).toBeVisible();
+    await editor.getByLabel("작업명", { exact: true }).fill("Scoped child final");
+    const [thirdSaved] = await Promise.all([
+      scopedPage.waitForResponse((response) =>
+        response.request().method() === "PATCH" &&
+        new URL(response.url()).pathname === `${api}/tasks/${child!.taskId}`,
+      ),
+      editor.getByRole("button", { name: "저장", exact: true }).click(),
+    ]);
+    expect(thirdSaved.ok(), `third scoped task edit: HTTP ${thirdSaved.status()}`).toBe(true);
+    releaseLoadingRead();
+    await loadingNavigation;
+    await expect(row(loadingPage, "Scoped child final")).toBeVisible();
+    await loadingPage.close();
+
     await scopedPage.reload();
     await expect(scopedPage.getByLabel("하위 WBS 범위")).toContainText("Scope Alpha");
-    await expect(row(scopedPage, "Scoped child renamed twice")).toBeVisible();
+    await expect(row(scopedPage, "Scoped child final")).toBeVisible();
     await expect(row(scopedPage, "Keep sibling")).toHaveCount(0);
   } finally {
     await scopedPage.close();
