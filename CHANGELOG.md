@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.64.0] - 2026-10-02
+
+### Added
+
+- Issue #377: Task Editor 관계 탭에서 기존 선행/후행 관계를 직접 편집·삭제하고, 관계가 없는 Task/Milestone도 현재 작업을 Anchor로 Relation Editor를 열어 새 선행/후행 관계를 추가할 수 있다.
+- 기존 Relation Editor의 linkId 진입에 task Anchor 진입을 추가하며 FS/SS/FF/SF, signed Lag/Lead, 후보 검색과 기존 Link POST/PATCH/DELETE·Scheduling 계약을 그대로 재사용한다.
+
+### Changed
+
+- Task draft dirty/stale/readonly/pending 및 Summary에서는 relation mutation을 fail-closed하고, 성공한 relation mutation은 열린 Task Editor의 base/draft/revision을 imperative canonical sync로 갱신하여 Relation Editor가 topmost modal을 유지한다.
+- Task Editor 관계 행의 직접 삭제 confirmation은 keyboard focus를 취소 버튼으로 이동시키고 취소 시 원래 삭제 trigger로 복원한다.
+- 390/768/1024/1440px relation action layout, 기존 관계 PATCH→DELETE, zero-link Anchor POST, modal top-layer 및 focus 회귀 E2E를 보강한다.
+- Application version을 `0.63.2`에서 `0.64.0`으로 증가한다.
+
 ## [0.63.2] - 2026-10-02
 
 ### Fixed
