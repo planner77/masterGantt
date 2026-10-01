@@ -8,6 +8,7 @@
 - 사업부·제품·사업장/법인 기준정보 group을 full-width responsive 영역으로 분리하고 프로젝트 이름·소유자·상태·설명·편집 비밀번호에 content-aware 폭을 적용한다.
 - 320/390/768/1024/1440/1600px geometry 회귀 검증에 긴 기준정보 label과 semantic group 순서/폭/overflow 검사를 추가한다.
 - 기존 Project 생성 API/DB/validation, #282 wide page, #289 기준정보 저장, tab/draft/accessibility 계약은 유지한다.
+- Generic Release Finalizer가 동일 PR head SHA의 이전 실패/cancelled required check를 최신 성공 check보다 나중에 순회해 `NOT TESTED`로 오판하던 문제를 수정하고, required check 이름별 최신 check-run ID만 판정하도록 한다.
 - Application version을 `0.60.0`에서 `0.60.1`로 증가한다.
 
 ## [0.60.0] - 2026-10-01
