@@ -30,9 +30,10 @@ Project Workspace Grid의 `시작` 셀에서 Date Picker로 Task/Milestone reque
 
 ## 문서/버전
 
+- 최신 main의 Issue #368 `0.61.0`을 기준으로 재정렬하며 해당 Task Editor 양방향 일정 입력 계약을 보존한다.
 - REQUIREMENTS / PROJECT_UX / TASK_EDITOR / TEST_PLAN / CHANGELOG 동기화
 - API/DB_SCHEMA/SCHEDULING_ENGINE 의미 변경 없음
-- 사용자 기능 추가이므로 SemVer MINOR: `0.60.1 → 0.61.0`
+- 사용자 기능 추가이므로 SemVer MINOR: `0.61.0 → 0.62.0`
 
 
 ## CI #1435.1 실패 분석
