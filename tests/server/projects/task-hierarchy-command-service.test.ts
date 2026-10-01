@@ -201,12 +201,16 @@ describe("TaskHierarchyService", () => {
       expect(copiedFirst).toBeDefined();
       expect(copiedSecond).toBeDefined();
 
-      expect(copied.data.links).toContainEqual(expect.objectContaining({
-        predecessorExternalId: copiedFirst.externalId,
-        successorExternalId: copiedSecond.externalId,
-        type: "SS",
-        lag: 2,
-      }));
+      const sourceInternalLink = outgoing.data.links.find((link) =>
+        link.predecessorExternalId === firstChild.externalId &&
+        link.successorExternalId === secondChild.externalId
+      )!;
+      const copiedInternalLink = copied.data.links.find((link) =>
+        link.predecessorExternalId === copiedFirst.externalId &&
+        link.successorExternalId === copiedSecond.externalId
+      )!;
+      expect(copiedInternalLink).toMatchObject({ type: "SS", lag: 2 });
+      expect(copiedInternalLink.id).not.toBe(sourceInternalLink.id);
       expect(copied.data.links.some((link) =>
         link.predecessorExternalId === externalBefore.externalId &&
         link.successorExternalId === copiedFirst.externalId
