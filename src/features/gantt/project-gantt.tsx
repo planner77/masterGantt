@@ -962,7 +962,9 @@ export function ProjectGantt({
       const cell = findCell(event.target);
       if (!cell) return;
       focusedCell = cell;
-      if (!hoveredCell?.isConnected) show(cell);
+      // Explicit keyboard/programmatic focus must immediately expose the focused
+      // date even when the pointer is still resting on another day cell.
+      show(cell);
     };
     const onFocusOut = (event: FocusEvent) => {
       const cell = findCell(event.target);
