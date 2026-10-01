@@ -865,7 +865,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     : subtreeScope.kind === "valid"
       ? tasks.filter((task) => scopedTaskIdSet?.has(task.taskId))
       : [];
-  const filteredTasks = filterTasksWithAncestors(scopedTasks, taskFilter, assignments, logistics);
+  const filteredTasks = filterTasksWithAncestors(scopedTasks, taskFilter, assignments, logistics, tasks);
   const activeFilters = activeTaskFilterCount(taskFilter);
   const quickView = getTaskQuickView(taskFilter.types);
   const visibleTaskIds = filteredTasks.tasks.map((task) => task.taskId);
