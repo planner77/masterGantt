@@ -675,10 +675,11 @@ export function ProjectGantt({
             }
             : column
     )),
-    // Grid getters read the latest canonical DTO map through a ref. Canonical
-    // task sync itself invalidates affected rows, so the same column functions
-    // can safely render empty Summary values as "—" without capturing stale data.
-    [columnVisibility, locales],
+    // Grid getters read the latest canonical DTO map through a ref, avoiding
+    // stale values after failed mutations. Keep tasksById as a dependency so a
+    // canonical Task change also re-runs the public set-columns synchronization;
+    // Core needs that refresh when a dated Summary becomes an empty container.
+    [columnVisibility, locales, tasksById],
   );
   const initialConfig = useState(() => ({
     tasks: projectTasksToSvarTasks(tasks),

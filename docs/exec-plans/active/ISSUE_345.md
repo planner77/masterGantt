@@ -107,3 +107,13 @@ Manager는 검토된 파일과 이번 캡처 5장만 명시적으로 commit한 �
 - Chromium E2E shard 3/4: 실패 복구 시 bar는 마지막 확정 위치를 유지했지만 Grid 시작일 getter가 이전 render의 canonical map을 캡처해 2026-09-14를 표시했다. getter/sort/duration을 최신 `tasksByIdReference.current` 기반으로 바꾸고 기존 동일-instance canonical sync를 유지한다.
 - 최신 main의 Issue #356 CI 선택 실행 최적화와 historical evidence 변경을 보존하도록 PR branch를 main과 merge 정렬한다.
 - 보완 commit의 새 PR CI를 공식 검증으로 사용하며, 새 run 시작 전에는 PASS로 승격하지 않는다.
+
+## PR CI #1381 실패 보완 (2026-10-01)
+
+- run 36782593997 / CI #1381은 Chromium shard 2/4의 `project-empty-summary-persistence.spec.ts` 1건만 실패했다. quality, production dependency audit, Vitest, typecheck, lint, Next build, Docker와 다른 Chromium shard는 PASS했다.
+- 실제 API/DB canonical은 Outdent 후 nested Summary `start=null`이지만 Core bar 1개가 남았다.
+- #1376 보완에서 stale Grid 방지를 위해 getter를 `tasksByIdReference.current`로 변경한 것은 유지한다. 다만 `columns` memo에서 `tasksById` dependency를 제거하면서 canonical DTO 변경 시 public `set-columns` 동기화가 다시 실행되지 않아 dated Summary → empty container 전환의 Core renderer refresh가 누락됐다.
+- `[columnVisibility, locales, tasksById]` dependency를 복원하되 getter 자체는 latest ref를 읽어 #1376 stale 날짜와 #1381 잔존 bar를 함께 방지한다.
+- 최신 main의 Issue #344 corrective finalizer/disclosure/Grid rename 안정화 변경을 보존해 다시 정렬한다.
+- #1381의 과거 PASS 항목도 새 head의 공식 전체 PR CI를 대체하지 않는다.
+
