@@ -14,6 +14,62 @@
   font-size: 0.75rem;
 }
 
+
+/* Issue #375: keep SVAR's full interaction geometry while drawing Summary bars thinner. */
+.project-gantt-widget .wx-bar.wx-summary,
+.project-gantt-widget .wx-bar.wx-summary:hover,
+.project-gantt-widget .wx-bar.wx-summary.wx-selected,
+.project-gantt-widget .wx-bar.wx-summary.wx-critical,
+.project-gantt-widget .wx-bar.wx-summary.wx-critical.wx-selected {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.project-gantt-widget .wx-bar.wx-summary::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 20% 0;
+  box-sizing: border-box;
+  border: var(--wx-gantt-summary-border);
+  border-radius: var(--wx-gantt-bar-border-radius);
+  background: var(--wx-gantt-summary-color);
+  pointer-events: none;
+}
+
+.project-gantt-widget .wx-bar.wx-summary.wx-critical::before {
+  background: var(--wx-gantt-summary-critical-color);
+}
+
+.project-gantt-widget .wx-bar.wx-summary > .wx-progress-wrapper {
+  top: 20%;
+  bottom: 20%;
+  height: auto;
+}
+
+.project-gantt-widget .wx-bar.wx-summary:hover::before,
+.project-gantt-widget .wx-bar.wx-summary.wx-selected::before {
+  box-shadow: var(--wx-gantt-bar-shadow);
+}
+
+.project-gantt-widget .wx-bar.wx-summary.wx-selected::before {
+  border: 1px solid var(--wx-gantt-summary-border-color);
+}
+
+.project-gantt-widget .wx-bar.wx-summary.wx-critical.wx-selected::before {
+  border-color: var(--wx-gantt-summary-critical-color);
+}
+
+.project-gantt-widget .wx-bar.wx-summary:focus {
+  outline: none;
+}
+
+.project-gantt-widget .wx-bar.wx-summary:focus::before {
+  outline: 1px solid var(--wx-color-primary);
+  outline-offset: 1px;
+}
+
 .project-gantt-fullscreen-button {
   min-height: 2.5rem;
   border: 1px solid var(--border-control, var(--border));

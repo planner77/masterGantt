@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.63.1] - 2026-10-02
+
+### Changed
+
+- Issue #375: Gantt Chart의 일정 있는 Summary Task는 SVAR root bar의 interaction/x·width geometry를 유지하면서 visual body와 progress만 일반 Task 높이의 60%로 줄여 행 중앙에 표시한다.
+- Summary의 hover/selected/focus/critical 상태는 얇은 visual body에 유지하고, 투명해진 상·하 root 영역도 기존 click/double-click/right-click/drag hit area로 남긴다. 일반 Task·Milestone 및 일정 없는 Summary의 기존 표현은 변경하지 않는다.
+- 390/768/1024/1440/1600px, Day/Week, fullscreen, readonly와 Empty Summary를 포함하는 Chromium geometry/interaction 회귀 검증을 추가하고 Application version을 `0.63.0`에서 `0.63.1`로 증가한다.
+
 ## [0.63.0] - 2026-10-01
 
 ### Added
