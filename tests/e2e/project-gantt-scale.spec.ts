@@ -107,13 +107,16 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(namedWeekend).toHaveAttribute("aria-describedby", /day-header-tooltip/);
 
   await page.setViewportSize({ width: 1024, height: 900 });
-  // SVAR may replace scale-cell DOM during a viewport resize. Re-focus the
-  // live date cell before validating keyboard tooltip wiring and edge clamping.
-  await namedWeekend.focus();
+  // SVAR virtualizes the scale after a viewport resize, so a previously
+  // referenced calendar date may leave the DOM. Validate edge clamping against
+  // the live right-most Day cell instead of assuming that date stays mounted.
+  const edgeDay = page.locator(".project-gantt-day-scale").last();
+  await expect(edgeDay).toBeVisible();
+  await edgeDay.focus();
   await expect(tooltip).toBeVisible();
   await expect.poll(async () => {
     const box = await tooltip.boundingBox();
-    const describedBy = await namedWeekend.getAttribute("aria-describedby");
+    const describedBy = await edgeDay.getAttribute("aria-describedby");
     return Boolean(
       box
       && box.x + box.width <= 1016
