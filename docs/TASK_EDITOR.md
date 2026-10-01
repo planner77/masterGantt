@@ -1,5 +1,15 @@
 # Issue #4 / #22 / #31 / #72 — 작업 메뉴와 Grid / Chart 작업 명령
 
+## Issue #378 — Context Menu Copy/Paste 관계 경계
+
+- 관계 endpoint인 Task도 Context Menu와 keyboard `Copy`는 허용한다. Copy는 원본 Task/Link를 변경하지 않는다.
+- copy clipboard가 유효하면 linked Task를 anchor로 한 `Paste > Above/Below`를 허용한다.
+- `Paste > As child`는 anchor가 linked leaf여서 Summary로 변환되어야 하는 경우 기존 관계 endpoint 보호 때문에 비활성/거부한다.
+- Cut clipboard는 기존 linked hierarchy guard를 유지한다.
+- Copy 성공 시 서버 canonical snapshot의 새 Task/Link를 같은 Gantt instance에 동기화하며 page reload/remount로 처리하지 않는다.
+- relation line과 Task Editor 관계 탭은 새 Link ID와 새 endpoint를 canonical snapshot에서 읽는다.
+
+
 ## Issue #345 미산정 Summary 계약
 
 빈 Summary 생성은 일정 도구 모음과 Context Add의 `요약 작업 추가`에서 이름·위치만 전송한다. 날짜 입력이나 임시 Task 삭제를 요구하지 않는다. 이름 수정은 기존 Grid inline 편집이며 Summary의 일정 필드 직접 편집 권한은 확대하지 않는다. Summary 정보는 readonly 파생 값이며 시작·종료·기간·진척 미산정 값은 `—`로 표시하고 진척 slider의 가짜 0%를 표시하지 않는다.
