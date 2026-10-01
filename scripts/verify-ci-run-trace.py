@@ -51,7 +51,7 @@ def _is_dependabot_pull_request(payload: dict[str, Any], pr: dict[str, Any]) -> 
     )
 
 
-def validate_pull_request(payload: dict[str, Any]) -> tuple[int, int]:
+def validate_pull_request(payload: dict[str, Any]) -> tuple[int | None, int]:
     pr = payload.get("pull_request")
     if not isinstance(pr, dict):
         raise TraceError("pull_request payload가 없습니다")
@@ -63,7 +63,7 @@ def validate_pull_request(payload: dict[str, Any]) -> tuple[int, int]:
     if _is_dependabot_pull_request(payload, pr):
         branch = str((pr.get("head") or {}).get("ref") or "")
         print(f"Dependabot PR 실행 추적 PASS: PR #{number} · branch {branch}")
-        return 0, number
+        return None, number
 
     body = str(pr.get("body") or "")
     refs = [int(value) for value in REF_RE.findall(body)]
