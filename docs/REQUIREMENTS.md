@@ -213,3 +213,9 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 오류 복구 GET은 캐시를 사용하지 않는다. 재조회가 실패하거나 응답 revision이 오래되면 마지막 확정 snapshot을 같은 SVAR 인스턴스에 동기화하며, page reload/remount를 오류 복구 수단으로 사용하지 않는다. Grid/Chart task 집합, Summary 접힘, 스크롤과 scale을 보존한다.
 - #344 당시 유지했던 `EMPTY_SUMMARY_NOT_ALLOWED` 정책은 #345의 빈 컨테이너 허용으로 대체한다. subtree 삭제, unrelated Link 보존 및 server-side session/Origin/If-Match/transaction 계약은 유지한다. 유효한 거부 조건에서도 이전 성공 mutation을 보존한다. network 실패 뒤 더 높은 canonical revision이 확인되면 서버 확정 결과를 반영하며, 자동 mutation 재전송은 하지 않는다.
 - 일반 정상 409 흐름의 baseline 미재현 결과와 오래된 복구 GET을 주입한 결함 재현 결과를 구분한다. 테스트 및 공식 원격 회귀 상태는 [TEST_PLAN](TEST_PLAN.md#issue-344--작업-삭제-실패-복구-회귀)에 기록한다.
+
+## Issue #370 — Grid 시작일 Date Picker 빠른 편집
+
+Project Workspace의 Grid `시작` 셀은 편집 권한이 있는 Task/Milestone에서 single click 또는 keyboard Enter/Space로 Date Picker를 연다. 선택값은 새 `requestedStart` 의도로 기존 Task PATCH의 `start` 필드에 전달하며, Grid 자체의 `projectStart`는 저장 필드가 아니다. 서버는 Project Effective Calendar와 FS/SS/FF/SF + lag를 포함한 기존 dependency-aware scheduling 계약으로 canonical `start/end`를 다시 계산하고 Grid/Chart는 같은 Gantt 인스턴스에 그 결과만 반영한다.
+
+Summary는 하위 일정에서 날짜가 파생되므로 시작일 직접 편집을 허용하지 않는다. Milestone은 `duration=0`, `start=end` 계약을 유지한다. readonly, mutation lock, stale/saving 상태에서는 Date Picker 진입을 차단하며, 동일 날짜 선택과 단순 취소는 mutation을 만들지 않는다. 실패한 저장은 Core의 임시 Grid 값을 확정하지 않고 마지막 서버 canonical snapshot을 유지/복구한다.
