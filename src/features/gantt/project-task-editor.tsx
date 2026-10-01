@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
 import { TaskAssignmentEditor } from "./task-assignment-editor";
 import { TaskLogisticsLinkEditor } from "./task-logistics-link-editor";
 import { TASK_EDITOR_TABS, taskEditorTabForKey, type TaskEditorTab } from "./task-editor-view-model";
-import { buildTaskRelations, formatTaskRelationType, type TaskRelationView } from "./task-relations";
+import { buildTaskRelations, formatTaskRelationType, getTaskRelationMutationBlockReason, type TaskRelationView } from "./task-relations";
 import {
   clearBaseline,
   copyScheduleToBaseline,
@@ -24,6 +24,14 @@ import {
 } from "./task-editor-model";
 import styles from "./project-task-editor.module.css";
 
+export type TaskRelationEditorRequest =
+  | { readonly kind: "link"; readonly linkId: string }
+  | { readonly kind: "task"; readonly taskId: string };
+
+export interface ProjectTaskEditorHandle {
+  applyCanonicalSession: (session: TaskEditorSession) => void;
+}
+
 interface Props {
   readonly session: TaskEditorSession;
   readonly latestTask: ProjectTaskDto | undefined;
@@ -35,15 +43,49 @@ interface Props {
   readonly busy: boolean;
   readonly onSave: (command: ProjectTaskUpdateCommand, revision: number) => Promise<TaskEditorSaveResult>;
   readonly onReload: (taskId: string) => Promise<TaskEditorSession | null>;
+  readonly onRelationEditorOpen: (request: TaskRelationEditorRequest, trigger: HTMLElement) => void;
+  readonly onRelationDelete: (linkId: string) => Promise<boolean>;
   readonly onClose: () => void;
 }
 
-function RelationList({ title, relations }: Readonly<{ title: string; relations: readonly TaskRelationView[] }>) {
+function RelationList({
+  title,
+  relations,
+  showActions,
+  actionsDisabled,
+  onEdit,
+  onDelete,
+}: Readonly<{
+  title: string;
+  relations: readonly TaskRelationView[];
+  showActions: boolean;
+  actionsDisabled: boolean;
+  onEdit: (relation: TaskRelationView, trigger: HTMLElement) => void;
+  onDelete: (relation: TaskRelationView, trigger: HTMLElement) => void;
+}>) {
   return <section className={styles.relationGroup} aria-label={title}>
     <h4>{title} ({relations.length})</h4>
     {relations.length === 0 ? <p className={styles.emptyRelation}>없음</p> : <ul className={styles.relationList}>
       {relations.map((relation) => <li key={`${relation.direction}:${relation.id}`} className={styles.relationItem}>
-        <div className={styles.relationTask}><strong>{relation.relatedTaskName}</strong> <code>{relation.relatedTaskExternalId}</code></div>
+        <div className={styles.relationItemHeader}>
+          <div className={styles.relationTask}><strong>{relation.relatedTaskName}</strong> <code>{relation.relatedTaskExternalId}</code></div>
+          {showActions && relation.resolved ? <div className={styles.relationActions}>
+            <button
+              aria-label={`${relation.relatedTaskName} 관계 편집`}
+              className="secondary-button"
+              disabled={actionsDisabled}
+              onClick={(event) => onEdit(relation, event.currentTarget)}
+              type="button"
+            >편집</button>
+            <button
+              aria-label={`${relation.relatedTaskName} 관계 삭제`}
+              className="danger-button"
+              disabled={actionsDisabled}
+              onClick={(event) => onDelete(relation, event.currentTarget)}
+              type="button"
+            >삭제</button>
+          </div> : null}
+        </div>
         <div className={styles.relationMeta}>
           <span>{formatTaskRelationType(relation.type)}</span><span>Lag {relation.lag}일</span>
           {!relation.resolved ? <span className={styles.relationWarning}>참조 작업을 찾을 수 없음</span> : null}
@@ -53,14 +95,29 @@ function RelationList({ title, relations }: Readonly<{ title: string; relations:
   </section>;
 }
 
-export function ProjectTaskEditor({ session, latestTask, tasks, links, revision, editable, hasLinks, busy, onSave, onReload, onClose }: Props) {
+export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(function ProjectTaskEditor({
+  session,
+  latestTask,
+  tasks,
+  links,
+  revision,
+  editable,
+  hasLinks,
+  busy,
+  onSave,
+  onReload,
+  onRelationEditorOpen,
+  onRelationDelete,
+  onClose,
+}, ref) {
   const [base, setBase] = useState(session);
   const [draft, setDraft] = useState(() => createTaskEditorDraft(session.task, session.calendar));
   const [scheduleBasis, setScheduleBasis] = useState<TaskEditorScheduleBasis>("duration");
   const [error, setError] = useState<string | null>(null);
   const [conflicted, setConflicted] = useState(false);
-  const [operation, setOperation] = useState<"save" | "reload" | null>(null);
+  const [operation, setOperation] = useState<"save" | "reload" | "relation-delete" | null>(null);
   const [confirmation, setConfirmation] = useState<"close" | "reload" | null>(null);
+  const [relationDeleteTarget, setRelationDeleteTarget] = useState<TaskRelationView | null>(null);
   const [activeTab, setActiveTab] = useState<TaskEditorTab>("task");
   const [assignmentCount, setAssignmentCount] = useState(0);
   const [logisticsCount, setLogisticsCount] = useState(0);
@@ -68,6 +125,9 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   const tabReferences = useRef<Array<HTMLButtonElement | null>>([]);
   const actionReference = useRef(false);
   const mountedReference = useRef(false);
+  const relationDeleteTriggerReference = useRef<HTMLElement | null>(null);
+  const relationDeleteCancelReference = useRef<HTMLButtonElement>(null);
+  const relationAddReference = useRef<HTMLButtonElement>(null);
   const dirty = taskEditorIsDirty(base.task, draft);
   const stale = conflicted || revision !== base.revision;
   const restriction = taskEditorReadOnlyReason(latestTask, editable, false) ??
@@ -82,7 +142,19 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
     const dialog = dialogReference.current;
     if (dialog && !dialog.open) dialog.showModal();
     return () => { mountedReference.current = false; dialog?.close(); };
-  }, [session]);
+  }, []);
+
+  useImperativeHandle(ref, () => ({
+    applyCanonicalSession(next) {
+      if (next.task.taskId !== session.task.taskId) return;
+      setBase(next);
+      setDraft(createTaskEditorDraft(next.task, next.calendar));
+      setScheduleBasis("duration");
+      setConflicted(false);
+      setError(null);
+      setRelationDeleteTarget(null);
+    },
+  }), [session.task.taskId]);
 
   useEffect(() => {
     if (!dirty) return;
@@ -141,6 +213,45 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
     tabReferences.current[TASK_EDITOR_TABS.indexOf(next)]?.focus();
   }
 
+  function requestRelationDelete(relation: TaskRelationView, trigger: HTMLElement) {
+    if (relationMutationDisabled || relationDeleteTarget) return;
+    relationDeleteTriggerReference.current = trigger;
+    setRelationDeleteTarget(relation);
+    requestAnimationFrame(() => relationDeleteCancelReference.current?.focus());
+  }
+  function cancelRelationDelete() {
+    const trigger = relationDeleteTriggerReference.current;
+    relationDeleteTriggerReference.current = null;
+    setRelationDeleteTarget(null);
+    requestAnimationFrame(() => {
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+      else relationAddReference.current?.focus({ preventScroll: true });
+    });
+  }
+  async function confirmRelationDelete() {
+    const target = relationDeleteTarget;
+    if (!target || locked || actionReference.current || dirty || stale || !editable) return;
+    actionReference.current = true;
+    setOperation("relation-delete");
+    setError(null);
+    try {
+      const deleted = await onRelationDelete(target.id);
+      if (!mountedReference.current) return;
+      if (deleted) {
+        relationDeleteTriggerReference.current = null;
+        setRelationDeleteTarget(null);
+        requestAnimationFrame(() => relationAddReference.current?.focus({ preventScroll: true }));
+      } else {
+        setError("관계를 삭제할 수 없습니다. 최신 정보를 확인한 뒤 다시 시도해 주세요.");
+      }
+    } catch {
+      if (mountedReference.current) setError("관계를 삭제할 수 없습니다. 최신 정보를 확인한 뒤 다시 시도해 주세요.");
+    } finally {
+      actionReference.current = false;
+      if (mountedReference.current) setOperation(null);
+    }
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (locked || actionReference.current || restriction || stale) return;
@@ -162,6 +273,14 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   const relationSnapshotMatches = revision === base.revision && latestTask?.externalId === base.task.externalId;
   const relations = relationSnapshotMatches ? buildTaskRelations(base.task, tasks, links) : null;
   const relationCount = relations ? relations.predecessors.length + relations.successors.length : 0;
+  const relationMutationBlockReason = getTaskRelationMutationBlockReason({
+    editable,
+    taskType: base.task.type,
+    stale: stale || !relationSnapshotMatches,
+    dirty,
+    busy: locked,
+  });
+  const relationMutationDisabled = relationMutationBlockReason !== null;
   const taskTypeLabel = base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "마일스톤" : "일반 작업";
   const scheduleIssue = validateTaskEditorSchedule(base.task, draft, base.calendar, scheduleBasis);
 
@@ -420,12 +539,46 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
             <div className={styles.sectionHeading}>
               <div>
                 <h3 id="task-relations-title">작업 관계</h3>
-                <p className={styles.sectionDescription}>관계는 현재 조회 전용입니다. 편집 기능은 기존 범위대로 제공하지 않습니다.</p>
+                <p className={styles.sectionDescription}>현재 작업의 선행·후행 관계를 확인하고 기존 Relation Editor에서 추가·편집·삭제할 수 있습니다.</p>
               </div>
-              <span className={styles.sectionCount}>{relationCount}건</span>
+              <div className={styles.relationSectionActions}>
+                <span className={styles.sectionCount}>{relationCount}건</span>
+                {editable && base.task.type !== "summary" ? <button
+                  ref={relationAddReference}
+                  className="secondary-button"
+                  disabled={relationMutationDisabled}
+                  onClick={(event) => onRelationEditorOpen({ kind: "task", taskId: base.task.taskId }, event.currentTarget)}
+                  type="button"
+                >관계 추가</button> : null}
+              </div>
             </div>
+            {relationMutationBlockReason === "dirty" ? <p className={styles.relationMutationNotice} role="status">작업 정보에 저장하지 않은 변경사항이 있습니다. 관계를 변경하려면 작업 변경사항을 먼저 저장하거나 취소해 주세요.</p> : null}
             {!relationSnapshotMatches ? <p className={styles.relationError} role="alert">관계 정보의 기준 Revision이 변경되었습니다. 최신 정보를 다시 불러와 주세요.</p> : null}
-            {relations ? <div className={styles.relationColumns}><RelationList title="선행 작업" relations={relations.predecessors} /><RelationList title="후행 작업" relations={relations.successors} /></div> : null}
+            {relationDeleteTarget ? <div className={styles.relationDeleteConfirmation} role="alert">
+              <p><strong>{relationDeleteTarget.direction === "predecessor" ? relationDeleteTarget.relatedTaskName : base.task.name} → {relationDeleteTarget.direction === "predecessor" ? base.task.name : relationDeleteTarget.relatedTaskName}</strong> ({relationDeleteTarget.type}, Lag {relationDeleteTarget.lag}) 관계를 삭제할까요?</p>
+              <div className={styles.confirmationActions}>
+                <button ref={relationDeleteCancelReference} className="secondary-button" disabled={locked} onClick={cancelRelationDelete} type="button">삭제 취소</button>
+                <button className="danger-button" disabled={locked || relationMutationDisabled} onClick={() => void confirmRelationDelete()} type="button">{operation === "relation-delete" ? "삭제 중…" : "관계 삭제"}</button>
+              </div>
+            </div> : null}
+            {relations ? <div className={styles.relationColumns}>
+              <RelationList
+                title="선행 작업"
+                relations={relations.predecessors}
+                showActions={editable}
+                actionsDisabled={relationMutationDisabled}
+                onEdit={(relation, trigger) => onRelationEditorOpen({ kind: "link", linkId: relation.id }, trigger)}
+                onDelete={requestRelationDelete}
+              />
+              <RelationList
+                title="후행 작업"
+                relations={relations.successors}
+                showActions={editable}
+                actionsDisabled={relationMutationDisabled}
+                onEdit={(relation, trigger) => onRelationEditorOpen({ kind: "link", linkId: relation.id }, trigger)}
+                onDelete={requestRelationDelete}
+              />
+            </div> : null}
           </section>
         </section>
 
@@ -460,4 +613,4 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
       </footer>
     </form>
   </dialog>;
-}
+});
