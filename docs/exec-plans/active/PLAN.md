@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #372 fullscreen 편집기 상태 보존 — 최신 main 재정렬·충돌 해결 / PR CI 재시작
+
+최신 main `5fda7d963b0ba5e2e09414c1328103f9e943b564` / `0.63.1` 기준으로 다시 재정렬한다. PR CI #1485.1은 quality/e2e/docker 전체 PASS했지만 이후 Issue #375 병합이 `CHANGELOG.md`, `PROJECT_UX.md`, `TEST_PLAN.md`, `package*.json`을 변경하면서 PR #381이 behind 2 / mergeable_state dirty가 되었다. #375의 Summary bar 계약을 보존한 최신 main 위에 #372 fullscreen Editor 변경만 재적용하고 후보 version을 PATCH `0.63.2`로 조정한다. Relation E2E의 viewport fixture 안정화와 기존 fullscreen 요청 거부 회귀도 유지한다. 이번 요청 범위는 같은 PR #381의 새 head PR CI 시작까지다. 상세는 [Issue #372 실행 계획](ISSUE_372.md)을 따른다.
+
 ## Issue #373 Summary 하위 WBS scoped view — 구현 / PR·CI 시작
 
 기준 main은 `9e22ebd1534471a67938a0d22adb2ba947066a83` / application `0.62.0`, 작업 branch는 `feat/issue-373-summary-root-view`다. Context Menu navigation, `rootTask` deep link, existing `filter-tasks` scoped visibility, same-origin cross-tab revision freshness와 문서/테스트를 구현한다. 상세 범위·N/A 계약·검증은 [Issue #373 실행 계획](ISSUE_373.md)을 따른다. Issue #378이 `0.62.0`으로 main에 병합된 뒤 재정렬했으며 후보 version은 다음 minor인 `0.63.0`이다. 사용자 요청 종료점은 PR 생성과 PR CI 시작 확인이며 CI 완료 모니터링·병합·main CI·GHCR·Issue 종료는 이번 범위 밖이다.
