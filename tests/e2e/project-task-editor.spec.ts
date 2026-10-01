@@ -11,6 +11,7 @@ const row = (page: Page, name: string) => page.locator(".project-gantt-widget .w
 const bar = (page: Page, taskId: string) => page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${taskId}"]`);
 const rowByTaskId = (page: Page, taskId: string) => page.locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
 const editor = (page: Page) => page.getByRole("dialog", { name: "작업 정보", exact: true });
+const relationEditor = (page: Page) => page.getByRole("dialog", { name: "작업 관계 관리 (Relation Editor)", exact: true });
 const save = (page: Page) => editor(page).getByRole("button", { name: "저장", exact: true });
 const frame = (page: Page) => page.locator(".project-gantt-frame");
 
@@ -24,6 +25,7 @@ interface Fixture {
   links: ProjectLinkDto[];
   editable: boolean;
   patches: Request[];
+  linkMutations: Request[];
   nextFailure: number | "network" | null;
   gate: Promise<void> | null;
   failReads: boolean;
@@ -42,7 +44,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       task(5, "Milestone", { type: "milestone", duration: 0, requestedStart: "2026-09-23", start: "2026-09-23", end: "2026-09-23" }),
     ],
     links: options.links ? [{ id: id(90), predecessorExternalId: "EDITOR-3", successorExternalId: "EDITOR-4", type: "FS", lag: 0 }] : [],
-    editable: options.editable ?? true, patches: [], nextFailure: null, gate: null, failReads: false, projectReads: 0,
+    editable: options.editable ?? true, patches: [], linkMutations: [], nextFailure: null, gate: null, failReads: false, projectReads: 0,
   };
   const assignmentTargets = options.assignmentTargets ? [{ kind: "resource" as const, id: id(70), name: "Resource A", code: "RES-A", active: true }] : [];
   const snapshot = () => ({ data: { project: fixture.project, tasks: fixture.tasks, links: fixture.links, permission: "readonly" } });
@@ -109,6 +111,51 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       } catch {
         await route.fulfill({ status: 422, json: { error: { code: "INVALID_FIELD" } } });
       }
+      return;
+    }
+    if (path === `${apiPath}/links` && request.method() === "POST") {
+      fixture.linkMutations.push(request);
+      if (request.headers()["if-match"] !== `"${fixture.project.revision}"`) {
+        await route.fulfill({ status: 412, json: { error: { code: "REVISION_MISMATCH" } } });
+        return;
+      }
+      const payload = request.postDataJSON() as {
+        predecessorExternalId: string;
+        successorExternalId: string;
+        type: ProjectLinkDto["type"];
+        lag: number;
+      };
+      fixture.links.push({
+        id: id(100 + fixture.links.length),
+        predecessorExternalId: payload.predecessorExternalId,
+        successorExternalId: payload.successorExternalId,
+        type: payload.type,
+        lag: payload.lag,
+      });
+      fixture.project.revision += 1;
+      await route.fulfill({ status: 201, json: { data: { ...snapshot().data, warnings: [], operation: { kind: "linkCreate" } } } });
+      return;
+    }
+    if (path.startsWith(`${apiPath}/links/`) && (request.method() === "PATCH" || request.method() === "DELETE")) {
+      fixture.linkMutations.push(request);
+      if (request.headers()["if-match"] !== `"${fixture.project.revision}"`) {
+        await route.fulfill({ status: 412, json: { error: { code: "REVISION_MISMATCH" } } });
+        return;
+      }
+      const linkId = path.split("/").at(-1);
+      const index = fixture.links.findIndex((entry) => entry.id === linkId);
+      if (index < 0) {
+        await route.fulfill({ status: 404, json: { error: { code: "LINK_NOT_FOUND" } } });
+        return;
+      }
+      if (request.method() === "PATCH") {
+        const patch = request.postDataJSON() as Partial<Pick<ProjectLinkDto, "type" | "lag">>;
+        fixture.links[index] = { ...fixture.links[index], ...patch };
+      } else {
+        fixture.links.splice(index, 1);
+      }
+      fixture.project.revision += 1;
+      await route.fulfill({ json: { data: { ...snapshot().data, warnings: [], operation: { kind: request.method() === "PATCH" ? "linkUpdate" : "linkDelete" } } } });
       return;
     }
     await route.continue();
@@ -505,6 +552,98 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(fixture.tasks.find((entry) => entry.taskId === id(5))).toMatchObject({ start: "2026-09-22", end: "2026-09-22", duration: 0 });
   });
 
+  test("Issue #377 관계 탭에서 기존 관계를 편집·삭제하고 canonical revision을 즉시 동기화한다", async ({ page }) => {
+    const fixture = await setup(page, { editable: true, links: true });
+    const ganttInstance = await frame(page).getAttribute("data-project-gantt-api-instance");
+    await openRow(page, "Beta leaf");
+    const taskDialog = editor(page);
+    const relationTab = taskDialog.getByRole("tab", { name: /관계/ });
+    await relationTab.click();
+    const predecessor = taskDialog.getByRole("region", { name: "선행 작업" });
+    const editButton = predecessor.getByRole("button", { name: "Alpha leaf 관계 편집", exact: true });
+    await editButton.click();
+
+    const modal = relationEditor(page);
+    await expect(modal).toBeVisible();
+    await modal.getByLabel("관계 유형 (Type)", { exact: true }).first().selectOption("SS");
+    await modal.getByLabel("지연 시간 (Lag, 일 단위)", { exact: true }).first().fill("2");
+    await modal.getByRole("button", { name: "수정 저장", exact: true }).click();
+    await expect.poll(() => fixture.linkMutations.length).toBe(1);
+    await modal.getByRole("button", { name: "닫기", exact: true }).click();
+    await expect(modal).toHaveCount(0);
+    await expect(relationTab).toHaveAttribute("aria-selected", "true");
+    await expect(predecessor).toContainText("SS (시작 → 시작)");
+    await expect(predecessor).toContainText("Lag 2일");
+    await expect(taskDialog).toContainText("Revision 21");
+
+    const deleteButton = predecessor.getByRole("button", { name: "Alpha leaf 관계 삭제", exact: true });
+    await deleteButton.focus();
+    await page.keyboard.press("Enter");
+    const confirmation = taskDialog.getByRole("alert").filter({ hasText: "Alpha leaf → Beta leaf" });
+    await expect(confirmation.getByRole("button", { name: "삭제 취소", exact: true })).toBeFocused();
+    await confirmation.getByRole("button", { name: "삭제 취소", exact: true }).click();
+    await expect(deleteButton).toBeFocused();
+
+    await page.keyboard.press("Enter");
+    await expect(confirmation).toContainText("(SS, Lag 2)");
+    await confirmation.getByRole("button", { name: "관계 삭제", exact: true }).click();
+    await expect.poll(() => fixture.linkMutations.length).toBe(2);
+    await expect(predecessor).toContainText("없음");
+    await expect(taskDialog).toContainText("Revision 22");
+    await expect(taskDialog.getByRole("tab", { name: /관계 0건/ })).toBeVisible();
+    expect(fixture.linkMutations.map((request) => request.method())).toEqual(["PATCH", "DELETE"]);
+    expect(fixture.linkMutations[0].headers()["if-match"]).toBe('"20"');
+    expect(fixture.linkMutations[0].postDataJSON()).toEqual({ type: "SS", lag: 2 });
+    expect(fixture.linkMutations[1].headers()["if-match"]).toBe('"21"');
+    await expect(frame(page)).toHaveAttribute("data-project-gantt-api-instance", ganttInstance!);
+  });
+
+  test("Issue #377 관계가 없는 Milestone에서 anchor 기반 Relation Editor로 새 후행 관계를 추가한다", async ({ page }) => {
+    const fixture = await setup(page, { editable: true });
+    await openRow(page, "Milestone");
+    const taskDialog = editor(page);
+    const relationTab = taskDialog.getByRole("tab", { name: /관계/ });
+    await relationTab.click();
+    await taskDialog.getByRole("button", { name: "관계 추가", exact: true }).click();
+
+    const modal = relationEditor(page);
+    await expect(modal).toContainText("기준 작업 [Milestone]");
+    await modal.getByPlaceholder("작업 이름 또는 ID 검색...").fill("Beta");
+    await modal.getByRole("button", { name: /Beta leaf EDITOR-4/ }).click();
+    await modal.getByLabel("관계 유형 (Type)", { exact: true }).selectOption("FF");
+    await modal.getByLabel("지연 시간 (Lag, 일 단위)", { exact: true }).fill("-1");
+    await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
+    await expect.poll(() => fixture.linkMutations.length).toBe(1);
+    await modal.getByRole("button", { name: "닫기", exact: true }).click();
+    await expect(modal).toHaveCount(0);
+
+    const successor = taskDialog.getByRole("region", { name: "후행 작업" });
+    await expect(relationTab).toHaveAttribute("aria-selected", "true");
+    await expect(successor).toContainText("Beta leaf");
+    await expect(successor).toContainText("FF (종료 → 종료)");
+    await expect(successor).toContainText("Lag -1일");
+    await expect(taskDialog).toContainText("Revision 21");
+    expect(fixture.linkMutations[0].postDataJSON()).toEqual({
+      predecessorExternalId: "EDITOR-5",
+      successorExternalId: "EDITOR-4",
+      type: "FF",
+      lag: -1,
+    });
+  });
+
+  test("Issue #377 저장하지 않은 Task 초안은 관계 mutation을 잠그고 사유를 표시한다", async ({ page }) => {
+    const fixture = await setup(page, { editable: true, links: true });
+    await openRow(page, "Beta leaf");
+    const taskDialog = editor(page);
+    await taskDialog.getByLabel("작업명", { exact: true }).fill("저장 전 초안");
+    await taskDialog.getByRole("tab", { name: /관계/ }).click();
+    await expect(taskDialog).toContainText("관계를 변경하려면 작업 변경사항을 먼저 저장하거나 취소해 주세요.");
+    await expect(taskDialog.getByRole("button", { name: "관계 추가", exact: true })).toBeDisabled();
+    await expect(taskDialog.getByRole("button", { name: "Alpha leaf 관계 편집", exact: true })).toBeDisabled();
+    await expect(taskDialog.getByRole("button", { name: "Alpha leaf 관계 삭제", exact: true })).toBeDisabled();
+    expect(fixture.linkMutations).toHaveLength(0);
+  });
+
   test("Issue #80 canonical 관계 snapshot은 Grid/Chart/Context Menu Editor에서 동일하게 표시되고 mutation을 만들지 않는다", async ({ page }) => {
     const fixture = await setup(page, { links: true });
     const mutations: Request[] = [];
@@ -552,6 +691,9 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await openRow(page, "Beta leaf");
     await editor(page).getByRole("tab", { name: /관계/ }).click();
     await expect(editor(page).getByRole("region", { name: /선행 작업/ })).toContainText("Alpha leaf");
+    await expect(editor(page).getByRole("button", { name: "관계 추가", exact: true })).toHaveCount(0);
+    await expect(editor(page).getByRole("button", { name: /관계 편집$/ })).toHaveCount(0);
+    await expect(editor(page).getByRole("button", { name: /관계 삭제$/ })).toHaveCount(0);
     await expect(save(page)).toHaveCount(0);
     expect(fixture.patches).toHaveLength(0);
     expect(mutations).toHaveLength(0);

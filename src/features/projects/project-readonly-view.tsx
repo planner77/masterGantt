@@ -21,7 +21,7 @@ import {
 import type { AssignedTargetsResponse, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
-import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
+import { ProjectTaskEditor, type ProjectTaskEditorHandle, type TaskRelationEditorRequest } from "@/features/gantt/project-task-editor";
 import { RelationEditorDialog } from "@/features/gantt/relation-editor-dialog";
 import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSession } from "@/features/gantt/task-editor-model";
 import { createTaskDeletePlan, type TaskDeletePlan } from "@/features/gantt/task-delete-model";
@@ -182,7 +182,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [pendingTaskDelete, setPendingTaskDelete] = useState<PendingTaskDelete | null>(null);
   const taskMutationReference = useRef(false);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
-  const [relationEditorLinkId, setRelationEditorLinkId] = useState<string | null>(null);
+  const [relationEditorRequest, setRelationEditorRequest] = useState<TaskRelationEditorRequest | null>(null);
+  const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
   const editorOpeningReference = useRef(false);
@@ -700,14 +701,19 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     });
   }
   function openRelationEditor(linkId: string) {
-    if (state.status !== "ready" || relationEditorLinkId) return;
+    if (state.status !== "ready" || relationEditorRequest) return;
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     relationEditorTriggerReference.current = trigger;
-    setRelationEditorLinkId(linkId);
+    setRelationEditorRequest({ kind: "link", linkId });
+  }
+  function openTaskRelationEditor(request: TaskRelationEditorRequest, trigger: HTMLElement) {
+    if (state.status !== "ready" || relationEditorRequest || !editorSession) return;
+    relationEditorTriggerReference.current = trigger;
+    setRelationEditorRequest(request);
   }
   function closeRelationEditor() {
     const trigger = relationEditorTriggerReference.current;
-    setRelationEditorLinkId(null);
+    setRelationEditorRequest(null);
     relationEditorTriggerReference.current = null;
     requestAnimationFrame(() => {
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
@@ -803,6 +809,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       const body: unknown = await response.json().catch(() => null);
       const snapshot = snapshotFromLinkMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
+        const currentEditorTaskId = editorSession?.task.taskId;
+        const currentEditorTask = currentEditorTaskId
+          ? snapshot.data.tasks.find((task) => task.taskId === currentEditorTaskId)
+          : undefined;
+        if (currentEditorTask) {
+          projectTaskEditorReference.current?.applyCanonicalSession({
+            task: { ...currentEditorTask },
+            calendar: snapshot.data.project.calendar,
+            revision: snapshot.data.project.revision,
+          });
+        }
         notify("success", method === "POST" ? "작업 관계를 저장했습니다." : method === "PATCH" ? "작업 관계를 변경했습니다." : "작업 관계를 삭제했습니다.", "작업 관계");
         return true;
       }
@@ -1219,7 +1236,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             ? "선택한 작업이 더 이상 Summary가 아닙니다."
             : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
           <a href={`/projects/${encodeURIComponent(publicId)}`}>전체 프로젝트로 돌아가기</a>
-        </div> : <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorLinkId !== null}
+        </div> : <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
@@ -1228,14 +1245,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };
           })} tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />}
-        {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
+        {editorSession ? <ProjectTaskEditor ref={projectTaskEditorReference} key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
-          editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
-        {relationEditorLinkId ? (
+          editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy}
+          onSave={saveEditorTask} onReload={reloadEditorTask} onRelationEditorOpen={openTaskRelationEditor}
+          onRelationDelete={(id) => saveLink("DELETE", undefined, undefined, id)} onClose={closeTaskEditor} /> : null}
+        {relationEditorRequest ? (
           <RelationEditorDialog
             editable={editing}
-            key={relationEditorLinkId}
-            linkId={relationEditorLinkId}
+            key={relationEditorRequest.kind === "link" ? `link:${relationEditorRequest.linkId}` : `task:${relationEditorRequest.taskId}`}
+            {...(relationEditorRequest.kind === "link" ? { linkId: relationEditorRequest.linkId } : { anchorTaskId: relationEditorRequest.taskId })}
             links={links}
             onClose={closeRelationEditor}
             onCreateLink={(source, target, options) => saveLink("POST", source, target, undefined, options)}
