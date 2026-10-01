@@ -979,3 +979,12 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - 보완은 실패한 older attempt와 later same-Issue corrective target을 연결하되, corrective exact main CI SUCCESS와 validation-scope coverage를 필수로 한다. 중간 Issue는 목록에서 제거하거나 재정렬하지 않는다.
 - superseded older attempt에는 release/finalize mutation을 하지 않고 branch cleanup 의무만 later corrective target으로 이관한다. middle Issue #356은 자체 exact CI/release authorization으로 먼저 처리되고, 이후 corrective #344 target이 처리된다.
 - docs-only corrective target이 non-docs 실패 attempt를 대체하지 못하는 시나리오와 corrective CI가 Green이 아니면 기존 blocker를 유지하는 시나리오를 정적 contract test에 추가한다.
+
+## Issue #370 Grid 시작일 Date Picker 회귀
+
+- Unit: effective canonical `start`를 DatePicker 값으로 변환하는지, Task/Milestone만 편집 가능한지, Summary/readonly를 거부하는지, 같은 날짜는 no-op인지, 선택 날짜가 `{ start: YYYY-MM-DD }` 단일 일정 명령이 되는지 검증한다.
+- Chromium E2E: 시작일 셀 single click → 날짜 Picker overlay open → 다른 날짜 입력 → PATCH 1회 → 같은 Gantt 인스턴스 canonical sync를 확인한다.
+- Summary와 readonly는 Picker가 열리지 않고 PATCH가 0회여야 한다. Enter로 Picker를 열 수 있고 Escape 취소 후 원래 셀로 focus가 복귀해야 한다.
+- 서버 409/412/422/500/network 실패는 선택값을 canonical로 남기지 않고 마지막 확정 일정을 유지해야 한다.
+- 390/768/1024/1440px에서 Date Picker가 viewport를 벗어나거나 document-level horizontal overflow를 추가하지 않는지 확인한다.
+- 기존 Grid 이름 inline edit, DnD, Chart drag/resize, Task Editor와 dependency-aware scheduling 회귀는 동일 PR head의 원격 CI/E2E에서 함께 판정한다.
