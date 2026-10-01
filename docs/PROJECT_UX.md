@@ -1,5 +1,11 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #375 Summary Task bar 시각 계층
+
+일정이 계산된 Summary는 일반 Task와 같은 SVAR root bar geometry를 유지하되, 실제 색상/border/progress가 보이는 visual body만 root 높이의 **60%**로 줄여 행 중앙에 표시한다. root의 x/width/top/height와 link marker 중심은 변경하지 않아 #142의 날짜 셀 전체 폭 정렬과 기존 click/double-click/right-click/drag hit area를 보존한다. Summary visual body는 `.wx-summary::before`, progress는 같은 20% 상·하 inset을 사용하며 hover/selected/focus/critical 상태는 얇은 body에 표시한다.
+
+일반 Task와 Milestone은 이번 규칙의 적용 대상이 아니다. #345의 일정 없는 Summary는 계속 Grid row만 존재하고 Chart bar를 만들지 않는다. Day/Week, fullscreen, readonly/edit 전환으로 상대 두께가 달라지지 않으며 Gantt/API instance를 remount하지 않는다. 이 규칙은 presentation-only이며 Task/Summary 날짜·기간·진척 계산, Dependency, Calendar, API/DB/revision/If-Match 계약을 변경하지 않는다.
+
 ## Issue #373 Summary 하위 WBS를 최상위 범위로 열기
 
 하위 child가 있는 Summary의 Grid/Chart Context Menu에는 `최상위로 열기`를 조회/navigation 명령으로 표시한다. 일반 Task, Milestone, 자식이 없는 빈 Summary에는 진입 명령을 표시하지 않는다. readonly에서도 사용할 수 있으며 mutation lock과 무관하게 새 탭 조회를 열 수 있다. visible label은 `최상위로 열기`이고 accessible name은 새 탭 동작을 함께 설명한다. 기존 #72 메뉴의 keyboard 탐색, Shift+F10/ContextMenu, Escape와 focus 복귀를 유지한다.

@@ -1,5 +1,14 @@
 # Test Plan
 
+## Issue #375 Summary Task bar 두께 회귀
+
+- Chromium E2E는 동일 날짜 범위의 Summary와 일반 Task를 함께 렌더하고 SVAR root bar의 x/width가 동일한지 확인한다. Summary root 자체의 높이는 interaction hit-area로 유지하고 `::before` visual body와 progress wrapper만 일반 Task 높이의 약 60%(허용 55~70%)인지 geometry로 측정한다.
+- Summary visual body의 수직 중심과 root/row 중심이 일치하고, visual body의 좌우 inset이 없어 #142의 inclusive cell range를 축소하지 않는지 확인한다.
+- 얇은 body 바깥의 투명한 Summary root 영역을 우클릭해 기존 Context Menu가 열리는지 확인하여 pointer hit-area가 visual height로 축소되지 않았음을 검증한다. link marker는 root 50% 중심을 그대로 사용한다.
+- 390/768/1024/1440/1600px, Day→Week, native fullscreen에서 동일 60% 비율과 Gantt instance 보존을 확인한다. readonly에서도 동일 시각 규칙을 사용한다.
+- 일정 없는 Summary는 #345와 동일하게 `.wx-bar`가 생성되지 않아야 하고 Milestone에는 Summary pseudo body를 적용하지 않는다.
+- API/DB/Scheduling/Calendar/Dependency 변경은 없다. 공식 전체 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+
 ## Issue #373 Summary subtree 새 탭 scoped view
 
 - Unit: `task-subtree-scope.test.ts`에서 child가 있는 Summary만 Context Menu 진입 대상인지, root + 모든 depth descendant ID 집합이 ancestor/sibling을 제외하는지, 빈 Summary deep link는 유효한지, missing/non-Summary root를 구분한다. `project-task-adapter.test.ts`는 scoped Summary만 SVAR `parent=0`으로 투영하면서 canonical `parentExternalId`는 변하지 않는지 검증한다.
