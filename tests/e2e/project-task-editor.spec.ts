@@ -311,8 +311,10 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     const fixture = await setup(page);
     const instance = await frame(page).getAttribute("data-project-gantt-instance");
     await openRow(page);
+    await expect(editor(page).getByLabel("요청 종료일", { exact: true })).toHaveValue("2026-09-18");
     await editor(page).getByLabel("기간 (근무일)", { exact: true }).fill("2");
-    await expect(editor(page).locator("output").first()).toHaveText("2026-09-18");
+    await expect(editor(page).getByLabel("요청 종료일", { exact: true })).toHaveValue("2026-09-22");
+    await expect(editor(page).getByLabel("적용 시작일", { exact: true })).toHaveText("2026-09-18");
     expect(fixture.patches).toHaveLength(0);
     let release!: () => void;
     fixture.gate = new Promise<void>((resolve) => { release = resolve; });
@@ -330,6 +332,7 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(fixture.tasks.find((entry) => entry.taskId === id(4))).toMatchObject({ start: "2026-09-18", end: "2026-09-22", duration: 2 });
     await openRow(page);
     await editor(page).getByLabel("요청 시작일", { exact: true }).fill("2026-09-19");
+    await expect(editor(page).getByLabel("요청 종료일", { exact: true })).toHaveValue("2026-09-23");
     await save(page).click();
     await expect(editor(page)).toHaveCount(0);
     expect(fixture.patches[1].postDataJSON()).toEqual({ start: "2026-09-19" });
@@ -345,6 +348,54 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(fixture.patches[2].postDataJSON()).toEqual({ name: "Edited together", start: "2026-09-18", duration: 3, progress: 36 });
     await expect(row(page, "Edited together")).toBeVisible();
     await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
+  });
+
+  test("Issue #368 requested end recalculates duration and stays out of the PATCH payload", async ({ page }) => {
+    const fixture = await setup(page);
+    await openRow(page);
+    const requestedEnd = editor(page).getByLabel("요청 종료일", { exact: true });
+    const duration = editor(page).getByLabel("기간 (근무일)", { exact: true });
+
+    await expect(requestedEnd).toHaveValue("2026-09-18");
+    await requestedEnd.fill("2026-09-24");
+    await expect(duration).toHaveValue("4");
+
+    await editor(page).getByLabel("요청 시작일", { exact: true }).fill("2026-09-17");
+    await expect(requestedEnd).toHaveValue("2026-09-24");
+    await expect(duration).toHaveValue("5");
+
+    await save(page).click();
+    await expect(editor(page)).toHaveCount(0);
+    expect(fixture.patches).toHaveLength(1);
+    expect(fixture.patches[0].postDataJSON()).toEqual({ start: "2026-09-17", duration: 5 });
+    expect(fixture.patches[0].postDataJSON()).not.toHaveProperty("end");
+    expect(fixture.patches[0].postDataJSON()).not.toHaveProperty("requestedEnd");
+    expect(fixture.tasks.find((entry) => entry.taskId === id(4))).toMatchObject({
+      requestedStart: "2026-09-17",
+      start: "2026-09-17",
+      end: "2026-09-24",
+      duration: 5,
+    });
+  });
+
+  test("Issue #368 rejects a non-working requested end before mutation", async ({ page }) => {
+    const fixture = await setup(page);
+    await openRow(page);
+    const requestedEnd = editor(page).getByLabel("요청 종료일", { exact: true });
+    await requestedEnd.fill("2026-09-21");
+    await expect(requestedEnd).toHaveAttribute("aria-invalid", "true");
+    await expect(editor(page)).toContainText("요청 종료일은 현재 프로젝트 캘린더의 근무일이어야 합니다.");
+    await expect(editor(page).getByLabel("기간 (근무일)", { exact: true })).toHaveValue("");
+    await save(page).click();
+    expect(fixture.patches).toHaveLength(0);
+    await expect(editor(page)).toContainText("일정 입력을 확인해 주세요.");
+
+    await requestedEnd.fill("2026-09-22");
+    await expect(requestedEnd).not.toHaveAttribute("aria-invalid", "true");
+    await expect(editor(page).getByLabel("기간 (근무일)", { exact: true })).toHaveValue("2");
+    await save(page).click();
+    await expect(editor(page)).toHaveCount(0);
+    expect(fixture.patches[0].postDataJSON()).toEqual({ duration: 2 });
   });
 
   for (const failure of [422, 500, "network"] as const) {
