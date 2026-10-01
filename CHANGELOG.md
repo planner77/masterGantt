@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.63.0] - 2026-10-01
+
+### Added
+
+- Issue #373: 하위 작업이 있는 Summary의 Grid/Chart Context Menu에 `최상위로 열기`를 추가하고, 선택 Summary를 가상 root로 삼아 해당 Summary와 모든 자손만 새 브라우저 탭에서 표시하는 WBS scoped view를 지원한다.
+- scoped view는 `?rootTask=<taskId>` deep link와 기존 SVAR `filter-tasks` 경로를 사용하며, 전체 Project canonical snapshot·Dependency·Resource/Logistics 연결·edit session·Origin·If-Match·revision 계약을 유지한다.
+- scoped tab의 편집으로 revision이 증가하면 동일 origin의 다른 Project tab에 revision 신호를 전달해 최신 canonical snapshot을 재조회하되 기존 Gantt instance와 사용자 view state를 불필요하게 remount하지 않는다.
+- 삭제되거나 Summary가 아니게 된 root는 전체 Project로 조용히 fallback하지 않고 scope 오류와 복귀 경로를 표시하며, 자식이 모두 제거된 빈 Summary는 유효한 scoped root로 유지한다.
+- Application version을 `0.61.0`에서 `0.63.0`으로 증가한다. 동시 진행 중인 Issue #370 PR이 `0.62.0`을 사용하므로 이 Issue는 충돌 방지를 위해 다음 minor version을 사용한다.
+
 ## [0.61.0] - 2026-10-01
 
 ### Added
