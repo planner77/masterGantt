@@ -1,5 +1,15 @@
 # Issue #4 / #22 / #31 / #72 — 작업 메뉴와 Grid / Chart 작업 명령
 
+## Issue #378 — Context Menu Copy/Paste 관계 경계
+
+- 관계 endpoint인 Task도 Context Menu와 keyboard `Copy`는 허용한다. Copy는 원본 Task/Link를 변경하지 않는다.
+- copy clipboard가 유효하면 linked Task를 anchor로 한 `Paste > Above/Below`를 허용한다.
+- `Paste > As child`는 anchor가 linked leaf여서 Summary로 변환되어야 하는 경우 기존 관계 endpoint 보호 때문에 비활성/거부한다.
+- Cut clipboard는 기존 linked hierarchy guard를 유지한다.
+- Copy 성공 시 서버 canonical snapshot의 새 Task/Link를 같은 Gantt instance에 동기화하며 page reload/remount로 처리하지 않는다.
+- relation line과 Task Editor 관계 탭은 새 Link ID와 새 endpoint를 canonical snapshot에서 읽는다.
+
+
 ## Issue #345 미산정 Summary 계약
 
 빈 Summary 생성은 일정 도구 모음과 Context Add의 `요약 작업 추가`에서 이름·위치만 전송한다. 날짜 입력이나 임시 Task 삭제를 요구하지 않는다. 이름 수정은 기존 Grid inline 편집이며 Summary의 일정 필드 직접 편집 권한은 확대하지 않는다. Summary 정보는 readonly 파생 값이며 시작·종료·기간·진척 미산정 값은 `—`로 표시하고 진척 slider의 가짜 0%를 표시하지 않는다.
@@ -80,7 +90,7 @@ PR #16의 초기 시간축 범위 확대 및 canonical sync 종료 시점 입력
 
 ## Issue #72 계층 메뉴 계약
 
-편집 권한이 있고 다른 mutation이 진행 중이지 않으면 메뉴는 SVAR Willow의 기본 작업 흐름에 맞춰 **Add → Convert to → Edit → Cut/Copy/Paste → Move → Indent/Outdent → Delete** 순서를 제공한다. **Edit은 관계가 연결된 Task도 허용**한다. Add·Convert·Cut/Copy/Paste·Move·Indent/Outdent·Delete 등 구조 명령은 연결 endpoint에서 기존 guard로 비활성화한다. Readonly에서는 정보 조회(Edit)만 실제 동작하며 mutation 항목은 비활성화한다.
+편집 권한이 있고 다른 mutation이 진행 중이지 않으면 메뉴는 SVAR Willow의 기본 작업 흐름에 맞춰 **Add → Convert to → Edit → Cut/Copy/Paste → Move → Indent/Outdent → Delete** 순서를 제공한다. **Edit과 Copy는 관계가 연결된 Task도 허용**한다. Copy clipboard의 Paste Above/Below도 linked anchor에서 허용하되, Copy 집합 내부 Dependency만 새 endpoint로 복제한다(#378). Add·Convert·Cut·Move·Indent/Outdent·Delete 등 관계 의미를 바꿀 수 있는 구조 명령은 연결 endpoint에서 기존 guard로 비활성화하고, Paste As child가 linked leaf anchor의 Summary 전환을 요구하는 경우도 차단한다. Readonly에서는 정보 조회(Edit)만 실제 동작하며 mutation 항목은 비활성화한다.
 
 Cut은 선택 Task를 즉시 삭제하거나 이동하지 않는다. Copy와 함께 현재 Project revision을 포함한 client clipboard만 만든다. Paste는 `POST /api/projects/{publicId}/task-commands`를 호출하며 Cut은 `reparent`, Copy는 `copy` 명령으로 변환한다. 성공 응답의 canonical snapshot만 동일 Gantt instance에 동기화하고 revision 변경 시 기존 clipboard는 폐기한다. Canonical snapshot의 parent/sibling 구조 변경은 SVAR의 공개 `move-task` action으로 반영하고, 일반 `update-task`에 parent를 직접 덮어쓰지 않는다. 이 규칙은 hierarchy 변경 뒤 recovery remount 없이 동일 Gantt instance를 유지하기 위한 회귀 계약이다. Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D는 input/textarea/dialog/contenteditable 밖의 실제 Task target에서만 동작한다.
 

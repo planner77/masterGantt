@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { openDatabase } from "../../../src/server/db/core";
+import { LinkService } from "../../../src/server/projects/link-service-core";
 import { ProjectService } from "../../../src/server/projects/project-service-core";
 import {
   TaskHierarchyNoopError,
@@ -31,6 +32,7 @@ async function fixture() {
     hashPassword: async () => hash(),
   });
   const hierarchy = new TaskHierarchyService(database, { clock: () => now });
+  const links = new LinkService(database, () => now);
   const created = await projects.create({
     name: "Hierarchy command",
     description: "",
@@ -38,7 +40,7 @@ async function fixture() {
   });
   const result = projects.authorize(created.response.data.project.publicId, created.rawSessionToken);
   if (result.kind !== "authorized") throw new Error("expected authorization");
-  return { database, projects, hierarchy, authorization: result.authorization };
+  return { database, projects, hierarchy, links, authorization: result.authorization };
 }
 
 function input(externalId: string) {
@@ -130,6 +132,99 @@ describe("TaskHierarchyService", () => {
       const copiedRoot = roots.find((task) => task.externalId !== "A" && task.externalId !== "B");
       expect(copiedRoot).toBeDefined();
       expect(copied.data.tasks.filter((task) => task.parentExternalId === copiedRoot!.externalId)).toHaveLength(1);
+    } finally {
+      value.database.close();
+    }
+  });
+
+  it("copies only internal dependency links with new endpoints and recalculates copied schedules", async () => {
+    const value = await fixture();
+    try {
+      const root = value.projects.createTask(value.authorization, 1, input("A")).data.tasks[0];
+      const firstChildResponse = value.projects.createTask(value.authorization, 2, {
+        ...input("A1"),
+        parentTaskId: root.taskId,
+        convertParentToSummary: true,
+      });
+      const firstChild = firstChildResponse.data.tasks.find((task) => task.externalId === "A1")!;
+      const secondChildResponse = value.projects.createTask(value.authorization, 3, {
+        ...input("A2"),
+        parentTaskId: root.taskId,
+      });
+      const secondChild = secondChildResponse.data.tasks.find((task) => task.externalId === "A2")!;
+      const externalBeforeResponse = value.projects.createTask(value.authorization, 4, input("X"));
+      const externalBefore = externalBeforeResponse.data.tasks.find((task) => task.externalId === "X")!;
+      const externalAfterResponse = value.projects.createTask(value.authorization, 5, input("Y"));
+      const externalAfter = externalAfterResponse.data.tasks.find((task) => task.externalId === "Y")!;
+      const targetResponse = value.projects.createTask(value.authorization, 6, input("B"));
+      const target = targetResponse.data.tasks.find((task) => task.externalId === "B")!;
+
+      const incoming = value.links.create(value.authorization, 7, {
+        predecessorExternalId: externalBefore.externalId,
+        successorExternalId: firstChild.externalId,
+        type: "FS",
+        lag: 0,
+      });
+      const internal = value.links.create(value.authorization, incoming.data.project.revision, {
+        predecessorExternalId: firstChild.externalId,
+        successorExternalId: secondChild.externalId,
+        type: "SS",
+        lag: 2,
+      });
+      const outgoing = value.links.create(value.authorization, internal.data.project.revision, {
+        predecessorExternalId: secondChild.externalId,
+        successorExternalId: externalAfter.externalId,
+        type: "FS",
+        lag: 0,
+      });
+
+      const sourceAfterLinks = outgoing.data.tasks.find((task) => task.taskId === firstChild.taskId)!;
+      expect(sourceAfterLinks.start).not.toBe(sourceAfterLinks.requestedStart);
+
+      const copied = value.hierarchy.execute(value.authorization, outgoing.data.project.revision, {
+        kind: "copy",
+        taskId: root.taskId,
+        anchorTaskId: target.taskId,
+        placement: "after",
+      });
+
+      expect(copied.data.project.revision).toBe(outgoing.data.project.revision + 1);
+      expect(copied.data.links).toHaveLength(4);
+
+      const copiedRoot = copied.data.tasks.find((task) =>
+        task.name === "A" && task.taskId !== root.taskId && task.parentExternalId === null
+      );
+      expect(copiedRoot).toBeDefined();
+      const copiedChildren = copied.data.tasks.filter((task) => task.parentExternalId === copiedRoot!.externalId);
+      const copiedFirst = copiedChildren.find((task) => task.name === "A1")!;
+      const copiedSecond = copiedChildren.find((task) => task.name === "A2")!;
+      expect(copiedFirst).toBeDefined();
+      expect(copiedSecond).toBeDefined();
+
+      const sourceInternalLink = outgoing.data.links.find((link) =>
+        link.predecessorExternalId === firstChild.externalId &&
+        link.successorExternalId === secondChild.externalId
+      )!;
+      const copiedInternalLink = copied.data.links.find((link) =>
+        link.predecessorExternalId === copiedFirst.externalId &&
+        link.successorExternalId === copiedSecond.externalId
+      )!;
+      expect(copiedInternalLink).toMatchObject({ type: "SS", lag: 2 });
+      expect(copiedInternalLink.id).not.toBe(sourceInternalLink.id);
+      expect(copied.data.links.some((link) =>
+        link.predecessorExternalId === externalBefore.externalId &&
+        link.successorExternalId === copiedFirst.externalId
+      )).toBe(false);
+      expect(copied.data.links.some((link) =>
+        link.predecessorExternalId === copiedSecond.externalId &&
+        link.successorExternalId === externalAfter.externalId
+      )).toBe(false);
+
+      expect(copiedFirst.requestedStart).toBe(firstChild.requestedStart);
+      expect(copiedFirst.start).toBe(copiedFirst.requestedStart);
+      expect(copiedSecond.start).toBe("2026-09-23");
+      expect(value.database.prepare("SELECT count(*) FROM links").pluck().get()).toBe(4);
+      expect(value.database.prepare("SELECT revision FROM projects").pluck().get()).toBe(copied.data.project.revision);
     } finally {
       value.database.close();
     }

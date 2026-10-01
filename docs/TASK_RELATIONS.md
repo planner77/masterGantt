@@ -1,5 +1,19 @@
 # Issue #34 — Task Editor 작업 관계 표시
 
+## Issue #378 — Copy 집합 내부 관계 복제
+
+Task/Summary subtree Copy에서는 관계의 양쪽 작업이 모두 Copy 집합에 포함된 경우에만 관계를 복제한다.
+
+| 원본 선행 작업 | 원본 후행 작업 | 복사본 처리 |
+| --- | --- | --- |
+| Copy 집합 내부 | Copy 집합 내부 | 새 Link ID와 새 Task endpoint로 복제 |
+| 외부 | 내부 | 복제하지 않음 |
+| 내부 | 외부 | 복제하지 않음 |
+| 외부 | 외부 | Copy와 무관 |
+
+복제된 관계는 원본 Link의 type과 lag/lead를 보존하지만 원본 Link ID를 공유하지 않는다. 원본 관계는 수정·삭제되지 않는다. linked Task의 Copy 허용은 Cut/reparent/Delete/Convert 등 다른 관계 포함 구조 명령의 허용을 의미하지 않는다.
+
+
 ## 목적
 
 Grid 또는 Chart에서 여는 기존 Task Editor에 현재 작업의 **선행 작업**과 **후행 작업** 관계를 조회 전용으로 표시한다. 관계 추가·수정·삭제는 이번 범위에 포함하지 않으며, 현재 도메인 제약인 FS(Finish-to-Start), lag 0을 변경하지 않는다.

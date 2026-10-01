@@ -1,5 +1,15 @@
 # Requirements baseline
 
+## Issue #378 — Subtree Copy 내부 Dependency 복제
+
+- Task 또는 Summary subtree Copy 집합 안에 predecessor와 successor가 모두 포함된 Dependency Link는 새 Task ID에 맞춰 복제한다.
+- 복사 집합 경계를 넘는 외부→내부, 내부→외부 Link는 기본적으로 복제하지 않아 원본 주변 일정과 복사본을 암묵적으로 결합하지 않는다.
+- 복제 Link는 새 ID를 사용하고 type(FS/SS/FF/SF)과 signed lag/lead를 보존한다.
+- copied leaf는 requestedStart/duration/scheduleMode를 보존하고 Project Calendar + 기존 Dependency engine으로 effective schedule을 다시 계산한다. 원본 effective date를 requestedStart로 사용하지 않는다.
+- Task/Link 생성, dependency 재계산, Summary 파생, revision +1은 하나의 서버 transaction이다. 실패 시 부분 Task/Link를 남기지 않는다.
+- linked Task의 Copy 및 copy-clipboard의 before/after Paste는 허용하되 Cut-Paste/reparent/Indent/Outdent/Delete/Convert와 linked leaf anchor의 child Paste 보호는 유지한다. Resource assignment copy 정책은 별도 범위다.
+
+
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
 
@@ -128,7 +138,7 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - **R72-01**: Edit 권한 Task의 Grid/Chart context menu는 SVAR Willow 기본 작업 흐름의 Add, Convert to, Edit, Cut, Copy, Paste, Move up/down, Indent, Outdent, Delete를 표현한다. Readonly에서는 mutation이 동작하지 않는다.
 - **R72-02**: parent/sibling order/type/subtree를 바꾸는 명령은 server-authoritative atomic mutation이며 성공당 Project revision을 정확히 1 증가시킨다. Client-only hierarchy 상태를 canonical로 간주하지 않는다.
 - **R72-03**: Cut은 Paste 전까지 저장 상태를 바꾸지 않는다. Copy는 subtree identity를 새로 발급하고 원본을 변경하지 않는다. stale clipboard는 Project revision 변경 시 폐기한다.
-- **R72-04**: cycle, Project 외 Task, Milestone parent, **선택 Task 또는 mutation 영향 subtree가 Link endpoint를 포함하는 계층 mutation**은 fail-closed한다. 빈 Summary 발생만으로 거부하는 규칙은 #345로 대체한다. Project의 unrelated Link만으로 다른 Task의 Context Menu/Editor mutation을 전역 잠그지 않는다 (#104). Assignment가 있는 subtree Copy는 Assignment 복제 정책이 별도 확정될 때까지 명시적 오류로 거부한다.
+- **R72-04**: cycle, Project 외 Task, Milestone parent 및 **관계 의미를 변경할 수 있는 Move/Indent/Outdent/Reparent/Convert/Delete 계층 mutation**은 linked endpoint에 대해 fail-closed한다. **Copy는 #378에 따라 예외적으로 허용하며 Copy 집합 내부 Dependency만 새 Task/Link ID로 복제하고 경계를 넘는 외부 Link는 복제하지 않는다.** Copy의 child placement가 linked leaf anchor의 Summary 전환을 요구하면 기존 fail-closed를 유지한다. 빈 Summary 발생만으로 거부하는 규칙은 #345로 대체한다. Project의 unrelated Link만으로 다른 Task의 Context Menu/Editor mutation을 전역 잠그지 않는다 (#104). Assignment가 있는 subtree Copy는 Assignment 복제 정책이 별도 확정될 때까지 명시적 오류로 거부한다.
 
 ## Issue #76 Project Workspace 요구사항
 

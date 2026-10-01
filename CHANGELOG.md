@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.62.0] - 2026-10-01
+
+### Added
+
+- Issue #378: Task/Summary subtree Copy 시 복사 집합 내부에서 predecessor와 successor가 모두 포함된 Dependency Link만 새 Task ID로 재매핑해 함께 복제한다.
+- 복제 Link는 새 public ID를 사용하고 FS/SS/FF/SF 및 signed lag/lead를 보존하며, 외부→내부·내부→외부 경계 Link는 기본적으로 복제하지 않는다.
+- copied leaf는 원본 requestedStart/duration/scheduleMode를 보존한 뒤 현재 Project Calendar와 전체 Dependency engine으로 effective schedule을 재계산하고 Summary 파생값을 같은 transaction에서 갱신한다.
+- linked Task의 Copy와 copy-clipboard Paste(before/after)는 허용하되 Cut/reparent/Indent/Outdent/Delete/Convert와 linked leaf를 Summary로 바꾸는 child Paste 보호는 유지한다.
+- Unit/SQLite service/Chromium 회귀 검증을 보강하고 Application version을 `0.61.0`에서 `0.62.0`으로 증가한다.
+
 ## [0.61.0] - 2026-10-01
 
 ### Added

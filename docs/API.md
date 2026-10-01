@@ -1,5 +1,20 @@
 # Backend API
 
+## Issue #378 — `task-commands` Copy의 Dependency 계약
+
+`POST /api/projects/{publicId}/task-commands`의 `kind: "copy"`는 source Task 또는 source subtree를 서버 canonical hierarchy에서 계산한다. 클라이언트가 Link 목록이나 신규 ID를 제출하지 않는다.
+
+- `copySet = source + descendants`
+- `internalLinks = links where predecessor ∈ copySet AND successor ∈ copySet`
+- internal Link만 새 Task endpoint와 새 Link public ID로 생성한다.
+- external→internal / internal→external Link는 생성하지 않는다.
+- type과 signed lag/lead를 보존한다.
+- source subtree에 Resource assignment가 있으면 기존 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED` fail-closed 계약을 유지한다.
+- `placement: "child"`가 linked leaf anchor를 Summary endpoint로 전환해야 하는 경우 기존 `UNSUPPORTED_SCHEDULE_STRUCTURE` 보호를 유지한다. linked anchor의 before/after 위치 사용은 허용한다.
+- Copy 전체는 edit session, Origin, strong If-Match, Project 격리와 단일 SQLite transaction을 사용하고 성공 시 Project revision을 정확히 1 증가시킨다.
+- 성공 응답은 기존 canonical `tasks[]`와 `links[]` 전체를 반환한다. 복제된 Link는 `links[]`에서 새 ID/new endpoint로 확인하며 별도 client-generated Link metadata는 사용하지 않는다.
+
+
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
 
@@ -804,7 +819,7 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 
 보호된 Project mutation이다. exact Origin, 유효한 edit session과 strong `If-Match: "<revision>"`가 필요하며 성공은 `200`과 새 ETag/canonical Task snapshot을 반환한다. 한 HTTP 명령은 하나의 SQLite immediate transaction에서 parent/order/type/subtree와 파생 Summary를 저장하고 Project revision을 정확히 1 증가시킨다.
 
-지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste와 Grid Drag & Drop의 실제 저장 동작이며 같은 parent 안의 재정렬도 지원한다. `copy`는 source subtree에 새 taskId/externalId를 발급한다. 선택 Task 또는 계층 mutation의 영향 subtree가 Dependency endpoint를 포함하면 기존 fail-closed 정책대로 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`를 반환한다. 프로젝트의 unrelated Link만으로는 다른 Task의 계층 명령을 거부하지 않으며 성공 canonical snapshot에 해당 Link를 보존한다.
+지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste와 Grid Drag & Drop의 실제 저장 동작이며 같은 parent 안의 재정렬도 지원한다. `copy`는 source subtree에 새 taskId/externalId를 발급하고, **복사 집합 내부에서 양쪽 endpoint가 모두 포함된 Dependency Link만 새 Task endpoint와 새 Link ID로 함께 복제한다(#378)**. 외부→내부/내부→외부 Link는 복제하지 않는다. Move/Indent/Outdent/Reparent/Convert/Delete 등 관계 의미를 바꾸거나 linked endpoint의 유형을 바꿀 수 있는 구조 mutation은 기존 fail-closed 정책을 유지하며, Copy의 `placement: "child"`가 linked leaf anchor를 Summary로 전환해야 하는 경우도 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다. 프로젝트의 unrelated Link만으로는 다른 Task의 계층 명령을 거부하지 않으며 성공 canonical snapshot에 해당 Link를 보존한다.
 
 Issue #300의 Grid 이동은 기존 `{kind:"reparent", taskId, anchorTaskId, placement:"before"|"after"|"child"}` 입력을 사용한다. Context Menu Up/Down은 기존 `{kind:"move",taskId,direction:"up"|"down"}`이다. 두 경로는 같은 hierarchy service와 sibling 순서 불변조건을 사용한다. Source/target은 SVAR 표시 ID가 아닌 canonical Task public ID로 전달한다. 서버는 이동한 family의 `sort_order`를 `0..N-1`로 정규화하고 parent 변경 시 이전/새 family를 함께 저장한다.
 

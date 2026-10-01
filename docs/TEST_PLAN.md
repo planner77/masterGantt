@@ -1,5 +1,15 @@
 # Test Plan
 
+## Issue #378 Subtree Copy 내부 Dependency 회귀
+
+- Unit(UI capability): linked Task에서도 Copy를 허용하고 copy clipboard의 linked anchor before/after Paste를 허용한다. 같은 anchor의 Add/Move/Indent 및 cut clipboard Paste는 기존 fail-closed를 유지한다.
+- SQLite service: Summary subtree의 internal Dependency만 새 Task endpoint로 복제하고 external incoming/outgoing Link는 제외한다. Link ID uniqueness, FS/SS/FF/SF·lag/lead 보존, parent/sibling shape, revision +1 및 원본 불변을 검증한다.
+- Scheduling: external incoming 제약이 제거된 copied Auto leaf가 requestedStart 기준으로 앞당겨지고 internal Dependency lower bound는 계속 적용되는지 검증한다. Summary 파생과 Baseline 불변을 함께 본다.
+- Chromium E2E: linked Task의 Copy 메뉴 활성화, linked target의 Paste > Below 성공, 원본 Link 유지와 단일-task Copy의 외부 Link 미복제를 실제 API persistence로 확인한다. 기존 #104 unrelated-task capability 회귀도 함께 유지한다.
+- Resource assignment가 있는 subtree의 Copy 거부, Cut/reparent/Indent/Outdent/Delete/Convert guard, child Paste의 linked leaf anchor 보호는 회귀 범위다.
+- 공식 전체 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다. PR CI 시작 확인과 최종 PASS는 구분한다.
+
+
 ## Issue #368 Task Editor 요청 종료일·기간 양방향 계산
 
 - Unit: Project Effective Calendar를 그대로 사용하여 duration→requestedEnd, requestedEnd→duration의 양 끝 포함 근무일 계산을 검증한다. 주말, NON_WORKING 공휴일, WORKING 주말 예외와 Auto 비근무 requestedStart의 다음 근무일 정규화, Manual 비근무 시작 오류, 잘못된/역순/비근무 요청 종료일 및 1~10,000 duration 경계를 포함한다.

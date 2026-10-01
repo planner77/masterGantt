@@ -10,7 +10,7 @@ import type {
   TaskHierarchyPlacement,
   TaskMutationResponse,
 } from "../../contracts/projects";
-import { recalculateHierarchy, scheduleLeaf } from "../../domain/scheduling";
+import { recalculateDependencies, recalculateHierarchy, scheduleLeaf, SchedulingError } from "../../domain/scheduling";
 import { EditSessionRepository, ProjectRepository } from "../repositories/project-repository-core";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
 import { LogisticsService } from "../logistics/logistics-service-core";
@@ -27,6 +27,7 @@ import {
   UnsupportedScheduleStructureError,
   type AuthorizedEditSession,
 } from "./project-service-core";
+import { hasTaskSchedule } from "./task-schedule-guard";
 
 const MAX_PROJECT_TASKS = 5_000;
 const ID_ATTEMPTS = 8;
@@ -233,6 +234,60 @@ export class TaskHierarchyService {
     }
   }
 
+  private applyDependencySchedules(
+    projectId: number,
+    calendar: ReturnType<typeof resolveProjectWorkingCalendar>,
+    now: string,
+    changed: Set<string>,
+  ): void {
+    const records = this.schedules.listTasks(projectId);
+    const base = records.map((task) => {
+      if (task.type === "summary") return task;
+      if (task.requestedStart === null) throw new PersistedScheduleInvalidError();
+      const scheduled = scheduleLeaf({
+        type: task.type,
+        requestedStart: task.requestedStart,
+        duration: task.duration,
+        scheduleMode: task.scheduleMode,
+      }, calendar);
+      return { ...task, startDate: scheduled.start, endDate: scheduled.end };
+    });
+
+    let recalculated: ReturnType<typeof recalculateDependencies<ProjectTaskDto>>;
+    try {
+      recalculated = recalculateDependencies(
+        taskDtos(base),
+        linkDtos(this.schedules.listLinks(projectId), base),
+        calendar,
+      );
+    } catch (error) {
+      if (error instanceof SchedulingError) throw error;
+      throw new PersistedScheduleInvalidError();
+    }
+    if (recalculated.manualConflicts.length > 0) throw new PersistedScheduleInvalidError();
+
+    const currentByPublicId = new Map(records.map((task) => [task.publicId, task]));
+    for (const task of recalculated.tasks) {
+      if (task.type === "summary") continue;
+      if (!hasTaskSchedule(task)) throw new PersistedScheduleInvalidError();
+      const current = currentByPublicId.get(task.taskId);
+      if (!current) throw new PersistedScheduleInvalidError();
+      if (current.startDate === task.start && current.endDate === task.end) continue;
+      if (!this.schedules.updateTask(projectId, task.taskId, {
+        name: current.name,
+        type: current.type,
+        scheduleMode: current.scheduleMode,
+        requestedStart: current.requestedStart,
+        startDate: task.start,
+        endDate: task.end,
+        duration: current.duration,
+        progress: current.progress,
+        updatedAt: now,
+      })) throw new PersistedScheduleInvalidError();
+      changed.add(current.externalId);
+    }
+  }
+
   private applySummaryDerivations(
     projectId: number,
     calendar: ReturnType<typeof resolveProjectWorkingCalendar>,
@@ -276,6 +331,14 @@ export class TaskHierarchyService {
     }
   }
 
+
+  private makeLinkPublicId(): string {
+    for (let attempt = 0; attempt < ID_ATTEMPTS; attempt += 1) {
+      const publicId = randomUUID();
+      if (!this.schedules.linkPublicIdExists(publicId)) return publicId;
+    }
+    throw new Error("Unique link identifier could not be generated.");
+  }
 
   private makeIds(projectId: number): { publicId: string; externalId: string } {
     for (let attempt = 0; attempt < ID_ATTEMPTS; attempt += 1) {
@@ -460,13 +523,15 @@ export class TaskHierarchyService {
         const anchor = byPublicId.get(command.anchorTaskId);
         if (!source || !anchor) throw new TaskNotFoundError();
         const branch = [source, ...descendants(source.id, initialTasks)];
-        assertTasksNotLinked(links, [...branch.map((entry) => entry.id), anchor.id]);
         if (initialTasks.length + branch.length > MAX_PROJECT_TASKS) throw new TaskLimitExceededError();
-        const branchIds = new Set(branch.map((task) => task.publicId));
-        if (this.resources.listAssignments(project.id).some((assignment) => branchIds.has(assignment.taskPublicId))) {
+        const branchPublicIds = new Set(branch.map((task) => task.publicId));
+        if (this.resources.listAssignments(project.id).some((assignment) => branchPublicIds.has(assignment.taskPublicId))) {
           throw new TaskCopyAssignmentUnsupportedError();
         }
-        if (command.placement === "child") this.assertParentCanContain(project.id, anchor, initialTasks, nowText, changed);
+        if (command.placement === "child") {
+          assertTasksNotLinked(links, [anchor.id]);
+          this.assertParentCanContain(project.id, anchor, initialTasks, nowText, changed);
+        }
         const refreshed = this.schedules.listTasks(project.id);
         const refreshedAnchor = refreshed.find((candidate) => candidate.publicId === anchor.publicId);
         if (!refreshedAnchor) throw new TaskNotFoundError();
@@ -508,8 +573,27 @@ export class TaskHierarchyService {
           .filter((candidate) => candidate.id !== copiedRoot.id);
         family.splice(Math.min(target.index, family.length), 0, copiedRoot);
         this.rewriteFamily(project.id, target.parentId, family, nowText);
+
+        const branchDbIds = new Set(branch.map((task) => task.id));
+        for (const link of links) {
+          if (!branchDbIds.has(link.predecessorTaskId) || !branchDbIds.has(link.successorTaskId)) continue;
+          const predecessor = newBySource.get(link.predecessorTaskId);
+          const successor = newBySource.get(link.successorTaskId);
+          if (!predecessor || !successor) throw new PersistedScheduleInvalidError();
+          this.schedules.insertLink({
+            publicId: this.makeLinkPublicId(),
+            projectId: project.id,
+            predecessorTaskId: predecessor.id,
+            successorTaskId: successor.id,
+            type: link.type,
+            lag: link.lag,
+            createdAt: nowText,
+            updatedAt: nowText,
+          });
+        }
       }
 
+      if (command.kind === "copy") this.applyDependencySchedules(project.id, calendar, nowText, changed);
       this.applySummaryDerivations(project.id, calendar, nowText, changed);
       const updatedProject = this.projects.advanceRevision(project.id, expectedRevision, nowText);
       if (!updatedProject) throw new RevisionMismatchError();
