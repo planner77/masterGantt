@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.66.0] - 2026-10-02
+
+### Added
+
+- Issue #329: Resource Catalog 관리자 화면에서 어떤 Project에도 참조되지 않은 Resource와 Resource Group을 명시적 확인 후 영구 삭제할 수 있다.
+- Resource 사용 여부는 Task assignment, 설비 owner/contributor, 시스템 PI/developer, Resource Calendar를 통합하고 Group은 Task assignment와 Resource Group Calendar를 통합해 distinct Project 수로 판정한다.
+- `DELETE /api/resources/{resourceId}`와 `DELETE /api/resource-groups/{groupId}`를 추가하고 관리자 session, exact Origin, strong catalog `If-Match`, transaction 내 usage 재검증 및 catalog revision +1 계약을 적용한다.
+
+### Changed
+
+- Resource Catalog 응답에 `projectUsageCount`와 `deletable` UX 힌트를 추가하고, 사용 중 항목은 삭제 불가 사유를 표시한다. 실제 DELETE는 UI 상태를 신뢰하지 않고 서버에서 다시 fail-closed 검증한다.
+- 안전한 삭제 시 Resource/Group membership만 함께 정리하며 반대편 Catalog entity는 보존한다. 기존 FK `RESTRICT/NO ACTION`은 최종 무결성 방어선으로 유지한다.
+- Application version을 `0.65.1`에서 `0.66.0`으로 증가한다.
+
+
 ## [0.65.1] - 2026-10-02
 
 ### Fixed
