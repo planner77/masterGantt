@@ -7,6 +7,7 @@ import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectSaveAsTemplateButton } from "@/features/templates/project-save-as-template-button";
 import { ProjectExportButton } from "@/features/projects/project-excel-export-button";
+import { ProjectImportButton } from "@/features/projects/project-import-button";
 import { ProjectSettingsDialog } from "@/features/projects/project-settings-dialog";
 import { EMPTY_TASK_FILTER, activeTaskFilterCount, applyTaskQuickView, filterTasksWithAncestors, getTaskQuickView, type TaskFilterState } from "@/features/projects/project-search-filter";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
@@ -353,6 +354,23 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
 
   useEffect(() => {
     const key = projectRevisionStorageKey(publicId);
+
+    // A revision may have been announced before this tab registered its
+    // storage listener (for example while the initial canonical GET is still
+    // loading). Seed the pending revision from durable same-origin storage so
+    // the tab can converge after it becomes ready even when the event itself
+    // was missed.
+    try {
+      const storedRevision = Number(window.localStorage.getItem(key) ?? "0");
+      if (Number.isFinite(storedRevision)) {
+        crossTabPendingRevisionReference.current = Math.max(
+          crossTabPendingRevisionReference.current,
+          storedRevision,
+        );
+      }
+    } catch {
+      // Cross-tab freshness remains best-effort; canonical GET is authoritative.
+    }
 
     const refreshToPendingRevision = async () => {
       if (crossTabRefreshInFlightReference.current || state.status !== "ready") return;
@@ -980,6 +998,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         >
           <summary aria-label="프로젝트 작업 더보기">더보기</summary>
           <div className="project-action-menu-panel">
+            <ProjectImportButton publicId={publicId} expectedRevision={project.revision} disabled={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null} onImportSuccess={() => beginRefresh(false)} />
             <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} onAutoOpen={() => setActionMenuOpen(true)} />
             <ProjectSaveAsTemplateButton publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} />
           </div>
