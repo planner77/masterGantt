@@ -27,6 +27,7 @@ import {
   UnsupportedScheduleStructureError,
   type AuthorizedEditSession,
 } from "./project-service-core";
+import { parseTaskHierarchyCommand } from "./task-hierarchy-contract";
 import { hasTaskSchedule } from "./task-schedule-guard";
 
 const MAX_PROJECT_TASKS = 5_000;
@@ -137,6 +138,37 @@ function descendants(rootId: number, tasks: readonly TaskRecord[]): TaskRecord[]
   };
   visit(rootId);
   return result;
+}
+
+/** Canonical preorder forest: a selected ancestor includes each descendant only once. */
+function copyForest(tasks: readonly TaskRecord[], selectedIds: readonly string[]) {
+  const selected = new Set(selectedIds);
+  const byPublicId = new Map(tasks.map((task) => [task.publicId, task]));
+  if (selectedIds.some((id) => !byPublicId.has(id))) throw new TaskNotFoundError();
+  const children = new Map<number | null, TaskRecord[]>();
+  for (const task of tasks) {
+    const family = children.get(task.parentId) ?? [];
+    family.push(task);
+    children.set(task.parentId, family);
+  }
+  for (const family of children.values()) {
+    family.sort((left, right) => left.sortOrder - right.sortOrder || left.id - right.id);
+  }
+  const roots: TaskRecord[] = [];
+  const branch: TaskRecord[] = [];
+  const pending = [...(children.get(null) ?? [])].reverse()
+    .map((task) => ({ task, included: false }));
+  while (pending.length) {
+    const { task, included } = pending.pop()!;
+    const isRoot = !included && selected.has(task.publicId);
+    if (isRoot) roots.push(task);
+    const inCopySet = included || isRoot;
+    if (inCopySet) branch.push(task);
+    for (const child of [...(children.get(task.id) ?? [])].reverse()) {
+      pending.push({ task: child, included: inCopySet });
+    }
+  }
+  return { roots, branch };
 }
 
 function wouldCreateCycle(task: TaskRecord, parentId: number | null, tasks: readonly TaskRecord[]): boolean {
@@ -360,6 +392,11 @@ export class TaskHierarchyService {
     expectedRevision: number,
     command: TaskHierarchyCommandRequest,
   ): TaskMutationResponse {
+    // Direct service callers share HTTP validation and legacy source normalization.
+    const parsedCopy = command.kind === "copy" ? parseTaskHierarchyCommand(command) : null;
+    if (parsedCopy && !parsedCopy.success) throw new InvalidTaskInputError();
+    const copyIds = parsedCopy?.success && parsedCopy.data.kind === "copy"
+      ? parsedCopy.data.taskIds : undefined;
     const mutate = this.database.transaction(() => {
       const now = this.clock();
       const nowText = now.toISOString();
@@ -519,10 +556,11 @@ export class TaskHierarchyService {
         }
         changed.add(task.externalId);
       } else if (command.kind === "copy") {
-        const source = byPublicId.get(command.taskId);
         const anchor = byPublicId.get(command.anchorTaskId);
-        if (!source || !anchor) throw new TaskNotFoundError();
-        const branch = [source, ...descendants(source.id, initialTasks)];
+        if (!anchor) throw new TaskNotFoundError();
+        if (!copyIds) throw new InvalidTaskInputError();
+        const { roots, branch } = copyForest(initialTasks, copyIds);
+        const rootIds = new Set(roots.map((task) => task.id));
         if (initialTasks.length + branch.length > MAX_PROJECT_TASKS) throw new TaskLimitExceededError();
         const branchPublicIds = new Set(branch.map((task) => task.publicId));
         if (this.resources.listAssignments(project.id).some((assignment) => branchPublicIds.has(assignment.taskPublicId))) {
@@ -539,10 +577,10 @@ export class TaskHierarchyService {
         const newBySource = new Map<number, TaskRecord>();
         for (const original of branch) {
           const ids = this.makeIds(project.id);
-          const parentId = original.id === source.id
+          const parentId = rootIds.has(original.id)
             ? target.parentId
             : original.parentId === null ? null : newBySource.get(original.parentId)?.id;
-          if (original.id !== source.id && parentId === undefined) throw new PersistedScheduleInvalidError();
+          if (!rootIds.has(original.id) && parentId === undefined) throw new PersistedScheduleInvalidError();
           const inserted = this.schedules.insertTask({
             projectId: project.id,
             externalId: ids.externalId,
@@ -558,7 +596,7 @@ export class TaskHierarchyService {
             duration: original.duration,
             progress: original.progress,
             parentId: parentId ?? null,
-            sortOrder: original.id === source.id
+            sortOrder: rootIds.has(original.id)
               ? this.schedules.nextSiblingSortOrder(project.id, target.parentId)
               : original.sortOrder,
             createdAt: nowText,
@@ -567,11 +605,15 @@ export class TaskHierarchyService {
           newBySource.set(original.id, inserted);
           changed.add(inserted.externalId);
         }
-        const copiedRoot = newBySource.get(source.id);
-        if (!copiedRoot) throw new PersistedScheduleInvalidError();
+        const copiedRoots = roots.map((root) => {
+          const copy = newBySource.get(root.id);
+          if (!copy) throw new PersistedScheduleInvalidError();
+          return copy;
+        });
+        const copiedRootIds = new Set(copiedRoots.map((root) => root.id));
         const family = orderedSiblings(this.schedules.listTasks(project.id), target.parentId)
-          .filter((candidate) => candidate.id !== copiedRoot.id);
-        family.splice(Math.min(target.index, family.length), 0, copiedRoot);
+          .filter((candidate) => !copiedRootIds.has(candidate.id));
+        family.splice(Math.min(target.index, family.length), 0, ...copiedRoots);
         this.rewriteFamily(project.id, target.parentId, family, nowText);
 
         const branchDbIds = new Set(branch.map((task) => task.id));

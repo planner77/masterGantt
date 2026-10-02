@@ -901,6 +901,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const quickView = getTaskQuickView(taskFilter.types);
   const visibleTaskIds = filteredTasks.tasks.map((task) => task.taskId);
   const ganttVisibleTaskIds = subtreeScope.kind === "all" && activeFilters === 0 ? null : visibleTaskIds;
+  const ganttMatchingTaskIds = subtreeScope.kind === "all" && activeFilters === 0 ? null : filteredTasks.matchingTaskIds;
+  const ganttSelectionBoundaryKey = JSON.stringify(taskFilter, (_key, value: unknown) =>
+    Array.isArray(value) ? [...value].sort() : value);
   const subtreeScopeInvalid = subtreeScope.kind === "missing" || subtreeScope.kind === "not-summary";
   const normalizedTargetQuery = targetPickerQuery.trim().toLocaleLowerCase();
   const selectableAssignedTargets = assignedTargets.filter((target) =>
@@ -1276,7 +1279,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             const visibleColumnCount = Object.values(current).filter(Boolean).length;
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };
-          })} tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />}
+          })} tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />}
         {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
           editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}

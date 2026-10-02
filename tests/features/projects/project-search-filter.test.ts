@@ -78,6 +78,7 @@ describe("Issue #83 project task filters", () => {
   it("normalizes text and keeps ancestor context outside match count", () => {
     const result = filterTasksWithAncestors(tasks, { ...EMPTY_TASK_FILTER, query: " vietnam " }, assignments);
     expect(result.matchCount).toBe(1);
+    expect(result.matchingTaskIds).toEqual(["child"]);
     expect(result.tasks.map((task) => task.taskId)).toEqual(["summary", "child"]);
   });
 

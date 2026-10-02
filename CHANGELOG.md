@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.64.0] - 2026-10-02
+
+### Added
+
+- Issue #384: Gantt의 checkbox·Ctrl/Cmd·Shift 다중 선택 집합을 Copy/Paste하고 canonical hierarchy 순서로 여러 root 및 전체 자손을 복제한다.
+- 내부 Dependency를 새 Task/Link ID로 재매핑하며 외부 Link 제외, 단일 Cut, 기존 일정 재계산·원자성·권한·revision 계약을 유지한다.
+- 기존 단일 Copy API와 호환되는 taskIds 계약과 선택/필터/clipboard 및 SQLite·Chromium 회귀 검증을 추가한다.
+- Application version을 `0.63.1`에서 `0.64.0`으로 증가한다.
+
 ## [0.63.1] - 2026-10-02
 
 ### Changed

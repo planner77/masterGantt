@@ -1,5 +1,11 @@
 # SVAR Core 활용과 독립 기능 계획
 
+## Issue #384 — 앱 소유 다중 Copy 선택
+
+설치 Core 2.7.3의 공개 select-task 타입은 toggle/range·selected 배열을 제공하지만 getState 문서에는 scalar 설명도 남아 있다. 앱 선택 집합이 Copy 기준이고 공개 Core select-task는 단일 primary만 연동한다. 별도 checkbox cell은 공개 IColumnConfig.cell을 사용하고 비공개 Store/PRO 구현을 사용하지 않는다.
+
+공식 참조: [select-task](https://docs.svar.dev/react/gantt/api/actions/select-task/), [getState](https://docs.svar.dev/react/gantt/api/methods/getstate/), [Context Menu](https://docs.svar.dev/react/gantt/helpers/getmenuoptions/). 확인일 2026-10-02. URL·설치 타입 확인은 실제 demo 조작이나 구현 browser PASS가 아니다. 실행 결과는 TEST_PLAN/PR의 exact head evidence를 따른다.
+
 ## Issue #345 빈 Summary Core 2.7.3 표현
 
 2026-10-01 설치 Core 2.7.3 실제 Chromium probe에서 날짜 없는 native `summary`는 `Summary tasks must have start and end dates if they have no subtasks`로 초기 로드가 실패했다. 날짜 없는 public custom type은 행을 남기지만 유효하지 않은 bar 좌표를 만들었다. 이 두 경로를 채택하지 않는다. 공식 [taskTypes](https://docs.svar.dev/react/gantt/api/properties/tasktypes/) 확장과 앱 adapter로 Renderer 전용 `summary-container`를 사용한다. PRO `unscheduledTasks`/`summary` 옵션과 비공개 `$skip` 조작은 사용하지 않는다.

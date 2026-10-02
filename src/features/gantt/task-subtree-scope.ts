@@ -87,9 +87,11 @@ export function taskHierarchyCommandStaysInSubtree(
         taskIds.has(command.anchorTaskId) &&
         command.taskId !== rootTaskId &&
         !(command.anchorTaskId === rootTaskId && command.placement !== "child");
-    case "copy":
-      return taskIds.has(command.taskId) &&
+    case "copy": {
+      const sources = command.taskIds ?? (command.taskId ? [command.taskId] : []);
+      return sources.length > 0 && sources.every((id) => taskIds.has(id)) &&
         taskIds.has(command.anchorTaskId) &&
         !(command.anchorTaskId === rootTaskId && command.placement !== "child");
+    }
   }
 }

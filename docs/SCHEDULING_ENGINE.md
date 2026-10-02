@@ -1,5 +1,11 @@
 # Scheduling Engine 설계
 
+## Issue #384 — 다중 root Copy와 계산 경계
+
+Hierarchy service가 canonical numeric sibling preorder로 selected root를 정리하고 자손 union을 만든다. identity와 배치만 확장하며 Scheduling Domain algorithm은 #378을 재사용한다. copied leaf requestedStart/duration/mode 보존 → Project Calendar base schedule → 전체 graph와 복제 internal Link 재계산 → Summary 파생 → 원자적 commit 순서다. 여러 root 사이 내부 Dependency도 계산하고 외부 incoming/outgoing 관계는 생성하지 않는다.
+
+빈 Summary는 구조와 미산정 null 일정을 보존한다. Milestone·FS/SS/FF/SF signed lag/lead·Manual conflict 정책은 유지한다. 복사본 Baseline은 기존 Task Copy대로 null 초기화하고 Summary는 파생한다. 실제 일정 재계산이 원본 Baseline을 이동시키지 않는다. Assignment 미지원·Task 상한·persistence 실패는 전체 Task/Link와 revision을 rollback한다. pure Domain은 authorization/clipboard/SVAR 선택을 참조하지 않으며 algorithm·DB schema/migration 변경은 없다.
+
 ## Issue #378 — Dependency가 포함된 subtree Copy 재계산
 
 Subtree Copy는 저장된 effective start/end를 그대로 복제해 고정하지 않는다. 외부 Dependency를 제외한 복사본 그래프가 원본 그래프와 다를 수 있기 때문이다.

@@ -33,6 +33,16 @@ function task(
 }
 
 describe("task context menu model", () => {
+  it("keeps multi Copy and single Cut contracts separate", () => {
+    expect(createPasteCommand({ mode: "copy", taskIds: ["a", "b"], revision: 3 }, "target", "before"))
+      .toEqual({ kind: "copy", taskIds: ["a", "b"], anchorTaskId: "target", placement: "before" });
+    expect(createPasteCommand({ mode: "cut", taskId: "a", revision: 3 }, "target"))
+      .toEqual({ kind: "reparent", taskId: "a", anchorTaskId: "target", placement: "after" });
+    const tasks = [task("a", "A", null, 0), task("b", "B", null, 1), task("c", "C", null, 2)];
+    const clipboard = { mode: "copy", taskIds: ["a", "b"], revision: 3 } as const;
+    expect(taskContextCapabilities(tasks, "b", true, false, noLinks, clipboard).canPaste).toBe(false);
+    expect(taskContextCapabilities(tasks, "c", true, false, noLinks, clipboard).canPaste).toBe(true);
+  });
   it("derives sibling move, indent and outdent availability", () => {
     const tasks = [
       task("a", "A", null, 0, "summary"),
@@ -76,7 +86,7 @@ describe("task context menu model", () => {
 
     const linkedCopyTarget = taskContextCapabilities(tasks, "a", true, false, links, {
       mode: "copy",
-      taskId: "b",
+      taskIds: ["b"],
       revision: 1,
     });
     expect(linkedCopyTarget).toMatchObject({
@@ -93,7 +103,7 @@ describe("task context menu model", () => {
     }).canPaste).toBe(false);
     expect(taskContextCapabilities(tasks, "a", true, false, noLinks, {
       mode: "copy",
-      taskId: "a",
+      taskIds: ["a"],
       revision: 1,
     }).canPaste).toBe(false);
   });
@@ -153,9 +163,9 @@ describe("task context menu model", () => {
       anchorTaskId: "b",
       placement: "after",
     });
-    expect(createPasteCommand({ mode: "copy", taskId: "a", revision: 3 }, "b", "child")).toEqual({
+    expect(createPasteCommand({ mode: "copy", taskIds: ["a"], revision: 3 }, "b", "child")).toEqual({
       kind: "copy",
-      taskId: "a",
+      taskIds: ["a"],
       anchorTaskId: "b",
       placement: "child",
     });

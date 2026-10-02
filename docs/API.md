@@ -1,10 +1,20 @@
 # Backend API
 
+## Issue #384 — 여러 Copy source의 원자적 처리
+
+`POST /api/projects/{publicId}/task-commands`의 Copy는 `{ "kind": "copy", "taskIds": ["<source-1>", "<source-2>"], "anchorTaskId": "<target>", "placement": "before|after|child" }`를 지원한다. 기존 `taskId` 하나도 호환하며 parser에서 `taskIds: [taskId]`로 정규화한다. 두 필드 동시 제출, source 누락·빈 배열·중복·잘못된 UUID·unknown field는 `400 INVALID_REQUEST`다. 입력 source ID는 ancestor 정리 전 최대 500개이고 기존 UTF-8 JSON body 32 KiB 제한을 유지한다. 최종 Task 수는 descendants를 포함하여 Project의 5000개 상한을 적용한다.
+
+서버는 현재 Project canonical Task로 모든 source를 resolve하고 선택 ancestor가 있는 항목을 root에서 제거한다. 남은 root와 전체 자손을 중복 없이 canonical hierarchy preorder(각 family의 numeric sibling order)로 복사한다. 선택 배열 순서와 WBS 문자열 사전순은 정렬 기준이 아니다. 여러 root는 before/after/마지막 child 위치에 하나의 연속 block으로 삽입하고 subtree 내부 구조를 유지한다. Project 밖·존재하지 않는 source/anchor는 `404 TASK_NOT_FOUND`, stale If-Match는 `412 REVISION_MISMATCH`다.
+
+전체 Copy 집합의 양쪽 endpoint가 포함된 Dependency만 새 Task/Link ID로 복제한다. 서로 다른 root 사이 관계도 포함하며 #378 type/lag·외부 관계 제외·Calendar 및 Dependency 재계산을 재사용한다. 원본 Baseline은 불변이고 복사본 Baseline은 기존 계약대로 null 초기화한다. Summary Baseline은 기존 파생 규칙이다. 물류 직접 연결을 자동 복제하지 않고 원본 연결은 보존한다. Resource/Group Assignment가 집합에 하나라도 있으면 `409 TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 전체 거부한다.
+
+기존 descendant anchor Copy 호환을 유지하고 anchor가 집합 안이라는 이유로 새 제한을 만들지 않는다. child Paste의 Milestone parent 및 linked leaf→Summary 보호는 유지한다. 생성·root order·일정·Summary 파생·revision +1은 한 IMMEDIATE transaction이며 실패 시 부분 생성·revision +0으로 rollback한다. 응답 full canonical snapshot/changedTaskExternalIds와 단일 Cut/reparent 계약은 유지한다. scoped view는 client 표시 경계이며 서버 권한이나 별도 aggregate가 아니다.
+
 ## Issue #378 — `task-commands` Copy의 Dependency 계약
 
 `POST /api/projects/{publicId}/task-commands`의 `kind: "copy"`는 source Task 또는 source subtree를 서버 canonical hierarchy에서 계산한다. 클라이언트가 Link 목록이나 신규 ID를 제출하지 않는다.
 
-- `copySet = source + descendants`
+- 단일 입력의 `copySet = source + descendants`; 다중 입력은 normalized roots와 각 subtree의 union
 - `internalLinks = links where predecessor ∈ copySet AND successor ∈ copySet`
 - internal Link만 새 Task endpoint와 새 Link public ID로 생성한다.
 - external→internal / internal→external Link는 생성하지 않는다.

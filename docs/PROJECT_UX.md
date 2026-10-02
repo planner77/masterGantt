@@ -1,5 +1,13 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #384 — 다중 선택 Copy/Paste
+
+공개 Core Grid의 별도 56px 선택 열에 native checkbox를 제공해 이름 셀의 tree toggle·inline editor를 유지한다. 앱의 Project-scoped 선택 집합이 Copy 기준이다. 일반 행 클릭은 단일 선택, Ctrl/Cmd 클릭은 추가/해제, Shift는 같은 parent의 보이는 sibling 중 실제 filter match 범위이며 문맥용 ancestor는 자동 포함하지 않는다. 문맥용 Summary를 명시적으로 선택하는 기존 Copy는 유지한다. Checkbox 클릭·Space는 toggle, Shift checkbox도 range다. 범위가 유효하지 않으면 단일 선택과 이유를 표시한다. 선택 개수와 접힌 하위 숨김 수를 표시하고 checked·행 aria-selected·semantic token을 사용한다.
+
+선택 행의 Context Menu는 집합을 유지하고 Copy는 전체에 적용한다. 선택 밖 행은 singleton으로 바꾸되 Paste target용 clipboard는 유지한다. 메뉴와 Ctrl/Cmd+C는 canonical 순서·ancestor 제거를 공통 적용한다. Summary는 서버가 전체 자손을 포함한다. collapse는 선택을 삭제하지 않는다. 실제 filter 조건/scope/ID 집합 변경은 direct selection을 prune하고 이전 Copy/Cut clipboard를 폐기한다. 배열 참조만 달라진 render는 경계 변경이 아니다.
+
+선택 해제 버튼은 Grid region으로 focus를 복원한다. 메뉴/inline editor 밖 Escape는 선택만 해제하고 focus를 유지한다. checkbox의 Copy/Paste와 keyboard Context Menu를 지원하며 다른 input/editor/dialog/contenteditable shortcut은 가로채지 않는다. readonly/saving은 기존 Copy/Paste guard를 따른다. Core에는 공개 select-task로 단일 primary만 반영해 Cut/Move/Delete/Edit는 기존 단일 target을 유지한다. canonical sync 선택은 사용자 gesture로 처리하지 않으며 동일 Gantt instance/scale/scroll/collapse/columns 계약을 유지한다.
+
 ## Issue #375 Summary Task bar 시각 계층
 
 일정이 계산된 Summary는 일반 Task와 같은 SVAR root bar geometry를 유지하되, 실제 색상/border/progress가 보이는 visual body만 root 높이의 **60%**로 줄여 행 중앙에 표시한다. root의 x/width/top/height와 link marker 중심은 변경하지 않아 #142의 날짜 셀 전체 폭 정렬과 기존 click/double-click/right-click/drag hit area를 보존한다. Summary visual body는 `.wx-summary::before`, progress는 같은 20% 상·하 inset을 사용하며 hover/selected/focus/critical 상태는 얇은 body에 표시한다.

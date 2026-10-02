@@ -42,6 +42,13 @@ const tasks: ProjectTaskDto[] = [
 ];
 
 describe("Issue #373 task subtree scope", () => {
+  it("requires every multi-copy source and placement to remain in the subtree", () => {
+    const base = { kind: "copy", anchorTaskId: "root", placement: "child" } as const;
+    expect(taskHierarchyCommandStaysInSubtree(tasks, "root", { ...base, taskIds: ["child", "grandchild"] })).toBe(true);
+    expect(taskHierarchyCommandStaysInSubtree(tasks, "root", { ...base, taskIds: ["child", "sibling"] })).toBe(false);
+    expect(taskHierarchyCommandStaysInSubtree(tasks, "root", { ...base, taskIds: ["root"], placement: "after" })).toBe(false);
+    expect(taskHierarchyCommandStaysInSubtree(tasks, "root", { ...base, taskIds: [] })).toBe(false);
+  });
   it("opens only summaries that currently have children from the context menu", () => {
     expect(canOpenTaskAsSubtreeRoot(tasks, "root")).toBe(true);
     expect(canOpenTaskAsSubtreeRoot(tasks, "nested")).toBe(true);

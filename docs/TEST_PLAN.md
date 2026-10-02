@@ -1,5 +1,15 @@
 # Test Plan
 
+## Issue #384 — 다중 선택 Task Copy/Paste
+
+Selection Unit은 canonical preorder·ancestor/중복 제거·empty Summary·single/toggle/visible sibling range·다른 parent fallback·unknown/stale ID·collapse 숨김/선택 보존·canonical 불변을 확인한다. command/scope는 Copy taskIds·single Cut 분리와 모든 source/anchor subtree 경계를 확인한다.
+
+실제 SQLite/HTTP 통합은 여러 root before/after/child·WBS 2/10 순서·FS/SS/FF/SF signed lag/lead·경계 Link 제외·metadata/Baseline·원본 불변·ancestor union·Assignment·500 source/5000 Task·rollback·Origin/session/If-Match/body limit·DB reopen을 검증한다. DB reopen과 Node 서버 restart는 별도 증거이며 서로 대체하지 않는다.
+
+Chromium 신규 `project-multi-task-copy-paste.spec.ts`는 역순 checkbox→selected row Copy→Summary child Paste·새 endpoint·revision +1·Editor 관계·same instance·column width/scale/collapse/scroll 보존·reload 및 동일 DB 실제 서버 재시작과 390/768/1024/1440px screenshot/overflow를 확인한다. modifier/Shift checkbox/Space/Copy/Paste/Escape는 이중 toggle·inline 간섭 없이 확인한다. 기존 DnD/rename/double-click/scoped/readonly/pending/412 회귀는 관련 spec을 사용한다.
+
+전문 Agent는 read-only patch를 작성하고 Manager가 승인 경로로 편집·실행했다. 관련 Unit/SQLite/HTTP 74개 PASS, 신규 Copy Chromium7개 PASS와 기존 inline/DnD/계층 메뉴의 최종10개 PASS를 확보했다. 초기 FAIL·수정 근거·실행별 개수·4폭 캡처·실제 서버 restart·로컬 lint 생성물 제외 범위는 [실행 기록](exec-plans/active/ISSUE_384.md)에 구분한다. 원격 quality/e2e/docker는 CI 시작까지만 진행해 NOT TESTED이며, touch device/screen reader는 별도 미실행이다.
+
 ## Issue #375 Summary Task bar 두께 회귀
 
 - Chromium E2E는 동일 날짜 범위의 Summary와 일반 Task를 함께 렌더하고 SVAR root bar의 x/width가 동일한지 확인한다. Summary root 자체의 높이는 interaction hit-area로 유지하고 `::before` visual body와 progress wrapper만 일반 Task 높이의 약 60%(허용 55~70%)인지 geometry로 측정한다.

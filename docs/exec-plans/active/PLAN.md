@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #384 다중 선택 Task Copy/Paste — 구현 중
+
+최신 기준 main `5fda7d963b0ba5e2e09414c1328103f9e943b564` / `0.63.1`에서 선택 집합·Copy API·내부 Dependency 복제를 구현한다. 범위·소유권·version·검증은 [Issue #384 실행 계획](ISSUE_384.md)을 따른다. 사용자 요청 종료점은 PR 및 CI 실행 시작이며 CI 완료 모니터링·병합·릴리스·Issue 종료는 범위 밖이다.
+
 ## Issue #373 Summary 하위 WBS scoped view — 구현 / PR·CI 시작
 
 기준 main은 `9e22ebd1534471a67938a0d22adb2ba947066a83` / application `0.62.0`, 작업 branch는 `feat/issue-373-summary-root-view`다. Context Menu navigation, `rootTask` deep link, existing `filter-tasks` scoped visibility, same-origin cross-tab revision freshness와 문서/테스트를 구현한다. 상세 범위·N/A 계약·검증은 [Issue #373 실행 계획](ISSUE_373.md)을 따른다. Issue #378이 `0.62.0`으로 main에 병합된 뒤 재정렬했으며 후보 version은 다음 minor인 `0.63.0`이다. 사용자 요청 종료점은 PR 생성과 PR CI 시작 확인이며 CI 완료 모니터링·병합·main CI·GHCR·Issue 종료는 이번 범위 밖이다.

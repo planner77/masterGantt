@@ -11,6 +11,8 @@ import {
 } from "@svar-ui/react-gantt";
 import "@svar-ui/react-gantt/all.css";
 import {
+  createContext,
+  useContext,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -19,6 +21,7 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
   type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 
 import { createTaskMoveGateway } from "./task-move-gateway";
@@ -71,15 +74,42 @@ import {
 import {
   createHierarchyCommand,
   createPasteCommand,
+  clipboardIncludesRoot,
   taskContextCapabilities,
   type TaskClipboard,
 } from "./task-context-menu-model";
 import { taskHasDependencyLinks } from "./task-link-scope";
+import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
 import { canOpenTaskAsSubtreeRoot, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
 import { RelationContextMenu } from "./relation-context-menu";
 import type { DependencyType } from "../../contracts/projects";
 import "./task-context-menu.css";
 import "./gantt-scale-toolbar.css";
+
+interface CopySelectionContextValue {
+  tasksById: ReadonlyMap<string, ProjectTaskDto>;
+  selectedTaskIds: readonly string[];
+  onGesture: (id: string, gesture: "single" | "toggle" | "range") => void;
+}
+const CopySelectionContext = createContext<CopySelectionContextValue | null>(null);
+
+/** Stable public Grid renderer reads React context, never mutable refs. */
+function ProjectTaskSelectionCell({ row }: { row: Record<string, unknown> }) {
+    const context = useContext(CopySelectionContext);
+    if (!context) return null;
+    const id = String(row.id);
+    return <label className="project-copy-selection-hitarea">
+      <input type="checkbox" data-copy-selection={id}
+        aria-label={`${context.tasksById.get(id)?.name ?? String(row.text ?? "작업")} 복사 대상으로 선택`}
+        checked={context.selectedTaskIds.includes(id)}
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
+        onChange={(event) => context.onGesture(id, (event.nativeEvent as MouseEvent).shiftKey ? "range" : "toggle")}
+        onKeyDown={(event) => {
+          if (!(event.ctrlKey || event.metaKey) && event.key !== "Escape" && event.key !== "ContextMenu" && !(event.shiftKey && event.key === "F10")) event.stopPropagation();
+        }} />
+    </label>;
+}
 
 export type ProjectGridDataColumnId =
   | "text"
@@ -132,6 +162,8 @@ interface ProjectGanttProps {
   readonly tasks: readonly ProjectTaskDto[];
   readonly projectRevision: number;
   readonly visibleTaskIds?: readonly string[] | null;
+  readonly matchingTaskIds?: readonly string[] | null;
+  readonly selectionBoundaryKey?: string;
   readonly viewRootTaskId?: string | null;
   readonly projectPublicId?: string;
 }
@@ -208,6 +240,8 @@ export function ProjectGantt({
   tasks,
   projectRevision,
   visibleTaskIds = null,
+  matchingTaskIds = null,
+  selectionBoundaryKey = "",
   viewRootTaskId = null,
   projectPublicId,
 }: ProjectGanttProps) {
@@ -244,6 +278,7 @@ export function ProjectGantt({
     summaryToggleStateReference.current.clear();
   }, [projectPublicId]);
   const inlineOpenTokenReference = useRef(0);
+  const namePointerIntentReference = useRef<{ taskId: string; x: number; y: number } | null>(null);
   const inlineComposingReference = useRef(false);
   const inlineTableReference = useRef<Awaited<ReturnType<IApi["getTable"]>> | null>(null);
   const inlineSessionReference = useRef<{
@@ -280,6 +315,19 @@ export function ProjectGantt({
   const [taskSubmenu, setTaskSubmenu] = useState<TaskSubmenuState | null>(null);
   const [relationMenu, setRelationMenu] = useState<{ linkId: string; left: number; top: number } | null>(null);
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<readonly string[]>([]);
+  const selectedTaskIdsReference = useRef<readonly string[]>([]);
+  const selectionAnchorReference = useRef<string | null>(null);
+  const visibleTaskIdsReference = useRef(visibleTaskIds);
+  const matchingTaskIdsReference = useRef(matchingTaskIds);
+  const [selectionMessage, setSelectionMessage] = useState("");
+  const [selectionHiddenCount, setSelectionHiddenCount] = useState(0);
+  const selectionProjectReference = useRef(projectPublicId);
+  // Content equality prevents ordinary React renders from clearing clipboard.
+  const selectionBoundary = JSON.stringify([viewRootTaskId, selectionBoundaryKey,
+    visibleTaskIds === null ? null : [...visibleTaskIds].sort(),
+    matchingTaskIds === null ? null : [...matchingTaskIds].sort()]);
+  const selectionBoundaryReference = useRef(selectionBoundary);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
   const [dayHeaderTooltip, setDayHeaderTooltip] = useState<DayHeaderTooltipState | null>(null);
@@ -300,6 +348,92 @@ export function ProjectGantt({
     () => new Map(tasks.map((task) => [task.taskId, task])),
     [tasks],
   );
+  useLayoutEffect(() => {
+    visibleTaskIdsReference.current = visibleTaskIds;
+    matchingTaskIdsReference.current = matchingTaskIds;
+  }, [visibleTaskIds, matchingTaskIds]);
+
+  const updateSelection = useCallback((next: readonly string[]) => {
+    const current = selectedTaskIdsReference.current;
+    if (current.length === next.length && current.every((id, index) => id === next[index])) return;
+    selectedTaskIdsReference.current = next;
+    setSelectedTaskIds(next);
+    const api = apiReference.current;
+    const state: unknown = api?.getState().selected;
+    const primary = Array.isArray(state) ? state : typeof state === "string" || typeof state === "number" ? [state] : [];
+    if (api && !next.length) {
+      for (const id of primary) if (typeof id === "string" || typeof id === "number") void api.exec("select-task", { id, toggle: true, eventSource: "project-owned-selection" });
+    }
+  }, []);
+
+  const applySelectionGesture = useCallback((id: string, gesture: "single" | "toggle" | "range", mirrorCore = true) => {
+    const next = selectTaskGesture(tasksReference.current, selectedTaskIdsReference.current,
+      selectionAnchorReference.current, id, gesture, visibleTaskIdsReference.current, matchingTaskIdsReference.current);
+    if (gesture === "range" && next.length === 1 && selectionAnchorReference.current !== id) {
+      setSelectionMessage("같은 부모의 보이는 작업 범위가 없어 한 작업만 선택했습니다.");
+    } else setSelectionMessage("");
+    if (gesture !== "range") selectionAnchorReference.current = id;
+    updateSelection(next);
+    // Mirror a singular primary Task into Core: Cut/Move remain single target.
+    if (mirrorCore && next.includes(id)) void apiReference.current?.exec("select-task", { id, eventSource: "project-owned-selection" });
+  }, [updateSelection, setSelectionMessage]);
+
+  const selectionContext = useMemo(() => ({
+    tasksById, selectedTaskIds, onGesture: applySelectionGesture,
+  }), [tasksById, selectedTaskIds, applySelectionGesture]);
+
+  useEffect(() => {
+    if (selectionProjectReference.current !== projectPublicId) {
+      selectionProjectReference.current = projectPublicId;
+      selectionBoundaryReference.current = selectionBoundary;
+      selectionAnchorReference.current = null;
+      updateSelection([]);
+      setTaskClipboard(null);
+      setSelectionMessage("");
+      return;
+    }
+    const changed = selectionBoundaryReference.current !== selectionBoundary;
+    selectionBoundaryReference.current = selectionBoundary;
+    const known = new Set(tasks.map((task) => task.taskId));
+    const matching = matchingTaskIds ?? visibleTaskIds;
+    const allowed = changed && matching ? new Set(matching) : null;
+    const current = selectedTaskIdsReference.current;
+    const next = current.filter((id) => known.has(id) && (!allowed || allowed.has(id)));
+    updateSelection(next);
+    if (changed) {
+      setTaskClipboard(null);
+      setSelectionMessage(current.length > next.length
+        ? `표시 범위 밖의 선택 ${current.length - next.length}개를 해제했습니다.`
+        : "표시 범위가 변경되어 이전 클립보드를 비웠습니다.");
+    }
+  }, [projectPublicId, selectionBoundary, tasks, updateSelection, visibleTaskIds, matchingTaskIds]);
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    const api = apiReference.current;
+    if (!root || !api || !apiInstanceId) return;
+    const decorate = () => {
+      const selected = new Set(selectedTaskIdsReference.current);
+      root.querySelectorAll<HTMLElement>(TASK_TARGET_SELECTOR).forEach((element) => {
+        const id = taskIdFromElement(element);
+        const active = Boolean(id && selected.has(id));
+        if (element.dataset.copySelected !== String(active)) element.dataset.copySelected = String(active);
+        if (element.classList.contains("wx-row")) element.setAttribute("aria-selected", String(active));
+        const checkbox = element.querySelector<HTMLInputElement>("input[data-copy-selection]");
+        if (checkbox) checkbox.checked = active;
+      });
+      const count = hiddenSelectedCount(tasksReference.current, selectedTaskIdsReference.current, summaryToggleStateReference.current);
+      setSelectionHiddenCount((current) => current === count ? current : count);
+    };
+    decorate();
+    // Attribute decoration cannot retrigger this childList-only observer.
+    const observer = new MutationObserver(decorate);
+    observer.observe(root, { childList: true, subtree: true });
+    const tag = "project-copy-selection-decoration";
+    api.on("open-task", decorate, { tag });
+    return () => { observer.disconnect(); api.detach(tag); };
+  }, [selectedTaskIds, tasks, apiInstanceId]);
+
   useEffect(() => {
     onTaskCreateReference.current = onTaskCreate;
     onTaskCommandReference.current = onTaskCommand;
@@ -652,7 +786,7 @@ export function ProjectGantt({
     taskUpdateGateway(event);
   }, [taskUpdateGateway]);
   const columns = useMemo(
-    () => baseProjectColumns.map((column) => (
+    () => [{ id: "copySelection", header: "선택", width: 56, align: "center" as const, cell: ProjectTaskSelectionCell }, ...baseProjectColumns.map((column) => (
       column.id === "externalId"
         ? { ...column, hidden: !columnVisibility.externalId }
         : column.id === "projectStart"
@@ -697,7 +831,7 @@ export function ProjectGantt({
               },
             }
             : column
-    )),
+    ))],
     // Grid getters read the latest canonical DTO map through a ref, avoiding
     // stale values after failed mutations. Keep tasksById as a dependency so a
     // canonical Task change also re-runs the public set-columns synchronization;
@@ -1151,9 +1285,19 @@ export function ProjectGantt({
       },
       { tag: "project-summary-update" },
     );
+    api.detach("project-owned-selection");
+    api.on("select-task", (event) => {
+      if (canonicalSyncDepthReference.current > 0 || event.eventSource === "project-canonical-sync" ||
+        event.eventSource === "project-owned-selection" || typeof event.id !== "string" ||
+        !tasksByIdReference.current.has(event.id)) return;
+      if (!selectedTaskIdsReference.current.includes(event.id)) {
+        selectionAnchorReference.current = event.id;
+        updateSelection([event.id]);
+      }
+    }, { tag: "project-owned-selection" });
   // SVAR retains this initializer for the mounted instance. Refs keep the
   // revision and callback current without re-registering EventBus handlers.
-  }, []);
+  }, [updateSelection]);
 
   function headerFrom(target: EventTarget | null): HTMLElement | null {
     if (!(target instanceof Element)) return null;
@@ -1189,8 +1333,9 @@ export function ProjectGantt({
   function openTaskMenu(target: EventTarget | null, x?: number, y?: number): boolean {
     const root = ganttScrollReference.current;
     if (!root || !apiReference.current || !apiInstanceId) return false;
-    const match = resolveTaskContextTarget(target, root, (id) => tasksByIdReference.current.has(id));
+    const match = resolveSelectionTarget(target, root);
     if (!match) return false;
+    if (!selectedTaskIdsReference.current.includes(match.taskId)) applySelectionGesture(match.taskId, "single");
     if (!match.element.hasAttribute("tabindex")) match.element.tabIndex = 0;
     match.element.focus({ preventScroll: true });
     taskMenuTriggerReference.current = match.element;
@@ -1258,7 +1403,9 @@ export function ProjectGantt({
 
   function storeClipboard(mode: "cut" | "copy") {
     if (!taskMenu) return;
-    setTaskClipboard({ mode, taskId: taskMenu.taskId, revision: projectRevision });
+    if (!editable || mutationLocked) return;
+    if (mode === "copy") copyCurrentSelection(taskMenu.taskId);
+    else setTaskClipboard({ mode: "cut", taskId: taskMenu.taskId, revision: projectRevision });
     closeTaskMenu();
   }
 
@@ -1267,12 +1414,63 @@ export function ProjectGantt({
     executeHierarchyCommand(createPasteCommand(activeClipboard, taskMenu.taskId, placement));
   }
 
+  function resolveSelectionTarget(target: EventTarget | null, root: HTMLElement) {
+    if (target instanceof Element && target.matches("input[data-copy-selection]")) {
+      const row = target.closest<HTMLElement>(".wx-row[data-id]");
+      const id = row ? taskIdFromElement(row) : null;
+      if (row && id && root.contains(row) && tasksByIdReference.current.has(id)) return { taskId: id, element: row };
+    }
+    return resolveTaskContextTarget(target, root, (id) => tasksByIdReference.current.has(id));
+  }
+
+  function selectionPointerTarget(target: EventTarget | null) {
+    const root = ganttScrollReference.current;
+    if (!root || !(target instanceof Element) || target.closest(
+      'input, label, [data-action="open-task"], [data-action="add-task"], .wx-reorder-task',
+    )) return null;
+    return resolveTaskContextTarget(target, root, (id) => tasksByIdReference.current.has(id));
+  }
+
+  function handleSelectionPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    namePointerIntentReference.current = null;
+    if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && event.target instanceof Element) {
+      const text = event.target.closest('.wx-table-container [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text');
+      const row = text?.closest<HTMLElement>(".wx-row[data-id]");
+      const taskId = row ? taskIdFromElement(row) : null;
+      if (taskId) namePointerIntentReference.current = { taskId, x: event.clientX, y: event.clientY };
+    }
+    if (event.button === 0 && (event.ctrlKey || event.metaKey || event.shiftKey) && selectionPointerTarget(event.target)) event.stopPropagation();
+  }
+
+  function handleSelectionClick(event: ReactMouseEvent<HTMLDivElement>) {
+    if (event.button !== 0) return;
+    const match = selectionPointerTarget(event.target);
+    const intent = namePointerIntentReference.current;
+    const taskId = match?.taskId ?? (intent && event.target instanceof Element && event.target.matches(".wx-scroll") && Math.hypot(event.clientX - intent.x, event.clientY - intent.y) <= 4 ? intent.taskId : null);
+    if (!taskId) return;
+    const modifier = event.ctrlKey || event.metaKey;
+    applySelectionGesture(taskId, event.shiftKey ? "range" : modifier ? "toggle" : "single", modifier || event.shiftKey);
+    if (modifier || event.shiftKey) { event.preventDefault(); event.stopPropagation(); }
+  }
+
+  function copyCurrentSelection(fallbackTaskId?: string) {
+    if (!editable || mutationLocked) return;
+    const ids = selectedTaskIdsReference.current.length ? selectedTaskIdsReference.current : fallbackTaskId ? [fallbackTaskId] : [];
+    const taskIds = normalizeCopySelection(tasks, ids);
+    if (!taskIds.length || taskIds.length > 500) {
+      setSelectionMessage(taskIds.length > 500 ? "한 번에 최대 500개 root를 복사할 수 있습니다." : "복사할 작업을 선택해 주세요.");
+      return;
+    }
+    setTaskClipboard({ mode: "copy", taskIds, revision: projectRevision });
+    setSelectionMessage(`선택한 ${ids.length}개 작업을 복사했습니다. 요약 작업의 하위 작업도 포함됩니다.`);
+  }
+
   function runTaskShortcut(event: ReactKeyboardEvent<HTMLDivElement>): boolean {
     if (!(event.target instanceof Element) ||
-      event.target.closest("input, textarea, select, button, a, [contenteditable=true], dialog, .project-task-context-menu")) return false;
+      (!event.target.matches("input[data-copy-selection]") && event.target.closest("input, textarea, select, button, a, [contenteditable=true], dialog, .project-task-context-menu"))) return false;
     const root = ganttScrollReference.current;
     if (!root) return false;
-    const match = resolveTaskContextTarget(event.target, root, (id) => tasksByIdReference.current.has(id));
+    const match = resolveSelectionTarget(event.target, root);
     if (!match) return false;
     const selectedHasLinks = taskHasDependencyLinks(
       tasksByIdReference.current.size ? Array.from(tasksByIdReference.current.values()) : tasks,
@@ -1285,13 +1483,13 @@ export function ProjectGantt({
     const pasteCommand = activeClipboard ? createPasteCommand(activeClipboard, match.taskId) : null;
     const canPaste = Boolean(
       pasteCommand &&
-      activeClipboard?.taskId !== match.taskId &&
+      activeClipboard && !clipboardIncludesRoot(activeClipboard, match.taskId) &&
       (activeClipboard?.mode === "copy" ? canCopy : canHierarchyMutate) &&
       taskHierarchyCommandStaysInSubtree(tasks, viewRootTaskId, pasteCommand),
     );
     const modifier = event.ctrlKey || event.metaKey;
     if (modifier && event.key.toLowerCase() === "c" && canCopy) {
-      setTaskClipboard({ mode: "copy", taskId: match.taskId, revision: projectRevision });
+      copyCurrentSelection(match.taskId);
     } else if (modifier && event.key.toLowerCase() === "x" && canCut) {
       setTaskClipboard({ mode: "cut", taskId: match.taskId, revision: projectRevision });
     } else if (modifier && event.key.toLowerCase() === "v" && canPaste && pasteCommand) {
@@ -1490,7 +1688,9 @@ export function ProjectGantt({
   }, [apiInstanceId, installInlineTableHandlers]);
 
   async function handleNameClick(event: ReactMouseEvent<HTMLDivElement>) {
-    if (!editable || mutationLocked || event.button !== 0) return;
+    const intent = namePointerIntentReference.current;
+    namePointerIntentReference.current = null;
+    if (!editable || mutationLocked || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey) return;
     const currentInline = inlineSessionReference.current;
     if (currentInline) {
       const editor = currentInline.table.getState().editor;
@@ -1505,7 +1705,15 @@ export function ProjectGantt({
     const root = ganttScrollReference.current;
     const api = apiReference.current;
     if (!root || !api || !(event.target instanceof Element)) return;
-    const text = event.target.closest<HTMLElement>('.wx-table-container [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text');
+    let text = event.target.closest<HTMLElement>('.wx-table-container [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text');
+    // Core can replace a row during the pointer gesture (selection or resize).
+    // Preserve only a plain name click at the original point; drag/other cells
+    // cannot become an inline edit. Resolve the currently mounted row by ID.
+    if (!text && intent && event.target.matches(".wx-scroll") && Math.hypot(event.clientX - intent.x, event.clientY - intent.y) <= 4) {
+      const currentRow = Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]"))
+        .find((candidate) => taskIdFromElement(candidate) === intent.taskId);
+      text = currentRow?.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"] .wx-content > .wx-text') ?? null;
+    }
     const cell = text?.closest<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
     const row = cell?.closest<HTMLElement>(".wx-row[data-id]");
     const taskId = row ? taskIdFromElement(row) : null;
@@ -1558,6 +1766,15 @@ export function ProjectGantt({
       return;
     }
     if (handleInlineEscape(event)) return;
+    if (event.key === "Escape" && !taskMenu && !columnMenuPosition && selectedTaskIdsReference.current.length &&
+      event.target instanceof Element && !event.target.closest('input:not([data-copy-selection]), textarea, select, [contenteditable=true], dialog')) {
+      event.preventDefault();
+      event.stopPropagation();
+      selectionAnchorReference.current = null;
+      updateSelection([]);
+      setSelectionMessage("선택을 해제했습니다.");
+      return;
+    }
     if (runTaskShortcut(event)) return;
     if (event.key !== "ContextMenu" && !(event.key === "F10" && event.shiftKey)) return;
     const header = headerFrom(event.target);
@@ -1771,12 +1988,23 @@ export function ProjectGantt({
 
   return (
     <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={scaleMode === "day" ? 44 : 68} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-add-disabled={viewRootTaskId !== null || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
-      <Willow>
+      <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
         <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
           <span aria-hidden="true" className="project-gantt-scale-label">표시 단위</span>
           <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">일</button>
           <button aria-pressed={scaleMode === "week"} onClick={() => changeScaleMode("week")} type="button">주</button>
+        </div>
+        <div className="project-copy-selection-controls" role="group" aria-label="복사 대상 선택">
+          <span role="status" aria-atomic="true">선택 {selectedTaskIds.length}개{selectionHiddenCount ? ` · 접힌 하위 ${selectionHiddenCount}개` : ""}</span>
+          <button type="button" disabled={!selectedTaskIds.length || !editable || mutationLocked} onClick={() => copyCurrentSelection()}>선택 복사</button>
+          <button type="button" disabled={!selectedTaskIds.length} onClick={() => {
+            selectionAnchorReference.current = null;
+            updateSelection([]);
+            setSelectionMessage("선택을 해제했습니다.");
+            ganttScrollReference.current?.focus({ preventScroll: true });
+          }}>선택 해제</button>
+          <span className="project-copy-selection-help">체크박스 · Ctrl/Cmd · Shift로 선택</span>
         </div>
         {editable && viewRootTaskId === null ? <button className="project-gantt-fullscreen-button" disabled={mutationLocked} onClick={() => onTaskCreateReference.current({ name: "새 요약 작업", type: "summary" })} type="button">요약 작업 추가</button> : null}
         <button className="project-gantt-fullscreen-button" ref={fullscreenButtonReference} type="button"
@@ -1793,6 +2021,13 @@ export function ProjectGantt({
         aria-label="프로젝트 일정 Grid와 Gantt 차트"
           className="project-gantt-scroll"
           onContextMenu={handleHeaderContextMenu}
+          onPointerDownCapture={handleSelectionPointerDown}
+          onPointerMoveCapture={(event) => {
+            const intent = namePointerIntentReference.current;
+            if (intent && Math.hypot(event.clientX - intent.x, event.clientY - intent.y) > 4) namePointerIntentReference.current = null;
+          }}
+          onPointerCancelCapture={() => { namePointerIntentReference.current = null; }}
+          onClickCapture={handleSelectionClick}
           onClick={(event) => { void handleNameClick(event); }}
           onCompositionStart={() => { inlineComposingReference.current = true; }}
           onCompositionEnd={() => { inlineComposingReference.current = false; }}
@@ -1842,6 +2077,7 @@ export function ProjectGantt({
             ))}
           </div>
         ) : null}
+        {selectionMessage ? <p className="project-copy-selection-status" role="status">{selectionMessage}</p> : null}
         {inlineNameMessage ? <p className="project-gantt-inline-name-status" role={inlineNameError ? "alert" : "status"} id={`${instanceId}-inline-name-status`}>{inlineNameMessage}</p> : null}
         {columnMenuPosition ? <div
           aria-label="표시 열 선택"
@@ -1967,7 +2203,7 @@ export function ProjectGantt({
             tasks={tasks}
           />
         ) : null}
-      </Willow>
+      </Willow></CopySelectionContext.Provider>
     </div>
   );
 }

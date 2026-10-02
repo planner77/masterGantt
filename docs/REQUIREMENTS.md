@@ -1,5 +1,11 @@
 # Requirements baseline
 
+## Issue #384 — 다중 선택 Copy/Paste
+
+앱 소유 선택 집합을 canonical WBS 순서와 선택 ancestor 규칙으로 정규화하여 여러 root·전체 자손을 한 번씩 복사한다. Copy 집합 내부 Dependency만 새 Task/Link identity로 함께 복제하며 외부 관계는 제외한다. Root block의 before/after/child 삽입·Scheduling·Summary·revision +1은 하나의 원자적 명령이다. 기존 단일 taskId Copy는 호환하고 신규 taskIds를 지원한다.
+
+선택 checkbox·Ctrl/Cmd·Shift·Context Menu·keyboard Copy는 같은 집합을 사용한다. scoped view/필터 변경은 selection을 정리하고 clipboard를 폐기하며, collapse는 선택을 유지한다. 다중 Cut/Delete/Edit/Move·cross-Project·Resource/Logistics 복제 확대는 제외한다. 기존 copied Baseline null 초기화·원본 불변, 빈 Summary null, session/Origin/If-Match/Project 격리와 Assignment 전체 거부를 유지한다. [실행 계획](exec-plans/active/ISSUE_384.md)과 [API](API.md)를 따른다.
+
 ## Issue #378 — Subtree Copy 내부 Dependency 복제
 
 - Task 또는 Summary subtree Copy 집합 안에 predecessor와 successor가 모두 포함된 Dependency Link는 새 Task ID에 맞춰 복제한다.

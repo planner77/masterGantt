@@ -6,11 +6,13 @@ import type {
 } from "@/contracts/projects";
 import { taskHasDependencyLinks } from "./task-link-scope";
 
-export type TaskClipboard = Readonly<{
-  mode: "cut" | "copy";
-  taskId: string;
-  revision: number;
-}>;
+export type TaskClipboard =
+  | Readonly<{ mode: "cut"; taskId: string; revision: number }>
+  | Readonly<{ mode: "copy"; taskIds: readonly string[]; revision: number }>;
+
+export function clipboardIncludesRoot(clipboard: TaskClipboard, id: string): boolean {
+  return clipboard.mode === "copy" ? clipboard.taskIds.includes(id) : clipboard.taskId === id;
+}
 
 export interface TaskContextCapabilities {
   canAddChild: boolean;
@@ -61,7 +63,7 @@ export function taskContextCapabilities(
   const scopeRoot = scopeRootTaskId ? tasks.find((candidate) => candidate.taskId === scopeRootTaskId) : undefined;
   const isScopeRoot = task.taskId === scopeRootTaskId;
   const isDirectScopeChild = Boolean(scopeRoot && task.parentExternalId === scopeRoot.externalId);
-  const pasteAvailable = clipboard !== null && clipboard.taskId !== task.taskId &&
+  const pasteAvailable = clipboard !== null && !clipboardIncludesRoot(clipboard, task.taskId) &&
     (clipboard.mode === "copy" ? mutationAvailable : hierarchyAvailable);
   return {
     canAddChild: hierarchyAvailable && task.type !== "milestone",
@@ -93,10 +95,7 @@ export function createPasteCommand(
   anchorTaskId: string,
   placement: TaskHierarchyPlacement = "after",
 ): TaskHierarchyCommandRequest {
-  return {
-    kind: clipboard.mode === "cut" ? "reparent" : "copy",
-    taskId: clipboard.taskId,
-    anchorTaskId,
-    placement,
-  };
+  return clipboard.mode === "cut"
+    ? { kind: "reparent", taskId: clipboard.taskId, anchorTaskId, placement }
+    : { kind: "copy", taskIds: clipboard.taskIds, anchorTaskId, placement };
 }

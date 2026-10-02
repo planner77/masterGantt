@@ -1,5 +1,11 @@
 # Issue #4 / #22 / #31 / #72 — 작업 메뉴와 Grid / Chart 작업 명령
 
+## Issue #384 — Copy 선택 집합과 단일 편집 경계
+
+Copy clipboard는 `{mode:"copy", taskIds, revision}`, Cut은 `{mode:"cut", taskId, revision}`이다. 신규 Copy는 taskIds를 보내고 서버는 legacy taskId XOR 호환을 제공한다. canonical root 순서·ancestor 제거는 메뉴/keyboard에 동일하다. Paste target 선택은 clipboard를 유지하고 Project·revision·filter/scope 변화는 stale clipboard를 폐기한다.
+
+Edit/Delete/Cut/Move는 메뉴 또는 실제 focus target 하나다. 여러 선택으로 일괄 편집·삭제·이동을 활성화하지 않는다. Assignment 전체 거부, 내부 Dependency 복제·외부 관계 제외, 빈 Summary null과 copied Baseline null/원본 불변은 서버 계약이다. checkbox Ctrl/Cmd+C/V·ContextMenu/Shift+F10은 안전하게 행을 resolve한다. 다른 입력/inline/Task Editor/dialog/contenteditable 내부 shortcut은 유지한다. modifier 클릭은 이름 editor를 열지 않으며 일반 이름 클릭·double-click Editor·Grid DnD의 기존 경로를 보존한다.
+
 ## Issue #378 — Context Menu Copy/Paste 관계 경계
 
 - 관계 endpoint인 Task도 Context Menu와 keyboard `Copy`는 허용한다. Copy는 원본 Task/Link를 변경하지 않는다.
