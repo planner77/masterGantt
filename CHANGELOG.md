@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.68.1] - 2026-10-03
+
+### Fixed
+
+- Issue #339: Task Editor Footer가 전역 `.secondary-button`의 page-level 상단 margin을 상속해 Reload/Cancel만 Save보다 아래로 밀리던 UI 회귀를 수정한다.
+- Footer가 spacing을 소유하도록 세 action의 margin, control height, padding, line-height와 box sizing을 동일 geometry로 정규화하고 390/768/1024/1440px Chromium geometry 회귀를 추가한다.
+- 390px wrap에서는 Reload 독립 행을 허용하면서 Cancel/Save 정렬과 전체 action 높이를 유지하고, 기존 stale/disabled/saving/readonly 및 Task 저장·revision 계약은 변경하지 않는다.
+- Application version을 `0.68.0`에서 `0.68.1`로 증가한다.
+
 ## [0.68.0] - 2026-10-02
 
 ### Added
