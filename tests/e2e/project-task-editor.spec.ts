@@ -846,9 +846,34 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
       await resourceTab.click();
       await expect(dialog.getByRole("tabpanel", { name: /리소스/ })).toBeVisible();
       await taskTab.click();
-      await expect(dialog.getByRole("button", { name: "최신 정보 다시 불러오기" })).toBeVisible();
-      await expect(dialog.getByRole("button", { name: "취소", exact: true })).toBeVisible();
-      await expect(save(page)).toBeVisible();
+      const footerReload = dialog.getByRole("button", { name: "최신 정보 다시 불러오기" });
+      const footerCancel = dialog.getByRole("button", { name: "취소", exact: true });
+      const footerSave = save(page);
+      await expect(footerReload).toBeVisible();
+      await expect(footerCancel).toBeVisible();
+      await expect(footerSave).toBeVisible();
+      const [reloadBox, cancelBox, saveBox] = await Promise.all([
+        footerReload.boundingBox(),
+        footerCancel.boundingBox(),
+        footerSave.boundingBox(),
+      ]);
+      expect(reloadBox).not.toBeNull();
+      expect(cancelBox).not.toBeNull();
+      expect(saveBox).not.toBeNull();
+      expect(Math.abs(reloadBox!.height - cancelBox!.height)).toBeLessThanOrEqual(1);
+      expect(Math.abs(cancelBox!.height - saveBox!.height)).toBeLessThanOrEqual(1);
+      if (viewport.width > 480) {
+        expect(Math.abs(reloadBox!.y - cancelBox!.y)).toBeLessThanOrEqual(1);
+        expect(Math.abs(cancelBox!.y - saveBox!.y)).toBeLessThanOrEqual(1);
+      } else {
+        expect(cancelBox!.y).toBeGreaterThan(reloadBox!.y);
+        expect(Math.abs(cancelBox!.y - saveBox!.y)).toBeLessThanOrEqual(1);
+      }
+      expect(await Promise.all([
+        footerReload.evaluate((element) => getComputedStyle(element).marginTop),
+        footerCancel.evaluate((element) => getComputedStyle(element).marginTop),
+        footerSave.evaluate((element) => getComputedStyle(element).marginTop),
+      ])).toEqual(["0px", "0px", "0px"]);
       await page.screenshot({ path: testInfo.outputPath(`issue-130-phase3-current-${viewport.width}.png`) });
 
       if (viewport.width <= 768) {
