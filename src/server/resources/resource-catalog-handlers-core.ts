@@ -32,6 +32,7 @@ import {
   ResourceCatalogProjectRevisionMismatchError,
   ResourceCatalogRevisionMismatchError,
   ResourceCatalogTargetInactiveError,
+  ResourceCatalogTargetInUseError,
   ResourceCatalogTargetNotFoundError,
   ResourceCatalogTaskNotFoundError,
   type ResourceCatalogService,
@@ -186,6 +187,32 @@ function mapError(error: unknown): unknown {
   }
   if (error instanceof ResourceCatalogTargetInactiveError) {
     return new PublicApiError(409, "ASSIGNMENT_TARGET_INACTIVE", "Inactive resources or groups cannot be newly assigned.");
+  }
+  if (error instanceof ResourceCatalogTargetInUseError) {
+    const usage = error.usage;
+    const details = [
+      { code: "PROJECT_USAGE_COUNT", message: `projectUsageCount=${usage.projectCount}` },
+      ...(usage.taskAssignmentProjectCount > 0
+        ? [{ code: "TASK_ASSIGNMENT_PROJECT_COUNT", message: `taskAssignmentProjectCount=${usage.taskAssignmentProjectCount}` }]
+        : []),
+      ...(usage.equipmentRoleProjectCount > 0
+        ? [{ code: "EQUIPMENT_ROLE_PROJECT_COUNT", message: `equipmentRoleProjectCount=${usage.equipmentRoleProjectCount}` }]
+        : []),
+      ...(usage.systemRoleProjectCount > 0
+        ? [{ code: "SYSTEM_ROLE_PROJECT_COUNT", message: `systemRoleProjectCount=${usage.systemRoleProjectCount}` }]
+        : []),
+      ...(usage.calendarProjectCount > 0
+        ? [{ code: "CALENDAR_PROJECT_COUNT", message: `calendarProjectCount=${usage.calendarProjectCount}` }]
+        : []),
+    ];
+    return new PublicApiError(
+      409,
+      error.kind === "resource" ? "RESOURCE_IN_USE" : "RESOURCE_GROUP_IN_USE",
+      error.kind === "resource"
+        ? "Resource cannot be deleted while it is referenced by a project."
+        : "Resource group cannot be deleted while it is referenced by a project.",
+      details,
+    );
   }
   if (error instanceof ResourceCatalogTaskNotFoundError) {
     return new PublicApiError(404, "TASK_NOT_FOUND", "Task not found.");
@@ -518,6 +545,24 @@ export async function handleUpdateCatalogTarget(request: Request, kind: "resourc
     const expectedRevision = parseRequiredIfMatch(request);
     const body = await readBoundedJson(request) as UpdateCatalogTargetRequest;
     const result = resourceService(dependencies).updateTarget(kind, targetId, adminToken(request, dependencies, url), expectedRevision, body);
+    return json(result, 200, result.data.revision);
+  } catch (error) {
+    return fail(error, requestId);
+  }
+}
+
+export async function handleDeleteCatalogTarget(request: Request, kind: "resource" | "group", targetId: string, dependencies: ResourceHandlerDependencies): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    const url = applicationUrl(dependencies);
+    requireOrigin(request, url);
+    const expectedRevision = parseRequiredIfMatch(request);
+    const result = resourceService(dependencies).deleteTarget(
+      kind,
+      targetId,
+      adminToken(request, dependencies, url),
+      expectedRevision,
+    );
     return json(result, 200, result.data.revision);
   } catch (error) {
     return fail(error, requestId);

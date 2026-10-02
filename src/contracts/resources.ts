@@ -11,6 +11,10 @@ export interface ResourceDto {
   active: boolean;
   /** Always present in Resource Catalog API responses; optional keeps legacy fixtures/adapters source-compatible. */
   developerGrade?: DeveloperGrade | null;
+  /** Always present in Resource Catalog admin responses; optional keeps older fixtures source-compatible. */
+  projectUsageCount?: number;
+  /** UX hint only. DELETE revalidates usage inside the server transaction. */
+  deletable?: boolean;
 }
 
 export interface ResourceGroupDto {
@@ -20,6 +24,10 @@ export interface ResourceGroupDto {
   description: string;
   active: boolean;
   memberResourceIds: string[];
+  /** Always present in Resource Catalog admin responses; optional keeps older fixtures source-compatible. */
+  projectUsageCount?: number;
+  /** UX hint only. DELETE revalidates usage inside the server transaction. */
+  deletable?: boolean;
 }
 
 export interface ResourceCatalogResponse {

@@ -210,7 +210,9 @@ Session current read는 row나 TTL을 갱신하지 않는다. Unlock과 password
 
 ### 5.7 `resources` / `resource_groups`
 
-두 테이블은 내부 INTEGER PK와 외부 UUID `public_id`, 필수 `name`, optional unique `code`, `description`, `active`, 생성/수정 시각을 저장한다. `active=0`은 신규 할당 후보에서 제외하지만 기존 assignment는 유지한다. 물리 삭제보다 비활성화를 기본 정책으로 사용한다.
+두 테이블은 내부 INTEGER PK와 외부 UUID `public_id`, 필수 `name`, optional unique `code`, `description`, `active`, 생성/수정 시각을 저장한다. `active=0`은 신규 할당 후보에서 제외하지만 기존 assignment는 유지한다. 운영 중 제거는 비활성화를 기본 정책으로 사용한다.
+
+Issue #329부터 Resource Catalog 관리자만 **모든 Project-scoped 참조가 0인 대상**을 영구 삭제할 수 있다. Resource는 `task_assignments`, `project_equipment_resource_roles`, `project_system_resource_roles`, Resource 대상 `work_calendar_rules`를, Group은 `task_assignments`와 Resource Group 대상 `work_calendar_rules`를 모두 검사한다. 삭제 mutation은 SQLite `IMMEDIATE` transaction 안에서 usage를 다시 계산한 뒤 `resource_group_members`만 먼저 정리하고 대상 row를 삭제하며 catalog revision을 정확히 1 증가시킨다. 반대편 Group/Resource row는 삭제하지 않는다. 기존 `RESTRICT/NO ACTION` FK는 서버 usage 판정 누락이나 race를 막는 최종 fail-closed 방어선으로 유지한다. 이 기능은 기존 schema만 사용하므로 신규 migration은 필요하지 않는다.
 
 ### 5.8 `resource_group_members`
 
