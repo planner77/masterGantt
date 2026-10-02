@@ -755,3 +755,14 @@ Workspace는 서버에서 마지막으로 확정된 Project snapshot을 보관�
 - 상태 필터는 category를 바꾸어도 유지한다. 필터 결과가 0건이면 현재 선택 상태에 맞는 empty state를 표시한다.
 - 좁은 화면에서는 document 자체를 넓히지 않고 목록 table wrapper 안에서만 수평 scroll을 허용한다. 390/768/1024/1440px에서 category/filter/action control은 접근 가능해야 한다.
 - Project Master 관리자 session, Origin, login rate-limit, bootstrap credential, `If-Match` revision, CRUD 및 inactive 참조 보존 계약은 기존 동작을 유지한다.
+
+## Issue #343 Project List 사업부·제품·법인/사업장 표시 계약
+
+Project List는 #289의 canonical `ProjectListItemDto.businessUnit/product/siteEntity`를 그대로 사용해 **사업부 / 제품 / 법인·사업장**을 독립 table column으로 표시한다. 별도 catalog fetch나 row별 조회를 추가하지 않으며 raw id/code가 아닌 catalog `name`을 사용자 표시값으로 사용한다.
+
+값이 없으면 기존 nullable metadata와 같은 `미지정`을 표시한다. 기존 Project가 inactive catalog를 참조하더라도 값을 숨기지 않고 표시명 뒤에 `(비활성)`을 붙여 색상에 의존하지 않는 의미를 제공한다. 긴 기준정보명은 row 높이를 늘리지 않는 한 줄 ellipsis로 제한하되 동일 span의 `title`에서 전체 값을 확인할 수 있어야 한다.
+
+프로젝트명 primary Link, 상태 select, owner/description/date, More Row Action과 native `table/thead/th/tbody/td` semantics는 유지한다. 1440px/wide에서는 가용 폭 안에서 세 분류 column을 직접 비교할 수 있도록 하고, 1024px 이하에서는 column을 숨기지 않고 기존 table wrapper 내부 horizontal scroll을 사용한다. document-level unintended horizontal overflow는 만들지 않는다.
+
+이번 변경은 표시 전용이며 사업부/제품/법인·사업장 검색·필터·정렬, API/DB/Scheduling/SVAR Gantt 계약을 추가하지 않는다.
+
