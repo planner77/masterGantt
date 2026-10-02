@@ -315,6 +315,16 @@ export function ProjectGantt({
     () => new Map(tasks.map((task) => [task.taskId, task])),
     [tasks],
   );
+  // Keep DOM editability and the refs used by native/SVAR handlers in the same
+  // commit phase so the first click after a mutation cannot observe stale guards.
+  useLayoutEffect(() => {
+    canCreateReference.current = editable && !mutationLocked;
+    mutationLockedReference.current = mutationLocked;
+    tasksByIdReference.current = tasksById;
+    projectPublicIdReference.current = projectPublicId;
+    tasksReference.current = tasks;
+  }, [editable, mutationLocked, projectPublicId, tasks, tasksById]);
+
   useEffect(() => {
     onTaskCreateReference.current = onTaskCreate;
     onTaskCommandReference.current = onTaskCommand;
@@ -369,7 +379,7 @@ export function ProjectGantt({
     void session.table.exec("close-editor", { ignore: true });
   }, [editable, mutationLocked]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (projectRevisionReference.current === projectRevision) return;
     projectRevisionReference.current = projectRevision;
     inlineOpenTokenReference.current += 1;
