@@ -389,7 +389,7 @@ export function ResourceCatalogAdmin() {
             일치 {filteredResources.length} / 전체 {catalog.data.resources.length}
           </span>
         </div>
-        <form className={styles.formRow} onSubmit={(event) => void addResource(event)}>
+        <form className={`${styles.formRow} ${styles.resourceCreateForm}`} onSubmit={(event) => void addResource(event)}>
           <label>이름<input value={resourceName} maxLength={200} disabled={locked} onChange={(event) => setResourceName(event.target.value)} /></label>
           <label>코드<input value={resourceCode} maxLength={64} disabled={locked} onChange={(event) => setResourceCode(event.target.value)} /></label>
           <label>개발자 등급<select aria-label="신규 리소스 개발자 등급" value={resourceDeveloperGrade} disabled={locked} onChange={(event) => setResourceDeveloperGrade(event.target.value as DeveloperGrade | "")}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label>
@@ -424,7 +424,7 @@ export function ResourceCatalogAdmin() {
             일치 {filteredGroups.length} / 전체 {catalog.data.groups.length}
           </span>
         </div>
-        <form className={styles.formRow} onSubmit={(event) => void addGroup(event)}>
+        <form className={`${styles.formRow} ${styles.groupCreateForm}`} onSubmit={(event) => void addGroup(event)}>
           <label>이름<input value={groupName} maxLength={200} disabled={locked} onChange={(event) => setGroupName(event.target.value)} /></label>
           <label>코드<input value={groupCode} maxLength={64} disabled={locked} onChange={(event) => setGroupCode(event.target.value)} /></label>
           <button className="primary-button" type="submit" disabled={locked || !groupName.trim()}>추가</button>
