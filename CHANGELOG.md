@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.67.0] - 2026-10-02
+
+### Added
+
+- Issue #385: Project Workspace의 `더보기 → 가져오기 (JSON)`에서 문서화된 JSON 파일을 선택해 server-side Preview 후 Commit할 수 있는 JSON Import 진입점을 추가한다.
+- `POST /api/projects/{publicId}/imports/preview`와 `POST /api/projects/{publicId}/imports` 경로를 기존 Import handler에 연결하고 preview는 edit session 기반 non-mutating, commit은 strong `If-Match` 기반 mutation 보안 inventory에 등록한다.
+- 외부 작업자·시스템·LLM이 참조할 수 있도록 `docs/JSON_IMPORT.md`와 `docs/schemas/project-import.schema.json`을 추가한다.
+
+### Changed
+
+- JSON Import 진입점은 Workspace의 compact action menu에 배치하고 다른 Project mutation/Task Editor/Relation Editor가 진행 중이면 시작을 차단한다.
+- initial loading 중 cross-tab revision event를 놓친 경우에도 저장된 최고 revision을 seed하여 canonical snapshot이 최신 revision으로 수렴하도록 보강한다.
+- Application version을 `0.66.0`에서 `0.67.0`으로 증가한다.
+
 ## [0.66.0] - 2026-10-02
 
 ### Added
