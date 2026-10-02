@@ -1512,10 +1512,13 @@ export function ProjectGantt({
     if (!match) return false;
     if (!selectedTaskIdsReference.current.includes(match.taskId)) applySelectionGesture(match.taskId, "single");
     if (!match.element.hasAttribute("tabindex")) match.element.tabIndex = 0;
-    match.element.focus({ preventScroll: true });
-    taskMenuTriggerReference.current = match.element;
+    const focusTrigger = target instanceof HTMLElement && target.matches("input[data-copy-selection]")
+      ? target
+      : match.element;
+    focusTrigger.focus({ preventScroll: true });
+    taskMenuTriggerReference.current = focusTrigger;
     taskMenuScrollChangedReference.current = captureMenuScrollChange(match.element);
-    const bounds = match.element.getBoundingClientRect();
+    const bounds = focusTrigger.getBoundingClientRect();
     const anchorX = x ?? bounds.left + Math.min(bounds.width / 2, 24);
     const anchorY = y ?? bounds.top + Math.min(bounds.height / 2, 24);
     const rootRem = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -1647,8 +1650,12 @@ export function ProjectGantt({
   }
 
   function runTaskShortcut(event: ReactKeyboardEvent<HTMLDivElement>): boolean {
-    if (!(event.target instanceof Element) ||
-      (!event.target.matches("input[data-copy-selection]") && event.target.closest("input, textarea, select, button, a, [contenteditable=true], dialog, .project-task-context-menu"))) return false;
+    if (!(event.target instanceof Element)) return false;
+    const selectionCheckbox = event.target.matches("input[data-copy-selection]");
+    if (!selectionCheckbox && event.target.closest("input, textarea, select, button, a, [contenteditable=true], dialog, .project-task-context-menu")) return false;
+    const modifier = event.ctrlKey || event.metaKey;
+    const shortcutKey = event.key.toLowerCase();
+    if (selectionCheckbox && !(modifier && (shortcutKey === "c" || shortcutKey === "v"))) return false;
     const root = ganttScrollReference.current;
     if (!root) return false;
     const match = resolveSelectionTarget(event.target, root);
@@ -1668,14 +1675,13 @@ export function ProjectGantt({
       (activeClipboard?.mode === "copy" ? canCopy : canHierarchyMutate) &&
       taskHierarchyCommandStaysInSubtree(tasks, viewRootTaskId, pasteCommand),
     );
-    const modifier = event.ctrlKey || event.metaKey;
-    if (modifier && event.key.toLowerCase() === "c" && canCopy) {
+    if (modifier && shortcutKey === "c" && canCopy) {
       copyCurrentSelection(match.taskId);
-    } else if (modifier && event.key.toLowerCase() === "x" && canCut) {
+    } else if (modifier && shortcutKey === "x" && canCut) {
       setTaskClipboard({ mode: "cut", taskId: match.taskId, revision: projectRevision });
-    } else if (modifier && event.key.toLowerCase() === "v" && canPaste && pasteCommand) {
+    } else if (modifier && shortcutKey === "v" && canPaste && pasteCommand) {
       onTaskHierarchyCommandReference.current(pasteCommand);
-    } else if ((event.key === "Delete" || event.key === "Backspace" || (modifier && event.key.toLowerCase() === "d")) && canHierarchyMutate) {
+    } else if ((event.key === "Delete" || event.key === "Backspace" || (modifier && shortcutKey === "d")) && canHierarchyMutate) {
       onTaskDeleteRequestReference.current(match.taskId, match.element);
     } else {
       return false;

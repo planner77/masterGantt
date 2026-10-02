@@ -157,3 +157,12 @@ Resource #331 폼 소스·전용 회귀는 충돌 없이 최신 main 그대로 �
 - 기존 구현은 `setServerConflict()` 직후 `requestAnimationFrame` 1회로 아직 commit되지 않은 ref를 focus할 수 있어 CI 부하에서 ref가 null인 race가 있었다.
 - 보완은 `serverConflict`가 실제 React DOM에 반영된 뒤 effect에서 conflict summary에 focus하도록 변경하고 기존 날짜 필드 aria-invalid/aria-describedby와 수정 버튼 focus 이동 계약을 유지한다.
 - 보완 head에서 새 PR CI를 시작해 전체 quality/e2e/docker를 다시 판정한다.
+
+
+## PR review thread 보완
+
+- Codex review 2건을 현재 head에서 재확인해 모두 실제 동작 경계로 판단했다.
+- selection checkbox에서 `Ctrl/Cmd+X`, `Ctrl/Cmd+D`, Delete/Backspace가 task Cut/Delete 경로로 들어가지 않도록 checkbox 예외를 `Ctrl/Cmd+C,V`로 제한한다.
+- checkbox에서 Shift+F10/ContextMenu로 Task Menu를 열 때 taskId는 row에서 resolve하되 focus trigger는 실제 checkbox를 보존하여 Escape/close 후 checkbox로 복귀한다.
+- Chromium 다중 Copy spec에 mutation shortcut 차단과 checkbox menu focus restoration 회귀를 추가한다.
+- review thread 해결 후 새 exact head PR CI 전체 PASS를 다시 요구하고 그 뒤 merge한다.

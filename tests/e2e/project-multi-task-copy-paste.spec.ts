@@ -130,6 +130,20 @@ test("modifier·Shift checkbox·Space·Escape·checkbox Copy/Paste shortcut", as
   await checkbox(page, b.taskId).focus(); await page.keyboard.press("Control+c");
   await expect(page.getByText(/선택한 2개 작업을 복사했습니다/)).toBeVisible();
   await expect(checkbox(page, a.taskId)).toBeChecked(); await expect(checkbox(page, b.taskId)).toBeChecked();
+  const deleteRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "DELETE" && new URL(request.url()).pathname.includes("/tasks/")) deleteRequests.push(request.url());
+  });
+  await checkbox(page, b.taskId).press("Control+x");
+  await checkbox(page, b.taskId).press("Control+d");
+  await checkbox(page, b.taskId).press("Delete");
+  expect(deleteRequests).toEqual([]);
+  await expect(checkbox(page, b.taskId)).toBeFocused();
+  await checkbox(page, b.taskId).press("Shift+F10");
+  await expect(menu(page)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(menu(page)).toHaveCount(0);
+  await expect(checkbox(page, b.taskId)).toBeFocused();
   const target = tasks["Summary B"]; await checkbox(page, target.taskId).focus();
   const responsePromise = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === `${api}/task-commands`);
   await page.keyboard.press("Control+v"); const response = await responsePromise; expect(response.status()).toBe(200);
