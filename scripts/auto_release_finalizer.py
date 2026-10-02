@@ -353,20 +353,28 @@ def validation_scope_covers(older: WorkItem, replacement: WorkItem) -> bool:
 def supersede_failed_issue_retries(
     items: list[WorkItem],
     ci_success: dict[str, bool],
+    release_failed: dict[str, bool] | None = None,
 ) -> tuple[list[WorkItem], list[tuple[WorkItem, WorkItem]]]:
     """Defer a failed attempt to a later Green merge for the same Issue.
 
-    Unlike adjacent coalescing, this keeps intervening Issues in first-parent
-    order. The failed attempt is omitted only when a later same-Issue target
-    already has exact main CI SUCCESS and its validation scope is at least as
-    strong. The superseded PR remains a cleanup obligation of that later target.
+    A target is eligible for supersession when its exact main CI failed OR its
+    immutable formal release repeatedly completed without success. A later
+    same-Issue target must already have exact main CI SUCCESS, must not itself
+    have failed formal-release evidence, and must provide an equal-or-stronger
+    validation scope. Intervening Issues retain first-parent order and the
+    superseded PR remains a cleanup obligation of the corrective target.
     """
     superseded_indices: set[int] = set()
     cleanup_by_index: dict[int, list[int]] = {}
     superseded: list[tuple[WorkItem, WorkItem]] = []
+    release_failed = release_failed or {}
 
     for index, item in enumerate(items):
-        if ci_success.get(item.target_sha, False):
+        item_failed = (
+            not ci_success.get(item.target_sha, False)
+            or release_failed.get(item.target_sha, False)
+        )
+        if not item_failed:
             continue
         replacement_index: int | None = None
         for candidate_index in range(index + 1, len(items)):
@@ -374,6 +382,8 @@ def supersede_failed_issue_retries(
             if candidate.issue_number != item.issue_number:
                 continue
             if not ci_success.get(candidate.target_sha, False):
+                continue
+            if release_failed.get(candidate.target_sha, False):
                 continue
             if not validation_scope_covers(item, candidate):
                 continue
@@ -433,6 +443,93 @@ def exact_main_ci_success(repo: str, sha: str) -> tuple[bool, str | None]:
     latest = sorted(runs, key=lambda run_data: run_data.get("created_at", ""))[-1]
     ok = latest.get("status") == "completed" and latest.get("conclusion") == "success"
     return ok, latest.get("html_url")
+
+
+def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
+    """Return formal release evidence without mutating tags or workflows.
+
+    States:
+    - not-required: version did not change.
+    - not-started: immutable tag does not exist yet.
+    - tagged: tag exists but no exact release-image run is visible yet.
+    - in-progress: an exact release-image run is still active.
+    - success: exact release-image evidence completed successfully.
+    - failed: tag exists and exact release-image attempts completed without success.
+    """
+    if item.previous_version == item.current_version:
+        return "not-required", None
+
+    tag = f"v{item.current_version}"
+    remote = run(
+        "git",
+        "ls-remote",
+        "--exit-code",
+        "--tags",
+        "origin",
+        f"refs/tags/{tag}",
+        check=False,
+    )
+    if remote.returncode != 0:
+        return "not-started", None
+
+    run("git", "fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
+    if run("git", "cat-file", "-t", f"refs/tags/{tag}").stdout.strip() != "tag":
+        raise AutoFinalizerError(
+            f"{tag}: existing release tag is lightweight; refusing supersession"
+        )
+    actual = run("git", "rev-parse", f"{tag}^{{commit}}").stdout.strip()
+    if actual != item.target_sha:
+        raise AutoFinalizerError(
+            f"{tag}: existing release tag points to {actual}, expected {item.target_sha}"
+        )
+
+    data = gh(f"/repos/{repo}/actions/workflows/release-image.yml/runs?per_page=100")
+    if not isinstance(data, dict):
+        raise AutoFinalizerError("release-image 조회 응답 형식이 올바르지 않습니다")
+    matches = [
+        run_data
+        for run_data in data.get("workflow_runs", [])
+        if run_data.get("head_sha") == item.target_sha
+        and run_data.get("head_branch") == tag
+    ]
+    if not matches:
+        return "tagged", None
+
+    successful = [
+        run_data
+        for run_data in matches
+        if run_data.get("status") == "completed"
+        and run_data.get("conclusion") == "success"
+    ]
+    if successful:
+        latest = sorted(
+            successful,
+            key=lambda run_data: (
+                run_data.get("updated_at", ""),
+                int(run_data.get("run_attempt") or 0),
+            ),
+        )[-1]
+        return "success", latest.get("html_url")
+
+    active = [run_data for run_data in matches if run_data.get("status") != "completed"]
+    if active:
+        latest = sorted(
+            active,
+            key=lambda run_data: (
+                run_data.get("updated_at", ""),
+                int(run_data.get("run_attempt") or 0),
+            ),
+        )[-1]
+        return "in-progress", latest.get("html_url")
+
+    latest = sorted(
+        matches,
+        key=lambda run_data: (
+            run_data.get("updated_at", ""),
+            int(run_data.get("run_attempt") or 0),
+        ),
+    )[-1]
+    return "failed", latest.get("html_url")
 
 
 def lifecycle_command(
@@ -546,9 +643,17 @@ def execute(trigger_sha: str) -> int:
         item.target_sha: exact_main_ci_success(repo, item.target_sha)
         for item in pending_coalesced
     }
+    release_evidence = {
+        item.target_sha: exact_release_state(repo, item)
+        for item in pending_coalesced
+    }
     pending, superseded = supersede_failed_issue_retries(
         pending_coalesced,
         {sha: evidence[0] for sha, evidence in ci_evidence.items()},
+        {
+            sha: state == "failed"
+            for sha, (state, _url) in release_evidence.items()
+        },
     )
 
     if not pending:
@@ -579,19 +684,28 @@ def execute(trigger_sha: str) -> int:
     )
 
     for older, replacement in superseded:
-        _, older_ci_url = ci_evidence[older.target_sha]
+        older_ci_ok, older_ci_url = ci_evidence[older.target_sha]
         _, replacement_ci_url = ci_evidence[replacement.target_sha]
+        older_release_state, older_release_url = release_evidence[older.target_sha]
+        supersede_trigger = (
+            "formal release failure"
+            if older_ci_ok and older_release_state == "failed"
+            else "exact main CI failure"
+        )
         write_summary(
             [
                 "### SUPERSEDED ATTEMPT",
                 "",
                 f"- failed SHA: `{older.target_sha}`",
                 f"- Issue: #{older.issue_number}",
-                f"- failed exact main CI: {older_ci_url or 'N/A'}",
+                f"- supersede trigger: {supersede_trigger}",
+                f"- older exact main CI: {'PASS' if older_ci_ok else 'FAIL'} — {older_ci_url or 'N/A'}",
+                f"- older formal release: {older_release_state} — {older_release_url or 'N/A'}",
                 f"- corrective SHA: `{replacement.target_sha}`",
                 f"- corrective exact main CI: {replacement_ci_url or 'N/A'}",
                 f"- validation scope: older docs-only={str(older.validation_docs_only).lower()}, corrective docs-only={str(replacement.validation_docs_only).lower()}",
                 f"- cleanup deferred to PR #{replacement.pr_number}",
+                "- immutable failed tag: 이동/덮어쓰기 없음",
                 "- release/finalize mutation: 없음 (corrective target 처리 시 수행)",
             ]
         )
@@ -600,6 +714,10 @@ def execute(trigger_sha: str) -> int:
         ci_ok, ci_url = ci_evidence.get(
             item.target_sha,
             exact_main_ci_success(repo, item.target_sha),
+        )
+        release_state, release_url = release_evidence.get(
+            item.target_sha,
+            exact_release_state(repo, item),
         )
         if not ci_ok:
             write_summary(
@@ -610,6 +728,20 @@ def execute(trigger_sha: str) -> int:
                     f"- Issue: #{item.issue_number}",
                     f"- exact main CI: {ci_url or 'N/A'}",
                     "- 사유: first-parent 순서상 선행 target의 exact main CI SUCCESS를 기다립니다.",
+                    "- mutation: 없음",
+                ]
+            )
+            return 0
+        if release_state == "in-progress":
+            write_summary(
+                [
+                    "### DEFERRED",
+                    "",
+                    f"- SHA: `{item.target_sha}`",
+                    f"- Issue: #{item.issue_number}",
+                    f"- exact main CI: {ci_url or 'N/A'}",
+                    f"- formal release: in-progress — {release_url or 'N/A'}",
+                    "- 사유: immutable release evidence가 완료될 때까지 lifecycle mutation을 중복 실행하지 않습니다.",
                     "- mutation: 없음",
                 ]
             )
