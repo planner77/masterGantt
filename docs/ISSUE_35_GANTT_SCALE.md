@@ -42,3 +42,12 @@ SVAR React Gantt의 `scales` 속성은 `day`, `week`, `month` 등의 시간 단�
 Issue #314의 숫자-only Day Header는 그대로 유지하고 상세 정보는 hover/focus Tooltip으로 progressive disclosure 한다. Day scale은 SVAR 공개 `scales[].css(date)`로 masterGantt-owned `project-gantt-day-date-YYYYMMDD` class를 부여한다. Tooltip 날짜 lookup은 이 class만 사용하며 SVAR 내부 Header DOM 구조에서 날짜를 역추론하지 않는다.
 
 Tooltip은 locale weekday를 항상 표시하고 Effective Project Calendar의 named `NON_WORKING` date에만 canonical name 목록을 추가한다. 일반 weekend는 요일만 표시하며 `WORKING` override 이름은 휴일로 표시하지 않는다. Week scale에서는 해당 class와 Tooltip 동작을 적용하지 않는다. 상세 계약은 [Issue #315 설계](ISSUE_315_DAY_HEADER_TOOLTIP.md)를 따른다.
+
+
+## Issue #316 Week Header Tooltip
+
+Issue #315의 Day Header Tooltip에서 검증한 public scale CSS class/date parser와 hover/focus overlay lifecycle을 Week scale에도 적용한다. Week Header 본문은 기존 ISO `W01~W53`을 유지한다. SVAR Week `css(date)`가 실제 runtime에서 ISO 주의 Sunday anchor를 전달하므로 이를 ISO Monday로 정규화한 뒤 `project-gantt-week-date-YYYYMMDD` app-owned class의 날짜 key로 사용한다.
+
+Tooltip의 근무일 수는 기존 Scheduling `createWorkingCalendar` + `workingDaysBetween`으로 계산한다. 명명된 `NON_WORKING` 날짜는 #315의 `projectHolidayNamesForDate` projection을 재사용해 날짜와 모든 canonical 이름을 표시하고, 이름 없는 휴일은 계산에만 반영한다. `WORKING` override는 실제 근무일 수에 반영하되 공휴일명으로 표시하지 않는다.
+
+Hover/focus, `aria-describedby`, Escape, scroll/resize 재배치, viewport edge clamp 및 Day↔Week 전환 시 overlay 정리는 #315와 같은 interaction 계약을 따른다. Gantt/API instance와 기존 68px Week cell width는 유지한다. 상세 계약은 [Issue #316 설계](ISSUE_316_WEEK_HEADER_TOOLTIP.md)를 따른다.

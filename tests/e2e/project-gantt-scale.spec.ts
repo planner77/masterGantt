@@ -16,6 +16,7 @@ test("switches the Gantt timeline between day and ISO week headers without remou
           weekendDays: [6, 0],
           holidays: [
             { date: "2026-09-22", name: "Fixture holiday" },
+            { date: "2026-09-24", name: "Week-only holiday" },
             { date: "2026-09-26", name: "Weekend named holiday" },
           ],
           exceptions: [
@@ -24,6 +25,12 @@ test("switches the Gantt timeline between day and ISO week headers without remou
               dayType: "NON_WORKING",
               name: "Fixture holiday",
               names: ["Fixture holiday", "Company anniversary"],
+            },
+            {
+              date: "2026-09-24",
+              dayType: "NON_WORKING",
+              name: "Week-only holiday",
+              names: ["Week-only holiday", "Plant shutdown"],
             },
             {
               date: "2026-09-26",
@@ -150,6 +157,41 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(gantt.getByText("W38", { exact: true })).toBeVisible();
   await expect(gantt.getByText("W39", { exact: true })).toBeVisible();
   await expect(gantt.getByText(/9\/14.*9\/20/)).toHaveCount(0);
+
+  const week38 = page.locator(".project-gantt-week-date-20260914");
+  const week39 = page.locator(".project-gantt-week-date-20260921");
+  const weekTooltip = page.getByRole("tooltip");
+  await expect(week38).toBeVisible();
+  await expect(week39).toBeVisible();
+
+  await week38.hover();
+  await expect(weekTooltip).toBeVisible();
+  await expect(weekTooltip).toContainText("근무일: 5일");
+  await expect(week38).toHaveAttribute("aria-describedby", /week-header-tooltip/);
+  await expect(weekTooltip).not.toContainText("공휴일:");
+
+  await page.mouse.move(1, 1);
+  await week39.focus();
+  await expect(weekTooltip).toBeVisible();
+  await expect(weekTooltip).toContainText("근무일: 4일");
+  await expect(weekTooltip).toContainText("Fixture holiday");
+  await expect(weekTooltip).toContainText("Company anniversary");
+  await expect(weekTooltip).toContainText("Week-only holiday");
+  await expect(weekTooltip).toContainText("Plant shutdown");
+  await expect(weekTooltip).toContainText("Weekend named holiday");
+  await expect(weekTooltip).not.toContainText("Sunday working override");
+  await expect(week39).toHaveAttribute("aria-label", /근무일 4일/);
+
+  await page.setViewportSize({ width: 1024, height: 900 });
+  const edgeWeek = page.locator(".project-gantt-week-scale").last();
+  await expect(edgeWeek).toBeVisible();
+  await edgeWeek.hover();
+  await expect(weekTooltip).toBeVisible();
+  await expect.poll(async () => {
+    const box = await weekTooltip.boundingBox();
+    return Boolean(box && box.x + box.width <= 1016);
+  }).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 900 });
 
   await day.click();
   await expect(frame).toHaveAttribute("data-gantt-scale-mode", "day");

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.65.0] - 2026-10-02
+
+### Added
+
+- Issue #316: Gantt Week Header hover/focus Tooltip에서 Project Calendar 기준 실제 근무일 수와 명명된 NON_WORKING 공휴일을 표시한다.
+- Issue #315의 검증된 scale CSS class/date parser 및 viewport-safe Tooltip lifecycle을 Week scale에 재사용하고 SVAR Sunday Week anchor를 ISO Monday로 정규화한다.
+- WORKING weekend override와 이름 없는 NON_WORKING을 canonical 근무일 계산에 반영하면서 기존 ISO `Wxx`, Week 68px, Day/Week 전환 및 Gantt/API instance 계약을 유지한다.
+- Application version을 `0.64.0`에서 `0.65.0`으로 증가한다.
+
 ## [0.64.0] - 2026-10-02
 
 ### Added

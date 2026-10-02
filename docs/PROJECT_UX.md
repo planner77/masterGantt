@@ -703,6 +703,13 @@ Project Workspace의 설비/시스템 추가·수정 select는 active catalog �
 일정 탭의 Day Header는 #314의 숫자-only 밀도를 유지한다. Header cell hover/focus에서 locale 요일을 표시하고 현재 Project Effective Calendar에 이름이 있는 NON_WORKING 날짜에만 휴일명을 추가한다. Tooltip은 Chart layout을 늘리지 않는 overlay이며 viewport 안으로 보정하고 pointer interaction을 가로채지 않는다. 동일 날짜의 복수 이름은 canonical snapshot projection을 사용하며 WORKING override는 휴일명으로 표시하지 않는다. Week view에는 이번 Tooltip을 확대하지 않는다.
 
 
+
+## Issue #316 Gantt Week Header 근무일·공휴일 상세정보
+
+일정 탭의 Week Header는 기존 ISO `Wxx`와 68px 폭을 유지한다. Header hover/focus에서 현재 Project Calendar의 실제 7일 근무일 수와 명명된 NON_WORKING 날짜를 progressive disclosure한다. 근무일 수는 월~금 고정값이 아니라 Scheduling calendar의 NON_WORKING/WORKING override를 적용하며, 이름 없는 NON_WORKING은 수치에만 반영한다.
+
+Week Tooltip은 #315 Day Tooltip과 동일한 keyboard/focus, `aria-describedby`, Escape, viewport clamp, resize/scroll 재배치 정책을 사용한다. Day↔Week 전환으로 반대 scale의 target/overlay가 남지 않아야 하며 Project API 재조회, schedule mutation, Gantt/API remount를 발생시키지 않는다. Resource/Resource Group Calendar는 공통 Header 범위에서 제외한다.
+
 ## Issue #289 — 프로젝트 기준정보 UX
 
 `/projects/new` 및 Project 설정의 기본 정보에 사업부·제품·사업장/법인 Select를 추가한다. 세 필드는 선택 사항이며 active catalog만 신규 선택지에 제공한다. catalog 조회 실패는 “선택지 없음”과 구분해 오류/재시도 상태를 표시하고 저장 가능한 정상 빈 목록으로 오인하지 않는다. 기본 필드 validation은 catalog loading 여부와 독립적으로 먼저 제공하며, 유효한 제출은 catalog 확인 전에는 저장하지 않는다.
