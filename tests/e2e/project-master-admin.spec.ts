@@ -123,6 +123,7 @@ test("Issue #332: 전체/활성/비활성 필터는 client-side로 동작하고 
   const inactive = businessFilters.getByRole("button", { name: "비활성", exact: true });
 
   await expect(all).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(async () => active.evaluate((element) => getComputedStyle(element).marginTop)).toBe("0px");
   await expect(page.getByLabel("활성 사업부 이름", { exact: true })).toBeVisible();
   await expect(page.getByLabel("비활성 사업부 이름", { exact: true })).toBeVisible();
 
