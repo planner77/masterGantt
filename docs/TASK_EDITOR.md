@@ -219,3 +219,14 @@ Task Editor Footer의 `최신 정보 다시 불러오기` / `취소` / `저장`�
 - 390px처럼 Footer가 wrap되는 viewport에서는 Reload가 독립 행으로 이동할 수 있지만 Cancel / Save는 같은 행의 상단 기준선을 유지하고 모든 action의 control height는 동일하다.
 - stale / disabled / saving / readonly 상태 변화는 기존 Task PATCH, revision/If-Match, dirty draft, reload confirmation 및 accessible name 계약을 변경하지 않는다.
 - SVAR React Gantt Editor 자체를 교체하거나 PRO Editor API를 도입하지 않는다. 이 보정은 masterGantt-owned native dialog Footer presentation 범위다.
+
+
+## Issue #340 리소스 탭 compact 2-pane 레이아웃
+
+- `전체` 유형에서는 1024px 이상에서 담당 리소스와 리소스 그룹을 content-aware 2-pane으로 표시한다. Resource pane은 allocation 입력을 포함하므로 Group pane보다 넓게 배치한다.
+- `리소스` 또는 `그룹` 유형 필터에서는 선택한 단일 pane이 가용 폭 전체를 사용하며 비어 있는 반대 pane을 남기지 않는다.
+- 미선택 항목은 checkbox + 이름 + 코드 + 비활성 상태를 compact 한 행으로 표시한다. Resource/Group 유형은 section heading에서 구분하므로 반복 badge는 제거한다.
+- 선택 Resource의 투입 시작/종료/투입률은 같은 행 바로 아래 detail 영역에서 가용 폭을 사용한다. Group에는 allocation 입력을 추가하지 않는다.
+- 각 pane은 현재 표시 건수/전체 건수를 노출하고 `등록된 대상 없음`과 `현재 필터와 일치하는 결과 없음`을 구분한다.
+- 768px 이하에서는 pane과 allocation fields를 1열로 stack하며 390/768/1024/1440px에서 dialog/document horizontal overflow를 허용하지 않는다.
+- Assignment PUT, Project/Catalog revision, `If-Match`, 401/412, dirty/stale, canonical snapshot 및 Task/Assignment 독립 저장 계약은 변경하지 않는다.

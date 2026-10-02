@@ -114,10 +114,13 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
   }, [editable, taskId, revision, retry, snapshotKey]);
 
   const selectedTargets = useMemo(() => targets.filter((target) => selected.has(targetKey(target))), [selected, targets]);
+  const eligibleTargets = useMemo(
+    () => targets.filter((target) => editable || selected.has(targetKey(target))),
+    [editable, selected, targets],
+  );
   const visibleTargets = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("ko");
-    return targets
-      .filter((target) => editable || selected.has(targetKey(target)))
+    return eligibleTargets
       .filter((target) => kindFilter === "all" || target.kind === kindFilter)
       .filter((target) => !assignedOnly || selected.has(targetKey(target)))
       .filter((target) => {
@@ -129,7 +132,11 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
         const selectedDifference = Number(selected.has(targetKey(right))) - Number(selected.has(targetKey(left)));
         return selectedDifference || left.name.localeCompare(right.name, "ko");
       });
-  }, [assignedOnly, editable, kindFilter, query, selected, targets]);
+  }, [assignedOnly, eligibleTargets, kindFilter, query, selected]);
+  const visibleResources = useMemo(() => visibleTargets.filter((target) => target.kind === "resource"), [visibleTargets]);
+  const visibleGroups = useMemo(() => visibleTargets.filter((target) => target.kind === "group"), [visibleTargets]);
+  const showResources = kindFilter !== "group";
+  const showGroups = kindFilter !== "resource";
 
   useEffect(() => {
     onSelectionCountChange?.(selected.size);
@@ -211,7 +218,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
     </div> : null}
     {disabled && editable ? <p className={styles.assignmentNotice}>작업 필드 변경 또는 최신 정보 확인이 필요하여 할당 편집이 잠겨 있습니다.</p> : null}
 
-    {!loading && targets.length > 0 ? <div className={styles.assignmentFilters}>
+    {!loading && eligibleTargets.length > 0 ? <div className={styles.assignmentFilters}>
       <label className={styles.searchField}>
         <span>검색</span>
         <input type="search" value={query} placeholder="이름 또는 코드" onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") event.preventDefault(); }} />
@@ -230,41 +237,44 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
       </label>
     </div> : null}
 
-    {ready && targets.length === 0 ? <p className={styles.emptyRelation}>등록된 할당 대상이 없습니다.</p> : null}
-    {!loading && targets.length > 0 && visibleTargets.length === 0 ? <p className={styles.emptyRelation}>현재 필터 조건에 맞는 대상이 없습니다.</p> : null}
+    {ready && eligibleTargets.length === 0 ? <p className={styles.emptyRelation}>{editable ? "등록된 할당 대상이 없습니다." : "이 작업에 할당된 리소스/그룹이 없습니다."}</p> : null}
 
-    {!loading && visibleTargets.length > 0 ? <div className={styles.assignmentList}>
-      {visibleTargets.map((target, index) => {
-        const key = targetKey(target);
-        const checked = selected.has(key);
-        const allocation = allocations[key] ?? { start: "", end: "", percent: "" };
-        const identity = `${target.kind === "resource" ? "리소스" : "그룹"} ${index + 1} ${target.name}${target.code ? ` (${target.code})` : ""}`;
-        const percentIssue = allocationIssues.find((issue) => issue.key === key && issue.field === "percent");
-        const endIssue = allocationIssues.find((issue) => issue.key === key && issue.field === "end");
-        return <article key={key} className={styles.assignmentRow} data-selected={checked || undefined}>
-          <div className={styles.assignmentHeader}>
-            <label className={styles.assignmentToggle}>
-              <input type="checkbox" checked={checked} disabled={!editable || disabled || saving || !ready || (!target.active && !checked)} onChange={() => toggle(target)} />
-              <span className={styles.assignmentIdentity}>
-                <strong>{target.name}</strong>
-                <span className={styles.assignmentBadges}>
-                  <span className={target.kind === "resource" ? styles.resourceBadge : styles.groupBadge}>{target.kind === "resource" ? "Resource" : "Group"}</span>
-                  {target.code ? <code>{target.code}</code> : null}
-                  {!target.active ? <span className={styles.inactiveBadge}>비활성</span> : null}
-                </span>
-              </span>
-            </label>
-          </div>
-          {checked && target.kind === "resource" ? <fieldset className={styles.allocationFieldset}>
-            <legend>{identity} 투입 정보</legend>
-            <div className={styles.allocationGrid}>
-              <label className={styles.field}>투입 시작<input id={`allocation-${key}-start`} aria-label={`${identity} 투입 시작`} type="date" value={allocation.start} disabled={!editable || disabled || saving || !ready} onChange={(event) => changeAllocation(key, "start", event.target.value)} /></label>
-              <label className={styles.field}>투입 종료<input id={`allocation-${key}-end`} aria-label={`${identity} 투입 종료`} aria-invalid={Boolean(endIssue)} aria-describedby={endIssue ? `allocation-${key}-end-error` : undefined} type="date" value={allocation.end} disabled={!editable || disabled || saving || !ready} onChange={(event) => changeAllocation(key, "end", event.target.value)} />{endIssue ? <span className={styles.fieldError} id={`allocation-${key}-end-error`}>{endIssue.message}</span> : null}</label>
-              <label className={styles.field}>투입률 (%)<input id={`allocation-${key}-percent`} aria-label={`${identity} 투입률 (%)`} aria-invalid={Boolean(percentIssue)} aria-describedby={percentIssue ? `allocation-${key}-percent-error` : undefined} type="number" min="0.01" max="100" step="0.01" value={allocation.percent} disabled={!editable || disabled || saving || !ready} onChange={(event) => changeAllocation(key, "percent", event.target.value)} />{percentIssue ? <span className={styles.fieldError} id={`allocation-${key}-percent-error`}>{percentIssue.message}</span> : null}</label>
-            </div>
-          </fieldset> : null}
-        </article>;
-      })}
+    {!loading && eligibleTargets.length > 0 ? <div
+      className={styles.assignmentSections}
+      data-single-pane={kindFilter === "all" ? undefined : "true"}
+    >
+      {showResources ? <AssignmentSection
+        title="담당 리소스"
+        kindLabel="리소스"
+        targets={visibleResources}
+        allTargets={eligibleTargets.filter((target) => target.kind === "resource")}
+        selected={selected}
+        allocations={allocations}
+        allocationIssues={allocationIssues}
+        editable={editable}
+        disabled={disabled}
+        saving={saving}
+        ready={ready}
+        filtered={Boolean(query.trim()) || assignedOnly}
+        onToggle={toggle}
+        onChangeAllocation={changeAllocation}
+      /> : null}
+      {showGroups ? <AssignmentSection
+        title="리소스 그룹"
+        kindLabel="그룹"
+        targets={visibleGroups}
+        allTargets={eligibleTargets.filter((target) => target.kind === "group")}
+        selected={selected}
+        allocations={allocations}
+        allocationIssues={allocationIssues}
+        editable={editable}
+        disabled={disabled}
+        saving={saving}
+        ready={ready}
+        filtered={Boolean(query.trim()) || assignedOnly}
+        onToggle={toggle}
+        onChangeAllocation={changeAllocation}
+      /> : null}
     </div> : null}
 
     <p className={styles.caption}>투입 시작/종료를 비우면 작업의 확정 일정이 적용됩니다. 기존 투입률 미설정 할당은 공수 합계에서 제외됩니다. 그룹 할당은 담당 팀 참조이며 구성원을 개인 할당으로 자동 복제하지 않습니다.</p>
@@ -272,5 +282,72 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
       <span className={styles.assignmentScope}>이 버튼은 리소스/그룹 할당만 저장합니다.</span>
       <button className="secondary-button" type="button" disabled={disabled || saving || !ready} onClick={() => void save()}>{saving ? "할당 저장 중…" : "할당 저장 (" + selectedTargets.length + ")"}</button>
     </div> : null}
+  </section>;
+}
+
+
+interface AssignmentSectionProps {
+  readonly title: string;
+  readonly kindLabel: "리소스" | "그룹";
+  readonly targets: AssignmentTargetDto[];
+  readonly allTargets: AssignmentTargetDto[];
+  readonly selected: Set<string>;
+  readonly allocations: Record<string, AllocationDraft>;
+  readonly allocationIssues: AllocationIssue[];
+  readonly editable: boolean;
+  readonly disabled: boolean;
+  readonly saving: boolean;
+  readonly ready: boolean;
+  readonly filtered: boolean;
+  readonly onToggle: (target: AssignmentTargetDto) => void;
+  readonly onChangeAllocation: (key: string, field: keyof AllocationDraft, value: string) => void;
+}
+
+function AssignmentSection({
+  title, kindLabel, targets, allTargets, selected, allocations, allocationIssues,
+  editable, disabled, saving, ready, filtered, onToggle, onChangeAllocation,
+}: AssignmentSectionProps) {
+  return <section className={styles.assignmentSection} aria-label={title}>
+    <div className={styles.assignmentSectionHeading}>
+      <h4>{title}</h4>
+      <span>{targets.length} / {allTargets.length}</span>
+    </div>
+    {targets.length === 0 ? <p className={styles.assignmentEmpty}>
+      {allTargets.length === 0
+        ? (kindLabel === "그룹" ? "등록된 그룹이 없습니다." : "등록된 리소스가 없습니다.")
+        : filtered ? "현재 필터와 일치하는 결과가 없습니다." : `표시할 ${kindLabel}가 없습니다.`}
+    </p> : <div className={styles.assignmentList}>
+      {targets.map((target, index) => {
+        const key = targetKey(target);
+        const checked = selected.has(key);
+        const allocation = allocations[key] ?? { start: "", end: "", percent: "" };
+        const identity = `${kindLabel} ${index + 1} ${target.name}${target.code ? ` (${target.code})` : ""}`;
+        const percentIssue = allocationIssues.find((issue) => issue.key === key && issue.field === "percent");
+        const endIssue = allocationIssues.find((issue) => issue.key === key && issue.field === "end");
+        return <article key={key} className={styles.assignmentRow} data-selected={checked || undefined}>
+          <label className={styles.assignmentToggle}>
+            <input
+              type="checkbox"
+              checked={checked}
+              disabled={!editable || disabled || saving || !ready || (!target.active && !checked)}
+              onChange={() => onToggle(target)}
+            />
+            <span className={styles.assignmentIdentity}>
+              <strong>{target.name}</strong>
+              {target.code ? <code>{target.code}</code> : null}
+              {!target.active ? <span className={styles.inactiveBadge}>비활성</span> : null}
+            </span>
+          </label>
+          {checked && target.kind === "resource" ? <fieldset className={styles.allocationFieldset}>
+            <legend>{identity} 투입 정보</legend>
+            <div className={styles.allocationGrid}>
+              <label className={styles.field}>투입 시작<input id={`allocation-${key}-start`} aria-label={`${identity} 투입 시작`} type="date" value={allocation.start} disabled={!editable || disabled || saving || !ready} onChange={(event) => onChangeAllocation(key, "start", event.target.value)} /></label>
+              <label className={styles.field}>투입 종료<input id={`allocation-${key}-end`} aria-label={`${identity} 투입 종료`} aria-invalid={Boolean(endIssue)} aria-describedby={endIssue ? `allocation-${key}-end-error` : undefined} type="date" value={allocation.end} disabled={!editable || disabled || saving || !ready} onChange={(event) => onChangeAllocation(key, "end", event.target.value)} />{endIssue ? <span className={styles.fieldError} id={`allocation-${key}-end-error`}>{endIssue.message}</span> : null}</label>
+              <label className={styles.field}>투입률 (%)<input id={`allocation-${key}-percent`} aria-label={`${identity} 투입률 (%)`} aria-invalid={Boolean(percentIssue)} aria-describedby={percentIssue ? `allocation-${key}-percent-error` : undefined} type="number" min="0.01" max="100" step="0.01" value={allocation.percent} disabled={!editable || disabled || saving || !ready} onChange={(event) => onChangeAllocation(key, "percent", event.target.value)} />{percentIssue ? <span className={styles.fieldError} id={`allocation-${key}-percent-error`}>{percentIssue.message}</span> : null}</label>
+            </div>
+          </fieldset> : null}
+        </article>;
+      })}
+    </div>}
   </section>;
 }
