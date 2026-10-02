@@ -164,6 +164,7 @@
 
 .statusFilterButton {
   min-height: 2rem;
+  margin-top: 0;
   white-space: nowrap;
 }
 
