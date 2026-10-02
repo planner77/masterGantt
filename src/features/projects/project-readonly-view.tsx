@@ -33,6 +33,7 @@ import { ProjectResourceWorkload } from "@/features/resources/project-resource-w
 import { ProjectLogisticsManagement } from "@/features/logistics/project-logistics-management";
 import { todayLocalDateString } from "@/lib/date-display";
 import { canAcceptCanonicalSnapshot, replayConfirmedSnapshot } from "./canonical-snapshot-recovery";
+import { mergePendingProjectRevision, shouldRetireDurableProjectRevision } from "./project-revision-sync";
 
 const ProjectGantt = dynamic(
   () => import("@/features/gantt/project-gantt").then((module) => module.ProjectGantt),
@@ -153,6 +154,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const confirmedSnapshotReference = useRef<ProjectSnapshotResponse | null>(null);
   const crossTabRefreshInFlightReference = useRef(false);
   const crossTabPendingRevisionReference = useRef(0);
+  const crossTabDurableCatchUpRevisionReference = useRef(0);
   const [permission, setPermission] = useState<Permission>("readonly");
   const [permissionCheckState, setPermissionCheckState] = useState<PermissionCheckState>("checking");
   const [retryKey, setRetryKey] = useState(0);
@@ -355,23 +357,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   useEffect(() => {
     const key = projectRevisionStorageKey(publicId);
 
-    // A revision may have been announced before this tab registered its
-    // storage listener (for example while the initial canonical GET is still
-    // loading). Seed the pending revision from durable same-origin storage so
-    // the tab can converge after it becomes ready even when the event itself
-    // was missed.
-    try {
-      const storedRevision = Number(window.localStorage.getItem(key) ?? "0");
-      if (Number.isFinite(storedRevision)) {
-        crossTabPendingRevisionReference.current = Math.max(
-          crossTabPendingRevisionReference.current,
-          storedRevision,
-        );
-      }
-    } catch {
-      // Cross-tab freshness remains best-effort; canonical GET is authoritative.
-    }
-
     const refreshToPendingRevision = async () => {
       if (crossTabRefreshInFlightReference.current || state.status !== "ready") return;
       crossTabRefreshInFlightReference.current = true;
@@ -393,7 +378,30 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             notify("error", "다른 탭의 변경 사항을 현재 화면에 반영하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인", body);
             break;
           }
+          if (fetchedRevision >= crossTabDurableCatchUpRevisionReference.current) {
+            crossTabDurableCatchUpRevisionReference.current = 0;
+          }
           if (fetchedRevision <= currentRevision && crossTabPendingRevisionReference.current > fetchedRevision) {
+            const targetRevision = crossTabPendingRevisionReference.current;
+            const durableRevision = crossTabDurableCatchUpRevisionReference.current;
+            if (shouldRetireDurableProjectRevision(
+              durableRevision,
+              targetRevision,
+              currentRevision,
+              fetchedRevision,
+            )) {
+              crossTabPendingRevisionReference.current = Math.max(currentRevision, fetchedRevision);
+              crossTabDurableCatchUpRevisionReference.current = 0;
+              try {
+                const storedRevision = Number(window.localStorage.getItem(key));
+                if (Number.isSafeInteger(storedRevision) && storedRevision <= durableRevision) {
+                  window.localStorage.removeItem(key);
+                }
+              } catch {
+                // Server revision remains authoritative even if storage cleanup fails.
+              }
+              break;
+            }
             notify("error", "다른 탭의 최신 변경이 아직 조회되지 않았습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인");
             break;
           }
@@ -405,20 +413,46 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       }
     };
 
+    const mergeAnnouncement = (announcedValue: unknown, source: "live" | "durable") => {
+      const currentRevision = confirmedSnapshotReference.current?.data.project.revision ?? 0;
+      const previousPending = crossTabPendingRevisionReference.current;
+      const nextPending = mergePendingProjectRevision(
+        previousPending,
+        currentRevision,
+        announcedValue,
+      );
+      crossTabPendingRevisionReference.current = nextPending;
+      const announcedRevision = Number(announcedValue);
+      if (source === "durable" && nextPending > previousPending) {
+        crossTabDurableCatchUpRevisionReference.current = Math.max(
+          crossTabDurableCatchUpRevisionReference.current,
+          nextPending,
+        );
+      } else if (
+        source === "live" &&
+        Number.isSafeInteger(announcedRevision) &&
+        announcedRevision >= crossTabDurableCatchUpRevisionReference.current
+      ) {
+        crossTabDurableCatchUpRevisionReference.current = 0;
+      }
+    };
+
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== key) return;
-      const announcedRevision = Number(event.newValue);
-      const currentRevision = confirmedSnapshotReference.current?.data.project.revision ?? 0;
-      if (!Number.isFinite(announcedRevision) || announcedRevision <= currentRevision) return;
-
-      crossTabPendingRevisionReference.current = Math.max(
-        crossTabPendingRevisionReference.current,
-        announcedRevision,
-      );
+      mergeAnnouncement(event.newValue, "live");
       if (state.status === "ready") void refreshToPendingRevision();
     };
 
     window.addEventListener("storage", handleStorage);
+    // The storage event is not replayed when it fires before this effect installs
+    // its listener. Register first, then read the durable localStorage value so
+    // both "already happened" and "happens now" announcements converge into the
+    // same pending revision without an event-loss window.
+    try {
+      mergeAnnouncement(window.localStorage.getItem(key), "durable");
+    } catch {
+      // Cross-tab freshness remains best-effort; server revision is authoritative.
+    }
     // A revision event may have arrived while the initial load or beginRefresh
     // was still pending. Once a canonical snapshot makes the workspace ready,
     // converge immediately to the highest queued revision.

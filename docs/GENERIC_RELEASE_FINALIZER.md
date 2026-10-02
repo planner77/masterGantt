@@ -34,6 +34,7 @@ Issue #350에서 Issue별 one-shot finalizer를 제거하고 main CI 이후 life
 5. 인접한 same-Issue corrective merge는 각 merge의 immediate first-parent diff가 모두 docs-only이거나 모두 non-docs인 경우에만 최신 target으로 수렴한다. 검증 scope가 다르면 coalesce하지 않아 앞선 실패 merge를 우회하지 않는다.
 6. coalesce된 모든 PR identity를 보존하고 formal release가 필요하면 release 성공 후 각 merged branch를 `safe_branch_cleanup.py`로 검증·정리한다. 모든 branch cleanup이 PASS하기 전에는 FINAL marker와 Issue close를 수행하지 않는다.
 7. ambiguity 또는 누락은 fail-closed이며 branch/tag/Issue mutation을 하지 않는다.
+8. exact main CI는 SUCCESS지만 immutable version tag의 exact `release-image`가 completed non-success로 끝난 경우, later same-Issue corrective merge가 exact main CI SUCCESS이고 validation scope가 동등 이상이면 오래된 release target을 supersede할 수 있다. 실패한 tag는 이동·덮어쓰기하지 않고 이전 PR branch cleanup 의무를 corrective target으로 이관한다. exact release가 아직 실행 중이면 `DEFERRED`하며 supersede하지 않는다.
 
 ## Release required 판정
 
@@ -86,5 +87,5 @@ No-release 변경은 `finalize`만 호출하여 동일한 multi-PR safe branch c
 
 - release approval 부족 → 승인 marker 기록 후 failed generic finalizer 재실행
 - safe branch cleanup blocker → stacked/open PR dependency 정리 후 기존 run 재실행
-- release-image 실패 → 원인 보완 후 동일 release evidence 경로를 재개하며 tag 이동/덮어쓰기를 하지 않는다
+- release-image 실패 → 동일 immutable tag를 반복 덮어쓰지 않는다. 동일 source에서 재실행 가능한 일시 실패면 기존 release run을 재개하고, 결정적 제품/회귀 결함이면 later same-Issue corrective merge를 새 SemVer로 검증해 release-failure supersession 경로를 사용한다.
 - 수동 `issue-lifecycle.yml workflow_dispatch`는 generic 자동 경로가 사용할 수 없는 복구 상황의 fallback으로만 사용한다.

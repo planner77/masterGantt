@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.67.1] - 2026-10-02
+
+### Fixed
+
+- Issue #331 release recovery: immutable `v0.65.1`의 Release quality가 동일 #373 cross-tab loading race로 두 번 실패한 경우 기존 tag를 이동·덮어쓰지 않고, later same-Issue corrective merge의 Green main CI와 동일/강한 validation scope로 lifecycle을 승계할 수 있도록 Generic Release Finalizer를 보강한다.
+- Formal release 상태를 tag 없음/미실행/진행 중/성공/실패로 판별하고, 진행 중 release는 중복 mutation 없이 DEFERRED하며, completed non-success release만 corrective supersession 후보로 취급한다.
+- Cross-tab durable revision announcement는 listener 설치 후 localStorage를 병합하고 authoritative GET이 전진하지 않는 stale durable target은 폐기해 초기 loading race와 영구 stale revision 반복을 함께 방지한다.
+- Application version을 `0.67.0`에서 `0.67.1`로 증가한다.
+
 ## [0.67.0] - 2026-10-02
 
 ### Added
