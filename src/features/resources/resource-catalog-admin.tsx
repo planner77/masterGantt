@@ -219,12 +219,14 @@ export function ResourceCatalogAdmin() {
         return false;
       }
       if (response.status === 412) {
+        if (method === "DELETE") setPendingDelete(null);
         const latest = await loadCatalog(controller);
         if (latest) setError("다른 관리 변경이 먼저 저장되었습니다. 최신 목록을 불러왔습니다. 초안을 확인한 후 다시 저장해 주세요.");
         return false;
       }
       const errorCode = apiErrorCode(value);
       if (response.status === 409 && (errorCode === "RESOURCE_IN_USE" || errorCode === "RESOURCE_GROUP_IN_USE")) {
+        if (method === "DELETE") setPendingDelete(null);
         const latest = await loadCatalog(controller);
         if (latest) setError("프로젝트에서 사용 중인 항목은 삭제할 수 없습니다. 최신 사용 상태를 불러왔습니다.");
         return false;
@@ -333,7 +335,18 @@ export function ResourceCatalogAdmin() {
     );
     if (!successful) return;
 
-    if (target.kind === "group" && selectedGroupId === target.id) {
+    if (target.kind === "resource") {
+      setSelectedMembers((current) => {
+        if (!current.has(target.id)) return current;
+        const next = new Set(current);
+        next.delete(target.id);
+        return next;
+      });
+      setSelectedGroupSnapshot((current) => current ? {
+        ...current,
+        memberResourceIds: current.memberResourceIds.filter((resourceId) => resourceId !== target.id),
+      } : current);
+    } else if (selectedGroupId === target.id) {
       setSelectedGroupId("");
       setSelectedGroupSnapshot(null);
       setSelectedMembers(new Set());
