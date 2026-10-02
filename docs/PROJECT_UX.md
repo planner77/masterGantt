@@ -1,5 +1,12 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #384 — 다중 선택 Copy/Paste
+
+공개 Core Grid의 별도 56px 선택 열에 native checkbox를 제공해 이름 셀의 tree toggle·inline editor를 유지한다. 앱의 Project-scoped 선택 집합이 Copy 기준이다. 일반 행 클릭은 단일 선택, Ctrl/Cmd 클릭은 추가/해제, Shift는 같은 parent의 보이는 sibling 중 실제 filter match 범위이며 문맥용 ancestor는 자동 포함하지 않는다. 문맥용 Summary를 명시적으로 선택하는 기존 Copy는 유지한다. Checkbox 클릭·Space는 toggle, Shift checkbox도 range다. 범위가 유효하지 않으면 단일 선택과 이유를 표시한다. 선택 개수와 접힌 하위 숨김 수를 표시하고 checked·행 aria-selected·semantic token을 사용한다.
+
+선택 행의 Context Menu는 집합을 유지하고 Copy는 전체에 적용한다. 선택 밖 행은 singleton으로 바꾸되 Paste target용 clipboard는 유지한다. 메뉴와 Ctrl/Cmd+C는 canonical 순서·ancestor 제거를 공통 적용한다. Summary는 서버가 전체 자손을 포함한다. collapse는 선택을 삭제하지 않는다. 실제 filter 조건/scope/ID 집합 변경은 direct selection을 prune하고 이전 Copy/Cut clipboard를 폐기한다. 배열 참조만 달라진 render는 경계 변경이 아니다.
+
+선택 해제 버튼은 Grid region으로 focus를 복원한다. 메뉴/inline editor 밖 Escape는 선택만 해제하고 focus를 유지한다. Day·Week header의 Escape는 기존 Tooltip 닫기를 우선하며 Task 선택을 유지한다. checkbox의 Copy/Paste와 keyboard Context Menu를 지원하며 다른 input/editor/dialog/contenteditable shortcut은 가로채지 않는다. readonly/saving은 기존 Copy/Paste guard를 따른다. Core에는 공개 select-task로 단일 primary만 반영해 Cut/Move/Delete/Edit는 기존 단일 target을 유지한다. canonical sync 선택은 사용자 gesture로 처리하지 않으며 동일 Gantt instance/scale/scroll/collapse/columns 계약을 유지한다.
 ## Issue #331 Resource 관리 신규 생성 폼 레이아웃
 
 `/resources`의 신규 리소스 폼(이름/코드/개발자 등급/추가)과 신규 리소스 그룹 폼(이름/코드/추가)은 서로 다른 field count를 가지므로 동일한 고정 4열 최소폭 계약을 공유하지 않는다. 각 폼은 전용 grid modifier를 사용하고 데이터 입력 track은 `minmax(0, ...)`로 shrink 가능하게 하며 label/grid item에는 `min-width: 0`, input/select에는 가용 track을 넘지 않는 width/max-width/box-sizing 계약을 적용한다. Action 버튼은 자신의 grid cell 안에서만 배치한다.

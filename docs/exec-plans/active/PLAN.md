@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #384 다중 선택 Task Copy/Paste — PR #391 최신 main 통합·CI 시작 준비
+
+main `2d310d2669d4b80bc961f67d81a4f51a7c3777cc` / `0.65.1`의 fullscreen·관계 편집·Week Tooltip·inline guard를 보존하며 선택 집합·Copy API·내부 Dependency 복제를 통합했다. 현재 후보 version은 `0.66.0`이다. 범위·소유권·version·검증은 [Issue #384 실행 계획](ISSUE_384.md)을 따른다. 사용자 요청 종료점은 PR 및 CI 실행 시작이며 CI 완료 모니터링·병합·릴리스·Issue 종료는 범위 밖이다.
+
 ## Issue #377 Task Editor 관계 탭 관리 — REWORK / 최신 main 재정렬·보완
 
 PR #382의 최초 head `76106b7ba939b70f90312096b4e20dc49983d7ff` CI #1449에서 ESLint와 Chromium E2E가 실패했다. 원인은 관계 mutation 성공 시 부모 `editorSession` 객체 교체로 Task Editor native dialog effect가 다시 실행되어 Relation Editor 위로 올라온 점과, 직접 삭제 confirmation의 keyboard focus handoff가 없던 점이다. 최신 main `fbcbfc9669035b153cfd029545c969596c128731` / `0.63.2`로 재정렬하고 imperative canonical sync + confirmation focus restore로 보완한다. application version은 최신 main 기준 MINOR `0.64.0`이다. 상세는 [Issue #377 실행 계획](ISSUE_377.md)을 따른다.

@@ -5,6 +5,7 @@ import type {
   TaskHierarchyCommandRequest,
   TaskHierarchyCreateSeed,
 } from "../../contracts/projects";
+import { MAX_TASK_COPY_SOURCES } from "../../contracts/projects";
 import { isCanonicalUuidV4 } from "./project-contract";
 import { parseCreateTaskInput } from "./task-contract";
 
@@ -53,10 +54,14 @@ const commandSchema = z.discriminatedUnion("kind", [
   }).strict(),
   z.object({
     kind: z.literal("copy"),
-    taskId: uuid,
+    taskId: uuid.optional(),
+    taskIds: z.array(uuid).min(1).max(MAX_TASK_COPY_SOURCES)
+      .refine((ids) => new Set(ids).size === ids.length).optional(),
     anchorTaskId: uuid,
     placement,
-  }).strict(),
+  }).strict().refine((value) => (value.taskId !== undefined) !== (value.taskIds !== undefined), {
+    message: "Exactly one Copy source field is required.",
+  }),
 ]);
 
 type ParseResult =
@@ -91,6 +96,14 @@ export function parseTaskHierarchyCommand(input: unknown): ParseResult {
       success: false,
       details: [{ path: "task", code: "INVALID_FIELD", message: "Invalid task seed." }],
     };
+  }
+  if (command.kind === "copy") {
+    return { success: true, data: {
+      kind: "copy",
+      taskIds: command.taskIds ?? [command.taskId!],
+      anchorTaskId: command.anchorTaskId,
+      placement: command.placement,
+    } };
   }
   return { success: true, data: command };
 }

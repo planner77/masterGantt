@@ -1,5 +1,11 @@
 # Issue #34 — Task Editor 작업 관계 표시
 
+## Issue #384 — 다중 root Copy 집합의 내부 관계
+
+Copy 집합은 선택 ancestor를 제거한 여러 canonical root와 전체 자손의 union이다. 부모와 자손을 함께 선택해도 각 Task는 한 번만 복제된다. 서로 다른 root 사이 관계도 두 endpoint가 union 안이면 새 Link/Task ID로 복제하고 type과 signed lag/lead를 보존한다. 경계를 넘는 incoming/outgoing 관계는 복제하지 않고 원본 관계는 유지한다.
+
+Task Editor는 Copy 성공의 동일 canonical snapshot에서 복사본 관계를 즉시 읽는다. client가 관계 목록을 재작성하거나 제출하지 않는다. #378의 Link 경계와 Cut/reparent/Delete/Convert 보호를 유지하며 다중 Cut/Delete/Edit는 추가하지 않는다. 입력·원자성은 [API](API.md#issue-384--여러-copy-source의-원자적-처리)를 따른다.
+
 ## Issue #378 — Copy 집합 내부 관계 복제
 
 Task/Summary subtree Copy에서는 관계의 양쪽 작업이 모두 Copy 집합에 포함된 경우에만 관계를 복제한다.

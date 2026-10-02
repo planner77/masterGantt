@@ -254,7 +254,7 @@ export function filterTasksWithAncestors(
   assignments: readonly ProjectAssignmentDto[] | undefined,
   logistics?: ProjectLogisticsDto | undefined,
   logisticsContextTasks: readonly ProjectTaskDto[] = tasks,
-): Readonly<{ tasks: ProjectTaskDto[]; matchCount: number }> {
+): Readonly<{ tasks: ProjectTaskDto[]; matchCount: number; matchingTaskIds: readonly string[] }> {
   const assigned = buildAssignmentIdsByTask(assignments);
   const effectiveLogistics = buildTaskEffectiveLogisticsMap(logisticsContextTasks, logistics);
   const matching = tasks.filter((task) => taskMatchesFilter(task, filter, assigned, effectiveLogistics));
@@ -269,7 +269,7 @@ export function filterTasksWithAncestors(
       parentId = byExternalId.get(parentId)?.parentExternalId ?? null;
     }
   }
-  return { tasks: tasks.filter((task) => visibleExternalIds.has(task.externalId)), matchCount: matching.length };
+  return { tasks: tasks.filter((task) => visibleExternalIds.has(task.externalId)), matchCount: matching.length, matchingTaskIds: matching.map((task) => task.taskId) };
 }
 
 export function activeTaskFilterCount(filter: TaskFilterState): number {

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.68.0] - 2026-10-02
+
+### Added
+
+- Issue #384: Gantt의 checkbox·Ctrl/Cmd·Shift 다중 선택 집합을 Copy/Paste하고 canonical hierarchy 순서로 여러 root 및 전체 자손을 복제한다.
+- 내부 Dependency를 새 Task/Link ID로 재매핑하며 외부 Link 제외, 단일 Cut/Edit/Delete/Move 경계, 기존 일정 재계산·원자성·권한·revision 계약을 유지한다.
+- 기존 단일 Copy API와 호환되는 `taskIds` 계약과 selection/filter/clipboard 및 SQLite·Chromium 회귀 검증을 추가한다.
+
+### Fixed
+
+- SVAR가 우클릭 pointer gesture 중 row DOM을 교체해 contextmenu target이 조상으로 재지정되는 경우 pointerdown Task ID로 현재 canonical row를 다시 resolve해 작업 메뉴를 안정적으로 연다.
+- 리소스 캘린더 서버 충돌 summary focus를 `setState` 직후 단발성 `requestAnimationFrame`에 의존하지 않고 실제 React commit 이후 effect에서 적용해 CI 부하에서도 접근성 focus 계약을 안정적으로 유지한다.
+- PR review 보완으로 selection checkbox의 task shortcut을 Copy/Paste로 제한하고, keyboard Context Menu 종료 시 실제 checkbox trigger로 focus를 복원한다.
+- Application version을 `0.67.2`에서 `0.68.0`으로 증가한다.
+
 ## [0.67.2] - 2026-10-02
 
 ### Changed

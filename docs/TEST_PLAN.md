@@ -1,5 +1,18 @@
 # Test Plan
 
+## Issue #384 — 다중 선택 Task Copy/Paste
+
+Selection Unit은 canonical preorder·ancestor/중복 제거·empty Summary·single/toggle/visible sibling range·다른 parent fallback·unknown/stale ID·collapse 숨김/선택 보존·canonical 불변을 확인한다. command/scope는 Copy taskIds·single Cut 분리와 모든 source/anchor subtree 경계를 확인한다.
+
+실제 SQLite/HTTP 통합은 여러 root before/after/child·WBS 2/10 순서·FS/SS/FF/SF signed lag/lead·경계 Link 제외·metadata/Baseline·원본 불변·ancestor union·Assignment·500 source/5000 Task·rollback·Origin/session/If-Match/body limit·DB reopen을 검증한다. DB reopen과 Node 서버 restart는 별도 증거이며 서로 대체하지 않는다.
+
+Chromium 신규 `project-multi-task-copy-paste.spec.ts`는 역순 checkbox→selected row Copy→Summary child Paste·새 endpoint·revision +1·Editor 관계·same instance·column width/scale/collapse/scroll 보존·reload 및 동일 DB 실제 서버 재시작과 390/768/1024/1440px screenshot/overflow를 확인한다. modifier/Shift checkbox/Space/Copy/Paste/Escape는 이중 toggle·inline 간섭 없이 확인한다. 선택 상태에서 Day·Week header Escape는 Tooltip을 우선 닫고 Task 선택을 유지한다. 기존 DnD/rename/double-click/scoped/readonly/pending/412 회귀는 관련 spec을 사용한다.
+
+Review thread 보완으로 selection checkbox focus에서는 task mutation shortcut을 Copy/Paste(`Ctrl/Cmd+C,V`)로 한정하고 Cut/Delete(`Ctrl/Cmd+X,D`, Delete/Backspace)는 입력 guard를 우회하지 않도록 한다. Shift+F10/ContextMenu로 작업 메뉴를 연 경우 닫을 때 실제 checkbox trigger로 focus가 복귀하는지 Chromium 회귀에서 확인한다.
+
+CI #1540.1의 shard 3/4는 #384 기능과 무관한 `project-resource-calendar-exceptions.spec.ts`의 conflict summary focus 한 건만 실패했다. 원인은 `setServerConflict()` 직후 단발성 rAF가 React commit 전에 실행될 수 있는 timing race였으며, serverConflict DOM commit 후 effect focus로 보완한다. 기존 E2E의 conflict summary focus·aria-invalid/aria-describedby·수정 버튼 focus 이동 계약은 그대로 재사용한다.
+
+전문 Agent는 read-only patch를 작성하고 Manager가 승인 경로로 편집·실행했다. 이전 0.66.0 통합 후보에서 관련 Unit/SQLite/HTTP·관계·Week Tooltip 89개 PASS와 Chromium 집중 24개 PASS를 확보했다. PR CI #1515.1에서는 quality/build/typecheck/policy/docker가 PASS였고 Chromium shard 2/4·3/4에서 context-menu DOM 교체 회귀와 구 selection 기대를 확인해 보완했다. PR CI #1535.1은 quality/build/Vitest/TypeScript/ESLint/policy/docker와 Chromium shard 1/3/4가 PASS했고 shard 2/4에서 fullscreen 회귀 테스트가 가상화로 화면 밖인 `Stable leaf` DOM을 즉시 조회해 1건 실패했다. 제품 selection 상태는 `Scroll task 8` 및 `선택 1개`로 확인되므로, 현재 main 0.67.2 기준 재정렬 head에서는 스크롤 복원 뒤 `Stable leaf` 비선택을 검증하도록 테스트 순서를 보완하고 전체 PR CI를 다시 판정한다. 초기 FAIL·수정 근거·4폭 캡처·실제 서버 restart는 [실행 기록](exec-plans/active/ISSUE_384.md)에 구분하며 touch device/screen reader는 별도 미실행이다.
 ## Issue #331 Resource 관리 생성 폼 overlap 회귀
 
 - Release #91 회귀 보완: initial Project loading 중 storage listener 설치 전에 발생한 revision announcement는 listener 등록 후 durable localStorage revision을 pending revision에 병합하고, authoritative follow-up GET이 전진하지 않는 stale durable target은 폐기한다. `project-revision-sync.test.ts`와 기존 #373 loading/cross-tab E2E가 이 계약을 고정한다.

@@ -244,6 +244,9 @@ export type TaskHierarchyCreateSeed = Omit<CreateTaskRequest, "externalId" | "pa
       start?: null; end?: null; duration?: null; progress?: null }
 );
 
+/** Explicit Copy sources are bounded independently of descendants/project size. */
+export const MAX_TASK_COPY_SOURCES = 500;
+
 export type TaskHierarchyCommandRequest =
   | {
       kind: "create";
@@ -266,11 +269,19 @@ export type TaskHierarchyCommandRequest =
       taskId: string;
     }
   | {
-      kind: "reparent" | "copy";
+      kind: "reparent";
       taskId: string;
       anchorTaskId: string;
       placement: TaskHierarchyPlacement;
-    };
+    }
+  | ({
+      kind: "copy";
+      anchorTaskId: string;
+      placement: TaskHierarchyPlacement;
+    } & (
+      | { taskIds: readonly string[]; taskId?: never }
+      | { taskId: string; taskIds?: never }
+    ));
 
 export interface ScheduleWarningDto {
   code: "NON_WORKING_START_SHIFTED";
