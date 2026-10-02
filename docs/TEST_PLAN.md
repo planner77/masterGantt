@@ -1034,3 +1034,14 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
   - 기존 Task Editor 390/768/1024/1440px 관계 layout과 dialog/document overflow를 검증한다.
 - 기존 관계선 double-click/Context Menu Relation Editor #203/#266 및 #372 fullscreen E2E를 유지해 신규 Task Editor 진입점이 기존 경로를 회귀시키지 않는지 확인한다.
 - 공식 자동 판정은 동일 PR head의 required `quality`, `e2e`, `docker` 결과를 사용한다.
+
+
+## Issue #329 Resource / Resource Group guarded DELETE 회귀
+
+- Repository/Service: Resource usage를 Task assignment, Equipment role, System role, Resource Calendar의 distinct Project 합집합으로 계산하고 Group usage를 Task group assignment와 Group Calendar 합집합으로 계산한다.
+- 삭제 성공: Project usage 0인 Resource/Group만 삭제되고 해당 `resource_group_members` row만 정리되며 반대편 Group/Resource는 보존된다. 성공한 실제 삭제만 catalog revision을 정확히 +1 한다.
+- 삭제 거부: 각 usage category, inactive 사용 대상, 복수 Project 사용, stale catalog revision에서 삭제/membership/revision이 모두 rollback되고 `RESOURCE_IN_USE` 또는 `RESOURCE_GROUP_IN_USE`를 반환한다.
+- Security/API: DELETE는 Resource Catalog 관리자 session + exact Origin + strong catalog `If-Match`를 요구하며 route security inventory에도 동일 정책으로 등록한다.
+- Chromium: 사용 중 항목은 `삭제 불가`와 Project 사용 수를 노출하고, 미사용 항목은 confirmation dialog를 거친다. Group 삭제는 member Resource 보존 안내를 제공한다. Cancel은 trigger focus를 복원하고 성공 후 같은 검색 입력으로 focus를 이동하며 검색어를 유지한다.
+- 390/768/1024/1440px에서 Resource/Group action 영역과 사용 사유가 겹치거나 document horizontal overflow를 만들지 않는다.
+- 공식 전체 회귀 판정은 Issue #329 PR exact-head GitHub Actions `quality/e2e/docker` 결과를 사용한다.

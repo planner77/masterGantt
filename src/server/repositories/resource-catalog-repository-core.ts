@@ -29,6 +29,33 @@ export interface AssignmentRecord {
   allocationPercent: number | null;
 }
 
+export interface CatalogTargetProjectUsage {
+  projectCount: number;
+  taskAssignmentProjectCount: number;
+  equipmentRoleProjectCount: number;
+  systemRoleProjectCount: number;
+  calendarProjectCount: number;
+}
+
+interface ProjectUsageRow {
+  target_id: number;
+  project_count: number;
+  task_assignment_project_count: number;
+  equipment_role_project_count: number;
+  system_role_project_count: number;
+  calendar_project_count: number;
+}
+
+function mapProjectUsage(rows: readonly ProjectUsageRow[]): Map<number, CatalogTargetProjectUsage> {
+  return new Map(rows.map((row) => [row.target_id, {
+    projectCount: row.project_count,
+    taskAssignmentProjectCount: row.task_assignment_project_count,
+    equipmentRoleProjectCount: row.equipment_role_project_count,
+    systemRoleProjectCount: row.system_role_project_count,
+    calendarProjectCount: row.calendar_project_count,
+  }]));
+}
+
 interface TargetRow {
   id: number;
   public_id: string;
@@ -92,6 +119,76 @@ export class ResourceCatalogRepository {
     if (!row) return undefined;
     const members = this.database.prepare(`SELECT r.public_id FROM resource_group_members gm JOIN resources r ON r.id = gm.resource_id WHERE gm.group_id = ? ORDER BY lower(r.name), r.public_id`).all(row.id) as { public_id: string }[];
     return { ...mapTarget(row), memberResourceIds: members.map((member) => member.public_id) };
+  }
+
+  listResourceProjectUsage(): Map<number, CatalogTargetProjectUsage> {
+    const rows = this.database.prepare(`
+      WITH usage AS (
+        SELECT resource_id AS target_id, project_id, 'task_assignment' AS category
+          FROM task_assignments
+         WHERE resource_id IS NOT NULL
+        UNION ALL
+        SELECT resource_id, project_id, 'equipment_role'
+          FROM project_equipment_resource_roles
+        UNION ALL
+        SELECT resource_id, project_id, 'system_role'
+          FROM project_system_resource_roles
+        UNION ALL
+        SELECT r.id, w.project_id, 'calendar'
+          FROM work_calendar_rules w
+          JOIN resources r ON r.public_id = w.target_public_id
+         WHERE w.target_type = 'RESOURCE'
+      )
+      SELECT target_id,
+             COUNT(DISTINCT project_id) AS project_count,
+             COUNT(DISTINCT CASE WHEN category = 'task_assignment' THEN project_id END) AS task_assignment_project_count,
+             COUNT(DISTINCT CASE WHEN category = 'equipment_role' THEN project_id END) AS equipment_role_project_count,
+             COUNT(DISTINCT CASE WHEN category = 'system_role' THEN project_id END) AS system_role_project_count,
+             COUNT(DISTINCT CASE WHEN category = 'calendar' THEN project_id END) AS calendar_project_count
+        FROM usage
+       GROUP BY target_id
+    `).all() as ProjectUsageRow[];
+    return mapProjectUsage(rows);
+  }
+
+  listGroupProjectUsage(): Map<number, CatalogTargetProjectUsage> {
+    const rows = this.database.prepare(`
+      WITH usage AS (
+        SELECT group_id AS target_id, project_id, 'task_assignment' AS category
+          FROM task_assignments
+         WHERE group_id IS NOT NULL
+        UNION ALL
+        SELECT g.id, w.project_id, 'calendar'
+          FROM work_calendar_rules w
+          JOIN resource_groups g ON g.public_id = w.target_public_id
+         WHERE w.target_type = 'RESOURCE_GROUP'
+      )
+      SELECT target_id,
+             COUNT(DISTINCT project_id) AS project_count,
+             COUNT(DISTINCT CASE WHEN category = 'task_assignment' THEN project_id END) AS task_assignment_project_count,
+             0 AS equipment_role_project_count,
+             0 AS system_role_project_count,
+             COUNT(DISTINCT CASE WHEN category = 'calendar' THEN project_id END) AS calendar_project_count
+        FROM usage
+       GROUP BY target_id
+    `).all() as ProjectUsageRow[];
+    return mapProjectUsage(rows);
+  }
+
+  removeResourceMemberships(resourceId: number): void {
+    this.database.prepare("DELETE FROM resource_group_members WHERE resource_id = ?").run(resourceId);
+  }
+
+  removeGroupMemberships(groupId: number): void {
+    this.database.prepare("DELETE FROM resource_group_members WHERE group_id = ?").run(groupId);
+  }
+
+  deleteResource(id: number): boolean {
+    return this.database.prepare("DELETE FROM resources WHERE id = ?").run(id).changes === 1;
+  }
+
+  deleteGroup(id: number): boolean {
+    return this.database.prepare("DELETE FROM resource_groups WHERE id = ?").run(id).changes === 1;
   }
 
   insertResource(input: { publicId: string; name: string; code: string | null; description: string; developerGrade?: DeveloperGrade | null; now: string }): CatalogTargetRecord {

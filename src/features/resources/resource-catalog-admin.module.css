@@ -107,4 +107,9 @@
 .inlineGradeLabel { display: flex; align-items: center; gap: .35rem; color: var(--text-muted); font-size: .8rem; white-space: nowrap; }
 .inlineGradeLabel select { min-height: 34px; border: 1px solid var(--border-control); border-radius: calc(var(--radius) - 0.125rem); background: var(--surface-panel); color: var(--text-default); padding: .3rem .45rem; font: inherit; }
 .inlineGradeLabel select:focus-visible, .formRow select:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
-@media (max-width: 40rem) { .resourceActions { justify-content: flex-start; } }
+@media (max-width: 40rem) {
+  .item { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .actions, .resourceActions { justify-content: flex-start; }
+}
+
+.usageNote { color: var(--text-muted); font-size: .82rem; }

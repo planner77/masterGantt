@@ -21,6 +21,7 @@ import { ProjectRepository, EditSessionRepository } from "../repositories/projec
 import {
   ResourceCatalogRepository,
   type AssignmentRecord,
+  type CatalogTargetProjectUsage,
   type CatalogTargetRecord,
 } from "../repositories/resource-catalog-repository-core";
 import { ScheduleRepository } from "../repositories/schedule-repository-core";
@@ -36,6 +37,15 @@ export class ResourceCatalogAuthorizationError extends Error {}
 export class ResourceCatalogRevisionMismatchError extends Error {}
 export class ResourceCatalogTargetNotFoundError extends Error {}
 export class ResourceCatalogTargetInactiveError extends Error {}
+export class ResourceCatalogTargetInUseError extends Error {
+  constructor(
+    readonly kind: "resource" | "group",
+    readonly usage: CatalogTargetProjectUsage,
+  ) {
+    super(`${kind} is referenced by one or more projects.`);
+    this.name = "ResourceCatalogTargetInUseError";
+  }
+}
 export class ResourceCatalogInvalidInputError extends Error {}
 export class ResourceCatalogProjectRevisionMismatchError extends Error {}
 export class ResourceCatalogTaskNotFoundError extends Error {}
@@ -216,7 +226,39 @@ export class ResourceCatalogService {
 
   getCatalog(rawAdminToken: string | undefined): ResourceCatalogResponse {
     this.requireAdmin(rawAdminToken);
-    return { data: { revision: this.catalog.getRevision(), resources: this.catalog.listResources().map((r) => ({ id:r.publicId,name:r.name,code:r.code,description:r.description,active:r.active,developerGrade:r.developerGrade })), groups: this.catalog.listGroups().map((g) => ({ id:g.publicId,name:g.name,code:g.code,description:g.description,active:g.active,memberResourceIds:g.memberResourceIds })) } };
+    const resourceUsage = this.catalog.listResourceProjectUsage();
+    const groupUsage = this.catalog.listGroupProjectUsage();
+    return {
+      data: {
+        revision: this.catalog.getRevision(),
+        resources: this.catalog.listResources().map((resource) => {
+          const projectUsageCount = resourceUsage.get(resource.id)?.projectCount ?? 0;
+          return {
+            id: resource.publicId,
+            name: resource.name,
+            code: resource.code,
+            description: resource.description,
+            active: resource.active,
+            developerGrade: resource.developerGrade,
+            projectUsageCount,
+            deletable: projectUsageCount === 0,
+          };
+        }),
+        groups: this.catalog.listGroups().map((group) => {
+          const projectUsageCount = groupUsage.get(group.id)?.projectCount ?? 0;
+          return {
+            id: group.publicId,
+            name: group.name,
+            code: group.code,
+            description: group.description,
+            active: group.active,
+            memberResourceIds: group.memberResourceIds,
+            projectUsageCount,
+            deletable: projectUsageCount === 0,
+          };
+        }),
+      },
+    };
   }
   createTarget(kind: "resource" | "group", rawAdminToken: string | undefined, expectedRevision: number, input: CreateCatalogTargetRequest): ResourceCatalogResponse {
     if (kind === "group" && input?.developerGrade !== undefined) throw new ResourceCatalogInvalidInputError();
@@ -237,6 +279,41 @@ export class ResourceCatalogService {
       if (!this.catalog.advanceRevision(expectedRevision, now)) throw new ResourceCatalogRevisionMismatchError(); return this.getCatalog(rawAdminToken);
     }); return mutate.immediate();
   }
+  deleteTarget(kind: "resource" | "group", publicId: string, rawAdminToken: string | undefined, expectedRevision: number): ResourceCatalogResponse {
+    const mutate = this.database.transaction(() => {
+      this.requireAdmin(rawAdminToken);
+      if (this.catalog.getRevision() !== expectedRevision) throw new ResourceCatalogRevisionMismatchError();
+      const current = kind === "resource"
+        ? this.catalog.findResourceByPublicId(publicId)
+        : this.catalog.findGroupByPublicId(publicId);
+      if (!current) throw new ResourceCatalogTargetNotFoundError();
+
+      const usage = (kind === "resource"
+        ? this.catalog.listResourceProjectUsage()
+        : this.catalog.listGroupProjectUsage()).get(current.id) ?? {
+        projectCount: 0,
+        taskAssignmentProjectCount: 0,
+        equipmentRoleProjectCount: 0,
+        systemRoleProjectCount: 0,
+        calendarProjectCount: 0,
+      };
+      if (usage.projectCount > 0) throw new ResourceCatalogTargetInUseError(kind, usage);
+
+      if (kind === "resource") {
+        this.catalog.removeResourceMemberships(current.id);
+        if (!this.catalog.deleteResource(current.id)) throw new ResourceCatalogTargetNotFoundError();
+      } else {
+        this.catalog.removeGroupMemberships(current.id);
+        if (!this.catalog.deleteGroup(current.id)) throw new ResourceCatalogTargetNotFoundError();
+      }
+
+      const now = this.clock().toISOString();
+      if (!this.catalog.advanceRevision(expectedRevision, now)) throw new ResourceCatalogRevisionMismatchError();
+      return this.getCatalog(rawAdminToken);
+    });
+    return mutate.immediate();
+  }
+
   replaceGroupMembers(groupPublicId: string, rawAdminToken: string | undefined, expectedRevision: number, input: ReplaceResourceGroupMembersRequest): ResourceCatalogResponse {
     if (!input || !Array.isArray(input.resourceIds) || input.resourceIds.length > 1000 || new Set(input.resourceIds).size !== input.resourceIds.length) throw new ResourceCatalogInvalidInputError();
     const mutate = this.database.transaction(() => {

@@ -11,7 +11,7 @@ Issue #19의 기존 `Decision Required`는 2026-09-15 구현 요청을 승인으
 - 그룹 직접 할당은 ‘담당 팀 참조’이며 멤버 개인 할당을 생성하지 않는다.
 - `task`, `summary`, `milestone` 모두 리소스/그룹 직접 할당을 허용한다.
 - 할당은 일정·진행률·기간·workload·capacity·calendar·leveling 계산에 영향을 주지 않는다.
-- 삭제 대신 비활성화를 기본 제거 방식으로 사용한다. 글로벌 FK는 `ON DELETE RESTRICT`다.
+- 비활성화를 기본 제거 방식으로 사용한다. Issue #329부터 모든 Project-scoped 참조가 0인 Resource/Group만 관리자 guarded DELETE를 허용하며, 같은 transaction에서 Group membership만 정리한다. 글로벌 FK `ON DELETE RESTRICT/NO ACTION`은 최종 fail-closed 방어선으로 유지한다.
 - SVAR React Gantt의 PRO resource API/package는 사용하지 않는다. 앱 자체 DB/API/UI로 구현한다.
 
 ## 2. 공식 SVAR 경계 확인
