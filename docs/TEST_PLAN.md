@@ -1047,3 +1047,15 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - Chromium: 사용 중 항목은 `삭제 불가`와 Project 사용 수를 노출하고, 미사용 항목은 confirmation dialog를 거친다. Group 삭제는 member Resource 보존 안내를 제공한다. Cancel은 trigger focus를 복원하고 성공 후 같은 검색 입력으로 focus를 이동하며 검색어를 유지한다.
 - 390/768/1024/1440px에서 Resource/Group action 영역과 사용 사유가 겹치거나 document horizontal overflow를 만들지 않는다.
 - 공식 전체 회귀 판정은 Issue #329 PR exact-head GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+
+## Issue #332 프로젝트 기준정보 관리자 UI 회귀
+
+- 인증/정보 계층: 로그인 전 관리자 인증 section과 인증 후 session section, 기준정보 관리 section, 항목 추가 section, 목록 section의 heading/구분을 확인한다.
+- 목록 구조: 이름/코드/정렬/상태·사용/작업 column header와 body row 정렬, active/inactive 상태 표시, 기존 저장·활성/비활성 action 접근성을 검증한다.
+- 상태 필터: 기본 `전체`, `활성`, `비활성` 결과를 혼합 fixture로 검증하고 필터 조작만으로 `/api/project-master/admin/items` mutation이 발생하지 않는지 확인한다.
+- category 일관성: 사업부 → 제품 → 사업장/법인 전환 뒤에도 현재 상태 필터가 유지되며 각 category 데이터에 동일 predicate가 적용되는지 확인한다.
+- empty state: 실제 category 데이터 없음과 활성/비활성 필터 결과 0건을 구분해 안내한다.
+- 접근성: category tab의 기존 roving focus와 Arrow/Home/End 계약을 유지하고 상태 필터의 accessible group name 및 `aria-pressed` 상태를 검증한다.
+- Responsive: 390/768/1024/1440px에서 document-level horizontal overflow가 없고, 좁은 viewport에서는 table wrapper의 의도된 내부 수평 scroll만 발생하는지 확인한다.
+- Regression: 기존 관리자 인증/session/Origin/login rate-limit/`If-Match`/412 및 catalog CRUD 의미와 Project 생성·편집의 inactive 참조 보존 계약을 변경하지 않는다.
+- 공식 전체 PASS 판정은 Issue #332 PR exact head의 GitHub Actions `quality` / `e2e` / `docker` 결과를 사용한다.
