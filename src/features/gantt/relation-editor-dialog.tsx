@@ -11,8 +11,11 @@ import {
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import "./relation-editor-dialog.css";
 
-export interface RelationEditorDialogProps {
-  readonly linkId: string;
+type RelationEditorEntryProps =
+  | { readonly linkId: string; readonly anchorTaskId?: never }
+  | { readonly linkId?: never; readonly anchorTaskId: string };
+
+export type RelationEditorDialogProps = RelationEditorEntryProps & {
   readonly links: readonly ProjectLinkDto[];
   readonly tasks: readonly ProjectTaskDto[];
   readonly editable: boolean;
@@ -24,10 +27,11 @@ export interface RelationEditorDialogProps {
     targetTaskId: string,
     options: { type: DependencyType; lag: number },
   ) => Promise<boolean>;
-}
+};
 
 export function RelationEditorDialog({
   linkId: initialLinkId,
+  anchorTaskId: initialAnchorTaskId,
   links,
   tasks,
   editable,
@@ -45,21 +49,22 @@ export function RelationEditorDialog({
   const restoringSearchFocus = useRef(false);
 
   // Active link state
-  const [activeLinkId, setActiveLinkId] = useState<string>(initialLinkId);
-  const activeLink = links.find((l) => l.id === activeLinkId);
+  const initialAnchorTask = initialAnchorTaskId ? tasks.find((task) => task.taskId === initialAnchorTaskId) : undefined;
+  const [activeLinkId, setActiveLinkId] = useState<string | null>(initialLinkId ?? null);
+  const activeLink = activeLinkId ? links.find((l) => l.id === activeLinkId) : undefined;
 
   const tasksByExternalId = useMemo(() => new Map(tasks.map((t) => [t.externalId, t])), [tasks]);
 
   // Anchor task externalId state
   const [anchorExternalId, setAnchorExternalId] = useState<string>(() => {
-    return activeLink ? activeLink.predecessorExternalId : "";
+    return activeLink?.predecessorExternalId ?? initialAnchorTask?.externalId ?? "";
   });
 
   const effectiveAnchorExternalId = activeLink
     ? anchorExternalId === activeLink.predecessorExternalId || anchorExternalId === activeLink.successorExternalId
       ? anchorExternalId
       : activeLink.predecessorExternalId
-    : "";
+    : anchorExternalId;
 
   // Selected link edit state
   const [type, setType] = useState<DependencyType>(activeLink?.type ?? "FS");
@@ -69,7 +74,7 @@ export function RelationEditorDialog({
   const [linkError, setLinkError] = useState<string | null>(null);
 
   // Sync edit state when activeLink changes
-  const [prevLinkId, setPrevLinkId] = useState(activeLinkId);
+  const [prevLinkId, setPrevLinkId] = useState<string | null>(activeLinkId);
   if (prevLinkId !== activeLinkId && activeLink) {
     setPrevLinkId(activeLinkId);
     setType(activeLink.type);
@@ -187,6 +192,9 @@ export function RelationEditorDialog({
         const nextLink = findNextRelatedLink(linkToDeleteId, effectiveAnchorExternalId, links);
         if (nextLink) {
           setActiveLinkId(nextLink.id);
+        } else if (initialAnchorTask) {
+          setActiveLinkId(null);
+          setAnchorExternalId(initialAnchorTask.externalId);
         } else {
           onClose();
         }
@@ -365,7 +373,7 @@ export function RelationEditorDialog({
             </div>
           ) : (
             <div className="relation-editor-section">
-              <p>선택된 관계가 없습니다.</p>
+              <p>{initialAnchorTask ? `기준 작업 [${initialAnchorTask.name}]에서 관계를 선택하거나 새 관계를 추가하세요.` : "선택된 관계가 없습니다."}</p>
             </div>
           )}
 

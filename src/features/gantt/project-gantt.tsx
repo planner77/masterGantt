@@ -31,6 +31,12 @@ import {
   ganttDayScaleClassName,
   type GanttDayHeaderTooltipData,
 } from "./day-header-tooltip";
+import {
+  buildGanttWeekHeaderTooltipDataForDateOnly,
+  dateOnlyFromGanttWeekScaleClassName,
+  ganttWeekScaleClassName,
+  type GanttWeekHeaderTooltipData,
+} from "./week-header-tooltip";
 
 import type {
   ProjectCalendarDto,
@@ -130,6 +136,12 @@ type TaskSubmenuState = Readonly<{ name: TaskSubmenuName; placement: "right" | "
 type GanttScaleMode = "day" | "week";
 type DayHeaderTooltipState = Readonly<{
   data: GanttDayHeaderTooltipData;
+  left: number;
+  top: number;
+  anchorTop: number;
+}>;
+type WeekHeaderTooltipState = Readonly<{
+  data: GanttWeekHeaderTooltipData;
   left: number;
   top: number;
   anchorTop: number;
@@ -295,6 +307,7 @@ export function ProjectGantt({
   const fullscreenFrameReference = useRef<HTMLDivElement>(null);
   const fullscreenButtonReference = useRef<HTMLButtonElement>(null);
   const dayHeaderTooltipReference = useRef<HTMLDivElement>(null);
+  const weekHeaderTooltipReference = useRef<HTMLDivElement>(null);
   const fullscreenPendingReference = useRef(false);
   const fullscreenWasActiveReference = useRef(false);
   const fullscreenUiStateReference = useRef<{
@@ -331,6 +344,7 @@ export function ProjectGantt({
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
   const [dayHeaderTooltip, setDayHeaderTooltip] = useState<DayHeaderTooltipState | null>(null);
+  const [weekHeaderTooltip, setWeekHeaderTooltip] = useState<WeekHeaderTooltipState | null>(null);
   const pendingScaleColumnsReference = useRef<IColumnConfig[] | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenPending, setFullscreenPending] = useState(false);
@@ -340,6 +354,7 @@ export function ProjectGantt({
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
   const dayHeaderTooltipId = `${instanceId}-day-header-tooltip`;
+  const weekHeaderTooltipId = `${instanceId}-week-header-tooltip`;
   const highlightWeekend = useCallback(
     (date: Date, unit: "day" | "hour") => unit === "day" && isWeekend(date) ? "wx-weekend" : "",
     [],
@@ -433,6 +448,15 @@ export function ProjectGantt({
     api.on("open-task", decorate, { tag });
     return () => { observer.disconnect(); api.detach(tag); };
   }, [selectedTaskIds, tasks, apiInstanceId]);
+  // Keep DOM editability and the refs used by native/SVAR handlers in the same
+  // commit phase so the first click after a mutation cannot observe stale guards.
+  useLayoutEffect(() => {
+    canCreateReference.current = editable && !mutationLocked;
+    mutationLockedReference.current = mutationLocked;
+    tasksByIdReference.current = tasksById;
+    projectPublicIdReference.current = projectPublicId;
+    tasksReference.current = tasks;
+  }, [editable, mutationLocked, projectPublicId, tasks, tasksById]);
 
   useEffect(() => {
     onTaskCreateReference.current = onTaskCreate;
@@ -488,7 +512,7 @@ export function ProjectGantt({
     void session.table.exec("close-editor", { ignore: true });
   }, [editable, mutationLocked]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (projectRevisionReference.current === projectRevision) return;
     projectRevisionReference.current = projectRevision;
     inlineOpenTokenReference.current += 1;
@@ -546,14 +570,11 @@ export function ProjectGantt({
       fullscreenWasActiveReference.current = active;
     };
     const onFullscreenError = () => setFullscreenMessage("전체화면으로 전환할 수 없습니다. 브라우저 권한을 확인해 주세요.");
-    const onEditorExitError = () => setFullscreenMessage("전체화면을 종료하지 못해 작업 정보를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.");
     document.addEventListener("fullscreenchange", onFullscreenChange);
     document.addEventListener("fullscreenerror", onFullscreenError);
-    frame.addEventListener("project-gantt-fullscreen-exit-error", onEditorExitError);
     return () => {
       document.removeEventListener("fullscreenchange", onFullscreenChange);
       document.removeEventListener("fullscreenerror", onFullscreenError);
-      frame.removeEventListener("project-gantt-fullscreen-exit-error", onEditorExitError);
       if (document.fullscreenElement === frame) void document.exitFullscreen().catch(() => {});
     };
   }, []);
@@ -1171,6 +1192,154 @@ export function ProjectGantt({
       setDayHeaderTooltip((current) => current ? { ...current, left, top } : current);
     }
   }, [dayHeaderTooltip]);
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root || scaleMode !== "week") {
+      setWeekHeaderTooltip(null);
+      return;
+    }
+
+    const selector = ".project-gantt-week-scale";
+    let activeCell: HTMLElement | null = null;
+    let hoveredCell: HTMLElement | null = null;
+    let focusedCell: HTMLElement | null = null;
+    let repositionFrame: number | null = null;
+
+    const tooltipData = (cell: HTMLElement): GanttWeekHeaderTooltipData | null => {
+      const date = dateOnlyFromGanttWeekScaleClassName(cell.className);
+      return date ? buildGanttWeekHeaderTooltipDataForDateOnly(date, calendar) : null;
+    };
+
+    const markCells = () => {
+      root.querySelectorAll<HTMLElement>(selector).forEach((cell) => {
+        if (!cell.hasAttribute("tabindex")) cell.tabIndex = 0;
+        const data = tooltipData(cell);
+        if (data) cell.setAttribute("aria-label", data.ariaLabel);
+      });
+    };
+
+    const findCell = (target: EventTarget | null): HTMLElement | null => {
+      if (!(target instanceof Element)) return null;
+      const cell = target.closest<HTMLElement>(selector);
+      return cell && root.contains(cell) ? cell : null;
+    };
+
+    const show = (cell: HTMLElement) => {
+      const data = tooltipData(cell);
+      if (!data) return;
+      if (activeCell && activeCell !== cell && activeCell.getAttribute("aria-describedby") === weekHeaderTooltipId) {
+        activeCell.removeAttribute("aria-describedby");
+      }
+      activeCell = cell;
+      cell.setAttribute("aria-describedby", weekHeaderTooltipId);
+      const bounds = cell.getBoundingClientRect();
+      setWeekHeaderTooltip({
+        data,
+        left: bounds.left + bounds.width / 2,
+        top: bounds.bottom + 6,
+        anchorTop: bounds.top,
+      });
+    };
+
+    const hide = () => {
+      if (activeCell?.getAttribute("aria-describedby") === weekHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
+      activeCell = null;
+      setWeekHeaderTooltip(null);
+    };
+
+    const showTrackedCell = () => {
+      const hover = hoveredCell?.isConnected ? hoveredCell : null;
+      const focus = focusedCell?.isConnected ? focusedCell : null;
+      if (hover) show(hover);
+      else if (focus) show(focus);
+      else hide();
+    };
+
+    const onPointerOver = (event: PointerEvent) => {
+      if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
+      const cell = findCell(event.target);
+      if (!cell) return;
+      hoveredCell = cell;
+      show(cell);
+    };
+    const onPointerOut = (event: PointerEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      const related = findCell(event.relatedTarget);
+      if (related === cell) return;
+      if (hoveredCell === cell) hoveredCell = related;
+      showTrackedCell();
+    };
+    const onFocusIn = (event: FocusEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      focusedCell = cell;
+      show(cell);
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      const related = findCell(event.relatedTarget);
+      if (related === cell) return;
+      if (focusedCell === cell) focusedCell = related;
+      showTrackedCell();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || !activeCell) return;
+      hoveredCell = null;
+      focusedCell = null;
+      hide();
+    };
+    const onViewportChange = () => {
+      if (repositionFrame !== null) return;
+      repositionFrame = window.requestAnimationFrame(() => {
+        repositionFrame = null;
+        if (activeCell?.isConnected) show(activeCell);
+        else showTrackedCell();
+      });
+    };
+
+    markCells();
+    const observer = new MutationObserver(markCells);
+    observer.observe(root, { childList: true, subtree: true });
+    root.addEventListener("pointerover", onPointerOver);
+    root.addEventListener("pointerout", onPointerOut);
+    root.addEventListener("focusin", onFocusIn);
+    root.addEventListener("focusout", onFocusOut);
+    root.addEventListener("keydown", onKeyDown);
+    window.addEventListener("resize", onViewportChange);
+    window.addEventListener("scroll", onViewportChange, true);
+    return () => {
+      observer.disconnect();
+      root.removeEventListener("pointerover", onPointerOver);
+      root.removeEventListener("pointerout", onPointerOut);
+      root.removeEventListener("focusin", onFocusIn);
+      root.removeEventListener("focusout", onFocusOut);
+      root.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("resize", onViewportChange);
+      window.removeEventListener("scroll", onViewportChange, true);
+      if (repositionFrame !== null) window.cancelAnimationFrame(repositionFrame);
+      if (activeCell?.getAttribute("aria-describedby") === weekHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
+      setWeekHeaderTooltip(null);
+    };
+  }, [calendar, scaleMode, weekHeaderTooltipId]);
+
+  useLayoutEffect(() => {
+    const tooltip = weekHeaderTooltipReference.current;
+    if (!tooltip || !weekHeaderTooltip) return;
+    const bounds = tooltip.getBoundingClientRect();
+    let left = weekHeaderTooltip.left;
+    let top = weekHeaderTooltip.top;
+    const gutter = 8;
+    if (bounds.left < gutter) left += gutter - bounds.left;
+    else if (bounds.right > window.innerWidth - gutter) left -= bounds.right - (window.innerWidth - gutter);
+    if (bounds.bottom > window.innerHeight - gutter) top = weekHeaderTooltip.anchorTop - bounds.height - 6;
+    if (top < gutter) top = gutter;
+    if (Math.abs(left - weekHeaderTooltip.left) >= 1 || Math.abs(top - weekHeaderTooltip.top) >= 1) {
+      setWeekHeaderTooltip((current) => current ? { ...current, left, top } : current);
+    }
+  }, [weekHeaderTooltip]);
   const scales = useMemo(() => [
     {
       unit: "month",
@@ -1191,6 +1360,7 @@ export function ProjectGantt({
         unit: "week",
         step: 1,
         format: (date: Date) => formatIsoWeek(date),
+        css: (date: Date) => ganttWeekScaleClassName(date),
       },
   ], [locales, scaleMode]);
 
@@ -1767,7 +1937,7 @@ export function ProjectGantt({
     }
     if (handleInlineEscape(event)) return;
     if (event.key === "Escape" && !taskMenu && !columnMenuPosition && selectedTaskIdsReference.current.length &&
-      event.target instanceof Element && !event.target.closest('input:not([data-copy-selection]), textarea, select, [contenteditable=true], dialog')) {
+      event.target instanceof Element && !event.target.closest('input:not([data-copy-selection]), textarea, select, [contenteditable=true], dialog, .wx-scale, .wx-header')) {
       event.preventDefault();
       event.stopPropagation();
       selectionAnchorReference.current = null;
@@ -2078,6 +2248,29 @@ export function ProjectGantt({
           </div>
         ) : null}
         {selectionMessage ? <p className="project-copy-selection-status" role="status">{selectionMessage}</p> : null}
+        {weekHeaderTooltip ? (
+          <div
+            className="project-gantt-week-header-tooltip"
+            id={weekHeaderTooltipId}
+            ref={weekHeaderTooltipReference}
+            role="tooltip"
+            style={{ left: weekHeaderTooltip.left, top: weekHeaderTooltip.top }}
+          >
+            <span className="project-gantt-week-header-tooltip-working">근무일: {weekHeaderTooltip.data.workingDays}일</span>
+            {weekHeaderTooltip.data.holidays.length > 0 ? (
+              <span className="project-gantt-week-header-tooltip-holidays">
+                <span className="project-gantt-week-header-tooltip-label">공휴일:</span>
+                {weekHeaderTooltip.data.holidays.flatMap((holiday) =>
+                  holiday.names.map((name) => (
+                    <span className="project-gantt-week-header-tooltip-holiday" key={holiday.date + "-" + name}>
+                      <time dateTime={holiday.date}>{formatLocaleDateOnly(holiday.date, locales)}</time> {name}
+                    </span>
+                  )),
+                )}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
         {inlineNameMessage ? <p className="project-gantt-inline-name-status" role={inlineNameError ? "alert" : "status"} id={`${instanceId}-inline-name-status`}>{inlineNameMessage}</p> : null}
         {columnMenuPosition ? <div
           aria-label="표시 열 선택"

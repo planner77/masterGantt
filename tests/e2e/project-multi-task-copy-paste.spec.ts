@@ -264,3 +264,22 @@ test("Shift 범위는 필터 문맥 Summary를 제외하고 동일 match의 quer
   await row(page, context.taskId).getByText(context.name, { exact: true }).click({ button: "right" });
   await expect(menu(page).getByRole("menuitem", { name: "Paste", exact: true })).toBeDisabled();
 });
+
+
+test("선택된 Task가 있어도 Day·Week header Escape는 Tooltip을 닫고 선택은 유지한다", async ({ page, baseURL }) => {
+  const { tasks } = await seed(page, baseURL!);
+  const a = tasks["새 작업1"];
+  await checkbox(page, a.taskId).check();
+  for (const [mode, selector] of [["일", ".project-gantt-day-scale"], ["주", ".project-gantt-week-scale"]]) {
+    await page.getByRole("group", { name: "Gantt 표시 단위" }).getByRole("button", { name: mode, exact: true }).click();
+    const header = page.locator(selector).first();
+    await header.focus();
+    await expect(page.getByRole("tooltip")).toBeVisible();
+    await header.press("Escape");
+    await expect(page.getByRole("tooltip")).toHaveCount(0);
+    await expect(checkbox(page, a.taskId)).toBeChecked();
+  }
+  await checkbox(page, a.taskId).focus();
+  await checkbox(page, a.taskId).press("Escape");
+  await expect(checkbox(page, a.taskId)).not.toBeChecked();
+});

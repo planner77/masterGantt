@@ -6,7 +6,12 @@
 
 선택 행의 Context Menu는 집합을 유지하고 Copy는 전체에 적용한다. 선택 밖 행은 singleton으로 바꾸되 Paste target용 clipboard는 유지한다. 메뉴와 Ctrl/Cmd+C는 canonical 순서·ancestor 제거를 공통 적용한다. Summary는 서버가 전체 자손을 포함한다. collapse는 선택을 삭제하지 않는다. 실제 filter 조건/scope/ID 집합 변경은 direct selection을 prune하고 이전 Copy/Cut clipboard를 폐기한다. 배열 참조만 달라진 render는 경계 변경이 아니다.
 
-선택 해제 버튼은 Grid region으로 focus를 복원한다. 메뉴/inline editor 밖 Escape는 선택만 해제하고 focus를 유지한다. checkbox의 Copy/Paste와 keyboard Context Menu를 지원하며 다른 input/editor/dialog/contenteditable shortcut은 가로채지 않는다. readonly/saving은 기존 Copy/Paste guard를 따른다. Core에는 공개 select-task로 단일 primary만 반영해 Cut/Move/Delete/Edit는 기존 단일 target을 유지한다. canonical sync 선택은 사용자 gesture로 처리하지 않으며 동일 Gantt instance/scale/scroll/collapse/columns 계약을 유지한다.
+선택 해제 버튼은 Grid region으로 focus를 복원한다. 메뉴/inline editor 밖 Escape는 선택만 해제하고 focus를 유지한다. Day·Week header의 Escape는 기존 Tooltip 닫기를 우선하며 Task 선택을 유지한다. checkbox의 Copy/Paste와 keyboard Context Menu를 지원하며 다른 input/editor/dialog/contenteditable shortcut은 가로채지 않는다. readonly/saving은 기존 Copy/Paste guard를 따른다. Core에는 공개 select-task로 단일 primary만 반영해 Cut/Move/Delete/Edit는 기존 단일 target을 유지한다. canonical sync 선택은 사용자 gesture로 처리하지 않으며 동일 Gantt instance/scale/scroll/collapse/columns 계약을 유지한다.
+## Issue #331 Resource 관리 신규 생성 폼 레이아웃
+
+`/resources`의 신규 리소스 폼(이름/코드/개발자 등급/추가)과 신규 리소스 그룹 폼(이름/코드/추가)은 서로 다른 field count를 가지므로 동일한 고정 4열 최소폭 계약을 공유하지 않는다. 각 폼은 전용 grid modifier를 사용하고 데이터 입력 track은 `minmax(0, ...)`로 shrink 가능하게 하며 label/grid item에는 `min-width: 0`, input/select에는 가용 track을 넘지 않는 width/max-width/box-sizing 계약을 적용한다. Action 버튼은 자신의 grid cell 안에서만 배치한다.
+
+기존 두 카드의 desktop 2열 배치와 820px 이하 1열 전환은 유지한다. 390/768/1024/1440px에서 리소스·그룹 생성 폼의 direct child bounding box가 서로 겹치지 않고 form/document 밖으로 수평 침범하지 않아야 한다. DOM 순서와 native label/input/select/button을 유지해 keyboard Tab 순서와 focus-visible을 바꾸지 않는다. Resource Catalog API, 관리자 session, catalog revision, `If-Match`, stale recovery 및 개발자 등급 값 계약은 변경하지 않는다.
 
 ## Issue #375 Summary Task bar 시각 계층
 
@@ -366,9 +371,9 @@ Project List의 #84 Quick Search+고급 AND, browser timezone 날짜 및 잘못�
 
 일정 화면의 Gantt 표시 단위 도구줄에 `전체화면` 버튼을 둔다. 버튼의 제목과 `aria-keyshortcuts`로 `Ctrl/Cmd+Shift+F`를 안내하며 `.project-gantt-frame`에 브라우저 native Fullscreen API를 요청한다. Grid·Chart·표시 단위·Gantt 내부 열/작업 메뉴만 전체화면에 포함하고 App Shell·프로젝트 정보·검색/필터·리소스 화면은 포함하지 않는다. `Escape` 또는 `전체화면 종료`로 원래 작업공간으로 돌아가며 버튼에 focus를 돌린다. 메뉴가 열린 경우 기존 메뉴 Escape 닫힘을 처리하되 브라우저가 동시에 native fullscreen을 끝낼 수 있다. 이 경우에도 focus가 유효하고 버튼 상태가 실제 `document.fullscreenElement`와 일치해야 한다.
 
-입력 상자·inline 편집·대화상자·메뉴 안에서는 shortcut을 실행하지 않는다. 작업 정보 대화상자는 Gantt frame 밖에 있으므로 Grid/Chart의 편집기 진입 두 경로 모두 원래 호출 대상을 기억하고 **자기 Gantt 전체화면이 실제로 종료된 뒤** 대화상자를 연다. 종료가 거부되면 대화상자를 숨긴 채 오류를 안내하고 원래 대상에 focus를 유지한다. Fullscreen 요청/종료 거부·미지원에서는 상태를 성공으로 앞당기지 않으며 CSS 모의 전체화면으로 대체하지 않는다. Readonly에서도 전체화면 조회가 가능하나 서버 편집 권한은 바뀌지 않는다.
+입력 상자·inline 편집·대화상자·메뉴 안에서는 fullscreen shortcut을 실행하지 않는다. **Issue #372부터 작업 정보/관계 대화상자를 열기 위해 Gantt fullscreen을 강제 종료하지 않는다.** Grid/Chart double click과 Context Menu → Edit은 원래 호출 대상을 기억하고 native dialog를 열되 `document.exitFullscreen()`을 호출하지 않으며, 저장·취소·닫기 후에도 사용자가 직접 종료하지 않았다면 같은 `.project-gantt-frame` fullscreen을 유지한다. Fullscreen 요청 거부·미지원에서는 상태를 성공으로 앞당기지 않으며 CSS 모의 전체화면으로 대체하지 않는다. Readonly에서도 같은 fullscreen 조회 흐름을 사용하되 서버 편집 권한은 바뀌지 않는다.
 
-전환은 기존 SVAR 인스턴스를 재생성하지 않으며 Grid/Chart split·열 너비/표시 열·일/주 단위·가로/세로 scroll·선택·Summary 펼침 상태와 canonical snapshot을 유지해야 한다. 390/768/1024/1440px에서 실제 viewport 크기와 버튼·Grid·Chart 접근성을 확인한다. 새 E2E 명세와 변경 후 PNG는 작성했으나 로컬 브라우저·테스트·실제 전후 geometry는 사용자 지시에 따라 **NOT TESTED**다. Chromium 원격 CI와 실제 Edge/Chrome·OS의 fullscreen/키보드 동작은 별도 증거로 판정한다. API·DB·Scheduling 계약 및 문서 변경은 N/A다.
+전환과 dialog open/close는 기존 SVAR 인스턴스를 재생성하지 않으며 Grid/Chart split·열 너비/표시 열·일/주 단위·가로/세로 scroll·선택·Summary 펼침·filter 상태와 canonical snapshot을 유지해야 한다. dialog를 닫으면 원래 Task/Link trigger 또는 안전한 fallback으로 `preventScroll` focus를 복원한다. 브라우저가 Escape로 native fullscreen을 종료한 경우에는 해당 동작을 차단하지 않고 `fullscreenchange`와 실제 `document.fullscreenElement`를 기준으로 버튼/focus 상태를 동기화한다. 390/768/1024/1440px에서 viewport, dialog/backdrop, 버튼·Grid·Chart 접근성을 확인하며 Chrome/Edge의 native fullscreen 결과는 PR E2E/실브라우저 증거로 판정한다. API·DB·Scheduling 계약 및 문서 변경은 N/A다.
 
 [SVAR 공식 Fullscreen guide](https://docs.svar.dev/react/gantt/guides/fullscreen/)는 React Core `Fullscreen` wrapper를 안내한다(확인 2026-09-24). 설치된 Gantt 2.7.3/Core 2.6.1에서 Core JavaScript export와 TypeScript 선언이 일치하지 않고 요청 거부·입력 guard·Task Editor 선행 종료를 이 화면의 계약에 맞게 제어할 수 없어, 이번 범위는 [표준 Fullscreen API](https://fullscreen.spec.whatwg.org/)로 frame만 전환한다. 공식 sample의 실제 브라우저 조작 비교는 수행하지 않았다.
 
@@ -560,6 +565,16 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 
 Relation Editor는 공통 native Dialog를 사용해 배경 조작과 focus 이탈을 차단한다. 공통 Dialog는 Tab/Shift+Tab 경계에서 활성·표시된 control 사이를 순환하며 disabled/hidden/inert 요소를 제외한다. 후보의 Enter/Space 선택, 후보만 닫는 Escape, dirty 종료/관계 전환 확인, 대상이 명시된 삭제 확인과 요청 중 닫기·중복 실행 방어를 제공한다. 명시적 닫기 버튼은 후보 popup이 열려 있어도 popup만 닫고 멈추지 않고 닫기/dirty 확인 흐름으로 진입한다. 관계 생성 성공 시 새 관계 방향·후보·검색·Type·Lag 초안을 기본값으로 되돌린다. 기존 부모의 호출 위치 focus 복원과 Gantt 상태를 유지하며 상세 동작은 [관계 편집 계약](TASK_RELATIONS.md#issue-266-관계-편집-dialog의-키보드초안요청-보호)을 따른다. 공통 Dialog 헤더는 긴 제목을 줄바꿈하고 닫기 버튼의 글자는 한 줄로 유지한다.
 
+## Issue #377 Task Editor 관계 탭 → Relation Editor
+
+Task Editor 관계 탭은 정보와 핵심 command를 한 곳에 두고 상세 관계 설정은 기존 Relation Editor로 progressive disclosure한다.
+
+- 편집 가능한 Task/Milestone은 관계 탭 상단의 **관계 추가**와 각 relation row의 **편집 / 삭제**를 사용한다. Readonly와 Summary는 조회 의미를 유지하고 mutation action을 노출하지 않는다.
+- 저장하지 않은 Task draft가 있으면 relation command를 disabled하고 사유를 같은 탭에 표시한다. 관계 mutation 전에 Task 초안을 강제로 폐기하거나 자동 저장하지 않는다.
+- Relation Editor를 열 때 Task Editor component/draft/active tab/scroll을 보존한다. canonical relation mutation 결과는 imperative sync로 Task Editor base에 반영하되 native Task Editor dialog를 다시 top layer에 등록하지 않는다.
+- Relation Editor를 닫으면 실제 호출 버튼으로 focus를 복귀한다. 직접 삭제 confirmation은 keyboard trigger를 기억하고 취소 버튼에 focus를 이동한 뒤 취소 시 trigger로 복원한다.
+- 390/768px에서는 relation row action이 자연스럽게 stack/wrap되고 1024/1440px에서는 선행/후행 2열 data-dense 구조를 유지한다. document/dialog horizontal overflow를 허용하지 않는다.
+
 ## Issue #203 관계선 더블클릭 Relation Editor 및 관련 아이템 검색·추가·삭제
 
 - **진입 경로 및 인터랙션**:
@@ -700,6 +715,13 @@ Project Workspace의 설비/시스템 추가·수정 select는 active catalog �
 
 일정 탭의 Day Header는 #314의 숫자-only 밀도를 유지한다. Header cell hover/focus에서 locale 요일을 표시하고 현재 Project Effective Calendar에 이름이 있는 NON_WORKING 날짜에만 휴일명을 추가한다. Tooltip은 Chart layout을 늘리지 않는 overlay이며 viewport 안으로 보정하고 pointer interaction을 가로채지 않는다. 동일 날짜의 복수 이름은 canonical snapshot projection을 사용하며 WORKING override는 휴일명으로 표시하지 않는다. Week view에는 이번 Tooltip을 확대하지 않는다.
 
+
+
+## Issue #316 Gantt Week Header 근무일·공휴일 상세정보
+
+일정 탭의 Week Header는 기존 ISO `Wxx`와 68px 폭을 유지한다. Header hover/focus에서 현재 Project Calendar의 실제 7일 근무일 수와 명명된 NON_WORKING 날짜를 progressive disclosure한다. 근무일 수는 월~금 고정값이 아니라 Scheduling calendar의 NON_WORKING/WORKING override를 적용하며, 이름 없는 NON_WORKING은 수치에만 반영한다.
+
+Week Tooltip은 #315 Day Tooltip과 동일한 keyboard/focus, `aria-describedby`, Escape, viewport clamp, resize/scroll 재배치 정책을 사용한다. Day↔Week 전환으로 반대 scale의 target/overlay가 남지 않아야 하며 Project API 재조회, schedule mutation, Gantt/API remount를 발생시키지 않는다. Resource/Resource Group Calendar는 공통 Header 범위에서 제외한다.
 
 ## Issue #289 — 프로젝트 기준정보 UX
 

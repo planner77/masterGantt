@@ -2,6 +2,8 @@
 
 상태: PR_PREPARATION. 사용자 승인 범위는 구현·문서 동기화·독립 사전 QA → PR 생성·CI 실행 시작까지다. CI 완료 모니터링·병합·main/GHCR·정식 릴리스·Issue 종료·branch cleanup은 범위 밖이다.
 
+현재 통합 후보: main `2d310d2669d4b80bc961f67d81a4f51a7c3777cc` / `0.65.1` 기준 version `0.66.0`. PR [#391](https://github.com/planner77/masterGantt/pull/391)의 충돌 해결·재검증은 마지막 통합 REWORK 절이 최신 상태다. 아래 최초 baseline/version 기록은 당시 근거다.
+
 ## Issue Work Packet
 
 - Issue: [#384](https://github.com/planner77/masterGantt/issues/384), OPEN, AC01–22.
@@ -62,7 +64,7 @@ Selection/clipboard Unit, parser/API/SQLite multi-root·내부/외부 Link·FS/S
 PR 제목은 `[Issue #384] 다중 선택 Task Copy/Paste 및 내부 Dependency 복제`로 하고 canonical `Refs #384` 한 개를 포함한다. 기존 CI run-name의 Issue/PR/run/attempt 추적과 quality/e2e/docker gate를 유지한다. exact PR head/run 실행 시작을 확인한 즉시 CI 조회를 종료한다. 원격 quality/e2e/docker는 완료 모니터링하지 않아 NOT TESTED로 보고한다. main/GHCR/정식 release/cleanup은 범위 밖이며 Issue는 열린 상태로 유지한다.
 
 
-## 실제 로컬 검증·독립 검토
+## 최초 기준의 실제 로컬 검증·독립 검토 (0.64.0)
 
 | 범위 | 판정·실제 실행 |
 | --- | --- |
@@ -99,3 +101,30 @@ git diff --check
 실제 UI 자료는 [390px](assets/issue384/multi-copy-390.png), [768px](assets/issue384/multi-copy-768.png), [1024px](assets/issue384/multi-copy-1024.png), [1440px](assets/issue384/multi-copy-1440.png)이다. 같은 구현의 Paste 후 기능 상태 자료이며 구현 전후 시각 개선 비교 자료가 아니다.
 
 DOCUMENTATION_SYNC: required docs REQUIREMENTS/API/PROJECT_UX/TASK_EDITOR/TASK_RELATIONS/SCHEDULING_ENGINE/TEST_PLAN/PRO_FEATURE_MATRIX/CHANGELOG/active PLAN을 동기화했다. 격리 E2E fixture의 서버 restart 기능과 환경 경계는 TEST_PLAN에 반영했다. DB schema/migration·security authorization·Scheduling algorithm·CI/registry/deployment 계약 불변으로 해당 원칙 문서 변경 N/A다. 선택 열 확대 과정의 의도하지 않은 과거 viewport 수치 치환은 독립 QA에서 발견하여 baseline 전체를 복원하고 #384 추가 절만 유지했다.
+
+
+## PR #391 최신 main 통합 REWORK
+
+PR 생성 시 main은 다른 승인된 PR #381/#382/#324/#336 병합으로 `2d310d2669d4b80bc961f67d81a4f51a7c3777cc` / `0.65.1`로 이동했다. 최초 head `a5b5d789d74247c41064d2c2450ff71efe146c3f`는 dirty conflict로 PR CI가 시작되지 않았다. 최초 Git push는 로컬 인증 실패였으며 연결된 GitHub 도구가 로컬 검토 tree와 완전히 같은 tree를 게시했고 독립 QA가 일치를 확인했다. 인증값은 변경하거나 노출하지 않았다.
+
+같은 PR/branch에서 origin/main을 통합한다. #372 fullscreen Editor, #377 관계 탭/modal focus, #316 Week tooltip, #331 inline layout-phase guard와 Resource 폼 변경을 모두 보존한다. 선택 Context/hook·Week tooltip은 양쪽 독립 항목을 함께 유지하고, ProjectTaskEditor ref와 matchingTaskIds/selectionBoundaryKey props를 조합한다. DB/API/Scheduling 구현은 최신 main에 변경되지 않았지만 기존74개와 관계·Week Tooltip Unit을 함께 재실행하여 결합 tree의89개 PASS를 확보했다. 공유 UI 변경은 새 결합 source에서 관련 집중 browser/typecheck/lint 및 독립 QA를 다시 확인한다.
+
+Version Manager 재결정: 최신 main `0.65.1 → 0.66.0` MINOR. 최초0.64.0 결정/검증 기록은 당시 근거로 보존하며 현재 application version은0.66.0이다. 기존 CHANGELOG0.65.1/0.65.0/0.64.0/0.63.2 기록을 유지하고 #384를0.66.0 별도 항목으로 이동했다. 새 head의 원격 quality/e2e/docker는 전부 NOT TESTED이며 실행 시작 확인 뒤 모니터링하지 않는다.
+
+
+### 통합 후 실행 증거
+
+- PASS: 집중 Unit/SQLite/HTTP + Task Relations/Week Tooltip 9 files / 89 tests, 1.57초.
+- PASS: 결합 Chromium 5 specs / 19 tests, 3.7분. 신규Copy8 + inline3 + scale1 + Grid DnD4 + hierarchy3이다. Task 선택이 있어도 Day·Week header Escape는 Tooltip을 닫고 선택을 유지하는 통합 회귀를 추가했다.
+- PASS: 별도 Chromium fullscreen2 + Issue #377 관계 편집3, 5 tests / 10.8초. 총24개의 집중 browser 시나리오를 두 실행으로 검증했다.
+- PASS: 통합 lint 0 errors / 기존8 warnings, version0.66.0/lock 일치. runtime 생성 next-env.d.ts/tsconfig.json 두 파일은 최신 main 내용으로 복원했고 최종 typecheck exit0·Markdown99files·diff 검사 PASS를 확인했다.
+- 실제4폭 이미지는 새 통합 후보의 PASS 실행 자료로 교체했다. 이전 capture는 최신 통합 UI 검증 근거로 사용하지 않는다.
+- 전문 frontend의 결합 소스 정적 검토 PASS. qa_docs의 새 결합 tree DOCUMENTATION_SYNC/사전 QA PASS를 독립 확인했다. 새 head의 사전 검토는 원격 전체 회귀 ACCEPT와 구분한다. 이전 원격 CI는 미실행이며 새 headquality/e2e/docker는 NOT TESTED다.
+
+```sh
+npm test -- tests/features/gantt/task-selection-model.test.ts tests/features/gantt/task-context-menu-model.test.ts tests/features/gantt/task-subtree-scope.test.ts tests/features/gantt/task-url-gesture.test.ts tests/features/projects/project-search-filter.test.ts tests/server/projects/task-hierarchy-contract.test.ts tests/server/projects/task-hierarchy-multi-copy.test.ts tests/features/gantt/task-relations.test.ts tests/features/week-header-tooltip.test.ts
+npm run test:e2e -- tests/e2e/project-multi-task-copy-paste.spec.ts tests/e2e/project-gantt-inline-name.spec.ts tests/e2e/project-grid-reorder-persistence.spec.ts tests/e2e/task-context-menu-hierarchy.spec.ts tests/e2e/project-gantt-scale.spec.ts
+npm run test:e2e -- tests/e2e/project-gantt-fullscreen.spec.ts tests/e2e/project-task-editor.spec.ts --grep 'Grid·Chart|Relation Editor도|Issue #377'
+```
+
+Resource #331 폼 소스·전용 회귀는 충돌 없이 최신 main 그대로 통합했으며 이 작업의 별도 브라우저 실행 N/A다. 최초 source의 name pointer fallback은 유지하되 #331 layout-phase guard도 보존한다. 통합 QA가 찾은 scale Tooltip Escape 간섭은 header를 selection Escape guard에서 제외하여 해결했고 새 browser 검사로 확인했다. 요구사항·권한·API·DB 계약과 CI gate는 유지한다.

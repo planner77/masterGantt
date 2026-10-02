@@ -6,9 +6,26 @@ Selection Unit은 canonical preorder·ancestor/중복 제거·empty Summary·sin
 
 실제 SQLite/HTTP 통합은 여러 root before/after/child·WBS 2/10 순서·FS/SS/FF/SF signed lag/lead·경계 Link 제외·metadata/Baseline·원본 불변·ancestor union·Assignment·500 source/5000 Task·rollback·Origin/session/If-Match/body limit·DB reopen을 검증한다. DB reopen과 Node 서버 restart는 별도 증거이며 서로 대체하지 않는다.
 
-Chromium 신규 `project-multi-task-copy-paste.spec.ts`는 역순 checkbox→selected row Copy→Summary child Paste·새 endpoint·revision +1·Editor 관계·same instance·column width/scale/collapse/scroll 보존·reload 및 동일 DB 실제 서버 재시작과 390/768/1024/1440px screenshot/overflow를 확인한다. modifier/Shift checkbox/Space/Copy/Paste/Escape는 이중 toggle·inline 간섭 없이 확인한다. 기존 DnD/rename/double-click/scoped/readonly/pending/412 회귀는 관련 spec을 사용한다.
+Chromium 신규 `project-multi-task-copy-paste.spec.ts`는 역순 checkbox→selected row Copy→Summary child Paste·새 endpoint·revision +1·Editor 관계·same instance·column width/scale/collapse/scroll 보존·reload 및 동일 DB 실제 서버 재시작과 390/768/1024/1440px screenshot/overflow를 확인한다. modifier/Shift checkbox/Space/Copy/Paste/Escape는 이중 toggle·inline 간섭 없이 확인한다. 선택 상태에서 Day·Week header Escape는 Tooltip을 우선 닫고 Task 선택을 유지한다. 기존 DnD/rename/double-click/scoped/readonly/pending/412 회귀는 관련 spec을 사용한다.
 
-전문 Agent는 read-only patch를 작성하고 Manager가 승인 경로로 편집·실행했다. 관련 Unit/SQLite/HTTP 74개 PASS, 신규 Copy Chromium7개 PASS와 기존 inline/DnD/계층 메뉴의 최종10개 PASS를 확보했다. 초기 FAIL·수정 근거·실행별 개수·4폭 캡처·실제 서버 restart·로컬 lint 생성물 제외 범위는 [실행 기록](exec-plans/active/ISSUE_384.md)에 구분한다. 원격 quality/e2e/docker는 CI 시작까지만 진행해 NOT TESTED이며, touch device/screen reader는 별도 미실행이다.
+전문 Agent는 read-only patch를 작성하고 Manager가 승인 경로로 편집·실행했다. 최신 main 통합 후보0.66.0에서 관련 Unit/SQLite/HTTP·관계·Week Tooltip89개 PASS, Chromium Copy8/inline3/scale1/DnD4/계층 메뉴3의19개 PASS와 fullscreen2/관계 편집3의 별도5개 PASS를 확보했다. 초기 FAIL·수정 근거·실행별 개수·4폭 캡처·실제 서버 restart·로컬 lint 생성물 제외 범위는 [실행 기록](exec-plans/active/ISSUE_384.md)에 구분한다. 원격 quality/e2e/docker는 CI 시작까지만 진행해 NOT TESTED이며, touch device/screen reader는 별도 미실행이다.
+## Issue #331 Resource 관리 생성 폼 overlap 회귀
+
+- Chromium `tests/e2e/resource-admin-layout.spec.ts`에서 관리자 로그인 후 390/768/1024/1440px별 신규 리소스 4개 direct control과 신규 리소스 그룹 3개 direct control의 bounding box를 비교해 상호 overlap이 없고 각 form의 수평 bounds 안에 들어오는지 확인한다.
+- 같은 viewport 반복에서 document-level horizontal overflow 부재를 유지하며 390px과 1024px 결과 screenshot을 Playwright output에 남겨 좁은 1열과 desktop 2열 해결 증거로 사용한다.
+- 신규 리소스 폼의 이름 → 코드 → 개발자 등급 → 추가 버튼 native Tab 순서를 확인한다. 개발자 등급 값 생성/편집과 API payload는 기존 `resource-developer-grade.spec.ts`를 함께 회귀 실행한다.
+- Grid DnD 직후 inline rename의 첫 클릭이 유실되지 않도록 DOM editability와 SVAR event guard ref가 같은 commit의 layout phase에서 동기화되어야 하며, 현재 main의 강화된 `project-grid-reorder-persistence.spec.ts` helper/시나리오를 그대로 보존한다.
+- Resource Catalog API/auth/session/revision/`If-Match` 계약은 변경하지 않으며 관련 기존 E2E/서버 테스트와 PR exact head의 GitHub Actions `quality/e2e/docker` 결과를 공식 판정 근거로 사용한다.
+
+## Issue #316 Gantt Week Header 근무일·공휴일 Tooltip
+
+- Unit: SVAR Sunday Week anchor를 ISO Monday로 정규화한 class/date key round-trip, 일반 주 5일, 복수 named NON_WORKING, 이름 없는 NON_WORKING, weekend WORKING override, legacy holidays fallback, W53→W01 경계를 검증한다.
+- Chromium E2E: W38 일반 주 hover, W39 공휴일 주 focus, 실제 근무일 수, 복수 이름, WORKING 이름 제외, `aria-label`/`aria-describedby`, resize 후 live Week cell viewport clamp를 검증한다.
+- 기존 #315 Day Tooltip hover/focus/viewport 계약, #314 숫자-only Day Header, #51 ISO Week, 44/68px cellWidth, Day 주말 강조, Gantt/API instance identity를 같은 spec에서 회귀 검증한다.
+- 이전 main 기준 CI #1426의 quality/e2e/docker 전체 PASS를 참고하되, 최신 main 재정렬 head에서 전체 PR CI를 다시 판정한다.
+- API/DB schema 및 Scheduling 저장 계약은 변경하지 않는다. 공식 판정은 동일 PR head SHA의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+- 상세 계약은 `docs/ISSUE_316_WEEK_HEADER_TOOLTIP.md`를 따른다.
+
 
 ## Issue #375 Summary Task bar 두께 회귀
 
@@ -276,7 +293,7 @@ Resource/Group POST 실패와 성공을 구분해 실패 초안 보존·성공�
 - Unit: predecessor/successor externalId 방향, 동일 이름, dangling reference, 관계 없음, multiple relation과 type/lag 보존을 검증한다.
 - Chromium E2E: A → B fixture를 canonical snapshot으로 구성하고 Grid 더블클릭, Chart 더블클릭, Context Menu → Edit 각각에서 A의 후행 B/B의 선행 A 및 이름/externalId/type/lag를 확인한다.
 - 관계 표시는 상위 canonical snapshot을 사용해 별도 관계용 `GET /api/projects/{publicId}`에 의존하지 않으며, Editor open만으로 mutation이 발생하지 않는지 검증한다.
-- Readonly 및 Link 포함 일정에서도 Grid/Chart 더블클릭과 Context Menu로 조회용 Editor가 열리고 관계 탭 조회가 가능하며 Save는 제공되지 않는지 검증한다.
+- Readonly 및 Link 포함 일정에서도 Grid/Chart 더블클릭과 Context Menu로 Editor가 열리고 관계 탭 조회가 가능하며 Task Save와 관계 추가/편집/삭제 mutation action은 제공되지 않는지 검증한다.
 - 기존 401/412/draft/reload/Gantt instance, Context Menu #77 focus 정책 및 no document navigation 회귀를 유지한다.
 - PR의 `quality`, 전체 Chromium E2E, Docker smoke와 병합 후 main GHCR exact digest smoke를 공식 PASS 근거로 사용한다.
 
@@ -691,7 +708,7 @@ Regression scope includes link command deduplication, protected POST/DELETE cont
 ## Issue #155 Gantt Grid·Chart native 전체화면
 
 - `tests/e2e/project-gantt-fullscreen.spec.ts`: 390×844·768×900·1024×900·1440×900에서 native fullscreen target이 `.project-gantt-frame`인지, App Shell·프로젝트 정보·검색/필터·리소스 panel이 target 밖인지, 버튼/`Ctrl/Cmd+Shift+F`/Escape와 진입·종료 focus, scale toolbar·Grid·Chart bounds, viewport resize 뒤 실제 상태 표시, 같은 SVAR instance/API identity, 보호 mutation 0회와 route 이탈 정리를 확인한다. 캡처는 변경 후 상태이며 동일 fixture의 구현 전 baseline과 혼동하지 않는다.
-- 같은 spec은 실제 Grid↔Chart splitter와 작업 열 너비를 조정한 뒤 Summary collapse·선택·표시 열·주 단위·Chart 가로 scroll·Gantt 세로 scroll 및 Grid row↔Chart bar 정렬 보존을 확인한다. Fullscreen 안의 작업 메뉴 Escape 뒤 메뉴 닫힘·유효 focus·실제 fullscreen 상태와 버튼 표시 일치, 입력/contenteditable/dialog shortcut guard, 편집 가능한 메뉴 Edit와 readonly 더블클릭의 전체화면 종료 후 Task Editor 진입을 확인한다. 메뉴 Escape가 native fullscreen까지 종료할지는 브라우저에 맡긴다. Request/exit rejection은 브라우저 API를 명시적으로 거부하도록 주입하고 실제 fullscreen 상태/오류 문구/숨겨진 dialog 및 메뉴 Edit 실패 뒤 Task focus 복원을 구분한다. 기존 Task Editor dirty·stale·401/412·If-Match·Assignment 독립 저장은 별도 전용 spec의 계약을 유지한다.
+- 같은 spec은 실제 Grid↔Chart splitter와 작업 열 너비를 조정한 뒤 Summary collapse·선택·표시 열·주 단위·Chart 가로 scroll·Gantt 세로 scroll 및 Grid row↔Chart bar 정렬 보존을 확인한다. Fullscreen 안의 작업 메뉴 Escape 뒤 메뉴 닫힘·유효 focus·실제 fullscreen 상태와 버튼 표시 일치, 입력/contenteditable/dialog shortcut guard를 유지한다. Issue #372 회귀로 Grid/Chart double click과 Context Menu → Edit, readonly 조회 및 Relation Editor가 **`document.exitFullscreen()`을 호출하지 않고** native fullscreen 위에 표시되는지, 저장/취소/닫기 뒤에도 같은 Gantt instance와 fullscreen이 유지되는지 검사한다. 테스트는 fullscreen 진입 뒤 `document.exitFullscreen()`을 거부하는 guard를 설치해 Editor open 경로의 강제 종료 호출이 0회인지 판정한다. Relation Editor fixture는 연결선의 두 endpoint를 같은 가시 날짜 구간에 배치해 DOM link target이 실제 viewport에 렌더링된 뒤 double click을 수행한다. Request rejection은 기존처럼 별도 검증하고, 메뉴/Escape가 native fullscreen 자체를 종료할지는 브라우저 정책에 맡긴다. 기존 Task Editor dirty·stale·401/412·If-Match·Assignment 독립 저장은 별도 전용 spec의 계약을 유지한다.
 - Fullscreen API는 사용자 활성화·권한·브라우저 구현에 의존한다. 로컬 Playwright·lint·typecheck·build·브라우저와 실제 Edge/Chrome 수동 동작은 사용자 지시에 따라 **NOT TESTED**다. PR head `quality/e2e/docker`는 새 실행 결과로 판정한다. API/DB/Scheduling 문서는 계약 불변으로 N/A다.
 
 ## Issue #171 전체화면 우측 컨트롤 비중첩 회귀
@@ -1011,3 +1028,18 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - 보완은 실패한 older attempt와 later same-Issue corrective target을 연결하되, corrective exact main CI SUCCESS와 validation-scope coverage를 필수로 한다. 중간 Issue는 목록에서 제거하거나 재정렬하지 않는다.
 - superseded older attempt에는 release/finalize mutation을 하지 않고 branch cleanup 의무만 later corrective target으로 이관한다. middle Issue #356은 자체 exact CI/release authorization으로 먼저 처리되고, 이후 corrective #344 target이 처리된다.
 - docs-only corrective target이 non-docs 실패 attempt를 대체하지 못하는 시나리오와 corrective CI가 Green이 아니면 기존 blocker를 유지하는 시나리오를 정적 contract test에 추가한다.
+
+
+## Issue #377 Task Editor 관계 탭 관리 회귀
+
+- Unit: relation mutation eligibility가 editable Task/Milestone만 허용하고 readonly, Summary, stale, dirty, busy를 fail-closed하는지 검증한다.
+- Chromium E2E:
+  - 기존 relation row **편집**으로 Relation Editor를 열어 type/lag PATCH 후 Relation Editor가 계속 topmost이며 닫을 수 있는지, 같은 관계 탭과 최신 revision이 즉시 반영되는지 확인한다.
+  - relation row 직접 **삭제**는 keyboard로 실행했을 때 confirmation 취소 버튼으로 focus가 이동하고 취소 후 원래 삭제 trigger로 복원되는지 확인한다.
+  - 삭제 확인 뒤 DELETE 1회만 보내고 row/count/revision을 canonical 응답으로 갱신하는지 확인한다.
+  - 관계가 0건인 Milestone에서 **관계 추가**가 task Anchor mode Relation Editor를 열고 FS/SS/FF/SF 및 signed Lag를 기존 POST 계약으로 저장한 뒤에도 top-layer 순서를 유지하는지 확인한다.
+  - Task draft dirty 상태에서는 add/edit/delete가 disabled되고 Link mutation이 발생하지 않는지 확인한다.
+  - readonly에서는 관계 조회만 가능하고 relation mutation action이 존재하지 않는지 확인한다.
+  - 기존 Task Editor 390/768/1024/1440px 관계 layout과 dialog/document overflow를 검증한다.
+- 기존 관계선 double-click/Context Menu Relation Editor #203/#266 및 #372 fullscreen E2E를 유지해 신규 Task Editor 진입점이 기존 경로를 회귀시키지 않는지 확인한다.
+- 공식 자동 판정은 동일 PR head의 required `quality`, `e2e`, `docker` 결과를 사용한다.

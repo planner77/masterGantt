@@ -64,3 +64,21 @@ export function buildTaskRelations(
 
   return { predecessors, successors };
 }
+
+
+export type TaskRelationMutationBlockReason = "readonly" | "summary" | "stale" | "dirty" | "busy" | null;
+
+export function getTaskRelationMutationBlockReason(options: Readonly<{
+  editable: boolean;
+  taskType: ProjectTaskDto["type"];
+  stale: boolean;
+  dirty: boolean;
+  busy: boolean;
+}>): TaskRelationMutationBlockReason {
+  if (!options.editable) return "readonly";
+  if (options.taskType === "summary") return "summary";
+  if (options.stale) return "stale";
+  if (options.dirty) return "dirty";
+  if (options.busy) return "busy";
+  return null;
+}

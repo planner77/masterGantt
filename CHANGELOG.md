@@ -1,13 +1,55 @@
 # Changelog
 
-## [0.64.0] - 2026-10-02
+## [0.66.0] - 2026-10-02
 
 ### Added
 
 - Issue #384: Gantt의 checkbox·Ctrl/Cmd·Shift 다중 선택 집합을 Copy/Paste하고 canonical hierarchy 순서로 여러 root 및 전체 자손을 복제한다.
 - 내부 Dependency를 새 Task/Link ID로 재매핑하며 외부 Link 제외, 단일 Cut, 기존 일정 재계산·원자성·권한·revision 계약을 유지한다.
 - 기존 단일 Copy API와 호환되는 taskIds 계약과 선택/필터/clipboard 및 SQLite·Chromium 회귀 검증을 추가한다.
-- Application version을 `0.63.1`에서 `0.64.0`으로 증가한다.
+- Application version을 `0.65.1`에서 `0.66.0`으로 증가한다.
+
+## [0.65.1] - 2026-10-02
+
+### Fixed
+
+- Issue #331: 리소스 관리의 신규 리소스/리소스 그룹 생성 폼을 실제 field 수에 맞는 별도 responsive Grid로 분리하고 shrink 가능한 track과 control containment를 적용해 코드·개발자 등급·추가 버튼이 중간 viewport에서 겹치지 않도록 수정한다.
+- 390/768/1024/1440px에서 두 생성 폼의 direct control overlap/form bounds/document overflow와 신규 리소스 폼 Tab 순서·개발자 등급 옵션을 Chromium으로 검증한다.
+- Grid reorder 직후 첫 inline rename 클릭에서 DOM editability와 실제 SVAR event guard ref가 다른 render 시점을 가리키지 않도록 해당 ref와 project revision/session invalidation을 layout phase에서 동기화한다. 최신 main의 강화된 reorder helper는 그대로 보존한다.
+- Resource Catalog API, 관리자 session/revision/If-Match, Scheduling/DB 및 SVAR dependency 계약은 변경하지 않는다.
+- Application version을 `0.65.0`에서 `0.65.1`로 증가한다.
+
+## [0.65.0] - 2026-10-02
+
+### Added
+
+- Issue #316: Gantt Week Header hover/focus Tooltip에서 Project Calendar 기준 실제 근무일 수와 명명된 NON_WORKING 공휴일을 표시한다.
+- Issue #315의 검증된 scale CSS class/date parser 및 viewport-safe Tooltip lifecycle을 Week scale에 재사용하고 SVAR Sunday Week anchor를 ISO Monday로 정규화한다.
+- WORKING weekend override와 이름 없는 NON_WORKING을 canonical 근무일 계산에 반영하면서 기존 ISO `Wxx`, Week 68px, Day/Week 전환 및 Gantt/API instance 계약을 유지한다.
+- Application version을 `0.64.0`에서 `0.65.0`으로 증가한다.
+
+## [0.64.0] - 2026-10-02
+
+### Added
+
+- Issue #377: Task Editor 관계 탭에서 기존 선행/후행 관계를 직접 편집·삭제하고, 관계가 없는 Task/Milestone도 현재 작업을 Anchor로 Relation Editor를 열어 새 선행/후행 관계를 추가할 수 있다.
+- 기존 Relation Editor의 linkId 진입에 task Anchor 진입을 추가하며 FS/SS/FF/SF, signed Lag/Lead, 후보 검색과 기존 Link POST/PATCH/DELETE·Scheduling 계약을 그대로 재사용한다.
+
+### Changed
+
+- Task draft dirty/stale/readonly/pending 및 Summary에서는 relation mutation을 fail-closed하고, 성공한 relation mutation은 열린 Task Editor의 base/draft/revision을 imperative canonical sync로 갱신하여 Relation Editor가 topmost modal을 유지한다.
+- Task Editor 관계 행의 직접 삭제 confirmation은 keyboard focus를 취소 버튼으로 이동시키고 취소 시 원래 삭제 trigger로 복원한다.
+- 390/768/1024/1440px relation action layout, 기존 관계 PATCH→DELETE, zero-link Anchor POST, modal top-layer 및 focus 회귀 E2E를 보강한다.
+- Application version을 `0.63.2`에서 `0.64.0`으로 증가한다.
+
+## [0.63.2] - 2026-10-02
+
+### Fixed
+
+- Issue #372: Gantt native fullscreen에서 Grid/Chart 작업을 더블클릭하거나 Context Menu → Edit으로 Task Editor를 열 때 애플리케이션이 `document.exitFullscreen()`을 강제 호출하던 동작을 제거한다.
+- Task Editor의 저장·취소·닫기와 Relation Editor의 open/close가 동일 fullscreen/Gantt instance를 유지하고, 기존 scroll·tree·column·scale·selection/filter 및 focus 복원 계약을 보존한다.
+- fullscreen Editor 회귀 E2E에서 Grid/Chart 진입 경로, readonly, Relation Editor, shortcut guard와 강제 `exitFullscreen()` 호출 0회를 검증한다. Relation Link fixture는 endpoint 날짜를 가시 구간으로 정렬해 off-viewport locator timeout을 방지한다.
+- Application version을 `0.63.1`에서 `0.63.2`로 증가한다.
 
 ## [0.63.1] - 2026-10-02
 

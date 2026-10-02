@@ -105,12 +105,12 @@ Leaf→Summary의 명시적인 Convert 명령 확대는 #345 범위 밖이므로
 
 ## Issue #74 — 탭 기반 Task Editor UX
 
-기존 서버 권위 저장·revision·권한 계약은 유지하면서 정보 구조만 재설계한다. Editor는 **작업 정보 / 리소스 / 관계** 3개 탭을 사용하며 최초 진입은 작업 정보다. 탭 전환은 mutation을 발생시키지 않고 패널 상태를 DOM에 유지해 작업 초안과 리소스 입력 상태를 보존한다.
+기존 서버 권위 저장·revision·권한 계약은 유지하면서 정보 구조만 재설계한다. Editor는 현재 **작업 정보 / 리소스 / 관계 / 물류 연결** 4개 탭을 사용하며 최초 진입은 작업 정보다. 탭 전환은 mutation을 발생시키지 않고 패널 상태를 DOM에 유지해 작업 초안과 리소스 입력 상태를 보존한다.
 
 - Desktop modal은 최대 70rem 범위에서 가용 폭을 사용하고 Header/Tab/Footer는 고정된 구조로 유지한다. 스크롤은 active tab body에서만 발생한다.
 - 작업 정보 탭은 작업명, 일정 필드, 진행률, Description, URL을 우선 배치하고 서버 확정 정보는 secondary metadata 영역으로 분리한다.
 - 리소스 탭은 검색·유형·할당됨 필터와 선택 우선 정렬을 제공한다. Resource/Group 유형과 active 상태를 text/badge로 함께 표시하며 색상만으로 상태를 전달하지 않는다.
-- 관계 탭은 wide 화면에서 선행/후행 2열, narrow 화면에서 1열로 표시하며 기존 조회 전용 계약을 유지한다.
+- 관계 탭은 wide 화면에서 선행/후행 2열, narrow 화면에서 1열로 표시한다. #377부터 편집 권한이 있는 일반 Task/Milestone은 기존 Relation Editor를 통해 관계 추가·편집·삭제를 수행하며 readonly는 조회만 유지한다.
 - Footer의 최신 정보 재조회는 좌측 tertiary 성격, 취소/저장은 우측 action group이며 저장만 primary다. stale/revision conflict 시 기존처럼 저장을 차단한다.
 - 탭은 WAI-ARIA `tablist/tab/tabpanel` 역할과 Arrow Left/Right, Home/End 이동을 지원한다. Escape/dirty confirmation/focus restore 계약은 기존 편집기 흐름을 유지한다.
 - Task 저장과 Assignment 저장은 원자적으로 통합하지 않는다. Task draft가 dirty/stale이면 Assignment 편집을 잠그고 저장 범위를 화면에서 설명한다.
@@ -132,7 +132,7 @@ Task Editor의 관계 탭은 상위 Project 화면이 이미 사용 중인 canon
 
 ## Issue #96 — 입력 폭·간격·배치 밀도 최적화
 
-Issue #74의 3개 탭, body-only scroll, 고정 Footer 구조와 모든 저장/권한 계약은 유지하고 presentation density만 조정한다.
+Issue #74에서 시작된 탭 기반 body-only scroll, 고정 Footer 구조와 모든 저장/권한 계약은 유지하고 presentation density만 조정한다.
 
 - Desktop 작업 정보 탭은 content-aware 2열 grid를 사용한다. 작업명·일정·Description·URL은 주 content 폭을 사용하고 진행률은 보조 열에서 최대 24rem 범위로 제한한다.
 - 일정은 요청 시작일 10~13rem, 기간 7~9rem, 요청 종료일 10~13rem 방향의 3열 입력으로 배치해 기간 입력이 날짜 필드와 같은 폭을 강제받지 않는다. 적용 시작일·확정 종료일은 서버 확정 secondary metadata로 분리한다.
@@ -142,9 +142,11 @@ Issue #74의 3개 탭, body-only scroll, 고정 Footer 구조와 모든 저장/�
 
 검증 기준은 390/768/1024/1440px에서 input geometry와 horizontal overflow를 확인하고 기존 Task Editor 상호작용 회귀를 함께 실행한다.
 
-## Issue #155 — 전체화면에서 작업 정보 진입
+## Issue #155 / #372 — 전체화면에서 작업 정보 진입
 
-Task Editor는 Gantt 전체화면 frame 바깥의 native dialog다. SVAR `show-editor` intercept(메뉴 Edit 포함)와 Readonly Grid/Chart 더블클릭은 호출 대상을 먼저 기억하고 자기 Gantt의 native fullscreen 종료와 `fullscreenchange`를 확인한 뒤에만 기존 편집기를 연다. 종료 거부 시 보이지 않는 dialog를 만들지 않고 오류를 안내하며 원래 대상에 focus를 유지한다. 닫기/Escape 후 호출 대상 또는 기존 taskId fallback으로 복원하는 규칙과 dirty 확인, readonly·revision·If-Match·401/412·Task PATCH/Assignment PUT 계약은 그대로다. 전체화면 전환만으로 작업/할당 API mutation을 보내지 않는다.
+Issue #155에서 도입한 Gantt native fullscreen은 Issue #372부터 **Task Editor 진입의 부수 효과로 종료하지 않는다.** SVAR `show-editor` intercept(메뉴 Edit 포함), Grid/Chart double click 및 readonly 정보 조회는 호출 대상을 기억한 뒤 현재 native `<dialog>.showModal()`을 열며, 앱은 Editor를 열기 위해 `document.exitFullscreen()`을 호출하지 않는다. 따라서 저장·취소·닫기 후에도 사용자가 전체화면 버튼/Escape 등으로 직접 종료하지 않았다면 동일 `.project-gantt-frame` fullscreen과 Gantt instance를 유지한다.
+
+Task Editor가 열린 동안 기존 shortcut guard, modal focus/Tab 처리, dirty 확인, readonly·revision·If-Match·401/412·Task PATCH/Assignment PUT 계약은 그대로다. 닫은 뒤에는 원래 호출 대상 또는 taskId fallback으로 `preventScroll` focus를 복원하고 Grid/Chart scroll·tree·column·scale·selection/filter를 초기화하지 않는다. 같은 fullscreen-aware dialog 원칙은 Relation Editor에도 적용하며, 사용자 에이전트가 Escape로 native fullscreen 자체를 종료하면 `fullscreenchange`가 실제 `document.fullscreenElement`를 source of truth로 UI 상태를 동기화한다. Editor open/close 자체는 작업·관계·할당 API mutation을 보내지 않는다.
 
 ## Issue #140 — Grid 작업명 인라인 편집과 Task Editor 경계
 
@@ -192,3 +194,17 @@ Grid 행 이동은 SVAR Core 2.7.3의 공개 `move-task` action으로 연결한�
 확정 응답의 canonical parent/sibling order와 최신 revision을 반영한 뒤 이름·진행률·설명 등의 일반 필드를 저장한다. 이름 변경 PATCH는 `{name}`만 전달하며 parent/sibling order를 다시 지정하지 않는다. canonical 동기화에서 발생하는 내부 `move-task`는 `project-canonical-sync` marker와 실제 sync guard가 함께 있을 때만 허용하고, 이 action을 새 HTTP 요청으로 되돌려 보내지 않는다. 읽기 전용·mutation 진행 중·동기화 중의 사용자 이동과 편집은 차단한다. 이동 실패/412는 기존 확정 snapshot 재조회와 오류 안내로 복구하고, 재조회가 성공하면 Gantt 인스턴스를 유지한다. 재조회까지 실패한 경우의 기존 recovery remount 정책은 유지한다.
 
 2026-09-29 확인: [공식 move-task API](https://docs.svar.dev/react/gantt/api/actions/move-task/)와 [Next.js backend integration](https://docs.svar.dev/react/gantt/integration-guides/nextjs/backend/)의 구조 이동/일반 속성 저장 분리를 참조했다. 설치된 Core Grid source의 `inProgress=true` 이동과 release 시 `inProgress=false` 최종 이동을 확인했다. PRO 기능이나 별도 reorder 저장소를 추가하지 않는다. URL/설치 source 확인과 실제 pointer 재현·원격 CI 결과는 서로 구분한다.
+
+
+## Issue #377 — 관계 탭에서 Relation Editor 기반 관계 관리
+
+Task Editor 관계 탭은 상위 Project의 canonical `tasks + links + revision` snapshot을 사용하면서 기존 Relation Editor의 추가 진입점을 제공한다.
+
+- 정상 relation row는 상대 작업, externalId, type, lag와 **편집 / 삭제** action을 제공한다. dangling reference는 경고만 표시하고 mutation action은 제공하지 않는다.
+- **관계 추가**는 현재 Task/Milestone의 taskId를 Anchor context로 Relation Editor에 전달한다. 관계가 0건이어도 선행/후행 방향, 후보 Task/Milestone, FS/SS/FF/SF, signed Lag를 선택해 기존 Link POST 계약으로 생성할 수 있다. Summary endpoint 정책은 확대하지 않는다.
+- Task draft가 dirty이면 관계 추가/편집/삭제를 잠그고 먼저 Task 변경을 저장하거나 취소하도록 안내한다. stale revision, readonly, pending도 fail-closed한다.
+- 관계 mutation 성공 시 Project snapshot과 열린 Task Editor의 base/draft/revision을 동일 canonical 응답으로 갱신한다. 이 동기화는 Task Editor native dialog를 다시 `showModal()`하지 않아 Relation Editor가 top layer를 유지하고, 현재 관계 탭을 보존한다.
+- Relation Editor 닫힘 후 기존 trigger가 남아 있으면 focus를 복원한다. 관계 탭 직접 삭제 confirmation은 취소 버튼으로 focus를 이동하고 취소 시 원래 삭제 버튼으로 되돌린다.
+- Gantt fullscreen, instance, scroll/tree/column/scale/filter 상태는 관계 관리 진입과 canonical sync 때문에 초기화하지 않는다.
+
+기존 #97/#200/#203/#266의 Link API, Scheduling Engine, revision/If-Match, 초안·pending·focus 보호를 재사용하며 Task Editor 전용 relation 저장 모델은 만들지 않는다.

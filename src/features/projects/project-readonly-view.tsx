@@ -21,7 +21,7 @@ import {
 import type { AssignedTargetsResponse, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
-import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
+import { ProjectTaskEditor, type ProjectTaskEditorHandle, type TaskRelationEditorRequest } from "@/features/gantt/project-task-editor";
 import { RelationEditorDialog } from "@/features/gantt/relation-editor-dialog";
 import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSession } from "@/features/gantt/task-editor-model";
 import { createTaskDeletePlan, type TaskDeletePlan } from "@/features/gantt/task-delete-model";
@@ -81,31 +81,6 @@ function announceProjectRevision(publicId: string, revision: number): void {
   } catch {
     // Cross-tab freshness is best-effort. The canonical API/revision remains authoritative.
   }
-}
-function exitGanttFullscreen(frame: HTMLElement): Promise<void> {
-  if (document.fullscreenElement !== frame) return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const cleanup = () => {
-      document.removeEventListener("fullscreenchange", onChange);
-      document.removeEventListener("fullscreenerror", onError);
-    };
-    const onChange = () => {
-      if (document.fullscreenElement === frame) return;
-      cleanup();
-      resolve();
-    };
-    const onError = () => {
-      cleanup();
-      reject(new Error("Gantt fullscreen exit failed"));
-    };
-    document.addEventListener("fullscreenchange", onChange);
-    document.addEventListener("fullscreenerror", onError);
-    try {
-      void document.exitFullscreen().then(onChange, onError);
-    } catch {
-      onError();
-    }
-  });
 }
 function snapshotFromMetadataMutation(value: unknown): ProjectSnapshotResponse | null {
   if (typeof value !== "object" || value === null) return null;
@@ -207,7 +182,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [pendingTaskDelete, setPendingTaskDelete] = useState<PendingTaskDelete | null>(null);
   const taskMutationReference = useRef(false);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
-  const [relationEditorLinkId, setRelationEditorLinkId] = useState<string | null>(null);
+  const [relationEditorRequest, setRelationEditorRequest] = useState<TaskRelationEditorRequest | null>(null);
+  const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
   const editorOpeningReference = useRef(false);
@@ -704,27 +680,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     }
   }
 
-  async function openTaskEditor(taskId: string) {
+  function openTaskEditor(taskId: string) {
     if (state.status !== "ready" || editorSession || editorOpeningReference.current || settingsOpen || pendingTaskDelete) return;
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
     if (!task) return;
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
     editorOpeningReference.current = true;
-    try {
-      if (frame && document.fullscreenElement === frame) await exitGanttFullscreen(frame);
-      if (frame && document.fullscreenElement === frame) throw new Error("Gantt fullscreen remains active");
-      editorTriggerReference.current = trigger;
-      setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
-    } catch {
-      editorOpeningReference.current = false;
-      frame?.dispatchEvent(new Event("project-gantt-fullscreen-exit-error"));
-      notify("error", "전체화면을 종료하지 못해 작업 정보를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.", "작업 정보");
-      const root = frame?.querySelector<HTMLElement>(".project-gantt-scroll");
-      const focusTarget = trigger?.isConnected && !trigger.closest(".project-task-context-menu")
-        ? trigger : root ? findTaskContextElement(root, taskId) ?? root : null;
-      focusTarget?.focus({ preventScroll: true });
-    }
+    editorTriggerReference.current = trigger;
+    setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
   }
   function closeTaskEditor() {
     const taskId = editorSession?.task.taskId;
@@ -737,26 +700,20 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       target?.focus({ preventScroll: true });
     });
   }
-  async function openRelationEditor(linkId: string) {
-    if (state.status !== "ready" || relationEditorLinkId) return;
+  function openRelationEditor(linkId: string) {
+    if (state.status !== "ready" || relationEditorRequest) return;
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
-    try {
-      if (frame && document.fullscreenElement === frame) await exitGanttFullscreen(frame);
-      if (frame && document.fullscreenElement === frame) throw new Error("Gantt fullscreen remains active");
-      relationEditorTriggerReference.current = trigger;
-      setRelationEditorLinkId(linkId);
-    } catch {
-      frame?.dispatchEvent(new Event("project-gantt-fullscreen-exit-error"));
-      notify("error", "전체화면을 종료하지 못해 관계 편집기를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.", "관계 편집기");
-      const root = frame?.querySelector<HTMLElement>(".project-gantt-scroll");
-      const focusTarget = trigger?.isConnected && !trigger.closest(".project-relation-context-menu") ? trigger : root;
-      focusTarget?.focus({ preventScroll: true });
-    }
+    relationEditorTriggerReference.current = trigger;
+    setRelationEditorRequest({ kind: "link", linkId });
+  }
+  function openTaskRelationEditor(request: TaskRelationEditorRequest, trigger: HTMLElement) {
+    if (state.status !== "ready" || relationEditorRequest || !editorSession) return;
+    relationEditorTriggerReference.current = trigger;
+    setRelationEditorRequest(request);
   }
   function closeRelationEditor() {
     const trigger = relationEditorTriggerReference.current;
-    setRelationEditorLinkId(null);
+    setRelationEditorRequest(null);
     relationEditorTriggerReference.current = null;
     requestAnimationFrame(() => {
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
@@ -852,6 +809,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       const body: unknown = await response.json().catch(() => null);
       const snapshot = snapshotFromLinkMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
+        const currentEditorTaskId = editorSession?.task.taskId;
+        const currentEditorTask = currentEditorTaskId
+          ? snapshot.data.tasks.find((task) => task.taskId === currentEditorTaskId)
+          : undefined;
+        if (currentEditorTask) {
+          projectTaskEditorReference.current?.applyCanonicalSession({
+            task: { ...currentEditorTask },
+            calendar: snapshot.data.project.calendar,
+            revision: snapshot.data.project.revision,
+          });
+        }
         notify("success", method === "POST" ? "작업 관계를 저장했습니다." : method === "PATCH" ? "작업 관계를 변경했습니다." : "작업 관계를 삭제했습니다.", "작업 관계");
         return true;
       }
@@ -1271,7 +1239,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             ? "선택한 작업이 더 이상 Summary가 아닙니다."
             : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
           <a href={`/projects/${encodeURIComponent(publicId)}`}>전체 프로젝트로 돌아가기</a>
-        </div> : <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorLinkId !== null}
+        </div> : <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
@@ -1280,14 +1248,16 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };
           })} tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />}
-        {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
+        {editorSession ? <ProjectTaskEditor ref={projectTaskEditorReference} key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
-          editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
-        {relationEditorLinkId ? (
+          editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy}
+          onSave={saveEditorTask} onReload={reloadEditorTask} onRelationEditorOpen={openTaskRelationEditor}
+          onRelationDelete={(id) => saveLink("DELETE", undefined, undefined, id)} onClose={closeTaskEditor} /> : null}
+        {relationEditorRequest ? (
           <RelationEditorDialog
             editable={editing}
-            key={relationEditorLinkId}
-            linkId={relationEditorLinkId}
+            key={relationEditorRequest.kind === "link" ? `link:${relationEditorRequest.linkId}` : `task:${relationEditorRequest.taskId}`}
+            {...(relationEditorRequest.kind === "link" ? { linkId: relationEditorRequest.linkId } : { anchorTaskId: relationEditorRequest.taskId })}
             links={links}
             onClose={closeRelationEditor}
             onCreateLink={(source, target, options) => saveLink("POST", source, target, undefined, options)}

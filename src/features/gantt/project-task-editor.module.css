@@ -234,6 +234,18 @@
   font-size: 0.78rem;
   font-weight: 650;
 }
+.relationSectionActions, .relationActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.relationSectionActions { justify-content: flex-end; }
+.relationSectionActions button, .relationActions button {
+  min-height: 2rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.78rem;
+}
 .relations, .assignmentPanel { display: grid; min-width: 0; }
 .relationColumns {
   display: grid;
@@ -244,11 +256,15 @@
 .relationGroup h4 { font-size: 0.9rem; }
 .relationList { display: grid; gap: 0.5rem; max-height: 24rem; margin: 0; padding: 0 0.25rem 0 0; overflow: auto; list-style: none; }
 .relationItem { min-width: 0; padding: 0.7rem; border: 1px solid var(--border-default); border-radius: 0.45rem; background: var(--surface-subtle); }
+.relationItemHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.7rem; min-width: 0; }
 .relationTask { min-width: 0; overflow-wrap: anywhere; }
 .relationTask code { margin-left: 0.35rem; font-size: 0.78rem; white-space: normal; overflow-wrap: anywhere; }
 .relationMeta { display: flex; flex-wrap: wrap; gap: 0.35rem 0.75rem; margin-top: 0.35rem; color: var(--text-muted); font-size: 0.8rem; }
 .relationWarning, .relationError { color: var(--status-error); }
 .relationError { margin: 0 0 0.75rem; padding: 0.65rem; border-radius: 0.4rem; background: var(--status-error-surface); font-size: 0.86rem; }
+.relationMutationNotice { margin: 0 0 0.75rem; padding: 0.65rem 0.75rem; border-radius: 0.4rem; background: var(--status-warning-surface); color: var(--text-default); font-size: 0.84rem; line-height: 1.45; }
+.relationDeleteConfirmation { margin: 0 0 0.85rem; padding: 0.75rem; border: 1px solid var(--status-warning-border); border-radius: 0.45rem; background: var(--status-warning-surface); }
+.relationDeleteConfirmation p { margin: 0; font-size: 0.84rem; line-height: 1.45; }
 .emptyRelation { margin: 0.2rem 0; color: var(--text-muted); font-size: 0.86rem; }
 .assignmentNotice { margin-bottom: 0.8rem; background: var(--status-info-surface); color: var(--status-info); }
 .assignmentFilters {
@@ -383,6 +399,8 @@
       "url";
   }
   .scheduleFields, .relationColumns, .allocationGrid { grid-template-columns: 1fr; }
+  .relationItemHeader { align-items: stretch; flex-direction: column; }
+  .relationActions { justify-content: flex-end; }
   .allocationGrid { margin-left: 1.8rem; }
   .assignmentFilters { grid-template-columns: minmax(0, 1fr) minmax(8rem, 0.45fr); }
   .assignedOnly { grid-column: 1 / -1; }
