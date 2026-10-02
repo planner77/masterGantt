@@ -69,7 +69,7 @@ import {
   type ProjectTaskUpdateCommand,
 } from "./project-task-adapter";
 import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
-import { resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
+import { findTaskContextElement, resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import type { TaskEditorSaveResult } from "./task-editor-model";
 import { captureMenuScrollChange } from "./menu-scroll-guard";
 import {
@@ -291,6 +291,7 @@ export function ProjectGantt({
   }, [projectPublicId]);
   const inlineOpenTokenReference = useRef(0);
   const namePointerIntentReference = useRef<{ taskId: string; x: number; y: number } | null>(null);
+  const contextPointerTaskIdReference = useRef<string | null>(null);
   const inlineComposingReference = useRef(false);
   const inlineTableReference = useRef<Awaited<ReturnType<IApi["getTable"]>> | null>(null);
   const inlineSessionReference = useRef<{
@@ -1500,10 +1501,14 @@ export function ProjectGantt({
     return true;
   }
 
-  function openTaskMenu(target: EventTarget | null, x?: number, y?: number): boolean {
+  function openTaskMenu(target: EventTarget | null, x?: number, y?: number, fallbackTaskId?: string | null): boolean {
     const root = ganttScrollReference.current;
     if (!root || !apiReference.current || !apiInstanceId) return false;
-    const match = resolveSelectionTarget(target, root);
+    let match = resolveSelectionTarget(target, root);
+    if (!match && fallbackTaskId) {
+      const currentElement = findTaskContextElement(root, fallbackTaskId);
+      if (currentElement) match = { taskId: fallbackTaskId, element: currentElement };
+    }
     if (!match) return false;
     if (!selectedTaskIdsReference.current.includes(match.taskId)) applySelectionGesture(match.taskId, "single");
     if (!match.element.hasAttribute("tabindex")) match.element.tabIndex = 0;
@@ -1603,6 +1608,12 @@ export function ProjectGantt({
 
   function handleSelectionPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     namePointerIntentReference.current = null;
+    if (event.button === 2) {
+      const root = ganttScrollReference.current;
+      contextPointerTaskIdReference.current = root ? resolveSelectionTarget(event.target, root)?.taskId ?? null : null;
+    } else {
+      contextPointerTaskIdReference.current = null;
+    }
     if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && event.target instanceof Element) {
       const text = event.target.closest('.wx-table-container [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text');
       const row = text?.closest<HTMLElement>(".wx-row[data-id]");
@@ -1675,6 +1686,8 @@ export function ProjectGantt({
   }
 
   function handleHeaderContextMenu(event: ReactMouseEvent<HTMLDivElement>) {
+    const fallbackTaskId = contextPointerTaskIdReference.current;
+    contextPointerTaskIdReference.current = null;
     const header = headerFrom(event.target);
     if (header) {
       event.preventDefault();
@@ -1682,7 +1695,7 @@ export function ProjectGantt({
     } else if (openRelationMenu(event.target, event.clientX, event.clientY)) {
       event.preventDefault();
       event.stopPropagation();
-    } else if (openTaskMenu(event.target, event.clientX, event.clientY)) {
+    } else if (openTaskMenu(event.target, event.clientX, event.clientY, fallbackTaskId)) {
       event.preventDefault();
       event.stopPropagation();
     }
@@ -2196,7 +2209,10 @@ export function ProjectGantt({
             const intent = namePointerIntentReference.current;
             if (intent && Math.hypot(event.clientX - intent.x, event.clientY - intent.y) > 4) namePointerIntentReference.current = null;
           }}
-          onPointerCancelCapture={() => { namePointerIntentReference.current = null; }}
+          onPointerCancelCapture={() => {
+            namePointerIntentReference.current = null;
+            contextPointerTaskIdReference.current = null;
+          }}
           onClickCapture={handleSelectionClick}
           onClick={(event) => { void handleNameClick(event); }}
           onCompositionStart={() => { inlineComposingReference.current = true; }}
