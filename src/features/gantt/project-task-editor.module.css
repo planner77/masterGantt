@@ -350,6 +350,13 @@
   background: var(--surface-panel);
   box-shadow: 0 -8px 20px color-mix(in srgb, var(--text-default) 3%, transparent);
 }
+.footer button {
+  box-sizing: border-box;
+  min-height: 2.75rem;
+  margin-top: 0;
+  padding: 0.5rem 0.875rem;
+  line-height: 1.25;
+}
 .reloadButton { display: inline-flex; align-items: center; gap: 0.45rem; }
 .footerActions { display: flex; align-items: center; justify-content: flex-end; gap: 0.65rem; }
 .footerActions button { min-width: 6.5rem; }
