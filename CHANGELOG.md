@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.67.2] - 2026-10-02
+
+### Changed
+
+- Issue #332: 프로젝트 기준정보 관리자에서 인증, 범주, 항목 추가, 목록 영역을 compact flat surface와 divider로 명확히 구분한다.
+- 사업부/제품/사업장·법인 목록에 semantic column header와 상태/사용 표시를 추가하고, `전체 / 활성 / 비활성` client-side 상태 필터 및 필터별 empty state를 제공한다.
+- 상태 필터는 category 전환 뒤에도 유지하며 필터 조작만으로 catalog mutation/revision 변경을 발생시키지 않는다.
+- 390/768/1024/1440px에서 document overflow 없이 좁은 화면의 표만 내부 수평 스크롤되도록 Chromium 회귀를 추가한다.
+- Project Master 인증/session/Origin/If-Match/CRUD 의미는 변경하지 않는다.
+- Application version을 `0.67.1`에서 `0.67.2`로 증가한다.
+
 ## [0.67.1] - 2026-10-02
 
 ### Fixed
