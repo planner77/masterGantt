@@ -735,3 +735,16 @@ Workspace는 서버에서 마지막으로 확정된 Project snapshot을 보관�
 성공 삭제의 canonical 동기화는 남아 있는 sibling끼리의 순서를 비교한다. 삭제된 앞쪽 sibling 때문에 index가 줄어든 것을 reorder로 해석하지 않으며, 불필요한 `move-task`로 기존 Summary의 접힘 상태를 바꾸지 않는다.
 
 조사 기준 main `6532edd8418772454b96fdeb895b90c5ab7d3d6d`에서 실제 SQLite/Chromium의 일반 삭제 성공→정상 409→현재 canonical GET 조합을 두 차례 반복했을 때 원증상은 재현되지 않았다. 별도로 복구 GET에 낮은 revision의 삭제 전 snapshot을 주입하면 성공 삭제 Task가 다시 표시되는 결함은 재현됐다. 따라서 이 변경은 오래된 응답의 무조건 적용과 복구 GET 실패 시 remount 경로를 보완하며, 정상 409가 반드시 오래된 응답을 생성한다고 단정하지 않는다. 검증 상세와 상태는 [TEST_PLAN](TEST_PLAN.md#issue-344--작업-삭제-실패-복구-회귀)을 따른다.
+
+## Issue #332 — 프로젝트 기준정보 관리자 정보 계층 및 상태 필터
+
+전역 `/project-master-admin`은 Project edit 화면과 분리된 글로벌 기준정보 관리자라는 점을 화면 구조에서도 명확하게 표현한다.
+
+- 인증 전에는 관리자 인증 제목·설명·비밀번호·로그인 액션을 하나의 section으로 묶고 일반 기준정보 입력과 혼동되지 않도록 divider/surface 차이를 사용한다.
+- 인증 후에는 현재 관리자 인증 상태와 비밀번호 변경·새로고침·로그아웃 액션을 별도 section으로 유지하고, 그 아래에 프로젝트 기준정보 관리 section을 둔다.
+- 사업부/제품/사업장·법인 category는 기존 WAI-ARIA `tablist`/`tabpanel`, roving tabindex, ArrowLeft/ArrowRight/Home/End 계약을 유지한다.
+- category panel 안에서 **항목 추가**와 **목록**을 hairline divider와 heading hierarchy로 구분한다. 목록은 이름/코드/정렬/상태·사용/작업 column header가 있는 semantic table을 사용한다.
+- 목록 상태 필터는 `전체 / 활성 / 비활성` 3개 button group이며 기본값은 전체다. 필터는 이미 조회한 catalog snapshot에만 적용하는 client-side view state이고 catalog mutation이나 revision 증가를 발생시키지 않는다.
+- 상태 필터는 category를 바꾸어도 유지한다. 필터 결과가 0건이면 현재 선택 상태에 맞는 empty state를 표시한다.
+- 좁은 화면에서는 document 자체를 넓히지 않고 목록 table wrapper 안에서만 수평 scroll을 허용한다. 390/768/1024/1440px에서 category/filter/action control은 접근 가능해야 한다.
+- Project Master 관리자 session, Origin, login rate-limit, bootstrap credential, `If-Match` revision, CRUD 및 inactive 참조 보존 계약은 기존 동작을 유지한다.
