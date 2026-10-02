@@ -2,7 +2,7 @@
 
 상태: PR_PREPARATION. 사용자 승인 범위는 구현·문서 동기화·독립 사전 QA → PR 생성·CI 실행 시작까지다. CI 완료 모니터링·병합·main/GHCR·정식 릴리스·Issue 종료·branch cleanup은 범위 밖이다.
 
-현재 통합 후보: main `2d310d2669d4b80bc961f67d81a4f51a7c3777cc` / `0.65.1` 기준 version `0.66.0`. PR [#391](https://github.com/planner77/masterGantt/pull/391)의 충돌 해결·재검증은 마지막 통합 REWORK 절이 최신 상태다. 아래 최초 baseline/version 기록은 당시 근거다.
+현재 통합 후보: main `986a34dbd888c4b91126677f89a177a39faf506c` / `0.67.1` 기준 version `0.68.0`. PR [#391](https://github.com/planner77/masterGantt/pull/391)의 충돌 해결·재검증은 마지막 통합 REWORK 절이 최신 상태다. 아래 최초 baseline/version 기록은 당시 근거다.
 
 ## Issue Work Packet
 
@@ -128,3 +128,13 @@ npm run test:e2e -- tests/e2e/project-gantt-fullscreen.spec.ts tests/e2e/project
 ```
 
 Resource #331 폼 소스·전용 회귀는 충돌 없이 최신 main 그대로 통합했으며 이 작업의 별도 브라우저 실행 N/A다. 최초 source의 name pointer fallback은 유지하되 #331 layout-phase guard도 보존한다. 통합 QA가 찾은 scale Tooltip Escape 간섭은 header를 selection Escape guard에서 제외하여 해결했고 새 browser 검사로 확인했다. 요구사항·권한·API·DB 계약과 CI gate는 유지한다.
+
+
+## PR #391 최신 main 2차 정렬 / CI #1515.1 보완
+
+- CI #1515.1: quality/build/typecheck/policy/docker PASS, Chromium shard 2/4·3/4 FAIL.
+- 실제 제품 회귀: 우클릭 pointerdown 이후 SVAR row DOM 교체로 contextmenu target이 조상으로 재지정되면 Task menu target resolve가 실패했다. pointerdown Task ID를 보존하고 현재 canonical row를 다시 resolve하도록 보완했다.
+- 테스트 정렬: #384 계약상 선택 밖 행 Context Menu는 해당 행 singleton selection으로 전환한다. fullscreen 회귀는 과거 Core `wx-selected` 유지 기대 대신 app-owned `data-copy-selected`의 새 selection 의미와 fullscreen 전후 보존을 검증한다.
+- main은 `986a34dbd888c4b91126677f89a177a39faf506c` / `0.67.1`까지 진행되어 #329 Resource 삭제, #385 JSON Import, #331 release/cross-tab 보완을 모두 유지한 merge commit으로 재정렬한다.
+- Version Manager: `0.67.1 → 0.68.0` MINOR.
+- 새 merge head의 PR CI quality/e2e/docker가 공식 재검증 근거이며 이전 #1515.1은 수정 전 head 증거로만 남긴다.

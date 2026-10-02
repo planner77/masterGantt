@@ -1,13 +1,55 @@
 # Changelog
 
-## [0.66.0] - 2026-10-02
+## [0.68.0] - 2026-10-02
 
 ### Added
 
 - Issue #384: Gantt의 checkbox·Ctrl/Cmd·Shift 다중 선택 집합을 Copy/Paste하고 canonical hierarchy 순서로 여러 root 및 전체 자손을 복제한다.
-- 내부 Dependency를 새 Task/Link ID로 재매핑하며 외부 Link 제외, 단일 Cut, 기존 일정 재계산·원자성·권한·revision 계약을 유지한다.
-- 기존 단일 Copy API와 호환되는 taskIds 계약과 선택/필터/clipboard 및 SQLite·Chromium 회귀 검증을 추가한다.
+- 내부 Dependency를 새 Task/Link ID로 재매핑하며 외부 Link 제외, 단일 Cut/Edit/Delete/Move 경계, 기존 일정 재계산·원자성·권한·revision 계약을 유지한다.
+- 기존 단일 Copy API와 호환되는 `taskIds` 계약과 selection/filter/clipboard 및 SQLite·Chromium 회귀 검증을 추가한다.
+
+### Fixed
+
+- SVAR가 우클릭 pointer gesture 중 row DOM을 교체해 contextmenu target이 조상으로 재지정되는 경우 pointerdown Task ID로 현재 canonical row를 다시 resolve해 작업 메뉴를 안정적으로 연다.
+- Application version을 `0.67.1`에서 `0.68.0`으로 증가한다.
+
+## [0.67.1] - 2026-10-02
+
+### Fixed
+
+- Issue #331 release recovery: immutable `v0.65.1`의 Release quality가 동일 #373 cross-tab loading race로 두 번 실패한 경우 기존 tag를 이동·덮어쓰지 않고, later same-Issue corrective merge의 Green main CI와 동일/강한 validation scope로 lifecycle을 승계할 수 있도록 Generic Release Finalizer를 보강한다.
+- Formal release 상태를 tag 없음/미실행/진행 중/성공/실패로 판별하고, 진행 중 release는 중복 mutation 없이 DEFERRED하며, completed non-success release만 corrective supersession 후보로 취급한다.
+- Cross-tab durable revision announcement는 listener 설치 후 localStorage를 병합하고 authoritative GET이 전진하지 않는 stale durable target은 폐기해 초기 loading race와 영구 stale revision 반복을 함께 방지한다.
+- Application version을 `0.67.0`에서 `0.67.1`로 증가한다.
+
+## [0.67.0] - 2026-10-02
+
+### Added
+
+- Issue #385: Project Workspace의 `더보기 → 가져오기 (JSON)`에서 문서화된 JSON 파일을 선택해 server-side Preview 후 Commit할 수 있는 JSON Import 진입점을 추가한다.
+- `POST /api/projects/{publicId}/imports/preview`와 `POST /api/projects/{publicId}/imports` 경로를 기존 Import handler에 연결하고 preview는 edit session 기반 non-mutating, commit은 strong `If-Match` 기반 mutation 보안 inventory에 등록한다.
+- 외부 작업자·시스템·LLM이 참조할 수 있도록 `docs/JSON_IMPORT.md`와 `docs/schemas/project-import.schema.json`을 추가한다.
+
+### Changed
+
+- JSON Import 진입점은 Workspace의 compact action menu에 배치하고 다른 Project mutation/Task Editor/Relation Editor가 진행 중이면 시작을 차단한다.
+- initial loading 중 cross-tab revision event를 놓친 경우에도 저장된 최고 revision을 seed하여 canonical snapshot이 최신 revision으로 수렴하도록 보강한다.
+- Application version을 `0.66.0`에서 `0.67.0`으로 증가한다.
+
+## [0.66.0] - 2026-10-02
+
+### Added
+
+- Issue #329: Resource Catalog 관리자 화면에서 어떤 Project에도 참조되지 않은 Resource와 Resource Group을 명시적 확인 후 영구 삭제할 수 있다.
+- Resource 사용 여부는 Task assignment, 설비 owner/contributor, 시스템 PI/developer, Resource Calendar를 통합하고 Group은 Task assignment와 Resource Group Calendar를 통합해 distinct Project 수로 판정한다.
+- `DELETE /api/resources/{resourceId}`와 `DELETE /api/resource-groups/{groupId}`를 추가하고 관리자 session, exact Origin, strong catalog `If-Match`, transaction 내 usage 재검증 및 catalog revision +1 계약을 적용한다.
+
+### Changed
+
+- Resource Catalog 응답에 `projectUsageCount`와 `deletable` UX 힌트를 추가하고, 사용 중 항목은 삭제 불가 사유를 표시한다. 실제 DELETE는 UI 상태를 신뢰하지 않고 서버에서 다시 fail-closed 검증한다.
+- 안전한 삭제 시 Resource/Group membership만 함께 정리하며 반대편 Catalog entity는 보존한다. 기존 FK `RESTRICT/NO ACTION`은 최종 무결성 방어선으로 유지한다.
 - Application version을 `0.65.1`에서 `0.66.0`으로 증가한다.
+
 
 ## [0.65.1] - 2026-10-02
 

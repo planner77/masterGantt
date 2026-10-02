@@ -4,6 +4,7 @@ export type RouteSecurityPolicy =
   | "origin-and-password-limit"
   | "optional-session-read"
   | "origin-and-target-logout"
+  | "origin-session"
   | "origin-session-if-match"
   | "origin-if-match-read"
   | "resource-admin-read"
@@ -57,6 +58,8 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/copy", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/exports/excel", method: "POST", policy: "origin-if-match-read", mutatesState: false },
   { template: "/api/projects/{publicId}/exports/gantt-svg", method: "POST", policy: "origin-if-match-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/imports/preview", method: "POST", policy: "origin-session", mutatesState: false },
+  { template: "/api/projects/{publicId}/imports", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/edit-sessions", method: "POST", policy: "origin-and-password-limit", mutatesState: true },
   { template: "/api/projects/{publicId}/edit-sessions/current", method: "GET", policy: "optional-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/edit-sessions/current", method: "DELETE", policy: "origin-and-target-logout", mutatesState: true },
@@ -74,9 +77,11 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/resources", method: "GET", policy: "resource-admin-read", mutatesState: false },
   { template: "/api/resources", method: "POST", policy: "origin-resource-admin-if-match", mutatesState: true },
   { template: "/api/resources/{resourceId}", method: "PATCH", policy: "origin-resource-admin-if-match", mutatesState: true },
+  { template: "/api/resources/{resourceId}", method: "DELETE", policy: "origin-resource-admin-if-match", mutatesState: true },
   { template: "/api/resource-groups", method: "GET", policy: "resource-admin-read", mutatesState: false },
   { template: "/api/resource-groups", method: "POST", policy: "origin-resource-admin-if-match", mutatesState: true },
   { template: "/api/resource-groups/{groupId}", method: "PATCH", policy: "origin-resource-admin-if-match", mutatesState: true },
+  { template: "/api/resource-groups/{groupId}", method: "DELETE", policy: "origin-resource-admin-if-match", mutatesState: true },
   { template: "/api/resource-groups/{groupId}/members", method: "PUT", policy: "origin-resource-admin-if-match", mutatesState: true },
   { template: "/api/logistics-catalog/types", method: "GET", policy: "logistics-catalog-read", mutatesState: false },
   { template: "/api/logistics-catalog/admin-sessions", method: "POST", policy: "origin-logistics-admin-auth", mutatesState: true },

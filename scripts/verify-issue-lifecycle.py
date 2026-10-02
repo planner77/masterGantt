@@ -112,6 +112,7 @@ require("gh_paginated(" in auto_impl, "comment and PR pagination helper is requi
 require("collect_pending_work(" in auto_impl, "first-parent backlog resolver is required")
 require("coalesce_consecutive_issue_retries(" in auto_impl, "same-Issue corrective merge convergence is required")
 require("supersede_failed_issue_retries(" in auto_impl, "non-adjacent same-Issue retry supersession is required")
+require("exact_release_state(" in auto_impl, "formal release evidence classification is required")
 require("validation_docs_only" in auto_impl, "coalescing must preserve validation scope")
 require("--cleanup-pr" in auto_impl and "--cleanup-pr" in impl, "coalesced PR cleanup identities must reach lifecycle finalize")
 require("current_main_sha(" in auto_impl, "dispatcher must snapshot current main")
@@ -539,6 +540,53 @@ waiting_planned, waiting_superseded = auto.supersede_failed_issue_retries(
 )
 require(waiting_superseded == [], "non-Green corrective target must not supersede earlier failure")
 require(waiting_planned[0] == failed_344, "failed attempt must remain until corrective exact main CI succeeds")
+
+
+# A target whose exact main CI passed but immutable formal release repeatedly
+# failed may also be superseded by a later Green corrective merge for the same
+# Issue. A candidate that already has failed release evidence is not eligible.
+release_failed_331 = auto.WorkItem("c" * 40, "0" * 40, 30, 331, "0.65.0", "0.65.1", False)
+middle_329 = auto.WorkItem("d" * 40, "c" * 40, 31, 329, "0.65.1", "0.66.0", False)
+fixed_331 = auto.WorkItem("e" * 40, "d" * 40, 32, 331, "0.66.0", "0.67.1", False)
+release_planned, release_superseded = auto.supersede_failed_issue_retries(
+    [release_failed_331, middle_329, fixed_331],
+    {
+        release_failed_331.target_sha: True,
+        middle_329.target_sha: True,
+        fixed_331.target_sha: True,
+    },
+    {
+        release_failed_331.target_sha: True,
+        middle_329.target_sha: False,
+        fixed_331.target_sha: False,
+    },
+)
+require(
+    [item.issue_number for item in release_planned] == [329, 331],
+    "formal release failure supersession must preserve intervening Issue order",
+)
+require(
+    release_superseded == [(release_failed_331, fixed_331)],
+    "failed immutable release must map to later same-Issue corrective target",
+)
+require(
+    release_planned[-1].cleanup_pr_numbers == (30,),
+    "release-failed PR must become corrective cleanup obligation",
+)
+
+failed_candidate_planned, failed_candidate_superseded = auto.supersede_failed_issue_retries(
+    [release_failed_331, fixed_331],
+    {release_failed_331.target_sha: True, fixed_331.target_sha: True},
+    {release_failed_331.target_sha: True, fixed_331.target_sha: True},
+)
+require(
+    failed_candidate_superseded == [],
+    "candidate with failed formal release evidence must not supersede an older target",
+)
+require(
+    failed_candidate_planned[0] == release_failed_331,
+    "older release failure must remain blocker without a healthy corrective target",
+)
 
 for expected_error, values in [
     (True, ("1", "2", True, False, "", "")),

@@ -852,6 +852,26 @@ Issue #300의 Grid 이동은 기존 `{kind:"reparent", taskId, anchorTaskId, pla
 
 유효한 Resource catalog 관리자 Cookie가 필요하다. body는 `newPassword`와 동일한 `confirmPassword`를 받으며 1~12 Unicode 문자 정책을 적용한다. 성공 시 기존 Resource 관리자 세션을 모두 revoke하고 호출자에게 새 관리자 Cookie를 발급한다. 원문 비밀번호는 DB·응답·로그에 남기지 않는다. 최초 자격증명이 없을 때만 `RESOURCE_CATALOG_ADMIN_PASSWORD`를 seed로 사용하고, DB 자격증명이 생성된 이후에는 환경변수 변경으로 덮어쓰지 않는다.
 
+## Issue #329 — 미사용 Resource / Resource Group guarded DELETE
+
+관리자용 Resource Catalog 응답의 각 Resource/Group은 `projectUsageCount`와 `deletable`을 반환한다. 이 값은 UI에서 삭제 가능 여부와 사유를 표시하기 위한 힌트이며 authorization 또는 삭제 가능성의 최종 근거가 아니다.
+
+- Resource usage: Task assignment, 설비 `owner/contributor`, 시스템 `pi/developer`, Resource 대상 Work Calendar의 distinct Project 합집합
+- Resource Group usage: Task group assignment, Resource Group 대상 Work Calendar의 distinct Project 합집합
+- Group membership 자체는 Project usage가 아니다.
+
+### `DELETE /api/resources/{resourceId}`
+
+Resource catalog 관리자 Cookie, exact allowed Origin, strong catalog `If-Match: "<revision>"`가 필요하다. 하나의 SQLite `IMMEDIATE` transaction 안에서 관리자 session/revision → 최신 Project usage → membership cleanup → Resource 삭제 → catalog revision +1 순으로 처리하고 성공 시 새 canonical Resource Catalog와 ETag를 `200`으로 반환한다.
+
+Project usage가 하나라도 있으면 `409 RESOURCE_IN_USE`로 거부한다. 오류 detail에는 Project 이름/내용을 노출하지 않고 `PROJECT_USAGE_COUNT`와 실제 존재하는 usage category별 Project count만 포함한다.
+
+### `DELETE /api/resource-groups/{groupId}`
+
+동일한 관리자/Origin/`If-Match` 계약을 사용한다. Project usage가 0일 때 해당 Group의 `resource_group_members`만 정리하고 Group row를 삭제하며 member Resource row는 보존한다. 사용 중이면 `409 RESOURCE_GROUP_IN_USE`로 원자 거부한다.
+
+두 DELETE 모두 stale catalog는 기존 `412 CATALOG_REVISION_MISMATCH`, 관리자 session 부재/만료는 `401 RESOURCE_ADMIN_SESSION_REQUIRED`, Origin 불일치는 `403 ORIGIN_NOT_ALLOWED`를 유지한다. UI의 `deletable`이 true였더라도 DELETE transaction에서 usage를 다시 계산하므로 동시 Project 할당/Calendar/Logistics 역할 생성은 fail-closed한다.
+
 ## Issue #184: Logistics Domain API
 
 물류 공정·설비·시스템 관리 API는 프로젝트 편집 세션(`mastergantt_edit` / `__Host-mastergantt_edit`), 허용된 `Origin`, strong `If-Match: "<revision>"` 검증을 필수로 요구하며, 성공 시 상태 변경과 함께 프로젝트 `revision`을 1 증가시키고 새 ETag와 함께 `200`을 반환한다 (`DELETE`는 `204`).

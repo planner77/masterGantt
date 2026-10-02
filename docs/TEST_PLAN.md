@@ -8,9 +8,11 @@ Selection Unit은 canonical preorder·ancestor/중복 제거·empty Summary·sin
 
 Chromium 신규 `project-multi-task-copy-paste.spec.ts`는 역순 checkbox→selected row Copy→Summary child Paste·새 endpoint·revision +1·Editor 관계·same instance·column width/scale/collapse/scroll 보존·reload 및 동일 DB 실제 서버 재시작과 390/768/1024/1440px screenshot/overflow를 확인한다. modifier/Shift checkbox/Space/Copy/Paste/Escape는 이중 toggle·inline 간섭 없이 확인한다. 선택 상태에서 Day·Week header Escape는 Tooltip을 우선 닫고 Task 선택을 유지한다. 기존 DnD/rename/double-click/scoped/readonly/pending/412 회귀는 관련 spec을 사용한다.
 
-전문 Agent는 read-only patch를 작성하고 Manager가 승인 경로로 편집·실행했다. 최신 main 통합 후보0.66.0에서 관련 Unit/SQLite/HTTP·관계·Week Tooltip89개 PASS, Chromium Copy8/inline3/scale1/DnD4/계층 메뉴3의19개 PASS와 fullscreen2/관계 편집3의 별도5개 PASS를 확보했다. 초기 FAIL·수정 근거·실행별 개수·4폭 캡처·실제 서버 restart·로컬 lint 생성물 제외 범위는 [실행 기록](exec-plans/active/ISSUE_384.md)에 구분한다. 원격 quality/e2e/docker는 CI 시작까지만 진행해 NOT TESTED이며, touch device/screen reader는 별도 미실행이다.
+전문 Agent는 read-only patch를 작성하고 Manager가 승인 경로로 편집·실행했다. 이전 0.66.0 통합 후보에서 관련 Unit/SQLite/HTTP·관계·Week Tooltip 89개 PASS와 Chromium 집중 24개 PASS를 확보했다. PR CI #1515.1에서는 quality/build/typecheck/policy/docker가 PASS였고 Chromium shard 2/4·3/4에서 context-menu DOM 교체 회귀와 구 selection 기대를 확인해 보완했다. 현재 main 0.67.1 기준 0.68.0으로 재정렬한 새 PR head에서 전체 quality/e2e/docker를 다시 판정한다. 초기 FAIL·수정 근거·4폭 캡처·실제 서버 restart는 [실행 기록](exec-plans/active/ISSUE_384.md)에 구분하며 touch device/screen reader는 별도 미실행이다.
 ## Issue #331 Resource 관리 생성 폼 overlap 회귀
 
+- Release #91 회귀 보완: initial Project loading 중 storage listener 설치 전에 발생한 revision announcement는 listener 등록 후 durable localStorage revision을 pending revision에 병합하고, authoritative follow-up GET이 전진하지 않는 stale durable target은 폐기한다. `project-revision-sync.test.ts`와 기존 #373 loading/cross-tab E2E가 이 계약을 고정한다.
+- Finalizer recovery: exact main CI가 PASS여도 immutable formal release가 completed non-success로 반복 실패한 target은 later same-Issue corrective merge가 exact main CI PASS이고 validation scope가 동등 이상일 때만 supersede한다. release가 진행 중이거나 corrective release 자체가 실패한 경우에는 supersede하지 않는다. `scripts/verify-issue-lifecycle.py`가 intervening Issue order와 cleanup debt 전이를 검증한다.
 - Chromium `tests/e2e/resource-admin-layout.spec.ts`에서 관리자 로그인 후 390/768/1024/1440px별 신규 리소스 4개 direct control과 신규 리소스 그룹 3개 direct control의 bounding box를 비교해 상호 overlap이 없고 각 form의 수평 bounds 안에 들어오는지 확인한다.
 - 같은 viewport 반복에서 document-level horizontal overflow 부재를 유지하며 390px과 1024px 결과 screenshot을 Playwright output에 남겨 좁은 1열과 desktop 2열 해결 증거로 사용한다.
 - 신규 리소스 폼의 이름 → 코드 → 개발자 등급 → 추가 버튼 native Tab 순서를 확인한다. 개발자 등급 값 생성/편집과 API payload는 기존 `resource-developer-grade.spec.ts`를 함께 회귀 실행한다.
@@ -1043,3 +1045,14 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
   - 기존 Task Editor 390/768/1024/1440px 관계 layout과 dialog/document overflow를 검증한다.
 - 기존 관계선 double-click/Context Menu Relation Editor #203/#266 및 #372 fullscreen E2E를 유지해 신규 Task Editor 진입점이 기존 경로를 회귀시키지 않는지 확인한다.
 - 공식 자동 판정은 동일 PR head의 required `quality`, `e2e`, `docker` 결과를 사용한다.
+
+
+## Issue #329 Resource / Resource Group guarded DELETE 회귀
+
+- Repository/Service: Resource usage를 Task assignment, Equipment role, System role, Resource Calendar의 distinct Project 합집합으로 계산하고 Group usage를 Task group assignment와 Group Calendar 합집합으로 계산한다.
+- 삭제 성공: Project usage 0인 Resource/Group만 삭제되고 해당 `resource_group_members` row만 정리되며 반대편 Group/Resource는 보존된다. 성공한 실제 삭제만 catalog revision을 정확히 +1 한다.
+- 삭제 거부: 각 usage category, inactive 사용 대상, 복수 Project 사용, stale catalog revision에서 삭제/membership/revision이 모두 rollback되고 `RESOURCE_IN_USE` 또는 `RESOURCE_GROUP_IN_USE`를 반환한다.
+- Security/API: DELETE는 Resource Catalog 관리자 session + exact Origin + strong catalog `If-Match`를 요구하며 route security inventory에도 동일 정책으로 등록한다.
+- Chromium: 사용 중 항목은 `삭제 불가`와 Project 사용 수를 노출하고, 미사용 항목은 confirmation dialog를 거친다. Group 삭제는 member Resource 보존 안내를 제공한다. Cancel은 trigger focus를 복원하고 성공 후 같은 검색 입력으로 focus를 이동하며 검색어를 유지한다.
+- 390/768/1024/1440px에서 Resource/Group action 영역과 사용 사유가 겹치거나 document horizontal overflow를 만들지 않는다.
+- 공식 전체 회귀 판정은 Issue #329 PR exact-head GitHub Actions `quality/e2e/docker` 결과를 사용한다.

@@ -6,6 +6,15 @@
 
 선택 checkbox·Ctrl/Cmd·Shift·Context Menu·keyboard Copy는 같은 집합을 사용한다. scoped view/필터 변경은 selection을 정리하고 clipboard를 폐기하며, collapse는 선택을 유지한다. 다중 Cut/Delete/Edit/Move·cross-Project·Resource/Logistics 복제 확대는 제외한다. 기존 copied Baseline null 초기화·원본 불변, 빈 Summary null, session/Origin/If-Match/Project 격리와 Assignment 전체 거부를 유지한다. [실행 계획](exec-plans/active/ISSUE_384.md)과 [API](API.md)를 따른다.
 
+## Issue #329 — 미사용 Resource / Resource Group 안전 삭제
+
+- Resource Catalog 관리자는 어떤 Project에도 참조되지 않은 Resource와 Resource Group만 영구 삭제할 수 있다.
+- Resource usage는 Task assignment, 설비 담당 역할, 시스템 PI/Developer 역할, Resource Calendar를 모두 포함하며 Group usage는 Task group assignment와 Group Calendar를 포함한다.
+- Group membership은 Project usage로 보지 않으며 안전 삭제 시 membership row만 원자적으로 정리한다. Resource 삭제가 Group을, Group 삭제가 Resource를 삭제해서는 안 된다.
+- Catalog 조회의 삭제 가능 상태는 UX 힌트이며 서버 DELETE는 관리자 session, Origin, catalog `If-Match`와 최신 Project usage를 같은 transaction에서 다시 검증한다.
+- 사용 중 항목은 구조화된 409로 거부하고 실패 시 대상/membership/catalog revision에 부분 변경이 없어야 한다.
+
+
 ## Issue #378 — Subtree Copy 내부 Dependency 복제
 
 - Task 또는 Summary subtree Copy 집합 안에 predecessor와 successor가 모두 포함된 Dependency Link는 새 Task ID에 맞춰 복제한다.
