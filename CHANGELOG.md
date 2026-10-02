@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.65.1] - 2026-10-02
+
+### Fixed
+
+- Issue #331: 리소스 관리의 신규 리소스/리소스 그룹 생성 폼을 실제 field 수에 맞는 별도 responsive Grid로 분리하고 shrink 가능한 track과 control containment를 적용해 코드·개발자 등급·추가 버튼이 중간 viewport에서 겹치지 않도록 수정한다.
+- 390/768/1024/1440px에서 두 생성 폼의 direct control overlap/form bounds/document overflow와 신규 리소스 폼 Tab 순서·개발자 등급 옵션을 Chromium으로 검증한다.
+- Grid reorder 직후 첫 inline rename 클릭에서 DOM editability와 실제 SVAR event guard ref가 다른 render 시점을 가리키지 않도록 해당 ref와 project revision/session invalidation을 layout phase에서 동기화한다. 최신 main의 강화된 reorder helper는 그대로 보존한다.
+- Resource Catalog API, 관리자 session/revision/If-Match, Scheduling/DB 및 SVAR dependency 계약은 변경하지 않는다.
+- Application version을 `0.65.0`에서 `0.65.1`로 증가한다.
+
 ## [0.65.0] - 2026-10-02
 
 ### Added
