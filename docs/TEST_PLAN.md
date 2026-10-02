@@ -1059,3 +1059,13 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - Responsive: 390/768/1024/1440px에서 document-level horizontal overflow가 없고, 좁은 viewport에서는 table wrapper의 의도된 내부 수평 scroll만 발생하는지 확인한다.
 - Regression: 기존 관리자 인증/session/Origin/login rate-limit/`If-Match`/412 및 catalog CRUD 의미와 Project 생성·편집의 inactive 참조 보존 계약을 변경하지 않는다.
 - 공식 전체 PASS 판정은 Issue #332 PR exact head의 GitHub Actions `quality` / `e2e` / `docker` 결과를 사용한다.
+
+
+## Issue #339 Task Editor Footer action 정렬 회귀
+
+- 원인 회귀: 전역 `.secondary-button`의 page-level `margin-top`이 Task Editor Footer 안에서 Reload/Cancel에만 적용되고 Primary Save에는 적용되지 않는 상황을 방지한다.
+- Chromium E2E는 기존 Task Editor 390/768/1024/1440px 반복 검증에서 Footer action의 computed `margin-top=0`을 확인한다.
+- 768/1024/1440px에서는 `최신 정보 다시 불러오기`, `취소`, `저장`의 상단 y 좌표와 control height가 1px 허용오차 안에서 일치해야 한다.
+- 390px wrap에서는 Reload가 위 행으로 배치되는 것을 허용하되 Cancel/Save 상단 y 좌표가 일치하고 세 action의 control height가 1px 허용오차 안에서 동일해야 한다.
+- 기존 dialog/document horizontal overflow, sticky Footer, keyboard focus/Escape, stale reload, disabled/save busy, readonly 및 Task 저장/revision 회귀 테스트를 그대로 유지한다.
+- 공식 판정은 Issue #339 PR exact head의 GitHub Actions `quality` / `e2e` / `docker` 결과를 사용하며, 정적 CSS 검토만으로 browser PASS를 주장하지 않는다.
