@@ -191,6 +191,8 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     expect(Math.abs((await rowBarOffset()) - initialOffset)).toBeLessThan(2);
     await syncedRow.getByText("Scroll task 8", { exact: true }).click({ button: "right" });
     await expect(page.getByRole("menu", { name: "작업 메뉴" })).toBeVisible();
+    await expect(syncedRow).toHaveAttribute("data-copy-selected", "true");
+    await expect(selectedRow).toHaveAttribute("data-copy-selected", "false");
     await page.keyboard.press("Escape");
     await expect(page.getByRole("menu", { name: "작업 메뉴" })).toHaveCount(0);
     await expect.poll(() => ganttRoot(page).evaluate((frame) => document.activeElement instanceof HTMLElement && frame.contains(document.activeElement))).toBe(true);
@@ -206,7 +208,8 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
     await expect.poll(async () => Math.abs(await rowBarOffset())).toBeLessThan(2);
     expect(Math.abs((await rowBarOffset()) - initialOffset)).toBeLessThan(2);
     await vertical.evaluate((element) => { element.scrollTop = 0; });
-    await expect(selectedRow).toHaveClass(/wx-selected/);
+    await expect(syncedRow).toHaveAttribute("data-copy-selected", "true");
+    await expect(selectedRow).toHaveAttribute("data-copy-selected", "false");
     expect(await summaryToggle.getAttribute("class")).toBe(summaryClassBeforeFullscreen);
   });
 
