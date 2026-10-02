@@ -202,3 +202,14 @@ Task Editor 관계 탭은 상위 Project의 canonical `tasks + links + revision`
 - Gantt fullscreen, instance, scroll/tree/column/scale/filter 상태는 관계 관리 진입과 canonical sync 때문에 초기화하지 않는다.
 
 기존 #97/#200/#203/#266의 Link API, Scheduling Engine, revision/If-Match, 초안·pending·focus 보호를 재사용하며 Task Editor 전용 relation 저장 모델은 만들지 않는다.
+
+
+## Issue #339 — Task Editor Footer action geometry 정렬
+
+Task Editor Footer의 `최신 정보 다시 불러오기` / `취소` / `저장`은 기능·저장 계약과 무관하게 동일한 control geometry를 사용한다. 전역 `.secondary-button`이 일반 page action용 `margin-top`을 포함하더라도 Task Editor Footer에서는 Footer 자체가 spacing을 소유하므로 모든 직접 button의 상단 margin을 0으로 정규화한다.
+
+- Footer button은 동일한 `min-height`, vertical/horizontal padding, line-height와 `box-sizing`을 사용한다.
+- 768/1024/1440px처럼 한 행으로 배치되는 viewport에서는 Reload / Cancel / Save의 상단 edge와 높이가 일치한다.
+- 390px처럼 Footer가 wrap되는 viewport에서는 Reload가 독립 행으로 이동할 수 있지만 Cancel / Save는 같은 행의 상단 기준선을 유지하고 모든 action의 control height는 동일하다.
+- stale / disabled / saving / readonly 상태 변화는 기존 Task PATCH, revision/If-Match, dirty draft, reload confirmation 및 accessible name 계약을 변경하지 않는다.
+- SVAR React Gantt Editor 자체를 교체하거나 PRO Editor API를 도입하지 않는다. 이 보정은 masterGantt-owned native dialog Footer presentation 범위다.
