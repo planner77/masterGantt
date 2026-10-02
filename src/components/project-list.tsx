@@ -8,6 +8,7 @@ import { ProjectRowActions } from "@/components/project-row-actions";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { useWorkspaceNotifications } from "@/components/workspace-notifications";
 import type { ProjectListItemDto, ProjectStatus } from "@/contracts/projects";
+import { projectMasterListLabel } from "@/features/projects/project-list-metadata";
 import { PROJECT_STATUS_OPTIONS, projectStatusLabel } from "@/features/projects/project-status";
 import {
   hasCurrentProjectEditSession,
@@ -481,9 +482,12 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
         <button className="secondary-button" type="button" onClick={resetFilter}>검색/필터 초기화</button>
       </div> : <div className={styles.tableWrap}>
         <table aria-label="프로젝트 목록" className={styles.table}>
-          <thead><tr><th scope="col">프로젝트</th><th scope="col">상태</th><th scope="col">소유자</th><th scope="col">설명</th><th scope="col">생성</th><th scope="col">최근 변경</th><th scope="col">작업</th></tr></thead>
+          <thead><tr><th scope="col">프로젝트</th><th scope="col">사업부</th><th scope="col">제품</th><th scope="col">법인/사업장</th><th scope="col">상태</th><th scope="col">소유자</th><th scope="col">설명</th><th scope="col">생성</th><th scope="col">최근 변경</th><th scope="col">작업</th></tr></thead>
           <tbody>{visibleProjects.map((project) => <tr key={project.publicId} data-project-id={project.publicId}>
             <td className={styles.nameCell}><Link className={styles.nameLink} href={projectPath(project.publicId)} onNavigate={() => { setFilter(EMPTY_PROJECT_FILTER); setFilterOpen(false); }}>{project.name}</Link></td>
+            <td className={styles.masterCell}><span className={styles.masterValue} title={projectMasterListLabel(project.businessUnit)}>{projectMasterListLabel(project.businessUnit)}</span></td>
+            <td className={styles.masterCell}><span className={styles.masterValue} title={projectMasterListLabel(project.product)}>{projectMasterListLabel(project.product)}</span></td>
+            <td className={styles.masterCell}><span className={styles.masterValue} title={projectMasterListLabel(project.siteEntity)}>{projectMasterListLabel(project.siteEntity)}</span></td>
             <td className={styles.statusCell}>
               <select
                 aria-label={`${project.name} 프로젝트 상태`}

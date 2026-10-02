@@ -246,3 +246,13 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 오류 복구 GET은 캐시를 사용하지 않는다. 재조회가 실패하거나 응답 revision이 오래되면 마지막 확정 snapshot을 같은 SVAR 인스턴스에 동기화하며, page reload/remount를 오류 복구 수단으로 사용하지 않는다. Grid/Chart task 집합, Summary 접힘, 스크롤과 scale을 보존한다.
 - #344 당시 유지했던 `EMPTY_SUMMARY_NOT_ALLOWED` 정책은 #345의 빈 컨테이너 허용으로 대체한다. subtree 삭제, unrelated Link 보존 및 server-side session/Origin/If-Match/transaction 계약은 유지한다. 유효한 거부 조건에서도 이전 성공 mutation을 보존한다. network 실패 뒤 더 높은 canonical revision이 확인되면 서버 확정 결과를 반영하며, 자동 mutation 재전송은 하지 않는다.
 - 일반 정상 409 흐름의 baseline 미재현 결과와 오래된 복구 GET을 주입한 결함 재현 결과를 구분한다. 테스트 및 공식 원격 회귀 상태는 [TEST_PLAN](TEST_PLAN.md#issue-344--작업-삭제-실패-복구-회귀)에 기록한다.
+
+## Issue #343 Project List 프로젝트 기준정보 표시
+
+- Project List의 모든 row는 #289 canonical summary에 포함된 사업부, 제품, 법인/사업장을 독립 column으로 표시한다.
+- 사용자 표시값은 catalog `name`이며 null/undefined는 `미지정`, inactive 참조는 기존 표시명을 유지하면서 `(비활성)` 의미를 함께 표시한다.
+- 프로젝트명 primary navigation, 상태 변경, owner/description/date, Row Action, #84 검색/필터 및 기존 정렬 순서를 유지한다.
+- 별도 catalog N+1 fetch를 만들지 않고 Project List summary만 사용한다.
+- 390/768/1024/1440/wide에서 세 column을 데이터에서 제거하지 않으며, 좁은 화면은 table 내부 horizontal scroll을 허용하되 document-level overflow는 금지한다.
+- 신규 기준정보 필터/정렬, API/DB schema, Project revision/security, SVAR Gantt 변경은 범위 밖이다.
+

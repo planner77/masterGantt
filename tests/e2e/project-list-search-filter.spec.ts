@@ -26,6 +26,13 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
     await page.goto("/");
     const table = page.getByRole("table", { name: "프로젝트 목록" });
     await expect(table).toBeVisible();
+    for (const label of ["프로젝트", "사업부", "제품", "법인/사업장", "상태", "소유자", "설명", "생성", "최근 변경", "작업"]) {
+      await expect(table.getByRole("columnheader", { name: label, exact: true })).toBeVisible();
+    }
+    const alphaRow = table.locator("tbody tr").filter({ hasText: `AMR Alpha ${suffix}` });
+    await expect(alphaRow.locator("td").nth(1)).toHaveText("미지정");
+    await expect(alphaRow.locator("td").nth(2)).toHaveText("미지정");
+    await expect(alphaRow.locator("td").nth(3)).toHaveText("미지정");
     const initialGets = collectionGets;
 
     const search = page.getByLabel("프로젝트명, 소유자 또는 설명 검색");
@@ -300,9 +307,9 @@ test.describe("Issue #130 Phase 1 Project List 시각·접근성 계약", () => 
         const tableElement = document.querySelector<HTMLTableElement>('table[aria-label="프로젝트 목록"]')!;
         const wrapper = tableElement.parentElement!;
         const firstRow = tableElement.tBodies[0].rows[0];
-        const description = firstRow.cells[3].firstElementChild as HTMLElement;
+        const description = firstRow.cells[6].firstElementChild as HTMLElement;
         const lineHeight = Number.parseFloat(getComputedStyle(description).lineHeight);
-        const action = firstRow.cells[6].getBoundingClientRect();
+        const action = firstRow.cells[9].getBoundingClientRect();
         return {
           documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
           wrapperClientWidth: wrapper.clientWidth,

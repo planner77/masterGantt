@@ -1082,3 +1082,12 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - 390px wrap에서는 Reload가 위 행으로 배치되는 것을 허용하되 Cancel/Save 상단 y 좌표가 일치하고 세 action의 control height가 1px 허용오차 안에서 동일해야 한다.
 - 기존 dialog/document horizontal overflow, sticky Footer, keyboard focus/Escape, stale reload, disabled/save busy, readonly 및 Task 저장/revision 회귀 테스트를 그대로 유지한다.
 - 공식 판정은 Issue #339 PR exact head의 GitHub Actions `quality` / `e2e` / `docker` 결과를 사용하며, 정적 CSS 검토만으로 browser PASS를 주장하지 않는다.
+
+## Issue #343 Project List 기준정보 column 회귀
+
+- Unit: Project List 표시 helper가 catalog `name`을 사용하고 null/undefined/blank는 `미지정`, inactive는 `(비활성)` 의미 텍스트를 유지하며 긴 label을 domain mapping에서 축약하지 않는지 검증한다.
+- Server: #289 Project master persistence 회귀에서 `listProjects()`가 assigned 사업부/제품/법인·사업장 표시명과 inactive 기존 참조를 canonical summary에 계속 반환하는지 확인한다.
+- Chromium E2E: Project List에 프로젝트/사업부/제품/법인·사업장/상태/소유자/설명/생성/최근 변경/작업 column header가 모두 존재하고 미지정 placeholder가 row에 표시되는지 확인한다. #84 검색 후에도 동일 row data가 유지되어야 한다.
+- 기존 #130 geometry 검증의 description/action cell index를 10-column 구조에 맞추고 390/768/1024/1440/1600px document overflow, table 내부 scroll, Row Action keyboard/focus, row density 회귀를 계속 검증한다.
+- API/DB/Scheduling/Security는 기존 #289/#75/#84 계약을 재사용하므로 새 endpoint/migration 검증은 N/A다. 공식 전체 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+

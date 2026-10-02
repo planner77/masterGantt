@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.69.0] - 2026-10-03
+
+### Added
+
+- Issue #343: Project List에 사업부, 제품, 법인/사업장을 독립 column으로 표시하고 #289의 canonical Project summary 표시명 계약을 재사용한다.
+- 미지정 값은 `미지정`, 비활성 기준정보는 기존 표시명을 유지한 `(비활성)` 의미 텍스트로 표시하며 긴 이름은 한 줄 ellipsis와 `title` 전체값 접근 경로를 제공한다.
+- native table semantics, 프로젝트명 primary Link, 상태 변경, 검색/필터, Row Action과 좁은 화면 table 내부 horizontal scroll 계약을 유지하고 관련 Unit/E2E 회귀를 보강한다.
+- API/DB/Scheduling/SVAR 계약은 변경하지 않으며 Application version을 `0.68.1`에서 `0.69.0`으로 증가한다.
+
 ## [0.68.1] - 2026-10-03
 
 ### Fixed
