@@ -1091,3 +1091,14 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - 기존 #130 geometry 검증의 description/action cell index를 10-column 구조에 맞추고 390/768/1024/1440/1600px document overflow, table 내부 scroll, Row Action keyboard/focus, row density 회귀를 계속 검증한다.
 - API/DB/Scheduling/Security는 기존 #289/#75/#84 계약을 재사용하므로 새 endpoint/migration 검증은 N/A다. 공식 전체 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
 
+
+
+## Issue #340 Task Editor 리소스 탭 레이아웃 회귀
+
+- Chromium E2E는 390/768/1024/1440px에서 Resource/Group 혼합 fixture를 사용한다.
+- 1024/1440px에서는 두 pane이 같은 행에 배치되고 Resource pane이 allocation 요구량에 맞게 더 넓은지 검증한다.
+- 390/768px에서는 두 pane이 세로 stack되고 document/dialog horizontal overflow가 없는지 검증한다.
+- `전체 → 리소스 → 그룹` 필터 전환 시 단일 유형 pane이 전체 폭을 사용하고 반대 pane이 남지 않는지 확인한다.
+- 검색 결과 0건 empty state, pane 건수, inactive 표시, Resource 선택 시 allocation fieldset, Group allocation 미노출을 검증한다.
+- 기존 #119 validation/focus, Assignment PUT, revision/catalog revision, 401/412, dirty/stale 및 canonical snapshot 회귀는 기존 테스트를 유지한다.
+- 공식 PASS는 exact PR head의 GitHub Actions `quality` / `e2e` / `docker` 결과로 판정한다.

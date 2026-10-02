@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.70.0] - 2026-10-03
+
+### Added
+
+- Issue #340: Task Editor 리소스 탭을 담당 리소스와 리소스 그룹의 compact section으로 분리하고 1024px 이상에서 Resource 쪽을 더 넓게 사용하는 content-aware 2-pane 레이아웃을 제공한다.
+- 리소스/그룹 단일 유형 필터에서는 선택 pane이 전체 폭을 사용하며, 선택 Resource의 투입 시작/종료/투입률은 바로 아래 detail 영역에서 가용 폭을 사용한다.
+- pane별 표시/전체 건수와 등록 없음/필터 결과 없음 상태를 구분하고 readonly에서는 현재 Task에 실제로 표시 가능한 할당 대상만 집계한다.
+- 390/768/1024/1440px layout·overflow·필터 전환·allocation/Group 분리와 readonly 집계 Chromium 회귀를 추가한다.
+- Assignment API, Project/Catalog revision, If-Match, 401/412, dirty/stale 및 canonical snapshot 계약은 변경하지 않는다.
+- Application version을 `0.69.0`에서 `0.70.0`으로 증가한다.
+
 ## [0.69.0] - 2026-10-03
 
 ### Added
