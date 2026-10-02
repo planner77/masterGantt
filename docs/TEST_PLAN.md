@@ -8,7 +8,7 @@ Selection Unit은 canonical preorder·ancestor/중복 제거·empty Summary·sin
 
 Chromium 신규 `project-multi-task-copy-paste.spec.ts`는 역순 checkbox→selected row Copy→Summary child Paste·새 endpoint·revision +1·Editor 관계·same instance·column width/scale/collapse/scroll 보존·reload 및 동일 DB 실제 서버 재시작과 390/768/1024/1440px screenshot/overflow를 확인한다. modifier/Shift checkbox/Space/Copy/Paste/Escape는 이중 toggle·inline 간섭 없이 확인한다. 선택 상태에서 Day·Week header Escape는 Tooltip을 우선 닫고 Task 선택을 유지한다. 기존 DnD/rename/double-click/scoped/readonly/pending/412 회귀는 관련 spec을 사용한다.
 
-전문 Agent는 read-only patch를 작성하고 Manager가 승인 경로로 편집·실행했다. 이전 0.66.0 통합 후보에서 관련 Unit/SQLite/HTTP·관계·Week Tooltip 89개 PASS와 Chromium 집중 24개 PASS를 확보했다. PR CI #1515.1에서는 quality/build/typecheck/policy/docker가 PASS였고 Chromium shard 2/4·3/4에서 context-menu DOM 교체 회귀와 구 selection 기대를 확인해 보완했다. 현재 main 0.67.1 기준 0.68.0으로 재정렬한 새 PR head에서 전체 quality/e2e/docker를 다시 판정한다. 초기 FAIL·수정 근거·4폭 캡처·실제 서버 restart는 [실행 기록](exec-plans/active/ISSUE_384.md)에 구분하며 touch device/screen reader는 별도 미실행이다.
+전문 Agent는 read-only patch를 작성하고 Manager가 승인 경로로 편집·실행했다. 이전 0.66.0 통합 후보에서 관련 Unit/SQLite/HTTP·관계·Week Tooltip 89개 PASS와 Chromium 집중 24개 PASS를 확보했다. PR CI #1515.1에서는 quality/build/typecheck/policy/docker가 PASS였고 Chromium shard 2/4·3/4에서 context-menu DOM 교체 회귀와 구 selection 기대를 확인해 보완했다. PR CI #1535.1은 quality/build/Vitest/TypeScript/ESLint/policy/docker와 Chromium shard 1/3/4가 PASS했고 shard 2/4에서 fullscreen 회귀 테스트가 가상화로 화면 밖인 `Stable leaf` DOM을 즉시 조회해 1건 실패했다. 제품 selection 상태는 `Scroll task 8` 및 `선택 1개`로 확인되므로, 현재 main 0.67.2 기준 재정렬 head에서는 스크롤 복원 뒤 `Stable leaf` 비선택을 검증하도록 테스트 순서를 보완하고 전체 PR CI를 다시 판정한다. 초기 FAIL·수정 근거·4폭 캡처·실제 서버 restart는 [실행 기록](exec-plans/active/ISSUE_384.md)에 구분하며 touch device/screen reader는 별도 미실행이다.
 ## Issue #331 Resource 관리 생성 폼 overlap 회귀
 
 - Release #91 회귀 보완: initial Project loading 중 storage listener 설치 전에 발생한 revision announcement는 listener 등록 후 durable localStorage revision을 pending revision에 병합하고, authoritative follow-up GET이 전진하지 않는 stale durable target은 폐기한다. `project-revision-sync.test.ts`와 기존 #373 loading/cross-tab E2E가 이 계약을 고정한다.
@@ -1056,3 +1056,15 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - Chromium: 사용 중 항목은 `삭제 불가`와 Project 사용 수를 노출하고, 미사용 항목은 confirmation dialog를 거친다. Group 삭제는 member Resource 보존 안내를 제공한다. Cancel은 trigger focus를 복원하고 성공 후 같은 검색 입력으로 focus를 이동하며 검색어를 유지한다.
 - 390/768/1024/1440px에서 Resource/Group action 영역과 사용 사유가 겹치거나 document horizontal overflow를 만들지 않는다.
 - 공식 전체 회귀 판정은 Issue #329 PR exact-head GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+
+## Issue #332 프로젝트 기준정보 관리자 UI 회귀
+
+- 인증/정보 계층: 로그인 전 관리자 인증 section과 인증 후 session section, 기준정보 관리 section, 항목 추가 section, 목록 section의 heading/구분을 확인한다.
+- 목록 구조: 이름/코드/정렬/상태·사용/작업 column header와 body row 정렬, active/inactive 상태 표시, 기존 저장·활성/비활성 action 접근성을 검증한다.
+- 상태 필터: 기본 `전체`, `활성`, `비활성` 결과를 혼합 fixture로 검증하고 필터 조작만으로 `/api/project-master/admin/items` mutation이 발생하지 않는지 확인한다.
+- category 일관성: 사업부 → 제품 → 사업장/법인 전환 뒤에도 현재 상태 필터가 유지되며 각 category 데이터에 동일 predicate가 적용되는지 확인한다.
+- empty state: 실제 category 데이터 없음과 활성/비활성 필터 결과 0건을 구분해 안내한다.
+- 접근성: category tab의 기존 roving focus와 Arrow/Home/End 계약을 유지하고 상태 필터의 accessible group name 및 `aria-pressed` 상태를 검증한다.
+- Responsive: 390/768/1024/1440px에서 document-level horizontal overflow가 없고, 좁은 viewport에서는 table wrapper의 의도된 내부 수평 scroll만 발생하는지 확인한다.
+- Regression: 기존 관리자 인증/session/Origin/login rate-limit/`If-Match`/412 및 catalog CRUD 의미와 Project 생성·편집의 inactive 참조 보존 계약을 변경하지 않는다.
+- 공식 전체 PASS 판정은 Issue #332 PR exact head의 GitHub Actions `quality` / `e2e` / `docker` 결과를 사용한다.

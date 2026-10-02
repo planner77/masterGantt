@@ -2,7 +2,7 @@
 
 상태: PR_PREPARATION. 사용자 승인 범위는 구현·문서 동기화·독립 사전 QA → PR 생성·CI 실행 시작까지다. CI 완료 모니터링·병합·main/GHCR·정식 릴리스·Issue 종료·branch cleanup은 범위 밖이다.
 
-현재 통합 후보: main `986a34dbd888c4b91126677f89a177a39faf506c` / `0.67.1` 기준 version `0.68.0`. PR [#391](https://github.com/planner77/masterGantt/pull/391)의 충돌 해결·재검증은 마지막 통합 REWORK 절이 최신 상태다. 아래 최초 baseline/version 기록은 당시 근거다.
+현재 통합 후보: main `31907bc3ff09266067c310f9ed406c002989cd8b` / `0.67.2` 기준 version `0.68.0`. PR [#391](https://github.com/planner77/masterGantt/pull/391)의 충돌 해결·재검증은 마지막 통합 REWORK 절이 최신 상태다. 아래 최초 baseline/version 기록은 당시 근거다.
 
 ## Issue Work Packet
 
@@ -138,3 +138,13 @@ Resource #331 폼 소스·전용 회귀는 충돌 없이 최신 main 그대로 �
 - main은 `986a34dbd888c4b91126677f89a177a39faf506c` / `0.67.1`까지 진행되어 #329 Resource 삭제, #385 JSON Import, #331 release/cross-tab 보완을 모두 유지한 merge commit으로 재정렬한다.
 - Version Manager: `0.67.1 → 0.68.0` MINOR.
 - 새 merge head의 PR CI quality/e2e/docker가 공식 재검증 근거이며 이전 #1515.1은 수정 전 head 증거로만 남긴다.
+
+
+## PR #391 최신 main 3차 정렬 / CI #1535.1 보완
+
+- PR CI #1535.1 exact head `f4c536cf4cd522f8a786b416f945866e0a25e927`: quality/build/Vitest/TypeScript/ESLint/policy/docker PASS, Chromium shard 1/3/4 PASS, shard 2/4에서 1건 FAIL.
+- 실패는 fullscreen 테스트가 vertical scroll=160 상태에서 가상화로 DOM에서 제거된 `Stable leaf`에 즉시 `data-copy-selected=false`를 기대한 테스트 위치 문제다. 같은 시점에 `Scroll task 8`의 `data-copy-selected=true`와 `선택 1개`는 확인됐다.
+- 보완: 스크롤 중에는 현재 보이는 선택 행과 selection count를 검증하고, fullscreen 종료 후 vertical scroll을 0으로 복원한 다음 `Stable leaf`가 visible + non-selected인지 검증한다.
+- main은 `31907bc3ff09266067c310f9ed406c002989cd8b` / `0.67.2`까지 진행되었으므로 #332 Project Master UI 변경을 보존한 merge commit으로 재정렬한다.
+- Version은 MINOR `0.68.0`을 유지하며 CHANGELOG 기준만 `0.67.2 → 0.68.0`으로 갱신한다.
+- 새 merge head의 PR CI가 공식 재검증 근거이며 #1535.1은 보완 전 증거로 남긴다.
