@@ -20,7 +20,7 @@
 }
 .table {
   width: 100%;
-  min-width: 68rem;
+  min-width: 82rem;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -38,13 +38,16 @@
   font-weight: 700;
   letter-spacing: 0;
 }
-.table th:nth-child(1) { width: 21%; }
-.table th:nth-child(2) { width: 9%; }
-.table th:nth-child(3) { width: 13%; }
-.table th:nth-child(4) { width: 27%; }
-.table th:nth-child(5),
-.table th:nth-child(6) { width: 12%; }
-.table th:nth-child(7) { width: 3.75rem; text-align: right; }
+.table th:nth-child(1) { width: 17%; }
+.table th:nth-child(2) { width: 10%; }
+.table th:nth-child(3) { width: 9%; }
+.table th:nth-child(4) { width: 11%; }
+.table th:nth-child(5) { width: 8%; }
+.table th:nth-child(6) { width: 10%; }
+.table th:nth-child(7) { width: 17%; }
+.table th:nth-child(8),
+.table th:nth-child(9) { width: 9%; }
+.table th:nth-child(10) { width: 3.75rem; text-align: right; }
 .table tr:last-child td { border-bottom: 0; }
 .table tbody tr { transition: background 120ms ease-out; }
 .table tbody tr:hover,
@@ -52,7 +55,17 @@
   background: var(--action-selected-subtle);
 }
 .nameCell { font-weight: 700; }
-.table tbody td:nth-child(3) { color: var(--text-muted); }
+.table tbody td:nth-child(2),
+.table tbody td:nth-child(3),
+.table tbody td:nth-child(4),
+.table tbody td:nth-child(6) { color: var(--text-muted); }
+.masterCell { min-width: 0; }
+.masterValue {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .statusCell { white-space: nowrap; }
 .statusBadge {
   display: inline-flex;
@@ -115,13 +128,16 @@
 .status { margin: 0; color: var(--status-error-strong); font-size: 0.875rem; }
 
 @media (max-width: 64rem) {
-  .table th:nth-child(1) { width: 20%; }
-  .table th:nth-child(2) { width: 9%; }
-  .table th:nth-child(3) { width: 13%; }
-  .table th:nth-child(4) { width: 27%; }
-  .table th:nth-child(5),
-  .table th:nth-child(6) { width: 12%; }
-  .table th:nth-child(7) { width: 3.75rem; }
+  .table th:nth-child(1) { width: 16%; }
+  .table th:nth-child(2) { width: 10%; }
+  .table th:nth-child(3) { width: 9%; }
+  .table th:nth-child(4) { width: 11%; }
+  .table th:nth-child(5) { width: 8%; }
+  .table th:nth-child(6) { width: 10%; }
+  .table th:nth-child(7) { width: 18%; }
+  .table th:nth-child(8),
+  .table th:nth-child(9) { width: 9%; }
+  .table th:nth-child(10) { width: 3.75rem; }
 }
 @media (max-width: 44rem) {
   .tableWrap { margin-inline: -0.25rem; }
