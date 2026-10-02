@@ -404,15 +404,17 @@ main CI가 실패한 merge는 release/finalize 근거가 아니므로 그대로 
 Issue #344의 CI #1370 후속 보완이 이 복구 경로의 첫 적용 사례다.
 
 
-## 실패 attempt의 후속 corrective merge 대체 검증
+## 실패 attempt/release의 후속 corrective merge 대체 검증
 
-과거 main merge의 exact CI가 실패했더라도 동일 Issue의 후속 corrective merge가 나중에 존재하고 그 **exact main CI가 SUCCESS**이면, Generic Release Finalizer는 과거 attempt 자체를 release/finalize하지 않고 후속 corrective target으로 대체할 수 있다. 이때 중간에 다른 Issue merge가 있어도 해당 Issue들은 first-parent 순서를 그대로 유지하며 각각 자신의 exact main CI와 release 조건을 독립적으로 통과해야 한다.
+과거 main merge의 exact CI가 실패했거나, exact main CI는 SUCCESS지만 해당 merge의 **immutable formal release가 completed non-success로 반복 실패**한 경우에도 동일 Issue의 후속 corrective merge가 나중에 존재하고 그 **exact main CI가 SUCCESS**이면 Generic Release Finalizer는 과거 target 자체를 release/finalize하지 않고 후속 corrective target으로 대체할 수 있다. 이때 중간에 다른 Issue merge가 있어도 해당 Issue들은 first-parent 순서를 그대로 유지하며 각각 자신의 exact main CI와 release 조건을 독립적으로 통과해야 한다.
 
-- 후속 corrective target은 과거 attempt와 같은 Issue를 참조해야 한다.
-- corrective target의 validation scope가 과거 attempt보다 약하면 대체하지 않는다. non-docs 실패는 docs-only corrective CI로 덮을 수 없다.
-- corrective exact main CI가 아직 Green이 아니면 과거 실패 attempt는 그대로 blocker다.
-- superseded attempt에는 release/finalize mutation을 수행하지 않는다. 해당 PR branch cleanup 의무는 corrective target으로 이관한다.
+- 후속 corrective target은 과거 target과 같은 Issue를 참조해야 한다.
+- corrective target의 validation scope가 과거 target보다 약하면 대체하지 않는다. non-docs 실패는 docs-only corrective CI로 덮을 수 없다.
+- corrective exact main CI가 아직 Green이 아니면 과거 실패 target은 그대로 blocker다.
+- formal release failure supersession은 version tag가 원래 target SHA를 가리키는 annotated immutable tag이고 exact release-image attempt가 모두 completed non-success인 경우만 허용한다. release가 queued/in_progress이면 DEFERRED하며 supersede하지 않는다.
+- 실패한 exact tag는 이동·삭제·덮어쓰기하지 않는다. corrective merge는 현재 main 다음의 새 SemVer를 사용한다.
+- superseded target에는 release/finalize mutation을 수행하지 않는다. 해당 PR branch cleanup 의무는 corrective target으로 이관한다.
 - 중간 Issue의 release/finalize 순서는 건너뛰거나 재정렬하지 않는다.
 - 이 규칙은 실패한 중간 version을 별도 정식 release하지 않고, 검증된 corrective version에서 원 Issue를 마무리하기 위한 것이다.
 
-Issue #344의 `714bf2fd…` 실패 attempt → Issue #356 `af2b4f3…` → 후속 Issue #344 corrective merge가 대표 복구 시나리오다.
+Issue #344의 failed main-CI attempt 복구와 Issue #331의 immutable `v0.65.1` Release quality 반복 실패 → corrective release 복구가 대표 시나리오다.
