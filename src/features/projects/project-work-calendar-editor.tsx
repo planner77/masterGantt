@@ -181,6 +181,11 @@ export function ProjectWorkCalendarEditor({
     statusKind==="stale"?"입력이 변경되었습니다. 미리보기를 다시 계산하세요.":
     "저장 전에 일정 변경을 확인하려면 미리보기를 계산하세요.";
   useEffect(()=>{
+    if(!serverConflict) return;
+    conflictSummary.current?.focus({preventScroll:true});
+  },[serverConflict]);
+
+  useEffect(()=>{
     if(previousProject.current.publicId===publicId && previousProject.current.revision===revision) return;
     previousProject.current={publicId,revision};
     setServerConflict(null);
@@ -245,7 +250,6 @@ export function ProjectWorkCalendarEditor({
       message=message.replaceAll("RESOURCE_GROUP","리소스 그룹").replaceAll("NON_WORKING","휴무일").replaceAll("WORKING","근무일");
       return `${labels[detail.path??""]??(detail.path?.startsWith("rules.")?"규칙 상세":"충돌 정보")}: ${message}`;
     })??["날짜와 대상 규칙을 확인하세요."]);
-    requestAnimationFrame(()=>conflictSummary.current?.focus({preventScroll:true}));
     return true;
   }
 

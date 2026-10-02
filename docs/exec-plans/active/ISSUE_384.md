@@ -148,3 +148,12 @@ Resource #331 폼 소스·전용 회귀는 충돌 없이 최신 main 그대로 �
 - main은 `31907bc3ff09266067c310f9ed406c002989cd8b` / `0.67.2`까지 진행되었으므로 #332 Project Master UI 변경을 보존한 merge commit으로 재정렬한다.
 - Version은 MINOR `0.68.0`을 유지하며 CHANGELOG 기준만 `0.67.2 → 0.68.0`으로 갱신한다.
 - 새 merge head의 PR CI가 공식 재검증 근거이며 #1535.1은 보완 전 증거로 남긴다.
+
+
+## PR CI #1540.1 보완
+
+- exact head `eddaac27104b42334bca4de0eab1dcdb964a97fa`에서 Build/Vitest/TypeScript/ESLint/policy/docker와 Chromium shard 1/2/4 PASS, shard 3/4의 리소스 캘린더 focus 1건만 FAIL했다.
+- 실패는 #384 다중 Copy/Paste 경로가 아니라 기존 Project Work Calendar의 server conflict summary 접근성 focus timing이다.
+- 기존 구현은 `setServerConflict()` 직후 `requestAnimationFrame` 1회로 아직 commit되지 않은 ref를 focus할 수 있어 CI 부하에서 ref가 null인 race가 있었다.
+- 보완은 `serverConflict`가 실제 React DOM에 반영된 뒤 effect에서 conflict summary에 focus하도록 변경하고 기존 날짜 필드 aria-invalid/aria-describedby와 수정 버튼 focus 이동 계약을 유지한다.
+- 보완 head에서 새 PR CI를 시작해 전체 quality/e2e/docker를 다시 판정한다.

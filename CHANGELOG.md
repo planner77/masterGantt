@@ -11,6 +11,7 @@
 ### Fixed
 
 - SVAR가 우클릭 pointer gesture 중 row DOM을 교체해 contextmenu target이 조상으로 재지정되는 경우 pointerdown Task ID로 현재 canonical row를 다시 resolve해 작업 메뉴를 안정적으로 연다.
+- 리소스 캘린더 서버 충돌 summary focus를 `setState` 직후 단발성 `requestAnimationFrame`에 의존하지 않고 실제 React commit 이후 effect에서 적용해 CI 부하에서도 접근성 focus 계약을 안정적으로 유지한다.
 - Application version을 `0.67.2`에서 `0.68.0`으로 증가한다.
 
 ## [0.67.2] - 2026-10-02
