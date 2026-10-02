@@ -1,5 +1,15 @@
 # Test Plan
 
+## Issue #316 Gantt Week Header 근무일·공휴일 Tooltip
+
+- Unit: SVAR Sunday Week anchor를 ISO Monday로 정규화한 class/date key round-trip, 일반 주 5일, 복수 named NON_WORKING, 이름 없는 NON_WORKING, weekend WORKING override, legacy holidays fallback, W53→W01 경계를 검증한다.
+- Chromium E2E: W38 일반 주 hover, W39 공휴일 주 focus, 실제 근무일 수, 복수 이름, WORKING 이름 제외, `aria-label`/`aria-describedby`, resize 후 live Week cell viewport clamp를 검증한다.
+- 기존 #315 Day Tooltip hover/focus/viewport 계약, #314 숫자-only Day Header, #51 ISO Week, 44/68px cellWidth, Day 주말 강조, Gantt/API instance identity를 같은 spec에서 회귀 검증한다.
+- 이전 main 기준 CI #1426의 quality/e2e/docker 전체 PASS를 참고하되, 최신 main 재정렬 head에서 전체 PR CI를 다시 판정한다.
+- API/DB schema 및 Scheduling 저장 계약은 변경하지 않는다. 공식 판정은 동일 PR head SHA의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+- 상세 계약은 `docs/ISSUE_316_WEEK_HEADER_TOOLTIP.md`를 따른다.
+
+
 ## Issue #375 Summary Task bar 두께 회귀
 
 - Chromium E2E는 동일 날짜 범위의 Summary와 일반 Task를 함께 렌더하고 SVAR root bar의 x/width가 동일한지 확인한다. Summary root 자체의 높이는 interaction hit-area로 유지하고 `::before` visual body와 progress wrapper만 일반 Task 높이의 약 60%(허용 55~70%)인지 geometry로 측정한다.
