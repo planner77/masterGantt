@@ -21,3 +21,6 @@ playwright-report/
 test-results/
 *.log
 *.tsbuildinfo
+.next-e2e-isolated-*/
+__pycache__/
+*.pyc
