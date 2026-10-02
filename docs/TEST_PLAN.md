@@ -1,5 +1,13 @@
 # Test Plan
 
+## Issue #331 Resource 관리 생성 폼 overlap 회귀
+
+- Chromium `tests/e2e/resource-admin-layout.spec.ts`에서 관리자 로그인 후 390/768/1024/1440px별 신규 리소스 4개 direct control과 신규 리소스 그룹 3개 direct control의 bounding box를 비교해 상호 overlap이 없고 각 form의 수평 bounds 안에 들어오는지 확인한다.
+- 같은 viewport 반복에서 document-level horizontal overflow 부재를 유지하며 390px과 1024px 결과 screenshot을 Playwright output에 남겨 좁은 1열과 desktop 2열 해결 증거로 사용한다.
+- 신규 리소스 폼의 이름 → 코드 → 개발자 등급 → 추가 버튼 native Tab 순서를 확인한다. 개발자 등급 값 생성/편집과 API payload는 기존 `resource-developer-grade.spec.ts`를 함께 회귀 실행한다.
+- Grid DnD 직후 inline rename의 첫 클릭이 유실되지 않도록 DOM editability와 SVAR event guard ref가 같은 commit의 layout phase에서 동기화되어야 하며, 현재 main의 강화된 `project-grid-reorder-persistence.spec.ts` helper/시나리오를 그대로 보존한다.
+- Resource Catalog API/auth/session/revision/`If-Match` 계약은 변경하지 않으며 관련 기존 E2E/서버 테스트와 PR exact head의 GitHub Actions `quality/e2e/docker` 결과를 공식 판정 근거로 사용한다.
+
 ## Issue #316 Gantt Week Header 근무일·공휴일 Tooltip
 
 - Unit: SVAR Sunday Week anchor를 ISO Monday로 정규화한 class/date key round-trip, 일반 주 5일, 복수 named NON_WORKING, 이름 없는 NON_WORKING, weekend WORKING override, legacy holidays fallback, W53→W01 경계를 검증한다.

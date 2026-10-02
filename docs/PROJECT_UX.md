@@ -1,5 +1,11 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #331 Resource 관리 신규 생성 폼 레이아웃
+
+`/resources`의 신규 리소스 폼(이름/코드/개발자 등급/추가)과 신규 리소스 그룹 폼(이름/코드/추가)은 서로 다른 field count를 가지므로 동일한 고정 4열 최소폭 계약을 공유하지 않는다. 각 폼은 전용 grid modifier를 사용하고 데이터 입력 track은 `minmax(0, ...)`로 shrink 가능하게 하며 label/grid item에는 `min-width: 0`, input/select에는 가용 track을 넘지 않는 width/max-width/box-sizing 계약을 적용한다. Action 버튼은 자신의 grid cell 안에서만 배치한다.
+
+기존 두 카드의 desktop 2열 배치와 820px 이하 1열 전환은 유지한다. 390/768/1024/1440px에서 리소스·그룹 생성 폼의 direct child bounding box가 서로 겹치지 않고 form/document 밖으로 수평 침범하지 않아야 한다. DOM 순서와 native label/input/select/button을 유지해 keyboard Tab 순서와 focus-visible을 바꾸지 않는다. Resource Catalog API, 관리자 session, catalog revision, `If-Match`, stale recovery 및 개발자 등급 값 계약은 변경하지 않는다.
+
 ## Issue #375 Summary Task bar 시각 계층
 
 일정이 계산된 Summary는 일반 Task와 같은 SVAR root bar geometry를 유지하되, 실제 색상/border/progress가 보이는 visual body만 root 높이의 **60%**로 줄여 행 중앙에 표시한다. root의 x/width/top/height와 link marker 중심은 변경하지 않아 #142의 날짜 셀 전체 폭 정렬과 기존 click/double-click/right-click/drag hit area를 보존한다. Summary visual body는 `.wx-summary::before`, progress는 같은 20% 상·하 inset을 사용하며 hover/selected/focus/critical 상태는 얇은 body에 표시한다.
