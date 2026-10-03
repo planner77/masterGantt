@@ -523,7 +523,7 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
                 {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
               </select>
             </td>
-            <td data-column="owner">{project.ownerName ?? "미지정"}</td>
+            <td className={styles.ownerCell} data-column="owner"><span className={styles.ownerValue} title={project.ownerName ?? "미지정"}>{project.ownerName ?? "미지정"}</span></td>
             <td className={styles.descriptionCell} data-column="description"><span className={styles.description}>{project.description || "설명이 없습니다."}</span></td>
             <td className={styles.dateCell} data-column="created">{formatLocaleDateTime(project.createdAt, locales, timeZone)}</td>
             <td className={styles.dateCell} data-column="updated">{formatLocaleDateTime(project.updatedAt, locales, timeZone)}</td>
