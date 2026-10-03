@@ -6,7 +6,7 @@
 
 - Issue #399: Project 일정 View에 `전체 프로젝트`와 여러 Summary subtree를 같은 화면에서 전환하는 compact WBS 범위 탭을 추가한다.
 - Summary 범위 탭은 중복 생성 없이 재활성화하며 닫기, Arrow/Home/End/Delete keyboard, 한 행 horizontal overflow와 scope별 search/filter state를 지원한다.
-- Project Workspace를 document scroll anchoring 후보에서 제외해 scope tab 구조에서도 Toast/미확인 badge 갱신이 전체 페이지를 이동시키지 않으며, 기존 mobile Gantt 최소 높이와 header hit-area를 유지한다.
+- Workspace notification publish가 현재 document와 Gantt outer-scroll 위치를 다음 animation frame에 복원해, SVAR native add reject 후처리와 Toast/미확인 badge 갱신이 화면 위치를 이동시키지 않도록 한다.
 
 ### Changed
 
