@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.70.2] - 2026-10-03
+
+### Fixed
+
+- Issue #364: Project List/Workspace의 프로젝트 링크 복사가 secure-context Clipboard API에만 의존해 내부망 HTTP에서 자동 복사되지 않던 회귀를 수정한다.
+- modern Clipboard API가 없거나 insecure context인 경우 사용자 click activation 안에서 legacy copy 호환 경로를 시도하고, 실제 성공한 경우에만 성공 안내를 표시한다.
+- modern Clipboard API가 권한 거부/reject된 경우 legacy로 우회하지 않고 기존 수동 복사 모달을 유지하며, URL/권한/navigation/revision/Gantt 상태 계약은 변경하지 않는다.
+- `plain.gantt.test` production HTTP transport에서 real browser legacy copy 경로를 검증해 localhost secure-context/mock만으로 HTTP 회귀가 통과하지 않도록 한다.
+- Application version을 `0.70.1`에서 `0.70.2`로 증가한다.
+
 ## [0.70.1] - 2026-10-03
 
 ### Fixed

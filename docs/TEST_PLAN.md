@@ -1,5 +1,14 @@
 # Test Plan
 
+## Issue #364 — 프로젝트 링크 자동 복사 HTTP 호환 회귀
+
+- Unit: modern Clipboard API 성공 우선, modern API reject 시 legacy 미호출, modern API 부재 시 legacy copy 사용, 두 경로 실패 시 수동 fallback 진입 조건을 검증한다.
+- Chromium: Project Workspace에서 `navigator.clipboard`가 없는 환경을 주입하고 같은 keyboard/click activation의 legacy copy로 canonical URL이 자동 복사되는지 확인한다. 성공 시 수동 모달은 열리지 않고 navigation/mutation/Gantt geometry·instance가 변하지 않아야 한다.
+- Production transport: `plain.gantt.test` 실제 production HTTP origin에서 `isSecureContext=false` 및 modern Clipboard API 부재를 확인한 뒤, `execCommand`를 mock하지 않고 링크 복사 버튼을 눌러 브라우저의 실제 copy event가 canonical URL 선택값으로 발생하고 성공 안내/수동 fallback 부재를 검증한다. localhost secure-context 예외로 대체하지 않는다.
+- 권한 보호: modern Clipboard API가 `NotAllowedError`로 거부되면 `document.execCommand("copy")`를 호출하지 않고 기존 수동 복사 모달을 제공한다. 이후 modern API 복구 시 재시도 성공과 focus 복원을 확인한다.
+- 기존 `project-links-persistence.spec.ts`의 실제 Chromium Clipboard API read/write 검증은 유지해 legacy mock 검증과 실제 modern clipboard 증거를 구분한다.
+- URL 생성은 기존 APP_BASE_URL/publicId 계약을 그대로 사용하며 API/DB/revision/auth/scheduling 변경은 없다. 공식 전체 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+
 ## Issue #384 — 다중 선택 Task Copy/Paste
 
 Selection Unit은 canonical preorder·ancestor/중복 제거·empty Summary·single/toggle/visible sibling range·다른 parent fallback·unknown/stale ID·collapse 숨김/선택 보존·canonical 불변을 확인한다. command/scope는 Copy taskIds·single Cut 분리와 모든 source/anchor subtree 경계를 확인한다.

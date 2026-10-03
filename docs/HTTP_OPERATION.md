@@ -53,7 +53,7 @@ curl -fsS http://192.168.10.20:8080/api/health/ready
 
 Windows PowerShell에서는 먼저 `curl.exe -fsS http://127.0.0.1:3000/api/health/ready`로 WSL2 앱에 접근 가능한지 확인한다. WSL localhost 전달이 안 되는 경우 Nginx만 바꿔 해결하려 하지 말고 네트워크 모드·포트 게시·방화벽을 확인한다. Nginx 설치 위치에서 `.\nginx.exe -t` 성공 후 `.\nginx.exe -s reload`를 실행한다. Nginx도 Docker라면 같은 network에서 upstream을 `http://app:3000`으로 하고 앱의 호스트 포트 게시를 제거할 수 있다. 별도 호스트 프록시는 승인된 내부 인터페이스/방화벽을 설계해야 한다.
 
-브라우저에서 프로젝트 생성 → 편집 잠금 해제 → Grid `+` 작업 추가 → 작업 정보 편집 → 새로고침 후 유지 → 편집 모드 종료 후 변경 거부를 확인한다. Health 200만으로 쿠키/편집 검증을 완료했다고 보지 않는다. 공유 링크 복사에 clipboard API를 사용할 수 없는 HTTP 브라우저는 기존 수동 복사 모달을 사용한다.
+브라우저에서 프로젝트 생성 → 편집 잠금 해제 → Grid `+` 작업 추가 → 작업 정보 편집 → 새로고침 후 유지 → 편집 모드 종료 후 변경 거부를 확인한다. Health 200만으로 쿠키/편집 검증을 완료했다고 보지 않는다. 공유 링크 복사에서 secure-context Clipboard API를 사용할 수 없는 내부망 HTTP 브라우저는 같은 사용자 동작 안에서 legacy copy 호환 경로를 먼저 시도하고, 브라우저가 그 경로도 지원하지 않을 때 기존 수동 복사 모달을 사용한다. modern Clipboard API가 존재하지만 사용자가 권한을 거부한 경우에는 legacy 경로로 우회하지 않는다.
 
 ## 쿠키 및 프로토콜 전환
 
@@ -87,7 +87,7 @@ HTTP에서 비밀번호·세션·일정 데이터는 전송 구간에서 암호�
 
 `tests/transport/production-transport.spec.ts`와 `tests/config/transport.config.ts`는 기존 개발 E2E와 분리된 **실제 production** 검증이다. `scripts/verify-transport-smoke.sh`가 격리된 두 컨테이너·볼륨과 Nginx를 구성한다. `plain.gantt.test` HTTP는 `isSecureContext=false`, `secure.gantt.test` HTTPS는 임시 테스트 CA를 신뢰 저장소에 등록하여 인증서 검증을 유지한 상태로 실행한다. 일반 HTTP 양성 경로의 쿠키 수동 주입, 인증서 오류 무시, secure-origin 강제 플래그는 금지한다. 잘못된 쿠키 이름을 보내는 명시적 음성 테스트만 별도로 둔다.
 
-검증 범위는 실제 브라우저 프로젝트 생성·작업 추가/정보 편집·재조회·암호 변경·로그아웃, HTTP/HTTPS 쿠키 저장·전송, 다른 Origin/프로젝트/만료 세션 거부, 컨테이너 재시작 후 데이터 보존이다. HTTPS 컨테이너에도 ALLOW_INSECURE_HTTP=true를 지정하여 쿠키가 약화되지 않음을 확인한다. 잘못된 flag/URL/DB 경로는 실제 entrypoint가 exit 1로 거부하고 migration DB를 만들지 않는지 확인한다.
+검증 범위는 실제 브라우저 프로젝트 생성·작업 추가/정보 편집·재조회·암호 변경·로그아웃, HTTP/HTTPS 쿠키 저장·전송, **plain HTTP의 실제 legacy 프로젝트 링크 자동 복사**, 다른 Origin/프로젝트/만료 세션 거부, 컨테이너 재시작 후 데이터 보존이다. HTTPS 컨테이너에도 ALLOW_INSECURE_HTTP=true를 지정하여 쿠키가 약화되지 않음을 확인한다. 잘못된 flag/URL/DB 경로는 실제 entrypoint가 exit 1로 거부하고 migration DB를 만들지 않는지 확인한다.
 
 CI의 Docker gate, main 게시 이미지의 exact digest 검사, 릴리스 후보 이미지의 pre-publish 검사에서 실행한다. PR은 registry에 쓰지 않는다. CI 임시 CA·키·볼륨은 정리하며 브라우저 trace에는 인증 정보를 남기지 않는다. 기존 development E2E와 단위 검사·Compose smoke는 별도로 유지된다. 실제 테스트 수/결과는 해당 PR의 최신 head와 Actions run/job을 근거로 기록한다.
 
