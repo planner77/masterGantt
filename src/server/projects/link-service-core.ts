@@ -13,7 +13,7 @@ import { EditSessionInvalidError, PersistedScheduleInvalidError, RevisionMismatc
 export class LinkNotFoundError extends Error {}
 export class LinkConflictError extends Error { constructor(readonly code:string){super(code);} }
 
-function taskDtos(tasks:readonly TaskRecord[]):ProjectTaskDto[]{const ext=new Map(tasks.map(t=>[t.id,t.externalId]));return tasks.map(t=>({taskId:t.publicId,externalId:t.externalId,name:t.name,description:t.description,url:t.url,type:t.type,scheduleMode:t.scheduleMode,requestedStart:t.requestedStart,start:t.startDate,end:t.endDate,duration:t.duration,progress:t.progress,parentExternalId:t.parentId===null?null:ext.get(t.parentId)??null,siblingOrder:t.sortOrder,baselineStart:t.baselineStart,baselineDuration:t.baselineDuration,baselineEnd:t.baselineEnd}));}
+function taskDtos(tasks:readonly TaskRecord[]):ProjectTaskDto[]{const ext=new Map(tasks.map(t=>[t.id,t.externalId]));return tasks.map(t=>({taskId:t.publicId,externalId:t.externalId,name:t.name,description:t.description,url:t.url,type:t.type,scheduleMode:t.scheduleMode,requestedStart:t.requestedStart,start:t.startDate,end:t.endDate,duration:t.duration,progress:t.progress,status:t.status,parentExternalId:t.parentId===null?null:ext.get(t.parentId)??null,siblingOrder:t.sortOrder,baselineStart:t.baselineStart,baselineDuration:t.baselineDuration,baselineEnd:t.baselineEnd}));}
 function linkDtos(links:readonly LinkRecord[],tasks:readonly TaskRecord[]):ProjectLinkDto[]{const ext=new Map(tasks.map(t=>[t.id,t.externalId]));return links.map(l=>({id:l.publicId,predecessorExternalId:ext.get(l.predecessorTaskId)!,successorExternalId:ext.get(l.successorTaskId)!,type:l.type,lag:l.lag}));}
 
 export class LinkService{

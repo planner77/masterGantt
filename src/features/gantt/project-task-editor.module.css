@@ -120,6 +120,12 @@
 }
 .taskFields > :first-child { grid-area: name; }
 .taskFields > :nth-child(2) { grid-area: progress; }
+.statusProgressFields {
+  display: grid;
+  grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: end;
+}
 .scheduleFields { grid-area: schedule; }
 .taskFields > :nth-child(4) { grid-area: mode; max-width: 42rem; }
 .taskFields > :nth-last-child(2) { grid-area: description; }
@@ -454,7 +460,7 @@
       "description"
       "url";
   }
-  .scheduleFields, .relationColumns, .allocationGrid, .assignmentSections { grid-template-columns: 1fr; }
+  .statusProgressFields, .scheduleFields, .relationColumns, .allocationGrid, .assignmentSections { grid-template-columns: 1fr; }
   .relationItemHeader { align-items: stretch; flex-direction: column; }
   .relationActions { justify-content: flex-end; }
   .allocationGrid { margin-left: 1.8rem; }

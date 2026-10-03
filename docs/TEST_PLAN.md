@@ -1188,3 +1188,14 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - native table semantics, keyboard focus, document overflow
 
 실제 browser/E2E 증거 없이 정적 CSS 확인만으로 이 항목을 PASS 처리하지 않는다.
+
+
+## Issue #303 Task status / progress 회귀
+
+- Unit/Domain: null/0/1/50/99.999/100 progress status 파생, completed↔progress, not_started→0, completed 해제, contradictory persisted pair 거부를 검증한다.
+- Contract/Service: create/PATCH allowlist, status+progress 단일 mutation/revision, 일정·Link 불변, canonical response status를 검증한다.
+- SQLite: `0019_task_status.sql`의 progress 기반 backfill, CHECK, reopen, migration ledger 19건을 검증한다.
+- Copy/Template: subtree Copy가 0% `in_progress` 같은 명시적 status를 보존하고 Project Template instantiate 응답이 status를 누락하지 않는지 검증한다.
+- Chromium: progress 100→completed, completed→100, 완료 해제, Grid 취소선, 동일 Gantt instance 및 기존 Phase 3 responsive geometry를 함께 검증한다. Desktop 작업명/보조 영역 2열과 390/768px stack을 유지한다.
+- Scheduling purity: `src/domain/scheduling`은 외부 domain helper를 import하지 않고 Summary status를 derived progress에서 내부적으로 계산한다.
+- 최종 판정은 최신 PR head의 새 `quality/e2e/docker` 전체 실행을 사용하며 과거 #1248 결과를 재사용하지 않는다.

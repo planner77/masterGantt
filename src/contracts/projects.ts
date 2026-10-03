@@ -3,6 +3,7 @@ import type { ProjectMasterItemDto } from "./project-master";
 import type { ProjectAssignmentDto } from "./resources";
 
 export type ProjectStatus = "planned" | "in_progress" | "completed";
+export type TaskStatus = "not_started" | "in_progress" | "completed";
 
 export interface ProjectHolidayDto {
   date: string;
@@ -72,6 +73,8 @@ export interface ProjectTaskDto {
   end: string | null;
   duration: number | null;
   progress: number | null;
+  /** Task-level execution status; distinct from ProjectStatus. */
+  status?: TaskStatus;
   parentExternalId: string | null;
   siblingOrder: number;
   baselineStart?: string | null;
@@ -204,7 +207,7 @@ interface CreateTaskCommon {
 
 export type CreateTaskRequest = CreateTaskCommon & (
   | { type: "task" | "milestone"; scheduleMode?: "auto" | "manual";
-      start: string; end?: string; duration: number; progress: number }
+      start: string; end?: string; duration: number; progress: number; status?: TaskStatus }
   | { type: "summary"; scheduleMode?: "auto";
       start?: null; end?: null; duration?: null; progress?: null }
 );
@@ -218,6 +221,7 @@ export interface UpdateTaskRequest {
   end?: string;
   duration?: number;
   progress?: number;
+  status?: TaskStatus;
   baselineStart?: string | null;
   baselineDuration?: number | null;
   baselineEnd?: string | null;

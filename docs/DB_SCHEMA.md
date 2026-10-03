@@ -641,3 +641,10 @@ Migration `0017_project_master_catalog.sql`은 `project_master_items`와 catalog
 참조되는 tasks table의 DROP이 Link/Assignment/물류 연결을 cascade 삭제하지 않게 migration runner가 해당 pending migration의 선언을 확인하고 **BEGIN 밖에서** FK enforcement를 잠시 끈다. 같은 IMMEDIATE transaction 안에서 재생성·ledger 기록·`foreign_key_check`를 완료한 뒤 commit하며 모든 실패를 rollback한다. finally에서 원래 FK 설정을 복원한다. 활성 transaction 안에서 이 재생성을 중첩 실행하지 않는다. 기존 table을 먼저 rename하는 방식은 사용하지 않는다.
 
 실제 파일 SQLite 업그레이드/reopen과 SQL 실패·FK 위반 주입 rollback, ID/Link/Assignment/Baseline 보존은 `tests/server/db/database.test.ts`가 검증한다. 새 서버 시작 시 기본 FK ON 정책은 유지한다.
+
+
+## Issue #303 — Task status migration 0019
+
+`0019_task_status.sql`은 `tasks.status TEXT NOT NULL DEFAULT 'not_started'`를 추가하고 허용값을 `not_started | in_progress | completed`로 제한한다. 기존 row는 progress 기준으로 `100 → completed`, `0 < progress < 100 → in_progress`, `0 또는 Summary 미산정 값 → not_started`로 backfill한다.
+
+Repository write는 status/progress 일관성을 검증한다. Summary schedule 갱신은 derived progress에서 status를 함께 갱신하며, subtree Copy는 원본의 명시적 status를 보존한다. Migration ledger는 0018 이후 0019를 순차 적용하고 실제 파일 reopen 및 invalid status CHECK를 회귀 테스트한다.

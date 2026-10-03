@@ -97,6 +97,7 @@ import {
 import { taskHasDependencyLinks } from "./task-link-scope";
 import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
 import { canOpenTaskAsSubtreeRoot, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
+import { taskStatusFromProgress } from "../../domain/task-status";
 import { RelationContextMenu } from "./relation-context-menu";
 import type { DependencyType } from "../../contracts/projects";
 import "./task-context-menu.css";
@@ -550,6 +551,8 @@ export function ProjectGantt({
         if (row.dataset.inlineNameEligible !== String(eligible)) row.dataset.inlineNameEligible = String(eligible);
         const nameCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
         const task = taskId ? tasksById.get(taskId) : undefined;
+        const completed = task ? (task.status ?? taskStatusFromProgress(task.progress)) === "completed" : false;
+        if (row.dataset.taskCompleted !== String(completed)) row.dataset.taskCompleted = String(completed);
         const summaryState = task?.type === "summary" && task.start === null
           ? tasks.some((candidate) => candidate.parentExternalId === task.externalId) ? "일정 있는 하위 작업 없음" : "하위 작업 없음"
           : null;

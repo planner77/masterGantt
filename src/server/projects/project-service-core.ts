@@ -29,6 +29,7 @@ import {
   scheduleLeaf,
   type WorkingCalendar,
 } from "../../domain/scheduling";
+import { normalizeTaskStatusProgress, taskStatusFromProgress, taskStatusProgressConsistent } from "../../domain/task-status";
 import {
   EditSessionRepository,
   ProjectRepository,
@@ -257,6 +258,7 @@ function taskDtos(tasks: TaskRecord[]): ProjectTaskDto[] {
       end: task.endDate,
       duration: task.duration,
       progress: task.progress,
+      status: task.status,
       parentExternalId: parentExternalId ?? null,
       siblingOrder: task.sortOrder,
       baselineStart: task.baselineStart,
@@ -438,6 +440,7 @@ function validatePersistedScheduleShape(
         !validPersistedExternalId(task.externalId) ||
         !validPersistedName(task.name) ||
         !Number.isInteger(task.sortOrder) || task.sortOrder < 0 ||
+        !taskStatusProgressConsistent(task.status, task.progress) ||
         (task.type !== "summary" && (task.progress === null || !Number.isFinite(task.progress) ||
         task.progress < 0 || task.progress > 100))
       ) {
@@ -627,6 +630,7 @@ export class ProjectService {
         persisted.endDate !== task.end ||
         persisted.duration !== task.duration ||
         persisted.progress !== task.progress ||
+        persisted.status !== (task.status ?? taskStatusFromProgress(task.progress)) ||
         persisted.scheduleMode !== "auto" ||
         persisted.requestedStart !== null ||
         persisted.baselineStart !== (task.baselineStart ?? null) ||
@@ -913,6 +917,14 @@ export class ProjectService {
         scheduleMode: validatedInput.scheduleMode,
         end: validatedInput.end,
       }, calendar);
+      const normalizedStatus = validatedInput.type === "summary"
+        ? null
+        : normalizeTaskStatusProgress({
+          currentStatus: "not_started",
+          currentProgress: 0,
+          status: validatedInput.status,
+          progress: validatedInput.progress,
+        });
 
       let inserted: TaskRecord | undefined;
       for (let attempt = 0; attempt < PUBLIC_ID_ATTEMPTS; attempt += 1) {
@@ -938,7 +950,8 @@ export class ProjectService {
           startDate: scheduled.start,
           endDate: scheduled.end,
           duration: scheduled.duration,
-          progress: validatedInput.type === "summary" ? null : validatedInput.progress,
+          progress: normalizedStatus?.progress ?? null,
+          status: normalizedStatus?.status,
           parentId: parent?.id ?? null,
           sortOrder: this.schedules.nextSiblingSortOrder(
             project.id,
@@ -1079,6 +1092,12 @@ export class ProjectService {
         duration: current.duration,
         warnings: [],
       };
+      const normalizedStatus = normalizeTaskStatusProgress({
+        currentStatus: current.status,
+        currentProgress: current.progress,
+        status: validatedInput.status,
+        progress: validatedInput.progress,
+      });
       let changedLeafExternalIds: string[] = [];
       let finalStart: string = scheduled.start;
       let finalEnd: string = scheduled.end;
@@ -1086,7 +1105,7 @@ export class ProjectService {
         const candidateInput = taskDtos(tasks).map((task) => task.taskId === current.publicId
           ? { ...task, requestedStart: scheduled.requestedStart, start: scheduled.start,
               end: scheduled.end, duration: scheduled.duration, scheduleMode: scheduled.scheduleMode,
-              progress: validatedInput.progress ?? current.progress }
+              progress: normalizedStatus.progress, status: normalizedStatus.status }
           : task);
         const candidate = recalculateTaskCandidate(candidateInput, linkDtos(links, tasks), calendar);
         if (candidate.manualConflicts.length > 0) {
@@ -1129,7 +1148,8 @@ export class ProjectService {
         startDate: finalStart,
         endDate: finalEnd,
         duration: scheduled.duration,
-        progress: validatedInput.progress ?? current.progress,
+        progress: normalizedStatus.progress,
+        status: normalizedStatus.status,
         updatedAt: nowText,
       });
       if (!updated) throw new TaskNotFoundError();

@@ -7,6 +7,7 @@ import {
   synchronizeTaskEditorScheduleDraft,
   taskEditorIsDirty,
   taskEditorReadOnlyReason,
+  updateTaskEditorDraft,
   validateTaskEditorSchedule,
 } from "../../../src/features/gantt/task-editor-model";
 import { taskIdFromElement } from "../../../src/features/gantt/task-context-target";
@@ -100,6 +101,27 @@ describe("Issue #368 requested end draft synchronization", () => {
       start: "2026-09-17",
       duration: 5,
     });
+  });
+});
+
+describe("Issue #303 status/progress editor synchronization", () => {
+  it("normalizes both directions and emits one atomic payload", () => {
+    const initial = createTaskEditorDraft(task);
+    expect(initial.status).toBe("in_progress");
+
+    const completed = updateTaskEditorDraft(initial, "progress", "100");
+    expect(completed).toMatchObject({ progress: "100", status: "completed" });
+    expect(prepareTaskEditorCommand(task, completed).command?.payload)
+      .toEqual({ progress: 100, status: "completed" });
+
+    const reopened = createTaskEditorDraft({ ...task, progress: 100, status: "completed" });
+    const lowered = updateTaskEditorDraft(reopened, "progress", "50");
+    expect(lowered).toMatchObject({ progress: "50", status: "in_progress" });
+
+    const notStarted = updateTaskEditorDraft(reopened, "status", "not_started");
+    expect(notStarted).toMatchObject({ progress: "0", status: "not_started" });
+    expect(prepareTaskEditorCommand({ ...task, progress: 100, status: "completed" }, notStarted).command?.payload)
+      .toEqual({ progress: 0, status: "not_started" });
   });
 });
 

@@ -71,6 +71,7 @@ function taskDtos(tasks: readonly TaskRecord[]): ProjectTaskDto[] {
       end: task.endDate,
       duration: task.duration,
       progress: task.progress,
+      status: task.status,
       parentExternalId: parentExternalId ?? null,
       siblingOrder: task.sortOrder,
       baselineStart: task.baselineStart,
@@ -595,6 +596,7 @@ export class TaskHierarchyService {
             endDate: original.endDate,
             duration: original.duration,
             progress: original.progress,
+            status: original.status,
             parentId: parentId ?? null,
             sortOrder: rootIds.has(original.id)
               ? this.schedules.nextSiblingSortOrder(project.id, target.parentId)
