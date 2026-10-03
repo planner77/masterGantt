@@ -96,9 +96,10 @@ export function taskUrlGestureBlocked(event: Pick<MouseEvent, "ctrlKey" | "metaK
 function ordinaryTarget(target: EventTarget | null): HTMLElement | null {
   if (!(target instanceof Element)) return null;
   if (target.closest("input, textarea, select, button, a, [contenteditable=true], dialog, .wx-header, .project-task-context-menu, .project-copy-selection-hitarea")) return null;
-  // In edit mode the name text has a single-click Grid editor. Chart bars
-  // and readonly name cells retain their existing URL launch behavior.
+  // In edit mode the name text and editable start-date cell have application-owned
+  // single-click editors. Chart bars and readonly cells retain URL launch behavior.
   if (target.closest('.project-gantt-frame[data-task-inline-editable="true"] .wx-table-container .wx-row[data-inline-name-eligible="true"] [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text')) return null;
+  if (target.closest('.project-gantt-frame[data-task-inline-editable="true"] .wx-table-container [role="gridcell"][data-col-id=":projectStart"][data-inline-start-editable="true"]')) return null;
   const element = target.closest(TASK_TARGET_SELECTOR);
   return element instanceof HTMLElement ? element : null;
 }
