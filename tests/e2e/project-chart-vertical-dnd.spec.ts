@@ -1,7 +1,5 @@
-import { expect, test } from "@playwright/test";
-
 import type { TaskMutationResponse } from "../../src/contracts/projects";
-import { isolatedApplicationOptions } from "./fixtures/isolated-application";
+import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-application";
 import { gridOrder, seedReorderProject } from "./helpers/grid-task-reorder";
 
 test.use(isolatedApplicationOptions);
