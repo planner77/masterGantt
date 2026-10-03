@@ -204,17 +204,16 @@ describe("relation-editor-model", () => {
       expect(candidateIds).not.toContain("SUM1");
     });
 
-    it("filters candidates by search query matching name or externalId", () => {
-      const candidates = searchCandidateTasks({
+    it("filters candidates by name, externalId, or canonical taskId", () => {
+      const byName = searchCandidateTasks({
         anchorExternalId: "T2",
         direction: "successor",
         query: "릴리스",
         tasks: sampleTasks,
         links: sampleLinks,
       });
-
-      expect(candidates).toHaveLength(1);
-      expect(candidates[0].externalId).toBe("MS1");
+      expect(byName).toHaveLength(1);
+      expect(byName[0].externalId).toBe("MS1");
 
       const byExternalId = searchCandidateTasks({
         anchorExternalId: "T2",
@@ -223,9 +222,28 @@ describe("relation-editor-model", () => {
         tasks: sampleTasks,
         links: sampleLinks,
       });
-
       expect(byExternalId).toHaveLength(1);
-      expect(byExternalId[0].externalId).toBe("MS1");
+      expect(byExternalId[0].taskId).toBe("task-milestone");
+
+      const byTaskId = searchCandidateTasks({
+        anchorExternalId: "T2",
+        direction: "successor",
+        query: "  TASK-MILESTONE  ",
+        tasks: sampleTasks,
+        links: sampleLinks,
+      });
+      expect(byTaskId).toHaveLength(1);
+      expect(byTaskId[0].externalId).toBe("MS1");
+
+      const byPartialTaskId = searchCandidateTasks({
+        anchorExternalId: "T2",
+        direction: "successor",
+        query: "MILE",
+        tasks: sampleTasks,
+        links: sampleLinks,
+      });
+      expect(byPartialTaskId).toHaveLength(1);
+      expect(byPartialTaskId[0].taskId).toBe("task-milestone");
     });
   });
 });
