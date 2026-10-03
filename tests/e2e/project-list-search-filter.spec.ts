@@ -418,7 +418,7 @@ test.describe("Issue #403 Project List 날짜 열 geometry", () => {
   test("긴 metadata와 browser locale 날짜가 sibling cell을 침범하지 않고 table-owned scroll을 유지한다", async ({ page, baseURL }, testInfo) => {
     const suffix = randomUUID().slice(0, 8);
     const name = `Issue 403 장기 프로젝트 이름과 일정 추적 ${suffix}`;
-    const owner = "국제 물류자동화 플랫폼 통합 운영 책임자".repeat(2);
+    const owner = `Owner${"X".repeat(94)}`;
     const description = "장기 프로젝트 설명과 공급망 자동화 일정, 인수인계, 관계자 정보를 함께 확인하기 위한 레이아웃 회귀 fixture입니다. ".repeat(8);
     await createProject(page, baseURL!, name, owner.slice(0, 100), description, "Pwd403Lay!");
 
@@ -482,6 +482,16 @@ test.describe("Issue #403 Project List 날짜 열 geometry", () => {
           textOverflow: getComputedStyle(value).textOverflow,
           whiteSpace: getComputedStyle(value).whiteSpace,
         }));
+        const ownerValue = element.querySelector<HTMLElement>('[data-column="owner"] > span')!;
+        const ownerGeometry = {
+          clientWidth: ownerValue.clientWidth,
+          scrollWidth: ownerValue.scrollWidth,
+          overflow: getComputedStyle(ownerValue).overflow,
+          textOverflow: getComputedStyle(ownerValue).textOverflow,
+          whiteSpace: getComputedStyle(ownerValue).whiteSpace,
+        };
+        const ownerCell = rect('td[data-column="owner"]');
+        const descriptionCell = rect('td[data-column="description"]');
         const actionButton = element.querySelector<HTMLElement>('[data-column="actions"] button')!;
         return {
           documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
@@ -495,6 +505,9 @@ test.describe("Issue #403 Project List 날짜 열 geometry", () => {
           actionsHeader,
           actionButtonWidth: actionButton.getBoundingClientRect().width,
           masterValues,
+          ownerGeometry,
+          ownerCell,
+          descriptionCell,
         };
       });
 
@@ -517,6 +530,11 @@ test.describe("Issue #403 Project List 날짜 열 geometry", () => {
         expect(value.whiteSpace).toBe("nowrap");
         expect(value.scrollWidth).toBeGreaterThan(value.clientWidth);
       }
+      expect(geometry.ownerGeometry.overflow).toBe("hidden");
+      expect(geometry.ownerGeometry.textOverflow).toBe("ellipsis");
+      expect(geometry.ownerGeometry.whiteSpace).toBe("nowrap");
+      expect(geometry.ownerGeometry.scrollWidth).toBeGreaterThan(geometry.ownerGeometry.clientWidth);
+      expect(geometry.ownerCell.right).toBeLessThanOrEqual(geometry.descriptionCell.left + 1);
       if (width <= 1024) expect(geometry.wrapperScrollWidth).toBeGreaterThan(geometry.wrapperClientWidth);
       if (width >= 1440) expect(geometry.wrapperScrollWidth).toBeLessThanOrEqual(geometry.wrapperClientWidth + 1);
 
