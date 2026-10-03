@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #409 Copy ID / Relation Editor 식별자 불일치 — 구현 / PR CI 준비
+
+latest main `fa57ba77fd632fa530ca2c27091a072536a67172` / `0.75.0`에서 #390 `Copy ID`가 복사하는 canonical `taskId`와 Relation Editor가 검색·표시하던 `externalId`의 의미 충돌을 수정한다. 후보 검색을 name/externalId/taskId로 확장하고 두 ID를 명시적으로 표시하되 Link API는 externalId 계약을 유지한다. branch는 `fix/issue-409-relation-id-search`, 후보 version은 PATCH `0.75.1`이다. 상세는 [Issue #409 실행 계획](ISSUE_409.md)을 따른다. 종료점은 PR 생성 및 PR CI 시작 확인이다.
+
 ## Issue #335 관계 연결 작업 sibling reorder — 최신 main 재정렬 / PR CI 재시작
 
 최신 main `5101a4a701dd7dbbeb3091696c0c670c667cb840` / `0.74.0`의 #303 Task status/progress와 #399 Workspace WBS 범위 탭을 보존하면서 Dependency가 연결된 Task/subtree의 **same-parent sibling reorder**만 허용한다. Run #1614.1에서 신규 #335 E2E는 PASS했으나 기존 #116 Move submenu와 #104/#378 linked Move 기대값 회귀가 실패해 상위 Move trigger를 기존 UX와 action-specific capability의 합성 조건으로 보완한다. 후보 version은 다음 MINOR `0.75.0`이며 상세는 [Issue #335 실행 계획](ISSUE_335.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 새 PR CI 시작 확인이다.
