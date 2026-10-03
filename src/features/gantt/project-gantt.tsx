@@ -2043,9 +2043,14 @@ export function ProjectGantt({
     if (startDateOpenTimerReference.current !== null) window.clearTimeout(startDateOpenTimerReference.current);
     startDateOpenTimerReference.current = window.setTimeout(() => {
       startDateOpenTimerReference.current = null;
-      if (!cell.isConnected || !canCreateReference.current) return;
+      if (!canCreateReference.current) return;
       if (document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]')) return;
-      openStartDatePicker(taskId, cell);
+      const root = ganttScrollReference.current;
+      const currentRow = root && Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]"))
+        .find((candidate) => taskIdFromElement(candidate) === taskId);
+      const currentCell = currentRow?.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":projectStart"]')
+        ?? (cell.isConnected ? cell : null);
+      if (currentCell) openStartDatePicker(taskId, currentCell);
     }, 0);
   }
 
