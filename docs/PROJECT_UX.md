@@ -203,6 +203,7 @@ HTTP 사내 주소에서는 브라우저의 secure-context 정책에 따라 mode
 | 서로 다른 두 프로젝트의 실제 링크 구분, rename 이후 링크 유지, 복사 시 mutation/revision 불변, 취소 후 비밀번호 삭제, 같은 세션 새 탭/새 세션 직접 Readonly | `tests/e2e/project-links-persistence.spec.ts` |
 | 5초 Toast, 오류 직후 성공에도 오류 보존, 미확인/읽음, Gantt DOM·geometry·scroll, 프로젝트 격리, 390px 화면 | `tests/e2e/project-notifications.spec.ts` |
 | Clipboard API 없음/insecure HTTP의 legacy 자동 복사, modern 권한 거부 시 legacy 우회 금지·수동 복사·재시도와 키보드/focus | 같은 notification spec. 호환/거부·복구 분기는 mock, 실제 modern 쓰기는 위 persistence spec과 구분 |
+| 실제 production HTTP insecure origin의 legacy 자동 복사 | `tests/transport/production-transport.spec.ts`: `plain.gantt.test`, `isSecureContext=false`, modern API 없음, real `execCommand("copy")`/copy event로 canonical URL 검증 |
 | 모달 top layer 안의 오류 안내와 닫은 뒤 알림함 보존 | `tests/e2e/project-modal-feedback.spec.ts` |
 | 팝업 없는 첫 하위 추가·지연/연속/중복 추가, 401/412/검증/500/network/canonical 복구 | `tests/e2e/project-gantt-stability.spec.ts` |
 | 실제 DB 지속성·부모 집계·편집기 초안·권한·날짜·레이아웃 | 기존 task-persistence, task-editor*, edit-authorization, workspace-layout spec |

@@ -84,6 +84,33 @@ async function openSettings(page: Page): Promise<void> {
   await expect(dialog.getByRole("button", { name: "편집 모드 종료", exact: true })).toBeVisible();
 }
 
+async function expectInsecureProjectLinkAutoCopy(page: Page, projectName: string, projectUrl: string): Promise<void> {
+  expect(await page.evaluate(() => ({
+    secure: window.isSecureContext,
+    hasModernClipboard: Boolean(navigator.clipboard?.writeText),
+  }))).toEqual({ secure: false, hasModernClipboard: false });
+
+  await page.evaluate(() => {
+    const target = window as typeof window & { transportCopiedText?: string };
+    delete target.transportCopiedText;
+    document.addEventListener("copy", () => {
+      const active = document.activeElement;
+      if (!(active instanceof HTMLTextAreaElement)) return;
+      const start = active.selectionStart ?? 0;
+      const end = active.selectionEnd ?? active.value.length;
+      target.transportCopiedText = active.value.slice(start, end);
+    }, { once: true });
+  });
+
+  const button = page.getByRole("button", { name: `${projectName} 프로젝트 링크 복사`, exact: true });
+  await button.click();
+  await expect(page.getByTestId("workspace-toast")).toContainText("프로젝트 링크를 복사했습니다");
+  await expect(page.getByRole("dialog", { name: "프로젝트 링크 수동 복사" })).toHaveCount(0);
+  expect(await page.evaluate(() =>
+    (window as typeof window & { transportCopiedText?: string }).transportCopiedText,
+  )).toBe(projectUrl);
+}
+
 test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀번호 변경·로그아웃", async ({ page, browser, baseURL }, info) => {
   if (!baseURL) throw new Error("검증 origin 누락");
   const secure = info.project.name === "production-https";
@@ -91,11 +118,15 @@ test("실제 쿠키로 생성·편집·Origin/revision 보호·재시작·비밀
   const suffix = `${Date.now()}-${info.project.name}`;
   const password = "TrOrig12345!";
   const rotated = "TrNew123456!";
-  const publicId = await createProject(page, `Transport ${suffix}`, password);
+  const projectName = `Transport ${suffix}`;
+  const publicId = await createProject(page, projectName, password);
   const api = `/api/projects/${publicId}`;
   await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => window.isSecureContext)).toBe(secure);
   expect(new URL(page.url()).hostname).not.toMatch(/localhost|127\.0\.0\.1/);
+  if (!secure) {
+    await expectInsecureProjectLinkAutoCopy(page, projectName, `${baseURL}/projects/${publicId}`);
+  }
 
   const cookies = await page.context().cookies(baseURL);
   const cookie = cookies.find((entry) => entry.name === cookieName);
