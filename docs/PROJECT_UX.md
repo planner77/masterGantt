@@ -33,21 +33,25 @@ Clipboard 쓰기는 #364의 공통 호환 경로를 재사용한다. secure cont
 
 일반 Task와 Milestone은 이번 규칙의 적용 대상이 아니다. #345의 일정 없는 Summary는 계속 Grid row만 존재하고 Chart bar를 만들지 않는다. Day/Week, fullscreen, readonly/edit 전환으로 상대 두께가 달라지지 않으며 Gantt/API instance를 remount하지 않는다. 이 규칙은 presentation-only이며 Task/Summary 날짜·기간·진척 계산, Dependency, Calendar, API/DB/revision/If-Match 계약을 변경하지 않는다.
 
-## Issue #373 Summary 하위 WBS를 최상위 범위로 열기
+## Issue #373 / #399 Summary 하위 WBS를 Workspace 범위 탭으로 열기
 
-하위 child가 있는 Summary의 Grid/Chart Context Menu에는 `최상위로 열기`를 조회/navigation 명령으로 표시한다. 일반 Task, Milestone, 자식이 없는 빈 Summary에는 진입 명령을 표시하지 않는다. readonly에서도 사용할 수 있으며 mutation lock과 무관하게 새 탭 조회를 열 수 있다. visible label은 `최상위로 열기`이고 accessible name은 새 탭 동작을 함께 설명한다. 기존 #72 메뉴의 keyboard 탐색, Shift+F10/ContextMenu, Escape와 focus 복귀를 유지한다.
+하위 child가 있는 Summary의 Grid/Chart Context Menu `최상위로 열기`는 #399부터 새 browser tab/window를 만들지 않고 현재 Project의 일정 View 내부 WBS 범위 탭을 생성·활성화한다. 일반 Task/Milestone/빈 Summary에는 진입 명령을 표시하지 않으며 accessible name은 `최상위로 열기 (작업공간 탭)`이다. #72의 mouse/keyboard Context Menu 계약을 유지한다.
 
-명령은 opener의 React memory에 의존하지 않는 `/projects/{publicId}?rootTask={summaryTaskId}` deep link를 새 탭으로 연다. Project public ID와 Task public ID 이외의 password/session/internal DB ID는 URL에 넣지 않는다. 새 탭 생성이 차단되면 오류를 알리고 원래 탭을 이동시키지 않는다. scoped view에서는 Resource/Logistics 전체 Project 탭을 같은 범위 화면으로 오인하지 않도록 일정 workspace만 제공하고 compact scope bar에 `하위 범위 보기`, root Summary 이름, `전체 프로젝트 보기`를 표시한다.
+범위 탭은 `[전체 프로젝트] [Summary A ×] [Summary B ×]` 구조다. 전체 프로젝트는 첫 번째 고정/비삭제 탭이다. Summary 탭은 task public ID로 식별하고 canonical 이름을 label로 사용하며 동일 Summary 재진입은 중복 생성 없이 기존 탭을 활성화한다. active Summary 닫기는 next → previous → 전체 프로젝트 순으로 fallback한다. ArrowLeft/ArrowRight/Home/End automatic activation, Summary 탭 Delete 및 개별 닫기 command를 제공한다. 한 행 `overflow-x:auto` / `overflow-y:hidden`을 사용하고 active/focus 탭은 `inline: nearest`로 노출한다.
 
-표시 범위는 root Summary + 모든 descendants다. ancestor/sibling/다른 branch는 숨기지만 삭제하거나 별도 Project로 복제하지 않는다. 전체 canonical Project snapshot을 유지한 채 scope 안 task IDs와 기존 search/filter 결과의 교집합을 `visibleTaskIds`로 전달하고 SVAR 공개 `filter-tasks` action을 재사용한다. 선택 Summary의 canonical `parentExternalId`는 바꾸지 않고 Gantt 표시 adapter에서만 해당 Summary의 SVAR `parent`를 `0`으로 투영하여 실제 최상위 row처럼 표시한다. 필터 초기화는 subtree 전체로 복원하며 전체 Project로 전환하지 않는다. Task/Relation Editor에는 전체 canonical tasks/links를 계속 전달하여 scope 밖 endpoint Dependency도 관계 정보에서 유실되지 않게 한다.
+기존 `/projects/{publicId}?rootTask={summaryTaskId}` deep link는 외부 공유·reload·직접 진입 계약으로 유지한다. 직접 진입하면 전체 프로젝트와 대상 Summary 내부 탭을 구성해 Summary를 active로 만든다. 내부 scope 전환은 History replace semantics로 `rootTask`만 set/delete하여 full reload와 불필요한 browser history 증가를 만들지 않는다. password/session/internal DB ID는 URL에 넣지 않는다. 열린 탭 집합은 지속하지 않으므로 reload 후 URL의 active scope만 복원한다.
 
-scoped view의 구조 mutation은 결과가 현재 subtree 밖으로 나가지 않는 경우만 허용한다. native Grid `+`와 toolbar의 root `요약 작업 추가`는 scoped view에서 비활성/비노출한다. 가상 root의 Above/Below·Move·Indent/Outdent·Cut 및 root 옆 Paste는 막고 Child 추가는 허용한다. root의 직계 child는 Outdent로 root 밖에 나갈 수 없으며, 더 깊은 descendant의 subtree 내부 Move/Indent/Outdent와 기존 일반 필드 편집은 허용한다. DnD/shortcut도 같은 pure scope guard를 사용해 메뉴만 막고 다른 경로로 우회하지 못한다. DnD는 release 시 서버 명령만 막는 것이 아니라 Core의 provisional `move-task` 단계 전에 guard를 적용해 invalid 이동이 로컬 Tree에 남지 않게 한다.
+표시 범위는 #373과 동일하게 root Summary + 모든 descendants다. ancestor/sibling/다른 branch는 숨기되 삭제하거나 별도 Project로 복제하지 않는다. 전체 canonical Project snapshot을 유지한 채 scope와 search/filter의 교집합을 `visibleTaskIds`로 전달하고 SVAR 공개 `filter-tasks`를 재사용한다. root의 canonical parent는 바꾸지 않고 adapter에서만 SVAR `parent=0`으로 투영하며 Task/Relation Editor에는 전체 canonical tasks/links를 전달해 scope 밖 Dependency를 보존한다.
 
-물류 effective filter 계산은 hidden ancestor의 `scope=subtree` 연결을 잃지 않도록 전체 Project hierarchy를 context로 계산한 뒤 결과 task만 현재 subtree와 교집합한다.
+범위 탭마다 Gantt를 새로 만들지 않는다. 하나의 ProjectGantt instance와 canonical snapshot을 공유하고 active `viewRootTaskId`와 visible set만 변경한다. scale/column/fullscreen 및 #367의 동적 timeline end 등 project-wide 상태를 유지하고 search/filter/quick-view는 scope별 in-memory state로 복원한다. scope 변경은 기존 selection/clipboard boundary 계약을 따르며 Gantt full remount를 상태 초기화 수단으로 사용하지 않는다.
 
-동일 browser profile의 다른 탭에서 scoped mutation으로 더 높은 Project revision이 저장되면 revision 값만 localStorage event로 알리고, 수신 탭은 기존 read-only Project GET으로 canonical snapshot을 다시 확인한다. initial load 또는 refresh가 아직 `loading`인 동안 도착한 revision 이벤트도 버리지 않고 최고 pending revision을 누적한다. 화면이 `ready`가 되는 즉시 pending revision과 비교하고 canonical snapshot이 그 revision 이상에 도달할 때까지 순차 재조회한다. revision 신호는 권한이나 데이터를 저장하는 source of truth가 아니며 localStorage 실패는 기존 server revision 계약을 약화시키지 않는다. refresh는 동일 Gantt key를 유지하여 scroll/tree/column/scale/filter를 불필요하게 초기화하지 않는다.
+scoped hierarchy guard도 #373을 유지한다. native Grid `+`와 root toolbar add는 비활성/비노출하고 가상 root Above/Below 및 root 직계 child Outdent 등 scope 밖 mutation은 Context Menu/shortcut/DnD 공통 guard로 거부한다. subtree 내부 변경과 root Child 추가는 기존 허용 계약을 따른다.
 
-root의 모든 child가 없어져도 #345의 빈 Summary는 유효한 scope로 남는다. root가 삭제되거나 Summary가 아닌 type으로 변경되면 다른 scope로 조용히 fallback하지 않고 scoped Gantt를 숨기고 오류 및 전체 Project 복귀 경로를 제공한다. 이번 기능은 DB/API/Scheduling/Security 계약을 변경하지 않는다.
+root가 빈 Summary가 되어도 탭은 유지한다. root 삭제/non-Summary 전환은 다른 scope로 silent fallback하지 않고 invalid 표시, scoped Gantt 숨김, 전체 프로젝트 복귀/탭 닫기 경로를 제공한다.
+
+동일 화면의 내부 scope들은 같은 React canonical state를 공유하므로 한 scope의 성공 mutation이 즉시 다른 내부 탭에도 반영된다. 사용자가 deep link를 실제 별도 browser tab에서 직접 열 수 있으므로 #373의 storage revision announcement와 canonical GET 기반 cross-tab burst/loading freshness는 유지한다.
+
+상위 `일정 / 리소스 / 물류 구성` peer tabs는 scoped schedule에서도 항상 유지한다. WBS 범위 탭은 일정 View의 하위 navigation일 뿐 Resource/Logistics를 subtree로 제한하지 않는다. Logistics→Schedule target filter는 전체 프로젝트 scope를 활성화한 뒤 적용한다. DB/API/Scheduling/Security 계약은 변경하지 않는다.
 
 ## Issue #345 빈 Summary 현재 정책
 

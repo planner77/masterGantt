@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.73.0] - 2026-10-03
+
+### Added
+
+- Issue #399: Project 일정 View에 `전체 프로젝트`와 여러 Summary subtree를 같은 화면에서 전환하는 compact WBS 범위 탭을 추가한다.
+- Summary 범위 탭은 중복 생성 없이 재활성화하며 닫기, Arrow/Home/End/Delete keyboard, 한 행 horizontal overflow와 scope별 search/filter state를 지원한다.
+
+### Changed
+
+- #373의 `최상위로 열기` 기본 동작에서 `window.open`/popup blocker 의존을 제거하고 동일 ProjectGantt instance에서 `viewRootTaskId + filter-tasks` 범위만 변경한다.
+- milestone/scoped/missing native add는 ProjectGantt의 native click capture 경계에서 canonical row/task를 확인해 SVAR target handler 전에 차단하고 feedback만 발행한다. 정상 add는 기존 SVAR/서버 mutation 경로를 유지해 invalid command의 visibility/focus scroll side effect 자체를 제거한다.
+- 기존 `?rootTask=` deep link/reload/direct-entry와 실제 browser tab 간 revision freshness, canonical snapshot/Dependency/hierarchy guard 및 권한·If-Match·revision 계약을 유지한다.
+- 최신 main의 #403 Project List column layout, #367 Timeline 동적 확장, #390 Copy ID 및 #364 clipboard compatibility를 보존한다.
+- Application version을 `0.72.0`에서 `0.73.0`으로 증가한다.
+
 ## [0.72.0] - 2026-10-03
 
 ### Added

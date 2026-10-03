@@ -161,13 +161,15 @@ function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
   return Boolean(target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="menu"], dialog, [role="dialog"]'));
 }
 
+type NativeTaskAddRejectReason = "scope" | "missing" | "milestone";
+
 interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
   readonly editable: boolean;
   readonly mutationLocked: boolean;
   readonly onCanonicalSyncFailure: () => void;
   readonly links: readonly ProjectLinkDto[];
-  readonly onTaskAddRejected: () => void;
+  readonly onTaskAddRejected: (reason: NativeTaskAddRejectReason) => void;
   readonly onTaskCreate: (command: ProjectTaskCreateCommand) => void;
   readonly onTaskCommand: (command: ProjectTaskUpdateCommand, expectedRevision?: number) => Promise<TaskEditorSaveResult>;
   readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest) => void;
@@ -1534,17 +1536,58 @@ export function ProjectGantt({
     return () => { cancelled = true; };
   }, [apiInstanceId, ensureTimelineEnd, scaleMode, scheduleTimelineExtension]);
 
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root || !apiInstanceId) return;
+
+    const rejectInvalidNativeAddBeforeCore = (event: MouseEvent) => {
+      if (event.button !== 0 || mutationLockedReference.current) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const action = target.closest<HTMLElement>('[data-action="add-task"]');
+      if (!action || !root.contains(action)) return;
+
+      const row = action.closest<HTMLElement>(".wx-row[data-id]");
+      const taskId = row ? taskIdFromElement(row) : null;
+      const task = taskId ? tasksByIdReference.current.get(taskId) : undefined;
+      const reason: NativeTaskAddRejectReason | null =
+        !canCreateReference.current || viewRootTaskIdReference.current !== null
+          ? "scope"
+          : taskId && !task
+            ? "missing"
+            : task?.type === "milestone"
+              ? "milestone"
+              : null;
+      if (!reason) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      onTaskAddRejectedReference.current(reason);
+    };
+
+    root.addEventListener("click", rejectInvalidNativeAddBeforeCore, true);
+    return () => root.removeEventListener("click", rejectInvalidNativeAddBeforeCore, true);
+  }, [apiInstanceId]);
+
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
     if (!canCreateReference.current || viewRootTaskIdReference.current !== null) {
-      if (!mutationLockedReference.current) onTaskAddRejectedReference.current();
+      if (!mutationLockedReference.current) onTaskAddRejectedReference.current("scope");
       return;
     }
     const target = typeof local.targetTaskId === "string"
       ? tasksByIdReference.current.get(local.targetTaskId)
       : undefined;
-    if ((typeof local.targetTaskId === "string" && !target) ||
-      (local.mode !== undefined && local.mode !== "child")) {
-      onTaskAddRejectedReference.current();
+    if (typeof local.targetTaskId === "string" && !target) {
+      onTaskAddRejectedReference.current("missing");
+      return;
+    }
+    if (local.mode !== undefined && local.mode !== "child") {
+      onTaskAddRejectedReference.current("scope");
+      return;
+    }
+    if (target?.type === "milestone") {
+      onTaskAddRejectedReference.current("milestone");
       return;
     }
     onTaskCreateReference.current({
@@ -2525,8 +2568,8 @@ export function ProjectGantt({
           <button aria-label="Edit" onClick={openTaskEditorFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">i</span><span>Edit</span>
           </button>
-          {canOpenAsRoot ? <button aria-label="최상위로 열기 (새 탭)" onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
-            <span aria-hidden="true" className="project-task-context-menu-icon">↗</span><span>최상위로 열기</span>
+          {canOpenAsRoot ? <button aria-label="최상위로 열기 (작업공간 탭)" onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>최상위로 열기</span>
           </button> : null}
           <button aria-label="Copy ID" onClick={() => void copyTaskIdFromMenu()} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">#</span><span>Copy ID</span>

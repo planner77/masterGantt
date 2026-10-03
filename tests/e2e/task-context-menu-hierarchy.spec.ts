@@ -128,7 +128,46 @@ test("Issue #72 menu exposes Willow commands and readonly users cannot mutate", 
   expect(created.data.tasks.some((task) => task.name === "Alpha")).toBe(true);
 });
 
-test("Issue #373 Summary subtree opens in a new tab and edits refresh the original tab", async ({ page }) => {
+test("Issue #399 opens Summary scopes in Workspace tabs without creating a browser tab", async ({ page }) => {
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Workspace scope tabs ${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("ScopeTab123!");
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
+  const path = new URL(page.url()).pathname, api = `/api${path}`, origin = new URL(page.url()).origin;
+  const initial = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  const alphaCreated = await createRootTask(page, api, origin, initial.data.project.revision, "Scope Alpha");
+  await createRootTask(page, api, origin, alphaCreated.data.project.revision, "Scope Beta");
+  await page.reload();
+  await openMenu(page, "Scope Alpha"); const alphaSnapshot = await chooseSubmenu(page, "Add", "Child task");
+  const alpha = alphaSnapshot.data.tasks.find((task) => task.name === "Scope Alpha"); expect(alpha?.type).toBe("summary");
+  await openMenu(page, "Scope Beta"); const betaSnapshot = await chooseSubmenu(page, "Add", "Child task");
+  const beta = betaSnapshot.data.tasks.find((task) => task.name === "Scope Beta"); expect(beta?.type).toBe("summary");
+  const frame = page.locator(".project-gantt-frame");
+  const instance = await frame.getAttribute("data-project-gantt-instance"), apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+  const browserPageCount = page.context().pages().length;
+  const alphaMenu = await openMenu(page, "Scope Alpha");
+  await alphaMenu.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
+  expect(page.context().pages()).toHaveLength(browserPageCount);
+  const tabs = page.getByRole("tablist", { name: "WBS 범위 탭" }), allTab = tabs.getByRole("tab", { name: "전체 프로젝트", exact: true }), alphaTab = tabs.getByRole("tab", { name: "Scope Alpha", exact: true });
+  await expect(alphaTab).toHaveAttribute("aria-selected", "true"); expect(new URL(page.url()).searchParams.get("rootTask")).toBe(alpha!.taskId);
+  await expect(row(page, "Scope Beta")).toHaveCount(0);
+  await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+  const search = page.getByLabel("작업명, 설명, External ID 검색"); await search.fill("Scope Alpha"); await allTab.click(); await expect(search).toHaveValue(""); await expect(row(page, "Scope Beta")).toBeVisible();
+  const betaMenu = await openMenu(page, "Scope Beta"); await betaMenu.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
+  const betaTab = tabs.getByRole("tab", { name: "Scope Beta", exact: true }); await expect(tabs.getByRole("tab")).toHaveCount(3);
+  await alphaTab.click(); await expect(search).toHaveValue("Scope Alpha"); await allTab.click();
+  const reopen = await openMenu(page, "Scope Alpha"); await reopen.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
+  await expect(tabs.getByRole("tab", { name: "Scope Alpha", exact: true })).toHaveCount(1);
+  for (const width of [390,768,1024,1440]) { await page.setViewportSize({ width, height:900 }); const layout=await page.evaluate(()=>{const el=document.querySelector<HTMLElement>(".project-scope-tabs");if(!el)throw new Error("scope tabs not found");return {overflowY:getComputedStyle(el).overflowY,doc:document.documentElement.scrollWidth>document.documentElement.clientWidth+1};}); expect(layout.overflowY).toBe("hidden"); expect(layout.doc).toBe(false); }
+  await allTab.focus(); await page.keyboard.press("End"); await expect(betaTab).toHaveAttribute("aria-selected","true"); await page.keyboard.press("ArrowLeft"); await expect(alphaTab).toHaveAttribute("aria-selected","true");
+  await page.getByRole("button",{name:"Scope Alpha 범위 탭 닫기",exact:true}).click(); await expect(betaTab).toHaveAttribute("aria-selected","true"); expect(new URL(page.url()).searchParams.get("rootTask")).toBe(beta!.taskId);
+  await page.reload(); const rtabs=page.getByRole("tablist",{name:"WBS 범위 탭"}); await expect(rtabs.getByRole("tab",{name:"Scope Beta",exact:true})).toHaveAttribute("aria-selected","true"); await expect(rtabs.getByRole("tab",{name:"Scope Alpha",exact:true})).toHaveCount(0);
+  await page.getByRole("button",{name:"Scope Beta 범위 탭 닫기",exact:true}).click(); await expect(rtabs.getByRole("tab",{name:"전체 프로젝트",exact:true})).toHaveAttribute("aria-selected","true"); expect(new URL(page.url()).searchParams.get("rootTask")).toBeNull();
+});
+
+test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab freshness", async ({ page }) => {
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Subtree scope ${suffix}`);
@@ -160,16 +199,15 @@ test("Issue #373 Summary subtree opens in a new tab and edits refresh the origin
   await expect(row(page, child!.name)).toBeVisible();
 
   const scopeMenu = await openMenu(page, "Scope Alpha");
-  await expect(scopeMenu.getByText("최상위로 열기", { exact: true })).toBeVisible();
-  const [scopedPage] = await Promise.all([
-    page.context().waitForEvent("page"),
-    scopeMenu.getByRole("menuitem", { name: "최상위로 열기 (새 탭)", exact: true }).click(),
-  ]);
-
+  await expect(scopeMenu.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  const scopedPage = await page.context().newPage();
+  await scopedPage.goto(`${origin}${path}?rootTask=${encodeURIComponent(alpha!.taskId)}`);
   try {
     await scopedPage.waitForURL((url) => url.pathname === path && url.searchParams.get("rootTask") === alpha!.taskId);
-    await expect(scopedPage.getByLabel("하위 WBS 범위")).toContainText("Scope Alpha");
-    await expect(scopedPage.getByRole("link", { name: "전체 프로젝트 보기", exact: true })).toHaveAttribute("href", path);
+    const scopeTabs = scopedPage.getByRole("tablist", { name: "WBS 범위 탭" });
+    await expect(scopeTabs.getByRole("tab", { name: "전체 프로젝트", exact: true })).toBeVisible();
+    await expect(scopeTabs.getByRole("tab", { name: "Scope Alpha", exact: true })).toHaveAttribute("aria-selected", "true");
     await expect(scopedPage.getByText("편집 중", { exact: true })).toBeVisible();
     await expect(row(scopedPage, "Scope Alpha")).toBeVisible();
     await expect(row(scopedPage, child!.name)).toBeVisible();
@@ -282,7 +320,7 @@ test("Issue #373 Summary subtree opens in a new tab and edits refresh the origin
     await loadingPage.close();
 
     await scopedPage.reload();
-    await expect(scopedPage.getByLabel("하위 WBS 범위")).toContainText("Scope Alpha");
+    await expect(scopedPage.getByRole("tablist", { name: "WBS 범위 탭" }).getByRole("tab", { name: "Scope Alpha", exact: true })).toHaveAttribute("aria-selected", "true");
     await expect(row(scopedPage, "Scoped child final")).toBeVisible();
     await expect(row(scopedPage, "Keep sibling")).toHaveCount(0);
   } finally {
