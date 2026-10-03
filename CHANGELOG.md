@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.74.0] - 2026-10-03
+
+### Added
+
+- Issue #370: Project Workspace Grid의 `시작` 셀에서 Task/Milestone 시작일을 single click Date Picker로 빠르게 변경할 수 있다.
+- getter-only `projectStart`는 서버 확정 effective `start` 표시를 유지하고, application-owned `input[type=date]` overlay가 선택 날짜를 기존 dependency-aware Task PATCH의 requested start 입력으로 전달한다.
+- Summary/readonly/mutation lock 차단, Enter/Space keyboard open, Escape/focus restore, 실패 시 canonical 일정 유지 및 전용 Unit/Chromium E2E를 추가한다.
+
+### Changed
+
+- 최신 Grid 다중 선택 흐름에서 row selection을 먼저 확정한 뒤 다음 event-loop tick에 Date Picker를 열며, SVAR가 row DOM을 교체한 경우 taskId로 현재 시작일 셀을 재해석한다.
+- 기존 scoped WBS, 다중 선택/복사, context menu, timeline 확장, fullscreen/stability 계약을 유지한다.
+- Application version을 `0.73.0`에서 `0.74.0`으로 증가한다.
+
 ## [0.73.0] - 2026-10-03
 
 ### Added
