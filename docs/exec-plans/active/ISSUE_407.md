@@ -48,3 +48,15 @@ add 허용 여부는 “scoped view인가?”가 아니라 “생성 결과가 �
 ## 검증
 
 현재 실행 환경은 GitHub clone DNS 접근이 차단되어 Local Fast Feedback은 **NOT TESTED**다. 변경과 직접 관련된 Unit/Chromium E2E를 repository에 추가하고 동일 PR head의 GitHub Actions `quality/e2e/docker`를 공식 회귀 판정으로 사용한다. 사용자 요청 종료점에서는 새 PR CI가 시작된 사실까지만 확인하며 PASS 판정은 하지 않는다.
+
+
+## PR CI #1620.1 실패 분석 / 보완
+
+Run `37119773303`은 quality(TypeScript/ESLint/Vitest/build/policy)와 Docker, Chromium shard 1/2/3이 PASS했고 shard 4만 FAIL했다. 실패한 두 건은 모두 #407에서 추가한 E2E helper의 selector 오류였다.
+
+Playwright trace의 실제 SVAR Grid DOM은 row identity를 `data-id=":<taskId>"` 형태로 렌더한다. 기존 helper는 `data-id="<taskId>"`를 사용해 scoped root row를 찾지 못했고, 제품 화면에는 row `+`가 정상 렌더된 상태에서도 locator-not-found로 실패했다. 이는 제품 add guard 실패가 아니라 테스트가 SVAR의 canonical TID DOM encoding을 누락한 문제다.
+
+보완:
+- `rowByTaskId()`를 기존 SVAR DOM 계약과 동일하게 `data-id=":<taskId>"`로 수정한다.
+- 제품 코드/권한/scope predicate/CI gate는 변경하지 않는다.
+- 기존 실패 run 재실행이 아니라 수정된 새 PR head에서 전체 PR CI를 새로 시작해 판정한다.
