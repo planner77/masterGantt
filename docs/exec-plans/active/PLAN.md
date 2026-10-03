@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #370 Grid 시작일 Date Picker — 최신 main 재정렬 / PR CI
+
+최신 main `5101a4a701dd7dbbeb3091696c0c670c667cb840`의 다중 선택·scoped view·Task status·timeline 확장 계약을 보존하면서 [Issue #370 실행 계획](ISSUE_370.md)의 시작일 quick-edit만 재적용한다. Application version은 `0.74.0 → 0.75.0`이며 이번 종료점은 새 PR CI 시작이다.
+
 ## Issue #399 Workspace 내부 WBS 범위 탭 — latest main 재정렬 / PR CI 재시작
 
 최신 main `fd397c477ebbbdfaff7804be16bacd87fb8411d5` / application `0.72.0`의 #403 Project List column layout과 #367 Gantt timeline 동적 확장을 보존해 #399를 재정렬한다. `최상위로 열기`의 browser popup 진입을 동일 일정 Workspace 내부 WBS 범위 탭으로 교체하고 #373 subtree/canonical/deep-link/cross-tab/hierarchy guard를 유지한다. 반복 CI 분석에서 드러난 native add reject viewport 회귀는 ProjectGantt interceptor 경계에서 복원한다. 후보 version은 다음 MINOR인 `0.73.0`, branch는 `feat/issue-399-workspace-scope-tabs`다. 상세는 [Issue #399 실행 계획](ISSUE_399.md)을 따른다. 종료점은 최신 main 정렬 후 새 PR CI 시작 확인이다.
