@@ -79,3 +79,47 @@ test("Issue #299 Chart bar 수직 DnD는 sibling 순서만 한 번 저장하고 
   const stored = await (await page.request.get(api)).json();
   expect(stored.data.tasks.map((task: { name: string }) => task.name)).toEqual(["Task A", "Task C", "Task B"]);
 });
+
+
+test("Issue #299 Chart edge-scroll은 pointer가 고정되어도 연속 진행된다", async ({ page, baseURL }) => {
+  await page.setViewportSize({ width: 1440, height: 700 });
+  const { api, snapshot } = await seedReorderProject(page, baseURL!);
+  let current = snapshot as TaskMutationResponse;
+
+  for (let index = 4; index <= 24; index += 1) {
+    const response = await page.request.post(`${api}/tasks`, {
+      headers: { Origin: baseURL!, "If-Match": `"${current.data.project.revision}"` },
+      data: { name: `Scroll Task ${index}`, type: "task", start: "2026-10-05", duration: 2, progress: 0 },
+    });
+    expect(response.status()).toBe(201);
+    current = await response.json() as TaskMutationResponse;
+  }
+
+  await page.reload();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+  const scroller = page.locator(".project-gantt-widget .wx-gantt").first();
+  await expect.poll(() => scroller.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(200);
+  await scroller.evaluate((element) => { element.scrollTop = 0; });
+
+  const taskA = current.data.tasks.find((task) => task.name === "Task A")!;
+  const source = bar(page, taskA.taskId);
+  await expect(source).toBeVisible();
+  const sourceBox = await source.boundingBox();
+  const scrollBox = await scroller.boundingBox();
+  expect(sourceBox).not.toBeNull();
+  expect(scrollBox).not.toBeNull();
+
+  const x = sourceBox!.x + sourceBox!.width / 2;
+  const edgeY = scrollBox!.y + scrollBox!.height - 4;
+  await page.mouse.move(x, sourceBox!.y + sourceBox!.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(x + 1, edgeY, { steps: 8 });
+
+  const firstScroll = await scroller.evaluate((element) => element.scrollTop);
+  await page.waitForTimeout(350);
+  const heldScroll = await scroller.evaluate((element) => element.scrollTop);
+  expect(heldScroll).toBeGreaterThan(firstScroll + 40);
+
+  await page.mouse.up();
+  await expect(page.locator(".project-chart-drop-target")).toHaveCount(0);
+});
