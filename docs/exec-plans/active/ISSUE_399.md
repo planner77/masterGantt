@@ -37,3 +37,12 @@ Run `37099974800`은 quality/build/typecheck/ESLint/Vitest/Docker 및 Chromium s
 원인은 #399가 narrow Workspace에 WBS scope tab 2.125rem과 schedule flex gap 0.5rem, 합계 2.625rem을 추가하면서 기존 mobile Gantt minimum 22rem을 그대로 유지해 document가 새로 scrollable해진 것이다. 알림 badge DOM 변화 시 Chromium scroll anchoring이 그 scroll range를 사용하면서 기존 header hit-area 불변 계약을 깨뜨렸다.
 
 보완은 `max-width:48rem`에서 #399 scope panel 내부 Gantt minimum만 `calc(22rem - 2.625rem)`으로 조정해 기존 전체 Workspace vertical budget을 보존한다. 기존 header/notification CSS나 실패 assertion은 완화하지 않는다.
+
+
+## PR CI #1583.1 재분석 / 2차 보완
+
+Run `37101121153`도 quality/build/typecheck/ESLint/Vitest/Docker 및 Chromium shard 1/3/4가 PASS하고 shard 2/4의 동일 320/360/361/401px notification hit-area만 FAIL했다. 이전 Gantt minimum `22rem - 2.625rem` 보완은 실패 값(`scrollTop 30~31px`, bell y `-22/-23`)을 줄이지 못해 원인 가설이 틀렸음을 확인했다.
+
+두 번째 Playwright trace에서 document scroll은 `dispatchEvent` 자체가 아니라 unread badge/Toast가 React commit되는 시점에 `0 → 30/31px`로 바뀐다. #399이 일정 View에 새 scope tab + tabpanel wrapper를 삽입한 뒤 Chromium document scroll anchoring이 Project 본문의 descendant를 anchor 후보로 사용하고, header feedback DOM 변화에 맞춰 document scroll을 보정하는 것이 직접 원인이다.
+
+따라서 이전 mobile Gantt 높이 차감은 철회하고 기존 22rem minimum을 복원한다. 대신 `.project-readonly { overflow-anchor: none; }`으로 Project Workspace subtree를 document scroll-anchor 후보에서 제외한다. Gantt는 자체 내부 scroll/collapse/selection 상태를 이미 소유하므로 이 설정은 도메인/API 상태를 바꾸지 않고 header feedback 변화가 전체 문서를 이동시키는 것만 차단한다. 기존 notification hit-area assertion은 그대로 유지한다.
