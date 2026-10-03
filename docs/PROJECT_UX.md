@@ -1,5 +1,11 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #367 Gantt 날짜 밀도와 우측 Timeline 확장
+
+Project Gantt의 Day Header/timeline cell은 숫자-only 표현에 맞춰 36px를 사용하고 Week는 68px를 유지한다. 오른쪽 Chart 탐색은 최초 Task 범위에서 끝나지 않으며 공개 `scroll-chart.left`와 `resize-chart.width`를 기준으로 남은 timeline 폭이 작아지면 viewport 단위로 미래 scale을 확장한다. React `end` prop을 반복 변경하지 않고 고정 start/open end의 SVAR public resize path를 사용한다.
+
+동적 확장은 UI 전용 상태다. Task/Link/Calendar, Scheduling 결과, revision, DB/API, edit permission을 변경하거나 서버 요청을 만들지 않는다. 사용자가 확보한 미래 end는 단조 증가시키며 canonical sync나 Day/Week 전환 뒤에도 이전 end 이상을 public resize path로 복구한다. range extension 자체가 Core store를 re-init하지 않으므로 Gantt/API instance, horizontal/vertical scroll, tree, column, filter, selection 상태를 불필요하게 초기화하지 않는다.
+
 ## Issue #390 작업 ID 복사
 
 Grid 행과 Chart Task Bar의 작업 Context Menu에는 `Copy ID`를 조회성 utility action으로 제공한다. 복사 값은 canonical `ProjectTaskDto.taskId`이며 `externalId`는 이번 기능의 복사 대상이 아니다. Task, Summary, Milestone과 Dependency 연결 여부에 관계없이 표시하고 서버 mutation이 아니므로 readonly 및 mutation lock 상태에서도 사용할 수 있다.

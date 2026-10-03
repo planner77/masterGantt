@@ -1,5 +1,15 @@
 # Test Plan
 
+## Issue #367 Gantt Day 밀도·우측 Timeline 동적 확장
+
+- Unit: `timeline-range.test.ts`에서 Day 36px/Week 68px, right-edge pixel threshold, viewport chunk, 짧은 초기 scale buffer와 보존한 future end의 Day/Week 최소 scale width를 검증한다.
+- Chromium E2E: `project-gantt-density.spec.ts`에서 Day `cellWidth=36`, Week 68, Grid 480px, 390/768/1024/1440px document overflow 부재를 확인한다.
+- `project-gantt-scale.spec.ts`는 Day 숫자-only Header와 #315/#316 Tooltip, Day↔Week identity 회귀를 확인한다. SVAR의 horizontal virtualization은 Week focus·viewport resize 뒤 어떤 구체 Day 날짜 또는 ISO week label이 DOM에 남을지 보장하지 않으므로 특정 날짜/W38 복귀를 강제하지 않고, 동일 instance에서 Day scale은 숫자-only, Week scale은 `Wxx` 형식으로 각각 복원되며 반대 scale cell이 제거되는지 검증한다. 이어 native `scrollTo()`로 Chart를 오른쪽 끝까지 3회 이동하여 매번 `data-gantt-timeline-end`가 증가하는지 확인한다. 각 확장 뒤 Gantt/API instance identity와 non-zero horizontal scroll을 유지하고 POST/PATCH/PUT/DELETE가 발생하지 않아야 한다.
+- 구현은 React `end` prop state 갱신을 사용하지 않는다. 고정 start/open end에서 public `resize-chart`의 scale expansion을 사용해 range 확장 자체가 Core store re-init, selection/column/filter reset을 일으키지 않도록 한다.
+- #373 scoped view의 `filter-tasks`와 최신 #384 다중 selection, #390 Copy ID Context Menu가 우측 range 확장/scale 전환 때문에 풀리거나 사라지지 않는지 전체 Chromium 회귀로 확인한다.
+- canonical Task end 또는 기존 사용자 future end가 Core 재계산 후 더 멀면 public resize path로 최소 end를 복구한다. Scheduling/Calendar/Dependency, Project revision, API/DB는 변경하지 않는다.
+- 공식 전체 회귀 판정은 최신 main 정렬 후 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+
 ## Issue #390 작업 Context Menu Copy ID 회귀
 
 - Chromium에서 Grid Task/Summary 및 Chart Milestone의 `Copy ID`가 각 canonical `taskId`를 system clipboard에 기록하는지 확인한다.

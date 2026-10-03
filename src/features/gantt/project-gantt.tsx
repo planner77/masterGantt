@@ -55,6 +55,12 @@ import {
 } from "@/lib/date-display";
 import { formatGanttDayOfMonth } from "@/lib/gantt-scale-format";
 import { formatIsoWeek } from "@/lib/iso-week";
+import {
+  GANTT_CELL_WIDTH,
+  minimumTimelineScaleWidthForEnd,
+  nextTimelineScaleWidth,
+  type GanttScaleMode,
+} from "./timeline-range";
 
 import {
   createTaskAddGateway,
@@ -137,7 +143,6 @@ type MenuPosition = Readonly<{ left: number; top: number }>;
 type TaskMenuState = MenuPosition & Readonly<{ taskId: string }>;
 type TaskSubmenuName = "Add" | "Convert to" | "Paste" | "Move";
 type TaskSubmenuState = Readonly<{ name: TaskSubmenuName; placement: "right" | "left" | "drilldown"; left: number; top: number }>;
-type GanttScaleMode = "day" | "week";
 type DayHeaderTooltipState = Readonly<{
   data: GanttDayHeaderTooltipData;
   left: number;
@@ -350,6 +355,7 @@ export function ProjectGantt({
   const selectionBoundaryReference = useRef(selectionBoundary);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
+  const scaleModeReference = useRef<GanttScaleMode>("day");
   const [dayHeaderTooltip, setDayHeaderTooltip] = useState<DayHeaderTooltipState | null>(null);
   const [weekHeaderTooltip, setWeekHeaderTooltip] = useState<WeekHeaderTooltipState | null>(null);
   const pendingScaleColumnsReference = useRef<IColumnConfig[] | null>(null);
@@ -881,6 +887,127 @@ export function ProjectGantt({
     return { start: new Date(Math.min(...starts.map((date) => date.getTime()))), end: new Date(Math.max(...ends.map((date) => date.getTime()))) };
   })[0];
 
+  const [timelineEndMs, setTimelineEndMs] = useState(initialRange.end.getTime());
+  const timelineEndReference = useRef(initialRange.end);
+  const timelineExtensionFrameReference = useRef<number | null>(null);
+  const timelineSyntheticResizeReference = useRef(false);
+
+  type TimelineState = Readonly<{
+    _start?: Date;
+    _end?: Date;
+    _scales?: { width?: number };
+    _chartWidth?: number;
+    _chartHeight?: number;
+    _scrollSize?: number;
+    scrollLeft?: number;
+  }>;
+
+  const recordTimelineEnd = useCallback((api: IApi): void => {
+    const end = (api.getState() as TimelineState)._end;
+    if (!(end instanceof Date) || !Number.isFinite(end.getTime())) return;
+    if (end.getTime() > timelineEndReference.current.getTime()) {
+      timelineEndReference.current = new Date(end);
+    }
+    setTimelineEndMs((current) => Math.max(current, timelineEndReference.current.getTime()));
+  }, []);
+
+  const expandTimelineScale = useCallback((api: IApi, minimumScaleWidth: number): boolean => {
+    const state = api.getState() as TimelineState;
+    const scaleWidth = state._scales?.width;
+    const chartWidth = state._chartWidth;
+    const chartHeight = state._chartHeight;
+    const scrollSize = state._scrollSize ?? 0;
+    if (
+      !Number.isFinite(minimumScaleWidth) ||
+      !Number.isFinite(scaleWidth) ||
+      !Number.isFinite(chartWidth) ||
+      !Number.isFinite(chartHeight) ||
+      !scaleWidth || !chartWidth || !chartHeight ||
+      minimumScaleWidth <= scaleWidth
+    ) {
+      recordTimelineEnd(api);
+      return false;
+    }
+
+    timelineSyntheticResizeReference.current = true;
+    try {
+      // With a fixed start and open end, SVAR's public resize-chart action
+      // expands _end while preserving _scaleDate/scrollLeft. Restore the real
+      // viewport width immediately after using the larger width as a min scale
+      // request so chart geometry itself is not inflated.
+      api.exec("resize-chart", { width: minimumScaleWidth, height: chartHeight, scrollSize });
+      api.exec("resize-chart", { width: chartWidth, height: chartHeight, scrollSize });
+    } finally {
+      timelineSyntheticResizeReference.current = false;
+    }
+    recordTimelineEnd(api);
+    return true;
+  }, [recordTimelineEnd]);
+
+  const ensureTimelineEnd = useCallback((api: IApi): void => {
+    const state = api.getState() as TimelineState;
+    const currentStart = state._start;
+    const currentEnd = state._end;
+    if (!(currentStart instanceof Date) || !(currentEnd instanceof Date)) return;
+
+    if (currentEnd.getTime() >= timelineEndReference.current.getTime()) {
+      recordTimelineEnd(api);
+      return;
+    }
+
+    expandTimelineScale(api, minimumTimelineScaleWidthForEnd({
+      start: currentStart,
+      end: timelineEndReference.current,
+      scaleMode: scaleModeReference.current,
+    }));
+  }, [expandTimelineScale, recordTimelineEnd]);
+
+  const scheduleTimelineExtension = useCallback((api: IApi): void => {
+    if (timelineExtensionFrameReference.current !== null) return;
+    timelineExtensionFrameReference.current = requestAnimationFrame(() => {
+      timelineExtensionFrameReference.current = null;
+      if (apiReference.current !== api) return;
+      ensureTimelineEnd(api);
+      const state = api.getState() as TimelineState;
+      const nextScaleWidth = nextTimelineScaleWidth({
+        scaleWidth: state._scales?.width,
+        scrollLeft: state.scrollLeft,
+        viewportWidth: state._chartWidth,
+        scaleMode: scaleModeReference.current,
+      });
+      if (nextScaleWidth) expandTimelineScale(api, nextScaleWidth);
+      else recordTimelineEnd(api);
+    });
+  }, [ensureTimelineEnd, expandTimelineScale, recordTimelineEnd]);
+
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    const tag = "project-timeline-range-extension";
+    api.detach(tag);
+
+    api.on("scroll-chart", (event) => {
+      if (timelineSyntheticResizeReference.current || typeof event.left !== "number") return;
+      scheduleTimelineExtension(api);
+    }, { tag });
+
+    api.on("resize-chart", () => {
+      if (timelineSyntheticResizeReference.current) return;
+      scheduleTimelineExtension(api);
+    }, { tag });
+
+    ensureTimelineEnd(api);
+    scheduleTimelineExtension(api);
+
+    return () => {
+      api.detach(tag);
+      if (timelineExtensionFrameReference.current !== null) {
+        cancelAnimationFrame(timelineExtensionFrameReference.current);
+        timelineExtensionFrameReference.current = null;
+      }
+    };
+  }, [apiInstanceId, ensureTimelineEnd, scheduleTimelineExtension]);
+
   useEffect(() => {
     const syncVersion = ++canonicalSyncVersionReference.current;
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
@@ -897,11 +1024,12 @@ export function ProjectGantt({
           { tasks: svarTasks, links: svarLinks },
           () => syncVersion === canonicalSyncVersionReference.current,
         );
+        ensureTimelineEnd(api);
       } catch {
         if (syncVersion === canonicalSyncVersionReference.current) onCanonicalSyncFailureReference.current();
       } finally { canonicalSyncDepthReference.current -= 1; }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [svarLinks, svarTasks]);
+  }, [ensureTimelineEnd, svarLinks, svarTasks]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -1373,6 +1501,7 @@ export function ProjectGantt({
 
   function changeScaleMode(nextMode: GanttScaleMode): void {
     if (nextMode === scaleMode) return;
+    scaleModeReference.current = nextMode;
     const currentColumns = (apiReference.current?.getState().columns ?? []).map((column) => ({ ...column }));
     if (currentColumns.length > 0) {
       pendingScaleColumnsReference.current = currentColumns;
@@ -1393,13 +1522,17 @@ export function ProjectGantt({
     let cancelled = false;
     const restore = async () => {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      if (!cancelled) await api.exec("set-columns", { columns: savedColumns });
+      if (!cancelled) {
+        await api.exec("set-columns", { columns: savedColumns });
+        ensureTimelineEnd(api);
+        scheduleTimelineExtension(api);
+      }
     };
     void restore().catch(() => {
       if (!cancelled) onCanonicalSyncFailureReference.current();
     });
     return () => { cancelled = true; };
-  }, [apiInstanceId, scaleMode]);
+  }, [apiInstanceId, ensureTimelineEnd, scaleMode, scheduleTimelineExtension]);
 
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
     if (!canCreateReference.current || viewRootTaskIdReference.current !== null) {
@@ -2211,7 +2344,7 @@ export function ProjectGantt({
   }, [taskMenu, taskSubmenu]);
 
   return (
-    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={scaleMode === "day" ? 44 : 68} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-add-disabled={viewRootTaskId !== null || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
+    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-add-disabled={viewRootTaskId !== null || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
       <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
         <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
@@ -2273,7 +2406,7 @@ export function ProjectGantt({
         >
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
-              cellWidth={scaleMode === "day" ? 44 : 68}
+              cellWidth={GANTT_CELL_WIDTH[scaleMode]}
               columns={initialConfig.columns}
               displayMode="all"
               gridWidth={480}
@@ -2283,7 +2416,7 @@ export function ProjectGantt({
               onUpdateTask={onUpdateTask}
               readonly={!editable}
               scales={scales}
-              end={initialRange.end}
+              autoScale={false}
               start={initialRange.start}
               tasks={initialConfig.tasks}
               taskTypes={projectTaskTypes}

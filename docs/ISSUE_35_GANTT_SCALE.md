@@ -51,3 +51,16 @@ Issue #315의 Day Header Tooltip에서 검증한 public scale CSS class/date par
 Tooltip의 근무일 수는 기존 Scheduling `createWorkingCalendar` + `workingDaysBetween`으로 계산한다. 명명된 `NON_WORKING` 날짜는 #315의 `projectHolidayNamesForDate` projection을 재사용해 날짜와 모든 canonical 이름을 표시하고, 이름 없는 휴일은 계산에만 반영한다. `WORKING` override는 실제 근무일 수에 반영하되 공휴일명으로 표시하지 않는다.
 
 Hover/focus, `aria-describedby`, Escape, scroll/resize 재배치, viewport edge clamp 및 Day↔Week 전환 시 overlay 정리는 #315와 같은 interaction 계약을 따른다. Gantt/API instance와 기존 68px Week cell width는 유지한다. 상세 계약은 [Issue #316 설계](ISSUE_316_WEEK_HEADER_TOOLTIP.md)를 따른다.
+
+
+## Issue #367 Day 밀도 추가 개선과 우측 Timeline 동적 확장
+
+Issue #233의 Day `cellWidth=44` 계약을 #314의 숫자-only Header에 맞춰 **36px**로 추가 축소한다. Week는 ISO Week 및 #316 Tooltip 가독성을 위해 68px를 유지한다.
+
+SVAR React 2.7.3은 React `start/end` prop 변경 시 `dataStore.init(storeConfig)`를 다시 실행한다. 따라서 scroll 때마다 `end` prop을 바꾸는 방식은 selection/column/filter 등 mounted view state에 영향을 줄 수 있어 사용하지 않는다. 대신 **고정 `start` + 미지정 `end` + `autoScale=false`**로 두고, 공개 `resize-chart` action의 내부 `expandScale()` 경로를 사용한다. 이 경로는 start가 고정되고 end가 열려 있을 때 `_end`만 확장하며 `_scaleDate`를 기준으로 현재 horizontal scroll을 보존한다.
+
+우측 접근 판정은 공개 `scroll-chart.left`, `resize-chart.width`와 `api.getState()`의 현재 scale width를 사용한다. 남은 폭이 viewport의 1/4 또는 최소 threshold 이하가 되면 최소 한 viewport 분량(또는 Day 14 cell / Week 4 cell)의 scale 폭을 public `resize-chart`로 확장한 뒤 실제 viewport 폭을 즉시 복원한다. 합성 resize 동안 재진입을 막고 같은 frame의 이벤트는 `requestAnimationFrame`으로 합친다.
+
+사용자가 탐색해 확보한 미래 end는 app ref로 단조 증가시킨다. canonical Task sync나 Day/Week 전환이 Core의 flexible end를 다시 계산해 더 짧게 만들면 같은 public resize path로 이전 end 이상을 복구한다. React `end` prop을 변경하지 않으므로 이 확장 자체가 SVAR store re-init을 유발하지 않는다.
+
+Chromium은 native `scrollTo()`로 실제 React `onScroll` → SVAR `scroll-chart` 경로를 발생시켜 3회 연속 미래 확장, 동일 Gantt/API instance, non-zero scroll, mutation 0회를 검증한다. 기존 #373 scoped `filter-tasks`, 다중 selection/column/tree 상태가 range extension 때문에 초기화되지 않는지도 전체 E2E에서 회귀 검증한다.
