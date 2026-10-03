@@ -1030,6 +1030,14 @@ h2 {
 @media (max-width: 48rem) {
   .project-gantt-scroll,
   .project-gantt-widget { min-height: 22rem; }
+
+  /* #399: the scope-tab strip (2.125rem) plus schedule gap (0.5rem)
+     consumes vertical space that previously belonged to the Gantt. Keep the
+     historical narrow-workspace budget instead of making the document taller. */
+  .project-schedule > .project-scope-panel .project-gantt-scroll,
+  .project-schedule > .project-scope-panel .project-gantt-widget {
+    min-height: calc(22rem - 2.625rem);
+  }
 }
 
 .loading-state {
