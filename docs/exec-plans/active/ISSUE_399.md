@@ -28,3 +28,12 @@ API.md N/A(새 endpoint/payload 없음), DB_SCHEMA.md N/A(migration 없음), SCH
 
 ## 검증
 Local clone은 실행 환경 DNS 제한으로 불가하여 Local Fast Feedback은 NOT TESTED. 동일 PR head의 version check, TypeScript, ESLint, Vitest, Next build, Chromium shards, Docker smoke, lifecycle/policy checks를 공식 판정으로 사용한다. 집중 E2E는 browser page 불변, scope tabs 중복/닫기/URL/reload/filter, Gantt instance, keyboard, 4 viewport overflow와 #373 direct cross-tab burst/loading을 포함한다.
+
+
+## PR CI #1577.1 실패 보완
+
+Run `37099974800`은 quality/build/typecheck/ESLint/Vitest/Docker 및 Chromium shard 1/3/4가 PASS했고 shard 2/4만 FAIL했다. 실패 report의 320/360/361/401px `project-notifications.spec.ts`에서 unread badge 생성 직후 document `scrollTop`이 약 30~31px 증가해 header bell의 y가 `8 → -22/-23`으로 이동했다.
+
+원인은 #399가 narrow Workspace에 WBS scope tab 2.125rem과 schedule flex gap 0.5rem, 합계 2.625rem을 추가하면서 기존 mobile Gantt minimum 22rem을 그대로 유지해 document가 새로 scrollable해진 것이다. 알림 badge DOM 변화 시 Chromium scroll anchoring이 그 scroll range를 사용하면서 기존 header hit-area 불변 계약을 깨뜨렸다.
+
+보완은 `max-width:48rem`에서 #399 scope panel 내부 Gantt minimum만 `calc(22rem - 2.625rem)`으로 조정해 기존 전체 Workspace vertical budget을 보존한다. 기존 header/notification CSS나 실패 assertion은 완화하지 않는다.
