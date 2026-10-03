@@ -552,7 +552,11 @@ export function RelationEditorDialog({
                             whiteSpace: "nowrap",
                           }}
                         >
-                          {selectedCandidate.name} ({selectedCandidate.externalId})
+                          <span className="relation-editor-selected-candidate-name">{selectedCandidate.name}</span>
+                          <span className="relation-editor-selected-candidate-ids">
+                            <span>외부 ID: {selectedCandidate.externalId}</span>
+                            <span>작업 ID: {selectedCandidate.taskId}</span>
+                          </span>
                         </div>
                         <button
                           className="relation-editor-btn relation-editor-btn-secondary"
@@ -581,7 +585,7 @@ export function RelationEditorDialog({
                             setIsSearchOpen(true);
                           }}
                           onFocus={() => { if (!pendingRef.current && !restoringSearchFocus.current) setIsSearchOpen(true); }}
-                          placeholder="작업 이름 또는 ID 검색..."
+                          placeholder="작업명 / 외부 ID / 작업 ID 검색..."
                           ref={searchInputRef}
                           type="text"
                           value={searchQuery}
@@ -608,8 +612,11 @@ export function RelationEditorDialog({
                                     setIsSearchOpen(false);
                                   }}
                                 >
-                                  <span>{candidate.name}</span>
-                                  <span style={{ fontSize: "0.75rem", color: "#64748b" }}>{candidate.externalId}</span>
+                                  <span className="relation-editor-candidate-name">{candidate.name}</span>
+                                  <span className="relation-editor-candidate-ids">
+                                    <span>외부 ID: {candidate.externalId}</span>
+                                    <span>작업 ID: {candidate.taskId}</span>
+                                  </span>
                                 </button>
                               ))
                             )}
