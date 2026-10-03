@@ -135,6 +135,31 @@ test("Summary/readonly는 차단하고 keyboard Escape와 실패는 canonical �
   expect(route.patches).toHaveLength(1);
 });
 
+
+test("시작일 quick edit은 저장된 Task URL을 열지 않는다", async ({ page }) => {
+  const fixture = await installStatefulProjectFixture(page);
+  fixture.tasks[2].url = "https://example.com/issue-370";
+  await page.addInitScript(() => {
+    const tracked = window as typeof window & { __issue370OpenedUrls?: string[] };
+    tracked.__issue370OpenedUrls = [];
+    window.open = ((value?: string | URL) => {
+      tracked.__issue370OpenedUrls!.push(String(value));
+      return null;
+    }) as typeof window.open;
+  });
+
+  await page.goto(`/projects/${publicId}`);
+  const leafRow = rowNamed(page, "Stable leaf");
+  await expect(leafRow).toHaveClass(/has-task-url/);
+
+  await startCell(page, "Stable leaf").click();
+  await expect(startPicker(page)).toBeVisible();
+  expect(await page.evaluate(() =>
+    (window as typeof window & { __issue370OpenedUrls?: string[] }).__issue370OpenedUrls ?? [],
+  )).toEqual([]);
+  await startInput(page).press("Escape");
+});
+
 test("Date Picker는 좁은 viewport에서도 열리고 document overflow를 추가하지 않는다", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
   await routeStartUpdates(page, fixture);
