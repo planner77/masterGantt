@@ -1301,3 +1301,10 @@ Summary는 직접 status를 PATCH하지 않는다. 기존 derived progress가 �
 - `placement:"child"` 또는 target parent가 달라지는 before/after는 기존 Dependency guard를 유지한다.
 
 성공은 기존 transaction에서 sibling order를 정규화하고 Project revision을 정확히 +1 한 canonical snapshot을 반환한다. Link ID/endpoints/type/lag와 Task requestedStart/start/end/duration/scheduleMode/status/progress는 reorder로 변경하지 않는다. 실패 시 기존 401/403/404/409/412 계약과 rollback을 유지한다. 새 route, DTO field, DB migration은 없다.
+
+### Issue #299 — Chart 수직 sibling reorder
+
+Chart bar의 수직 Drag & Drop은 새 endpoint를 만들지 않는다. 같은 parent의 visible sibling에 대해 `before | after`가 확정되면 기존 `POST /api/projects/{publicId}/task-commands`에 `{ kind: "reparent", taskId, anchorTaskId, placement }`를 전송한다.
+
+따라서 edit session, Origin, strong `If-Match`, Project isolation, transaction, revision 증가와 canonical mutation response는 기존 hierarchy command와 동일하다. #335 정책에 따라 Dependency Link가 있어도 same-parent sibling reorder는 허용하되 cross-parent 이동은 #299 Chart DnD에서 만들지 않는다. 한 vertical gesture는 hierarchy command 1회만 발생시키며 Task PATCH를 함께 보내지 않는다.
+
