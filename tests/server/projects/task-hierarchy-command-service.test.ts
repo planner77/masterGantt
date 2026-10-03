@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import { openDatabase } from "../../../src/server/db/core";
 import { LinkService } from "../../../src/server/projects/link-service-core";
-import { ProjectService } from "../../../src/server/projects/project-service-core";
+import { ProjectService, UnsupportedScheduleStructureError } from "../../../src/server/projects/project-service-core";
 import {
   TaskHierarchyNoopError,
   TaskHierarchyService,
@@ -272,4 +272,84 @@ describe("TaskHierarchyService", () => {
       value.database.close();
     }
   });
+
+  it("allows linked endpoint sibling reorder without changing dependency or schedule", async () => {
+    const value = await fixture();
+    try {
+      const first = value.projects.createTask(value.authorization, 1, input("A"));
+      const taskA = first.data.tasks.find((task) => task.externalId === "A")!;
+      const second = value.projects.createTask(value.authorization, first.data.project.revision, input("B"));
+      const taskB = second.data.tasks.find((task) => task.externalId === "B")!;
+      const third = value.projects.createTask(value.authorization, second.data.project.revision, input("C"));
+      const parentCandidate = third.data.tasks.find((task) => task.externalId === "C")!;
+      const linked = value.links.create(value.authorization, third.data.project.revision, {
+        predecessorExternalId: taskA.externalId,
+        successorExternalId: taskB.externalId,
+        type: "FS",
+        lag: 1,
+      });
+      const beforeB = linked.data.tasks.find((task) => task.taskId === taskB.taskId)!;
+
+      const moved = value.hierarchy.execute(value.authorization, linked.data.project.revision, {
+        kind: "move", taskId: taskB.taskId, direction: "down",
+      });
+      expect(moved.data.project.revision).toBe(linked.data.project.revision + 1);
+      expect(moved.data.links).toEqual(linked.data.links);
+      expect(moved.data.tasks.filter((task) => task.parentExternalId === null)
+        .sort((left, right) => left.siblingOrder - right.siblingOrder)
+        .map((task) => task.externalId)).toEqual(["A", "C", "B"]);
+      expect(moved.data.tasks.find((task) => task.taskId === taskB.taskId)).toMatchObject({
+        requestedStart: beforeB.requestedStart, start: beforeB.start, end: beforeB.end,
+        duration: beforeB.duration, scheduleMode: beforeB.scheduleMode, parentExternalId: beforeB.parentExternalId,
+      });
+
+      const reordered = value.hierarchy.execute(value.authorization, moved.data.project.revision, {
+        kind: "reparent", taskId: taskB.taskId, anchorTaskId: taskA.taskId, placement: "after",
+      });
+      expect(reordered.data.project.revision).toBe(moved.data.project.revision + 1);
+      expect(reordered.data.links).toEqual(linked.data.links);
+      expect(reordered.data.tasks.filter((task) => task.parentExternalId === null)
+        .sort((left, right) => left.siblingOrder - right.siblingOrder)
+        .map((task) => task.externalId)).toEqual(["A", "B", "C"]);
+
+      expect(() => value.hierarchy.execute(value.authorization, reordered.data.project.revision, {
+        kind: "reparent", taskId: taskB.taskId, anchorTaskId: parentCandidate.taskId, placement: "child",
+      })).toThrow(UnsupportedScheduleStructureError);
+      expect(value.database.prepare("SELECT revision FROM projects").pluck().get()).toBe(reordered.data.project.revision);
+    } finally { value.database.close(); }
+  });
+
+  it("allows same-parent reorder for a subtree with linked descendants but blocks reparent", async () => {
+    const value = await fixture();
+    try {
+      const summaryCreated = value.projects.createTask(value.authorization, 1, input("S"));
+      const summary = summaryCreated.data.tasks.find((task) => task.externalId === "S")!;
+      const childCreated = value.projects.createTask(value.authorization, summaryCreated.data.project.revision, {
+        ...input("D"), parentTaskId: summary.taskId, convertParentToSummary: true,
+      });
+      const child = childCreated.data.tasks.find((task) => task.externalId === "D")!;
+      const bCreated = value.projects.createTask(value.authorization, childCreated.data.project.revision, input("B"));
+      const taskB = bCreated.data.tasks.find((task) => task.externalId === "B")!;
+      const cCreated = value.projects.createTask(value.authorization, bCreated.data.project.revision, input("C"));
+      const taskC = cCreated.data.tasks.find((task) => task.externalId === "C")!;
+      const linked = value.links.create(value.authorization, cCreated.data.project.revision, {
+        predecessorExternalId: child.externalId, successorExternalId: taskB.externalId, type: "FS", lag: 0,
+      });
+
+      const reordered = value.hierarchy.execute(value.authorization, linked.data.project.revision, {
+        kind: "reparent", taskId: summary.taskId, anchorTaskId: taskC.taskId, placement: "after",
+      });
+      expect(reordered.data.links).toEqual(linked.data.links);
+      expect(reordered.data.tasks.filter((task) => task.parentExternalId === null)
+        .sort((left, right) => left.siblingOrder - right.siblingOrder)
+        .map((task) => task.externalId)).toEqual(["B", "C", "S"]);
+      expect(reordered.data.tasks.find((task) => task.taskId === child.taskId)?.parentExternalId).toBe("S");
+
+      expect(() => value.hierarchy.execute(value.authorization, reordered.data.project.revision, {
+        kind: "reparent", taskId: summary.taskId, anchorTaskId: taskB.taskId, placement: "child",
+      })).toThrow(UnsupportedScheduleStructureError);
+      expect(value.database.prepare("SELECT revision FROM projects").pluck().get()).toBe(reordered.data.project.revision);
+    } finally { value.database.close(); }
+  });
+
 });

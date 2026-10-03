@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.75.0] - 2026-10-03
+
+### Added
+
+- Issue #335: Dependency Link가 연결된 Task/Milestone과 linked descendant를 포함한 subtree도 같은 parent 안에서는 Context Menu `Move Up/Down` 및 Grid `before/after`로 sibling order를 변경할 수 있다.
+
+### Changed
+
+- sibling reorder는 Link ID/source/target/type/lag와 requested/effective schedule 및 #303의 Task status/progress를 변경하지 않고 기존 `task-commands` transaction에서 siblingOrder와 revision만 확정한다.
+- 다른 parent로 이동하는 Grid DnD/`child`, Indent/Outdent, Cut/Paste, Delete, Convert의 기존 Dependency guard는 유지한다.
+- #399 Workspace WBS 범위 탭과 #303 Task status/progress 계약을 보존하고, 기존 Context Menu E2E의 linked Move 기대값을 새 정책으로 갱신하며 Application version을 `0.74.0`에서 `0.75.0`으로 증가한다.
+
 ## [0.74.0] - 2026-10-03
 
 ### Added

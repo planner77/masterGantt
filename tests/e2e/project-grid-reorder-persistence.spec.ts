@@ -3,6 +3,67 @@ import type { ProjectSnapshotResponse, TaskMutationResponse } from "../../src/co
 import { chooseTaskInformation } from "./helpers/task-context-menu";
 import { dragRowAfter, gridOrder, renameInline, seedReorderProject, taskRow } from "./helpers/grid-task-reorder";
 test.use({ ...isolatedApplicationOptions, viewport: { width: 1440, height: 1000 } });
+test("관계 연결 Task는 same-parent Context Move와 Grid DnD에서 Link를 유지한다", async ({ page, baseURL }) => {
+  const { api, snapshot } = await seedReorderProject(page, baseURL!);
+  const taskA = snapshot.data.tasks.find((task) => task.name === "Task A")!;
+  const taskB = snapshot.data.tasks.find((task) => task.name === "Task B")!;
+  const linkResponse = await page.request.post(`${api}/links`, {
+    headers: { Origin: baseURL!, "If-Match": `"${snapshot.data.project.revision}"` },
+    data: { predecessorExternalId: taskA.externalId, successorExternalId: taskB.externalId, type: "FS", lag: 1 },
+  });
+  expect(linkResponse.status()).toBe(201);
+  const linked = await linkResponse.json() as ProjectSnapshotResponse;
+  const link = linked.data.links.find((candidate) =>
+    candidate.predecessorExternalId === taskA.externalId && candidate.successorExternalId === taskB.externalId
+  )!;
+  const beforeB = linked.data.tasks.find((task) => task.taskId === taskB.taskId)!;
+
+  await page.reload();
+  await expect.poll(() => gridOrder(page)).toEqual(["Task A", "Task B", "Task C"]);
+  const relation = page.locator(
+    `.project-gantt-widget [data-link-id="${link.id}"], .project-gantt-widget [data-link-id=":${link.id}"]`
+  ).first();
+  await expect(relation).toBeVisible();
+
+  const menuMove = page.waitForResponse((response) =>
+    response.request().method() === "POST" && new URL(response.url()).pathname === `${api}/task-commands`
+  );
+  await taskRow(page, "Task B").getByText("Task B", { exact: true }).click({ button: "right" });
+  await page.getByRole("menuitem", { name: "Move", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Move down", exact: true }).click();
+  const menuMoveResponse = await menuMove;
+  expect(menuMoveResponse.status()).toBe(200);
+  const menuMoved = await menuMoveResponse.json() as TaskMutationResponse;
+  await expect.poll(() => gridOrder(page)).toEqual(["Task A", "Task C", "Task B"]);
+  expect(menuMoved.data.links).toEqual(linked.data.links);
+  expect(menuMoved.data.tasks.find((task) => task.taskId === taskB.taskId)).toMatchObject({
+    requestedStart: beforeB.requestedStart, start: beforeB.start, end: beforeB.end,
+    duration: beforeB.duration, scheduleMode: beforeB.scheduleMode, parentExternalId: beforeB.parentExternalId,
+  });
+  await expect(relation).toBeVisible();
+
+  const gridMove = page.waitForResponse((response) =>
+    response.request().method() === "POST" && new URL(response.url()).pathname === `${api}/task-commands`
+  );
+  await dragRowAfter(page, "Task B", "Task A");
+  const gridMoveResponse = await gridMove;
+  expect(gridMoveResponse.status()).toBe(200);
+  const gridMoved = await gridMoveResponse.json() as TaskMutationResponse;
+  expect(gridMoved.data.project.revision).toBe(menuMoved.data.project.revision + 1);
+  expect(gridMoved.data.links).toEqual(linked.data.links);
+  await expect.poll(() => gridOrder(page)).toEqual(["Task A", "Task B", "Task C"]);
+  await expect(relation).toBeVisible();
+
+  await page.reload();
+  await expect.poll(() => gridOrder(page)).toEqual(["Task A", "Task B", "Task C"]);
+  const stored = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  expect(stored.data.project.revision).toBe(gridMoved.data.project.revision);
+  expect(stored.data.links).toEqual(linked.data.links);
+  await expect(page.locator(
+    `.project-gantt-widget [data-link-id="${link.id}"], .project-gantt-widget [data-link-id=":${link.id}"]`
+  ).first()).toBeVisible();
+});
+
 test("Grid DnD 확정 후 이름·진행률·재조회와 Context Move는 서버 순서를 보존한다", async ({ page, baseURL }, testInfo) => {
   const { api, snapshot } = await seedReorderProject(page, baseURL!);
   const b = snapshot.data.tasks.find((task) => task.name === "Task B")!;

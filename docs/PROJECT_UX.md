@@ -804,3 +804,11 @@ Project List의 생성/최근 변경 열은 동일한 metadata column policy를 
 Task/Milestone의 canonical status가 completed이면 Grid 작업명 텍스트에 취소선을 표시하고 완료 해제 시 같은 Gantt instance에서 즉시 제거한다. Summary는 derived progress가 정확히 100일 때 같은 완료 표시를 사용한다. 완료 표시는 색상에만 의존하지 않으며 tree toggle, indentation, selection, inline-name edit/focus hit area를 변경하지 않는다.
 
 Task Editor는 기존 desktop의 작업명/진행률 2열 배치를 유지하면서 상태 Select를 진행률 보조 영역에 결합한다. 390/768px에서는 status/progress를 자연스럽게 stack하여 overflow를 만들지 않는다. #399 scope tab 전환과 fullscreen/search/filter/scroll/tree/column 상태도 이 표시 때문에 초기화하지 않는다.
+
+## Issue #335 관계 연결 작업의 sibling reorder
+
+Dependency가 연결된 Task/Milestone도 현재 parent 안에서 순서만 바꾸는 Context Menu `Move Up/Down`과 Grid `before/after` DnD를 사용할 수 있다. linked descendant를 가진 Summary/subtree도 같은 규칙을 사용한다. 관계가 있다는 사실 자체를 reorder 비활성 조건으로 쓰지 않는다.
+
+성공 시 서버 canonical snapshot이 siblingOrder와 Project revision을 확정하며 Link, 일정, #303 status/progress 필드는 그대로 유지한다. Grid/Chart row와 relation line은 같은 Gantt instance에서 새 행 위치를 따라 다시 렌더링하고 reload 후에도 순서와 관계를 함께 유지한다. #399 Workspace WBS 범위 탭/scoped guard, readonly, mutation pending, stale/401/412/network 실패 복구는 기존 계약을 유지한다.
+
+상위 `Move` submenu는 기존 #116의 keyboard/geometry 계약을 유지한다. unlinked boundary Task처럼 하위 방향 명령이 모두 비활성인 경우에도 기존 UX대로 submenu를 열 수 있고, linked Task는 Move Up/Down 중 실제 가능한 방향이 있으면 상위 메뉴를 활성화한다. 다른 parent로 들어가는 Grid `child`/cross-parent before/after, Indent/Outdent, Cut/Paste, Delete, Convert는 기존 Dependency 보호를 유지한다.

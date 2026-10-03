@@ -76,7 +76,7 @@ describe("task context menu model", () => {
     });
   });
 
-  it("keeps hierarchy mutations fail-closed for links while allowing safe copy-paste targets", () => {
+  it("allows linked sibling reorder while keeping structural hierarchy mutations fail-closed", () => {
     const tasks = [task("a", "A", null, 0), task("b", "B", null, 1)];
     const links: ProjectLinkDto[] = [
       { id: "link", predecessorExternalId: "A", successorExternalId: "B", type: "FS", lag: 0 },
@@ -91,9 +91,15 @@ describe("task context menu model", () => {
     });
     expect(linkedCopyTarget).toMatchObject({
       canAddChild: false,
-      canMoveDown: false,
+      canMoveDown: true,
       canIndent: false,
       canPaste: true,
+    });
+    expect(taskContextCapabilities(tasks, "b", true, false, links, null)).toMatchObject({
+      canMoveUp: true,
+      canMoveDown: false,
+      canIndent: false,
+      canOutdent: false,
     });
 
     expect(taskContextCapabilities(tasks, "a", true, false, links, {
@@ -121,7 +127,7 @@ describe("task context menu model", () => {
     });
     expect(taskContextCapabilities(tasks, "a", true, false, links, null)).toMatchObject({
       canAddChild: false,
-      canMoveDown: false,
+      canMoveDown: true,
       canIndent: false,
     });
   });

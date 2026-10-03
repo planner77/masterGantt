@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #335 관계 연결 작업 sibling reorder — 최신 main 재정렬 / PR CI 재시작
+
+최신 main `5101a4a701dd7dbbeb3091696c0c670c667cb840` / `0.74.0`의 #303 Task status/progress와 #399 Workspace WBS 범위 탭을 보존하면서 Dependency가 연결된 Task/subtree의 **same-parent sibling reorder**만 허용한다. Run #1614.1에서 신규 #335 E2E는 PASS했으나 기존 #116 Move submenu와 #104/#378 linked Move 기대값 회귀가 실패해 상위 Move trigger를 기존 UX와 action-specific capability의 합성 조건으로 보완한다. 후보 version은 다음 MINOR `0.75.0`이며 상세는 [Issue #335 실행 계획](ISSUE_335.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 새 PR CI 시작 확인이다.
+
 ## Issue #399 Workspace 내부 WBS 범위 탭 — latest main 재정렬 / PR CI 재시작
 
 최신 main `fd397c477ebbbdfaff7804be16bacd87fb8411d5` / application `0.72.0`의 #403 Project List column layout과 #367 Gantt timeline 동적 확장을 보존해 #399를 재정렬한다. `최상위로 열기`의 browser popup 진입을 동일 일정 Workspace 내부 WBS 범위 탭으로 교체하고 #373 subtree/canonical/deep-link/cross-tab/hierarchy guard를 유지한다. 반복 CI 분석에서 드러난 native add reject viewport 회귀는 ProjectGantt interceptor 경계에서 복원한다. 후보 version은 다음 MINOR인 `0.73.0`, branch는 `feat/issue-399-workspace-scope-tabs`다. 상세는 [Issue #399 실행 계획](ISSUE_399.md)을 따른다. 종료점은 최신 main 정렬 후 새 PR CI 시작 확인이다.
