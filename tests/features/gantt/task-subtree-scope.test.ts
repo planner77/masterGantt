@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { ProjectTaskDto } from "../../../src/contracts/projects";
 import {
+  canAddTaskWithinSubtree,
   canOpenTaskAsSubtreeRoot,
   resolveTaskSubtreeScope,
   taskHierarchyCommandStaysInSubtree,
@@ -40,6 +41,20 @@ const tasks: ProjectTaskDto[] = [
   task("empty", "WBS-2", "Empty", "summary", null, 1),
   task("sibling", "WBS-3", "Sibling", "task", null, 2),
 ];
+
+describe("Issue #407 scoped task add", () => {
+  it("allows only native additions that stay inside the active subtree", () => {
+    expect(canAddTaskWithinSubtree(tasks, null, undefined, undefined)).toBe(true);
+    expect(canAddTaskWithinSubtree(tasks, "root", "root", "child")).toBe(true);
+    expect(canAddTaskWithinSubtree(tasks, "root", "nested", "child")).toBe(true);
+    expect(canAddTaskWithinSubtree(tasks, "root", "child", "child")).toBe(true);
+    expect(canAddTaskWithinSubtree(tasks, "root", "grandchild", "child")).toBe(false);
+    expect(canAddTaskWithinSubtree(tasks, "root", "sibling", "child")).toBe(false);
+    expect(canAddTaskWithinSubtree(tasks, "root", undefined, undefined)).toBe(false);
+    expect(canAddTaskWithinSubtree(tasks, "root", "root", "after")).toBe(false);
+    expect(canAddTaskWithinSubtree(tasks, "missing", "root", "child")).toBe(false);
+  });
+});
 
 describe("Issue #373 task subtree scope", () => {
   it("requires every multi-copy source and placement to remain in the subtree", () => {
