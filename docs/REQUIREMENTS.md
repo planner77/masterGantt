@@ -276,3 +276,12 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 Project Workspace의 Grid `시작` 셀은 편집 권한이 있는 Task/Milestone에서 single click 또는 keyboard Enter/Space로 Date Picker를 연다. 선택값은 새 `requestedStart` 의도로 기존 Task PATCH의 `start` 필드에 전달하며, Grid 자체의 `projectStart`는 저장 필드가 아니다. 서버는 Project Effective Calendar와 FS/SS/FF/SF + lag를 포함한 기존 dependency-aware scheduling 계약으로 canonical `start/end`를 다시 계산하고 Grid/Chart는 같은 Gantt 인스턴스에 그 결과만 반영한다.
 
 Summary는 하위 일정에서 날짜가 파생되므로 시작일 직접 편집을 허용하지 않는다. Milestone은 `duration=0`, `start=end` 계약을 유지한다. readonly, mutation lock, stale/saving 상태에서는 Date Picker 진입을 차단하며, 동일 날짜 선택과 단순 취소는 mutation을 만들지 않는다. 실패한 저장은 Core의 임시 Grid 값을 확정하지 않고 마지막 서버 canonical snapshot을 유지/복구한다.
+
+### REQ-GANTT-CHART-REORDER — Issue #299
+
+- 편집 권한 사용자는 Gantt Chart bar를 수직 Drag & Drop하여 같은 parent의 작업 순서를 변경할 수 있어야 한다.
+- vertical reorder와 horizontal schedule move/resize는 한 gesture에서 중복 저장되지 않아야 한다.
+- 변경 순서는 canonical `parentExternalId/siblingOrder`로 저장되고 Grid/Chart/reload 및 후속 Task mutation에서 유지되어야 한다.
+- #335 정책에 따라 Dependency가 연결된 same-parent sibling reorder를 불필요하게 차단하지 않아야 한다.
+- #399 scoped view와 기존 hierarchy invariant를 우회하지 않아야 하며 cross-parent implicit reparent는 허용하지 않는다.
+
