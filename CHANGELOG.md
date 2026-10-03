@@ -10,7 +10,7 @@
 ### Changed
 
 - #373의 `최상위로 열기` 기본 동작에서 `window.open`/popup blocker 의존을 제거하고 동일 ProjectGantt instance에서 `viewRootTaskId + filter-tasks` 범위만 변경한다.
-- SVAR native add의 scope/missing/milestone reject를 ProjectGantt interceptor에서 판별한다. add-task의 React capture phase에서 Core 처리 전 page·Gantt scroll을 먼저 저장하고, Core visibility/focus 후처리 뒤 해당 위치를 복원한 다음 feedback을 발행해 화면 위치 이동을 방지한다.
+- milestone/scoped/missing native add는 ProjectGantt의 native click capture 경계에서 canonical row/task를 확인해 SVAR target handler 전에 차단하고 feedback만 발행한다. 정상 add는 기존 SVAR/서버 mutation 경로를 유지해 invalid command의 visibility/focus scroll side effect 자체를 제거한다.
 - 기존 `?rootTask=` deep link/reload/direct-entry와 실제 browser tab 간 revision freshness, canonical snapshot/Dependency/hierarchy guard 및 권한·If-Match·revision 계약을 유지한다.
 - 최신 main의 #403 Project List column layout, #367 Timeline 동적 확장, #390 Copy ID 및 #364 clipboard compatibility를 보존한다.
 - Application version을 `0.72.0`에서 `0.73.0`으로 증가한다.
