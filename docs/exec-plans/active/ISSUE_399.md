@@ -113,3 +113,20 @@ Trace timeline을 다시 보면 `dispatchEvent("click")` 완료 직후부터 첫
 - 복원 과정에서 focus target을 임의 변경하지 않는다.
 
 실패 E2E와 CI gate는 그대로 유지한다.
+
+
+## PR CI #1602.1 7차 분석 / invalid native add 선제 차단
+
+Run `37107041990`은 quality/build/typecheck/ESLint/Vitest/Docker 및 Chromium shard 1/3/4가 PASS했고, shard 2/4는 401px notification geometry 1건만 FAIL했다. 이전 360/361px은 PASS하여 pre-Core 방향은 효과가 있었지만, trace상 Playwright `dispatchEvent("click")` 완료 직후에는 scroll 0이고 Toast를 기다리는 사이 다시 document `scrollTop=31`, outer Gantt `scrollLeft=286`이 발생했다.
+
+복원 시점 경쟁을 계속 확장하는 대신 invalid click이 SVAR target handler에 도달하지 않도록 책임 경계를 더 앞당긴다.
+
+7차 보완:
+- `.project-gantt-scroll`에 native DOM `click` capture listener를 설치한다.
+- `[data-action="add-task"]`의 row/task를 canonical map으로 확인해 scope/readonly, missing task, milestone parent처럼 결과가 확정적으로 reject인 경우를 target phase 전에 판별한다.
+- invalid add는 `preventDefault + stopPropagation + stopImmediatePropagation`으로 SVAR target listener 자체를 실행하지 않고 즉시 기존 reject feedback을 발행한다.
+- 정상 Task/Summary child add는 listener가 관여하지 않고 기존 SVAR `add-task` interceptor/서버 mutation 경로를 그대로 사용한다.
+- API/keyboard 등 capture를 거치지 않는 경로를 위해 기존 `add-task` interceptor의 reject guard도 fallback으로 유지한다.
+- 5/6차의 page/Gantt snapshot 및 double-rAF 복원 코드는 제거한다.
+
+이 방식은 scroll 상태를 사후 보정하지 않고 invalid command의 불필요한 SVAR UI side effect 자체를 막는다. 실패 assertion/CI gate는 수정하지 않는다.
