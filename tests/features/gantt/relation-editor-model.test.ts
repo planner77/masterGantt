@@ -225,6 +225,16 @@ describe("relation-editor-model", () => {
       expect(byExternalId).toHaveLength(1);
       expect(byExternalId[0].taskId).toBe("task-milestone");
 
+      const byPartialExternalId = searchCandidateTasks({
+        anchorExternalId: "T2",
+        direction: "successor",
+        query: "ms",
+        tasks: sampleTasks,
+        links: sampleLinks,
+      });
+      expect(byPartialExternalId).toHaveLength(1);
+      expect(byPartialExternalId[0].externalId).toBe("MS1");
+
       const byTaskId = searchCandidateTasks({
         anchorExternalId: "T2",
         direction: "successor",
