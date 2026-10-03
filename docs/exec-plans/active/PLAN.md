@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #407 Workspace 범위 탭 subtree 내부 작업 추가 회귀 — 구현 / PR CI
+
+latest main `5101a4a701dd7dbbeb3091696c0c670c667cb840` / application `0.74.0`의 #303 status/progress 계약과 #399 single-ProjectGantt scope tab을 보존한다. scoped view 자체를 add 금지 신호로 쓰지 않고 native Grid 행 `+`의 target이 현재 subtree 안에 남는지 pure guard로 판정한다. root/descendant child와 일반 Task first-child Summary 전환은 허용하고 header/root-level, scope 밖 parent, Milestone 및 기존 hierarchy escape는 차단한다. 후보 version은 PATCH `0.74.1`, branch는 `fix/issue-407-scoped-task-add`이며 상세는 [Issue #407 실행 계획](ISSUE_407.md)을 따른다. 종료점은 구현·문서 동기화·PR 생성 및 새 PR CI 시작 확인이다.
+
 ## Issue #399 Workspace 내부 WBS 범위 탭 — latest main 재정렬 / PR CI 재시작
 
 최신 main `fd397c477ebbbdfaff7804be16bacd87fb8411d5` / application `0.72.0`의 #403 Project List column layout과 #367 Gantt timeline 동적 확장을 보존해 #399를 재정렬한다. `최상위로 열기`의 browser popup 진입을 동일 일정 Workspace 내부 WBS 범위 탭으로 교체하고 #373 subtree/canonical/deep-link/cross-tab/hierarchy guard를 유지한다. 반복 CI 분석에서 드러난 native add reject viewport 회귀는 ProjectGantt interceptor 경계에서 복원한다. 후보 version은 다음 MINOR인 `0.73.0`, branch는 `feat/issue-399-workspace-scope-tabs`다. 상세는 [Issue #399 실행 계획](ISSUE_399.md)을 따른다. 종료점은 최신 main 정렬 후 새 PR CI 시작 확인이다.
