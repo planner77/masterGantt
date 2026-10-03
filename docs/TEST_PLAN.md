@@ -1216,3 +1216,12 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - 서버 409/412/422/500/network 실패는 선택값을 canonical로 남기지 않고 마지막 확정 일정을 유지해야 한다.
 - 390/768/1024/1440px에서 Date Picker가 viewport를 벗어나거나 document-level horizontal overflow를 추가하지 않는지 확인한다.
 - 기존 Grid 이름 inline edit, DnD, Chart drag/resize, Task Editor와 dependency-aware scheduling 회귀는 동일 PR head의 원격 CI/E2E에서 함께 판정한다.
+
+### Issue #299 — Chart vertical DnD
+
+- Unit: axis lock(vertical/horizontal/pending), nearest visible sibling의 before/after, cross-level nearest row 거부, no-op reorder 차단, `reparent` command mapping.
+- Chromium: #300 isolated seed helper의 A/B/C root sibling에서 실제 Chart C bar를 B 앞으로 수직 drag한다.
+- 요청 검증: `task-commands` POST 1회, Task PATCH 0회, canonical/Grid `A,C,B`, drop indicator 제거, 동일 Gantt/API instance, reload persistence.
+- 회귀: 기존 horizontal move/resize, #335 linked same-parent reorder 정책, #399 subtree scope, #384 selection pointer capture, #370 start-date quick-edit를 최신 main 전체 CI에서 함께 검증한다.
+- 과거 PR CI #1246의 TypeScript nullable 오류와 UI project-create timeout은 최신 main 재정렬에서 각각 명시적 null guard와 #300 API seed helper 재사용으로 보완한다.
+
