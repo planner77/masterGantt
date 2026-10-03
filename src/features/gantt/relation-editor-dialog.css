@@ -333,6 +333,7 @@
   font-weight: 400;
   color: var(--text-secondary, #64748b);
   overflow-wrap: anywhere;
+  white-space: normal;
 }
 .relation-editor-selected-candidate-ids {
   margin-top: .125rem;
