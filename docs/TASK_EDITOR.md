@@ -243,3 +243,10 @@ Draft에서 progress 100% 선택은 즉시 완료로, 완료 선택은 즉시 10
 Project Workspace Grid의 `시작` 셀 Date Picker는 Task Editor를 대체하지 않는 빠른 편집 진입점이다. Grid는 effective canonical `start`를 보여 주지만 Picker에서 선택한 날짜는 Task Editor의 **요청 시작일**과 같은 의미의 `start` mutation 입력으로 처리한다. 저장은 #258의 dependency-aware 서버 경로를 사용하며 서버 확정 `start/end`가 선택일과 달라질 수 있다.
 
 Grid quick edit은 시작일만 변경한다. 기간, 요청 종료일(#368 범위), schedule mode, metadata와 관계 편집은 기존 Task Editor에서 수행한다. Summary 일정 직접 편집 금지와 Milestone `duration=0` 규칙도 동일하게 유지한다.
+
+### Issue #299 — Chart reorder와 후속 Task 편집
+
+Chart 수직 DnD는 Task 일정 PATCH가 아니라 hierarchy mutation이다. vertical gesture가 확정되면 같은 gesture의 수평 일정 변경을 차단하고 drop 시 기존 `reparent(before|after)` command를 한 번만 제출한다. reorder 직후 작업명·Description·URL·진행률·일정 등 후속 Task mutation은 이미 저장된 `parentExternalId/siblingOrder`를 보존해야 한다.
+
+#335 정책에 따라 Dependency endpoint라도 같은 parent sibling reorder는 허용하지만, Chart DnD가 cross-parent reparent나 기존 dependency/hierarchy 제한을 우회해서는 안 된다.
+
