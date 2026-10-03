@@ -1207,3 +1207,12 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Negative: linked source/subtree의 cross-parent `child`/reparent는 `UNSUPPORTED_SCHEDULE_STRUCTURE` 정책을 유지하고 실패 시 revision/DB가 바뀌지 않아야 한다.
 - Chromium: 실제 Context Menu Move와 pointer Grid DnD를 연속 수행해 순서, relation line, Link ID/endpoints/type/lag, reload persistence를 확인한다. #116 submenu keyboard/geometry, #104/#378 linked Copy/Paste, #399 scoped view, #300의 412/500 canonical 복구와 unlinked DnD를 함께 회귀한다.
 - DB schema·새 API route는 N/A다. 동일 PR head의 GitHub Actions `quality/e2e/docker`가 공식 원격 판정이며 로컬 fast feedback 결과와 구분한다.
+
+## Issue #370 Grid 시작일 Date Picker 회귀
+
+- Unit: effective canonical `start`를 DatePicker 값으로 변환하는지, Task/Milestone만 편집 가능한지, Summary/readonly를 거부하는지, 같은 날짜는 no-op인지, 선택 날짜가 `{ start: YYYY-MM-DD }` 단일 일정 명령이 되는지 검증한다.
+- Chromium E2E: 시작일 셀 single click → 날짜 Picker overlay open → 다른 날짜 입력 → PATCH 1회 → 같은 Gantt 인스턴스 canonical sync를 확인한다.
+- Summary와 readonly는 Picker가 열리지 않고 PATCH가 0회여야 한다. Enter로 Picker를 열 수 있고 Escape 취소 후 원래 셀로 focus가 복귀해야 한다.
+- 서버 409/412/422/500/network 실패는 선택값을 canonical로 남기지 않고 마지막 확정 일정을 유지해야 한다.
+- 390/768/1024/1440px에서 Date Picker가 viewport를 벗어나거나 document-level horizontal overflow를 추가하지 않는지 확인한다.
+- 기존 Grid 이름 inline edit, DnD, Chart drag/resize, Task Editor와 dependency-aware scheduling 회귀는 동일 PR head의 원격 CI/E2E에서 함께 판정한다.
