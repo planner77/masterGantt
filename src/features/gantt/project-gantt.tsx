@@ -100,7 +100,7 @@ import {
 } from "./task-context-menu-model";
 import { taskHasDependencyLinks, taskSubtreeHasDependencyLinks } from "./task-link-scope";
 import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
-import { canAddTaskWithinSubtree, canOpenTaskAsSubtreeRoot, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
+import { canAddTaskWithinSubtree, canOpenTaskAsSubtreeRoot, resolveTaskSubtreeScope, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
 import { taskStatusFromProgress } from "../../domain/task-status";
 import { RelationContextMenu } from "./relation-context-menu";
 import type { DependencyType } from "../../contracts/projects";
@@ -843,19 +843,26 @@ export function ProjectGantt({
     const root = ganttScrollReference.current;
     if (!root) return;
     const setNativeAddAccessibility = () => {
+      const activeScope = viewRootTaskId === null
+        ? null
+        : resolveTaskSubtreeScope(tasks, viewRootTaskId);
+      const scopedTaskIds = activeScope?.kind === "valid"
+        ? new Set(activeScope.taskIds)
+        : null;
+
       root.querySelectorAll<HTMLElement>('[data-action="add-task"]').forEach((action) => {
         const row = action.closest<HTMLElement>(".wx-row[data-id]");
         const taskId = row ? taskIdFromElement(row) : null;
+        const task = taskId ? tasksById.get(taskId) : undefined;
+        const withinActiveScope = taskId
+          ? viewRootTaskId === null || scopedTaskIds?.has(taskId) === true
+          : viewRootTaskId === null;
         const disabled =
           !editable ||
           mutationLocked ||
-          Boolean(taskId && !tasksById.has(taskId)) ||
-          !canAddTaskWithinSubtree(
-            tasks,
-            viewRootTaskId,
-            taskId ?? undefined,
-            taskId ? "child" : undefined,
-          );
+          Boolean(taskId && !task) ||
+          task?.type === "milestone" ||
+          !withinActiveScope;
         action.setAttribute("aria-disabled", String(disabled));
       });
     };
