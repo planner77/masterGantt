@@ -412,3 +412,115 @@ test.describe("Issue #130 Phase 1 Project List 시각·접근성 계약", () => 
     await page.screenshot({ path: testInfo.outputPath("issue-130-list-current-invalid-range-390.png"), fullPage: true });
   });
 });
+
+
+test.describe("Issue #403 Project List 날짜 열 geometry", () => {
+  test("긴 metadata와 browser locale 날짜가 sibling cell을 침범하지 않고 table-owned scroll을 유지한다", async ({ page, baseURL }, testInfo) => {
+    const suffix = randomUUID().slice(0, 8);
+    const name = `Issue 403 장기 프로젝트 이름과 일정 추적 ${suffix}`;
+    const owner = "국제 물류자동화 플랫폼 통합 운영 책임자".repeat(2);
+    const description = "장기 프로젝트 설명과 공급망 자동화 일정, 인수인계, 관계자 정보를 함께 확인하기 위한 레이아웃 회귀 fixture입니다. ".repeat(8);
+    await createProject(page, baseURL!, name, owner.slice(0, 100), description, "Pwd403Layout!");
+
+    await page.goto("/");
+    const table = page.getByRole("table", { name: "프로젝트 목록" });
+    const row = table.locator("tbody tr").filter({ hasText: name });
+    await expect(row).toBeVisible();
+    await expect(row.getByRole("combobox", { name: `${name} 프로젝트 상태`, exact: true })).toBeEnabled();
+
+    // Project master catalog CRUD is outside this layout regression. Replace only the
+    // rendered labels so the browser exercises the same truncation/column geometry
+    // with deliberately long business/product/site values.
+    await row.evaluate((element) => {
+      const labels = [
+        "글로벌 물류자동화 및 스마트팩토리 통합 사업부 장기 표시명",
+        "MCS SCS ACS OCS 통합 물류제어 플랫폼 제품 장기 표시명",
+        "대한민국 수도권 통합물류센터 및 해외법인 연계 사업장 장기 표시명",
+      ];
+      for (const [index, column] of ["business-unit", "product", "site-entity"].entries()) {
+        const value = element.querySelector<HTMLElement>(`td[data-column="${column}"] > span`);
+        if (!value) throw new Error(`Missing ${column} Project List value`);
+        value.textContent = labels[index];
+        value.title = labels[index];
+      }
+    });
+
+    for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900], [1600, 900]] as const) {
+      await page.setViewportSize({ width, height });
+      const geometry = await row.evaluate((element) => {
+        const tableElement = element.closest("table") as HTMLTableElement;
+        const wrapper = tableElement.parentElement as HTMLElement;
+        const rect = (selector: string) => {
+          const target = element.querySelector<HTMLElement>(selector);
+          if (!target) throw new Error(`Missing cell: ${selector}`);
+          const bounds = target.getBoundingClientRect();
+          return {
+            left: bounds.left,
+            right: bounds.right,
+            width: bounds.width,
+            clientWidth: target.clientWidth,
+            scrollWidth: target.scrollWidth,
+          };
+        };
+        const headerRect = (column: string) => {
+          const target = tableElement.querySelector<HTMLElement>(`thead [data-column="${column}"]`);
+          if (!target) throw new Error(`Missing header: ${column}`);
+          const bounds = target.getBoundingClientRect();
+          return { left: bounds.left, right: bounds.right, width: bounds.width };
+        };
+
+        const created = rect('td[data-column="created"]');
+        const updated = rect('td[data-column="updated"]');
+        const actions = rect('td[data-column="actions"]');
+        const createdHeader = headerRect("created");
+        const updatedHeader = headerRect("updated");
+        const actionsHeader = headerRect("actions");
+        const masterValues = Array.from(element.querySelectorAll<HTMLElement>('[data-column="business-unit"] > span, [data-column="product"] > span, [data-column="site-entity"] > span')).map((value) => ({
+          clientWidth: value.clientWidth,
+          scrollWidth: value.scrollWidth,
+          overflow: getComputedStyle(value).overflow,
+          textOverflow: getComputedStyle(value).textOverflow,
+          whiteSpace: getComputedStyle(value).whiteSpace,
+        }));
+        const actionButton = element.querySelector<HTMLElement>('[data-column="actions"] button')!;
+        return {
+          documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+          wrapperClientWidth: wrapper.clientWidth,
+          wrapperScrollWidth: wrapper.scrollWidth,
+          created,
+          updated,
+          actions,
+          createdHeader,
+          updatedHeader,
+          actionsHeader,
+          actionButtonWidth: actionButton.getBoundingClientRect().width,
+          masterValues,
+        };
+      });
+
+      expect(geometry.documentOverflow).toBe(false);
+      expect(geometry.created.scrollWidth).toBeLessThanOrEqual(geometry.created.clientWidth + 1);
+      expect(geometry.updated.scrollWidth).toBeLessThanOrEqual(geometry.updated.clientWidth + 1);
+      expect(geometry.created.right).toBeLessThanOrEqual(geometry.updated.left + 1);
+      expect(geometry.updated.right).toBeLessThanOrEqual(geometry.actions.left + 1);
+      expect(geometry.actions.clientWidth).toBeGreaterThanOrEqual(geometry.actionButtonWidth);
+      expect(Math.abs(geometry.created.left - geometry.createdHeader.left)).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.created.width - geometry.createdHeader.width)).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.updated.left - geometry.updatedHeader.left)).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.updated.width - geometry.updatedHeader.width)).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.actions.left - geometry.actionsHeader.left)).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.actions.width - geometry.actionsHeader.width)).toBeLessThanOrEqual(1);
+      expect(geometry.masterValues).toHaveLength(3);
+      for (const value of geometry.masterValues) {
+        expect(value.overflow).toBe("hidden");
+        expect(value.textOverflow).toBe("ellipsis");
+        expect(value.whiteSpace).toBe("nowrap");
+        expect(value.scrollWidth).toBeGreaterThan(value.clientWidth);
+      }
+      if (width <= 1024) expect(geometry.wrapperScrollWidth).toBeGreaterThan(geometry.wrapperClientWidth);
+      if (width >= 1440) expect(geometry.wrapperScrollWidth).toBeLessThanOrEqual(geometry.wrapperClientWidth + 1);
+
+      await page.screenshot({ path: testInfo.outputPath(`issue-403-project-list-columns-${width}.png`), fullPage: true });
+    }
+  });
+});
