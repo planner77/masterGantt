@@ -54,3 +54,10 @@
 - #1246 TypeScript 실패: nullable taskId를 명시적으로 narrow하도록 수정.
 - #1246 E2E 실패: UI project-create timeout 대신 현재 main에서 검증된 #300 API seed helper를 재사용.
 - 공용 CI trace는 PR 본문에 canonical `Refs #299`를 정확히 한 번 사용한다.
+
+
+## PR CI 제목 계약
+
+- 공용 `verify-ci-run-trace.py`는 PR 본문의 canonical `Refs #299`뿐 아니라 PR 제목에도 Primary Issue #299 표기를 정확히 요구한다.
+- PR 제목은 `feat: Chart 수직 Drag & Drop 작업 재정렬 (#299)`로 정규화한다.
+- 이 메타데이터 계약 수정은 제품 동작을 바꾸지 않으며, synchronize 이벤트로 최신 head의 PR CI를 새로 검증한다.
