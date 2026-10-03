@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.76.1] - 2026-10-04
+
+### Fixed
+
+- Issue #407: #399 Workspace 범위 탭에서 scope 여부만으로 모든 native Grid `+`를 차단하던 회귀를 수정해 scoped root/descendant의 유효한 Child Task 추가를 다시 허용한다.
+- 행별 add 가능 여부를 subtree/milestone/권한 기준으로 판정하고 Context Menu Child/요약 작업 추가, 일반 Task first-child Summary 전환과 동일 canonical mutation 계약을 유지한다.
+- scoped header/root-level add, root sibling/Outdent/Paste/DnD scope 탈출, Milestone child, readonly/mutation lock 및 #399 notification geometry 선제 차단을 유지하면서 #370 Date Picker와 #335 linked same-parent sibling reorder 계약을 보존한다.
+- Application version을 `0.76.0`에서 `0.76.1`로 증가한다.
+
 ## [0.76.0] - 2026-10-04
 
 ### Added

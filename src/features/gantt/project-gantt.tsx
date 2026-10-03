@@ -100,7 +100,7 @@ import {
 } from "./task-context-menu-model";
 import { taskHasDependencyLinks, taskSubtreeHasDependencyLinks } from "./task-link-scope";
 import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
-import { canOpenTaskAsSubtreeRoot, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
+import { canAddTaskWithinSubtree, canOpenTaskAsSubtreeRoot, resolveTaskSubtreeScope, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
 import { taskStatusFromProgress } from "../../domain/task-status";
 import { RelationContextMenu } from "./relation-context-menu";
 import type { DependencyType } from "../../contracts/projects";
@@ -843,15 +843,34 @@ export function ProjectGantt({
     const root = ganttScrollReference.current;
     if (!root) return;
     const setNativeAddAccessibility = () => {
+      const activeScope = viewRootTaskId === null
+        ? null
+        : resolveTaskSubtreeScope(tasks, viewRootTaskId);
+      const scopedTaskIds = activeScope?.kind === "valid"
+        ? new Set(activeScope.taskIds)
+        : null;
+
       root.querySelectorAll<HTMLElement>('[data-action="add-task"]').forEach((action) => {
-        action.setAttribute("aria-disabled", String(mutationLocked || viewRootTaskId !== null));
+        const row = action.closest<HTMLElement>(".wx-row[data-id]");
+        const taskId = row ? taskIdFromElement(row) : null;
+        const task = taskId ? tasksById.get(taskId) : undefined;
+        const withinActiveScope = taskId
+          ? viewRootTaskId === null || scopedTaskIds?.has(taskId) === true
+          : viewRootTaskId === null;
+        const disabled =
+          !editable ||
+          mutationLocked ||
+          Boolean(taskId && !task) ||
+          task?.type === "milestone" ||
+          !withinActiveScope;
+        action.setAttribute("aria-disabled", String(disabled));
       });
     };
     setNativeAddAccessibility();
     const observer = new MutationObserver(setNativeAddAccessibility);
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [mutationLocked, viewRootTaskId]);
+  }, [editable, mutationLocked, tasks, tasksById, viewRootTaskId]);
   const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
   const taskUpdateGateway = useMemo(
@@ -1599,13 +1618,20 @@ export function ProjectGantt({
       const taskId = row ? taskIdFromElement(row) : null;
       const task = taskId ? tasksByIdReference.current.get(taskId) : undefined;
       const reason: NativeTaskAddRejectReason | null =
-        !canCreateReference.current || viewRootTaskIdReference.current !== null
+        !canCreateReference.current
           ? "scope"
           : taskId && !task
             ? "missing"
             : task?.type === "milestone"
               ? "milestone"
-              : null;
+              : !canAddTaskWithinSubtree(
+                  tasksReference.current,
+                  viewRootTaskIdReference.current,
+                  taskId ?? undefined,
+                  taskId ? "child" : undefined,
+                )
+                ? "scope"
+                : null;
       if (!reason) return;
 
       event.preventDefault();
@@ -1619,23 +1645,27 @@ export function ProjectGantt({
   }, [apiInstanceId]);
 
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
-    if (!canCreateReference.current || viewRootTaskIdReference.current !== null) {
+    if (!canCreateReference.current) {
       if (!mutationLockedReference.current) onTaskAddRejectedReference.current("scope");
       return;
     }
-    const target = typeof local.targetTaskId === "string"
-      ? tasksByIdReference.current.get(local.targetTaskId)
-      : undefined;
-    if (typeof local.targetTaskId === "string" && !target) {
+    const targetTaskId = typeof local.targetTaskId === "string" ? local.targetTaskId : undefined;
+    const target = targetTaskId ? tasksByIdReference.current.get(targetTaskId) : undefined;
+    if (targetTaskId && !target) {
       onTaskAddRejectedReference.current("missing");
-      return;
-    }
-    if (local.mode !== undefined && local.mode !== "child") {
-      onTaskAddRejectedReference.current("scope");
       return;
     }
     if (target?.type === "milestone") {
       onTaskAddRejectedReference.current("milestone");
+      return;
+    }
+    if (!canAddTaskWithinSubtree(
+      tasksReference.current,
+      viewRootTaskIdReference.current,
+      targetTaskId,
+      local.mode,
+    )) {
+      onTaskAddRejectedReference.current("scope");
       return;
     }
     onTaskCreateReference.current({
@@ -2610,7 +2640,7 @@ export function ProjectGantt({
   }, [taskMenu, taskSubmenu]);
 
   return (
-    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-add-disabled={viewRootTaskId !== null || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
+    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
       <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
         <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
