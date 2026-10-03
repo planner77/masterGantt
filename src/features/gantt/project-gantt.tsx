@@ -162,13 +162,6 @@ function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
 }
 
 type NativeTaskAddRejectReason = "scope" | "missing" | "milestone";
-type NativeTaskAddViewportSnapshot = Readonly<{
-  pageX: number;
-  pageY: number;
-  rootLeft: number;
-  rootTop: number;
-  nested: ReadonlyArray<Readonly<{ element: HTMLElement; left: number; top: number }>>;
-}>;
 
 interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
@@ -324,7 +317,6 @@ export function ProjectGantt({
   const canonicalSyncQueueReference = useRef<Promise<void>>(Promise.resolve());
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
   const ganttScrollReference = useRef<HTMLDivElement>(null);
-  const nativeTaskAddViewportReference = useRef<NativeTaskAddViewportSnapshot | null>(null);
   const fullscreenFrameReference = useRef<HTMLDivElement>(null);
   const fullscreenButtonReference = useRef<HTMLButtonElement>(null);
   const dayHeaderTooltipReference = useRef<HTMLDivElement>(null);
@@ -1544,81 +1536,60 @@ export function ProjectGantt({
     return () => { cancelled = true; };
   }, [apiInstanceId, ensureTimelineEnd, scaleMode, scheduleTimelineExtension]);
 
-  function captureNativeTaskAddViewport(): NativeTaskAddViewportSnapshot | null {
+  useEffect(() => {
     const root = ganttScrollReference.current;
-    if (!root) return null;
-    return {
-      pageX: window.scrollX,
-      pageY: window.scrollY,
-      rootLeft: root.scrollLeft,
-      rootTop: root.scrollTop,
-      nested: Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container, .wx-chart")).map((element) => ({
-        element,
-        left: element.scrollLeft,
-        top: element.scrollTop,
-      })),
-    };
-  }
+    if (!root || !apiInstanceId) return;
 
-  function captureNativeTaskAddViewportBeforeCore(event: ReactMouseEvent<HTMLDivElement>): void {
-    if (!(event.target instanceof Element) || !event.target.closest('[data-action="add-task"]')) return;
-    nativeTaskAddViewportReference.current = captureNativeTaskAddViewport();
-  }
+    const rejectInvalidNativeAddBeforeCore = (event: MouseEvent) => {
+      if (event.button !== 0 || mutationLockedReference.current) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const action = target.closest<HTMLElement>('[data-action="add-task"]');
+      if (!action || !root.contains(action)) return;
 
-  function rejectNativeTaskAddAfterCore(reason: NativeTaskAddRejectReason): void {
-    const snapshot = nativeTaskAddViewportReference.current ?? captureNativeTaskAddViewport();
-    nativeTaskAddViewportReference.current = null;
-    if (!snapshot) {
+      const row = action.closest<HTMLElement>(".wx-row[data-id]");
+      const taskId = row ? taskIdFromElement(row) : null;
+      const task = taskId ? tasksByIdReference.current.get(taskId) : undefined;
+      const reason: NativeTaskAddRejectReason | null =
+        !canCreateReference.current || viewRootTaskIdReference.current !== null
+          ? "scope"
+          : taskId && !task
+            ? "missing"
+            : task?.type === "milestone"
+              ? "milestone"
+              : null;
+      if (!reason) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
       onTaskAddRejectedReference.current(reason);
-      return;
-    }
-    const root = ganttScrollReference.current;
-    const restore = () => {
-      if (root?.isConnected) {
-        root.scrollLeft = snapshot.rootLeft;
-        root.scrollTop = snapshot.rootTop;
-      }
-      for (const item of snapshot.nested) {
-        if (!item.element.isConnected) continue;
-        item.element.scrollLeft = item.left;
-        item.element.scrollTop = item.top;
-      }
-      window.scrollTo(snapshot.pageX, snapshot.pageY);
     };
 
-    queueMicrotask(() => {
-      restore();
-      window.requestAnimationFrame(() => {
-        restore();
-        window.requestAnimationFrame(() => {
-          restore();
-          onTaskAddRejectedReference.current(reason);
-        });
-      });
-    });
-  }
+    root.addEventListener("click", rejectInvalidNativeAddBeforeCore, true);
+    return () => root.removeEventListener("click", rejectInvalidNativeAddBeforeCore, true);
+  }, [apiInstanceId]);
 
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
     if (!canCreateReference.current || viewRootTaskIdReference.current !== null) {
-      if (!mutationLockedReference.current) rejectNativeTaskAddAfterCore("scope");
+      if (!mutationLockedReference.current) onTaskAddRejectedReference.current("scope");
       return;
     }
     const target = typeof local.targetTaskId === "string"
       ? tasksByIdReference.current.get(local.targetTaskId)
       : undefined;
     if (typeof local.targetTaskId === "string" && !target) {
-      rejectNativeTaskAddAfterCore("missing");
+      onTaskAddRejectedReference.current("missing");
       return;
     }
     if (local.mode !== undefined && local.mode !== "child") {
-      rejectNativeTaskAddAfterCore("scope");
+      onTaskAddRejectedReference.current("scope");
       return;
     }
     if (target?.type === "milestone") {
-      rejectNativeTaskAddAfterCore("milestone");
+      onTaskAddRejectedReference.current("milestone");
       return;
     }
-    nativeTaskAddViewportReference.current = null;
     onTaskCreateReference.current({
       name: "새 작업",
       type: "task",
@@ -2459,10 +2430,7 @@ export function ProjectGantt({
             namePointerIntentReference.current = null;
             contextPointerTaskIdReference.current = null;
           }}
-          onClickCapture={(event) => {
-            captureNativeTaskAddViewportBeforeCore(event);
-            handleSelectionClick(event);
-          }}
+          onClickCapture={handleSelectionClick}
           onClick={(event) => { void handleNameClick(event); }}
           onCompositionStart={() => { inlineComposingReference.current = true; }}
           onCompositionEnd={() => { inlineComposingReference.current = false; }}
