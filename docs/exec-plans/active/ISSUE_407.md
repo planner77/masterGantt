@@ -60,3 +60,16 @@ Playwright trace의 실제 SVAR Grid DOM은 row identity를 `data-id=":<taskId>"
 - `rowByTaskId()`를 기존 SVAR DOM 계약과 동일하게 `data-id=":<taskId>"`로 수정한다.
 - 제품 코드/권한/scope predicate/CI gate는 변경하지 않는다.
 - 기존 실패 run 재실행이 아니라 수정된 새 PR head에서 전체 PR CI를 새로 시작해 판정한다.
+
+
+## PR CI #1626.1 실패 분석 / 2차 보완
+
+Run `37120742285`도 quality(TypeScript/ESLint/Vitest/build/policy), Docker, Chromium shard 1/2/3은 PASS했고 shard 4의 #399 test 1건만 FAIL했다. 이전 `data-id` selector 문제는 해소되어 #373 deep-link 회귀는 PASS했다.
+
+실패 시 trace에서 `전체 프로젝트` 탭 전환과 `Scope Beta` 행 가시성까지 성공했지만, #407 검증을 #399 시나리오 중간에 추가하면서 Scope Alpha 아래에 여러 행이 늘어나 Scope Beta가 Gantt viewport 하단으로 이동했다. Playwright의 우클릭이 해당 행을 scroll-into-view한 직후 SVAR selection/virtualized row 갱신이 발생했고 contextmenu가 생성되지 않았다. 실패 snapshot은 전체 프로젝트가 정상 활성화되고 Scope Beta가 선택된 상태이므로 #407 add mutation 또는 scope 전환 실패가 아니다.
+
+보완:
+- #399 기존 Workspace tab/navigation E2E에서는 #407의 추가 mutation 시나리오를 제거해 원래 목적과 row geometry를 복원한다.
+- #407은 독립 Chromium test로 분리해 scoped root native `+`, empty Summary child, 일반 Task first-child Summary 전환, same ProjectGantt 및 전체 프로젝트 canonical 반영을 검증한다.
+- 각 mutation은 새 Task row 표시와 `data-task-mutation-locked` 해제를 기다린 뒤 다음 interaction으로 진행한다.
+- 제품 코드와 CI gate는 변경하지 않는다.
