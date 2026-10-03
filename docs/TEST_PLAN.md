@@ -1128,3 +1128,52 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - 검색 결과 0건 empty state, pane 건수, inactive 표시, Resource 선택 시 allocation fieldset, Group allocation 미노출을 검증한다.
 - 기존 #119 validation/focus, Assignment PUT, revision/catalog revision, 401/412, dirty/stale 및 canonical snapshot 회귀는 기존 테스트를 유지한다.
 - 공식 PASS는 exact PR head의 GitHub Actions `quality` / `e2e` / `docker` 결과로 판정한다.
+
+## Issue #403 — Data Table Column Geometry Regression
+
+### 목적
+
+Project List 및 유사한 data-dense table에서 열 추가/폭 변경 이후 header/cell text가 인접 열을 침범하거나 document-level horizontal overflow를 만드는 회귀를 자동/브라우저 검증 단계에서 조기에 발견한다.
+
+### 기본 fixture
+
+- 긴 프로젝트명
+- 긴 사업부/제품/법인·사업장 표시명
+- 긴 소유자명
+- 긴 설명
+- 생성/최근 변경 datetime
+- null/미지정 metadata
+- browser hydrate 이후 locale/timezone 표시
+
+### viewport / display
+
+- 390px
+- 768px
+- 1024px
+- 1440px
+- wide desktop
+- 기본 100% zoom, 주요 data table은 가능하면 125% zoom smoke
+
+### Geometry 계약
+
+Project List 기준 최소 검증:
+
+1. 생성 셀의 visible content가 최근 변경 셀 영역을 침범하지 않는다.
+2. 최근 변경 셀의 visible content가 생성 또는 작업 셀 영역을 침범하지 않는다.
+3. header와 body의 동일 열 경계가 정렬된다.
+4. Row Action은 항상 보이고 keyboard/mouse로 접근 가능하다.
+5. `document.documentElement.scrollWidth <= document.documentElement.clientWidth`를 기본 계약으로 한다.
+6. 좁은 viewport에서 table 자체 overflow가 필요한 경우 `tableWrap.scrollWidth > tableWrap.clientWidth`는 허용하되 overflow owner가 table wrapper에 한정되는지 확인한다.
+7. 긴 값이 ellipsis/truncate 되면 전체 값 접근 경로가 유지된다.
+
+Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게 보이는 geometry를 검사한다. 예를 들어 sibling cell의 `getBoundingClientRect()` 비교와 text/content overflow 여부를 사용하며 sub-pixel rounding에는 작은 tolerance를 허용한다.
+
+### 회귀 범위
+
+- #75 Project List wide/table/action 계약
+- #84 검색/필터 후 동일 table geometry
+- #343 사업부·제품·법인/사업장 열 표시
+- Project open/copy/link copy/delete/status action
+- native table semantics, keyboard focus, document overflow
+
+실제 browser/E2E 증거 없이 정적 CSS 확인만으로 이 항목을 PASS 처리하지 않는다.
