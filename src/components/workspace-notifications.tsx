@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { WorkspaceDialog } from "./workspace-dialog";
 import { WorkspaceMessageContext } from "./workspace-message-context";
@@ -64,7 +64,6 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
   const [state, dispatch] = useReducer(notificationReducer, INITIAL_NOTIFICATION_STATE);
   const sequence = useRef(0);
   const pendingScrollRestoreReference = useRef<NotificationScrollSnapshot | null>(null);
-  const scrollRestoreFrameReference = useRef<number | null>(null);
   const [copyHint, setCopyHint] = useState("");
   // The server-rendered shell owns this static slot; resolve it after hydration without an effect update.
   const notificationSlot = useSyncExternalStore(
@@ -78,28 +77,24 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
     getNotificationSlotServerSnapshot,
   );
   const notify = useCallback<NotificationApi["notify"]>((kind, message, operation, serverBody) => {
-    // SVAR can finish focus/visibility scrolling after a rejected native action.
-    // Preserve the first pre-notification viewport until the next paint so
-    // Toast/unread feedback never becomes a reason for page/Gantt scroll drift.
+    // Capture before React publishes feedback. SVAR may still run visibility/focus
+    // scrolling after this callback returns, so restoration happens in the next
+    // React layout phase (after the event finishes, before paint).
     if (!pendingScrollRestoreReference.current) pendingScrollRestoreReference.current = captureNotificationScroll();
     dispatch({ type: "publish", notice: {
       id: ++sequence.current, kind, message, operation,
       occurredAt: new Date().toISOString(), read: false, ...safeNotificationMetadata(serverBody),
     } });
-    if (scrollRestoreFrameReference.current === null) {
-      scrollRestoreFrameReference.current = window.requestAnimationFrame(() => {
-        scrollRestoreFrameReference.current = null;
-        const snapshot = pendingScrollRestoreReference.current;
-        pendingScrollRestoreReference.current = null;
-        if (snapshot) restoreNotificationScroll(snapshot);
-      });
-    }
   }, []);
   const clearToast = useCallback(() => dispatch({ type: "clear-toast" }), []);
   const api = useMemo(() => ({ notify, clearToast }), [notify, clearToast]);
+  useLayoutEffect(() => {
+    const snapshot = pendingScrollRestoreReference.current;
+    if (!snapshot) return;
+    pendingScrollRestoreReference.current = null;
+    restoreNotificationScroll(snapshot);
+  }, [state]);
   useEffect(() => () => {
-    if (scrollRestoreFrameReference.current !== null) window.cancelAnimationFrame(scrollRestoreFrameReference.current);
-    scrollRestoreFrameReference.current = null;
     pendingScrollRestoreReference.current = null;
   }, []);
   useEffect(() => {
