@@ -862,7 +862,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const result = await saveTask("DELETE", pending.taskId, undefined, pending.revision, true);
     if (result.status === "saved" || result.conflict) setPendingTaskDelete(null);
   }
-  function rejectNativeTaskAdd() { notify("info", "이 화면에서는 하위 작업만 추가할 수 있습니다.", "작업 추가"); }
+  function rejectNativeTaskAdd(reason: "scope" | "missing" | "milestone") {
+    if (reason === "milestone") {
+      notify("error", "마일스톤에는 하위 작업을 추가할 수 없습니다.", "하위 작업 추가");
+      return;
+    }
+    if (reason === "missing") {
+      notify("error", "선택한 작업을 찾을 수 없습니다. 최신 정보를 불러온 뒤 다시 시도해 주세요.", "하위 작업 추가");
+      return;
+    }
+    notify("info", "이 화면에서는 하위 작업만 추가할 수 있습니다.", "작업 추가");
+  }
   const recoverCanonicalGantt = useCallback(() => {
     setGanttResetGeneration((generation) => generation + 1);
     notify("error", "일정 화면을 최신 서버 정보로 복구했습니다.", "일정 화면 복구");
