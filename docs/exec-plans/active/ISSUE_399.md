@@ -46,3 +46,14 @@ Run `37101121153`도 quality/build/typecheck/ESLint/Vitest/Docker 및 Chromium s
 두 번째 Playwright trace에서 document scroll은 `dispatchEvent` 자체가 아니라 unread badge/Toast가 React commit되는 시점에 `0 → 30/31px`로 바뀐다. #399이 일정 View에 새 scope tab + tabpanel wrapper를 삽입한 뒤 Chromium document scroll anchoring이 Project 본문의 descendant를 anchor 후보로 사용하고, header feedback DOM 변화에 맞춰 document scroll을 보정하는 것이 직접 원인이다.
 
 따라서 이전 mobile Gantt 높이 차감은 철회하고 기존 22rem minimum을 복원한다. 대신 `.project-readonly { overflow-anchor: none; }`으로 Project Workspace subtree를 document scroll-anchor 후보에서 제외한다. Gantt는 자체 내부 scroll/collapse/selection 상태를 이미 소유하므로 이 설정은 도메인/API 상태를 바꾸지 않고 header feedback 변화가 전체 문서를 이동시키는 것만 차단한다. 기존 notification hit-area assertion은 그대로 유지한다.
+
+
+## PR CI #1586.1 3차 분석 / 공통 scroll 보존 보완
+
+Run `37101966096`도 quality/build/typecheck/ESLint/Vitest/Docker 및 Chromium shard 1/3/4가 PASS했고, shard 2/4의 320/360/361/401px notification hit-area만 동일하게 FAIL했다. `overflow-anchor:none` 적용 후에도 `scrollTop=31px`이 그대로여서 scroll anchoring 가설 역시 기각한다.
+
+세 번째 trace를 frame snapshot 단위로 비교하면 rejected native add 직후 Toast/unread badge가 이미 렌더된 snapshot에서는 document scroll이 0이고, 약 6ms 뒤 document `scrollTop=31`과 동시에 `.project-gantt-scroll.scrollLeft=286`이 함께 발생한다. 따라서 원인은 feedback DOM 자체가 아니라 SVAR native add event가 취소된 뒤에도 이벤트 대상인 우측 `+` cell의 visibility/focus 후처리 스크롤이 남는 것이다. #399의 추가 vertical 구조가 이 기존 후처리의 y-scroll을 관찰 가능하게 만들었다.
+
+보완은 공통 `WorkspaceNotifications.notify()`에서 첫 publish 직전 `window.scrollX/Y`와 모든 `.project-gantt-scroll`의 scrollLeft/Top을 캡처하고, React/SVAR 후처리가 끝나는 다음 animation frame에 복원한다. 같은 frame에 연속 알림이 발생하면 첫 pre-notification snapshot만 유지해 이미 이동한 위치가 새 기준으로 덮어써지지 않게 한다. unmount 시 pending animation frame을 취소한다. 실패 테스트나 SVAR gate를 완화하지 않는다.
+
+효과가 없었던 `.project-readonly { overflow-anchor:none }` 변경은 제거한다.
