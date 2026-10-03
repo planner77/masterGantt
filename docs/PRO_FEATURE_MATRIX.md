@@ -6,6 +6,12 @@
 
 공식 참조: [select-task](https://docs.svar.dev/react/gantt/api/actions/select-task/), [getState](https://docs.svar.dev/react/gantt/api/methods/getstate/), [Context Menu](https://docs.svar.dev/react/gantt/helpers/getmenuoptions/). 확인일 2026-10-02. URL·설치 타입 확인은 실제 demo 조작이나 구현 browser PASS가 아니다. 실행 결과는 TEST_PLAN/PR의 exact head evidence를 따른다.
 
+## Issue #335 — linked sibling reorder와 Core 공개 move-task
+
+설치 Core 2.7.3의 공개 `move-task` action은 `up/down/before/after/child`를 구분한다. masterGantt는 이 공개 interaction을 사용하되 서버 canonical hierarchy를 authority로 유지하며, #335에서는 같은 parent의 `up/down/before/after`만 Dependency 연결 상태와 분리해 허용한다. parent 변경/`child` 보호와 자체 Dependency/Scheduling 검증은 그대로다.
+
+공식 참조: [move-task](https://docs.svar.dev/react/gantt/api/actions/move-task/), [User interface](https://docs.svar.dev/react/gantt/guides/ui-layout/user-interface/), [Context Menu helper](https://docs.svar.dev/react/gantt/helpers/getmenuoptions/), [Willow demo](https://docs.svar.dev/react/gantt/samples/#/base/willow). 확인일 2026-10-03. PRO package나 비공개 Store 구현을 사용하지 않는다. URL 확인은 실제 제품 browser PASS가 아니며 PR exact head E2E와 구분한다.
+
 ## Issue #345 빈 Summary Core 2.7.3 표현
 
 2026-10-01 설치 Core 2.7.3 실제 Chromium probe에서 날짜 없는 native `summary`는 `Summary tasks must have start and end dates if they have no subtasks`로 초기 로드가 실패했다. 날짜 없는 public custom type은 행을 남기지만 유효하지 않은 bar 좌표를 만들었다. 이 두 경로를 채택하지 않는다. 공식 [taskTypes](https://docs.svar.dev/react/gantt/api/properties/tasktypes/) 확장과 앱 adapter로 Renderer 전용 `summary-container`를 사용한다. PRO `unscheduledTasks`/`summary` 옵션과 비공개 `$skip` 조작은 사용하지 않는다.

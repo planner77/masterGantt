@@ -1291,3 +1291,13 @@ Task-level `status`는 Project `status`와 별도이며 `not_started | in_progre
 Task create/update에서 status와 progress는 하나의 mutation/revision에 저장한다. `progress=100`은 `completed`, `status=completed`는 `progress=100`, `status=not_started`는 `progress=0`으로 정규화한다. 완료 상태에서 progress를 100 미만으로 낮추면 `in_progress`가 되며, `in_progress`는 0~99를 허용한다. 서버는 완료/진행률 모순 조합을 canonical snapshot에 저장하지 않는다.
 
 Summary는 직접 status를 PATCH하지 않는다. 기존 derived progress가 정확히 100이면 completed, 0보다 크고 100 미만이면 in_progress, 0 또는 미산정(null)이면 not_started로 파생한다. status/progress 변경은 요청/적용 일정, Dependency Link, revision/If-Match/Origin/edit-session 계약을 변경하지 않는다.
+
+## Issue #335 task-commands linked sibling reorder
+
+기존 `POST /api/projects/{publicId}/task-commands` schema를 변경하지 않는다.
+
+- `{"kind":"move","taskId":"...","direction":"up|down"}`: 정의상 같은 parent의 sibling order만 변경하므로 linked Task에도 허용한다.
+- `{"kind":"reparent","taskId":"...","anchorTaskId":"...","placement":"before|after"}`: 계산된 target parent가 source의 현재 parent와 같을 때만 linked source/anchor/descendant를 허용한다.
+- `placement:"child"` 또는 target parent가 달라지는 before/after는 기존 Dependency guard를 유지한다.
+
+성공은 기존 transaction에서 sibling order를 정규화하고 Project revision을 정확히 +1 한 canonical snapshot을 반환한다. Link ID/endpoints/type/lag와 Task requestedStart/start/end/duration/scheduleMode/status/progress는 reorder로 변경하지 않는다. 실패 시 기존 401/403/404/409/412 계약과 rollback을 유지한다. 새 route, DTO field, DB migration은 없다.

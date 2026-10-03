@@ -94,7 +94,7 @@ CI #1540.1의 shard 3/4는 #384 기능과 무관한 `project-resource-calendar-e
 
 ## Issue #378 Subtree Copy 내부 Dependency 회귀
 
-- Unit(UI capability): linked Task에서도 Copy를 허용하고 copy clipboard의 linked anchor before/after Paste를 허용한다. 같은 anchor의 Add/Move/Indent 및 cut clipboard Paste는 기존 fail-closed를 유지한다.
+- Unit(UI capability): linked Task에서도 Copy와 same-parent Move Up/Down을 허용하고 copy clipboard의 linked anchor before/after Paste를 허용한다. 같은 anchor의 Add/Indent 및 parent를 바꾸는 cut clipboard Paste는 기존 fail-closed를 유지한다.
 - SQLite service: Summary subtree의 internal Dependency만 새 Task endpoint로 복제하고 external incoming/outgoing Link는 제외한다. Link ID uniqueness, FS/SS/FF/SF·lag/lead 보존, parent/sibling shape, revision +1 및 원본 불변을 검증한다.
 - Scheduling: external incoming 제약이 제거된 copied Auto leaf가 requestedStart 기준으로 앞당겨지고 internal Dependency lower bound는 계속 적용되는지 검증한다. Summary 파생과 Baseline 불변을 함께 본다.
 - Chromium E2E: linked Task의 Copy 메뉴 활성화, linked target의 Paste > Below 성공, 원본 Link 유지와 단일-task Copy의 외부 Link 미복제를 실제 API persistence로 확인한다. 기존 #104 unrelated-task capability 회귀도 함께 유지한다.
@@ -1199,3 +1199,11 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Chromium: progress 100→completed, completed→100, 완료 해제, Grid 취소선, 동일 Gantt instance 및 기존 Phase 3 responsive geometry를 함께 검증한다. Desktop 작업명/보조 영역 2열과 390/768px stack을 유지한다.
 - Scheduling purity: `src/domain/scheduling`은 외부 domain helper를 import하지 않고 Summary status를 derived progress에서 내부적으로 계산한다.
 - 최종 판정은 최신 PR head의 새 `quality/e2e/docker` 전체 실행을 사용하며 과거 #1248 결과를 재사용하지 않는다.
+
+## Issue #335 linked Task sibling reorder
+
+- Unit(UI): linked/unlinked Task의 Move Up/Down, first/last sibling, readonly/mutation lock, Add/Indent/Outdent 등 기존 구조 guard를 비교한다.
+- SQLite/Service: linked endpoint의 `move`와 same-parent `reparent before/after`가 Link payload와 requestedStart/start/end/duration/scheduleMode/status/progress를 보존하고 revision을 정확히 +1 하는지 확인한다. linked descendant subtree도 same-parent reorder를 허용한다.
+- Negative: linked source/subtree의 cross-parent `child`/reparent는 `UNSUPPORTED_SCHEDULE_STRUCTURE` 정책을 유지하고 실패 시 revision/DB가 바뀌지 않아야 한다.
+- Chromium: 실제 Context Menu Move와 pointer Grid DnD를 연속 수행해 순서, relation line, Link ID/endpoints/type/lag, reload persistence를 확인한다. #116 submenu keyboard/geometry, #104/#378 linked Copy/Paste, #399 scoped view, #300의 412/500 canonical 복구와 unlinked DnD를 함께 회귀한다.
+- DB schema·새 API route는 N/A다. 동일 PR head의 GitHub Actions `quality/e2e/docker`가 공식 원격 판정이며 로컬 fast feedback 결과와 구분한다.

@@ -490,7 +490,6 @@ export class TaskHierarchyService {
       } else if (command.kind === "move") {
         const task = byPublicId.get(command.taskId);
         if (!task) throw new TaskNotFoundError();
-        assertTasksNotLinked(links, [task.id]);
         const siblings = orderedSiblings(initialTasks, task.parentId);
         const index = siblings.findIndex((candidate) => candidate.id === task.id);
         const targetIndex = index + (command.direction === "up" ? -1 : 1);
@@ -505,7 +504,7 @@ export class TaskHierarchyService {
         const index = siblings.findIndex((candidate) => candidate.id === task.id);
         if (index <= 0) throw new TaskHierarchyNoopError();
         const parent = siblings[index - 1];
-        assertTasksNotLinked(links, [task.id, parent.id]);
+        assertTasksNotLinked(links, [task.id, ...descendants(task.id, initialTasks).map((entry) => entry.id), parent.id]);
         this.assertParentCanContain(project.id, parent, initialTasks, nowText, changed);
         const oldFamily = siblings.filter((candidate) => candidate.id !== task.id);
         this.rewriteFamily(project.id, task.parentId, oldFamily, nowText);
@@ -516,7 +515,7 @@ export class TaskHierarchyService {
       } else if (command.kind === "outdent") {
         const task = byPublicId.get(command.taskId);
         if (!task) throw new TaskNotFoundError();
-        assertTasksNotLinked(links, [task.id]);
+        assertTasksNotLinked(links, [task.id, ...descendants(task.id, initialTasks).map((entry) => entry.id)]);
         if (task.parentId === null) throw new TaskHierarchyNoopError();
         const parent = initialTasks.find((candidate) => candidate.id === task.parentId);
         if (!parent) throw new PersistedScheduleInvalidError();
@@ -532,8 +531,11 @@ export class TaskHierarchyService {
         const anchor = byPublicId.get(command.anchorTaskId);
         if (!task || !anchor) throw new TaskNotFoundError();
         if (task.id === anchor.id) throw new TaskHierarchyNoopError();
-        assertTasksNotLinked(links, [task.id, ...descendants(task.id, initialTasks).map((entry) => entry.id), anchor.id]);
         const target = insertionTarget(anchor, command.placement, initialTasks);
+        const sameParentSiblingReorder = command.placement !== "child" && task.parentId === target.parentId;
+        if (!sameParentSiblingReorder) {
+          assertTasksNotLinked(links, [task.id, ...descendants(task.id, initialTasks).map((entry) => entry.id), anchor.id]);
+        }
         if (wouldCreateCycle(task, target.parentId, initialTasks)) throw new InvalidTaskInputError();
         if (task.parentId === target.parentId) {
           const family = orderedSiblings(initialTasks, task.parentId).filter((candidate) => candidate.id !== task.id);

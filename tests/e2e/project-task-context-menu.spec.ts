@@ -664,9 +664,10 @@ test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/
   await expect(linkedMenu.getByRole("menuitem", { name: "Edit", exact: true })).toBeEnabled();
   await expect(linkedMenu.getByRole("menuitem", { name: "Copy ID", exact: true })).toBeEnabled();
   await expect(linkedMenu.getByRole("menuitem", { name: "Copy", exact: true })).toBeEnabled();
-  for (const name of ["Add", "Convert to", "Cut", "Move", "Delete"]) {
+  for (const name of ["Add", "Convert to", "Cut", "Delete"]) {
     await expect(linkedMenu.getByRole("menuitem", { name, exact: true })).toBeDisabled();
   }
+  await expect(linkedMenu.getByRole("menuitem", { name: "Move", exact: true })).toBeEnabled();
 
   await linkedMenu.getByRole("menuitem", { name: "Copy", exact: true }).click();
   const linkedTargetMenu = await openTaskMenu(page, "Linked B");

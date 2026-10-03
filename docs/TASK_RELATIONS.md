@@ -122,3 +122,9 @@ Task Editor 관계 탭은 #203 Relation Editor와 #200 Link mutation의 추가 �
 - Relation Editor의 dirty/confirm/pending/Escape/focus contract는 #266을 유지한다. Task Editor 직접 삭제 confirmation도 trigger→confirmation→trigger focus 흐름을 보장한다.
 
 Summary endpoint, graph validation, FS/SS/FF/SF 계산, Lag/Lead, Link API/DB schema는 변경하지 않는다.
+
+## Issue #335 Dependency와 WBS sibling order의 분리
+
+Dependency Link의 의미와 WBS sibling order는 별도 계약이다. 같은 parent에서 Task/subtree의 위치만 바꾸는 `move up/down` 또는 `before/after`는 Link ID, predecessor/successor, type, signed lag/lead를 변경하지 않으며 Dependency 일정 재계산 입력을 새로 만들지 않는다. requested/effective schedule 및 Task status/progress도 reorder 자체로 변경하지 않는다.
+
+서버는 command가 실제 parent 변경인지 먼저 판정한다. same-parent reorder만 Link guard 예외이며 cross-parent/child, Indent/Outdent, Cut/Paste, Delete, Convert와 Link 자체 mutation은 기존 검증을 유지한다. canonical 응답의 동일 Link를 기준으로 relation line이 이동한 row endpoint를 따라야 한다.

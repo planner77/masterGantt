@@ -94,7 +94,7 @@ import {
   taskContextCapabilities,
   type TaskClipboard,
 } from "./task-context-menu-model";
-import { taskHasDependencyLinks } from "./task-link-scope";
+import { taskHasDependencyLinks, taskSubtreeHasDependencyLinks } from "./task-link-scope";
 import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
 import { canOpenTaskAsSubtreeRoot, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
 import { taskStatusFromProgress } from "../../domain/task-status";
@@ -1874,7 +1874,7 @@ export function ProjectGantt({
     if (!root) return false;
     const match = resolveSelectionTarget(event.target, root);
     if (!match) return false;
-    const selectedHasLinks = taskHasDependencyLinks(
+    const selectedHasLinks = taskSubtreeHasDependencyLinks(
       tasksByIdReference.current.size ? Array.from(tasksByIdReference.current.values()) : tasks,
       match.taskId,
       links,
@@ -2342,13 +2342,14 @@ export function ProjectGantt({
   }
 
   const selectedTaskHasLinks = taskMenu ? taskHasDependencyLinks(tasks, taskMenu.taskId, links) : false;
+  const selectedSubtreeHasLinks = taskMenu ? taskSubtreeHasDependencyLinks(tasks, taskMenu.taskId, links) : false;
   const canOpenAsRoot = taskMenu
     ? taskMenu.taskId !== viewRootTaskId && canOpenTaskAsSubtreeRoot(tasks, taskMenu.taskId)
     : false;
   const canCopy = editable && !mutationLocked;
   const canMutate = canCopy && !selectedTaskHasLinks;
-  const canCut = canMutate && taskMenu?.taskId !== viewRootTaskId;
-  const canDelete = canMutate;
+  const canCut = canCopy && !selectedSubtreeHasLinks && taskMenu?.taskId !== viewRootTaskId;
+  const canDelete = canCopy && !selectedSubtreeHasLinks;
   const activeClipboard = taskClipboard?.revision === projectRevision ? taskClipboard : null;
   const menuCapabilities = taskMenu
     ? taskContextCapabilities(tasks, taskMenu.taskId, editable, mutationLocked, links, activeClipboard, viewRootTaskId)
@@ -2591,7 +2592,7 @@ export function ProjectGantt({
           </div>
           <div className="project-task-context-menu-separator" role="separator" />
           <div className="project-task-context-submenu-host" data-submenu="Move">
-            <button aria-controls={taskSubmenu?.name === "Move" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Move"} aria-haspopup="menu" aria-label="Move" disabled={!canMutate} onClick={() => { openTaskSubmenu("Move", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Move", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Move", false); }} ref={(node) => { taskSubmenuTriggers.current.Move = node; }} role="menuitem" type="button">
+            <button aria-controls={taskSubmenu?.name === "Move" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Move"} aria-haspopup="menu" aria-label="Move" disabled={!canMutate && !menuCapabilities.canMoveUp && !menuCapabilities.canMoveDown} onClick={() => { openTaskSubmenu("Move", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Move", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Move", false); }} ref={(node) => { taskSubmenuTriggers.current.Move = node; }} role="menuitem" type="button">
               <span aria-hidden="true" className="project-task-context-menu-icon">↕</span><span>Move</span><span className="project-task-context-menu-arrow">›</span>
             </button>
           </div>
