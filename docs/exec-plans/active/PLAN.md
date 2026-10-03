@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #409 Copy ID / Relation Editor 식별자 불일치 — 최신 main 재정렬 / PR CI 재시작
+
+최신 main `da0f39a4dde363bd84ad2e938089c40d2dd9e29a` / `0.76.0`의 #370 Grid 시작일 Date Picker와 기존 #335/#399/#384 계약을 보존하면서 #390 `Copy ID`가 복사하는 canonical `taskId`와 Relation Editor의 `externalId` 검색·표시 불일치를 수정한다. 후보 검색을 name/externalId/taskId로 확장하고 두 ID를 명시적으로 표시하되 Link API는 externalId 계약을 유지한다. branch는 `fix/issue-409-relation-id-search`, 후보 version은 PATCH `0.76.1`이다. 상세는 [Issue #409 실행 계획](ISSUE_409.md)을 따른다. 종료점은 최신 main 정렬·충돌 확인 후 새 PR CI 시작 확인이다.
+
 ## Issue #370 Grid 시작일 Date Picker — #335 이후 최신 main 재정렬 / PR CI
 
 최신 main `fa57ba77fd632fa530ca2c27091a072536a67172` / `0.75.0`의 #335 linked-subtree sibling reorder 계약을 보존하면서 [Issue #370 실행 계획](ISSUE_370.md)의 Grid 시작일 quick-edit만 재적용한다. 후보 version은 `0.76.0`; 이번 종료점은 새 PR CI 시작 확인이다.
