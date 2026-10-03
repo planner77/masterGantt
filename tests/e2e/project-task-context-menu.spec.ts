@@ -69,6 +69,10 @@ async function expectStructureToast(page: import("@playwright/test").Page) {
   await expect(page.getByTestId("workspace-toast")).toContainText("작업 구조를 변경했습니다");
 }
 
+async function expectClipboardText(page: import("@playwright/test").Page, expected: string) {
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(expected);
+}
+
 test("Issue #77 Context Menu opens without activating a submenu", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -263,8 +267,8 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   await page.keyboard.press("Home");
   const add = rootMenu.getByRole("menuitem", { name: "Add", exact: true });
   await expect(add).toBeFocused();
-  // Paste is disabled before a Task is copied, so Move is the fifth enabled item after Add.
-  for (let index = 0; index < 5; index += 1) await page.keyboard.press("ArrowDown");
+  // Paste is disabled before a Task is copied. Copy ID adds one enabled root action before the clipboard group.
+  for (let index = 0; index < 6; index += 1) await page.keyboard.press("ArrowDown");
   const move = rootMenu.getByRole("menuitem", { name: "Move", exact: true });
   await expect(move).toBeFocused();
   const moveVisible = await move.evaluate((element) => {
@@ -368,6 +372,140 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   await page.keyboard.press("Escape");
 });
 
+
+test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard or revision", async ({ page, context }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Copy ID ${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("CtxPwd12345!");
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL((url) => /^\/projects\/[0-9a-f-]{36}$/.test(url.pathname));
+
+  const path = new URL(page.url()).pathname;
+  const api = `/api${path}`;
+  const origin = new URL(page.url()).origin;
+  await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin });
+
+  let current = await snapshot(page, api);
+  const taskResult = await createTask(page, api, origin, current.data.project.revision, "Copy ID Task");
+  const summaryResult = await createTask(page, api, origin, taskResult.data.project.revision, "Copy ID Summary");
+  await createTask(page, api, origin, summaryResult.data.project.revision, "Copy ID Milestone");
+  await page.reload();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+
+  let menu = await openTaskMenu(page, "Copy ID Summary");
+  await runSubmenu(page, "Add", "Child task");
+  await expectStructureToast(page);
+  menu = await openTaskMenu(page, "Copy ID Milestone");
+  await runSubmenu(page, "Convert to", "Milestone");
+  await expectStructureToast(page);
+
+  current = await snapshot(page, api);
+  const task = current.data.tasks.find((entry) => entry.name === "Copy ID Task")!;
+  const summary = current.data.tasks.find((entry) => entry.name === "Copy ID Summary")!;
+  const milestone = current.data.tasks.find((entry) => entry.name === "Copy ID Milestone")!;
+  const summaryChild = current.data.tasks.find((entry) => entry.parentExternalId === summary.externalId)!;
+  expect(summary.type).toBe("summary");
+  expect(milestone.type).toBe("milestone");
+
+  const link = await page.request.post(`${api}/links`, {
+    headers: { Origin: origin, "If-Match": `"${current.data.project.revision}"` },
+    data: { predecessorExternalId: task.externalId, successorExternalId: milestone.externalId, type: "FS", lag: 0 },
+  });
+  expect(link.status()).toBe(201);
+
+  await page.reload();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+  const revisionBeforeCopyId = (await snapshot(page, api)).data.project.revision;
+
+  menu = await openTaskMenu(page, "Copy ID Task");
+  await expect(menu.getByRole("menuitem", { name: "Copy ID", exact: true })).toBeEnabled();
+  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await expect(page.getByTestId("workspace-toast")).toContainText("작업 ID를 복사했습니다.");
+  await expectClipboardText(page, task.taskId);
+
+  menu = await openTaskMenu(page, "Copy ID Summary");
+  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await expectClipboardText(page, summary.taskId);
+
+  const milestoneBar = page.locator(`.project-gantt-widget .wx-bar[data-task-id=":${milestone.taskId}"]`);
+  await expect(milestoneBar).toBeVisible();
+  await milestoneBar.click({ button: "right" });
+  menu = page.getByRole("menu", { name: "작업 메뉴", exact: true });
+  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await expectClipboardText(page, milestone.taskId);
+
+  menu = await openTaskMenu(page, "Copy ID Task");
+  await menu.getByRole("menuitem", { name: "Copy", exact: true }).click();
+  menu = await openTaskMenu(page, "Copy ID Milestone");
+  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await expectClipboardText(page, milestone.taskId);
+  menu = await openTaskMenu(page, "Copy ID Milestone");
+  await expect(menu.getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
+  await page.keyboard.press("Escape");
+  expect((await snapshot(page, api)).data.project.revision).toBe(revisionBeforeCopyId);
+
+  await context.clearCookies();
+  await page.reload();
+  await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+  menu = await openTaskMenu(page, "Copy ID Task");
+  await expect(menu.getByRole("menuitem", { name: "Copy", exact: true })).toBeDisabled();
+  await expect(menu.getByRole("menuitem", { name: "Copy ID", exact: true })).toBeEnabled();
+  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await expectClipboardText(page, task.taskId);
+  expect((await snapshot(page, api)).data.project.revision).toBe(revisionBeforeCopyId);
+
+  await page.goto(`${path}?rootTask=${encodeURIComponent(summary.taskId)}`);
+  await expect(row(page, summaryChild.name)).toBeVisible();
+  menu = await openTaskMenu(page, summaryChild.name);
+  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+  await expectClipboardText(page, summaryChild.taskId);
+});
+
+test("Issue #390 Copy ID uses manual fallback when the browser denies clipboard write", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: async () => { throw new DOMException("denied", "NotAllowedError"); } },
+    });
+  });
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Copy ID fallback ${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("CtxPwd12345!");
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL((url) => /^\/projects\/[0-9a-f-]{36}$/.test(url.pathname));
+
+  const path = new URL(page.url()).pathname;
+  const api = `/api${path}`;
+  const origin = new URL(page.url()).origin;
+  const current = await snapshot(page, api);
+  const created = await createTask(page, api, origin, current.data.project.revision, "Fallback ID task");
+  const task = created.data.tasks.find((entry) => entry.name === "Fallback ID task")!;
+
+  await page.reload();
+  const target = row(page, "Fallback ID task");
+  const menu = await openTaskMenu(page, "Fallback ID task");
+  await menu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+
+  const dialog = page.getByRole("dialog", { name: "작업 ID 수동 복사" });
+  await expect(dialog).toBeVisible();
+  await expect(page.getByTestId("workspace-toast")).not.toContainText("작업 ID를 복사했습니다.");
+  const input = dialog.getByLabel("작업 ID", { exact: true });
+  await expect(input).toHaveValue(task.taskId);
+  await input.focus();
+  await expect.poll(() => input.evaluate((element) => {
+    const control = element as HTMLInputElement;
+    return [control.selectionStart, control.selectionEnd, control.value.length];
+  })).toEqual([0, task.taskId.length, task.taskId.length]);
+
+  await dialog.getByRole("button", { name: "복사 다시 시도", exact: true }).click();
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "작업 ID 수동 복사 닫기", exact: true }).click();
+  await expect(target).toBeFocused();
+});
+
 test("Issue #72 Context Menu hierarchy commands persist canonical state without remounting", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -396,7 +534,7 @@ test("Issue #72 Context Menu hierarchy commands persist canonical state without 
   const instance = await frame.getAttribute("data-project-gantt-instance");
 
   let menu = await openTaskMenu(page, "Context B");
-  for (const name of ["Add", "Convert to", "Edit", "Cut", "Copy", "Paste", "Move", "Indent", "Outdent", "Delete"]) {
+  for (const name of ["Add", "Convert to", "Edit", "Copy ID", "Cut", "Copy", "Paste", "Move", "Indent", "Outdent", "Delete"]) {
     await expect(menu.getByRole("menuitem", { name, exact: true })).toBeVisible();
   }
   await expect(menu.getByRole("menuitem", { name: "Paste", exact: true })).toBeDisabled();
@@ -524,6 +662,7 @@ test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/
 
   const linkedMenu = await openTaskMenu(page, "Linked A");
   await expect(linkedMenu.getByRole("menuitem", { name: "Edit", exact: true })).toBeEnabled();
+  await expect(linkedMenu.getByRole("menuitem", { name: "Copy ID", exact: true })).toBeEnabled();
   await expect(linkedMenu.getByRole("menuitem", { name: "Copy", exact: true })).toBeEnabled();
   for (const name of ["Add", "Convert to", "Cut", "Move", "Delete"]) {
     await expect(linkedMenu.getByRole("menuitem", { name, exact: true })).toBeDisabled();

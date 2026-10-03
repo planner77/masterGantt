@@ -1,5 +1,14 @@
 # Test Plan
 
+## Issue #390 작업 Context Menu Copy ID 회귀
+
+- Chromium에서 Grid Task/Summary 및 Chart Milestone의 `Copy ID`가 각 canonical `taskId`를 system clipboard에 기록하는지 확인한다.
+- Dependency endpoint에서도 활성이고, #384 Task `Copy` 후 `Copy ID`를 실행해도 Paste가 계속 활성화되어 application clipboard/selection이 변하지 않는지 검증한다.
+- Copy ID 전후 Project revision 불변, readonly 사용 가능, #373 scoped root child의 정확한 ID를 확인한다.
+- #364 호환 계약을 재사용해 modern Clipboard API 권한 거부 시 legacy로 우회하지 않고 수동 복사 dialog를 제공하며, 정확한 ID·전체 선택·재시도 실패·focus 복원을 확인한다. modern API 부재 시 legacy copy는 공통 helper 회귀가 보호한다.
+- 새 enabled root action의 keyboard traversal을 갱신하며 기존 Context Menu 회귀를 유지한다.
+- API/DB/Scheduling/Security 변경은 없다. 공식 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker`다.
+
 ## Issue #364 — 프로젝트 링크 자동 복사 HTTP 호환 회귀
 
 - Unit: modern Clipboard API 성공 우선, modern API reject 시 legacy 미호출, modern API 부재 시 legacy copy 사용, 두 경로 실패 시 수동 fallback 진입 조건을 검증한다.
