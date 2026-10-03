@@ -68,18 +68,18 @@ CI #1540.1의 shard 3/4는 #384 기능과 무관한 `project-resource-calendar-e
 - 일정 없는 Summary는 #345와 동일하게 `.wx-bar`가 생성되지 않아야 하고 Milestone에는 Summary pseudo body를 적용하지 않는다.
 - API/DB/Scheduling/Calendar/Dependency 변경은 없다. 공식 전체 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
 
-## Issue #373 Summary subtree 새 탭 scoped view
+## Issue #373 / #399 Summary subtree Workspace 범위 탭
 
-- Unit: `task-subtree-scope.test.ts`에서 child가 있는 Summary만 Context Menu 진입 대상인지, root + 모든 depth descendant ID 집합이 ancestor/sibling을 제외하는지, 빈 Summary deep link는 유효한지, missing/non-Summary root를 구분한다. `project-task-adapter.test.ts`는 scoped Summary만 SVAR `parent=0`으로 투영하면서 canonical `parentExternalId`는 변하지 않는지 검증한다.
-- Chromium E2E: 실제 Project에서 root Task를 Summary로 전환할 child를 추가한 뒤 Grid Context Menu의 `최상위로 열기`가 생기고 leaf에는 생기지 않는지 확인한다. 새 탭 URL의 `rootTask`, compact scope 상태/전체 Project 링크, root+child 가시성과 sibling 비가시성, 같은 edit session 상속을 검증한다.
-- Scoped edit / cross-tab: 새 탭 Task Editor에서 child 이름을 저장하면 기존 Task PATCH/revision을 사용하고 subtree scope를 유지한다. 원래 탭은 same-origin revision storage event를 받아 canonical GET으로 최신 이름을 반영하면서 전체 branch의 sibling을 계속 표시한다. 새 탭 reload 뒤에도 scope가 유지되어야 한다.
-- 회귀: scoped view의 검색/필터는 subtree와 AND로 적용되고 초기화가 전체 Project로 확장되지 않아야 한다. hidden ancestor의 `scope=subtree` 설비/시스템 연결도 full hierarchy context에서 effective filter로 상속되어야 한다. Task/Relation Editor에는 전체 canonical tasks/links가 남아 scope 밖 Dependency를 삭제된 것으로 오인하지 않는다. 빈 Summary root 유지, missing/type-changed root 오류, popup 차단 오류는 구현 contract와 unit/component 경계에서 확인한다.
-- Scoped hierarchy boundary: native Grid `+`와 root toolbar add가 비활성/비노출되고, 가상 root의 Above/Below 및 root 직계 child Outdent 등 scope 밖 구조 mutation을 unit/E2E로 거부한다. Context Menu, shortcut, DnD가 같은 scope guard를 우회하지 않아야 한다. `task-move-gateway.test.ts`는 invalid scoped DnD가 `inProgress:true` provisional 단계부터 `false`를 반환하고 dispatch 0회인지 확인한다.
-- Cross-tab burst: 첫 revision의 original-tab GET을 지연한 상태에서 scoped tab에서 두 번째 mutation을 완료하여 N+1 storage event가 in-flight 중 도착하도록 하고, 첫 N snapshot 반영 뒤 자동으로 N+1 canonical GET을 수행해 최종 이름까지 수렴하는지 검증한다.
-- Cross-tab loading: 새 수신 탭의 최초 Project GET을 revision N에 고정한 채 loading 중 scoped tab에서 N+1 mutation을 저장한다. stale N 응답으로 화면이 ready가 된 뒤 pending N+1을 감지해 추가 canonical GET을 수행하고 최종 값으로 수렴하는지 검증한다.
-- 접근성/반응형: 기존 #72 Context Menu keyboard/Escape/focus와 390/768/1024/1440px 메뉴 clipping을 유지한다. scope bar는 긴 Project/Summary 이름에서도 ellipsis/wrap으로 document-level unintended horizontal overflow를 만들지 않는다.
-- API/DB/Scheduling/Security: 새 endpoint/migration/algorithm/auth 모델은 없다. 기존 Project GET, Task/Link mutation, edit session/Origin/strong If-Match/revision/canonical snapshot을 그대로 검증한다.
-- 공식 전체 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다. PR CI 시작 전에는 원격 PASS를 주장하지 않는다.
+- Unit: 기존 `task-subtree-scope.test.ts`의 진입 대상/root+descendant/missing/non-Summary/빈 Summary와 `project-task-adapter.test.ts`의 virtual root `parent=0` 회귀를 유지한다.
+- #399 Chromium: `최상위로 열기 (작업공간 탭)` 실행 후 browser page 수가 증가하지 않고 현재 일정 View에 전체 프로젝트+Summary tab이 생기는지 확인한다. 두 Summary를 열어 중복 방지, active `rootTask`, close fallback, reload bootstrap을 검증한다.
+- Gantt/state: scope 전환 전후 `data-project-gantt-instance` 및 API instance 동일성을 확인하고 full/Summary scope의 search/filter state가 서로 덮어쓰지 않는지 검증한다.
+- Keyboard/반응형: ArrowLeft/Right/Home/End, Summary Delete/close, focus-visible을 검증한다. 390/768/1024/1440px에서 tablist `overflow-y:hidden`, 내부 수평 overflow, document-level overflow 부재를 확인한다.
+- #373 direct deep-link/cross-tab: `?rootTask=` URL을 명시적으로 별도 browser page에 열어 same edit session과 scope를 복원하고 scoped PATCH/revision 뒤 original tab이 storage announcement→canonical GET으로 최신 상태에 수렴하는지 유지한다.
+- burst/loading: in-flight GET 중 N+1 announcement 및 receiver initial loading 중 N+1 mutation의 기존 cross-tab 회귀를 유지한다. 내부 Workspace scope tab 자체는 이 storage roundtrip에 의존하지 않는다.
+- Scope/canonical: subtree AND search/filter, hidden ancestor 물류 inheritance, full canonical Task/Link context, 빈 root 유지, missing/type-changed invalid 복귀, hierarchy Context Menu/shortcut/DnD guard를 유지한다.
+- Popup 회귀: 정상 `최상위로 열기` 경로에서 `window.open`/popup blocker 의존과 “새 탭을 열 수 없습니다” 안내가 없어야 한다.
+- API/DB/Scheduling/Security: 새 endpoint/migration/algorithm/auth 모델 없음. 기존 Project GET, Task/Link mutation, edit session/Origin/strong If-Match/revision/canonical snapshot을 재검증한다.
+- 공식 전체 판정은 동일 PR head GitHub Actions `quality/e2e/docker` 결과를 사용하며 CI 시작 전 PASS를 주장하지 않는다.
 
 ## Issue #378 Subtree Copy 내부 Dependency 회귀
 
