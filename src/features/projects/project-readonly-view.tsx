@@ -44,6 +44,9 @@ type Permission = "readonly" | "edit";
 type PermissionCheckState = "checking" | "complete";
 type PendingTaskDelete = TaskDeletePlan & Readonly<{ revision: number }>;
 const INITIAL_COLUMN_VISIBILITY: ProjectGridColumnVisibility = { text: true, externalId: false, projectStart: true, projectDuration: true, baselineStart: false, baselineEnd: false };
+const ALL_SCOPE_STATE_KEY = "all";
+function scopeStateKey(taskId: string | null): string { return taskId ?? ALL_SCOPE_STATE_KEY; }
+function scopeTabId(taskId: string | null): string { return `project-scope-tab-${taskId ?? "all"}`; }
 
 function isSnapshot(value: unknown): value is ProjectSnapshotResponse {
   if (typeof value !== "object" || value === null || !("data" in value)) return false;
@@ -148,7 +151,7 @@ export function ProjectReadonlyView({ publicId, projectUrl = null, ownerName }: 
 
 function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectViewProps) {
   const searchParams = useSearchParams();
-  const rootTaskId = searchParams.get("rootTask")?.trim() || null;
+  const initialRootTaskId = searchParams.get("rootTask")?.trim() || null;
   const { notify, clearToast } = useWorkspaceNotifications();
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const confirmedSnapshotReference = useRef<ProjectSnapshotResponse | null>(null);
@@ -171,6 +174,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [infoPopoverOpen, setInfoPopoverOpen] = useState(false);
   const [activeView, setActiveView] = useState<"schedule" | "resources" | "logistics">("schedule");
+  const [activeRootTaskId, setActiveRootTaskId] = useState<string | null>(() => initialRootTaskId);
+  const [openScopeTaskIds, setOpenScopeTaskIds] = useState<readonly string[]>(() => initialRootTaskId ? [initialRootTaskId] : []);
   const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
   const [taskFilterOpen, setTaskFilterOpen] = useState(false);
   const [assignedTargets, setAssignedTargets] = useState<AssignmentTargetDto[]>([]);
@@ -198,6 +203,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const scheduleTabReference = useRef<HTMLButtonElement | null>(null);
   const resourceTabReference = useRef<HTMLButtonElement | null>(null);
   const logisticsTabReference = useRef<HTMLButtonElement | null>(null);
+  const scopeTabReferences = useRef(new Map<string, HTMLButtonElement>());
+  const scopeTaskFiltersReference = useRef(new Map<string, TaskFilterState>());
   const actionMenuReference = useRef<HTMLDetailsElement | null>(null);
   const infoPopoverReference = useRef<HTMLDetailsElement | null>(null);
   const taskSearchReference = useRef<HTMLInputElement | null>(null);
@@ -460,23 +467,59 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return () => window.removeEventListener("storage", handleStorage);
   }, [publicId, state.status, applySnapshot, notify]);
 
-  function openTaskAsRoot(taskId: string): void {
+  function syncScopeUrl(taskId: string | null): void {
     const target = new URL(window.location.href);
-    target.search = "";
-    target.hash = "";
-    target.searchParams.set("rootTask", taskId);
-    const opened = window.open("about:blank", "_blank");
-    if (!opened) {
-      notify("error", "새 탭을 열 수 없습니다. 브라우저의 팝업 차단 설정을 확인해 주세요.", "최상위로 열기");
-      return;
-    }
-    try {
-      opened.opener = null;
-      opened.location.replace(target.toString());
-    } catch {
-      opened.close();
-      notify("error", "새 탭으로 Summary 범위를 열지 못했습니다. 다시 시도해 주세요.", "최상위로 열기");
-    }
+    if (taskId) target.searchParams.set("rootTask", taskId);
+    else target.searchParams.delete("rootTask");
+    window.history.replaceState(window.history.state, "", target.toString());
+  }
+
+  function focusScopeTab(taskId: string | null): void {
+    requestAnimationFrame(() => {
+      const tab = scopeTabReferences.current.get(scopeStateKey(taskId));
+      tab?.focus({ preventScroll: true });
+      tab?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+  }
+
+  function activateScope(taskId: string | null, focus = true, rememberCurrent = true): void {
+    if (rememberCurrent) scopeTaskFiltersReference.current.set(scopeStateKey(activeRootTaskId), taskFilter);
+    setTaskFilter(scopeTaskFiltersReference.current.get(scopeStateKey(taskId)) ?? EMPTY_TASK_FILTER);
+    setTaskFilterOpen(false);
+    setActiveRootTaskId(taskId);
+    syncScopeUrl(taskId);
+    if (focus) focusScopeTab(taskId);
+  }
+
+  function closeScopeTab(taskId: string): void {
+    const index = openScopeTaskIds.indexOf(taskId);
+    if (index < 0) return;
+    const nextOpen = openScopeTaskIds.filter((candidate) => candidate !== taskId);
+    setOpenScopeTaskIds(nextOpen);
+    if (activeRootTaskId === taskId) {
+      const fallback = nextOpen[index] ?? nextOpen[index - 1] ?? null;
+      activateScope(fallback, true, false);
+    } else focusScopeTab(activeRootTaskId);
+    scopeTaskFiltersReference.current.delete(scopeStateKey(taskId));
+  }
+
+  function handleScopeTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, current: string | null): void {
+    if (event.key === "Delete" && current !== null) { event.preventDefault(); closeScopeTab(current); return; }
+    const scopes: Array<string | null> = [null, ...openScopeTaskIds];
+    const index = scopes.indexOf(current);
+    let next: string | null | undefined;
+    if (event.key === "ArrowRight") next = scopes[(index + 1) % scopes.length];
+    else if (event.key === "ArrowLeft") next = scopes[(index - 1 + scopes.length) % scopes.length];
+    else if (event.key === "Home") next = scopes[0];
+    else if (event.key === "End") next = scopes[scopes.length - 1];
+    else return;
+    event.preventDefault(); activateScope(next ?? null);
+  }
+
+  function openTaskAsRoot(taskId: string): void {
+    setOpenScopeTaskIds((current) => current.includes(taskId) ? current : [...current, taskId]);
+    setActiveView("schedule");
+    activateScope(taskId);
   }
 
   function conflict(operation: string, body?: unknown) {
@@ -909,7 +952,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
   if (state.status === "error") return <section className="status-page" aria-labelledby="project-load-error-heading"><p className="eyebrow">PROJECT</p><h1 id="project-load-error-heading">프로젝트를 불러올 수 없습니다.</h1><p>네트워크 또는 서버 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="secondary-button" onClick={() => beginRefresh(true)} type="button">다시 시도</button></section>;
   const { project, tasks, links, assignments, logistics } = state.snapshot.data;
-  const subtreeScope = resolveTaskSubtreeScope(tasks, rootTaskId);
+  const subtreeScope = resolveTaskSubtreeScope(tasks, activeRootTaskId);
   const scopedTaskIdSet = subtreeScope.kind === "valid" ? new Set(subtreeScope.taskIds) : null;
   const scopedTasks = subtreeScope.kind === "all"
     ? tasks
@@ -932,6 +975,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask;
+  const scopeTabLabel = (taskId: string): string => {
+    const task = tasks.find((candidate) => candidate.taskId === taskId);
+    if (!task) return "선택한 Summary";
+    return task.type === "summary" ? task.name : `${task.name} · 변경됨`;
+  };
   const closeTaskFilterOnEscape = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Escape" || !taskFilterOpen) return;
     event.preventDefault();
@@ -1043,63 +1091,35 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       </div>
     </header>
 
-    {subtreeScope.kind === "all" ? <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 작업공간">
-      <button
-        ref={scheduleTabReference}
-        id="project-tab-schedule"
-        role="tab"
-        type="button"
-        aria-controls="project-panel-schedule"
-        aria-selected={activeView === "schedule"}
-        tabIndex={activeView === "schedule" ? 0 : -1}
-        onClick={() => setActiveView("schedule")}
-        onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "schedule")}
-      >일정</button>
-      <button
-        ref={resourceTabReference}
-        id="project-tab-resources"
-        role="tab"
-        type="button"
-        aria-controls="project-panel-resources"
-        aria-selected={activeView === "resources"}
-        tabIndex={activeView === "resources" ? 0 : -1}
-        onClick={() => setActiveView("resources")}
-        onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "resources")}
-      >리소스</button>
-      <button
-        ref={logisticsTabReference}
-        id="project-tab-logistics"
-        role="tab"
-        type="button"
-        aria-controls="project-panel-logistics"
-        aria-selected={activeView === "logistics"}
-        tabIndex={activeView === "logistics" ? 0 : -1}
-        onClick={() => setActiveView("logistics")}
-        onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "logistics")}
-      >물류 구성</button>
-    </div> : <div className="project-subtree-scope-bar" aria-label="하위 WBS 범위">
-      <div className="project-subtree-scope-copy">
-        <span className="project-subtree-scope-label">하위 범위 보기</span>
-        <strong title={subtreeScope.kind === "valid" ? subtreeScope.root.name : undefined}>
-          {subtreeScope.kind === "valid"
-            ? subtreeScope.root.name
-            : subtreeScope.kind === "not-summary"
-              ? `${subtreeScope.root.name} · Summary가 아님`
-              : "선택한 Summary를 찾을 수 없음"}
-        </strong>
-      </div>
-      <a className="secondary-button project-subtree-scope-link" href={`/projects/${encodeURIComponent(publicId)}`}>전체 프로젝트 보기</a>
-    </div>}
-
+    <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 작업공간">
+      <button ref={scheduleTabReference} id="project-tab-schedule" role="tab" type="button" aria-controls="project-panel-schedule" aria-selected={activeView === "schedule"} tabIndex={activeView === "schedule" ? 0 : -1} onClick={() => activateWorkspaceView("schedule")} onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "schedule")}>일정</button>
+      <button ref={resourceTabReference} id="project-tab-resources" role="tab" type="button" aria-controls="project-panel-resources" aria-selected={activeView === "resources"} tabIndex={activeView === "resources" ? 0 : -1} onClick={() => activateWorkspaceView("resources")} onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "resources")}>리소스</button>
+      <button ref={logisticsTabReference} id="project-tab-logistics" role="tab" type="button" aria-controls="project-panel-logistics" aria-selected={activeView === "logistics"} tabIndex={activeView === "logistics" ? 0 : -1} onClick={() => activateWorkspaceView("logistics")} onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "logistics")}>물류 구성</button>
+    </div>
     <div className="project-workspace-panels">
       <section
         id="project-panel-schedule"
-        role={subtreeScope.kind === "all" ? "tabpanel" : "region"}
-        aria-labelledby={subtreeScope.kind === "all" ? "project-tab-schedule" : "schedule-heading"}
-        hidden={subtreeScope.kind === "all" ? activeView !== "schedule" : false}
+        role="tabpanel"
+        aria-labelledby="project-tab-schedule"
+        hidden={activeView !== "schedule"}
         aria-busy={isSavingTask || undefined}
         className="project-schedule project-workspace-panel"
       >
+        <div className="project-scope-tabs" role="tablist" aria-label="WBS 범위 탭">
+          <div className="project-scope-tab-item" role="presentation">
+            <button className="project-scope-tab" id={scopeTabId(null)} role="tab" type="button" aria-controls="project-scope-panel" aria-selected={activeRootTaskId === null} tabIndex={activeRootTaskId === null ? 0 : -1} ref={(node) => { if (node) scopeTabReferences.current.set(scopeStateKey(null), node); else scopeTabReferences.current.delete(scopeStateKey(null)); }} onClick={() => activateScope(null)} onKeyDown={(event) => handleScopeTabKeyDown(event, null)}><span className="project-scope-tab-label">전체 프로젝트</span></button>
+          </div>
+          {openScopeTaskIds.map((taskId) => {
+            const label = scopeTabLabel(taskId);
+            const task = tasks.find((candidate) => candidate.taskId === taskId);
+            const invalid = !task || task.type !== "summary";
+            return <div className="project-scope-tab-item" data-invalid={invalid || undefined} key={taskId} role="presentation">
+              <button className="project-scope-tab" id={scopeTabId(taskId)} role="tab" type="button" aria-controls="project-scope-panel" aria-label={label} aria-selected={activeRootTaskId === taskId} tabIndex={activeRootTaskId === taskId ? 0 : -1} title={label} ref={(node) => { if (node) scopeTabReferences.current.set(scopeStateKey(taskId), node); else scopeTabReferences.current.delete(scopeStateKey(taskId)); }} onClick={() => activateScope(taskId)} onKeyDown={(event) => handleScopeTabKeyDown(event, taskId)}><span className="project-scope-tab-label">{label}</span></button>
+              <button className="project-scope-tab-close" type="button" aria-label={`${label} 범위 탭 닫기`} title={`${label} 범위 탭 닫기`} onClick={() => closeScopeTab(taskId)}>×</button>
+            </div>;
+          })}
+        </div>
+        <div className="project-scope-panel" id="project-scope-panel" role="tabpanel" aria-labelledby={scopeTabId(activeRootTaskId)}>
         <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{scopedTasks.length === 0 ? "표시할 작업이 없습니다." : scopedTasks.every((task) => task.start === null) ? "일정이 있는 하위 작업이 없습니다." : "작업 일정을 확인하고 관리합니다."}</p></div>
           {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}</div>
         <div className="project-filter-toolbar project-schedule-filter-toolbar" role="toolbar" aria-label="작업 검색과 필터" onKeyDown={closeTaskFilterOnEscape}>
@@ -1291,7 +1311,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           {subtreeScope.kind === "not-summary"
             ? "선택한 작업이 더 이상 Summary가 아닙니다."
             : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
-          <a href={`/projects/${encodeURIComponent(publicId)}`}>전체 프로젝트로 돌아가기</a>
+          <button className="secondary-button project-scope-recovery-button" type="button" onClick={() => activateScope(null)}>전체 프로젝트로 돌아가기</button>
         </div> : <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
@@ -1319,12 +1339,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             tasks={tasks}
           />
         ) : null}
+        </div>
       </section>
       <section
         id="project-panel-resources"
         role="tabpanel"
         aria-labelledby="project-tab-resources"
-        hidden={subtreeScope.kind !== "all" || activeView !== "resources"}
+        hidden={activeView !== "resources"}
         className="project-workspace-panel project-resource-panel"
       >
         <ProjectResourceWorkload publicId={publicId} />
@@ -1333,7 +1354,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         id="project-panel-logistics"
         role="tabpanel"
         aria-labelledby="project-tab-logistics"
-        hidden={subtreeScope.kind !== "all" || activeView !== "logistics"}
+        hidden={activeView !== "logistics"}
         className="project-workspace-panel project-logistics-panel"
       >
         <ProjectLogisticsManagement
@@ -1348,6 +1369,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           }}
           onRequireRefresh={() => { void reloadCanonicalSnapshot(); }}
           onNavigateToSchedule={(targetFilter) => {
+            activateScope(null, false);
             setActiveView("schedule");
             if (targetFilter) {
               setTaskFilter((prev) => ({ ...prev, ...targetFilter }));
