@@ -98,3 +98,8 @@ masterGantt의 실제 구현 경계는 다음과 같다.
 ## Issue #258 — 관계 연결 Task 편집
 
 Core 2.7.3의 공개 Grid text editor·Chart move/resize·update-task interaction을 보호된 Task PATCH로 연결한다. 요청 시작일과 적용 일정의 구분, Baseline effective schedule 복사, 전체 successor 재계산·Summary 파생은 자체 domain/server 구현이다. SVAR PRO `schedule`/working calendar/auto-scheduling은 활성화하지 않는다. 구조 명령의 linked 보호는 확대하지 않는다.
+
+## Issue #299 Chart 수직 Drag & Drop
+
+same-parent Chart reorder는 SVAR PRO에 의존하지 않는다. Core 2.7.3의 공개 `drag-task(top)` feedback과 masterGantt의 protected hierarchy command를 연결하며, 별도 PRO package·비공개 구현·cross-parent implicit reparent는 사용하지 않는다.
+
