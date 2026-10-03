@@ -38,6 +38,10 @@ import {
   type GanttWeekHeaderTooltipData,
 } from "./week-header-tooltip";
 
+import { copyTextWithLegacyCommand, writeTextWithCompatibility } from "@/components/clipboard-write";
+import { WorkspaceDialog } from "@/components/workspace-dialog";
+import feedbackStyles from "@/components/workspace-feedback.module.css";
+import { useWorkspaceNotifications } from "@/components/workspace-notifications";
 import type {
   ProjectCalendarDto,
   ProjectLinkDto,
@@ -257,6 +261,7 @@ export function ProjectGantt({
   viewRootTaskId = null,
   projectPublicId,
 }: ProjectGanttProps) {
+  const { notify } = useWorkspaceNotifications();
   const apiReference = useRef<IApi | null>(null);
   const onTaskCreateReference = useRef(onTaskCreate);
   const onTaskCommandReference = useRef(onTaskCommand);
@@ -329,6 +334,7 @@ export function ProjectGantt({
   const [taskSubmenu, setTaskSubmenu] = useState<TaskSubmenuState | null>(null);
   const [relationMenu, setRelationMenu] = useState<{ linkId: string; left: number; top: number } | null>(null);
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
+  const [copyTaskIdFallback, setCopyTaskIdFallback] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<readonly string[]>([]);
   const selectedTaskIdsReference = useRef<readonly string[]>([]);
   const selectionAnchorReference = useRef<string | null>(null);
@@ -1546,6 +1552,35 @@ export function ProjectGantt({
     onTaskOpenAsRoot(taskId);
   }
 
+  async function writeTaskIdToClipboard(taskId: string): Promise<boolean> {
+    try {
+      const modernWrite = window.isSecureContext && navigator.clipboard?.writeText
+        ? navigator.clipboard.writeText.bind(navigator.clipboard)
+        : undefined;
+      await writeTextWithCompatibility(taskId, modernWrite, copyTextWithLegacyCommand);
+      notify("success", "작업 ID를 복사했습니다.", "작업 ID 복사");
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function copyTaskIdFromMenu() {
+    if (!taskMenu) return;
+    const taskId = taskMenu.taskId;
+    closeTaskMenu();
+    if (!tasksByIdReference.current.has(taskId)) {
+      notify("error", "선택한 작업을 찾을 수 없습니다. 최신 정보를 다시 확인해 주세요.", "작업 ID 복사");
+      return;
+    }
+    if (!(await writeTaskIdToClipboard(taskId))) setCopyTaskIdFallback(taskId);
+  }
+
+  async function retryCopyTaskId() {
+    if (!copyTaskIdFallback) return;
+    if (await writeTaskIdToClipboard(copyTaskIdFallback)) setCopyTaskIdFallback(null);
+  }
+
   function requestTaskDeleteFromMenu() {
     if (!taskMenu) return;
     const taskId = taskMenu.taskId;
@@ -2360,6 +2395,9 @@ export function ProjectGantt({
           {canOpenAsRoot ? <button aria-label="최상위로 열기 (새 탭)" onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">↗</span><span>최상위로 열기</span>
           </button> : null}
+          <button aria-label="Copy ID" onClick={() => void copyTaskIdFromMenu()} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">#</span><span>Copy ID</span>
+          </button>
           <div className="project-task-context-menu-separator" role="separator" />
           <button aria-label="Cut" disabled={!canCut} onClick={() => storeClipboard("cut")} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">✂</span><span>Cut</span><kbd>Ctrl+X</kbd>
@@ -2399,6 +2437,12 @@ export function ProjectGantt({
           >{submenuCommands}</div> : null}
           </>}
         </div> : null}
+        {copyTaskIdFallback ? <WorkspaceDialog title="작업 ID 수동 복사" onClose={() => setCopyTaskIdFallback(null)}>
+          <p>자동 복사를 사용할 수 없습니다. 아래 작업 ID를 선택해 수동으로 복사해 주세요.</p>
+          <input aria-label="작업 ID" className={feedbackStyles.copyValue} readOnly value={copyTaskIdFallback}
+            onFocus={(event) => event.currentTarget.select()} />
+          <button className="secondary-button" type="button" onClick={() => void retryCopyTaskId()}>복사 다시 시도</button>
+        </WorkspaceDialog> : null}
         {relationMenu ? (
           <RelationContextMenu
             key={relationMenu.linkId}

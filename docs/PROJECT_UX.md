@@ -1,5 +1,13 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #390 작업 ID 복사
+
+Grid 행과 Chart Task Bar의 작업 Context Menu에는 `Copy ID`를 조회성 utility action으로 제공한다. 복사 값은 canonical `ProjectTaskDto.taskId`이며 `externalId`는 이번 기능의 복사 대상이 아니다. Task, Summary, Milestone과 Dependency 연결 여부에 관계없이 표시하고 서버 mutation이 아니므로 readonly 및 mutation lock 상태에서도 사용할 수 있다.
+
+`Copy ID`는 Task 자체를 복제하는 기존 단일/다중 `Copy`와 다른 기능이다. OS clipboard에 ID 문자열만 기록하며 application-level `TaskClipboard`의 mode/taskIds/revision과 선택 집합을 변경하지 않는다. 따라서 Task 선택/Copy 후 `Copy ID`를 사용해도 기존 Paste 대상이 유지되어야 하며 Project revision과 서버 데이터는 변경하지 않는다.
+
+Clipboard 쓰기는 #364의 공통 호환 경로를 재사용한다. secure context에서 modern Clipboard API가 있으면 그 결과를 존중하고, modern API가 없는 HTTP/비보안 환경에서는 legacy copy를 시도한다. modern API가 명시적으로 권한 거부하거나 모든 자동 복사 경로가 실패하면 성공으로 처리하지 않고 수동 복사 Dialog와 재시도를 제공한다. 실제 쓰기 성공 뒤에만 Workspace notification을 표시한다.
+
 ## Issue #384 — 다중 선택 Copy/Paste
 
 공개 Core Grid의 별도 56px 선택 열에 native checkbox를 제공해 이름 셀의 tree toggle·inline editor를 유지한다. 앱의 Project-scoped 선택 집합이 Copy 기준이다. 일반 행 클릭은 단일 선택, Ctrl/Cmd 클릭은 추가/해제, Shift는 같은 parent의 보이는 sibling 중 실제 filter match 범위이며 문맥용 ancestor는 자동 포함하지 않는다. 문맥용 Summary를 명시적으로 선택하는 기존 Copy는 유지한다. Checkbox 클릭·Space는 toggle, Shift checkbox도 range다. 범위가 유효하지 않으면 단일 선택과 이유를 표시한다. 선택 개수와 접힌 하위 숨김 수를 표시하고 checked·행 aria-selected·semantic token을 사용한다.

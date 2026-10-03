@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.71.0] - 2026-10-03
+
+### Added
+
+- Issue #390: Grid/Chart 작업 Context Menu에 `Copy ID`를 추가해 Task/Summary/Milestone의 canonical `taskId`를 OS clipboard에 복사한다.
+
+### Changed
+
+- readonly·mutation lock·Dependency 연결 여부와 무관한 조회성 action으로 동작하며 #384의 Task Copy/Paste clipboard·선택 집합과 Project revision을 변경하지 않는다.
+- #364의 공통 clipboard compatibility를 재사용하고, modern 권한 거부 또는 자동 복사 최종 실패 시 수동 복사 Dialog를 제공한다.
+- CI #1536.1의 E2E URL 정규식 parse 오류를 제거하고 latest main 기준 회귀를 다시 검증한다.
+- Application version을 `0.70.2`에서 `0.71.0`으로 증가한다.
+
+
 ## [0.70.2] - 2026-10-03
 
 ### Fixed
