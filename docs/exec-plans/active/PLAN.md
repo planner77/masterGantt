@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #370 Grid 시작일 Date Picker — #335 이후 최신 main 재정렬 / PR CI
+
+최신 main `fa57ba77fd632fa530ca2c27091a072536a67172` / `0.75.0`의 #335 linked-subtree sibling reorder 계약을 보존하면서 [Issue #370 실행 계획](ISSUE_370.md)의 Grid 시작일 quick-edit만 재적용한다. 후보 version은 `0.76.0`; 이번 종료점은 새 PR CI 시작 확인이다.
+
 ## Issue #335 관계 연결 작업 sibling reorder — 최신 main 재정렬 / PR CI 재시작
 
 최신 main `5101a4a701dd7dbbeb3091696c0c670c667cb840` / `0.74.0`의 #303 Task status/progress와 #399 Workspace WBS 범위 탭을 보존하면서 Dependency가 연결된 Task/subtree의 **same-parent sibling reorder**만 허용한다. Run #1614.1에서 신규 #335 E2E는 PASS했으나 기존 #116 Move submenu와 #104/#378 linked Move 기대값 회귀가 실패해 상위 Move trigger를 기존 UX와 action-specific capability의 합성 조건으로 보완한다. 후보 version은 다음 MINOR `0.75.0`이며 상세는 [Issue #335 실행 계획](ISSUE_335.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 새 PR CI 시작 확인이다.
