@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #416 Week Header 근무 가능 일수 상시 표시 — 구현·문서 동기화 / PR CI
+
+최신 main `c005e05718fbca8c48973d7006c20cd4f905c6f6` / application `0.77.0`의 #299 Chart DnD와 #316 Project Calendar `workingDays`/Week Tooltip lifecycle을 함께 보존하면서 기존 ISO `Wxx` 및 68px 폭 안에 `N일` secondary label을 상시 표시한다. 어느 요일/공휴일인지의 상세는 기존 Tooltip에 남기고 Scheduling/API/DB/Gantt instance 계약은 변경하지 않는다. 후보 version은 MINOR `0.78.0`, branch는 `feat/issue-416-week-working-days`이며 상세는 [Issue #416 실행 계획](ISSUE_416.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 PR 생성과 exact head PR CI 시작 확인이며 merge/main CI/GHCR/정식 release/Issue 종료는 범위 밖이다.
+
 ## Issue #407 Workspace 범위 탭 subtree 내부 작업 추가 회귀 — latest main 0.76.0 재정렬 / PR CI
 
 최신 main `da0f39a4dde363bd84ad2e938089c40d2dd9e29a` / application `0.76.0`의 #370 Grid 시작일 Date Picker, #335 linked sibling reorder, #303 status/progress 및 #399 single-ProjectGantt scope tab 계약을 보존한다. scoped view 자체를 add 금지 신호로 쓰지 않고 native Grid 행 `+`의 target이 현재 subtree 안에 남는지 pure guard로 판정한다. root/descendant child와 일반 Task first-child Summary 전환은 허용하고 header/root-level, scope 밖 parent, Milestone 및 기존 hierarchy escape는 차단한다. 후보 version은 PATCH `0.76.1`, branch는 `fix/issue-407-scoped-task-add`이며 상세는 [Issue #407 실행 계획](ISSUE_407.md)을 따른다. 이전 head PR CI #1638.1은 전체 PASS했고, 최신 main 재정렬 head에서 새 전체 PR CI를 다시 통과한 뒤 승인 marker→merge→main CI→generic release finalizer 순으로 진행한다.
