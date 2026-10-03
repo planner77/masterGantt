@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { copyTextWithLegacyCommand, writeTextWithCompatibility } from "./clipboard-write";
 import { WorkspaceDialog } from "./workspace-dialog";
 import { useWorkspaceNotifications } from "./workspace-notifications";
 import styles from "./workspace-feedback.module.css";
@@ -26,8 +27,10 @@ export function ProjectLinkButton({ projectName, projectUrl, className, role, ta
     }
     pending.current = true;
     try {
-      if (!navigator.clipboard?.writeText) throw new Error("Clipboard unavailable");
-      await navigator.clipboard.writeText(projectUrl);
+      const modernWrite = window.isSecureContext && navigator.clipboard?.writeText
+        ? navigator.clipboard.writeText.bind(navigator.clipboard)
+        : undefined;
+      await writeTextWithCompatibility(projectUrl, modernWrite, copyTextWithLegacyCommand);
       setFallback(false);
       notify("success", "프로젝트 링크를 복사했습니다.", "프로젝트 링크 복사");
       onActionComplete?.();

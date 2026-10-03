@@ -185,11 +185,11 @@ Project 생성 API/DB, 기준정보 catalog, Owner 의미, password/session/Orig
 
 공용 `buildProjectShareUrl`은 신뢰한 배포 설정을 기존 `parseApplicationBaseUrl`로 검사하고 허용한 publicId만 결합한다. 서버 페이지는 완성 URL 또는 null만 client에 전달한다. 요청 Host/forwarded header, `window.location.href`, 이름, query/hash와 비밀값을 URL 생성 입력으로 사용하지 않는다. 잘못되거나 없는 APP_BASE_URL은 임의의 origin으로 대체하지 않는다. 끝 슬래시·스킴·포트·subpath 정책은 기존 설정 검증을 그대로 따른다.
 
-복사는 명시적인 사용자 클릭 뒤 `navigator.clipboard.writeText`가 성공한 경우에만 성공 안내를 낸다. 거부·미지원이면 읽기 전용 URL과 수동 복사 안내, 다시 시도 버튼이 있는 모달을 연다. 앱은 clipboard 읽기 권한을 요청하지 않는다. 알림 복사도 사용자 클릭으로만 실행하며 선택 가능한 읽기 전용 텍스트를 항상 제공한다.
+복사는 명시적인 사용자 클릭 안에서 수행한다. secure context에서 `navigator.clipboard.writeText`가 제공되면 이를 우선 사용하고, 해당 API가 없거나 insecure HTTP여서 사용할 수 없을 때에만 같은 click activation 안에서 `document.execCommand("copy")` legacy 호환 경로를 시도한다. modern Clipboard API가 존재하지만 권한 거부/reject된 경우에는 legacy 명령으로 우회하지 않는다. 실제 복사가 확인된 경우에만 성공 안내를 내며, 두 자동 복사 경로가 모두 불가능하거나 modern API가 거부되면 읽기 전용 URL과 수동 복사 안내, 다시 시도 버튼이 있는 모달을 연다. 앱은 clipboard 읽기 권한을 요청하지 않는다. 알림 복사는 기존 정책대로 사용자 클릭으로만 실행하며 선택 가능한 읽기 전용 텍스트를 항상 제공한다.
 
 알림에는 코드에 정의된 안전한 메시지, locale 발생 시각, 작업 종류, 프로젝트 publicId 범위만 사용한다. 서버 메타데이터는 허용한 error code 및 UUID 형식 requestId만 포함한다. 서버가 제공하지 않은 코드를 만들어 넣지 않는다. 원문 응답·예외 message·stack·SQL·Password/PAT/Cookie/Session은 표시/복사하지 않는다.
 
-HTTP 사내 주소에서는 브라우저의 secure-context 정책에 따라 자동 clipboard 쓰기를 사용할 수 없을 수 있다. 수동 복사는 이 경우의 정상적인 지원 경로다. localhost는 링크를 여는 장치 자신을 가리키므로 다른 장치에 공유할 배포 주소로 사용할 수 없다. 이 기능은 HTTPS/HTTP 운영 지원, 인터넷 공개, 방화벽·네트워크 접근권한 또는 subpath 배포를 새로 추가하지 않는다.
+HTTP 사내 주소에서는 브라우저의 secure-context 정책에 따라 modern Clipboard API를 사용할 수 없을 수 있다. 이 경우 같은 사용자 동작 안에서 legacy copy 호환 경로를 먼저 시도하고, 브라우저가 이를 지원하지 않으면 수동 복사를 정상 지원 경로로 사용한다. modern API의 명시적 권한 거부는 legacy로 우회하지 않는다. localhost는 링크를 여는 장치 자신을 가리키므로 다른 장치에 공유할 배포 주소로 사용할 수 없다. 이 기능은 HTTPS/HTTP 운영 지원, 인터넷 공개, 방화벽·네트워크 접근권한 또는 subpath 배포를 새로 추가하지 않는다.
 
 ## 보충 테스트 계획과 추적
 
@@ -202,7 +202,7 @@ HTTP 사내 주소에서는 브라우저의 secure-context 정책에 따라 자�
 | 실제 Chromium clipboard 쓰기, 목록/상세 일치, 비밀번호 오입력 후 DELETE 0회, 정상 DELETE 1회, 삭제 후 404 | `tests/e2e/project-create-and-read.spec.ts` |
 | 서로 다른 두 프로젝트의 실제 링크 구분, rename 이후 링크 유지, 복사 시 mutation/revision 불변, 취소 후 비밀번호 삭제, 같은 세션 새 탭/새 세션 직접 Readonly | `tests/e2e/project-links-persistence.spec.ts` |
 | 5초 Toast, 오류 직후 성공에도 오류 보존, 미확인/읽음, Gantt DOM·geometry·scroll, 프로젝트 격리, 390px 화면 | `tests/e2e/project-notifications.spec.ts` |
-| Clipboard 거부/미지원·재시도·수동 복사와 키보드/focus | 같은 notification spec. 거부·복구 분기는 mock, 실제 쓰기는 위 persistence spec과 구분 |
+| Clipboard API 없음/insecure HTTP의 legacy 자동 복사, modern 권한 거부 시 legacy 우회 금지·수동 복사·재시도와 키보드/focus | 같은 notification spec. 호환/거부·복구 분기는 mock, 실제 modern 쓰기는 위 persistence spec과 구분 |
 | 모달 top layer 안의 오류 안내와 닫은 뒤 알림함 보존 | `tests/e2e/project-modal-feedback.spec.ts` |
 | 팝업 없는 첫 하위 추가·지연/연속/중복 추가, 401/412/검증/500/network/canonical 복구 | `tests/e2e/project-gantt-stability.spec.ts` |
 | 실제 DB 지속성·부모 집계·편집기 초안·권한·날짜·레이아웃 | 기존 task-persistence, task-editor*, edit-authorization, workspace-layout spec |

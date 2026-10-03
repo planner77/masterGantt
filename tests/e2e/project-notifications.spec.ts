@@ -79,46 +79,91 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   await expect(page.getByRole("dialog")).toContainText("확인할 오류가 없습니다");
 });
 
-for (const mode of ["missing", "denied"] as const) {
-  test(`읽기 전용 프로젝트 링크 ${mode} fallback과 키보드 재시도는 navigation·mutation 없이 동작한다`, async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    const fixture = await installStatefulProjectFixture(page); fixture.sessionEditable = false;
-    await page.addInitScript((clipboardMode) => Object.defineProperty(navigator, "clipboard", { configurable: true,
-      value: clipboardMode === "missing" ? undefined : { writeText: async () => { throw new DOMException("Denied", "NotAllowedError"); } },
-    }), mode);
-    await page.goto(`/projects/${publicId}?temporary=discard#view`);
-    await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
-    const identity = await rememberGanttRoot(page); const before = await geometry(page);
-    const urlBefore = page.url(); const mutations: string[] = []; const documents: string[] = [];
-    page.on("request", (request) => {
-      if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.method());
-      if (request.resourceType() === "document") documents.push(request.url());
+test("Clipboard API가 없는 HTTP 호환 환경은 같은 사용자 동작에서 legacy 자동 복사한다", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const fixture = await installStatefulProjectFixture(page); fixture.sessionEditable = false;
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: undefined });
+    Object.defineProperty(Document.prototype, "execCommand", {
+      configurable: true,
+      value(this: Document, commandId: string) {
+        if (commandId.toLowerCase() !== "copy") return false;
+        const active = this.activeElement;
+        (window as typeof window & { legacyCopiedUrl?: string }).legacyCopiedUrl =
+          active instanceof HTMLTextAreaElement ? active.value : "";
+        return true;
+      },
     });
-    const button = page.getByRole("button", { name: `${fixture.project.name} 프로젝트 링크 복사`, exact: true });
-    await button.focus(); await page.keyboard.press("Enter");
-    const dialog = page.getByRole("dialog", { name: "프로젝트 링크 수동 복사" });
-    await expect(dialog).toBeVisible();
-    const expected = `${new URL(urlBefore).origin}/projects/${publicId}`;
-    await expect(dialog.getByLabel("프로젝트 바로 가기 URL")).toHaveValue(expected);
-    await expect(page.getByTestId("workspace-toast")).not.toContainText("복사했습니다");
-    const box = await dialog.boundingBox(); expect(box).not.toBeNull();
-    expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.x + box!.width).toBeLessThanOrEqual(390);
-    expect(box!.y).toBeGreaterThanOrEqual(0); expect(box!.y + box!.height).toBeLessThanOrEqual(844);
-    expect(await geometry(page)).toEqual(before); await expectSameGanttRoot(page, identity);
-    await page.keyboard.press("Escape"); await expect(button).toBeFocused();
-    await button.click(); await expect(dialog).toBeVisible();
-    await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: {
-      writeText: async (text: string) => { (window as typeof window & { copiedUrl?: string }).copiedUrl = text; },
-    } }));
-    await dialog.getByRole("button", { name: "복사 다시 시도" }).click();
-    await expect(dialog).toHaveCount(0);
-    await expect(page.getByTestId("workspace-toast")).toContainText("프로젝트 링크를 복사했습니다");
-    expect(await page.evaluate(() => (window as typeof window & { copiedUrl?: string }).copiedUrl)).toBe(expected);
-    expect(page.url()).toBe(urlBefore); expect(mutations).toEqual([]); expect(documents).toEqual([]);
-    expect(await geometry(page)).toEqual(before); await expectSameGanttRoot(page, identity);
-    await expect(button).toBeFocused();
   });
-}
+  await page.goto(`/projects/${publicId}?temporary=discard#view`);
+  await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+  const identity = await rememberGanttRoot(page); const before = await geometry(page);
+  const urlBefore = page.url(); const mutations: string[] = []; const documents: string[] = [];
+  page.on("request", (request) => {
+    if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.method());
+    if (request.resourceType() === "document") documents.push(request.url());
+  });
+  const button = page.getByRole("button", { name: `${fixture.project.name} 프로젝트 링크 복사`, exact: true });
+  const expected = `${new URL(urlBefore).origin}/projects/${publicId}`;
+  await button.focus(); await page.keyboard.press("Enter");
+  await expect(page.getByTestId("workspace-toast")).toContainText("프로젝트 링크를 복사했습니다");
+  await expect(page.getByRole("dialog", { name: "프로젝트 링크 수동 복사" })).toHaveCount(0);
+  expect(await page.evaluate(() => (window as typeof window & { legacyCopiedUrl?: string }).legacyCopiedUrl)).toBe(expected);
+  expect(page.url()).toBe(urlBefore); expect(mutations).toEqual([]); expect(documents).toEqual([]);
+  expect(await geometry(page)).toEqual(before); await expectSameGanttRoot(page, identity);
+  await expect(button).toBeFocused();
+});
+
+test("Clipboard API 권한 거부는 legacy로 우회하지 않고 수동 fallback과 재시도를 제공한다", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const fixture = await installStatefulProjectFixture(page); fixture.sessionEditable = false;
+  await page.addInitScript(() => {
+    (window as typeof window & { legacyAttempts?: number }).legacyAttempts = 0;
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: {
+      writeText: async () => { throw new DOMException("Denied", "NotAllowedError"); },
+    } });
+    Object.defineProperty(Document.prototype, "execCommand", {
+      configurable: true,
+      value() {
+        (window as typeof window & { legacyAttempts?: number }).legacyAttempts =
+          ((window as typeof window & { legacyAttempts?: number }).legacyAttempts ?? 0) + 1;
+        return true;
+      },
+    });
+  });
+  await page.goto(`/projects/${publicId}?temporary=discard#view`);
+  await expect(page.getByText("읽기 전용", { exact: true })).toBeVisible();
+  const identity = await rememberGanttRoot(page); const before = await geometry(page);
+  const urlBefore = page.url(); const mutations: string[] = []; const documents: string[] = [];
+  page.on("request", (request) => {
+    if (!["GET", "HEAD"].includes(request.method())) mutations.push(request.method());
+    if (request.resourceType() === "document") documents.push(request.url());
+  });
+  const button = page.getByRole("button", { name: `${fixture.project.name} 프로젝트 링크 복사`, exact: true });
+  await button.focus(); await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "프로젝트 링크 수동 복사" });
+  await expect(dialog).toBeVisible();
+  const expected = `${new URL(urlBefore).origin}/projects/${publicId}`;
+  await expect(dialog.getByLabel("프로젝트 바로 가기 URL")).toHaveValue(expected);
+  await expect(page.getByTestId("workspace-toast")).not.toContainText("복사했습니다");
+  expect(await page.evaluate(() => (window as typeof window & { legacyAttempts?: number }).legacyAttempts)).toBe(0);
+  const box = await dialog.boundingBox(); expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+  expect(box!.y).toBeGreaterThanOrEqual(0); expect(box!.y + box!.height).toBeLessThanOrEqual(844);
+  expect(await geometry(page)).toEqual(before); await expectSameGanttRoot(page, identity);
+  await page.keyboard.press("Escape"); await expect(button).toBeFocused();
+  await button.click(); await expect(dialog).toBeVisible();
+  await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: {
+    writeText: async (text: string) => { (window as typeof window & { copiedUrl?: string }).copiedUrl = text; },
+  } }));
+  await dialog.getByRole("button", { name: "복사 다시 시도" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByTestId("workspace-toast")).toContainText("프로젝트 링크를 복사했습니다");
+  expect(await page.evaluate(() => (window as typeof window & { copiedUrl?: string }).copiedUrl)).toBe(expected);
+  expect(page.url()).toBe(urlBefore); expect(mutations).toEqual([]); expect(documents).toEqual([]);
+  expect(await geometry(page)).toEqual(before); await expectSameGanttRoot(page, identity);
+  await expect(button).toBeFocused();
+});
 
 test("좁은 화면의 여러 오류 알림은 내부 스크롤로 확인하고 원문 서버 응답을 노출하지 않는다", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
