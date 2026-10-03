@@ -51,6 +51,19 @@ export function resolveTaskSubtreeScope(
 }
 
 
+function taskCreatePlacementStaysInSubtree(
+  tasks: readonly ProjectTaskDto[],
+  rootTaskId: string | null,
+  anchorTaskId: string,
+  placement: "before" | "after" | "child",
+): boolean {
+  if (!rootTaskId) return true;
+  const scope = resolveTaskSubtreeScope(tasks, rootTaskId);
+  return scope.kind === "valid" &&
+    scope.taskIds.includes(anchorTaskId) &&
+    !(anchorTaskId === rootTaskId && placement !== "child");
+}
+
 export function canAddTaskWithinSubtree(
   tasks: readonly ProjectTaskDto[],
   rootTaskId: string | null,
@@ -65,10 +78,7 @@ export function canAddTaskWithinSubtree(
 
   const target = tasks.find((task) => task.taskId === targetTaskId);
   if (!target || target.type === "milestone") return false;
-  if (!rootTaskId) return true;
-
-  const scope = resolveTaskSubtreeScope(tasks, rootTaskId);
-  return scope.kind === "valid" && scope.taskIds.includes(targetTaskId);
+  return taskCreatePlacementStaysInSubtree(tasks, rootTaskId, targetTaskId, "child");
 }
 
 
@@ -87,8 +97,12 @@ export function taskHierarchyCommandStaysInSubtree(
 
   switch (command.kind) {
     case "create":
-      return taskIds.has(command.anchorTaskId) &&
-        !(command.anchorTaskId === rootTaskId && command.placement !== "child");
+      return taskCreatePlacementStaysInSubtree(
+        tasks,
+        rootTaskId,
+        command.anchorTaskId,
+        command.placement,
+      );
     case "convert":
       return taskIds.has(command.taskId);
     case "move":
