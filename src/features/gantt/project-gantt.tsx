@@ -329,6 +329,7 @@ export function ProjectGantt({
   } | null>(null);
   const startDateTriggerReference = useRef<HTMLElement | null>(null);
   const startDateOpenTimerReference = useRef<number | null>(null);
+  const startDatePickerClosingReference = useRef(false);
   const startDatePickerReference = useRef<HTMLDivElement>(null);
   const startDateInputReference = useRef<HTMLInputElement>(null);
   const instanceId = useState(() => `project-gantt-${Math.random().toString(36).slice(2)}`)[0];
@@ -2045,6 +2046,7 @@ export function ProjectGantt({
   }
 
   function closeStartDatePicker(restoreFocus = true): void {
+    startDatePickerClosingReference.current = true;
     setStartDatePicker(null);
     if (restoreFocus) requestAnimationFrame(focusStartDateCell);
   }
@@ -2055,6 +2057,7 @@ export function ProjectGantt({
     const bounds = cell.getBoundingClientRect();
     const width = Math.min(Math.max(bounds.width, 176), Math.max(176, window.innerWidth - 16));
     const position = clampMenuPosition(bounds.left, bounds.bottom + 4, width, 72);
+    startDatePickerClosingReference.current = false;
     startDateTriggerReference.current = cell;
     setInlineStartError(false);
     setInlineStartMessage("");
@@ -2255,16 +2258,24 @@ export function ProjectGantt({
   useEffect(() => {
     if (!startDatePicker) return;
     // Picker opening is already deferred until after the Grid click/selection
-    // completes. Own focus unconditionally on the next task so SVAR cannot
-    // leave keyboard focus on the start cell or page body.
-    const focusTimer = window.setTimeout(() => {
-      startDateInputReference.current?.focus({ preventScroll: true });
-    }, 0);
+    // completes. Own focus on mount, then repair only if SVAR subsequently
+    // restores focus into the Gantt while this picker is still open.
+    const focusInput = () => {
+      if (startDatePickerClosingReference.current) return;
+      const input = startDateInputReference.current;
+      if (input?.isConnected && document.activeElement !== input) input.focus({ preventScroll: true });
+    };
+    const focusTimer = window.setTimeout(focusInput, 0);
 
     const closeForOutsidePointer = (event: PointerEvent) => {
       if (event.target instanceof Node && startDatePickerReference.current?.contains(event.target)) return;
       if (event.target instanceof Node && startDateTriggerReference.current?.contains(event.target)) return;
       closeStartDatePicker(false);
+    };
+    const repairGridFocus = (event: FocusEvent) => {
+      if (startDatePickerClosingReference.current || event.target === startDateInputReference.current) return;
+      if (!(event.target instanceof Node) || !ganttScrollReference.current?.contains(event.target)) return;
+      queueMicrotask(focusInput);
     };
     const closeForViewportResize = () => closeStartDatePicker(false);
     const closeForEscape = (event: KeyboardEvent) => {
@@ -2274,11 +2285,13 @@ export function ProjectGantt({
       closeStartDatePicker();
     };
     document.addEventListener("pointerdown", closeForOutsidePointer, true);
+    document.addEventListener("focusin", repairGridFocus, true);
     document.addEventListener("keydown", closeForEscape, true);
     window.addEventListener("resize", closeForViewportResize);
     return () => {
       window.clearTimeout(focusTimer);
       document.removeEventListener("pointerdown", closeForOutsidePointer, true);
+      document.removeEventListener("focusin", repairGridFocus, true);
       document.removeEventListener("keydown", closeForEscape, true);
       window.removeEventListener("resize", closeForViewportResize);
     };
