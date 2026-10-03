@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #399 Workspace 내부 WBS 범위 탭 — 최신 main 재정렬 / PR·CI 시작
+
+최신 main `cbe90acf0bf9785240e6a0ff2a2e5c532ab9251f` / application `0.71.0`의 Issue #390 Copy ID 변경을 보존한 상태에서 #399를 재적용한다. `최상위로 열기`의 browser popup 진입만 동일 일정 Workspace 내부 WBS 범위 탭으로 교체하고 #373의 subtree/canonical/deep-link/cross-tab/hierarchy guard를 유지한다. 후보 version은 다음 MINOR인 `0.72.0`, branch는 `feat/issue-399-workspace-scope-tabs`다. 상세는 [Issue #399 실행 계획](ISSUE_399.md)을 따른다. 사용자 요청 종료점은 PR 생성 및 해당 head PR CI 시작 확인이다.
+
 ## Issue #390 작업 Context Menu Copy ID — CI #1536 실패 보완 / 최신 main 재정렬
 
 PR #394 최초 head `60b3aefdeed8fd1819b996c8470f160ba139cfb6`의 CI #1536.1은 신규 E2E URL 정규식의 이중 escape로 TypeScript parser가 실패해 typecheck/ESLint/build/policy/Chromium이 연쇄 실패했다. Docker smoke는 PASS였다. 최신 main `5656096f295fd003010d9581ac883dbd1eee7d03` / `0.70.2`로 재정렬하면서 #364 clipboard compatibility와 #384 multi-selection Copy를 보존하고 후보 version을 `0.71.0`으로 조정한다. 상세는 [Issue #390 실행 계획](ISSUE_390.md)을 따른다. 종료점은 새 PR CI 시작 확인이다.
