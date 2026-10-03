@@ -314,6 +314,30 @@
 .relation-editor-candidate-item { width: 100%; border: 0; border-bottom: 1px solid var(--border-default); background: var(--surface-panel); text-align: left; gap: .5rem; overflow-wrap: anywhere; }
 .relation-editor-candidate-item:focus-visible { outline: var(--focus-outline); outline-offset: -2px; }
 .relation-editor-candidate-item span { min-width: 0; }
+.relation-editor-candidate-item {
+  align-items: flex-start;
+  flex-direction: column;
+}
+.relation-editor-candidate-name,
+.relation-editor-selected-candidate-name {
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+}
+.relation-editor-candidate-ids,
+.relation-editor-selected-candidate-ids {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .25rem .75rem;
+  min-width: 0;
+  font-size: .75rem;
+  font-weight: 400;
+  color: var(--text-secondary, #64748b);
+  overflow-wrap: anywhere;
+}
+.relation-editor-selected-candidate-ids {
+  margin-top: .125rem;
+}
+
 .relation-editor-section-title { flex-wrap: wrap; gap: .5rem; }
 .relation-editor-endpoints-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .relation-editor-body { padding: 0; min-width: 0; }
