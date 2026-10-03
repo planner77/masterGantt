@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.71.1] - 2026-10-03
+
+### Fixed
+
+- Issue #403: Project List의 생성/최근 변경 datetime이 인접 열을 침범하지 않도록 percentage 합계 기반 폭 배분을 명시적 `colgroup` column budget으로 전환하고 날짜 metadata의 최소 폭을 확보한다.
+- 프로젝트명·사업부·제품·법인/사업장·상태·소유자·설명·날짜·Row Action의 역할을 fixed/flexible column으로 분리하고, 좁은 화면에서는 기존 table-owned horizontal scroll을 유지한다.
+- 390/768/1024/1440/1600px에서 긴 metadata, browser locale/timezone 날짜, header/body alignment, sibling cell geometry, document/table overflow를 검증하는 Chromium 회귀를 추가하고 공통 UI/UX·QA 설계 기준을 동기화한다.
+- Application version을 `0.71.0`에서 `0.71.1`로 증가한다.
+
 ## [0.71.0] - 2026-10-03
 
 ### Added

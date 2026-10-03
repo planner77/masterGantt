@@ -1,5 +1,10 @@
 # Active execution plan
 
+## Issue #403 Project List 날짜 열 겹침 — 구현 완료 / PR CI 시작 준비
+
+latest main `cbe90acf0bf9785240e6a0ff2a2e5c532ab9251f` / `0.71.0`에서 Project List의 percentage column budget 문제를 명시적 `colgroup` fixed/flexible sizing으로 수정하고 생성/최근 변경 datetime geometry 회귀를 추가했다. 후보 version은 PATCH `0.71.1`이며 공통 설계·UI/UX·QA 기준도 동기화했다. 상세는 [Issue #403 실행 계획](ISSUE_403.md)을 따른다. 사용자 요청 종료점은 PR 생성과 required PR CI 시작 확인이며 merge/main CI/GHCR/Issue 종료는 범위 밖이다.
+
+
 ## Issue #390 작업 Context Menu Copy ID — CI #1536 실패 보완 / 최신 main 재정렬
 
 PR #394 최초 head `60b3aefdeed8fd1819b996c8470f160ba139cfb6`의 CI #1536.1은 신규 E2E URL 정규식의 이중 escape로 TypeScript parser가 실패해 typecheck/ESLint/build/policy/Chromium이 연쇄 실패했다. Docker smoke는 PASS였다. 최신 main `5656096f295fd003010d9581ac883dbd1eee7d03` / `0.70.2`로 재정렬하면서 #364 clipboard compatibility와 #384 multi-selection Copy를 보존하고 후보 version을 `0.71.0`으로 조정한다. 상세는 [Issue #390 실행 계획](ISSUE_390.md)을 따른다. 종료점은 새 PR CI 시작 확인이다.
