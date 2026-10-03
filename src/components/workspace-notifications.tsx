@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { WorkspaceDialog } from "./workspace-dialog";
 import { WorkspaceMessageContext } from "./workspace-message-context";
@@ -14,32 +14,6 @@ type NotificationApi = {
   notify: (kind: NoticeKind, message: string, operation: string, serverBody?: unknown) => void;
   clearToast: () => void;
 };
-type NotificationScrollSnapshot = Readonly<{
-  pageX: number;
-  pageY: number;
-  ganttScrolls: ReadonlyArray<Readonly<{ element: HTMLElement; left: number; top: number }>>;
-}>;
-
-function captureNotificationScroll(): NotificationScrollSnapshot {
-  return {
-    pageX: window.scrollX,
-    pageY: window.scrollY,
-    ganttScrolls: Array.from(document.querySelectorAll<HTMLElement>(".project-gantt-scroll")).map((element) => ({
-      element,
-      left: element.scrollLeft,
-      top: element.scrollTop,
-    })),
-  };
-}
-
-function restoreNotificationScroll(snapshot: NotificationScrollSnapshot): void {
-  window.scrollTo(snapshot.pageX, snapshot.pageY);
-  for (const item of snapshot.ganttScrolls) {
-    if (!item.element.isConnected) continue;
-    item.element.scrollLeft = item.left;
-    item.element.scrollTop = item.top;
-  }
-}
 const NotificationContext = createContext<NotificationApi | null>(null);
 const subscribeToNotificationSlot = () => () => {};
 const subscribeToFullscreenNotificationSlot = (onStoreChange: () => void) => {
@@ -63,7 +37,6 @@ export function useWorkspaceNotifications(): NotificationApi {
 export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: string; children: ReactNode }>) {
   const [state, dispatch] = useReducer(notificationReducer, INITIAL_NOTIFICATION_STATE);
   const sequence = useRef(0);
-  const pendingScrollRestoreReference = useRef<NotificationScrollSnapshot | null>(null);
   const [copyHint, setCopyHint] = useState("");
   // The server-rendered shell owns this static slot; resolve it after hydration without an effect update.
   const notificationSlot = useSyncExternalStore(
@@ -77,10 +50,6 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
     getNotificationSlotServerSnapshot,
   );
   const notify = useCallback<NotificationApi["notify"]>((kind, message, operation, serverBody) => {
-    // Capture before React publishes feedback. SVAR may still run visibility/focus
-    // scrolling after this callback returns, so restoration happens in the next
-    // React layout phase (after the event finishes, before paint).
-    if (!pendingScrollRestoreReference.current) pendingScrollRestoreReference.current = captureNotificationScroll();
     dispatch({ type: "publish", notice: {
       id: ++sequence.current, kind, message, operation,
       occurredAt: new Date().toISOString(), read: false, ...safeNotificationMetadata(serverBody),
@@ -88,15 +57,6 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
   }, []);
   const clearToast = useCallback(() => dispatch({ type: "clear-toast" }), []);
   const api = useMemo(() => ({ notify, clearToast }), [notify, clearToast]);
-  useLayoutEffect(() => {
-    const snapshot = pendingScrollRestoreReference.current;
-    if (!snapshot) return;
-    pendingScrollRestoreReference.current = null;
-    restoreNotificationScroll(snapshot);
-  }, [state]);
-  useEffect(() => () => {
-    pendingScrollRestoreReference.current = null;
-  }, []);
   useEffect(() => {
     if (!state.toast) return;
     const id = state.toast.id;
