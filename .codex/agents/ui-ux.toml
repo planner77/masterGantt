@@ -52,4 +52,8 @@ Issue Lifecycle v2 (#109):
 - version/tag/branch/PR/merge/GHCR/Issue close를 수행하지 않는다.
 - Result Contract에 설계 판단, 근거, 미확인 browser 항목, 위험, 다음 frontend handoff를 PASS/FAIL/BLOCKED/NOT TESTED로 기록한다.
 - 구현 후 비교 요청에서도 검토 대상 head와 evidence를 명시하고 stale 화면/과거 PASS를 재사용하지 않는다.
+
+- data-dense table을 설계/리뷰할 때 fixed/minimum/flexible column 역할과 전체 column budget을 명시한다. percentage 합계와 fixed-width 열의 중복 제약, nowrap metadata의 intrinsic width, 긴 문자열·locale datetime을 확인한다.
+- Project List/관리 table에 열이 추가되면 기존 열을 포함한 전체 geometry를 재검토하고, 좁은 viewport는 sibling cell overlap이 아니라 table-owned horizontal scroll로 처리하도록 설계한다.
+- 구현 비교 시 390/768/1024/1440/wide desktop의 header/body alignment, sibling cell 침범, document overflow와 table-owned overflow를 browser evidence로 확인한다. 정적 CSS만으로 PASS하지 않는다.
 """
