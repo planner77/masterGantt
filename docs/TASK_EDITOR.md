@@ -230,3 +230,9 @@ Task Editor Footer의 `최신 정보 다시 불러오기` / `취소` / `저장`�
 - 각 pane은 현재 표시 건수/전체 건수를 노출하고 `등록된 대상 없음`과 `현재 필터와 일치하는 결과 없음`을 구분한다.
 - 768px 이하에서는 pane과 allocation fields를 1열로 stack하며 390/768/1024/1440px에서 dialog/document horizontal overflow를 허용하지 않는다.
 - Assignment PUT, Project/Catalog revision, `If-Match`, 401/412, dirty/stale, canonical snapshot 및 Task/Assignment 독립 저장 계약은 변경하지 않는다.
+
+## Grid quick start edit와 Task Editor의 일정 계약 (Issue #370)
+
+Project Workspace Grid의 `시작` 셀 Date Picker는 Task Editor를 대체하지 않는 빠른 편집 진입점이다. Grid는 effective canonical `start`를 보여 주지만 Picker에서 선택한 날짜는 Task Editor의 **요청 시작일**과 같은 의미의 `start` mutation 입력으로 처리한다. 저장은 #258의 dependency-aware 서버 경로를 사용하며 서버 확정 `start/end`가 선택일과 달라질 수 있다.
+
+Grid quick edit은 시작일만 변경한다. 기간, 요청 종료일(#368 범위), schedule mode, metadata와 관계 편집은 기존 Task Editor에서 수행한다. Summary 일정 직접 편집 금지와 Milestone `duration=0` 규칙도 동일하게 유지한다.
