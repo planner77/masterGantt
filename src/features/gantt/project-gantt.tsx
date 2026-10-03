@@ -324,6 +324,8 @@ export function ProjectGantt({
     drop: ChartVerticalDrop | null;
   } | null>(null);
   const chartDragTargetReference = useRef<HTMLElement | null>(null);
+  const chartDragPointerYReference = useRef<number | null>(null);
+  const chartEdgeScrollFrameReference = useRef<number | null>(null);
 
   useEffect(() => {
     if (prevProjectPublicIdReference.current === projectPublicId) return;
@@ -550,6 +552,14 @@ export function ProjectGantt({
     }
   }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onRelationEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, projectPublicId, tasks, tasksById, viewRootTaskId]);
 
+  const clearChartEdgeScroll = useCallback(() => {
+    if (chartEdgeScrollFrameReference.current !== null) {
+      cancelAnimationFrame(chartEdgeScrollFrameReference.current);
+      chartEdgeScrollFrameReference.current = null;
+    }
+    chartDragPointerYReference.current = null;
+  }, []);
+
   const clearChartDragFeedback = useCallback(() => {
     const target = chartDragTargetReference.current;
     if (target) {
@@ -622,36 +632,14 @@ export function ProjectGantt({
   }, [editable, mutationLocked]);
 
   useEffect(() => {
-    const handleMove = (event: MouseEvent) => {
+    const renderVerticalDrag = (pointerY: number) => {
       const drag = chartDragReference.current;
-      if (!drag) return;
-
-      const dx = event.clientX - drag.startX;
-      const dy = event.clientY - drag.startY;
-      if (drag.intent === "pending") drag.intent = resolveChartDragIntent(dx, dy);
-      if (drag.intent !== "vertical") return;
-
-      event.preventDefault();
-      event.stopPropagation();
       const root = ganttScrollReference.current;
       const api = apiReference.current;
-      if (!root || !api || !canCreateReference.current || inlineSessionReference.current) {
-        clearChartDragFeedback();
-        chartDragReference.current = null;
-        return;
-      }
+      if (!drag || drag.intent !== "vertical" || !root || !api ||
+        !canCreateReference.current || inlineSessionReference.current) return false;
 
       const verticalScroller = root.querySelector<HTMLElement>(".wx-gantt");
-      if (verticalScroller) {
-        const bounds = verticalScroller.getBoundingClientRect();
-        const edge = 32;
-        if (event.clientY < bounds.top + edge) {
-          verticalScroller.scrollTop = Math.max(0, verticalScroller.scrollTop - 20);
-        } else if (event.clientY > bounds.bottom - edge) {
-          verticalScroller.scrollTop += 20;
-        }
-      }
-
       const rows = Array.from(root.querySelectorAll<HTMLElement>(".wx-chart .wx-bar[data-task-id]"))
         .flatMap((element) => {
           if (element.getClientRects().length === 0) return [];
@@ -672,13 +660,14 @@ export function ProjectGantt({
       const drop = resolveChartVerticalDrop(
         drag.taskId,
         drag.sourceParentExternalId,
-        event.clientY,
+        pointerY,
         rows,
       );
       drag.drop = drop;
       updateChartDropFeedback(drop);
 
       if (drag.originalTop !== null) {
+        const dy = pointerY - drag.startY;
         const scrollDelta = (verticalScroller?.scrollTop ?? drag.startScrollTop) - drag.startScrollTop;
         void api.exec("drag-task", {
           id: drag.taskId,
@@ -686,12 +675,71 @@ export function ProjectGantt({
           inProgress: true,
         });
       }
+      return true;
+    };
+
+    const scheduleEdgeScroll = () => {
+      if (chartEdgeScrollFrameReference.current !== null) return;
+      const tick = () => {
+        chartEdgeScrollFrameReference.current = null;
+        const drag = chartDragReference.current;
+        const pointerY = chartDragPointerYReference.current;
+        const root = ganttScrollReference.current;
+        const verticalScroller = root?.querySelector<HTMLElement>(".wx-gantt");
+        if (!drag || drag.intent !== "vertical" || pointerY === null || !verticalScroller) return;
+
+        const bounds = verticalScroller.getBoundingClientRect();
+        const edge = 32;
+        let delta = 0;
+        if (pointerY < bounds.top + edge) {
+          const ratio = Math.min(1, Math.max(0.2, (bounds.top + edge - pointerY) / edge));
+          delta = -Math.ceil(20 * ratio);
+        } else if (pointerY > bounds.bottom - edge) {
+          const ratio = Math.min(1, Math.max(0.2, (pointerY - (bounds.bottom - edge)) / edge));
+          delta = Math.ceil(20 * ratio);
+        }
+        if (delta === 0) return;
+
+        const before = verticalScroller.scrollTop;
+        verticalScroller.scrollTop = Math.max(
+          0,
+          Math.min(verticalScroller.scrollHeight - verticalScroller.clientHeight, before + delta),
+        );
+        if (verticalScroller.scrollTop === before) return;
+        renderVerticalDrag(pointerY);
+        chartEdgeScrollFrameReference.current = requestAnimationFrame(tick);
+      };
+      chartEdgeScrollFrameReference.current = requestAnimationFrame(tick);
+    };
+
+    const handleMove = (event: MouseEvent) => {
+      const drag = chartDragReference.current;
+      if (!drag) return;
+
+      const dx = event.clientX - drag.startX;
+      const dy = event.clientY - drag.startY;
+      if (drag.intent === "pending") drag.intent = resolveChartDragIntent(dx, dy);
+      if (drag.intent !== "vertical") return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      if (!canCreateReference.current || inlineSessionReference.current) {
+        clearChartEdgeScroll();
+        clearChartDragFeedback();
+        chartDragReference.current = null;
+        return;
+      }
+
+      chartDragPointerYReference.current = event.clientY;
+      renderVerticalDrag(event.clientY);
+      scheduleEdgeScroll();
     };
 
     const handleUp = () => {
       const drag = chartDragReference.current;
       if (!drag) return;
       const drop = drag.intent === "vertical" ? drag.drop : null;
+      clearChartEdgeScroll();
       clearChartDragFeedback();
       chartDragReference.current = null;
       if (!drop || !canCreateReference.current || inlineSessionReference.current) return;
@@ -712,6 +760,7 @@ export function ProjectGantt({
 
     const handleBlur = () => {
       if (!chartDragReference.current) return;
+      clearChartEdgeScroll();
       clearChartDragFeedback();
       chartDragReference.current = null;
     };
@@ -723,10 +772,11 @@ export function ProjectGantt({
       window.removeEventListener("mousemove", handleMove, true);
       window.removeEventListener("mouseup", handleUp, true);
       window.removeEventListener("blur", handleBlur);
+      clearChartEdgeScroll();
       clearChartDragFeedback();
       chartDragReference.current = null;
     };
-  }, [clearChartDragFeedback, updateChartDropFeedback]);
+  }, [clearChartDragFeedback, clearChartEdgeScroll, updateChartDropFeedback]);
 
   useEffect(() => () => {
     inlineOpenTokenReference.current += 1;
