@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.75.1] - 2026-10-03
+
+### Fixed
+
+- Issue #409: Context Menu `Copy ID`가 복사하는 canonical `taskId` UUID를 Relation Editor의 관계 추가 검색에서 직접 찾을 수 있도록 작업명·외부 ID·작업 ID 통합 검색을 추가한다.
+- Relation Editor 후보/선택 상태에서 `externalId`와 `taskId`를 각각 `외부 ID`, `작업 ID`로 명확히 구분해 표시한다.
+- taskId로 후보를 검색해도 Dependency Link 저장은 기존 `predecessorExternalId / successorExternalId` 계약을 유지하며 API/DB/Scheduling schema는 변경하지 않는다.
+- Application version을 `0.75.0`에서 `0.75.1`로 증가한다.
+
+
 ## [0.75.0] - 2026-10-03
 
 ### Added
