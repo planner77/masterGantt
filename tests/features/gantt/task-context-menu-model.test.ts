@@ -156,6 +156,30 @@ describe("task context menu model", () => {
     });
   });
 
+  it("blocks parent-changing controls for a subtree with linked descendants while allowing sibling reorder", () => {
+    const tasks = [
+      task("a", "A", null, 0, "summary"),
+      task("s", "S", null, 1, "summary"),
+      task("d", "D", "S", 0),
+      task("x", "X", null, 2),
+      task("n", "N", "A", 0, "summary"),
+      task("nd", "ND", "N", 0),
+    ];
+    const links: ProjectLinkDto[] = [
+      { id: "link-d-x", predecessorExternalId: "D", successorExternalId: "X", type: "FS", lag: 0 },
+      { id: "link-nd-x", predecessorExternalId: "ND", successorExternalId: "X", type: "FS", lag: 0 },
+    ];
+
+    expect(taskContextCapabilities(tasks, "s", true, false, links, null)).toMatchObject({
+      canMoveUp: true,
+      canMoveDown: true,
+      canIndent: false,
+    });
+    expect(taskContextCapabilities(tasks, "n", true, false, links, null)).toMatchObject({
+      canOutdent: false,
+    });
+  });
+
   it("maps shortcuts/menu intents to atomic hierarchy commands", () => {
     expect(createHierarchyCommand("move-up", "a")).toEqual({
       kind: "move",

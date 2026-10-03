@@ -352,4 +352,72 @@ describe("TaskHierarchyService", () => {
     } finally { value.database.close(); }
   });
 
+
+  it("rejects indent and outdent when the moved subtree contains linked descendants", async () => {
+    const indentCase = await fixture();
+    try {
+      const a = indentCase.projects.createTask(indentCase.authorization, 1, input("A"));
+      const s = indentCase.projects.createTask(indentCase.authorization, a.data.project.revision, input("S"));
+      const summary = s.data.tasks.find((task) => task.externalId === "S")!;
+      const d = indentCase.projects.createTask(indentCase.authorization, s.data.project.revision, {
+        ...input("D"),
+        parentTaskId: summary.taskId,
+        convertParentToSummary: true,
+      });
+      const child = d.data.tasks.find((task) => task.externalId === "D")!;
+      const x = indentCase.projects.createTask(indentCase.authorization, d.data.project.revision, input("X"));
+      const outside = x.data.tasks.find((task) => task.externalId === "X")!;
+      const linked = indentCase.links.create(indentCase.authorization, x.data.project.revision, {
+        predecessorExternalId: child.externalId,
+        successorExternalId: outside.externalId,
+        type: "FS",
+        lag: 0,
+      });
+
+      expect(() => indentCase.hierarchy.execute(indentCase.authorization, linked.data.project.revision, {
+        kind: "indent",
+        taskId: summary.taskId,
+      })).toThrow(UnsupportedScheduleStructureError);
+      expect(indentCase.database.prepare("SELECT revision FROM projects").pluck().get())
+        .toBe(linked.data.project.revision);
+    } finally {
+      indentCase.database.close();
+    }
+
+    const outdentCase = await fixture();
+    try {
+      const p = outdentCase.projects.createTask(outdentCase.authorization, 1, input("P"));
+      const parent = p.data.tasks.find((task) => task.externalId === "P")!;
+      const s = outdentCase.projects.createTask(outdentCase.authorization, p.data.project.revision, {
+        ...input("S"),
+        parentTaskId: parent.taskId,
+        convertParentToSummary: true,
+      });
+      const summary = s.data.tasks.find((task) => task.externalId === "S")!;
+      const d = outdentCase.projects.createTask(outdentCase.authorization, s.data.project.revision, {
+        ...input("D"),
+        parentTaskId: summary.taskId,
+        convertParentToSummary: true,
+      });
+      const child = d.data.tasks.find((task) => task.externalId === "D")!;
+      const x = outdentCase.projects.createTask(outdentCase.authorization, d.data.project.revision, input("X"));
+      const outside = x.data.tasks.find((task) => task.externalId === "X")!;
+      const linked = outdentCase.links.create(outdentCase.authorization, x.data.project.revision, {
+        predecessorExternalId: child.externalId,
+        successorExternalId: outside.externalId,
+        type: "FS",
+        lag: 0,
+      });
+
+      expect(() => outdentCase.hierarchy.execute(outdentCase.authorization, linked.data.project.revision, {
+        kind: "outdent",
+        taskId: summary.taskId,
+      })).toThrow(UnsupportedScheduleStructureError);
+      expect(outdentCase.database.prepare("SELECT revision FROM projects").pluck().get())
+        .toBe(linked.data.project.revision);
+    } finally {
+      outdentCase.database.close();
+    }
+  });
+
 });

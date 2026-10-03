@@ -4,7 +4,7 @@ import type {
   TaskHierarchyCommandRequest,
   TaskHierarchyPlacement,
 } from "@/contracts/projects";
-import { taskHasDependencyLinks } from "./task-link-scope";
+import { taskHasDependencyLinks, taskSubtreeHasDependencyLinks } from "./task-link-scope";
 
 export type TaskClipboard =
   | Readonly<{ mode: "cut"; taskId: string; revision: number }>
@@ -45,6 +45,7 @@ export function taskContextCapabilities(
   const mutationAvailable = editable && !mutationLocked && task !== undefined;
   const siblingReorderAvailable = mutationAvailable;
   const hierarchyAvailable = mutationAvailable && !taskHasDependencyLinks(tasks, taskId, links);
+  const parentChangeAvailable = mutationAvailable && !taskSubtreeHasDependencyLinks(tasks, taskId, links);
   if (!task) {
     return {
       canAddChild: false,
@@ -70,8 +71,8 @@ export function taskContextCapabilities(
     canAddChild: hierarchyAvailable && task.type !== "milestone",
     canMoveUp: siblingReorderAvailable && !isScopeRoot && index > 0,
     canMoveDown: siblingReorderAvailable && !isScopeRoot && index >= 0 && index < siblings.length - 1,
-    canIndent: hierarchyAvailable && !isScopeRoot && index > 0,
-    canOutdent: hierarchyAvailable && !isScopeRoot && !isDirectScopeChild && task.parentExternalId !== null,
+    canIndent: parentChangeAvailable && !isScopeRoot && index > 0,
+    canOutdent: parentChangeAvailable && !isScopeRoot && !isDirectScopeChild && task.parentExternalId !== null,
     canPaste: pasteAvailable,
     canConvertToTask: hierarchyAvailable && task.type === "milestone" && !hasChildren,
     canConvertToMilestone: hierarchyAvailable && task.type === "task" && !hasChildren,

@@ -10,7 +10,7 @@
 - latest-main integration: #399 Workspace WBS 범위 탭 및 #303 Task status/progress/canonical status를 보존한다.
 - branch: `feat/issue-335-linked-task-reorder`.
 - version: MINOR `0.75.0`. latest main이 `0.74.0`이므로 다음 하위 호환 기능 version을 사용한다.
-- release_required: `true`; release_authorized: `false`. 이번 요청은 PR CI 시작까지다.
+- release_required: `true`; release_authorized: `true`. 사용자가 v0.75.0의 GHCR 정식 게시를 포함한 Release Finalizer 실행과 병합/main CI를 명시적으로 승인했으며 Issue comment의 OWNER-scoped authorization marker가 authority다.
 - 실행 방식: 단일 에이전트 순차 처리. 별도 Sub-Agent 실행 도구가 없어 독립 QA PASS를 주장하지 않는다.
 
 ## 설계
@@ -40,6 +40,16 @@ metadata/typecheck/lint/unit/build/docker, Chromium shard 1/2/4는 PASS했고 sh
 metadata/typecheck/lint/unit/build/docker와 Chromium shard 1/2/4가 PASS했고 shard 3의 79개 중 기존 #303 `project-status.spec.ts` 1건만 FAIL했다. 실패는 status UI/API assertion이 아니라 `page.request.get(...)` 단일 요청의 `socket hang up`이며, 같은 shard 로그에서 SIGTERM/SIGKILL/ENOMEM/uncaught/프로세스 종료 흔적은 확인되지 않았다. #335 신규 E2E와 #116/#104/#378 회귀는 모두 PASS했다.
 
 따라서 #1619.1은 제품 회귀 근거가 없는 transient HTTP connection reset으로 분류한다. 관련 제품/테스트 코드는 변경하지 않고 이 실행 증거만 기록한 새 head로 전체 PR CI를 다시 실행한다. 동일 현상이 재발하면 #303 테스트/서버 수명주기 문제로 별도 분석 범위를 확대한다.
+
+### PR review P2 — linked descendant subtree parent 변경 guard
+
+Codex review에서 Summary 자체는 Link endpoint가 아니지만 descendant가 Dependency endpoint인 경우 기존 `Indent/Outdent` frontend/backend guard가 selected Summary만 검사해 parent 변경이 가능하다는 P2 지적을 확인했다. #335는 same-parent reorder만 예외로 허용하므로 이 지적은 유효하다.
+
+보완:
+- frontend에 subtree 전체 externalId를 계산하는 `taskSubtreeHasDependencyLinks`를 추가하고 Indent/Outdent capability 및 keyboard Cut/Delete의 source 보호에 적용한다.
+- Context Menu Cut/Delete도 linked descendant가 있는 subtree에서는 기존 보호를 유지한다. Move Up/Down은 별도 capability라 계속 허용한다.
+- backend Indent/Outdent의 `assertTasksNotLinked` 대상에 모든 descendant를 포함한다.
+- Unit/SQLite에서 linked descendant Summary의 same-parent Move는 허용하면서 Indent/Outdent는 revision 변경 없이 거부되는 회귀를 추가한다.
 
 ## 검증
 
