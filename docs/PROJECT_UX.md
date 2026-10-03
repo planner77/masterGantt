@@ -818,3 +818,12 @@ Dependency가 연결된 Task/Milestone도 현재 parent 안에서 순서만 바�
 Grid의 `projectStart` 열은 계속 서버 확정 effective `start`를 표시한다. 편집 가능한 leaf Task/Milestone에서는 셀 single click과 Enter/Space가 masterGantt 소유의 compact `input[type=date]` Picker를 셀 인접 overlay로 연다. Picker 초기값은 사용자가 현재 Grid에서 보고 있는 effective start이며, 날짜를 실제 선택했을 때만 그 calendar date를 새 requested start로 서버에 제출한다. 비근무일을 선택한 Auto Task는 서버가 다음 유효 근무일 또는 dependency lower bound로 이동시킬 수 있고 기존 schedule-adjustment 안내를 사용한다.
 
 SVAR 2.7.3의 공개 inline `datepicker`를 우선 검증했으나 현재 `projectStart`는 실제 row field가 아니라 getter 기반 display-only 열이어서 설치 버전 Gantt Grid에서 editor가 생성되지 않았다. 따라서 Issue 요구에 정의한 fallback을 사용하며 Core row에 임시 `projectStart`를 저장하지 않는다. 기존 Task command gateway와 revision으로 start-only PATCH를 수행한 뒤 canonical snapshot으로 Grid/Chart를 in-place 동기화한다. Summary/readonly/saving에서는 Picker를 열지 않는다. Escape는 저장 없이 닫고 원래 셀로 focus를 복원하며, 실패 시 scroll/tree/column/scale/selection과 마지막 canonical 일정은 유지한다. Task Editor의 요청 시작일 편집과 의미는 같지만 Grid quick edit은 기간·종료일을 직접 편집하지 않는다.
+
+### Issue #299 — Chart bar 수직 Drag & Drop
+
+편집 가능한 Project Workspace에서 Chart의 Task/Summary/Milestone bar를 위·아래로 drag하면 같은 parent의 보이는 sibling 앞/뒤로 순서를 바꿀 수 있다. gesture는 dead-zone 뒤 horizontal/vertical 한 축으로 lock되며 vertical로 확정되면 기존 좌우 일정 이동/resize를 같은 gesture에서 실행하지 않는다.
+
+drop 가능 위치는 target bar의 위/아래 indicator로 표시한다. 검색·필터·Summary 접힘으로 보이지 않는 bar는 drop 기준에 포함하지 않는다. 다른 hierarchy level 위의 drop은 implicit reparent로 해석하지 않는다. #335와 동일하게 Dependency가 연결되어 있어도 같은 parent sibling reorder는 가능하며, #399 subtree view에서는 현재 scope를 벗어나는 command를 실행하지 않는다. 긴 일정에서는 기존 Gantt vertical viewport를 edge-scroll한다.
+
+성공 뒤 Grid/Chart는 canonical `siblingOrder`와 같은 순서를 표시하고 reload 후에도 유지한다.
+
