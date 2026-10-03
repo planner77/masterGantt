@@ -237,3 +237,9 @@ Task Editor Footer의 `최신 정보 다시 불러오기` / `취소` / `저장`�
 일반 Task/Milestone의 작업 정보 탭은 `시작 전 / 진행 중 / 완료` 상태 Select를 진행률 영역과 함께 표시한다. Desktop에서는 기존 작업명 좌측/진행률 우측 geometry를 유지하고 상태와 진행률을 보조 열 내부에서 배치하며, 768px 이하에서는 1열로 stack한다.
 
 Draft에서 progress 100% 선택은 즉시 완료로, 완료 선택은 즉시 100%로 동기화한다. 완료에서 100 미만으로 내리면 진행 중, 시작 전 선택은 0%가 된다. 저장은 status/progress를 하나의 PATCH payload로 보내고 canonical response로 재동기화한다. Summary는 직접 편집하지 않으며 #258의 관계 Task 편집 정책, #368 요청 종료일, stale/busy/readonly/save-failure 보호를 유지한다.
+
+## Grid quick start edit와 Task Editor의 일정 계약 (Issue #370)
+
+Project Workspace Grid의 `시작` 셀 Date Picker는 Task Editor를 대체하지 않는 빠른 편집 진입점이다. Grid는 effective canonical `start`를 보여 주지만 Picker에서 선택한 날짜는 Task Editor의 **요청 시작일**과 같은 의미의 `start` mutation 입력으로 처리한다. 저장은 #258의 dependency-aware 서버 경로를 사용하며 서버 확정 `start/end`가 선택일과 달라질 수 있다.
+
+Grid quick edit은 시작일만 변경한다. 기간, 요청 종료일(#368 범위), schedule mode, metadata와 관계 편집은 기존 Task Editor에서 수행한다. Summary 일정 직접 편집 금지와 Milestone `duration=0` 규칙도 동일하게 유지한다.

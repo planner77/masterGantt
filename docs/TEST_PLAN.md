@@ -1199,3 +1199,12 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Chromium: progress 100→completed, completed→100, 완료 해제, Grid 취소선, 동일 Gantt instance 및 기존 Phase 3 responsive geometry를 함께 검증한다. Desktop 작업명/보조 영역 2열과 390/768px stack을 유지한다.
 - Scheduling purity: `src/domain/scheduling`은 외부 domain helper를 import하지 않고 Summary status를 derived progress에서 내부적으로 계산한다.
 - 최종 판정은 최신 PR head의 새 `quality/e2e/docker` 전체 실행을 사용하며 과거 #1248 결과를 재사용하지 않는다.
+
+## Issue #370 Grid 시작일 Date Picker 회귀
+
+- Unit: effective canonical `start`를 DatePicker 값으로 변환하는지, Task/Milestone만 편집 가능한지, Summary/readonly를 거부하는지, 같은 날짜는 no-op인지, 선택 날짜가 `{ start: YYYY-MM-DD }` 단일 일정 명령이 되는지 검증한다.
+- Chromium E2E: 시작일 셀 single click → 날짜 Picker overlay open → 다른 날짜 입력 → PATCH 1회 → 같은 Gantt 인스턴스 canonical sync를 확인한다.
+- Summary와 readonly는 Picker가 열리지 않고 PATCH가 0회여야 한다. Enter로 Picker를 열 수 있고 Escape 취소 후 원래 셀로 focus가 복귀해야 한다.
+- 서버 409/412/422/500/network 실패는 선택값을 canonical로 남기지 않고 마지막 확정 일정을 유지해야 한다.
+- 390/768/1024/1440px에서 Date Picker가 viewport를 벗어나거나 document-level horizontal overflow를 추가하지 않는지 확인한다.
+- 기존 Grid 이름 inline edit, DnD, Chart drag/resize, Task Editor와 dependency-aware scheduling 회귀는 동일 PR head의 원격 CI/E2E에서 함께 판정한다.

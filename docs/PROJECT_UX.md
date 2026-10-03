@@ -804,3 +804,9 @@ Project List의 생성/최근 변경 열은 동일한 metadata column policy를 
 Task/Milestone의 canonical status가 completed이면 Grid 작업명 텍스트에 취소선을 표시하고 완료 해제 시 같은 Gantt instance에서 즉시 제거한다. Summary는 derived progress가 정확히 100일 때 같은 완료 표시를 사용한다. 완료 표시는 색상에만 의존하지 않으며 tree toggle, indentation, selection, inline-name edit/focus hit area를 변경하지 않는다.
 
 Task Editor는 기존 desktop의 작업명/진행률 2열 배치를 유지하면서 상태 Select를 진행률 보조 영역에 결합한다. 390/768px에서는 status/progress를 자연스럽게 stack하여 overflow를 만들지 않는다. #399 scope tab 전환과 fullscreen/search/filter/scroll/tree/column 상태도 이 표시 때문에 초기화하지 않는다.
+
+## Issue #370 — Grid 시작일 Date Picker
+
+Grid의 `projectStart` 열은 계속 서버 확정 effective `start`를 표시한다. 편집 가능한 leaf Task/Milestone에서는 셀 single click과 Enter/Space가 masterGantt 소유의 compact `input[type=date]` Picker를 셀 인접 overlay로 연다. Picker 초기값은 사용자가 현재 Grid에서 보고 있는 effective start이며, 날짜를 실제 선택했을 때만 그 calendar date를 새 requested start로 서버에 제출한다. 비근무일을 선택한 Auto Task는 서버가 다음 유효 근무일 또는 dependency lower bound로 이동시킬 수 있고 기존 schedule-adjustment 안내를 사용한다.
+
+SVAR 2.7.3의 공개 inline `datepicker`를 우선 검증했으나 현재 `projectStart`는 실제 row field가 아니라 getter 기반 display-only 열이어서 설치 버전 Gantt Grid에서 editor가 생성되지 않았다. 따라서 Issue 요구에 정의한 fallback을 사용하며 Core row에 임시 `projectStart`를 저장하지 않는다. 기존 Task command gateway와 revision으로 start-only PATCH를 수행한 뒤 canonical snapshot으로 Grid/Chart를 in-place 동기화한다. Summary/readonly/saving에서는 Picker를 열지 않는다. Escape는 저장 없이 닫고 원래 셀로 focus를 복원하며, 실패 시 scroll/tree/column/scale/selection과 마지막 canonical 일정은 유지한다. Task Editor의 요청 시작일 편집과 의미는 같지만 Grid quick edit은 기간·종료일을 직접 편집하지 않는다.
