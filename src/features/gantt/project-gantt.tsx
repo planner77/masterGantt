@@ -40,6 +40,7 @@ import {
 import {
   buildGanttWeekHeaderTooltipDataForDateOnly,
   dateOnlyFromGanttWeekScaleClassName,
+  formatGanttWeekWorkingDaysLabel,
   ganttWeekScaleClassName,
   type GanttWeekHeaderTooltipData,
 } from "./week-header-tooltip";
@@ -1664,7 +1665,21 @@ export function ProjectGantt({
       root.querySelectorAll<HTMLElement>(selector).forEach((cell) => {
         if (!cell.hasAttribute("tabindex")) cell.tabIndex = 0;
         const data = tooltipData(cell);
-        if (data) cell.setAttribute("aria-label", data.ariaLabel);
+        if (!data) return;
+        cell.setAttribute("aria-label", data.ariaLabel);
+        cell.dataset.workingDays = String(data.workingDays);
+
+        const labelText = formatGanttWeekWorkingDaysLabel(data.workingDays);
+        let label = cell.querySelector<HTMLElement>(".project-gantt-week-working-days");
+        if (!label) {
+          label = document.createElement("span");
+          label.className = "project-gantt-week-working-days";
+          label.setAttribute("aria-hidden", "true");
+          label.textContent = labelText;
+          cell.append(label);
+        } else if (label.textContent !== labelText) {
+          label.textContent = labelText;
+        }
       });
     };
 
