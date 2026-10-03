@@ -799,14 +799,26 @@ export function ProjectGantt({
     if (!root) return;
     const setNativeAddAccessibility = () => {
       root.querySelectorAll<HTMLElement>('[data-action="add-task"]').forEach((action) => {
-        action.setAttribute("aria-disabled", String(mutationLocked || viewRootTaskId !== null));
+        const row = action.closest<HTMLElement>(".wx-row[data-id]");
+        const taskId = row ? taskIdFromElement(row) : null;
+        const disabled =
+          !editable ||
+          mutationLocked ||
+          Boolean(taskId && !tasksById.has(taskId)) ||
+          !canAddTaskWithinSubtree(
+            tasks,
+            viewRootTaskId,
+            taskId ?? undefined,
+            taskId ? "child" : undefined,
+          );
+        action.setAttribute("aria-disabled", String(disabled));
       });
     };
     setNativeAddAccessibility();
     const observer = new MutationObserver(setNativeAddAccessibility);
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [mutationLocked, viewRootTaskId]);
+  }, [editable, mutationLocked, tasks, tasksById, viewRootTaskId]);
   const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
   const taskUpdateGateway = useMemo(
