@@ -6,6 +6,7 @@
 
 - Issue #399: Project 일정 View에 `전체 프로젝트`와 여러 Summary subtree를 같은 화면에서 전환하는 compact WBS 범위 탭을 추가한다.
 - Summary 범위 탭은 중복 생성 없이 재활성화하며 닫기, Arrow/Home/End/Delete keyboard, 한 행 horizontal overflow와 scope별 search/filter state를 지원한다.
+- 48rem 이하에서는 scope tab이 추가한 2.625rem vertical budget을 Gantt 최소 높이에서 상쇄해 기존 header hit-area와 document scroll geometry를 유지한다.
 
 ### Changed
 
