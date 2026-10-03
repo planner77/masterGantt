@@ -1,5 +1,15 @@
 # Test Plan
 
+## Issue #367 Gantt Day 밀도·우측 Timeline 동적 확장
+
+- Unit: `timeline-range.test.ts`에서 Day 36px/Week 68px, right-edge pixel threshold, viewport chunk, 짧은 초기 scale buffer와 보존한 future end의 Day/Week 최소 scale width를 검증한다.
+- Chromium E2E: `project-gantt-density.spec.ts`에서 Day `cellWidth=36`, Week 68, Grid 480px, 390/768/1024/1440px document overflow 부재를 확인한다.
+- `project-gantt-scale.spec.ts`는 Day 숫자-only Header와 #315/#316 Tooltip, Day↔Week identity 회귀를 확인한다. SVAR의 horizontal virtualization은 Week focus·viewport resize 뒤 어떤 구체 Day 날짜 또는 ISO week label이 DOM에 남을지 보장하지 않으므로 특정 날짜/W38 복귀를 강제하지 않고, 동일 instance에서 Day scale은 숫자-only, Week scale은 `Wxx` 형식으로 각각 복원되며 반대 scale cell이 제거되는지 검증한다. 이어 native `scrollTo()`로 Chart를 오른쪽 끝까지 3회 이동하여 매번 `data-gantt-timeline-end`가 증가하는지 확인한다. 각 확장 뒤 Gantt/API instance identity와 non-zero horizontal scroll을 유지하고 POST/PATCH/PUT/DELETE가 발생하지 않아야 한다.
+- 구현은 React `end` prop state 갱신을 사용하지 않는다. 고정 start/open end에서 public `resize-chart`의 scale expansion을 사용해 range 확장 자체가 Core store re-init, selection/column/filter reset을 일으키지 않도록 한다.
+- #373 scoped view의 `filter-tasks`와 최신 #384 다중 selection, #390 Copy ID Context Menu가 우측 range 확장/scale 전환 때문에 풀리거나 사라지지 않는지 전체 Chromium 회귀로 확인한다.
+- canonical Task end 또는 기존 사용자 future end가 Core 재계산 후 더 멀면 public resize path로 최소 end를 복구한다. Scheduling/Calendar/Dependency, Project revision, API/DB는 변경하지 않는다.
+- 공식 전체 회귀 판정은 최신 main 정렬 후 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+
 ## Issue #390 작업 Context Menu Copy ID 회귀
 
 - Chromium에서 Grid Task/Summary 및 Chart Milestone의 `Copy ID`가 각 canonical `taskId`를 system clipboard에 기록하는지 확인한다.
@@ -72,9 +82,9 @@ CI #1540.1의 shard 3/4는 #384 기능과 무관한 `project-resource-calendar-e
 
 - Unit: 기존 `task-subtree-scope.test.ts`의 진입 대상/root+descendant/missing/non-Summary/빈 Summary와 `project-task-adapter.test.ts`의 virtual root `parent=0` 회귀를 유지한다.
 - #399 Chromium: `최상위로 열기 (작업공간 탭)` 실행 후 browser page 수가 증가하지 않고 현재 일정 View에 전체 프로젝트+Summary tab이 생기는지 확인한다. 두 Summary를 열어 중복 방지, active `rootTask`, close fallback, reload bootstrap을 검증한다.
-- Gantt/state: scope 전환 전후 `data-project-gantt-instance` 및 API instance 동일성을 확인하고 full/Summary scope의 search/filter state가 서로 덮어쓰지 않는지 검증한다.
+- Gantt/state: scope 전환 전후 `data-project-gantt-instance` 및 API instance 동일성을 확인하고 full/Summary scope의 search/filter state가 서로 덮어쓰지 않는지 검증한다. #367의 timeline 동적 확장 end도 scope 전환으로 축소/초기화되지 않아야 한다.
 - Keyboard/반응형: ArrowLeft/Right/Home/End, Summary Delete/close, focus-visible을 검증한다. 390/768/1024/1440px에서 tablist `overflow-y:hidden`, 내부 수평 overflow, document-level overflow 부재를 확인한다.
-- Native add reject scroll 회귀: #399 scope tab/tabPanel 구조에서도 SVAR native `add-task` reject 후 document/outer Gantt/inner table·chart scroll 위치가 유지되어야 한다. `ProjectGantt` interceptor가 scope/missing/milestone reject를 판별하고 Core visibility/focus 후처리 뒤 viewport를 복원한 후 notification을 publish한다. `project-notifications.spec.ts`의 320/360/361/401px bell y/hit-area와 기존 Gantt geometry assertions을 그대로 재사용한다.
+- Native add reject scroll 회귀: scope tab/tabPanel 구조에서도 SVAR native `add-task` reject 후 document/outer Gantt/inner table·chart scroll 위치가 유지되어야 한다. `ProjectGantt` interceptor가 scope/missing/milestone reject를 판별하고 Core visibility/focus 후처리 뒤 viewport를 복원한 후 notification을 publish한다. `project-notifications.spec.ts`의 320/360/361/401px bell y/hit-area와 기존 Gantt geometry assertions을 그대로 재사용한다.
 - #373 direct deep-link/cross-tab: `?rootTask=` URL을 명시적으로 별도 browser page에 열어 same edit session과 scope를 복원하고 scoped PATCH/revision 뒤 original tab이 storage announcement→canonical GET으로 최신 상태에 수렴하는지 유지한다.
 - burst/loading: in-flight GET 중 N+1 announcement 및 receiver initial loading 중 N+1 mutation의 기존 cross-tab 회귀를 유지한다. 내부 Workspace scope tab 자체는 이 storage roundtrip에 의존하지 않는다.
 - Scope/canonical: subtree AND search/filter, hidden ancestor 물류 inheritance, full canonical Task/Link context, 빈 root 유지, missing/type-changed invalid 복귀, hierarchy Context Menu/shortcut/DnD guard를 유지한다.
@@ -1129,3 +1139,52 @@ Chromium은 `tests/e2e/project-task-delete-context.spec.ts`의 실제 격리 SQL
 - 검색 결과 0건 empty state, pane 건수, inactive 표시, Resource 선택 시 allocation fieldset, Group allocation 미노출을 검증한다.
 - 기존 #119 validation/focus, Assignment PUT, revision/catalog revision, 401/412, dirty/stale 및 canonical snapshot 회귀는 기존 테스트를 유지한다.
 - 공식 PASS는 exact PR head의 GitHub Actions `quality` / `e2e` / `docker` 결과로 판정한다.
+
+## Issue #403 — Data Table Column Geometry Regression
+
+### 목적
+
+Project List 및 유사한 data-dense table에서 열 추가/폭 변경 이후 header/cell text가 인접 열을 침범하거나 document-level horizontal overflow를 만드는 회귀를 자동/브라우저 검증 단계에서 조기에 발견한다.
+
+### 기본 fixture
+
+- 긴 프로젝트명
+- 긴 사업부/제품/법인·사업장 표시명
+- 긴 소유자명
+- 긴 설명
+- 생성/최근 변경 datetime
+- null/미지정 metadata
+- browser hydrate 이후 locale/timezone 표시
+
+### viewport / display
+
+- 390px
+- 768px
+- 1024px
+- 1440px
+- wide desktop
+- 기본 100% zoom, 주요 data table은 가능하면 125% zoom smoke
+
+### Geometry 계약
+
+Project List 기준 최소 검증:
+
+1. 생성 셀의 visible content가 최근 변경 셀 영역을 침범하지 않는다.
+2. 최근 변경 셀의 visible content가 생성 또는 작업 셀 영역을 침범하지 않는다.
+3. header와 body의 동일 열 경계가 정렬된다.
+4. Row Action은 항상 보이고 keyboard/mouse로 접근 가능하다.
+5. `document.documentElement.scrollWidth <= document.documentElement.clientWidth`를 기본 계약으로 한다.
+6. 좁은 viewport에서 table 자체 overflow가 필요한 경우 `tableWrap.scrollWidth > tableWrap.clientWidth`는 허용하되 overflow owner가 table wrapper에 한정되는지 확인한다.
+7. 긴 값이 ellipsis/truncate 되면 전체 값 접근 경로가 유지된다.
+
+Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게 보이는 geometry를 검사한다. 예를 들어 sibling cell의 `getBoundingClientRect()` 비교와 text/content overflow 여부를 사용하며 sub-pixel rounding에는 작은 tolerance를 허용한다.
+
+### 회귀 범위
+
+- #75 Project List wide/table/action 계약
+- #84 검색/필터 후 동일 table geometry
+- #343 사업부·제품·법인/사업장 열 표시
+- Project open/copy/link copy/delete/status action
+- native table semantics, keyboard focus, document overflow
+
+실제 browser/E2E 증거 없이 정적 CSS 확인만으로 이 항목을 PASS 처리하지 않는다.

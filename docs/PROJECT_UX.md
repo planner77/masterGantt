@@ -1,5 +1,11 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #367 Gantt 날짜 밀도와 우측 Timeline 확장
+
+Project Gantt의 Day Header/timeline cell은 숫자-only 표현에 맞춰 36px를 사용하고 Week는 68px를 유지한다. 오른쪽 Chart 탐색은 최초 Task 범위에서 끝나지 않으며 공개 `scroll-chart.left`와 `resize-chart.width`를 기준으로 남은 timeline 폭이 작아지면 viewport 단위로 미래 scale을 확장한다. React `end` prop을 반복 변경하지 않고 고정 start/open end의 SVAR public resize path를 사용한다.
+
+동적 확장은 UI 전용 상태다. Task/Link/Calendar, Scheduling 결과, revision, DB/API, edit permission을 변경하거나 서버 요청을 만들지 않는다. 사용자가 확보한 미래 end는 단조 증가시키며 canonical sync나 Day/Week 전환 뒤에도 이전 end 이상을 public resize path로 복구한다. range extension 자체가 Core store를 re-init하지 않으므로 Gantt/API instance, horizontal/vertical scroll, tree, column, filter, selection 상태를 불필요하게 초기화하지 않는다.
+
 ## Issue #390 작업 ID 복사
 
 Grid 행과 Chart Task Bar의 작업 Context Menu에는 `Copy ID`를 조회성 utility action으로 제공한다. 복사 값은 canonical `ProjectTaskDto.taskId`이며 `externalId`는 이번 기능의 복사 대상이 아니다. Task, Summary, Milestone과 Dependency 연결 여부에 관계없이 표시하고 서버 mutation이 아니므로 readonly 및 mutation lock 상태에서도 사용할 수 있다.
@@ -37,7 +43,7 @@ Clipboard 쓰기는 #364의 공통 호환 경로를 재사용한다. secure cont
 
 표시 범위는 #373과 동일하게 root Summary + 모든 descendants다. ancestor/sibling/다른 branch는 숨기되 삭제하거나 별도 Project로 복제하지 않는다. 전체 canonical Project snapshot을 유지한 채 scope와 search/filter의 교집합을 `visibleTaskIds`로 전달하고 SVAR 공개 `filter-tasks`를 재사용한다. root의 canonical parent는 바꾸지 않고 adapter에서만 SVAR `parent=0`으로 투영하며 Task/Relation Editor에는 전체 canonical tasks/links를 전달해 scope 밖 Dependency를 보존한다.
 
-범위 탭마다 Gantt를 새로 만들지 않는다. 하나의 ProjectGantt instance와 canonical snapshot을 공유하고 active `viewRootTaskId`와 visible set만 변경한다. scale/column/fullscreen 등 project-wide 상태를 유지하고 search/filter/quick-view는 scope별 in-memory state로 복원한다. scope 변경은 기존 selection/clipboard boundary 계약을 따르며 Gantt full remount를 상태 초기화 수단으로 사용하지 않는다.
+범위 탭마다 Gantt를 새로 만들지 않는다. 하나의 ProjectGantt instance와 canonical snapshot을 공유하고 active `viewRootTaskId`와 visible set만 변경한다. scale/column/fullscreen 및 #367의 동적 timeline end 등 project-wide 상태를 유지하고 search/filter/quick-view는 scope별 in-memory state로 복원한다. scope 변경은 기존 selection/clipboard boundary 계약을 따르며 Gantt full remount를 상태 초기화 수단으로 사용하지 않는다.
 
 scoped hierarchy guard도 #373을 유지한다. native Grid `+`와 root toolbar add는 비활성/비노출하고 가상 root Above/Below 및 root 직계 child Outdent 등 scope 밖 mutation은 Context Menu/shortcut/DnD 공통 guard로 거부한다. subtree 내부 변경과 root Child 추가는 기존 허용 계약을 따른다.
 
@@ -779,3 +785,15 @@ Project List는 #289의 canonical `ProjectListItemDto.businessUnit/product/siteE
 
 이번 변경은 표시 전용이며 사업부/제품/법인·사업장 검색·필터·정렬, API/DB/Scheduling/SVAR Gantt 계약을 추가하지 않는다.
 
+## Issue #403 — Project List 날짜 열 및 Column Budget 계약
+
+Project List의 생성/최근 변경 열은 동일한 metadata column policy를 사용한다.
+
+- 생성/최근 변경 값은 locale/timezone 기반 실제 날짜·시간 문자열이 서로 또는 작업 열을 침범하지 않아야 한다.
+- 날짜·상태·작업처럼 최소 폭이 필요한 metadata 열과 프로젝트명·설명 같은 flexible 열의 우선순위를 구분한다.
+- Project List에 새 열을 추가하거나 label/format을 변경할 때는 전체 column budget을 다시 계산한다. 기존 percentage width의 단순 유지로 완료 처리하지 않는다.
+- viewport가 부족하면 `tableWrap` 내부 horizontal scroll을 허용하되 document-level unintended horizontal overflow는 만들지 않는다.
+- header/body alignment, 긴 사업부·제품·법인/사업장·소유자·설명, 생성/최근 변경 datetime, Row Action을 같은 fixture에서 검증한다.
+- 390/768/1024/1440/wide desktop 실제 browser evidence와 sibling cell geometry를 확인한다.
+
+세부 공통 기준은 `DESIGN.md`의 Data Table Column Sizing과 `docs/UI_UX_GUIDELINES.md`의 Data-dense Table Column / Geometry 검토 기준을 따른다.

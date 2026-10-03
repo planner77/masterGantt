@@ -482,13 +482,36 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
         <button className="secondary-button" type="button" onClick={resetFilter}>검색/필터 초기화</button>
       </div> : <div className={styles.tableWrap}>
         <table aria-label="프로젝트 목록" className={styles.table}>
-          <thead><tr><th scope="col">프로젝트</th><th scope="col">사업부</th><th scope="col">제품</th><th scope="col">법인/사업장</th><th scope="col">상태</th><th scope="col">소유자</th><th scope="col">설명</th><th scope="col">생성</th><th scope="col">최근 변경</th><th scope="col">작업</th></tr></thead>
+          <colgroup>
+            <col className={styles.projectColumn} />
+            <col className={styles.businessUnitColumn} />
+            <col className={styles.productColumn} />
+            <col className={styles.siteEntityColumn} />
+            <col className={styles.statusColumn} />
+            <col className={styles.ownerColumn} />
+            <col className={styles.descriptionColumn} />
+            <col className={styles.dateColumn} />
+            <col className={styles.dateColumn} />
+            <col className={styles.actionsColumn} />
+          </colgroup>
+          <thead><tr>
+            <th scope="col" data-column="project">프로젝트</th>
+            <th scope="col" data-column="business-unit">사업부</th>
+            <th scope="col" data-column="product">제품</th>
+            <th scope="col" data-column="site-entity">법인/사업장</th>
+            <th scope="col" data-column="status">상태</th>
+            <th scope="col" data-column="owner">소유자</th>
+            <th scope="col" data-column="description">설명</th>
+            <th scope="col" data-column="created">생성</th>
+            <th scope="col" data-column="updated">최근 변경</th>
+            <th scope="col" data-column="actions">작업</th>
+          </tr></thead>
           <tbody>{visibleProjects.map((project) => <tr key={project.publicId} data-project-id={project.publicId}>
-            <td className={styles.nameCell}><Link className={styles.nameLink} href={projectPath(project.publicId)} onNavigate={() => { setFilter(EMPTY_PROJECT_FILTER); setFilterOpen(false); }}>{project.name}</Link></td>
-            <td className={styles.masterCell}><span className={styles.masterValue} title={projectMasterListLabel(project.businessUnit)}>{projectMasterListLabel(project.businessUnit)}</span></td>
-            <td className={styles.masterCell}><span className={styles.masterValue} title={projectMasterListLabel(project.product)}>{projectMasterListLabel(project.product)}</span></td>
-            <td className={styles.masterCell}><span className={styles.masterValue} title={projectMasterListLabel(project.siteEntity)}>{projectMasterListLabel(project.siteEntity)}</span></td>
-            <td className={styles.statusCell}>
+            <td className={styles.nameCell} data-column="project"><Link className={styles.nameLink} href={projectPath(project.publicId)} onNavigate={() => { setFilter(EMPTY_PROJECT_FILTER); setFilterOpen(false); }}>{project.name}</Link></td>
+            <td className={styles.masterCell} data-column="business-unit"><span className={styles.masterValue} title={projectMasterListLabel(project.businessUnit)}>{projectMasterListLabel(project.businessUnit)}</span></td>
+            <td className={styles.masterCell} data-column="product"><span className={styles.masterValue} title={projectMasterListLabel(project.product)}>{projectMasterListLabel(project.product)}</span></td>
+            <td className={styles.masterCell} data-column="site-entity"><span className={styles.masterValue} title={projectMasterListLabel(project.siteEntity)}>{projectMasterListLabel(project.siteEntity)}</span></td>
+            <td className={styles.statusCell} data-column="status">
               <select
                 aria-label={`${project.name} 프로젝트 상태`}
                 className={`${styles.statusBadge} ${styles.statusSelect}`}
@@ -500,11 +523,11 @@ export function ProjectList({ projects, projectUrls = {} }: Readonly<{
                 {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
               </select>
             </td>
-            <td>{project.ownerName ?? "미지정"}</td>
-            <td className={styles.descriptionCell}><span className={styles.description}>{project.description || "설명이 없습니다."}</span></td>
-            <td className={styles.dateCell}>{formatLocaleDateTime(project.createdAt, locales, timeZone)}</td>
-            <td className={styles.dateCell}>{formatLocaleDateTime(project.updatedAt, locales, timeZone)}</td>
-            <td className={styles.actions}>
+            <td className={styles.ownerCell} data-column="owner"><span className={styles.ownerValue} title={project.ownerName ?? "미지정"}>{project.ownerName ?? "미지정"}</span></td>
+            <td className={styles.descriptionCell} data-column="description"><span className={styles.description}>{project.description || "설명이 없습니다."}</span></td>
+            <td className={styles.dateCell} data-column="created">{formatLocaleDateTime(project.createdAt, locales, timeZone)}</td>
+            <td className={styles.dateCell} data-column="updated">{formatLocaleDateTime(project.updatedAt, locales, timeZone)}</td>
+            <td className={styles.actions} data-column="actions">
               <ProjectRowActions project={project} projectUrl={projectUrls[project.publicId] ?? null}
                 disabled={deletingId !== undefined || statusBusyId !== undefined || submitting}
                 onDelete={(selected, restoreTarget) => void prepareDelete(selected, restoreTarget)} />

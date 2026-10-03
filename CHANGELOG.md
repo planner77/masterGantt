@@ -1,19 +1,42 @@
 # Changelog
 
-## [0.72.0] - 2026-10-03
+## [0.73.0] - 2026-10-03
 
 ### Added
 
 - Issue #399: Project 일정 View에 `전체 프로젝트`와 여러 Summary subtree를 같은 화면에서 전환하는 compact WBS 범위 탭을 추가한다.
 - Summary 범위 탭은 중복 생성 없이 재활성화하며 닫기, Arrow/Home/End/Delete keyboard, 한 행 horizontal overflow와 scope별 search/filter state를 지원한다.
-- SVAR native add의 scope/missing/milestone reject를 ProjectGantt interceptor에서 판별하고 Core visibility/focus 후처리 뒤 page·Gantt scroll을 복원한 다음 feedback을 발행해 화면 위치 이동을 방지한다.
 
 ### Changed
 
 - #373의 `최상위로 열기` 기본 동작에서 `window.open`/popup blocker 의존을 제거하고 동일 ProjectGantt instance에서 `viewRootTaskId + filter-tasks` 범위만 변경한다.
-- 기존 `?rootTask=` deep link/reload/direct-entry와 실제 browser tab 간 revision freshness, canonical snapshot/Dependency/hierarchy guard 및 권한·If-Match·revision 계약은 유지한다.
-- 최신 main의 #390 `Copy ID` 및 #364 clipboard compatibility를 보존한다.
-- Application version을 `0.71.0`에서 `0.72.0`으로 증가한다.
+- SVAR native add의 scope/missing/milestone reject를 ProjectGantt interceptor에서 판별하고 Core visibility/focus 후처리 뒤 page·Gantt scroll을 복원한 다음 feedback을 발행해 화면 위치 이동을 방지한다.
+- 기존 `?rootTask=` deep link/reload/direct-entry와 실제 browser tab 간 revision freshness, canonical snapshot/Dependency/hierarchy guard 및 권한·If-Match·revision 계약을 유지한다.
+- 최신 main의 #403 Project List column layout, #367 Timeline 동적 확장, #390 Copy ID 및 #364 clipboard compatibility를 보존한다.
+- Application version을 `0.72.0`에서 `0.73.0`으로 증가한다.
+
+## [0.72.0] - 2026-10-03
+
+### Added
+
+- Issue #367: Gantt Chart를 오른쪽으로 탐색할 때 공개 `scroll-chart.left`/`resize-chart.width`를 기준으로 남은 timeline 폭을 판정하고, 고정 start/open end의 SVAR public resize path로 미래 날짜 scale을 viewport 기반 chunk로 반복 확장한다.
+- 최초 range가 viewport보다 짧으면 Core의 resize expansion과 추가 future buffer를 사용하고, canonical sync/Day·Week 전환 후에도 사용자가 확보한 future end 이상을 복구한다.
+
+### Changed
+
+- Day Header/timeline cell 폭을 44px에서 36px로 줄여 동일 화면에서 더 많은 날짜를 표시하며 Week 68px, 숫자-only Header와 Day/Week Tooltip 계약은 유지한다.
+- Timeline 확장은 React `end` prop을 반복 변경하지 않아 Core store re-init을 피하고, Gantt/API instance, scroll/tree/column/filter/selection/fullscreen과 Project Scheduling/API/DB/revision 계약을 보존한다.
+- PR CI #1496.1/#1572.1/#1575.1 분석에서 `area`를 수평 날짜 범위로 오해한 구현과 end-prop 기반 재초기화 위험을 제거했다. #1575.1의 #373 scoped filter 회귀 증거를 반영해 public resize expansion으로 설계를 전환한다. PR CI #1579.1/#1584.1/#1587.1에서는 #373 회귀가 해소된 것을 확인했고, SVAR horizontal virtualization에서 특정 Day 날짜나 `W38`이 반드시 DOM에 복귀한다고 가정하던 E2E를 동일 instance의 Day 숫자-only/Week `Wxx` scale 복원과 반대 scale cell 제거 검증으로 바로잡는다.
+- 최신 main의 Issue #403 Project List 날짜 열 레이아웃 및 Issue #390 Copy ID 기능을 보존하고 Application version을 `0.71.1`에서 `0.72.0`으로 증가한다.
+
+## [0.71.1] - 2026-10-03
+
+### Fixed
+
+- Issue #403: Project List의 생성/최근 변경 datetime이 인접 열을 침범하지 않도록 percentage 합계 기반 폭 배분을 명시적 `colgroup` column budget으로 전환하고 날짜 metadata의 최소 폭을 확보한다.
+- 프로젝트명·사업부·제품·법인/사업장·상태·소유자·설명·날짜·Row Action의 역할을 fixed/flexible column으로 분리하고, 좁은 화면에서는 기존 table-owned horizontal scroll을 유지한다.
+- 390/768/1024/1440/1600px에서 긴 metadata, browser locale/timezone 날짜, header/body alignment, sibling cell geometry, document/table overflow를 검증하는 Chromium 회귀를 추가하고 공통 UI/UX·QA 설계 기준을 동기화한다.
+- Application version을 `0.71.0`에서 `0.71.1`로 증가한다.
 
 ## [0.71.0] - 2026-10-03
 

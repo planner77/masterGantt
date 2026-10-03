@@ -128,6 +128,18 @@ Primary Work Surface
 - search/filter와 row action은 table 자체보다 우선해 공간을 차지하지 않는다.
 - Airtable의 structured table/filter UX를 보조 reference로 사용한다.
 
+### Data Table Column Sizing
+
+Project List와 관리 화면처럼 열이 많은 data table은 **column budget을 명시적으로 설계**한다.
+
+- 열을 모두 percentage width로 합계 100%까지 채운 뒤 action 등 fixed-width 열을 추가하지 않는다.
+- 열을 `fixed / minimum / flexible` 역할로 구분하고, 날짜·상태·코드·action처럼 `nowrap`이 필요한 metadata는 실제 표시 문자열의 intrinsic width와 padding을 포함한 최소 폭을 확보한다.
+- Project/Description처럼 가변 텍스트가 있는 열이 남는 폭을 우선 흡수하고, metadata 열은 인접 셀을 침범하지 않게 한다.
+- 열 추가·삭제·label 변경·locale/date format 변경 시 기존 width를 그대로 두지 말고 **전체 column budget을 다시 계산**한다.
+- viewport가 부족하면 cell overlap이나 document-level overflow로 버티지 않고 table container가 소유하는 horizontal scroll을 사용한다.
+- header/body의 열 경계, 긴 문자열, locale/timezone 기반 날짜/시간, 390/768/1024/1440/wide desktop을 실제 browser에서 확인한다.
+- 정적 CSS 값만으로 충분하다고 판단하지 않고 E2E 또는 browser geometry evidence로 sibling cell 침범 여부를 검증한다.
+
 ### Project Workspace
 
 - compact project context + schedule/resources peer tabs + workspace toolbar + Gantt/resource content 구조를 유지한다.

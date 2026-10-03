@@ -69,9 +69,15 @@ test("switches the Gantt timeline between day and ISO week headers without remou
     data: { permission: "readonly" },
   } }));
 
+  const mutationRequests: string[] = [];
+  page.on("request", (request) => {
+    if (!["GET", "HEAD"].includes(request.method())) mutationRequests.push(`${request.method()} ${request.url()}`);
+  });
+
   await page.goto(`/projects/${publicId}`);
   const frame = page.locator(".project-gantt-frame");
   const gantt = page.locator(".project-gantt-widget");
+  const chart = page.locator(".project-gantt-widget .wx-chart").first();
   const controls = page.getByRole("group", { name: "Gantt 표시 단위" });
   const day = controls.getByRole("button", { name: "일", exact: true });
   const week = controls.getByRole("button", { name: "주", exact: true });
@@ -198,14 +204,47 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instanceId!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstanceId!);
   await expect(page.locator(".project-gantt-widget .wx-weekend").first()).toBeVisible();
-  await expect(dayScale.getByText("14", { exact: true })).toBeVisible();
-  await expect(dayScale.getByText("22", { exact: true })).toBeVisible();
+  // SVAR virtualizes the horizontal scale and may choose a different concrete
+  // Day cell after Week focus/viewport resize. The round-trip contract here is
+  // that Day rendering is restored on the same mounted instance without
+  // reverting to Week formatting; exact visible calendar dates are not fixed.
+  const restoredDayCells = page.locator(".project-gantt-day-scale");
+  await expect(restoredDayCells.first()).toBeVisible();
+  await expect(restoredDayCells.first()).toHaveText(/^\d{1,2}$/);
   await expect(dayScale.getByText(/일|[()]/)).toHaveCount(0);
+  await expect(page.locator(".project-gantt-week-scale")).toHaveCount(0);
   await expect(gantt.getByText("W38", { exact: true })).toHaveCount(0);
 
   await week.click();
   await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instanceId!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstanceId!);
-  await expect(gantt.getByText("W38", { exact: true })).toBeVisible();
+  // The concrete visible ISO week number depends on the current virtualized
+  // horizontal window. Verify the Week representation itself instead of
+  // assuming the viewport returns to fixture week W38.
+  const restoredWeekCells = page.locator(".project-gantt-week-scale");
+  await expect(restoredWeekCells.first()).toBeVisible();
+  await expect(restoredWeekCells.first()).toHaveText(/^W\d{2}$/);
+  await expect(page.locator(".project-gantt-day-scale")).toHaveCount(0);
+
+  await day.click();
+  await expect(frame).toHaveAttribute("data-gantt-scale-mode", "day");
+  await expect(frame).toHaveAttribute("data-gantt-cell-width", "36");
+
+  for (let extension = 0; extension < 3; extension += 1) {
+    const previousEnd = Number(await frame.getAttribute("data-gantt-timeline-end"));
+    expect(previousEnd).toBeGreaterThan(0);
+
+    await chart.evaluate((element) => {
+      element.scrollTo({ left: element.scrollWidth, behavior: "instant" });
+    });
+    await expect.poll(async () => chart.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+
+    await expect.poll(async () => Number(await frame.getAttribute("data-gantt-timeline-end"))).toBeGreaterThan(previousEnd);
+    await expect(frame).toHaveAttribute("data-project-gantt-instance", instanceId!);
+    await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstanceId!);
+    expect(await chart.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  }
+
+  expect(mutationRequests).toEqual([]);
 });

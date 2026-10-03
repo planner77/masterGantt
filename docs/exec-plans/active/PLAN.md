@@ -1,8 +1,13 @@
 # Active execution plan
 
-## Issue #399 Workspace 내부 WBS 범위 탭 — 최신 main 재정렬 / PR·CI 시작
+## Issue #399 Workspace 내부 WBS 범위 탭 — latest main 재정렬 / PR CI 재시작
 
-최신 main `cbe90acf0bf9785240e6a0ff2a2e5c532ab9251f` / application `0.71.0`의 Issue #390 Copy ID 변경을 보존한 상태에서 #399를 재적용한다. `최상위로 열기`의 browser popup 진입만 동일 일정 Workspace 내부 WBS 범위 탭으로 교체하고 #373의 subtree/canonical/deep-link/cross-tab/hierarchy guard를 유지한다. 후보 version은 다음 MINOR인 `0.72.0`, branch는 `feat/issue-399-workspace-scope-tabs`다. 상세는 [Issue #399 실행 계획](ISSUE_399.md)을 따른다. 사용자 요청 종료점은 PR 생성 및 해당 head PR CI 시작 확인이다.
+최신 main `fd397c477ebbbdfaff7804be16bacd87fb8411d5` / application `0.72.0`의 #403 Project List column layout과 #367 Gantt timeline 동적 확장을 보존해 #399를 재정렬한다. `최상위로 열기`의 browser popup 진입을 동일 일정 Workspace 내부 WBS 범위 탭으로 교체하고 #373 subtree/canonical/deep-link/cross-tab/hierarchy guard를 유지한다. 반복 CI 분석에서 드러난 native add reject viewport 회귀는 ProjectGantt interceptor 경계에서 복원한다. 후보 version은 다음 MINOR인 `0.73.0`, branch는 `feat/issue-399-workspace-scope-tabs`다. 상세는 [Issue #399 실행 계획](ISSUE_399.md)을 따른다. 종료점은 최신 main 정렬 후 새 PR CI 시작 확인이다.
+
+## Issue #403 Project List 날짜 열 겹침 — 구현 완료 / PR CI 시작 준비
+
+latest main `cbe90acf0bf9785240e6a0ff2a2e5c532ab9251f` / `0.71.0`에서 Project List의 percentage column budget 문제를 명시적 `colgroup` fixed/flexible sizing으로 수정하고 생성/최근 변경 datetime geometry 회귀를 추가했다. 후보 version은 PATCH `0.71.1`이며 공통 설계·UI/UX·QA 기준도 동기화했다. 상세는 [Issue #403 실행 계획](ISSUE_403.md)을 따른다. 사용자 요청 종료점은 PR 생성과 required PR CI 시작 확인이며 merge/main CI/GHCR/Issue 종료는 범위 밖이다.
+
 
 ## Issue #390 작업 Context Menu Copy ID — CI #1536 실패 보완 / 최신 main 재정렬
 

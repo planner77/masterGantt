@@ -1,9 +1,9 @@
 # Issue #399 — Workspace 내부 WBS 범위 탭 실행 계획
 
 ## 기준
-- latest main: `cbe90acf0bf9785240e6a0ff2a2e5c532ab9251f`
-- baseline application: `0.71.0` (#390 포함)
-- target: `0.72.0`
+- latest main: `fd397c477ebbbdfaff7804be16bacd87fb8411d5`
+- baseline application: `0.72.0` (#403/#367/#390 포함)
+- target: `0.73.0`
 - branch: `feat/issue-399-workspace-scope-tabs`
 - release_required=true / release_authorized=false
 - 종료점: 구현·문서 동기화·PR 생성·PR CI 시작
@@ -85,3 +85,14 @@ Run `37104319586`은 quality/build/typecheck/ESLint/Vitest/Docker, Chromium shar
 - 기존 parent milestone guard는 다른 호출 경로의 defense-in-depth로 유지한다.
 
 실패 assertion/CI gate는 수정하지 않는다.
+
+
+## Latest main 재정렬 — #403 / #367 반영
+
+PR #404 작업 중 main이 `cbe90acf...`에서 `fd397c477...`로 21 commits 전진했다. #403 Project List 날짜 열/공통 UI·QA 기준과 #367 Gantt Day 36px + public resize 기반 timeline 동적 확장을 모두 보존해야 하므로 단순 충돌 해결 대신 latest main tree를 기준으로 #399 변경을 재합성한다.
+
+- `project-readonly-view.tsx`, `globals.css`, hierarchy E2E, REQUIREMENTS는 main에서 해당 기간 변경이 없어 #399 blob을 그대로 재사용한다.
+- `project-gantt.tsx`는 latest main의 #367 `GANTT_CELL_WIDTH`, timeline range/resize 로직을 기준으로 #399 menu semantics와 native add reject viewport guard만 재적용한다.
+- PROJECT_UX / TEST_PLAN / active PLAN / CHANGELOG는 latest main 내용을 보존하고 #399 section만 합성한다.
+- main `0.72.0`과 충돌하므로 #399 target은 다음 MINOR `0.73.0`으로 재산정한다.
+- 이전 CI #1596.1에서 shard 4의 `ECONNRESET`은 재현되지 않았고 shard 2 notification geometry만 남았다. 최신 main 정렬 head에서 전체 CI를 다시 판정한다.
