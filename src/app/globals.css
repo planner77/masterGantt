@@ -578,6 +578,11 @@ h2 {
   flex-direction: column;
   width: 100%;
   max-width: 100%;
+  /* Project/Gantt mutations preserve their own internal scroll state. Excluding
+     the workspace from document scroll anchoring prevents header feedback
+     (toast/unread badge) from shifting the entire page after #399 inserted an
+     additional scope-tab/tab-panel wrapper above the Gantt. */
+  overflow-anchor: none;
 }
 
 /* A project is a working surface, so its synchronized Grid and Chart can use
@@ -1030,14 +1035,6 @@ h2 {
 @media (max-width: 48rem) {
   .project-gantt-scroll,
   .project-gantt-widget { min-height: 22rem; }
-
-  /* #399: the scope-tab strip (2.125rem) plus schedule gap (0.5rem)
-     consumes vertical space that previously belonged to the Gantt. Keep the
-     historical narrow-workspace budget instead of making the document taller. */
-  .project-schedule > .project-scope-panel .project-gantt-scroll,
-  .project-schedule > .project-scope-panel .project-gantt-widget {
-    min-height: calc(22rem - 2.625rem);
-  }
 }
 
 .loading-state {
