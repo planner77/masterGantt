@@ -230,3 +230,10 @@ Task Editor Footer의 `최신 정보 다시 불러오기` / `취소` / `저장`�
 - 각 pane은 현재 표시 건수/전체 건수를 노출하고 `등록된 대상 없음`과 `현재 필터와 일치하는 결과 없음`을 구분한다.
 - 768px 이하에서는 pane과 allocation fields를 1열로 stack하며 390/768/1024/1440px에서 dialog/document horizontal overflow를 허용하지 않는다.
 - Assignment PUT, Project/Catalog revision, `If-Match`, 401/412, dirty/stale, canonical snapshot 및 Task/Assignment 독립 저장 계약은 변경하지 않는다.
+
+
+## Issue #303 — Task 상태와 진행률
+
+일반 Task/Milestone의 작업 정보 탭은 `시작 전 / 진행 중 / 완료` 상태 Select를 진행률 영역과 함께 표시한다. Desktop에서는 기존 작업명 좌측/진행률 우측 geometry를 유지하고 상태와 진행률을 보조 열 내부에서 배치하며, 768px 이하에서는 1열로 stack한다.
+
+Draft에서 progress 100% 선택은 즉시 완료로, 완료 선택은 즉시 100%로 동기화한다. 완료에서 100 미만으로 내리면 진행 중, 시작 전 선택은 0%가 된다. 저장은 status/progress를 하나의 PATCH payload로 보내고 canonical response로 재동기화한다. Summary는 직접 편집하지 않으며 #258의 관계 Task 편집 정책, #368 요청 종료일, stale/busy/readonly/save-failure 보호를 유지한다.

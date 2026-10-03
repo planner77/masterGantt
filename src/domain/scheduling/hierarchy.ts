@@ -17,6 +17,7 @@ export interface HierarchyTaskInput {
   readonly end: string | null;
   readonly duration: number | null;
   readonly progress: number | null;
+  readonly status?: "not_started" | "in_progress" | "completed";
   readonly scheduleMode: "auto" | "manual";
   readonly baselineStart?: string | null;
   readonly baselineDuration?: number | null;
@@ -193,6 +194,16 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
       }
     }
     aggregate[index] = totals;
+    const summaryProgress = totals.leafCount === 0
+      ? null
+      : totals.weight
+        ? totals.weightedProgress / totals.weight
+        : totals.milestoneProgress / totals.milestoneCount;
+    const summaryStatus = summaryProgress === 100
+      ? "completed" as const
+      : summaryProgress !== null && summaryProgress > 0
+        ? "in_progress" as const
+        : "not_started" as const;
     const summaryBaselineStart = totals.allDescendantsHaveBaseline ? totals.baselineStart : null;
     const summaryBaselineEnd = totals.allDescendantsHaveBaseline ? totals.baselineEnd : null;
     const summaryBaselineDuration = summaryBaselineStart && summaryBaselineEnd
@@ -204,7 +215,8 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
       start: totals.start,
       end: totals.end,
       duration: totals.leafCount ? span(totals.start!, totals.end!) : null,
-      progress: totals.leafCount === 0 ? null : totals.weight ? totals.weightedProgress / totals.weight : totals.milestoneProgress / totals.milestoneCount,
+      progress: summaryProgress,
+      status: summaryStatus,
       requestedStart: null,
       scheduleMode: "auto" as const,
       baselineStart: summaryBaselineStart,

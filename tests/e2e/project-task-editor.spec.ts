@@ -2,6 +2,7 @@ import { expect, test, type Page, type Request } from "@playwright/test";
 import type { ProjectDto, ProjectLinkDto, ProjectTaskDto, UpdateTaskRequest } from "../../src/contracts/projects";
 import { createWorkingCalendar } from "../../src/domain/scheduling/calendar";
 import { scheduleLeaf } from "../../src/domain/scheduling/leaf";
+import { normalizeTaskStatusProgress, taskStatusFromProgress } from "../../src/domain/task-status";
 import { chooseTaskInformation, taskContextMenu } from "./helpers/task-context-menu";
 
 const publicId = "a3405d3d-8cb4-4da4-9b0f-43a5de330004";
@@ -16,7 +17,7 @@ const save = (page: Page) => editor(page).getByRole("button", { name: "저장", 
 const frame = (page: Page) => page.locator(".project-gantt-frame");
 
 function task(n: number, name: string, extra: Partial<ProjectTaskDto> = {}): ProjectTaskDto {
-  return { taskId: id(n), externalId: `EDITOR-${n}`, name, type: "task", scheduleMode: "auto", requestedStart: "2026-09-18", start: "2026-09-18", end: "2026-09-18", duration: 1, progress: 10, parentExternalId: null, siblingOrder: n, ...extra };
+  return { taskId: id(n), externalId: `EDITOR-${n}`, name, type: "task", scheduleMode: "auto", requestedStart: "2026-09-18", start: "2026-09-18", end: "2026-09-18", duration: 1, progress: 10, status: "in_progress", parentExternalId: null, siblingOrder: n, ...extra };
 }
 
 interface Fixture {
@@ -91,10 +92,17 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       if (!entry || entry.type === "summary") { await route.fulfill({ status: 422, json: { error: { code: "INVALID_TASK" } } }); return; }
       const patch = request.postDataJSON() as UpdateTaskRequest;
       try {
-        const calculated = scheduleLeaf({ type: entry.type, requestedStart: patch.start ?? entry.requestedStart ?? entry.start!, duration: patch.duration ?? entry.duration!, scheduleMode: entry.scheduleMode }, createWorkingCalendar(fixture.project.calendar));
+        const calculated = scheduleLeaf({ type: entry.type, requestedStart: patch.start ?? entry.requestedStart ?? entry.start!, duration: patch.duration ?? entry.duration!, scheduleMode: patch.scheduleMode ?? entry.scheduleMode }, createWorkingCalendar(fixture.project.calendar));
+        const normalizedStatus = normalizeTaskStatusProgress({
+          currentStatus: entry.status ?? taskStatusFromProgress(entry.progress),
+          currentProgress: entry.progress ?? 0,
+          status: patch.status,
+          progress: patch.progress,
+        });
         Object.assign(entry, {
           name: patch.name ?? entry.name,
-          progress: patch.progress ?? entry.progress,
+          progress: normalizedStatus.progress,
+          status: normalizedStatus.status,
           start: calculated.start,
           end: calculated.end,
           duration: calculated.duration,
@@ -443,6 +451,38 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await save(page).click();
     await expect(editor(page)).toHaveCount(0);
     expect(fixture.patches[0].postDataJSON()).toEqual({ duration: 2 });
+  });
+
+  test("synchronizes status with progress and toggles completed task-name strike-through", async ({ page }) => {
+    const fixture = await setup(page);
+    const instance = await frame(page).getAttribute("data-project-gantt-instance");
+
+    await openRow(page);
+    const status = editor(page).getByLabel("상태", { exact: true });
+    const progress = editor(page).getByLabel("진행률 (%)", { exact: true });
+    await expect(status).toHaveValue("in_progress");
+    await progress.fill("100");
+    await expect(status).toHaveValue("completed");
+    await save(page).click();
+    await expect(editor(page)).toHaveCount(0);
+    expect(fixture.patches.at(-1)?.postDataJSON()).toEqual({ progress: 100, status: "completed" });
+    await expect(rowByTaskId(page, id(4))).toHaveAttribute("data-task-completed", "true");
+    expect(await rowByTaskId(page, id(4)).getByText("Beta leaf", { exact: true }).evaluate((element) => getComputedStyle(element).textDecorationLine))
+      .toContain("line-through");
+
+    await openRow(page);
+    await editor(page).getByLabel("상태", { exact: true }).selectOption("not_started");
+    await expect(editor(page).getByLabel("진행률 (%)", { exact: true })).toHaveValue("0");
+    await save(page).click();
+    expect(fixture.patches.at(-1)?.postDataJSON()).toEqual({ progress: 0, status: "not_started" });
+    await expect(rowByTaskId(page, id(4))).toHaveAttribute("data-task-completed", "false");
+
+    await openRow(page);
+    await editor(page).getByLabel("상태", { exact: true }).selectOption("completed");
+    await expect(editor(page).getByLabel("진행률 (%)", { exact: true })).toHaveValue("100");
+    await save(page).click();
+    expect(fixture.patches.at(-1)?.postDataJSON()).toEqual({ progress: 100, status: "completed" });
+    await expect(frame(page)).toHaveAttribute("data-project-gantt-instance", instance!);
   });
 
   for (const failure of [422, 500, "network"] as const) {

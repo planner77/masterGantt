@@ -90,5 +90,12 @@ describe("W07 task input contract", () => {
     expect(parseUpdateTaskInput({}).success).toBe(false);
     expect(parseUpdateTaskInput({ externalId: "NEW" }).success).toBe(false);
     expect(parseUpdateTaskInput({ type: "milestone" }).success).toBe(false);
+    expect(parseUpdateTaskInput({ status: "completed" })).toEqual({
+      success: true,
+      data: { status: "completed" },
+    });
+    expect(parseUpdateTaskInput({ status: "unknown" }).success).toBe(false);
+    expect(parseCreateTaskInput({ ...valid, status: "in_progress" }).success).toBe(true);
+    expect(parseCreateTaskInput({ ...valid, status: "unknown" as never }).success).toBe(false);
   });
 });

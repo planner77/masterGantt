@@ -4,6 +4,7 @@ import type {
   ProjectCalendarDto,
   ProjectLinkDto,
   ProjectTaskDto,
+  TaskStatus,
 } from "../../contracts/projects";
 import {
   addCalendarDays,
@@ -28,6 +29,7 @@ export interface ProjectTaskUpdatePayload {
   readonly description?: string | null;
   readonly url?: string | null;
   readonly progress?: number;
+  readonly status?: TaskStatus;
   readonly start?: string;
   readonly duration?: number;
   readonly scheduleMode?: "auto" | "manual";

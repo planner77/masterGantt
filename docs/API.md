@@ -1282,3 +1282,12 @@ Summary는 자식 수와 무관하게 유효한 WBS 컨테이너다. 모든 cano
 프로젝트/Subtree copy는 null 일정 상태를 보존한다. Template preview의 `offsetDays/duration`은 미산정 Summary에 null이며 인스턴스화의 날짜 이동은 실제 Leaf에만 적용한 뒤 Summary를 재파생한다. calendar preview의 before/after 날짜 필드는 미산정 Summary에 null을 표현할 수 있다. Excel Export는 해당 행을 유지하고 null 일정 셀을 공란으로, SVG/PNG는 행을 유지하고 Grid는 —/Chart는 bar 없이 처리한다.
 
 Import는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)의 pure payload validator만 이번 범위에 포함한다. 새 Import 화면/preview/commit API는 구현하지 않으며 실제 transaction Import 성공을 주장하지 않는다.
+
+
+## Issue #303 — Task status / progress canonical contract
+
+Task-level `status`는 Project `status`와 별도이며 `not_started | in_progress | completed`만 허용한다. 일반 Task/Milestone의 canonical response에는 status가 포함되고 Project Template instantiate 응답도 동일한 Task shape를 반환한다.
+
+Task create/update에서 status와 progress는 하나의 mutation/revision에 저장한다. `progress=100`은 `completed`, `status=completed`는 `progress=100`, `status=not_started`는 `progress=0`으로 정규화한다. 완료 상태에서 progress를 100 미만으로 낮추면 `in_progress`가 되며, `in_progress`는 0~99를 허용한다. 서버는 완료/진행률 모순 조합을 canonical snapshot에 저장하지 않는다.
+
+Summary는 직접 status를 PATCH하지 않는다. 기존 derived progress가 정확히 100이면 completed, 0보다 크고 100 미만이면 in_progress, 0 또는 미산정(null)이면 not_started로 파생한다. status/progress 변경은 요청/적용 일정, Dependency Link, revision/If-Match/Origin/edit-session 계약을 변경하지 않는다.

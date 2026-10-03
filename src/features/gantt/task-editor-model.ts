@@ -1,4 +1,5 @@
-import type { ProjectCalendarDto, ProjectTaskDto } from "../../contracts/projects";
+import type { ProjectCalendarDto, ProjectTaskDto, TaskStatus } from "../../contracts/projects";
+import { normalizeTaskStatusProgress, taskStatusFromProgress } from "../../domain/task-status";
 import { endFromStart, isWorkingDay, MAX_TASK_DURATION, nextWorkingDay, workingDaysBetween } from "../../domain/scheduling/calendar";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
 import {
@@ -19,6 +20,7 @@ export interface TaskEditorDraft {
   readonly requestedEnd: string;
   readonly scheduleMode: "auto" | "manual";
   readonly progress: string;
+  readonly status: TaskStatus;
   readonly description: string;
   readonly url: string;
   readonly baselineStart: string;
@@ -176,6 +178,7 @@ export function createTaskEditorDraft(task: ProjectTaskDto, calendar?: ProjectCa
     requestedEnd: task.type === "task" ? task.end ?? "" : "",
     scheduleMode: task.scheduleMode,
     progress: task.progress === null ? "" : String(task.progress),
+    status: task.status ?? taskStatusFromProgress(task.progress),
     description: task.description ?? "",
     url: task.url ?? "",
     baselineStart: task.baselineStart ?? "",
@@ -183,6 +186,36 @@ export function createTaskEditorDraft(task: ProjectTaskDto, calendar?: ProjectCa
     baselineEnd: task.baselineEnd ?? "",
   };
   return calendar ? synchronizeTaskEditorScheduleDraft(task, draft, calendar, "duration") : draft;
+}
+
+export function updateTaskEditorDraft(
+  draft: TaskEditorDraft,
+  field: keyof TaskEditorDraft,
+  value: string,
+): TaskEditorDraft {
+  if (field === "status") {
+    if (value !== "not_started" && value !== "in_progress" && value !== "completed") return draft;
+    const currentProgress = Number(draft.progress);
+    const normalized = normalizeTaskStatusProgress({
+      currentStatus: draft.status,
+      currentProgress: Number.isFinite(currentProgress) ? currentProgress : 0,
+      status: value,
+    });
+    return { ...draft, status: normalized.status, progress: String(normalized.progress) };
+  }
+  if (field === "progress") {
+    const progress = Number(value);
+    if (value.trim() && Number.isFinite(progress) && progress >= 0 && progress <= 100) {
+      const currentProgress = Number(draft.progress);
+      const normalized = normalizeTaskStatusProgress({
+        currentStatus: draft.status,
+        currentProgress: Number.isFinite(currentProgress) ? currentProgress : 0,
+        progress,
+      });
+      return { ...draft, progress: value, status: normalized.status };
+    }
+  }
+  return { ...draft, [field]: value } as TaskEditorDraft;
 }
 
 export function copyScheduleToBaseline(draft: TaskEditorDraft, task: ProjectTaskDto): TaskEditorDraft {
@@ -206,7 +239,7 @@ export function clearBaseline(draft: TaskEditorDraft): TaskEditorDraft {
 export function taskEditorIsDirty(task: ProjectTaskDto, draft: TaskEditorDraft): boolean {
   const initial = createTaskEditorDraft(task);
   const persistedFields: readonly (keyof TaskEditorDraft)[] = [
-    "name", "start", "duration", "scheduleMode", "progress", "description", "url",
+    "name", "start", "duration", "scheduleMode", "progress", "status", "description", "url",
     "baselineStart", "baselineDuration", "baselineEnd",
   ];
   return persistedFields.some((field) => initial[field] !== draft[field]);
@@ -268,12 +301,14 @@ export function prepareTaskEditorCommand(task: ProjectTaskDto, draft: TaskEditor
     }
   }
 
+  const initialStatus = task.status ?? taskStatusFromProgress(task.progress);
   const payload: ProjectTaskUpdatePayload = {
     ...(name !== task.name ? { name } : {}),
     ...(draft.start !== (task.requestedStart ?? task.start) ? { start: draft.start } : {}),
     ...(task.type === "task" && duration !== task.duration ? { duration } : {}),
     ...(draft.scheduleMode !== task.scheduleMode ? { scheduleMode: draft.scheduleMode } : {}),
     ...(progress !== task.progress ? { progress } : {}),
+    ...(draft.status !== initialStatus ? { status: draft.status } : {}),
     ...(description !== (task.description ?? null) ? { description } : {}),
     ...(url !== (task.url ?? null) ? { url } : {}),
     ...(baselineChanged ? {

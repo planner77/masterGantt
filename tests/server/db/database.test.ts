@@ -150,6 +150,7 @@ describe("SQLite connection and schema", () => {
         "0016_resource_developer_grade.sql",
         "0017_project_master_catalog.sql",
         "0018_empty_summary_schedule.sql",
+        "0019_task_status.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -311,6 +312,44 @@ describe("SQLite connection and schema", () => {
       ).toThrow(/CHECK constraint failed/);
     } finally {
       database.close();
+    }
+  });
+});
+
+describe("Issue #303 task status migration", () => {
+  it("backfills status from progress and preserves it across reopen", () => {
+    const directory = copiedMigrations(19);
+    const migration19 = join(directory, "0019_task_status.sql");
+    const migrationContents = readFileSync(migration19);
+    unlinkSync(migration19);
+    const filename = join(temporaryDirectory(), "task-status.sqlite3");
+    const before = openDatabase({ filename, migrationsDirectory: directory });
+    const projectId = insertProject(before.database, "Task status migration");
+    const zeroId = insertTask(before.database, { projectId, name: "Zero", progress: 0 });
+    const partialId = insertTask(before.database, { projectId, name: "Partial", progress: 50 });
+    const doneId = insertTask(before.database, { projectId, name: "Done", progress: 100 });
+    before.database.close();
+
+    writeFileSync(migration19, migrationContents);
+    const migrated = openDatabase({ filename, migrationsDirectory: directory });
+    try {
+      expect(migrated.migrations.applied).toEqual(["0019_task_status.sql"]);
+      expect(migrated.database.prepare("SELECT id, status FROM tasks ORDER BY id").all()).toEqual([
+        { id: zeroId, status: "not_started" },
+        { id: partialId, status: "in_progress" },
+        { id: doneId, status: "completed" },
+      ]);
+      expect(() => migrated.database.prepare("UPDATE tasks SET status = 'unknown' WHERE id = ?").run(zeroId)).toThrow();
+    } finally {
+      migrated.database.close();
+    }
+
+    const reopened = openDatabase({ filename, migrationsDirectory: directory });
+    try {
+      expect(reopened.migrations.applied).toEqual([]);
+      expect(reopened.database.prepare("SELECT status FROM tasks WHERE id = ?").pluck().get(doneId)).toBe("completed");
+    } finally {
+      reopened.database.close();
     }
   });
 });

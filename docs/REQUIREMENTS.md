@@ -259,3 +259,13 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 390/768/1024/1440/wide에서 세 column을 데이터에서 제거하지 않으며, 좁은 화면은 table 내부 horizontal scroll을 허용하되 document-level overflow는 금지한다.
 - 신규 기준정보 필터/정렬, API/DB schema, Project revision/security, SVAR Gantt 변경은 범위 밖이다.
 
+
+
+## Issue #303 — Task status / progress synchronization
+
+- Task/Milestone status는 `not_started | in_progress | completed`이며 Project status와 별도 도메인이다.
+- 신규 leaf와 PATCH는 progress/status를 서버에서 canonical하게 정규화한다. progress 100%와 completed는 양방향 동기화하고, not_started는 0%, completed 해제는 in_progress로 처리한다.
+- Summary status는 직접 편집하지 않고 derived progress의 정확한 값으로 파생한다.
+- 완료 Task/Milestone/Summary의 Grid 작업명에는 취소선을 표시하며 완료 해제 시 제거한다.
+- status는 API/DB/canonical snapshot/reload/Template instantiate/Copy 경로에서 일관되게 보존한다.
+- progress/status 변경은 요청/적용 일정이나 Dependency Link를 바꾸지 않으며 기존 edit session, Origin, If-Match, revision, transaction 계약을 유지한다.

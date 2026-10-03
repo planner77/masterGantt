@@ -15,6 +15,7 @@ import {
   synchronizeTaskEditorScheduleDraft,
   taskEditorIsDirty,
   taskEditorReadOnlyReason,
+  updateTaskEditorDraft,
   validateTaskEditorSchedule,
   type TaskEditorDraft,
   type TaskEditorSaveResult,
@@ -165,7 +166,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
 
   function change(field: keyof TaskEditorDraft, value: string) {
     if (locked || restriction || stale) return;
-    setDraft((current) => ({ ...current, [field]: value }));
+    setDraft((current) => updateTaskEditorDraft(current, field, value));
     setError(null);
   }
   function changeSchedule(field: TaskEditorScheduleField, value: string) {
@@ -346,12 +347,22 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
         >
           <div className={styles.taskFields}>
             <label className={styles.field}>작업명<input autoFocus name="task-name" value={draft.name} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("name", event.target.value)} /></label>
-            <div className={styles.field}>
-              <label htmlFor="task-progress">진행률 (%)</label>
-              <span className={styles.sliderRow}>
-                {base.task.progress === null ? <output id="task-progress" aria-label="진행률 미산정">—</output> : <input id="task-progress" aria-valuetext={draft.progress + "%"} name="task-progress" type="range" min="0" max="100" step="1" value={draft.progress} disabled={locked || scheduleReadOnly} onChange={(event) => change("progress", event.target.value)} />}
-                <span className={styles.progressValue} aria-live="polite">{base.task.progress === null ? "미산정" : `${draft.progress}%`}</span>
-              </span>
+            <div className={styles.statusProgressFields}>
+              <label className={styles.field}>
+                상태
+                <select name="task-status" aria-label="상태" value={draft.status} disabled={locked || scheduleReadOnly || base.task.progress === null} onChange={(event) => change("status", event.target.value)}>
+                  <option value="not_started">시작 전</option>
+                  <option value="in_progress">진행 중</option>
+                  <option value="completed">완료</option>
+                </select>
+              </label>
+              <div className={styles.field}>
+                <label htmlFor="task-progress">진행률 (%)</label>
+                <span className={styles.sliderRow}>
+                  {base.task.progress === null ? <output id="task-progress" aria-label="진행률 미산정">—</output> : <input id="task-progress" aria-valuetext={draft.progress + "%"} name="task-progress" type="range" min="0" max="100" step="1" value={draft.progress} disabled={locked || scheduleReadOnly} onChange={(event) => change("progress", event.target.value)} />}
+                  <span className={styles.progressValue} aria-live="polite">{base.task.progress === null ? "미산정" : `${draft.progress}%`}</span>
+                </span>
+              </div>
             </div>
             <div className={styles.scheduleFields}>
               <div className={styles.field}>

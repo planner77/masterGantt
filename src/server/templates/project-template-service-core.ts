@@ -935,6 +935,7 @@ export class ProjectTemplateService {
         end: t.endDate,
         duration: t.duration,
         progress: t.progress,
+        status: t.status,
         parentExternalId: t.parentId ? (taskMap.get(t.parentId) ?? null) : null,
         siblingOrder: t.sortOrder,
         description: t.description ?? undefined,

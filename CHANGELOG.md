@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.74.0] - 2026-10-03
+
+### Added
+
+- Issue #303: Task/Milestone에 `not_started / in_progress / completed` 상태를 추가하고 진행률 100%와 완료 상태를 원자적으로 양방향 동기화한다.
+- 완료된 Task/Milestone 및 derived progress가 정확히 100%인 Summary의 Grid 작업명에 취소선을 표시한다.
+
+### Changed
+
+- 최신 main의 #258 관계 Task 편집, #368 요청 종료일, #384 다중 Copy, #399 Workspace 범위 탭 계약을 유지한 채 Task status를 canonical API/SQLite snapshot에 포함한다.
+- Migration `0019_task_status.sql`은 기존 progress를 기준으로 status를 deterministic backfill한다.
+- subtree Copy는 명시적 status를 보존하고 Project Template instantiate 응답도 canonical status를 포함한다.
+- Application version을 `0.73.0`에서 `0.74.0`으로 증가한다.
+
+
 ## [0.73.0] - 2026-10-03
 
 ### Added

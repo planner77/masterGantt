@@ -797,3 +797,10 @@ Project List의 생성/최근 변경 열은 동일한 metadata column policy를 
 - 390/768/1024/1440/wide desktop 실제 browser evidence와 sibling cell geometry를 확인한다.
 
 세부 공통 기준은 `DESIGN.md`의 Data Table Column Sizing과 `docs/UI_UX_GUIDELINES.md`의 Data-dense Table Column / Geometry 검토 기준을 따른다.
+
+
+## Issue #303 — 완료 작업 Grid 표시
+
+Task/Milestone의 canonical status가 completed이면 Grid 작업명 텍스트에 취소선을 표시하고 완료 해제 시 같은 Gantt instance에서 즉시 제거한다. Summary는 derived progress가 정확히 100일 때 같은 완료 표시를 사용한다. 완료 표시는 색상에만 의존하지 않으며 tree toggle, indentation, selection, inline-name edit/focus hit area를 변경하지 않는다.
+
+Task Editor는 기존 desktop의 작업명/진행률 2열 배치를 유지하면서 상태 Select를 진행률 보조 영역에 결합한다. 390/768px에서는 status/progress를 자연스럽게 stack하여 overflow를 만들지 않는다. #399 scope tab 전환과 fullscreen/search/filter/scroll/tree/column 상태도 이 표시 때문에 초기화하지 않는다.
