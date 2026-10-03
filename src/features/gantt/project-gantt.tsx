@@ -162,6 +162,13 @@ function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
 }
 
 type NativeTaskAddRejectReason = "scope" | "missing" | "milestone";
+type NativeTaskAddViewportSnapshot = Readonly<{
+  pageX: number;
+  pageY: number;
+  rootLeft: number;
+  rootTop: number;
+  nested: ReadonlyArray<Readonly<{ element: HTMLElement; left: number; top: number }>>;
+}>;
 
 interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
@@ -317,6 +324,7 @@ export function ProjectGantt({
   const canonicalSyncQueueReference = useRef<Promise<void>>(Promise.resolve());
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
   const ganttScrollReference = useRef<HTMLDivElement>(null);
+  const nativeTaskAddViewportReference = useRef<NativeTaskAddViewportSnapshot | null>(null);
   const fullscreenFrameReference = useRef<HTMLDivElement>(null);
   const fullscreenButtonReference = useRef<HTMLButtonElement>(null);
   const dayHeaderTooltipReference = useRef<HTMLDivElement>(null);
@@ -1536,32 +1544,46 @@ export function ProjectGantt({
     return () => { cancelled = true; };
   }, [apiInstanceId, ensureTimelineEnd, scaleMode, scheduleTimelineExtension]);
 
-  function rejectNativeTaskAddAfterCore(reason: NativeTaskAddRejectReason): void {
+  function captureNativeTaskAddViewport(): NativeTaskAddViewportSnapshot | null {
     const root = ganttScrollReference.current;
-    const pageX = window.scrollX;
-    const pageY = window.scrollY;
-    const rootLeft = root?.scrollLeft ?? 0;
-    const rootTop = root?.scrollTop ?? 0;
-    const nested = root
-      ? Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container, .wx-chart")).map((element) => ({
+    if (!root) return null;
+    return {
+      pageX: window.scrollX,
+      pageY: window.scrollY,
+      rootLeft: root.scrollLeft,
+      rootTop: root.scrollTop,
+      nested: Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container, .wx-chart")).map((element) => ({
         element,
         left: element.scrollLeft,
         top: element.scrollTop,
-      }))
-      : [];
+      })),
+    };
+  }
 
+  function captureNativeTaskAddViewportBeforeCore(event: ReactMouseEvent<HTMLDivElement>): void {
+    if (!(event.target instanceof Element) || !event.target.closest('[data-action="add-task"]')) return;
+    nativeTaskAddViewportReference.current = captureNativeTaskAddViewport();
+  }
+
+  function rejectNativeTaskAddAfterCore(reason: NativeTaskAddRejectReason): void {
+    const snapshot = nativeTaskAddViewportReference.current ?? captureNativeTaskAddViewport();
+    nativeTaskAddViewportReference.current = null;
+    if (!snapshot) {
+      onTaskAddRejectedReference.current(reason);
+      return;
+    }
+    const root = ganttScrollReference.current;
     const restore = () => {
       if (root?.isConnected) {
-        root.scrollLeft = rootLeft;
-        root.scrollTop = rootTop;
-        root.focus({ preventScroll: true });
+        root.scrollLeft = snapshot.rootLeft;
+        root.scrollTop = snapshot.rootTop;
       }
-      for (const item of nested) {
+      for (const item of snapshot.nested) {
         if (!item.element.isConnected) continue;
         item.element.scrollLeft = item.left;
         item.element.scrollTop = item.top;
       }
-      window.scrollTo(pageX, pageY);
+      window.scrollTo(snapshot.pageX, snapshot.pageY);
     };
 
     queueMicrotask(() => {
@@ -1596,6 +1618,7 @@ export function ProjectGantt({
       rejectNativeTaskAddAfterCore("milestone");
       return;
     }
+    nativeTaskAddViewportReference.current = null;
     onTaskCreateReference.current({
       name: "새 작업",
       type: "task",
@@ -2436,7 +2459,10 @@ export function ProjectGantt({
             namePointerIntentReference.current = null;
             contextPointerTaskIdReference.current = null;
           }}
-          onClickCapture={handleSelectionClick}
+          onClickCapture={(event) => {
+            captureNativeTaskAddViewportBeforeCore(event);
+            handleSelectionClick(event);
+          }}
           onClick={(event) => { void handleNameClick(event); }}
           onCompositionStart={() => { inlineComposingReference.current = true; }}
           onCompositionEnd={() => { inlineComposingReference.current = false; }}
