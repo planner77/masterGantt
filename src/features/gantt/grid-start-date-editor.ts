@@ -25,6 +25,6 @@ export function createGridStartDateCommand(
   task: ProjectTaskDto,
   selectedDate: string,
 ): ProjectTaskUpdateCommand | null {
-  if (task.type === "summary" || task.start === null || selectedDate === task.start) return null;
+  if (task.type === "summary" || task.start === null || selectedDate === (task.requestedStart ?? task.start)) return null;
   return { taskId: task.taskId, payload: { start: selectedDate } };
 }
