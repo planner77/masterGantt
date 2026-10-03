@@ -39,3 +39,12 @@
 ## 이번 요청 종료점
 
 최신 main 재정렬 → PR #374 head 갱신 → 새 PR CI 시작까지다. 병합/Main CI/Release Finalizer는 새 PR CI 성공 후 진행한다.
+
+
+## CI #1617.1 실패 분석
+
+- TypeScript, ESLint, Vitest, Next.js build, Docker smoke, 정책 검사와 Chromium shard 1/3/4는 PASS했다. shard 2도 81건 PASS 후 #370 전용 2건만 실패했다.
+- 첫 실패는 Picker overlay는 정상 표시됐지만 pointer-open 직후 date input이 최종 activeElement가 되지 않은 focus 문제다. Picker open 자체가 이미 Grid click 이후로 deferred되어 있으므로 다음 task에서 input focus를 조건 없이 한 번 확정한다.
+- 두 번째 실패는 390px에서 Playwright가 시작일 셀을 수평 auto-scroll한 뒤 click할 때 SVAR가 row/cell DOM을 교체하여 click 최종 target이 원래 cell이 아니게 되는 문제다. trace에서 해당 row가 aria-selected=false로 남은 것을 확인했다.
+- start-cell pointerdown 시 taskId/좌표/cell intent를 보존하고, click 시 이동 거리 4px 이내면 최종 target 종류와 무관하게 같은 single-click으로 복원한다. selection을 먼저 적용한 뒤 taskId로 현재 projectStart cell을 다시 찾아 Picker를 연다.
+- #1617 실패를 PASS로 대체하지 않으며 새 exact head 전체 PR CI로 다시 판정한다.
