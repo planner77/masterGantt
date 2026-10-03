@@ -51,3 +51,10 @@ CI #1418 trace에서 Week `css(date)` callback은 실제 화면 `W38`에 `2026-0
 - Issue #316: 하위 호환 사용자 기능 추가 → `0.65.0` (MINOR)
 - `release_required=true`, `release_authorized=false`
 - 현재 범위는 최신 main 정렬 후 PR CI 시작까지이며 merge/main CI/GHCR/finalize는 수행하지 않는다.
+
+
+## 후속 Issue #416
+
+#416은 이 문서의 Project Calendar 계산과 `GanttWeekHeaderTooltipData.workingDays`를 새로 계산하지 않고 그대로 재사용해 Week Header에 `N일`을 상시 표시한다. 기존 ISO `Wxx`, 68px 폭, hover/focus Tooltip의 공휴일 상세와 접근성 계약은 유지한다. 어느 요일이 근무일인지와 비근무 사유는 상시 Header에 추가하지 않는다.
+
+현재 Day 폭은 후속 #367에서 36px로 축소되었지만 Week 폭은 계속 68px이며 #416도 이 값을 변경하지 않는다.
