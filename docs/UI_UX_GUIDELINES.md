@@ -96,6 +96,21 @@ UI 기능 설계 전에 유사한 공식 데모가 있는지 확인하고 참조
 | session 만료/권한 거부 | 편집 취소/재인증 안내, 비밀번호·token 비노출 |
 | 좁은 화면/긴 문자열/대량 항목 | 줄바꿈/축약/scroll 영역, 전체 내용 접근, Gantt lifecycle 보존 |
 
+## Data-dense Table Column / Geometry 검토 기준 (Issue #403)
+
+Project List, Resource/Admin 목록처럼 열이 많은 table을 설계·수정할 때는 시각적 인상뿐 아니라 **column budget과 browser geometry**를 함께 검토한다.
+
+- 각 열을 fixed/minimum/flexible로 분류하고, 전체 percentage 합계와 별도 fixed-width 열이 가용 폭을 초과하지 않는지 확인한다.
+- `white-space: nowrap`인 날짜·상태·코드·action 열은 실제 콘텐츠 + 좌우 padding을 포함한 최소 가독 폭을 확보한다.
+- 긴 프로젝트명/분류명/소유자/설명, null 값, locale/timezone에 따라 길이가 달라지는 날짜/시간을 fixture에 포함한다.
+- header와 body의 동일 열 경계가 맞는지, sibling cell의 bounding box 및 visible text가 서로 침범하지 않는지 확인한다.
+- truncation/ellipsis를 사용하면 전체 값에 접근 가능한 title/tooltip/상세 경로 등 기존 접근성 패턴을 유지한다.
+- viewport 축소 시 document 자체를 가로로 밀어내지 말고 table wrapper가 scroll을 소유하게 한다. 의도된 table scroll과 unintended document overflow를 별도로 판정한다.
+- 390/768/1024/1440/wide desktop을 기본으로 하고, data table 레이아웃 변경은 최소 100% zoom, 가능하면 125% zoom에서도 smoke 검증한다.
+- 열을 새로 추가하는 Issue는 기존 열의 회귀 검증을 Acceptance Criteria에 포함하고, 기존 percentage width를 기계적으로 재사용하지 않는다.
+
+QA/browser evidence에는 viewport, locale/timezone, long-content fixture, `scrollWidth/clientWidth` 또는 동등한 geometry 근거를 남긴다. 정적 CSS/DOM 확인만으로 PASS하지 않는다.
+
 ## 접근성과 반응형 검증
 
 프로젝트의 기본 확인 폭은 390/768/1024/1440px이며 표준 규격의 공식 breakpoint라는 의미는 아니다. 변경 범위에 해당하는 화면에서 다음을 검사한다.
