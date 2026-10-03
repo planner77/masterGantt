@@ -1,5 +1,14 @@
 # Test Plan
 
+## Issue #409 Copy ID → Relation Editor 검색 회귀
+
+- Unit `relation-editor-model.test.ts`: 작업명, externalId, taskId exact/partial, trim/case-insensitive 검색과 Summary/self/already-connected 제외 규칙을 확인한다.
+- Chromium `project-task-editor.spec.ts`: Alpha Task의 Context Menu `Copy ID`로 canonical UUID를 실제 clipboard에 복사하고 Beta Task Editor → 관계 → 관계 추가에서 Ctrl+V로 붙여넣어 Alpha 후보가 검색되는지 확인한다.
+- 후보/선택 UI는 `외부 ID: EDITOR-3`와 canonical `작업 ID: <UUID>`를 구분 표시해야 한다.
+- taskId 검색으로 후보를 선택해도 Link POST는 기존 `predecessorExternalId/successorExternalId`를 사용하고 canonical snapshot에 동일 Link가 생성되는지 확인한다.
+- 기존 Relation Editor keyboard/Escape/focus/dirty/pending/readonly 및 responsive 회귀는 `relation-dialog-ux.spec.ts`를 유지한다.
+- API/DB/Scheduling/Security 계약은 변경하지 않는다. 공식 전체 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+
 ## Issue #367 Gantt Day 밀도·우측 Timeline 동적 확장
 
 - Unit: `timeline-range.test.ts`에서 Day 36px/Week 68px, right-edge pixel threshold, viewport chunk, 짧은 초기 scale buffer와 보존한 future end의 Day/Week 최소 scale width를 검증한다.
