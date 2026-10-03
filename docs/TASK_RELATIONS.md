@@ -1,5 +1,16 @@
 # Issue #34 — Task Editor 작업 관계 표시
 
+## Issue #409 — Copy ID와 Relation Editor 검색 식별자 정합화
+
+Task에는 서로 독립적인 두 식별자가 있다.
+
+- **작업 ID**: `taskId` / DB `tasks.public_id` / immutable UUID. Context Menu `Copy ID`와 Task CRUD/Gantt의 canonical public identifier다.
+- **외부 ID**: `externalId` / DB `tasks.external_id` / Project 내부 UNIQUE. Import·Dependency endpoint 계약에서 사용한다.
+
+Relation Editor의 새 관계 후보 검색은 작업명, 외부 ID, 작업 ID를 모두 trim + case-insensitive contains로 검색한다. Summary, 자기 자신, 이미 해당 방향으로 연결된 Task를 제외하는 기존 후보 규칙은 유지한다. 후보와 선택 상태에서는 `외부 ID:`, `작업 ID:` 라벨을 사용해 두 값을 명시적으로 구분한다.
+
+#390의 `Copy ID`는 계속 canonical `taskId`를 복사한다. 사용자는 복사한 UUID를 Relation Editor의 `작업명 / 외부 ID / 작업 ID 검색...`에 붙여넣어 동일 Task를 찾을 수 있다. 검색에 taskId를 사용하더라도 실제 관계 mutation은 기존 callback/API를 통해 Task를 resolve한 뒤 `predecessorExternalId / successorExternalId`를 전송하므로 Link 저장 계약은 변경하지 않는다.
+
 ## Issue #384 — 다중 root Copy 집합의 내부 관계
 
 Copy 집합은 선택 ancestor를 제거한 여러 canonical root와 전체 자손의 union이다. 부모와 자손을 함께 선택해도 각 Task는 한 번만 복제된다. 서로 다른 root 사이 관계도 두 endpoint가 union 안이면 새 Link/Task ID로 복제하고 type과 signed lag/lead를 보존한다. 경계를 넘는 incoming/outgoing 관계는 복제하지 않고 원본 관계는 유지한다.
