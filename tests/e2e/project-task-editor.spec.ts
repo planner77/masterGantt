@@ -638,6 +638,54 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(frame(page)).toHaveAttribute("data-project-gantt-api-instance", ganttInstance!);
   });
 
+  test("Issue #409 Copy ID의 taskId를 Relation Editor에서 검색해 externalId Link payload로 연결한다", async ({ page, context }) => {
+    const fixture = await setup(page, { editable: true });
+    const origin = new URL(page.url()).origin;
+    await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin });
+
+    const alphaRow = row(page, "Alpha leaf");
+    await alphaRow.getByText("Alpha leaf", { exact: true }).click({ button: "right" });
+    const contextMenu = taskContextMenu(page);
+    await expect(contextMenu).toBeVisible();
+    await contextMenu.getByRole("menuitem", { name: "Copy ID", exact: true }).click();
+    await expect(page.getByTestId("workspace-toast")).toContainText("작업 ID를 복사했습니다.");
+    await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(id(3));
+
+    await openRow(page, "Beta leaf");
+    const taskDialog = editor(page);
+    await taskDialog.getByRole("tab", { name: /관계/ }).click();
+    await taskDialog.getByRole("button", { name: "관계 추가", exact: true }).click();
+
+    const modal = relationEditor(page);
+    const search = modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...");
+    await search.focus();
+    await page.keyboard.press("Control+V");
+    await expect(search).toHaveValue(id(3));
+
+    const candidate = modal.locator(".relation-editor-candidate-item", { hasText: "Alpha leaf" });
+    await expect(candidate).toHaveCount(1);
+    await expect(candidate).toContainText("외부 ID: EDITOR-3");
+    await expect(candidate).toContainText(`작업 ID: ${id(3)}`);
+    await candidate.click();
+
+    await expect(modal.getByText("Alpha leaf", { exact: true })).toBeVisible();
+    await expect(modal.getByText("외부 ID: EDITOR-3", { exact: true })).toBeVisible();
+    await expect(modal.getByText(`작업 ID: ${id(3)}`, { exact: true })).toBeVisible();
+
+    await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
+    await expect.poll(() => fixture.linkMutations.length).toBe(1);
+    expect(fixture.linkMutations[0].postDataJSON()).toEqual({
+      predecessorExternalId: "EDITOR-4",
+      successorExternalId: "EDITOR-3",
+      type: "FS",
+      lag: 0,
+    });
+    expect(fixture.links).toContainEqual(expect.objectContaining({
+      predecessorExternalId: "EDITOR-4",
+      successorExternalId: "EDITOR-3",
+    }));
+  });
+
   test("Issue #377 관계가 없는 Milestone에서 anchor 기반 Relation Editor로 새 후행 관계를 추가한다", async ({ page }) => {
     const fixture = await setup(page, { editable: true });
     await openRow(page, "Milestone");
@@ -648,8 +696,8 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
     const modal = relationEditor(page);
     await expect(modal).toContainText("기준 작업 [Milestone]");
-    await modal.getByPlaceholder("작업 이름 또는 ID 검색...").fill("Beta");
-    await modal.getByRole("button", { name: /Beta leaf EDITOR-4/ }).click();
+    await modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...").fill("Beta");
+    await modal.getByRole("button", { name: /Beta leaf.*외부 ID: EDITOR-4.*작업 ID:/ }).click();
     await modal.getByLabel("관계 유형 (Type)", { exact: true }).selectOption("FF");
     await modal.getByLabel("지연 시간 (Lag, 일 단위)", { exact: true }).fill("-1");
     await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
