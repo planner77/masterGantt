@@ -96,3 +96,20 @@ PR #404 작업 중 main이 `cbe90acf...`에서 `fd397c477...`로 21 commits 전�
 - PROJECT_UX / TEST_PLAN / active PLAN / CHANGELOG는 latest main 내용을 보존하고 #399 section만 합성한다.
 - main `0.72.0`과 충돌하므로 #399 target은 다음 MINOR `0.73.0`으로 재산정한다.
 - 이전 CI #1596.1에서 shard 4의 `ECONNRESET`은 재현되지 않았고 shard 2 notification geometry만 남았다. 최신 main 정렬 head에서 전체 CI를 다시 판정한다.
+
+
+## PR CI #1600.1 6차 분석 / pre-Core viewport capture
+
+Run `37105809279`은 latest main `fd397c477...` 정렬 head에서 quality/build/typecheck/ESLint/Vitest/Docker 및 Chromium shard 1/3/4가 PASS했고 shard 2/4의 notification geometry가 4건에서 3건(360/361/401px)으로 줄었다. 320px은 PASS하여 SVAR reject 경계로 수정한 방향은 일부 효과가 확인됐다.
+
+Trace timeline을 다시 보면 `dispatchEvent("click")` 완료 직후부터 첫 Toast assertion 전 사이에 document `scrollTop=30`과 outer Gantt `scrollLeft=294`가 이미 적용된다. 기존 5차 구현은 `interceptNativeTaskAdd`가 호출된 뒤 viewport를 캡처했으므로, Core가 add cell을 active/visible 처리하며 이미 이동시킨 값을 snapshot으로 저장했다. 이후 double-rAF 복원은 잘못된 위치를 정확히 복원하고 있었다.
+
+6차 보완은 캡처 시점을 SVAR보다 앞으로 이동한다.
+- `.project-gantt-scroll`의 React `onClickCapture`에서 `[data-action="add-task"]` 이벤트를 감지한다.
+- child/SVAR handler가 실행되기 전 page, outer Gantt, inner table/chart scroll을 저장한다.
+- interceptor reject는 pre-Core snapshot을 consume하고, 없을 때만 현재 위치를 fallback으로 캡처한다.
+- scope/missing/milestone reject 후 microtask + double-rAF 복원과 notification publish는 유지한다.
+- 정상 add는 pending snapshot을 즉시 폐기해 다음 command에 stale 위치가 남지 않게 한다.
+- 복원 과정에서 focus target을 임의 변경하지 않는다.
+
+실패 E2E와 CI gate는 그대로 유지한다.
