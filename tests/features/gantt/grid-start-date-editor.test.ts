@@ -38,12 +38,17 @@ describe("Grid start-date editor", () => {
     expect(canEditGridStartDate(task, false)).toBe(false);
   });
 
-  it("creates a start-only canonical command and treats the displayed date as a no-op", () => {
+  it("creates a start-only command and compares no-op against requestedStart", () => {
     expect(createGridStartDateCommand(task, "2026-10-05")).toEqual({
       taskId: "task-a",
       payload: { start: "2026-10-05" },
     });
-    expect(createGridStartDateCommand(task, "2026-10-02")).toBeNull();
+    expect(createGridStartDateCommand(task, "2026-10-02")).toEqual({
+      taskId: "task-a",
+      payload: { start: "2026-10-02" },
+    });
+    expect(createGridStartDateCommand(task, "2026-10-01")).toBeNull();
+    expect(createGridStartDateCommand({ ...task, requestedStart: null }, "2026-10-02")).toBeNull();
     expect(createGridStartDateCommand({ ...task, type: "summary" }, "2026-10-05")).toBeNull();
   });
 
