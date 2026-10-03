@@ -420,7 +420,7 @@ test.describe("Issue #403 Project List 날짜 열 geometry", () => {
     const name = `Issue 403 장기 프로젝트 이름과 일정 추적 ${suffix}`;
     const owner = "국제 물류자동화 플랫폼 통합 운영 책임자".repeat(2);
     const description = "장기 프로젝트 설명과 공급망 자동화 일정, 인수인계, 관계자 정보를 함께 확인하기 위한 레이아웃 회귀 fixture입니다. ".repeat(8);
-    await createProject(page, baseURL!, name, owner.slice(0, 100), description, "Pwd403Layout!");
+    await createProject(page, baseURL!, name, owner.slice(0, 100), description, "Pwd403Lay!");
 
     await page.goto("/");
     const table = page.getByRole("table", { name: "프로젝트 목록" });
