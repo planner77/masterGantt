@@ -2392,8 +2392,8 @@ export function ProjectGantt({
           <button aria-label="Edit" onClick={openTaskEditorFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">i</span><span>Edit</span>
           </button>
-          {canOpenAsRoot ? <button aria-label="최상위로 열기 (새 탭)" onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
-            <span aria-hidden="true" className="project-task-context-menu-icon">↗</span><span>최상위로 열기</span>
+          {canOpenAsRoot ? <button aria-label="최상위로 열기 (작업공간 탭)" onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>최상위로 열기</span>
           </button> : null}
           <button aria-label="Copy ID" onClick={() => void copyTaskIdFromMenu()} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">#</span><span>Copy ID</span>
