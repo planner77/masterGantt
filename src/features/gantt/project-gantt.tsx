@@ -316,6 +316,7 @@ export function ProjectGantt({
   }, [projectPublicId]);
   const inlineOpenTokenReference = useRef(0);
   const namePointerIntentReference = useRef<{ taskId: string; x: number; y: number } | null>(null);
+  const startDatePointerIntentReference = useRef<{ taskId: string; x: number; y: number; cell: HTMLElement } | null>(null);
   const contextPointerTaskIdReference = useRef<string | null>(null);
   const inlineComposingReference = useRef(false);
   const inlineTableReference = useRef<Awaited<ReturnType<IApi["getTable"]>> | null>(null);
@@ -1868,6 +1869,7 @@ export function ProjectGantt({
 
   function handleSelectionPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     namePointerIntentReference.current = null;
+    startDatePointerIntentReference.current = null;
     if (event.button === 2) {
       const root = ganttScrollReference.current;
       contextPointerTaskIdReference.current = root ? resolveSelectionTarget(event.target, root)?.taskId ?? null : null;
@@ -1879,6 +1881,18 @@ export function ProjectGantt({
       const row = text?.closest<HTMLElement>(".wx-row[data-id]");
       const taskId = row ? taskIdFromElement(row) : null;
       if (taskId) namePointerIntentReference.current = { taskId, x: event.clientX, y: event.clientY };
+
+      const startCell = event.target.closest<HTMLElement>('[role="gridcell"][data-col-id=":projectStart"]');
+      const startRow = startCell?.closest<HTMLElement>(".wx-row[data-id]");
+      const startTaskId = startRow ? taskIdFromElement(startRow) : null;
+      if (startCell && startTaskId) {
+        startDatePointerIntentReference.current = {
+          taskId: startTaskId,
+          x: event.clientX,
+          y: event.clientY,
+          cell: startCell,
+        };
+      }
     }
     if (event.button === 0 && (event.ctrlKey || event.metaKey || event.shiftKey) && selectionPointerTarget(event.target)) event.stopPropagation();
   }
@@ -1886,15 +1900,27 @@ export function ProjectGantt({
   function handleSelectionClick(event: ReactMouseEvent<HTMLDivElement>) {
     if (event.button !== 0) return;
     const match = selectionPointerTarget(event.target);
-    const intent = namePointerIntentReference.current;
-    const taskId = match?.taskId ?? (intent && event.target instanceof Element && event.target.matches(".wx-scroll") && Math.hypot(event.clientX - intent.x, event.clientY - intent.y) <= 4 ? intent.taskId : null);
+    const nameIntent = namePointerIntentReference.current;
+    const startIntent = startDatePointerIntentReference.current;
+    startDatePointerIntentReference.current = null;
+    const fallbackTarget = event.target instanceof Element && event.target.matches(".wx-scroll");
+    const nameIntentTaskId = nameIntent && fallbackTarget && Math.hypot(event.clientX - nameIntent.x, event.clientY - nameIntent.y) <= 4
+      ? nameIntent.taskId
+      : null;
+    const startIntentTaskId = startIntent && fallbackTarget && Math.hypot(event.clientX - startIntent.x, event.clientY - startIntent.y) <= 4
+      ? startIntent.taskId
+      : null;
+    const taskId = match?.taskId ?? nameIntentTaskId ?? startIntentTaskId;
     if (!taskId) return;
     const modifier = event.ctrlKey || event.metaKey;
     applySelectionGesture(taskId, event.shiftKey ? "range" : modifier ? "toggle" : "single", modifier || event.shiftKey);
     if (!modifier && !event.shiftKey) {
-      const cell = startDateCellFrom(event.target);
+      const directCell = startDateCellFrom(event.target);
+      const intendedStartClick = directCell !== null || startIntentTaskId === taskId;
       const task = tasksByIdReference.current.get(taskId);
-      if (cell && task && canEditGridStartDate(task, editable && !mutationLocked)) scheduleStartDatePicker(taskId, cell);
+      if (intendedStartClick && task && canEditGridStartDate(task, editable && !mutationLocked)) {
+        scheduleStartDatePicker(taskId, directCell ?? startIntent!.cell);
+      }
     }
     if (modifier || event.shiftKey) { event.preventDefault(); event.stopPropagation(); }
   }
@@ -2228,12 +2254,11 @@ export function ProjectGantt({
 
   useEffect(() => {
     if (!startDatePicker) return;
+    // Picker opening is already deferred until after the Grid click/selection
+    // completes. Own focus unconditionally on the next task so SVAR cannot
+    // leave keyboard focus on the start cell or page body.
     const focusTimer = window.setTimeout(() => {
-      const input = startDateInputReference.current;
-      const active = document.activeElement;
-      const trigger = startDateTriggerReference.current;
-      if (!input?.isConnected || active === input) return;
-      if (active === trigger || ganttScrollReference.current?.contains(active)) input.focus({ preventScroll: true });
+      startDateInputReference.current?.focus({ preventScroll: true });
     }, 0);
 
     const closeForOutsidePointer = (event: PointerEvent) => {
@@ -2612,6 +2637,7 @@ export function ProjectGantt({
           }}
           onPointerCancelCapture={() => {
             namePointerIntentReference.current = null;
+            startDatePointerIntentReference.current = null;
             contextPointerTaskIdReference.current = null;
           }}
           onClickCapture={handleSelectionClick}
