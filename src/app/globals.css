@@ -578,11 +578,6 @@ h2 {
   flex-direction: column;
   width: 100%;
   max-width: 100%;
-  /* Project/Gantt mutations preserve their own internal scroll state. Excluding
-     the workspace from document scroll anchoring prevents header feedback
-     (toast/unread badge) from shifting the entire page after #399 inserted an
-     additional scope-tab/tab-panel wrapper above the Gantt. */
-  overflow-anchor: none;
 }
 
 /* A project is a working surface, so its synchronized Grid and Chart can use
