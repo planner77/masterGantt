@@ -767,3 +767,17 @@ Project List는 #289의 canonical `ProjectListItemDto.businessUnit/product/siteE
 
 이번 변경은 표시 전용이며 사업부/제품/법인·사업장 검색·필터·정렬, API/DB/Scheduling/SVAR Gantt 계약을 추가하지 않는다.
 
+
+
+## Issue #403 — Project List 날짜 열 및 Column Budget 계약
+
+Project List의 생성/최근 변경 열은 동일한 metadata column policy를 사용한다.
+
+- 생성/최근 변경 값은 locale/timezone 기반 실제 날짜·시간 문자열이 서로 또는 작업 열을 침범하지 않아야 한다.
+- 날짜·상태·작업처럼 최소 폭이 필요한 metadata 열과 프로젝트명·설명 같은 flexible 열의 우선순위를 구분한다.
+- Project List에 새 열을 추가하거나 label/format을 변경할 때는 전체 column budget을 다시 계산한다. 기존 percentage width의 단순 유지로 완료 처리하지 않는다.
+- viewport가 부족하면 `tableWrap` 내부 horizontal scroll을 허용하되 document-level unintended horizontal overflow는 만들지 않는다.
+- header/body alignment, 긴 사업부·제품·법인/사업장·소유자·설명, 생성/최근 변경 datetime, Row Action을 같은 fixture에서 검증한다.
+- 390/768/1024/1440/wide desktop 실제 browser evidence와 sibling cell geometry를 확인한다.
+
+세부 공통 기준은 `DESIGN.md`의 Data Table Column Sizing과 `docs/UI_UX_GUIDELINES.md`의 Data-dense Table Column / Geometry 검토 기준을 따른다.
