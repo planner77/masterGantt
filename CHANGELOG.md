@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.72.0] - 2026-10-03
+
+### Added
+
+- Issue #367: Gantt Chart를 오른쪽으로 탐색할 때 공개 `scroll-chart.left`/`resize-chart.width`를 기준으로 남은 timeline 폭을 판정하고, 고정 start/open end의 SVAR public resize path로 미래 날짜 scale을 viewport 기반 chunk로 반복 확장한다.
+- 최초 range가 viewport보다 짧으면 Core의 resize expansion과 추가 future buffer를 사용하고, canonical sync/Day·Week 전환 후에도 사용자가 확보한 future end 이상을 복구한다.
+
+### Changed
+
+- Day Header/timeline cell 폭을 44px에서 36px로 줄여 동일 화면에서 더 많은 날짜를 표시하며 Week 68px, 숫자-only Header와 Day/Week Tooltip 계약은 유지한다.
+- Timeline 확장은 React `end` prop을 반복 변경하지 않아 Core store re-init을 피하고, Gantt/API instance, scroll/tree/column/filter/selection/fullscreen과 Project Scheduling/API/DB/revision 계약을 보존한다.
+- PR CI #1496.1/#1572.1/#1575.1 분석에서 `area`를 수평 날짜 범위로 오해한 구현과 end-prop 기반 재초기화 위험을 제거했다. #1575.1의 #373 scoped filter 회귀 증거를 반영해 public resize expansion으로 설계를 전환한다. PR CI #1579.1/#1584.1/#1587.1에서는 #373 회귀가 해소된 것을 확인했고, SVAR horizontal virtualization에서 특정 Day 날짜나 `W38`이 반드시 DOM에 복귀한다고 가정하던 E2E를 동일 instance의 Day 숫자-only/Week `Wxx` scale 복원과 반대 scale cell 제거 검증으로 바로잡는다.
+- 최신 main의 Issue #403 Project List 날짜 열 레이아웃 및 Issue #390 Copy ID 기능을 보존하고 Application version을 `0.71.1`에서 `0.72.0`으로 증가한다.
+
 ## [0.71.1] - 2026-10-03
 
 ### Fixed
