@@ -156,13 +156,15 @@ function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
   return Boolean(target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="menu"], dialog, [role="dialog"]'));
 }
 
+type NativeTaskAddRejectReason = "scope" | "missing" | "milestone";
+
 interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
   readonly editable: boolean;
   readonly mutationLocked: boolean;
   readonly onCanonicalSyncFailure: () => void;
   readonly links: readonly ProjectLinkDto[];
-  readonly onTaskAddRejected: () => void;
+  readonly onTaskAddRejected: (reason: NativeTaskAddRejectReason) => void;
   readonly onTaskCreate: (command: ProjectTaskCreateCommand) => void;
   readonly onTaskCommand: (command: ProjectTaskUpdateCommand, expectedRevision?: number) => Promise<TaskEditorSaveResult>;
   readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest) => void;
@@ -1401,17 +1403,68 @@ export function ProjectGantt({
     return () => { cancelled = true; };
   }, [apiInstanceId, scaleMode]);
 
+  function rejectNativeTaskAddAfterCore(reason: NativeTaskAddRejectReason): void {
+    const root = ganttScrollReference.current;
+    const pageX = window.scrollX;
+    const pageY = window.scrollY;
+    const rootLeft = root?.scrollLeft ?? 0;
+    const rootTop = root?.scrollTop ?? 0;
+    const nested = root
+      ? Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container, .wx-chart")).map((element) => ({
+        element,
+        left: element.scrollLeft,
+        top: element.scrollTop,
+      }))
+      : [];
+
+    const restore = () => {
+      if (root?.isConnected) {
+        root.scrollLeft = rootLeft;
+        root.scrollTop = rootTop;
+        root.focus({ preventScroll: true });
+      }
+      for (const item of nested) {
+        if (!item.element.isConnected) continue;
+        item.element.scrollLeft = item.left;
+        item.element.scrollTop = item.top;
+      }
+      window.scrollTo(pageX, pageY);
+    };
+
+    // The interceptor returns false, but Core can still finish visibility/focus
+    // work after the callback returns. Register after the current task, then
+    // restore after Core's next two animation opportunities. Publish feedback
+    // only after the viewport is stable so users/tests never observe the drift.
+    queueMicrotask(() => {
+      restore();
+      window.requestAnimationFrame(() => {
+        restore();
+        window.requestAnimationFrame(() => {
+          restore();
+          onTaskAddRejectedReference.current(reason);
+        });
+      });
+    });
+  }
+
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
     if (!canCreateReference.current || viewRootTaskIdReference.current !== null) {
-      if (!mutationLockedReference.current) onTaskAddRejectedReference.current();
+      if (!mutationLockedReference.current) rejectNativeTaskAddAfterCore("scope");
       return;
     }
     const target = typeof local.targetTaskId === "string"
       ? tasksByIdReference.current.get(local.targetTaskId)
       : undefined;
-    if ((typeof local.targetTaskId === "string" && !target) ||
-      (local.mode !== undefined && local.mode !== "child")) {
-      onTaskAddRejectedReference.current();
+    if (typeof local.targetTaskId === "string" && !target) {
+      rejectNativeTaskAddAfterCore("missing");
+      return;
+    }
+    if (local.mode !== undefined && local.mode !== "child") {
+      rejectNativeTaskAddAfterCore("scope");
+      return;
+    }
+    if (target?.type === "milestone") {
+      rejectNativeTaskAddAfterCore("milestone");
       return;
     }
     onTaskCreateReference.current({
