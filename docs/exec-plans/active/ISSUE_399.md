@@ -67,3 +67,21 @@ Run `37103170043`은 quality/build/typecheck/ESLint/Vitest/Docker 및 Chromium s
 - shard 4: `Issue #72 hierarchy commands persist...`의 마지막 Project GET에서 `read ECONNRESET`이 발생했다. HTTP status/assertion 실패가 아니라 Playwright APIRequestContext의 test-server connection reset이며 #399 제품 로직과 직접 연결되는 증거는 없다. 전체 새 CI로 재검증한다.
 
 4차 보완은 notification publish 직전 첫 scroll snapshot을 캡처하는 점은 유지하되, 복원 시점을 `requestAnimationFrame`에서 React `useLayoutEffect`로 이동한다. SVAR native add handler가 callback 반환 뒤 visibility/focus scroll을 수행하고 event가 끝난 다음 React가 feedback state를 commit하므로, layout effect는 Toast/badge가 paint되어 테스트/사용자에게 노출되기 전에 page/Gantt scroll을 원래 위치로 복원한다. 연속 publish는 첫 pending snapshot만 유지한다.
+
+
+## PR CI #1596.1 5차 분석 / SVAR reject 경계로 수정 축소
+
+Run `37104319586`은 quality/build/typecheck/ESLint/Vitest/Docker, Chromium shard 1/3/4가 PASS했고 shard 2/4의 동일 320/360/361/401px notification geometry 4건만 FAIL했다. 이전 run에서 발생한 shard 4 `ECONNRESET`은 재현되지 않아 환경성으로 정리한다.
+
+4차 `useLayoutEffect` 복원도 실패했다. 이유는 milestone native add가 `ProjectGantt.interceptNativeTaskAdd`에서 즉시 거부되는 것이 아니라 `onTaskCreate`를 호출한 뒤 Project Workspace의 `createNativeTask`가 milestone parent를 거부하면서 notification state가 먼저 commit되고, 그 후 SVAR Core가 interceptor 반환 뒤 visibility/focus scroll을 계속 수행하기 때문이다. 따라서 notification 계층에서 어느 React phase에 복원해도 Core 후처리보다 앞설 수 있다.
+
+5차 보완은 책임 경계를 SVAR interceptor로 되돌린다.
+- `ProjectGantt`가 canonical tasks map으로 milestone target을 직접 판별한다.
+- scope/missing/milestone native add reject 사유를 명시적으로 부모 callback에 전달한다.
+- reject 직전 page, outer `.project-gantt-scroll`, inner table/chart scroll을 캡처한다.
+- current task 종료 후 Core 후처리보다 늦은 double-rAF까지 위치를 반복 복원하고 Gantt region에 `preventScroll` focus를 둔다.
+- viewport가 안정된 뒤에만 부모 notification을 publish한다.
+- 공통 `WorkspaceNotifications`의 scroll 보존 변경은 main 상태로 완전히 되돌린다.
+- 기존 parent milestone guard는 다른 호출 경로의 defense-in-depth로 유지한다.
+
+실패 assertion/CI gate는 수정하지 않는다.
