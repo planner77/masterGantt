@@ -4,6 +4,7 @@ import type { ProjectCalendarDto } from "../../src/contracts/projects";
 import {
   buildGanttWeekHeaderTooltipDataForDateOnly,
   dateOnlyFromGanttWeekScaleClassName,
+  formatGanttWeekWorkingDaysLabel,
   ganttWeekScaleClassName,
   isoWeekStartDateOnly,
 } from "../../src/features/gantt/week-header-tooltip";
@@ -92,5 +93,13 @@ describe("Issue #316 Gantt week header tooltip", () => {
       workingDays: 4,
       holidays: [{ date: "2021-01-01", names: ["신정"] }],
     });
+  });
+
+  it("formats the persistent header summary from the same canonical working-day result", () => {
+    const ordinary = buildGanttWeekHeaderTooltipDataForDateOnly("2026-09-14", baseCalendar);
+    expect(ordinary.workingDays).toBe(5);
+    expect(formatGanttWeekWorkingDaysLabel(ordinary.workingDays)).toBe("5일");
+    expect(formatGanttWeekWorkingDaysLabel(0)).toBe("0일");
+    expect(formatGanttWeekWorkingDaysLabel(6)).toBe("6일");
   });
 });
