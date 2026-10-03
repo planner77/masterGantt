@@ -153,6 +153,7 @@ test("switches the Gantt timeline between day and ISO week headers without remou
 
   await week.click();
   await expect(frame).toHaveAttribute("data-gantt-scale-mode", "week");
+  await expect(frame).toHaveAttribute("data-gantt-cell-width", "68");
   await expect(day).toHaveAttribute("aria-pressed", "false");
   await expect(week).toHaveAttribute("aria-pressed", "true");
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instanceId!);
@@ -160,15 +161,21 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(page.locator(".project-gantt-widget .wx-weekend")).toHaveCount(0);
   await expect(page.locator(".project-gantt-day-scale")).toHaveCount(0);
   await expect(tooltip).toHaveCount(0);
-  await expect(gantt.getByText("W38", { exact: true })).toBeVisible();
-  await expect(gantt.getByText("W39", { exact: true })).toBeVisible();
   await expect(gantt.getByText(/9\/14.*9\/20/)).toHaveCount(0);
 
   const week38 = page.locator(".project-gantt-week-date-20260914");
   const week39 = page.locator(".project-gantt-week-date-20260921");
+  const week38WorkingDays = week38.locator(".project-gantt-week-working-days");
+  const week39WorkingDays = week39.locator(".project-gantt-week-working-days");
   const weekTooltip = page.getByRole("tooltip");
   await expect(week38).toBeVisible();
   await expect(week39).toBeVisible();
+  await expect(week38).toContainText("W38");
+  await expect(week39).toContainText("W39");
+  await expect(week38WorkingDays).toHaveText("5일");
+  await expect(week39WorkingDays).toHaveText("4일");
+  await expect(week38).toHaveAttribute("data-working-days", "5");
+  await expect(week39).toHaveAttribute("data-working-days", "4");
 
   await week38.hover();
   await expect(weekTooltip).toBeVisible();
@@ -187,6 +194,28 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   await expect(weekTooltip).toContainText("Weekend named holiday");
   await expect(weekTooltip).not.toContainText("Sunday working override");
   await expect(week39).toHaveAttribute("aria-label", /근무일 4일/);
+
+  await page.keyboard.press("Escape");
+  for (const width of [390, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(frame).toHaveAttribute("data-gantt-cell-width", "68");
+    await expect.poll(async () => {
+      const liveWeek = page.locator(".project-gantt-week-scale").first();
+      if (await liveWeek.count() === 0) return false;
+      return liveWeek.evaluate((cell) => {
+        const label = cell.querySelector<HTMLElement>(".project-gantt-week-working-days");
+        if (!label) return false;
+        const cellBox = cell.getBoundingClientRect();
+        const labelBox = label.getBoundingClientRect();
+        const tolerance = 0.75;
+        return label.textContent?.endsWith("일") === true
+          && labelBox.left >= cellBox.left - tolerance
+          && labelBox.right <= cellBox.right + tolerance
+          && labelBox.top >= cellBox.top - tolerance
+          && labelBox.bottom <= cellBox.bottom + tolerance;
+      });
+    }).toBe(true);
+  }
 
   await page.setViewportSize({ width: 1024, height: 900 });
   const edgeWeek = page.locator(".project-gantt-week-scale").last();
@@ -224,7 +253,10 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   // assuming the viewport returns to fixture week W38.
   const restoredWeekCells = page.locator(".project-gantt-week-scale");
   await expect(restoredWeekCells.first()).toBeVisible();
-  await expect(restoredWeekCells.first()).toHaveText(/^W\d{2}$/);
+  await expect(restoredWeekCells.first()).toContainText(/^W\d{2}/);
+  await expect(restoredWeekCells.first().locator(".project-gantt-week-working-days")).toHaveText(/^\d일$/);
+  await expect(restoredWeekCells.first()).toHaveAttribute("data-working-days", /^[0-7]$/);
+  await expect(frame).toHaveAttribute("data-gantt-cell-width", "68");
   await expect(page.locator(".project-gantt-day-scale")).toHaveCount(0);
 
   await day.click();
