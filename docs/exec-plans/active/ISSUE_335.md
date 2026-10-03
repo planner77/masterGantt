@@ -36,6 +36,11 @@ metadata/typecheck/lint/unit/build/docker, Chromium shard 1/2/4는 PASS했고 sh
 
 보완은 root Move trigger를 `!canMutate && !canMoveUp && !canMoveDown` 조건으로 조정해 #116의 기존 빈 submenu UX를 복원하고, #104/#378 E2E에서 Move만 enabled로 기대하도록 정책 회귀를 갱신한다. 신규 #335 실제 Context Move/Grid DnD 테스트는 Run #1614.1 shard 2에서 PASS했다.
 
+### Run #1619.1
+metadata/typecheck/lint/unit/build/docker와 Chromium shard 1/2/4가 PASS했고 shard 3의 79개 중 기존 #303 `project-status.spec.ts` 1건만 FAIL했다. 실패는 status UI/API assertion이 아니라 `page.request.get(...)` 단일 요청의 `socket hang up`이며, 같은 shard 로그에서 SIGTERM/SIGKILL/ENOMEM/uncaught/프로세스 종료 흔적은 확인되지 않았다. #335 신규 E2E와 #116/#104/#378 회귀는 모두 PASS했다.
+
+따라서 #1619.1은 제품 회귀 근거가 없는 transient HTTP connection reset으로 분류한다. 관련 제품/테스트 코드는 변경하지 않고 이 실행 증거만 기록한 새 head로 전체 PR CI를 다시 실행한다. 동일 현상이 재발하면 #303 테스트/서버 수명주기 문제로 별도 분석 범위를 확대한다.
+
 ## 검증
 
 - Frontend Unit: linked Move Up/Down 활성, readonly/pending/boundary, Add/Indent 보호.
