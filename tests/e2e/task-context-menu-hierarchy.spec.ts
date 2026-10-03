@@ -10,7 +10,7 @@ test.use(isolatedApplicationOptions);
 const row = (page: import("@playwright/test").Page, name: string) =>
   page.locator(".project-gantt-widget .wx-row", { hasText: name }).first();
 const rowByTaskId = (page: import("@playwright/test").Page, taskId: string) =>
-  page.locator(`.project-gantt-widget .wx-row[data-id="${taskId}"]`).first();
+  page.locator(`.project-gantt-widget .wx-row[data-id=":${taskId}"]`).first();
 const menu = (page: import("@playwright/test").Page) =>
   page.getByRole("menu", { name: "작업 메뉴", exact: true });
 
