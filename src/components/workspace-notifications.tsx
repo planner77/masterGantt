@@ -14,6 +14,32 @@ type NotificationApi = {
   notify: (kind: NoticeKind, message: string, operation: string, serverBody?: unknown) => void;
   clearToast: () => void;
 };
+type NotificationScrollSnapshot = Readonly<{
+  pageX: number;
+  pageY: number;
+  ganttScrolls: ReadonlyArray<Readonly<{ element: HTMLElement; left: number; top: number }>>;
+}>;
+
+function captureNotificationScroll(): NotificationScrollSnapshot {
+  return {
+    pageX: window.scrollX,
+    pageY: window.scrollY,
+    ganttScrolls: Array.from(document.querySelectorAll<HTMLElement>(".project-gantt-scroll")).map((element) => ({
+      element,
+      left: element.scrollLeft,
+      top: element.scrollTop,
+    })),
+  };
+}
+
+function restoreNotificationScroll(snapshot: NotificationScrollSnapshot): void {
+  window.scrollTo(snapshot.pageX, snapshot.pageY);
+  for (const item of snapshot.ganttScrolls) {
+    if (!item.element.isConnected) continue;
+    item.element.scrollLeft = item.left;
+    item.element.scrollTop = item.top;
+  }
+}
 const NotificationContext = createContext<NotificationApi | null>(null);
 const subscribeToNotificationSlot = () => () => {};
 const subscribeToFullscreenNotificationSlot = (onStoreChange: () => void) => {
@@ -37,6 +63,8 @@ export function useWorkspaceNotifications(): NotificationApi {
 export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: string; children: ReactNode }>) {
   const [state, dispatch] = useReducer(notificationReducer, INITIAL_NOTIFICATION_STATE);
   const sequence = useRef(0);
+  const pendingScrollRestoreReference = useRef<NotificationScrollSnapshot | null>(null);
+  const scrollRestoreFrameReference = useRef<number | null>(null);
   const [copyHint, setCopyHint] = useState("");
   // The server-rendered shell owns this static slot; resolve it after hydration without an effect update.
   const notificationSlot = useSyncExternalStore(
@@ -50,13 +78,30 @@ export function WorkspaceNotifications({ scope, children }: Readonly<{ scope: st
     getNotificationSlotServerSnapshot,
   );
   const notify = useCallback<NotificationApi["notify"]>((kind, message, operation, serverBody) => {
+    // SVAR can finish focus/visibility scrolling after a rejected native action.
+    // Preserve the first pre-notification viewport until the next paint so
+    // Toast/unread feedback never becomes a reason for page/Gantt scroll drift.
+    if (!pendingScrollRestoreReference.current) pendingScrollRestoreReference.current = captureNotificationScroll();
     dispatch({ type: "publish", notice: {
       id: ++sequence.current, kind, message, operation,
       occurredAt: new Date().toISOString(), read: false, ...safeNotificationMetadata(serverBody),
     } });
+    if (scrollRestoreFrameReference.current === null) {
+      scrollRestoreFrameReference.current = window.requestAnimationFrame(() => {
+        scrollRestoreFrameReference.current = null;
+        const snapshot = pendingScrollRestoreReference.current;
+        pendingScrollRestoreReference.current = null;
+        if (snapshot) restoreNotificationScroll(snapshot);
+      });
+    }
   }, []);
   const clearToast = useCallback(() => dispatch({ type: "clear-toast" }), []);
   const api = useMemo(() => ({ notify, clearToast }), [notify, clearToast]);
+  useEffect(() => () => {
+    if (scrollRestoreFrameReference.current !== null) window.cancelAnimationFrame(scrollRestoreFrameReference.current);
+    scrollRestoreFrameReference.current = null;
+    pendingScrollRestoreReference.current = null;
+  }, []);
   useEffect(() => {
     if (!state.toast) return;
     const id = state.toast.id;
