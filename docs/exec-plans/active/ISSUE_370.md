@@ -48,3 +48,12 @@
 - 두 번째 실패는 390px에서 Playwright가 시작일 셀을 수평 auto-scroll한 뒤 click할 때 SVAR가 row/cell DOM을 교체하여 click 최종 target이 원래 cell이 아니게 되는 문제다. trace에서 해당 row가 aria-selected=false로 남은 것을 확인했다.
 - start-cell pointerdown 시 taskId/좌표/cell intent를 보존하고, click 시 이동 거리 4px 이내면 최종 target 종류와 무관하게 같은 single-click으로 복원한다. selection을 먼저 적용한 뒤 taskId로 현재 projectStart cell을 다시 찾아 Picker를 연다.
 - #1617 실패를 PASS로 대체하지 않으며 새 exact head 전체 PR CI로 다시 판정한다.
+
+
+## CI #1623.1 실패 분석
+
+- TypeScript, ESLint, Vitest, Next.js build, Docker smoke, 정책 검사와 Chromium shard 1/3/4는 PASS했다. shard 2도 82건 PASS 후 #370 pointer-open focus 1건만 실패했다.
+- narrow viewport click intent 복원은 성공해 #1617의 Picker 미오픈 실패는 해소됐다.
+- 남은 실패는 Picker가 보인 뒤 SVAR가 더 늦게 Gantt 내부 요소로 focus를 되돌리는 경우다. autoFocus/단일 timer만으로 최종 activeElement를 보장하지 못했다.
+- Picker open 동안 document focusin capture를 감시해 focus가 Gantt 내부로 되돌아가면 date input으로 microtask 복원한다. outside pointer/resize/Escape로 닫기 시작한 경우에는 복원하지 않아 사용자 focus 이동을 방해하지 않는다.
+- #1623 실패를 PASS로 대체하지 않으며 새 exact head 전체 PR CI로 다시 판정한다.
