@@ -103,13 +103,15 @@ Grid/Editor는 미산정 값을 `—`로 표시하고 Chart 행을 유지하면�
 
 구현 단계·실제 검증 및 Import 범위 결정은 [Issue #345 계획](exec-plans/active/ISSUE_345.md)을 따른다. 과거 empty-summary 거부의 실행 기록은 당시 사실로 보존한다.
 
-## Issue #373 — Summary 하위 WBS scoped view
+## Issue #373 / #399 — Summary 하위 WBS Workspace scoped view
 
-하위 작업이 있는 Summary에는 조회/navigation 명령 `최상위로 열기`를 제공한다. 명령은 새 탭의 `/projects/{publicId}?rootTask={taskId}` deep link를 열며 원래 탭을 reload/navigation하지 않는다. scoped view의 visible set은 선택 Summary 자신과 모든 depth의 자손이고 ancestor, sibling, 다른 root branch는 숨긴다. 검색·고급 필터·Task/Milestone 빠른 보기는 이 scope 안에서만 적용하며 초기화해도 전체 Project로 범위가 확장되지 않는다.
+하위 작업이 있는 Summary에는 조회/navigation 명령 `최상위로 열기`를 제공한다. #399부터 이 명령은 새 browser tab/window를 만들지 않고 현재 Project의 일정 View 내부 WBS 범위 탭을 생성·활성화한다. 범위 탭은 `[전체 프로젝트] [Summary A ×] [Summary B ×]` 구조이며 전체 프로젝트는 고정/비삭제, 동일 Summary 재진입은 중복 생성 없이 기존 탭 활성화, Summary 탭 닫기는 인접 탭→전체 프로젝트 순으로 복귀한다. scoped view의 visible set은 선택 Summary 자신과 모든 depth의 자손이고 ancestor, sibling, 다른 root branch는 숨긴다. 검색·고급 필터·Task/Milestone 빠른 보기는 해당 scope 안에서만 적용하며 초기화해도 자동으로 전체 Project로 범위가 확장되지 않는다.
 
-scope는 authorization 또는 별도 aggregate가 아니다. client는 전체 Project canonical snapshot과 links/assignments/logistics를 계속 보유한다. 선택 Summary의 canonical parent는 유지하되 SVAR 표시 adapter에서만 해당 Task의 parent를 root(0)로 투영한다. 기존 mutation API, edit session, Origin, strong If-Match와 Project revision을 사용한다. 따라서 scope 밖 endpoint를 가진 Dependency도 삭제·유실하지 않으며 Task/Relation Editor는 전체 canonical 관계를 확인할 수 있다. scoped tab의 성공 mutation이 higher revision을 만들면 same-origin 다른 Project tab은 revision 신호를 받고 canonical GET으로 최신 상태를 재확인한다. Scoped view의 구조 mutation은 결과가 root subtree 안에 남는 경우만 허용하고 native root-add, root sibling 생성/이동, direct child Outdent 등 scope 탈출 경로는 Context Menu·shortcut·DnD 모두에서 차단한다. 물류 필터의 상속 계산은 전체 hierarchy context를 유지한다. 연속 revision 이벤트는 최고 pending revision까지 누적해 재조회한다.
+기존 `/projects/{publicId}?rootTask={taskId}` URL은 **새 browser tab을 생성하는 명령 계약이 아니라** 공유·reload·직접 진입용 deep link 계약으로 유지한다. 내부 범위 탭 전환은 full navigation 없이 `rootTask`를 replace semantics로 동기화하고, 직접 deep link로 진입하면 전체 프로젝트 탭과 해당 Summary 탭을 구성해 Summary scope를 활성화한다. 열린 범위 탭 집합 전체는 persistence하지 않으며 reload 후 URL의 active scope만 복원한다.
 
-root Summary의 마지막 child가 제거되면 #345에 따라 빈 Summary scoped view를 유지한다. root가 삭제되거나 Summary가 아니게 되면 다른 Task나 전체 Project로 자동 fallback하지 않고 명확한 오류와 전체 Project 복귀 링크를 제공한다. DB schema, 새 API, 별도 Scheduling algorithm은 추가하지 않는다.
+scope는 authorization 또는 별도 aggregate가 아니다. client는 전체 Project canonical snapshot과 links/assignments/logistics를 계속 보유한다. 선택 Summary의 canonical parent는 유지하되 SVAR 표시 adapter에서만 해당 Task의 parent를 root(0)로 투영한다. 기존 mutation API, edit session, Origin, strong If-Match와 Project revision을 사용한다. 따라서 scope 밖 endpoint를 가진 Dependency도 삭제·유실하지 않으며 Task/Relation Editor는 전체 canonical 관계를 확인할 수 있다. 같은 화면의 내부 범위 탭은 하나의 canonical React state와 ProjectGantt instance를 공유하며, 사용자가 deep link를 실제 다른 browser tab에서 직접 연 경우에만 기존 #373 same-origin revision 신호와 canonical GET freshness 계약을 사용한다. Scoped view의 구조 mutation은 결과가 root subtree 안에 남는 경우만 허용하고 native root-add, root sibling 생성/이동, direct child Outdent 등 scope 탈출 경로는 Context Menu·shortcut·DnD 모두에서 차단한다. 물류 필터의 상속 계산은 전체 hierarchy context를 유지한다. 연속 revision 이벤트는 최고 pending revision까지 누적해 재조회한다.
+
+root Summary의 마지막 child가 제거되면 #345에 따라 빈 Summary scoped view를 유지한다. root가 삭제되거나 Summary가 아니게 되면 다른 Task나 전체 Project로 자동 fallback하지 않고 명확한 invalid 상태와 전체 Project 복귀/탭 닫기 경로를 제공한다. DB schema, 새 API, 별도 Scheduling algorithm은 추가하지 않는다.
 
 ## Assumption
 
