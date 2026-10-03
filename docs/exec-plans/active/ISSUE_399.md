@@ -57,3 +57,13 @@ Run `37101966096`도 quality/build/typecheck/ESLint/Vitest/Docker 및 Chromium s
 보완은 공통 `WorkspaceNotifications.notify()`에서 첫 publish 직전 `window.scrollX/Y`와 모든 `.project-gantt-scroll`의 scrollLeft/Top을 캡처하고, React/SVAR 후처리가 끝나는 다음 animation frame에 복원한다. 같은 frame에 연속 알림이 발생하면 첫 pre-notification snapshot만 유지해 이미 이동한 위치가 새 기준으로 덮어써지지 않게 한다. unmount 시 pending animation frame을 취소한다. 실패 테스트나 SVAR gate를 완화하지 않는다.
 
 효과가 없었던 `.project-readonly { overflow-anchor:none }` 변경은 제거한다.
+
+
+## PR CI #1591.1 4차 분석 / commit-phase 복원
+
+Run `37103170043`은 quality/build/typecheck/ESLint/Vitest/Docker 및 Chromium shard 1/3이 PASS했고 shard 2/4와 shard 4/4가 FAIL했다.
+
+- shard 2: 기존 320/360/361/401px notification hit-area가 동일하게 `bell y 8 → -22/-23`로 실패했다. 3차 rAF 복원은 Toast/badge DOM이 먼저 관찰된 뒤 실행될 수 있어 timing이 늦었다.
+- shard 4: `Issue #72 hierarchy commands persist...`의 마지막 Project GET에서 `read ECONNRESET`이 발생했다. HTTP status/assertion 실패가 아니라 Playwright APIRequestContext의 test-server connection reset이며 #399 제품 로직과 직접 연결되는 증거는 없다. 전체 새 CI로 재검증한다.
+
+4차 보완은 notification publish 직전 첫 scroll snapshot을 캡처하는 점은 유지하되, 복원 시점을 `requestAnimationFrame`에서 React `useLayoutEffect`로 이동한다. SVAR native add handler가 callback 반환 뒤 visibility/focus scroll을 수행하고 event가 끝난 다음 React가 feedback state를 commit하므로, layout effect는 Toast/badge가 paint되어 테스트/사용자에게 노출되기 전에 page/Gantt scroll을 원래 위치로 복원한다. 연속 publish는 첫 pending snapshot만 유지한다.
