@@ -327,3 +327,7 @@
 .project-gantt-week-header-tooltip-holiday {
   color: var(--text-muted, var(--muted-foreground));
 }
+
+.project-gantt-frame .wx-table-container .wx-row[data-task-completed="true"] [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text {
+  text-decoration: line-through;
+}
