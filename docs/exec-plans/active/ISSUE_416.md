@@ -41,4 +41,8 @@
 
 ## 현재 상태
 
-최신 main 기준 구현·테스트 코드·문서 동기화 후 PR 생성 및 exact head PR CI 시작 확인까지 진행한다. CI 완료/merge/release는 이번 요청 범위 밖이다.
+- PR #417 생성, initial head `09868e30ca969401a92bd6a21f22547d434e46dd`.
+- PR CI Run #1654.1은 `verify-ci-run-trace.py`의 canonical PR metadata 요구사항(`Refs #416` 정확히 1개) 누락으로 path gate에서 즉시 FAIL했다. 구현/테스트 job은 gate 실패로 SKIPPED되어 application 실패 증거가 아니다.
+- PR 본문을 `Refs #416` 형식으로 교정했고, 이 실행 기록 commit으로 synchronize 이벤트를 발생시켜 새 PR CI를 시작한다.
+
+새 exact head의 PR CI 시작 확인까지 진행하며 CI 완료/merge/release는 이번 요청 범위 밖이다.
