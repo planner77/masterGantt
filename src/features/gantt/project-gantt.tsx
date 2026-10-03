@@ -1907,7 +1907,7 @@ export function ProjectGantt({
     const nameIntentTaskId = nameIntent && fallbackTarget && Math.hypot(event.clientX - nameIntent.x, event.clientY - nameIntent.y) <= 4
       ? nameIntent.taskId
       : null;
-    const startIntentTaskId = startIntent && fallbackTarget && Math.hypot(event.clientX - startIntent.x, event.clientY - startIntent.y) <= 4
+    const startIntentTaskId = startIntent && Math.hypot(event.clientX - startIntent.x, event.clientY - startIntent.y) <= 4
       ? startIntent.taskId
       : null;
     const taskId = match?.taskId ?? nameIntentTaskId ?? startIntentTaskId;
