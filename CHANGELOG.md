@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.70.1] - 2026-10-03
+
+### Fixed
+
+- Issue #366: #331에서 이미 수정된 Resource Catalog의 코드 입력·개발자 등급 컨트롤 overlap 해결책을 현재 main 기준 회귀 계약으로 직접 고정한다.
+- 허용 최대 길이 64자 코드와 개발자 등급 선택 상태에서 390/768/1024/1440px 실제 input/select geometry, form bounds, document overflow 및 기존 Tab 순서를 Chromium으로 검증한다.
+- Resource Catalog runtime CSS/API/DB/auth/session/revision/If-Match 계약은 변경하지 않으며 Application version을 `0.70.0`에서 `0.70.1`로 증가한다.
+
 ## [0.70.0] - 2026-10-03
 
 ### Added

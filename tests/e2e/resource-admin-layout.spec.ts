@@ -22,7 +22,31 @@ async function expectDirectChildrenDoNotOverlap(container: Locator) {
   }
 }
 
-test("Issue #235/#331: resource admin layout, create forms, and password dialog", async ({ page }, testInfo) => {
+async function expectControlsDoNotOverlap(container: Locator, controls: Locator[]) {
+  const containerBox = await container.boundingBox();
+  expect(containerBox).not.toBeNull();
+  const boxes = (await Promise.all(controls.map((control) => control.boundingBox()))).map((box) => {
+    expect(box).not.toBeNull();
+    return box!;
+  });
+
+  for (let left = 0; left < boxes.length; left += 1) {
+    for (let right = left + 1; right < boxes.length; right += 1) {
+      const a = boxes[left];
+      const b = boxes[right];
+      const overlapX = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x) > 1;
+      const overlapY = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y) > 1;
+      expect(overlapX && overlapY).toBe(false);
+    }
+  }
+
+  for (const box of boxes) {
+    expect(box.x).toBeGreaterThanOrEqual(containerBox!.x - 1);
+    expect(box.x + box.width).toBeLessThanOrEqual(containerBox!.x + containerBox!.width + 1);
+  }
+}
+
+test("Issue #235/#331/#366: resource admin layout, create forms, and password dialog", async ({ page }, testInfo) => {
   await page.route("**/api/resource-catalog/admin-sessions", async (route) => {
     if (route.request().method() === "POST") {
       await route.fulfill({ status: 204 });
@@ -54,9 +78,17 @@ test("Issue #235/#331: resource admin layout, create forms, and password dialog"
   const groupSection = page.getByRole("region", { name: "리소스 그룹", exact: true });
   const resourceCreateForm = resourceSection.locator("form");
   const groupCreateForm = groupSection.locator("form");
+  const resourceName = resourceSection.getByLabel("이름", { exact: true });
+  const resourceCode = resourceSection.getByLabel("코드", { exact: true });
+  const resourceGrade = resourceSection.getByLabel("신규 리소스 개발자 등급", { exact: true });
+  const resourceAdd = resourceSection.getByRole("button", { name: "추가", exact: true });
   await expect(changePassword).toBeVisible();
   await expect(refresh).toBeVisible();
   await expect(logout).toBeVisible();
+
+  const maxLengthCode = `DEV-${"X".repeat(60)}`;
+  await resourceCode.fill(maxLengthCode);
+  await resourceGrade.selectOption("EXPERT");
 
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
@@ -73,8 +105,10 @@ test("Issue #235/#331: resource admin layout, create forms, and password dialog"
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
     await expectDirectChildrenDoNotOverlap(resourceCreateForm);
     await expectDirectChildrenDoNotOverlap(groupCreateForm);
+    await expectControlsDoNotOverlap(resourceCreateForm, [resourceCode, resourceGrade]);
     if (width === 390 || width === 1024) {
       await page.screenshot({ path: testInfo.outputPath(`issue-331-resource-create-layout-${width}.png`), fullPage: true });
+      await page.screenshot({ path: testInfo.outputPath(`issue-366-resource-code-grade-layout-${width}.png`), fullPage: true });
     }
 
     const header = await page.locator(".site-header").boundingBox();
@@ -84,10 +118,6 @@ test("Issue #235/#331: resource admin layout, create forms, and password dialog"
     expect(eyebrow!.y - (header!.y + header!.height)).toBeLessThanOrEqual(40);
   }
 
-  const resourceName = resourceSection.getByLabel("이름", { exact: true });
-  const resourceCode = resourceSection.getByLabel("코드", { exact: true });
-  const resourceGrade = resourceSection.getByLabel("신규 리소스 개발자 등급", { exact: true });
-  const resourceAdd = resourceSection.getByRole("button", { name: "추가", exact: true });
   expect(await resourceGrade.locator("option").evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))).toEqual([
     "", "BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT",
   ]);
