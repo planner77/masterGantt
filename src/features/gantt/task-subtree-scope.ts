@@ -51,6 +51,37 @@ export function resolveTaskSubtreeScope(
 }
 
 
+function taskCreatePlacementStaysInSubtree(
+  tasks: readonly ProjectTaskDto[],
+  rootTaskId: string | null,
+  anchorTaskId: string,
+  placement: "before" | "after" | "child",
+): boolean {
+  if (!rootTaskId) return true;
+  const scope = resolveTaskSubtreeScope(tasks, rootTaskId);
+  return scope.kind === "valid" &&
+    scope.taskIds.includes(anchorTaskId) &&
+    !(anchorTaskId === rootTaskId && placement !== "child");
+}
+
+export function canAddTaskWithinSubtree(
+  tasks: readonly ProjectTaskDto[],
+  rootTaskId: string | null,
+  targetTaskId: string | undefined,
+  mode: "before" | "after" | "child" | undefined,
+): boolean {
+  // Native Grid add supports root creation in the full-project view and
+  // child creation on a concrete row. Before/after remains owned by the
+  // canonical hierarchy-command path.
+  if (mode !== undefined && mode !== "child") return false;
+  if (!targetTaskId) return rootTaskId === null;
+
+  const target = tasks.find((task) => task.taskId === targetTaskId);
+  if (!target || target.type === "milestone") return false;
+  return taskCreatePlacementStaysInSubtree(tasks, rootTaskId, targetTaskId, "child");
+}
+
+
 export function taskHierarchyCommandStaysInSubtree(
   tasks: readonly ProjectTaskDto[],
   rootTaskId: string | null,
@@ -66,8 +97,12 @@ export function taskHierarchyCommandStaysInSubtree(
 
   switch (command.kind) {
     case "create":
-      return taskIds.has(command.anchorTaskId) &&
-        !(command.anchorTaskId === rootTaskId && command.placement !== "child");
+      return taskCreatePlacementStaysInSubtree(
+        tasks,
+        rootTaskId,
+        command.anchorTaskId,
+        command.placement,
+      );
     case "convert":
       return taskIds.has(command.taskId);
     case "move":
