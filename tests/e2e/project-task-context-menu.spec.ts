@@ -698,7 +698,7 @@ test("Issue #430 allows Cut for internal subtree dependencies and blocks boundar
   const path = new URL(page.url()).pathname;
   const api = `/api${path}`;
   const origin = new URL(page.url()).origin;
-  let current = await snapshot(page, api);
+  let current: ProjectSnapshotResponse | TaskMutationResponse = await snapshot(page, api);
 
   async function add(
     name: string,
