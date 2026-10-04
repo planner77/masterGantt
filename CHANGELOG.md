@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.78.1] - 2026-10-04
+
+### Fixed
+
+- Issue #418: Workspace WBS 범위에서 native Grid Header `+`와 Row `+`의 의미를 scope-relative resolver로 통합한다. scoped Header는 active Summary root의 immediate child를, root/descendant Row는 해당 작업의 child를 생성하며 일반 Task first-child Summary 전환과 Milestone 차단을 기존 canonical 서버 계약으로 유지한다.
+- canonical Gantt sync 뒤 `filter-tasks`를 같은 직렬 queue에서 적용하고 native add 전후 scroll/focus를 복원해 성공 저장 중 Grid 전체가 순간적으로 비거나 위치가 튀는 중간 상태를 제거한다. active scope와 동일 ProjectGantt/API instance 및 #416 Week Header 표시를 유지한다.
+- 실제 SVAR Header/Row control, Milestone disabled, requestAnimationFrame continuity probe와 pure intent Unit 회귀를 추가하고 Application version을 `0.78.0`에서 `0.78.1`로 증가한다.
+
 ## [0.78.0] - 2026-10-04
 
 ### Added
