@@ -831,3 +831,12 @@ Chart의 Task/Summary/Milestone bar를 위·아래로 drag해 같은 parent의 v
 
 검색·필터·접힘으로 보이지 않는 bar와 다른 hierarchy level은 drop 기준으로 사용하지 않는다. #335 linked same-parent reorder는 허용하며 #399/#407 subtree scope를 벗어난 command는 실행하지 않는다. 성공 뒤 Grid/Chart/reload는 canonical siblingOrder와 같은 순서를 유지한다.
 
+## Issue #412 — Resource Catalog 전역 역할 관리
+
+`/resources`의 Resource 영역은 이름/코드/개발자 등급과 별도로 **전역 역할** checkbox group을 제공한다. 생성과 기존 Resource 편집 모두 `PI`, `개발자`, `설비 담당`을 복수 선택할 수 있고 역할이 없으면 명시적으로 `전역 역할: 없음`을 표시한다.
+
+개발자 등급과 전역 역할은 서로 다른 의미다. 역할 checkbox 조작으로 등급 select가 자동 변경되지 않으며 반대도 동일하다. Resource Group 구성원 선택 화면은 각 Resource 역할을 참고 텍스트로 보여 주지만 역할에 따라 구성원을 자동 추가/제거하지 않는다.
+
+각 checkbox는 Resource명+역할의 accessible name을 갖고 native keyboard 동작을 사용한다. 저장 중에는 기존 catalog mutation lock을 공유하며 성공/401/412/오류 복구는 기존 Resource Catalog UX를 재사용한다. 390/768/1024/1440px에서는 역할 control이 내부에서 wrap되며 document-level horizontal overflow를 만들지 않아야 한다.
+
+SVAR PRO Resource management는 사용하지 않으며 이 화면은 app-level master data 관리자 화면으로 유지한다. 상세 설계는 [ISSUE_412_RESOURCE_ROLES.md](ISSUE_412_RESOURCE_ROLES.md)를 참조한다.
