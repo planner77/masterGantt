@@ -107,7 +107,7 @@ import {
 } from "./task-context-menu-model";
 import { taskHasDependencyLinks, taskSubtreeHasDependencyLinks } from "./task-link-scope";
 import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
-import { canOpenTaskAsSubtreeRoot, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
+import { canOpenTaskAsSubtreeRoot, resolveTaskSubtreeScope, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
 import { resolveNativeTaskAddIntent, type NativeTaskAddRejectReason, type NativeTaskAddSource } from "./native-task-add-intent";
 import { taskStatusFromProgress } from "../../domain/task-status";
 import { RelationContextMenu } from "./relation-context-menu";
@@ -556,7 +556,11 @@ export function ProjectGantt({
         : Array.from(root.querySelectorAll<HTMLElement>(".wx-row[data-id]"))
           .find((candidate) => taskIdFromElement(candidate) === continuity.targetTaskId)
           ?.querySelector<HTMLElement>('[data-action="add-task"]') ?? null;
-      action?.focus({ preventScroll: true });
+      if (action?.getAttribute("aria-disabled") !== "true" && action?.tabIndex !== -1) {
+        action?.focus({ preventScroll: true });
+      } else {
+        root.focus({ preventScroll: true });
+      }
     });
   }, [mutationLocked]);
 
@@ -1133,18 +1137,24 @@ export function ProjectGantt({
   useEffect(() => {
     const root = ganttScrollReference.current;
     if (!root) return;
+    const activeScope = viewRootTaskId === null ? null : resolveTaskSubtreeScope(tasks, viewRootTaskId);
+    const scopedTaskIds = activeScope?.kind === "valid" ? new Set(activeScope.taskIds) : null;
+    const headerIntent = resolveNativeTaskAddIntent({
+      tasks,
+      rootTaskId: viewRootTaskId,
+      source: "header",
+    });
     const setNativeAddAccessibility = () => {
       root.querySelectorAll<HTMLElement>('[data-action="add-task"]').forEach((action) => {
         const row = action.closest<HTMLElement>(".wx-row[data-id]");
         const taskId = row ? taskIdFromElement(row) : null;
         const source: NativeTaskAddSource = taskId ? "row" : "header";
-        const intent = resolveNativeTaskAddIntent({
-          tasks,
-          rootTaskId: viewRootTaskId,
-          source,
-          ...(taskId ? { targetTaskId: taskId, mode: "child" as const } : {}),
-        });
-        const disabled = !editable || mutationLocked || intent.kind === "reject";
+        const task = taskId ? tasksById.get(taskId) : undefined;
+        const disabled = !editable || mutationLocked ||
+          (source === "header"
+            ? headerIntent.kind === "reject"
+            : !task || task.type === "milestone" ||
+              (viewRootTaskId !== null && scopedTaskIds?.has(taskId!) !== true));
         action.setAttribute("aria-disabled", String(disabled));
         action.tabIndex = disabled ? -1 : 0;
         if (!action.hasAttribute("role")) action.setAttribute("role", "button");
@@ -1159,7 +1169,7 @@ export function ProjectGantt({
     const observer = new MutationObserver(setNativeAddAccessibility);
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [editable, mutationLocked, tasks, viewRootTaskId]);
+  }, [editable, mutationLocked, tasks, tasksById, viewRootTaskId]);
   const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
   const taskUpdateGateway = useMemo(
@@ -2747,6 +2757,16 @@ export function ProjectGantt({
       return;
     }
     if (handleInlineEscape(event)) return;
+    if ((event.key === "Enter" || event.key === " ") && event.target instanceof Element) {
+      const addAction = event.target.closest<HTMLElement>('[data-action="add-task"]');
+      const root = ganttScrollReference.current;
+      if (addAction && root?.contains(addAction)) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (addAction.getAttribute("aria-disabled") !== "true") addAction.click();
+        return;
+      }
+    }
     if (!startDatePicker && (event.key === "Enter" || event.key === " ")) {
       const cell = startDateCellFrom(event.target);
       const row = cell?.closest<HTMLElement>(".wx-row[data-id]");
