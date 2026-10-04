@@ -213,19 +213,32 @@ export function ProjectResourceWorkload({ publicId }: Props) {
   const filteredGroups = useMemo(() => {
     if (!data) return [];
     const taskFilterActive = roleFilter !== "all" || Boolean(dateFrom && dateTo);
+    const memberScopeActive = taskFilterActive || gradeFilter !== "all";
     return data.groups.flatMap((group) => {
       const groupTarget = group.id ? targetByKey.get(`group:${group.id}`) : undefined;
       const groupMatchesText = includesText(groupTarget, group.name, query);
       const groupMatchesActive = activeFilter === "all" || (activeFilter === "active" ? group.active : !group.active);
-      const resources = group.resources.flatMap((resource) => {
-        const resourceTarget = targetByKey.get(`resource:${resource.id}`);
-        const textMatch = includesText(resourceTarget, resource.name, query, resource.code);
-        const activeMatch = activeFilter === "all" || (activeFilter === "active" ? resource.active : !resource.active);
+
+      const scopedMembers = group.resources.flatMap((resource) => {
         const gradeMatch = gradeFilter === "all" || resource.developerGrade === gradeFilter;
         const tasks = resource.tasks.filter((task) =>
           overlaps(task.start, task.end, dateFrom, dateTo) &&
           (roleFilter === "all" || (task.role ?? "UNSPECIFIED") === roleFilter));
-        if (!textMatch || !activeMatch || !gradeMatch || kindFilter === "group" || (taskFilterActive && tasks.length === 0)) return [];
+        if (!gradeMatch || (taskFilterActive && tasks.length === 0)) return [];
+        return [{ resource, tasks }];
+      });
+
+      if (kindFilter === "group") {
+        const memberScopeMatch = !memberScopeActive || scopedMembers.length > 0;
+        if (!groupMatchesText || !groupMatchesActive || !memberScopeMatch) return [];
+        return [{ ...group, resources: group.resources }];
+      }
+
+      const resources = scopedMembers.flatMap(({ resource, tasks }) => {
+        const resourceTarget = targetByKey.get(`resource:${resource.id}`);
+        const textMatch = includesText(resourceTarget, resource.name, query, resource.code);
+        const activeMatch = activeFilter === "all" || (activeFilter === "active" ? resource.active : !resource.active);
+        if (!textMatch || !activeMatch) return [];
         const effortMd = tasks.reduce((sum, task) => sum + (task.effortMd ?? 0), 0);
         return [{
           ...resource,
@@ -237,10 +250,9 @@ export function ProjectResourceWorkload({ publicId }: Props) {
           tasks,
         }];
       });
-      const resourceScoped = taskFilterActive || gradeFilter !== "all";
-      const groupDirectMatch = kindFilter !== "resource" && !resourceScoped && groupMatchesText && groupMatchesActive;
+
+      const groupDirectMatch = kindFilter !== "resource" && !memberScopeActive && groupMatchesText && groupMatchesActive;
       if (!groupDirectMatch && resources.length === 0) return [];
-      if (groupDirectMatch && kindFilter === "group") return [{ ...group, resources: group.resources }];
       const effortMd = resources.reduce((sum, resource) => sum + resource.effortMd, 0);
       return [{
         ...group,
