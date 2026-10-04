@@ -20,9 +20,6 @@ const DEVELOPER_GRADE_OPTIONS: Array<{ value: DeveloperGrade | ""; label: string
   { value: "ADVANCED", label: "고급" },
   { value: "EXPERT", label: "특급" },
 ];
-function developerGradeLabel(value: DeveloperGrade | null | undefined): string {
-  return DEVELOPER_GRADE_OPTIONS.find((option) => option.value === (value ?? ""))?.label ?? "등급 미지정";
-}
 const RESOURCE_ROLE_OPTIONS: Array<{ value: ResourceRole; label: string }> = [
   { value: "PI", label: "PI" },
   { value: "DEVELOPER", label: "개발자" },
@@ -504,7 +501,7 @@ export function ResourceCatalogAdmin() {
     </div>
 
     <div className={styles.columns}>
-      <section className={styles.card} aria-labelledby="resources-title">
+      <section className={`${styles.card} ${styles.resourceCard}`} aria-labelledby="resources-title">
         <h2 id="resources-title">리소스</h2>
         <div className={styles.searchBar}>
           <input
@@ -540,33 +537,31 @@ export function ResourceCatalogAdmin() {
           <ul className={styles.list}>
             {filteredResources.map((resource: ResourceDto) => {
               const usageId = `resource-usage-${resource.id}`;
-              return <li key={resource.id} className={`${styles.item} ${resource.active ? "" : styles.inactive}`}>
-                <div>
+              return <li key={resource.id} className={`${styles.item} ${styles.resourceItem} ${resource.active ? "" : styles.inactive}`}>
+                <div className={styles.resourceIdentity}>
                   <strong>{resource.name}</strong>
                   <div className={styles.meta}>
                     <span>{resource.code ?? "코드 없음"}</span>
-                    <span>개발자 등급: {developerGradeLabel(resource.developerGrade)}</span>
-                    <span className={styles.roleSummary}>
-                      전역 역할: {(resource.roles ?? []).length === 0
-                        ? <span>없음</span>
-                        : (resource.roles ?? []).map((role) => <span key={role} className={styles.roleBadge}>{resourceRoleLabel(role)}</span>)}
-                    </span>
                     <span className={styles.badge}>{resource.active ? "활성" : "비활성"}</span>
                     <span id={usageId} className={styles.usageNote}>{projectUsageReason(resource)}</span>
                   </div>
                 </div>
                 <div className={styles.resourceActions}>
-                  <label className={styles.inlineGradeLabel}>개발자 등급<select aria-label={`${resource.name} 개발자 등급`} value={resource.developerGrade ?? ""} disabled={locked} onChange={(event) => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { developerGrade: event.target.value || null })}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label>
-                  <fieldset className={styles.inlineRoleFieldset}>
-                    <legend>{resource.name} 전역 역할</legend>
-                    <div className={styles.roleOptions}>
-                      {RESOURCE_ROLE_OPTIONS.map((option) => <label key={option.value}><input aria-label={`${resource.name} ${option.label} 역할`} type="checkbox" checked={(resourceRoleDrafts[resource.id] ?? resource.roles ?? []).includes(option.value)} disabled={locked} onChange={(event) => void updateResourceRole(resource, option.value, event.target.checked)} />{option.label}</label>)}
-                    </div>
-                  </fieldset>
-                  <button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
-                  {resource.deletable === true
-                    ? <button className="danger-button" type="button" disabled={locked} aria-describedby={usageId} aria-label={`${resource.name} 삭제`} onClick={(event) => requestDelete("resource", resource, event)}>삭제</button>
-                    : <button className="secondary-button" type="button" disabled={locked} aria-disabled="true" aria-describedby={usageId} aria-label={`${resource.name} 삭제 불가`}>삭제 불가</button>}
+                  <div className={styles.resourceProfile} aria-label={`${resource.name} 프로필`}>
+                    <label className={styles.inlineGradeLabel}>개발자 등급<select aria-label={`${resource.name} 개발자 등급`} value={resource.developerGrade ?? ""} disabled={locked} onChange={(event) => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { developerGrade: event.target.value || null })}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label>
+                    <fieldset className={styles.inlineRoleFieldset}>
+                      <legend>{resource.name} 전역 역할</legend>
+                      <div className={styles.roleOptions}>
+                        {RESOURCE_ROLE_OPTIONS.map((option) => <label key={option.value}><input aria-label={`${resource.name} ${option.label} 역할`} type="checkbox" checked={(resourceRoleDrafts[resource.id] ?? resource.roles ?? []).includes(option.value)} disabled={locked} onChange={(event) => void updateResourceRole(resource, option.value, event.target.checked)} />{option.label}</label>)}
+                      </div>
+                    </fieldset>
+                  </div>
+                  <div className={styles.rowActions} aria-label={`${resource.name} 상태 및 삭제 작업`}>
+                    <button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
+                    {resource.deletable === true
+                      ? <button className="danger-button" type="button" disabled={locked} aria-describedby={usageId} aria-label={`${resource.name} 삭제`} onClick={(event) => requestDelete("resource", resource, event)}>삭제</button>
+                      : <button className="secondary-button" type="button" disabled={locked} aria-disabled="true" aria-describedby={usageId} aria-label={`${resource.name} 삭제 불가`}>삭제 불가</button>}
+                  </div>
                 </div>
               </li>;
             })}
@@ -574,7 +569,7 @@ export function ResourceCatalogAdmin() {
         )}
       </section>
 
-      <section className={styles.card} aria-labelledby="groups-title">
+      <section className={`${styles.card} ${styles.groupCard}`} aria-labelledby="groups-title">
         <h2 id="groups-title">리소스 그룹</h2>
         <div className={styles.searchBar}>
           <input
