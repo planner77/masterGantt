@@ -1282,3 +1282,17 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - 100개를 초과하는 활성 Resource에서 역할 없는 filler가 앞에 정렬되어도 `role=EQUIPMENT_OWNER` 검색은 뒤쪽 matching Resource를 반환해야 한다.
 - Task Editor에서 수행 역할 선택 시 실제 `assignment-targets?kind=resource&role=...` request가 발생해야 한다.
 - Template snapshot에 남은 수행 역할을 live assignment 삭제 후 Global Role에서 제거하고 instantiate해도 500이 발생하지 않아야 한다. 새 assignment/allocation은 유지하고 role은 null, warning은 stale role과 역할 미지정 복원을 포함해야 한다.
+
+## Issue #414 — 역할 기반 Resource workload 검증
+
+- Server: PI 2 M/D + Developer 8 M/D + Equipment Owner 3 M/D = Grand Total 13 M/D fixture를 사용해 역할 subtotal 합과 Grand Total을 비교한다.
+- Dedup: multi-role Resource를 Task별 다른 수행 역할로 분류하고, 동일 Resource가 두 Group에 속해도 Grand Total은 assignmentId 기준 한 번만 합산되는지 확인한다.
+- Legacy: Global DEVELOPER 역할을 가진 Resource라도 Task assignment role이 null이면 `UNSPECIFIED`로 분류하고 Developer subtotal에 포함하지 않는다.
+- M/M: `RESOURCE_MD_PER_MM=20`이면 13 M/D → 0.65 M/M이며 기준 미설정 시 Grand/role M/M은 null이고 M/D는 유지한다.
+- Status: canonical task progress/status/start/end와 Project timezone 기준 delayed를 반환하되 progress/status 변경으로 계획 M/D가 변하지 않는지 확인한다.
+- Capacity: 역할 분류와 무관하게 기존 Resource Calendar 및 일별 allocation >100% 과투입 판정을 유지한다.
+- Chromium: 역할 summary, 개발 견적 preset(Resource+DEVELOPER), 역할/개발자 등급 filter, developer Task detail을 검증한다.
+- State/geometry: 390/768/1024/1440px document overflow 없음, task table 내부 horizontal scroll, 일정↔리소스 왕복 후 동일 Gantt instance와 preset/filter 상태 보존을 확인한다.
+- 기존 #117 workload/assigned-target 독립 loading/error/stale/partial retry E2E를 그대로 통과해야 한다.
+- 공식 전체 판정은 Issue #414 PR exact head의 GitHub Actions quality/e2e/docker 결과로 한다.
+
