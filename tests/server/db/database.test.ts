@@ -151,6 +151,7 @@ describe("SQLite connection and schema", () => {
         "0017_project_master_catalog.sql",
         "0018_empty_summary_schedule.sql",
         "0019_task_status.sql",
+        "0020_resource_roles.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -190,6 +191,7 @@ describe("SQLite connection and schema", () => {
         "resource_catalog_state",
         "resource_group_members",
         "resource_groups",
+        "resource_roles",
         "resources",
         "schema_migrations",
         "task_assignments",
@@ -235,6 +237,7 @@ describe("SQLite connection and schema", () => {
         "projects_site_entity_idx",
         "resource_admin_sessions_expiry_idx",
         "resource_group_members_resource_idx",
+        "resource_roles_role_resource_idx",
         "system_resource_one_primary",
         "task_assignments_group_idx",
         "task_assignments_group_unique_idx",
