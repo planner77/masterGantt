@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #418 Workspace 범위 Header/Row 작업 추가 일관성 — latest main 0.78.0 / PR CI
+
+최신 main `c7e4d8bb0617f8bcb8f6559b609b57aa56f59a32` / application `0.78.0`의 #416 Week Header `Wxx + N일`, #299 Chart vertical DnD, #407 scoped Row add, #399 single-ProjectGantt scope tabs를 보존한다. Header/Row native `add-task`를 source-aware pure resolver로 통합해 scoped Header를 active root immediate child로 정의하고, descendant Row child·일반 Task first-child Summary 전환을 같은 canonical mutation 경계로 처리한다. canonical sync와 `filter-tasks` 직렬화 및 scroll/focus 복원으로 add 중 blank/flicker를 방지한다. 후보 version은 PATCH `0.78.1`, branch는 `fix/issue-418-scoped-native-add-continuity`; 상세는 [Issue #418 실행 계획](ISSUE_418.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 새 PR CI 시작 확인이다.
+
 ## Issue #416 Week Header 근무 가능 일수 상시 표시 — 구현·문서 동기화 / PR CI
 
 최신 main `c005e05718fbca8c48973d7006c20cd4f905c6f6` / application `0.77.0`의 #299 Chart DnD와 #316 Project Calendar `workingDays`/Week Tooltip lifecycle을 함께 보존하면서 기존 ISO `Wxx` 및 68px 폭 안에 `N일` secondary label을 상시 표시한다. 어느 요일/공휴일인지의 상세는 기존 Tooltip에 남기고 Scheduling/API/DB/Gantt instance 계약은 변경하지 않는다. 후보 version은 MINOR `0.78.0`, branch는 `feat/issue-416-week-working-days`이며 상세는 [Issue #416 실행 계획](ISSUE_416.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 PR 생성과 exact head PR CI 시작 확인이며 merge/main CI/GHCR/정식 release/Issue 종료는 범위 밖이다.
