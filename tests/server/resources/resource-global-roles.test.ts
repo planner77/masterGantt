@@ -152,7 +152,7 @@ describe("Issue #412 global Resource roles", () => {
       f.database.prepare(`
         INSERT INTO project_system_resource_roles
           (project_id, system_id, resource_id, role, is_primary, created_at, updated_at)
-        VALUES (?, ?, ?, 'developer', 1, ?, ?)
+        VALUES (?, ?, ?, 'developer', 0, ?, ?)
       `).run(project.id, systemId, resourceRow.id, NOW, NOW);
 
       catalog = f.service.updateTarget("resource", resource.id, f.admin.rawToken, catalog.data.revision, {
