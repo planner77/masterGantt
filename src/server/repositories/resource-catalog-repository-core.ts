@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import type { DeveloperGrade } from "../../contracts/resources";
+import type { DeveloperGrade, ResourceRole } from "../../contracts/resources";
 
 export interface CatalogTargetRecord {
   id: number;
@@ -9,6 +9,7 @@ export interface CatalogTargetRecord {
   description: string;
   active: boolean;
   developerGrade: DeveloperGrade | null;
+  roles: ResourceRole[];
 }
 
 export interface CatalogGroupRecord extends CatalogTargetRecord {
@@ -75,7 +76,23 @@ function mapTarget(row: TargetRow): CatalogTargetRecord {
     description: row.description,
     active: row.active === 1,
     developerGrade: row.developer_grade,
+    roles: [],
   };
+}
+
+interface ResourceRoleRow {
+  resource_id: number;
+  role: ResourceRole;
+}
+
+function resourceRolesById(rows: readonly ResourceRoleRow[]): Map<number, ResourceRole[]> {
+  const roles = new Map<number, ResourceRole[]>();
+  for (const row of rows) {
+    const current = roles.get(row.resource_id) ?? [];
+    current.push(row.role);
+    roles.set(row.resource_id, current);
+  }
+  return roles;
 }
 
 export class ResourceCatalogRepository {
@@ -94,7 +111,16 @@ export class ResourceCatalogRepository {
 
   listResources(activeOnly = false): CatalogTargetRecord[] {
     const rows = this.database.prepare(`SELECT id, public_id, name, code, description, active, developer_grade FROM resources ${activeOnly ? "WHERE active = 1" : ""} ORDER BY lower(name), public_id`).all() as TargetRow[];
-    return rows.map(mapTarget);
+    const roleRows = this.database.prepare(`
+      SELECT rr.resource_id, rr.role
+        FROM resource_roles rr
+        JOIN resources r ON r.id = rr.resource_id
+        ${activeOnly ? "WHERE r.active = 1" : ""}
+       ORDER BY rr.resource_id,
+                CASE rr.role WHEN 'PI' THEN 1 WHEN 'DEVELOPER' THEN 2 WHEN 'EQUIPMENT_OWNER' THEN 3 ELSE 4 END
+    `).all() as ResourceRoleRow[];
+    const roles = resourceRolesById(roleRows);
+    return rows.map((row) => ({ ...mapTarget(row), roles: roles.get(row.id) ?? [] }));
   }
 
   listGroups(activeOnly = false): CatalogGroupRecord[] {
@@ -109,9 +135,18 @@ export class ResourceCatalogRepository {
     return rows.map((row) => ({ ...mapTarget(row), memberResourceIds: members.get(row.id) ?? [] }));
   }
 
+  listResourceRoles(resourceId: number): ResourceRole[] {
+    return (this.database.prepare(`
+      SELECT resource_id, role
+        FROM resource_roles
+       WHERE resource_id = ?
+       ORDER BY CASE role WHEN 'PI' THEN 1 WHEN 'DEVELOPER' THEN 2 WHEN 'EQUIPMENT_OWNER' THEN 3 ELSE 4 END
+    `).all(resourceId) as ResourceRoleRow[]).map((row) => row.role);
+  }
+
   findResourceByPublicId(publicId: string): CatalogTargetRecord | undefined {
     const row = this.database.prepare(`SELECT id, public_id, name, code, description, active, developer_grade FROM resources WHERE public_id = ?`).get(publicId) as TargetRow | undefined;
-    return row ? mapTarget(row) : undefined;
+    return row ? { ...mapTarget(row), roles: this.listResourceRoles(row.id) } : undefined;
   }
 
   findGroupByPublicId(publicId: string): CatalogGroupRecord | undefined {
@@ -222,6 +257,12 @@ export class ResourceCatalogRepository {
     this.database.prepare("DELETE FROM resource_group_members WHERE group_id = ?").run(groupId);
     const insert = this.database.prepare(`INSERT INTO resource_group_members (group_id, resource_id, created_at) VALUES (?, ?, ?)`);
     for (const resourceId of resourceIds) insert.run(groupId, resourceId, now);
+  }
+
+  replaceResourceRoles(resourceId: number, roles: readonly ResourceRole[], now: string): void {
+    this.database.prepare("DELETE FROM resource_roles WHERE resource_id = ?").run(resourceId);
+    const insert = this.database.prepare(`INSERT INTO resource_roles (resource_id, role, created_at) VALUES (?, ?, ?)`);
+    for (const role of roles) insert.run(resourceId, role, now);
   }
 
   listAssignments(projectId: number): AssignmentRecord[] {
