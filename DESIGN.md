@@ -20,6 +20,7 @@
 - **Progressive disclosure**: 설명·revision·상세 설정·보조 명령은 필요할 때 열어 보고, 핵심 상태와 주요 명령만 상시 표시한다.
 - **Precise feedback**: loading/empty/readonly/editing/disabled/error/success/stale 상태를 일관된 semantic token과 텍스트로 구분한다.
 - **SVAR-native interaction**: Gantt 내부 동작은 설치된 SVAR React Gantt Core의 공식 기능/API와 사용자 기대를 우선한다.
+- **Scope-relative command semantics**: 동일한 native action은 현재 WBS scope의 사용자 의미와 canonical hierarchy를 함께 반영하는 단일 resolver로 해석한다. 표시된 enabled/disabled 상태, pointer/keyboard target, 실제 서버 command가 서로 다른 의미를 가져서는 안 되며 scope 변경을 Gantt remount나 임시 client state로 해결하지 않는다.
 
 ## 2. Reference Hierarchy
 
