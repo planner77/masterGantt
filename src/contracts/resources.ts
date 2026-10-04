@@ -2,6 +2,7 @@ import type { ProjectDto, ProjectLinkDto, ProjectTaskDto } from "./projects";
 
 export type AssignmentTargetKind = "resource" | "group";
 export type DeveloperGrade = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT";
+export type ResourceRole = "PI" | "DEVELOPER" | "EQUIPMENT_OWNER";
 
 export interface ResourceDto {
   id: string;
@@ -11,6 +12,8 @@ export interface ResourceDto {
   active: boolean;
   /** Always present in Resource Catalog API responses; optional keeps legacy fixtures/adapters source-compatible. */
   developerGrade?: DeveloperGrade | null;
+  /** Always present in Resource Catalog API responses; optional keeps older fixtures/adapters source-compatible. */
+  roles?: ResourceRole[];
   /** Always present in Resource Catalog admin responses; optional keeps older fixtures source-compatible. */
   projectUsageCount?: number;
   /** UX hint only. DELETE revalidates usage inside the server transaction. */
@@ -54,6 +57,7 @@ export interface CreateCatalogTargetRequest {
   code?: string | null;
   description?: string;
   developerGrade?: DeveloperGrade | null;
+  roles?: ResourceRole[];
 }
 
 export interface UpdateCatalogTargetRequest {
@@ -62,6 +66,7 @@ export interface UpdateCatalogTargetRequest {
   description?: string;
   active?: boolean;
   developerGrade?: DeveloperGrade | null;
+  roles?: ResourceRole[];
 }
 
 export interface ReplaceResourceGroupMembersRequest {
