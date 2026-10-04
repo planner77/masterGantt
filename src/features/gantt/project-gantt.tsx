@@ -106,7 +106,8 @@ import {
 } from "./task-context-menu-model";
 import { taskHasDependencyLinks, taskSubtreeHasDependencyLinks } from "./task-link-scope";
 import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
-import { canAddTaskWithinSubtree, canOpenTaskAsSubtreeRoot, resolveTaskSubtreeScope, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
+import { canOpenTaskAsSubtreeRoot, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
+import { resolveNativeTaskAddIntent, type NativeTaskAddRejectReason, type NativeTaskAddSource } from "./native-task-add-intent";
 import { taskStatusFromProgress } from "../../domain/task-status";
 import { RelationContextMenu } from "./relation-context-menu";
 import type { DependencyType } from "../../contracts/projects";
@@ -180,7 +181,7 @@ function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
   return Boolean(target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="menu"], dialog, [role="dialog"]'));
 }
 
-type NativeTaskAddRejectReason = "scope" | "missing" | "milestone";
+
 
 interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
@@ -355,6 +356,19 @@ export function ProjectGantt({
   const canonicalSyncQueueReference = useRef<Promise<void>>(Promise.resolve());
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
   const ganttScrollReference = useRef<HTMLDivElement>(null);
+  const nativeAddTriggerReference = useRef<Readonly<{ source: NativeTaskAddSource; targetTaskId?: string }> | null>(null);
+  const nativeAddContinuityReference = useRef<Readonly<{
+    source: NativeTaskAddSource;
+    targetTaskId?: string;
+    viewRootTaskId: string | null;
+    windowScrollX: number;
+    windowScrollY: number;
+    rootScrollLeft: number;
+    rootScrollTop: number;
+    ganttScrollLeft: number;
+    ganttScrollTop: number;
+  }> | null>(null);
+  const previousMutationLockedReference = useRef(mutationLocked);
   const fullscreenFrameReference = useRef<HTMLDivElement>(null);
   const fullscreenButtonReference = useRef<HTMLButtonElement>(null);
   const dayHeaderTooltipReference = useRef<HTMLDivElement>(null);
@@ -513,6 +527,37 @@ export function ProjectGantt({
     projectPublicIdReference.current = projectPublicId;
     tasksReference.current = tasks;
   }, [editable, mutationLocked, projectPublicId, tasks, tasksById]);
+
+  useLayoutEffect(() => {
+    const wasLocked = previousMutationLockedReference.current;
+    previousMutationLockedReference.current = mutationLocked;
+    if (mutationLocked || !wasLocked) return;
+
+    const continuity = nativeAddContinuityReference.current;
+    nativeAddContinuityReference.current = null;
+    if (!continuity) return;
+
+    requestAnimationFrame(() => {
+      if (viewRootTaskIdReference.current !== continuity.viewRootTaskId) return;
+      const root = ganttScrollReference.current;
+      if (!root) return;
+      const ganttScroller = root.querySelector<HTMLElement>(".wx-gantt");
+      root.scrollLeft = continuity.rootScrollLeft;
+      root.scrollTop = continuity.rootScrollTop;
+      if (ganttScroller) {
+        ganttScroller.scrollLeft = continuity.ganttScrollLeft;
+        ganttScroller.scrollTop = continuity.ganttScrollTop;
+      }
+      window.scrollTo(continuity.windowScrollX, continuity.windowScrollY);
+
+      const action = continuity.source === "header"
+        ? root.querySelector<HTMLElement>('.wx-header [data-action="add-task"]')
+        : Array.from(root.querySelectorAll<HTMLElement>(".wx-row[data-id]"))
+          .find((candidate) => taskIdFromElement(candidate) === continuity.targetTaskId)
+          ?.querySelector<HTMLElement>('[data-action="add-task"]') ?? null;
+      action?.focus({ preventScroll: true });
+    });
+  }, [mutationLocked]);
 
   useEffect(() => {
     onTaskCreateReference.current = onTaskCreate;
@@ -1088,34 +1133,32 @@ export function ProjectGantt({
     const root = ganttScrollReference.current;
     if (!root) return;
     const setNativeAddAccessibility = () => {
-      const activeScope = viewRootTaskId === null
-        ? null
-        : resolveTaskSubtreeScope(tasks, viewRootTaskId);
-      const scopedTaskIds = activeScope?.kind === "valid"
-        ? new Set(activeScope.taskIds)
-        : null;
-
       root.querySelectorAll<HTMLElement>('[data-action="add-task"]').forEach((action) => {
         const row = action.closest<HTMLElement>(".wx-row[data-id]");
         const taskId = row ? taskIdFromElement(row) : null;
-        const task = taskId ? tasksById.get(taskId) : undefined;
-        const withinActiveScope = taskId
-          ? viewRootTaskId === null || scopedTaskIds?.has(taskId) === true
-          : viewRootTaskId === null;
-        const disabled =
-          !editable ||
-          mutationLocked ||
-          Boolean(taskId && !task) ||
-          task?.type === "milestone" ||
-          !withinActiveScope;
+        const source: NativeTaskAddSource = taskId ? "row" : "header";
+        const intent = resolveNativeTaskAddIntent({
+          tasks,
+          rootTaskId: viewRootTaskId,
+          source,
+          ...(taskId ? { targetTaskId: taskId, mode: "child" as const } : {}),
+        });
+        const disabled = !editable || mutationLocked || intent.kind === "reject";
         action.setAttribute("aria-disabled", String(disabled));
+        action.tabIndex = disabled ? -1 : 0;
+        if (!action.hasAttribute("role")) action.setAttribute("role", "button");
+        if (source === "header") {
+          const label = viewRootTaskId === null ? "프로젝트 최상위 작업 추가" : "범위 최상위 작업 추가";
+          action.setAttribute("aria-label", label);
+          action.setAttribute("title", label);
+        }
       });
     };
     setNativeAddAccessibility();
     const observer = new MutationObserver(setNativeAddAccessibility);
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [editable, mutationLocked, tasks, tasksById, viewRootTaskId]);
+  }, [editable, mutationLocked, tasks, viewRootTaskId]);
   const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
   const taskUpdateGateway = useMemo(
@@ -1346,14 +1389,16 @@ export function ProjectGantt({
   }, [ensureTimelineEnd, svarLinks, svarTasks]);
 
   useEffect(() => {
-    const api = apiReference.current;
-    if (!api || !apiInstanceId) return;
-    const visible = visibleTaskIds ? new Set(visibleTaskIds) : null;
-    if (!visible && !taskFilterAppliedReference.current) return;
-    taskFilterAppliedReference.current = visible !== null;
-    void api.exec("filter-tasks", {
-      filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined,
-    });
+    canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
+      const api = apiReference.current;
+      if (!api || !apiInstanceId) return;
+      const visible = visibleTaskIds ? new Set(visibleTaskIds) : null;
+      if (!visible && !taskFilterAppliedReference.current) return;
+      taskFilterAppliedReference.current = visible !== null;
+      await api.exec("filter-tasks", {
+        filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined,
+      });
+    }).catch(() => onCanonicalSyncFailureReference.current());
   }, [apiInstanceId, visibleTaskIds]);
 
   useEffect(() => {
@@ -1848,11 +1893,28 @@ export function ProjectGantt({
     return () => { cancelled = true; };
   }, [apiInstanceId, ensureTimelineEnd, scaleMode, scheduleTimelineExtension]);
 
+  function rememberNativeAddContinuity(source: NativeTaskAddSource, targetTaskId?: string): void {
+    const root = ganttScrollReference.current;
+    if (!root) return;
+    const ganttScroller = root.querySelector<HTMLElement>(".wx-gantt");
+    nativeAddContinuityReference.current = {
+      source,
+      ...(targetTaskId ? { targetTaskId } : {}),
+      viewRootTaskId: viewRootTaskIdReference.current,
+      windowScrollX: window.scrollX,
+      windowScrollY: window.scrollY,
+      rootScrollLeft: root.scrollLeft,
+      rootScrollTop: root.scrollTop,
+      ganttScrollLeft: ganttScroller?.scrollLeft ?? 0,
+      ganttScrollTop: ganttScroller?.scrollTop ?? 0,
+    };
+  }
+
   useEffect(() => {
     const root = ganttScrollReference.current;
     if (!root || !apiInstanceId) return;
 
-    const rejectInvalidNativeAddBeforeCore = (event: MouseEvent) => {
+    const normalizeNativeAddBeforeCore = (event: MouseEvent) => {
       if (event.button !== 0 || mutationLockedReference.current) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
@@ -1861,32 +1923,33 @@ export function ProjectGantt({
 
       const row = action.closest<HTMLElement>(".wx-row[data-id]");
       const taskId = row ? taskIdFromElement(row) : null;
-      const task = taskId ? tasksByIdReference.current.get(taskId) : undefined;
+      const source: NativeTaskAddSource = taskId ? "row" : "header";
+      const intent = resolveNativeTaskAddIntent({
+        tasks: tasksReference.current,
+        rootTaskId: viewRootTaskIdReference.current,
+        source,
+        ...(taskId ? { targetTaskId: taskId, mode: "child" as const } : {}),
+      });
       const reason: NativeTaskAddRejectReason | null =
-        !canCreateReference.current
-          ? "scope"
-          : taskId && !task
-            ? "missing"
-            : task?.type === "milestone"
-              ? "milestone"
-              : !canAddTaskWithinSubtree(
-                  tasksReference.current,
-                  viewRootTaskIdReference.current,
-                  taskId ?? undefined,
-                  taskId ? "child" : undefined,
-                )
-                ? "scope"
-                : null;
-      if (!reason) return;
+        !canCreateReference.current ? "scope" :
+        intent.kind === "reject" ? intent.reason : null;
+      if (reason) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        onTaskAddRejectedReference.current(reason);
+        return;
+      }
 
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-      onTaskAddRejectedReference.current(reason);
+      const trigger = { source, ...(taskId ? { targetTaskId: taskId } : {}) };
+      nativeAddTriggerReference.current = trigger;
+      window.setTimeout(() => {
+        if (nativeAddTriggerReference.current === trigger) nativeAddTriggerReference.current = null;
+      }, 0);
     };
 
-    root.addEventListener("click", rejectInvalidNativeAddBeforeCore, true);
-    return () => root.removeEventListener("click", rejectInvalidNativeAddBeforeCore, true);
+    root.addEventListener("click", normalizeNativeAddBeforeCore, true);
+    return () => root.removeEventListener("click", normalizeNativeAddBeforeCore, true);
   }, [apiInstanceId]);
 
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
@@ -1894,32 +1957,37 @@ export function ProjectGantt({
       if (!mutationLockedReference.current) onTaskAddRejectedReference.current("scope");
       return;
     }
-    const targetTaskId = typeof local.targetTaskId === "string" ? local.targetTaskId : undefined;
-    const target = targetTaskId ? tasksByIdReference.current.get(targetTaskId) : undefined;
-    if (targetTaskId && !target) {
-      onTaskAddRejectedReference.current("missing");
+
+    const captured = nativeAddTriggerReference.current;
+    nativeAddTriggerReference.current = null;
+    const eventTargetTaskId = typeof local.targetTaskId === "string" ? local.targetTaskId : undefined;
+    const source: NativeTaskAddSource = captured?.source ?? (eventTargetTaskId ? "row" : "header");
+    const targetTaskId = captured
+      ? captured.source === "row" ? captured.targetTaskId : undefined
+      : eventTargetTaskId;
+    const mode = captured
+      ? captured.source === "row" ? "child" as const : undefined
+      : local.mode;
+    const intent = resolveNativeTaskAddIntent({
+      tasks: tasksReference.current,
+      rootTaskId: viewRootTaskIdReference.current,
+      source,
+      ...(targetTaskId ? { targetTaskId } : {}),
+      ...(mode ? { mode } : {}),
+    });
+    if (intent.kind === "reject") {
+      onTaskAddRejectedReference.current(intent.reason);
       return;
     }
-    if (target?.type === "milestone") {
-      onTaskAddRejectedReference.current("milestone");
-      return;
-    }
-    if (!canAddTaskWithinSubtree(
-      tasksReference.current,
-      viewRootTaskIdReference.current,
-      targetTaskId,
-      local.mode,
-    )) {
-      onTaskAddRejectedReference.current("scope");
-      return;
-    }
+
+    rememberNativeAddContinuity(intent.source, intent.parentTaskId);
     onTaskCreateReference.current({
       name: "새 작업",
       type: "task",
       start: todayDateOnly(),
       duration: 1,
       progress: 0,
-      ...(target ? { parentTaskId: target.taskId } : {}),
+      ...(intent.parentTaskId ? { parentTaskId: intent.parentTaskId } : {}),
     });
   }
 
