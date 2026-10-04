@@ -1,5 +1,14 @@
 # Test Plan
 
+## Issue #430 Cut/Reparent Dependency 경계 회귀
+
+- Unit `task-link-scope.test.ts`: source subtree의 internal→internal, external→internal, internal→external, external→external 및 missing Task를 분리해 XOR boundary 판정을 검증한다. 기존 `taskSubtreeHasDependencyLinks`의 Delete/Indent/Outdent 의미는 유지한다.
+- Frontend model `task-context-menu-model.test.ts`: internal Dependency source의 cut clipboard는 Paste 가능하고 independently linked anchor도 before/after target으로 사용할 수 있어야 한다. source boundary Link가 있으면 Paste를 차단하며 linked anchor의 child-add capability는 계속 차단한다.
+- SQLite service `task-hierarchy-command-service.test.ts`: internal SS/lag subtree의 cross-parent reparent 성공 후 동일 Link ID/endpoints/type/lag 및 revision +1을 확인한다. independently linked anchor 옆 before/after 이동을 허용하고 incoming/outgoing boundary Link는 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 전체 거부/revision +0한다.
+- Chromium `project-task-context-menu.spec.ts`: internal Link를 가진 Summary의 Context Menu Cut 활성 및 Ctrl+X → 다른 Summary As child Paste를 실제 HTTP/SQLite로 실행하고 관계 identity를 확인한다. 이후 subtree→outside Link를 추가하면 Cut이 disabled되고 Copy는 계속 enabled인지 확인한다.
+- 기존 #335 same-parent linked reorder, #378/#384 Copy internal Link 복제, viewRoot/scope/self-descendant/stale/readonly/mutation-lock 및 Delete/Indent/Outdent/Convert 회귀를 전체 suite에서 유지한다.
+- 공식 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker`다. 현재 connector-only 작업 환경에서 로컬 Node/Playwright 실행 증거가 없으면 Local Fast Feedback은 NOT TESTED로 기록하고 원격 CI 결과로 대체했다고 표현하지 않는다.
+
 ## Issue #409 Copy ID → Relation Editor 검색 회귀
 
 - Unit `relation-editor-model.test.ts`: 작업명, externalId, taskId exact/partial, trim/case-insensitive 검색과 Summary/self/already-connected 제외 규칙을 확인한다.
