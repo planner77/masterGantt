@@ -60,3 +60,12 @@
 - `docs/DB_SCHEMA.md`: N/A — schema/migration 변경 없음.
 - `docs/SCHEDULING_ENGINE.md`: N/A — 일정 계산 규칙 변경 없음.
 - `docs/SECURITY.md`: N/A — 인증/session/Origin/If-Match/revision 경계 변경 없음.
+
+## PR CI #1670.1 실패 분석 / 보완
+
+Run `37181077927`은 제품 코드 검증 전에 `변경 경로 판정` job에서 실패했다. 원인은 PR 본문에 workflow trace 정책이 요구하는 canonical `Refs #418`가 없고 `Issue: #418`만 존재한 것이다. 이 실패로 quality/E2E/Docker 구현 job은 모두 skip되었으며 제품 코드의 PASS/FAIL 근거로 사용할 수 없다.
+
+보완:
+- PR #420 본문에 `Refs #418`를 정확히 한 번 추가한다.
+- 제품 코드/테스트 구현은 이 실패 원인과 무관하므로 변경하지 않는다.
+- 새 head commit을 생성해 기존 run 재실행이 아니라 전체 PR CI를 새로 시작한다.
