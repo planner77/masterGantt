@@ -1,6 +1,4 @@
-# SVAR Core 활용과 독립 기능 계획
-
-## Issue #384 — 앱 소유 다중 Copy 선택
+# SVAR Core 활용과 독립 기능 계획\n\n## Issue #418 — Core `add-task`와 scoped command 해석\n\n설치 Core 2.7.3의 Grid `add-task` column과 공개 `add-task` action은 native Header/Row 추가 UI 및 `target + mode(before/after/child)` 계약을 제공한다. masterGantt는 이 공개 interaction을 유지하되 Workspace scope에서 command 의미를 자체 canonical hierarchy에 맞게 해석한다. 전체 Project Header는 root add, scoped Header는 active Summary root의 immediate child, Row는 해당 Task/Summary의 child다. 일반 Task first-child Summary 전환과 일정 계산은 기존 서버 transaction이 담당하며 PRO/비공개 Store를 사용하지 않는다.\n\n#418은 Core의 임시 local mutation을 계속 `api.intercept`로 취소하고 protected HTTP→canonical snapshot→공개 `api.exec` sync만 durable authority로 사용한다. canonical sync와 `filter-tasks`를 한 직렬 경계에 두고 add 전후 scroll/focus를 복원해 scoped filter가 Core의 중간 상태를 노출하지 않게 한다. 공식 참조: [add-task action](https://docs.svar.dev/react/gantt/api/actions/add-task/), [Grid columns](https://docs.svar.dev/react/gantt/api/configs/columns/), [Willow demo](https://docs.svar.dev/react/gantt/samples/#/base/willow). 확인일 2026-10-04. URL/계약 확인은 browser PASS가 아니며 동일 PR head E2E와 구분한다.\n\n## Issue #384 — 앱 소유 다중 Copy 선택
 
 설치 Core 2.7.3의 공개 select-task 타입은 toggle/range·selected 배열을 제공하지만 getState 문서에는 scalar 설명도 남아 있다. 앱 선택 집합이 Copy 기준이고 공개 Core select-task는 단일 primary만 연동한다. 별도 checkbox cell은 공개 IColumnConfig.cell을 사용하고 비공개 Store/PRO 구현을 사용하지 않는다.
 
