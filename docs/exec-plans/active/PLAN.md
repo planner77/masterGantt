@@ -1,8 +1,8 @@
 # Active execution plan
 
-## Issue #409 Copy ID / Relation Editor 식별자 불일치 — 최신 main 재정렬 / PR CI 재시작
+## Issue #407 Workspace 범위 탭 subtree 내부 작업 추가 회귀 — latest main 0.76.0 재정렬 / PR CI
 
-최신 main `da0f39a4dde363bd84ad2e938089c40d2dd9e29a` / `0.76.0`의 #370 Grid 시작일 Date Picker와 기존 #335/#399/#384 계약을 보존하면서 #390 `Copy ID`가 복사하는 canonical `taskId`와 Relation Editor의 `externalId` 검색·표시 불일치를 수정한다. 후보 검색을 name/externalId/taskId로 확장하고 두 ID를 명시적으로 표시하되 Link API는 externalId 계약을 유지한다. branch는 `fix/issue-409-relation-id-search`, 후보 version은 PATCH `0.76.1`이다. 상세는 [Issue #409 실행 계획](ISSUE_409.md)을 따른다. 종료점은 최신 main 정렬·충돌 확인 후 새 PR CI 시작 확인이다.
+최신 main `da0f39a4dde363bd84ad2e938089c40d2dd9e29a` / application `0.76.0`의 #370 Grid 시작일 Date Picker, #335 linked sibling reorder, #303 status/progress 및 #399 single-ProjectGantt scope tab 계약을 보존한다. scoped view 자체를 add 금지 신호로 쓰지 않고 native Grid 행 `+`의 target이 현재 subtree 안에 남는지 pure guard로 판정한다. root/descendant child와 일반 Task first-child Summary 전환은 허용하고 header/root-level, scope 밖 parent, Milestone 및 기존 hierarchy escape는 차단한다. 후보 version은 PATCH `0.76.1`, branch는 `fix/issue-407-scoped-task-add`이며 상세는 [Issue #407 실행 계획](ISSUE_407.md)을 따른다. 이전 head PR CI #1638.1은 전체 PASS했고, 최신 main 재정렬 head에서 새 전체 PR CI를 다시 통과한 뒤 승인 marker→merge→main CI→generic release finalizer 순으로 진행한다.
 
 ## Issue #370 Grid 시작일 Date Picker — #335 이후 최신 main 재정렬 / PR CI
 

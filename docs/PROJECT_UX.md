@@ -1,11 +1,5 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
-## Issue #409 Relation Editor 식별자 검색/표시
-
-Relation Editor의 관계 추가 검색은 `작업명 / 외부 ID / 작업 ID`를 한 입력에서 지원한다. Context Menu `Copy ID`로 복사한 canonical UUID(`taskId`)를 그대로 붙여넣어 후보를 찾을 수 있어야 한다.
-
-후보와 선택 상태는 이름만 강조하고 보조 식별자는 `외부 ID: ...`, `작업 ID: ...`로 분리해 표시한다. 두 값을 모두 단순히 “ID”라고 표기하지 않는다. 긴 UUID/외부 ID는 wrap 가능해야 하며 390/768/1024/1440px에서 dialog/document overflow를 만들지 않는다. keyboard Enter/Space 선택, Escape popup close, focus restore, dirty/pending protection은 기존 Relation Editor 계약을 유지한다.
-
 ## Issue #367 Gantt 날짜 밀도와 우측 Timeline 확장
 
 Project Gantt의 Day Header/timeline cell은 숫자-only 표현에 맞춰 36px를 사용하고 Week는 68px를 유지한다. 오른쪽 Chart 탐색은 최초 Task 범위에서 끝나지 않으며 공개 `scroll-chart.left`와 `resize-chart.width`를 기준으로 남은 timeline 폭이 작아지면 viewport 단위로 미래 scale을 확장한다. React `end` prop을 반복 변경하지 않고 고정 start/open end의 SVAR public resize path를 사용한다.
@@ -51,7 +45,7 @@ Clipboard 쓰기는 #364의 공통 호환 경로를 재사용한다. secure cont
 
 범위 탭마다 Gantt를 새로 만들지 않는다. 하나의 ProjectGantt instance와 canonical snapshot을 공유하고 active `viewRootTaskId`와 visible set만 변경한다. scale/column/fullscreen 및 #367의 동적 timeline end 등 project-wide 상태를 유지하고 search/filter/quick-view는 scope별 in-memory state로 복원한다. scope 변경은 기존 selection/clipboard boundary 계약을 따르며 Gantt full remount를 상태 초기화 수단으로 사용하지 않는다.
 
-scoped hierarchy guard도 #373을 유지한다. native Grid `+`와 root toolbar add는 비활성/비노출하고 가상 root Above/Below 및 root 직계 child Outdent 등 scope 밖 mutation은 Context Menu/shortcut/DnD 공통 guard로 거부한다. subtree 내부 변경과 root Child 추가는 기존 허용 계약을 따른다.
+scoped hierarchy guard도 #373을 유지한다. scope 자체를 read-only 신호로 사용하지 않는다. native Grid의 **행 `+`는 Child add**로 취급하여 scoped root/descendant의 Task·Summary에서 결과가 subtree 안에 남는 경우 활성화하고, 일반 Task의 첫 child는 기존 Summary 전환 계약을 재사용한다. Milestone 행 `+`, native header/root-level add, root toolbar add, 가상 root Above/Below 및 root 직계 child Outdent처럼 결과가 scope 밖이거나 hierarchy상 무효인 경로는 비활성/비노출 또는 공통 guard로 거부한다. Context Menu `Add → Child task / 요약 작업 추가`도 동일한 subtree 내부 판정을 따른다.
 
 root가 빈 Summary가 되어도 탭은 유지한다. root 삭제/non-Summary 전환은 다른 scope로 silent fallback하지 않고 invalid 표시, scoped Gantt 숨김, 전체 프로젝트 복귀/탭 닫기 경로를 제공한다.
 
@@ -824,3 +818,10 @@ Dependency가 연결된 Task/Milestone도 현재 parent 안에서 순서만 바�
 Grid의 `projectStart` 열은 계속 서버 확정 effective `start`를 표시한다. 편집 가능한 leaf Task/Milestone에서는 셀 single click과 Enter/Space가 masterGantt 소유의 compact `input[type=date]` Picker를 셀 인접 overlay로 연다. Picker 초기값은 사용자가 현재 Grid에서 보고 있는 effective start이며, 날짜를 실제 선택했을 때만 그 calendar date를 새 requested start로 서버에 제출한다. 비근무일을 선택한 Auto Task는 서버가 다음 유효 근무일 또는 dependency lower bound로 이동시킬 수 있고 기존 schedule-adjustment 안내를 사용한다.
 
 SVAR 2.7.3의 공개 inline `datepicker`를 우선 검증했으나 현재 `projectStart`는 실제 row field가 아니라 getter 기반 display-only 열이어서 설치 버전 Gantt Grid에서 editor가 생성되지 않았다. 따라서 Issue 요구에 정의한 fallback을 사용하며 Core row에 임시 `projectStart`를 저장하지 않는다. 기존 Task command gateway와 revision으로 start-only PATCH를 수행한 뒤 canonical snapshot으로 Grid/Chart를 in-place 동기화한다. Summary/readonly/saving에서는 Picker를 열지 않는다. Escape는 저장 없이 닫고 원래 셀로 focus를 복원하며, 실패 시 scroll/tree/column/scale/selection과 마지막 canonical 일정은 유지한다. Task Editor의 요청 시작일 편집과 의미는 같지만 Grid quick edit은 기간·종료일을 직접 편집하지 않는다.
+
+### Issue #299 — Chart bar 수직 Drag & Drop
+
+Chart의 Task/Summary/Milestone bar를 위·아래로 drag해 같은 parent의 visible sibling 앞/뒤로 순서를 바꾼다. gesture는 dead-zone 뒤 한 축으로 lock되며 vertical로 확정되면 기존 좌우 일정 이동/resize를 같은 gesture에서 실행하지 않는다. target bar 위/아래 drop indicator와 긴 프로젝트 edge-scroll을 제공한다.
+
+검색·필터·접힘으로 보이지 않는 bar와 다른 hierarchy level은 drop 기준으로 사용하지 않는다. #335 linked same-parent reorder는 허용하며 #399/#407 subtree scope를 벗어난 command는 실행하지 않는다. 성공 뒤 Grid/Chart/reload는 canonical siblingOrder와 같은 순서를 유지한다.
+

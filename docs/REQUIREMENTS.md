@@ -91,7 +91,6 @@ Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계�
 | R52 | 하위 작업이 있는 Summary의 Context Menu에서 `최상위로 열기`를 선택하면 새 browser context를 만들지 않고 현재 Project 일정 Workspace의 WBS 범위 탭으로 선택 Summary와 모든 자손만 표시한다 (#373/#399). `전체 프로젝트` 탭은 고정하고 동일 Summary 재진입은 중복 탭 없이 기존 탭을 활성화한다. | `rootTask` deep link/reload/direct-entry와 client-side `filter-tasks`를 유지하며 범위 탭마다 별도 Gantt를 만들지 않는다. canonical snapshot/Dependency/Resource·Logistics와 edit session·Origin·If-Match·revision 계약을 유지한다. 빈 Summary root는 유지하고 삭제/type 변경 root는 invalid 상태·복귀 경로를 제공하며 실제 다른 browser tab의 higher revision은 canonical GET으로 동기화한다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
 | R53 | Grid/Chart 작업 Context Menu의 `Copy ID`는 선택 Task/Summary/Milestone의 canonical `taskId`를 OS clipboard에 복사한다 (#390). | readonly·mutation lock·Dependency 연결 여부와 무관한 조회성 action이며 기존 단일/다중 Task `Copy/Paste` clipboard·선택 집합과 Project revision을 변경하지 않는다. #364 공통 clipboard 호환 경로를 사용하고 실제 자동 복사 성공 후에만 성공 안내하며 권한 거부/자동 복사 실패 시 수동 복사·재시도를 제공한다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
 | R54 | Dependency Link가 연결된 Task/Milestone 또는 linked descendant를 가진 subtree는 **parent를 바꾸지 않는 sibling reorder**를 수행할 수 있다 (#335). | Context Move Up/Down 및 Grid before/after가 대상이다. Link ID/endpoints/type/lag, requested/effective schedule, status/progress, resource/logistics/baseline은 불변이며 revision은 한 논리 mutation당 +1이다. Grid child/cross-parent, Indent/Outdent, Cut-Paste, Delete, Convert 보호는 유지한다. [UX 계약](PROJECT_UX.md), [API](API.md), [Relations](TASK_RELATIONS.md), [Test Plan](TEST_PLAN.md) |
-| R55 | Relation Editor의 관계 추가 후보 검색은 작업명, 외부 ID(`externalId`), 작업 ID(`taskId`)를 모두 지원하고 두 식별자를 명시적으로 구분한다 (#409). | #390 `Copy ID`의 canonical taskId를 그대로 검색할 수 있으며 후보 선택 뒤 실제 Link mutation은 기존 externalId endpoint 계약을 유지한다. Summary/self/already-connected 제외, readonly/dirty/pending/focus 계약은 불변이다. [Relations](TASK_RELATIONS.md), [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 
@@ -111,7 +110,7 @@ Grid/Editor는 미산정 값을 `—`로 표시하고 Chart 행을 유지하면�
 
 기존 `/projects/{publicId}?rootTask={taskId}` URL은 **새 browser tab을 생성하는 명령 계약이 아니라** 공유·reload·직접 진입용 deep link 계약으로 유지한다. 내부 범위 탭 전환은 full navigation 없이 `rootTask`를 replace semantics로 동기화하고, 직접 deep link로 진입하면 전체 프로젝트 탭과 해당 Summary 탭을 구성해 Summary scope를 활성화한다. 열린 범위 탭 집합 전체는 persistence하지 않으며 reload 후 URL의 active scope만 복원한다.
 
-scope는 authorization 또는 별도 aggregate가 아니다. client는 전체 Project canonical snapshot과 links/assignments/logistics를 계속 보유한다. 선택 Summary의 canonical parent는 유지하되 SVAR 표시 adapter에서만 해당 Task의 parent를 root(0)로 투영한다. 기존 mutation API, edit session, Origin, strong If-Match와 Project revision을 사용한다. 따라서 scope 밖 endpoint를 가진 Dependency도 삭제·유실하지 않으며 Task/Relation Editor는 전체 canonical 관계를 확인할 수 있다. 같은 화면의 내부 범위 탭은 하나의 canonical React state와 ProjectGantt instance를 공유하며, 사용자가 deep link를 실제 다른 browser tab에서 직접 연 경우에만 기존 #373 same-origin revision 신호와 canonical GET freshness 계약을 사용한다. Scoped view의 구조 mutation은 결과가 root subtree 안에 남는 경우만 허용하고 native root-add, root sibling 생성/이동, direct child Outdent 등 scope 탈출 경로는 Context Menu·shortcut·DnD 모두에서 차단한다. 물류 필터의 상속 계산은 전체 hierarchy context를 유지한다. 연속 revision 이벤트는 최고 pending revision까지 누적해 재조회한다.
+scope는 authorization 또는 별도 aggregate가 아니다. client는 전체 Project canonical snapshot과 links/assignments/logistics를 계속 보유한다. 선택 Summary의 canonical parent는 유지하되 SVAR 표시 adapter에서만 해당 Task의 parent를 root(0)로 투영한다. 기존 mutation API, edit session, Origin, strong If-Match와 Project revision을 사용한다. 따라서 scope 밖 endpoint를 가진 Dependency도 삭제·유실하지 않으며 Task/Relation Editor는 전체 canonical 관계를 확인할 수 있다. 같은 화면의 내부 범위 탭은 하나의 canonical React state와 ProjectGantt instance를 공유하며, 사용자가 deep link를 실제 다른 browser tab에서 직접 연 경우에만 기존 #373 same-origin revision 신호와 canonical GET freshness 계약을 사용한다. Scoped view의 구조 mutation은 결과가 root subtree 안에 남는 경우만 허용한다. native Grid 행 `+`와 Context Menu Child add는 대상 Task가 현재 subtree 안에 있고 Milestone이 아니면 허용하며, 일반 Task의 첫 child는 기존 `convertParentToSummary: true` 계약을 재사용한다. 반대로 native header/root-add, root sibling 생성/이동, direct child Outdent 등 scope 탈출 경로는 Context Menu·shortcut·DnD 모두에서 차단한다. 물류 필터의 상속 계산은 전체 hierarchy context를 유지한다. 연속 revision 이벤트는 최고 pending revision까지 누적해 재조회한다.
 
 root Summary의 마지막 child가 제거되면 #345에 따라 빈 Summary scoped view를 유지한다. root가 삭제되거나 Summary가 아니게 되면 다른 Task나 전체 Project로 자동 fallback하지 않고 명확한 invalid 상태와 전체 Project 복귀/탭 닫기 경로를 제공한다. DB schema, 새 API, 별도 Scheduling algorithm은 추가하지 않는다.
 
@@ -277,3 +276,12 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 Project Workspace의 Grid `시작` 셀은 편집 권한이 있는 Task/Milestone에서 single click 또는 keyboard Enter/Space로 Date Picker를 연다. 선택값은 새 `requestedStart` 의도로 기존 Task PATCH의 `start` 필드에 전달하며, Grid 자체의 `projectStart`는 저장 필드가 아니다. 서버는 Project Effective Calendar와 FS/SS/FF/SF + lag를 포함한 기존 dependency-aware scheduling 계약으로 canonical `start/end`를 다시 계산하고 Grid/Chart는 같은 Gantt 인스턴스에 그 결과만 반영한다.
 
 Summary는 하위 일정에서 날짜가 파생되므로 시작일 직접 편집을 허용하지 않는다. Milestone은 `duration=0`, `start=end` 계약을 유지한다. readonly, mutation lock, stale/saving 상태에서는 Date Picker 진입을 차단하며, 동일 날짜 선택과 단순 취소는 mutation을 만들지 않는다. 실패한 저장은 Core의 임시 Grid 값을 확정하지 않고 마지막 서버 canonical snapshot을 유지/복구한다.
+
+### REQ-GANTT-CHART-REORDER — Issue #299
+
+- 편집 사용자는 Chart bar 수직 DnD로 같은 parent의 작업 순서를 변경할 수 있어야 한다.
+- vertical reorder와 horizontal schedule move/resize는 한 gesture에서 중복 저장되지 않아야 한다.
+- canonical parent/sibling order는 Grid/Chart/reload 및 후속 Task mutation에서 유지되어야 한다.
+- #335 linked same-parent reorder를 허용하고 #399/#407 scope 및 기존 hierarchy invariant를 우회하지 않아야 한다.
+- cross-parent implicit reparent는 허용하지 않는다.
+

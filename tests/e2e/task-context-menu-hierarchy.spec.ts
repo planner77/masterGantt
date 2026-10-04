@@ -9,11 +9,19 @@ test.use(isolatedApplicationOptions);
 
 const row = (page: import("@playwright/test").Page, name: string) =>
   page.locator(".project-gantt-widget .wx-row", { hasText: name }).first();
+const rowByTaskId = (page: import("@playwright/test").Page, taskId: string) =>
+  page.locator(`.project-gantt-widget .wx-row[data-id=":${taskId}"]`).first();
 const menu = (page: import("@playwright/test").Page) =>
   page.getByRole("menu", { name: "작업 메뉴", exact: true });
 
 async function openMenu(page: import("@playwright/test").Page, name: string) {
   await row(page, name).getByText(name, { exact: true }).click({ button: "right" });
+  await expect(menu(page)).toBeVisible();
+  return menu(page);
+}
+
+async function openMenuByTaskId(page: import("@playwright/test").Page, taskId: string) {
+  await rowByTaskId(page, taskId).click({ button: "right" });
   await expect(menu(page)).toBeVisible();
   return menu(page);
 }
@@ -153,6 +161,7 @@ test("Issue #399 opens Summary scopes in Workspace tabs without creating a brows
   const tabs = page.getByRole("tablist", { name: "WBS 범위 탭" }), allTab = tabs.getByRole("tab", { name: "전체 프로젝트", exact: true }), alphaTab = tabs.getByRole("tab", { name: "Scope Alpha", exact: true });
   await expect(alphaTab).toHaveAttribute("aria-selected", "true"); expect(new URL(page.url()).searchParams.get("rootTask")).toBe(alpha!.taskId);
   await expect(row(page, "Scope Beta")).toHaveCount(0);
+
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!); await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
   const search = page.getByLabel("작업명, 설명, External ID 검색"); await search.fill("Scope Alpha"); await allTab.click(); await expect(search).toHaveValue(""); await expect(row(page, "Scope Beta")).toBeVisible();
   const betaMenu = await openMenu(page, "Scope Beta"); await betaMenu.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
@@ -165,6 +174,105 @@ test("Issue #399 opens Summary scopes in Workspace tabs without creating a brows
   await page.getByRole("button",{name:"Scope Alpha 범위 탭 닫기",exact:true}).click(); await expect(betaTab).toHaveAttribute("aria-selected","true"); expect(new URL(page.url()).searchParams.get("rootTask")).toBe(beta!.taskId);
   await page.reload(); const rtabs=page.getByRole("tablist",{name:"WBS 범위 탭"}); await expect(rtabs.getByRole("tab",{name:"Scope Beta",exact:true})).toHaveAttribute("aria-selected","true"); await expect(rtabs.getByRole("tab",{name:"Scope Alpha",exact:true})).toHaveCount(0);
   await page.getByRole("button",{name:"Scope Beta 범위 탭 닫기",exact:true}).click(); await expect(rtabs.getByRole("tab",{name:"전체 프로젝트",exact:true})).toHaveAttribute("aria-selected","true"); expect(new URL(page.url()).searchParams.get("rootTask")).toBeNull();
+});
+
+test("Issue #407 allows subtree-local task additions in a Workspace scope", async ({ page }) => {
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Scoped add ${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("ScopeAdd123!");
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
+
+  const path = new URL(page.url()).pathname;
+  const api = `/api${path}`;
+  const origin = new URL(page.url()).origin;
+  const initial = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  await createRootTask(page, api, origin, initial.data.project.revision, "Scope Root");
+  await page.reload();
+
+  await openMenu(page, "Scope Root");
+  const initialChildSnapshot = await chooseSubmenu(page, "Add", "Child task");
+  const rootTask = initialChildSnapshot.data.tasks.find((task) => task.name === "Scope Root");
+  const originalLeaf = rootTask
+    ? initialChildSnapshot.data.tasks.find((task) => task.parentExternalId === rootTask.externalId)
+    : undefined;
+  expect(rootTask?.type).toBe("summary");
+  expect(originalLeaf).toBeTruthy();
+  await expect(rowByTaskId(page, originalLeaf!.taskId)).toBeVisible();
+
+  const frame = page.locator(".project-gantt-frame");
+  const instance = await frame.getAttribute("data-project-gantt-instance");
+  const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+  const rootMenu = await openMenu(page, "Scope Root");
+  await rootMenu.getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
+
+  const scopeTabs = page.getByRole("tablist", { name: "WBS 범위 탭" });
+  const allTab = scopeTabs.getByRole("tab", { name: "전체 프로젝트", exact: true });
+  const scopeTab = scopeTabs.getByRole("tab", { name: "Scope Root", exact: true });
+  await expect(scopeTab).toHaveAttribute("aria-selected", "true");
+
+  const headerAdd = page.locator('.project-gantt-widget .wx-header [data-action="add-task"]').first();
+  await expect(headerAdd).toHaveAttribute("aria-disabled", "true");
+  const scopedRootAdd = rowByTaskId(page, rootTask!.taskId).locator('[data-action="add-task"]');
+  await expect(scopedRootAdd).toHaveAttribute("aria-disabled", "false");
+
+  const beforeNativeIds = new Set(initialChildSnapshot.data.tasks.map((task) => task.taskId));
+  const [nativeResponse] = await Promise.all([
+    page.waitForResponse((response) =>
+      response.request().method() === "POST" &&
+      new URL(response.url()).pathname === `${api}/tasks`,
+    ),
+    scopedRootAdd.click(),
+  ]);
+  expect(nativeResponse.status()).toBe(201);
+  const nativeSnapshot = await nativeResponse.json() as TaskMutationResponse;
+  const nativeLeaf = nativeSnapshot.data.tasks.find((task) =>
+    !beforeNativeIds.has(task.taskId) && task.parentExternalId === rootTask!.externalId,
+  );
+  expect(nativeLeaf).toBeTruthy();
+  await expect(rowByTaskId(page, nativeLeaf!.taskId)).toBeVisible();
+  await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+
+  await openMenuByTaskId(page, rootTask!.taskId);
+  const emptySummarySnapshot = await chooseSubmenu(page, "Add", "요약 작업 추가");
+  const nativeIds = new Set(nativeSnapshot.data.tasks.map((task) => task.taskId));
+  const emptySummary = emptySummarySnapshot.data.tasks.find((task) =>
+    !nativeIds.has(task.taskId) &&
+    task.parentExternalId === rootTask!.externalId &&
+    task.type === "summary",
+  );
+  expect(emptySummary).toBeTruthy();
+  await expect(rowByTaskId(page, emptySummary!.taskId)).toBeVisible();
+
+  await openMenuByTaskId(page, emptySummary!.taskId);
+  const summaryChildSnapshot = await chooseSubmenu(page, "Add", "Child task");
+  const emptySummaryIds = new Set(emptySummarySnapshot.data.tasks.map((task) => task.taskId));
+  const summaryChild = summaryChildSnapshot.data.tasks.find((task) =>
+    !emptySummaryIds.has(task.taskId) && task.parentExternalId === emptySummary!.externalId,
+  );
+  expect(summaryChild).toBeTruthy();
+  await expect(rowByTaskId(page, summaryChild!.taskId)).toBeVisible();
+
+  await openMenuByTaskId(page, nativeLeaf!.taskId);
+  const convertedSnapshot = await chooseSubmenu(page, "Add", "Child task");
+  const beforeConvertIds = new Set(summaryChildSnapshot.data.tasks.map((task) => task.taskId));
+  const convertedChild = convertedSnapshot.data.tasks.find((task) =>
+    !beforeConvertIds.has(task.taskId) && task.parentExternalId === nativeLeaf!.externalId,
+  );
+  expect(convertedSnapshot.data.tasks.find((task) => task.taskId === nativeLeaf!.taskId)?.type).toBe("summary");
+  expect(convertedChild).toBeTruthy();
+  await expect(rowByTaskId(page, convertedChild!.taskId)).toBeVisible();
+  await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+
+  await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+
+  await allTab.click();
+  await expect(allTab).toHaveAttribute("aria-selected", "true");
+  await expect(rowByTaskId(page, nativeLeaf!.taskId)).toBeVisible();
+  await expect(rowByTaskId(page, emptySummary!.taskId)).toBeVisible();
+  await expect(rowByTaskId(page, convertedChild!.taskId)).toBeVisible();
 });
 
 test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab freshness", async ({ page }) => {
@@ -213,7 +321,8 @@ test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab fre
     await expect(row(scopedPage, child!.name)).toBeVisible();
     await expect(row(scopedPage, "Keep sibling")).toHaveCount(0);
     await expect(scopedPage.getByRole("button", { name: "요약 작업 추가", exact: true })).toHaveCount(0);
-    await expect(scopedPage.locator('[data-action="add-task"][aria-disabled="true"]')).not.toHaveCount(0);
+    await expect(scopedPage.locator('.project-gantt-widget .wx-header [data-action="add-task"]').first()).toHaveAttribute("aria-disabled", "true");
+    await expect(rowByTaskId(scopedPage, alpha!.taskId).locator('[data-action="add-task"]')).toHaveAttribute("aria-disabled", "false");
 
     const rootScopedMenu = await openMenu(scopedPage, "Scope Alpha");
     await rootScopedMenu.getByRole("menuitem", { name: "Add", exact: true }).hover();

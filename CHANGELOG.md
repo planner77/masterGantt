@@ -1,13 +1,26 @@
 # Changelog
 
+## [0.77.0] - 2026-10-04
+
+### Added
+
+- Issue #299: Gantt Chart의 Task/Summary/Milestone bar를 수직 Drag & Drop하여 같은 parent의 visible sibling 앞/뒤로 재정렬할 수 있다.
+- vertical gesture는 axis lock 후 기존 수평 일정 이동/resize와 분리되고 protected hierarchy command에 정확히 한 번 저장된다. drop indicator와 긴 프로젝트 edge-scroll을 제공하며 reload와 후속 Task mutation에서도 canonical 순서를 유지한다.
+
+### Changed
+
+- 최신 main의 #300 Grid persistence, #335 linked same-parent reorder, #399/#407 subtree scope·scoped add, #384 selection, #367 timeline, #370 start-date quick-edit 계약을 보존한다.
+- SVAR React Gantt 2.7.3 Chart의 X축-only bar drag 경계를 public `drag-task(top)` feedback과 server-authoritative `task-commands` bridge로 보완한다.
+- Application version을 `0.76.1`에서 `0.77.0`으로 증가한다.
+
 ## [0.76.1] - 2026-10-04
 
 ### Fixed
 
-- Issue #409: Context Menu `Copy ID`가 복사하는 canonical `taskId` UUID를 Relation Editor의 관계 추가 검색에서 직접 찾을 수 있도록 작업명·외부 ID·작업 ID 통합 검색을 추가한다.
-- Relation Editor 후보/선택 상태에서 `externalId`와 `taskId`를 각각 `외부 ID`, `작업 ID`로 명확히 구분해 표시한다.
-- taskId로 후보를 검색해도 Dependency Link 저장은 기존 `predecessorExternalId / successorExternalId` 계약을 유지하며 API/DB/Scheduling schema는 변경하지 않는다.
-- 최신 main의 Issue #370 Grid 시작일 Date Picker 계약을 보존하고 Application version을 `0.76.0`에서 `0.76.1`로 증가한다.
+- Issue #407: #399 Workspace 범위 탭에서 scope 여부만으로 모든 native Grid `+`를 차단하던 회귀를 수정해 scoped root/descendant의 유효한 Child Task 추가를 다시 허용한다.
+- 행별 add 가능 여부를 subtree/milestone/권한 기준으로 판정하고 Context Menu Child/요약 작업 추가, 일반 Task first-child Summary 전환과 동일 canonical mutation 계약을 유지한다.
+- scoped header/root-level add, root sibling/Outdent/Paste/DnD scope 탈출, Milestone child, readonly/mutation lock 및 #399 notification geometry 선제 차단을 유지하면서 #370 Date Picker와 #335 linked same-parent sibling reorder 계약을 보존한다.
+- Application version을 `0.76.0`에서 `0.76.1`로 증가한다.
 
 ## [0.76.0] - 2026-10-04
 

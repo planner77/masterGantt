@@ -26,6 +26,12 @@ import {
 
 import { createTaskMoveGateway } from "./task-move-gateway";
 import {
+  buildChartReorderCommand,
+  resolveChartDragIntent,
+  resolveChartVerticalDrop,
+  type ChartVerticalDrop,
+} from "./chart-vertical-dnd";
+import {
   buildGanttDayHeaderTooltipDataForDateOnly,
   dateOnlyFromGanttDayScaleClassName,
   ganttDayScaleClassName,
@@ -100,7 +106,7 @@ import {
 } from "./task-context-menu-model";
 import { taskHasDependencyLinks, taskSubtreeHasDependencyLinks } from "./task-link-scope";
 import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
-import { canOpenTaskAsSubtreeRoot, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
+import { canAddTaskWithinSubtree, canOpenTaskAsSubtreeRoot, resolveTaskSubtreeScope, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
 import { taskStatusFromProgress } from "../../domain/task-status";
 import { RelationContextMenu } from "./relation-context-menu";
 import type { DependencyType } from "../../contracts/projects";
@@ -307,6 +313,19 @@ export function ProjectGantt({
   const tasksReference = useRef(tasks);
   const initialPreferenceRestoredReference = useRef(false);
   const prevProjectPublicIdReference = useRef(projectPublicId);
+  const chartDragReference = useRef<{
+    taskId: string;
+    sourceParentExternalId: string | null;
+    startX: number;
+    startY: number;
+    originalTop: number | null;
+    startScrollTop: number;
+    intent: "pending" | "horizontal" | "vertical";
+    drop: ChartVerticalDrop | null;
+  } | null>(null);
+  const chartDragTargetReference = useRef<HTMLElement | null>(null);
+  const chartDragPointerYReference = useRef<number | null>(null);
+  const chartEdgeScrollFrameReference = useRef<number | null>(null);
 
   useEffect(() => {
     if (prevProjectPublicIdReference.current === projectPublicId) return;
@@ -532,6 +551,232 @@ export function ProjectGantt({
       saveSummaryTogglePreference(projectPublicId, collapsedIds);
     }
   }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onRelationEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, projectPublicId, tasks, tasksById, viewRootTaskId]);
+
+  const clearChartEdgeScroll = useCallback(() => {
+    if (chartEdgeScrollFrameReference.current !== null) {
+      cancelAnimationFrame(chartEdgeScrollFrameReference.current);
+      chartEdgeScrollFrameReference.current = null;
+    }
+    chartDragPointerYReference.current = null;
+  }, []);
+
+  const clearChartDragFeedback = useCallback(() => {
+    const target = chartDragTargetReference.current;
+    if (target) {
+      delete target.dataset.chartDropPlacement;
+      target.classList.remove("project-chart-drop-target");
+    }
+    chartDragTargetReference.current = null;
+
+    const drag = chartDragReference.current;
+    const api = apiReference.current;
+    if (drag?.intent === "vertical" && api && drag.originalTop !== null) {
+      void api.exec("drag-task", {
+        id: drag.taskId,
+        top: Math.max(0, drag.originalTop - 4),
+        inProgress: false,
+      });
+    }
+  }, []);
+
+  const updateChartDropFeedback = useCallback((drop: ChartVerticalDrop | null) => {
+    const current = chartDragTargetReference.current;
+    if (current) {
+      delete current.dataset.chartDropPlacement;
+      current.classList.remove("project-chart-drop-target");
+    }
+    chartDragTargetReference.current = null;
+    if (!drop) return;
+
+    const root = ganttScrollReference.current;
+    if (!root) return;
+    const target = Array.from(root.querySelectorAll<HTMLElement>(".wx-chart .wx-bar[data-task-id]"))
+      .find((element) => taskIdFromElement(element) === drop.anchorTaskId) ?? null;
+    if (!target) return;
+    target.dataset.chartDropPlacement = drop.placement;
+    target.classList.add("project-chart-drop-target");
+    chartDragTargetReference.current = target;
+  }, []);
+
+  const handleChartMouseDownCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!editable || mutationLocked || event.button !== 0 || !(event.target instanceof Element)) return;
+    if (event.target.closest(".wx-link, .wx-progress-marker, .wx-delete-button")) return;
+
+    const bar = event.target.closest<HTMLElement>(".wx-chart .wx-bar[data-task-id]");
+    const root = ganttScrollReference.current;
+    const api = apiReference.current;
+    if (!bar || !root || !api || !root.contains(bar)) return;
+
+    const taskId = taskIdFromElement(bar);
+    if (!taskId) return;
+    const task = tasksByIdReference.current.get(taskId);
+    if (!task || inlineSessionReference.current) return;
+
+    const bounds = bar.getBoundingClientRect();
+    const edge = bounds.width > 200 ? 40 : bounds.width * 0.2;
+    if (task.type === "task" &&
+      (event.clientX - bounds.left < edge || bounds.right - event.clientX < edge)) return;
+
+    const verticalScroller = root.querySelector<HTMLElement>(".wx-gantt");
+    const svarTask = api.getTask(taskId) as ITask & { $y?: number };
+    chartDragReference.current = {
+      taskId,
+      sourceParentExternalId: task.parentExternalId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originalTop: typeof svarTask.$y === "number" ? svarTask.$y : null,
+      startScrollTop: verticalScroller?.scrollTop ?? 0,
+      intent: "pending",
+      drop: null,
+    };
+  }, [editable, mutationLocked]);
+
+  useEffect(() => {
+    const renderVerticalDrag = (pointerY: number) => {
+      const drag = chartDragReference.current;
+      const root = ganttScrollReference.current;
+      const api = apiReference.current;
+      if (!drag || drag.intent !== "vertical" || !root || !api ||
+        !canCreateReference.current || inlineSessionReference.current) return false;
+
+      const verticalScroller = root.querySelector<HTMLElement>(".wx-gantt");
+      const rows = Array.from(root.querySelectorAll<HTMLElement>(".wx-chart .wx-bar[data-task-id]"))
+        .flatMap((element) => {
+          if (element.getClientRects().length === 0) return [];
+          const taskId = taskIdFromElement(element);
+          if (!taskId) return [];
+          const task = tasksByIdReference.current.get(taskId);
+          if (!task) return [];
+          const bounds = element.getBoundingClientRect();
+          if (bounds.height <= 0) return [];
+          return [{
+            taskId: task.taskId,
+            parentExternalId: task.parentExternalId,
+            top: bounds.top,
+            bottom: bounds.bottom,
+          }];
+        });
+
+      const drop = resolveChartVerticalDrop(
+        drag.taskId,
+        drag.sourceParentExternalId,
+        pointerY,
+        rows,
+      );
+      drag.drop = drop;
+      updateChartDropFeedback(drop);
+
+      if (drag.originalTop !== null) {
+        const dy = pointerY - drag.startY;
+        const scrollDelta = (verticalScroller?.scrollTop ?? drag.startScrollTop) - drag.startScrollTop;
+        void api.exec("drag-task", {
+          id: drag.taskId,
+          top: Math.max(0, drag.originalTop - 4 + dy + scrollDelta),
+          inProgress: true,
+        });
+      }
+      return true;
+    };
+
+    const scheduleEdgeScroll = () => {
+      if (chartEdgeScrollFrameReference.current !== null) return;
+      const tick = () => {
+        chartEdgeScrollFrameReference.current = null;
+        const drag = chartDragReference.current;
+        const pointerY = chartDragPointerYReference.current;
+        const root = ganttScrollReference.current;
+        const verticalScroller = root?.querySelector<HTMLElement>(".wx-gantt");
+        if (!drag || drag.intent !== "vertical" || pointerY === null || !verticalScroller) return;
+
+        const bounds = verticalScroller.getBoundingClientRect();
+        const edge = 32;
+        let delta = 0;
+        if (pointerY < bounds.top + edge) {
+          const ratio = Math.min(1, Math.max(0.2, (bounds.top + edge - pointerY) / edge));
+          delta = -Math.ceil(20 * ratio);
+        } else if (pointerY > bounds.bottom - edge) {
+          const ratio = Math.min(1, Math.max(0.2, (pointerY - (bounds.bottom - edge)) / edge));
+          delta = Math.ceil(20 * ratio);
+        }
+        if (delta === 0) return;
+
+        const before = verticalScroller.scrollTop;
+        verticalScroller.scrollTop = Math.max(
+          0,
+          Math.min(verticalScroller.scrollHeight - verticalScroller.clientHeight, before + delta),
+        );
+        if (verticalScroller.scrollTop === before) return;
+        renderVerticalDrag(pointerY);
+        chartEdgeScrollFrameReference.current = requestAnimationFrame(tick);
+      };
+      chartEdgeScrollFrameReference.current = requestAnimationFrame(tick);
+    };
+
+    const handleMove = (event: MouseEvent) => {
+      const drag = chartDragReference.current;
+      if (!drag) return;
+
+      const dx = event.clientX - drag.startX;
+      const dy = event.clientY - drag.startY;
+      if (drag.intent === "pending") drag.intent = resolveChartDragIntent(dx, dy);
+      if (drag.intent !== "vertical") return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      if (!canCreateReference.current || inlineSessionReference.current) {
+        clearChartEdgeScroll();
+        clearChartDragFeedback();
+        chartDragReference.current = null;
+        return;
+      }
+
+      chartDragPointerYReference.current = event.clientY;
+      renderVerticalDrag(event.clientY);
+      scheduleEdgeScroll();
+    };
+
+    const handleUp = () => {
+      const drag = chartDragReference.current;
+      if (!drag) return;
+      const drop = drag.intent === "vertical" ? drag.drop : null;
+      clearChartEdgeScroll();
+      clearChartDragFeedback();
+      chartDragReference.current = null;
+      if (!drop || !canCreateReference.current || inlineSessionReference.current) return;
+
+      const command = buildChartReorderCommand(
+        tasksReference.current,
+        drag.taskId,
+        drop.anchorTaskId,
+        drop.placement,
+      );
+      if (!command || !taskHierarchyCommandStaysInSubtree(
+        tasksReference.current,
+        viewRootTaskIdReference.current,
+        command,
+      )) return;
+      onTaskHierarchyCommandReference.current(command);
+    };
+
+    const handleBlur = () => {
+      if (!chartDragReference.current) return;
+      clearChartEdgeScroll();
+      clearChartDragFeedback();
+      chartDragReference.current = null;
+    };
+
+    window.addEventListener("mousemove", handleMove, true);
+    window.addEventListener("mouseup", handleUp, true);
+    window.addEventListener("blur", handleBlur);
+    return () => {
+      window.removeEventListener("mousemove", handleMove, true);
+      window.removeEventListener("mouseup", handleUp, true);
+      window.removeEventListener("blur", handleBlur);
+      clearChartEdgeScroll();
+      clearChartDragFeedback();
+      chartDragReference.current = null;
+    };
+  }, [clearChartDragFeedback, clearChartEdgeScroll, updateChartDropFeedback]);
 
   useEffect(() => () => {
     inlineOpenTokenReference.current += 1;
@@ -843,15 +1088,34 @@ export function ProjectGantt({
     const root = ganttScrollReference.current;
     if (!root) return;
     const setNativeAddAccessibility = () => {
+      const activeScope = viewRootTaskId === null
+        ? null
+        : resolveTaskSubtreeScope(tasks, viewRootTaskId);
+      const scopedTaskIds = activeScope?.kind === "valid"
+        ? new Set(activeScope.taskIds)
+        : null;
+
       root.querySelectorAll<HTMLElement>('[data-action="add-task"]').forEach((action) => {
-        action.setAttribute("aria-disabled", String(mutationLocked || viewRootTaskId !== null));
+        const row = action.closest<HTMLElement>(".wx-row[data-id]");
+        const taskId = row ? taskIdFromElement(row) : null;
+        const task = taskId ? tasksById.get(taskId) : undefined;
+        const withinActiveScope = taskId
+          ? viewRootTaskId === null || scopedTaskIds?.has(taskId) === true
+          : viewRootTaskId === null;
+        const disabled =
+          !editable ||
+          mutationLocked ||
+          Boolean(taskId && !task) ||
+          task?.type === "milestone" ||
+          !withinActiveScope;
+        action.setAttribute("aria-disabled", String(disabled));
       });
     };
     setNativeAddAccessibility();
     const observer = new MutationObserver(setNativeAddAccessibility);
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [mutationLocked, viewRootTaskId]);
+  }, [editable, mutationLocked, tasks, tasksById, viewRootTaskId]);
   const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
   const taskUpdateGateway = useMemo(
@@ -1599,13 +1863,20 @@ export function ProjectGantt({
       const taskId = row ? taskIdFromElement(row) : null;
       const task = taskId ? tasksByIdReference.current.get(taskId) : undefined;
       const reason: NativeTaskAddRejectReason | null =
-        !canCreateReference.current || viewRootTaskIdReference.current !== null
+        !canCreateReference.current
           ? "scope"
           : taskId && !task
             ? "missing"
             : task?.type === "milestone"
               ? "milestone"
-              : null;
+              : !canAddTaskWithinSubtree(
+                  tasksReference.current,
+                  viewRootTaskIdReference.current,
+                  taskId ?? undefined,
+                  taskId ? "child" : undefined,
+                )
+                ? "scope"
+                : null;
       if (!reason) return;
 
       event.preventDefault();
@@ -1619,23 +1890,27 @@ export function ProjectGantt({
   }, [apiInstanceId]);
 
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
-    if (!canCreateReference.current || viewRootTaskIdReference.current !== null) {
+    if (!canCreateReference.current) {
       if (!mutationLockedReference.current) onTaskAddRejectedReference.current("scope");
       return;
     }
-    const target = typeof local.targetTaskId === "string"
-      ? tasksByIdReference.current.get(local.targetTaskId)
-      : undefined;
-    if (typeof local.targetTaskId === "string" && !target) {
+    const targetTaskId = typeof local.targetTaskId === "string" ? local.targetTaskId : undefined;
+    const target = targetTaskId ? tasksByIdReference.current.get(targetTaskId) : undefined;
+    if (targetTaskId && !target) {
       onTaskAddRejectedReference.current("missing");
-      return;
-    }
-    if (local.mode !== undefined && local.mode !== "child") {
-      onTaskAddRejectedReference.current("scope");
       return;
     }
     if (target?.type === "milestone") {
       onTaskAddRejectedReference.current("milestone");
+      return;
+    }
+    if (!canAddTaskWithinSubtree(
+      tasksReference.current,
+      viewRootTaskIdReference.current,
+      targetTaskId,
+      local.mode,
+    )) {
+      onTaskAddRejectedReference.current("scope");
       return;
     }
     onTaskCreateReference.current({
@@ -2610,7 +2885,7 @@ export function ProjectGantt({
   }, [taskMenu, taskSubmenu]);
 
   return (
-    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-add-disabled={viewRootTaskId !== null || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
+    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
       <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
         <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
@@ -2644,6 +2919,7 @@ export function ProjectGantt({
         aria-label="프로젝트 일정 Grid와 Gantt 차트"
           className="project-gantt-scroll"
           onContextMenu={handleHeaderContextMenu}
+          onMouseDownCapture={handleChartMouseDownCapture}
           onPointerDownCapture={handleSelectionPointerDown}
           onPointerMoveCapture={(event) => {
             const intent = namePointerIntentReference.current;

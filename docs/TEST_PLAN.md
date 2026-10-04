@@ -1,14 +1,5 @@
 # Test Plan
 
-## Issue #409 Copy ID → Relation Editor 검색 회귀
-
-- Unit `relation-editor-model.test.ts`: 작업명, externalId, taskId exact/partial, trim/case-insensitive 검색과 Summary/self/already-connected 제외 규칙을 확인한다.
-- Chromium `project-task-editor.spec.ts`: Alpha Task의 Context Menu `Copy ID`로 canonical UUID를 실제 clipboard에 복사하고 Beta Task Editor → 관계 → 관계 추가에서 Ctrl+V로 붙여넣어 Alpha 후보가 검색되는지 확인한다.
-- 후보/선택 UI는 `외부 ID: EDITOR-3`와 canonical `작업 ID: <UUID>`를 구분 표시해야 한다.
-- taskId 검색으로 후보를 선택해도 Link POST는 기존 `predecessorExternalId/successorExternalId`를 사용하고 canonical snapshot에 동일 Link가 생성되는지 확인한다.
-- 기존 Relation Editor keyboard/Escape/focus/dirty/pending/readonly 및 responsive 회귀는 `relation-dialog-ux.spec.ts`를 유지한다.
-- API/DB/Scheduling/Security 계약은 변경하지 않는다. 공식 전체 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
-
 ## Issue #367 Gantt Day 밀도·우측 Timeline 동적 확장
 
 - Unit: `timeline-range.test.ts`에서 Day 36px/Week 68px, right-edge pixel threshold, viewport chunk, 짧은 초기 scale buffer와 보존한 future end의 Day/Week 최소 scale width를 검증한다.
@@ -89,11 +80,11 @@ CI #1540.1의 shard 3/4는 #384 기능과 무관한 `project-resource-calendar-e
 
 ## Issue #373 / #399 Summary subtree Workspace 범위 탭
 
-- Unit: 기존 `task-subtree-scope.test.ts`의 진입 대상/root+descendant/missing/non-Summary/빈 Summary와 `project-task-adapter.test.ts`의 virtual root `parent=0` 회귀를 유지한다.
+- Unit: `task-subtree-scope.test.ts`에서 기존 진입 대상/root+descendant/missing/non-Summary/빈 Summary와 함께 #407 native add predicate를 검증한다. full-project root add, scoped root/descendant child와 일반 Task first-child는 허용하고 scoped Milestone/out-of-scope parent/root-level/sibling placement는 거부한다. `project-task-adapter.test.ts`의 virtual root `parent=0` 회귀도 유지한다.
 - #399 Chromium: `최상위로 열기 (작업공간 탭)` 실행 후 browser page 수가 증가하지 않고 현재 일정 View에 전체 프로젝트+Summary tab이 생기는지 확인한다. 두 Summary를 열어 중복 방지, active `rootTask`, close fallback, reload bootstrap을 검증한다.
 - Gantt/state: scope 전환 전후 `data-project-gantt-instance` 및 API instance 동일성을 확인하고 full/Summary scope의 search/filter state가 서로 덮어쓰지 않는지 검증한다. #367의 timeline 동적 확장 end도 scope 전환으로 축소/초기화되지 않아야 한다.
 - Keyboard/반응형: ArrowLeft/Right/Home/End, Summary Delete/close, focus-visible을 검증한다. 390/768/1024/1440px에서 tablist `overflow-y:hidden`, 내부 수평 overflow, document-level overflow 부재를 확인한다.
-- Native add reject scroll 회귀: scope tab/tabPanel 구조에서도 milestone/scoped/missing native `add-task`가 document/Gantt 위치를 바꾸지 않아야 한다. `.project-gantt-scroll` native click capture listener가 canonical row/task를 확인하고 확정 reject를 SVAR target handler 전에 `preventDefault + stopPropagation + stopImmediatePropagation`으로 차단하며 기존 feedback만 발행한다. 정상 add와 API fallback은 기존 SVAR interceptor를 사용한다. `project-notifications.spec.ts`의 320/360/361/401px bell y/hit-area와 기존 Gantt geometry assertions을 그대로 재사용한다.
+- Native add / reject 회귀: #407부터 scope tab 자체는 reject 사유가 아니다. scoped root/descendant의 유효한 행 `+`는 기존 `POST /tasks` 경로로 child를 생성하고 같은 ProjectGantt/canonical state에서 즉시 보이며, Context Menu child/요약 작업 추가와 일반 Task first-child Summary 전환도 성공해야 한다. scoped header/root-level add, scope 밖 target, Milestone, missing/readonly/mutation-lock은 계속 거부한다. 확정 reject는 `.project-gantt-scroll` native click capture listener가 SVAR target handler 전에 `preventDefault + stopPropagation + stopImmediatePropagation`으로 차단해 document/Gantt 위치를 바꾸지 않아야 한다. `project-notifications.spec.ts`의 320/360/361/401px bell y/hit-area와 기존 Gantt geometry assertions을 그대로 재사용한다.
 - #373 direct deep-link/cross-tab: `?rootTask=` URL을 명시적으로 별도 browser page에 열어 same edit session과 scope를 복원하고 scoped PATCH/revision 뒤 original tab이 storage announcement→canonical GET으로 최신 상태에 수렴하는지 유지한다.
 - burst/loading: in-flight GET 중 N+1 announcement 및 receiver initial loading 중 N+1 mutation의 기존 cross-tab 회귀를 유지한다. 내부 Workspace scope tab 자체는 이 storage roundtrip에 의존하지 않는다.
 - Scope/canonical: subtree AND search/filter, hidden ancestor 물류 inheritance, full canonical Task/Link context, 빈 root 유지, missing/type-changed invalid 복귀, hierarchy Context Menu/shortcut/DnD guard를 유지한다.
@@ -1225,3 +1216,10 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - 서버 409/412/422/500/network 실패는 선택값을 canonical로 남기지 않고 마지막 확정 일정을 유지해야 한다.
 - 390/768/1024/1440px에서 Date Picker가 viewport를 벗어나거나 document-level horizontal overflow를 추가하지 않는지 확인한다.
 - 기존 Grid 이름 inline edit, DnD, Chart drag/resize, Task Editor와 dependency-aware scheduling 회귀는 동일 PR head의 원격 CI/E2E에서 함께 판정한다.
+
+### Issue #299 — Chart vertical DnD
+
+- Unit: horizontal/vertical/pending axis lock, nearest visible sibling before/after, cross-level 거부, no-op, reparent mapping.
+- Chromium: #300 isolated seed helper에서 실제 Chart C bar를 B 앞으로 drag하고 `task-commands` POST 1회 / Task PATCH 0회 / canonical·Grid `A,C,B` / indicator 제거 / 동일 Gantt API instance / reload persistence를 확인한다.
+- 최신 main 회귀: #335 linked same-parent reorder, #399/#407 subtree scope·scoped add, #384 selection pointer capture, #367 timeline, #370 start-date quick-edit.
+
