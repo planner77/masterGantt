@@ -69,3 +69,17 @@ Run `37181077927`은 제품 코드 검증 전에 `변경 경로 판정` job에�
 - PR #420 본문에 `Refs #418`를 정확히 한 번 추가한다.
 - 제품 코드/테스트 구현은 이 실패 원인과 무관하므로 변경하지 않는다.
 - 새 head commit을 생성해 기존 run 재실행이 아니라 전체 PR CI를 새로 시작한다.
+
+
+## PR CI #1679.1 실패 분석 / 보완
+
+Run `37184416846`은 변경 경로 판정, TypeScript, ESLint, Vitest, Next build, policy, Docker와 Chromium shard 1/3/4가 PASS했고 **Chromium shard 2/4의 기존 Issue #3 회귀 1건만 실패**했다.
+
+실패 위치는 `project-gantt-stability.spec.ts`의 Milestone Row `+` 클릭이다. #418은 Milestone add control에 `role=button`, `aria-disabled=true`, `tabIndex=-1`을 일치시켜 disabled semantics를 강화했다. Playwright의 일반 `.click()`은 이 상태를 올바르게 disabled로 해석해 activation 전에 timeout했다. 제품 mutation 실패가 아니라 기존 테스트가 과거의 “겉보기 disabled지만 일반 click 가능” 상태를 전제로 한 회귀다.
+
+보완:
+- 기존 stability E2E에서 Milestone `+`의 `aria-disabled=true`를 먼저 검증한다.
+- disabled control의 reject/notification handler 회귀는 기존 `project-notifications.spec.ts`와 같은 방식으로 `dispatchEvent("click")`을 사용한다.
+- mutation 0회와 명시적 feedback 검증은 유지한다.
+- 제품 코드의 disabled semantics는 완화하지 않는다.
+- 수정된 새 head에서 전체 PR CI를 새로 시작한다.
