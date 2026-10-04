@@ -846,3 +846,15 @@ Chart의 Task/Summary/Milestone bar를 위·아래로 drag해 같은 parent의 v
 각 checkbox는 Resource명+역할의 accessible name을 갖고 native keyboard 동작을 사용한다. 저장 중에는 기존 catalog mutation lock을 공유하며 성공/401/412/오류 복구는 기존 Resource Catalog UX를 재사용한다. 390/768/1024/1440px에서는 역할 control이 내부에서 wrap되며 document-level horizontal overflow를 만들지 않아야 한다.
 
 SVAR PRO Resource management는 사용하지 않으며 이 화면은 app-level master data 관리자 화면으로 유지한다. 상세 설계는 [ISSUE_412_RESOURCE_ROLES.md](ISSUE_412_RESOURCE_ROLES.md)를 참조한다.
+
+## Issue #426 — Resource Catalog 역할 UI geometry 정돈
+
+`/resources`의 Resource pane은 역할·개발자 등급·상태·삭제까지 편집하는 primary workspace이므로 Group pane과 동일 폭을 강제하지 않는다. 충분한 desktop/wide 폭에서는 Resource pane에 더 큰 flexible budget을 주고, 가용 폭이 부족하면 두 pane을 조기에 vertical stack하여 어느 쪽도 sibling content 때문에 collapse하지 않게 한다.
+
+Resource row는 **Identity / Profile / Lifecycle·Destructive action** 세 의미 영역으로 읽힌다. Identity는 이름·코드·활성 상태·Project usage를 빠르게 scan할 수 있는 flexible 영역이며, Profile은 developer grade와 Global role checkbox를 함께 배치한다. 활성/비활성·삭제는 profile 편집과 divider/spacing으로 분리한다. 역할이 0/1/3개인 경우와 가장 긴 이름·코드에서도 identity와 profile/action bounding box가 겹치지 않아야 한다.
+
+검색 toolbar, 신규 Resource 생성 form, Resource list는 서로 다른 layout responsibility로 유지한다. 검색 결과 count나 생성 form의 intrinsic width가 list usable width를 줄이지 않으며 390/768/1024/1440/wide desktop에서 자연스럽게 reflow한다.
+
+Resource Group 구성원 footer는 `닫기` secondary를 좌측, `구성원 저장` primary를 우측에 둔다. 두 버튼은 동일한 control 높이/baseline을 유지하며 좁은 화면에서 wrap되더라도 DOM/keyboard 의미 순서와 document overflow 부재를 보존한다.
+
+이 변경은 Resource Catalog의 관리자 session, Origin, strong `If-Match`, revision/412 stale recovery, 삭제 usage guard, Group membership, 역할 PATCH 실패 시 draft 보존 계약을 변경하지 않는다.
