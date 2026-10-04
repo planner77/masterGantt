@@ -1514,6 +1514,8 @@ export function ProjectGantt({
     const markCells = () => {
       root.querySelectorAll<HTMLElement>(selector).forEach((cell) => {
         if (!cell.hasAttribute("tabindex")) cell.tabIndex = 0;
+        delete cell.dataset.workingDays;
+        cell.querySelector<HTMLElement>(".project-gantt-week-working-days")?.remove();
         const data = tooltipData(cell);
         if (data) cell.setAttribute("aria-label", data.ariaLabel);
       });
@@ -1785,6 +1787,12 @@ export function ProjectGantt({
       window.removeEventListener("scroll", onViewportChange, true);
       if (repositionFrame !== null) window.cancelAnimationFrame(repositionFrame);
       if (activeCell?.getAttribute("aria-describedby") === weekHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
+      root.querySelectorAll<HTMLElement>("[data-working-days]").forEach((cell) => {
+        delete cell.dataset.workingDays;
+      });
+      root.querySelectorAll<HTMLElement>(".project-gantt-week-working-days").forEach((label) => {
+        label.remove();
+      });
       setWeekHeaderTooltip(null);
     };
   }, [calendar, scaleMode, weekHeaderTooltipId]);
