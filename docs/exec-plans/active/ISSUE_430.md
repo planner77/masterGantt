@@ -2,10 +2,10 @@
 
 ## 1. 기준과 목표
 
-- 기준 main: `a280505596961395d165f3759d3a27649ddac8b5`
-- 기준 application: `0.80.0`
+- 기준 main: `5dc0cb3356d59b868ed0dfbfd58ed44072fb646b`
+- 기준 application: `0.81.0`
 - 작업 branch: `feat/issue-430-cut-internal-dependency`
-- 목표 version: `0.81.0` (하위 호환 사용자 workflow 확장 → MINOR)
+- 목표 version: `0.82.0` (하위 호환 사용자 workflow 확장 → MINOR)
 - 사용자 종료점: 구현·문서 동기화·PR 생성·PR CI 시작
 - `release_required=true`
 - `release_authorized=false`
