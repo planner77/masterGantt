@@ -324,3 +324,13 @@ Task Editor 리소스 탭은 역할→Resource 및 Resource→역할 두 흐름�
 
 상세 계약은 [Issue #414 문서](ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md)를 따른다.
 
+
+
+## Issue #415 — Resource/개발 공수 견적 Excel
+
+- 사용자는 Excel 내보내기에서 역할·개발자 공수 견적 포함 여부를 선택할 수 있어야 한다.
+- Summary의 Grand Total/역할 subtotal 및 Detail은 동일 Project revision의 #414 workload 결과와 일치해야 한다.
+- Detail grain은 assignmentId이며 여러 Group membership으로 중복 가산하지 않는다.
+- 역할 미지정과 공수 미설정은 명시적으로 표시하고, M/M 기준이 없을 때 임의 환산하지 않는다.
+- Progress/status/지연은 계획 공수와 함께 표시하되 실제 소진 공수나 비용으로 추정하지 않는다.
+- 기존 Gantt/Tasks/Project/Dependencies/Logistics 시트와 Origin/If-Match/formula-injection 보호는 유지한다.

@@ -146,6 +146,8 @@ export interface ResourceWorkloadTaskDto {
   start: string;
   end: string;
   allocationPercent: number | null;
+  /** Canonical working days after assignment/range clipping and Resource Calendar resolution. */
+  effectiveWorkingDays?: number;
   effortMd: number | null;
   effortMm: number | null;
   effortConfigured: boolean;

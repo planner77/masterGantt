@@ -244,6 +244,7 @@ describe("ResourceWorkloadService", () => {
       const piTask = multiRow.tasks.find((task) => task.taskId === f.first.publicId)!;
       expect(piTask).toMatchObject({
         role: "PI",
+        effectiveWorkingDays: 4,
         effortMd: 2,
         progress: 50,
         status: "in_progress",

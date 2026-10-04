@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.83.0] - 2026-10-05
+
+### Added
+
+- Issue #415: Excel 내보내기에 선택적 Resource Effort Summary/Detail을 추가해 역할별·개발자별 계획 M/D·M/M과 assignment grain 상세를 제공한다.
+- Resource workload detail에 Calendar/range clipping이 반영된 canonical `effectiveWorkingDays`를 추가한다.
+
+### Changed
+
+- Excel 공수 견적은 #414 workload 서비스와 동일한 Project revision/range/`RESOURCE_MD_PER_MM` 기준을 재사용하며 assignmentId로 중복을 제거하고 여러 Group은 비가산 목록으로 표시한다.
+- M/M 기준이 없거나 공수가 미설정된 경우 0으로 환산하지 않고 명시적인 미설정 상태를 유지한다.
+- 기존 Gantt/Tasks/Project/Dependencies/Logistics 시트 순서와 Origin/If-Match/formula injection 보호를 유지하고 Application version을 `0.82.0`에서 `0.83.0`으로 증가한다.
+
+
 ## [0.82.0] - 2026-10-05
 
 ### Added
