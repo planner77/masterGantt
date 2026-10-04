@@ -1768,7 +1768,12 @@ export function ProjectGantt({
 
     markCells();
     const observer = new MutationObserver(markCells);
-    observer.observe(root, { childList: true, subtree: true });
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
     root.addEventListener("pointerover", onPointerOver);
     root.addEventListener("pointerout", onPointerOut);
     root.addEventListener("focusin", onFocusIn);
