@@ -105,6 +105,7 @@ export function ResourceCatalogAdmin() {
   const [resourceCode, setResourceCode] = useState("");
   const [resourceDeveloperGrade, setResourceDeveloperGrade] = useState<DeveloperGrade | "">("");
   const [resourceRoles, setResourceRoles] = useState<Set<ResourceRole>>(new Set());
+  const [resourceRoleDrafts, setResourceRoleDrafts] = useState<Record<string, ResourceRole[]>>({});
   const [groupName, setGroupName] = useState("");
   const [groupCode, setGroupCode] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
@@ -335,11 +336,22 @@ export function ResourceCatalogAdmin() {
   }
 
   async function updateResourceRole(resource: ResourceDto, role: ResourceRole, enabled: boolean) {
-    const next = new Set(resource.roles ?? []);
+    const next = new Set(resourceRoleDrafts[resource.id] ?? resource.roles ?? []);
     if (enabled) next.add(role); else next.delete(role);
-    await mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", {
-      roles: orderedResourceRoles(next),
-    });
+    const nextRoles = orderedResourceRoles(next);
+    setResourceRoleDrafts((current) => ({ ...current, [resource.id]: nextRoles }));
+    try {
+      await mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", {
+        roles: nextRoles,
+      });
+    } finally {
+      setResourceRoleDrafts((current) => {
+        if (!(resource.id in current)) return current;
+        const remaining = { ...current };
+        delete remaining[resource.id];
+        return remaining;
+      });
+    }
   }
 
   async function addGroup(event: FormEvent<HTMLFormElement>) {
@@ -549,7 +561,7 @@ export function ResourceCatalogAdmin() {
                   <fieldset className={styles.inlineRoleFieldset}>
                     <legend>{resource.name} 전역 역할</legend>
                     <div className={styles.roleOptions}>
-                      {RESOURCE_ROLE_OPTIONS.map((option) => <label key={option.value}><input aria-label={`${resource.name} ${option.label} 역할`} type="checkbox" checked={(resource.roles ?? []).includes(option.value)} disabled={locked} onChange={(event) => void updateResourceRole(resource, option.value, event.target.checked)} />{option.label}</label>)}
+                      {RESOURCE_ROLE_OPTIONS.map((option) => <label key={option.value}><input aria-label={`${resource.name} ${option.label} 역할`} type="checkbox" checked={(resourceRoleDrafts[resource.id] ?? resource.roles ?? []).includes(option.value)} disabled={locked} onChange={(event) => void updateResourceRole(resource, option.value, event.target.checked)} />{option.label}</label>)}
                     </div>
                   </fieldset>
                   <button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
@@ -640,7 +652,7 @@ export function ResourceCatalogAdmin() {
         <p className={styles.emptyState}>검색 조건과 일치하는 리소스가 없습니다.</p>
       ) : (
         <div className={styles.memberGrid}>
-          {filteredMemberResources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input type="checkbox" checked={selectedMembers.has(resource.id)} disabled={locked || !currentGroup} onChange={() => toggleMember(resource.id)} /><span>{resource.name}{resource.code ? ` (${resource.code})` : ""}<span className={styles.memberRoleText}> · 역할 {(resource.roles ?? []).length > 0 ? (resource.roles ?? []).map(resourceRoleLabel).join(", ") : "없음"}</span></span></label>)}
+          {filteredMemberResources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input aria-label={`${resource.name}${resource.code ? ` (${resource.code})` : ""}`} type="checkbox" checked={selectedMembers.has(resource.id)} disabled={locked || !currentGroup} onChange={() => toggleMember(resource.id)} /><span>{resource.name}{resource.code ? ` (${resource.code})` : ""}<span className={styles.memberRoleText}> · 역할 {(resource.roles ?? []).length > 0 ? (resource.roles ?? []).map(resourceRoleLabel).join(", ") : "없음"}</span></span></label>)}
         </div>
       )}
       <div className={styles.memberFooterActions}>
