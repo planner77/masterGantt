@@ -111,8 +111,11 @@ test("Issue #412: 전역 Resource 역할 표시·편집·그룹 참조와 반응
   await expect(page.getByLabel("PI 개발자 리소스 개발자 역할", { exact: true })).toBeChecked();
   await expect(page.getByLabel("PI 개발자 리소스 설비 담당 역할", { exact: true })).not.toBeChecked();
   await expect(page.getByLabel("설비 담당 리소스 설비 담당 역할", { exact: true })).toBeChecked();
-  await expect(page.getByText("전역 역할:", { exact: false }).first()).toBeVisible();
-  await expect(page.getByText("없음", { exact: true })).toBeVisible();
+  await expect(page.getByRole("group", { name: "PI 개발자 리소스 프로필", exact: true })).toBeVisible();
+  await expect(page.getByRole("group", { name: "역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 프로필", exact: true })).toBeVisible();
+  await expect(page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 PI 역할", { exact: true })).not.toBeChecked();
+  await expect(page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 개발자 역할", { exact: true })).not.toBeChecked();
+  await expect(page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 설비 담당 역할", { exact: true })).not.toBeChecked();
 
   const equipmentRole = page.getByLabel("PI 개발자 리소스 설비 담당 역할", { exact: true });
   await equipmentRole.check();
