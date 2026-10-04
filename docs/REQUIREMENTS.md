@@ -312,3 +312,15 @@ Summary는 하위 일정에서 날짜가 파생되므로 시작일 직접 편집
 Task Editor 리소스 탭은 역할→Resource 및 Resource→역할 두 흐름을 모두 지원한다. 역할 필터는 해당 역할을 가진 Resource 후보만 남기고, Resource별 select는 해당 Resource의 Global Role만 보여준다. 기존 역할 미지정 assignment는 별도 상태로 보여주고 사용자가 역할을 보완할 수 있어야 한다. 신규 개인 Resource UI 배정은 역할 선택 없이는 저장하지 않는다.
 
 수행 역할 변경은 allocation 기간/투입률, 근무 Calendar, Task schedule을 자동 변경하지 않는다. Group assignment, Project Equipment/System role, Resource Group membership도 자동 변경하지 않는다. 사용 중 Global Role은 silently 제거할 수 없으며 서버 transaction에서 차단한다.
+
+## Issue #414 — 역할 기반 Resource workload / 개발자 견적
+
+- #56의 개인 Resource assignment M/D·M/M 계산과 Calendar/allocation 계약을 유지한 채 #413의 Task 수행 역할을 집계 분류 축으로 제공해야 한다.
+- 역할별 합계는 `PI | DEVELOPER | EQUIPMENT_OWNER | UNSPECIFIED`를 구분하며, 역할 미지정 legacy assignment를 Global Role로 추정하지 않는다.
+- Grand Total은 assignmentId 기준으로 정확히 한 번 합산되어야 하며 Resource Group 중복 membership으로 증가하면 안 된다.
+- Resource View는 역할/개발자 등급/기간 drill-down과 `개발 견적` preset을 제공하고, 개발자별 Task 계획 공수·진행률·상태/지연·allocation 기간/투입률을 함께 보여야 한다.
+- Task progress/status는 계획 공수를 차감하거나 실제 소진 공수로 변환하지 않는다.
+- M/M 기준 미설정, 공수 미설정, 과투입, stale/error/empty 상태를 명시적으로 보존하며 일정↔리소스 tab 전환은 Gantt instance/state를 재생성하지 않는다.
+
+상세 계약은 [Issue #414 문서](ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md)를 따른다.
+
