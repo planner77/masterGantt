@@ -104,6 +104,15 @@ function assertTasksNotLinked(links: readonly LinkRecord[], taskIds: readonly nu
   }
 }
 
+function assertTasksHaveNoExternalLinks(links: readonly LinkRecord[], taskIds: readonly number[]): void {
+  const affected = new Set(taskIds);
+  if (links.some((link) =>
+    affected.has(link.predecessorTaskId) !== affected.has(link.successorTaskId)
+  )) {
+    throw new UnsupportedScheduleStructureError();
+  }
+}
+
 function warningDtos(warnings: ReturnType<typeof scheduleLeaf>["warnings"]): ScheduleWarningDto[] {
   return warnings.map((warning) => ({
     code: warning.code,
@@ -534,7 +543,9 @@ export class TaskHierarchyService {
         const target = insertionTarget(anchor, command.placement, initialTasks);
         const sameParentSiblingReorder = command.placement !== "child" && task.parentId === target.parentId;
         if (!sameParentSiblingReorder) {
-          assertTasksNotLinked(links, [task.id, ...descendants(task.id, initialTasks).map((entry) => entry.id), anchor.id]);
+          const branchIds = [task.id, ...descendants(task.id, initialTasks).map((entry) => entry.id)];
+          assertTasksHaveNoExternalLinks(links, branchIds);
+          if (command.placement === "child") assertTasksNotLinked(links, [anchor.id]);
         }
         if (wouldCreateCycle(task, target.parentId, initialTasks)) throw new InvalidTaskInputError();
         if (task.parentId === target.parentId) {
