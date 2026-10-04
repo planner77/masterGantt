@@ -83,3 +83,14 @@ Run `37184416846`은 변경 경로 판정, TypeScript, ESLint, Vitest, Next buil
 - mutation 0회와 명시적 feedback 검증은 유지한다.
 - 제품 코드의 disabled semantics는 완화하지 않는다.
 - 수정된 새 head에서 전체 PR CI를 새로 시작한다.
+
+
+## PR #424 review P2 보완
+
+자동 review의 3개 P2를 반영한다.
+
+- Keyboard activation: SVAR custom `<i data-action="add-task">`는 native button이 아니므로 Gantt keydown capture에서 enabled add control의 Enter/Space를 click activation으로 연결하고 disabled control은 activation하지 않는다. Chromium에서 scoped Header Enter와 descendant Row Space를 실제 POST/canonical row까지 검증한다.
+- Focus fallback: native add 뒤 permission이 401로 readonly가 되면 원래 add action이 `aria-disabled=true/tabIndex=-1`이므로 focus를 되돌리지 않고 Gantt region으로 복원한다. Stability E2E가 readonly 전환 뒤 region focus를 검증한다.
+- Decoration cost: scoped subtree와 task map을 decoration effect당 한 번 계산하고 각 add action은 Set/Map lookup만 사용한다. MutationObserver 반복에서도 row마다 subtree를 다시 순회하지 않는다.
+
+새 exact head의 전체 PR CI PASS 후 review thread를 resolve하고 merge한다.
