@@ -1,5 +1,20 @@
 # Issue #34 — Task Editor 작업 관계 표시
 
+## Issue #430 — Cut/Reparent의 Dependency 경계
+
+Cut source Task/Summary와 모든 descendants를 하나의 이동 집합 `C`로 본다. Link 처리 기준은 관계 존재 자체가 아니라 `C` 경계 통과 여부다.
+
+| predecessor | successor | Cut/Reparent |
+| --- | --- | --- |
+| C 내부 | C 내부 | 허용 — 기존 Link ID/endpoints/type/lag 유지 |
+| C 외부 | C 내부 | 제한 — incoming boundary Link |
+| C 내부 | C 외부 | 제한 — outgoing boundary Link |
+| C 외부 | C 외부 | 무관 |
+
+따라서 Summary 내부 Task끼리의 FS/SS/FF/SF 및 signed lag/lead는 Summary 전체 Cut → Paste를 막지 않는다. 실제 저장은 동일 Task identity를 이동하는 `reparent`이므로 Copy처럼 Link를 새로 만들지 않는다. 반대로 한 endpoint만 source subtree에 있는 Link가 하나라도 있으면 Context Menu Cut, Ctrl/Cmd+X, cut clipboard Paste와 서버 reparent가 같은 이유로 차단된다.
+
+Paste anchor가 독립적으로 다른 Dependency endpoint인 것은 before/after 배치의 차단 사유가 아니다. 다만 `child` Paste가 linked leaf anchor를 Summary로 전환해야 하면 Summary Dependency endpoint 금지와 기존 fail-closed 보호를 유지한다. #335의 same-parent reorder, #378/#384의 Copy 내부 Link 복제, Delete/Indent/Outdent/Convert 보호는 변경하지 않는다.
+
 ## Issue #409 — Copy ID와 Relation Editor 검색 식별자 정합화
 
 Task에는 서로 독립적인 두 식별자가 있다.

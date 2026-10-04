@@ -13,13 +13,12 @@ export function taskHasDependencyLinks(
   );
 }
 
-export function taskSubtreeHasDependencyLinks(
+function taskSubtreeExternalIds(
   tasks: readonly ProjectTaskDto[],
   taskId: string,
-  links: readonly ProjectLinkDto[],
-): boolean {
+): Set<string> | null {
   const root = tasks.find((candidate) => candidate.taskId === taskId);
-  if (!root) return false;
+  if (!root) return null;
   const childrenByParent = new Map<string, string[]>();
   for (const task of tasks) {
     if (task.parentExternalId === null) continue;
@@ -35,8 +34,30 @@ export function taskSubtreeHasDependencyLinks(
     affected.add(externalId);
     pending.push(...(childrenByParent.get(externalId) ?? []));
   }
+  return affected;
+}
+
+export function taskSubtreeHasDependencyLinks(
+  tasks: readonly ProjectTaskDto[],
+  taskId: string,
+  links: readonly ProjectLinkDto[],
+): boolean {
+  const affected = taskSubtreeExternalIds(tasks, taskId);
+  if (!affected) return false;
   return links.some((link) =>
     affected.has(link.predecessorExternalId) ||
     affected.has(link.successorExternalId)
+  );
+}
+
+export function taskSubtreeHasExternalDependencyLinks(
+  tasks: readonly ProjectTaskDto[],
+  taskId: string,
+  links: readonly ProjectLinkDto[],
+): boolean {
+  const affected = taskSubtreeExternalIds(tasks, taskId);
+  if (!affected) return false;
+  return links.some((link) =>
+    affected.has(link.predecessorExternalId) !== affected.has(link.successorExternalId)
   );
 }

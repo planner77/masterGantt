@@ -4,7 +4,11 @@ import type {
   TaskHierarchyCommandRequest,
   TaskHierarchyPlacement,
 } from "@/contracts/projects";
-import { taskHasDependencyLinks, taskSubtreeHasDependencyLinks } from "./task-link-scope";
+import {
+  taskHasDependencyLinks,
+  taskSubtreeHasDependencyLinks,
+  taskSubtreeHasExternalDependencyLinks,
+} from "./task-link-scope";
 
 export type TaskClipboard =
   | Readonly<{ mode: "cut"; taskId: string; revision: number }>
@@ -66,7 +70,9 @@ export function taskContextCapabilities(
   const isScopeRoot = task.taskId === scopeRootTaskId;
   const isDirectScopeChild = Boolean(scopeRoot && task.parentExternalId === scopeRoot.externalId);
   const pasteAvailable = clipboard !== null && !clipboardIncludesRoot(clipboard, task.taskId) &&
-    (clipboard.mode === "copy" ? mutationAvailable : hierarchyAvailable);
+    (clipboard.mode === "copy"
+      ? mutationAvailable
+      : mutationAvailable && !taskSubtreeHasExternalDependencyLinks(tasks, clipboard.taskId, links));
   return {
     canAddChild: hierarchyAvailable && task.type !== "milestone",
     canMoveUp: siblingReorderAvailable && !isScopeRoot && index > 0,
