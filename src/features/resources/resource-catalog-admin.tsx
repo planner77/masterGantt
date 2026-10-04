@@ -340,11 +340,10 @@ export function ResourceCatalogAdmin() {
     if (enabled) next.add(role); else next.delete(role);
     const nextRoles = orderedResourceRoles(next);
     setResourceRoleDrafts((current) => ({ ...current, [resource.id]: nextRoles }));
-    try {
-      await mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", {
-        roles: nextRoles,
-      });
-    } finally {
+    const successful = await mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", {
+      roles: nextRoles,
+    });
+    if (successful) {
       setResourceRoleDrafts((current) => {
         if (!(resource.id in current)) return current;
         const remaining = { ...current };
