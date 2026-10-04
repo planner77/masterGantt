@@ -904,7 +904,6 @@ function resourceEffortSummarySheet(
 
 function resourceEffortDetailSheet(
   tasks: readonly OrderedTask[],
-  workload: ResourceWorkloadResponse,
   details: readonly ResourceEffortExportRow[],
 ): string {
   const taskById = new Map(tasks.map((entry) => [entry.task.taskId, entry]));
@@ -1000,7 +999,7 @@ export function buildProjectExcelWorkbook(
   if (includeResourceEffort) {
     entries.push({ path: `xl/worksheets/sheet${nextSheetIndex}.xml`, content: resourceEffortSummarySheet(snapshot, resourceWorkload!, effortRows) });
     nextSheetIndex += 1;
-    entries.push({ path: `xl/worksheets/sheet${nextSheetIndex}.xml`, content: resourceEffortDetailSheet(tasks, resourceWorkload!, effortRows) });
+    entries.push({ path: `xl/worksheets/sheet${nextSheetIndex}.xml`, content: resourceEffortDetailSheet(tasks, effortRows) });
     nextSheetIndex += 1;
   }
   if (drawing) {
