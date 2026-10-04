@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.78.0] - 2026-10-04
+
+### Added
+
+- Issue #416: Gantt Week Header의 기존 ISO `Wxx` 아래에 현재 Project Calendar 기준 실제 근무 가능 일수를 `N일` secondary text로 상시 표시해 여러 주의 capacity를 즉시 비교할 수 있게 한다.
+
+### Changed
+
+- #316의 canonical `workingDays`와 app-owned Week date class/MutationObserver lifecycle을 그대로 재사용하고, 요일별 근무 위치·공휴일명·비근무 사유는 기존 hover/focus Tooltip에서 확인하도록 정보 계층을 유지한다.
+- 최신 main의 #299 Chart vertical DnD를 보존하면서 기존 ISO Week formatter, Week `cellWidth=68`, Day/Week 전환, Gantt/API instance, Scheduling/API/DB/revision 계약을 변경하지 않으며 390/768/1024/1440px Header geometry 회귀를 추가한다.
+- Application version을 `0.77.0`에서 `0.78.0`으로 증가한다.
+
 ## [0.77.0] - 2026-10-04
 
 ### Added

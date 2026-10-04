@@ -290,6 +290,26 @@
 .project-copy-selection-status { margin: 0.25rem 0; }
 @media (pointer: coarse) { .project-copy-selection-hitarea { min-height: 44px; } }
 
+.project-gantt-week-scale {
+  position: relative;
+  box-sizing: border-box;
+  padding-bottom: 0.65rem;
+}
+
+.project-gantt-week-working-days {
+  position: absolute;
+  inset-inline: 0.125rem;
+  bottom: 0.125rem;
+  overflow: hidden;
+  color: var(--text-muted, var(--muted-foreground));
+  font-size: 0.625rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .project-gantt-week-scale:focus-visible {
   outline: 3px solid var(--focus-ring, var(--ring));
   outline-offset: -3px;

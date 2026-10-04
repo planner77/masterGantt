@@ -53,6 +53,12 @@ Tooltip의 근무일 수는 기존 Scheduling `createWorkingCalendar` + `working
 Hover/focus, `aria-describedby`, Escape, scroll/resize 재배치, viewport edge clamp 및 Day↔Week 전환 시 overlay 정리는 #315와 같은 interaction 계약을 따른다. Gantt/API instance와 기존 68px Week cell width는 유지한다. 상세 계약은 [Issue #316 설계](ISSUE_316_WEEK_HEADER_TOOLTIP.md)를 따른다.
 
 
+## Issue #416 Week Header 근무 가능 일수 상시 표시
+
+#316의 Week Header Tooltip 계산 결과를 상시 요약에도 재사용한다. 기존 `scales[].format(date)`은 계속 ISO `W01~W53` 문자열만 반환하고, Week `cellWidth=68`도 유지한다. #316의 공개 `scales[].css(date)`가 부여하는 app-owned ISO Monday date class와 MutationObserver lifecycle에서 같은 `GanttWeekHeaderTooltipData.workingDays`를 읽어 `N일` secondary label을 cell 내부에 추가·갱신한다.
+
+secondary label은 화면상 요약만 담당하므로 `aria-hidden`으로 두며, 접근 가능한 상세 설명은 기존 cell `aria-label`과 hover/focus Tooltip 계약을 유지한다. 요일별 위치/공휴일명/사유는 Header에 중복 노출하지 않는다. Header 폭·scale height를 늘리거나 `Wxx` 문자열을 DOM text replacement로 바꾸지 않고, private SVAR API 또는 별도 Calendar 계산을 추가하지 않는다.
+
 ## Issue #367 Day 밀도 추가 개선과 우측 Timeline 동적 확장
 
 Issue #233의 Day `cellWidth=44` 계약을 #314의 숫자-only Header에 맞춰 **36px**로 추가 축소한다. Week는 ISO Week 및 #316 Tooltip 가독성을 위해 68px를 유지한다.
