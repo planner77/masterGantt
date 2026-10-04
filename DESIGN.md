@@ -141,6 +141,18 @@ Project List와 관리 화면처럼 열이 많은 data table은 **column budget�
 - header/body의 열 경계, 긴 문자열, locale/timezone 기반 날짜/시간, 390/768/1024/1440/wide desktop을 실제 browser에서 확인한다.
 - 정적 CSS 값만으로 충분하다고 판단하지 않고 E2E 또는 browser geometry evidence로 sibling cell 침범 여부를 검증한다.
 
+### Data-dense Management Screen Geometry
+
+Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**을 가진다.
+
+- 정보량이 다른 sibling pane을 기계적으로 `1fr / 1fr`로 나누지 않는다. 각 pane의 minimum/intrinsic requirement를 먼저 정의하고 primary workspace가 더 많은 metadata·편집 control을 가지면 더 큰 flexible budget을 배정한다.
+- 관리 row는 `identity / profile(metadata·capability) / lifecycle·destructive action`처럼 의미 단위로 나누고 fixed/minimum/flexible 역할을 정한다. `minmax(0, 1fr) + auto`의 auto 영역이 primary identity를 한두 글자 폭으로 collapse시키는 구조를 허용하지 않는다.
+- profile field는 서로 근접 배치하고 lifecycle/destructive action은 spacing, divider 또는 별도 action group으로 구분한다.
+- inline editable control 수가 안정적으로 들어가지 않으면 무한 wrap으로 버티지 말고 popover/dialog/detail row 같은 progressive disclosure를 우선 검토한다.
+- search/filter/create toolbar와 실제 list workspace는 서로 다른 layout responsibility다. toolbar 또는 create form의 intrinsic width가 list usable width를 소유하거나 침범하지 않게 한다.
+- footer에서는 secondary navigation/cancel과 primary commit action의 우선순위·위치를 화면 계약으로 명시하고 전역 button margin 때문에 footer geometry가 변하지 않게 한다.
+- 필드/role/action 추가 시 기존 CSS를 그대로 재사용하지 말고 pane/row budget을 다시 계산한다. 390/768/1024/1440/wide desktop과 긴 문자열·최대 control 조합을 실제 browser geometry로 검증한다.
+
 ### Project Workspace
 
 - compact project context + schedule/resources peer tabs + workspace toolbar + Gantt/resource content 구조를 유지한다.

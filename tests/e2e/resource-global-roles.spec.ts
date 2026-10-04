@@ -1,4 +1,19 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
+
+type GeometryBox = Readonly<{ x: number; y: number; width: number; height: number }>;
+
+async function geometryBox(locator: Locator): Promise<GeometryBox> {
+  const box = await locator.boundingBox();
+  expect(box).not.toBeNull();
+  return box!;
+}
+
+function boxesOverlap(a: GeometryBox, b: GeometryBox, tolerance = 1): boolean {
+  return a.x < b.x + b.width - tolerance
+    && a.x + a.width > b.x + tolerance
+    && a.y < b.y + b.height - tolerance
+    && a.y + a.height > b.y + tolerance;
+}
 
 test("Issue #412: 전역 Resource 역할 표시·편집·그룹 참조와 반응형 접근성을 유지한다", async ({ page }) => {
   let revision = 21;
@@ -96,8 +111,13 @@ test("Issue #412: 전역 Resource 역할 표시·편집·그룹 참조와 반응
   await expect(page.getByLabel("PI 개발자 리소스 개발자 역할", { exact: true })).toBeChecked();
   await expect(page.getByLabel("PI 개발자 리소스 설비 담당 역할", { exact: true })).not.toBeChecked();
   await expect(page.getByLabel("설비 담당 리소스 설비 담당 역할", { exact: true })).toBeChecked();
+  await expect(page.getByRole("group", { name: "PI 개발자 리소스 프로필", exact: true })).toBeVisible();
+  await expect(page.getByRole("group", { name: "역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 프로필", exact: true })).toBeVisible();
   await expect(page.getByText("전역 역할:", { exact: false }).first()).toBeVisible();
   await expect(page.getByText("없음", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 PI 역할", { exact: true })).not.toBeChecked();
+  await expect(page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 개발자 역할", { exact: true })).not.toBeChecked();
+  await expect(page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 설비 담당 역할", { exact: true })).not.toBeChecked();
 
   const equipmentRole = page.getByLabel("PI 개발자 리소스 설비 담당 역할", { exact: true });
   await equipmentRole.check();
@@ -130,9 +150,47 @@ test("Issue #412: 전역 Resource 역할 표시·편집·그룹 참조와 반응
   await expect(page.getByText(/설비 담당 리소스.*역할 설비 담당/)).toBeVisible();
   await expect(page.getByText(/역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상.*역할 PI/)).toBeVisible();
 
-  for (const width of [390, 768, 1024, 1440]) {
+  const resourcePane = page.locator('section[aria-labelledby="resources-title"]');
+  const groupPane = page.locator('section[aria-labelledby="groups-title"]');
+  const resourceSearchBar = page.getByLabel("리소스 검색", { exact: true }).locator("..");
+  const resourceCreateForm = resourcePane.locator("form").first();
+  const resourceList = resourcePane.locator("ul").first();
+  const longRow = page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 PI 역할", { exact: true }).locator("xpath=ancestor::li[1]");
+  const longIdentity = longRow.locator(":scope > div").first();
+  const longActions = longRow.locator(":scope > div").nth(1);
+  const closeButton = page.getByRole("button", { name: "닫기", exact: true });
+  const saveMembersButton = page.getByRole("button", { name: "구성원 저장", exact: true });
+
+  for (const width of [390, 768, 1024, 1440, 1600]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
     await expect(page.getByLabel("PI 개발자 리소스 PI 역할", { exact: true })).toBeVisible();
+
+    const resourcePaneBox = await geometryBox(resourcePane);
+    const groupPaneBox = await geometryBox(groupPane);
+    expect(boxesOverlap(resourcePaneBox, groupPaneBox)).toBe(false);
+    if (width >= 1200) {
+      expect(resourcePaneBox.width).toBeGreaterThan(groupPaneBox.width);
+    } else {
+      expect(resourcePaneBox.y + resourcePaneBox.height).toBeLessThanOrEqual(groupPaneBox.y + 1);
+    }
+
+    const searchBox = await geometryBox(resourceSearchBar);
+    const createBox = await geometryBox(resourceCreateForm);
+    const listBox = await geometryBox(resourceList);
+    expect(searchBox.y + searchBox.height).toBeLessThanOrEqual(createBox.y + 1);
+    expect(createBox.y + createBox.height).toBeLessThanOrEqual(listBox.y + 2);
+
+    const identityBox = await geometryBox(longIdentity);
+    const actionsBox = await geometryBox(longActions);
+    expect(boxesOverlap(identityBox, actionsBox)).toBe(false);
+    expect(identityBox.width).toBeGreaterThan(160);
+
+    const closeBox = await geometryBox(closeButton);
+    const saveBox = await geometryBox(saveMembersButton);
+    expect(closeBox.x).toBeLessThan(saveBox.x);
+    if (Math.abs(closeBox.y - saveBox.y) <= 2) {
+      expect(Math.abs((closeBox.y + closeBox.height / 2) - (saveBox.y + saveBox.height / 2))).toBeLessThanOrEqual(2);
+    }
   }
 });
