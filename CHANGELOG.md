@@ -1,13 +1,16 @@
 # Changelog
 
-## [0.77.1] - 2026-10-04
+## [0.78.0] - 2026-10-04
 
-### Fixed
+### Added
 
-- Issue #409: Context Menu `Copy ID`가 복사하는 canonical `taskId` UUID를 Relation Editor의 관계 추가 검색에서 직접 찾을 수 있도록 작업명·외부 ID·작업 ID 통합 검색을 추가한다.
-- Relation Editor 후보/선택 상태에서 `externalId`와 `taskId`를 각각 `외부 ID`, `작업 ID`로 명확히 구분해 표시한다.
-- taskId로 후보를 검색해도 Dependency Link 저장은 기존 `predecessorExternalId / successorExternalId` 계약을 유지하며 API/DB/Scheduling schema는 변경하지 않는다.
-- 최신 main의 #299 Chart 수직 DnD와 #407 scoped add, #370 Grid 시작일 Date Picker 계약을 보존하고 Application version을 `0.77.0`에서 `0.77.1`로 증가한다.
+- Issue #416: Gantt Week Header의 기존 ISO `Wxx` 아래에 현재 Project Calendar 기준 실제 근무 가능 일수를 `N일` secondary text로 상시 표시해 여러 주의 capacity를 즉시 비교할 수 있게 한다.
+
+### Changed
+
+- #316의 canonical `workingDays`와 app-owned Week date class/MutationObserver lifecycle을 그대로 재사용하고, 요일별 근무 위치·공휴일명·비근무 사유는 기존 hover/focus Tooltip에서 확인하도록 정보 계층을 유지한다.
+- 최신 main의 #299 Chart vertical DnD를 보존하면서 기존 ISO Week formatter, Week `cellWidth=68`, Day/Week 전환, Gantt/API instance, Scheduling/API/DB/revision 계약을 변경하지 않으며 390/768/1024/1440px Header geometry 회귀를 추가한다.
+- Application version을 `0.77.0`에서 `0.78.0`으로 증가한다.
 
 ## [0.77.0] - 2026-10-04
 

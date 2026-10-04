@@ -60,6 +60,10 @@ function workingCalendarFromProject(calendar: ProjectCalendarDto) {
       });
 }
 
+export function formatGanttWeekWorkingDaysLabel(workingDays: number): string {
+  return `${workingDays}일`;
+}
+
 export function buildGanttWeekHeaderTooltipDataForDateOnly(
   start: DateOnly,
   calendar: ProjectCalendarDto,

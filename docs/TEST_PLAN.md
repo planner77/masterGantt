@@ -1,14 +1,5 @@
 # Test Plan
 
-## Issue #409 Copy ID → Relation Editor 검색 회귀
-
-- Unit `relation-editor-model.test.ts`: 작업명, externalId, taskId exact/partial, trim/case-insensitive 검색과 Summary/self/already-connected 제외 규칙을 확인한다.
-- Chromium `project-task-editor.spec.ts`: Alpha Task의 Context Menu `Copy ID`로 canonical UUID를 실제 clipboard에 복사하고 Beta Task Editor → 관계 → 관계 추가에서 Ctrl+V로 붙여넣어 Alpha 후보가 검색되는지 확인한다.
-- 후보/선택 UI는 `외부 ID: EDITOR-3`와 canonical `작업 ID: <UUID>`를 구분 표시해야 한다.
-- taskId 검색으로 후보를 선택해도 Link POST는 기존 `predecessorExternalId/successorExternalId`를 사용하고 canonical snapshot에 동일 Link가 생성되는지 확인한다.
-- 기존 Relation Editor keyboard/Escape/focus/dirty/pending/readonly 및 responsive 회귀는 `relation-dialog-ux.spec.ts`를 유지한다.
-- API/DB/Scheduling/Security 계약은 변경하지 않는다. 공식 전체 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
-
 ## Issue #367 Gantt Day 밀도·우측 Timeline 동적 확장
 
 - Unit: `timeline-range.test.ts`에서 Day 36px/Week 68px, right-edge pixel threshold, viewport chunk, 짧은 초기 scale buffer와 보존한 future end의 Day/Week 최소 scale width를 검증한다.
@@ -67,6 +58,13 @@ CI #1540.1의 shard 3/4는 #384 기능과 무관한 `project-resource-calendar-e
 - 각 viewport에서 기존 direct child overlap/form bounds/document overflow 검사에 더해 실제 `코드 input`과 `개발자 등급 select`의 bounding box가 서로 겹치지 않고 resource form의 수평 bounds 안에 있는지 직접 확인한다.
 - 390px과 1024px에서는 `issue-366-resource-code-grade-layout-*.png` screenshot evidence를 남긴다. 기존 이름 → 코드 → 개발자 등급 → 추가 버튼 Tab 순서와 developer grade option/API 회귀는 그대로 유지한다.
 - Resource Catalog API/DB/auth/session/revision/If-Match, Scheduling, SVAR 계약은 변경하지 않는다. 사용자 승인에 따라 이 회귀 고정을 0.70.1 PATCH release로 게시하며, 공식 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+
+## Issue #416 Gantt Week Header 근무 가능 일수 상시 표시
+
+- Unit: #316의 canonical `workingDays` helper 결과를 그대로 입력으로 사용해 persistent Header formatter가 일반 주 `5일`, 전체 비근무 `0일`, weekend WORKING override `6일` 등 `N일` 문자열을 만드는지 검증한다. 별도 근무일 산식은 추가하지 않는다.
+- Chromium E2E: W38 일반 주의 Header `5일`과 Tooltip `근무일: 5일`, W39 예외 주의 Header `4일`과 Tooltip `근무일: 4일`이 동일한지 확인한다. 기존 공휴일 상세/WORKING 이름 제외/aria/viewport Tooltip 계약을 함께 회귀한다.
+- Week `cellWidth=68`을 유지하고 390/768/1024/1440px에서 app-owned secondary label의 bounding box가 해당 Week cell 내부에 머무르는지 실제 browser geometry로 검증한다. Day↔Week round-trip 뒤 Week label 재생성, Day cell 미적용, 동일 Gantt/API instance와 mutation 0회를 확인한다.
+- API/DB/Scheduling/Calendar 저장 계약은 변경하지 않는다. 공식 전체 판정은 최신 main 기반 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
 
 ## Issue #316 Gantt Week Header 근무일·공휴일 Tooltip
 

@@ -1,11 +1,5 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
-## Issue #409 Relation Editor 식별자 검색/표시
-
-Relation Editor의 관계 추가 검색은 `작업명 / 외부 ID / 작업 ID`를 한 입력에서 지원한다. Context Menu `Copy ID`로 복사한 canonical UUID(`taskId`)를 그대로 붙여넣어 후보를 찾을 수 있어야 한다.
-
-후보와 선택 상태는 이름만 강조하고 보조 식별자는 `외부 ID: ...`, `작업 ID: ...`로 분리해 표시한다. 두 값을 모두 단순히 “ID”라고 표기하지 않는다. 긴 UUID/외부 ID는 wrap 가능해야 하며 390/768/1024/1440px에서 dialog/document overflow를 만들지 않는다. keyboard Enter/Space 선택, Escape popup close, focus restore, dirty/pending protection은 기존 Relation Editor 계약을 유지한다.
-
 ## Issue #367 Gantt 날짜 밀도와 우측 Timeline 확장
 
 Project Gantt의 Day Header/timeline cell은 숫자-only 표현에 맞춰 36px를 사용하고 Week는 68px를 유지한다. 오른쪽 Chart 탐색은 최초 Task 범위에서 끝나지 않으며 공개 `scroll-chart.left`와 `resize-chart.width`를 기준으로 남은 timeline 폭이 작아지면 viewport 단위로 미래 scale을 확장한다. React `end` prop을 반복 변경하지 않고 고정 start/open end의 SVAR public resize path를 사용한다.
@@ -747,6 +741,12 @@ Project Workspace의 설비/시스템 추가·수정 select는 active catalog �
 일정 탭의 Week Header는 기존 ISO `Wxx`와 68px 폭을 유지한다. Header hover/focus에서 현재 Project Calendar의 실제 7일 근무일 수와 명명된 NON_WORKING 날짜를 progressive disclosure한다. 근무일 수는 월~금 고정값이 아니라 Scheduling calendar의 NON_WORKING/WORKING override를 적용하며, 이름 없는 NON_WORKING은 수치에만 반영한다.
 
 Week Tooltip은 #315 Day Tooltip과 동일한 keyboard/focus, `aria-describedby`, Escape, viewport clamp, resize/scroll 재배치 정책을 사용한다. Day↔Week 전환으로 반대 scale의 target/overlay가 남지 않아야 하며 Project API 재조회, schedule mutation, Gantt/API remount를 발생시키지 않는다. Resource/Resource Group Calendar는 공통 Header 범위에서 제외한다.
+
+## Issue #416 Gantt Week Header 근무 가능 일수 상시 표시
+
+일정 탭의 Week Header는 기존 ISO `Wxx`와 **68px 폭을 유지**하면서, 같은 cell 내부에 현재 Project Calendar 기준 실제 근무 가능 일수를 `N일` secondary text로 상시 표시한다. 이 값은 #316 Tooltip이 사용하는 canonical `workingDays` 결과를 그대로 재사용하며 별도의 월~금/holiday 차감 계산을 만들지 않는다.
+
+Header에는 어느 요일이 근무 가능한지, 공휴일명·비근무 사유를 상시 노출하지 않는다. `Wxx + N일`은 여러 주의 capacity를 빠르게 비교하는 요약이고 상세 원인은 기존 hover/focus Tooltip에서 확인한다. Day↔Week, virtualization, resize/fullscreen에서도 app-owned Week date class lifecycle로 label을 재동기화하되 API 호출, 일정 mutation, Gantt remount, Week cell width 변경을 발생시키지 않는다.
 
 ## Issue #289 — 프로젝트 기준정보 UX
 
