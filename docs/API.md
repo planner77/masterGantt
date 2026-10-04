@@ -1368,3 +1368,18 @@ non-null role은 해당 Resource가 현재 보유한 Global Resource Role이어�
 `GET /api/projects/{publicId}/assignment-targets`는 optional `role=PI|DEVELOPER|EQUIPMENT_OWNER`를 지원한다. role은 Resource 후보에만 적용하며 `kind=group`과 함께 보내면 `400 INVALID_REQUEST`다. 서버는 Global Resource Role membership으로 먼저 필터한 뒤 기존 최대 100건 제한을 적용하므로, 전체 활성 대상이 100건을 넘어도 해당 역할 Resource가 앞선 무관 후보 때문에 잘리지 않는다.
 
 Template instantiate 시 snapshot의 Resource 수행 역할이 현재 Global Role에서 제거된 경우 project 생성 자체를 실패시키지 않는다. 기존 assignment와 allocation은 보존하고 수행 역할만 `null`로 복원하며 warnings에 stale 역할을 명시한다.
+
+## Issue #414 — 역할 기반 Resource workload 응답 확장
+
+`GET /api/projects/{publicId}/resource-workload`는 #56의 public-read/조회범위/M-D·M-M 계산 계약을 유지하면서 역할 기반 진단 필드를 추가한다.
+
+- `asOfDate` / `timezone`: Project calendar timezone 기준 서버 기준일과 timezone.
+- `roleTotals[]`: `PI | DEVELOPER | EQUIPMENT_OWNER | UNSPECIFIED`별 `assignmentCount`, `effortMd`, `effortMm`, `unsetCount`.
+- `unspecifiedRoleCount`: 조회 범위에 포함된 role-null 일반 Task Resource assignment 수.
+- `overAllocatedResourceCount`: 기존 일별 allocation 합계 100% 초과 규칙으로 판정한 고유 Resource 수.
+- Resource row는 `developerGrade`를, Task row는 `role`, canonical `taskStart/taskEnd`, `progress`, `status`, `delayed`를 제공한다.
+
+역할은 분류 축일 뿐 공수를 생성하지 않는다. Grand Total과 역할 subtotal은 동일 assignment를 중복 생성하지 않으며 role-null은 Global Role로 추정하지 않고 `UNSPECIFIED`로 유지한다. `delayed`는 #188과 동일하게 `progress < 100 && canonical end < asOfDate`다. 진행률/상태는 계획 공수 산식의 입력이 아니다.
+
+상세 설계: [ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md](ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md).
+
