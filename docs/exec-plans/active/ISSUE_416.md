@@ -43,6 +43,10 @@
 
 - PR #417 생성, initial head `09868e30ca969401a92bd6a21f22547d434e46dd`.
 - PR CI Run #1654.1은 `verify-ci-run-trace.py`의 canonical PR metadata 요구사항(`Refs #416` 정확히 1개) 누락으로 path gate에서 즉시 FAIL했다. 구현/테스트 job은 gate 실패로 SKIPPED되어 application 실패 증거가 아니다.
-- PR 본문을 `Refs #416` 형식으로 교정했고, 이 실행 기록 commit으로 synchronize 이벤트를 발생시켜 새 PR CI를 시작한다.
+- PR 본문을 `Refs #416` 형식으로 교정했고, 이 실행 기록 commit으로 synchronize 이벤트를 발생시켜 새 PR CI를 시작했다.
+- PR CI Run #1656.1: quality/typecheck/lint/Vitest/build/Docker와 Chromium shard 1/3/4는 PASS, shard 2/4의 `project-gantt-scale.spec.ts` 1건만 FAIL.
+- 최초 오류: Week→Day 전환 뒤 SVAR가 scale DOM cell을 재사용하면서 app-owned `.project-gantt-week-working-days` 및 `data-working-days`가 Day cell에 남아 Day 숫자-only Header 회귀가 발생했다.
+- 보완: Week effect cleanup에서 marker를 제거하고 Day `markCells`에서도 재사용 cell의 stale Week marker를 방어적으로 제거한다. Chromium round-trip에 Week marker/data attribute 부재 assertion을 추가했다.
+- Application version은 미게시 후보 `0.78.0`을 유지한다.
 
-새 exact head의 PR CI 시작 확인까지 진행하며 CI 완료/merge/release는 이번 요청 범위 밖이다.
+보완 head의 새 PR CI 시작 확인까지 진행하며 CI 완료/merge/release는 이번 요청 범위 밖이다.
