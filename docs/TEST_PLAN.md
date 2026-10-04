@@ -1287,3 +1287,15 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - 기존 #117 workload/assigned-target 독립 loading/error/stale/partial retry E2E를 그대로 통과해야 한다.
 - 공식 전체 판정은 Issue #414 PR exact head의 GitHub Actions quality/e2e/docker 결과로 한다.
 
+
+
+## Issue #415 — Resource Effort Excel 검증
+
+- workload: Calendar/range clipping 뒤 `effectiveWorkingDays`가 기존 M/D 산식과 일치하는지 확인한다.
+- workbook: `includeResourceEffort` on/off, 기존 Logistics/Dependencies 조합, Summary/Detail 시트 append 순서와 OOXML 구조를 확인한다.
+- 정합성: 동일 assignment가 여러 Group에 나타나도 Detail 1행/Grand Total 1회이며 Group명은 비가산 목록인지 확인한다.
+- 값: 역할 subtotal, 개발자별 M/D·M/M, developerGrade, 진행률/상태/지연, allocation/유효 근무일을 검증한다.
+- 미설정: `RESOURCE_MD_PER_MM` 없음, role null, allocation null을 0으로 위장하지 않는다.
+- 보안: 프로젝트/Task/Resource/Group의 `= + - @` 시작 문자열 formula injection 방지를 확인한다.
+- stale: workload `projectRevision`과 snapshot/If-Match revision 불일치 시 412 또는 workbook 생성 거부를 확인한다.
+- 실제 Windows Excel 2021/DRM은 Environment-specific Validation으로 자동 CI PASS와 구분한다.
