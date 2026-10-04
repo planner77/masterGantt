@@ -2,8 +2,8 @@
 
 ## 기준
 
-- 재정렬 기준 main: `c7e4d8bb0617f8bcb8f6559b609b57aa56f59a32`
-- 기준 application version: `0.78.0`
+- 재정렬 기준 main: `cd282440369644052c61e481ef9fb64a91476df7`
+- 기준 application version: `0.78.1`
 - 구현 target: `0.79.0`
 - 연계: Epic #411, developer grade #288, Project logistics resource roles #185, Resource Catalog #19/#329
 - release_required: `true`
