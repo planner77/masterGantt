@@ -319,7 +319,7 @@ describe("TaskHierarchyService", () => {
     } finally { value.database.close(); }
   });
 
-  it("allows same-parent reorder for a subtree with linked descendants but blocks reparent", async () => {
+  it("allows same-parent reorder for a subtree with linked descendants but blocks external-boundary reparent", async () => {
     const value = await fixture();
     try {
       const summaryCreated = value.projects.createTask(value.authorization, 1, input("S"));
@@ -350,6 +350,124 @@ describe("TaskHierarchyService", () => {
       })).toThrow(UnsupportedScheduleStructureError);
       expect(value.database.prepare("SELECT revision FROM projects").pluck().get()).toBe(reordered.data.project.revision);
     } finally { value.database.close(); }
+  });
+
+
+  it("reparents a subtree with internal dependencies while preserving the same Link identities", async () => {
+    const value = await fixture();
+    try {
+      const sourceCreated = value.projects.createTask(value.authorization, 1, input("S"));
+      const source = sourceCreated.data.tasks.find((task) => task.externalId === "S")!;
+      const firstCreated = value.projects.createTask(value.authorization, sourceCreated.data.project.revision, {
+        ...input("A"), parentTaskId: source.taskId, convertParentToSummary: true,
+      });
+      const first = firstCreated.data.tasks.find((task) => task.externalId === "A")!;
+      const secondCreated = value.projects.createTask(value.authorization, firstCreated.data.project.revision, {
+        ...input("B"), parentTaskId: source.taskId,
+      });
+      const second = secondCreated.data.tasks.find((task) => task.externalId === "B")!;
+      const targetCreated = value.projects.createTask(value.authorization, secondCreated.data.project.revision, input("T"));
+      const target = targetCreated.data.tasks.find((task) => task.externalId === "T")!;
+      const targetChildCreated = value.projects.createTask(value.authorization, targetCreated.data.project.revision, {
+        ...input("T0"), parentTaskId: target.taskId, convertParentToSummary: true,
+      });
+      const linked = value.links.create(value.authorization, targetChildCreated.data.project.revision, {
+        predecessorExternalId: first.externalId,
+        successorExternalId: second.externalId,
+        type: "SS",
+        lag: 2,
+      });
+      const linkBefore = linked.data.links.find((candidate) =>
+        candidate.predecessorExternalId === first.externalId &&
+        candidate.successorExternalId === second.externalId
+      )!;
+
+      const moved = value.hierarchy.execute(value.authorization, linked.data.project.revision, {
+        kind: "reparent",
+        taskId: source.taskId,
+        anchorTaskId: target.taskId,
+        placement: "child",
+      });
+
+      expect(moved.data.project.revision).toBe(linked.data.project.revision + 1);
+      expect(moved.data.tasks.find((task) => task.taskId === source.taskId)?.parentExternalId).toBe(target.externalId);
+      expect(moved.data.tasks.find((task) => task.taskId === first.taskId)?.parentExternalId).toBe(source.externalId);
+      expect(moved.data.tasks.find((task) => task.taskId === second.taskId)?.parentExternalId).toBe(source.externalId);
+      expect(moved.data.links).toContainEqual(linkBefore);
+      expect(value.database.prepare("SELECT count(*) FROM links").pluck().get()).toBe(1);
+    } finally {
+      value.database.close();
+    }
+  });
+
+  it("allows before/after reparent next to an independently linked anchor", async () => {
+    const value = await fixture();
+    try {
+      const sourceCreated = value.projects.createTask(value.authorization, 1, input("S"));
+      const source = sourceCreated.data.tasks.find((task) => task.externalId === "S")!;
+      const parentCreated = value.projects.createTask(value.authorization, sourceCreated.data.project.revision, input("P"));
+      const parent = parentCreated.data.tasks.find((task) => task.externalId === "P")!;
+      const anchorCreated = value.projects.createTask(value.authorization, parentCreated.data.project.revision, {
+        ...input("A"), parentTaskId: parent.taskId, convertParentToSummary: true,
+      });
+      const anchor = anchorCreated.data.tasks.find((task) => task.externalId === "A")!;
+      const peerCreated = value.projects.createTask(value.authorization, anchorCreated.data.project.revision, input("X"));
+      const peer = peerCreated.data.tasks.find((task) => task.externalId === "X")!;
+      const linked = value.links.create(value.authorization, peerCreated.data.project.revision, {
+        predecessorExternalId: anchor.externalId,
+        successorExternalId: peer.externalId,
+        type: "FS",
+        lag: 1,
+      });
+
+      const moved = value.hierarchy.execute(value.authorization, linked.data.project.revision, {
+        kind: "reparent",
+        taskId: source.taskId,
+        anchorTaskId: anchor.taskId,
+        placement: "after",
+      });
+
+      expect(moved.data.project.revision).toBe(linked.data.project.revision + 1);
+      expect(moved.data.tasks.find((task) => task.taskId === source.taskId)?.parentExternalId).toBe(parent.externalId);
+      expect(moved.data.links).toEqual(linked.data.links);
+    } finally {
+      value.database.close();
+    }
+  });
+
+  it("rejects reparent when an incoming dependency crosses the moved subtree boundary", async () => {
+    const value = await fixture();
+    try {
+      const sourceCreated = value.projects.createTask(value.authorization, 1, input("S"));
+      const source = sourceCreated.data.tasks.find((task) => task.externalId === "S")!;
+      const childCreated = value.projects.createTask(value.authorization, sourceCreated.data.project.revision, {
+        ...input("D"), parentTaskId: source.taskId, convertParentToSummary: true,
+      });
+      const child = childCreated.data.tasks.find((task) => task.externalId === "D")!;
+      const outsideCreated = value.projects.createTask(value.authorization, childCreated.data.project.revision, input("X"));
+      const outside = outsideCreated.data.tasks.find((task) => task.externalId === "X")!;
+      const targetCreated = value.projects.createTask(value.authorization, outsideCreated.data.project.revision, input("T"));
+      const target = targetCreated.data.tasks.find((task) => task.externalId === "T")!;
+      const targetChildCreated = value.projects.createTask(value.authorization, targetCreated.data.project.revision, {
+        ...input("T0"), parentTaskId: target.taskId, convertParentToSummary: true,
+      });
+      const linked = value.links.create(value.authorization, targetChildCreated.data.project.revision, {
+        predecessorExternalId: outside.externalId,
+        successorExternalId: child.externalId,
+        type: "FS",
+        lag: 0,
+      });
+
+      expect(() => value.hierarchy.execute(value.authorization, linked.data.project.revision, {
+        kind: "reparent",
+        taskId: source.taskId,
+        anchorTaskId: target.taskId,
+        placement: "child",
+      })).toThrow(UnsupportedScheduleStructureError);
+      expect(value.database.prepare("SELECT revision FROM projects").pluck().get()).toBe(linked.data.project.revision);
+    } finally {
+      value.database.close();
+    }
   });
 
 
