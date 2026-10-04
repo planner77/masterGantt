@@ -97,6 +97,7 @@ export function ProjectExportButton({ publicId }: Readonly<{ publicId: string }>
   const [format, setFormat] = useState<ExportFormat>("excel");
   const [includeDependencies, setIncludeDependencies] = useState(true);
   const [includeLogistics, setIncludeLogistics] = useState(true);
+  const [includeResourceEffort, setIncludeResourceEffort] = useState(false);
   const [scope, setScope] = useState<ExportScope>("project");
   const [scale, setScale] = useState<"day" | "week">("day");
   const [startDate, setStartDate] = useState("");
@@ -131,7 +132,7 @@ export function ProjectExportButton({ publicId }: Readonly<{ publicId: string }>
         return;
       }
       const body = format === "excel"
-        ? { includeDependencies, includeLogistics, scope: "project", scale: "day", hierarchyDisplay: "expanded", layout: exportLayout } satisfies ProjectExcelExportRequest
+        ? { includeDependencies, includeLogistics, includeResourceEffort, scope: "project", scale: "day", hierarchyDisplay: "expanded", layout: exportLayout } satisfies ProjectExcelExportRequest
         : scope === "range"
           ? { scope, startDate, endDate, scale, hierarchyDisplay: "expanded" }
           : { scope, scale, hierarchyDisplay: "expanded" };
@@ -200,6 +201,8 @@ export function ProjectExportButton({ publicId }: Readonly<{ publicId: string }>
           <p>관계를 포함하면 Gantt 화살표와 관계 정보 시트가 생성됩니다.</p>
           <label><input type="checkbox" checked={includeLogistics} disabled={busy}
             onChange={(event) => setIncludeLogistics(event.target.checked)} /> 물류 구성 보고서 포함 (공정·설비·시스템·연결 시트)</label>
+          <label><input type="checkbox" checked={includeResourceEffort} disabled={busy}
+            onChange={(event) => setIncludeResourceEffort(event.target.checked)} /> 리소스 공수 견적 포함 (역할·개발자 Summary/Detail)</label>
         </fieldset> : <>
           <fieldset disabled={busy}>
             <legend>범위</legend>

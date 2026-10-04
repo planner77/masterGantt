@@ -1383,3 +1383,10 @@ Template instantiate 시 snapshot의 Resource 수행 역할이 현재 Global Rol
 
 상세 설계: [ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md](ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md).
 
+
+
+## Issue #415 — Excel Resource Effort 옵션
+
+`POST /api/projects/{publicId}/exports/excel` 요청에 optional boolean `includeResourceEffort`를 추가한다. true이면 서버는 #414와 동일한 기본 range 및 `RESOURCE_MD_PER_MM` 환경값으로 Resource workload를 계산하고, export 대상 Project snapshot의 revision과 workload `projectRevision`을 비교한다. 불일치하면 기존 stale 보호와 동일하게 412 `REVISION_MISMATCH`를 반환한다.
+
+`GET /api/projects/{publicId}/resource-workload`의 assignment detail에는 additive field `effectiveWorkingDays`가 포함된다. 이 값은 assignment/range clipping 및 Project/Group/Resource Calendar override를 적용한 canonical 근무일 수이며, Excel은 이를 재계산하지 않는다.

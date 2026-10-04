@@ -95,7 +95,8 @@ export class ResourceWorkloadService {
       if (start > end) continue;
       const configured = assignment.allocationPercent !== null;
       const calendar = calendarFor(resource.publicId);
-      const effortMd = configured ? round(workingDaysBetween(start, end, calendar) * assignment.allocationPercent! / 100) : null;
+      const effectiveWorkingDays = workingDaysBetween(start, end, calendar);
+      const effortMd = configured ? round(effectiveWorkingDays * assignment.allocationPercent! / 100) : null;
       const effortMm = effortMd === null || mdPerMm === null ? null : round(effortMd / mdPerMm);
       const role: ResourceWorkloadRole = assignment.assignmentRole ?? "UNSPECIFIED";
       const detail: ResourceWorkloadTaskDto = {
@@ -105,6 +106,7 @@ export class ResourceWorkloadService {
         start,
         end,
         allocationPercent: assignment.allocationPercent,
+        effectiveWorkingDays,
         effortMd,
         effortMm,
         effortConfigured: configured,

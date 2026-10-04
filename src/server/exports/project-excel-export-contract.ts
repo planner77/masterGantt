@@ -7,6 +7,7 @@ const gridColumnId = z.enum(["text", "externalId", "projectStart", "projectDurat
 const exportSchema = z.object({
   includeDependencies: z.boolean(),
   includeLogistics: z.boolean().optional(),
+  includeResourceEffort: z.boolean().optional(),
   scope: z.literal("project"),
   scale: z.literal("day"),
   hierarchyDisplay: z.literal("expanded"),
