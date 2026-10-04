@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.81.0] - 2026-10-05
+
+### Added
+
+- Issue #414: 기존 Resource workload에 PI/개발자/설비 담당/역할 미지정 수행 역할별 M/D·M/M subtotal과 `개발 견적` preset, 수행 역할·개발자 등급 drill-down을 추가한다.
+- Resource Task detail에 canonical 진행률·상태/지연·일정과 allocation 기간/투입률, Resource 개발자 등급을 함께 표시한다.
+
+### Changed
+
+- #56의 Calendar/allocation 기반 계획 공수 산식과 assignmentId Grand Total dedup을 유지하면서 `assignment_role`을 분류 축으로만 확장한다. 역할 미지정은 Global Role에서 추정하지 않는다.
+- 지연 판정은 #188 물류 대시보드와 동일한 Project timezone 기준 `progress < 100 && end < asOfDate`를 사용하며 progress/status는 계획 공수를 변경하지 않는다.
+- Application version을 `0.80.0`에서 `0.81.0`으로 증가한다.
+
 ## [0.80.0] - 2026-10-04
 
 ### Added

@@ -126,3 +126,10 @@ Summary 직접 Resource/Group assignment는 자식이 없어도 보존한다. �
 Task assignment의 `assignment_role`은 공수의 분류 차원이며 #56의 M/D·M/M 산식에는 영향을 주지 않는다. 동일 Resource assignment의 `assignment_start`, `assignment_end`, `allocation_percent` 및 계층형 Resource Calendar가 기존처럼 공수 계산의 입력이다.
 
 역할 미지정 legacy assignment도 allocation이 유효하면 기존과 같은 공수를 계산한다. Group assignment는 계속 개인 공수로 자동 분배하지 않는다. 후속 #414는 이 동일 assignment row의 역할을 기준으로 집계 축을 추가하되 #56 산식을 변경하지 않는다.
+
+## Issue #414 연계 — 역할별 집계와 개발자 견적
+
+#414는 #56 산식을 변경하지 않고 같은 일반 Task 개인 Resource assignment를 `assignment_role`로 분류한다. Grand Total은 기존 assignmentId dedup을 유지하며 PI/DEVELOPER/EQUIPMENT_OWNER/UNSPECIFIED subtotal의 합은 같은 조회 범위의 Grand Total과 일치해야 한다. role-null은 Global Role에서 추정하지 않는다.
+
+Resource workload 응답은 Resource developer grade 및 Task canonical progress/status/start/end/delayed를 표시 정보로 추가한다. 이 정보는 M/D·M/M 산식이나 allocation/Calendar/과투입 판정에 영향을 주지 않는다. UI의 `개발 견적` preset과 역할/등급 필터는 현재 성공 snapshot의 drill-down을 제한할 뿐 서버 Project 전체 합계를 재정의하지 않는다.
+
