@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.79.0] - 2026-10-04
+
+### Added
+
+- Issue #412: Resource에 전역 역할 `PI`, `DEVELOPER`, `EQUIPMENT_OWNER`의 0..N 프로필을 추가하고 Resource Catalog 관리자 화면에서 다중 선택·표시할 수 있다.
+- migration `0020_resource_roles.sql`로 Resource↔Role M:N을 저장하며 stable role CHECK, 중복 PK, Resource 삭제 cascade와 role→resource 조회 index를 추가한다.
+- Resource Catalog create/update/response에 `roles`를 추가하고 기존 관리자 session·Origin·strong `If-Match`·catalog revision 계약을 유지한다.
+
+### Changed
+
+- 전역 `DEVELOPER` 역할과 `developerGrade`는 독립적으로 유지하며 역할 지정/해제가 등급을 자동 생성·삭제하지 않는다. 기존 #288의 Project System developer 신규 배정 시 등급 규칙은 변경하지 않는다.
+- Resource Group 구성원 화면에는 현재 Resource 역할을 참고 정보로 표시하지만 membership, Task assignment, Project Equipment/System role, Calendar를 자동 변경하지 않는다.
+- 최신 main의 #409 Relation taskId 검색 회귀 수정을 보존하고 Application version을 `0.78.1`에서 `0.79.0`으로 증가한다.
+
 ## [0.78.1] - 2026-10-04
 
 ### Fixed

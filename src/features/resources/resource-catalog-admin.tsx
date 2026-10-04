@@ -7,6 +7,7 @@ import type {
   ResourceDto,
   DeveloperGrade,
   ResourceGroupDto,
+  ResourceRole,
 } from "@/contracts/resources";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { filterGroups, filterResources } from "./resource-search-filter";
@@ -22,6 +23,18 @@ const DEVELOPER_GRADE_OPTIONS: Array<{ value: DeveloperGrade | ""; label: string
 function developerGradeLabel(value: DeveloperGrade | null | undefined): string {
   return DEVELOPER_GRADE_OPTIONS.find((option) => option.value === (value ?? ""))?.label ?? "등급 미지정";
 }
+const RESOURCE_ROLE_OPTIONS: Array<{ value: ResourceRole; label: string }> = [
+  { value: "PI", label: "PI" },
+  { value: "DEVELOPER", label: "개발자" },
+  { value: "EQUIPMENT_OWNER", label: "설비 담당" },
+];
+function resourceRoleLabel(value: ResourceRole): string {
+  return RESOURCE_ROLE_OPTIONS.find((option) => option.value === value)?.label ?? value;
+}
+function orderedResourceRoles(values: Iterable<ResourceRole>): ResourceRole[] {
+  const selected = new Set(values);
+  return RESOURCE_ROLE_OPTIONS.map((option) => option.value).filter((role) => selected.has(role));
+}
 
 function isCatalog(value: unknown): value is ResourceCatalogResponse {
   if (!value || typeof value !== "object" || !("data" in value)) return false;
@@ -36,6 +49,9 @@ function isCatalog(value: unknown): value is ResourceCatalogResponse {
       (!("developerGrade" in item) || item.developerGrade === null || ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"].includes(String(item.developerGrade))) &&
       (!("projectUsageCount" in item) || (typeof item.projectUsageCount === "number" && Number.isSafeInteger(item.projectUsageCount) && item.projectUsageCount >= 0)) &&
       (!("deletable" in item) || typeof item.deletable === "boolean")) &&
+    data.resources.every((resource) => !("roles" in resource) || (Array.isArray(resource.roles) &&
+      new Set(resource.roles).size === resource.roles.length &&
+      resource.roles.every((role: unknown) => ["PI", "DEVELOPER", "EQUIPMENT_OWNER"].includes(String(role))))) &&
     data.groups.every((group) => Array.isArray(group.memberResourceIds) &&
       group.memberResourceIds.every((id: unknown) => typeof id === "string"));
 }
@@ -88,6 +104,8 @@ export function ResourceCatalogAdmin() {
   const [resourceName, setResourceName] = useState("");
   const [resourceCode, setResourceCode] = useState("");
   const [resourceDeveloperGrade, setResourceDeveloperGrade] = useState<DeveloperGrade | "">("");
+  const [resourceRoles, setResourceRoles] = useState<Set<ResourceRole>>(new Set());
+  const [resourceRoleDrafts, setResourceRoleDrafts] = useState<Record<string, ResourceRole[]>>({});
   const [groupName, setGroupName] = useState("");
   const [groupCode, setGroupCode] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
@@ -299,8 +317,39 @@ export function ResourceCatalogAdmin() {
     const name = resourceName.trim();
     const code = resourceCode.trim();
     if (!name) return;
-    if (await mutate("/api/resources", "POST", { name, code: code || null, developerGrade: resourceDeveloperGrade || null })) {
-      setResourceName(""); setResourceCode(""); setResourceDeveloperGrade("");
+    if (await mutate("/api/resources", "POST", {
+      name,
+      code: code || null,
+      developerGrade: resourceDeveloperGrade || null,
+      roles: orderedResourceRoles(resourceRoles),
+    })) {
+      setResourceName(""); setResourceCode(""); setResourceDeveloperGrade(""); setResourceRoles(new Set());
+    }
+  }
+
+  function toggleResourceCreateRole(role: ResourceRole) {
+    setResourceRoles((current) => {
+      const next = new Set(current);
+      if (next.has(role)) next.delete(role); else next.add(role);
+      return next;
+    });
+  }
+
+  async function updateResourceRole(resource: ResourceDto, role: ResourceRole, enabled: boolean) {
+    const next = new Set(resourceRoleDrafts[resource.id] ?? resource.roles ?? []);
+    if (enabled) next.add(role); else next.delete(role);
+    const nextRoles = orderedResourceRoles(next);
+    setResourceRoleDrafts((current) => ({ ...current, [resource.id]: nextRoles }));
+    const successful = await mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", {
+      roles: nextRoles,
+    });
+    if (successful) {
+      setResourceRoleDrafts((current) => {
+        if (!(resource.id in current)) return current;
+        const remaining = { ...current };
+        delete remaining[resource.id];
+        return remaining;
+      });
     }
   }
 
@@ -476,6 +525,12 @@ export function ResourceCatalogAdmin() {
           <label>코드<input value={resourceCode} maxLength={64} disabled={locked} onChange={(event) => setResourceCode(event.target.value)} /></label>
           <label>개발자 등급<select aria-label="신규 리소스 개발자 등급" value={resourceDeveloperGrade} disabled={locked} onChange={(event) => setResourceDeveloperGrade(event.target.value as DeveloperGrade | "")}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label>
           <button className="primary-button" type="submit" disabled={locked || !resourceName.trim()}>추가</button>
+          <fieldset className={styles.resourceRoleFieldset}>
+            <legend>전역 역할</legend>
+            <div className={styles.roleOptions}>
+              {RESOURCE_ROLE_OPTIONS.map((option) => <label key={option.value}><input type="checkbox" checked={resourceRoles.has(option.value)} disabled={locked} onChange={() => toggleResourceCreateRole(option.value)} />{option.label}</label>)}
+            </div>
+          </fieldset>
         </form>
         {catalog.data.resources.length === 0 ? (
           <p className={styles.emptyState}>등록된 리소스가 없습니다.</p>
@@ -491,12 +546,23 @@ export function ResourceCatalogAdmin() {
                   <div className={styles.meta}>
                     <span>{resource.code ?? "코드 없음"}</span>
                     <span>개발자 등급: {developerGradeLabel(resource.developerGrade)}</span>
+                    <span className={styles.roleSummary}>
+                      전역 역할: {(resource.roles ?? []).length === 0
+                        ? <span>없음</span>
+                        : (resource.roles ?? []).map((role) => <span key={role} className={styles.roleBadge}>{resourceRoleLabel(role)}</span>)}
+                    </span>
                     <span className={styles.badge}>{resource.active ? "활성" : "비활성"}</span>
                     <span id={usageId} className={styles.usageNote}>{projectUsageReason(resource)}</span>
                   </div>
                 </div>
                 <div className={styles.resourceActions}>
                   <label className={styles.inlineGradeLabel}>개발자 등급<select aria-label={`${resource.name} 개발자 등급`} value={resource.developerGrade ?? ""} disabled={locked} onChange={(event) => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { developerGrade: event.target.value || null })}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label>
+                  <fieldset className={styles.inlineRoleFieldset}>
+                    <legend>{resource.name} 전역 역할</legend>
+                    <div className={styles.roleOptions}>
+                      {RESOURCE_ROLE_OPTIONS.map((option) => <label key={option.value}><input aria-label={`${resource.name} ${option.label} 역할`} type="checkbox" checked={(resourceRoleDrafts[resource.id] ?? resource.roles ?? []).includes(option.value)} disabled={locked} onChange={(event) => void updateResourceRole(resource, option.value, event.target.checked)} />{option.label}</label>)}
+                    </div>
+                  </fieldset>
                   <button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
                   {resource.deletable === true
                     ? <button className="danger-button" type="button" disabled={locked} aria-describedby={usageId} aria-label={`${resource.name} 삭제`} onClick={(event) => requestDelete("resource", resource, event)}>삭제</button>
@@ -585,7 +651,7 @@ export function ResourceCatalogAdmin() {
         <p className={styles.emptyState}>검색 조건과 일치하는 리소스가 없습니다.</p>
       ) : (
         <div className={styles.memberGrid}>
-          {filteredMemberResources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input type="checkbox" checked={selectedMembers.has(resource.id)} disabled={locked || !currentGroup} onChange={() => toggleMember(resource.id)} />{resource.name}{resource.code ? ` (${resource.code})` : ""}</label>)}
+          {filteredMemberResources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input aria-label={`${resource.name}${resource.code ? ` (${resource.code})` : ""}`} type="checkbox" checked={selectedMembers.has(resource.id)} disabled={locked || !currentGroup} onChange={() => toggleMember(resource.id)} /><span>{resource.name}{resource.code ? ` (${resource.code})` : ""}<span className={styles.memberRoleText}> · 역할 {(resource.roles ?? []).length > 0 ? (resource.roles ?? []).map(resourceRoleLabel).join(", ") : "없음"}</span></span></label>)}
         </div>
       )}
       <div className={styles.memberFooterActions}>

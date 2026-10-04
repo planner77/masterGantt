@@ -1306,3 +1306,22 @@ Summary는 직접 status를 PATCH하지 않는다. 기존 derived progress가 �
 
 Chart bar 수직 Drag & Drop은 새 endpoint 없이 기존 `POST /api/projects/{publicId}/task-commands`의 `reparent(before|after)`를 사용한다. edit session, Origin, strong `If-Match`, transaction, revision, canonical response 계약은 기존 hierarchy mutation과 동일하다. #335에 따라 linked same-parent sibling reorder는 허용하고 cross-parent implicit reparent는 만들지 않는다. vertical gesture 한 번은 hierarchy command 1회만 발생시키며 Task PATCH와 중복 저장하지 않는다.
 
+## Issue #412 — Resource global roles
+
+Resource Catalog의 Resource 표현은 `roles` 배열을 반환한다.
+
+```json
+{
+  "id": "<resource uuid>",
+  "name": "홍길동",
+  "developerGrade": "ADVANCED",
+  "roles": ["PI", "DEVELOPER"],
+  "active": true
+}
+```
+
+`POST /api/resources`와 `PATCH /api/resources/{resourceId}`는 optional `roles`를 받는다. 허용값은 `PI`, `DEVELOPER`, `EQUIPMENT_OWNER`이고 요청 내 중복은 `400 INVALID_REQUEST`로 거부한다. 응답 배열은 위 stable 순서로 canonicalize한다. Resource Group create/update에는 `roles`를 허용하지 않는다.
+
+역할 변경은 기존 Resource Catalog 관리자 session, mutation Origin 검증, strong catalog `If-Match`, stale `412 CATALOG_REVISION_MISMATCH`, canonical Resource Catalog response 계약을 그대로 사용한다. 실제 역할 변경은 catalog revision을 정확히 +1 하지만 동일 canonical 배열은 no-op이다. `DEVELOPER` role 편집은 `developerGrade`를 자동 변경하지 않는다.
+
+Task assignment search/assigned-target DTO에는 이 Issue에서 roles를 새로 결합하지 않는다. 역할 적합성 기반 Task assignment는 후속 #413의 범위다.

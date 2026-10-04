@@ -286,3 +286,13 @@ Summary는 하위 일정에서 날짜가 파생되므로 시작일 직접 편집
 - #335 linked same-parent reorder를 허용하고 #399/#407 scope 및 기존 hierarchy invariant를 우회하지 않아야 한다.
 - cross-parent implicit reparent는 허용하지 않는다.
 
+### REQ-RESOURCE-GLOBAL-ROLES — Issue #412
+
+- Resource는 전역 역할 `PI | DEVELOPER | EQUIPMENT_OWNER` 중 0개 이상을 동시에 가질 수 있어야 한다.
+- 전역 역할은 Resource Group membership, Task assignment, Project Equipment/System 담당 역할과 독립이어야 하며 어느 한쪽의 변경이 다른 쪽을 자동 변경하면 안 된다.
+- `DEVELOPER` 전역 역할과 developerGrade는 독립적으로 저장되어야 한다. 전역 역할 지정/해제로 등급을 자동 생성·삭제하지 않는다.
+- DB/API는 동일 Resource-role 중복과 허용되지 않은 role code를 거부해야 한다.
+- 기존 Resource는 schema upgrade 뒤 역할 0개로 보존되어야 하며 임의 backfill하지 않는다.
+- Resource Catalog 관리자만 역할을 변경할 수 있고 기존 Origin/session/If-Match/revision 동시성 계약을 유지해야 한다.
+- 비활성 Resource의 기존 역할은 조회/보존되어야 한다. 안전 삭제가 허용된 Resource 삭제 시 role row는 함께 정리되어야 한다.
+- 관리 UI는 역할과 개발자 등급을 시각·의미적으로 구분하고 keyboard로 역할 다중 선택이 가능해야 한다.

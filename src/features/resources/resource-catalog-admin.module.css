@@ -3,6 +3,7 @@
 .login { max-width: 520px; display: grid; gap: .75rem; }
 .formRow { display: grid; gap: .5rem; align-items: end; }
 .resourceCreateForm { grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr) minmax(0, .8fr) max-content; }
+.resourceCreateForm .resourceRoleFieldset { grid-column: 1 / -1; }
 .groupCreateForm { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) max-content; }
 .formRow > label { min-width: 0; }
 .formRow > button { min-width: max-content; }
@@ -113,3 +114,59 @@
 }
 
 .usageNote { color: var(--text-muted); font-size: .82rem; }
+
+
+/* Issue #412: global Resource roles are independent from developer grade and group membership. */
+.resourceRoleFieldset, .inlineRoleFieldset {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--border-control);
+  border-radius: calc(var(--radius) - 0.125rem);
+  padding: .35rem .5rem .45rem;
+}
+.resourceRoleFieldset legend, .inlineRoleFieldset legend {
+  padding: 0 .2rem;
+  color: var(--text-muted);
+  font-size: .78rem;
+}
+.roleOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem .65rem;
+  align-items: center;
+}
+.roleOptions label {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .8rem;
+  white-space: nowrap;
+}
+.roleOptions input:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+.inlineRoleFieldset {
+  max-width: 100%;
+}
+.roleSummary {
+  display: inline-flex;
+  gap: .3rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.roleBadge {
+  display: inline-flex;
+  padding: .05rem .35rem;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  color: var(--text-default);
+  font-size: .75rem;
+}
+.memberRoleText {
+  color: var(--text-muted);
+  font-size: .78rem;
+}
+@media (max-width: 40rem) {
+  .inlineRoleFieldset { width: 100%; }
+}
