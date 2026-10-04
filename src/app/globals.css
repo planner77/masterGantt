@@ -1513,6 +1513,48 @@ h2 {
   font-weight: 700;
 }
 
+.resource-role-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.resource-role-summary > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.125rem;
+  padding: 0.625rem 1rem;
+  border-right: 1px solid var(--border);
+}
+
+.resource-role-summary > div:last-child {
+  border-right: 0;
+}
+
+.resource-role-summary dt {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.resource-role-summary dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.resource-role-summary span {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.resource-estimate-button.is-active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
 .resource-workload-note,
 .resource-workload-error,
 .resource-workload-empty {
@@ -1576,7 +1618,7 @@ h2 {
 
 .resource-workload-table {
   width: 100%;
-  min-width: 42rem;
+  min-width: 72rem;
   border-collapse: collapse;
   font-size: 0.8125rem;
 }
@@ -1645,7 +1687,8 @@ h2 {
     justify-content: space-between;
   }
 
-  .resource-workload-summary {
+  .resource-workload-summary,
+  .resource-role-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1653,11 +1696,13 @@ h2 {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .resource-workload-summary > div:nth-child(2n) {
+  .resource-workload-summary > div:nth-child(2n),
+  .resource-role-summary > div:nth-child(2n) {
     border-right: 0;
   }
 
-  .resource-workload-summary > div:nth-child(n + 3) {
+  .resource-workload-summary > div:nth-child(n + 3),
+  .resource-role-summary > div:nth-child(n + 3) {
     border-top: 1px solid var(--border);
   }
 }
@@ -1860,7 +1905,7 @@ h2 {
   flex: 1 1 16rem;
 }
 .resource-filter-result { margin-left: auto; }
-.resource-filter-panel { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.resource-filter-panel { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .resource-filter-date-note { grid-column: 1 / -1; margin: 0; color: var(--status-warning); font-size: 0.8125rem; }
 
 /* Issue #260: Project Workspace filter density and semantic grouping */
