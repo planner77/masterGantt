@@ -547,7 +547,7 @@ export function ResourceCatalogAdmin() {
                   </div>
                 </div>
                 <div className={styles.resourceActions}>
-                  <div className={styles.resourceProfile} aria-label={`${resource.name} 프로필`}>
+                  <div className={styles.resourceProfile} role="group" aria-label={`${resource.name} 프로필`}>
                     <label className={styles.inlineGradeLabel}>개발자 등급<select aria-label={`${resource.name} 개발자 등급`} value={resource.developerGrade ?? ""} disabled={locked} onChange={(event) => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { developerGrade: event.target.value || null })}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label>
                     <fieldset className={styles.inlineRoleFieldset}>
                       <legend>{resource.name} 전역 역할</legend>
@@ -556,7 +556,7 @@ export function ResourceCatalogAdmin() {
                       </div>
                     </fieldset>
                   </div>
-                  <div className={styles.rowActions} aria-label={`${resource.name} 상태 및 삭제 작업`}>
+                  <div className={styles.rowActions} role="group" aria-label={`${resource.name} 상태 및 삭제 작업`}>
                     <button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
                     {resource.deletable === true
                       ? <button className="danger-button" type="button" disabled={locked} aria-describedby={usageId} aria-label={`${resource.name} 삭제`} onClick={(event) => requestDelete("resource", resource, event)}>삭제</button>
