@@ -239,6 +239,8 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   // reverting to Week formatting; exact visible calendar dates are not fixed.
   const restoredDayCells = page.locator(".project-gantt-day-scale");
   await expect(restoredDayCells.first()).toBeVisible();
+  await expect(restoredDayCells.first().locator(".project-gantt-week-working-days")).toHaveCount(0);
+  await expect(restoredDayCells.first()).not.toHaveAttribute("data-working-days", /.+/);
   await expect(restoredDayCells.first()).toHaveText(/^\d{1,2}$/);
   await expect(dayScale.getByText(/일|[()]/)).toHaveCount(0);
   await expect(page.locator(".project-gantt-week-scale")).toHaveCount(0);
