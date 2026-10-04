@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #430 Cut 내부 Dependency 허용 / 외부 경계 제한 — 구현·문서 동기화 / PR CI
+
+최신 기준 main `a280505596961395d165f3759d3a27649ddac8b5` / application `0.80.0`에서 Cut source subtree 내부 Dependency는 기존 Link identity/endpoints/type/lag를 보존한 채 cross-parent Paste/reparent를 허용하고, source 경계를 넘는 incoming/outgoing Link만 Context Menu·Ctrl/Cmd+X·cut Paste·server reparent에서 동일하게 제한한다. linked anchor before/after는 허용하되 linked leaf `child` 전환과 Delete/Indent/Outdent/Convert 보호는 유지한다. 후보 version은 MINOR `0.81.0`, branch는 `feat/issue-430-cut-internal-dependency`이며 상세는 [Issue #430 실행 계획](ISSUE_430.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 PR 생성과 exact head PR CI 시작 확인이며 CI 완료·병합·main CI·GHCR·정식 release·Issue 종료는 범위 밖이다.
+
 ## Issue #418 Workspace 범위 Header/Row 작업 추가 일관성 — latest main 0.79.0 / merge 준비
 
 최신 main `888b3a657ee9e29a69f322c505cb494d22f0275a` / application `0.79.0`의 #412 Resource 전역 역할 모델, #409 Relation Editor taskId 검색, #416 Week Header `Wxx + N일`, #299 Chart vertical DnD, #407 scoped Row add, #399 single-ProjectGantt scope tabs를 보존한다. Header/Row native `add-task`를 source-aware pure resolver로 통합해 scoped Header를 active root immediate child로 정의하고, descendant Row child·일반 Task first-child Summary 전환을 같은 canonical mutation 경계로 처리한다. canonical sync와 `filter-tasks` 직렬화 및 scroll/focus 복원으로 add 중 blank/flicker를 방지한다. 후보 version은 PATCH `0.79.1`, branch는 `fix/issue-418-scoped-native-add-continuity`; 상세는 [Issue #418 실행 계획](ISSUE_418.md)을 따른다. PR CI 성공 후 merge → exact Main CI SUCCESS → Generic Release Finalizer → approved `v0.79.1` release-image/GHCR → branch cleanup/Issue FINAL 순서로 진행한다.
