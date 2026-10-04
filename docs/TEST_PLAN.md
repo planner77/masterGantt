@@ -1258,3 +1258,18 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Independence: role 변경↔developerGrade, Resource Group membership, Task assignment, Project Equipment/System roles, Calendar가 서로 자동 변경되지 않는지 검증한다. #288의 Project System developer grade 규칙은 유지한다.
 - UI/Chromium: 생성/표시/row 역할 checkbox, keyboard Space/focus, 역할/등급 구분, Group member 역할 참고, long Korean name, mutation `If-Match`, 390/768/1024/1440px document overflow를 검증한다.
 - 회귀: 기존 Resource 삭제 usage guard, group member 저장, Task Resource tab/assignment, logistics owner/developer/PI 저장, Resource Calendar 테스트는 동일 PR head의 전체 CI에서 함께 판정한다.
+
+## Issue #413 — Task assignment 수행 역할 검증
+
+- DB migration: `0021_task_assignment_roles.sql` ledger, nullable column, allowed role CHECK, role lookup index, assignment membership guard, role delete guard를 확인한다.
+- Service/API: multi-role Resource의 Task별 PI/DEVELOPER 저장, 보유하지 않은 role 거부, stale catalog/Project revision, Group role 금지, 사용 중 Global Role 제거 fail-closed와 Project/Task usage detail을 검증한다.
+- 기존 데이터: migration 전 assignment는 role null로 유지되고 allocation/M/D/M/M 결과가 바뀌지 않아야 한다.
+- UI/E2E: 역할 우선 후보 필터, Resource별 역할 option 제한, 신규 assignment 역할 필수, legacy 미지정 표시, 역할 변경 시 allocation draft 유지, 390/768/1024/1440 overflow와 keyboard 접근성을 검사한다.
+- 복사/Template: Project Copy와 Template snapshot/instantiate에서 assignment role과 null 상태가 보존되어야 한다.
+- 회귀: Group assignment, 관계/물류/작업 정보 탭, Calendar/workload, Gantt scope state는 역할 메타데이터 추가로 동작이 변하지 않아야 한다.
+
+### Issue #413 review 회귀
+
+- 100개를 초과하는 활성 Resource에서 역할 없는 filler가 앞에 정렬되어도 `role=EQUIPMENT_OWNER` 검색은 뒤쪽 matching Resource를 반환해야 한다.
+- Task Editor에서 수행 역할 선택 시 실제 `assignment-targets?kind=resource&role=...` request가 발생해야 한다.
+- Template snapshot에 남은 수행 역할을 live assignment 삭제 후 Global Role에서 제거하고 instantiate해도 500이 발생하지 않아야 한다. 새 assignment/allocation은 유지하고 role은 null, warning은 stale role과 역할 미지정 복원을 포함해야 한다.

@@ -27,10 +27,12 @@ import {
 } from "../security/resource-catalog-cookie-core";
 import type { AuthorizationResult, AuthorizedEditSession } from "../projects/project-service-core";
 import {
+  ResourceCatalogAssignmentRoleInvalidError,
   ResourceCatalogAuthorizationError,
   ResourceCatalogInvalidInputError,
   ResourceCatalogProjectRevisionMismatchError,
   ResourceCatalogRevisionMismatchError,
+  ResourceCatalogRoleInUseError,
   ResourceCatalogTargetInactiveError,
   ResourceCatalogTargetInUseError,
   ResourceCatalogTargetNotFoundError,
@@ -187,6 +189,21 @@ function mapError(error: unknown): unknown {
   }
   if (error instanceof ResourceCatalogTargetInactiveError) {
     return new PublicApiError(409, "ASSIGNMENT_TARGET_INACTIVE", "Inactive resources or groups cannot be newly assigned.");
+  }
+  if (error instanceof ResourceCatalogAssignmentRoleInvalidError) {
+    return new PublicApiError(409, "ASSIGNMENT_ROLE_INVALID", "The selected assignment role is not held by the resource.");
+  }
+  if (error instanceof ResourceCatalogRoleInUseError) {
+    return new PublicApiError(
+      409,
+      "RESOURCE_ROLE_IN_USE",
+      "Resource role cannot be removed while task assignments use it.",
+      [
+        { code: "ROLE", message: error.role },
+        { code: "PROJECT_USAGE_COUNT", message: `projectUsageCount=${error.projectCount}` },
+        { code: "TASK_USAGE_COUNT", message: `taskUsageCount=${error.taskCount}` },
+      ],
+    );
   }
   if (error instanceof ResourceCatalogTargetInUseError) {
     const usage = error.usage;
@@ -591,7 +608,14 @@ export async function handleSearchAssignmentTargets(request: Request, publicId: 
     const params = new URL(request.url).searchParams;
     const rawKind = params.get("kind");
     const kind = rawKind === null ? undefined : rawKind === "resource" || rawKind === "group" ? rawKind : (() => { throw new PublicApiError(400, "INVALID_REQUEST", "kind is invalid."); })();
-    const result = resourceService(dependencies).searchTargets(authorization, kind, params.get("q") ?? undefined);
+    const rawRole = params.get("role");
+    const role = rawRole === null
+      ? undefined
+      : rawRole === "PI" || rawRole === "DEVELOPER" || rawRole === "EQUIPMENT_OWNER"
+        ? rawRole
+        : (() => { throw new PublicApiError(400, "INVALID_REQUEST", "role is invalid."); })();
+    if (kind === "group" && role !== undefined) throw new PublicApiError(400, "INVALID_REQUEST", "role cannot be combined with group kind.");
+    const result = resourceService(dependencies).searchTargets(authorization, kind, params.get("q") ?? undefined, role);
     return json(result, 200, result.data.catalogRevision);
   } catch (error) {
     return fail(error, requestId);

@@ -28,6 +28,12 @@ export interface AssignmentRecord {
   assignmentStart: string | null;
   assignmentEnd: string | null;
   allocationPercent: number | null;
+  assignmentRole: ResourceRole | null;
+}
+
+export interface ResourceRoleAssignmentUsage {
+  projectCount: number;
+  taskCount: number;
 }
 
 export interface CatalogTargetProjectUsage {
@@ -260,8 +266,13 @@ export class ResourceCatalogRepository {
   }
 
   replaceResourceRoles(resourceId: number, roles: readonly ResourceRole[], now: string): void {
-    this.database.prepare("DELETE FROM resource_roles WHERE resource_id = ?").run(resourceId);
-    const insert = this.database.prepare(`INSERT INTO resource_roles (resource_id, role, created_at) VALUES (?, ?, ?)`);
+    const keep = new Set(roles);
+    for (const currentRole of this.listResourceRoles(resourceId)) {
+      if (!keep.has(currentRole)) {
+        this.database.prepare("DELETE FROM resource_roles WHERE resource_id = ? AND role = ?").run(resourceId, currentRole);
+      }
+    }
+    const insert = this.database.prepare(`INSERT OR IGNORE INTO resource_roles (resource_id, role, created_at) VALUES (?, ?, ?)`);
     for (const role of roles) insert.run(resourceId, role, now);
   }
 
@@ -271,7 +282,7 @@ export class ResourceCatalogRepository {
              CASE WHEN a.resource_id IS NOT NULL THEN 'resource' ELSE 'group' END AS kind,
              COALESCE(a.resource_id, a.group_id) AS target_internal_id,
              COALESCE(r.public_id, g.public_id) AS target_public_id,
-             a.assignment_start, a.assignment_end, a.allocation_percent
+             a.assignment_start, a.assignment_end, a.allocation_percent, a.assignment_role
       FROM task_assignments a
       JOIN tasks t ON t.id = a.task_id AND t.project_id = a.project_id
       LEFT JOIN resources r ON r.id = a.resource_id
@@ -280,14 +291,26 @@ export class ResourceCatalogRepository {
       ORDER BY a.task_id, a.id`).all(projectId) as Array<{
         id:number; public_id:string; project_id:number; task_id:number; task_public_id:string;
         kind:"resource"|"group"; target_internal_id:number; target_public_id:string;
-        assignment_start:string|null; assignment_end:string|null; allocation_percent:number|null;
+        assignment_start:string|null; assignment_end:string|null; allocation_percent:number|null; assignment_role:ResourceRole|null;
       }>;
     return rows.map((row) => ({
       id: row.id, publicId: row.public_id, projectId: row.project_id, taskId: row.task_id,
       taskPublicId: row.task_public_id, kind: row.kind, targetInternalId: row.target_internal_id,
       targetPublicId: row.target_public_id, assignmentStart: row.assignment_start,
       assignmentEnd: row.assignment_end, allocationPercent: row.allocation_percent,
+      assignmentRole: row.kind === "resource" ? row.assignment_role : null,
     }));
+  }
+
+  getResourceRoleAssignmentUsage(resourceId: number, role: ResourceRole): ResourceRoleAssignmentUsage {
+    const row = this.database.prepare(`
+      SELECT COUNT(DISTINCT project_id) AS project_count,
+             COUNT(*) AS task_count
+        FROM task_assignments
+       WHERE resource_id = ?
+         AND assignment_role = ?
+    `).get(resourceId, role) as { project_count: number; task_count: number };
+    return { projectCount: row.project_count, taskCount: row.task_count };
   }
 
   replaceTaskAssignments(input: {
@@ -296,14 +319,15 @@ export class ResourceCatalogRepository {
     targets: Array<{
       publicId: string; kind: "resource" | "group"; internalId: number; assignmentPublicId: string;
       assignmentStart: string | null; assignmentEnd: string | null; allocationPercent: number | null;
+      assignmentRole?: ResourceRole | null;
     }>;
     now: string;
   }): void {
     this.database.prepare("DELETE FROM task_assignments WHERE project_id = ? AND task_id = ?").run(input.projectId, input.taskId);
     const insert = this.database.prepare(`
       INSERT INTO task_assignments
-      (public_id, project_id, task_id, resource_id, group_id, assignment_start, assignment_end, allocation_percent, created_at, updated_at)
-      VALUES (@assignmentPublicId, @projectId, @taskId, @resourceId, @groupId, @assignmentStart, @assignmentEnd, @allocationPercent, @now, @now)`);
+      (public_id, project_id, task_id, resource_id, group_id, assignment_start, assignment_end, allocation_percent, assignment_role, created_at, updated_at)
+      VALUES (@assignmentPublicId, @projectId, @taskId, @resourceId, @groupId, @assignmentStart, @assignmentEnd, @allocationPercent, @assignmentRole, @now, @now)`);
     for (const target of input.targets) {
       insert.run({
         assignmentPublicId: target.assignmentPublicId, projectId: input.projectId, taskId: input.taskId,
@@ -312,6 +336,7 @@ export class ResourceCatalogRepository {
         assignmentStart: target.kind === "resource" ? target.assignmentStart : null,
         assignmentEnd: target.kind === "resource" ? target.assignmentEnd : null,
         allocationPercent: target.kind === "resource" ? target.allocationPercent : null,
+        assignmentRole: target.kind === "resource" ? target.assignmentRole ?? null : null,
         now: input.now,
       });
     }

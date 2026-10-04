@@ -94,6 +94,7 @@ function assignmentDtos(repository: ResourceCatalogRepository, projectId: number
     id: assignment.publicId,
     taskId: assignment.taskPublicId,
     target: { kind: assignment.kind, id: assignment.targetPublicId },
+    role: assignment.kind === "resource" ? assignment.assignmentRole : null,
     allocation: assignment.kind === "resource"
       ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
       : null,
@@ -381,6 +382,7 @@ export class ProjectCopyService {
           assignmentStart: string | null;
           assignmentEnd: string | null;
           allocationPercent: number | null;
+          assignmentRole: import("../../contracts/resources").ResourceRole | null;
         }>>();
 
         for (const sa of sourceAssignments) {
@@ -395,6 +397,7 @@ export class ProjectCopyService {
             assignmentStart: sa.assignmentStart,
             assignmentEnd: sa.assignmentEnd,
             allocationPercent: sa.allocationPercent,
+            assignmentRole: sa.assignmentRole,
           });
           copiedAssignmentsByTask.set(newTask.id, list);
         }

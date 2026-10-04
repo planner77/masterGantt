@@ -656,3 +656,11 @@ Repository write는 status/progress 일관성을 검증한다. Summary schedule 
 `resource_roles`의 PK는 `(resource_id, role)`이며 role은 `PI | DEVELOPER | EQUIPMENT_OWNER`만 허용한다. Resource 삭제 시에만 role row를 cascade 삭제하고 역할 편집 자체는 다른 연결 정보를 수정하지 않는다. 기존 Resource에는 migration backfill을 하지 않아 역할 0개로 시작한다. `resource_roles_role_resource_idx(role, resource_id)`는 후속 역할 기반 검색/할당 필터가 role→resource 방향으로 조회할 수 있게 한다.
 
 상세 결정과 검증 범위는 [ISSUE_412_RESOURCE_ROLES.md](ISSUE_412_RESOURCE_ROLES.md)를 따른다.
+
+## Issue #413 — Task assignment 수행 역할 migration 0021
+
+`0021_task_assignment_roles.sql`은 기존 `task_assignments`에 nullable `assignment_role TEXT`를 추가한다. 허용값은 `PI | DEVELOPER | EQUIPMENT_OWNER`이며 migration 이전 row는 `NULL`을 유지한다. Group assignment는 역할을 사용하지 않는다.
+
+`task_assignments_resource_role_idx(resource_id, assignment_role)`는 사용 중 역할 조회를 지원한다. INSERT/UPDATE guard는 non-null 수행 역할이 해당 Resource의 `resource_roles`에 존재하는지 검사하고, `resource_roles_assignment_delete_guard`는 Task assignment가 참조 중인 Global Role 삭제를 거부한다. 기존 `(project_id, task_id, resource_id)` unique index는 그대로 유지하므로 하나의 Task+Resource는 최대 하나의 수행 역할만 가진다.
+
+Project Copy와 Template은 `assignment_role`을 보존하고 workload/Calendar 계산은 이 필드에 의존하지 않는다. 상세 결정은 [ISSUE_413_TASK_ASSIGNMENT_ROLES.md](ISSUE_413_TASK_ASSIGNMENT_ROLES.md)를 따른다.

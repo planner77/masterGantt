@@ -119,8 +119,8 @@ for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     await installStatefulProjectFixture(page);
     const targets = [
-      { kind: "resource", id: "00000000-0000-4000-8000-000000000071", name: "Resource A", code: "RES-A", active: true },
-      { kind: "resource", id: "00000000-0000-4000-8000-000000000072", name: "Resource B", code: "RES-B", active: true },
+      { kind: "resource", id: "00000000-0000-4000-8000-000000000071", name: "Resource A", code: "RES-A", active: true, roles: ["DEVELOPER"] },
+      { kind: "resource", id: "00000000-0000-4000-8000-000000000072", name: "Resource B", code: "RES-B", active: true, roles: ["DEVELOPER"] },
     ];
     await page.route(`**/api/projects/${publicId}/assigned-targets`, (route) => route.fulfill({ json: { data: { projectRevision: 40, catalogRevision: 1, assignments: [], targets } } }));
     await page.route(`**/api/projects/${publicId}/assignment-targets`, (route) => route.fulfill({ json: { data: { catalogRevision: 1, targets } } }));
@@ -134,6 +134,8 @@ for (const width of [390, 768, 1024, 1440]) {
     const panel = dialog.getByRole("tabpanel", { name: /리소스/ });
     await panel.getByRole("checkbox", { name: /Resource A/ }).check();
     await panel.getByRole("checkbox", { name: /Resource B/ }).check();
+    await panel.getByRole("combobox", { name: /Resource A.*수행 역할/ }).selectOption("DEVELOPER");
+    await panel.getByRole("combobox", { name: /Resource B.*수행 역할/ }).selectOption("DEVELOPER");
     const firstPercent = panel.getByRole("spinbutton", { name: /Resource A.*투입률/ });
     const secondPercent = panel.getByRole("spinbutton", { name: /Resource B.*투입률/ });
     await expect(panel.getByRole("group", { name: /Resource A.*투입 정보/ })).toBeVisible();

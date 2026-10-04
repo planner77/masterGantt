@@ -63,6 +63,7 @@ export interface TemplateAssignmentSnapshotItem {
   offsetStartDays?: number | null;
   offsetEndDays?: number | null;
   allocationPercent: number | null;
+  assignmentRole?: "PI" | "DEVELOPER" | "EQUIPMENT_OWNER" | null;
 }
 
 export interface TemplateProcessSnapshotItem {

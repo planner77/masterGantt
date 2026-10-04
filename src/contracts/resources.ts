@@ -88,6 +88,8 @@ export interface ProjectAssignmentDto {
   id: string;
   taskId: string;
   target: AssignmentTargetRefDto;
+  /** Issue #413. NULL is the explicit legacy/unspecified state; groups always use NULL. */
+  role?: ResourceRole | null;
   /** Issue #56. Optional only for source compatibility with older fixtures/adapters. */
   allocation?: ResourceAllocationDto | null;
 }
@@ -100,6 +102,8 @@ export interface AssignmentTargetDto {
   /** Included by public assigned-target metadata for Project-local search. Optional keeps older fixtures compatible. */
   description?: string;
   active: boolean;
+  /** Resource-only Global roles used by the Task assignment role picker. Groups omit this field. */
+  roles?: ResourceRole[];
 }
 
 export interface AssignmentTargetsResponse {
@@ -119,6 +123,8 @@ export interface AssignedTargetsResponse {
 }
 
 export interface ReplaceTaskAssignmentTargetRequest extends AssignmentTargetRefDto {
+  /** Resource-only performed role. Omitted/null remains supported as the legacy UNSPECIFIED state. */
+  role?: ResourceRole | null;
   allocation?: {
     start?: string | null;
     end?: string | null;

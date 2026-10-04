@@ -296,3 +296,11 @@ Summary는 하위 일정에서 날짜가 파생되므로 시작일 직접 편집
 - Resource Catalog 관리자만 역할을 변경할 수 있고 기존 Origin/session/If-Match/revision 동시성 계약을 유지해야 한다.
 - 비활성 Resource의 기존 역할은 조회/보존되어야 한다. 안전 삭제가 허용된 Resource 삭제 시 role row는 함께 정리되어야 한다.
 - 관리 UI는 역할과 개발자 등급을 시각·의미적으로 구분하고 keyboard로 역할 다중 선택이 가능해야 한다.
+
+## Issue #413 — Task Resource 수행 역할
+
+개인 Resource assignment는 Task별 수행 역할을 선택할 수 있어야 한다. 수행 역할은 Resource의 Global Role 중 하나이며 하나의 Task+Resource에는 assignment 하나만 존재한다. 같은 Resource가 서로 다른 Task에서 다른 역할을 수행하는 것은 허용한다.
+
+Task Editor 리소스 탭은 역할→Resource 및 Resource→역할 두 흐름을 모두 지원한다. 역할 필터는 해당 역할을 가진 Resource 후보만 남기고, Resource별 select는 해당 Resource의 Global Role만 보여준다. 기존 역할 미지정 assignment는 별도 상태로 보여주고 사용자가 역할을 보완할 수 있어야 한다. 신규 개인 Resource UI 배정은 역할 선택 없이는 저장하지 않는다.
+
+수행 역할 변경은 allocation 기간/투입률, 근무 Calendar, Task schedule을 자동 변경하지 않는다. Group assignment, Project Equipment/System role, Resource Group membership도 자동 변경하지 않는다. 사용 중 Global Role은 silently 제거할 수 없으며 서버 transaction에서 차단한다.

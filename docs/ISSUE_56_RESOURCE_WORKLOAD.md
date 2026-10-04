@@ -120,3 +120,9 @@ Issue #56 당시 Gantt 폭 회귀를 피하기 위해 사용한 page 하단 port
 ## Issue #345: 일정 미산정 Summary
 
 Summary 직접 Resource/Group assignment는 자식이 없어도 보존한다. 공수 계산은 기존 일반 Task 직접 Resource assignment만 대상으로 하며 Summary의 null 날짜/기간/진척으로 공수를 만들지 않는다. 기본 조회 기간 min/max에서 null 날짜를 제외하고 실제 일정이 없으면 기존 표시용 조회 범위를 사용한다. 표시용 날짜를 Summary DB schedule로 저장하지 않는다.
+
+## Issue #413 연계 — 수행 역할과 공수
+
+Task assignment의 `assignment_role`은 공수의 분류 차원이며 #56의 M/D·M/M 산식에는 영향을 주지 않는다. 동일 Resource assignment의 `assignment_start`, `assignment_end`, `allocation_percent` 및 계층형 Resource Calendar가 기존처럼 공수 계산의 입력이다.
+
+역할 미지정 legacy assignment도 allocation이 유효하면 기존과 같은 공수를 계산한다. Group assignment는 계속 개인 공수로 자동 분배하지 않는다. 후속 #414는 이 동일 assignment row의 역할을 기준으로 집계 축을 추가하되 #56 산식을 변경하지 않는다.

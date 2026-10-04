@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.80.0] - 2026-10-04
+
+### Added
+
+- Issue #413: Task의 개인 Resource assignment에 수행 역할 `PI | DEVELOPER | EQUIPMENT_OWNER`를 저장하고 역할 우선 후보 필터 및 Resource별 역할 선택 UI를 추가한다.
+- migration `0021_task_assignment_roles.sql`로 nullable `assignment_role`과 role membership/role-delete DB guard를 추가한다.
+
+### Changed
+
+- assignment target DTO가 Resource Global `roles`를 제공하고 Project assignment 응답/Project Copy/Project Template이 수행 역할을 보존한다.
+- 사용 중인 Global Resource Role 제거는 Project/Task usage와 함께 `RESOURCE_ROLE_IN_USE`로 fail-closed한다. 역할 추가는 기존 사용 중 역할을 삭제하지 않는 diff 기반 갱신으로 처리한다.
+- 역할 미지정 기존 assignment는 추정 backfill 없이 `NULL`로 유지하며 #56 allocation·Calendar·M/D·M/M 산식은 변경하지 않는다.
+- Application version을 `0.79.2`에서 `0.80.0`으로 증가한다.
+
 ## [0.79.2] - 2026-10-04
 
 ### Fixed

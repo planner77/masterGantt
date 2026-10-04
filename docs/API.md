@@ -1325,3 +1325,33 @@ Resource Catalog의 Resource 표현은 `roles` 배열을 반환한다.
 역할 변경은 기존 Resource Catalog 관리자 session, mutation Origin 검증, strong catalog `If-Match`, stale `412 CATALOG_REVISION_MISMATCH`, canonical Resource Catalog response 계약을 그대로 사용한다. 실제 역할 변경은 catalog revision을 정확히 +1 하지만 동일 canonical 배열은 no-op이다. `DEVELOPER` role 편집은 `developerGrade`를 자동 변경하지 않는다.
 
 Task assignment search/assigned-target DTO에는 이 Issue에서 roles를 새로 결합하지 않는다. 역할 적합성 기반 Task assignment는 후속 #413의 범위다.
+
+## Issue #413 — Task assignment 수행 역할
+
+`GET /api/projects/{publicId}/assignment-targets`와 `GET /api/projects/{publicId}/assigned-targets`의 Resource target은 `roles: ("PI" | "DEVELOPER" | "EQUIPMENT_OWNER")[]`를 제공한다. Group target에는 roles를 제공하지 않는다.
+
+`PUT /api/projects/{publicId}/tasks/{taskId}/assignments`의 Resource target은 optional `role`을 함께 받는다.
+
+```json
+{
+  "catalogRevision": 23,
+  "targets": [
+    {
+      "kind": "resource",
+      "id": "<resource uuid>",
+      "role": "DEVELOPER",
+      "allocation": { "start": null, "end": null, "percent": 60 }
+    }
+  ]
+}
+```
+
+non-null role은 해당 Resource가 현재 보유한 Global Resource Role이어야 한다. omitted/null은 migration 이전 연동과 기존 역할 미지정 assignment의 하위 호환 상태로 유지된다. Group target에 `role` 또는 allocation을 보내면 invalid request다. 응답 `ProjectAssignmentDto.role`은 Resource에서 수행 역할 또는 null, Group에서 null이다.
+
+역할 검증은 기존 edit session, exact Origin, strong Project `If-Match`, `catalogRevision`과 같은 transaction에서 수행한다. stale catalog는 `412 CATALOG_REVISION_MISMATCH`, Resource가 보유하지 않은 role은 `409 ASSIGNMENT_ROLE_INVALID`이다. Resource Catalog에서 사용 중 role 제거는 `409 RESOURCE_ROLE_IN_USE`와 role/Project count/Task count detail을 반환한다.
+
+### Issue #413 역할 기반 assignment target 검색
+
+`GET /api/projects/{publicId}/assignment-targets`는 optional `role=PI|DEVELOPER|EQUIPMENT_OWNER`를 지원한다. role은 Resource 후보에만 적용하며 `kind=group`과 함께 보내면 `400 INVALID_REQUEST`다. 서버는 Global Resource Role membership으로 먼저 필터한 뒤 기존 최대 100건 제한을 적용하므로, 전체 활성 대상이 100건을 넘어도 해당 역할 Resource가 앞선 무관 후보 때문에 잘리지 않는다.
+
+Template instantiate 시 snapshot의 Resource 수행 역할이 현재 Global Role에서 제거된 경우 project 생성 자체를 실패시키지 않는다. 기존 assignment와 allocation은 보존하고 수행 역할만 `null`로 복원하며 warnings에 stale 역할을 명시한다.
