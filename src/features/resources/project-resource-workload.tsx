@@ -2,11 +2,19 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import type { AssignmentTargetDto, ResourceWorkloadResponse } from "@/contracts/resources";
+import type {
+  AssignmentTargetDto,
+  DeveloperGrade,
+  ResourceWorkloadResponse,
+  ResourceWorkloadRole,
+  ResourceWorkloadTaskDto,
+} from "@/contracts/resources";
 
 type Unit = "md" | "mm";
 type ActiveFilter = "all" | "active" | "inactive";
 type KindFilter = "all" | "resource" | "group";
+type RoleFilter = "all" | ResourceWorkloadRole;
+type GradeFilter = "all" | DeveloperGrade;
 
 type Props = Readonly<{ publicId: string }>;
 type Source = "workload" | "targets";
@@ -18,6 +26,19 @@ type QueryState<T> = Readonly<{
   retrying: boolean;
 }>;
 
+const ROLE_OPTIONS: Array<{ value: ResourceWorkloadRole; label: string }> = [
+  { value: "PI", label: "PI" },
+  { value: "DEVELOPER", label: "개발자" },
+  { value: "EQUIPMENT_OWNER", label: "설비 담당" },
+  { value: "UNSPECIFIED", label: "역할 미지정" },
+];
+const GRADE_OPTIONS: Array<{ value: DeveloperGrade; label: string }> = [
+  { value: "BEGINNER", label: "초급" },
+  { value: "INTERMEDIATE", label: "중급" },
+  { value: "ADVANCED", label: "고급" },
+  { value: "EXPERT", label: "특급" },
+];
+
 function initialQueryState<T>(publicId: string): QueryState<T> {
   return { publicId, value: null, phase: "loading", lastSuccessAt: null, retrying: false };
 }
@@ -25,14 +46,8 @@ function initialQueryState<T>(publicId: string): QueryState<T> {
 function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
-
-function nullableString(value: unknown): boolean {
-  return value === null || typeof value === "string";
-}
-
-function nullableNumber(value: unknown): boolean {
-  return value === null || typeof value === "number";
-}
+function nullableString(value: unknown): boolean { return value === null || typeof value === "string"; }
+function nullableNumber(value: unknown): boolean { return value === null || typeof value === "number"; }
 
 function workloadFrom(body: unknown): ResourceWorkloadResponse["data"] | null {
   if (!record(body)) return null;
@@ -41,6 +56,10 @@ function workloadFrom(body: unknown): ResourceWorkloadResponse["data"] | null {
     !record(data.range) || typeof data.range.from !== "string" || typeof data.range.to !== "string" ||
     typeof data.grandTotalMd !== "number" || !nullableNumber(data.grandTotalMm) ||
     !nullableNumber(data.mdPerMm) || typeof data.unsetCount !== "number" || !Array.isArray(data.groups)) return null;
+  if (data.roleTotals !== undefined && (!Array.isArray(data.roleTotals) || !data.roleTotals.every((total: unknown) =>
+    record(total) && ["PI", "DEVELOPER", "EQUIPMENT_OWNER", "UNSPECIFIED"].includes(String(total.role)) &&
+    typeof total.assignmentCount === "number" && typeof total.effortMd === "number" &&
+    nullableNumber(total.effortMm) && typeof total.unsetCount === "number"))) return null;
   if (!data.groups.every((group: unknown) => record(group) && nullableString(group.id) &&
     typeof group.name === "string" && typeof group.active === "boolean" &&
     nullableString(group.start) && nullableString(group.end) &&
@@ -75,27 +94,40 @@ function targetsFrom(body: unknown): AssignmentTargetDto[] | null {
   return body.data.targets as AssignmentTargetDto[];
 }
 
-function confirmedAt(iso: string | null): string {
-  return iso ? new Date(iso).toLocaleString("ko-KR") : "";
-}
-
+function confirmedAt(iso: string | null): string { return iso ? new Date(iso).toLocaleString("ko-KR") : ""; }
 function effort(md: number, mm: number | null, unit: Unit): string {
   if (unit === "mm") return mm === null ? "—" : `${mm.toFixed(2)} M/M`;
   return `${md.toFixed(2)} M/D`;
 }
-
+function roleLabel(role: ResourceWorkloadRole | undefined): string {
+  return ROLE_OPTIONS.find((option) => option.value === (role ?? "UNSPECIFIED"))?.label ?? "역할 미지정";
+}
+function gradeLabel(grade: DeveloperGrade | null | undefined): string {
+  return GRADE_OPTIONS.find((option) => option.value === grade)?.label ?? "등급 미지정";
+}
+function statusLabel(status: ResourceWorkloadTaskDto["status"]): string {
+  if (status === "completed") return "완료";
+  if (status === "in_progress") return "진행 중";
+  if (status === "not_started") return "시작 전";
+  return "상태 미지정";
+}
 function includesText(target: AssignmentTargetDto | undefined, fallbackName: string, query: string, fallbackCode: string | null = null): boolean {
   if (!query) return true;
   const needle = query.trim().toLocaleLowerCase();
   return [target?.name ?? fallbackName, target?.code ?? fallbackCode ?? "", target?.description ?? ""]
     .some((value) => value.toLocaleLowerCase().includes(needle));
 }
-
 function overlaps(start: string, end: string, from: string, to: string): boolean {
   if (!from || !to) return true;
   const low = from <= to ? from : to;
   const high = from <= to ? to : from;
   return start <= high && end >= low;
+}
+function minTaskDate(tasks: ResourceWorkloadTaskDto[], field: "start" | "end"): string | null {
+  return tasks.length ? tasks.map((task) => task[field]).reduce((a, b) => a < b ? a : b) : null;
+}
+function maxTaskDate(tasks: ResourceWorkloadTaskDto[], field: "start" | "end"): string | null {
+  return tasks.length ? tasks.map((task) => task[field]).reduce((a, b) => a > b ? a : b) : null;
 }
 
 export function ProjectResourceWorkload({ publicId }: Props) {
@@ -108,6 +140,8 @@ export function ProjectResourceWorkload({ publicId }: Props) {
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<ActiveFilter>("all");
   const [kindFilter, setKindFilter] = useState<KindFilter>("all");
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
+  const [gradeFilter, setGradeFilter] = useState<GradeFilter>("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -174,11 +208,11 @@ export function ProjectResourceWorkload({ publicId }: Props) {
   const currentTargets = targetsQuery.publicId === publicId ? targetsQuery : initialQueryState<AssignmentTargetDto[]>(publicId);
   const data = currentWorkload.value;
   const targets = currentTargets.value ?? [];
-
   const targetByKey = useMemo(() => new Map(targets.map((target) => [`${target.kind}:${target.id}`, target])), [targets]);
 
   const filteredGroups = useMemo(() => {
     if (!data) return [];
+    const taskFilterActive = roleFilter !== "all" || Boolean(dateFrom && dateTo);
     return data.groups.flatMap((group) => {
       const groupTarget = group.id ? targetByKey.get(`group:${group.id}`) : undefined;
       const groupMatchesText = includesText(groupTarget, group.name, query);
@@ -187,62 +221,85 @@ export function ProjectResourceWorkload({ publicId }: Props) {
         const resourceTarget = targetByKey.get(`resource:${resource.id}`);
         const textMatch = includesText(resourceTarget, resource.name, query, resource.code);
         const activeMatch = activeFilter === "all" || (activeFilter === "active" ? resource.active : !resource.active);
-        const tasks = resource.tasks.filter((task) => overlaps(task.start, task.end, dateFrom, dateTo));
-        const dateMatch = !dateFrom || !dateTo || tasks.length > 0;
-        if (!textMatch || !activeMatch || !dateMatch || kindFilter === "group") return [];
-        return [{ ...resource, tasks }];
+        const gradeMatch = gradeFilter === "all" || resource.developerGrade === gradeFilter;
+        const tasks = resource.tasks.filter((task) =>
+          overlaps(task.start, task.end, dateFrom, dateTo) &&
+          (roleFilter === "all" || (task.role ?? "UNSPECIFIED") === roleFilter));
+        if (!textMatch || !activeMatch || !gradeMatch || kindFilter === "group" || (taskFilterActive && tasks.length === 0)) return [];
+        const effortMd = tasks.reduce((sum, task) => sum + (task.effortMd ?? 0), 0);
+        return [{
+          ...resource,
+          start: minTaskDate(tasks, "start"),
+          end: maxTaskDate(tasks, "end"),
+          effortMd,
+          effortMm: data.mdPerMm === null ? null : effortMd / data.mdPerMm,
+          unsetCount: tasks.filter((task) => task.effortMd === null).length,
+          tasks,
+        }];
       });
-      const groupDateMatch = !dateFrom || !dateTo || resources.length > 0 || group.resources.some((resource) => resource.tasks.some((task) => overlaps(task.start, task.end, dateFrom, dateTo)));
-      const groupDirectMatch = kindFilter !== "resource" && groupMatchesText && groupMatchesActive && groupDateMatch;
+      const resourceScoped = taskFilterActive || gradeFilter !== "all";
+      const groupDirectMatch = kindFilter !== "resource" && !resourceScoped && groupMatchesText && groupMatchesActive;
       if (!groupDirectMatch && resources.length === 0) return [];
-      return [{ ...group, resources: groupDirectMatch && kindFilter === "group" ? group.resources : resources }];
+      if (groupDirectMatch && kindFilter === "group") return [{ ...group, resources: group.resources }];
+      const effortMd = resources.reduce((sum, resource) => sum + resource.effortMd, 0);
+      return [{
+        ...group,
+        start: resources.map((resource) => resource.start).filter((value): value is string => value !== null).sort()[0] ?? null,
+        end: resources.map((resource) => resource.end).filter((value): value is string => value !== null).sort().at(-1) ?? null,
+        effortMd,
+        effortMm: data.mdPerMm === null ? null : effortMd / data.mdPerMm,
+        unsetCount: resources.reduce((sum, resource) => sum + resource.unsetCount, 0),
+        resources,
+      }];
     });
-  }, [activeFilter, data, dateFrom, dateTo, kindFilter, query, targetByKey]);
+  }, [activeFilter, data, dateFrom, dateTo, gradeFilter, kindFilter, query, roleFilter, targetByKey]);
 
   const visibleResourceCount = new Set(filteredGroups.flatMap((group) => group.resources.map((resource) => resource.id))).size;
   const visibleGroupCount = filteredGroups.filter((group) => group.id !== null).length;
-  const appliedFilterCount = Number(Boolean(query.trim())) + Number(activeFilter !== "all") + Number(kindFilter !== "all") + Number(Boolean(dateFrom && dateTo));
+  const appliedFilterCount = Number(Boolean(query.trim())) + Number(activeFilter !== "all") + Number(kindFilter !== "all") +
+    Number(roleFilter !== "all") + Number(gradeFilter !== "all") + Number(Boolean(dateFrom && dateTo));
   const hasFilterInput = appliedFilterCount > 0 || Boolean(dateFrom || dateTo);
   const totalGroupCount = data?.groups.filter((group) => group.id !== null).length ?? 0;
   const totalResourceCount = data ? new Set(data.groups.flatMap((group) => group.resources.map((resource) => resource.id))).size : 0;
   const resetFilters = () => {
-    setQuery(""); setActiveFilter("all"); setKindFilter("all"); setDateFrom(""); setDateTo("");
+    setQuery(""); setActiveFilter("all"); setKindFilter("all"); setRoleFilter("all"); setGradeFilter("all"); setDateFrom(""); setDateTo("");
     requestAnimationFrame(() => searchInput.current?.focus({ preventScroll: true }));
   };
+  const developerEstimateActive = roleFilter === "DEVELOPER" && kindFilter === "resource";
+  const toggleDeveloperEstimate = () => {
+    if (developerEstimateActive) {
+      setRoleFilter("all");
+      setKindFilter("all");
+      setGradeFilter("all");
+    } else {
+      setRoleFilter("DEVELOPER");
+      setKindFilter("resource");
+    }
+  };
 
-  const overAllocatedCount = data
-    ? new Set(
-        data.groups.flatMap((group) =>
-          group.resources.filter((resource) => resource.overAllocated).map((resource) => resource.id),
-        ),
-      ).size
-    : 0;
+  const roleTotals = data?.roleTotals ?? [];
+  const totalForRole = (role: ResourceWorkloadRole) => roleTotals.find((total) => total.role === role);
+  const overAllocatedCount = data?.overAllocatedResourceCount ?? (data
+    ? new Set(data.groups.flatMap((group) => group.resources.filter((resource) => resource.overAllocated).map((resource) => resource.id))).size
+    : 0);
   const workloadLoading = currentWorkload.phase === "loading";
   const targetsLoading = currentTargets.phase === "loading";
-  const refreshAll = () => {
-    void loadSource("workload");
-    void loadSource("targets");
-  };
+  const refreshAll = () => { void loadSource("workload"); void loadSource("targets"); };
 
   return (
     <section aria-labelledby="resource-workload-heading" className="project-resource-workload">
       <div className="resource-workload-header">
         <div>
           <h2 id="resource-workload-heading">리소스 공수</h2>
-          <p>리소스 그룹 → 리소스 → 작업 계층으로 계획 투입 구간과 공수를 확인합니다.</p>
+          <p>역할·그룹·리소스·작업별 계획 공수와 현재 작업 상태를 함께 확인합니다.</p>
         </div>
         <div className="resource-workload-toolbar" role="toolbar" aria-label="리소스 공수 도구">
+          <button className={`secondary-button resource-estimate-button${developerEstimateActive ? " is-active" : ""}`} type="button" aria-pressed={developerEstimateActive} onClick={toggleDeveloperEstimate}>개발 견적</button>
           <div className="project-gantt-scale-controls" role="group" aria-label="공수 표시 단위">
             <button type="button" aria-pressed={unit === "md"} onClick={() => setUnit("md")}>M/D</button>
-            <button
-              type="button"
-              aria-pressed={unit === "mm"}
-              disabled={!data?.mdPerMm}
+            <button type="button" aria-pressed={unit === "mm"} disabled={!data?.mdPerMm}
               title={data?.mdPerMm ? undefined : "프로젝트의 M/M 환산 기준이 설정되지 않았습니다."}
-              onClick={() => setUnit("mm")}
-            >
-              M/M
-            </button>
+              onClick={() => setUnit("mm")}>M/M</button>
           </div>
           <button className="secondary-button resource-refresh-button" type="button" onClick={refreshAll} disabled={workloadLoading || targetsLoading}>
             {workloadLoading || targetsLoading ? "조회 중…" : "새로고침"}
@@ -266,6 +323,8 @@ export function ProjectResourceWorkload({ publicId }: Props) {
         }}>
         <label>종류<select value={kindFilter} onChange={(event) => setKindFilter(event.target.value as KindFilter)}><option value="all">전체</option><option value="resource">Resource</option><option value="group">Resource Group</option></select></label>
         <label>상태<select value={activeFilter} onChange={(event) => setActiveFilter(event.target.value as ActiveFilter)}><option value="all">전체</option><option value="active">활성</option><option value="inactive">비활성</option></select></label>
+        <label>수행 역할<select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}><option value="all">전체</option>{ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+        <label>개발자 등급<select value={gradeFilter} onChange={(event) => setGradeFilter(event.target.value as GradeFilter)}><option value="all">전체</option>{GRADE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
         <label>Task 기간 From<input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label>
         <label>Task 기간 To<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
         {Boolean(dateFrom) !== Boolean(dateTo) ? <p className="resource-filter-date-note" role="status">기간 시작일과 종료일을 모두 입력해 주세요. 기간 조건은 아직 적용되지 않습니다.</p> : null}
@@ -298,25 +357,24 @@ export function ProjectResourceWorkload({ publicId }: Props) {
       {data ? (
         <>
           <dl className="resource-workload-summary" aria-label="리소스 공수 요약">
-            <div>
-              <dt>조회 범위</dt>
-              <dd>{data.range.from} ~ {data.range.to}</dd>
-            </div>
-            <div>
-              <dt>전체 공수</dt>
-              <dd>{effort(data.grandTotalMd, data.grandTotalMm, unit)}</dd>
-            </div>
-            <div>
-              <dt>공수 미설정</dt>
-              <dd>{data.unsetCount}건</dd>
-            </div>
-            <div>
-              <dt>과투입 리소스</dt>
-              <dd>{overAllocatedCount}개</dd>
-            </div>
+            <div><dt>조회 범위</dt><dd>{data.range.from} ~ {data.range.to}</dd></div>
+            <div><dt>전체 계획 공수</dt><dd>{effort(data.grandTotalMd, data.grandTotalMm, unit)}</dd></div>
+            <div><dt>공수 미설정</dt><dd>{data.unsetCount}건</dd></div>
+            <div><dt>과투입 리소스</dt><dd>{overAllocatedCount}개</dd></div>
+          </dl>
+          <dl className="resource-role-summary" aria-label="역할별 계획 공수">
+            {ROLE_OPTIONS.map((option) => {
+              const total = totalForRole(option.value);
+              return <div key={option.value}>
+                <dt>{option.label}</dt>
+                <dd>{effort(total?.effortMd ?? 0, total?.effortMm ?? (data.mdPerMm === null ? null : 0), unit)}</dd>
+                <span>{total?.assignmentCount ?? 0}건{total?.unsetCount ? ` · 공수 미설정 ${total.unsetCount}` : ""}</span>
+              </div>;
+            })}
           </dl>
 
-          <p className="resource-workload-note">위 집계는 전체 Project 기준이며, 아래 필터는 표시 행만 제한합니다.</p>
+          <p className="resource-workload-note">상단 역할별 집계와 전체 합계는 assignmentId 기준 Project 전체 값이며, 아래 필터는 drill-down 표시 범위와 표시 subtotal만 제한합니다.</p>
+          {data.asOfDate ? <p className="resource-workload-note">작업 지연 기준일: {data.asOfDate}{data.timezone ? ` (${data.timezone})` : ""}. 계획 공수는 진행률로 차감하거나 실제 소진 공수로 환산하지 않습니다.</p> : null}
           {data.mdPerMm
             ? <p className="resource-workload-note">M/M 환산 기준: 1 M/M = {data.mdPerMm} M/D</p>
             : <p className="resource-workload-note">M/M 환산 기준이 설정되지 않아 M/M 보기는 사용할 수 없습니다.</p>}
@@ -339,25 +397,27 @@ export function ProjectResourceWorkload({ publicId }: Props) {
                         <span className="resource-workload-name">{targetByKey.get(`resource:${resource.id}`)?.name ?? resource.name}{(targetByKey.get(`resource:${resource.id}`)?.code ?? resource.code) ? ` (${targetByKey.get(`resource:${resource.id}`)?.code ?? resource.code})` : ""}</span>
                         <span>{resource.start ?? "—"} ~ {resource.end ?? "—"}</span>
                         <span>{effort(resource.effortMd, resource.effortMm, unit)}</span>
+                        {resource.developerGrade ? <span className="status-badge">{gradeLabel(resource.developerGrade)}</span> : null}
                         {!resource.active ? <span className="status-badge">비활성</span> : null}
-                        {resource.overAllocated ? <span className="status-badge danger">과투입</span> : null}
+                        {resource.overAllocated ? <span className="status-badge danger" title="과투입은 전체 assignment의 일별 투입률 합계 기준입니다.">과투입</span> : null}
                         {resource.unsetCount ? <span className="status-badge warning">미설정 {resource.unsetCount}</span> : null}
                       </summary>
                       <div className="resource-workload-table-scroll">
                         <table className="resource-workload-table">
                           <thead>
                             <tr>
-                              <th>작업</th>
-                              <th>투입 시작</th>
-                              <th>투입 종료</th>
-                              <th>투입률</th>
-                              <th>공수</th>
+                              <th>작업</th><th>역할</th><th>상태</th><th>진행률</th><th>일정</th>
+                              <th>투입 시작</th><th>투입 종료</th><th>투입률</th><th>공수</th>
                             </tr>
                           </thead>
                           <tbody>
                             {resource.tasks.map((task) => (
                               <tr key={task.assignmentId}>
                                 <td>{task.taskName}</td>
+                                <td>{roleLabel(task.role)}</td>
+                                <td>{task.delayed ? <span className="status-badge danger">지연</span> : statusLabel(task.status)}</td>
+                                <td>{task.progress === null || task.progress === undefined ? "—" : `${task.progress}%`}</td>
+                                <td>{task.taskStart && task.taskEnd ? `${task.taskStart} ~ ${task.taskEnd}` : "—"}</td>
                                 <td>{task.start}</td>
                                 <td>{task.end}</td>
                                 <td>{task.allocationPercent === null ? "미설정" : `${task.allocationPercent}%`}</td>
