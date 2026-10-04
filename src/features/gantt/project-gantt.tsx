@@ -539,30 +539,31 @@ export function ProjectGantt({
     if (!continuity) return;
 
     requestAnimationFrame(() => {
-      if (viewRootTaskIdReference.current !== continuity.viewRootTaskId) return;
-      const root = ganttScrollReference.current;
-      if (!root) return;
-      const ganttScroller = root.querySelector<HTMLElement>(".wx-gantt");
-      root.scrollLeft = continuity.rootScrollLeft;
-      root.scrollTop = continuity.rootScrollTop;
-      if (ganttScroller) {
-        ganttScroller.scrollLeft = continuity.ganttScrollLeft;
-        ganttScroller.scrollTop = continuity.ganttScrollTop;
-      }
-      window.scrollTo(continuity.windowScrollX, continuity.windowScrollY);
+      requestAnimationFrame(() => {
+        if (viewRootTaskIdReference.current !== continuity.viewRootTaskId) return;
+        const root = ganttScrollReference.current;
+        if (!root) return;
+        const ganttScroller = root.querySelector<HTMLElement>(".wx-gantt");
+        root.scrollLeft = continuity.rootScrollLeft;
+        root.scrollTop = continuity.rootScrollTop;
+        if (ganttScroller) {
+          ganttScroller.scrollLeft = continuity.ganttScrollLeft;
+          ganttScroller.scrollTop = continuity.ganttScrollTop;
+        }
+        window.scrollTo(continuity.windowScrollX, continuity.windowScrollY);
 
-      const action = continuity.source === "header"
-        ? root.querySelector<HTMLElement>('.wx-header [data-action="add-task"]')
-        : Array.from(root.querySelectorAll<HTMLElement>(".wx-row[data-id]"))
-          .find((candidate) => taskIdFromElement(candidate) === continuity.targetTaskId)
-          ?.querySelector<HTMLElement>('[data-action="add-task"]') ?? null;
-      if (action?.getAttribute("aria-disabled") !== "true" && action?.tabIndex !== -1) {
-        action?.focus({ preventScroll: true });
-      } else {
-        root.focus({ preventScroll: true });
-      }
+        const action = continuity.source === "header"
+          ? root.querySelector<HTMLElement>('.wx-header [data-action="add-task"]')
+          : Array.from(root.querySelectorAll<HTMLElement>(".wx-row[data-id]"))
+            .find((candidate) => taskIdFromElement(candidate) === continuity.targetTaskId)
+            ?.querySelector<HTMLElement>('[data-action="add-task"]') ?? null;
+        // React editability is the authority here. DOM aria-disabled may still
+        // reflect the previous busy render until the passive decoration effect.
+        if (editable && action) action.focus({ preventScroll: true });
+        else root.focus({ preventScroll: true });
+      });
     });
-  }, [mutationLocked]);
+  }, [editable, mutationLocked]);
 
   useEffect(() => {
     onTaskCreateReference.current = onTaskCreate;
