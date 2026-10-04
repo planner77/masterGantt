@@ -56,4 +56,6 @@ Issue Lifecycle v2 (#109):
 - data-dense table을 설계/리뷰할 때 fixed/minimum/flexible column 역할과 전체 column budget을 명시한다. percentage 합계와 fixed-width 열의 중복 제약, nowrap metadata의 intrinsic width, 긴 문자열·locale datetime을 확인한다.
 - Project List/관리 table에 열이 추가되면 기존 열을 포함한 전체 geometry를 재검토하고, 좁은 viewport는 sibling cell overlap이 아니라 table-owned horizontal scroll로 처리하도록 설계한다.
 - 구현 비교 시 390/768/1024/1440/wide desktop의 header/body alignment, sibling cell 침범, document overflow와 table-owned overflow를 browser evidence로 확인한다. 정적 CSS만으로 PASS하지 않는다.
+- table이 아닌 data-dense 관리 list/card/pane도 pane budget과 row의 identity/profile/action budget을 먼저 설계한다. 필드·role·action 추가 시 기존 CSS를 기계적으로 재사용하지 말고 search/create/list ownership, progressive disclosure 필요성, footer action hierarchy를 재계산한다.
+- Resource/Admin 관리 화면은 긴 name/code, 0/1/최대 role, 긴 select label, active/inactive/delete-unavailable 상태를 포함해 390/768/1024/1440/wide desktop에서 sibling pane/row/footer bounding box와 document overflow를 browser evidence로 확인한다.
 """
