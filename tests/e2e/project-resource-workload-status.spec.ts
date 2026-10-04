@@ -345,3 +345,55 @@ test("Issue #117 최신 메타데이터 라벨과 재시도 focus를 유지한�
   await expect(targets).toHaveAttribute("data-state", "error");
   await expect(targets.getByRole("button", { name: "이름·코드 다시 시도" })).toBeFocused();
 });
+
+test("Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Gantt 상태를 보존한다", async ({ page }) => {
+  await installStatefulProjectFixture(page);
+  await page.goto(`/projects/${publicId}`);
+  const ganttIdentity = await rememberGanttRoot(page);
+  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+
+  const roleSummary = page.getByLabel("역할별 계획 공수");
+  await expect(roleSummary.getByText("개발자", { exact: true })).toBeVisible();
+  await expect(roleSummary.getByText("5.00 M/D", { exact: true })).toBeVisible();
+  await expect(page.getByText("작업 지연 기준일: 2026-09-18 (Asia/Seoul)")).toBeVisible();
+
+  const estimate = page.getByRole("button", { name: "개발 견적", exact: true });
+  await estimate.click();
+  await expect(estimate).toHaveAttribute("aria-pressed", "true");
+
+  const filters = page.getByRole("search", { name: "리소스 검색과 필터" });
+  await filters.locator('button[aria-controls="resource-advanced-filter"]').click();
+  const advanced = page.getByLabel("리소스 고급 필터");
+  await expect(advanced.getByLabel("종류")).toHaveValue("resource");
+  await expect(advanced.getByLabel("수행 역할")).toHaveValue("DEVELOPER");
+
+  const resource = page.locator(".resource-workload-resource").first();
+  await expect(resource.locator("summary")).toContainText("테스트 리소스 (R-01)");
+  await expect(resource.locator("summary")).toContainText("5.00 M/D");
+  await expect(resource.locator("summary")).toContainText("고급");
+  await resource.locator("summary").click();
+  const row = resource.locator("tbody tr").first();
+  await expect(row).toContainText("개발자");
+  await expect(row).toContainText("진행 중");
+  await expect(row).toContainText("50%");
+  await expect(row).toContainText("2026-09-16 ~ 2026-09-18");
+
+  await advanced.getByLabel("개발자 등급").selectOption("BEGINNER");
+  await expect(page.getByText("검색 조건에 일치하는 리소스 할당이 없습니다.")).toBeVisible();
+  await advanced.getByLabel("개발자 등급").selectOption("ADVANCED");
+  await expect(resource.locator("summary")).toContainText("테스트 리소스");
+
+  for (const width of [390, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expectResourcePanelOwnsOnlyVerticalScroll(page);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+  }
+
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await expectSameGanttRoot(page, ganttIdentity);
+  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await expectSameGanttRoot(page, ganttIdentity);
+  await expect(estimate).toHaveAttribute("aria-pressed", "true");
+  await expect(advanced.getByLabel("수행 역할")).toHaveValue("DEVELOPER");
+  await expect(advanced.getByLabel("개발자 등급")).toHaveValue("ADVANCED");
+});
