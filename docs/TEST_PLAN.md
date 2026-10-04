@@ -1239,3 +1239,10 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Chromium: #300 isolated seed helper에서 실제 Chart C bar를 B 앞으로 drag하고 `task-commands` POST 1회 / Task PATCH 0회 / canonical·Grid `A,C,B` / indicator 제거 / 동일 Gantt API instance / reload persistence를 확인한다.
 - 최신 main 회귀: #335 linked same-parent reorder, #399/#407 subtree scope·scoped add, #384 selection pointer capture, #367 timeline, #370 start-date quick-edit.
 
+### Issue #412 — Global Resource roles
+
+- Migration/DB: `0020_resource_roles.sql`, migration ledger 20건, table/index, stable role CHECK, `(resource_id, role)` duplicate 차단, 기존 Resource 0 role, delete cascade, 파일 DB reopen persistence를 검증한다.
+- Service/API: R1=PI+DEVELOPER, R2=EQUIPMENT_OWNER, R3=0 role, canonical role order, invalid/duplicate request, group roles 거부, catalog revision no-op/+1, stale 412 mapping을 검증한다.
+- Independence: role 변경↔developerGrade, Resource Group membership, Task assignment, Project Equipment/System roles, Calendar가 서로 자동 변경되지 않는지 검증한다. #288의 Project System developer grade 규칙은 유지한다.
+- UI/Chromium: 생성/표시/row 역할 checkbox, keyboard Space/focus, 역할/등급 구분, Group member 역할 참고, long Korean name, mutation `If-Match`, 390/768/1024/1440px document overflow를 검증한다.
+- 회귀: 기존 Resource 삭제 usage guard, group member 저장, Task Resource tab/assignment, logistics owner/developer/PI 저장, Resource Calendar 테스트는 동일 PR head의 전체 CI에서 함께 판정한다.
