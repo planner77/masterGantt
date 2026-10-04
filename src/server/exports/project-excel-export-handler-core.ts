@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { ProjectSnapshotResponse } from "@/contracts/projects";
+import type { ResourceWorkloadResponse } from "@/contracts/resources";
 import { apiErrorResponse, PublicApiError } from "@/server/http/api-error-core";
 import { parseRequiredIfMatch, readBoundedJson } from "@/server/http/request-core";
 import { isCanonicalUuidV4 } from "@/server/projects/project-contract";
@@ -31,6 +32,7 @@ export interface ProjectExcelExportHandlerDependencies {
   environment: string | undefined;
   requestId?: () => string;
   buildWorkbook?: typeof buildProjectExcelWorkbook;
+  getResourceWorkload?: (publicId: string) => ResourceWorkloadResponse | undefined;
 }
 
 function resolveDependency<T>(dependency: T | (() => T)): T {
@@ -80,9 +82,20 @@ export async function handleProjectExcelExport(
       throw new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");
     }
 
+    let resourceWorkload: ResourceWorkloadResponse | undefined;
+    if (parsed.data.includeResourceEffort) {
+      resourceWorkload = dependencies.getResourceWorkload?.(publicId);
+      if (!resourceWorkload) {
+        throw new PublicApiError(500, "CONFIGURATION_ERROR", "Resource workload export is not configured.");
+      }
+      if (resourceWorkload.data.projectRevision !== expectedRevision) {
+        throw new PublicApiError(412, "REVISION_MISMATCH", "Project changed. Reload and retry.");
+      }
+    }
+
     let workbook: Uint8Array<ArrayBuffer>;
     try {
-      workbook = (dependencies.buildWorkbook ?? buildProjectExcelWorkbook)(snapshot, parsed.data);
+      workbook = (dependencies.buildWorkbook ?? buildProjectExcelWorkbook)(snapshot, parsed.data, resourceWorkload);
     } catch (error) {
       if (error instanceof ProjectExcelExportError) {
         throw new PublicApiError(
