@@ -513,13 +513,13 @@ export function ResourceCatalogAdmin() {
           <label>이름<input value={resourceName} maxLength={200} disabled={locked} onChange={(event) => setResourceName(event.target.value)} /></label>
           <label>코드<input value={resourceCode} maxLength={64} disabled={locked} onChange={(event) => setResourceCode(event.target.value)} /></label>
           <label>개발자 등급<select aria-label="신규 리소스 개발자 등급" value={resourceDeveloperGrade} disabled={locked} onChange={(event) => setResourceDeveloperGrade(event.target.value as DeveloperGrade | "")}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label>
+          <button className="primary-button" type="submit" disabled={locked || !resourceName.trim()}>추가</button>
           <fieldset className={styles.resourceRoleFieldset}>
             <legend>전역 역할</legend>
             <div className={styles.roleOptions}>
               {RESOURCE_ROLE_OPTIONS.map((option) => <label key={option.value}><input type="checkbox" checked={resourceRoles.has(option.value)} disabled={locked} onChange={() => toggleResourceCreateRole(option.value)} />{option.label}</label>)}
             </div>
           </fieldset>
-          <button className="primary-button" type="submit" disabled={locked || !resourceName.trim()}>추가</button>
         </form>
         {catalog.data.resources.length === 0 ? (
           <p className={styles.emptyState}>등록된 리소스가 없습니다.</p>
