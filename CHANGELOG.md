@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.79.1] - 2026-10-04
+
+### Fixed
+
+- Issue #426: Resource Catalog의 Resource/Group pane을 정보량에 맞는 content-aware 비율로 재배치하고 중간 폭에서는 조기에 vertical stack하여 역할·등급·행 action 때문에 Resource identity가 collapse하는 회귀를 수정한다.
+- Resource row를 Identity / Profile(개발자 등급·Global 역할) / Lifecycle·Delete action으로 구분하고, 검색·생성·목록 geometry와 Group 구성원 footer의 `닫기` 좌측 / `구성원 저장` 우측 action hierarchy를 복구한다.
+- 390/768/1024/1440/1600px Chromium geometry 회귀와 management list/pane 공통 설계·QA 지침을 추가하며 Resource Catalog API/session/Origin/`If-Match`/revision/412/draft 계약은 변경하지 않는다.
+- Application version을 `0.79.0`에서 `0.79.1`로 증가한다.
+
 ## [0.79.0] - 2026-10-04
 
 ### Added
