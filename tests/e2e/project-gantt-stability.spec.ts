@@ -155,7 +155,9 @@ test.describe("Issue #3 stable Gantt instance", () => {
     await expect(rootAdd(page)).toBeVisible();
     await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(2);
     await expectSameGanttRoot(page, initialIdentity);
-    await rowNamed(page, "Stable milestone").locator('[data-action="add-task"]').click();
+    const milestoneAdd = rowNamed(page, "Stable milestone").locator('[data-action="add-task"]');
+    await expect(milestoneAdd).toHaveAttribute("aria-disabled", "true");
+    await milestoneAdd.dispatchEvent("click");
     await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업을 추가할 수 없습니다");
     expect(fixture.posts).toHaveLength(2);
     async function rejectNextAdd(outcome: PostOutcome, expectedNotice: string, trigger = rootAdd(page)): Promise<void> {
