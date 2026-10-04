@@ -1,5 +1,19 @@
 # 프로젝트 화면·삭제·하위 작업·알림·링크 복사
 
+## Issue #430 — Cut 활성화와 Dependency 경계
+
+Task Context Menu의 `Cut`과 Grid/Chart의 `Ctrl/Cmd+X`는 edit 가능, mutation lock 해제, 현재 scoped `viewRootTaskId` 자체가 아님이라는 기존 조건에 더해 **source subtree 경계를 넘는 Dependency가 없는 경우** 활성화한다. source와 모든 descendants 사이의 내부 Dependency는 Cut 비활성화 사유가 아니다.
+
+- 내부→내부: Cut 활성, Paste 후 동일 Link 유지
+- 외부→내부 / 내부→외부: Cut 비활성 및 keyboard Cut 거부
+- 외부→외부: 해당 source의 Cut과 무관
+- Copy는 #378/#384처럼 Dependency 유무와 무관하게 기존 정책 유지
+- Delete는 여전히 subtree에 Link가 하나라도 있으면 제한하므로 Cut과 동일 capability로 합치지 않는다.
+
+Cut clipboard가 존재할 때 Paste root trigger는 source boundary 규칙으로 판단한다. target/anchor가 별도의 Link endpoint라는 이유만으로 before/after Paste를 비활성화하지 않는다. `As child`가 linked leaf target의 Task→Summary 전환을 요구하면 기존 보호로 해당 submenu item은 비활성화한다. scoped view의 밖으로 이동하는 Paste, self/descendant Paste, stale clipboard와 revision 변경 폐기는 기존 계약을 유지한다.
+
+Context Menu enabled/disabled, keyboard shortcut 및 실제 서버 `reparent`가 같은 boundary 의미를 사용해야 하며, disabled action을 실행한 것처럼 로컬 위치나 clipboard 상태를 변경하지 않는다.
+
 ## Issue #409 Relation Editor 식별자 검색/표시
 
 Relation Editor의 관계 추가 검색은 `작업명 / 외부 ID / 작업 ID`를 한 입력에서 지원한다. Context Menu `Copy ID`로 복사한 canonical UUID(`taskId`)를 그대로 붙여넣어 후보를 찾을 수 있어야 한다.
