@@ -1205,6 +1205,18 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 
 실제 browser/E2E 증거 없이 정적 CSS 확인만으로 이 항목을 PASS 처리하지 않는다.
 
+## Issue #426 — Resource/Admin Management Geometry Regression
+
+- Chromium fixture는 긴 한국어 Resource name/code, `EXPERT` grade, role 0/1/3개, active/inactive, delete 가능/불가 상태와 Resource Group을 함께 포함한다.
+- 390/768/1024/1440/1600px에서 Resource pane과 Group pane bounding box가 겹치지 않고, wide desktop에서는 Resource pane이 Group보다 넓으며 좁은 폭에서는 vertical stack이 되는지 확인한다.
+- Resource row의 identity와 profile/action 영역이 서로 침범하지 않고 identity가 최소 가독 폭 이하로 collapse하지 않는지 실제 bounding box로 검증한다.
+- Resource search toolbar → create form → list의 순서와 경계를 측정하고 각 영역이 겹치지 않는지 확인한다.
+- Global role checkbox의 accessible name, keyboard focus/Space, role PATCH 412 이후 draft 보존을 기존 #412 E2E와 함께 유지한다.
+- Group member editor를 연 상태에서 `닫기`는 좌측, `구성원 저장`은 우측이며 같은 행에서는 center/baseline이 정렬되는지 확인한다.
+- 모든 viewport에서 `document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1`을 확인하고 의도된 component-owned overflow와 구분한다.
+- 기본 100% zoom은 필수이며 환경이 허용하면 125% zoom smoke를 추가한다. screenshot은 보조 증거이며 geometry assertion을 우선한다.
+- API/DB/Scheduling schema는 변경하지 않는다. 공식 판정은 exact PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
+
 
 ## Issue #303 Task status / progress 회귀
 
