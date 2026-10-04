@@ -218,6 +218,28 @@ test("switches the Gantt timeline between day and ISO week headers without remou
   }
 
   await page.setViewportSize({ width: 1024, height: 900 });
+
+  await chart.evaluate((element) => {
+    element.scrollTo({ left: element.scrollWidth, behavior: "instant" });
+  });
+  await expect.poll(async () => chart.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  const recycledWeek = page.locator(".project-gantt-week-scale").last();
+  await expect(recycledWeek).toBeVisible();
+  await expect.poll(async () => recycledWeek.evaluate((cell) => {
+    const workingDays = cell.getAttribute("data-working-days");
+    const label = cell.querySelector<HTMLElement>(".project-gantt-week-working-days")?.textContent ?? "";
+    const ariaLabel = cell.getAttribute("aria-label") ?? "";
+    return Boolean(
+      workingDays &&
+      label === `${workingDays}일` &&
+      ariaLabel.includes(`근무일 ${workingDays}일`)
+    );
+  })).toBe(true);
+  const recycledWorkingDays = await recycledWeek.getAttribute("data-working-days");
+  expect(recycledWorkingDays).toMatch(/^[0-7]$/);
+  await recycledWeek.hover();
+  await expect(weekTooltip).toContainText(`근무일: ${recycledWorkingDays}일`);
+
   const edgeWeek = page.locator(".project-gantt-week-scale").last();
   await expect(edgeWeek).toBeVisible();
   await edgeWeek.hover();
