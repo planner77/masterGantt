@@ -176,7 +176,7 @@ test("Issue #399 opens Summary scopes in Workspace tabs without creating a brows
   await page.getByRole("button",{name:"Scope Beta 범위 탭 닫기",exact:true}).click(); await expect(rtabs.getByRole("tab",{name:"전체 프로젝트",exact:true})).toHaveAttribute("aria-selected","true"); expect(new URL(page.url()).searchParams.get("rootTask")).toBeNull();
 });
 
-test("Issue #407 allows subtree-local task additions in a Workspace scope", async ({ page }) => {
+test("Issue #407/#418 keeps scoped Header and Row additions canonical and continuous", async ({ page }) => {
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Scoped add ${suffix}`);
@@ -213,22 +213,104 @@ test("Issue #407 allows subtree-local task additions in a Workspace scope", asyn
   await expect(scopeTab).toHaveAttribute("aria-selected", "true");
 
   const headerAdd = page.locator('.project-gantt-widget .wx-header [data-action="add-task"]').first();
-  await expect(headerAdd).toHaveAttribute("aria-disabled", "true");
+  await expect(headerAdd).toHaveAttribute("aria-disabled", "false");
+  await expect(headerAdd).toHaveAttribute("aria-label", "범위 최상위 작업 추가");
+
+  await page.evaluate(() => {
+    const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
+    const gantt = root?.querySelector<HTMLElement>(".wx-gantt");
+    if (!root || !gantt) throw new Error("Gantt continuity target missing");
+    const maxLeft = Math.max(0, gantt.scrollWidth - gantt.clientWidth);
+    gantt.scrollLeft = Math.min(32, maxLeft);
+    const probe = {
+      running: true,
+      minRows: root.querySelectorAll(".wx-row[data-id]").length,
+      frameDisconnected: false,
+      frameHidden: false,
+      ganttScrollLeft: gantt.scrollLeft,
+    };
+    (window as typeof window & { __issue418Probe?: typeof probe }).__issue418Probe = probe;
+    const sample = () => {
+      const current = (window as typeof window & { __issue418Probe?: typeof probe }).__issue418Probe;
+      if (!current?.running) return;
+      const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
+      const currentRoot = document.querySelector<HTMLElement>(".project-gantt-scroll");
+      current.minRows = Math.min(current.minRows, currentRoot?.querySelectorAll(".wx-row[data-id]").length ?? 0);
+      current.frameDisconnected ||= !frame?.isConnected;
+      current.frameHidden ||= !frame || frame.getClientRects().length === 0 || getComputedStyle(frame).visibility === "hidden";
+      requestAnimationFrame(sample);
+    };
+    requestAnimationFrame(sample);
+  });
+
+  const beforeHeaderIds = new Set(initialChildSnapshot.data.tasks.map((task) => task.taskId));
+  const [headerResponse] = await Promise.all([
+    page.waitForResponse((response) =>
+      response.request().method() === "POST" &&
+      new URL(response.url()).pathname === `${api}/tasks`,
+    ),
+    headerAdd.click(),
+  ]);
+  expect(headerResponse.status()).toBe(201);
+  const headerSnapshot = await headerResponse.json() as TaskMutationResponse;
+  const headerLeaf = headerSnapshot.data.tasks.find((task) =>
+    !beforeHeaderIds.has(task.taskId) && task.parentExternalId === rootTask!.externalId,
+  );
+  expect(headerLeaf).toBeTruthy();
+  await expect(rowByTaskId(page, headerLeaf!.taskId)).toBeVisible();
+  await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+  await expect(headerAdd).toBeFocused();
+
+  const continuity = await page.evaluate(() => {
+    const probe = (window as typeof window & {
+      __issue418Probe?: { running: boolean; minRows: number; frameDisconnected: boolean; frameHidden: boolean; ganttScrollLeft: number };
+    }).__issue418Probe;
+    if (!probe) throw new Error("Issue #418 continuity probe missing");
+    probe.running = false;
+    const gantt = document.querySelector<HTMLElement>(".project-gantt-scroll .wx-gantt");
+    return { ...probe, currentGanttScrollLeft: gantt?.scrollLeft ?? -1 };
+  });
+  expect(continuity.minRows).toBeGreaterThan(0);
+  expect(continuity.frameDisconnected).toBe(false);
+  expect(continuity.frameHidden).toBe(false);
+  expect(continuity.currentGanttScrollLeft).toBe(continuity.ganttScrollLeft);
+  await expect(scopeTab).toHaveAttribute("aria-selected", "true");
+
+  const beforeKeyboardIds = new Set(headerSnapshot.data.tasks.map((task) => task.taskId));
+  const [keyboardResponse] = await Promise.all([
+    page.waitForResponse((response) =>
+      response.request().method() === "POST" &&
+      new URL(response.url()).pathname === `${api}/tasks`,
+    ),
+    (async () => {
+      await headerAdd.focus();
+      await page.keyboard.press("Enter");
+    })(),
+  ]);
+  expect(keyboardResponse.status()).toBe(201);
+  const keyboardSnapshot = await keyboardResponse.json() as TaskMutationResponse;
+  const keyboardLeaf = keyboardSnapshot.data.tasks.find((task) =>
+    !beforeKeyboardIds.has(task.taskId) && task.parentExternalId === rootTask!.externalId,
+  );
+  expect(keyboardLeaf).toBeTruthy();
+  await expect(rowByTaskId(page, keyboardLeaf!.taskId)).toBeVisible();
+  await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+  await expect(headerAdd).toBeFocused();
+
   const scopedRootAdd = rowByTaskId(page, rootTask!.taskId).locator('[data-action="add-task"]');
   await expect(scopedRootAdd).toHaveAttribute("aria-disabled", "false");
-
-  const beforeNativeIds = new Set(initialChildSnapshot.data.tasks.map((task) => task.taskId));
-  const [nativeResponse] = await Promise.all([
+  const beforeRootIds = new Set(keyboardSnapshot.data.tasks.map((task) => task.taskId));
+  const [rootResponse] = await Promise.all([
     page.waitForResponse((response) =>
       response.request().method() === "POST" &&
       new URL(response.url()).pathname === `${api}/tasks`,
     ),
     scopedRootAdd.click(),
   ]);
-  expect(nativeResponse.status()).toBe(201);
-  const nativeSnapshot = await nativeResponse.json() as TaskMutationResponse;
-  const nativeLeaf = nativeSnapshot.data.tasks.find((task) =>
-    !beforeNativeIds.has(task.taskId) && task.parentExternalId === rootTask!.externalId,
+  expect(rootResponse.status()).toBe(201);
+  const rootSnapshot = await rootResponse.json() as TaskMutationResponse;
+  const nativeLeaf = rootSnapshot.data.tasks.find((task) =>
+    !beforeRootIds.has(task.taskId) && task.parentExternalId === rootTask!.externalId,
   );
   expect(nativeLeaf).toBeTruthy();
   await expect(rowByTaskId(page, nativeLeaf!.taskId)).toBeVisible();
@@ -236,27 +318,49 @@ test("Issue #407 allows subtree-local task additions in a Workspace scope", asyn
 
   await openMenuByTaskId(page, rootTask!.taskId);
   const emptySummarySnapshot = await chooseSubmenu(page, "Add", "요약 작업 추가");
-  const nativeIds = new Set(nativeSnapshot.data.tasks.map((task) => task.taskId));
+  const rootIds = new Set(rootSnapshot.data.tasks.map((task) => task.taskId));
   const emptySummary = emptySummarySnapshot.data.tasks.find((task) =>
-    !nativeIds.has(task.taskId) &&
+    !rootIds.has(task.taskId) &&
     task.parentExternalId === rootTask!.externalId &&
     task.type === "summary",
   );
   expect(emptySummary).toBeTruthy();
   await expect(rowByTaskId(page, emptySummary!.taskId)).toBeVisible();
 
-  await openMenuByTaskId(page, emptySummary!.taskId);
-  const summaryChildSnapshot = await chooseSubmenu(page, "Add", "Child task");
+  const emptySummaryAdd = rowByTaskId(page, emptySummary!.taskId).locator('[data-action="add-task"]');
+  await expect(emptySummaryAdd).toHaveAttribute("aria-disabled", "false");
   const emptySummaryIds = new Set(emptySummarySnapshot.data.tasks.map((task) => task.taskId));
+  const [summaryResponse] = await Promise.all([
+    page.waitForResponse((response) =>
+      response.request().method() === "POST" &&
+      new URL(response.url()).pathname === `${api}/tasks`,
+    ),
+    (async () => {
+      await emptySummaryAdd.focus();
+      await page.keyboard.press(" ");
+    })(),
+  ]);
+  expect(summaryResponse.status()).toBe(201);
+  const summaryChildSnapshot = await summaryResponse.json() as TaskMutationResponse;
   const summaryChild = summaryChildSnapshot.data.tasks.find((task) =>
     !emptySummaryIds.has(task.taskId) && task.parentExternalId === emptySummary!.externalId,
   );
   expect(summaryChild).toBeTruthy();
   await expect(rowByTaskId(page, summaryChild!.taskId)).toBeVisible();
+  await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
 
-  await openMenuByTaskId(page, nativeLeaf!.taskId);
-  const convertedSnapshot = await chooseSubmenu(page, "Add", "Child task");
+  const normalTaskAdd = rowByTaskId(page, nativeLeaf!.taskId).locator('[data-action="add-task"]');
+  await expect(normalTaskAdd).toHaveAttribute("aria-disabled", "false");
   const beforeConvertIds = new Set(summaryChildSnapshot.data.tasks.map((task) => task.taskId));
+  const [convertResponse] = await Promise.all([
+    page.waitForResponse((response) =>
+      response.request().method() === "POST" &&
+      new URL(response.url()).pathname === `${api}/tasks`,
+    ),
+    normalTaskAdd.click(),
+  ]);
+  expect(convertResponse.status()).toBe(201);
+  const convertedSnapshot = await convertResponse.json() as TaskMutationResponse;
   const convertedChild = convertedSnapshot.data.tasks.find((task) =>
     !beforeConvertIds.has(task.taskId) && task.parentExternalId === nativeLeaf!.externalId,
   );
@@ -265,14 +369,30 @@ test("Issue #407 allows subtree-local task additions in a Workspace scope", asyn
   await expect(rowByTaskId(page, convertedChild!.taskId)).toBeVisible();
   await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
 
+  await openMenuByTaskId(page, headerLeaf!.taskId);
+  const milestoneSnapshot = await chooseSubmenu(page, "Convert to", "Milestone");
+  expect(milestoneSnapshot.data.tasks.find((task) => task.taskId === headerLeaf!.taskId)?.type).toBe("milestone");
+  const milestoneAdd = rowByTaskId(page, headerLeaf!.taskId).locator('[data-action="add-task"]');
+  await expect(milestoneAdd).toHaveAttribute("aria-disabled", "true");
+  let milestonePosts = 0;
+  const countMilestonePost = (request: import("@playwright/test").Request) => {
+    if (request.method() === "POST" && new URL(request.url()).pathname === `${api}/tasks`) milestonePosts += 1;
+  };
+  page.on("request", countMilestonePost);
+  await milestoneAdd.click({ force: true });
+  await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업을 추가할 수 없습니다.");
+  page.off("request", countMilestonePost);
+  expect(milestonePosts).toBe(0);
+
   await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
   await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+  await expect(scopeTab).toHaveAttribute("aria-selected", "true");
 
   await allTab.click();
   await expect(allTab).toHaveAttribute("aria-selected", "true");
-  await expect(rowByTaskId(page, nativeLeaf!.taskId)).toBeVisible();
-  await expect(rowByTaskId(page, emptySummary!.taskId)).toBeVisible();
-  await expect(rowByTaskId(page, convertedChild!.taskId)).toBeVisible();
+  for (const taskId of [headerLeaf!.taskId, keyboardLeaf!.taskId, nativeLeaf!.taskId, emptySummary!.taskId, summaryChild!.taskId, convertedChild!.taskId]) {
+    await expect(rowByTaskId(page, taskId)).toBeVisible();
+  }
 });
 
 test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab freshness", async ({ page }) => {
@@ -321,7 +441,7 @@ test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab fre
     await expect(row(scopedPage, child!.name)).toBeVisible();
     await expect(row(scopedPage, "Keep sibling")).toHaveCount(0);
     await expect(scopedPage.getByRole("button", { name: "요약 작업 추가", exact: true })).toHaveCount(0);
-    await expect(scopedPage.locator('.project-gantt-widget .wx-header [data-action="add-task"]').first()).toHaveAttribute("aria-disabled", "true");
+    await expect(scopedPage.locator('.project-gantt-widget .wx-header [data-action="add-task"]').first()).toHaveAttribute("aria-disabled", "false");
     await expect(rowByTaskId(scopedPage, alpha!.taskId).locator('[data-action="add-task"]')).toHaveAttribute("aria-disabled", "false");
 
     const rootScopedMenu = await openMenu(scopedPage, "Scope Alpha");

@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #418 Workspace 범위 Header/Row 작업 추가 일관성 — latest main 0.79.0 / merge 준비
+
+최신 main `888b3a657ee9e29a69f322c505cb494d22f0275a` / application `0.79.0`의 #412 Resource 전역 역할 모델, #409 Relation Editor taskId 검색, #416 Week Header `Wxx + N일`, #299 Chart vertical DnD, #407 scoped Row add, #399 single-ProjectGantt scope tabs를 보존한다. Header/Row native `add-task`를 source-aware pure resolver로 통합해 scoped Header를 active root immediate child로 정의하고, descendant Row child·일반 Task first-child Summary 전환을 같은 canonical mutation 경계로 처리한다. canonical sync와 `filter-tasks` 직렬화 및 scroll/focus 복원으로 add 중 blank/flicker를 방지한다. 후보 version은 PATCH `0.79.1`, branch는 `fix/issue-418-scoped-native-add-continuity`; 상세는 [Issue #418 실행 계획](ISSUE_418.md)을 따른다. PR CI 성공 후 merge → exact Main CI SUCCESS → Generic Release Finalizer → approved `v0.79.1` release-image/GHCR → branch cleanup/Issue FINAL 순서로 진행한다.
+
 ## Issue #409 Copy ID / Relation Editor 식별자 불일치 — 최신 main 0.78.0 통합 / PR CI 재검증
 
 최신 main `c7e4d8bb0617f8bcb8f6559b609b57aa56f59a32` / `0.78.0`의 #416 Week Header 근무 가능 일수와 기존 #299/#407/#370/#335/#399/#384 계약을 보존하면서 #390 `Copy ID`가 복사하는 canonical `taskId`와 Relation Editor의 `externalId` 검색·표시 불일치를 수정한다. 후보 검색을 name/externalId/taskId로 확장하고 두 ID를 명시적으로 표시하되 Link API는 externalId 계약을 유지한다. branch는 `fix/issue-409-relation-id-search`, 후보 version은 PATCH `0.78.1`이다. 상세는 [Issue #409 실행 계획](ISSUE_409.md)을 따른다. exact PR head CI PASS 후 merge → main CI → Generic Release Finalizer → GHCR 순서로 진행한다.
