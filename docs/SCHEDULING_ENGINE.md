@@ -1,5 +1,11 @@
 # Scheduling Engine 설계
 
+## Issue #430 — Cut/Reparent와 Dependency 경계
+
+Cut/Paste의 실제 저장은 기존 hierarchy `reparent`이며 새 일정 알고리즘을 추가하지 않는다. source Task + descendants를 이동 집합으로 계산해 Dependency 양 endpoint가 모두 집합 내부인 Link는 그대로 보존한다. 따라서 내부 Link의 ID/source/target/type/lag와 leaf의 `requestedStart/start/end/duration/scheduleMode`는 계층 이동 자체로 변경하지 않는다.
+
+한 endpoint만 이동 집합에 포함되는 incoming/outgoing boundary Link가 있으면 hierarchy transaction을 fail-closed한다. 양 endpoint가 모두 외부인 Link 또는 before/after anchor의 별도 Link는 무관하다. `child` placement가 linked leaf anchor를 Summary로 바꾸는 경우는 기존 endpoint-type 보호를 유지한다. 성공한 이동 뒤에는 기존 hierarchy derivation으로 Summary 파생값만 새 parent tree에 맞춰 갱신한다. Dependency graph endpoint를 재작성하거나 Link를 clone하지 않는다.
+
 ## Issue #384 — 다중 root Copy와 계산 경계
 
 Hierarchy service가 canonical numeric sibling preorder로 selected root를 정리하고 자손 union을 만든다. identity와 배치만 확장하며 Scheduling Domain algorithm은 #378을 재사용한다. copied leaf requestedStart/duration/mode 보존 → Project Calendar base schedule → 전체 graph와 복제 internal Link 재계산 → Summary 파생 → 원자적 commit 순서다. 여러 root 사이 내부 Dependency도 계산하고 외부 incoming/outgoing 관계는 생성하지 않는다.
@@ -305,7 +311,7 @@ Grid DnD와 Context Menu의 reorder/reparent/copy는 Scheduling Domain의 날짜
 
 Issue #300은 Grid의 `before/after/child` 이동을 기존 `reparent` 명령에 연결한다. 같은 parent 안의 sibling 재정렬과 parent 변경 모두 기존 service의 순서 정규화·cycle·Milestone parent 제한을 재사용한다. Issue #345부터 기존 부모가 빈 Summary가 되는 것은 허용한다. 후속 이름/비구조 필드 변경은 저장된 parent/sibling order를 보존한다.
 
-Indent는 직전 sibling을 parent로 사용하며 필요한 경우 기존 first-child 정책과 동일하게 leaf Task parent를 Summary로 전환한다. Outdent는 현재 parent의 바로 다음 sibling 위치로 이동한다. Issue #345부터 기존 Summary는 child 0개가 되어도 타입/ID를 유지하고 일정만 미산정 상태로 재계산한다. 현재 Dependency Link가 있는 hierarchy mutation은 기존 제한을 유지하므로 FS 재계산과 계층 이동을 한 명령에 혼합하지 않는다.
+Indent는 직전 sibling을 parent로 사용하며 필요한 경우 기존 first-child 정책과 동일하게 leaf Task parent를 Summary로 전환한다. Outdent는 현재 parent의 바로 다음 sibling 위치로 이동한다. Issue #345부터 기존 Summary는 child 0개가 되어도 타입/ID를 유지하고 일정만 미산정 상태로 재계산한다. Indent/Outdent 등은 기존 Dependency 제한을 유지한다. **Issue #430의 Cut/reparent는 source subtree 내부에서 완결되는 Dependency만 있을 때 예외적으로 parent 변경을 허용하며 Link와 leaf schedule을 보존하고 Summary hierarchy만 다시 파생한다. Boundary Link가 있으면 실패하므로 Dependency endpoint 재작성과 계층 이동을 한 명령에 혼합하지 않는다.**
 
 
 ## Link mutation recalculation (#97)

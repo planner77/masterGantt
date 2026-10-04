@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.82.0] - 2026-10-05
+## [0.83.0] - 2026-10-05
 
 ### Added
 
@@ -11,8 +11,20 @@
 
 - Excel 공수 견적은 #414 workload 서비스와 동일한 Project revision/range/`RESOURCE_MD_PER_MM` 기준을 재사용하며 assignmentId로 중복을 제거하고 여러 Group은 비가산 목록으로 표시한다.
 - M/M 기준이 없거나 공수가 미설정된 경우 0으로 환산하지 않고 명시적인 미설정 상태를 유지한다.
-- 기존 Gantt/Tasks/Project/Dependencies/Logistics 시트 순서와 Origin/If-Match/formula injection 보호를 유지하고 Application version을 `0.81.0`에서 `0.82.0`으로 증가한다.
+- 기존 Gantt/Tasks/Project/Dependencies/Logistics 시트 순서와 Origin/If-Match/formula injection 보호를 유지하고 Application version을 `0.82.0`에서 `0.83.0`으로 증가한다.
 
+
+## [0.82.0] - 2026-10-05
+
+### Added
+
+- Issue #430: Task/Summary Cut에서 source subtree 내부 Dependency는 허용하고 subtree 경계를 넘는 incoming/outgoing Dependency만 제한하는 boundary-aware 정책을 추가한다.
+
+### Changed
+
+- Context Menu `Cut`, `Ctrl/Cmd+X`, cut clipboard Paste와 server `reparent`가 동일한 Dependency boundary 판정을 사용하며 내부 Link의 ID/endpoints/type/signed lag를 이동 후에도 그대로 보존한다.
+- 독립적으로 linked된 Paste anchor의 before/after 배치는 허용하되 linked leaf의 child 전환, Delete/Indent/Outdent/Convert 및 #378/#384 Copy 보호 정책은 유지한다.
+- Unit/frontend model/SQLite service/Chromium 회귀와 Requirements/API/Scheduling/Relations/UX/Test Plan 문서를 동기화하고 Application version을 `0.81.0`에서 `0.82.0`으로 증가한다.
 
 ## [0.81.0] - 2026-10-05
 

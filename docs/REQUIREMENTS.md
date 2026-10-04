@@ -1,5 +1,13 @@
 # Requirements baseline
 
+## Issue #430 — Cut/Reparent Dependency 경계 정책
+
+- 단일 Cut source는 선택 Task/Summary와 전체 descendants의 canonical subtree를 이동 집합으로 사용한다. subtree 내부에서 predecessor와 successor가 모두 포함된 Dependency는 Cut을 막지 않으며 Cut → Paste/reparent 후 기존 Link ID, endpoint, type, signed lag/lead를 그대로 유지한다.
+- source subtree 경계를 넘는 incoming 또는 outgoing Dependency가 하나라도 있으면 Context Menu Cut, Ctrl/Cmd+X, cut clipboard Paste와 서버 reparent를 동일하게 제한한다. 판정은 Link 양 endpoint의 subtree 포함 여부 XOR로 정의한다.
+- Paste anchor가 별도의 Dependency endpoint라는 사실만으로 before/after Paste를 막지 않는다. 다만 `child` Paste가 linked leaf anchor를 Summary로 전환해야 하는 경우 기존 보호를 유지한다.
+- Cut은 계속 단일 target이며 viewRoot, self/descendant, scoped-view 탈출, cycle, cross-Project, edit session/Origin/If-Match/revision 보호를 유지한다. Delete/Convert/Indent/Outdent의 기존 Dependency guard와 #378/#384 Copy 정책은 변경하지 않는다.
+- UI의 enabled/disabled, keyboard shortcut과 서버 mutation은 동일 boundary 의미를 사용한다. [UX](PROJECT_UX.md), [API](API.md), [Relations](TASK_RELATIONS.md), [Test Plan](TEST_PLAN.md)을 따른다.
+
 ## Issue #384 — 다중 선택 Copy/Paste
 
 앱 소유 선택 집합을 canonical WBS 순서와 선택 ancestor 규칙으로 정규화하여 여러 root·전체 자손을 한 번씩 복사한다. Copy 집합 내부 Dependency만 새 Task/Link identity로 함께 복제하며 외부 관계는 제외한다. Root block의 before/after/child 삽입·Scheduling·Summary·revision +1은 하나의 원자적 명령이다. 기존 단일 taskId Copy는 호환하고 신규 taskIds를 지원한다.
@@ -22,7 +30,7 @@
 - 복제 Link는 새 ID를 사용하고 type(FS/SS/FF/SF)과 signed lag/lead를 보존한다.
 - copied leaf는 requestedStart/duration/scheduleMode를 보존하고 Project Calendar + 기존 Dependency engine으로 effective schedule을 다시 계산한다. 원본 effective date를 requestedStart로 사용하지 않는다.
 - Task/Link 생성, dependency 재계산, Summary 파생, revision +1은 하나의 서버 transaction이다. 실패 시 부분 Task/Link를 남기지 않는다.
-- linked Task의 Copy 및 copy-clipboard의 before/after Paste를 허용하고, #335부터 linked Task/subtree의 **same-parent sibling reorder**(Context Move Up/Down, Grid before/after)도 허용한다. 다른 parent로 가는 Cut-Paste/reparent/child, Indent/Outdent/Delete/Convert와 linked leaf anchor의 child Paste 보호는 유지한다. Resource assignment copy 정책은 별도 범위다.
+- linked Task의 Copy 및 copy-clipboard의 before/after Paste를 허용하고, #335부터 linked Task/subtree의 **same-parent sibling reorder**(Context Move Up/Down, Grid before/after)도 허용한다. #430부터 다른 parent로 가는 단일 Cut-Paste/reparent는 **source subtree 내부 Dependency만 존재할 때 허용**하고 경계를 넘는 incoming/outgoing Link가 있으면 제한한다. Indent/Outdent/Delete/Convert와 linked leaf anchor의 child Paste 보호는 유지한다. Resource assignment copy 정책은 별도 범위다.
 
 
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
@@ -90,7 +98,7 @@ Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계�
 | R51 | 일반 Task Editor는 요청 시작일·기간(근무일)·요청 종료일을 함께 제공하고 기간↔요청 종료일을 Project Effective Calendar 기준으로 양방향 계산한다 (#368). | requestedEnd는 UI-only draft이며 canonical 저장은 기존 `requestedStart + duration`을 유지한다. Auto 비근무 시작 보정, Manual/비근무 종료 오류, Dependency 적용 뒤 서버 확정 일정 분리, Summary/Milestone 계약 유지. [Task Editor](TASK_EDITOR.md), [Scheduling](SCHEDULING_ENGINE.md), [Test Plan](TEST_PLAN.md) |
 | R52 | 하위 작업이 있는 Summary의 Context Menu에서 `최상위로 열기`를 선택하면 새 browser context를 만들지 않고 현재 Project 일정 Workspace의 WBS 범위 탭으로 선택 Summary와 모든 자손만 표시한다 (#373/#399). `전체 프로젝트` 탭은 고정하고 동일 Summary 재진입은 중복 탭 없이 기존 탭을 활성화한다. | `rootTask` deep link/reload/direct-entry와 client-side `filter-tasks`를 유지하며 범위 탭마다 별도 Gantt를 만들지 않는다. canonical snapshot/Dependency/Resource·Logistics와 edit session·Origin·If-Match·revision 계약을 유지한다. 빈 Summary root는 유지하고 삭제/type 변경 root는 invalid 상태·복귀 경로를 제공하며 실제 다른 browser tab의 higher revision은 canonical GET으로 동기화한다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
 | R53 | Grid/Chart 작업 Context Menu의 `Copy ID`는 선택 Task/Summary/Milestone의 canonical `taskId`를 OS clipboard에 복사한다 (#390). | readonly·mutation lock·Dependency 연결 여부와 무관한 조회성 action이며 기존 단일/다중 Task `Copy/Paste` clipboard·선택 집합과 Project revision을 변경하지 않는다. #364 공통 clipboard 호환 경로를 사용하고 실제 자동 복사 성공 후에만 성공 안내하며 권한 거부/자동 복사 실패 시 수동 복사·재시도를 제공한다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
-| R54 | Dependency Link가 연결된 Task/Milestone 또는 linked descendant를 가진 subtree는 **parent를 바꾸지 않는 sibling reorder**를 수행할 수 있다 (#335). | Context Move Up/Down 및 Grid before/after가 대상이다. Link ID/endpoints/type/lag, requested/effective schedule, status/progress, resource/logistics/baseline은 불변이며 revision은 한 논리 mutation당 +1이다. Grid child/cross-parent, Indent/Outdent, Cut-Paste, Delete, Convert 보호는 유지한다. [UX 계약](PROJECT_UX.md), [API](API.md), [Relations](TASK_RELATIONS.md), [Test Plan](TEST_PLAN.md) |
+| R54 | Dependency Link가 연결된 Task/Milestone 또는 linked descendant를 가진 subtree는 **parent를 바꾸지 않는 sibling reorder**를 수행할 수 있다 (#335). #430부터 단일 Cut-Paste/reparent는 source subtree 내부 관계만 있을 때 parent 변경도 허용한다. | Context Move Up/Down 및 Grid same-parent before/after는 Link 여부와 무관하다. Cross-parent Cut-Paste/reparent는 source subtree 경계를 넘는 Dependency가 없을 때만 허용하며 내부 Link ID/endpoints/type/lag를 보존한다. Boundary Link, linked leaf anchor child 전환, Indent/Outdent/Delete/Convert 보호는 유지한다. [UX 계약](PROJECT_UX.md), [API](API.md), [Relations](TASK_RELATIONS.md), [Test Plan](TEST_PLAN.md) |
 | R55 | Relation Editor의 관계 추가 후보 검색은 작업명, 외부 ID(`externalId`), 작업 ID(`taskId`)를 모두 지원하고 두 식별자를 명시적으로 구분한다 (#409). | #390 `Copy ID`의 canonical taskId를 그대로 검색할 수 있으며 후보 선택 뒤 실제 Link mutation은 기존 externalId endpoint 계약을 유지한다. Summary/self/already-connected 제외, readonly/dirty/pending/focus 계약은 불변이다. [Relations](TASK_RELATIONS.md), [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
@@ -167,7 +175,7 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - **R72-01**: Edit 권한 Task의 Grid/Chart context menu는 SVAR Willow 기본 작업 흐름의 Add, Convert to, Edit, Cut, Copy, Paste, Move up/down, Indent, Outdent, Delete를 표현한다. Readonly에서는 mutation이 동작하지 않는다.
 - **R72-02**: parent/sibling order/type/subtree를 바꾸는 명령은 server-authoritative atomic mutation이며 성공당 Project revision을 정확히 1 증가시킨다. Client-only hierarchy 상태를 canonical로 간주하지 않는다.
 - **R72-03**: Cut은 Paste 전까지 저장 상태를 바꾸지 않는다. Copy는 subtree identity를 새로 발급하고 원본을 변경하지 않는다. stale clipboard는 Project revision 변경 시 폐기한다.
-- **R72-04**: cycle, Project 외 Task, Milestone parent 및 **관계 의미를 변경할 수 있는 Move/Indent/Outdent/Reparent/Convert/Delete 계층 mutation**은 linked endpoint에 대해 fail-closed한다. **Copy는 #378에 따라 예외적으로 허용하며 Copy 집합 내부 Dependency만 새 Task/Link ID로 복제하고 경계를 넘는 외부 Link는 복제하지 않는다.** Copy의 child placement가 linked leaf anchor의 Summary 전환을 요구하면 기존 fail-closed를 유지한다. 빈 Summary 발생만으로 거부하는 규칙은 #345로 대체한다. Project의 unrelated Link만으로 다른 Task의 Context Menu/Editor mutation을 전역 잠그지 않는다 (#104). Assignment가 있는 subtree Copy는 Assignment 복제 정책이 별도 확정될 때까지 명시적 오류로 거부한다.
+- **R72-04**: cycle, Project 외 Task, Milestone parent 및 Indent/Outdent/Convert/Delete처럼 관계 의미를 손상시킬 수 있는 계층 mutation은 기존 Dependency guard를 유지한다. **Copy는 #378에 따라 Copy 집합 내부 Dependency만 새 Task/Link ID로 복제하고 경계를 넘는 외부 Link는 복제하지 않는다. #430부터 단일 Cut-Paste/reparent는 source subtree의 양 endpoint가 모두 내부인 Link를 그대로 보존하여 허용하고, 한 endpoint만 내부인 boundary Link가 있으면 fail-closed한다.** linked anchor의 before/after 위치 사용은 허용하되 child placement가 linked leaf anchor의 Summary 전환을 요구하면 기존 fail-closed를 유지한다. 빈 Summary 발생만으로 거부하는 규칙은 #345로 대체한다. Project의 unrelated Link만으로 다른 Task의 Context Menu/Editor mutation을 전역 잠그지 않는다 (#104). Assignment가 있는 subtree Copy는 Assignment 복제 정책이 별도 확정될 때까지 명시적 오류로 거부한다.
 
 ## Issue #76 Project Workspace 요구사항
 

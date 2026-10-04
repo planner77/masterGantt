@@ -101,11 +101,14 @@ import {
 import {
   createHierarchyCommand,
   createPasteCommand,
-  clipboardIncludesRoot,
   taskContextCapabilities,
   type TaskClipboard,
 } from "./task-context-menu-model";
-import { taskHasDependencyLinks, taskSubtreeHasDependencyLinks } from "./task-link-scope";
+import {
+  taskHasDependencyLinks,
+  taskSubtreeHasDependencyLinks,
+  taskSubtreeHasExternalDependencyLinks,
+} from "./task-link-scope";
 import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
 import { canOpenTaskAsSubtreeRoot, resolveTaskSubtreeScope, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
 import { resolveNativeTaskAddIntent, type NativeTaskAddRejectReason, type NativeTaskAddSource } from "./native-task-add-intent";
@@ -2331,19 +2334,27 @@ export function ProjectGantt({
     if (!root) return false;
     const match = resolveSelectionTarget(event.target, root);
     if (!match) return false;
-    const selectedHasLinks = taskSubtreeHasDependencyLinks(
-      tasksByIdReference.current.size ? Array.from(tasksByIdReference.current.values()) : tasks,
-      match.taskId,
-      links,
-    );
+    const taskSnapshot = tasksByIdReference.current.size
+      ? Array.from(tasksByIdReference.current.values())
+      : tasks;
+    const selectedHasLinks = taskSubtreeHasDependencyLinks(taskSnapshot, match.taskId, links);
+    const selectedHasExternalLinks = taskSubtreeHasExternalDependencyLinks(taskSnapshot, match.taskId, links);
     const canCopy = editable && !mutationLocked;
     const canHierarchyMutate = canCopy && !selectedHasLinks;
-    const canCut = canHierarchyMutate && match.taskId !== viewRootTaskId;
+    const canCut = canCopy && !selectedHasExternalLinks && match.taskId !== viewRootTaskId;
     const pasteCommand = activeClipboard ? createPasteCommand(activeClipboard, match.taskId) : null;
+    const shortcutCapabilities = taskContextCapabilities(
+      taskSnapshot,
+      match.taskId,
+      editable,
+      mutationLocked,
+      links,
+      activeClipboard,
+      viewRootTaskId,
+    );
     const canPaste = Boolean(
       pasteCommand &&
-      activeClipboard && !clipboardIncludesRoot(activeClipboard, match.taskId) &&
-      (activeClipboard?.mode === "copy" ? canCopy : canHierarchyMutate) &&
+      shortcutCapabilities.canPaste &&
       taskHierarchyCommandStaysInSubtree(tasks, viewRootTaskId, pasteCommand),
     );
     if (modifier && shortcutKey === "c" && canCopy) {
@@ -2954,12 +2965,15 @@ export function ProjectGantt({
 
   const selectedTaskHasLinks = taskMenu ? taskHasDependencyLinks(tasks, taskMenu.taskId, links) : false;
   const selectedSubtreeHasLinks = taskMenu ? taskSubtreeHasDependencyLinks(tasks, taskMenu.taskId, links) : false;
+  const selectedSubtreeHasExternalLinks = taskMenu
+    ? taskSubtreeHasExternalDependencyLinks(tasks, taskMenu.taskId, links)
+    : false;
   const canOpenAsRoot = taskMenu
     ? taskMenu.taskId !== viewRootTaskId && canOpenTaskAsSubtreeRoot(tasks, taskMenu.taskId)
     : false;
   const canCopy = editable && !mutationLocked;
   const canMutate = canCopy && !selectedTaskHasLinks;
-  const canCut = canCopy && !selectedSubtreeHasLinks && taskMenu?.taskId !== viewRootTaskId;
+  const canCut = canCopy && !selectedSubtreeHasExternalLinks && taskMenu?.taskId !== viewRootTaskId;
   const canDelete = canCopy && !selectedSubtreeHasLinks;
   const activeClipboard = taskClipboard?.revision === projectRevision ? taskClipboard : null;
   const menuCapabilities = taskMenu

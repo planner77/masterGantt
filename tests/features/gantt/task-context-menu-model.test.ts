@@ -132,6 +132,47 @@ describe("task context menu model", () => {
     });
   });
 
+  it("allows Cut Paste for internal source dependencies even when the target is independently linked", () => {
+    const tasks = [
+      task("source", "S", null, 0, "summary"),
+      task("source-a", "SA", "S", 0),
+      task("source-b", "SB", "S", 1),
+      task("target", "T", null, 1),
+      task("peer", "P", null, 2),
+    ];
+    const links: ProjectLinkDto[] = [
+      { id: "internal", predecessorExternalId: "SA", successorExternalId: "SB", type: "FS", lag: 1 },
+      { id: "target-link", predecessorExternalId: "T", successorExternalId: "P", type: "FS", lag: 0 },
+    ];
+
+    expect(taskContextCapabilities(tasks, "target", true, false, links, {
+      mode: "cut",
+      taskId: "source",
+      revision: 1,
+    })).toMatchObject({
+      canPaste: true,
+      canAddChild: false,
+    });
+  });
+
+  it("blocks Cut Paste when the source subtree has an incoming or outgoing external dependency", () => {
+    const tasks = [
+      task("source", "S", null, 0, "summary"),
+      task("source-a", "SA", "S", 0),
+      task("source-b", "SB", "S", 1),
+      task("target", "T", null, 1),
+      task("outside", "X", null, 2),
+    ];
+    const clipboard = { mode: "cut", taskId: "source", revision: 1 } as const;
+
+    expect(taskContextCapabilities(tasks, "target", true, false, [
+      { id: "incoming", predecessorExternalId: "X", successorExternalId: "SA", type: "FS", lag: 0 },
+    ], clipboard).canPaste).toBe(false);
+    expect(taskContextCapabilities(tasks, "target", true, false, [
+      { id: "outgoing", predecessorExternalId: "SB", successorExternalId: "X", type: "FS", lag: 0 },
+    ], clipboard).canPaste).toBe(false);
+  });
+
   it("disables move/outdent controls that would cross a scoped root boundary", () => {
     const tasks = [
       task("root", "ROOT", null, 0, "summary"),

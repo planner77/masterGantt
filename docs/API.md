@@ -1,5 +1,18 @@
 # Backend API
 
+## Issue #430 — `task-commands` Cut/Reparent Dependency 경계
+
+`POST /api/projects/{publicId}/task-commands`의 기존 `reparent` schema는 변경하지 않는다. Cut clipboard는 client 상태이며 실제 저장은 `reparent` 한 번으로 수행한다.
+
+- source Task + descendants를 canonical subtree `C`로 계산한다.
+- Link의 predecessor/successor가 모두 `C` 내부이면 parent 변경을 허용하고 기존 Link row/ID, endpoint, type, signed lag/lead를 그대로 유지한다.
+- 정확히 한 endpoint만 `C` 내부인 incoming/outgoing boundary Link가 있으면 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 전체 mutation을 거부한다.
+- 양 endpoint가 모두 `C` 밖인 unrelated Link와 Paste anchor의 독립적인 Link는 before/after reparent 제한 사유가 아니다.
+- `placement:"child"`가 linked leaf anchor를 Summary endpoint로 전환해야 하는 경우에는 기존 `UNSUPPORTED_SCHEDULE_STRUCTURE` 보호를 유지한다.
+- same-parent sibling reorder의 #335 예외, cycle/Project/parent/revision/session/Origin/If-Match 검증과 성공 revision +1 / 실패 +0 원자성은 유지한다.
+
+Frontend의 Context Menu Cut과 Ctrl/Cmd+X도 동일한 boundary 판정을 사용한다. Copy는 #378/#384의 별도 identity 복제 계약을 유지한다.
+
 ## Issue #384 — 여러 Copy source의 원자적 처리
 
 `POST /api/projects/{publicId}/task-commands`의 Copy는 `{ "kind": "copy", "taskIds": ["<source-1>", "<source-2>"], "anchorTaskId": "<target>", "placement": "before|after|child" }`를 지원한다. 기존 `taskId` 하나도 호환하며 parser에서 `taskIds: [taskId]`로 정규화한다. 두 필드 동시 제출, source 누락·빈 배열·중복·잘못된 UUID·unknown field는 `400 INVALID_REQUEST`다. 입력 source ID는 ancestor 정리 전 최대 500개이고 기존 UTF-8 JSON body 32 KiB 제한을 유지한다. 최종 Task 수는 descendants를 포함하여 Project의 5000개 상한을 적용한다.
@@ -512,7 +525,7 @@ Exact same-origin `Origin`이 필요하다. 현재 Project에 binding된 session
 
 ## 5. Task 표현과 API
 
-현재 root 및 nested `task | milestone | summary` 생성과 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder는 아래 task-commands, atomic task-batch는 task-batch endpoint 계약을 따른다. WBS 응답 필드는 해당 절을 따른다. W24 당시 Link mutation과 FS 재계산은 W09 후속 범위였으며, 현재는 Issue #200의 FS/SS/FF/SF 및 signed lag Link 계약과 Issue #258의 연결 Task 일정 재계산 계약을 따른다. Task 생성·삭제·계층 mutation은 선택 Task 또는 mutation 영향 subtree가 Dependency endpoint를 포함할 때 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다. Issue #258부터 일반 Task/Milestone의 필드 PATCH는 관계 유무와 무관하게 아래 필드별 계약으로 허용한다. 프로젝트의 다른 Task에만 Link가 있는 경우에는 mutation을 허용하고 기존 Link를 canonical snapshot에 그대로 보존한다.
+현재 root 및 nested `task | milestone | summary` 생성과 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder는 아래 task-commands, atomic task-batch는 task-batch endpoint 계약을 따른다. WBS 응답 필드는 해당 절을 따른다. W24 당시 Link mutation과 FS 재계산은 W09 후속 범위였으며, 현재는 Issue #200의 FS/SS/FF/SF 및 signed lag Link 계약과 Issue #258의 연결 Task 일정 재계산 계약을 따른다. Task 생성·삭제·Indent/Outdent/Convert 등은 기존 명령별 Dependency 보호를 유지한다. **Issue #430부터 Cut-Paste에 대응하는 cross-parent `reparent`는 source subtree 내부 Dependency만 존재하면 허용하고 경계를 넘는 incoming/outgoing Link가 있으면 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다.** Issue #258부터 일반 Task/Milestone의 필드 PATCH는 관계 유무와 무관하게 아래 필드별 계약으로 허용한다. 프로젝트의 다른 Task에만 Link가 있는 경우에는 mutation을 허용하고 기존 Link를 canonical snapshot에 그대로 보존한다.
 
 ### Task response
 
@@ -829,7 +842,7 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 
 보호된 Project mutation이다. exact Origin, 유효한 edit session과 strong `If-Match: "<revision>"`가 필요하며 성공은 `200`과 새 ETag/canonical Task snapshot을 반환한다. 한 HTTP 명령은 하나의 SQLite immediate transaction에서 parent/order/type/subtree와 파생 Summary를 저장하고 Project revision을 정확히 1 증가시킨다.
 
-지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste와 Grid Drag & Drop의 실제 저장 동작이며 같은 parent 안의 재정렬도 지원한다. `copy`는 source subtree에 새 taskId/externalId를 발급하고, **복사 집합 내부에서 양쪽 endpoint가 모두 포함된 Dependency Link만 새 Task endpoint와 새 Link ID로 함께 복제한다(#378)**. 외부→내부/내부→외부 Link는 복제하지 않는다. Move/Indent/Outdent/Reparent/Convert/Delete 등 관계 의미를 바꾸거나 linked endpoint의 유형을 바꿀 수 있는 구조 mutation은 기존 fail-closed 정책을 유지하며, Copy의 `placement: "child"`가 linked leaf anchor를 Summary로 전환해야 하는 경우도 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다. 프로젝트의 unrelated Link만으로는 다른 Task의 계층 명령을 거부하지 않으며 성공 canonical snapshot에 해당 Link를 보존한다.
+지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste와 Grid Drag & Drop의 실제 저장 동작이며 같은 parent 안의 재정렬도 지원한다. **#430부터 cross-parent `reparent`는 source subtree 내부에서 완결되는 Dependency를 그대로 보존하여 허용하고, source 경계를 넘는 incoming/outgoing Link가 있으면 거부한다.** linked anchor의 before/after 위치 사용은 허용하지만 `child`가 linked leaf anchor를 Summary로 전환해야 하면 기존 보호를 유지한다. `copy`는 source subtree에 새 taskId/externalId를 발급하고, **복사 집합 내부에서 양쪽 endpoint가 모두 포함된 Dependency Link만 새 Task endpoint와 새 Link ID로 함께 복제한다(#378)**. 외부→내부/내부→외부 Link는 복제하지 않는다. Indent/Outdent/Convert/Delete 등 다른 관계 민감 구조 mutation의 기존 fail-closed 정책은 유지한다. 프로젝트의 unrelated Link만으로는 다른 Task의 계층 명령을 거부하지 않으며 성공 canonical snapshot에 해당 Link를 보존한다.
 
 Issue #300의 Grid 이동은 기존 `{kind:"reparent", taskId, anchorTaskId, placement:"before"|"after"|"child"}` 입력을 사용한다. Context Menu Up/Down은 기존 `{kind:"move",taskId,direction:"up"|"down"}`이다. 두 경로는 같은 hierarchy service와 sibling 순서 불변조건을 사용한다. Source/target은 SVAR 표시 ID가 아닌 canonical Task public ID로 전달한다. 서버는 이동한 family의 `sort_order`를 `0..N-1`로 정규화하고 parent 변경 시 이전/새 family를 함께 저장한다.
 
@@ -1298,7 +1311,7 @@ Summary는 직접 status를 PATCH하지 않는다. 기존 derived progress가 �
 
 - `{"kind":"move","taskId":"...","direction":"up|down"}`: 정의상 같은 parent의 sibling order만 변경하므로 linked Task에도 허용한다.
 - `{"kind":"reparent","taskId":"...","anchorTaskId":"...","placement":"before|after"}`: 계산된 target parent가 source의 현재 parent와 같을 때만 linked source/anchor/descendant를 허용한다.
-- `placement:"child"` 또는 target parent가 달라지는 before/after는 기존 Dependency guard를 유지한다.
+- `placement:"child"` 또는 target parent가 달라지는 before/after는 #430부터 source subtree의 **boundary-crossing Dependency**가 없을 때 허용한다. 내부 Link는 identity/endpoints/type/lag를 보존한다. linked leaf anchor를 Summary로 바꾸는 `child`는 계속 거부한다.
 
 성공은 기존 transaction에서 sibling order를 정규화하고 Project revision을 정확히 +1 한 canonical snapshot을 반환한다. Link ID/endpoints/type/lag와 Task requestedStart/start/end/duration/scheduleMode/status/progress는 reorder로 변경하지 않는다. 실패 시 기존 401/403/404/409/412 계약과 rollback을 유지한다. 새 route, DTO field, DB migration은 없다.
 

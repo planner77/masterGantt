@@ -683,3 +683,112 @@ test("Issues #104/#378 keep unrelated mutations available and allow linked Copy/
     successorExternalId: b.externalId,
   });
 });
+
+
+test("Issue #430 allows Cut for internal subtree dependencies and blocks boundary-crossing dependencies", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill(`Cut dependency boundary ${suffix}`);
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("Cut430Pwd!");
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
+
+  const path = new URL(page.url()).pathname;
+  const api = `/api${path}`;
+  const origin = new URL(page.url()).origin;
+  let current: ProjectSnapshotResponse | TaskMutationResponse = await snapshot(page, api);
+
+  async function add(
+    name: string,
+    type: "summary" | "task",
+    parentTaskId?: string,
+  ) {
+    const response = await page.request.post(`${api}/tasks`, {
+      headers: { Origin: origin, "If-Match": `"${current.data.project.revision}"` },
+      data: type === "summary"
+        ? { name, type }
+        : {
+            name,
+            type,
+            start: "2026-10-05",
+            duration: 1,
+            progress: 0,
+            ...(parentTaskId ? { parentTaskId } : {}),
+          },
+    });
+    expect(response.status()).toBe(201);
+    current = await response.json() as TaskMutationResponse;
+    return current.data.tasks.find((task) => task.name === name)!;
+  }
+
+  const source = await add("Cut Source", "summary");
+  const target = await add("Cut Target", "summary");
+  const first = await add("Cut A", "task", source.taskId);
+  const second = await add("Cut B", "task", source.taskId);
+  const outside = await add("Cut Outside", "task");
+
+  const internalResponse = await page.request.post(`${api}/links`, {
+    headers: { Origin: origin, "If-Match": `"${current.data.project.revision}"` },
+    data: {
+      predecessorExternalId: first.externalId,
+      successorExternalId: second.externalId,
+      type: "SS",
+      lag: 1,
+    },
+  });
+  expect(internalResponse.status()).toBe(201);
+  current = await internalResponse.json() as TaskMutationResponse;
+  const internalLink = current.data.links.find((link) =>
+    link.predecessorExternalId === first.externalId &&
+    link.successorExternalId === second.externalId
+  )!;
+
+  await page.reload();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+
+  let sourceMenu = await openTaskMenu(page, source.name);
+  await expect(sourceMenu.getByRole("menuitem", { name: "Cut", exact: true })).toBeEnabled();
+  await expect(sourceMenu.getByRole("menuitem", { name: "Delete", exact: true })).toBeDisabled();
+  await page.keyboard.press("Escape");
+
+  await row(page, source.name).focus();
+  await page.keyboard.press("Control+x");
+
+  const targetMenu = await openTaskMenu(page, target.name);
+  await expect(targetMenu.getByRole("menuitem", { name: "Paste", exact: true })).toBeEnabled();
+  await runSubmenu(page, "Paste", "As child");
+  await expectStructureToast(page);
+
+  current = await snapshot(page, api);
+  expect(current.data.tasks.find((task) => task.taskId === source.taskId)?.parentExternalId).toBe(target.externalId);
+  expect(current.data.links).toContainEqual(internalLink);
+
+  const externalResponse = await page.request.post(`${api}/links`, {
+    headers: { Origin: origin, "If-Match": `"${current.data.project.revision}"` },
+    data: {
+      predecessorExternalId: second.externalId,
+      successorExternalId: outside.externalId,
+      type: "FS",
+      lag: 0,
+    },
+  });
+  expect(externalResponse.status()).toBe(201);
+  current = await externalResponse.json() as TaskMutationResponse;
+
+  await page.reload();
+  await expect(row(page, source.name)).toBeVisible();
+  sourceMenu = await openTaskMenu(page, source.name);
+  await expect(sourceMenu.getByRole("menuitem", { name: "Cut", exact: true })).toBeDisabled();
+  await expect(sourceMenu.getByRole("menuitem", { name: "Copy", exact: true })).toBeEnabled();
+  await page.keyboard.press("Escape");
+
+  const persisted = await snapshot(page, api);
+  expect(persisted.data.project.revision).toBe(current.data.project.revision);
+  expect(persisted.data.links).toContainEqual(internalLink);
+  expect(persisted.data.links.some((link) =>
+    link.predecessorExternalId === second.externalId &&
+    link.successorExternalId === outside.externalId
+  )).toBe(true);
+});
