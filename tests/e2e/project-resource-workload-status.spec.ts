@@ -383,6 +383,19 @@ test("Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Ga
   await advanced.getByLabel("개발자 등급").selectOption("ADVANCED");
   await expect(resource.locator("summary")).toContainText("테스트 리소스");
 
+  // Codex review regression: Resource Group + member-scoped role/grade/date filters keep eligible groups.
+  await advanced.getByLabel("종류").selectOption("group");
+  await advanced.getByLabel("Task 기간 From").fill("2026-09-16");
+  await advanced.getByLabel("Task 기간 To").fill("2026-09-18");
+  await expect(page.getByText("개발팀", { exact: true })).toBeVisible();
+  await advanced.getByLabel("Task 기간 From").fill("2026-09-01");
+  await advanced.getByLabel("Task 기간 To").fill("2026-09-10");
+  await expect(page.getByText("검색 조건에 일치하는 리소스 할당이 없습니다.")).toBeVisible();
+  await advanced.getByLabel("Task 기간 From").fill("2026-09-16");
+  await advanced.getByLabel("Task 기간 To").fill("2026-09-18");
+  await advanced.getByLabel("종류").selectOption("resource");
+  await expect(estimate).toHaveAttribute("aria-pressed", "true");
+
   for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await expectResourcePanelOwnsOnlyVerticalScroll(page);
