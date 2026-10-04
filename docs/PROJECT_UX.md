@@ -51,7 +51,7 @@ Clipboard 쓰기는 #364의 공통 호환 경로를 재사용한다. secure cont
 
 범위 탭마다 Gantt를 새로 만들지 않는다. 하나의 ProjectGantt instance와 canonical snapshot을 공유하고 active `viewRootTaskId`와 visible set만 변경한다. scale/column/fullscreen 및 #367의 동적 timeline end 등 project-wide 상태를 유지하고 search/filter/quick-view는 scope별 in-memory state로 복원한다. scope 변경은 기존 selection/clipboard boundary 계약을 따르며 Gantt full remount를 상태 초기화 수단으로 사용하지 않는다.
 
-scoped hierarchy guard도 #373을 유지한다. scope 자체를 read-only 신호로 사용하지 않는다. native Grid의 **행 `+`는 Child add**로 취급하여 scoped root/descendant의 Task·Summary에서 결과가 subtree 안에 남는 경우 활성화하고, 일반 Task의 첫 child는 기존 Summary 전환 계약을 재사용한다. Milestone 행 `+`, native header/root-level add, root toolbar add, 가상 root Above/Below 및 root 직계 child Outdent처럼 결과가 scope 밖이거나 hierarchy상 무효인 경로는 비활성/비노출 또는 공통 guard로 거부한다. Context Menu `Add → Child task / 요약 작업 추가`도 동일한 subtree 내부 판정을 따른다.
+scoped hierarchy guard도 #373을 유지한다. scope 자체를 read-only 신호로 사용하지 않는다. #418부터 native Grid의 **Header `+`는 현재 범위의 최상위 작업 추가**이며 active Summary root의 immediate child를 만든다. 행 `+`는 scoped root/descendant Task·Summary의 Child add로 취급하고 일반 Task의 첫 child는 기존 Summary 전환 계약을 재사용한다. Header에는 `범위 최상위 작업 추가` accessible name/tooltip을 제공하고 Header/Row 모두 같은 scope-relative resolver로 `aria-disabled`와 실제 mutation target을 결정한다. Milestone 행 `+`, scope 밖 target, 가상 root Above/Below, root 직계 child Outdent 및 `before/after`처럼 결과가 scope 밖이거나 hierarchy상 무효인 경로는 공통 guard로 거부한다. Context Menu `Add → Child task / 요약 작업 추가`도 동일한 subtree 내부 판정을 따른다. 성공 add는 canonical Core sync와 `filter-tasks`를 직렬화하며 mutation 전후 scroll/focus를 복원해 row 전체가 순간적으로 사라지거나 scope 탭/ProjectGantt instance가 바뀌지 않아야 한다.
 
 root가 빈 Summary가 되어도 탭은 유지한다. root 삭제/non-Summary 전환은 다른 scope로 silent fallback하지 않고 invalid 표시, scoped Gantt 숨김, 전체 프로젝트 복귀/탭 닫기 경로를 제공한다.
 
