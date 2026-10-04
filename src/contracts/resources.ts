@@ -137,6 +137,8 @@ export interface ReplaceTaskAssignmentsRequest {
   targets: ReplaceTaskAssignmentTargetRequest[];
 }
 
+export type ResourceWorkloadRole = ResourceRole | "UNSPECIFIED";
+
 export interface ResourceWorkloadTaskDto {
   assignmentId: string;
   taskId: string;
@@ -147,6 +149,14 @@ export interface ResourceWorkloadTaskDto {
   effortMd: number | null;
   effortMm: number | null;
   effortConfigured: boolean;
+  /** Issue #414. Assignment performed role; UNSPECIFIED preserves legacy null without inference. */
+  role?: ResourceWorkloadRole;
+  /** Issue #414. Canonical task schedule/status are informational and do not change planned effort. */
+  taskStart?: string;
+  taskEnd?: string;
+  progress?: number | null;
+  status?: import("./projects").TaskStatus;
+  delayed?: boolean;
 }
 
 export interface ResourceWorkloadResourceDto {
@@ -154,6 +164,8 @@ export interface ResourceWorkloadResourceDto {
   name: string;
   code: string | null;
   active: boolean;
+  /** Issue #414. Resource profile metadata for developer estimate drill-down. */
+  developerGrade?: DeveloperGrade | null;
   start: string | null;
   end: string | null;
   effortMd: number;
@@ -161,6 +173,14 @@ export interface ResourceWorkloadResourceDto {
   unsetCount: number;
   overAllocated: boolean;
   tasks: ResourceWorkloadTaskDto[];
+}
+
+export interface ResourceWorkloadRoleTotalDto {
+  role: ResourceWorkloadRole;
+  assignmentCount: number;
+  effortMd: number;
+  effortMm: number | null;
+  unsetCount: number;
 }
 
 export interface ResourceWorkloadGroupDto {
@@ -184,6 +204,12 @@ export interface ResourceWorkloadResponse {
     grandTotalMd: number;
     grandTotalMm: number | null;
     unsetCount: number;
+    /** Issue #414. Server-local project date used only for delayed-state presentation. */
+    asOfDate?: string;
+    timezone?: string;
+    roleTotals?: ResourceWorkloadRoleTotalDto[];
+    unspecifiedRoleCount?: number;
+    overAllocatedResourceCount?: number;
     groups: ResourceWorkloadGroupDto[];
   };
 }
