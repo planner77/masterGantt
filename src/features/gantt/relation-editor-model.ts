@@ -66,7 +66,7 @@ export function findNextRelatedLink(
  * 1. type === 'summary' 제외 (Summary는 링크 연결 대상이 아님)
  * 2. anchorExternalId 제외 (자기 자신 연결 불가)
  * 3. 이미 해당 방향으로 anchor와 연결되어 있는 작업 제외
- * 4. query가 주어지면 작업명 또는 externalId에 query가 포함되는 작업만 검색 (대소문자 무시)
+ * 4. query가 주어지면 작업명, externalId 또는 canonical taskId에 query가 포함되는 작업만 검색 (대소문자 무시)
  */
 export function searchCandidateTasks(options: {
   readonly anchorExternalId: string;
@@ -107,7 +107,8 @@ export function searchCandidateTasks(options: {
 
     const nameMatch = task.name.toLowerCase().includes(normalizedQuery);
     const externalIdMatch = task.externalId.toLowerCase().includes(normalizedQuery);
+    const taskIdMatch = task.taskId.toLowerCase().includes(normalizedQuery);
 
-    return nameMatch || externalIdMatch;
+    return nameMatch || externalIdMatch || taskIdMatch;
   });
 }

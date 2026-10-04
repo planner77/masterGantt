@@ -21,9 +21,9 @@ async function setup(page: Page, readonly = false, longNames = false) {
 test("후보 native Enter/Space와 popup Escape, dirty 닫기·관계 선택 보호 및 Gantt 유지", async ({ page }) => {
   const { root } = await setup(page);
   const modal = dialog(page);
-  const search = modal.getByPlaceholder("작업 이름 또는 ID 검색...");
+  const search = modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...");
   await search.fill("후보");
-  const candidate = modal.getByRole("button", { name: "후보 작업 CANDIDATE" });
+  const candidate = modal.getByRole("button", { name: /후보 작업.*외부 ID: CANDIDATE.*작업 ID:/ });
   await candidate.focus();
   await page.keyboard.press("Escape");
   await expect(search).toBeFocused();
@@ -37,22 +37,22 @@ test("후보 native Enter/Space와 popup Escape, dirty 닫기·관계 선택 보
   await search.fill("후보 작업 ");
   await candidate.focus();
   await page.keyboard.press("Enter");
-  await expect(modal.getByText("후보 작업 (CANDIDATE)", { exact: true })).toBeVisible();
+  await expect(modal.getByText("후보 작업", { exact: true })).toBeVisible();
   await modal.getByRole("button", { name: "닫기", exact: true }).click();
   await expect(modal.getByRole("button", { name: "계속 편집" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(modal).toBeVisible();
-  await expect(modal.getByText("후보 작업 (CANDIDATE)", { exact: true })).toBeVisible();
+  await expect(modal.getByText("후보 작업", { exact: true })).toBeVisible();
   await modal.getByRole("button", { name: "선택", exact: true }).click();
   await expect(modal.getByText("저장하지 않은 변경이 있습니다. 변경을 버리시겠습니까?")).toBeVisible();
   await modal.getByRole("button", { name: "계속 편집" }).click();
-  await expect(modal.getByText("후보 작업 (CANDIDATE)", { exact: true })).toBeVisible();
+  await expect(modal.getByText("후보 작업", { exact: true })).toBeVisible();
   await modal.getByRole("button", { name: "선택", exact: true }).click();
   await modal.getByRole("button", { name: "변경 버리기" }).click();
   await search.fill("후보");
   await candidate.focus();
   await page.keyboard.press("Space");
-  await expect(modal.getByText("후보 작업 (CANDIDATE)", { exact: true })).toBeVisible();
+  await expect(modal.getByText("후보 작업", { exact: true })).toBeVisible();
   await modal.getByRole("button", { name: "닫기", exact: true }).click();
   await modal.getByRole("button", { name: "변경 버리기" }).click();
   await expect(modal).toHaveCount(0);
@@ -63,9 +63,9 @@ test("후보 native Enter/Space와 popup Escape, dirty 닫기·관계 선택 보
 test("명시적 닫기는 후보 popup보다 우선해 dirty 닫기 확인으로 진입한다", async ({ page }) => {
   await setup(page);
   const modal = dialog(page);
-  const search = modal.getByPlaceholder("작업 이름 또는 ID 검색...");
+  const search = modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...");
   await search.fill("후보");
-  await expect(modal.getByRole("button", { name: "후보 작업 CANDIDATE" })).toBeVisible();
+  await expect(modal.getByRole("button", { name: /후보 작업.*외부 ID: CANDIDATE.*작업 ID:/ })).toBeVisible();
 
   await modal.getByRole("button", { name: `${title} 닫기`, exact: true }).click();
 
@@ -110,13 +110,13 @@ test("선행 방향 관계 생성 성공 후 새 관계 초안이 초기화되�
   const modal = dialog(page);
 
   await modal.getByLabel("연결 방향").selectOption("predecessor");
-  await modal.getByPlaceholder("작업 이름 또는 ID 검색...").fill("후보");
-  await modal.getByRole("button", { name: "후보 작업 CANDIDATE" }).click();
+  await modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...").fill("후보");
+  await modal.getByRole("button", { name: /후보 작업.*외부 ID: CANDIDATE.*작업 ID:/ }).click();
   await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
 
   await expect.poll(() => createRequests).toBe(1);
   await expect(modal.getByLabel("연결 방향")).toHaveValue("successor");
-  await expect(modal.getByPlaceholder("작업 이름 또는 ID 검색...")).toHaveValue("");
+  await expect(modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...")).toHaveValue("");
   await modal.getByRole("button", { name: "닫기", exact: true }).click();
   await expect(modal).toHaveCount(0);
   await expectSameGanttRoot(page, root);
@@ -148,7 +148,7 @@ for (const method of ["POST", "PATCH", "DELETE"] as const) {
     });
     const modal = dialog(page);
     if (method === "PATCH") { await modal.getByLabel("관계 유형 (Type)", { exact: true }).first().selectOption("SS"); await modal.getByRole("button", { name: "수정 저장" }).click(); }
-    if (method === "POST") { await modal.getByPlaceholder("작업 이름 또는 ID 검색...").fill("후보"); await modal.getByRole("button", { name: "후보 작업 CANDIDATE" }).click(); await modal.getByRole("button", { name: "관계 추가", exact: true }).click(); }
+    if (method === "POST") { await modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...").fill("후보"); await modal.getByRole("button", { name: /후보 작업.*외부 ID: CANDIDATE.*작업 ID:/ }).click(); await modal.getByRole("button", { name: "관계 추가", exact: true }).click(); }
     if (method === "DELETE") { await modal.getByRole("button", { name: "관계 삭제", exact: true }).click(); await modal.getByRole("button", { name: "삭제 확인" }).click(); }
     await expect.poll(() => requests).toBe(1);
     await page.keyboard.press("Escape");
@@ -161,7 +161,7 @@ for (const method of ["POST", "PATCH", "DELETE"] as const) {
     gate.resolve();
     await expect(modal.getByRole("alert")).toContainText(method === "POST" ? "새 관계 추가에 실패" : method === "PATCH" ? "관계 수정에 실패" : "관계 삭제에 실패");
     if (method === "PATCH") await expect(modal.getByLabel("관계 유형 (Type)", { exact: true }).first()).toHaveValue("SS");
-    if (method === "POST") await expect(modal.getByText("후보 작업 (CANDIDATE)", { exact: true })).toBeVisible();
+    if (method === "POST") await expect(modal.getByText("후보 작업", { exact: true })).toBeVisible();
     expect(match).toBe('"40"');
     if (method === "PATCH") expect(payload).toEqual({ type: "SS", lag: 0 });
     await expectSameGanttRoot(page, root);
@@ -199,7 +199,7 @@ for (const width of [390, 768, 1024, 1440]) {
     expect(await modal.evaluate((element) => element.contains(document.activeElement))).toBe(true);
     await page.keyboard.press("Tab");
     await expect(close).toBeFocused();
-    await modal.getByPlaceholder("작업 이름 또는 ID 검색...").fill("후보 작업");
+    await modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...").fill("후보 작업");
     const candidate = modal.getByRole("button", { name: /^후보 작업 / });
     await candidate.scrollIntoViewIfNeeded();
     await candidate.focus();
