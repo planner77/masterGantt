@@ -158,6 +158,8 @@ test("Issue #412: 전역 Resource 역할 표시·편집·그룹 참조와 반응
   const longRow = page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 PI 역할", { exact: true }).locator("xpath=ancestor::li[1]");
   const longIdentity = longRow.locator(":scope > div").first();
   const longActions = longRow.locator(":scope > div").nth(1);
+  const longProfile = longRow.getByRole("group", { name: "역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 프로필", exact: true });
+  const longRowActions = longRow.getByRole("group", { name: "역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 상태 및 삭제 작업", exact: true });
   const closeButton = page.getByRole("button", { name: "닫기", exact: true });
   const saveMembersButton = page.getByRole("button", { name: "구성원 저장", exact: true });
 
@@ -183,7 +185,11 @@ test("Issue #412: 전역 Resource 역할 표시·편집·그룹 참조와 반응
 
     const identityBox = await geometryBox(longIdentity);
     const actionsBox = await geometryBox(longActions);
+    const profileBox = await geometryBox(longProfile);
+    const rowActionsBox = await geometryBox(longRowActions);
     expect(boxesOverlap(identityBox, actionsBox)).toBe(false);
+    expect(boxesOverlap(profileBox, rowActionsBox)).toBe(false);
+    expect(profileBox.y + profileBox.height).toBeLessThanOrEqual(rowActionsBox.y + 1);
     expect(identityBox.width).toBeGreaterThan(160);
 
     const closeBox = await geometryBox(closeButton);
