@@ -52,6 +52,7 @@ test("Issue #412: 전역 Resource 역할 표시·편집·그룹 참조와 반응
   }];
   const catalog = () => ({ data: { revision, resources, groups } });
   const rolePatches: Array<{ id: string; roles: string[] }> = [];
+  let failNextRolePatchWith412 = false;
 
   await page.route("**/api/resource-catalog/admin-sessions", async (route) => {
     if (route.request().method() === "POST") {
@@ -75,6 +76,12 @@ test("Issue #412: 전역 Resource 역할 표시·편집·그룹 참조와 반응
     expect(route.request().headers()["if-match"]).toBe(`"${revision}"`);
     const id = decodeURIComponent(new URL(route.request().url()).pathname.split("/").at(-1)!);
     const body = route.request().postDataJSON() as { roles?: string[]; developerGrade?: string | null; active?: boolean };
+    if (body.roles && failNextRolePatchWith412) {
+      failNextRolePatchWith412 = false;
+      revision += 1;
+      await route.fulfill({ status: 412, json: { error: { code: "CATALOG_REVISION_MISMATCH" } } });
+      return;
+    }
     resources = resources.map((resource) => resource.id === id ? { ...resource, ...body } : resource);
     if (body.roles) rolePatches.push({ id, roles: body.roles });
     revision += 1;
@@ -100,6 +107,16 @@ test("Issue #412: 전역 Resource 역할 표시·편집·그룹 참조와 반응
     roles: ["PI", "DEVELOPER", "EQUIPMENT_OWNER"],
   });
   await expect(page.getByLabel("PI 개발자 리소스 개발자 등급", { exact: true })).toHaveValue("ADVANCED");
+
+  failNextRolePatchWith412 = true;
+  const staleDraftRole = page.getByLabel("설비 담당 리소스 PI 역할", { exact: true });
+  await staleDraftRole.check();
+  await expect(page.getByText("다른 관리 변경이 먼저 저장되었습니다. 최신 목록을 불러왔습니다. 초안을 확인한 후 다시 저장해 주세요.", { exact: true })).toBeVisible();
+  await expect(staleDraftRole).toBeChecked();
+  expect(rolePatches.at(-1)).toEqual({
+    id: r1,
+    roles: ["PI", "DEVELOPER", "EQUIPMENT_OWNER"],
+  });
 
   const noRolePi = page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 PI 역할", { exact: true });
   await noRolePi.focus();
