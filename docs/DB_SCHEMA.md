@@ -648,3 +648,11 @@ Migration `0017_project_master_catalog.sql`은 `project_master_items`와 catalog
 `0019_task_status.sql`은 `tasks.status TEXT NOT NULL DEFAULT 'not_started'`를 추가하고 허용값을 `not_started | in_progress | completed`로 제한한다. 기존 row는 progress 기준으로 `100 → completed`, `0 < progress < 100 → in_progress`, `0 또는 Summary 미산정 값 → not_started`로 backfill한다.
 
 Repository write는 status/progress 일관성을 검증한다. Summary schedule 갱신은 derived progress에서 status를 함께 갱신하며, subtree Copy는 원본의 명시적 status를 보존한다. Migration ledger는 0018 이후 0019를 순차 적용하고 실제 파일 reopen 및 invalid status CHECK를 회귀 테스트한다.
+
+## Issue #412 — Resource global roles migration 0020
+
+`0020_resource_roles.sql`은 Resource의 전역 역량 역할을 별도 M:N으로 저장하는 `resource_roles`를 추가한다. 기존 `resources.developer_grade`, `resource_group_members`, Project별 `project_equipment_resource_roles` / `project_system_resource_roles`는 변경하지 않는다.
+
+`resource_roles`의 PK는 `(resource_id, role)`이며 role은 `PI | DEVELOPER | EQUIPMENT_OWNER`만 허용한다. Resource 삭제 시에만 role row를 cascade 삭제하고 역할 편집 자체는 다른 연결 정보를 수정하지 않는다. 기존 Resource에는 migration backfill을 하지 않아 역할 0개로 시작한다. `resource_roles_role_resource_idx(role, resource_id)`는 후속 역할 기반 검색/할당 필터가 role→resource 방향으로 조회할 수 있게 한다.
+
+상세 결정과 검증 범위는 [ISSUE_412_RESOURCE_ROLES.md](ISSUE_412_RESOURCE_ROLES.md)를 따른다.
