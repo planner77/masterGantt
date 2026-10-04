@@ -1,15 +1,15 @@
 # Issue #409 실행 계획 — Copy ID / Relation Editor ID 검색 정합화
 
-상태: 최신 main 재정렬 및 PR CI 재검증.
+상태: 최신 main 0.77.0 통합 및 PR CI 재검증.
 
 ## 기준
 
-- main: `da0f39a4dde363bd84ad2e938089c40d2dd9e29a`
-- main version: `0.76.0`
-- target version: `0.76.1`
+- main: `c005e05718fbca8c48973d7006c20cd4f905c6f6`
+- main version: `0.77.0`
+- target version: `0.77.1`
 - branch: `fix/issue-409-relation-id-search`
 - release_required: true
-- release_authorized: false
+- release_authorized: true — 사용자가 GHCR 게시가 적절한 순서에 실행되도록 명시적으로 요청함
 
 ## 문제
 
@@ -22,7 +22,7 @@
 3. 후보/선택 표시: `외부 ID:`와 `작업 ID:`를 별도 metadata로 표시.
 4. Link create callback/API는 기존 task resolve → externalId payload를 유지.
 5. #390 Copy ID 구현은 변경하지 않는다.
-6. 최신 main의 #370 Grid 시작일 Date Picker 및 기존 일정/편집 계약을 보존한다.
+6. 최신 main의 #299 Chart 수직 DnD, #407 scoped add, #370 Grid 시작일 Date Picker 및 기존 일정/편집 계약을 보존한다.
 
 ## 검증
 
@@ -32,6 +32,8 @@
 - Link POST는 externalId endpoint.
 - 기존 relation-dialog UX keyboard/Escape/focus/dirty/pending/readonly/responsive 회귀 유지.
 - API/DB/Scheduling/Security: N/A.
-- 정렬 후 exact PR head의 GitHub Actions quality/e2e/docker를 새로 판정한다.
+- latest main 통합 후 exact PR head의 GitHub Actions quality/e2e/docker를 새로 판정한다.
+- PR CI PASS 후 Issue comment의 version-scoped release authorization marker를 확인하고 merge한다.
+- merge 후 exact main CI success가 Generic Release Finalizer와 release-image/GHCR 게시의 선행 조건이다.
 
 공식 판정은 동일 PR exact head의 GitHub Actions quality/e2e/docker다.
