@@ -276,9 +276,30 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   expect(continuity.currentGanttScrollLeft).toBe(continuity.ganttScrollLeft);
   await expect(scopeTab).toHaveAttribute("aria-selected", "true");
 
+  const beforeKeyboardIds = new Set(headerSnapshot.data.tasks.map((task) => task.taskId));
+  const [keyboardResponse] = await Promise.all([
+    page.waitForResponse((response) =>
+      response.request().method() === "POST" &&
+      new URL(response.url()).pathname === `${api}/tasks`,
+    ),
+    (async () => {
+      await headerAdd.focus();
+      await page.keyboard.press("Enter");
+    })(),
+  ]);
+  expect(keyboardResponse.status()).toBe(201);
+  const keyboardSnapshot = await keyboardResponse.json() as TaskMutationResponse;
+  const keyboardLeaf = keyboardSnapshot.data.tasks.find((task) =>
+    !beforeKeyboardIds.has(task.taskId) && task.parentExternalId === rootTask!.externalId,
+  );
+  expect(keyboardLeaf).toBeTruthy();
+  await expect(rowByTaskId(page, keyboardLeaf!.taskId)).toBeVisible();
+  await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
+  await expect(headerAdd).toBeFocused();
+
   const scopedRootAdd = rowByTaskId(page, rootTask!.taskId).locator('[data-action="add-task"]');
   await expect(scopedRootAdd).toHaveAttribute("aria-disabled", "false");
-  const beforeRootIds = new Set(headerSnapshot.data.tasks.map((task) => task.taskId));
+  const beforeRootIds = new Set(keyboardSnapshot.data.tasks.map((task) => task.taskId));
   const [rootResponse] = await Promise.all([
     page.waitForResponse((response) =>
       response.request().method() === "POST" &&
@@ -314,7 +335,10 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
       response.request().method() === "POST" &&
       new URL(response.url()).pathname === `${api}/tasks`,
     ),
-    emptySummaryAdd.click(),
+    (async () => {
+      await emptySummaryAdd.focus();
+      await page.keyboard.press(" ");
+    })(),
   ]);
   expect(summaryResponse.status()).toBe(201);
   const summaryChildSnapshot = await summaryResponse.json() as TaskMutationResponse;
@@ -366,7 +390,7 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
 
   await allTab.click();
   await expect(allTab).toHaveAttribute("aria-selected", "true");
-  for (const taskId of [headerLeaf!.taskId, nativeLeaf!.taskId, emptySummary!.taskId, summaryChild!.taskId, convertedChild!.taskId]) {
+  for (const taskId of [headerLeaf!.taskId, keyboardLeaf!.taskId, nativeLeaf!.taskId, emptySummary!.taskId, summaryChild!.taskId, convertedChild!.taskId]) {
     await expect(rowByTaskId(page, taskId)).toBeVisible();
   }
 });
