@@ -152,6 +152,7 @@ describe("SQLite connection and schema", () => {
         "0018_empty_summary_schedule.sql",
         "0019_task_status.sql",
         "0020_resource_roles.sql",
+        "0021_task_assignment_roles.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -243,6 +244,7 @@ describe("SQLite connection and schema", () => {
         "task_assignments_group_unique_idx",
         "task_assignments_project_task_idx",
         "task_assignments_resource_idx",
+        "task_assignments_resource_role_idx",
         "task_assignments_resource_unique_idx",
         "task_assignments_resource_workload_idx",
         "task_equipment_links_equipment_idx",
@@ -254,6 +256,10 @@ describe("SQLite connection and schema", () => {
         "work_calendar_dates_rule_date_idx",
         "work_calendar_rules_project_idx",
       ]);
+      expect(database.prepare("SELECT name, type FROM pragma_table_info('task_assignments') WHERE name = 'assignment_role'").get())
+        .toEqual({ name: "assignment_role", type: "TEXT" });
+      expect(database.prepare("SELECT name FROM sqlite_schema WHERE type = 'trigger' AND name = 'resource_roles_assignment_delete_guard'").pluck().get())
+        .toBe("resource_roles_assignment_delete_guard");
     } finally {
       database.close();
     }

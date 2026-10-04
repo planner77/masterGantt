@@ -27,6 +27,7 @@ interface Fixture {
   editable: boolean;
   patches: Request[];
   linkMutations: Request[];
+  assignmentMutations: Request[];
   nextFailure: number | "network" | null;
   gate: Promise<void> | null;
   failReads: boolean;
@@ -45,9 +46,12 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       task(5, "Milestone", { type: "milestone", duration: 0, requestedStart: "2026-09-23", start: "2026-09-23", end: "2026-09-23" }),
     ],
     links: options.links ? [{ id: id(90), predecessorExternalId: "EDITOR-3", successorExternalId: "EDITOR-4", type: "FS", lag: 0 }] : [],
-    editable: options.editable ?? true, patches: [], linkMutations: [], nextFailure: null, gate: null, failReads: false, projectReads: 0,
+    editable: options.editable ?? true, patches: [], linkMutations: [], assignmentMutations: [], nextFailure: null, gate: null, failReads: false, projectReads: 0,
   };
-  const assignmentTargets = options.assignmentTargets ? [{ kind: "resource" as const, id: id(70), name: "Resource A", code: "RES-A", active: true }] : [];
+  const assignmentTargets = options.assignmentTargets ? [
+    { kind: "resource" as const, id: id(70), name: "Resource A", code: "RES-A", active: true, roles: ["PI", "DEVELOPER"] as const },
+    { kind: "resource" as const, id: id(71), name: "Resource B", code: "RES-B", active: true, roles: ["EQUIPMENT_OWNER"] as const },
+  ] : [];
   const snapshot = () => ({ data: { project: fixture.project, tasks: fixture.tasks, links: fixture.links, permission: "readonly" } });
   await page.route("**/api/projects/**", async (route) => {
     const request = route.request();
@@ -62,6 +66,18 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
     }
     if (path === `${apiPath}/assignment-targets` && request.method() === "GET") {
       await route.fulfill({ json: { data: { catalogRevision: 1, targets: assignmentTargets } } });
+      return;
+    }
+    if (path.startsWith(`${apiPath}/tasks/`) && path.endsWith("/assignments") && request.method() === "PUT") {
+      fixture.assignmentMutations.push(request);
+      if (request.headers()["if-match"] !== `"${fixture.project.revision}"`) {
+        await route.fulfill({ status: 412, json: { error: { code: "REVISION_MISMATCH" } } });
+        return;
+      }
+      fixture.project.revision += 1;
+      await route.fulfill({
+        json: { data: { projectRevision: fixture.project.revision, catalogRevision: 1, assignments: [], operation: { kind: "taskAssignments", taskId: path.split("/").at(-2), changed: true } } },
+      });
       return;
     }
     if (path === apiPath && request.method() === "GET") {
@@ -981,4 +997,41 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     expect(fixture.patches).toHaveLength(0);
   });
 
+});
+
+
+test("Issue #413 수행 역할 필터와 Resource별 역할 선택을 assignment 저장 payload에 반영한다", async ({ page }) => {
+  const fixture = await setup(page, { assignmentTargets: true });
+  await openRow(page);
+  const dialog = editor(page);
+  await dialog.getByRole("tab", { name: /리소스/ }).click();
+
+  const roleFilter = dialog.getByRole("combobox", { name: "수행 역할", exact: true });
+  const roleRequest = page.waitForRequest((request) => {
+    const url = new URL(request.url());
+    return url.pathname === `${apiPath}/assignment-targets` &&
+      url.searchParams.get("kind") === "resource" &&
+      url.searchParams.get("role") === "DEVELOPER";
+  });
+  await roleFilter.selectOption("DEVELOPER");
+  await roleRequest;
+  await expect(dialog.getByRole("checkbox", { name: /Resource A/ })).toBeVisible();
+  await expect(dialog.getByRole("checkbox", { name: /Resource B/ })).toHaveCount(0);
+
+  await dialog.getByRole("checkbox", { name: /Resource A/ }).check();
+  const roleSelect = dialog.getByLabel(/Resource A.*수행 역할/);
+  await expect(roleSelect).toHaveValue("DEVELOPER");
+  await dialog.getByLabel(/Resource A.*투입률/).fill("60");
+  await dialog.getByRole("button", { name: /할당 저장/ }).click();
+
+  await expect.poll(() => fixture.assignmentMutations.length).toBe(1);
+  expect(fixture.assignmentMutations[0].postDataJSON()).toEqual({
+    catalogRevision: 1,
+    targets: [{
+      kind: "resource",
+      id: id(70),
+      role: "DEVELOPER",
+      allocation: { start: null, end: null, percent: 60 },
+    }],
+  });
 });

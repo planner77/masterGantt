@@ -255,6 +255,7 @@ export class ProjectTemplateService {
           offsetStartDays,
           offsetEndDays,
           allocationPercent: a.allocationPercent,
+          assignmentRole: a.kind === "resource" ? a.assignmentRole : null,
         };
       }).filter((a) => a.taskExternalId.length > 0);
 
@@ -676,6 +677,7 @@ export class ProjectTemplateService {
         assignmentStart: string | null;
         assignmentEnd: string | null;
         allocationPercent: number | null;
+        assignmentRole: import("../../contracts/resources").ResourceRole | null;
       }>>();
 
       for (const a of snapshot.assignments) {
@@ -684,12 +686,17 @@ export class ProjectTemplateService {
 
         let internalTargetId: number | undefined;
         let isActive = true;
+        let assignmentRole = a.kind === "resource" ? a.assignmentRole ?? null : null;
 
         if (a.kind === "resource") {
           const res = this.resources.findResourceByPublicId(a.targetPublicId);
           if (res) {
             internalTargetId = res.id;
             isActive = res.active;
+            if (assignmentRole !== null && !res.roles.includes(assignmentRole)) {
+              warnings.push(`배정 대상 리소스(${a.targetPublicId})의 수행 역할(${assignmentRole})이 현재 Global Role에 없어 역할 미지정으로 복원되었습니다.`);
+              assignmentRole = null;
+            }
           }
         } else {
           const grp = this.resources.findGroupByPublicId(a.targetPublicId);
@@ -720,6 +727,7 @@ export class ProjectTemplateService {
             ? null
             : endFromStart(projectStart, a.offsetEndDays + 1, calendar),
           allocationPercent: a.allocationPercent,
+          assignmentRole,
         });
         assignmentsByTaskId.set(taskInfo.id, list);
       }
@@ -954,6 +962,7 @@ export class ProjectTemplateService {
         id: assignment.publicId,
         taskId: assignment.taskPublicId,
         target: { kind: assignment.kind, id: assignment.targetPublicId },
+        role: assignment.kind === "resource" ? assignment.assignmentRole : null,
         allocation: assignment.kind === "resource"
           ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
           : null,

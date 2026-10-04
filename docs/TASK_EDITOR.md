@@ -248,3 +248,14 @@ Grid quick edit은 시작일만 변경한다. 기간, 요청 종료일(#368 범�
 
 Chart 수직 DnD는 일정 PATCH가 아닌 hierarchy mutation이며 vertical gesture 확정 후 `reparent(before|after)`를 한 번만 제출한다. 이후 작업명·Description·URL·진행률·일정 편집은 저장된 parent/sibling order를 보존해야 한다. #335 linked same-parent reorder는 허용하되 cross-parent hierarchy 제한을 우회하지 않는다.
 
+## Issue #413 — 리소스 탭 수행 역할 편집
+
+리소스 탭의 개인 Resource 행은 선택 시 수행 역할 select와 기존 투입 시작/종료/투입률을 함께 표시한다. select option은 해당 Resource의 Global `roles`만 사용한다. 역할 필터를 먼저 고르면 후보를 해당 역할 보유 Resource로 제한하고 새로 선택한 Resource의 초기 역할도 그 값으로 채운다.
+
+migration 이전 역할 미지정 assignment는 `역할 미지정 (기존)`으로 표시한다. 이 상태는 기존 데이터를 파괴하지 않기 위해 그대로 저장할 수 있지만 새 개인 Resource를 선택한 경우에는 역할이 필수다. 역할 변경은 allocation draft를 재초기화하지 않는다.
+
+역할 stale 또는 Resource role 변경 race는 저장 성공으로 처리하지 않는다. Project/candidate snapshot의 revision 계약을 유지하고 409/412에서는 최신 정보 재확인을 안내한다. Group pane은 수행 역할 UI 없이 기존 담당 팀 참조 계약을 유지한다.
+
+### Issue #413 역할 후보 서버 필터
+
+수행 역할 필터 선택 시 client는 `assignment-targets?kind=resource&role=...`를 다시 조회한다. 역할 후보는 서버에서 100건 제한 전에 필터링하며, 응답 catalog revision이 현재 snapshot과 다르면 후보를 성공 상태로 승격하지 않는다. 역할별 후보 조회 중에는 별도 status를 표시하고 결과가 도착한 뒤 해당 Resource 목록을 사용한다.

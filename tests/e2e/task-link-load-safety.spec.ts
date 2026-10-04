@@ -146,7 +146,7 @@ test("비어 있지 않은 AssignmentTargetRefDto를 복원하여 투입률과 I
   await expect(dialog.getByRole("checkbox", { name: /담당 리소스/ })).toBeChecked();
   await expect(dialog.getByRole("spinbutton", { name: /투입률/ })).toHaveValue("50");
   await dialog.getByRole("button", { name: /할당 저장/ }).click();
-  await expect.poll(() => payload).toEqual({ catalogRevision: 5, targets: [{ kind: "resource", id: "res-1", allocation: { start: null, end: null, percent: 50 } }] });
+  await expect.poll(() => payload).toEqual({ catalogRevision: 5, targets: [{ kind: "resource", id: "res-1", role: null, allocation: { start: null, end: null, percent: 50 } }] });
   expect(match).toBe('"40"');
 });
 

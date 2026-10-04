@@ -357,13 +357,17 @@
   white-space: normal;
   overflow-wrap: anywhere;
 }
-.inactiveBadge {
+.inactiveBadge, .roleBadge {
   padding: 0.1rem 0.38rem;
   border-radius: 999px;
   background: var(--surface-subtle);
   color: var(--text-readonly);
   font-size: 0.7rem;
   font-weight: 650;
+}
+.roleBadge {
+  background: color-mix(in srgb, var(--action-selected-subtle) 65%, var(--surface-panel));
+  color: var(--text-default);
 }
 .assignmentEmpty {
   margin: 0;
@@ -380,6 +384,9 @@
 }
 .allocationFieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 .allocationFieldset legend { padding: 0; font-size: 0.78rem; font-weight: 650; }
+.assignmentRoleField { grid-column: 1 / -1; }
+.assignmentRoleField select { max-width: 18rem; }
+.legacyRoleNote { color: var(--text-muted); font-size: 0.75rem; font-weight: 500; }
 .fieldError { color: var(--status-error); font-size: 0.8rem; font-weight: 500; }
 .validationSummary { margin: 0 0 0.75rem; padding: 0.7rem 0.8rem; border-radius: 0.42rem; background: var(--status-error-surface); color: var(--status-error); }
 .validationSummary ul { margin: 0.35rem 0 0; padding-left: 1.2rem; }
