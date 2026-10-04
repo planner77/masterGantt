@@ -94,3 +94,16 @@ Run `37184416846`은 변경 경로 판정, TypeScript, ESLint, Vitest, Next buil
 - Decoration cost: scoped subtree와 task map을 decoration effect당 한 번 계산하고 각 add action은 Set/Map lookup만 사용한다. MutationObserver 반복에서도 row마다 subtree를 다시 순회하지 않는다.
 
 새 exact head의 전체 PR CI PASS 후 review thread를 resolve하고 merge한다.
+
+
+## PR CI #1692.1 실패 분석 / focus race 보완
+
+Run `37202501351`은 정적 품질, Docker와 Chromium shard 1/2/3이 PASS했고 shard 4의 #418 시나리오 1건만 실패했다. 성공 add 후 Header가 enabled 상태임에도 `toBeFocused()`가 실패했다.
+
+원인은 mutation lock 해제 render의 layout effect에서 focus 복원 여부를 DOM `aria-disabled`로 다시 판정한 점이다. 이 attribute는 passive decoration effect 전까지 이전 busy render의 `true`를 유지할 수 있어, 실제 React `editable=true`인데도 Gantt region fallback이 선택되는 race가 있었다.
+
+보완:
+- focus 가능 여부 authority를 현재 React `editable`로 사용한다.
+- Core canonical/filter DOM 갱신 뒤 current action을 다시 찾도록 double `requestAnimationFrame` 뒤 scroll/focus를 복원한다.
+- 401→readonly에서는 `editable=false`이므로 기존 Gantt region fallback을 유지한다.
+- 새 exact head 전체 PR CI로 재검증한다.
