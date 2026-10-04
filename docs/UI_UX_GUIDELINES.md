@@ -111,6 +111,18 @@ Project List, Resource/Admin 목록처럼 열이 많은 table을 설계·수정�
 
 QA/browser evidence에는 viewport, locale/timezone, long-content fixture, `scrollWidth/clientWidth` 또는 동등한 geometry 근거를 남긴다. 정적 CSS/DOM 확인만으로 PASS하지 않는다.
 
+## Data-dense Management List / Pane Geometry 검토 기준 (Issue #426)
+
+Resource Catalog처럼 table이 아닌 관리 화면도 column budget과 같은 수준의 geometry 검토를 적용한다.
+
+- sibling pane의 bounding box가 겹치지 않는지와 각 pane의 usable width를 함께 확인한다. 정보량이 다른 pane은 50:50을 기본값으로 간주하지 않는다.
+- list row의 identity 영역이 profile/action의 intrinsic width 때문에 collapse하지 않는지 확인하고, profile·lifecycle·destructive action의 semantic boundary가 시각 순서와 keyboard Tab 순서에 일치해야 한다.
+- search/filter toolbar, create form, list 사이의 수직·수평 경계를 측정하여 서로 침범하지 않는지 확인한다. wrap 전후 row height가 비정상적으로 급증하면 progressive disclosure 또는 breakpoint를 재검토한다.
+- role/tag/button을 추가하면 현재 값만 확인하지 말고 0/1/최대 role 조합, 가장 긴 developer grade label, active/inactive/delete-unavailable 상태를 포함해 전체 geometry를 다시 계산한다.
+- 긴 한국어/영문 name·code를 fixture에 포함하고 390/768/1024/1440/wide desktop에서 document overflow와 component-owned overflow를 구분한다.
+- management footer는 secondary action과 primary commit action의 위치, 동일 높이/baseline, wrap/stack 후 접근성을 실제 bounding box로 검증한다.
+- 기본 100% zoom에서 필수 검증하고 가능하면 125% zoom smoke도 수행한다.
+
 ## 접근성과 반응형 검증
 
 프로젝트의 기본 확인 폭은 390/768/1024/1440px이며 표준 규격의 공식 breakpoint라는 의미는 아니다. 변경 범위에 해당하는 화면에서 다음을 검사한다.
