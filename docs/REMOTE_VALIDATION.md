@@ -282,4 +282,4 @@ Lifecycle의 exact main CI 조회는 repository의 최근 run 목록을 넓게 �
 | Docker | Docker/Main image JSONL + BuildKit summary | Buildx setup/build-push elapsed; GHA layer cache는 summary/log 보조 근거 |
 | Release | static/E2E/candidate setup JSONL | PR/Main과 동일 metric 이름·schema로 비교 |
 
-최소 10회 successful sample 전에는 before/after 개선을 확정하지 않는다. 동일 event와 동일 metric 정의로 baseline median/p90을 계산하고, Phase 2 변경 후 같은 방식으로 재측정한다.
+before/after 개선은 workflow 파일/event/job/metric별로 **서로 다른 successful run ID가 최소 10개** 쌓이기 전에는 확정하지 않는다. successful run artifact만 분석 입력으로 사용하며 matrix shard와 동일 run의 재실행은 record는 늘려도 run 표본 수는 늘리지 않는다. Phase 2 변경 후에도 같은 그룹 키와 metric 정의로 median/p90을 재측정한다.
