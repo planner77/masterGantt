@@ -1,3 +1,4 @@
+import { StageGateError } from "../../domain/milestones/stage-gates";
 import { deflateRawSync } from "node:zlib";
 
 import type { ProjectLinkDto, ProjectSnapshotResponse, ProjectStatus, ProjectTaskDto } from "@/contracts/projects";
@@ -958,6 +959,7 @@ export function buildProjectExcelWorkbook(
   request: ProjectExcelExportRequest,
   resourceWorkload?: ResourceWorkloadResponse,
 ): Uint8Array<ArrayBuffer> {
+  if (snapshot.data.tasks.some((task) => task.membership?.explicitMilestoneTaskId)) throw new StageGateError("MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE");
   const tasks = orderedTasks(snapshot.data.tasks);
   const dates = timeline(tasks);
   if (request.includeDependencies) validateLinks(snapshot.data.links, tasks);

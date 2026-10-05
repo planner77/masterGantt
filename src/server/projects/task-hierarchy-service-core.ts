@@ -1,3 +1,4 @@
+import { assertMembershipTaskTypeChange, assertMembershipPreservationAvailable, assertStageMutation, readStageSnapshot, withStageProjection } from "./milestone-stage-core";
 import { randomUUID } from "node:crypto";
 
 import type Database from "better-sqlite3";
@@ -413,6 +414,7 @@ export class TaskHierarchyService {
       const project = this.requireCurrentProject(authorization, now);
       if (project.revision !== expectedRevision) throw new RevisionMismatchError();
 
+      const stageBefore = readStageSnapshot(this.database, project.id);
       const initialTasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
       const calendar = resolveProjectWorkingCalendar(this.database, project.id);
@@ -470,6 +472,7 @@ export class TaskHierarchyService {
         if (!task) throw new TaskNotFoundError();
         assertTasksNotLinked(links, [task.id]);
         if (task.type === command.targetType) throw new TaskHierarchyNoopError();
+        assertMembershipTaskTypeChange(this.database, project.id, task.publicId, command.targetType);
         if (command.targetType === "summary" || task.type === "summary") {
           throw new TaskHierarchyNoopError();
         }
@@ -574,6 +577,7 @@ export class TaskHierarchyService {
         if (!anchor) throw new TaskNotFoundError();
         if (!copyIds) throw new InvalidTaskInputError();
         const { roots, branch } = copyForest(initialTasks, copyIds);
+        assertMembershipPreservationAvailable(this.database, project.id, branch.map((task) => task.publicId));
         const rootIds = new Set(roots.map((task) => task.id));
         if (initialTasks.length + branch.length > MAX_PROJECT_TASKS) throw new TaskLimitExceededError();
         const branchPublicIds = new Set(branch.map((task) => task.publicId));
@@ -652,10 +656,11 @@ export class TaskHierarchyService {
 
       if (command.kind === "copy") this.applyDependencySchedules(project.id, calendar, nowText, changed);
       this.applySummaryDerivations(project.id, calendar, nowText, changed);
+      assertStageMutation(this.database, project.id, stageBefore);
       const updatedProject = this.projects.advanceRevision(project.id, expectedRevision, nowText);
       if (!updatedProject) throw new RevisionMismatchError();
       const tasks = this.schedules.listTasks(project.id);
-      return {
+      return withStageProjection(this.database, project.id, {
         data: {
           project: {
             publicId: updatedProject.publicId,
@@ -677,7 +682,7 @@ export class TaskHierarchyService {
             deletedLinkIds: [],
           },
         },
-      } satisfies TaskMutationResponse;
+      } satisfies TaskMutationResponse);
     });
     return mutate.immediate();
   }

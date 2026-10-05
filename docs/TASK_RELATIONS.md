@@ -1,5 +1,12 @@
 # Issue #34 — Task Editor 작업 관계 표시
 
+## Issue #460 — Dependency 종류와 Stage Membership
+
+현재 신규 Link는 일반 Task→Task 또는 Milestone→Milestone만 허용한다. 서로 다른 단계의 Task 간 관계는 가능하지만 Task↔Milestone 신규 관계와 Summary endpoint는 서버에서 거부한다. 기존 mixed Link는 canonical `legacyMixed=true`로 보존하며 endpoint를 유지한 type/Lag 수정과 삭제를 허용한다. 완료 Milestone endpoint의 관계 구조는 재개 후 변경한다. 기존 Link ID/일정/유형/근무일 Lag 의미와 graph guard는 유지한다.
+
+Membership은 Dependency나 WBS reparent가 아니다. Task/Summary의 명시 소속과 Summary 상속, Ready/완료 조건은 [Stage Gates](MILESTONE_STAGE_GATES.md)를 따른다. 아래 과거 Leaf Task/Milestone 혼합 후보와 Summary name-only 설명은 당시 범위이며 현재 Summary PATCH는 name/Membership만 원자 편집할 수 있다. #461의 Editor 후보 UI는 별도 단계다.
+
+
 ## Issue #430 — Cut/Reparent의 Dependency 경계
 
 Cut source Task/Summary와 모든 descendants를 하나의 이동 집합 `C`로 본다. Link 처리 기준은 관계 존재 자체가 아니라 `C` 경계 통과 여부다.

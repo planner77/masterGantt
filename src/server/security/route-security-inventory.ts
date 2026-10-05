@@ -64,6 +64,7 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/edit-sessions/current", method: "GET", policy: "optional-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/edit-sessions/current", method: "DELETE", policy: "origin-and-target-logout", mutatesState: true },
   { template: "/api/projects/{publicId}/edit-password", method: "PUT", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/milestone-memberships", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/tasks", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/links", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/links/{linkId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },

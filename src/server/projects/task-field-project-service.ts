@@ -1,3 +1,4 @@
+import type { MilestoneMembershipCommand } from "../../contracts/milestones";
 import { randomUUID } from "node:crypto";
 
 import type Database from "better-sqlite3";
@@ -296,6 +297,10 @@ export class TaskFieldProjectService extends ProjectService {
       return this.enrichMutation(response, authorization.projectId);
     });
     return mutation.immediate();
+  }
+
+  override updateMilestoneMemberships(authorization: AuthorizedEditSession, expectedRevision: number, command: MilestoneMembershipCommand): TaskMutationResponse {
+    return this.fieldDatabase.transaction(() => this.enrichMutation(super.updateMilestoneMemberships(authorization, expectedRevision, command), authorization.projectId)).immediate();
   }
 
   override deleteTask(

@@ -2,6 +2,12 @@
 
 SVG/PNG Gantt 내보내기 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다. 이 문서의 Excel workbook, 관계 포함/제외 및 물류 구성 보고서 옵션은 유지한다.
 
+## Issue #460 — 단계 소속의 초기 보존 제한
+
+단계 Membership을 가진 Project는 단계 소속 정보가 빠진 workbook을 성공으로 반환하지 않는다. canonical snapshot에 명시 Membership이 있으면 `409 MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE`로 내보내기 전체를 거부한다. `관계 포함/제외`, 물류·리소스 공수 옵션은 이 제한을 해제하지 않는다. Membership이 없는 기존 Project의 workbook/API 계약은 유지한다.
+
+이 단계에서 단계 열/요약 시트의 완전 보존을 구현했다고 주장하지 않는다. #464에서 명시/유효 단계·상속 출처 및 동일 KPI의 Excel 표현을 검증한 뒤 제한을 대체한다. 원본 Task/Link/Assignment/Project revision은 Export 오류로 변경하지 않는다. [Stage Gate 계약과 경로 inventory](MILESTONE_STAGE_GATES.md)를 따른다.
+
 ## 1. 상태
 
 Issue #28에서 구현된 프로젝트 Excel 내보내기의 **현재 구현 계약**을 정의한다. 이 문서는 `docs/IMPORT_EXPORT.md`의 과거 Excel Export Phase 1 계획 중 실제 구현과 충돌하는 부분보다 우선한다.
