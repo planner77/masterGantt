@@ -10,7 +10,9 @@ runs:
     - name: Playwright version 확인
       id: version
       shell: bash
-      run: echo "value=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      run: |
+        version="$(node -p 'require("@playwright/test/package.json").version')"
+        echo "value=$version" >> "$GITHUB_OUTPUT"
 
     - name: Chromium OS dependency 계측 시작
       id: deps-start
