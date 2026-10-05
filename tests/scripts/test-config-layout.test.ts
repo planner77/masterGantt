@@ -89,7 +89,8 @@ describe("test configuration repository layout", () => {
 
     expect(nodeSetup).toContain("path: ~/.npm");
     expect(nodeSetup).toContain("runner.arch");
-    expect(nodeSetup).toContain("hashFiles('package-lock.json')");
+    expect(nodeSetup).toContain("sha256sum package-lock.json");
+    expect(nodeSetup).toContain("steps.lock-hash.outputs.value");
     expect(nodeSetup).toContain("npm ci --prefer-offline --no-audit");
     expect(nodeSetup).not.toContain("node_modules");
 
