@@ -1422,6 +1422,15 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 
 Issue #452 소비자 전수 및 실제 실행/미실행 구분은 [검증 증거](ISSUE_452_UI_EVIDENCE.md)를 따른다.
 
+
+### Issue #452 Main CI transport reset corrective
+
+- Main CI #1847.1의 Chromium shard 2/6은 `project-browser-title-favicon.spec.ts`의 direct document GET에서 assertion 이전 `socket hang up` 1건으로 실패했다. 같은 shard 56개와 다른 5개 shard, build/typecheck/lint/Vitest/Docker는 PASS였다.
+- direct GET helper는 `socket hang up` 또는 `ECONNRESET` 예외만 최대 3회 bounded retry한다. HTTP 4xx/5xx, 잘못된 HTML/title/content-type과 retry 소진은 기존처럼 FAIL해야 한다.
+- retry는 Playwright 전체 retry나 test 실패 무시가 아니며 제품 요청/저장 동작을 재실행하지 않는다. favicon 정적 GET과 canonical 프로젝트 document GET의 transport reset에만 동일 helper를 사용한다.
+- corrective PR은 Issue #452의 non-docs 후속 merge로 `Refs #452`를 유지한다. application version은 `0.83.4`를 유지하고 기존 version-scoped release authorization을 재사용한다.
+- PR exact head의 quality/e2e/docker가 모두 PASS한 뒤에만 병합한다. 새 main CI SUCCESS가 확인되면 Generic Release Finalizer가 first-parent backlog와 same-Issue corrective merge를 해석하여 v0.83.4 GHCR release를 진행해야 한다.
+
 ## Issue #342 국가 Calendar 2026~2037 / Import / 관리자 CRUD
 
 - Dataset: KR/CN/VN/PH/TH/MX/US의 2026~2037 관리 슬롯, 2026 built-in baseline, 미래 미등록 연도 UNAVAILABLE, `supportedYears=OFFICIAL only`, CN/VN 등 공식 WORKING 보충근무일 보존.
@@ -1431,3 +1440,7 @@ Issue #452 소비자 전수 및 실제 실행/미실행 구분은 [검증 증거
 - Scheduling integration: Project Calendar Preview/Save와 신규 Project default Calendar가 DB OFFICIAL override를 built-in보다 우선하고 UNAVAILABLE/SUPERSEDED를 사용하지 않는다. Catalog mutation만으로 기존 materialized Project Calendar/Task를 변경하지 않는다.
 - E2E: `/calendar-admin` 로그인, Import Preview/Apply, date add/edit/delete, 390/768/1024/1440 document overflow, 기존 전역 Header 메뉴 geometry 비회귀.
 - 공식 전체 회귀는 exact PR head의 현재 `quality/e2e/docker` required gate이며 Local Fast Feedback이나 과거 #1355의 부분 PASS를 대체 증거로 사용하지 않는다.
+
+### Issue #342 CI #1850 transport reset 보완
+
+PR CI #1850의 Chromium shard 4/6은 제품 기능 assertion이 아니라 `project-status.spec.ts`의 읽기 전용 `APIRequestContext GET`에서 transient `ECONNRESET`으로 실패했다. Issue #452 corrective main의 `socket hang up | ECONNRESET` 최대 3회 GET-only retry와 동일한 제한 정책을 해당 status fixture의 direct GET에도 적용한다. POST/PATCH 등 mutation은 재시도하지 않는다. 새 exact head에서 전체 required PR gate를 다시 수행하며 #1850의 다른 PASS를 최종 증거로 전용하지 않는다.

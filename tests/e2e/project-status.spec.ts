@@ -1,9 +1,25 @@
+import type { APIResponse, Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { expect, test, isolatedApplicationOptions, waitForProjectMasterCatalogReady } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
 
 type Status = "planned" | "in_progress" | "completed";
+
+async function getWithTransientResetRetry(page: Page, url: string): Promise<APIResponse> {
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await page.request.get(url);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const isTransientReset = /socket hang up|ECONNRESET/i.test(message);
+      if (!isTransientReset || attempt === maxAttempts) throw error;
+      await page.waitForTimeout(250 * attempt);
+    }
+  }
+  throw new Error("unreachable");
+}
 
 async function createProject(page: import("@playwright/test").Page, baseURL: string, name: string, status: Status) {
   const response = await page.request.post("/api/projects", {
@@ -22,7 +38,7 @@ test("상태 다중 선택은 검색과 AND이고 기본·초기화·페이지 �
   await createProject(page, baseURL!, planned, "planned");
   await createProject(page, baseURL!, progressing, "in_progress");
   const completedId = await createProject(page, baseURL!, completed, "completed");
-  const collection = await (await page.request.get("/api/projects")).json();
+  const collection = await (await getWithTransientResetRetry(page, "/api/projects")).json();
   const createdAt = collection.data.projects.find((project: { publicId: string }) => project.publicId === completedId)?.createdAt as string;
   expect(createdAt).toBeTruthy();
   const beforeCreated = new Date(createdAt);
@@ -155,7 +171,7 @@ test("생성 기본값과 설정 변경은 canonical 상태를 목록·읽기 �
   await expect(dialog).toHaveCount(0);
   await expect(headerStatus).toHaveValue("completed");
   await expect(headerStatus).toHaveAttribute("data-status", "completed");
-  const completedSnapshot = await (await page.request.get(`/api/projects/${publicId}`)).json();
+  const completedSnapshot = await (await getWithTransientResetRetry(page, `/api/projects/${publicId}`)).json();
   expect(completedSnapshot.data.project.status).toBe("completed");
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -194,7 +210,7 @@ test("생성 기본값과 설정 변경은 canonical 상태를 목록·읽기 �
   await page.getByRole("link", { name, exact: true }).click();
   await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
   await dialog.getByLabel("프로젝트 상태").selectOption("planned");
-  const current = await (await page.request.get(`/api/projects/${publicId}`)).json();
+  const current = await (await getWithTransientResetRetry(page, `/api/projects/${publicId}`)).json();
   const conflicting = await page.request.patch(`/api/projects/${publicId}`, {
     headers: { Origin: baseURL!, "If-Match": `"${current.data.project.revision}"` },
     data: { status: "completed" },
@@ -275,7 +291,7 @@ test("Workspace edit mode의 header status control은 status-only PATCH 후 Sett
   await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "프로젝트 설정" }).getByLabel("프로젝트 상태")).toHaveValue("in_progress");
   await page.getByRole("dialog", { name: "프로젝트 설정" }).getByRole("button", { name: "프로젝트 정보 저장" }).click();
-  const snapshot = await (await page.request.get(`/api/projects/${publicId}`)).json();
+  const snapshot = await (await getWithTransientResetRetry(page, `/api/projects/${publicId}`)).json();
   expect(snapshot.data.project.status).toBe("in_progress");
 });
 

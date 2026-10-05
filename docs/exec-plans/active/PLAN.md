@@ -1,8 +1,8 @@
 # Active execution plan
 
-## Issue #342 국가 Calendar 2026~2037 Catalog — Issue #452 이후 main 재정렬 / PR CI 재시작
+## Issue #342 국가 Calendar 2026~2037 Catalog — CI #1850 transport reset 보완 / 최신 main 재정렬
 
-최신 main `9280536ddc85a8a841346bdf413b2ba638685880` / application `0.83.4`의 Issue #452 공통 관리자 shell·AdminAuth·버튼 spacing 계약을 보존하면서 기존 PR #346의 #342 Calendar Catalog를 다시 정렬한다. 현재 main의 0018~0021 migration, Task status/Resource role, JSON Import, Generic Release Finalizer와 CI 최적화를 유지하고 #342 migration은 `0022_country_calendar_catalog.sql`, 후보 version은 다음 MINOR `0.84.0`이다. /calendar-admin도 #452의 `admin-page`와 `AdminAuth` presentation을 사용한다. 현재 요청 종료점은 PR #346 exact head의 새 PR CI 시작 확인이며 CI 완료 모니터링·병합·main/GHCR·정식 release·Issue 종료는 범위 밖이다. 상세는 [Issue #342 실행 계획](ISSUE_342.md)을 따른다.
+최신 main `e812e56f45fc9d641ffcd80e49fb0deaf115b704` / application `0.83.4`의 Issue #452 Main CI transport-reset 보정과 공통 관리자 shell/AdminAuth/버튼 spacing 계약을 보존하면서 PR #346을 다시 정렬한다. CI #1850은 Chromium shard 4/6의 기존 `project-status.spec.ts` direct GET에서 transient `ECONNRESET`으로 실패했으며 #342 제품 assertion 실패는 아니다. 최신 main이 도입한 GET-only 3회 retry 정책을 status fixture의 읽기 GET에도 한정 적용한다. #342 migration은 `0022_country_calendar_catalog.sql`, 후보 version은 `0.84.0`을 유지한다. 현재 요청 종료점은 새 exact-head PR CI 시작 확인이며 CI 완료 모니터링·병합·main/GHCR·정식 release·Issue 종료는 범위 밖이다. 상세는 [Issue #342 실행 계획](ISSUE_342.md)을 따른다.
 
 ## Issue #452 관리자 공통 페이지·인증 폼·버튼 외부 간격 — 구현·문서 동기화 / PR CI 시작
 

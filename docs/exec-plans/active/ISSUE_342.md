@@ -5,7 +5,7 @@
 ## 기준과 결정
 
 - Issue: #342, OPEN. 기존 PR #346과 branch `feat/issue-342-country-calendar-catalog`를 재사용한다. 중복 PR을 만들지 않는다.
-- 재정렬 기준 main: `9280536ddc85a8a841346bdf413b2ba638685880`, application `0.83.4`.
+- 재정렬 기준 main: `e812e56f45fc9d641ffcd80e49fb0deaf115b704`, application `0.83.4`.
 - 과거 PR head `54d219f53e598decea8682f06339d7b87964b919`와 CI #1355는 2026-09-30 상태의 증거이며 최신 head 검증에 재사용하지 않는다.
 - 버전: `0.83.4 → 0.84.0` MINOR. 글로벌 Calendar Catalog, 신규 DB schema/API/admin UI라는 하위 호환 기능 추가다.
 - migration: 과거 #342의 `0018_country_calendar_catalog.sql`은 현재 main의 0018~0021과 충돌하므로 **`0022_country_calendar_catalog.sql`**로 재배치한다. 기존 migration 파일은 수정하지 않는다.
@@ -66,6 +66,14 @@ N/A 근거:
 - `docs/IMPORT_SCHEMA.md`: Project JSON Import와 별도 Country Calendar import 계약이며 Project import schema를 변경하지 않음.
 
 문서 갱신 뒤 코드/계약이 바뀌면 DOCUMENTATION_SYNC는 stale이며 다시 확인한다.
+
+## CI #1850 실패 보완
+
+- exact head `0836d7d2b401079efd454af8f655080f11830931`의 PR CI #1850은 Chromium shard 4/6에서 `project-status.spec.ts:197`의 읽기 전용 GET이 `ECONNRESET`으로 끊겨 FAIL했다.
+- 같은 run의 quality/typecheck/lint/Vitest/build/Docker 및 다른 shard 결과와 별개로, 새 head에서는 전체 required gate가 stale이므로 다시 검증한다.
+- 최신 main `e812e56f...`에는 Issue #452의 같은 종류 `socket hang up`에 대한 GET-only 최대 3회 retry가 `project-browser-title-favicon.spec.ts`에 이미 병합됐다.
+- 동일 transport 정책을 `project-status.spec.ts`의 direct GET에만 확장한다. POST/PATCH mutation은 retry하지 않아 side effect 중복 위험을 만들지 않는다.
+- 이 보완은 제품 API/DB/Scheduling 계약을 변경하지 않는 E2E transport 안정화다. application version은 `0.84.0` 유지.
 
 ## 검증과 handoff
 
