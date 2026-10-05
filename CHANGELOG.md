@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.83.5] - 2026-10-06
+
+### Fixed
+
+- Issue #452: Main CI에서 검증한 non-docs `ci-<SHA>` candidate를 Generic Release Finalizer 판정 전에 삭제하지 않고 lifecycle handoff까지 보존하도록 GHCR 수명주기를 정합화한다.
+- `release_required=false` finalize에서만 exact temporary candidate를 fail-closed helper로 정리하고, release-required candidate는 formal exact-digest promotion에 사용하도록 유지한다.
+- Generic Finalizer/Resume 및 수동 finalize 경로에 temporary package cleanup을 위한 최소 `packages: write` 권한과 정적 회귀 검증을 추가한다.
+- 실패한 immutable `v0.83.4` tag는 이동·재사용하지 않고 corrective PATCH `0.83.5`에서 새 Main verified candidate와 정식 GHCR promotion을 다시 수행한다.
+- Application version을 `0.83.4`에서 `0.83.5`로 증가한다.
+
 ## [0.83.4] - 2026-10-05
 
 ### Fixed
