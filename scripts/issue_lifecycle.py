@@ -49,8 +49,12 @@ class Context:
     merged: bool
 
 
-def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(args, text=True, capture_output=True)
+def run(
+    *args: str,
+    check: bool = True,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    result = subprocess.run(args, text=True, capture_output=True, env=env)
     if check and result.returncode != 0:
         raise LifecycleError(
             f"command failed ({result.returncode}): {' '.join(args)}\n{result.stderr.strip()}"
@@ -345,7 +349,7 @@ def resolve_context(args: argparse.Namespace) -> Context:
         f"- missing/failed checks: {', '.join(missing_checks) if missing_checks else 'none'}",
         f"- exact target main CI: {main_ci_url or 'N/A'}",
         f"- main change docs-only: {str(main_docs_only).lower()}",
-        f"- temporary GHCR validation/cleanup: {main_artifact_evidence}",
+        f"- temporary GHCR validation/handoff: {main_artifact_evidence}",
         f"- release_required: {str(release_required).lower()}",
         f"- release_authorized: {str(release_authorized).lower()}",
         f"- gate: {gate}",
@@ -566,6 +570,31 @@ def cleanup_merged_pr_branches(
     return evidence
 
 
+def cleanup_temporary_main_candidate(repo: str, ctx: Context) -> str:
+    if ctx.main_docs_only:
+        return "N/A — docs-only main merge has no temporary GHCR candidate"
+    if not ctx.merge_sha:
+        raise LifecycleError("temporary candidate cleanup requires a merged PR")
+
+    repository = gh(f"/repos/{repo}")
+    owner_type = ((repository.get("owner") or {}).get("type") or "").strip()
+    if owner_type not in {"User", "Organization"}:
+        raise LifecycleError(f"unsupported repository owner type for GHCR cleanup: {owner_type!r}")
+
+    env = os.environ.copy()
+    env["GHCR_OWNER_TYPE"] = owner_type
+    env["GHCR_PACKAGE_NAME"] = repo.split("/", 1)[1].lower()
+    tag = f"ci-{ctx.merge_sha}"
+    result = run(
+        "node",
+        "scripts/delete-ghcr-package-version-by-tag.mjs",
+        tag,
+        env=env,
+    )
+    evidence = result.stdout.strip() or f"temporary GHCR candidate {tag} cleanup completed"
+    return f"PASS — {evidence}"
+
+
 def finalize(ctx: Context, args: argparse.Namespace) -> None:
     repo = os.environ["GITHUB_REPOSITORY"]
     if not ctx.merge_sha:
@@ -578,6 +607,11 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
         tag, release_url = ensure_release(ctx, args)
 
     cleanup_evidence = cleanup_merged_pr_branches(repo, ctx, args.cleanup_pr)
+    candidate_lifecycle_evidence = (
+        "RETAINED — formal release candidate/provenance alias"
+        if release_required
+        else cleanup_temporary_main_candidate(repo, ctx)
+    )
 
     marker = final_marker(ctx.issue_number, ctx.merge_sha)
     comments = gh(f"/repos/{repo}/issues/{ctx.issue_number}/comments?per_page=100")
@@ -609,7 +643,8 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
                 "- PR required checks: PASS",
                 f"- exact main CI: {ctx.main_ci_url}",
                 f"- main change docs-only: {str(ctx.main_docs_only).lower()}",
-                f"- temporary GHCR validation/cleanup: {ctx.main_artifact_evidence}",
+                f"- temporary GHCR validation: {ctx.main_artifact_evidence}",
+                f"- temporary GHCR candidate lifecycle: {candidate_lifecycle_evidence}",
                 f"- release_required: {str(release_required).lower()}",
                 f"- release_authorized: {args.release_authorized}",
                 f"- authorization actor: {os.environ.get('GITHUB_ACTOR', 'unknown')}",

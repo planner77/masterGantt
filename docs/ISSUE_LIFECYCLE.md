@@ -84,9 +84,9 @@ GHCR 주 담당은 infra, 독립 증거 검토는 qa_docs, 게시 범위와 최�
 
 ### 4.1 main 임시 이미지
 
-main의 quality/e2e/docker 성공 후 기존 `publish-commit-image` job을 확인한다. `ci-<full SHA>` 게시, build output의 exact digest 재다운로드, image policy/readiness/API 인증·영속성/native SQLite/restart smoke, SBOM/provenance를 기록한다. version이 유지된 merge는 package version cleanup까지 확인하고, version-changing merge는 successful candidate retention을 확인한다. 실패 run의 candidate는 정리되어야 한다.
+main의 quality/e2e/docker 성공 후 기존 `publish-commit-image` job을 확인한다. `ci-<full SHA>` 게시, build output의 exact digest 재다운로드, image policy/readiness/API 인증·영속성/native SQLite/restart smoke, SBOM/provenance를 기록한다. successful non-docs main candidate는 version 변경 여부와 무관하게 Generic Finalizer 판정 전까지 보존한다. `release_required=false` finalize가 exact `ci-<SHA>` temporary package version을 정리하고, release-required candidate는 formal promotion source로 유지한다. 실패 artifact run은 candidate handoff가 아니다.
 
-`ci-*`는 운영 또는 rollback용 정식 release authority가 아니다. 다만 version-changing merge의 verified `ci-<SHA>`는 build-once formal release candidate/provenance alias로 보존되며, 정식 사용 가능 여부는 annotated tag와 Release workflow의 exact-digest promotion 검증이 끝난 뒤에만 판단한다.
+`ci-*`는 운영 또는 rollback용 정식 release authority가 아니다. successful non-docs main merge의 verified `ci-<SHA>`는 Generic Finalizer가 release/cleanup 결정을 내릴 때까지 build-once candidate/provenance alias로 보존된다. no-release finalize에서는 exact temporary candidate를 삭제하고, formal release 대상은 annotated tag와 Release workflow의 exact-digest promotion 검증이 끝날 때까지 유지한다.
 
 ### 4.2 정식 버전 이미지
 
