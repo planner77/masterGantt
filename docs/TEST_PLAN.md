@@ -1352,3 +1352,10 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Supply chain: Main build에서 생성한 SBOM/provenance가 candidate digest에 바인딩되고 optional GitHub Attestation도 동일 digest를 subject로 사용한다.
 - Cleanup: release candidate `ci-<SHA>`와 exact SemVer가 같은 package version/digest를 공유할 수 있으므로 exact/rolling tag가 존재하는 version을 `ci-*` tag 제거 목적으로 package version 전체 삭제하지 않는다.
 - 공식 판정은 #438 implementation PR exact head의 required quality/e2e/docker PASS와, 실제 version-changing 후속 release에서 Main candidate digest = exact SemVer digest evidence를 별도로 확인한다.
+
+### Issue #438 PR CI transport reset 재검증 기록
+
+- PR CI #1775의 quality, Docker, Chromium shard 1/2/3/5/6은 PASS했고 shard 4/6에서 `tests/e2e/project-status.spec.ts:135` 한 건만 실패했다.
+- 실패는 `project-status.spec.ts:197`의 `page.request.get()`에서 발생한 `apiRequestContext.get: read ECONNRESET`이며 assertion failure, HTTP status 계약 위반, #438 release/digest workflow 변경 경로의 실패가 아니다.
+- 동일 spec/transport reset은 과거 PR CI #1373에서도 관측됐으며 당시에도 제품 코드를 우회하거나 Playwright retry로 녹색 상태를 만들지 않고 새 exact head 전체 E2E로 재검증하는 정책을 사용했다.
+- 이번에도 test retry·실패 무시를 추가하지 않는다. 문서 보완 commit으로 새 exact head PR CI를 시작하고 quality/e2e/docker 전체 결과를 새 evidence로 판정한다.
