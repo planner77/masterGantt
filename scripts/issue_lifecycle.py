@@ -392,6 +392,27 @@ def successful_release(repo: str, target_sha: str, tag: str) -> dict[str, Any] |
 
 
 
+
+def release_runs(repo: str, target_sha: str, tag: str) -> list[dict[str, Any]]:
+    data = gh(f"/repos/{repo}/actions/workflows/release-image.yml/runs?per_page=100")
+    return [
+        item
+        for item in data.get("workflow_runs", [])
+        if item.get("head_sha") == target_sha and item.get("head_branch") == tag
+    ]
+
+
+def dispatch_release(repo: str, ctx: Context, tag: str) -> None:
+    gh(
+        f"/repos/{repo}/actions/workflows/release-image.yml/dispatches",
+        method="POST",
+        fields={
+            "ref": tag,
+            "inputs[issue_number]": str(ctx.issue_number),
+            "inputs[pr_number]": str(ctx.pr_number),
+        },
+    )
+
 def start_release(ctx: Context, args: argparse.Namespace) -> tuple[str, str]:
     """Create immutable release authority and dispatch the release asynchronously.
 
@@ -426,25 +447,21 @@ def start_release(ctx: Context, args: argparse.Namespace) -> tuple[str, str]:
         existing = successful_release(repo, ctx.merge_sha, tag)
         if existing:
             return tag, existing.get("html_url", "")
-        raise LifecycleError(
-            "existing release tag has no successful release evidence; "
-            "rerun the existing release workflow instead of dispatching a duplicate"
-        )
+        runs = release_runs(repo, ctx.merge_sha, tag)
+        if runs:
+            raise LifecycleError(
+                "existing release tag already has release workflow evidence; "
+                "rerun the existing failed/in-progress release instead of dispatching a duplicate"
+            )
+        dispatch_release(repo, ctx, tag)
+        return tag, "REDISPATCHED — existing exact tag had no release run evidence"
 
     run("git", "config", "user.name", "github-actions[bot]")
     run("git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
     run("git", "tag", "-a", tag, ctx.merge_sha, "-m", f"Release {tag}")
     run("git", "push", "origin", f"refs/tags/{tag}")
 
-    gh(
-        f"/repos/{repo}/actions/workflows/release-image.yml/dispatches",
-        method="POST",
-        fields={
-            "ref": tag,
-            "inputs[issue_number]": str(ctx.issue_number),
-            "inputs[pr_number]": str(ctx.pr_number),
-        },
-    )
+    dispatch_release(repo, ctx, tag)
     return tag, "DISPATCHED — completion is handled by Generic Release Finalizer"
 
 
