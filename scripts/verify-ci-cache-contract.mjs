@@ -27,10 +27,22 @@ forbidText(playwrightSetup, "ms-playwright", "Playwright browser cache before ev
 requireText(playwrightSetup, "playwright install-deps chromium", "Playwright OS dependency fallback");
 requireText(playwrightSetup, "playwright install --only-shell chromium", "Playwright browser fallback");
 
-for (const token of ["path: .next/cache", "runner.os", "hashFiles('package-lock.json')", "npm run build"]) {
+for (const token of [
+  "path: .next/cache",
+  "runner.os",
+  "runner.arch",
+  "steps.next-cache-version.outputs.node",
+  "steps.next-cache-version.outputs.next",
+  "hashFiles('package-lock.json')",
+  "npm run build",
+]) {
   requireText(ci, token, "Next build cache contract");
 }
-for (const token of ["cache-from: type=gha,scope=mastergantt-docker", "cache-to: type=gha,mode=max,scope=mastergantt-docker", "platforms: linux/amd64"]) {
+for (const token of [
+  "cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}",
+  "cache-to: type=gha,mode=max,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}",
+  "platforms: linux/amd64",
+]) {
   requireText(ci, token, "Docker BuildKit cache contract");
 }
 
