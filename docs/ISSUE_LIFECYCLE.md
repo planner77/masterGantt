@@ -95,8 +95,8 @@ main의 quality/e2e/docker 성공 후 기존 `publish-commit-image` job을 확�
 1. 사용자/지정 maintainer의 명시적 승인 근거와 범위, 필수 PR/main gate, 대상 source SHA, package/lockfile/CHANGELOG, 단조 증가 version, 기존 동일 tag/image 부재, release authority를 확인한다.
 2. 검증한 main commit에 package version과 일치하는 annotated `v<version>` tag를 생성하고 기존 `release-image.yml`을 실행한다. tag push가 workflow를 시작하지 않았다면 승인 범위에서 해당 annotated tag ref의 workflow_dispatch를 사용한다. 일반 branch CI 실행으로 대체하지 않는다.
 3. Release CI가 tag target SHA의 Main verified `ci-<SHA>` candidate를 찾고 source/revision/version label과 exact digest를 검증했는지 확인한다. Release에서 container를 재-build하거나 수동 docker push로 대체하지 않는다.
-4. candidate exact digest를 runtime/transport/persistence로 재검증한 뒤 exact SemVer tag가 **동일 digest**를 가리키는지 확인한다. SBOM/provenance는 Main build의 동일 subject digest를 사용하고 attestation은 활성화된 경우 결과를 확인하며 비활성 상태를 PASS로 표시하지 않는다.
-5. stable release만 기존 exact/rolling tag 정책의 promotion 결과를 확인하며 모든 alias가 candidate와 같은 digest를 가리켜야 한다. prerelease는 stable alias를 변경하지 않는다. version/tag, source SHA, run/job/attempt, image 경로, digest, smoke와 promotion 근거를 남긴다.
+4. candidate exact digest를 image policy/runtime/transport/persistence/Project·Task API로 재검증하고, SBOM/provenance와 활성화된 attestation까지 **tag publication 전에** 완료했는지 확인한다. 비활성 attestation을 PASS로 표시하지 않는다.
+5. 마지막 publication step에서 exact SemVer와 stable release의 rolling alias를 candidate와 같은 digest로 promotion한다. prerelease는 exact SemVer만 생성한다. 이 단계 뒤에는 application/runtime/attestation 같은 실패 가능한 gate를 두지 않으며 version/tag, source SHA, run/job/attempt, image 경로, digest, smoke와 promotion 근거를 남긴다.
 6. 이미지 게시 성공과 실제 운영 배포는 별개다. 운영 환경 접근/배포 승인이 없으면 배포 완료를 주장하지 않는다. 실패한 exact tag를 재사용하거나 운영 rollback 이미지를 삭제하지 않는다.
 
 게시·digest smoke·promotion 중 필수 단계가 실패하면 이슈를 열린 상태로 유지한다. main 성공을 release 성공으로 대체하지 않는다. 범위 밖 release는 N/A이며、승인 또는 권한 부족으로 필요한 release를 못 한 상태는 N/A가 아니라 BLOCKED다.
