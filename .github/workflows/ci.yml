@@ -178,11 +178,17 @@ jobs:
       - name: main release candidate version 판정
         id: release_candidate
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
         shell: bash
         run: |
           set -euo pipefail
           current_version="$(python3 -c 'import json; print(json.load(open("package.json", encoding="utf-8"))["version"])')"
-          previous_version="$(git show "${GITHUB_SHA}^1:package.json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
+          if [[ -z "${BEFORE_SHA:-}" || "$BEFORE_SHA" =~ ^0+$ ]]; then
+            echo "이전 main SHA가 없어 release candidate version 비교를 신뢰할 수 없습니다." >&2
+            exit 1
+          fi
+          previous_version="$(git show "$BEFORE_SHA:package.json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
           changed=false
           if [[ "$current_version" != "$previous_version" ]]; then
             changed=true
