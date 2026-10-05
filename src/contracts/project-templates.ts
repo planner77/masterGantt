@@ -23,8 +23,8 @@ export interface ProjectTemplatePreviewTask {
   name: string;
   type: "task" | "summary" | "milestone";
   scheduleMode: "auto" | "manual";
-  offsetDays: number;
-  duration: number;
+  offsetDays: number | null;
+  duration: number | null;
   parentExternalId: string | null;
   siblingOrder: number;
   description?: string;
@@ -41,8 +41,8 @@ export interface TemplateTaskSnapshotItem {
   name: string;
   type: "task" | "summary" | "milestone";
   scheduleMode: "auto" | "manual";
-  offsetDays: number; // reference start로부터의 working days offset
-  duration: number; // working days
+  offsetDays: number | null; // reference start로부터의 working days offset
+  duration: number | null; // working days
   parentExternalId: string | null;
   siblingOrder: number;
   description?: string;
@@ -63,6 +63,7 @@ export interface TemplateAssignmentSnapshotItem {
   offsetStartDays?: number | null;
   offsetEndDays?: number | null;
   allocationPercent: number | null;
+  assignmentRole?: "PI" | "DEVELOPER" | "EQUIPMENT_OWNER" | null;
 }
 
 export interface TemplateProcessSnapshotItem {

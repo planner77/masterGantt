@@ -49,14 +49,15 @@ UTF-8 JSON object, export는 BOM 없이 작성한다. Reader는 파일 맨 앞 U
 | name | string / 필수 | 1..200 chars, 공백만 금지; 한글 허용 |
 | type | string / 필수 | `task`, `summary`, `milestone` |
 | scheduleMode | string / 선택 | leaf는 `auto` 기본값 또는 `manual`; summary는 생략 또는 `auto` |
-| start | string / leaf 필수 | 요청 시작일, YYYY-MM-DD |
-| end | string / 선택 | 원본의 종료 snapshot, 아래 consistency 검사 |
-| duration | number / leaf 필수 | task 정수 1..10000, milestone 정확히 0 |
-| progress | number / leaf 필수 | 0..100 finite number; `50`은 50%, `0.5`는 0.5% |
+| requestedStart | null / Summary 선택 | 생략 또는 null만 허용; Leaf는 start를 사용 |
+| start | string 또는 null / leaf 필수 | Leaf는 유효 YYYY-MM-DD 필수; Summary는 생략/null/source snapshot |
+| end | string 또는 null / 선택 | Summary는 생략/null/source snapshot; Leaf 제공 시 유효 날짜 및 consistency 검사 |
+| duration | number 또는 null / leaf 필수 | task 정수 1..10000, milestone 정확히 0 |
+| progress | number 또는 null / leaf 필수 | 0..100 finite number; `50`은 50%, `0.5`는 0.5% |
 | parentExternalId | string 또는 null / 필수 | 같은 batch의 summary ID, root는 null |
 | predecessors | array / 필수 | 선행 task/milestone 목록, 없으면 `[]` |
 
-Summary의 start/end/duration/progress는 선택적인 원본 snapshot이다. 제공하면 기본 날짜·숫자 형식과 범위를 검사하지만 authoritative leaf 계산에 사용하지 않는다. 모든 summary 결과는 자식에서 계산하여 preview 차이로 표시한다. Summary duration snapshot은 0..10000 정수로 제한한다. Empty summary는 거부한다.
+Summary의 start/end/duration/progress는 선택적인 원본 snapshot이다. 제공하면 기본 날짜·숫자 형식과 범위를 검사하지만 authoritative leaf 계산에 사용하지 않는다. 모든 summary 결과는 자식에서 계산하여 preview 차이로 표시한다. Summary duration snapshot은 0..10000 정수로 제한한다. 자손에 실제 일정이 없으면 빈 Summary 및 빈 Summary만 중첩된 구조를 허용하며 `requestedStart/start/end/duration/progress=null`, `scheduleMode=auto`로 정규화한다. 제공된 snapshot은 가짜 일정으로 저장하지 않는다.
 
 Predecessor object는 `{externalId: string, type?: "FS" | "SS" | "FF" | "SF", lag?: number}`이다 (생략 시 기본값 `type: "FS"`, `lag: 0`). `externalId`는 **선행** Task이고 이 object를 포함하는 현재 Task가 후행이다. 중복 edge, 자기 참조, summary endpoint, 누락 참조, cycle을 거부한다. 지원되는 관계 종류(`FS`, `SS`, `FF`, `SF`) 및 정수 `lag`(-10000..10000)를 수용한다.
 
@@ -132,3 +133,11 @@ Preview 응답과 오류 envelope, HTTP status, auth, revision은 [API.md](API.m
 - `schemaVersion`은 `"1.0"`을 엄격히 유지하며, 임의의 물류 필드가 포함될 경우 unknown field로 거부된다.
 - 이번 물류 MVP의 입력 수단은 웹 UI(물류 구성 화면) 및 프로젝트 복사 기능이며, VBA 매크로 기반 물류 데이터 추출기 및 물류 bulk import는 비범위(Out of Scope)다. 향후 물류 대량 등록이 필요한 경우 backend + excel_vba 공동 검토를 거쳐 승인된 별도 스키마 버전으로 확장한다.
 
+
+## Issue #345 구현 경계와 검증
+
+`src/contracts/import.ts`의 `validateImportPayload(input, calendar)`는 이미 파싱한 JSON object에 대해 strict schema, 1.0 버전, ID/parent/dependency/date/Leaf schedule과 Summary null/legacy snapshot을 검증하고 Domain canonical Tasks/Links를 생성한다. Summary의 requestedStart는 생략/null만, start/end/duration/progress는 생략/null/유효 source snapshot을 허용한다. Leaf의 null 날짜/기간/진척은 거부한다. CSV Summary 빈 셀→field 생략은 같은 null 정규화 의미를 유지한다. CSV에 requestedStart 컬럼을 추가하지 않는다.
+
+검증기 결과의 taskId는 순수 계산용 임시 externalId이며 저장용 public UUID가 아니다. 후속 commit 구현은 server-generated UUID를 발급하고 대상 DB 충돌·authorization/revision을 별도로 검증해야 한다.
+
+이 순수 검증기는 HTTP Import preview/commit, create-only 대상 DB 충돌, byte/encoding/duplicate JSON key/CSV parsing을 구현한 것이 아니다. 사용자 확정 범위에 따라 신규 Import 화면/API는 별도 Issue로 분리하며 위 계약의 transaction 구현은 후속이다. 테스트는 `tests/contracts/import.test.ts`의 새/기존 입력, 중첩/혼합 Summary, invalid Leaf/null/날짜/관계/version fixture다. Windows Excel/VBA/DRM 실제 실행 및 원격 Import commit은 NOT TESTED다.

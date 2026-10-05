@@ -110,10 +110,10 @@ Password parameter를 row와 함께 저장해 향후 cost 변경 후에도 기�
 | `type` | TEXT | N | `task`, `summary`, `milestone` CHECK |
 | `schedule_mode` | TEXT | N | `auto`, `manual` CHECK; summary는 항상 auto로 정규화, 날짜는 파생 |
 | `requested_start` | TEXT | Y | leaf의 사용자 요청 시작일; summary는 NULL |
-| `start_date` | TEXT | N | Scheduling Engine이 계산한 effective start |
-| `end_date` | TEXT | N | Scheduling Engine이 계산한 inclusive effective end |
-| `duration` | INTEGER | N | working-day 단위, 0 이상 |
-| `progress` | REAL | N | finite 0..100, 계산 중 반올림하지 않음 |
+| `start_date` | TEXT | Y | 일정 산정 Summary/Leaf의 effective start, 미산정 Summary만 NULL (0018) |
+| `end_date` | TEXT | Y | inclusive effective end, 미산정 Summary만 NULL (0018) |
+| `duration` | INTEGER | Y | working-day 단위, 미산정 Summary만 NULL; 0은 Milestone 등 실제 계산값 |
+| `progress` | REAL | Y | finite 0..100, 미산정 Summary만 NULL; 완료나 0%로 해석하지 않음 |
 | `parent_id` | INTEGER | Y | 같은 Project의 summary task만 허용 |
 | `sort_order` | INTEGER | N | 같은 parent 아래 sibling의 안정적인 순서, 0 이상 |
 | `baseline_start` | TEXT | Y | 기준 일정 시작일 (ISO date YYYY-MM-DD); 미설정 시 NULL (0014 추가) |
@@ -147,14 +147,14 @@ Issue #300: Grid DnD와 Context Menu의 기존 hierarchy command는 parent별 si
 - Milestone은 duration 0이고 `start_date = end_date`이다.
 - Summary의 requested start는 NULL이고 날짜, duration, progress는 자식으로부터 계산한 파생값이다. Import가 summary snapshot을 제공해도 비교/preview용일 뿐 저장 계산의 authority가 아니다.
 - Summary span duration은 모든 descendant leaf의 최소 start부터 최대 end까지의 working-day 수이며 자식 duration의 합이 아니다.
-- Empty summary는 최종 snapshot에서 허용하지 않는다. Parent가 될 수 있는 type은 summary뿐이다.
+- 빈 Summary와 빈 Summary만 중첩된 구조를 최종 snapshot에서 허용한다. Parent가 될 수 있는 type은 summary뿐이다.
 - `baseline_start`, `baseline_duration`, `baseline_end`(0014)는 프로젝트 계획 기준점(Baseline) 일정이다.
   - Leaf 작업(일반 작업, 마일스톤)은 사용자가 직접 지정하거나 현재 일정에서 복사해 저장할 수 있다.
-  - Summary 작업의 baseline은 모든 하위 자손(leaf)에 baseline이 존재할 때만 자손들로부터 파생(`min(baseline_start)`, `max(baseline_end)`, `workingDaysBetween`)된다. 자손 중 하나라도 baseline이 없으면 Summary baseline은 NULL이다. Summary baseline의 직접 수동 수정은 허용되지 않는다(`SummaryScheduleReadonlyError`).
+  - Summary 작업의 baseline은 모든 하위 자손(leaf)에 baseline이 존재할 때만 자손들로부터 파생(`min(baseline_start)`, `max(baseline_end)`, `workingDaysBetween`)된다. 실제 Task/Milestone 자손 중 하나라도 baseline이 없으면 Summary baseline은 NULL이다. 빈 Summary는 baseline 완비성에서 중립이고 실제 Leaf가 하나도 없으면 파생 Summary baseline은 NULL이다. Summary baseline의 직접 수동 수정은 허용되지 않는다(`SummaryScheduleReadonlyError`).
 
 이 규칙은 DB trigger로 중복 구현하지 않고 Scheduling Engine을 단일 계산 소스로 사용한다. 저장 직전 Service가 전체 aggregate 결과를 검증한다.
 
-최종 persisted snapshot은 empty summary를 허용하지 않으므로 summary도 계산된 `start_date/end_date`가 항상 존재한다. Batch 처리 중간 candidate는 메모리에만 있고 불완전 row를 DB에 먼저 넣지 않는다. 일반 task duration은 1..10000, milestone은 0이다. Summary duration은 descendant 전체 span의 계산 결과이므로 일반 task의 10000 제한을 적용하지 않고 Scheduling Engine의 지원 date range로 제한한다. Progress는 `100/3` 같은 파생값을 보존하도록 REAL을 사용하고 UI 표시 단계 전에는 반올림하지 않는다. Service는 `NaN`/무한대를 거부한다.
+최종 persisted snapshot의 미산정 Summary는 `start_date/end_date/duration/progress`를 모두 NULL로 저장한다. 부분 NULL이나 불완전 Leaf row는 DB에 넣지 않는다. 일반 task duration은 1..10000, milestone은 0이다. Summary duration은 descendant 전체 span의 계산 결과이므로 일반 task의 10000 제한을 적용하지 않고 Scheduling Engine의 지원 date range로 제한한다. Progress는 `100/3` 같은 파생값을 보존하도록 REAL을 사용하고 UI 표시 단계 전에는 반올림하지 않는다. Service는 `NaN`/무한대를 거부한다.
 
 ### 5.4 `links`
 
@@ -210,7 +210,9 @@ Session current read는 row나 TTL을 갱신하지 않는다. Unlock과 password
 
 ### 5.7 `resources` / `resource_groups`
 
-두 테이블은 내부 INTEGER PK와 외부 UUID `public_id`, 필수 `name`, optional unique `code`, `description`, `active`, 생성/수정 시각을 저장한다. `active=0`은 신규 할당 후보에서 제외하지만 기존 assignment는 유지한다. 물리 삭제보다 비활성화를 기본 정책으로 사용한다.
+두 테이블은 내부 INTEGER PK와 외부 UUID `public_id`, 필수 `name`, optional unique `code`, `description`, `active`, 생성/수정 시각을 저장한다. `active=0`은 신규 할당 후보에서 제외하지만 기존 assignment는 유지한다. 운영 중 제거는 비활성화를 기본 정책으로 사용한다.
+
+Issue #329부터 Resource Catalog 관리자만 **모든 Project-scoped 참조가 0인 대상**을 영구 삭제할 수 있다. Resource는 `task_assignments`, `project_equipment_resource_roles`, `project_system_resource_roles`, Resource 대상 `work_calendar_rules`를, Group은 `task_assignments`와 Resource Group 대상 `work_calendar_rules`를 모두 검사한다. 삭제 mutation은 SQLite `IMMEDIATE` transaction 안에서 usage를 다시 계산한 뒤 `resource_group_members`만 먼저 정리하고 대상 row를 삭제하며 catalog revision을 정확히 1 증가시킨다. 반대편 Group/Resource row는 삭제하지 않는다. 기존 `RESTRICT/NO ACTION` FK는 서버 usage 판정 누락이나 race를 막는 최종 fail-closed 방어선으로 유지한다. 이 기능은 기존 schema만 사용하므로 신규 migration은 필요하지 않는다.
 
 ### 5.8 `resource_group_members`
 
@@ -630,13 +632,46 @@ Migration `0017_project_master_catalog.sql`은 `project_master_items`와 catalog
 
 `project_master_items`는 `BUSINESS_UNIT | PRODUCT | SITE_ENTITY` category, stable public ID/code, 표시명, active, sort_order를 가진다. `UNIQUE(category, code)`와 category별 참조 trigger로 잘못된 category 연결을 차단한다. Project FK는 `ON DELETE RESTRICT`이며 Project 삭제가 global master row를 삭제하지 않는다. `0016_resource_developer_grade.sql` 이후 순차 적용한다.
 
-## Issue #342 Country Calendar Catalog
+## Issue #345: 미산정 Summary와 migration 0018
 
-migration 0018_country_calendar_catalog.sql은 Project별 materialized Calendar와 분리된 글로벌 국가 Calendar Catalog를 추가한다.
+`0018_empty_summary_schedule.sql`은 tasks를 재생성하고 모든 ID·외부 ID·parent/order·description/URL·Baseline·timestamp를 그대로 복사한다. 기존 migration checksum은 변경하지 않는다. leaf의 날짜/기간/진척 필수 규칙 및 Task/Milestone 기간 CHECK를 유지한다. Summary는 `auto/requested_start=NULL`이고 일정 4필드가 모두 NULL이거나 모두 유효한 값이어야 한다. 부분 NULL 조합은 DB CHECK로 거부한다.
+
+미산정 Summary는 직접 자식이 0개이거나 자손이 빈 Summary들뿐인 경우다. 서버가 전체 계층에서 재계산하여 `start_date/end_date/duration/progress=NULL`을 저장하며 ID·type·직접 할당·물류 연결은 유지한다. 첫 실제 Leaf가 추가되면 집계값을 저장한다. 날짜가 있는 Milestone은 일정 있는 Leaf이며 기간 0을 미산정 판별에 쓰지 않는다.
+
+참조되는 tasks table의 DROP이 Link/Assignment/물류 연결을 cascade 삭제하지 않게 migration runner가 해당 pending migration의 선언을 확인하고 **BEGIN 밖에서** FK enforcement를 잠시 끈다. 같은 IMMEDIATE transaction 안에서 재생성·ledger 기록·`foreign_key_check`를 완료한 뒤 commit하며 모든 실패를 rollback한다. finally에서 원래 FK 설정을 복원한다. 활성 transaction 안에서 이 재생성을 중첩 실행하지 않는다. 기존 table을 먼저 rename하는 방식은 사용하지 않는다.
+
+실제 파일 SQLite 업그레이드/reopen과 SQL 실패·FK 위반 주입 rollback, ID/Link/Assignment/Baseline 보존은 `tests/server/db/database.test.ts`가 검증한다. 새 서버 시작 시 기본 FK ON 정책은 유지한다.
+
+
+## Issue #303 — Task status migration 0019
+
+`0019_task_status.sql`은 `tasks.status TEXT NOT NULL DEFAULT 'not_started'`를 추가하고 허용값을 `not_started | in_progress | completed`로 제한한다. 기존 row는 progress 기준으로 `100 → completed`, `0 < progress < 100 → in_progress`, `0 또는 Summary 미산정 값 → not_started`로 backfill한다.
+
+Repository write는 status/progress 일관성을 검증한다. Summary schedule 갱신은 derived progress에서 status를 함께 갱신하며, subtree Copy는 원본의 명시적 status를 보존한다. Migration ledger는 0018 이후 0019를 순차 적용하고 실제 파일 reopen 및 invalid status CHECK를 회귀 테스트한다.
+
+## Issue #412 — Resource global roles migration 0020
+
+`0020_resource_roles.sql`은 Resource의 전역 역량 역할을 별도 M:N으로 저장하는 `resource_roles`를 추가한다. 기존 `resources.developer_grade`, `resource_group_members`, Project별 `project_equipment_resource_roles` / `project_system_resource_roles`는 변경하지 않는다.
+
+`resource_roles`의 PK는 `(resource_id, role)`이며 role은 `PI | DEVELOPER | EQUIPMENT_OWNER`만 허용한다. Resource 삭제 시에만 role row를 cascade 삭제하고 역할 편집 자체는 다른 연결 정보를 수정하지 않는다. 기존 Resource에는 migration backfill을 하지 않아 역할 0개로 시작한다. `resource_roles_role_resource_idx(role, resource_id)`는 후속 역할 기반 검색/할당 필터가 role→resource 방향으로 조회할 수 있게 한다.
+
+상세 결정과 검증 범위는 [ISSUE_412_RESOURCE_ROLES.md](ISSUE_412_RESOURCE_ROLES.md)를 따른다.
+
+## Issue #413 — Task assignment 수행 역할 migration 0021
+
+`0021_task_assignment_roles.sql`은 기존 `task_assignments`에 nullable `assignment_role TEXT`를 추가한다. 허용값은 `PI | DEVELOPER | EQUIPMENT_OWNER`이며 migration 이전 row는 `NULL`을 유지한다. Group assignment는 역할을 사용하지 않는다.
+
+`task_assignments_resource_role_idx(resource_id, assignment_role)`는 사용 중 역할 조회를 지원한다. INSERT/UPDATE guard는 non-null 수행 역할이 해당 Resource의 `resource_roles`에 존재하는지 검사하고, `resource_roles_assignment_delete_guard`는 Task assignment가 참조 중인 Global Role 삭제를 거부한다. 기존 `(project_id, task_id, resource_id)` unique index는 그대로 유지하므로 하나의 Task+Resource는 최대 하나의 수행 역할만 가진다.
+
+Project Copy와 Template은 `assignment_role`을 보존하고 workload/Calendar 계산은 이 필드에 의존하지 않는다. 상세 결정은 [ISSUE_413_TASK_ASSIGNMENT_ROLES.md](ISSUE_413_TASK_ASSIGNMENT_ROLES.md)를 따른다.
+
+## Issue #342 Country Calendar Catalog — migration 0022
+
+0022_country_calendar_catalog.sql은 Project별 materialized Calendar와 분리된 글로벌 국가 Calendar Catalog를 추가한다.
 
 - country_calendar_catalog_state: 관리자 optimistic concurrency용 단일 revision row
 - country_calendar_datasets: country_code + calendar_year unique, OFFICIAL/UNAVAILABLE/SUPERSEDED status, sourceVersion/sourceUrl, updated_at
 - country_calendar_dates: dataset별 ISO date, name, NON_WORKING/WORKING, sourceKey. dataset 삭제 시 cascade
 - 관리 가능 year CHECK 범위: 2026..2037
 
-Repository built-in 2026 fixture는 DB로 복제하지 않는다. override가 필요할 때 첫 mutation이 built-in dataset을 DB에 clone하고 이후 DB가 resolution 우선권을 가진다. 기존 work_calendar_rules/work_calendar_dates는 Project snapshot이므로 Catalog mutation으로 수정되지 않는다.
+Repository built-in 2026 fixture는 DB로 일괄 복제하지 않는다. override가 필요할 때 첫 mutation이 built-in dataset을 DB에 clone하고 이후 DB가 resolution 우선권을 가진다. 기존 work_calendar_rules/work_calendar_dates는 Project snapshot이므로 Catalog mutation으로 수정되지 않는다.

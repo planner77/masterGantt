@@ -116,6 +116,7 @@ function taskDtos(tasks:readonly TaskRecord[]):ProjectTaskDto[] {
     end:task.endDate,
     duration:task.duration,
     progress:task.progress,
+    status:task.status,
     parentExternalId:task.parentId===null?null:externalById.get(task.parentId)??null,
     siblingOrder:task.sortOrder,
     baselineStart:task.baselineStart,
@@ -441,7 +442,7 @@ export class WorkCalendarService {
 
     for(const task of staged) {
       if(task.type==="summary") continue;
-      if(task.requestedStart===null) throw new WorkCalendarInvalidInputError();
+      if(task.requestedStart===null || task.duration===null) throw new WorkCalendarInvalidInputError();
       try {
         const scheduled=scheduleLeaf({
           type:task.type,requestedStart:task.requestedStart,duration:task.duration,scheduleMode:task.scheduleMode,

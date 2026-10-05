@@ -1,5 +1,11 @@
 # GitHub-first 테스트 및 검증 정책
 
+## Issue #361 Actions 실행명 원격 검증
+
+PR 단계의 실제 원격 증거는 Actions run의 `display_title`이 Primary Issue, PR 번호와 `run_number.run_attempt`를 포함하는지 확인하는 것이다. 정적 Python contract만으로 GitHub UI에 적용됐다고 판정하지 않는다. 이 PR에서는 새 `run-name`이 적용된 PR CI와 기존 required `quality/e2e/docker` check 이름을 함께 확인한다.
+
+Main CI/Generic Finalizer/GHCR Release의 표시명은 각 trigger가 실제 발생한 뒤에만 원격 PASS로 판정한다. PR 단계에서는 `scripts/verify-issue-lifecycle.py`와 `scripts/verify-ci-run-trace.py`로 event metadata 전달 계약을 검증하며, 병합 전 Main/Finalizer/Release 표시명을 실제 실행 완료로 과대 보고하지 않는다.
+
 ## Issue #283 원격 Docker 검증
 
 Issue #283은 Docker/runtime artifact 계약을 변경하므로 동일 PR head에서 `quality`, `e2e`, `docker`를 모두 새로 검증한다. Local Fast Feedback이 제한되거나 Docker 실행이 불가능한 환경의 정적 검토는 원격 PASS를 대체하지 않는다.
@@ -27,8 +33,8 @@ main 병합 후에는 기존 main gate를 따른다. 즉 merge SHA의 `quality/e
 | --- | --- | --- | --- |
 | Local Fast Feedback | 개발 환경 | 변경과 직접 관련된 Vitest, 필요 시 typecheck/lint, 재현용 명령 | 구현 중 빠른 피드백. 공식 전체 회귀 PASS를 의미하지 않음 |
 | PR Required Validation | GitHub Actions | version check, typecheck, lint, 전체 Vitest, dependency audit, markdown link, production build, Chromium Playwright E2E, Docker build/runtime/SQLite persistence smoke | 코드 변경의 기본 공식 검증 |
-| Main Artifact Validation | GitHub Actions + GHCR | 비문서 `main` push: PR 수준 gate + 임시 `ci-<full SHA>` publish + exact digest pull + readiness/API/auth/restart persistence + SBOM/provenance + 검증 후 package version 삭제. docs-only main push는 registry job SKIPPED | runtime/artifact에 영향이 있는 `main` commit registry 경로 검증 |
-| Semantic Release Validation | GitHub Actions + GHCR | release workflow의 version/tag gate, candidate runtime, digest smoke, promotion | 배포 가능한 version artifact 검증 |
+| Main Artifact Validation | GitHub Actions + GHCR | 비문서 `main` push: PR 수준 gate + `ci-<full SHA>` publish + exact digest pull + readiness/API/auth/restart persistence + SBOM/provenance. version 유지 merge는 검증 후 삭제하고 version-changing successful candidate는 release까지 보존. docs-only main push는 registry job SKIPPED | runtime/artifact에 영향이 있는 `main` commit registry 경로 검증 |
+| Semantic Release Validation | GitHub Actions + GHCR | release workflow의 version/tag gate, annotated tag target SHA의 Main candidate label/digest 검증, candidate runtime smoke, **동일 digest exact SemVer promotion**, post-promotion digest smoke | 배포 가능한 version artifact 검증 |
 | Environment-specific Validation | 실제 대상 환경 | Windows Excel/VBA/DRM, reverse proxy/TLS, off-host backup/restore, 최종 수동 UX 등 | GitHub-hosted runner로 대체할 수 없는 항목 |
 
 ## 2. 기본 개발 흐름
@@ -37,6 +43,7 @@ main 병합 후에는 기존 main gate를 따른다. 즉 merge SHA의 `quality/e
 2. `main`에서 작업 branch/worktree를 만든다.
 3. 구현 중에는 변경과 직접 관련된 최소 로컬 테스트만 반복한다. 실패 재현을 위해 필요한 경우 범위를 확대한다.
 4. 변경을 원격 branch에 push하고 Pull Request를 생성한다.
+   Issue 기반 PR 제목에는 `Issue #345`처럼 실제 Issue 번호를 포함한다. CI 실행 제목은 PR 제목을 사용하므로 Actions 목록에서 같은 번호를 확인하고, 실제 검증 대상은 계속 exact head SHA와 run ID로 식별한다. Main push는 commit message, 수동 실행은 ref 이름이 표시되며 workflow `CI`와 required check 계약은 유지한다.
 5. PR의 `.github/workflows/ci.yml` 결과를 공식 검증으로 사용한다. `quality`, `e2e`, `docker`가 모두 성공하기 전에는 Manager가 기능을 최종 ACCEPT하지 않는다.
 6. 실패하면 GitHub run → job → step → 최초 오류를 근거로 원인을 분석한다. 로컬에서만 다시 PASS한 것은 원격 실패 해결 증거가 아니다.
 7. PR이 merge되어 `main`에 반영되면 동일 `quality`/`e2e`/`docker` gate를 수행한다. 변경이 `docs/**` 또는 저장소 루트 Markdown만 포함하는 docs-only이면 `publish-commit-image`는 SKIPPED여야 하고, 비문서 파일이 하나라도 있거나 판정이 불가능하면 기존 registry gate가 실행되어야 한다.
@@ -206,15 +213,14 @@ Workflow 파일 존재나 과거 다른 version의 성공 run은 현재 `v0.25.0
 
 ## Issue #118 구현 전후 원격 증거
 
-#118의 동일 fixture 구현 전/후 높이·screenshot 증거는 PR의 `Issue #118 구현 전후 레이아웃 증거` Workflow로 판정한다.
+#118의 동일 fixture 구현 전/후 높이·screenshot 증거는 완료된 기능의 **historical evidence**다. 일반 PR에서는 자동 실행하거나 required check로 기다리지 않으며, 재현이 필요한 경우에만 `Issue #118 구현 전후 레이아웃 증거` Workflow를 `workflow_dispatch`로 실행한다.
 
-1. 대상 PR head에서 일반 `CI`의 quality/e2e/docker가 completed/success여야 한다.
-2. 같은 PR head에서 `Issue #118 구현 전후 레이아웃 증거` run이 completed/success여야 한다.
-3. 비교 revision은 Before `703a6f08595dea06a918366192df464d7215108e`, After `6386db860af69635cfb0fe626fd1a937905b9a56`로 고정하며 두 revision에 동일 harness를 사용한다.
-4. viewport는 390×844, 768×844, 1024×844, 1440×844이며 editing/readonly 모두 같은 mock Project/Task 데이터를 사용한다.
-5. 390/768의 각 상태에서 Gantt 가시 높이 delta가 양수이고 After의 document horizontal overflow가 없으며 정보 컨트롤이 한 줄이어야 PASS다.
-6. `issue-118-before-after-evidence` artifact에 raw metrics, comparison JSON, Markdown 요약, 각 viewport/state의 before/after screenshot이 존재하는지 확인한다.
-7. 이 증거는 실제 모바일 기기·스크린리더 수동 검증을 완료한 것으로 해석하지 않는다.
+1. 재현이 필요하면 검토할 ref를 명시해 수동 실행하고 해당 run의 ref/head SHA를 기록한다.
+2. 비교 revision은 Before `703a6f08595dea06a918366192df464d7215108e`, After `6386db860af69635cfb0fe626fd1a937905b9a56`로 고정하며 두 revision에 선택한 workflow ref의 동일 harness를 사용한다.
+3. viewport는 390×844, 768×844, 1024×844, 1440×844이며 editing/readonly 모두 같은 mock Project/Task 데이터를 사용한다.
+4. 390/768의 각 상태에서 Gantt 가시 높이 delta가 양수이고 After의 document horizontal overflow가 없으며 정보 컨트롤이 한 줄이어야 PASS다.
+5. `issue-118-before-after-evidence` artifact에 raw metrics, comparison JSON, Markdown 요약, 각 viewport/state의 before/after screenshot이 존재하는지 확인한다.
+6. 이 historical evidence는 현재 PR의 일반 `CI` quality/e2e/docker나 main 검증을 대체하지 않으며, 실제 모바일 기기·스크린리더 수동 검증을 완료한 것으로 해석하지 않는다.
 
 ## Issue Lifecycle 원격 검증 (#211)
 
@@ -234,8 +240,67 @@ Workflow 파일 존재나 과거 다른 version의 성공 run은 현재 `v0.25.0
 5. PR은 `packages: write`를 받지 않으며 main 비문서 push만 기존 임시 GHCR publish/digest smoke/cleanup을 수행한다.
 6. 최적화 효과는 변경 전 기준 run #995의 wall-clock(quality 약 1분 36초, Docker 약 3분 30초, E2E 약 18분 45초)과 동일·유사 변경의 새 PR run을 비교한다.
 
-## Issue #342 원격 검증
+## Generic Release Finalizer 원격 검증 (#350)
 
-Country Calendar Catalog는 migration/API/admin UI/Scheduling resolution을 함께 변경하므로 동일 PR head의 quality/e2e/docker gate를 모두 요구한다. quality는 migration 0018, Catalog JSON/CSV parser와 transaction/revision, effective OFFICIAL resolution 및 route inventory를 검증한다. Chromium E2E는 /calendar-admin에서 관리자 로그인, Import Preview/Apply, 날짜 Add/Edit/Delete와 390/768/1024/1440px document overflow를 검증한다. Docker gate는 신규 migration이 빈 DB와 기존 DB에서 startup 계약을 깨지 않는지 기존 smoke로 재검증한다.
+PR 단계에서는 `scripts/verify-issue-lifecycle.py`가 trigger/filter, exact mapping, authorization parser, concurrency, legacy workflow 부재를 정적으로 검증한다. 동일 PR head SHA를 재실행한 경우에는 `/commits/{sha}/check-runs`에 이전 실패/cancelled check와 최신 성공 check가 함께 존재할 수 있으므로, required check 이름별 **가장 큰 check-run ID**가 실제 최신 결과인지 확인한다. 오래된 실패가 최신 성공을 덮어쓰거나 오래된 성공이 최신 실패를 가리는 판정은 FAIL이다. 순수 scenario test는 `older failure + newer success → PASS`, `newer failure + older success → fail-closed`를 모두 고정한다.
 
-공식 데이터 자체의 최신성은 GitHub runner가 외부 정부 사이트를 런타임 호출하여 자동 판정하지 않는다. 운영자가 docs/COUNTRY_CALENDAR_DATA.md의 공식 source를 확인한 뒤 Import Preview와 sourceVersion/sourceUrl provenance를 사용한다.
+Migration merge 이후에는 exact main CI 완료 뒤 다음 원격 증거를 확인한다.
+
+- Generic Release Finalizer run이 정확히 1개 생성됨
+- 삭제된 Issue별 helper/finalizer run이 새로 생성되지 않음
+- no-release merge는 `finalize`만 수행
+- release-required merge는 승인 marker가 없으면 BLOCKED
+- 승인된 release는 exact `release-image.yml` 및 digest evidence 뒤 finalize
+- 근접한 여러 merge의 CI 완료 순서가 뒤집혀도 current main first-parent backlog를 oldest → newest로 처리하며 queue burst에서도 target이 유실되지 않음
+
+실패 후에는 원인을 제거하고 기존 failed run/job 재실행을 우선한다.
+
+## Main 임시 GHCR evidence 원격 검증 (#352)
+
+비문서 main merge에서는 exact SHA의 main CI에서 다음을 서로 분리해 확인한다.
+
+1. required aggregate checks가 SUCCESS.
+2. `Main 임시 commit 이미지 게시·검증·정리` job이 실제로 생성되어 SUCCESS.
+3. Generic Finalizer가 위 artifact job evidence를 PASS로 읽은 뒤에만 lifecycle mutation을 수행.
+4. docs-only merge에서는 artifact job SKIPPED와 lifecycle의 `N/A — docs-only` evidence가 일치.
+
+Optional shard/implementation job의 SKIPPED가 있어도 aggregate required checks가 SUCCESS이면 비문서 main artifact job이 skip propagation으로 누락되지 않아야 한다.
+
+## Release completion Resume 원격 검증 (#446)
+
+PR 단계에서는 `scripts/verify-issue-lifecycle.py`로 다음 정적 계약을 확인한다.
+
+- release publish success 뒤 `release-finalizer-resume.yml/dispatches`를 explicit `workflow_dispatch`한다.
+- dispatch input은 exact release target `target_sha`와 source `release_run_id`다.
+- explicit Resume은 Actions API에서 exact source run의 `completed/success`, `.github/workflows/release-image.yml`, `head_sha == target_sha`를 확인한 뒤 resolver를 실행한다.
+- Resume workflow는 기존 `Publish release image workflow_run.completed` fallback을 유지한다.
+- Resume은 triggering tag/manual ref가 아니라 trusted `main`을 checkout한다.
+- post-publication handoff는 non-blocking이며 required release validation/promotion gate를 대체하지 않는다.
+
+병합 후에는 Main CI SUCCESS가 Generic Finalizer backlog를 재평가하는지 확인하고, 이미 성공한 release가 pending인 경우 `release_finalize`가 branch cleanup → FINAL marker → Issue close를 수행하는지 실제 Issue/branch 상태로 판정한다. 다음 실제 release부터는 publish 성공 후 explicit Resume run 생성 여부를 별도 원격 evidence로 확인한다.
+
+## exact main CI SHA binding (#354)
+
+Lifecycle의 exact main CI 조회는 repository의 최근 run 목록을 넓게 가져와 client-side에서 추정하지 않는다. GitHub Actions workflow-runs API에 `head_sha=<merge SHA>`를 직접 전달하고, 반환된 run에서도 `head_sha`가 target과 일치하는지 다시 검증한다. 이후 같은 exact run의 latest attempt jobs에서 main 임시 GHCR artifact evidence를 확인한다.
+
+다른 SHA의 성공 run, head_sha binding 없는 최근 run 목록, overall CI success만으로 lifecycle mutation을 허용하지 않는다.
+
+## Issue #439 setup/cache 성능 원격 검증
+
+| 구분 | 원격 증거 | 판정 |
+| --- | --- | --- |
+| PR/Main Node setup | build/E2E artifact JSONL + Step Summary | checkout/setup-node/npm cache/npm ci duration과 exact cache hit 분포 |
+| PR/Main Playwright | E2E artifact JSONL + E2E timing JSON | OS deps/headless-shell duration, `runnerReadyMs`; browser cache는 Phase 1에서 비활성 |
+| Build cache | build JSONL + Step Summary | Next cache restore duration/exact hit; miss에서도 production build 실행 |
+| Docker | Docker/Main image JSONL + BuildKit summary | Buildx setup/build-push elapsed; GHA layer cache는 summary/log 보조 근거 |
+| Release | static/E2E/candidate setup JSONL | PR/Main과 동일 metric 이름·schema로 비교 |
+
+before/after 개선은 workflow 파일/event/job/metric별로 **서로 다른 successful run ID가 최소 10개** 쌓이기 전에는 확정하지 않는다. successful run artifact만 분석 입력으로 사용하며 matrix shard와 동일 run의 재실행은 record는 늘려도 run 표본 수는 늘리지 않는다. Phase 2 변경 후에도 같은 그룹 키와 metric 정의로 median/p90을 재측정한다.
+
+## Issue #342 최신 main 재정렬 원격 검증
+
+Issue #342는 2026-09-30 PR #346 이후 main이 크게 전진하여 2026-10-05 최신 main 기준으로 재정렬한다. 과거 PR CI #1355의 TypeScript/ESLint/Vitest/Build/Docker/일부 E2E PASS는 해당 과거 head에 한정하며 새 head의 required gate를 대체하지 않는다.
+
+Country Calendar Catalog는 migration/API/admin UI/Scheduling resolution을 함께 변경하므로 동일 exact PR head의 현재 `quality/e2e/docker` gate를 모두 요구한다. quality는 migration 0022, JSON/CSV parser, transaction/revision, effective OFFICIAL resolution, route security inventory와 package/lock/version 정합성을 검증한다. Chromium E2E는 `/calendar-admin` Import/CRUD, 390/768/1024/1440px geometry와 기존 Workspace/Header 회귀를 포함한다. Docker gate는 최신 0018~0021 뒤 0022 migration이 빈 DB와 기존 DB startup/persistence 계약을 깨지 않는지 검증한다.
+
+공식 국가 휴일 데이터 최신성은 CI가 외부 정부 API를 런타임 호출해 판정하지 않는다. 운영자가 `docs/COUNTRY_CALENDAR_DATA.md`의 공식 source를 확인하고 Import Preview와 sourceVersion/sourceUrl provenance로 검증한다. 이번 사용자 승인 범위는 PR #346의 새 exact head와 PR CI 시작 확인까지이며 CI 완료 모니터링, 병합, main/GHCR, 정식 release, branch cleanup과 Issue 종료는 NOT TESTED/범위 밖이다.

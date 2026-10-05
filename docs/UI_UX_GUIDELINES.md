@@ -1,5 +1,11 @@
 # masterGantt 공통 UI/UX 기준
 
+## Issue #345 Summary 구조와 미산정 일정 구분
+
+Summary의 유형·이름·계층과 일정의 유무는 별개다. 일정 없는 Summary도 Grid/Chart의 동일 행에 남고 bar만 없다. Grid 이름의 보조 설명과 접근 가능한 `aria-description`은 실제 전체 계층에서 자식 0개와 일정 있는 자손 0개를 구분한다. 접기·검색으로 숨겨진 child 수를 빈 상태로 오인하지 않는다. readonly에서는 생성 명령을 노출하지 않고 saving에서는 중복 생성·편집을 차단한다. 기존 메뉴 keyboard/Escape/focus 복원을 재사용하며 도구 모음은 작은 폭에서 wrap한다.
+
+Renderer 좌표는 [빈 Summary Core adapter 계약](PRO_FEATURE_MATRIX.md#issue-345-빈-summary-core-273-표현)에 한정한다. 필드 표시·정렬·검색·진척·완료·Mutation·Export는 서버 canonical 값만 사용한다. 실제 browser 검증은 [TEST_PLAN.md](TEST_PLAN.md)의 #345 기록과 원격 CI 결과를 구분한다.
+
 적용: Issue #87, 2026-09-22. Issue #76의 UX-01~12를 공통 설계 기준으로 선행 정리한다. 이 문서 추가는 #76 Workspace나 다른 화면 재설계의 구현 완료를 뜻하지 않는다. 제품 시각 언어와 화면 설계 방향은 저장소 루트의 [DESIGN.md](../DESIGN.md)를 Source of Truth로 사용한다. 이 문서는 interaction·접근성·반응형·검증 규칙을 구체화한다. 기존 동작 계약은 [PROJECT_UX.md](PROJECT_UX.md), 도메인/권한은 [REQUIREMENTS.md](REQUIREMENTS.md)와 [SECURITY.md](SECURITY.md)를 함께 따른다.
 
 ## 책임과 적용
@@ -62,7 +68,7 @@ selected는 `aria-selected` 등 의미와 색을 함께 사용한다. readonly/o
 | UX-09 | 의미에 맞는 요소를 사용한다. | 이동은 link, 명령은 button, view 전환은 tab이며 아이콘에 이름이 있는가? |
 | UX-10 | 반응형/접근성을 기본 검증한다. | keyboard/focus/Escape/복원/overflow를 실제 동작으로 확인했는가? |
 | UX-11 | UI 변경으로 domain 계약을 바꾸지 않는다. | revision/If-Match/session/Origin/API/canonical snapshot 계약을 유지하는가? |
-| UX-12 | 사용자의 작업 상태를 보존한다. | tab/modal 전환으로 scroll/tree/column/scale/selection을 불필요하게 초기화하지 않는가? |
+| UX-12 | 사용자의 작업 상태를 보존한다. | tab/modal 전환으로 scroll/tree/column/scale/selection/fullscreen을 불필요하게 초기화하지 않는가? |
 
 ## SVAR 데모와 API 확인
 
@@ -89,6 +95,33 @@ UI 기능 설계 전에 유사한 공식 데모가 있는지 확인하고 참조
 | validation/요청 실패 | 필드별 오류, 복구 경로, 입력 보존, 중복 제출 방지 |
 | session 만료/권한 거부 | 편집 취소/재인증 안내, 비밀번호·token 비노출 |
 | 좁은 화면/긴 문자열/대량 항목 | 줄바꿈/축약/scroll 영역, 전체 내용 접근, Gantt lifecycle 보존 |
+
+## Data-dense Table Column / Geometry 검토 기준 (Issue #403)
+
+Project List, Resource/Admin 목록처럼 열이 많은 table을 설계·수정할 때는 시각적 인상뿐 아니라 **column budget과 browser geometry**를 함께 검토한다.
+
+- 각 열을 fixed/minimum/flexible로 분류하고, 전체 percentage 합계와 별도 fixed-width 열이 가용 폭을 초과하지 않는지 확인한다.
+- `white-space: nowrap`인 날짜·상태·코드·action 열은 실제 콘텐츠 + 좌우 padding을 포함한 최소 가독 폭을 확보한다.
+- 긴 프로젝트명/분류명/소유자/설명, null 값, locale/timezone에 따라 길이가 달라지는 날짜/시간을 fixture에 포함한다.
+- header와 body의 동일 열 경계가 맞는지, sibling cell의 bounding box 및 visible text가 서로 침범하지 않는지 확인한다.
+- truncation/ellipsis를 사용하면 전체 값에 접근 가능한 title/tooltip/상세 경로 등 기존 접근성 패턴을 유지한다.
+- viewport 축소 시 document 자체를 가로로 밀어내지 말고 table wrapper가 scroll을 소유하게 한다. 의도된 table scroll과 unintended document overflow를 별도로 판정한다.
+- 390/768/1024/1440/wide desktop을 기본으로 하고, data table 레이아웃 변경은 최소 100% zoom, 가능하면 125% zoom에서도 smoke 검증한다.
+- 열을 새로 추가하는 Issue는 기존 열의 회귀 검증을 Acceptance Criteria에 포함하고, 기존 percentage width를 기계적으로 재사용하지 않는다.
+
+QA/browser evidence에는 viewport, locale/timezone, long-content fixture, `scrollWidth/clientWidth` 또는 동등한 geometry 근거를 남긴다. 정적 CSS/DOM 확인만으로 PASS하지 않는다.
+
+## Data-dense Management List / Pane Geometry 검토 기준 (Issue #426)
+
+Resource Catalog처럼 table이 아닌 관리 화면도 column budget과 같은 수준의 geometry 검토를 적용한다.
+
+- sibling pane의 bounding box가 겹치지 않는지와 각 pane의 usable width를 함께 확인한다. 정보량이 다른 pane은 50:50을 기본값으로 간주하지 않는다.
+- list row의 identity 영역이 profile/action의 intrinsic width 때문에 collapse하지 않는지 확인하고, profile·lifecycle·destructive action의 semantic boundary가 시각 순서와 keyboard Tab 순서에 일치해야 한다.
+- search/filter toolbar, create form, list 사이의 수직·수평 경계를 측정하여 서로 침범하지 않는지 확인한다. wrap 전후 row height가 비정상적으로 급증하면 progressive disclosure 또는 breakpoint를 재검토한다.
+- role/tag/button을 추가하면 현재 값만 확인하지 말고 0/1/최대 role 조합, 가장 긴 developer grade label, active/inactive/delete-unavailable 상태를 포함해 전체 geometry를 다시 계산한다.
+- 긴 한국어/영문 name·code를 fixture에 포함하고 390/768/1024/1440/wide desktop에서 document overflow와 component-owned overflow를 구분한다.
+- management footer는 secondary action과 primary commit action의 위치, 동일 높이/baseline, wrap/stack 후 접근성을 실제 bounding box로 검증한다.
+- 기본 100% zoom에서 필수 검증하고 가능하면 125% zoom smoke도 수행한다.
 
 ## 접근성과 반응형 검증
 

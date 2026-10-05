@@ -121,7 +121,8 @@ describe("ProjectTemplateService (Issue #195)", () => {
         )
         .run(randomUUID(), sourceProjectId, t1, t2, now, now, randomUUID(), sourceProjectId, t2, m1, now, now);
 
-      // 리소스 배정: T1에 res1 배정
+      // 리소스 배정: T1에 res1을 DEVELOPER 수행 역할로 배정
+      resourceCatalog.replaceResourceRoles(res1.id, ["DEVELOPER"], now);
       resourceCatalog.replaceTaskAssignments({
         projectId: sourceProjectId,
         taskId: t1,
@@ -134,6 +135,7 @@ describe("ProjectTemplateService (Issue #195)", () => {
             assignmentStart: "2026-10-06",
             assignmentEnd: "2026-10-06",
             allocationPercent: 80,
+            assignmentRole: "DEVELOPER",
           },
         ],
         now,
@@ -244,6 +246,14 @@ describe("ProjectTemplateService (Issue #195)", () => {
       expect(duplicated.name).toBe("복제된 입고 템플릿");
       expect(duplicated.taskCount).toBe(3);
 
+      resourceCatalog.replaceTaskAssignments({
+        projectId: sourceProjectId,
+        taskId: t1,
+        targets: [],
+        now,
+      });
+      resourceCatalog.replaceResourceRoles(res1.id, [], now);
+
       // 8. 템플릿 기반 새 프로젝트 생성 (인스턴스화) 테스트
       // 시작일을 2026-11-02(월)로 지정하여 생성
       const instantiated = await templateService.instantiateProject(template.id, {
@@ -303,6 +313,11 @@ describe("ProjectTemplateService (Issue #195)", () => {
         end: "2026-11-02",
         percent: 80,
       });
+      expect(newAssignments?.[0].role).toBeNull();
+      expect(instantiated.response.data.warnings).toEqual(expect.arrayContaining([
+        expect.stringContaining("DEVELOPER"),
+        expect.stringContaining("역할 미지정"),
+      ]));
 
       // 물류 복제 검증: 새 프로젝트에 프로세스, 장비, 시스템 및 태스크 링크 존재
       const newProjectId = (database.prepare("SELECT id FROM projects WHERE public_id = ?").get(newProject.publicId) as { id: number }).id;

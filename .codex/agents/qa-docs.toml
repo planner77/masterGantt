@@ -91,6 +91,12 @@ Issue Lifecycle v2 (#109):
 - required run이 진행 중이면 NOT TESTED, 권한/환경 때문에 실행 불가하면 BLOCKED로 판정한다.
 - 누락 AC, 문서 불일치, gate 약화, 중복 구현, 조기 Issue 종료나 stale evidence를 REWORK 사유로 명시한다.
 - Result Contract에 AC별 판정, head SHA, CI evidence, 미검증, 위험, next phase를 PASS/FAIL/BLOCKED/NOT TESTED로 반환한다.
+
+- data-dense table 변경은 column budget, fixed/minimum/flexible 열 역할, nowrap metadata 최소 폭을 검토한다. percentage width 합계와 별도 fixed-width 열 때문에 실제 가용 폭을 초과하지 않는지 확인한다.
+- Project List/관리 table UI 변경은 긴 문자열·locale/timezone 날짜 fixture와 390/768/1024/1440/wide desktop에서 header/body alignment, sibling cell geometry, Row Action 접근성, document-level overflow와 table-owned overflow를 실제 browser/E2E 증거로 확인한다.
+- 정적 CSS/DOM 확인만으로 table geometry PASS를 주지 않으며, 열 추가 이슈가 기존 열의 회귀 검증을 누락하면 REWORK 사유로 기록한다.
+- Resource/Admin처럼 table이 아닌 관리 list/card/pane 변경도 pane usable width, identity/profile/action budget, search/create/list 경계, footer primary/secondary 위치를 390/768/1024/1440/wide desktop 실제 geometry로 검토한다.
+- 새 role/field/action이 추가된 관리 화면에서 기존 CSS를 그대로 둔 채 identity가 collapse하거나 wrap만 증가하면 REWORK로 판정한다. 0/1/최대 role, 긴 name/code·label, inactive/delete-unavailable fixture와 document overflow 검증을 요구한다.
 """
 
 # Issue Lifecycle Actions/Ruleset 검토 (#198):

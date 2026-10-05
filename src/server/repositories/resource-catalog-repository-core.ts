@@ -1,5 +1,5 @@
 import type Database from "better-sqlite3";
-import type { DeveloperGrade } from "../../contracts/resources";
+import type { DeveloperGrade, ResourceRole } from "../../contracts/resources";
 
 export interface CatalogTargetRecord {
   id: number;
@@ -9,6 +9,7 @@ export interface CatalogTargetRecord {
   description: string;
   active: boolean;
   developerGrade: DeveloperGrade | null;
+  roles: ResourceRole[];
 }
 
 export interface CatalogGroupRecord extends CatalogTargetRecord {
@@ -27,6 +28,39 @@ export interface AssignmentRecord {
   assignmentStart: string | null;
   assignmentEnd: string | null;
   allocationPercent: number | null;
+  assignmentRole: ResourceRole | null;
+}
+
+export interface ResourceRoleAssignmentUsage {
+  projectCount: number;
+  taskCount: number;
+}
+
+export interface CatalogTargetProjectUsage {
+  projectCount: number;
+  taskAssignmentProjectCount: number;
+  equipmentRoleProjectCount: number;
+  systemRoleProjectCount: number;
+  calendarProjectCount: number;
+}
+
+interface ProjectUsageRow {
+  target_id: number;
+  project_count: number;
+  task_assignment_project_count: number;
+  equipment_role_project_count: number;
+  system_role_project_count: number;
+  calendar_project_count: number;
+}
+
+function mapProjectUsage(rows: readonly ProjectUsageRow[]): Map<number, CatalogTargetProjectUsage> {
+  return new Map(rows.map((row) => [row.target_id, {
+    projectCount: row.project_count,
+    taskAssignmentProjectCount: row.task_assignment_project_count,
+    equipmentRoleProjectCount: row.equipment_role_project_count,
+    systemRoleProjectCount: row.system_role_project_count,
+    calendarProjectCount: row.calendar_project_count,
+  }]));
 }
 
 interface TargetRow {
@@ -48,7 +82,23 @@ function mapTarget(row: TargetRow): CatalogTargetRecord {
     description: row.description,
     active: row.active === 1,
     developerGrade: row.developer_grade,
+    roles: [],
   };
+}
+
+interface ResourceRoleRow {
+  resource_id: number;
+  role: ResourceRole;
+}
+
+function resourceRolesById(rows: readonly ResourceRoleRow[]): Map<number, ResourceRole[]> {
+  const roles = new Map<number, ResourceRole[]>();
+  for (const row of rows) {
+    const current = roles.get(row.resource_id) ?? [];
+    current.push(row.role);
+    roles.set(row.resource_id, current);
+  }
+  return roles;
 }
 
 export class ResourceCatalogRepository {
@@ -67,7 +117,16 @@ export class ResourceCatalogRepository {
 
   listResources(activeOnly = false): CatalogTargetRecord[] {
     const rows = this.database.prepare(`SELECT id, public_id, name, code, description, active, developer_grade FROM resources ${activeOnly ? "WHERE active = 1" : ""} ORDER BY lower(name), public_id`).all() as TargetRow[];
-    return rows.map(mapTarget);
+    const roleRows = this.database.prepare(`
+      SELECT rr.resource_id, rr.role
+        FROM resource_roles rr
+        JOIN resources r ON r.id = rr.resource_id
+        ${activeOnly ? "WHERE r.active = 1" : ""}
+       ORDER BY rr.resource_id,
+                CASE rr.role WHEN 'PI' THEN 1 WHEN 'DEVELOPER' THEN 2 WHEN 'EQUIPMENT_OWNER' THEN 3 ELSE 4 END
+    `).all() as ResourceRoleRow[];
+    const roles = resourceRolesById(roleRows);
+    return rows.map((row) => ({ ...mapTarget(row), roles: roles.get(row.id) ?? [] }));
   }
 
   listGroups(activeOnly = false): CatalogGroupRecord[] {
@@ -82,9 +141,18 @@ export class ResourceCatalogRepository {
     return rows.map((row) => ({ ...mapTarget(row), memberResourceIds: members.get(row.id) ?? [] }));
   }
 
+  listResourceRoles(resourceId: number): ResourceRole[] {
+    return (this.database.prepare(`
+      SELECT resource_id, role
+        FROM resource_roles
+       WHERE resource_id = ?
+       ORDER BY CASE role WHEN 'PI' THEN 1 WHEN 'DEVELOPER' THEN 2 WHEN 'EQUIPMENT_OWNER' THEN 3 ELSE 4 END
+    `).all(resourceId) as ResourceRoleRow[]).map((row) => row.role);
+  }
+
   findResourceByPublicId(publicId: string): CatalogTargetRecord | undefined {
     const row = this.database.prepare(`SELECT id, public_id, name, code, description, active, developer_grade FROM resources WHERE public_id = ?`).get(publicId) as TargetRow | undefined;
-    return row ? mapTarget(row) : undefined;
+    return row ? { ...mapTarget(row), roles: this.listResourceRoles(row.id) } : undefined;
   }
 
   findGroupByPublicId(publicId: string): CatalogGroupRecord | undefined {
@@ -92,6 +160,76 @@ export class ResourceCatalogRepository {
     if (!row) return undefined;
     const members = this.database.prepare(`SELECT r.public_id FROM resource_group_members gm JOIN resources r ON r.id = gm.resource_id WHERE gm.group_id = ? ORDER BY lower(r.name), r.public_id`).all(row.id) as { public_id: string }[];
     return { ...mapTarget(row), memberResourceIds: members.map((member) => member.public_id) };
+  }
+
+  listResourceProjectUsage(): Map<number, CatalogTargetProjectUsage> {
+    const rows = this.database.prepare(`
+      WITH usage AS (
+        SELECT resource_id AS target_id, project_id, 'task_assignment' AS category
+          FROM task_assignments
+         WHERE resource_id IS NOT NULL
+        UNION ALL
+        SELECT resource_id, project_id, 'equipment_role'
+          FROM project_equipment_resource_roles
+        UNION ALL
+        SELECT resource_id, project_id, 'system_role'
+          FROM project_system_resource_roles
+        UNION ALL
+        SELECT r.id, w.project_id, 'calendar'
+          FROM work_calendar_rules w
+          JOIN resources r ON r.public_id = w.target_public_id
+         WHERE w.target_type = 'RESOURCE'
+      )
+      SELECT target_id,
+             COUNT(DISTINCT project_id) AS project_count,
+             COUNT(DISTINCT CASE WHEN category = 'task_assignment' THEN project_id END) AS task_assignment_project_count,
+             COUNT(DISTINCT CASE WHEN category = 'equipment_role' THEN project_id END) AS equipment_role_project_count,
+             COUNT(DISTINCT CASE WHEN category = 'system_role' THEN project_id END) AS system_role_project_count,
+             COUNT(DISTINCT CASE WHEN category = 'calendar' THEN project_id END) AS calendar_project_count
+        FROM usage
+       GROUP BY target_id
+    `).all() as ProjectUsageRow[];
+    return mapProjectUsage(rows);
+  }
+
+  listGroupProjectUsage(): Map<number, CatalogTargetProjectUsage> {
+    const rows = this.database.prepare(`
+      WITH usage AS (
+        SELECT group_id AS target_id, project_id, 'task_assignment' AS category
+          FROM task_assignments
+         WHERE group_id IS NOT NULL
+        UNION ALL
+        SELECT g.id, w.project_id, 'calendar'
+          FROM work_calendar_rules w
+          JOIN resource_groups g ON g.public_id = w.target_public_id
+         WHERE w.target_type = 'RESOURCE_GROUP'
+      )
+      SELECT target_id,
+             COUNT(DISTINCT project_id) AS project_count,
+             COUNT(DISTINCT CASE WHEN category = 'task_assignment' THEN project_id END) AS task_assignment_project_count,
+             0 AS equipment_role_project_count,
+             0 AS system_role_project_count,
+             COUNT(DISTINCT CASE WHEN category = 'calendar' THEN project_id END) AS calendar_project_count
+        FROM usage
+       GROUP BY target_id
+    `).all() as ProjectUsageRow[];
+    return mapProjectUsage(rows);
+  }
+
+  removeResourceMemberships(resourceId: number): void {
+    this.database.prepare("DELETE FROM resource_group_members WHERE resource_id = ?").run(resourceId);
+  }
+
+  removeGroupMemberships(groupId: number): void {
+    this.database.prepare("DELETE FROM resource_group_members WHERE group_id = ?").run(groupId);
+  }
+
+  deleteResource(id: number): boolean {
+    return this.database.prepare("DELETE FROM resources WHERE id = ?").run(id).changes === 1;
+  }
+
+  deleteGroup(id: number): boolean {
+    return this.database.prepare("DELETE FROM resource_groups WHERE id = ?").run(id).changes === 1;
   }
 
   insertResource(input: { publicId: string; name: string; code: string | null; description: string; developerGrade?: DeveloperGrade | null; now: string }): CatalogTargetRecord {
@@ -127,13 +265,24 @@ export class ResourceCatalogRepository {
     for (const resourceId of resourceIds) insert.run(groupId, resourceId, now);
   }
 
+  replaceResourceRoles(resourceId: number, roles: readonly ResourceRole[], now: string): void {
+    const keep = new Set(roles);
+    for (const currentRole of this.listResourceRoles(resourceId)) {
+      if (!keep.has(currentRole)) {
+        this.database.prepare("DELETE FROM resource_roles WHERE resource_id = ? AND role = ?").run(resourceId, currentRole);
+      }
+    }
+    const insert = this.database.prepare(`INSERT OR IGNORE INTO resource_roles (resource_id, role, created_at) VALUES (?, ?, ?)`);
+    for (const role of roles) insert.run(resourceId, role, now);
+  }
+
   listAssignments(projectId: number): AssignmentRecord[] {
     const rows = this.database.prepare(`
       SELECT a.id, a.public_id, a.project_id, a.task_id, t.public_id AS task_public_id,
              CASE WHEN a.resource_id IS NOT NULL THEN 'resource' ELSE 'group' END AS kind,
              COALESCE(a.resource_id, a.group_id) AS target_internal_id,
              COALESCE(r.public_id, g.public_id) AS target_public_id,
-             a.assignment_start, a.assignment_end, a.allocation_percent
+             a.assignment_start, a.assignment_end, a.allocation_percent, a.assignment_role
       FROM task_assignments a
       JOIN tasks t ON t.id = a.task_id AND t.project_id = a.project_id
       LEFT JOIN resources r ON r.id = a.resource_id
@@ -142,14 +291,26 @@ export class ResourceCatalogRepository {
       ORDER BY a.task_id, a.id`).all(projectId) as Array<{
         id:number; public_id:string; project_id:number; task_id:number; task_public_id:string;
         kind:"resource"|"group"; target_internal_id:number; target_public_id:string;
-        assignment_start:string|null; assignment_end:string|null; allocation_percent:number|null;
+        assignment_start:string|null; assignment_end:string|null; allocation_percent:number|null; assignment_role:ResourceRole|null;
       }>;
     return rows.map((row) => ({
       id: row.id, publicId: row.public_id, projectId: row.project_id, taskId: row.task_id,
       taskPublicId: row.task_public_id, kind: row.kind, targetInternalId: row.target_internal_id,
       targetPublicId: row.target_public_id, assignmentStart: row.assignment_start,
       assignmentEnd: row.assignment_end, allocationPercent: row.allocation_percent,
+      assignmentRole: row.kind === "resource" ? row.assignment_role : null,
     }));
+  }
+
+  getResourceRoleAssignmentUsage(resourceId: number, role: ResourceRole): ResourceRoleAssignmentUsage {
+    const row = this.database.prepare(`
+      SELECT COUNT(DISTINCT project_id) AS project_count,
+             COUNT(*) AS task_count
+        FROM task_assignments
+       WHERE resource_id = ?
+         AND assignment_role = ?
+    `).get(resourceId, role) as { project_count: number; task_count: number };
+    return { projectCount: row.project_count, taskCount: row.task_count };
   }
 
   replaceTaskAssignments(input: {
@@ -158,14 +319,15 @@ export class ResourceCatalogRepository {
     targets: Array<{
       publicId: string; kind: "resource" | "group"; internalId: number; assignmentPublicId: string;
       assignmentStart: string | null; assignmentEnd: string | null; allocationPercent: number | null;
+      assignmentRole?: ResourceRole | null;
     }>;
     now: string;
   }): void {
     this.database.prepare("DELETE FROM task_assignments WHERE project_id = ? AND task_id = ?").run(input.projectId, input.taskId);
     const insert = this.database.prepare(`
       INSERT INTO task_assignments
-      (public_id, project_id, task_id, resource_id, group_id, assignment_start, assignment_end, allocation_percent, created_at, updated_at)
-      VALUES (@assignmentPublicId, @projectId, @taskId, @resourceId, @groupId, @assignmentStart, @assignmentEnd, @allocationPercent, @now, @now)`);
+      (public_id, project_id, task_id, resource_id, group_id, assignment_start, assignment_end, allocation_percent, assignment_role, created_at, updated_at)
+      VALUES (@assignmentPublicId, @projectId, @taskId, @resourceId, @groupId, @assignmentStart, @assignmentEnd, @allocationPercent, @assignmentRole, @now, @now)`);
     for (const target of input.targets) {
       insert.run({
         assignmentPublicId: target.assignmentPublicId, projectId: input.projectId, taskId: input.taskId,
@@ -174,6 +336,7 @@ export class ResourceCatalogRepository {
         assignmentStart: target.kind === "resource" ? target.assignmentStart : null,
         assignmentEnd: target.kind === "resource" ? target.assignmentEnd : null,
         allocationPercent: target.kind === "resource" ? target.allocationPercent : null,
+        assignmentRole: target.kind === "resource" ? target.assignmentRole ?? null : null,
         now: input.now,
       });
     }

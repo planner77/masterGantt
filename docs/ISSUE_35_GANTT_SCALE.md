@@ -36,3 +36,37 @@ SVAR React Gantt의 `scales` 속성은 `day`, `week`, `month` 등의 시간 단�
 - Issue #35의 최초 표시 단위 기능은 사용자 노출 신규 기능이므로 `0.8.3`에서 `0.9.0`으로 minor version을 증가시켰다.
 - Issue #51은 기존 `주` 표시의 Header 포맷을 ISO Week로 바로잡는 호환 개선이므로 `0.11.0`에서 `0.11.1`로 patch version을 증가시킨다.
 - Issue #314는 기존 `일` 표시의 Header 문자열만 compact하게 변경하는 호환 개선이므로 `0.58.0`에서 `0.58.1`로 patch version을 증가시킨다.
+
+## Issue #315 Day Header Tooltip
+
+Issue #314의 숫자-only Day Header는 그대로 유지하고 상세 정보는 hover/focus Tooltip으로 progressive disclosure 한다. Day scale은 SVAR 공개 `scales[].css(date)`로 masterGantt-owned `project-gantt-day-date-YYYYMMDD` class를 부여한다. Tooltip 날짜 lookup은 이 class만 사용하며 SVAR 내부 Header DOM 구조에서 날짜를 역추론하지 않는다.
+
+Tooltip은 locale weekday를 항상 표시하고 Effective Project Calendar의 named `NON_WORKING` date에만 canonical name 목록을 추가한다. 일반 weekend는 요일만 표시하며 `WORKING` override 이름은 휴일로 표시하지 않는다. Week scale에서는 해당 class와 Tooltip 동작을 적용하지 않는다. 상세 계약은 [Issue #315 설계](ISSUE_315_DAY_HEADER_TOOLTIP.md)를 따른다.
+
+
+## Issue #316 Week Header Tooltip
+
+Issue #315의 Day Header Tooltip에서 검증한 public scale CSS class/date parser와 hover/focus overlay lifecycle을 Week scale에도 적용한다. Week Header 본문은 기존 ISO `W01~W53`을 유지한다. SVAR Week `css(date)`가 실제 runtime에서 ISO 주의 Sunday anchor를 전달하므로 이를 ISO Monday로 정규화한 뒤 `project-gantt-week-date-YYYYMMDD` app-owned class의 날짜 key로 사용한다.
+
+Tooltip의 근무일 수는 기존 Scheduling `createWorkingCalendar` + `workingDaysBetween`으로 계산한다. 명명된 `NON_WORKING` 날짜는 #315의 `projectHolidayNamesForDate` projection을 재사용해 날짜와 모든 canonical 이름을 표시하고, 이름 없는 휴일은 계산에만 반영한다. `WORKING` override는 실제 근무일 수에 반영하되 공휴일명으로 표시하지 않는다.
+
+Hover/focus, `aria-describedby`, Escape, scroll/resize 재배치, viewport edge clamp 및 Day↔Week 전환 시 overlay 정리는 #315와 같은 interaction 계약을 따른다. Gantt/API instance와 기존 68px Week cell width는 유지한다. 상세 계약은 [Issue #316 설계](ISSUE_316_WEEK_HEADER_TOOLTIP.md)를 따른다.
+
+
+## Issue #416 Week Header 근무 가능 일수 상시 표시
+
+#316의 Week Header Tooltip 계산 결과를 상시 요약에도 재사용한다. 기존 `scales[].format(date)`은 계속 ISO `W01~W53` 문자열만 반환하고, Week `cellWidth=68`도 유지한다. #316의 공개 `scales[].css(date)`가 부여하는 app-owned ISO Monday date class와 MutationObserver lifecycle에서 같은 `GanttWeekHeaderTooltipData.workingDays`를 읽어 `N일` secondary label을 cell 내부에 추가·갱신한다.
+
+secondary label은 화면상 요약만 담당하므로 `aria-hidden`으로 두며, 접근 가능한 상세 설명은 기존 cell `aria-label`과 hover/focus Tooltip 계약을 유지한다. 요일별 위치/공휴일명/사유는 Header에 중복 노출하지 않는다. Header 폭·scale height를 늘리거나 `Wxx` 문자열을 DOM text replacement로 바꾸지 않고, private SVAR API 또는 별도 Calendar 계산을 추가하지 않는다.
+
+## Issue #367 Day 밀도 추가 개선과 우측 Timeline 동적 확장
+
+Issue #233의 Day `cellWidth=44` 계약을 #314의 숫자-only Header에 맞춰 **36px**로 추가 축소한다. Week는 ISO Week 및 #316 Tooltip 가독성을 위해 68px를 유지한다.
+
+SVAR React 2.7.3은 React `start/end` prop 변경 시 `dataStore.init(storeConfig)`를 다시 실행한다. 따라서 scroll 때마다 `end` prop을 바꾸는 방식은 selection/column/filter 등 mounted view state에 영향을 줄 수 있어 사용하지 않는다. 대신 **고정 `start` + 미지정 `end` + `autoScale=false`**로 두고, 공개 `resize-chart` action의 내부 `expandScale()` 경로를 사용한다. 이 경로는 start가 고정되고 end가 열려 있을 때 `_end`만 확장하며 `_scaleDate`를 기준으로 현재 horizontal scroll을 보존한다.
+
+우측 접근 판정은 공개 `scroll-chart.left`, `resize-chart.width`와 `api.getState()`의 현재 scale width를 사용한다. 남은 폭이 viewport의 1/4 또는 최소 threshold 이하가 되면 최소 한 viewport 분량(또는 Day 14 cell / Week 4 cell)의 scale 폭을 public `resize-chart`로 확장한 뒤 실제 viewport 폭을 즉시 복원한다. 합성 resize 동안 재진입을 막고 같은 frame의 이벤트는 `requestAnimationFrame`으로 합친다.
+
+사용자가 탐색해 확보한 미래 end는 app ref로 단조 증가시킨다. canonical Task sync나 Day/Week 전환이 Core의 flexible end를 다시 계산해 더 짧게 만들면 같은 public resize path로 이전 end 이상을 복구한다. React `end` prop을 변경하지 않으므로 이 확장 자체가 SVAR store re-init을 유발하지 않는다.
+
+Chromium은 native `scrollTo()`로 실제 React `onScroll` → SVAR `scroll-chart` 경로를 발생시켜 3회 연속 미래 확장, 동일 Gantt/API instance, non-zero scroll, mutation 0회를 검증한다. 기존 #373 scoped `filter-tasks`, 다중 selection/column/tree 상태가 range extension 때문에 초기화되지 않는지도 전체 E2E에서 회귀 검증한다.

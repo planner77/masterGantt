@@ -62,12 +62,12 @@ function applySuccessfulCreate(fixture: StatefulProjectFixture, payload: CreateT
   const changedTaskExternalIds = [externalId];
   if (parent?.type === "task" && payload.convertParentToSummary) {
     parent.type = "summary"; parent.requestedStart = null;
-    parent.start = payload.start; parent.end = payload.start; parent.duration = payload.duration; parent.progress = payload.progress;
+    parent.start = payload.start ?? null; parent.end = payload.start ?? null; parent.duration = payload.duration ?? null; parent.progress = payload.progress ?? null;
     changedTaskExternalIds.unshift(parent.externalId);
   }
   const created = task(sequence, externalId, payload.name, {
-    type: payload.type, requestedStart: payload.start, start: payload.start, end: payload.start,
-    duration: payload.duration, progress: payload.progress, parentExternalId: parent?.externalId ?? null,
+    type: payload.type, requestedStart: payload.start ?? null, start: payload.start ?? null, end: payload.start ?? null,
+    duration: payload.duration ?? null, progress: payload.progress ?? null, parentExternalId: parent?.externalId ?? null,
     siblingOrder: fixture.tasks.filter((entry) => entry.parentExternalId === (parent?.externalId ?? null)).length,
   });
   fixture.tasks.push(created); fixture.createdTaskIds.push(created.taskId); fixture.project.revision += 1;
@@ -115,7 +115,7 @@ export async function installStatefulProjectFixture(page: Page): Promise<Statefu
       } } }); return;
     }
     if (pathname === `${projectPath}/resource-workload` && request.method() === "GET") {
-      await route.fulfill({ json: { data: { projectRevision: fixture.project.revision, catalogRevision: 1, range: { from: "2026-09-01", to: "2026-09-30" }, mdPerMm: 20, grandTotalMd: 5, grandTotalMm: 0.25, unsetCount: 0, groups: [{ id: "group-1", name: "개발팀", active: true, start: "2026-09-16", end: "2026-09-18", effortMd: 5, effortMm: 0.25, unsetCount: 0, resources: [{ id: "resource-1", name: "테스트 리소스", code: "R-01", active: true, start: "2026-09-16", end: "2026-09-18", effortMd: 5, effortMm: 0.25, unsetCount: 0, overAllocated: false, tasks: [{ assignmentId: "assignment-1", taskId: fixture.tasks[2].taskId, taskName: fixture.tasks[2].name, start: "2026-09-16", end: "2026-09-18", allocationPercent: 100, effortMd: 5, effortMm: 0.25, effortConfigured: true }] }] }] } } }); return;
+      await route.fulfill({ json: { data: { projectRevision: fixture.project.revision, catalogRevision: 1, range: { from: "2026-09-01", to: "2026-09-30" }, mdPerMm: 20, grandTotalMd: 5, grandTotalMm: 0.25, unsetCount: 0, asOfDate: "2026-09-18", timezone: "Asia/Seoul", unspecifiedRoleCount: 0, overAllocatedResourceCount: 0, roleTotals: [{ role: "PI", assignmentCount: 0, effortMd: 0, effortMm: 0, unsetCount: 0 }, { role: "DEVELOPER", assignmentCount: 1, effortMd: 5, effortMm: 0.25, unsetCount: 0 }, { role: "EQUIPMENT_OWNER", assignmentCount: 0, effortMd: 0, effortMm: 0, unsetCount: 0 }, { role: "UNSPECIFIED", assignmentCount: 0, effortMd: 0, effortMm: 0, unsetCount: 0 }], groups: [{ id: "group-1", name: "개발팀", active: true, start: "2026-09-16", end: "2026-09-18", effortMd: 5, effortMm: 0.25, unsetCount: 0, resources: [{ id: "resource-1", name: "테스트 리소스", code: "R-01", active: true, developerGrade: "ADVANCED", start: "2026-09-16", end: "2026-09-18", effortMd: 5, effortMm: 0.25, unsetCount: 0, overAllocated: false, tasks: [{ assignmentId: "assignment-1", taskId: fixture.tasks[2].taskId, taskName: fixture.tasks[2].name, start: "2026-09-16", end: "2026-09-18", allocationPercent: 100, effortMd: 5, effortMm: 0.25, effortConfigured: true, role: "DEVELOPER", taskStart: "2026-09-16", taskEnd: "2026-09-18", progress: 50, status: "in_progress", delayed: false }] }] }] } } }); return;
     }
     if (pathname === taskPath && request.method() === "POST") {
       const payload = request.postDataJSON() as CreateTaskRequest;

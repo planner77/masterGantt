@@ -1,18 +1,523 @@
 # Changelog
 
-## [0.59.0] - 2026-09-30
+## [0.84.0] - 2026-10-05
 
 ### Added
 
-- Issue #342: KR/CN/VN/PH/TH/MX/US의 2026~2037 국가 Calendar 관리 범위를 정의하고, 공식 데이터가 없는 미래 연도는 추정하지 않는 DB override Catalog를 추가한다.
-- 기존 2026 built-in fixture를 초기 baseline으로 유지하면서 국가/연도 status, sourceVersion/sourceUrl, NON_WORKING/WORKING 날짜를 관리자 화면에서 JSON/CSV Preview·Import 및 CRUD할 수 있도록 한다.
-- 국가별 공식 데이터 확보·검증·정정 절차와 sourceVersion 규칙을 docs/COUNTRY_CALENDAR_DATA.md에 문서화한다.
+- Issue #342: KR/CN/VN/PH/TH/MX/US 국가 Calendar의 2026~2037 관리 슬롯과 OFFICIAL/UNAVAILABLE/SUPERSEDED 상태를 DB override Catalog로 추가한다.
+- JSON/CSV 국가 Calendar Import의 검증 → 추가/변경/삭제 Preview → 원자적 Apply와 국가·연도별 sourceVersion/sourceUrl 및 NON_WORKING/WORKING 날짜 CRUD 관리자 화면을 추가한다.
+- 국가별 공식 데이터 확보·변환·검증·정정 절차와 sourceVersion 규칙을 docs/COUNTRY_CALENDAR_DATA.md에 문서화한다.
 
 ### Changed
 
-- Project Calendar Preview/Save와 신규 Project 기본 Calendar는 최신 OFFICIAL DB override를 built-in보다 우선 사용하며, Catalog 변경만으로 기존 Project의 materialized Calendar/Task는 자동 재계산하지 않는다.
-- 프로젝트 기준정보 관리 화면에서 진입하는 compact 국가 캘린더 관리 화면을 추가하고, 전역 header의 기존 4개 메뉴 계약을 유지하면서 390/768/1024/1440px 반응형 및 Import/CRUD E2E를 검증한다.
-- Application version을 0.58.3에서 0.59.0으로 증가한다.
+- 2026 built-in fixture는 초기 baseline으로 유지하고 Project Calendar Preview/Save 및 신규 Project 기본 Calendar는 최신 OFFICIAL DB override를 우선 사용한다. Catalog 변경만으로 기존 Project의 materialized Calendar/Task는 자동 재계산하지 않는다.
+- 기존 전역 Header 4개 메뉴 계약을 유지하고 프로젝트 기준정보 관리 화면에서 국가 Calendar 관리로 진입한다.
+- migration 번호를 최신 main의 0021 이후인 0022_country_calendar_catalog.sql로 재배치하고 Application version을 0.83.3에서 0.84.0으로 증가한다.
+
+## [0.83.3] - 2026-10-05
+
+### Fixed
+
+- Issue #439: GHCR Release candidate의 실제 container 이름 `mastergantt-release-candidate`를 registry Project/Task API smoke allowlist에 추가하여 v0.83.2 Release Run #131의 deterministic usage 오류를 수정한다.
+- Release workflow 호출 인자와 registry smoke allowlist의 container 이름이 다시 어긋나지 않도록 정적 회귀 테스트를 추가한다.
+- 실패한 annotated `v0.83.2` tag는 이동·재사용하지 않고 same-Issue corrective PATCH `0.83.3`에서 exact Main verified candidate digest 검증과 GHCR promotion을 다시 수행한다.
+- Application version을 `0.83.2`에서 `0.83.3`으로 증가한다.
+
+## [0.83.2] - 2026-10-05
+
+### Changed
+
+- Issue #439: PR/Main/Release의 checkout, Node/npm, Playwright, Next build cache, Docker Buildx/build-push setup 비용을 동일 JSONL/Step Summary 형식으로 계측한다.
+- npm download cache는 OS/arch/Node/lockfile key와 exact hit/miss를 기록하고 `npm ci` 및 `node_modules` 비캐시 계약을 유지한다. Playwright browser cache는 baseline 10회 전에는 활성화하지 않는다.
+- baseline analyzer를 workflow/event/job/metric별로 분리하고 서로 다른 successful run ID 10개 이상을 Phase 2 진입 기준으로 사용해 matrix shard와 rerun이 표본 수를 부풀리지 않도록 한다.
+- cache miss에서도 기존 required quality/E2E/Docker gate를 그대로 실행하고 cache/artifact에 secret, runtime DB, test PASS evidence를 저장하지 않는 안전 계약을 문서·회귀 테스트로 고정한다.
+- Application version을 `0.83.1`에서 `0.83.2`로 증가한다.
+
+## [0.83.0] - 2026-10-05
+
+### Added
+
+- Issue #415: Excel 내보내기에 선택적 Resource Effort Summary/Detail을 추가해 역할별·개발자별 계획 M/D·M/M과 assignment grain 상세를 제공한다.
+- Resource workload detail에 Calendar/range clipping이 반영된 canonical `effectiveWorkingDays`를 추가한다.
+
+### Changed
+
+- Excel 공수 견적은 #414 workload 서비스와 동일한 Project revision/range/`RESOURCE_MD_PER_MM` 기준을 재사용하며 assignmentId로 중복을 제거하고 여러 Group은 비가산 목록으로 표시한다.
+- M/M 기준이 없거나 공수가 미설정된 경우 0으로 환산하지 않고 명시적인 미설정 상태를 유지한다.
+- 기존 Gantt/Tasks/Project/Dependencies/Logistics 시트 순서와 Origin/If-Match/formula injection 보호를 유지하고 Application version을 `0.82.0`에서 `0.83.0`으로 증가한다.
+
+
+## [0.82.0] - 2026-10-05
+
+### Added
+
+- Issue #430: Task/Summary Cut에서 source subtree 내부 Dependency는 허용하고 subtree 경계를 넘는 incoming/outgoing Dependency만 제한하는 boundary-aware 정책을 추가한다.
+
+### Changed
+
+- Context Menu `Cut`, `Ctrl/Cmd+X`, cut clipboard Paste와 server `reparent`가 동일한 Dependency boundary 판정을 사용하며 내부 Link의 ID/endpoints/type/signed lag를 이동 후에도 그대로 보존한다.
+- 독립적으로 linked된 Paste anchor의 before/after 배치는 허용하되 linked leaf의 child 전환, Delete/Indent/Outdent/Convert 및 #378/#384 Copy 보호 정책은 유지한다.
+- Unit/frontend model/SQLite service/Chromium 회귀와 Requirements/API/Scheduling/Relations/UX/Test Plan 문서를 동기화하고 Application version을 `0.81.0`에서 `0.82.0`으로 증가한다.
+
+## [0.81.0] - 2026-10-05
+
+### Added
+
+- Issue #414: 기존 Resource workload에 PI/개발자/설비 담당/역할 미지정 수행 역할별 M/D·M/M subtotal과 `개발 견적` preset, 수행 역할·개발자 등급 drill-down을 추가한다.
+- Resource Task detail에 canonical 진행률·상태/지연·일정과 allocation 기간/투입률, Resource 개발자 등급을 함께 표시한다.
+
+### Changed
+
+- #56의 Calendar/allocation 기반 계획 공수 산식과 assignmentId Grand Total dedup을 유지하면서 `assignment_role`을 분류 축으로만 확장한다. 역할 미지정은 Global Role에서 추정하지 않는다.
+- 지연 판정은 #188 물류 대시보드와 동일한 Project timezone 기준 `progress < 100 && end < asOfDate`를 사용하며 progress/status는 계획 공수를 변경하지 않는다.
+- Application version을 `0.80.0`에서 `0.81.0`으로 증가한다.
+
+## [0.80.0] - 2026-10-04
+
+### Added
+
+- Issue #413: Task의 개인 Resource assignment에 수행 역할 `PI | DEVELOPER | EQUIPMENT_OWNER`를 저장하고 역할 우선 후보 필터 및 Resource별 역할 선택 UI를 추가한다.
+- migration `0021_task_assignment_roles.sql`로 nullable `assignment_role`과 role membership/role-delete DB guard를 추가한다.
+
+### Changed
+
+- assignment target DTO가 Resource Global `roles`를 제공하고 Project assignment 응답/Project Copy/Project Template이 수행 역할을 보존한다.
+- 사용 중인 Global Resource Role 제거는 Project/Task usage와 함께 `RESOURCE_ROLE_IN_USE`로 fail-closed한다. 역할 추가는 기존 사용 중 역할을 삭제하지 않는 diff 기반 갱신으로 처리한다.
+- 역할 미지정 기존 assignment는 추정 backfill 없이 `NULL`로 유지하며 #56 allocation·Calendar·M/D·M/M 산식은 변경하지 않는다.
+- Application version을 `0.79.2`에서 `0.80.0`으로 증가한다.
+
+## [0.79.2] - 2026-10-04
+
+### Fixed
+
+- Issue #426: Resource Catalog의 Resource/Group pane을 정보량에 맞는 content-aware 비율로 재배치하고 중간 폭에서는 조기에 vertical stack하여 역할·등급·행 action 때문에 Resource identity가 collapse하는 회귀를 수정한다.
+- Resource row를 Identity / Profile(현재 개발자 등급·Global 역할 요약 및 편집) / Lifecycle·Delete action으로 구분하고, 검색·생성·목록 geometry와 Group 구성원 footer의 `닫기` 좌측 / `구성원 저장` 우측 action hierarchy를 복구한다.
+- #288의 개발자 등급 읽기 표시와 #412의 `전역 역할: 없음` 표시·역할 PATCH draft 보존을 유지하면서 390/768/1024/1440/1600px Chromium geometry 회귀와 관리 화면 공통 설계·QA 지침을 추가한다.
+- 최신 main의 #418 scoped Header/Row add continuity를 보존하고 Application version을 `0.79.1`에서 `0.79.2`로 증가한다.
+
+## [0.79.1] - 2026-10-04
+
+### Fixed
+
+- Issue #418: Workspace WBS 범위에서 native Grid Header `+`와 Row `+`의 의미를 scope-relative resolver로 통합한다. scoped Header는 active Summary root의 immediate child를, root/descendant Row는 해당 작업의 child를 생성하며 일반 Task first-child Summary 전환과 Milestone 차단을 기존 canonical 서버 계약으로 유지한다.
+- canonical Gantt sync 뒤 `filter-tasks`를 같은 직렬 queue에서 적용하고 native add 전후 scroll/focus를 복원해 성공 저장 중 Grid 전체가 순간적으로 비거나 위치가 튀는 중간 상태를 제거한다. active scope와 동일 ProjectGantt/API instance, #412 Resource 역할 모델, #409 Relation Editor 식별자 검색 및 #416 Week Header 표시를 유지한다.
+- 실제 SVAR Header/Row control, Milestone disabled semantics, requestAnimationFrame continuity probe와 pure intent Unit 회귀를 추가하고 Application version을 `0.79.0`에서 `0.79.1`로 증가한다.
+
+## [0.79.0] - 2026-10-04
+
+### Added
+
+- Issue #412: Resource에 전역 역할 `PI`, `DEVELOPER`, `EQUIPMENT_OWNER`의 0..N 프로필을 추가하고 Resource Catalog 관리자 화면에서 다중 선택·표시할 수 있다.
+- migration `0020_resource_roles.sql`로 Resource↔Role M:N을 저장하며 stable role CHECK, 중복 PK, Resource 삭제 cascade와 role→resource 조회 index를 추가한다.
+- Resource Catalog create/update/response에 `roles`를 추가하고 기존 관리자 session·Origin·strong `If-Match`·catalog revision 계약을 유지한다.
+
+### Changed
+
+- 전역 `DEVELOPER` 역할과 `developerGrade`는 독립적으로 유지하며 역할 지정/해제가 등급을 자동 생성·삭제하지 않는다. 기존 #288의 Project System developer 신규 배정 시 등급 규칙은 변경하지 않는다.
+- Resource Group 구성원 화면에는 현재 Resource 역할을 참고 정보로 표시하지만 membership, Task assignment, Project Equipment/System role, Calendar를 자동 변경하지 않는다.
+- 최신 main의 #409 Relation taskId 검색 회귀 수정을 보존하고 Application version을 `0.78.1`에서 `0.79.0`으로 증가한다.
+
+## [0.78.1] - 2026-10-04
+
+### Fixed
+
+- Issue #409: Context Menu `Copy ID`가 복사하는 canonical `taskId` UUID를 Relation Editor의 관계 추가 검색에서 직접 찾을 수 있도록 작업명·외부 ID·작업 ID 통합 검색을 추가한다.
+- Relation Editor 후보/선택 상태에서 `externalId`와 `taskId`를 각각 `외부 ID`, `작업 ID`로 명확히 구분해 표시한다.
+- taskId로 후보를 검색해도 Dependency Link 저장은 기존 `predecessorExternalId / successorExternalId` 계약을 유지하며 API/DB/Scheduling schema는 변경하지 않는다.
+- 최신 main의 #416 Week Header 근무 가능 일수와 기존 #299/#407/#370 계약을 보존하고 Application version을 `0.78.0`에서 `0.78.1`로 증가한다.
+
+## [0.78.0] - 2026-10-04
+
+### Added
+
+- Issue #416: Gantt Week Header의 기존 ISO `Wxx` 아래에 현재 Project Calendar 기준 실제 근무 가능 일수를 `N일` secondary text로 상시 표시해 여러 주의 capacity를 즉시 비교할 수 있게 한다.
+
+### Changed
+
+- #316의 canonical `workingDays`와 app-owned Week date class/MutationObserver lifecycle을 그대로 재사용하고, 요일별 근무 위치·공휴일명·비근무 사유는 기존 hover/focus Tooltip에서 확인하도록 정보 계층을 유지한다.
+- 최신 main의 #299 Chart vertical DnD를 보존하면서 기존 ISO Week formatter, Week `cellWidth=68`, Day/Week 전환, Gantt/API instance, Scheduling/API/DB/revision 계약을 변경하지 않으며 390/768/1024/1440px Header geometry 회귀를 추가한다.
+- Application version을 `0.77.0`에서 `0.78.0`으로 증가한다.
+
+## [0.77.0] - 2026-10-04
+
+### Added
+
+- Issue #299: Gantt Chart의 Task/Summary/Milestone bar를 수직 Drag & Drop하여 같은 parent의 visible sibling 앞/뒤로 재정렬할 수 있다.
+- vertical gesture는 axis lock 후 기존 수평 일정 이동/resize와 분리되고 protected hierarchy command에 정확히 한 번 저장된다. drop indicator와 긴 프로젝트 edge-scroll을 제공하며 reload와 후속 Task mutation에서도 canonical 순서를 유지한다.
+
+### Changed
+
+- 최신 main의 #300 Grid persistence, #335 linked same-parent reorder, #399/#407 subtree scope·scoped add, #384 selection, #367 timeline, #370 start-date quick-edit 계약을 보존한다.
+- SVAR React Gantt 2.7.3 Chart의 X축-only bar drag 경계를 public `drag-task(top)` feedback과 server-authoritative `task-commands` bridge로 보완한다.
+- Application version을 `0.76.1`에서 `0.77.0`으로 증가한다.
+
+## [0.76.1] - 2026-10-04
+
+### Fixed
+
+- Issue #407: #399 Workspace 범위 탭에서 scope 여부만으로 모든 native Grid `+`를 차단하던 회귀를 수정해 scoped root/descendant의 유효한 Child Task 추가를 다시 허용한다.
+- 행별 add 가능 여부를 subtree/milestone/권한 기준으로 판정하고 Context Menu Child/요약 작업 추가, 일반 Task first-child Summary 전환과 동일 canonical mutation 계약을 유지한다.
+- scoped header/root-level add, root sibling/Outdent/Paste/DnD scope 탈출, Milestone child, readonly/mutation lock 및 #399 notification geometry 선제 차단을 유지하면서 #370 Date Picker와 #335 linked same-parent sibling reorder 계약을 보존한다.
+- Application version을 `0.76.0`에서 `0.76.1`로 증가한다.
+
+## [0.76.0] - 2026-10-04
+
+### Added
+
+- Issue #370: Project Workspace Grid의 `시작` 셀에서 Task/Milestone 시작일을 single click Date Picker로 빠르게 변경할 수 있다.
+- getter-only `projectStart`는 서버 확정 effective `start` 표시를 유지하고, application-owned `input[type=date]` overlay가 선택 날짜를 기존 dependency-aware Task PATCH의 requested start 입력으로 전달한다.
+- Summary/readonly/mutation lock 차단, Enter/Space keyboard open, Escape/focus restore, 실패 시 canonical 일정 유지 및 전용 Unit/Chromium E2E를 추가한다.
+
+### Changed
+
+- Grid 다중 선택 흐름에서 start-cell pointer intent를 보존하고 row selection을 먼저 확정한 뒤 현재 `projectStart` cell을 다시 찾아 Date Picker를 연다.
+- 최신 main의 #335 linked-subtree sibling reorder, #399 Workspace 범위 탭, #384 다중 선택/복사, #367 timeline 확장, #303 Task status 계약을 보존한다.
+- Application version을 `0.75.0`에서 `0.76.0`으로 증가한다.
+
+## [0.75.0] - 2026-10-03
+
+### Added
+
+- Issue #335: Dependency Link가 연결된 Task/Milestone과 linked descendant를 포함한 subtree도 같은 parent 안에서는 Context Menu `Move Up/Down` 및 Grid `before/after`로 sibling order를 변경할 수 있다.
+
+### Changed
+
+- sibling reorder는 Link ID/source/target/type/lag와 requested/effective schedule 및 #303의 Task status/progress를 변경하지 않고 기존 `task-commands` transaction에서 siblingOrder와 revision만 확정한다.
+- 다른 parent로 이동하는 Grid DnD/`child`, Indent/Outdent, Cut/Paste, Delete, Convert의 기존 Dependency guard는 유지한다.
+- #399 Workspace WBS 범위 탭과 #303 Task status/progress 계약을 보존하고, 기존 Context Menu E2E의 linked Move 기대값을 새 정책으로 갱신하며 Application version을 `0.74.0`에서 `0.75.0`으로 증가한다.
+
+## [0.74.0] - 2026-10-03
+
+### Added
+
+- Issue #303: Task/Milestone에 `not_started / in_progress / completed` 상태를 추가하고 진행률 100%와 완료 상태를 원자적으로 양방향 동기화한다.
+- 완료된 Task/Milestone 및 derived progress가 정확히 100%인 Summary의 Grid 작업명에 취소선을 표시한다.
+
+### Changed
+
+- 최신 main의 #258 관계 Task 편집, #368 요청 종료일, #384 다중 Copy, #399 Workspace 범위 탭 계약을 유지한 채 Task status를 canonical API/SQLite snapshot에 포함한다.
+- Migration `0019_task_status.sql`은 기존 progress를 기준으로 status를 deterministic backfill한다.
+- subtree Copy는 명시적 status를 보존하고 Project Template instantiate 응답도 canonical status를 포함한다.
+- Application version을 `0.73.0`에서 `0.74.0`으로 증가한다.
+
+
+## [0.73.0] - 2026-10-03
+
+### Added
+
+- Issue #399: Project 일정 View에 `전체 프로젝트`와 여러 Summary subtree를 같은 화면에서 전환하는 compact WBS 범위 탭을 추가한다.
+- Summary 범위 탭은 중복 생성 없이 재활성화하며 닫기, Arrow/Home/End/Delete keyboard, 한 행 horizontal overflow와 scope별 search/filter state를 지원한다.
+
+### Changed
+
+- #373의 `최상위로 열기` 기본 동작에서 `window.open`/popup blocker 의존을 제거하고 동일 ProjectGantt instance에서 `viewRootTaskId + filter-tasks` 범위만 변경한다.
+- milestone/scoped/missing native add는 ProjectGantt의 native click capture 경계에서 canonical row/task를 확인해 SVAR target handler 전에 차단하고 feedback만 발행한다. 정상 add는 기존 SVAR/서버 mutation 경로를 유지해 invalid command의 visibility/focus scroll side effect 자체를 제거한다.
+- 기존 `?rootTask=` deep link/reload/direct-entry와 실제 browser tab 간 revision freshness, canonical snapshot/Dependency/hierarchy guard 및 권한·If-Match·revision 계약을 유지한다.
+- 최신 main의 #403 Project List column layout, #367 Timeline 동적 확장, #390 Copy ID 및 #364 clipboard compatibility를 보존한다.
+- Application version을 `0.72.0`에서 `0.73.0`으로 증가한다.
+
+## [0.72.0] - 2026-10-03
+
+### Added
+
+- Issue #367: Gantt Chart를 오른쪽으로 탐색할 때 공개 `scroll-chart.left`/`resize-chart.width`를 기준으로 남은 timeline 폭을 판정하고, 고정 start/open end의 SVAR public resize path로 미래 날짜 scale을 viewport 기반 chunk로 반복 확장한다.
+- 최초 range가 viewport보다 짧으면 Core의 resize expansion과 추가 future buffer를 사용하고, canonical sync/Day·Week 전환 후에도 사용자가 확보한 future end 이상을 복구한다.
+
+### Changed
+
+- Day Header/timeline cell 폭을 44px에서 36px로 줄여 동일 화면에서 더 많은 날짜를 표시하며 Week 68px, 숫자-only Header와 Day/Week Tooltip 계약은 유지한다.
+- Timeline 확장은 React `end` prop을 반복 변경하지 않아 Core store re-init을 피하고, Gantt/API instance, scroll/tree/column/filter/selection/fullscreen과 Project Scheduling/API/DB/revision 계약을 보존한다.
+- PR CI #1496.1/#1572.1/#1575.1 분석에서 `area`를 수평 날짜 범위로 오해한 구현과 end-prop 기반 재초기화 위험을 제거했다. #1575.1의 #373 scoped filter 회귀 증거를 반영해 public resize expansion으로 설계를 전환한다. PR CI #1579.1/#1584.1/#1587.1에서는 #373 회귀가 해소된 것을 확인했고, SVAR horizontal virtualization에서 특정 Day 날짜나 `W38`이 반드시 DOM에 복귀한다고 가정하던 E2E를 동일 instance의 Day 숫자-only/Week `Wxx` scale 복원과 반대 scale cell 제거 검증으로 바로잡는다.
+- 최신 main의 Issue #403 Project List 날짜 열 레이아웃 및 Issue #390 Copy ID 기능을 보존하고 Application version을 `0.71.1`에서 `0.72.0`으로 증가한다.
+
+## [0.71.1] - 2026-10-03
+
+### Fixed
+
+- Issue #403: Project List의 생성/최근 변경 datetime이 인접 열을 침범하지 않도록 percentage 합계 기반 폭 배분을 명시적 `colgroup` column budget으로 전환하고 날짜 metadata의 최소 폭을 확보한다.
+- 프로젝트명·사업부·제품·법인/사업장·상태·소유자·설명·날짜·Row Action의 역할을 fixed/flexible column으로 분리하고, 좁은 화면에서는 기존 table-owned horizontal scroll을 유지한다.
+- 390/768/1024/1440/1600px에서 긴 metadata, browser locale/timezone 날짜, header/body alignment, sibling cell geometry, document/table overflow를 검증하는 Chromium 회귀를 추가하고 공통 UI/UX·QA 설계 기준을 동기화한다.
+- Application version을 `0.71.0`에서 `0.71.1`로 증가한다.
+
+## [0.71.0] - 2026-10-03
+
+### Added
+
+- Issue #390: Grid/Chart 작업 Context Menu에 `Copy ID`를 추가해 Task/Summary/Milestone의 canonical `taskId`를 OS clipboard에 복사한다.
+
+### Changed
+
+- readonly·mutation lock·Dependency 연결 여부와 무관한 조회성 action으로 동작하며 #384의 Task Copy/Paste clipboard·선택 집합과 Project revision을 변경하지 않는다.
+- #364의 공통 clipboard compatibility를 재사용하고, modern 권한 거부 또는 자동 복사 최종 실패 시 수동 복사 Dialog를 제공한다.
+- CI #1536.1의 E2E URL 정규식 parse 오류를 제거하고 latest main 기준 회귀를 다시 검증한다.
+- Application version을 `0.70.2`에서 `0.71.0`으로 증가한다.
+
+
+## [0.70.2] - 2026-10-03
+
+### Fixed
+
+- Issue #364: Project List/Workspace의 프로젝트 링크 복사가 secure-context Clipboard API에만 의존해 내부망 HTTP에서 자동 복사되지 않던 회귀를 수정한다.
+- modern Clipboard API가 없거나 insecure context인 경우 사용자 click activation 안에서 legacy copy 호환 경로를 시도하고, 실제 성공한 경우에만 성공 안내를 표시한다.
+- modern Clipboard API가 권한 거부/reject된 경우 legacy로 우회하지 않고 기존 수동 복사 모달을 유지하며, URL/권한/navigation/revision/Gantt 상태 계약은 변경하지 않는다.
+- `plain.gantt.test` production HTTP transport에서 real browser legacy copy 경로를 검증해 localhost secure-context/mock만으로 HTTP 회귀가 통과하지 않도록 한다.
+- Application version을 `0.70.1`에서 `0.70.2`로 증가한다.
+
+## [0.70.1] - 2026-10-03
+
+### Fixed
+
+- Issue #366: #331에서 이미 수정된 Resource Catalog의 코드 입력·개발자 등급 컨트롤 overlap 해결책을 현재 main 기준 회귀 계약으로 직접 고정한다.
+- 허용 최대 길이 64자 코드와 개발자 등급 선택 상태에서 390/768/1024/1440px 실제 input/select geometry, form bounds, document overflow 및 기존 Tab 순서를 Chromium으로 검증한다.
+- Resource Catalog runtime CSS/API/DB/auth/session/revision/If-Match 계약은 변경하지 않으며 Application version을 `0.70.0`에서 `0.70.1`로 증가한다.
+
+## [0.70.0] - 2026-10-03
+
+### Added
+
+- Issue #340: Task Editor 리소스 탭을 담당 리소스와 리소스 그룹의 compact section으로 분리하고 1024px 이상에서 Resource 쪽을 더 넓게 사용하는 content-aware 2-pane 레이아웃을 제공한다.
+- 리소스/그룹 단일 유형 필터에서는 선택 pane이 전체 폭을 사용하며, 선택 Resource의 투입 시작/종료/투입률은 바로 아래 detail 영역에서 가용 폭을 사용한다.
+- pane별 표시/전체 건수와 등록 없음/필터 결과 없음 상태를 구분하고 readonly에서는 현재 Task에 실제로 표시 가능한 할당 대상만 집계한다.
+- 390/768/1024/1440px layout·overflow·필터 전환·allocation/Group 분리와 readonly 집계 Chromium 회귀를 추가한다.
+- Assignment API, Project/Catalog revision, If-Match, 401/412, dirty/stale 및 canonical snapshot 계약은 변경하지 않는다.
+- Application version을 `0.69.0`에서 `0.70.0`으로 증가한다.
+
+## [0.69.0] - 2026-10-03
+
+### Added
+
+- Issue #343: Project List에 사업부, 제품, 법인/사업장을 독립 column으로 표시하고 #289의 canonical Project summary 표시명 계약을 재사용한다.
+- 미지정 값은 `미지정`, 비활성 기준정보는 기존 표시명을 유지한 `(비활성)` 의미 텍스트로 표시하며 긴 이름은 한 줄 ellipsis와 `title` 전체값 접근 경로를 제공한다.
+- native table semantics, 프로젝트명 primary Link, 상태 변경, 검색/필터, Row Action과 좁은 화면 table 내부 horizontal scroll 계약을 유지하고 관련 Unit/E2E 회귀를 보강한다.
+- API/DB/Scheduling/SVAR 계약은 변경하지 않으며 Application version을 `0.68.1`에서 `0.69.0`으로 증가한다.
+
+## [0.68.1] - 2026-10-03
+
+### Fixed
+
+- Issue #339: Task Editor Footer가 전역 `.secondary-button`의 page-level 상단 margin을 상속해 Reload/Cancel만 Save보다 아래로 밀리던 UI 회귀를 수정한다.
+- Footer가 spacing을 소유하도록 세 action의 margin, control height, padding, line-height와 box sizing을 동일 geometry로 정규화하고 390/768/1024/1440px Chromium geometry 회귀를 추가한다.
+- 390px wrap에서는 Reload 독립 행을 허용하면서 Cancel/Save 정렬과 전체 action 높이를 유지하고, 기존 stale/disabled/saving/readonly 및 Task 저장·revision 계약은 변경하지 않는다.
+- Application version을 `0.68.0`에서 `0.68.1`로 증가한다.
+
+## [0.68.0] - 2026-10-02
+
+### Added
+
+- Issue #384: Gantt의 checkbox·Ctrl/Cmd·Shift 다중 선택 집합을 Copy/Paste하고 canonical hierarchy 순서로 여러 root 및 전체 자손을 복제한다.
+- 내부 Dependency를 새 Task/Link ID로 재매핑하며 외부 Link 제외, 단일 Cut/Edit/Delete/Move 경계, 기존 일정 재계산·원자성·권한·revision 계약을 유지한다.
+- 기존 단일 Copy API와 호환되는 `taskIds` 계약과 selection/filter/clipboard 및 SQLite·Chromium 회귀 검증을 추가한다.
+
+### Fixed
+
+- SVAR가 우클릭 pointer gesture 중 row DOM을 교체해 contextmenu target이 조상으로 재지정되는 경우 pointerdown Task ID로 현재 canonical row를 다시 resolve해 작업 메뉴를 안정적으로 연다.
+- 리소스 캘린더 서버 충돌 summary focus를 `setState` 직후 단발성 `requestAnimationFrame`에 의존하지 않고 실제 React commit 이후 effect에서 적용해 CI 부하에서도 접근성 focus 계약을 안정적으로 유지한다.
+- PR review 보완으로 selection checkbox의 task shortcut을 Copy/Paste로 제한하고, keyboard Context Menu 종료 시 실제 checkbox trigger로 focus를 복원한다.
+- Application version을 `0.67.2`에서 `0.68.0`으로 증가한다.
+
+## [0.67.2] - 2026-10-02
+
+### Changed
+
+- Issue #332: 프로젝트 기준정보 관리자에서 인증, 범주, 항목 추가, 목록 영역을 compact flat surface와 divider로 명확히 구분한다.
+- 사업부/제품/사업장·법인 목록에 semantic column header와 상태/사용 표시를 추가하고, `전체 / 활성 / 비활성` client-side 상태 필터 및 필터별 empty state를 제공한다.
+- 상태 필터는 category 전환 뒤에도 유지하며 필터 조작만으로 catalog mutation/revision 변경을 발생시키지 않는다.
+- 390/768/1024/1440px에서 document overflow 없이 좁은 화면의 표만 내부 수평 스크롤되도록 Chromium 회귀를 추가한다.
+- Project Master 인증/session/Origin/If-Match/CRUD 의미는 변경하지 않는다.
+- Application version을 `0.67.1`에서 `0.67.2`로 증가한다.
+
+## [0.67.1] - 2026-10-02
+
+### Fixed
+
+- Issue #331 release recovery: immutable `v0.65.1`의 Release quality가 동일 #373 cross-tab loading race로 두 번 실패한 경우 기존 tag를 이동·덮어쓰지 않고, later same-Issue corrective merge의 Green main CI와 동일/강한 validation scope로 lifecycle을 승계할 수 있도록 Generic Release Finalizer를 보강한다.
+- Formal release 상태를 tag 없음/미실행/진행 중/성공/실패로 판별하고, 진행 중 release는 중복 mutation 없이 DEFERRED하며, completed non-success release만 corrective supersession 후보로 취급한다.
+- Cross-tab durable revision announcement는 listener 설치 후 localStorage를 병합하고 authoritative GET이 전진하지 않는 stale durable target은 폐기해 초기 loading race와 영구 stale revision 반복을 함께 방지한다.
+- Application version을 `0.67.0`에서 `0.67.1`로 증가한다.
+
+## [0.67.0] - 2026-10-02
+
+### Added
+
+- Issue #385: Project Workspace의 `더보기 → 가져오기 (JSON)`에서 문서화된 JSON 파일을 선택해 server-side Preview 후 Commit할 수 있는 JSON Import 진입점을 추가한다.
+- `POST /api/projects/{publicId}/imports/preview`와 `POST /api/projects/{publicId}/imports` 경로를 기존 Import handler에 연결하고 preview는 edit session 기반 non-mutating, commit은 strong `If-Match` 기반 mutation 보안 inventory에 등록한다.
+- 외부 작업자·시스템·LLM이 참조할 수 있도록 `docs/JSON_IMPORT.md`와 `docs/schemas/project-import.schema.json`을 추가한다.
+
+### Changed
+
+- JSON Import 진입점은 Workspace의 compact action menu에 배치하고 다른 Project mutation/Task Editor/Relation Editor가 진행 중이면 시작을 차단한다.
+- initial loading 중 cross-tab revision event를 놓친 경우에도 저장된 최고 revision을 seed하여 canonical snapshot이 최신 revision으로 수렴하도록 보강한다.
+- Application version을 `0.66.0`에서 `0.67.0`으로 증가한다.
+
+## [0.66.0] - 2026-10-02
+
+### Added
+
+- Issue #329: Resource Catalog 관리자 화면에서 어떤 Project에도 참조되지 않은 Resource와 Resource Group을 명시적 확인 후 영구 삭제할 수 있다.
+- Resource 사용 여부는 Task assignment, 설비 owner/contributor, 시스템 PI/developer, Resource Calendar를 통합하고 Group은 Task assignment와 Resource Group Calendar를 통합해 distinct Project 수로 판정한다.
+- `DELETE /api/resources/{resourceId}`와 `DELETE /api/resource-groups/{groupId}`를 추가하고 관리자 session, exact Origin, strong catalog `If-Match`, transaction 내 usage 재검증 및 catalog revision +1 계약을 적용한다.
+
+### Changed
+
+- Resource Catalog 응답에 `projectUsageCount`와 `deletable` UX 힌트를 추가하고, 사용 중 항목은 삭제 불가 사유를 표시한다. 실제 DELETE는 UI 상태를 신뢰하지 않고 서버에서 다시 fail-closed 검증한다.
+- 안전한 삭제 시 Resource/Group membership만 함께 정리하며 반대편 Catalog entity는 보존한다. 기존 FK `RESTRICT/NO ACTION`은 최종 무결성 방어선으로 유지한다.
+- Application version을 `0.65.1`에서 `0.66.0`으로 증가한다.
+
+
+## [0.65.1] - 2026-10-02
+
+### Fixed
+
+- Issue #331: 리소스 관리의 신규 리소스/리소스 그룹 생성 폼을 실제 field 수에 맞는 별도 responsive Grid로 분리하고 shrink 가능한 track과 control containment를 적용해 코드·개발자 등급·추가 버튼이 중간 viewport에서 겹치지 않도록 수정한다.
+- 390/768/1024/1440px에서 두 생성 폼의 direct control overlap/form bounds/document overflow와 신규 리소스 폼 Tab 순서·개발자 등급 옵션을 Chromium으로 검증한다.
+- Grid reorder 직후 첫 inline rename 클릭에서 DOM editability와 실제 SVAR event guard ref가 다른 render 시점을 가리키지 않도록 해당 ref와 project revision/session invalidation을 layout phase에서 동기화한다. 최신 main의 강화된 reorder helper는 그대로 보존한다.
+- Resource Catalog API, 관리자 session/revision/If-Match, Scheduling/DB 및 SVAR dependency 계약은 변경하지 않는다.
+- Application version을 `0.65.0`에서 `0.65.1`로 증가한다.
+
+## [0.65.0] - 2026-10-02
+
+### Added
+
+- Issue #316: Gantt Week Header hover/focus Tooltip에서 Project Calendar 기준 실제 근무일 수와 명명된 NON_WORKING 공휴일을 표시한다.
+- Issue #315의 검증된 scale CSS class/date parser 및 viewport-safe Tooltip lifecycle을 Week scale에 재사용하고 SVAR Sunday Week anchor를 ISO Monday로 정규화한다.
+- WORKING weekend override와 이름 없는 NON_WORKING을 canonical 근무일 계산에 반영하면서 기존 ISO `Wxx`, Week 68px, Day/Week 전환 및 Gantt/API instance 계약을 유지한다.
+- Application version을 `0.64.0`에서 `0.65.0`으로 증가한다.
+
+## [0.64.0] - 2026-10-02
+
+### Added
+
+- Issue #377: Task Editor 관계 탭에서 기존 선행/후행 관계를 직접 편집·삭제하고, 관계가 없는 Task/Milestone도 현재 작업을 Anchor로 Relation Editor를 열어 새 선행/후행 관계를 추가할 수 있다.
+- 기존 Relation Editor의 linkId 진입에 task Anchor 진입을 추가하며 FS/SS/FF/SF, signed Lag/Lead, 후보 검색과 기존 Link POST/PATCH/DELETE·Scheduling 계약을 그대로 재사용한다.
+
+### Changed
+
+- Task draft dirty/stale/readonly/pending 및 Summary에서는 relation mutation을 fail-closed하고, 성공한 relation mutation은 열린 Task Editor의 base/draft/revision을 imperative canonical sync로 갱신하여 Relation Editor가 topmost modal을 유지한다.
+- Task Editor 관계 행의 직접 삭제 confirmation은 keyboard focus를 취소 버튼으로 이동시키고 취소 시 원래 삭제 trigger로 복원한다.
+- 390/768/1024/1440px relation action layout, 기존 관계 PATCH→DELETE, zero-link Anchor POST, modal top-layer 및 focus 회귀 E2E를 보강한다.
+- Application version을 `0.63.2`에서 `0.64.0`으로 증가한다.
+
+## [0.63.2] - 2026-10-02
+
+### Fixed
+
+- Issue #372: Gantt native fullscreen에서 Grid/Chart 작업을 더블클릭하거나 Context Menu → Edit으로 Task Editor를 열 때 애플리케이션이 `document.exitFullscreen()`을 강제 호출하던 동작을 제거한다.
+- Task Editor의 저장·취소·닫기와 Relation Editor의 open/close가 동일 fullscreen/Gantt instance를 유지하고, 기존 scroll·tree·column·scale·selection/filter 및 focus 복원 계약을 보존한다.
+- fullscreen Editor 회귀 E2E에서 Grid/Chart 진입 경로, readonly, Relation Editor, shortcut guard와 강제 `exitFullscreen()` 호출 0회를 검증한다. Relation Link fixture는 endpoint 날짜를 가시 구간으로 정렬해 off-viewport locator timeout을 방지한다.
+- Application version을 `0.63.1`에서 `0.63.2`로 증가한다.
+
+## [0.63.1] - 2026-10-02
+
+### Changed
+
+- Issue #375: Gantt Chart의 일정 있는 Summary Task는 SVAR root bar의 interaction/x·width geometry를 유지하면서 visual body와 progress만 일반 Task 높이의 60%로 줄여 행 중앙에 표시한다.
+- Summary의 hover/selected/focus/critical 상태는 얇은 visual body에 유지하고, 투명해진 상·하 root 영역도 기존 click/double-click/right-click/drag hit area로 남긴다. 일반 Task·Milestone 및 일정 없는 Summary의 기존 표현은 변경하지 않는다.
+- 390/768/1024/1440/1600px, Day/Week, fullscreen, readonly와 Empty Summary를 포함하는 Chromium geometry/interaction 회귀 검증을 추가하고 Application version을 `0.63.0`에서 `0.63.1`로 증가한다.
+
+## [0.63.0] - 2026-10-01
+
+### Added
+
+- Issue #373: 하위 작업이 있는 Summary의 Grid/Chart Context Menu에 `최상위로 열기`를 추가하고, 선택 Summary를 가상 root로 삼아 해당 Summary와 모든 자손만 새 브라우저 탭에서 표시하는 WBS scoped view를 지원한다.
+- scoped view는 `?rootTask=<taskId>` deep link와 기존 SVAR `filter-tasks` 경로를 사용하며, 전체 Project canonical snapshot·Dependency·Resource/Logistics 연결·edit session·Origin·If-Match·revision 계약을 유지한다.
+- scoped tab의 편집으로 revision이 증가하면 동일 origin의 다른 Project tab에 revision 신호를 전달해 최신 canonical snapshot을 재조회하되 기존 Gantt instance와 사용자 view state를 불필요하게 remount하지 않는다.
+- 삭제되거나 Summary가 아니게 된 root는 전체 Project로 조용히 fallback하지 않고 scope 오류와 복귀 경로를 표시하며, 자식이 모두 제거된 빈 Summary는 유효한 scoped root로 유지한다.
+- PR review 보완으로 scoped root 밖 hierarchy mutation을 Context Menu/shortcut/native add 및 DnD provisional 단계에서 차단하고, hidden ancestor의 물류 subtree 상속 및 initial loading/in-flight refresh 중 연속 cross-tab revision N→N+1 동기화를 보존한다.
+- Application version을 `0.62.0`에서 `0.63.0`으로 증가한다.
+
+## [0.62.0] - 2026-10-01
+
+### Added
+
+- Issue #378: Task/Summary subtree Copy 시 복사 집합 내부에서 predecessor와 successor가 모두 포함된 Dependency Link만 새 Task ID로 재매핑해 함께 복제한다.
+- 복제 Link는 새 public ID를 사용하고 FS/SS/FF/SF 및 signed lag/lead를 보존하며, 외부→내부·내부→외부 경계 Link는 기본적으로 복제하지 않는다.
+- copied leaf는 원본 requestedStart/duration/scheduleMode를 보존한 뒤 현재 Project Calendar와 전체 Dependency engine으로 effective schedule을 재계산하고 Summary 파생값을 같은 transaction에서 갱신한다.
+- linked Task의 Copy와 copy-clipboard Paste(before/after)는 허용하되 Cut/reparent/Indent/Outdent/Delete/Convert와 linked leaf를 Summary로 바꾸는 child Paste 보호는 유지한다.
+- Unit/SQLite service/Chromium 회귀 검증을 보강하고 Application version을 `0.61.0`에서 `0.62.0`으로 증가한다.
+
+## [0.61.0] - 2026-10-01
+
+### Added
+
+- Issue #368: Task Editor의 일반 Task 일정 입력에 `요청 종료일`을 추가하고, Project Effective Calendar의 양 끝 포함 근무일 규칙으로 기간↔요청 종료일을 양방향 계산한다.
+- 마지막으로 직접 수정한 기간 또는 요청 종료일을 기준으로 요청 시작일 변경 시 반대 값을 재계산하며, 공휴일/NON_WORKING/WORKING 예외와 Auto 비근무 시작일 보정을 동일 Scheduling Domain 함수로 적용한다.
+- 요청 종료일은 UI-only draft로 유지해 Task PATCH와 DB의 canonical `requestedStart + duration` 계약을 변경하지 않고, 서버 확정 시작/종료일과 Dependency 재계산 결과를 별도 정보로 표시한다.
+- 필드별 오류 연결과 390/768/1024/1440px 반응형 계약을 유지하고, 단위/E2E 회귀 검증을 추가한다.
+- Application version을 `0.60.1`에서 `0.61.0`으로 증가한다.
+
+## [0.60.1] - 2026-10-01
+
+### Fixed
+
+- Issue #363: 빈 프로젝트 생성 폼을 기본 정보 / 프로젝트 분류 / 설명 / 편집 권한의 semantic section으로 재구성해 관련 없는 필드가 grid 잔여 공간 때문에 인접해 보이던 문제를 수정한다.
+- 사업부·제품·사업장/법인 기준정보 group을 full-width responsive 영역으로 분리하고 프로젝트 이름·소유자·상태·설명·편집 비밀번호에 content-aware 폭을 적용한다.
+- 320/390/768/1024/1440/1600px geometry 회귀 검증에 긴 기준정보 label과 semantic group 순서/폭/overflow 검사를 추가한다.
+- 기존 Project 생성 API/DB/validation, #282 wide page, #289 기준정보 저장, tab/draft/accessibility 계약은 유지한다.
+- Generic Release Finalizer가 동일 PR head SHA의 이전 실패/cancelled required check를 최신 성공 check보다 나중에 순회해 `NOT TESTED`로 오판하던 문제를 수정하고, required check 이름별 최신 check-run ID만 판정하도록 한다.
+- Application version을 `0.60.0`에서 `0.60.1`로 증가한다.
+
+## [0.60.0] - 2026-10-01
+
+### Added
+
+- Issue #315: Gantt Day Header hover/focus Tooltip에서 locale 요일과 Effective Project Calendar의 명명된 NON_WORKING 휴일명을 표시한다.
+- 동일 날짜의 복수 Project-level 휴일명은 canonical snapshot의 optional `exceptions[].names` projection으로 중복 없이 deterministic하게 제공한다.
+- SVAR 공개 `scales[].css(date)`로 masterGantt-owned 날짜 class를 부여하고, viewport-safe `role="tooltip"` overlay를 연결한다. WORKING override와 일반 weekend에는 별도 휴일명을 추가하지 않는다.
+
+## [0.59.0] - 2026-10-01
+
+### Added
+
+- Issue #345: Summary를 WBS 컨테이너로 정의해 자식이 없는 Summary의 직접 생성과 마지막 자식 삭제·이동 이후 유형·ID 유지를 지원한다.
+- 일정 있는 Task/Milestone 자손이 없는 Summary의 날짜·기간·진척을 `null`로 표현하고 저장·집계·Grid/Chart·Import/Export·복사/템플릿 경로를 정합화한다. 일반 Task/Milestone의 필수 일정과 보안·revision 계약은 유지한다.
+- Import는 schema 1.0 순수 검증기·null 계약·VBA 예제까지만 추가하며 신규 preview/commit 화면/API는 #30 후속 범위다.
+
+### Changed
+
+- Issue #361: PR CI, Main CI, Issue Lifecycle, Generic Release Finalizer, GHCR Release 실행 인스턴스 이름에 Primary Issue/PR/run attempt 추적 정보를 연결하고 PR branch/body/title의 Primary Issue 일치를 초기 CI gate에서 검증한다.
+- Lifecycle가 정식 release workflow를 dispatch할 때 Issue/PR trace input을 함께 전달하되 required check 이름, release 권한·승인·digest gate와 application version은 변경하지 않는다.
+- PR title/body 변경 시 `edited` 이벤트로 trace gate를 재실행하고, 제목에는 Primary Issue 하나만 허용한다. Dependabot 자동 PR은 작성자·동일 저장소·`dependabot/` branch를 모두 확인한 제한적 예외로 처리한다.
+
+- CI 실행 제목에 PR 제목을 포함해 `Issue #345`와 같은 관련 Issue 번호를 Actions 실행 목록에서 확인할 수 있게 한다. Workflow `CI`와 required check 이름·권한·실행 gate는 유지한다.
+- PR CI #1376의 production dependency audit 대응으로 `next`와 `@next/env`를 16.3.8로 갱신한다.
+- 빈 Summary의 canonical 날짜를 표시하는 Grid getter가 특정 render의 Task map을 캡처하지 않고 최신 canonical ref를 읽도록 변경해, 실패 복구에서도 마지막 확정 일정이 유지되게 한다.
+- migration CLI 회귀 기대값에 `0018_empty_summary_schedule.sql`과 migration ledger 18건을 반영한다.\n- CI #1381에서 확인된 빈 Summary Outdent 후 잔존 bar 회귀를 보완하기 위해 latest-ref Grid getter는 유지하고 `tasksById` 기반 column refresh trigger를 복원한다.
+- Application version을 `0.58.6`에서 `0.59.0`으로 증가한다.
+
+## [0.58.6] - 2026-10-01
+
+### Fixed
+
+- Issue #344 후속: 실패한 main CI 이후 같은 Issue의 corrective merge는 docs-only/non-docs 검증 scope가 동일할 때만 Generic Release Finalizer가 수렴하도록 하고, scope가 다르면 앞선 실패 merge를 우회하지 않는다.
+- coalesce된 모든 PR identity를 보존해 formal release 성공 후 각 branch를 공통 safe cleanup으로 검증·삭제하며, 하나라도 cleanup이 완료되지 않으면 FINAL marker와 Issue close를 금지한다.
+- 프로젝트 정보/더보기 disclosure는 native Dialog open과 충돌하는 blur 기반 닫기를 제거하고, keyboard Tab 이후 실제 focus가 disclosure 밖으로 이동한 경우에만 닫도록 보완한다.
+- Grid DnD/구조 이동 직후 inline rename 회귀 테스트는 frontend canonical mutation lock 해제를 확인한 뒤 편집을 시작해 서버 응답과 UI 동기화 완료 사이의 race를 제거한다.
+- 최신 main의 Next.js 16.3.7 보안 패치와 CI 최적화를 그대로 유지하며 이전 16.3.6 의존성 상태로 되돌리지 않는다.
+- Application version을 `0.58.5`에서 `0.58.6`으로 증가한다.
+
+## [0.58.5] - 2026-10-01
+
+### Changed
+
+- Issue #356: 일반 PR의 Docker baseline image 비교를 standalone/image 구조 변경에만 실행하고, HTTP/HTTPS transport smoke를 deploy/security/http/auth 관련 변경에만 선택 실행하여 필수 candidate/runtime smoke를 유지하면서 불필요한 이중 build·browser setup을 줄인다.
+- main push와 수동 CI에서는 transport smoke를 항상 유지하며 required aggregate check와 fail-closed routing 계약은 변경하지 않는다.
+- 완료된 Issue #118 고정 before/after 레이아웃 evidence workflow를 manual-only historical evidence로 전환하고 workflow contract·원격 검증 문서를 동기화한다.
+- 프로젝트 인증·세션 handler(`src/server/projects/**`) 변경도 PR transport smoke 대상에 포함해 API route 밖 구현 변경이 HTTP/HTTPS 검증을 우회하지 못하도록 한다.
+- CI #1368에서 감지된 Next.js `next/og ImageResponse` critical advisory 대응으로 `next`와 `@next/env`를 16.3.7로 갱신하고 lockfile을 동기화한다.
+- fresh Chromium이 격리 hosts/Nginx 설정 직후 일시적으로 `chrome-error://chromewebdata/`로 전환하는 경우 readiness 확인 뒤 최초 GET navigation만 1회 재시도하며, mutation은 재시도하지 않는다.
+- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 길어질 수 있어 E2E shard timeout을 15분에서 20분으로 조정하되 4-way shard와 `workers: 1` 격리 계약은 유지한다.
+- CI #1369에서 드러난 `@next/env` 고정 버전 회귀 테스트를 Next.js와 동일 exact version을 요구하는 계약으로 변경해 보안 patch 갱신 시 stale 숫자 기대값으로 실패하지 않도록 한다.
+- CI #1372에서 SemVer 회귀 테스트의 과도한 escape를 수정하고, shard 2가 74개 테스트를 모두 PASS한 뒤 cleanup 직전에 20분 timeout으로 취소된 실행을 근거로 E2E shard timeout을 25분으로 조정한다.
+- Application version을 `0.58.4`에서 `0.58.5`로 증가한다.
+
+## [0.58.4] - 2026-09-30
+
+### Fixed
+
+- Issue #344: 정상 삭제 성공 후 `EMPTY_SUMMARY_NOT_ALLOWED` 응답만으로 작업이 부활하는 원증상은 최신 main에서 재현되지 않았으며, 실패 복구 GET이 오래된 snapshot을 반환하는 경로에서 이전 삭제 결과를 덮어쓰는 문제를 재현하고 수정한다.
+- canonical revision guard와 `no-store` 조회, 최신 snapshot 기반 in-place 복구를 적용해 오래된 응답 또는 복구 GET 실패 이후에도 성공한 삭제 결과를 보존하며, 마지막 자식 삭제를 거부하는 도메인 정책은 유지한다.
+- 삭제 이후 남은 형제 작업의 상대 순서를 비교해 불필요한 이동 명령을 방지하고 Summary 접힘 상태를 보존한다. 복구 실패·오래된 응답·readonly 전환과 실제 포인터 편집 회귀 검증을 추가한다.
+- Application version을 `0.58.3`에서 `0.58.4`로 증가한다.
 
 ## [0.58.3] - 2026-09-30
 

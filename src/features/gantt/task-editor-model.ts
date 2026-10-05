@@ -1,15 +1,26 @@
-import type { ProjectTaskDto } from "../../contracts/projects";
-import { MAX_TASK_DURATION } from "../../domain/scheduling/calendar";
+import type { ProjectCalendarDto, ProjectTaskDto, TaskStatus } from "../../contracts/projects";
+import { normalizeTaskStatusProgress, taskStatusFromProgress } from "../../domain/task-status";
+import { endFromStart, isWorkingDay, MAX_TASK_DURATION, nextWorkingDay, workingDaysBetween } from "../../domain/scheduling/calendar";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
-import type { ProjectTaskUpdateCommand, ProjectTaskUpdatePayload } from "./project-task-adapter";
+import {
+  workingCalendarFromProjectCalendar,
+  type ProjectTaskUpdateCommand,
+  type ProjectTaskUpdatePayload,
+} from "./project-task-adapter";
 
-export interface TaskEditorSession { readonly task: ProjectTaskDto; readonly revision: number; }
+export interface TaskEditorSession {
+  readonly task: ProjectTaskDto;
+  readonly calendar: ProjectCalendarDto;
+  readonly revision: number;
+}
 export interface TaskEditorDraft {
   readonly name: string;
   readonly start: string;
   readonly duration: string;
+  readonly requestedEnd: string;
   readonly scheduleMode: "auto" | "manual";
   readonly progress: string;
+  readonly status: TaskStatus;
   readonly description: string;
   readonly url: string;
   readonly baselineStart: string;
@@ -17,6 +28,12 @@ export interface TaskEditorDraft {
   readonly baselineEnd: string;
 }
 export type TaskEditorSaveResult = { readonly status: "saved" } | { readonly status: "failed"; readonly message: string; readonly conflict?: boolean };
+export type TaskEditorScheduleBasis = "duration" | "end";
+export type TaskEditorScheduleField = "start" | "duration" | "requestedEnd";
+export interface TaskEditorScheduleIssue {
+  readonly field: TaskEditorScheduleField;
+  readonly message: string;
+}
 
 function normalizedDescription(value: string): string | null {
   return value.trim().length === 0 ? null : value;
@@ -36,27 +53,177 @@ function validHttpUrl(value: string): boolean {
   }
 }
 
-export function createTaskEditorDraft(task: ProjectTaskDto): TaskEditorDraft {
-  return {
+function scheduleIssue(field: TaskEditorScheduleField, message: string): TaskEditorScheduleIssue {
+  return { field, message };
+}
+
+function normalizedRequestedStart(
+  draft: Pick<TaskEditorDraft, "start" | "scheduleMode">,
+  calendar: ProjectCalendarDto,
+): { readonly value: string | null; readonly issue: TaskEditorScheduleIssue | null } {
+  try {
+    parseDateOnly(draft.start);
+  } catch {
+    return { value: null, issue: scheduleIssue("start", "요청 시작일은 1900-01-01~2199-12-31 범위의 올바른 날짜여야 합니다.") };
+  }
+  const workingCalendar = workingCalendarFromProjectCalendar(calendar);
+  if (isWorkingDay(draft.start, workingCalendar)) return { value: draft.start, issue: null };
+  if (draft.scheduleMode === "manual") {
+    return { value: null, issue: scheduleIssue("start", "수동 일정의 요청 시작일은 현재 프로젝트 캘린더의 근무일이어야 합니다.") };
+  }
+  try {
+    return { value: nextWorkingDay(draft.start, workingCalendar, true), issue: null };
+  } catch {
+    return { value: null, issue: scheduleIssue("start", "요청 시작일 이후의 근무일을 지원 날짜 범위에서 찾을 수 없습니다.") };
+  }
+}
+
+function parsedDuration(value: string): number | null {
+  const duration = Number(value);
+  return value.trim().length > 0 && Number.isSafeInteger(duration) && duration >= 1 && duration <= MAX_TASK_DURATION
+    ? duration
+    : null;
+}
+
+function endIssue(
+  requestedEnd: string,
+  normalizedStart: string,
+  calendar: ProjectCalendarDto,
+): { readonly duration: number | null; readonly issue: TaskEditorScheduleIssue | null } {
+  try {
+    parseDateOnly(requestedEnd);
+  } catch {
+    return { duration: null, issue: scheduleIssue("requestedEnd", "요청 종료일은 1900-01-01~2199-12-31 범위의 올바른 날짜여야 합니다.") };
+  }
+  if (requestedEnd < normalizedStart) {
+    return { duration: null, issue: scheduleIssue("requestedEnd", "요청 종료일은 캘린더 보정 후 요청 시작일보다 빠를 수 없습니다.") };
+  }
+  const workingCalendar = workingCalendarFromProjectCalendar(calendar);
+  if (!isWorkingDay(requestedEnd, workingCalendar)) {
+    return { duration: null, issue: scheduleIssue("requestedEnd", "요청 종료일은 현재 프로젝트 캘린더의 근무일이어야 합니다.") };
+  }
+  const duration = workingDaysBetween(normalizedStart, requestedEnd, workingCalendar);
+  if (duration < 1 || duration > MAX_TASK_DURATION) {
+    return { duration: null, issue: scheduleIssue("requestedEnd", "요청 시작일과 종료일 사이의 기간은 1~10,000 근무일이어야 합니다.") };
+  }
+  return { duration, issue: null };
+}
+
+export function synchronizeTaskEditorScheduleDraft(
+  task: ProjectTaskDto,
+  draft: TaskEditorDraft,
+  calendar: ProjectCalendarDto,
+  basis: TaskEditorScheduleBasis,
+): TaskEditorDraft {
+  if (task.type !== "task") return draft;
+  const normalized = normalizedRequestedStart(draft, calendar);
+  if (!normalized.value) {
+    return basis === "duration" ? { ...draft, requestedEnd: "" } : { ...draft, duration: "" };
+  }
+  if (basis === "end") {
+    const result = endIssue(draft.requestedEnd, normalized.value, calendar);
+    return result.duration === null ? { ...draft, duration: "" } : { ...draft, duration: String(result.duration) };
+  }
+  const duration = parsedDuration(draft.duration);
+  if (duration === null) return { ...draft, requestedEnd: "" };
+  try {
+    return {
+      ...draft,
+      requestedEnd: endFromStart(normalized.value, duration, workingCalendarFromProjectCalendar(calendar)),
+    };
+  } catch {
+    return { ...draft, requestedEnd: "" };
+  }
+}
+
+export function validateTaskEditorSchedule(
+  task: ProjectTaskDto,
+  draft: TaskEditorDraft,
+  calendar: ProjectCalendarDto,
+  basis: TaskEditorScheduleBasis,
+): TaskEditorScheduleIssue | null {
+  if (task.type !== "task") return null;
+  const normalized = normalizedRequestedStart(draft, calendar);
+  if (!normalized.value) return normalized.issue;
+
+  if (basis === "end") {
+    const requestedEnd = endIssue(draft.requestedEnd, normalized.value, calendar);
+    if (requestedEnd.issue) return requestedEnd.issue;
+    const duration = parsedDuration(draft.duration);
+    if (duration === null) return scheduleIssue("duration", "기간은 1~10,000 사이의 정수 근무일로 입력해 주세요.");
+    if (duration !== requestedEnd.duration) return scheduleIssue("duration", "기간과 요청 종료일이 현재 프로젝트 캘린더 기준으로 일치하지 않습니다.");
+    return null;
+  }
+
+  const duration = parsedDuration(draft.duration);
+  if (duration === null) return scheduleIssue("duration", "기간은 1~10,000 사이의 정수 근무일로 입력해 주세요.");
+  let expectedEnd: string;
+  try {
+    expectedEnd = endFromStart(normalized.value, duration, workingCalendarFromProjectCalendar(calendar));
+  } catch {
+    return scheduleIssue("requestedEnd", "계산된 요청 종료일이 지원 날짜 범위를 벗어났습니다.");
+  }
+  const requestedEnd = endIssue(draft.requestedEnd, normalized.value, calendar);
+  if (requestedEnd.issue) return requestedEnd.issue;
+  return draft.requestedEnd === expectedEnd
+    ? null
+    : scheduleIssue("requestedEnd", "기간과 요청 종료일이 현재 프로젝트 캘린더 기준으로 일치하지 않습니다.");
+}
+
+export function createTaskEditorDraft(task: ProjectTaskDto, calendar?: ProjectCalendarDto): TaskEditorDraft {
+  const draft: TaskEditorDraft = {
     name: task.name,
-    start: task.requestedStart ?? task.start,
-    duration: String(task.duration),
+    start: task.requestedStart ?? task.start ?? "",
+    duration: task.duration === null ? "" : String(task.duration),
+    requestedEnd: task.type === "task" ? task.end ?? "" : "",
     scheduleMode: task.scheduleMode,
-    progress: String(task.progress),
+    progress: task.progress === null ? "" : String(task.progress),
+    status: task.status ?? taskStatusFromProgress(task.progress),
     description: task.description ?? "",
     url: task.url ?? "",
     baselineStart: task.baselineStart ?? "",
     baselineDuration: task.baselineDuration !== null && task.baselineDuration !== undefined ? String(task.baselineDuration) : "",
     baselineEnd: task.baselineEnd ?? "",
   };
+  return calendar ? synchronizeTaskEditorScheduleDraft(task, draft, calendar, "duration") : draft;
+}
+
+export function updateTaskEditorDraft(
+  draft: TaskEditorDraft,
+  field: keyof TaskEditorDraft,
+  value: string,
+): TaskEditorDraft {
+  if (field === "status") {
+    if (value !== "not_started" && value !== "in_progress" && value !== "completed") return draft;
+    const currentProgress = Number(draft.progress);
+    const normalized = normalizeTaskStatusProgress({
+      currentStatus: draft.status,
+      currentProgress: Number.isFinite(currentProgress) ? currentProgress : 0,
+      status: value,
+    });
+    return { ...draft, status: normalized.status, progress: String(normalized.progress) };
+  }
+  if (field === "progress") {
+    const progress = Number(value);
+    if (value.trim() && Number.isFinite(progress) && progress >= 0 && progress <= 100) {
+      const currentProgress = Number(draft.progress);
+      const normalized = normalizeTaskStatusProgress({
+        currentStatus: draft.status,
+        currentProgress: Number.isFinite(currentProgress) ? currentProgress : 0,
+        progress,
+      });
+      return { ...draft, progress: value, status: normalized.status };
+    }
+  }
+  return { ...draft, [field]: value } as TaskEditorDraft;
 }
 
 export function copyScheduleToBaseline(draft: TaskEditorDraft, task: ProjectTaskDto): TaskEditorDraft {
   return {
     ...draft,
-    baselineStart: task.start,
-    baselineDuration: String(task.duration),
-    baselineEnd: task.end,
+    baselineStart: task.start ?? "",
+    baselineDuration: task.duration === null ? "" : String(task.duration),
+    baselineEnd: task.end ?? "",
   };
 }
 
@@ -71,7 +238,11 @@ export function clearBaseline(draft: TaskEditorDraft): TaskEditorDraft {
 
 export function taskEditorIsDirty(task: ProjectTaskDto, draft: TaskEditorDraft): boolean {
   const initial = createTaskEditorDraft(task);
-  return (Object.keys(initial) as (keyof TaskEditorDraft)[]).some((field) => initial[field] !== draft[field]);
+  const persistedFields: readonly (keyof TaskEditorDraft)[] = [
+    "name", "start", "duration", "scheduleMode", "progress", "status", "description", "url",
+    "baselineStart", "baselineDuration", "baselineEnd",
+  ];
+  return persistedFields.some((field) => initial[field] !== draft[field]);
 }
 
 export function taskEditorReadOnlyReason(task: ProjectTaskDto | undefined, editable: boolean, _hasLinks: boolean): string | null {
@@ -130,12 +301,14 @@ export function prepareTaskEditorCommand(task: ProjectTaskDto, draft: TaskEditor
     }
   }
 
+  const initialStatus = task.status ?? taskStatusFromProgress(task.progress);
   const payload: ProjectTaskUpdatePayload = {
     ...(name !== task.name ? { name } : {}),
     ...(draft.start !== (task.requestedStart ?? task.start) ? { start: draft.start } : {}),
     ...(task.type === "task" && duration !== task.duration ? { duration } : {}),
     ...(draft.scheduleMode !== task.scheduleMode ? { scheduleMode: draft.scheduleMode } : {}),
     ...(progress !== task.progress ? { progress } : {}),
+    ...(draft.status !== initialStatus ? { status: draft.status } : {}),
     ...(description !== (task.description ?? null) ? { description } : {}),
     ...(url !== (task.url ?? null) ? { url } : {}),
     ...(baselineChanged ? {

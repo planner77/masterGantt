@@ -50,8 +50,11 @@ function hierarchyChanged(
   if (!currentTask || normalizedParent(currentTask) !== normalizedParent(task)) return true;
 
   const parent = normalizedParent(task);
+  const survivingIds = new Set(canonical.map((candidate) => String(candidate.id)));
   const currentOrder = current
-    .filter((candidate) => normalizedParent(candidate) === parent)
+    // Deleting a preceding sibling changes indices, not the surviving order.
+    // A redundant move can reopen a user-collapsed summary in Core.
+    .filter((candidate) => normalizedParent(candidate) === parent && survivingIds.has(String(candidate.id)))
     .map((candidate) => String(candidate.id));
   const canonicalIds = new Set(current.map((candidate) => String(candidate.id)));
   const canonicalOrder = canonical
@@ -159,10 +162,12 @@ export async function applyCanonicalGanttSync(
   const plan = planCanonicalGanttSync(current, canonical);
   const currentById = new Map(current.tasks.map((task) => [task.id, task]));
   const parentIds = new Set(canonical.tasks.map((task) => task.parent));
+  const currentParentIds = new Set(current.tasks.map((task) => task.parent));
   // Capture transitions before exec can mutate objects returned by serialize.
-  const summaryIdsToOpen = plan.updatedTasks.flatMap((task) => (
-    task.id !== undefined && task.type === "summary" &&
-    currentById.get(task.id)?.type !== "summary" && parentIds.has(task.id)
+  const summaryIdsToOpen = canonical.tasks.flatMap((task) => (
+    task.id !== undefined && (task.type === "summary" || task.type === "summary-container") &&
+    parentIds.has(task.id) && ((!currentParentIds.has(task.id) && currentById.get(task.id)?.type === "summary-container") ||
+      !["summary", "summary-container"].includes(currentById.get(task.id)?.type ?? ""))
       ? [task.id]
       : []
   ));

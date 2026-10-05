@@ -13,19 +13,43 @@ export interface HierarchyTaskInput {
   readonly siblingOrder: number;
   readonly type: "task" | "summary" | "milestone";
   readonly requestedStart: string | null;
-  readonly start: string;
-  readonly end: string;
-  readonly duration: number;
-  readonly progress: number;
+  readonly start: string | null;
+  readonly end: string | null;
+  readonly duration: number | null;
+  readonly progress: number | null;
+  readonly status?: "not_started" | "in_progress" | "completed";
   readonly scheduleMode: "auto" | "manual";
   readonly baselineStart?: string | null;
   readonly baselineDuration?: number | null;
   readonly baselineEnd?: string | null;
 }
 
-interface Aggregate {
+export type HierarchyTaskResult<T extends HierarchyTaskInput> = Readonly<
+  Omit<T, "start" | "end" | "duration" | "progress" | "requestedStart" | "scheduleMode" | "baselineStart" | "baselineEnd" | "baselineDuration"> & {
+    requestedStart: string | null;
+    scheduleMode: "auto" | "manual";
+    start: string | null;
+    end: string | null;
+    duration: number | null;
+    progress: number | null;
+    baselineStart?: string | null;
+    baselineEnd?: string | null;
+    baselineDuration?: number | null;
+    wbs: string;
+  }
+>;
+
+interface LeafValues {
   start: string;
   end: string;
+  duration: number;
+  progress: number;
+}
+
+interface Aggregate {
+  start: string | null;
+  end: string | null;
+  leafCount: number;
   weight: number;
   weightedProgress: number;
   milestoneCount: number;
@@ -43,7 +67,7 @@ interface Aggregate {
  */
 export function recalculateHierarchy<T extends HierarchyTaskInput>(
   tasks: readonly T[], calendar: WorkingCalendar,
-): readonly Readonly<T & { wbs: string }>[] {
+): readonly HierarchyTaskResult<T>[] {
   if (!Array.isArray(tasks)) throw new SchedulingError("INVALID_HIERARCHY_INPUT", { field: "tasks" });
   if (tasks.length > MAX_HIERARCHY_TASKS) throw new SchedulingError("HIERARCHY_TASK_LIMIT_EXCEEDED", { field: "tasks" });
   const fail = (code: SchedulingErrorCode, index: number, field: string): never => {
@@ -52,6 +76,7 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
   const byExternalId = new Map<string, number>();
   const taskIds = new Set<string>();
   const children = tasks.map((): number[] => []);
+  const leaves: (LeafValues | undefined)[] = [];
   const roots: number[] = [];
   let earliest = Infinity;
   let latest = -Infinity;
@@ -69,17 +94,18 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
     if (task.parentExternalId !== null && (typeof task.parentExternalId !== "string" || !task.parentExternalId)) fail("INVALID_HIERARCHY_INPUT", index, "parentExternalId");
     if (task.type !== "task" && task.type !== "milestone" && task.type !== "summary") fail("INVALID_TASK_TYPE", index, "type");
     if (task.type === "summary") continue; // Its schedule and progress are exclusively derived.
-    const start = parseDateOnly(task.start, "start");
-    const end = parseDateOnly(task.end, "end");
+    const start = parseDateOnly(task.start as string, "start");
+    const end = parseDateOnly(task.end as string, "end");
     parseDateOnly(task.requestedStart as string, "requestedStart");
     if (start > end) fail("INVALID_DATE_INTERVAL", index, "end");
     if (task.scheduleMode !== "auto" && task.scheduleMode !== "manual") fail("INVALID_SCHEDULE_MODE", index, "scheduleMode");
-    if (!Number.isFinite(task.progress) || task.progress < 0 || task.progress > 100) fail("INVALID_PROGRESS", index, "progress");
-    if (task.type === "task" ? !Number.isInteger(task.duration) || task.duration < 1 || task.duration > MAX_TASK_DURATION : task.duration !== 0) fail("INVALID_DURATION", index, "duration");
+    if (typeof task.progress !== "number" || !Number.isFinite(task.progress) || task.progress < 0 || task.progress > 100) fail("INVALID_PROGRESS", index, "progress");
+    if (typeof task.duration !== "number" || (task.type === "task" ? !Number.isInteger(task.duration) || task.duration < 1 || task.duration > MAX_TASK_DURATION : task.duration !== 0)) fail("INVALID_DURATION", index, "duration");
     if (!isWorkingDay(start, calendar)) fail("NON_WORKING_START", index, "start");
     if (!isWorkingDay(end, calendar)) fail("END_DURATION_MISMATCH", index, "end");
     earliest = Math.min(earliest, dateToOrdinal(start));
     latest = Math.max(latest, dateToOrdinal(end));
+    leaves[index] = { start, end, duration: task.duration!, progress: task.progress! };
   }
   for (let index = 0; index < tasks.length; index += 1) {
     const parent = tasks[index].parentExternalId;
@@ -107,9 +133,6 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
     children[index].forEach((child, order) => traversal.push({ index: child, depth: depth + 1, wbs: `${wbs}.${order + 1}` }));
   }
   if (traversal.length !== tasks.length) throw new SchedulingError("PARENT_CYCLE", { field: "parentExternalId" });
-  for (let index = 0; index < tasks.length; index += 1) {
-    if (tasks[index].type === "summary" && !children[index].length) fail("EMPTY_SUMMARY", index, "type");
-  }
   // One bounded prefix avoids scanning a multi-century span per nested summary.
   const prefix = new Uint32Array(Number.isFinite(earliest) ? latest - earliest + 2 : 1);
   for (let ordinal = earliest; ordinal <= latest; ordinal += 1) {
@@ -118,20 +141,22 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
   }
   const span = (start: string, end: string): number => prefix[dateToOrdinal(end) - earliest + 1] - prefix[dateToOrdinal(start) - earliest];
   const aggregate: Aggregate[] = [];
-  const output: Readonly<T & { wbs: string }>[] = [];
+  const output: HierarchyTaskResult<T>[] = [];
   for (let cursor = traversal.length - 1; cursor >= 0; cursor -= 1) {
     const { index, wbs } = traversal[cursor];
     const task = tasks[index];
     if (task.type !== "summary") {
-      if (task.type === "milestone" ? task.start !== task.end : span(task.start, task.end) !== task.duration) fail("END_DURATION_MISMATCH", index, "end");
+      const leaf = leaves[index]!;
+      if (task.type === "milestone" ? leaf.start !== leaf.end : span(leaf.start, leaf.end) !== leaf.duration) fail("END_DURATION_MISMATCH", index, "end");
       const hasBaseline = Boolean(task.baselineStart && task.baselineEnd && task.baselineDuration !== null && task.baselineDuration !== undefined);
       aggregate[index] = {
-        start: task.start,
-        end: task.end,
-        weight: task.duration,
-        weightedProgress: task.duration * task.progress,
+        start: leaf.start,
+        end: leaf.end,
+        leafCount: 1,
+        weight: leaf.duration,
+        weightedProgress: leaf.duration * leaf.progress,
         milestoneCount: Number(task.type === "milestone"),
-        milestoneProgress: task.type === "milestone" ? task.progress : 0,
+        milestoneProgress: task.type === "milestone" ? leaf.progress : 0,
         allDescendantsHaveBaseline: hasBaseline,
         baselineStart: hasBaseline ? (task.baselineStart ?? null) : null,
         baselineEnd: hasBaseline ? (task.baselineEnd ?? null) : null,
@@ -139,11 +164,18 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
       output[index] = Object.freeze({ ...task, wbs });
       continue;
     }
-    const totals = { ...aggregate[children[index][0]] };
-    for (const child of children[index].slice(1)) {
+    const totals: Aggregate = {
+      start: null, end: null, leafCount: 0, weight: 0, weightedProgress: 0,
+      milestoneCount: 0, milestoneProgress: 0, allDescendantsHaveBaseline: true,
+      baselineStart: null, baselineEnd: null,
+    };
+    for (const child of children[index]) {
       const next = aggregate[child];
-      totals.start = totals.start < next.start ? totals.start : next.start;
-      totals.end = totals.end > next.end ? totals.end : next.end;
+      // Empty containers have no schedule/baseline weight, including when nested.
+      if (next.leafCount === 0) continue;
+      totals.start = totals.start === null || next.start! < totals.start ? next.start : totals.start;
+      totals.end = totals.end === null || next.end! > totals.end ? next.end : totals.end;
+      totals.leafCount += next.leafCount;
       totals.weight += next.weight;
       totals.weightedProgress += next.weightedProgress;
       totals.milestoneCount += next.milestoneCount;
@@ -162,6 +194,16 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
       }
     }
     aggregate[index] = totals;
+    const summaryProgress = totals.leafCount === 0
+      ? null
+      : totals.weight
+        ? totals.weightedProgress / totals.weight
+        : totals.milestoneProgress / totals.milestoneCount;
+    const summaryStatus = summaryProgress === 100
+      ? "completed" as const
+      : summaryProgress !== null && summaryProgress > 0
+        ? "in_progress" as const
+        : "not_started" as const;
     const summaryBaselineStart = totals.allDescendantsHaveBaseline ? totals.baselineStart : null;
     const summaryBaselineEnd = totals.allDescendantsHaveBaseline ? totals.baselineEnd : null;
     const summaryBaselineDuration = summaryBaselineStart && summaryBaselineEnd
@@ -172,8 +214,9 @@ export function recalculateHierarchy<T extends HierarchyTaskInput>(
       wbs,
       start: totals.start,
       end: totals.end,
-      duration: span(totals.start, totals.end),
-      progress: totals.weight ? totals.weightedProgress / totals.weight : totals.milestoneProgress / totals.milestoneCount,
+      duration: totals.leafCount ? span(totals.start!, totals.end!) : null,
+      progress: summaryProgress,
+      status: summaryStatus,
       requestedStart: null,
       scheduleMode: "auto" as const,
       baselineStart: summaryBaselineStart,

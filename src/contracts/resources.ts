@@ -2,6 +2,7 @@ import type { ProjectDto, ProjectLinkDto, ProjectTaskDto } from "./projects";
 
 export type AssignmentTargetKind = "resource" | "group";
 export type DeveloperGrade = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT";
+export type ResourceRole = "PI" | "DEVELOPER" | "EQUIPMENT_OWNER";
 
 export interface ResourceDto {
   id: string;
@@ -11,6 +12,12 @@ export interface ResourceDto {
   active: boolean;
   /** Always present in Resource Catalog API responses; optional keeps legacy fixtures/adapters source-compatible. */
   developerGrade?: DeveloperGrade | null;
+  /** Always present in Resource Catalog API responses; optional keeps older fixtures/adapters source-compatible. */
+  roles?: ResourceRole[];
+  /** Always present in Resource Catalog admin responses; optional keeps older fixtures source-compatible. */
+  projectUsageCount?: number;
+  /** UX hint only. DELETE revalidates usage inside the server transaction. */
+  deletable?: boolean;
 }
 
 export interface ResourceGroupDto {
@@ -20,6 +27,10 @@ export interface ResourceGroupDto {
   description: string;
   active: boolean;
   memberResourceIds: string[];
+  /** Always present in Resource Catalog admin responses; optional keeps older fixtures source-compatible. */
+  projectUsageCount?: number;
+  /** UX hint only. DELETE revalidates usage inside the server transaction. */
+  deletable?: boolean;
 }
 
 export interface ResourceCatalogResponse {
@@ -46,6 +57,7 @@ export interface CreateCatalogTargetRequest {
   code?: string | null;
   description?: string;
   developerGrade?: DeveloperGrade | null;
+  roles?: ResourceRole[];
 }
 
 export interface UpdateCatalogTargetRequest {
@@ -54,6 +66,7 @@ export interface UpdateCatalogTargetRequest {
   description?: string;
   active?: boolean;
   developerGrade?: DeveloperGrade | null;
+  roles?: ResourceRole[];
 }
 
 export interface ReplaceResourceGroupMembersRequest {
@@ -75,6 +88,8 @@ export interface ProjectAssignmentDto {
   id: string;
   taskId: string;
   target: AssignmentTargetRefDto;
+  /** Issue #413. NULL is the explicit legacy/unspecified state; groups always use NULL. */
+  role?: ResourceRole | null;
   /** Issue #56. Optional only for source compatibility with older fixtures/adapters. */
   allocation?: ResourceAllocationDto | null;
 }
@@ -87,6 +102,8 @@ export interface AssignmentTargetDto {
   /** Included by public assigned-target metadata for Project-local search. Optional keeps older fixtures compatible. */
   description?: string;
   active: boolean;
+  /** Resource-only Global roles used by the Task assignment role picker. Groups omit this field. */
+  roles?: ResourceRole[];
 }
 
 export interface AssignmentTargetsResponse {
@@ -106,6 +123,8 @@ export interface AssignedTargetsResponse {
 }
 
 export interface ReplaceTaskAssignmentTargetRequest extends AssignmentTargetRefDto {
+  /** Resource-only performed role. Omitted/null remains supported as the legacy UNSPECIFIED state. */
+  role?: ResourceRole | null;
   allocation?: {
     start?: string | null;
     end?: string | null;
@@ -118,6 +137,8 @@ export interface ReplaceTaskAssignmentsRequest {
   targets: ReplaceTaskAssignmentTargetRequest[];
 }
 
+export type ResourceWorkloadRole = ResourceRole | "UNSPECIFIED";
+
 export interface ResourceWorkloadTaskDto {
   assignmentId: string;
   taskId: string;
@@ -125,9 +146,19 @@ export interface ResourceWorkloadTaskDto {
   start: string;
   end: string;
   allocationPercent: number | null;
+  /** Canonical working days after assignment/range clipping and Resource Calendar resolution. */
+  effectiveWorkingDays?: number;
   effortMd: number | null;
   effortMm: number | null;
   effortConfigured: boolean;
+  /** Issue #414. Assignment performed role; UNSPECIFIED preserves legacy null without inference. */
+  role?: ResourceWorkloadRole;
+  /** Issue #414. Canonical task schedule/status are informational and do not change planned effort. */
+  taskStart?: string;
+  taskEnd?: string;
+  progress?: number | null;
+  status?: import("./projects").TaskStatus;
+  delayed?: boolean;
 }
 
 export interface ResourceWorkloadResourceDto {
@@ -135,6 +166,8 @@ export interface ResourceWorkloadResourceDto {
   name: string;
   code: string | null;
   active: boolean;
+  /** Issue #414. Resource profile metadata for developer estimate drill-down. */
+  developerGrade?: DeveloperGrade | null;
   start: string | null;
   end: string | null;
   effortMd: number;
@@ -142,6 +175,14 @@ export interface ResourceWorkloadResourceDto {
   unsetCount: number;
   overAllocated: boolean;
   tasks: ResourceWorkloadTaskDto[];
+}
+
+export interface ResourceWorkloadRoleTotalDto {
+  role: ResourceWorkloadRole;
+  assignmentCount: number;
+  effortMd: number;
+  effortMm: number | null;
+  unsetCount: number;
 }
 
 export interface ResourceWorkloadGroupDto {
@@ -165,6 +206,12 @@ export interface ResourceWorkloadResponse {
     grandTotalMd: number;
     grandTotalMm: number | null;
     unsetCount: number;
+    /** Issue #414. Server-local project date used only for delayed-state presentation. */
+    asOfDate?: string;
+    timezone?: string;
+    roleTotals?: ResourceWorkloadRoleTotalDto[];
+    unspecifiedRoleCount?: number;
+    overAllocatedResourceCount?: number;
     groups: ResourceWorkloadGroupDto[];
   };
 }

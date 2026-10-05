@@ -16,6 +16,7 @@ describe("Task PATCH classification", () => {
     [{ duration: 1 }, true, false, false, false],
     [{ end: "2026-09-14" }, true, false, false, false],
     [{ scheduleMode: "manual" }, true, false, false, false],
+    [{ status: "completed" }, false, false, true, false],
   ])("classifies supplied fields %j", (input, hasSchedule, hasMetadata, hasProgress, hasBaseline) => {
     expect(classifyTaskPatch(input)).toEqual({ hasSchedule, hasMetadata, hasProgress, hasBaseline, unknownFields: [] });
   });

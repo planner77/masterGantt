@@ -1,14 +1,14 @@
-# Excel/VBA 일정 Export POC 계획
+# Excel/VBA 일정 Import·Export POC 계획
 
 ## 1. 문서 상태와 범위
 
-이 문서는 DRM이 적용된 대상 Excel Workbook에서 조직 정책상 허용된 VBA만 사용해 일정 데이터를 읽고, Web Import용 JSON 또는 CSV로 내보낼 수 있는지 검증하는 **POC 계획**이다.
+이 문서는 DRM이 적용된 대상 Excel Workbook에서 조직 정책상 허용된 VBA만 사용해 일정 데이터를 읽고, Web Import용 JSON 또는 CSV로 내보낼 수 있는지 검증하는 **POC 계획**이다. Issue #345에서 승인한 범위로 미산정 Summary를 JSON `null`로 직렬화하는 독립 VBA 예제 [Issue345SummaryJson.bas](../tools/vba/Issue345SummaryJson.bas)를 함께 둔다. 이는 완성된 Excel 통합 문서, 배포용 Add-in 또는 운영 Importer가 아니다.
 
 현재는 Bootstrap/Planning 단계다. 대상 Workbook, Microsoft Excel 실행 환경, DRM 제품·정책, 승인된 저장 위치 및 Web Import 구현을 사용할 수 없으므로 실제 호환성 결과를 주장하지 않는다. 아래 실환경 검증 상태는 각각 `UNKNOWN` 또는 `BLOCKED`로만 기록한다.
 
-이 단계에서는 다음을 하지 않는다.
+초기 Bootstrap 단계에서는 다음을 하지 않는 것으로 정했다. Issue #345는 순수 직렬화 예제만 추가했으며 이 경계를 확장하지 않는다.
 
-- VBA 모듈, Add-in, 실행 파일을 구현하거나 배포하지 않는다.
+- VBA 모듈, Add-in, 실행 파일을 배포하지 않는다. 예제 `.bas` 모듈은 VBA runtime에서 아직 컴파일·실행하지 않았다.
 - DRM을 해제·우회하거나 조직의 Macro/Protected View/파일 저장 정책을 변경하지 않는다.
 - Clipboard, 외부 HTTP 전송, 임시 Cloud 저장소를 사용 가능하다고 가정하지 않는다.
 - Excel 열 문자나 고정 열 번호를 일정 필드의 영구 계약으로 사용하지 않는다.
@@ -28,9 +28,10 @@ JSON의 규범적 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md), Server import 
 - Parent와 Dependency는 v1에서 같은 import batch의 `externalId`만 참조한다. 모든 ID를 먼저 색인하므로 forward reference는 허용한다.
 - Dependency는 leaf task/milestone 사이의 `FS`, `lag: 0`만 허용한다. 다른 type 또는 lag/lead를 자동 변환하거나 누락하지 않는다.
 - `tasks` 배열의 등장 순서는 같은 Parent 아래의 형제 순서를 결정한다. Parent가 자식보다 먼저 나올 필요는 없다.
-- Input `start`는 사용자 요청일이며, Server는 이를 `requestedStart`로 보존한다. 계산 `start/end`와 구분한다.
+- Leaf input `start`는 사용자 요청일이며, Server는 이를 `requestedStart`로 보존한다. 계산 `start/end`와 구분한다. Summary의 `requestedStart`는 생략하거나 `null`로 보내며 canonical 결과에서 `null`이다.
 - Domain `end`는 양 끝을 포함하는 inclusive date다. 일반 Task duration은 정수 근무일 `>= 1`, Milestone은 `0`이고 `start=end`다.
 - Summary의 일정·진척 값은 선택적 source snapshot일 뿐 authoritative하지 않다. Server preview가 자식에서 다시 계산하고 차이를 표시한다.
+- Issue #345 이후 빈 Summary도 v1에서 허용한다. `requestedStart`, `start`, `end`, `duration`, `progress`가 생략되거나 JSON `null`인 입력을 허용하며, 서버 canonical 응답은 미산정 Summary에 이 다섯 필드를 모두 `null`로 둔다.
 - Leaf의 `scheduleMode`는 `auto|manual`이고 생략 시 `auto`가 기본이다.
 
 ### 실환경에서 확인할 사항
@@ -44,7 +45,7 @@ JSON의 규범적 계약은 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md), Server import 
 | Source 문법 | UNKNOWN | Type, Progress, Parent, Predecessor, 날짜가 실제로 어떤 값·표시 형식으로 저장되는지 |
 | Project metadata 출처 | UNKNOWN | Workbook 명명 영역/별도 sheet/operator 입력 중 승인된 출처 |
 | 저장 위치 | UNKNOWN | 허용된 local/network directory, 파일명 규칙, overwrite와 보존 정책 |
-| Web importer | BLOCKED | 아직 구현되지 않아 실제 preview/commit round-trip을 수행할 수 없음 |
+| Web importer | BLOCKED | JSON contract validator는 구현 대상에 포함됐지만 preview/commit API와 화면은 미구현이라 실제 round-trip을 수행할 수 없음 |
 
 Microsoft 365 Apps는 Internet 출처 파일의 Macro를 기본 차단할 수 있고 조직 정책이 사용자 선택보다 우선할 수 있다. POC는 차단 설정을 낮추지 않고 관리자에게 승인된 배포 방식만 확인한다. [Microsoft: Macros from the internet are blocked by default](https://learn.microsoft.com/en-us/microsoft-365-apps/security/internet-macros-blocked)
 
@@ -129,6 +130,15 @@ POC는 다음 값을 operator profile로 명시적으로 받는다.
 - Percent-format Cell은 저장 numeric value에 100을 곱하는 profile, plain numeric Cell은 이미 0..100인 profile을 사용한다. 한 column 안에서 두 단위를 행별 heuristic으로 섞지 않는다.
 - 실제 Workbook에서 `0`, `0.25`, `1`, `25`, `25%`, `100%`, 빈 값과 formula 결과를 조사해 source profile을 승인한다. `1`이 1%인지 100%인지 알 수 없는 상태에서는 `AMBIGUOUS_PROGRESS_UNIT`로 중단한다.
 
+### 빈 Summary와 하위 작업이 있는 Summary
+
+- Summary는 자식이 없어도 `type: "summary"` 행으로 보존한다. 빈 Summary는 `scheduleMode` 생략 또는 `auto`를 사용하며 미산정 schedule 필드는 JSON `null`로 쓸 수 있다. 빈 Summary의 예제는 [Issue345SummaryJson.bas](../tools/vba/Issue345SummaryJson.bas)를 참고한다.
+- Summary `requestedStart`는 생략하거나 `null`로 둔다. `start`, `end`, `duration`, `progress`의 생략과 `null`도 입력상 미산정 표현이다. canonical API 결과에서는 이 다섯 필드를 모두 `null`로 정규화한다. JSON `null`을 빈 문자열, 날짜 0, 기간 0, 진척 0으로 치환하지 않는다.
+- 날짜가 든 기존 Summary `start/end` 및 numeric `duration/progress` snapshot도 호환 입력으로 받는다. 제공된 값의 형식·범위를 검증한 뒤 authoritative schedule로 저장하지 않으며, 서버가 실제 leaf 자손에서 일정을 다시 계산한다. 값이 잘못된 snapshot을 빈 값으로 조용히 바꾸지 말고 행 오류로 보고한다.
+- 자식이 있는 Summary도 동일한 규칙을 따른다. Summary 값이 비어 있으면 JSON에서 필드를 생략하거나 `null`로 쓰고, 유효 snapshot이 있으면 `start/end/duration/progress`를 전달할 수 있지만 서버의 파생 결과를 대신하지 않는다.
+- 일반 Task/Milestone은 `start`, `duration`, `progress`가 계속 필수다. 날짜 문자열/Excel serial을 서로 추측 변환하지 않고, 빈 값·JSON `null`·날짜가 아닌 값은 행 오류다. Task duration은 정수 1 이상, Milestone은 정확히 0이며, Progress는 명시된 source profile로 0..100 finite number로 변환한다. 누락된 leaf 값을 0으로 채우지 않는다.
+- CSV는 표현상 Summary 선택 schedule cell을 비워 둘 수 있으며 기존 v1 규칙대로 JSON field 생략으로 읽는다. JSON에서는 생략과 명시적 `null`을 모두 받아들이지만, leaf schedule cell은 계속 필수다.
+
 ### Parent와 Predecessor
 
 - 모든 Task의 `externalId`를 첫 pass에서 색인하고, 두 번째 pass에서 Parent와 Predecessor를 연결한다.
@@ -152,6 +162,8 @@ JSON이 primary format이다. 아래는 POC가 따라야 할 v1 구조의 설명
   "tasks": [
     {
       "externalId": "SUM-10", "name": "공사", "type": "summary",
+      "scheduleMode": "auto", "requestedStart": null,
+      "start": null, "end": null, "duration": null, "progress": null,
       "parentExternalId": null, "predecessors": []
     },
     {
@@ -179,6 +191,22 @@ JSON이 primary format이다. 아래는 POC가 따라야 할 v1 구조의 설명
 
 Canonical POC export는 UTF-8 **without BOM**으로 쓴다. Reader가 leading UTF-8 BOM을 방어적으로 제거할 수 있더라도 exporter는 BOM을 생성하지 않는다. Excel/VBA의 기본 text output encoding이나 system locale을 신뢰하지 않고 byte-level UTF-8 결과를 검증한다.
 
+### Issue #345 빈 Summary JSON 조각 예제
+
+`tools/vba/Issue345SummaryJson.bas`의 `EmptySummaryScheduleJsonFields()`는 한글판 Excel 일정에서 빈 Summary를 표현할 때 JSON object 안에 넣을 속성 조각을 반환한다. 기대 문자열은 다음과 같다.
+
+```json
+"scheduleMode":"auto","requestedStart":null,"start":null,"end":null,"duration":null,"progress":null
+```
+
+다음과 같이 외부 ID, 이름, 계층 참조, 선행 작업을 포함해 하나의 task object를 구성한다. `JsonQuotedString()`은 문자열의 quote/backslash/control character escaping 예제이며, 승인된 별도 writer가 전체 문서를 UTF-8로 기록해야 한다.
+
+```json
+{"externalId":"SUM-EMPTY","name":"설계 검토","type":"summary","scheduleMode":"auto","requestedStart":null,"start":null,"end":null,"duration":null,"progress":null,"parentExternalId":null,"predecessors":[]}
+```
+
+VBA 편집기에서 `.bas`를 가져와도 대상 Workbook을 수정하거나 저장하지 않는다. 이 함수는 입력 mapping이나 전체 import 파일 생성을 수행하지 않는다. 실행 환경에서 JSON parser를 통해 결과를 확인한 뒤에만 실제 Workbook mapping과 UTF-8 writer를 연결한다. 예제는 현재 Windows Excel/VBA에서 import/compile/execute되지 않았고, VBA 문자열의 UTF-8 byte encoding, unpaired surrogate 거부, Workbook DRM 접근 여부도 검증하지 않았다.
+
 ## 7. 승인된 CSV fallback v1
 
 CSV는 JSON과 같은 domain model을 무손실로 표현하는 fallback이다. Manager와 Backend 공동 검토에서 다음 grammar가 승인되었고 독립 Planning QA를 통과했다. 실제 producer/parser 실행 검증은 아직 남아 있다.
@@ -204,7 +232,7 @@ schemaVersion,projectName,projectDescription,externalId,name,type,scheduleMode,s
 - `parentExternalId` 빈 Cell은 `null`로 변환한다.
 - `end` 빈 Cell은 JSON contract가 허용하는 absent/null 의미로 변환한다.
 - `predecessors`는 JSON 1.0 predecessor array를 담은 JSON text Cell이다. 빈 배열은 literal `[]`이며 blank Cell은 오류다.
-- Summary의 start/end/duration/progress Cell은 비우거나 source snapshot을 담을 수 있지만 Server 계산의 authoritative input이 아니다.
+- Summary의 start/end/duration/progress Cell은 비우거나 유효한 legacy source snapshot을 담을 수 있지만 Server 계산의 authoritative input이 아니다. 빈 CSV cell은 JSON field 생략이며 JSON 입력은 explicit `null`도 허용한다. CSV 계약에는 requestedStart column이 없다.
 - Task/Milestone의 계약상 필수 Cell은 비울 수 없다.
 - 빈 data row, metadata 불일치, 잘못된 embedded JSON, 잘못된 quote는 전체 파일 오류다.
 - Formula-like text는 text 그대로 parsing하고 실행하지 않는다.
@@ -289,6 +317,7 @@ POC는 두 Gate로 나눈다. **초기 W10 Gate**는 승인 환경에서 VBA/cel
 | POC-18 | Web CSV preview | 생성 CSV를 동일 fixture로 preview | JSON preview와 동등한 tasks/dependencies/order/result | BLOCKED | 승인 CSV parser와 preview 구현 |
 | POC-19 | Atomic commit | valid batch 및 마지막 행 invalid batch 각각 commit | valid 전체 생성; invalid는 task/link 0건 생성, revision/DB 불변 | BLOCKED | Backend import transaction 구현 |
 | POC-20 | DRM/정책 negative path | Macro, Cell read, JSON save, CSV save를 정책별로 확인 | 차단 이유를 기록하고 우회 없이 승인 대안으로 종료 | BLOCKED | 조직 보안 담당자 동반 실환경 시험 |
+| POC-21 | Issue #345 nullable Summary serializer sample | `EmptySummaryScheduleJsonFields`, 한글/quote/backslash/control string fixture를 승인된 Excel에서 실행 후 JSON parser로 확인 | Summary schedule 5개 필드를 `null`로 보존, 문자열 escaping 및 UTF-8 왕복 확인 | NOT TESTED | 승인된 Windows Excel/VBA 환경과 parser/writer 연결 |
 
 ## 10. POC 실행 기록 Template
 

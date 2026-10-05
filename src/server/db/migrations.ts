@@ -197,6 +197,15 @@ export function runMigrations(
     );
   }
 
+  // A referenced-table rebuild must suspend FK enforcement before BEGIN, never inside SQL.
+  // Validate the complete graph before COMMIT; the original connection setting is restored on all exits.
+  const foreignKeys = database.pragma("foreign_keys", { simple: true }) as number;
+  const hasLedger = database.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='schema_migrations'").get();
+  const lastApplied = hasLedger ? (database.prepare("SELECT COALESCE(MAX(version),0) FROM schema_migrations").pluck().get() as number) : 0;
+  const needsRebuild = files.some((file) => file.version > lastApplied && file.sql.includes("-- requires-foreign-keys-off: referenced-table-rebuild"));
+  if (needsRebuild && database.inTransaction) {
+    throw new MigrationError("Referenced-table migrations cannot run inside an existing transaction.");
+  }
   const migrate = database.transaction((): readonly string[] => {
     ensureLedger(database);
     const appliedMigrations = readLedger(database);
@@ -217,10 +226,19 @@ export function runMigrations(
       });
     }
 
+    if ((database.pragma("foreign_key_check") as unknown[]).length > 0) {
+      throw new MigrationError("Migration foreign key integrity check failed; changes were rolled back.");
+    }
     return pending.map((migration) => migration.name);
   });
 
   try {
+    if (needsRebuild) {
+      database.pragma("foreign_keys = OFF");
+      if (database.pragma("foreign_keys", { simple: true }) !== 0) {
+        throw new MigrationError("Unable to suspend foreign keys for referenced-table migration.");
+      }
+    }
     return { applied: migrate.immediate() };
   } catch (error) {
     if (error instanceof MigrationError) {
@@ -230,5 +248,7 @@ export function runMigrations(
     throw new MigrationError("Database migration failed; changes were rolled back.", {
       cause: error,
     });
+  } finally {
+    if (needsRebuild) database.pragma(`foreign_keys = ${foreignKeys === 1 ? "ON" : "OFF"}`);
   }
 }

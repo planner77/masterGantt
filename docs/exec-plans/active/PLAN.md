@@ -1,5 +1,74 @@
 # Active execution plan
 
+## Issue #342 국가 Calendar 2026~2037 Catalog — 최신 main 재정렬 / PR CI 재시작
+
+최신 main `6ce221bc16613625953b85244bb93ad50019b377` / application `0.83.3` 기준으로 기존 PR #346을 재사용해 #342의 Calendar Catalog만 다시 이식한다. main의 0018~0021 migration, Task status/Resource role, JSON Import, Generic Release Finalizer와 CI 최적화를 보존하고 #342 migration은 `0022_country_calendar_catalog.sql`, 후보 version은 MINOR `0.84.0`으로 조정한다. `release_required=true`, `release_authorized=false`; 현재 종료점은 DOCUMENTATION_SYNC 반영 후 PR #346 exact head의 새 PR CI 시작 확인이며 CI 완료 모니터링·병합·main/GHCR·정식 release·Issue 종료는 범위 밖이다. 상세는 [Issue #342 실행 계획](ISSUE_342.md)을 따른다.
+
+## Issue #430 Cut 내부 Dependency 허용 / 외부 경계 제한 — 구현·문서 동기화 / PR CI
+
+최신 기준 main `5dc0cb3356d59b868ed0dfbfd58ed44072fb646b` / application `0.81.0`에서 Cut source subtree 내부 Dependency는 기존 Link identity/endpoints/type/lag를 보존한 채 cross-parent Paste/reparent를 허용하고, source 경계를 넘는 incoming/outgoing Link만 Context Menu·Ctrl/Cmd+X·cut Paste·server reparent에서 동일하게 제한한다. linked anchor before/after는 허용하되 linked leaf `child` 전환과 Delete/Indent/Outdent/Convert 보호는 유지한다. 후보 version은 MINOR `0.82.0`, branch는 `feat/issue-430-cut-internal-dependency`이며 상세는 [Issue #430 실행 계획](ISSUE_430.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 PR 생성과 exact head PR CI 시작 확인이며 CI 완료·병합·main CI·GHCR·정식 release·Issue 종료는 범위 밖이다.
+
+## Issue #418 Workspace 범위 Header/Row 작업 추가 일관성 — latest main 0.79.0 / merge 준비
+
+최신 main `888b3a657ee9e29a69f322c505cb494d22f0275a` / application `0.79.0`의 #412 Resource 전역 역할 모델, #409 Relation Editor taskId 검색, #416 Week Header `Wxx + N일`, #299 Chart vertical DnD, #407 scoped Row add, #399 single-ProjectGantt scope tabs를 보존한다. Header/Row native `add-task`를 source-aware pure resolver로 통합해 scoped Header를 active root immediate child로 정의하고, descendant Row child·일반 Task first-child Summary 전환을 같은 canonical mutation 경계로 처리한다. canonical sync와 `filter-tasks` 직렬화 및 scroll/focus 복원으로 add 중 blank/flicker를 방지한다. 후보 version은 PATCH `0.79.1`, branch는 `fix/issue-418-scoped-native-add-continuity`; 상세는 [Issue #418 실행 계획](ISSUE_418.md)을 따른다. PR CI 성공 후 merge → exact Main CI SUCCESS → Generic Release Finalizer → approved `v0.79.1` release-image/GHCR → branch cleanup/Issue FINAL 순서로 진행한다.
+
+## Issue #409 Copy ID / Relation Editor 식별자 불일치 — 최신 main 0.78.0 통합 / PR CI 재검증
+
+최신 main `c7e4d8bb0617f8bcb8f6559b609b57aa56f59a32` / `0.78.0`의 #416 Week Header 근무 가능 일수와 기존 #299/#407/#370/#335/#399/#384 계약을 보존하면서 #390 `Copy ID`가 복사하는 canonical `taskId`와 Relation Editor의 `externalId` 검색·표시 불일치를 수정한다. 후보 검색을 name/externalId/taskId로 확장하고 두 ID를 명시적으로 표시하되 Link API는 externalId 계약을 유지한다. branch는 `fix/issue-409-relation-id-search`, 후보 version은 PATCH `0.78.1`이다. 상세는 [Issue #409 실행 계획](ISSUE_409.md)을 따른다. exact PR head CI PASS 후 merge → main CI → Generic Release Finalizer → GHCR 순서로 진행한다.
+
+## Issue #416 Week Header 근무 가능 일수 상시 표시 — 구현·문서 동기화 / PR CI
+
+최신 main `c005e05718fbca8c48973d7006c20cd4f905c6f6` / application `0.77.0`의 #299 Chart DnD와 #316 Project Calendar `workingDays`/Week Tooltip lifecycle을 함께 보존하면서 기존 ISO `Wxx` 및 68px 폭 안에 `N일` secondary label을 상시 표시한다. 어느 요일/공휴일인지의 상세는 기존 Tooltip에 남기고 Scheduling/API/DB/Gantt instance 계약은 변경하지 않는다. 후보 version은 MINOR `0.78.0`, branch는 `feat/issue-416-week-working-days`이며 상세는 [Issue #416 실행 계획](ISSUE_416.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 PR 생성과 exact head PR CI 시작 확인이며 merge/main CI/GHCR/정식 release/Issue 종료는 범위 밖이다.
+
+## Issue #407 Workspace 범위 탭 subtree 내부 작업 추가 회귀 — latest main 0.76.0 재정렬 / PR CI
+
+최신 main `da0f39a4dde363bd84ad2e938089c40d2dd9e29a` / application `0.76.0`의 #370 Grid 시작일 Date Picker, #335 linked sibling reorder, #303 status/progress 및 #399 single-ProjectGantt scope tab 계약을 보존한다. scoped view 자체를 add 금지 신호로 쓰지 않고 native Grid 행 `+`의 target이 현재 subtree 안에 남는지 pure guard로 판정한다. root/descendant child와 일반 Task first-child Summary 전환은 허용하고 header/root-level, scope 밖 parent, Milestone 및 기존 hierarchy escape는 차단한다. 후보 version은 PATCH `0.76.1`, branch는 `fix/issue-407-scoped-task-add`이며 상세는 [Issue #407 실행 계획](ISSUE_407.md)을 따른다. 이전 head PR CI #1638.1은 전체 PASS했고, 최신 main 재정렬 head에서 새 전체 PR CI를 다시 통과한 뒤 승인 marker→merge→main CI→generic release finalizer 순으로 진행한다.
+
+## Issue #370 Grid 시작일 Date Picker — #335 이후 최신 main 재정렬 / PR CI
+
+최신 main `fa57ba77fd632fa530ca2c27091a072536a67172` / `0.75.0`의 #335 linked-subtree sibling reorder 계약을 보존하면서 [Issue #370 실행 계획](ISSUE_370.md)의 Grid 시작일 quick-edit만 재적용한다. 후보 version은 `0.76.0`; 이번 종료점은 새 PR CI 시작 확인이다.
+
+## Issue #335 관계 연결 작업 sibling reorder — 최신 main 재정렬 / PR CI 재시작
+
+최신 main `5101a4a701dd7dbbeb3091696c0c670c667cb840` / `0.74.0`의 #303 Task status/progress와 #399 Workspace WBS 범위 탭을 보존하면서 Dependency가 연결된 Task/subtree의 **same-parent sibling reorder**만 허용한다. Run #1614.1에서 신규 #335 E2E는 PASS했으나 기존 #116 Move submenu와 #104/#378 linked Move 기대값 회귀가 실패해 상위 Move trigger를 기존 UX와 action-specific capability의 합성 조건으로 보완한다. 후보 version은 다음 MINOR `0.75.0`이며 상세는 [Issue #335 실행 계획](ISSUE_335.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 새 PR CI 시작 확인이다.
+
+## Issue #399 Workspace 내부 WBS 범위 탭 — latest main 재정렬 / PR CI 재시작
+
+최신 main `fd397c477ebbbdfaff7804be16bacd87fb8411d5` / application `0.72.0`의 #403 Project List column layout과 #367 Gantt timeline 동적 확장을 보존해 #399를 재정렬한다. `최상위로 열기`의 browser popup 진입을 동일 일정 Workspace 내부 WBS 범위 탭으로 교체하고 #373 subtree/canonical/deep-link/cross-tab/hierarchy guard를 유지한다. 반복 CI 분석에서 드러난 native add reject viewport 회귀는 ProjectGantt interceptor 경계에서 복원한다. 후보 version은 다음 MINOR인 `0.73.0`, branch는 `feat/issue-399-workspace-scope-tabs`다. 상세는 [Issue #399 실행 계획](ISSUE_399.md)을 따른다. 종료점은 최신 main 정렬 후 새 PR CI 시작 확인이다.
+
+## Issue #403 Project List 날짜 열 겹침 — 구현 완료 / PR CI 시작 준비
+
+latest main `cbe90acf0bf9785240e6a0ff2a2e5c532ab9251f` / `0.71.0`에서 Project List의 percentage column budget 문제를 명시적 `colgroup` fixed/flexible sizing으로 수정하고 생성/최근 변경 datetime geometry 회귀를 추가했다. 후보 version은 PATCH `0.71.1`이며 공통 설계·UI/UX·QA 기준도 동기화했다. 상세는 [Issue #403 실행 계획](ISSUE_403.md)을 따른다. 사용자 요청 종료점은 PR 생성과 required PR CI 시작 확인이며 merge/main CI/GHCR/Issue 종료는 범위 밖이다.
+
+
+## Issue #390 작업 Context Menu Copy ID — CI #1536 실패 보완 / 최신 main 재정렬
+
+PR #394 최초 head `60b3aefdeed8fd1819b996c8470f160ba139cfb6`의 CI #1536.1은 신규 E2E URL 정규식의 이중 escape로 TypeScript parser가 실패해 typecheck/ESLint/build/policy/Chromium이 연쇄 실패했다. Docker smoke는 PASS였다. 최신 main `5656096f295fd003010d9581ac883dbd1eee7d03` / `0.70.2`로 재정렬하면서 #364 clipboard compatibility와 #384 multi-selection Copy를 보존하고 후보 version을 `0.71.0`으로 조정한다. 상세는 [Issue #390 실행 계획](ISSUE_390.md)을 따른다. 종료점은 새 PR CI 시작 확인이다.
+
+## Issue #384 다중 선택 Task Copy/Paste — PR #391 최신 main 통합·CI 시작 준비
+
+main `2d310d2669d4b80bc961f67d81a4f51a7c3777cc` / `0.65.1`의 fullscreen·관계 편집·Week Tooltip·inline guard를 보존하며 선택 집합·Copy API·내부 Dependency 복제를 통합했다. 현재 후보 version은 `0.66.0`이다. 범위·소유권·version·검증은 [Issue #384 실행 계획](ISSUE_384.md)을 따른다. 사용자 요청 종료점은 PR 및 CI 실행 시작이며 CI 완료 모니터링·병합·릴리스·Issue 종료는 범위 밖이다.
+
+## Issue #377 Task Editor 관계 탭 관리 — REWORK / 최신 main 재정렬·보완
+
+PR #382의 최초 head `76106b7ba939b70f90312096b4e20dc49983d7ff` CI #1449에서 ESLint와 Chromium E2E가 실패했다. 원인은 관계 mutation 성공 시 부모 `editorSession` 객체 교체로 Task Editor native dialog effect가 다시 실행되어 Relation Editor 위로 올라온 점과, 직접 삭제 confirmation의 keyboard focus handoff가 없던 점이다. 최신 main `fbcbfc9669035b153cfd029545c969596c128731` / `0.63.2`로 재정렬하고 imperative canonical sync + confirmation focus restore로 보완한다. application version은 최신 main 기준 MINOR `0.64.0`이다. 상세는 [Issue #377 실행 계획](ISSUE_377.md)을 따른다.
+
+## Issue #372 fullscreen 편집기 상태 보존 — 최신 main 재정렬·충돌 해결 / PR CI 재시작
+
+최신 main `5fda7d963b0ba5e2e09414c1328103f9e943b564` / `0.63.1` 기준으로 다시 재정렬한다. PR CI #1485.1은 quality/e2e/docker 전체 PASS했지만 이후 Issue #375 병합이 `CHANGELOG.md`, `PROJECT_UX.md`, `TEST_PLAN.md`, `package*.json`을 변경하면서 PR #381이 behind 2 / mergeable_state dirty가 되었다. #375의 Summary bar 계약을 보존한 최신 main 위에 #372 fullscreen Editor 변경만 재적용하고 후보 version을 PATCH `0.63.2`로 조정한다. Relation E2E의 viewport fixture 안정화와 기존 fullscreen 요청 거부 회귀도 유지한다. 이번 요청 범위는 같은 PR #381의 새 head PR CI 시작까지다. 상세는 [Issue #372 실행 계획](ISSUE_372.md)을 따른다.
+
+## Issue #373 Summary 하위 WBS scoped view — 구현 / PR·CI 시작
+
+기준 main은 `9e22ebd1534471a67938a0d22adb2ba947066a83` / application `0.62.0`, 작업 branch는 `feat/issue-373-summary-root-view`다. Context Menu navigation, `rootTask` deep link, existing `filter-tasks` scoped visibility, same-origin cross-tab revision freshness와 문서/테스트를 구현한다. 상세 범위·N/A 계약·검증은 [Issue #373 실행 계획](ISSUE_373.md)을 따른다. Issue #378이 `0.62.0`으로 main에 병합된 뒤 재정렬했으며 후보 version은 다음 minor인 `0.63.0`이다. 사용자 요청 종료점은 PR 생성과 PR CI 시작 확인이며 CI 완료 모니터링·병합·main CI·GHCR·Issue 종료는 이번 범위 밖이다.
+
+## Issue #345 빈 Summary WBS 컨테이너 — 독립 사전 QA PASS / PR·CI 시작 준비
+
+최신 main·nullable Summary 계약·migration·표시·Import 범위·소유권과 검증은 [Issue #345 실행 계획](ISSUE_345.md)을 따른다. 이번 요청은 Issue 번호가 포함된 CI 실행 시작까지이며 완료 모니터링·병합·릴리스·Issue 종료는 범위 밖이다.
+
+## Issue #344 삭제 실패 복구 — 사전 QA PASS / PR·CI 시작 준비
+
+최신 main, 소유권, 삭제 성공 후 실패의 canonical/revision 보존 기준과 검증 범위는 [Issue #344 실행 계획](ISSUE_344.md)에 기록한다. 이번 요청은 PR 생성과 CI 시작까지이며 CI 완료 모니터링·병합·정식 게시·Issue 종료는 범위 밖이다.
+
 ## Issue #258 관계 연결 작업 편집 — 구현 및 PR 준비 중
 
 최신 기준, 단계별 파일 소유권, 인수 기준, 성능 예산과 문서 영향을 [Issue #258 실행 계획](ISSUE_258.md)에 기록한다. 사용자 요청의 종료점은 PR 생성과 CI 시작이며 CI 완료·병합·GHCR·Issue 종료는 이번 범위 밖이다.

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 
 import type {
   ResourceCatalogResponse,
   ResourceDto,
   DeveloperGrade,
   ResourceGroupDto,
+  ResourceRole,
 } from "@/contracts/resources";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { filterGroups, filterResources } from "./resource-search-filter";
@@ -20,7 +21,19 @@ const DEVELOPER_GRADE_OPTIONS: Array<{ value: DeveloperGrade | ""; label: string
   { value: "EXPERT", label: "특급" },
 ];
 function developerGradeLabel(value: DeveloperGrade | null | undefined): string {
-  return DEVELOPER_GRADE_OPTIONS.find((option) => option.value === (value ?? ""))?.label ?? "등급 미지정";
+  return DEVELOPER_GRADE_OPTIONS.find((option) => option.value === (value ?? ""))?.label ?? "미지정";
+}
+const RESOURCE_ROLE_OPTIONS: Array<{ value: ResourceRole; label: string }> = [
+  { value: "PI", label: "PI" },
+  { value: "DEVELOPER", label: "개발자" },
+  { value: "EQUIPMENT_OWNER", label: "설비 담당" },
+];
+function resourceRoleLabel(value: ResourceRole): string {
+  return RESOURCE_ROLE_OPTIONS.find((option) => option.value === value)?.label ?? value;
+}
+function orderedResourceRoles(values: Iterable<ResourceRole>): ResourceRole[] {
+  const selected = new Set(values);
+  return RESOURCE_ROLE_OPTIONS.map((option) => option.value).filter((role) => selected.has(role));
 }
 
 function isCatalog(value: unknown): value is ResourceCatalogResponse {
@@ -33,7 +46,12 @@ function isCatalog(value: unknown): value is ResourceCatalogResponse {
     [...data.resources, ...data.groups].every((item) => item && typeof item === "object" &&
       typeof item.id === "string" && typeof item.name === "string" &&
       (item.code === null || typeof item.code === "string") && typeof item.active === "boolean" &&
-      (!("developerGrade" in item) || item.developerGrade === null || ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"].includes(String(item.developerGrade)))) &&
+      (!("developerGrade" in item) || item.developerGrade === null || ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"].includes(String(item.developerGrade))) &&
+      (!("projectUsageCount" in item) || (typeof item.projectUsageCount === "number" && Number.isSafeInteger(item.projectUsageCount) && item.projectUsageCount >= 0)) &&
+      (!("deletable" in item) || typeof item.deletable === "boolean")) &&
+    data.resources.every((resource) => !("roles" in resource) || (Array.isArray(resource.roles) &&
+      new Set(resource.roles).size === resource.roles.length &&
+      resource.roles.every((role: unknown) => ["PI", "DEVELOPER", "EQUIPMENT_OWNER"].includes(String(role))))) &&
     data.groups.every((group) => Array.isArray(group.memberResourceIds) &&
       group.memberResourceIds.every((id: unknown) => typeof id === "string"));
 }
@@ -41,6 +59,28 @@ function isCatalog(value: unknown): value is ResourceCatalogResponse {
 function revisionTag(revision: number): string {
   return `"${revision}"`;
 }
+
+function apiErrorCode(value: unknown): string | null {
+  if (!value || typeof value !== "object" || !("error" in value)) return null;
+  const apiError = value.error;
+  if (!apiError || typeof apiError !== "object" || !("code" in apiError)) return null;
+  return typeof apiError.code === "string" ? apiError.code : null;
+}
+
+function projectUsageReason(target: ResourceDto | ResourceGroupDto): string {
+  if (typeof target.projectUsageCount === "number") {
+    return target.projectUsageCount > 0
+      ? `${target.projectUsageCount}개 프로젝트에서 사용 중`
+      : "프로젝트에서 사용하지 않음";
+  }
+  return "프로젝트 사용 여부 확인 필요";
+}
+
+type PendingDeleteTarget = Readonly<{
+  kind: "resource" | "group";
+  id: string;
+  name: string;
+}>;
 
 export function ResourceCatalogAdmin() {
   const [catalog, setCatalog] = useState<ResourceCatalogResponse | null>(null);
@@ -57,9 +97,15 @@ export function ResourceCatalogAdmin() {
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [dialogError, setDialogError] = useState<string | null>(null);
   const changePasswordTriggerRef = useRef<HTMLButtonElement>(null);
+  const deleteTriggerRef = useRef<HTMLElement | null>(null);
+  const resourceSearchRef = useRef<HTMLInputElement>(null);
+  const groupSearchRef = useRef<HTMLInputElement>(null);
+  const [pendingDelete, setPendingDelete] = useState<PendingDeleteTarget | null>(null);
   const [resourceName, setResourceName] = useState("");
   const [resourceCode, setResourceCode] = useState("");
   const [resourceDeveloperGrade, setResourceDeveloperGrade] = useState<DeveloperGrade | "">("");
+  const [resourceRoles, setResourceRoles] = useState<Set<ResourceRole>>(new Set());
+  const [resourceRoleDrafts, setResourceRoleDrafts] = useState<Record<string, ResourceRole[]>>({});
   const [groupName, setGroupName] = useState("");
   const [groupCode, setGroupCode] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
@@ -169,7 +215,7 @@ export function ResourceCatalogAdmin() {
     }
   }
 
-  async function mutate(url: string, method: "POST" | "PATCH" | "PUT", body: unknown): Promise<boolean> {
+  async function mutate(url: string, method: "POST" | "PATCH" | "PUT" | "DELETE", body?: unknown): Promise<boolean> {
     if (!authenticated || !catalog || catalogState !== "ready") return false;
     const controller = beginRequest();
     if (!controller) return false;
@@ -179,10 +225,10 @@ export function ResourceCatalogAdmin() {
         credentials: "same-origin",
         signal: controller.signal,
         headers: {
-          "Content-Type": "application/json",
+          ...(body === undefined ? {} : { "Content-Type": "application/json" }),
           "If-Match": revisionTag(catalog.data.revision),
         },
-        body: JSON.stringify(body),
+        body: body === undefined ? undefined : JSON.stringify(body),
       });
       const value: unknown = await response.json().catch(() => null);
       if (controller.signal.aborted) return false;
@@ -191,8 +237,16 @@ export function ResourceCatalogAdmin() {
         return false;
       }
       if (response.status === 412) {
+        if (method === "DELETE") setPendingDelete(null);
         const latest = await loadCatalog(controller);
         if (latest) setError("다른 관리 변경이 먼저 저장되었습니다. 최신 목록을 불러왔습니다. 초안을 확인한 후 다시 저장해 주세요.");
+        return false;
+      }
+      const errorCode = apiErrorCode(value);
+      if (response.status === 409 && (errorCode === "RESOURCE_IN_USE" || errorCode === "RESOURCE_GROUP_IN_USE")) {
+        if (method === "DELETE") setPendingDelete(null);
+        const latest = await loadCatalog(controller);
+        if (latest) setError("프로젝트에서 사용 중인 항목은 삭제할 수 없습니다. 최신 사용 상태를 불러왔습니다.");
         return false;
       }
       if (!response.ok || !isCatalog(value)) {
@@ -263,8 +317,39 @@ export function ResourceCatalogAdmin() {
     const name = resourceName.trim();
     const code = resourceCode.trim();
     if (!name) return;
-    if (await mutate("/api/resources", "POST", { name, code: code || null, developerGrade: resourceDeveloperGrade || null })) {
-      setResourceName(""); setResourceCode(""); setResourceDeveloperGrade("");
+    if (await mutate("/api/resources", "POST", {
+      name,
+      code: code || null,
+      developerGrade: resourceDeveloperGrade || null,
+      roles: orderedResourceRoles(resourceRoles),
+    })) {
+      setResourceName(""); setResourceCode(""); setResourceDeveloperGrade(""); setResourceRoles(new Set());
+    }
+  }
+
+  function toggleResourceCreateRole(role: ResourceRole) {
+    setResourceRoles((current) => {
+      const next = new Set(current);
+      if (next.has(role)) next.delete(role); else next.add(role);
+      return next;
+    });
+  }
+
+  async function updateResourceRole(resource: ResourceDto, role: ResourceRole, enabled: boolean) {
+    const next = new Set(resourceRoleDrafts[resource.id] ?? resource.roles ?? []);
+    if (enabled) next.add(role); else next.delete(role);
+    const nextRoles = orderedResourceRoles(next);
+    setResourceRoleDrafts((current) => ({ ...current, [resource.id]: nextRoles }));
+    const successful = await mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", {
+      roles: nextRoles,
+    });
+    if (successful) {
+      setResourceRoleDrafts((current) => {
+        if (!(resource.id in current)) return current;
+        const remaining = { ...current };
+        delete remaining[resource.id];
+        return remaining;
+      });
     }
   }
 
@@ -276,6 +361,51 @@ export function ResourceCatalogAdmin() {
     if (await mutate("/api/resource-groups", "POST", { name, code: code || null })) {
       setGroupName(""); setGroupCode("");
     }
+  }
+
+  function requestDelete(
+    kind: "resource" | "group",
+    target: ResourceDto | ResourceGroupDto,
+    event: MouseEvent<HTMLButtonElement>,
+  ) {
+    if (target.deletable !== true || pending.current || catalogState !== "ready") return;
+    deleteTriggerRef.current = event.currentTarget;
+    setPendingDelete({ kind, id: target.id, name: target.name });
+  }
+
+  async function confirmDelete() {
+    const target = pendingDelete;
+    if (!target) return;
+    const successful = await mutate(
+      target.kind === "resource"
+        ? `/api/resources/${encodeURIComponent(target.id)}`
+        : `/api/resource-groups/${encodeURIComponent(target.id)}`,
+      "DELETE",
+    );
+    if (!successful) return;
+
+    if (target.kind === "resource") {
+      setSelectedMembers((current) => {
+        if (!current.has(target.id)) return current;
+        const next = new Set(current);
+        next.delete(target.id);
+        return next;
+      });
+      setSelectedGroupSnapshot((current) => current ? {
+        ...current,
+        memberResourceIds: current.memberResourceIds.filter((resourceId) => resourceId !== target.id),
+      } : current);
+    } else if (selectedGroupId === target.id) {
+      setSelectedGroupId("");
+      setSelectedGroupSnapshot(null);
+      setSelectedMembers(new Set());
+      setMemberQuery("");
+    }
+    setPendingDelete(null);
+    setNotice(target.kind === "resource" ? "리소스를 삭제했습니다." : "리소스 그룹을 삭제했습니다.");
+    window.setTimeout(() => {
+      (target.kind === "resource" ? resourceSearchRef.current : groupSearchRef.current)?.focus({ preventScroll: true });
+    }, 0);
   }
 
   function selectGroup(group: ResourceGroupDto) {
@@ -374,10 +504,11 @@ export function ResourceCatalogAdmin() {
     </div>
 
     <div className={styles.columns}>
-      <section className={styles.card} aria-labelledby="resources-title">
+      <section className={`${styles.card} ${styles.resourceCard}`} aria-labelledby="resources-title">
         <h2 id="resources-title">리소스</h2>
         <div className={styles.searchBar}>
           <input
+            ref={resourceSearchRef}
             placeholder="리소스 검색 (이름 또는 코드)"
             value={resourceQuery}
             disabled={busy}
@@ -389,11 +520,17 @@ export function ResourceCatalogAdmin() {
             일치 {filteredResources.length} / 전체 {catalog.data.resources.length}
           </span>
         </div>
-        <form className={styles.formRow} onSubmit={(event) => void addResource(event)}>
+        <form className={`${styles.formRow} ${styles.resourceCreateForm}`} onSubmit={(event) => void addResource(event)}>
           <label>이름<input value={resourceName} maxLength={200} disabled={locked} onChange={(event) => setResourceName(event.target.value)} /></label>
           <label>코드<input value={resourceCode} maxLength={64} disabled={locked} onChange={(event) => setResourceCode(event.target.value)} /></label>
           <label>개발자 등급<select aria-label="신규 리소스 개발자 등급" value={resourceDeveloperGrade} disabled={locked} onChange={(event) => setResourceDeveloperGrade(event.target.value as DeveloperGrade | "")}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label>
           <button className="primary-button" type="submit" disabled={locked || !resourceName.trim()}>추가</button>
+          <fieldset className={styles.resourceRoleFieldset}>
+            <legend>전역 역할</legend>
+            <div className={styles.roleOptions}>
+              {RESOURCE_ROLE_OPTIONS.map((option) => <label key={option.value}><input type="checkbox" checked={resourceRoles.has(option.value)} disabled={locked} onChange={() => toggleResourceCreateRole(option.value)} />{option.label}</label>)}
+            </div>
+          </fieldset>
         </form>
         {catalog.data.resources.length === 0 ? (
           <p className={styles.emptyState}>등록된 리소스가 없습니다.</p>
@@ -401,18 +538,53 @@ export function ResourceCatalogAdmin() {
           <p className={styles.emptyState}>검색 조건과 일치하는 리소스가 없습니다.</p>
         ) : (
           <ul className={styles.list}>
-            {filteredResources.map((resource: ResourceDto) => <li key={resource.id} className={`${styles.item} ${resource.active ? "" : styles.inactive}`}>
-              <div><strong>{resource.name}</strong><div className={styles.meta}><span>{resource.code ?? "코드 없음"}</span><span>개발자 등급: {developerGradeLabel(resource.developerGrade)}</span><span className={styles.badge}>{resource.active ? "활성" : "비활성"}</span></div></div>
-              <div className={styles.resourceActions}><label className={styles.inlineGradeLabel}>개발자 등급<select aria-label={`${resource.name} 개발자 등급`} value={resource.developerGrade ?? ""} disabled={locked} onChange={(event) => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { developerGrade: event.target.value || null })}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label><button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button></div>
-            </li>)}
+            {filteredResources.map((resource: ResourceDto) => {
+              const usageId = `resource-usage-${resource.id}`;
+              return <li key={resource.id} className={`${styles.item} ${styles.resourceItem} ${resource.active ? "" : styles.inactive}`}>
+                <div className={styles.resourceIdentity}>
+                  <strong>{resource.name}</strong>
+                  <div className={styles.meta}>
+                    <span>{resource.code ?? "코드 없음"}</span>
+                    <span className={styles.badge}>{resource.active ? "활성" : "비활성"}</span>
+                    <span id={usageId} className={styles.usageNote}>{projectUsageReason(resource)}</span>
+                  </div>
+                </div>
+                <div className={styles.resourceActions}>
+                  <div className={styles.resourceProfile} role="group" aria-label={`${resource.name} 프로필`}>
+                    <div className={styles.profileSummary}>
+                      <span>개발자 등급: {developerGradeLabel(resource.developerGrade)}</span>
+                      <span className={styles.roleSummary}>
+                        전역 역할: {(resource.roles ?? []).length === 0
+                          ? <span>없음</span>
+                          : (resource.roles ?? []).map((role) => <span key={role} className={styles.roleBadge}>{resourceRoleLabel(role)}</span>)}
+                      </span>
+                    </div>
+                    <label className={styles.inlineGradeLabel}>개발자 등급<select aria-label={`${resource.name} 개발자 등급`} value={resource.developerGrade ?? ""} disabled={locked} onChange={(event) => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { developerGrade: event.target.value || null })}>{DEVELOPER_GRADE_OPTIONS.map((option) => <option key={option.value || "unset"} value={option.value}>{option.label}</option>)}</select></label>
+                    <fieldset className={styles.inlineRoleFieldset}>
+                      <legend>{resource.name} 전역 역할</legend>
+                      <div className={styles.roleOptions}>
+                        {RESOURCE_ROLE_OPTIONS.map((option) => <label key={option.value}><input aria-label={`${resource.name} ${option.label} 역할`} type="checkbox" checked={(resourceRoleDrafts[resource.id] ?? resource.roles ?? []).includes(option.value)} disabled={locked} onChange={(event) => void updateResourceRole(resource, option.value, event.target.checked)} />{option.label}</label>)}
+                      </div>
+                    </fieldset>
+                  </div>
+                  <div className={styles.rowActions} role="group" aria-label={`${resource.name} 상태 및 삭제 작업`}>
+                    <button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resources/${encodeURIComponent(resource.id)}`, "PATCH", { active: !resource.active })}>{resource.active ? "비활성화" : "재활성화"}</button>
+                    {resource.deletable === true
+                      ? <button className="danger-button" type="button" disabled={locked} aria-describedby={usageId} aria-label={`${resource.name} 삭제`} onClick={(event) => requestDelete("resource", resource, event)}>삭제</button>
+                      : <button className="secondary-button" type="button" disabled={locked} aria-disabled="true" aria-describedby={usageId} aria-label={`${resource.name} 삭제 불가`}>삭제 불가</button>}
+                  </div>
+                </div>
+              </li>;
+            })}
           </ul>
         )}
       </section>
 
-      <section className={styles.card} aria-labelledby="groups-title">
+      <section className={`${styles.card} ${styles.groupCard}`} aria-labelledby="groups-title">
         <h2 id="groups-title">리소스 그룹</h2>
         <div className={styles.searchBar}>
           <input
+            ref={groupSearchRef}
             placeholder="리소스 그룹 검색 (이름 또는 코드)"
             value={groupQuery}
             disabled={busy}
@@ -424,7 +596,7 @@ export function ResourceCatalogAdmin() {
             일치 {filteredGroups.length} / 전체 {catalog.data.groups.length}
           </span>
         </div>
-        <form className={styles.formRow} onSubmit={(event) => void addGroup(event)}>
+        <form className={`${styles.formRow} ${styles.groupCreateForm}`} onSubmit={(event) => void addGroup(event)}>
           <label>이름<input value={groupName} maxLength={200} disabled={locked} onChange={(event) => setGroupName(event.target.value)} /></label>
           <label>코드<input value={groupCode} maxLength={64} disabled={locked} onChange={(event) => setGroupCode(event.target.value)} /></label>
           <button className="primary-button" type="submit" disabled={locked || !groupName.trim()}>추가</button>
@@ -435,10 +607,27 @@ export function ResourceCatalogAdmin() {
           <p className={styles.emptyState}>검색 조건과 일치하는 리소스 그룹이 없습니다.</p>
         ) : (
           <ul className={styles.list}>
-            {filteredGroups.map((group: ResourceGroupDto) => <li key={group.id} className={`${styles.item} ${group.active ? "" : styles.inactive}`}>
-              <div><strong>{group.name}</strong><div className={styles.meta}><span>{group.code ?? "코드 없음"}</span><span>구성원 {group.memberResourceIds.length}명</span><span className={styles.badge}>{group.active ? "활성" : "비활성"}</span></div></div>
-              <div className={styles.actions}><button className="secondary-button" type="button" disabled={locked} onClick={() => selectGroup(group)}>구성원</button><button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", { active: !group.active })}>{group.active ? "비활성화" : "재활성화"}</button></div>
-            </li>)}
+            {filteredGroups.map((group: ResourceGroupDto) => {
+              const usageId = `group-usage-${group.id}`;
+              return <li key={group.id} className={`${styles.item} ${group.active ? "" : styles.inactive}`}>
+                <div>
+                  <strong>{group.name}</strong>
+                  <div className={styles.meta}>
+                    <span>{group.code ?? "코드 없음"}</span>
+                    <span>구성원 {group.memberResourceIds.length}명</span>
+                    <span className={styles.badge}>{group.active ? "활성" : "비활성"}</span>
+                    <span id={usageId} className={styles.usageNote}>{projectUsageReason(group)}</span>
+                  </div>
+                </div>
+                <div className={styles.actions}>
+                  <button className="secondary-button" type="button" disabled={locked} onClick={() => selectGroup(group)}>구성원</button>
+                  <button className="secondary-button" type="button" disabled={locked} onClick={() => void mutate(`/api/resource-groups/${encodeURIComponent(group.id)}`, "PATCH", { active: !group.active })}>{group.active ? "비활성화" : "재활성화"}</button>
+                  {group.deletable === true
+                    ? <button className="danger-button" type="button" disabled={locked} aria-describedby={usageId} aria-label={`${group.name} 삭제`} onClick={(event) => requestDelete("group", group, event)}>삭제</button>
+                    : <button className="secondary-button" type="button" disabled={locked} aria-disabled="true" aria-describedby={usageId} aria-label={`${group.name} 삭제 불가`}>삭제 불가</button>}
+                </div>
+              </li>;
+            })}
           </ul>
         )}
       </section>
@@ -468,7 +657,7 @@ export function ResourceCatalogAdmin() {
         <p className={styles.emptyState}>검색 조건과 일치하는 리소스가 없습니다.</p>
       ) : (
         <div className={styles.memberGrid}>
-          {filteredMemberResources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input type="checkbox" checked={selectedMembers.has(resource.id)} disabled={locked || !currentGroup} onChange={() => toggleMember(resource.id)} />{resource.name}{resource.code ? ` (${resource.code})` : ""}</label>)}
+          {filteredMemberResources.map((resource) => <label key={resource.id} className={`${styles.member} ${resource.active ? "" : styles.inactive}`}><input aria-label={`${resource.name}${resource.code ? ` (${resource.code})` : ""}`} type="checkbox" checked={selectedMembers.has(resource.id)} disabled={locked || !currentGroup} onChange={() => toggleMember(resource.id)} /><span>{resource.name}{resource.code ? ` (${resource.code})` : ""}<span className={styles.memberRoleText}> · 역할 {(resource.roles ?? []).length > 0 ? (resource.roles ?? []).map(resourceRoleLabel).join(", ") : "없음"}</span></span></label>)}
         </div>
       )}
       <div className={styles.memberFooterActions}>
@@ -476,6 +665,24 @@ export function ResourceCatalogAdmin() {
         <button className="primary-button" type="button" disabled={locked || !currentGroup} onClick={() => void saveMembers()}>구성원 저장</button>
       </div>
     </section> : null}
+    {pendingDelete ? (
+      <WorkspaceDialog
+        title={pendingDelete.kind === "resource" ? "리소스 삭제" : "리소스 그룹 삭제"}
+        restoreFocusRef={deleteTriggerRef}
+        busy={busy}
+        feedback={false}
+        onClose={() => { if (!busy) setPendingDelete(null); }}
+      >
+        <p className={styles.note}><strong>{pendingDelete.name}</strong> 항목을 영구 삭제합니다. 이 작업은 되돌릴 수 없습니다.</p>
+        {pendingDelete.kind === "group"
+          ? <p className={styles.note}>그룹만 삭제되며 소속 리소스는 삭제되지 않습니다.</p>
+          : null}
+        <div className={styles.dialogActions}>
+          <button autoFocus className="secondary-button" type="button" disabled={busy} onClick={() => setPendingDelete(null)}>취소</button>
+          <button className="danger-button" type="button" disabled={busy} onClick={() => void confirmDelete()}>{busy ? "삭제 중…" : "영구 삭제"}</button>
+        </div>
+      </WorkspaceDialog>
+    ) : null}
     {passwordDialogOpen ? (
       <WorkspaceDialog
         title="관리자 비밀번호 변경"

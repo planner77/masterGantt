@@ -1,5 +1,38 @@
 # Requirements baseline
 
+## Issue #430 — Cut/Reparent Dependency 경계 정책
+
+- 단일 Cut source는 선택 Task/Summary와 전체 descendants의 canonical subtree를 이동 집합으로 사용한다. subtree 내부에서 predecessor와 successor가 모두 포함된 Dependency는 Cut을 막지 않으며 Cut → Paste/reparent 후 기존 Link ID, endpoint, type, signed lag/lead를 그대로 유지한다.
+- source subtree 경계를 넘는 incoming 또는 outgoing Dependency가 하나라도 있으면 Context Menu Cut, Ctrl/Cmd+X, cut clipboard Paste와 서버 reparent를 동일하게 제한한다. 판정은 Link 양 endpoint의 subtree 포함 여부 XOR로 정의한다.
+- Paste anchor가 별도의 Dependency endpoint라는 사실만으로 before/after Paste를 막지 않는다. 다만 `child` Paste가 linked leaf anchor를 Summary로 전환해야 하는 경우 기존 보호를 유지한다.
+- Cut은 계속 단일 target이며 viewRoot, self/descendant, scoped-view 탈출, cycle, cross-Project, edit session/Origin/If-Match/revision 보호를 유지한다. Delete/Convert/Indent/Outdent의 기존 Dependency guard와 #378/#384 Copy 정책은 변경하지 않는다.
+- UI의 enabled/disabled, keyboard shortcut과 서버 mutation은 동일 boundary 의미를 사용한다. [UX](PROJECT_UX.md), [API](API.md), [Relations](TASK_RELATIONS.md), [Test Plan](TEST_PLAN.md)을 따른다.
+
+## Issue #384 — 다중 선택 Copy/Paste
+
+앱 소유 선택 집합을 canonical WBS 순서와 선택 ancestor 규칙으로 정규화하여 여러 root·전체 자손을 한 번씩 복사한다. Copy 집합 내부 Dependency만 새 Task/Link identity로 함께 복제하며 외부 관계는 제외한다. Root block의 before/after/child 삽입·Scheduling·Summary·revision +1은 하나의 원자적 명령이다. 기존 단일 taskId Copy는 호환하고 신규 taskIds를 지원한다.
+
+선택 checkbox·Ctrl/Cmd·Shift·Context Menu·keyboard Copy는 같은 집합을 사용한다. scoped view/필터 변경은 selection을 정리하고 clipboard를 폐기하며, collapse는 선택을 유지한다. 다중 Cut/Delete/Edit/Move·cross-Project·Resource/Logistics 복제 확대는 제외한다. 기존 copied Baseline null 초기화·원본 불변, 빈 Summary null, session/Origin/If-Match/Project 격리와 Assignment 전체 거부를 유지한다. [실행 계획](exec-plans/active/ISSUE_384.md)과 [API](API.md)를 따른다.
+
+## Issue #329 — 미사용 Resource / Resource Group 안전 삭제
+
+- Resource Catalog 관리자는 어떤 Project에도 참조되지 않은 Resource와 Resource Group만 영구 삭제할 수 있다.
+- Resource usage는 Task assignment, 설비 담당 역할, 시스템 PI/Developer 역할, Resource Calendar를 모두 포함하며 Group usage는 Task group assignment와 Group Calendar를 포함한다.
+- Group membership은 Project usage로 보지 않으며 안전 삭제 시 membership row만 원자적으로 정리한다. Resource 삭제가 Group을, Group 삭제가 Resource를 삭제해서는 안 된다.
+- Catalog 조회의 삭제 가능 상태는 UX 힌트이며 서버 DELETE는 관리자 session, Origin, catalog `If-Match`와 최신 Project usage를 같은 transaction에서 다시 검증한다.
+- 사용 중 항목은 구조화된 409로 거부하고 실패 시 대상/membership/catalog revision에 부분 변경이 없어야 한다.
+
+
+## Issue #378 — Subtree Copy 내부 Dependency 복제
+
+- Task 또는 Summary subtree Copy 집합 안에 predecessor와 successor가 모두 포함된 Dependency Link는 새 Task ID에 맞춰 복제한다.
+- 복사 집합 경계를 넘는 외부→내부, 내부→외부 Link는 기본적으로 복제하지 않아 원본 주변 일정과 복사본을 암묵적으로 결합하지 않는다.
+- 복제 Link는 새 ID를 사용하고 type(FS/SS/FF/SF)과 signed lag/lead를 보존한다.
+- copied leaf는 requestedStart/duration/scheduleMode를 보존하고 Project Calendar + 기존 Dependency engine으로 effective schedule을 다시 계산한다. 원본 effective date를 requestedStart로 사용하지 않는다.
+- Task/Link 생성, dependency 재계산, Summary 파생, revision +1은 하나의 서버 transaction이다. 실패 시 부분 Task/Link를 남기지 않는다.
+- linked Task의 Copy 및 copy-clipboard의 before/after Paste를 허용하고, #335부터 linked Task/subtree의 **same-parent sibling reorder**(Context Move Up/Down, Grid before/after)도 허용한다. #430부터 다른 parent로 가는 단일 Cut-Paste/reparent는 **source subtree 내부 Dependency만 존재할 때 허용**하고 경계를 넘는 incoming/outgoing Link가 있으면 제한한다. Indent/Outdent/Delete/Convert와 linked leaf anchor의 child Paste 보호는 유지한다. Resource assignment copy 정책은 별도 범위다.
+
+
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
 
@@ -52,20 +85,44 @@ Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계�
 | R38 | 정상 작업 추가의 대기·성공 동안 동일 Gantt 인스턴스와 기존 화면 상태 유지; 문서 navigation/전체 loading 및 action 열 너비 변화 방지 | [Issue #3](ISSUE_3_REVIEW.md). 서버 canonical snapshot·중복 요청 차단·명시적 오류 복구 유지; 성공 알림은 focus를 빼앗지 않음 |
 | R39 | 정상 안내는 일시적 overlay Toast, 오류는 우측 상단 미확인 표시와 별도 복사 가능한 알림함으로 분리한다 (#18). | 오류는 성공/Toast 타이머로 삭제하지 않음. 공간·scroll·focus·Gantt 유지, locale 시각, 안전한 metadata만 허용. [UX 계약·보충 테스트 계획](PROJECT_UX.md) |
 | R40 | 목록 각 행과 상세 헤더에서 Readonly도 프로젝트 링크를 복사할 수 있다 (#21). | 검증한 APP_BASE_URL과 publicId 기반 절대 URL. 이름 변경 후 유지, query/hash/secret 제외, 같은 세션 권한 유지/새 세션 Readonly, mutation 없음 |
-| R41 | Clipboard 성공 확인 후에만 성공 안내를 한다. 거부·미지원이면 선택 가능한 읽기 전용 내용과 수동 복사/재시도를 제공한다 (#18/#21). | 클릭 기반 쓰기만 수행하며 앱은 clipboard 읽기 권한을 요청하지 않음. 오류·fallback·키보드·좁은 화면 검증. [UX 계약](PROJECT_UX.md) |
-| R42 | Grid와 Chart의 실제 작업 우클릭 메뉴에 `작업 삭제`를 제공한다 (#31). 하위 작업이 있으면 선택 작업+모든 깊이의 자손 수와 총 삭제 수를 보여주고 명시적 확인 후에만 원자적으로 삭제한다. | 취소 전 DELETE 0회, server persisted hierarchy 재계산, edit session/Origin/If-Match 유지, `includeDescendants=true`, revision 1회 증가, 외부 Summary empty/Link 일정은 기존 정책대로 거부. [Issue #31](ISSUE_31_REVIEW.md) |
+| R41 | Clipboard 성공 확인 후에만 성공 안내를 한다. secure context에서 modern Clipboard API가 있으면 그 결과를 우선하고, API 자체가 없거나 insecure HTTP이면 같은 사용자 동작에서 legacy copy 호환 경로를 시도한다 (#18/#21/#364). | modern API의 명시적 권한 거부/reject는 legacy로 우회하지 않으며, 두 경로 실패 시 선택 가능한 읽기 전용 내용과 수동 복사/재시도를 제공한다. 앱은 clipboard 읽기 권한을 요청하지 않음. 오류·fallback·키보드·좁은 화면 검증. [UX 계약](PROJECT_UX.md) |
+| R42 | Grid와 Chart의 실제 작업 우클릭 메뉴에 `작업 삭제`를 제공한다 (#31). 하위 작업이 있으면 선택 작업+모든 깊이의 자손 수와 총 삭제 수를 보여주고 명시적 확인 후에만 원자적으로 삭제한다. | 취소 전 DELETE 0회, server persisted hierarchy 재계산, edit session/Origin/If-Match 유지, `includeDescendants=true`, revision 1회 증가. 선택 범위 밖 Summary가 비어도 유지하며(#345), Link 보호는 유지한다. [Issue #31 당시 기록](ISSUE_31_REVIEW.md) |
 | R43 | Project 작업 캘린더는 KR/CN/VN/PH/TH/MX/US 국가 규칙을 전체 또는 기간별로 적용하고 Project Custom 휴무와 Resource Group/Resource의 근무·휴무 날짜 예외를 관리한다 (#57/#261). 신규 Project 기본은 KR/FULL_PROJECT, 기존 Project migration은 국가 규칙을 자동 추가하지 않는다. | [Issue #57](ISSUE_57_WORK_CALENDAR.md), [API](API.md), [DB](DB_SCHEMA.md) |
 | R45 | Project 목록은 Desktop/Wide에서 일반 Form보다 넓은 가용 폭을 사용하고, 프로젝트명 Link를 primary navigation으로 유지하며 행 command를 accessible overflow menu로 제공한다 (#75). | native table semantics, Link/Button 의미, keyboard/Escape/focus 복귀, 390/768/1024/1440 반응형, 기존 copy/delete 보안 계약 유지. [UX 계약](PROJECT_UX.md) |
-| R46 | Task Editor는 작업 정보·리소스·관계를 3개 탭으로 분리하고 body-only scroll, 고정 Footer, keyboard tab navigation, 360/768/1024/1440 반응형을 제공한다 (#74). | 기존 Task PATCH/revision/권한/dirty/stale와 Assignment PUT/catalog revision 계약은 유지하며 탭 전환은 mutation을 발생시키지 않는다. [Task Editor](TASK_EDITOR.md), [Test Plan](TEST_PLAN.md) UI12 |
+| R46 | Task Editor는 작업 정보·리소스·관계·물류 연결 탭으로 정보를 분리하고 body-only scroll, 고정 Footer, keyboard tab navigation, 390/768/1024/1440 반응형을 제공한다 (#74/#187). 관계 탭은 #377부터 편집 가능한 Task/Milestone의 관계 추가·편집·삭제 진입점을 제공한다. | 기존 Task PATCH/revision/권한/dirty/stale, Assignment/물류 저장과 Link API 계약을 유지하며 탭 전환 자체는 mutation을 발생시키지 않는다. Task draft dirty/stale/readonly에서는 relation mutation을 fail-closed한다. [Task Editor](TASK_EDITOR.md), [Relations](TASK_RELATIONS.md), [Test Plan](TEST_PLAN.md) |
 | R44 | Calendar 계산은 `Base weekly rule + WORKING/NON_WORKING date exception`을 사용한다. Project Task 일정에는 Project target만, #56 Resource workload에는 Project < Resource Group < Resource 순서로 명시적 WORKING/NON_WORKING 예외를 적용한다 (#261). 같은 계층의 동일 유형은 중복 계산하지 않고 반대 유형은 Calendar 저장과 그룹 구성원 변경에서 원자 거부한다. 상위 결과와 같은 예외는 NO_EFFECT 경고와 함께 저장 가능하며 Task 일정은 바꾸지 않는다. Preview/저장은 edit session+Origin+If-Match를 요구하며 Manual conflict/날짜 충돌은 전체 원자 거부한다. | [Scheduling](SCHEDULING_ENGINE.md), [Test Plan](TEST_PLAN.md) |
 | R47 | Project status는 `planned / in_progress / completed`로 저장·조회·편집한다 (#138). 기존 Project는 `in_progress`, 신규 Project와 복사본은 `planned`이며 목록의 기본 보기에서는 완료를 제외한다. | [API](API.md), [DB](DB_SCHEMA.md), [UX 계약](PROJECT_UX.md). 상태 변경에도 edit session·Origin·If-Match와 canonical snapshot/revision 계약을 유지한다. |
 | R48 | Grid의 작업명 열에서 편집 가능한 Summary/Task/Milestone 이름을 한 번 클릭해 인라인 편집한다 (#140). Enter·blur는 저장, Escape는 취소하며 서버 canonical 결과로 Grid·Chart·Task Editor 표시를 일치시킨다. | 기존 Task PATCH의 세션·Origin·If-Match·revision·이름 검증을 유지하며 연결 endpoint 이름 제한은 #258에서 해제한다. Summary는 Grid name-only 예외이고 Task Editor의 Summary readonly는 유지한다. [UX 계약](PROJECT_UX.md), [Task Editor](TASK_EDITOR.md), [Test Plan](TEST_PLAN.md) |
 | R49 | Project List와 편집 중 Project Workspace에서 Project 상태를 별도 설정 화면 이동 없이 직접 변경할 수 있다 (#177). | 기존 `planned / in_progress / completed` 값과 edit session·Origin·strong `If-Match`·revision+1·canonical snapshot 계약을 재사용한다. List는 세션이 없으면 기존 편집 비밀번호 인증을 수행하고 성공 직후 client-side filter를 재평가한다. Workspace readonly는 표시 전용이며 edit header 변경은 Gantt remount/navigation을 유발하지 않는다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
 | R50 | 프로젝트 재진입 시 Gantt Grid의 Summary 접힘/펼침 상태를 브라우저 localStorage에 프로젝트별로 저장·복원한다 (#201). | v1 스키마, stale ID 로드 시 정규화 저장, Quota/Security 예외 graceful fallback, 동일 브라우저 프로필 복원, DB/API/Revision 불변. [UX 계약](PROJECT_UX.md) |
+| R51 | 일반 Task Editor는 요청 시작일·기간(근무일)·요청 종료일을 함께 제공하고 기간↔요청 종료일을 Project Effective Calendar 기준으로 양방향 계산한다 (#368). | requestedEnd는 UI-only draft이며 canonical 저장은 기존 `requestedStart + duration`을 유지한다. Auto 비근무 시작 보정, Manual/비근무 종료 오류, Dependency 적용 뒤 서버 확정 일정 분리, Summary/Milestone 계약 유지. [Task Editor](TASK_EDITOR.md), [Scheduling](SCHEDULING_ENGINE.md), [Test Plan](TEST_PLAN.md) |
+| R52 | 하위 작업이 있는 Summary의 Context Menu에서 `최상위로 열기`를 선택하면 새 browser context를 만들지 않고 현재 Project 일정 Workspace의 WBS 범위 탭으로 선택 Summary와 모든 자손만 표시한다 (#373/#399). `전체 프로젝트` 탭은 고정하고 동일 Summary 재진입은 중복 탭 없이 기존 탭을 활성화한다. | `rootTask` deep link/reload/direct-entry와 client-side `filter-tasks`를 유지하며 범위 탭마다 별도 Gantt를 만들지 않는다. canonical snapshot/Dependency/Resource·Logistics와 edit session·Origin·If-Match·revision 계약을 유지한다. 빈 Summary root는 유지하고 삭제/type 변경 root는 invalid 상태·복귀 경로를 제공하며 실제 다른 browser tab의 higher revision은 canonical GET으로 동기화한다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
+| R53 | Grid/Chart 작업 Context Menu의 `Copy ID`는 선택 Task/Summary/Milestone의 canonical `taskId`를 OS clipboard에 복사한다 (#390). | readonly·mutation lock·Dependency 연결 여부와 무관한 조회성 action이며 기존 단일/다중 Task `Copy/Paste` clipboard·선택 집합과 Project revision을 변경하지 않는다. #364 공통 clipboard 호환 경로를 사용하고 실제 자동 복사 성공 후에만 성공 안내하며 권한 거부/자동 복사 실패 시 수동 복사·재시도를 제공한다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
+| R54 | Dependency Link가 연결된 Task/Milestone 또는 linked descendant를 가진 subtree는 **parent를 바꾸지 않는 sibling reorder**를 수행할 수 있다 (#335). #430부터 단일 Cut-Paste/reparent는 source subtree 내부 관계만 있을 때 parent 변경도 허용한다. | Context Move Up/Down 및 Grid same-parent before/after는 Link 여부와 무관하다. Cross-parent Cut-Paste/reparent는 source subtree 경계를 넘는 Dependency가 없을 때만 허용하며 내부 Link ID/endpoints/type/lag를 보존한다. Boundary Link, linked leaf anchor child 전환, Indent/Outdent/Delete/Convert 보호는 유지한다. [UX 계약](PROJECT_UX.md), [API](API.md), [Relations](TASK_RELATIONS.md), [Test Plan](TEST_PLAN.md) |
+| R55 | Relation Editor의 관계 추가 후보 검색은 작업명, 외부 ID(`externalId`), 작업 ID(`taskId`)를 모두 지원하고 두 식별자를 명시적으로 구분한다 (#409). | #390 `Copy ID`의 canonical taskId를 그대로 검색할 수 있으며 후보 선택 뒤 실제 Link mutation은 기존 externalId endpoint 계약을 유지한다. Summary/self/already-connected 제외, readonly/dirty/pending/focus 계약은 불변이다. [Relations](TASK_RELATIONS.md), [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
+| R56 | Global Country Calendar Catalog은 KR/CN/VN/PH/TH/MX/US의 2026~2037 연도 슬롯과 `OFFICIAL / UNAVAILABLE / SUPERSEDED` 상태를 관리하고, 2026 built-in fixture보다 DB override를 우선한다 (#342). JSON/CSV Import는 Preview 후 원자 적용하며 국가/연도별 날짜·`WORKING/NON_WORKING`·source metadata CRUD를 제공한다. | Scheduling은 `OFFICIAL` dataset만 사용한다. 공식 자료가 없는 미래 연도를 추정하지 않으며 Catalog 변경만으로 기존 Project materialized Calendar/Task를 자동 변경하지 않는다. [Issue #57](ISSUE_57_WORK_CALENDAR.md), [Country Calendar Data](COUNTRY_CALENDAR_DATA.md), [API](API.md), [DB](DB_SCHEMA.md), [UX](PROJECT_UX.md) |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 
-W24의 하위 추가는 일반 Task→Summary 전환에 `convertParentToSummary: true`를 요구한다. Milestone에는 하위를 추가하지 않으며 빈 Summary를 만들지 않도록 마지막 자식 단독 삭제를 거부한다. Summary 자체의 drag/resize와 reparent·FS 의존 재계산은 기존 범위를 유지한다. #31은 예외적으로 child가 있는 작업의 명시적 subtree 삭제를 승인하며 `includeDescendants=true`와 사용자 확인을 요구한다. 일반 하위 Leaf 변경과 subtree 삭제 뒤 살아남은 조상 Summary는 다시 계산한다. #11은 생성 시 서버 계약을 변경하지 않고 UI 확인 단계를 생략한다.
+W24의 하위 추가는 일반 Task→Summary 전환에 `convertParentToSummary: true`를 요구한다. Milestone에는 하위를 추가하지 않는다. 당시의 빈 Summary 금지·마지막 child 삭제 거부 정책은 #345의 정식 WBS 컨테이너 계약으로 대체한다. Summary 자체의 drag/resize와 Dependency 보호는 유지한다. #31의 자손을 가진 작업 삭제는 `includeDescendants=true`와 사용자 확인을 요구한다. 일반 하위 Leaf 변경과 subtree 삭제 뒤 살아남은 조상 Summary는 다시 계산하며 집계할 Leaf가 없으면 미산정 Summary로 남는다. #11은 첫 child 추가의 UI 확인 단계를 생략하되 서버의 명시적 부모 전환 계약을 유지한다.
+
+## Issue #345 — Summary 구조와 일정 상태 분리
+
+빈 Summary와 빈 Summary만 중첩된 구조는 유효하다. Root·중첩 Summary를 이름·위치만으로 생성하며 첫 일정 있는 Task/Milestone 추가와 마지막 Leaf 삭제·이동에서 부모의 ID·유형·연결을 보존한다. 일정이 있는 자손이 없으면 auto Summary의 requestedStart/start/end/duration/progress는 모두 null이며, 가짜 날짜나 0일/완료 상태로 대체하지 않는다. 빈 컨테이너는 조상의 일정·가중 진척·Baseline 집계에 기여하지 않고 WBS 계산에는 정상 참여한다.
+
+Grid/Editor는 미산정 값을 `—`로 표시하고 Chart 행을 유지하면서 현재 일정 bar를 그리지 않는다. 검색·필터·접기만으로 실제 구조/집계 상태를 바꾸지 않는다. Resource/Group·물류 self/subtree 연결과 후속 child 상속을 유지하며 copy/template·Import 계약·Excel/SVG/PNG Export의 null 처리도 정합화한다. 일반 Task/Milestone과 Dependency·보안·revision 필수 검증을 완화하지 않는다. #344의 이전 확정 mutation 보존은 별도의 유효한 거부 조건에서 계속 검사한다.
+
+구현 단계·실제 검증 및 Import 범위 결정은 [Issue #345 계획](exec-plans/active/ISSUE_345.md)을 따른다. 과거 empty-summary 거부의 실행 기록은 당시 사실로 보존한다.
+
+## Issue #373 / #399 — Summary 하위 WBS Workspace scoped view
+
+하위 작업이 있는 Summary에는 조회/navigation 명령 `최상위로 열기`를 제공한다. #399부터 이 명령은 새 browser tab/window를 만들지 않고 현재 Project의 일정 View 내부 WBS 범위 탭을 생성·활성화한다. 범위 탭은 `[전체 프로젝트] [Summary A ×] [Summary B ×]` 구조이며 전체 프로젝트는 고정/비삭제, 동일 Summary 재진입은 중복 생성 없이 기존 탭 활성화, Summary 탭 닫기는 인접 탭→전체 프로젝트 순으로 복귀한다. scoped view의 visible set은 선택 Summary 자신과 모든 depth의 자손이고 ancestor, sibling, 다른 root branch는 숨긴다. 검색·고급 필터·Task/Milestone 빠른 보기는 해당 scope 안에서만 적용하며 초기화해도 자동으로 전체 Project로 범위가 확장되지 않는다.
+
+기존 `/projects/{publicId}?rootTask={taskId}` URL은 **새 browser tab을 생성하는 명령 계약이 아니라** 공유·reload·직접 진입용 deep link 계약으로 유지한다. 내부 범위 탭 전환은 full navigation 없이 `rootTask`를 replace semantics로 동기화하고, 직접 deep link로 진입하면 전체 프로젝트 탭과 해당 Summary 탭을 구성해 Summary scope를 활성화한다. 열린 범위 탭 집합 전체는 persistence하지 않으며 reload 후 URL의 active scope만 복원한다.
+
+scope는 authorization 또는 별도 aggregate가 아니다. client는 전체 Project canonical snapshot과 links/assignments/logistics를 계속 보유한다. 선택 Summary의 canonical parent는 유지하되 SVAR 표시 adapter에서만 해당 Task의 parent를 root(0)로 투영한다. 기존 mutation API, edit session, Origin, strong If-Match와 Project revision을 사용한다. 따라서 scope 밖 endpoint를 가진 Dependency도 삭제·유실하지 않으며 Task/Relation Editor는 전체 canonical 관계를 확인할 수 있다. 같은 화면의 내부 범위 탭은 하나의 canonical React state와 ProjectGantt instance를 공유하며, 사용자가 deep link를 실제 다른 browser tab에서 직접 연 경우에만 기존 #373 same-origin revision 신호와 canonical GET freshness 계약을 사용한다. Scoped view의 구조 mutation은 결과가 root subtree 안에 남는 경우만 허용한다. #418부터 native Grid **Header `+`는 현재 scope에서의 최상위 작업 추가**로 해석하여 active Summary root의 immediate child를 생성하고, native Grid 행 `+`는 scoped root/descendant Task·Summary의 child를 생성한다. 일반 Task의 첫 child는 기존 `convertParentToSummary: true` 계약을 재사용한다. Header/Row의 표시 enabled 상태와 실제 command target은 같은 resolver를 사용한다. Milestone child, scope 밖 target, root sibling 생성/이동, direct child Outdent, `before/after` 등 scope 탈출 경로는 Context Menu·shortcut·DnD 모두에서 차단한다. 성공 add의 canonical Core sync와 `filter-tasks`는 같은 직렬 경계에서 처리해 중간 empty frame을 노출하지 않고 scope/scroll/focus/ProjectGantt instance를 보존한다. 물류 필터의 상속 계산은 전체 hierarchy context를 유지한다. 연속 revision 이벤트는 최고 pending revision까지 누적해 재조회한다.
+
+root Summary의 마지막 child가 제거되면 #345에 따라 빈 Summary scoped view를 유지한다. root가 삭제되거나 Summary가 아니게 되면 다른 Task나 전체 Project로 자동 fallback하지 않고 명확한 invalid 상태와 전체 Project 복귀/탭 닫기 경로를 제공한다. DB schema, 새 API, 별도 Scheduling algorithm은 추가하지 않는다.
 
 ## Assumption
 
@@ -80,7 +137,7 @@ W24의 하위 추가는 일반 Task→Summary 전환에 `convertParentToSummary:
 | A05 | `start` 입력과 effective start 분리; Auto 이동은 preview, Manual 충돌은 전체 거부 | 요청값 보존과 일정 재계산의 결정성 |
 | A06 | 초기 dependency는 leaf task/milestone의 FS/0만(역사적 초기 인수 기준). 현재 FS/SS/FF/SF 및 lag/lead 지원은 #200/#202/#258 계약으로 대체 | 현재 적용 범위는 [Scheduling](SCHEDULING_ENGINE.md), [API](API.md) |
 | A07 | Import v1은 기존 Project에 self-contained batch create-only | 기존 데이터 자동 교체·삭제 금지; update merge 별도 설계 |
-| A08 | Summary는 자식에서 계산, empty summary 거부; 생성·재배치는 atomic batch | UI/API가 유효 최종 tree를 한 번에 제출 |
+| A08 | Summary는 일정 있는 자손에서 계산하며 빈 Summary는 미산정 WBS 컨테이너로 유지한다 (#345). 생성·재배치는 원자적 mutation으로 처리한다. | UI/API가 유효 최종 tree를 제출하고 canonical null·유형·ID를 보존 |
 | A09 | Project aggregate revision + If-Match로 stale write 거부 | 단일 인스턴스여도 여러 편집자 가능 |
 | A10 | SQLite local volume + WAL; remote/network filesystem 사용 전 별도 검증 | [Deployment](DEPLOYMENT.md) |
 | A11 | Import/export resource limits는 초기 측정으로 조정, 무제한 입력 금지 | [Import Schema](IMPORT_SCHEMA.md) 초기 제한 |
@@ -119,7 +176,7 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - **R72-01**: Edit 권한 Task의 Grid/Chart context menu는 SVAR Willow 기본 작업 흐름의 Add, Convert to, Edit, Cut, Copy, Paste, Move up/down, Indent, Outdent, Delete를 표현한다. Readonly에서는 mutation이 동작하지 않는다.
 - **R72-02**: parent/sibling order/type/subtree를 바꾸는 명령은 server-authoritative atomic mutation이며 성공당 Project revision을 정확히 1 증가시킨다. Client-only hierarchy 상태를 canonical로 간주하지 않는다.
 - **R72-03**: Cut은 Paste 전까지 저장 상태를 바꾸지 않는다. Copy는 subtree identity를 새로 발급하고 원본을 변경하지 않는다. stale clipboard는 Project revision 변경 시 폐기한다.
-- **R72-04**: cycle, Project 외 Task, Milestone parent, 빈 Summary 발생, **선택 Task 또는 mutation 영향 subtree가 Link endpoint를 포함하는 계층 mutation**은 fail-closed한다. Project의 unrelated Link만으로 다른 Task의 Context Menu/Editor mutation을 전역 잠그지 않는다 (#104). Assignment가 있는 subtree Copy는 Assignment 복제 정책이 별도 확정될 때까지 명시적 오류로 거부한다.
+- **R72-04**: cycle, Project 외 Task, Milestone parent 및 Indent/Outdent/Convert/Delete처럼 관계 의미를 손상시킬 수 있는 계층 mutation은 기존 Dependency guard를 유지한다. **Copy는 #378에 따라 Copy 집합 내부 Dependency만 새 Task/Link ID로 복제하고 경계를 넘는 외부 Link는 복제하지 않는다. #430부터 단일 Cut-Paste/reparent는 source subtree의 양 endpoint가 모두 내부인 Link를 그대로 보존하여 허용하고, 한 endpoint만 내부인 boundary Link가 있으면 fail-closed한다.** linked anchor의 before/after 위치 사용은 허용하되 child placement가 linked leaf anchor의 Summary 전환을 요구하면 기존 fail-closed를 유지한다. 빈 Summary 발생만으로 거부하는 규칙은 #345로 대체한다. Project의 unrelated Link만으로 다른 Task의 Context Menu/Editor mutation을 전역 잠그지 않는다 (#104). Assignment가 있는 subtree Copy는 Assignment 복제 정책이 별도 확정될 때까지 명시적 오류로 거부한다.
 
 ## Issue #76 Project Workspace 요구사항
 
@@ -135,6 +192,7 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 
 
 - **REQ-LINK-97**: 편집 권한 사용자는 Gantt에서 FS/lag=0 관계를 생성·삭제할 수 있고, 변경은 Project revision과 함께 SQLite에 원자적으로 저장되어 reload/restart 후에도 유지되어야 한다. 실패한 mutation은 로컬 ghost relation을 남기지 않는다.
+- **REQ-LINK-377**: Task Editor 관계 탭은 기존 canonical relation model과 Relation Editor를 재사용하여 Task/Milestone의 관계 추가·편집·삭제에 직접 진입할 수 있어야 한다. 관계가 0건이어도 현재 Task를 Anchor로 추가할 수 있으며 dirty/stale/readonly/pending에서는 mutation을 차단한다. 성공 시 canonical tasks/links/revision을 열린 Task Editor와 Workspace에 함께 반영하되 Relation Editor의 top-layer 순서와 Task Editor active tab/Gantt view state를 유지한다.
 
 
 ## Issue #83 Project 검색/필터 요구사항
@@ -167,6 +225,14 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 버튼 전환은 client-side view state로 동작하여 API 재조회, Project mutation, revision 증가, Gantt remount를 유발하지 않으며 SVAR 공개 `filter-tasks` action을 사용한다.
 - 390/768/1024/1440px 뷰포트와 전체화면 모드에서 컨트롤 겹침이 없어야 하며 키보드 Tab 및 ARIA pressed 상태를 지원한다.
 
+## Issue #372 — Gantt fullscreen에서 편집기 상태 보존
+
+- Gantt native fullscreen 상태에서 Task Editor를 Grid/Chart double click 또는 Context Menu → Edit으로 열 때 애플리케이션은 `document.exitFullscreen()`을 호출하지 않는다.
+- Task Editor의 저장·취소·닫기와 Relation Editor의 open/close/mutation은 사용자가 직접 fullscreen을 종료하지 않는 한 동일 `.project-gantt-frame` fullscreen과 Gantt instance를 유지한다.
+- Editor open/close는 Grid/Chart scroll, splitter, column width/visibility, Day/Week scale, selection, Summary expand/collapse, filter를 초기화하거나 API mutation을 발생시키지 않는다.
+- Readonly에서도 동일한 fullscreen 보존 규칙을 사용하고, 브라우저가 Escape 등으로 fullscreen을 종료하면 실제 `document.fullscreenElement`와 UI 상태를 동기화한다.
+- 기존 session/Origin/If-Match/revision/canonical snapshot/Task·Relation·Assignment 저장 계약은 변경하지 않는다.
+
 ## Issue #258 — 연결 Task 필드별 편집
 
 관계가 있는 leaf Task/Milestone의 metadata·progress·Baseline 편집은 현재 적용 날짜/requestedStart를 보존한다. 요청 시작일·duration·scheduleMode 변경은 전체 dependency-aware transaction으로 후행 Auto의 지연/앞당김과 Summary를 다시 계산한다. Manual/resource conflict 및 혼합 payload는 전체 rollback한다. Grid 이름·Chart 완료 gesture와 Editor는 같은 Task PATCH/canonical snapshot 계약을 사용한다. Delete/Convert/계층/Copy·Summary 정보창·권한 보호는 그대로다. R08의 초기 FS 범위 표기는 역사적 단계이며 현재 generic FS/SS/FF/SF와 lag 지원은 Scheduling/API 문서를 따른다.
@@ -186,3 +252,86 @@ W23은 D02 승인에 따라 홈과 `GET /api/projects`에서 전체 Project 목�
 - 신규 선택에는 active 항목만 사용하며, 기존 Project가 참조하는 inactive 항목은 자동 해제하지 않고 비활성 상태로 표시한다.
 - Project 생성/편집/조회/목록/복사/Template 경로에서 동일 참조를 유지한다. Project edit 권한은 global project-master 관리자 권한을 부여하지 않는다.
 - 사업부→제품→사업장 cascading, 다중 선택, ERP/MES 동기화와 해당 값 기반 권한/일정 자동화는 범위 밖이다.
+
+## Issue #344 — 삭제 실패의 mutation 범위와 revision 단조성
+
+- 성공한 Task 삭제와 증가한 Project revision은 이후 다른 삭제 요청의 `401/409/412/network` 실패로 되돌리지 않는다. 실패한 삭제 대상은 최신 서버 canonical 상태에 따라 유지한다.
+- 현재 Project `publicId`와 다른 snapshot 또는 마지막 확정 revision보다 낮은 snapshot을 Workspace의 authority로 적용하지 않는다. 같은 revision과 더 높은 revision의 정상 canonical 응답은 적용할 수 있다.
+- 오류 복구 GET은 캐시를 사용하지 않는다. 재조회가 실패하거나 응답 revision이 오래되면 마지막 확정 snapshot을 같은 SVAR 인스턴스에 동기화하며, page reload/remount를 오류 복구 수단으로 사용하지 않는다. Grid/Chart task 집합, Summary 접힘, 스크롤과 scale을 보존한다.
+- #344 당시 유지했던 `EMPTY_SUMMARY_NOT_ALLOWED` 정책은 #345의 빈 컨테이너 허용으로 대체한다. subtree 삭제, unrelated Link 보존 및 server-side session/Origin/If-Match/transaction 계약은 유지한다. 유효한 거부 조건에서도 이전 성공 mutation을 보존한다. network 실패 뒤 더 높은 canonical revision이 확인되면 서버 확정 결과를 반영하며, 자동 mutation 재전송은 하지 않는다.
+- 일반 정상 409 흐름의 baseline 미재현 결과와 오래된 복구 GET을 주입한 결함 재현 결과를 구분한다. 테스트 및 공식 원격 회귀 상태는 [TEST_PLAN](TEST_PLAN.md#issue-344--작업-삭제-실패-복구-회귀)에 기록한다.
+
+## Issue #343 Project List 프로젝트 기준정보 표시
+
+- Project List의 모든 row는 #289 canonical summary에 포함된 사업부, 제품, 법인/사업장을 독립 column으로 표시한다.
+- 사용자 표시값은 catalog `name`이며 null/undefined는 `미지정`, inactive 참조는 기존 표시명을 유지하면서 `(비활성)` 의미를 함께 표시한다.
+- 프로젝트명 primary navigation, 상태 변경, owner/description/date, Row Action, #84 검색/필터 및 기존 정렬 순서를 유지한다.
+- 별도 catalog N+1 fetch를 만들지 않고 Project List summary만 사용한다.
+- 390/768/1024/1440/wide에서 세 column을 데이터에서 제거하지 않으며, 좁은 화면은 table 내부 horizontal scroll을 허용하되 document-level overflow는 금지한다.
+- 신규 기준정보 필터/정렬, API/DB schema, Project revision/security, SVAR Gantt 변경은 범위 밖이다.
+
+
+
+## Issue #303 — Task status / progress synchronization
+
+- Task/Milestone status는 `not_started | in_progress | completed`이며 Project status와 별도 도메인이다.
+- 신규 leaf와 PATCH는 progress/status를 서버에서 canonical하게 정규화한다. progress 100%와 completed는 양방향 동기화하고, not_started는 0%, completed 해제는 in_progress로 처리한다.
+- Summary status는 직접 편집하지 않고 derived progress의 정확한 값으로 파생한다.
+- 완료 Task/Milestone/Summary의 Grid 작업명에는 취소선을 표시하며 완료 해제 시 제거한다.
+- status는 API/DB/canonical snapshot/reload/Template instantiate/Copy 경로에서 일관되게 보존한다.
+- progress/status 변경은 요청/적용 일정이나 Dependency Link를 바꾸지 않으며 기존 edit session, Origin, If-Match, revision, transaction 계약을 유지한다.
+
+## Issue #370 — Grid 시작일 Date Picker 빠른 편집
+
+Project Workspace의 Grid `시작` 셀은 편집 권한이 있는 Task/Milestone에서 single click 또는 keyboard Enter/Space로 Date Picker를 연다. 선택값은 새 `requestedStart` 의도로 기존 Task PATCH의 `start` 필드에 전달하며, Grid 자체의 `projectStart`는 저장 필드가 아니다. 서버는 Project Effective Calendar와 FS/SS/FF/SF + lag를 포함한 기존 dependency-aware scheduling 계약으로 canonical `start/end`를 다시 계산하고 Grid/Chart는 같은 Gantt 인스턴스에 그 결과만 반영한다.
+
+Summary는 하위 일정에서 날짜가 파생되므로 시작일 직접 편집을 허용하지 않는다. Milestone은 `duration=0`, `start=end` 계약을 유지한다. readonly, mutation lock, stale/saving 상태에서는 Date Picker 진입을 차단하며, 동일 날짜 선택과 단순 취소는 mutation을 만들지 않는다. 실패한 저장은 Core의 임시 Grid 값을 확정하지 않고 마지막 서버 canonical snapshot을 유지/복구한다.
+
+### REQ-GANTT-CHART-REORDER — Issue #299
+
+- 편집 사용자는 Chart bar 수직 DnD로 같은 parent의 작업 순서를 변경할 수 있어야 한다.
+- vertical reorder와 horizontal schedule move/resize는 한 gesture에서 중복 저장되지 않아야 한다.
+- canonical parent/sibling order는 Grid/Chart/reload 및 후속 Task mutation에서 유지되어야 한다.
+- #335 linked same-parent reorder를 허용하고 #399/#407 scope 및 기존 hierarchy invariant를 우회하지 않아야 한다.
+- cross-parent implicit reparent는 허용하지 않는다.
+
+### REQ-RESOURCE-GLOBAL-ROLES — Issue #412
+
+- Resource는 전역 역할 `PI | DEVELOPER | EQUIPMENT_OWNER` 중 0개 이상을 동시에 가질 수 있어야 한다.
+- 전역 역할은 Resource Group membership, Task assignment, Project Equipment/System 담당 역할과 독립이어야 하며 어느 한쪽의 변경이 다른 쪽을 자동 변경하면 안 된다.
+- `DEVELOPER` 전역 역할과 developerGrade는 독립적으로 저장되어야 한다. 전역 역할 지정/해제로 등급을 자동 생성·삭제하지 않는다.
+- DB/API는 동일 Resource-role 중복과 허용되지 않은 role code를 거부해야 한다.
+- 기존 Resource는 schema upgrade 뒤 역할 0개로 보존되어야 하며 임의 backfill하지 않는다.
+- Resource Catalog 관리자만 역할을 변경할 수 있고 기존 Origin/session/If-Match/revision 동시성 계약을 유지해야 한다.
+- 비활성 Resource의 기존 역할은 조회/보존되어야 한다. 안전 삭제가 허용된 Resource 삭제 시 role row는 함께 정리되어야 한다.
+- 관리 UI는 역할과 개발자 등급을 시각·의미적으로 구분하고 keyboard로 역할 다중 선택이 가능해야 한다.
+
+## Issue #413 — Task Resource 수행 역할
+
+개인 Resource assignment는 Task별 수행 역할을 선택할 수 있어야 한다. 수행 역할은 Resource의 Global Role 중 하나이며 하나의 Task+Resource에는 assignment 하나만 존재한다. 같은 Resource가 서로 다른 Task에서 다른 역할을 수행하는 것은 허용한다.
+
+Task Editor 리소스 탭은 역할→Resource 및 Resource→역할 두 흐름을 모두 지원한다. 역할 필터는 해당 역할을 가진 Resource 후보만 남기고, Resource별 select는 해당 Resource의 Global Role만 보여준다. 기존 역할 미지정 assignment는 별도 상태로 보여주고 사용자가 역할을 보완할 수 있어야 한다. 신규 개인 Resource UI 배정은 역할 선택 없이는 저장하지 않는다.
+
+수행 역할 변경은 allocation 기간/투입률, 근무 Calendar, Task schedule을 자동 변경하지 않는다. Group assignment, Project Equipment/System role, Resource Group membership도 자동 변경하지 않는다. 사용 중 Global Role은 silently 제거할 수 없으며 서버 transaction에서 차단한다.
+
+## Issue #414 — 역할 기반 Resource workload / 개발자 견적
+
+- #56의 개인 Resource assignment M/D·M/M 계산과 Calendar/allocation 계약을 유지한 채 #413의 Task 수행 역할을 집계 분류 축으로 제공해야 한다.
+- 역할별 합계는 `PI | DEVELOPER | EQUIPMENT_OWNER | UNSPECIFIED`를 구분하며, 역할 미지정 legacy assignment를 Global Role로 추정하지 않는다.
+- Grand Total은 assignmentId 기준으로 정확히 한 번 합산되어야 하며 Resource Group 중복 membership으로 증가하면 안 된다.
+- Resource View는 역할/개발자 등급/기간 drill-down과 `개발 견적` preset을 제공하고, 개발자별 Task 계획 공수·진행률·상태/지연·allocation 기간/투입률을 함께 보여야 한다.
+- Task progress/status는 계획 공수를 차감하거나 실제 소진 공수로 변환하지 않는다.
+- M/M 기준 미설정, 공수 미설정, 과투입, stale/error/empty 상태를 명시적으로 보존하며 일정↔리소스 tab 전환은 Gantt instance/state를 재생성하지 않는다.
+
+상세 계약은 [Issue #414 문서](ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md)를 따른다.
+
+
+
+## Issue #415 — Resource/개발 공수 견적 Excel
+
+- 사용자는 Excel 내보내기에서 역할·개발자 공수 견적 포함 여부를 선택할 수 있어야 한다.
+- Summary의 Grand Total/역할 subtotal 및 Detail은 동일 Project revision의 #414 workload 결과와 일치해야 한다.
+- Detail grain은 assignmentId이며 여러 Group membership으로 중복 가산하지 않는다.
+- 역할 미지정과 공수 미설정은 명시적으로 표시하고, M/M 기준이 없을 때 임의 환산하지 않는다.
+- Progress/status/지연은 계획 공수와 함께 표시하되 실제 소진 공수나 비용으로 추정하지 않는다.
+- 기존 Gantt/Tasks/Project/Dependencies/Logistics 시트와 Origin/If-Match/formula-injection 보호는 유지한다.

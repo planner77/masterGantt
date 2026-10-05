@@ -77,6 +77,7 @@ function inRange(value: string, from: string, to: string): boolean {
 
 function dateMatches(task: ProjectTaskDto, filter: TaskFilterState): boolean {
   if (!filter.dateFrom || !filter.dateTo) return true;
+  if (task.start === null || task.end === null) return false;
   const from = filter.dateFrom <= filter.dateTo ? filter.dateFrom : filter.dateTo;
   const to = filter.dateFrom <= filter.dateTo ? filter.dateTo : filter.dateFrom;
   if (filter.dateOperator === "contained") return task.start >= from && task.end <= to;
@@ -110,10 +111,10 @@ export function taskMatchesFilter(
   if (!dateMatches(task, filter)) return false;
   if (filter.types.length > 0 && !filter.types.includes(task.type)) return false;
   if (filter.scheduleModes.length > 0 && !filter.scheduleModes.includes(task.scheduleMode)) return false;
-  if (filter.progressMin !== null && task.progress < filter.progressMin) return false;
-  if (filter.progressMax !== null && task.progress > filter.progressMax) return false;
-  if (filter.durationMin !== null && task.duration < filter.durationMin) return false;
-  if (filter.durationMax !== null && task.duration > filter.durationMax) return false;
+  if (filter.progressMin !== null && (task.progress === null || task.progress < filter.progressMin)) return false;
+  if (filter.progressMax !== null && (task.progress === null || task.progress > filter.progressMax)) return false;
+  if (filter.durationMin !== null && (task.duration === null || task.duration < filter.durationMin)) return false;
+  if (filter.durationMax !== null && (task.duration === null || task.duration > filter.durationMax)) return false;
 
   const assigned = assignmentIdsByTask.get(task.taskId) ?? new Set<string>();
   if (filter.assignmentState === "assigned" && assigned.size === 0) return false;
@@ -252,9 +253,10 @@ export function filterTasksWithAncestors(
   filter: TaskFilterState,
   assignments: readonly ProjectAssignmentDto[] | undefined,
   logistics?: ProjectLogisticsDto | undefined,
-): Readonly<{ tasks: ProjectTaskDto[]; matchCount: number }> {
+  logisticsContextTasks: readonly ProjectTaskDto[] = tasks,
+): Readonly<{ tasks: ProjectTaskDto[]; matchCount: number; matchingTaskIds: readonly string[] }> {
   const assigned = buildAssignmentIdsByTask(assignments);
-  const effectiveLogistics = buildTaskEffectiveLogisticsMap(tasks, logistics);
+  const effectiveLogistics = buildTaskEffectiveLogisticsMap(logisticsContextTasks, logistics);
   const matching = tasks.filter((task) => taskMatchesFilter(task, filter, assigned, effectiveLogistics));
   const matchingExternalIds = new Set(matching.map((task) => task.externalId));
   const byExternalId = new Map(tasks.map((task) => [task.externalId, task]));
@@ -267,7 +269,7 @@ export function filterTasksWithAncestors(
       parentId = byExternalId.get(parentId)?.parentExternalId ?? null;
     }
   }
-  return { tasks: tasks.filter((task) => visibleExternalIds.has(task.externalId)), matchCount: matching.length };
+  return { tasks: tasks.filter((task) => visibleExternalIds.has(task.externalId)), matchCount: matching.length, matchingTaskIds: matching.map((task) => task.taskId) };
 }
 
 export function activeTaskFilterCount(filter: TaskFilterState): number {

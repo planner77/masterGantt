@@ -1,5 +1,33 @@
 # SVAR Core 활용과 독립 기능 계획
 
+## Issue #418 — Core `add-task`와 scoped command 해석
+
+설치 Core 2.7.3의 Grid `add-task` column과 공개 `add-task` action은 native Header/Row 추가 UI 및 `target + mode(before/after/child)` 계약을 제공한다. masterGantt는 이 공개 interaction을 유지하되 Workspace scope에서 command 의미를 자체 canonical hierarchy에 맞게 해석한다. 전체 Project Header는 root add, scoped Header는 active Summary root의 immediate child, Row는 해당 Task/Summary의 child다. 일반 Task first-child Summary 전환과 일정 계산은 기존 서버 transaction이 담당하며 PRO/비공개 Store를 사용하지 않는다.
+
+#418은 Core의 임시 local mutation을 계속 `api.intercept`로 취소하고 protected HTTP→canonical snapshot→공개 `api.exec` sync만 durable authority로 사용한다. canonical sync와 `filter-tasks`를 한 직렬 경계에 두고 add 전후 scroll/focus를 복원해 scoped filter가 Core의 중간 상태를 노출하지 않게 한다. 공식 참조: [add-task action](https://docs.svar.dev/react/gantt/api/actions/add-task/), [Grid columns](https://docs.svar.dev/react/gantt/api/configs/columns/), [Willow demo](https://docs.svar.dev/react/gantt/samples/#/base/willow). 확인일 2026-10-04. URL/계약 확인은 browser PASS가 아니며 동일 PR head E2E와 구분한다.
+
+## Issue #384 — 앱 소유 다중 Copy 선택
+
+설치 Core 2.7.3의 공개 select-task 타입은 toggle/range·selected 배열을 제공하지만 getState 문서에는 scalar 설명도 남아 있다. 앱 선택 집합이 Copy 기준이고 공개 Core select-task는 단일 primary만 연동한다. 별도 checkbox cell은 공개 IColumnConfig.cell을 사용하고 비공개 Store/PRO 구현을 사용하지 않는다.
+
+공식 참조: [select-task](https://docs.svar.dev/react/gantt/api/actions/select-task/), [getState](https://docs.svar.dev/react/gantt/api/methods/getstate/), [Context Menu](https://docs.svar.dev/react/gantt/helpers/getmenuoptions/). 확인일 2026-10-02. URL·설치 타입 확인은 실제 demo 조작이나 구현 browser PASS가 아니다. 실행 결과는 TEST_PLAN/PR의 exact head evidence를 따른다.
+
+## Issue #335 — linked sibling reorder와 Core 공개 move-task
+
+설치 Core 2.7.3의 공개 `move-task` action은 `up/down/before/after/child`를 구분한다. masterGantt는 이 공개 interaction을 사용하되 서버 canonical hierarchy를 authority로 유지하며, #335에서는 같은 parent의 `up/down/before/after`만 Dependency 연결 상태와 분리해 허용한다. parent 변경/`child` 보호와 자체 Dependency/Scheduling 검증은 그대로다.
+
+공식 참조: [move-task](https://docs.svar.dev/react/gantt/api/actions/move-task/), [User interface](https://docs.svar.dev/react/gantt/guides/ui-layout/user-interface/), [Context Menu helper](https://docs.svar.dev/react/gantt/helpers/getmenuoptions/), [Willow demo](https://docs.svar.dev/react/gantt/samples/#/base/willow). 확인일 2026-10-03. PRO package나 비공개 Store 구현을 사용하지 않는다. URL 확인은 실제 제품 browser PASS가 아니며 PR exact head E2E와 구분한다.
+
+## Issue #345 빈 Summary Core 2.7.3 표현
+
+2026-10-01 설치 Core 2.7.3 실제 Chromium probe에서 날짜 없는 native `summary`는 `Summary tasks must have start and end dates if they have no subtasks`로 초기 로드가 실패했다. 날짜 없는 public custom type은 행을 남기지만 유효하지 않은 bar 좌표를 만들었다. 이 두 경로를 채택하지 않는다. 공식 [taskTypes](https://docs.svar.dev/react/gantt/api/properties/tasktypes/) 확장과 앱 adapter로 Renderer 전용 `summary-container`를 사용한다. PRO `unscheduledTasks`/`summary` 옵션과 비공개 `$skip` 조작은 사용하지 않는다.
+
+canonical Summary의 `start/end/duration/progress`는 계속 `null`이다. Renderer만 날짜 있는 실제 Leaf의 최소 시작일(모두 미산정이면 표시용 오늘 범위)에 `start=end`인 영폭 좌표를 준다. Core의 공개 Task 입력 계산은 이 영폭의 bar wrapper를 만들지 않는다. 이는 일정이나 duration 0 Milestone이 아니다. `summary-container`는 Domain/API/DB/Import/Export에 존재하지 않는다.
+
+Grid의 날짜·정렬·기간, Editor, 필터, 진척과 완료, 이미지/Excel Export는 원본 DTO를 사용한다. Renderer serialize의 영폭 날짜는 저장/복사/계층 명령의 일정 입력으로 재사용하지 않는다. reverse adapter는 null Summary에 날짜/진척/resize 명령을 거부하고 명시적 이름 변경만 허용한다. native Summary drag/resize intercept와 no-bar 표현을 유지한다. 마지막 child를 잃은 노드에는 `open-task`를 복원하지 않아 Core의 빈 child collection 예외를 방지한다.
+
+실제 probe는 `tests/e2e/project-empty-summary.spec.ts`, 실제 SQLite/API first/last child·same-instance·재조회는 `tests/e2e/project-empty-summary-persistence.spec.ts`로 검증한다. URL/문서 확인과 browser 조작 증거는 구분하며 CI 완료 전 전체 회귀는 NOT TESTED다.
+
 상태: W03 Core-only 최소 통합, W06 독립 Calendar/Leaf Scheduling과 W07 root Task/Milestone persistence 완료. 확인일: 2026-09-12. W24는 명시적으로 확인한 첫 child 생성과 Summary 집계, 순수 WBS 계산을 선행 구현했지만 W08 전체를 완료한 것은 아니다. Reparent, WBS HTTP DTO/UI와 FS 재계산은 후속이다. 무료 Core가 표현할 수 있는 Link가 곧 본 시스템의 Scheduling 지원 범위인 것은 아니다.
 
 ## 1. 원칙과 근거
@@ -76,3 +104,8 @@ masterGantt의 실제 구현 경계는 다음과 같다.
 ## Issue #258 — 관계 연결 Task 편집
 
 Core 2.7.3의 공개 Grid text editor·Chart move/resize·update-task interaction을 보호된 Task PATCH로 연결한다. 요청 시작일과 적용 일정의 구분, Baseline effective schedule 복사, 전체 successor 재계산·Summary 파생은 자체 domain/server 구현이다. SVAR PRO `schedule`/working calendar/auto-scheduling은 활성화하지 않는다. 구조 명령의 linked 보호는 확대하지 않는다.
+
+## Issue #299 Chart 수직 Drag & Drop
+
+same-parent Chart reorder는 SVAR PRO에 의존하지 않는다. Core 2.7.3의 공개 `drag-task(top)` feedback과 masterGantt의 protected hierarchy command를 연결하며, 별도 PRO package·비공개 구현·cross-parent implicit reparent는 사용하지 않는다.
+

@@ -1,5 +1,43 @@
 # Backend API
 
+## Issue #430 — `task-commands` Cut/Reparent Dependency 경계
+
+`POST /api/projects/{publicId}/task-commands`의 기존 `reparent` schema는 변경하지 않는다. Cut clipboard는 client 상태이며 실제 저장은 `reparent` 한 번으로 수행한다.
+
+- source Task + descendants를 canonical subtree `C`로 계산한다.
+- Link의 predecessor/successor가 모두 `C` 내부이면 parent 변경을 허용하고 기존 Link row/ID, endpoint, type, signed lag/lead를 그대로 유지한다.
+- 정확히 한 endpoint만 `C` 내부인 incoming/outgoing boundary Link가 있으면 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 전체 mutation을 거부한다.
+- 양 endpoint가 모두 `C` 밖인 unrelated Link와 Paste anchor의 독립적인 Link는 before/after reparent 제한 사유가 아니다.
+- `placement:"child"`가 linked leaf anchor를 Summary endpoint로 전환해야 하는 경우에는 기존 `UNSUPPORTED_SCHEDULE_STRUCTURE` 보호를 유지한다.
+- same-parent sibling reorder의 #335 예외, cycle/Project/parent/revision/session/Origin/If-Match 검증과 성공 revision +1 / 실패 +0 원자성은 유지한다.
+
+Frontend의 Context Menu Cut과 Ctrl/Cmd+X도 동일한 boundary 판정을 사용한다. Copy는 #378/#384의 별도 identity 복제 계약을 유지한다.
+
+## Issue #384 — 여러 Copy source의 원자적 처리
+
+`POST /api/projects/{publicId}/task-commands`의 Copy는 `{ "kind": "copy", "taskIds": ["<source-1>", "<source-2>"], "anchorTaskId": "<target>", "placement": "before|after|child" }`를 지원한다. 기존 `taskId` 하나도 호환하며 parser에서 `taskIds: [taskId]`로 정규화한다. 두 필드 동시 제출, source 누락·빈 배열·중복·잘못된 UUID·unknown field는 `400 INVALID_REQUEST`다. 입력 source ID는 ancestor 정리 전 최대 500개이고 기존 UTF-8 JSON body 32 KiB 제한을 유지한다. 최종 Task 수는 descendants를 포함하여 Project의 5000개 상한을 적용한다.
+
+서버는 현재 Project canonical Task로 모든 source를 resolve하고 선택 ancestor가 있는 항목을 root에서 제거한다. 남은 root와 전체 자손을 중복 없이 canonical hierarchy preorder(각 family의 numeric sibling order)로 복사한다. 선택 배열 순서와 WBS 문자열 사전순은 정렬 기준이 아니다. 여러 root는 before/after/마지막 child 위치에 하나의 연속 block으로 삽입하고 subtree 내부 구조를 유지한다. Project 밖·존재하지 않는 source/anchor는 `404 TASK_NOT_FOUND`, stale If-Match는 `412 REVISION_MISMATCH`다.
+
+전체 Copy 집합의 양쪽 endpoint가 포함된 Dependency만 새 Task/Link ID로 복제한다. 서로 다른 root 사이 관계도 포함하며 #378 type/lag·외부 관계 제외·Calendar 및 Dependency 재계산을 재사용한다. 원본 Baseline은 불변이고 복사본 Baseline은 기존 계약대로 null 초기화한다. Summary Baseline은 기존 파생 규칙이다. 물류 직접 연결을 자동 복제하지 않고 원본 연결은 보존한다. Resource/Group Assignment가 집합에 하나라도 있으면 `409 TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 전체 거부한다.
+
+기존 descendant anchor Copy 호환을 유지하고 anchor가 집합 안이라는 이유로 새 제한을 만들지 않는다. child Paste의 Milestone parent 및 linked leaf→Summary 보호는 유지한다. 생성·root order·일정·Summary 파생·revision +1은 한 IMMEDIATE transaction이며 실패 시 부분 생성·revision +0으로 rollback한다. 응답 full canonical snapshot/changedTaskExternalIds와 단일 Cut/reparent 계약은 유지한다. scoped view는 client 표시 경계이며 서버 권한이나 별도 aggregate가 아니다.
+
+## Issue #378 — `task-commands` Copy의 Dependency 계약
+
+`POST /api/projects/{publicId}/task-commands`의 `kind: "copy"`는 source Task 또는 source subtree를 서버 canonical hierarchy에서 계산한다. 클라이언트가 Link 목록이나 신규 ID를 제출하지 않는다.
+
+- 단일 입력의 `copySet = source + descendants`; 다중 입력은 normalized roots와 각 subtree의 union
+- `internalLinks = links where predecessor ∈ copySet AND successor ∈ copySet`
+- internal Link만 새 Task endpoint와 새 Link public ID로 생성한다.
+- external→internal / internal→external Link는 생성하지 않는다.
+- type과 signed lag/lead를 보존한다.
+- source subtree에 Resource assignment가 있으면 기존 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED` fail-closed 계약을 유지한다.
+- `placement: "child"`가 linked leaf anchor를 Summary endpoint로 전환해야 하는 경우 기존 `UNSUPPORTED_SCHEDULE_STRUCTURE` 보호를 유지한다. linked anchor의 before/after 위치 사용은 허용한다.
+- Copy 전체는 edit session, Origin, strong If-Match, Project 격리와 단일 SQLite transaction을 사용하고 성공 시 Project revision을 정확히 1 증가시킨다.
+- 성공 응답은 기존 canonical `tasks[]`와 `links[]` 전체를 반환한다. 복제된 Link는 `links[]`에서 새 ID/new endpoint로 확인하며 별도 client-generated Link metadata는 사용하지 않는다.
+
+
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
 
@@ -114,6 +152,27 @@ Project metadata, calendar, task, link, task batch, import commit처럼 schedule
 ```
 
 `operation`의 detail은 operation별로 달라도 `project/tasks/links/warnings` shape은 바꾸지 않는다. 배열 순서는 저장된 hierarchy/sibling 순서와 안정적인 Link 순서를 따른다. Response `ETag`은 body revision과 같다. 이 정책은 초기 소규모 Project에 맞춘 것이며 측정 없이 부분 patch protocol로 바꾸지 않는다. Issue #54 이전 데이터는 `ownerName: null`로 조회될 수 있으며 UI는 이를 `미지정`으로 표시한다.
+
+#### Calendar exception 이름 projection — Issue #315
+
+Canonical Project snapshot의 `project.calendar.exceptions[]`는 Effective Project Calendar의 날짜별 예외를 반환하며, 현재 서버 응답은 표시용 복수 이름 projection인 `names`를 포함할 수 있다.
+
+```json
+{
+  "date": "2026-12-25",
+  "dayType": "NON_WORKING",
+  "name": "기독탄신일",
+  "names": ["기독탄신일", "회사 휴무"]
+}
+```
+
+- `name`은 기존 단일 이름 호환 projection을 유지한다.
+- `names`는 같은 날짜에 저장된 의미 있는 Project-level 이름을 trim한 뒤 빈 값을 제외하고, 중복을 제거한 deterministic 정렬 결과다.
+- `names`는 표시 metadata이며 Scheduling의 날짜별 effective `dayType` 또는 working-day 계산을 추가로 변경하지 않는다.
+- `dayType: "NON_WORKING"`인 항목의 이름은 휴일/비근무 사유로 표시할 수 있다. `dayType: "WORKING"`의 이름은 근무 override 사유일 수 있으므로 휴일명으로 해석하면 안 된다.
+- 오래된 fixture/client 호환을 위해 TypeScript 계약에서는 `exceptions`와 `names`가 optional이지만, 현재 canonical server snapshot은 materialized exception 정보를 제공한다.
+- `holidays[]`는 기존 non-working holiday 호환 projection이며, 복수 source 이름이 필요한 새 UI는 `exceptions[].names`를 우선 사용한다.
+
 
 ## 3. 권한 모델
 
@@ -466,7 +525,7 @@ Exact same-origin `Origin`이 필요하다. 현재 Project에 binding된 session
 
 ## 5. Task 표현과 API
 
-W24는 root 및 nested `task | milestone` CRUD와 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder는 아래 task-commands, atomic task-batch는 task-batch endpoint 계약을 따른다. WBS 응답 필드는 해당 절을 따른다. W24 당시 Link mutation과 FS 재계산은 W09 후속 범위였으며, 현재는 Issue #200의 FS/SS/FF/SF 및 signed lag Link 계약과 Issue #258의 연결 Task 일정 재계산 계약을 따른다. Task 생성·삭제·계층 mutation은 선택 Task 또는 mutation 영향 subtree가 Dependency endpoint를 포함할 때 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다. Issue #258부터 일반 Task/Milestone의 필드 PATCH는 관계 유무와 무관하게 아래 필드별 계약으로 허용한다. 프로젝트의 다른 Task에만 Link가 있는 경우에는 mutation을 허용하고 기존 Link를 canonical snapshot에 그대로 보존한다.
+현재 root 및 nested `task | milestone | summary` 생성과 명시적 첫-child 생성에 따른 Task→Summary 전환을 공개한다. Create 요청은 API용 `parentTaskId`를 받고 snapshot은 안정적인 `parentExternalId` 관계를 반환한다. Summary 일정은 Scheduling Engine이 계산하며 이름만 직접 변경할 수 있다. Reorder는 아래 task-commands, atomic task-batch는 task-batch endpoint 계약을 따른다. WBS 응답 필드는 해당 절을 따른다. W24 당시 Link mutation과 FS 재계산은 W09 후속 범위였으며, 현재는 Issue #200의 FS/SS/FF/SF 및 signed lag Link 계약과 Issue #258의 연결 Task 일정 재계산 계약을 따른다. Task 생성·삭제·Indent/Outdent/Convert 등은 기존 명령별 Dependency 보호를 유지한다. **Issue #430부터 Cut-Paste에 대응하는 cross-parent `reparent`는 source subtree 내부 Dependency만 존재하면 허용하고 경계를 넘는 incoming/outgoing Link가 있으면 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`로 거부한다.** Issue #258부터 일반 Task/Milestone의 필드 PATCH는 관계 유무와 무관하게 아래 필드별 계약으로 허용한다. 프로젝트의 다른 Task에만 Link가 있는 경우에는 mutation을 허용하고 기존 Link를 canonical snapshot에 그대로 보존한다.
 
 ### Task response
 
@@ -493,7 +552,7 @@ W24는 root 및 nested `task | milestone` CRUD와 명시적 첫-child 생성에 
 - Summary의 requestedStart는 null, scheduleMode는 auto이며 start/end/duration/progress/WBS는 Scheduling Engine 결과다. Summary mode 생략은 auto로 정규화하고 manual은 거부한다. W24 API는 Summary와 parent 관계를 공개하지만 WBS 필드는 아직 HTTP DTO에 추가하지 않는다.
 - Summary span duration은 descendant leaf의 최소 start부터 최대 end까지의 working-day 수이며 자식 duration 합이 아니다.
 - Summary progress는 일반 descendant task의 duration-weighted finite 0..100 값이며 계산/저장 단계에서 반올림하지 않는다. 일반 task가 하나도 없는 milestone-only summary 정책은 Scheduling 문서를 따른다. Import의 summary date/duration/progress는 optional snapshot이고 authority가 아니며 preview가 파생 결과와의 차이를 보고한다.
-- Parent는 같은 Project의 summary만 가능하다. Empty summary, missing parent, hierarchy cycle을 거부한다.
+- Parent는 같은 Project의 summary만 가능하다. 빈 Summary를 허용하며 missing parent와 hierarchy cycle은 거부한다.
 
 ### `POST /api/projects/{publicId}/tasks`
 
@@ -531,7 +590,7 @@ Auto의 비근무 requested start는 다음 근무일로 이동해 `NON_WORKING_
 
 ### `DELETE /api/projects/{publicId}/tasks/{taskId}`
 
-기본 요청은 기존 계약을 유지하여 Root 또는 nested Leaf/Milestone **한 작업만** 삭제한다. Nested leaf 삭제 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. 마지막 child 삭제는 `EMPTY_SUMMARY_NOT_ALLOWED`, child가 있는 Summary를 명시적 subtree 의도 없이 삭제하면 `SUMMARY_DELETE_UNSUPPORTED`로 거부한다. 삭제 대상 Task가 Dependency endpoint이면 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 Task·Link·revision을 모두 보존한다. 다른 Task 사이에만 Link가 있으면 해당 Link를 보존한 채 삭제를 허용한다.
+기본 요청은 기존 계약을 유지하여 Root 또는 nested Leaf/Milestone **한 작업만** 삭제한다. Nested leaf 삭제 후 모든 ancestor Summary를 같은 transaction에서 재계산한다. 마지막 child 삭제는 성공하고 부모 Summary를 미산정 상태로 유지한다. 자식이 없는 Summary 자체는 단건 삭제할 수 있다. child가 있는 Summary를 명시적 subtree 의도 없이 삭제하면 `SUMMARY_DELETE_UNSUPPORTED`로 거부한다. 삭제 대상 Task가 Dependency endpoint이면 `UNSUPPORTED_SCHEDULE_STRUCTURE`로 Task·Link·revision을 모두 보존한다. 다른 Task 사이에만 Link가 있으면 해당 Link를 보존한 채 삭제를 허용한다.
 
 Issue #31부터 선택 작업과 모든 깊이의 자손을 함께 삭제할 때는 다음처럼 명시적인 query를 사용한다.
 
@@ -543,10 +602,11 @@ If-Match: "<current revision>"
 
 `includeDescendants=true`는 삭제 범위 의도이며 인증을 대체하지 않는다. 기존 Task DELETE와 동일하게 edit session, exact Origin, strong If-Match가 필요하다. 서버는 client가 전달한 자손 ID/개수를 신뢰하지 않고 write transaction 안에서 현재 저장된 parent 관계로 target subtree를 다시 계산한다. child-first로 target+전체 자손을 제거하고 남은 ancestor Summary를 재계산한 뒤 Project revision을 정확히 1 증가시킨다. 응답의 `operation.deletedTaskExternalIds`에는 실제 삭제한 전체 집합을 기록하고 canonical full snapshot을 반환한다.
 
+선택 범위 밖의 parent Summary가 비어도 삭제는 성공하고 해당 부모의 ID/type과 연결을 유지한다.
+
 다음 경우는 전체 rollback한다.
 
 - Task가 존재하지 않거나 다른 Project에 속한다.
-- 선택 범위 밖의 parent Summary가 비게 된다 (`EMPTY_SUMMARY_NOT_ALLOWED`).
 - 확인 이후 다른 write로 revision이 바뀐다 (`REVISION_MISMATCH` / HTTP 412).
 - 선택 Task/삭제 subtree에 Dependency endpoint가 포함되어 hierarchy mutation 정책을 만족하지 않는다 (`UNSUPPORTED_SCHEDULE_STRUCTURE`).
 - 저장된 계층이 cycle/고아/일정 불일치 등으로 유효하지 않다.
@@ -555,7 +615,7 @@ UI는 canonical snapshot의 자손 수를 확인창에 표시하지만 이는 �
 
 ### `POST /api/projects/{publicId}/task-batches` — W08 계획, 현재 Route 없음
 
-Empty summary를 금지하면서 summary와 첫 child를 만들거나 마지막 child를 옮기고 빈 summary를 삭제할 수 있도록 작은 atomic command endpoint를 제공한다. Edit session과 `If-Match`가 필요하다.
+다음은 후속 atomic batch endpoint 계약이다. 빈 Summary 생성·마지막 child 이동은 현재 단건/hierarchy 명령에서도 유효하며, batch에서도 Summary 유형을 유지한다. Edit session과 `If-Match`가 필요하다.
 
 ```json
 {
@@ -590,7 +650,7 @@ Batch target은 JSON externalId로 참조하며 URL CRUD의 taskId와 구분한�
 2. 현재 snapshot의 메모리 복사본에 배열 순서대로 operation을 적용한다.
 3. 같은 batch에서 먼저 생성한 external ID를 뒤 operation이 참조할 수 있다. Update/delete 대상이 그 시점에 없거나 이미 삭제되었으면 전체를 거부한다.
 4. Sibling order를 최종 parent별 contiguous 순서로 정규화한다.
-5. **최종 candidate snapshot 한 번**에 parent type, empty summary, hierarchy/dependency cycle, calendar, Manual/Auto, Summary/WBS 계산을 수행한다. 중간 candidate의 empty summary는 허용하지만 final snapshot에는 허용하지 않는다.
+5. **최종 candidate snapshot 한 번**에 parent type, empty summary, hierarchy/dependency cycle, calendar, Manual/Auto, Summary/WBS 계산을 수행한다. 중간 및 final snapshot 모두 빈 Summary와 미산정 Summary를 허용하며 부분 NULL Leaf는 거부한다.
 6. Revision을 다시 확인하고 하나의 transaction으로 저장한 뒤 canonical full snapshot을 반환한다.
 
 예를 들어 새 summary와 child를 함께 생성하거나, 기존 task를 새 summary로 감싸거나, 기존 summary의 모든 child를 명시적으로 reparent/delete한 뒤 summary를 삭제할 수 있다. `delete`는 지정한 task 하나만 삭제하며 descendant를 암묵적으로 cascade하지 않는다. 지정 task의 incident Link 삭제는 단일 delete와 동일하게 결과의 `deletedLinkIds`에 명시한다.
@@ -711,7 +771,7 @@ Readonly Project의 canonical snapshot으로 안전한 SVG를 생성한다. `Ori
 | 401 | `EDIT_SESSION_REQUIRED`, `INVALID_CREDENTIALS`, `SESSION_EXPIRED` | 인증 실패 |
 | 403 | `ORIGIN_NOT_ALLOWED` | Same-Origin/CSRF 정책 실패 |
 | 404 | `PROJECT_NOT_FOUND`, `TASK_NOT_FOUND`, `LINK_NOT_FOUND` | Scope 안에서 대상 없음 |
-| 409 | `DUPLICATE_EXTERNAL_ID`, `TASK_LIMIT_EXCEEDED`, `UNSUPPORTED_SCHEDULE_STRUCTURE`, `PARENT_CONVERSION_REQUIRED`, `INVALID_PARENT_TASK`, `EMPTY_SUMMARY_NOT_ALLOWED`, `SUMMARY_DELETE_UNSUPPORTED`, `SUMMARY_SCHEDULE_READONLY`, `DEPENDENCY_CYCLE`, `MANUAL_DEPENDENCY_CONFLICT`, `MANUAL_CALENDAR_CONFLICT`, `RESOURCE_ASSIGNMENT_SCHEDULE_CONFLICT` | 현재 aggregate와 domain/capability 충돌 |
+| 409 | `DUPLICATE_EXTERNAL_ID`, `TASK_LIMIT_EXCEEDED`, `UNSUPPORTED_SCHEDULE_STRUCTURE`, `PARENT_CONVERSION_REQUIRED`, `INVALID_PARENT_TASK`, `SUMMARY_DELETE_UNSUPPORTED`, `SUMMARY_SCHEDULE_READONLY`, `DEPENDENCY_CYCLE`, `MANUAL_DEPENDENCY_CONFLICT`, `MANUAL_CALENDAR_CONFLICT`, `RESOURCE_ASSIGNMENT_SCHEDULE_CONFLICT` | 현재 aggregate와 domain/capability 충돌 |
 | 412 | `REVISION_MISMATCH` | stale If-Match |
 | 413 | `REQUEST_TOO_LARGE`, `IMPORT_TOO_LARGE` | 일반 body 또는 Import byte/entity/depth/date range 상한 초과 |
 | 415 | `UNSUPPORTED_MEDIA_TYPE`, `UNSUPPORTED_IMPORT_FORMAT` | 허용하지 않은 형식 |
@@ -782,13 +842,13 @@ Project readonly 범위에서 리소스 계획 공수를 조회한다. `from`/`t
 
 보호된 Project mutation이다. exact Origin, 유효한 edit session과 strong `If-Match: "<revision>"`가 필요하며 성공은 `200`과 새 ETag/canonical Task snapshot을 반환한다. 한 HTTP 명령은 하나의 SQLite immediate transaction에서 parent/order/type/subtree와 파생 Summary를 저장하고 Project revision을 정확히 1 증가시킨다.
 
-지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste와 Grid Drag & Drop의 실제 저장 동작이며 같은 parent 안의 재정렬도 지원한다. `copy`는 source subtree에 새 taskId/externalId를 발급한다. 선택 Task 또는 계층 mutation의 영향 subtree가 Dependency endpoint를 포함하면 기존 fail-closed 정책대로 `409 UNSUPPORTED_SCHEDULE_STRUCTURE`를 반환한다. 프로젝트의 unrelated Link만으로는 다른 Task의 계층 명령을 거부하지 않으며 성공 canonical snapshot에 해당 Link를 보존한다.
+지원 `kind`는 `create`, `convert`, `move`, `indent`, `outdent`, `reparent`, `copy`다. 위치가 필요한 명령은 `before | after | child`를 사용한다. `reparent`는 Cut→Paste와 Grid Drag & Drop의 실제 저장 동작이며 같은 parent 안의 재정렬도 지원한다. **#430부터 cross-parent `reparent`는 source subtree 내부에서 완결되는 Dependency를 그대로 보존하여 허용하고, source 경계를 넘는 incoming/outgoing Link가 있으면 거부한다.** linked anchor의 before/after 위치 사용은 허용하지만 `child`가 linked leaf anchor를 Summary로 전환해야 하면 기존 보호를 유지한다. `copy`는 source subtree에 새 taskId/externalId를 발급하고, **복사 집합 내부에서 양쪽 endpoint가 모두 포함된 Dependency Link만 새 Task endpoint와 새 Link ID로 함께 복제한다(#378)**. 외부→내부/내부→외부 Link는 복제하지 않는다. Indent/Outdent/Convert/Delete 등 다른 관계 민감 구조 mutation의 기존 fail-closed 정책은 유지한다. 프로젝트의 unrelated Link만으로는 다른 Task의 계층 명령을 거부하지 않으며 성공 canonical snapshot에 해당 Link를 보존한다.
 
 Issue #300의 Grid 이동은 기존 `{kind:"reparent", taskId, anchorTaskId, placement:"before"|"after"|"child"}` 입력을 사용한다. Context Menu Up/Down은 기존 `{kind:"move",taskId,direction:"up"|"down"}`이다. 두 경로는 같은 hierarchy service와 sibling 순서 불변조건을 사용한다. Source/target은 SVAR 표시 ID가 아닌 canonical Task public ID로 전달한다. 서버는 이동한 family의 `sort_order`를 `0..N-1`로 정규화하고 parent 변경 시 이전/새 family를 함께 저장한다.
 
 이동 성공 뒤 이름 수정은 최신 revision의 `PATCH /tasks/{taskId}`에 `{name}`만 전달한다. 일반 Task PATCH는 구조 필드(`parentTaskId`, `parentExternalId`, `siblingOrder`, `sort_order`)를 허용하지 않으며 rename/description/progress 변경은 저장된 parent/order를 보존한다. 이동과 후속 이름 저장은 각각 revision +1이며, 후속 PATCH가 이전 revision을 사용하면 `412`로 이름·parent/order를 모두 보존한다. Grid 이동 저장 실패는 canonical 재조회로 복구하고 성공처럼 표시하지 않는다. 새 reorder endpoint/입력 계약은 추가하지 않는다.
 
-경계 이동 등 현재 위치에서 의미 없는 명령은 `409 TASK_COMMAND_NOT_AVAILABLE`, 마지막 child 이동으로 빈 Summary가 생기면 `409 EMPTY_SUMMARY_NOT_ALLOWED`, Resource Assignment가 포함된 subtree Copy는 현재 `409 TASK_COPY_ASSIGNMENTS_UNSUPPORTED`다. stale revision은 `412 REVISION_MISMATCH`이며 부분 저장은 없다.
+경계 이동 등 현재 위치에서 의미 없는 명령은 `409 TASK_COMMAND_NOT_AVAILABLE`, 마지막 child 이동은 기존 부모 Summary를 미산정 상태로 유지하며, Resource Assignment가 포함된 subtree Copy는 현재 `409 TASK_COPY_ASSIGNMENTS_UNSUPPORTED`다. stale revision은 `412 REVISION_MISMATCH`이며 부분 저장은 없다.
 
 
 ## Issue #97 — Link mutation API (implemented)
@@ -804,6 +864,26 @@ Issue #300의 Grid 이동은 기존 `{kind:"reparent", taskId, anchorTaskId, pla
 ### `PUT /api/resource-catalog/admin-password` (Issue #99)
 
 유효한 Resource catalog 관리자 Cookie가 필요하다. body는 `newPassword`와 동일한 `confirmPassword`를 받으며 1~12 Unicode 문자 정책을 적용한다. 성공 시 기존 Resource 관리자 세션을 모두 revoke하고 호출자에게 새 관리자 Cookie를 발급한다. 원문 비밀번호는 DB·응답·로그에 남기지 않는다. 최초 자격증명이 없을 때만 `RESOURCE_CATALOG_ADMIN_PASSWORD`를 seed로 사용하고, DB 자격증명이 생성된 이후에는 환경변수 변경으로 덮어쓰지 않는다.
+
+## Issue #329 — 미사용 Resource / Resource Group guarded DELETE
+
+관리자용 Resource Catalog 응답의 각 Resource/Group은 `projectUsageCount`와 `deletable`을 반환한다. 이 값은 UI에서 삭제 가능 여부와 사유를 표시하기 위한 힌트이며 authorization 또는 삭제 가능성의 최종 근거가 아니다.
+
+- Resource usage: Task assignment, 설비 `owner/contributor`, 시스템 `pi/developer`, Resource 대상 Work Calendar의 distinct Project 합집합
+- Resource Group usage: Task group assignment, Resource Group 대상 Work Calendar의 distinct Project 합집합
+- Group membership 자체는 Project usage가 아니다.
+
+### `DELETE /api/resources/{resourceId}`
+
+Resource catalog 관리자 Cookie, exact allowed Origin, strong catalog `If-Match: "<revision>"`가 필요하다. 하나의 SQLite `IMMEDIATE` transaction 안에서 관리자 session/revision → 최신 Project usage → membership cleanup → Resource 삭제 → catalog revision +1 순으로 처리하고 성공 시 새 canonical Resource Catalog와 ETag를 `200`으로 반환한다.
+
+Project usage가 하나라도 있으면 `409 RESOURCE_IN_USE`로 거부한다. 오류 detail에는 Project 이름/내용을 노출하지 않고 `PROJECT_USAGE_COUNT`와 실제 존재하는 usage category별 Project count만 포함한다.
+
+### `DELETE /api/resource-groups/{groupId}`
+
+동일한 관리자/Origin/`If-Match` 계약을 사용한다. Project usage가 0일 때 해당 Group의 `resource_group_members`만 정리하고 Group row를 삭제하며 member Resource row는 보존한다. 사용 중이면 `409 RESOURCE_GROUP_IN_USE`로 원자 거부한다.
+
+두 DELETE 모두 stale catalog는 기존 `412 CATALOG_REVISION_MISMATCH`, 관리자 session 부재/만료는 `401 RESOURCE_ADMIN_SESSION_REQUIRED`, Origin 불일치는 `403 ORIGIN_NOT_ALLOWED`를 유지한다. UI의 `deletable`이 true였더라도 DELETE transaction에서 usage를 다시 계산하므로 동시 Project 할당/Calendar/Logistics 역할 생성은 fail-closed한다.
 
 ## Issue #184: Logistics Domain API
 
@@ -1198,16 +1278,129 @@ Resource Catalog의 Resource 응답은 `developerGrade: "BEGINNER" | "INTERMEDIA
 
 Project create/update request는 `businessUnitId/productId/siteEntityId: string | null`을 선택적으로 받는다. canonical Project DTO/List는 선택된 항목을 `{id, code, name, active}`로 반환한다. 신규 선택은 inactive를 거부하지만 현재 Project의 inactive 참조는 다른 메타데이터 저장 때문에 제거되지 않는다. 사용 중 stable code 변경은 `409 PROJECT_MASTER_ITEM_IN_USE`로 거부한다.
 
+## Issue #344 — Task DELETE 실패 후 frontend canonical 복구
+
+서버 API 계약 변경 없음. frontend의 canonical snapshot 수용·실패 복구를 보완한다. Task DELETE 성공은 기존처럼 revision을 증가시키고 canonical full snapshot을 반환한다. Issue #345 이후 마지막 child 삭제·이동은 성공한다. 유효한 거부 조건(401/412 또는 보호되는 Dependency endpoint 등)은 현재 mutation만 거부하며, 이전 성공 삭제나 revision을 되돌리지 않는다. unrelated Link 보존, 인증·Origin·strong `If-Match` 계약은 유지한다.
+
+Frontend는 현재 Project `publicId`와 마지막 확정 revision을 기준으로 snapshot을 확인한다. 다른 Project snapshot과 더 낮은 revision은 적용하지 않는다. `401/409/412/network` 실패 뒤 canonical GET은 `cache: "no-store"`로 요청하고, 확인 가능한 같은 revision 이상의 서버 snapshot만 적용한다. GET 실패 또는 오래된 응답에서는 마지막 확정 snapshot을 기존 Gantt 인스턴스에 동기화한다. 이 fallback은 서버의 현재 상태를 새로 확인했다는 의미가 아니며, 오류 안내와 재조회 경로를 유지한다. 실패한 요청을 자동 재전송하지 않는다.
+
+## Issue #345: 빈 Summary API 계약
+
+Summary는 자식 수와 무관하게 유효한 WBS 컨테이너다. 모든 canonical GET/mutation 응답에서 일정 있는 Task/Milestone 자손이 없으면 `type: summary`, `scheduleMode: auto`, `requestedStart/start/end/duration/progress: null`을 반환한다. 빈 Summary들만 중첩된 경우도 동일하다. 이름/ID/parent/order·직접 Resource/Group·물류 `self/subtree` 연결은 유지한다. Leaf의 필수 날짜·기간·진척, Summary Dependency endpoint 금지는 유지한다.
+
+`POST /api/projects/{publicId}/tasks`는 `{ "name": "설계", "type": "summary" }`와 선택적인 `parentTaskId`로 빈 Summary를 직접 생성한다. Summary의 `start/end/duration/progress` 입력은 생략 또는 명시적 null만 허용하고 `scheduleMode`는 생략/auto만 허용한다. `requestedStart`는 파생 응답 필드이며 create 입력 allowlist에 없으므로 명시하면 unknown field로 거부한다. Task/Milestone은 기존 strict schedule 입력이 필요하다. hierarchy `kind:create`의 task seed도 동일하다. Summary PATCH는 기존 이름 변경 정책을 유지하며 일정 수동 입력을 허용하지 않는다. 생성/복사 시 저장한 description/URL은 부모가 비어도 보존한다.
+
+단건 DELETE는 빈 Summary 자체를 삭제할 수 있다. 자손이 있는 Summary는 기존 `includeDescendants=true` 확인 경로를 이용한다. 마지막 child/선택 subtree 삭제 또는 reparent/indent/outdent 이후에도 범위 밖 부모가 비었다는 이유로 `EMPTY_SUMMARY_NOT_ALLOWED`를 반환하지 않는다. 한 논리적 변경의 transaction/revision/changed/deleted ID 계약과 보호 정책은 유지한다. 과거 오류 코드는 legacy error adapter의 호환 mapping만 남아 있으며 이 조건에서는 발생하지 않는다.
+
+프로젝트/Subtree copy는 null 일정 상태를 보존한다. Template preview의 `offsetDays/duration`은 미산정 Summary에 null이며 인스턴스화의 날짜 이동은 실제 Leaf에만 적용한 뒤 Summary를 재파생한다. calendar preview의 before/after 날짜 필드는 미산정 Summary에 null을 표현할 수 있다. Excel Export는 해당 행을 유지하고 null 일정 셀을 공란으로, SVG/PNG는 행을 유지하고 Grid는 —/Chart는 bar 없이 처리한다.
+
+Import는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md)의 pure payload validator만 이번 범위에 포함한다. 새 Import 화면/preview/commit API는 구현하지 않으며 실제 transaction Import 성공을 주장하지 않는다.
+
+
+## Issue #303 — Task status / progress canonical contract
+
+Task-level `status`는 Project `status`와 별도이며 `not_started | in_progress | completed`만 허용한다. 일반 Task/Milestone의 canonical response에는 status가 포함되고 Project Template instantiate 응답도 동일한 Task shape를 반환한다.
+
+Task create/update에서 status와 progress는 하나의 mutation/revision에 저장한다. `progress=100`은 `completed`, `status=completed`는 `progress=100`, `status=not_started`는 `progress=0`으로 정규화한다. 완료 상태에서 progress를 100 미만으로 낮추면 `in_progress`가 되며, `in_progress`는 0~99를 허용한다. 서버는 완료/진행률 모순 조합을 canonical snapshot에 저장하지 않는다.
+
+Summary는 직접 status를 PATCH하지 않는다. 기존 derived progress가 정확히 100이면 completed, 0보다 크고 100 미만이면 in_progress, 0 또는 미산정(null)이면 not_started로 파생한다. status/progress 변경은 요청/적용 일정, Dependency Link, revision/If-Match/Origin/edit-session 계약을 변경하지 않는다.
+
+## Issue #335 task-commands linked sibling reorder
+
+기존 `POST /api/projects/{publicId}/task-commands` schema를 변경하지 않는다.
+
+- `{"kind":"move","taskId":"...","direction":"up|down"}`: 정의상 같은 parent의 sibling order만 변경하므로 linked Task에도 허용한다.
+- `{"kind":"reparent","taskId":"...","anchorTaskId":"...","placement":"before|after"}`: 계산된 target parent가 source의 현재 parent와 같을 때만 linked source/anchor/descendant를 허용한다.
+- `placement:"child"` 또는 target parent가 달라지는 before/after는 #430부터 source subtree의 **boundary-crossing Dependency**가 없을 때 허용한다. 내부 Link는 identity/endpoints/type/lag를 보존한다. linked leaf anchor를 Summary로 바꾸는 `child`는 계속 거부한다.
+
+성공은 기존 transaction에서 sibling order를 정규화하고 Project revision을 정확히 +1 한 canonical snapshot을 반환한다. Link ID/endpoints/type/lag와 Task requestedStart/start/end/duration/scheduleMode/status/progress는 reorder로 변경하지 않는다. 실패 시 기존 401/403/404/409/412 계약과 rollback을 유지한다. 새 route, DTO field, DB migration은 없다.
+
+### Issue #299 — Chart 수직 sibling reorder
+
+Chart bar 수직 Drag & Drop은 새 endpoint 없이 기존 `POST /api/projects/{publicId}/task-commands`의 `reparent(before|after)`를 사용한다. edit session, Origin, strong `If-Match`, transaction, revision, canonical response 계약은 기존 hierarchy mutation과 동일하다. #335에 따라 linked same-parent sibling reorder는 허용하고 cross-parent implicit reparent는 만들지 않는다. vertical gesture 한 번은 hierarchy command 1회만 발생시키며 Task PATCH와 중복 저장하지 않는다.
+
+## Issue #412 — Resource global roles
+
+Resource Catalog의 Resource 표현은 `roles` 배열을 반환한다.
+
+```json
+{
+  "id": "<resource uuid>",
+  "name": "홍길동",
+  "developerGrade": "ADVANCED",
+  "roles": ["PI", "DEVELOPER"],
+  "active": true
+}
+```
+
+`POST /api/resources`와 `PATCH /api/resources/{resourceId}`는 optional `roles`를 받는다. 허용값은 `PI`, `DEVELOPER`, `EQUIPMENT_OWNER`이고 요청 내 중복은 `400 INVALID_REQUEST`로 거부한다. 응답 배열은 위 stable 순서로 canonicalize한다. Resource Group create/update에는 `roles`를 허용하지 않는다.
+
+역할 변경은 기존 Resource Catalog 관리자 session, mutation Origin 검증, strong catalog `If-Match`, stale `412 CATALOG_REVISION_MISMATCH`, canonical Resource Catalog response 계약을 그대로 사용한다. 실제 역할 변경은 catalog revision을 정확히 +1 하지만 동일 canonical 배열은 no-op이다. `DEVELOPER` role 편집은 `developerGrade`를 자동 변경하지 않는다.
+
+Task assignment search/assigned-target DTO에는 이 Issue에서 roles를 새로 결합하지 않는다. 역할 적합성 기반 Task assignment는 후속 #413의 범위다.
+
+## Issue #413 — Task assignment 수행 역할
+
+`GET /api/projects/{publicId}/assignment-targets`와 `GET /api/projects/{publicId}/assigned-targets`의 Resource target은 `roles: ("PI" | "DEVELOPER" | "EQUIPMENT_OWNER")[]`를 제공한다. Group target에는 roles를 제공하지 않는다.
+
+`PUT /api/projects/{publicId}/tasks/{taskId}/assignments`의 Resource target은 optional `role`을 함께 받는다.
+
+```json
+{
+  "catalogRevision": 23,
+  "targets": [
+    {
+      "kind": "resource",
+      "id": "<resource uuid>",
+      "role": "DEVELOPER",
+      "allocation": { "start": null, "end": null, "percent": 60 }
+    }
+  ]
+}
+```
+
+non-null role은 해당 Resource가 현재 보유한 Global Resource Role이어야 한다. omitted/null은 migration 이전 연동과 기존 역할 미지정 assignment의 하위 호환 상태로 유지된다. Group target에 `role` 또는 allocation을 보내면 invalid request다. 응답 `ProjectAssignmentDto.role`은 Resource에서 수행 역할 또는 null, Group에서 null이다.
+
+역할 검증은 기존 edit session, exact Origin, strong Project `If-Match`, `catalogRevision`과 같은 transaction에서 수행한다. stale catalog는 `412 CATALOG_REVISION_MISMATCH`, Resource가 보유하지 않은 role은 `409 ASSIGNMENT_ROLE_INVALID`이다. Resource Catalog에서 사용 중 role 제거는 `409 RESOURCE_ROLE_IN_USE`와 role/Project count/Task count detail을 반환한다.
+
+### Issue #413 역할 기반 assignment target 검색
+
+`GET /api/projects/{publicId}/assignment-targets`는 optional `role=PI|DEVELOPER|EQUIPMENT_OWNER`를 지원한다. role은 Resource 후보에만 적용하며 `kind=group`과 함께 보내면 `400 INVALID_REQUEST`다. 서버는 Global Resource Role membership으로 먼저 필터한 뒤 기존 최대 100건 제한을 적용하므로, 전체 활성 대상이 100건을 넘어도 해당 역할 Resource가 앞선 무관 후보 때문에 잘리지 않는다.
+
+Template instantiate 시 snapshot의 Resource 수행 역할이 현재 Global Role에서 제거된 경우 project 생성 자체를 실패시키지 않는다. 기존 assignment와 allocation은 보존하고 수행 역할만 `null`로 복원하며 warnings에 stale 역할을 명시한다.
+
+## Issue #414 — 역할 기반 Resource workload 응답 확장
+
+`GET /api/projects/{publicId}/resource-workload`는 #56의 public-read/조회범위/M-D·M-M 계산 계약을 유지하면서 역할 기반 진단 필드를 추가한다.
+
+- `asOfDate` / `timezone`: Project calendar timezone 기준 서버 기준일과 timezone.
+- `roleTotals[]`: `PI | DEVELOPER | EQUIPMENT_OWNER | UNSPECIFIED`별 `assignmentCount`, `effortMd`, `effortMm`, `unsetCount`.
+- `unspecifiedRoleCount`: 조회 범위에 포함된 role-null 일반 Task Resource assignment 수.
+- `overAllocatedResourceCount`: 기존 일별 allocation 합계 100% 초과 규칙으로 판정한 고유 Resource 수.
+- Resource row는 `developerGrade`를, Task row는 `role`, canonical `taskStart/taskEnd`, `progress`, `status`, `delayed`를 제공한다.
+
+역할은 분류 축일 뿐 공수를 생성하지 않는다. Grand Total과 역할 subtotal은 동일 assignment를 중복 생성하지 않으며 role-null은 Global Role로 추정하지 않고 `UNSPECIFIED`로 유지한다. `delayed`는 #188과 동일하게 `progress < 100 && canonical end < asOfDate`다. 진행률/상태는 계획 공수 산식의 입력이 아니다.
+
+상세 설계: [ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md](ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md).
+
+
+
+## Issue #415 — Excel Resource Effort 옵션
+
+`POST /api/projects/{publicId}/exports/excel` 요청에 optional boolean `includeResourceEffort`를 추가한다. true이면 서버는 #414와 동일한 기본 range 및 `RESOURCE_MD_PER_MM` 환경값으로 Resource workload를 계산하고, export 대상 Project snapshot의 revision과 workload `projectRevision`을 비교한다. 불일치하면 기존 stale 보호와 동일하게 412 `REVISION_MISMATCH`를 반환한다.
+
+`GET /api/projects/{publicId}/resource-workload`의 assignment detail에는 additive field `effectiveWorkingDays`가 포함된다. 이 값은 assignment/range clipping 및 Project/Group/Resource Calendar override를 적용한 canonical 근무일 수이며, Excel은 이를 재계산하지 않는다.
+
 ## Issue #342 Country Calendar 관리자 API
 
-Project 기준정보 관리자 세션을 재사용하며, mutation은 exact Origin과 Catalog revision If-Match를 요구한다. 응답은 최신 revision ETag를 반환한다.
+Project 기준정보 관리자 세션을 재사용하며 mutation은 exact Origin과 Catalog revision If-Match를 요구한다. 응답은 최신 revision ETag를 반환한다.
 
-- GET /api/admin/work-calendars/countries/{countryCode}/years/{year}: 국가/연도 dataset, status/source/date 목록 조회
-- PATCH /api/admin/work-calendars/countries/{countryCode}/years/{year}: status/sourceVersion/sourceUrl 수정
-- POST /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates: 날짜 추가
-- PATCH /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}: 날짜/이름/dayType/sourceKey 수정
-- DELETE /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}: 날짜 삭제
-- POST /api/admin/work-calendars/import/preview: JSON/CSV Import 검증과 추가/변경/삭제/동일 건수 Preview
-- POST /api/admin/work-calendars/import/apply: 검증된 연도 dataset 전체를 transaction으로 교체
+- GET /api/admin/work-calendars/countries/{countryCode}/years/{year}
+- PATCH /api/admin/work-calendars/countries/{countryCode}/years/{year}
+- POST /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates
+- PATCH /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}
+- DELETE /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}
+- POST /api/admin/work-calendars/import/preview
+- POST /api/admin/work-calendars/import/apply
 
 Import apply와 CRUD는 country_calendar_catalog_state.revision을 별도로 증가시키며 Project revision은 변경하지 않는다. 기존 GET /api/work-calendars/countries의 supportedYears는 built-in + DB override 중 OFFICIAL로 Scheduling 가능한 연도만 반환한다. Project Preview/Save에서 비공식/미확보 연도는 422 COUNTRY_CALENDAR_UNAVAILABLE과 country/year detail을 반환한다.

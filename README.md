@@ -45,7 +45,7 @@ Nginx를 앞단에 배치할 때는 [Nginx Reverse Proxy 운영 예제](#nginx-r
 | --- | --- | --- |
 | masterGantt | 0.17.0 | Issue #68 작업 캘린더 변경 시 FS/lag=0 Dependency 재계산 기능 버전 |
 | Node.js | 최소 22, 검증 22.14.0 | 서버와 CLI 실행 |
-| Next.js | 16.3.4 | App Router, 서버 Route Handler, 빌드 |
+| Next.js | 16.3.7 | App Router, 서버 Route Handler, 빌드 |
 | React / React DOM | 19.3.0 | 화면 컴포넌트 |
 | TypeScript | 5.8.3 | 타입 검사 |
 | Tailwind CSS | 4.3.3 | UI 스타일 도구; 현재 기본 화면은 CSS도 사용 |
@@ -224,7 +224,7 @@ curl -fsS http://192.168.10.20:8080/api/health/ready
 
 Windows PowerShell에서는 먼저 `curl.exe -fsS http://127.0.0.1:3000/api/health/ready`로 WSL2 앱에 접근 가능한지 확인한다. WSL localhost 전달이 안 되는 경우 Nginx만 바꿔 해결하려 하지 말고 네트워크 모드·포트 게시·방화벽을 확인한다. Nginx 설치 위치에서 `.\nginx.exe -t` 성공 후 `.\nginx.exe -s reload`를 실행한다. Nginx도 Docker라면 같은 network에서 upstream을 `http://app:3000`으로 하고 앱의 호스트 포트 게시를 제거할 수 있다. 별도 호스트 프록시는 승인된 내부 인터페이스/방화벽을 설계해야 한다.
 
-브라우저에서 프로젝트 생성 → 편집 잠금 해제 → Grid `+` 작업 추가 → 작업 정보 편집 → 새로고침 후 유지 → 편집 모드 종료 후 변경 거부를 확인한다. Health 200만으로 쿠키/편집 검증을 완료했다고 보지 않는다. 공유 링크 복사에 clipboard API를 사용할 수 없는 HTTP 브라우저는 기존 수동 복사 모달을 사용한다.
+브라우저에서 프로젝트 생성 → 편집 잠금 해제 → Grid `+` 작업 추가 → 작업 정보 편집 → 새로고침 후 유지 → 편집 모드 종료 후 변경 거부를 확인한다. Health 200만으로 쿠키/편집 검증을 완료했다고 보지 않는다. 공유 링크 복사에서 secure-context Clipboard API를 사용할 수 없는 내부망 HTTP 브라우저는 같은 사용자 동작 안에서 legacy copy 호환 경로를 먼저 시도하고, 브라우저가 그 경로도 지원하지 않을 때 기존 수동 복사 모달을 사용한다. modern Clipboard API가 존재하지만 사용자가 권한을 거부한 경우에는 legacy 경로로 우회하지 않는다.
 
 
 ```nginx
@@ -541,9 +541,9 @@ npm run version:check
 node scripts/verify-release-version.mjs v0.4.0
 ```
 
-성공한 `main` push는 모든 gate 뒤 `ci-<full SHA>` image를 임시 게시하고 workflow가 출력한 digest를 새로 pull해 Project/Task API authorization과 restart persistence까지 검사한 뒤 해당 package version을 삭제한다. PR과 수동 CI는 registry에 쓰지 않는다. `ci-*`는 SemVer release나 운영/rollback artifact로 남기지 않는다.
+성공한 비문서 `main` push는 모든 gate 뒤 `ci-<full SHA>` image를 게시하고 workflow가 출력한 digest를 새로 pull해 Project/Task API authorization과 restart persistence까지 검사한다. 일반 merge의 `ci-*`는 검증 뒤 삭제하지만, application version이 변경된 merge의 verified `ci-*`는 formal release가 동일 digest를 재사용하도록 보존한다. PR과 수동 CI는 registry에 쓰지 않는다.
 
-Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 release보다 큰 version인지 확인하고 GHCR에 남지 않는 local candidate digest smoke를 통과한 경우에만 stable alias와 exact version을 승격한다. 테스트에서는 `latest` 대신 commit/release workflow가 출력한 exact digest를 사용한다. Private GHCR consumer는 최소 `packages: read`만 사용한다. 실제 tag 생성, plan별 ruleset·attestation 제약과 image login 절차는 [CI/CD 문서](docs/CI_CD.md), container 실행은 [Deployment](docs/DEPLOYMENT.md)를 따른다.
+Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 release보다 큰 annotated version인지 확인하고 tag target SHA의 Main verified `ci-<SHA>` candidate를 source/revision/version/digest까지 재검증한 뒤 새 build 없이 같은 digest를 exact SemVer와 stable alias로 promotion한다. 테스트에서는 `latest` 대신 workflow가 출력한 exact digest를 사용한다. Private GHCR consumer는 최소 `packages: read`만 사용한다. 실제 tag 생성, plan별 ruleset·attestation 제약과 image login 절차는 [CI/CD 문서](docs/CI_CD.md), container 실행은 [Deployment](docs/DEPLOYMENT.md)를 따른다.
 
 ## 7. 코드와 실행 산출물
 

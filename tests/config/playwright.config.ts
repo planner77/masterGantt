@@ -18,11 +18,15 @@ export default defineConfig({
   reporter: [
     ["list"],
     ["html", { outputFolder: resolve(repositoryRoot, "playwright-report"), open: "never" }],
+    ["./e2e-timing-reporter.cjs", { outputFile: process.env.E2E_TIMING_OUTPUT }],
   ],
   // Serial execution limits resource usage but does not isolate server memory.
   // Real-backend specs use fixtures/isolated-application; this shared server
   // remains for mock-backed UI and demo specs. See docs/CI_36_REVIEW.md.
-  fullyParallel: false,
+  // CI sharding may distribute individual tests instead of whole files so each
+  // shard receives a similar runtime budget. Each runner still uses workers=1,
+  // and explicit serial describe blocks remain serial within their shard.
+  fullyParallel: process.env.CI_E2E_FULLY_PARALLEL === "true",
   workers: 1,
   use: {
     baseURL,

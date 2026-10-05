@@ -64,9 +64,21 @@ const assignments: ProjectAssignmentDto[] = [
 ];
 
 describe("Issue #83 project task filters", () => {
+  it("finds empty containers by name/type but never matches their null schedule as zero or an arbitrary date", () => {
+    const empty = { ...tasks[0], name: "Empty container", start: null, end: null, duration: null, progress: null };
+    expect(taskMatchesFilter(empty, { ...EMPTY_TASK_FILTER, query: "container", types: ["summary"] }, new Map())).toBe(true);
+    for (const filter of [
+      { ...EMPTY_TASK_FILTER, dateFrom: "1900-01-01", dateTo: "2199-12-31" },
+      { ...EMPTY_TASK_FILTER, progressMin: 0 },
+      { ...EMPTY_TASK_FILTER, progressMax: 100 },
+      { ...EMPTY_TASK_FILTER, durationMin: 0 },
+      { ...EMPTY_TASK_FILTER, durationMax: 10_000 },
+    ]) expect(taskMatchesFilter(empty, filter, new Map())).toBe(false);
+  });
   it("normalizes text and keeps ancestor context outside match count", () => {
     const result = filterTasksWithAncestors(tasks, { ...EMPTY_TASK_FILTER, query: " vietnam " }, assignments);
     expect(result.matchCount).toBe(1);
+    expect(result.matchingTaskIds).toEqual(["child"]);
     expect(result.tasks.map((task) => task.taskId)).toEqual(["summary", "child"]);
   });
 

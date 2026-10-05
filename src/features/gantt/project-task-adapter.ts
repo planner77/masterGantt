@@ -4,6 +4,7 @@ import type {
   ProjectCalendarDto,
   ProjectLinkDto,
   ProjectTaskDto,
+  TaskStatus,
 } from "../../contracts/projects";
 import {
   addCalendarDays,
@@ -15,6 +16,7 @@ import type { LocalTaskUpdateCommand } from "./command-gateway";
 import {
   dateOnlyFromLocalDate,
   domainDatesToSvarDates,
+  localDateFromDateOnly,
   type DateOnly,
 } from "./date-adapter";
 
@@ -27,6 +29,7 @@ export interface ProjectTaskUpdatePayload {
   readonly description?: string | null;
   readonly url?: string | null;
   readonly progress?: number;
+  readonly status?: TaskStatus;
   readonly start?: string;
   readonly duration?: number;
   readonly scheduleMode?: "auto" | "manual";
@@ -40,7 +43,7 @@ export interface ProjectTaskUpdateCommand {
   readonly payload: ProjectTaskUpdatePayload;
 }
 
-export interface ProjectTaskCreateCommand {
+export type ProjectTaskCreateCommand = {
   readonly name: string;
   readonly type: "task";
   readonly start: string;
@@ -48,7 +51,12 @@ export interface ProjectTaskCreateCommand {
   readonly progress: 0;
   readonly parentTaskId?: string;
   readonly convertParentToSummary?: true;
-}
+} | {
+  readonly name: string;
+  readonly type: "summary";
+  readonly parentTaskId?: string;
+  readonly convertParentToSummary?: true;
+};
 
 /** Matches the Task Editor and server task-name boundary. */
 export function normalizeInlineTaskName(value: unknown): { name: string | null; error: string | null } {
@@ -67,21 +75,35 @@ export function normalizeInlineTaskName(value: unknown): { name: string | null; 
     : { name, error: null };
 }
 
-export function projectTasksToSvarTasks(tasks: readonly ProjectTaskDto[]): ITask[] {
+export function projectTasksToSvarTasks(
+  tasks: readonly ProjectTaskDto[],
+  viewRootTaskId: string | null = null,
+): ITask[] {
   const taskIdsByExternalId = new Map(tasks.map((task) => [task.externalId, task.taskId]));
+  // Core cannot parse a date-less native summary. Its public custom type and
+  // zero-length renderer coordinates preserve a row without drawing a bar.
+  // This anchor is NEVER a domain schedule; all display/commands use the DTO.
+  const datedLeafStarts = tasks.flatMap((task) => task.type !== "summary" && task.start !== null ? [task.start] : []).sort();
+  const anchor = datedLeafStarts[0] ? localDateFromDateOnly(dateOnly(datedLeafStarts[0])) : new Date();
+  anchor.setHours(0, 0, 0, 0);
   return tasks.map((task) => {
-    const dates = domainDatesToSvarDates({ start: dateOnly(task.start), end: dateOnly(task.end) });
+    const dates = task.start !== null && task.end !== null
+      ? domainDatesToSvarDates({ start: dateOnly(task.start), end: dateOnly(task.end) })
+      : { start: new Date(anchor), end: new Date(anchor), duration: 0 };
 
     return {
       id: task.taskId,
       text: task.name,
       ...dates,
-      progress: task.progress,
-      type: task.type,
-      parent: task.parentExternalId === null
+      ...(task.progress !== null ? { progress: task.progress } : {}),
+      type: task.type === "summary" && task.start === null ? "summary-container" : task.type,
+      // A scoped WBS view may promote one Summary to a visual root. The
+      // canonical DTO parent remains unchanged and all mutations still use the
+      // full Project hierarchy.
+      parent: task.taskId === viewRootTaskId || task.parentExternalId === null
         ? 0
         : taskIdsByExternalId.get(task.parentExternalId) ?? 0,
-      open: task.type === "summary",
+      open: task.type === "summary" && tasks.some((candidate) => candidate.parentExternalId === task.externalId),
       externalId: task.externalId,
       baselineStart: task.baselineStart,
       baselineDuration: task.baselineDuration,
@@ -114,13 +136,13 @@ export function projectLinksToSvarLinks(
   });
 }
 
-function calendarFromDto(calendar: ProjectCalendarDto) {
+export function workingCalendarFromProjectCalendar(calendar: ProjectCalendarDto) {
   return calendar.exceptions
     ? createWorkingCalendar({ timezone: calendar.timezone, weekendDays: calendar.weekendDays, exceptions: calendar.exceptions })
     : createWorkingCalendar({ timezone: calendar.timezone, weekendDays: calendar.weekendDays, holidays: calendar.holidays });
 }
 function durationFromRange(start: string, end: string, calendar: ProjectCalendarDto): number {
-  return workingDaysBetween(start, end, calendarFromDto(calendar));
+  return workingDaysBetween(start, end, workingCalendarFromProjectCalendar(calendar));
 }
 function dateFromSvarExclusiveEnd(value: Date): string {
   return addCalendarDays(dateOnlyFromLocalDate(value), -1);
@@ -136,6 +158,11 @@ export function translateProjectTaskUpdate(
   const normalizedName = normalizeInlineTaskName(local.changes.text);
   if (normalizedName.name !== null && normalizedName.name !== task.name) payload.name = normalizedName.name;
   if (task.type === "summary") {
+    if (task.start === null || task.end === null) return payload.name &&
+      local.changes.start === undefined && local.changes.end === undefined &&
+      local.changes.progress === undefined && local.changes.parent === undefined &&
+      (local.diff === undefined || local.diff === 0)
+      ? { taskId: task.taskId, payload: { name: payload.name } } : null;
     const startChanged = local.changes.start instanceof Date && dateOnlyFromLocalDate(local.changes.start) !== task.start;
     const endChanged = local.changes.end instanceof Date && dateFromSvarExclusiveEnd(local.changes.end) !== task.end;
     return payload.name && !startChanged && !endChanged && local.changes.parent === undefined &&
@@ -144,6 +171,7 @@ export function translateProjectTaskUpdate(
       ? { taskId: task.taskId, payload: { name: payload.name } }
       : null;
   }
+  if (task.start === null || task.end === null) return null;
   if (typeof local.changes.progress === "number" && local.changes.progress !== task.progress) payload.progress = local.changes.progress;
   const { start: changedStart, end: changedEnd } = local.changes;
   const nextStart = changedStart instanceof Date ? dateOnlyFromLocalDate(changedStart) : undefined;

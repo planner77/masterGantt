@@ -1,5 +1,34 @@
 # CI/CD
 
+## Issue #361 CI/CD 실행 인스턴스 추적 표준
+
+GitHub Actions의 workflow 고정 식별자 `name`과 required job/check 이름은 유지하고, Actions 목록에서 사람이 보는 실행 인스턴스 `run-name`만 trace metadata로 확장한다.
+
+- PR CI는 PR 제목, PR 번호, `github.run_number`와 `github.run_attempt`를 표시한다. PR 제목에는 Primary Issue가 `Issue #NNN` 또는 `(#NNN)` 형식으로 포함되어야 한다.
+- PR CI의 첫 lightweight gate인 `scripts/verify-ci-run-trace.py`는 PR 본문의 canonical `Refs #NNN` 1개, head branch의 `issue-NNN`, PR 제목의 Issue가 같은 Primary Issue **하나만** 가리키는지 확인한다. `pull_request`의 `edited` 이벤트도 구독하여 title/body 수정 뒤 같은 head SHA라도 다시 검증한다. PR title/body/branch 문자열을 inline shell로 재평가하지 않고 GitHub event JSON을 데이터로 읽는다.
+- Dependabot은 Issue 기반 human workflow의 예외다. PR 작성자가 `dependabot[bot]`이고 동일 저장소의 `dependabot/` branch인 경우에만 trusted automation 경로로 통과시키며, 일반 사용자가 이름만 모방한 branch는 예외로 인정하지 않는다.
+- Main CI는 `push` 이벤트에 PR payload가 없으므로 merge commit message를 표시명에 포함한다. 저장소의 merge commit은 PR 번호와 head branch, PR 제목을 보존하므로 PR 단계에서 확정한 Primary Issue trace를 계승한다. 비-PR main push는 commit-message fallback으로 표시한다.
+- 수동 CI는 선택적 `issue_number` input을 받아 관련 작업이면 `Issue #NNN`을 표시하고, 진단성 실행은 Issue 없이 명시적 fallback 이름을 사용한다.
+- `Issue lifecycle`은 기존 `issue_number`, `pr_number`, `operation` input을 직접 표시한다.
+- Generic Release Finalizer는 triggering `workflow_run.display_title`을 계승하여 Main CI의 Issue/PR trace를 보존하고 자체 `run_number.run_attempt`를 추가한다.
+- 정식 GHCR release를 lifecycle에서 dispatch할 때 `inputs[issue_number]`, `inputs[pr_number]`을 REST `inputs` 객체로 전달한다. tag push 또는 trace input 없는 수동 release는 tag/version 기반 fallback 이름을 사용한다.
+- 재실행은 `run_number`가 동일하고 `run_attempt`만 증가하므로 `Run #N.1`, `Run #N.2`로 구분한다.
+- Generic Finalizer가 PR required checks를 검증할 때 같은 head SHA의 이전 attempt와 최신 재실행 check-run이 함께 반환될 수 있다. required check 이름별로 GitHub Actions check-run의 **가장 큰 check-run ID** 하나만 최신 결과로 채택한다. 최신 결과가 SUCCESS일 때만 PASS하며, 최신 failure/cancelled/pending을 오래된 성공으로 우회하지 않는다.
+
+이 변경은 observability/운영 metadata만 변경한다. 기존 `CI` workflow name, required check 세 항목, trigger, 권한, exact merge SHA gate, concurrency, release authorization, GHCR digest 검증은 변경하지 않는다.
+
+## Issue #356 CI 실행시간 1차 최적화
+
+2026-09-30 실행시간 분석에서 PR CI의 critical path는 Chromium E2E였고, Docker smoke에는 일반 기능 PR에서 매번 반복할 필요가 없는 관찰용 baseline image build와 transport browser smoke가 포함되어 있었다.
+
+- `docker_smoke` 자체는 기존 `docker` 변경 분류를 유지하여 candidate image build, image policy, production 설정 fail-fast, migration/readiness, SQLite restart persistence, Compose smoke를 계속 수행한다.
+- PR의 **baseline image 비교**는 `deploy/docker/**`, `.dockerignore`, `next.config.*`, standalone runtime/image-policy/size 검증 script 또는 CI workflow/action이 바뀔 때만 실행한다. Issue #283의 non-standalone → standalone 25% 감소 hard gate는 이미 완료되었고 후속 baseline 비교는 관찰용이므로, 일반 기능·버전 변경에서 이중 Docker build를 반복하지 않는다.
+- PR의 **HTTP/HTTPS transport smoke**는 deploy, transport test/script, security/http server, 인증·Origin/cookie 계약과 연결된 API 또는 CI workflow/action 변경에서만 실행한다. `main` push와 수동 `workflow_dispatch`는 항상 transport smoke를 수행해 release 전 운영 경로 검증을 축소하지 않는다.
+- `Issue #118 구현 전후 레이아웃 증거` workflow는 고정 baseline/after revision을 비교하는 완료된 one-time evidence이므로 자동 PR trigger를 제거하고 수동 `workflow_dispatch` 재현만 남긴다.
+- Required aggregate check 이름과 fail-closed routing은 변경하지 않는다. 선택 step이 생략되어도 Docker aggregate는 candidate/runtime 필수 검증 결과를 기준으로 판정한다.
+- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 늘어나는 경우를 고려해 shard timeout은 25분으로 둔다. 이는 실행시간 최적화 자체가 아니라 외부 setup 지연으로 정상 테스트가 취소되는 것을 막는 안정성 여유이며, 6-way shard와 `workers: 1` 계약은 유지한다.
+- Phase 2는 process/DB 격리를 유지한 prebuilt E2E runtime과 historical timing 기반 shard 균형화를 별도 검증한다. Phase 3는 exact main CI evidence를 release에서 재사용할 수 있는지 별도 검증한다.
+
 ## Issue #283 Docker runtime 슬림화 검증
 
 Docker PR gate는 Next.js standalone 전환의 기능 회귀와 실제 image 감소를 함께 검증한다.
@@ -107,11 +136,11 @@ docker pull ghcr.io/<owner>/<repository>:1.4.2
 docker pull ghcr.io/<owner>/<repository>@sha256:<digest>
 ```
 
-Main commit workflow는 먼저 변경 유형을 판정한다. quality, Chromium E2E와 local container smoke는 docs-only 여부와 무관하게 실행하며, docs-only가 아닌 경우에만 별도 publish job을 실행한다. `ci-<full SHA>`를 push한 후 tag가 아니라 build output의 digest로 다시 pull하고 image content policy, migration/readiness, Project 생성과 edit session, root Task 저장, unauthorized mutation 거부, container restart 뒤 Project/Task 재조회를 검증한다. 검증 성공 여부와 무관하게 push가 완료된 임시 package version은 cleanup step에서 삭제하며 `ci-*`를 배포·rollback용으로 보관하지 않는다.
+Main commit workflow는 먼저 변경 유형과 application version 변경 여부를 판정한다. quality, Chromium E2E와 local container smoke는 docs-only 여부와 무관하게 실행하며, docs-only가 아닌 경우에만 별도 publish job을 실행한다. `ci-<full SHA>`를 push한 후 tag가 아니라 build output의 digest로 다시 pull하고 image content policy, migration/readiness, Project 생성과 edit session, root Task 저장, unauthorized mutation 거부, container restart 뒤 Project/Task 재조회를 검증한다. **version이 변경되지 않은 main merge와 실패 run의 `ci-*`는 기존처럼 정리**한다. 반면 first-parent 대비 package version이 변경된 merge는 정식 release가 같은 binary/config digest를 재사용할 수 있도록 검증 성공한 `ci-<full SHA>`를 release candidate/provenance alias로 보존한다.
 
 Release workflow의 `Release quality gates`는 PR CI와 달리 Chromium 전체 E2E를 단일 job에서 실행하므로 dependency/browser 설치 시간을 포함해 60분 timeout을 사용한다. 테스트 단계가 모두 성공했더라도 job-level timeout으로 최종 상태가 CANCELLED가 되면 정식 release evidence로 인정하지 않는다.
 
-Release workflow는 전체 application/E2E gate 뒤 동일 source·version·platform 설정의 local release candidate를 먼저 build하여 image policy, production runtime config 거부, migration, readiness, native SQLite와 재시작 persistence를 확인한다. 이 pre-publish gate가 통과해야 registry write가 시작된다. Registry에는 commit 고정 `sha-*` candidate를 만들지 않고 exact SemVer tag를 직접 push한 뒤 그 build output digest를 새로 pull해 같은 runtime 동작을 다시 확인한다. Digest 검증과, 활성화된 경우 GitHub Attestation이 성공한 뒤에만 stable rolling alias를 이동한다.
+Release workflow는 전체 application/E2E gate 뒤 **annotated tag가 가리키는 exact commit SHA의 Main verified `ci-<SHA>` candidate를 registry에서 찾고**, candidate의 digest와 OCI `source`/`revision`/`version` label이 tag target/package version과 정확히 일치하는지 검증한다. Release 단계에서는 Docker image를 다시 build하지 않는다. Main에서 이미 검증한 exact digest를 candidate runtime/transport/persistence로 재검증한 뒤 Docker `imagetools create`의 single-source carbon-copy promotion을 사용해 같은 digest를 exact SemVer tag로 승격한다. 승격 전후 digest가 달라지면 실패하며, exact digest runtime smoke와 활성화된 GitHub Attestation이 성공한 뒤에만 stable rolling alias를 같은 digest로 이동한다. Release candidate의 `ci-<SHA>` alias는 exact SemVer와 같은 package version/digest를 공유할 수 있으므로 개별 tag 삭제로 manifest 전체를 손상시키지 않기 위해 provenance alias로 유지한다.
 
 모든 version release는 repository 단위 concurrency group에서 직렬 실행한다. Monotonic SemVer gate와 결합하여 늦게 끝난 낮은 version이 `latest`/major/minor alias를 되돌리는 것을 막는다. Exact version tag가 이미 있으면 overwrite하지 않는다.
 
@@ -122,8 +151,8 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 | Workflow | Trigger | 권한 | 역할 |
 | --- | --- | --- | --- |
 | `.github/workflows/ci.yml` 검증 jobs | PR, `main` push, manual | `contents: read` | application·browser·container 회귀 |
-| `.github/workflows/ci.yml` commit publish job | 성공한 비문서 `main` push만; docs-only는 SKIPPED | `contents: read`, `packages: write`; docs-only에서는 job 자체가 시작되지 않아 write 권한을 사용하지 않음 | 임시 `ci-<full SHA>` publish/digest smoke와 검증 후 package cleanup |
-| `.github/workflows/release-image.yml` | strict `v*` tag push 또는 annotated `v*` tag ref의 수동 실행 | publish job만 package/attestation 쓰기와 OIDC 권한 선언 | 동일 SemVer/annotated-tag 검증 후 GHCR publish와 digest smoke |
+| `.github/workflows/ci.yml` commit publish job | 성공한 비문서 `main` push만; docs-only는 SKIPPED | `contents: read`, `packages: write`; docs-only에서는 job 자체가 시작되지 않아 write 권한을 사용하지 않음 | `ci-<full SHA>` publish/digest smoke; 일반 merge는 cleanup, version-changing merge는 verified release candidate로 보존 |
+| `.github/workflows/release-image.yml` | strict `v*` tag push 또는 annotated `v*` tag ref의 수동 실행 | candidate 검증은 `packages: read`, promotion/attestation은 `packages: write` 및 optional OIDC | tag target SHA의 Main verified `ci-<SHA>` exact digest 재검증 → exact SemVer/rolling alias로 동일 digest promotion → registry smoke |
 | `.github/workflows/ci.yml` branch cleanup policy check | PR, `main` push, manual | `contents: read` | `scripts/verify-safe-branch-cleanup.py`로 완료 Issue helper 재도입과 직접 branch deletion 우회를 차단하고 공통 fail-closed 계약을 회귀 검증 |
 
 - PR과 수동 CI에는 registry credential 또는 write token을 제공하지 않는다.
@@ -142,8 +171,8 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 2. `package.json`, `package-lock.json`, `CHANGELOG.md`를 같은 commit에서 갱신한다.
 3. `npm run version:check`와 전체 CI를 통과시킨다.
 4. `main` merge 뒤 동일 commit에 annotated `v<package version>` tag를 만든다.
-5. Tag를 원격에 push한다. Release workflow가 local candidate runtime gate를 통과하기 전에는 registry write를 수행하지 않으며 수동 GHCR push는 하지 않는다.
-6. Exact SemVer image의 registry digest smoke와, 활성화한 경우 GitHub Attestation 뒤 stable rolling alias promotion이 끝났는지 workflow summary에서 확인한다.
+5. Tag를 원격에 push한다. Release workflow는 annotated tag target SHA와 동일한 Main verified `ci-<SHA>` candidate가 존재하고 source/revision/version/digest 계약을 통과해야만 promotion을 수행한다. 수동 GHCR push나 release 재-build는 하지 않는다.
+6. Main candidate digest와 exact SemVer tag digest가 동일한지, exact digest runtime smoke와 활성화한 GitHub Attestation 뒤 stable rolling alias가 같은 digest를 가리키는지 workflow summary에서 확인한다.
 7. GHCR package visibility와 consumer `packages: read` 권한을 확인하고 exact version/digest로 테스트한다.
 
 연결된 운영 도구가 `GITHUB_TOKEN`으로 annotated tag를 생성해 tag push가 후속 workflow를 자동 재귀 실행하지 않는 경우에는, 해당 **annotated `v*` tag ref**를 지정해 `workflow_dispatch`로 같은 release workflow를 실행할 수 있다. 이 경로도 package/tag 일치, 이전 SemVer보다 큰 버전, annotated tag 여부와 immutable image 충돌 검사를 우회하지 않는다.
@@ -156,7 +185,7 @@ Tag/package 불일치, 이전 tag 이하 version, lightweight tag, 기존 exact 
 2. Workflow summary의 `ci-<full SHA>`와 `sha256:<digest>`가 대상 commit과 일치하는지 확인한다.
 3. Private GHCR consumer는 필요한 범위의 `packages: read` credential로 로그인한다.
 4. tag를 배포 기준으로 재해석하지 말고 summary의 exact digest를 pull해 격리 volume에서 테스트한다.
-5. release가 필요하면 별도 SemVer bump·CHANGELOG·annotated tag 절차를 수행한다. Commit image를 release alias로 retag하지 않는다.
+5. release가 필요하면 별도 SemVer bump·CHANGELOG·annotated tag 절차를 수행한다. version-changing merge의 verified `ci-<SHA>`는 formal release가 exact digest를 재사용하는 candidate/provenance alias이며, 임의 수동 retag는 하지 않는다.
 
 ## 6. Repository 설정 Gate
 
@@ -306,14 +335,14 @@ Issue #87의 고정 cleanup workflow와 전용 verifier는 이 공통 기준의 
 
 ## Issue #118 구현 전후 레이아웃 증거 Workflow
 
-`.github/workflows/issue-118-before-after-evidence.yml`은 #118 Acceptance Criteria의 동일 조건 구현 전/후 증거를 생성하는 검증 전용 Workflow다.
+`.github/workflows/issue-118-before-after-evidence.yml`은 #118 Acceptance Criteria의 동일 조건 구현 전/후 증거를 필요할 때 재현하는 **historical evidence 전용 Workflow**다. #118 구현은 이미 완료되었으므로 일반 PR에서 자동 실행하지 않는다.
 
-- Trigger: 해당 Workflow, 측정/비교 script 또는 관련 검증 문서가 변경된 PR과 수동 `workflow_dispatch`.
+- Trigger는 수동 `workflow_dispatch`만 사용한다. 재현 시 검토하려는 ref에서 명시적으로 실행하고 run의 ref/head SHA를 증거에 함께 기록한다.
 - 비교 revision은 Before `703a6f08595dea06a918366192df464d7215108e`, After `6386db860af69635cfb0fe626fd1a937905b9a56`(#118 기능 병합 SHA)로 고정한다.
-- 두 revision에 PR head의 **동일 측정 harness**를 적용하고 390/768/1024/1440px 모두 높이 844px, editing/readonly 동일 mock fixture로 실행한다.
+- 두 고정 revision에 선택한 workflow ref의 **동일 측정 harness**를 적용하고 390/768/1024/1440px 모두 높이 844px, editing/readonly 동일 mock fixture로 실행한다.
 - PASS 기준: 390px 및 768px의 editing/readonly에서 After의 viewport 내 Gantt 가시 높이가 Before보다 증가하고, 모든 After 조건에서 document horizontal overflow가 없으며 정보 컨트롤이 한 줄을 유지해야 한다.
 - 증거: raw geometry JSON, comparison JSON, Markdown 요약, 동일 조건 before/after screenshot을 `issue-118-before-after-evidence` artifact로 90일 보관한다.
-- 이 Workflow는 제품 CI `quality/e2e/docker`, main 임시 GHCR 검증, 실제 모바일/스크린리더 검증을 대체하지 않는다. #118/122 종료에는 최신 PR head의 일반 CI와 이 evidence Workflow 결과를 각각 확인한다.
+- 이 Workflow는 현재 PR의 required check가 아니며 제품 CI `quality/e2e/docker`, main 임시 GHCR 검증, 실제 모바일/스크린리더 검증을 대체하지 않는다.
 
 ## Issue Lifecycle 공용 orchestration 원칙
 
@@ -336,6 +365,8 @@ CI/GitHub orchestration 또는 docs-only 변경은 application version을 유지
 
 
 ## Issue #250 CI 실행 시간 최적화
+
+CI 실행 표시 제목은 `run-name`의 `CI 검증 · <PR 제목>` 형식이다. Issue 기반 PR 제목에는 `Issue #345`처럼 실제 Issue 번호를 포함해 Actions 목록에서 대상 업무를 식별한다. Main push는 commit message, 수동 실행은 ref 이름을 대체값으로 사용한다. `run-name`은 표시용이며 Generic Finalizer가 참조하는 workflow `name: CI`, required check 이름·job 식별자, event·permission·quality gate는 변경하지 않는다. [GitHub run-name 공식 문서](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#run-name)를 기준으로 `github` context를 사용한다.
 
 PR/main의 공식 required check 이름은 기존 Ruleset 계약을 유지한다.
 
@@ -369,3 +400,101 @@ main의 비문서 변경은 세 required aggregate gate가 모두 성공한 뒤 
 - lifecycle workflow 자체에는 `packages: write`를 추가하지 않는다.
 
 Issue #248 구현 전에는 기존 `finalize`가 `release_required=true`일 때 동일 release gate를 내부 수행하므로, 정식 release+종료를 한 번에 처리하는 현재 호환 경로로 사용할 수 있다.
+
+## Generic Release Finalizer (#350)
+
+Main CI의 후속 lifecycle mutation은 `.github/workflows/release-finalizer.yml` 하나가 담당한다. `workflow_run.branches: [main]`과 push/success gate로 PR CI 및 수동 CI를 배제한다. exact merge SHA에서 PR/Issue를 자동 resolve하며 application version이 동일하면 finalize, 변경되면 trusted version-scoped release 승인 marker가 있는 경우에만 release_finalize를 수행한다.
+
+Generic finalizer와 `release-image.yml`은 `concurrency.queue: max`로 burst pending run을 보존한다. 단, concurrency의 실행 순서는 semantic version/main history 순서를 보장하지 않으므로 Generic Finalizer가 current main의 first-parent backlog를 oldest → newest로 처리해 release 순서를 확정한다. 상세 계약은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다.
+
+## Main 임시 GHCR evidence gate (#352)
+
+비문서 main push의 `publish-commit-image`는 optional implementation job의 SKIPPED 상태가 dependency chain을 통해 전파되어 통째로 SKIPPED되지 않도록 job condition에 `always()`를 사용한다. 단, registry mutation을 허용하는 조건은 다음 direct aggregate 결과를 모두 명시적으로 SUCCESS로 요구한다.
+
+- `changes`
+- `quality`
+- `e2e`
+- `docker`
+- `docs_only != true`
+
+따라서 `always()`는 skip propagation만 해제하며 실패/cancelled gate를 우회하지 않는다.
+
+Issue Lifecycle은 exact merge target의 first-parent diff를 CI와 동일한 docs-only 규칙으로 독립 판정한다. 비문서 merge는 exact main CI의 `Main 임시 commit 이미지 게시·검증·정리` job이 completed/success여야 finalize할 수 있다. docs-only merge는 해당 job의 completed/skipped를 정상 N/A evidence로 인정한다. overall main CI success만으로 임시 GHCR publish/digest smoke/cleanup PASS를 주장하지 않는다.
+
+## Issue #435 Workflow 병목 최적화
+
+2026-10-05 실행 이력 기준 PR CI의 임계 경로는 Chromium E2E이고, 정식 Release는 전체 Chromium suite를 단일 runner에서 약 30~40분 실행하는 것이 주 병목이었다. 다음 계약으로 최적화한다.
+
+- PR `pull_request.edited`는 Primary Issue trace validator를 반드시 실행하되 application head SHA가 바뀌지 않는 metadata-only event로 취급하여 node/policy/E2E/Docker 구현 job을 다시 실행하지 않는다. required aggregate quality/E2E/Docker check 이름은 그대로 유지하며 trace 실패는 aggregate도 fail-closed한다.
+- PR/Main Chromium E2E는 6 shard와 runner별 `workers=1`을 유지한다. CI에서만 `CI_E2E_FULLY_PARALLEL=true`를 주어 Playwright가 개별 test 기준으로 shard를 분산할 수 있게 하며 explicit serial describe는 계속 직렬이다.
+- Release는 static quality와 6-way Chromium E2E shard를 병렬 실행하고 `Release quality gates` aggregate가 모두 성공한 뒤에만 candidate container smoke와 registry publish를 시작한다.
+- Generic Release Finalizer는 Release 완료를 polling하며 runner를 점유하지 않는다. Main CI 성공 시 release-required target은 승인/정확한 SHA/version을 검증하고 annotated tag + release workflow dispatch까지만 수행한다.
+- `Publish release image`의 publish 성공 뒤에는 `release-finalizer-resume.yml`을 `workflow_dispatch(target_sha, release_run_id)`로 명시적으로 호출한다. 기존 `workflow_run.completed` listener도 fallback으로 유지하며 Resume은 trusted `main` code만 실행한다. Explicit Resume은 source Release가 아직 active일 수 있으므로 exact run ID가 `completed/success`가 되고 workflow path/head SHA가 기대값과 일치할 때까지 기다린 뒤 resolver를 실행한다.
+- post-publication lifecycle handoff는 non-blocking이다. handoff 전 candidate/runtime/API/attestation/promotion gate는 모두 완료되어야 하며, handoff 실패 때문에 이미 성공한 immutable GHCR publication을 실패로 뒤집지 않는다.
+- Release failure는 immutable tag를 이동/덮어쓰기하지 않고 Issue/branch를 유지한다. 기존 Release run을 재실행해 SUCCESS가 되면 explicit dispatch 또는 completion fallback으로 finalization이 재개된다.
+- first-parent oldest→newest, same-Issue corrective convergence, exact main CI/GHCR evidence, explicit release authorization, safe branch cleanup, stable alias serialization은 기존 계약을 유지한다.
+
+변경 전 기준은 PR CI median 14.1분, Main CI 16.2분, Release 41.9분, Finalizer 42.8분이며 대표 PR E2E shard는 7.4/11.7/13.6/5.1분이었다. 변경 후 exact PR/main/release run에서 같은 지표를 다시 기록한다.
+
+### #435 4-shard 실측 보완
+
+최초 test-level 4-shard 실측은 `6.0 / 8.9 / 14.5 / 5.1분`으로 test count는 각 84개로 균등해졌지만 최장 shard가 기존 13.6분보다 길어 임계 경로 개선 기준을 충족하지 못했다. 따라서 workers=1과 test-level 분배를 유지하면서 shard 수를 6으로 조정한다. 이 변경은 required aggregate check 수/이름을 바꾸지 않으며, 최종 선택은 exact PR head의 wall-clock과 shard 편차로 판정한다.
+
+## Issue #437 Historical timing 기반 E2E shard 최적화
+
+#435의 6-shard 구조는 유지하되 test count 균등만으로 발생하는 실행시간 편차를 줄이기 위해 **historical timing → robust estimate → LPT plan** 계층을 추가한다.
+
+- 각 Chromium shard는 `tests/config/e2e-timing-reporter.cjs`로 성공한 test의 file별 duration을 JSON으로 기록한다.
+- CI와 Release는 timing JSON을 30일 artifact로 보존한다. timing artifact는 품질 PASS evidence를 대체하지 않고 다음 plan 계산용 관찰 데이터다.
+- 일반 PR/Main/Release 실행은 `tests/config/e2e-shard-plan.json`이 현재 6-shard 계약과 일치할 때만 해당 file plan을 사용한다.
+- plan이 없거나 JSON이 손상되거나 shard count가 맞지 않으면 기존 Playwright native `--shard=N/6`로 fail-safe fallback한다.
+- committed plan에 없는 신규 E2E spec은 deterministic hash로 한 shard에 추가하고 삭제된 spec은 무시하여 stale plan 때문에 test가 누락되지 않게 한다.
+- `.github/workflows/e2e-shard-optimizer.yml`은 일반 CI critical path와 분리된 schedule/manual workflow다. 최근 성공한 `main` push CI 최대 20개의 timing artifact를 조회하고 최근 10회 이상이 확보된 뒤 median file duration을 계산한다.
+- planner는 LPT(Longest Processing Time first)로 6개 bin의 예상 test time을 균형화한다. 4~8 shard 후보는 관찰용으로 simulation하지만 이 Issue의 자동 PR은 shard count 자체를 바꾸지 않는다.
+- 기본 재균형 gate는 최근 5회 중 3회 이상 imbalance ratio(`max/median`) > 1.35, file timing coverage >= 80%, 예상 critical path 개선 >= 15% 또는 >= 2분, 마지막 plan 변경 후 7일 이상이다.
+- gate를 충족하면 optimizer가 `ci/issue-437-e2e-shard-plan-<run id>` branch와 `[Issue #437] ci: E2E 샤드 계획 갱신` PR을 생성한다. **자동 병합은 하지 않으며** 기존 required PR CI가 새 plan을 검증한다.
+- 과거 artifact는 신뢰할 수 없는 입력으로 취급한다. optimizer는 artifact 안의 명령을 실행하지 않고 duration/file JSON만 파싱하며, 실제 실행 대상은 checkout된 현재 `tests/e2e` 파일 목록과 교차 검증한다.
+
+GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용하고 dependency cache와 혼용하지 않는다. optimizer는 최근 run/artifact 조회와 자동 plan PR 생성 직후 exact branch에 `ci.yml workflow_dispatch`를 명시적으로 시작하므로 `actions: write`, plan PR 생성에 한정한 `contents: write`, `pull-requests: write`를 사용한다. `GITHUB_TOKEN`이 만든 일반 push/PR 이벤트가 후속 workflow를 자동 재귀 실행한다고 가정하지 않으며, regular CI 권한은 확대하지 않는다.
+
+## Issue #438 Build-once / verified digest promotion
+
+- Container binary는 Main CI의 `publish-commit-image`에서 한 번만 build한다. version-changing merge의 successful candidate만 formal release까지 보존한다.
+- Main image build는 Dockerfile `VERSION`과 OCI version label에 현재 `package.json.version`을 사용하고 revision label에는 exact main SHA를 기록한다.
+- Release prepare는 annotated `v*` tag object 자체를 검사한 뒤 `refs/tags/<tag>^{commit}`으로 `target_sha`를 계산한다. candidate 조회는 `ci-<target_sha>`만 허용한다.
+- Release quality/static/E2E gate는 유지하지만 container build action은 release workflow에서 제거한다.
+- Candidate는 digest pull 후 source/revision/version label, image policy, HTTP/HTTPS transport, migration/readiness, SQLite restart persistence를 다시 검증한다.
+- candidate image policy·transport·migration/readiness·SQLite persistence·Project/Task API와 optional attestation을 **모두 exact tag 생성 전에** 완료한다. 이후 Docker `imagetools create --prefer-index=false` single-source promotion을 마지막 publication step으로 사용하고 metadata descriptor digest가 candidate digest와 동일한지 확인한다.
+- 이미 존재하는 exact SemVer tag는 같은 candidate digest일 때만 idempotent retry로 허용하고 다른 digest면 overwrite를 거부한다.
+- Stable release는 exact SemVer와 major.minor/major/latest를 **같은 최종 promotion step**에서 동일 candidate digest로 갱신한다. prerelease는 exact SemVer만 생성한다. 최종 publication 뒤에는 application/runtime/attestation과 같은 실패 가능한 gate를 두지 않는다.
+- BuildKit SBOM/provenance는 Main candidate digest에서 생성되며 SemVer promotion이 digest를 바꾸지 않으므로 같은 subject digest에 유지된다. optional GitHub Attestation도 candidate digest를 subject로 사용한다.
+- Release candidate `ci-<SHA>`와 exact SemVer가 같은 GHCR package version/manifest를 공유할 수 있으므로 release 완료 후 `ci-*` tag만 따로 제거하려고 package version 전체를 삭제하지 않는다. Release candidate alias는 provenance/debugging evidence로 유지한다.
+
+### Issue #439 v0.83.2 release candidate API smoke correction
+
+- GHCR Release Run #131에서 static quality, Release E2E 6/6, candidate digest 확인, transport, image policy, migration/readiness, SQLite persistence는 PASS했지만 Project/Task API smoke가 시작 전에 실패했다.
+- 원인은 `release-image.yml`이 실제 candidate container 이름 `mastergantt-release-candidate`를 전달하는 반면 `verify-registry-api-smoke.mjs` allowlist가 이전 `mastergantt-release-smoke`만 허용한 이름 계약 불일치다.
+- candidate image/digest 자체의 결함이나 GHCR 장애가 아니므로 검증 gate를 삭제하거나 skip하지 않는다. API smoke allowlist에 candidate 이름을 명시적으로 추가하고 정적 회귀로 workflow 호출 인자와 allowlist를 함께 고정한다.
+- 이미 생성된 annotated `v0.83.2` tag는 이동·삭제·덮어쓰기하지 않는다. deterministic release failure는 same-Issue corrective merge와 새 PATCH version으로 supersede하며 Generic Finalizer의 exact main CI/candidate digest/release authorization 검증을 다시 통과한다.
+
+## Issue #439 CI setup/cache 비용 계측
+
+#435/#437/#438 이후 남은 setup 비용을 최적화하기 전에 PR/Main/Release에서 같은 형식으로 계측한다. 이번 단계는 **Phase 1 — Instrument**이며 baseline 10회 전에는 새로운 Playwright browser cache를 활성화하지 않는다.
+
+- 공통 recorder: `scripts/record-ci-setup-metric.mjs`가 `checkout`, `setup-node`, `npm-cache`, `npm-ci`, Playwright OS dependency/headless-shell, Next cache, Docker Buildx/build-push 등의 duration과 cache 상태를 JSONL 및 GitHub Step Summary에 기록한다.
+- machine-readable artifact는 30일 보존하며 schema v2 record에 `runId`, `runAttempt`, stable workflow file identity, `job`, `eventName`, `headSha`, `metric`, `durationMs`, `cache`를 포함한다. workflow identity는 `GITHUB_WORKFLOW_REF`의 `.github/workflows/*.yml` 경로를 우선 사용한다.
+- `scripts/analyze-ci-setup-metrics.mjs`는 **successful workflow run에서 내려받은 artifact만** 입력으로 사용하고 workflow/event/job/metric별로 분리해 record 수, 서로 다른 successful run ID 수, median, p90, cache 분포를 계산한다. E2E matrix shard나 동일 run의 재실행은 record는 늘릴 수 있지만 baseline run 수는 늘리지 않는다. 기본 최소 표본은 서로 다른 successful run 10회다.
+- `./.github/actions/node-setup`은 기존 `setup-node cache:npm`과 같은 목적의 **npm download cache(`~/.npm`)만** 명시적으로 관리해 exact cache hit/miss를 관찰한다. key는 OS/arch/Node version/package-lock hash를 포함하며 restore key도 같은 runtime 범위 안에서만 사용한다.
+- `node_modules`는 cache하지 않는다. `npm ci`는 매 job에서 frozen lockfile 기준으로 node_modules를 재구성하며 cache hit은 test PASS evidence가 아니다.
+- `./.github/actions/playwright-setup`은 `install-deps chromium`과 `install --only-shell chromium` 비용을 분리 계측한다. Phase 1에서는 `~/.cache/ms-playwright` cache를 **의도적으로 사용하지 않는다**. 10회 이상 baseline 뒤 browser download가 유의미한 비용일 때만 version/OS/arch key 기반 cache를 별도 변경으로 검토한다.
+- Next `.next/cache`는 기존 동작을 유지하면서 restore 시간과 exact hit 여부를 기록한다. cache miss는 정상 build로 fallback한다.
+- Docker는 기존 `type=gha,scope=mastergantt-docker` 계약을 유지하고 Buildx setup 및 build/push elapsed time을 기록한다. BuildKit 세부 layer cache hit은 build summary/log 증거와 함께 해석하며 cache 결과 자체를 quality gate로 사용하지 않는다.
+- E2E timing JSON의 `runnerReadyMs`는 Playwright CLI 실행 시작부터 reporter `onBegin`까지의 시간이다. shared webServer가 필요한 run에서는 webServer startup/readiness와 test discovery가 포함되므로 순수 server boot time으로 과장하지 않는다.
+- cache/artifact에는 secret, token, `.env`, `node_modules`, test result PASS 판정 자체를 저장하지 않는다. fork/external PR에서 cache write가 제한되어도 cache miss 경로로 정상 검증한다.
+
+### Phase 2 진입 기준
+
+- PR/Main/Release 각 경로의 workflow/event/job/metric 그룹에서 비교 대상 setup metric의 **서로 다른 successful run ID를 최소 10개** 확보한다. 동일 run ID의 matrix shard/재실행은 추가 baseline run으로 세지 않는다.
+- baseline median/p90과 cache hit/miss를 기록한 뒤 후보 최적화의 before/after를 동일 metric 정의로 비교한다.
+- wall-clock 개선이 의미 있고 runner-minutes가 증가하지 않거나 합리적 범위일 때만 cache 변경을 채택한다.
+- Playwright browser cache, 추가 Next/Docker cache 조정은 이 Phase 1 PR의 범위 밖이며 측정 근거 없이 활성화하지 않는다.

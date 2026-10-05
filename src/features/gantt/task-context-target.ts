@@ -89,12 +89,17 @@ function scheduleDecoration(): void {
   refreshTimer = setTimeout(() => { refreshTimer = null; void decorateTaskUrls(); }, 80);
 }
 
+export function taskUrlGestureBlocked(event: Pick<MouseEvent, "ctrlKey" | "metaKey" | "shiftKey">): boolean {
+  return event.ctrlKey || event.metaKey || event.shiftKey;
+}
+
 function ordinaryTarget(target: EventTarget | null): HTMLElement | null {
   if (!(target instanceof Element)) return null;
-  if (target.closest("input, textarea, select, button, a, [contenteditable=true], dialog, .wx-header, .project-task-context-menu")) return null;
-  // In edit mode the name text has a single-click Grid editor. Chart bars
-  // and readonly name cells retain their existing URL launch behavior.
+  if (target.closest("input, textarea, select, button, a, [contenteditable=true], dialog, .wx-header, .project-task-context-menu, .project-copy-selection-hitarea")) return null;
+  // In edit mode the name text and editable start-date cell have application-owned
+  // single-click editors. Chart bars and readonly cells retain URL launch behavior.
   if (target.closest('.project-gantt-frame[data-task-inline-editable="true"] .wx-table-container .wx-row[data-inline-name-eligible="true"] [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text')) return null;
+  if (target.closest('.project-gantt-frame[data-task-inline-editable="true"] .wx-table-container [role="gridcell"][data-col-id=":projectStart"][data-inline-start-editable="true"]')) return null;
   const element = target.closest(TASK_TARGET_SELECTOR);
   return element instanceof HTMLElement ? element : null;
 }
@@ -103,7 +108,7 @@ function installTaskUrlLauncher(): void {
   if (installed || typeof document === "undefined") return;
   installed = true;
   document.addEventListener("pointerdown", (event) => {
-    if (event.button !== 0) { candidate = null; return; }
+    if (event.button !== 0 || taskUrlGestureBlocked(event)) { candidate = null; return; }
     const element = ordinaryTarget(event.target);
     const taskId = element ? taskIdFromElement(element) : null;
     candidate = taskId ? { taskId, x: event.clientX, y: event.clientY, moved: false } : null;
@@ -116,7 +121,7 @@ function installTaskUrlLauncher(): void {
   document.addEventListener("click", (event) => {
     const current = candidate;
     candidate = null;
-    if (!current || current.moved || event.button !== 0) return;
+    if (!current || current.moved || event.button !== 0 || taskUrlGestureBlocked(event)) return;
     const element = ordinaryTarget(event.target);
     const taskId = element ? taskIdFromElement(element) : null;
     if (!element || taskId !== current.taskId) return;

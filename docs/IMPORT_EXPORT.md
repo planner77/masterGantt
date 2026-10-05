@@ -398,3 +398,9 @@ Phase 2가 완료되기 전에는 빈 Gantt sheet나 오해할 수 있는 부분
 - [ExcelJS official repository](https://github.com/exceljs/exceljs)
 - [`better-sqlite3` transaction API](https://github.com/WiseLibs/better-sqlite3/blob/master/docs/api.md#transactionfunction---function)
 - [Node.js URL API](https://nodejs.org/api/url.html)
+
+## Issue #345 적용 범위
+
+빈 Summary는 schemaVersion 1.0에서 생략 또는 null 일정으로 표현할 수 있고 기존 유효 Summary source snapshot도 검증 후 자손으로 재파생한다. `src/contracts/import.ts`는 파싱된 JSON object의 순수 schema/domain 검증을 제공한다. 이번 변경은 신규 Import 화면/API/preview/commit 및 저장 transaction을 구현하지 않으며 사용자 결정에 따라 별도 Issue로 분리한다. CSV/byte/encoding/원본 Excel 처리와 실제 Windows VBA 검증은 이 pure validator PASS와 구분한다.
+
+Excel Export는 미산정 Summary의 WBS/행을 유지하고 날짜·기간·진척 셀을 공란으로 내보낸다. 전체 일정 범위는 실제 날짜 집합만 사용한다. SVG/PNG 행·bar 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다. 기존 Project direct hyperlink에 비밀값을 넣지 않는 계약은 유지한다.

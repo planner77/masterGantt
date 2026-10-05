@@ -119,8 +119,8 @@ for (const width of [390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 844 });
     await installStatefulProjectFixture(page);
     const targets = [
-      { kind: "resource", id: "00000000-0000-4000-8000-000000000071", name: "Resource A", code: "RES-A", active: true },
-      { kind: "resource", id: "00000000-0000-4000-8000-000000000072", name: "Resource B", code: "RES-B", active: true },
+      { kind: "resource", id: "00000000-0000-4000-8000-000000000071", name: "Resource A", code: "RES-A", active: true, roles: ["DEVELOPER"] },
+      { kind: "resource", id: "00000000-0000-4000-8000-000000000072", name: "Resource B", code: "RES-B", active: true, roles: ["DEVELOPER"] },
     ];
     await page.route(`**/api/projects/${publicId}/assigned-targets`, (route) => route.fulfill({ json: { data: { projectRevision: 40, catalogRevision: 1, assignments: [], targets } } }));
     await page.route(`**/api/projects/${publicId}/assignment-targets`, (route) => route.fulfill({ json: { data: { catalogRevision: 1, targets } } }));
@@ -134,6 +134,8 @@ for (const width of [390, 768, 1024, 1440]) {
     const panel = dialog.getByRole("tabpanel", { name: /리소스/ });
     await panel.getByRole("checkbox", { name: /Resource A/ }).check();
     await panel.getByRole("checkbox", { name: /Resource B/ }).check();
+    await panel.getByRole("combobox", { name: /Resource A.*수행 역할/ }).selectOption("DEVELOPER");
+    await panel.getByRole("combobox", { name: /Resource B.*수행 역할/ }).selectOption("DEVELOPER");
     const firstPercent = panel.getByRole("spinbutton", { name: /Resource A.*투입률/ });
     const secondPercent = panel.getByRole("spinbutton", { name: /Resource B.*투입률/ });
     await expect(panel.getByRole("group", { name: /Resource A.*투입 정보/ })).toBeVisible();
@@ -166,3 +168,89 @@ for (const width of [390, 768, 1024, 1440]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   });
 }
+
+
+for (const width of [390, 768, 1024, 1440]) {
+  test(`#340 ${width}px 리소스와 그룹 목록은 compact pane과 필터 폭 계약을 유지한다`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 844 });
+    await installStatefulProjectFixture(page);
+    const targets = [
+      { kind: "resource", id: "00000000-0000-4000-8000-000000000081", name: "긴 이름의 제어 개발자 Alpha", code: "DEV-ALPHA-LONG", active: true },
+      { kind: "resource", id: "00000000-0000-4000-8000-000000000082", name: "Resource Beta", code: "DEV-B", active: true },
+      { kind: "resource", id: "00000000-0000-4000-8000-000000000083", name: "Inactive Resource", code: "DEV-X", active: false },
+      { kind: "group", id: "00000000-0000-4000-8000-000000000091", name: "물류제어 개발 그룹", code: "TEAM-CTRL", active: true },
+      { kind: "group", id: "00000000-0000-4000-8000-000000000092", name: "설비 인터페이스 그룹", code: "TEAM-EQ", active: true },
+    ];
+    await page.route(`**/api/projects/${publicId}/assigned-targets`, (route) => route.fulfill({ json: { data: { projectRevision: 40, catalogRevision: 1, assignments: [], targets } } }));
+    await page.route(`**/api/projects/${publicId}/assignment-targets`, (route) => route.fulfill({ json: { data: { catalogRevision: 1, targets } } }));
+    await page.goto(`/projects/${publicId}`);
+    await rowNamed(page, "Stable leaf").getByText("Stable leaf", { exact: true }).click({ button: "right" });
+    await chooseTaskInformation(page);
+    const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
+    await dialog.getByRole("tab", { name: /리소스/ }).click();
+    const panel = dialog.getByRole("tabpanel", { name: /리소스/ });
+    const resourceSection = panel.getByRole("region", { name: "담당 리소스", exact: true });
+    const groupSection = panel.getByRole("region", { name: "리소스 그룹", exact: true });
+    await expect(resourceSection).toContainText("3 / 3");
+    await expect(groupSection).toContainText("2 / 2");
+    await expect(resourceSection.getByRole("checkbox", { name: /긴 이름의 제어 개발자 Alpha/ })).toBeVisible();
+    await expect(groupSection.getByRole("checkbox", { name: /물류제어 개발 그룹/ })).toBeVisible();
+
+    const resourceBox = await resourceSection.boundingBox();
+    const groupBox = await groupSection.boundingBox();
+    expect(resourceBox).not.toBeNull();
+    expect(groupBox).not.toBeNull();
+    if (width >= 1024) {
+      expect(Math.abs(resourceBox!.y - groupBox!.y)).toBeLessThanOrEqual(2);
+      expect(resourceBox!.x + resourceBox!.width).toBeLessThanOrEqual(groupBox!.x + 2);
+      expect(resourceBox!.width).toBeGreaterThan(groupBox!.width);
+    } else {
+      expect(groupBox!.y).toBeGreaterThan(resourceBox!.y + resourceBox!.height - 2);
+    }
+
+    await resourceSection.getByRole("checkbox", { name: /긴 이름의 제어 개발자 Alpha/ }).check();
+    const allocation = resourceSection.getByRole("group", { name: /긴 이름의 제어 개발자 Alpha.*투입 정보/ });
+    await expect(allocation).toBeVisible();
+    await expect(groupSection.getByRole("group", { name: /투입 정보/ })).toHaveCount(0);
+
+    await panel.getByLabel("유형").selectOption("resource");
+    await expect(groupSection).toHaveCount(0);
+    const resourceOnly = panel.getByRole("region", { name: "담당 리소스", exact: true });
+    const panelBox = await panel.boundingBox();
+    const resourceOnlyBox = await resourceOnly.boundingBox();
+    expect(panelBox).not.toBeNull();
+    expect(resourceOnlyBox).not.toBeNull();
+    expect(resourceOnlyBox!.width).toBeGreaterThan(panelBox!.width * 0.85);
+
+    await panel.getByLabel("검색").fill("없는 대상");
+    await expect(resourceOnly).toContainText("현재 필터와 일치하는 결과가 없습니다.");
+    await panel.getByLabel("검색").fill("");
+    await panel.getByLabel("유형").selectOption("group");
+    await expect(panel.getByRole("region", { name: "담당 리소스", exact: true })).toHaveCount(0);
+    await expect(panel.getByRole("region", { name: "리소스 그룹", exact: true })).toContainText("2 / 2");
+
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+    expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
+  });
+}
+
+
+test("#340 readonly pane 건수는 현재 Task에 표시 가능한 할당 대상만 집계한다", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 844 });
+  const fixture = await installStatefulProjectFixture(page);
+  fixture.sessionEditable = false;
+  await page.goto(`/projects/${publicId}`);
+  await rowNamed(page, "Stable leaf").getByText("Stable leaf", { exact: true }).click({ button: "right" });
+  await chooseTaskInformation(page);
+  const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await dialog.getByRole("tab", { name: /리소스/ }).click();
+  const panel = dialog.getByRole("tabpanel", { name: /리소스/ });
+  const resourceSection = panel.getByRole("region", { name: "담당 리소스", exact: true });
+  const groupSection = panel.getByRole("region", { name: "리소스 그룹", exact: true });
+
+  await expect(resourceSection).toContainText("1 / 1");
+  await expect(resourceSection.getByRole("checkbox", { name: /테스트 리소스/ })).toBeChecked();
+  await expect(groupSection).toContainText("0 / 0");
+  await expect(groupSection).toContainText("등록된 그룹이 없습니다.");
+  await expect(panel.getByText("개발팀", { exact: true })).toHaveCount(0);
+});

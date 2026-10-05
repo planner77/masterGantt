@@ -58,13 +58,32 @@ async function stopApplication(child: ChildProcess, closed: Promise<void>): Prom
 }
 
 /** Browser contexts alone cannot isolate a server's process-global rate limiter. */
-export const test = base.extend<{ isolatedApplication: string; isolatedResourceAdminPassword: string | undefined }>({
+interface IsolatedApplicationRuntime {
+  origin: string;
+  restart: () => Promise<void>;
+}
+
+export const test = base.extend<{
+  isolatedApplication: string;
+  isolatedResourceAdminPassword: string | undefined;
+  isolatedApplicationRuntime: IsolatedApplicationRuntime;
+  restartIsolatedApplication: () => Promise<void>;
+}>({
   isolatedResourceAdminPassword: [undefined, { option: true }],
-  isolatedApplication: [async ({ browserName, isolatedResourceAdminPassword }, provide, testInfo) => {
+  isolatedApplication: async ({ isolatedApplicationRuntime }, provide) => {
+    await provide(isolatedApplicationRuntime.origin);
+  },
+  restartIsolatedApplication: async ({ isolatedApplicationRuntime }, provide) => {
+    await provide(isolatedApplicationRuntime.restart);
+  },
+  isolatedApplicationRuntime: [async ({ browserName, isolatedResourceAdminPassword }, provide, testInfo) => {
     const external = process.env.PLAYWRIGHT_BASE_URL;
     if (external) {
       testInfo.annotations.push({ type: "external-application", description: "User-managed server: process/DB/rate-limit isolation is not provided. Use a disposable instance and a selected scenario." });
-      await provide(external);
+      await provide({ origin: external, restart: async () => {
+        testInfo.annotations.push({ type: "NOT TESTED", description: "사용자 관리 서버에서는 실제 프로세스 재시작을 검증하지 않았습니다." });
+        throw new Error("NOT TESTED: 사용자 관리 외부 서버를 재시작할 수 없습니다.");
+      } });
       return;
     }
     await mkdir(resolve(repositoryRoot, ".data"), { recursive: true });
@@ -77,7 +96,6 @@ export const test = base.extend<{ isolatedApplication: string; isolatedResourceA
     try {
       const port = await unusedLoopbackPort();
       const origin = `http://127.0.0.1:${port}`;
-      const deadline = Date.now() + startupMilliseconds;
       const applicationEnvironment: NodeJS.ProcessEnv = {
         ...process.env,
         NODE_ENV: "development",
@@ -95,47 +113,63 @@ export const test = base.extend<{ isolatedApplication: string; isolatedResourceA
         maxBuffer: 16_384,
         windowsHide: true,
       });
-      let spawnError: Error | undefined;
-      let output = "";
-      child = spawn(process.execPath, [resolve(repositoryRoot, "node_modules/next/dist/bin/next"), "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
-        cwd: repositoryRoot,
-        detached: process.platform !== "win32",
-        windowsHide: true,
-        stdio: ["ignore", "pipe", "pipe"],
-        env: applicationEnvironment,
-      });
-      child.once("error", (error) => { spawnError = error; });
-      const application = child;
-      closed = new Promise<void>((done) => application.once("close", () => done()));
-      const capture = (chunk: Buffer) => { output = (output + chunk.toString()).slice(-16_384); };
-      child.stdout?.on("data", capture);
-      child.stderr?.on("data", capture);
-      let ready = false;
-      while (Date.now() < deadline) {
-        if (spawnError || child.exitCode !== null || child.signalCode !== null) {
-          throw new Error(`Isolated E2E server exited before readiness: ${spawnError?.message ?? child.exitCode ?? child.signalCode}\n${output}`);
+      const startApplication = async (): Promise<void> => {
+        const deadline = Date.now() + startupMilliseconds;
+        let spawnError: Error | undefined;
+        let output = "";
+        child = spawn(process.execPath, [resolve(repositoryRoot, "node_modules/next/dist/bin/next"), "dev", "--hostname", "127.0.0.1", "--port", String(port)], {
+          cwd: repositoryRoot,
+          detached: process.platform !== "win32",
+          windowsHide: true,
+          stdio: ["ignore", "pipe", "pipe"],
+          env: applicationEnvironment,
+        });
+        child.once("error", (error) => { spawnError = error; });
+        const application = child;
+        closed = new Promise<void>((done) => application.once("close", () => done()));
+        const capture = (chunk: Buffer) => { output = (output + chunk.toString()).slice(-16_384); };
+        child.stdout?.on("data", capture);
+        child.stderr?.on("data", capture);
+        let ready = false;
+        while (Date.now() < deadline) {
+          if (spawnError || child.exitCode !== null || child.signalCode !== null) {
+            throw new Error(`Isolated E2E server exited before readiness: ${spawnError?.message ?? child.exitCode ?? child.signalCode}\n${output}`);
+          }
+          try {
+            const response = await fetch(`${origin}/api/health/ready`, { signal: AbortSignal.timeout(2_000) });
+            await response.arrayBuffer();
+            if (response.ok) { ready = true; break; }
+          } catch { /* Fresh development server is still starting or compiling. */ }
+          await delay(100);
         }
-        try {
-          const response = await fetch(`${origin}/api/health/ready`, { signal: AbortSignal.timeout(2_000) });
+        if (!ready) throw new Error(`Isolated E2E server readiness timed out.\n${output}`);
+        // Read-only route warmup belongs to fixture setup, not the test's 30s
+        // behavior budget. GET/405 does not consume create/unlock attempts.
+        const missing = "00000000-0000-4000-8000-000000000001";
+        const paths = ["/", "/projects/new", "/api/project-master/catalog", `/projects/${missing}`, "/api/projects", `/api/projects/${missing}`, `/api/projects/${missing}/edit-sessions`, `/api/projects/${missing}/edit-sessions/current`, `/api/projects/${missing}/edit-password`, `/api/projects/${missing}/tasks`, `/api/projects/${missing}/tasks/${missing}`];
+        for (const path of paths) {
+          const remaining = deadline - Date.now();
+          if (remaining <= 0) throw new Error("Isolated E2E route warmup exceeded its startup budget.");
+          const response = await fetch(`${origin}${path}`, { signal: AbortSignal.timeout(remaining) });
           await response.arrayBuffer();
-          if (response.ok) { ready = true; break; }
-        } catch { /* Fresh development server is still starting or compiling. */ }
-        await delay(100);
-      }
-      if (!ready) throw new Error(`Isolated E2E server readiness timed out.\n${output}`);
-      // Read-only route warmup belongs to fixture setup, not the test's 30s
-      // behavior budget. GET/405 does not consume create/unlock attempts.
-      const missing = "00000000-0000-4000-8000-000000000001";
-      const paths = ["/", "/projects/new", "/api/project-master/catalog", `/projects/${missing}`, "/api/projects", `/api/projects/${missing}`, `/api/projects/${missing}/edit-sessions`, `/api/projects/${missing}/edit-sessions/current`, `/api/projects/${missing}/edit-password`, `/api/projects/${missing}/tasks`, `/api/projects/${missing}/tasks/${missing}`];
-      for (const path of paths) {
-        const remaining = deadline - Date.now();
-        if (remaining <= 0) throw new Error("Isolated E2E route warmup exceeded its startup budget.");
-        const response = await fetch(`${origin}${path}`, { signal: AbortSignal.timeout(remaining) });
-        await response.arrayBuffer();
-        if (response.status >= 500) throw new Error(`Isolated E2E warmup failed: ${path} HTTP ${response.status}\n${output}`);
-      }
+          if (response.status >= 500) throw new Error(`Isolated E2E warmup failed: ${path} HTTP ${response.status}\n${output}`);
+        }
+      };
+      await startApplication();
+      let restarting = false;
+      const restart = async (): Promise<void> => {
+        if (restarting) throw new Error("격리 E2E 서버 재시작이 이미 진행 중입니다.");
+        if (!child) throw new Error("격리 E2E fixture의 실행 프로세스가 없습니다.");
+        restarting = true;
+        try {
+          await stopApplication(child, closed);
+          child = undefined;
+          // Preserve port/origin, SQLite, build output and environment; no migration rerun.
+          await startApplication();
+        } finally { restarting = false; }
+      };
       testInfo.annotations.push({ type: "isolated-application", description: `${browserName}: fresh process and SQLite per test at ${origin}; production rate limits unchanged.` });
-      await provide(origin);
+      await provide({ origin, restart });
     } finally {
       if (child) await stopApplication(child, closed);
       // Remove only paths allocated by this fixture, after its server exits.

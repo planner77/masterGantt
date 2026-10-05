@@ -78,8 +78,18 @@ describe("Issue #289 project master catalog", () => {
       product: { id: ids[1], code: "MCS", active: true },
       siteEntity: { id: ids[2], code: "VN", active: true },
     });
+    expect(projects.listProjects().data.projects).toContainEqual(expect.objectContaining({
+      publicId: created.response.data.project.publicId,
+      businessUnit: expect.objectContaining({ name: "스마트팩토리사업부", active: true }),
+      product: expect.objectContaining({ name: "MCS", active: true }),
+      siteEntity: expect.objectContaining({ name: "베트남 법인", active: true }),
+    }));
 
     catalog = master.updateItem(ids[0]!, adminToken, catalog.data.revision, { active: false });
+    expect(projects.listProjects().data.projects).toContainEqual(expect.objectContaining({
+      publicId: created.response.data.project.publicId,
+      businessUnit: expect.objectContaining({ name: "스마트팩토리사업부", active: false }),
+    }));
     expect(master.getSelectionCatalog().data.businessUnits).toEqual([]);
 
     const auth = projects.authorize(created.response.data.project.publicId, projectToken);

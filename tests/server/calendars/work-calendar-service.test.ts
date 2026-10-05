@@ -9,6 +9,8 @@ import {
   WorkCalendarManualConflictError,
   WorkCalendarService,
 } from "../../../src/server/calendars/work-calendar-service-core";
+import { projectCalendarDto } from "../../../src/server/calendars/calendar-resolution-core";
+import { WorkCalendarRepository } from "../../../src/server/repositories/work-calendar-repository-core";
 import { openDatabase } from "../../../src/server/db/core";
 import { ProjectService } from "../../../src/server/projects/project-service-core";
 import type { PasswordHashRecord } from "../../../src/server/security/password-core";
@@ -246,6 +248,52 @@ describe("Issue #68 calendar + dependency recalculation", () => {
         "SELECT start_date, end_date FROM tasks WHERE external_id = 'B'",
       ).get()).toEqual({ start_date: "2026-09-09", end_date: "2026-09-09" });
       expect(calendarService.get(projectPublicId)).toEqual(beforeCalendar);
+    } finally {
+      database.close();
+    }
+  });
+});
+
+
+describe("Issue #315 project calendar named-date projection", () => {
+  it("preserves every deterministic Project NON_WORKING name without changing the effective day type", async () => {
+    const { database, projectId } = await fixture();
+    try {
+      const repository = new WorkCalendarRepository(database);
+      const timestamp = now.toISOString();
+      for (const name of ["Zulu shutdown", "Alpha shutdown", "Alpha shutdown"]) {
+        const rule = repository.insertRule({
+          publicId: randomUUID(),
+          projectId,
+          kind: "CUSTOM",
+          name,
+          countryCode: null,
+          targetType: "PROJECT",
+          targetPublicId: null,
+          scope: "FULL_PROJECT",
+          effectiveFrom: null,
+          effectiveTo: null,
+          sourceVersion: null,
+          now: timestamp,
+        });
+        repository.insertDate({
+          calendarRuleId: rule.id,
+          date: "2026-11-18",
+          dayType: "NON_WORKING",
+          name,
+          sourceKey: null,
+          sourceVersion: null,
+          now: timestamp,
+        });
+      }
+
+      const projected = projectCalendarDto(database, projectId);
+      expect(projected.exceptions?.find((entry) => entry.date === "2026-11-18")).toEqual({
+        date: "2026-11-18",
+        dayType: "NON_WORKING",
+        name: "Alpha shutdown",
+        names: ["Alpha shutdown", "Zulu shutdown"],
+      });
     } finally {
       database.close();
     }

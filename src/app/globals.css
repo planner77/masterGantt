@@ -766,7 +766,7 @@ h2 {
   max-width: 100%;
 }
 
-.project-schedule > :not(.project-gantt-frame) {
+ .project-scope-panel > :not(.project-gantt-frame) {
   flex: 0 0 auto;
 }
 
@@ -1376,6 +1376,18 @@ h2 {
   outline-offset: var(--focus-offset);
 }
 
+.project-scope-tabs { display:flex; min-width:0; min-height:2.125rem; flex:0 0 auto; align-items:stretch; overflow-x:auto; overflow-y:hidden; border-bottom:1px solid var(--border-default); white-space:nowrap; scrollbar-width:thin; }
+.project-scope-tab-item { display:flex; min-width:0; flex:0 0 auto; align-items:stretch; }
+.project-scope-tab { display:flex; max-width:16rem; min-height:2.125rem; min-width:0; align-items:center; border:0; border-bottom:2px solid transparent; background:transparent; color:var(--text-muted); cursor:pointer; padding:.25rem .625rem; font:inherit; font-size:.8125rem; font-weight:650; }
+.project-scope-tab-label { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.project-scope-tab[aria-selected="true"] { border-bottom-color:var(--action-selected); background:var(--surface-subtle); color:var(--text-default); }
+.project-scope-tab-close { width:1.75rem; min-height:2.125rem; border:0; border-bottom:2px solid transparent; background:transparent; color:var(--text-muted); cursor:pointer; font:inherit; font-size:1rem; line-height:1; }
+.project-scope-tab-close:hover { background:var(--surface-subtle); color:var(--text-default); }
+.project-scope-tab:focus-visible, .project-scope-tab-close:focus-visible { outline:var(--focus-outline); outline-offset:calc(var(--focus-offset) * -1); }
+.project-scope-tab-item[data-invalid="true"] .project-scope-tab { text-decoration:line-through; }
+.project-scope-panel { display:flex; min-height:0; min-width:0; flex:1 1 0; flex-direction:column; gap:.5rem; width:100%; max-width:100%; }
+.project-scope-recovery-button.secondary-button { display:inline-flex; min-height:2rem; margin:.5rem 0 0; }
+
 .project-readonly > .project-workspace-panels {
   position: relative;
   display: flex;
@@ -1501,6 +1513,48 @@ h2 {
   font-weight: 700;
 }
 
+.resource-role-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.resource-role-summary > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.125rem;
+  padding: 0.625rem 1rem;
+  border-right: 1px solid var(--border);
+}
+
+.resource-role-summary > div:last-child {
+  border-right: 0;
+}
+
+.resource-role-summary dt {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.resource-role-summary dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.resource-role-summary span {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.resource-estimate-button.is-active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
 .resource-workload-note,
 .resource-workload-error,
 .resource-workload-empty {
@@ -1564,7 +1618,7 @@ h2 {
 
 .resource-workload-table {
   width: 100%;
-  min-width: 42rem;
+  min-width: 72rem;
   border-collapse: collapse;
   font-size: 0.8125rem;
 }
@@ -1619,6 +1673,8 @@ h2 {
     flex-wrap: wrap;
   }
 
+  .project-scope-tab { max-width: 12rem; }
+
   .project-context-actions > .secondary-button {
     flex: 1 1 auto;
   }
@@ -1631,7 +1687,8 @@ h2 {
     justify-content: space-between;
   }
 
-  .resource-workload-summary {
+  .resource-workload-summary,
+  .resource-role-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1639,11 +1696,13 @@ h2 {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .resource-workload-summary > div:nth-child(2n) {
+  .resource-workload-summary > div:nth-child(2n),
+  .resource-role-summary > div:nth-child(2n) {
     border-right: 0;
   }
 
-  .resource-workload-summary > div:nth-child(n + 3) {
+  .resource-workload-summary > div:nth-child(n + 3),
+  .resource-role-summary > div:nth-child(n + 3) {
     border-top: 1px solid var(--border);
   }
 }
@@ -1846,7 +1905,7 @@ h2 {
   flex: 1 1 16rem;
 }
 .resource-filter-result { margin-left: auto; }
-.resource-filter-panel { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.resource-filter-panel { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .resource-filter-date-note { grid-column: 1 / -1; margin: 0; color: var(--status-warning); font-size: 0.8125rem; }
 
 /* Issue #260: Project Workspace filter density and semantic grouping */
@@ -2289,7 +2348,8 @@ h2 {
 .template-search-box .search-input:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
 .template-card-description { display: block; }
 
-/* Issue #282: Project Create is a dense working form, not a narrow marketing form. */
+/* Issue #282: Project Create is a dense working form, not a narrow marketing form.
+   Issue #363: Blank Project fields are grouped by meaning and sized by content. */
 .main-content:has(> .new-project-page) {
   width: calc(100% - 3rem);
   padding-block: 0.75rem 2.5rem;
@@ -2317,27 +2377,85 @@ h2 {
 .new-project-page .template-instantiate-container > .project-form {
   width: 100%;
   max-width: none;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
   align-items: start;
   column-gap: clamp(0.875rem, 1.5vw, 1.5rem);
 }
 
-.new-project-page #panel-blank > .project-form > .form-field:has(> #project-name) {
-  grid-column: span 7;
+.new-project-page #panel-blank > .project-form {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
 }
 
-.new-project-page #panel-blank > .project-form > .form-field:has(> #project-owner) {
-  grid-column: span 5;
+.new-project-page .template-instantiate-container > .project-form {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
-.new-project-page #panel-blank > .project-form > .form-field:has(> #project-description) {
-  grid-column: span 8;
-  grid-row: span 2;
+.new-project-page .project-create-section {
+  display: grid;
+  min-width: 0;
+  gap: 0.75rem;
+  margin: 0;
 }
 
-.new-project-page #panel-blank > .project-form > .form-field:has(> #project-status),
-.new-project-page #panel-blank > .project-form > .form-field:has(> #project-edit-password) {
-  grid-column: span 4;
+.new-project-page .project-create-section + .project-create-section {
+  border-top: 1px solid var(--border-default);
+  padding-top: 1rem;
+}
+
+.new-project-page .project-create-section-title {
+  margin: 0;
+  color: var(--text-default);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.new-project-page .project-create-section-grid {
+  display: grid;
+  min-width: 0;
+  align-items: start;
+  gap: 0.75rem 1rem;
+}
+
+.new-project-page .project-create-basic-grid {
+  grid-template-columns:
+    minmax(18rem, 2fr)
+    minmax(14rem, 1.25fr)
+    minmax(9rem, 12rem);
+}
+
+.new-project-page .project-create-basic-grid > .form-field,
+.new-project-page .project-create-classification-section .project-master-field-grid > .form-field {
+  min-width: 0;
+}
+
+.new-project-page .project-create-status-field select {
+  width: min(100%, 11rem);
+}
+
+.new-project-page .project-create-classification-section .project-master-field-grid {
+  min-width: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.new-project-page .project-create-classification-section .project-master-field-grid select {
+  width: 100%;
+  min-width: 0;
+}
+
+.new-project-page .project-create-description-field {
+  width: 100%;
+  max-width: 72rem;
+}
+
+.new-project-page .project-create-password-field {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.new-project-page .project-create-password-field input {
+  width: min(100%, 20rem);
 }
 
 .new-project-page #panel-blank > .project-form > .form-error,
@@ -2376,15 +2494,20 @@ h2 {
 }
 
 @media (max-width: 64rem) {
-  .new-project-page #panel-blank > .project-form,
+  .new-project-page .project-create-basic-grid {
+    grid-template-columns: minmax(0, 1.5fr) minmax(14rem, 1fr);
+  }
+
+  .new-project-page .project-create-status-field {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 12rem;
+  }
+
   .new-project-page .template-instantiate-container > .project-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-name),
-  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-owner),
-  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-status),
-  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-edit-password),
   .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-project-name),
   .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-owner-name),
   .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-start-date),
@@ -2393,7 +2516,6 @@ h2 {
     grid-row: auto;
   }
 
-  .new-project-page #panel-blank > .project-form > .form-field:has(> #project-description),
   .new-project-page .template-instantiate-container > .project-form > .form-field:has(> #inst-desc) {
     grid-column: 1 / -1;
     grid-row: auto;
@@ -2412,10 +2534,18 @@ h2 {
     padding: 1rem;
   }
 
-  .new-project-page #panel-blank > .project-form > .form-field,
-  .new-project-page .template-instantiate-container > .project-form > .form-field,
+  .new-project-page .project-create-basic-grid,
+  .new-project-page .project-create-classification-section .project-master-field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .new-project-page .project-create-status-field {
+    grid-column: auto;
+  }
+
   .new-project-page #panel-blank > .project-form > .form-error,
   .new-project-page #panel-blank > .project-form > .primary-button,
+  .new-project-page .template-instantiate-container > .project-form > .form-field,
   .new-project-page .template-instantiate-container > .project-form > .form-error,
   .new-project-page .template-instantiate-container > .project-form > .template-form-actions {
     grid-column: 1;

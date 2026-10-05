@@ -5,23 +5,21 @@ import type {
   TaskHierarchyCommandRequest,
   TaskHierarchyCreateSeed,
 } from "../../contracts/projects";
+import { MAX_TASK_COPY_SOURCES } from "../../contracts/projects";
 import { isCanonicalUuidV4 } from "./project-contract";
 import { parseCreateTaskInput } from "./task-contract";
 
 const uuid = z.string().refine(isCanonicalUuidV4);
 const placement = z.enum(["before", "after", "child"]);
 
-const createSeed = z.object({
-  name: z.string(),
-  description: z.string().nullable().optional(),
-  url: z.string().nullable().optional(),
-  type: z.enum(["task", "milestone"]),
-  scheduleMode: z.enum(["auto", "manual"]).optional(),
-  start: z.string(),
-  end: z.string().optional(),
-  duration: z.number().int(),
-  progress: z.number().finite(),
-}).strict();
+const createSeed = z.union([
+  z.object({ name: z.string(), description: z.string().nullable().optional(), url: z.string().nullable().optional(),
+    type: z.enum(["task", "milestone"]), scheduleMode: z.enum(["auto", "manual"]).optional(),
+    start: z.string(), end: z.string().optional(), duration: z.number().int(), progress: z.number().finite() }).strict(),
+  z.object({ name: z.string(), description: z.string().nullable().optional(), url: z.string().nullable().optional(),
+    type: z.literal("summary"), scheduleMode: z.literal("auto").optional(),
+    start: z.null().optional(), end: z.null().optional(), duration: z.null().optional(), progress: z.null().optional() }).strict(),
+]);
 
 const commandSchema = z.discriminatedUnion("kind", [
   z.object({
@@ -56,10 +54,14 @@ const commandSchema = z.discriminatedUnion("kind", [
   }).strict(),
   z.object({
     kind: z.literal("copy"),
-    taskId: uuid,
+    taskId: uuid.optional(),
+    taskIds: z.array(uuid).min(1).max(MAX_TASK_COPY_SOURCES)
+      .refine((ids) => new Set(ids).size === ids.length).optional(),
     anchorTaskId: uuid,
     placement,
-  }).strict(),
+  }).strict().refine((value) => (value.taskId !== undefined) !== (value.taskIds !== undefined), {
+    message: "Exactly one Copy source field is required.",
+  }),
 ]);
 
 type ParseResult =
@@ -94,6 +96,14 @@ export function parseTaskHierarchyCommand(input: unknown): ParseResult {
       success: false,
       details: [{ path: "task", code: "INVALID_FIELD", message: "Invalid task seed." }],
     };
+  }
+  if (command.kind === "copy") {
+    return { success: true, data: {
+      kind: "copy",
+      taskIds: command.taskIds ?? [command.taskId!],
+      anchorTaskId: command.anchorTaskId,
+      placement: command.placement,
+    } };
   }
   return { success: true, data: command };
 }

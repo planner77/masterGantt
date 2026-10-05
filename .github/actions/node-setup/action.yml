@@ -1,0 +1,63 @@
+name: Node 의존성 setup 계측
+description: setup-node, npm download cache, npm ci를 동일 형식으로 계측한다.
+inputs:
+  node-version:
+    description: Node.js version
+    required: true
+outputs:
+  npm-cache-hit:
+    description: npm cache exact key hit 여부
+    value: ${{ steps.npm-cache.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    - name: setup-node 계측 시작
+      id: node-start
+      shell: bash
+      run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
+
+    - name: Node.js 준비
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: setup-node 시간 기록
+      shell: bash
+      run: node scripts/record-ci-setup-metric.mjs --metric setup-node --started-ms "${{ steps.node-start.outputs.started_ms }}"
+
+    - name: package-lock hash 계산
+      id: lock-hash
+      shell: bash
+      run: echo "value=$(sha256sum package-lock.json | awk '{print $1}')" >> "$GITHUB_OUTPUT"
+
+    - name: npm cache 계측 시작
+      id: npm-cache-start
+      shell: bash
+      run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
+
+    - name: npm download cache 복원
+      id: npm-cache
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+      with:
+        path: ~/.npm
+        key: npm-${{ runner.os }}-${{ runner.arch }}-node-${{ inputs.node-version }}-${{ steps.lock-hash.outputs.value }}
+        restore-keys: |
+          npm-${{ runner.os }}-${{ runner.arch }}-node-${{ inputs.node-version }}-
+
+    - name: npm cache 시간·hit 기록
+      shell: bash
+      run: node scripts/record-ci-setup-metric.mjs --metric npm-cache --started-ms "${{ steps.npm-cache-start.outputs.started_ms }}" --cache "exact-hit=${{ steps.npm-cache.outputs.cache-hit || 'false' }}"
+
+    - name: npm ci 계측 시작
+      id: npm-ci-start
+      shell: bash
+      run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
+
+    - name: frozen dependency 설치
+      shell: bash
+      run: npm ci --prefer-offline --no-audit
+
+    - name: npm ci 시간 기록
+      if: always()
+      shell: bash
+      run: node scripts/record-ci-setup-metric.mjs --metric npm-ci --started-ms "${{ steps.npm-ci-start.outputs.started_ms }}"

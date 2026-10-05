@@ -33,6 +33,16 @@ function task(
 }
 
 describe("task context menu model", () => {
+  it("keeps multi Copy and single Cut contracts separate", () => {
+    expect(createPasteCommand({ mode: "copy", taskIds: ["a", "b"], revision: 3 }, "target", "before"))
+      .toEqual({ kind: "copy", taskIds: ["a", "b"], anchorTaskId: "target", placement: "before" });
+    expect(createPasteCommand({ mode: "cut", taskId: "a", revision: 3 }, "target"))
+      .toEqual({ kind: "reparent", taskId: "a", anchorTaskId: "target", placement: "after" });
+    const tasks = [task("a", "A", null, 0), task("b", "B", null, 1), task("c", "C", null, 2)];
+    const clipboard = { mode: "copy", taskIds: ["a", "b"], revision: 3 } as const;
+    expect(taskContextCapabilities(tasks, "b", true, false, noLinks, clipboard).canPaste).toBe(false);
+    expect(taskContextCapabilities(tasks, "c", true, false, noLinks, clipboard).canPaste).toBe(true);
+  });
   it("derives sibling move, indent and outdent availability", () => {
     const tasks = [
       task("a", "A", null, 0, "summary"),
@@ -66,14 +76,40 @@ describe("task context menu model", () => {
     });
   });
 
-  it("fails closed for readonly, busy, links and stale/empty clipboard targets", () => {
+  it("allows linked sibling reorder while keeping structural hierarchy mutations fail-closed", () => {
     const tasks = [task("a", "A", null, 0), task("b", "B", null, 1)];
+    const links: ProjectLinkDto[] = [
+      { id: "link", predecessorExternalId: "A", successorExternalId: "B", type: "FS", lag: 0 },
+    ];
     expect(taskContextCapabilities(tasks, "a", false, false, noLinks, null).canMoveDown).toBe(false);
     expect(taskContextCapabilities(tasks, "a", true, true, noLinks, null).canMoveDown).toBe(false);
-    expect(taskContextCapabilities(tasks, "a", true, false, [{ id: "link", predecessorExternalId: "A", successorExternalId: "B", type: "FS", lag: 0 }], null).canMoveDown).toBe(false);
+
+    const linkedCopyTarget = taskContextCapabilities(tasks, "a", true, false, links, {
+      mode: "copy",
+      taskIds: ["b"],
+      revision: 1,
+    });
+    expect(linkedCopyTarget).toMatchObject({
+      canAddChild: false,
+      canMoveDown: true,
+      canIndent: false,
+      canPaste: true,
+    });
+    expect(taskContextCapabilities(tasks, "b", true, false, links, null)).toMatchObject({
+      canMoveUp: true,
+      canMoveDown: false,
+      canIndent: false,
+      canOutdent: false,
+    });
+
+    expect(taskContextCapabilities(tasks, "a", true, false, links, {
+      mode: "cut",
+      taskId: "b",
+      revision: 1,
+    }).canPaste).toBe(false);
     expect(taskContextCapabilities(tasks, "a", true, false, noLinks, {
       mode: "copy",
-      taskId: "a",
+      taskIds: ["a"],
       revision: 1,
     }).canPaste).toBe(false);
   });
@@ -91,8 +127,97 @@ describe("task context menu model", () => {
     });
     expect(taskContextCapabilities(tasks, "a", true, false, links, null)).toMatchObject({
       canAddChild: false,
+      canMoveDown: true,
+      canIndent: false,
+    });
+  });
+
+  it("allows Cut Paste for internal source dependencies even when the target is independently linked", () => {
+    const tasks = [
+      task("source", "S", null, 0, "summary"),
+      task("source-a", "SA", "S", 0),
+      task("source-b", "SB", "S", 1),
+      task("target", "T", null, 1),
+      task("peer", "P", null, 2),
+    ];
+    const links: ProjectLinkDto[] = [
+      { id: "internal", predecessorExternalId: "SA", successorExternalId: "SB", type: "FS", lag: 1 },
+      { id: "target-link", predecessorExternalId: "T", successorExternalId: "P", type: "FS", lag: 0 },
+    ];
+
+    expect(taskContextCapabilities(tasks, "target", true, false, links, {
+      mode: "cut",
+      taskId: "source",
+      revision: 1,
+    })).toMatchObject({
+      canPaste: true,
+      canAddChild: false,
+    });
+  });
+
+  it("blocks Cut Paste when the source subtree has an incoming or outgoing external dependency", () => {
+    const tasks = [
+      task("source", "S", null, 0, "summary"),
+      task("source-a", "SA", "S", 0),
+      task("source-b", "SB", "S", 1),
+      task("target", "T", null, 1),
+      task("outside", "X", null, 2),
+    ];
+    const clipboard = { mode: "cut", taskId: "source", revision: 1 } as const;
+
+    expect(taskContextCapabilities(tasks, "target", true, false, [
+      { id: "incoming", predecessorExternalId: "X", successorExternalId: "SA", type: "FS", lag: 0 },
+    ], clipboard).canPaste).toBe(false);
+    expect(taskContextCapabilities(tasks, "target", true, false, [
+      { id: "outgoing", predecessorExternalId: "SB", successorExternalId: "X", type: "FS", lag: 0 },
+    ], clipboard).canPaste).toBe(false);
+  });
+
+  it("disables move/outdent controls that would cross a scoped root boundary", () => {
+    const tasks = [
+      task("root", "ROOT", null, 0, "summary"),
+      task("child-a", "A", "ROOT", 0),
+      task("child-b", "B", "ROOT", 1, "summary"),
+      task("grandchild", "B1", "B", 0),
+    ];
+
+    expect(taskContextCapabilities(tasks, "root", true, false, noLinks, null, "root")).toMatchObject({
+      canMoveUp: false,
       canMoveDown: false,
       canIndent: false,
+      canOutdent: false,
+      canAddChild: true,
+    });
+    expect(taskContextCapabilities(tasks, "child-a", true, false, noLinks, null, "root")).toMatchObject({
+      canMoveDown: true,
+      canOutdent: false,
+    });
+    expect(taskContextCapabilities(tasks, "grandchild", true, false, noLinks, null, "root")).toMatchObject({
+      canOutdent: true,
+    });
+  });
+
+  it("blocks parent-changing controls for a subtree with linked descendants while allowing sibling reorder", () => {
+    const tasks = [
+      task("a", "A", null, 0, "summary"),
+      task("s", "S", null, 1, "summary"),
+      task("d", "D", "S", 0),
+      task("x", "X", null, 2),
+      task("n", "N", "A", 0, "summary"),
+      task("nd", "ND", "N", 0),
+    ];
+    const links: ProjectLinkDto[] = [
+      { id: "link-d-x", predecessorExternalId: "D", successorExternalId: "X", type: "FS", lag: 0 },
+      { id: "link-nd-x", predecessorExternalId: "ND", successorExternalId: "X", type: "FS", lag: 0 },
+    ];
+
+    expect(taskContextCapabilities(tasks, "s", true, false, links, null)).toMatchObject({
+      canMoveUp: true,
+      canMoveDown: true,
+      canIndent: false,
+    });
+    expect(taskContextCapabilities(tasks, "n", true, false, links, null)).toMatchObject({
+      canOutdent: false,
     });
   });
 
@@ -109,9 +234,9 @@ describe("task context menu model", () => {
       anchorTaskId: "b",
       placement: "after",
     });
-    expect(createPasteCommand({ mode: "copy", taskId: "a", revision: 3 }, "b", "child")).toEqual({
+    expect(createPasteCommand({ mode: "copy", taskIds: ["a"], revision: 3 }, "b", "child")).toEqual({
       kind: "copy",
-      taskId: "a",
+      taskIds: ["a"],
       anchorTaskId: "b",
       placement: "child",
     });

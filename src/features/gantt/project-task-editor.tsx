@@ -1,24 +1,37 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import type { ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
 import { TaskAssignmentEditor } from "./task-assignment-editor";
 import { TaskLogisticsLinkEditor } from "./task-logistics-link-editor";
 import { TASK_EDITOR_TABS, taskEditorTabForKey, type TaskEditorTab } from "./task-editor-view-model";
-import { buildTaskRelations, formatTaskRelationType, type TaskRelationView } from "./task-relations";
+import { buildTaskRelations, formatTaskRelationType, getTaskRelationMutationBlockReason, type TaskRelationView } from "./task-relations";
 import {
   clearBaseline,
   copyScheduleToBaseline,
   createTaskEditorDraft,
   prepareTaskEditorCommand,
+  synchronizeTaskEditorScheduleDraft,
   taskEditorIsDirty,
   taskEditorReadOnlyReason,
+  updateTaskEditorDraft,
+  validateTaskEditorSchedule,
   type TaskEditorDraft,
   type TaskEditorSaveResult,
+  type TaskEditorScheduleBasis,
+  type TaskEditorScheduleField,
   type TaskEditorSession,
 } from "./task-editor-model";
 import styles from "./project-task-editor.module.css";
+
+export type TaskRelationEditorRequest =
+  | { readonly kind: "link"; readonly linkId: string }
+  | { readonly kind: "task"; readonly taskId: string };
+
+export interface ProjectTaskEditorHandle {
+  applyCanonicalSession: (session: TaskEditorSession) => void;
+}
 
 interface Props {
   readonly session: TaskEditorSession;
@@ -31,15 +44,49 @@ interface Props {
   readonly busy: boolean;
   readonly onSave: (command: ProjectTaskUpdateCommand, revision: number) => Promise<TaskEditorSaveResult>;
   readonly onReload: (taskId: string) => Promise<TaskEditorSession | null>;
+  readonly onRelationEditorOpen: (request: TaskRelationEditorRequest, trigger: HTMLElement) => void;
+  readonly onRelationDelete: (linkId: string) => Promise<boolean>;
   readonly onClose: () => void;
 }
 
-function RelationList({ title, relations }: Readonly<{ title: string; relations: readonly TaskRelationView[] }>) {
+function RelationList({
+  title,
+  relations,
+  showActions,
+  actionsDisabled,
+  onEdit,
+  onDelete,
+}: Readonly<{
+  title: string;
+  relations: readonly TaskRelationView[];
+  showActions: boolean;
+  actionsDisabled: boolean;
+  onEdit: (relation: TaskRelationView, trigger: HTMLElement) => void;
+  onDelete: (relation: TaskRelationView, trigger: HTMLElement) => void;
+}>) {
   return <section className={styles.relationGroup} aria-label={title}>
     <h4>{title} ({relations.length})</h4>
     {relations.length === 0 ? <p className={styles.emptyRelation}>없음</p> : <ul className={styles.relationList}>
       {relations.map((relation) => <li key={`${relation.direction}:${relation.id}`} className={styles.relationItem}>
-        <div className={styles.relationTask}><strong>{relation.relatedTaskName}</strong> <code>{relation.relatedTaskExternalId}</code></div>
+        <div className={styles.relationItemHeader}>
+          <div className={styles.relationTask}><strong>{relation.relatedTaskName}</strong> <code>{relation.relatedTaskExternalId}</code></div>
+          {showActions && relation.resolved ? <div className={styles.relationActions}>
+            <button
+              aria-label={`${relation.relatedTaskName} 관계 편집`}
+              className="secondary-button"
+              disabled={actionsDisabled}
+              onClick={(event) => onEdit(relation, event.currentTarget)}
+              type="button"
+            >편집</button>
+            <button
+              aria-label={`${relation.relatedTaskName} 관계 삭제`}
+              className="danger-button"
+              disabled={actionsDisabled}
+              onClick={(event) => onDelete(relation, event.currentTarget)}
+              type="button"
+            >삭제</button>
+          </div> : null}
+        </div>
         <div className={styles.relationMeta}>
           <span>{formatTaskRelationType(relation.type)}</span><span>Lag {relation.lag}일</span>
           {!relation.resolved ? <span className={styles.relationWarning}>참조 작업을 찾을 수 없음</span> : null}
@@ -49,13 +96,29 @@ function RelationList({ title, relations }: Readonly<{ title: string; relations:
   </section>;
 }
 
-export function ProjectTaskEditor({ session, latestTask, tasks, links, revision, editable, hasLinks, busy, onSave, onReload, onClose }: Props) {
+export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(function ProjectTaskEditor({
+  session,
+  latestTask,
+  tasks,
+  links,
+  revision,
+  editable,
+  hasLinks,
+  busy,
+  onSave,
+  onReload,
+  onRelationEditorOpen,
+  onRelationDelete,
+  onClose,
+}, ref) {
   const [base, setBase] = useState(session);
-  const [draft, setDraft] = useState(() => createTaskEditorDraft(session.task));
+  const [draft, setDraft] = useState(() => createTaskEditorDraft(session.task, session.calendar));
+  const [scheduleBasis, setScheduleBasis] = useState<TaskEditorScheduleBasis>("duration");
   const [error, setError] = useState<string | null>(null);
   const [conflicted, setConflicted] = useState(false);
-  const [operation, setOperation] = useState<"save" | "reload" | null>(null);
+  const [operation, setOperation] = useState<"save" | "reload" | "relation-delete" | null>(null);
   const [confirmation, setConfirmation] = useState<"close" | "reload" | null>(null);
+  const [relationDeleteTarget, setRelationDeleteTarget] = useState<TaskRelationView | null>(null);
   const [activeTab, setActiveTab] = useState<TaskEditorTab>("task");
   const [assignmentCount, setAssignmentCount] = useState(0);
   const [logisticsCount, setLogisticsCount] = useState(0);
@@ -63,6 +126,9 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   const tabReferences = useRef<Array<HTMLButtonElement | null>>([]);
   const actionReference = useRef(false);
   const mountedReference = useRef(false);
+  const relationDeleteTriggerReference = useRef<HTMLElement | null>(null);
+  const relationDeleteCancelReference = useRef<HTMLButtonElement>(null);
+  const relationAddReference = useRef<HTMLButtonElement>(null);
   const dirty = taskEditorIsDirty(base.task, draft);
   const stale = conflicted || revision !== base.revision;
   const restriction = taskEditorReadOnlyReason(latestTask, editable, false) ??
@@ -70,14 +136,26 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   const locked = busy || operation !== null;
   const readOnly = !!restriction || stale;
   const scheduleReadOnly = readOnly;
-  const scheduleDirty = draft.start !== (base.task.requestedStart ?? base.task.start) || draft.duration !== String(base.task.duration) || draft.scheduleMode !== base.task.scheduleMode;
+  const scheduleDirty = draft.start !== (base.task.requestedStart ?? base.task.start ?? "") || draft.duration !== (base.task.duration === null ? "" : String(base.task.duration)) || draft.scheduleMode !== base.task.scheduleMode;
 
   useEffect(() => {
     mountedReference.current = true;
     const dialog = dialogReference.current;
     if (dialog && !dialog.open) dialog.showModal();
     return () => { mountedReference.current = false; dialog?.close(); };
-  }, [session]);
+  }, []);
+
+  useImperativeHandle(ref, () => ({
+    applyCanonicalSession(next) {
+      if (next.task.taskId !== session.task.taskId) return;
+      setBase(next);
+      setDraft(createTaskEditorDraft(next.task, next.calendar));
+      setScheduleBasis("duration");
+      setConflicted(false);
+      setError(null);
+      setRelationDeleteTarget(null);
+    },
+  }), [session.task.taskId]);
 
   useEffect(() => {
     if (!dirty) return;
@@ -88,7 +166,29 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
 
   function change(field: keyof TaskEditorDraft, value: string) {
     if (locked || restriction || stale) return;
-    setDraft((current) => ({ ...current, [field]: value }));
+    setDraft((current) => updateTaskEditorDraft(current, field, value));
+    setError(null);
+  }
+  function changeSchedule(field: TaskEditorScheduleField, value: string) {
+    if (locked || restriction || stale || base.task.type !== "task") return;
+    const nextBasis: TaskEditorScheduleBasis = field === "requestedEnd" ? "end" : field === "duration" ? "duration" : scheduleBasis;
+    setScheduleBasis(nextBasis);
+    setDraft((current) => synchronizeTaskEditorScheduleDraft(
+      base.task,
+      { ...current, [field]: value },
+      base.calendar,
+      nextBasis,
+    ));
+    setError(null);
+  }
+  function changeScheduleMode(value: "auto" | "manual") {
+    if (locked || restriction || stale) return;
+    setDraft((current) => synchronizeTaskEditorScheduleDraft(
+      base.task,
+      { ...current, scheduleMode: value },
+      base.calendar,
+      scheduleBasis,
+    ));
     setError(null);
   }
   function close() {
@@ -102,7 +202,7 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
       const next = await onReload(base.task.taskId);
       if (!mountedReference.current) return;
       if (!next) { setError("최신 정보를 불러올 수 없습니다. 작업이 존재하는지와 네트워크 연결을 확인해 주세요."); return; }
-      setBase(next); setDraft(createTaskEditorDraft(next.task)); setConflicted(false); setError(null);
+      setBase(next); setDraft(createTaskEditorDraft(next.task, next.calendar)); setScheduleBasis("duration"); setConflicted(false); setError(null);
     } catch { if (mountedReference.current) setError("최신 정보를 불러올 수 없습니다. 입력 내용은 유지됩니다."); }
     finally { actionReference.current = false; if (mountedReference.current) setOperation(null); }
   }
@@ -114,9 +214,50 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
     tabReferences.current[TASK_EDITOR_TABS.indexOf(next)]?.focus();
   }
 
+  function requestRelationDelete(relation: TaskRelationView, trigger: HTMLElement) {
+    if (relationMutationDisabled || relationDeleteTarget) return;
+    relationDeleteTriggerReference.current = trigger;
+    setRelationDeleteTarget(relation);
+    requestAnimationFrame(() => relationDeleteCancelReference.current?.focus());
+  }
+  function cancelRelationDelete() {
+    const trigger = relationDeleteTriggerReference.current;
+    relationDeleteTriggerReference.current = null;
+    setRelationDeleteTarget(null);
+    requestAnimationFrame(() => {
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+      else relationAddReference.current?.focus({ preventScroll: true });
+    });
+  }
+  async function confirmRelationDelete() {
+    const target = relationDeleteTarget;
+    if (!target || locked || actionReference.current || dirty || stale || !editable) return;
+    actionReference.current = true;
+    setOperation("relation-delete");
+    setError(null);
+    try {
+      const deleted = await onRelationDelete(target.id);
+      if (!mountedReference.current) return;
+      if (deleted) {
+        relationDeleteTriggerReference.current = null;
+        setRelationDeleteTarget(null);
+        requestAnimationFrame(() => relationAddReference.current?.focus({ preventScroll: true }));
+      } else {
+        setError("관계를 삭제할 수 없습니다. 최신 정보를 확인한 뒤 다시 시도해 주세요.");
+      }
+    } catch {
+      if (mountedReference.current) setError("관계를 삭제할 수 없습니다. 최신 정보를 확인한 뒤 다시 시도해 주세요.");
+    } finally {
+      actionReference.current = false;
+      if (mountedReference.current) setOperation(null);
+    }
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (locked || actionReference.current || restriction || stale) return;
+    const scheduleIssue = validateTaskEditorSchedule(base.task, draft, base.calendar, scheduleBasis);
+    if (scheduleIssue) { setError("일정 입력을 확인해 주세요."); return; }
     const prepared = prepareTaskEditorCommand(base.task, draft);
     if (prepared.error) { setError(prepared.error); return; }
     if (!prepared.command) { onClose(); return; }
@@ -133,7 +274,16 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
   const relationSnapshotMatches = revision === base.revision && latestTask?.externalId === base.task.externalId;
   const relations = relationSnapshotMatches ? buildTaskRelations(base.task, tasks, links) : null;
   const relationCount = relations ? relations.predecessors.length + relations.successors.length : 0;
+  const relationMutationBlockReason = getTaskRelationMutationBlockReason({
+    editable,
+    taskType: base.task.type,
+    stale: stale || !relationSnapshotMatches,
+    dirty,
+    busy: locked,
+  });
+  const relationMutationDisabled = relationMutationBlockReason !== null;
   const taskTypeLabel = base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "마일스톤" : "일반 작업";
+  const scheduleIssue = validateTaskEditorSchedule(base.task, draft, base.calendar, scheduleBasis);
 
   return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onCancel={(event) => { event.preventDefault(); close(); }}>
     <header className={styles.header}>
@@ -197,26 +347,78 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
         >
           <div className={styles.taskFields}>
             <label className={styles.field}>작업명<input autoFocus name="task-name" value={draft.name} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("name", event.target.value)} /></label>
-            <div className={styles.field}>
-              <label htmlFor="task-progress">진행률 (%)</label>
-              <span className={styles.sliderRow}>
-                <input id="task-progress" aria-valuetext={draft.progress + "%"} name="task-progress" type="range" min="0" max="100" step="1" value={draft.progress} disabled={locked || scheduleReadOnly} onChange={(event) => change("progress", event.target.value)} />
-                <span className={styles.progressValue} aria-live="polite">{draft.progress}%</span>
-              </span>
+            <div className={styles.statusProgressFields}>
+              <label className={styles.field}>
+                상태
+                <select name="task-status" aria-label="상태" value={draft.status} disabled={locked || scheduleReadOnly || base.task.progress === null} onChange={(event) => change("status", event.target.value)}>
+                  <option value="not_started">시작 전</option>
+                  <option value="in_progress">진행 중</option>
+                  <option value="completed">완료</option>
+                </select>
+              </label>
+              <div className={styles.field}>
+                <label htmlFor="task-progress">진행률 (%)</label>
+                <span className={styles.sliderRow}>
+                  {base.task.progress === null ? <output id="task-progress" aria-label="진행률 미산정">—</output> : <input id="task-progress" aria-valuetext={draft.progress + "%"} name="task-progress" type="range" min="0" max="100" step="1" value={draft.progress} disabled={locked || scheduleReadOnly} onChange={(event) => change("progress", event.target.value)} />}
+                  <span className={styles.progressValue} aria-live="polite">{base.task.progress === null ? "미산정" : `${draft.progress}%`}</span>
+                </span>
+              </div>
             </div>
             <div className={styles.scheduleFields}>
-              <label className={styles.field}>요청 시작일<input name="task-start" type="date" min="1900-01-01" max="2199-12-31" value={draft.start} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("start", event.target.value)} /></label>
-              <label className={styles.field}>기간 (근무일)<input name="task-duration" type="number" min={base.task.type === "milestone" ? 0 : 1} max="10000" step="1" value={draft.duration} readOnly={scheduleReadOnly || base.task.type === "milestone"} disabled={locked} onChange={(event) => change("duration", event.target.value)} /></label>
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>적용 시작일</span>
-                <output className={styles.outputField} aria-label="적용 시작일">{base.task.start}</output>
+                <label htmlFor="task-start">요청 시작일</label>
+                <input
+                  id="task-start"
+                  name="task-start"
+                  type="date"
+                  min="1900-01-01"
+                  max="2199-12-31"
+                  value={draft.start}
+                  readOnly={scheduleReadOnly}
+                  disabled={locked}
+                  aria-invalid={scheduleIssue?.field === "start" || undefined}
+                  aria-describedby={scheduleIssue?.field === "start" ? "task-start-error" : undefined}
+                  onChange={(event) => base.task.type === "task" ? changeSchedule("start", event.target.value) : change("start", event.target.value)}
+                />
+                {scheduleIssue?.field === "start" ? <span id="task-start-error" className={styles.fieldError}>{scheduleIssue.message}</span> : null}
               </div>
               <div className={styles.field}>
-                <span className={styles.fieldLabel}>적용 종료일</span>
-                <output className={styles.outputField} aria-label="적용 종료일">{base.task.end}</output>
+                <label htmlFor="task-duration">기간 (근무일)</label>
+                {base.task.duration === null ? <output className={styles.outputField} aria-label="기간 미산정">—</output> : <input
+                  id="task-duration"
+                  name="task-duration"
+                  type="number"
+                  min={base.task.type === "milestone" ? 0 : 1}
+                  max="10000"
+                  step="1"
+                  value={draft.duration}
+                  readOnly={scheduleReadOnly || base.task.type === "milestone"}
+                  disabled={locked}
+                  aria-invalid={scheduleIssue?.field === "duration" || undefined}
+                  aria-describedby={scheduleIssue?.field === "duration" ? "task-duration-error" : undefined}
+                  onChange={(event) => base.task.type === "task" ? changeSchedule("duration", event.target.value) : change("duration", event.target.value)}
+                />}
+                {scheduleIssue?.field === "duration" ? <span id="task-duration-error" className={styles.fieldError}>{scheduleIssue.message}</span> : null}
               </div>
+              {base.task.type === "task" ? <div className={styles.field}>
+                <label htmlFor="task-requested-end">요청 종료일</label>
+                <input
+                  id="task-requested-end"
+                  name="task-requested-end"
+                  type="date"
+                  min="1900-01-01"
+                  max="2199-12-31"
+                  value={draft.requestedEnd}
+                  readOnly={scheduleReadOnly}
+                  disabled={locked}
+                  aria-invalid={scheduleIssue?.field === "requestedEnd" || undefined}
+                  aria-describedby={scheduleIssue?.field === "requestedEnd" ? "task-requested-end-error" : undefined}
+                  onChange={(event) => changeSchedule("requestedEnd", event.target.value)}
+                />
+                {scheduleIssue?.field === "requestedEnd" ? <span id="task-requested-end-error" className={styles.fieldError}>{scheduleIssue.message}</span> : null}
+              </div> : null}
             </div>
-            <label className={styles.field}>일정 모드<select name="task-schedule-mode" value={draft.scheduleMode} disabled={locked || readOnly} onChange={(event) => change("scheduleMode", event.target.value)}><option value="auto">자동 (Auto)</option><option value="manual">수동 (Manual)</option></select></label>
+            <label className={styles.field}>일정 모드<select name="task-schedule-mode" value={draft.scheduleMode} disabled={locked || readOnly} onChange={(event) => changeScheduleMode(event.target.value as "auto" | "manual")}><option value="auto">자동 (Auto)</option><option value="manual">수동 (Manual)</option></select></label>
             <label className={styles.field}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
             <label className={styles.field}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
           </div>
@@ -308,13 +510,14 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
           <details className={styles.metadata} open>
             <summary>서버 확정 정보</summary>
             <dl className={styles.confirmed}>
-              <dt>요청 시작일</dt><dd>{base.task.requestedStart ?? "하위 작업 기준"}</dd>
-              <dt>확정 종료일</dt><dd>{base.task.end}</dd>
+              <dt>저장된 요청 시작일</dt><dd>{base.task.requestedStart ?? "하위 작업 기준"}</dd>
+              <dt>적용 시작일</dt><dd><output aria-label="적용 시작일">{base.task.start ?? "—"}</output></dd>
+              <dt>확정 종료일</dt><dd><output aria-label="적용 종료일">{base.task.end ?? "—"}</output></dd>
               <dt>기준 Revision</dt><dd>{base.revision}</dd>
             </dl>
           </details>
           {hasLinks && !readOnly ? <p className={styles.caption}>관계에 따라 현재 적용 일정과 후행 작업 일정이 함께 조정됩니다.</p> : null}
-          <p className={styles.caption}>현재 적용 일정은 마지막으로 저장된 값입니다. 변경한 요청 시작일과 기간은 저장 시 캘린더와 관계를 반영해 계산합니다. URL은 http/https만 허용되며 링크는 일정 화면에서 새 탭으로 열립니다.</p>
+          <p className={styles.caption}>요청 종료일은 요청 시작일과 기간을 현재 프로젝트 작업 캘린더로 계산한 편집 값입니다. 저장 시에는 요청 시작일과 기간만 전송하며, 서버가 최신 캘린더와 관계를 적용해 확정 시작일·종료일을 다시 계산합니다. URL은 http/https만 허용되며 링크는 일정 화면에서 새 탭으로 열립니다.</p>
         </section>
 
         <section
@@ -347,12 +550,46 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
             <div className={styles.sectionHeading}>
               <div>
                 <h3 id="task-relations-title">작업 관계</h3>
-                <p className={styles.sectionDescription}>관계는 현재 조회 전용입니다. 편집 기능은 기존 범위대로 제공하지 않습니다.</p>
+                <p className={styles.sectionDescription}>현재 작업의 선행·후행 관계를 확인하고 기존 Relation Editor에서 추가·편집·삭제할 수 있습니다.</p>
               </div>
-              <span className={styles.sectionCount}>{relationCount}건</span>
+              <div className={styles.relationSectionActions}>
+                <span className={styles.sectionCount}>{relationCount}건</span>
+                {editable && base.task.type !== "summary" ? <button
+                  ref={relationAddReference}
+                  className="secondary-button"
+                  disabled={relationMutationDisabled}
+                  onClick={(event) => onRelationEditorOpen({ kind: "task", taskId: base.task.taskId }, event.currentTarget)}
+                  type="button"
+                >관계 추가</button> : null}
+              </div>
             </div>
+            {relationMutationBlockReason === "dirty" ? <p className={styles.relationMutationNotice} role="status">작업 정보에 저장하지 않은 변경사항이 있습니다. 관계를 변경하려면 작업 변경사항을 먼저 저장하거나 취소해 주세요.</p> : null}
             {!relationSnapshotMatches ? <p className={styles.relationError} role="alert">관계 정보의 기준 Revision이 변경되었습니다. 최신 정보를 다시 불러와 주세요.</p> : null}
-            {relations ? <div className={styles.relationColumns}><RelationList title="선행 작업" relations={relations.predecessors} /><RelationList title="후행 작업" relations={relations.successors} /></div> : null}
+            {relationDeleteTarget ? <div className={styles.relationDeleteConfirmation} role="alert">
+              <p><strong>{relationDeleteTarget.direction === "predecessor" ? relationDeleteTarget.relatedTaskName : base.task.name} → {relationDeleteTarget.direction === "predecessor" ? base.task.name : relationDeleteTarget.relatedTaskName}</strong> ({relationDeleteTarget.type}, Lag {relationDeleteTarget.lag}) 관계를 삭제할까요?</p>
+              <div className={styles.confirmationActions}>
+                <button ref={relationDeleteCancelReference} className="secondary-button" disabled={locked} onClick={cancelRelationDelete} type="button">삭제 취소</button>
+                <button className="danger-button" disabled={locked || relationMutationDisabled} onClick={() => void confirmRelationDelete()} type="button">{operation === "relation-delete" ? "삭제 중…" : "관계 삭제"}</button>
+              </div>
+            </div> : null}
+            {relations ? <div className={styles.relationColumns}>
+              <RelationList
+                title="선행 작업"
+                relations={relations.predecessors}
+                showActions={editable}
+                actionsDisabled={relationMutationDisabled}
+                onEdit={(relation, trigger) => onRelationEditorOpen({ kind: "link", linkId: relation.id }, trigger)}
+                onDelete={requestRelationDelete}
+              />
+              <RelationList
+                title="후행 작업"
+                relations={relations.successors}
+                showActions={editable}
+                actionsDisabled={relationMutationDisabled}
+                onEdit={(relation, trigger) => onRelationEditorOpen({ kind: "link", linkId: relation.id }, trigger)}
+                onDelete={requestRelationDelete}
+              />
+            </div> : null}
           </section>
         </section>
 
@@ -387,4 +624,4 @@ export function ProjectTaskEditor({ session, latestTask, tasks, links, revision,
       </footer>
     </form>
   </dialog>;
-}
+});

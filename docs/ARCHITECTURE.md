@@ -78,11 +78,11 @@ Project Direct GET snapshot은 Cookie가 있어도 항상 Readonly다. UI는 별
 
 UI는 공식 task/link/hierarchy editor를 우선 사용한다. Adapter가 external ID↔SVAR ID, date-only↔Date, end 포함↔SVAR endpoint 의미, working-day duration↔calendar span, domain link type↔SVAR link type을 변환한다. W07은 설치된 Core 2.7.3에서 실제 이동·좌우 resize를 수행해 exclusive widget end↔inclusive domain end 변환과 서버 저장 왕복을 확인했다. 최종 콜백의 전체 Task 상태는 기존 endpoint와 비교해 move/start-resize/end-resize 명령으로 구분한다.
 
-편집 명령은 Core `onUpdateTask`의 최종 이벤트만 API로 보낸다. 요청 동안 동일 aggregate 후속 변경을 동기 mutex로 막고, 성공 시 전체 canonical snapshot으로 교체한다. 실패·412·응답 불확실성에는 서버를 재조회하며, 재조회도 실패하면 React에 남은 마지막 확정 Snapshot으로 SVAR를 강제 재마운트한다. PRO auto-scheduler를 실행하지 않는다. 공식 Data Provider는 본 프로젝트의 cookie/If-Match/canonical full snapshot 계약과 맞지 않아 W07에서 직접 채택하지 않았다.
+편집 명령은 Core `onUpdateTask`의 최종 이벤트만 API로 보낸다. 요청 동안 동일 aggregate 후속 변경을 동기 mutex로 막고, 성공 시 전체 canonical snapshot으로 교체한다. 실패·412·응답 불확실성에는 `no-store`로 서버를 재조회하며 Project identity와 revision을 검증한다. 재조회 실패나 오래된 응답은 마지막 서버 확정 snapshot을 동일 SVAR 인스턴스의 공개 serialize/exec 동기화 경로로 다시 적용한다(#344). 요청의 실패로 이전 성공 변경을 되돌리거나 widget을 재마운트하지 않는다. 공개 SVAR 동기화 자체가 예외를 낸 경우의 최후 reset fallback은 별도 경로로 유지한다. PRO auto-scheduler를 실행하지 않는다. 공식 Data Provider는 본 프로젝트의 cookie/If-Match/canonical full snapshot 계약과 맞지 않아 W07에서 직접 채택하지 않았다.
 
 Issue #3에서는 React canonical snapshot 교체와 SVAR 재마운트를 분리한다. 정상 저장은 동일 인스턴스에서 공개 serialize/exec 기반 차이 반영을 사용하며 요청 중 잠금은 권한/readonly와 분리한다. 기존 scroll·선택·접힘을 우선 보존하고 임의 신규 행 이동을 하지 않는다. 내부 반영은 사용자 command로 재전송하지 않는다. 상세 정책과 실제 검증 상태는 [Issue #3 기록](ISSUE_3_REVIEW.md)을 따른다. 현재 Grid Header `+`와 행 `+`는 입력창 없이 `새 작업`, 브라우저 local 오늘, 기간 1일을 적용한다. 첫 child의 일반 Task→Summary 전환도 별도 확인창 없이 아래의 명시적 서버 옵션으로 원자 처리한다.
 
-Project route는 Demo navigation 없이 하나의 SVAR Gantt 인스턴스를 `displayMode="all"`로 실행한다. 같은 Task tree를 Grid와 Chart가 공유하며 Core의 세로 동기화와 Resizer를 사용한다. W24는 native `add-task` column을 표시하되 `api.intercept`로 로컬 임의 생성을 차단한다. Header `+`는 root를, 행 `+`는 child를 즉시 요청하고 edit session·If-Match·서버 계산을 거쳐 canonical snapshot만 반영한다. 첫 child 생성의 일반 Task→Summary는 UI 확인창을 사용하지 않고 `convertParentToSummary: true`를 명시하며, 서버가 parent 전환/child 생성/ancestor 저장/revision 증가를 한 transaction에서 검증·처리한다. Milestone parent와 유효하지 않은 전환은 계속 거부한다. Summary min/max·근무일 span·하위 Leaf 가중진척은 독립 `recalculateHierarchy`에서 계산한다. Summary는 이름만 API로 변경할 수 있고 계산 일정의 직접 편집·삭제는 허용하지 않는다. WBS는 이 순수 계산 결과에 포함되지만 아직 HTTP DTO나 Grid에 노출하지 않는다. Reparent와 FS 계산·저장은 별도 범위다.
+Project route는 Demo navigation 없이 하나의 SVAR Gantt 인스턴스를 `displayMode="all"`로 실행한다. 같은 Task tree를 Grid와 Chart가 공유하며 Core의 세로 동기화와 Resizer를 사용한다. W24는 native `add-task` column을 표시하되 `api.intercept`로 로컬 임의 생성을 차단한다. 전체 Project의 Header `+`는 root를, 행 `+`는 child를 즉시 요청한다. #418의 scoped Workspace에서는 같은 Header `+`를 active Summary root의 immediate child로 정규화하고 Row `+`는 해당 row child로 정규화한다. UI enabled/disabled와 실제 target은 하나의 resolver를 공유하며 edit session·If-Match·서버 계산을 거쳐 canonical snapshot만 반영한다. canonical Core sync와 `filter-tasks`도 같은 직렬 queue에서 처리해 scope frame의 중간 empty 상태를 노출하지 않는다. 첫 child 생성의 일반 Task→Summary는 UI 확인창을 사용하지 않고 `convertParentToSummary: true`를 명시하며, 서버가 parent 전환/child 생성/ancestor 저장/revision 증가를 한 transaction에서 검증·처리한다. Milestone parent와 유효하지 않은 전환은 계속 거부한다. Summary min/max·근무일 span·하위 Leaf 가중진척은 독립 `recalculateHierarchy`에서 계산한다. Summary의 계산 일정은 직접 편집하지 않으며 기존 이름/설명/URL 필드 정책을 따른다. 자식 없는 Summary 자체는 단건 삭제할 수 있고 자손이 있으면 명시적 subtree 삭제를 사용한다. WBS는 이 순수 계산 결과에 포함되지만 아직 HTTP DTO나 Grid에 노출하지 않는다. Reparent와 FS 계산·저장은 별도 범위다.
 
 Project 작업공간은 viewport 기반 flex/min-height 경계 안에서 Project header와 설정 control을 유지하고 SVAR 내부를 세로 스크롤한다. Grid/Chart header는 Core sticky 동작을 사용한다. Project 정보·비밀번호 변경·편집 종료 설정은 header의 `프로젝트 설정` 버튼으로 여는 별도 modal에 두며, 프로젝트명 아래의 과거 기본 접힘 패널은 표시하지 않는다. 설정 modal을 열고 닫아도 Gantt를 재마운트하지 않는다. 좁은 화면에서도 Grid와 Chart를 함께 유지하는 내부 가로 scroll을 제공하고, 외부 ID 표시 상태는 revision remount 밖에 보관한다. Chart 주말은 `highlightTime`을 사용하고 Grid/scale/List 날짜는 사용자 locale로 표시한다. Date-only는 원래 달력 날짜를 유지하며 instant timestamp만 브라우저 시간대로 표시한다.
 
@@ -99,7 +99,7 @@ Project 경로는 `Route Handler → ProjectService → ProjectRepository/EditSe
 5. Project/tasks/links/summary 결과를 함께 저장하고 revision을 한 번 증가시킨다.
 6. canonical snapshot과 ETag를 반환한다. 실패 시 전체 상태는 이전과 같다.
 
-Empty summary가 금지되므로 새 summary와 자식 생성·재배치 같은 hierarchy 변경은 [API](API.md)의 atomic batch 계약으로 한 번에 제출한다. 숨은 cascade 삭제를 하지 않는다. Schema는 [DB_SCHEMA.md](DB_SCHEMA.md) 참조.
+빈 Summary를 직접 생성할 수 있고 자식 생성·재배치 같은 hierarchy 변경은 [API](API.md)의 원자적 mutation 계약으로 제출한다. 숨은 cascade 삭제를 하지 않는다. Schema는 [DB_SCHEMA.md](DB_SCHEMA.md) 참조.
 
 ## Scheduling
 
@@ -117,7 +117,7 @@ Web export는 일정 DTO의 DB 일관된 snapshot을 얻고 transaction 밖에�
 
 W04 생성 bootstrap에 이어 W05는 recorded scrypt profile의 timing-safe password 검증, unknown/corrupt credential dummy KDF, Project-bound session의 expiry/revoke/auth-version 검증, logout, password rotation과 metadata mutation authorization을 적용한다. Cookie는 8시간 HttpOnly/SameSite=Strict이며 production에서 Secure/`__Host-`를 강제한다. Unlock은 bounded process-local global+Project limiter와 공유 KDF concurrency 2 상한을 사용한다. [SECURITY.md](SECURITY.md)가 세부 정책이다. Public URL은 편집 권한을 부여하지 않지만 읽기 기밀성을 보장하는 인증도 아니다. production 노출 범위는 사용자 결정 항목이다.
 
-초기 운영은 한 Node application container와 local persistent SQLite volume이다. Native addon은 빌드·런타임 ABI/libc/architecture를 일치시키고 non-root permission과 restart persistence를 검사한다. PR과 수동 CI는 read-only로 application/browser/container 회귀만 수행한다. 모든 gate를 통과한 `main` push는 임시 `ci-<full SHA>` image를 게시해 registry exact digest runtime을 검증한 뒤 해당 package version을 삭제한다. Release는 `package.json`과 일치하며 이전 tag보다 큰 annotated Semantic Version만 직렬 처리하고, local candidate 검증 후 GHCR exact SemVer를 직접 게시·재검증한 뒤 stable rolling alias만 같은 digest로 승격한다. Release commit 고정 `sha-*` candidate는 보관하지 않는다. Consumer와 post-publish smoke는 mutable alias가 아니라 exact version/digest를 사용한다. WAL-aware backup과 production host restore는 별도 경로에서 시험한다. [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md) 참조.
+초기 운영은 한 Node application container와 local persistent SQLite volume이다. Native addon은 빌드·런타임 ABI/libc/architecture를 일치시키고 non-root permission과 restart persistence를 검사한다. PR과 수동 CI는 read-only로 application/browser/container 회귀만 수행한다. 모든 gate를 통과한 비문서 `main` push는 `ci-<full SHA>` image를 게시해 registry exact digest runtime을 검증한다. version이 유지된 merge는 해당 package version을 정리하지만 version-changing merge의 verified candidate는 formal release까지 보존한다. Release는 `package.json`과 일치하며 이전 tag보다 큰 annotated Semantic Version만 직렬 처리하고, tag target SHA의 Main candidate source/revision/version/digest와 runtime을 재검증한 뒤 **새 build 없이 동일 digest를 exact SemVer와 stable rolling alias로 promotion**한다. Consumer와 post-publish smoke는 mutable alias가 아니라 exact version/digest를 사용한다. WAL-aware backup과 production host restore는 별도 경로에서 시험한다. [CI_CD.md](CI_CD.md), [DEPLOYMENT.md](DEPLOYMENT.md) 참조.
 
 ## 구현 진입 Gate
 
@@ -166,3 +166,27 @@ Manual/resource conflict는 Task 전용 오류로 Handler에서 HTTP 409로 매�
 Project classification metadata는 SVAR Task data가 아니라 application-owned global master data다. 경계는 `Project form/admin UI → project-master Route Handler → ProjectMasterService → ProjectMasterRepository → SQLite`를 따른다. Project aggregate service는 stable master public ID를 해석하고 create/update/copy/template transaction 안에서 internal FK 참조를 저장한다.
 
 Project-master 관리자 인증은 Project edit session 및 #280 logistics catalog 관리자와 별도 권한으로 유지하되, bounded login rate-limit·scrypt/session/cookie/Origin/If-Match 보안 패턴은 기존 구현과 정합화한다. 이 메타데이터 변경은 Scheduling Domain이나 SVAR Gantt lifecycle을 변경하지 않는다.
+
+## Issue #345: 구조와 일정 부재 경계
+
+Summary의 WBS 구조와 자손에서 파생하는 일정은 분리한다. DTO/Repository는 미산정 Summary 일정의 null을 보존하고 SQLite migration 0018은 Summary에 한정한 all-null CHECK를 제공한다. 실제 Task/Milestone은 기존 필수 schedule로 검증한다. Domain의 hierarchy 계산이 Summary 상태와 Baseline을 파생하며 Service는 create/delete/hierarchy/calendar/link mutation을 기존 transaction/revision 경계로 저장한다.
+
+Project/Subtree copy와 Template 인스턴스화는 null Summary 날짜를 상대 날짜 0으로 계산하지 않는다. Excel/SVG는 canonical snapshot의 모든 구조 행을 보존하고 실제 일정 집합으로 기간/bar를 계산한다. Resource workload와 물류 KPI는 Summary를 실제 Leaf의 공수·완료율 대상으로 포함하지 않는다. 부모 직접 연결과 subtree 상속은 구조를 기준으로 유지한다.
+
+Import는 서버를 참조하지 않는 `src/contracts/import.ts`의 JSON object strict 검증 및 순수 Domain 정규화만 추가했다. schemaVersion 1.0, 기존 유효 Summary source snapshot, 생략/null 미산정 입력을 지원한다. byte/encoding/CSV parser, target DB 충돌, preview/commit API/UI/transaction Import는 별도 구현 범위이며 이 validator로 인증·persist 성공을 주장하지 않는다.
+
+## Issue #342 Global Country Calendar Catalog
+
+국가 Calendar는 기존 Project별 materialized Calendar와 분리된 글로벌 Catalog를 가진다.
+
+```text
+Built-in 2026 fixture ─┐
+                       ├─ Effective Country Dataset Resolver ─→ WorkCalendarService Preview/Save
+DB Country Catalog ────┘
+        ↑
+Project Master Admin session
+        ↑
+/api/admin/work-calendars/* ← /calendar-admin
+```
+
+DB override가 존재하면 resolver가 built-in보다 우선한다. 관리자 API는 기존 `Route Handler → Service → SQLite` 경계와 Project Master admin session/Origin/If-Match를 재사용하며 런타임 외부 Holiday API를 호출하지 않는다. Catalog와 Project snapshot은 lifecycle이 분리되어 Catalog mutation 자체는 기존 Project Task/Calendar를 변경하지 않는다.

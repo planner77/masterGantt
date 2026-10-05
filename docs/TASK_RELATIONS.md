@@ -1,5 +1,51 @@
 # Issue #34 — Task Editor 작업 관계 표시
 
+## Issue #430 — Cut/Reparent의 Dependency 경계
+
+Cut source Task/Summary와 모든 descendants를 하나의 이동 집합 `C`로 본다. Link 처리 기준은 관계 존재 자체가 아니라 `C` 경계 통과 여부다.
+
+| predecessor | successor | Cut/Reparent |
+| --- | --- | --- |
+| C 내부 | C 내부 | 허용 — 기존 Link ID/endpoints/type/lag 유지 |
+| C 외부 | C 내부 | 제한 — incoming boundary Link |
+| C 내부 | C 외부 | 제한 — outgoing boundary Link |
+| C 외부 | C 외부 | 무관 |
+
+따라서 Summary 내부 Task끼리의 FS/SS/FF/SF 및 signed lag/lead는 Summary 전체 Cut → Paste를 막지 않는다. 실제 저장은 동일 Task identity를 이동하는 `reparent`이므로 Copy처럼 Link를 새로 만들지 않는다. 반대로 한 endpoint만 source subtree에 있는 Link가 하나라도 있으면 Context Menu Cut, Ctrl/Cmd+X, cut clipboard Paste와 서버 reparent가 같은 이유로 차단된다.
+
+Paste anchor가 독립적으로 다른 Dependency endpoint인 것은 before/after 배치의 차단 사유가 아니다. 다만 `child` Paste가 linked leaf anchor를 Summary로 전환해야 하면 Summary Dependency endpoint 금지와 기존 fail-closed 보호를 유지한다. #335의 same-parent reorder, #378/#384의 Copy 내부 Link 복제, Delete/Indent/Outdent/Convert 보호는 변경하지 않는다.
+
+## Issue #409 — Copy ID와 Relation Editor 검색 식별자 정합화
+
+Task에는 서로 독립적인 두 식별자가 있다.
+
+- **작업 ID**: `taskId` / DB `tasks.public_id` / immutable UUID. Context Menu `Copy ID`와 Task CRUD/Gantt의 canonical public identifier다.
+- **외부 ID**: `externalId` / DB `tasks.external_id` / Project 내부 UNIQUE. Import·Dependency endpoint 계약에서 사용한다.
+
+Relation Editor의 새 관계 후보 검색은 작업명, 외부 ID, 작업 ID를 모두 trim + case-insensitive contains로 검색한다. Summary, 자기 자신, 이미 해당 방향으로 연결된 Task를 제외하는 기존 후보 규칙은 유지한다. 후보와 선택 상태에서는 `외부 ID:`, `작업 ID:` 라벨을 사용해 두 값을 명시적으로 구분한다.
+
+#390의 `Copy ID`는 계속 canonical `taskId`를 복사한다. 사용자는 복사한 UUID를 Relation Editor의 `작업명 / 외부 ID / 작업 ID 검색...`에 붙여넣어 동일 Task를 찾을 수 있다. 검색에 taskId를 사용하더라도 실제 관계 mutation은 기존 callback/API를 통해 Task를 resolve한 뒤 `predecessorExternalId / successorExternalId`를 전송하므로 Link 저장 계약은 변경하지 않는다.
+
+## Issue #384 — 다중 root Copy 집합의 내부 관계
+
+Copy 집합은 선택 ancestor를 제거한 여러 canonical root와 전체 자손의 union이다. 부모와 자손을 함께 선택해도 각 Task는 한 번만 복제된다. 서로 다른 root 사이 관계도 두 endpoint가 union 안이면 새 Link/Task ID로 복제하고 type과 signed lag/lead를 보존한다. 경계를 넘는 incoming/outgoing 관계는 복제하지 않고 원본 관계는 유지한다.
+
+Task Editor는 Copy 성공의 동일 canonical snapshot에서 복사본 관계를 즉시 읽는다. client가 관계 목록을 재작성하거나 제출하지 않는다. #378의 Link 경계와 Cut/reparent/Delete/Convert 보호를 유지하며 다중 Cut/Delete/Edit는 추가하지 않는다. 입력·원자성은 [API](API.md#issue-384--여러-copy-source의-원자적-처리)를 따른다.
+
+## Issue #378 — Copy 집합 내부 관계 복제
+
+Task/Summary subtree Copy에서는 관계의 양쪽 작업이 모두 Copy 집합에 포함된 경우에만 관계를 복제한다.
+
+| 원본 선행 작업 | 원본 후행 작업 | 복사본 처리 |
+| --- | --- | --- |
+| Copy 집합 내부 | Copy 집합 내부 | 새 Link ID와 새 Task endpoint로 복제 |
+| 외부 | 내부 | 복제하지 않음 |
+| 내부 | 외부 | 복제하지 않음 |
+| 외부 | 외부 | Copy와 무관 |
+
+복제된 관계는 원본 Link의 type과 lag/lead를 보존하지만 원본 Link ID를 공유하지 않는다. 원본 관계는 수정·삭제되지 않는다. linked Task의 Copy 허용은 Cut/reparent/Delete/Convert 등 다른 관계 포함 구조 명령의 허용을 의미하지 않는다.
+
+
 ## 목적
 
 Grid 또는 Chart에서 여는 기존 Task Editor에 현재 작업의 **선행 작업**과 **후행 작업** 관계를 조회 전용으로 표시한다. 관계 추가·수정·삭제는 이번 범위에 포함하지 않으며, 현재 도메인 제약인 FS(Finish-to-Start), lag 0을 변경하지 않는다.
@@ -50,7 +96,7 @@ Editor가 열린 뒤 다른 변경으로 revision이 달라지면 기존 stale �
 
 ## Issue #97 mutation scope
 
-Gantt link markers now support server-persisted FS/lag=0 create/delete. SVAR local actions are intercepted, sent through the protected Link API, and only the returned canonical snapshot is accepted. Task Editor remains a relation viewer; after a successful mutation it reads the same canonical links immediately.
+Gantt link markers now support server-persisted FS/lag=0 create/delete. SVAR local actions are intercepted, sent through the protected Link API, and only the returned canonical snapshot is accepted. Issue #97 당시 Task Editor는 relation viewer였으며 현재 관계 탭 mutation 진입 계약은 아래 #377을 따른다.
 
 ## Issue #200 Relation Types & Lag
 
@@ -88,3 +134,23 @@ Gantt 관계선 우클릭 시 Relation Context Menu를 제공하여 FS/SS/FF/SF 
 위 #34/#97의 FS-only와 linked-task 보호는 해당 구현 당시의 기록이다. 현재 Relation Editor는 FS/SS/FF/SF 및 signed 근무일 Lag를 지원하며, 연결된 일반 Task/Milestone의 이름/설명/URL/진척/Baseline 편집과 시작/기간/기존 API scheduleMode 변경도 허용한다. Summary는 name-only, 연결 Task의 삭제·변환·계층 변경은 기존 보호를 유지한다.
 
 비일정 저장은 현재 적용 일정과 요청일을 보존한다. 일정 변경은 모든 leaf의 요청일에서 후보를 만들고 Relation API와 동일한 pure dependency 계산을 사용하여 후행 지연/앞당김 및 Summary를 저장한다. Task PATCH는 Link ID/type/lag를 바꾸지 않는다. 관계 변경 뒤 Task Editor도 같은 최신 canonical tasks/links/revision으로 요청일과 적용일을 읽으며 stale 초안은 기존 재조회 계약을 따른다. 자세한 저장·오류 계약은 [API](API.md), 계산은 [SCHEDULING Engine](SCHEDULING_ENGINE.md)을 따른다.
+
+
+## Issue #377 Task Editor 관계 탭 관리 진입
+
+Task Editor 관계 탭은 #203 Relation Editor와 #200 Link mutation의 추가 진입점이며 관계 도메인이나 별도 cache를 복제하지 않는다.
+
+- 기존 관계 **편집**은 canonical linkId로 Relation Editor를 열고, **삭제**는 predecessor→successor/type/lag를 식별하는 확인 뒤 기존 DELETE를 사용한다.
+- **관계 추가**는 `anchorTaskId`로 Relation Editor를 열 수 있다. 선택된 Link가 없어도 현재 Task/Milestone externalId를 Anchor로 후보 검색과 predecessor/successor 생성 흐름을 제공한다.
+- Anchor mode에서 마지막 관계를 삭제해도 원래 Task Anchor가 유효하면 Dialog를 유지해 계속 관계를 추가할 수 있다.
+- Task Editor dirty/stale/readonly/pending 및 Summary는 relation mutation을 fail-closed한다.
+- Link mutation 성공 응답의 canonical `tasks + links + project.revision`은 Workspace와 열린 Task Editor local canonical session에 함께 반영한다. 부모의 `editorSession` 객체를 교체해 Task Editor native dialog를 재등록하지 않는다.
+- Relation Editor의 dirty/confirm/pending/Escape/focus contract는 #266을 유지한다. Task Editor 직접 삭제 confirmation도 trigger→confirmation→trigger focus 흐름을 보장한다.
+
+Summary endpoint, graph validation, FS/SS/FF/SF 계산, Lag/Lead, Link API/DB schema는 변경하지 않는다.
+
+## Issue #335 Dependency와 WBS sibling order의 분리
+
+Dependency Link의 의미와 WBS sibling order는 별도 계약이다. 같은 parent에서 Task/subtree의 위치만 바꾸는 `move up/down` 또는 `before/after`는 Link ID, predecessor/successor, type, signed lag/lead를 변경하지 않으며 Dependency 일정 재계산 입력을 새로 만들지 않는다. requested/effective schedule 및 Task status/progress도 reorder 자체로 변경하지 않는다.
+
+서버는 command가 실제 parent 변경인지 먼저 판정한다. same-parent reorder만 Link guard 예외이며 cross-parent/child, Indent/Outdent, Cut/Paste, Delete, Convert와 Link 자체 mutation은 기존 검증을 유지한다. canonical 응답의 동일 Link를 기준으로 relation line이 이동한 row endpoint를 따라야 한다.

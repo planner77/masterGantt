@@ -1,5 +1,21 @@
 # GitHub / CI / GHCR 운영 담당과 작업 절차
 
+## Issue #361 Workflow 실행명 운영 규칙
+
+Actions 목록에서 하나의 업무 lifecycle을 검색할 때 **Primary Issue**를 공통 추적 키로 사용한다. 한 PR에는 canonical `Refs #NNN` 1개를 두고 branch는 `*/issue-NNN-*`, PR 제목은 새 작업부터 `[Issue #NNN] ...` 형식을 우선한다. 호환을 위해 기존 `Issue #NNN` 또는 `(#NNN)` 제목도 허용하지만 Primary Issue는 branch/body/title 사이에 일치해야 한다. Related Issue는 PR 본문 설명에만 기록하고 workflow run-name의 owner로 사용하지 않는다.
+
+표시 예시는 다음과 같다.
+
+```text
+PR CI · [Issue #361] ... · PR #<PR> · Run #<run>.<attempt>
+Main CI · Merge pull request #<PR> ... [Issue #361] ... · Run #<run>.<attempt>
+Lifecycle · Issue #361 · PR #<PR> · verify|release|finalize|release_finalize · Run #<run>.<attempt>
+Finalizer · <triggering Main CI display title> · Finalizer Run #<run>.<attempt>
+GHCR Release · Issue #361 · PR #<PR> · v<version> · Run #<run>.<attempt>
+```
+
+PR CI는 `scripts/verify-ci-run-trace.py`로 canonical `Refs`, branch Issue, title Issue가 정확히 하나의 Primary Issue로 일치하는지 먼저 검증한다. Title/body 편집도 `pull_request.edited`로 재검증한다. Dependabot은 작성자 `dependabot[bot]` + 동일 저장소 + `dependabot/` branch 조건이 모두 맞는 경우에만 automation 예외로 취급한다. Main CI에서는 별도 PR payload가 없으므로 merge commit metadata가 trace source다. Generic Finalizer는 `workflow_run.display_title`, Release workflow는 lifecycle dispatch input을 사용한다. 표시명 개선을 이유로 required check/job `name`, workflow `name: CI`, release 권한 또는 lifecycle mutation 순서를 변경하지 않는다.
+
 최초 결정일: 2026-09-12, 모델 배치 갱신: 2026-09-30 (#347). 주 담당은 기존 `infra` Sub-Agent이며 현재 설정은 `.codex/agents/infra.toml`의 `gpt-6.1-sol` / `high`다. Astra는 기본 배치가 아니라 Manager가 Sol High로 충분하지 않다고 판단한 고난도 작업의 일시 승격용이다. 별도 GitHub/CI Agent는 추가하지 않는다. Manager는 범위·승인·최종 통합을 담당하고 `qa_docs`는 독립 검토한다.
 
 이 문서는 **담당자, 배정 조건, 승인 경계와 보고 절차**의 기준이다. Workflow·tag·image의 기술 계약은 [CI_CD.md](CI_CD.md), runtime과 persistence는 [DEPLOYMENT.md](DEPLOYMENT.md), 보안은 [SECURITY.md](SECURITY.md), 기존 결정은 [DECISIONS.md](DECISIONS.md)가 기준이다. 역할 확장은 기존 release 정책이나 D05를 변경하지 않는다.
@@ -37,7 +53,7 @@ GitHub/CI/GHCR 요청은 Docker 파일 수정이 없어도 `infra`에 배정한�
 
 Image 경로는 `ghcr.io/<owner>/<repository>`의 소문자 정규화 기준을 따른다. Repository 연결, `org.opencontainers.image.source` label, package visibility, 권한 상속과 Actions access는 별도로 점검한다. Repository가 private라는 사실만으로 package visibility를 검증했다고 하지 않는다.
 
-기존 불변식을 유지한다. PR/수동 CI는 readonly다. 품질 gate를 통과한 main push의 `ci-<full SHA>`는 registry publish/pull smoke를 위한 임시 tag이며 검증이 끝나면 package version을 삭제한다. Annotated SemVer release는 GHCR `sha-*` candidate를 만들지 않고 local candidate PASS 후 exact version을 직접 게시·검증하며 stable release만 exact/rolling tag를 보관한다. Publish/cleanup job만 최소 권한의 `GITHUB_TOKEN`을 쓰며 개인 PAT를 workflow에 추가하지 않는다. Local candidate 검사, registry digest 재다운로드 smoke, SBOM/provenance와 활성화된 attestation 검증을 구분한다. Release 직렬화, monotonic version과 exact overwrite 금지는 [CI_CD.md](CI_CD.md)를 따른다.
+기존 불변식을 유지한다. PR/수동 CI는 readonly다. 품질 gate를 통과한 비문서 main push는 `ci-<full SHA>`를 게시해 registry digest/runtime을 검증한다. version이 바뀌지 않은 merge는 검증 뒤 package version을 삭제하지만, **version-changing merge의 verified `ci-<SHA>`는 formal release의 build-once candidate로 보존**한다. Annotated SemVer release는 새 container를 build하지 않고 tag target SHA의 candidate exact digest를 source/revision/version label과 함께 재검증한 뒤 같은 digest를 exact/rolling tag로 promotion한다. Publish/cleanup/promotion job만 최소 권한의 `GITHUB_TOKEN`을 쓰며 개인 PAT를 workflow에 추가하지 않는다. Candidate registry smoke, digest 동일성, SBOM/provenance와 활성화된 attestation 검증을 구분한다. Release 직렬화, monotonic version과 exact overwrite 금지는 [CI_CD.md](CI_CD.md)를 따른다.
 
 Image 정리 요청은 dry-run을 먼저 수행한다. 대상 package/version/tag/digest, 현재 배포·rollback 참조, multi-platform manifest와 attestation 참조, 삭제 영향과 복구 가능성을 제시한다. 승인 전에는 삭제하지 않는다. Registry에 존재하는 digest와 실제 운영에서 실행 중인 digest는 별도 근거로 확인하며, runtime 접근이 없으면 운영 배포 여부는 미확인으로 남긴다.
 
@@ -96,6 +112,8 @@ YAML/TOML/API의 key, `jobs.<job_id>`와 step `id`, `needs`, 조건·expression,
 표시용 `name`도 required status checks/ruleset, `workflow_run.workflows`, 상태 조회 스크립트나 외부 자동화의 참조가 될 수 있으므로 무조건 치환하지 않는다. 먼저 참조와 실제 변경 권한을 확인하고, 연동 수정과 동일 head SHA의 필요한 검증을 함께 수행할 수 있을 때 변경한다. 권한 부족이나 참조 미확인 상태에서는 기존 이름을 유지하고 한글 적용 예외·사유·필요 조치를 기록한다. required checks 삭제, 보호 규칙 약화나 gate 생략으로 한글화를 적용하지 않는다. `run-name`의 표시 문구를 수정하더라도 expression과 이벤트 처리 의미는 유지한다.
 
 신규 문구와 참조 영향이 없는 문구부터 적용한다. 이 정책은 새로 작성하거나 수정하는 CI 관련 콘텐츠의 기준이며, 과거 실행 기록을 다시 쓰거나 요청 범위 밖의 기존 workflow를 일괄 변경하라는 지시가 아니다. 다른 범위가 명시되지 않은 지침 변경 작업에서는 workflow 실행 로직과 application version을 변경하지 않는다.
+
+Issue 기반 PR은 제목에 `Issue #345`처럼 실제 Issue 번호를 포함한다. `ci.yml`의 실행 `run-name`은 `CI 검증 · <PR 제목>`으로 표시하며 main push는 commit message, 수동 실행은 ref 이름을 사용한다. Workflow `name: CI`는 Generic Finalizer의 `workflow_run.workflows` 참조를 보존하기 위해 유지한다. Required check 이름·job 식별자·권한·trigger·gate를 바꾸지 않으며, 표시 제목만으로 실행 대상이나 성공 여부를 판단하지 않고 exact head SHA와 run/job evidence를 함께 확인한다.
 
 ### 담당과 검토
 
@@ -177,3 +195,52 @@ CI run number가 더 크거나 같은 SHA에 연결되었다는 이유만으로 
 
 기존 failed run 재실행이 가능한 상태에서 새 one-shot finalizer PR을 반복 생성하거나, GitHub UI/API로 feature branch를 직접 삭제하고 Issue를 수동 종료하는 방식은 사용하지 않는다.
 
+## Generic 자동 Release Finalizer 운영 (#350)
+
+Issue별 one-shot finalizer PR/workflow는 정상 운영 경로에서 사용하지 않는다. 사용자가 정식 release를 승인한 경우 Manager는 **merge 전에** 대상 Issue에 다음 comment marker를 기록한다.
+
+```text
+<!-- mastergantt-release-authorization:v1 {"authorized":true,"expected_version":"<package version>","note":"<승인 근거>"} -->
+```
+
+comment는 trusted maintainer association이어야 하며 version이 정확히 일치해야 한다. 승인 판단 전 Issue comment 전체 page를 조회해 최신 trusted marker를 적용한다. version bump가 있는데 marker가 없으면 generic finalizer가 BLOCKED된다. 승인 추가/cleanup blocker 해소 뒤에는 새 helper PR을 만들지 말고 기존 failed generic finalizer run/job을 재실행한다.
+
+수동 `issue-lifecycle.yml workflow_dispatch`는 장애/복구 fallback이다. Issue별 `release-helper/finalizer/cleanup` workflow 신규 추가는 CI policy가 거부한다.
+
+## Main 임시 GHCR lifecycle 증거 (#352)
+
+main CI 전체 conclusion만으로 임시 GHCR publish/digest smoke/cleanup 성공을 추론하지 않는다. 비문서 변경은 exact main run의 `Main 임시 commit 이미지 게시·검증·정리` job SUCCESS를 별도 증거로 확인한다. docs-only 변경은 registry write를 수행하지 않으며 artifact evidence를 N/A로 기록한다.
+
+CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 SKIPPED라면 dependency-chain skip propagation을 우선 점검한다. `always()`를 사용하더라도 direct aggregate result를 모두 SUCCESS로 명시해 fail-closed를 유지한다.
+
+## Issue #435 CI/CD 운영 최적화
+
+- PR title/body만 수정하는 `pull_request.edited`에서는 trace check 결과만 새 evidence로 만들고 heavy CI를 반복하지 않는다. code/head SHA 변경은 `synchronize`에서 기존 전체 routing을 수행한다.
+- Chromium shard는 runner별 workers=1을 유지하되 CI 전용 test-level distribution을 사용한다. shard 개수 증가보다 먼저 실제 duration 편차를 확인한다.
+- Release는 static quality + 6 Chromium shards가 모두 PASS한 뒤에만 candidate/publish 단계로 이동한다.
+- Main CI Finalizer가 release를 시작한 뒤에는 Actions UI에서 Finalizer가 먼저 종료되는 것이 정상이다.
+- 정식 release publish 성공 후에는 release workflow가 `release-finalizer-resume.yml`을 exact `target_sha`와 source `release_run_id`와 함께 `workflow_dispatch`한다. `Publish release image workflow_run.completed` 구독은 fallback으로 유지한다. Explicit Resume은 source run이 실제 `completed/success`로 전환되고 동일 target SHA를 가리키는지 확인한 뒤 lifecycle을 재개한다.
+- Resume workflow는 write 권한 경계이므로 tag/manual ref를 checkout하지 않고 trusted `main`에서 Generic resolver를 실행한다.
+- Release 실패 시 Issue/branch를 닫거나 지우지 않는다. 기존 immutable run의 성공 재실행 또는 same-Issue corrective release 뒤 lifecycle을 재평가한다.
+- explicit handoff 실패는 이미 성공한 publication을 실패로 바꾸지 않는다. 이후 completion fallback 또는 다음 Main CI가 backlog를 다시 계산할 수 있다.
+
+## Issue #437 E2E 샤드 최적화 운영
+
+- `.github/workflows/e2e-shard-optimizer.yml`은 제품 CI required check가 아니라 historical timing 분석/제안 workflow다.
+- schedule/manual 실행은 최근 성공 `main` CI timing artifact만 읽고 plan 변경 필요 여부를 계산한다.
+- 기본 sample 10회가 쌓이기 전에는 자동 plan PR을 만들지 않는다.
+- optimizer가 생성하는 PR은 `ci/issue-437-e2e-shard-plan-<run id>` branch, `[Issue #437] ci: E2E 샤드 계획 갱신` title, canonical `Refs #437` body를 사용한다.
+- optimizer는 PR 생성 직후 같은 branch를 ref로 `ci.yml workflow_dispatch`를 명시적으로 실행한다. `GITHUB_TOKEN`으로 생성한 push/PR이 새 workflow를 자동 기동한다고 가정하지 않는다. merge API나 Auto-merge는 호출하지 않으며 plan 변경도 기존 ruleset/required checks/review resolution을 통과해야 한다.
+- 자동 plan PR이 이미 열려 있으면 새 PR을 추가 생성하지 않고 기존 PR의 검증/정리를 우선한다.
+- historical artifact는 untrusted input으로 취급한다. duration/file JSON을 파싱하는 것 외의 명령 실행이나 credential 사용을 허용하지 않는다.
+- plan 파일 오류·stale 상태는 test skip 사유가 아니다. CI/Release는 current test 목록을 기준으로 신규 file을 포함하거나 native sharding으로 fallback한다.
+
+## Issue #439 CI setup/cache 계측 운영
+
+- CI setup metric artifact는 성능 관찰 데이터이며 required check나 release evidence를 대체하지 않는다.
+- artifact 이름은 CI build/E2E/Docker/Main image와 Release static/E2E/candidate 단위로 구분하고 retention 30일을 사용한다.
+- baseline 분석 입력은 successful workflow run의 artifact로 제한한다. workflow 파일/event/job/metric을 서로 다른 workload로 취급하며 PR/Main/Release나 서로 다른 job을 섞어 단일 숫자로 평균내지 않는다.
+- artifact를 내려받아 한 디렉터리에 모은 뒤 `node scripts/analyze-ci-setup-metrics.mjs --input <dir> --min-samples 10 --output <json>`으로 median/p90을 계산한다. Phase 2 readiness의 `10`은 record 수가 아니라 **서로 다른 successful run ID 수**이며 E2E matrix shard와 동일 run 재실행은 새 run 표본으로 세지 않는다.
+- 새로운 cache를 도입할 때는 cache key 입력, invalidation, miss fallback, write 권한, secret 포함 여부를 함께 검토한다. cache hit 자체를 PASS 근거로 사용하지 않는다.
+- `node_modules` cache는 금지한다. Playwright browser cache는 Phase 1 baseline에서 download/install 비용이 유의미한 것으로 확인된 뒤 별도 PR로만 활성화한다.
+- setup 비용 최적화 PR은 기존 required checks, test 개수, audit, Docker/runtime smoke를 줄이는 방법으로 성능을 만들지 않는다.

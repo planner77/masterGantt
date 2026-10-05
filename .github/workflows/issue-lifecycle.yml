@@ -1,5 +1,8 @@
 name: Issue lifecycle
 
+run-name: >-
+  Lifecycle · Issue #${{ inputs.issue_number }} · PR #${{ inputs.pr_number }} · ${{ inputs.operation }} · Run #${{ github.run_number }}.${{ github.run_attempt }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -44,6 +47,7 @@ permissions:
 concurrency:
   group: issue-lifecycle-${{ inputs.issue_number }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   verify:

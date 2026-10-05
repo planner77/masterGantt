@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 
 import { openDatabase } from "../../../src/server/db/core";
 import {
-  EmptySummaryNotAllowedError,
   InvalidParentTaskError,
   ParentConversionRequiredError,
   ProjectService,
@@ -202,18 +201,15 @@ describe("ProjectService task hierarchy mutations", () => {
         changedTaskExternalIds: ["ROOT"],
         deletedTaskExternalIds: ["SECOND"],
       });
-      expect(() => value.service.deleteTask(
-        value.authorization,
-        6,
-        first.taskId,
-      )).toThrow(EmptySummaryNotAllowedError);
-      expect(() => value.service.deleteTask(
-        value.authorization,
-        6,
-        root.taskId,
-      )).toThrow(SummaryTaskDeleteUnsupportedError);
-      expect(value.database.prepare("SELECT count(*) FROM tasks").pluck().get()).toBe(2);
-      expect(value.database.prepare("SELECT revision FROM projects").pluck().get()).toBe(6);
+      expect(() => value.service.deleteTask(value.authorization, 6, root.taskId))
+        .toThrow(SummaryTaskDeleteUnsupportedError);
+      const empty = value.service.deleteTask(value.authorization, 6, first.taskId);
+      expect(empty.data.tasks).toMatchObject([{ taskId: root.taskId, type: "summary",
+        start: null, end: null, duration: null, progress: null }]);
+      expect(empty.data.operation.changedTaskExternalIds).toEqual(["ROOT"]);
+      const removed = value.service.deleteTask(value.authorization, 7, root.taskId);
+      expect(removed.data.tasks).toEqual([]);
+      expect(value.database.prepare("SELECT revision FROM projects").pluck().get()).toBe(8);
     } finally {
       value.database.close();
     }

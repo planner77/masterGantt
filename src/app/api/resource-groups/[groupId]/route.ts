@@ -1,6 +1,6 @@
 import { withApiRequestLogging } from "@/server/http/request-context-core";
 import { readApplicationConfiguration } from "@/server/security/origin-core";
-import { handleUpdateCatalogTarget } from "@/server/resources/resource-catalog-handlers-core";
+import { handleDeleteCatalogTarget, handleUpdateCatalogTarget } from "@/server/resources/resource-catalog-handlers-core";
 import { getResourceCatalogService } from "@/server/resources/resource-catalog-service";
 
 export const runtime = "nodejs";
@@ -13,6 +13,18 @@ export async function PATCH(request: Request, context: RouteContext): Promise<Re
   const { groupId } = await context.params;
   return withApiRequestLogging(request, { route: ROUTE, trustProxy: process.env.TRUST_PROXY }, (requestId) =>
     handleUpdateCatalogTarget(request, "group", groupId, {
+      resourceService: getResourceCatalogService,
+      ...readApplicationConfiguration(process.env),
+      adminPassword: process.env.RESOURCE_CATALOG_ADMIN_PASSWORD,
+      requestId: () => requestId,
+    }),
+  );
+}
+
+export async function DELETE(request: Request, context: RouteContext): Promise<Response> {
+  const { groupId } = await context.params;
+  return withApiRequestLogging(request, { route: ROUTE, trustProxy: process.env.TRUST_PROXY }, (requestId) =>
+    handleDeleteCatalogTarget(request, "group", groupId, {
       resourceService: getResourceCatalogService,
       ...readApplicationConfiguration(process.env),
       adminPassword: process.env.RESOURCE_CATALOG_ADMIN_PASSWORD,

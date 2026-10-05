@@ -8,6 +8,113 @@
   padding: 0 0 0.5rem;
 }
 
+.project-gantt-widget [data-summary-state]::after {
+  content: " · " attr(data-summary-state);
+  color: var(--text-muted, var(--muted-foreground));
+  font-size: 0.75rem;
+}
+
+
+/* Issue #375: keep SVAR's full interaction geometry while drawing Summary bars thinner. */
+.project-gantt-widget .wx-bar.wx-summary,
+.project-gantt-widget .wx-bar.wx-summary:hover,
+.project-gantt-widget .wx-bar.wx-summary.wx-selected,
+.project-gantt-widget .wx-bar.wx-summary.wx-critical,
+.project-gantt-widget .wx-bar.wx-summary.wx-critical.wx-selected {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.project-gantt-widget .wx-bar.wx-summary::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 20% 0;
+  box-sizing: border-box;
+  border: var(--wx-gantt-summary-border);
+  border-radius: var(--wx-gantt-bar-border-radius);
+  background: var(--wx-gantt-summary-color);
+  pointer-events: none;
+}
+
+.project-gantt-widget .wx-bar.wx-summary.wx-critical::before {
+  background: var(--wx-gantt-summary-critical-color);
+}
+
+.project-gantt-widget .wx-bar.wx-summary > .wx-progress-wrapper {
+  top: 20%;
+  bottom: 20%;
+  height: auto;
+}
+
+.project-gantt-widget .wx-bar.wx-summary:hover::before,
+.project-gantt-widget .wx-bar.wx-summary.wx-selected::before {
+  box-shadow: var(--wx-gantt-bar-shadow);
+}
+
+.project-gantt-widget .wx-bar.wx-summary.wx-selected::before {
+  border: 1px solid var(--wx-gantt-summary-border-color);
+}
+
+.project-gantt-widget .wx-bar.wx-summary.wx-critical.wx-selected::before {
+  border-color: var(--wx-gantt-summary-critical-color);
+}
+
+.project-gantt-widget .wx-bar.wx-summary:focus {
+  outline: none;
+}
+
+.project-gantt-widget .wx-bar.wx-summary:focus::before {
+  outline: 1px solid var(--wx-color-primary);
+  outline-offset: 1px;
+}
+
+.project-gantt-widget [role="gridcell"][data-col-id=":projectStart"][data-inline-start-editable="true"] {
+  cursor: pointer;
+}
+
+.project-gantt-widget [role="gridcell"][data-col-id=":projectStart"][data-inline-start-editable="true"]:focus-visible {
+  outline: 3px solid var(--focus-ring, var(--ring));
+  outline-offset: -3px;
+}
+
+.project-gantt-start-date-picker {
+  position: fixed;
+  z-index: 1300;
+  display: grid;
+  gap: 0.25rem;
+  max-width: calc(100vw - 1rem);
+  border: 1px solid var(--border-control, var(--border));
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel, var(--card));
+  box-shadow: 0 0.375rem 1rem rgb(15 23 42 / 0.16);
+  padding: 0.375rem;
+}
+
+.project-gantt-start-date-picker label {
+  color: var(--text-muted, var(--muted-foreground));
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.project-gantt-start-date-picker input[type="date"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.25rem;
+  border: 1px solid var(--border-control, var(--border));
+  border-radius: calc(var(--radius) - 0.25rem);
+  background: var(--surface-page, var(--background));
+  color: var(--text-default, var(--foreground));
+  font: inherit;
+  padding: 0.25rem 0.375rem;
+}
+
+.project-gantt-start-date-picker input[type="date"]:focus-visible {
+  outline: 3px solid var(--focus-ring, var(--ring));
+  outline-offset: 1px;
+}
+
 .project-gantt-fullscreen-button {
   min-height: 2.5rem;
   border: 1px solid var(--border-control, var(--border));
@@ -110,4 +217,158 @@
 
 @media (max-width: 48rem) {
   .project-gantt-scale-toolbar { justify-content: flex-start; }
+}
+
+
+.project-gantt-day-scale:focus-visible {
+  outline: 3px solid var(--focus-ring, var(--ring));
+  outline-offset: -3px;
+}
+
+.project-gantt-day-header-tooltip {
+  position: fixed;
+  z-index: 1200;
+  display: grid;
+  gap: 0.125rem;
+  max-width: min(18rem, calc(100vw - 1rem));
+  transform: translateX(-50%);
+  border: 1px solid var(--border-default, var(--border));
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel, var(--card));
+  color: var(--text-default, var(--foreground));
+  box-shadow: 0 0.375rem 1rem rgb(15 23 42 / 0.16);
+  padding: 0.375rem 0.5rem;
+  pointer-events: none;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.project-gantt-day-header-tooltip-weekday {
+  font-weight: 650;
+}
+
+.project-gantt-day-header-tooltip-holiday {
+  color: var(--text-muted, var(--muted-foreground));
+}
+
+.project-copy-selection-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: auto;
+  min-width: 0;
+  font-size: 0.8125rem;
+}
+.project-copy-selection-controls button {
+  border: 1px solid var(--border-control);
+  background: var(--surface-panel);
+  color: var(--text-default);
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.5rem;
+}
+.project-copy-selection-controls button:disabled { opacity: var(--state-disabled-opacity); }
+.project-copy-selection-controls button:focus-visible,
+.project-copy-selection-hitarea input:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+.project-copy-selection-hitarea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  width: 100%;
+  cursor: pointer;
+}
+.project-copy-selection-hitarea input { width: 16px; height: 16px; accent-color: var(--action-primary); }
+.project-gantt-widget .wx-row[data-copy-selected="true"] { background: var(--action-selected-subtle); }
+.project-gantt-widget .wx-bar[data-copy-selected="true"] { outline: 2px solid var(--action-selected); outline-offset: 2px; }
+.project-copy-selection-status,
+.project-copy-selection-help { color: var(--text-muted); font-size: 0.8125rem; }
+.project-copy-selection-status { margin: 0.25rem 0; }
+@media (pointer: coarse) { .project-copy-selection-hitarea { min-height: 44px; } }
+
+.project-gantt-week-scale {
+  position: relative;
+  box-sizing: border-box;
+  padding-bottom: 0.65rem;
+}
+
+.project-gantt-week-working-days {
+  position: absolute;
+  inset-inline: 0.125rem;
+  bottom: 0.125rem;
+  overflow: hidden;
+  color: var(--text-muted, var(--muted-foreground));
+  font-size: 0.625rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  pointer-events: none;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.project-gantt-week-scale:focus-visible {
+  outline: 3px solid var(--focus-ring, var(--ring));
+  outline-offset: -3px;
+}
+
+.project-gantt-week-header-tooltip {
+  position: fixed;
+  z-index: 1200;
+  display: grid;
+  gap: 0.25rem;
+  max-width: min(22rem, calc(100vw - 1rem));
+  transform: translateX(-50%);
+  border: 1px solid var(--border-default, var(--border));
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel, var(--card));
+  color: var(--text-default, var(--foreground));
+  box-shadow: 0 0.375rem 1rem rgb(15 23 42 / 0.16);
+  padding: 0.375rem 0.5rem;
+  pointer-events: none;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.project-gantt-week-header-tooltip-working,
+.project-gantt-week-header-tooltip-label {
+  font-weight: 650;
+}
+
+.project-gantt-week-header-tooltip-holidays {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.project-gantt-week-header-tooltip-holiday {
+  color: var(--text-muted, var(--muted-foreground));
+}
+
+.project-gantt-frame .wx-table-container .wx-row[data-task-completed="true"] [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text {
+  text-decoration: line-through;
+}
+
+
+/* Issue #299: keep Chart reorder feedback inside the existing SVAR bar surface. */
+.project-gantt-frame .wx-chart .wx-bar.project-chart-drop-target::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  height: 2px;
+  background: currentColor;
+  content: "";
+  pointer-events: none;
+}
+
+.project-gantt-frame .wx-chart .wx-bar.project-chart-drop-target[data-chart-drop-placement="before"]::after {
+  top: -3px;
+}
+
+.project-gantt-frame .wx-chart .wx-bar.project-chart-drop-target[data-chart-drop-placement="after"]::after {
+  bottom: -3px;
 }

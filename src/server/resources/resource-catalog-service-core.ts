@@ -13,6 +13,7 @@ import type {
   ResourceCatalogResponse,
   UpdateCatalogTargetRequest,
   DeveloperGrade,
+  ResourceRole,
 } from "../../contracts/resources";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
 import { resolveResourceCalendar } from "../../domain/scheduling/resource-calendar";
@@ -21,6 +22,7 @@ import { ProjectRepository, EditSessionRepository } from "../repositories/projec
 import {
   ResourceCatalogRepository,
   type AssignmentRecord,
+  type CatalogTargetProjectUsage,
   type CatalogTargetRecord,
 } from "../repositories/resource-catalog-repository-core";
 import { ScheduleRepository } from "../repositories/schedule-repository-core";
@@ -36,6 +38,26 @@ export class ResourceCatalogAuthorizationError extends Error {}
 export class ResourceCatalogRevisionMismatchError extends Error {}
 export class ResourceCatalogTargetNotFoundError extends Error {}
 export class ResourceCatalogTargetInactiveError extends Error {}
+export class ResourceCatalogAssignmentRoleInvalidError extends Error {}
+export class ResourceCatalogRoleInUseError extends Error {
+  constructor(
+    readonly role: ResourceRole,
+    readonly projectCount: number,
+    readonly taskCount: number,
+  ) {
+    super(`Resource role ${role} is used by task assignments.`);
+    this.name = "ResourceCatalogRoleInUseError";
+  }
+}
+export class ResourceCatalogTargetInUseError extends Error {
+  constructor(
+    readonly kind: "resource" | "group",
+    readonly usage: CatalogTargetProjectUsage,
+  ) {
+    super(`${kind} is referenced by one or more projects.`);
+    this.name = "ResourceCatalogTargetInUseError";
+  }
+}
 export class ResourceCatalogInvalidInputError extends Error {}
 export class ResourceCatalogProjectRevisionMismatchError extends Error {}
 export class ResourceCatalogTaskNotFoundError extends Error {}
@@ -69,22 +91,32 @@ function normalizeCode(value: unknown): string | null | undefined {
   return text === undefined ? undefined : text;
 }
 const DEVELOPER_GRADES = new Set<DeveloperGrade>(["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]);
+const RESOURCE_ROLE_ORDER = ["PI", "DEVELOPER", "EQUIPMENT_OWNER"] as const satisfies readonly ResourceRole[];
+const RESOURCE_ROLES = new Set<ResourceRole>(RESOURCE_ROLE_ORDER);
 function normalizeDeveloperGrade(value: unknown): DeveloperGrade | null | undefined {
   if (value === null) return null;
   return typeof value === "string" && DEVELOPER_GRADES.has(value as DeveloperGrade) ? value as DeveloperGrade : undefined;
 }
-function canonicalCreate(input: CreateCatalogTargetRequest): { name: string; code: string | null; description: string; developerGrade: DeveloperGrade | null } {
+function normalizeResourceRoles(value: unknown): ResourceRole[] | undefined {
+  if (!Array.isArray(value) || value.length > RESOURCE_ROLE_ORDER.length) return undefined;
+  if (value.some((role) => typeof role !== "string" || !RESOURCE_ROLES.has(role as ResourceRole))) return undefined;
+  if (new Set(value).size !== value.length) return undefined;
+  const requested = new Set(value as ResourceRole[]);
+  return RESOURCE_ROLE_ORDER.filter((role) => requested.has(role));
+}
+function canonicalCreate(input: CreateCatalogTargetRequest): { name: string; code: string | null; description: string; developerGrade: DeveloperGrade | null; roles: ResourceRole[] } {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new ResourceCatalogInvalidInputError();
   const name = normalizedText(input.name, 200);
   const code = input.code === undefined ? null : normalizeCode(input.code);
   const description = input.description === undefined ? "" : normalizedText(input.description, 2000, true);
   const developerGrade = input.developerGrade === undefined ? null : normalizeDeveloperGrade(input.developerGrade);
-  if (name === undefined || code === undefined || description === undefined || developerGrade === undefined) throw new ResourceCatalogInvalidInputError();
-  return { name, code, description, developerGrade };
+  const roles = input.roles === undefined ? [] : normalizeResourceRoles(input.roles);
+  if (name === undefined || code === undefined || description === undefined || developerGrade === undefined || roles === undefined) throw new ResourceCatalogInvalidInputError();
+  return { name, code, description, developerGrade, roles };
 }
 function canonicalUpdate(input: UpdateCatalogTargetRequest): UpdateCatalogTargetRequest {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new ResourceCatalogInvalidInputError();
-  const allowed = new Set(["name", "code", "description", "active", "developerGrade"]);
+  const allowed = new Set(["name", "code", "description", "active", "developerGrade", "roles"]);
   if (Object.keys(input).some((key) => !allowed.has(key)) || Object.keys(input).length === 0) throw new ResourceCatalogInvalidInputError();
   const result: UpdateCatalogTargetRequest = {};
   if (input.name !== undefined) { const name = normalizedText(input.name, 200); if (name === undefined) throw new ResourceCatalogInvalidInputError(); result.name = name; }
@@ -92,21 +124,32 @@ function canonicalUpdate(input: UpdateCatalogTargetRequest): UpdateCatalogTarget
   if (input.description !== undefined) { const description = normalizedText(input.description, 2000, true); if (description === undefined) throw new ResourceCatalogInvalidInputError(); result.description = description; }
   if (input.active !== undefined) { if (typeof input.active !== "boolean") throw new ResourceCatalogInvalidInputError(); result.active = input.active; }
   if (input.developerGrade !== undefined) { const grade = normalizeDeveloperGrade(input.developerGrade); if (grade === undefined) throw new ResourceCatalogInvalidInputError(); result.developerGrade = grade; }
+  if (input.roles !== undefined) { const roles = normalizeResourceRoles(input.roles); if (roles === undefined) throw new ResourceCatalogInvalidInputError(); result.roles = roles; }
   return result;
 }
 function sameTarget(current: CatalogTargetRecord, update: UpdateCatalogTargetRequest): boolean {
   return (update.name === undefined || update.name === current.name) && (update.code === undefined || update.code === current.code) &&
     (update.description === undefined || update.description === current.description) && (update.active === undefined || update.active === current.active) &&
-    (update.developerGrade === undefined || update.developerGrade === current.developerGrade);
+    (update.developerGrade === undefined || update.developerGrade === current.developerGrade) &&
+    (update.roles === undefined || (update.roles.length === current.roles.length && update.roles.every((role, index) => role === current.roles[index])));
 }
 function targetDto(kind: "resource" | "group", target: CatalogTargetRecord): AssignmentTargetDto {
-  return { kind, id: target.publicId, name: target.name, code: target.code, description: target.description, active: target.active };
+  return {
+    kind,
+    id: target.publicId,
+    name: target.name,
+    code: target.code,
+    description: target.description,
+    active: target.active,
+    ...(kind === "resource" ? { roles: target.roles } : {}),
+  };
 }
 function assignmentDtos(records: readonly AssignmentRecord[]): ProjectAssignmentDto[] {
   return records.map((record) => ({
     id: record.publicId,
     taskId: record.taskPublicId,
     target: { kind: record.kind, id: record.targetPublicId },
+    role: record.kind === "resource" ? record.assignmentRole : null,
     allocation: record.kind === "resource" ? { start: record.assignmentStart, end: record.assignmentEnd, percent: record.allocationPercent } : null,
   }));
 }
@@ -216,27 +259,112 @@ export class ResourceCatalogService {
 
   getCatalog(rawAdminToken: string | undefined): ResourceCatalogResponse {
     this.requireAdmin(rawAdminToken);
-    return { data: { revision: this.catalog.getRevision(), resources: this.catalog.listResources().map((r) => ({ id:r.publicId,name:r.name,code:r.code,description:r.description,active:r.active,developerGrade:r.developerGrade })), groups: this.catalog.listGroups().map((g) => ({ id:g.publicId,name:g.name,code:g.code,description:g.description,active:g.active,memberResourceIds:g.memberResourceIds })) } };
+    const resourceUsage = this.catalog.listResourceProjectUsage();
+    const groupUsage = this.catalog.listGroupProjectUsage();
+    return {
+      data: {
+        revision: this.catalog.getRevision(),
+        resources: this.catalog.listResources().map((resource) => {
+          const projectUsageCount = resourceUsage.get(resource.id)?.projectCount ?? 0;
+          return {
+            id: resource.publicId,
+            name: resource.name,
+            code: resource.code,
+            description: resource.description,
+            active: resource.active,
+            developerGrade: resource.developerGrade,
+            roles: resource.roles,
+            projectUsageCount,
+            deletable: projectUsageCount === 0,
+          };
+        }),
+        groups: this.catalog.listGroups().map((group) => {
+          const projectUsageCount = groupUsage.get(group.id)?.projectCount ?? 0;
+          return {
+            id: group.publicId,
+            name: group.name,
+            code: group.code,
+            description: group.description,
+            active: group.active,
+            memberResourceIds: group.memberResourceIds,
+            projectUsageCount,
+            deletable: projectUsageCount === 0,
+          };
+        }),
+      },
+    };
   }
   createTarget(kind: "resource" | "group", rawAdminToken: string | undefined, expectedRevision: number, input: CreateCatalogTargetRequest): ResourceCatalogResponse {
-    if (kind === "group" && input?.developerGrade !== undefined) throw new ResourceCatalogInvalidInputError();
+    if (kind === "group" && (input?.developerGrade !== undefined || input?.roles !== undefined)) throw new ResourceCatalogInvalidInputError();
     const canonical = canonicalCreate(input); const mutate = this.database.transaction(() => {
       this.requireAdmin(rawAdminToken); if (this.catalog.getRevision() !== expectedRevision) throw new ResourceCatalogRevisionMismatchError();
       const publicId = this.generatePublicId(); if (!isCanonicalUuidV4(publicId)) throw new ResourceCatalogInvalidInputError(); const now = this.clock().toISOString();
-      if (kind === "resource") this.catalog.insertResource({ publicId, ...canonical, now }); else this.catalog.insertGroup({ publicId, name: canonical.name, code: canonical.code, description: canonical.description, now });
+      if (kind === "resource") {
+        const resource = this.catalog.insertResource({ publicId, name: canonical.name, code: canonical.code, description: canonical.description, developerGrade: canonical.developerGrade, now });
+        this.catalog.replaceResourceRoles(resource.id, canonical.roles, now);
+      } else {
+        this.catalog.insertGroup({ publicId, name: canonical.name, code: canonical.code, description: canonical.description, now });
+      }
       if (!this.catalog.advanceRevision(expectedRevision, now)) throw new ResourceCatalogRevisionMismatchError(); return this.getCatalog(rawAdminToken);
     }); return mutate.immediate();
   }
   updateTarget(kind: "resource" | "group", publicId: string, rawAdminToken: string | undefined, expectedRevision: number, input: UpdateCatalogTargetRequest): ResourceCatalogResponse {
-    if (kind === "group" && input?.developerGrade !== undefined) throw new ResourceCatalogInvalidInputError();
+    if (kind === "group" && (input?.developerGrade !== undefined || input?.roles !== undefined)) throw new ResourceCatalogInvalidInputError();
     const canonical = canonicalUpdate(input); const mutate = this.database.transaction(() => {
       this.requireAdmin(rawAdminToken); if (this.catalog.getRevision() !== expectedRevision) throw new ResourceCatalogRevisionMismatchError();
       const current = kind === "resource" ? this.catalog.findResourceByPublicId(publicId) : this.catalog.findGroupByPublicId(publicId);
       if (!current) throw new ResourceCatalogTargetNotFoundError(); if (sameTarget(current, canonical)) return this.getCatalog(rawAdminToken); const now = this.clock().toISOString();
-      if (kind === "resource") this.catalog.updateResource(current.id, canonical, now); else this.catalog.updateGroup(current.id, canonical, now);
+      if (kind === "resource") {
+        if (canonical.roles !== undefined) {
+          const removedRoles = current.roles.filter((role) => !canonical.roles!.includes(role));
+          for (const role of removedRoles) {
+            const usage = this.catalog.getResourceRoleAssignmentUsage(current.id, role);
+            if (usage.taskCount > 0) throw new ResourceCatalogRoleInUseError(role, usage.projectCount, usage.taskCount);
+          }
+        }
+        this.catalog.updateResource(current.id, canonical, now);
+        if (canonical.roles !== undefined) this.catalog.replaceResourceRoles(current.id, canonical.roles, now);
+      } else {
+        this.catalog.updateGroup(current.id, canonical, now);
+      }
       if (!this.catalog.advanceRevision(expectedRevision, now)) throw new ResourceCatalogRevisionMismatchError(); return this.getCatalog(rawAdminToken);
     }); return mutate.immediate();
   }
+  deleteTarget(kind: "resource" | "group", publicId: string, rawAdminToken: string | undefined, expectedRevision: number): ResourceCatalogResponse {
+    const mutate = this.database.transaction(() => {
+      this.requireAdmin(rawAdminToken);
+      if (this.catalog.getRevision() !== expectedRevision) throw new ResourceCatalogRevisionMismatchError();
+      const current = kind === "resource"
+        ? this.catalog.findResourceByPublicId(publicId)
+        : this.catalog.findGroupByPublicId(publicId);
+      if (!current) throw new ResourceCatalogTargetNotFoundError();
+
+      const usage = (kind === "resource"
+        ? this.catalog.listResourceProjectUsage()
+        : this.catalog.listGroupProjectUsage()).get(current.id) ?? {
+        projectCount: 0,
+        taskAssignmentProjectCount: 0,
+        equipmentRoleProjectCount: 0,
+        systemRoleProjectCount: 0,
+        calendarProjectCount: 0,
+      };
+      if (usage.projectCount > 0) throw new ResourceCatalogTargetInUseError(kind, usage);
+
+      if (kind === "resource") {
+        this.catalog.removeResourceMemberships(current.id);
+        if (!this.catalog.deleteResource(current.id)) throw new ResourceCatalogTargetNotFoundError();
+      } else {
+        this.catalog.removeGroupMemberships(current.id);
+        if (!this.catalog.deleteGroup(current.id)) throw new ResourceCatalogTargetNotFoundError();
+      }
+
+      const now = this.clock().toISOString();
+      if (!this.catalog.advanceRevision(expectedRevision, now)) throw new ResourceCatalogRevisionMismatchError();
+      return this.getCatalog(rawAdminToken);
+    });
+    return mutate.immediate();
+  }
+
   replaceGroupMembers(groupPublicId: string, rawAdminToken: string | undefined, expectedRevision: number, input: ReplaceResourceGroupMembersRequest): ResourceCatalogResponse {
     if (!input || !Array.isArray(input.resourceIds) || input.resourceIds.length > 1000 || new Set(input.resourceIds).size !== input.resourceIds.length) throw new ResourceCatalogInvalidInputError();
     const mutate = this.database.transaction(() => {
@@ -262,11 +390,26 @@ export class ResourceCatalogService {
       if (!this.catalog.advanceRevision(expectedRevision, now)) throw new ResourceCatalogRevisionMismatchError(); return this.getCatalog(rawAdminToken);
     }); return mutate.immediate();
   }
-  searchTargets(authorization: AuthorizedEditSession, kind: "resource" | "group" | undefined, query: string | undefined): AssignmentTargetsResponse {
-    this.requireProjectAuthorization(authorization); const q = (query ?? "").trim().toLocaleLowerCase(); if (q.length > 100) throw new ResourceCatalogInvalidInputError();
-    const resources = kind === "group" ? [] : this.catalog.listResources(true).map((target) => targetDto("resource", target));
-    const groups = kind === "resource" ? [] : this.catalog.listGroups(true).map((target) => targetDto("group", target));
-    const targets = [...resources, ...groups].filter((target) => !q || target.name.toLocaleLowerCase().includes(q) || (target.code ?? "").toLocaleLowerCase().includes(q)).slice(0, MAX_SEARCH_RESULTS);
+  searchTargets(
+    authorization: AuthorizedEditSession,
+    kind: "resource" | "group" | undefined,
+    query: string | undefined,
+    role?: ResourceRole,
+  ): AssignmentTargetsResponse {
+    this.requireProjectAuthorization(authorization);
+    const q = (query ?? "").trim().toLocaleLowerCase();
+    if (q.length > 100) throw new ResourceCatalogInvalidInputError();
+    const resources = kind === "group"
+      ? []
+      : this.catalog.listResources(true)
+          .filter((target) => role === undefined || target.roles.includes(role))
+          .map((target) => targetDto("resource", target));
+    const groups = kind === "resource" || role !== undefined
+      ? []
+      : this.catalog.listGroups(true).map((target) => targetDto("group", target));
+    const targets = [...resources, ...groups]
+      .filter((target) => !q || target.name.toLocaleLowerCase().includes(q) || (target.code ?? "").toLocaleLowerCase().includes(q))
+      .slice(0, MAX_SEARCH_RESULTS);
     return { data: { catalogRevision: this.catalog.getRevision(), targets } };
   }
   getAssignedTargets(projectPublicId: string): AssignedTargetsResponse | undefined {
@@ -281,7 +424,8 @@ export class ResourceCatalogService {
     const keys = input.targets.map((target) => `${target?.kind}:${target?.id}`);
     if (new Set(keys).size !== keys.length || input.targets.some((target) => !target || (target.kind !== "resource" && target.kind !== "group") || !isCanonicalUuidV4(target.id))) throw new ResourceCatalogInvalidInputError();
     for (const target of input.targets) {
-      if (target.kind === "group" && target.allocation !== undefined) throw new ResourceCatalogInvalidInputError();
+      if (target.kind === "group" && (target.allocation !== undefined || target.role !== undefined)) throw new ResourceCatalogInvalidInputError();
+      if (target.kind === "resource" && target.role !== undefined && target.role !== null && !RESOURCE_ROLES.has(target.role)) throw new ResourceCatalogInvalidInputError();
       if (target.kind === "resource" && target.allocation !== undefined) {
         const allocation = target.allocation;
         if (!allocation || !Number.isFinite(allocation.percent) || allocation.percent <= 0 || allocation.percent > 100 || !validDateOrNull(allocation.start) || !validDateOrNull(allocation.end)) throw new ResourceCatalogInvalidInputError();
@@ -295,14 +439,16 @@ export class ResourceCatalogService {
       const resolved = input.targets.map((target) => {
         const record = target.kind === "resource" ? this.catalog.findResourceByPublicId(target.id) : this.catalog.findGroupByPublicId(target.id);
         if (!record) throw new ResourceCatalogTargetNotFoundError(); if (!record.active) throw new ResourceCatalogTargetInactiveError();
+        const role = target.kind === "resource" ? target.role ?? null : null;
+        if (target.kind === "resource" && role !== null && !record.roles.includes(role)) throw new ResourceCatalogAssignmentRoleInvalidError();
         const start = target.kind === "resource" ? target.allocation?.start ?? null : null;
         const end = target.kind === "resource" ? target.allocation?.end ?? null : null;
         if (task.type === "task" && ((start && (start < task.startDate || start > task.endDate)) || (end && (end < task.startDate || end > task.endDate)))) throw new ResourceCatalogInvalidInputError();
-        return { kind: target.kind, publicId: target.id, internalId: record.id, assignmentStart: start, assignmentEnd: end, allocationPercent: target.kind === "resource" ? target.allocation?.percent ?? null : null };
+        return { kind: target.kind, publicId: target.id, internalId: record.id, assignmentStart: start, assignmentEnd: end, allocationPercent: target.kind === "resource" ? target.allocation?.percent ?? null : null, assignmentRole: role };
       });
       const current = this.catalog.listAssignments(currentProject.id).filter((assignment) => assignment.taskPublicId === taskPublicId);
-      const currentKeys = current.map((assignment) => `${assignment.kind}:${assignment.targetPublicId}:${assignment.assignmentStart ?? ""}:${assignment.assignmentEnd ?? ""}:${assignment.allocationPercent ?? ""}`).sort();
-      const requestedKeys = resolved.map((assignment) => `${assignment.kind}:${assignment.publicId}:${assignment.assignmentStart ?? ""}:${assignment.assignmentEnd ?? ""}:${assignment.allocationPercent ?? ""}`).sort();
+      const currentKeys = current.map((assignment) => `${assignment.kind}:${assignment.targetPublicId}:${assignment.assignmentStart ?? ""}:${assignment.assignmentEnd ?? ""}:${assignment.allocationPercent ?? ""}:${assignment.assignmentRole ?? ""}`).sort();
+      const requestedKeys = resolved.map((assignment) => `${assignment.kind}:${assignment.publicId}:${assignment.assignmentStart ?? ""}:${assignment.assignmentEnd ?? ""}:${assignment.allocationPercent ?? ""}:${assignment.assignmentRole ?? ""}`).sort();
       if (currentKeys.length === requestedKeys.length && currentKeys.every((key, index) => key === requestedKeys[index])) return { data: { projectRevision: currentProject.revision, catalogRevision, assignments: assignmentDtos(this.catalog.listAssignments(currentProject.id)), operation: { kind: "taskAssignments" as const, taskId: taskPublicId, changed: false } } };
       const now = this.clock().toISOString();
       this.catalog.replaceTaskAssignments({ projectId: currentProject.id, taskId: task.id, targets: resolved.map((target) => { const assignmentPublicId = this.generateAssignmentPublicId(); if (!isCanonicalUuidV4(assignmentPublicId)) throw new ResourceCatalogInvalidInputError(); return { ...target, assignmentPublicId }; }), now });

@@ -20,6 +20,24 @@
 본 프로젝트는 Codex Multi-Agent 기반으로 개발한다.
 Main Codex Thread가 Manager 역할을 수행하며, 전문 Sub-Agent에게 필요한 작업을 위임한다.
 
+## 1.1 Attention-kind 응답·보고 원칙
+
+Manager와 모든 Sub-Agent는 사람이 읽는 대화·진행 보고·최종 보고에 [Attention-kind](https://github.com/alexgreensh/attention-span)의 취지를 적용한다. 이는 작업량·분석 깊이·검증 수준을 줄이는 규칙이 아니라, 충분히 수행한 작업을 사람이 빠르게 이해하고 판단할 수 있게 전달하는 규칙이다.
+
+- **결론 우선**: 첫 문장에 가장 중요한 결론·상태·판정을 둔다. 배경 설명으로 시작하지 않는다.
+- **짧게 완전하게**: 필요한 사실을 빠뜨리지 않는 범위에서 가장 짧게 쓴다. 반복, 장황한 서론, 같은 결론의 재진술은 제거한다.
+- **평이한 표현**: 기술 용어는 필요한 경우에만 사용하고, 독자가 즉시 이해해야 하는 비표준 용어는 짧게 설명한다.
+- **정확한 수치와 범위 보존**: 숫자, 임계값, 날짜, SHA, Issue/PR 번호, 조건, 적용 범위(scope)는 축약하지 않는다. 제한된 조건을 전체 규칙처럼 확대해서 쓰지 않는다.
+- **위험·경고 우선 보존**: 잘못된 결정으로 이어질 수 있는 위험, 전제조건, 실패 원인, BLOCKED 사유, 미검증 항목은 간결성을 이유로 생략하거나 뒤로 미루지 않는다.
+- **증거 보존**: GitHub Actions run/job/step, head SHA, PASS/FAIL/BLOCKED/NOT TESTED, GHCR digest 등 현재 프로젝트의 검증 증거 계약은 그대로 유지한다. "짧게 쓰기"가 검증 증거를 줄이는 근거가 될 수 없다.
+- **상세 요청 시 완전성 우선**: 사용자가 원인 분석, 전체 과정, 상세 설명, 설계 근거 등을 명시적으로 요구하면 기본 brevity를 중단하고 의사결정에 필요한 세부사항·조건·위험을 충분히 제공한다.
+- **긴 작업 재앵커링**: 긴 작업에서는 중간 보고 시 현재 상태와 다음 핵심 조치를 1~2문장으로 다시 잡아준다. 사용자가 이미 준 정보를 다시 묻지 않는다.
+- **한 번에 한 가지 질문**: 실제로 사용자 입력 없이는 진행할 수 없는 blocking question만 묻고, 가능한 작업은 먼저 수행한다.
+- **코드와 문서에는 채팅 형식 강제 금지**: `→`, 굵은 글씨 같은 스캔용 형식은 대화·보고에 선택적으로 사용한다. 소스코드 주석과 제품 문서에는 기존 문서 스타일을 우선하고, 명백한 내용보다 이유·주의점을 간결하게 기록한다.
+
+충돌 시 우선순위는 **보안·정확성·Source of Truth·Issue Lifecycle·CI/QA gate > Attention-kind 표현 규칙**이다. 즉, 표현은 간결하게 만들되 기존 프로젝트의 판단 기준과 완료 조건을 약화하지 않는다.
+
+
 ## 2. Source of Truth
 
 상세 요구사항/설계는 `docs/**`를 따른다. 작업 전에 특히 `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/ISSUE_LIFECYCLE.md`, `DESIGN.md`, `docs/UI_UX_GUIDELINES.md`, `docs/exec-plans/active/PLAN.md`를 확인한다.
@@ -97,21 +115,26 @@ Local PASS는 공식 전체 회귀 PASS가 아니며 GitHub Actions PASS를 대�
 
 PR은 read-only이며 registry write를 수행하지 않는다. 검토 대상 head SHA에서 `quality`, `e2e`, `docker`가 성공하기 전 Manager는 코드 변경을 최종 ACCEPT하지 않는다. Run이 미실행/진행 중이면 NOT TESTED, 실행 불가면 BLOCKED로 기록한다.
 
+CI cache는 성능 보조 수단이며 검증 PASS 증거가 아니다. `npm ci`의 frozen install은 항상 실행하고 `node_modules`를 cache하지 않는다. setup/cache 변경은 cache miss에서도 동일 required gate가 실행되어야 하며 Secret·`.env`·runtime DB·test PASS 결과를 cache/artifact에 저장하지 않는다. Playwright browser cache 같은 신규 cache는 setup 비용 baseline과 invalidation 근거 없이 추가하지 않는다. Phase 2 baseline은 workflow 파일/event/job/metric별로 분리하고 **서로 다른 successful run ID 10개 이상**을 기준으로 하며 matrix shard 수나 동일 run 재실행 횟수를 표본 수로 대체하지 않는다.
+
 ### Main Artifact Validation
 
-`main` push에서는 동일 gate를 다시 통과한 뒤에만 임시 `ci-<full SHA>` image를 GHCR에 게시한다. 게시한 image는 exact digest로 다시 pull하여 policy, readiness, native SQLite, Project/Task API authorization/persistence, restart persistence를 검증하고 SBOM/provenance를 생성한 뒤 해당 GHCR package version을 삭제한다. `ci-*`는 운영·rollback artifact로 보관하지 않는다.
+`main` push에서는 동일 gate를 다시 통과한 뒤에만 `ci-<full SHA>` image를 GHCR에 게시한다. 게시한 image는 exact digest로 다시 pull하여 policy, readiness, native SQLite, Project/Task API authorization/persistence, restart persistence를 검증하고 SBOM/provenance를 생성한다. **application version이 유지된 merge와 실패 run은 해당 GHCR package version을 정리**한다. 반면 **version-changing merge의 successful `ci-<SHA>`는 formal release에서 동일 verified digest를 재사용하기 위한 candidate/provenance alias로 보존**한다. `ci-*` 자체는 운영·rollback용 정식 release authority가 아니며, 정식 사용 가능 여부는 annotated tag와 Release workflow의 exact-digest promotion이 성공한 뒤에만 판단한다.
 
 로컬 Docker PASS나 PR PASS만으로 main GHCR artifact PASS를 주장하지 않는다.
 
-### Lifecycle Finalizer 확인·재실행 규칙
+### Generic Release Finalizer 확인·재실행 규칙
 
-Issue 병합 후 자동 finalize를 요청받으면 `workflow_dispatch` 실행 가능 여부만 보고 종료하지 않는다. 먼저 저장소의 최신 commit/PR/check-run을 조회하여 이미 `ops/issue-<N>-finalize` 형태의 one-shot finalizer PR이 생성·병합되었는지와 해당 merge SHA에서 어떤 workflow가 실행됐는지 확인한다.
+Issue별 one-shot finalizer workflow를 신규 생성하지 않는다. 정상 경로는 `.github/workflows/release-finalizer.yml` 하나이며, `main` CI 성공 뒤 exact merge SHA → merged PR → canonical `Refs #Issue`를 자동으로 resolve한다.
 
-- 범용 `.github/workflows/issue-lifecycle.yml`의 `workflow_dispatch`가 기본 경로다. 연결 도구에 dispatch mutation이 없고 사용자가 #283/#266과 동일한 자동 finalizer 패턴을 명시적으로 요청한 경우에만 one-shot finalizer PR을 임시 운영 경로로 사용할 수 있다. 신규 Issue별 helper를 관성적으로 만들지 않는다.
-- one-shot finalizer PR이 main에 병합되면 **일반 Main CI와 finalizer workflow는 별도 run**으로 실행될 수 있다. 같은 merge SHA의 check-runs에서 workflow/job 이름과 run ID를 확인하고, 일반 CI 번호만 보고 finalizer 성공/실패를 추정하지 않는다.
-- finalizer가 `safe_branch_cleanup.py`의 fail-closed 조건(예: 다른 Open PR이 작업 branch를 base/head로 사용)으로 실패하면 Issue를 열린 상태로 유지한다. 참조 중인 PR을 최신 main 등 올바른 base로 재정렬한 뒤 **기존 failed finalizer run/job 재실행을 우선**한다.
-- 기존 failed run을 재실행할 수 있고 workflow 파일/target SHA가 유효한데도 새 finalizer PR을 반복 생성하지 않는다. 수동 branch 삭제나 Issue close로 cleanup gate를 우회하지 않는다.
-- 최종 완료 보고에는 feature PR/merge SHA, exact main CI, finalizer workflow run, cleanup 결과, FINAL marker/Issue 상태를 서로 구분해 기록한다.
+- merge first parent 대비 application version이 동일하면 `finalize`만 수행한다.
+- version이 변경되면 정식 release가 필요하다고 판정하되, CI 성공/version bump만으로 승인을 추론하지 않는다.
+- 사용자가 정식 GHCR 게시를 명시적으로 승인하면 Manager는 merge 전에 해당 Issue에 `mastergantt-release-authorization:v1` comment marker를 기록한다. 형식과 OWNER-only trusted author 규칙은 `docs/GENERIC_RELEASE_FINALIZER.md`를 따른다.
+- release-required인데 유효한 version-scoped 승인 marker가 없으면 generic finalizer는 fail-closed로 BLOCKED하고 Issue/branch/tag를 변경하지 않는다.
+- blocker 제거 또는 승인 marker 추가 후에는 **기존 failed generic finalizer run/job 재실행을 우선**한다.
+- `issue-lifecycle.yml workflow_dispatch`는 복구 fallback이며 정상 자동 경로를 대체하지 않는다.
+- `issue-<N>-release-helper/finalizer` 및 lifecycle 전용 `issue-<N>-cleanup` 패턴은 금지하며 CI policy가 재도입을 차단한다.
+- 최종 완료 보고에는 feature PR/merge SHA, exact main CI, generic finalizer run, 필요 시 release-image run/digest, cleanup, FINAL marker/Issue 상태를 구분해 기록한다.
 
 ### Environment-specific Validation
 

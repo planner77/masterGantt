@@ -2,12 +2,14 @@ import { deflateRawSync } from "node:zlib";
 
 import type { ProjectLinkDto, ProjectSnapshotResponse, ProjectStatus, ProjectTaskDto } from "@/contracts/projects";
 import type { ProjectExcelExportRequest } from "@/contracts/project-excel-export";
+import type { ResourceWorkloadResponse, ResourceWorkloadTaskDto } from "@/contracts/resources";
 
 const MAX_TASKS = 5_000;
 const MAX_DEPENDENCIES = 20_000;
 const MAX_TIMELINE_DAYS = 3_650;
 const MAX_TIMELINE_CELLS = 1_000_000;
 const MAX_CELL_TEXT = 32_767;
+const MAX_RESOURCE_EFFORT_ROWS = 50_000;
 const MAX_OUTLINE_LEVEL = 7;
 const DAY_MS = 86_400_000;
 const EXCEL_EPOCH_OFFSET = 25_569;
@@ -135,7 +137,8 @@ function orderedTasks(tasks: readonly ProjectTaskDto[]): OrderedTask[] {
       throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Duplicate externalId in canonical snapshot.");
     }
     byExternalId.set(task.externalId, task);
-    if (!validDateOnly(task.start) || !validDateOnly(task.end) || epochDay(task.end) < epochDay(task.start)) {
+    const unscheduled = task.type === "summary" && task.start === null && task.end === null && task.duration === null && task.progress === null;
+    if (!unscheduled && (task.start === null || task.end === null || task.duration === null || task.progress === null || !validDateOnly(task.start) || !validDateOnly(task.end) || epochDay(task.end) < epochDay(task.start))) {
       throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", `Invalid task schedule: ${task.externalId}`);
     }
   }
@@ -178,9 +181,11 @@ function timeline(tasks: readonly OrderedTask[]): string[] {
   let first = Number.POSITIVE_INFINITY;
   let last = Number.NEGATIVE_INFINITY;
   for (const { task } of tasks) {
+    if (task.start === null || task.end === null) continue;
     first = Math.min(first, epochDay(task.start));
     last = Math.max(last, epochDay(task.end));
   }
+  if (!Number.isFinite(first)) return [];
   const days = last - first + 1;
   if (days > MAX_TIMELINE_DAYS) {
     throw new ProjectExcelExportError("EXPORT_LIMIT_EXCEEDED", `Timeline exceeds ${MAX_TIMELINE_DAYS} days.`);
@@ -283,10 +288,10 @@ function ganttSheet(snapshot: ProjectSnapshotResponse, tasks: readonly OrderedTa
     cells.push({ column: column++, style: STYLE.text, value: entry.wbs });
     cells.push({ column: column++, style: STYLE.text, value: `${"  ".repeat(Math.min(entry.depth, MAX_OUTLINE_LEVEL))}${entry.task.name}` });
     if (selected.has("externalId")) cells.push({ column: column++, style: STYLE.text, value: entry.task.externalId });
-    cells.push({ column: column++, style: STYLE.date, type: "number", value: excelSerial(entry.task.start) });
-    cells.push({ column: column++, style: STYLE.integer, type: "number", value: entry.task.duration });
-    const start = epochDay(entry.task.start);
-    const end = epochDay(entry.task.end);
+    cells.push({ column: column++, style: STYLE.date, type: "number", value: entry.task.start === null ? undefined : excelSerial(entry.task.start) });
+    cells.push({ column: column++, style: STYLE.integer, type: "number", value: entry.task.duration ?? undefined });
+    const start = entry.task.start === null ? null : epochDay(entry.task.start);
+    const end = entry.task.end === null ? null : epochDay(entry.task.end);
     dates.forEach((date, index) => {
       const current = epochDay(date);
       const weekday = new Date(current * DAY_MS).getUTCDay();
@@ -297,7 +302,7 @@ function ganttSheet(snapshot: ProjectSnapshotResponse, tasks: readonly OrderedTa
       if (entry.task.type === "milestone" && date === entry.task.start) {
         style = STYLE.milestone;
         value = "◆";
-      } else if (current >= start && current <= end) {
+      } else if (start !== null && end !== null && current >= start && current <= end) {
         style = entry.task.type === "summary" ? STYLE.summaryBar : STYLE.taskBar;
       }
       if (style !== STYLE.default || value !== undefined) cells.push({ column: timelineStart + index, style, value });
@@ -348,10 +353,10 @@ function tasksSheet(tasks: readonly OrderedTask[], links: readonly ProjectLinkDt
       { column: 2, style: STYLE.text, value: task.name },
       { column: 3, style: STYLE.text, value: task.externalId },
       { column: 4, style: STYLE.text, value: task.type },
-      { column: 5, style: STYLE.date, type: "number", value: excelSerial(task.start) },
-      { column: 6, style: STYLE.date, type: "number", value: excelSerial(task.end) },
-      { column: 7, style: STYLE.integer, type: "number", value: task.duration },
-      { column: 8, style: STYLE.percent, type: "number", value: task.progress / 100 },
+      { column: 5, style: STYLE.date, type: "number", value: task.start === null ? undefined : excelSerial(task.start) },
+      { column: 6, style: STYLE.date, type: "number", value: task.end === null ? undefined : excelSerial(task.end) },
+      { column: 7, style: STYLE.integer, type: "number", value: task.duration ?? undefined },
+      { column: 8, style: STYLE.percent, type: "number", value: task.progress === null ? undefined : task.progress / 100 },
       { column: 9, style: STYLE.text, value: task.description ?? "" },
       { column: 10, style: STYLE.text, value: task.url ?? "" },
     ];
@@ -409,6 +414,7 @@ function drawingXml(links: readonly ProjectLinkDto[], tasks: readonly OrderedTas
   const connectors = links.map((link, index) => {
     const predecessor = byId.get(link.predecessorExternalId)!;
     const successor = byId.get(link.successorExternalId)!;
+    if (predecessor.task.end === null || successor.task.start === null) throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Unscheduled dependency endpoint.");
     const fromCol = timelineStart - 1 + (dateIndex.get(predecessor.task.end) ?? 0);
     const toCol = timelineStart - 1 + (dateIndex.get(successor.task.start) ?? 0);
     const fromRow = predecessor.row - 1;
@@ -720,19 +726,256 @@ function logisticsSheet(snapshot: ProjectSnapshotResponse, tasks: readonly Order
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${lastColName}${Math.max(1, currentRow)}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetData>${rows.join("")}</sheetData><pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
 }
 
-export function buildProjectExcelWorkbook(snapshot: ProjectSnapshotResponse, request: ProjectExcelExportRequest): Uint8Array<ArrayBuffer> {
+type ResourceEffortExportRow = {
+  task: ResourceWorkloadTaskDto;
+  resource: {
+    id: string;
+    code: string | null;
+    name: string;
+    developerGrade?: string | null;
+    overAllocated: boolean;
+  };
+  groupNames: Set<string>;
+};
+
+function effortRoleLabel(role: string | undefined): string {
+  if (role === "PI") return "PI";
+  if (role === "DEVELOPER") return "개발자 (DEVELOPER)";
+  if (role === "EQUIPMENT_OWNER") return "설비 담당 (EQUIPMENT_OWNER)";
+  return "미지정 (UNSPECIFIED)";
+}
+
+function developerGradeLabel(grade: string | null | undefined): string {
+  if (grade === "BEGINNER") return "초급";
+  if (grade === "INTERMEDIATE") return "중급";
+  if (grade === "ADVANCED") return "고급";
+  if (grade === "EXPERT") return "특급";
+  return "미지정";
+}
+
+function taskStatusLabel(status: string | undefined): string {
+  if (status === "not_started") return "시작 전";
+  if (status === "in_progress") return "진행 중";
+  if (status === "completed") return "완료";
+  return "미지정";
+}
+
+function roundEffort(value: number): number {
+  return Math.round(value * 10_000) / 10_000;
+}
+
+function resourceEffortRows(workload: ResourceWorkloadResponse): ResourceEffortExportRow[] {
+  const rows = new Map<string, ResourceEffortExportRow>();
+  for (const group of workload.data.groups) {
+    for (const resource of group.resources) {
+      for (const task of resource.tasks) {
+        const current = rows.get(task.assignmentId);
+        if (current) {
+          current.groupNames.add(group.name);
+          continue;
+        }
+        if (rows.size >= MAX_RESOURCE_EFFORT_ROWS) {
+          throw new ProjectExcelExportError("EXPORT_LIMIT_EXCEEDED", `Resource effort rows exceed ${MAX_RESOURCE_EFFORT_ROWS}.`);
+        }
+        rows.set(task.assignmentId, {
+          task,
+          resource: {
+            id: resource.id,
+            code: resource.code,
+            name: resource.name,
+            developerGrade: resource.developerGrade,
+            overAllocated: resource.overAllocated,
+          },
+          groupNames: new Set([group.name]),
+        });
+      }
+    }
+  }
+  return [...rows.values()].sort((left, right) =>
+    left.resource.name.localeCompare(right.resource.name, "ko")
+    || left.task.start.localeCompare(right.task.start)
+    || left.task.taskName.localeCompare(right.task.taskName, "ko")
+    || left.task.assignmentId.localeCompare(right.task.assignmentId));
+}
+
+function effortNumberCell(column: number, value: number | null): Cell {
+  return value === null
+    ? { column, style: STYLE.text, value: "미설정" }
+    : { column, style: STYLE.integer, type: "number", value };
+}
+
+function resourceEffortSummarySheet(
+  snapshot: ProjectSnapshotResponse,
+  workload: ResourceWorkloadResponse,
+  details: readonly ResourceEffortExportRow[],
+): string {
+  const rows: string[] = [];
+  let row = 1;
+  const add = (cells: Cell[], height?: number) => {
+    rows.push(rowXml(row, cells, 0, height));
+    row += 1;
+  };
+  const pair = (label: string, cell: Cell) => add([
+    { column: 1, style: STYLE.header, value: safeText(label) },
+    { ...cell, column: 2 },
+  ]);
+
+  add([{ column: 1, style: STYLE.title, value: "Resource Effort Summary" }], 24);
+  add([{ column: 1, style: STYLE.muted, value: "계획 공수(M/D·M/M) 견적 보고서이며 실제 소진 공수·비용을 의미하지 않습니다." }]);
+  pair("프로젝트", { column: 2, style: STYLE.text, value: safeText(snapshot.data.project.name) });
+  pair("프로젝트 ID", { column: 2, style: STYLE.text, value: safeText(snapshot.data.project.publicId) });
+  pair("Project Revision", { column: 2, style: STYLE.integer, type: "number", value: workload.data.projectRevision });
+  pair("Catalog Revision", { column: 2, style: STYLE.integer, type: "number", value: workload.data.catalogRevision });
+  pair("산출 기준일", workload.data.asOfDate
+    ? { column: 2, style: STYLE.date, type: "number", value: excelSerial(workload.data.asOfDate) }
+    : { column: 2, style: STYLE.text, value: "미설정" });
+  pair("조회 시작", { column: 2, style: STYLE.date, type: "number", value: excelSerial(workload.data.range.from) });
+  pair("조회 종료", { column: 2, style: STYLE.date, type: "number", value: excelSerial(workload.data.range.to) });
+  pair("RESOURCE_MD_PER_MM", workload.data.mdPerMm === null
+    ? { column: 2, style: STYLE.text, value: "미설정" }
+    : { column: 2, style: STYLE.integer, type: "number", value: workload.data.mdPerMm });
+  pair("전체 계획 M/D", { column: 2, style: STYLE.integer, type: "number", value: workload.data.grandTotalMd });
+  pair("전체 계획 M/M", effortNumberCell(2, workload.data.grandTotalMm));
+  pair("공수 미설정 건수", { column: 2, style: STYLE.integer, type: "number", value: workload.data.unsetCount });
+  pair("역할 미지정 건수", { column: 2, style: STYLE.integer, type: "number", value: workload.data.unspecifiedRoleCount ?? 0 });
+  pair("과투입 Resource 수", { column: 2, style: STYLE.integer, type: "number", value: workload.data.overAllocatedResourceCount ?? 0 });
+  row += 1;
+
+  add([{ column: 1, style: STYLE.title, value: "역할별 계획 공수" }], 24);
+  add(["역할", "Assignment 수", "M/D", "M/M", "공수 미설정"].map((value, index) => ({
+    column: index + 1, style: STYLE.header, value,
+  })), 22);
+  for (const total of workload.data.roleTotals ?? []) {
+    add([
+      { column: 1, style: STYLE.text, value: effortRoleLabel(total.role) },
+      { column: 2, style: STYLE.integer, type: "number", value: total.assignmentCount },
+      { column: 3, style: STYLE.integer, type: "number", value: total.effortMd },
+      effortNumberCell(4, total.effortMm),
+      { column: 5, style: STYLE.integer, type: "number", value: total.unsetCount },
+    ]);
+  }
+  row += 1;
+
+  const developers = new Map<string, {
+    id: string; code: string | null; name: string; grade: string | null | undefined;
+    groupNames: Set<string>; assignmentCount: number; effortMd: number; unsetCount: number; overAllocated: boolean;
+  }>();
+  for (const detail of details) {
+    if (detail.task.role !== "DEVELOPER") continue;
+    let current = developers.get(detail.resource.id);
+    if (!current) {
+      current = {
+        id: detail.resource.id, code: detail.resource.code, name: detail.resource.name,
+        grade: detail.resource.developerGrade, groupNames: new Set(), assignmentCount: 0,
+        effortMd: 0, unsetCount: 0, overAllocated: detail.resource.overAllocated,
+      };
+      developers.set(detail.resource.id, current);
+    }
+    for (const groupName of detail.groupNames) current.groupNames.add(groupName);
+    current.assignmentCount += 1;
+    if (detail.task.effortMd === null) current.unsetCount += 1;
+    else current.effortMd = roundEffort(current.effortMd + detail.task.effortMd);
+  }
+
+  add([{ column: 1, style: STYLE.title, value: "개발자별 계획 공수" }], 24);
+  add(["Resource ID", "코드", "이름", "개발자 등급", "Resource Group", "Assignment 수", "M/D", "M/M", "미설정", "과투입"].map((value, index) => ({
+    column: index + 1, style: STYLE.header, value,
+  })), 22);
+  for (const developer of [...developers.values()].sort((a, b) => a.name.localeCompare(b.name, "ko") || a.id.localeCompare(b.id))) {
+    const effortMm = workload.data.mdPerMm === null ? null : roundEffort(developer.effortMd / workload.data.mdPerMm);
+    add([
+      { column: 1, style: STYLE.text, value: safeText(developer.id) },
+      { column: 2, style: STYLE.text, value: safeText(developer.code ?? "") },
+      { column: 3, style: STYLE.text, value: safeText(developer.name) },
+      { column: 4, style: STYLE.text, value: developerGradeLabel(developer.grade) },
+      { column: 5, style: STYLE.text, value: safeText([...developer.groupNames].sort((a, b) => a.localeCompare(b, "ko")).join(", ")) },
+      { column: 6, style: STYLE.integer, type: "number", value: developer.assignmentCount },
+      { column: 7, style: STYLE.integer, type: "number", value: developer.effortMd },
+      effortNumberCell(8, effortMm),
+      { column: 9, style: STYLE.integer, type: "number", value: developer.unsetCount },
+      { column: 10, style: STYLE.text, value: developer.overAllocated ? "예" : "아니오" },
+    ]);
+  }
+  if (developers.size === 0) add([{ column: 1, style: STYLE.muted, value: "DEVELOPER assignment가 없습니다." }]);
+
+  const lastRow = Math.max(1, row - 1);
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:J${lastRow}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><cols><col min="1" max="1" width="38" customWidth="1"/><col min="2" max="10" width="20" customWidth="1"/></cols><sheetData>${rows.join("")}</sheetData><pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
+}
+
+function resourceEffortDetailSheet(
+  tasks: readonly OrderedTask[],
+  details: readonly ResourceEffortExportRow[],
+): string {
+  const taskById = new Map(tasks.map((entry) => [entry.task.taskId, entry]));
+  const headers = [
+    "Assignment ID", "Task ID", "WBS", "Task", "Task 상태", "진행률", "Task 시작", "Task 종료",
+    "Resource ID", "Resource 코드", "Resource 이름", "수행 역할", "개발자 등급", "Resource Group",
+    "Assignment 시작", "Assignment 종료", "Allocation %", "유효 근무일", "Effort M/D", "Effort M/M",
+    "지연", "공수 설정",
+  ];
+  const rows = [rowXml(1, headers.map((value, index) => ({ column: index + 1, style: STYLE.header, value })), 0, 22)];
+  details.forEach((detail, index) => {
+    const taskEntry = taskById.get(detail.task.taskId);
+    const cells: Cell[] = [
+      { column: 1, style: STYLE.text, value: safeText(detail.task.assignmentId) },
+      { column: 2, style: STYLE.text, value: safeText(detail.task.taskId) },
+      { column: 3, style: STYLE.text, value: safeText(taskEntry?.wbs ?? "") },
+      { column: 4, style: STYLE.text, value: safeText(detail.task.taskName) },
+      { column: 5, style: STYLE.text, value: taskStatusLabel(detail.task.status) },
+      detail.task.progress === null || detail.task.progress === undefined
+        ? { column: 6, style: STYLE.text, value: "미설정" }
+        : { column: 6, style: STYLE.percent, type: "number", value: detail.task.progress / 100 },
+      detail.task.taskStart ? { column: 7, style: STYLE.date, type: "number", value: excelSerial(detail.task.taskStart) } : { column: 7, style: STYLE.text, value: "미설정" },
+      detail.task.taskEnd ? { column: 8, style: STYLE.date, type: "number", value: excelSerial(detail.task.taskEnd) } : { column: 8, style: STYLE.text, value: "미설정" },
+      { column: 9, style: STYLE.text, value: safeText(detail.resource.id) },
+      { column: 10, style: STYLE.text, value: safeText(detail.resource.code ?? "") },
+      { column: 11, style: STYLE.text, value: safeText(detail.resource.name) },
+      { column: 12, style: STYLE.text, value: effortRoleLabel(detail.task.role) },
+      { column: 13, style: STYLE.text, value: developerGradeLabel(detail.resource.developerGrade) },
+      { column: 14, style: STYLE.text, value: safeText([...detail.groupNames].sort((a, b) => a.localeCompare(b, "ko")).join(", ")) },
+      { column: 15, style: STYLE.date, type: "number", value: excelSerial(detail.task.start) },
+      { column: 16, style: STYLE.date, type: "number", value: excelSerial(detail.task.end) },
+      detail.task.allocationPercent === null
+        ? { column: 17, style: STYLE.text, value: "미설정" }
+        : { column: 17, style: STYLE.percent, type: "number", value: detail.task.allocationPercent / 100 },
+      detail.task.effectiveWorkingDays === undefined
+        ? { column: 18, style: STYLE.text, value: "미설정" }
+        : { column: 18, style: STYLE.integer, type: "number", value: detail.task.effectiveWorkingDays },
+      effortNumberCell(19, detail.task.effortMd),
+      effortNumberCell(20, detail.task.effortMm),
+      { column: 21, style: STYLE.text, value: detail.task.delayed ? "예" : "아니오" },
+      { column: 22, style: STYLE.text, value: detail.task.effortConfigured ? "설정" : "미설정" },
+    ];
+    rows.push(rowXml(index + 2, cells));
+  });
+  const lastRow = Math.max(1, details.length + 1);
+  const lastColumn = columnName(headers.length);
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${lastColumn}${lastRow}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="22" width="18" customWidth="1"/></cols><sheetData>${rows.join("")}</sheetData><autoFilter ref="A1:${lastColumn}${lastRow}"/><pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
+}
+
+export function buildProjectExcelWorkbook(
+  snapshot: ProjectSnapshotResponse,
+  request: ProjectExcelExportRequest,
+  resourceWorkload?: ResourceWorkloadResponse,
+): Uint8Array<ArrayBuffer> {
   const tasks = orderedTasks(snapshot.data.tasks);
   const dates = timeline(tasks);
   if (request.includeDependencies) validateLinks(snapshot.data.links, tasks);
   const gantt = ganttSheet(snapshot, tasks, dates, request);
   const drawing = request.includeDependencies && snapshot.data.links.length > 0;
   const includeLogistics = Boolean(request.includeLogistics && snapshot.data.logistics);
+  const includeResourceEffort = Boolean(request.includeResourceEffort);
+  if (includeResourceEffort && (!resourceWorkload || resourceWorkload.data.projectRevision !== snapshot.data.project.revision)) {
+    throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Resource workload must match the exported Project revision.");
+  }
+  const effortRows = includeResourceEffort ? resourceEffortRows(resourceWorkload!) : [];
   const names = [
     "Gantt",
     "Tasks",
     "Project",
     ...(request.includeDependencies ? ["Dependencies"] : []),
     ...(includeLogistics ? ["Logistics"] : []),
+    ...(includeResourceEffort ? ["Resource Effort Summary", "Resource Effort Detail"] : []),
   ];
   const entries: ZipEntry[] = [
     { path: "[Content_Types].xml", content: contentTypes(names.length, drawing) },
@@ -753,6 +996,12 @@ export function buildProjectExcelWorkbook(snapshot: ProjectSnapshotResponse, req
     entries.push({ path: `xl/worksheets/sheet${nextSheetIndex}.xml`, content: logisticsSheet(snapshot, tasks) });
     nextSheetIndex += 1;
   }
+  if (includeResourceEffort) {
+    entries.push({ path: `xl/worksheets/sheet${nextSheetIndex}.xml`, content: resourceEffortSummarySheet(snapshot, resourceWorkload!, effortRows) });
+    nextSheetIndex += 1;
+    entries.push({ path: `xl/worksheets/sheet${nextSheetIndex}.xml`, content: resourceEffortDetailSheet(tasks, effortRows) });
+    nextSheetIndex += 1;
+  }
   if (drawing) {
     entries.push({ path: "xl/worksheets/_rels/sheet1.xml.rels", content: DRAWING_RELS });
     entries.push({ path: "xl/drawings/drawing1.xml", content: drawingXml(snapshot.data.links, tasks, dates, gantt.timelineStart) });
@@ -766,5 +1015,6 @@ export const projectExcelExportLimits = Object.freeze({
   maxTimelineDays: MAX_TIMELINE_DAYS,
   maxTimelineCells: MAX_TIMELINE_CELLS,
   maxCellText: MAX_CELL_TEXT,
+  maxResourceEffortRows: MAX_RESOURCE_EFFORT_ROWS,
   maxOutlineLevel: MAX_OUTLINE_LEVEL,
 });

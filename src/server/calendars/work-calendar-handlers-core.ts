@@ -70,7 +70,7 @@ function mapped(error:unknown):unknown {
   if(error instanceof WorkCalendarProjectNotFoundError) return new PublicApiError(404,"PROJECT_NOT_FOUND","Project not found.");
   if(error instanceof WorkCalendarInvalidInputError) return new PublicApiError(400,"INVALID_WORK_CALENDAR","Work calendar input is invalid.");
   if(error instanceof WorkCalendarCountryUnavailableError) return new PublicApiError(
-    422,"COUNTRY_CALENDAR_UNAVAILABLE",`${error.countryCode} country calendar official data for ${error.year} is unavailable.`,
+    422,"COUNTRY_CALENDAR_UNAVAILABLE","Country calendar data is unavailable for the requested year.",
     [{path:"countryRules",code:"COUNTRY_CALENDAR_UNAVAILABLE",message:`${error.countryCode} ${error.year}`}],
   );
   if(error instanceof WorkCalendarConflictError) return new PublicApiError(

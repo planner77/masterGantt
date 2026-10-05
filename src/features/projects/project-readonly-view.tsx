@@ -1,11 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectSaveAsTemplateButton } from "@/features/templates/project-save-as-template-button";
 import { ProjectExportButton } from "@/features/projects/project-excel-export-button";
+import { ProjectImportButton } from "@/features/projects/project-import-button";
 import { ProjectSettingsDialog } from "@/features/projects/project-settings-dialog";
 import { EMPTY_TASK_FILTER, activeTaskFilterCount, applyTaskQuickView, filterTasksWithAncestors, getTaskQuickView, type TaskFilterState } from "@/features/projects/project-search-filter";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
@@ -20,15 +22,18 @@ import {
 import type { AssignedTargetsResponse, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
-import { ProjectTaskEditor } from "@/features/gantt/project-task-editor";
+import { ProjectTaskEditor, type ProjectTaskEditorHandle, type TaskRelationEditorRequest } from "@/features/gantt/project-task-editor";
 import { RelationEditorDialog } from "@/features/gantt/relation-editor-dialog";
 import { taskEditorReadOnlyReason, type TaskEditorSaveResult, type TaskEditorSession } from "@/features/gantt/task-editor-model";
 import { createTaskDeletePlan, type TaskDeletePlan } from "@/features/gantt/task-delete-model";
 import { findTaskContextElement } from "@/features/gantt/task-context-target";
 import { taskHasDependencyLinks } from "@/features/gantt/task-link-scope";
+import { resolveTaskSubtreeScope } from "@/features/gantt/task-subtree-scope";
 import { ProjectResourceWorkload } from "@/features/resources/project-resource-workload";
 import { ProjectLogisticsManagement } from "@/features/logistics/project-logistics-management";
 import { todayLocalDateString } from "@/lib/date-display";
+import { canAcceptCanonicalSnapshot, replayConfirmedSnapshot } from "./canonical-snapshot-recovery";
+import { mergePendingProjectRevision, shouldRetireDurableProjectRevision } from "./project-revision-sync";
 
 const ProjectGantt = dynamic(
   () => import("@/features/gantt/project-gantt").then((module) => module.ProjectGantt),
@@ -39,6 +44,9 @@ type Permission = "readonly" | "edit";
 type PermissionCheckState = "checking" | "complete";
 type PendingTaskDelete = TaskDeletePlan & Readonly<{ revision: number }>;
 const INITIAL_COLUMN_VISIBILITY: ProjectGridColumnVisibility = { text: true, externalId: false, projectStart: true, projectDuration: true, baselineStart: false, baselineEnd: false };
+const ALL_SCOPE_STATE_KEY = "all";
+function scopeStateKey(taskId: string | null): string { return taskId ?? ALL_SCOPE_STATE_KEY; }
+function scopeTabId(taskId: string | null): string { return `project-scope-tab-${taskId ?? "all"}`; }
 
 function isSnapshot(value: unknown): value is ProjectSnapshotResponse {
   if (typeof value !== "object" || value === null || !("data" in value)) return false;
@@ -69,30 +77,15 @@ function safeErrorCode(value: unknown): string | null {
 function unlockPasswordValid(value: string): boolean { return Array.from(value).length >= 1 && new TextEncoder().encode(value).byteLength <= 1024; }
 function newPasswordValid(value: string): boolean { const length = Array.from(value).length; return length >= 1 && length <= 12; }
 function revisionTag(revision: number): string { return `"${revision}"`; }
-function exitGanttFullscreen(frame: HTMLElement): Promise<void> {
-  if (document.fullscreenElement !== frame) return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const cleanup = () => {
-      document.removeEventListener("fullscreenchange", onChange);
-      document.removeEventListener("fullscreenerror", onError);
-    };
-    const onChange = () => {
-      if (document.fullscreenElement === frame) return;
-      cleanup();
-      resolve();
-    };
-    const onError = () => {
-      cleanup();
-      reject(new Error("Gantt fullscreen exit failed"));
-    };
-    document.addEventListener("fullscreenchange", onChange);
-    document.addEventListener("fullscreenerror", onError);
-    try {
-      void document.exitFullscreen().then(onChange, onError);
-    } catch {
-      onError();
-    }
-  });
+function projectRevisionStorageKey(publicId: string): string { return `mastergantt:project-revision:${publicId}`; }
+function announceProjectRevision(publicId: string, revision: number): void {
+  try {
+    const key = projectRevisionStorageKey(publicId);
+    const previous = Number(window.localStorage.getItem(key) ?? "0");
+    if (!Number.isFinite(previous) || revision > previous) window.localStorage.setItem(key, String(revision));
+  } catch {
+    // Cross-tab freshness is best-effort. The canonical API/revision remains authoritative.
+  }
 }
 function snapshotFromMetadataMutation(value: unknown): ProjectSnapshotResponse | null {
   if (typeof value !== "object" || value === null) return null;
@@ -157,8 +150,14 @@ export function ProjectReadonlyView({ publicId, projectUrl = null, ownerName }: 
 }
 
 function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectViewProps) {
+  const searchParams = useSearchParams();
+  const initialRootTaskId = searchParams.get("rootTask")?.trim() || null;
   const { notify, clearToast } = useWorkspaceNotifications();
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const confirmedSnapshotReference = useRef<ProjectSnapshotResponse | null>(null);
+  const crossTabRefreshInFlightReference = useRef(false);
+  const crossTabPendingRevisionReference = useRef(0);
+  const crossTabDurableCatchUpRevisionReference = useRef(0);
   const [permission, setPermission] = useState<Permission>("readonly");
   const [permissionCheckState, setPermissionCheckState] = useState<PermissionCheckState>("checking");
   const [retryKey, setRetryKey] = useState(0);
@@ -175,6 +174,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [infoPopoverOpen, setInfoPopoverOpen] = useState(false);
   const [activeView, setActiveView] = useState<"schedule" | "resources" | "logistics">("schedule");
+  const [activeRootTaskId, setActiveRootTaskId] = useState<string | null>(() => initialRootTaskId);
+  const [openScopeTaskIds, setOpenScopeTaskIds] = useState<readonly string[]>(() => initialRootTaskId ? [initialRootTaskId] : []);
   const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
   const [taskFilterOpen, setTaskFilterOpen] = useState(false);
   const [assignedTargets, setAssignedTargets] = useState<AssignmentTargetDto[]>([]);
@@ -189,7 +190,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [pendingTaskDelete, setPendingTaskDelete] = useState<PendingTaskDelete | null>(null);
   const taskMutationReference = useRef(false);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
-  const [relationEditorLinkId, setRelationEditorLinkId] = useState<string | null>(null);
+  const [relationEditorRequest, setRelationEditorRequest] = useState<TaskRelationEditorRequest | null>(null);
+  const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
   const editorOpeningReference = useRef(false);
@@ -201,6 +203,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const scheduleTabReference = useRef<HTMLButtonElement | null>(null);
   const resourceTabReference = useRef<HTMLButtonElement | null>(null);
   const logisticsTabReference = useRef<HTMLButtonElement | null>(null);
+  const scopeTabReferences = useRef(new Map<string, HTMLButtonElement>());
+  const scopeTaskFiltersReference = useRef(new Map<string, TaskFilterState>());
   const actionMenuReference = useRef<HTMLDetailsElement | null>(null);
   const infoPopoverReference = useRef<HTMLDetailsElement | null>(null);
   const taskSearchReference = useRef<HTMLInputElement | null>(null);
@@ -271,11 +275,24 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     unlockTriggerReference.current?.focus();
   }, [permission, permissionCheckState]);
 
+  const applySnapshot = useCallback((value: unknown): boolean => {
+    if (!isSnapshot(value) || !canAcceptCanonicalSnapshot(confirmedSnapshotReference.current, value, publicId)) return false;
+    const previousRevision = confirmedSnapshotReference.current?.data.project.revision ?? null;
+    confirmedSnapshotReference.current = value;
+    setState({ status: "ready", snapshot: value });
+    if (previousRevision !== null && value.data.project.revision > previousRevision) {
+      announceProjectRevision(publicId, value.data.project.revision);
+    }
+    setMetadataName(value.data.project.name); setMetadataDescription(value.data.project.description); setMetadataStatus(value.data.project.status);
+    setMasterSelection({ businessUnitId: value.data.project.businessUnit?.id ?? "", productId: value.data.project.product?.id ?? "", siteEntityId: value.data.project.siteEntity?.id ?? "" });
+    return true;
+  }, [publicId, setMasterSelection, setMetadataDescription, setMetadataName, setMetadataStatus]);
+
   useEffect(() => {
     const controller = new AbortController();
     void (async () => {
       try {
-        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", signal: controller.signal });
+        const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
         if (controller.signal.aborted) return;
         if (response.status === 404) { setState({ status: "not-found" }); return; }
         const body: unknown = await response.json().catch(() => null);
@@ -285,9 +302,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           notify("error", "프로젝트 정보를 불러올 수 없습니다. 다시 시도해 주세요.", "프로젝트 조회", body);
           return;
         }
-        setMetadataName(body.data.project.name); setMetadataDescription(body.data.project.description); setMetadataStatus(body.data.project.status);
-        setMasterSelection({ businessUnitId: body.data.project.businessUnit?.id ?? "", productId: body.data.project.product?.id ?? "", siteEntityId: body.data.project.siteEntity?.id ?? "" });
-        setState({ status: "ready", snapshot: body });
+        if (!applySnapshot(body)) {
+          const confirmed = confirmedSnapshotReference.current;
+          if (!confirmed || confirmed.data.project.publicId !== publicId) {
+            setState({ status: "error" });
+            notify("error", "현재 프로젝트의 정보를 확인할 수 없습니다. 다시 시도해 주세요.", "프로젝트 조회");
+            return;
+          }
+          // A refresh may have entered loading before a stale response arrived.
+          // Return to the confirmed state instead of leaving the workspace busy.
+          applySnapshot(replayConfirmedSnapshot(confirmed));
+        }
         try {
           const current = await fetch(`/api/projects/${encodeURIComponent(publicId)}/edit-sessions/current`, { credentials: "same-origin", signal: controller.signal });
           const currentBody: unknown = await current.json().catch(() => null);
@@ -309,7 +334,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       }
     })();
     return () => controller.abort();
-  }, [publicId, retryKey, notify]);
+  }, [publicId, retryKey, notify, applySnapshot]);
 
   const canonicalProjectName = state.status === "ready" ? state.snapshot.data.project.name : null;
   useEffect(() => {
@@ -327,21 +352,176 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setSettingsOpen(false); setUnlockOpen(false); setPendingTaskDelete(null); setPermission("readonly"); setPermissionCheckState("checking");
     setState({ status: "loading" }); setRetryKey((key) => key + 1);
   }
-  function applySnapshot(value: unknown): boolean {
-    if (!isSnapshot(value)) return false;
-    setState({ status: "ready", snapshot: value });
-    setMetadataName(value.data.project.name); setMetadataDescription(value.data.project.description); setMetadataStatus(value.data.project.status);
-    setMasterSelection({ businessUnitId: value.data.project.businessUnit?.id ?? "", productId: value.data.project.product?.id ?? "", siteEntityId: value.data.project.siteEntity?.id ?? "" });
-    return true;
-  }
   async function fetchCanonicalSnapshot(): Promise<ProjectSnapshotResponse | null> {
     try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin" });
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store" });
       const body: unknown = await response.json().catch(() => null);
       return response.ok && isSnapshot(body) && applySnapshot(body) ? body : null;
     } catch { return null; }
   }
   async function reloadCanonicalSnapshot(): Promise<boolean> { return (await fetchCanonicalSnapshot()) !== null; }
+
+  useEffect(() => {
+    const key = projectRevisionStorageKey(publicId);
+
+    const refreshToPendingRevision = async () => {
+      if (crossTabRefreshInFlightReference.current || state.status !== "ready") return;
+      crossTabRefreshInFlightReference.current = true;
+      try {
+        while (true) {
+          const currentRevision = confirmedSnapshotReference.current?.data.project.revision ?? 0;
+          const targetRevision = crossTabPendingRevisionReference.current;
+          if (targetRevision <= currentRevision) break;
+
+          const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store" });
+          const body: unknown = await response.json().catch(() => null);
+          if (!response.ok || !isSnapshot(body)) {
+            notify("error", "다른 탭의 변경 사항을 확인하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인", body);
+            break;
+          }
+
+          const fetchedRevision = body.data.project.revision;
+          if (!applySnapshot(body)) {
+            notify("error", "다른 탭의 변경 사항을 현재 화면에 반영하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인", body);
+            break;
+          }
+          if (fetchedRevision >= crossTabDurableCatchUpRevisionReference.current) {
+            crossTabDurableCatchUpRevisionReference.current = 0;
+          }
+          if (fetchedRevision <= currentRevision && crossTabPendingRevisionReference.current > fetchedRevision) {
+            const targetRevision = crossTabPendingRevisionReference.current;
+            const durableRevision = crossTabDurableCatchUpRevisionReference.current;
+            if (shouldRetireDurableProjectRevision(
+              durableRevision,
+              targetRevision,
+              currentRevision,
+              fetchedRevision,
+            )) {
+              crossTabPendingRevisionReference.current = Math.max(currentRevision, fetchedRevision);
+              crossTabDurableCatchUpRevisionReference.current = 0;
+              try {
+                const storedRevision = Number(window.localStorage.getItem(key));
+                if (Number.isSafeInteger(storedRevision) && storedRevision <= durableRevision) {
+                  window.localStorage.removeItem(key);
+                }
+              } catch {
+                // Server revision remains authoritative even if storage cleanup fails.
+              }
+              break;
+            }
+            notify("error", "다른 탭의 최신 변경이 아직 조회되지 않았습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인");
+            break;
+          }
+        }
+      } catch {
+        notify("error", "다른 탭의 변경 사항을 확인하지 못했습니다. 페이지를 새로고침해 최신 정보를 확인해 주세요.", "최신 정보 확인");
+      } finally {
+        crossTabRefreshInFlightReference.current = false;
+      }
+    };
+
+    const mergeAnnouncement = (announcedValue: unknown, source: "live" | "durable") => {
+      const currentRevision = confirmedSnapshotReference.current?.data.project.revision ?? 0;
+      const previousPending = crossTabPendingRevisionReference.current;
+      const nextPending = mergePendingProjectRevision(
+        previousPending,
+        currentRevision,
+        announcedValue,
+      );
+      crossTabPendingRevisionReference.current = nextPending;
+      const announcedRevision = Number(announcedValue);
+      if (source === "durable" && nextPending > previousPending) {
+        crossTabDurableCatchUpRevisionReference.current = Math.max(
+          crossTabDurableCatchUpRevisionReference.current,
+          nextPending,
+        );
+      } else if (
+        source === "live" &&
+        Number.isSafeInteger(announcedRevision) &&
+        announcedRevision >= crossTabDurableCatchUpRevisionReference.current
+      ) {
+        crossTabDurableCatchUpRevisionReference.current = 0;
+      }
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== key) return;
+      mergeAnnouncement(event.newValue, "live");
+      if (state.status === "ready") void refreshToPendingRevision();
+    };
+
+    window.addEventListener("storage", handleStorage);
+    // The storage event is not replayed when it fires before this effect installs
+    // its listener. Register first, then read the durable localStorage value so
+    // both "already happened" and "happens now" announcements converge into the
+    // same pending revision without an event-loss window.
+    try {
+      mergeAnnouncement(window.localStorage.getItem(key), "durable");
+    } catch {
+      // Cross-tab freshness remains best-effort; server revision is authoritative.
+    }
+    // A revision event may have arrived while the initial load or beginRefresh
+    // was still pending. Once a canonical snapshot makes the workspace ready,
+    // converge immediately to the highest queued revision.
+    if (state.status === "ready") void refreshToPendingRevision();
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [publicId, state.status, applySnapshot, notify]);
+
+  function syncScopeUrl(taskId: string | null): void {
+    const target = new URL(window.location.href);
+    if (taskId) target.searchParams.set("rootTask", taskId);
+    else target.searchParams.delete("rootTask");
+    window.history.replaceState(window.history.state, "", target.toString());
+  }
+
+  function focusScopeTab(taskId: string | null): void {
+    requestAnimationFrame(() => {
+      const tab = scopeTabReferences.current.get(scopeStateKey(taskId));
+      tab?.focus({ preventScroll: true });
+      tab?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+  }
+
+  function activateScope(taskId: string | null, focus = true, rememberCurrent = true): void {
+    if (rememberCurrent) scopeTaskFiltersReference.current.set(scopeStateKey(activeRootTaskId), taskFilter);
+    setTaskFilter(scopeTaskFiltersReference.current.get(scopeStateKey(taskId)) ?? EMPTY_TASK_FILTER);
+    setTaskFilterOpen(false);
+    setActiveRootTaskId(taskId);
+    syncScopeUrl(taskId);
+    if (focus) focusScopeTab(taskId);
+  }
+
+  function closeScopeTab(taskId: string): void {
+    const index = openScopeTaskIds.indexOf(taskId);
+    if (index < 0) return;
+    const nextOpen = openScopeTaskIds.filter((candidate) => candidate !== taskId);
+    setOpenScopeTaskIds(nextOpen);
+    if (activeRootTaskId === taskId) {
+      const fallback = nextOpen[index] ?? nextOpen[index - 1] ?? null;
+      activateScope(fallback, true, false);
+    } else focusScopeTab(activeRootTaskId);
+    scopeTaskFiltersReference.current.delete(scopeStateKey(taskId));
+  }
+
+  function handleScopeTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, current: string | null): void {
+    if (event.key === "Delete" && current !== null) { event.preventDefault(); closeScopeTab(current); return; }
+    const scopes: Array<string | null> = [null, ...openScopeTaskIds];
+    const index = scopes.indexOf(current);
+    let next: string | null | undefined;
+    if (event.key === "ArrowRight") next = scopes[(index + 1) % scopes.length];
+    else if (event.key === "ArrowLeft") next = scopes[(index - 1 + scopes.length) % scopes.length];
+    else if (event.key === "Home") next = scopes[0];
+    else if (event.key === "End") next = scopes[scopes.length - 1];
+    else return;
+    event.preventDefault(); activateScope(next ?? null);
+  }
+
+  function openTaskAsRoot(taskId: string): void {
+    setOpenScopeTaskIds((current) => current.includes(taskId) ? current : [...current, taskId]);
+    setActiveView("schedule");
+    activateScope(taskId);
+  }
+
   function conflict(operation: string, body?: unknown) {
     setPermission("readonly");
     notify("error", "다른 편집 내용이 먼저 저장되었습니다. 최신 정보를 다시 불러옵니다. 내용을 확인한 뒤 다시 저장해 주세요.", operation, body);
@@ -498,10 +678,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function handleTaskFailure(status: number | undefined, error: unknown, fallback: string, operation: string): Promise<string> {
     if (status === 401) { setPermission("readonly"); setPermissionCheckState("complete"); }
     const recovered = await reloadCanonicalSnapshot();
-    // A successful canonical fetch is synchronized into the existing SVAR instance.
-    // Remount only when the fetch itself failed and the last confirmed React snapshot
-    // must be used to discard an unconfirmed local drag/resize.
-    if (!recovered) setGanttResetGeneration((generation) => generation + 1);
+    // Recovery belongs to this request. Never remount or replay an older render's
+    // snapshot: previous successful mutations remain confirmed even if GET fails.
+    if (!recovered && confirmedSnapshotReference.current) {
+      applySnapshot(replayConfirmedSnapshot(confirmedSnapshotReference.current));
+    }
     const code = safeErrorCode(error);
     let message = fallback;
     if (status === 401) message = "편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요.";
@@ -521,8 +702,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           : code === "PARENT_CONVERSION_REQUIRED" ? "부모 작업 전환을 처리하지 못했습니다. 최신 정보를 확인한 뒤 다시 추가해 주세요."
             : code === "INVALID_PARENT_TASK" ? "마일스톤에는 하위 작업을 추가할 수 없습니다."
               : "작업 정보를 저장할 수 없습니다. 입력과 일정 제약을 확인해 주세요.";
+    if (!recovered && status !== 412) message += " 최신 일정 조회에 실패하여 마지막으로 확인한 일정을 유지합니다. 다시 조회해 주세요.";
     notify("error", message, operation, error);
-    if (!recovered && status !== 412) notify("error", "최신 일정 조회에 실패하여 마지막으로 확인한 일정으로 복구했습니다. 다시 조회해 주세요.", "일정 복구");
     return message;
   }
   async function saveTask(method: "POST" | "PATCH" | "DELETE", taskId: string | null, payload?: unknown, expectedRevision?: number, includeDescendants = false): Promise<TaskEditorSaveResult> {
@@ -594,27 +775,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     }
   }
 
-  async function openTaskEditor(taskId: string) {
+  function openTaskEditor(taskId: string) {
     if (state.status !== "ready" || editorSession || editorOpeningReference.current || settingsOpen || pendingTaskDelete) return;
     const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
     if (!task) return;
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
     editorOpeningReference.current = true;
-    try {
-      if (frame && document.fullscreenElement === frame) await exitGanttFullscreen(frame);
-      if (frame && document.fullscreenElement === frame) throw new Error("Gantt fullscreen remains active");
-      editorTriggerReference.current = trigger;
-      setEditorSession({ task: { ...task }, revision: state.snapshot.data.project.revision });
-    } catch {
-      editorOpeningReference.current = false;
-      frame?.dispatchEvent(new Event("project-gantt-fullscreen-exit-error"));
-      notify("error", "전체화면을 종료하지 못해 작업 정보를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.", "작업 정보");
-      const root = frame?.querySelector<HTMLElement>(".project-gantt-scroll");
-      const focusTarget = trigger?.isConnected && !trigger.closest(".project-task-context-menu")
-        ? trigger : root ? findTaskContextElement(root, taskId) ?? root : null;
-      focusTarget?.focus({ preventScroll: true });
-    }
+    editorTriggerReference.current = trigger;
+    setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
   }
   function closeTaskEditor() {
     const taskId = editorSession?.task.taskId;
@@ -627,26 +795,20 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       target?.focus({ preventScroll: true });
     });
   }
-  async function openRelationEditor(linkId: string) {
-    if (state.status !== "ready" || relationEditorLinkId) return;
+  function openRelationEditor(linkId: string) {
+    if (state.status !== "ready" || relationEditorRequest) return;
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
-    try {
-      if (frame && document.fullscreenElement === frame) await exitGanttFullscreen(frame);
-      if (frame && document.fullscreenElement === frame) throw new Error("Gantt fullscreen remains active");
-      relationEditorTriggerReference.current = trigger;
-      setRelationEditorLinkId(linkId);
-    } catch {
-      frame?.dispatchEvent(new Event("project-gantt-fullscreen-exit-error"));
-      notify("error", "전체화면을 종료하지 못해 관계 편집기를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.", "관계 편집기");
-      const root = frame?.querySelector<HTMLElement>(".project-gantt-scroll");
-      const focusTarget = trigger?.isConnected && !trigger.closest(".project-relation-context-menu") ? trigger : root;
-      focusTarget?.focus({ preventScroll: true });
-    }
+    relationEditorTriggerReference.current = trigger;
+    setRelationEditorRequest({ kind: "link", linkId });
+  }
+  function openTaskRelationEditor(request: TaskRelationEditorRequest, trigger: HTMLElement) {
+    if (state.status !== "ready" || relationEditorRequest || !editorSession) return;
+    relationEditorTriggerReference.current = trigger;
+    setRelationEditorRequest(request);
   }
   function closeRelationEditor() {
     const trigger = relationEditorTriggerReference.current;
-    setRelationEditorLinkId(null);
+    setRelationEditorRequest(null);
     relationEditorTriggerReference.current = null;
     requestAnimationFrame(() => {
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
@@ -666,7 +828,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   async function reloadEditorTask(taskId: string): Promise<TaskEditorSession | null> {
     const snapshot = await fetchCanonicalSnapshot();
     const task = snapshot?.data.tasks.find((entry) => entry.taskId === taskId);
-    return task && snapshot ? { task: { ...task }, revision: snapshot.data.project.revision } : null;
+    return task && snapshot ? { task: { ...task }, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision } : null;
   }
   function createNativeTask(command: ProjectTaskCreateCommand) {
     if (state.status !== "ready" || taskMutationReference.current || pendingTaskDelete) return;
@@ -674,7 +836,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (command.parentTaskId && !parent) { notify("error", "선택한 작업을 찾을 수 없습니다. 최신 정보를 불러온 뒤 다시 시도해 주세요.", "하위 작업 추가"); return; }
     if (parent?.type === "milestone") { notify("error", "마일스톤에는 하위 작업을 추가할 수 없습니다.", "하위 작업 추가"); return; }
     const convert = parent?.type === "task" && !state.snapshot.data.tasks.some((task) => task.parentExternalId === parent.externalId);
-    void saveTask("POST", null, { ...command, name: "새 작업", start: todayLocalDateString(), duration: 1,
+    void saveTask("POST", null, { ...command,
+      ...(command.type === "summary" ? { name: "새 요약 작업" } : { name: "새 작업", start: todayLocalDateString(), duration: 1 }),
       ...(convert ? { convertParentToSummary: true } : {}) });
   }
   function requestTaskDelete(taskId: string, trigger: HTMLElement | null) {
@@ -699,7 +862,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const result = await saveTask("DELETE", pending.taskId, undefined, pending.revision, true);
     if (result.status === "saved" || result.conflict) setPendingTaskDelete(null);
   }
-  function rejectNativeTaskAdd() { notify("info", "이 화면에서는 하위 작업만 추가할 수 있습니다.", "작업 추가"); }
+  function rejectNativeTaskAdd(reason: "scope" | "missing" | "milestone") {
+    if (reason === "milestone") {
+      notify("error", "마일스톤에는 하위 작업을 추가할 수 없습니다.", "하위 작업 추가");
+      return;
+    }
+    if (reason === "missing") {
+      notify("error", "선택한 작업을 찾을 수 없습니다. 최신 정보를 불러온 뒤 다시 시도해 주세요.", "하위 작업 추가");
+      return;
+    }
+    notify("info", "이 화면에서는 하위 작업만 추가할 수 있습니다.", "작업 추가");
+  }
   const recoverCanonicalGantt = useCallback(() => {
     setGanttResetGeneration((generation) => generation + 1);
     notify("error", "일정 화면을 최신 서버 정보로 복구했습니다.", "일정 화면 복구");
@@ -741,6 +914,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       const body: unknown = await response.json().catch(() => null);
       const snapshot = snapshotFromLinkMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
+        const currentEditorTaskId = editorSession?.task.taskId;
+        const currentEditorTask = currentEditorTaskId
+          ? snapshot.data.tasks.find((task) => task.taskId === currentEditorTaskId)
+          : undefined;
+        if (currentEditorTask) {
+          projectTaskEditorReference.current?.applyCanonicalSession({
+            task: { ...currentEditorTask },
+            calendar: snapshot.data.project.calendar,
+            revision: snapshot.data.project.revision,
+          });
+        }
         notify("success", method === "POST" ? "작업 관계를 저장했습니다." : method === "PATCH" ? "작업 관계를 변경했습니다." : "작업 관계를 삭제했습니다.", "작업 관계");
         return true;
       }
@@ -778,10 +962,22 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
   if (state.status === "error") return <section className="status-page" aria-labelledby="project-load-error-heading"><p className="eyebrow">PROJECT</p><h1 id="project-load-error-heading">프로젝트를 불러올 수 없습니다.</h1><p>네트워크 또는 서버 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="secondary-button" onClick={() => beginRefresh(true)} type="button">다시 시도</button></section>;
   const { project, tasks, links, assignments, logistics } = state.snapshot.data;
-  const filteredTasks = filterTasksWithAncestors(tasks, taskFilter, assignments, logistics);
+  const subtreeScope = resolveTaskSubtreeScope(tasks, activeRootTaskId);
+  const scopedTaskIdSet = subtreeScope.kind === "valid" ? new Set(subtreeScope.taskIds) : null;
+  const scopedTasks = subtreeScope.kind === "all"
+    ? tasks
+    : subtreeScope.kind === "valid"
+      ? tasks.filter((task) => scopedTaskIdSet?.has(task.taskId))
+      : [];
+  const filteredTasks = filterTasksWithAncestors(scopedTasks, taskFilter, assignments, logistics, tasks);
   const activeFilters = activeTaskFilterCount(taskFilter);
   const quickView = getTaskQuickView(taskFilter.types);
   const visibleTaskIds = filteredTasks.tasks.map((task) => task.taskId);
+  const ganttVisibleTaskIds = subtreeScope.kind === "all" && activeFilters === 0 ? null : visibleTaskIds;
+  const ganttMatchingTaskIds = subtreeScope.kind === "all" && activeFilters === 0 ? null : filteredTasks.matchingTaskIds;
+  const ganttSelectionBoundaryKey = JSON.stringify(taskFilter, (_key, value: unknown) =>
+    Array.isArray(value) ? [...value].sort() : value);
+  const subtreeScopeInvalid = subtreeScope.kind === "missing" || subtreeScope.kind === "not-summary";
   const normalizedTargetQuery = targetPickerQuery.trim().toLocaleLowerCase();
   const selectableAssignedTargets = assignedTargets.filter((target) =>
     (targetPickerKind === "all" || target.kind === targetPickerKind) &&
@@ -789,6 +985,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
   const busy = isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask;
+  const scopeTabLabel = (taskId: string): string => {
+    const task = tasks.find((candidate) => candidate.taskId === taskId);
+    if (!task) return "선택한 Summary";
+    return task.type === "summary" ? task.name : `${task.name} · 변경됨`;
+  };
   const closeTaskFilterOnEscape = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Escape" || !taskFilterOpen) return;
     event.preventDefault();
@@ -796,16 +997,30 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setTaskFilterOpen(false);
     requestAnimationFrame(() => taskFilterTriggerReference.current?.focus({ preventScroll: true }));
   };
-  const closeContextDisclosureOnEscape = (event: ReactKeyboardEvent<HTMLDetailsElement>) => {
-    if (event.key !== "Escape" || !event.currentTarget.open) return;
-    if (event.target instanceof Element && event.target.closest("dialog")) return;
-    event.preventDefault();
-    event.stopPropagation();
+  const handleContextDisclosureKeyDown = (event: ReactKeyboardEvent<HTMLDetailsElement>) => {
     const details = event.currentTarget;
-    details.open = false;
-    if (details === actionMenuReference.current) setActionMenuOpen(false);
-    if (details === infoPopoverReference.current) setInfoPopoverOpen(false);
-    requestAnimationFrame(() => details.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true }));
+    if (!details.open) return;
+
+    if (event.key === "Escape") {
+      if (event.target instanceof Element && event.target.closest("dialog")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      details.open = false;
+      if (details === actionMenuReference.current) setActionMenuOpen(false);
+      if (details === infoPopoverReference.current) setInfoPopoverOpen(false);
+      requestAnimationFrame(() => details.querySelector<HTMLElement>("summary")?.focus({ preventScroll: true }));
+      return;
+    }
+
+    if (event.key !== "Tab") return;
+    requestAnimationFrame(() => {
+      if (!details.open) return;
+      const activeElement = document.activeElement;
+      if (activeElement instanceof Node && details.contains(activeElement)) return;
+      if (activeElement instanceof Element && activeElement.closest('dialog, [role="dialog"]')) return;
+      if (details === actionMenuReference.current) setActionMenuOpen(false);
+      if (details === infoPopoverReference.current) setInfoPopoverOpen(false);
+    });
   };
   const resetTaskFilter = () => {
     setTaskFilter(EMPTY_TASK_FILTER);
@@ -836,7 +1051,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
               setInfoPopoverOpen(nextOpen);
               if (nextOpen && actionMenuOpen) setActionMenuOpen(false);
             }}
-            onKeyDown={closeContextDisclosureOnEscape}
+            onKeyDown={handleContextDisclosureKeyDown}
           >
             <summary aria-label="프로젝트 정보 보기">정보</summary>
             <div className="project-info-panel">
@@ -874,10 +1089,11 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             setActionMenuOpen(nextOpen);
             if (nextOpen && infoPopoverOpen) setInfoPopoverOpen(false);
           }}
-          onKeyDown={closeContextDisclosureOnEscape}
+          onKeyDown={handleContextDisclosureKeyDown}
         >
           <summary aria-label="프로젝트 작업 더보기">더보기</summary>
           <div className="project-action-menu-panel">
+            <ProjectImportButton publicId={publicId} expectedRevision={project.revision} disabled={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null} onImportSuccess={() => beginRefresh(false)} />
             <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} onAutoOpen={() => setActionMenuOpen(true)} />
             <ProjectSaveAsTemplateButton publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} />
           </div>
@@ -886,41 +1102,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     </header>
 
     <div className="project-workspace-tabs" role="tablist" aria-label="프로젝트 작업공간">
-      <button
-        ref={scheduleTabReference}
-        id="project-tab-schedule"
-        role="tab"
-        type="button"
-        aria-controls="project-panel-schedule"
-        aria-selected={activeView === "schedule"}
-        tabIndex={activeView === "schedule" ? 0 : -1}
-        onClick={() => setActiveView("schedule")}
-        onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "schedule")}
-      >일정</button>
-      <button
-        ref={resourceTabReference}
-        id="project-tab-resources"
-        role="tab"
-        type="button"
-        aria-controls="project-panel-resources"
-        aria-selected={activeView === "resources"}
-        tabIndex={activeView === "resources" ? 0 : -1}
-        onClick={() => setActiveView("resources")}
-        onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "resources")}
-      >리소스</button>
-      <button
-        ref={logisticsTabReference}
-        id="project-tab-logistics"
-        role="tab"
-        type="button"
-        aria-controls="project-panel-logistics"
-        aria-selected={activeView === "logistics"}
-        tabIndex={activeView === "logistics" ? 0 : -1}
-        onClick={() => setActiveView("logistics")}
-        onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "logistics")}
-      >물류 구성</button>
+      <button ref={scheduleTabReference} id="project-tab-schedule" role="tab" type="button" aria-controls="project-panel-schedule" aria-selected={activeView === "schedule"} tabIndex={activeView === "schedule" ? 0 : -1} onClick={() => activateWorkspaceView("schedule")} onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "schedule")}>일정</button>
+      <button ref={resourceTabReference} id="project-tab-resources" role="tab" type="button" aria-controls="project-panel-resources" aria-selected={activeView === "resources"} tabIndex={activeView === "resources" ? 0 : -1} onClick={() => activateWorkspaceView("resources")} onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "resources")}>리소스</button>
+      <button ref={logisticsTabReference} id="project-tab-logistics" role="tab" type="button" aria-controls="project-panel-logistics" aria-selected={activeView === "logistics"} tabIndex={activeView === "logistics" ? 0 : -1} onClick={() => activateWorkspaceView("logistics")} onKeyDown={(event) => handleWorkspaceTabKeyDown(event, "logistics")}>물류 구성</button>
     </div>
-
     <div className="project-workspace-panels">
       <section
         id="project-panel-schedule"
@@ -930,7 +1115,22 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         aria-busy={isSavingTask || undefined}
         className="project-schedule project-workspace-panel"
       >
-        <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{tasks.length === 0 ? "아직 등록된 작업이 없습니다." : "작업 일정을 확인하고 관리합니다."}</p></div>
+        <div className="project-scope-tabs" role="tablist" aria-label="WBS 범위 탭">
+          <div className="project-scope-tab-item" role="presentation">
+            <button className="project-scope-tab" id={scopeTabId(null)} role="tab" type="button" aria-controls="project-scope-panel" aria-selected={activeRootTaskId === null} tabIndex={activeRootTaskId === null ? 0 : -1} ref={(node) => { if (node) scopeTabReferences.current.set(scopeStateKey(null), node); else scopeTabReferences.current.delete(scopeStateKey(null)); }} onClick={() => activateScope(null)} onKeyDown={(event) => handleScopeTabKeyDown(event, null)}><span className="project-scope-tab-label">전체 프로젝트</span></button>
+          </div>
+          {openScopeTaskIds.map((taskId) => {
+            const label = scopeTabLabel(taskId);
+            const task = tasks.find((candidate) => candidate.taskId === taskId);
+            const invalid = !task || task.type !== "summary";
+            return <div className="project-scope-tab-item" data-invalid={invalid || undefined} key={taskId} role="presentation">
+              <button className="project-scope-tab" id={scopeTabId(taskId)} role="tab" type="button" aria-controls="project-scope-panel" aria-label={label} aria-selected={activeRootTaskId === taskId} tabIndex={activeRootTaskId === taskId ? 0 : -1} title={label} ref={(node) => { if (node) scopeTabReferences.current.set(scopeStateKey(taskId), node); else scopeTabReferences.current.delete(scopeStateKey(taskId)); }} onClick={() => activateScope(taskId)} onKeyDown={(event) => handleScopeTabKeyDown(event, taskId)}><span className="project-scope-tab-label">{label}</span></button>
+              <button className="project-scope-tab-close" type="button" aria-label={`${label} 범위 탭 닫기`} title={`${label} 범위 탭 닫기`} onClick={() => closeScopeTab(taskId)}>×</button>
+            </div>;
+          })}
+        </div>
+        <div className="project-scope-panel" id="project-scope-panel" role="tabpanel" aria-labelledby={scopeTabId(activeRootTaskId)}>
+        <div className="schedule-heading-row"><div><h2 id="schedule-heading">일정</h2><p>{scopedTasks.length === 0 ? "표시할 작업이 없습니다." : scopedTasks.every((task) => task.start === null) ? "일정이 있는 하위 작업이 없습니다." : "작업 일정을 확인하고 관리합니다."}</p></div>
           {isSavingTask ? <span className="schedule-saving" role="status">일정 저장 중…</span> : null}</div>
         <div className="project-filter-toolbar project-schedule-filter-toolbar" role="toolbar" aria-label="작업 검색과 필터" onKeyDown={closeTaskFilterOnEscape}>
           <label className="project-filter-search">
@@ -974,7 +1174,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             </button>
           </div>
           {activeFilters > 0 ? <button className="secondary-button project-filter-reset" type="button" onClick={resetTaskFilter}>초기화</button> : null}
-          <span className="project-filter-result" role="status">{filteredTasks.matchCount}개 일치 / 전체 {tasks.length}개 작업</span>
+          <span className="project-filter-result" role="status">{filteredTasks.matchCount}개 일치 / {subtreeScope.kind === "valid" ? "범위" : "전체"} {scopedTasks.length}개 작업</span>
         </div>
         <div className="project-filter-panel project-task-filter-panel" id="project-task-filter-panel" hidden={!taskFilterOpen} aria-label="작업 고급 필터" onKeyDown={closeTaskFilterOnEscape}>
           <section className="project-filter-section" aria-labelledby="project-filter-text-heading">
@@ -1116,23 +1316,31 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             </section>
           ) : null}
         </div>
-        <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorLinkId !== null}
+        {subtreeScopeInvalid ? <div className="schedule-scope-note" role="alert">
+          <strong>선택한 Summary 범위를 열 수 없습니다.</strong>{" "}
+          {subtreeScope.kind === "not-summary"
+            ? "선택한 작업이 더 이상 Summary가 아닙니다."
+            : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
+          <button className="secondary-button project-scope-recovery-button" type="button" onClick={() => activateScope(null)}>전체 프로젝트로 돌아가기</button>
+        </div> : <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
-          onTaskEditorOpen={openTaskEditor} onRelationEditorOpen={openRelationEditor} onTaskDeleteRequest={requestTaskDelete} onLinkCreate={(source, target) => void saveLink("POST", source, target)} onLinkUpdate={(linkId, patch) => saveLink("PATCH", undefined, undefined, linkId, patch)} onLinkDelete={(linkId) => void saveLink("DELETE", undefined, undefined, linkId)} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
+          onTaskEditorOpen={openTaskEditor} onTaskOpenAsRoot={openTaskAsRoot} onRelationEditorOpen={openRelationEditor} onTaskDeleteRequest={requestTaskDelete} onLinkCreate={(source, target) => void saveLink("POST", source, target)} onLinkUpdate={(linkId, patch) => saveLink("PATCH", undefined, undefined, linkId, patch)} onLinkDelete={(linkId) => void saveLink("DELETE", undefined, undefined, linkId)} columnVisibility={columnVisibility} onColumnVisibilityChange={(columnId) => setColumnVisibility((current) => {
             const visibleColumnCount = Object.values(current).filter(Boolean).length;
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };
-          })} tasks={tasks} visibleTaskIds={activeFilters > 0 ? visibleTaskIds : null} />
-        {editorSession ? <ProjectTaskEditor key={editorSession.task.taskId} session={editorSession}
+          })} tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />}
+        {editorSession ? <ProjectTaskEditor ref={projectTaskEditorReference} key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
-          editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy} onSave={saveEditorTask} onReload={reloadEditorTask} onClose={closeTaskEditor} /> : null}
-        {relationEditorLinkId ? (
+          editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy}
+          onSave={saveEditorTask} onReload={reloadEditorTask} onRelationEditorOpen={openTaskRelationEditor}
+          onRelationDelete={(id) => saveLink("DELETE", undefined, undefined, id)} onClose={closeTaskEditor} /> : null}
+        {relationEditorRequest ? (
           <RelationEditorDialog
             editable={editing}
-            key={relationEditorLinkId}
-            linkId={relationEditorLinkId}
+            key={relationEditorRequest.kind === "link" ? `link:${relationEditorRequest.linkId}` : `task:${relationEditorRequest.taskId}`}
+            {...(relationEditorRequest.kind === "link" ? { linkId: relationEditorRequest.linkId } : { anchorTaskId: relationEditorRequest.taskId })}
             links={links}
             onClose={closeRelationEditor}
             onCreateLink={(source, target, options) => saveLink("POST", source, target, undefined, options)}
@@ -1141,6 +1349,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             tasks={tasks}
           />
         ) : null}
+        </div>
       </section>
       <section
         id="project-panel-resources"
@@ -1164,14 +1373,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           editable={editing}
           logistics={state.snapshot.data.logistics}
           onLogisticsMutated={(newLogistics, newProject) => {
-            setState((current) => {
-              if (current.status !== "ready") return current;
-              return { ...current, snapshot: { ...current.snapshot, data: { ...current.snapshot.data, project: newProject, logistics: newLogistics } } };
-            });
+            const current = confirmedSnapshotReference.current;
+            if (current) applySnapshot({ ...current, data: { ...current.data, project: newProject, logistics: newLogistics } });
             notify("success", "물류 구성 변경 사항을 저장했습니다.", "물류 구성");
           }}
           onRequireRefresh={() => { void reloadCanonicalSnapshot(); }}
           onNavigateToSchedule={(targetFilter) => {
+            activateScope(null, false);
             setActiveView("schedule");
             if (targetFilter) {
               setTaskFilter((prev) => ({ ...prev, ...targetFilter }));

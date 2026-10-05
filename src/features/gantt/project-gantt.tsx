@@ -3,6 +3,7 @@
 import {
   Gantt,
   Willow,
+  defaultTaskTypes,
   type IApi,
   type IColumnConfig,
   type ILink,
@@ -10,6 +11,8 @@ import {
 } from "@svar-ui/react-gantt";
 import "@svar-ui/react-gantt/all.css";
 import {
+  createContext,
+  useContext,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -18,10 +21,38 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
   type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 
 import { createTaskMoveGateway } from "./task-move-gateway";
+import {
+  buildChartReorderCommand,
+  resolveChartDragIntent,
+  resolveChartVerticalDrop,
+  type ChartVerticalDrop,
+} from "./chart-vertical-dnd";
+import {
+  buildGanttDayHeaderTooltipDataForDateOnly,
+  dateOnlyFromGanttDayScaleClassName,
+  ganttDayScaleClassName,
+  type GanttDayHeaderTooltipData,
+} from "./day-header-tooltip";
+import {
+  buildGanttWeekHeaderTooltipDataForDateOnly,
+  dateOnlyFromGanttWeekScaleClassName,
+  formatGanttWeekWorkingDaysLabel,
+  ganttWeekScaleClassName,
+  type GanttWeekHeaderTooltipData,
+} from "./week-header-tooltip";
+import {
+  canEditGridStartDate,
+  createGridStartDateCommand,
+} from "./grid-start-date-editor";
 
+import { copyTextWithLegacyCommand, writeTextWithCompatibility } from "@/components/clipboard-write";
+import { WorkspaceDialog } from "@/components/workspace-dialog";
+import feedbackStyles from "@/components/workspace-feedback.module.css";
+import { useWorkspaceNotifications } from "@/components/workspace-notifications";
 import type {
   ProjectCalendarDto,
   ProjectLinkDto,
@@ -35,6 +66,12 @@ import {
 } from "@/lib/date-display";
 import { formatGanttDayOfMonth } from "@/lib/gantt-scale-format";
 import { formatIsoWeek } from "@/lib/iso-week";
+import {
+  GANTT_CELL_WIDTH,
+  minimumTimelineScaleWidthForEnd,
+  nextTimelineScaleWidth,
+  type GanttScaleMode,
+} from "./timeline-range";
 
 import {
   createTaskAddGateway,
@@ -52,9 +89,8 @@ import {
   type ProjectTaskCreateCommand,
   type ProjectTaskUpdateCommand,
 } from "./project-task-adapter";
-import { dateOnlyFromLocalDate } from "./date-adapter";
 import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
-import { resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
+import { findTaskContextElement, resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import type { TaskEditorSaveResult } from "./task-editor-model";
 import { captureMenuScrollChange } from "./menu-scroll-guard";
 import {
@@ -68,11 +104,44 @@ import {
   taskContextCapabilities,
   type TaskClipboard,
 } from "./task-context-menu-model";
-import { taskHasDependencyLinks } from "./task-link-scope";
+import {
+  taskHasDependencyLinks,
+  taskSubtreeHasDependencyLinks,
+  taskSubtreeHasExternalDependencyLinks,
+} from "./task-link-scope";
+import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "./task-selection-model";
+import { canOpenTaskAsSubtreeRoot, resolveTaskSubtreeScope, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
+import { resolveNativeTaskAddIntent, type NativeTaskAddRejectReason, type NativeTaskAddSource } from "./native-task-add-intent";
+import { taskStatusFromProgress } from "../../domain/task-status";
 import { RelationContextMenu } from "./relation-context-menu";
 import type { DependencyType } from "../../contracts/projects";
 import "./task-context-menu.css";
 import "./gantt-scale-toolbar.css";
+
+interface CopySelectionContextValue {
+  tasksById: ReadonlyMap<string, ProjectTaskDto>;
+  selectedTaskIds: readonly string[];
+  onGesture: (id: string, gesture: "single" | "toggle" | "range") => void;
+}
+const CopySelectionContext = createContext<CopySelectionContextValue | null>(null);
+
+/** Stable public Grid renderer reads React context, never mutable refs. */
+function ProjectTaskSelectionCell({ row }: { row: Record<string, unknown> }) {
+    const context = useContext(CopySelectionContext);
+    if (!context) return null;
+    const id = String(row.id);
+    return <label className="project-copy-selection-hitarea">
+      <input type="checkbox" data-copy-selection={id}
+        aria-label={`${context.tasksById.get(id)?.name ?? String(row.text ?? "작업")} 복사 대상으로 선택`}
+        checked={context.selectedTaskIds.includes(id)}
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
+        onChange={(event) => context.onGesture(id, (event.nativeEvent as MouseEvent).shiftKey ? "range" : "toggle")}
+        onKeyDown={(event) => {
+          if (!(event.ctrlKey || event.metaKey) && event.key !== "Escape" && event.key !== "ContextMenu" && !(event.shiftKey && event.key === "F10")) event.stopPropagation();
+        }} />
+    </label>;
+}
 
 export type ProjectGridDataColumnId =
   | "text"
@@ -84,17 +153,39 @@ export type ProjectGridDataColumnId =
 
 export type ProjectGridColumnVisibility = Record<ProjectGridDataColumnId, boolean>;
 let nextApiInstanceId = 1;
+const projectTaskTypes = [...defaultTaskTypes, { id: "summary-container", label: "요약 작업 (일정 미산정)" }];
 
 type MenuPosition = Readonly<{ left: number; top: number }>;
 type TaskMenuState = MenuPosition & Readonly<{ taskId: string }>;
 type TaskSubmenuName = "Add" | "Convert to" | "Paste" | "Move";
 type TaskSubmenuState = Readonly<{ name: TaskSubmenuName; placement: "right" | "left" | "drilldown"; left: number; top: number }>;
-type GanttScaleMode = "day" | "week";
+type DayHeaderTooltipState = Readonly<{
+  data: GanttDayHeaderTooltipData;
+  left: number;
+  top: number;
+  anchorTop: number;
+}>;
+type WeekHeaderTooltipState = Readonly<{
+  data: GanttWeekHeaderTooltipData;
+  left: number;
+  top: number;
+  anchorTop: number;
+}>;
+type StartDatePickerState = Readonly<{
+  taskId: string;
+  revision: number;
+  value: string;
+  left: number;
+  top: number;
+  width: number;
+}>;
 
 function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
   if (!(target instanceof Element)) return true;
   return Boolean(target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="menu"], dialog, [role="dialog"]'));
 }
+
+
 
 interface ProjectGanttProps {
   readonly calendar: ProjectCalendarDto;
@@ -102,11 +193,12 @@ interface ProjectGanttProps {
   readonly mutationLocked: boolean;
   readonly onCanonicalSyncFailure: () => void;
   readonly links: readonly ProjectLinkDto[];
-  readonly onTaskAddRejected: () => void;
+  readonly onTaskAddRejected: (reason: NativeTaskAddRejectReason) => void;
   readonly onTaskCreate: (command: ProjectTaskCreateCommand) => void;
   readonly onTaskCommand: (command: ProjectTaskUpdateCommand, expectedRevision?: number) => Promise<TaskEditorSaveResult>;
   readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest) => void;
   readonly onTaskEditorOpen: (taskId: string) => void;
+  readonly onTaskOpenAsRoot: (taskId: string) => void;
   readonly onTaskDeleteRequest: (taskId: string, trigger: HTMLElement | null) => void;
   readonly onRelationEditorOpen?: (linkId: string) => void;
   readonly onLinkCreate: (sourceTaskId: string, targetTaskId: string) => void;
@@ -117,6 +209,9 @@ interface ProjectGanttProps {
   readonly tasks: readonly ProjectTaskDto[];
   readonly projectRevision: number;
   readonly visibleTaskIds?: readonly string[] | null;
+  readonly matchingTaskIds?: readonly string[] | null;
+  readonly selectionBoundaryKey?: string;
+  readonly viewRootTaskId?: string | null;
   readonly projectPublicId?: string;
 }
 
@@ -181,6 +276,7 @@ export function ProjectGantt({
   onTaskCommand,
   onTaskHierarchyCommand,
   onTaskEditorOpen,
+  onTaskOpenAsRoot,
   onTaskDeleteRequest,
   onRelationEditorOpen,
   onLinkCreate,
@@ -191,8 +287,12 @@ export function ProjectGantt({
   tasks,
   projectRevision,
   visibleTaskIds = null,
+  matchingTaskIds = null,
+  selectionBoundaryKey = "",
+  viewRootTaskId = null,
   projectPublicId,
 }: ProjectGanttProps) {
+  const { notify } = useWorkspaceNotifications();
   const apiReference = useRef<IApi | null>(null);
   const onTaskCreateReference = useRef(onTaskCreate);
   const onTaskCommandReference = useRef(onTaskCommand);
@@ -214,16 +314,34 @@ export function ProjectGantt({
   const taskFilterAppliedReference = useRef(false);
   const summaryToggleStateReference = useRef(new Map<string, boolean>());
   const projectPublicIdReference = useRef(projectPublicId);
+  const viewRootTaskIdReference = useRef(viewRootTaskId);
   const tasksReference = useRef(tasks);
   const initialPreferenceRestoredReference = useRef(false);
   const prevProjectPublicIdReference = useRef(projectPublicId);
+  const chartDragReference = useRef<{
+    taskId: string;
+    sourceParentExternalId: string | null;
+    startX: number;
+    startY: number;
+    originalTop: number | null;
+    startScrollTop: number;
+    intent: "pending" | "horizontal" | "vertical";
+    drop: ChartVerticalDrop | null;
+  } | null>(null);
+  const chartDragTargetReference = useRef<HTMLElement | null>(null);
+  const chartDragPointerYReference = useRef<number | null>(null);
+  const chartEdgeScrollFrameReference = useRef<number | null>(null);
 
-  if (prevProjectPublicIdReference.current !== projectPublicId) {
+  useEffect(() => {
+    if (prevProjectPublicIdReference.current === projectPublicId) return;
     prevProjectPublicIdReference.current = projectPublicId;
     initialPreferenceRestoredReference.current = false;
     summaryToggleStateReference.current.clear();
-  }
+  }, [projectPublicId]);
   const inlineOpenTokenReference = useRef(0);
+  const namePointerIntentReference = useRef<{ taskId: string; x: number; y: number } | null>(null);
+  const startDatePointerIntentReference = useRef<{ taskId: string; x: number; y: number; cell: HTMLElement } | null>(null);
+  const contextPointerTaskIdReference = useRef<string | null>(null);
   const inlineComposingReference = useRef(false);
   const inlineTableReference = useRef<Awaited<ReturnType<IApi["getTable"]>> | null>(null);
   const inlineSessionReference = useRef<{
@@ -233,12 +351,32 @@ export function ProjectGantt({
     table: Awaited<ReturnType<IApi["getTable"]>>;
     committed: boolean;
   } | null>(null);
+  const startDateTriggerReference = useRef<HTMLElement | null>(null);
+  const startDateOpenTimerReference = useRef<number | null>(null);
+  const startDatePickerClosingReference = useRef(false);
+  const startDatePickerReference = useRef<HTMLDivElement>(null);
+  const startDateInputReference = useRef<HTMLInputElement>(null);
   const instanceId = useState(() => `project-gantt-${Math.random().toString(36).slice(2)}`)[0];
   const canonicalSyncQueueReference = useRef<Promise<void>>(Promise.resolve());
   const tasksByIdReference = useRef(new Map<string, ProjectTaskDto>());
   const ganttScrollReference = useRef<HTMLDivElement>(null);
+  const nativeAddTriggerReference = useRef<Readonly<{ source: NativeTaskAddSource; targetTaskId?: string }> | null>(null);
+  const nativeAddContinuityReference = useRef<Readonly<{
+    source: NativeTaskAddSource;
+    targetTaskId?: string;
+    viewRootTaskId: string | null;
+    windowScrollX: number;
+    windowScrollY: number;
+    rootScrollLeft: number;
+    rootScrollTop: number;
+    ganttScrollLeft: number;
+    ganttScrollTop: number;
+  }> | null>(null);
+  const previousMutationLockedReference = useRef(mutationLocked);
   const fullscreenFrameReference = useRef<HTMLDivElement>(null);
   const fullscreenButtonReference = useRef<HTMLButtonElement>(null);
+  const dayHeaderTooltipReference = useRef<HTMLDivElement>(null);
+  const weekHeaderTooltipReference = useRef<HTMLDivElement>(null);
   const fullscreenPendingReference = useRef(false);
   const fullscreenWasActiveReference = useRef(false);
   const fullscreenUiStateReference = useRef<{
@@ -259,16 +397,38 @@ export function ProjectGantt({
   const [taskSubmenu, setTaskSubmenu] = useState<TaskSubmenuState | null>(null);
   const [relationMenu, setRelationMenu] = useState<{ linkId: string; left: number; top: number } | null>(null);
   const [taskClipboard, setTaskClipboard] = useState<TaskClipboard | null>(null);
+  const [copyTaskIdFallback, setCopyTaskIdFallback] = useState<string | null>(null);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<readonly string[]>([]);
+  const selectedTaskIdsReference = useRef<readonly string[]>([]);
+  const selectionAnchorReference = useRef<string | null>(null);
+  const visibleTaskIdsReference = useRef(visibleTaskIds);
+  const matchingTaskIdsReference = useRef(matchingTaskIds);
+  const [selectionMessage, setSelectionMessage] = useState("");
+  const [selectionHiddenCount, setSelectionHiddenCount] = useState(0);
+  const selectionProjectReference = useRef(projectPublicId);
+  // Content equality prevents ordinary React renders from clearing clipboard.
+  const selectionBoundary = JSON.stringify([viewRootTaskId, selectionBoundaryKey,
+    visibleTaskIds === null ? null : [...visibleTaskIds].sort(),
+    matchingTaskIds === null ? null : [...matchingTaskIds].sort()]);
+  const selectionBoundaryReference = useRef(selectionBoundary);
   const [apiInstanceId, setApiInstanceId] = useState<string | null>(null);
   const [scaleMode, setScaleMode] = useState<GanttScaleMode>("day");
+  const scaleModeReference = useRef<GanttScaleMode>("day");
+  const [dayHeaderTooltip, setDayHeaderTooltip] = useState<DayHeaderTooltipState | null>(null);
+  const [weekHeaderTooltip, setWeekHeaderTooltip] = useState<WeekHeaderTooltipState | null>(null);
   const pendingScaleColumnsReference = useRef<IColumnConfig[] | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [fullscreenPending, setFullscreenPending] = useState(false);
   const [fullscreenMessage, setFullscreenMessage] = useState("");
   const [inlineNameMessage, setInlineNameMessage] = useState("");
   const [inlineNameError, setInlineNameError] = useState(false);
+  const [startDatePicker, setStartDatePicker] = useState<StartDatePickerState | null>(null);
+  const [inlineStartMessage, setInlineStartMessage] = useState("");
+  const [inlineStartError, setInlineStartError] = useState(false);
   // This browser-only component is dynamically imported with SSR disabled.
   const [locales] = useState<Intl.LocalesArgument>(() => browserLocales());
+  const dayHeaderTooltipId = `${instanceId}-day-header-tooltip`;
+  const weekHeaderTooltipId = `${instanceId}-week-header-tooltip`;
   const highlightWeekend = useCallback(
     (date: Date, unit: "day" | "hour") => unit === "day" && isWeekend(date) ? "wx-weekend" : "",
     [],
@@ -277,6 +437,137 @@ export function ProjectGantt({
     () => new Map(tasks.map((task) => [task.taskId, task])),
     [tasks],
   );
+  useLayoutEffect(() => {
+    visibleTaskIdsReference.current = visibleTaskIds;
+    matchingTaskIdsReference.current = matchingTaskIds;
+  }, [visibleTaskIds, matchingTaskIds]);
+
+  const updateSelection = useCallback((next: readonly string[]) => {
+    const current = selectedTaskIdsReference.current;
+    if (current.length === next.length && current.every((id, index) => id === next[index])) return;
+    selectedTaskIdsReference.current = next;
+    setSelectedTaskIds(next);
+    const api = apiReference.current;
+    const state: unknown = api?.getState().selected;
+    const primary = Array.isArray(state) ? state : typeof state === "string" || typeof state === "number" ? [state] : [];
+    if (api && !next.length) {
+      for (const id of primary) if (typeof id === "string" || typeof id === "number") void api.exec("select-task", { id, toggle: true, eventSource: "project-owned-selection" });
+    }
+  }, []);
+
+  const applySelectionGesture = useCallback((id: string, gesture: "single" | "toggle" | "range", mirrorCore = true) => {
+    const next = selectTaskGesture(tasksReference.current, selectedTaskIdsReference.current,
+      selectionAnchorReference.current, id, gesture, visibleTaskIdsReference.current, matchingTaskIdsReference.current);
+    if (gesture === "range" && next.length === 1 && selectionAnchorReference.current !== id) {
+      setSelectionMessage("같은 부모의 보이는 작업 범위가 없어 한 작업만 선택했습니다.");
+    } else setSelectionMessage("");
+    if (gesture !== "range") selectionAnchorReference.current = id;
+    updateSelection(next);
+    // Mirror a singular primary Task into Core: Cut/Move remain single target.
+    if (mirrorCore && next.includes(id)) void apiReference.current?.exec("select-task", { id, eventSource: "project-owned-selection" });
+  }, [updateSelection, setSelectionMessage]);
+
+  const selectionContext = useMemo(() => ({
+    tasksById, selectedTaskIds, onGesture: applySelectionGesture,
+  }), [tasksById, selectedTaskIds, applySelectionGesture]);
+
+  useEffect(() => {
+    if (selectionProjectReference.current !== projectPublicId) {
+      selectionProjectReference.current = projectPublicId;
+      selectionBoundaryReference.current = selectionBoundary;
+      selectionAnchorReference.current = null;
+      updateSelection([]);
+      setTaskClipboard(null);
+      setSelectionMessage("");
+      return;
+    }
+    const changed = selectionBoundaryReference.current !== selectionBoundary;
+    selectionBoundaryReference.current = selectionBoundary;
+    const known = new Set(tasks.map((task) => task.taskId));
+    const matching = matchingTaskIds ?? visibleTaskIds;
+    const allowed = changed && matching ? new Set(matching) : null;
+    const current = selectedTaskIdsReference.current;
+    const next = current.filter((id) => known.has(id) && (!allowed || allowed.has(id)));
+    updateSelection(next);
+    if (changed) {
+      setTaskClipboard(null);
+      setSelectionMessage(current.length > next.length
+        ? `표시 범위 밖의 선택 ${current.length - next.length}개를 해제했습니다.`
+        : "표시 범위가 변경되어 이전 클립보드를 비웠습니다.");
+    }
+  }, [projectPublicId, selectionBoundary, tasks, updateSelection, visibleTaskIds, matchingTaskIds]);
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    const api = apiReference.current;
+    if (!root || !api || !apiInstanceId) return;
+    const decorate = () => {
+      const selected = new Set(selectedTaskIdsReference.current);
+      root.querySelectorAll<HTMLElement>(TASK_TARGET_SELECTOR).forEach((element) => {
+        const id = taskIdFromElement(element);
+        const active = Boolean(id && selected.has(id));
+        if (element.dataset.copySelected !== String(active)) element.dataset.copySelected = String(active);
+        if (element.classList.contains("wx-row")) element.setAttribute("aria-selected", String(active));
+        const checkbox = element.querySelector<HTMLInputElement>("input[data-copy-selection]");
+        if (checkbox) checkbox.checked = active;
+      });
+      const count = hiddenSelectedCount(tasksReference.current, selectedTaskIdsReference.current, summaryToggleStateReference.current);
+      setSelectionHiddenCount((current) => current === count ? current : count);
+    };
+    decorate();
+    // Attribute decoration cannot retrigger this childList-only observer.
+    const observer = new MutationObserver(decorate);
+    observer.observe(root, { childList: true, subtree: true });
+    const tag = "project-copy-selection-decoration";
+    api.on("open-task", decorate, { tag });
+    return () => { observer.disconnect(); api.detach(tag); };
+  }, [selectedTaskIds, tasks, apiInstanceId]);
+  // Keep DOM editability and the refs used by native/SVAR handlers in the same
+  // commit phase so the first click after a mutation cannot observe stale guards.
+  useLayoutEffect(() => {
+    canCreateReference.current = editable && !mutationLocked;
+    mutationLockedReference.current = mutationLocked;
+    tasksByIdReference.current = tasksById;
+    projectPublicIdReference.current = projectPublicId;
+    tasksReference.current = tasks;
+  }, [editable, mutationLocked, projectPublicId, tasks, tasksById]);
+
+  useLayoutEffect(() => {
+    const wasLocked = previousMutationLockedReference.current;
+    previousMutationLockedReference.current = mutationLocked;
+    if (mutationLocked || !wasLocked) return;
+
+    const continuity = nativeAddContinuityReference.current;
+    nativeAddContinuityReference.current = null;
+    if (!continuity) return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (viewRootTaskIdReference.current !== continuity.viewRootTaskId) return;
+        const root = ganttScrollReference.current;
+        if (!root) return;
+        const ganttScroller = root.querySelector<HTMLElement>(".wx-gantt");
+        root.scrollLeft = continuity.rootScrollLeft;
+        root.scrollTop = continuity.rootScrollTop;
+        if (ganttScroller) {
+          ganttScroller.scrollLeft = continuity.ganttScrollLeft;
+          ganttScroller.scrollTop = continuity.ganttScrollTop;
+        }
+        window.scrollTo(continuity.windowScrollX, continuity.windowScrollY);
+
+        const action = continuity.source === "header"
+          ? root.querySelector<HTMLElement>('.wx-header [data-action="add-task"]')
+          : Array.from(root.querySelectorAll<HTMLElement>(".wx-row[data-id]"))
+            .find((candidate) => taskIdFromElement(candidate) === continuity.targetTaskId)
+            ?.querySelector<HTMLElement>('[data-action="add-task"]') ?? null;
+        // React editability is the authority here. DOM aria-disabled may still
+        // reflect the previous busy render until the passive decoration effect.
+        if (editable && action) action.focus({ preventScroll: true });
+        else root.focus({ preventScroll: true });
+      });
+    });
+  }, [editable, mutationLocked]);
+
   useEffect(() => {
     onTaskCreateReference.current = onTaskCreate;
     onTaskCommandReference.current = onTaskCommand;
@@ -294,6 +585,7 @@ export function ProjectGantt({
     mutationLockedReference.current = mutationLocked;
     tasksByIdReference.current = tasksById;
     projectPublicIdReference.current = projectPublicId;
+    viewRootTaskIdReference.current = viewRootTaskId;
     tasksReference.current = tasks;
     const summaries = new Set(
       Array.from(tasksById.values()).filter((task) => task.type === "summary").map((task) => task.taskId),
@@ -312,17 +604,249 @@ export function ProjectGantt({
       const collapsedIds = extractCollapsedSummaryIds(summaryToggleStateReference.current, summaries);
       saveSummaryTogglePreference(projectPublicId, collapsedIds);
     }
-  }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onRelationEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, projectPublicId, tasks, tasksById]);
+  }, [editable, links, mutationLocked, onCanonicalSyncFailure, onTaskAddRejected, onTaskCreate, onTaskCommand, onTaskDeleteRequest, onTaskEditorOpen, onRelationEditorOpen, onTaskHierarchyCommand, onLinkCreate, onLinkUpdate, onLinkDelete, projectPublicId, tasks, tasksById, viewRootTaskId]);
+
+  const clearChartEdgeScroll = useCallback(() => {
+    if (chartEdgeScrollFrameReference.current !== null) {
+      cancelAnimationFrame(chartEdgeScrollFrameReference.current);
+      chartEdgeScrollFrameReference.current = null;
+    }
+    chartDragPointerYReference.current = null;
+  }, []);
+
+  const clearChartDragFeedback = useCallback(() => {
+    const target = chartDragTargetReference.current;
+    if (target) {
+      delete target.dataset.chartDropPlacement;
+      target.classList.remove("project-chart-drop-target");
+    }
+    chartDragTargetReference.current = null;
+
+    const drag = chartDragReference.current;
+    const api = apiReference.current;
+    if (drag?.intent === "vertical" && api && drag.originalTop !== null) {
+      void api.exec("drag-task", {
+        id: drag.taskId,
+        top: Math.max(0, drag.originalTop - 4),
+        inProgress: false,
+      });
+    }
+  }, []);
+
+  const updateChartDropFeedback = useCallback((drop: ChartVerticalDrop | null) => {
+    const current = chartDragTargetReference.current;
+    if (current) {
+      delete current.dataset.chartDropPlacement;
+      current.classList.remove("project-chart-drop-target");
+    }
+    chartDragTargetReference.current = null;
+    if (!drop) return;
+
+    const root = ganttScrollReference.current;
+    if (!root) return;
+    const target = Array.from(root.querySelectorAll<HTMLElement>(".wx-chart .wx-bar[data-task-id]"))
+      .find((element) => taskIdFromElement(element) === drop.anchorTaskId) ?? null;
+    if (!target) return;
+    target.dataset.chartDropPlacement = drop.placement;
+    target.classList.add("project-chart-drop-target");
+    chartDragTargetReference.current = target;
+  }, []);
+
+  const handleChartMouseDownCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
+    if (!editable || mutationLocked || event.button !== 0 || !(event.target instanceof Element)) return;
+    if (event.target.closest(".wx-link, .wx-progress-marker, .wx-delete-button")) return;
+
+    const bar = event.target.closest<HTMLElement>(".wx-chart .wx-bar[data-task-id]");
+    const root = ganttScrollReference.current;
+    const api = apiReference.current;
+    if (!bar || !root || !api || !root.contains(bar)) return;
+
+    const taskId = taskIdFromElement(bar);
+    if (!taskId) return;
+    const task = tasksByIdReference.current.get(taskId);
+    if (!task || inlineSessionReference.current) return;
+
+    const bounds = bar.getBoundingClientRect();
+    const edge = bounds.width > 200 ? 40 : bounds.width * 0.2;
+    if (task.type === "task" &&
+      (event.clientX - bounds.left < edge || bounds.right - event.clientX < edge)) return;
+
+    const verticalScroller = root.querySelector<HTMLElement>(".wx-gantt");
+    const svarTask = api.getTask(taskId) as ITask & { $y?: number };
+    chartDragReference.current = {
+      taskId,
+      sourceParentExternalId: task.parentExternalId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originalTop: typeof svarTask.$y === "number" ? svarTask.$y : null,
+      startScrollTop: verticalScroller?.scrollTop ?? 0,
+      intent: "pending",
+      drop: null,
+    };
+  }, [editable, mutationLocked]);
+
+  useEffect(() => {
+    const renderVerticalDrag = (pointerY: number) => {
+      const drag = chartDragReference.current;
+      const root = ganttScrollReference.current;
+      const api = apiReference.current;
+      if (!drag || drag.intent !== "vertical" || !root || !api ||
+        !canCreateReference.current || inlineSessionReference.current) return false;
+
+      const verticalScroller = root.querySelector<HTMLElement>(".wx-gantt");
+      const rows = Array.from(root.querySelectorAll<HTMLElement>(".wx-chart .wx-bar[data-task-id]"))
+        .flatMap((element) => {
+          if (element.getClientRects().length === 0) return [];
+          const taskId = taskIdFromElement(element);
+          if (!taskId) return [];
+          const task = tasksByIdReference.current.get(taskId);
+          if (!task) return [];
+          const bounds = element.getBoundingClientRect();
+          if (bounds.height <= 0) return [];
+          return [{
+            taskId: task.taskId,
+            parentExternalId: task.parentExternalId,
+            top: bounds.top,
+            bottom: bounds.bottom,
+          }];
+        });
+
+      const drop = resolveChartVerticalDrop(
+        drag.taskId,
+        drag.sourceParentExternalId,
+        pointerY,
+        rows,
+      );
+      drag.drop = drop;
+      updateChartDropFeedback(drop);
+
+      if (drag.originalTop !== null) {
+        const dy = pointerY - drag.startY;
+        const scrollDelta = (verticalScroller?.scrollTop ?? drag.startScrollTop) - drag.startScrollTop;
+        void api.exec("drag-task", {
+          id: drag.taskId,
+          top: Math.max(0, drag.originalTop - 4 + dy + scrollDelta),
+          inProgress: true,
+        });
+      }
+      return true;
+    };
+
+    const scheduleEdgeScroll = () => {
+      if (chartEdgeScrollFrameReference.current !== null) return;
+      const tick = () => {
+        chartEdgeScrollFrameReference.current = null;
+        const drag = chartDragReference.current;
+        const pointerY = chartDragPointerYReference.current;
+        const root = ganttScrollReference.current;
+        const verticalScroller = root?.querySelector<HTMLElement>(".wx-gantt");
+        if (!drag || drag.intent !== "vertical" || pointerY === null || !verticalScroller) return;
+
+        const bounds = verticalScroller.getBoundingClientRect();
+        const edge = 32;
+        let delta = 0;
+        if (pointerY < bounds.top + edge) {
+          const ratio = Math.min(1, Math.max(0.2, (bounds.top + edge - pointerY) / edge));
+          delta = -Math.ceil(20 * ratio);
+        } else if (pointerY > bounds.bottom - edge) {
+          const ratio = Math.min(1, Math.max(0.2, (pointerY - (bounds.bottom - edge)) / edge));
+          delta = Math.ceil(20 * ratio);
+        }
+        if (delta === 0) return;
+
+        const before = verticalScroller.scrollTop;
+        verticalScroller.scrollTop = Math.max(
+          0,
+          Math.min(verticalScroller.scrollHeight - verticalScroller.clientHeight, before + delta),
+        );
+        if (verticalScroller.scrollTop === before) return;
+        renderVerticalDrag(pointerY);
+        chartEdgeScrollFrameReference.current = requestAnimationFrame(tick);
+      };
+      chartEdgeScrollFrameReference.current = requestAnimationFrame(tick);
+    };
+
+    const handleMove = (event: MouseEvent) => {
+      const drag = chartDragReference.current;
+      if (!drag) return;
+
+      const dx = event.clientX - drag.startX;
+      const dy = event.clientY - drag.startY;
+      if (drag.intent === "pending") drag.intent = resolveChartDragIntent(dx, dy);
+      if (drag.intent !== "vertical") return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      if (!canCreateReference.current || inlineSessionReference.current) {
+        clearChartEdgeScroll();
+        clearChartDragFeedback();
+        chartDragReference.current = null;
+        return;
+      }
+
+      chartDragPointerYReference.current = event.clientY;
+      renderVerticalDrag(event.clientY);
+      scheduleEdgeScroll();
+    };
+
+    const handleUp = () => {
+      const drag = chartDragReference.current;
+      if (!drag) return;
+      const drop = drag.intent === "vertical" ? drag.drop : null;
+      clearChartEdgeScroll();
+      clearChartDragFeedback();
+      chartDragReference.current = null;
+      if (!drop || !canCreateReference.current || inlineSessionReference.current) return;
+
+      const command = buildChartReorderCommand(
+        tasksReference.current,
+        drag.taskId,
+        drop.anchorTaskId,
+        drop.placement,
+      );
+      if (!command || !taskHierarchyCommandStaysInSubtree(
+        tasksReference.current,
+        viewRootTaskIdReference.current,
+        command,
+      )) return;
+      onTaskHierarchyCommandReference.current(command);
+    };
+
+    const handleBlur = () => {
+      if (!chartDragReference.current) return;
+      clearChartEdgeScroll();
+      clearChartDragFeedback();
+      chartDragReference.current = null;
+    };
+
+    window.addEventListener("mousemove", handleMove, true);
+    window.addEventListener("mouseup", handleUp, true);
+    window.addEventListener("blur", handleBlur);
+    return () => {
+      window.removeEventListener("mousemove", handleMove, true);
+      window.removeEventListener("mouseup", handleUp, true);
+      window.removeEventListener("blur", handleBlur);
+      clearChartEdgeScroll();
+      clearChartDragFeedback();
+      chartDragReference.current = null;
+    };
+  }, [clearChartDragFeedback, clearChartEdgeScroll, updateChartDropFeedback]);
 
   useEffect(() => () => {
     inlineOpenTokenReference.current += 1;
     inlineTableReference.current?.detach("project-inline-name");
     inlineTableReference.current = null;
     inlineSessionReference.current = null;
+    if (startDateOpenTimerReference.current !== null) window.clearTimeout(startDateOpenTimerReference.current);
   }, []);
 
   useEffect(() => {
     if (editable && !mutationLocked) return;
+    if (startDateOpenTimerReference.current !== null) {
+      window.clearTimeout(startDateOpenTimerReference.current);
+      startDateOpenTimerReference.current = null;
+    }
+    queueMicrotask(() => setStartDatePicker(null));
     const session = inlineSessionReference.current;
     if (!session || session.committed) return;
     inlineOpenTokenReference.current += 1;
@@ -330,16 +854,23 @@ export function ProjectGantt({
     void session.table.exec("close-editor", { ignore: true });
   }, [editable, mutationLocked]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (projectRevisionReference.current === projectRevision) return;
     projectRevisionReference.current = projectRevision;
     inlineOpenTokenReference.current += 1;
     const session = inlineSessionReference.current;
     inlineSessionReference.current = null;
+    if (startDateOpenTimerReference.current !== null) {
+      window.clearTimeout(startDateOpenTimerReference.current);
+      startDateOpenTimerReference.current = null;
+    }
     if (session && !session.committed) void session.table.exec("close-editor", { ignore: true });
     queueMicrotask(() => {
+      setStartDatePicker(null);
       setInlineNameError(false);
       setInlineNameMessage("");
+      setInlineStartError(false);
+      setInlineStartMessage("");
     });
   }, [projectRevision]);
 
@@ -352,8 +883,34 @@ export function ProjectGantt({
         const eligible = Boolean(taskId && editable && !mutationLocked && tasksById.has(taskId));
         if (row.dataset.inlineNameEligible !== String(eligible)) row.dataset.inlineNameEligible = String(eligible);
         const nameCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
+        const startCell = row.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":projectStart"]');
+        const task = taskId ? tasksById.get(taskId) : undefined;
+        const completed = task ? (task.status ?? taskStatusFromProgress(task.progress)) === "completed" : false;
+        if (row.dataset.taskCompleted !== String(completed)) row.dataset.taskCompleted = String(completed);
+        const startEditable = Boolean(task && canEditGridStartDate(task, editable && !mutationLocked));
+        const summaryState = task?.type === "summary" && task.start === null
+          ? tasks.some((candidate) => candidate.parentExternalId === task.externalId) ? "일정 있는 하위 작업 없음" : "하위 작업 없음"
+          : null;
+        if (nameCell && summaryState) {
+          nameCell.dataset.summaryState = summaryState;
+          nameCell.setAttribute("aria-description", `요약 작업: ${summaryState}`);
+          nameCell.title = `${task!.name} · ${summaryState}`;
+        } else if (nameCell) {
+          delete nameCell.dataset.summaryState;
+          nameCell.removeAttribute("aria-description");
+          nameCell.removeAttribute("title");
+        }
         if (nameCell && !eligible && nameCell.getAttribute("aria-readonly") !== "true") nameCell.setAttribute("aria-readonly", "true");
         if (nameCell && eligible && nameCell.hasAttribute("aria-readonly")) nameCell.removeAttribute("aria-readonly");
+        if (startCell) {
+          if (startEditable) {
+            if (startCell.dataset.inlineStartEditable !== "true") startCell.dataset.inlineStartEditable = "true";
+            if (startCell.hasAttribute("aria-readonly")) startCell.removeAttribute("aria-readonly");
+          } else {
+            if (startCell.hasAttribute("data-inline-start-editable")) delete startCell.dataset.inlineStartEditable;
+            if (startCell.getAttribute("aria-readonly") !== "true") startCell.setAttribute("aria-readonly", "true");
+          }
+        }
       });
     };
     markRows();
@@ -375,14 +932,11 @@ export function ProjectGantt({
       fullscreenWasActiveReference.current = active;
     };
     const onFullscreenError = () => setFullscreenMessage("전체화면으로 전환할 수 없습니다. 브라우저 권한을 확인해 주세요.");
-    const onEditorExitError = () => setFullscreenMessage("전체화면을 종료하지 못해 작업 정보를 열 수 없습니다. 전체화면을 종료한 뒤 다시 시도해 주세요.");
     document.addEventListener("fullscreenchange", onFullscreenChange);
     document.addEventListener("fullscreenerror", onFullscreenError);
-    frame.addEventListener("project-gantt-fullscreen-exit-error", onEditorExitError);
     return () => {
       document.removeEventListener("fullscreenchange", onFullscreenChange);
       document.removeEventListener("fullscreenerror", onFullscreenError);
-      frame.removeEventListener("project-gantt-fullscreen-exit-error", onEditorExitError);
       if (document.fullscreenElement === frame) void document.exitFullscreen().catch(() => {});
     };
   }, []);
@@ -404,6 +958,8 @@ export function ProjectGantt({
 
   async function restoreSummaryToggleState(api: IApi, summaryState: ReadonlyMap<string, boolean>) {
     for (const [taskId, collapsed] of summaryState) {
+      const task = tasksByIdReference.current.get(taskId);
+      if (!task || !tasksReference.current.some((candidate) => candidate.parentExternalId === task.externalId)) continue;
       await api.exec("open-task", { id: taskId, mode: !collapsed });
     }
   }
@@ -585,17 +1141,40 @@ export function ProjectGantt({
   useEffect(() => {
     const root = ganttScrollReference.current;
     if (!root) return;
+    const activeScope = viewRootTaskId === null ? null : resolveTaskSubtreeScope(tasks, viewRootTaskId);
+    const scopedTaskIds = activeScope?.kind === "valid" ? new Set(activeScope.taskIds) : null;
+    const headerIntent = resolveNativeTaskAddIntent({
+      tasks,
+      rootTaskId: viewRootTaskId,
+      source: "header",
+    });
     const setNativeAddAccessibility = () => {
       root.querySelectorAll<HTMLElement>('[data-action="add-task"]').forEach((action) => {
-        action.setAttribute("aria-disabled", String(mutationLocked));
+        const row = action.closest<HTMLElement>(".wx-row[data-id]");
+        const taskId = row ? taskIdFromElement(row) : null;
+        const source: NativeTaskAddSource = taskId ? "row" : "header";
+        const task = taskId ? tasksById.get(taskId) : undefined;
+        const disabled = !editable || mutationLocked ||
+          (source === "header"
+            ? headerIntent.kind === "reject"
+            : !task || task.type === "milestone" ||
+              (viewRootTaskId !== null && scopedTaskIds?.has(taskId!) !== true));
+        action.setAttribute("aria-disabled", String(disabled));
+        action.tabIndex = disabled ? -1 : 0;
+        if (!action.hasAttribute("role")) action.setAttribute("role", "button");
+        if (source === "header") {
+          const label = viewRootTaskId === null ? "프로젝트 최상위 작업 추가" : "범위 최상위 작업 추가";
+          action.setAttribute("aria-label", label);
+          action.setAttribute("title", label);
+        }
       });
     };
     setNativeAddAccessibility();
     const observer = new MutationObserver(setNativeAddAccessibility);
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [mutationLocked]);
-  const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks), [tasks]);
+  }, [editable, mutationLocked, tasks, tasksById, viewRootTaskId]);
+  const svarTasks = useMemo(() => projectTasksToSvarTasks(tasks, viewRootTaskId), [tasks, viewRootTaskId]);
   const svarLinks = useMemo(() => projectLinksToSvarLinks(links, tasks), [links, tasks]);
   const taskUpdateGateway = useMemo(
     () => createTaskUpdateGateway((local) => {
@@ -613,7 +1192,7 @@ export function ProjectGantt({
     taskUpdateGateway(event);
   }, [taskUpdateGateway]);
   const columns = useMemo(
-    () => baseProjectColumns.map((column) => (
+    () => [{ id: "copySelection", header: "선택", width: 56, align: "center" as const, cell: ProjectTaskSelectionCell }, ...baseProjectColumns.map((column) => (
       column.id === "externalId"
         ? { ...column, hidden: !columnVisibility.externalId }
         : column.id === "projectStart"
@@ -621,12 +1200,15 @@ export function ProjectGantt({
             ...column,
             hidden: !columnVisibility.projectStart,
             sort: (first: ITask, second: ITask) => {
-              const difference = (first.start?.getTime() ?? 0) - (second.start?.getTime() ?? 0);
-              return difference === 0 ? 0 : difference < 0 ? -1 : 1;
+              const firstStart = tasksByIdReference.current.get(String(first.id))?.start;
+              const secondStart = tasksByIdReference.current.get(String(second.id))?.start;
+              if (!firstStart || !secondStart) return !firstStart && !secondStart ? 0 : !firstStart ? 1 : -1;
+              return firstStart === secondStart ? 0 : firstStart < secondStart ? -1 : 1;
             },
-            getter: (task: ITask) => task.start instanceof Date
-              ? formatLocaleDateOnly(dateOnlyFromLocalDate(task.start), locales)
-              : "—",
+            getter: (task: ITask) => {
+              const start = typeof task.id === "string" ? tasksByIdReference.current.get(task.id)?.start : null;
+              return start ? formatLocaleDateOnly(start, locales) : "—";
+            },
           }
           : column.id === "projectDuration"
             ? {
@@ -651,15 +1233,19 @@ export function ProjectGantt({
               hidden: !columnVisibility.text,
               editor: (row?: Record<string, unknown>) => {
                 const taskId = typeof row?.id === "string" ? row.id : null;
-                return editable && !mutationLocked && taskId && tasksById.has(taskId) ? "text" : null;
+                return canCreateReference.current && taskId && tasksByIdReference.current.has(taskId) ? "text" : null;
               },
             }
             : column
-    )),
-    [columnVisibility, editable, locales, mutationLocked, tasksById],
+    ))],
+    // Grid getters read the latest canonical DTO map through a ref, avoiding
+    // stale values after failed mutations. Keep tasksById as a dependency so a
+    // canonical Task change also re-runs the public set-columns synchronization;
+    // Core needs that refresh when a dated Summary becomes an empty container.
+    [columnVisibility, locales, tasksById],
   );
   const initialConfig = useState(() => ({
-    tasks: projectTasksToSvarTasks(tasks),
+    tasks: projectTasksToSvarTasks(tasks, viewRootTaskId),
     links: projectLinksToSvarLinks(links, tasks),
     columns: columns.map((column) => ({ ...column })),
   }))[0];
@@ -672,6 +1258,127 @@ export function ProjectGantt({
     // scale so a canonical root add remains visible without reinitializing.
     return { start: new Date(Math.min(...starts.map((date) => date.getTime()))), end: new Date(Math.max(...ends.map((date) => date.getTime()))) };
   })[0];
+
+  const [timelineEndMs, setTimelineEndMs] = useState(initialRange.end.getTime());
+  const timelineEndReference = useRef(initialRange.end);
+  const timelineExtensionFrameReference = useRef<number | null>(null);
+  const timelineSyntheticResizeReference = useRef(false);
+
+  type TimelineState = Readonly<{
+    _start?: Date;
+    _end?: Date;
+    _scales?: { width?: number };
+    _chartWidth?: number;
+    _chartHeight?: number;
+    _scrollSize?: number;
+    scrollLeft?: number;
+  }>;
+
+  const recordTimelineEnd = useCallback((api: IApi): void => {
+    const end = (api.getState() as TimelineState)._end;
+    if (!(end instanceof Date) || !Number.isFinite(end.getTime())) return;
+    if (end.getTime() > timelineEndReference.current.getTime()) {
+      timelineEndReference.current = new Date(end);
+    }
+    setTimelineEndMs((current) => Math.max(current, timelineEndReference.current.getTime()));
+  }, []);
+
+  const expandTimelineScale = useCallback((api: IApi, minimumScaleWidth: number): boolean => {
+    const state = api.getState() as TimelineState;
+    const scaleWidth = state._scales?.width;
+    const chartWidth = state._chartWidth;
+    const chartHeight = state._chartHeight;
+    const scrollSize = state._scrollSize ?? 0;
+    if (
+      !Number.isFinite(minimumScaleWidth) ||
+      !Number.isFinite(scaleWidth) ||
+      !Number.isFinite(chartWidth) ||
+      !Number.isFinite(chartHeight) ||
+      !scaleWidth || !chartWidth || !chartHeight ||
+      minimumScaleWidth <= scaleWidth
+    ) {
+      recordTimelineEnd(api);
+      return false;
+    }
+
+    timelineSyntheticResizeReference.current = true;
+    try {
+      // With a fixed start and open end, SVAR's public resize-chart action
+      // expands _end while preserving _scaleDate/scrollLeft. Restore the real
+      // viewport width immediately after using the larger width as a min scale
+      // request so chart geometry itself is not inflated.
+      api.exec("resize-chart", { width: minimumScaleWidth, height: chartHeight, scrollSize });
+      api.exec("resize-chart", { width: chartWidth, height: chartHeight, scrollSize });
+    } finally {
+      timelineSyntheticResizeReference.current = false;
+    }
+    recordTimelineEnd(api);
+    return true;
+  }, [recordTimelineEnd]);
+
+  const ensureTimelineEnd = useCallback((api: IApi): void => {
+    const state = api.getState() as TimelineState;
+    const currentStart = state._start;
+    const currentEnd = state._end;
+    if (!(currentStart instanceof Date) || !(currentEnd instanceof Date)) return;
+
+    if (currentEnd.getTime() >= timelineEndReference.current.getTime()) {
+      recordTimelineEnd(api);
+      return;
+    }
+
+    expandTimelineScale(api, minimumTimelineScaleWidthForEnd({
+      start: currentStart,
+      end: timelineEndReference.current,
+      scaleMode: scaleModeReference.current,
+    }));
+  }, [expandTimelineScale, recordTimelineEnd]);
+
+  const scheduleTimelineExtension = useCallback((api: IApi): void => {
+    if (timelineExtensionFrameReference.current !== null) return;
+    timelineExtensionFrameReference.current = requestAnimationFrame(() => {
+      timelineExtensionFrameReference.current = null;
+      if (apiReference.current !== api) return;
+      ensureTimelineEnd(api);
+      const state = api.getState() as TimelineState;
+      const nextScaleWidth = nextTimelineScaleWidth({
+        scaleWidth: state._scales?.width,
+        scrollLeft: state.scrollLeft,
+        viewportWidth: state._chartWidth,
+        scaleMode: scaleModeReference.current,
+      });
+      if (nextScaleWidth) expandTimelineScale(api, nextScaleWidth);
+      else recordTimelineEnd(api);
+    });
+  }, [ensureTimelineEnd, expandTimelineScale, recordTimelineEnd]);
+
+  useEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    const tag = "project-timeline-range-extension";
+    api.detach(tag);
+
+    api.on("scroll-chart", (event) => {
+      if (timelineSyntheticResizeReference.current || typeof event.left !== "number") return;
+      scheduleTimelineExtension(api);
+    }, { tag });
+
+    api.on("resize-chart", () => {
+      if (timelineSyntheticResizeReference.current) return;
+      scheduleTimelineExtension(api);
+    }, { tag });
+
+    ensureTimelineEnd(api);
+    scheduleTimelineExtension(api);
+
+    return () => {
+      api.detach(tag);
+      if (timelineExtensionFrameReference.current !== null) {
+        cancelAnimationFrame(timelineExtensionFrameReference.current);
+        timelineExtensionFrameReference.current = null;
+      }
+    };
+  }, [apiInstanceId, ensureTimelineEnd, scheduleTimelineExtension]);
 
   useEffect(() => {
     const syncVersion = ++canonicalSyncVersionReference.current;
@@ -689,21 +1396,24 @@ export function ProjectGantt({
           { tasks: svarTasks, links: svarLinks },
           () => syncVersion === canonicalSyncVersionReference.current,
         );
+        ensureTimelineEnd(api);
       } catch {
         if (syncVersion === canonicalSyncVersionReference.current) onCanonicalSyncFailureReference.current();
       } finally { canonicalSyncDepthReference.current -= 1; }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [svarLinks, svarTasks]);
+  }, [ensureTimelineEnd, svarLinks, svarTasks]);
 
   useEffect(() => {
-    const api = apiReference.current;
-    if (!api || !apiInstanceId) return;
-    const visible = visibleTaskIds ? new Set(visibleTaskIds) : null;
-    if (!visible && !taskFilterAppliedReference.current) return;
-    taskFilterAppliedReference.current = visible !== null;
-    void api.exec("filter-tasks", {
-      filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined,
-    });
+    canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
+      const api = apiReference.current;
+      if (!api || !apiInstanceId) return;
+      const visible = visibleTaskIds ? new Set(visibleTaskIds) : null;
+      if (!visible && !taskFilterAppliedReference.current) return;
+      taskFilterAppliedReference.current = visible !== null;
+      await api.exec("filter-tasks", {
+        filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined,
+      });
+    }).catch(() => onCanonicalSyncFailureReference.current());
   }, [apiInstanceId, visibleTaskIds]);
 
   useEffect(() => {
@@ -841,6 +1551,331 @@ export function ProjectGantt({
     observer.observe(root, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root || scaleMode !== "day") {
+      setDayHeaderTooltip(null);
+      return;
+    }
+
+    const selector = ".project-gantt-day-scale";
+    let activeCell: HTMLElement | null = null;
+    let hoveredCell: HTMLElement | null = null;
+    let focusedCell: HTMLElement | null = null;
+    let repositionFrame: number | null = null;
+
+    const tooltipData = (cell: HTMLElement): GanttDayHeaderTooltipData | null => {
+      const date = dateOnlyFromGanttDayScaleClassName(cell.className);
+      return date ? buildGanttDayHeaderTooltipDataForDateOnly(date, calendar, locales) : null;
+    };
+
+    const markCells = () => {
+      root.querySelectorAll<HTMLElement>(selector).forEach((cell) => {
+        if (!cell.hasAttribute("tabindex")) cell.tabIndex = 0;
+        delete cell.dataset.workingDays;
+        cell.querySelector<HTMLElement>(".project-gantt-week-working-days")?.remove();
+        const data = tooltipData(cell);
+        if (data) cell.setAttribute("aria-label", data.ariaLabel);
+      });
+    };
+
+    const findCell = (target: EventTarget | null): HTMLElement | null => {
+      if (!(target instanceof Element)) return null;
+      const cell = target.closest<HTMLElement>(selector);
+      return cell && root.contains(cell) ? cell : null;
+    };
+
+    const show = (cell: HTMLElement) => {
+      const data = tooltipData(cell);
+      if (!data) return;
+      if (activeCell && activeCell !== cell && activeCell.getAttribute("aria-describedby") === dayHeaderTooltipId) {
+        activeCell.removeAttribute("aria-describedby");
+      }
+      activeCell = cell;
+      cell.setAttribute("aria-describedby", dayHeaderTooltipId);
+      const bounds = cell.getBoundingClientRect();
+      setDayHeaderTooltip({
+        data,
+        left: bounds.left + bounds.width / 2,
+        top: bounds.bottom + 6,
+        anchorTop: bounds.top,
+      });
+    };
+
+    const hide = () => {
+      if (activeCell?.getAttribute("aria-describedby") === dayHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
+      activeCell = null;
+      setDayHeaderTooltip(null);
+    };
+
+    const showTrackedCell = () => {
+      const hover = hoveredCell?.isConnected ? hoveredCell : null;
+      const focus = focusedCell?.isConnected ? focusedCell : null;
+      if (hover) show(hover);
+      else if (focus) show(focus);
+      else hide();
+    };
+
+    const onPointerOver = (event: PointerEvent) => {
+      if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
+      const cell = findCell(event.target);
+      if (!cell) return;
+      hoveredCell = cell;
+      show(cell);
+    };
+    const onPointerOut = (event: PointerEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      const related = findCell(event.relatedTarget);
+      if (related === cell) return;
+      if (hoveredCell === cell) hoveredCell = related;
+      showTrackedCell();
+    };
+    const onFocusIn = (event: FocusEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      focusedCell = cell;
+      // Explicit keyboard/programmatic focus must immediately expose the focused
+      // date even when the pointer is still resting on another day cell.
+      show(cell);
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      const related = findCell(event.relatedTarget);
+      if (related === cell) return;
+      if (focusedCell === cell) focusedCell = related;
+      showTrackedCell();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || !activeCell) return;
+      hoveredCell = null;
+      focusedCell = null;
+      hide();
+    };
+    const onViewportChange = () => {
+      if (repositionFrame !== null) return;
+      repositionFrame = window.requestAnimationFrame(() => {
+        repositionFrame = null;
+        if (activeCell?.isConnected) show(activeCell);
+        else showTrackedCell();
+      });
+    };
+
+    markCells();
+    const observer = new MutationObserver(markCells);
+    observer.observe(root, { childList: true, subtree: true });
+    root.addEventListener("pointerover", onPointerOver);
+    root.addEventListener("pointerout", onPointerOut);
+    root.addEventListener("focusin", onFocusIn);
+    root.addEventListener("focusout", onFocusOut);
+    root.addEventListener("keydown", onKeyDown);
+    window.addEventListener("resize", onViewportChange);
+    window.addEventListener("scroll", onViewportChange, true);
+    return () => {
+      observer.disconnect();
+      root.removeEventListener("pointerover", onPointerOver);
+      root.removeEventListener("pointerout", onPointerOut);
+      root.removeEventListener("focusin", onFocusIn);
+      root.removeEventListener("focusout", onFocusOut);
+      root.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("resize", onViewportChange);
+      window.removeEventListener("scroll", onViewportChange, true);
+      if (repositionFrame !== null) window.cancelAnimationFrame(repositionFrame);
+      if (activeCell?.getAttribute("aria-describedby") === dayHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
+      setDayHeaderTooltip(null);
+    };
+  }, [calendar, dayHeaderTooltipId, locales, scaleMode]);
+
+  useLayoutEffect(() => {
+    const tooltip = dayHeaderTooltipReference.current;
+    if (!tooltip || !dayHeaderTooltip) return;
+    const bounds = tooltip.getBoundingClientRect();
+    let left = dayHeaderTooltip.left;
+    let top = dayHeaderTooltip.top;
+    const gutter = 8;
+    if (bounds.left < gutter) left += gutter - bounds.left;
+    else if (bounds.right > window.innerWidth - gutter) left -= bounds.right - (window.innerWidth - gutter);
+    if (bounds.bottom > window.innerHeight - gutter) top = dayHeaderTooltip.anchorTop - bounds.height - 6;
+    if (top < gutter) top = gutter;
+    if (Math.abs(left - dayHeaderTooltip.left) >= 1 || Math.abs(top - dayHeaderTooltip.top) >= 1) {
+      setDayHeaderTooltip((current) => current ? { ...current, left, top } : current);
+    }
+  }, [dayHeaderTooltip]);
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root || scaleMode !== "week") {
+      setWeekHeaderTooltip(null);
+      return;
+    }
+
+    const selector = ".project-gantt-week-scale";
+    let activeCell: HTMLElement | null = null;
+    let hoveredCell: HTMLElement | null = null;
+    let focusedCell: HTMLElement | null = null;
+    let repositionFrame: number | null = null;
+
+    const tooltipData = (cell: HTMLElement): GanttWeekHeaderTooltipData | null => {
+      const date = dateOnlyFromGanttWeekScaleClassName(cell.className);
+      return date ? buildGanttWeekHeaderTooltipDataForDateOnly(date, calendar) : null;
+    };
+
+    const markCells = () => {
+      root.querySelectorAll<HTMLElement>(selector).forEach((cell) => {
+        if (!cell.hasAttribute("tabindex")) cell.tabIndex = 0;
+        const data = tooltipData(cell);
+        if (!data) return;
+        cell.setAttribute("aria-label", data.ariaLabel);
+        cell.dataset.workingDays = String(data.workingDays);
+
+        const labelText = formatGanttWeekWorkingDaysLabel(data.workingDays);
+        let label = cell.querySelector<HTMLElement>(".project-gantt-week-working-days");
+        if (!label) {
+          label = document.createElement("span");
+          label.className = "project-gantt-week-working-days";
+          label.setAttribute("aria-hidden", "true");
+          label.textContent = labelText;
+          cell.append(label);
+        } else if (label.textContent !== labelText) {
+          label.textContent = labelText;
+        }
+      });
+    };
+
+    const findCell = (target: EventTarget | null): HTMLElement | null => {
+      if (!(target instanceof Element)) return null;
+      const cell = target.closest<HTMLElement>(selector);
+      return cell && root.contains(cell) ? cell : null;
+    };
+
+    const show = (cell: HTMLElement) => {
+      const data = tooltipData(cell);
+      if (!data) return;
+      if (activeCell && activeCell !== cell && activeCell.getAttribute("aria-describedby") === weekHeaderTooltipId) {
+        activeCell.removeAttribute("aria-describedby");
+      }
+      activeCell = cell;
+      cell.setAttribute("aria-describedby", weekHeaderTooltipId);
+      const bounds = cell.getBoundingClientRect();
+      setWeekHeaderTooltip({
+        data,
+        left: bounds.left + bounds.width / 2,
+        top: bounds.bottom + 6,
+        anchorTop: bounds.top,
+      });
+    };
+
+    const hide = () => {
+      if (activeCell?.getAttribute("aria-describedby") === weekHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
+      activeCell = null;
+      setWeekHeaderTooltip(null);
+    };
+
+    const showTrackedCell = () => {
+      const hover = hoveredCell?.isConnected ? hoveredCell : null;
+      const focus = focusedCell?.isConnected ? focusedCell : null;
+      if (hover) show(hover);
+      else if (focus) show(focus);
+      else hide();
+    };
+
+    const onPointerOver = (event: PointerEvent) => {
+      if (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen") return;
+      const cell = findCell(event.target);
+      if (!cell) return;
+      hoveredCell = cell;
+      show(cell);
+    };
+    const onPointerOut = (event: PointerEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      const related = findCell(event.relatedTarget);
+      if (related === cell) return;
+      if (hoveredCell === cell) hoveredCell = related;
+      showTrackedCell();
+    };
+    const onFocusIn = (event: FocusEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      focusedCell = cell;
+      show(cell);
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      const cell = findCell(event.target);
+      if (!cell) return;
+      const related = findCell(event.relatedTarget);
+      if (related === cell) return;
+      if (focusedCell === cell) focusedCell = related;
+      showTrackedCell();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || !activeCell) return;
+      hoveredCell = null;
+      focusedCell = null;
+      hide();
+    };
+    const onViewportChange = () => {
+      if (repositionFrame !== null) return;
+      repositionFrame = window.requestAnimationFrame(() => {
+        repositionFrame = null;
+        if (activeCell?.isConnected) show(activeCell);
+        else showTrackedCell();
+      });
+    };
+
+    markCells();
+    const observer = new MutationObserver(markCells);
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    root.addEventListener("pointerover", onPointerOver);
+    root.addEventListener("pointerout", onPointerOut);
+    root.addEventListener("focusin", onFocusIn);
+    root.addEventListener("focusout", onFocusOut);
+    root.addEventListener("keydown", onKeyDown);
+    window.addEventListener("resize", onViewportChange);
+    window.addEventListener("scroll", onViewportChange, true);
+    return () => {
+      observer.disconnect();
+      root.removeEventListener("pointerover", onPointerOver);
+      root.removeEventListener("pointerout", onPointerOut);
+      root.removeEventListener("focusin", onFocusIn);
+      root.removeEventListener("focusout", onFocusOut);
+      root.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("resize", onViewportChange);
+      window.removeEventListener("scroll", onViewportChange, true);
+      if (repositionFrame !== null) window.cancelAnimationFrame(repositionFrame);
+      if (activeCell?.getAttribute("aria-describedby") === weekHeaderTooltipId) activeCell.removeAttribute("aria-describedby");
+      root.querySelectorAll<HTMLElement>("[data-working-days]").forEach((cell) => {
+        delete cell.dataset.workingDays;
+      });
+      root.querySelectorAll<HTMLElement>(".project-gantt-week-working-days").forEach((label) => {
+        label.remove();
+      });
+      setWeekHeaderTooltip(null);
+    };
+  }, [calendar, scaleMode, weekHeaderTooltipId]);
+
+  useLayoutEffect(() => {
+    const tooltip = weekHeaderTooltipReference.current;
+    if (!tooltip || !weekHeaderTooltip) return;
+    const bounds = tooltip.getBoundingClientRect();
+    let left = weekHeaderTooltip.left;
+    let top = weekHeaderTooltip.top;
+    const gutter = 8;
+    if (bounds.left < gutter) left += gutter - bounds.left;
+    else if (bounds.right > window.innerWidth - gutter) left -= bounds.right - (window.innerWidth - gutter);
+    if (bounds.bottom > window.innerHeight - gutter) top = weekHeaderTooltip.anchorTop - bounds.height - 6;
+    if (top < gutter) top = gutter;
+    if (Math.abs(left - weekHeaderTooltip.left) >= 1 || Math.abs(top - weekHeaderTooltip.top) >= 1) {
+      setWeekHeaderTooltip((current) => current ? { ...current, left, top } : current);
+    }
+  }, [weekHeaderTooltip]);
   const scales = useMemo(() => [
     {
       unit: "month",
@@ -855,16 +1890,19 @@ export function ProjectGantt({
         unit: "day",
         step: 1,
         format: (date: Date) => formatGanttDayOfMonth(date),
+        css: (date: Date) => ganttDayScaleClassName(date),
       }
       : {
         unit: "week",
         step: 1,
         format: (date: Date) => formatIsoWeek(date),
+        css: (date: Date) => ganttWeekScaleClassName(date),
       },
   ], [locales, scaleMode]);
 
   function changeScaleMode(nextMode: GanttScaleMode): void {
     if (nextMode === scaleMode) return;
+    scaleModeReference.current = nextMode;
     const currentColumns = (apiReference.current?.getState().columns ?? []).map((column) => ({ ...column }));
     if (currentColumns.length > 0) {
       pendingScaleColumnsReference.current = currentColumns;
@@ -885,34 +1923,113 @@ export function ProjectGantt({
     let cancelled = false;
     const restore = async () => {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      if (!cancelled) await api.exec("set-columns", { columns: savedColumns });
+      if (!cancelled) {
+        await api.exec("set-columns", { columns: savedColumns });
+        ensureTimelineEnd(api);
+        scheduleTimelineExtension(api);
+      }
     };
     void restore().catch(() => {
       if (!cancelled) onCanonicalSyncFailureReference.current();
     });
     return () => { cancelled = true; };
-  }, [apiInstanceId, scaleMode]);
+  }, [apiInstanceId, ensureTimelineEnd, scaleMode, scheduleTimelineExtension]);
+
+  function rememberNativeAddContinuity(source: NativeTaskAddSource, targetTaskId?: string): void {
+    const root = ganttScrollReference.current;
+    if (!root) return;
+    const ganttScroller = root.querySelector<HTMLElement>(".wx-gantt");
+    nativeAddContinuityReference.current = {
+      source,
+      ...(targetTaskId ? { targetTaskId } : {}),
+      viewRootTaskId: viewRootTaskIdReference.current,
+      windowScrollX: window.scrollX,
+      windowScrollY: window.scrollY,
+      rootScrollLeft: root.scrollLeft,
+      rootScrollTop: root.scrollTop,
+      ganttScrollLeft: ganttScroller?.scrollLeft ?? 0,
+      ganttScrollTop: ganttScroller?.scrollTop ?? 0,
+    };
+  }
+
+  useEffect(() => {
+    const root = ganttScrollReference.current;
+    if (!root || !apiInstanceId) return;
+
+    const normalizeNativeAddBeforeCore = (event: MouseEvent) => {
+      if (event.button !== 0 || mutationLockedReference.current) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const action = target.closest<HTMLElement>('[data-action="add-task"]');
+      if (!action || !root.contains(action)) return;
+
+      const row = action.closest<HTMLElement>(".wx-row[data-id]");
+      const taskId = row ? taskIdFromElement(row) : null;
+      const source: NativeTaskAddSource = taskId ? "row" : "header";
+      const intent = resolveNativeTaskAddIntent({
+        tasks: tasksReference.current,
+        rootTaskId: viewRootTaskIdReference.current,
+        source,
+        ...(taskId ? { targetTaskId: taskId, mode: "child" as const } : {}),
+      });
+      const reason: NativeTaskAddRejectReason | null =
+        !canCreateReference.current ? "scope" :
+        intent.kind === "reject" ? intent.reason : null;
+      if (reason) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        onTaskAddRejectedReference.current(reason);
+        return;
+      }
+
+      const trigger = { source, ...(taskId ? { targetTaskId: taskId } : {}) };
+      nativeAddTriggerReference.current = trigger;
+      window.setTimeout(() => {
+        if (nativeAddTriggerReference.current === trigger) nativeAddTriggerReference.current = null;
+      }, 0);
+    };
+
+    root.addEventListener("click", normalizeNativeAddBeforeCore, true);
+    return () => root.removeEventListener("click", normalizeNativeAddBeforeCore, true);
+  }, [apiInstanceId]);
 
   function interceptNativeTaskAdd(local: LocalTaskAddCommand): void {
     if (!canCreateReference.current) {
-      if (!mutationLockedReference.current) onTaskAddRejectedReference.current();
+      if (!mutationLockedReference.current) onTaskAddRejectedReference.current("scope");
       return;
     }
-    const target = typeof local.targetTaskId === "string"
-      ? tasksByIdReference.current.get(local.targetTaskId)
-      : undefined;
-    if ((typeof local.targetTaskId === "string" && !target) ||
-      (local.mode !== undefined && local.mode !== "child")) {
-      onTaskAddRejectedReference.current();
+
+    const captured = nativeAddTriggerReference.current;
+    nativeAddTriggerReference.current = null;
+    const eventTargetTaskId = typeof local.targetTaskId === "string" ? local.targetTaskId : undefined;
+    const source: NativeTaskAddSource = captured?.source ?? (eventTargetTaskId ? "row" : "header");
+    const targetTaskId = captured
+      ? captured.source === "row" ? captured.targetTaskId : undefined
+      : eventTargetTaskId;
+    const mode = captured
+      ? captured.source === "row" ? "child" as const : undefined
+      : local.mode;
+    const intent = resolveNativeTaskAddIntent({
+      tasks: tasksReference.current,
+      rootTaskId: viewRootTaskIdReference.current,
+      source,
+      ...(targetTaskId ? { targetTaskId } : {}),
+      ...(mode ? { mode } : {}),
+    });
+    if (intent.kind === "reject") {
+      onTaskAddRejectedReference.current(intent.reason);
       return;
     }
+
+    rememberNativeAddContinuity(intent.source, intent.parentTaskId);
     onTaskCreateReference.current({
       name: "새 작업",
       type: "task",
       start: todayDateOnly(),
       duration: 1,
       progress: 0,
-      ...(target ? { parentTaskId: target.taskId } : {}),
+      ...(intent.parentTaskId ? { parentTaskId: intent.parentTaskId } : {}),
     });
   }
 
@@ -934,6 +2051,11 @@ export function ProjectGantt({
       canMutate: () => canCreateReference.current && inlineSessionReference.current === null,
       isCanonicalSync: () => canonicalSyncDepthReference.current > 0,
       hasTask: (id) => tasksByIdReference.current.has(id),
+      canApply: (command) => taskHierarchyCommandStaysInSubtree(
+        Array.from(tasksByIdReference.current.values()),
+        viewRootTaskIdReference.current,
+        command,
+      ),
       dispatch: (command) => onTaskHierarchyCommandReference.current(command),
     }), { tag: "project-native-move" });
     api.detach("project-summary-update");
@@ -949,9 +2071,19 @@ export function ProjectGantt({
       },
       { tag: "project-summary-update" },
     );
+    api.detach("project-owned-selection");
+    api.on("select-task", (event) => {
+      if (canonicalSyncDepthReference.current > 0 || event.eventSource === "project-canonical-sync" ||
+        event.eventSource === "project-owned-selection" || typeof event.id !== "string" ||
+        !tasksByIdReference.current.has(event.id)) return;
+      if (!selectedTaskIdsReference.current.includes(event.id)) {
+        selectionAnchorReference.current = event.id;
+        updateSelection([event.id]);
+      }
+    }, { tag: "project-owned-selection" });
   // SVAR retains this initializer for the mounted instance. Refs keep the
   // revision and callback current without re-registering EventBus handlers.
-  }, []);
+  }, [updateSelection]);
 
   function headerFrom(target: EventTarget | null): HTMLElement | null {
     if (!(target instanceof Element)) return null;
@@ -984,16 +2116,24 @@ export function ProjectGantt({
     return true;
   }
 
-  function openTaskMenu(target: EventTarget | null, x?: number, y?: number): boolean {
+  function openTaskMenu(target: EventTarget | null, x?: number, y?: number, fallbackTaskId?: string | null): boolean {
     const root = ganttScrollReference.current;
     if (!root || !apiReference.current || !apiInstanceId) return false;
-    const match = resolveTaskContextTarget(target, root, (id) => tasksByIdReference.current.has(id));
+    let match = resolveSelectionTarget(target, root);
+    if (!match && fallbackTaskId) {
+      const currentElement = findTaskContextElement(root, fallbackTaskId);
+      if (currentElement) match = { taskId: fallbackTaskId, element: currentElement };
+    }
     if (!match) return false;
+    if (!selectedTaskIdsReference.current.includes(match.taskId)) applySelectionGesture(match.taskId, "single");
     if (!match.element.hasAttribute("tabindex")) match.element.tabIndex = 0;
-    match.element.focus({ preventScroll: true });
-    taskMenuTriggerReference.current = match.element;
+    const focusTrigger = target instanceof HTMLElement && target.matches("input[data-copy-selection]")
+      ? target
+      : match.element;
+    focusTrigger.focus({ preventScroll: true });
+    taskMenuTriggerReference.current = focusTrigger;
     taskMenuScrollChangedReference.current = captureMenuScrollChange(match.element);
-    const bounds = match.element.getBoundingClientRect();
+    const bounds = focusTrigger.getBoundingClientRect();
     const anchorX = x ?? bounds.left + Math.min(bounds.width / 2, 24);
     const anchorY = y ?? bounds.top + Math.min(bounds.height / 2, 24);
     const rootRem = parseFloat(getComputedStyle(document.documentElement).fontSize);
@@ -1002,7 +2142,7 @@ export function ProjectGantt({
     setTaskSubmenu(null);
     suppressTaskSubmenuFocusOpenReference.current = null;
     focusTaskMenuOnOpenReference.current = true;
-    setTaskMenu({ taskId: match.taskId, ...clampMenuPosition(anchorX, anchorY, rootWidth, Math.min(452, window.innerHeight - 16)) });
+    setTaskMenu({ taskId: match.taskId, ...clampMenuPosition(anchorX, anchorY, rootWidth, Math.min(488, window.innerHeight - 16)) });
     return true;
   }
 
@@ -1014,6 +2154,42 @@ export function ProjectGantt({
     void api.exec("show-editor", { id: taskId });
   }
 
+  function openTaskAsRootFromMenu() {
+    if (!taskMenu || !canOpenTaskAsSubtreeRoot(tasks, taskMenu.taskId)) return;
+    const taskId = taskMenu.taskId;
+    closeTaskMenu();
+    onTaskOpenAsRoot(taskId);
+  }
+
+  async function writeTaskIdToClipboard(taskId: string): Promise<boolean> {
+    try {
+      const modernWrite = window.isSecureContext && navigator.clipboard?.writeText
+        ? navigator.clipboard.writeText.bind(navigator.clipboard)
+        : undefined;
+      await writeTextWithCompatibility(taskId, modernWrite, copyTextWithLegacyCommand);
+      notify("success", "작업 ID를 복사했습니다.", "작업 ID 복사");
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function copyTaskIdFromMenu() {
+    if (!taskMenu) return;
+    const taskId = taskMenu.taskId;
+    closeTaskMenu();
+    if (!tasksByIdReference.current.has(taskId)) {
+      notify("error", "선택한 작업을 찾을 수 없습니다. 최신 정보를 다시 확인해 주세요.", "작업 ID 복사");
+      return;
+    }
+    if (!(await writeTaskIdToClipboard(taskId))) setCopyTaskIdFallback(taskId);
+  }
+
+  async function retryCopyTaskId() {
+    if (!copyTaskIdFallback) return;
+    if (await writeTaskIdToClipboard(copyTaskIdFallback)) setCopyTaskIdFallback(null);
+  }
+
   function requestTaskDeleteFromMenu() {
     if (!taskMenu) return;
     const taskId = taskMenu.taskId;
@@ -1023,6 +2199,10 @@ export function ProjectGantt({
   }
 
   function executeHierarchyCommand(command: TaskHierarchyCommandRequest) {
+    if (!taskHierarchyCommandStaysInSubtree(tasks, viewRootTaskId, command)) {
+      closeTaskMenu();
+      return;
+    }
     setTaskMenu(null);
     onTaskHierarchyCommandReference.current(command);
   }
@@ -1045,7 +2225,9 @@ export function ProjectGantt({
 
   function storeClipboard(mode: "cut" | "copy") {
     if (!taskMenu) return;
-    setTaskClipboard({ mode, taskId: taskMenu.taskId, revision: projectRevision });
+    if (!editable || mutationLocked) return;
+    if (mode === "copy") copyCurrentSelection(taskMenu.taskId);
+    else setTaskClipboard({ mode: "cut", taskId: taskMenu.taskId, revision: projectRevision });
     closeTaskMenu();
   }
 
@@ -1054,22 +2236,134 @@ export function ProjectGantt({
     executeHierarchyCommand(createPasteCommand(activeClipboard, taskMenu.taskId, placement));
   }
 
+  function resolveSelectionTarget(target: EventTarget | null, root: HTMLElement) {
+    if (target instanceof Element && target.matches("input[data-copy-selection]")) {
+      const row = target.closest<HTMLElement>(".wx-row[data-id]");
+      const id = row ? taskIdFromElement(row) : null;
+      if (row && id && root.contains(row) && tasksByIdReference.current.has(id)) return { taskId: id, element: row };
+    }
+    return resolveTaskContextTarget(target, root, (id) => tasksByIdReference.current.has(id));
+  }
+
+  function selectionPointerTarget(target: EventTarget | null) {
+    const root = ganttScrollReference.current;
+    if (!root || !(target instanceof Element) || target.closest(
+      'input, label, [data-action="open-task"], [data-action="add-task"], .wx-reorder-task',
+    )) return null;
+    return resolveTaskContextTarget(target, root, (id) => tasksByIdReference.current.has(id));
+  }
+
+  function handleSelectionPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    namePointerIntentReference.current = null;
+    startDatePointerIntentReference.current = null;
+    if (event.button === 2) {
+      const root = ganttScrollReference.current;
+      contextPointerTaskIdReference.current = root ? resolveSelectionTarget(event.target, root)?.taskId ?? null : null;
+    } else {
+      contextPointerTaskIdReference.current = null;
+    }
+    if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && event.target instanceof Element) {
+      const text = event.target.closest('.wx-table-container [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text');
+      const row = text?.closest<HTMLElement>(".wx-row[data-id]");
+      const taskId = row ? taskIdFromElement(row) : null;
+      if (taskId) namePointerIntentReference.current = { taskId, x: event.clientX, y: event.clientY };
+
+      const startCell = event.target.closest<HTMLElement>('[role="gridcell"][data-col-id=":projectStart"]');
+      const startRow = startCell?.closest<HTMLElement>(".wx-row[data-id]");
+      const startTaskId = startRow ? taskIdFromElement(startRow) : null;
+      if (startCell && startTaskId) {
+        startDatePointerIntentReference.current = {
+          taskId: startTaskId,
+          x: event.clientX,
+          y: event.clientY,
+          cell: startCell,
+        };
+      }
+    }
+    if (event.button === 0 && (event.ctrlKey || event.metaKey || event.shiftKey) && selectionPointerTarget(event.target)) event.stopPropagation();
+  }
+
+  function handleSelectionClick(event: ReactMouseEvent<HTMLDivElement>) {
+    if (event.button !== 0) return;
+    const match = selectionPointerTarget(event.target);
+    const nameIntent = namePointerIntentReference.current;
+    const startIntent = startDatePointerIntentReference.current;
+    startDatePointerIntentReference.current = null;
+    const fallbackTarget = event.target instanceof Element && event.target.matches(".wx-scroll");
+    const nameIntentTaskId = nameIntent && fallbackTarget && Math.hypot(event.clientX - nameIntent.x, event.clientY - nameIntent.y) <= 4
+      ? nameIntent.taskId
+      : null;
+    const startIntentTaskId = startIntent && Math.hypot(event.clientX - startIntent.x, event.clientY - startIntent.y) <= 4
+      ? startIntent.taskId
+      : null;
+    const taskId = match?.taskId ?? nameIntentTaskId ?? startIntentTaskId;
+    if (!taskId) return;
+    const modifier = event.ctrlKey || event.metaKey;
+    applySelectionGesture(taskId, event.shiftKey ? "range" : modifier ? "toggle" : "single", modifier || event.shiftKey);
+    if (!modifier && !event.shiftKey) {
+      const directCell = startDateCellFrom(event.target);
+      const intendedStartClick = directCell !== null || startIntentTaskId === taskId;
+      const task = tasksByIdReference.current.get(taskId);
+      if (intendedStartClick && task && canEditGridStartDate(task, editable && !mutationLocked)) {
+        scheduleStartDatePicker(taskId, directCell ?? startIntent!.cell);
+      }
+    }
+    if (modifier || event.shiftKey) { event.preventDefault(); event.stopPropagation(); }
+  }
+
+  function copyCurrentSelection(fallbackTaskId?: string) {
+    if (!editable || mutationLocked) return;
+    const ids = selectedTaskIdsReference.current.length ? selectedTaskIdsReference.current : fallbackTaskId ? [fallbackTaskId] : [];
+    const taskIds = normalizeCopySelection(tasks, ids);
+    if (!taskIds.length || taskIds.length > 500) {
+      setSelectionMessage(taskIds.length > 500 ? "한 번에 최대 500개 root를 복사할 수 있습니다." : "복사할 작업을 선택해 주세요.");
+      return;
+    }
+    setTaskClipboard({ mode: "copy", taskIds, revision: projectRevision });
+    setSelectionMessage(`선택한 ${ids.length}개 작업을 복사했습니다. 요약 작업의 하위 작업도 포함됩니다.`);
+  }
+
   function runTaskShortcut(event: ReactKeyboardEvent<HTMLDivElement>): boolean {
-    if (!(event.target instanceof Element) ||
-      event.target.closest("input, textarea, select, button, a, [contenteditable=true], dialog, .project-task-context-menu")) return false;
+    if (!(event.target instanceof Element)) return false;
+    const selectionCheckbox = event.target.matches("input[data-copy-selection]");
+    if (!selectionCheckbox && event.target.closest("input, textarea, select, button, a, [contenteditable=true], dialog, .project-task-context-menu")) return false;
+    const modifier = event.ctrlKey || event.metaKey;
+    const shortcutKey = event.key.toLowerCase();
+    if (selectionCheckbox && !(modifier && (shortcutKey === "c" || shortcutKey === "v"))) return false;
     const root = ganttScrollReference.current;
     if (!root) return false;
-    const match = resolveTaskContextTarget(event.target, root, (id) => tasksByIdReference.current.has(id));
+    const match = resolveSelectionTarget(event.target, root);
     if (!match) return false;
-    const canMutate = editable && !mutationLocked && !taskHasDependencyLinks(tasksByIdReference.current.size ? Array.from(tasksByIdReference.current.values()) : tasks, match.taskId, links);
-    const modifier = event.ctrlKey || event.metaKey;
-    if (modifier && event.key.toLowerCase() === "c" && canMutate) {
-      setTaskClipboard({ mode: "copy", taskId: match.taskId, revision: projectRevision });
-    } else if (modifier && event.key.toLowerCase() === "x" && canMutate) {
+    const taskSnapshot = tasksByIdReference.current.size
+      ? Array.from(tasksByIdReference.current.values())
+      : tasks;
+    const selectedHasLinks = taskSubtreeHasDependencyLinks(taskSnapshot, match.taskId, links);
+    const selectedHasExternalLinks = taskSubtreeHasExternalDependencyLinks(taskSnapshot, match.taskId, links);
+    const canCopy = editable && !mutationLocked;
+    const canHierarchyMutate = canCopy && !selectedHasLinks;
+    const canCut = canCopy && !selectedHasExternalLinks && match.taskId !== viewRootTaskId;
+    const pasteCommand = activeClipboard ? createPasteCommand(activeClipboard, match.taskId) : null;
+    const shortcutCapabilities = taskContextCapabilities(
+      taskSnapshot,
+      match.taskId,
+      editable,
+      mutationLocked,
+      links,
+      activeClipboard,
+      viewRootTaskId,
+    );
+    const canPaste = Boolean(
+      pasteCommand &&
+      shortcutCapabilities.canPaste &&
+      taskHierarchyCommandStaysInSubtree(tasks, viewRootTaskId, pasteCommand),
+    );
+    if (modifier && shortcutKey === "c" && canCopy) {
+      copyCurrentSelection(match.taskId);
+    } else if (modifier && shortcutKey === "x" && canCut) {
       setTaskClipboard({ mode: "cut", taskId: match.taskId, revision: projectRevision });
-    } else if (modifier && event.key.toLowerCase() === "v" && canMutate && activeClipboard && activeClipboard.taskId !== match.taskId) {
-      onTaskHierarchyCommandReference.current(createPasteCommand(activeClipboard, match.taskId));
-    } else if ((event.key === "Delete" || event.key === "Backspace" || (modifier && event.key.toLowerCase() === "d")) && canMutate) {
+    } else if (modifier && shortcutKey === "v" && canPaste && pasteCommand) {
+      onTaskHierarchyCommandReference.current(pasteCommand);
+    } else if ((event.key === "Delete" || event.key === "Backspace" || (modifier && shortcutKey === "d")) && canHierarchyMutate) {
       onTaskDeleteRequestReference.current(match.taskId, match.element);
     } else {
       return false;
@@ -1080,6 +2374,8 @@ export function ProjectGantt({
   }
 
   function handleHeaderContextMenu(event: ReactMouseEvent<HTMLDivElement>) {
+    const fallbackTaskId = contextPointerTaskIdReference.current;
+    contextPointerTaskIdReference.current = null;
     const header = headerFrom(event.target);
     if (header) {
       event.preventDefault();
@@ -1087,7 +2383,7 @@ export function ProjectGantt({
     } else if (openRelationMenu(event.target, event.clientX, event.clientY)) {
       event.preventDefault();
       event.stopPropagation();
-    } else if (openTaskMenu(event.target, event.clientX, event.clientY)) {
+    } else if (openTaskMenu(event.target, event.clientX, event.clientY, fallbackTaskId)) {
       event.preventDefault();
       event.stopPropagation();
     }
@@ -1095,6 +2391,13 @@ export function ProjectGantt({
 
   function handleTaskDoubleClick(event: ReactMouseEvent<HTMLDivElement>) {
     if (event.target instanceof Element) {
+      if (event.target.closest('[role="gridcell"][data-col-id=":projectStart"]')) {
+        if (startDateOpenTimerReference.current !== null) {
+          window.clearTimeout(startDateOpenTimerReference.current);
+          startDateOpenTimerReference.current = null;
+        }
+        setStartDatePicker(null);
+      }
       const linkElement = event.target.closest("[data-link-id]");
       if (linkElement) {
         const rawId = linkElement.getAttribute("data-link-id");
@@ -1121,6 +2424,89 @@ export function ProjectGantt({
     event.preventDefault();
     event.stopPropagation();
     onTaskEditorOpenReference.current(match.taskId);
+  }
+
+  function startDateCellFrom(target: EventTarget | null): HTMLElement | null {
+    const root = ganttScrollReference.current;
+    if (!root || !(target instanceof Element)) return null;
+    const cell = target.closest<HTMLElement>('[role="gridcell"][data-col-id=":projectStart"]');
+    return cell && root.contains(cell) ? cell : null;
+  }
+
+  function focusStartDateCell(): void {
+    const cell = startDateTriggerReference.current;
+    if (cell?.isConnected) cell.focus({ preventScroll: true });
+  }
+
+  function closeStartDatePicker(restoreFocus = true): void {
+    startDatePickerClosingReference.current = true;
+    setStartDatePicker(null);
+    if (restoreFocus) requestAnimationFrame(focusStartDateCell);
+  }
+
+  function openStartDatePicker(taskId: string, cell: HTMLElement): void {
+    const task = tasksByIdReference.current.get(taskId);
+    if (!task || !task.start || !canEditGridStartDate(task, canCreateReference.current)) return;
+    const bounds = cell.getBoundingClientRect();
+    const width = Math.min(Math.max(bounds.width, 176), Math.max(176, window.innerWidth - 16));
+    const position = clampMenuPosition(bounds.left, bounds.bottom + 4, width, 72);
+    startDatePickerClosingReference.current = false;
+    startDateTriggerReference.current = cell;
+    setInlineStartError(false);
+    setInlineStartMessage("");
+    setStartDatePicker({
+      taskId,
+      revision: projectRevisionReference.current,
+      value: task.start,
+      left: position.left,
+      top: position.top,
+      width,
+    });
+  }
+
+  function scheduleStartDatePicker(taskId: string, cell: HTMLElement): void {
+    if (startDateOpenTimerReference.current !== null) window.clearTimeout(startDateOpenTimerReference.current);
+    startDateOpenTimerReference.current = window.setTimeout(() => {
+      startDateOpenTimerReference.current = null;
+      if (!canCreateReference.current) return;
+      if (document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]')) return;
+      const root = ganttScrollReference.current;
+      const currentRow = root && Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]"))
+        .find((candidate) => taskIdFromElement(candidate) === taskId);
+      const currentCell = currentRow?.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":projectStart"]')
+        ?? (cell.isConnected ? cell : null);
+      if (currentCell) openStartDatePicker(taskId, currentCell);
+    }, 0);
+  }
+
+  function commitStartDate(value: string): void {
+    const picker = startDatePicker;
+    if (!picker || picker.revision !== projectRevisionReference.current || !canCreateReference.current) {
+      closeStartDatePicker(false);
+      return;
+    }
+    const task = tasksByIdReference.current.get(picker.taskId);
+    if (!task) {
+      closeStartDatePicker();
+      return;
+    }
+    const command = createGridStartDateCommand(task, value);
+    if (!command) {
+      closeStartDatePicker();
+      return;
+    }
+    setStartDatePicker(null);
+    setInlineStartError(false);
+    setInlineStartMessage("시작일을 저장하는 중…");
+    void onTaskCommandReference.current(command, picker.revision).then((result) => {
+      if (result.status === "saved") {
+        setInlineStartMessage("시작일을 저장했습니다.");
+      } else {
+        setInlineStartError(true);
+        setInlineStartMessage(result.message);
+        requestAnimationFrame(focusStartDateCell);
+      }
+    });
   }
 
   const focusInlineNameCell = useCallback((taskId: string, fallback: HTMLElement): void => {
@@ -1189,7 +2575,7 @@ export function ProjectGantt({
     }).finally(() => {
       if (inlineSessionReference.current === session) inlineSessionReference.current = null;
     });
-  }, [findInlineNameInput, focusInlineNameCell, instanceId]);
+  }, [findInlineNameInput, focusInlineNameCell, instanceId, setInlineNameError, setInlineNameMessage]);
 
   const installInlineTableHandlers = useCallback((table: Awaited<ReturnType<IApi["getTable"]>>): void => {
     if (inlineTableReference.current === table) return;
@@ -1250,7 +2636,7 @@ export function ProjectGantt({
         setInlineNameMessage("");
       }
     }, { tag: "project-inline-name" });
-  }, [commitInlineName, findInlineNameInput, instanceId]);
+  }, [commitInlineName, findInlineNameInput, instanceId, setInlineNameError, setInlineNameMessage]);
 
   useEffect(() => {
     const api = apiReference.current;
@@ -1262,8 +2648,52 @@ export function ProjectGantt({
     return () => { active = false; };
   }, [apiInstanceId, installInlineTableHandlers]);
 
+  useEffect(() => {
+    if (!startDatePicker) return;
+    // Picker opening is already deferred until after the Grid click/selection
+    // completes. Own focus on mount, then repair only if SVAR subsequently
+    // restores focus into the Gantt while this picker is still open.
+    const focusInput = () => {
+      if (startDatePickerClosingReference.current) return;
+      const input = startDateInputReference.current;
+      if (input?.isConnected && document.activeElement !== input) input.focus({ preventScroll: true });
+    };
+    const focusTimer = window.setTimeout(focusInput, 0);
+
+    const closeForOutsidePointer = (event: PointerEvent) => {
+      if (event.target instanceof Node && startDatePickerReference.current?.contains(event.target)) return;
+      if (event.target instanceof Node && startDateTriggerReference.current?.contains(event.target)) return;
+      closeStartDatePicker(false);
+    };
+    const repairGridFocus = (event: FocusEvent) => {
+      if (startDatePickerClosingReference.current || event.target === startDateInputReference.current) return;
+      if (!(event.target instanceof Node) || !ganttScrollReference.current?.contains(event.target)) return;
+      queueMicrotask(focusInput);
+    };
+    const closeForViewportResize = () => closeStartDatePicker(false);
+    const closeForEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      event.stopPropagation();
+      closeStartDatePicker();
+    };
+    document.addEventListener("pointerdown", closeForOutsidePointer, true);
+    document.addEventListener("focusin", repairGridFocus, true);
+    document.addEventListener("keydown", closeForEscape, true);
+    window.addEventListener("resize", closeForViewportResize);
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.removeEventListener("pointerdown", closeForOutsidePointer, true);
+      document.removeEventListener("focusin", repairGridFocus, true);
+      document.removeEventListener("keydown", closeForEscape, true);
+      window.removeEventListener("resize", closeForViewportResize);
+    };
+  }, [startDatePicker]);
+
   async function handleNameClick(event: ReactMouseEvent<HTMLDivElement>) {
-    if (!editable || mutationLocked || event.button !== 0) return;
+    const intent = namePointerIntentReference.current;
+    namePointerIntentReference.current = null;
+    if (!editable || mutationLocked || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey) return;
     const currentInline = inlineSessionReference.current;
     if (currentInline) {
       const editor = currentInline.table.getState().editor;
@@ -1278,7 +2708,15 @@ export function ProjectGantt({
     const root = ganttScrollReference.current;
     const api = apiReference.current;
     if (!root || !api || !(event.target instanceof Element)) return;
-    const text = event.target.closest<HTMLElement>('.wx-table-container [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text');
+    let text = event.target.closest<HTMLElement>('.wx-table-container [role="gridcell"][data-col-id=":text"] .wx-content > .wx-text');
+    // Core can replace a row during the pointer gesture (selection or resize).
+    // Preserve only a plain name click at the original point; drag/other cells
+    // cannot become an inline edit. Resolve the currently mounted row by ID.
+    if (!text && intent && event.target.matches(".wx-scroll") && Math.hypot(event.clientX - intent.x, event.clientY - intent.y) <= 4) {
+      const currentRow = Array.from(root.querySelectorAll<HTMLElement>(".wx-table-container .wx-row[data-id]"))
+        .find((candidate) => taskIdFromElement(candidate) === intent.taskId);
+      text = currentRow?.querySelector<HTMLElement>('[role="gridcell"][data-col-id=":text"] .wx-content > .wx-text') ?? null;
+    }
     const cell = text?.closest<HTMLElement>('[role="gridcell"][data-col-id=":text"]');
     const row = cell?.closest<HTMLElement>(".wx-row[data-id]");
     const taskId = row ? taskIdFromElement(row) : null;
@@ -1331,6 +2769,37 @@ export function ProjectGantt({
       return;
     }
     if (handleInlineEscape(event)) return;
+    if ((event.key === "Enter" || event.key === " ") && event.target instanceof Element) {
+      const addAction = event.target.closest<HTMLElement>('[data-action="add-task"]');
+      const root = ganttScrollReference.current;
+      if (addAction && root?.contains(addAction)) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (addAction.getAttribute("aria-disabled") !== "true") addAction.click();
+        return;
+      }
+    }
+    if (!startDatePicker && (event.key === "Enter" || event.key === " ")) {
+      const cell = startDateCellFrom(event.target);
+      const row = cell?.closest<HTMLElement>(".wx-row[data-id]");
+      const taskId = row ? taskIdFromElement(row) : null;
+      const task = taskId ? tasksByIdReference.current.get(taskId) : undefined;
+      if (cell && taskId && task && canEditGridStartDate(task, editable && !mutationLocked)) {
+        event.preventDefault();
+        event.stopPropagation();
+        openStartDatePicker(taskId, cell);
+        return;
+      }
+    }
+    if (event.key === "Escape" && !taskMenu && !columnMenuPosition && selectedTaskIdsReference.current.length &&
+      event.target instanceof Element && !event.target.closest('input:not([data-copy-selection]), textarea, select, [contenteditable=true], dialog, .wx-scale, .wx-header')) {
+      event.preventDefault();
+      event.stopPropagation();
+      selectionAnchorReference.current = null;
+      updateSelection([]);
+      setSelectionMessage("선택을 해제했습니다.");
+      return;
+    }
     if (runTaskShortcut(event)) return;
     if (event.key !== "ContextMenu" && !(event.key === "F10" && event.shiftKey)) return;
     const header = headerFrom(event.target);
@@ -1409,8 +2878,11 @@ export function ProjectGantt({
     if (!scroller) return;
     const itemBounds = item.getBoundingClientRect();
     const scrollBounds = scroller.getBoundingClientRect();
-    if (itemBounds.bottom > scrollBounds.bottom - 4) scroller.scrollTop += itemBounds.bottom - scrollBounds.bottom + 4;
-    else if (itemBounds.top < scrollBounds.top + 4) scroller.scrollTop -= scrollBounds.top - itemBounds.top + 4;
+    if (itemBounds.bottom > scrollBounds.bottom - 4) {
+      scroller.scrollTo({ top: scroller.scrollTop + itemBounds.bottom - scrollBounds.bottom + 4 });
+    } else if (itemBounds.top < scrollBounds.top + 4) {
+      scroller.scrollTo({ top: scroller.scrollTop - (scrollBounds.top - itemBounds.top + 4) });
+    }
   }
 
   function closeTaskSubmenuForOrdinaryRootItem(target: EventTarget | null) {
@@ -1492,19 +2964,31 @@ export function ProjectGantt({
   }
 
   const selectedTaskHasLinks = taskMenu ? taskHasDependencyLinks(tasks, taskMenu.taskId, links) : false;
-  const canMutate = editable && !mutationLocked && !selectedTaskHasLinks;
-  const canDelete = canMutate;
+  const selectedSubtreeHasLinks = taskMenu ? taskSubtreeHasDependencyLinks(tasks, taskMenu.taskId, links) : false;
+  const selectedSubtreeHasExternalLinks = taskMenu
+    ? taskSubtreeHasExternalDependencyLinks(tasks, taskMenu.taskId, links)
+    : false;
+  const canOpenAsRoot = taskMenu
+    ? taskMenu.taskId !== viewRootTaskId && canOpenTaskAsSubtreeRoot(tasks, taskMenu.taskId)
+    : false;
+  const canCopy = editable && !mutationLocked;
+  const canMutate = canCopy && !selectedTaskHasLinks;
+  const canCut = canCopy && !selectedSubtreeHasExternalLinks && taskMenu?.taskId !== viewRootTaskId;
+  const canDelete = canCopy && !selectedSubtreeHasLinks;
   const activeClipboard = taskClipboard?.revision === projectRevision ? taskClipboard : null;
   const menuCapabilities = taskMenu
-    ? taskContextCapabilities(tasks, taskMenu.taskId, editable, mutationLocked, links, activeClipboard)
+    ? taskContextCapabilities(tasks, taskMenu.taskId, editable, mutationLocked, links, activeClipboard, viewRootTaskId)
     : null;
   const submenuId = taskSubmenu ? `${instanceId}-${taskSubmenu.name.replaceAll(" ", "-")}-submenu` : undefined;
   const submenuCommands = taskMenu && menuCapabilities && taskSubmenu ? (() => {
     switch (taskSubmenu.name) {
       case "Add": return <>
         <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canAddChild} onClick={() => createTaskFromMenu("child")} role="menuitem" type="button">Child task</button>
-        <button className="project-task-context-submenu-command" disabled={!canMutate} onClick={() => createTaskFromMenu("before")} role="menuitem" type="button">Task above</button>
-        <button className="project-task-context-submenu-command" disabled={!canMutate} onClick={() => createTaskFromMenu("after")} role="menuitem" type="button">Task below</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canAddChild} onClick={() => {
+          executeHierarchyCommand({ kind: "create", anchorTaskId: taskMenu.taskId, placement: "child", task: { name: "새 요약 작업", type: "summary" } });
+        }} role="menuitem" type="button">요약 작업 추가</button>
+        <button className="project-task-context-submenu-command" disabled={!canMutate || taskMenu.taskId === viewRootTaskId} onClick={() => createTaskFromMenu("before")} role="menuitem" type="button">Task above</button>
+        <button className="project-task-context-submenu-command" disabled={!canMutate || taskMenu.taskId === viewRootTaskId} onClick={() => createTaskFromMenu("after")} role="menuitem" type="button">Task below</button>
       </>;
       case "Convert to": return <>
         <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canConvertToTask} onClick={() => executeHierarchyCommand({ kind: "convert", taskId: taskMenu.taskId, targetType: "task" })} role="menuitem" type="button">Task</button>
@@ -1513,8 +2997,8 @@ export function ProjectGantt({
       </>;
       case "Paste": return <>
         <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || !menuCapabilities.canAddChild} onClick={() => pasteFromMenu("child")} role="menuitem" type="button">As child</button>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste} onClick={() => pasteFromMenu("before")} role="menuitem" type="button">Above</button>
-        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste} onClick={() => pasteFromMenu("after")} role="menuitem" type="button">Below</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || taskMenu.taskId === viewRootTaskId} onClick={() => pasteFromMenu("before")} role="menuitem" type="button">Above</button>
+        <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canPaste || taskMenu.taskId === viewRootTaskId} onClick={() => pasteFromMenu("after")} role="menuitem" type="button">Below</button>
       </>;
       case "Move": return <>
         <button className="project-task-context-submenu-command" disabled={!menuCapabilities.canMoveUp} onClick={() => executeHierarchyCommand(createHierarchyCommand("move-up", taskMenu.taskId))} role="menuitem" type="button">Move up</button>
@@ -1532,14 +3016,26 @@ export function ProjectGantt({
   }, [taskMenu, taskSubmenu]);
 
   return (
-    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={scaleMode === "day" ? 44 : 68} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
-      <Willow>
+    <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={editable && !mutationLocked || undefined}>
+      <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
         <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
           <span aria-hidden="true" className="project-gantt-scale-label">표시 단위</span>
           <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">일</button>
           <button aria-pressed={scaleMode === "week"} onClick={() => changeScaleMode("week")} type="button">주</button>
         </div>
+        <div className="project-copy-selection-controls" role="group" aria-label="복사 대상 선택">
+          <span role="status" aria-atomic="true">선택 {selectedTaskIds.length}개{selectionHiddenCount ? ` · 접힌 하위 ${selectionHiddenCount}개` : ""}</span>
+          <button type="button" disabled={!selectedTaskIds.length || !editable || mutationLocked} onClick={() => copyCurrentSelection()}>선택 복사</button>
+          <button type="button" disabled={!selectedTaskIds.length} onClick={() => {
+            selectionAnchorReference.current = null;
+            updateSelection([]);
+            setSelectionMessage("선택을 해제했습니다.");
+            ganttScrollReference.current?.focus({ preventScroll: true });
+          }}>선택 해제</button>
+          <span className="project-copy-selection-help">체크박스 · Ctrl/Cmd · Shift로 선택</span>
+        </div>
+        {editable && viewRootTaskId === null ? <button className="project-gantt-fullscreen-button" disabled={mutationLocked} onClick={() => onTaskCreateReference.current({ name: "새 요약 작업", type: "summary" })} type="button">요약 작업 추가</button> : null}
         <button className="project-gantt-fullscreen-button" ref={fullscreenButtonReference} type="button"
           aria-label={isFullscreen ? "Gantt 전체 화면 종료" : "Gantt 전체 화면"} aria-pressed={isFullscreen}
           aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
@@ -1554,6 +3050,18 @@ export function ProjectGantt({
         aria-label="프로젝트 일정 Grid와 Gantt 차트"
           className="project-gantt-scroll"
           onContextMenu={handleHeaderContextMenu}
+          onMouseDownCapture={handleChartMouseDownCapture}
+          onPointerDownCapture={handleSelectionPointerDown}
+          onPointerMoveCapture={(event) => {
+            const intent = namePointerIntentReference.current;
+            if (intent && Math.hypot(event.clientX - intent.x, event.clientY - intent.y) > 4) namePointerIntentReference.current = null;
+          }}
+          onPointerCancelCapture={() => {
+            namePointerIntentReference.current = null;
+            startDatePointerIntentReference.current = null;
+            contextPointerTaskIdReference.current = null;
+          }}
+          onClickCapture={handleSelectionClick}
           onClick={(event) => { void handleNameClick(event); }}
           onCompositionStart={() => { inlineComposingReference.current = true; }}
           onCompositionEnd={() => { inlineComposingReference.current = false; }}
@@ -1572,8 +3080,8 @@ export function ProjectGantt({
         >
           <div className="wx-theme gantt-widget project-gantt-widget">
             <Gantt
-              cellWidth={scaleMode === "day" ? 44 : 68}
-              columns={ganttColumnsReference.current}
+              cellWidth={GANTT_CELL_WIDTH[scaleMode]}
+              columns={initialConfig.columns}
               displayMode="all"
               gridWidth={480}
               highlightTime={scaleMode === "day" ? highlightWeekend : undefined}
@@ -1582,13 +3090,75 @@ export function ProjectGantt({
               onUpdateTask={onUpdateTask}
               readonly={!editable}
               scales={scales}
-              end={initialRange.end}
+              autoScale={false}
               start={initialRange.start}
               tasks={initialConfig.tasks}
+              taskTypes={projectTaskTypes}
             />
           </div>
         </div>
+        {startDatePicker ? (
+          <div
+            aria-label="시작일 날짜 선택"
+            className="project-gantt-start-date-picker"
+            ref={startDatePickerReference}
+            role="dialog"
+            style={{ left: startDatePicker.left, top: startDatePicker.top, width: startDatePicker.width }}
+          >
+            <label htmlFor={`${instanceId}-start-date-input`}>시작일</label>
+            <input
+              aria-label="시작일 선택"
+              autoFocus
+              id={`${instanceId}-start-date-input`}
+              max="2199-12-31"
+              min="1900-01-01"
+              onChange={(event) => commitStartDate(event.target.value)}
+              ref={startDateInputReference}
+              type="date"
+              value={startDatePicker.value}
+            />
+          </div>
+        ) : null}
+        {dayHeaderTooltip ? (
+          <div
+            className="project-gantt-day-header-tooltip"
+            id={dayHeaderTooltipId}
+            ref={dayHeaderTooltipReference}
+            role="tooltip"
+            style={{ left: dayHeaderTooltip.left, top: dayHeaderTooltip.top }}
+          >
+            <span className="project-gantt-day-header-tooltip-weekday">{dayHeaderTooltip.data.weekday}</span>
+            {dayHeaderTooltip.data.holidayNames.map((name) => (
+              <span className="project-gantt-day-header-tooltip-holiday" key={name}>{name}</span>
+            ))}
+          </div>
+        ) : null}
+        {selectionMessage ? <p className="project-copy-selection-status" role="status">{selectionMessage}</p> : null}
+        {weekHeaderTooltip ? (
+          <div
+            className="project-gantt-week-header-tooltip"
+            id={weekHeaderTooltipId}
+            ref={weekHeaderTooltipReference}
+            role="tooltip"
+            style={{ left: weekHeaderTooltip.left, top: weekHeaderTooltip.top }}
+          >
+            <span className="project-gantt-week-header-tooltip-working">근무일: {weekHeaderTooltip.data.workingDays}일</span>
+            {weekHeaderTooltip.data.holidays.length > 0 ? (
+              <span className="project-gantt-week-header-tooltip-holidays">
+                <span className="project-gantt-week-header-tooltip-label">공휴일:</span>
+                {weekHeaderTooltip.data.holidays.flatMap((holiday) =>
+                  holiday.names.map((name) => (
+                    <span className="project-gantt-week-header-tooltip-holiday" key={holiday.date + "-" + name}>
+                      <time dateTime={holiday.date}>{formatLocaleDateOnly(holiday.date, locales)}</time> {name}
+                    </span>
+                  )),
+                )}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
         {inlineNameMessage ? <p className="project-gantt-inline-name-status" role={inlineNameError ? "alert" : "status"} id={`${instanceId}-inline-name-status`}>{inlineNameMessage}</p> : null}
+        {inlineStartMessage ? <p className="project-gantt-inline-name-status" role={inlineStartError ? "alert" : "status"} id={`${instanceId}-inline-start-status`}>{inlineStartMessage}</p> : null}
         {columnMenuPosition ? <div
           aria-label="표시 열 선택"
           className="project-column-menu"
@@ -1652,11 +3222,17 @@ export function ProjectGantt({
           <button aria-label="Edit" onClick={openTaskEditorFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">i</span><span>Edit</span>
           </button>
+          {canOpenAsRoot ? <button aria-label="최상위로 열기 (작업공간 탭)" onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>최상위로 열기</span>
+          </button> : null}
+          <button aria-label="Copy ID" onClick={() => void copyTaskIdFromMenu()} role="menuitem" type="button">
+            <span aria-hidden="true" className="project-task-context-menu-icon">#</span><span>Copy ID</span>
+          </button>
           <div className="project-task-context-menu-separator" role="separator" />
-          <button aria-label="Cut" disabled={!canMutate} onClick={() => storeClipboard("cut")} role="menuitem" type="button">
+          <button aria-label="Cut" disabled={!canCut} onClick={() => storeClipboard("cut")} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">✂</span><span>Cut</span><kbd>Ctrl+X</kbd>
           </button>
-          <button aria-label="Copy" disabled={!canMutate} onClick={() => storeClipboard("copy")} role="menuitem" type="button">
+          <button aria-label="Copy" disabled={!canCopy} onClick={() => storeClipboard("copy")} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">□</span><span>Copy</span><kbd>Ctrl+C</kbd>
           </button>
           <div className="project-task-context-submenu-host" data-submenu="Paste">
@@ -1666,7 +3242,7 @@ export function ProjectGantt({
           </div>
           <div className="project-task-context-menu-separator" role="separator" />
           <div className="project-task-context-submenu-host" data-submenu="Move">
-            <button aria-controls={taskSubmenu?.name === "Move" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Move"} aria-haspopup="menu" aria-label="Move" disabled={!canMutate} onClick={() => { openTaskSubmenu("Move", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Move", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Move", false); }} ref={(node) => { taskSubmenuTriggers.current.Move = node; }} role="menuitem" type="button">
+            <button aria-controls={taskSubmenu?.name === "Move" ? submenuId : undefined} aria-expanded={taskSubmenu?.name === "Move"} aria-haspopup="menu" aria-label="Move" disabled={!canMutate && !menuCapabilities.canMoveUp && !menuCapabilities.canMoveDown} onClick={() => { openTaskSubmenu("Move", true); focusFirstTaskSubmenuItem(); }} onFocus={() => openTaskSubmenu("Move", false)} onPointerEnter={(event) => { if (event.pointerType === "mouse") openTaskSubmenu("Move", false); }} ref={(node) => { taskSubmenuTriggers.current.Move = node; }} role="menuitem" type="button">
               <span aria-hidden="true" className="project-task-context-menu-icon">↕</span><span>Move</span><span className="project-task-context-menu-arrow">›</span>
             </button>
           </div>
@@ -1691,6 +3267,12 @@ export function ProjectGantt({
           >{submenuCommands}</div> : null}
           </>}
         </div> : null}
+        {copyTaskIdFallback ? <WorkspaceDialog title="작업 ID 수동 복사" onClose={() => setCopyTaskIdFallback(null)}>
+          <p>자동 복사를 사용할 수 없습니다. 아래 작업 ID를 선택해 수동으로 복사해 주세요.</p>
+          <input aria-label="작업 ID" className={feedbackStyles.copyValue} readOnly value={copyTaskIdFallback}
+            onFocus={(event) => event.currentTarget.select()} />
+          <button className="secondary-button" type="button" onClick={() => void retryCopyTaskId()}>복사 다시 시도</button>
+        </WorkspaceDialog> : null}
         {relationMenu ? (
           <RelationContextMenu
             key={relationMenu.linkId}
@@ -1710,7 +3292,7 @@ export function ProjectGantt({
             tasks={tasks}
           />
         ) : null}
-      </Willow>
+      </Willow></CopySelectionContext.Provider>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import type { ProjectMasterItemDto } from "./project-master";
 import type { ProjectAssignmentDto } from "./resources";
 
 export type ProjectStatus = "planned" | "in_progress" | "completed";
+export type TaskStatus = "not_started" | "in_progress" | "completed";
 
 export interface ProjectHolidayDto {
   date: string;
@@ -11,6 +12,8 @@ export interface ProjectHolidayDto {
 
 export interface ProjectCalendarExceptionDto extends ProjectHolidayDto {
   dayType: "NON_WORKING" | "WORKING";
+  /** Deterministic display projection of every meaningful persisted name for this effective date. */
+  names?: string[];
 }
 
 export interface ProjectCalendarDto {
@@ -66,10 +69,12 @@ export interface ProjectTaskDto {
   type: "task" | "summary" | "milestone";
   scheduleMode: "auto" | "manual";
   requestedStart: string | null;
-  start: string;
-  end: string;
-  duration: number;
-  progress: number;
+  start: string | null;
+  end: string | null;
+  duration: number | null;
+  progress: number | null;
+  /** Task-level execution status; distinct from ProjectStatus. */
+  status?: TaskStatus;
   parentExternalId: string | null;
   siblingOrder: number;
   baselineStart?: string | null;
@@ -190,21 +195,22 @@ export interface ProjectMetadataMutationResponse {
   };
 }
 
-export interface CreateTaskRequest {
+interface CreateTaskCommon {
   externalId?: string;
   parentTaskId?: string;
   convertParentToSummary?: true;
   name: string;
   description?: string | null;
   url?: string | null;
-  type: "task" | "milestone";
-  scheduleMode?: "auto" | "manual";
-  start: string;
-  end?: string;
-  duration: number;
-  progress: number;
   parentExternalId?: null;
 }
+
+export type CreateTaskRequest = CreateTaskCommon & (
+  | { type: "task" | "milestone"; scheduleMode?: "auto" | "manual";
+      start: string; end?: string; duration: number; progress: number; status?: TaskStatus }
+  | { type: "summary"; scheduleMode?: "auto";
+      start?: null; end?: null; duration?: null; progress?: null }
+);
 
 export interface UpdateTaskRequest {
   name?: string;
@@ -215,6 +221,7 @@ export interface UpdateTaskRequest {
   end?: string;
   duration?: number;
   progress?: number;
+  status?: TaskStatus;
   baselineStart?: string | null;
   baselineDuration?: number | null;
   baselineEnd?: string | null;
@@ -234,17 +241,15 @@ export type TaskHierarchyCommandKind =
   | "reparent"
   | "copy";
 
-export interface TaskHierarchyCreateSeed {
-  name: string;
-  description?: string | null;
-  url?: string | null;
-  type: "task" | "milestone";
-  scheduleMode?: "auto" | "manual";
-  start: string;
-  end?: string;
-  duration: number;
-  progress: number;
-}
+export type TaskHierarchyCreateSeed = Omit<CreateTaskRequest, "externalId" | "parentTaskId" | "convertParentToSummary" | "parentExternalId"> & (
+  | { type: "task" | "milestone"; scheduleMode?: "auto" | "manual";
+      start: string; end?: string; duration: number; progress: number }
+  | { type: "summary"; scheduleMode?: "auto";
+      start?: null; end?: null; duration?: null; progress?: null }
+);
+
+/** Explicit Copy sources are bounded independently of descendants/project size. */
+export const MAX_TASK_COPY_SOURCES = 500;
 
 export type TaskHierarchyCommandRequest =
   | {
@@ -268,11 +273,19 @@ export type TaskHierarchyCommandRequest =
       taskId: string;
     }
   | {
-      kind: "reparent" | "copy";
+      kind: "reparent";
       taskId: string;
       anchorTaskId: string;
       placement: TaskHierarchyPlacement;
-    };
+    }
+  | ({
+      kind: "copy";
+      anchorTaskId: string;
+      placement: TaskHierarchyPlacement;
+    } & (
+      | { taskIds: readonly string[]; taskId?: never }
+      | { taskId: string; taskIds?: never }
+    ));
 
 export interface ScheduleWarningDto {
   code: "NON_WORKING_START_SHIFTED";

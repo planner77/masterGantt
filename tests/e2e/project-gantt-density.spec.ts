@@ -2,7 +2,7 @@ import { expect, isolatedApplicationOptions, test } from "./fixtures/isolated-ap
 
 test.use(isolatedApplicationOptions);
 
-test("Issue #233: Project Gantt 정보 밀도 개선 — Grid 폭 480px, 기간 숫자화, Chart 날짜 cell 폭 44px/68px", async ({ page, baseURL }) => {
+test("Issue #233/#367: Project Gantt 정보 밀도 개선 — Grid 폭 480px, 기간 숫자화, Chart 날짜 cell 폭 36px/68px", async ({ page, baseURL }) => {
   const origin = new URL(baseURL!).origin;
 
   // 1. 프로젝트 생성 (단일 작업 포함)
@@ -50,18 +50,18 @@ test("Issue #233: Project Gantt 정보 밀도 개선 — Grid 폭 480px, 기간 
   expect(gridBox!.width).toBeGreaterThanOrEqual(470);
   expect(gridBox!.width).toBeLessThanOrEqual(490);
 
-  // 4. SVAR에 전달하는 Day scale cellWidth 계약 검증.
+  // 4. Issue #367에서 숫자-only Day Header를 활용해 44px보다 더 조밀한 36px 계약으로 확장한다.
   // 내부 .wx-cell geometry는 scale/header 레벨에 따라 합성 폭을 가질 수 있으므로
   // private DOM 폭을 cellWidth 자체로 간주하지 않는다.
   const ganttFrame = page.locator(".project-gantt-frame");
   await expect(ganttFrame).toHaveAttribute("data-gantt-scale-mode", "day");
-  await expect(ganttFrame).toHaveAttribute("data-gantt-cell-width", "44");
+  await expect(ganttFrame).toHaveAttribute("data-gantt-cell-width", "36");
 
   await page.getByRole("group", { name: "Gantt 표시 단위" }).getByRole("button", { name: "주", exact: true }).click();
   await expect(ganttFrame).toHaveAttribute("data-gantt-scale-mode", "week");
   await expect(ganttFrame).toHaveAttribute("data-gantt-cell-width", "68");
   await page.getByRole("group", { name: "Gantt 표시 단위" }).getByRole("button", { name: "일", exact: true }).click();
-  await expect(ganttFrame).toHaveAttribute("data-gantt-cell-width", "44");
+  await expect(ganttFrame).toHaveAttribute("data-gantt-cell-width", "36");
 
   // 5. 반응형 뷰포트(390, 768, 1024, 1440)에서 unintended document horizontal overflow 없음 검증
   for (const width of [390, 768, 1024, 1440]) {

@@ -78,6 +78,7 @@ function dtoTasks(tasks: readonly TaskRecord[]): ProjectTaskDto[] {
     end: task.endDate,
     duration: task.duration,
     progress: task.progress,
+    status: task.status,
     parentExternalId: task.parentId === null
       ? null
       : externalById.get(task.parentId) ?? null,
@@ -93,6 +94,7 @@ function assignmentDtos(repository: ResourceCatalogRepository, projectId: number
     id: assignment.publicId,
     taskId: assignment.taskPublicId,
     target: { kind: assignment.kind, id: assignment.targetPublicId },
+    role: assignment.kind === "resource" ? assignment.assignmentRole : null,
     allocation: assignment.kind === "resource"
       ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
       : null,
@@ -293,6 +295,9 @@ export class ProjectCopyService {
               progress: input.resetProgress && sourceTask.type !== "summary"
                 ? 0
                 : sourceTask.progress,
+              status: input.resetProgress && sourceTask.type !== "summary"
+                ? "not_started"
+                : sourceTask.status,
               parentId: sourceTask.parentId === null
                 ? null
                 : newBySourceId.get(sourceTask.parentId)!.id,
@@ -377,6 +382,7 @@ export class ProjectCopyService {
           assignmentStart: string | null;
           assignmentEnd: string | null;
           allocationPercent: number | null;
+          assignmentRole: import("../../contracts/resources").ResourceRole | null;
         }>>();
 
         for (const sa of sourceAssignments) {
@@ -391,6 +397,7 @@ export class ProjectCopyService {
             assignmentStart: sa.assignmentStart,
             assignmentEnd: sa.assignmentEnd,
             allocationPercent: sa.allocationPercent,
+            assignmentRole: sa.assignmentRole,
           });
           copiedAssignmentsByTask.set(newTask.id, list);
         }

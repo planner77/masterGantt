@@ -1,10 +1,32 @@
 # Issue #4 / #22 / #31 / #72 — 작업 메뉴와 Grid / Chart 작업 명령
 
+## Issue #384 — Copy 선택 집합과 단일 편집 경계
+
+Copy clipboard는 `{mode:"copy", taskIds, revision}`, Cut은 `{mode:"cut", taskId, revision}`이다. 신규 Copy는 taskIds를 보내고 서버는 legacy taskId XOR 호환을 제공한다. canonical root 순서·ancestor 제거는 메뉴/keyboard에 동일하다. Paste target 선택은 clipboard를 유지하고 Project·revision·filter/scope 변화는 stale clipboard를 폐기한다.
+
+Edit/Delete/Cut/Move는 메뉴 또는 실제 focus target 하나다. 여러 선택으로 일괄 편집·삭제·이동을 활성화하지 않는다. Assignment 전체 거부, 내부 Dependency 복제·외부 관계 제외, 빈 Summary null과 copied Baseline null/원본 불변은 서버 계약이다. checkbox Ctrl/Cmd+C/V·ContextMenu/Shift+F10은 안전하게 행을 resolve한다. 다른 입력/inline/Task Editor/dialog/contenteditable 내부 shortcut은 유지한다. modifier 클릭은 이름 editor를 열지 않으며 일반 이름 클릭·double-click Editor·Grid DnD의 기존 경로를 보존한다.
+
+## Issue #378 — Context Menu Copy/Paste 관계 경계
+
+- 관계 endpoint인 Task도 Context Menu와 keyboard `Copy`는 허용한다. Copy는 원본 Task/Link를 변경하지 않는다.
+- copy clipboard가 유효하면 linked Task를 anchor로 한 `Paste > Above/Below`를 허용한다.
+- `Paste > As child`는 anchor가 linked leaf여서 Summary로 변환되어야 하는 경우 기존 관계 endpoint 보호 때문에 비활성/거부한다.
+- Cut clipboard는 기존 linked hierarchy guard를 유지한다.
+- Copy 성공 시 서버 canonical snapshot의 새 Task/Link를 같은 Gantt instance에 동기화하며 page reload/remount로 처리하지 않는다.
+- relation line과 Task Editor 관계 탭은 새 Link ID와 새 endpoint를 canonical snapshot에서 읽는다.
+
+
+## Issue #345 미산정 Summary 계약
+
+빈 Summary 생성은 일정 도구 모음과 Context Add의 `요약 작업 추가`에서 이름·위치만 전송한다. 날짜 입력이나 임시 Task 삭제를 요구하지 않는다. 이름 수정은 기존 Grid inline 편집이며 Summary의 일정 필드 직접 편집 권한은 확대하지 않는다. Summary 정보는 readonly 파생 값이며 시작·종료·기간·진척 미산정 값은 `—`로 표시하고 진척 slider의 가짜 0%를 표시하지 않는다.
+
+마지막 child 삭제·이동 후 부모는 같은 ID/type의 Summary로 남는다. 자식 없는 Summary 자체 삭제는 기존 단일 작업 삭제이고, 자손 있는 Summary의 포함 삭제 확인은 유지한다. 아래 과거 빈 Summary/마지막 child 거부 설명은 이 현재 정책으로 대체하며 401/412/Dependency 제약과 canonical 복구 정책은 유지한다. Core adapter Renderer 좌표는 이름·일정 수정 payload에 역변환하지 않는다.
+
 ## 사용 방법과 범위
 
 프로젝트 Grid의 작업 행 또는 Chart의 작업 막대를 우클릭하면 해당 작업의 **작업 메뉴**를 먼저 연다. 메뉴의 **작업 정보**를 선택해야 기존 작업 정보 대화상자가 열린다. 메뉴를 여는 것만으로 대화상자·저장·삭제가 실행되지 않는다. 선택된 행이나 작업명이 아니라 실제 taskId로 찾는다. Tab으로 작업 행/막대에 포커스를 옮긴 뒤 Shift+F10 또는 ContextMenu 키로 메뉴를 열고, 작업 정보 항목에서 Enter로 진입할 수 있다. Escape는 메뉴를 닫는다. Grid 헤더의 우클릭/Shift+F10은 기존 표시 열 메뉴를 유지하며 두 메뉴는 동시에 표시하지 않는다. 빈 Chart, 링크, 시간축과 입력 상자에는 작업 우클릭 처리를 적용하지 않는다.
 
-일반 작업은 작업명·시작일·기간(근무일)과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 입력 도중에는 저장하지 않는다. 종료일은 마지막 서버 확정값이며 저장 시 서버가 프로젝트의 휴일/주말과 일정 모드로 다시 계산한다. 마일스톤 기간은 0이며 수정할 수 없다. 요약 작업은 조회만 가능하다. 편집 권한이 없으면 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 관계 endpoint인 leaf도 아래 #258 계약에 따라 편집한다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
+일반 작업은 작업명·요청 시작일·기간(근무일)·요청 종료일과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 요청 종료일은 별도 저장 필드가 아니라 현재 Project Effective Calendar로 `requestedStart + duration`에서 도출하는 편집 초안이다. 사용자가 기간을 바꾸면 요청 종료일을 계산하고, 요청 종료일을 바꾸면 기간을 역산한다. 마지막 명시 입력이 기간인지 종료일인지 기억해 요청 시작일 변경 시 반대 필드를 재계산한다. 서버 확정 시작/종료일은 별도 secondary 정보로 표시하며 저장 시 서버가 최신 휴일/주말·WORKING/NON_WORKING 예외, 일정 모드와 Dependency를 다시 적용한다. 마일스톤 기간은 0이며 요청 종료일 양방향 편집을 적용하지 않는다. 요약 작업은 조회만 가능하다. 편집 권한이 없으면 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 관계 endpoint인 leaf도 아래 #258 계약에 따라 편집한다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
 
 취소/닫기/Escape는 미저장 변경이 있으면 먼저 버리기 확인을 요구한다. 편집기 하나가 열려 있는 동안 다른 작업으로 초안을 조용히 전환하지 않는다. 메뉴의 Escape는 원래 호출 대상으로 포커스를 복구한다. 편집기 종료 시 연결된 원래 대상이 없으면 해당 taskId의 현재 행이나 작업공간을 사용한다. 포커스 복구에는 preventScroll을 사용한다.
 
@@ -15,7 +37,7 @@
 | 작업 정보 | 제공 | 기존 보호된 편집기에서 조회/편집 여부를 판단한다. 읽기 전용 프로젝트에도 정보 조회를 제공한다. |
 | 작업 삭제 | 제공 (#31) | Edit·무연결 일정에서 실제 우클릭 taskId를 대상으로 한다. 자손이 있으면 범위 확인 후 `includeDescendants=true`로 원자 삭제한다. |
 | Add / Cut / Copy / Paste | 제공 (#72) | Cut/Copy는 프로젝트 화면의 clipboard 상태만 갱신하고 Paste 시 서버의 원자 계층 명령을 호출한다. Add는 child/above/below 위치를 명시한다. |
-| Convert / Move / Indent / Outdent | 제공 (#72) | 현재 canonical hierarchy에서 유효한 명령만 활성화하고 서버가 parent/sibling order와 Summary를 재계산한다. 빈 Summary 또는 Link 포함 일정은 fail-closed한다. |
+| Convert / Move / Indent / Outdent | 제공 (#72) | 현재 canonical hierarchy에서 유효한 명령만 활성화하고 서버가 parent/sibling order와 Summary를 재계산한다. Link 포함 일정은 fail-closed하며 빈 Summary는 #345 현재 정책에 따라 유지한다. |
 
 삭제 메뉴는 Readonly·mutation 진행 중이거나 **선택 Task/삭제 subtree가 Link endpoint를 포함하는 경우** 비활성화 또는 서버에서 거부한다. 프로젝트의 unrelated Link만으로는 선택 Task를 잠그지 않는다. 자손 없는 작업은 기존 단건 DELETE, 자손이 있는 작업은 작업명·자손 수·총 삭제 수를 보여주는 확인창을 거쳐 명시적 subtree DELETE를 사용한다. 취소/Escape/닫기는 DELETE 0회이며 확인 시점 revision이 바뀌면 412 후 최신 범위를 다시 확인한다.
 
@@ -25,7 +47,7 @@
 
 - 메뉴의 작업 정보 선택은 공개 SVAR `show-editor` action을 실행하고 `api.intercept`로 프로젝트 편집기에 연결한다. 기존 double-click/native show-editor 경로를 메뉴 클릭으로 대체하지 않는다. 초기화/해제 tag는 `project-task-editor`이며 native add/update 동기화 가드는 변경하지 않는다.
 - `task-context-target.ts`만 SVAR의 행/막대 DOM 속성을 해석한다. `data-id` / `data-task-id`의 문자열 ID 접두사를 해석한 뒤 UUID와 현재 canonical task 목록 양쪽을 확인한다. 이름·선택·정렬 순번으로 fallback하지 않는다.
-- `task-editor-model.ts`는 DTO를 초안으로 복사하고 변경된 name/start/duration/progress/description/url만 command로 만든다. 시작일은 date-only 문자열이며 duration은 직접 입력한 근무일이다. Pointer resize의 달력 span 변환기를 통과시키지 않는다. name/progress-only PATCH는 start를 포함하지 않으므로 requestedStart를 보존한다.
+- `task-editor-model.ts`는 DTO와 해당 Project Calendar를 초안으로 복사하고 변경된 name/start/duration/progress/description/url만 command로 만든다. 일반 Task의 `requestedEnd`는 UI-only 파생값이며 command whitelist에 포함하지 않는다. 시작일은 date-only 문자열이고 duration은 직접 입력·역산한 근무일이다. 기간 기준이면 `endFromStart`, 종료일 기준이면 `workingDaysBetween`을 기존 pure Scheduling Domain과 동일한 Effective Calendar로 사용한다. Auto 비근무 요청 시작일은 preview에서도 다음 근무일로 정규화하지만 서버가 최종 authority이며, Manual 비근무 시작일과 비근무 요청 종료일은 필드 오류로 저장을 막는다. Pointer resize의 달력 span 변환기를 통과시키지 않는다. name/progress-only PATCH는 start를 포함하지 않으므로 requestedStart를 보존한다.
 - 기존 `ProjectReadonlyView.saveTask`가 credentials:same-origin, Content-Type과 If-Match를 포함해 동일 PATCH API를 호출한다. 편집기를 열었을 때의 revision을 명시적으로 전달한다. 서버 session/Origin/revision/스케줄러 계약을 유지하며, Issue #36의 Description/URL은 동일 PATCH 경로와 SQLite migration/canonical snapshot 계약으로 저장한다.
 - 편집기 ref mutex와 기존 aggregate mutation mutex로 연속 클릭/Enter 중복 요청을 차단한다. 저장 중 입력/닫기를 막고, 성공한 canonical 응답만 Gantt에 반영한 후 닫는다. 정상 처리에서는 문서 reload, loading 화면이나 Gantt key 변경이 없다.
 - 400/409/422/5xx/network 오류는 기존 `handleTaskFailure`로 확정 상태를 다시 읽는다. Gantt만 복구할 수 있으며 편집기는 recovery key 바깥에 있으므로 초안을 보존한다. 검증 오류를 수정하거나 사용자가 명시적으로 재시도할 수 있다.
@@ -38,7 +60,16 @@
 
 프로젝트 편집기는 React/native dialog/CSS Module 기반이다. 기본 Editor의 즉시 로컬 update와 달력일 기간 의미가 프로젝트의 명시적 PATCH/근무일 계약과 다르므로 기존 프로젝트 편집기를 유지한다. 이 사유는 상세 편집기의 선택 이유이며, 공식 ContextMenu helper가 사용 불가능하다는 의미는 아니다. 지정 데모의 실제 화면 실측·pixel 비교와 helper 대비 접근성 적합성 판단은 자동 CI 결과와 별도로 검증해야 한다.
 
-프런트는 서버/DB 모듈을 import하지 않는다. 날짜 형식 검증만 기존 pure domain의 parseDateOnly를 사용하며 종료일 계산은 서버에 맡긴다. 관련 계약은 [Architecture](ARCHITECTURE.md), [API](API.md), [Scheduling](SCHEDULING_ENGINE.md), [Security](SECURITY.md), [원격 검증](REMOTE_VALIDATION.md)을 따른다.
+프런트는 서버/DB 모듈을 import하지 않는다. 요청 종료일의 **편집 미리보기**에는 기존 pure Scheduling Domain의 date-only/Working Calendar 함수를 재사용하며 별도 날짜 알고리즘을 만들지 않는다. 이 미리보기는 persisted schedule이 아니고 저장 payload의 canonical source는 계속 `requestedStart + duration`이다. 최종 `start/end` 계산과 Dependency/Manual conflict 판정은 서버가 담당한다. 관련 계약은 [Architecture](ARCHITECTURE.md), [API](API.md), [Scheduling](SCHEDULING_ENGINE.md), [Security](SECURITY.md), [원격 검증](REMOTE_VALIDATION.md)을 따른다.
+
+
+## Issue #368 — 요청 종료일과 기간 양방향 편집
+
+일반 Task의 일정 입력은 `요청 시작일 / 기간(근무일) / 요청 종료일` 3개를 한 의미 그룹으로 표시한다. 최초 기준은 기간이며, 사용자가 기간을 직접 바꾸면 요청 종료일을, 요청 종료일을 직접 바꾸면 기간을 즉시 계산한다. 이후 요청 시작일을 바꿀 때는 마지막 명시 입력 기준을 유지해 반대 필드만 갱신한다. 계산은 Project canonical snapshot의 Effective Calendar를 사용하고 양 끝 포함 근무일 규칙을 따른다.
+
+`requestedEnd`는 UI draft에만 존재하며 DB/API DTO에 새 영속 필드를 추가하지 않는다. Task PATCH는 기존처럼 변경된 `start`(requestedStart 의미)와 `duration`만 전송하고 `end` 또는 `requestedEnd`를 독립 입력으로 보내지 않는다. 서버 확정 정보에는 저장된 요청 시작일, 적용 시작일, 확정 종료일을 분리해 보여 준다. Dependency로 실제 일정이 이동해도 사용자의 요청 의도와 server canonical result를 혼동하지 않는다.
+
+Auto의 비근무 요청 시작일은 preview에서도 다음 Project 근무일로 보정하여 종료일/기간을 계산하고, Manual의 비근무 요청 시작일은 오류다. 요청 종료일은 Effective Calendar의 근무일이어야 하며 시작일보다 빠르거나 계산 기간이 1~10,000 범위를 벗어나면 해당 필드와 `aria-invalid/aria-describedby`로 연결해 저장을 막는다. 오류 초안은 유지한다. Summary readonly, Milestone `duration=0`, dirty/stale/revision/401/412, 관계 연결 Task의 dependency-aware 저장 계약은 변경하지 않는다.
 
 ## 검증 계획과 상태
 
@@ -65,21 +96,21 @@ PR #16의 초기 시간축 범위 확대 및 canonical sync 종료 시점 입력
 
 ## Issue #72 계층 메뉴 계약
 
-편집 권한이 있고 다른 mutation이 진행 중이지 않으면 메뉴는 SVAR Willow의 기본 작업 흐름에 맞춰 **Add → Convert to → Edit → Cut/Copy/Paste → Move → Indent/Outdent → Delete** 순서를 제공한다. **Edit은 관계가 연결된 Task도 허용**한다. Add·Convert·Cut/Copy/Paste·Move·Indent/Outdent·Delete 등 구조 명령은 연결 endpoint에서 기존 guard로 비활성화한다. Readonly에서는 정보 조회(Edit)만 실제 동작하며 mutation 항목은 비활성화한다.
+편집 권한이 있고 다른 mutation이 진행 중이지 않으면 메뉴는 SVAR Willow의 기본 작업 흐름에 맞춰 **Add → Convert to → Edit → Cut/Copy/Paste → Move → Indent/Outdent → Delete** 순서를 제공한다. **Edit과 Copy는 관계가 연결된 Task도 허용**한다. Copy clipboard의 Paste Above/Below도 linked anchor에서 허용하되, Copy 집합 내부 Dependency만 새 endpoint로 복제한다(#378). Add·Convert·Cut·Move·Indent/Outdent·Delete 등 관계 의미를 바꿀 수 있는 구조 명령은 연결 endpoint에서 기존 guard로 비활성화하고, Paste As child가 linked leaf anchor의 Summary 전환을 요구하는 경우도 차단한다. Readonly에서는 정보 조회(Edit)만 실제 동작하며 mutation 항목은 비활성화한다.
 
 Cut은 선택 Task를 즉시 삭제하거나 이동하지 않는다. Copy와 함께 현재 Project revision을 포함한 client clipboard만 만든다. Paste는 `POST /api/projects/{publicId}/task-commands`를 호출하며 Cut은 `reparent`, Copy는 `copy` 명령으로 변환한다. 성공 응답의 canonical snapshot만 동일 Gantt instance에 동기화하고 revision 변경 시 기존 clipboard는 폐기한다. Canonical snapshot의 parent/sibling 구조 변경은 SVAR의 공개 `move-task` action으로 반영하고, 일반 `update-task`에 parent를 직접 덮어쓰지 않는다. 이 규칙은 hierarchy 변경 뒤 recovery remount 없이 동일 Gantt instance를 유지하기 위한 회귀 계약이다. Ctrl/Cmd+X/C/V, Delete/Backspace/Ctrl+D는 input/textarea/dialog/contenteditable 밖의 실제 Task target에서만 동작한다.
 
-Leaf→Summary는 빈 Summary를 영속화하지 않는 기존 모델 때문에 직접 변환 항목을 비활성화한다. Task↔Milestone은 자식이 없는 Leaf에서만 허용한다. Task를 child parent로 사용하는 Add/Indent/Paste는 기존 first-child 정책과 동일하게 해당 Task를 transaction 안에서 Summary로 전환한다. subtree Copy에 Resource Assignment가 존재하면 조용히 누락하지 않고 현재 단계에서는 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 거부한다.
+Leaf→Summary의 명시적인 Convert 명령 확대는 #345 범위 밖이므로 직접 변환 항목은 비활성화한다. 이는 빈 Summary 자체의 생성·영속화 금지라는 의미가 아니다. Task↔Milestone은 자식이 없는 Leaf에서만 허용한다. Task를 child parent로 사용하는 Add/Indent/Paste는 기존 first-child 정책과 동일하게 해당 Task를 transaction 안에서 Summary로 전환한다. subtree Copy에 Resource Assignment가 존재하면 조용히 누락하지 않고 현재 단계에서는 `TASK_COPY_ASSIGNMENTS_UNSUPPORTED`로 거부한다.
 
 
 ## Issue #74 — 탭 기반 Task Editor UX
 
-기존 서버 권위 저장·revision·권한 계약은 유지하면서 정보 구조만 재설계한다. Editor는 **작업 정보 / 리소스 / 관계** 3개 탭을 사용하며 최초 진입은 작업 정보다. 탭 전환은 mutation을 발생시키지 않고 패널 상태를 DOM에 유지해 작업 초안과 리소스 입력 상태를 보존한다.
+기존 서버 권위 저장·revision·권한 계약은 유지하면서 정보 구조만 재설계한다. Editor는 현재 **작업 정보 / 리소스 / 관계 / 물류 연결** 4개 탭을 사용하며 최초 진입은 작업 정보다. 탭 전환은 mutation을 발생시키지 않고 패널 상태를 DOM에 유지해 작업 초안과 리소스 입력 상태를 보존한다.
 
 - Desktop modal은 최대 70rem 범위에서 가용 폭을 사용하고 Header/Tab/Footer는 고정된 구조로 유지한다. 스크롤은 active tab body에서만 발생한다.
 - 작업 정보 탭은 작업명, 일정 필드, 진행률, Description, URL을 우선 배치하고 서버 확정 정보는 secondary metadata 영역으로 분리한다.
 - 리소스 탭은 검색·유형·할당됨 필터와 선택 우선 정렬을 제공한다. Resource/Group 유형과 active 상태를 text/badge로 함께 표시하며 색상만으로 상태를 전달하지 않는다.
-- 관계 탭은 wide 화면에서 선행/후행 2열, narrow 화면에서 1열로 표시하며 기존 조회 전용 계약을 유지한다.
+- 관계 탭은 wide 화면에서 선행/후행 2열, narrow 화면에서 1열로 표시한다. #377부터 편집 권한이 있는 일반 Task/Milestone은 기존 Relation Editor를 통해 관계 추가·편집·삭제를 수행하며 readonly는 조회만 유지한다.
 - Footer의 최신 정보 재조회는 좌측 tertiary 성격, 취소/저장은 우측 action group이며 저장만 primary다. stale/revision conflict 시 기존처럼 저장을 차단한다.
 - 탭은 WAI-ARIA `tablist/tab/tabpanel` 역할과 Arrow Left/Right, Home/End 이동을 지원한다. Escape/dirty confirmation/focus restore 계약은 기존 편집기 흐름을 유지한다.
 - Task 저장과 Assignment 저장은 원자적으로 통합하지 않는다. Task draft가 dirty/stale이면 Assignment 편집을 잠그고 저장 범위를 화면에서 설명한다.
@@ -101,19 +132,21 @@ Task Editor의 관계 탭은 상위 Project 화면이 이미 사용 중인 canon
 
 ## Issue #96 — 입력 폭·간격·배치 밀도 최적화
 
-Issue #74의 3개 탭, body-only scroll, 고정 Footer 구조와 모든 저장/권한 계약은 유지하고 presentation density만 조정한다.
+Issue #74에서 시작된 탭 기반 body-only scroll, 고정 Footer 구조와 모든 저장/권한 계약은 유지하고 presentation density만 조정한다.
 
 - Desktop 작업 정보 탭은 content-aware 2열 grid를 사용한다. 작업명·일정·Description·URL은 주 content 폭을 사용하고 진행률은 보조 열에서 최대 24rem 범위로 제한한다.
-- 일정은 시작일 10~13rem, 기간 7~9rem, 서버 확정 종료일 10~13rem 방향으로 배치해 기간 입력이 날짜 필드와 같은 폭을 강제받지 않는다.
+- 일정은 요청 시작일 10~13rem, 기간 7~9rem, 요청 종료일 10~13rem 방향의 3열 입력으로 배치해 기간 입력이 날짜 필드와 같은 폭을 강제받지 않는다. 적용 시작일·확정 종료일은 서버 확정 secondary metadata로 분리한다.
 - Resource allocation은 시작/종료 10~13rem, 투입률 7~9rem을 사용하며 Search는 flexible, Type은 compact, Assigned only는 intrinsic sizing 계약을 유지한다.
 - 768px 이하에서는 Task/일정/Resource allocation을 1열로 전환하고 480px 이하에서는 진행률 값도 자연스럽게 stack한다. document/dialog horizontal overflow는 허용하지 않는다.
 - 변경은 CSS Module에 한정하며 JSX inline width, Task API, canonical snapshot, revision/If-Match, 401/412, dirty/stale, Relation 및 Assignment 별도 저장 계약을 변경하지 않는다.
 
 검증 기준은 390/768/1024/1440px에서 input geometry와 horizontal overflow를 확인하고 기존 Task Editor 상호작용 회귀를 함께 실행한다.
 
-## Issue #155 — 전체화면에서 작업 정보 진입
+## Issue #155 / #372 — 전체화면에서 작업 정보 진입
 
-Task Editor는 Gantt 전체화면 frame 바깥의 native dialog다. SVAR `show-editor` intercept(메뉴 Edit 포함)와 Readonly Grid/Chart 더블클릭은 호출 대상을 먼저 기억하고 자기 Gantt의 native fullscreen 종료와 `fullscreenchange`를 확인한 뒤에만 기존 편집기를 연다. 종료 거부 시 보이지 않는 dialog를 만들지 않고 오류를 안내하며 원래 대상에 focus를 유지한다. 닫기/Escape 후 호출 대상 또는 기존 taskId fallback으로 복원하는 규칙과 dirty 확인, readonly·revision·If-Match·401/412·Task PATCH/Assignment PUT 계약은 그대로다. 전체화면 전환만으로 작업/할당 API mutation을 보내지 않는다.
+Issue #155에서 도입한 Gantt native fullscreen은 Issue #372부터 **Task Editor 진입의 부수 효과로 종료하지 않는다.** SVAR `show-editor` intercept(메뉴 Edit 포함), Grid/Chart double click 및 readonly 정보 조회는 호출 대상을 기억한 뒤 현재 native `<dialog>.showModal()`을 열며, 앱은 Editor를 열기 위해 `document.exitFullscreen()`을 호출하지 않는다. 따라서 저장·취소·닫기 후에도 사용자가 전체화면 버튼/Escape 등으로 직접 종료하지 않았다면 동일 `.project-gantt-frame` fullscreen과 Gantt instance를 유지한다.
+
+Task Editor가 열린 동안 기존 shortcut guard, modal focus/Tab 처리, dirty 확인, readonly·revision·If-Match·401/412·Task PATCH/Assignment PUT 계약은 그대로다. 닫은 뒤에는 원래 호출 대상 또는 taskId fallback으로 `preventScroll` focus를 복원하고 Grid/Chart scroll·tree·column·scale·selection/filter를 초기화하지 않는다. 같은 fullscreen-aware dialog 원칙은 Relation Editor에도 적용하며, 사용자 에이전트가 Escape로 native fullscreen 자체를 종료하면 `fullscreenchange`가 실제 `document.fullscreenElement`를 source of truth로 UI 상태를 동기화한다. Editor open/close 자체는 작업·관계·할당 API mutation을 보내지 않는다.
 
 ## Issue #140 — Grid 작업명 인라인 편집과 Task Editor 경계
 
@@ -156,8 +189,73 @@ SVAR 확인일 2026-09-29: 설치 Core 2.7.3의 공개 [update-task](https://doc
 
 ## Issue #300 Grid DnD 후 일반 필드 저장
 
-Grid 행 이동은 SVAR Core 2.7.3의 공개 `move-task` action으로 연결한다. `inProgress=true`인 드래그 피드백은 서버를 변경하지 않고, 놓은 최종 action만 기존 `POST /api/projects/{publicId}/task-commands`의 `reparent` 명령으로 변환한다. `before`/`after`는 같은 parent의 순서 변경뿐 아니라 다른 parent의 대상 Task를 기준으로 이동할 수 있으며, 타입·cycle·마지막 child와 Link 제약은 기존 서버 정책을 따른다. Context Menu의 Move Up/Down도 기존 계층 명령을 유지한다. Core 2.7.3의 `inProgress=false` release는 위치 이동을 다시 수행하지 않고 `$reorder`와 drag source를 정리하므로, 보호 명령 전달 후 이 native cleanup은 허용한다. 일반 programmatic 이동은 canonical 응답이 구조를 확정할 때까지 로컬 적용을 차단한다.
+Grid 행 이동은 SVAR Core 2.7.3의 공개 `move-task` action으로 연결한다. `inProgress=true`인 드래그 피드백은 서버를 변경하지 않고, 놓은 최종 action만 기존 `POST /api/projects/{publicId}/task-commands`의 `reparent` 명령으로 변환한다. #335부터 `before`/`after`가 **source의 기존 parent와 같은 parent**를 가리키면 Dependency Link 존재 여부와 무관하게 sibling order 변경을 허용한다. 다른 parent를 가리키는 `before`/`after`와 `child`는 기존 Link/type/cycle 보호를 유지한다. Context Menu의 Move Up/Down도 같은 parent reorder이므로 linked Task에서 허용하지만 Indent/Outdent 등 parent 변경 명령의 보호는 유지한다. 상위 Move submenu는 기존 unlinked boundary UX를 보존하면서 linked Task에 실제 Move Up/Down 방향이 하나라도 있을 때 열 수 있다. Core 2.7.3의 `inProgress=false` release는 위치 이동을 다시 수행하지 않고 `$reorder`와 drag source를 정리하므로, 보호 명령 전달 후 이 native cleanup은 허용한다. 일반 programmatic 이동은 canonical 응답이 구조를 확정할 때까지 로컬 적용을 차단한다.
 
 확정 응답의 canonical parent/sibling order와 최신 revision을 반영한 뒤 이름·진행률·설명 등의 일반 필드를 저장한다. 이름 변경 PATCH는 `{name}`만 전달하며 parent/sibling order를 다시 지정하지 않는다. canonical 동기화에서 발생하는 내부 `move-task`는 `project-canonical-sync` marker와 실제 sync guard가 함께 있을 때만 허용하고, 이 action을 새 HTTP 요청으로 되돌려 보내지 않는다. 읽기 전용·mutation 진행 중·동기화 중의 사용자 이동과 편집은 차단한다. 이동 실패/412는 기존 확정 snapshot 재조회와 오류 안내로 복구하고, 재조회가 성공하면 Gantt 인스턴스를 유지한다. 재조회까지 실패한 경우의 기존 recovery remount 정책은 유지한다.
 
 2026-09-29 확인: [공식 move-task API](https://docs.svar.dev/react/gantt/api/actions/move-task/)와 [Next.js backend integration](https://docs.svar.dev/react/gantt/integration-guides/nextjs/backend/)의 구조 이동/일반 속성 저장 분리를 참조했다. 설치된 Core Grid source의 `inProgress=true` 이동과 release 시 `inProgress=false` 최종 이동을 확인했다. PRO 기능이나 별도 reorder 저장소를 추가하지 않는다. URL/설치 source 확인과 실제 pointer 재현·원격 CI 결과는 서로 구분한다.
+
+
+## Issue #377 — 관계 탭에서 Relation Editor 기반 관계 관리
+
+Task Editor 관계 탭은 상위 Project의 canonical `tasks + links + revision` snapshot을 사용하면서 기존 Relation Editor의 추가 진입점을 제공한다.
+
+- 정상 relation row는 상대 작업, externalId, type, lag와 **편집 / 삭제** action을 제공한다. dangling reference는 경고만 표시하고 mutation action은 제공하지 않는다.
+- **관계 추가**는 현재 Task/Milestone의 taskId를 Anchor context로 Relation Editor에 전달한다. 관계가 0건이어도 선행/후행 방향, 후보 Task/Milestone, FS/SS/FF/SF, signed Lag를 선택해 기존 Link POST 계약으로 생성할 수 있다. Summary endpoint 정책은 확대하지 않는다.
+- Task draft가 dirty이면 관계 추가/편집/삭제를 잠그고 먼저 Task 변경을 저장하거나 취소하도록 안내한다. stale revision, readonly, pending도 fail-closed한다.
+- 관계 mutation 성공 시 Project snapshot과 열린 Task Editor의 base/draft/revision을 동일 canonical 응답으로 갱신한다. 이 동기화는 Task Editor native dialog를 다시 `showModal()`하지 않아 Relation Editor가 top layer를 유지하고, 현재 관계 탭을 보존한다.
+- Relation Editor 닫힘 후 기존 trigger가 남아 있으면 focus를 복원한다. 관계 탭 직접 삭제 confirmation은 취소 버튼으로 focus를 이동하고 취소 시 원래 삭제 버튼으로 되돌린다.
+- Gantt fullscreen, instance, scroll/tree/column/scale/filter 상태는 관계 관리 진입과 canonical sync 때문에 초기화하지 않는다.
+
+기존 #97/#200/#203/#266의 Link API, Scheduling Engine, revision/If-Match, 초안·pending·focus 보호를 재사용하며 Task Editor 전용 relation 저장 모델은 만들지 않는다.
+
+
+## Issue #339 — Task Editor Footer action geometry 정렬
+
+Task Editor Footer의 `최신 정보 다시 불러오기` / `취소` / `저장`은 기능·저장 계약과 무관하게 동일한 control geometry를 사용한다. 전역 `.secondary-button`이 일반 page action용 `margin-top`을 포함하더라도 Task Editor Footer에서는 Footer 자체가 spacing을 소유하므로 모든 직접 button의 상단 margin을 0으로 정규화한다.
+
+- Footer button은 동일한 `min-height`, vertical/horizontal padding, line-height와 `box-sizing`을 사용한다.
+- 768/1024/1440px처럼 한 행으로 배치되는 viewport에서는 Reload / Cancel / Save의 상단 edge와 높이가 일치한다.
+- 390px처럼 Footer가 wrap되는 viewport에서는 Reload가 독립 행으로 이동할 수 있지만 Cancel / Save는 같은 행의 상단 기준선을 유지하고 모든 action의 control height는 동일하다.
+- stale / disabled / saving / readonly 상태 변화는 기존 Task PATCH, revision/If-Match, dirty draft, reload confirmation 및 accessible name 계약을 변경하지 않는다.
+- SVAR React Gantt Editor 자체를 교체하거나 PRO Editor API를 도입하지 않는다. 이 보정은 masterGantt-owned native dialog Footer presentation 범위다.
+
+
+## Issue #340 리소스 탭 compact 2-pane 레이아웃
+
+- `전체` 유형에서는 1024px 이상에서 담당 리소스와 리소스 그룹을 content-aware 2-pane으로 표시한다. Resource pane은 allocation 입력을 포함하므로 Group pane보다 넓게 배치한다.
+- `리소스` 또는 `그룹` 유형 필터에서는 선택한 단일 pane이 가용 폭 전체를 사용하며 비어 있는 반대 pane을 남기지 않는다.
+- 미선택 항목은 checkbox + 이름 + 코드 + 비활성 상태를 compact 한 행으로 표시한다. Resource/Group 유형은 section heading에서 구분하므로 반복 badge는 제거한다.
+- 선택 Resource의 투입 시작/종료/투입률은 같은 행 바로 아래 detail 영역에서 가용 폭을 사용한다. Group에는 allocation 입력을 추가하지 않는다.
+- 각 pane은 현재 표시 건수/전체 건수를 노출하고 `등록된 대상 없음`과 `현재 필터와 일치하는 결과 없음`을 구분한다.
+- 768px 이하에서는 pane과 allocation fields를 1열로 stack하며 390/768/1024/1440px에서 dialog/document horizontal overflow를 허용하지 않는다.
+- Assignment PUT, Project/Catalog revision, `If-Match`, 401/412, dirty/stale, canonical snapshot 및 Task/Assignment 독립 저장 계약은 변경하지 않는다.
+
+
+## Issue #303 — Task 상태와 진행률
+
+일반 Task/Milestone의 작업 정보 탭은 `시작 전 / 진행 중 / 완료` 상태 Select를 진행률 영역과 함께 표시한다. Desktop에서는 기존 작업명 좌측/진행률 우측 geometry를 유지하고 상태와 진행률을 보조 열 내부에서 배치하며, 768px 이하에서는 1열로 stack한다.
+
+Draft에서 progress 100% 선택은 즉시 완료로, 완료 선택은 즉시 100%로 동기화한다. 완료에서 100 미만으로 내리면 진행 중, 시작 전 선택은 0%가 된다. 저장은 status/progress를 하나의 PATCH payload로 보내고 canonical response로 재동기화한다. Summary는 직접 편집하지 않으며 #258의 관계 Task 편집 정책, #368 요청 종료일, stale/busy/readonly/save-failure 보호를 유지한다.
+
+## Grid quick start edit와 Task Editor의 일정 계약 (Issue #370)
+
+Project Workspace Grid의 `시작` 셀 Date Picker는 Task Editor를 대체하지 않는 빠른 편집 진입점이다. Grid는 effective canonical `start`를 보여 주지만 Picker에서 선택한 날짜는 Task Editor의 **요청 시작일**과 같은 의미의 `start` mutation 입력으로 처리한다. 저장은 #258의 dependency-aware 서버 경로를 사용하며 서버 확정 `start/end`가 선택일과 달라질 수 있다.
+
+Grid quick edit은 시작일만 변경한다. 기간, 요청 종료일(#368 범위), schedule mode, metadata와 관계 편집은 기존 Task Editor에서 수행한다. Summary 일정 직접 편집 금지와 Milestone `duration=0` 규칙도 동일하게 유지한다.
+
+### Issue #299 — Chart reorder와 후속 편집
+
+Chart 수직 DnD는 일정 PATCH가 아닌 hierarchy mutation이며 vertical gesture 확정 후 `reparent(before|after)`를 한 번만 제출한다. 이후 작업명·Description·URL·진행률·일정 편집은 저장된 parent/sibling order를 보존해야 한다. #335 linked same-parent reorder는 허용하되 cross-parent hierarchy 제한을 우회하지 않는다.
+
+## Issue #413 — 리소스 탭 수행 역할 편집
+
+리소스 탭의 개인 Resource 행은 선택 시 수행 역할 select와 기존 투입 시작/종료/투입률을 함께 표시한다. select option은 해당 Resource의 Global `roles`만 사용한다. 역할 필터를 먼저 고르면 후보를 해당 역할 보유 Resource로 제한하고 새로 선택한 Resource의 초기 역할도 그 값으로 채운다.
+
+migration 이전 역할 미지정 assignment는 `역할 미지정 (기존)`으로 표시한다. 이 상태는 기존 데이터를 파괴하지 않기 위해 그대로 저장할 수 있지만 새 개인 Resource를 선택한 경우에는 역할이 필수다. 역할 변경은 allocation draft를 재초기화하지 않는다.
+
+역할 stale 또는 Resource role 변경 race는 저장 성공으로 처리하지 않는다. Project/candidate snapshot의 revision 계약을 유지하고 409/412에서는 최신 정보 재확인을 안내한다. Group pane은 수행 역할 UI 없이 기존 담당 팀 참조 계약을 유지한다.
+
+### Issue #413 역할 후보 서버 필터
+
+수행 역할 필터 선택 시 client는 `assignment-targets?kind=resource&role=...`를 다시 조회한다. 역할 후보는 서버에서 100건 제한 전에 필터링하며, 응답 catalog revision이 현재 snapshot과 다르면 후보를 성공 상태로 승격하지 않는다. 역할별 후보 조회 중에는 별도 status를 표시하고 결과가 도착한 뒤 해당 Resource 목록을 사용한다.

@@ -169,3 +169,19 @@ PR #55 최종 head `6d30120bbd8b075d7a1b90ed485fddffa3ebc5b7`, GitHub Actions CI
 - relocated Compose persistence
 
 Windows Excel 2021과 조직 DRM 환경에서 실제 `.xlsx` 열기 및 DrawingML 렌더링 검증은 GitHub-hosted runner로 대체하지 않으며 별도 Environment-specific Validation 항목으로 유지한다.
+
+## Issue #345: 미산정 Summary 행
+
+빈 Summary와 빈 Summary만 중첩된 행을 WBS/유형/이름/outline 순서대로 유지한다. canonical null 날짜·기간·진척 셀은 공란이며 Excel serial 0 또는 0%/100%로 생성하지 않는다. Gantt timeline은 날짜 있는 행만으로 계산하고 미산정 Summary bar는 그리지 않는다. 전체가 미산정이면 날짜 열 집합은 비어도 작업 행은 남는다. 실제 Task/Milestone의 날짜/기간/진척 검증과 Project direct hyperlink 계약은 유지한다.
+
+
+## Issue #415 — 역할·개발자 계획 공수 견적
+
+Excel 요청은 선택적으로 `includeResourceEffort: true`를 받을 수 있다. 생략 또는 false이면 기존 workbook 구조는 바뀌지 않는다. true이면 기존 Gantt/Tasks/Project/Dependencies/Logistics 시트 뒤에 다음 두 시트를 append한다.
+
+- `Resource Effort Summary`: Project/Catalog revision, 조회 기간, `RESOURCE_MD_PER_MM`, 전체 및 역할별 M/D·M/M, 공수/역할 미설정 건수, 과투입 Resource 수, DEVELOPER 개인별 계획 공수를 제공한다.
+- `Resource Effort Detail`: assignmentId 단위로 Task/WBS/상태/진행률/일정, Resource 식별자·코드·이름·수행 역할·개발자 등급, Group 목록, assignment 기간/투입률, canonical 유효 근무일, M/D·M/M, 지연/공수 설정 상태를 제공한다.
+
+계산 권위는 #414 `resource-workload`와 동일한 서버 서비스다. export handler는 Project snapshot과 workload의 `projectRevision`이 동일한 경우에만 workbook을 생성하고 다르면 412로 실패한다. 여러 Resource Group에 같은 Resource가 속해도 Detail은 `assignmentId` 기준 한 행만 생성하고 Group은 쉼표 목록으로 표시한다. `RESOURCE_MD_PER_MM`이 없으면 M/D는 유지하되 M/M은 `미설정`으로 표시하며 0으로 환산하지 않는다.
+
+모든 사용자 문자열은 기존 formula injection/cell length 보호를 그대로 거치며 내부 DB PK, edit session/password/token은 내보내지 않는다. 실제 Excel 2021/DRM 호환성은 자동 OOXML parser 검증과 별개의 Environment-specific Validation으로 관리한다.

@@ -19,7 +19,6 @@ import {
 } from "../repositories/schedule-repository-core";
 import {
   EditSessionInvalidError,
-  EmptySummaryNotAllowedError,
   PersistedScheduleInvalidError,
   recalculatePersistedHierarchy,
   RevisionMismatchError,
@@ -51,6 +50,7 @@ function taskDtos(tasks: readonly TaskRecord[]): ProjectTaskDto[] {
       end: task.endDate,
       duration: task.duration,
       progress: task.progress,
+      status: task.status,
       parentExternalId: parentExternalId ?? null,
       siblingOrder: task.sortOrder,
       baselineStart: task.baselineStart,
@@ -151,12 +151,7 @@ export class TaskSubtreeDeleteService {
       if (links.some((link) => deleteIds.has(link.predecessorTaskId) || deleteIds.has(link.successorTaskId))) {
         throw new UnsupportedScheduleStructureError();
       }
-      if (
-        current.parentId !== null &&
-        !tasks.some((task) => task.parentId === current.parentId && !deleteIds.has(task.id))
-      ) {
-        throw new EmptySummaryNotAllowedError();
-      }
+
 
       for (const task of deleteOrder) {
         if (!this.schedules.deleteTask(project.id, task.publicId)) throw new TaskNotFoundError();

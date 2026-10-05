@@ -20,6 +20,7 @@
 - **Progressive disclosure**: 설명·revision·상세 설정·보조 명령은 필요할 때 열어 보고, 핵심 상태와 주요 명령만 상시 표시한다.
 - **Precise feedback**: loading/empty/readonly/editing/disabled/error/success/stale 상태를 일관된 semantic token과 텍스트로 구분한다.
 - **SVAR-native interaction**: Gantt 내부 동작은 설치된 SVAR React Gantt Core의 공식 기능/API와 사용자 기대를 우선한다.
+- **Scope-relative command semantics**: 동일한 native action은 현재 WBS scope의 사용자 의미와 canonical hierarchy를 함께 반영하는 단일 resolver로 해석한다. 표시된 enabled/disabled 상태, pointer/keyboard target, 실제 서버 command가 서로 다른 의미를 가져서는 안 되며 scope 변경을 Gantt remount나 임시 client state로 해결하지 않는다.
 
 ## 2. Reference Hierarchy
 
@@ -127,6 +128,30 @@ Primary Work Surface
 - owner/description/date/actions는 정보 중요도에 따라 시각 계층을 둔다.
 - search/filter와 row action은 table 자체보다 우선해 공간을 차지하지 않는다.
 - Airtable의 structured table/filter UX를 보조 reference로 사용한다.
+
+### Data Table Column Sizing
+
+Project List와 관리 화면처럼 열이 많은 data table은 **column budget을 명시적으로 설계**한다.
+
+- 열을 모두 percentage width로 합계 100%까지 채운 뒤 action 등 fixed-width 열을 추가하지 않는다.
+- 열을 `fixed / minimum / flexible` 역할로 구분하고, 날짜·상태·코드·action처럼 `nowrap`이 필요한 metadata는 실제 표시 문자열의 intrinsic width와 padding을 포함한 최소 폭을 확보한다.
+- Project/Description처럼 가변 텍스트가 있는 열이 남는 폭을 우선 흡수하고, metadata 열은 인접 셀을 침범하지 않게 한다.
+- 열 추가·삭제·label 변경·locale/date format 변경 시 기존 width를 그대로 두지 말고 **전체 column budget을 다시 계산**한다.
+- viewport가 부족하면 cell overlap이나 document-level overflow로 버티지 않고 table container가 소유하는 horizontal scroll을 사용한다.
+- header/body의 열 경계, 긴 문자열, locale/timezone 기반 날짜/시간, 390/768/1024/1440/wide desktop을 실제 browser에서 확인한다.
+- 정적 CSS 값만으로 충분하다고 판단하지 않고 E2E 또는 browser geometry evidence로 sibling cell 침범 여부를 검증한다.
+
+### Data-dense Management Screen Geometry
+
+Table이 아닌 Resource/Admin list·card·pane도 **명시적 geometry budget**을 가진다.
+
+- 정보량이 다른 sibling pane을 기계적으로 `1fr / 1fr`로 나누지 않는다. 각 pane의 minimum/intrinsic requirement를 먼저 정의하고 primary workspace가 더 많은 metadata·편집 control을 가지면 더 큰 flexible budget을 배정한다.
+- 관리 row는 `identity / profile(metadata·capability) / lifecycle·destructive action`처럼 의미 단위로 나누고 fixed/minimum/flexible 역할을 정한다. `minmax(0, 1fr) + auto`의 auto 영역이 primary identity를 한두 글자 폭으로 collapse시키는 구조를 허용하지 않는다.
+- profile field는 서로 근접 배치하고 lifecycle/destructive action은 spacing, divider 또는 별도 action group으로 구분한다.
+- inline editable control 수가 안정적으로 들어가지 않으면 무한 wrap으로 버티지 말고 popover/dialog/detail row 같은 progressive disclosure를 우선 검토한다.
+- search/filter/create toolbar와 실제 list workspace는 서로 다른 layout responsibility다. toolbar 또는 create form의 intrinsic width가 list usable width를 소유하거나 침범하지 않게 한다.
+- footer에서는 secondary navigation/cancel과 primary commit action의 우선순위·위치를 화면 계약으로 명시하고 전역 button margin 때문에 footer geometry가 변하지 않게 한다.
+- 필드/role/action 추가 시 기존 CSS를 그대로 재사용하지 말고 pane/row budget을 다시 계산한다. 390/768/1024/1440/wide desktop과 긴 문자열·최대 control 조합을 실제 browser geometry로 검증한다.
 
 ### Project Workspace
 

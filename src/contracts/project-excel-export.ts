@@ -7,6 +7,8 @@ export type ProjectExcelGridColumnId =
 export interface ProjectExcelExportRequest {
   includeDependencies: boolean;
   includeLogistics?: boolean;
+  /** Issue #415. Adds role/developer planned-effort estimate sheets when true. */
+  includeResourceEffort?: boolean;
   scope: "project";
   scale: "day";
   hierarchyDisplay: "expanded";

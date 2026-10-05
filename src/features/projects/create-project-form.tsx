@@ -149,94 +149,120 @@ export function CreateProjectForm({ onBeginSubmission, onEndSubmission }: Submis
   }
 
   return (
-    <form className="project-form" noValidate onSubmit={submit}>
-      <div className="form-field">
-        <label htmlFor="project-name">프로젝트 이름</label>
-        <input
-          autoComplete="off"
-          disabled={isSubmitting}
-          id="project-name"
-          aria-invalid={Boolean(fieldErrors.name)}
-          aria-describedby={fieldErrors.name ? "project-name-error" : undefined}
-          name="name"
-          onChange={(event) => { setName(event.target.value); clearFieldError("name"); }}
-          required
-          value={name}
-        />
-        {fieldErrors.name ? <p className="form-field-error" id="project-name-error">{fieldErrors.name}</p> : null}
-      </div>
+    <form className="project-form project-create-form" noValidate onSubmit={submit}>
+      <section
+        aria-labelledby="project-create-basic-heading"
+        className="project-create-section project-create-basic-section"
+      >
+        <h2 className="project-create-section-title" id="project-create-basic-heading">기본 정보</h2>
+        <div className="project-create-section-grid project-create-basic-grid">
+          <div className="form-field project-create-name-field">
+            <label htmlFor="project-name">프로젝트 이름</label>
+            <input
+              autoComplete="off"
+              disabled={isSubmitting}
+              id="project-name"
+              aria-invalid={Boolean(fieldErrors.name)}
+              aria-describedby={fieldErrors.name ? "project-name-error" : undefined}
+              name="name"
+              onChange={(event) => { setName(event.target.value); clearFieldError("name"); }}
+              required
+              value={name}
+            />
+            {fieldErrors.name ? <p className="form-field-error" id="project-name-error">{fieldErrors.name}</p> : null}
+          </div>
 
-      <div className="form-field">
-        <label htmlFor="project-owner">소유자</label>
-        <input
-          autoComplete="off"
-          disabled={isSubmitting}
-          id="project-owner"
-          aria-invalid={Boolean(fieldErrors.ownerName)}
-          aria-describedby={fieldErrors.ownerName ? "project-owner-help project-owner-error" : "project-owner-help"}
-          name="ownerName"
-          onChange={(event) => { setOwnerName(event.target.value); clearFieldError("ownerName"); }}
-          required
-          value={ownerName}
-        />
-        <p id="project-owner-help">프로젝트 담당자를 표시하는 정보이며 계정/권한과는 연결되지 않습니다. Unicode 문자 기준 최대 100자입니다.</p>
-        {fieldErrors.ownerName ? <p className="form-field-error" id="project-owner-error">{fieldErrors.ownerName}</p> : null}
-      </div>
+          <div className="form-field project-create-owner-field">
+            <label htmlFor="project-owner">소유자</label>
+            <input
+              autoComplete="off"
+              disabled={isSubmitting}
+              id="project-owner"
+              aria-invalid={Boolean(fieldErrors.ownerName)}
+              aria-describedby={fieldErrors.ownerName ? "project-owner-help project-owner-error" : "project-owner-help"}
+              name="ownerName"
+              onChange={(event) => { setOwnerName(event.target.value); clearFieldError("ownerName"); }}
+              required
+              value={ownerName}
+            />
+            <p id="project-owner-help">프로젝트 담당자를 표시하는 정보이며 계정/권한과는 연결되지 않습니다. Unicode 문자 기준 최대 100자입니다.</p>
+            {fieldErrors.ownerName ? <p className="form-field-error" id="project-owner-error">{fieldErrors.ownerName}</p> : null}
+          </div>
 
-      {masterCatalog.state === "ready" && masterCatalog.catalog ? (
-        <ProjectMasterSelectFields
-          value={masterSelection}
-          onChange={setMasterSelection}
-          disabled={isSubmitting}
-          catalog={masterCatalog.catalog}
-        />
-      ) : (
-        <div className={masterCatalog.state === "error" ? "form-error" : "form-status"} role={masterCatalog.state === "error" ? "alert" : "status"}>
-          <span>{masterCatalog.state === "loading" ? "프로젝트 기준정보를 불러오는 중…" : "프로젝트 기준정보를 불러오지 못했습니다."}</span>
-          {masterCatalog.state === "error" ? <button className="secondary-button" type="button" onClick={masterCatalog.reload}>다시 시도</button> : null}
+          <div className="form-field project-create-status-field">
+            <label htmlFor="project-status">프로젝트 상태</label>
+            <select disabled={isSubmitting} id="project-status" name="status" value={status}
+              onChange={(event) => setStatus(event.target.value as ProjectStatus)}>
+              {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
+            </select>
+          </div>
         </div>
-      )}
+      </section>
 
-      <div className="form-field">
-        <label htmlFor="project-description">설명 <span>(선택)</span></label>
-        <textarea
-          disabled={isSubmitting}
-          id="project-description"
-          name="description"
-          onChange={(event) => setDescription(event.target.value)}
-          rows={4}
-          value={description}
-        />
-      </div>
+      <section
+        aria-labelledby="project-create-classification-heading"
+        className="project-create-section project-create-classification-section"
+      >
+        <h2 className="project-create-section-title" id="project-create-classification-heading">프로젝트 분류</h2>
+        {masterCatalog.state === "ready" && masterCatalog.catalog ? (
+          <ProjectMasterSelectFields
+            value={masterSelection}
+            onChange={setMasterSelection}
+            disabled={isSubmitting}
+            catalog={masterCatalog.catalog}
+          />
+        ) : (
+          <div className={masterCatalog.state === "error" ? "form-error" : "form-status"} role={masterCatalog.state === "error" ? "alert" : "status"}>
+            <span>{masterCatalog.state === "loading" ? "프로젝트 기준정보를 불러오는 중…" : "프로젝트 기준정보를 불러오지 못했습니다."}</span>
+            {masterCatalog.state === "error" ? <button className="secondary-button" type="button" onClick={masterCatalog.reload}>다시 시도</button> : null}
+          </div>
+        )}
+      </section>
 
-      <div className="form-field">
-        <label htmlFor="project-status">프로젝트 상태</label>
-        <select disabled={isSubmitting} id="project-status" name="status" value={status}
-          onChange={(event) => setStatus(event.target.value as ProjectStatus)}>
-          {PROJECT_STATUS_OPTIONS.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
-        </select>
-      </div>
+      <section
+        aria-labelledby="project-create-description-heading"
+        className="project-create-section project-create-description-section"
+      >
+        <h2 className="project-create-section-title" id="project-create-description-heading">설명</h2>
+        <div className="form-field project-create-description-field">
+          <label htmlFor="project-description">프로젝트 설명 <span>(선택)</span></label>
+          <textarea
+            disabled={isSubmitting}
+            id="project-description"
+            name="description"
+            onChange={(event) => setDescription(event.target.value)}
+            rows={4}
+            value={description}
+          />
+        </div>
+      </section>
 
-      <div className="form-field">
-        <label htmlFor="project-edit-password">편집 비밀번호</label>
-        <input
-          aria-describedby={fieldErrors.editPassword ? "project-password-help project-password-error" : "project-password-help"}
-          aria-invalid={Boolean(fieldErrors.editPassword)}
-          autoComplete="new-password"
-          disabled={isSubmitting}
-          id="project-edit-password"
-          minLength={MINIMUM_PASSWORD_LENGTH}
-          name="editPassword"
-          onChange={(event) => { setEditPassword(event.target.value); clearFieldError("editPassword"); }}
-          required
-          type="password"
-          value={editPassword}
-        />
-        <p id="project-password-help">
-          1~12자, UTF-8 기준 최대 1,024 bytes입니다. 서버가 최종 검증합니다.
-        </p>
-        {fieldErrors.editPassword ? <p className="form-field-error" id="project-password-error">{fieldErrors.editPassword}</p> : null}
-      </div>
+      <section
+        aria-labelledby="project-create-permission-heading"
+        className="project-create-section project-create-permission-section"
+      >
+        <h2 className="project-create-section-title" id="project-create-permission-heading">편집 권한</h2>
+        <div className="form-field project-create-password-field">
+          <label htmlFor="project-edit-password">편집 비밀번호</label>
+          <input
+            aria-describedby={fieldErrors.editPassword ? "project-password-help project-password-error" : "project-password-help"}
+            aria-invalid={Boolean(fieldErrors.editPassword)}
+            autoComplete="new-password"
+            disabled={isSubmitting}
+            id="project-edit-password"
+            minLength={MINIMUM_PASSWORD_LENGTH}
+            name="editPassword"
+            onChange={(event) => { setEditPassword(event.target.value); clearFieldError("editPassword"); }}
+            required
+            type="password"
+            value={editPassword}
+          />
+          <p id="project-password-help">
+            1~12자, UTF-8 기준 최대 1,024 bytes입니다. 서버가 최종 검증합니다.
+          </p>
+          {fieldErrors.editPassword ? <p className="form-field-error" id="project-password-error">{fieldErrors.editPassword}</p> : null}
+        </div>
+      </section>
 
       {Object.keys(fieldErrors).length > 0 ? <div className="form-error" ref={errorReference} role="alert" tabIndex={-1}>
         <strong>프로젝트 입력 {Object.keys(fieldErrors).length}곳을 확인해 주세요.</strong>

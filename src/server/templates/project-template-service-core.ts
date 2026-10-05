@@ -1,3 +1,4 @@
+import { PersistedScheduleInvalidError } from "../projects/project-service-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -193,25 +194,21 @@ export class ProjectTemplateService {
 
       // 기준 시작일: 가장 빠른 태스크 시작일 (없으면 프로젝트 생성일자)
       let refStart = source.createdAt.slice(0, 10);
-      if (tasks.length > 0) {
-        let earliest = tasks[0].startDate;
-        for (const t of tasks) {
-          if (t.startDate < earliest) earliest = t.startDate;
-        }
-        refStart = earliest;
-      }
+      const scheduledDates = tasks.flatMap((task) => task.startDate === null ? [] : [task.startDate]);
+      if (scheduledDates.length > 0) refStart = scheduledDates.reduce((a,b) => a < b ? a : b);
       if (!isWorkingDay(refStart, calendar)) {
         refStart = nextWorkingDay(refStart, calendar, true);
       }
 
       const taskExternalById = new Map(tasks.map((t) => [t.id, t.externalId]));
       const taskSnapshots: TemplateTaskSnapshotItem[] = tasks.map((t) => {
-        let offsetDays = 0;
+        let offsetDays: number | null = null;
         try {
+          if (t.startDate === null) throw new Error("Unscheduled summary");
           const days = workingDaysBetween(refStart, t.startDate, calendar);
           offsetDays = Math.max(0, days - 1);
         } catch {
-          offsetDays = 0;
+          offsetDays = t.startDate === null ? null : 0;
         }
         return {
           externalId: t.externalId,
@@ -258,6 +255,7 @@ export class ProjectTemplateService {
           offsetStartDays,
           offsetEndDays,
           allocationPercent: a.allocationPercent,
+          assignmentRole: a.kind === "resource" ? a.assignmentRole : null,
         };
       }).filter((a) => a.taskExternalId.length > 0);
 
@@ -562,10 +560,13 @@ export class ProjectTemplateService {
           }
 
           const taskPublicId = randomUUID();
-          const startDate = endFromStart(projectStart, t.offsetDays + 1, calendar);
-          const endDate = t.type === "milestone"
+          if (t.type !== "summary" && (t.offsetDays === null || t.duration === null)) {
+            throw new PersistedScheduleInvalidError();
+          }
+          const startDate = t.type === "summary" ? null : endFromStart(projectStart, t.offsetDays! + 1, calendar);
+          const endDate = t.type === "summary" ? null : t.type === "milestone"
             ? startDate
-            : endFromStart(startDate, Math.max(1, t.duration), calendar);
+            : endFromStart(startDate!, Math.max(1, t.duration!), calendar);
 
           const parentRecord = t.parentExternalId ? newByExternalId.get(t.parentExternalId) : undefined;
           const insertedTask = this.schedules.insertTask({
@@ -579,8 +580,8 @@ export class ProjectTemplateService {
             requestedStart: t.type === "summary" ? null : startDate,
             startDate,
             endDate,
-            duration: t.type === "milestone" ? 0 : Math.max(1, t.duration),
-            progress: 0,
+            duration: t.type === "summary" ? null : t.type === "milestone" ? 0 : Math.max(1, t.duration!),
+            progress: t.type === "summary" ? null : 0,
             sortOrder: t.siblingOrder,
             description: t.description ?? null,
             url: t.url ?? null,
@@ -676,6 +677,7 @@ export class ProjectTemplateService {
         assignmentStart: string | null;
         assignmentEnd: string | null;
         allocationPercent: number | null;
+        assignmentRole: import("../../contracts/resources").ResourceRole | null;
       }>>();
 
       for (const a of snapshot.assignments) {
@@ -684,12 +686,17 @@ export class ProjectTemplateService {
 
         let internalTargetId: number | undefined;
         let isActive = true;
+        let assignmentRole = a.kind === "resource" ? a.assignmentRole ?? null : null;
 
         if (a.kind === "resource") {
           const res = this.resources.findResourceByPublicId(a.targetPublicId);
           if (res) {
             internalTargetId = res.id;
             isActive = res.active;
+            if (assignmentRole !== null && !res.roles.includes(assignmentRole)) {
+              warnings.push(`배정 대상 리소스(${a.targetPublicId})의 수행 역할(${assignmentRole})이 현재 Global Role에 없어 역할 미지정으로 복원되었습니다.`);
+              assignmentRole = null;
+            }
           }
         } else {
           const grp = this.resources.findGroupByPublicId(a.targetPublicId);
@@ -720,6 +727,7 @@ export class ProjectTemplateService {
             ? null
             : endFromStart(projectStart, a.offsetEndDays + 1, calendar),
           allocationPercent: a.allocationPercent,
+          assignmentRole,
         });
         assignmentsByTaskId.set(taskInfo.id, list);
       }
@@ -935,6 +943,7 @@ export class ProjectTemplateService {
         end: t.endDate,
         duration: t.duration,
         progress: t.progress,
+        status: t.status,
         parentExternalId: t.parentId ? (taskMap.get(t.parentId) ?? null) : null,
         siblingOrder: t.sortOrder,
         description: t.description ?? undefined,
@@ -953,6 +962,7 @@ export class ProjectTemplateService {
         id: assignment.publicId,
         taskId: assignment.taskPublicId,
         target: { kind: assignment.kind, id: assignment.targetPublicId },
+        role: assignment.kind === "resource" ? assignment.assignmentRole : null,
         allocation: assignment.kind === "resource"
           ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
           : null,
