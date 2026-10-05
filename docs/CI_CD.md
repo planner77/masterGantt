@@ -514,3 +514,12 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 - cache hit/miss는 required quality/e2e/docker PASS를 대체하지 않는다. secret/token/`.env`/runtime DB/test PASS evidence는 cache 또는 setup metric artifact에 저장하지 않는다.
 
 #444의 이번 PR은 Phase 2 실행 도구와 Phase 3 guard를 준비하는 변경이며, 실제 최적화 채택은 각 비교 그룹의 10-run baseline과 동일 workload의 before/after evidence가 확보된 뒤 수행한다.
+
+### Phase 2 readiness 자동화
+
+- `.github/workflows/ci-setup-readiness.yml`은 성공한 `CI` 또는 `Publish release image` 완료 뒤와 일일 schedule에서 #444의 readiness를 자동 재평가한다. Issue가 닫힌 뒤에는 artifact 수집과 댓글 갱신을 생략한다.
+- write 권한 workflow는 `workflow_run`의 PR head를 실행하지 않고 항상 trusted `main`을 checkout한다. 외부 artifact는 JSONL 데이터로만 파싱하며 command/script로 실행하지 않는다.
+- canonical 입력은 PR=`ci.yml/pull_request`, Main=`ci.yml/push`, Release=`release-image.yml/workflow_dispatch`의 **successful run**이다. 각 lane에서 최근 setup-metric artifact가 있는 최대 25개 run을 수집하고 analyzer의 distinct run 기준을 그대로 적용한다.
+- 결과는 `ci-setup-phase2-readiness-<run id>` artifact와 #444의 단일 `mastergantt-ci-setup-readiness:v1` marker 댓글에 기록한다. 동일 marker 댓글은 새로 쌓지 않고 PATCH 갱신한다.
+- `READY`가 되어도 cache 변경/PR 생성/Issue close를 자동 수행하지 않는다. Manager/infra가 비용 상위 후보와 stale/security risk를 검토한 뒤 Phase 2 최적화를 명시적으로 재개한다.
+
