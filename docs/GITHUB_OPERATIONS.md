@@ -237,8 +237,8 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 
 - CI setup metric artifact는 성능 관찰 데이터이며 required check나 release evidence를 대체하지 않는다.
 - artifact 이름은 CI build/E2E/Docker/Main image와 Release static/E2E/candidate 단위로 구분하고 retention 30일을 사용한다.
-- baseline 분석 시 최소 10개의 successful run만 사용하고 event(`pull_request`, `push`, release/tag 실행)를 섞어 단일 숫자로 평균내지 않는다.
-- artifact를 내려받아 한 디렉터리에 모은 뒤 `node scripts/analyze-ci-setup-metrics.mjs --input <dir> --min-samples 10 --output <json>`으로 median/p90을 계산한다.
+- baseline 분석 입력은 successful workflow run의 artifact로 제한한다. workflow 파일/event/job/metric을 서로 다른 workload로 취급하며 PR/Main/Release나 서로 다른 job을 섞어 단일 숫자로 평균내지 않는다.
+- artifact를 내려받아 한 디렉터리에 모은 뒤 `node scripts/analyze-ci-setup-metrics.mjs --input <dir> --min-samples 10 --output <json>`으로 median/p90을 계산한다. Phase 2 readiness의 `10`은 record 수가 아니라 **서로 다른 successful run ID 수**이며 E2E matrix shard와 동일 run 재실행은 새 run 표본으로 세지 않는다.
 - 새로운 cache를 도입할 때는 cache key 입력, invalidation, miss fallback, write 권한, secret 포함 여부를 함께 검토한다. cache hit 자체를 PASS 근거로 사용하지 않는다.
 - `node_modules` cache는 금지한다. Playwright browser cache는 Phase 1 baseline에서 download/install 비용이 유의미한 것으로 확인된 뒤 별도 PR로만 활성화한다.
 - setup 비용 최적화 PR은 기존 required checks, test 개수, audit, Docker/runtime smoke를 줄이는 방법으로 성능을 만들지 않는다.
