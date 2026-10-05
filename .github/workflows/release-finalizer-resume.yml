@@ -1,7 +1,7 @@
 name: 범용 Release Completion Finalizer
 
 run-name: >-
-  ${{ github.event_name == 'workflow_dispatch' && format('Finalizer Resume · explicit handoff · {0} · Resume Run #{1}.{2}', inputs.target_sha, github.run_number, github.run_attempt) || format('Finalizer Resume · {0} · Resume Run #{1}.{2}', github.event.workflow_run.display_title, github.run_number, github.run_attempt) }}
+  ${{ github.event_name == 'workflow_dispatch' && format('Finalizer Resume · explicit handoff · {0} · Release Run {1} · Resume Run #{2}.{3}', inputs.target_sha, inputs.release_run_id, github.run_number, github.run_attempt) || format('Finalizer Resume · {0} · Resume Run #{1}.{2}', github.event.workflow_run.display_title, github.run_number, github.run_attempt) }}
 
 on:
   workflow_run:
@@ -11,6 +11,10 @@ on:
     inputs:
       target_sha:
         description: "완료된 release가 검증한 exact main merge SHA"
+        required: true
+        type: string
+      release_run_id:
+        description: "완료 evidence를 기다릴 source Publish release image run ID"
         required: true
         type: string
 
@@ -52,6 +56,50 @@ jobs:
             echo "Release resume target SHA 형식이 올바르지 않습니다: $TARGET_SHA" >&2
             exit 1
           }
+
+      - name: explicit source Release 완료 evidence 대기
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_SHA: ${{ inputs.target_sha }}
+          RELEASE_RUN_ID: ${{ inputs.release_run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_RUN_ID" =~ ^[0-9]+$ ]] || {
+            echo "Release run ID 형식이 올바르지 않습니다: $RELEASE_RUN_ID" >&2
+            exit 1
+          }
+
+          deadline=$((SECONDS + 600))
+          while (( SECONDS < deadline )); do
+            run_json="$(gh api "/repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID")"
+            status="$(jq -r '.status // empty' <<<"$run_json")"
+            if [[ "$status" == "completed" ]]; then
+              conclusion="$(jq -r '.conclusion // empty' <<<"$run_json")"
+              head_sha="$(jq -r '.head_sha // empty' <<<"$run_json")"
+              workflow_path="$(jq -r '.path // empty' <<<"$run_json")"
+              [[ "$workflow_path" == ".github/workflows/release-image.yml" ]] || {
+                echo "Unexpected source workflow: $workflow_path" >&2
+                exit 1
+              }
+              [[ "$head_sha" == "$TARGET_SHA" ]] || {
+                echo "Release source SHA mismatch: $head_sha != $TARGET_SHA" >&2
+                exit 1
+              }
+              [[ "$conclusion" == "success" ]] || {
+                echo "Release source run did not succeed: $conclusion" >&2
+                exit 1
+              }
+              echo "Source Release 완료 확인: run=$RELEASE_RUN_ID sha=$TARGET_SHA"
+              sleep 2
+              exit 0
+            fi
+            sleep 5
+          done
+
+          echo "Source Release run 완료를 제한 시간 안에 확인하지 못했습니다: $RELEASE_RUN_ID" >&2
+          exit 1
 
       - name: release 완료 evidence로 lifecycle 재개
         env:
