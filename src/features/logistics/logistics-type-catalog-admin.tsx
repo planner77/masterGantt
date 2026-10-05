@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { LogisticsTypeCatalogItemDto, LogisticsTypeCatalogResponse, LogisticsTypeKind } from "@/contracts/logistics";
+import { AdminAuth, adminAuthStyles } from "@/components/admin-auth";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import styles from "./logistics-type-catalog-admin.module.css";
 
@@ -22,11 +23,18 @@ export function LogisticsTypeCatalogAdmin(){
   const [editing,setEditing]=useState<LogisticsTypeCatalogItemDto|null>(null);const [editName,setEditName]=useState("");
   const [passwordOpen,setPasswordOpen]=useState(false);const [newPassword,setNewPassword]=useState("");const [confirmPassword,setConfirmPassword]=useState("");
   const request=useRef<AbortController|null>(null);const loginRef=useRef<HTMLInputElement|null>(null);const passwordButtonRef=useRef<HTMLButtonElement|null>(null);
+  const restoreLoginFocus = useRef(false);
   useEffect(()=>()=>request.current?.abort(),[]);
+  useEffect(() => {
+    if (!authenticated && !busy && restoreLoginFocus.current) {
+      restoreLoginFocus.current = false;
+      loginRef.current?.focus();
+    }
+  }, [authenticated, busy]);
 
   function begin(){if(busy)return null;const c=new AbortController();request.current=c;setBusy(true);setError(null);setNotice(null);return c;}
   function end(c:AbortController){if(!c.signal.aborted)setBusy(false);}
-  function expire(){setAuthenticated(false);setCatalog(null);setState("error");setError("관리자 세션이 만료되었습니다. 다시 로그인해 주세요.");queueMicrotask(()=>loginRef.current?.focus());}
+  function expire(){restoreLoginFocus.current=true;setAuthenticated(false);setCatalog(null);setState("error");setError("관리자 세션이 만료되었습니다. 다시 로그인해 주세요.");}
   async function load(c:AbortController){setState("loading");try{const r=await fetch("/api/logistics-catalog/admin/equipment-types",{credentials:"same-origin",cache:"no-store",signal:c.signal});const body:unknown=await r.json().catch(()=>null);if(r.status===401){expire();return false;}if(!r.ok||!validCatalog(body)){setState("error");setError("최신 물류 유형 목록을 불러오지 못했습니다.");return false;}setCatalog(body);setState("ready");return true;}catch{if(!c.signal.aborted){setState("error");setError("물류 유형 카탈로그에 연결할 수 없습니다.");}return false;}}
   async function login(e:FormEvent){e.preventDefault();const c=begin();if(!c)return;const submitted=password;setPassword("");try{const r=await fetch("/api/logistics-catalog/admin-sessions",{method:"POST",credentials:"same-origin",signal:c.signal,headers:{"Content-Type":"application/json"},body:JSON.stringify({password:submitted})});if(!r.ok){setError("물류 관리자 인증에 실패했습니다.");return;}setAuthenticated(true);await load(c);}catch{if(!c.signal.aborted)setError("물류 관리자 인증 서버에 연결할 수 없습니다.");}finally{end(c);}}
   async function mutate(url:string,method:"POST"|"PATCH",body:unknown){if(!catalog||state!=="ready")return false;const c=begin();if(!c)return false;try{const r=await fetch(url,{method,credentials:"same-origin",signal:c.signal,headers:{"Content-Type":"application/json","If-Match":etag(catalog.data.revision)},body:JSON.stringify(body)});const value:unknown=await r.json().catch(()=>null);if(r.status===401){expire();return false;}if(r.status===412){await load(c);setError("다른 관리 변경이 먼저 저장되어 최신 목록을 다시 불러왔습니다.");return false;}if(!r.ok||!validCatalog(value)){setError("변경사항을 저장하지 못했습니다. 입력값과 중복 코드를 확인해 주세요.");return false;}setCatalog(value);setState("ready");setNotice("변경사항을 저장했습니다.");return true;}catch{if(!c.signal.aborted){setState("error");setError("변경 결과를 확인할 수 없습니다.");}return false;}finally{end(c);}}
@@ -37,7 +45,19 @@ export function LogisticsTypeCatalogAdmin(){
   async function changePassword(e:FormEvent){e.preventDefault();if(newPassword!==confirmPassword||Array.from(newPassword).length<1||Array.from(newPassword).length>12){setError("새 비밀번호는 1~12자이며 확인 값이 일치해야 합니다.");return;}const c=begin();if(!c)return;try{const r=await fetch("/api/logistics-catalog/admin-password",{method:"PUT",credentials:"same-origin",signal:c.signal,headers:{"Content-Type":"application/json"},body:JSON.stringify({newPassword,confirmPassword})});if(r.status===401){expire();return;}if(!r.ok){setError("관리자 비밀번호를 변경하지 못했습니다.");return;}setPasswordOpen(false);setNotice("관리자 비밀번호를 변경했습니다.");}catch{setError("비밀번호 변경 결과를 확인할 수 없습니다.");}finally{setNewPassword("");setConfirmPassword("");end(c);}}
   async function logout(){const c=begin();if(!c)return;try{const r=await fetch("/api/logistics-catalog/admin-sessions",{method:"DELETE",credentials:"same-origin",signal:c.signal});if(!r.ok)setError("서버 로그아웃을 확인하지 못했습니다. 관리 화면을 잠갔습니다.");}catch{if(!c.signal.aborted)setError("서버 로그아웃을 확인하지 못했습니다. 관리 화면을 잠갔습니다.");}finally{if(!c.signal.aborted){setAuthenticated(false);setCatalog(null);setState("error");setPassword("");setNewPassword("");setConfirmPassword("");end(c);}}}
 
-  if(!authenticated)return <form className={styles.login} onSubmit={login}><h2>관리자 로그인</h2><p>프로젝트 편집 권한과 별도의 글로벌 물류 관리자 권한이 필요합니다.</p>{error?<p className={styles.error} role="alert">{error}</p>:null}<label>관리자 비밀번호<input ref={loginRef} type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} disabled={busy}/></label><button className="primary-button" type="submit" disabled={busy||!password}>로그인</button></form>;
+  if (!authenticated) return <AdminAuth title="관리자 로그인" titleId="logistics-auth-title"
+    description="프로젝트 편집 권한과 별도의 글로벌 물류 관리자 권한이 필요합니다.">
+    <form className={adminAuthStyles.form} onSubmit={login}>
+      {error ? <p id="logistics-login-error" className={adminAuthStyles.error} role="alert">{error}</p> : null}
+      <div className={adminAuthStyles.controls}>
+        <label className={adminAuthStyles.field}>관리자 비밀번호
+          <input ref={loginRef} type="password" autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)} disabled={busy}
+            aria-describedby={error ? "logistics-login-error" : undefined}/>
+        </label>
+        <button className={`primary-button ${adminAuthStyles.submit}`} type="submit" disabled={busy||!password}>{busy ? "확인 중…" : "로그인"}</button>
+      </div>
+    </form>
+  </AdminAuth>;
   if(!catalog)return <div className={styles.panel}>{error?<p className={styles.error} role="alert">{error}</p>:null}<button className="secondary-button" onClick={()=>{const c=begin();if(c)void load(c).finally(()=>end(c));}}>다시 시도</button></div>;
 
   const items=kind==="equipment"?catalog.data.equipmentTypes:catalog.data.systemTypes;

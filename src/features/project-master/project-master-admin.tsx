@@ -6,6 +6,7 @@ import type {
   ProjectMasterCategory,
   ProjectMasterItemDto,
 } from "@/contracts/project-master";
+import { AdminAuth, adminAuthStyles } from "@/components/admin-auth";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import styles from "./project-master-admin.module.css";
 
@@ -224,32 +225,19 @@ export function ProjectMasterAdmin() {
         : "등록된 항목이 없습니다.";
 
   if (!authenticated) return (
-    <section className={styles.authSection} aria-labelledby="project-master-auth-title">
-      <div className={styles.sectionHeading}>
-        <p className={styles.eyebrow}>관리자 인증</p>
-        <h2 id="project-master-auth-title">프로젝트 기준정보 관리자 로그인</h2>
-        <p className={styles.note}>프로젝트 편집 비밀번호와 별도의 글로벌 기준정보 관리자 권한이 필요합니다.</p>
-      </div>
-      <form className={styles.loginForm} onSubmit={(event) => void login(event)}>
-        {error ? <p id="project-master-login-error" className={styles.error} role="alert">{error}</p> : null}
-        <div className={styles.loginControls}>
-          <label className={styles.field}>관리자 비밀번호
-            <input
-              ref={loginInput}
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              disabled={busy}
-              aria-describedby={error ? "project-master-login-error" : undefined}
-              onChange={(event) => setPassword(event.target.value)}
-            />
+    <AdminAuth title="프로젝트 기준정보 관리자 로그인" titleId="project-master-auth-title"
+      description="프로젝트 편집 비밀번호와 별도의 글로벌 기준정보 관리자 권한이 필요합니다.">
+      <form className={adminAuthStyles.form} onSubmit={(event) => void login(event)}>
+        {error ? <p id="project-master-login-error" className={adminAuthStyles.error} role="alert">{error}</p> : null}
+        <div className={adminAuthStyles.controls}>
+          <label className={adminAuthStyles.field}>관리자 비밀번호
+            <input ref={loginInput} type="password" autoComplete="current-password" value={password} disabled={busy}
+              aria-describedby={error ? "project-master-login-error" : undefined} onChange={(event) => setPassword(event.target.value)} />
           </label>
-          <button className="primary-button" disabled={busy || !password} type="submit">
-            {busy ? "확인 중…" : "로그인"}
-          </button>
+          <button className={`primary-button ${adminAuthStyles.submit}`} disabled={busy || !password} type="submit">{busy ? "확인 중…" : "로그인"}</button>
         </div>
       </form>
-    </section>
+    </AdminAuth>
   );
 
   return <div className={styles.panel}>

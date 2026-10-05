@@ -267,7 +267,8 @@ button:focus-visible {
   padding-block: clamp(1rem, 2vw, 1.5rem);
 }
 
-.main-content:has(> .resources-page) {
+.main-content:has(> .admin-page) {
+  width: min(calc(100% - 3rem), 100rem);
   padding-block: 1.25rem 2.5rem;
 }
 
@@ -457,18 +458,19 @@ h2 {
 
 .text-link,
 .secondary-button {
-  margin-top: 1.5rem;
   border-radius: calc(var(--radius) - 0.125rem);
   font-size: 0.875rem;
   font-weight: 650;
 }
 
 .text-link {
+  margin-top: 1.5rem;
   color: var(--primary);
   text-underline-offset: 0.2em;
 }
 
 .secondary-button {
+  margin: 0;
   min-height: 2.5rem;
   border: 1px solid #b9c8da;
   background: var(--card);
@@ -482,6 +484,7 @@ h2 {
 }
 
 .primary-button {
+  margin: 0;
   min-height: 2.5rem;
   border: 1px solid var(--primary);
   border-radius: calc(var(--radius) - 0.125rem);
@@ -1386,7 +1389,8 @@ h2 {
 .project-scope-tab:focus-visible, .project-scope-tab-close:focus-visible { outline:var(--focus-outline); outline-offset:calc(var(--focus-offset) * -1); }
 .project-scope-tab-item[data-invalid="true"] .project-scope-tab { text-decoration:line-through; }
 .project-scope-panel { display:flex; min-height:0; min-width:0; flex:1 1 0; flex-direction:column; gap:.5rem; width:100%; max-width:100%; }
-.project-scope-recovery-button.secondary-button { display:inline-flex; min-height:2rem; margin:.5rem 0 0; }
+.project-scope-recovery-actions { margin-top: .5rem; }
+.project-scope-recovery-button.secondary-button { display:inline-flex; min-height:2rem; }
 
 .project-readonly > .project-workspace-panels {
   position: relative;
@@ -2570,4 +2574,13 @@ h2 {
   .main-content:has(> .new-project-page) {
     width: calc(100% - 1.5rem);
   }
+}
+
+.standalone-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
+
+.admin-page { display: grid; gap: 1rem; min-width: 0; }
+.admin-page .section-heading p:last-child { margin-bottom: 0; }
+.admin-page h1 { font-size: 1.5rem; line-height: 1.25; }
+@media (max-width: 40rem) {
+  .main-content:has(> .admin-page) { width: calc(100% - 2rem); }
 }

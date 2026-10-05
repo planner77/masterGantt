@@ -249,7 +249,7 @@ export function ProjectSaveAsTemplateButton({ publicId, busy = false }: Props) {
         {loading ? <p className="dialog-empty-message" role="status">프로젝트 정보를 확인하고 있습니다…</p> : null}
         {error ? <div className="form-error-banner" role="alert">{error}</div> : null}
         {sourceNotice ? <p role="status">{sourceNotice}</p> : null}
-        {!loading && (sourceState === "loadError" || sourceState === "conflict") ? <button className="secondary-button" type="button" disabled={saving} onClick={() => void loadSource()}>{sourceState === "conflict" ? "최신 원본 확인" : "다시 시도"}</button> : null}
+        {!loading && (sourceState === "loadError" || sourceState === "conflict") ? <div className="standalone-actions"><button className="secondary-button" type="button" disabled={saving} onClick={() => void loadSource()}>{sourceState === "conflict" ? "최신 원본 확인" : "다시 시도"}</button></div> : null}
         {sourceId === publicId && snapshot ? <p>원본 revision {snapshot.data.project.revision} · 작업 {snapshot.data.tasks.length}{!ready ? " · 이전 조회 정보 · 최신 상태 확인 필요" : ""}</p> : null}
         <form className="form-grid" noValidate onSubmit={handleSubmit}>
 

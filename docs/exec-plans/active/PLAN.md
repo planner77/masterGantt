@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #452 관리자 공통 페이지·인증 폼·버튼 외부 간격 — 구현·문서 동기화 / PR CI 시작
+
+최신 main `6ce221bc16613625953b85244bb93ad50019b377` / application `0.83.3`에서 세 관리자 화면의 공통 shell/auth presentation과 parent-owned button spacing을 구현한다. 기존 세션·비밀번호·API·권한을 분리 유지하고 #453–#457의 개별 탭/표 재설계는 제외한다. 후보 version은 PATCH `0.83.4`, branch는 `fix/issue-452-admin-layout`이며 범위·인수 기준·소유권·문서는 [Issue #452 실행 계획](ISSUE_452.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 PR 생성과 exact head CI 시작 확인이다. CI 모니터링·병합·GHCR·Issue 종료는 범위 밖이다.
+
 ## Issue #430 Cut 내부 Dependency 허용 / 외부 경계 제한 — 구현·문서 동기화 / PR CI
 
 최신 기준 main `5dc0cb3356d59b868ed0dfbfd58ed44072fb646b` / application `0.81.0`에서 Cut source subtree 내부 Dependency는 기존 Link identity/endpoints/type/lag를 보존한 채 cross-parent Paste/reparent를 허용하고, source 경계를 넘는 incoming/outgoing Link만 Context Menu·Ctrl/Cmd+X·cut Paste·server reparent에서 동일하게 제한한다. linked anchor before/after는 허용하되 linked leaf `child` 전환과 Delete/Indent/Outdent/Convert 보호는 유지한다. 후보 version은 MINOR `0.82.0`, branch는 `feat/issue-430-cut-internal-dependency`이며 상세는 [Issue #430 실행 계획](ISSUE_430.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 PR 생성과 exact head PR CI 시작 확인이며 CI 완료·병합·main CI·GHCR·정식 release·Issue 종료는 범위 밖이다.

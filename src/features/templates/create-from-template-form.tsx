@@ -134,10 +134,10 @@ export function CreateFromTemplateForm({ onBeginSubmission, onEndSubmission }: S
     <p
       className="form-error"
       role="alert">템플릿 목록을 불러오지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.</p>
-    <button
+    <div className="standalone-actions"><button
       className="secondary-button"
       type="button"
-      onClick={() => { setLoadState("loading"); setRetry((value) => value + 1); }}>템플릿 목록 다시 시도</button>
+      onClick={() => { setLoadState("loading"); setRetry((value) => value + 1); }}>템플릿 목록 다시 시도</button></div>
   </div>;
   if (templates.length === 0) return <div
     className="card-empty-state">
