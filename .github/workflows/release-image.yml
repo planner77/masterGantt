@@ -114,14 +114,14 @@ jobs:
       - run: npm run build
 
   release_e2e_shard:
-    name: Release Chromium E2E shard ${{ matrix.shard }}/4
+    name: Release Chromium E2E shard ${{ matrix.shard }}/6
     runs-on: ubuntu-latest
     needs: prepare
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -136,7 +136,7 @@ jobs:
       - name: Release E2E shard 실행
         env:
           CI_E2E_FULLY_PARALLEL: "true"
-        run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/6
       - name: 실패 shard Playwright report 업로드
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
