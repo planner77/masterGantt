@@ -140,7 +140,9 @@ describe("deployment repository layout", () => {
     expect(ci).toContain(
       "verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup",
     );
-    expect(ci).not.toContain("node scripts/delete-ghcr-package-version-by-tag.mjs");
+    expect(ci).toContain('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"');
+    expect(ci).toContain('if [[ "${{ job.status }}" != "success" ]]');
+    expect(ci).toContain("GHCR cleanup: failed validation candidate ci-${GITHUB_SHA} deleted.");
     expect(text("scripts/issue_lifecycle.py")).toContain("cleanup_temporary_main_candidate");
     expect(text("scripts/issue_lifecycle.py")).toContain("scripts/delete-ghcr-package-version-by-tag.mjs");
     expect(text(".github/workflows/release-finalizer.yml")).toContain("packages: write");
