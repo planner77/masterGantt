@@ -321,6 +321,8 @@ jobs:
           docker restart mastergantt-release-candidate
           wait_for_ready
           docker exec mastergantt-release-candidate node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH, { readonly: true }); const row = db.prepare('SELECT COUNT(*) AS count FROM release_candidate_smoke WHERE value = ?').get('persisted'); db.close(); if (row.count !== 1) process.exit(1)"
+      - name: 릴리스 후보 Project·Task API persistence 검증
+        run: node scripts/verify-registry-api-smoke.mjs http://127.0.0.1:3000 mastergantt-release-candidate
       - name: 실패 시 candidate logs
         if: failure()
         run: docker logs mastergantt-release-candidate || true
@@ -328,11 +330,12 @@ jobs:
         if: always()
         run: docker rm --force --volumes mastergantt-release-candidate || true
 
+
   publish:
-    name: Verified digest 승격·attestation·registry smoke
+    name: Verified digest attestation·최종 tag promotion
     runs-on: ubuntu-latest
     needs: [prepare, quality, container]
-    timeout-minutes: 20
+    timeout-minutes: 15
     permissions:
       contents: read
       packages: write
@@ -353,17 +356,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: exact SemVer tag 상태 확인
-        id: exact
+
+      - name: exact SemVer tag 충돌 사전 확인
         env:
           EXACT_IMAGE: ${{ needs.prepare.outputs.exact_image }}
           CANDIDATE_DIGEST: ${{ needs.container.outputs.candidate_digest }}
         shell: bash
         run: |
           set -euo pipefail
-          existing=false
           if inspect_output="$(docker buildx imagetools inspect "$EXACT_IMAGE" 2>/dev/null)"; then
-            existing=true
             existing_digest="$(awk '$1 == "Digest:" { print $2; exit }' <<<"$inspect_output")"
             [[ "$existing_digest" == "$CANDIDATE_DIGEST" ]] || {
               echo "Refusing exact tag conflict: $EXACT_IMAGE -> $existing_digest, expected $CANDIDATE_DIGEST" >&2
@@ -371,69 +372,8 @@ jobs:
             }
             echo "Exact SemVer tag가 이미 동일 verified digest를 가리킵니다. idempotent retry로 계속합니다."
           fi
-          echo "existing=$existing" >> "$GITHUB_OUTPUT"
-      - name: Main verified digest를 exact SemVer tag로 승격
-        if: steps.exact.outputs.existing != 'true'
-        env:
-          EXACT_IMAGE: ${{ needs.prepare.outputs.exact_image }}
-          VERIFIED_IMAGE: ${{ needs.container.outputs.candidate_image }}
-          CANDIDATE_DIGEST: ${{ needs.container.outputs.candidate_digest }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          docker buildx imagetools create \
-            --prefer-index=false \
-            --tag "$EXACT_IMAGE" \
-            --metadata-file /tmp/promotion-metadata.json \
-            "$VERIFIED_IMAGE"
-          promoted_digest="$(jq -r '."containerimage.descriptor".digest // empty' /tmp/promotion-metadata.json)"
-          [[ "$promoted_digest" == "$CANDIDATE_DIGEST" ]] || {
-            echo "Digest promotion changed the verified digest: $promoted_digest != $CANDIDATE_DIGEST" >&2
-            exit 1
-          }
-      - name: exact SemVer tag digest 재검증
-        env:
-          EXACT_IMAGE: ${{ needs.prepare.outputs.exact_image }}
-          CANDIDATE_DIGEST: ${{ needs.container.outputs.candidate_digest }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          exact_digest="$(docker buildx imagetools inspect "$EXACT_IMAGE" | awk '$1 == "Digest:" { print $2; exit }')"
-          [[ "$exact_digest" == "$CANDIDATE_DIGEST" ]] || {
-            echo "Published exact SemVer digest mismatch: $exact_digest != $CANDIDATE_DIGEST" >&2
-            exit 1
-          }
-      - name: exact digest pull 및 실행
-        env:
-          RELEASE_IMAGE: ${{ needs.container.outputs.candidate_image }}
-        run: |
-          docker pull "$RELEASE_IMAGE"
-          docker run --detach --name mastergantt-release-smoke \
-            --env APP_BASE_URL=https://gantt.example.invalid \
-            --publish 127.0.0.1:3000:3000 \
-            "$RELEASE_IMAGE"
-      - name: 게시 image readiness·SQLite persistence 검증
-        shell: bash
-        run: |
-          set -euo pipefail
-          wait_for_ready() {
-            for _ in $(seq 1 30); do
-              if curl --fail --silent --show-error http://127.0.0.1:3000/api/health/ready; then
-                return 0
-              fi
-              sleep 1
-            done
-            docker logs mastergantt-release-smoke
-            return 1
-          }
-          wait_for_ready
-          docker exec mastergantt-release-smoke node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH); db.exec('CREATE TABLE IF NOT EXISTS release_smoke (value TEXT NOT NULL)'); db.prepare('INSERT INTO release_smoke (value) VALUES (?)').run('persisted'); db.close()"
-          docker restart mastergantt-release-smoke
-          wait_for_ready
-          docker exec mastergantt-release-smoke node -e "const Database = require('better-sqlite3'); const db = new Database(process.env.DATABASE_PATH, { readonly: true }); const row = db.prepare('SELECT COUNT(*) AS count FROM release_smoke WHERE value = ?').get('persisted'); db.close(); if (row.count !== 1) process.exit(1)"
-      - name: Released image Project·Task API persistence 검증
-        run: node scripts/verify-registry-api-smoke.mjs http://127.0.0.1:3000 mastergantt-release-smoke
-      - name: verified digest GitHub Attestation
+
+      - name: verified candidate digest GitHub Attestation
         id: attest
         if: vars.ENABLE_GITHUB_ATTESTATIONS == 'true'
         # actions/attest v4.2.2
@@ -442,47 +382,50 @@ jobs:
           subject-name: ${{ needs.prepare.outputs.image_name }}
           subject-digest: ${{ needs.container.outputs.candidate_digest }}
           push-to-registry: true
-      - name: verified digest를 stable rolling alias로 승격
-        if: needs.prepare.outputs.rolling_tags != ''
-        shell: bash
+
+      - name: 최종 exact·rolling tag를 verified digest로 promotion
         env:
+          EXACT_IMAGE: ${{ needs.prepare.outputs.exact_image }}
           VERIFIED_IMAGE: ${{ needs.container.outputs.candidate_image }}
-          ROLLING_TAGS: ${{ needs.prepare.outputs.rolling_tags }}
           CANDIDATE_DIGEST: ${{ needs.container.outputs.candidate_digest }}
+          ROLLING_TAGS: ${{ needs.prepare.outputs.rolling_tags }}
+        shell: bash
         run: |
           set -euo pipefail
-          tag_arguments=()
+
+          tag_arguments=(--tag "$EXACT_IMAGE")
           while IFS= read -r destination; do
             if [[ -n "$destination" ]]; then
               tag_arguments+=(--tag "$destination")
             fi
           done <<< "$ROLLING_TAGS"
-          docker buildx imagetools create --prefer-index=false "${tag_arguments[@]}" "$VERIFIED_IMAGE"
-          while IFS= read -r destination; do
-            [[ -z "$destination" ]] && continue
-            rolling_digest="$(docker buildx imagetools inspect "$destination" | awk '$1 == "Digest:" { print $2; exit }')"
-            [[ "$rolling_digest" == "$CANDIDATE_DIGEST" ]] || {
-              echo "Rolling alias digest mismatch: $destination -> $rolling_digest" >&2
-              exit 1
-            }
-          done <<< "$ROLLING_TAGS"
-      - name: release 좌표 기록
-        env:
-          EXACT_IMAGE: ${{ needs.prepare.outputs.exact_image }}
-          RELEASE_DIGEST: ${{ needs.container.outputs.candidate_digest }}
-        run: |
+
+          docker buildx imagetools create \
+            --prefer-index=false \
+            "${tag_arguments[@]}" \
+            --metadata-file /tmp/promotion-metadata.json \
+            "$VERIFIED_IMAGE"
+
+          promoted_digest="$(jq -r '."containerimage.descriptor".digest // empty' /tmp/promotion-metadata.json)"
+          [[ "$promoted_digest" == "$CANDIDATE_DIGEST" ]] || {
+            echo "Digest promotion changed the verified digest: $promoted_digest != $CANDIDATE_DIGEST" >&2
+            exit 1
+          }
+
           {
             echo "## Verified digest release promotion"
             echo
             echo "- Exact tag: $EXACT_IMAGE"
-            echo "- Digest: $RELEASE_DIGEST"
+            echo "- Digest: $CANDIDATE_DIGEST"
             echo "- Source candidate: ci-${{ needs.prepare.outputs.target_sha }}"
             echo "- Build: reused exact Main verified digest; no release rebuild."
+            echo "- Candidate runtime/API/transport gates: PASS before publication."
             echo "- SBOM/provenance: inherited from the Main BuildKit digest."
-          } >> "$GITHUB_STEP_SUMMARY"
-      - name: 실패 시 smoke-test logs
-        if: failure()
-        run: docker logs mastergantt-release-smoke || true
-      - name: smoke-test container 정리
-        if: always()
-        run: docker rm --force --volumes mastergantt-release-smoke || true
+            if [[ -n "$ROLLING_TAGS" ]]; then
+              echo "- Stable rolling aliases:"
+              while IFS= read -r destination; do
+                [[ -z "$destination" ]] && continue
+                echo "  - $destination"
+              done <<< "$ROLLING_TAGS"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY" || true
