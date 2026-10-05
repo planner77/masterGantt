@@ -28,6 +28,7 @@ permissions:
   actions: read
   issues: write
   pull-requests: read
+  packages: write
 
 jobs:
   resume:
