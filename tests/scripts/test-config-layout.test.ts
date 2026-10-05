@@ -74,6 +74,44 @@ describe("test configuration repository layout", () => {
     expect(optimizer).toContain("Refs #437");
     expect(optimizer).not.toContain("gh pr merge");
   });
+  it("measures setup/cache costs without caching node_modules or Playwright browsers before baseline", () => {
+    const ci = text(".github/workflows/ci.yml");
+    const release = text(".github/workflows/release-image.yml");
+    const nodeSetup = text(".github/actions/node-setup/action.yml");
+    const playwrightSetup = text(".github/actions/playwright-setup/action.yml");
+    const timingReporter = text("tests/config/e2e-timing-reporter.cjs");
+
+    for (const workflow of [ci, release]) {
+      expect(workflow).toContain("./.github/actions/node-setup");
+      expect(workflow).toContain("./.github/actions/playwright-setup");
+      expect(workflow).toContain("record-ci-setup-metric.mjs");
+    }
+
+    expect(nodeSetup).toContain("path: ~/.npm");
+    expect(nodeSetup).toContain("runner.arch");
+    expect(nodeSetup).toContain("hashFiles('package-lock.json')");
+    expect(nodeSetup).toContain("npm ci --prefer-offline --no-audit");
+    expect(nodeSetup).not.toContain("node_modules");
+
+    expect(playwrightSetup).toContain("playwright install-deps chromium");
+    expect(playwrightSetup).toContain("playwright install --only-shell chromium");
+    expect(playwrightSetup).toContain('cache "not-enabled"');
+    expect(playwrightSetup).not.toContain("actions/cache@");
+    expect(playwrightSetup).not.toContain("ms-playwright");
+
+    expect(ci).toContain("next-build-cache");
+    expect(ci).toContain("ci-setup-metrics-build");
+    expect(ci).toContain("ci-setup-metrics-docker");
+    expect(ci).toContain("ci-setup-metrics-main-image");
+    expect(release).toContain("release-setup-metrics-static");
+    expect(release).toContain("release-setup-metrics-e2e-shard-");
+    expect(release).toContain("release-setup-metrics-candidate");
+
+    expect(timingReporter).toContain("E2E_RUN_STARTED_MS");
+    expect(timingReporter).toContain("runnerReadyMs");
+    expect(existsSync(resolve(root, "scripts/analyze-ci-setup-metrics.mjs"))).toBe(true);
+  });
+
   it("keeps completed Issue #118 evidence manual-only", () => {
     const evidence = text(".github/workflows/issue-118-before-after-evidence.yml");
     expect(evidence).toContain("workflow_dispatch:");
