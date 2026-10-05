@@ -116,6 +116,8 @@ describe("deployment repository layout", () => {
     expect(ci.match(/context: \.\n\s+file: deploy\/docker\/Dockerfile/g)).toHaveLength(2);
     expect(release).not.toContain("docker/build-push-action@");
     expect(release).toContain("Main verified candidate exact digest 확인");
+    expect(release).toContain('git rev-parse "refs/tags/${GITHUB_REF_NAME}^{commit}"');
+    expect(release).toContain("EXPECTED_SHA: ${{ needs.prepare.outputs.target_sha }}");
     expect(release).toContain("docker buildx imagetools create");
     expect(release).toContain("--prefer-index=false");
     expect(release).toContain("Digest promotion changed the verified digest");
