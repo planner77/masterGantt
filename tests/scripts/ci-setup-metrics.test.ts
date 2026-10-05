@@ -43,7 +43,7 @@ describe("CI setup/cache metrics", () => {
       headSha: String(index).padStart(40, "0"), metric: "npm-ci", durationMs: (index + 1) * 1000,
       cache: index % 2 === 0 ? "exact-hit=true" : "exact-hit=false", recordedAt: "2026-10-05T00:00:00.000Z",
     }));
-    writeFileSync(join(history, "metrics.jsonl"), records.map(JSON.stringify).join("\n") + "\n");
+    writeFileSync(join(history, "metrics.jsonl"), records.map((value) => JSON.stringify(value)).join("\n") + "\n");
     const output = join(dir, "analysis.json");
     execFileSync(process.execPath, ["scripts/analyze-ci-setup-metrics.mjs", "--input", history, "--min-samples", "10", "--output", output], { cwd: root, stdio: "pipe" });
     const result = JSON.parse(readFileSync(output, "utf8"));
@@ -65,7 +65,7 @@ describe("CI setup/cache metrics", () => {
       ...Array.from({ length: 6 }, (_, i) => rec(".github/workflows/release-image.yml", "e2e", "300", 1, 2000 + i)),
       rec(".github/workflows/ci.yml", "build", "201", 1, 3000),
     ];
-    writeFileSync(join(history, "metrics.jsonl"), records.map(JSON.stringify).join("\n") + "\n");
+    writeFileSync(join(history, "metrics.jsonl"), records.map((value) => JSON.stringify(value)).join("\n") + "\n");
     const output = join(dir, "analysis.json");
     execFileSync(process.execPath, ["scripts/analyze-ci-setup-metrics.mjs", "--input", history, "--min-samples", "2", "--output", output], { cwd: root, stdio: "pipe" });
     const result = JSON.parse(readFileSync(output, "utf8"));
