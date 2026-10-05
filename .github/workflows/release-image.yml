@@ -494,3 +494,38 @@ jobs:
               done <<< "$ROLLING_TAGS"
             fi
           } >> "$GITHUB_STEP_SUMMARY" || true
+
+
+  resume_finalizer:
+    name: Release 완료 lifecycle handoff
+    if: ${{ always() && needs.publish.result == 'success' }}
+    runs-on: ubuntu-latest
+    needs: [prepare, publish]
+    timeout-minutes: 5
+    # Exact/rolling tag publication은 이미 완료된 상태다. Handoff 오류가 immutable
+    # release 성공을 실패로 뒤집지 않으며 workflow_run completion listener도 fallback으로 남긴다.
+    continue-on-error: true
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Generic Finalizer Resume 명시적 dispatch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_SHA: ${{ needs.prepare.outputs.target_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "Release target SHA 형식이 올바르지 않습니다: $TARGET_SHA" >&2
+            exit 1
+          }
+          gh api --method POST             "/repos/${GITHUB_REPOSITORY}/actions/workflows/release-finalizer-resume.yml/dispatches"             -f ref=main             -f "inputs[target_sha]=$TARGET_SHA"
+          {
+            echo "## Release lifecycle handoff"
+            echo
+            echo "- Resume workflow: release-finalizer-resume.yml"
+            echo "- Target SHA: `$TARGET_SHA`"
+            echo "- Trigger: explicit workflow_dispatch"
+            echo "- workflow_run completion listener: fallback 유지"
+          } >> "$GITHUB_STEP_SUMMARY" || true
