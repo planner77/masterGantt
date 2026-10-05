@@ -119,7 +119,7 @@ CI cache는 성능 보조 수단이며 검증 PASS 증거가 아니다. `npm ci`
 
 ### Main Artifact Validation
 
-`main` push에서는 동일 gate를 다시 통과한 뒤에만 `ci-<full SHA>` image를 GHCR에 게시한다. 게시한 image는 exact digest로 다시 pull하여 policy, readiness, native SQLite, Project/Task API authorization/persistence, restart persistence를 검증하고 SBOM/provenance를 생성한다. **successful non-docs main merge의 verified `ci-<SHA>`는 Main CI가 즉시 삭제하지 않고 Generic Release Finalizer에 lifecycle candidate로 인계**한다. `release_required=false`이면 Finalizer가 exact temporary candidate를 정리하고, release-required이면 formal release가 동일 verified digest를 재사용한다. 실패 artifact run은 successful candidate handoff가 아니며 정식 release 근거가 아니다. `ci-*` 자체는 운영·rollback용 정식 release authority가 아니며, 정식 사용 가능 여부는 annotated tag와 Release workflow의 exact-digest promotion이 성공한 뒤에만 판단한다.
+`main` push에서는 동일 gate를 다시 통과한 뒤에만 `ci-<full SHA>` image를 GHCR에 게시한다. 게시한 image는 exact digest로 다시 pull하여 policy, readiness, native SQLite, Project/Task API authorization/persistence, restart persistence를 검증하고 SBOM/provenance를 생성한다. **successful non-docs main merge의 verified `ci-<SHA>`는 Main CI가 즉시 삭제하지 않고 Generic Release Finalizer에 lifecycle candidate로 인계**한다. `release_required=false`이면 Finalizer가 exact temporary candidate를 정리하고, release-required이면 formal release가 동일 verified digest를 재사용한다. push 이후 검증에 실패한 artifact run은 Main CI에서 exact `ci-<SHA>` package version을 즉시 정리하며 successful candidate handoff나 정식 release 근거로 사용하지 않는다. `ci-*` 자체는 운영·rollback용 정식 release authority가 아니며, 정식 사용 가능 여부는 annotated tag와 Release workflow의 exact-digest promotion이 성공한 뒤에만 판단한다.
 
 로컬 Docker PASS나 PR PASS만으로 main GHCR artifact PASS를 주장하지 않는다.
 
