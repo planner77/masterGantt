@@ -53,7 +53,7 @@ GitHub/CI/GHCR 요청은 Docker 파일 수정이 없어도 `infra`에 배정한�
 
 Image 경로는 `ghcr.io/<owner>/<repository>`의 소문자 정규화 기준을 따른다. Repository 연결, `org.opencontainers.image.source` label, package visibility, 권한 상속과 Actions access는 별도로 점검한다. Repository가 private라는 사실만으로 package visibility를 검증했다고 하지 않는다.
 
-기존 불변식을 유지한다. PR/수동 CI는 readonly다. 품질 gate를 통과한 main push의 `ci-<full SHA>`는 registry publish/pull smoke를 위한 임시 tag이며 검증이 끝나면 package version을 삭제한다. Annotated SemVer release는 GHCR `sha-*` candidate를 만들지 않고 local candidate PASS 후 exact version을 직접 게시·검증하며 stable release만 exact/rolling tag를 보관한다. Publish/cleanup job만 최소 권한의 `GITHUB_TOKEN`을 쓰며 개인 PAT를 workflow에 추가하지 않는다. Local candidate 검사, registry digest 재다운로드 smoke, SBOM/provenance와 활성화된 attestation 검증을 구분한다. Release 직렬화, monotonic version과 exact overwrite 금지는 [CI_CD.md](CI_CD.md)를 따른다.
+기존 불변식을 유지한다. PR/수동 CI는 readonly다. 품질 gate를 통과한 비문서 main push는 `ci-<full SHA>`를 게시해 registry digest/runtime을 검증한다. version이 바뀌지 않은 merge는 검증 뒤 package version을 삭제하지만, **version-changing merge의 verified `ci-<SHA>`는 formal release의 build-once candidate로 보존**한다. Annotated SemVer release는 새 container를 build하지 않고 tag target SHA의 candidate exact digest를 source/revision/version label과 함께 재검증한 뒤 같은 digest를 exact/rolling tag로 promotion한다. Publish/cleanup/promotion job만 최소 권한의 `GITHUB_TOKEN`을 쓰며 개인 PAT를 workflow에 추가하지 않는다. Candidate registry smoke, digest 동일성, SBOM/provenance와 활성화된 attestation 검증을 구분한다. Release 직렬화, monotonic version과 exact overwrite 금지는 [CI_CD.md](CI_CD.md)를 따른다.
 
 Image 정리 요청은 dry-run을 먼저 수행한다. 대상 package/version/tag/digest, 현재 배포·rollback 참조, multi-platform manifest와 attestation 참조, 삭제 영향과 복구 가능성을 제시한다. 승인 전에는 삭제하지 않는다. Registry에 존재하는 digest와 실제 운영에서 실행 중인 digest는 별도 근거로 확인하며, runtime 접근이 없으면 운영 배포 여부는 미확인으로 남긴다.
 

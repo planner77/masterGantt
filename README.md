@@ -541,9 +541,9 @@ npm run version:check
 node scripts/verify-release-version.mjs v0.4.0
 ```
 
-성공한 `main` push는 모든 gate 뒤 `ci-<full SHA>` image를 임시 게시하고 workflow가 출력한 digest를 새로 pull해 Project/Task API authorization과 restart persistence까지 검사한 뒤 해당 package version을 삭제한다. PR과 수동 CI는 registry에 쓰지 않는다. `ci-*`는 SemVer release나 운영/rollback artifact로 남기지 않는다.
+성공한 비문서 `main` push는 모든 gate 뒤 `ci-<full SHA>` image를 게시하고 workflow가 출력한 digest를 새로 pull해 Project/Task API authorization과 restart persistence까지 검사한다. 일반 merge의 `ci-*`는 검증 뒤 삭제하지만, application version이 변경된 merge의 verified `ci-*`는 formal release가 동일 digest를 재사용하도록 보존한다. PR과 수동 CI는 registry에 쓰지 않는다.
 
-Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 release보다 큰 version인지 확인하고 GHCR에 남지 않는 local candidate digest smoke를 통과한 경우에만 stable alias와 exact version을 승격한다. 테스트에서는 `latest` 대신 commit/release workflow가 출력한 exact digest를 사용한다. Private GHCR consumer는 최소 `packages: read`만 사용한다. 실제 tag 생성, plan별 ruleset·attestation 제약과 image login 절차는 [CI/CD 문서](docs/CI_CD.md), container 실행은 [Deployment](docs/DEPLOYMENT.md)를 따른다.
+Release workflow는 별도로 저장소 단위 직렬 실행한다. 이전 release보다 큰 annotated version인지 확인하고 tag target SHA의 Main verified `ci-<SHA>` candidate를 source/revision/version/digest까지 재검증한 뒤 새 build 없이 같은 digest를 exact SemVer와 stable alias로 promotion한다. 테스트에서는 `latest` 대신 workflow가 출력한 exact digest를 사용한다. Private GHCR consumer는 최소 `packages: read`만 사용한다. 실제 tag 생성, plan별 ruleset·attestation 제약과 image login 절차는 [CI/CD 문서](docs/CI_CD.md), container 실행은 [Deployment](docs/DEPLOYMENT.md)를 따른다.
 
 ## 7. 코드와 실행 산출물
 

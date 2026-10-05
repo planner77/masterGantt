@@ -117,7 +117,7 @@ PR은 read-only이며 registry write를 수행하지 않는다. 검토 대상 he
 
 ### Main Artifact Validation
 
-`main` push에서는 동일 gate를 다시 통과한 뒤에만 임시 `ci-<full SHA>` image를 GHCR에 게시한다. 게시한 image는 exact digest로 다시 pull하여 policy, readiness, native SQLite, Project/Task API authorization/persistence, restart persistence를 검증하고 SBOM/provenance를 생성한 뒤 해당 GHCR package version을 삭제한다. `ci-*`는 운영·rollback artifact로 보관하지 않는다.
+`main` push에서는 동일 gate를 다시 통과한 뒤에만 `ci-<full SHA>` image를 GHCR에 게시한다. 게시한 image는 exact digest로 다시 pull하여 policy, readiness, native SQLite, Project/Task API authorization/persistence, restart persistence를 검증하고 SBOM/provenance를 생성한다. **application version이 유지된 merge와 실패 run은 해당 GHCR package version을 정리**한다. 반면 **version-changing merge의 successful `ci-<SHA>`는 formal release에서 동일 verified digest를 재사용하기 위한 candidate/provenance alias로 보존**한다. `ci-*` 자체는 운영·rollback용 정식 release authority가 아니며, 정식 사용 가능 여부는 annotated tag와 Release workflow의 exact-digest promotion이 성공한 뒤에만 판단한다.
 
 로컬 Docker PASS나 PR PASS만으로 main GHCR artifact PASS를 주장하지 않는다.
 

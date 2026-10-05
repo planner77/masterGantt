@@ -40,6 +40,8 @@ jobs:
       docker_baseline: ${{ github.event_name == 'pull_request' && steps.filter.outputs.docker_baseline == 'true' }}
       transport: ${{ github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true' }}
       docs_only: ${{ steps.classify.outputs.docs_only }}
+      version_changed: ${{ steps.release_candidate.outputs.changed || 'false' }}
+      current_version: ${{ steps.release_candidate.outputs.current_version }}
       metadata_only: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' }}
     steps:
       # actions/checkout v7.0.1
@@ -173,6 +175,24 @@ jobs:
           done
           echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
 
+      - name: main release candidate version 판정
+        id: release_candidate
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_version="$(python3 -c 'import json; print(json.load(open("package.json", encoding="utf-8"))["version"])')"
+          previous_version="$(git show "${GITHUB_SHA}^1:package.json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
+          changed=false
+          if [[ "$current_version" != "$previous_version" ]]; then
+            changed=true
+          fi
+          {
+            echo "changed=$changed"
+            echo "current_version=$current_version"
+            echo "previous_version=$previous_version"
+          } >> "$GITHUB_OUTPUT"
+
       - name: 변경 경로 요약
         shell: bash
         env:
@@ -183,6 +203,8 @@ jobs:
           DOCKER_BASELINE: ${{ github.event_name == 'pull_request' && steps.filter.outputs.docker_baseline == 'true' }}
           TRANSPORT: ${{ github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true' }}
           DOCS_ONLY: ${{ steps.classify.outputs.docs_only || 'N/A' }}
+          VERSION_CHANGED: ${{ steps.release_candidate.outputs.changed || 'N/A' }}
+          CURRENT_VERSION: ${{ steps.release_candidate.outputs.current_version || 'N/A' }}
         run: |
           {
             echo "## CI change routing"
@@ -194,6 +216,8 @@ jobs:
             printf -- '- docker_baseline(PR): `%s`\n' "$DOCKER_BASELINE"
             printf -- '- transport(PR selective, main/manual full): `%s`\n' "$TRANSPORT"
             printf -- '- docs_only(main): `%s`\n' "$DOCS_ONLY"
+            printf -- '- version_changed(main): `%s`\n' "$VERSION_CHANGED"
+            printf -- '- current_version(main): `%s`\n' "$CURRENT_VERSION"
           } >> "$GITHUB_STEP_SUMMARY"
 
 
@@ -755,8 +779,8 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.version=ci-${{ github.sha }}
-          build-args: VERSION=ci-${{ github.sha }}
+            org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}
+          build-args: VERSION=${{ needs.changes.outputs.current_version }}
           platforms: linux/amd64
           cache-from: type=gha,scope=mastergantt-docker
           cache-to: type=gha,mode=max,scope=mastergantt-docker
@@ -833,11 +857,18 @@ jobs:
       - name: smoke container 정리
         if: always()
         run: docker rm --force --volumes mastergantt-commit-smoke || true
-      - name: GHCR 임시 main commit image 삭제
+      - name: GHCR main commit image 정리 또는 release candidate 보존
         if: always() && steps.push.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}
+          VERSION_CHANGED: ${{ needs.changes.outputs.version_changed }}
+        shell: bash
         run: |
-          node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${{ github.sha }}"
-          echo "- GHCR cleanup: temporary ci-${{ github.sha }} package version deleted." >> "$GITHUB_STEP_SUMMARY"
+          set -euo pipefail
+          if [[ "${VERSION_CHANGED}" == "true" && "${{ job.status }}" == "success" ]]; then
+            echo "- GHCR retention: verified ci-${GITHUB_SHA} retained for exact-digest release promotion." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"
+          echo "- GHCR cleanup: ci-${GITHUB_SHA} package version deleted." >> "$GITHUB_STEP_SUMMARY"

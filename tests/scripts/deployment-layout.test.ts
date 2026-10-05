@@ -110,13 +110,33 @@ describe("deployment repository layout", () => {
     expect(buildCompose).toContain("pull_policy: never");
   });
 
-  it("updates all CI/release builds and the Docker dependency scan", () => {
-    for (const file of [".github/workflows/ci.yml", ".github/workflows/release-image.yml"]) {
-      expect(text(file).match(/context: \.\n\s+file: deploy\/docker\/Dockerfile/g), file).toHaveLength(2);
-    }
+  it("builds the container once on main and promotes the verified digest for release", () => {
+    const ci = text(".github/workflows/ci.yml");
+    const release = text(".github/workflows/release-image.yml");
+    expect(ci.match(/context: \.\n\s+file: deploy\/docker\/Dockerfile/g)).toHaveLength(2);
+    expect(release).not.toContain("docker/build-push-action@");
+    expect(release).toContain("Main verified candidate exact digest 확인");
+    expect(release).toContain('git rev-parse "refs/tags/${GITHUB_REF_NAME}^{commit}"');
+    expect(release).toContain("EXPECTED_SHA: ${{ needs.prepare.outputs.target_sha }}");
+    expect(release).toContain("docker buildx imagetools create");
+    expect(release).toContain("--prefer-index=false");
+    expect(release).toContain("Digest promotion changed the verified digest");
+    expect(release).toContain("릴리스 후보 Project·Task API persistence 검증");
+    expect(release).toContain("verified candidate digest GitHub Attestation");
+    expect(release).toContain("최종 exact·rolling tag를 verified digest로 promotion");
+    expect(release.indexOf("릴리스 후보 Project·Task API persistence 검증")).toBeLessThan(
+      release.indexOf("최종 exact·rolling tag를 verified digest로 promotion"),
+    );
+    expect(release.indexOf("verified candidate digest GitHub Attestation")).toBeLessThan(
+      release.indexOf("최종 exact·rolling tag를 verified digest로 promotion"),
+    );
+    expect(text("AGENTS.md")).toContain("version-changing merge의 successful `ci-<SHA>`는 formal release");
+    expect(ci).toContain("version_changed:");
+    expect(ci).toContain("org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}");
+    expect(ci).toContain("verified ci-${GITHUB_SHA} retained for exact-digest release promotion");
     expect(text(".github/dependabot.yml")).toMatch(/package-ecosystem: docker\n\s+directory: \/deploy\/docker/);
-    expect(text(".github/workflows/ci.yml")).toContain("bash scripts/verify-compose-smoke.sh");
-    expect(text(".github/workflows/ci.yml")).toContain(
+    expect(ci).toContain("bash scripts/verify-compose-smoke.sh");
+    expect(ci).toContain(
       "bash scripts/verify-image-size-reduction.sh mastergantt:baseline mastergantt:ci 0 --summary-only",
     );
   });
