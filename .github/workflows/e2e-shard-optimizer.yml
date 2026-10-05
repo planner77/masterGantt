@@ -109,8 +109,17 @@ jobs:
           fi
           git commit -m "ci: 과거 실행시간 기반 E2E 샤드 계획 갱신 (#437)"
           git push origin "HEAD:refs/heads/$branch_name"
-          gh pr create             --base main             --head "$branch_name"             --title "[Issue #437] ci: E2E 샤드 계획 갱신"             --body 
-과거 실행시간 median/LPT 분석에서 재균형 임계치를 충족해 E2E 샤드 계획을 갱신합니다.\n\n자동 병합은 수행하지 않으며 동일 head SHA의 전체 CI를 명시적으로 실행해 기존 required checks로 검증합니다.\n\nRefs #437'
+          printf '%s\n' \
+            '과거 실행시간 median/LPT 분석에서 재균형 임계치를 충족해 E2E 샤드 계획을 갱신합니다.' \
+            '' \
+            '자동 병합은 수행하지 않으며 동일 head SHA의 전체 CI를 명시적으로 실행해 기존 required checks로 검증합니다.' \
+            '' \
+            'Refs #437' > /tmp/e2e-shard-plan-pr-body.md
+          gh pr create \
+            --base main \
+            --head "$branch_name" \
+            --title "[Issue #437] ci: E2E 샤드 계획 갱신" \
+            --body-file /tmp/e2e-shard-plan-pr-body.md
           head_sha="$(git rev-parse HEAD)"
           echo "자동 PR head: $head_sha"
           gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/dispatches" -f ref="$branch_name" -f "inputs[issue_number]=437"
