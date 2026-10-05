@@ -20,6 +20,24 @@
 본 프로젝트는 Codex Multi-Agent 기반으로 개발한다.
 Main Codex Thread가 Manager 역할을 수행하며, 전문 Sub-Agent에게 필요한 작업을 위임한다.
 
+## 1.1 Attention-kind 응답·보고 원칙
+
+Manager와 모든 Sub-Agent는 사람이 읽는 대화·진행 보고·최종 보고에 [Attention-kind](https://github.com/alexgreensh/attention-span)의 취지를 적용한다. 이는 작업량·분석 깊이·검증 수준을 줄이는 규칙이 아니라, 충분히 수행한 작업을 사람이 빠르게 이해하고 판단할 수 있게 전달하는 규칙이다.
+
+- **결론 우선**: 첫 문장에 가장 중요한 결론·상태·판정을 둔다. 배경 설명으로 시작하지 않는다.
+- **짧게 완전하게**: 필요한 사실을 빠뜨리지 않는 범위에서 가장 짧게 쓴다. 반복, 장황한 서론, 같은 결론의 재진술은 제거한다.
+- **평이한 표현**: 기술 용어는 필요한 경우에만 사용하고, 독자가 즉시 이해해야 하는 비표준 용어는 짧게 설명한다.
+- **정확한 수치와 범위 보존**: 숫자, 임계값, 날짜, SHA, Issue/PR 번호, 조건, 적용 범위(scope)는 축약하지 않는다. 제한된 조건을 전체 규칙처럼 확대해서 쓰지 않는다.
+- **위험·경고 우선 보존**: 잘못된 결정으로 이어질 수 있는 위험, 전제조건, 실패 원인, BLOCKED 사유, 미검증 항목은 간결성을 이유로 생략하거나 뒤로 미루지 않는다.
+- **증거 보존**: GitHub Actions run/job/step, head SHA, PASS/FAIL/BLOCKED/NOT TESTED, GHCR digest 등 현재 프로젝트의 검증 증거 계약은 그대로 유지한다. "짧게 쓰기"가 검증 증거를 줄이는 근거가 될 수 없다.
+- **상세 요청 시 완전성 우선**: 사용자가 원인 분석, 전체 과정, 상세 설명, 설계 근거 등을 명시적으로 요구하면 기본 brevity를 중단하고 의사결정에 필요한 세부사항·조건·위험을 충분히 제공한다.
+- **긴 작업 재앵커링**: 긴 작업에서는 중간 보고 시 현재 상태와 다음 핵심 조치를 1~2문장으로 다시 잡아준다. 사용자가 이미 준 정보를 다시 묻지 않는다.
+- **한 번에 한 가지 질문**: 실제로 사용자 입력 없이는 진행할 수 없는 blocking question만 묻고, 가능한 작업은 먼저 수행한다.
+- **코드와 문서에는 채팅 형식 강제 금지**: `→`, 굵은 글씨 같은 스캔용 형식은 대화·보고에 선택적으로 사용한다. 소스코드 주석과 제품 문서에는 기존 문서 스타일을 우선하고, 명백한 내용보다 이유·주의점을 간결하게 기록한다.
+
+충돌 시 우선순위는 **보안·정확성·Source of Truth·Issue Lifecycle·CI/QA gate > Attention-kind 표현 규칙**이다. 즉, 표현은 간결하게 만들되 기존 프로젝트의 판단 기준과 완료 조건을 약화하지 않는다.
+
+
 ## 2. Source of Truth
 
 상세 요구사항/설계는 `docs/**`를 따른다. 작업 전에 특히 `docs/REQUIREMENTS.md`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DB_SCHEMA.md`, `docs/SCHEDULING_ENGINE.md`, `docs/SECURITY.md`, `docs/TEST_PLAN.md`, `docs/REMOTE_VALIDATION.md`, `docs/CI_CD.md`, `docs/GITHUB_OPERATIONS.md`, `docs/ISSUE_LIFECYCLE.md`, `DESIGN.md`, `docs/UI_UX_GUIDELINES.md`, `docs/exec-plans/active/PLAN.md`를 확인한다.
