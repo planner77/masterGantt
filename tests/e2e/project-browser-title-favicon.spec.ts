@@ -1,8 +1,24 @@
+import type { APIResponse, Page } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions, submitProjectAndExpectCreated } from "./fixtures/isolated-application";
 
 test.use(isolatedApplicationOptions);
 
-async function createProject(page: import("@playwright/test").Page, name: string): Promise<string> {
+async function getWithTransientResetRetry(page: Page, url: string): Promise<APIResponse> {
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await page.request.get(url);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const isTransientReset = /socket hang up|ECONNRESET/i.test(message);
+      if (!isTransientReset || attempt === maxAttempts) throw error;
+      await page.waitForTimeout(250 * attempt);
+    }
+  }
+  throw new Error("unreachable");
+}
+
+async function createProject(page: Page, name: string): Promise<string> {
   await page.goto("/projects/new");
   await expect(page).toHaveTitle("masterGantt");
   await page.getByLabel("프로젝트 이름", { exact: true }).fill(name);
@@ -22,7 +38,7 @@ test("#141 favicon과 canonical 프로젝트 이름으로 브라우저 제목을
   await expect(icon).toHaveCount(1);
   const iconHref = await icon.getAttribute("href");
   expect(iconHref).toBeTruthy();
-  const iconResponse = await page.request.get(new URL(iconHref!, page.url()).toString());
+  const iconResponse = await getWithTransientResetRetry(page, new URL(iconHref!, page.url()).toString());
   expect(iconResponse.status()).toBe(200);
   expect(iconResponse.headers()["content-type"]).toContain("image/svg+xml");
   expect(await iconResponse.text()).toContain('fill="#1f4f82"');
@@ -38,7 +54,7 @@ test("#141 favicon과 canonical 프로젝트 이름으로 브라우저 제목을
   const firstPath = await createProject(page, firstName);
   const secondPath = await createProject(page, secondName);
 
-  const initialDocument = await page.request.get(secondPath);
+  const initialDocument = await getWithTransientResetRetry(page, secondPath);
   expect(initialDocument.status()).toBe(200);
   expect(await initialDocument.text()).toContain(`<title>masterGantt|${secondName}</title>`);
 
