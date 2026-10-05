@@ -298,6 +298,8 @@ jobs:
         run: node scripts/verify-test-discovery.mjs
       - name: production dependency audit
         run: npm audit --omit=dev
+      - name: CI cache invalidation·fallback 계약 검증
+        run: node scripts/verify-ci-cache-contract.mjs
       - run: node scripts/check-markdown-links.mjs
       - name: 작업 브랜치 cleanup 안전 정책 검증
         run: python3 scripts/verify-safe-branch-cleanup.py
@@ -407,6 +409,12 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       # Next.js 공식 CI build cache 대상인 .next/cache를 commit 간 재사용한다.
+      - name: Next.js cache runtime/tool version 확인
+        id: next-cache-version
+        shell: bash
+        run: |
+          echo "node=$(node --version)" >> "$GITHUB_OUTPUT"
+          echo "next=$(node -p 'require("next/package.json").version')" >> "$GITHUB_OUTPUT"
       - name: Next.js cache 계측 시작
         id: next-cache-start
         shell: bash
@@ -416,9 +424,9 @@ jobs:
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: .next/cache
-          key: ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.next-cache-version.outputs.node }}-next-${{ steps.next-cache-version.outputs.next }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-next-${{ hashFiles('package-lock.json') }}-
+            ${{ runner.os }}-${{ runner.arch }}-node-${{ steps.next-cache-version.outputs.node }}-next-${{ steps.next-cache-version.outputs.next }}-${{ hashFiles('package-lock.json') }}-
       - name: Next.js cache 시간·hit 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric next-build-cache --started-ms "${{ steps.next-cache-start.outputs.started_ms }}" --cache "exact-hit=${{ steps.next-cache.outputs.cache-hit || 'false' }}"
@@ -644,8 +652,8 @@ jobs:
           tags: mastergantt:ci
           build-args: VERSION=ci-${{ github.sha }}
           platforms: linux/amd64
-          cache-from: type=gha,scope=mastergantt-docker
-          cache-to: type=gha,mode=max,scope=mastergantt-docker
+          cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
+          cache-to: type=gha,mode=max,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
       - name: Docker build/cache 시간 기록
         if: always()
         shell: bash
@@ -897,8 +905,8 @@ jobs:
             org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}
           build-args: VERSION=${{ needs.changes.outputs.current_version }}
           platforms: linux/amd64
-          cache-from: type=gha,scope=mastergantt-docker
-          cache-to: type=gha,mode=max,scope=mastergantt-docker
+          cache-from: type=gha,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
+          cache-to: type=gha,mode=max,scope=mastergantt-docker-${{ runner.os }}-${{ runner.arch }}
           provenance: mode=max
           sbom: true
       - name: Main image build/push 시간 기록
