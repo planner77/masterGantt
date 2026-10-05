@@ -4,8 +4,9 @@ run-name: "Finalizer · ${{ github.event.workflow_run.display_title }} · Finali
 
 on:
   workflow_run:
-    workflows: ["CI", "Publish release image"]
+    workflows: ["CI"]
     types: [completed]
+    branches: [main]
 
 concurrency:
   group: mastergantt-release-finalizer
@@ -21,11 +22,9 @@ jobs:
   finalize:
     name: 정확한 Merge Lifecycle Finalize
     if: >-
-      (github.event.workflow_run.name == 'CI' &&
-       github.event.workflow_run.event == 'push' &&
-       github.event.workflow_run.head_branch == 'main' &&
-       github.event.workflow_run.conclusion == 'success') ||
-      github.event.workflow_run.name == 'Publish release image'
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
@@ -34,7 +33,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
-      - name: 정확한 merge/release lifecycle 해석 및 실행
+      - name: 정확한 merge lifecycle 해석 및 실행
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TARGET_SHA: ${{ github.event.workflow_run.head_sha }}
