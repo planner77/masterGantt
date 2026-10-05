@@ -468,6 +468,13 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 - BuildKit SBOM/provenance는 Main candidate digest에서 생성되며 SemVer promotion이 digest를 바꾸지 않으므로 같은 subject digest에 유지된다. optional GitHub Attestation도 candidate digest를 subject로 사용한다.
 - Release candidate `ci-<SHA>`와 exact SemVer가 같은 GHCR package version/manifest를 공유할 수 있으므로 release 완료 후 `ci-*` tag만 따로 제거하려고 package version 전체를 삭제하지 않는다. Release candidate alias는 provenance/debugging evidence로 유지한다.
 
+### Issue #439 v0.83.2 release candidate API smoke correction
+
+- GHCR Release Run #131에서 static quality, Release E2E 6/6, candidate digest 확인, transport, image policy, migration/readiness, SQLite persistence는 PASS했지만 Project/Task API smoke가 시작 전에 실패했다.
+- 원인은 `release-image.yml`이 실제 candidate container 이름 `mastergantt-release-candidate`를 전달하는 반면 `verify-registry-api-smoke.mjs` allowlist가 이전 `mastergantt-release-smoke`만 허용한 이름 계약 불일치다.
+- candidate image/digest 자체의 결함이나 GHCR 장애가 아니므로 검증 gate를 삭제하거나 skip하지 않는다. API smoke allowlist에 candidate 이름을 명시적으로 추가하고 정적 회귀로 workflow 호출 인자와 allowlist를 함께 고정한다.
+- 이미 생성된 annotated `v0.83.2` tag는 이동·삭제·덮어쓰기하지 않는다. deterministic release failure는 same-Issue corrective merge와 새 PATCH version으로 supersede하며 Generic Finalizer의 exact main CI/candidate digest/release authorization 검증을 다시 통과한다.
+
 ## Issue #439 CI setup/cache 비용 계측
 
 #435/#437/#438 이후 남은 setup 비용을 최적화하기 전에 PR/Main/Release에서 같은 형식으로 계측한다. 이번 단계는 **Phase 1 — Instrument**이며 baseline 10회 전에는 새로운 Playwright browser cache를 활성화하지 않는다.
