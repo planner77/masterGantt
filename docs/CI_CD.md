@@ -473,8 +473,8 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 #435/#437/#438 이후 남은 setup 비용을 최적화하기 전에 PR/Main/Release에서 같은 형식으로 계측한다. 이번 단계는 **Phase 1 — Instrument**이며 baseline 10회 전에는 새로운 Playwright browser cache를 활성화하지 않는다.
 
 - 공통 recorder: `scripts/record-ci-setup-metric.mjs`가 `checkout`, `setup-node`, `npm-cache`, `npm-ci`, Playwright OS dependency/headless-shell, Next cache, Docker Buildx/build-push 등의 duration과 cache 상태를 JSONL 및 GitHub Step Summary에 기록한다.
-- machine-readable artifact는 30일 보존하며 record에 `runId`, `runAttempt`, `job`, `eventName`, `headSha`, `metric`, `durationMs`, `cache`를 포함한다.
-- `scripts/analyze-ci-setup-metrics.mjs`는 다운로드한 JSONL을 event/metric별로 집계해 sample 수, median, p90, cache 분포를 계산한다. 기본 최소 표본은 10회다.
+- machine-readable artifact는 30일 보존하며 schema v2 record에 `runId`, `runAttempt`, stable workflow file identity, `job`, `eventName`, `headSha`, `metric`, `durationMs`, `cache`를 포함한다. workflow identity는 `GITHUB_WORKFLOW_REF`의 `.github/workflows/*.yml` 경로를 우선 사용한다.
+- `scripts/analyze-ci-setup-metrics.mjs`는 **successful workflow run에서 내려받은 artifact만** 입력으로 사용하고 workflow/event/job/metric별로 분리해 record 수, 서로 다른 successful run ID 수, median, p90, cache 분포를 계산한다. E2E matrix shard나 동일 run의 재실행은 record는 늘릴 수 있지만 baseline run 수는 늘리지 않는다. 기본 최소 표본은 서로 다른 successful run 10회다.
 - `./.github/actions/node-setup`은 기존 `setup-node cache:npm`과 같은 목적의 **npm download cache(`~/.npm`)만** 명시적으로 관리해 exact cache hit/miss를 관찰한다. key는 OS/arch/Node version/package-lock hash를 포함하며 restore key도 같은 runtime 범위 안에서만 사용한다.
 - `node_modules`는 cache하지 않는다. `npm ci`는 매 job에서 frozen lockfile 기준으로 node_modules를 재구성하며 cache hit은 test PASS evidence가 아니다.
 - `./.github/actions/playwright-setup`은 `install-deps chromium`과 `install --only-shell chromium` 비용을 분리 계측한다. Phase 1에서는 `~/.cache/ms-playwright` cache를 **의도적으로 사용하지 않는다**. 10회 이상 baseline 뒤 browser download가 유의미한 비용일 때만 version/OS/arch key 기반 cache를 별도 변경으로 검토한다.
@@ -485,7 +485,7 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 
 ### Phase 2 진입 기준
 
-- PR/Main/Release 각 경로에서 비교 대상 setup metric의 성공 표본을 최소 10회 확보한다.
+- PR/Main/Release 각 경로의 workflow/event/job/metric 그룹에서 비교 대상 setup metric의 **서로 다른 successful run ID를 최소 10개** 확보한다. 동일 run ID의 matrix shard/재실행은 추가 baseline run으로 세지 않는다.
 - baseline median/p90과 cache hit/miss를 기록한 뒤 후보 최적화의 before/after를 동일 metric 정의로 비교한다.
 - wall-clock 개선이 의미 있고 runner-minutes가 증가하지 않거나 합리적 범위일 때만 cache 변경을 채택한다.
 - Playwright browser cache, 추가 Next/Docker cache 조정은 이 Phase 1 PR의 범위 밖이며 측정 근거 없이 활성화하지 않는다.
