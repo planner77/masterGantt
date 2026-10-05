@@ -144,7 +144,12 @@ require(release_workflow.index("최종 exact·rolling tag를 verified digest로 
 require("docker/build-push-action@" not in release_workflow, "release workflow must not rebuild the container")
 require("version_changed:" in ci_workflow and "current_version:" in ci_workflow, "main CI must classify release candidate version changes")
 require("verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup" in ci_workflow, "successful non-docs main CI must hand the verified candidate to Generic Finalizer")
-require("delete-ghcr-package-version-by-tag.mjs" not in ci_workflow, "main CI must not delete a verified candidate before Generic Finalizer resolves lifecycle")
+handoff_index = ci_workflow.index("GHCR main commit image lifecycle handoff")
+failed_cleanup_index = ci_workflow.index('node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"')
+retention_index = ci_workflow.index("verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup")
+require(handoff_index < failed_cleanup_index < retention_index, "main CI must clean failed pushed candidates before successful lifecycle handoff")
+require('if [[ "${{ job.status }}" != "success" ]]' in ci_workflow, "main CI candidate cleanup must be restricted to failed validation")
+require("GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}" in ci_workflow, "main failed-candidate cleanup must bind repository owner type")
 require("publish-commit-image:" in ci_workflow, "main temporary GHCR publish job is required")
 require("always() &&" in ci_workflow, "main temporary GHCR job must defeat transitive skip propagation")
 for result_check in (
