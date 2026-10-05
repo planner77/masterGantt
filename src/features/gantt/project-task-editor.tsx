@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { linkStructureLocked } from "./relation-editor-model";
 import type { ProjectLinkDto, ProjectTaskDto } from "../../contracts/projects";
 import type { ProjectTaskUpdateCommand } from "./project-task-adapter";
 import { TaskAssignmentEditor } from "./task-assignment-editor";
@@ -38,6 +39,7 @@ export interface ProjectTaskEditorHandle {
 }
 
 interface Props {
+  readonly initialTab?: TaskEditorTab;
   readonly session: TaskEditorSession;
   readonly latestTask: ProjectTaskDto | undefined;
   readonly tasks: readonly ProjectTaskDto[];
@@ -62,6 +64,7 @@ function RelationList({
   relations,
   showActions,
   actionsDisabled,
+  deleteLocked,
   onEdit,
   onDelete,
 }: Readonly<{
@@ -69,6 +72,7 @@ function RelationList({
   relations: readonly TaskRelationView[];
   showActions: boolean;
   actionsDisabled: boolean;
+  deleteLocked: (id: string) => boolean;
   onEdit: (relation: TaskRelationView, trigger: HTMLElement) => void;
   onDelete: (relation: TaskRelationView, trigger: HTMLElement) => void;
 }>) {
@@ -89,7 +93,7 @@ function RelationList({
             <button
               aria-label={`${relation.relatedTaskName} 관계 삭제`}
               className="danger-button"
-              disabled={actionsDisabled}
+              disabled={actionsDisabled || deleteLocked(relation.id)}
               onClick={(event) => onDelete(relation, event.currentTarget)}
               type="button"
             >삭제</button>
@@ -106,6 +110,7 @@ function RelationList({
 
 export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(function ProjectTaskEditor({
   session,
+  initialTab = "task",
   latestTask,
   tasks,
   links,
@@ -138,7 +143,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
   const [operation, setOperation] = useState<"save" | "reload" | "relation-delete" | "membership" | null>(null);
   const [confirmation, setConfirmation] = useState<"close" | "reload" | null>(null);
   const [relationDeleteTarget, setRelationDeleteTarget] = useState<TaskRelationView | null>(null);
-  const [activeTab, setActiveTab] = useState<TaskEditorTab>("task");
+  const [activeTab, setActiveTab] = useState<TaskEditorTab>(initialTab === "memberships" && session.task.type !== "milestone" ? "task" : initialTab);
   const [assignmentCount, setAssignmentCount] = useState(0);
   const [logisticsCount, setLogisticsCount] = useState(0);
   const dialogReference = useRef<HTMLDialogElement>(null);
@@ -253,7 +258,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
   }
 
   function requestRelationDelete(relation: TaskRelationView, trigger: HTMLElement) {
-    if (relationMutationDisabled || relationDeleteTarget) return;
+    if (relationMutationDisabled || relationDeleteTarget || linkStructureLocked(links.find((link) => link.id === relation.id), tasks)) return;
     relationDeleteTriggerReference.current = trigger;
     setRelationDeleteTarget(relation);
     requestAnimationFrame(() => relationDeleteCancelReference.current?.focus());
@@ -269,7 +274,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
   }
   async function confirmRelationDelete() {
     const target = relationDeleteTarget;
-    if (!target || locked || actionReference.current || dirty || stale || !editable) return;
+    if (!target || locked || actionReference.current || dirty || stale || !editable || linkStructureLocked(links.find((link) => link.id === target.id), tasks)) return;
     actionReference.current = true;
     setOperation("relation-delete");
     setError(null);
@@ -648,6 +653,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
                 relations={relations.predecessors}
                 showActions={editable}
                 actionsDisabled={relationMutationDisabled}
+                deleteLocked={(id) => linkStructureLocked(links.find((link) => link.id === id), tasks)}
                 onEdit={(relation, trigger) => onRelationEditorOpen({ kind: "link", linkId: relation.id }, trigger)}
                 onDelete={requestRelationDelete}
               />
@@ -656,6 +662,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
                 relations={relations.successors}
                 showActions={editable}
                 actionsDisabled={relationMutationDisabled}
+                deleteLocked={(id) => linkStructureLocked(links.find((link) => link.id === id), tasks)}
                 onEdit={(relation, trigger) => onRelationEditorOpen({ kind: "link", linkId: relation.id }, trigger)}
                 onDelete={requestRelationDelete}
               />
