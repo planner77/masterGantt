@@ -1367,3 +1367,10 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - version-change 판정의 authoritative 기준을 `github.event.before`로 변경한다. 이는 push 직전의 main SHA이며 docs-only 판정과 동일한 event boundary를 사용한다.
 - `BEFORE_SHA`가 비어 있거나 all-zero이면 fail-closed로 중단하고 release candidate retention 결정을 추측하지 않는다.
 - 회귀 계약은 `${GITHUB_SHA}^1` 사용 금지와 `git show "$BEFORE_SHA:package.json"` 사용을 정적으로 검증한다.
+
+### Issue #438 Main push checkout depth correction
+
+- PR #442 review에서 `BEFORE_SHA`를 사용하더라도 checkout이 depth 1이면 clean runner에 이전 main commit이 없을 수 있음을 확인했다.
+- `changes` job checkout의 conditional `fetch-depth`는 숫자 `0`이 expression에서 falsy가 되어 `1`로 떨어지는 문제가 있었다.
+- push event에서는 문자열 `'0'`을 사용해 full history를 받고 PR에서는 `'1'`을 유지한다.
+- 따라서 Main version classifier와 docs-only diff가 동일한 push history를 안정적으로 사용할 수 있다.
