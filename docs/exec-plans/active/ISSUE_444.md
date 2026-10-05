@@ -38,12 +38,21 @@
    - policy job에서 cache contract guard 실행
    - Next cache key 재현성 입력 강화
    - Docker GHA cache scope OS/arch 분리
-5. 테스트
+5. `.github/workflows/ci-setup-readiness.yml`
+   - successful `CI` / `Publish release image` 완료와 일일 schedule에서 자동 재평가
+   - PR=`ci.yml/pull_request`, Main=`ci.yml/push`, Release=`release-image.yml/workflow_dispatch` successful artifact 수집
+   - trusted `main` checkout, read-only repository 권한 + Issue comment write만 허용
+   - #444 단일 marker 댓글과 analysis artifact 갱신
+   - READY에서도 cache 변경/PR 생성/Issue close는 자동 수행하지 않음
+6. `scripts/render-ci-setup-readiness.mjs`
+   - lane별 ready groups와 최소 distinct run/10, blocker, 비용 후보를 Issue 댓글 형식으로 렌더링
+7. 테스트
    - readiness/candidate/cache hit rate
    - 표본 부족 fail-closed
    - before/after ADOPT 판정
    - static cache contract
-6. 문서
+   - trusted checkout/최소 권한/comment idempotency/READY non-mutation
+8. 문서
    - `AGENTS.md`
    - `docs/CI_CD.md`
    - `docs/TEST_PLAN.md`
@@ -52,6 +61,6 @@
 
 ## 완료 경계
 
-이번 사용자 요청 범위는 구현, 관련 문서 갱신, PR 생성과 PR CI 시작까지다. CI 완료 모니터링, merge, main CI, GHCR release, Issue 종료는 현재 범위 밖이다.
+초기 사용자 요청 범위는 구현, 관련 문서 갱신, PR 생성과 PR CI 시작까지였고 PR #448 Run #1818.1이 required quality/e2e/docker PASS했다. 후속 요청으로 Phase 2 readiness 자동화를 같은 branch/PR에 추가하며 새 head의 PR CI를 다시 시작한다. 새 CI 완료 모니터링, merge, main CI, GHCR release, Issue 종료는 현재 범위 밖이다.
 
 Issue #444의 실제 cache 최적화 채택 Acceptance Criteria는 10-run baseline과 동일 workload before/after evidence가 쌓인 뒤 후속 작업에서 완료한다.
