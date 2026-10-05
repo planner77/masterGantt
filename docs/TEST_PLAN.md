@@ -1308,3 +1308,13 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - 보안: 프로젝트/Task/Resource/Group의 `= + - @` 시작 문자열 formula injection 방지를 확인한다.
 - stale: workload `projectRevision`과 snapshot/If-Match revision 불일치 시 412 또는 workbook 생성 거부를 확인한다.
 - 실제 Windows Excel 2021/DRM은 Environment-specific Validation으로 자동 CI PASS와 구분한다.
+
+## Issue #435 Workflow 병목 최적화 검증
+
+- Static contract: PR `edited`는 `verify-ci-run-trace.py`를 실행하고 node/policy/E2E/Docker routing output은 false여야 한다. aggregate quality/E2E/Docker required check 이름과 fail-closed 동작은 유지한다.
+- Playwright: `CI_E2E_FULLY_PARALLEL=true`일 때만 `fullyParallel`을 활성화하고 workers=1은 유지한다. explicit `test.describe.configure({ mode: "serial" })` suite의 순차 계약을 훼손하지 않는다.
+- PR/Main E2E: 4 shard 전체 PASS와 shard별 duration을 기록한다. 기준 7.4/11.7/13.6/5.1분 대비 최장/최단 편차가 개선되는지 확인한다.
+- Release: `quality_static`과 4개의 `release_e2e_shard`가 병렬 실행되고 `Release quality gates` aggregate가 모두 PASS해야 candidate smoke가 시작된다. 단일 unsharded `npm run test:e2e` quality step은 존재하지 않아야 한다.
+- Lifecycle: Main CI success + release not-started → `release_start`까지만 수행하고 FINAL/close는 하지 않는다. tagged/in-progress/failed는 mutation 없이 DEFERRED한다. release success completed event → exact release success evidence → `release_finalize` → cleanup/FINAL/close 순서다.
+- Recovery: release failure 뒤 Issue/branch가 유지되고 동일 Release run attempt가 성공하면 별도 사용자 Finalizer 실행 없이 completion event로 lifecycle이 재개되어야 한다.
+- Security/supply chain: authorization marker, annotated tag, exact SHA, exact digest smoke, no-overwrite, stable alias serialization, safe branch cleanup을 그대로 회귀한다.
