@@ -253,3 +253,46 @@ UI/UX Issue를 시작할 때 최소 다음을 확인한다.
 - Gantt를 일반 dashboard/card UI로 감싸 정보 밀도를 낮추는 변경
 - 디자인 정합화를 이유로 API/DB/scheduling/security 정책 변경
 - 모든 기존 화면을 한 PR에서 일괄 restyle
+
+## 11. Cross-screen Consistency and Density (Issue #449)
+
+지침 보강: 2026-10-05. 이 절은 기존 시각 언어와 보안·도메인 우선순위를 보완한다. 문서 추가는 제품 화면 구현 완료를 뜻하지 않는다. 근거·화면 범위·실험 한계·실행 이슈는 [UI/UX 감사 기록](docs/ISSUE_449_UI_UX_AUDIT.md)을 따른다.
+
+### Internal reference: Project Logistics KPI
+
+프로젝트 → 물류 구성 → KPI 대시보드를 내부의 양호한 배치 사례로 사용한다. 참고 대상은 의미별 구획, 수평 필터 묶음, 가용 폭에 따른 grid, 숫자와 단위의 정렬, 일관된 상태색과 정보 우선순위다. 모든 화면을 KPI 카드로 만들거나 해당 CSS의 fallback 색상·미정의 token까지 복사하지 않는다. 외부 reference hierarchy와 현재 blue Light semantic token을 유지한다.
+
+### Same-purpose pages and authentication
+
+- 같은 navigation level과 목적의 관리 화면은 공통 page shell의 gutter, header-to-body spacing, heading, 인증 panel 및 action 정렬 계약을 재사용한다. 화면별 `:has()`/margin override를 추가하기 전에 공통 layout 또는 명시적 variant로 해결한다.
+- 인증 form은 content-aware constrained width, 로그인 후 catalog는 wide workspace로 취급한다. 폭이 다른 목적을 하나의 max-width에 억지로 맞추지 않는다.
+- 리소스·물류·기준정보 인증의 표현은 같게 하되 API, 세션, 비밀번호, 권한 scope와 오류 정책은 합치지 않는다. 프로젝트 편집 권한을 글로벌 관리자 권한으로 확장하지 않는다.
+- 같은 viewport에서 page heading 시작점·좌우 gutter·동급 control 크기를 비교한다. 설명 줄 수에 따른 정상 높이 차이를 숨기려고 card 높이를 강제로 고정하지 않는다.
+
+### Controls own appearance; parents own spacing
+
+- 재사용 button/control의 기본 외부 margin은 0으로 하고, toolbar/form/footer가 gap과 위치를 소유한다. 버튼의 global `margin-top`으로 페이지 간격을 만드는 패턴을 금지한다.
+- legacy margin을 이관할 때는 모든 사용처를 조사하고 의도된 parent spacing을 복구한다. 무차별 `button { margin: 0 !important }`나 화면별 reset 누적을 해결책으로 삼지 않는다. flex card의 의도된 `margin-top:auto` 등은 별도 layout 계약으로 보존한다.
+- input/select/textarea는 CSS reset 이후에도 normal 상태의 경계·배경·내부 padding·높이·font와 focus/error/disabled/readonly 상태를 식별할 수 있어야 한다. input DOM 존재·fill 성공·placeholder만으로 식별성을 판정하지 않는다.
+- 같은 행의 동급 control은 같은 size variant를 사용한다. button 폭은 text+padding을 우선하고, 고정 최소 폭/전체 폭에는 longest label·loading·mobile·접근성 등 근거를 남긴다.
+- compact는 작은 클릭 영역과 동의어가 아니다. 기존 Task Editor 등의 hit-area/focus/keyboard 계약은 유지하며 축소가 필요하면 별도 근거·검증·승인 없이 변경하지 않는다.
+
+### Peer views, rows and meaningful grouping
+
+- 동시 비교가 필요 없는 동등한 목록은 split/vertical stack보다 peer tab을 우선 검토하여 active list가 가용 작업 폭을 사용하게 한다. #453의 Resource/Group은 독립 탭으로 분리하는 목표를 가진다. 동시 비교가 필요한 pane은 기존 content-aware budget 규칙을 사용한다.
+- 목록은 비교용 정보 중심으로 구성하고, 모든 행에 표시값과 편집기를 중복 상시 노출하지 않는다. 생성·프로필·구성원 상세 편집은 필요한 시점에 접근 가능하게 하며 draft, search/filter/scroll, keyboard와 초점 복귀를 보존한다.
+- 이름/설명은 flexible, 코드/날짜/상태는 minimum, 숫자/정렬/행 명령은 content-aware budget을 가진다. 동등한 행·열의 정보가 같은 위치에서 읽히게 한다.
+- row height는 control/content와 내부 padding으로 결정한다. 불필요한 action margin, 중복 heading, 과도한 section 여백을 먼저 줄이고 고정 height/max-height와 clipping으로 정보 밀도 수치만 맞추지 않는다.
+- single-line desktop 관리 row의 40–48px는 #454/#455에서 검토할 초기 목표이지 전체 화면·장문·오류·touch에 적용하는 강제 기준이 아니다. 실제 채택 값과 예외는 browser 측정과 접근성 근거로 screen contract에 남긴다.
+- Task/설정/생성/입출력 form은 관련 필드를 가까이 묶고 데이터 길이에 맞춰 폭을 배분한다. 모든 입력을 동일 1fr/100%로 만들거나, 중요한 경고·오류를 접어 높이만 줄이지 않는다.
+- footer의 primary/secondary 위치는 화면 계약을 따른다. Resource Group의 Close-left/Save-right 같은 기존 의미를 일괄 right-align로 덮어쓰지 않는다.
+
+### Cross-screen evidence and rollout
+
+- 공통 CSS/primitive 변경은 Project List/New Project/Workspace, 관리자 3종, Task Editor/설정/부가 dialog, KPI, loading/empty/error까지 영향 목록을 작성한다. 원래 양호한 화면도 회귀 대상이다.
+- 같은 fixture/viewport에서 screenshot과 geometry를 함께 검증한다. header-to-body gap, control computed style, sibling overlap, header/body 열 경계, row height/usable list area, footer 정렬을 포함한다.
+- 동일 행·동일 size의 action top/height 차이는 1 CSS px 이내를 기준으로 하고 wrap/stack은 별도 기대값을 사용한다. document-level overflow와 의도된 component scroll을 구분한다.
+- 390/768/1024/1440/1920px, 긴 한글·영문, 최대 control 조합, 빈 목록/오류/읽기 전용/저장 중/stale/세션 만료를 위험 기반 조합으로 검증한다. 100% zoom과 실제 125% zoom의 실행 여부를 구분하며 deviceScaleFactor를 browser zoom 증거로 쓰지 않는다.
+- 사용자 관찰, source 사실, 분리 CSS 실험, 실제 앱 조작, E2E, 원격 CI, 독립 QA를 구분한다. 미실행 표면은 NOT TESTED/BLOCKED이며 정적 검토나 screenshot만으로 전체 UX PASS를 선언하지 않는다.
+- #449의 이번 단계 순서는 `#457 baseline/helper + #452 공통 기반 → #453/#454/#455 화면별 적용 → #456 폼 보완 → #457 통합 검증`이다. 각 PR이 자신의 테스트·문서·증거를 처음부터 포함하며 공유 파일 소유권을 나눈다. 기존 9절의 완료된 단계와 기능을 되돌리지 않는다.
+- 이슈 연결은 계획/추적이며 다음 구현·PR·CI 자동 실행이나 병합·릴리스 승인이 아니다. 문서 PR만으로 제품 개선 Epic을 종료하지 않는다.
