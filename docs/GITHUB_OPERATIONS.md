@@ -244,3 +244,13 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 - 새로운 cache를 도입할 때는 cache key 입력, invalidation, miss fallback, write 권한, secret 포함 여부를 함께 검토한다. cache hit 자체를 PASS 근거로 사용하지 않는다.
 - `node_modules` cache는 금지한다. Playwright browser cache는 Phase 1 baseline에서 download/install 비용이 유의미한 것으로 확인된 뒤 별도 PR로만 활성화한다.
 - setup 비용 최적화 PR은 기존 required checks, test 개수, audit, Docker/runtime smoke를 줄이는 방법으로 성능을 만들지 않는다.
+
+## Issue #444 setup/cache Phase 2·3 운영
+
+- #444는 #439 Phase 1 artifact를 기반으로 동작한다. successful workflow run artifact만 분석하며 PR/Main/Release의 workflow/event/job/metric별 distinct run 10개 미만이면 최적화 PR을 만들거나 cache를 추가하지 않는다.
+- baseline 수집 후 `node scripts/analyze-ci-setup-metrics.mjs --input <dir> --min-samples 10 --output baseline.json`으로 readiness와 비용 후보를 산출한다.
+- 변경 후 동일 workload 표본을 다시 수집하고 `node scripts/compare-ci-setup-metrics.mjs --baseline baseline.json --current after.json --output comparison.json`으로 median/p90/runner-minutes를 비교한다.
+- 기본 채택 기준은 median wall-clock 5% 이상 개선과 runner-minutes 비증가다. security/staleness 복잡도가 증가하거나 개선이 미미하면 `DO_NOT_ADOPT`를 유지한다.
+- npm/Next/Docker cache key 또는 Playwright cache 정책을 변경할 때는 `node scripts/verify-ci-cache-contract.mjs`가 PASS해야 한다. required check, audit, Docker/runtime smoke를 줄여 성능을 만드는 변경은 금지한다.
+- fork/external PR을 이유로 cache write 권한을 확대하지 않는다. cache miss는 정상 경로이며 cache hit은 품질 증거가 아니다.
+- #444 이번 착수에서는 10-run baseline이 아직 충족되지 않았으므로 실제 신규 cache 도입은 DEFER하고 분석·비교·guard 준비만 수행한다.
