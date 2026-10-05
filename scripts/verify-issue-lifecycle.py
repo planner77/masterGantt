@@ -11,6 +11,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "issue-lifecycle.yml"
 AUTO_WORKFLOW = ROOT / ".github" / "workflows" / "release-finalizer.yml"
+RESUME_WORKFLOW = ROOT / ".github" / "workflows" / "release-finalizer-resume.yml"
 RELEASE_WORKFLOW = ROOT / ".github" / "workflows" / "release-image.yml"
 CI_WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
 IMPL = ROOT / "scripts" / "issue_lifecycle.py"
@@ -26,6 +27,7 @@ def require(condition: bool, message: str) -> None:
 
 workflow = WORKFLOW.read_text(encoding="utf-8")
 auto_workflow = AUTO_WORKFLOW.read_text(encoding="utf-8")
+resume_workflow = RESUME_WORKFLOW.read_text(encoding="utf-8")
 release_workflow = RELEASE_WORKFLOW.read_text(encoding="utf-8")
 ci_workflow = CI_WORKFLOW.read_text(encoding="utf-8")
 impl = IMPL.read_text(encoding="utf-8")
@@ -88,9 +90,12 @@ for check in (
     require(check in impl, f"required check contract missing: {check}")
 
 require("workflow_run:" in auto_workflow, "automatic finalizer must use workflow_run")
-require('workflows: ["CI", "Publish release image"]' in auto_workflow, "automatic finalizer must subscribe to CI and release completion")
-require("github.event.workflow_run.name == 'CI'" in auto_workflow, "main CI finalizer branch must identify CI explicitly")
-require("github.event.workflow_run.name == 'Publish release image'" in auto_workflow, "release completion must resume the generic finalizer")
+require('workflows: ["CI"]' in auto_workflow, "automatic finalizer must subscribe only to CI")
+require("branches: [main]" in auto_workflow, "automatic finalizer must filter triggering CI to main")
+require('workflows: ["Publish release image"]' in resume_workflow, "release completion resume must subscribe only to release-image")
+require("scripts/auto_release_finalizer.py" in resume_workflow, "release completion resume must invoke the generic resolver")
+require("group: mastergantt-release-finalizer" in resume_workflow, "release resume must share finalizer serialization")
+require("queue: max" in resume_workflow, "release resume must preserve queued completion events")
 require("github.event.workflow_run.event == 'push'" in auto_workflow, "manual CI must not auto-finalize")
 require("github.event.workflow_run.conclusion == 'success'" in auto_workflow, "failed CI must not mutate lifecycle")
 require("scripts/auto_release_finalizer.py" in auto_workflow, "automatic resolver must be invoked")
@@ -141,7 +146,7 @@ legacy_files = sorted(
 )
 require(not legacy_files, f"legacy per-Issue lifecycle workflows remain: {', '.join(legacy_files)}")
 
-for text_value in (workflow, auto_workflow, impl, auto_impl):
+for text_value in (workflow, auto_workflow, resume_workflow, impl, auto_impl):
     require(not re.search(r"issue-[0-9]+", text_value, re.I), "generic lifecycle source contains hard-coded Issue helper")
     require(not re.search(r"FEATURE_PR\s*=\s*[\"']?[0-9]+", text_value), "hard-coded PR detected")
 
