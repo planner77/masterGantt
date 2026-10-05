@@ -1321,6 +1321,15 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 
 - #435 4-shard 중간 계측: 6.0/8.9/14.5/5.1분으로 최장 shard 개선 실패. 6-shard 재검증에서 최장 shard와 전체 PR CI wall-clock을 기준으로 최종 채택 여부를 판정한다.
 
+## Issue #446 Release completion Finalizer resume 회귀
+
+- Static trigger: `release-finalizer-resume.yml`은 `Publish release image workflow_run.completed` fallback과 `workflow_dispatch(target_sha)`를 함께 유지한다.
+- Explicit handoff: `release-image.yml`은 publish success 이후에만 Resume workflow를 dispatch하고 exact `needs.prepare.outputs.target_sha`를 전달한다.
+- Post-publication safety: Resume dispatch job은 `continue-on-error: true`로 immutable GHCR publication 성공을 뒤집지 않으며 candidate/runtime/API/attestation/promotion gate 뒤에 위치한다.
+- Trust boundary: Resume workflow checkout ref는 `main`이어야 하며 `github.event.workflow_run.head_sha`를 code checkout ref로 사용하지 않는다.
+- Resolver: explicit dispatch와 workflow_run fallback 모두 기존 `auto_release_finalizer.py --target-sha`를 사용해 current main first-parent backlog를 재계산한다.
+- Remote: PR exact head의 quality/e2e/docker required checks를 통과한 뒤 merge한다. merge Main CI가 기존 #439의 successful `v0.83.3` evidence를 소비해 PR #443/#445 branch cleanup, FINAL marker, Issue close를 수행하고 #446 자체도 no-release finalize되는지 확인한다.
+
 ## Issue #437 Historical timing E2E shard optimizer 검증
 
 - Reporter: 성공 test의 file/duration만 timing JSON에 기록하고 실패/취소를 성공 sample로 사용하지 않는다.
