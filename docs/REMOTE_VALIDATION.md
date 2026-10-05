@@ -271,7 +271,8 @@ Optional shard/implementation job의 SKIPPED가 있어도 aggregate required che
 PR 단계에서는 `scripts/verify-issue-lifecycle.py`로 다음 정적 계약을 확인한다.
 
 - release publish success 뒤 `release-finalizer-resume.yml/dispatches`를 explicit `workflow_dispatch`한다.
-- dispatch input은 exact release target `target_sha`다.
+- dispatch input은 exact release target `target_sha`와 source `release_run_id`다.
+- explicit Resume은 Actions API에서 exact source run의 `completed/success`, `.github/workflows/release-image.yml`, `head_sha == target_sha`를 확인한 뒤 resolver를 실행한다.
 - Resume workflow는 기존 `Publish release image workflow_run.completed` fallback을 유지한다.
 - Resume은 triggering tag/manual ref가 아니라 trusted `main`을 checkout한다.
 - post-publication handoff는 non-blocking이며 required release validation/promotion gate를 대체하지 않는다.
