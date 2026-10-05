@@ -53,6 +53,42 @@ describe("historical E2E shard planner", () => {
     expect(new Set(selected).size).toBe(currentFiles.length);
   });
 
+  it("rejects invalid shard ids and duplicate shard groups", () => {
+    const currentFiles = ["tests/e2e/a.spec.ts", "tests/e2e/b.spec.ts"];
+
+    expect(
+      selectShardFiles({
+        plan: {
+          schemaVersion: 1,
+          shardCount: 2,
+          shards: [
+            { shard: 1, files: ["tests/e2e/a.spec.ts"] },
+            { shard: 3, files: ["tests/e2e/b.spec.ts"] },
+          ],
+        },
+        currentFiles,
+        shard: 1,
+        total: 2,
+      }),
+    ).toBeNull();
+
+    expect(
+      selectShardFiles({
+        plan: {
+          schemaVersion: 1,
+          shardCount: 2,
+          shards: [
+            { shard: 1, files: ["tests/e2e/a.spec.ts"] },
+            { shard: 1, files: ["tests/e2e/b.spec.ts"] },
+          ],
+        },
+        currentFiles,
+        shard: 1,
+        total: 2,
+      }),
+    ).toBeNull();
+  });
+
   it("recommends a rebalance only after enough historical runs", () => {
     const root = mkdtempSync(join(tmpdir(), "mastergantt-e2e-history-"));
     tempDirs.push(root);
