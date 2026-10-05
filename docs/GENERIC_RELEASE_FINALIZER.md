@@ -17,7 +17,7 @@ Issue #350에서 Issue별 one-shot finalizer를 제거하고 main CI 이후 life
 
 `.github/workflows/release-finalizer.yml`은 `CI`의 `workflow_run.completed` 중 triggering branch가 `main`인 경우만 생성된다. Job mutation은 추가로 triggering event=`push`, head branch=`main`, conclusion=`success`를 모두 요구한다. 따라서 PR CI, feature branch CI, 수동 CI, 실패/취소 main CI는 lifecycle mutation을 수행하지 않는다.
 
-Release 완료 재개는 `.github/workflows/release-finalizer-resume.yml`이 담당한다. 이 workflow는 `Publish release image`의 successful `workflow_run.completed`를 fallback으로 구독하는 동시에 `workflow_dispatch(target_sha, release_run_id)`를 지원한다. `release-image.yml`의 publish 성공 후에는 GitHub가 `GITHUB_TOKEN`에 명시적으로 허용하는 `workflow_dispatch`로 Resume을 호출하므로 implicit event delivery 하나에만 의존하지 않는다. Explicit handoff는 source Release run이 아직 active일 수 있으므로 Resume이 exact `release_run_id`를 polling해 `completed/success`, workflow path, head SHA를 확인한 뒤 Generic resolver를 실행한다.
+Release 완료 재개는 `.github/workflows/release-finalizer-resume.yml`이 담당한다. 이 workflow는 `Publish release image`의 successful `workflow_run.completed`를 fallback으로 구독하는 동시에 `workflow_dispatch(target_sha, release_run_id)`를 지원한다. `release-image.yml`의 publish 성공 후에는 GitHub가 `GITHUB_TOKEN`에 명시적으로 허용하는 `workflow_dispatch`로 Resume을 호출하므로 implicit event delivery 하나에만 의존하지 않는다. Explicit handoff는 source Release run이 아직 active일 수 있으므로 Resume이 exact `release_run_id`를 polling해 `completed/success`, workflow path, head SHA를 확인한 뒤 Generic resolver를 실행한다. 대기는 최대 10분으로 제한하고, 그 안에 completed/success evidence를 확보하지 못하면 Resume만 FAIL하여 lifecycle mutation을 중단한다.
 
 Resume workflow는 write 권한을 가지므로 triggering tag/manual ref의 repository code를 실행하지 않는다. 항상 trusted `main`을 checkout하고 release의 exact target SHA는 lifecycle resolver 입력 데이터로만 전달한다.
 
