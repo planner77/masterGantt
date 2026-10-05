@@ -232,3 +232,13 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 - 자동 plan PR이 이미 열려 있으면 새 PR을 추가 생성하지 않고 기존 PR의 검증/정리를 우선한다.
 - historical artifact는 untrusted input으로 취급한다. duration/file JSON을 파싱하는 것 외의 명령 실행이나 credential 사용을 허용하지 않는다.
 - plan 파일 오류·stale 상태는 test skip 사유가 아니다. CI/Release는 current test 목록을 기준으로 신규 file을 포함하거나 native sharding으로 fallback한다.
+
+## Issue #439 CI setup/cache 계측 운영
+
+- CI setup metric artifact는 성능 관찰 데이터이며 required check나 release evidence를 대체하지 않는다.
+- artifact 이름은 CI build/E2E/Docker/Main image와 Release static/E2E/candidate 단위로 구분하고 retention 30일을 사용한다.
+- baseline 분석 시 최소 10개의 successful run만 사용하고 event(`pull_request`, `push`, release/tag 실행)를 섞어 단일 숫자로 평균내지 않는다.
+- artifact를 내려받아 한 디렉터리에 모은 뒤 `node scripts/analyze-ci-setup-metrics.mjs --input <dir> --min-samples 10 --output <json>`으로 median/p90을 계산한다.
+- 새로운 cache를 도입할 때는 cache key 입력, invalidation, miss fallback, write 권한, secret 포함 여부를 함께 검토한다. cache hit 자체를 PASS 근거로 사용하지 않는다.
+- `node_modules` cache는 금지한다. Playwright browser cache는 Phase 1 baseline에서 download/install 비용이 유의미한 것으로 확인된 뒤 별도 PR로만 활성화한다.
+- setup 비용 최적화 PR은 기존 required checks, test 개수, audit, Docker/runtime smoke를 줄이는 방법으로 성능을 만들지 않는다.
