@@ -271,3 +271,15 @@ Optional shard/implementation job의 SKIPPED가 있어도 aggregate required che
 Lifecycle의 exact main CI 조회는 repository의 최근 run 목록을 넓게 가져와 client-side에서 추정하지 않는다. GitHub Actions workflow-runs API에 `head_sha=<merge SHA>`를 직접 전달하고, 반환된 run에서도 `head_sha`가 target과 일치하는지 다시 검증한다. 이후 같은 exact run의 latest attempt jobs에서 main 임시 GHCR artifact evidence를 확인한다.
 
 다른 SHA의 성공 run, head_sha binding 없는 최근 run 목록, overall CI success만으로 lifecycle mutation을 허용하지 않는다.
+
+## Issue #439 setup/cache 성능 원격 검증
+
+| 구분 | 원격 증거 | 판정 |
+| --- | --- | --- |
+| PR/Main Node setup | build/E2E artifact JSONL + Step Summary | checkout/setup-node/npm cache/npm ci duration과 exact cache hit 분포 |
+| PR/Main Playwright | E2E artifact JSONL + E2E timing JSON | OS deps/headless-shell duration, `runnerReadyMs`; browser cache는 Phase 1에서 비활성 |
+| Build cache | build JSONL + Step Summary | Next cache restore duration/exact hit; miss에서도 production build 실행 |
+| Docker | Docker/Main image JSONL + BuildKit summary | Buildx setup/build-push elapsed; GHA layer cache는 summary/log 보조 근거 |
+| Release | static/E2E/candidate setup JSONL | PR/Main과 동일 metric 이름·schema로 비교 |
+
+최소 10회 successful sample 전에는 before/after 개선을 확정하지 않는다. 동일 event와 동일 metric 정의로 baseline median/p90을 계산하고, Phase 2 변경 후 같은 방식으로 재측정한다.
