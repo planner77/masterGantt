@@ -1,5 +1,12 @@
 # Import contract 1.0
 
+## Issue #460 — 단계 Membership과 현재 JSON 구현 상태
+
+현재 strict JSON 1.0/machine-readable schema는 유지한다. Membership/effective/Ready/legacy bypass 필드는 unknown field로 거부한다. 소속을 추가할 새 version/명시 참조 shape는 #464에서 producer/consumer 계약을 함께 결정한다. 기존 version의 omission을 기존 DB 소속 삭제로 해석하지 않는다.
+
+`validateImportPayload`는 계속 순수 검증기이며 HTTP preview/commit 저장 구현은 아니다. HTTP 고정 성공 stub는 501 `IMPORT_UNAVAILABLE`로 교체했다. preview는 Origin/session, commit은 Origin/session/strong If-Match 확인 후 unavailable이며 저장 0건이다. 새로운 Membership 값을 받을 수 있다고 주장하지 않는다. 전체 Import mapping/graph/완료 guard/transaction 구현은 후속 범위다. [Stage Gate 초기 보존 inventory](MILESTONE_STAGE_GATES.md)를 따른다.
+
+
 상태: Manager 승인 초안, Backend + Excel/VBA 공동 CSV 검토 반영; 독립 QA 결과는 [BOOTSTRAP_REVIEW.md](BOOTSTRAP_REVIEW.md). 아직 구현 또는 실제 Excel POC 통과를 뜻하지 않는다. 계약 변경은 양쪽 영향 분석→공동 검토→Manager 결정→문서/구현→QA 순서다.
 
 ## 범위와 식별

@@ -1,3 +1,4 @@
+import type { MilestoneStageGateDto, TaskMilestoneMembershipDto } from "./milestones";
 import type { ProjectLogisticsDto } from "./logistics";
 import type { ProjectMasterItemDto } from "./project-master";
 import type { ProjectAssignmentDto } from "./resources";
@@ -59,6 +60,9 @@ export interface ProjectListResponse {
 }
 
 export interface ProjectTaskDto {
+  /** Canonical API snapshots always include the server-owned stage projection. */
+  membership?: TaskMilestoneMembershipDto;
+  stageGate?: MilestoneStageGateDto;
   taskId: string;
   externalId: string;
   name: string;
@@ -85,6 +89,8 @@ export interface ProjectTaskDto {
 export type DependencyType = "FS" | "SS" | "FF" | "SF";
 
 export interface ProjectLinkDto {
+  /** Existing mixed Task/Milestone dependencies remain readable and schedulable. */
+  legacyMixed?: boolean;
   id: string;
   predecessorExternalId: string;
   successorExternalId: string;
@@ -213,6 +219,8 @@ export type CreateTaskRequest = CreateTaskCommon & (
 );
 
 export interface UpdateTaskRequest {
+  /** Omission preserves explicit assignment; null restores Summary inheritance. */
+  explicitMilestoneTaskId?: string | null;
   name?: string;
   description?: string | null;
   url?: string | null;
@@ -294,7 +302,7 @@ export interface ScheduleWarningDto {
   start: string;
 }
 
-export type TaskMutationKind = "taskCreate" | "taskUpdate" | "taskDelete" | "taskHierarchy";
+export type TaskMutationKind = "taskCreate" | "taskUpdate" | "taskDelete" | "taskHierarchy" | "milestoneMembership";
 
 export interface TaskMutationResponse {
   data: {

@@ -1,5 +1,12 @@
 # Security
 
+## Issue #460 — 단계 mutation과 데이터 유실 방지
+
+새 `POST /api/projects/{publicId}/milestone-memberships`는 route security inventory의 `origin-session-if-match` 보호 mutation이다. Task PATCH의 Membership도 동일 session/Origin/strong revision 및 transaction 내 최신 권한 재검증을 사용한다. type/Project/FK/unique/완료 구조/완료 가능 조건을 서버에서 확인하고 client effective/Ready/legacy flag를 신뢰하지 않는다. 실패 시 Task 필드·소속·revision을 전부 rollback하며 공개 오류에는 public Task ID만 제공한다.
+
+기존 mixed 관계는 보존하되 신규 mixed는 거부한다. 완료 구조 변경을 name/progress UI 상태로 우회할 수 없다. 보존 미지원 Copy/Template/Excel은 영향 데이터에 no-loss 오류를 반환한다. 무인증 고정 성공 Import stub는 제거하며 preview는 Origin/session, commit은 Origin/session/revision 확인 뒤 501 unavailable이다. Password/session/token/internal SQL을 Membership DTO/export/로그에 추가하지 않는다. [Stage Gate 계약과 경로 inventory](MILESTONE_STAGE_GATES.md)를 따른다.
+
+
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.
 
 

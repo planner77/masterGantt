@@ -1,5 +1,12 @@
 # Import / Export
 
+## Issue #460 — Stage Metadata 초기 보존 경계
+
+단계 Membership은 명시 row와 상속 projection을 구분하며 JSON 1.0 serializer/Import 저장/복사 경로를 검증 없이 확장하지 않는다. 현행 HTTP Import preview/commit 저장 service는 미구현이다. 기존 고정 성공 응답을 제거하여 preview는 Origin/session, commit은 Origin/session/If-Match 확인 뒤 501 `IMPORT_UNAVAILABLE`로 반환한다. 순수 validator 통과는 저장 성공이 아니다. JSON Export endpoint/serializer도 부재이며 #379/#385/#464에서 완전한 계약을 구현해야 한다.
+
+Membership 보유 Project의 전체 Copy/Template 저장/Excel은 `MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE`로 거부하고 원본/새 Project/Template을 부분 변경하지 않는다. subtree/multi-root Copy는 영향 source의 명시/상속/target 참조가 있으면 같은 오류다. 무관 Membership 없는 기존 경로는 유지한다. Excel 관계 포함 선택으로 Membership 누락을 허용하지 않는다. SVG/PNG는 현재 선택 Grid/Chart의 시각 출력이며 backup/round-trip 파일이 아니다. 상세 [경로 inventory](MILESTONE_STAGE_GATES.md)를 따른다. #464에서 FK remap·스키마·경계 경고·단계 Excel 표현을 검증한 뒤 해당 제한을 대체한다.
+
+
 ## 1. 문서 상태와 범위
 
 이 문서는 Web Application의 Backend Import와 Excel Export 초기 계획을 기록한다. 현재 구현된 Export의 실제 계약은 [EXCEL_EXPORT.md](EXCEL_EXPORT.md)가 우선한다. 실제 Excel/DRM/VBA 환경에서의 검증은 별도다.

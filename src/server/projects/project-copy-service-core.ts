@@ -1,3 +1,4 @@
+import { assertMembershipPreservationAvailable, withStageProjection } from "./milestone-stage-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -183,6 +184,7 @@ export class ProjectCopyService {
           throw new RevisionMismatchError();
         }
 
+        assertMembershipPreservationAvailable(this.database, source.id);
         const sourceTasks = this.schedules.listTasks(source.id);
         const sourceLinks = this.schedules.listLinks(source.id);
         const sourceHolidays = this.schedules.listHolidays(source.id);
@@ -685,7 +687,7 @@ export class ProjectCopyService {
         };
 
         return {
-          response,
+          response: withStageProjection(this.database, project.id, response),
           rawSessionToken: newSession.rawToken,
         };
       });

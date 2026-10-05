@@ -1,5 +1,12 @@
 # Test Plan
 
+## Issue #460 — Stage Gate 회귀
+
+[Milestone Stage Gates](MILESTONE_STAGE_GATES.md)의 검증 파일 목록을 기준으로 explicit/상속/override/clear/빈 Summary/기준 scope 무관 계산, duration 가중률·반올림·canonical 완료·수동 이벤트·predecessor Gate를 검증한다. 실제 SQLite/API는 atomic composite/batch, 일정/WBS/Link/Assignment 불변, FK/Project 격리/unique/invalid type, 401/403/428/412, 오류 rollback, completion status/progress 양 경로, old/new explicit+effective 구조 잠금, CRUD/hierarchy/Link 우회, legacy mixed 보존/신규 금지, no-loss Copy/Template/Excel/Import를 포함한다.
+
+DB 테스트는 schema21→0022에서 원래 Task/status/progress/Link/Assignment/ID/Project revision 불변과 empty membership을 비교하고 신규 DB/FK/restart도 확인한다. 실제 Next API E2E `milestone-stage-gates.spec.ts`는 저장/Ready/완료잠금/안전거부/401와 프로세스 재시작 SQLite 보존을 검증한다. M→M FS/SS/FF/SF signed Lag/N:M/cycle/Manual/근무일은 별도 scheduler 테스트에서 검증한다. 로컬 결과·독립 테스트 Agent·PR CI required quality/e2e/docker 및 운영 환경 결과를 서로 구분하며 미실행은 NOT TESTED다.
+
+
 ## Issue #430 Cut/Reparent Dependency 경계 회귀
 
 - Unit `task-link-scope.test.ts`: source subtree의 internal→internal, external→internal, internal→external, external→external 및 missing Task를 분리해 XOR boundary 판정을 검증한다. 기존 `taskSubtreeHasDependencyLinks`의 Delete/Indent/Outdent 의미는 유지한다.

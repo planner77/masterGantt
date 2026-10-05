@@ -1,5 +1,12 @@
 # Database Schema
 
+## Issue #460 — 명시 Milestone Membership
+
+Migration `0022_task_milestone_memberships.sql`은 `task_milestone_memberships(project_id, member_task_id, milestone_task_id)` STRICT table을 추가한다. `PRIMARY KEY(project_id, member_task_id)`로 단일 소속을 보장한다. Project FK 및 두 `(project_id, task_id)` composite FK는 Project 경계와 삭제 cascade를 제공하고 target 조회 index를 둔다. INSERT/UPDATE type trigger는 source Task/Summary, target Milestone을 검증하며 Task type 변경 trigger도 이 불변조건을 유지한다. 상속/effective/Ready/KPI는 저장하지 않는다.
+
+기존 row/ID/상태/진척/일정/Link/Assignment/revision은 수정하거나 추정 backfill하지 않는다. Task 삭제/타입 전환 서비스는 이전/새 snapshot과 참조를 검사하여 완료 단계 구조 변경 또는 참조받는 Milestone 삭제를 rollback한다. target FK cascade가 소속을 조용히 없애는 public mutation을 허용하지 않는다. 기존 Project 전체 삭제의 cascade는 유지한다. 미병합 다른 0022 migration과 통합 시 최신 ledger 기준 번호 조정이 필요하며 loader 연속성/checksum gate를 제거하지 않는다. [Stage Gate 계약](MILESTONE_STAGE_GATES.md)을 참조한다.
+
+
 ## 1. 문서 상태와 범위
 
 이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. Issue #99에서 리소스 관리자 런타임 자격증명 해시를 위한 `0007_resource_admin_credentials.sql`을 추가했다. Issue #138에서 Project 상태를 위한 `0008_project_status.sql`을 추가했다. Issue #184에서 물류 도메인 공정·설비·제어/조율 시스템 기초 영속 모델을 위한 `0009_logistics_domain.sql`을 추가한다. Issue #195에서 프로젝트 템플릿 등록·관리 및 템플릿 기반 인스턴스화를 위한 `0012_project_templates.sql`을 추가한다. Issue #200에서 관계 유형(FS/SS/FF/SF) 및 Lag 지원을 위한 `0013_link_types_and_lag.sql`을 추가한다. Issue #202에서 기준 일정(Baseline) 영속화를 위한 `0014_task_baseline.sql`을 추가한다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
