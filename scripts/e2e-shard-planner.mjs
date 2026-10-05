@@ -286,17 +286,17 @@ function parseArgs(argv) {
 function writeSummary(result, file) {
   const m = result.plan.metrics;
   const lines = [
-    "## E2E shard optimizer",
+    "## E2E 샤드 최적화",
     "",
-    `- historical successful runs: \`${m.runCount}\``,
-    `- file timing coverage: \`${(m.fileCoverage * 100).toFixed(1)}%\``,
-    `- recent imbalance ratios: \`${m.recentImbalanceRatios.map((v) => v.toFixed(2)).join(" / ") || "N/A"}\``,
-    `- baseline critical test time: \`${(m.baselineCriticalMs / 60000).toFixed(2)}m\``,
-    `- proposed critical test time: \`${(m.projectedCriticalMs / 60000).toFixed(2)}m\``,
-    `- projected improvement: \`${(m.improvementRatio * 100).toFixed(1)}%\` / \`${(m.improvementMs / 60000).toFixed(2)}m\``,
-    `- plan update: **${result.shouldUpdate ? "recommended" : "not recommended"}**`,
+    `- 과거 성공 run 수: \`${m.runCount}\``,
+    `- 파일 실행시간 coverage: \`${(m.fileCoverage * 100).toFixed(1)}%\``,
+    `- 최근 imbalance ratio: \`${m.recentImbalanceRatios.map((v) => v.toFixed(2)).join(" / ") || "N/A"}\``,
+    `- 기준 critical test time: \`${(m.baselineCriticalMs / 60000).toFixed(2)}m\``,
+    `- 제안 critical test time: \`${(m.projectedCriticalMs / 60000).toFixed(2)}m\``,
+    `- 예상 개선: \`${(m.improvementRatio * 100).toFixed(1)}%\` / \`${(m.improvementMs / 60000).toFixed(2)}m\``,
+    `- 샤드 계획 갱신: **${result.shouldUpdate ? "권장" : "권장하지 않음"}**`,
     "",
-    "| shard candidate | projected critical | projected runner-minutes |",
+    "| 샤드 후보 | 예상 critical path | 예상 runner-minutes |",
     "| ---: | ---: | ---: |",
     ...result.candidateShardCounts.map((item) =>
       `| ${item.shardCount} | ${(item.projectedCriticalMs / 60000).toFixed(2)}m | ${item.projectedRunnerMinutes.toFixed(1)} |`
