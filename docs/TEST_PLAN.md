@@ -1323,8 +1323,9 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 
 ## Issue #446 Release completion Finalizer resume 회귀
 
-- Static trigger: `release-finalizer-resume.yml`은 `Publish release image workflow_run.completed` fallback과 `workflow_dispatch(target_sha)`를 함께 유지한다.
-- Explicit handoff: `release-image.yml`은 publish success 이후에만 Resume workflow를 dispatch하고 exact `needs.prepare.outputs.target_sha`를 전달한다.
+- Static trigger: `release-finalizer-resume.yml`은 `Publish release image workflow_run.completed` fallback과 `workflow_dispatch(target_sha, release_run_id)`를 함께 유지한다.
+- Explicit handoff: `release-image.yml`은 publish success 이후에만 Resume workflow를 dispatch하고 exact `needs.prepare.outputs.target_sha`와 `github.run_id`를 전달한다.
+- Completion race: explicit Resume은 source run ID를 polling해 `completed/success`, release workflow path, `head_sha == target_sha`를 모두 확인한 뒤 resolver를 실행해 parent release가 아직 active인 race를 제거한다.
 - Post-publication safety: Resume dispatch job은 `continue-on-error: true`로 immutable GHCR publication 성공을 뒤집지 않으며 candidate/runtime/API/attestation/promotion gate 뒤에 위치한다.
 - Trust boundary: Resume workflow checkout ref는 `main`이어야 하며 `github.event.workflow_run.head_sha`를 code checkout ref로 사용하지 않는다.
 - Resolver: explicit dispatch와 workflow_run fallback 모두 기존 `auto_release_finalizer.py --target-sha`를 사용해 current main first-parent backlog를 재계산한다.
