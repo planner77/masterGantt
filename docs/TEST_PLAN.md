@@ -1445,6 +1445,7 @@ Issue #452 소비자 전수 및 실제 실행/미실행 구분은 [검증 증거
 - 기존 cleanup은 immediate first-parent의 `version_changed=false`만 보고 해당 package version을 삭제했고, Generic Finalizer는 #466/#467을 same-Issue target으로 수렴해 e812 SHA의 v0.83.4 Release를 시작했다.
 - Release #133.1은 static quality와 Chromium 6/6이 PASS했으나 `Main verified candidate exact digest 확인`에서 candidate 부재로 FAIL했다.
 - 보완 후 Main artifact job은 successful non-docs candidate를 Finalizer에 handoff하고 직접 삭제하지 않아야 한다.
+- 단, image push 이후 digest/policy/readiness/API/transport/artifact 검증이 실패하면 Generic Finalizer가 실행되지 않으므로 Main artifact job 자체가 exact `ci-<SHA>` package version을 fail-closed helper로 삭제해야 한다.
 - no-release lifecycle fixture에서는 `cleanup_temporary_main_candidate`가 exact `ci-<SHA>` cleanup helper를 호출하며, release-required finalize에서는 candidate cleanup을 호출하지 않아야 한다.
 - Generic Finalizer/Resume과 수동 finalize mutation job은 candidate cleanup에 필요한 `packages: write`를 가지되 PR/일반 CI 권한은 확대하지 않는다. formal build/promotion은 계속 `release-image.yml`만 수행한다.
 - failed immutable `v0.83.4`와 미게시 작업 후보 `0.83.5`는 재사용하지 않는다. 최신 main 0.85.0 기준 corrective package version은 `0.85.1`이며 PR CI → Main CI → Finalizer → Release에서 새 exact SHA/digest로 검증한다.
