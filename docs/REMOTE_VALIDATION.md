@@ -33,8 +33,8 @@ main 병합 후에는 기존 main gate를 따른다. 즉 merge SHA의 `quality/e
 | --- | --- | --- | --- |
 | Local Fast Feedback | 개발 환경 | 변경과 직접 관련된 Vitest, 필요 시 typecheck/lint, 재현용 명령 | 구현 중 빠른 피드백. 공식 전체 회귀 PASS를 의미하지 않음 |
 | PR Required Validation | GitHub Actions | version check, typecheck, lint, 전체 Vitest, dependency audit, markdown link, production build, Chromium Playwright E2E, Docker build/runtime/SQLite persistence smoke | 코드 변경의 기본 공식 검증 |
-| Main Artifact Validation | GitHub Actions + GHCR | 비문서 `main` push: PR 수준 gate + 임시 `ci-<full SHA>` publish + exact digest pull + readiness/API/auth/restart persistence + SBOM/provenance + 검증 후 package version 삭제. docs-only main push는 registry job SKIPPED | runtime/artifact에 영향이 있는 `main` commit registry 경로 검증 |
-| Semantic Release Validation | GitHub Actions + GHCR | release workflow의 version/tag gate, candidate runtime, digest smoke, promotion | 배포 가능한 version artifact 검증 |
+| Main Artifact Validation | GitHub Actions + GHCR | 비문서 `main` push: PR 수준 gate + `ci-<full SHA>` publish + exact digest pull + readiness/API/auth/restart persistence + SBOM/provenance. version 유지 merge는 검증 후 삭제하고 version-changing successful candidate는 release까지 보존. docs-only main push는 registry job SKIPPED | runtime/artifact에 영향이 있는 `main` commit registry 경로 검증 |
+| Semantic Release Validation | GitHub Actions + GHCR | release workflow의 version/tag gate, annotated tag target SHA의 Main candidate label/digest 검증, candidate runtime smoke, **동일 digest exact SemVer promotion**, post-promotion digest smoke | 배포 가능한 version artifact 검증 |
 | Environment-specific Validation | 실제 대상 환경 | Windows Excel/VBA/DRM, reverse proxy/TLS, off-host backup/restore, 최종 수동 UX 등 | GitHub-hosted runner로 대체할 수 없는 항목 |
 
 ## 2. 기본 개발 흐름
