@@ -1335,3 +1335,19 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Metrics: Step Summary에 run 수, coverage, 최근 imbalance ratio, baseline/proposed critical time, 예상 개선율, 4~8 shard 후보 runner-minutes를 기록한다.
 - Remote: #437 implementation PR exact head의 quality/e2e/docker required checks를 통과하고, 병합 후 timing artifacts가 실제 main CI에서 생성되는지 확인한다.
 - Activation: historical sample 10회가 쌓이기 전에는 native 6-shard fallback이 정상 상태이며, 첫 자동 plan PR은 threshold 충족 후 별도 required CI로 검증한다.
+
+## Issue #438 Build-once / verified digest release promotion 검증
+
+- Main 분류: first-parent `package.json.version`과 현재 version이 다를 때만 `version_changed=true`이며 `current_version`을 candidate build metadata에 사용한다.
+- Main artifact: 비문서 main merge의 quality/e2e/docker PASS 뒤 `ci-<merge SHA>`를 정확히 한 번 build/push하고 digest pull, image policy, readiness, SQLite restart persistence, Project/Task API, transport smoke를 통과해야 한다.
+- Retention: version 유지 merge와 failed artifact job은 `ci-*`를 정리하고, version-changing merge의 successful `ci-*`만 release candidate로 보존한다.
+- Release target: annotated tag의 `tag^{commit}`이 candidate SHA의 유일한 source이며 `github.sha`나 mutable branch를 candidate key로 사용하지 않는다.
+- Candidate binding: `org.opencontainers.image.source`, `revision`, `version`과 registry digest가 repository/tag target/package version과 모두 일치해야 한다.
+- Build-once: `release-image.yml`에는 `docker/build-push-action`이 없어야 하며 container image 재-build를 수행하지 않는다.
+- Promotion: `imagetools create --prefer-index=false` single-source promotion 뒤 metadata/registry digest가 candidate digest와 정확히 같아야 한다.
+- Exact tag conflict: existing exact SemVer가 같은 digest이면 idempotent retry, 다른 digest이면 overwrite 거부.
+- Runtime: promotion 전 candidate와 promotion 후 exact digest에 대해 image policy/readiness/SQLite persistence/Project·Task API 검증을 유지한다.
+- Alias: prerelease는 exact만, stable은 exact 검증 뒤 major.minor/major/latest가 모두 같은 candidate digest여야 한다.
+- Supply chain: Main build에서 생성한 SBOM/provenance가 candidate digest에 바인딩되고 optional GitHub Attestation도 동일 digest를 subject로 사용한다.
+- Cleanup: release candidate `ci-<SHA>`와 exact SemVer가 같은 package version/digest를 공유할 수 있으므로 exact/rolling tag가 존재하는 version을 `ci-*` tag 제거 목적으로 package version 전체 삭제하지 않는다.
+- 공식 판정은 #438 implementation PR exact head의 required quality/e2e/docker PASS와, 실제 version-changing 후속 release에서 Main candidate digest = exact SemVer digest evidence를 별도로 확인한다.
