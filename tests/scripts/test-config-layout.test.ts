@@ -113,6 +113,15 @@ describe("test configuration repository layout", () => {
     expect(existsSync(resolve(root, "scripts/analyze-ci-setup-metrics.mjs"))).toBe(true);
   });
 
+  it("keeps release candidate container aligned with registry API smoke allowlist", () => {
+    const release = text(".github/workflows/release-image.yml");
+    const registrySmoke = text("scripts/verify-registry-api-smoke.mjs");
+    expect(release).toContain(
+      "verify-registry-api-smoke.mjs http://127.0.0.1:3000 mastergantt-release-candidate",
+    );
+    expect(registrySmoke).toContain('"mastergantt-release-candidate"');
+  });
+
   it("keeps completed Issue #118 evidence manual-only", () => {
     const evidence = text(".github/workflows/issue-118-before-after-evidence.yml");
     expect(evidence).toContain("workflow_dispatch:");
