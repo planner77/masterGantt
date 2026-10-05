@@ -65,7 +65,10 @@ describe("test configuration repository layout", () => {
     expect(release).toContain("e2e-timing-release-shard-");
     expect(optimizer).toContain("event=push&branch=main&status=success");
     expect(optimizer).toContain("scripts/e2e-shard-planner.mjs analyze");
-    expect(optimizer).toContain("[Issue #437] ci: refresh E2E shard plan");
+    expect(optimizer).toContain("actions: write");
+    expect(optimizer).toContain("[Issue #437] ci: E2E 샤드 계획 갱신");
+    expect(optimizer).toContain("actions/workflows/ci.yml/dispatches");
+    expect(optimizer).toContain('inputs[issue_number]=437');
     expect(optimizer).toContain("Refs #437");
     expect(optimizer).not.toContain("gh pr merge");
   });
