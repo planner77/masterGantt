@@ -296,3 +296,12 @@ Lifecycle의 exact main CI 조회는 repository의 최근 run 목록을 넓게 �
 | Release | static/E2E/candidate setup JSONL | PR/Main과 동일 metric 이름·schema로 비교 |
 
 before/after 개선은 workflow 파일/event/job/metric별로 **서로 다른 successful run ID가 최소 10개** 쌓이기 전에는 확정하지 않는다. successful run artifact만 분석 입력으로 사용하며 matrix shard와 동일 run의 재실행은 record는 늘려도 run 표본 수는 늘리지 않는다. Phase 2 변경 후에도 같은 그룹 키와 metric 정의로 median/p90을 재측정한다.
+
+
+## Issue #452 Main candidate lifecycle handoff 회귀
+
+- successful non-docs Main CI는 verified `ci-<merge SHA>`를 build/push·exact digest smoke한 뒤 Main job 안에서 삭제하지 않는다.
+- Generic `release-finalizer.yml`과 `release-finalizer-resume.yml`은 no-release backlog cleanup을 위해 최소 `packages: write` 권한을 가지며, PR/일반 CI에는 registry write 권한을 추가하지 않는다.
+- `release_required=false` finalize는 `scripts/delete-ghcr-package-version-by-tag.mjs ci-<merge SHA>`를 사용해 exact temporary package version만 삭제한다. tag가 없으면 idempotent no-op, 다른 tag와 package version을 공유하면 fail-closed한다.
+- release-required candidate는 formal release source이므로 finalize 전 삭제하지 않는다. Release workflow는 container를 재-build하지 않고 candidate exact digest를 재검증·promotion한다.
+- 회귀 재현 기준: v0.83.4 Run #133.1은 Main #1852에서 검증한 `ci-e812...`가 version-maintaining cleanup으로 삭제되어 candidate lookup이 실패했다. corrective v0.83.5에서는 Main candidate가 Finalizer까지 존재해야 한다.
