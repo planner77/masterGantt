@@ -133,3 +133,14 @@ Task assignment의 `assignment_role`은 공수의 분류 차원이며 #56의 M/D
 
 Resource workload 응답은 Resource developer grade 및 Task canonical progress/status/start/end/delayed를 표시 정보로 추가한다. 이 정보는 M/D·M/M 산식이나 allocation/Calendar/과투입 판정에 영향을 주지 않는다. UI의 `개발 견적` preset과 역할/등급 필터는 현재 성공 snapshot의 drill-down을 제한할 뿐 서버 Project 전체 합계를 재정의하지 않는다.
 
+
+
+## Issue #463 연계 — 단계 범위 공수
+
+Milestone dashboard는 동일 개인 assignment/기간/allocation/계층형 Resource Calendar 산식을 단계 축으로 집계한다. assignmentId를 계산·미설정 count·역할 totals 모두에서 dedup하며 Group/Summary/Milestone 담당 참조는 개인 공수가 아니다. Resource/수행 역할/등급 조건은 같은 assignment에 적용하고 legacy null은 UNSPECIFIED로 유지한다.
+
+검색/단계 선택 S와 전체 Project 기반 공수 F는 독립이다. 기간은 F만 제한하며 `effort.buckets`는 숨겨진 단계까지 포함한 모든 M+미지정 null bucket이다. bucket 합은 같은 F Grand Total과 일치하고 표시 행의 합으로 전체 합계를 설명하지 않는다. 단계 DTO의 raw M/D·M/M는 UI에서만 반올림한다. 기존 Resource workload의 4자리 표시용 결과/ENV API는 그대로 유지한다.
+
+새 Stage/기존 Logistics 조회는 명시 finite-positive mdPerMm query → 유효 RESOURCE_MD_PER_MM → null 정책을 공유한다. HTTP null 문자열/programmatic null은 ENV를 무시한다. invalid query는400, invalid ENV는 null. 기존 Logistics의 숨은20일 fallback 제거와 invalid query 거부는 #463의 명시 의미 변경이다. `mdPerMmSource`와 실제 기준을 표시하며 미설정은 환산하지 않는다. M/D·물류 기존 집합/기간/진척 숫자는 변경하지 않는다.
+
+단계에서 Resource로 drill하면 기존 `resource-workload?from=&to=`로 같은 기간을 서버 조회하고 range echo 및 Project/Catalog revision을 검증한다. 받은 원시 assignment 결과만 표시 필터로 제한하며 UI에서 공수를 재계산하지 않는다. scope 해제는 기존 기본 범위 GET으로 복귀한다. 기존 Resource API/4자리 rounding/ENV 환산은 변경하지 않으므로 Stage raw 값 및 명시 query 환산과 다를 수 있다. Resource 조회의 기간 subtotal과 Stage의 물류/역할/등급 범위 공수, 각 환산 기준을 명시적으로 구분한다. 새 API·공수 엔진 없이 기존 조회를 연결하는 UI 변경이다.

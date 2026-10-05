@@ -1,0 +1,68 @@
+.dashboard { display: flex; flex-direction: column; min-width: 0; max-width: 100%; gap: 12px; padding: 8px 6px 24px; }
+.dashboard h2, .dashboard h3, .dashboard h4, .dashboard p { margin: 0; }
+.dashboard h2 { font-size: 18px; }
+.dashboard h3 { font-size: 15px; }
+.dashboard h4 { font-size: 14px; }
+.dashboard small, .stageTable small { display: block; color: var(--text-muted); font-size: 12px; overflow-wrap: anywhere; }
+.dashboard button, .stageTable button, .causes button { min-height: 32px; max-width: 100%; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; color: var(--text-default); background: var(--surface-panel); font: inherit; font-size: 12px; overflow-wrap: anywhere; }
+.dashboard button:disabled, .stageTable button:disabled, .causes button:disabled { opacity: .55; cursor: not-allowed; }
+.stageTable button:focus-visible, .causes button:focus-visible, .dashboard button:focus-visible, .dashboard input:focus-visible, .dashboard select:focus-visible, .dashboard summary:focus-visible, .tableOwner:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+.sectionHeading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-width: 0; }
+.sectionHeading > div { min-width: 0; }
+.filters { display: grid; grid-template-columns: minmax(180px,1fr) minmax(180px,1fr) 156px 130px 112px; gap: 12px; align-items: end; }
+.dashboard label { display: flex; flex-direction: column; gap: 4px; min-width: 0; font-size: 13px; }
+.dashboard input:not([type=checkbox]), .dashboard select { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; height: 36px; padding: 4px 8px; border: 1px solid var(--input); border-radius: 6px; background: var(--surface-panel); color: var(--text-default); font: inherit; }
+.dashboard .inline { flex-direction: row; align-items: center; min-height: 36px; gap: 8px; }
+.note { color: var(--text-muted); font-size: 12px; overflow-wrap: anywhere; }
+.advanced { border-block: 1px solid var(--border); padding: 8px 6px; }
+.advanced summary { width: fit-content; cursor: pointer; font-size: 13px; font-weight: 600; }
+.advanced[open] > p { margin-top: 12px; }
+.advancedGrid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-block: 12px; }
+.choiceField { min-width: 0; margin: 0; padding: 6px; border: 1px solid var(--border); border-radius: 6px; }
+.choiceField legend { font-size: 13px; padding-inline: 4px; }
+.choiceOwner { max-height: 180px; overflow: auto; padding: 6px; }
+.choiceOwner label { flex-direction: row; align-items: flex-start; gap: 8px; padding: 4px 0; overflow-wrap: anywhere; }
+.choiceOwner input { flex: 0 0 auto; margin-top: 3px; }
+.choiceOwner span { min-width: 0; }
+.results { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.results[data-stale=true] { opacity: .7; }
+.kpis { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }
+.kpis article { display: flex; flex-direction: column; min-width: 0; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-panel); }
+.kpis article h3 { font-size: 13px; color: var(--text-muted); }
+.kpis article strong { font-size: 24px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.kpis article p { font-size: 12px; color: var(--text-muted); overflow-wrap: anywhere; }
+.kpis article button { margin-top: auto; }
+.stageSection { display: flex; flex-direction: column; min-width: 0; gap: 8px; }
+.tableOwner { min-width: 0; max-width: 100%; overflow: auto; border: 1px solid var(--border); border-radius: 6px; padding-bottom: 6px; }
+.stageTable, .effortTable { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.stageTable { min-width: 1052px; }
+.effortTable { min-width: 800px; }
+.stageTable th, .stageTable td, .effortTable th, .effortTable td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.stageTable th, .effortTable th { background: var(--surface-subtle); font-weight: 600; }
+.identity { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; color: var(--text-muted); }
+.badges span { background: var(--surface-subtle); border-radius: 4px; padding: 2px 4px; }
+.actions { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; padding: 6px; }
+.grandTotal { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 6px; font-variant-numeric: tabular-nums; }
+.causes { border: 1px solid var(--border); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 12px; overflow-wrap: anywhere; }
+.causes h3 { min-width: 0; }
+.causeGroup ul { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.causeGroup li { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.causeGroup li > span { min-width: 0; }
+.error { color: var(--status-error); border: 1px solid var(--border); padding: 12px; border-radius: 6px; }
+@media(max-width:1024px) { .filters { grid-template-columns: minmax(0,1fr) minmax(0,1fr); } .advancedGrid { grid-template-columns: repeat(2,minmax(0,1fr)); } .kpis { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media(max-width:540px) { .filters, .advancedGrid, .kpis { grid-template-columns: minmax(0,1fr); } .causeGroup li { flex-direction: column; } .sectionHeading { flex-wrap: wrap; } }
+
+:global(.project-schedule-peer-tabs) { display: flex; flex: 0 0 auto; gap: 8px; padding: 6px; overflow-x: auto; overflow-y: hidden; }
+:global(.project-schedule-peer-tabs button) { flex: 0 0 auto; border: 0; border-bottom: 2px solid transparent; padding: 8px 12px; background: transparent; color: var(--text-muted); font: inherit; font-size: 13px; }
+:global(.project-schedule-peer-tabs button[aria-selected=true]) { border-bottom-color: var(--action-selected); color: var(--text-default); background: var(--surface-subtle); }
+/* Keep the inactive Chart layout box so Core never measures a zero-sized peer. */
+:global(.project-schedule-peer-body) { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); flex: 1 1 0; min-width: 0; min-height: 0; overflow: hidden; }
+:global(.project-schedule-peer-panel) { grid-area: 1 / 1; display: flex; flex-direction: column; min-height: 0; min-width: 0; flex: 1 1 0; gap: 8px; }
+:global(.project-schedule-peer-panel[hidden]) { display: none; }
+:global(.project-milestone-panel) { overflow-y: auto; overflow-x: hidden; padding: 0 0 6px; }
+
+.multiSummary { display:flex; flex-direction:column; gap:4px; min-width:0; font-size:12px; }
+.numeric { text-align:right !important; }
+
+:global(.project-schedule-peer-panel[aria-hidden=true]) { visibility: hidden; pointer-events: none; }

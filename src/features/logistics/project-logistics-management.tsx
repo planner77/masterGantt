@@ -49,7 +49,14 @@ function isTypeCatalog(value: unknown): value is LogisticsActiveTypeCatalogRespo
       !!item && typeof item === "object" && typeof item.code === "string" && typeof item.name === "string");
 }
 
+import type { ProjectTaskDto } from "@/contracts/projects";
+
 export interface ProjectLogisticsManagementProps {
+  tasks?: readonly ProjectTaskDto[];
+  active?: boolean;
+  busy?: boolean;
+  onStageOpen?: (taskId: string, tab?: "task" | "memberships") => void;
+  onStageSchedule?: (taskIds: string[]) => void;
   publicId: string;
   revision: number;
   editable: boolean;
@@ -68,6 +75,7 @@ export interface ProjectLogisticsManagementProps {
 type SubTab = "dashboard" | "processes" | "equipment" | "systems" | "relations";
 
 export function ProjectLogisticsManagement({
+  tasks = [], active = true, busy = false, onStageOpen, onStageSchedule,
   publicId,
   revision,
   editable,
@@ -562,6 +570,8 @@ export function ProjectLogisticsManagement({
         hidden={activeSubTab !== "dashboard"}
       >
         <ProjectLogisticsDashboard
+          busy={busy}
+          tasks={tasks} active={active && activeSubTab === "dashboard"} onStageOpen={onStageOpen} onStageSchedule={onStageSchedule}
           publicId={publicId}
           revision={revision}
           onNavigateToSchedule={onNavigateToSchedule}

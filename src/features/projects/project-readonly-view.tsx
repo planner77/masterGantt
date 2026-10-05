@@ -1,6 +1,8 @@
 "use client";
 import { canCreateSchedulingLink, linkStructureLocked, MIXED_LINK_EXPLANATION, COMPLETED_LINK_EXPLANATION } from "@/features/gantt/relation-editor-model";
 import { StageFilterPicker } from "./stage-filter-picker";
+import { ProjectMilestoneDashboard } from "@/features/milestones/project-milestone-dashboard";
+import type { MilestoneResourceDrill } from "@/features/resources/milestone-resource-drill";
 
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
@@ -176,6 +178,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [infoPopoverOpen, setInfoPopoverOpen] = useState(false);
   const [activeView, setActiveView] = useState<"schedule" | "resources" | "logistics">("schedule");
+  const [scheduleView, setScheduleView] = useState<"gantt" | "milestones">("gantt");
+  const [resourceDrill, setResourceDrill] = useState<MilestoneResourceDrill | null>(null);
+  const [previousDashboardDrill, setPreviousDashboardDrill] = useState<{ rootTaskId: string | null; filter: TaskFilterState } | null>(null);
+  const schedulePeerReferences = useRef<Partial<Record<"gantt" | "milestones", HTMLButtonElement | null>>>({});
+  const scheduleGanttPanel = useRef<HTMLDivElement>(null);
+  const [peerChartRestore, setPeerChartRestore] = useState<{ key: string; left: number; top: number } | null>(null);
+  const peerViewport = useRef<{ publicId: string; rootTaskId: string | null; filter: TaskFilterState; positions: { selector: string; left: number; top: number }[] } | null>(null);
   const [activeRootTaskId, setActiveRootTaskId] = useState<string | null>(() => initialRootTaskId);
   const [openScopeTaskIds, setOpenScopeTaskIds] = useState<readonly string[]>(() => initialRootTaskId ? [initialRootTaskId] : []);
   const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
@@ -197,6 +206,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
+  const editorOriginViewReference = useRef<"schedule" | "resources" | "logistics">("schedule");
   const editorOpeningReference = useRef(false);
   const deleteTriggerReference = useRef<HTMLElement | null>(null);
   const unlockTriggerReference = useRef<HTMLButtonElement | null>(null);
@@ -522,6 +532,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   function openTaskAsRoot(taskId: string): void {
     setOpenScopeTaskIds((current) => current.includes(taskId) ? current : [...current, taskId]);
     setActiveView("schedule");
+    setScheduleView("gantt");
     activateScope(taskId);
   }
 
@@ -791,6 +802,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (!task) return;
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setEditorInitialTab(initialTab);
+    editorOriginViewReference.current = activeView;
     editorOpeningReference.current = true;
     editorTriggerReference.current = trigger;
     setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
@@ -799,6 +811,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const taskId = editorSession?.task.taskId;
     const trigger = editorTriggerReference.current;
     setEditorSession(null);
+    setActiveView(editorOriginViewReference.current);
     editorOpeningReference.current = false;
     requestAnimationFrame(() => {
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
@@ -861,7 +874,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (task) setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
   }
   function locateEditorTask(taskId: string) {
+    const fromOtherView = editorOriginViewReference.current !== "schedule";
+    editorOriginViewReference.current = "schedule";
     closeTaskEditor();
+    if (scheduleView === "milestones" || fromOtherView) drillDashboardSchedule([taskId]);
     requestAnimationFrame(() => { const root = document.querySelector<HTMLElement>(".project-gantt-scroll"); const target = root ? findTaskContextElement(root, taskId) : null; target?.scrollIntoView({ block: "nearest", inline: "nearest" }); target?.focus({ preventScroll: true }); });
   }
   async function reloadEditorTask(taskId: string): Promise<TaskEditorSession | null> {
@@ -987,6 +1003,36 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       ref?.focus({ preventScroll: true });
     });
   }
+  function activateScheduleView(view: "gantt" | "milestones") {
+    if (scheduleView === "gantt" && view === "milestones") {
+      const panel = scheduleGanttPanel.current;
+      peerViewport.current = { publicId, rootTaskId: activeRootTaskId, filter: taskFilter, positions: [".project-gantt-scroll", ".wx-gantt", ".wx-chart", ".wx-table-container"].flatMap((selector) => {
+        const owner = panel?.querySelector<HTMLElement>(selector);
+        return owner ? [{ selector, left: owner.scrollLeft, top: owner.scrollTop }] : [];
+      }) };
+      const chart = panel?.querySelector<HTMLElement>(".wx-chart");
+      if (chart) setPeerChartRestore({ key: `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`, left: chart.scrollLeft, top: panel?.querySelector<HTMLElement>(".wx-gantt")?.scrollTop ?? 0 });
+    }
+    setScheduleView(view);
+    requestAnimationFrame(() => schedulePeerReferences.current[view]?.focus({ preventScroll: true }));
+  }
+  function handleScheduleViewKey(event: ReactKeyboardEvent<HTMLButtonElement>, view: "gantt" | "milestones") {
+    const next = event.key === "Home" ? "gantt" : event.key === "End" ? "milestones" : event.key === "ArrowLeft" || event.key === "ArrowRight" ? view === "gantt" ? "milestones" : "gantt" : null;
+    if (next) { event.preventDefault(); activateScheduleView(next); }
+  }
+  function drillDashboardSchedule(taskIds: string[]) {
+    if (busy || state.status !== "ready") return;
+    if (!previousDashboardDrill) setPreviousDashboardDrill({ rootTaskId: activeRootTaskId, filter: taskFilter });
+    activateScope(null, false);
+    setTaskFilter({ ...EMPTY_TASK_FILTER, taskIds: [...new Set(taskIds)] });
+    setActiveView("schedule"); activateScheduleView("gantt");
+  }
+  function restoreDashboardDrill() {
+    if (!previousDashboardDrill) return;
+    activateScope(previousDashboardDrill.rootTaskId, false);
+    setTaskFilter(previousDashboardDrill.filter); setPreviousDashboardDrill(null);
+    activateScheduleView("gantt");
+  }
   function handleWorkspaceTabKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>, current: "schedule" | "resources" | "logistics") {
     const views: Array<"schedule" | "resources" | "logistics"> = ["schedule", "resources", "logistics"];
     const idx = views.indexOf(current);
@@ -999,6 +1045,27 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     event.preventDefault();
     activateWorkspaceView(next);
   }
+
+  useEffect(() => {
+    const saved = peerViewport.current;
+    if (activeView !== "schedule" || scheduleView !== "gantt" || !saved) return;
+    peerViewport.current = null;
+    // Explicit ID/scope drills own their new viewport. Only a plain peer return
+    // restores native DOM scroll, after Core has resized the visible frame.
+    if (saved.publicId !== publicId || saved.rootTaskId !== activeRootTaskId || saved.filter !== taskFilter) return;
+    let secondFrame = 0;
+    const firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => {
+        const panel = scheduleGanttPanel.current;
+        if (!panel || panel.hidden) return;
+        for (const position of saved.positions) {
+          const owner = panel.querySelector<HTMLElement>(position.selector);
+          if (owner) { owner.scrollLeft = position.left; owner.scrollTop = position.top; }
+        }
+      });
+    });
+    return () => { cancelAnimationFrame(firstFrame); cancelAnimationFrame(secondFrame); };
+  }, [activeView, scheduleView, publicId, activeRootTaskId, taskFilter]);
 
   if (state.status === "loading") return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>프로젝트 정보를 불러오는 중입니다.</p></section>;
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
@@ -1157,6 +1224,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         aria-busy={isSavingTask || undefined}
         className="project-schedule project-workspace-panel"
       >
+        <div className="project-schedule-peer-tabs" role="tablist" aria-label="일정 보기">
+          {(["gantt", "milestones"] as const).map((view) => <button key={view} type="button" role="tab" id={`project-schedule-tab-${view}`} aria-controls={`project-schedule-view-${view}`} aria-selected={scheduleView === view} tabIndex={scheduleView === view ? 0 : -1} ref={(node) => { schedulePeerReferences.current[view] = node; }} onClick={() => activateScheduleView(view)} onKeyDown={(event) => handleScheduleViewKey(event, view)}>{view === "gantt" ? "Gantt" : "완료 단계 대시보드"}</button>)}
+        </div>
+        <div className="project-schedule-peer-body">
+        <div ref={scheduleGanttPanel} id="project-schedule-view-gantt" role="tabpanel" aria-labelledby="project-schedule-tab-gantt" aria-hidden={scheduleView !== "gantt" || undefined} inert={scheduleView !== "gantt"} className="project-schedule-peer-panel">
+        {previousDashboardDrill ? <div className="resource-workload-note" role="status">완료 단계에서 명시적으로 전체 일정 범위로 이동했습니다. <button type="button" className="secondary-button" onClick={restoreDashboardDrill}>이전 Gantt 범위·조건 복원</button></div> : null}
         <div className="project-scope-tabs" role="tablist" aria-label="WBS 범위 탭">
           <div className="project-scope-tab-item" role="presentation">
             <button className="project-scope-tab" id={scopeTabId(null)} role="tab" type="button" aria-controls="project-scope-panel" aria-selected={activeRootTaskId === null} tabIndex={activeRootTaskId === null ? 0 : -1} ref={(node) => { if (node) scopeTabReferences.current.set(scopeStateKey(null), node); else scopeTabReferences.current.delete(scopeStateKey(null)); }} onClick={() => activateScope(null)} onKeyDown={(event) => handleScopeTabKeyDown(event, null)}><span className="project-scope-tab-label">전체 프로젝트</span></button>
@@ -1365,7 +1438,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             ? "선택한 작업이 더 이상 Summary가 아닙니다."
             : "선택한 Summary가 삭제되었거나 현재 프로젝트에서 찾을 수 없습니다."}{" "}
           <div className="project-scope-recovery-actions"><button className="secondary-button project-scope-recovery-button" type="button" onClick={() => activateScope(null)}>전체 프로젝트로 돌아가기</button></div>
-        </div> : <ProjectGantt key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
+        </div> : <ProjectGantt viewVisible={activeView === "schedule" && scheduleView === "gantt"} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
@@ -1374,6 +1447,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             if (current[columnId] && visibleColumnCount === 1) return current;
             return { ...current, [columnId]: !current[columnId] };
           })} tasks={tasks} visibleTaskIds={ganttVisibleTaskIds} matchingTaskIds={ganttMatchingTaskIds} selectionBoundaryKey={ganttSelectionBoundaryKey} viewRootTaskId={subtreeScope.kind === "valid" ? subtreeScope.root.taskId : null} />}
+        </div>
+        </div>
+        <div id="project-schedule-view-milestones" role="tabpanel" aria-labelledby="project-schedule-tab-milestones" hidden={scheduleView !== "milestones"} className="project-schedule-peer-panel project-milestone-panel">
+          <ProjectMilestoneDashboard publicId={publicId} revision={project.revision} tasks={tasks} active={activeView === "schedule" && scheduleView === "milestones"} busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} onOpenTask={openTaskEditor} onSchedule={drillDashboardSchedule} onResources={(scope) => { if (busy || scope.projectRevision !== project.revision) return; setResourceDrill(scope); activateWorkspaceView("resources"); }} onRefreshProject={() => { void reloadCanonicalSnapshot(); }} />
+        </div>
+        </div>
         {editorSession ? <ProjectTaskEditor initialTab={editorInitialTab} ref={projectTaskEditorReference} key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
           editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy}
@@ -1392,7 +1471,6 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             tasks={tasks}
           />
         ) : null}
-        </div>
       </section>
       <section
         id="project-panel-resources"
@@ -1401,7 +1479,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         hidden={activeView !== "resources"}
         className="project-workspace-panel project-resource-panel"
       >
-        <ProjectResourceWorkload publicId={publicId} />
+        <ProjectResourceWorkload publicId={publicId} drillScope={resourceDrill} onClearDrillScope={() => setResourceDrill(null)} />
       </section>
       <section
         id="project-panel-logistics"
@@ -1411,9 +1489,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         className="project-workspace-panel project-logistics-panel"
       >
         <ProjectLogisticsManagement
+          busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null}
           publicId={publicId}
           revision={project.revision}
           editable={editing}
+          tasks={tasks}
+          active={activeView === "logistics"}
+          onStageSchedule={drillDashboardSchedule}
+          onStageOpen={(taskId, tab) => { setActiveView("schedule"); openTaskEditor(taskId, tab); }}
           logistics={state.snapshot.data.logistics}
           onLogisticsMutated={(newLogistics, newProject) => {
             const current = confirmedSnapshotReference.current;
@@ -1424,6 +1507,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           onNavigateToSchedule={(targetFilter) => {
             activateScope(null, false);
             setActiveView("schedule");
+            setScheduleView("gantt");
             if (targetFilter) {
               setTaskFilter((prev) => ({ ...prev, ...targetFilter }));
             }

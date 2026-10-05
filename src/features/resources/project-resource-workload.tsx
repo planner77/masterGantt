@@ -9,6 +9,7 @@ import type {
   ResourceWorkloadRole,
   ResourceWorkloadTaskDto,
 } from "@/contracts/resources";
+import { resourceDrillMatches, resourceDrillRevisionMatches, type MilestoneResourceDrill } from "./milestone-resource-drill";
 
 type Unit = "md" | "mm";
 type ActiveFilter = "all" | "active" | "inactive";
@@ -16,10 +17,11 @@ type KindFilter = "all" | "resource" | "group";
 type RoleFilter = "all" | ResourceWorkloadRole;
 type GradeFilter = "all" | DeveloperGrade;
 
-type Props = Readonly<{ publicId: string }>;
+type Props = Readonly<{ publicId: string; drillScope?: MilestoneResourceDrill | null; onClearDrillScope?: () => void }>;
 type Source = "workload" | "targets";
 type QueryState<T> = Readonly<{
   publicId: string;
+  queryKey?: string;
   value: T | null;
   phase: "loading" | "ready" | "error";
   lastSuccessAt: string | null;
@@ -130,7 +132,7 @@ function maxTaskDate(tasks: ResourceWorkloadTaskDto[], field: "start" | "end"): 
   return tasks.length ? tasks.map((task) => task[field]).reduce((a, b) => a > b ? a : b) : null;
 }
 
-export function ProjectResourceWorkload({ publicId }: Props) {
+export function ProjectResourceWorkload({ publicId, drillScope = null, onClearDrillScope }: Props) {
   const [workloadQuery, setWorkloadQuery] = useState<QueryState<ResourceWorkloadResponse["data"]>>(() => initialQueryState(publicId));
   const [targetsQuery, setTargetsQuery] = useState<QueryState<AssignmentTargetDto[]>>(() => initialQueryState(publicId));
   const currentPublicId = useRef(publicId);
@@ -149,6 +151,9 @@ export function ProjectResourceWorkload({ publicId }: Props) {
   const searchInput = useRef<HTMLInputElement>(null);
 
   useLayoutEffect(() => { currentPublicId.current = publicId; }, [publicId]);
+  const drillFrom = drillScope?.from, drillTo = drillScope?.to;
+  const drillRevision = drillScope ? `${drillScope.projectRevision}:${drillScope.catalogRevision}` : "";
+  const workloadKey = `${publicId}:${drillFrom ?? ""}:${drillTo ?? ""}:${drillRevision}`;
 
   const loadSource = useCallback(async (source: Source, retrying = false) => {
     const id = ++requestId.current[source];
@@ -156,28 +161,34 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     const controller = new AbortController();
     requestControllers.current[source] = controller;
     if (source === "workload") setWorkloadQuery((previous) => ({
-      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading", retrying,
+      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), queryKey: workloadKey, phase: "loading", retrying,
     }));
     else setTargetsQuery((previous) => ({
       ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading", retrying,
     }));
     try {
       const endpoint = source === "workload" ? "resource-workload" : "assigned-targets";
-      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/${endpoint}`, {
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/${endpoint}${source === "workload" && drillFrom && drillTo ? `?${new URLSearchParams({ from: drillFrom, to: drillTo })}` : ""}`, {
         credentials: "same-origin", cache: "no-store", signal: controller.signal,
       });
       const body: unknown = await response.json().catch(() => null);
       if (!response.ok) throw new Error("request failed");
       const fresh = source === "workload" ? workloadFrom(body) : targetsFrom(body);
       if (!fresh) throw new Error("invalid response");
+      if (source === "workload" && drillFrom && drillTo) {
+        const snapshot = fresh as ResourceWorkloadResponse["data"];
+        if (`${snapshot.projectRevision}:${snapshot.catalogRevision}` !== drillRevision) throw new Error("revision mismatch");
+        const range = snapshot.range;
+        if (range.from !== drillFrom || range.to !== drillTo) throw new Error("range mismatch");
+      }
       if (controller.signal.aborted || id !== requestId.current[source] || currentPublicId.current !== publicId) return;
       const lastSuccessAt = new Date().toISOString();
-      if (source === "workload") setWorkloadQuery({ publicId, value: fresh as ResourceWorkloadResponse["data"], phase: "ready", lastSuccessAt, retrying: false });
+      if (source === "workload") setWorkloadQuery({ publicId, queryKey: workloadKey, value: fresh as ResourceWorkloadResponse["data"], phase: "ready", lastSuccessAt, retrying: false });
       else setTargetsQuery({ publicId, value: fresh as AssignmentTargetDto[], phase: "ready", lastSuccessAt, retrying: false });
     } catch {
       if (controller.signal.aborted || id !== requestId.current[source] || currentPublicId.current !== publicId) return;
       if (source === "workload") setWorkloadQuery((previous) => ({
-        ...(previous.publicId === publicId ? previous : initialQueryState<ResourceWorkloadResponse["data"]>(publicId)), phase: "error", retrying: false,
+        ...(previous.publicId === publicId ? previous : initialQueryState<ResourceWorkloadResponse["data"]>(publicId)), queryKey: workloadKey, phase: "error", retrying: false,
       }));
       else setTargetsQuery((previous) => ({
         ...(previous.publicId === publicId ? previous : initialQueryState<AssignmentTargetDto[]>(publicId)), phase: "error", retrying: false,
@@ -185,7 +196,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     } finally {
       if (requestControllers.current[source] === controller) requestControllers.current[source] = null;
     }
-  }, [publicId]);
+  }, [publicId, drillFrom, drillTo, drillRevision, workloadKey]);
 
   useEffect(() => {
     let active = true;
@@ -204,15 +215,16 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     };
   }, [loadSource]);
 
-  const currentWorkload = workloadQuery.publicId === publicId ? workloadQuery : initialQueryState<ResourceWorkloadResponse["data"]>(publicId);
+  const currentWorkload = workloadQuery.publicId === publicId && workloadQuery.queryKey === workloadKey ? workloadQuery : initialQueryState<ResourceWorkloadResponse["data"]>(publicId);
   const currentTargets = targetsQuery.publicId === publicId ? targetsQuery : initialQueryState<AssignmentTargetDto[]>(publicId);
   const data = currentWorkload.value;
   const targets = currentTargets.value ?? [];
   const targetByKey = useMemo(() => new Map(targets.map((target) => [`${target.kind}:${target.id}`, target])), [targets]);
+  const drillCurrent = !drillScope || (currentWorkload.phase === "ready" && data !== null && resourceDrillRevisionMatches(drillScope, data) && data.range.from === drillScope.from && data.range.to === drillScope.to);
 
   const filteredGroups = useMemo(() => {
-    if (!data) return [];
-    const taskFilterActive = roleFilter !== "all" || Boolean(dateFrom && dateTo);
+    if (!data || !drillCurrent) return [];
+    const taskFilterActive = roleFilter !== "all" || Boolean(dateFrom && dateTo) || drillScope !== null;
     const memberScopeActive = taskFilterActive || gradeFilter !== "all";
     return data.groups.flatMap((group) => {
       const groupTarget = group.id ? targetByKey.get(`group:${group.id}`) : undefined;
@@ -222,6 +234,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
       const scopedMembers = group.resources.flatMap((resource) => {
         const gradeMatch = gradeFilter === "all" || resource.developerGrade === gradeFilter;
         const tasks = resource.tasks.filter((task) =>
+          (!drillScope || resourceDrillMatches(drillScope, resource.id, task)) &&
           overlaps(task.start, task.end, dateFrom, dateTo) &&
           (roleFilter === "all" || (task.role ?? "UNSPECIFIED") === roleFilter));
         if (!gradeMatch || (taskFilterActive && tasks.length === 0)) return [];
@@ -229,6 +242,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
       });
 
       if (kindFilter === "group") {
+        if (drillScope) return [];
         const memberScopeMatch = !memberScopeActive || scopedMembers.length > 0;
         if (!groupMatchesText || !groupMatchesActive || !memberScopeMatch) return [];
         return [{ ...group, resources: group.resources }];
@@ -264,7 +278,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
         resources,
       }];
     });
-  }, [activeFilter, data, dateFrom, dateTo, gradeFilter, kindFilter, query, roleFilter, targetByKey]);
+  }, [activeFilter, data, dateFrom, dateTo, gradeFilter, kindFilter, query, roleFilter, targetByKey, drillScope, drillCurrent]);
 
   const visibleResourceCount = new Set(filteredGroups.flatMap((group) => group.resources.map((resource) => resource.id))).size;
   const visibleGroupCount = filteredGroups.filter((group) => group.id !== null).length;
@@ -300,6 +314,12 @@ export function ProjectResourceWorkload({ publicId }: Props) {
 
   return (
     <section aria-labelledby="resource-workload-heading" className="project-resource-workload">
+      {drillScope ? <div className="resource-workload-note" role="status">
+        <strong>완료 단계에서 전달한 개인 assignment 표시 범위</strong> · {drillScope.from} ~ {drillScope.to} · Revision {drillScope.projectRevision}/{drillScope.catalogRevision}
+        <p>단계 Dashboard 범위 공수: {effort(drillScope.plannedMd, drillScope.plannedMm, "md")}{drillScope.plannedMm === null ? " · M/M 미설정" : ` / ${effort(drillScope.plannedMd, drillScope.plannedMm, "mm")}`}. 아래 행과 표시 subtotal은 같은 기간을 기존 Resource 서버 계산으로 조회한 뒤 전달된 assignment ID와 기존 필터를 적용합니다. 상단 전체 합계는 같은 기간의 Project 전체 값입니다. 단계 공수는 반올림 전 합계이며 Resource는 기존 반올림 기준을 사용합니다. 단계의 명시 M/M 환산 기준은 Resource에 전달하지 않습니다. Resource 환산 기준은 {data?.mdPerMm === null || data?.mdPerMm === undefined ? "미설정" : `${data.mdPerMm} M/D = 1 M/M (환경 설정)`}입니다.</p>
+        {!drillCurrent ? <p>리소스 응답 Revision이 전달한 범위와 다릅니다. 최신 완료 단계에서 다시 진입하거나 범위를 해제해 주세요.</p> : null}
+        <button type="button" className="secondary-button" onClick={onClearDrillScope}>완료 단계 전달 범위 해제</button>
+      </div> : null}
       <div className="resource-workload-header">
         <div>
           <h2 id="resource-workload-heading">리소스 공수</h2>

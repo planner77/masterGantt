@@ -1001,105 +1001,106 @@ Summary 작업은 `scope: 'subtree'`를 통해 하위 자손 작업들에 설비
     - `coordination`: Coordinator DAG를 순회하여 하위 Controller 및 해당 Controller가 제어하는 설비까지 roll-up(중복 태스크는 정확히 1번만 집계).
   - `activeOnly` (boolean): `true`일 경우 활성(`active = true`) 마스터 항목만 집계에 포함 (기본값: `false`).
   - `includeDescendantProcesses` (boolean): 공정 필터 시 하위 공정 포함 여부 (기본값: `true`).
-  - `mdPerMm` (number): M/M 환산 기준 M/D 일수 (기본값: `20`, 양수).
+  - `mdPerMm` (number 또는 문자열 `null`): 유한 양수인 명시 환산 기준. 생략하면 유효한 `RESOURCE_MD_PER_MM`, 미설정/잘못된 ENV이면 `null`이다. `mdPerMm=null`은 ENV와 무관하게 환산하지 않는다. 빈 값/잘못된 값/반복 scalar는 `400 INVALID_REQUEST`다. #463부터 숨은 20일 기본값을 제거했다.
   - `processIds` (string): 콤마로 구분된 공정 ID 목록.
   - `equipmentIds` (string): 콤마로 구분된 설비 ID 목록.
   - `systemIds` (string): 콤마로 구분된 시스템 ID 목록.
   - `taskAssigneeResourceIds` (string): 콤마로 구분된 태스크 배정 리소스 ID 목록.
   - `roleResourceIds` (string): 콤마로 구분된 설비/시스템 담당 역할 리소스 ID 목록.
-- **성공 응답** (`200 OK`):
+- **성공 응답** (`200 OK`): 일반 Task가 없고 수동 이벤트 Milestone 하나가 있는 Project, query/ENV 환산 기준이 없는 경우다. 실제 `LogisticsDashboardDto` 필드명을 사용한다.
+
   ```json
   {
     "data": {
-      "project": {
-        "publicId": "project-public-id",
-        "name": "스마트 물류센터 프로젝트",
-        "status": "in_progress",
-        "revision": 12
-      },
-      "catalogRevision": 3,
+      "projectRevision": 1,
+      "catalogRevision": 1,
       "asOfDate": "2026-10-06",
+      "timezone": "Asia/Seoul",
+      "calculatedAt": "2026-10-06T01:00:00.000Z",
       "horizonDays": 14,
-      "systemView": "coordination",
-      "kpis": {
-        "progressPercent": 62.5,
-        "overdueLeafTaskCount": 1,
-        "delayedMilestoneCount": 0,
-        "upcomingMilestoneCount": 1,
-        "totalLeafTaskCount": 3,
-        "totalMilestoneCount": 1,
-        "totalDurationDays": 8
+      "systemView": "direct",
+      "activeOnly": false,
+      "kpi": {
+        "progressPercent": null,
+        "totalDuration": 0,
+        "taskCount": 0,
+        "overdueTaskCount": 0,
+        "overdueTaskIds": [],
+        "milestoneTotalCount": 1,
+        "milestoneOverdueCount": 0,
+        "milestoneOverdueIds": [],
+        "milestoneUpcomingCount": 1,
+        "milestoneUpcomingIds": [
+          "a11b1111-1111-4111-8111-111111111111"
+        ]
       },
       "effort": {
-        "plannedTotalMd": 5.0,
-        "plannedTotalMm": 0.25,
-        "unassignedEffortLeafTaskCount": 1,
-        "mdPerMm": 20
+        "plannedMd": 0,
+        "plannedMm": null,
+        "mdPerMm": null,
+        "mdPerMmSource": "unset",
+        "unsetAllocationCount": 0,
+        "workloadRange": {
+          "from": null,
+          "to": null
+        }
       },
       "quality": {
-        "unlinkedLeafTaskCount": 0,
-        "totalLeafTaskCount": 3,
-        "unlinkedLeafTaskPercent": 0,
+        "unlinkedLeafTaskCount": 1,
+        "totalLeafTaskCount": 1,
+        "unlinkedLeafTaskPercent": 100,
         "equipmentWithoutPrimaryControllerCount": 0,
         "equipmentWithoutOwnerCount": 0,
         "systemsWithoutPrimaryPICount": 0,
-        "totalEquipmentQuantity": 8
+        "totalEquipmentMasterCount": 0,
+        "totalEquipmentQuantity": 0
       },
       "breakdowns": {
-        "processes": [
-          {
-            "id": "proc-id",
-            "code": "P1",
-            "name": "보관공정",
-            "parentProcessId": null,
-            "sortOrder": 1,
-            "active": true,
-            "taskCount": 1,
-            "progressPercent": 50.0,
-            "overdueTaskCount": 1,
-            "plannedMd": 2.0,
-            "taskIds": ["task-1"]
-          }
+        "processes": [],
+        "equipment": [],
+        "systems": []
+      },
+      "includedTaskIds": [],
+      "includedMilestoneIds": [
+        "a11b1111-1111-4111-8111-111111111111"
+      ],
+      "milestoneStages": {
+        "milestoneTaskIds": [
+          "a11b1111-1111-4111-8111-111111111111"
         ],
-        "equipment": [
+        "rows": [
           {
-            "id": "eq-id",
-            "code": "E1",
-            "name": "Stocker unit1",
-            "equipmentType": "stocker",
-            "quantity": 1,
-            "processId": "proc-id",
-            "processName": "보관공정",
-            "primaryControllerName": "SCS",
-            "ownerName": "홍길동",
-            "active": true,
-            "taskCount": 1,
-            "progressPercent": 50.0,
-            "overdueTaskCount": 1,
-            "plannedMd": 2.0,
-            "taskIds": ["task-1"]
-          }
-        ],
-        "systems": [
-          {
-            "id": "sys-id",
-            "code": "C3",
-            "name": "MCS",
-            "systemType": "mcs",
-            "layer": "coordinator",
-            "scope": "project",
-            "primaryPiName": "홍길동",
-            "active": true,
-            "taskCount": 3,
-            "progressPercent": 62.5,
-            "overdueTaskCount": 1,
-            "plannedMd": 5.0,
-            "taskIds": ["task-1", "task-2", "task-3"]
+            "milestoneTaskId": "a11b1111-1111-4111-8111-111111111111",
+            "name": "검토 이벤트",
+            "externalId": "M1",
+            "scheduledDate": "2026-10-06",
+            "status": "not_started",
+            "progress": 0,
+            "stageGate": {
+              "memberTaskIds": [],
+              "memberCount": 0,
+              "completedMemberCount": 0,
+              "incompleteMemberTaskIds": [],
+              "memberProgressPercent": null,
+              "predecessorMilestoneTaskIds": [],
+              "incompletePredecessorMilestoneTaskIds": [],
+              "membersCompleted": false,
+              "predecessorsCompleted": true,
+              "ready": null,
+              "blocked": false,
+              "manualEvent": true,
+              "completionInconsistent": false
+            },
+            "memberDurationSum": 0,
+            "memberWeightedProgressSum": 0,
+            "overdue": false,
+            "upcoming": true,
+            "atRisk": false,
+            "riskTaskIds": [],
+            "risks": []
           }
         ]
-      },
-      "includedLeafTaskIds": ["task-1", "task-2", "task-3"],
-      "includedMilestoneIds": ["milestone-1"]
+      }
     }
   }
   ```
@@ -1412,3 +1413,31 @@ Template instantiate 시 snapshot의 Resource 수행 역할이 현재 Global Rol
 신규 endpoint/DTO/authorization 계약은 없다. Task/Summary 기본 저장은 변경된 허용 기본 필드와 `explicitMilestoneTaskId`를 기존 Task PATCH 한 요청에 담는다. omission은 기존 직접 지정 보존, null은 직접 지정 해제·상속 복귀다. Summary는 name과 이 필드만 전송한다. Milestone 소속 탭은 기존 `POST /api/projects/{publicId}/milestone-memberships`의 changes를 한 번 전송한다.
 
 UI canonical parser는 `operation.kind=milestoneMembership`을 Task mutation으로 수락하고 응답 전체 tasks/links/project.revision을 Workspace와 열린 Editor에 함께 적용한다. 클라이언트 dirty/pending/완료 disable은 서버 권한을 대신하지 않는다. Editor 실패는 초안을 보존하며 412 이후 명시 GET·폐기 확인·최신 값 검토가 필요하고 자동 재전송하지 않는다. 완료/재개는 기존 status PATCH이며 재개와 소속 batch를 숨은 복합 요청으로 만들지 않는다.
+
+
+## Issue #463: Milestone Dashboard API
+
+### `GET /api/projects/{publicId}/milestone-dashboard`
+
+Public-read, Node runtime, `Cache-Control: private, no-store`. 인증/Origin/If-Match 없는 조회이며 DB 및 revision을 변경하지 않는다. 보호 mutation의 기존 session/Origin/revision 계약은 유지한다. 모든 대상 ID는 immutable public UUID다. 정확한 필드 타입은 [milestone-dashboard.ts](../src/contracts/milestone-dashboard.ts), 계산·분모는 [단계 대시보드 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델)을 따른다.
+
+| Query | 검증/기본값 |
+| --- | --- |
+| search | 이름/externalId/taskId substring, trim, 최대200자. casing은 echo에서 보존 |
+| milestoneIds | 표시 S 선택, F 공수는 유지 |
+| asOfDate | YYYY-MM-DD, 생략 시 현재 Project timezone 날짜 |
+| horizonDays | 정수1..90, 기본14 |
+| from / to | YYYY-MM-DD, F 기간만 제한. 생략 시 일반 Task 일정 min/max; 빈 Project는 기준일 조회 범위. resolved from>to이면400 |
+| resourceIds / assignmentRoles / developerGrades | 동일 개인 assignment에 AND 적용. 수행 역할 PI/DEVELOPER/EQUIPMENT_OWNER/UNSPECIFIED, 등급 BEGINNER/INTERMEDIATE/ADVANCED/EXPERT/UNSPECIFIED |
+| processIds / equipmentIds / systemIds / roleResourceIds | 기존 물류 direct/subtree/coordination matcher 재사용 |
+| systemView | direct(기본)/coordination |
+| activeOnly / includeDescendantProcesses | true/false만, 기본false/true |
+| mdPerMm | 유한 양수 또는 null 문자열, 생략 ENV 정책 |
+
+배열은 반복 key/CSV를 모두 지원하고 unique/sort한다. 배열별 최대500 고유 값, query 직렬화 최대16384자다. unknown query, 반복 scalar, 빈/잘못된 배열 ID·enum·날짜·숫자는400 `INVALID_REQUEST`다. 구문상 유효하지만 현재 Project/catalog에 없는 선택은 정상 empty-match이며 전체 범위로 확대하지 않는다. 잘못된/없는 publicId는404 `PROJECT_NOT_FOUND`, 내부 오류는500 `INTERNAL_ERROR` 공통 envelope이며 SQL/stack/path를 노출하지 않는다.
+
+200 `{data: MilestoneDashboardDto}`는 projectPublicId/projectRevision/catalogRevision/calculatedAt/timezone/asOfDate/horizonDays/filters/workloadRange/mdPerMm/mdPerMmSource, kpi/rows/scope/effort/catalog를 반환한다. filters의 요청 날짜 omission은 null, `mdPerMmProvided`는 omission=false/명시 숫자 또는null=true다. root 날짜/기준값은 resolved 결과다. kpi 비율은 numerator/denominator/percent와 대상 ID, count는 count+milestoneTaskIds를 함께 제공한다. rows는 full E/P의 stageGate·raw 소속 진척 numerator/denominator·위험 원인·scopedTaskIds/effort다. effort는 전체 F의 assignment detail, role totals, hidden 단계 포함 bucket과 null 미지정 bucket이며 rows 합으로 Grand Total을 대체하지 않는다. catalog는 Project 관련 단계/물류/참조 Resource의 최소 이름/code/active/grade 후보이며 관리자 데이터 전체를 공개하지 않는다.
+
+기존 Logistics dashboard는 additive `milestoneStages={milestoneTaskIds,rows}`로 같은 full-stage projection을 제공한다. 기존 includedTaskIds/progress/plannedMd/경보 수치는 확장하지 않는다. effort.mdPerMmSource를 추가하고 숨은20일 환산을 제거하므로 설정이 없으면 plannedMm/mdPerMm=null이다. `mdPerMm=null`은 ENV를 무시하며 invalid/빈/반복 mdPerMm은 이전의 조용한 무시 대신400을 반환한다.
+
+단계→Resource drill은 기존 `GET /api/projects/{publicId}/resource-workload?from=&to=`를 같은 기간으로 호출한다. 기존 API 필드·ENV 환산·4자리 rounding은 N/A(변경 없음)이며 UI가 range echo/Project/Catalog revision을 검사하고 받은 개인 assignment만 표시 필터한다. Stage raw 공수 및 query 환산 기준과 기존 Resource 기간 subtotal/ENV 기준을 구분하고, scope 해제는 기본 조회로 복귀한다. 이 동작은 Resource API에 새 필터나 계산 엔진을 추가하지 않는다.

@@ -360,3 +360,10 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 프로젝트 기준정보 변경은 Project edit session 및 Resource/Logistics 관리자와 분리된 `PROJECT_MASTER_ADMIN_PASSWORD` bootstrap credential과 전용 HttpOnly/SameSite=Strict Cookie를 사용한다. bootstrap 값은 DB credential이 없을 때만 seed하며 원문 비밀번호와 session token은 DB·응답·로그에 저장하지 않는다. HTTPS production에서는 `__Host-` Cookie와 Secure 속성을 적용한다.
 
 관리자 로그인은 #280 물류 관리자와 같은 bounded process-global 제한(20회/15분)을 적용한 뒤 KDF를 수행한다. 관리자 mutation은 exact Origin과 catalog revision을 서버에서 다시 검증하며 UI 로그인 상태를 권한 근거로 사용하지 않는다. 비밀번호 회전 시 기존 project-master 관리자 세션은 모두 revoke하고, 사용 중 stable code 변경과 FK parent 삭제는 fail-closed 처리한다.
+
+
+## Issue #463 — readonly 단계 대시보드
+
+`GET /api/projects/{publicId}/milestone-dashboard`는 route security inventory의 `public-read`, mutatesState=false다. 기존 Project direct read와 같은 공개 범위이며 편집 세션·Origin·If-Match를 요구하지 않는다. query는 allowlist/단일 scalar/UUID/enum/date/숫자/개수·길이 제한으로 서버에서 검증한다. bound Project repository 조회 및 동일 read transaction을 사용하고 unknown valid filter ID는 empty-match 처리한다. 응답은 public ID와 Project 관련 최소 표시 metadata만 포함하며 credential/session/token/internal PK/SQL/stack/path를 포함하지 않는다. 응답과 오류는 no-store다.
+
+이 조회 추가와 명시 M/M 설정은 보호 mutation의 Origin/session/revision 검증을 제거하지 않는다. production HTTPS 및 명시 내부망 HTTP 지원은 기존 공용 URL parser/cookie 정책과 [HTTP 운영](HTTP_OPERATION.md)을 유지한다. 새로운 비밀번호·권한·세션·환경 secret을 만들지 않는다.

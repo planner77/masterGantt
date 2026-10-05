@@ -443,6 +443,7 @@ describe("route security inventory", () => {
       "DELETE /api/projects/{publicId}/edit-sessions/current",
       "PUT /api/projects/{publicId}/edit-password",
       "POST /api/projects/{publicId}/milestone-memberships",
+      "GET /api/projects/{publicId}/milestone-dashboard",
       "POST /api/projects/{publicId}/tasks",
       "POST /api/projects/{publicId}/links",
       "PATCH /api/projects/{publicId}/links/{linkId}",

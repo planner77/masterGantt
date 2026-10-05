@@ -1,0 +1,1362 @@
+[
+  {
+    "width": 390,
+    "popup": {
+      "left": 18,
+      "right": 360,
+      "top": 433.5,
+      "bottom": 833,
+      "inputFocused": true,
+      "inputVisible": true,
+      "activeVisible": true,
+      "listScrollTop": 1984
+    },
+    "failedOtherControls": [],
+    "documentHeight": 2229,
+    "otherControlCount": 15,
+    "allOtherControlsContained": true,
+    "focusInScrollOwner": true,
+    "viewport": 390,
+    "documentWidth": 390,
+    "tables": [
+      {
+        "width": 1052,
+        "headerBodyAligned": true,
+        "headerBounds": [
+          {
+            "left": 19,
+            "right": 279,
+            "top": 518.5,
+            "bottom": 557,
+            "width": 260,
+            "height": 38.5
+          },
+          {
+            "left": 279,
+            "right": 391,
+            "top": 518.5,
+            "bottom": 557,
+            "width": 112,
+            "height": 38.5
+          },
+          {
+            "left": 391,
+            "right": 487,
+            "top": 518.5,
+            "bottom": 557,
+            "width": 96,
+            "height": 38.5
+          },
+          {
+            "left": 487,
+            "right": 647,
+            "top": 518.5,
+            "bottom": 557,
+            "width": 160,
+            "height": 38.5
+          },
+          {
+            "left": 647,
+            "right": 751,
+            "top": 518.5,
+            "bottom": 557,
+            "width": 104,
+            "height": 38.5
+          },
+          {
+            "left": 751,
+            "right": 839,
+            "top": 518.5,
+            "bottom": 557,
+            "width": 88,
+            "height": 38.5
+          },
+          {
+            "left": 839,
+            "right": 927,
+            "top": 518.5,
+            "bottom": 557,
+            "width": 88,
+            "height": 38.5
+          },
+          {
+            "left": 927,
+            "right": 1071,
+            "top": 518.5,
+            "bottom": 557,
+            "width": 144,
+            "height": 38.5
+          }
+        ],
+        "bodyBounds": [
+          {
+            "left": 19,
+            "right": 279,
+            "top": 557.5,
+            "bottom": 702,
+            "width": 260,
+            "height": 144.5
+          },
+          {
+            "left": 279,
+            "right": 391,
+            "top": 557.5,
+            "bottom": 702,
+            "width": 112,
+            "height": 144.5
+          },
+          {
+            "left": 391,
+            "right": 487,
+            "top": 557.5,
+            "bottom": 702,
+            "width": 96,
+            "height": 144.5
+          },
+          {
+            "left": 487,
+            "right": 647,
+            "top": 557.5,
+            "bottom": 702,
+            "width": 160,
+            "height": 144.5
+          },
+          {
+            "left": 647,
+            "right": 751,
+            "top": 557.5,
+            "bottom": 702,
+            "width": 104,
+            "height": 144.5
+          },
+          {
+            "left": 751,
+            "right": 839,
+            "top": 557.5,
+            "bottom": 702,
+            "width": 88,
+            "height": 144.5
+          },
+          {
+            "left": 839,
+            "right": 927,
+            "top": 557.5,
+            "bottom": 702,
+            "width": 88,
+            "height": 144.5
+          },
+          {
+            "left": 927,
+            "right": 1071,
+            "top": 557.5,
+            "bottom": 702,
+            "width": 144,
+            "height": 144.5
+          }
+        ],
+        "allControlsContainedInCells": true,
+        "siblingCellsNonoverlapping": true,
+        "siblingControlsNonoverlapping": true,
+        "buttonCount": 76,
+        "ownerClientWidth": 352,
+        "ownerScrollWidth": 1052,
+        "ownerOverflowX": "auto"
+      },
+      {
+        "width": 800,
+        "headerBodyAligned": true,
+        "headerBounds": [
+          {
+            "left": 19,
+            "right": 279,
+            "top": 3501,
+            "bottom": 3539.5,
+            "width": 260,
+            "height": 38.5
+          },
+          {
+            "left": 279,
+            "right": 409,
+            "top": 3501,
+            "bottom": 3539.5,
+            "width": 130,
+            "height": 38.5
+          },
+          {
+            "left": 409,
+            "right": 539,
+            "top": 3501,
+            "bottom": 3539.5,
+            "width": 130,
+            "height": 38.5
+          },
+          {
+            "left": 539,
+            "right": 639,
+            "top": 3501,
+            "bottom": 3539.5,
+            "width": 100,
+            "height": 38.5
+          },
+          {
+            "left": 639,
+            "right": 819,
+            "top": 3501,
+            "bottom": 3539.5,
+            "width": 180,
+            "height": 38.5
+          }
+        ],
+        "bodyBounds": [
+          {
+            "left": 19,
+            "right": 279,
+            "top": 3539.5,
+            "bottom": 3604.5,
+            "width": 260,
+            "height": 65
+          },
+          {
+            "left": 279,
+            "right": 409,
+            "top": 3539.5,
+            "bottom": 3604.5,
+            "width": 130,
+            "height": 65
+          },
+          {
+            "left": 409,
+            "right": 539,
+            "top": 3539.5,
+            "bottom": 3604.5,
+            "width": 130,
+            "height": 65
+          },
+          {
+            "left": 539,
+            "right": 639,
+            "top": 3539.5,
+            "bottom": 3604.5,
+            "width": 100,
+            "height": 65
+          },
+          {
+            "left": 639,
+            "right": 819,
+            "top": 3539.5,
+            "bottom": 3604.5,
+            "width": 180,
+            "height": 65
+          }
+        ],
+        "allControlsContainedInCells": true,
+        "siblingCellsNonoverlapping": true,
+        "siblingControlsNonoverlapping": true,
+        "buttonCount": 4,
+        "ownerClientWidth": 352,
+        "ownerScrollWidth": 800,
+        "ownerOverflowX": "auto"
+      }
+    ],
+    "filterControlsContained": true,
+    "filterControlsNonoverlapping": true,
+    "focusVisible": true,
+    "focusOutline": "solid",
+    "paneOverflowY": "auto",
+    "paneClientHeight": 611,
+    "paneScrollHeight": 5100,
+    "peerClientHeight": 50,
+    "peerScrollHeight": 50,
+    "inactiveGanttInert": true,
+    "inactiveGanttHidden": "hidden",
+    "focusedOutsideInactiveGantt": true
+  },
+  {
+    "width": 768,
+    "popup": {
+      "left": 30,
+      "right": 478,
+      "top": 418,
+      "bottom": 817.5,
+      "inputFocused": true,
+      "inputVisible": true,
+      "activeVisible": true,
+      "listScrollTop": 1204
+    },
+    "failedOtherControls": [],
+    "documentHeight": 1501,
+    "otherControlCount": 15,
+    "allOtherControlsContained": true,
+    "focusInScrollOwner": true,
+    "viewport": 768,
+    "documentWidth": 768,
+    "tables": [
+      {
+        "width": 1052,
+        "headerBodyAligned": true,
+        "headerBounds": [
+          {
+            "left": 31,
+            "right": 291,
+            "top": 519,
+            "bottom": 557.5,
+            "width": 260,
+            "height": 38.5
+          },
+          {
+            "left": 291,
+            "right": 403,
+            "top": 519,
+            "bottom": 557.5,
+            "width": 112,
+            "height": 38.5
+          },
+          {
+            "left": 403,
+            "right": 499,
+            "top": 519,
+            "bottom": 557.5,
+            "width": 96,
+            "height": 38.5
+          },
+          {
+            "left": 499,
+            "right": 659,
+            "top": 519,
+            "bottom": 557.5,
+            "width": 160,
+            "height": 38.5
+          },
+          {
+            "left": 659,
+            "right": 763,
+            "top": 519,
+            "bottom": 557.5,
+            "width": 104,
+            "height": 38.5
+          },
+          {
+            "left": 763,
+            "right": 851,
+            "top": 519,
+            "bottom": 557.5,
+            "width": 88,
+            "height": 38.5
+          },
+          {
+            "left": 851,
+            "right": 939,
+            "top": 519,
+            "bottom": 557.5,
+            "width": 88,
+            "height": 38.5
+          },
+          {
+            "left": 939,
+            "right": 1083,
+            "top": 519,
+            "bottom": 557.5,
+            "width": 144,
+            "height": 38.5
+          }
+        ],
+        "bodyBounds": [
+          {
+            "left": 31,
+            "right": 291,
+            "top": 558,
+            "bottom": 702.5,
+            "width": 260,
+            "height": 144.5
+          },
+          {
+            "left": 291,
+            "right": 403,
+            "top": 558,
+            "bottom": 702.5,
+            "width": 112,
+            "height": 144.5
+          },
+          {
+            "left": 403,
+            "right": 499,
+            "top": 558,
+            "bottom": 702.5,
+            "width": 96,
+            "height": 144.5
+          },
+          {
+            "left": 499,
+            "right": 659,
+            "top": 558,
+            "bottom": 702.5,
+            "width": 160,
+            "height": 144.5
+          },
+          {
+            "left": 659,
+            "right": 763,
+            "top": 558,
+            "bottom": 702.5,
+            "width": 104,
+            "height": 144.5
+          },
+          {
+            "left": 763,
+            "right": 851,
+            "top": 558,
+            "bottom": 702.5,
+            "width": 88,
+            "height": 144.5
+          },
+          {
+            "left": 851,
+            "right": 939,
+            "top": 558,
+            "bottom": 702.5,
+            "width": 88,
+            "height": 144.5
+          },
+          {
+            "left": 939,
+            "right": 1083,
+            "top": 558,
+            "bottom": 702.5,
+            "width": 144,
+            "height": 144.5
+          }
+        ],
+        "allControlsContainedInCells": true,
+        "siblingCellsNonoverlapping": true,
+        "siblingControlsNonoverlapping": true,
+        "buttonCount": 76,
+        "ownerClientWidth": 706,
+        "ownerScrollWidth": 1052,
+        "ownerOverflowX": "auto"
+      },
+      {
+        "width": 800,
+        "headerBodyAligned": true,
+        "headerBounds": [
+          {
+            "left": 31,
+            "right": 291,
+            "top": 3447.5,
+            "bottom": 3486,
+            "width": 260,
+            "height": 38.5
+          },
+          {
+            "left": 291,
+            "right": 421,
+            "top": 3447.5,
+            "bottom": 3486,
+            "width": 130,
+            "height": 38.5
+          },
+          {
+            "left": 421,
+            "right": 551,
+            "top": 3447.5,
+            "bottom": 3486,
+            "width": 130,
+            "height": 38.5
+          },
+          {
+            "left": 551,
+            "right": 651,
+            "top": 3447.5,
+            "bottom": 3486,
+            "width": 100,
+            "height": 38.5
+          },
+          {
+            "left": 651,
+            "right": 831,
+            "top": 3447.5,
+            "bottom": 3486,
+            "width": 180,
+            "height": 38.5
+          }
+        ],
+        "bodyBounds": [
+          {
+            "left": 31,
+            "right": 291,
+            "top": 3486,
+            "bottom": 3551,
+            "width": 260,
+            "height": 65
+          },
+          {
+            "left": 291,
+            "right": 421,
+            "top": 3486,
+            "bottom": 3551,
+            "width": 130,
+            "height": 65
+          },
+          {
+            "left": 421,
+            "right": 551,
+            "top": 3486,
+            "bottom": 3551,
+            "width": 130,
+            "height": 65
+          },
+          {
+            "left": 551,
+            "right": 651,
+            "top": 3486,
+            "bottom": 3551,
+            "width": 100,
+            "height": 65
+          },
+          {
+            "left": 651,
+            "right": 831,
+            "top": 3486,
+            "bottom": 3551,
+            "width": 180,
+            "height": 65
+          }
+        ],
+        "allControlsContainedInCells": true,
+        "siblingCellsNonoverlapping": true,
+        "siblingControlsNonoverlapping": true,
+        "buttonCount": 4,
+        "ownerClientWidth": 706,
+        "ownerScrollWidth": 800,
+        "ownerOverflowX": "auto"
+      }
+    ],
+    "filterControlsContained": true,
+    "filterControlsNonoverlapping": true,
+    "focusVisible": true,
+    "focusOutline": "solid",
+    "paneOverflowY": "auto",
+    "paneClientHeight": 610,
+    "paneScrollHeight": 4317,
+    "peerClientHeight": 50,
+    "peerScrollHeight": 50,
+    "inactiveGanttInert": true,
+    "inactiveGanttHidden": "hidden",
+    "focusedOutsideInactiveGantt": true
+  },
+  {
+    "width": 1024,
+    "popup": {
+      "left": 30,
+      "right": 478,
+      "top": 370,
+      "bottom": 769.5,
+      "inputFocused": true,
+      "inputVisible": true,
+      "activeVisible": true,
+      "listScrollTop": 1204
+    },
+    "failedOtherControls": [],
+    "documentHeight": 1453,
+    "otherControlCount": 15,
+    "allOtherControlsContained": true,
+    "focusInScrollOwner": true,
+    "viewport": 1024,
+    "documentWidth": 1024,
+    "tables": [
+      {
+        "width": 1052,
+        "headerBodyAligned": true,
+        "headerBounds": [
+          {
+            "left": 31,
+            "right": 291,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 260,
+            "height": 38.5
+          },
+          {
+            "left": 291,
+            "right": 403,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 112,
+            "height": 38.5
+          },
+          {
+            "left": 403,
+            "right": 499,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 96,
+            "height": 38.5
+          },
+          {
+            "left": 499,
+            "right": 659,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 160,
+            "height": 38.5
+          },
+          {
+            "left": 659,
+            "right": 763,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 104,
+            "height": 38.5
+          },
+          {
+            "left": 763,
+            "right": 851,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 88,
+            "height": 38.5
+          },
+          {
+            "left": 851,
+            "right": 939,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 88,
+            "height": 38.5
+          },
+          {
+            "left": 939,
+            "right": 1083,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 144,
+            "height": 38.5
+          }
+        ],
+        "bodyBounds": [
+          {
+            "left": 31,
+            "right": 291,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 260,
+            "height": 144.5
+          },
+          {
+            "left": 291,
+            "right": 403,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 112,
+            "height": 144.5
+          },
+          {
+            "left": 403,
+            "right": 499,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 96,
+            "height": 144.5
+          },
+          {
+            "left": 499,
+            "right": 659,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 160,
+            "height": 144.5
+          },
+          {
+            "left": 659,
+            "right": 763,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 104,
+            "height": 144.5
+          },
+          {
+            "left": 763,
+            "right": 851,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 88,
+            "height": 144.5
+          },
+          {
+            "left": 851,
+            "right": 939,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 88,
+            "height": 144.5
+          },
+          {
+            "left": 939,
+            "right": 1083,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 144,
+            "height": 144.5
+          }
+        ],
+        "allControlsContainedInCells": true,
+        "siblingCellsNonoverlapping": true,
+        "siblingControlsNonoverlapping": true,
+        "buttonCount": 76,
+        "ownerClientWidth": 962,
+        "ownerScrollWidth": 1052,
+        "ownerOverflowX": "auto"
+      },
+      {
+        "width": 962,
+        "headerBodyAligned": true,
+        "headerBounds": [
+          {
+            "left": 31,
+            "right": 343.640625,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 312.640625,
+            "height": 38.5
+          },
+          {
+            "left": 343.640625,
+            "right": 499.953125,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 156.3125,
+            "height": 38.5
+          },
+          {
+            "left": 499.953125,
+            "right": 656.265625,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 156.3125,
+            "height": 38.5
+          },
+          {
+            "left": 656.265625,
+            "right": 776.515625,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 120.25,
+            "height": 38.5
+          },
+          {
+            "left": 776.515625,
+            "right": 993,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 216.484375,
+            "height": 38.5
+          }
+        ],
+        "bodyBounds": [
+          {
+            "left": 31,
+            "right": 343.640625,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 312.640625,
+            "height": 65
+          },
+          {
+            "left": 343.640625,
+            "right": 499.953125,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 156.3125,
+            "height": 65
+          },
+          {
+            "left": 499.953125,
+            "right": 656.265625,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 156.3125,
+            "height": 65
+          },
+          {
+            "left": 656.265625,
+            "right": 776.515625,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 120.25,
+            "height": 65
+          },
+          {
+            "left": 776.515625,
+            "right": 993,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 216.484375,
+            "height": 65
+          }
+        ],
+        "allControlsContainedInCells": true,
+        "siblingCellsNonoverlapping": true,
+        "siblingControlsNonoverlapping": true,
+        "buttonCount": 4,
+        "ownerClientWidth": 962,
+        "ownerScrollWidth": 962,
+        "ownerOverflowX": "auto"
+      }
+    ],
+    "filterControlsContained": true,
+    "filterControlsNonoverlapping": true,
+    "focusVisible": true,
+    "focusOutline": "solid",
+    "paneOverflowY": "auto",
+    "paneClientHeight": 658,
+    "paneScrollHeight": 4299,
+    "peerClientHeight": 50,
+    "peerScrollHeight": 50,
+    "inactiveGanttInert": true,
+    "inactiveGanttHidden": "hidden",
+    "focusedOutsideInactiveGantt": true
+  },
+  {
+    "width": 1440,
+    "popup": {
+      "left": 30,
+      "right": 478,
+      "top": 370,
+      "bottom": 769.5,
+      "inputFocused": true,
+      "inputVisible": true,
+      "activeVisible": true,
+      "listScrollTop": 1204
+    },
+    "failedOtherControls": [],
+    "documentHeight": 975,
+    "otherControlCount": 15,
+    "allOtherControlsContained": true,
+    "focusInScrollOwner": true,
+    "viewport": 1440,
+    "documentWidth": 1440,
+    "tables": [
+      {
+        "width": 1378,
+        "headerBodyAligned": true,
+        "headerBounds": [
+          {
+            "left": 31,
+            "right": 617,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 586,
+            "height": 38.5
+          },
+          {
+            "left": 617,
+            "right": 729,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 112,
+            "height": 38.5
+          },
+          {
+            "left": 729,
+            "right": 825,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 96,
+            "height": 38.5
+          },
+          {
+            "left": 825,
+            "right": 985,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 160,
+            "height": 38.5
+          },
+          {
+            "left": 985,
+            "right": 1089,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 104,
+            "height": 38.5
+          },
+          {
+            "left": 1089,
+            "right": 1177,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 88,
+            "height": 38.5
+          },
+          {
+            "left": 1177,
+            "right": 1265,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 88,
+            "height": 38.5
+          },
+          {
+            "left": 1265,
+            "right": 1409,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 144,
+            "height": 38.5
+          }
+        ],
+        "bodyBounds": [
+          {
+            "left": 31,
+            "right": 617,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 586,
+            "height": 144.5
+          },
+          {
+            "left": 617,
+            "right": 729,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 112,
+            "height": 144.5
+          },
+          {
+            "left": 729,
+            "right": 825,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 96,
+            "height": 144.5
+          },
+          {
+            "left": 825,
+            "right": 985,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 160,
+            "height": 144.5
+          },
+          {
+            "left": 985,
+            "right": 1089,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 104,
+            "height": 144.5
+          },
+          {
+            "left": 1089,
+            "right": 1177,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 88,
+            "height": 144.5
+          },
+          {
+            "left": 1177,
+            "right": 1265,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 88,
+            "height": 144.5
+          },
+          {
+            "left": 1265,
+            "right": 1409,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 144,
+            "height": 144.5
+          }
+        ],
+        "allControlsContainedInCells": true,
+        "siblingCellsNonoverlapping": true,
+        "siblingControlsNonoverlapping": true,
+        "buttonCount": 76,
+        "ownerClientWidth": 1378,
+        "ownerScrollWidth": 1378,
+        "ownerOverflowX": "auto"
+      },
+      {
+        "width": 1378,
+        "headerBodyAligned": true,
+        "headerBounds": [
+          {
+            "left": 31,
+            "right": 478.84375,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 447.84375,
+            "height": 38.5
+          },
+          {
+            "left": 478.84375,
+            "right": 702.765625,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 223.921875,
+            "height": 38.5
+          },
+          {
+            "left": 702.765625,
+            "right": 926.6875,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 223.921875,
+            "height": 38.5
+          },
+          {
+            "left": 926.6875,
+            "right": 1098.9375,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 172.25,
+            "height": 38.5
+          },
+          {
+            "left": 1098.9375,
+            "right": 1409,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 310.0625,
+            "height": 38.5
+          }
+        ],
+        "bodyBounds": [
+          {
+            "left": 31,
+            "right": 478.84375,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 447.84375,
+            "height": 65
+          },
+          {
+            "left": 478.84375,
+            "right": 702.765625,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 223.921875,
+            "height": 65
+          },
+          {
+            "left": 702.765625,
+            "right": 926.6875,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 223.921875,
+            "height": 65
+          },
+          {
+            "left": 926.6875,
+            "right": 1098.9375,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 172.25,
+            "height": 65
+          },
+          {
+            "left": 1098.9375,
+            "right": 1409,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 310.0625,
+            "height": 65
+          }
+        ],
+        "allControlsContainedInCells": true,
+        "siblingCellsNonoverlapping": true,
+        "siblingControlsNonoverlapping": true,
+        "buttonCount": 4,
+        "ownerClientWidth": 1378,
+        "ownerScrollWidth": 1378,
+        "ownerOverflowX": "auto"
+      }
+    ],
+    "filterControlsContained": true,
+    "filterControlsNonoverlapping": true,
+    "focusVisible": true,
+    "focusOutline": "solid",
+    "paneOverflowY": "auto",
+    "paneClientHeight": 658,
+    "paneScrollHeight": 3821,
+    "peerClientHeight": 50,
+    "peerScrollHeight": 50,
+    "inactiveGanttInert": true,
+    "inactiveGanttHidden": "hidden",
+    "focusedOutsideInactiveGantt": true
+  },
+  {
+    "width": 1920,
+    "popup": {
+      "left": 30,
+      "right": 478,
+      "top": 370,
+      "bottom": 769.5,
+      "inputFocused": true,
+      "inputVisible": true,
+      "activeVisible": true,
+      "listScrollTop": 1204
+    },
+    "failedOtherControls": [],
+    "documentHeight": 975,
+    "otherControlCount": 15,
+    "allOtherControlsContained": true,
+    "focusInScrollOwner": true,
+    "viewport": 1920,
+    "documentWidth": 1920,
+    "tables": [
+      {
+        "width": 1858,
+        "headerBodyAligned": true,
+        "headerBounds": [
+          {
+            "left": 31,
+            "right": 1097,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 1066,
+            "height": 38.5
+          },
+          {
+            "left": 1097,
+            "right": 1209,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 112,
+            "height": 38.5
+          },
+          {
+            "left": 1209,
+            "right": 1305,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 96,
+            "height": 38.5
+          },
+          {
+            "left": 1305,
+            "right": 1465,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 160,
+            "height": 38.5
+          },
+          {
+            "left": 1465,
+            "right": 1569,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 104,
+            "height": 38.5
+          },
+          {
+            "left": 1569,
+            "right": 1657,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 88,
+            "height": 38.5
+          },
+          {
+            "left": 1657,
+            "right": 1745,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 88,
+            "height": 38.5
+          },
+          {
+            "left": 1745,
+            "right": 1889,
+            "top": 495,
+            "bottom": 533.5,
+            "width": 144,
+            "height": 38.5
+          }
+        ],
+        "bodyBounds": [
+          {
+            "left": 31,
+            "right": 1097,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 1066,
+            "height": 144.5
+          },
+          {
+            "left": 1097,
+            "right": 1209,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 112,
+            "height": 144.5
+          },
+          {
+            "left": 1209,
+            "right": 1305,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 96,
+            "height": 144.5
+          },
+          {
+            "left": 1305,
+            "right": 1465,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 160,
+            "height": 144.5
+          },
+          {
+            "left": 1465,
+            "right": 1569,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 104,
+            "height": 144.5
+          },
+          {
+            "left": 1569,
+            "right": 1657,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 88,
+            "height": 144.5
+          },
+          {
+            "left": 1657,
+            "right": 1745,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 88,
+            "height": 144.5
+          },
+          {
+            "left": 1745,
+            "right": 1889,
+            "top": 534,
+            "bottom": 678.5,
+            "width": 144,
+            "height": 144.5
+          }
+        ],
+        "allControlsContainedInCells": true,
+        "siblingCellsNonoverlapping": true,
+        "siblingControlsNonoverlapping": true,
+        "buttonCount": 76,
+        "ownerClientWidth": 1858,
+        "ownerScrollWidth": 1858,
+        "ownerOverflowX": "auto"
+      },
+      {
+        "width": 1858,
+        "headerBodyAligned": true,
+        "headerBounds": [
+          {
+            "left": 31,
+            "right": 634.84375,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 603.84375,
+            "height": 38.5
+          },
+          {
+            "left": 634.84375,
+            "right": 936.765625,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 301.921875,
+            "height": 38.5
+          },
+          {
+            "left": 936.765625,
+            "right": 1238.6875,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 301.921875,
+            "height": 38.5
+          },
+          {
+            "left": 1238.6875,
+            "right": 1470.9375,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 232.25,
+            "height": 38.5
+          },
+          {
+            "left": 1470.9375,
+            "right": 1889,
+            "top": 3405.5,
+            "bottom": 3444,
+            "width": 418.0625,
+            "height": 38.5
+          }
+        ],
+        "bodyBounds": [
+          {
+            "left": 31,
+            "right": 634.84375,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 603.84375,
+            "height": 65
+          },
+          {
+            "left": 634.84375,
+            "right": 936.765625,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 301.921875,
+            "height": 65
+          },
+          {
+            "left": 936.765625,
+            "right": 1238.6875,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 301.921875,
+            "height": 65
+          },
+          {
+            "left": 1238.6875,
+            "right": 1470.9375,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 232.25,
+            "height": 65
+          },
+          {
+            "left": 1470.9375,
+            "right": 1889,
+            "top": 3444,
+            "bottom": 3509,
+            "width": 418.0625,
+            "height": 65
+          }
+        ],
+        "allControlsContainedInCells": true,
+        "siblingCellsNonoverlapping": true,
+        "siblingControlsNonoverlapping": true,
+        "buttonCount": 4,
+        "ownerClientWidth": 1858,
+        "ownerScrollWidth": 1858,
+        "ownerOverflowX": "auto"
+      }
+    ],
+    "filterControlsContained": true,
+    "filterControlsNonoverlapping": true,
+    "focusVisible": true,
+    "focusOutline": "solid",
+    "paneOverflowY": "auto",
+    "paneClientHeight": 658,
+    "paneScrollHeight": 3821,
+    "peerClientHeight": 50,
+    "peerScrollHeight": 50,
+    "inactiveGanttInert": true,
+    "inactiveGanttHidden": "hidden",
+    "focusedOutsideInactiveGantt": true
+  }
+]
