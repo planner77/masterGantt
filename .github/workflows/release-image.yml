@@ -51,11 +51,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          # Annotated tag 여부를 tag object 자체로 검사해야 하므로 tag history를 받는다.
+          fetch-depth: 0
       - name: checkout 시간 기록
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
-          # Annotated tag 여부를 tag object 자체로 검사해야 하므로 tag history를 받는다.
-          fetch-depth: 0
       - name: Enforce exact package/tag SemVer agreement
         env:
           RELEASE_TAG: ${{ github.ref_name }}
