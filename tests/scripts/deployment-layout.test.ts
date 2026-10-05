@@ -130,14 +130,21 @@ describe("deployment repository layout", () => {
     expect(release.indexOf("verified candidate digest GitHub Attestation")).toBeLessThan(
       release.indexOf("최종 exact·rolling tag를 verified digest로 promotion"),
     );
-    expect(text("AGENTS.md")).toContain("version-changing merge의 successful `ci-<SHA>`는 formal release");
+    expect(text("AGENTS.md")).toContain("successful non-docs main merge의 verified `ci-<SHA>`");
     expect(ci).toContain("version_changed:");
     expect(ci).toContain("BEFORE_SHA: ${{ github.event.before }}");
     expect(ci).toContain("fetch-depth: ${{ github.event_name == 'push' && '0' || '1' }}");
     expect(ci).toContain('git show "$BEFORE_SHA:package.json"');
     expect(ci).not.toContain('git show "${GITHUB_SHA}^1:package.json"');
     expect(ci).toContain("org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}");
-    expect(ci).toContain("verified ci-${GITHUB_SHA} retained for exact-digest release promotion");
+    expect(ci).toContain(
+      "verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup",
+    );
+    expect(ci).not.toContain("node scripts/delete-ghcr-package-version-by-tag.mjs");
+    expect(text("scripts/issue_lifecycle.py")).toContain("cleanup_temporary_main_candidate");
+    expect(text("scripts/issue_lifecycle.py")).toContain("scripts/delete-ghcr-package-version-by-tag.mjs");
+    expect(text(".github/workflows/release-finalizer.yml")).toContain("packages: write");
+    expect(text(".github/workflows/release-finalizer-resume.yml")).toContain("packages: write");
     expect(text(".github/dependabot.yml")).toMatch(/package-ecosystem: docker\n\s+directory: \/deploy\/docker/);
     expect(ci).toContain("bash scripts/verify-compose-smoke.sh");
     expect(ci).toContain(
