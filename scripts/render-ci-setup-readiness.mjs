@@ -105,5 +105,5 @@ lines.push(
   "",
 );
 
-writeFileSync(output, lines.filter((line) => line !== "").join("\n\n").replace(/\n\n\|/g, "\n\n|") + "\n", "utf8");
+writeFileSync(output, lines.join("\n") + "\n", "utf8");
 process.stdout.write(JSON.stringify({ status, issue, minSamples, lanes: laneRows, blockers: blockers.length }) + "\n");
