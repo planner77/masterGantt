@@ -18,6 +18,7 @@ export default defineConfig({
   reporter: [
     ["list"],
     ["html", { outputFolder: resolve(repositoryRoot, "playwright-report"), open: "never" }],
+    ["./e2e-timing-reporter.cjs", { outputFile: process.env.E2E_TIMING_OUTPUT }],
   ],
   // Serial execution limits resource usage but does not isolate server memory.
   // Real-backend specs use fixtures/isolated-application; this shared server

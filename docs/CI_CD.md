@@ -437,3 +437,20 @@ Issue Lifecycle은 exact merge target의 first-parent diff를 CI와 동일한 do
 ### #435 4-shard 실측 보완
 
 최초 test-level 4-shard 실측은 `6.0 / 8.9 / 14.5 / 5.1분`으로 test count는 각 84개로 균등해졌지만 최장 shard가 기존 13.6분보다 길어 임계 경로 개선 기준을 충족하지 못했다. 따라서 workers=1과 test-level 분배를 유지하면서 shard 수를 6으로 조정한다. 이 변경은 required aggregate check 수/이름을 바꾸지 않으며, 최종 선택은 exact PR head의 wall-clock과 shard 편차로 판정한다.
+
+## Issue #437 Historical timing 기반 E2E shard 최적화
+
+#435의 6-shard 구조는 유지하되 test count 균등만으로 발생하는 실행시간 편차를 줄이기 위해 **historical timing → robust estimate → LPT plan** 계층을 추가한다.
+
+- 각 Chromium shard는 `tests/config/e2e-timing-reporter.cjs`로 성공한 test의 file별 duration을 JSON으로 기록한다.
+- CI와 Release는 timing JSON을 30일 artifact로 보존한다. timing artifact는 품질 PASS evidence를 대체하지 않고 다음 plan 계산용 관찰 데이터다.
+- 일반 PR/Main/Release 실행은 `tests/config/e2e-shard-plan.json`이 현재 6-shard 계약과 일치할 때만 해당 file plan을 사용한다.
+- plan이 없거나 JSON이 손상되거나 shard count가 맞지 않으면 기존 Playwright native `--shard=N/6`로 fail-safe fallback한다.
+- committed plan에 없는 신규 E2E spec은 deterministic hash로 한 shard에 추가하고 삭제된 spec은 무시하여 stale plan 때문에 test가 누락되지 않게 한다.
+- `.github/workflows/e2e-shard-optimizer.yml`은 일반 CI critical path와 분리된 schedule/manual workflow다. 최근 성공한 `main` push CI 최대 20개의 timing artifact를 조회하고 최근 10회 이상이 확보된 뒤 median file duration을 계산한다.
+- planner는 LPT(Longest Processing Time first)로 6개 bin의 예상 test time을 균형화한다. 4~8 shard 후보는 관찰용으로 simulation하지만 이 Issue의 자동 PR은 shard count 자체를 바꾸지 않는다.
+- 기본 재균형 gate는 최근 5회 중 3회 이상 imbalance ratio(`max/median`) > 1.35, file timing coverage >= 80%, 예상 critical path 개선 >= 15% 또는 >= 2분, 마지막 plan 변경 후 7일 이상이다.
+- gate를 충족하면 optimizer가 `ci/issue-437-e2e-shard-plan-<run id>` branch와 `[Issue #437] ci: E2E 샤드 계획 갱신` PR을 생성한다. **자동 병합은 하지 않으며** 기존 required PR CI가 새 plan을 검증한다.
+- 과거 artifact는 신뢰할 수 없는 입력으로 취급한다. optimizer는 artifact 안의 명령을 실행하지 않고 duration/file JSON만 파싱하며, 실제 실행 대상은 checkout된 현재 `tests/e2e` 파일 목록과 교차 검증한다.
+
+GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용하고 dependency cache와 혼용하지 않는다. optimizer는 최근 run/artifact 조회와 자동 plan PR 생성 직후 exact branch에 `ci.yml workflow_dispatch`를 명시적으로 시작하므로 `actions: write`, plan PR 생성에 한정한 `contents: write`, `pull-requests: write`를 사용한다. `GITHUB_TOKEN`이 만든 일반 push/PR 이벤트가 후속 workflow를 자동 재귀 실행한다고 가정하지 않으며, regular CI 권한은 확대하지 않는다.

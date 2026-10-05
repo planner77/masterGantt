@@ -1320,3 +1320,18 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Security/supply chain: authorization marker, annotated tag, exact SHA, exact digest smoke, no-overwrite, stable alias serialization, safe branch cleanup을 그대로 회귀한다.
 
 - #435 4-shard 중간 계측: 6.0/8.9/14.5/5.1분으로 최장 shard 개선 실패. 6-shard 재검증에서 최장 shard와 전체 PR CI wall-clock을 기준으로 최종 채택 여부를 판정한다.
+
+## Issue #437 Historical timing E2E shard optimizer 검증
+
+- Reporter: 성공 test의 file/duration만 timing JSON에 기록하고 실패/취소를 성공 sample로 사용하지 않는다.
+- History: 최근 성공 `main` CI run artifact를 최대 20개 읽고 run별 동일 file duration을 합산한 뒤 file별 median을 계산한다.
+- Robustness: 단일 느린 outlier가 median estimate를 과도하게 바꾸지 않는지 검증한다.
+- LPT: 동일 timing 입력은 항상 동일 6-shard file plan을 생성하며 각 file은 정확히 한 shard에 배정된다.
+- Stale/invalid plan: 삭제 file은 무시하고 신규 spec은 deterministic fallback으로 반드시 한 shard에 배정한다. shard 번호가 `1..N` 범위를 벗어나거나 duplicate shard group/file assignment가 있으면 plan 전체를 거부하고 native sharding으로 fallback하여 test 누락을 방지한다.
+- Missing/corrupt plan: 일반 CI/Release는 기존 Playwright native `--shard=N/6`로 fallback한다.
+- Threshold: 성공 run 10회 미만, timing coverage 80% 미만, 최근 imbalance breach 부족, 예상 개선 미달, cooldown 미충족 중 하나라도 있으면 plan PR을 생성하지 않는다.
+- Security: historical artifact 내용은 실행하지 않으며 현재 checkout의 `tests/e2e` file 목록과 duration JSON만 사용한다.
+- Automation: optimizer가 만드는 branch/title/body는 Primary Issue #437 trace 계약을 만족하고, PR 생성 직후 exact branch에 `ci.yml workflow_dispatch`를 실행해 required quality/e2e/docker를 생성하며 자동 merge는 수행하지 않는다.
+- Metrics: Step Summary에 run 수, coverage, 최근 imbalance ratio, baseline/proposed critical time, 예상 개선율, 4~8 shard 후보 runner-minutes를 기록한다.
+- Remote: #437 implementation PR exact head의 quality/e2e/docker required checks를 통과하고, 병합 후 timing artifacts가 실제 main CI에서 생성되는지 확인한다.
+- Activation: historical sample 10회가 쌓이기 전에는 native 6-shard fallback이 정상 상태이며, 첫 자동 plan PR은 threshold 충족 후 별도 required CI로 검증한다.

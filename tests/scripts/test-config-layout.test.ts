@@ -49,6 +49,31 @@ describe("test configuration repository layout", () => {
     expect(ci).toContain("github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true'");
     expect(ci).toContain("- 'src/server/projects/**'");
   });
+  it("records historical E2E timing and keeps optimizer fail-safe", () => {
+    const browser = text("tests/config/playwright.config.ts");
+    const ci = text(".github/workflows/ci.yml");
+    const release = text(".github/workflows/release-image.yml");
+    const optimizer = text(".github/workflows/e2e-shard-optimizer.yml");
+    expect(browser).toContain("./e2e-timing-reporter.cjs");
+    for (const workflow of [ci, release]) {
+      expect(workflow).toContain("scripts/e2e-shard-planner.mjs select");
+      expect(workflow).toContain("tests/config/e2e-shard-plan.json");
+      expect(workflow).toContain("E2E_TIMING_OUTPUT");
+      expect(workflow).toContain("native 6-way sharding fallback");
+    }
+    expect(ci).toContain("e2e-timing-ci-shard-");
+    expect(release).toContain("e2e-timing-release-shard-");
+    expect(optimizer).toContain("event=push&branch=main&status=success");
+    expect(optimizer).toContain("scripts/e2e-shard-planner.mjs analyze");
+    expect(optimizer).toContain("actions: write");
+    expect(optimizer).toContain("[Issue #437] ci: E2E 샤드 계획 갱신");
+    expect(optimizer).toContain("actions/workflows/ci.yml/dispatches");
+    expect(optimizer).toContain('inputs[issue_number]=437');
+    expect(optimizer).toContain("--body-file /tmp/e2e-shard-plan-pr-body.md");
+    expect(optimizer).not.toMatch(/--body\s*\n/);
+    expect(optimizer).toContain("Refs #437");
+    expect(optimizer).not.toContain("gh pr merge");
+  });
   it("keeps completed Issue #118 evidence manual-only", () => {
     const evidence = text(".github/workflows/issue-118-before-after-evidence.yml");
     expect(evidence).toContain("workflow_dispatch:");

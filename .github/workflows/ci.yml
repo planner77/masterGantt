@@ -434,7 +434,36 @@ jobs:
       - name: E2E shard 실행
         env:
           CI_E2E_FULLY_PARALLEL: "true"
-        run: npm run test:e2e -- --shard=${{ matrix.shard }}/6
+          E2E_TIMING_OUTPUT: test-results/e2e-timing-shard-${{ matrix.shard }}.json
+          E2E_TIMING_SHARD: ${{ matrix.shard }}
+          E2E_TIMING_SHARD_COUNT: "6"
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          selection="$(node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard "${{ matrix.shard }}" --total 6)"
+          selection_status=$?
+          set -e
+          if [[ "$selection_status" -eq 0 ]]; then
+            mapfile -t shard_files < <(printf '%s\n' "$selection" | sed '/^$/d')
+            if (( ${#shard_files[@]} == 0 )); then
+              echo "Historical shard plan assigned zero files; refusing to run an accidental full suite." >&2
+              exit 1
+            fi
+            echo "Historical timing shard plan 사용: ${#shard_files[@]} files"
+            npm run test:e2e -- "${shard_files[@]}"
+          else
+            echo "Historical timing plan 없음/불일치 — Playwright native 6-way sharding fallback"
+            npm run test:e2e -- --shard=${{ matrix.shard }}/6
+          fi
+      - name: E2E timing artifact 업로드
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: e2e-timing-ci-shard-${{ matrix.shard }}
+          path: test-results/e2e-timing-shard-${{ matrix.shard }}.json
+          if-no-files-found: ignore
+          retention-days: 30
       - name: 실패 shard Playwright report 업로드
         if: failure()
         # actions/upload-artifact v7.0.1

@@ -1,0 +1,126 @@
+name: E2E 샤드 최적화
+
+run-name: "E2E 샤드 최적화 · 실행 #${{ github.run_number }}.${{ github.run_attempt }}"
+
+on:
+  schedule:
+    - cron: "17 20 * * *"
+  workflow_dispatch:
+    inputs:
+      min_runs:
+        description: "최소 과거 main CI 실행 수"
+        required: false
+        default: "10"
+        type: string
+      dry_run:
+        description: "샤드 계획을 계산만 하고 PR은 생성하지 않음"
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: e2e-shard-optimizer
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  optimize:
+    name: 과거 실행시간 분석 및 샤드 계획 제안
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+
+      - name: 최근 성공 main CI 실행시간 artifact 수집
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .e2e-history
+          mapfile -t run_ids < <(
+            gh api "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?event=push&branch=main&status=success&per_page=20"               --jq '.workflow_runs[].id'
+          )
+          for run_id in "${run_ids[@]}"; do
+            target=".e2e-history/$run_id"
+            mkdir -p "$target"
+            if ! gh run download "$run_id" -p 'e2e-timing-ci-shard-*' -D "$target"; then
+              rm -rf "$target"
+            fi
+          done
+          echo "과거 실행시간 run directories: $(find .e2e-history -mindepth 1 -maxdepth 1 -type d | wc -l)"
+
+      - name: median/LPT 분석
+        id: analyze
+        env:
+          MIN_RUNS: ${{ inputs.min_runs || '10' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/e2e-shard-planner.mjs analyze             --history .e2e-history             --shards 6             --min-runs "$MIN_RUNS"             --current-plan tests/config/e2e-shard-plan.json             --output .e2e-shard-proposal.json             --summary "$GITHUB_STEP_SUMMARY"
+          should_update="$(jq -r '.shouldUpdate' .e2e-shard-proposal.json)"
+          echo "should_update=$should_update" >> "$GITHUB_OUTPUT"
+
+      - name: 분석 결과 artifact 보존
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: e2e-shard-optimizer-proposal
+          path: .e2e-shard-proposal.json
+          retention-days: 30
+
+      - name: 기존 최적화 PR 확인
+        id: existing
+        if: steps.analyze.outputs.should_update == 'true' && (github.event_name != 'workflow_dispatch' || inputs.dry_run != true)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          number="$(gh pr list             --state open             --search '"'"'[Issue #437] ci: E2E 샤드 계획 갱신'"'"' in:title'             --json number             --jq '.[0].number // empty')"
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+
+      - name: 샤드 계획 자동 PR 생성
+        if: steps.analyze.outputs.should_update == 'true' && steps.existing.outputs.number == '' && (github.event_name != 'workflow_dispatch' || inputs.dry_run != true)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq '.plan' .e2e-shard-proposal.json > tests/config/e2e-shard-plan.json
+          branch_name="ci/issue-437-e2e-shard-plan-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch_name"
+          git add tests/config/e2e-shard-plan.json
+          if git diff --cached --quiet; then
+            echo "샤드 계획에 실제 변경이 없어 PR을 만들지 않습니다."
+            exit 0
+          fi
+          git commit -m "ci: 과거 실행시간 기반 E2E 샤드 계획 갱신 (#437)"
+          git push origin "HEAD:refs/heads/$branch_name"
+          printf '%s\n' \
+            '과거 실행시간 median/LPT 분석에서 재균형 임계치를 충족해 E2E 샤드 계획을 갱신합니다.' \
+            '' \
+            '자동 병합은 수행하지 않으며 동일 head SHA의 전체 CI를 명시적으로 실행해 기존 required checks로 검증합니다.' \
+            '' \
+            'Refs #437' > /tmp/e2e-shard-plan-pr-body.md
+          gh pr create \
+            --base main \
+            --head "$branch_name" \
+            --title "[Issue #437] ci: E2E 샤드 계획 갱신" \
+            --body-file /tmp/e2e-shard-plan-pr-body.md
+          head_sha="$(git rev-parse HEAD)"
+          echo "자동 PR head: $head_sha"
+          gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/dispatches" -f ref="$branch_name" -f "inputs[issue_number]=437"
+          echo "동일 head SHA의 전체 CI workflow_dispatch를 시작했습니다."

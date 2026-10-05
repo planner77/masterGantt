@@ -24,3 +24,5 @@ test-results/
 .next-e2e-isolated-*/
 __pycache__/
 *.pyc
+.e2e-history/
+.e2e-shard-proposal.json
