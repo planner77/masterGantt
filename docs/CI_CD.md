@@ -498,3 +498,19 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 - baseline median/p90과 cache hit/miss를 기록한 뒤 후보 최적화의 before/after를 동일 metric 정의로 비교한다.
 - wall-clock 개선이 의미 있고 runner-minutes가 증가하지 않거나 합리적 범위일 때만 cache 변경을 채택한다.
 - Playwright browser cache, 추가 Next/Docker cache 조정은 이 Phase 1 PR의 범위 밖이며 측정 근거 없이 활성화하지 않는다.
+
+## Issue #444 setup/cache Phase 2·3 최적화·guard
+
+#439 Phase 1 계측 이후의 최적화는 **표본 충족 전에는 cache 도입을 진행하지 않는다**. PR/Main/Release의 비교 대상 workflow/event/job/metric 그룹별로 서로 다른 successful run ID가 10개 이상인 경우에만 Phase 2 후보를 평가한다.
+
+- `scripts/analyze-ci-setup-metrics.mjs`는 기존 median/p90/cache 분포에 PR/Main/Release lane, runner-minutes/run, exact cache hit rate, lane별 readiness와 비용 후보 순위를 추가한다. matrix shard와 rerun은 record 수에는 포함될 수 있으나 distinct run 표본을 늘리지 않는다.
+- `scripts/compare-ci-setup-metrics.mjs`는 동일 workflow/event/job/metric 키의 before/after만 비교한다. 기본 정책은 median wall-clock 5% 이상 개선, runner-minutes 증가 0% 이하이며 표본 부족 그룹은 `COLLECT_MORE`, 기준 미달은 `DO_NOT_ADOPT`로 판정한다. 실제 채택 기준은 Issue evidence에서 필요 시 더 엄격하게 조정할 수 있다.
+- 현재 #444 착수 시점에는 #439 정식 release 직후라 PR/Main/Release 10-run baseline이 충족되지 않았다. 따라서 Playwright browser cache나 추가 cache 계층은 도입하지 않고 분석/비교/guard만 구현한다.
+- Next `.next/cache` key는 OS/arch/Node/Next/package-lock/commit을 포함하고 restore key도 동일 runtime/tool/lockfile 범위 안에서만 공유한다.
+- Docker BuildKit GHA cache namespace는 OS/arch별로 분리한다. BuildKit의 content-addressed layer invalidation을 유지하며 cache miss에서도 동일 Docker build/image policy/runtime smoke가 실행된다.
+- npm cache는 `~/.npm`만 사용하고 OS/arch/Node/package-lock hash를 key에 포함한다. `node_modules` cache는 계속 금지한다.
+- Playwright browser cache는 baseline evidence가 충분해지고 download/install이 상위 비용으로 확인되기 전까지 비활성이다.
+- `scripts/verify-ci-cache-contract.mjs`는 npm/Next/Docker/Playwright cache key·fallback·금지 항목과 setup metric artifact 경계를 정적으로 검사하며 PR CI policy job에서 실행한다.
+- cache hit/miss는 required quality/e2e/docker PASS를 대체하지 않는다. secret/token/`.env`/runtime DB/test PASS evidence는 cache 또는 setup metric artifact에 저장하지 않는다.
+
+#444의 이번 PR은 Phase 2 실행 도구와 Phase 3 guard를 준비하는 변경이며, 실제 최적화 채택은 각 비교 그룹의 10-run baseline과 동일 workload의 before/after evidence가 확보된 뒤 수행한다.
