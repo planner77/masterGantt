@@ -121,6 +121,16 @@ describe("deployment repository layout", () => {
     expect(release).toContain("docker buildx imagetools create");
     expect(release).toContain("--prefer-index=false");
     expect(release).toContain("Digest promotion changed the verified digest");
+    expect(release).toContain("릴리스 후보 Project·Task API persistence 검증");
+    expect(release).toContain("verified candidate digest GitHub Attestation");
+    expect(release).toContain("최종 exact·rolling tag를 verified digest로 promotion");
+    expect(release.indexOf("릴리스 후보 Project·Task API persistence 검증")).toBeLessThan(
+      release.indexOf("최종 exact·rolling tag를 verified digest로 promotion"),
+    );
+    expect(release.indexOf("verified candidate digest GitHub Attestation")).toBeLessThan(
+      release.indexOf("최종 exact·rolling tag를 verified digest로 promotion"),
+    );
+    expect(text("AGENTS.md")).toContain("version-changing merge의 successful `ci-<SHA>`는 formal release");
     expect(ci).toContain("version_changed:");
     expect(ci).toContain("org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}");
     expect(ci).toContain("verified ci-${GITHUB_SHA} retained for exact-digest release promotion");
