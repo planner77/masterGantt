@@ -296,3 +296,14 @@ Lifecycle의 exact main CI 조회는 repository의 최근 run 목록을 넓게 �
 | Release | static/E2E/candidate setup JSONL | PR/Main과 동일 metric 이름·schema로 비교 |
 
 before/after 개선은 workflow 파일/event/job/metric별로 **서로 다른 successful run ID가 최소 10개** 쌓이기 전에는 확정하지 않는다. successful run artifact만 분석 입력으로 사용하며 matrix shard와 동일 run의 재실행은 record는 늘려도 run 표본 수는 늘리지 않는다. Phase 2 변경 후에도 같은 그룹 키와 metric 정의로 median/p90을 재측정한다.
+
+## Issue #444 Phase 2·3 원격 검증
+
+1. PR/Main/Release의 successful setup metric artifact를 동일 기간·동일 workload 기준으로 수집하고 analyzer의 lane별 `readyGroups/notReadyGroups`를 확인한다.
+2. 어떤 비교 대상 그룹이라도 distinct successful run ID <10이면 `phase2Ready=false`를 유지하고 신규 cache 도입을 중단한다.
+3. baseline 충족 후 비용 후보는 runner-minutes/run, median, p90 순으로 확인하되 서로 다른 workflow/event/job/metric을 합쳐 평균내지 않는다.
+4. 변경 후 동일 metric 정의와 workload에서 10-run 표본을 다시 모아 compare script의 `ADOPT | DO_NOT_ADOPT | COLLECT_MORE`를 확인한다.
+5. cache miss run에서도 exact PR head의 quality/e2e/docker required gate가 동일하게 실행되고 성공해야 한다. cache hit만으로 PASS를 판정하지 않는다.
+6. Node/Next version 또는 package-lock 변경 후 npm/Next exact key가 바뀌는지, runner OS/arch 변경 시 npm/Next/Docker cache namespace가 분리되는지 workflow와 로그로 확인한다.
+7. setup metric artifact에는 JSONL timing/cache metadata만 존재하고 secret/token/`.env`/runtime DB/test result PASS evidence가 없는지 확인한다.
+8. #444 PR CI 시작 시점에는 표본 부족으로 실제 Playwright browser cache 도입/효과 판정은 N/A이며, PR exact head의 cache contract static test와 기존 required gate 실행 여부를 구현 증거로 사용한다.
