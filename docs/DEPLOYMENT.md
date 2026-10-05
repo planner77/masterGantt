@@ -245,7 +245,7 @@ PR과 수동 CI token은 `contents: read`뿐이며 모든 checkout은 `persist-c
 
 ### Main commit 테스트 image
 
-`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 임시로 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않으며, digest 검증이 끝난 `ci-*` package version은 자동 삭제한다.
+`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않는다. digest 검증이 끝난 일반 merge의 `ci-*` package version은 자동 삭제하지만, package version이 first-parent 대비 변경된 merge의 successful `ci-*`는 formal release에서 동일 digest를 재사용하기 위해 보존한다.
 
 Workflow는 build output digest를 다시 pull해 image policy와 readiness를 확인하고, 실제 HTTP API로 Project를 생성해 edit session을 받은 뒤 root Task를 저장한다. Session 없는 mutation 거부를 확인하고 container를 restart한 후 동일 Project와 Task가 남는지 재조회한다. 이 검증은 격리 volume에서 수행하며 사용자 data를 사용하지 않는다. Workflow summary의 exact digest가 사용자·통합 테스트 입력이다.
 
@@ -253,7 +253,7 @@ Workflow는 build output digest를 다시 pull해 image policy와 readiness를 �
 docker pull ghcr.io/planner77/mastergantt@sha256:<commit-image-digest>
 ```
 
-Commit image는 release가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. 아래 release workflow는 GHCR에 commit 고정 candidate를 남기지 않고 local candidate 검증 후 exact SemVer를 직접 게시한다.
+Commit image 자체는 release authority가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. 다만 version-changing merge의 verified `ci-<SHA>`는 build-once release candidate로 보존된다. 아래 release workflow는 annotated tag target SHA에 해당하는 candidate exact digest를 재검증한 뒤 새 build 없이 exact SemVer/rolling alias로 동일 digest를 promotion한다.
 
 ### 안정 SemVer와 GHCR publish
 
@@ -265,7 +265,7 @@ git tag -a v0.6.0 -m "Release v0.6.0"
 git push origin v0.6.0
 ```
 
-tag push는 [release image workflow](../.github/workflows/release-image.yml)를 실행한다. workflow는 이전 tag보다 큰 version과 annotated tag를 확인하고 전체 quality gate 및 동일 release 설정의 local candidate runtime smoke를 통과한 뒤에만 ephemeral `GITHUB_TOKEN`으로 lowercase GHCR exact SemVer image를 직접 게시한다. 게시된 build output digest를 registry에서 다시 pull하여 runtime smoke와, 활성화된 경우 GitHub Attestation을 통과한 뒤 stable release의 `major.minor`, `major`, `latest`만 같은 검증 digest로 이동한다. Prerelease는 exact SemVer tag만 보관한다. Release용 `sha-<full-commit>` GHCR candidate는 만들지 않는다. Repository 단위 직렬화와 monotonic gate가 낮은 version의 alias rollback을 막으며 기존 exact image는 overwrite하지 않는다. tag workflow의 권한은 `contents: read`, `packages: write`, optional attestation/OIDC에 필요한 `attestations: write` 및 `id-token: write`로 한정된다. Release run은 취소하지 않는다.
+tag push는 [release image workflow](../.github/workflows/release-image.yml)를 실행한다. workflow는 이전 tag보다 큰 version과 annotated tag를 확인하고 전체 quality gate를 통과한 뒤, tag가 가리키는 exact commit의 Main verified `ci-<SHA>` candidate를 찾는다. source/revision/version label과 candidate digest를 확인하고 candidate runtime/transport/persistence를 재검증한 후 **container를 다시 build하지 않고** 같은 digest를 lowercase GHCR exact SemVer tag로 promotion한다. exact digest smoke와 활성화된 GitHub Attestation을 통과한 뒤 stable release의 `major.minor`, `major`, `latest`만 같은 digest로 이동한다. Prerelease는 exact SemVer tag만 추가한다. Repository 단위 직렬화와 monotonic gate가 낮은 version의 alias rollback을 막으며 기존 exact image는 다른 digest로 overwrite하지 않는다. candidate 검증은 `packages: read`, promotion은 `packages: write`, optional attestation은 `attestations: write`/`id-token: write`로 한정된다. Release run은 취소하지 않는다.
 
 BuildKit SBOM/provenance는 항상 publish한다. GitHub Artifact Attestation은 private repository에서 Enterprise Cloud가 필요하므로 `ENABLE_GITHUB_ATTESTATIONS=true`인 지원 환경에서만 실행한다. Push 결과 digest를 다시 pull하여 실제 GHCR image가 migration/readiness와 HTTP Project/Task authorization·restart persistence smoke를 통과하는지도 확인한다. [GitHub Docs](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images), [GitHub Attestation 지원 조건](https://docs.github.com/en/enterprise-cloud@latest/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations), [Docker Docs](https://docs.docker.com/build/ci/github-actions/attestations/)를 따른다. 모든 third-party action은 review 가능한 full commit SHA로 pin하며, [Dependabot](../.github/dependabot.yml)가 주간 update PR을 제안한다.
 
