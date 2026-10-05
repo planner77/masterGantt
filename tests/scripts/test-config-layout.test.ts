@@ -69,6 +69,8 @@ describe("test configuration repository layout", () => {
     expect(optimizer).toContain("[Issue #437] ci: E2E 샤드 계획 갱신");
     expect(optimizer).toContain("actions/workflows/ci.yml/dispatches");
     expect(optimizer).toContain('inputs[issue_number]=437');
+    expect(optimizer).toContain("--body-file /tmp/e2e-shard-plan-pr-body.md");
+    expect(optimizer).not.toMatch(/--body\s*\n/);
     expect(optimizer).toContain("Refs #437");
     expect(optimizer).not.toContain("gh pr merge");
   });
