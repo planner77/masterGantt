@@ -254,3 +254,12 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 - npm/Next/Docker cache key 또는 Playwright cache 정책을 변경할 때는 `node scripts/verify-ci-cache-contract.mjs`가 PASS해야 한다. required check, audit, Docker/runtime smoke를 줄여 성능을 만드는 변경은 금지한다.
 - fork/external PR을 이유로 cache write 권한을 확대하지 않는다. cache miss는 정상 경로이며 cache hit은 품질 증거가 아니다.
 - #444 이번 착수에서는 10-run baseline이 아직 충족되지 않았으므로 실제 신규 cache 도입은 DEFER하고 분석·비교·guard 준비만 수행한다.
+
+### Readiness 자동 운영
+
+- `.github/workflows/ci-setup-readiness.yml`이 성공한 CI/Release 완료 후 즉시, 그리고 매일 한 번 fallback으로 현재 표본을 재계산한다.
+- readiness workflow의 권한은 `actions: read`, `contents: read`, `issues: write`로 제한하며 contents/PR write는 부여하지 않는다. `workflow_run` source가 PR이어도 trusted `main`만 checkout한다.
+- #444의 bot marker 댓글에는 PR/Main/Release별 ready groups, 최소 distinct run/10, 표본 부족 그룹, 현재 비용 상위 후보를 기록한다.
+- 상태가 `COLLECTING`이면 추가 cache 작업을 시작하지 않는다. `READY`는 분석 재개 신호일 뿐 자동 구현/병합 권한이 아니다.
+- #444가 닫히면 workflow는 no-op으로 종료하므로 완료 이후 불필요한 artifact download/comment mutation을 지속하지 않는다.
+
