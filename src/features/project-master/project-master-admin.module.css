@@ -4,20 +4,12 @@
   min-width: 0;
 }
 
-.authSection,
 .sessionSection,
 .catalogSection {
   min-width: 0;
   border: 1px solid var(--border-default);
   border-radius: var(--radius);
   background: var(--surface-panel);
-}
-
-.authSection {
-  display: grid;
-  max-width: 48rem;
-  gap: 0.875rem;
-  padding: 1rem;
 }
 
 .sessionSection {
@@ -64,20 +56,6 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-.loginForm {
-  display: grid;
-  gap: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid var(--border-default);
-}
-
-.loginControls {
-  display: grid;
-  grid-template-columns: minmax(12rem, 24rem) auto;
-  gap: 0.75rem;
-  align-items: end;
 }
 
 .feedback:empty {
@@ -321,12 +299,10 @@
 }
 
 @media (max-width: 480px) {
-  .loginControls,
   .formGrid {
     grid-template-columns: 1fr;
   }
 
-  .loginControls > button,
   .formGrid > button {
     width: 100%;
   }

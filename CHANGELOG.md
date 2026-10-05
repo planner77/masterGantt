@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.83.4] - 2026-10-05
+
+### Fixed
+
+- Issue #452: 리소스·물류 유형·프로젝트 기준정보 관리자 페이지의 공통 시작점과 인증 presentation을 맞추고 비밀번호 입력의 경계·정렬·오류 연결을 명시한다. 관리자별 세션·API·권한 계약을 유지한다.
+- 물류 관리자 세션 만료 후 새 로그인 입력이 mount되기 전에 focus를 시도하던 타이밍을 보정하여 재인증 focus 정책을 실제로 적용한다.
+- Secondary button의 전역 외부 margin을 제거하고 toolbar/form/footer/독립 CTA가 간격을 소유하도록 기존 소비자를 이관한다. 링크·KPI·Task Editor의 의도 배치는 유지한다.
+- 관련 인증·geometry 회귀와 제품 설계·UX·테스트 계획 문서를 동기화하고 Application version을 `0.83.3`에서 `0.83.4`로 증가한다.
+
 ## [0.83.3] - 2026-10-05
 
 ### Fixed

@@ -9,6 +9,7 @@ import type {
   ResourceGroupDto,
   ResourceRole,
 } from "@/contracts/resources";
+import { AdminAuth, adminAuthStyles } from "@/components/admin-auth";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { filterGroups, filterResources } from "./resource-search-filter";
 import styles from "./resource-catalog-admin.module.css";
@@ -452,15 +453,19 @@ export function ResourceCatalogAdmin() {
   }
 
   if (!authenticated) {
-    return <form className={styles.login} onSubmit={(event) => void login(event)}>
-      <h2>관리자 로그인</h2>
-      <p className={styles.note}>프로젝트 편집 비밀번호와 별도의 글로벌 리소스 관리자 권한이 필요합니다.</p>
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
-      <label className={styles.field}>관리자 비밀번호
-        <input ref={loginInput} type="password" autoComplete="current-password" value={password} disabled={busy} onChange={(event) => setPassword(event.target.value)} />
-      </label>
-      <div className={styles.actions}><button className="primary-button" type="submit" disabled={busy || password.length < 1}>{busy ? "확인 중…" : "로그인"}</button></div>
-    </form>;
+    return <AdminAuth title="관리자 로그인" titleId="resource-auth-title"
+      description="프로젝트 편집 비밀번호와 별도의 글로벌 리소스 관리자 권한이 필요합니다.">
+      <form className={adminAuthStyles.form} onSubmit={(event) => void login(event)}>
+        {error ? <p id="resource-login-error" className={adminAuthStyles.error} role="alert">{error}</p> : null}
+        <div className={adminAuthStyles.controls}>
+          <label className={adminAuthStyles.field}>관리자 비밀번호
+            <input ref={loginInput} type="password" autoComplete="current-password" value={password} disabled={busy}
+              aria-describedby={error ? "resource-login-error" : undefined} onChange={(event) => setPassword(event.target.value)} />
+          </label>
+          <button className={`primary-button ${adminAuthStyles.submit}`} type="submit" disabled={busy || password.length < 1}>{busy ? "확인 중…" : "로그인"}</button>
+        </div>
+      </form>
+    </AdminAuth>;
   }
 
   if (!catalog) {

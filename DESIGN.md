@@ -121,6 +121,14 @@ Primary Work Surface
 - 화면별 작업 명령을 전역 header에 섞지 않는다.
 - viewport 기반 gutter를 사용하며 업무 화면을 불필요한 중앙 max-width로 제한하지 않는다.
 
+### 공통 관리자 페이지와 인증 폼 (Issue #452)
+
+`/resources`, `/logistics-admin`, `/project-master-admin`은 동일 레벨의 관리 workspace로 같은 page gutter·compact top spacing·heading scale을 사용한다. 로그인 전후 page shell은 같으며 설명 줄 수에 따른 자연 높이 차이를 고정 높이로 숨기지 않는다. 인증 form만 내용 제한 폭을 적용하고 관리 목록의 작업 면적은 별도로 확보한다.
+
+관리 page는 desktop 최대 100rem, 좌우 gutter 24px(640px 이하 16px), top 20px/bottom 40px, heading 24px와 heading→content gap 16px를 소유한다. 공통 presentation은 최대 `32.5rem` 인증 panel, 16px padding, 12px gap과 명시적인 입력 경계·배경·높이·padding을 소유한다. desktop에서는 label 아래 password input과 제출 버튼의 bottom alignment 및 40px control-size를 맞춘다. 같은 행의 top/height 차이는 1 CSS px 이하여야 하며 좁은 화면은 input 다음 submit 순서로 쌓는다. 세 관리자 영역의 비밀번호·세션·API·권한은 공유하지 않는다.
+
+button primitive의 기본 외부 margin은 0이며 간격과 위치는 toolbar/form/footer/독립 CTA의 부모가 소유한다. `.text-link`의 문맥별 간격, KPI 카드의 `margin-top:auto`와 Task Editor의 기존 44px hit-area는 별도 의미를 유지한다. 전역 `button { margin:0!important }`나 화면별 무차별 상쇄 대신 실제 소비자의 의도 간격을 이관한다. [구현·검증 계획](docs/exec-plans/active/ISSUE_452.md)을 따른다.
+
 ### Project List
 
 - wide data workspace로 취급한다.

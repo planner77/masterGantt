@@ -123,6 +123,18 @@ Resource Catalog처럼 table이 아닌 관리 화면도 column budget과 같은 
 - management footer는 secondary action과 primary commit action의 위치, 동일 높이/baseline, wrap/stack 후 접근성을 실제 bounding box로 검증한다.
 - 기본 100% zoom에서 필수 검증하고 가능하면 125% zoom smoke도 수행한다.
 
+## 관리자 인증 presentation 및 간격 소유권 (Issue #452)
+
+세 관리 route는 같은 shell에서 로그인 전후 heading 위치와 gutter를 유지한다. 공통 page는 최대 100rem, 좌우 gutter 24px(640px 이하 16px), top 20px/bottom 40px, heading 24px와 heading→content gap 16px를 적용한다. 인증 panel만 최대 `32.5rem`, padding 1rem, gap 0.75rem으로 제한한다. desktop label/input과 submit은 bottom alignment를 맞추고 40px control-size에서 top/height 차이 ≤1 CSS px를 실제 bounding box로 검증한다. 540px 이하에서는 DOM 순서대로 입력·제출을 쌓으며 wrap 상태는 같은 행 비교와 구분한다.
+
+- password input의 label과 고유 오류 ID를 연결하고 관련 오류가 있을 때 `aria-describedby`로 접근 가능하게 한다. 서버/네트워크/세션 오류를 모두 필드 validation으로 오인해 `aria-invalid`를 추가하지 않는다.
+- Tailwind reset 뒤에도 border/background/padding/font/focus/error/disabled를 명시적으로 식별할 수 있어야 한다. [Preflight 공식 문서](https://tailwindcss.com/docs/preflight)의 margin/border reset을 실제 CSS cascade와 computed style로 확인한다.
+- Enter 제출, 확인 중 중복 요청 차단, 민감 입력 삭제, 기존 focus/401/403/429/만료 재인증 및 영역별 권한 분리를 보존한다. 공유 component는 시각 구조를 소유하며 인증 controller를 합치지 않는다.
+- button의 기본 외부 margin은 0이다. 부모가 gap/padding/position을 소유하고 같은 행 동급 action의 정렬을 검증한다. `.text-link`와 KPI `margin-top:auto`, Task Editor 44px hit-area 같은 의도 배치는 따로 보존한다.
+- legacy margin 사용처 목록은 list/new/workspace/dialog/empty/error/KPI까지 포함하고 변경 전후 측정 또는 N/A 이유를 기록한다. 390/768/1024/1440/1920px와 긴 한글·영문·busy/error/focus를 검증한다.
+
+인증 shell은 app-owned UI이므로 SVAR Gantt demo를 관리자 로그인 구현으로 대체하지 않는다. 기존 Gantt instance/권한/domain/API/revision 계약은 유지한다.
+
 ## 접근성과 반응형 검증
 
 프로젝트의 기본 확인 폭은 390/768/1024/1440px이며 표준 규격의 공식 breakpoint라는 의미는 아니다. 변경 범위에 해당하는 화면에서 다음을 검사한다.

@@ -1,8 +1,7 @@
 .panel { display: grid; gap: 1rem; }
-.login, .toolbar, .card, .members { border: 1px solid var(--border-default); border-radius: var(--radius); padding: 1rem; background: var(--surface-panel); }
+.toolbar, .card, .members { border: 1px solid var(--border-default); border-radius: var(--radius); padding: 1rem; background: var(--surface-panel); }
 .card { min-width: 0; }
 .resourceCard, .groupCard { min-width: 0; }
-.login { max-width: 520px; display: grid; gap: .75rem; }
 .formRow { display: grid; gap: .5rem; align-items: end; }
 .resourceCreateForm { grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr) minmax(0, .8fr) max-content; }
 .resourceCreateForm .resourceRoleFieldset { grid-column: 1 / -1; }
@@ -72,7 +71,6 @@
   flex-wrap: wrap;
 }
 .memberFooterActions button {
-  margin: 0 !important;
 }
 .adminActionRow {
   display: flex;
@@ -82,7 +80,6 @@
   justify-content: flex-end;
 }
 .adminActionRow button {
-  margin: 0 !important;
   white-space: nowrap;
 }
 .dialogActions {
@@ -92,7 +89,6 @@
   margin-top: 1rem;
 }
 .dialogActions button {
-  margin: 0 !important;
 }
 @media (max-width: 72rem) { .columns { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 820px) { .formRow { grid-template-columns: 1fr; } }
@@ -119,7 +115,7 @@
 .roleSummary { display: inline-flex; gap: .3rem; align-items: center; flex-wrap: wrap; }
 .roleBadge { display: inline-flex; padding: .05rem .35rem; border: 1px solid var(--border-default); border-radius: 999px; color: var(--text-default); font-size: .75rem; }
 .rowActions { min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: .45rem; flex-wrap: wrap; padding-top: .5rem; border-top: 1px solid var(--border-default); }
-.rowActions button { margin: 0 !important; white-space: nowrap; }
+.rowActions button { white-space: nowrap; }
 .inlineGradeLabel { display: flex; align-items: center; gap: .35rem; color: var(--text-muted); font-size: .8rem; white-space: nowrap; }
 .inlineGradeLabel select { min-height: 34px; border: 1px solid var(--border-control); border-radius: calc(var(--radius) - 0.125rem); background: var(--surface-panel); color: var(--text-default); padding: .3rem .45rem; font: inherit; }
 .inlineGradeLabel select:focus-visible, .formRow select:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }

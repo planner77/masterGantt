@@ -1405,3 +1405,19 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Security: cache/artifact에 credentials, `.env`, user data, node_modules, SQLite runtime DB를 포함하지 않는다.
 - Phase 2 gate: PR/Main/Release의 workflow/event/job/metric별로 서로 다른 successful run ID >=10 전에는 새 Playwright browser cache를 추가하지 않는다. 이후 before/after median/p90 및 runner-minutes 근거를 Issue #439에 기록한다.
 - 공식 구현 판정은 #439 implementation PR exact head의 required quality/e2e/docker 결과다. 실제 cache 최적화 효과 판정은 최소 표본이 쌓인 뒤 별도 evidence로 수행한다.
+
+
+## Issue #452 — 관리자 공통 presentation·버튼 간격 회귀
+
+- 세 route `/resources`, `/logistics-admin`, `/project-master-admin`의 동일 viewport에서 header bottom→heading 시작·gutter·heading scale, 인증 panel 폭/padding/gap을 비교한다. 로그인 전후 동일 shell geometry와 description의 자연 줄바꿈을 구분한다.
+- 390/768/1024/1440/1920px에서 input/submit bounding box와 computed style을 측정한다. Desktop 40px input/button top·height 차이 ≤1px, 540px 이하 순차 stack, 문서 가로 overflow 없음이 기준이다.
+- 입력 border/background/padding/focus/disabled 및 label/error ID 연결을 확인한다. 긴 한글/영문 label·설명·오류와 busy 상태가 sibling control을 침범하지 않아야 한다.
+- Enter submit/중복 요청 방지/401·403·429·네트워크 실패 후 비밀번호 삭제/기존 focus 정책/401 만료 후 재인증을 관련 E2E에 포함한다. 실제 session 경계는 서버 tests와 별도 확인하고 mock UI 성공으로 교차 권한 PASS를 대신하지 않는다.
+- Secondary button 전체 소비자 목록에서 이전 margin의 실효값과 변경·부모 이관·N/A 이유를 기록한다. Project List/new/workspace/dialog/empty/error/KPI 및 Task Editor 44px hit-area, `.text-link`, KPI `margin-top:auto` 보존을 확인한다.
+- 동급 action은 같은 행에서 top/height 차이 ≤1px를 검증한다. wrap/stack은 같은 행 기준을 무리하게 적용하지 않고 순서·overlap·가용 폭을 별도 확인한다.
+- 실제 앱 before/after screenshot은 geometry·keyboard·권한 증거를 보조한다. 독립 qa_docs는 AC/code/tests/docs/실제 실행을 비교한다.
+- 공식 전체 회귀는 PR exact head의 GitHub Actions quality/e2e/docker다. 사용자 요청 범위는 CI 시작 확인까지이며 완료 모니터링·merge/main/GHCR은 수행하지 않는다. 시작 전 또는 결과 미확인 gate는 NOT TESTED다.
+
+실행 증거와 미검증 범위는 [Issue #452 실행 계획](exec-plans/active/ISSUE_452.md)에 동기화한다.
+
+Issue #452 소비자 전수 및 실제 실행/미실행 구분은 [검증 증거](ISSUE_452_UI_EVIDENCE.md)를 따른다.

@@ -704,7 +704,7 @@ Grid/Chart resizer와 column resize는 계속 SVAR 공개 API를 사용한다. D
 
 ## Issue #235 Resource 관리 화면
 
-`/resources`는 일반 콘텐츠 페이지보다 높은 정보 밀도가 필요한 관리 workspace다. App Shell header와 첫 heading 사이의 top spacing은 Resource route에 한정해 compact하게 유지하며 다른 페이지의 `.main-content` geometry는 변경하지 않는다.
+`/resources`는 일반 콘텐츠 페이지보다 높은 정보 밀도가 필요한 관리 workspace다. Issue #452부터 App Shell header와 첫 heading 사이의 compact top spacing을 `/logistics-admin`, `/project-master-admin`과 공통 관리 shell로 적용한다. Project List/Workspace/생성 화면의 별도 `.main-content` geometry 계약은 유지한다.
 
 로그인 후 상단 관리 명령은 `관리자 비밀번호 변경 / 새로고침 / 로그아웃`을 하나의 행으로 그룹화한다. 내부 optimistic concurrency 번호인 `Catalog Revision N`은 화면에 표시하지 않지만 catalog `revision`, `If-Match`, 412 stale reload 계약은 그대로 유지한다.
 
@@ -883,3 +883,15 @@ Resource tab의 기존 Group → Resource → Task hierarchy를 유지하면서 
 
 기존 independent workload/assigned-target query, stale 결과 보존, source별 retry, M/M 미설정 비활성화, Resource tab 내부 table horizontal scroll, 390/768/1024/1440 responsive, 일정↔리소스 탭 전환 시 Gantt mount/state 보존 계약을 유지한다.
 
+
+## Issue #452 — 공통 관리자 shell·인증 presentation과 action 간격
+
+`/resources`, `/logistics-admin`, `/project-master-admin`은 동일 관리 page shell을 사용한다. 로그인 전후 heading 시작점과 gutter는 동일하며, description의 자연 줄 수를 고정 높이로 숨기지 않는다. 공통 compact top padding은 1.25rem, bottom은 2.5rem이다. Page 최대 폭은 100rem, 좌우 gutter는 24px(640px 이하 16px), heading은 24px, heading→content gap은 16px이다. 인증 panel만 최대 32.5rem으로 제한하고 기존 관리 목록/작업 영역의 별도 폭은 유지한다.
+
+공통 인증 presentation은 padding 1rem, gap 0.75rem과 제목·권한 설명·visible password label·입력·제출·오류/상태를 제공한다. desktop input/submit은 40px 높이와 bottom alignment를 공유하고, 540px 이하에서는 입력 다음 제출 순서로 쌓는다. 입력은 reset 이후에도 border/background/padding/font/focus/disabled가 식별 가능하며 고유 오류 ID와 연결된다.
+
+물류 관리자 만료 재인증은 로그인 입력이 mount된 뒤 focus를 복원하도록 타이밍을 보정한다. 기존 인증·권한 정책 자체는 바꾸지 않는다.
+
+인증 logic은 각각의 feature에 남는다. Resource/Logistics/Project Master session·비밀번호·API 및 Project edit permission은 서로 교차 승인하지 않는다. Enter/중복 제출 방지/401·403·429/만료 후 재인증/민감 입력 삭제/기존 focus 정책, #268 일반 초안·복구 및 #280/#332 dialog·CRUD·revision 계약을 보존한다.
+
+Secondary button은 기본 외부 margin 0이며 간격은 부모 toolbar/form/footer/독립 CTA가 소유한다. `.text-link`의 기존 간격, KPI의 `margin-top:auto` 및 Task Editor 44px hit-area는 유지한다. 세부 Resource 탭/row·물류 표·기준정보 표 재설계는 #453–#457 후속 범위다. [실행 계획](exec-plans/active/ISSUE_452.md)과 [테스트 계획](TEST_PLAN.md)의 실제 증거를 함께 확인한다.
