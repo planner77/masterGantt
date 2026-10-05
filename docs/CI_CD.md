@@ -462,8 +462,8 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 - Release prepare는 annotated `v*` tag object 자체를 검사한 뒤 `refs/tags/<tag>^{commit}`으로 `target_sha`를 계산한다. candidate 조회는 `ci-<target_sha>`만 허용한다.
 - Release quality/static/E2E gate는 유지하지만 container build action은 release workflow에서 제거한다.
 - Candidate는 digest pull 후 source/revision/version label, image policy, HTTP/HTTPS transport, migration/readiness, SQLite restart persistence를 다시 검증한다.
-- exact SemVer promotion은 Docker `imagetools create --prefer-index=false` single-source promotion을 사용하고 metadata/registry inspect로 promotion 전후 digest 동일성을 hard gate로 검사한다.
+- candidate image policy·transport·migration/readiness·SQLite persistence·Project/Task API와 optional attestation을 **모두 exact tag 생성 전에** 완료한다. 이후 Docker `imagetools create --prefer-index=false` single-source promotion을 마지막 publication step으로 사용하고 metadata descriptor digest가 candidate digest와 동일한지 확인한다.
 - 이미 존재하는 exact SemVer tag는 같은 candidate digest일 때만 idempotent retry로 허용하고 다른 digest면 overwrite를 거부한다.
-- Stable rolling alias는 exact SemVer/runtime verification 뒤 동일 candidate digest로만 갱신한다. prerelease는 기존대로 rolling alias를 변경하지 않는다.
+- Stable release는 exact SemVer와 major.minor/major/latest를 **같은 최종 promotion step**에서 동일 candidate digest로 갱신한다. prerelease는 exact SemVer만 생성한다. 최종 publication 뒤에는 application/runtime/attestation과 같은 실패 가능한 gate를 두지 않는다.
 - BuildKit SBOM/provenance는 Main candidate digest에서 생성되며 SemVer promotion이 digest를 바꾸지 않으므로 같은 subject digest에 유지된다. optional GitHub Attestation도 candidate digest를 subject로 사용한다.
 - Release candidate `ci-<SHA>`와 exact SemVer가 같은 GHCR package version/manifest를 공유할 수 있으므로 release 완료 후 `ci-*` tag만 따로 제거하려고 package version 전체를 삭제하지 않는다. Release candidate alias는 provenance/debugging evidence로 유지한다.
