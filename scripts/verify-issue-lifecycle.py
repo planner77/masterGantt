@@ -47,6 +47,9 @@ require("github.run_number" in ci_workflow and "github.run_attempt" in ci_workfl
 require("scripts/verify-ci-run-trace.py" in ci_workflow, "CI must validate Primary Issue trace metadata before heavy jobs")
 require("types: [opened, reopened, synchronize, edited]" in ci_workflow, "pull_request edited event must rerun trace validation")
 require("github.event.action != \'edited\'" in ci_workflow, "PR metadata edits must not route heavy CI jobs")
+require("format('ci-pr-{0}-{1}'" in ci_workflow and "'metadata' || 'full'" in ci_workflow, "metadata edits must use a separate concurrency group from full PR CI")
+require("metadata_evidence:" in ci_workflow, "metadata-only CI must verify prior full-run evidence")
+require("PR metadata가 기존 전체 CI 증거를 보존하는지 검증" in ci_workflow, "metadata evidence job name is required")
 require("metadata_only" in ci_workflow, "CI summary must expose metadata-only routing")
 require('CI_E2E_FULLY_PARALLEL: "true"' in ci_workflow, "PR/Main E2E shards must use balanced test-level distribution")
 
@@ -134,7 +137,9 @@ require("head_sha=" in auto_impl, "exact main CI lookup must bind target SHA")
 require("Refs" in auto_impl, "canonical Refs #Issue resolution is required")
 require("author_association" in auto_impl, "release authorization must validate trusted comment association")
 require("release_start" in auto_impl and "release_finalize" in auto_impl and '"finalize"' in auto_impl, "automatic lifecycle must route release start, release completion, and no-release paths")
-require('release_state in {"tagged", "in-progress", "failed"}' in auto_impl, "release pending/failure states must defer without cleanup")
+require('release_state in {"not-started", "tagged"}' in auto_impl, "not-started and tagged-without-run states must route to asynchronous release_start")
+require('release_state in {"in-progress", "failed"}' in auto_impl, "only active/failed release states may defer without cleanup")
+require("release_runs(" in impl and "REDISPATCHED" in impl, "existing exact tag without release run evidence must be safely redispatched")
 
 legacy_pattern = re.compile(
     r"^issue-[0-9]+.*(?:release-helper|release-finalizer|finalizer|cleanup)\.ya?ml$",
