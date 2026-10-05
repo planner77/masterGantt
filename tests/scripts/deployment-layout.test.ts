@@ -132,6 +132,10 @@ describe("deployment repository layout", () => {
     );
     expect(text("AGENTS.md")).toContain("version-changing merge의 successful `ci-<SHA>`는 formal release");
     expect(ci).toContain("version_changed:");
+    expect(ci).toContain("BEFORE_SHA: ${{ github.event.before }}");
+    expect(ci).toContain("fetch-depth: ${{ github.event_name == 'push' && '0' || '1' }}");
+    expect(ci).toContain('git show "$BEFORE_SHA:package.json"');
+    expect(ci).not.toContain('git show "${GITHUB_SHA}^1:package.json"');
     expect(ci).toContain("org.opencontainers.image.version=${{ needs.changes.outputs.current_version }}");
     expect(ci).toContain("verified ci-${GITHUB_SHA} retained for exact-digest release promotion");
     expect(text(".github/dependabot.yml")).toMatch(/package-ecosystem: docker\n\s+directory: \/deploy\/docker/);
