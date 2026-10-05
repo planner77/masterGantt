@@ -110,6 +110,8 @@ require("Release Chromium E2E shard ${{ matrix.shard }}/6" in release_workflow, 
 require('CI_E2E_FULLY_PARALLEL: "true"' in release_workflow, "release E2E must use balanced test-level distribution")
 require("needs: [prepare, quality_static, release_e2e_shard]" in release_workflow, "release aggregate must wait for static and E2E gates")
 require("Main verified candidate exact digest 확인" in release_workflow, "release must consume the verified main candidate")
+require("target_sha:" in release_workflow and 'git rev-parse "refs/tags/${GITHUB_REF_NAME}^{commit}"' in release_workflow, "release candidate must bind to annotated tag target commit")
+require("EXPECTED_SHA: ${{ needs.prepare.outputs.target_sha }}" in release_workflow, "release candidate lookup must use the exact tag target SHA")
 require("docker buildx imagetools create" in release_workflow, "release must promote an existing verified digest")
 require("--prefer-index=false" in release_workflow, "single-source digest promotion must preserve manifest format")
 require("Digest promotion changed the verified digest" in release_workflow, "release must fail if promotion changes the verified digest")
