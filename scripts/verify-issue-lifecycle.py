@@ -44,6 +44,9 @@ require("inputs.issue_number" in ci_workflow, "manual CI run-name must support a
 require("github.run_number" in ci_workflow and "github.run_attempt" in ci_workflow, "CI run-name must distinguish run and re-run attempt")
 require("scripts/verify-ci-run-trace.py" in ci_workflow, "CI must validate Primary Issue trace metadata before heavy jobs")
 require("types: [opened, reopened, synchronize, edited]" in ci_workflow, "pull_request edited event must rerun trace validation")
+require("github.event.action != \'edited\'" in ci_workflow, "PR metadata edits must not route heavy CI jobs")
+require("metadata_only" in ci_workflow, "CI summary must expose metadata-only routing")
+require('CI_E2E_FULLY_PARALLEL: "true"' in ci_workflow, "PR/Main E2E shards must use balanced test-level distribution")
 
 require("run-name:" in workflow, "Issue lifecycle run-name is required")
 for token in ("inputs.issue_number", "inputs.pr_number", "inputs.operation", "github.run_number", "github.run_attempt"):
@@ -85,14 +88,19 @@ for check in (
     require(check in impl, f"required check contract missing: {check}")
 
 require("workflow_run:" in auto_workflow, "automatic finalizer must use workflow_run")
-require('workflows: ["CI"]' in auto_workflow, "automatic finalizer must subscribe only to CI")
-require("branches: [main]" in auto_workflow, "automatic finalizer must filter triggering CI to main")
+require('workflows: ["CI", "Publish release image"]' in auto_workflow, "automatic finalizer must subscribe to CI and release completion")
+require("github.event.workflow_run.name == 'CI'" in auto_workflow, "main CI finalizer branch must identify CI explicitly")
+require("github.event.workflow_run.name == 'Publish release image'" in auto_workflow, "release completion must resume the generic finalizer")
 require("github.event.workflow_run.event == 'push'" in auto_workflow, "manual CI must not auto-finalize")
 require("github.event.workflow_run.conclusion == 'success'" in auto_workflow, "failed CI must not mutate lifecycle")
 require("scripts/auto_release_finalizer.py" in auto_workflow, "automatic resolver must be invoked")
 require("queue: max" in auto_workflow, "automatic finalizer must retain burst events")
 require("packages: write" not in auto_workflow, "automatic finalizer must delegate package writes to release-image")
 require("queue: max" in release_workflow, "release image workflow must queue concurrent releases")
+require("release_e2e_shard:" in release_workflow, "release E2E must be sharded")
+require("Release Chromium E2E shard ${{ matrix.shard }}/4" in release_workflow, "release E2E must keep four shards")
+require('CI_E2E_FULLY_PARALLEL: "true"' in release_workflow, "release E2E must use balanced test-level distribution")
+require("needs: [prepare, quality_static, release_e2e_shard]" in release_workflow, "release aggregate must wait for static and E2E gates")
 require("publish-commit-image:" in ci_workflow, "main temporary GHCR publish job is required")
 require("always() &&" in ci_workflow, "main temporary GHCR job must defeat transitive skip propagation")
 for result_check in (
@@ -120,7 +128,8 @@ require("oldest → newest" in auto_impl, "dispatcher must document first-parent
 require("head_sha=" in auto_impl, "exact main CI lookup must bind target SHA")
 require("Refs" in auto_impl, "canonical Refs #Issue resolution is required")
 require("author_association" in auto_impl, "release authorization must validate trusted comment association")
-require("release_finalize" in auto_impl and '"finalize"' in auto_impl, "automatic lifecycle must route release and no-release paths")
+require("release_start" in auto_impl and "release_finalize" in auto_impl and '"finalize"' in auto_impl, "automatic lifecycle must route release start, release completion, and no-release paths")
+require('release_state in {"tagged", "in-progress", "failed"}' in auto_impl, "release pending/failure states must defer without cleanup")
 
 legacy_pattern = re.compile(
     r"^issue-[0-9]+.*(?:release-helper|release-finalizer|finalizer|cleanup)\.ya?ml$",
@@ -602,10 +611,11 @@ for expected_error, values in [
         failed = True
     require(failed == expected_error, f"input scenario mismatch: {values}")
 
-require("release_finalize requires release_required=true" in impl, "release_finalize release_required fail-closed guard missing")
-require("release_finalize requires release_authorized=true" in impl, "release_finalize authorization fail-closed guard missing")
-require("release_finalize requires expected_version" in impl, "release_finalize expected_version guard missing")
-require("release_finalize requires authorization_note" in impl, "release_finalize authorization_note guard missing")
+require('args.operation not in {"release_start", "release_finalize"}' in impl, "release_start/release_finalize input validation must share fail-closed guards")
+require('f"{args.operation} requires release_required=true"' in impl, "release mutation release_required fail-closed guard missing")
+require('f"{args.operation} requires release_authorized=true"' in impl, "release mutation authorization fail-closed guard missing")
+require('f"{args.operation} requires expected_version"' in impl, "release mutation expected_version guard missing")
+require('f"{args.operation} requires authorization_note"' in impl, "release mutation authorization_note guard missing")
 require("validate_operation_inputs(args)" in impl, "release_finalize input validation must run before context resolution")
 
 print("issue-lifecycle generic/automatic contract scenarios: PASS")
