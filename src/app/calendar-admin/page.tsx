@@ -2,7 +2,7 @@ import { CountryCalendarAdmin } from "@/features/calendars/country-calendar-admi
 
 export default function CalendarAdminPage() {
   return (
-    <section className="workspace-section">
+    <section className="workspace-section admin-page">
       <div className="section-heading">
         <div>
           <p className="eyebrow">Global calendar catalog</p>

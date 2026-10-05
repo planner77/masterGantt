@@ -1,8 +1,12 @@
 # Active execution plan
 
-## Issue #342 국가 Calendar 2026~2037 Catalog — 최신 main 재정렬 / PR CI 재시작
+## Issue #342 국가 Calendar 2026~2037 Catalog — Issue #452 이후 main 재정렬 / PR CI 재시작
 
-최신 main `6ce221bc16613625953b85244bb93ad50019b377` / application `0.83.3` 기준으로 기존 PR #346을 재사용해 #342의 Calendar Catalog만 다시 이식한다. main의 0018~0021 migration, Task status/Resource role, JSON Import, Generic Release Finalizer와 CI 최적화를 보존하고 #342 migration은 `0022_country_calendar_catalog.sql`, 후보 version은 MINOR `0.84.0`으로 조정한다. `release_required=true`, `release_authorized=false`; 현재 종료점은 DOCUMENTATION_SYNC 반영 후 PR #346 exact head의 새 PR CI 시작 확인이며 CI 완료 모니터링·병합·main/GHCR·정식 release·Issue 종료는 범위 밖이다. 상세는 [Issue #342 실행 계획](ISSUE_342.md)을 따른다.
+최신 main `9280536ddc85a8a841346bdf413b2ba638685880` / application `0.83.4`의 Issue #452 공통 관리자 shell·AdminAuth·버튼 spacing 계약을 보존하면서 기존 PR #346의 #342 Calendar Catalog를 다시 정렬한다. 현재 main의 0018~0021 migration, Task status/Resource role, JSON Import, Generic Release Finalizer와 CI 최적화를 유지하고 #342 migration은 `0022_country_calendar_catalog.sql`, 후보 version은 다음 MINOR `0.84.0`이다. /calendar-admin도 #452의 `admin-page`와 `AdminAuth` presentation을 사용한다. 현재 요청 종료점은 PR #346 exact head의 새 PR CI 시작 확인이며 CI 완료 모니터링·병합·main/GHCR·정식 release·Issue 종료는 범위 밖이다. 상세는 [Issue #342 실행 계획](ISSUE_342.md)을 따른다.
+
+## Issue #452 관리자 공통 페이지·인증 폼·버튼 외부 간격 — 구현·문서 동기화 / PR CI 시작
+
+최신 main `6ce221bc16613625953b85244bb93ad50019b377` / application `0.83.3`에서 세 관리자 화면의 공통 shell/auth presentation과 parent-owned button spacing을 구현한다. 기존 세션·비밀번호·API·권한을 분리 유지하고 #453–#457의 개별 탭/표 재설계는 제외한다. 후보 version은 PATCH `0.83.4`, branch는 `fix/issue-452-admin-layout`이며 범위·인수 기준·소유권·문서는 [Issue #452 실행 계획](ISSUE_452.md)을 따른다. `release_required=true`, `release_authorized=false`; 사용자 요청 종료점은 PR 생성과 exact head CI 시작 확인이다. CI 모니터링·병합·GHCR·Issue 종료는 범위 밖이다.
 
 ## Issue #430 Cut 내부 Dependency 허용 / 외부 경계 제한 — 구현·문서 동기화 / PR CI
 

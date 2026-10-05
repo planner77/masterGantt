@@ -3271,7 +3271,7 @@ export function ProjectGantt({
           <p>자동 복사를 사용할 수 없습니다. 아래 작업 ID를 선택해 수동으로 복사해 주세요.</p>
           <input aria-label="작업 ID" className={feedbackStyles.copyValue} readOnly value={copyTaskIdFallback}
             onFocus={(event) => event.currentTarget.select()} />
-          <button className="secondary-button" type="button" onClick={() => void retryCopyTaskId()}>복사 다시 시도</button>
+          <div className="standalone-actions"><button className="secondary-button" type="button" onClick={() => void retryCopyTaskId()}>복사 다시 시도</button></div>
         </WorkspaceDialog> : null}
         {relationMenu ? (
           <RelationContextMenu

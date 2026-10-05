@@ -1,0 +1,30 @@
+[
+  {
+    "state": "empty",
+    "width": 390,
+    "height": 40,
+    "margin": "0px",
+    "parentMargin": "24px"
+  },
+  {
+    "state": "empty",
+    "width": 1440,
+    "height": 40,
+    "margin": "0px",
+    "parentMargin": "24px"
+  },
+  {
+    "state": "copy-fallback",
+    "width": 390,
+    "margin": "0px",
+    "parentMargin": "24px",
+    "height": 40
+  },
+  {
+    "state": "copy-fallback",
+    "width": 1440,
+    "margin": "0px",
+    "parentMargin": "24px",
+    "height": 40
+  }
+]

@@ -11,6 +11,7 @@ import type {
 import { COUNTRY_CALENDAR_MANAGED_YEARS } from "@/contracts/country-calendar-admin";
 import type { WorkCalendarCountryCode, WorkCalendarDayType } from "@/contracts/work-calendar";
 import { WORK_CALENDAR_COUNTRY_CODES } from "@/contracts/work-calendar";
+import { AdminAuth, adminAuthStyles } from "@/components/admin-auth";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import styles from "./country-calendar-admin.module.css";
 
@@ -245,13 +246,25 @@ export function CountryCalendarAdmin(){
   const statusClass=dataset?.status==="OFFICIAL"?styles.official:dataset?.status==="SUPERSEDED"?styles.superseded:styles.unavailable;
   const sortedDates=useMemo(()=>snapshot?.data.dates??[],[snapshot]);
 
-  if(!authenticated&&!snapshot)return <form className={styles.login} onSubmit={login}>
-    <h2>관리자 로그인</h2>
-    <p>프로젝트 기준정보 관리자 권한으로 국가 캘린더 Catalog를 관리합니다.</p>
-    {error?<p className={styles.error} role="alert">{error}</p>:null}
-    <label>관리자 비밀번호<input ref={loginRef} type="password" autoComplete="current-password" value={password} onChange={event=>setPassword(event.target.value)} disabled={busy}/></label>
-    <button className="primary-button" type="submit" disabled={busy||!password}>로그인</button>
-  </form>;
+  if(!authenticated&&!snapshot)return <AdminAuth
+    title="국가 캘린더 관리자 로그인"
+    titleId="country-calendar-auth-title"
+    description="프로젝트 기준정보 관리자 권한으로 국가 캘린더 Catalog를 관리합니다."
+  >
+    <form className={adminAuthStyles.form} onSubmit={login}>
+      {error?<p id="country-calendar-login-error" className={adminAuthStyles.error} role="alert">{error}</p>:null}
+      <div className={adminAuthStyles.controls}>
+        <label className={adminAuthStyles.field}>관리자 비밀번호
+          <input ref={loginRef} type="password" autoComplete="current-password" value={password}
+            aria-describedby={error?"country-calendar-login-error":undefined}
+            onChange={event=>setPassword(event.target.value)} disabled={busy}/>
+        </label>
+        <button className={`primary-button ${adminAuthStyles.submit}`} type="submit" disabled={busy||!password}>
+          {busy?"확인 중…":"로그인"}
+        </button>
+      </div>
+    </form>
+  </AdminAuth>;
 
   return <div className={styles.panel}>
     <div className={styles.toolbar} aria-label="국가 캘린더 조회 조건">

@@ -11,8 +11,17 @@
 ### Changed
 
 - 2026 built-in fixture는 초기 baseline으로 유지하고 Project Calendar Preview/Save 및 신규 Project 기본 Calendar는 최신 OFFICIAL DB override를 우선 사용한다. Catalog 변경만으로 기존 Project의 materialized Calendar/Task는 자동 재계산하지 않는다.
-- 기존 전역 Header 4개 메뉴 계약을 유지하고 프로젝트 기준정보 관리 화면에서 국가 Calendar 관리로 진입한다.
-- migration 번호를 최신 main의 0021 이후인 0022_country_calendar_catalog.sql로 재배치하고 Application version을 0.83.3에서 0.84.0으로 증가한다.
+- Issue #452의 공통 `admin-page` shell과 `AdminAuth` presentation을 국가 Calendar 관리자에도 적용하고 프로젝트 기준정보 관리 화면에서 진입한다.
+- migration은 현재 main의 0018~0021 뒤 `0022_country_calendar_catalog.sql`을 사용하고 Application version을 `0.83.4`에서 `0.84.0`으로 증가한다.
+
+## [0.83.4] - 2026-10-05
+
+### Fixed
+
+- Issue #452: 리소스·물류 유형·프로젝트 기준정보 관리자 페이지의 공통 시작점과 인증 presentation을 맞추고 비밀번호 입력의 경계·정렬·오류 연결을 명시한다. 관리자별 세션·API·권한 계약을 유지한다.
+- 물류 관리자 세션 만료 후 새 로그인 입력이 mount되기 전에 focus를 시도하던 타이밍을 보정하여 재인증 focus 정책을 실제로 적용한다.
+- Secondary button의 전역 외부 margin을 제거하고 toolbar/form/footer/독립 CTA가 간격을 소유하도록 기존 소비자를 이관한다. 링크·KPI·Task Editor의 의도 배치는 유지한다.
+- 관련 인증·geometry 회귀와 제품 설계·UX·테스트 계획 문서를 동기화하고 Application version을 `0.83.3`에서 `0.83.4`로 증가한다.
 
 ## [0.83.3] - 2026-10-05
 
