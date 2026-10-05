@@ -15,13 +15,11 @@ Issue #350에서 Issue별 one-shot finalizer를 제거하고 main CI 이후 life
 
 ## Trigger
 
-`.github/workflows/release-finalizer.yml`은 `CI`의 `workflow_run.completed` 중 triggering branch가 `main`인 경우만 생성된다. Job mutation은 추가로 다음을 모두 요구한다.
+`.github/workflows/release-finalizer.yml`은 `CI`의 `workflow_run.completed` 중 triggering branch가 `main`인 경우만 생성된다. Job mutation은 추가로 triggering event=`push`, head branch=`main`, conclusion=`success`를 모두 요구한다. 따라서 PR CI, feature branch CI, 수동 CI, 실패/취소 main CI는 lifecycle mutation을 수행하지 않는다.
 
-- triggering event = `push`
-- head branch = `main`
-- conclusion = `success`
+Release 완료 재개는 `.github/workflows/release-finalizer-resume.yml`이 담당한다. 이 workflow는 `Publish release image`의 successful `workflow_run.completed`를 fallback으로 구독하는 동시에 `workflow_dispatch(target_sha)`를 지원한다. `release-image.yml`의 publish 성공 후에는 GitHub가 `GITHUB_TOKEN`에 명시적으로 허용하는 `workflow_dispatch`로 Resume을 호출하므로 implicit event delivery 하나에만 의존하지 않는다.
 
-따라서 PR CI, feature branch CI, 수동 `workflow_dispatch` CI, 실패/취소 main CI는 lifecycle mutation을 수행하지 않는다.
+Resume workflow는 write 권한을 가지므로 triggering tag/manual ref의 repository code를 실행하지 않는다. 항상 trusted `main`을 checkout하고 release의 exact target SHA는 lifecycle resolver 입력 데이터로만 전달한다.
 
 ## Exact mapping
 
@@ -99,6 +97,8 @@ Generic Finalizer는 release-required target을 하나의 장시간 동기 job�
 3. release가 필요하고 승인되었으며 state가 `not-started`이면 내부 전용 `release_start` operation으로 annotated tag와 `release-image.yml` dispatch까지만 수행하고 종료한다.
 4. `tagged` 또는 `in-progress`이면 mutation 없이 DEFERRED한다.
 5. `failed`이면 Issue/branch를 유지하고 기존 release run 재실행을 기다린다. 새 tag나 duplicate release를 만들지 않는다.
-6. `Publish release image` workflow가 completed되면 Generic Finalizer가 자동으로 다시 실행된다. exact tag/head SHA의 successful release evidence가 있을 때만 `release_finalize`가 safe cleanup, FINAL marker, Issue close를 수행한다.
+6. `Publish release image`의 exact/rolling tag promotion이 성공하면 release workflow가 `release-finalizer-resume.yml`을 `workflow_dispatch(target_sha)`로 명시적으로 호출한다. 기존 `workflow_run.completed` 구독도 fallback으로 유지한다.
+7. Resume은 exact tag/head SHA의 successful release evidence가 있을 때만 `release_finalize`를 호출해 safe cleanup, FINAL marker, Issue close를 수행한다.
+8. publication 이후 handoff job은 `continue-on-error`로 release 성공 자체를 뒤집지 않는다. explicit dispatch가 실패해도 workflow_run fallback과 이후 Main CI backlog 재평가가 복구 경로로 남는다.
 
-따라서 release 실행시간만큼 Finalizer runner를 polling에 묶지 않으며, release rerun 성공 뒤 사용자가 Finalizer를 별도로 재실행할 필요가 없다. Release workflow 자체의 repository-wide serialization과 immutable/stable alias 정책은 그대로 유지한다.
+따라서 release 실행시간만큼 Finalizer runner를 polling에 묶지 않으며, 정상 경로에서는 release 성공 후 lifecycle이 자동 재개된다. Release workflow 자체의 repository-wide serialization과 immutable/stable alias 정책은 그대로 유지한다.
