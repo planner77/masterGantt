@@ -984,11 +984,16 @@ jobs:
           retention-days: 30
       - name: GHCR main commit image lifecycle handoff
         if: always() && steps.push.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}
         shell: bash
         run: |
           set -euo pipefail
           if [[ "${{ job.status }}" != "success" ]]; then
-            echo "Main artifact 검증이 성공하지 않아 ci-${GITHUB_SHA}를 lifecycle candidate로 보존할 수 없습니다." >&2
+            node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"
+            echo "- GHCR cleanup: failed validation candidate ci-${GITHUB_SHA} deleted." >> "$GITHUB_STEP_SUMMARY"
+            echo "Main artifact 검증이 성공하지 않아 ci-${GITHUB_SHA}를 lifecycle candidate로 보존하지 않습니다." >&2
             exit 1
           fi
           echo "- GHCR retention: verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup." >> "$GITHUB_STEP_SUMMARY"
