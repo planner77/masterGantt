@@ -12,6 +12,7 @@ const nodeSetup = read(".github/actions/node-setup/action.yml");
 const playwrightSetup = read(".github/actions/playwright-setup/action.yml");
 const ci = read(".github/workflows/ci.yml");
 const release = read(".github/workflows/release-image.yml");
+const readiness = read(".github/workflows/ci-setup-readiness.yml");
 
 requireText(nodeSetup, "path: ~/.npm", "npm download cache");
 for (const input of ["runner.os", "runner.arch", "inputs.node-version", "steps.lock-hash.outputs.value"]) {
@@ -45,6 +46,26 @@ for (const token of [
 ]) {
   requireText(ci, token, "Docker BuildKit cache contract");
 }
+
+for (const token of [
+  'workflows: ["CI", "Publish release image"]',
+  "github.event.workflow_run.conclusion == 'success'",
+  "ref: main",
+  "persist-credentials: false",
+  'collect_runs "ci.yml" "pull_request"',
+  'collect_runs "ci.yml" "push"',
+  'collect_runs "release-image.yml" "workflow_dispatch"',
+  "--min-samples 10",
+  "<!-- mastergantt-ci-setup-readiness:v1 -->",
+]) {
+  requireText(readiness, token, "Phase 2 readiness automation");
+}
+requireText(readiness, "actions: read", "readiness permissions");
+requireText(readiness, "contents: read", "readiness permissions");
+requireText(readiness, "issues: write", "readiness permissions");
+forbidText(readiness, "contents: write", "readiness permissions");
+forbidText(readiness, "pull-requests: write", "readiness permissions");
+forbidText(readiness, "ref: ${{ github.event.workflow_run.head", "trusted checkout");
 
 for (const workflow of [["CI", ci], ["Release", release]]) {
   const [label, text] = workflow;
