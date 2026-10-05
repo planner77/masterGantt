@@ -75,6 +75,7 @@ DOCUMENTATION_SYNC: PASS — 실제 구현 계약·필수 문서·전체 소비�
 ## Main CI #1847.1 corrective 재개
 
 - 실패 run: `37322272261`; Chromium E2E shard 2/6에서 `project-browser-title-favicon.spec.ts`의 `page.request.get(secondPath)`가 assertion 이전 `socket hang up`으로 종료됐다.
+- corrective PR: #467 (`fix/issue-452-main-ci-e2e-transport` → `main`). exact head의 full PR CI를 병합 gate로 사용한다.
 - 같은 shard는 56 PASS / 1 FAIL이며 다른 5개 E2E shard와 build/typecheck/lint/Vitest/Docker는 PASS였다. Main 임시 GHCR job은 전체 E2E gate 실패로 SKIPPED됐다.
 - 제품 UI/API 코드는 변경하지 않는다. direct document GET에 한해 `socket hang up|ECONNRESET`만 최대 3회 bounded retry하며 HTTP status/body/title 실패와 retry 소진은 계속 FAIL한다.
 - 이 corrective diff는 tests/docs의 non-docs 변경이며 기존 #452 merge와 같은 검증 scope로 취급한다. PR body는 canonical `Refs #452`를 유지해 Generic Finalizer의 same-Issue convergence 대상이 되도록 한다.
