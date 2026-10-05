@@ -103,7 +103,7 @@ require("queue: max" in auto_workflow, "automatic finalizer must retain burst ev
 require("packages: write" not in auto_workflow, "automatic finalizer must delegate package writes to release-image")
 require("queue: max" in release_workflow, "release image workflow must queue concurrent releases")
 require("release_e2e_shard:" in release_workflow, "release E2E must be sharded")
-require("Release Chromium E2E shard ${{ matrix.shard }}/4" in release_workflow, "release E2E must keep four shards")
+require("Release Chromium E2E shard ${{ matrix.shard }}/6" in release_workflow, "release E2E must keep six shards")
 require('CI_E2E_FULLY_PARALLEL: "true"' in release_workflow, "release E2E must use balanced test-level distribution")
 require("needs: [prepare, quality_static, release_e2e_shard]" in release_workflow, "release aggregate must wait for static and E2E gates")
 require("publish-commit-image:" in ci_workflow, "main temporary GHCR publish job is required")
