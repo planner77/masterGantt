@@ -32,13 +32,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      node: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.node == 'true' }}
-      policy: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.policy == 'true' }}
-      e2e: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.e2e == 'true' }}
-      docker: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.docker == 'true' }}
+      node: ${{ github.event_name == 'workflow_dispatch' || (github.event.action != 'edited' && steps.filter.outputs.node == 'true') }}
+      policy: ${{ github.event_name == 'workflow_dispatch' || (github.event.action != 'edited' && steps.filter.outputs.policy == 'true') }}
+      e2e: ${{ github.event_name == 'workflow_dispatch' || (github.event.action != 'edited' && steps.filter.outputs.e2e == 'true') }}
+      docker: ${{ github.event_name == 'workflow_dispatch' || (github.event.action != 'edited' && steps.filter.outputs.docker == 'true') }}
       docker_baseline: ${{ github.event_name == 'pull_request' && steps.filter.outputs.docker_baseline == 'true' }}
       transport: ${{ github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true' }}
       docs_only: ${{ steps.classify.outputs.docs_only }}
+      metadata_only: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' }}
     steps:
       # actions/checkout v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -382,6 +383,8 @@ jobs:
       - name: Chromium headless shell 설치
         run: npx --no-install playwright install --with-deps --only-shell chromium
       - name: E2E shard 실행
+        env:
+          CI_E2E_FULLY_PARALLEL: "true"
         run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
       - name: 실패 shard Playwright report 업로드
         if: failure()
