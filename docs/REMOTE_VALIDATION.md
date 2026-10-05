@@ -266,6 +266,19 @@ Migration merge 이후에는 exact main CI 완료 뒤 다음 원격 증거를 �
 
 Optional shard/implementation job의 SKIPPED가 있어도 aggregate required checks가 SUCCESS이면 비문서 main artifact job이 skip propagation으로 누락되지 않아야 한다.
 
+## Release completion Resume 원격 검증 (#446)
+
+PR 단계에서는 `scripts/verify-issue-lifecycle.py`로 다음 정적 계약을 확인한다.
+
+- release publish success 뒤 `release-finalizer-resume.yml/dispatches`를 explicit `workflow_dispatch`한다.
+- dispatch input은 exact release target `target_sha`와 source `release_run_id`다.
+- explicit Resume은 Actions API에서 exact source run의 `completed/success`, `.github/workflows/release-image.yml`, `head_sha == target_sha`를 확인한 뒤 resolver를 실행한다.
+- Resume workflow는 기존 `Publish release image workflow_run.completed` fallback을 유지한다.
+- Resume은 triggering tag/manual ref가 아니라 trusted `main`을 checkout한다.
+- post-publication handoff는 non-blocking이며 required release validation/promotion gate를 대체하지 않는다.
+
+병합 후에는 Main CI SUCCESS가 Generic Finalizer backlog를 재평가하는지 확인하고, 이미 성공한 release가 pending인 경우 `release_finalize`가 branch cleanup → FINAL marker → Issue close를 수행하는지 실제 Issue/branch 상태로 판정한다. 다음 실제 release부터는 publish 성공 후 explicit Resume run 생성 여부를 별도 원격 evidence로 확인한다.
+
 ## exact main CI SHA binding (#354)
 
 Lifecycle의 exact main CI 조회는 repository의 최근 run 목록을 넓게 가져와 client-side에서 추정하지 않는다. GitHub Actions workflow-runs API에 `head_sha=<merge SHA>`를 직접 전달하고, 반환된 run에서도 `head_sha`가 target과 일치하는지 다시 검증한다. 이후 같은 exact run의 latest attempt jobs에서 main 임시 GHCR artifact evidence를 확인한다.
