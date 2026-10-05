@@ -70,7 +70,7 @@ describe("CI setup/cache metrics", () => {
     execFileSync(process.execPath, ["scripts/analyze-ci-setup-metrics.mjs", "--input", history, "--min-samples", "2", "--output", output], { cwd: root, stdio: "pipe" });
     const result = JSON.parse(readFileSync(output, "utf8"));
     expect(result.metrics).toHaveLength(3);
-    expect(result.metrics.find((x: any) => x.workflow === ".github/workflows/ci.yml" && x.job === "e2e")).toMatchObject({ samples: 7, successfulRuns: 1, enoughSamples: false });
-    expect(result.metrics.find((x: any) => x.workflow === ".github/workflows/release-image.yml" && x.job === "e2e")).toMatchObject({ samples: 6, successfulRuns: 1, enoughSamples: false });
+    expect(result.metrics.find((x: { workflow: string; job: string }) => x.workflow === ".github/workflows/ci.yml" && x.job === "e2e")).toMatchObject({ samples: 7, successfulRuns: 1, enoughSamples: false });
+    expect(result.metrics.find((x: { workflow: string; job: string }) => x.workflow === ".github/workflows/release-image.yml" && x.job === "e2e")).toMatchObject({ samples: 6, successfulRuns: 1, enoughSamples: false });
   });
 });
