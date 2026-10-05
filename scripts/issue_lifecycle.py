@@ -98,16 +98,16 @@ def validate_inputs(
 
 
 def validate_operation_inputs(args: argparse.Namespace) -> None:
-    if args.operation != "release_finalize":
+    if args.operation not in {"release_start", "release_finalize"}:
         return
     if not parse_bool(args.release_required):
-        raise LifecycleError("release_finalize requires release_required=true")
+        raise LifecycleError(f"{args.operation} requires release_required=true")
     if not parse_bool(args.release_authorized):
-        raise LifecycleError("release_finalize requires release_authorized=true")
+        raise LifecycleError(f"{args.operation} requires release_authorized=true")
     if not args.expected_version.strip():
-        raise LifecycleError("release_finalize requires expected_version")
+        raise LifecycleError(f"{args.operation} requires expected_version")
     if not args.authorization_note.strip():
-        raise LifecycleError("release_finalize requires authorization_note")
+        raise LifecycleError(f"{args.operation} requires authorization_note")
 
 
 def mutation_gate(
@@ -356,7 +356,7 @@ def resolve_context(args: argparse.Namespace) -> Context:
         with open(step_summary, "a", encoding="utf-8") as fp:
             fp.write("\n".join(summary) + "\n")
 
-    if args.operation in {"release", "finalize", "release_finalize"} and gate != "PASS":
+    if args.operation in {"release", "release_start", "finalize", "release_finalize"} and gate != "PASS":
         raise LifecycleError(f"mutation blocked by lifecycle gate: {gate}")
 
     return Context(
@@ -389,6 +389,63 @@ def successful_release(repo: str, target_sha: str, tag: str) -> dict[str, Any] |
         and r.get("conclusion") == "success"
     ]
     return sorted(matches, key=lambda r: r.get("created_at", ""))[-1] if matches else None
+
+
+
+def start_release(ctx: Context, args: argparse.Namespace) -> tuple[str, str]:
+    """Create immutable release authority and dispatch the release asynchronously.
+
+    The Generic Finalizer must not occupy a runner while release-image executes.
+    Release completion is observed by the workflow_run-driven finalizer.
+    """
+    repo = os.environ["GITHUB_REPOSITORY"]
+    if not parse_bool(args.release_required):
+        raise LifecycleError("release start requires release_required=true")
+    if not parse_bool(args.release_authorized):
+        raise LifecycleError("formal release requires release_authorized=true")
+    if not ctx.merge_sha:
+        raise LifecycleError("formal release requires a merged PR")
+
+    tag = f"v{ctx.version}"
+    remote = run(
+        "git",
+        "ls-remote",
+        "--exit-code",
+        "--tags",
+        "origin",
+        f"refs/tags/{tag}",
+        check=False,
+    )
+    if remote.returncode == 0:
+        run("git", "fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
+        if run("git", "cat-file", "-t", f"refs/tags/{tag}").stdout.strip() != "tag":
+            raise LifecycleError("existing release tag is lightweight; refusing mutation")
+        actual = run("git", "rev-parse", f"{tag}^{{commit}}").stdout.strip()
+        if actual != ctx.merge_sha:
+            raise LifecycleError("existing release tag points to a different SHA")
+        existing = successful_release(repo, ctx.merge_sha, tag)
+        if existing:
+            return tag, existing.get("html_url", "")
+        raise LifecycleError(
+            "existing release tag has no successful release evidence; "
+            "rerun the existing release workflow instead of dispatching a duplicate"
+        )
+
+    run("git", "config", "user.name", "github-actions[bot]")
+    run("git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
+    run("git", "tag", "-a", tag, ctx.merge_sha, "-m", f"Release {tag}")
+    run("git", "push", "origin", f"refs/tags/{tag}")
+
+    gh(
+        f"/repos/{repo}/actions/workflows/release-image.yml/dispatches",
+        method="POST",
+        fields={
+            "ref": tag,
+            "inputs[issue_number]": str(ctx.issue_number),
+            "inputs[pr_number]": str(ctx.pr_number),
+        },
+    )
+    return tag, "DISPATCHED — completion is handled by Generic Release Finalizer"
 
 
 def ensure_release(ctx: Context, args: argparse.Namespace) -> tuple[str, str]:
@@ -564,7 +621,7 @@ def finalize(ctx: Context, args: argparse.Namespace) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("operation", choices=("verify", "release", "finalize", "release_finalize"))
+    parser.add_argument("operation", choices=("verify", "release", "release_start", "finalize", "release_finalize"))
     parser.add_argument("--issue", required=True)
     parser.add_argument("--pr", required=True)
     parser.add_argument("--release-required", default="false")
@@ -589,6 +646,9 @@ def main() -> int:
         if args.operation == "release":
             tag, url = ensure_release(ctx, args)
             print(f"release PASS: {tag} {url}")
+        elif args.operation == "release_start":
+            tag, url = start_release(ctx, args)
+            print(f"release_start PASS: {tag} {url}")
         elif args.operation == "finalize":
             finalize(ctx, args)
             print("finalize PASS")
