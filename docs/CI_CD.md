@@ -420,3 +420,16 @@ Generic finalizer와 `release-image.yml`은 `concurrency.queue: max`로 burst pe
 따라서 `always()`는 skip propagation만 해제하며 실패/cancelled gate를 우회하지 않는다.
 
 Issue Lifecycle은 exact merge target의 first-parent diff를 CI와 동일한 docs-only 규칙으로 독립 판정한다. 비문서 merge는 exact main CI의 `Main 임시 commit 이미지 게시·검증·정리` job이 completed/success여야 finalize할 수 있다. docs-only merge는 해당 job의 completed/skipped를 정상 N/A evidence로 인정한다. overall main CI success만으로 임시 GHCR publish/digest smoke/cleanup PASS를 주장하지 않는다.
+
+## Issue #435 Workflow 병목 최적화
+
+2026-10-05 실행 이력 기준 PR CI의 임계 경로는 Chromium E2E이고, 정식 Release는 전체 Chromium suite를 단일 runner에서 약 30~40분 실행하는 것이 주 병목이었다. 다음 계약으로 최적화한다.
+
+- PR `pull_request.edited`는 Primary Issue trace validator를 반드시 실행하되 application head SHA가 바뀌지 않는 metadata-only event로 취급하여 node/policy/E2E/Docker 구현 job을 다시 실행하지 않는다. required aggregate quality/E2E/Docker check 이름은 그대로 유지하며 trace 실패는 aggregate도 fail-closed한다.
+- PR/Main Chromium E2E는 4 shard와 runner별 `workers=1`을 유지한다. CI에서만 `CI_E2E_FULLY_PARALLEL=true`를 주어 Playwright가 개별 test 기준으로 shard를 분산할 수 있게 하며 explicit serial describe는 계속 직렬이다.
+- Release는 static quality와 4-way Chromium E2E shard를 병렬 실행하고 `Release quality gates` aggregate가 모두 성공한 뒤에만 candidate container smoke와 registry publish를 시작한다.
+- Generic Release Finalizer는 Release 완료를 polling하며 runner를 점유하지 않는다. Main CI 성공 시 release-required target은 승인/정확한 SHA/version을 검증하고 annotated tag + release workflow dispatch까지만 수행한다. `Publish release image` workflow의 completed event가 같은 Generic Finalizer를 다시 기동하여 exact successful release evidence를 확인한 뒤 cleanup/FINAL/Issue close를 수행한다.
+- Release failure는 immutable tag를 이동/덮어쓰기하지 않고 Issue/branch를 유지한다. 기존 Release run을 재실행해 SUCCESS가 되면 그 completed event로 finalization이 자동 재개된다.
+- first-parent oldest→newest, same-Issue corrective convergence, exact main CI/GHCR evidence, explicit release authorization, safe branch cleanup, stable alias serialization은 기존 계약을 유지한다.
+
+변경 전 기준은 PR CI median 14.1분, Main CI 16.2분, Release 41.9분, Finalizer 42.8분이며 대표 PR E2E shard는 7.4/11.7/13.6/5.1분이었다. 변경 후 exact PR/main/release run에서 같은 지표를 다시 기록한다.
