@@ -1353,6 +1353,13 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Cleanup: release candidate `ci-<SHA>`와 exact SemVer가 같은 package version/digest를 공유할 수 있으므로 exact/rolling tag가 존재하는 version을 `ci-*` tag 제거 목적으로 package version 전체 삭제하지 않는다.
 - 공식 판정은 #438 implementation PR exact head의 required quality/e2e/docker PASS와, 실제 version-changing 후속 release에서 Main candidate digest = exact SemVer digest evidence를 별도로 확인한다.
 
+### Issue #439 release candidate API smoke 회귀
+
+- `release-image.yml`의 Project/Task API smoke가 전달하는 container 이름은 `verify-registry-api-smoke.mjs`의 hard-coded allowlist에 반드시 포함되어야 한다.
+- `mastergantt-release-candidate` 이름을 정적 테스트로 workflow 호출과 allowlist 양쪽에서 확인하여 container rename 시 silent contract drift를 방지한다.
+- Release Run #131의 실패는 API request/assertion 실패가 아니라 allowlist 선검증의 usage error였으므로 API persistence gate 자체를 완화하지 않는다.
+- failed immutable `v0.83.2` tag는 재사용/이동하지 않고 새 PATCH corrective release에서 exact main candidate digest의 transport/image/migration/SQLite/Project·Task API 검증을 모두 다시 수행한다.
+
 ### Issue #438 PR CI transport reset 재검증 기록
 
 - PR CI #1775의 quality, Docker, Chromium shard 1/2/3/5/6은 PASS했고 shard 4/6에서 `tests/e2e/project-status.spec.ts:135` 한 건만 실패했다.
