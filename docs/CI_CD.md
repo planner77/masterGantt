@@ -136,11 +136,11 @@ docker pull ghcr.io/<owner>/<repository>:1.4.2
 docker pull ghcr.io/<owner>/<repository>@sha256:<digest>
 ```
 
-Main commit workflow는 먼저 변경 유형을 판정한다. quality, Chromium E2E와 local container smoke는 docs-only 여부와 무관하게 실행하며, docs-only가 아닌 경우에만 별도 publish job을 실행한다. `ci-<full SHA>`를 push한 후 tag가 아니라 build output의 digest로 다시 pull하고 image content policy, migration/readiness, Project 생성과 edit session, root Task 저장, unauthorized mutation 거부, container restart 뒤 Project/Task 재조회를 검증한다. 검증 성공 여부와 무관하게 push가 완료된 임시 package version은 cleanup step에서 삭제하며 `ci-*`를 배포·rollback용으로 보관하지 않는다.
+Main commit workflow는 먼저 변경 유형과 application version 변경 여부를 판정한다. quality, Chromium E2E와 local container smoke는 docs-only 여부와 무관하게 실행하며, docs-only가 아닌 경우에만 별도 publish job을 실행한다. `ci-<full SHA>`를 push한 후 tag가 아니라 build output의 digest로 다시 pull하고 image content policy, migration/readiness, Project 생성과 edit session, root Task 저장, unauthorized mutation 거부, container restart 뒤 Project/Task 재조회를 검증한다. **version이 변경되지 않은 main merge와 실패 run의 `ci-*`는 기존처럼 정리**한다. 반면 first-parent 대비 package version이 변경된 merge는 정식 release가 같은 binary/config digest를 재사용할 수 있도록 검증 성공한 `ci-<full SHA>`를 release candidate/provenance alias로 보존한다.
 
 Release workflow의 `Release quality gates`는 PR CI와 달리 Chromium 전체 E2E를 단일 job에서 실행하므로 dependency/browser 설치 시간을 포함해 60분 timeout을 사용한다. 테스트 단계가 모두 성공했더라도 job-level timeout으로 최종 상태가 CANCELLED가 되면 정식 release evidence로 인정하지 않는다.
 
-Release workflow는 전체 application/E2E gate 뒤 동일 source·version·platform 설정의 local release candidate를 먼저 build하여 image policy, production runtime config 거부, migration, readiness, native SQLite와 재시작 persistence를 확인한다. 이 pre-publish gate가 통과해야 registry write가 시작된다. Registry에는 commit 고정 `sha-*` candidate를 만들지 않고 exact SemVer tag를 직접 push한 뒤 그 build output digest를 새로 pull해 같은 runtime 동작을 다시 확인한다. Digest 검증과, 활성화된 경우 GitHub Attestation이 성공한 뒤에만 stable rolling alias를 이동한다.
+Release workflow는 전체 application/E2E gate 뒤 **annotated tag가 가리키는 exact commit SHA의 Main verified `ci-<SHA>` candidate를 registry에서 찾고**, candidate의 digest와 OCI `source`/`revision`/`version` label이 tag target/package version과 정확히 일치하는지 검증한다. Release 단계에서는 Docker image를 다시 build하지 않는다. Main에서 이미 검증한 exact digest를 candidate runtime/transport/persistence로 재검증한 뒤 Docker `imagetools create`의 single-source carbon-copy promotion을 사용해 같은 digest를 exact SemVer tag로 승격한다. 승격 전후 digest가 달라지면 실패하며, exact digest runtime smoke와 활성화된 GitHub Attestation이 성공한 뒤에만 stable rolling alias를 같은 digest로 이동한다. Release candidate의 `ci-<SHA>` alias는 exact SemVer와 같은 package version/digest를 공유할 수 있으므로 개별 tag 삭제로 manifest 전체를 손상시키지 않기 위해 provenance alias로 유지한다.
 
 모든 version release는 repository 단위 concurrency group에서 직렬 실행한다. Monotonic SemVer gate와 결합하여 늦게 끝난 낮은 version이 `latest`/major/minor alias를 되돌리는 것을 막는다. Exact version tag가 이미 있으면 overwrite하지 않는다.
 
@@ -151,8 +151,8 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 | Workflow | Trigger | 권한 | 역할 |
 | --- | --- | --- | --- |
 | `.github/workflows/ci.yml` 검증 jobs | PR, `main` push, manual | `contents: read` | application·browser·container 회귀 |
-| `.github/workflows/ci.yml` commit publish job | 성공한 비문서 `main` push만; docs-only는 SKIPPED | `contents: read`, `packages: write`; docs-only에서는 job 자체가 시작되지 않아 write 권한을 사용하지 않음 | 임시 `ci-<full SHA>` publish/digest smoke와 검증 후 package cleanup |
-| `.github/workflows/release-image.yml` | strict `v*` tag push 또는 annotated `v*` tag ref의 수동 실행 | publish job만 package/attestation 쓰기와 OIDC 권한 선언 | 동일 SemVer/annotated-tag 검증 후 GHCR publish와 digest smoke |
+| `.github/workflows/ci.yml` commit publish job | 성공한 비문서 `main` push만; docs-only는 SKIPPED | `contents: read`, `packages: write`; docs-only에서는 job 자체가 시작되지 않아 write 권한을 사용하지 않음 | `ci-<full SHA>` publish/digest smoke; 일반 merge는 cleanup, version-changing merge는 verified release candidate로 보존 |
+| `.github/workflows/release-image.yml` | strict `v*` tag push 또는 annotated `v*` tag ref의 수동 실행 | candidate 검증은 `packages: read`, promotion/attestation은 `packages: write` 및 optional OIDC | tag target SHA의 Main verified `ci-<SHA>` exact digest 재검증 → exact SemVer/rolling alias로 동일 digest promotion → registry smoke |
 | `.github/workflows/ci.yml` branch cleanup policy check | PR, `main` push, manual | `contents: read` | `scripts/verify-safe-branch-cleanup.py`로 완료 Issue helper 재도입과 직접 branch deletion 우회를 차단하고 공통 fail-closed 계약을 회귀 검증 |
 
 - PR과 수동 CI에는 registry credential 또는 write token을 제공하지 않는다.
@@ -171,8 +171,8 @@ Release workflow는 전체 application/E2E gate 뒤 동일 source·version·plat
 2. `package.json`, `package-lock.json`, `CHANGELOG.md`를 같은 commit에서 갱신한다.
 3. `npm run version:check`와 전체 CI를 통과시킨다.
 4. `main` merge 뒤 동일 commit에 annotated `v<package version>` tag를 만든다.
-5. Tag를 원격에 push한다. Release workflow가 local candidate runtime gate를 통과하기 전에는 registry write를 수행하지 않으며 수동 GHCR push는 하지 않는다.
-6. Exact SemVer image의 registry digest smoke와, 활성화한 경우 GitHub Attestation 뒤 stable rolling alias promotion이 끝났는지 workflow summary에서 확인한다.
+5. Tag를 원격에 push한다. Release workflow는 annotated tag target SHA와 동일한 Main verified `ci-<SHA>` candidate가 존재하고 source/revision/version/digest 계약을 통과해야만 promotion을 수행한다. 수동 GHCR push나 release 재-build는 하지 않는다.
+6. Main candidate digest와 exact SemVer tag digest가 동일한지, exact digest runtime smoke와 활성화한 GitHub Attestation 뒤 stable rolling alias가 같은 digest를 가리키는지 workflow summary에서 확인한다.
 7. GHCR package visibility와 consumer `packages: read` 권한을 확인하고 exact version/digest로 테스트한다.
 
 연결된 운영 도구가 `GITHUB_TOKEN`으로 annotated tag를 생성해 tag push가 후속 workflow를 자동 재귀 실행하지 않는 경우에는, 해당 **annotated `v*` tag ref**를 지정해 `workflow_dispatch`로 같은 release workflow를 실행할 수 있다. 이 경로도 package/tag 일치, 이전 SemVer보다 큰 버전, annotated tag 여부와 immutable image 충돌 검사를 우회하지 않는다.
@@ -185,7 +185,7 @@ Tag/package 불일치, 이전 tag 이하 version, lightweight tag, 기존 exact 
 2. Workflow summary의 `ci-<full SHA>`와 `sha256:<digest>`가 대상 commit과 일치하는지 확인한다.
 3. Private GHCR consumer는 필요한 범위의 `packages: read` credential로 로그인한다.
 4. tag를 배포 기준으로 재해석하지 말고 summary의 exact digest를 pull해 격리 volume에서 테스트한다.
-5. release가 필요하면 별도 SemVer bump·CHANGELOG·annotated tag 절차를 수행한다. Commit image를 release alias로 retag하지 않는다.
+5. release가 필요하면 별도 SemVer bump·CHANGELOG·annotated tag 절차를 수행한다. version-changing merge의 verified `ci-<SHA>`는 formal release가 exact digest를 재사용하는 candidate/provenance alias이며, 임의 수동 retag는 하지 않는다.
 
 ## 6. Repository 설정 Gate
 
@@ -454,3 +454,16 @@ Issue Lifecycle은 exact merge target의 first-parent diff를 CI와 동일한 do
 - 과거 artifact는 신뢰할 수 없는 입력으로 취급한다. optimizer는 artifact 안의 명령을 실행하지 않고 duration/file JSON만 파싱하며, 실제 실행 대상은 checkout된 현재 `tests/e2e` 파일 목록과 교차 검증한다.
 
 GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용하고 dependency cache와 혼용하지 않는다. optimizer는 최근 run/artifact 조회와 자동 plan PR 생성 직후 exact branch에 `ci.yml workflow_dispatch`를 명시적으로 시작하므로 `actions: write`, plan PR 생성에 한정한 `contents: write`, `pull-requests: write`를 사용한다. `GITHUB_TOKEN`이 만든 일반 push/PR 이벤트가 후속 workflow를 자동 재귀 실행한다고 가정하지 않으며, regular CI 권한은 확대하지 않는다.
+
+## Issue #438 Build-once / verified digest promotion
+
+- Container binary는 Main CI의 `publish-commit-image`에서 한 번만 build한다. version-changing merge의 successful candidate만 formal release까지 보존한다.
+- Main image build는 Dockerfile `VERSION`과 OCI version label에 현재 `package.json.version`을 사용하고 revision label에는 exact main SHA를 기록한다.
+- Release prepare는 annotated `v*` tag object 자체를 검사한 뒤 `refs/tags/<tag>^{commit}`으로 `target_sha`를 계산한다. candidate 조회는 `ci-<target_sha>`만 허용한다.
+- Release quality/static/E2E gate는 유지하지만 container build action은 release workflow에서 제거한다.
+- Candidate는 digest pull 후 source/revision/version label, image policy, HTTP/HTTPS transport, migration/readiness, SQLite restart persistence를 다시 검증한다.
+- exact SemVer promotion은 Docker `imagetools create --prefer-index=false` single-source promotion을 사용하고 metadata/registry inspect로 promotion 전후 digest 동일성을 hard gate로 검사한다.
+- 이미 존재하는 exact SemVer tag는 같은 candidate digest일 때만 idempotent retry로 허용하고 다른 digest면 overwrite를 거부한다.
+- Stable rolling alias는 exact SemVer/runtime verification 뒤 동일 candidate digest로만 갱신한다. prerelease는 기존대로 rolling alias를 변경하지 않는다.
+- BuildKit SBOM/provenance는 Main candidate digest에서 생성되며 SemVer promotion이 digest를 바꾸지 않으므로 같은 subject digest에 유지된다. optional GitHub Attestation도 candidate digest를 subject로 사용한다.
+- Release candidate `ci-<SHA>`와 exact SemVer가 같은 GHCR package version/manifest를 공유할 수 있으므로 release 완료 후 `ci-*` tag만 따로 제거하려고 package version 전체를 삭제하지 않는다. Release candidate alias는 provenance/debugging evidence로 유지한다.
