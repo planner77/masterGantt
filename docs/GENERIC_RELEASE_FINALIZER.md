@@ -89,3 +89,16 @@ No-release 변경은 `finalize`만 호출하여 동일한 multi-PR safe branch c
 - safe branch cleanup blocker → stacked/open PR dependency 정리 후 기존 run 재실행
 - release-image 실패 → 동일 immutable tag를 반복 덮어쓰지 않는다. 동일 source에서 재실행 가능한 일시 실패면 기존 release run을 재개하고, 결정적 제품/회귀 결함이면 later same-Issue corrective merge를 새 SemVer로 검증해 release-failure supersession 경로를 사용한다.
 - 수동 `issue-lifecycle.yml workflow_dispatch`는 generic 자동 경로가 사용할 수 없는 복구 상황의 fallback으로만 사용한다.
+
+## Issue #435 Event-driven release completion
+
+Generic Finalizer는 release-required target을 하나의 장시간 동기 job으로 처리하지 않는다.
+
+1. Main CI SUCCESS event에서 backlog를 oldest → newest로 해석한다.
+2. release가 필요 없으면 기존 `finalize`를 즉시 실행한다.
+3. release가 필요하고 승인되었으며 state가 `not-started`이면 내부 전용 `release_start` operation으로 annotated tag와 `release-image.yml` dispatch까지만 수행하고 종료한다.
+4. `tagged` 또는 `in-progress`이면 mutation 없이 DEFERRED한다.
+5. `failed`이면 Issue/branch를 유지하고 기존 release run 재실행을 기다린다. 새 tag나 duplicate release를 만들지 않는다.
+6. `Publish release image` workflow가 completed되면 Generic Finalizer가 자동으로 다시 실행된다. exact tag/head SHA의 successful release evidence가 있을 때만 `release_finalize`가 safe cleanup, FINAL marker, Issue close를 수행한다.
+
+따라서 release 실행시간만큼 Finalizer runner를 polling에 묶지 않으며, release rerun 성공 뒤 사용자가 Finalizer를 별도로 재실행할 필요가 없다. Release workflow 자체의 repository-wide serialization과 immutable/stable alias 정책은 그대로 유지한다.

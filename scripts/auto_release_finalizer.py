@@ -565,7 +565,7 @@ def lifecycle_command(
     return command
 
 
-def process_item(repo: str, item: WorkItem) -> None:
+def process_item(repo: str, item: WorkItem, release_state: str) -> str:
     release_required = item.previous_version != item.current_version
     operation = "finalize"
     release_authorized = False
@@ -584,7 +584,14 @@ def process_item(repo: str, item: WorkItem) -> None:
                 f"{item.current_version}에 대한 신뢰 가능한 release 승인 marker가 없습니다"
             )
         release_authorized = True
-        operation = "release_finalize"
+        if release_state in {"not-started", "tagged"}:
+            operation = "release_start"
+        elif release_state == "success":
+            operation = "release_finalize"
+        else:
+            raise AutoFinalizerError(
+                f"Issue #{item.issue_number}: unexpected release state for mutation: {release_state}"
+            )
         evidence = authorization.evidence_url or "Issue comment"
         authorization_note = (
             f"{authorization.note} | actor={authorization.actor} | evidence={evidence}"
@@ -627,6 +634,7 @@ def process_item(repo: str, item: WorkItem) -> None:
         raise AutoFinalizerError(
             f"Issue #{item.issue_number} lifecycle command failed with {result.returncode}"
         )
+    return operation
 
 
 def execute(trigger_sha: str) -> int:
@@ -732,7 +740,11 @@ def execute(trigger_sha: str) -> int:
                 ]
             )
             return 0
-        if release_state == "in-progress":
+        if release_state in {"in-progress", "failed"}:
+            reason = {
+                "in-progress": "immutable release evidence가 완료될 때까지 lifecycle mutation을 중복 실행하지 않습니다.",
+                "failed": "release evidence가 실패 상태입니다. Issue/branch를 유지하고 기존 release run 재실행 성공을 기다립니다.",
+            }[release_state]
             write_summary(
                 [
                     "### DEFERRED",
@@ -740,13 +752,25 @@ def execute(trigger_sha: str) -> int:
                     f"- SHA: `{item.target_sha}`",
                     f"- Issue: #{item.issue_number}",
                     f"- exact main CI: {ci_url or 'N/A'}",
-                    f"- formal release: in-progress — {release_url or 'N/A'}",
-                    "- 사유: immutable release evidence가 완료될 때까지 lifecycle mutation을 중복 실행하지 않습니다.",
+                    f"- formal release: {release_state} — {release_url or 'N/A'}",
+                    f"- 사유: {reason}",
                     "- mutation: 없음",
                 ]
             )
             return 0
-        process_item(repo, item)
+        operation = process_item(repo, item, release_state)
+        if operation == "release_start":
+            write_summary(
+                [
+                    "### RELEASE STARTED",
+                    "",
+                    f"- SHA: `{item.target_sha}`",
+                    f"- Issue: #{item.issue_number}",
+                    "- 결과: annotated tag와 release workflow dispatch 완료",
+                    "- 다음 단계: release-image workflow_run completed 이벤트가 Generic Finalizer를 다시 기동합니다.",
+                ]
+            )
+            return 0
 
     return 0
 

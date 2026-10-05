@@ -166,7 +166,7 @@ CI #1540.1의 shard 3/4는 #384 기능과 무관한 `project-resource-calendar-e
 - Issue #118 before/after evidence는 manual-only historical evidence이며 일반 PR에서 별도 runner를 시작하지 않는다.
 - Next.js 보안 patch 뒤 production dependency audit이 0 critical로 통과하고 `@next/env`와 `next`가 동일 exact patch 버전으로 고정되는지 확인한다.
 - transport smoke의 최초 GET navigation은 일시적 network/error page에 한해 readiness 확인 후 1회만 재시도하고 mutation은 자동 재시도하지 않는다.
-- E2E shard는 4-way 및 `workers: 1` 격리를 유지하며 외부 OS dependency mirror 지연을 허용하기 위해 timeout만 25분으로 둔다.
+- E2E shard는 6-way 및 `workers: 1` 격리를 유지하며 외부 OS dependency mirror 지연을 허용하기 위해 timeout만 25분으로 둔다.
 - `tests/scripts/test-config-layout.test.ts`와 `tests/scripts/deployment-layout.test.ts`가 위 workflow/dependency contract를 고정한다.
 - 공식 전체 회귀 판정은 최신 main 재정렬 후 동일 PR head의 quality/e2e/docker 결과를 사용한다.
 
@@ -892,7 +892,7 @@ CI 최적화 자체의 인수 기준은 다음과 같다.
 
 - `.github/workflows/ci.yml`의 기존 required check 표시 이름 3개가 유지된다.
 - node 영향 변경은 policy/typecheck/lint/unit/build가 병렬 실행된다.
-- E2E 영향 변경은 Playwright 4-way shard가 실행되며 각 shard는 기존 `workers: 1` 격리를 유지한다.
+- E2E 영향 변경은 Playwright 6-way shard가 실행되며 각 shard는 기존 `workers: 1` 격리를 유지한다.
 - docs-only/비관련 변경은 heavy Node/E2E/Docker job을 실행하지 않지만 aggregate required checks는 SUCCESS다.
 - `.next/cache`, TypeScript incremental metadata, npm package cache, Docker GHA cache가 각각 정의되어 있다.
 - `workflow_dispatch`는 전체 검증을 실행한다.
@@ -1308,3 +1308,15 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - 보안: 프로젝트/Task/Resource/Group의 `= + - @` 시작 문자열 formula injection 방지를 확인한다.
 - stale: workload `projectRevision`과 snapshot/If-Match revision 불일치 시 412 또는 workbook 생성 거부를 확인한다.
 - 실제 Windows Excel 2021/DRM은 Environment-specific Validation으로 자동 CI PASS와 구분한다.
+
+## Issue #435 Workflow 병목 최적화 검증
+
+- Static contract: PR `edited`는 `verify-ci-run-trace.py`를 실행하고 node/policy/E2E/Docker routing output은 false여야 한다. aggregate quality/E2E/Docker required check 이름과 fail-closed 동작은 유지한다.
+- Playwright: `CI_E2E_FULLY_PARALLEL=true`일 때만 `fullyParallel`을 활성화하고 workers=1은 유지한다. explicit `test.describe.configure({ mode: "serial" })` suite의 순차 계약을 훼손하지 않는다.
+- PR/Main E2E: 6 shard 전체 PASS와 shard별 duration을 기록한다. 기준 7.4/11.7/13.6/5.1분 대비 최장/최단 편차가 개선되는지 확인한다.
+- Release: `quality_static`과 6개의 `release_e2e_shard`가 병렬 실행되고 `Release quality gates` aggregate가 모두 PASS해야 candidate smoke가 시작된다. 단일 unsharded `npm run test:e2e` quality step은 존재하지 않아야 한다.
+- Lifecycle: Main CI success + release not-started → `release_start`까지만 수행하고 FINAL/close는 하지 않는다. tagged/in-progress/failed는 mutation 없이 DEFERRED한다. release success completed event → exact release success evidence → `release_finalize` → cleanup/FINAL/close 순서다.
+- Recovery: release failure 뒤 Issue/branch가 유지되고 동일 Release run attempt가 성공하면 별도 사용자 Finalizer 실행 없이 completion event로 lifecycle이 재개되어야 한다.
+- Security/supply chain: authorization marker, annotated tag, exact SHA, exact digest smoke, no-overwrite, stable alias serialization, safe branch cleanup을 그대로 회귀한다.
+
+- #435 4-shard 중간 계측: 6.0/8.9/14.5/5.1분으로 최장 shard 개선 실패. 6-shard 재검증에서 최장 shard와 전체 PR CI wall-clock을 기준으로 최종 채택 여부를 판정한다.

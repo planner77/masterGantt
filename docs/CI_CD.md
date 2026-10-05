@@ -26,7 +26,7 @@ GitHub Actions의 workflow 고정 식별자 `name`과 required job/check 이름�
 - PR의 **HTTP/HTTPS transport smoke**는 deploy, transport test/script, security/http server, 인증·Origin/cookie 계약과 연결된 API 또는 CI workflow/action 변경에서만 실행한다. `main` push와 수동 `workflow_dispatch`는 항상 transport smoke를 수행해 release 전 운영 경로 검증을 축소하지 않는다.
 - `Issue #118 구현 전후 레이아웃 증거` workflow는 고정 baseline/after revision을 비교하는 완료된 one-time evidence이므로 자동 PR trigger를 제거하고 수동 `workflow_dispatch` 재현만 남긴다.
 - Required aggregate check 이름과 fail-closed routing은 변경하지 않는다. 선택 step이 생략되어도 Docker aggregate는 candidate/runtime 필수 검증 결과를 기준으로 판정한다.
-- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 늘어나는 경우를 고려해 shard timeout은 25분으로 둔다. 이는 실행시간 최적화 자체가 아니라 외부 setup 지연으로 정상 테스트가 취소되는 것을 막는 안정성 여유이며, 4-way shard와 `workers: 1` 계약은 유지한다.
+- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 늘어나는 경우를 고려해 shard timeout은 25분으로 둔다. 이는 실행시간 최적화 자체가 아니라 외부 setup 지연으로 정상 테스트가 취소되는 것을 막는 안정성 여유이며, 6-way shard와 `workers: 1` 계약은 유지한다.
 - Phase 2는 process/DB 격리를 유지한 prebuilt E2E runtime과 historical timing 기반 shard 균형화를 별도 검증한다. Phase 3는 exact main CI evidence를 release에서 재사용할 수 있는지 별도 검증한다.
 
 ## Issue #283 Docker runtime 슬림화 검증
@@ -420,3 +420,20 @@ Generic finalizer와 `release-image.yml`은 `concurrency.queue: max`로 burst pe
 따라서 `always()`는 skip propagation만 해제하며 실패/cancelled gate를 우회하지 않는다.
 
 Issue Lifecycle은 exact merge target의 first-parent diff를 CI와 동일한 docs-only 규칙으로 독립 판정한다. 비문서 merge는 exact main CI의 `Main 임시 commit 이미지 게시·검증·정리` job이 completed/success여야 finalize할 수 있다. docs-only merge는 해당 job의 completed/skipped를 정상 N/A evidence로 인정한다. overall main CI success만으로 임시 GHCR publish/digest smoke/cleanup PASS를 주장하지 않는다.
+
+## Issue #435 Workflow 병목 최적화
+
+2026-10-05 실행 이력 기준 PR CI의 임계 경로는 Chromium E2E이고, 정식 Release는 전체 Chromium suite를 단일 runner에서 약 30~40분 실행하는 것이 주 병목이었다. 다음 계약으로 최적화한다.
+
+- PR `pull_request.edited`는 Primary Issue trace validator를 반드시 실행하되 application head SHA가 바뀌지 않는 metadata-only event로 취급하여 node/policy/E2E/Docker 구현 job을 다시 실행하지 않는다. required aggregate quality/E2E/Docker check 이름은 그대로 유지하며 trace 실패는 aggregate도 fail-closed한다.
+- PR/Main Chromium E2E는 6 shard와 runner별 `workers=1`을 유지한다. CI에서만 `CI_E2E_FULLY_PARALLEL=true`를 주어 Playwright가 개별 test 기준으로 shard를 분산할 수 있게 하며 explicit serial describe는 계속 직렬이다.
+- Release는 static quality와 6-way Chromium E2E shard를 병렬 실행하고 `Release quality gates` aggregate가 모두 성공한 뒤에만 candidate container smoke와 registry publish를 시작한다.
+- Generic Release Finalizer는 Release 완료를 polling하며 runner를 점유하지 않는다. Main CI 성공 시 release-required target은 승인/정확한 SHA/version을 검증하고 annotated tag + release workflow dispatch까지만 수행한다. `Publish release image` workflow의 completed event가 같은 Generic Finalizer를 다시 기동하여 exact successful release evidence를 확인한 뒤 cleanup/FINAL/Issue close를 수행한다.
+- Release failure는 immutable tag를 이동/덮어쓰기하지 않고 Issue/branch를 유지한다. 기존 Release run을 재실행해 SUCCESS가 되면 그 completed event로 finalization이 자동 재개된다.
+- first-parent oldest→newest, same-Issue corrective convergence, exact main CI/GHCR evidence, explicit release authorization, safe branch cleanup, stable alias serialization은 기존 계약을 유지한다.
+
+변경 전 기준은 PR CI median 14.1분, Main CI 16.2분, Release 41.9분, Finalizer 42.8분이며 대표 PR E2E shard는 7.4/11.7/13.6/5.1분이었다. 변경 후 exact PR/main/release run에서 같은 지표를 다시 기록한다.
+
+### #435 4-shard 실측 보완
+
+최초 test-level 4-shard 실측은 `6.0 / 8.9 / 14.5 / 5.1분`으로 test count는 각 84개로 균등해졌지만 최장 shard가 기존 13.6분보다 길어 임계 경로 개선 기준을 충족하지 못했다. 따라서 workers=1과 test-level 분배를 유지하면서 shard 수를 6으로 조정한다. 이 변경은 required aggregate check 수/이름을 바꾸지 않으며, 최종 선택은 exact PR head의 wall-clock과 shard 편차로 판정한다.

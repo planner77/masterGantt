@@ -15,12 +15,13 @@ on:
         type: string
 
 permissions:
+  actions: read
   contents: read
   pull-requests: read
 
 concurrency:
   # 새 PR head가 올라오면 이전 실행을 즉시 취소해 runner 낭비를 줄인다.
-  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.event.pull_request.number) || format('ci-main-{0}', github.sha) }}
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}-{1}', github.event.pull_request.number, github.event.action == 'edited' && 'metadata' || 'full') || format('ci-main-{0}', github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
@@ -32,13 +33,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      node: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.node == 'true' }}
-      policy: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.policy == 'true' }}
-      e2e: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.e2e == 'true' }}
-      docker: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.docker == 'true' }}
+      node: ${{ github.event_name == 'workflow_dispatch' || (github.event.action != 'edited' && steps.filter.outputs.node == 'true') }}
+      policy: ${{ github.event_name == 'workflow_dispatch' || (github.event.action != 'edited' && steps.filter.outputs.policy == 'true') }}
+      e2e: ${{ github.event_name == 'workflow_dispatch' || (github.event.action != 'edited' && steps.filter.outputs.e2e == 'true') }}
+      docker: ${{ github.event_name == 'workflow_dispatch' || (github.event.action != 'edited' && steps.filter.outputs.docker == 'true') }}
       docker_baseline: ${{ github.event_name == 'pull_request' && steps.filter.outputs.docker_baseline == 'true' }}
       transport: ${{ github.event_name != 'pull_request' || steps.filter.outputs.transport == 'true' }}
       docs_only: ${{ steps.classify.outputs.docs_only }}
+      metadata_only: ${{ github.event_name == 'pull_request' && github.event.action == 'edited' }}
     steps:
       # actions/checkout v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -194,6 +196,44 @@ jobs:
             printf -- '- docs_only(main): `%s`\n' "$DOCS_ONLY"
           } >> "$GITHUB_STEP_SUMMARY"
 
+
+  metadata_evidence:
+    name: PR metadata가 기존 전체 CI 증거를 보존하는지 검증
+    if: github.event_name == 'pull_request' && github.event.action == 'edited'
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: 동일 head SHA의 전체 PR CI 완료 증거 대기
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_RUN_ID: ${{ github.run_id }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="${GITHUB_REPOSITORY}"
+          deadline=$((SECONDS + 1200))
+          while (( SECONDS < deadline )); do
+            mapfile -t candidate_ids < <(
+              gh api "/repos/$repo/actions/workflows/ci.yml/runs?event=pull_request&head_sha=$HEAD_SHA&per_page=100"                 --jq ".workflow_runs[] | select((.id | tostring) != \"$CURRENT_RUN_ID\") | .id"
+            )
+            for run_id in "${candidate_ids[@]}"; do
+              jobs_json="$(gh api "/repos/$repo/actions/runs/$run_id/jobs?filter=latest&per_page=100")"
+              metadata_gate="$(jq -r '[.jobs[] | select(.name == "PR metadata가 기존 전체 CI 증거를 보존하는지 검증")][0].conclusion // ""' <<<"$jobs_json")"
+              quality="$(jq -r '[.jobs[] | select(.name == "Build, static checks, and unit tests")][0].conclusion // ""' <<<"$jobs_json")"
+              e2e="$(jq -r '[.jobs[] | select(.name == "Chromium end-to-end tests")][0].conclusion // ""' <<<"$jobs_json")"
+              docker="$(jq -r '[.jobs[] | select(.name == "Docker build and runtime smoke test")][0].conclusion // ""' <<<"$jobs_json")"
+              if [[ "$metadata_gate" == "skipped" && "$quality" == "success" && "$e2e" == "success" && "$docker" == "success" ]]; then
+                echo "동일 head SHA의 전체 CI required gate 증거 확인: run $run_id"
+                exit 0
+              fi
+            done
+            sleep 10
+          done
+          echo "동일 head SHA의 성공한 전체 PR CI 증거를 제한 시간 안에 확인하지 못했습니다." >&2
+          exit 1
+
   policy:
     name: 정책·저장소 계약 검사
     if: needs.changes.outputs.policy == 'true'
@@ -318,7 +358,7 @@ jobs:
   quality:
     name: Build, static checks, and unit tests
     if: always()
-    needs: [changes, policy, typecheck, lint, unit, build]
+    needs: [changes, metadata_evidence, policy, typecheck, lint, unit, build]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -328,6 +368,8 @@ jobs:
           CHANGES_RESULT: ${{ needs.changes.result }}
           NODE_REQUIRED: ${{ needs.changes.outputs.node }}
           POLICY_REQUIRED: ${{ needs.changes.outputs.policy }}
+          METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
+          METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
           POLICY: ${{ needs.policy.result }}
           TYPECHECK: ${{ needs.typecheck.result }}
           LINT: ${{ needs.lint.result }}
@@ -338,6 +380,14 @@ jobs:
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 quality 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
+          fi
+          if [[ "$METADATA_ONLY" == "true" ]]; then
+            [[ "$METADATA_EVIDENCE" == "success" ]] || {
+              echo "PR metadata edit는 동일 head SHA의 성공한 전체 CI 증거를 요구합니다: $METADATA_EVIDENCE" >&2
+              exit 1
+            }
+            echo "PR metadata trace와 기존 전체 CI 증거를 함께 확인했습니다."
+            exit 0
           fi
           if [[ "$POLICY_REQUIRED" == "true" && "$POLICY" != "success" ]]; then
             echo "정책·저장소 계약 검사가 실패하거나 취소되었습니다: $POLICY" >&2
@@ -354,20 +404,20 @@ jobs:
             }
           done
 
-  # workers=1 안정성 계약은 유지하고 runner 4개로 file sharding
+  # workers=1 안정성 계약은 유지하고 runner 6개로 test-level sharding
   e2e_shard:
-    name: Chromium E2E shard ${{ matrix.shard }}/4
+    name: Chromium E2E shard ${{ matrix.shard }}/6
     if: needs.changes.outputs.e2e == 'true'
     needs: changes
     runs-on: ubuntu-latest
     # Playwright OS dependency install occasionally stalls on Ubuntu mirrors.
-    # Keep the four-way shard topology but allow transient setup latency without
+    # Keep the six-way shard topology but allow transient setup latency without
     # converting otherwise healthy browser tests into a 15-minute cancellation.
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -382,7 +432,9 @@ jobs:
       - name: Chromium headless shell 설치
         run: npx --no-install playwright install --with-deps --only-shell chromium
       - name: E2E shard 실행
-        run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
+        env:
+          CI_E2E_FULLY_PARALLEL: "true"
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/6
       - name: 실패 shard Playwright report 업로드
         if: failure()
         # actions/upload-artifact v7.0.1
@@ -396,7 +448,7 @@ jobs:
   e2e:
     name: Chromium end-to-end tests
     if: always()
-    needs: [changes, e2e_shard]
+    needs: [changes, metadata_evidence, e2e_shard]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -405,12 +457,22 @@ jobs:
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}
           REQUIRED: ${{ needs.changes.outputs.e2e }}
+          METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
+          METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
           RESULT: ${{ needs.e2e_shard.result }}
         run: |
           set -euo pipefail
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 E2E 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
+          fi
+          if [[ "$METADATA_ONLY" == "true" ]]; then
+            [[ "$METADATA_EVIDENCE" == "success" ]] || {
+              echo "PR metadata edit는 동일 head SHA의 성공한 전체 E2E 증거를 요구합니다: $METADATA_EVIDENCE" >&2
+              exit 1
+            }
+            echo "PR metadata trace와 기존 전체 E2E 증거를 함께 확인했습니다."
+            exit 0
           fi
           if [[ "$REQUIRED" != "true" ]]; then
             echo "E2E 관련 변경이 없어 Chromium E2E를 생략했습니다."
@@ -569,7 +631,7 @@ jobs:
   docker:
     name: Docker build and runtime smoke test
     if: always()
-    needs: [changes, docker_smoke]
+    needs: [changes, metadata_evidence, docker_smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -578,12 +640,22 @@ jobs:
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}
           REQUIRED: ${{ needs.changes.outputs.docker }}
+          METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
+          METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
           RESULT: ${{ needs.docker_smoke.result }}
         run: |
           set -euo pipefail
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 Docker smoke 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
+          fi
+          if [[ "$METADATA_ONLY" == "true" ]]; then
+            [[ "$METADATA_EVIDENCE" == "success" ]] || {
+              echo "PR metadata edit는 동일 head SHA의 성공한 전체 Docker 증거를 요구합니다: $METADATA_EVIDENCE" >&2
+              exit 1
+            }
+            echo "PR metadata trace와 기존 전체 Docker 증거를 함께 확인했습니다."
+            exit 0
           fi
           if [[ "$REQUIRED" != "true" ]]; then
             echo "Docker/runtime 관련 변경이 없어 smoke test를 생략했습니다."

@@ -31,7 +31,7 @@ describe("test configuration repository layout", () => {
   });
   it("preserves browser isolation and operator overrides", () => {
     const browser = text("tests/config/playwright.config.ts");
-    for (const value of ["PLAYWRIGHT_BASE_URL", "PLAYWRIGHT_CHROMIUM_EXECUTABLE", 'NEXT_DIST_DIR: ".next-e2e"', "workers: 1", "fullyParallel: false", 'trace: "retain-on-failure"']) {
+    for (const value of ["PLAYWRIGHT_BASE_URL", "PLAYWRIGHT_CHROMIUM_EXECUTABLE", 'NEXT_DIST_DIR: ".next-e2e"', "workers: 1", 'process.env.CI_E2E_FULLY_PARALLEL === "true"', 'trace: "retain-on-failure"']) {
       expect(browser).toContain(value);
     }
   });
