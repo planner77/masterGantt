@@ -15,12 +15,13 @@ on:
         type: string
 
 permissions:
+  actions: read
   contents: read
   pull-requests: read
 
 concurrency:
   # 새 PR head가 올라오면 이전 실행을 즉시 취소해 runner 낭비를 줄인다.
-  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.event.pull_request.number) || format('ci-main-{0}', github.sha) }}
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}-{1}', github.event.pull_request.number, github.event.action == 'edited' && 'metadata' || 'full') || format('ci-main-{0}', github.sha) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
@@ -195,6 +196,47 @@ jobs:
             printf -- '- docs_only(main): `%s`\n' "$DOCS_ONLY"
           } >> "$GITHUB_STEP_SUMMARY"
 
+
+  metadata_evidence:
+    name: PR metadata가 기존 전체 CI 증거를 보존하는지 검증
+    if: github.event_name == 'pull_request' && github.event.action == 'edited'
+    needs: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: 동일 head SHA의 전체 PR CI 완료 증거 대기
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT_RUN_ID: ${{ github.run_id }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="${GITHUB_REPOSITORY}"
+          deadline=$((SECONDS + 1200))
+          while (( SECONDS < deadline )); do
+            mapfile -t candidate_ids < <(
+              gh api "/repos/$repo/actions/workflows/ci.yml/runs?event=pull_request&head_sha=$HEAD_SHA&per_page=100"                 --jq ".workflow_runs[] | select((.id | tostring) != \"$CURRENT_RUN_ID\") | .id"
+            )
+            for run_id in "${candidate_ids[@]}"; do
+              jobs_json="$(gh api "/repos/$repo/actions/runs/$run_id/jobs?filter=latest&per_page=100")"
+              typecheck="$(jq -r '[.jobs[] | select(.name == "TypeScript 타입 검사")][0].conclusion // ""' <<<"$jobs_json")"
+              lint="$(jq -r '[.jobs[] | select(.name == "ESLint")][0].conclusion // ""' <<<"$jobs_json")"
+              unit="$(jq -r '[.jobs[] | select(.name == "Vitest 단위·통합 테스트")][0].conclusion // ""' <<<"$jobs_json")"
+              build="$(jq -r '[.jobs[] | select(.name == "Next.js production build")][0].conclusion // ""' <<<"$jobs_json")"
+              docker="$(jq -r '[.jobs[] | select(.name == "Docker smoke 구현")][0].conclusion // ""' <<<"$jobs_json")"
+              e2e_count="$(jq '[.jobs[] | select(.name | test("^Chromium E2E shard [0-9]+/6$"))] | length' <<<"$jobs_json")"
+              e2e_success="$(jq '[.jobs[] | select(.name | test("^Chromium E2E shard [0-9]+/6$")) | select(.conclusion == "success")] | length' <<<"$jobs_json")"
+              if [[ "$typecheck" == "success" && "$lint" == "success" && "$unit" == "success" && "$build" == "success" && "$docker" == "success" && "$e2e_count" -eq 6 && "$e2e_success" -eq 6 ]]; then
+                echo "동일 head SHA의 전체 CI 증거 확인: run $run_id"
+                exit 0
+              fi
+            done
+            sleep 10
+          done
+          echo "동일 head SHA의 성공한 전체 PR CI 증거를 제한 시간 안에 확인하지 못했습니다." >&2
+          exit 1
+
   policy:
     name: 정책·저장소 계약 검사
     if: needs.changes.outputs.policy == 'true'
@@ -319,7 +361,7 @@ jobs:
   quality:
     name: Build, static checks, and unit tests
     if: always()
-    needs: [changes, policy, typecheck, lint, unit, build]
+    needs: [changes, metadata_evidence, policy, typecheck, lint, unit, build]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -329,6 +371,8 @@ jobs:
           CHANGES_RESULT: ${{ needs.changes.result }}
           NODE_REQUIRED: ${{ needs.changes.outputs.node }}
           POLICY_REQUIRED: ${{ needs.changes.outputs.policy }}
+          METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
+          METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
           POLICY: ${{ needs.policy.result }}
           TYPECHECK: ${{ needs.typecheck.result }}
           LINT: ${{ needs.lint.result }}
@@ -339,6 +383,14 @@ jobs:
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 quality 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
+          fi
+          if [[ "$METADATA_ONLY" == "true" ]]; then
+            [[ "$METADATA_EVIDENCE" == "success" ]] || {
+              echo "PR metadata edit는 동일 head SHA의 성공한 전체 CI 증거를 요구합니다: $METADATA_EVIDENCE" >&2
+              exit 1
+            }
+            echo "PR metadata trace와 기존 전체 CI 증거를 함께 확인했습니다."
+            exit 0
           fi
           if [[ "$POLICY_REQUIRED" == "true" && "$POLICY" != "success" ]]; then
             echo "정책·저장소 계약 검사가 실패하거나 취소되었습니다: $POLICY" >&2
@@ -399,7 +451,7 @@ jobs:
   e2e:
     name: Chromium end-to-end tests
     if: always()
-    needs: [changes, e2e_shard]
+    needs: [changes, metadata_evidence, e2e_shard]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -408,12 +460,22 @@ jobs:
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}
           REQUIRED: ${{ needs.changes.outputs.e2e }}
+          METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
+          METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
           RESULT: ${{ needs.e2e_shard.result }}
         run: |
           set -euo pipefail
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 E2E 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
+          fi
+          if [[ "$METADATA_ONLY" == "true" ]]; then
+            [[ "$METADATA_EVIDENCE" == "success" ]] || {
+              echo "PR metadata edit는 동일 head SHA의 성공한 전체 E2E 증거를 요구합니다: $METADATA_EVIDENCE" >&2
+              exit 1
+            }
+            echo "PR metadata trace와 기존 전체 E2E 증거를 함께 확인했습니다."
+            exit 0
           fi
           if [[ "$REQUIRED" != "true" ]]; then
             echo "E2E 관련 변경이 없어 Chromium E2E를 생략했습니다."
@@ -572,7 +634,7 @@ jobs:
   docker:
     name: Docker build and runtime smoke test
     if: always()
-    needs: [changes, docker_smoke]
+    needs: [changes, metadata_evidence, docker_smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -581,12 +643,22 @@ jobs:
         env:
           CHANGES_RESULT: ${{ needs.changes.result }}
           REQUIRED: ${{ needs.changes.outputs.docker }}
+          METADATA_ONLY: ${{ needs.changes.outputs.metadata_only }}
+          METADATA_EVIDENCE: ${{ needs.metadata_evidence.result }}
           RESULT: ${{ needs.docker_smoke.result }}
         run: |
           set -euo pipefail
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             echo "변경 경로 판정 job이 실패하거나 취소되어 Docker smoke 결과를 신뢰할 수 없습니다: $CHANGES_RESULT" >&2
             exit 1
+          fi
+          if [[ "$METADATA_ONLY" == "true" ]]; then
+            [[ "$METADATA_EVIDENCE" == "success" ]] || {
+              echo "PR metadata edit는 동일 head SHA의 성공한 전체 Docker 증거를 요구합니다: $METADATA_EVIDENCE" >&2
+              exit 1
+            }
+            echo "PR metadata trace와 기존 전체 Docker 증거를 함께 확인했습니다."
+            exit 0
           fi
           if [[ "$REQUIRED" != "true" ]]; then
             echo "Docker/runtime 관련 변경이 없어 smoke test를 생략했습니다."
