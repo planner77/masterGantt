@@ -1,6 +1,6 @@
-name: E2E shard optimizer
+name: E2E 샤드 최적화
 
-run-name: "E2E shard optimizer · Run #${{ github.run_number }}.${{ github.run_attempt }}"
+run-name: "E2E 샤드 최적화 · 실행 #${{ github.run_number }}.${{ github.run_attempt }}"
 
 on:
   schedule:
@@ -8,12 +8,12 @@ on:
   workflow_dispatch:
     inputs:
       min_runs:
-        description: "최소 historical main CI run 수"
+        description: "최소 과거 main CI 실행 수"
         required: false
         default: "10"
         type: string
       dry_run:
-        description: "plan을 계산만 하고 PR은 생성하지 않음"
+        description: "샤드 계획을 계산만 하고 PR은 생성하지 않음"
         required: false
         default: true
         type: boolean
@@ -23,13 +23,13 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  actions: read
+  actions: write
   contents: write
   pull-requests: write
 
 jobs:
   optimize:
-    name: Historical timing 분석 및 shard-plan 제안
+    name: 과거 실행시간 분석 및 샤드 계획 제안
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: 최근 성공 main CI timing artifact 수집
+      - name: 최근 성공 main CI 실행시간 artifact 수집
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
@@ -59,7 +59,7 @@ jobs:
               rm -rf "$target"
             fi
           done
-          echo "Historical timing run directories: $(find .e2e-history -mindepth 1 -maxdepth 1 -type d | wc -l)"
+          echo "과거 실행시간 run directories: $(find .e2e-history -mindepth 1 -maxdepth 1 -type d | wc -l)"
 
       - name: median/LPT 분석
         id: analyze
@@ -79,7 +79,7 @@ jobs:
           path: .e2e-shard-proposal.json
           retention-days: 30
 
-      - name: 기존 optimizer PR 확인
+      - name: 기존 최적화 PR 확인
         id: existing
         if: steps.analyze.outputs.should_update == 'true' && (github.event_name != 'workflow_dispatch' || inputs.dry_run != true)
         env:
@@ -87,10 +87,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          number="$(gh pr list             --state open             --search '"'"'[Issue #437] ci: refresh E2E shard plan'"'"' in:title'             --json number             --jq '.[0].number // empty')"
+          number="$(gh pr list             --state open             --search '"'"'[Issue #437] ci: E2E 샤드 계획 갱신'"'"' in:title'             --json number             --jq '.[0].number // empty')"
           echo "number=$number" >> "$GITHUB_OUTPUT"
 
-      - name: shard plan 자동 PR 생성
+      - name: 샤드 계획 자동 PR 생성
         if: steps.analyze.outputs.should_update == 'true' && steps.existing.outputs.number == '' && (github.event_name != 'workflow_dispatch' || inputs.dry_run != true)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -104,9 +104,14 @@ jobs:
           git switch -c "$branch_name"
           git add tests/config/e2e-shard-plan.json
           if git diff --cached --quiet; then
-            echo "Shard plan에 실제 변경이 없어 PR을 만들지 않습니다."
+            echo "샤드 계획에 실제 변경이 없어 PR을 만들지 않습니다."
             exit 0
           fi
-          git commit -m "ci: refresh historical E2E shard plan (#437)"
+          git commit -m "ci: 과거 실행시간 기반 E2E 샤드 계획 갱신 (#437)"
           git push origin "HEAD:refs/heads/$branch_name"
-          gh pr create             --base main             --head "$branch_name"             --title "[Issue #437] ci: refresh E2E shard plan"             --body $'Historical timing median/LPT 분석에서 재균형 임계치를 충족해 shard plan을 갱신합니다.\n\n자동 병합은 수행하지 않으며 기존 required PR CI로 검증합니다.\n\nRefs #437'
+          gh pr create             --base main             --head "$branch_name"             --title "[Issue #437] ci: E2E 샤드 계획 갱신"             --body 
+과거 실행시간 median/LPT 분석에서 재균형 임계치를 충족해 E2E 샤드 계획을 갱신합니다.\n\n자동 병합은 수행하지 않으며 동일 head SHA의 전체 CI를 명시적으로 실행해 기존 required checks로 검증합니다.\n\nRefs #437'
+          head_sha="$(git rev-parse HEAD)"
+          echo "자동 PR head: $head_sha"
+          gh api --method POST "/repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/dispatches" -f ref="$branch_name" -f "inputs[issue_number]=437"
+          echo "동일 head SHA의 전체 CI workflow_dispatch를 시작했습니다."
