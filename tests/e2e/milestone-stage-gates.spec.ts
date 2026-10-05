@@ -29,7 +29,11 @@ test("단계 소속 실제 HTTP 저장·완료 잠금·재시작·안전 거부"
   const completeMilestone = await page.request.patch(`${api}/tasks/${m.taskId}`, { headers: headers(), data: { progress: 100 } }); expect(completeMilestone.status()).toBe(200); snapshot = await get();
   const locked = await page.request.post(`${api}/tasks`, { headers: headers(), data: { name: "Blocked child", type: "task", start: "2026-10-05", duration: 1, progress: 0, parentTaskId: s.taskId } });
   expect(locked.status()).toBe(409); expect((await locked.json()).error.code).toBe("COMPLETED_MILESTONE_STRUCTURE_LOCKED"); expect(await get()).toEqual(snapshot);
-  const exportResponse = await page.request.post(`${api}/exports/excel`, { headers: headers(), data: { includeDependencies: false, scope: "project", scale: "day", hierarchyDisplay: "expanded", layout: { columns: [{ id: "text", widthPx: 200 }] } } }); expect(exportResponse.status()).toBe(409); expect((await exportResponse.json()).error.code).toBe("MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE");
+  const exportResponse = await page.request.post(`${api}/exports/excel`, { headers: headers(), data: { includeDependencies: false, scope: "project", scale: "day", hierarchyDisplay: "expanded", layout: { columns: [{ id: "text", widthPx: 200 }] } } });
+  expect(exportResponse.status()).toBe(409);
+  const exportError = await exportResponse.json() as { error: { code: string; details: Array<{ message: string }> } };
+  expect(exportError.error.code).toBe("MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE");
+  expect(exportError.error.details.map((detail) => detail.message)).toEqual(expect.arrayContaining([s.taskId, m.taskId]));
   const unavailable = await page.request.post(`${api}/imports`, { headers: headers(), data: { schemaVersion: "1.0", tasks: [] } }); expect(unavailable.status()).toBe(501);
   await restartIsolatedApplication(); expect(await get()).toEqual(snapshot);
   const readonly = await page.context().browser()!.newContext({ baseURL: origin });

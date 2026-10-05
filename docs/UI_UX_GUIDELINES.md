@@ -155,3 +155,16 @@ frontend는 변경 전후 screenshot 또는 재현 근거, viewport, 실행 명�
 - [Fluent 2 Layout](https://fluent2.microsoft.design/layout): 간격과 proximity로 관계/계층을 표현하고 내용에 따라 layout을 선택하는 원칙을 UX-08에 참고했다.
 - [WAI-ARIA APG patterns](https://www.w3.org/WAI/ARIA/apg/patterns/), [Tabs](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/), [Modal Dialog](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/): 의미·keyboard·focus 검토의 기준이다.
 - SVAR Editor/Context menu 공식 guide와 demo: 기존 Gantt interaction을 우선 검토하는 근거이며 프로젝트의 권한/저장 정책보다 우선하지 않는다.
+
+
+## Issue #461 동적 탭과 소속 검색
+
+Task/Summary는 기존 네 Editor 탭, Milestone은 두 번째 소속 작업 N 탭을 추가한다. Keyboard 이동은 실제 노출 배열을 사용하고 active tab focus를 한 행 내부 scroll에서 보인다. 검색 combobox의 Arrow 이동은 aria-activedescendant와 visible option을 함께 갱신하며 Escape는 후보 목록→초안 확인→dialog 순서다. 진행 중에는 선택/닫기/Escape를 잠근다.
+
+소속 표는 960px column budget을 유지한 소유 scroll container만 가로 넘치며 필터는 390px에서 한 열로 reflow한다. Header/Tab/Footer는 본문 세로 scroll과 분리한다. 다른 저장 단위의 dirty를 집계하여 cross-unit mutation을 차단하고 탭 이동은 초안을 유지한다. 연결 작업 열기/일정에서 보기·닫기·재조회에 전체 초안 폐기를 명시 확인한다. 기존 semantic tokens와 Editor 44px control/focus 규칙을 사용하며 제품 공통 시각 체계는 변경하지 않는다.
+
+Readonly/completed lock은 후보 검색을 숨기거나 disable하지 않고 option의 mutation 불가 상태와 사유를 표시한다. Pending은 조회 입력도 잠근다. 소속 탭의 고정 footer는 기본 `저장`과 구분한 `소속 변경 적용`을 제공한다. 초안 확인 중에는 body를 inert로 처리하고 footer/submit mutation을 잠그며 계속 편집 버튼에 초기 focus를 둔 뒤 취소 시 원래 trigger에 복원한다.
+
+Editable 검색 입력의 query와 별도 Membership 지정 값을 구분한다. query가 편집 가능하면 `aria-readonly`를 사용하지 않고 `aria-describedby`로 검색·조회 가능 및 소속 변경 잠금 안내를 연결한다. Option/action의 mutation 잠금은 유지한다. 소속 패널 검색 Enter는 입력 흐름 안에서 처리하며 pending에는 조회 필터도 disable한다. Geometry 증거는 표 header/body column 정렬, sibling cell/control 비중첩, tablist scrollHeight/clientHeight와 focus outline 경계, 긴 후보의 focused input/active option/listbox scroll owner 가시성을 함께 기록한다.
+
+Horizontal tablist에서 overflow-y를 숨길 때 공통 focus outline과 offset을 합친 공간을 block padding에 확보해 외곽선이 잘리지 않게 한다. #461 실제 geometry 검증은 3px outline+3px offset의 6px 공간과 내부 scroll 높이를 검사한다.

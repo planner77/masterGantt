@@ -69,7 +69,7 @@ Task 생성/삭제, subtree 삭제, 첫-child Summary 전환, hierarchy create/c
 | 경로 | #460 동작 / 구현 위치 | 후속 |
 | --- | --- | --- |
 | canonical read/Task/Link/metadata/hierarchy/subtree 응답 | 공통 `milestone-stage-core.ts` projector | #461/#462 표시 |
-| Task PATCH / batch 소속 | explicit 저장 + 상속·잠금·완료 guard | #461 atomic Editor |
+| Task PATCH / batch 소속 | explicit 저장 + 상속·잠금·완료 guard | #461 atomic Editor 구현 |
 | child/create/delete/convert/indent/outdent/reparent | 같은 transaction old/new 구조 검증, FK 안전 rollback | 유지 |
 | 전체 Project Copy | 원본에 Membership이 있으면 `MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE` 전체 거부; 없는 원본은 기존 복사 유지 | #464 FK remap |
 | Template 저장 | Membership이 있으면 같은 no-loss 오류, 독립 snapshot의 기존 경로는 유지 | #464 snapshot 확장 |
@@ -93,3 +93,12 @@ Task 생성/삭제, subtree 삭제, 첫-child Summary 전환, hierarchy create/c
 - `tests/e2e/milestone-stage-gates.spec.ts`: 실제 Next HTTP mutation/canonical/완료 잠금/no-loss/401/SQLite 프로세스 재시작.
 
 Local Fast Feedback와 PR quality/e2e/docker 공식 회귀를 분리한다. CI 실행 전/진행 중은 NOT TESTED이며 이 문서 존재나 로컬 PASS로 원격 성공을 주장하지 않는다. 실제 운영 reverse proxy/Windows Excel/VBA/DRM은 별도 환경이다.
+
+
+## Issue #461 UI projection과 저장 경계
+
+Editor는 `project-stage-model.ts`의 browser-safe full-project snapshot/preview를 재사용한다. 검색·Grid 필터·WBS 표시·날짜 범위를 Gate 입력으로 사용하지 않는다. Task/Summary picker의 null 초안에서도 preview effective/inheritedFrom 값을 같이 표시한다. Milestone 후보의 Summary 지정은 root 하나만 바꾸며 상속을 direct rows로 확장하지 않는다. batch impact는 고유 일반 Task의 effective 대상이 실제 달라진 수다.
+
+완료 단계는 old/new target 잠금을 preview하고 서버가 transaction에서 다시 검증한다. manualEvent의 ready=null은 가짜 0%/100%가 아니며 predecessor 조건을 만족하면 명시 완료를 시도한다. 완료 기록 불일치는 진단이며 자동 재개가 없다. 본인 상태·memberProgress·미완료 member/predecessor를 분리하고 재개 성공 canonical을 받은 뒤 소속/관계 변경을 활성화한다.
+
+Task/Summary 이름+소속 한 PATCH, Milestone 초안 한 batch POST와 같은 canonical revision 동기화를 `tests/domain/milestone-editor-model.test.ts`, `tests/e2e/milestone-stage-editor.spec.ts`, `project-task-editor.spec.ts`의 #461 fixture로 검증한다. DB/migration/Domain algorithm/Import·Copy·Grid 변경은 이 UI Issue의 범위 밖이다.
