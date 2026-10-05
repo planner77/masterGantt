@@ -355,20 +355,20 @@ jobs:
             }
           done
 
-  # workers=1 안정성 계약은 유지하고 runner 4개로 file sharding
+  # workers=1 안정성 계약은 유지하고 runner 6개로 test-level sharding
   e2e_shard:
-    name: Chromium E2E shard ${{ matrix.shard }}/4
+    name: Chromium E2E shard ${{ matrix.shard }}/6
     if: needs.changes.outputs.e2e == 'true'
     needs: changes
     runs-on: ubuntu-latest
     # Playwright OS dependency install occasionally stalls on Ubuntu mirrors.
-    # Keep the four-way shard topology but allow transient setup latency without
+    # Keep the six-way shard topology but allow transient setup latency without
     # converting otherwise healthy browser tests into a 15-minute cancellation.
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -385,7 +385,7 @@ jobs:
       - name: E2E shard 실행
         env:
           CI_E2E_FULLY_PARALLEL: "true"
-        run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/6
       - name: 실패 shard Playwright report 업로드
         if: failure()
         # actions/upload-artifact v7.0.1
