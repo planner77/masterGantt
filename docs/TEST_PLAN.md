@@ -1350,7 +1350,7 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 
 - Main 분류: first-parent `package.json.version`과 현재 version이 다를 때만 `version_changed=true`이며 `current_version`을 candidate build metadata에 사용한다.
 - Main artifact: 비문서 main merge의 quality/e2e/docker PASS 뒤 `ci-<merge SHA>`를 정확히 한 번 build/push하고 digest pull, image policy, readiness, SQLite restart persistence, Project/Task API, transport smoke를 통과해야 한다.
-- Retention: version 유지 merge와 failed artifact job은 `ci-*`를 정리하고, version-changing merge의 successful `ci-*`만 release candidate로 보존한다.
+- Retention: successful non-docs Main CI의 verified `ci-*`는 version 변경 여부와 무관하게 Generic Finalizer까지 보존한다. no-release finalize가 exact temporary candidate를 정리하고 release-required candidate는 formal promotion source로 유지한다. failed artifact job은 successful handoff가 아니다.
 - Release target: annotated tag의 `tag^{commit}`이 candidate SHA의 유일한 source이며 `github.sha`나 mutable branch를 candidate key로 사용하지 않는다.
 - Candidate binding: `org.opencontainers.image.source`, `revision`, `version`과 registry digest가 repository/tag target/package version과 모두 일치해야 한다.
 - Build-once: `release-image.yml`에는 `docker/build-push-action`이 없어야 하며 container image 재-build를 수행하지 않는다.
@@ -1430,3 +1430,14 @@ Issue #452 소비자 전수 및 실제 실행/미실행 구분은 [검증 증거
 - retry는 Playwright 전체 retry나 test 실패 무시가 아니며 제품 요청/저장 동작을 재실행하지 않는다. favicon 정적 GET과 canonical 프로젝트 document GET의 transport reset에만 동일 helper를 사용한다.
 - corrective PR은 Issue #452의 non-docs 후속 merge로 `Refs #452`를 유지한다. application version은 `0.83.4`를 유지하고 기존 version-scoped release authorization을 재사용한다.
 - PR exact head의 quality/e2e/docker가 모두 PASS한 뒤에만 병합한다. 새 main CI SUCCESS가 확인되면 Generic Release Finalizer가 first-parent backlog와 same-Issue corrective merge를 해석하여 v0.83.4 GHCR release를 진행해야 한다.
+
+
+### Issue #452 GHCR candidate lifecycle corrective
+
+- Main CI #1852.1의 `Main 임시 commit 이미지 게시·검증·정리` job은 `ci-e812e56f...`를 build/push하고 image policy/readiness/SQLite/API/transport smoke를 모두 PASS했다.
+- 기존 cleanup은 immediate first-parent의 `version_changed=false`만 보고 해당 package version을 삭제했고, Generic Finalizer는 #466/#467을 same-Issue target으로 수렴해 e812 SHA의 v0.83.4 Release를 시작했다.
+- Release #133.1은 static quality와 Chromium 6/6이 PASS했으나 `Main verified candidate exact digest 확인`에서 candidate 부재로 FAIL했다.
+- 보완 후 Main artifact job은 successful non-docs candidate를 Finalizer에 handoff하고 직접 삭제하지 않아야 한다.
+- no-release lifecycle fixture에서는 `cleanup_temporary_main_candidate`가 exact `ci-<SHA>` cleanup helper를 호출하며, release-required finalize에서는 candidate cleanup을 호출하지 않아야 한다.
+- Generic Finalizer/Resume과 수동 finalize mutation job은 candidate cleanup에 필요한 `packages: write`를 가지되 PR/일반 CI 권한은 확대하지 않는다.
+- failed immutable `v0.83.4`는 이동/재사용하지 않는다. corrective package version은 `0.83.5`이며 PR CI → Main CI → Finalizer → Release에서 새 exact SHA/digest로 검증한다.
