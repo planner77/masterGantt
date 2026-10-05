@@ -115,7 +115,7 @@ Local PASS는 공식 전체 회귀 PASS가 아니며 GitHub Actions PASS를 대�
 
 PR은 read-only이며 registry write를 수행하지 않는다. 검토 대상 head SHA에서 `quality`, `e2e`, `docker`가 성공하기 전 Manager는 코드 변경을 최종 ACCEPT하지 않는다. Run이 미실행/진행 중이면 NOT TESTED, 실행 불가면 BLOCKED로 기록한다.
 
-CI cache는 성능 보조 수단이며 검증 PASS 증거가 아니다. `npm ci`의 frozen install은 항상 실행하고 `node_modules`를 cache하지 않는다. setup/cache 변경은 cache miss에서도 동일 required gate가 실행되어야 하며 Secret·`.env`·runtime DB·test PASS 결과를 cache/artifact에 저장하지 않는다. Playwright browser cache 같은 신규 cache는 setup 비용 baseline과 invalidation 근거 없이 추가하지 않는다. Phase 2 baseline은 workflow 파일/event/job/metric별로 분리하고 **서로 다른 successful run ID 10개 이상**을 기준으로 하며 matrix shard 수나 동일 run 재실행 횟수를 표본 수로 대체하지 않는다.
+CI cache는 성능 보조 수단이며 검증 PASS 증거가 아니다. `npm ci`의 frozen install은 항상 실행하고 `node_modules`를 cache하지 않는다. setup/cache 변경은 cache miss에서도 동일 required gate가 실행되어야 하며 Secret·`.env`·runtime DB·test PASS 결과를 cache/artifact에 저장하지 않는다. Playwright browser cache 같은 신규 cache는 setup 비용 baseline과 invalidation 근거 없이 추가하지 않는다. Phase 2 baseline은 workflow 파일/event/job/metric별로 분리하고 **서로 다른 successful run ID 10개 이상**을 기준으로 하며 matrix shard 수나 동일 run 재실행 횟수를 표본 수로 대체하지 않는다. 표본 충족 뒤에는 `analyze-ci-setup-metrics.mjs`의 lane readiness/비용 순위와 `compare-ci-setup-metrics.mjs`의 동일 workload before/after를 근거로 채택하며, `verify-ci-cache-contract.mjs`가 npm/Next/Docker/Playwright invalidation·fallback 계약 drift를 fail-closed로 차단한다.
 
 ### Main Artifact Validation
 
