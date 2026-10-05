@@ -584,7 +584,7 @@ def process_item(repo: str, item: WorkItem, release_state: str) -> str:
                 f"{item.current_version}에 대한 신뢰 가능한 release 승인 marker가 없습니다"
             )
         release_authorized = True
-        if release_state == "not-started":
+        if release_state in {"not-started", "tagged"}:
             operation = "release_start"
         elif release_state == "success":
             operation = "release_finalize"
@@ -740,9 +740,8 @@ def execute(trigger_sha: str) -> int:
                 ]
             )
             return 0
-        if release_state in {"tagged", "in-progress", "failed"}:
+        if release_state in {"in-progress", "failed"}:
             reason = {
-                "tagged": "release workflow가 tag를 인식해 실행 증거를 만들기를 기다립니다.",
                 "in-progress": "immutable release evidence가 완료될 때까지 lifecycle mutation을 중복 실행하지 않습니다.",
                 "failed": "release evidence가 실패 상태입니다. Issue/branch를 유지하고 기존 release run 재실행 성공을 기다립니다.",
             }[release_state]
