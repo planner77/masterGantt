@@ -349,7 +349,7 @@ def resolve_context(args: argparse.Namespace) -> Context:
         f"- missing/failed checks: {', '.join(missing_checks) if missing_checks else 'none'}",
         f"- exact target main CI: {main_ci_url or 'N/A'}",
         f"- main change docs-only: {str(main_docs_only).lower()}",
-        f"- temporary GHCR validation/cleanup: {main_artifact_evidence}",
+        f"- temporary GHCR validation/handoff: {main_artifact_evidence}",
         f"- release_required: {str(release_required).lower()}",
         f"- release_authorized: {str(release_authorized).lower()}",
         f"- gate: {gate}",
