@@ -1,14 +1,29 @@
 # Changelog
 
-## [0.83.5] - 2026-10-06
+## [0.85.1] - 2026-10-06
 
 ### Fixed
 
 - Issue #452: Main CI에서 검증한 non-docs `ci-<SHA>` candidate를 Generic Release Finalizer 판정 전에 삭제하지 않고 lifecycle handoff까지 보존하도록 GHCR 수명주기를 정합화한다.
 - `release_required=false` finalize에서만 exact temporary candidate를 fail-closed helper로 정리하고, release-required candidate는 formal exact-digest promotion에 사용하도록 유지한다.
-- Generic Finalizer/Resume 및 수동 finalize 경로에 temporary package cleanup을 위한 최소 `packages: write` 권한과 정적 회귀 검증을 추가한다.
-- 실패한 immutable `v0.83.4` tag는 이동·재사용하지 않고 corrective PATCH `0.83.5`에서 새 Main verified candidate와 정식 GHCR promotion을 다시 수행한다.
-- Application version을 `0.83.4`에서 `0.83.5`로 증가한다.
+- Generic Finalizer/Resume 및 수동 finalize 경로에 temporary package cleanup을 위한 최소 `packages: write` 권한·job-scoped token과 정적 회귀 검증을 추가한다. 정식 image build/promotion은 계속 `release-image.yml`에만 위임한다.
+- PR #469를 최신 `main` 0.85.0 / Issue #460 변경 위로 재정렬해 Milestone Stage Gate 구현과 문서를 보존한다.
+- 실패한 immutable `v0.83.4`와 미게시 작업 후보 `0.83.5`는 재사용하지 않고 corrective PATCH `0.85.1`에서 새 Main verified candidate와 정식 GHCR promotion을 다시 수행한다.
+- Application version을 `0.85.0`에서 `0.85.1`로 증가한다.
+
+## [0.85.0] - 2026-10-05
+
+### Added
+
+- Issue #460: Task/Summary의 단일 명시 완료 단계 소속과 Summary 상속을 일정 Dependency 및 WBS와 분리하여 저장한다. canonical snapshot에 직접·유효 소속·상속 출처 및 Milestone의 소속 작업 진척·Ready·선행 차단·완료 불일치 진단을 제공한다.
+- 작업 기본 필드와 소속의 복합 PATCH 및 여러 소속 변경의 batch command는 기존 edit session·Origin·If-Match 검증 아래 하나의 transaction/revision으로 처리한다. Summary의 파생 일정·진척은 읽기 전용을 유지한다.
+
+### Changed
+
+- Milestone 완료 전환을 서버에서 재검증하고 완료 단계의 명시·유효 소속 및 Dependency 구조 변경에는 먼저 재개하도록 요구한다. 일반 Task 진척과 비구조 편집은 기존 계약을 유지하고 완료 상태를 자동으로 연쇄 변경하지 않는다.
+- 신규 Task↔Milestone Dependency 생성을 제한하며 기존 mixed Link의 조회·일정·명시적 편집·삭제 호환성을 보존한다.
+- 소속 보존이 아직 지원되지 않는 Import/Copy/Template/Excel 경로는 명시적인 데이터 유실 방지 오류를 반환한다. Import의 기존 고정 성공 응답을 실제 저장으로 표시하지 않는다. 후속 Issue #464에서 완전한 보존을 구현한다.
+- Application version을 `0.83.4`에서 `0.85.0`으로 증가한다. 별도 열린 PR #346의 `0.84.0`과 중복을 피하며 이번 요청에서 정식 릴리스를 게시하지 않는다.
 
 ## [0.83.4] - 2026-10-05
 

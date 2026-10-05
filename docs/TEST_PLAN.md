@@ -1,5 +1,12 @@
 # Test Plan
 
+## Issue #460 — Stage Gate 회귀
+
+[Milestone Stage Gates](MILESTONE_STAGE_GATES.md)의 검증 파일 목록을 기준으로 explicit/상속/override/clear/빈 Summary/기준 scope 무관 계산, duration 가중률·반올림·canonical 완료·수동 이벤트·predecessor Gate를 검증한다. 실제 SQLite/API는 atomic composite/batch, 일정/WBS/Link/Assignment 불변, FK/Project 격리/unique/invalid type, 401/403/428/412, 오류 rollback, completion status/progress 양 경로, old/new explicit+effective 구조 잠금, CRUD/hierarchy/Link 우회, legacy mixed 보존/신규 금지, no-loss Copy/Template/Excel/Import를 포함한다.
+
+DB 테스트는 schema21→0022에서 원래 Task/status/progress/Link/Assignment/ID/Project revision 불변과 empty membership을 비교하고 신규 DB/FK/restart도 확인한다. 실제 Next API E2E `milestone-stage-gates.spec.ts`는 저장/Ready/완료잠금/안전거부/401와 프로세스 재시작 SQLite 보존을 검증한다. M→M FS/SS/FF/SF signed Lag/N:M/cycle/Manual/근무일은 별도 scheduler 테스트에서 검증한다. 로컬 결과·독립 테스트 Agent·PR CI required quality/e2e/docker 및 운영 환경 결과를 서로 구분하며 미실행은 NOT TESTED다.
+
+
 ## Issue #430 Cut/Reparent Dependency 경계 회귀
 
 - Unit `task-link-scope.test.ts`: source subtree의 internal→internal, external→internal, internal→external, external→external 및 missing Task를 분리해 XOR boundary 판정을 검증한다. 기존 `taskSubtreeHasDependencyLinks`의 Delete/Indent/Outdent 의미는 유지한다.
@@ -1439,5 +1446,5 @@ Issue #452 소비자 전수 및 실제 실행/미실행 구분은 [검증 증거
 - Release #133.1은 static quality와 Chromium 6/6이 PASS했으나 `Main verified candidate exact digest 확인`에서 candidate 부재로 FAIL했다.
 - 보완 후 Main artifact job은 successful non-docs candidate를 Finalizer에 handoff하고 직접 삭제하지 않아야 한다.
 - no-release lifecycle fixture에서는 `cleanup_temporary_main_candidate`가 exact `ci-<SHA>` cleanup helper를 호출하며, release-required finalize에서는 candidate cleanup을 호출하지 않아야 한다.
-- Generic Finalizer/Resume과 수동 finalize mutation job은 candidate cleanup에 필요한 `packages: write`를 가지되 PR/일반 CI 권한은 확대하지 않는다.
-- failed immutable `v0.83.4`는 이동/재사용하지 않는다. corrective package version은 `0.83.5`이며 PR CI → Main CI → Finalizer → Release에서 새 exact SHA/digest로 검증한다.
+- Generic Finalizer/Resume과 수동 finalize mutation job은 candidate cleanup에 필요한 `packages: write`를 가지되 PR/일반 CI 권한은 확대하지 않는다. formal build/promotion은 계속 `release-image.yml`만 수행한다.
+- failed immutable `v0.83.4`와 미게시 작업 후보 `0.83.5`는 재사용하지 않는다. 최신 main 0.85.0 기준 corrective package version은 `0.85.1`이며 PR CI → Main CI → Finalizer → Release에서 새 exact SHA/digest로 검증한다.

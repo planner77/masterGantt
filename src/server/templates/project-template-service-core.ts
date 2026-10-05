@@ -1,3 +1,4 @@
+import { assertMembershipPreservationAvailable, withStageProjection } from "../projects/milestone-stage-core";
 import { PersistedScheduleInvalidError } from "../projects/project-service-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
@@ -187,6 +188,7 @@ export class ProjectTemplateService {
       }
 
       const calendar = resolveProjectWorkingCalendar(this.database, source.id);
+      assertMembershipPreservationAvailable(this.database, source.id);
       const tasks = this.schedules.listTasks(source.id);
       const links = this.schedules.listLinks(source.id);
       const assignments = this.resources.listAssignments(source.id);
@@ -993,7 +995,7 @@ export class ProjectTemplateService {
         },
       };
 
-      return { response, rawSessionToken: sessionToken.rawToken };
+      return { response: withStageProjection(this.database, project.id, response), rawSessionToken: sessionToken.rawToken };
     })();
   }
 

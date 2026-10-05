@@ -1,5 +1,10 @@
 # Requirements baseline
 
+## Issue #460 — 단계 소속과 Milestone Gate
+
+기존 Milestone identity에 Task/Summary 단일 명시 소속과 가장 가까운 Summary 상속을 추가한다. Ready는 duration 가중 작업 진척 및 canonical 완료 상태/직접 선행 Milestone 조건과 구분하고 자동 완료하지 않는다. 완료 단계의 명시·상속 소속 및 Dependency 구조는 서버 transaction에서 잠근다. Summary는 name/Membership 원자 PATCH만 확장하고 일정 readonly를 유지한다. 신규 mixed Dependency는 거부하며 기존 mixed는 조회·일정·무관 편집·endpoint 불변 수정에서 보존한다. 미지원 Copy/Template/Excel 보존 경로는 Membership 보유 데이터에 한해 명시적 no-loss 오류를 반환한다. 실제 JSON Import 저장 구현은 부재이며 고정 성공 응답을 501 unavailable로 교체한다. 상세 계약과 경로 inventory는 [MILESTONE_STAGE_GATES](MILESTONE_STAGE_GATES.md)를 따른다.
+
+
 ## Issue #430 — Cut/Reparent Dependency 경계 정책
 
 - 단일 Cut source는 선택 Task/Summary와 전체 descendants의 canonical subtree를 이동 집합으로 사용한다. subtree 내부에서 predecessor와 successor가 모두 포함된 Dependency는 Cut을 막지 않으며 Cut → Paste/reparent 후 기존 Link ID, endpoint, type, signed lag/lead를 그대로 유지한다.

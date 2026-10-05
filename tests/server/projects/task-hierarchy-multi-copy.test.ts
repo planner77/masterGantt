@@ -225,7 +225,10 @@ describe("atomic multi-root Copy", () => {
     });
     f.revision = baseline.data.project.revision;
     const target = f.add("Target", undefined, "summary");
-    f.relate(manual, milestone, "SS", 0);
+    // Seed legacy mixed endpoints: the server-owned Copy preserves these existing records.
+    f.db.prepare(`INSERT INTO links(public_id,project_id,predecessor_task_id,successor_task_id,type,lag,created_at,updated_at)
+      SELECT ?,?,?,id,'SS',0,?,? FROM tasks WHERE public_id=?`).run(randomUUID(), f.authorization.projectId,
+        (f.db.prepare("SELECT id FROM tasks WHERE public_id=?").pluck().get(manual.taskId)), clock().toISOString(), clock().toISOString(), milestone.taskId);
     f.db.prepare("UPDATE tasks SET description='kept', url='https://example.com/manual' WHERE public_id=?").run(manual.taskId);
     const original = f.db.prepare("SELECT * FROM tasks WHERE public_id=?").get(manual.taskId);
     const result = f.copy([milestone.taskId, manual.taskId], target);

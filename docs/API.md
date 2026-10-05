@@ -1,5 +1,20 @@
 # Backend API
 
+## Issue #460 — Milestone 소속 / 완료 Gate API
+
+Canonical Task 응답은 `membership={explicitMilestoneTaskId,effectiveMilestoneTaskId,inheritedFromTaskId}`를 null 정규화하여 제공하고 Milestone은 `stageGate`를 제공한다. 모든 ID는 immutable public Task UUID다. effective/inheritance/Ready는 read-only projection이며 저장 입력으로 신뢰하지 않는다. 기존 mixed Link에는 `legacyMixed=true`, 정상 homogeneous Link에는 false를 제공한다. [정확한 DTO·판정·inventory](MILESTONE_STAGE_GATES.md)를 따른다.
+
+`PATCH /api/projects/{publicId}/tasks/{taskId}`의 strict 필드에 `explicitMilestoneTaskId: UUID|null`을 추가한다. omission=현재 명시 소속 보존, null=해제 후 상속 복귀다. Task 기존 허용 필드와 원자 저장하며 Summary는 `name`/Membership 조합만 허용한다. Summary 일정/진척/Baseline 등은 계속 readonly다.
+
+`POST /api/projects/{publicId}/milestone-memberships`는 `{changes:[{taskId,milestoneTaskId:UUID|null}]}`를 받는다. 1..500 unique source와 기존 bounded JSON byte limit을 적용한다. 후보 조회는 전체 Project snapshot을 사용한다. 같은 Project의 Task/Summary→Milestone만 허용한다. exact Origin/edit session/strong If-Match 및 transaction 내 session/revision 재검증을 요구한다. 성공 200+ETag, canonical full snapshot, `operation.kind=milestoneMembership`, revision +1이다. changedTaskExternalIds는 명시 source와 실제 소속/Gate projection이 변한 Task/Milestone을 포함한다. Membership-only 명령은 일정/WBS/Link/Assignment를 변경하지 않으며 실패 시 전부 rollback한다. 다른 operation의 changed 목록을 부분 snapshot으로 해석하지 말고 전체 canonical tasks/links를 반영한다.
+
+기존 401/403/428/412 보호 오류를 유지한다. `409 INVALID_MILESTONE_MEMBERSHIP`, `COMPLETED_MILESTONE_STRUCTURE_LOCKED`, `MILESTONE_NOT_READY`, `MILESTONE_REFERENCED`, `MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE`는 공통 `{error:{code,message,details[],requestId}}`로 반환하고 관련 public Task ID를 details에 제공한다. 내부 SQL/PK를 노출하지 않는다. 완료 guard는 새 status=completed 및 progress=100 전환을 모두 검사한다. 완료 단계 구조 변경은 명시 재개 후 요청해야 한다.
+
+신규 Link 생성은 task→task 또는 milestone→milestone만 허용하고 mixed는 `409 MIXED_DEPENDENCY_ENDPOINT`다. 기존 mixed Link는 endpoint가 동일한 type/Lag 수정·삭제·조회·일정 계산에서 보존한다(완료 endpoint 잠금 적용). client legacy flag는 unknown field로 거부한다.
+
+초기 no-loss 제한으로 Membership이 있는 Project의 전체 Copy/Template 저장/Excel과 Membership이 걸린 subtree/multi-root Copy는 409 전체 거부한다. Membership이 없는 기존 Project는 계속 지원한다. JSON Import preview/commit의 실제 저장 구현은 부재하며 501 `IMPORT_UNAVAILABLE`로 반환한다. preview는 Origin/session, commit은 Origin/session/If-Match를 검증하고 어느 경로도 성공·부분 저장을 주장하지 않는다. JSON Export endpoint는 구현 부재다. #464의 보존 구현 전 이 제한을 bypass하는 flag는 없다.
+
+
 ## Issue #430 — `task-commands` Cut/Reparent Dependency 경계
 
 `POST /api/projects/{publicId}/task-commands`의 기존 `reparent` schema는 변경하지 않는다. Cut clipboard는 client 상태이며 실제 저장은 `reparent` 한 번으로 수행한다.

@@ -1,5 +1,10 @@
 # Scheduling Engine 설계
 
+## Issue #460 — 일정과 Stage Gate의 분리
+
+단계 Membership/Ready는 `src/domain/milestones/stage-gates.ts`에서 전체 canonical hierarchy와 Task status/duration/progress, 직접 Milestone predecessor를 사용하여 계산한다. 일정 graph/WBS를 재작성하거나 Task graph를 단계 graph로 축약하지 않는다. Membership-only 저장은 요청/적용일·기간·mode·Link·Assignment 불변이다. Milestone→Milestone 날짜는 기존 FS/SS/FF/SF/signed Lag/Auto·Manual/근무일 계약을 그대로 사용하며 FS/0을 임의 같은 날로 바꾸지 않는다. 새 mixed Link 금지는 생성 service 경계에만 적용하고 기존 mixed를 pure scheduling에서 일괄 거부하지 않는다. 준비율은 duration 가중 진척, Ready/완료 조건은 canonical status로 판정하며 수동 이벤트는 null이다. [상세 계약](MILESTONE_STAGE_GATES.md), 별도 scheduler 회귀 `tests/domain/milestone-dependency-scheduling.test.ts`를 따른다.
+
+
 ## Issue #430 — Cut/Reparent와 Dependency 경계
 
 Cut/Paste의 실제 저장은 기존 hierarchy `reparent`이며 새 일정 알고리즘을 추가하지 않는다. source Task + descendants를 이동 집합으로 계산해 Dependency 양 endpoint가 모두 집합 내부인 Link는 그대로 보존한다. 따라서 내부 Link의 ID/source/target/type/lag와 leaf의 `requestedStart/start/end/duration/scheduleMode`는 계층 이동 자체로 변경하지 않는다.

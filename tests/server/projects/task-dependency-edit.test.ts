@@ -30,7 +30,13 @@ async function fixture(options: { manual?: boolean; filename?: string; milestone
   const tasks = ["A", "B", "C"].map((id, i) => repo.insertTask({ projectId: authorization.projectId, publicId: randomUUID(), externalId: id, name: id, description: `description ${id}`, url: "https://example.com", type: options.milestone && id === "C" ? "milestone" : "task", scheduleMode: options.manual && id === "C" ? "manual" : "auto", requestedStart: options.manual && id === "C" ? "2026-09-21" : "2026-09-14", startDate: options.manual && id === "C" ? "2026-09-21" : "2026-09-14", endDate: id === "A" ? "2026-09-16" : id === "B" ? "2026-09-15" : options.manual ? "2026-09-21" : "2026-09-14", duration: id === "A" ? 3 : id === "B" ? 2 : options.milestone ? 0 : 1, progress: 0, parentId: parent.id, sortOrder: i, baselineStart: "2026-09-14", baselineEnd: id === "A" ? "2026-09-16" : id === "B" ? "2026-09-15" : "2026-09-14", baselineDuration: id === "A" ? 3 : id === "B" ? 2 : options.milestone ? 0 : 1, createdAt: now, updatedAt: now }));
   const links = new LinkService(database, clock);
   links.create(authorization, 1, { predecessorExternalId: "A", successorExternalId: "B" });
-  links.create(authorization, 2, { predecessorExternalId: "B", successorExternalId: "C" });
+  if (options.milestone) {
+    // Pre-existing mixed endpoints remain schedulable; interactive creation is now prohibited.
+    const legacy = repo.insertLink({ publicId: randomUUID(), projectId: authorization.projectId, predecessorTaskId: tasks[1].id, successorTaskId: tasks[2].id, type: "SS", lag: 0, createdAt: now, updatedAt: now });
+    links.update(authorization, 2, legacy.publicId, { type: "FS" });
+  } else {
+    links.create(authorization, 2, { predecessorExternalId: "B", successorExternalId: "C" });
+  }
   const snapshot = () => service.getReadonlySnapshot(publicId)!.data;
   const patch = async (id: string, body: unknown, headers: Record<string, string> = {}) => {
     const task = tasks.find(t => t.externalId === id)!;

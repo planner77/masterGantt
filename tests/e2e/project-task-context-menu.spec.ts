@@ -411,7 +411,7 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
 
   const link = await page.request.post(`${api}/links`, {
     headers: { Origin: origin, "If-Match": `"${current.data.project.revision}"` },
-    data: { predecessorExternalId: task.externalId, successorExternalId: milestone.externalId, type: "FS", lag: 0 },
+    data: { predecessorExternalId: task.externalId, successorExternalId: summaryChild.externalId, type: "FS", lag: 0 },
   });
   expect(link.status()).toBe(201);
 

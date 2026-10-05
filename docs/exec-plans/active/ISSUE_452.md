@@ -6,7 +6,7 @@
 - 최초 구현 기준 main: `6ce221bc16613625953b85244bb93ad50019b377`, application `0.83.3`; PR #466 병합 SHA는 `9280536ddc85a8a841346bdf413b2ba638685880`, application `0.83.4`다.
 - 최초 작업 branch `fix/issue-452-admin-layout`은 PR #466으로 병합됐다. Main CI #1847.1의 E2E transport reset 보완은 `fix/issue-452-main-ci-e2e-transport`에서 진행한다.
 - 현재 종료점: GHCR candidate lifecycle corrective PR의 exact head PR CI PASS → 병합 → 새 Main CI SUCCESS → Generic Release Finalizer → corrective formal GHCR release → safe cleanup/Issue 종료다.
-- 버전: 실패한 immutable `v0.83.4`는 재사용하지 않고 PATCH `0.83.5`로 진행한다. `release_required=true`, `release_authorized=true`; 사용자의 GHCR 실패 보완·재실행 요청을 `expected_version=0.83.5` corrective 게시 승인 근거로 기록한다. 운영 배포는 범위 밖이다.
+- 최신 재정렬 기준 main: `a9107ab2776829cbb0467a762ab8bf9ce1ce82c4`, application `0.85.0` (#460 병합). 실패한 immutable `v0.83.4`와 미게시 작업 후보 `0.83.5`는 재사용하지 않고 다음 PATCH `0.85.1`로 진행한다. `release_required=true`, `release_authorized=true`; 기존 GHCR corrective 게시 승인 범위를 `expected_version=0.85.1` marker로 승계한다. 운영 배포는 범위 밖이다.
 
 ## 인수 기준과 구현 계약
 
@@ -89,4 +89,4 @@ DOCUMENTATION_SYNC: PASS — 실제 구현 계약·필수 문서·전체 소비�
 - Generic Finalizer #59.1은 #466/#467 same-Issue corrective chain을 e812 target으로 수렴시키고 v0.83.4 Release #133.1을 시작했다. Release static quality와 Chromium 6/6은 PASS했지만 candidate lookup에서 부재를 확인해 FAIL했다.
 - root fix는 Main CI의 successful non-docs candidate를 Finalizer 판정 전 삭제하지 않는 것이다. no-release만 lifecycle finalize에서 exact temporary candidate를 삭제한다.
 - Generic Finalizer/Resume 및 manual finalize에 scoped `packages: write`를 추가하고 정적 lifecycle/deployment regression으로 권한과 cleanup 소유권을 검증한다.
-- failed immutable v0.83.4 tag는 이동/삭제/덮어쓰기하지 않는다. corrective branch `fix/issue-452-release-candidate-lifecycle`에서 application `0.83.5`로 새 release authority를 만든다.
+- failed immutable v0.83.4 tag는 이동/삭제/덮어쓰기하지 않는다. corrective branch `fix/issue-452-release-candidate-lifecycle`에서 application `0.85.1`로 새 release authority를 만든다.

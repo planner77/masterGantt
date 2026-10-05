@@ -1,3 +1,4 @@
+import { StageGateError } from "../../domain/milestones/stage-gates";
 import type {
   ApiErrorDetail,
   ApiErrorResponse,
@@ -41,7 +42,9 @@ export function apiErrorResponse(
   error: unknown,
   requestId: string,
 ): Response {
-  const publicError = error instanceof PublicApiError
+  const publicError = error instanceof StageGateError
+    ? new PublicApiError(409, error.code, "The milestone operation requires review. Reopen completed stages or use a supported preservation path.", error.taskIds.map((id) => ({ path: "taskId", code: error.code, message: id })))
+    : error instanceof PublicApiError
     ? error
     : new PublicApiError(
       500,
