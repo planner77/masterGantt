@@ -219,7 +219,7 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 - Chromium shard는 runner별 workers=1을 유지하되 CI 전용 test-level distribution을 사용한다. shard 개수 증가보다 먼저 실제 duration 편차를 확인한다.
 - Release는 static quality + 6 Chromium shards가 모두 PASS한 뒤에만 candidate/publish 단계로 이동한다.
 - Main CI Finalizer가 release를 시작한 뒤에는 Actions UI에서 Finalizer가 먼저 종료되는 것이 정상이다.
-- 정식 release publish 성공 후에는 release workflow가 `release-finalizer-resume.yml`을 exact `target_sha`와 함께 `workflow_dispatch`한다. `Publish release image workflow_run.completed` 구독은 fallback으로 유지한다.
+- 정식 release publish 성공 후에는 release workflow가 `release-finalizer-resume.yml`을 exact `target_sha`와 source `release_run_id`와 함께 `workflow_dispatch`한다. `Publish release image workflow_run.completed` 구독은 fallback으로 유지한다. Explicit Resume은 source run이 실제 `completed/success`로 전환되고 동일 target SHA를 가리키는지 확인한 뒤 lifecycle을 재개한다.
 - Resume workflow는 write 권한 경계이므로 tag/manual ref를 checkout하지 않고 trusted `main`에서 Generic resolver를 실행한다.
 - Release 실패 시 Issue/branch를 닫거나 지우지 않는다. 기존 immutable run의 성공 재실행 또는 same-Issue corrective release 뒤 lifecycle을 재평가한다.
 - explicit handoff 실패는 이미 성공한 publication을 실패로 바꾸지 않는다. 이후 completion fallback 또는 다음 Main CI가 backlog를 다시 계산할 수 있다.
