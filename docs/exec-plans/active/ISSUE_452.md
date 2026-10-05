@@ -5,8 +5,8 @@
 - Issue: [#452](https://github.com/planner77/masterGantt/issues/452), Epic [#449](https://github.com/planner77/masterGantt/issues/449).
 - 최초 구현 기준 main: `6ce221bc16613625953b85244bb93ad50019b377`, application `0.83.3`; PR #466 병합 SHA는 `9280536ddc85a8a841346bdf413b2ba638685880`, application `0.83.4`다.
 - 최초 작업 branch `fix/issue-452-admin-layout`은 PR #466으로 병합됐다. Main CI #1847.1의 E2E transport reset 보완은 `fix/issue-452-main-ci-e2e-transport`에서 진행한다.
-- 현재 종료점: corrective PR의 exact head PR CI PASS → 병합 → 새 Main CI 시작 확인. 이후 Main CI SUCCESS 시 Generic Release Finalizer가 정식 GHCR release·safe cleanup·Issue 종료를 이어간다.
-- 버전: PATCH `0.83.4` 유지. `release_required=true`, `release_authorized=true`; Issue의 trusted version-scoped marker가 `expected_version=0.83.4`를 승인한다. 운영 배포는 범위 밖이다.
+- 현재 종료점: GHCR candidate lifecycle corrective PR의 exact head PR CI PASS → 병합 → 새 Main CI SUCCESS → Generic Release Finalizer → corrective formal GHCR release → safe cleanup/Issue 종료다.
+- 버전: 실패한 immutable `v0.83.4`는 재사용하지 않고 PATCH `0.83.5`로 진행한다. `release_required=true`, `release_authorized=true`; 사용자의 GHCR 실패 보완·재실행 요청을 `expected_version=0.83.5` corrective 게시 승인 근거로 기록한다. 운영 배포는 범위 밖이다.
 
 ## 인수 기준과 구현 계약
 
@@ -80,3 +80,13 @@ DOCUMENTATION_SYNC: PASS — 실제 구현 계약·필수 문서·전체 소비�
 - 제품 UI/API 코드는 변경하지 않는다. direct document GET에 한해 `socket hang up|ECONNRESET`만 최대 3회 bounded retry하며 HTTP status/body/title 실패와 retry 소진은 계속 FAIL한다.
 - 이 corrective diff는 tests/docs의 non-docs 변경이며 기존 #452 merge와 같은 검증 scope로 취급한다. PR body는 canonical `Refs #452`를 유지해 Generic Finalizer의 same-Issue convergence 대상이 되도록 한다.
 - v0.83.4 authorization marker는 이미 기록되어 있으며 새 version/tag를 만들지 않는다. 새 Main CI가 SUCCESS일 때만 Generic Release Finalizer의 release_start 경로가 annotated tag와 `release-image.yml`을 시작할 수 있다.
+
+
+## GHCR Release #133.1 corrective 재개
+
+- Main CI #1852.1은 merge SHA `e812e56f45fc9d641ffcd80e49fb0deaf115b704`의 `ci-e812...` 이미지를 build/push하고 exact digest image policy/readiness/SQLite/API/transport를 모두 PASS했다.
+- artifact job 마지막 단계가 immediate `version_changed=false`를 근거로 verified candidate package version을 삭제했다.
+- Generic Finalizer #59.1은 #466/#467 same-Issue corrective chain을 e812 target으로 수렴시키고 v0.83.4 Release #133.1을 시작했다. Release static quality와 Chromium 6/6은 PASS했지만 candidate lookup에서 부재를 확인해 FAIL했다.
+- root fix는 Main CI의 successful non-docs candidate를 Finalizer 판정 전 삭제하지 않는 것이다. no-release만 lifecycle finalize에서 exact temporary candidate를 삭제한다.
+- Generic Finalizer/Resume 및 manual finalize에 scoped `packages: write`를 추가하고 정적 lifecycle/deployment regression으로 권한과 cleanup 소유권을 검증한다.
+- failed immutable v0.83.4 tag는 이동/삭제/덮어쓰기하지 않는다. corrective branch `fix/issue-452-release-candidate-lifecycle`에서 application `0.83.5`로 새 release authority를 만든다.
