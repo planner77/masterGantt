@@ -1417,3 +1417,13 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Artifact security: setup metric artifact는 runner temp의 JSONL만 업로드하며 secret/token/`.env`/runtime SQLite/test result PASS evidence를 포함하지 않는다.
 - Static policy: `scripts/verify-ci-cache-contract.mjs`를 CI policy job과 Vitest에서 실행해 cache 책임/invalidation/fallback 계약 drift를 차단한다.
 - 공식 구현 판정은 #444 PR exact head의 required quality/e2e/docker 결과다. baseline/비교 표본 부족 상태에서는 실제 cache 최적화 효과를 PASS로 주장하지 않는다.
+
+### Readiness automation 회귀
+
+- Trigger: `CI`와 `Publish release image`의 successful `workflow_run.completed`, 일일 schedule, 수동 dispatch를 지원한다. 실패/취소 source run은 readiness job을 실행하지 않는다.
+- Trusted checkout: write 권한 workflow는 `ref: main` + `persist-credentials: false`를 사용하고 triggering PR/tag/head SHA를 checkout하지 않는다.
+- Source selection: PR=`ci.yml/pull_request`, Main=`ci.yml/push`, canonical Release=`release-image.yml/workflow_dispatch` successful run만 수집한다.
+- Comment idempotency: `mastergantt-ci-setup-readiness:v1` bot marker가 있으면 PATCH, 없으면 POST하여 #444에 readiness 댓글을 하나만 유지한다.
+- READY contract: 세 lane의 모든 입력 그룹이 distinct successful run 10개 이상이어야 하며 READY에서도 자동 cache 변경·PR 생성·Issue close를 수행하지 않는다.
+- Closed Issue: #444가 closed이면 history download, analysis, artifact upload, comment mutation을 모두 생략한다.
+
