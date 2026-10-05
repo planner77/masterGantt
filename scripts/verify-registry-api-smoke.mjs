@@ -4,10 +4,11 @@ const [baseUrl, containerName] = process.argv.slice(2);
 const allowedContainers = new Set([
   "mastergantt-commit-smoke",
   "mastergantt-release-smoke",
+  "mastergantt-release-candidate",
   "mastergantt-w22-local",
 ]);
 if (!baseUrl || !allowedContainers.has(containerName)) {
-  throw new Error("usage: verify-registry-api-smoke.mjs BASE_URL {mastergantt-commit-smoke|mastergantt-release-smoke|mastergantt-w22-local}");
+  throw new Error("usage: verify-registry-api-smoke.mjs BASE_URL {mastergantt-commit-smoke|mastergantt-release-smoke|mastergantt-release-candidate|mastergantt-w22-local}");
 }
 
 const origin = "https://gantt.example.invalid";
