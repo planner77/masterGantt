@@ -220,15 +220,12 @@ jobs:
             )
             for run_id in "${candidate_ids[@]}"; do
               jobs_json="$(gh api "/repos/$repo/actions/runs/$run_id/jobs?filter=latest&per_page=100")"
-              typecheck="$(jq -r '[.jobs[] | select(.name == "TypeScript 타입 검사")][0].conclusion // ""' <<<"$jobs_json")"
-              lint="$(jq -r '[.jobs[] | select(.name == "ESLint")][0].conclusion // ""' <<<"$jobs_json")"
-              unit="$(jq -r '[.jobs[] | select(.name == "Vitest 단위·통합 테스트")][0].conclusion // ""' <<<"$jobs_json")"
-              build="$(jq -r '[.jobs[] | select(.name == "Next.js production build")][0].conclusion // ""' <<<"$jobs_json")"
-              docker="$(jq -r '[.jobs[] | select(.name == "Docker smoke 구현")][0].conclusion // ""' <<<"$jobs_json")"
-              e2e_count="$(jq '[.jobs[] | select(.name | test("^Chromium E2E shard [0-9]+/6$"))] | length' <<<"$jobs_json")"
-              e2e_success="$(jq '[.jobs[] | select(.name | test("^Chromium E2E shard [0-9]+/6$")) | select(.conclusion == "success")] | length' <<<"$jobs_json")"
-              if [[ "$typecheck" == "success" && "$lint" == "success" && "$unit" == "success" && "$build" == "success" && "$docker" == "success" && "$e2e_count" -eq 6 && "$e2e_success" -eq 6 ]]; then
-                echo "동일 head SHA의 전체 CI 증거 확인: run $run_id"
+              metadata_gate="$(jq -r '[.jobs[] | select(.name == "PR metadata가 기존 전체 CI 증거를 보존하는지 검증")][0].conclusion // ""' <<<"$jobs_json")"
+              quality="$(jq -r '[.jobs[] | select(.name == "Build, static checks, and unit tests")][0].conclusion // ""' <<<"$jobs_json")"
+              e2e="$(jq -r '[.jobs[] | select(.name == "Chromium end-to-end tests")][0].conclusion // ""' <<<"$jobs_json")"
+              docker="$(jq -r '[.jobs[] | select(.name == "Docker build and runtime smoke test")][0].conclusion // ""' <<<"$jobs_json")"
+              if [[ "$metadata_gate" == "skipped" && "$quality" == "success" && "$e2e" == "success" && "$docker" == "success" ]]; then
+                echo "동일 head SHA의 전체 CI required gate 증거 확인: run $run_id"
                 exit 0
               fi
             done
