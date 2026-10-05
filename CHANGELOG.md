@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.83.3] - 2026-10-05
+
+### Fixed
+
+- Issue #439: GHCR Release candidate의 실제 container 이름 `mastergantt-release-candidate`를 registry Project/Task API smoke allowlist에 추가하여 v0.83.2 Release Run #131의 deterministic usage 오류를 수정한다.
+- Release workflow 호출 인자와 registry smoke allowlist의 container 이름이 다시 어긋나지 않도록 정적 회귀 테스트를 추가한다.
+- 실패한 annotated `v0.83.2` tag는 이동·재사용하지 않고 same-Issue corrective PATCH `0.83.3`에서 exact Main verified candidate digest 검증과 GHCR promotion을 다시 수행한다.
+- Application version을 `0.83.2`에서 `0.83.3`으로 증가한다.
+
 ## [0.83.2] - 2026-10-05
 
 ### Changed
