@@ -6,6 +6,14 @@ function arg(name, fallback = "") {
   return index >= 0 && process.argv[index + 1] ? process.argv[index + 1] : fallback;
 }
 
+function workflowIdentity() {
+  const workflowRef = process.env.GITHUB_WORKFLOW_REF || "";
+  const marker = "/.github/workflows/";
+  const markerIndex = workflowRef.indexOf(marker);
+  if (markerIndex >= 0) return workflowRef.slice(markerIndex + 1).replace(/@.*$/, "");
+  return process.env.GITHUB_WORKFLOW || "unknown-workflow";
+}
+
 const metric = arg("metric");
 const startedMs = Number(arg("started-ms"));
 const cache = arg("cache", "n/a");
@@ -25,10 +33,11 @@ mkdirSync(dirname(file), { recursive: true });
 
 const first = !existsSync(file);
 const record = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   issue: 439,
   runId: process.env.GITHUB_RUN_ID || "",
   runAttempt: Number(process.env.GITHUB_RUN_ATTEMPT || 0),
+  workflow: workflowIdentity(),
   job,
   eventName: process.env.GITHUB_EVENT_NAME || "",
   headSha: process.env.GITHUB_SHA || "",
@@ -42,23 +51,9 @@ appendFileSync(file, JSON.stringify(record) + "\n", "utf8");
 const summary = process.env.GITHUB_STEP_SUMMARY;
 if (summary) {
   if (first) {
-    appendFileSync(
-      summary,
-      [
-        "",
-        "### CI setup/cache 계측 (#439)",
-        "",
-        "| 항목 | 시간 | cache |",
-        "| --- | ---: | --- |",
-      ].join("\n") + "\n",
-      "utf8",
-    );
+    appendFileSync(summary, ["", "### CI setup/cache 계측 (#439)", "", "| 항목 | 시간 | cache |", "| --- | ---: | --- |"].join("\n") + "\n", "utf8");
   }
-  appendFileSync(
-    summary,
-    `| ${metric} | ${(durationMs / 1000).toFixed(2)}s | ${cache} |\n`,
-    "utf8",
-  );
+  appendFileSync(summary, `| ${metric} | ${(durationMs / 1000).toFixed(2)}s | ${cache} |\n`, "utf8");
 }
 
 process.stdout.write(`${metric}: ${durationMs}ms cache=${cache}\n`);
