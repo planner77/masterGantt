@@ -3,10 +3,10 @@
 ## 요청 범위와 기준
 
 - Issue: [#452](https://github.com/planner77/masterGantt/issues/452), Epic [#449](https://github.com/planner77/masterGantt/issues/449).
-- 기준 main: `6ce221bc16613625953b85244bb93ad50019b377`, application `0.83.3`.
-- 작업 branch: `fix/issue-452-admin-layout`. 기존 #384 작업 branch를 보존하고 clean checkout에서 최신 main을 반영했다.
-- 종료점: 구현·관련 문서 동기화·독립 사전 검토·PR 생성 및 exact head CI 시작 확인. CI 모니터링·병합·main 검증·GHCR·branch 삭제·Issue 종료는 범위 밖이다.
-- 버전: 레이아웃 버그 수정 PATCH `0.83.4`. `release_required=true`, `release_authorized=false`; 후속 정식 게시에는 별도 명시적 승인이 필요하다.
+- 최초 구현 기준 main: `6ce221bc16613625953b85244bb93ad50019b377`, application `0.83.3`; PR #466 병합 SHA는 `9280536ddc85a8a841346bdf413b2ba638685880`, application `0.83.4`다.
+- 최초 작업 branch `fix/issue-452-admin-layout`은 PR #466으로 병합됐다. Main CI #1847.1의 E2E transport reset 보완은 `fix/issue-452-main-ci-e2e-transport`에서 진행한다.
+- 현재 종료점: corrective PR의 exact head PR CI PASS → 병합 → 새 Main CI 시작 확인. 이후 Main CI SUCCESS 시 Generic Release Finalizer가 정식 GHCR release·safe cleanup·Issue 종료를 이어간다.
+- 버전: PATCH `0.83.4` 유지. `release_required=true`, `release_authorized=true`; Issue의 trusted version-scoped marker가 `expected_version=0.83.4`를 승인한다. 운영 배포는 범위 밖이다.
 
 ## 인수 기준과 구현 계약
 
@@ -70,3 +70,13 @@ Local Fast Feedback은 관련 typecheck/lint/인증·geometry E2E에 한정한�
 [검증 증거와 legacy 소비자 전수 분석](../../ISSUE_452_UI_EVIDENCE.md)을 따른다. 최종 로컬 실행 및 독립 사전 QA와 PR CI 시작을 구분하여 기록한다.
 
 DOCUMENTATION_SYNC: PASS — 실제 구현 계약·필수 문서·전체 소비자 분석·실행/실패 이력·비민감 증거를 동기화했다. 관련 E2E는 combined run의 성공13 항목과 fixture 보정 후 단독 성공1 항목을 구분한다. 정식 전체 회귀 및 원격 QA는 NOT TESTED다.
+
+
+## Main CI #1847.1 corrective 재개
+
+- 실패 run: `37322272261`; Chromium E2E shard 2/6에서 `project-browser-title-favicon.spec.ts`의 `page.request.get(secondPath)`가 assertion 이전 `socket hang up`으로 종료됐다.
+- corrective PR: #467 (`fix/issue-452-main-ci-e2e-transport` → `main`). exact head의 full PR CI를 병합 gate로 사용한다.
+- 같은 shard는 56 PASS / 1 FAIL이며 다른 5개 E2E shard와 build/typecheck/lint/Vitest/Docker는 PASS였다. Main 임시 GHCR job은 전체 E2E gate 실패로 SKIPPED됐다.
+- 제품 UI/API 코드는 변경하지 않는다. direct document GET에 한해 `socket hang up|ECONNRESET`만 최대 3회 bounded retry하며 HTTP status/body/title 실패와 retry 소진은 계속 FAIL한다.
+- 이 corrective diff는 tests/docs의 non-docs 변경이며 기존 #452 merge와 같은 검증 scope로 취급한다. PR body는 canonical `Refs #452`를 유지해 Generic Finalizer의 same-Issue convergence 대상이 되도록 한다.
+- v0.83.4 authorization marker는 이미 기록되어 있으며 새 version/tag를 만들지 않는다. 새 Main CI가 SUCCESS일 때만 Generic Release Finalizer의 release_start 경로가 annotated tag와 `release-image.yml`을 시작할 수 있다.
