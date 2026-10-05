@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.83.2] - 2026-10-05
+
+### Changed
+
+- Issue #439: PR/Main/Release의 checkout, Node/npm, Playwright, Next build cache, Docker Buildx/build-push setup 비용을 동일 JSONL/Step Summary 형식으로 계측한다.
+- npm download cache는 OS/arch/Node/lockfile key와 exact hit/miss를 기록하고 `npm ci` 및 `node_modules` 비캐시 계약을 유지한다. Playwright browser cache는 baseline 10회 전에는 활성화하지 않는다.
+- baseline analyzer를 workflow/event/job/metric별로 분리하고 서로 다른 successful run ID 10개 이상을 Phase 2 진입 기준으로 사용해 matrix shard와 rerun이 표본 수를 부풀리지 않도록 한다.
+- cache miss에서도 기존 required quality/E2E/Docker gate를 그대로 실행하고 cache/artifact에 secret, runtime DB, test PASS evidence를 저장하지 않는 안전 계약을 문서·회귀 테스트로 고정한다.
+- Application version을 `0.83.1`에서 `0.83.2`로 증가한다.
+
 ## [0.83.0] - 2026-10-05
 
 ### Added

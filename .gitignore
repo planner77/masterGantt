@@ -26,3 +26,5 @@ __pycache__/
 *.pyc
 .e2e-history/
 .e2e-shard-proposal.json
+.ci-setup-metrics/
+ci-setup-metrics-analysis.json

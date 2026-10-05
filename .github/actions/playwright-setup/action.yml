@@ -1,0 +1,43 @@
+name: Playwright setup 계측
+description: Chromium OS dependency와 headless-shell 설치 비용을 분리 계측한다. browser cache는 baseline 10회 전에는 활성화하지 않는다.
+outputs:
+  playwright-version:
+    description: 설치된 Playwright version
+    value: ${{ steps.version.outputs.value }}
+runs:
+  using: composite
+  steps:
+    - name: Playwright version 확인
+      id: version
+      shell: bash
+      run: |
+        version="$(node -p 'require("@playwright/test/package.json").version')"
+        echo "value=$version" >> "$GITHUB_OUTPUT"
+
+    - name: Chromium OS dependency 계측 시작
+      id: deps-start
+      shell: bash
+      run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
+
+    - name: Chromium OS dependency 설치
+      shell: bash
+      run: npx --no-install playwright install-deps chromium
+
+    - name: Chromium OS dependency 시간 기록
+      if: always()
+      shell: bash
+      run: node scripts/record-ci-setup-metric.mjs --metric playwright-os-deps --started-ms "${{ steps.deps-start.outputs.started_ms }}" --cache "not-enabled"
+
+    - name: Chromium headless shell 계측 시작
+      id: browser-start
+      shell: bash
+      run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
+
+    - name: Chromium headless shell 설치
+      shell: bash
+      run: npx --no-install playwright install --only-shell chromium
+
+    - name: Chromium headless shell 시간 기록
+      if: always()
+      shell: bash
+      run: node scripts/record-ci-setup-metric.mjs --metric playwright-headless-shell --started-ms "${{ steps.browser-start.outputs.started_ms }}" --cache "not-enabled"

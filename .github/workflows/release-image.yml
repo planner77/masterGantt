@@ -44,11 +44,18 @@ jobs:
       target_sha: ${{ steps.tags.outputs.target_sha }}
     steps:
       # actions/checkout v7.0.1
+      - name: checkout 계측 시작
+        id: checkout-start
+        shell: bash
+        run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           # Annotated tag 여부를 tag object 자체로 검사해야 하므로 tag history를 받는다.
           fetch-depth: 0
+      - name: checkout 시간 기록
+        shell: bash
+        run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
       - name: Enforce exact package/tag SemVer agreement
         env:
           RELEASE_TAG: ${{ github.ref_name }}
@@ -97,24 +104,46 @@ jobs:
     needs: prepare
     timeout-minutes: 20
     steps:
+      - name: checkout 계측 시작
+        id: checkout-start
+        shell: bash
+        run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - name: checkout 시간 기록
+        shell: bash
+        run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
+      - name: Node/npm setup 계측
+        uses: ./.github/actions/node-setup
         with:
-          node-version: 22
-          cache: npm
-      - name: Record Node and npm versions
+          node-version: "22"
+      - name: Node/npm version 기록
         run: |
           node --version
           npm --version
-      - run: npm ci --prefer-offline --no-audit
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
       - run: npm audit --omit=dev
       - run: node scripts/check-markdown-links.mjs
+      - name: Release production build 계측 시작
+        id: release-build-start
+        shell: bash
+        run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - run: npm run build
+      - name: Release production build 시간 기록
+        if: always()
+        shell: bash
+        run: node scripts/record-ci-setup-metric.mjs --metric release-production-build --started-ms "${{ steps.release-build-start.outputs.started_ms }}"
+      - name: Release static setup 계측 artifact 업로드
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: release-setup-metrics-static
+          path: ${{ runner.temp }}/ci-setup-metrics-${{ github.job }}.jsonl
+          if-no-files-found: error
+          retention-days: 30
 
   release_e2e_shard:
     name: Release Chromium E2E shard ${{ matrix.shard }}/6
@@ -126,16 +155,22 @@ jobs:
       matrix:
         shard: [1, 2, 3, 4, 5, 6]
     steps:
+      - name: checkout 계측 시작
+        id: checkout-start
+        shell: bash
+        run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - name: checkout 시간 기록
+        shell: bash
+        run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
+      - name: Node/npm setup 계측
+        uses: ./.github/actions/node-setup
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci --prefer-offline --no-audit
-      - name: Chromium headless shell 설치
-        run: npx --no-install playwright install --with-deps --only-shell chromium
+          node-version: "22"
+      - name: Playwright setup 계측
+        uses: ./.github/actions/playwright-setup
       - name: Release E2E shard 실행
         env:
           CI_E2E_FULLY_PARALLEL: "true"
@@ -145,6 +180,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          export E2E_RUN_STARTED_MS="$(date +%s%3N)"
           set +e
           selection="$(node scripts/e2e-shard-planner.mjs select --plan tests/config/e2e-shard-plan.json --shard "${{ matrix.shard }}" --total 6)"
           selection_status=$?
@@ -168,6 +204,14 @@ jobs:
           name: e2e-timing-release-shard-${{ matrix.shard }}
           path: test-results/e2e-timing-shard-${{ matrix.shard }}.json
           if-no-files-found: ignore
+          retention-days: 30
+      - name: Release E2E setup 계측 artifact 업로드
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: release-setup-metrics-e2e-shard-${{ matrix.shard }}
+          path: ${{ runner.temp }}/ci-setup-metrics-${{ github.job }}.jsonl
+          if-no-files-found: error
           retention-days: 30
       - name: 실패 shard Playwright report 업로드
         if: failure()
@@ -220,9 +264,16 @@ jobs:
       candidate_image: ${{ steps.candidate.outputs.image }}
     steps:
       # actions/checkout v7.0.1
+      - name: checkout 계측 시작
+        id: checkout-start
+        shell: bash
+        run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - name: checkout 시간 기록
+        shell: bash
+        run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
       # docker/setup-buildx-action v4.4.0
       - uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003
       # docker/login-action v4.6.0
@@ -280,17 +331,16 @@ jobs:
             echo "- Source SHA: `$EXPECTED_SHA`"
             echo "- Version: `$EXPECTED_VERSION`"
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: 릴리스 후보 전송 검증용 Node 준비
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - name: 릴리스 후보 Node/npm setup 계측
+        uses: ./.github/actions/node-setup
         with:
-          node-version: 22
-          cache: npm
+          node-version: "22"
+      - name: 릴리스 후보 Playwright setup 계측
+        uses: ./.github/actions/playwright-setup
       - name: 릴리스 후보 HTTP·HTTPS 전송 정책 회귀 검사
         env:
           CANDIDATE_IMAGE: ${{ steps.candidate.outputs.image }}
         run: |
-          npm ci --prefer-offline --no-audit
-          npx --no-install playwright install --with-deps --only-shell chromium
           sudo apt-get update
           sudo apt-get install --yes nginx libnss3-tools
           bash scripts/verify-transport-smoke.sh "$CANDIDATE_IMAGE"
@@ -326,6 +376,14 @@ jobs:
       - name: 실패 시 candidate logs
         if: failure()
         run: docker logs mastergantt-release-candidate || true
+      - name: Release candidate setup 계측 artifact 업로드
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: release-setup-metrics-candidate
+          path: ${{ runner.temp }}/ci-setup-metrics-${{ github.job }}.jsonl
+          if-no-files-found: error
+          retention-days: 30
       - name: release-candidate container 정리
         if: always()
         run: docker rm --force --volumes mastergantt-release-candidate || true
@@ -343,9 +401,16 @@ jobs:
       id-token: write
     steps:
       # actions/checkout v7.0.1
+      - name: checkout 계측 시작
+        id: checkout-start
+        shell: bash
+        run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+      - name: checkout 시간 기록
+        shell: bash
+        run: node scripts/record-ci-setup-metric.mjs --metric checkout --started-ms "${{ steps.checkout-start.outputs.started_ms }}"
       # docker/setup-buildx-action v4.4.0
       - uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003
       - name: Docker version 기록

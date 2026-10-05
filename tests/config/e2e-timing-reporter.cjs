@@ -6,6 +6,14 @@ class E2ETimingReporter {
   constructor(options = {}) {
     this.outputFile = options.outputFile || process.env.E2E_TIMING_OUTPUT || "";
     this.entries = [];
+    this.runnerReadyMs = 0;
+  }
+
+  onBegin() {
+    const startedMs = Number(process.env.E2E_RUN_STARTED_MS || 0);
+    if (Number.isFinite(startedMs) && startedMs > 0) {
+      this.runnerReadyMs = Math.max(0, Date.now() - startedMs);
+    }
   }
 
   onTestEnd(test, result) {
@@ -28,6 +36,7 @@ class E2ETimingReporter {
       shard: Number(process.env.E2E_TIMING_SHARD || 0),
       shardCount: Number(process.env.E2E_TIMING_SHARD_COUNT || 0),
       status: result.status,
+      runnerReadyMs: this.runnerReadyMs,
       entries: this.entries,
     };
     fs.mkdirSync(path.dirname(this.outputFile), { recursive: true });

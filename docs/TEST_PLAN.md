@@ -1374,3 +1374,17 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - `changes` job checkout의 conditional `fetch-depth`는 숫자 `0`이 expression에서 falsy가 되어 `1`로 떨어지는 문제가 있었다.
 - push event에서는 문자열 `'0'`을 사용해 full history를 받고 PR에서는 `'1'`을 유지한다.
 - 따라서 Main version classifier와 docs-only diff가 동일한 push history를 안정적으로 사용할 수 있다.
+
+## Issue #439 CI setup/cache 계측 검증
+
+- Recorder unit: JSONL schema/version, stable workflow file identity, run/job/event/head metadata, duration, cache field와 Step Summary 행을 검증한다.
+- Analyzer unit: workflow/event/job/metric별 그룹 분리, 10개의 서로 다른 successful run ID에서 median/p90·cache hit 분포가 deterministic하게 계산되는지 확인한다. 동일 run의 E2E matrix shard와 rerun attempt는 record 수만 늘리고 Phase 2 run 표본 수는 늘리지 않아야 한다.
+- Node setup contract: cache path는 `~/.npm`만 사용하고 key에 OS/arch/Node/lockfile hash를 포함한다. `node_modules` cache는 금지하며 `npm ci --prefer-offline --no-audit`를 항상 실행한다.
+- Cache miss: npm/Next cache miss 또는 partial restore에서도 install/build/test가 동일하게 실행되어야 하며 cache 상태가 required check PASS를 대신하지 않는다.
+- Playwright Phase 1: OS dependency와 headless-shell 설치 시간을 분리 기록하지만 `actions/cache`/`ms-playwright` cache는 사용하지 않는다.
+- E2E readiness: CI/Release E2E 실행 직전 `E2E_RUN_STARTED_MS`를 설정하고 timing artifact의 `runnerReadyMs`가 non-negative로 기록되는지 확인한다. 이 값은 webServer startup/readiness + discovery를 포함하는 runner readiness 지표다.
+- Workflow contract: PR/Main CI build/E2E/Docker/Main image와 Release static/E2E/candidate job이 동일 recorder를 사용하고 JSONL artifact를 30일 보존한다.
+- Existing caches: TypeScript tsbuildinfo, Next `.next/cache`, Docker GHA cache의 기존 correctness/invalidation 계약은 유지한다.
+- Security: cache/artifact에 credentials, `.env`, user data, node_modules, SQLite runtime DB를 포함하지 않는다.
+- Phase 2 gate: PR/Main/Release의 workflow/event/job/metric별로 서로 다른 successful run ID >=10 전에는 새 Playwright browser cache를 추가하지 않는다. 이후 before/after median/p90 및 runner-minutes 근거를 Issue #439에 기록한다.
+- 공식 구현 판정은 #439 implementation PR exact head의 required quality/e2e/docker 결과다. 실제 cache 최적화 효과 판정은 최소 표본이 쌓인 뒤 별도 evidence로 수행한다.

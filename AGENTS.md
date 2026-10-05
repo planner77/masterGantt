@@ -115,6 +115,8 @@ Local PASS는 공식 전체 회귀 PASS가 아니며 GitHub Actions PASS를 대�
 
 PR은 read-only이며 registry write를 수행하지 않는다. 검토 대상 head SHA에서 `quality`, `e2e`, `docker`가 성공하기 전 Manager는 코드 변경을 최종 ACCEPT하지 않는다. Run이 미실행/진행 중이면 NOT TESTED, 실행 불가면 BLOCKED로 기록한다.
 
+CI cache는 성능 보조 수단이며 검증 PASS 증거가 아니다. `npm ci`의 frozen install은 항상 실행하고 `node_modules`를 cache하지 않는다. setup/cache 변경은 cache miss에서도 동일 required gate가 실행되어야 하며 Secret·`.env`·runtime DB·test PASS 결과를 cache/artifact에 저장하지 않는다. Playwright browser cache 같은 신규 cache는 setup 비용 baseline과 invalidation 근거 없이 추가하지 않는다. Phase 2 baseline은 workflow 파일/event/job/metric별로 분리하고 **서로 다른 successful run ID 10개 이상**을 기준으로 하며 matrix shard 수나 동일 run 재실행 횟수를 표본 수로 대체하지 않는다.
+
 ### Main Artifact Validation
 
 `main` push에서는 동일 gate를 다시 통과한 뒤에만 `ci-<full SHA>` image를 GHCR에 게시한다. 게시한 image는 exact digest로 다시 pull하여 policy, readiness, native SQLite, Project/Task API authorization/persistence, restart persistence를 검증하고 SBOM/provenance를 생성한다. **application version이 유지된 merge와 실패 run은 해당 GHCR package version을 정리**한다. 반면 **version-changing merge의 successful `ci-<SHA>`는 formal release에서 동일 verified digest를 재사용하기 위한 candidate/provenance alias로 보존**한다. `ci-*` 자체는 운영·rollback용 정식 release authority가 아니며, 정식 사용 가능 여부는 annotated tag와 Release workflow의 exact-digest promotion이 성공한 뒤에만 판단한다.
