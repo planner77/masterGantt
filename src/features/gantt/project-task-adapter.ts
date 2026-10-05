@@ -25,6 +25,7 @@ function dateOnly(value: string): DateOnly {
 }
 
 export interface ProjectTaskUpdatePayload {
+  readonly explicitMilestoneTaskId?: string | null;
   readonly name?: string;
   readonly description?: string | null;
   readonly url?: string | null;

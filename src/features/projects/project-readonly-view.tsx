@@ -109,7 +109,7 @@ function snapshotFromTaskMutation(value: unknown): ProjectSnapshotResponse | nul
   const data = (value as Partial<TaskMutationResponse>).data;
   if (!data || typeof data !== "object" || !data.project || typeof data.project !== "object" ||
     !Array.isArray(data.tasks) || !Array.isArray(data.links) || !Array.isArray(data.warnings) ||
-    !data.operation || !["taskCreate", "taskUpdate", "taskDelete", "taskHierarchy"].includes(data.operation.kind) ||
+    !data.operation || !["taskCreate", "taskUpdate", "taskDelete", "taskHierarchy", "milestoneMembership"].includes(data.operation.kind) ||
     !Array.isArray(data.operation.changedTaskExternalIds) || !Array.isArray(data.operation.deletedTaskExternalIds) ||
     !Array.isArray(data.operation.deletedLinkIds)) return null;
   return {
@@ -724,6 +724,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       const body: unknown = response.status === 204 ? null : await response.json().catch(() => null);
       const snapshot = snapshotFromTaskMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
+        const current = snapshot.data.tasks.find((task) => task.taskId === editorSession?.task.taskId);
+        if (current) projectTaskEditorReference.current?.applyCanonicalSession({ task: current, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision });
         const success = method === "POST" ? "작업을 추가했습니다." : method === "DELETE" ? "작업을 삭제했습니다." : "작업을 저장했습니다.";
         const shifted = (body as TaskMutationResponse).data.warnings.some((warning) => warning.code === "NON_WORKING_START_SHIFTED");
         const beforeTasks = new Map(state.snapshot.data.tasks.map((task) => [task.taskId, task]));
@@ -739,9 +741,14 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         notify("success", `${success}${shifted ? " 비근무일 시작은 다음 근무일로 조정되었습니다." : ""}${adjusted}${changed}`, operation);
         return { status: "saved" };
       }
+      if (expectedRevision !== undefined) {
+        if (response.status === 401) { setPermission("readonly"); setPermissionCheckState("complete"); }
+        return { status: "failed", conflict: response.status === 412, message: response.status === 412 ? "기준 Revision이 변경되었습니다. 입력은 유지됩니다. 최신 정보를 명시적으로 불러온 뒤 검토해 주세요." : response.status === 401 ? "편집 권한이 만료되었습니다. 입력은 유지됩니다." : "작업 정보를 저장할 수 없습니다. 완료 조건·잠금과 입력을 확인해 주세요. 입력은 유지됩니다." };
+      }
       const message = await handleTaskFailure(response.status, body, "작업을 저장할 수 없습니다. 잠시 후 다시 시도해 주세요.", operation);
       return { status: "failed", message, conflict: response.status === 412 };
     } catch {
+      if (expectedRevision !== undefined) return { status: "failed", message: "네트워크 연결을 확인해 주세요. 입력은 유지되며 자동으로 다시 보내지 않습니다." };
       const message = await handleTaskFailure(undefined, null, "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", operation);
       return { status: "failed", message };
     } finally { taskMutationReference.current = false; setIsSavingTask(false); }
@@ -824,6 +831,34 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (restriction) return { status: "failed", message: restriction };
     if (isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut) return { status: "failed", message: "프로젝트 변경을 완료한 뒤 다시 시도해 주세요." };
     return saveTask("PATCH", command.taskId, command.payload, revision);
+  }
+  async function saveEditorMemberships(command: import("@/contracts/milestones").MilestoneMembershipCommand, expectedRevision: number): Promise<TaskEditorSaveResult> {
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current) return { status: "failed", message: "편집 권한 또는 저장 상태를 확인해 주세요." };
+    if (expectedRevision !== state.snapshot.data.project.revision) return { status: "failed", conflict: true, message: "기준 Revision이 변경되었습니다. 초안을 검토한 뒤 최신 정보를 다시 불러와 주세요." };
+    taskMutationReference.current = true; setIsSavingTask(true);
+    try {
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/milestone-memberships`, { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json", "If-Match": revisionTag(expectedRevision) }, body: JSON.stringify(command) });
+      const body: unknown = await response.json().catch(() => null);
+      const snapshot = snapshotFromTaskMutation(body);
+      if (response.ok && snapshot && applySnapshot(snapshot)) {
+        const current = snapshot.data.tasks.find((task) => task.taskId === editorSession?.task.taskId);
+        if (current) projectTaskEditorReference.current?.applyCanonicalSession({ task: current, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision });
+        notify("success", "소속 변경을 적용했습니다.", "완료 단계 소속");
+        return { status: "saved" };
+      }
+      if (response.status === 401) { setPermission("readonly"); }
+      return { status: "failed", conflict: response.status === 412, message: response.status === 412 ? "기준 Revision이 변경되었습니다. 초안은 유지됩니다. 최신 정보를 명시적으로 조회하여 검토해 주세요." : response.status === 401 ? "편집 권한이 만료되었습니다. 초안은 유지됩니다." : "소속 변경을 적용할 수 없습니다. 완료 단계 잠금과 입력을 확인해 주세요. 초안은 유지됩니다." };
+    } catch { return { status: "failed", message: "네트워크 연결을 확인해 주세요. 검색과 초안은 유지됩니다. 자동으로 다시 보내지 않습니다." }; }
+    finally { taskMutationReference.current = false; setIsSavingTask(false); }
+  }
+  function navigateEditorTask(taskId: string) {
+    if (state.status !== "ready") return;
+    const task = state.snapshot.data.tasks.find((entry) => entry.taskId === taskId);
+    if (task) setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
+  }
+  function locateEditorTask(taskId: string) {
+    closeTaskEditor();
+    requestAnimationFrame(() => { const root = document.querySelector<HTMLElement>(".project-gantt-scroll"); const target = root ? findTaskContextElement(root, taskId) : null; target?.scrollIntoView({ block: "nearest", inline: "nearest" }); target?.focus({ preventScroll: true }); });
   }
   async function reloadEditorTask(taskId: string): Promise<TaskEditorSession | null> {
     const snapshot = await fetchCanonicalSnapshot();
@@ -1334,7 +1369,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         {editorSession ? <ProjectTaskEditor ref={projectTaskEditorReference} key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
           editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy}
-          onSave={saveEditorTask} onReload={reloadEditorTask} onRelationEditorOpen={openTaskRelationEditor}
+          onSave={saveEditorTask} onAuthorizationExpired={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} onMembershipSave={saveEditorMemberships} onTaskOpen={navigateEditorTask} onTaskLocate={locateEditorTask} onReload={reloadEditorTask} onRelationEditorOpen={openTaskRelationEditor}
           onRelationDelete={(id) => saveLink("DELETE", undefined, undefined, id)} onClose={closeTaskEditor} /> : null}
         {relationEditorRequest ? (
           <RelationEditorDialog

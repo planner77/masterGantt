@@ -1428,3 +1428,51 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 실행 증거와 미검증 범위는 [Issue #452 실행 계획](exec-plans/active/ISSUE_452.md)에 동기화한다.
 
 Issue #452 소비자 전수 및 실제 실행/미실행 구분은 [검증 증거](ISSUE_452_UI_EVIDENCE.md)를 따른다.
+
+
+### Issue #452 Main CI transport reset corrective
+
+- Main CI #1847.1의 Chromium shard 2/6은 `project-browser-title-favicon.spec.ts`의 direct document GET에서 assertion 이전 `socket hang up` 1건으로 실패했다. 같은 shard 56개와 다른 5개 shard, build/typecheck/lint/Vitest/Docker는 PASS였다.
+- direct GET helper는 `socket hang up` 또는 `ECONNRESET` 예외만 최대 3회 bounded retry한다. HTTP 4xx/5xx, 잘못된 HTML/title/content-type과 retry 소진은 기존처럼 FAIL해야 한다.
+- retry는 Playwright 전체 retry나 test 실패 무시가 아니며 제품 요청/저장 동작을 재실행하지 않는다. favicon 정적 GET과 canonical 프로젝트 document GET의 transport reset에만 동일 helper를 사용한다.
+- corrective PR은 Issue #452의 non-docs 후속 merge로 `Refs #452`를 유지한다. application version은 `0.83.4`를 유지하고 기존 version-scoped release authorization을 재사용한다.
+- PR exact head의 quality/e2e/docker가 모두 PASS한 뒤에만 병합한다. 새 main CI SUCCESS가 확인되면 Generic Release Finalizer가 first-parent backlog와 same-Issue corrective merge를 해석하여 v0.83.4 GHCR release를 진행해야 한다.
+
+## Issue #461 완료 단계 Editor 검증
+
+범위는 Task/Summary 기본 Membership picker, Milestone 소속 batch 탭, 기존 Resource/Logistics 초안 보호와 같은 canonical revision 적용이다. 서버/DB/Domain algorithm/API authorization은 #460을 재사용한다. 신규 pure UI 모델 검증은 `tests/domain/milestone-editor-model.test.ts`, 실제 SQLite UI는 `tests/e2e/milestone-stage-editor.spec.ts`, mock UI 상태는 `project-task-editor.spec.ts`의 #461 시나리오다.
+
+| 검증 | 범위 / 근거 |
+| --- | --- |
+| Unit | 직접/nearest Summary 상속/override/null 복귀, full hierarchy/links, explicit-only batch, 고유 일반 Task 영향, Summary name+membership-only/Task 한 payload, omission/null, 완료 잠금, manual event와 실제 동적 탭 |
+| 실제 SQLite API + Browser | 기본 한 PATCH·batch 한 POST 각각 revision+1, 실패 rollback, 양쪽 Editor 재조회 일치, override 보존, 100%+선행 미완료 거부, manual N/A 명시 완료, 완료/reopen 별도 save |
+| Mock Browser | UUID/동명이인 식별 metadata·긴 후보 active option scroll·Escape/focus, Summary 일정/진척 readonly, Resource/Logistics dirty/pending/stale/401/412/network 초안 보존, 교차 mutation/확인 focus/inert/기본 Baseline 잠금, readonly 검색과 지정 거부 |
+| Geometry | 390/768/1024/1440/1920×844, 긴 한글/영문/UUID·21개 후보 행·5개 탭, table 960px owned horizontal scroll, document overflow 없음, dynamic Arrow/Home/End focus, 기존 Gantt identity 유지 |
+
+Local Fast Feedback는 실제 명령과 최종 결과를 구현 Result Contract에 기록한다. 이번 로컬 명령은 `npm run typecheck`, 변경 TS/TSX에 대한 `npx eslint <files>`, `npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/task-editor-model.test.ts tests/features/gantt/task-editor-view-model.test.ts tests/domain/milestone-editor-model.test.ts` 및 repository Playwright config의 관련 spec/grep만 실행한다. 원격 전체 quality/e2e/docker와 독립 최종 QA는 NOT TESTED다.
+
+독립 테스트 작성 Agent는 milestone-editor-model 22/22와 파일 ESLint를 실행했다. 최초 1건 실패는 in_progress 전환 progress=1이라는 테스트 가정 오류였고 명시 progress60으로 수정했다. 구현 Agent의 최초 typecheck 실패는 membership 변수 누락 1건으로 수정했다. 실제 UI fixture 최초 실패는 Project description 누락400, native select option까지 포함한 locator, rollback409를422로 가정한 오류였으며 수정 후 통과했다. 28189 실행 중 readonly 조회와 mutation 잠금을 분리하면서 이전에 로드된 Logistics 테스트의 toBeDisabled 기대가 남아 8 PASS/1 FAIL이었고 aria-readonly 기대를 갱신하여 별도 최신 #461 6/6 재검증했다. 재시도로 최초 오류를 숨기지 않는다.
+
+실제 after 캡처와 측정은 로컬 `output/playwright/issue-461/memberships-{390,768,1024,1440,1920}.png` 및 `geometry.json`으로 생성한다. 재현: 실제 Project 생성→Milestone 2개·Summary와 child/override·긴 후보18개 생성→기본 picker 저장→Milestone 소속 batch→상태 완료/reopen→소속 탭 전체 후보→각 viewport에서 동적 탭 keyboard와 측정/캡처. PR 이미지 첨부는 지정 infra/Manager가 준비하며 캡처 존재 자체를 원격 QA PASS로 취급하지 않는다.
+
+Before actual screenshot은 NOT TESTED다. baseline `4b98dd44c44335ae64e65e43f1c64f5f1b3fa384`의 project-task-editor.tsx/model/view-model은 네 탭만 제공하고 Membership picker/batch 탭이 없으며 Summary 전체 readonly 정책을 사용했다. 같은 Project를 baseline에서 Grid/Chart/context-menu→작업 정보로 열면 이를 재현할 수 있다. 이 source/재현 근거와 현재 after 실제 화면을 구분한다. 실제 운영 reverse proxy, native fullscreen/실기기/스크린리더 수동 UX는 이번 추가 시나리오에서 별도 NOT TESTED이며 기존 CI 범위와 혼동하지 않는다.
+
+DOCUMENTATION_SYNC: TASK_EDITOR/PROJECT_UX/REQUIREMENTS/API/MILESTONE_STAGE_GATES/UI_UX_GUIDELINES/TEST_PLAN을 갱신한다. DESIGN은 기존 blue Light/system font/semantic token/compact Editor 시각 규칙을 재사용하므로 N/A다. DB_SCHEMA/SECURITY/SCHEDULING_ENGINE/IMPORT_SCHEMA/VBA/배포/CI 문서는 신규 DB·서버권한·domain algorithm·Import/VBA·infra 변경이 없어 N/A다. CHANGELOG/활성 PLAN은 Manager 소유로 handoff한다.
+
+2026-10-06 최종 로컬 결과: 관련 Unit 3 files/72 tests PASS, 변경 파일 ESLint PASS, typecheck PASS. `milestone-stage-editor.spec.ts project-task-editor.spec.ts --grep '#461'`는 6/6 PASS(40.9s)이며 추가 Baseline 교차 잠금 수정 후 `project-task-editor.spec.ts --grep '#461 picker|linked tasks allow editing'`는 2/2 PASS(8.6s)다. 같은 실제 SQLite fixture의 기본·batch·ready/manual event·completed/reopen과 mock 상태/readonly를 실제 Chromium으로 실행했다. 기존 실제 Editor persistence·412·Milestone 허용 필드·Resource 역할 저장의 관련 회귀는 별도 28189 실행의 해당 4개 PASS로 확인했으며 그 실행의 이후 실패 1건과 최신 재검증 결과는 위 기록을 따른다.
+
+최종 geometry의 documentWidth는 390/768/1024/1440/1920px 각각 viewport와 같았다. 표의 scroll/client width는 각각 960/351, 960/700, 960/948, 1076/1076, 1076/1076px이며 모든 active tab은 dialog 안에서 보였다. 화면은 가짜 정식 QA 결과가 아니라 로컬 after 재현 증거다. Native fullscreen/실기기/스크린리더 수동 UX와 원격 quality/e2e/docker는 NOT TESTED로 남긴다.
+
+### Issue #461 독립 UI 검토 REWORK
+
+독립 UI 검토에서 editable query에 `aria-readonly=true`를 사용한 semantic 충돌과 pending 소속 패널 조회 입력의 문서 불일치를 확인했다. query readonly 속성을 제거하고 `aria-describedby` 잠금 안내를 연결했으며 option/action의 mutation guard는 유지했다. 테스트는 검색 타이핑·결과 조회·Enter/실제 pointer 선택 시 Membership 불변·mutation 0을 확인한다. Panel 검색 Enter 보호는 browser 재현으로 확정한 과거 결함 판정이 아니라 부모 form 저장으로 전파되지 않도록 한 입력 흐름 보강이다.
+
+최초 REWORK 명령은 picker/spec ESLint·typecheck PASS 뒤 관련 E2E 2 PASS/1 FAIL이었다. 실패는 `aria-disabled` option에 locator.click이 enabled를 기다린 테스트 timeout이며 실제 pointer 입력으로 검증을 보강했다. 표 header/body columnalignment, sibling cell/control bounds 비중첩, tab scrollHeight/clientHeight·focused outline 경계를 실제 SQLite geometry fixture에 추가하고 긴 후보 input/active option/list owner 측정을 `picker-geometry.json`에 별도로 기록한다.
+
+이 semantic/입력 보호 REWORK의 문서 영향은 TASK_EDITOR/UI_UX_GUIDELINES/TEST_PLAN에 반영한다. PROJECT_UX/REQUIREMENTS/API/MILESTONE_STAGE_GATES는 기존 검색 조회·mutation 잠금·pending 계약에 맞추는 수정이며 새 화면 흐름/요구사항/API/domain 계약이 없어 추가 변경 N/A다. DESIGN/DB/security/scheduling/Import/VBA/infra N/A와 원격 quality/e2e/docker·독립 최종 QA NOT TESTED는 유지한다. 기존 72개 Unit과 영향 없는 E2E 증거를 재사용하며 전체 suite를 반복하지 않는다.
+
+추가 geometry 검증은 4 PASS/1 FAIL로 focus outline의 실제 clipping을 발견했다. 공통 outline 3px와 offset 3px에 비해 tablist의 기존 block padding은 4px였으므로 focus token 기준 6px 공간으로 수정했다. 이 실패는 제품 geometry finding으로 기록하며 이전 document overflow/표 최소 폭 PASS와 구분한다. Semantic/패널/Logistics 관련 4개 PASS는 source guard 변경 없이 재사용하고 CSS 수정 뒤 실제 SQLite geometry fixture 하나만 재실행한다.
+
+Focus 여백 수정 뒤 actual SQLite geometry fixture 1/1 PASS(33.0s)로 다섯 viewport의 header/body columnalignment·cell/filter 비중첩·tab scrollHeight/clientHeight 및 전체 focus 외곽선 가시성을 확인했다. 표 명령 열을 포함한 모든 `tbody td button`의 control/closest-td bounds와 control 간 비중첩은 별도 최소 fixture 재실행으로 보강한다. 긴 후보 측정은 active option/list owner, focused input/body owner 모두 가시성 true이며 실제 input focus를 유지했다.
+
+REWORK 최종 관련 브라우저 결과: semantic/검색/readonly/pending/Logistics의 4개 PASS를 유지하고, 모든 표 버튼의 td-contained bounds·control 비중첩을 추가한 실제 SQLite fixture는 1/1 PASS(29.8s)다. 다섯 폭 모두 명령 열 control을 포함한 bounds 검사를 통과했으며 `geometry.json`에 각 control/td의 원시 경계를 남긴다. `picker-geometry.json`에는 긴 후보의 실제 input/option/scroll owner 경계를 분리하여 남긴다. 전체 Unit/브라우저 suite 및 원격 gate는 이 REWORK에서 반복하지 않는다.
