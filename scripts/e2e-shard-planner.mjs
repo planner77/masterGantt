@@ -97,15 +97,37 @@ function stableHash(value) {
 }
 
 export function selectShardFiles({ plan, currentFiles, shard, total }) {
-  if (!plan || plan.schemaVersion !== 1 || plan.shardCount !== total || !Array.isArray(plan.shards)) {
+  if (
+    !plan ||
+    plan.schemaVersion !== 1 ||
+    plan.shardCount !== total ||
+    !Array.isArray(plan.shards) ||
+    plan.shards.length !== total
+  ) {
     return null;
   }
+
+  const seenShards = new Set();
+  for (const group of plan.shards) {
+    if (
+      !Number.isInteger(group?.shard) ||
+      group.shard < 1 ||
+      group.shard > total ||
+      seenShards.has(group.shard) ||
+      !Array.isArray(group.files)
+    ) {
+      return null;
+    }
+    seenShards.add(group.shard);
+  }
+
   const current = new Set(currentFiles);
   const assigned = new Map();
   for (const group of plan.shards) {
-    if (!Number.isInteger(group?.shard) || !Array.isArray(group.files)) continue;
     for (const file of group.files) {
-      if (current.has(file) && !assigned.has(file)) assigned.set(file, group.shard);
+      if (!current.has(file)) continue;
+      if (assigned.has(file) && assigned.get(file) !== group.shard) return null;
+      assigned.set(file, group.shard);
     }
   }
   for (const file of currentFiles) {
