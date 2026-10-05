@@ -222,13 +222,13 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 - Release 실패 시 Issue/branch를 닫거나 지우지 않는다. 원인을 수정할 수 있는 동일 immutable run의 failed jobs 재실행은 허용하며, 성공 completion event가 lifecycle을 자동 재개한다.
 - 별도 수동 Finalizer rerun은 event delivery 자체가 누락되었거나 운영 복구가 필요한 예외 상황에서만 사용한다.
 
-## Issue #437 E2E shard optimizer 운영
+## Issue #437 E2E 샤드 최적화 운영
 
 - `.github/workflows/e2e-shard-optimizer.yml`은 제품 CI required check가 아니라 historical timing 분석/제안 workflow다.
 - schedule/manual 실행은 최근 성공 `main` CI timing artifact만 읽고 plan 변경 필요 여부를 계산한다.
 - 기본 sample 10회가 쌓이기 전에는 자동 plan PR을 만들지 않는다.
-- optimizer가 생성하는 PR은 `ci/issue-437-e2e-shard-plan-<run id>` branch, `[Issue #437] ci: refresh E2E shard plan` title, canonical `Refs #437` body를 사용한다.
-- optimizer는 PR 생성까지만 자동화하며 merge API나 Auto-merge를 호출하지 않는다. plan 변경도 기존 ruleset/required checks/review resolution을 통과해야 한다.
+- optimizer가 생성하는 PR은 `ci/issue-437-e2e-shard-plan-<run id>` branch, `[Issue #437] ci: E2E 샤드 계획 갱신` title, canonical `Refs #437` body를 사용한다.
+- optimizer는 PR 생성 직후 같은 branch를 ref로 `ci.yml workflow_dispatch`를 명시적으로 실행한다. `GITHUB_TOKEN`으로 생성한 push/PR이 새 workflow를 자동 기동한다고 가정하지 않는다. merge API나 Auto-merge는 호출하지 않으며 plan 변경도 기존 ruleset/required checks/review resolution을 통과해야 한다.
 - 자동 plan PR이 이미 열려 있으면 새 PR을 추가 생성하지 않고 기존 PR의 검증/정리를 우선한다.
 - historical artifact는 untrusted input으로 취급한다. duration/file JSON을 파싱하는 것 외의 명령 실행이나 credential 사용을 허용하지 않는다.
 - plan 파일 오류·stale 상태는 test skip 사유가 아니다. CI/Release는 current test 목록을 기준으로 신규 file을 포함하거나 native sharding으로 fallback한다.
