@@ -429,7 +429,7 @@ Issue Lifecycle은 exact merge target의 first-parent diff를 CI와 동일한 do
 - PR/Main Chromium E2E는 6 shard와 runner별 `workers=1`을 유지한다. CI에서만 `CI_E2E_FULLY_PARALLEL=true`를 주어 Playwright가 개별 test 기준으로 shard를 분산할 수 있게 하며 explicit serial describe는 계속 직렬이다.
 - Release는 static quality와 6-way Chromium E2E shard를 병렬 실행하고 `Release quality gates` aggregate가 모두 성공한 뒤에만 candidate container smoke와 registry publish를 시작한다.
 - Generic Release Finalizer는 Release 완료를 polling하며 runner를 점유하지 않는다. Main CI 성공 시 release-required target은 승인/정확한 SHA/version을 검증하고 annotated tag + release workflow dispatch까지만 수행한다.
-- `Publish release image`의 publish 성공 뒤에는 `release-finalizer-resume.yml`을 `workflow_dispatch(target_sha)`로 명시적으로 호출한다. 기존 `workflow_run.completed` listener도 fallback으로 유지하며 Resume은 trusted `main` code만 실행한다.
+- `Publish release image`의 publish 성공 뒤에는 `release-finalizer-resume.yml`을 `workflow_dispatch(target_sha, release_run_id)`로 명시적으로 호출한다. 기존 `workflow_run.completed` listener도 fallback으로 유지하며 Resume은 trusted `main` code만 실행한다. Explicit Resume은 source Release가 아직 active일 수 있으므로 exact run ID가 `completed/success`가 되고 workflow path/head SHA가 기대값과 일치할 때까지 기다린 뒤 resolver를 실행한다.
 - post-publication lifecycle handoff는 non-blocking이다. handoff 전 candidate/runtime/API/attestation/promotion gate는 모두 완료되어야 하며, handoff 실패 때문에 이미 성공한 immutable GHCR publication을 실패로 뒤집지 않는다.
 - Release failure는 immutable tag를 이동/덮어쓰기하지 않고 Issue/branch를 유지한다. 기존 Release run을 재실행해 SUCCESS가 되면 explicit dispatch 또는 completion fallback으로 finalization이 재개된다.
 - first-parent oldest→newest, same-Issue corrective convergence, exact main CI/GHCR evidence, explicit release authorization, safe branch cleanup, stable alias serialization은 기존 계약을 유지한다.
