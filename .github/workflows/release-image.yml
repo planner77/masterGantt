@@ -41,6 +41,7 @@ jobs:
       exact_image: ${{ steps.tags.outputs.exact_image }}
       rolling_tags: ${{ steps.tags.outputs.rolling_tags }}
       version: ${{ steps.tags.outputs.version }}
+      target_sha: ${{ steps.tags.outputs.target_sha }}
     steps:
       # actions/checkout v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -71,10 +72,12 @@ jobs:
         run: |
           set -euo pipefail
           version="${GITHUB_REF_NAME#v}"
+          target_sha="$(git rev-parse "refs/tags/${GITHUB_REF_NAME}^{commit}")"
           image_name="ghcr.io/${GITHUB_REPOSITORY,,}"
           {
             echo "image_name=$image_name"
             echo "version=$version"
+            echo "target_sha=$target_sha"
             echo "exact_image=$image_name:$version"
             echo "rolling_tags<<EOF"
             # Prereleases keep only the exact SemVer tag. Stable releases alone
@@ -232,18 +235,18 @@ jobs:
         id: candidate
         env:
           IMAGE_NAME: ${{ needs.prepare.outputs.image_name }}
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ needs.prepare.outputs.target_sha }}
           EXPECTED_VERSION: ${{ needs.prepare.outputs.version }}
         shell: bash
         run: |
           set -euo pipefail
           candidate="${IMAGE_NAME}:ci-${EXPECTED_SHA}"
-          if ! manifest_json="$(docker buildx imagetools inspect "$candidate" --format '{{json .Manifest}}' 2>/dev/null)"; then
+          if ! inspect_output="$(docker buildx imagetools inspect "$candidate" 2>/dev/null)"; then
             echo "Verified main candidate가 없습니다: $candidate" >&2
             echo "정식 release는 exact main CI가 보존한 candidate digest를 사용해야 합니다." >&2
             exit 1
           fi
-          digest="$(jq -r '.digest // empty' <<<"$manifest_json")"
+          digest="$(awk '$1 == "Digest:" { print $2; exit }' <<<"$inspect_output")"
           [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] || {
             echo "Candidate digest 형식이 올바르지 않습니다: $digest" >&2
             exit 1
@@ -359,9 +362,9 @@ jobs:
         run: |
           set -euo pipefail
           existing=false
-          if manifest_json="$(docker buildx imagetools inspect "$EXACT_IMAGE" --format '{{json .Manifest}}' 2>/dev/null)"; then
+          if inspect_output="$(docker buildx imagetools inspect "$EXACT_IMAGE" 2>/dev/null)"; then
             existing=true
-            existing_digest="$(jq -r '.digest // empty' <<<"$manifest_json")"
+            existing_digest="$(awk '$1 == "Digest:" { print $2; exit }' <<<"$inspect_output")"
             [[ "$existing_digest" == "$CANDIDATE_DIGEST" ]] || {
               echo "Refusing exact tag conflict: $EXACT_IMAGE -> $existing_digest, expected $CANDIDATE_DIGEST" >&2
               exit 1
@@ -395,7 +398,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          exact_digest="$(docker buildx imagetools inspect "$EXACT_IMAGE" --format '{{json .Manifest}}' | jq -r '.digest')"
+          exact_digest="$(docker buildx imagetools inspect "$EXACT_IMAGE" | awk '$1 == "Digest:" { print $2; exit }')"
           [[ "$exact_digest" == "$CANDIDATE_DIGEST" ]] || {
             echo "Published exact SemVer digest mismatch: $exact_digest != $CANDIDATE_DIGEST" >&2
             exit 1
@@ -457,7 +460,7 @@ jobs:
           docker buildx imagetools create --prefer-index=false "${tag_arguments[@]}" "$VERIFIED_IMAGE"
           while IFS= read -r destination; do
             [[ -z "$destination" ]] && continue
-            rolling_digest="$(docker buildx imagetools inspect "$destination" --format '{{json .Manifest}}' | jq -r '.digest')"
+            rolling_digest="$(docker buildx imagetools inspect "$destination" | awk '$1 == "Digest:" { print $2; exit }')"
             [[ "$rolling_digest" == "$CANDIDATE_DIGEST" ]] || {
               echo "Rolling alias digest mismatch: $destination -> $rolling_digest" >&2
               exit 1
@@ -473,7 +476,7 @@ jobs:
             echo
             echo "- Exact tag: $EXACT_IMAGE"
             echo "- Digest: $RELEASE_DIGEST"
-            echo "- Source candidate: ci-${GITHUB_SHA}"
+            echo "- Source candidate: ci-${{ needs.prepare.outputs.target_sha }}"
             echo "- Build: reused exact Main verified digest; no release rebuild."
             echo "- SBOM/provenance: inherited from the Main BuildKit digest."
           } >> "$GITHUB_STEP_SUMMARY"
