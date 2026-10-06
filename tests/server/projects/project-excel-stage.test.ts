@@ -32,7 +32,7 @@ function fixture(mdPerMmEnvironment?: string) {
   catalog.replaceResourceRoles(resource.id, ["DEVELOPER"], NOW);
   const groups = ["G1", "G2"].map((name) => catalog.insertGroup({ publicId: randomUUID(), name, code: name, description: "", now: NOW }));
   groups.forEach((group) => catalog.replaceGroupMembers(group.id, [resource.id], NOW));
-  for (const [task, percent] of [[inherited, 50], [overridden, 25], [unassigned, null]] as const) catalog.replaceTaskAssignments({ projectId: project.id, taskId: task.id, now: NOW, targets: [{ publicId: resource.publicId, kind: "resource", internalId: resource.id, assignmentPublicId: randomUUID(), assignmentStart: null, assignmentEnd: null, allocationPercent: percent, assignmentRole: "DEVELOPER" }] });
+  for (const [task, percent] of [[inherited, 50], [overridden, 25], [unassigned, null]] as const) catalog.replaceTaskAssignments({ projectId: project.id, taskId: task.id, now: NOW, targets: [{ publicId: resource.publicId, kind: "resource", internalId: resource.id, assignmentPublicId: randomUUID(), assignmentStart: null, assignmentEnd: null, allocationPercent: percent }] });
   const clock = vi.fn(() => new Date(NOW)), service = new ProjectExportSnapshotService(db, { clock, mdPerMmEnvironment });
   const bundle = () => service.get(project.publicId, true)!;
   const state = () => JSON.stringify({ p: projects.findById(project.id), tasks: schedules.listTasks(project.id), links: schedules.listLinks(project.id), members: members.list(project.id), assignments: catalog.listAssignments(project.id), catalog: catalog.getRevision() });
