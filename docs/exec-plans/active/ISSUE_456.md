@@ -129,3 +129,12 @@ DOCUMENTATION_SYNC 대상은 TASK_EDITOR·PROJECT_UX·UI_UX_GUIDELINES·TEST_PLA
 REQUIREMENTS·ARCHITECTURE는 새 기능·계층 경계 변경이 없어 N/A다. API·DB_SCHEMA·SECURITY는 endpoint/schema/권한/Origin/session/revision 계약 무변경으로 N/A, SCHEDULING_ENGINE은 일정 알고리즘 변경이 없어 N/A다. IMPORT_SCHEMA·VBA_EXPORT와 관련 Excel/이미지/견적 교환 문서는 Import/Export·DRM·배정·Copy/Template 구현 변화가 없어 N/A이고 해당 후속은#491에서 다룬다. DEPLOYMENT·CI_CD·REMOTE_VALIDATION·GITHUB_OPERATIONS는 workflow/container/registry/검증 gate 변경이 없어 N/A다. DESIGN은 기존 semantic token·Light UI·system font 적용으로 N/A, UI_UX_ROLLOUT은 다른 화면 rollout 완료 판정을 바꾸지 않아 N/A다. 각 N/A는 해당 제품 전체의 검증 PASS를 뜻하지 않는다.
 
 현재 source3가 영향을 주는 date/status/Baseline·검색/필터·scope/fullscreen/peer·실제SQLite 관련 선택 회귀를 실행했고, 마지막 guard-only 수정의 직접8사례와 나머지19 unique의 재사용 근거를 TEST_PLAN에 구분했다. native125%/실기기/스크린리더/최종수동UX 및 모든 상태×폭 조합은 NOT TESTED다. 실제SQLite persistence와 mocked payload/state는 서로 대체하지 않는다.
+
+
+## Main CI #1993.1 security audit corrective — latest main 재정렬
+
+PR #500 merge SHA `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 Main CI #1993.1은 production audit에서 `sharp 0.35.4` / CVE-2026-96889로 실패했다. corrective PR #504는 lockfile과 정적 회귀를 보완했고 head `bc90e12e3dfc1eee8f1f1d4afdccb7964fb87acc`의 PR CI #2014.1에서 quality/E2E/Docker 전체가 SUCCESS했다.
+
+검증 중 Issue #493 PR #496이 main에 병합되어 main이 `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7` / application 0.93.0으로 전진했다. #493 main 자체가 동일 advisory 대응인 `sharp 0.35.5` / libvips 1.3.4를 포함하므로, published PR history를 보존하는 2-parent merge 정렬에서 latest main tree를 authority로 사용하고 #456의 재발 방지 정적 테스트와 corrective 추적 문서만 재적용한다. package/version/기능 변경을 되돌리지 않는다.
+
+재정렬 exact head에서 required PR CI를 다시 수행한 뒤 merge하고 새 Main CI push run의 시작을 확인한다.

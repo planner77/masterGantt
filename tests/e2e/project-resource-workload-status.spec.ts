@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
 
+import { captureUi } from "./helpers/ui-geometry";
+
 const workloadPath = `**/api/projects/${publicId}/resource-workload`;
 const targetsPath = `**/api/projects/${publicId}/assigned-targets`;
 
@@ -346,7 +348,7 @@ test("Issue #117 최신 메타데이터 라벨과 재시도 focus를 유지한�
   await expect(targets.getByRole("button", { name: "이름·코드 다시 시도" })).toBeFocused();
 });
 
-test("Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Gantt 상태를 보존한다", async ({ page }) => {
+test("Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Gantt 상태를 보존한다", async ({ page }, testInfo) => {
   await installStatefulProjectFixture(page);
   await page.goto(`/projects/${publicId}`);
   const ganttIdentity = await rememberGanttRoot(page);
@@ -400,6 +402,7 @@ test("Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Ga
     await page.setViewportSize({ width, height: 900 });
     await expectResourcePanelOwnsOnlyVerticalScroll(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+    if (width === 390 || width === 1440) await captureUi(page, testInfo, `workload-estimate-${width}`);
   }
 
   await page.getByRole("tab", { name: "일정", exact: true }).click();

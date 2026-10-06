@@ -1,0 +1,58 @@
+{
+  "before": {
+    "api": "svar-api-1",
+    "instance": "project-gantt-qgit904ott",
+    "publicViewport": {
+      "left": 120,
+      "top": 38
+    },
+    "fullscreen": true,
+    "scale": "week",
+    "chartScroll": 120,
+    "verticalScroll": 38,
+    "selected": [
+      ":00000000-0000-4000-8000-000000000004"
+    ],
+    "tree": [
+      {
+        "id": ":00000000-0000-4000-8000-000000000001",
+        "closed": false
+      }
+    ],
+    "scope": "Summary",
+    "rootTask": "00000000-0000-4000-8000-000000000001",
+    "columnGeometry": {
+      "task": 227,
+      "externalId": 108
+    }
+  },
+  "after": {
+    "api": "svar-api-1",
+    "instance": "project-gantt-qgit904ott",
+    "publicViewport": {
+      "left": 120,
+      "top": 38
+    },
+    "fullscreen": true,
+    "scale": "week",
+    "chartScroll": 120,
+    "verticalScroll": 38,
+    "selected": [
+      ":00000000-0000-4000-8000-000000000004"
+    ],
+    "tree": [
+      {
+        "id": ":00000000-0000-4000-8000-000000000001",
+        "closed": false
+      }
+    ],
+    "scope": "Summary",
+    "rootTask": "00000000-0000-4000-8000-000000000001",
+    "columnGeometry": {
+      "task": 227,
+      "externalId": 108
+    }
+  },
+  "patchCount": 1,
+  "path": "/projects/a3405d3d-8cb4-4da4-9b0f-43a5de330004"
+}
