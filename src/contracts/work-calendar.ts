@@ -77,8 +77,8 @@ export interface CountryCalendarDescriptorDto {
   code: WorkCalendarCountryCode;
   name: string;
   supportedYears: number[];
-  sourceVersion: string;
-  sourceUrl: string;
+  sourceVersion: string | null;
+  sourceUrl: string | null;
 }
 
 export interface CountryCalendarListResponse {
