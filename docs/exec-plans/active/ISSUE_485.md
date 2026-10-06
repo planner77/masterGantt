@@ -3,6 +3,7 @@
 - 기준: Issue #485, `AGENTS.md`, `DESIGN.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`
 - branch: `feat/issue-485-global-role-source-of-truth`
 - version: `0.93.0` (MINOR), `release_required=true`, `release_authorized=false`
+- PR: #499
 - 종료점: PR 생성 및 exact-head PR CI 시작 확인. CI 완료/병합/release는 범위 밖.
 
 ## 결정
