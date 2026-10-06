@@ -56,6 +56,7 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}", method: "PATCH", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}", method: "DELETE", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/copy", method: "POST", policy: "origin-session-if-match", mutatesState: true },
+  { template: "/api/projects/{publicId}/exports/json", method: "POST", policy: "origin-if-match-read", mutatesState: false },
   { template: "/api/projects/{publicId}/exports/excel", method: "POST", policy: "origin-if-match-read", mutatesState: false },
   { template: "/api/projects/{publicId}/exports/gantt-svg", method: "POST", policy: "origin-if-match-read", mutatesState: false },
   { template: "/api/projects/{publicId}/imports/preview", method: "POST", policy: "origin-session", mutatesState: false },

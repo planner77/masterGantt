@@ -1,5 +1,14 @@
 # Active execution plan
 
+## Issue #464 JSON·Excel·Copy·Template 보존 — latest main 재정렬 / 새 PR CI
+
+PR #473 head `1e1397aca8d48780dbc8dcc397f333b3d9bb85ca`는 latest main `d748046733ae2006580052a480c984ae1eb1fa2a`보다 뒤처져 mergeable=false가 되었다. 현재 main에는 #463 병합, #455 기준정보 UI/transport corrective, #463 물류·Resource 결합 필터 보완이 포함되어 있으므로 이를 authoritative base로 보존하고 #464 고유 변경만 다시 적용한다.
+
+충돌 교집합은 `project-gantt.tsx`와 문서 5개다. Gantt는 main의 context-menu surface-aware two-frame settle을 유지하면서 #464의 context selection `show:false`/Copy feedback 보존을 합친다. 문서는 최신 main 기록을 우선하고 #464 계약·검증 섹션을 병합한다. application candidate는 `0.92.0`을 유지한다.
+
+정렬 후 exact new head에서 PR CI를 새로 시작하며 그 결과가 병합 판단 기준이다. 이번 요청 범위는 재정렬·충돌 해결·새 PR CI 시작까지이며 완료 모니터링·병합·main CI·GHCR/tag/release·branch cleanup·Issue 종료는 별도 단계다. `release_required=true`, `release_authorized=false`.
+
+
 ## Issue #455 기준정보 입력 컨트롤 — 최신 main 재정렬 / 병합 / Main CI
 
 PR #481의 기존 head `7f9cfb87e4e56bba9eff444d74a0559bcb80b89d`는 PR CI Run `37411553451` / Run #1908.1 SUCCESS였으나, 이후 #453/#454 및 운영 변경이 main에 반영되어 최신 main이 `0fc986cb0cb642bdbedeec30157b27bd522b5a38`까지 전진했고 기존 head는 GitHub `mergeable_state=dirty`가 되었다. #455 고유 제품·테스트·fixture·증거를 최신 main 위에 재적용하고, 충돌 교집합인 CHANGELOG/PROJECT_UX/TEST_PLAN/active PLAN은 최신 main 기록과 #455 기록을 함께 보존한다.

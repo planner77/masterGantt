@@ -1,0 +1,73 @@
+{
+  "viewport": 1920,
+  "documentWidth": 1920,
+  "dialog": {
+    "x": 480,
+    "y": 16,
+    "width": 960,
+    "height": 812,
+    "top": 16,
+    "right": 1440,
+    "bottom": 828,
+    "left": 480
+  },
+  "controls": 8,
+  "failures": [],
+  "overlaps": [],
+  "tables": [
+    {
+      "width": 960,
+      "ownerWidth": 908,
+      "ownedScroll": true,
+      "aligned": true
+    }
+  ],
+  "focusVisible": true,
+  "outline": "solid",
+  "bodyHeight": 810,
+  "bodyScrollHeight": 810,
+  "verticalOwners": [
+    {
+      "height": 658,
+      "scrollHeight": 693,
+      "bounds": {
+        "x": 501,
+        "y": 93,
+        "width": 918,
+        "height": 658,
+        "top": 93,
+        "right": 1419,
+        "bottom": 751,
+        "left": 501
+      }
+    },
+    {
+      "height": 336,
+      "scrollHeight": 2832,
+      "bounds": {
+        "x": 505,
+        "y": 409,
+        "width": 910,
+        "height": 337.59375,
+        "top": 409,
+        "right": 1415,
+        "bottom": 746.59375,
+        "left": 505
+      }
+    },
+    {
+      "height": 0,
+      "scrollHeight": 0,
+      "bounds": {
+        "x": 960,
+        "y": 824,
+        "width": 0,
+        "height": 0,
+        "top": 824,
+        "right": 960,
+        "bottom": 824,
+        "left": 960
+      }
+    }
+  ]
+}

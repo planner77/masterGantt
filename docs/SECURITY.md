@@ -4,7 +4,18 @@
 
 새 `POST /api/projects/{publicId}/milestone-memberships`는 route security inventory의 `origin-session-if-match` 보호 mutation이다. Task PATCH의 Membership도 동일 session/Origin/strong revision 및 transaction 내 최신 권한 재검증을 사용한다. type/Project/FK/unique/완료 구조/완료 가능 조건을 서버에서 확인하고 client effective/Ready/legacy flag를 신뢰하지 않는다. 실패 시 Task 필드·소속·revision을 전부 rollback하며 공개 오류에는 public Task ID만 제공한다.
 
-기존 mixed 관계는 보존하되 신규 mixed는 거부한다. 완료 구조 변경을 name/progress UI 상태로 우회할 수 없다. 보존 미지원 Copy/Template/Excel은 영향 데이터에 no-loss 오류를 반환한다. 무인증 고정 성공 Import stub는 제거하며 preview는 Origin/session, commit은 Origin/session/revision 확인 뒤 501 unavailable이다. Password/session/token/internal SQL을 Membership DTO/export/로그에 추가하지 않는다. [Stage Gate 계약과 경로 inventory](MILESTONE_STAGE_GATES.md)를 따른다.
+기존 mixed 관계는 보존하되 신규 mixed는 거부한다. 완료 구조 변경을 name/progress UI 상태로 우회할 수 없다. Issue #464의 Copy/Template/Excel은 explicit remap과 보존 검증을 수행하며 검증 불가능한 상태는 전체 거부한다. 보호된 JSON preview/commit은 Origin/session 및 file/target/revision digest 재검증 후 원자 저장을 수행한다. Password/session/token/internal SQL을 Membership DTO/export/로그에 추가하지 않는다. [Stage Gate 계약과 경로 inventory](MILESTONE_STAGE_GATES.md)를 따른다.
+
+
+## Issue #464 — Import/Export와 Template 권한 재검증
+
+Production Import routes는 이전 unavailable stub를 사용하지 않는다. Preview도 exact Origin과 Project edit session을 요구하며 commit은 strong If-Match와 X-Import-Preview-Digest를 추가로 검사한다. 파일 read 전 authorization을 확인하고 read/IMMEDIATE transaction 안에서 현재 Project binding/authVersion/expiry/revocation을 다시 확인한다. digest는 exact raw bytes+target publicId+baseRevision을 묶는 consistency 값이며 client를 신뢰하는 권한 토큰이나 preview 실행 증명은 아니다. sourceTaskId/source Project UUID는 FK가 아니고 새 UUID만 발급한다. 새 Completed Milestone은 기존 full E/P guard를 통과해야 하며 server Copy의 trusted historical baseline을 import에서 허용하지 않는다.
+
+파일5 MiB, multipart framing16 KiB, JSON syntax depth64, Task5000/Link20000/perTask predecessor100을 제한한다. Content-Length와 실제 stream bytes를 확인한 뒤 bounded buffer에 대해서만 multipart를 파싱한다. unknown/duplicate/text part, fatal UTF-8 오류, 두 BOM, decoded duplicate JSON key, derived/client bypass field, 새 mixed Link, malformed target/collision/완료 상태는 전체 거부한다. Task description/HTTP(S) URL은 기존 public validator로 재검증하며 URL을 fetch하지 않는다. 실패는 Task/Link/membership/revision 전체 rollback이고 request/error log에 파일 내용·Password·session token·내부 SQL을 추가하지 않는다. 기존 rate-limit 표의 Import10회/분은 별도 계획이며 이번 구현이 해당 rate limiter를 추가했다고 주장하지 않는다.
+
+JSON/Excel Export는 readonly Origin+strong revision 보호이며 edit session을 요구하지 않는다. JSON scope는 strict full project이고 새 route security inventory의 origin-if-match-read다. 같은 SQLite read snapshot/clock에서 revision을 확인하며 no-store/nosniff/UUID filename을 유지한다. JSON의5 MiB 및 Excel text32767/Stage50000행 등 한도를 넘으면 전체 실패하며 식별자/Link 생략·절삭이 없다. Workbook은 inlineStr/escaping/no formula·외부 relationship 정책을 유지하고 새 Direct Project Hyperlink를 추가하지 않는다. Calendar source metadata의 exceptions 우선/legacy holidays fallback은 동일 날짜 중복 적용을 방지하며 대상 Calendar의 authority를 바꾸지 않는다.
+
+Template create의 기존 validSession이 revokedAt를 검사하지 않는 실제 결함을 관련 SQLite 회귀에서 확인하여 보존 담당이 보강했다. 이제 source public/internal Project와 session Project/id binding, revokedAt=null, session/project authVersion, tokenHash와 expiry를 재검증한다. wrong-public-id/wrong-project-id/expired/authVersion/revoked 회귀를 추가하며 기존 TTL/Origin/authorization scope는 유지한다. Copy ack는 완료/Assignment/권한 guard를 우회하지 않는다. 실제 LFF와 최초 실패는 TEST_PLAN을 따르며 원격 CI나 운영 proxy 검증과 구분한다.
 
 
 > **Issue #8 전송 정책:** production 기본값은 HTTPS다. `ALLOW_INSECURE_HTTP=true`와 canonical HTTP `APP_BASE_URL`을 함께 설정한 내부망은 production HTTP도 지원한다. 시작·readiness·공유 URL·모든 인증 경로는 같은 정책을 사용한다. `SESSION_COOKIE_SECURE`는 미사용 예약값이며 제거했다. HTTP에서는 `mastergantt_edit`, HTTPS production에서는 `__Host-mastergantt_edit; Secure`를 사용하고 HttpOnly·SameSite=Strict·Path=/·TTL 및 Domain 미설정을 유지한다. 아래 과거 검증 이력의 HTTPS-only 표현은 당시 기준이다. 현재 운영·전환 절차는 [HTTP_OPERATION](HTTP_OPERATION.md)을 따른다.

@@ -990,3 +990,21 @@ Task Menu opening settle 중 scroll baseline을 다시 잡을 때는 menu를 연
 ### #463 단계 picker keyboard visibility
 
 완료 단계 picker의 Home/End/Arrow 이동은 `aria-activedescendant` 갱신과 대상 option의 list viewport 가시성을 하나의 keyboard 처리 경계에서 보장한다. 열린 list의 option DOM은 이미 존재하므로 대상 option을 animation frame으로 지연하지 않고 즉시 `scrollIntoView({ block: "nearest" })`한다. 입력 focus는 유지하고 popup viewport fit, Escape trigger focus 복귀, list 내부 scroll 소유권은 기존 계약을 유지한다.
+
+## Issue #464 단계 소속 보존과 JSON 교환
+
+Task 메뉴의 Copy/Paste와 Ctrl/Cmd+C/V는 Workspace의 같은 hierarchy command 경로를 사용한다. 공유 `previewMembershipCopy`는 화면에 보이는 행이 아니라 현재 revision의 전체 canonical Task/Link와 정규화 root·자손 집합 C, 목적지 anchor/placement를 사용한다. 외부 명시 소속 제외 또는 상속 변화가 있으면 저장 전에 영향 확인 대화상자를 연다. 외부 명시 연결 제외 건수와 유효 소속·상속 출처가 달라지는 Task/Summary 건수를 구분하고, 기존 단계와 복제될 단계의 원본 ID를 구별한다. 복사본의 신규 UUID를 미리 생성한 것처럼 표시하지 않는다.
+
+취소는 POST를 보내지 않는다. 확인은 검토한 publicId/revision/roots/C/anchor/placement와 영향 계획을 재검증한 뒤 같은 revision의 단일 Copy 요청에 `acknowledgedMembershipExclusions:true`를 포함한다. 권한·revision·완료 단계·배정 제한은 서버가 다시 검사한다. 완료 잠금이나 불완전한 canonical 소속은 동의로 우회하지 않는다. 저장 중 중복 실행·닫기·Escape 및 다른 mutation을 잠그고, 실패하면 검토 내용을 유지하며 자동 재전송하지 않는다. native Gantt fullscreen에서는 기존 fullscreen host에 확인 대화상자를 portal로 연결한다. 취소 후 목적지 작업으로 focus를 복원한다.
+
+가져오기는 보호된 JSON preview/commit 두 단계다. preview는 동일 File을 서버에 검증 요청하고 대상 publicId/baseRevision/previewDigest와 신규 작업·연결·명시 소속 수, 정규화 소속·상속 출처, 일정·Baseline 변경, 경고 및 대상 Calendar를 표시한다. commit은 미리본 원본 File과 `X-Import-Preview-Digest`, `If-Match` preview revision을 함께 전송한다. 성공 201의 canonical identity/revision을 확인해 Workspace에 적용한 뒤 닫는다. 파일·대상·revision·권한 세대가 바뀌면 기존 preview 동의가 만료된다. preview 조회 취소는 abort하고 늦은 응답을 무시한다. commit 중에는 중복 Enter/클릭·닫기·Escape를 막는다. 401/412/네트워크 오류에는 File을 유지하고 새 인증·최신 조회·새 preview를 사용자가 명시적으로 실행한다. 자동 commit/retry는 없다.
+
+내보내기에는 JSON 1.1 형식이 추가된다. 전체 일정·Dependency·명시 소속·Description·URL·Baseline을 다운로드하며 Resource/Logistics는 포함하지 않는다. 원본 UUID는 참고 metadata이고 가져오기 대상 UUID는 새로 생성한다. JSON에서는 이미지 기간·시간 단위 옵션을 숨긴다. 최신 GET snapshot과 실제 export `If-Match` revision이 같은 legacy mixed Dependency 안내를 먼저 보여 주고, 사용자가 원형 보존 및 현재 Import 제한을 확인한 뒤 다운로드한다. 412는 기존 확인을 폐기하고 새 검토를 요구한다. Excel의 단계 출력은 일정 Dependency 포함/제외와 독립이며 서버 기본 전체 Project·오늘 Project timezone·임박 14일·서버 환산 기준을 사용한다. 현재 Dashboard 검색·선택·공수 범위·수동 평가일과 같다고 표시하지 않는다.
+
+새 Copy 영향 표는 최소 720px, Import preview 표는 최소 960px이며 각 표가 가로 스크롤을 소유한다. Copy/Import dialog는 헤더와 저장 action을 고정하고 내부 body가 세로 스크롤을 소유한다. 표 세로 조회는 최대 `min(360px,40dvh)` 내부 스크롤을 사용하고, 긴 이름·외부 ID·UUID는 줄바꿈한다. 390px action은 한 열로 배치하고 native dialog의 키보드 경계·Escape·focus 복원을 유지한다. 변경 전 실제 캡처는 NOT TESTED다. baseline `ca15145b1167b7253841e648d23e59d1a172022a`의 Import 즉시 업로드/Copy 무확인/Excel·SVG·PNG 형식 선택 소스와 동일 fixture 재현 절차를 비교 근거로 사용한다. 로컬 fixture와 원격 CI/독립 QA 증거는 구분한다.
+
+Import 412에서는 파일과 dialog를 유지한 채 `최신 일정 조회`로 전체 canonical snapshot을 명시적으로 조회한다. 이 GET은 Workspace ready 상태를 유지하고 dialog를 unmount하지 않는다. 기존 preview를 무효화한 뒤 새 revision이 표시되면 사용자가 `다시 미리보기`와 `기존 일정에 추가`를 각각 실행한다. 자동 preview/commit은 없다. 최신 조회도 취소·target/generation·AbortSignal을 검사하며, 취소하거나 프로젝트가 바뀐 뒤 도착한 응답은 parent snapshot 적용 전에 폐기한다. 조회 실패에는 File을 유지하고 명시적 재조회만 허용한다.
+
+작업 메뉴를 열기 위한 미선택 행 선택은 공개 `select-task`의 `show:false`로 Core에 반영한다. 이미 보이는 호출 대상의 위치를 선택 직후 자동으로 이동시키지 않으며, 일반 클릭·키보드 선택의 기존 reveal 및 modifier/multi-selection은 유지한다. 메뉴가 열린 뒤 실제 사용자 스크롤·resize에는 기존 guard가 즉시 메뉴를 닫고, 같은 위치의 지연 scroll 알림은 무시한다. 설치 Core 2.7.3 타입과 [공식 select-task action](https://docs.svar.dev/react/gantt/api/actions/select-task/)의 show 기본 true/false 계약을 2026-10-06 확인했다. 하단 가상 행의 미선택 namecell 우클릭과 native/public 수직 위치 보존은 `tests/e2e/task-context-menu-scroll.spec.ts`에서 검증하며, 문서 확인과 실제 browser 결과를 구분한다.
+
+Context 선택은 기존 Copy 완료 feedback도 보존한다. 미선택 목적지 우클릭 직후 조건부 feedback 줄을 제거하면 Gantt 높이가 바뀌고 scrollIntoView된 Grid 조상의 위치가 clamp되어 새 메뉴가 닫힐 수 있기 때문이다. 메시지는 clipboard의 복사 결과를 계속 설명하며 일반 클릭·키보드·modifier 선택의 기존 메시지 정리는 유지한다. Copy→더 아래 목적지 이름 셀 우클릭→활성 Paste 위치 submenu→소속 영향 확인·취소의 실제 경로를 검증하며 clipboard/revision 조건이나 실제 사용자 scroll 닫힘을 완화하지 않는다.

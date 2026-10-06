@@ -115,7 +115,14 @@ export interface TemplateTaskSystemLinkSnapshotItem {
   scope: "self" | "subtree";
 }
 
+export interface TemplateMembershipSnapshotItem {
+  taskExternalId: string;
+  milestoneExternalId: string;
+}
+
 export interface ProjectTemplateSnapshot {
+  /** Omission supports snapshots saved before membership preservation. */
+  memberships?: TemplateMembershipSnapshotItem[];
   sourceRevision: number;
   projectMaster?: {
     businessUnitId: string | null;

@@ -6,11 +6,14 @@ import type { MilestoneResourceDrill } from "@/features/resources/milestone-reso
 
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectSaveAsTemplateButton } from "@/features/templates/project-save-as-template-button";
 import { ProjectExportButton } from "@/features/projects/project-excel-export-button";
+import { previewMembershipCopy } from "@/domain/milestones/membership-copy-plan";
+import { ProjectCopyMembershipConfirm } from "./project-copy-membership-confirm";
+import { copyReviewMatches, type CopyReview } from "./project-copy-confirm-model";
 import { ProjectImportButton } from "@/features/projects/project-import-button";
 import { ProjectSettingsDialog } from "@/features/projects/project-settings-dialog";
 import { EMPTY_TASK_FILTER, activeTaskFilterCount, applyTaskQuickView, filterTasksWithAncestors, getTaskQuickView, type TaskFilterState } from "@/features/projects/project-search-filter";
@@ -200,6 +203,17 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [columnVisibility, setColumnVisibility] = useState<ProjectGridColumnVisibility>(INITIAL_COLUMN_VISIBILITY);
   const [pendingTaskDelete, setPendingTaskDelete] = useState<PendingTaskDelete | null>(null);
   const taskMutationReference = useRef(false);
+  const copyConfirmationReference = useRef(false);
+  const copyReviewTriggerReference = useRef<HTMLElement | null>(null);
+  const [copyReview, setCopyReview] = useState<CopyReview | null>(null);
+  const [copyReviewError, setCopyReviewError] = useState<string | null>(null);
+  const [importPending, setImportPending] = useState(false);
+  const importRefreshContext = useRef({ publicId, generation:0 });
+  useLayoutEffect(() => {
+    const context=importRefreshContext.current;
+    context.publicId=publicId;context.generation++;
+    return () => { context.generation++; };
+  }, [publicId]);
   const [editorSession, setEditorSession] = useState<TaskEditorSession | null>(null);
   const [relationEditorRequest, setRelationEditorRequest] = useState<TaskRelationEditorRequest | null>(null);
   const [editorInitialTab, setEditorInitialTab] = useState<"task" | "memberships">("task");
@@ -365,14 +379,19 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     setSettingsOpen(false); setUnlockOpen(false); setPendingTaskDelete(null); setPermission("readonly"); setPermissionCheckState("checking");
     setState({ status: "loading" }); setRetryKey((key) => key + 1);
   }
-  async function fetchCanonicalSnapshot(): Promise<ProjectSnapshotResponse | null> {
+  async function fetchCanonicalSnapshot(signal?:AbortSignal, currentRequest?:()=>boolean): Promise<ProjectSnapshotResponse | null> {
     try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store" });
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store", signal });
       const body: unknown = await response.json().catch(() => null);
-      return response.ok && isSnapshot(body) && applySnapshot(body) ? body : null;
+      return !signal?.aborted && (!currentRequest || currentRequest()) && response.ok && isSnapshot(body) && applySnapshot(body) ? body : null;
     } catch { return null; }
   }
   async function reloadCanonicalSnapshot(): Promise<boolean> { return (await fetchCanonicalSnapshot()) !== null; }
+  async function refreshImportProject(signal:AbortSignal):Promise<boolean> {
+    const context=importRefreshContext.current,target=publicId,id=++context.generation;
+    if(context.publicId!==target||signal.aborted)return false;
+    return (await fetchCanonicalSnapshot(signal,()=>context.publicId===target&&context.generation===id))!==null;
+  }
 
   useEffect(() => {
     const key = projectRevisionStorageKey(publicId);
@@ -768,32 +787,59 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     } finally { taskMutationReference.current = false; setIsSavingTask(false); }
   }
 
-  async function saveTaskHierarchyCommand(command: TaskHierarchyCommandRequest): Promise<void> {
-    if (state.status !== "ready" || taskMutationReference.current) return;
+  async function performTaskHierarchyCommand(command: TaskHierarchyCommandRequest, expectedRevision: number): Promise<{ ok: boolean; error?: string }> {
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || taskMutationReference.current || editorSession || settingsOpen || importPending || isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut) return { ok:false, error:"편집 권한 또는 다른 작업의 초안·저장 상태를 확인해 주세요." };
+    if (state.snapshot.data.project.revision !== expectedRevision) return { ok:false, error:"검토 이후 프로젝트가 변경되었습니다. 최신 일정에서 다시 복사해 주세요." };
     taskMutationReference.current = true; setIsSavingTask(true); clearToast();
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/task-commands`, {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-          "If-Match": revisionTag(state.snapshot.data.project.revision),
-        },
-        body: JSON.stringify(command),
+        method: "POST", credentials: "same-origin",
+        headers: { "Content-Type":"application/json", "If-Match":revisionTag(expectedRevision) }, body:JSON.stringify(command),
       });
-      const body: unknown = await response.json().catch(() => null);
-      const snapshot = snapshotFromTaskMutation(body);
+      const body: unknown = await response.json().catch(() => null), snapshot = snapshotFromTaskMutation(body);
       if (response.ok && snapshot && applySnapshot(snapshot)) {
-        notify("success", "작업 구조를 변경했습니다.", "작업 메뉴");
-        return;
+        notify("success", "작업 구조를 변경했습니다.", "작업 메뉴"); return { ok:true };
       }
-      await handleTaskFailure(response.status, body, "작업 구조를 변경할 수 없습니다.", "작업 메뉴");
+      const error = await handleTaskFailure(response.status, body, "작업 구조를 변경할 수 없습니다.", "작업 메뉴");
+      return { ok:false, error };
     } catch {
-      await handleTaskFailure(undefined, null, "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", "작업 메뉴");
-    } finally {
-      taskMutationReference.current = false;
-      setIsSavingTask(false);
+      const error = await handleTaskFailure(undefined, null, "네트워크 연결을 확인한 뒤 다시 시도해 주세요.", "작업 메뉴");
+      return { ok:false, error };
+    } finally { taskMutationReference.current = false; setIsSavingTask(false); }
+  }
+
+  async function saveTaskHierarchyCommand(command: TaskHierarchyCommandRequest): Promise<void> {
+    if (state.status !== "ready" || permission !== "edit" || permissionCheckState !== "complete" || busy || editorSession || settingsOpen || copyReview) return;
+    const revision = state.snapshot.data.project.revision;
+    if (command.kind === "copy") {
+      try {
+        const plan = previewMembershipCopy(state.snapshot.data.tasks, state.snapshot.data.links, command);
+        if (plan.requiresAcknowledgement) {
+          copyReviewTriggerReference.current = findTaskContextElement(document.body, command.anchorTaskId);
+          setCopyReviewError(null); setCopyReview({ publicId, revision, command, plan }); return;
+        }
+      } catch (error) {
+        const code = error && typeof error === "object" && "code" in error ? String(error.code) : "INVALID_COPY_MEMBERSHIP_SNAPSHOT";
+        notify("error", code === "TASK_COPY_TASK_LIMIT_EXCEEDED" ? "복사 후 프로젝트의 작업 수가 최대 5000개를 초과합니다." : code === "COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED" ? "완료 단계의 구성원·소속·관계를 온전히 보존할 수 없어 복사할 수 없습니다." : code === "COMPLETED_MILESTONE_STRUCTURE_LOCKED" ? "완료 단계의 구성이 변경되는 복사는 잠겨 있습니다." : "현재 소속 정보를 안전하게 확인할 수 없습니다. 최신 일정을 조회해 주세요.", "작업 복사", { code }); return;
+      }
     }
+    await performTaskHierarchyCommand(command, revision);
+  }
+
+  function closeCopyReview() {
+    if (taskMutationReference.current || copyConfirmationReference.current) return;
+    setCopyReview(null); setCopyReviewError(null);
+  }
+  async function confirmMembershipCopy() {
+    if (!copyReview || copyConfirmationReference.current || state.status !== "ready") return;
+    copyConfirmationReference.current = true;
+    try {
+      const plan = previewMembershipCopy(state.snapshot.data.tasks, state.snapshot.data.links, copyReview.command);
+      if (!copyReviewMatches(copyReview, publicId, state.snapshot.data.project.revision, copyReview.command, plan)) { setCopyReviewError("검토 이후 복사 조건이 변경되었습니다. 취소 후 다시 복사해 주세요."); return; }
+      const result = await performTaskHierarchyCommand({ ...copyReview.command, acknowledgedMembershipExclusions:true }, copyReview.revision);
+      if (result.ok) { setCopyReview(null); setCopyReviewError(null); } else setCopyReviewError(result.error ?? "복사하지 못했습니다. 자동으로 다시 보내지 않습니다.");
+    } catch { setCopyReviewError("현재 소속을 안전하게 확인할 수 없습니다. 취소 후 최신 일정에서 다시 복사해 주세요."); }
+    finally { copyConfirmationReference.current = false; }
   }
 
   function openTaskEditor(taskId: string, initialTab: "task" | "memberships" = "task") {
@@ -1093,7 +1139,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     (!normalizedTargetQuery || [target.name, target.code ?? ""].some((value) => value.toLocaleLowerCase().includes(normalizedTargetQuery)))
   );
   const editing = permission === "edit" && permissionCheckState === "complete";
-  const busy = isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask;
+  const busy = isSavingMetadata || isSavingStatus || isChangingPassword || isLoggingOut || isSavingTask || importPending || copyReview !== null;
   const scopeTabLabel = (taskId: string): string => {
     const task = tasks.find((candidate) => candidate.taskId === taskId);
     if (!task) return "선택한 Summary";
@@ -1175,7 +1221,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       </div>
       <div className="project-context-actions">
         <ProjectLinkButton projectName={project.name} projectUrl={projectUrl} />
-        <ProjectExportButton publicId={publicId} />
+        <ProjectExportButton publicId={publicId} expectedRevision={project.revision} />
         {editing ? <button
           ref={settingsTriggerReference}
           type="button"
@@ -1202,7 +1248,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         >
           <summary aria-label="프로젝트 작업 더보기">더보기</summary>
           <div className="project-action-menu-panel">
-            <ProjectImportButton publicId={publicId} expectedRevision={project.revision} disabled={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null} onImportSuccess={() => beginRefresh(false)} />
+            <ProjectImportButton publicId={publicId} expectedRevision={project.revision} disabled={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null} editable={editing} onPendingChange={setImportPending} onRefreshProject={refreshImportProject} onAuthorizationExpired={() => { setPermission("readonly"); setPermissionCheckState("complete"); }} onRequestUnlock={() => setUnlockOpen(true)} onImportSuccess={applySnapshot} />
             <ProjectCopyEntry publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} onAutoOpen={() => setActionMenuOpen(true)} />
             <ProjectSaveAsTemplateButton publicId={publicId} busy={busy || editorSession !== null || pendingTaskDelete !== null} />
           </div>
@@ -1453,6 +1499,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           <ProjectMilestoneDashboard publicId={publicId} revision={project.revision} tasks={tasks} active={activeView === "schedule" && scheduleView === "milestones"} busy={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} onOpenTask={openTaskEditor} onSchedule={drillDashboardSchedule} onResources={(scope) => { if (busy || scope.projectRevision !== project.revision) return; setResourceDrill(scope); activateWorkspaceView("resources"); }} onRefreshProject={() => { void reloadCanonicalSnapshot(); }} />
         </div>
         </div>
+        {copyReview ? <ProjectCopyMembershipConfirm review={copyReview} tasks={tasks} current={copyReview.publicId === publicId && copyReview.revision === project.revision && editing} pending={isSavingTask} error={copyReviewError} restoreFocusRef={copyReviewTriggerReference} onClose={closeCopyReview} onConfirm={() => void confirmMembershipCopy()} /> : null}
         {editorSession ? <ProjectTaskEditor initialTab={editorInitialTab} ref={projectTaskEditorReference} key={editorSession.task.taskId} session={editorSession}
           latestTask={tasks.find((task) => task.taskId === editorSession.task.taskId)} tasks={tasks} links={links} revision={project.revision}
           editable={editing} hasLinks={taskHasDependencyLinks(tasks, editorSession.task.taskId, links)} busy={busy}

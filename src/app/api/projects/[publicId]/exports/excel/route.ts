@@ -3,7 +3,7 @@ import { getDatabase } from "@/server/db";
 import { getProjectService } from "@/server/projects/project-service";
 import { handleProjectExcelExport } from "@/server/exports/project-excel-export-handler-core";
 import { readApplicationConfiguration } from "@/server/security/origin-core";
-import { ResourceWorkloadService } from "@/server/resources/resource-workload-service-core";
+import { ProjectExportSnapshotService } from "@/server/exports/project-export-snapshot-service-core";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,8 +21,8 @@ export async function POST(request: Request, context: RouteContext): Promise<Res
       service: getProjectService,
       ...readApplicationConfiguration(process.env),
       requestId: () => requestId,
-      getResourceWorkload: (projectPublicId) =>
-        new ResourceWorkloadService(getDatabase()).get(projectPublicId, null, null, process.env.RESOURCE_MD_PER_MM),
+      getExportBundle: (projectPublicId, includeResourceEffort) =>
+        new ProjectExportSnapshotService(getDatabase(), { mdPerMmEnvironment: process.env.RESOURCE_MD_PER_MM }).get(projectPublicId, includeResourceEffort),
     }),
   );
 }

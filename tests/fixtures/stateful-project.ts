@@ -1,5 +1,7 @@
 import { expect, type Page, type Request, type Route } from "@playwright/test";
 import type { CreateTaskRequest, ProjectDto, ProjectLinkDto, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
+import { stageSnapshotFromProject } from "../../src/domain/milestones/project-stage-model";
+import { projectStageGates } from "../../src/domain/milestones/stage-gates";
 import type { ProjectLogisticsDto } from "../../src/contracts/logistics";
 
 export const publicId = "a3405d3d-8cb4-4da4-9b0f-43a5de330003";
@@ -43,12 +45,16 @@ function initialTasks(): ProjectTaskDto[] {
     task(4, "MILESTONE-1", "Stable milestone", { type: "milestone", requestedStart: "2026-12-18", start: "2026-12-18", end: "2026-12-18", duration: 0, siblingOrder: 2 }),
   ];
 }
+function canonicalTasks(fixture: StatefulProjectFixture) {
+  const projection = projectStageGates(stageSnapshotFromProject(fixture.tasks, fixture.links));
+  return fixture.tasks.map((entry) => ({ ...entry, membership:projection.membership.get(entry.taskId)!, ...(entry.type === "milestone" ? { stageGate:projection.gates.get(entry.taskId)! } : {}) }));
+}
 function snapshot(fixture: StatefulProjectFixture) {
-  return { data: { project: { ...fixture.project }, tasks: fixture.tasks.map((entry) => ({ ...entry })), links: fixture.links.map((entry) => ({ ...entry })), permission: "readonly" as const, logistics: fixture.logistics ?? { processes: [], equipment: [], systems: [], systemLinks: [] } } };
+  return { data: { project: { ...fixture.project }, tasks: canonicalTasks(fixture), links: fixture.links.map((entry) => ({ ...entry })), permission: "readonly" as const, logistics: fixture.logistics ?? { processes: [], equipment: [], systems: [], systemLinks: [] } } };
 }
 function taskMutation(fixture: StatefulProjectFixture, changedTaskExternalIds: string[]): TaskMutationResponse {
   return { data: {
-    project: { ...fixture.project }, tasks: fixture.tasks.map((entry) => ({ ...entry })), links: fixture.links.map((entry) => ({ ...entry })), warnings: [],
+    project: { ...fixture.project }, tasks: canonicalTasks(fixture), links: fixture.links.map((entry) => ({ ...entry })), warnings: [],
     operation: { kind: "taskCreate", changedTaskExternalIds, deletedTaskExternalIds: [], deletedLinkIds: [] },
   } };
 }

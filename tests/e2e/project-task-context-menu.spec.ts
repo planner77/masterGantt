@@ -267,14 +267,16 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   await page.keyboard.press("Home");
   const add = rootMenu.getByRole("menuitem", { name: "Add", exact: true });
   await expect(add).toBeFocused();
-  // Root commands can grow as product features are added. Navigate by the current enabled menu order
-  // instead of pinning this viewport regression to a fixed command index.
-  const enabledRootItems = rootMenu.locator('button[role="menuitem"]:not(:disabled)');
-  const moveIndex = await enabledRootItems.evaluateAll((items) =>
-    items.findIndex((item) => item.getAttribute("aria-label") === "Move"),
+  // Follow the actual enabled root-item order so added commands do not change keyboard semantics.
+  const enabledRootItems = rootMenu.locator(':scope > button[role="menuitem"]:not(:disabled), :scope > .project-task-context-submenu-host > button[role="menuitem"]:not(:disabled)');
+  const enabledLabels = await enabledRootItems.evaluateAll((items) =>
+    items.map((item) => item.getAttribute("aria-label") ?? item.textContent?.trim() ?? ""),
   );
-  expect(moveIndex).toBeGreaterThanOrEqual(0);
-  for (let index = 0; index < moveIndex; index += 1) await page.keyboard.press("ArrowDown");
+  const addIndex = enabledLabels.indexOf("Add");
+  const moveIndex = enabledLabels.indexOf("Move");
+  expect(addIndex).toBeGreaterThanOrEqual(0);
+  expect(moveIndex).toBeGreaterThan(addIndex);
+  for (let index = addIndex; index < moveIndex; index += 1) await page.keyboard.press("ArrowDown");
   const move = rootMenu.getByRole("menuitem", { name: "Move", exact: true });
   await expect(move).toBeFocused();
   const moveVisible = await move.evaluate((element) => {

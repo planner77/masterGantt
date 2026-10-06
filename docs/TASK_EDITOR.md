@@ -288,3 +288,11 @@ Task/Summary의 완료 단계 셀/완료 단계 연결…은 기존 작업 탭 M
 ## Issue #463 단계 대시보드에서 동일 Editor 조회
 
 일정 완료 단계 대시보드와 물류 관련 단계의 상세는 기존 작업 정보 탭, 소속 작업 조회는 기존 memberships 탭을 연다. 신규 편집기나 저장 API는 없다. 대시보드 GET과 Editor 진입은 mutation을 만들지 않으며 readonly의 상세 조회와 완료 단계 구조 잠금, 기본/Resource/Logistics 초안 보호를 유지한다. 닫기는 원래 일정 peer 또는 물류 보기와 trigger focus로 복원한다. Editor의 일정 이동은 명시 전체 일정 ID drill을 사용한다. stale 결과·진행 중 요청·열린 Editor와 다른 mutation의 pending 동안 새로운 대시보드 drill은 잠긴다. 저장 성공의 canonical revision을 동일 workspace에 적용하여 대시보드가 현재 snapshot을 다시 조회한다.
+
+## Issue #464 Copy·Import·Export와 Editor 연결
+
+Task Editor의 기본 정보·Milestone 소속 작업 탭은 canonical Task ID를 그대로 조회한다. 작업 정보·Resource·물류·관계 초안이 열린 동안 Copy와 Import 진입 및 hierarchy mutation을 잠근다. Copy 영향 확인 또는 Import preview/commit은 별도의 저장 단위이며 Editor 저장을 암묵적으로 실행하거나 초안을 폐기하지 않는다. 저장 성공의 전체 canonical snapshot은 기존 Workspace 동기화 경로를 사용하고, Gantt를 재등록하거나 Editor를 remount하는 별도 경로를 만들지 않는다.
+
+Copy는 공유 순수 계획에서 Summary root의 상속 설정과 하위 override를 구분한다. 내부 Milestone 복제 시 연결을 새 ID로 remap하고, 외부 명시 소속 제외·외부/새 목적지 Summary 상속 변화는 같은 revision으로 확인받는다. 완료 단계 구성 잠금은 확인 dialog로 해제하지 않는다. JSON 1.1 교환은 Description·URL·Baseline과 명시 소속을 보존하지만 Resource/Logistics 배정은 제외하므로, 가져오기 후 해당 공수가 원본과 동일하다고 안내하지 않는다. 원본 Task UUID는 참고 값이며 대상 UUID는 새로 발급한다. effective membership/Ready는 서버의 대상 전체 hierarchy/Link 계산 결과를 조회한다.
+
+#470 선택 리뷰의 Resource 신규 선택 해제 후 dirty 정리와 reload 후 유효 탭 정규화 회귀는 `tests/e2e/project-task-editor.spec.ts`의 #461 두 시나리오를 유지한다. #464의 실제 Editor→Milestone 탭→Grid→Dashboard→Logistics/Resource→JSON/Excel 연결 증거는 `tests/e2e/milestone-stage-exchange.spec.ts`, 요청 실패·취소 및 dialog geometry는 `tests/e2e/milestone-exchange-state.spec.ts`를 사용한다. 로컬 실행 결과는 TEST_PLAN 작성자에게 전달하며 원격 E2E 완료를 대체하지 않는다.

@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.92.0] - 2026-10-06
+
+### Added
+
+- Issue #464: JSON 1.0 호환을 유지하는 JSON 1.1 명시 단계 소속 교환, 보호된 Import preview/원자 commit, 전체 일정 JSON Export와 Excel 단계 보고를 제공한다.
+- 전체 Project Copy·Template과 subtree/multi-root Copy에서 단계 Membership을 새 Task ID로 안전하게 remap하고 외부 소속 제외·상속 변화·완료 단계 경계를 명시적으로 검증한다.
+
+### Changed
+
+- latest main `d748046733ae2006580052a480c984ae1eb1fa2a`에는 #463가 병합되어 있으며, 해당 main의 #455/transport/필터 후속 보완을 보존해 #464를 재정렬하고 application version을 `0.91.0`에서 `0.92.0`으로 증가한다.
+- JSON 1.1 preview는 advisory source calendar와 dependency로 source effective schedule을 재구성하여 동일 Export 재가져오기를 거짓 일정 변경으로 표시하지 않는다.
+
+### Fixed
+
+- Context Menu opening scroll settle 보완을 #463에서 승계하고, #464 키보드 회귀 검증은 실제 enabled root item 순서를 기준으로 수행한다.
+
 ## [0.91.0] - 2026-10-06
 
 ### Added
