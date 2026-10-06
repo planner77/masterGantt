@@ -102,7 +102,9 @@ require("packages: write" in auto_workflow, "automatic finalizer needs scoped pa
 require("packages: write" in resume_workflow, "release completion finalizer needs scoped packages: write for backlog cleanup")
 require("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in auto_workflow, "automatic finalizer must expose the job-scoped package token to cleanup helper")
 require("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in resume_workflow, "release completion finalizer must expose the job-scoped package token to cleanup helper")
-require(workflow.count("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}") >= 2, "manual finalize operations must expose the job-scoped package token")
+require(workflow.count("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}") >= 3, "manual release/finalize operations must expose the job-scoped token for authenticated git/package mutations")
+release_job = workflow.split("  release:", 1)[1].split("\n  finalize:", 1)[0]
+require("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in release_job, "manual release job must expose GITHUB_TOKEN for authenticated SemVer tag push")
 require("ref: main" in resume_workflow, "release completion resume must execute trusted main code")
 require("ref: ${{ github.event.workflow_run.head_sha }}" not in resume_workflow, "release completion resume must not execute triggering tag/manual ref code")
 require("actions/runs/$RELEASE_RUN_ID" in resume_workflow, "explicit release resume must wait on the exact source release run")
