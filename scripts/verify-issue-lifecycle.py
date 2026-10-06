@@ -180,6 +180,10 @@ require("return issue.get(\"state\") == \"closed\"" not in auto_impl.split("def 
 require("coalesce_consecutive_issue_retries(" in auto_impl, "same-Issue corrective merge convergence is required")
 require("supersede_failed_issue_retries(" in auto_impl, "non-adjacent same-Issue retry supersession is required")
 require("exact_release_state(" in auto_impl, "formal release evidence classification is required")
+require("def run_git_remote(" in impl, "lifecycle remote Git operations must use process-scoped authentication")
+require('run_git_remote("ls-remote"' in impl and 'run_git_remote("fetch"' in impl, "lifecycle tag lookup/fetch must use authenticated Git remote helper")
+require("def run_git_remote(" in auto_impl, "automatic finalizer remote Git evidence must use process-scoped authentication")
+require('run_git_remote(' in auto_impl and '"ls-remote"' in auto_impl and 'run_git_remote("fetch"' in auto_impl, "automatic finalizer tag lookup/fetch must use authenticated Git remote helper")
 require("validation_docs_only" in auto_impl, "coalescing must preserve validation scope")
 require("--cleanup-pr" in auto_impl and "--cleanup-pr" in impl, "coalesced PR cleanup identities must reach lifecycle finalize")
 require("current_main_sha(" in auto_impl, "dispatcher must snapshot current main")
@@ -753,6 +757,8 @@ require("GIT_CONFIG_KEY_0" in impl and "http.https://github.com/.extraheader" in
 require("GIT_CONFIG_VALUE_0" in impl and "AUTHORIZATION: basic" in impl, "git push auth header contract is required")
 require('push_git_refs(f"refs/tags/{tag}")' in impl, "release start/fallback paths must use authenticated tag push")
 require('run("git", "push", "origin", f"refs/tags/{tag}")' not in impl, "unauthenticated release tag push must not remain")
+require('"git", "ls-remote"' not in impl, "unauthenticated lifecycle tag lookup must not remain")
+require('run("git", "fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")' not in impl, "unauthenticated lifecycle tag fetch must not remain")
 require("persist-credentials: false" in resume_workflow, "release completion resume must keep checkout credentials non-persistent")
 require("persist-credentials: false" in auto_workflow, "automatic finalizer must keep checkout credentials non-persistent")
 release_job = workflow.split("  release:", 1)[1].split("\n  finalize:", 1)[0]
@@ -804,5 +810,32 @@ finally:
     module.run = saved_run
     if saved_token is not None:
         __import__("os").environ["GITHUB_TOKEN"] = saved_token
+
+# Automatic finalizer tag evidence reads use the same process-scoped auth
+# contract as lifecycle tag push/read paths.
+saved_auto_run = auto.run
+saved_auto_token = __import__("os").environ.get("GITHUB_TOKEN")
+auto_calls = []
+def fake_auto_run(*args, check=True, env=None):
+    auto_calls.append((args, check, env))
+    return type("Result", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+auto.run = fake_auto_run
+__import__("os").environ["GITHUB_TOKEN"] = "test-token"
+try:
+    auto.run_git_remote("ls-remote", "--exit-code", "--tags", "origin", "refs/tags/v9.9.9", check=False)
+    require(len(auto_calls) == 1, "automatic finalizer authenticated remote helper must invoke one git command")
+    auto_args, auto_check, auto_env = auto_calls[0]
+    require(auto_args[0:3] == ("git", "ls-remote", "--exit-code"), "automatic finalizer remote command mismatch")
+    require(auto_check is False, "automatic finalizer remote helper must preserve check=False")
+    require(auto_env is not None and auto_env.get("GIT_CONFIG_COUNT") == "2", "automatic finalizer auth config must be process-scoped")
+    require(auto_env.get("GIT_CONFIG_VALUE_0") == "", "automatic finalizer must reset inherited auth header")
+    require(auto_env.get("GIT_CONFIG_VALUE_1", "").startswith("AUTHORIZATION: basic "), "automatic finalizer auth header missing")
+    require("test-token" not in " ".join(auto_args), "automatic finalizer token must not appear in command arguments")
+finally:
+    auto.run = saved_auto_run
+    if saved_auto_token is None:
+        __import__("os").environ.pop("GITHUB_TOKEN", None)
+    else:
+        __import__("os").environ["GITHUB_TOKEN"] = saved_auto_token
 
 print("issue-lifecycle generic/automatic contract scenarios: PASS")
