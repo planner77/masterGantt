@@ -16,6 +16,10 @@ interface Props {
   readonly editable: boolean;
   readonly disabled: boolean;
   readonly onApplied: () => Promise<void>;
+  readonly onUnauthorized?: () => void;
+  readonly onPendingChange?: (pending: boolean) => void;
+  readonly onDirtyChange?: (dirty: boolean) => void;
+  readonly discardGeneration?: number;
   readonly onSelectionCountChange?: (count: number) => void;
 }
 
@@ -63,7 +67,24 @@ function isTarget(value: unknown): value is AssignmentTargetDto {
 }
 function targetKey(target: Pick<AssignmentTargetDto, "kind" | "id">): string { return `${target.kind}:${target.id}`; }
 
-export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onApplied, onSelectionCountChange }: Props) {
+function assignmentDraftSnapshot(
+  selected: Iterable<string>,
+  allocations: Readonly<Record<string, AllocationDraft>>,
+  roles: Readonly<Record<string, AssignmentRoleDraft>>,
+): string {
+  const selectedKeys = [...selected].sort();
+  const resourceKeys = selectedKeys.filter((key) => key.startsWith("resource:"));
+  return JSON.stringify({
+    selected: selectedKeys,
+    allocations: Object.fromEntries(resourceKeys.map((key) => [key, allocations[key] ?? { start: "", end: "", percent: "" }])),
+    roles: Object.fromEntries(resourceKeys.map((key) => [key, roles[key] ?? ""])),
+  });
+}
+
+export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onApplied, onSelectionCountChange, onDirtyChange, onPendingChange, onUnauthorized, discardGeneration = 0 }: Props) {
+  const initialDraft = useRef<string | null>(null);
+  const dirtyReference = useRef(false);
+  const loadedDiscardGeneration = useRef(discardGeneration);
   const [targets, setTargets] = useState<AssignmentTargetDto[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [allocations, setAllocations] = useState<Record<string, AllocationDraft>>({});
@@ -72,6 +93,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
   const [catalogRevision, setCatalogRevision] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  useEffect(() => { onPendingChange?.(saving); }, [saving, onPendingChange]);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [kindFilter, setKindFilter] = useState<"all" | "resource" | "group">("all");
@@ -83,7 +105,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
 
   const [retry, setRetry] = useState(0);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
-  const snapshotKey = `${taskId}:${revision}:${editable}:${retry}`;
+  const snapshotKey = `${taskId}:${revision}:${editable}:${retry}:${discardGeneration}`;
   const ready = loadedKey === snapshotKey && !loading;
 
   useEffect(() => {
@@ -93,6 +115,8 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
       await Promise.resolve(); if (!alive) return;
       const publicId = projectIdFromPathname(window.location.pathname);
       if (!publicId) { setLoading(false); setError("프로젝트 경로를 확인할 수 없습니다."); return; }
+      if (dirtyReference.current && loadedDiscardGeneration.current === discardGeneration) { setLoading(false); setError("기준 정보 또는 권한이 변경되었습니다. 리소스 초안은 유지됩니다. 최신 정보 다시 불러오기에서 명시적으로 폐기하고 검토해 주세요."); return; }
+      loadedDiscardGeneration.current = discardGeneration;
       setLoading(true); setLoadedKey(null); setError(null);
       try {
         const assignedResponse = await fetch(`/api/projects/${encodeURIComponent(publicId)}/assigned-targets`, { credentials: "same-origin", cache: "no-store", signal: controller.signal });
@@ -115,6 +139,9 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
           nextRoleDrafts[key] = assignment.role ?? "";
           if (assignment.role === null || assignment.role === undefined) nextLegacyUnspecified.add(key);
         }
+        initialDraft.current = assignmentDraftSnapshot(taskAssignments.map((assignment) => `${assignment.target.kind}:${assignment.target.id}`), nextAllocations, nextRoleDrafts);
+        dirtyReference.current = false;
+        onDirtyChange?.(false);
         setAllocations(nextAllocations);
         setRoleDrafts(nextRoleDrafts);
         setLegacyUnspecified(nextLegacyUnspecified);
@@ -137,7 +164,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
       finally { if (alive) setLoading(false); }
     })();
     return () => { alive = false; controller.abort(); };
-  }, [editable, taskId, revision, retry, snapshotKey]);
+  }, [editable, taskId, revision, retry, snapshotKey, onDirtyChange, discardGeneration]);
 
   useEffect(() => {
     if (!editable || !ready || roleFilter === "all" || catalogRevision === null) return;
@@ -196,6 +223,13 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
   const visibleGroups = useMemo(() => visibleTargets.filter((target) => target.kind === "group"), [visibleTargets]);
   const showResources = kindFilter !== "group";
   const showGroups = kindFilter !== "resource" && roleFilter === "all";
+
+  useEffect(() => {
+    if (ready && initialDraft.current !== null) {
+      dirtyReference.current = assignmentDraftSnapshot(selected, allocations, roleDrafts) !== initialDraft.current;
+      onDirtyChange?.(dirtyReference.current);
+    }
+  }, [selected, allocations, roleDrafts, ready, onDirtyChange]);
 
   useEffect(() => {
     onSelectionCountChange?.(selected.size);
@@ -270,6 +304,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
         method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json", "If-Match": `"${revision}"` },
         body: JSON.stringify({ catalogRevision, targets: requested }),
       });
+      if (response.status === 401) { onUnauthorized?.(); setError("편집 권한이 만료되었습니다. 리소스 초안은 유지됩니다."); return; }
       if (response.status === 412) { setError("프로젝트 또는 리소스 목록이 변경되었습니다. 최신 정보를 다시 불러와 주세요."); return; }
       if (response.status === 401) { setError("편집 권한이 만료되었습니다. 다시 잠금을 해제해 주세요."); return; }
       if (response.status === 409) { setError("수행 역할 또는 할당 대상이 변경되었습니다. 최신 리소스 역할을 다시 확인해 주세요."); return; }

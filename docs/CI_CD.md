@@ -459,7 +459,7 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 
 ## Issue #438 Build-once / verified digest promotion
 
-- Container binary는 Main CI의 `publish-commit-image`에서 한 번만 build한다. version-changing merge의 successful candidate만 formal release까지 보존한다.
+- Container binary는 Main CI의 `publish-commit-image`에서 한 번만 build한다. successful non-docs main candidate는 version 변경 여부와 무관하게 Generic Finalizer까지 보존한다. no-release finalize가 exact temporary candidate를 정리하고, release-required candidate는 formal release에서 재사용한다.
 - Main image build는 Dockerfile `VERSION`과 OCI version label에 현재 `package.json.version`을 사용하고 revision label에는 exact main SHA를 기록한다.
 - Release prepare는 annotated `v*` tag object 자체를 검사한 뒤 `refs/tags/<tag>^{commit}`으로 `target_sha`를 계산한다. candidate 조회는 `ci-<target_sha>`만 허용한다.
 - Release quality/static/E2E gate는 유지하지만 container build action은 release workflow에서 제거한다.
@@ -498,3 +498,24 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 - baseline median/p90과 cache hit/miss를 기록한 뒤 후보 최적화의 before/after를 동일 metric 정의로 비교한다.
 - wall-clock 개선이 의미 있고 runner-minutes가 증가하지 않거나 합리적 범위일 때만 cache 변경을 채택한다.
 - Playwright browser cache, 추가 Next/Docker cache 조정은 이 Phase 1 PR의 범위 밖이며 측정 근거 없이 활성화하지 않는다.
+
+### Release static 실패 시 계측 종료 guard
+
+Release quality의 setup/build duration recorder는 원래 제품·보안 gate의 결과를 보조하는 계측이며 실패 원인을 추가로 만들거나 덮어쓰면 안 된다.
+
+- build 시작 step이 실제 실행되어 `started_ms` output을 만든 경우에만 대응 종료 metric을 기록한다.
+- audit/typecheck/lint/test 등 선행 gate 실패로 시작 step이 SKIPPED되면 종료 recorder도 SKIPPED되어야 한다.
+- `if: always()`가 필요한 cleanup/artifact 업로드와, 선행 output이 필수인 duration recorder를 구분한다.
+- recorder guard는 보안 gate를 완화하지 않는다. `npm audit --omit=dev`의 non-zero는 그대로 Release static quality FAIL이다.
+- 회귀 계약은 `tests/scripts/test-config-layout.test.ts`에서 release workflow condition과 취약 transitive dependency 최소 버전을 정적으로 확인한다.
+
+
+## Issue #483 Release Completion Resume Actions 권한 경계
+
+`release-finalizer-resume.yml`은 successful Release를 finalize한 뒤 동일 실행에서 backlog의 다음 release-required target을 시작할 수 있다. 이 경로는 `issue_lifecycle.py`의 Release workflow dispatch를 재사용하므로 job-scoped `GITHUB_TOKEN`에 `actions: write`가 필요하다.
+
+- `actions: write`: `release-image.yml` workflow_dispatch에만 필요하다.
+- `contents: write`: annotated tag 및 lifecycle repository mutation 계약을 유지한다.
+- `issues: write`, `packages: write`, `pull-requests: read`: 기존 finalize/cleanup 계약을 유지한다.
+- Resume는 trusted `main`만 checkout하며 source Release run의 path/head SHA/conclusion을 검증한 뒤 resolver를 실행한다.
+- 권한 누락은 `scripts/verify-issue-lifecycle.py`에서 PR CI 단계에 fail-closed로 검출한다.

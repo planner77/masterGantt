@@ -1,3 +1,6 @@
+import { projectStageGates } from "../../domain/milestones/stage-gates";
+import type { MilestoneMembershipCommand } from "../../contracts/milestones";
+import { applyExplicitMembership, assertStageMutation, readStageSnapshot, withStageProjection } from "./milestone-stage-core";
 import { hasTaskSchedule } from "./task-schedule-guard";
 import { randomUUID } from "node:crypto";
 
@@ -60,7 +63,7 @@ import {
   isCanonicalUuidV4,
   type CreateProjectInput,
 } from "./project-contract";
-import { parseCreateTaskInput, parseUpdateTaskInput } from "./task-contract";
+import { parseCreateTaskInput, parseUpdateTaskInput, parseMilestoneMembershipInput } from "./task-contract";
 import { classifyTaskPatch } from "../../domain/tasks/task-patch-fields";
 import { recalculateTaskCandidate } from "../../domain/scheduling/task-candidate";
 import { ResourceCatalogRepository } from "../repositories/resource-catalog-repository-core";
@@ -602,7 +605,7 @@ export class ProjectService {
       deletedLinkIds: string[];
     },
   ): TaskMutationResponse {
-    return {
+    return withStageProjection(this.database, project.id, {
       data: {
         project: projectDto(project, projectCalendarDto(this.database, project.id)),
         tasks: taskDtos(tasks),
@@ -610,7 +613,7 @@ export class ProjectService {
         warnings,
         operation,
       },
-    };
+    });
   }
 
   private applySummaryDerivations(
@@ -748,14 +751,14 @@ export class ProjectService {
       const tasks = this.schedules.listTasks(project.id);
       const links = this.schedules.listLinks(project.id);
 
-      return {
+      return withStageProjection(this.database, project.id, {
         data: {
           project: projectDto(project, projectCalendarDto(this.database, project.id)),
           tasks: taskDtos(tasks),
           links: linkDtos(links, tasks),
           permission: "readonly" as const,
         },
-      };
+      });
     });
 
     return readSnapshot.deferred();
@@ -870,6 +873,7 @@ export class ProjectService {
       const now = this.clock();
       const nowText = now.toISOString();
       const project = this.requireCurrentMutationProject(authorization, now);
+      const stageBefore = readStageSnapshot(this.database, project.id);
       if (project.revision !== expectedRevision) {
         throw new RevisionMismatchError();
       }
@@ -989,6 +993,7 @@ export class ProjectService {
         changedSummaryExternalIds.push(parent.externalId);
       }
 
+      assertStageMutation(this.database, project.id, stageBefore);
       const updatedProject = this.projects.advanceRevision(
         project.id,
         expectedRevision,
@@ -1029,6 +1034,7 @@ export class ProjectService {
       const now = this.clock();
       const nowText = now.toISOString();
       const project = this.requireCurrentMutationProject(authorization, now);
+      const stageBefore = readStageSnapshot(this.database, project.id);
       if (project.revision !== expectedRevision) {
         throw new RevisionMismatchError();
       }
@@ -1042,18 +1048,19 @@ export class ProjectService {
       recalculatePersistedHierarchy(tasks, calendar, links);
       if (current.type === "summary") {
         if (
-          validatedInput.name === undefined ||
-          Object.keys(validatedInput).some((field) => field !== "name")
+          Object.keys(validatedInput).some((field) => field !== "name" && field !== "explicitMilestoneTaskId")
         ) {
           throw new SummaryScheduleReadonlyError();
         }
+        if (validatedInput.explicitMilestoneTaskId !== undefined) applyExplicitMembership(this.database, project.id, taskPublicId, validatedInput.explicitMilestoneTaskId);
         const renamed = this.schedules.renameTask(
           project.id,
           taskPublicId,
-          validatedInput.name,
+          validatedInput.name ?? current.name,
           nowText,
         );
         if (!renamed) throw new TaskNotFoundError();
+        assertStageMutation(this.database, project.id, stageBefore);
         const updatedProject = this.projects.advanceRevision(
           project.id,
           expectedRevision,
@@ -1153,6 +1160,7 @@ export class ProjectService {
         updatedAt: nowText,
       });
       if (!updated) throw new TaskNotFoundError();
+      if (validatedInput.explicitMilestoneTaskId !== undefined) applyExplicitMembership(this.database, project.id, taskPublicId, validatedInput.explicitMilestoneTaskId);
 
       let nextBaselineStart = current.baselineStart;
       let nextBaselineDuration = current.baselineDuration;
@@ -1224,6 +1232,7 @@ export class ProjectService {
         nowText,
       );
 
+      assertStageMutation(this.database, project.id, stageBefore);
       const updatedProject = this.projects.advanceRevision(
         project.id,
         expectedRevision,
@@ -1263,6 +1272,7 @@ export class ProjectService {
       const now = this.clock();
       const nowText = now.toISOString();
       const project = this.requireCurrentMutationProject(authorization, now);
+      const stageBefore = readStageSnapshot(this.database, project.id);
       if (project.revision !== expectedRevision) {
         throw new RevisionMismatchError();
       }
@@ -1286,6 +1296,7 @@ export class ProjectService {
         calendar,
         nowText,
       );
+      assertStageMutation(this.database, project.id, stageBefore);
       const updatedProject = this.projects.advanceRevision(
         project.id,
         expectedRevision,
@@ -1308,6 +1319,38 @@ export class ProjectService {
       );
     });
     return mutate.immediate();
+  }
+
+  updateMilestoneMemberships(
+    authorization: AuthorizedEditSession,
+    expectedRevision: number,
+    command: MilestoneMembershipCommand,
+  ): TaskMutationResponse {
+    const parsed = parseMilestoneMembershipInput(command);
+    if (!parsed.success) throw new InvalidTaskInputError();
+    return this.database.transaction(() => {
+      const now = this.clock(), project = this.requireCurrentMutationProject(authorization, now);
+      if (project.revision !== expectedRevision) throw new RevisionMismatchError();
+      const before = readStageSnapshot(this.database, project.id);
+      for (const change of parsed.data.changes) {
+        applyExplicitMembership(this.database, project.id, change.taskId, change.milestoneTaskId);
+      }
+      assertStageMutation(this.database, project.id, before);
+      const updated = this.projects.advanceRevision(project.id, expectedRevision, now.toISOString());
+      if (!updated) throw new RevisionMismatchError();
+      const tasks = this.schedules.listTasks(project.id);
+      const oldProjection = projectStageGates(before), newProjection = projectStageGates(readStageSnapshot(this.database, project.id));
+      const changedTaskIds = new Set(parsed.data.changes.map((change) => change.taskId));
+      for (const task of tasks) {
+        if (JSON.stringify(oldProjection.membership.get(task.publicId)) !== JSON.stringify(newProjection.membership.get(task.publicId)) ||
+            JSON.stringify(oldProjection.gates.get(task.publicId)) !== JSON.stringify(newProjection.gates.get(task.publicId))) changedTaskIds.add(task.publicId);
+      }
+      return this.taskMutationResponse(updated, tasks, this.schedules.listLinks(project.id), [], {
+        kind: "milestoneMembership",
+        changedTaskExternalIds: tasks.filter((task) => changedTaskIds.has(task.publicId)).map((task) => task.externalId),
+        deletedTaskExternalIds: [], deletedLinkIds: [],
+      });
+    }).immediate();
   }
 
   updateMetadata(
@@ -1342,7 +1385,7 @@ export class ProjectService {
       if (input.name !== undefined) changedFields.push("name");
       if (input.description !== undefined) changedFields.push("description");
       if (input.status !== undefined) changedFields.push("status");
-      return {
+      return withStageProjection(this.database, project.id, {
         data: {
           project: projectDto(updated, projectCalendarDto(this.database, project.id)),
           tasks: taskDtos(tasks),
@@ -1350,7 +1393,7 @@ export class ProjectService {
           warnings: [] as [],
           operation: { kind: "projectMetadata" as const, changedFields },
         },
-      };
+      });
     });
     return mutate.immediate();
   }

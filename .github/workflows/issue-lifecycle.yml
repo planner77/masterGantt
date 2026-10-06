@@ -91,9 +91,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Release approved target
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 scripts/issue_lifecycle.py release \
             --issue "${{ inputs.issue_number }}" \
@@ -114,13 +116,16 @@ jobs:
       actions: write
       issues: write
       pull-requests: read
+      packages: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Finalize approved lifecycle
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 scripts/issue_lifecycle.py finalize \
             --issue "${{ inputs.issue_number }}" \
@@ -142,13 +147,16 @@ jobs:
       actions: write
       issues: write
       pull-requests: read
+      packages: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Release and finalize approved lifecycle
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 scripts/issue_lifecycle.py release_finalize \
             --issue "${{ inputs.issue_number }}" \

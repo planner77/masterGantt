@@ -9,7 +9,7 @@ export function getLogisticsService() {
   const database = getDatabase();
   const project = new TaskFieldProjectService(database);
   const logistics = new LogisticsService(database);
-  const dashboard = new LogisticsDashboardService(database);
+  const dashboard = new LogisticsDashboardService(database, { mdPerMmEnvironment: process.env.RESOURCE_MD_PER_MM });
   return {
     logistics,
     project,

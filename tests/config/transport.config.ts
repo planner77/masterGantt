@@ -25,6 +25,11 @@ export default defineConfig({
     trace: "off",
     screenshot: "off",
     video: "off",
+    // Hosted runner의 Chromium이 /etc/hosts 반영 직후 일시적으로 DNS 실패하지 않도록
+    // 테스트 전용 hostname만 loopback에 고정한다. URL/Host/TLS hostname은 그대로 유지한다.
+    launchOptions: {
+      args: ["--host-resolver-rules=MAP plain.gantt.test 127.0.0.1,MAP secure.gantt.test 127.0.0.1"],
+    },
   },
   projects: [
     { name: "production-http", use: { baseURL: http } },

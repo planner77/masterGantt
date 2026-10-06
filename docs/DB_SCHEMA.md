@@ -1,5 +1,19 @@
 # Database Schema
 
+## Issue #460 — 명시 Milestone Membership
+
+Migration `0022_task_milestone_memberships.sql`은 `task_milestone_memberships(project_id, member_task_id, milestone_task_id)` STRICT table을 추가한다. `PRIMARY KEY(project_id, member_task_id)`로 단일 소속을 보장한다. Project FK 및 두 `(project_id, task_id)` composite FK는 Project 경계와 삭제 cascade를 제공하고 target 조회 index를 둔다. INSERT/UPDATE type trigger는 source Task/Summary, target Milestone을 검증하며 Task type 변경 trigger도 이 불변조건을 유지한다. 상속/effective/Ready/KPI는 저장하지 않는다.
+
+기존 row/ID/상태/진척/일정/Link/Assignment/revision은 수정하거나 추정 backfill하지 않는다. Task 삭제/타입 전환 서비스는 이전/새 snapshot과 참조를 검사하여 완료 단계 구조 변경 또는 참조받는 Milestone 삭제를 rollback한다. target FK cascade가 소속을 조용히 없애는 public mutation을 허용하지 않는다. 기존 Project 전체 삭제의 cascade는 유지한다. 미병합 다른 0022 migration과 통합 시 최신 ledger 기준 번호 조정이 필요하며 loader 연속성/checksum gate를 제거하지 않는다. [Stage Gate 계약](MILESTONE_STAGE_GATES.md)을 참조한다.
+
+
+## Issue #464 — 복사와 Template의 소속 보존
+
+새 migration이나 영속 projection은 추가하지 않는다. 전체 Project Copy는 원본 명시 row의 두 endpoint를 새 Task 내부 PK로 remap하여 기존 `task_milestone_memberships`에 저장한다. Subtree Copy는 정규화된 Copy 집합 안의 두 endpoint만 remap하고 외부 명시 target 제외·상속 변화는 저장 전에 확인한다. 유효 소속을 명시 row로 평탄화하지 않는다. Cut/reparent는 Task identity와 명시 row를 보존한다. 기존 완료 구조 잠금, composite FK/type/unique와 실패 시 전체 transaction rollback을 유지한다.
+
+`project_templates.content_json`의 독립 `ProjectTemplateSnapshot`에는 optional `memberships:[{taskExternalId,milestoneExternalId}]`를 추가한다. 외부 ID는 snapshot 전체 Task 안에서만 resolve하고 원본 public UUID를 새 FK로 쓰지 않는다. 필드 omission은 과거 소속 없는 Template을 의미한다. 저장 시 원본의 명시 row만 직렬화하고 생성 시 모든 member/target을 먼저 resolve·검증한 뒤 새 FK를 저장한다. 중복 source·유실/잘못된 유형 target은 전체 거부하며 부분 row를 생략하지 않는다. Template leaf/M은 기존 progress0/not_started 초기 상태를 유지한다. 원본 삭제 후에도 snapshot 소속은 보존된다. 자세한 경계와 완료 기록 정책은 [Stage Gates](MILESTONE_STAGE_GATES.md#issue-464-복사template의-명시-보존)를 따른다.
+
+
 ## 1. 문서 상태와 범위
 
 이 문서는 SQLite 논리 모델과 영속성 규칙을 정의한다. W02 SQLite Foundation은 **구현 완료 / 독립 QA PASS / Manager ACCEPT**이며 최초 schema는 `db/migrations/0001_initial_schema.sql`에 있다. W04는 Project와 최초 edit session insert를, W05는 credential/session과 보호 Project 변경을, W07은 Project-scoped Task CRUD와 Link Repository CRUD foundation을 구현했다. W06은 pure Scheduling Domain이다. W04–W07은 기존 `0001` schema를 사용했고, Issue #36에서 Task Description/URL용 `0002_task_description_url.sql`, Issue #19에서 글로벌 Resource/Group 및 Task assignment용 `0003_resource_catalog.sql`, Issue #54에서 Project 표시용 Owner를 위한 `0004_project_owner.sql`을 추가했다. Issue #56에서 Resource 계획 투입 기간/투입률과 workload 조회 index를 위한 `0005_resource_workload.sql`을 추가했고, Issue #57에서 국가·조직·개인 작업 캘린더와 기존 휴일 호환 이관을 위한 `0006_work_calendars.sql`을 추가했다. Issue #99에서 리소스 관리자 런타임 자격증명 해시를 위한 `0007_resource_admin_credentials.sql`을 추가했다. Issue #138에서 Project 상태를 위한 `0008_project_status.sql`을 추가했다. Issue #184에서 물류 도메인 공정·설비·제어/조율 시스템 기초 영속 모델을 위한 `0009_logistics_domain.sql`을 추가한다. Issue #195에서 프로젝트 템플릿 등록·관리 및 템플릿 기반 인스턴스화를 위한 `0012_project_templates.sql`을 추가한다. Issue #200에서 관계 유형(FS/SS/FF/SF) 및 Lag 지원을 위한 `0013_link_types_and_lag.sql`을 추가한다. Issue #202에서 기준 일정(Baseline) 영속화를 위한 `0014_task_baseline.sql`을 추가한다. [W07 검증](W07_REVIEW.md) 이후 schema 변경도 이 문서와 `db/migrations/**`를 같은 변경 단위로 갱신한다.
@@ -586,7 +600,7 @@ Task(Summary, Task, Milestone)와 물류 시스템 간의 연결 테이블이다
 
 ### 5.24 `project_templates`
 
-프로젝트 템플릿 등록 및 템플릿 기반 새 프로젝트 생성을 위한 전역 템플릿 보관 테이블이다 (Issue #195, `0012_project_templates.sql`). 기존 프로젝트에서 태스크(상대 근무일 offsetDays 기준), 링크, 리소스 배정, 물류 마스터(공정, 설비, 시스템, 역할, 링크) 스냅샷을 `content_json`에 비정규화 보관한다. 원본 프로젝트가 삭제되어도 템플릿은 보존되며(`source_project_id ON DELETE SET NULL`), 템플릿이 삭제되어도 이미 생성된 프로젝트는 영향받지 않는다.
+프로젝트 템플릿 등록 및 템플릿 기반 새 프로젝트 생성을 위한 전역 템플릿 보관 테이블이다 (Issue #195, `0012_project_templates.sql`). 기존 프로젝트에서 태스크(상대 근무일 offsetDays 기준), 링크, 리소스 배정, 물류 마스터(공정, 설비, 시스템, 역할, 링크) 스냅샷과 optional 명시 Milestone 소속 external references를 `content_json`에 비정규화 보관한다. 원본 프로젝트가 삭제되어도 템플릿은 보존되며(`source_project_id ON DELETE SET NULL`), 템플릿이 삭제되어도 이미 생성된 프로젝트는 영향받지 않는다.
 
 | Column | Type | Null | 의미 |
 |---|---|---:|---|
@@ -665,13 +679,13 @@ Repository write는 status/progress 일관성을 검증한다. Summary schedule 
 
 Project Copy와 Template은 `assignment_role`을 보존하고 workload/Calendar 계산은 이 필드에 의존하지 않는다. 상세 결정은 [ISSUE_413_TASK_ASSIGNMENT_ROLES.md](ISSUE_413_TASK_ASSIGNMENT_ROLES.md)를 따른다.
 
-## Issue #342 Country Calendar Catalog — migration 0022
+## Issue #342 Country Calendar Catalog — migration 0023
 
-0022_country_calendar_catalog.sql은 Project별 materialized Calendar와 분리된 글로벌 국가 Calendar Catalog를 추가한다.
+`0023_country_calendar_catalog.sql`은 Project별 materialized Calendar와 분리된 글로벌 국가 Calendar Catalog를 추가한다. 현재 main의 `0022_task_milestone_memberships.sql` 이후에 적용하며 기존 migration ledger를 재작성하지 않는다.
 
-- country_calendar_catalog_state: 관리자 optimistic concurrency용 단일 revision row
-- country_calendar_datasets: country_code + calendar_year unique, OFFICIAL/UNAVAILABLE/SUPERSEDED status, sourceVersion/sourceUrl, updated_at
-- country_calendar_dates: dataset별 ISO date, name, NON_WORKING/WORKING, sourceKey. dataset 삭제 시 cascade
+- `country_calendar_catalog_state`: 관리자 optimistic concurrency용 단일 revision row
+- `country_calendar_datasets`: country_code + calendar_year unique, OFFICIAL/UNAVAILABLE/SUPERSEDED status, sourceVersion/sourceUrl, updated_at
+- `country_calendar_dates`: dataset별 ISO date, name, NON_WORKING/WORKING, sourceKey. dataset 삭제 시 cascade
 - 관리 가능 year CHECK 범위: 2026..2037
 
-Repository built-in 2026 fixture는 DB로 일괄 복제하지 않는다. override가 필요할 때 첫 mutation이 built-in dataset을 DB에 clone하고 이후 DB가 resolution 우선권을 가진다. 기존 work_calendar_rules/work_calendar_dates는 Project snapshot이므로 Catalog mutation으로 수정되지 않는다.
+Repository built-in 2026 fixture는 DB로 일괄 복제하지 않는다. override가 필요할 때 첫 mutation이 built-in dataset을 DB에 clone하고 이후 DB가 resolution 우선권을 가진다. 기존 `work_calendar_rules/work_calendar_dates`는 Project snapshot이므로 Catalog mutation으로 수정되지 않는다. Milestone Stage Gate membership schema와 독립된 전역 Catalog다.

@@ -267,8 +267,16 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   await page.keyboard.press("Home");
   const add = rootMenu.getByRole("menuitem", { name: "Add", exact: true });
   await expect(add).toBeFocused();
-  // Paste is disabled before a Task is copied. Copy ID adds one enabled root action before the clipboard group.
-  for (let index = 0; index < 6; index += 1) await page.keyboard.press("ArrowDown");
+  // Follow the actual enabled root-item order so added commands do not change keyboard semantics.
+  const enabledRootItems = rootMenu.locator(':scope > button[role="menuitem"]:not(:disabled), :scope > .project-task-context-submenu-host > button[role="menuitem"]:not(:disabled)');
+  const enabledLabels = await enabledRootItems.evaluateAll((items) =>
+    items.map((item) => item.getAttribute("aria-label") ?? item.textContent?.trim() ?? ""),
+  );
+  const addIndex = enabledLabels.indexOf("Add");
+  const moveIndex = enabledLabels.indexOf("Move");
+  expect(addIndex).toBeGreaterThanOrEqual(0);
+  expect(moveIndex).toBeGreaterThan(addIndex);
+  for (let index = addIndex; index < moveIndex; index += 1) await page.keyboard.press("ArrowDown");
   const move = rootMenu.getByRole("menuitem", { name: "Move", exact: true });
   await expect(move).toBeFocused();
   const moveVisible = await move.evaluate((element) => {
@@ -411,7 +419,7 @@ test("Issue #390 Copy ID copies canonical taskId without changing TaskClipboard 
 
   const link = await page.request.post(`${api}/links`, {
     headers: { Origin: origin, "If-Match": `"${current.data.project.revision}"` },
-    data: { predecessorExternalId: task.externalId, successorExternalId: milestone.externalId, type: "FS", lag: 0 },
+    data: { predecessorExternalId: task.externalId, successorExternalId: summaryChild.externalId, type: "FS", lag: 0 },
   });
   expect(link.status()).toBe(201);
 

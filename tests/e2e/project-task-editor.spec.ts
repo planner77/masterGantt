@@ -1,3 +1,4 @@
+import { mkdir, writeFile } from "node:fs/promises";
 import { expect, test, type Page, type Request } from "@playwright/test";
 import type { ProjectDto, ProjectLinkDto, ProjectTaskDto, UpdateTaskRequest } from "../../src/contracts/projects";
 import { createWorkingCalendar } from "../../src/domain/scheduling/calendar";
@@ -34,7 +35,7 @@ interface Fixture {
   projectReads: number;
 }
 
-async function setup(page: Page, options: { editable?: boolean; links?: boolean; assignmentTargets?: boolean } = {}): Promise<Fixture> {
+async function setup(page: Page, options: { editable?: boolean; links?: boolean; assignmentTargets?: boolean; milestonePeer?: boolean } = {}): Promise<Fixture> {
   await page.clock.setFixedTime(new Date("2026-09-16T12:00:00Z"));
   const fixture: Fixture = {
     project: { publicId, name: "Task Editor fixture", description: "Issue #4", status: "planned", revision: 20, calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [{ date: "2026-09-21", name: "Fixture holiday" }] } },
@@ -44,6 +45,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       task(3, "Alpha leaf", { requestedStart: "2026-09-16", start: "2026-09-16", end: "2026-09-16" }),
       task(4, "Beta leaf"),
       task(5, "Milestone", { type: "milestone", duration: 0, requestedStart: "2026-09-23", start: "2026-09-23", end: "2026-09-23" }),
+      ...(options.milestonePeer ? [task(6, "Milestone peer", { type: "milestone", duration: 0, requestedStart: "2026-09-24", start: "2026-09-24", end: "2026-09-24" })] : []),
     ],
     links: options.links ? [{ id: id(90), predecessorExternalId: "EDITOR-3", successorExternalId: "EDITOR-4", type: "FS", lag: 0 }] : [],
     editable: options.editable ?? true, patches: [], linkMutations: [], assignmentMutations: [], nextFailure: null, gate: null, failReads: false, projectReads: 0,
@@ -247,8 +249,10 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await cancel(page);
     await row(page, "Summary").locator('[data-action="open-task"]').click();
     await openRow(page, "Summary");
-    await expect(save(page)).toHaveCount(0);
-    await expect(editor(page)).toContainText("하위 작업으로 계산");
+    await expect(save(page)).toHaveCount(1);
+    await expect(editor(page).getByLabel("작업명", { exact: true })).not.toHaveAttribute("readonly", "");
+    await expect(editor(page).getByLabel("요청 시작일", { exact: true })).toHaveAttribute("readonly", "");
+    await expect(editor(page).getByText("하위 작업 기본 완료 단계", { exact: true })).toBeVisible();
     await cancel(page);
     await header.click({ button: "right" });
     await expect(page.locator(".project-column-menu")).toBeVisible();
@@ -702,8 +706,8 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     }));
   });
 
-  test("Issue #377 관계가 없는 Milestone에서 anchor 기반 Relation Editor로 새 후행 관계를 추가한다", async ({ page }) => {
-    const fixture = await setup(page, { editable: true });
+  test("Issue #377/#462 관계가 없는 Milestone에서 same-type anchor 기반 Relation Editor로 새 후행 Milestone 관계를 추가한다", async ({ page }) => {
+    const fixture = await setup(page, { editable: true, milestonePeer: true });
     await openRow(page, "Milestone");
     const taskDialog = editor(page);
     const relationTab = taskDialog.getByRole("tab", { name: /관계/ });
@@ -712,8 +716,8 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
     const modal = relationEditor(page);
     await expect(modal).toContainText("기준 작업 [Milestone]");
-    await modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...").fill("Beta");
-    await modal.getByRole("button", { name: /Beta leaf.*외부 ID: EDITOR-4.*작업 ID:/ }).click();
+    await modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...").fill("Milestone peer");
+    await modal.getByRole("button", { name: /Milestone peer.*외부 ID: EDITOR-6.*작업 ID:/ }).click();
     await modal.getByLabel("관계 유형 (Type)", { exact: true }).selectOption("FF");
     await modal.getByLabel("지연 시간 (Lag, 일 단위)", { exact: true }).fill("-1");
     await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
@@ -723,13 +727,13 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
     const successor = taskDialog.getByRole("region", { name: "후행 작업" });
     await expect(relationTab).toHaveAttribute("aria-selected", "true");
-    await expect(successor).toContainText("Beta leaf");
+    await expect(successor).toContainText("Milestone peer");
     await expect(successor).toContainText("FF (종료 → 종료)");
     await expect(successor).toContainText("Lag -1일");
     await expect(taskDialog).toContainText("Revision 21");
     expect(fixture.linkMutations[0].postDataJSON()).toEqual({
       predecessorExternalId: "EDITOR-5",
-      successorExternalId: "EDITOR-4",
+      successorExternalId: "EDITOR-6",
       type: "FF",
       lag: -1,
     });
@@ -1034,4 +1038,128 @@ test("Issue #413 수행 역할 필터와 Resource별 역할 선택을 assignment
       allocation: { start: null, end: null, percent: 60 },
     }],
   });
+});
+
+test("#461 picker UUID·동명이인·긴 후보 keyboard·Summary 필드·리소스 초안 보호", async ({ page }) => {
+  const fixture = await setup(page, { assignmentTargets: true });
+  for (let index = 10; index < 32; index++) fixture.tasks.push(task(index, `완료 단계 긴 한글 English duplicate ${index === 10 || index === 11 ? "same" : index}`, { type: "milestone", duration: 0, status: "not_started", progress: 0 }));
+  fixture.tasks[0].membership = { explicitMilestoneTaskId: id(10), effectiveMilestoneTaskId: id(10), inheritedFromTaskId: null };
+  fixture.tasks[1].membership = { explicitMilestoneTaskId: id(11), effectiveMilestoneTaskId: id(11), inheritedFromTaskId: null };
+  await page.reload();
+  await openRow(page, "Child");
+  const dialog = editor(page), picker = dialog.getByRole("combobox", { name: "완료 단계", exact: true });
+  await picker.fill(` ${id(11).toUpperCase()} `); await expect(dialog.getByRole("listbox").getByRole("option")).toHaveCount(1);
+  await picker.press("Escape"); await expect(dialog).toBeVisible(); await expect(dialog.getByRole("listbox")).toHaveCount(0);
+  await picker.fill("same"); await expect(dialog.getByRole("listbox").getByRole("option")).toHaveCount(2); await expect(dialog.getByRole("listbox")).toContainText(`작업 ID: ${id(10)}`);
+  await picker.fill("완료 단계");
+  for (let index = 0; index < 18; index++) await picker.press("ArrowDown");
+  const visible = await picker.evaluate((element) => { const active = document.getElementById(element.getAttribute("aria-activedescendant")!)!, list = document.getElementById(element.getAttribute("aria-controls")!)!, body = element.closest("dialog")!.querySelector('[class*="body"]')!; const a = active.getBoundingClientRect(), b = list.getBoundingClientRect(), input = element.getBoundingClientRect(), owner = body.getBoundingClientRect(); return { activeOptionTop: a.top, activeOptionBottom: a.bottom, listOwnerTop: b.top, listOwnerBottom: b.bottom, activeOptionVisible: a.top >= b.top && a.bottom <= b.bottom, inputTop: input.top, inputBottom: input.bottom, bodyTop: owner.top, bodyBottom: owner.bottom, focusedInputVisible: input.top >= owner.top && input.bottom <= owner.bottom, focusedInputRetained: element === document.activeElement, listScrollTop: list.scrollTop }; });
+  expect(visible.activeOptionVisible).toBe(true); expect(visible.focusedInputVisible).toBe(true); expect(visible.focusedInputRetained).toBe(true);
+  await mkdir("output/playwright/issue-461", { recursive: true }); await writeFile("output/playwright/issue-461/picker-geometry.json", JSON.stringify(visible, null, 2));
+  await picker.press("Escape");
+  await dialog.getByRole("button", { name: "직접 지정 해제 · 상속으로 복귀", exact: true }).click();
+  await expect(dialog).toContainText("Summary에서 상속");
+  await dialog.getByRole("button", { name: "상속 출처 열기", exact: true }).click();
+  await expect(dialog).toContainText("저장하지 않은 변경사항을 버리고 다른 작업");
+  await dialog.getByRole("button", { name: "계속 편집", exact: true }).click();
+  await dialog.getByRole("tab", { name: /리소스/ }).click(); await expect(dialog.getByRole("checkbox", { name: /Resource A/ })).toBeDisabled();
+  await dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }).click(); await dialog.getByRole("button", { name: "변경사항 버리고 다시 불러오기" }).click();
+  const resource = dialog.getByRole("checkbox", { name: /Resource A/ }); await expect(resource).toBeEnabled(); await resource.check();
+  await dialog.getByRole("tab", { name: "작업 정보", exact: true }).click(); await expect(save(page)).toBeDisabled(); await expect(picker).not.toHaveAttribute("aria-readonly"); await expect(picker).toHaveAccessibleDescription("검색·조회는 가능합니다. 완료 단계 소속 변경은 잠겨 있습니다.");
+  await picker.fill("Milestone"); await expect(dialog.getByRole("listbox").getByRole("option")).toHaveCount(1); await picker.press("Enter"); await expect(dialog).toContainText("직접 지정"); expect(fixture.patches).toHaveLength(0); await picker.press("Escape");
+  await expect(dialog.getByLabel("기준 시작일", { exact: true })).toHaveAttribute("readonly", ""); await expect(dialog.getByRole("button", { name: "현재 일정으로 설정", exact: true })).toBeDisabled();
+  await dialog.getByRole("button", { name: "작업 편집기 닫기" }).click(); await expect(dialog).toContainText("저장하지 않은");
+  await dialog.getByRole("button", { name: "계속 편집" }).click(); await dialog.getByRole("tab", { name: /리소스/ }).click(); await expect(resource).toBeChecked();
+  await dialog.getByRole("button", { name: "작업 편집기 닫기" }).click(); await dialog.getByRole("button", { name: "변경사항 버리고 닫기" }).click();
+  await openRow(page, "Summary"); await expect(dialog.getByLabel("작업명", { exact: true })).not.toHaveAttribute("readonly", ""); await expect(dialog.getByLabel("요청 시작일", { exact: true })).toHaveAttribute("readonly", ""); await expect(dialog.getByLabel("상태", { exact: true })).toBeDisabled();
+});
+
+test("#461 batch 412·network 실패 검색/선택/초안 보존과 pending 중 닫기 보호", async ({ page }) => {
+  const fixture = await setup(page);
+  const m = fixture.tasks[4]; m.stageGate = { memberTaskIds: [], memberCount: 0, completedMemberCount: 0, incompleteMemberTaskIds: [], memberProgressPercent: null, predecessorMilestoneTaskIds: [], incompletePredecessorMilestoneTaskIds: [], membersCompleted: true, predecessorsCompleted: true, ready: null, blocked: false, manualEvent: true, completionInconsistent: false };
+  await page.reload();
+  let calls = 0, failure: number | "network" = 412, release: (() => void) | undefined;
+  await page.route(`**${apiPath}/milestone-memberships`, async (route) => { calls++; await new Promise<void>((resolve) => { release = resolve; }); if (failure === "network") await route.abort(); else await route.fulfill({ status: failure, json: { error: { code: "REVISION_MISMATCH" } } }); });
+  await bar(page, m.taskId).click({ button: "right" }); await chooseTaskInformation(page);
+  const dialog = editor(page); await dialog.getByRole("tab", { name: /소속 작업/ }).click(); await dialog.getByRole("combobox", { name: "소속 상태", exact: true }).selectOption("all");
+  const query = dialog.getByLabel("작업명 / 외부 ID / 작업 ID 검색", { exact: true }); await query.fill("Beta"); await query.press("Enter"); await expect(dialog).toBeVisible(); expect(calls).toBe(0); expect(fixture.patches).toHaveLength(0);
+  await dialog.getByRole("row", { name: /Beta leaf/ }).getByRole("button", { name: "직접 지정", exact: true }).click();
+  await dialog.getByRole("button", { name: "소속 변경 적용", exact: true }).click(); await expect.poll(() => calls).toBe(1);
+  await expect(query).toBeDisabled(); await expect(dialog.getByRole("combobox", { name: "유형", exact: true })).toBeDisabled(); await expect(dialog.getByRole("combobox", { name: "소속 상태", exact: true })).toBeDisabled();
+  await expect(dialog.getByRole("button", { name: "작업 편집기 닫기" })).toBeDisabled(); await page.keyboard.press("Escape"); await expect(dialog).toBeVisible(); release?.();
+  await expect(dialog).toContainText("기준 Revision이 변경"); await expect(query).toHaveValue("Beta"); await expect(dialog).toContainText("변경 예정: 직접 지정 1"); await expect(dialog.getByRole("button", { name: "소속 변경 적용", exact: true })).toBeDisabled();
+  await dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }).click(); await dialog.getByRole("button", { name: "변경사항 버리고 다시 불러오기" }).click();
+  await expect(query).toHaveValue("Beta"); await dialog.getByRole("row", { name: /Beta leaf/ }).getByRole("button", { name: "직접 지정", exact: true }).click(); failure = "network";
+  await dialog.getByRole("button", { name: "소속 변경 적용", exact: true }).click(); await expect.poll(() => calls).toBe(2); release?.();
+  await expect(dialog).toContainText("네트워크 연결"); await expect(query).toHaveValue("Beta"); await expect(dialog).toContainText("변경 예정: 직접 지정 1"); expect(calls).toBe(2);
+});
+
+test("#461 Resource 신규 선택 해제는 잔여 draft로 dirty를 유지하지 않는다", async ({ page }) => {
+  const fixture = await setup(page, { assignmentTargets: true }); await openRow(page);
+  const dialog = editor(page); await dialog.getByRole("tab", { name: /리소스/ }).click();
+  const resource = dialog.getByRole("checkbox", { name: /Resource A/ }); await resource.check();
+  await dialog.getByLabel(/Resource A.*수행 역할/).selectOption("DEVELOPER"); await dialog.getByLabel(/Resource A.*투입률/).fill("60");
+  await resource.uncheck(); await expect(resource).not.toBeChecked();
+  await dialog.getByRole("button", { name: "작업 편집기 닫기" }).click();
+  await expect(dialog).toHaveCount(0); expect(fixture.assignmentMutations).toHaveLength(0);
+});
+
+test("#461 reload 후 작업 유형이 바뀌면 유효하지 않은 소속 작업 탭을 정규화한다", async ({ page }) => {
+  const fixture = await setup(page); await openRow(page, "Milestone");
+  const dialog = editor(page); await dialog.getByRole("tab", { name: /소속 작업/ }).click();
+  const milestone = fixture.tasks.find((task) => task.taskId === id(5))!;
+  milestone.type = "task"; milestone.duration = 1; milestone.stageGate = undefined; fixture.project.revision += 1;
+  await page.evaluate(({ publicId, revision }) => window.dispatchEvent(new StorageEvent("storage", { key: `mastergantt:project-revision:${publicId}`, newValue: String(revision) })), { publicId, revision: fixture.project.revision });
+  await expect(dialog).toContainText("작업 유형이 변경되었습니다");
+  await dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }).click();
+  await expect(dialog.getByRole("tab", { name: /소속 작업/ })).toHaveCount(0);
+  await expect(dialog.getByRole("tab", { name: "작업 정보", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(dialog.getByLabel("작업명", { exact: true })).toHaveValue("Milestone");
+});
+
+test("#461 Resource 외부 revision·401에서도 초안 유지, 확인 focus와 저장 잠금", async ({ page }) => {
+  const fixture = await setup(page, { assignmentTargets: true }); await openRow(page);
+  const dialog = editor(page); await dialog.getByRole("tab", { name: /리소스/ }).click();
+  const resource = dialog.getByRole("checkbox", { name: /Resource A/ }); await resource.check();
+  await dialog.getByLabel(/Resource A.*수행 역할/).selectOption("DEVELOPER"); await dialog.getByLabel(/Resource A.*투입률/).fill("60");
+  fixture.project.revision++;
+  await page.evaluate(({ publicId, revision }) => window.dispatchEvent(new StorageEvent("storage", { key: `mastergantt:project-revision:${publicId}`, newValue: String(revision) })), { publicId, revision: fixture.project.revision });
+  await expect(dialog).toContainText("기준 Revision이 변경"); await expect(resource).toBeChecked(); await expect(resource).toBeDisabled(); await expect(dialog.getByLabel(/Resource A.*투입률/)).toHaveValue("60");
+  const reload = dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }); await reload.click();
+  const cancelConfirm = dialog.getByRole("button", { name: "계속 편집", exact: true }); await expect(cancelConfirm).toBeFocused();
+  await expect(save(page)).toBeDisabled(); await expect(dialog.locator('[class*="body"]')).toHaveAttribute("inert", "");
+  await cancelConfirm.click(); await expect(reload).toBeFocused(); await expect(resource).toBeChecked();
+  await reload.click(); await dialog.getByRole("button", { name: "변경사항 버리고 다시 불러오기" }).click();
+  await expect(resource).not.toBeChecked(); await resource.check(); await dialog.getByLabel(/Resource A.*수행 역할/).selectOption("DEVELOPER"); await dialog.getByLabel(/Resource A.*투입률/).fill("60");
+  await page.route(`**${apiPath}/tasks/${id(4)}/assignments`, async (route) => { await route.fulfill({ status: 401, json: { error: { code: "UNAUTHORIZED" } } }); });
+  await dialog.getByRole("button", { name: /할당 저장/ }).click(); await expect(dialog).toContainText("편집 권한이 없습니다"); await expect(resource).toBeChecked(); await expect(resource).toBeDisabled(); await expect(dialog.getByLabel(/Resource A.*투입률/)).toHaveValue("60");
+});
+
+test("#461 Logistics 별도 초안·외부 revision·401 유지와 교차 저장 잠금", async ({ page }) => {
+  const fixture = await setup(page);
+  await page.route(`**${apiPath}/logistics`, async (route) => route.fulfill({ json: { data: { project: fixture.project, logistics: { equipment: [{ id: id(80), name: "설비 초안", code: "EQ-80", equipmentType: "other", resourceRoles: [] }], systems: [] } } } }));
+  await page.route(`**${apiPath}/tasks/${id(4)}/logistics-links`, async (route) => {
+    if (route.request().method() === "PUT") { await route.fulfill({ status: 401, json: { error: { code: "UNAUTHORIZED" } } }); return; }
+    await route.fulfill({ json: { data: { taskId: id(4), links: { taskId: id(4), directEquipmentLinks: [], directSystemLinks: [], inheritedEquipmentLinks: [], inheritedSystemLinks: [], effectiveEquipmentIds: [], effectiveSystemIds: [] } } } });
+  });
+  await openRow(page); const dialog = editor(page); await dialog.getByRole("tab", { name: /물류 연결/ }).click();
+  const equipment = dialog.getByRole("checkbox", { name: /설비 초안/ }); await equipment.check();
+  await dialog.getByRole("tab", { name: "작업 정보", exact: true }).click(); await expect(save(page)).toBeDisabled(); await expect(dialog.getByRole("combobox", { name: "완료 단계", exact: true })).not.toHaveAttribute("aria-readonly"); await expect(dialog.getByRole("combobox", { name: "완료 단계", exact: true })).toHaveAccessibleDescription("검색·조회는 가능합니다. 완료 단계 소속 변경은 잠겨 있습니다.");
+  fixture.project.revision++; await page.evaluate(({ publicId, revision }) => window.dispatchEvent(new StorageEvent("storage", { key: `mastergantt:project-revision:${publicId}`, newValue: String(revision) })), { publicId, revision: fixture.project.revision });
+  await expect(dialog).toContainText("기준 Revision이 변경"); await dialog.getByRole("tab", { name: /물류 연결/ }).click(); await expect(equipment).toBeChecked(); await expect(equipment).toBeDisabled();
+  await dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }).click(); await dialog.getByRole("button", { name: "변경사항 버리고 다시 불러오기" }).click(); await expect(equipment).not.toBeChecked(); await equipment.check();
+  await dialog.getByRole("button", { name: /물류 연결 저장/ }).click(); await expect(dialog).toContainText("편집 권한이 없습니다"); await expect(equipment).toBeChecked(); await expect(equipment).toBeDisabled();
+});
+
+test("#461 readonly 검색 조회와 completed 후보 지정 거부", async ({ page }) => {
+  const fixture = await setup(page, { editable: false });
+  fixture.tasks[4].status = "completed"; fixture.tasks[4].progress = 100;
+  await page.reload(); await openRow(page); const dialog = editor(page);
+  const picker = dialog.getByRole("combobox", { name: "완료 단계", exact: true });
+  await expect(picker).toBeEnabled(); await expect(picker).not.toHaveAttribute("aria-readonly"); await expect(picker).toHaveAccessibleDescription("검색·조회는 가능합니다. 완료 단계 소속 변경은 잠겨 있습니다.");
+  await picker.fill("Milestone"); const option = dialog.getByRole("listbox").getByRole("option"); await expect(option).toHaveCount(1); await expect(option).toHaveAttribute("aria-disabled", "true");
+  await expect(picker).toHaveValue("Milestone");
+  await picker.press("Enter"); await expect(picker).toHaveValue("Milestone"); await expect(dialog).toContainText("미지정"); expect(fixture.tasks.find((task) => task.taskId === id(4))?.membership?.explicitMilestoneTaskId ?? null).toBeNull(); expect(fixture.patches).toHaveLength(0);
+  const optionBounds = (await option.boundingBox())!; await page.mouse.click(optionBounds.x + optionBounds.width / 2, optionBounds.y + optionBounds.height / 2); await expect(dialog).toContainText("미지정"); expect(fixture.patches).toHaveLength(0);
+  await picker.press("Escape"); await expect(dialog.getByRole("listbox")).toHaveCount(0); await expect(picker).toBeFocused(); await expect(dialog).toBeVisible();
 });

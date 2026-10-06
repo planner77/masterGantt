@@ -245,7 +245,7 @@ PR과 수동 CI token은 `contents: read`뿐이며 모든 checkout은 `persist-c
 
 ### Main commit 테스트 image
 
-`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않는다. digest 검증이 끝난 일반 merge의 `ci-*` package version은 자동 삭제하지만, package version이 first-parent 대비 변경된 merge의 successful `ci-*`는 formal release에서 동일 digest를 재사용하기 위해 보존한다.
+`main` push의 application, Chromium과 local container job이 모두 성공하면 `.github/workflows/ci.yml`의 publish job이 `ghcr.io/planner77/mastergantt:ci-<full SHA>`를 게시한다. 기존 commit tag가 있으면 overwrite하지 않는다. PR과 수동 CI는 image를 게시하지 않는다. digest 검증을 통과한 successful non-docs `ci-*`는 Main CI에서 즉시 삭제하지 않고 Generic Release Finalizer에 인계한다. no-release finalize는 exact temporary candidate를 삭제하며, release-required candidate는 formal release에서 동일 digest를 재사용하기 위해 보존한다.
 
 Workflow는 build output digest를 다시 pull해 image policy와 readiness를 확인하고, 실제 HTTP API로 Project를 생성해 edit session을 받은 뒤 root Task를 저장한다. Session 없는 mutation 거부를 확인하고 container를 restart한 후 동일 Project와 Task가 남는지 재조회한다. 이 검증은 격리 volume에서 수행하며 사용자 data를 사용하지 않는다. Workflow summary의 exact digest가 사용자·통합 테스트 입력이다.
 
@@ -253,7 +253,7 @@ Workflow는 build output digest를 다시 pull해 image policy와 readiness를 �
 docker pull ghcr.io/planner77/mastergantt@sha256:<commit-image-digest>
 ```
 
-Commit image 자체는 release authority가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. 다만 version-changing merge의 verified `ci-<SHA>`는 build-once release candidate로 보존된다. 아래 release workflow는 annotated tag target SHA에 해당하는 candidate exact digest를 재검증한 뒤 새 build 없이 exact SemVer/rolling alias로 동일 digest를 promotion한다.
+Commit image 자체는 release authority가 아니며 `latest`, major/minor 또는 SemVer exact tag를 만들지 않는다. successful non-docs main merge의 verified `ci-<SHA>`는 Finalizer가 release/cleanup을 결정할 때까지 build-once candidate로 보존된다. 아래 release workflow는 annotated tag target SHA에 해당하는 candidate exact digest를 재검증한 뒤 새 build 없이 exact SemVer/rolling alias로 동일 digest를 promotion한다.
 
 ### 안정 SemVer와 GHCR publish
 

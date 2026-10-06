@@ -1,5 +1,25 @@
 # Issue #34 — Task Editor 작업 관계 표시
 
+## Issue #460 — Dependency 종류와 Stage Membership
+
+현재 신규 Link는 일반 Task→Task 또는 Milestone→Milestone만 허용한다. 서로 다른 단계의 Task 간 관계는 가능하지만 Task↔Milestone 신규 관계와 Summary endpoint는 서버에서 거부한다. 기존 mixed Link는 canonical `legacyMixed=true`로 보존하며 endpoint를 유지한 type/Lag 수정과 삭제를 허용한다. 완료 Milestone endpoint의 관계 구조는 재개 후 변경한다. 기존 Link ID/일정/유형/근무일 Lag 의미와 graph guard는 유지한다.
+
+Membership은 Dependency나 WBS reparent가 아니다. Task/Summary의 명시 소속과 Summary 상속, Ready/완료 조건은 [Stage Gates](MILESTONE_STAGE_GATES.md)를 따른다. 아래 과거 Leaf Task/Milestone 혼합 후보와 Summary name-only 설명은 당시 범위이며 현재 Summary PATCH는 name/Membership만 원자 편집할 수 있다. #461의 Editor 후보 UI는 별도 단계다.
+
+
+
+## Issue #464 — Subtree Copy 소속 경계와 Cut
+
+Copy의 정규화 root+descendant union C에 대해 Dependency와 Membership을 각각 처리한다. Dependency는 기존처럼 양 endpoint가 C 안인 Link만 새 ID로 복제한다. Membership은 member Task/Summary와 target M가 모두 C 안이면 새 FK로 remap한다. member만 C 안이면 외부 target의 명시 row를 복제하지 않고, target만 C 안이면 외부 member를 복사본 M에 연결하지 않는다. 외부 Summary에서 받은 상속을 새 explicit 설정으로 생성하지 않는다.
+
+`membership-copy-plan.ts`는 UI/서버가 함께 사용하는 순수 영향 계획이다. 현재 canonical full snapshot과 source IDs·anchor·placement에서 C와 destination hierarchy를 정하고 새 effective/상속 출처를 계산한다. 명시 제외 row 수와 영향을 받은 descendant 수는 다르므로 각각 표시한다. 외부 명시 제외, 외부 상속의 소속/출처 변화, 미지정→destination 상속 같은 변화는 mutation 전에 확인한다. 같은 target M여도 상속 출처가 달라지면 확인한다. 완전한 내부 remap은 이 손실 확인 대상이 아니다. 새 복제 예정 M/Summary 참조는 `copiedFromMilestoneTaskId`/`copiedFromSummaryTaskId`로 기존 Task ID와 구분한다. canonical 소속 projection 누락은 미지정으로 추정하지 않고 fail-closed한다.
+
+copy-only optional boolean `acknowledgedMembershipExclusions`는 위 소속 변화 전부를 확인했다는 뜻이다. omission/false에서 확인이 필요하면 서버가 `TASK_COPY_MEMBERSHIP_REVIEW_REQUIRED`로 전체 거부한다. 서버는 동일 revision의 transaction 안에서 계획을 다시 계산하며 boolean이 권한·완료 잠금·Assignment 제한을 우회하지 않는다. UI에서 revision/source/destination이 바뀌면 확인 내용은 무효다. menu와 keyboard Paste는 공통 확인 경로를 사용한다.
+
+C에 completed M가 포함되면 전체 E, M를 참조하는 모든 explicit source 및 모든 incident Link의 endpoint가 C 안이어야 한다. 실제 복사본 E/P/명시 source/incident Link를 원본으로 역매핑하여 동일성을 검사하며 손실은 `COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED`로 거부한다. 완전 보존된 서버 소유 완료 기록만 기존 상태/불일치 진단을 유지한다. status를 자동 reset하거나 외부 JSON을 trusted Copy로 취급하지 않는다. 기존 completed destination에 일반 구성원을 추가하는 구조 변경은 항상 잠긴다. 상속만 받는 빈 Summary 추가는 E/명시 row 변화가 없으면 이 잠금 대상이 아니지만 상속 변화 확인은 필요할 수 있다.
+
+Cut/reparent는 동일 Task identity·명시 FK를 유지한다. inherited old/new target 변경에는 기존 완료 구조 잠금이 적용되고 Dependency boundary guard도 유지한다. 원본 baseline은 불변이며 subtree 복사본 baseline은 기존 null 정책이다. Resource Assignment를 포함한 subtree Copy는 계속 거부한다. 모든 성공은 기존 canonical snapshot과 revision+1이고 실패는 전체 rollback한다.
+
 ## Issue #430 — Cut/Reparent의 Dependency 경계
 
 Cut source Task/Summary와 모든 descendants를 하나의 이동 집합 `C`로 본다. Link 처리 기준은 관계 존재 자체가 아니라 `C` 경계 통과 여부다.
@@ -154,3 +174,9 @@ Summary endpoint, graph validation, FS/SS/FF/SF 계산, Lag/Lead, Link API/DB sc
 Dependency Link의 의미와 WBS sibling order는 별도 계약이다. 같은 parent에서 Task/subtree의 위치만 바꾸는 `move up/down` 또는 `before/after`는 Link ID, predecessor/successor, type, signed lag/lead를 변경하지 않으며 Dependency 일정 재계산 입력을 새로 만들지 않는다. requested/effective schedule 및 Task status/progress도 reorder 자체로 변경하지 않는다.
 
 서버는 command가 실제 parent 변경인지 먼저 판정한다. same-parent reorder만 Link guard 예외이며 cross-parent/child, Indent/Outdent, Cut/Paste, Delete, Convert와 Link 자체 mutation은 기존 검증을 유지한다. canonical 응답의 동일 Link를 기준으로 relation line이 이동한 row endpoint를 따라야 한다.
+
+## Issue #462 신규 같은 유형 관계와 완료 endpoint 잠금
+
+새 Relation Editor 후보와 native add-link는 Task→Task 또는 Milestone→Milestone만 허용한다. Summary/자기 자신/동일 방향 기존 연결을 후보에서 제외하고 미해결 anchor는 후보가 없다. 서로 다른 단계에 소속된 일반 Task끼리의 일정 관계는 허용한다. Membership은 일반 Dependency가 아니며 완료 단계 연결 명령으로 관리한다. 타입 제한 안내는 새 연결에만 적용한다. 기존 legacyMixed 관계는 선행/후행 목록·Task Editor·Relation Editor·canonical SVAR links에서 숨기거나 삭제하지 않고 endpoint 고정 type/Lag 편집·삭제 호환을 유지한다.
+
+완료 Milestone endpoint에 연결된 관계는 양쪽 full canonical endpoint를 검사하여 type/Lag/create/delete를 잠근다. 기준이 일반 Task여도 상대가 완료 M이면 잠긴다. 일반 Task의 completed 상태/완료 단계 소속은 이 잠금 조건이 아니다. Context Menu와 Relation Editor의 표시·실행 handler, Task Editor per-link 삭제 및 Workspace 실제 saveLink dispatch에서 같은 UI guard를 사용하고 선택 후 canonical 타입/상태 변경도 최신 map으로 재검증한다. 서버의 #460 session/Origin/revision/structure guard는 최종 authority로 유지한다. 명시 reopen canonical 성공 뒤 잠금이 해제된다. native canonicalSyncDepth의 내부 동기화 bypass는 기존 legacy links 복원에 사용하며 신규 사용자 연결 권한을 부여하지 않는다.

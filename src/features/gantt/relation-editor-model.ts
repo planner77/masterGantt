@@ -92,11 +92,12 @@ export function searchCandidateTasks(options: {
     }
   }
 
+  const anchor = tasks.find((task) => task.externalId === anchorExternalId);
   const normalizedQuery = query.trim().toLowerCase();
 
   return tasks.filter((task) => {
     // Summary 작업 제외
-    if (task.type === "summary") return false;
+    if (!canCreateSchedulingLink(anchor, task)) return false;
     // 자기 자신 제외
     if (task.externalId === anchorExternalId) return false;
     // 이미 연결된 작업 제외
@@ -111,4 +112,17 @@ export function searchCandidateTasks(options: {
 
     return nameMatch || externalIdMatch || taskIdMatch;
   });
+}
+
+export const MIXED_LINK_EXPLANATION = "새 일정 관계는 Task → Task 또는 Milestone → Milestone만 연결할 수 있습니다. 완료 단계 소속은 완료 단계 연결에서 관리합니다. 기존 혼합 관계는 조회·편집할 수 있습니다.";
+export function canCreateSchedulingLink(source: ProjectTaskDto | undefined, target: ProjectTaskDto | undefined): boolean {
+  return Boolean(source && target && source.taskId !== target.taskId && source.type !== "summary" && source.type === target.type && !completedMilestoneEndpoint(source, target));
+}
+
+export const COMPLETED_LINK_EXPLANATION = "완료된 Milestone에 연결된 일정 관계는 잠겨 있습니다. 해당 단계를 명시적으로 재개한 뒤 변경할 수 있습니다.";
+export function completedMilestoneEndpoint(...tasks: readonly (ProjectTaskDto | undefined)[]): boolean {
+  return tasks.some((task) => task?.type === "milestone" && task.status === "completed");
+}
+export function linkStructureLocked(link: ProjectLinkDto | undefined, tasks: readonly ProjectTaskDto[]): boolean {
+  return Boolean(link && completedMilestoneEndpoint(tasks.find((task) => task.externalId === link.predecessorExternalId), tasks.find((task) => task.externalId === link.successorExternalId)));
 }

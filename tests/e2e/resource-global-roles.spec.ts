@@ -107,96 +107,67 @@ test("Issue #412: 전역 Resource 역할 표시·편집·그룹 참조와 반응
   await page.getByLabel("관리자 비밀번호", { exact: true }).fill("resource-admin");
   await page.getByRole("button", { name: "로그인", exact: true }).click();
 
+  const profileDialog = page.getByRole("dialog", { name: "리소스 프로필 편집" });
+  await page.getByRole("button", { name: "PI 개발자 리소스 프로필 편집", exact: true }).click();
   await expect(page.getByLabel("PI 개발자 리소스 PI 역할", { exact: true })).toBeChecked();
   await expect(page.getByLabel("PI 개발자 리소스 개발자 역할", { exact: true })).toBeChecked();
   await expect(page.getByLabel("PI 개발자 리소스 설비 담당 역할", { exact: true })).not.toBeChecked();
-  await expect(page.getByLabel("설비 담당 리소스 설비 담당 역할", { exact: true })).toBeChecked();
-  await expect(page.getByRole("group", { name: "PI 개발자 리소스 프로필", exact: true })).toBeVisible();
-  await expect(page.getByRole("group", { name: "역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 프로필", exact: true })).toBeVisible();
-  await expect(page.getByText("전역 역할:", { exact: false }).first()).toBeVisible();
-  await expect(page.getByText("없음", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 PI 역할", { exact: true })).not.toBeChecked();
-  await expect(page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 개발자 역할", { exact: true })).not.toBeChecked();
-  await expect(page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 설비 담당 역할", { exact: true })).not.toBeChecked();
-
   const equipmentRole = page.getByLabel("PI 개발자 리소스 설비 담당 역할", { exact: true });
   await equipmentRole.check();
-  await expect(page.getByText("변경사항을 저장했습니다.", { exact: true })).toBeVisible();
-  expect(rolePatches.at(-1)).toEqual({
-    id: r1,
-    roles: ["PI", "DEVELOPER", "EQUIPMENT_OWNER"],
-  });
+  expect(rolePatches).toHaveLength(0);
   await expect(page.getByLabel("PI 개발자 리소스 개발자 등급", { exact: true })).toHaveValue("ADVANCED");
+  await profileDialog.getByRole("button", { name: "프로필 저장", exact: true }).click();
+  await expect(profileDialog).toHaveCount(0);
+  expect(rolePatches.at(-1)).toEqual({ id: r1, roles: ["PI", "DEVELOPER", "EQUIPMENT_OWNER"] });
 
+  await page.getByRole("button", { name: "설비 담당 리소스 프로필 편집", exact: true }).click();
+  await expect(page.getByLabel("설비 담당 리소스 설비 담당 역할", { exact: true })).toBeChecked();
   failNextRolePatchWith412 = true;
   const staleDraftRole = page.getByLabel("설비 담당 리소스 PI 역할", { exact: true });
   await staleDraftRole.check();
-  await expect(page.getByText("다른 관리 변경이 먼저 저장되었습니다. 최신 목록을 불러왔습니다. 초안을 확인한 후 다시 저장해 주세요.", { exact: true })).toBeVisible();
+  await profileDialog.getByRole("button", { name: "프로필 저장", exact: true }).click();
+  await expect(profileDialog.getByRole("alert")).toContainText("다른 관리 변경이 먼저 저장");
   await expect(staleDraftRole).toBeChecked();
-  expect(rolePatches.at(-1)).toEqual({
-    id: r1,
-    roles: ["PI", "DEVELOPER", "EQUIPMENT_OWNER"],
-  });
+  expect(rolePatches.at(-1)).toEqual({ id: r1, roles: ["PI", "DEVELOPER", "EQUIPMENT_OWNER"] });
+  await profileDialog.getByRole("button", { name: "프로필 저장", exact: true }).click();
+  await expect(profileDialog).toHaveCount(0);
 
-  const noRolePi = page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 PI 역할", { exact: true });
-  await noRolePi.focus();
-  await expect(noRolePi).toBeFocused();
-  await noRolePi.press("Space");
+  const longName = "역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상";
+  await page.getByRole("button", { name: `${longName} 프로필 편집`, exact: true }).click();
+  for (const role of ["PI", "개발자", "설비 담당"]) await expect(page.getByLabel(`${longName} ${role} 역할`, { exact: true })).not.toBeChecked();
+  const noRolePi = page.getByLabel(`${longName} PI 역할`, { exact: true });
+  await noRolePi.focus(); await expect(noRolePi).toBeFocused(); await noRolePi.press("Space");
   await expect(noRolePi).toBeChecked();
+  await profileDialog.getByRole("button", { name: "프로필 저장", exact: true }).click();
+  await expect(profileDialog).toHaveCount(0);
   expect(rolePatches.at(-1)).toEqual({ id: r3, roles: ["PI"] });
-
+  await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
   await page.getByRole("button", { name: "구성원", exact: true }).click();
   await expect(page.getByText(/PI 개발자 리소스.*역할 PI, 개발자, 설비 담당/)).toBeVisible();
-  await expect(page.getByText(/설비 담당 리소스.*역할 설비 담당/)).toBeVisible();
+  await expect(page.getByText(/설비 담당 리소스.*역할 PI, 설비 담당/)).toBeVisible();
   await expect(page.getByText(/역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상.*역할 PI/)).toBeVisible();
-
-  const resourcePane = page.locator('section[aria-labelledby="resources-title"]');
-  const groupPane = page.locator('section[aria-labelledby="groups-title"]');
-  const resourceSearchBar = page.getByLabel("리소스 검색", { exact: true }).locator("..");
-  const resourceCreateForm = resourcePane.locator("form").first();
-  const resourceList = resourcePane.locator("ul").first();
-  const longRow = page.getByLabel("역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 PI 역할", { exact: true }).locator("xpath=ancestor::li[1]");
-  const longIdentity = longRow.locator(":scope > div").first();
-  const longActions = longRow.locator(":scope > div").nth(1);
-  const longProfile = longRow.getByRole("group", { name: "역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 프로필", exact: true });
-  const longRowActions = longRow.getByRole("group", { name: "역할 없는 매우 긴 한국어 리소스 이름 회귀 검증 대상 상태 및 삭제 작업", exact: true });
-  const closeButton = page.getByRole("button", { name: "닫기", exact: true });
-  const saveMembersButton = page.getByRole("button", { name: "구성원 저장", exact: true });
 
   for (const width of [390, 768, 1024, 1440, 1600]) {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
-    await expect(page.getByLabel("PI 개발자 리소스 PI 역할", { exact: true })).toBeVisible();
-
-    const resourcePaneBox = await geometryBox(resourcePane);
-    const groupPaneBox = await geometryBox(groupPane);
-    expect(boxesOverlap(resourcePaneBox, groupPaneBox)).toBe(false);
-    if (width >= 1200) {
-      expect(resourcePaneBox.width).toBeGreaterThan(groupPaneBox.width);
-    } else {
-      expect(resourcePaneBox.y + resourcePaneBox.height).toBeLessThanOrEqual(groupPaneBox.y + 1);
-    }
-
-    const searchBox = await geometryBox(resourceSearchBar);
-    const createBox = await geometryBox(resourceCreateForm);
-    const listBox = await geometryBox(resourceList);
-    expect(searchBox.y + searchBox.height).toBeLessThanOrEqual(createBox.y + 1);
-    expect(createBox.y + createBox.height).toBeLessThanOrEqual(listBox.y + 2);
-
-    const identityBox = await geometryBox(longIdentity);
-    const actionsBox = await geometryBox(longActions);
-    const profileBox = await geometryBox(longProfile);
-    const rowActionsBox = await geometryBox(longRowActions);
-    expect(boxesOverlap(identityBox, actionsBox)).toBe(false);
-    expect(boxesOverlap(profileBox, rowActionsBox)).toBe(false);
-    expect(profileBox.y + profileBox.height).toBeLessThanOrEqual(rowActionsBox.y + 1);
-    expect(identityBox.width).toBeGreaterThan(160);
-
-    const closeBox = await geometryBox(closeButton);
-    const saveBox = await geometryBox(saveMembersButton);
+    const groupPane = page.getByRole("tabpanel", { name: /^리소스 그룹/ });
+    const resourcePane = page.locator("#resource-panel-resources");
+    await expect(resourcePane).toBeHidden();
+    const groupBox = await geometryBox(groupPane);
+    const available = await geometryBox(page.locator(".workspace-section"));
+    expect(groupBox.width).toBeGreaterThanOrEqual(available.width - 2);
+    const closeBox = await geometryBox(groupPane.getByRole("button", { name: "닫기", exact: true }));
+    const saveBox = await geometryBox(groupPane.getByRole("button", { name: "구성원 저장", exact: true }));
     expect(closeBox.x).toBeLessThan(saveBox.x);
-    if (Math.abs(closeBox.y - saveBox.y) <= 2) {
-      expect(Math.abs((closeBox.y + closeBox.height / 2) - (saveBox.y + saveBox.height / 2))).toBeLessThanOrEqual(2);
-    }
+    expect(boxesOverlap(closeBox, saveBox)).toBe(false);
+    if (Math.abs(closeBox.y - saveBox.y) <= 2) expect(Math.abs((closeBox.y + closeBox.height / 2) - (saveBox.y + saveBox.height / 2))).toBeLessThanOrEqual(2);
+    await page.getByRole("tab", { name: /^리소스 \d/ }).click();
+    await expect(groupPane).toBeHidden();
+    await expect(resourcePane).toBeVisible();
+    const longRow = resourcePane.getByRole("row").filter({ hasText: longName });
+    const cells = longRow.getByRole("cell");
+    expect((await geometryBox(cells.first())).width).toBeGreaterThanOrEqual(240);
+    expect(boxesOverlap(await geometryBox(cells.first()), await geometryBox(cells.last()))).toBe(false);
+    await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
   }
 });

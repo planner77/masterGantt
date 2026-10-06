@@ -122,6 +122,27 @@ afterEach(() => {
 });
 
 describe("SQLite connection and schema", () => {
+  it("adds explicit stage storage to schema 21 without inferring or altering existing data", () => {
+    const filename = join(temporaryDirectory(), "legacy-stage.sqlite3");
+    const original = openDatabase({ filename, migrationsDirectory: copiedMigrations(21) }).database;
+    const projectId = insertProject(original, "Legacy Stage");
+    const repo = new ScheduleRepository(original), stamp = "2026-10-05T01:00:00.000Z";
+    const member = repo.insertTask({ projectId, publicId: randomUUID(), externalId: "T", name: "Member", type: "task", scheduleMode: "auto", requestedStart: "2026-10-05", startDate: "2026-10-05", endDate: "2026-10-06", duration: 2, progress: 100, status: "completed", parentId: null, sortOrder: 0, createdAt: stamp, updatedAt: stamp });
+    const milestone = repo.insertTask({ projectId, publicId: randomUUID(), externalId: "M", name: "Stage", type: "milestone", scheduleMode: "auto", requestedStart: "2026-10-05", startDate: "2026-10-05", endDate: "2026-10-05", duration: 0, progress: 100, status: "completed", parentId: null, sortOrder: 1, createdAt: stamp, updatedAt: stamp });
+    repo.insertLink({ projectId, publicId: randomUUID(), predecessorTaskId: member.id, successorTaskId: milestone.id, type: "SS", lag: -1, createdAt: stamp, updatedAt: stamp });
+    original.prepare("INSERT INTO resources(public_id,name,created_at,updated_at) VALUES(?,?,?,?)").run(randomUUID(), "Legacy R", stamp, stamp);
+    original.prepare("INSERT INTO task_assignments(public_id,project_id,task_id,resource_id,created_at,updated_at) VALUES(?,?,?,1,?,?)").run(randomUUID(), projectId, member.id, stamp, stamp);
+    const state = (db: Database.Database) => ["projects", "tasks", "links", "resources", "task_assignments"].map((table) => db.prepare(`SELECT * FROM ${table} ORDER BY id`).all());
+    const before = state(original); original.close();
+    const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
+    try {
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql"]);
+      expect(state(migrated.database)).toEqual(before);
+      expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
+      expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+    } finally { migrated.database.close(); }
+  });
+
   it("applies the schema with the required connection pragmas and indexes", () => {
     const directory = temporaryDirectory();
     const filename = join(directory, "application.sqlite3");
@@ -153,7 +174,8 @@ describe("SQLite connection and schema", () => {
         "0019_task_status.sql",
         "0020_resource_roles.sql",
         "0021_task_assignment_roles.sql",
-        "0022_country_calendar_catalog.sql",
+        "0022_task_milestone_memberships.sql",
+        "0023_country_calendar_catalog.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -201,6 +223,7 @@ describe("SQLite connection and schema", () => {
         "schema_migrations",
         "task_assignments",
         "task_equipment_links",
+        "task_milestone_memberships",
         "task_system_links",
         "tasks",
         "work_calendar_dates",
@@ -255,6 +278,7 @@ describe("SQLite connection and schema", () => {
         "task_assignments_resource_workload_idx",
         "task_equipment_links_equipment_idx",
         "task_equipment_links_task_idx",
+        "task_milestone_memberships_target_idx",
         "task_system_links_system_idx",
         "task_system_links_task_idx",
         "tasks_project_parent_idx",

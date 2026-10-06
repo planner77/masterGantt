@@ -1,3 +1,4 @@
+import type { MilestoneMembershipCommand } from "../../contracts/milestones";
 import { randomUUID } from "node:crypto";
 
 import type {
@@ -33,11 +34,12 @@ import {
   type AuthorizationResult,
   type AuthorizedEditSession,
 } from "./project-service-core";
-import { parseCreateTaskInput, parseUpdateTaskInput } from "./task-contract";
+import { parseCreateTaskInput, parseUpdateTaskInput, parseMilestoneMembershipInput } from "./task-contract";
 
 const NO_STORE_HEADERS = { "Cache-Control": "private, no-store" };
 
 interface TaskServiceApi {
+  updateMilestoneMemberships?(authorization: AuthorizedEditSession, expectedRevision: number, command: MilestoneMembershipCommand): TaskMutationResponse;
   authorize(publicId: string, rawToken: string | undefined): AuthorizationResult;
   createTask(
     authorization: AuthorizedEditSession,
@@ -349,4 +351,32 @@ export function handleDeleteTask(
   } catch (error) {
     return finishError(error, requestId);
   }
+}
+
+export async function handleMilestoneMembershipCommand(request: Request, publicId: string, dependencies: TaskHandlerDependencies): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    const applicationUrl = requireApplicationUrl(dependencies);
+    requireOrigin(request, applicationUrl);
+    const service = resolveService(dependencies.service);
+    const authorization = authorize(request, publicId, service, dependencies.environment, applicationUrl);
+    const expectedRevision = parseRequiredIfMatch(request);
+    const parsed = parseMilestoneMembershipInput(await readBoundedJson(request));
+    if (!parsed.success) throw new PublicApiError(400, "INVALID_REQUEST", "The membership command is invalid.", parsed.details);
+    if (!service.updateMilestoneMemberships) throw new PublicApiError(501, "MEMBERSHIP_UNAVAILABLE", "Milestone membership is unavailable.");
+    return success(service.updateMilestoneMemberships(authorization, expectedRevision, parsed.data), 200);
+  } catch (error) { return finishError(error, requestId); }
+}
+
+/** Import commit is not implemented; never acknowledge an unsaved payload as success. */
+export function handleUnavailableProjectImport(request: Request, publicId: string, dependencies: TaskHandlerDependencies, requireRevision = true): Response {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    const applicationUrl = requireApplicationUrl(dependencies);
+    requireOrigin(request, applicationUrl);
+    const service = resolveService(dependencies.service);
+    const authorization = authorize(request, publicId, service, dependencies.environment, applicationUrl);
+    if (requireRevision && authorization.projectRevision !== parseRequiredIfMatch(request)) throw new RevisionMismatchError();
+    throw new PublicApiError(501, "IMPORT_UNAVAILABLE", "JSON import preview and commit are not implemented. No data was saved.");
+  } catch (error) { return finishError(error, requestId); }
 }

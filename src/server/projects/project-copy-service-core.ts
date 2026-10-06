@@ -1,3 +1,6 @@
+import { readStageSnapshot, withStageProjection } from "./milestone-stage-core";
+import { projectStageGates } from "../../domain/milestones/stage-gates";
+import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -183,6 +186,8 @@ export class ProjectCopyService {
           throw new RevisionMismatchError();
         }
 
+        const sourceStage = readStageSnapshot(this.database, source.id);
+        projectStageGates(sourceStage);
         const sourceTasks = this.schedules.listTasks(source.id);
         const sourceLinks = this.schedules.listLinks(source.id);
         const sourceHolidays = this.schedules.listHolidays(source.id);
@@ -193,7 +198,7 @@ export class ProjectCopyService {
         }
 
         const calendar = resolveProjectWorkingCalendar(this.database, source.id);
-        recalculatePersistedHierarchy(sourceTasks, calendar);
+        recalculatePersistedHierarchy(sourceTasks, calendar, sourceLinks);
 
         const project = this.projects.insert({
           publicId: newPublicId,
@@ -316,6 +321,16 @@ export class ProjectCopyService {
           if (insertedThisPass === 0) {
             throw new PersistedScheduleInvalidError();
           }
+        }
+
+        const sourceByPublicId = new Map(sourceTasks.map((task) => [task.publicId, task]));
+        const memberships = new MilestoneMembershipRepository(this.database);
+        for (const row of sourceStage.memberships) {
+          const originalMember = sourceByPublicId.get(row.taskId), originalMilestone = sourceByPublicId.get(row.milestoneTaskId);
+          const member = originalMember && newBySourceId.get(originalMember.id);
+          const milestone = originalMilestone && newBySourceId.get(originalMilestone.id);
+          if (!member || !milestone) throw new PersistedScheduleInvalidError();
+          memberships.set(project.id, member.id, milestone.id);
         }
 
         if (input.resetProgress) {
@@ -685,7 +700,7 @@ export class ProjectCopyService {
         };
 
         return {
-          response,
+          response: withStageProjection(this.database, project.id, response),
           rawSessionToken: newSession.rawToken,
         };
       });

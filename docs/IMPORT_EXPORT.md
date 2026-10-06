@@ -1,5 +1,23 @@
 # Import / Export
 
+## Issue #464 — JSON 1.1과 보호된 Import/Export
+
+현재 웹 Import는 strict JSON `1.0`과 `1.1`을 지원한다. 기존 `validateImportPayload`와 [1.0 machine schema](schemas/project-import.schema.json)는 변경하지 않는다. 신규 dispatcher `validateProjectImportPayload`가 [1.1 machine schema](schemas/project-import-1.1.schema.json)의 authored schedule-stage 표현을 검증한다. [1.1 예제](examples/project-import-1.1.json)와 [빈 예제](examples/project-import-1.1-empty.json)를 제공한다. CSV/Windows VBA producer의 FS/0 subset은 별도 POC이며 실제 웹 JSON이 지원하는 FS/SS/FF/SF와 signed lag를 CSV producer가 모두 구현했다고 주장하지 않는다. HTTP CSV parser는 제공하지 않으며 `415 UNSUPPORTED_MEDIA_TYPE`다.
+
+1.1 envelope는 `schemaVersion`, 정보용 `project`, `tasks`와 선택적 `memberships`, `source`만 받는다. 모든 객체는 unknown field를 거부한다. leaf Task/Milestone은 `externalId`, `name`, `type`, `parentExternalId`, `predecessors`, `requestedStart`, `duration`, `progress`, `status`가 필수다. `scheduleMode`는 auto/manual, 생략 시 auto다. `description`은 기존 Task 규칙의 10,000 Unicode code point와 원문 보존, `url`은 4,096 code point 이하 HTTP(S)/trim/빈 값 null 정규화를 따른다. `baseline`은 null 또는 `{start,duration}`이고 end는 대상 Calendar에서 계산한다. 일반 Task의 baseline start가 대상 비근무일이면 validation 실패하며 날짜를 임의로 옮기지 않는다. Milestone duration/baseline duration은0이고 end=start다.
+
+Summary는 authored 일정·진척·status·baseline을 받지 않는다. `predecessors: []`, 선택적 `scheduleMode: "auto"`와 `requestedStart: null`만 허용하며 일정/진척/전체 leaf Baseline을 기존 hierarchy로 파생한다. 빈 Summary는 미산정 null을 유지한다. task 배열의 등장 순서가 각 Parent의 sibling order이고 forward reference를 허용한다. `externalId`는 안정적인 업무 ID이며 WBS는 교환 식별자가 아니다. 실제 날짜와 계산 결과는1900-01-01..2199-12-31, hierarchy는 기존 `MAX_HIERARCHY_DEPTH`64를 따른다.
+
+`memberships`는 `[{taskExternalId,milestoneExternalId}]`다. 참조는 파일 내부 Task/Summary와 Milestone만 허용하고 source 중복(동일 null 포함)을 거부한다. target null/row omission은 명시 row가 없다는 뜻이며 가장 가까운 Summary 상속이 적용될 수 있다. 기존 DB 소속 해제/Task upsert 의미가 아니다. effective membership/Ready/KPI/legacy bypass 입력은 거부한다. 신규 Completed Milestone은 전체 member 상태와 직접 선행 Milestone 완료 조건을 기존 server Gate로 검사한다. 빈 manual event도 미완료 선행이 있으면 완료를 허용하지 않는다. 1.1 explicit status/progress는 일관성이 필수이고 in_progress0을 보존한다. 1.0 omitted status는 기존 progress helper로 결정하며 새 Completed Milestone의 guard는 동일하다.
+
+`sourceTaskId`와 `source.projectPublicId/projectRevision/exportedAt/calendar/contentScope: "schedule-stage"`는 참고 정보다. source UUID를 대상 FK로 사용하지 않으며 모든 Task/Link UUID는 새로 발급한다. target Calendar가 일정과 baseline end의 authority다. source Calendar는 preview 비교만 수행하고 canonical exceptions가 있으면 해당 projection을 사용하며 holidays는 legacy fallback이다. source Calendar와 target의 차이, effective 일정 이동, baseline end 재계산은 preview warning/changedTasks에 표시한다. 원본 baseline 날짜 체계를 그대로 복원했다는 뜻이 아니다. source Calendar가 지원 범위 안에서 baseline end를 계산할 수 없으면 `SOURCE_BASELINE_UNAVAILABLE` 경고를 제공한다.
+
+JSON Export는 full Project의1.1 tasks·모든 Dependency·명시 memberships·source metadata를 제공한다. Resource/Group Assignment, 물류·사용자·Password/session·Project master·Template 권한 데이터는 포함하지 않는다. 기존 mixed Link도 원형으로 모두 출력하며 새 Import에서는 양 endpoint 유형이 다르면 파일 전체를 거부한다. 행/Link를 생략하거나 FS/0으로 변환하지 않는다. 기존 mixed가 있는 Export 파일은 무손실 기록은 가능하지만 현행 create-only Import 재생은 불가능하다는 경계를 UI와 문서에 안내한다. 빈 Project Export는 tasks[]/memberships[]이고 preview는 counts0/canCommit=false다. 빈 commit은422 EMPTY_IMPORT, row0/revision 변경0이다.
+
+입력은 파일5 MiB, task5,000, Link20,000, task당 predecessor100, JSON syntax nesting64로 제한한다. JSON depth는 hierarchy 깊이와 다른 제한이다. UTF-8 fatal decoding, 정확히 한 leading BOM 허용, decoded duplicate object key 거부를 JSON.parse 전에 수행한다. raw JSON 또는 정확히 하나의 multipart `file`만 허용하고 unknown/duplicate/text part를 전체 거부한다. multipart framing16 KiB를 별도로 제한하며 Content-Length와 실제 stream byte 모두 확인한 뒤 bounded buffer에 대해서만 formData를 사용한다. 압축 Content-Encoding은 지원하지 않는다. JSON Export도5 MiB/Task5000/Link20000/Task당 incoming100을 넘으면 명확한 EXPORT_LIMIT_EXCEEDED로 전체 거부한다. canonical LinkService의 incoming101 DAG를 성공 JSON으로 출력하거나100개로 줄이지 않는다.
+
+Preview/commit은 동일 target Project의 Origin/edit session을 서버에서 검증한다. preview는 read transaction 안에서 현재 권한·revision·collision·Calendar·Domain을 다시 확인한다. stateless SHA-256 previewDigest는 원본 파일 bytes+target publicId+baseRevision에 묶이며 authorization 또는 preview 실행 증명은 아니다. commit은 같은 bytes와 `X-Import-Preview-Digest`, exact strong `If-Match`를 다시 받는다. IMMEDIATE transaction에서 권한·target·revision·digest·create-only 충돌·candidate 전체 budget·완료 guard를 재검증하고 모든 Task/Link/membership 저장과 revision+1을 원자적으로 처리한다. 실패는 전체 rollback이며 부분 row success/skip/update/delete가 없다. 성공은201 `ProjectSnapshotResponse`의 canonical 전체 snapshot과 permission edit다. 상세 HTTP 계약은 [API.md](API.md)를 따른다.
+
 ## 1. 문서 상태와 범위
 
 이 문서는 Web Application의 Backend Import와 Excel Export 초기 계획을 기록한다. 현재 구현된 Export의 실제 계약은 [EXCEL_EXPORT.md](EXCEL_EXPORT.md)가 우선한다. 실제 Excel/DRM/VBA 환경에서의 검증은 별도다.
@@ -87,7 +105,7 @@ SQLite read snapshot
 
 Project calendar 초기 가정은 timezone `Asia/Seoul`, 토요일/일요일 비근무, Project별 holiday set이다. 국가 공휴일을 자동 추측하지 않는다.
 
-## 5. CSV Fallback v1
+## 5. CSV Fallback v1 — producer 계획, 웹 HTTP parser 미구현
 
 Backend와 Excel/VBA가 공동 검토하고 Manager가 승인한 lossless contract이며 normative 정의는 `docs/IMPORT_SCHEMA.md`이다.
 
@@ -158,14 +176,14 @@ Warning은 정보 손실이나 규칙 위반을 숨기는 수단이 아니다. �
 
 ### 6.2 Commit
 
-`POST /api/projects/{publicId}/imports`는 같은 source payload, edit session, preview `baseRevision`의 `If-Match`를 요구한다.
+`POST /api/projects/{publicId}/imports`는 같은 source payload, edit session, preview `baseRevision`의 strong `If-Match`와 `X-Import-Preview-Digest`를 요구한다.
 
 1. 최신 Project/session/revision을 transaction 경계에서 확인한다.
 2. File을 다시 parse하고 schema/domain/scheduling validation을 다시 수행한다.
 3. Payload 내부 duplicate와 target Project DB의 existing external ID를 확인한다.
 4. 모든 task/link와 Scheduling 결과를 하나의 transaction에 저장한다.
 5. Project revision을 한 번 증가시킨다.
-6. 최신 canonical full snapshot과 import summary/warning을 반환한다.
+6. permission edit의 최신 canonical ProjectSnapshotResponse를201로 반환한다. summary/warning/diff는 preview 응답에 제공한다.
 
 하나라도 실패하면 전체 rollback한다. Preview는 reservation이나 lock이 아니므로 stale revision은 재-preview가 필요하다.
 
@@ -237,7 +255,7 @@ Key/value table에 최소 다음을 포함한다.
 | Export Date | Export 시각과 timezone을 명시한 값 |
 | Project Timezone | `Asia/Seoul` |
 | Project Direct URL | 검증된 direct URL text |
-| Project Direct Hyperlink | 같은 URL을 target으로 하는 clickable hyperlink |
+| Project Direct Hyperlink | 초기 계획 항목이며 현재 workbook은 hyperlink를 생성하지 않음 |
 
 Direct URL은 오직 다음 규칙으로 만든다.
 
@@ -401,6 +419,6 @@ Phase 2가 완료되기 전에는 빈 Gantt sheet나 오해할 수 있는 부분
 
 ## Issue #345 적용 범위
 
-빈 Summary는 schemaVersion 1.0에서 생략 또는 null 일정으로 표현할 수 있고 기존 유효 Summary source snapshot도 검증 후 자손으로 재파생한다. `src/contracts/import.ts`는 파싱된 JSON object의 순수 schema/domain 검증을 제공한다. 이번 변경은 신규 Import 화면/API/preview/commit 및 저장 transaction을 구현하지 않으며 사용자 결정에 따라 별도 Issue로 분리한다. CSV/byte/encoding/원본 Excel 처리와 실제 Windows VBA 검증은 이 pure validator PASS와 구분한다.
+빈 Summary는 schemaVersion 1.0에서 생략 또는 null 일정으로 표현할 수 있고 기존 유효 Summary source snapshot도 검증 후 자손으로 재파생한다. `src/contracts/import.ts`는 파싱된 JSON object의 순수 schema/domain 검증을 제공한다. 당시 #345는 pure validator만 구현했다. 현재 JSON HTTP preview/commit과 저장 transaction은 위 #464 계약을 따른다. CSV/byte/encoding/원본 Excel 처리와 실제 Windows VBA 검증은 이 pure validator PASS와 구분한다.
 
-Excel Export는 미산정 Summary의 WBS/행을 유지하고 날짜·기간·진척 셀을 공란으로 내보낸다. 전체 일정 범위는 실제 날짜 집합만 사용한다. SVG/PNG 행·bar 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다. 기존 Project direct hyperlink에 비밀값을 넣지 않는 계약은 유지한다.
+Excel Export는 미산정 Summary의 WBS/행을 유지하고 날짜·기간·진척 셀을 공란으로 내보낸다. 전체 일정 범위는 실제 날짜 집합만 사용한다. SVG/PNG 행·bar 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다. 현재 workbook은 Project direct hyperlink를 생성하지 않는다. 공유 URL에 비밀값을 넣지 않는 기존 정책은 유지한다.

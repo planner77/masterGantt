@@ -297,10 +297,19 @@ Lifecycle의 exact main CI 조회는 repository의 최근 run 목록을 넓게 �
 
 before/after 개선은 workflow 파일/event/job/metric별로 **서로 다른 successful run ID가 최소 10개** 쌓이기 전에는 확정하지 않는다. successful run artifact만 분석 입력으로 사용하며 matrix shard와 동일 run의 재실행은 record는 늘려도 run 표본 수는 늘리지 않는다. Phase 2 변경 후에도 같은 그룹 키와 metric 정의로 median/p90을 재측정한다.
 
-## Issue #342 최신 main 재정렬 원격 검증
 
-Issue #342는 2026-09-30 PR #346 이후 main이 크게 전진하여 2026-10-05 최신 main 기준으로 재정렬한다. 과거 PR CI #1355의 TypeScript/ESLint/Vitest/Build/Docker/일부 E2E PASS는 해당 과거 head에 한정하며 새 head의 required gate를 대체하지 않는다.
+## Issue #452 Main candidate lifecycle handoff 회귀
 
-Country Calendar Catalog는 migration/API/admin UI/Scheduling resolution을 함께 변경하므로 동일 exact PR head의 현재 `quality/e2e/docker` gate를 모두 요구한다. quality는 migration 0022, JSON/CSV parser, transaction/revision, effective OFFICIAL resolution, route security inventory와 package/lock/version 정합성을 검증한다. Chromium E2E는 `/calendar-admin` Import/CRUD, 390/768/1024/1440px geometry와 기존 Workspace/Header 회귀를 포함한다. Docker gate는 최신 0018~0021 뒤 0022 migration이 빈 DB와 기존 DB startup/persistence 계약을 깨지 않는지 검증한다.
+- successful non-docs Main CI는 verified `ci-<merge SHA>`를 build/push·exact digest smoke한 뒤 Main job 안에서 삭제하지 않는다.
+- Generic `release-finalizer.yml`과 `release-finalizer-resume.yml`은 no-release backlog cleanup을 위해 최소 `packages: write` 권한을 가지며, PR/일반 CI에는 registry write 권한을 추가하지 않는다.
+- `release_required=false` finalize는 `scripts/delete-ghcr-package-version-by-tag.mjs ci-<merge SHA>`를 사용해 exact temporary package version만 삭제한다. tag가 없으면 idempotent no-op, 다른 tag와 package version을 공유하면 fail-closed한다.
+- release-required candidate는 formal release source이므로 finalize 전 삭제하지 않는다. Release workflow는 container를 재-build하지 않고 candidate exact digest를 재검증·promotion한다.
+- 회귀 재현 기준: v0.83.4 Run #133.1은 Main #1852에서 검증한 `ci-e812...`가 version-maintaining cleanup으로 삭제되어 candidate lookup이 실패했다. corrective v0.85.1에서는 Main candidate가 Finalizer까지 존재해야 한다.
 
-공식 국가 휴일 데이터 최신성은 CI가 외부 정부 API를 런타임 호출해 판정하지 않는다. 운영자가 `docs/COUNTRY_CALENDAR_DATA.md`의 공식 source를 확인하고 Import Preview와 sourceVersion/sourceUrl provenance로 검증한다. 이번 사용자 승인 범위는 PR #346의 새 exact head와 PR CI 시작 확인까지이며 CI 완료 모니터링, 병합, main/GHCR, 정식 release, branch cleanup과 Issue 종료는 NOT TESTED/범위 밖이다.
+## Issue #342 최신 main 0.92.0 재정렬 원격 검증
+
+PR #346은 장기간 열린 동안 main이 Milestone Stage Gate Epic 및 JSON 1.1까지 전진했으므로 과거 head의 CI evidence는 stale이다. 최신 main `05fe212060ed4a935510dc2f7a692bb9113c55e8` 기준으로 #342 변경만 재적용하며 migration은 0023, application version은 0.93.0으로 재산정한다.
+
+Country Calendar Catalog는 migration/API/admin UI/Scheduling resolution을 함께 변경하므로 동일 exact PR head의 현재 `quality/e2e/docker` gate를 모두 요구한다. quality는 migration 0023, JSON/CSV parser, transaction/revision, effective OFFICIAL resolution, route security inventory와 package/lock/version 정합성을 검증한다. Chromium E2E는 `/calendar-admin` Import/CRUD 및 responsive geometry와 기존 Stage Gate/Workspace/Admin 회귀를 포함한다. Docker gate는 최신 0018~0022 뒤 0023 migration이 빈 DB와 기존 DB startup/persistence 계약을 깨지 않는지 검증한다.
+
+공식 국가 휴일 데이터 최신성은 CI가 외부 정부 API를 런타임 호출해 판정하지 않는다. 운영자가 `docs/COUNTRY_CALENDAR_DATA.md`의 공식 source를 확인하고 Import Preview와 sourceVersion/sourceUrl provenance로 검증한다. 현재 사용자 요청 종료점은 최신 main 재정렬과 새 exact-head PR CI 시작 확인까지다.

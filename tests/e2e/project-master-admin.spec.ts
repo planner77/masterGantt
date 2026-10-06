@@ -64,7 +64,7 @@ async function login(page: import("@playwright/test").Page) {
   await page.goto("/project-master-admin");
   await page.getByLabel("관리자 비밀번호", { exact: true }).fill("admin");
   await page.getByRole("button", { name: "로그인", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "프로젝트 기준정보 관리자 인증됨", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "관리자 인증됨", exact: true })).toBeVisible();
 }
 
 test("Issue #289: 관리자 category 탭은 roving focus와 Arrow/Home/End 계약을 따른다", async ({ page }) => {
@@ -91,7 +91,7 @@ test("Issue #289: 관리자 category 탭은 roving focus와 Arrow/Home/End 계�
 
   const panel = page.getByRole("tabpanel");
   await expect(panel).toHaveAttribute("aria-labelledby", "project-master-tab-business_unit");
-  await expect(panel.getByRole("heading", { name: "사업부", exact: true })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "사업부 목록", exact: true })).toBeVisible();
 });
 
 test("Issue #332: 인증/관리/목록 영역과 목록 header가 의미 단위로 구분된다", async ({ page }) => {
@@ -103,8 +103,8 @@ test("Issue #332: 인증/관리/목록 영역과 목록 header가 의미 단위�
 
   await login(page);
 
-  await expect(page.getByRole("heading", { name: "프로젝트 기준정보", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "항목 추가", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "항목 관리", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "사업부 항목 추가", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "사업부 목록", exact: true })).toBeVisible();
 
   const table = page.getByRole("table", { name: "사업부 기준정보 목록" });

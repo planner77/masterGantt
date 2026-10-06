@@ -69,7 +69,8 @@ describe("migration CLI", () => {
         "0019_task_status.sql",
         "0020_resource_roles.sql",
         "0021_task_assignment_roles.sql",
-        "0022_country_calendar_catalog.sql",
+        "0022_task_milestone_memberships.sql",
+        "0023_country_calendar_catalog.sql",
       ],
     });
     expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
@@ -88,7 +89,7 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 22 });
+        .toEqual({ count: 23 });
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT revision FROM resource_catalog_state WHERE id = 1").get())

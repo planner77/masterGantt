@@ -1,8 +1,49 @@
 # Active execution plan
 
-## Issue #342 국가 Calendar 2026~2037 Catalog — CI #1850 transport reset 보완 / 최신 main 재정렬
+## Issue #342 국가 Calendar 2026~2037 Catalog — latest main 0.92.0 재정렬 / PR CI
 
-최신 main `e812e56f45fc9d641ffcd80e49fb0deaf115b704` / application `0.83.4`의 Issue #452 Main CI transport-reset 보정과 공통 관리자 shell/AdminAuth/버튼 spacing 계약을 보존하면서 PR #346을 다시 정렬한다. CI #1850은 Chromium shard 4/6의 기존 `project-status.spec.ts` direct GET에서 transient `ECONNRESET`으로 실패했으며 #342 제품 assertion 실패는 아니다. 최신 main이 도입한 GET-only 3회 retry 정책을 status fixture의 읽기 GET에도 한정 적용한다. #342 migration은 `0022_country_calendar_catalog.sql`, 후보 version은 `0.84.0`을 유지한다. 현재 요청 종료점은 새 exact-head PR CI 시작 확인이며 CI 완료 모니터링·병합·main/GHCR·정식 release·Issue 종료는 범위 밖이다. 상세는 [Issue #342 실행 계획](ISSUE_342.md)을 따른다.
+최신 main `05fe212060ed4a935510dc2f7a692bb9113c55e8` / application `0.92.0`의 #459 Stage Gate Epic, #460~#464 membership/dashboard/JSON 1.1, 최신 Lifecycle/CI 및 관리자 UI 계약을 보존하면서 기존 PR #346의 Country Calendar Catalog를 재적용한다. 현재 main의 `0022_task_milestone_memberships.sql`과 충돌하지 않도록 #342 migration은 `0023_country_calendar_catalog.sql`, 후보 version은 다음 MINOR `0.93.0`이다. CI #1850의 GET transport reset은 읽기 GET에만 제한된 retry로 보완하고 mutation retry는 금지한다. 현재 종료점은 DOCUMENTATION_SYNC 완료 후 PR #346 새 exact-head CI 시작 확인이며 CI 완료 모니터링·병합·main/GHCR·정식 release·Issue 종료는 범위 밖이다. 상세는 [Issue #342 실행 계획](ISSUE_342.md)을 따른다.
+
+## Issue #459 Milestone Stage Gate Epic — 통합 감사 / PR CI
+
+latest main `4098a064a9c5a614b0adfa1ac90dcbd9523db993` / application `0.92.0`에서 #460~#464가 모두 main에 반영된 상태를 기준으로 Epic 수용 기준을 재감사한다. 제품 runtime 재구현은 하지 않고, 상위 #459가 핵심 Source of Truth에 직접 연결되지 않은 문서 공백과 “member Task Dependency는 Milestone predecessor로 자동 승격하지 않는다”는 사용자 확정 정책의 전용 Domain regression을 보강한다.
+
+branch는 `feat/issue-459-stage-gate-epic-integration`이며 상세 Work Packet은 [Issue #459 실행 계획](ISSUE_459.md)을 따른다. application version은 `0.92.0` 유지, `release_required=false`, `release_authorized=false`다. 이번 요청 종료점은 PR 생성 및 exact head PR CI 시작 확인이며 CI 완료 모니터링·병합·main CI·GHCR·Issue 종료는 수행하지 않는다.
+
+## Issue #464 JSON·Excel·Copy·Template 보존 — latest main 재정렬 / 새 PR CI
+
+PR #473 head `1e1397aca8d48780dbc8dcc397f333b3d9bb85ca`는 latest main `d748046733ae2006580052a480c984ae1eb1fa2a`보다 뒤처져 mergeable=false가 되었다. 현재 main에는 #463 병합, #455 기준정보 UI/transport corrective, #463 물류·Resource 결합 필터 보완이 포함되어 있으므로 이를 authoritative base로 보존하고 #464 고유 변경만 다시 적용한다.
+
+충돌 교집합은 `project-gantt.tsx`와 문서 5개다. Gantt는 main의 context-menu surface-aware two-frame settle을 유지하면서 #464의 context selection `show:false`/Copy feedback 보존을 합친다. 문서는 최신 main 기록을 우선하고 #464 계약·검증 섹션을 병합한다. application candidate는 `0.92.0`을 유지한다.
+
+정렬 후 exact new head에서 PR CI를 새로 시작하며 그 결과가 병합 판단 기준이다. 이번 요청 범위는 재정렬·충돌 해결·새 PR CI 시작까지이며 완료 모니터링·병합·main CI·GHCR/tag/release·branch cleanup·Issue 종료는 별도 단계다. `release_required=true`, `release_authorized=false`.
+
+
+## Issue #455 기준정보 입력 컨트롤 — 최신 main 재정렬 / 병합 / Main CI
+
+PR #481의 기존 head `7f9cfb87e4e56bba9eff444d74a0559bcb80b89d`는 PR CI Run `37411553451` / Run #1908.1 SUCCESS였으나, 이후 #453/#454 및 운영 변경이 main에 반영되어 최신 main이 `0fc986cb0cb642bdbedeec30157b27bd522b5a38`까지 전진했고 기존 head는 GitHub `mergeable_state=dirty`가 되었다. #455 고유 제품·테스트·fixture·증거를 최신 main 위에 재적용하고, 충돌 교집합인 CHANGELOG/PROJECT_UX/TEST_PLAN/active PLAN은 최신 main 기록과 #455 기록을 함께 보존한다.
+
+새 exact-head PR CI의 quality/e2e/docker 성공을 병합 전 authoritative gate로 사용한다. 성공하면 PR #481을 main에 병합하고 해당 merge push로 Main CI가 시작되는 것까지 확인한다. 기존 Run #1908.1은 재정렬 전 head 근거이므로 새 head의 PASS로 대체하지 않는다. release/GHCR/finalizer/Issue close/branch cleanup은 이번 요청 범위에 포함하지 않는다.
+
+## Issue #454 물류 유형 목록 — 최신 main 정렬 / 충돌 정리 / 새 PR CI
+
+PR #478의 기존 head `04b3047328bb338bace1990e18a434ae80b611db`는 PR CI Run `37408864316` / Run #1900.1 SUCCESS였으나, 선행 #453이 별도 재정렬 후 PR #477로 병합되고 main이 `22326fc350b91ab59ddafa20ef97c3f418f71aae`까지 전진하여 기존 stacked head는 병합 불가 상태가 되었다. #454 자체 delta만 보존하고 최신 main을 병합하는 방식으로 정렬한다.
+
+제품 `logistics-type-catalog-admin.tsx/.module.css`, #454 전용 E2E/fixture/output, version `0.90.1`은 기존 #454 후보를 유지한다. 충돌 교집합인 CHANGELOG/PROJECT_UX/TEST_PLAN/active PLAN은 최신 main의 #453 재정렬·#475/#461/#483 운영 기록을 보존하면서 #454 기록을 병합한다. published PR history는 force-push하지 않고 기존 #454 head를 첫 부모, 최신 main을 두 번째 부모로 하는 conflict-resolution merge commit을 사용한다.
+
+새 exact head의 pull_request CI가 quality/e2e/docker를 다시 검증하며 그 결과 전에는 최종 ACCEPT를 재사용하지 않는다. `release_required=true`, `release_authorized=false`; 이번 요청 범위는 정렬·충돌 해결·새 PR CI 시작까지다.
+
+## Issue #453 리소스 관리 독립 탭 — PR #477 최신 main 재정렬 / 새 PR CI
+
+PR #477의 기존 head `c411634f75b7a69131a095e9cb6b7416060b827e`는 PR CI Run `37406441919` / Run #1898.1 SUCCESS였으나, 이후 main이 `d7316880732ecde5a8193764ac3b0cfca2ae455f` / application `0.87.1`까지 39 commits 전진해 GitHub `mergeable_state=dirty`가 되었다. Resource TSX/CSS 및 #453 관련 E2E/fixture는 main 이동에서 변경되지 않았고 충돌은 문서5파일과 package/lock 2파일에 한정된다. 최신 main의 #461/#462 및 Release corrective 변경과 source-map-js 1.2.2를 보존하면서 #453 문서와 candidate version `0.90.0`을 병합한다.
+
+published PR history는 force-push하지 않고 기존 feature head와 최신 main을 부모로 하는 conflict-resolution merge commit으로 정렬한다. 새 exact head PR CI의 quality/e2e/docker가 공식 재검증 기준이며 시작 전/진행 중에는 `NOT TESTED`다. `release_required=true`, `release_authorized=false`; 병합·main CI·GHCR·tag/release·branch cleanup·Issue 종료는 이번 요청 범위 밖이다.
+
+## Issue #460~#464 완료 단계 관리 — 순차 구현·문서 동기화·push·PR CI 시작
+
+#460~#462는 main에 병합되어 있고 latest main `528ebfffa639a275ea4349a04860f5b3785e50e9` / application `0.90.2`의 #453~#455 UI 및 #461 Release corrective를 보존해 #463 candidate `0.91.0`을 유지한다. #463 [PR #472](https://github.com/planner77/masterGantt/pull/472)의 head `8f78a24d6e2d37e6c0a9da7ec1f79e2025a55a66` PR CI Run #1946.1(`37434077594`)은 quality/build/Docker와 Chromium shard 2~6 PASS, shard 1의 완료 단계 picker keyboard geometry 1건 FAIL이다. 열린 list의 `End/Home/Arrow` 대상 option은 이미 DOM에 있으므로 지연 rAF 대신 keyboard handler 안에서 즉시 `scrollIntoView(nearest)`해 active option 가시성을 보장한 뒤 새 exact-head PR CI를 시작한다. 상세는 [Issue #463 실행 계획](ISSUE_463.md)을 따른다.
+
+최초 #460 기반 도메인·DB/API 구현의 정렬 기준은 main `9280536ddc85a8a841346bdf413b2ba638685880` / application `0.83.4`에서 구현한다. 작업 브랜치는 `feat/issue-460-stage-gates`, 예정 버전은 `0.85.0`이다. [Issue #460 실행 계획](ISSUE_460.md)에 Work Packet·공유 interface·잠금·호환성·검증·문서 소유권을 기록한다. 이후 #461 Editor → #462 Gantt/Grid → #463 KPI → #464 Import/Export·Copy·Template 순서로 선행 구현을 포함하는 branch를 만들고 각 push/PR CI 시작까지 반복한다. CI 완료 모니터링/병합/정식 릴리스/브랜치 정리/Issue 종료는 이번 요청 범위 밖이며 `release_authorized=false`다. 착수 당시 독립 사전 QA 및 원격 CI는 `NOT TESTED`였으며 이후 단계는 위 현재 상태와 Issue 로그를 따른다.
 
 ## Issue #452 관리자 공통 페이지·인증 폼·버튼 외부 간격 — 구현·문서 동기화 / PR CI 시작
 

@@ -1,3 +1,6 @@
+import { projectStageGates } from "../../domain/milestones/stage-gates";
+import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
+import { readStageSnapshot, withStageProjection } from "../projects/milestone-stage-core";
 import { PersistedScheduleInvalidError } from "../projects/project-service-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
@@ -97,8 +100,9 @@ function validSession(
   authorization: AuthorizedEditSession,
   now: Date,
 ): boolean {
-  if (!session || !project) return false;
-  if (session.projectId !== authorization.projectId) return false;
+  if (!session || !project || session.revokedAt !== null) return false;
+  if (project.id !== authorization.projectId || project.publicId !== authorization.projectPublicId) return false;
+  if (session.projectId !== project.id || session.id !== authorization.sessionId) return false;
   if (session.authVersion !== authorization.projectAuthVersion) return false;
   if (!session.tokenHash.equals(authorization.tokenHash)) return false;
   if (project.authVersion !== authorization.projectAuthVersion) return false;
@@ -187,6 +191,8 @@ export class ProjectTemplateService {
       }
 
       const calendar = resolveProjectWorkingCalendar(this.database, source.id);
+      const sourceStage = readStageSnapshot(this.database, source.id);
+      projectStageGates(sourceStage);
       const tasks = this.schedules.listTasks(source.id);
       const links = this.schedules.listLinks(source.id);
       const assignments = this.resources.listAssignments(source.id);
@@ -336,6 +342,12 @@ export class ProjectTemplateService {
 
       const selectedMaster = this.projectMaster.projectSelectionDto(source.id);
       const snapshot: ProjectTemplateSnapshot = {
+        memberships: sourceStage.memberships.map((row) => {
+          const member = tasks.find((task) => task.publicId === row.taskId);
+          const milestone = tasks.find((task) => task.publicId === row.milestoneTaskId);
+          if (!member || !milestone) throw new PersistedScheduleInvalidError();
+          return { taskExternalId: member.externalId, milestoneExternalId: milestone.externalId };
+        }),
         sourceRevision: source.revision,
         projectMaster: {
           businessUnitId: selectedMaster.businessUnit?.id ?? null,
@@ -604,6 +616,23 @@ export class ProjectTemplateService {
           throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "Cycle detected in template task hierarchy.");
         }
       }
+
+      const seenMembers = new Set<string>();
+      if (snapshot.memberships !== undefined && !Array.isArray(snapshot.memberships)) {
+        throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "Template memberships must be an array.");
+      }
+      const resolvedMemberships = (snapshot.memberships ?? []).map((row) => {
+        const member = row && newByExternalId.get(row.taskExternalId);
+        const milestone = row && newByExternalId.get(row.milestoneExternalId);
+        if (!member || !milestone || member.type === "milestone" || milestone.type !== "milestone" || seenMembers.has(row.taskExternalId)) {
+          throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "Template membership references are invalid.");
+        }
+        seenMembers.add(row.taskExternalId);
+        return { memberId: member.id, milestoneId: milestone.id };
+      });
+      const memberships = new MilestoneMembershipRepository(this.database);
+      for (const row of resolvedMemberships) memberships.set(project.id, row.memberId, row.milestoneId);
+      projectStageGates(readStageSnapshot(this.database, project.id));
 
       // 4. 의존관계(Links) 삽입
       for (const link of snapshot.links) {
@@ -993,7 +1022,7 @@ export class ProjectTemplateService {
         },
       };
 
-      return { response, rawSessionToken: sessionToken.rawToken };
+      return { response: withStageProjection(this.database, project.id, response), rawSessionToken: sessionToken.rawToken };
     })();
   }
 

@@ -1,3 +1,4 @@
+import type { MilestoneStageGateDto, TaskMilestoneMembershipDto } from "./milestones";
 import type { ProjectLogisticsDto } from "./logistics";
 import type { ProjectMasterItemDto } from "./project-master";
 import type { ProjectAssignmentDto } from "./resources";
@@ -59,6 +60,9 @@ export interface ProjectListResponse {
 }
 
 export interface ProjectTaskDto {
+  /** Canonical API snapshots always include the server-owned stage projection. */
+  membership?: TaskMilestoneMembershipDto;
+  stageGate?: MilestoneStageGateDto;
   taskId: string;
   externalId: string;
   name: string;
@@ -85,6 +89,8 @@ export interface ProjectTaskDto {
 export type DependencyType = "FS" | "SS" | "FF" | "SF";
 
 export interface ProjectLinkDto {
+  /** Existing mixed Task/Milestone dependencies remain readable and schedulable. */
+  legacyMixed?: boolean;
   id: string;
   predecessorExternalId: string;
   successorExternalId: string;
@@ -213,6 +219,8 @@ export type CreateTaskRequest = CreateTaskCommon & (
 );
 
 export interface UpdateTaskRequest {
+  /** Omission preserves explicit assignment; null restores Summary inheritance. */
+  explicitMilestoneTaskId?: string | null;
   name?: string;
   description?: string | null;
   url?: string | null;
@@ -280,12 +288,44 @@ export type TaskHierarchyCommandRequest =
     }
   | ({
       kind: "copy";
+      /** Confirms explicit exclusions and inherited/destination membership changes at this revision. */
+      acknowledgedMembershipExclusions?: boolean;
       anchorTaskId: string;
       placement: TaskHierarchyPlacement;
     } & (
       | { taskIds: readonly string[]; taskId?: never }
       | { taskId: string; taskIds?: never }
     ));
+
+export type CopyMilestoneReference =
+  | { kind: "existing"; existingMilestoneTaskId: string }
+  | { kind: "copied"; copiedFromMilestoneTaskId: string }
+  | null;
+
+export type CopyInheritanceReference =
+  | { kind: "existing"; existingSummaryTaskId: string }
+  | { kind: "copied"; copiedFromSummaryTaskId: string }
+  | null;
+
+export interface MembershipCopyImpact {
+  sourceTaskId: string;
+  excludedExplicitMilestoneTaskId: string | null;
+  beforeEffectiveMilestoneTaskId: string | null;
+  beforeInheritedFromTaskId: string | null;
+  afterExplicit: CopyMilestoneReference;
+  afterEffective: CopyMilestoneReference;
+  afterInheritedFrom: CopyInheritanceReference;
+  reasons: ("EXTERNAL_EXPLICIT_EXCLUDED" | "EXTERNAL_INHERITANCE_CHANGED" | "DESTINATION_INHERITANCE_CHANGED")[];
+}
+
+export interface MembershipCopyPlan {
+  rootTaskIds: string[];
+  copiedTaskIds: string[];
+  preservedExplicitMemberships: { taskId: string; milestoneTaskId: string }[];
+  excludedExplicitMemberships: { taskId: string; milestoneTaskId: string }[];
+  impacts: MembershipCopyImpact[];
+  requiresAcknowledgement: boolean;
+}
 
 export interface ScheduleWarningDto {
   code: "NON_WORKING_START_SHIFTED";
@@ -294,7 +334,7 @@ export interface ScheduleWarningDto {
   start: string;
 }
 
-export type TaskMutationKind = "taskCreate" | "taskUpdate" | "taskDelete" | "taskHierarchy";
+export type TaskMutationKind = "taskCreate" | "taskUpdate" | "taskDelete" | "taskHierarchy" | "milestoneMembership";
 
 export interface TaskMutationResponse {
   data: {

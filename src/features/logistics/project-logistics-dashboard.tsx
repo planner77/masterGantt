@@ -2,10 +2,18 @@
 
 import { useEffect, useState, useId, useRef, type KeyboardEvent } from "react";
 import type { LogisticsDashboardDto } from "@/contracts/logistics-dashboard";
+import type { ProjectTaskDto } from "@/contracts/projects";
+import { ProjectMilestoneStageTable } from "../milestones/project-milestone-stage-table";
+import { conversionLabel, dashboardStageValid, projectDateAt } from "../milestones/milestone-dashboard-model";
 import { parseDateOnly } from "@/domain/scheduling/date-only";
 import styles from "./project-logistics-dashboard.module.css";
 
 export interface ProjectLogisticsDashboardProps {
+  tasks?: readonly ProjectTaskDto[];
+  active?: boolean;
+  busy?: boolean;
+  onStageOpen?: (taskId: string, tab?: "task" | "memberships") => void;
+  onStageSchedule?: (taskIds: string[]) => void;
   publicId: string;
   revision: number;
   onNavigateToSchedule?: (filter: {
@@ -35,6 +43,7 @@ function isDashboard(value: unknown): value is LogisticsDashboardDto {
   if (!number(value.projectRevision) || typeof value.asOfDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value.asOfDate) || !number(value.horizonDays) || (value.systemView !== "direct" && value.systemView !== "coordination") || typeof value.activeOnly !== "boolean" || !strings(value.includedTaskIds)) return false;
   if (!numericFields(kpi, ["totalDuration", "taskCount", "overdueTaskCount", "milestoneTotalCount", "milestoneOverdueCount", "milestoneUpcomingCount"]) || !isRecord(kpi) || !nullableNumber(kpi.progressPercent) || !strings(kpi.overdueTaskIds) || !strings(kpi.milestoneOverdueIds) || !strings(kpi.milestoneUpcomingIds)) return false;
   if (!numericFields(effort, ["plannedMd", "unsetAllocationCount"]) || !isRecord(effort) || !nullableNumber(effort.plannedMm)) return false;
+  if (value.milestoneStages !== undefined && (!isRecord(value.milestoneStages) || !strings(value.milestoneStages.milestoneTaskIds) || !Array.isArray(value.milestoneStages.rows) || !value.milestoneStages.rows.every(dashboardStageValid))) return false;
   if (!numericFields(quality, ["unlinkedLeafTaskCount", "equipmentWithoutPrimaryControllerCount", "equipmentWithoutOwnerCount", "systemsWithoutPrimaryPICount", "totalEquipmentMasterCount", "totalEquipmentQuantity"]) || !isRecord(quality) || !nullableNumber(quality.unlinkedLeafTaskPercent)) return false;
   if (!isRecord(value.breakdowns)) return false;
   for (const kind of ["processes", "equipment", "systems"]) {
@@ -52,6 +61,7 @@ function isDashboard(value: unknown): value is LogisticsDashboardDto {
 type BreakdownTab = "processes" | "equipment" | "systems";
 
 export function ProjectLogisticsDashboard({
+  tasks = [], active = true, busy = false, onStageOpen, onStageSchedule,
   publicId,
   revision,
   onNavigateToSchedule,
@@ -75,6 +85,8 @@ export function ProjectLogisticsDashboard({
 
   const tabId = useId();
   const tabRefs = useRef<Partial<Record<BreakdownTab, HTMLButtonElement | null>>>({});
+  const lastAttempt = useRef(0);
+  const dayAttempt = useRef<string | null>(null), scheduledRefresh = useRef(false);
   const horizonNumber = Number(horizonDays);
   const horizonError = !horizonDays.trim() || !Number.isInteger(horizonNumber) || horizonNumber < 1 || horizonNumber > 90 ? "임박 기준은 1~90 사이의 정수로 입력해 주세요." : null;
   const requestKey = JSON.stringify([publicId, revision, asOfDate, horizonDays, systemView, activeOnly, refreshKey]);
@@ -104,6 +116,8 @@ export function ProjectLogisticsDashboard({
       await Promise.resolve();
       if (controller.signal.aborted) return;
       setOutcome({ key: requestKey, status: "loading" });
+      lastAttempt.current = Date.now();
+      scheduledRefresh.current = false;
       const params = new URLSearchParams({ horizonDays: String(horizonNumber), systemView });
       if (asOfDate) params.set("asOfDate", asOfDate);
       if (activeOnly) params.set("activeOnly", "true");
@@ -122,6 +136,21 @@ export function ProjectLogisticsDashboard({
     })();
     return () => controller.abort();
   }, [publicId, asOfDate, horizonNumber, horizonError, systemView, activeOnly, revision, requestKey]);
+
+  useEffect(() => {
+    if (!active) return;
+    const catchUp = () => {
+      if (document.visibilityState !== "visible" || isLoading || scheduledRefresh.current) return;
+      if (Date.now() - lastAttempt.current >= 30_000) { scheduledRefresh.current = true; setRefreshKey((key) => key + 1); }
+    };
+    const clock = window.setInterval(() => {
+      if (document.visibilityState !== "visible" || asOfDate || !dashboard || isLoading || scheduledRefresh.current) return;
+      const day = projectDateAt(dashboard.timezone);
+      if (dashboard.asOfDate !== day && dayAttempt.current !== day) { dayAttempt.current = day; scheduledRefresh.current = true; setRefreshKey((key) => key + 1); }
+    }, 60_000);
+    window.addEventListener("focus", catchUp); document.addEventListener("visibilitychange", catchUp);
+    return () => { window.clearInterval(clock); window.removeEventListener("focus", catchUp); document.removeEventListener("visibilitychange", catchUp); };
+  }, [active, asOfDate, dashboard, isLoading]);
 
   const handleDrillDownToTasks = (taskIds: string[]) => {
     if (ready && onNavigateToSchedule) {
@@ -166,6 +195,7 @@ export function ProjectLogisticsDashboard({
             onChange={(e) => setAsOfDate(e.target.value)}
             className={styles.filterInput}
           />
+          {asOfDate ? <button type="button" className={styles.refreshButton} onClick={() => setAsOfDate("")}>자동 기준일</button> : null}
         </div>
 
         <div className={styles.filterGroup}>
@@ -232,6 +262,7 @@ export function ProjectLogisticsDashboard({
 
       {ready && dashboard && (
         <>
+          <p className={styles.scopeNote}>현재 snapshot 평가일 {dashboard.asOfDate} · {dashboard.timezone} · 과거 상태 복원이 아닙니다. {conversionLabel(dashboard.effort.mdPerMm, dashboard.effort.mdPerMmSource)}</p>
           {/* 2. 핵심 KPI 카드 그리드 */}
           <div className={styles.kpiGrid}>
             {/* 카드 1: 기간 가중 진척률 */}
@@ -375,6 +406,7 @@ export function ProjectLogisticsDashboard({
                     <span className={styles.kpiUnit}>M/M</span>
                   </>
                 )}
+                {dashboard.effort.plannedMm === null ? <span className={styles.kpiUnit}>— M/M · 환산 기준 미설정</span> : null}
               </div>
               <div className={styles.kpiMetaRow}>
                 <span>투입률 미설정 {dashboard.effort.unsetAllocationCount}건</span>
@@ -389,6 +421,12 @@ export function ProjectLogisticsDashboard({
               </button>
             </div>
           </div>
+
+          {dashboard.milestoneStages ? <section className={styles.relatedStages} aria-labelledby={`${tabId}-stages`}>
+            <h3 id={`${tabId}-stages`}>관련 단계 — 단계 전체 상태 기준</h3>
+            <p className={styles.scopeNote}>물류 연결에 관련된 고유 단계입니다. Ready·소속 진척·원인은 전체 소속 작업과 직접 선행 단계 기준이며 위 물류 Task·진척·계획 M/D 범위를 확장하지 않습니다.</p>
+            {dashboard.milestoneStages.rows.length ? <ProjectMilestoneStageTable rows={dashboard.milestoneStages.rows} tasks={tasks} enabled={ready && !busy} onOpenTask={onStageOpen} onSchedule={onStageSchedule} /> : <p>관련 완료 단계가 없습니다.</p>}
+          </section> : null}
 
           {/* 3. 데이터 품질 및 구성 진단 패널 */}
           <div className={styles.qualityPanel}>

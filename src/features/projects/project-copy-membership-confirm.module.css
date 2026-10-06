@@ -1,0 +1,18 @@
+.content { display:flex; flex-direction:column; gap:12px; min-width:0; }
+.content p { margin:0; font-size:13px; line-height:1.5; overflow-wrap:anywhere; }
+.content [role=alert] { color:var(--status-error); }
+.tableOwner { max-height:min(360px,40dvh); min-width:0; max-width:100%; overflow:auto; border:1px solid var(--border); border-radius:6px; }
+.tableOwner:focus-visible { outline:var(--focus-outline); outline-offset:var(--focus-offset); }
+.tableOwner table { min-width:720px; width:100%; table-layout:fixed; border-collapse:collapse; font-size:12px; }
+.tableOwner th,.tableOwner td { text-align:left; vertical-align:top; padding:10px; border-bottom:1px solid var(--border); overflow-wrap:anywhere; }
+.tableOwner th { background:var(--surface-subtle); }
+.tableOwner small { display:block; margin-top:6px; color:var(--text-muted); }
+.actions { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
+.actions button { max-width:100%; overflow-wrap:anywhere; }
+@media(max-width:390px) { .actions { flex-direction:column; } }
+
+/* 공용 dialog 계약은 유지하고 이 검토 화면의 body만 스크롤한다. */
+:global(dialog[open]):has(> .content) { display:flex; flex-direction:column; overflow:hidden; }
+.content { flex:1; min-height:0; overflow:hidden; }
+.body { display:flex; flex-direction:column; gap:12px; min-width:0; min-height:0; overflow:auto; padding:4px; }
+.actions { flex-shrink:0; padding-top:4px; }

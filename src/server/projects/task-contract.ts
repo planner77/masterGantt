@@ -1,3 +1,4 @@
+import type { MilestoneMembershipCommand } from "../../contracts/milestones";
 import { z } from "zod";
 
 import type {
@@ -93,6 +94,7 @@ const createTaskSchema = z.union([
 );
 
 const updateTaskSchema = z.object({
+  explicitMilestoneTaskId: z.string().refine(isCanonicalUuidV4).nullable().optional(),
   name: taskName.optional(),
   description: taskDescription.optional(),
   url: taskUrl.optional(),
@@ -148,4 +150,15 @@ export function parseCreateTaskInput(input: unknown): ParseResult<CreateTaskRequ
 
 export function parseUpdateTaskInput(input: unknown): ParseResult<UpdateTaskRequest> {
   return parseStrict(updateTaskSchema, input);
+}
+
+const milestoneMembershipSchema = z.object({
+  changes: z.array(z.object({
+    taskId: z.string().refine(isCanonicalUuidV4),
+    milestoneTaskId: z.string().refine(isCanonicalUuidV4).nullable(),
+  }).strict()).min(1).max(500),
+}).strict().refine((command) => new Set(command.changes.map((change) => change.taskId)).size === command.changes.length);
+
+export function parseMilestoneMembershipInput(input: unknown): ParseResult<MilestoneMembershipCommand> {
+  return parseStrict(milestoneMembershipSchema, input);
 }
