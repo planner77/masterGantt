@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.86.0] - 2026-10-06
+
+### Added
+
+- Issue #461: Task/Summary 작업 정보에서 완료 단계의 검색·직접 지정·상속 복귀를 편집하고 Milestone 소속 작업 탭에서 명시 소속 초안을 원자 적용한다. Summary 일정은 파생 읽기 전용으로 유지한다.
+- Milestone의 본인 상태와 소속 진척·Ready·선행 차단·수동 이벤트·완료 불일치 진단을 구분하고 명시 완료/재개 및 초안 보호를 적용한다.
+
+### Fixed
+
+- PR #470 review: 새 리소스를 선택했다가 해제하면 남은 역할·투입 초안 때문에 false dirty 상태가 유지되던 문제를 선택된 리소스 기준 canonical 비교로 수정한다.
+- PR #470 review: 외부 변경으로 Milestone이 일반 Task로 바뀐 뒤 다시 불러올 때 더 이상 존재하지 않는 `소속 작업` 탭이 활성 상태로 남지 않도록 작업 정보 탭으로 정규화한다.
+- PR #470 review: Membership 보유 Project의 Excel 보존 차단 오류에 명시 source와 target의 public Task ID를 포함하여 API의 구조화된 진단 계약을 지킨다.
+
+### Changed
+
+- Application version을 `0.85.1`에서 `0.86.0`으로 증가한다. 최신 main의 #452 release-candidate lifecycle 보완과 선행 #460 Stage Gate 구현을 함께 보존하며 이번 요청에서 정식 릴리스를 게시하지 않는다.
+
 ## [0.85.1] - 2026-10-06
 
 ### Fixed

@@ -2,7 +2,9 @@
 
 ## Issue #460~#464 완료 단계 관리 — 순차 구현·문서 동기화·push·PR CI 시작
 
-현재 #460 기반 도메인·DB/API를 최신 main `9280536ddc85a8a841346bdf413b2ba638685880` / application `0.83.4`에서 구현한다. 작업 브랜치는 `feat/issue-460-stage-gates`, 예정 버전은 `0.85.0`이다. [Issue #460 실행 계획](ISSUE_460.md)에 Work Packet·공유 interface·잠금·호환성·검증·문서 소유권을 기록한다. 이후 #461 Editor → #462 Gantt/Grid → #463 KPI → #464 Import/Export·Copy·Template 순서로 선행 구현을 포함하는 branch를 만들고 각 push/PR CI 시작까지 반복한다. CI 완료 모니터링/병합/정식 릴리스/브랜치 정리/Issue 종료는 이번 요청 범위 밖이며 `release_authorized=false`다. 현재 독립 사전 QA 및 원격 CI는 `NOT TESTED`다.
+현재 #460의 구현·문서 동기화·독립 사전 QA·게시와 [PR #468](https://github.com/planner77/masterGantt/pull/468)의 [CI 등록](https://github.com/planner77/masterGantt/actions/runs/37327951203)을 마쳤고 결과는 모니터링하지 않는다. #461 Editor의 구현·문서 동기화·관련 로컬 검증을 `feat/issue-461-stage-editor` / `0.86.0`에서 마치고 독립 UI 비교·사전 QA PASS로 PR_READY이며 [Issue #461 실행 계획](ISSUE_461.md)이 현재 Work Packet이다. 선행 #460과 최신 main `e812e56f45fc9d641ffcd80e49fb0deaf115b704`를 포함한 baseline은 `4b98dd44c44335ae64e65e43f1c64f5f1b3fa384`다. 후속 #462~#464와 CI 완료·최종 QA는 아직 NOT TESTED다.
+
+최초 #460 기반 도메인·DB/API 구현의 정렬 기준은 main `9280536ddc85a8a841346bdf413b2ba638685880` / application `0.83.4`에서 구현한다. 작업 브랜치는 `feat/issue-460-stage-gates`, 예정 버전은 `0.85.0`이다. [Issue #460 실행 계획](ISSUE_460.md)에 Work Packet·공유 interface·잠금·호환성·검증·문서 소유권을 기록한다. 이후 #461 Editor → #462 Gantt/Grid → #463 KPI → #464 Import/Export·Copy·Template 순서로 선행 구현을 포함하는 branch를 만들고 각 push/PR CI 시작까지 반복한다. CI 완료 모니터링/병합/정식 릴리스/브랜치 정리/Issue 종료는 이번 요청 범위 밖이며 `release_authorized=false`다. 착수 당시 독립 사전 QA 및 원격 CI는 `NOT TESTED`였으며 이후 단계는 위 현재 상태와 Issue 로그를 따른다.
 
 ## Issue #452 관리자 공통 페이지·인증 폼·버튼 외부 간격 — 구현·문서 동기화 / PR CI 시작
 

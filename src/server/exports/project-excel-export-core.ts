@@ -959,7 +959,16 @@ export function buildProjectExcelWorkbook(
   request: ProjectExcelExportRequest,
   resourceWorkload?: ResourceWorkloadResponse,
 ): Uint8Array<ArrayBuffer> {
-  if (snapshot.data.tasks.some((task) => task.membership?.explicitMilestoneTaskId)) throw new StageGateError("MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE");
+  const membershipTaskIds = snapshot.data.tasks.flatMap((task) => {
+    const milestoneTaskId = task.membership?.explicitMilestoneTaskId;
+    return milestoneTaskId ? [task.taskId, milestoneTaskId] : [];
+  });
+  if (membershipTaskIds.length > 0) {
+    throw new StageGateError(
+      "MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE",
+      [...new Set(membershipTaskIds)],
+    );
+  }
   const tasks = orderedTasks(snapshot.data.tasks);
   const dates = timeline(tasks);
   if (request.includeDependencies) validateLinks(snapshot.data.links, tasks);

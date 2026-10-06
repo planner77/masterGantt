@@ -191,10 +191,10 @@ describe("explicit task editor commands", () => {
     for (const name of ["", "   ", "x".repeat(201), "\ud800"]) expect(prepareTaskEditorCommand(task, { ...createTaskEditorDraft(task), name }).error).toBeTruthy();
     expect(prepareTaskEditorCommand(task, { ...createTaskEditorDraft(task), name: "😀".repeat(200) }).error).toBeNull();
   });
-  it("makes summaries readonly and does not permit a summary command", () => {
+  it("permits only Summary name and membership while calculated fields stay omitted", () => {
     const summary = { ...task, type: "summary" as const };
-    expect(taskEditorReadOnlyReason(summary, true, false)).toContain("하위 작업");
-    expect(prepareTaskEditorCommand(summary, { ...createTaskEditorDraft(summary), name: "No" }).error).toBeTruthy();
+    expect(taskEditorReadOnlyReason(summary, true, false)).toBeNull();
+    expect(prepareTaskEditorCommand(summary, { ...createTaskEditorDraft(summary), name: "Changed", progress: "100", start: "", explicitMilestoneTaskId: "M" }).command?.payload).toEqual({ name: "Changed", explicitMilestoneTaskId: "M" });
   });
   it("enforces milestone zero duration and omits it from allowed updates", () => {
     const milestone = { ...task, type: "milestone" as const, duration: 0 };
