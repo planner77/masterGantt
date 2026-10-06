@@ -1454,3 +1454,7 @@ Import apply와 CRUD는 `country_calendar_catalog_state.revision`을 별도로 �
 
 OFFICIAL dataset의 마지막 1개 날짜도 삭제할 수 있다. DELETE 성공 transaction은 dataset을 UNAVAILABLE로 전환하고 provenance를 비우므로 0건 상태가 Scheduling에 노출되지 않는다.
 
+### Issue #342 국가 목록 effective provenance
+
+\`GET /api/work-calendars/countries\`의 \`sourceVersion/sourceUrl\`은 effective OFFICIAL dataset 기준이다. 해당 국가의 \`supportedYears\`가 비어 있으면 effective provenance가 하나도 없으므로 두 필드는 \`null\`을 반환한다. override가 built-in 연도를 UNAVAILABLE/SUPERSEDED로 가린 경우 과거 built-in provenance를 fallback해서 반환하지 않는다.
+

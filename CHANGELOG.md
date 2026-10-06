@@ -22,6 +22,7 @@
 - country/year 조회 실패 시 이전 snapshot을 제거해 새 selector와 이전 데이터가 섞이지 않게 하고, 412 reload 후 stale 날짜 편집 초안을 폐기한다.
 - 날짜 PATCH는 최소 1개 지원 field만 허용하고 unknown/no-op payload를 거부하며, 마지막 날짜 삭제 후에도 fail-closed UNAVAILABLE 상태를 유지한다.
 - Import Apply 성공 후 native file input을 초기화해 동일 파일을 즉시 다시 선택할 수 있게 한다.
+- supportedYears가 비어 있는 국가는 과거 built-in provenance를 노출하지 않고 sourceVersion/sourceUrl을 null로 반환한다.
 
 ## [0.92.0] - 2026-10-06
 

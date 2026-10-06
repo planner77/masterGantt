@@ -72,6 +72,12 @@ N/A:
 - P2 native file input: successful Import Apply 후 DOM file input value까지 초기화한다.
 - Unit/Chromium과 API/UX/Test Plan/CHANGELOG/release note를 다시 동기화한다.
 
+## Codex review REWORK 3
+
+- P2 effective provenance: override가 유일한 built-in 연도를 비활성화해 \`supportedYears=[]\`이 되면 목록 descriptor의 sourceVersion/sourceUrl도 null이어야 한다.
+- public descriptor DTO는 nullable provenance를 허용하되 실제 Scheduling \`CountryCalendarDataset\`은 non-null provenance 타입을 유지한다.
+- Unit/API/Test Plan/CHANGELOG/release note를 동기화한다.
+
 ## 검증
 
 - Catalog parser/service/CRUD/atomic import/stale revision/WORKING 보존 Unit.

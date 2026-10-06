@@ -1988,3 +1988,5 @@ PR CI #1960의 유일한 Vitest 실패는 `tests/server/db/database.test.ts`의 
 - 빈 object/unknown field PATCH는 invalid input으로 거부하고 revision/provenance를 바꾸지 않는지 검증한다.
 - Import Apply 성공 후 native file input value가 비워지고 같은 파일 재선택으로 Preview가 다시 활성화되는지 검증한다.
 
+- effective provenance null: 유일한 지원 연도 override가 UNAVAILABLE로 전환되면 \`supportedYears=[]\`, \`sourceVersion=null\`, \`sourceUrl=null\`인지 검증한다. built-in provenance fallback은 허용하지 않는다.
+
