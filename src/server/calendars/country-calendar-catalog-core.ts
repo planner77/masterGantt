@@ -432,7 +432,7 @@ export class CountryCalendarCatalogService {
       throw new CountryCalendarCatalogInvalidInputError();
     }
     const keys = Object.keys(input);
-    const raw = input as Record<string, unknown>;
+    const raw = input as unknown as Record<string, unknown>;
     if (keys.length === 0 ||
         keys.some((key) => !["date","name","dayType","sourceKey"].includes(key) || raw[key] === null)) {
       throw new CountryCalendarCatalogInvalidInputError();
