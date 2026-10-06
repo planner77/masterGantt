@@ -1396,7 +1396,7 @@ Template instantiate 시 snapshot의 Resource 수행 역할이 현재 Global Rol
 
 ## Issue #461 Editor의 기존 소속 API 사용
 
-신규 endpoint/DTO/authorization 계약은 없다. Task/Summary 기본 저장은 변경된 허용 기본 필드와 `explicitMilestoneTaskId`를 기존 Task PATCH 한 요청에 담는다. omission은 기존 직접 지정 보존, null은 직접 지정 해제·상속 복귀다. Summary는 name과 이 필드만 전송한다. Milestone 소속 탭은 기존 `POST /api/projects/{publicId}/milestone-memberships`의 changes를 한 번 전송한다.
+신규 endpoint/DTO/authorization 계약은 없다. Task/Summary 기본 저장은 변경된 허용 기본 필드와 `explicitMilestoneTaskId`를 기존 Task PATCH 한 요청에 담는다. omission은 기존 직접 지정 보존, null은 직접 지정 해제·상속 복귀다. Summary는 `name`, `description`, `url`, `explicitMilestoneTaskId`만 전송하며 일정·진척·상태·Baseline은 계속 파생/read-only다. Milestone 소속 탭은 기존 `POST /api/projects/{publicId}/milestone-memberships`의 changes를 한 번 전송한다.
 
 UI canonical parser는 `operation.kind=milestoneMembership`을 Task mutation으로 수락하고 응답 전체 tasks/links/project.revision을 Workspace와 열린 Editor에 함께 적용한다. 클라이언트 dirty/pending/완료 disable은 서버 권한을 대신하지 않는다. Editor 실패는 초안을 보존하며 412 이후 명시 GET·폐기 확인·최신 값 검토가 필요하고 자동 재전송하지 않는다. 완료/재개는 기존 status PATCH이며 재개와 소속 batch를 숨은 복합 요청으로 만들지 않는다.
 
