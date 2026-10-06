@@ -1815,3 +1815,11 @@ branch 정렬은 published PR history를 강제 재작성하지 않고 기존 fe
 Main CI Run `37435545662` / #1947.1은 build/typecheck/lint/Vitest/Docker smoke/E2E 6 shards와 게시 image policy/readiness/SQLite/API persistence까지 SUCCESS였으나, 게시 digest transport 검증의 production-http 첫 Chromium navigation에서 `ERR_NAME_NOT_RESOLVED`가 발생해 실패했다. 같은 script의 `/etc/hosts` 등록 뒤 HTTP/HTTPS readiness curl은 성공했으므로 application/image failure가 아니라 hosted runner Chromium의 test hostname resolution 실패로 분리한다.
 
 Corrective는 `tests/config/transport.config.ts`의 Chromium launch option에 `plain.gantt.test`와 `secure.gantt.test`만 127.0.0.1로 매핑한다. browser URL/Host header와 HTTPS certificate hostname은 계속 원래 test domain을 사용하므로 Origin/cookie/TLS 의미를 localhost 예외로 바꾸지 않는다. shell/Node 측 `/etc/hosts`, NO_PROXY, 실제 Nginx와 신뢰 CA 검증도 유지한다. 최종 authoritative 판정은 corrective 병합 후 새 Main CI의 동일 published-digest transport smoke다.
+
+
+### Issue #463 PR #472 unresolved review P2 — combined S scope
+
+- PR review는 물류 조건을 만족하는 member와 Resource 조건을 만족하는 다른 member가 있을 때 기존 독립 existential 판정이 stage를 S에 포함할 수 있음을 지적했다.
+- S의 물류+Resource 관련성은 기간을 제외한 동일 일반 Task 교집합으로 판정한다. 날짜는 기존 계약대로 F-only다. Resource 조건이 없으면 Milestone 자체의 직접 물류 match는 계속 S에 포함한다.
+- Unit 회귀는 t1=물류 only, t2=Resource only일 때 rows/KPI가 empty이고, t2에도 같은 물류 연결을 추가하면 m1/scopedTaskIds=t2가 복원되는지 검증한다.
+- 이 보완 후 exact-head PR CI를 다시 실행하며 이전 #1952 PASS는 수정 전 head 증거로만 유지한다.

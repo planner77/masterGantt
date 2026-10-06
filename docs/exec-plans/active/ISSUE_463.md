@@ -163,3 +163,10 @@ main 통합 최소LFF는 qa_docs의 migration-cli3/3 PASS(751ms/chunka6a71a), fr
 - #1941에서 실패했던 Context Menu scroll과 dashboard cache/abort 시나리오는 모두 PASS하여 해당 보완은 유지한다.
 - 390px picker에서 End 키 후 active option scroll이 requestAnimationFrame에 지연되어 geometry 측정이 먼저 실행될 수 있었다. 열린 option DOM을 keyboard handler에서 즉시 `scrollIntoView(nearest)`하고 active state/focus/aria/Escape 계약은 유지한다.
 - latest main `528ebfffa639a275ea4349a04860f5b3785e50e9` / `0.90.2`를 통합하고 candidate `0.91.0` 유지. 새 exact-head 전체 PR CI를 시작한다.
+
+
+## PR review P2 — combined Logistics/Resource S intersection
+
+- unresolved PR review thread는 서로 다른 member가 물류/Resource 조건을 각각 만족할 때 S가 잘못 포함될 수 있는 실제 로직 결함을 지적했다.
+- non-date ordinary Task 교집합을 먼저 계산해 S 관련성에 사용하고, 기간은 F-only로 유지한다. Resource filter가 없을 때 직접 Milestone 물류 match는 기존 계약대로 허용한다.
+- same-task 교집합 Unit을 추가한 뒤 새 exact-head PR CI 성공 시 thread를 resolve하고 병합한다.

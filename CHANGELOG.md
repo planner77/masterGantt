@@ -9,6 +9,7 @@
 
 ### Fixed
 
+- 완료 단계 대시보드의 물류·Resource 조건을 서로 다른 member에서 조합해 단계 관련성을 만들지 않고, 같은 일반 Task가 두 non-date 조건을 함께 만족할 때만 S에 포함한다.
 - PR CI Run #1869에서 발견된 CSS Module의 전역-only selector를 전역 스타일 소유 위치로 이동해 Next.js production build와 Docker build의 동일 연쇄 실패를 제거한다. 최신 main의 #461/#462 회귀 보완은 유지하고 #463 변경만 재적용한다.
 - PR CI Run #1941에서 opening-settle이 기존 #407/#418 회귀를 해소한 뒤, Chart bar menu의 baseline 재캡처가 Grid row로 surface를 바꾸는 새 회귀를 확인했다. 연결된 원래 trigger 또는 원래 grid/chart surface를 보존한 fallback을 사용해 실제 Chart scroll 닫힘 계약을 유지한다.
 - slow query abort 후 직전 cached query로 복귀할 때 cache hit를 effect 진입 즉시 ready로 복원하여 불필요한 loading 잔류를 제거한다. 실제 network fetch·TTL focus catch-up·revision/catalog 검증은 유지한다.
