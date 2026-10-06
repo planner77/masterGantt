@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.93.0] - 2026-10-06
+
+### Changed
+
+- Issue #485: Resource Catalog의 Global Role을 수행 역할의 단일 Source of Truth로 확정하고 Task Editor의 별도 수행 역할 Select/필수 validation을 제거한다. Task assignment는 Resource/Group 참조와 allocation만 소유한다.
+- compatibility `assignment_role` 컬럼과 API `role` 필드는 non-authoritative로 전환한다. migration `0023_deprecate_task_assignment_roles.sql`은 기존 값을 NULL로 정규화하고 role index/guard를 제거하며 신규 canonical 응답은 role=null이다.
+- Resource workload, Milestone dashboard와 Excel 역할 분류는 현재 Global Role 집합을 사용한다. multi-role Resource의 역할 subtotal은 비가산이며 Grand Total은 assignmentId 기준 한 번만 합산한다.
+- Project Copy/Template은 Task별 역할을 새로 복제하지 않고 Resource/Group assignment와 allocation만 보존한다. legacy template `assignmentRole`은 호환 읽기만 하고 instantiate 시 무시한다.
+- application version을 `0.92.0`에서 `0.93.0`으로 증가한다.
+
+
 ## [0.92.0] - 2026-10-06
 
 ### Added
