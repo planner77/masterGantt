@@ -1133,7 +1133,7 @@ export function ProjectGantt({
     }
   }, [apiInstanceId, projectPublicId, tasks]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const api = apiReference.current;
     const root = ganttScrollReference.current;
     if (!api || !root || !apiInstanceId) return;
@@ -1143,7 +1143,7 @@ export function ProjectGantt({
       if (apiReference.current === api && root.isConnected && typeof event.id === "string" && tasksByIdReference.current.has(event.id)) {
         onTaskEditorOpenReference.current(event.id);
       }
-      // The project editor owns explicit server-confirmed saves, not Core's editor.
+      // Attach before paint so the Core editor cannot win a reload-time interaction race.
       return false;
     }, { tag });
     return () => api.detach(tag);
