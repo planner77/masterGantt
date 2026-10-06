@@ -5,6 +5,7 @@ import { COUNTRY_CALENDAR_MANAGED_YEARS } from "../../../src/contracts/country-c
 import {
   CountryCalendarCatalogConflictError,
   CountryCalendarCatalogInvalidInputError,
+  CountryCalendarCatalogPreviewMismatchError,
   CountryCalendarCatalogRevisionMismatchError,
   CountryCalendarCatalogService,
   parseCountryCalendarImport,
@@ -197,14 +198,16 @@ describe("Issue #342 country calendar catalog", () => {
 
   it("allows deleting the sole official date and invalidates provenance atomically", () => {
     const service = new CountryCalendarCatalogService(database(), () => new Date("2026-09-30T03:00:00.000Z"));
-    const applied = service.applyImport(1, {
-      format: "json",
+    const envelope = {
+      format: "json" as const,
       content: JSON.stringify({
         countryCode: "US", year: 2030, sourceVersion: "US-2030-official-1",
         sourceUrl: "https://www.opm.gov/2030",
         dates: [{ date: "2030-01-01", name: "New Year's Day", dayType: "NON_WORKING", sourceKey: "new-year" }],
       }),
-    });
+    };
+    const preview = service.previewImport(envelope);
+    const applied = service.applyImport(1, preview.data.previewToken, envelope);
     const deleted = service.deleteDate("US", 2030, "2030-01-01", applied.data.revision);
     expect(deleted.data).toMatchObject({
       dataset: { status: "UNAVAILABLE", sourceVersion: null, sourceUrl: null, dateCount: 0 },
