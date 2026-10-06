@@ -1515,3 +1515,13 @@ PR CI Run #1873.1도 Chromium shard 4/6의 같은 기존 Summary 회귀 1건만 
 - `MAX_BACKLOG_DEPTH` 안에서 exact FINAL/non-PR historical boundary를 찾지 못하는 기존 fail-closed 계약은 유지한다.
 - 정적/시나리오 검증은 `scripts/verify-issue-lifecycle.py`에서 closed skip classifier, exact FINAL boundary, pending backlog 보존을 함께 확인한다.
 
+### Issue #475 Finalizer tag push Authorization corrective
+
+- PR #476 병합 후 Main CI #1906.1은 SUCCESS였고 Generic Finalizer #64.1이 pending #461/v0.86.0을 정확히 발견했다.
+- Finalizer #64.1은 `git push origin refs/tags/v0.86.0`에서 GitHub 응답 `Duplicate header: "Authorization"` / HTTP 400으로 실패했다.
+- 원인은 Generic Finalizer checkout이 기본 credential persistence를 유지한 상태에서 `push_git_refs()`가 별도 `http.extraHeader` Authorization을 추가해 동일 header가 두 번 전송된 것이다.
+- 자동 Finalizer와 수동 release/finalize/release_finalize checkout은 모두 `persist-credentials:false`를 사용해야 한다.
+- lifecycle의 release tag `ls-remote`·`fetch`·`push`와 automatic finalizer의 exact tag evidence `ls-remote`·`fetch`는 동일한 process-scoped auth helper를 사용해야 한다.
+- helper는 inherited `http.https://github.com/.extraheader`를 빈 값으로 reset한 뒤 job-scoped Authorization header 하나를 command-scope Git config로 넣어야 한다.
+- 회귀 검증은 process-scoped config count/order, empty reset header, 단일 auth header, command argument token 비노출, lifecycle tag read/fetch/push와 automatic finalizer tag evidence read/fetch가 모두 authenticated helper를 경유하는지, mutation workflow의 non-persistent checkout을 확인한다.
+- 기존 immutable tag가 생성되기 전에 push가 실패했으므로 v0.86.0 tag/release 중복 evidence를 만들지 않아야 한다. corrective merge 후 Generic Finalizer가 backlog를 재계산해 #461 release_start를 재시도한다.
