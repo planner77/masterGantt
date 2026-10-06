@@ -224,7 +224,7 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 - Resume/Generic Finalizer의 checkout은 `persist-credentials:false`를 유지한다. 후속 SemVer tag 생성이 필요한 경우 `issue_lifecycle.py`가 job-scoped `GITHUB_TOKEN`을 해당 `git push` 프로세스의 환경 기반 Git config에만 주입한다. Token을 remote URL, repository/global git config, 명령 인자, 로그에 영속화하지 않는다.
 - Release 실패 시 Issue/branch를 닫거나 지우지 않는다. 기존 immutable run의 성공 재실행 또는 same-Issue corrective release 뒤 lifecycle을 재평가한다.
 - explicit handoff 실패는 이미 성공한 publication을 실패로 바꾸지 않는다. 이후 completion fallback 또는 다음 Main CI가 backlog를 다시 계산할 수 있다.
-- Generic Finalizer backlog에서 `closed` 자체는 완료 boundary가 아니다. exact target SHA FINAL marker가 boundary authority이며, marker 없는 closed Issue merge는 재변경하지 않고 건너뛰면서 더 오래된 first-parent pending target 탐색을 계속한다.
+- Generic Finalizer backlog에서 `closed` 자체는 완료 boundary가 아니다. exact target SHA FINAL marker가 boundary authority이며, marker 없는 closed Issue merge는 mutation하지 않는 **ordering barrier**로 유지한다. adjacent same-Issue coalesce가 이 barrier를 넘지 못하게 한 뒤 lifecycle 실행 대상에서만 제거하고, 더 오래된 first-parent pending target 탐색은 계속한다.
 
 ## Issue #437 E2E 샤드 최적화 운영
 
