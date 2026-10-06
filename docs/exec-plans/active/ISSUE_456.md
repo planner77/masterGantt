@@ -129,3 +129,10 @@ DOCUMENTATION_SYNC 대상은 TASK_EDITOR·PROJECT_UX·UI_UX_GUIDELINES·TEST_PLA
 REQUIREMENTS·ARCHITECTURE는 새 기능·계층 경계 변경이 없어 N/A다. API·DB_SCHEMA·SECURITY는 endpoint/schema/권한/Origin/session/revision 계약 무변경으로 N/A, SCHEDULING_ENGINE은 일정 알고리즘 변경이 없어 N/A다. IMPORT_SCHEMA·VBA_EXPORT와 관련 Excel/이미지/견적 교환 문서는 Import/Export·DRM·배정·Copy/Template 구현 변화가 없어 N/A이고 해당 후속은#491에서 다룬다. DEPLOYMENT·CI_CD·REMOTE_VALIDATION·GITHUB_OPERATIONS는 workflow/container/registry/검증 gate 변경이 없어 N/A다. DESIGN은 기존 semantic token·Light UI·system font 적용으로 N/A, UI_UX_ROLLOUT은 다른 화면 rollout 완료 판정을 바꾸지 않아 N/A다. 각 N/A는 해당 제품 전체의 검증 PASS를 뜻하지 않는다.
 
 현재 source3가 영향을 주는 date/status/Baseline·검색/필터·scope/fullscreen/peer·실제SQLite 관련 선택 회귀를 실행했고, 마지막 guard-only 수정의 직접8사례와 나머지19 unique의 재사용 근거를 TEST_PLAN에 구분했다. native125%/실기기/스크린리더/최종수동UX 및 모든 상태×폭 조합은 NOT TESTED다. 실제SQLite persistence와 mocked payload/state는 서로 대체하지 않는다.
+
+
+## Main CI #1993.1 security audit corrective
+
+PR #500 병합 SHA `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 Main CI Run `37524404994`은 제품 build/typecheck/lint/Vitest/E2E 6/6/Docker smoke는 통과했지만 production audit에서 `sharp 0.35.4` High 취약점(CVE-2026-96889)으로 실패했다. audit gate를 완화하지 않고 corrective branch `fix/issue-456-main-ci-sharp-audit`에서 lockfile을 `sharp 0.35.5` 및 `@img/sharp-libvips 1.3.4`로 갱신하고 정적 최소 버전 회귀를 추가한다.
+
+application version은 `0.92.1`을 유지한다. 이 corrective는 동일 Issue의 non-docs 후속 merge이며 Generic Finalizer의 same-Issue convergence가 최초 0.92.0→최신0.92.1 span으로 release_required를 판정하므로 기존 v0.92.1 authorization 범위를 유지한다. 새 PR exact-head quality/e2e/docker PASS → merge → 새 Main CI 시작이 현재 요청 종료점이며, 그 뒤 GHCR/finalize는 기존 자동 lifecycle gate가 처리한다.
