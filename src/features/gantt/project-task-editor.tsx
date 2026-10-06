@@ -497,8 +497,8 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
             </fieldset>
             <fieldset className={styles.detailsFields}>
               <legend className={styles.groupLegend}>상세 정보</legend>
-            <label className={`${styles.field} ${styles.descriptionField}`}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
-            <label className={`${styles.field} ${styles.urlField}`}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
+            <label className={`${styles.field} ${styles.descriptionField}`}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={basicMutationLocked} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
+            <label className={`${styles.field} ${styles.urlField}`}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={basicMutationLocked} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
             </fieldset>
           </div>
 

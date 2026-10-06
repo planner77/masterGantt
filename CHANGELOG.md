@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.93.0] - 2026-10-07
+
+### Added
+
+- Issue #493: Summary Task의 Description과 URL을 일반 Task와 같은 검증·저장 경로로 편집할 수 있다. 빈 Summary와 일정 산정 Summary 모두 지원한다.
+
+### Changed
+
+- 최신 main의 Issue #456 Task Editor 레이아웃·pending Escape·Gantt viewport 보완과 application `0.92.1`을 보존한 뒤 #493 변경을 재적용한다.
+- Summary PATCH 직접 편집 allowlist를 name/Description/URL/명시 완료 단계 소속으로 확장하되 일정·진척·상태·Baseline의 자손 파생 read-only 계약은 유지한다.
+- 하위 작업 추가·삭제에 따른 Summary 일정 재계산 뒤에도 메타데이터를 보존하는 Unit/SQLite/E2E 회귀를 추가하고 application version을 `0.93.0`으로 설정한다.
+
+### Fixed
+
+- PR CI Run #1992에서 공개된 Sharp High advisory(CVE-2026-96889, GHSA-wq5f-xc86-pv6w)에 대응해 Next.js의 호환 optional dependency 범위 안에서 lockfile의 Sharp closure를 `0.35.5` / libvips `1.3.4`로 갱신한다.
+- 실패 Playwright artifact의 accessibility tree에서 Description/URL textbox와 저장값이 실제 존재함을 확인하고 reload 후 검증 locator를 실제 노출 role 기준으로 정합화한다.
+
 ## [0.92.1] - 2026-10-06
 
 ### Fixed

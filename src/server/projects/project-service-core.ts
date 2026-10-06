@@ -1048,7 +1048,11 @@ export class ProjectService {
       recalculatePersistedHierarchy(tasks, calendar, links);
       if (current.type === "summary") {
         if (
-          Object.keys(validatedInput).some((field) => field !== "name" && field !== "explicitMilestoneTaskId")
+          Object.keys(validatedInput).some((field) =>
+            field !== "name" &&
+            field !== "description" &&
+            field !== "url" &&
+            field !== "explicitMilestoneTaskId")
         ) {
           throw new SummaryScheduleReadonlyError();
         }

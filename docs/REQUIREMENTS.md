@@ -366,7 +366,7 @@ Task Editor 리소스 탭은 역할→Resource 및 Resource→역할 두 흐름�
 
 ## Issue #461 완료 단계 Editor
 
-Task/Summary의 작업 정보에서 Milestone을 이름·externalId·canonical taskId로 단일 검색·지정한다. Summary는 이름과 하위 작업 기본 단계만 편집하고 파생 일정/진척/Baseline은 읽기 전용이다. 직접/nearest Summary 상속/미지정을 구분하고 null 해제는 상속 복귀다. 기본 필드와 소속은 한 PATCH로 원자 저장한다.
+Task/Summary의 작업 정보에서 Milestone을 이름·externalId·canonical taskId로 단일 검색·지정한다. Summary는 이름·Description·URL·하위 작업 기본 단계만 편집하고 파생 일정/진척/상태/Baseline은 읽기 전용이다. 직접/nearest Summary 상속/미지정을 구분하고 null 해제는 상속 복귀다. 기본 필드와 소속은 한 PATCH로 원자 저장한다.
 
 Milestone은 기존 탭을 유지한 소속 작업 N 탭으로 유효 일반 Task 수와 explicit root 수를 구분한다. 검색·유형·소속 상태·다른 단계 이동·영향 preview, Summary override 보존과 inherited explicit-only 해제를 제공하고 batch 한 POST로 적용한다. full canonical 동기화와 모든 저장 단위의 dirty/pending/stale/readonly/완료 잠금을 유지하며 실패 초안·검색·선택을 보존한다. Ready/소속 진척/본인 완료를 분리하고 재개는 별도 명시 저장 뒤 구조 변경한다. Domain/API/auth/revision은 #460 계약을 재사용하며 새 서버 기능은 추가하지 않는다.
 
@@ -384,3 +384,11 @@ Milestone은 기존 탭을 유지한 소속 작업 N 탭으로 유효 일반 Tas
 Project 일정의 Gantt/Milestone 대시보드 peer view에서 readonly KPI와 단계 목록을 조회한다. full canonical snapshot의 E(M)/P(M)로 Ready·Blocked·소속 작업 진척·완료 불일치를 계산한다. 현재 단계 검색/선택 S와 Project 전체 물류·Resource·수행 역할·등급·기간 공수 F를 분리하고 WBS scope 미적용을 명시한다. 완료율/Ready/Blocked/지연/임박/계획 위험/소속 적용률은 raw 분모와 snapshot 대상 ID를 제공하며 null/0/loading/error를 구분한다.
 
 일반 Task 개인 assignment만 기존 Calendar/allocation으로 계산하고 모든 단계+미지정 bucket 합은 같은 F Grand Total이다. 검색으로 숨겨진 단계의 공수도 총합에 남는다. M/M은 명시 query 또는 유효 ENV 설정에서만 환산한다. 기존 물류 수치는 유지하고 full-stage 관련 projection을 추가한다. 기준일은 현재 snapshot의 Project timezone 평가이며 과거 상태/actual completion/원가/AI 위험 예측이 아니다. [정확한 서버 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델) 및 [API](API.md#issue-463-milestone-dashboard-api)를 따른다.
+
+## Issue #493 — Summary Task Description/URL 편집
+
+- Summary는 WBS 컨테이너이면서 자체 `description`과 `url` 메타데이터를 소유한다. 편집 세션이 유효하면 빈 Summary와 일정 산정 Summary 모두 두 필드를 직접 편집할 수 있어야 한다.
+- Summary Description/URL은 일반 Task와 동일한 validation/normalization 계약을 사용한다. 공백-only Description/URL은 null이며 URL은 HTTP(S)만 허용한다.
+- Summary의 requestedStart/start/end/duration/progress/status/Baseline은 계속 자손에서 파생하거나 읽기 전용이다. 메타데이터 편집을 일정 편집 허용으로 확대하지 않는다.
+- 하위 작업 추가·삭제·이동 및 Summary 일정 재계산은 Summary의 Description/URL을 보존해야 한다. 저장·재조회·reload 후 canonical snapshot과 UI가 일치해야 한다.
+- 보호 mutation은 기존 edit session, exact Origin, strong If-Match/revision 및 프로젝트 격리 규칙을 유지한다.
