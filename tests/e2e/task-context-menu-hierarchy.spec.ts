@@ -21,7 +21,16 @@ async function openMenu(page: import("@playwright/test").Page, name: string) {
 }
 
 async function openMenuByTaskId(page: import("@playwright/test").Page, taskId: string) {
-  await rowByTaskId(page, taskId).click({ button: "right" });
+  const target = rowByTaskId(page, taskId);
+  // Playwright combines auto-scroll and right-click in one gesture. When SVAR
+  // virtualizes a row during that scroll, the contextmenu event can be lost
+  // before the application receives it. Make the row stable and visible first;
+  // actual context-menu behavior is still asserted by the real right-click.
+  await target.scrollIntoViewIfNeeded();
+  await expect(target).toBeVisible();
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+  await page.mouse.move(0, 0);
+  await target.click({ button: "right" });
   await expect(menu(page)).toBeVisible();
   return menu(page);
 }

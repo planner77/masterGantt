@@ -2,7 +2,7 @@
 
 ## Issue #460~#464 완료 단계 관리 — 순차 구현·문서 동기화·push·PR CI 시작
 
-#460~#462는 main에 병합되어 있으며 latest main `d7316880732ecde5a8193764ac3b0cfca2ae455f` / application `0.87.1`을 #463 재정렬 기준으로 사용한다. #463 [PR #472](https://github.com/planner77/masterGantt/pull/472)의 최초 head `ca15145b1167b7253841e648d23e59d1a172022a` / PR CI Run #1869.1(`37382878627`)은 production CSS Module pure 오류와 Docker 연쇄 실패, 구 baseline 기반 E2E shard 4/5/6 실패로 REWORK다. 최신 main의 #461/#462 보완과 #461 release static corrective를 보존하면서 #463 delta만 재적용하고 candidate `0.88.0`의 새 exact-head PR CI를 시작한다. 상세는 [Issue #463 실행 계획](ISSUE_463.md)을 따른다. #464 및 #463 새 원격 CI 완료·최종 QA는 NOT TESTED다.
+#460~#462는 main에 병합되어 있으며 latest main `d7316880732ecde5a8193764ac3b0cfca2ae455f` / application `0.87.1`을 #463 기준으로 유지한다. #463 [PR #472](https://github.com/planner77/masterGantt/pull/472)의 재정렬 head `caa520bac3a0bb2d97e61e725e513280fffa5dc0` PR CI Run #1927.1(`37418422688`)은 production build·Docker·Vitest·ESLint·TypeScript·정책 및 Chromium shard 1~5 PASS, shard 6의 기존 #407/#418 virtual-row auto-scroll E2E 1건 FAIL이다. 제품 계약을 완화하지 않고 대상 행을 우클릭 전에 가시화·안정화하는 테스트 기하학 보강 후 candidate `0.88.0` 새 exact-head PR CI를 시작한다. 상세는 [Issue #463 실행 계획](ISSUE_463.md)을 따른다. #464 및 #463 새 원격 CI 완료·최종 QA는 NOT TESTED다.
 
 최초 #460 기반 도메인·DB/API 구현의 정렬 기준은 main `9280536ddc85a8a841346bdf413b2ba638685880` / application `0.83.4`에서 구현한다. 작업 브랜치는 `feat/issue-460-stage-gates`, 예정 버전은 `0.85.0`이다. [Issue #460 실행 계획](ISSUE_460.md)에 Work Packet·공유 interface·잠금·호환성·검증·문서 소유권을 기록한다. 이후 #461 Editor → #462 Gantt/Grid → #463 KPI → #464 Import/Export·Copy·Template 순서로 선행 구현을 포함하는 branch를 만들고 각 push/PR CI 시작까지 반복한다. CI 완료 모니터링/병합/정식 릴리스/브랜치 정리/Issue 종료는 이번 요청 범위 밖이며 `release_authorized=false`다. 착수 당시 독립 사전 QA 및 원격 CI는 `NOT TESTED`였으며 이후 단계는 위 현재 상태와 Issue 로그를 따른다.
 

@@ -117,3 +117,10 @@ main 통합 최소LFF는 qa_docs의 migration-cli3/3 PASS(751ms/chunka6a71a), fr
 - 직접 build blocker는 CSS Module의 global-only selector이며 전역 workspace selector를 `src/app/globals.css`로 이동한다. Docker 실패는 동일 build 실패의 연쇄다.
 - 이전 branch가 사용한 #462 중간 baseline의 회귀 기대를 유지하지 않는다. latest main `d7316880732ecde5a8193764ac3b0cfca2ae455f`의 병합된 #461/#462 보완과 #461 release static corrective를 보존하고 #463 고유 delta만 재적용한다.
 - candidate version은 latest main `0.87.1`의 다음 MINOR `0.88.0`. 새 exact head에서 PR quality/e2e/docker를 새로 시작하며 결과 완료 모니터링·병합·release는 별도 승인 전 수행하지 않는다.
+
+
+## PR CI #1927 REWORK
+
+- head `caa520bac3a0bb2d97e61e725e513280fffa5dc0` / Run #1927.1(`37418422688`)은 quality와 Docker가 PASS했으나 Chromium shard 6의 기존 #407/#418 scoped-add E2E 1건으로 FAIL했다.
+- #463 peer tab 도입으로 줄어든 일정 viewport에서 이전 `headerLeaf`가 화면 밖으로 밀렸고 Playwright auto-scroll+right-click 중 SVAR virtual row 교체로 contextmenu가 유실됐다. 제품 mutation/canonical 상태 실패가 아니며 기대값이나 Context Menu 보호를 완화하지 않는다.
+- taskId 기반 E2E helper는 행을 먼저 가시화·안정화한 뒤 실제 우클릭하고 기존 메뉴 가시성 단언을 유지한다. 새 exact-head 전체 PR CI를 다시 시작한다.
