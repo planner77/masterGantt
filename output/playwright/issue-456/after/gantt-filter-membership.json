@@ -1,0 +1,23 @@
+{
+  "before": {
+    "api": "svar-api-1",
+    "instance": "project-gantt-7av1aao1ias",
+    "public": {
+      "left": 120,
+      "top": 0
+    },
+    "domLeft": 120
+  },
+  "after": {
+    "api": "svar-api-1",
+    "instance": "project-gantt-7av1aao1ias",
+    "public": {
+      "left": 0,
+      "top": 0
+    },
+    "domLeft": 0
+  },
+  "query": "긴 작업명",
+  "visibleRows": 0,
+  "patchCount": 1
+}
