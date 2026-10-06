@@ -1489,6 +1489,29 @@ Focus 여백 수정 뒤 actual SQLite geometry fixture 1/1 PASS(33.0s)로 다섯
 
 REWORK 최종 관련 브라우저 결과: semantic/검색/readonly/pending/Logistics의 4개 PASS를 유지하고, 모든 표 버튼의 td-contained bounds·control 비중첩을 추가한 실제 SQLite fixture는 1/1 PASS(29.8s)다. 다섯 폭 모두 명령 열 control을 포함한 bounds 검사를 통과했으며 `geometry.json`에 각 control/td의 원시 경계를 남긴다. `picker-geometry.json`에는 긴 후보의 실제 input/option/scroll owner 경계를 분리하여 남긴다. 전체 Unit/브라우저 suite 및 원격 gate는 이 REWORK에서 반복하지 않는다.
 
+
+## Issue #462 단계 필터·선택 Grid 열 검증
+
+단계 조회는 full canonical Membership projection을 사용하고 기존 유형/검색/기간/리소스/물류 조건 및 Workspace scope와 AND로 적용한다. `stage-grid-model.test.ts`는 직접/상속/override/미지정, scope 밖 ancestor 계산과 표시 분리, 조건부 빈 Summary context, Milestone-only 설정 context 제외, actual match와 고유 일반 Task 건수 분리, stable 후보 정렬을 검증한다. `relation-editor-model.test.ts`는 신규 same-type 후보와 legacy mixed 조회/완료 Milestone 양 endpoint 잠금의 차이를 검증한다. `task-url-snapshot.test.ts`는 canonical URL 변경·삭제, frame 격리·오래된 cleanup과 안전한 URL/입력 제외 계약을 검증한다.
+
+실제 SQLite Chromium fixture `milestone-stage-grid.spec.ts`는 단계 UUID trim/casefold 검색·유형 독립 상태·scope별 Map 보존·Project GET/mutation 0회·Gantt identity, 같은 #461 Editor 기본 PATCH의 revision+1·소속 Grid/filter 동기화와 Milestone 소속 탭 진입을 검증한다. 같은 fixture는 390/768/1024/1440/1920×844에서 toolbar control containment/비중첩, Grid header/body 정렬과 모든 row/header button·role-button·input의 셀 경계, 작업명 최소 180px·단계 180px, document overflow·owned scroll, popup viewport 경계·긴 후보 active option/list owner·입력 focus·Escape trigger focus 외곽선을 측정한다.
+
+Mock `milestone-stage-grid-mock.spec.ts`는 readonly 조회·keyboard 메뉴 진입 API 0회, 실제 Core port click→click 신규 mixed Link 거부, legacy 조회와 외부 완료 canonical 상태의 삭제 잠금, collapsed Summary·Grid scroll·scale·instance 보존, URL 변경/삭제와 noopener/noreferrer 열기를 검증한다. 실제 native grip으로 조절한 작업명 폭은 단계 열 표시/숨김 뒤에도 유지되어야 하며 pending 중 단계 셀/메뉴 Editor 진입은 비활성이다. 기존 URL quick-edit와 fullscreen 상태 검증은 해당 시나리오만 좁게 실행한다.
+
+2026-10-06 Local Fast Feedback: `npx vitest run --config tests/config/vitest.config.ts tests/features/projects/stage-grid-model.test.ts tests/features/projects/project-search-filter.test.ts tests/features/gantt/relation-editor-model.test.ts tests/features/gantt/task-url-snapshot.test.ts`는 4 files/35 tests PASS(195ms)다. repository Playwright config의 신규 실제/Mock 두 spec은 57795에서 4/4 PASS(27.9s), 추가 resized-name/pending 시나리오는 84073에서 1/1 PASS(4.8s)다. 전체 suite와 원격 quality/e2e/docker, 독립 최종 QA는 NOT TESTED다.
+
+최초 실패는 보존한다. Typecheck의 notification 함수/인수 오류와 Unit의 alias runtime·기존 mixed 후보 기대는 수정했다. 실제 UI에서 추가 Project GET을 관측했으며 초기 effect 재연결이라는 추정은 상세 stack 근거로 정정했다. 기존 document MutationObserver의 URL decorator가 매 DOM 변경마다 GET을 발생시키는 것이 원인이었다. frame별 canonical URL 공급으로 교체했고 이번에 추가했던 초기 조회 완료 marker는 제거하여 원래 초기 조회/retry/cross-tab 계약을 유지했다. Warmup은 검증용 lazy compilation만 준비하며 제품 GET을 숨기지 않는다. 최초 native Link 테스트의 drag 입력은 설치 Core의 port click→click과 달라 수정했다. Editor tab/닫기와 header 속성 locator 오류도 수정했다.
+
+50031의 실제 fixture PASS 뒤 캡처/원시 측정에서 작업명 열 47px 축소를 발견했다. 이전 assertion 범위의 PASS를 전체 geometry PASS로 확대하지 않는다. 공개 set-columns의 사용자 width/flexgrow를 보존하고 resize-grid로 optional 열 폭의 증감만 반영하여 해결했다. 57795 최종 측정의 작업명은 다섯 폭 모두 227px, 단계는 180px이다. documentWidth는 각 viewport와 같고 owned scroll/client 폭은 720/364, 720/718, 974/974, 1390/1390, 1870/1870px이다. 후보 popup bottom은 842/843/793/701/701px로 844px viewport 안이며 active option/input/focus와 header/body·모든 control containment가 true다.
+
+After 화면은 `output/playwright/issue-462/stage-grid-{390,768,1024,1440,1920}.png`, 원시 측정은 `geometry.json`이다. Before actual screenshot은 NOT TESTED이며 baseline `055f3fb23f94d6d42261927de8e452e237641529` source/재현 근거를 사용한다. 같은 프로젝트에서 baseline은 단계 필터·선택 완료 단계 열·직접 소속 메뉴 진입이 없고 기존 일반 작업 정보 진입만 제공한다. 현재 재현은 실제 Project→Milestone 두 개/동명이인·긴 후보 18개·Summary/child/override/빈 Summary→단계 열 표시→필터/scope 전환→기본 picker 저장→각 폭의 keyboard 및 Grid 측정 순서다. 실제 수동 스크린리더/실기기 검증은 NOT TESTED다.
+
+DOCUMENTATION_SYNC는 PROJECT_UX/TASK_EDITOR/TASK_RELATIONS/REQUIREMENTS/TEST_PLAN/MILESTONE_STAGE_GATES/UI_UX_GUIDELINES 갱신이다. DESIGN은 기존 blue Light/system font/semantic token을 재사용하여 N/A다. API는 기존 #460 mutation/GET payload를 그대로 사용하여 N/A, DB_SCHEMA는 schema/migration 변경 없음, ARCHITECTURE는 기존 full canonical/UI 경계 유지, SCHEDULING_ENGINE은 일정/Ready/상속 domain 변경 없음, SECURITY는 서버 session/Origin/revision 및 안전한 URL 계약 유지로 각각 N/A다. IMPORT_SCHEMA/VBA_EXPORT는 Import/VBA 변경 없음, CI_CD/REMOTE_VALIDATION/DEPLOYMENT는 workflow/배포 변경 없음으로 각각 N/A다. CHANGELOG/활성 PLAN은 Manager 소유로 handoff한다.
+
+추가 기존 관련 회귀: `project-gantt-inline-start-date.spec.ts project-gantt-fullscreen.spec.ts --grep '저장된 Task URL|split/열/주 단위'`는 83780에서 2/2 PASS(7.2s)다. 이 실행은 전체 fullscreen suite나 전체 회귀 PASS를 뜻하지 않는다.
+
+최종 source typecheck와 변경 파일 ESLint는 PASS(0 errors, 기존 project-gantt hook warnings 4개 유지)이며 isolated Next가 만든 next-env/tsconfig 경로는 실행 종료 뒤 baseline으로 복구했다. 로컬 Markdown 링크 검사와 diff whitespace 검사도 수행한다. 원시 geometry 5개 폭에 대해 작업명≥180px/단계=180px 및 popup 0..844px 경계를 추가 확인했다.
+
 ### Issue #461 PR #470 review 보완
 
 PR #470의 P2 review 3건은 기존 저장·권한·domain 계약을 확대하지 않는 회귀 수정으로 처리한다. Resource 신규 선택→역할/투입 입력→선택 해제 후에는 선택 대상 기준 canonical draft가 원래 상태와 같아 dirty가 해제되어야 한다. Milestone의 소속 작업 탭에서 외부 type 변경을 감지해 명시 reload했을 때 새 type이 제공하지 않는 active tab은 작업 정보로 정규화한다. Membership 보유 Project의 Excel 409 응답은 `MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE`과 함께 explicit source/target public Task ID를 `details`에 포함한다.

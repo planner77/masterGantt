@@ -267,8 +267,14 @@ test("Issue #116 task submenus stay operable at viewport corners and in short vi
   await page.keyboard.press("Home");
   const add = rootMenu.getByRole("menuitem", { name: "Add", exact: true });
   await expect(add).toBeFocused();
-  // Paste is disabled before a Task is copied. Copy ID adds one enabled root action before the clipboard group.
-  for (let index = 0; index < 6; index += 1) await page.keyboard.press("ArrowDown");
+  // Root commands can grow as product features are added. Navigate by the current enabled menu order
+  // instead of pinning this viewport regression to a fixed command index.
+  const enabledRootItems = rootMenu.locator('button[role="menuitem"]:not(:disabled)');
+  const moveIndex = await enabledRootItems.evaluateAll((items) =>
+    items.findIndex((item) => item.getAttribute("aria-label") === "Move"),
+  );
+  expect(moveIndex).toBeGreaterThanOrEqual(0);
+  for (let index = 0; index < moveIndex; index += 1) await page.keyboard.press("ArrowDown");
   const move = rootMenu.getByRole("menuitem", { name: "Move", exact: true });
   await expect(move).toBeFocused();
   const moveVisible = await move.evaluate((element) => {

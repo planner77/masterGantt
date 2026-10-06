@@ -278,3 +278,9 @@ SVAR 공식 Editor guide/sample 확인일은 2026-10-05이며 설치 React Gantt
 Readonly/완료 잠금에서도 후보 검색·metadata 조회는 가능하고 지정/해제만 막는다. Pending에는 검색 입력과 선택을 함께 잠근다. 소속 탭 footer는 `소속 변경 적용`으로 현재 저장 단위를 명시하며 긴 표 아래까지 이동해야만 적용할 수 있는 구조를 피한다. 별도 Resource/Logistics 초안이 dirty인 동안 Baseline 입력과 현재 일정 복사/삭제도 기본 mutation으로 잠근다.
 
 검색 combobox의 accessible value는 사용자가 입력하는 query이므로 조회 가능한 입력에 `aria-readonly`를 붙이지 않는다. 소속 지정/해제 잠금은 `aria-describedby`로 연결한 안내와 option/action guard로 표현한다([WAI-ARIA combobox](https://www.w3.org/TR/wai-aria-1.2/#combobox), [aria-readonly](https://www.w3.org/TR/wai-aria-1.2/#aria-readonly), 확인 2026-10-06). 소속 패널 검색 Enter는 부모의 기본 저장·닫기로 전파하지 않으며 pending에는 검색·유형·소속 상태 필터를 함께 잠근다.
+
+## Issue #462 Grid·메뉴의 공통 Editor 진입
+
+Task/Summary의 완료 단계 셀/완료 단계 연결…은 기존 작업 탭 Membership picker를 연다. Milestone 소속 작업 관리…은 initialTab=memberships로 같은 #461 Editor를 연다. 별도 편집기나 API를 만들지 않으며 readonly/완료는 검색·상세 조회를 유지하고 기존 mutation 잠금을 따른다. pending Grid 셀과 메뉴는 disabled이며 실제 진입 handler도 차단한다. 진입 자체의 mutation은 0회다. 저장 성공은 full canonical snapshot의 동일 revision을 적용하므로 scope별 단계 필터와 선택 열에도 같은 소속 결과가 나타난다.
+
+관계 삭제는 기준 작업뿐 아니라 full canonical Link 양 endpoint의 완료 Milestone 여부를 확인한다. 상대 완료 Milestone에 연결된 legacy 관계도 삭제할 수 없고 명시 reopen 후 활성화한다. 일반 Task의 completed 상태나 완료 단계 소속만으로 Task→Task 관계를 막지 않는다. 기존 mixed 관계의 조회는 유지한다.
