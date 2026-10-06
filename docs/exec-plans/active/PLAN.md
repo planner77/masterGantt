@@ -1,5 +1,11 @@
 # Active execution plan
 
+## Issue #453 리소스 관리 독립 탭 — PR #477 최신 main 재정렬 / 새 PR CI
+
+PR #477의 기존 head `c411634f75b7a69131a095e9cb6b7416060b827e`는 PR CI Run `37406441919` / Run #1898.1 SUCCESS였으나, 이후 main이 `d7316880732ecde5a8193764ac3b0cfca2ae455f` / application `0.87.1`까지 39 commits 전진해 GitHub `mergeable_state=dirty`가 되었다. Resource TSX/CSS 및 #453 관련 E2E/fixture는 main 이동에서 변경되지 않았고 충돌은 문서5파일과 package/lock 2파일에 한정된다. 최신 main의 #461/#462 및 Release corrective 변경과 source-map-js 1.2.2를 보존하면서 #453 문서와 candidate version `0.90.0`을 병합한다.
+
+published PR history는 force-push하지 않고 기존 feature head와 최신 main을 부모로 하는 conflict-resolution merge commit으로 정렬한다. 새 exact head PR CI의 quality/e2e/docker가 공식 재검증 기준이며 시작 전/진행 중에는 `NOT TESTED`다. `release_required=true`, `release_authorized=false`; 병합·main CI·GHCR·tag/release·branch cleanup·Issue 종료는 이번 요청 범위 밖이다.
+
 ## Issue #460~#464 완료 단계 관리 — 순차 구현·문서 동기화·push·PR CI 시작
 
 #460 [PR #468](https://github.com/planner77/masterGantt/pull/468)과 #461 [PR #470](https://github.com/planner77/masterGantt/pull/470)의 구현·문서 동기화·독립 사전 QA·원격 게시·CI 등록을 마쳤다. #461의 head는 `055f3fb23f94d6d42261927de8e452e237641529`, [등록 CI run은 37367438813](https://github.com/planner77/masterGantt/actions/runs/37367438813)이다. 결과는 모니터링하지 않는다. 현재 #462 Gantt/Grid를 `feat/issue-462-stage-grid` / `0.87.0`에서 구현하며 [Issue #462 실행 계획](ISSUE_462.md)이 현재 Work Packet이다. 최신 main `e812e56f45fc9d641ffcd80e49fb0deaf115b704`는 선행 head에 포함된다. #463~#464 구현과 원격 CI 완료·최종 QA는 NOT TESTED다.
