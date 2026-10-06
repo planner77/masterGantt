@@ -170,11 +170,12 @@ test("Summary Description and URL persist while derived schedule stays readonly"
     progress: derivedBefore.progress,
   });
 
-  const deleteResponse = await page.request.delete(api + "/tasks/" + child.taskId, {
-    headers: { Origin: origin, "If-Match": "\"" + stored.data.project.revision + "\"" },
-  });
-  expect(deleteResponse.status()).toBe(200);
-  const emptied = await deleteResponse.json() as TaskMutationResponse;
+  const childRow = page.locator('.project-gantt-widget .wx-row[data-id=":' + child.taskId + '"]').first();
+  await expect(childRow).toBeVisible();
+  await childRow.getByText("Summary child", { exact: true }).click({ button: "right" });
+  await page.getByRole("menu", { name: "작업 메뉴", exact: true }).getByRole("menuitem", { name: "Delete", exact: true }).click();
+  await expect(childRow).toHaveCount(0);
+  const emptied = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
   expect(emptied.data.tasks.find((entry) => entry.taskId === summary.taskId)).toMatchObject({
     description: "요약 설명\n상세",
     url: summaryUrl,
