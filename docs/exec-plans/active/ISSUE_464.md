@@ -138,3 +138,10 @@ Copy 안내 보존 후 관련4개 브라우저는 PASS(session91415/ch127f06,40.
 feedback 변경의 독립 source·회귀·문서·4/4 실행 비교는 PASS/blocker0이며 context 보고서 SHA는d75842cc025fc469357f254b116fba9c988e8af664c9759824a4f44cffc1dec9다. 기존 layout40·PNG12 직접 비교 근거는 변경 없는 범위에서 재사용했다. 실제2개는 구현자 LFF이며 독립 전체 preQA는 기존 Stage Gate1개 및 최종 DOCUMENTATION_SYNC/게시 manifest 확정 뒤 판단한다. 공식 quality/e2e/docker·최종 원격 QA와 main/GHCR는 NOT TESTED다.
 
 기존 Stage Gate 실제1개도 PASS(session91128/chf683c1,12.8초/전체23.6초,exit0)다. 실행한 Next/Playwright PID 종료(ch3c8b42), generated2 원본 복원/327 drift0/해당 spec 불변(ch8d0645)을 확인했다. 프로세스 초기 광역 조회에 포함된 다른 사용자 컨테이너 서비스는 종료하지 않고 이번 실행 PID로만 정리 여부를 확인했다. 최종 TEST_PLAN/DOCUMENTATION_SYNC·게시138파일 manifest와 독립 preQA를 확정한다.
+
+## 2026-10-06 latest main/#463 재정렬 및 corrective
+
+- 기존 PR head: `c5a7bc9e8462128b5f977918b719d38d4d7a89be`; 정렬 기준: main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` + #463 head `703807d600c1499092b0144732669fbe54465ca6`.
+- 최신 workflow/lifecycle, #454 물류 유형 변경, #463 production CSS·Summary/Relation Editor·Context Menu opening-scroll 보완을 우선 보존하고 #464 고유 JSON/Excel/Copy/Template 변경만 재적용한다.
+- Codex P2는 advisory source calendar/dependency로 source effective schedule을 재구성해 동일 Export 재가져오기의 false `changedTasks`를 제거한다.
+- 후보 application version은 `0.92.0`; 새 exact-head PR CI가 공식 원격 재검증 기준이다.

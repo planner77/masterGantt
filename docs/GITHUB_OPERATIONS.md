@@ -221,8 +221,11 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 - Main CI Finalizer가 release를 시작한 뒤에는 Actions UI에서 Finalizer가 먼저 종료되는 것이 정상이다.
 - 정식 release publish 성공 후에는 release workflow가 `release-finalizer-resume.yml`을 exact `target_sha`와 source `release_run_id`와 함께 `workflow_dispatch`한다. `Publish release image workflow_run.completed` 구독은 fallback으로 유지한다. Explicit Resume은 source run이 실제 `completed/success`로 전환되고 동일 target SHA를 가리키는지 확인한 뒤 lifecycle을 재개한다.
 - Resume workflow는 write 권한 경계이므로 tag/manual ref를 checkout하지 않고 trusted `main`에서 Generic resolver를 실행한다.
+- Resume/Generic Finalizer의 checkout은 `persist-credentials:false`를 유지한다. 후속 SemVer tag 생성이 필요한 경우 `issue_lifecycle.py`가 job-scoped `GITHUB_TOKEN`을 해당 `git push` 프로세스의 환경 기반 Git config에만 주입한다. Token을 remote URL, repository/global git config, 명령 인자, 로그에 영속화하지 않는다.
+- `http.extraHeader`는 multi-valued이므로 release tag의 `ls-remote`·`fetch`·`push`는 모두 공통 process-scoped Git auth helper를 사용한다. helper는 상위 checkout/local config에서 상속된 header를 빈 값으로 먼저 reset한 뒤 job-scoped Authorization header 하나만 주입한다. Generic Finalizer와 수동 release/finalize mutation checkout도 모두 `persist-credentials:false`로 고정하여 duplicate Authorization header와 private-repo unauthenticated read를 동시에 방지한다.
 - Release 실패 시 Issue/branch를 닫거나 지우지 않는다. 기존 immutable run의 성공 재실행 또는 same-Issue corrective release 뒤 lifecycle을 재평가한다.
 - explicit handoff 실패는 이미 성공한 publication을 실패로 바꾸지 않는다. 이후 completion fallback 또는 다음 Main CI가 backlog를 다시 계산할 수 있다.
+- Generic Finalizer backlog에서 `closed` 자체는 완료 boundary가 아니다. exact target SHA FINAL marker가 boundary authority이며, marker 없는 closed Issue merge는 mutation하지 않는 **ordering barrier**로 유지한다. adjacent same-Issue coalesce가 이 barrier를 넘지 못하게 한 뒤 lifecycle 실행 대상에서만 제거하고, 더 오래된 first-parent pending target 탐색은 계속한다.
 
 ## Issue #437 E2E 샤드 최적화 운영
 
@@ -244,3 +247,15 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 - 새로운 cache를 도입할 때는 cache key 입력, invalidation, miss fallback, write 권한, secret 포함 여부를 함께 검토한다. cache hit 자체를 PASS 근거로 사용하지 않는다.
 - `node_modules` cache는 금지한다. Playwright browser cache는 Phase 1 baseline에서 download/install 비용이 유의미한 것으로 확인된 뒤 별도 PR로만 활성화한다.
 - setup 비용 최적화 PR은 기존 required checks, test 개수, audit, Docker/runtime smoke를 줄이는 방법으로 성능을 만들지 않는다.
+
+
+## Issue #483 — Release Resume에서 다음 Release dispatch
+
+Release 성공 후 `release-finalizer-resume.yml`은 exact source run을 확인하고 Generic Finalizer를 재개한다. 이 재개 과정에서 다음 first-parent target이 release-required이면 같은 resolver가 다음 `release-image.yml` run을 dispatch할 수 있다.
+
+운영 계약:
+- Resume workflow permission은 `actions: write`여야 한다.
+- source Release run ID, workflow path, head SHA, success conclusion 검증은 생략하지 않는다.
+- 이미 생성된 annotated SemVer tag가 있으면 그 tag를 그대로 사용하며 이동/덮어쓰기하지 않는다.
+- dispatch 403은 새 tag/version 생성으로 우회하지 않고 Resume permission을 수정한 뒤 동일 lifecycle을 재개한다.
+- Issue별 one-shot release helper workflow는 만들지 않는다.

@@ -1,0 +1,65 @@
+{
+  "viewport": 1920,
+  "documentWidth": 1920,
+  "available": {
+    "left": 160,
+    "right": 1760,
+    "top": 77,
+    "bottom": 1051.390625,
+    "width": 1600,
+    "height": 974.390625
+  },
+  "panel": {
+    "left": 160,
+    "right": 1760,
+    "top": 347,
+    "bottom": 1051.390625,
+    "width": 1600,
+    "height": 704.390625
+  },
+  "table": {
+    "left": 186,
+    "right": 1734,
+    "top": 467.390625,
+    "bottom": 1668.140625,
+    "width": 1548,
+    "height": 1200.75
+  },
+  "scrollOwner": {
+    "left": 177,
+    "right": 1743,
+    "top": 458.390625,
+    "bottom": 1034.390625,
+    "width": 1566,
+    "height": 576,
+    "clientWidth": 1564,
+    "scrollWidth": 1564,
+    "clientHeight": 574,
+    "scrollHeight": 1217,
+    "overflowX": "auto"
+  },
+  "headerBodyAligned": true,
+  "identityWidth": 812,
+  "roleBadgeCount": 20,
+  "roleBadgesContained": true,
+  "roleBadgesNonOverlap": true,
+  "cellControlCount": 36,
+  "allControlsContained": true,
+  "allOtherControlsContained": true,
+  "siblingNonOverlap": true,
+  "focus": {
+    "label": "리소스 검색",
+    "bounds": {
+      "left": 177,
+      "right": 1400.328125,
+      "top": 407,
+      "bottom": 445.78125,
+      "width": 1223.328125,
+      "height": 38.78125
+    },
+    "outline": "3px",
+    "fullyVisible": true
+  },
+  "footer": [],
+  "inactiveFocusables": 0
+}

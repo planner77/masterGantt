@@ -33,6 +33,7 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: 정확한 merge lifecycle 해석 및 실행
         env:

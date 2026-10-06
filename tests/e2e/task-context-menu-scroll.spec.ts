@@ -152,7 +152,9 @@ test("화면 밖 막대를 우클릭한 뒤 지연된 스크롤 알림은 무시
   await chart.dispatchEvent("scroll");
   await expect(taskContextMenu(page)).toBeVisible();
   expect(await chart.evaluate((element) => element.scrollLeft)).toBe(before);
-  // 실제 이후 스크롤은 여전히 메뉴를 닫아야 한다. 타이머나 이벤트 차단은 사용하지 않는다.
+  // Context Menu open 직후의 bounded two-frame selection/layout settle이 끝난
+  // 이후에는 실제 사용자 scroll을 즉시 닫힘 신호로 처리해야 한다.
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   await chart.evaluate((element) => { element.scrollLeft -= 40; });
   await expect(taskContextMenu(page)).toHaveCount(0);
   await expect(taskInformationDialog(page)).toHaveCount(0);

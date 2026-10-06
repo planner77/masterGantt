@@ -52,7 +52,8 @@ describe("project import HTTP and SQLite atomic contract", () => {
     const a = await fixture(); a.commit(bytes([leaf("T1", { progress: 100, status: "completed", baseline: { start: "2026-10-08", duration: 2 } }), leaf("T2", { status: "in_progress", predecessors: [{ externalId: "T1", type: "SS", lag: 1 }] }), leaf("M", { type: "milestone", duration: 0 })], { memberships: [{ taskExternalId: "T2", milestoneExternalId: "M" }] }));
     const file = new ProjectJsonExportService(a.db, { clock }).get(a.publicId, 2)!;
     const exported = JSON.parse(new TextDecoder().decode(file)) as ImportPayload11; expect(exported.source).toMatchObject({ projectPublicId: a.publicId, projectRevision: 2, contentScope: "schedule-stage" }); expect(exported.tasks.find(t => t.externalId === "T2")).toMatchObject({ requestedStart: "2026-10-05", status: "in_progress" });
-    const b = await fixture(); const imported = b.commit(file); const from = a.snapshot();
+    const b = await fixture(); const preview = b.preview(file); expect(preview.changedTasks).toEqual([]);
+    const imported = b.commit(file); const from = a.snapshot();
     expect(imported.data.links.map(l => ({ predecessorExternalId: l.predecessorExternalId, successorExternalId: l.successorExternalId, type: l.type, lag: l.lag }))).toEqual(from.data.links.map(l => ({ predecessorExternalId: l.predecessorExternalId, successorExternalId: l.successorExternalId, type: l.type, lag: l.lag })));
     for (const task of imported.data.tasks) { const original = from.data.tasks.find(t => t.externalId === task.externalId)!; expect(task.taskId).not.toBe(original.taskId); expect({ ...task, taskId: null, membership: null, stageGate: null }).toEqual({ ...original, taskId: null, membership: null, stageGate: null }); }
     expect(imported.data.tasks.find(t => t.externalId === "M")?.stageGate).toMatchObject({ ready: false, memberCount: 1 });

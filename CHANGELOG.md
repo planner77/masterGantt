@@ -1,35 +1,68 @@
 # Changelog
 
-## [0.89.0] - 2026-10-06
+## [0.92.0] - 2026-10-06
 
 ### Added
 
-- Issue #464: JSON 1.0 호환을 유지하는 1.1 명시 단계 소속 교환 계약과 보호된 가져오기 미리보기·원자 저장, 전체 일정 JSON 내보내기를 제공한다.
-- Excel에 명시·유효 단계 소속과 상속 출처, 동일 단계 대시보드 계산의 요약·조회 기준을 출력한다.
+- Issue #464: JSON 1.0 호환을 유지하는 JSON 1.1 명시 단계 소속 교환, 보호된 Import preview/원자 commit, 전체 일정 JSON Export와 Excel 단계 보고를 제공한다.
+- 전체 Project Copy·Template과 subtree/multi-root Copy에서 단계 Membership을 새 Task ID로 안전하게 remap하고 외부 소속 제외·상속 변화·완료 단계 경계를 명시적으로 검증한다.
 
 ### Changed
 
-- 전체 Project Copy·Template에서 명시 소속 FK를 새 Task로 매핑하며, 부분 복사는 외부 소속 제외·상속 변화 확인과 완료 단계 경계 잠금을 적용한다.
-- 외부 PR #470의 Editor 유효 탭 정규화·Resource 선택 해제 후 초안 판정과 관련 회귀를 누적 구현에 반영한다.
-- Application version을 `0.88.0`에서 `0.89.0`으로 증가한다. 최신 main의 `0.85.1` 운영 수정과 기록을 함께 보존한다.
+- latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38`과 Issue #463 head `703807d600c1499092b0144732669fbe54465ca6`를 함께 보존해 #464를 재정렬하고 application version을 `0.91.0`에서 `0.92.0`으로 증가한다.
+- JSON 1.1 preview는 advisory source calendar와 dependency로 source effective schedule을 재구성하여 동일 Export 재가져오기를 거짓 일정 변경으로 표시하지 않는다.
 
 ### Fixed
 
-- 전체 Project Copy의 일정 검증에 원본 Dependency를 전달하여 requestedStart와 의존관계로 이동한 유효 일정이 다른 정상 Project도 복사한다. 기존 일정·완료 검증은 유지한다.
-- Template 저장 시 만료·철회 세션과 Project 식별자 결속을 재검증한다.
-- Gantt 하단 행의 우클릭 선택이 자동 스크롤을 일으켜 작업 메뉴가 즉시 닫히던 문제를 수정한다. Copy 안내를 메뉴 선택 중 유지하여 Gantt 높이 변경으로 Paste 메뉴가 닫히는 경로도 방지한다. 일반 선택과 실제 스크롤 동작은 유지한다.
+- Context Menu opening scroll settle 보완을 #463에서 승계하고, #464 키보드 회귀 검증은 실제 enabled root item 순서를 기준으로 수행한다.
 
-## [0.88.0] - 2026-10-06
+
+## [0.91.0] - 2026-10-06
 
 ### Added
 
 - Issue #463: 완료 단계의 전체 소속·선행 상태 기반 Ready/위험 KPI와 조회 범위의 개인 assignment 공수를 구분하는 readonly 대시보드/API 및 관련 물류 단계 정보를 제공한다.
 - 대시보드 원인·소속 상세·리소스 조회를 기존 Editor와 일정에 연결하고, 기준일·revision·조건 변경에 맞춰 갱신한다. 일정과 대시보드 왕복 시 Gantt 인스턴스와 보기 상태를 보존한다.
 
+### Fixed
+
+- PR CI Run #1869에서 발견된 CSS Module의 전역-only selector를 전역 스타일 소유 위치로 이동해 Next.js production build와 Docker build의 동일 연쇄 실패를 제거한다. 최신 main의 #461/#462 회귀 보완은 유지하고 #463 변경만 재적용한다.
+- PR CI Run #1938 trace에서 Core selection mirror 제거 후에도 Context Menu opening selection/virtual-row layout이 내부 Grid scrollTop을 147→124로 보정하는 것을 확인했다. Core mirror를 복원하고, 메뉴 scroll guard가 bounded two animation frames 동안 opening-layout 내부 이동을 새 baseline으로 흡수한 뒤 실제 사용자 scroll을 닫힘 신호로 처리하도록 보완한다.
+
 ### Changed
 
 - Logistics M/M의 무조건 20일 환산을 명시 query·유효 환경 설정·미설정(null) 정책으로 정합화하고 사용 기준·출처를 제공한다. 기존 물류 계획 M/D·진척·대상 ID는 보존한다.
-- Application version을 `0.87.0`에서 `0.88.0`으로 증가한다. 선행 #460~#462를 포함하는 순차 구현 PR이며 정식 릴리스는 게시하지 않는다.
+- Application version을 `0.90.0`에서 `0.91.0`으로 증가한다. latest main의 #453 및 선행 #460~#462를 보존한 재정렬 PR이며 정식 릴리스는 게시하지 않는다.
+
+
+## [0.90.1] - 2026-10-06
+
+### Fixed
+
+- Issue #454: 물류 설비·시스템 유형 목록의 열 너비·행 밀도·사용 건수 정렬과 편집 dialog action 정렬을 정돈한다. 기존 유형 code·usage·필터·권한·revision 계약을 유지한다.
+- 최소824px 표의 이름·코드·상태·사용·작업 열을 명시하고 좁은 화면의 키보드 focus에 필요한 가로 이동을 표 내부에서 처리한다. 짧은 한 줄 fixture는5폭에서47px이며 긴 값은 자연스럽게 줄바꿈한다.
+- 수정·비밀번호 dialog의 pending 조작과 초점을 보호하고, 412 뒤 최신 목록 조회 실패/401 원인을 유지하며 열린 수정 초안의 명시 조회 복구를 제공한다.
+## [0.90.0] - 2026-10-06
+
+### Added
+
+- Issue #453: 리소스와 리소스 그룹을 독립 탭의 전체 폭 목록으로 구성하고 탭별 검색·상태·스크롤 및 구성원 초안을 보존한다. 생성 dialog와 선택한 리소스의 프로필 명시 저장으로 상시 행 편집기의 밀도를 줄인다.
+
+### Changed
+
+- 기존 관리자 권한·카탈로그 revision·역할/등급·usage 및 구성원 저장 계약을 유지한다. Application version은 `0.90.0`이며 이번 작업 범위는 PR CI 시작까지다.
+- 최신 main 0.87.1의 #461/#462 및 Release corrective 변경과 source-map-js 1.2.2 lockfile을 보존하여 후보를 재정렬한다.
+
+## [0.87.1] - 2026-10-06
+
+### Fixed
+
+- Issue #461 corrective: 실패한 v0.86.0 GHCR Release Run #136.1의 static quality에서 발견된 `source-map-js 1.2.1` High 취약 버전을 재사용하지 않는다. 최신 main에 반영된 `source-map-js 1.2.2` 이상을 정적 회귀로 고정한다.
+- Release static quality가 audit 등 선행 gate에서 실패해 production build 시작 step이 실행되지 않은 경우, 빈 `started_ms`로 setup metric recorder가 2차 실패하지 않도록 build 시작 output이 존재할 때만 종료 계측을 수행한다.
+
+### Changed
+
+- Application version을 `0.87.0`에서 `0.87.1`로 증가한다. immutable 실패 tag `v0.86.0`은 이동·덮어쓰기·재사용하지 않고 same-Issue corrective PATCH로 검증한다.
 
 ## [0.87.0] - 2026-10-06
 
@@ -48,9 +81,17 @@
 - Issue #461: Task/Summary 작업 정보에서 완료 단계의 검색·직접 지정·상속 복귀를 편집하고 Milestone 소속 작업 탭에서 명시 소속 초안을 원자 적용한다. Summary 일정은 파생 읽기 전용으로 유지한다.
 - Milestone의 본인 상태와 소속 진척·Ready·선행 차단·수동 이벤트·완료 불일치 진단을 구분하고 명시 완료/재개 및 초안 보호를 적용한다.
 
+### Fixed
+
+- Issue #475 follow-up: Generic Finalizer의 release tag 접근을 단일 process-scoped 인증 계약으로 통일한다. lifecycle mutation checkout은 credential persistence를 끄고 tag `ls-remote`·`fetch`·`push` 및 automatic finalizer의 exact tag evidence 조회가 inherited extraHeader를 reset한 뒤 단일 job-scoped Authorization header를 사용하여 duplicate header와 private-repo unauthenticated read를 함께 방지한다.
+- Issue #475: Generic Release Finalizer가 FINAL marker 없는 closed Issue merge를 historical boundary로 오인해 그 이전 pending lifecycle을 숨기던 문제를 수정한다. closed merge는 mutation 대상에서 제외하되 non-actionable ordering barrier로 보존해 same-Issue retry coalesce가 이를 가로지르지 못하게 하고, exact FINAL marker까지 탐색을 계속한다.
+- PR #470 review: 새 리소스를 선택했다가 해제하면 남은 역할·투입 초안 때문에 false dirty 상태가 유지되던 문제를 선택된 리소스 기준 canonical 비교로 수정한다.
+- PR #470 review: 외부 변경으로 Milestone이 일반 Task로 바뀐 뒤 다시 불러올 때 더 이상 존재하지 않는 `소속 작업` 탭이 활성 상태로 남지 않도록 작업 정보 탭으로 정규화한다.
+- PR #470 review: Membership 보유 Project의 Excel 보존 차단 오류에 명시 source와 target의 public Task ID를 포함하여 API의 구조화된 진단 계약을 지킨다.
+
 ### Changed
 
-- Application version을 `0.85.0`에서 `0.86.0`으로 증가한다. 선행 #460 PR을 포함하는 순차 구현 PR이며 이번 요청에서 정식 릴리스를 게시하지 않는다.
+- Application version을 `0.85.1`에서 `0.86.0`으로 증가한다. 최신 main의 #452 release-candidate lifecycle 보완과 선행 #460 Stage Gate 구현을 함께 보존하며 이번 요청에서 정식 릴리스를 게시하지 않는다.
 
 ## [0.85.1] - 2026-10-06
 

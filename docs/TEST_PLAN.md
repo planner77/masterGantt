@@ -70,18 +70,18 @@ CI #1540.1의 shard 3/4는 #384 기능과 무관한 `project-resource-calendar-e
 
 - Release #91 회귀 보완: initial Project loading 중 storage listener 설치 전에 발생한 revision announcement는 listener 등록 후 durable localStorage revision을 pending revision에 병합하고, authoritative follow-up GET이 전진하지 않는 stale durable target은 폐기한다. `project-revision-sync.test.ts`와 기존 #373 loading/cross-tab E2E가 이 계약을 고정한다.
 - Finalizer recovery: exact main CI가 PASS여도 immutable formal release가 completed non-success로 반복 실패한 target은 later same-Issue corrective merge가 exact main CI PASS이고 validation scope가 동등 이상일 때만 supersede한다. release가 진행 중이거나 corrective release 자체가 실패한 경우에는 supersede하지 않는다. `scripts/verify-issue-lifecycle.py`가 intervening Issue order와 cleanup debt 전이를 검증한다.
-- Chromium `tests/e2e/resource-admin-layout.spec.ts`에서 관리자 로그인 후 390/768/1024/1440px별 신규 리소스 4개 direct control과 신규 리소스 그룹 3개 direct control의 bounding box를 비교해 상호 overlap이 없고 각 form의 수평 bounds 안에 들어오는지 확인한다.
-- 같은 viewport 반복에서 document-level horizontal overflow 부재를 유지하며 390px과 1024px 결과 screenshot을 Playwright output에 남겨 좁은 1열과 desktop 2열 해결 증거로 사용한다.
-- 신규 리소스 폼의 이름 → 코드 → 개발자 등급 → 추가 버튼 native Tab 순서를 확인한다. 개발자 등급 값 생성/편집과 API payload는 기존 `resource-developer-grade.spec.ts`를 함께 회귀 실행한다.
+- Chromium `tests/e2e/resource-admin-layout.spec.ts`에서 관리자 로그인 후 390/768/1024/1440px별 각 추가 버튼으로 연 생성 dialog의 form/body와 control bounding box를 비교해 상호 overlap이 없고 각 form의 수평 bounds 안에 들어오는지 확인한다.
+- 같은 viewport 반복에서 document-level horizontal overflow 부재를 유지하며 390px과 1024px 결과 screenshot을 Playwright output에 남겨 모달 생성 입력의 containment 증거로 사용한다.
+- 신규 리소스 폼의 이름 → 코드 → 개발자 등급 → 전역 역할 native Tab 순서 (#453)를 확인한다. 개발자 등급 값 생성/편집과 API payload는 기존 `resource-developer-grade.spec.ts`를 함께 회귀 실행한다.
 - Grid DnD 직후 inline rename의 첫 클릭이 유실되지 않도록 DOM editability와 SVAR event guard ref가 같은 commit의 layout phase에서 동기화되어야 하며, 현재 main의 강화된 `project-grid-reorder-persistence.spec.ts` helper/시나리오를 그대로 보존한다.
 - Resource Catalog API/auth/session/revision/`If-Match` 계약은 변경하지 않으며 관련 기존 E2E/서버 테스트와 PR exact head의 GitHub Actions `quality/e2e/docker` 결과를 공식 판정 근거로 사용한다.
 
 ## Issue #366 Resource 추가 코드·개발자 등급 overlap 직접 회귀
 
-- #366의 현상은 #331에서 이미 수정된 동일 Resource Catalog 생성 폼 overlap 문제와 범위가 중복된다. 현재 main의 runtime CSS(`resourceCreateForm`/shrink 가능한 track/control containment)를 다시 변경하지 않고, #366 인수 기준을 기존 Chromium 회귀에 직접 연결한다.
+- #366의 현상은 #331에서 이미 수정된 동일 Resource Catalog 생성 폼 overlap 문제와 범위가 중복된다. #453부터 생성 입력은 compact dialog로 이동하며 #366 코드/등급 containment 인수 기준은 같은 Chromium 회귀에 유지한다.
 - `tests/e2e/resource-admin-layout.spec.ts`에서 코드 입력에 허용 최대 길이인 64자를 채우고 개발자 등급을 선택한 상태로 390/768/1024/1440px을 순회한다.
 - 각 viewport에서 기존 direct child overlap/form bounds/document overflow 검사에 더해 실제 `코드 input`과 `개발자 등급 select`의 bounding box가 서로 겹치지 않고 resource form의 수평 bounds 안에 있는지 직접 확인한다.
-- 390px과 1024px에서는 `issue-366-resource-code-grade-layout-*.png` screenshot evidence를 남긴다. 기존 이름 → 코드 → 개발자 등급 → 추가 버튼 Tab 순서와 developer grade option/API 회귀는 그대로 유지한다.
+- 390px과 1024px에서는 `issue-366-resource-code-grade-layout-*.png` screenshot evidence를 남긴다. 이름 → 코드 → 개발자 등급 → 역할 Tab 순서와 developer grade option/API 회귀는 그대로 유지한다.
 - Resource Catalog API/DB/auth/session/revision/If-Match, Scheduling, SVAR 계약은 변경하지 않는다. 사용자 승인에 따라 이 회귀 고정을 0.70.1 PATCH release로 게시하며, 공식 회귀 판정은 동일 PR head의 GitHub Actions `quality/e2e/docker` 결과를 사용한다.
 
 ## Issue #416 Gantt Week Header 근무 가능 일수 상시 표시
@@ -1224,10 +1224,10 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 ## Issue #426 — Resource/Admin Management Geometry Regression
 
 - Chromium fixture는 긴 한국어 Resource name/code, `EXPERT` grade, role 0/1/3개, active/inactive, delete 가능/불가 상태와 Resource Group을 함께 포함한다.
-- 390/768/1024/1440/1600px에서 Resource pane과 Group pane bounding box가 겹치지 않고, wide desktop에서는 Resource pane이 Group보다 넓으며 좁은 폭에서는 vertical stack이 되는지 확인한다.
-- Resource row의 identity와 profile/action 영역이 서로 침범하지 않고 identity가 최소 가독 폭 이하로 collapse하지 않는지 실제 bounding box로 검증한다.
-- Resource search toolbar → create form → list의 순서와 경계를 측정하고 각 영역이 겹치지 않는지 확인한다.
-- #288의 `개발자 등급: 미지정/초급/중급/고급/특급` 읽기 표시와 편집 select, #412의 Global role 요약·checkbox accessible name, keyboard focus/Space, role PATCH 412 이후 draft 보존을 함께 유지한다.
+- #426 당시 두 pane의 wide 비율/vertical stack은 역사적 검증 기록이다. #453부터 390/768/1024/1440/1920px 활성 tabpanel 전체 가용 폭과 inactive hidden 제외, 976/800px native table 소유 scroll로 대체한다.
+- #453 표의 identity 최소 240px·역할 0/1/3 badge·모든 row action control이 셀 안에 들어오고 header/body 열 경계와 sibling 비중첩을 실제 bounding box로 검증한다.
+- 현재 search/status/count/add toolbar → 표시 table의 경계와 별도 create/profile dialog input/control 경계를 검증한다. 이전 inline create form은 #453에서 dialog로 대체했다.
+- #288 grade 값/표시/select 및 #412 역할 badge·checkbox accessible name·keyboard Space·412 초안 보존은 profile dialog 명시 grade+roles PATCH로 이관한다. 기본 목록은 표시 중심이며 저장 전 PATCH0을 검사한다.
 - Group member editor를 연 상태에서 `닫기`는 좌측, `구성원 저장`은 우측이며 같은 행에서는 center/baseline이 정렬되는지 확인한다.
 - 모든 viewport에서 `document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1`을 확인하고 의도된 component-owned overflow와 구분한다.
 - 기본 100% zoom은 필수이며 환경이 허용하면 125% zoom smoke를 추가한다. screenshot은 보조 증거이며 geometry assertion을 우선한다.
@@ -1450,7 +1450,6 @@ Issue #452 소비자 전수 및 실제 실행/미실행 구분은 [검증 증거
 - Generic Finalizer/Resume과 수동 finalize mutation job은 candidate cleanup에 필요한 `packages: write`를 가지되 PR/일반 CI 권한은 확대하지 않는다. formal build/promotion은 계속 `release-image.yml`만 수행한다.
 - failed immutable `v0.83.4`와 미게시 작업 후보 `0.83.5`는 재사용하지 않는다. 최신 main 0.85.0 기준 corrective package version은 `0.85.1`이며 PR CI → Main CI → Finalizer → Release에서 새 exact SHA/digest로 검증한다.
 
-
 ## Issue #461 완료 단계 Editor 검증
 
 범위는 Task/Summary 기본 Membership picker, Milestone 소속 batch 탭, 기존 Resource/Logistics 초안 보호와 같은 canonical revision 적용이다. 서버/DB/Domain algorithm/API authorization은 #460을 재사용한다. 신규 pure UI 모델 검증은 `tests/domain/milestone-editor-model.test.ts`, 실제 SQLite UI는 `tests/e2e/milestone-stage-editor.spec.ts`, mock UI 상태는 `project-task-editor.spec.ts`의 #461 시나리오다.
@@ -1572,6 +1571,198 @@ PR #468의 새 main `a9107ab2776829cbb0467a762ab8bf9ce1ce82c4`를 feature #463�
 
 Local Fast Feedback는 관련 테스트 실행 결과이며 PR quality/e2e/docker 공식 회귀 PASS를 대체하지 않는다. 원격 실행 전/진행 중은 NOT TESTED다. 실제 운영 HTTP/TLS reverse proxy/Windows Excel/VBA/DRM은 별도 환경이며 #463에서 검증했다고 주장하지 않는다.
 
+### Issue #461 PR #470 review 보완
+
+PR #470의 P2 review 3건은 기존 저장·권한·domain 계약을 확대하지 않는 회귀 수정으로 처리한다. Resource 신규 선택→역할/투입 입력→선택 해제 후에는 선택 대상 기준 canonical draft가 원래 상태와 같아 dirty가 해제되어야 한다. Milestone의 소속 작업 탭에서 외부 type 변경을 감지해 명시 reload했을 때 새 type이 제공하지 않는 active tab은 작업 정보로 정규화한다. Membership 보유 Project의 Excel 409 응답은 `MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE`과 함께 explicit source/target public Task ID를 `details`에 포함한다.
+
+회귀 근거는 `project-task-editor.spec.ts`의 Resource 선택 해제/타입 변경 reload 시나리오와 `milestone-stage-gates.spec.ts`의 실제 HTTP Excel error details 검증으로 보강한다. 최신 main 정렬 뒤 동일 PR head에서 새 Full PR CI의 quality/e2e/docker 결과를 공식 판정 근거로 사용하며, 새 원격 PASS 전에는 기존 로컬·사전 QA 결과를 최종 ACCEPT로 승격하지 않는다.
+
+### Issue #461 PR CI #1870 E2E corrective
+
+PR CI Run #1870.1의 Chromium shard 4/6은 `project-task-editor.spec.ts`의 기존 회귀가 Summary Editor에 저장 버튼이 없어야 한다고 기대하여 1건 실패했다. #461 계약은 Summary 일정·진척은 readonly로 유지하되 이름과 Membership은 편집 가능하므로 저장 버튼 자체는 존재해야 한다. 제품 동작을 되돌리지 않고 해당 회귀를 저장 버튼 존재 + 작업명 editable + 요청 시작일 readonly 검증으로 갱신한다. 같은 run에서 quality/build/unit/docker와 나머지 E2E 5개 shard는 PASS였으며, 새 head의 전체 PR CI 결과를 공식 증거로 다시 사용한다.
+
+### Issue #461 PR CI #1873 E2E corrective
+
+PR CI Run #1873.1도 Chromium shard 4/6의 같은 기존 Summary 회귀 1건만 실패했다. #1870에서 저장 버튼 계약은 정정했지만 이어지는 문자열 assertion이 과거 문구 `하위 작업으로 계산`을 계속 요구했다. 현재 #461 UI는 Summary의 새 Membership 의미를 `하위 작업 기본 완료 단계`로 표시하고 요청 일정은 readonly로 유지하므로, 문자열 회귀를 현재 계약의 실제 label로 교체한다. 같은 run의 quality/build/unit/docker와 E2E 1/2/3/5/6 shard는 모두 PASS였다. 새 head 전체 PR CI 결과를 다시 공식 판정 근거로 사용한다.
+
+
+## Issue #453 리소스 관리자 독립 탭 LFF와 화면 근거
+
+구현자 로컬 검증이며 독립 QA·원격 quality/e2e/docker 결과가 아니다. Resource production baseline은 `fd8fdc9e9207ab43a6fb7ff85b5a5acbe91d4553`이고 header version은 infra가 준비한 0.90.0이다. before TSX/CSS는 baseline byte 동일이며 application 전체 파일 동일을 주장하지 않는다. 동일 seed(리소스12/그룹5, 긴 KO/EN name/code, 역할0/1/3, 미지정/EXPERT, active/inactive, usage0/used/unknown, 선택 그룹)를 사용했다. 전용 fixture의 실패·logout/deferred 제어는 after 테스트에 보강했으며 seed 의미는 바꾸지 않았다.
+
+실행은 `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome npx playwright test --config tests/config/playwright.config.ts ... --project=chromium --workers=1 --max-failures=1` 공통이다. before만 `RESOURCE_CAPTURE=before`, `resource-tabs.spec.ts --grep 'baseline before'`를 사용했다. 아래 session/chunk는 실제 실행 핸들이다. 최초 실패의 raw trace/error context는 `/tmp/issue453-*-after-fail`에 보존하고 Git 게시 대상에서 제외한다.
+
+| 실행 | session / 최종 chunk | 결과와 최초 원인 |
+| --- | --- | --- |
+| before 최초 | 96993 / b57775 | FAIL: Turbopack node_modules 외부 symlink, 테스트 시작 전 실패 |
+| frozen 설치 | 52944 / fa0998 | npm ci exit0, dependency 변경0; 기존 audit high7 보고·자동 fix 없음 |
+| before 재실행 | 66092 / d99430 | 1 PASS, 1.9s / 전체5.7s, 5폭 PNG/geometry |
+| after1 | 77844 / 38a461 | 22 PASS·1 FAIL·16 미실행, 32.4s; 빈 Next route-announcer 선택 하니스 |
+| after2 | 48930 / 36e4a9 | 1 PASS·1 FAIL·1 skip·9 미실행, 10.4s; 폐기 확인 초기 focus 제품 결함 |
+| after3 | 38882 / cec9d4 | 1 PASS·1 FAIL·15 미실행, 8.9s; 401 명시 초안 재진입 누락 하니스 |
+| after4 | 69975 / 931a49 | 5 PASS·1 FAIL·1 skip·9 미실행, 13.3s; 부모 effect만으로 focus 결함 지속 |
+| after5 | 13585 / d291a5 | 1 FAIL·9 미실행; native autofocus로 초기 focus는 통과, 폐기 버튼 exact locator 누락 하니스 |
+| after6 | 60772 / 431c4e | 7 PASS·1 FAIL·2 미실행, 42.0s; aria-disabled 일반 click actionability 하니스 |
+| after7 | 8981 / 6c56c5 | 6 PASS, 10.3s; 실제 mouse·Enter DELETE0, 기존 layout/roles/401 재검증 |
+| after8 | 1022 / 2b34ba | 2 PASS, 4.7s; 실제 left230/top≥70 왕복·nested Escape/취소 focus |
+| after9 | 47140 / 1642c8 | 3 PASS·1 FAIL, 16.6s; badge/raw revision 정정 및 after20 통과, 반복 pending Escape 제품 결함 |
+| after10 | 74763 / d0c05d | 5 PASS, 7.6s; owned modal focus/Escape capture, 기존401·중복 제출 및 pending5폭 |
+| after11 | 83329 / 5df16b | 3 PASS, 9.5s; 권한403 안내·최종 after20+dirty/pending10, Tab/ShiftTab·포인터 닫기·응답 후 focus |
+| after12 | 48782 / 32fd7a | 2 PASS, 7.6s; 실제 환경 metadata+after20 갱신·#120 inactive td/tr contrast 보호 |
+
+기존 5개 spec(29 case)을 새 modal/tab 진입으로 이관하고 `resource-tabs.spec.ts` 신규11 case를 추가했다. before 전용1 case는 after에서 skip하도록 분리한다. 추가 #120 Resource inactive contrast 1 case의 selector를 상태 option 대신 실제 td/tr로 이관하여 ratio/opacity guard를 유지했다. after 누적41 unique case PASS이며 PASS 실행57회 중 중복16회는 변경 영향에 따른 좁은 재검증이다. 단일 최종후보 41개 전체 실행이라고 주장하지 않는다. focus 보강 이후 layout/roles/401/412·오류 keyboard를 재검증하고, badge/raw번호 정정 이후 역할/tab/최종 geometry를 재실행했다. 변하지 않은 API/요청·생성 오류·삭제 보호는 앞선 LFF를 영향 근거로 재사용한다. 전체 공식 회귀는 exact PR head CI를 따른다.
+
+새 직접 검증은 atomic grade+ordered roles PATCH1/편집 중PATCH0, mutation403 초안·권한 안내, create/profile/member 동기 요청1, pending input/close/반복 Escape/Tab 잠금, dirty 생성/profile/member 폐기·계속 편집·focus 복원, 탭별 조건과 비영 scroll/초안·GET0/mutation0, explicit logout 성공/실패와 초기화 범위, used/unknown DELETE0, 검색 밖 전체 members PUT/If-Match 및 missing Resource PUT0이다. 이전 두 inline 생성폼의 동시 초안·배경 refresh는 modal 배경 접근 금지로 이관했으며 생성10 오류 case의 보호 목적을 구성원 초안과 교차해 유지한다.
+
+게시 후보는 `output/playwright/issue-453/before/` PNG5+JSON5와 `after/` PNG30+JSON30+environment JSON1 총71개만이다. after 네 기본 surface(resources/groups/create/profile)는5폭, 추가 dirty 확인과 pending 생성도5폭이다. Group 기본 surface는 실제 구성원 section/footer를 포함한다. pending5폭은 모든 control disabled·반복 Escape·Tab/ShiftTab·좌표 닫기 시도 후 modal 유지와 응답 후 호출 버튼 focus를 포함한다. 390/768/1024/1440/1920에서 documentWidth=viewport, active panel=358/720/976/1392/1600px, Resource table 최소976/Group800, identity 최소240, header/body 정렬·셀 버튼36+15 및 역할 badge20 containment/비중첩·focus·footer 중앙 정렬을 검증했다. before부터 문서 overflow는0이었으므로 overflow 수정으로 과대 표현하지 않는다.
+
+실제125% browser zoom은 NOT TESTED: headless 테스트에는 browser chrome의 native zoom 제어가 없으며 DSF/CSSzoom/viewport 변경을 zoom 증거로 사용하지 않았다. 실제 기기·screen reader, 서버 권한 전체 회귀, 원격CI·Docker·GHCR·최종 수동 UX도 NOT TESTED이다. API/DB/auth/domain/shared dialog/globalCSS 계약 변경은 N/A(해당 파일 무수정). 테스트·source·문서 최종 해시와 후속 type/lint/version/doclink 결과는 frontend Result/manifest에 기록한다.
+
+최종 after 실제 환경은 `after/environment.json`에 기록했다: navigator.language `en-US`, Intl timezone `Asia/Seoul`, Chromium `153.0.8010.12` 및 같은 버전의 navigator userAgent. before locale/timezone/browser version은 별도 실측하지 않았으므로 NOT RECORDED이며 같은 DesktopChrome config와 동일 seed 근거를 after 실측과 구분한다. 날짜 없는 Resource fixture에 timezone 변환을 추가하거나 환경 추정을 PASS로 표시하지 않았다.
+
+최종 LFF: typecheck session2901/chcc04e5 exit0, scoped ESLint9파일 session11929/ch71f400 exit0(오류0/경고0), version검사 chd83a95 exit0(0.90.0/package-lock 일치), Markdown link chd394cd exit0(121파일), diff check ch7c0fa1 exit0. 검색 Unit9개 session92675/ch6e98e8 PASS(116ms)는 domain/search source 불변으로 재사용한다. 테스트 발견 ch8d000d exit0은 #453 관련6spec41case(이 중before전용1)를 확인한다. Next는 종료했고 next-env.d.ts/tsconfig.json baseline복원·생성diff0, 최종 source/fixture freeze drift0이다. 추가 #120 inactive1을 합친 after unique41 집계와 test discovery의 before1을 혼동하지 않는다.
+
+### Issue #453 최신 main 정렬 뒤 최소 재검증
+
+원격 게시 전 unpublished 후보를 latest main `56e2e54f88ab9124ec81c52e157161181ed6c337` 위로 정렬한 현재 head는 `b0eec204090cf5b897c3bf7e2e26978937b0f483`이다. before Resource source baseline `fd8fdc9e9207ab43a6fb7ff85b5a5acbe91d4553`은 역사적 정확 근거로 유지한다. Resource production2 및 관련 tests/fixture는 바이트 불변이며 main 운영4파일과 lock의 source-map-js1.2.2 변경을 제품 UI 변경으로 간주하지 않는다. 기존 after41 unique/57 PASS 실행 이력은 source 불변·관련 API/interaction 불변 근거로 재사용한다.
+
+새 lock으로 `npm ci` session93526/ch797155 exit0을 실행했다(447개 설치/448개 audit,8s). 실제 결과는 high6이며 이전 high7과 구분한다. eslint9.39.5 deprecation은 유지됐고 자동 audit fix/의존성 파일 수정은 없다. 새 환경에서 typecheck14418/ch75caca 및 scoped ESLint9파일30542/ch4c8c62는 exit0(오류0/경고0), 검색 Unit9개 chc2f05f는 PASS134ms였다.
+
+동일 Playwright 공통 명령에 `tests/e2e/resource-tabs.spec.ts --grep 'after 동일|dirty 확인·pending' --project=chromium --workers=1 --max-failures=1`을 실행했다. session45776/cha9e89d exit0,2 PASS8.6s(4.2s/2.2s), 새 실패0이다. after30 PNG/30geometry JSON/environment JSON1을 현재 통합 후보에 연결해 갱신했다. 환경은 en-US/Asia/Seoul/Chromium153.0.8010.12, 실제 capturedAt `2026-10-06T02:41:30.597Z`이다. before10은 그대로 재사용하고 before 환경 NOT RECORDED와 native125% NOT TESTED를 유지한다. 새2개는 기존 case의 재실행이므로 unique41은 그대로이며 누적 PASS 실행은59(기존57+2)다. 이는 전체41개 새 head 재실행 또는 원격 회귀 PASS가 아니다.
+
+owned Next 프로세스 종료 후 이번 실행 전 저장한 next-env.d.ts/tsconfig.json을 복원했고 generated diff0 및 source/test/fixture10 hash drift0을 확인했다. 게시 후보는 기존 allowlist71개뿐이며 legacy #268/raw trace/report/DB/runtime log는 제외한다. 정렬 후 변경은 TEST_PLAN 재검증 기록과 after61 artifact뿐이고 production 수정은 없다. 원격 quality/e2e/docker·독립 QA는 새 head에서 별도 판정한다.
+
+## Issue #475 Generic Finalizer closed-Issue backlog 회귀
+
+- 재현 순서는 `FINAL #452@f8f...` → 미완료 `#461@fd8...` → 이미 closed인 #452를 다시 참조한 후속 merge `#474@56e...`다.
+- 최신 merge의 Issue가 closed이지만 그 exact target SHA에 FINAL marker가 없으면 해당 merge 자체는 lifecycle mutation 대상에서 제외한다.
+- 이 closed/no-marker merge는 수집 단계에서 non-actionable ordering barrier로 유지하여 same-Issue retry adjacency를 끊고, coalesce 이후에만 lifecycle target에서 필터링한다.
+- barrier를 이유로 first-parent 탐색을 종료하지 않고 더 오래된 merge를 계속 조회하여 #461 같은 pending target을 발견해야 한다.
+- 더 과거의 exact FINAL marker를 만나면 기존처럼 강한 boundary로 탐색을 종료한다.
+- closed/no-marker merge에 대해 Issue reopen, release/finalize, branch cleanup을 수행하지 않는다.
+- 동일 Issue의 pending retry 두 개 사이에 closed/no-marker merge가 있으면 두 retry를 coalesce하지 않고 각각의 first-parent/version 범위를 유지한다.
+- `MAX_BACKLOG_DEPTH` 안에서 exact FINAL/non-PR historical boundary를 찾지 못하는 기존 fail-closed 계약은 유지한다.
+- 정적/시나리오 검증은 `scripts/verify-issue-lifecycle.py`에서 closed skip classifier, exact FINAL boundary, pending backlog 보존을 함께 확인한다.
+
+### Issue #475 Finalizer tag push Authorization corrective
+
+- PR #476 병합 후 Main CI #1906.1은 SUCCESS였고 Generic Finalizer #64.1이 pending #461/v0.86.0을 정확히 발견했다.
+- Finalizer #64.1은 `git push origin refs/tags/v0.86.0`에서 GitHub 응답 `Duplicate header: "Authorization"` / HTTP 400으로 실패했다.
+- 원인은 Generic Finalizer checkout이 기본 credential persistence를 유지한 상태에서 `push_git_refs()`가 별도 `http.extraHeader` Authorization을 추가해 동일 header가 두 번 전송된 것이다.
+- 자동 Finalizer와 수동 release/finalize/release_finalize checkout은 모두 `persist-credentials:false`를 사용해야 한다.
+- lifecycle의 release tag `ls-remote`·`fetch`·`push`와 automatic finalizer의 exact tag evidence `ls-remote`·`fetch`는 동일한 process-scoped auth helper를 사용해야 한다.
+- helper는 inherited `http.https://github.com/.extraheader`를 빈 값으로 reset한 뒤 job-scoped Authorization header 하나를 command-scope Git config로 넣어야 한다.
+- 회귀 검증은 process-scoped config count/order, empty reset header, 단일 auth header, command argument token 비노출, lifecycle tag read/fetch/push와 automatic finalizer tag evidence read/fetch가 모두 authenticated helper를 경유하는지, mutation workflow의 non-persistent checkout을 확인한다.
+- 기존 immutable tag가 생성되기 전에 push가 실패했으므로 v0.86.0 tag/release 중복 evidence를 만들지 않아야 한다. corrective merge 후 Generic Finalizer가 backlog를 재계산해 #461 release_start를 재시도한다.
+
+## Issue #461 v0.86.0 GHCR Release static quality corrective
+
+- Release Run #136.1 (`37412901512`)은 SemVer 검증과 Chromium E2E 6/6, Vitest 126 files / 1177 tests를 PASS했으나 `Release static quality`의 `npm audit --omit=dev`에서 `source-map-js 1.2.1` High 취약점으로 FAIL했다. 이에 따라 quality aggregate가 FAIL하고 Main verified digest 재검증·promotion·handoff는 SKIPPED였다.
+- 같은 job에서 audit 실패 뒤 production build 시작 step이 SKIPPED됐는데 `Release production build 시간 기록`이 `if: always()`로 실행되어 빈 `started_ms`를 recorder에 전달한 2차 실패도 관측했다. 이 오류는 최초 audit failure를 대체하지 않으며 corrective에서 함께 제거한다.
+- 현재 latest main은 #462 병합 이후 application `0.87.0`이며 `package-lock.json`의 `source-map-js`는 `1.2.2`다. 따라서 실패한 immutable `v0.86.0`을 재사용하지 않고 #461 same-Issue corrective PATCH `0.87.1`로 진행한다.
+- 정적 회귀는 `tests/scripts/test-config-layout.test.ts`에서 `source-map-js >= 1.2.2`와 Release build 종료 계측의 `steps.release-build-start.outputs.started_ms != ''` guard를 확인한다. audit 자체는 PR/Main/Release의 실제 `npm audit` gate가 계속 authoritative하다.
+- corrective PR의 공식 판정은 exact head의 PR quality/e2e/docker 결과다. 이번 요청 범위는 새 PR CI 시작 확인까지이며 merge/Main CI/tag/GHCR/branch cleanup/Issue close는 수행하지 않는다. 새 `0.87.1` release는 별도 명시 승인 전 `release_authorized=false`다.
+
+
+## Issue #463 PR CI Run #1869 실패 재정렬·보완
+
+- PR #472 head `ca15145b1167b7253841e648d23e59d1a172022a`의 PR CI Run #1869.1(`37382878627`)은 Vitest/ESLint/TypeScript/정책 검사는 PASS했으나 production build, Docker build, Chromium E2E shard 4/5/6이 FAIL했다.
+- production build의 직접 원인은 `project-milestone-dashboard.module.css`의 전역-only `:global(.project-schedule-peer-tabs)` selector가 CSS Module pure 규칙을 위반한 것이다. Docker 실패는 같은 `npm run build` 오류의 연쇄 결과다. peer workspace 전역 layout selector는 `src/app/globals.css`로 이동하고 Milestone module은 local selector만 소유한다.
+- 최초 #463 branch는 #462의 중간 head를 선행으로 사용했다. E2E 실패의 기존 Context Menu/Editor/Relation/scoped-add 경로는 기대를 완화하지 않고 latest main에 병합된 #461/#462 보완을 source of truth로 유지한 뒤 #463 delta만 재적용한다.
+- 재정렬 후보는 latest main `d7316880732ecde5a8193764ac3b0cfca2ae455f` / application `0.87.1`을 포함하고 #463 candidate를 `0.88.0`으로 유지한다. #461 corrective의 `source-map-js 1.2.2` 및 Release 계측 guard를 되돌리지 않는다.
+- 새 exact-head PR CI의 quality/e2e/docker는 등록 전까지 NOT TESTED이며 기존 Run #1869의 PASS를 새 head 증거로 전용하지 않는다.
+
+
+## Issue #463 PR CI Run #1927 E2E geometry REWORK
+
+- 재정렬 head `caa520bac3a0bb2d97e61e725e513280fffa5dc0`의 PR CI Run #1927.1(`37418422688`)에서 production build, Docker, Vitest, ESLint, TypeScript, 정책 검사는 모두 PASS했고 Chromium E2E shard 1~5도 PASS했다. shard 6의 기존 `Issue #407/#418 keeps scoped Header and Row additions canonical and continuous` 1건만 FAIL했다.
+- 실패 지점은 여러 scoped row를 추가한 뒤 이전에 만든 `headerLeaf`를 taskId로 우클릭하는 단계다. #463의 peer tab이 일정 작업면의 세로 공간을 사용하면서 해당 행이 viewport 밖으로 이동했고, Playwright의 `locator.click({ button: "right" })`가 auto-scroll과 우클릭을 한 gesture로 결합하는 동안 SVAR virtual row가 교체되어 `contextmenu`가 생성되지 않았다. 서버 mutation, row persistence, Gantt instance/api instance, 이전 scoped-add assertion은 실패 지점 전까지 PASS했다.
+- 이는 과거 #407/#384에서 기록한 virtualized-row/Playwright auto-scroll 경계와 같은 테스트 기하학 유형이다. 제품의 Context Menu guard나 권한/범위 계약을 완화하지 않는다. 해당 E2E helper가 target row를 먼저 `scrollIntoViewIfNeeded()`로 가시화하고 한 animation frame 안정화한 뒤 실제 우클릭을 수행하도록 보강한다. 메뉴 가시성 assertion은 그대로 유지한다.
+- 새 head의 전체 PR quality/e2e/docker가 authoritative하며 Run #1927 PASS 결과를 새 head 증거로 전용하지 않는다.
+
+
+### Issue #453 PR #477 최신 main 재정렬 및 새 PR CI 기준
+
+PR #477의 최초 head `c411634f75b7a69131a095e9cb6b7416060b827e`는 PR CI Run `37406441919` / Run #1898.1에서 quality·E2E·Docker를 포함해 SUCCESS였다. 이후 main이 `d7316880732ecde5a8193764ac3b0cfca2ae455f` / application `0.87.1`까지 전진해 기존 head가 39 commits behind, GitHub `mergeable_state=dirty`가 되었으므로 그 성공을 현재 main 통합 후보의 공식 PASS로 재사용하지 않는다.
+
+충돌 교집합은 CHANGELOG, PROJECT_UX, TEST_PLAN, UI_UX_GUIDELINES, active PLAN, package.json, package-lock.json 7파일이다. Resource production TSX/CSS와 #453 관련 E2E/fixture는 main 이동에서 변경되지 않았으므로 기존 #453 내용을 그대로 보존하고, 문서 5개는 main의 후속 기록과 #453 내용을 병합한다. package/lock은 main의 dependency·lock 변경을 보존하면서 application candidate `0.90.0`을 유지한다.
+
+branch 정렬은 published PR history를 강제 재작성하지 않고 기존 feature head와 최신 main을 부모로 하는 conflict-resolution merge commit으로 수행한다. 새 exact head의 pull_request CI가 quality·E2E·Docker를 다시 통과하기 전 최종 ACCEPT는 `NOT TESTED`다.
+
+
+## Issue #483 Resume 후속 Release dispatch 권한 회귀
+
+- 재현: Issue #462 `v0.87.0` Release Run #137.1 성공 후 Resume Run #3.1 (`37419245205`)이 #462를 finalize하고 #461 corrective `v0.87.1` annotated tag까지 생성했지만, 다음 `release-image.yml` workflow_dispatch에서 HTTP 403 `Resource not accessible by integration`으로 실패했다.
+- 원인: `release-finalizer-resume.yml`의 workflow permission이 `actions: read`여서 trusted main resolver가 다음 Release workflow를 dispatch할 수 없었다.
+- 정적 contract: `scripts/verify-issue-lifecycle.py`는 automatic Generic Finalizer와 Release Completion Resume 양쪽에 `actions: write`가 있는지 검사한다.
+- 보안 경계: Resume는 계속 trusted `main` checkout, source Release exact run ID/path/head SHA/success 검증, shared concurrency group을 유지한다. 다른 권한과 제품 source/API/DB/UI는 변경하지 않는다.
+- 복구 판정: corrective PR exact head의 policy/typecheck/lint/unit/build/E2E/Docker PASS를 공식 PR gate로 사용한다. 병합 후 기존 `v0.87.1` tag를 authority로 Release dispatch를 재개하며 새 tag/version을 만들지 않는다.
+
+
+## Issue #463 PR CI Run #1929 Context Menu target REWORK
+
+- head `9b4e1d4680be581a0d91d5f23ac0d59cd778083f`의 PR CI Run #1929.1(`37424880340`)은 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6의 동일 #407/#418 Context Menu 시나리오 1건 FAIL이다.
+- 이전 pre-scroll 보강 뒤에도 동일 위치에서 실패했으므로 auto-scroll 단독 원인 가설은 폐기한다. 제품 `resolveTaskContextTarget`은 button/`[data-action="add-task"]` 등 앱 소유 control 우클릭을 의도적으로 제외하며, row-center 우클릭은 viewport/column geometry에 따라 해당 hit area에 걸릴 수 있다.
+- E2E helper는 taskId 행의 canonical 작업명 hit area `[data-col-id=":text"] .wx-content > .wx-text`를 직접 가시화한 뒤 실제 right-click한다. 제품 Context Menu guard·권한·scope 계약과 메뉴 가시성 assertion은 변경하지 않는다.
+- latest main `22326fc350b91ab59ddafa20ef97c3f418f71aae` / application `0.90.0`의 #453 리소스 UI/문서 변경을 보존하고 #463 candidate를 다음 MINOR `0.91.0`로 재정렬한다.
+- 새 exact-head 전체 PR CI가 authoritative이며 이전 run의 부분 PASS를 새 head 증거로 전용하지 않는다.
+
+
+## Issue #463 PR CI Run #1937 Core selection scroll REWORK
+
+- head `b1ff0294195436b806e4b76929cd8bc269ec55bb`의 PR CI Run #1937.1(`37427125874`)은 quality/build/Docker와 Chromium shard 1~5를 PASS했으나 shard 6의 기존 #407/#418 Context Menu 시나리오 1건만 FAIL했다.
+- Run #1937 Playwright trace를 직접 분석했다. 실패 우클릭은 canonical 작업명 text에 정확히 입력됐고 해당 taskId 행이 app-owned `data-copy-selected=true` / `aria-selected=true`로 전환됐다. 그러나 직후 SVAR Core selection/layout 동기화가 Grid table `scrollTop 147 → 124`와 chart resize를 발생시켰고, 기존 Task Menu scroll guard가 이 내부 보정을 메뉴 이후 실제 viewport 이동으로 판정하여 메뉴를 즉시 닫았다.
+- 따라서 이전 auto-scroll 및 hit-area 가설은 최종 원인이 아니다. Task Context Menu에서 선택 밖 행을 singleton으로 만드는 계약의 authority는 #384부터 app-owned selection이다. Context Menu open 경로에서는 `applySelectionGesture(..., false)`로 Core `select-task` mirror만 생략하고 `data-copy-selected` singleton selection·menu taskId·명령 dispatch는 유지한다.
+- 일반 click/keyboard selection의 Core mirror, 실제 사용자 scroll 시 메뉴 닫힘, 지연된 동일 scroll 알림 무시는 기존 계약을 유지한다. #407/#418 E2E는 메뉴 open 뒤 해당 행의 `data-copy-selected=true`를 추가 확인한다.
+- 새 exact-head 전체 PR CI의 quality/e2e/docker가 authoritative하며 Run #1937의 부분 PASS를 새 head의 PASS로 전용하지 않는다.
+
+
+## Issue #463 PR CI Run #1938 opening-layout scroll REWORK
+
+- head `b711280b0629b7af6b579dcc831f54bd09897a92`의 PR CI Run #1938.1(`37429658024`)도 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6의 기존 #407/#418 Context Menu 1건만 FAIL했다.
+- 새 trace에서 Core `select-task` mirror를 제거한 상태에서도 작업명 우클릭 후 app-owned `data-copy-selected=true`가 반영되고 Grid table `scrollTop 147 → 124` 보정이 동일하게 발생했다. 따라서 Run #1937의 "Core mirror가 직접 원인" 가설은 반증됐고 해당 의미 변경은 되돌린다.
+- 최종 원인은 Context Menu open 직후 app-owned selection + React/SVAR virtual-row layout settle 자체가 내부 scroll을 만들 수 있는데, 기존 menu scroll baseline을 settle 전에 캡처했다는 점이다. 메뉴 open 시 scroll guard를 bounded two animation frames 동안 settling 상태로 두고, 이 구간의 내부 scroll마다 현재 canonical task element에서 baseline을 재캡처한 뒤 settle 종료 시 최종 위치를 기준으로 arm한다. 임의 timeout/retry는 사용하지 않는다.
+- 일반 selection의 Core mirror는 복원한다. 기존 `task-context-menu-scroll.spec.ts`는 같은 위치의 지연 scroll은 무시하고 bounded settle 이후 실제 scroll은 메뉴를 닫는 계약을 명시적으로 유지한다. #407/#418의 app-owned selection assertion도 유지한다.
+- 새 exact-head 전체 PR CI의 quality/e2e/docker가 authoritative하며 이전 run의 부분 PASS를 새 head 증거로 전용하지 않는다.
+
+## Issue #454 물류 유형 행 밀도와 열·dialog LFF
+
+baseline `c411634f75b7a69131a095e9cb6b7416060b827e`, branch `fix/issue-454-logistics-table-density`, infra 준비 version0.90.1이다. 설치 의존성은 #453 frozen npm ci 결과의 실제 node_modules 디렉터리를 복사했고 root version 외 dependency content가 같다. #454 fresh npm ci는 NOT TESTED이며 새 install이나 dependency 변경을 주장하지 않는다. 구현자는 native catalog source2 및 전용 fixture/spec·이 문서/PROJECT_UX만 변경했다. 기존 logistics-type-catalog-admin.spec.ts 두 case는 수정 없이 유지했다.
+
+동일 seed는 각 설비/시스템3개: 짧은 AGV/agv·MCS/mcs, 긴 KO/EN name·64/62자 code, active/inactive 및 usage0/2/12345다. 추가 empty/state 시나리오에서 usage1도 별도 검증한다. before production bytes는 baseline 그대로이고 header는 준비된0.90.1이므로 application 전체 baseline bytes 동일은 아니다. before/after seed 의미는 같으며 전용 mock route는 after 요청/오류/deferred 제어로 보강했다. mock API+실제 Chromium 조작이며 실제 SQLite/서버 authorization PASS로 확대하지 않는다.
+
+공통 명령은 `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome npx playwright test --config tests/config/playwright.config.ts <spec> --project=chromium --workers=1 --max-failures=1`이다. before는 `LOGISTICS_CAPTURE=before`, 전용 spec의 `--grep '#454 before'`를 사용했다. after 최초와4차는 기존 spec+전용 spec `--grep-invert '#454 before'`,2·3차는 전용 `--grep '#454 after'`,5차는 양 spec `--grep 'Issue #280|Issue #330|#454 after|pending 동기|loading·'`이다.
+
+| 실행 | session/chunk | 결과·원인·조치 |
+| --- | --- | --- |
+| before 최초 | 75038/ea41b0 | exit0,1 PASS7.1s(3.7s),두 유형·두 dialog5폭;이후65자 fixture 오류 발견으로 최종 증거 교체 |
+| after1 | 95915/17332b | exit1,1 FAIL/13 미실행;768px 마지막 action keyboard focus 외곽선819.890625가 owner744 밖. 390 geometry는 PASS |
+| 준비 명령 | 1be5e4 | raw 보존 Python 경로 결합 TypeError. 수정 뒤 probe 적용 전 별도 shell 명령이 실행된 조작 오류. 제품 오류와 구분 |
+| after2 | 5949/49c1bb | exit1,같은 미수정case1 FAIL1.7s. 준비 실패 때문에 불필요한 동일 재실행. 첫 오류 tool로그는 보존됐으나 첫 raw trace는 이 실행으로 교체되어 원본 없음; 두번째 재현 raw 별도 보존 |
+| after3 poll probe | 93072/d2787a | exit1,1 FAIL6.7s,5초 뒤에도 clipping 지속. assertion timing 가설 배제,raw 보존 |
+| 제품 보강 | 승인된 owned tableWrap focus capture | 필요한 horizontal delta만 보정,fixture/keyboard/assertion 완화 없음. source/fixture 수정 전 owned Next STOP/generated복원 |
+| after4 | 55822/790698 | exit1,11 PASS/1 FAIL/2 미실행19.9s. geometry·양쪽 성공·pending·412/401/network PASS. empty case는 GET 후 mock만 변경한 하니스 설정 순서;GET 전 설정으로 수정,raw 보존 |
+| after5 | 22413/a4c7c0 | exit0,6 PASS11.1s(geometry4.2s),하니스 실패1+미실행 기존2 및 geometry/pending2 보강 재검증 |
+
+최초 after14 unique case PASS,17 PASS 실행(중복3)이었고,아래 valid64 geometry1 재검증 후 누적18 PASS 실행(중복4)이다. before unique1은2회 실행했다. 단일 최종14개 전체 실행이 아니다. source는 after4~5 동일하고 test 변경은 empty 값 설정 시점·focus 측정 JSON 통합·pending row geometry assertion 보강이다. 기존11 PASS 중 영향 없는 요청/오류 case8개는 source-identical 근거로 재사용하고 geometry·두 pending은 다시 실행했다. 첫 실패를 retry로 숨기지 않는다. 신규 pure domain/API algorithm 변경이 없어 별도 Unit 작성/실행은 N/A이며 request/count/state/geometry 핵심 계약을 실제 browser E2E로 검증한다. 서버 service/handler 전체 회귀는 exact PR head CI의 기존 tests가 담당한다.
+
+직접 coverage는 양 catalog POST/code identity/name-onlyPATCH/active-onlyPATCH 및 If-Match7→8→9→10,usage 불변, passwordPUT 성공,종류/필터 GET/mutation0,0건/필터0/loading/GET실패/retry, mutation401 로그인 focus/password clear,412→GET200/500/401 원인·초안·새If-Match 수동 저장,network/불명 canonical 성공오판·자동retry0,두 dialog 동기submit2→요청1이다. pending5폭에서 disabled input/cancel/close·반복Escape5·Tab/ShiftTab·실제 포인터 취소·응답 후 trigger focus를 검증했고 기존 #280 password Escape/clear/실패logout 및 #330 필터/count/control non-overlap 보호를 유지했다.
+
+두 유형5폭 모두 documentWidth=390/768/1024/1440/1920,table824/824/950/1366/1574px,표시명240/240/366/782/990px,짧은 행47px,td block padding3px,action margin0 및 control40px다. 같은 행 action top/height 차이≤1px,header/body 경계·모든 row button closest-td containment·text/code/count 실제 Range containment 및 기타 input/control containment를 실측했다. 390/768은 table-owned scroll이며 실제 Tab으로 마지막 action+6px outline을 보여준다. 큰 폭 pointer focus의 불필요한 horizontal jump0도 확인했다. 이름/password dialog5폭 정상·invalid-disabled·pending footer의 top/height 차이≤1px,초기focus/Escape/취소/Tab trap,390px 조회 오류 복구 action containment를 확인했다.
+
+게시 allowlist는 `output/playwright/issue-454/before/` PNG20+JSON20 및 `after/` PNG14+JSON21(environment1 포함),총75개다. after catalog 두 탭5폭 screenshot과 geometry10,dialog5폭 geometry10·대표390/1440 screenshot4이다. keyboard focus 측정은 catalog JSON에 합쳐 중복 artifact를 줄였다. raw trace/errorcontext는 `/tmp/issue454-{second,third,fourth}-after-fail`에 보존만 하며 Git 제외다. DB/.data/.next-e2e/test-results/playwright-report/runtime log/다른Issue output/원래 #464 raw는 게시하지 않는다.
+
+실제 before/after 환경은 각 JSON에 en-US·Asia/Seoul·Chromium153.0.8010.12 및 navigator userAgent를 기록했다. 최종 after environment capturedAt `2026-10-06T03:12:36.238Z`,default100% zoom이다. native125% browser chrome zoom은 headless 제어가 없어 NOT TESTED이며 DSF/CSSzoom/viewport로 대체하지 않았다. 실제기기/screenreader/서버authorization 전체/원격quality+e2e+docker/최종 수동UX/독립 QA는 별도 NOT TESTED이다.
+
+최종 source/test/fixture freeze5 drift0·owned Next STOP·next-env.d.ts/tsconfig.json 정확 복원은 ched8d0e로 확인했다. source/API/DB/auth/domain/shared CSS/shared dialog/SVAR 변경은 N/A이며 PROJECT_UX/TEST_PLAN만 frontend 문서 범위다. Root Packet/PLAN/CHANGELOG와 infra package/lock는 별도 writer로 보존했다. 최종 type/lint/version/link/diff 및 모든 경로별 SHA는 frontend Result Contract/manifest로 반환한다.
+
+### Issue #454 유효64자 fixture 최종 증거 교체
+
+최종 점검에서 첫 전용 fixture의 설비 code가15+50=65자라는 길이 오류를 발견했다. API64자 상한 위반의 synthetic fixture 오류이며 제품 validator를 변경하지 않았다. 기존65자 before/after75개는 `/tmp/issue454-invalid65-evidence`에 보존만 하고 게시하지 않는다. Manager 승인으로 hyphen1자만 줄여64자로 만들고, STOP 뒤 최종 source2를 별도 byte/hash 백업→source2 정확c411 baseline 임시 복원→before 캡처→STOP/generated복원→검증된 최종source2 byte 동일 복원→after geometry만 캡처했다.
+
+유효64 before 재캡처77830/ch20c364 exit0,1 PASS6.6s(3.9s). after geometry31896/ch48c975 exit0,1 PASS7.4s(4.7s),실패0이다. 최종75 artifact는 같은 유효dataset으로 모두 교체됐고 환경/numeric actual metric/control pair 비중첩·세로/가로 focus 외곽선도 JSON에 명시했다. 사용 건수 header/cell computed text-align right와 font-variant-numeric tabular-nums를 실측했다. 최종 before 짧은 행 수치는390/768224.96875,1024140.96875,1440/1920100.96875px로 같고 after5폭47px이다.
+
+마지막 ch7213f4는 source/test/fixture5 drift0,최종source2 백업byte 동일,owned Next STOP/generated2 정확 복원을 확인했다. 기존 CRUD/오류/pending/두 기존 case는 짧은 code에 대한 검증이며 제품 source도 동일하므로 재사용한다. 고유 after14개는 유지하고 PASS 실행은18회로 구분하며 전체14를 다시 실행하지 않았다. 게시 allowlist75개는 그대로이고 native125%·실기기·screenreader·serverauthorization 전체·remoteCI·독립 QA 미검증 경계도 유지한다.
 
 ## Issue #464 Local Fast Feedback와 보존/교환 검증
 
@@ -1685,3 +1876,7 @@ Stage Gate 실행의 Next/Playwright 프로세스가 모두 종료됐고(ch3c8b4
 최종 DOCUMENTATION_SYNC에서 교환 담당은 API/ARCHITECTURE/SECURITY/REQUIREMENTS/IMPORT_SCHEMA/IMPORT_EXPORT/JSON_IMPORT/TEST_PLAN과 신규1.1 schema/예제2개를 갱신했다. 보존 담당의 DB_SCHEMA/MILESTONE_STAGE_GATES/ISSUE_27_PROJECT_COPY/TASK_RELATIONS, Excel 담당의 EXCEL_EXPORT, frontend의 PROJECT_UX/TASK_EDITOR/UI_UX_GUIDELINES/IMAGE_EXPORT 최종 handoff를 통합했다. SourceCalendar 중복 복원·incoming101 cap·Whole Copy sourceLinks 누락·Import412 복구·Core 자동 reveal/feedback layout race의 실제 결함과 각 첫 실패/수정 후 검증을 구분해 보존한다. DB migration·기존1.0 machine schema·VBA/CSV producer·Calendar/Dependency/Resource 공용 알고리즘·HTTP transport 보안 정책의 추가 변경은 각각 N/A다. 새 Direct Project Hyperlink는 승인 범위 밖이며 추가하지 않았다. 제품 구현 기준 CI/배포 N/A와 별도 최신main 운영 정책 통합/LFF를 구분한다. 최종 Markdown 검사는 최신 Manager Packet/PLAN/CHANGELOG까지 포함하며 exact 소유 manifest는 해당 검사 뒤 확정한다. 독립 최종QA와 PR quality/e2e/docker·main GHCR/release·Windows Excel/VBA/DRM·운영 proxy/실기기/스크린리더는 실행 범위와 증거에 따라 NOT TESTED로 유지한다.
 
 교환 담당의 최종 DOCUMENTATION_SYNC 판정은 PASS다. 실제8차2개와 기존 Stage Gate1개를 각 실행의 LFF로 확인했고 최신 Manager Packet/PLAN/CHANGELOG를 포함한 Markdown123 files 링크 검사(chbe9315), diff whitespace(ch92aa2c), 생성2개 Git diff0(chb51fb4)는 PASS였다. source13 freeze fe94c8은 유지하며29개 소유 파일의 최종 manifest와 Result Contract를 Manager에게 반환하고 writer를 동결한다. 전체138개 게시 후보의 독립 사전QA·게시 후 새 PR head의 quality/e2e/docker는 다음 단계이며 현재 NOT TESTED다.
+
+### Issue #464 재정렬 후 원격 재검증
+
+latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` 및 #463 head `703807d600c1499092b0144732669fbe54465ca6` 위로 재정렬하며 기존 #464 로컬 증거는 이전 head의 범위 증거로 유지한다. JSON 1.1 동일 Export preview의 `changedTasks=[]`, Context Menu enabled-item keyboard 이동, #463 opening-scroll settle 승계를 새 head에서 검증한다. 공식 판정은 새 exact-head PR CI의 quality/e2e/docker이며 시작 전에는 NOT TESTED다.

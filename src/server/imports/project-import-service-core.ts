@@ -111,6 +111,15 @@ export class ProjectImportService {
     const targetCalendar = projectCalendarDto(this.database, projectId);
     const sourceCalendar = prepared.data.schemaVersion === "1.1" && prepared.data.source
       ? createWorkingCalendar({ ...prepared.data.source.calendar, holidays: prepared.data.source.calendar.exceptions === undefined ? prepared.data.source.calendar.holidays : [] }) : null;
+    const sourceEffectiveTasks = new Map<string, ProjectTaskDto>();
+    if (sourceCalendar && prepared.data.schemaVersion === "1.1") {
+      const sourceProjection = validateProjectImportPayload(prepared.data, sourceCalendar);
+      if (sourceProjection.success) {
+        for (const sourceTask of sourceProjection.tasks) sourceEffectiveTasks.set(sourceTask.externalId, sourceTask);
+      } else {
+        warnings.push({ code: "SOURCE_SCHEDULE_UNAVAILABLE", path: "source.calendar", message: "The advisory source calendar cannot reconstruct the source effective schedule. Authored fields are used for comparison instead." });
+      }
+    }
     if (sourceCalendar && JSON.stringify(sourceCalendar.exceptions) !== JSON.stringify(calendar.exceptions)) warnings.push({ code: "SOURCE_CALENDAR_IGNORED", path: "source.calendar", message: "The target Project calendar controls imported schedule and baseline end dates." });
     if (!prepared.tasks.length) warnings.push({ code: "EMPTY_IMPORT", path: "tasks", message: "The file contains no Tasks. Commit is disabled." });
     const normalizedTasks = prepared.tasks.map((task, index) => {
@@ -125,11 +134,13 @@ export class ProjectImportService {
     const changedTasks = prepared.tasks.flatMap((task) => {
       const source = sourceTasks.get(task.externalId)!;
       const requested = "requestedStart" in source ? source.requestedStart ?? null : "start" in source ? source.start ?? null : null;
-      const before: ImportPreviewScheduleDto = { requestedStart: requested, start: "start" in source ? source.start ?? null : requested,
+      let before: ImportPreviewScheduleDto = { requestedStart: requested, start: "start" in source ? source.start ?? null : requested,
         end: "end" in source ? source.end ?? null : null, duration: "duration" in source ? source.duration ?? null : null,
         progress: "progress" in source ? source.progress ?? null : null, status: "status" in source ? source.status : null,
         baselineStart: "baseline" in source ? source.baseline?.start ?? null : null,
         baselineDuration: "baseline" in source ? source.baseline?.duration ?? null : null, baselineEnd: null };
+      const sourceEffective = sourceEffectiveTasks.get(task.externalId);
+      if (sourceEffective) before = scheduleDto(sourceEffective);
       if (before.baselineStart !== null && before.baselineDuration !== null && sourceCalendar) {
         try { before.baselineEnd = task.type === "milestone" ? before.baselineStart : endFromStart(before.baselineStart, before.baselineDuration, sourceCalendar); }
         catch { warnings.push({ code: "SOURCE_BASELINE_UNAVAILABLE", path: `tasks.${task.externalId}.baseline`, externalId: task.externalId, message: "The advisory source calendar cannot resolve this baseline end. The target calendar remains authoritative." }); }

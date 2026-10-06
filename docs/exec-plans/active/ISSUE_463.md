@@ -109,3 +109,41 @@ required 서버8개·UI3개 문서 및 Manager PLAN/CHANGELOG/이 계획을 동�
 
 
 main 통합 최소LFF는 qa_docs의 migration-cli3/3 PASS(751ms/chunka6a71a), frontend Copy ID1 PASS(18.6s/79426/ch55efaf), blank 생성1 PASS(3.7s/66106/ch7e9a8a)다. 첫 anchored grep은 파일 경로 접두어로 blank case를 찾지 못해 해당1개만 별도 실행했고 전체 발견 문제와 구분했다. 생성파일 diff0, 제품/UI source 불변을 확인했다. TEST_PLAN과 기준 문서를 재동기화했으며 backend25개 최종 manifest SHA256은 `42dd36ee9f788e97ff422c3420393fd58cca7af301aafbf7d25e63c792c9707a`다. 동일 source/화면 hash에 대한 기존 ui_ux 비교는 재사용하며 새75파일·두 parent의 독립 변화 검토를 다시 요청한다.
+
+
+## PR CI #1869 REWORK
+
+- 최초 remote head: `ca15145b1167b7253841e648d23e59d1a172022a`; PR CI Run #1869.1(`37382878627`) FAIL.
+- 직접 build blocker는 CSS Module의 global-only selector이며 전역 workspace selector를 `src/app/globals.css`로 이동한다. Docker 실패는 동일 build 실패의 연쇄다.
+- 이전 branch가 사용한 #462 중간 baseline의 회귀 기대를 유지하지 않는다. latest main `d7316880732ecde5a8193764ac3b0cfca2ae455f`의 병합된 #461/#462 보완과 #461 release static corrective를 보존하고 #463 고유 delta만 재적용한다.
+- candidate version은 latest main `0.87.1`의 다음 MINOR `0.88.0`. 새 exact head에서 PR quality/e2e/docker를 새로 시작하며 결과 완료 모니터링·병합·release는 별도 승인 전 수행하지 않는다.
+
+
+## PR CI #1927 REWORK
+
+- head `caa520bac3a0bb2d97e61e725e513280fffa5dc0` / Run #1927.1(`37418422688`)은 quality와 Docker가 PASS했으나 Chromium shard 6의 기존 #407/#418 scoped-add E2E 1건으로 FAIL했다.
+- #463 peer tab 도입으로 줄어든 일정 viewport에서 이전 `headerLeaf`가 화면 밖으로 밀렸고 Playwright auto-scroll+right-click 중 SVAR virtual row 교체로 contextmenu가 유실됐다. 제품 mutation/canonical 상태 실패가 아니며 기대값이나 Context Menu 보호를 완화하지 않는다.
+- taskId 기반 E2E helper는 행을 먼저 가시화·안정화한 뒤 실제 우클릭하고 기존 메뉴 가시성 단언을 유지한다. 새 exact-head 전체 PR CI를 다시 시작한다.
+
+
+## PR CI #1929 REWORK
+
+- head `9b4e1d4680be581a0d91d5f23ac0d59cd778083f` / Run #1929.1(`37424880340`)은 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6 기존 #407/#418 1건 FAIL이다.
+- pre-scroll 후에도 row-center 우클릭이 `add-task` 등 Task context 제외 control hit area에 걸릴 수 있음을 확인했다. 제품 guard를 완화하지 않고 taskId 행의 실제 작업명 text hit area를 우클릭하도록 테스트를 고정한다.
+- latest main `22326fc350b91ab59ddafa20ef97c3f418f71aae` / `0.90.0`을 다시 통합하며 후보 버전은 다음 MINOR `0.91.0`이다. 새 exact-head 전체 PR CI를 시작한다.
+
+
+## PR CI #1937 REWORK
+
+- head `b1ff0294195436b806e4b76929cd8bc269ec55bb` / Run #1937.1(`37427125874`)은 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6 기존 #407/#418 Context Menu 1건 FAIL이다.
+- Playwright trace에서 작업명 text 우클릭과 app-owned singleton 선택은 성공했지만, 그 직후 Core `select-task` 동기화가 table scrollTop을 147→124로 보정하고 기존 menu scroll guard가 이를 실제 viewport 이동으로 판단해 메뉴를 즉시 닫는 것을 확인했다.
+- Context Menu 선택은 #384 계약대로 app-owned selection을 authority로 유지하고 이 경로의 Core mirror만 생략한다. 일반 선택·실제 사용자 scroll 닫힘·menu taskId 기반 명령은 유지한다. E2E는 우클릭 메뉴와 `data-copy-selected=true`를 함께 검증한다.
+- candidate version은 `0.91.0` 유지. 새 exact-head 전체 PR CI를 시작한다.
+
+
+## PR CI #1938 REWORK
+
+- head `b711280b0629b7af6b579dcc831f54bd09897a92` / Run #1938.1(`37429658024`)은 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6 기존 #407/#418 Context Menu 1건 FAIL이다.
+- Core selection mirror를 제거했는데도 trace에서 app-owned selection 뒤 table scrollTop 147→124가 동일하게 발생했다. 따라서 #1937 가설을 폐기하고 Core mirror는 복원한다.
+- Context Menu open 시 selection/virtual-row layout 내부 scroll을 bounded two-frame settling 구간에서 baseline으로 흡수하고, settle 종료 후 현재 canonical task element 위치에서 실제 scroll guard를 arm한다. 임의 timeout은 사용하지 않으며 이후 사용자 scroll 닫힘은 유지한다.
+- 기존 #407/#418 selection assertion과 전용 scroll E2E를 유지하고 새 exact-head 전체 PR CI를 시작한다. candidate version은 `0.91.0` 유지.

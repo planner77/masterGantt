@@ -53,16 +53,8 @@
 @media(max-width:1024px) { .filters { grid-template-columns: minmax(0,1fr) minmax(0,1fr); } .advancedGrid { grid-template-columns: repeat(2,minmax(0,1fr)); } .kpis { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media(max-width:540px) { .filters, .advancedGrid, .kpis { grid-template-columns: minmax(0,1fr); } .causeGroup li { flex-direction: column; } .sectionHeading { flex-wrap: wrap; } }
 
-:global(.project-schedule-peer-tabs) { display: flex; flex: 0 0 auto; gap: 8px; padding: 6px; overflow-x: auto; overflow-y: hidden; }
-:global(.project-schedule-peer-tabs button) { flex: 0 0 auto; border: 0; border-bottom: 2px solid transparent; padding: 8px 12px; background: transparent; color: var(--text-muted); font: inherit; font-size: 13px; }
-:global(.project-schedule-peer-tabs button[aria-selected=true]) { border-bottom-color: var(--action-selected); color: var(--text-default); background: var(--surface-subtle); }
 /* Keep the inactive Chart layout box so Core never measures a zero-sized peer. */
-:global(.project-schedule-peer-body) { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,1fr); flex: 1 1 0; min-width: 0; min-height: 0; overflow: hidden; }
-:global(.project-schedule-peer-panel) { grid-area: 1 / 1; display: flex; flex-direction: column; min-height: 0; min-width: 0; flex: 1 1 0; gap: 8px; }
-:global(.project-schedule-peer-panel[hidden]) { display: none; }
-:global(.project-milestone-panel) { overflow-y: auto; overflow-x: hidden; padding: 0 0 6px; }
 
 .multiSummary { display:flex; flex-direction:column; gap:4px; min-width:0; font-size:12px; }
 .numeric { text-align:right !important; }
 
-:global(.project-schedule-peer-panel[aria-hidden=true]) { visibility: hidden; pointer-events: none; }
