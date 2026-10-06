@@ -1287,35 +1287,20 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - UI/Chromium: 생성/표시/row 역할 checkbox, keyboard Space/focus, 역할/등급 구분, Group member 역할 참고, long Korean name, mutation `If-Match`, 390/768/1024/1440px document overflow를 검증한다.
 - 회귀: 기존 Resource 삭제 usage guard, group member 저장, Task Resource tab/assignment, logistics owner/developer/PI 저장, Resource Calendar 테스트는 동일 PR head의 전체 CI에서 함께 판정한다.
 
-## Issue #413 — Task assignment 수행 역할 검증
+## Issue #485 — Global Resource Role 단일 기준 검증
 
-- DB migration: `0021_task_assignment_roles.sql` ledger, nullable column, allowed role CHECK, role lookup index, assignment membership guard, role delete guard를 확인한다.
-- Service/API: multi-role Resource의 Task별 PI/DEVELOPER 저장, 보유하지 않은 role 거부, stale catalog/Project revision, Group role 금지, 사용 중 Global Role 제거 fail-closed와 Project/Task usage detail을 검증한다.
-- 기존 데이터: migration 전 assignment는 role null로 유지되고 allocation/M/D/M/M 결과가 바뀌지 않아야 한다.
-- UI/E2E: 역할 우선 후보 필터, Resource별 역할 option 제한, 신규 assignment 역할 필수, legacy 미지정 표시, 역할 변경 시 allocation draft 유지, 390/768/1024/1440 overflow와 keyboard 접근성을 검사한다.
-- 복사/Template: Project Copy와 Template snapshot/instantiate에서 assignment role과 null 상태가 보존되어야 한다.
-- 회귀: Group assignment, 관계/물류/작업 정보 탭, Calendar/workload, Gantt scope state는 역할 메타데이터 추가로 동작이 변하지 않아야 한다.
+- DB migration: `0023_deprecate_task_assignment_roles.sql`이 기존 `assignment_role`을 null로 만들고 role index/INSERT·UPDATE guard/role-delete guard를 제거하는지, 재실행·reopen·FK 정합성을 확인한다.
+- Service/API: 신규 개인 Resource assignment는 role 없이 저장되고 canonical role은 null인지 확인한다. non-null legacy `role` mutation은 거부하고, 사용 중 Resource의 Global Role 변경/제거는 Task assignment 때문에 차단되지 않아야 한다.
+- UI/E2E: Resource 선택 후 수행 역할 Select가 없고 Global Role badge만 표시되는지, Global Role 필터가 `assignment-targets?kind=resource&role=...` 후보 조회만 수행하며 저장 payload에 role을 넣지 않는지 확인한다.
+- Workload/Milestone/Excel: 현재 Global Role 집합으로 분류하고 role 0개는 UNSPECIFIED인지 확인한다. multi-role assignment의 role subtotal 합은 Grand Total보다 클 수 있으며 Grand Total은 assignmentId 기준 한 번만 합산되어야 한다.
+- Copy/Template: Project Copy와 신규 Template snapshot/instantiate가 Task별 role을 복제하지 않고 Resource/Group 참조와 allocation을 보존하는지 확인한다. legacy snapshot의 `assignmentRole`은 무시한다.
+- 기존 readonly/401/412/catalog stale/inactive/중복 submit, allocation Calendar/M/D·M/M, Gantt state 회귀를 함께 검증한다.
 
-### Issue #413 review 회귀
+## Issue #414 — Global Role 기반 Resource workload 검증
 
-- 100개를 초과하는 활성 Resource에서 역할 없는 filler가 앞에 정렬되어도 `role=EQUIPMENT_OWNER` 검색은 뒤쪽 matching Resource를 반환해야 한다.
-- Task Editor에서 수행 역할 선택 시 실제 `assignment-targets?kind=resource&role=...` request가 발생해야 한다.
-- Template snapshot에 남은 수행 역할을 live assignment 삭제 후 Global Role에서 제거하고 instantiate해도 500이 발생하지 않아야 한다. 새 assignment/allocation은 유지하고 role은 null, warning은 stale role과 역할 미지정 복원을 포함해야 한다.
-
-## Issue #414 — 역할 기반 Resource workload 검증
-
-- Server: PI 2 M/D + Developer 8 M/D + Equipment Owner 3 M/D = Grand Total 13 M/D fixture를 사용해 역할 subtotal 합과 Grand Total을 비교한다.
-- Dedup: multi-role Resource를 Task별 다른 수행 역할로 분류하고, 동일 Resource가 두 Group에 속해도 Grand Total은 assignmentId 기준 한 번만 합산되는지 확인한다.
-- Legacy: Global DEVELOPER 역할을 가진 Resource라도 Task assignment role이 null이면 `UNSPECIFIED`로 분류하고 Developer subtotal에 포함하지 않는다.
-- M/M: `RESOURCE_MD_PER_MM=20`이면 13 M/D → 0.65 M/M이며 기준 미설정 시 Grand/role M/M은 null이고 M/D는 유지한다.
-- Status: canonical task progress/status/start/end와 Project timezone 기준 delayed를 반환하되 progress/status 변경으로 계획 M/D가 변하지 않는지 확인한다.
-- Capacity: 역할 분류와 무관하게 기존 Resource Calendar 및 일별 allocation >100% 과투입 판정을 유지한다.
-- Chromium: 역할 summary, 개발 견적 preset(Resource+DEVELOPER), 역할/개발자 등급 filter, developer Task detail을 검증한다.
-- State/geometry: 390/768/1024/1440px document overflow 없음, task table 내부 horizontal scroll, 일정↔리소스 왕복 후 동일 Gantt instance와 preset/filter 상태 보존을 확인한다.
-- 기존 #117 workload/assigned-target 독립 loading/error/stale/partial retry E2E를 그대로 통과해야 한다.
-- 공식 전체 판정은 Issue #414 PR exact head의 GitHub Actions quality/e2e/docker 결과로 한다.
-
-
+- #56 산식과 assignmentId Grand Total dedup은 유지한다.
+- 역할 subtotal은 Resource의 현재 Global Role 집합에 따라 비가산 분류한다. DEVELOPER preset도 Global Role을 사용한다.
+- 공식 전체 판정은 #485 PR exact head의 GitHub Actions quality/e2e/docker 결과로 한다.
 
 ## Issue #415 — Resource Effort Excel 검증
 

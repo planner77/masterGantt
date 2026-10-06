@@ -98,7 +98,7 @@ export class ResourceWorkloadService {
       const effectiveWorkingDays = workingDaysBetween(start, end, calendar);
       const effortMd = configured ? round(effectiveWorkingDays * assignment.allocationPercent! / 100) : null;
       const effortMm = effortMd === null || mdPerMm === null ? null : round(effortMd / mdPerMm);
-      const role: ResourceWorkloadRole = assignment.assignmentRole ?? "UNSPECIFIED";
+      const roles: ResourceWorkloadRole[] = resource.roles.length > 0 ? resource.roles : ["UNSPECIFIED"];
       const detail: ResourceWorkloadTaskDto = {
         assignmentId: assignment.publicId,
         taskId: task.publicId,
@@ -110,15 +110,15 @@ export class ResourceWorkloadService {
         effortMd,
         effortMm,
         effortConfigured: configured,
-        role,
+        roles: resource.roles,
         taskStart: task.startDate,
         taskEnd: task.endDate,
         progress: task.progress,
         status: task.status,
         delayed: task.progress < 100 && task.endDate < asOfDate,
       };
-      roleAssignments.get(role)!.add(assignment.publicId);
-      if (role === "UNSPECIFIED") unspecifiedRoleCount += 1;
+      for (const role of roles) roleAssignments.get(role)!.add(assignment.publicId);
+      if (resource.roles.length === 0) unspecifiedRoleCount += 1;
       let row = resourceRows.get(resource.publicId);
       if (!row) {
         row = {
@@ -127,6 +127,7 @@ export class ResourceWorkloadService {
           code: resource.code,
           active: resource.active,
           developerGrade: resource.developerGrade,
+          roles: resource.roles,
           start: null,
           end: null,
           effortMd: 0,
@@ -143,11 +144,11 @@ export class ResourceWorkloadService {
       if (effortMd === null) {
         row.unsetCount += 1;
         unsetCount += 1;
-        roleUnset.get(role)!.add(assignment.publicId);
+        for (const role of roles) roleUnset.get(role)!.add(assignment.publicId);
       } else {
         row.effortMd = round(row.effortMd + effortMd);
         uniqueEffort.set(assignment.publicId, effortMd);
-        roleEffort.get(role)!.set(assignment.publicId, effortMd);
+        for (const role of roles) roleEffort.get(role)!.set(assignment.publicId, effortMd);
       }
     }
 

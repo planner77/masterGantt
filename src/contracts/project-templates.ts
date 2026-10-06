@@ -63,6 +63,7 @@ export interface TemplateAssignmentSnapshotItem {
   offsetStartDays?: number | null;
   offsetEndDays?: number | null;
   allocationPercent: number | null;
+  /** @deprecated Issue #485: legacy snapshots may contain this field; new snapshots omit it. */
   assignmentRole?: "PI" | "DEVELOPER" | "EQUIPMENT_OWNER" | null;
 }
 

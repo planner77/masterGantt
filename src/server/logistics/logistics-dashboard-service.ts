@@ -870,7 +870,7 @@ export class LogisticsDashboardService {
         id: a.publicId,
         taskId: a.taskPublicId,
         target: { kind: a.kind, id: a.targetPublicId },
-        role: a.assignmentRole,
+        role: null,
         allocation: {
           start: a.assignmentStart,
           end: a.assignmentEnd,

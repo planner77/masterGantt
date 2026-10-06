@@ -248,19 +248,15 @@ Grid quick edit은 시작일만 변경한다. 기간, 요청 종료일(#368 범�
 
 Chart 수직 DnD는 일정 PATCH가 아닌 hierarchy mutation이며 vertical gesture 확정 후 `reparent(before|after)`를 한 번만 제출한다. 이후 작업명·Description·URL·진행률·일정 편집은 저장된 parent/sibling order를 보존해야 한다. #335 linked same-parent reorder는 허용하되 cross-parent hierarchy 제한을 우회하지 않는다.
 
-## Issue #413 — 리소스 탭 수행 역할 편집
+## Issue #485 — 리소스 탭 Global Role 단일 기준
 
-리소스 탭의 개인 Resource 행은 선택 시 수행 역할 select와 기존 투입 시작/종료/투입률을 함께 표시한다. select option은 해당 Resource의 Global `roles`만 사용한다. 역할 필터를 먼저 고르면 후보를 해당 역할 보유 Resource로 제한하고 새로 선택한 Resource의 초기 역할도 그 값으로 채운다.
+개인 Resource를 선택하면 별도 수행 역할 Select를 표시하지 않는다. 역할은 Resource Catalog의 Global `roles`를 그대로 사용하며 Task assignment는 투입 시작/종료/투입률만 추가로 편집한다.
 
-migration 이전 역할 미지정 assignment는 `역할 미지정 (기존)`으로 표시한다. 이 상태는 기존 데이터를 파괴하지 않기 위해 그대로 저장할 수 있지만 새 개인 Resource를 선택한 경우에는 역할이 필수다. 역할 변경은 allocation draft를 재초기화하지 않는다.
-
-역할 stale 또는 Resource role 변경 race는 저장 성공으로 처리하지 않는다. Project/candidate snapshot의 revision 계약을 유지하고 409/412에서는 최신 정보 재확인을 안내한다. Group pane은 수행 역할 UI 없이 기존 담당 팀 참조 계약을 유지한다.
-
-### Issue #413 역할 후보 서버 필터
-
-수행 역할 필터 선택 시 client는 `assignment-targets?kind=resource&role=...`를 다시 조회한다. 역할 후보는 서버에서 100건 제한 전에 필터링하며, 응답 catalog revision이 현재 snapshot과 다르면 후보를 성공 상태로 승격하지 않는다. 역할별 후보 조회 중에는 별도 status를 표시하고 결과가 도착한 뒤 해당 Resource 목록을 사용한다.
-
-
+- Resource 행의 Global Role은 read-only badge로 표시한다. 역할 0개 Resource도 역할 선택을 이유로 assignment 저장을 차단하지 않는다.
+- `Global Role` 필터는 `assignment-targets?kind=resource&role=...`를 사용해 해당 Global Role을 가진 Resource 후보만 찾는다. 이 필터는 Task별 역할 값을 생성하지 않는다.
+- assignment PUT은 Resource에 `role`을 전송하지 않는다. 호환용 null은 허용할 수 있으나 non-null Task별 역할 입력은 거부한다.
+- allocation draft, dirty/stale/pending, Project/Catalog revision, inactive 대상, 401/412 복구 계약은 그대로 유지한다.
+- Group pane은 기존 담당 팀 참조 의미를 유지한다.
 ## Issue #461 완료 단계 소속 Editor
 
 Task의 작업 정보에는 단일 `완료 단계`, Summary에는 `하위 작업 기본 완료 단계` combobox를 둔다. 이름·externalId·canonical taskId를 trim/case-insensitive 검색하며 동일 이름 후보는 외부 ID/작업 ID·날짜·상태로 식별한다. 직접 지정·가장 가까운 Summary 상속·미지정을 구분한다. 직접 지정 해제는 null을 전송하여 상속으로 복귀하며 차단 sentinel은 없다. 해제 초안의 설명과 상속 출처 열기는 같은 preview membership을 사용한다. 이름과 소속은 기본 저장 한 PATCH에 담는다.

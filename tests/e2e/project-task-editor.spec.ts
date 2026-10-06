@@ -1006,13 +1006,13 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 });
 
 
-test("Issue #413 수행 역할 필터와 Resource별 역할 선택을 assignment 저장 payload에 반영한다", async ({ page }) => {
+test("Issue #485 Global Role 필터는 후보만 제한하고 assignment 저장에는 역할을 중복 전송하지 않는다", async ({ page }) => {
   const fixture = await setup(page, { assignmentTargets: true });
   await openRow(page);
   const dialog = editor(page);
   await dialog.getByRole("tab", { name: /리소스/ }).click();
 
-  const roleFilter = dialog.getByRole("combobox", { name: "수행 역할", exact: true });
+  const roleFilter = dialog.getByRole("combobox", { name: "Global Role", exact: true });
   const roleRequest = page.waitForRequest((request) => {
     const url = new URL(request.url());
     return url.pathname === `${apiPath}/assignment-targets` &&
@@ -1025,8 +1025,8 @@ test("Issue #413 수행 역할 필터와 Resource별 역할 선택을 assignment
   await expect(dialog.getByRole("checkbox", { name: /Resource B/ })).toHaveCount(0);
 
   await dialog.getByRole("checkbox", { name: /Resource A/ }).check();
-  const roleSelect = dialog.getByLabel(/Resource A.*수행 역할/);
-  await expect(roleSelect).toHaveValue("DEVELOPER");
+  await expect(dialog.getByLabel(/Resource A.*수행 역할/)).toHaveCount(0);
+  await expect(dialog.getByRole("checkbox", { name: /Resource A/ }).locator("..")).toContainText("개발자");
   await dialog.getByLabel(/Resource A.*투입률/).fill("60");
   await dialog.getByRole("button", { name: /할당 저장/ }).click();
 
@@ -1036,7 +1036,6 @@ test("Issue #413 수행 역할 필터와 Resource별 역할 선택을 assignment
     targets: [{
       kind: "resource",
       id: id(70),
-      role: "DEVELOPER",
       allocation: { start: null, end: null, percent: 60 },
     }],
   });
@@ -1100,7 +1099,7 @@ test("#461 Resource 신규 선택 해제는 잔여 draft로 dirty를 유지하�
   const fixture = await setup(page, { assignmentTargets: true }); await openRow(page);
   const dialog = editor(page); await dialog.getByRole("tab", { name: /리소스/ }).click();
   const resource = dialog.getByRole("checkbox", { name: /Resource A/ }); await resource.check();
-  await dialog.getByLabel(/Resource A.*수행 역할/).selectOption("DEVELOPER"); await dialog.getByLabel(/Resource A.*투입률/).fill("60");
+  await dialog.getByLabel(/Resource A.*투입률/).fill("60");
   await resource.uncheck(); await expect(resource).not.toBeChecked();
   await dialog.getByRole("button", { name: "작업 편집기 닫기" }).click();
   await expect(dialog).toHaveCount(0); expect(fixture.assignmentMutations).toHaveLength(0);
@@ -1123,7 +1122,7 @@ test("#461 Resource 외부 revision·401에서도 초안 유지, 확인 focus와
   const fixture = await setup(page, { assignmentTargets: true }); await openRow(page);
   const dialog = editor(page); await dialog.getByRole("tab", { name: /리소스/ }).click();
   const resource = dialog.getByRole("checkbox", { name: /Resource A/ }); await resource.check();
-  await dialog.getByLabel(/Resource A.*수행 역할/).selectOption("DEVELOPER"); await dialog.getByLabel(/Resource A.*투입률/).fill("60");
+  await dialog.getByLabel(/Resource A.*투입률/).fill("60");
   fixture.project.revision++;
   await page.evaluate(({ publicId, revision }) => window.dispatchEvent(new StorageEvent("storage", { key: `mastergantt:project-revision:${publicId}`, newValue: String(revision) })), { publicId, revision: fixture.project.revision });
   await expect(dialog).toContainText("기준 Revision이 변경"); await expect(resource).toBeChecked(); await expect(resource).toBeDisabled(); await expect(dialog.getByLabel(/Resource A.*투입률/)).toHaveValue("60");
@@ -1132,7 +1131,7 @@ test("#461 Resource 외부 revision·401에서도 초안 유지, 확인 focus와
   await expect(save(page)).toBeDisabled(); await expect(dialog.locator('[class*="body"]')).toHaveAttribute("inert", "");
   await cancelConfirm.click(); await expect(reload).toBeFocused(); await expect(resource).toBeChecked();
   await reload.click(); await dialog.getByRole("button", { name: "변경사항 버리고 다시 불러오기" }).click();
-  await expect(resource).not.toBeChecked(); await resource.check(); await dialog.getByLabel(/Resource A.*수행 역할/).selectOption("DEVELOPER"); await dialog.getByLabel(/Resource A.*투입률/).fill("60");
+  await expect(resource).not.toBeChecked(); await resource.check(); await dialog.getByLabel(/Resource A.*투입률/).fill("60");
   await page.route(`**${apiPath}/tasks/${id(4)}/assignments`, async (route) => { await route.fulfill({ status: 401, json: { error: { code: "UNAUTHORIZED" } } }); });
   await dialog.getByRole("button", { name: /할당 저장/ }).click(); await expect(dialog).toContainText("편집 권한이 없습니다"); await expect(resource).toBeChecked(); await expect(resource).toBeDisabled(); await expect(dialog.getByLabel(/Resource A.*투입률/)).toHaveValue("60");
 });

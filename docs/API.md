@@ -1341,52 +1341,23 @@ Resource Catalog의 Resource 표현은 `roles` 배열을 반환한다.
 
 Task assignment search/assigned-target DTO에는 이 Issue에서 roles를 새로 결합하지 않는다. 역할 적합성 기반 Task assignment는 후속 #413의 범위다.
 
-## Issue #413 — Task assignment 수행 역할
+## Issue #485 — Task assignment와 Global Role
 
-`GET /api/projects/{publicId}/assignment-targets`와 `GET /api/projects/{publicId}/assigned-targets`의 Resource target은 `roles: ("PI" | "DEVELOPER" | "EQUIPMENT_OWNER")[]`를 제공한다. Group target에는 roles를 제공하지 않는다.
+`PUT /api/projects/{publicId}/tasks/{taskId}/assignments`의 개인 Resource target은 `kind`, `id`, 선택적 `allocation`만 사용한다. Task별 수행 역할은 저장하지 않는다.
 
-`PUT /api/projects/{publicId}/tasks/{taskId}/assignments`의 Resource target은 optional `role`을 함께 받는다.
+- 호환용 request `role`은 omitted/null만 허용하고 non-null 값은 invalid request다.
+- canonical `ProjectAssignmentDto.role`은 Resource/Group 모두 null이다. 역할 정보가 필요하면 assignment target/Resource catalog의 Global `roles`를 사용한다.
+- `assignment-targets?kind=resource&role=...`의 `role`은 **Global Role 후보 검색 조건**이다. MAX_SEARCH_RESULTS 적용 전에 서버에서 필터하며 catalog revision 계약을 유지한다.
+- Global Role 변경은 Task assignment usage 때문에 차단하지 않는다. `ASSIGNMENT_ROLE_INVALID`/`RESOURCE_ROLE_IN_USE` Task-role 오류는 더 이상 사용하지 않는다.
+- Project Copy/Template은 Task별 role을 보존하지 않고 assignment/allocation만 보존한다. legacy template의 `assignmentRole`은 읽을 수 있으나 instantiate 시 무시한다.
 
-```json
-{
-  "catalogRevision": 23,
-  "targets": [
-    {
-      "kind": "resource",
-      "id": "<resource uuid>",
-      "role": "DEVELOPER",
-      "allocation": { "start": null, "end": null, "percent": 60 }
-    }
-  ]
-}
-```
+## Issue #414 — Global Role 기반 Resource workload 응답
 
-non-null role은 해당 Resource가 현재 보유한 Global Resource Role이어야 한다. omitted/null은 migration 이전 연동과 기존 역할 미지정 assignment의 하위 호환 상태로 유지된다. Group target에 `role` 또는 allocation을 보내면 invalid request다. 응답 `ProjectAssignmentDto.role`은 Resource에서 수행 역할 또는 null, Group에서 null이다.
-
-역할 검증은 기존 edit session, exact Origin, strong Project `If-Match`, `catalogRevision`과 같은 transaction에서 수행한다. stale catalog는 `412 CATALOG_REVISION_MISMATCH`, Resource가 보유하지 않은 role은 `409 ASSIGNMENT_ROLE_INVALID`이다. Resource Catalog에서 사용 중 role 제거는 `409 RESOURCE_ROLE_IN_USE`와 role/Project count/Task count detail을 반환한다.
-
-### Issue #413 역할 기반 assignment target 검색
-
-`GET /api/projects/{publicId}/assignment-targets`는 optional `role=PI|DEVELOPER|EQUIPMENT_OWNER`를 지원한다. role은 Resource 후보에만 적용하며 `kind=group`과 함께 보내면 `400 INVALID_REQUEST`다. 서버는 Global Resource Role membership으로 먼저 필터한 뒤 기존 최대 100건 제한을 적용하므로, 전체 활성 대상이 100건을 넘어도 해당 역할 Resource가 앞선 무관 후보 때문에 잘리지 않는다.
-
-Template instantiate 시 snapshot의 Resource 수행 역할이 현재 Global Role에서 제거된 경우 project 생성 자체를 실패시키지 않는다. 기존 assignment와 allocation은 보존하고 수행 역할만 `null`로 복원하며 warnings에 stale 역할을 명시한다.
-
-## Issue #414 — 역할 기반 Resource workload 응답 확장
-
-`GET /api/projects/{publicId}/resource-workload`는 #56의 public-read/조회범위/M-D·M-M 계산 계약을 유지하면서 역할 기반 진단 필드를 추가한다.
-
-- `asOfDate` / `timezone`: Project calendar timezone 기준 서버 기준일과 timezone.
-- `roleTotals[]`: `PI | DEVELOPER | EQUIPMENT_OWNER | UNSPECIFIED`별 `assignmentCount`, `effortMd`, `effortMm`, `unsetCount`.
-- `unspecifiedRoleCount`: 조회 범위에 포함된 role-null 일반 Task Resource assignment 수.
-- `overAllocatedResourceCount`: 기존 일별 allocation 합계 100% 초과 규칙으로 판정한 고유 Resource 수.
-- Resource row는 `developerGrade`를, Task row는 `role`, canonical `taskStart/taskEnd`, `progress`, `status`, `delayed`를 제공한다.
-
-역할은 분류 축일 뿐 공수를 생성하지 않는다. Grand Total과 역할 subtotal은 동일 assignment를 중복 생성하지 않으며 role-null은 Global Role로 추정하지 않고 `UNSPECIFIED`로 유지한다. `delayed`는 #188과 동일하게 `progress < 100 && canonical end < asOfDate`다. 진행률/상태는 계획 공수 산식의 입력이 아니다.
-
-상세 설계: [ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md](ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md).
-
-
-
+- Grand Total M/D·M/M은 assignmentId 기준 한 번만 합산한다.
+- 각 개인 assignment의 역할 표시는 Resource의 현재 Global `roles`를 사용한다. 역할이 없으면 `UNSPECIFIED` 분류를 사용한다.
+- 복수 Global Role Resource는 동일 assignment가 여러 role subtotal에 포함될 수 있으므로 role subtotal은 비가산 분류다. subtotal 합은 Grand Total과 일치할 필요가 없다.
+- `unspecifiedRoleCount`는 Global Role이 없는 Resource assignment 수다.
+- 기존 `assignmentRoles` query key는 호환을 위해 유지하되 Global Role 필터 의미다. resource/Global Role/developerGrade 조건은 같은 Resource assignment에서 AND로 만족해야 한다.
 ## Issue #415 — Excel Resource Effort 옵션
 
 `POST /api/projects/{publicId}/exports/excel` 요청에 optional boolean `includeResourceEffort`를 추가한다. true이면 서버는 #414와 동일한 기본 range 및 `RESOURCE_MD_PER_MM` 환경값으로 Resource workload를 계산하고, export 대상 Project snapshot의 revision과 workload `projectRevision`을 비교한다. 불일치하면 기존 stale 보호와 동일하게 412 `REVISION_MISMATCH`를 반환한다.

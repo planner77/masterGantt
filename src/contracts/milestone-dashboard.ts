@@ -1,6 +1,6 @@
 import type { MilestoneStageGateDto } from "./milestones";
 import type { TaskStatus } from "./projects";
-import type { DeveloperGrade, ResourceWorkloadRole } from "./resources";
+import type { DeveloperGrade, ResourceRole, ResourceWorkloadRole } from "./resources";
 
 export type MilestoneDashboardGrade = DeveloperGrade | "UNSPECIFIED";
 export type MdPerMmSource = "query" | "environment" | "unset";
@@ -89,7 +89,7 @@ export interface MilestoneDashboardAssignmentDto {
   taskId: string;
   milestoneTaskId: string | null;
   resourceId: string;
-  role: ResourceWorkloadRole;
+  roles: ResourceWorkloadRole[];
   developerGrade: MilestoneDashboardGrade;
   from: string;
   to: string;
@@ -129,7 +129,7 @@ export interface MilestoneDashboardDto {
   };
   catalog: {
     milestones: { id: string; name: string; externalId: string }[];
-    resources: { id: string; name: string; code: string | null; active: boolean; developerGrade: DeveloperGrade | null }[];
+    resources: { id: string; name: string; code: string | null; active: boolean; developerGrade: DeveloperGrade | null; roles: ResourceRole[] }[];
     processes: { id: string; code: string; name: string; active: boolean }[];
     equipment: { id: string; code: string; name: string; active: boolean }[];
     systems: { id: string; code: string; name: string; active: boolean }[];

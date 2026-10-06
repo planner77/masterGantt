@@ -333,27 +333,26 @@ Summary는 하위 일정에서 날짜가 파생되므로 시작일 직접 편집
 - 비활성 Resource의 기존 역할은 조회/보존되어야 한다. 안전 삭제가 허용된 Resource 삭제 시 role row는 함께 정리되어야 한다.
 - 관리 UI는 역할과 개발자 등급을 시각·의미적으로 구분하고 keyboard로 역할 다중 선택이 가능해야 한다.
 
-## Issue #413 — Task Resource 수행 역할
+## Issue #485 — Global Resource Role 단일 기준
 
-개인 Resource assignment는 Task별 수행 역할을 선택할 수 있어야 한다. 수행 역할은 Resource의 Global Role 중 하나이며 하나의 Task+Resource에는 assignment 하나만 존재한다. 같은 Resource가 서로 다른 Task에서 다른 역할을 수행하는 것은 허용한다.
+#413의 Task별 수행 역할 선택/저장 계약은 #485로 대체한다. Resource 관리의 Global Role이 해당 Resource의 수행 역할에 대한 단일 Source of Truth다.
 
-Task Editor 리소스 탭은 역할→Resource 및 Resource→역할 두 흐름을 모두 지원한다. 역할 필터는 해당 역할을 가진 Resource 후보만 남기고, Resource별 select는 해당 Resource의 Global Role만 보여준다. 기존 역할 미지정 assignment는 별도 상태로 보여주고 사용자가 역할을 보완할 수 있어야 한다. 신규 개인 Resource UI 배정은 역할 선택 없이는 저장하지 않는다.
+- Task assignment는 Resource/Group 참조와 개인 Resource의 allocation(start/end/percent)만 소유한다. Task별 `assignment_role`을 신규 입력·수정하지 않는다.
+- Task Editor는 개인 Resource 선택 후 별도 역할 Select를 표시하지 않는다. Global Role badge는 read-only 정보이며 `role` query는 후보 Resource의 Global Role 검색/필터 의미만 가진다.
+- 호환용 `ProjectAssignmentDto.role`과 DB `assignment_role`은 non-authoritative이며 canonical 응답/신규 저장은 null이다. non-null mutation 입력은 거부한다.
+- Global Role 변경은 기존 Task assignment 때문에 차단하지 않는다. Project Equipment/System 역할은 별도 도메인으로 유지한다.
+- Project Copy/Template은 Task별 역할을 복제하지 않고 Resource/Group 참조와 allocation만 보존한다.
 
-수행 역할 변경은 allocation 기간/투입률, 근무 Calendar, Task schedule을 자동 변경하지 않는다. Group assignment, Project Equipment/System role, Resource Group membership도 자동 변경하지 않는다. 사용 중 Global Role은 silently 제거할 수 없으며 서버 transaction에서 차단한다.
+## Issue #414 — Global Role 기반 Resource workload / 개발자 견적
 
-## Issue #414 — 역할 기반 Resource workload / 개발자 견적
-
-- #56의 개인 Resource assignment M/D·M/M 계산과 Calendar/allocation 계약을 유지한 채 #413의 Task 수행 역할을 집계 분류 축으로 제공해야 한다.
-- 역할별 합계는 `PI | DEVELOPER | EQUIPMENT_OWNER | UNSPECIFIED`를 구분하며, 역할 미지정 legacy assignment를 Global Role로 추정하지 않는다.
-- Grand Total은 assignmentId 기준으로 정확히 한 번 합산되어야 하며 Resource Group 중복 membership으로 증가하면 안 된다.
-- Resource View는 역할/개발자 등급/기간 drill-down과 `개발 견적` preset을 제공하고, 개발자별 Task 계획 공수·진행률·상태/지연·allocation 기간/투입률을 함께 보여야 한다.
-- Task progress/status는 계획 공수를 차감하거나 실제 소진 공수로 변환하지 않는다.
-- M/M 기준 미설정, 공수 미설정, 과투입, stale/error/empty 상태를 명시적으로 보존하며 일정↔리소스 tab 전환은 Gantt instance/state를 재생성하지 않는다.
+- #56의 개인 Resource assignment M/D·M/M 계산과 Calendar/allocation 계약을 유지한다.
+- 역할 분류는 assignment row가 아니라 Resource의 현재 Global Role 집합을 사용한다. 역할이 없는 Resource는 `UNSPECIFIED`로 표시한다.
+- 복수 Global Role Resource의 동일 assignment는 여러 역할 subtotal에 포함될 수 있으므로 역할 subtotal은 **비가산 분류 보기**다. 역할 subtotal 합으로 Grand Total을 계산하지 않는다.
+- Grand Total은 계속 assignmentId 기준 정확히 한 번 합산하며 Resource Group 중복 membership으로 증가하지 않는다.
+- `개발 견적` preset은 현재 Global Role에 `DEVELOPER`가 포함된 Resource를 사용한다.
+- Resource View와 Milestone dashboard의 기존 `assignmentRoles` query key는 호환을 위해 유지하되 의미는 Global Role 필터다.
 
 상세 계약은 [Issue #414 문서](ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md)를 따른다.
-
-
-
 ## Issue #415 — Resource/개발 공수 견적 Excel
 
 - 사용자는 Excel 내보내기에서 역할·개발자 공수 견적 포함 여부를 선택할 수 있어야 한다.

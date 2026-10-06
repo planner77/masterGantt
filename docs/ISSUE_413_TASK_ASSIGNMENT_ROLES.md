@@ -1,3 +1,5 @@
+> **Superseded by Issue #485 (2026-10-06).** Task별 수행 역할 선택/저장은 더 이상 제품 계약이 아니다. Resource Catalog의 Global Role이 수행 역할의 단일 Source of Truth이며 Task assignment는 Resource/Group + allocation만 소유한다. 아래 내용은 #413 당시의 역사적 설계 기록이다.
+
 # Issue #413 — Task Resource 수행 역할
 
 ## 기준
