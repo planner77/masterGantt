@@ -148,6 +148,9 @@ describe("Issue #342 country calendar catalog", () => {
       origin: "OVERRIDE", status: "UNAVAILABLE", sourceVersion: null, sourceUrl: null,
     });
     expect(service.getEffectiveDataset("CN", 2026)).toBeUndefined();
+    expect(service.listEffectiveDescriptors().find((entry) => entry.code === "CN")).toMatchObject({
+      supportedYears: [], sourceVersion: null, sourceUrl: null,
+    });
 
     const updated = service.updateMetadata("CN", 2026, added.data.revision, {
       status: "OFFICIAL",
