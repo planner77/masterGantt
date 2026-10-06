@@ -167,6 +167,36 @@ describe("Issue #342 country calendar catalog", () => {
     expect(service.getEffectiveDataset("CN", 2026)).toBeUndefined();
   });
 
+  it("allows deleting the sole official date and invalidates provenance atomically", () => {
+    const service = new CountryCalendarCatalogService(database(), () => new Date("2026-09-30T03:00:00.000Z"));
+    const applied = service.applyImport(1, {
+      format: "json",
+      content: JSON.stringify({
+        countryCode: "US", year: 2030, sourceVersion: "US-2030-official-1",
+        sourceUrl: "https://www.opm.gov/2030",
+        dates: [{ date: "2030-01-01", name: "New Year's Day", dayType: "NON_WORKING", sourceKey: "new-year" }],
+      }),
+    });
+    const deleted = service.deleteDate("US", 2030, "2030-01-01", applied.data.revision);
+    expect(deleted.data).toMatchObject({
+      dataset: { status: "UNAVAILABLE", sourceVersion: null, sourceUrl: null, dateCount: 0 },
+      dates: [],
+    });
+    expect(service.getEffectiveDataset("US", 2030)).toBeUndefined();
+  });
+
+  it("rejects empty or unknown date patches without changing revision or provenance", () => {
+    const service = new CountryCalendarCatalogService(database());
+    const initial = service.getAdminDataset("KR", 2026);
+    expect(() => service.updateDate("KR", 2026, "2026-01-01", initial.data.revision, {}))
+      .toThrow(CountryCalendarCatalogInvalidInputError);
+    expect(() => service.updateDate("KR", 2026, "2026-01-01", initial.data.revision, { typo: "x" } as never))
+      .toThrow(CountryCalendarCatalogInvalidInputError);
+    const after = service.getAdminDataset("KR", 2026);
+    expect(after.data.revision).toBe(initial.data.revision);
+    expect(after.data.dataset).toMatchObject({ status: "OFFICIAL", origin: "BUILT_IN" });
+  });
+
   it("requires complete source metadata and at least one date before an empty slot becomes OFFICIAL", () => {
     const service = new CountryCalendarCatalogService(database());
     const unavailable = service.getAdminDataset("US", 2037);
