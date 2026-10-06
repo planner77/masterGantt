@@ -2009,3 +2009,11 @@ filter의 설치 handler가 직접 scroll0/timeline 축소를 수행한다고 �
 최종 source 직접8 unique scenario PASS, 나머지19 unique는 기존19/10/9 실행에서 필터 signature guard 추가의 영향 근거로 재사용하여27 unique다. 최종 계열19+10+9+5+1+8=52 PASS 실행/중복25회, 전체 after102 PASS/19 FAIL testcase 실행이다. 이전 source SHA/실행 결과는 과거 단계 근거로 그대로 남기고 최종 hash로 소급 바꾸지 않았다.
 
 Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manager의 독립 검토·infra 원격 게시/exact-head CI 등록 후 상태를 별도로 기록한다. CI 모니터링·merge/main GHCR/release는 사용자 이번 범위 밖이다. B #490/C #491은 FOLLOW-UP/NOT TESTED다.
+
+### Main CI #1993.1 dependency audit corrective
+
+- PR #500 merge SHA `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 Main CI Run `37524404994` / #1993.1에서 build, typecheck, lint, Vitest, Chromium E2E 6/6, Docker smoke는 SUCCESS였고 `정책·저장소 계약 검사 → production dependency audit`만 FAIL했다.
+- authoritative 실패는 `npm audit --omit=dev`가 optional production dependency `sharp 0.35.4`의 GHSA-wq5f-xc86-pv6w / CVE-2026-96889 (High)를 탐지한 것이다. audit gate를 skip/완화하지 않는다.
+- Next 16.3.8의 optional range `sharp ^0.35.4` 안에서 lockfile을 `sharp 0.35.5`, 대응 `@img/sharp-* 0.35.5`, `@img/sharp-libvips-* 1.3.4`로 갱신한다. package manifest와 application version `0.92.1`은 유지한다.
+- `tests/scripts/test-config-layout.test.ts`는 `sharp >= 0.35.5`와 모든 `@img/sharp-libvips-* >= 1.3.4`를 정적으로 고정하며, 실제 advisory 판정 authority는 계속 PR/Main/Release의 `npm audit --omit=dev`다.
+- corrective branch는 `fix/issue-456-main-ci-sharp-audit`이며 새 exact-head PR CI SUCCESS 후 병합해 새 Main CI를 시작한다. Generic Finalizer는 same-Issue corrective span의 최초 `0.92.0` → 최신 `0.92.1`을 기준으로 release 필요성을 판정하므로 기존 v0.92.1 release authorization을 사용한다.
