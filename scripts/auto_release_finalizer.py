@@ -9,7 +9,7 @@ import os
 import re
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -50,6 +50,7 @@ class WorkItem:
     current_version: str
     validation_docs_only: bool = False
     cleanup_pr_numbers: tuple[int, ...] = ()
+    actionable: bool = True
 
 
 def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -294,9 +295,10 @@ def collect_pending_work(
             return list(reversed(pending_newest_first))
         if is_closed_issue(repo, item):
             # A later maintenance/fix PR may legitimately reference an Issue
-            # whose older target was already finalized.  Do not mutate or
-            # reopen that closed Issue, but keep traversing first-parent so an
-            # older unfinished lifecycle target cannot be hidden behind it.
+            # whose older target was already finalized.  Keep it as a
+            # non-actionable ordering barrier so adjacency-sensitive retry
+            # coalescing cannot cross this merge, while continuing traversal.
+            pending_newest_first.append(replace(item, actionable=False))
             cursor = item.first_parent_sha
             continue
         pending_newest_first.append(item)
@@ -321,6 +323,8 @@ def coalesce_consecutive_issue_retries(items: list[WorkItem]) -> list[WorkItem]:
     for item in items:
         if (
             coalesced
+            and coalesced[-1].actionable
+            and item.actionable
             and coalesced[-1].issue_number == item.issue_number
             and coalesced[-1].validation_docs_only == item.validation_docs_only
         ):
@@ -652,7 +656,9 @@ def execute(trigger_sha: str) -> int:
 
     latest_main = current_main_sha(repo)
     pending_raw = collect_pending_work(repo, latest_main)
-    pending_coalesced = coalesce_consecutive_issue_retries(pending_raw)
+    pending_with_barriers = coalesce_consecutive_issue_retries(pending_raw)
+    closed_barriers = [item for item in pending_with_barriers if not item.actionable]
+    pending_coalesced = [item for item in pending_with_barriers if item.actionable]
     ci_evidence = {
         item.target_sha: exact_main_ci_success(repo, item.target_sha)
         for item in pending_coalesced
@@ -691,6 +697,7 @@ def execute(trigger_sha: str) -> int:
             f"- dispatcher main snapshot: `{latest_main}`",
             f"- pending first-parent merges: `{len(pending_raw)}`",
             f"- targets after adjacent same-Issue convergence: `{len(pending_coalesced)}`",
+            f"- non-actionable closed ordering barriers: `{len(closed_barriers)}`",
             f"- superseded failed attempts: `{len(superseded)}`",
             f"- lifecycle targets: `{len(pending)}`",
             "- 처리 순서: oldest → newest; intervening Issues retain their position",
