@@ -136,3 +136,8 @@ REQUIREMENTS·ARCHITECTURE는 새 기능·계층 경계 변경이 없어 N/A다.
 PR #500 병합 SHA `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 Main CI Run `37524404994`은 제품 build/typecheck/lint/Vitest/E2E 6/6/Docker smoke는 통과했지만 production audit에서 `sharp 0.35.4` High 취약점(CVE-2026-96889)으로 실패했다. audit gate를 완화하지 않고 corrective branch `fix/issue-456-main-ci-sharp-audit`에서 lockfile을 `sharp 0.35.5` 및 `@img/sharp-libvips 1.3.4`로 갱신하고 정적 최소 버전 회귀를 추가한다.
 
 application version은 `0.92.1`을 유지한다. 이 corrective는 동일 Issue의 non-docs 후속 merge이며 Generic Finalizer의 same-Issue convergence가 최초 0.92.0→최신0.92.1 span으로 release_required를 판정하므로 기존 v0.92.1 authorization 범위를 유지한다. 새 PR exact-head quality/e2e/docker PASS → merge → 새 Main CI 시작이 현재 요청 종료점이며, 그 뒤 GHCR/finalize는 기존 자동 lifecycle gate가 처리한다.
+
+
+### Corrective PR trace 재등록
+
+PR #504 최초 Run #2011.1은 제품 검증 전에 PR 제목의 Primary Issue 표기가 canonical 형식이 아니어서 `verify-ci-run-trace.py`에서 차단됐다. 제목을 `fix: Main CI sharp audit 보완 (#456)`으로 정정했다. close/reopen으로 생성된 #2012.1은 same-head metadata evidence 대기 경로에 들어가므로, 이 이력을 문서화한 새 commit으로 head를 갱신해 `pull_request.synchronize` full CI를 다시 시작한다. 보안 lockfile/test 내용은 변경하지 않는다.
