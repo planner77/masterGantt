@@ -2,7 +2,7 @@
 
 ## Issue #453 → #454 → #455 관리자 작업면 개선 — 순차 구현·문서·PR CI 등록
 
-선행 #452가 포함된 최초 main `fd8fdc9e9207ab43a6fb7ff85b5a5acbe91d4553` / `0.86.0`에서 #453의 독립 리소스·그룹 탭 구현과 독립 UI/사전 QA를 마쳤다. 게시 직전 main이 `56e2e54f88ab9124ec81c52e157161181ed6c337`로 이동해 로컬 후보를 재정렬했으며 dependency 관련 최소 검증을 PASS했고 문서·독립 사전 검토를 갱신한다. Resource 제품 source는 동일하고 새 main의 운영 4파일과 source-map-js 1.2.2를 보존한다. branch는 `feat/issue-453-resource-tabs`, 후보 version은 `0.90.0`이며 [Issue #453 Work Packet](ISSUE_453.md)에 인수 기준·설계·소유권·실제 before/after 검증을 기록한다. 이후 #454 물류 목록 밀도·열 너비 → #455 기준정보 입력/목록을 선행 PR CI 등록 후 순차 진행한다. 원격 CI 결과 모니터링·병합·GHCR·정식 release·branch cleanup·Issue 종료는 요청 범위 밖이다. `release_required=true`, `release_authorized=false`; 공식 quality/e2e/docker와 최종 QA는 NOT TESTED다.
+#453은 [PR #477](https://github.com/planner77/masterGantt/pull/477), head `c411634f75b7a69131a095e9cb6b7416060b827e`, [CI run 37406441919](https://github.com/planner77/masterGantt/actions/runs/37406441919)의 exact head 등록까지 전달했다. 관련 LFF·문서·독립 UI/사전 QA·게시 동등성 PASS이며 CI 결과는 모니터링하지 않았다. 이제 같은 선행 후보에서 `fix/issue-454-logistics-table-density` / PATCH `0.90.1`을 준비해 물류 유형 목록의 구현과 관련 browser14개 고유 사례 검증을 마쳤으며 문서 동기화·독립 사전 검토를 진행한다. [#453 Packet](ISSUE_453.md)과 [#454 Packet](ISSUE_454.md)에 각 단계의 증거·소유권을 기록한다. 최신 main `56e2e54f88ab9124ec81c52e157161181ed6c337` / `0.86.0`과 선행 #452/#461을 보존한다. #454 CI 등록 후 #455 기준정보 개선을 순차 진행한다. quality/e2e/docker 및 공식 최종 QA/ACCEPT는 NOT TESTED, release_required=true/release_authorized=false이며 결과 모니터링·병합·GHCR·tag·cleanup·Issue 종료는 요청 범위 밖이다.
 
 ## Issue #460~#464 완료 단계 관리 — 순차 구현·문서 동기화·push·PR CI 시작
 
