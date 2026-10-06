@@ -84,7 +84,8 @@ test("Issue #342: 관리자에서 Import Preview/Apply와 휴일 CRUD를 완료�
     countryCode:"KR",year:2026,sourceVersion:"KR-2026-upload-2",sourceUrl:"https://example.go.kr/upload",
     dates:[{date:"2026-12-25",name:"기독탄신일",dayType:"NON_WORKING",sourceKey:"christmas"}],
   };
-  await page.getByLabel("파일",{exact:true}).setInputFiles({
+  const fileInput=page.getByLabel("파일",{exact:true});
+  await fileInput.setInputFiles({
     name:"kr-2026.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(upload)),
   });
   await page.getByRole("button",{name:"업로드 전 검증"}).click();
@@ -92,6 +93,11 @@ test("Issue #342: 관리자에서 Import Preview/Apply와 휴일 CRUD를 완료�
   await page.getByRole("button",{name:"검증 결과 적용"}).click();
   await expect(page.getByLabel("Source version")).toHaveValue("KR-2026-upload-2");
   await expect(page.getByText("기독탄신일")).toBeVisible();
+  await expect(fileInput).toHaveValue("");
+  await fileInput.setInputFiles({
+    name:"kr-2026.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(upload)),
+  });
+  await expect(page.getByRole("button",{name:"업로드 전 검증"})).toBeEnabled();
 
   await page.getByLabel("날짜",{exact:true}).first().fill("2026-12-31");
   await page.getByLabel("이름",{exact:true}).first().fill("연말 휴일");
@@ -157,5 +163,46 @@ test("Issue #342: 빠른 파일 재선택은 마지막 파일 내용만 Preview/
   await expect(page.getByLabel("Source version")).toHaveValue("KR-2026-B");
   await expect(page.getByText("B",{exact:true})).toBeVisible();
   await expect(page.getByText("A",{exact:true})).toHaveCount(0);
+});
+
+test("Issue #342: 조회 실패는 선택 target과 이전 snapshot을 섞지 않는다",async({page})=>{
+  await installCalendarMocks(page);
+  await page.goto("/calendar-admin");
+  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
+  await page.getByRole("button",{name:"로그인",exact:true}).click();
+  await expect(page.getByRole("heading",{name:"대한민국 2026"})).toBeVisible();
+
+  const failGet=async(route:Route)=>{
+    if(route.request().method()==="GET"){await route.fulfill({status:500,json:{error:{code:"TEST_ERROR"}}});return;}
+    await route.fallback();
+  };
+  await page.route("**/api/admin/work-calendars/countries/CN/years/2026",failGet);
+  await page.getByLabel("국가").selectOption("CN");
+  await expect(page.getByRole("heading",{name:"대한민국 2026"})).toHaveCount(0);
+  await expect(page.getByText("국가 캘린더 데이터를 불러오지 못했습니다.",{exact:true})).toBeVisible();
+  await expect(page.getByRole("button",{name:"메타데이터 저장"})).toBeDisabled();
+  await page.unroute("**/api/admin/work-calendars/countries/CN/years/2026",failGet);
+});
+
+test("Issue #342: 412 reload 뒤 stale 날짜 편집 초안을 폐기한다",async({page})=>{
+  await installCalendarMocks(page);
+  await page.goto("/calendar-admin");
+  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
+  await page.getByRole("button",{name:"로그인",exact:true}).click();
+
+  const row=page.getByRole("row").filter({hasText:"신정"});
+  await row.getByRole("button",{name:"편집"}).click();
+  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 편집"});
+  await dialog.getByLabel("이름",{exact:true}).fill("stale draft");
+
+  const conflict=async(route:Route)=>{
+    if(route.request().method()==="PATCH"){await route.fulfill({status:412,json:{error:{code:"COUNTRY_CALENDAR_REVISION_MISMATCH"}}});return;}
+    await route.fallback();
+  };
+  await page.route("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",conflict);
+  await dialog.getByRole("button",{name:"저장",exact:true}).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByText("다른 관리 변경이 먼저 저장되어 최신 데이터를 다시 불러왔습니다. 열린 편집 초안은 폐기되었습니다.",{exact:true})).toBeVisible();
+  await page.unroute("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",conflict);
 });
 
