@@ -9,6 +9,7 @@
 
 ### Fixed
 
+- Issue #475: Generic Release Finalizer가 FINAL marker 없는 closed Issue merge를 historical boundary로 오인해 그 이전 pending lifecycle을 숨기던 문제를 수정한다. closed merge는 mutation 대상에서 제외하되 non-actionable ordering barrier로 보존해 same-Issue retry coalesce가 이를 가로지르지 못하게 하고, exact FINAL marker까지 탐색을 계속한다.
 - PR #470 review: 새 리소스를 선택했다가 해제하면 남은 역할·투입 초안 때문에 false dirty 상태가 유지되던 문제를 선택된 리소스 기준 canonical 비교로 수정한다.
 - PR #470 review: 외부 변경으로 Milestone이 일반 Task로 바뀐 뒤 다시 불러올 때 더 이상 존재하지 않는 `소속 작업` 탭이 활성 상태로 남지 않도록 작업 정보 탭으로 정규화한다.
 - PR #470 review: Membership 보유 Project의 Excel 보존 차단 오류에 명시 source와 target의 public Task ID를 포함하여 API의 구조화된 진단 계약을 지킨다.
