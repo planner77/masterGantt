@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type {
+  CountryCalendarImportApplyRequest,
   CountryCalendarImportEnvelope,
   CreateCountryCalendarDateRequest,
   UpdateCountryCalendarDateRequest,
@@ -16,6 +17,7 @@ import {
   CountryCalendarCatalogConflictError,
   CountryCalendarCatalogInvalidInputError,
   CountryCalendarCatalogNotFoundError,
+  CountryCalendarCatalogPreviewMismatchError,
   CountryCalendarCatalogRevisionMismatchError,
   type CountryCalendarCatalogService,
 } from "./country-calendar-catalog-core";
@@ -77,6 +79,9 @@ function mapped(error: unknown): unknown {
   }
   if (error instanceof CountryCalendarCatalogConflictError) {
     return new PublicApiError(409, "COUNTRY_CALENDAR_CONFLICT", "Country calendar change conflicts with the current dataset state.");
+  }
+  if (error instanceof CountryCalendarCatalogPreviewMismatchError) {
+    return new PublicApiError(409, "COUNTRY_CALENDAR_IMPORT_PREVIEW_MISMATCH", "Import apply must match the reviewed preview.");
   }
   if (error instanceof CountryCalendarCatalogInvalidInputError) {
     return new PublicApiError(400, "INVALID_COUNTRY_CALENDAR_INPUT", "Country calendar input is invalid.");
@@ -190,6 +195,15 @@ function envelope(value: unknown): CountryCalendarImportEnvelope {
   return { format: candidate.format, content: candidate.content };
 }
 
+function importApplyRequest(value: unknown): CountryCalendarImportApplyRequest {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new CountryCalendarCatalogInvalidInputError();
+  const candidate = value as Partial<CountryCalendarImportApplyRequest>;
+  if (typeof candidate.previewToken !== "string" || candidate.previewToken.length < 32 || candidate.previewToken.length > 128) {
+    throw new CountryCalendarCatalogInvalidInputError();
+  }
+  return { previewToken: candidate.previewToken, envelope: envelope(candidate.envelope) };
+}
+
 export async function handlePreviewCountryCalendarImport(request: Request, dependencies: Dependencies): Promise<Response> {
   const requestId = (dependencies.requestId ?? randomUUID)();
   try {
@@ -205,8 +219,8 @@ export async function handleApplyCountryCalendarImport(request: Request, depende
   try {
     const url = appUrl(dependencies); requireOrigin(request, url); requireAdmin(request, dependencies, url);
     const revision = parseRequiredIfMatch(request);
-    const body = envelope(await readBoundedJson(request, IMPORT_ENVELOPE_LIMIT_BYTES));
-    const result = resolve(dependencies.catalogService).applyImport(revision, body);
+    const body = importApplyRequest(await readBoundedJson(request, IMPORT_ENVELOPE_LIMIT_BYTES));
+    const result = resolve(dependencies.catalogService).applyImport(revision, body.previewToken, body.envelope);
     return response(result, 200, result.data.revision);
   } catch (error) { return fail(error, requestId); }
 }
