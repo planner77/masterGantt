@@ -279,13 +279,13 @@ export class CountryCalendarCatalogService {
         if (dataset) supported.push({ year, dataset });
       }
       const baseline = listCountryCalendarDescriptors().find((entry) => entry.code === code)!;
-      const latest = supported.at(-1)?.dataset.descriptor ?? baseline;
+      const latest = supported.at(-1)?.dataset.descriptor;
       return {
         code,
         name: baseline.name,
         supportedYears: supported.map((entry) => entry.year),
-        sourceVersion: latest.sourceVersion,
-        sourceUrl: latest.sourceUrl,
+        sourceVersion: latest?.sourceVersion ?? null,
+        sourceUrl: latest?.sourceUrl ?? null,
       };
     });
   }
