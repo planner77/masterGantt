@@ -247,3 +247,15 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 - 새로운 cache를 도입할 때는 cache key 입력, invalidation, miss fallback, write 권한, secret 포함 여부를 함께 검토한다. cache hit 자체를 PASS 근거로 사용하지 않는다.
 - `node_modules` cache는 금지한다. Playwright browser cache는 Phase 1 baseline에서 download/install 비용이 유의미한 것으로 확인된 뒤 별도 PR로만 활성화한다.
 - setup 비용 최적화 PR은 기존 required checks, test 개수, audit, Docker/runtime smoke를 줄이는 방법으로 성능을 만들지 않는다.
+
+
+## Issue #483 — Release Resume에서 다음 Release dispatch
+
+Release 성공 후 `release-finalizer-resume.yml`은 exact source run을 확인하고 Generic Finalizer를 재개한다. 이 재개 과정에서 다음 first-parent target이 release-required이면 같은 resolver가 다음 `release-image.yml` run을 dispatch할 수 있다.
+
+운영 계약:
+- Resume workflow permission은 `actions: write`여야 한다.
+- source Release run ID, workflow path, head SHA, success conclusion 검증은 생략하지 않는다.
+- 이미 생성된 annotated SemVer tag가 있으면 그 tag를 그대로 사용하며 이동/덮어쓰기하지 않는다.
+- dispatch 403은 새 tag/version 생성으로 우회하지 않고 Resume permission을 수정한 뒤 동일 lifecycle을 재개한다.
+- Issue별 one-shot release helper workflow는 만들지 않는다.
