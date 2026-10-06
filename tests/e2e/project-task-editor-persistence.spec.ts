@@ -192,8 +192,9 @@ test("Summary Description and URL persist while derived schedule stays readonly"
   await emptySummaryRow.getByText("Summary metadata", { exact: true }).click({ button: "right" });
   await chooseTaskInformation(page);
   const reopened = page.getByRole("dialog", { name: "작업 정보", exact: true });
-  await expect(reopened.getByLabel("Description", { exact: true })).toHaveValue("요약 설명\n상세");
-  await expect(reopened.getByLabel("URL", { exact: true })).toHaveValue(summaryUrl);
+  await expect(reopened).toBeVisible();
+  await expect(reopened.getByRole("textbox", { name: "Description", exact: true })).toHaveValue("요약 설명\n상세");
+  await expect(reopened.getByRole("textbox", { name: "URL", exact: true })).toHaveValue(summaryUrl);
   await reopened.getByRole("button", { name: "취소", exact: true }).click();
 });
 

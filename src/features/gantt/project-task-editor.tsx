@@ -166,6 +166,18 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
     (latestTask?.type !== base.task.type ? "작업 유형이 변경되었습니다. 최신 정보를 다시 불러와 주세요." : null);
   const locked = busy || operation !== null || resourcePending || logisticsPending;
   const readOnly = !!restriction || stale;
+  useEffect(() => {
+    if (!locked) return;
+    // Disabled controls may move focus to body; keep pending Escape on this top-layer dialog.
+    const preventPendingEscape = (event: globalThis.KeyboardEvent) => {
+      const openDialogs = document.querySelectorAll("dialog[open]");
+      if (event.key !== "Escape" || openDialogs.item(openDialogs.length - 1) !== dialogReference.current) return;
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    document.addEventListener("keydown", preventPendingEscape, true);
+    return () => document.removeEventListener("keydown", preventPendingEscape, true);
+  }, [locked]);
   const basicMutationLocked = readOnly || membershipDirty || resourceDirty || logisticsDirty;
   const scheduleReadOnly = basicMutationLocked || base.task.type === "summary";
   const scheduleDirty = draft.start !== (base.task.requestedStart ?? base.task.start ?? "") || draft.duration !== (base.task.duration === null ? "" : String(base.task.duration)) || draft.scheduleMode !== base.task.scheduleMode;
@@ -346,7 +358,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
   const taskTypeLabel = base.task.type === "summary" ? "요약 작업" : base.task.type === "milestone" ? "마일스톤" : "일반 작업";
   const scheduleIssue = validateTaskEditorSchedule(base.task, draft, base.calendar, scheduleBasis);
 
-  return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onCancel={(event) => { event.preventDefault(); if (confirmation || navigation) { setConfirmation(null); setNavigation(null); } else if (relationDeleteTarget) cancelRelationDelete(); else close(); }}>
+  return <dialog className={styles.dialog} ref={dialogReference} aria-labelledby="task-editor-title" aria-describedby="task-editor-description" aria-busy={locked || undefined} onKeyDown={(event) => { if (event.key === "Escape" && locked) { event.preventDefault(); event.stopPropagation(); } }} onCancel={(event) => { event.preventDefault(); if (confirmation || navigation) { setConfirmation(null); setNavigation(null); } else if (relationDeleteTarget) cancelRelationDelete(); else close(); }}>
     <header className={styles.header}>
       <div className={styles.headerText}>
         <h2 id="task-editor-title">작업 정보</h2>
@@ -427,7 +439,8 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
               </div>
             </div>
             {base.task.type !== "milestone" ? <MilestoneMembershipPicker task={base.task} tasks={tasks} links={links} value={draft.explicitMilestoneTaskId} pending={locked} disabled={locked || readOnly || membershipDirty || resourceDirty || logisticsDirty} onChange={(value) => change("explicitMilestoneTaskId", value)} onOpen={navigateTask} /> : null}
-            <div className={styles.scheduleFields}>
+            <fieldset className={styles.scheduleFields}>
+              <legend className={styles.groupLegend}>일정</legend>
               <div className={styles.field}>
                 <label htmlFor="task-start">요청 시작일</label>
                 <input
@@ -480,10 +493,13 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
                 />
                 {scheduleIssue?.field === "requestedEnd" ? <span id="task-requested-end-error" className={styles.fieldError}>{scheduleIssue.message}</span> : null}
               </div> : null}
-            </div>
             <label className={`${styles.field} ${styles.modeField}`}>일정 모드<select name="task-schedule-mode" value={draft.scheduleMode} disabled={locked || scheduleReadOnly} onChange={(event) => changeScheduleMode(event.target.value as "auto" | "manual")}><option value="auto">자동 (Auto)</option><option value="manual">수동 (Manual)</option></select></label>
+            </fieldset>
+            <fieldset className={styles.detailsFields}>
+              <legend className={styles.groupLegend}>상세 정보</legend>
             <label className={`${styles.field} ${styles.descriptionField}`}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={basicMutationLocked} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
             <label className={`${styles.field} ${styles.urlField}`}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={basicMutationLocked} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
+            </fieldset>
           </div>
 
           {base.task.type === "milestone" && base.task.stageGate ? <section className={styles.metadata} aria-label="완료 단계 준비 상태">
@@ -698,7 +714,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
         </button>
         <div className={styles.footerActions}>
           <button className="secondary-button" type="button" disabled={locked || awaitingDecision} onClick={close}>{"취소"}</button>
-          {activeTab === "memberships" ? <button className="primary-button" type="button" disabled={locked || awaitingDecision || readOnly || basicDirty || resourceDirty || logisticsDirty || base.task.status === "completed" || !changes.length} onClick={() => void applyMemberships()}>{operation === "membership" ? "소속 변경 적용 중…" : "소속 변경 적용"}</button> : !restriction ? <button className="primary-button" type="submit" disabled={locked || stale || awaitingDecision || membershipDirty || resourceDirty || logisticsDirty}>{operation === "save" ? "저장 중…" : "저장"}</button> : null}
+          {activeTab === "memberships" ? <button className={"primary-button " + styles.stableAction} type="button" disabled={locked || awaitingDecision || readOnly || basicDirty || resourceDirty || logisticsDirty || base.task.status === "completed" || !changes.length} onClick={() => void applyMemberships()}><span aria-hidden="true" className={styles.actionSizer}>소속 변경 적용 중…</span><span className={styles.actionLabel}>{operation === "membership" ? "소속 변경 적용 중…" : "소속 변경 적용"}</span></button> : !restriction ? <button className={"primary-button " + styles.stableAction} type="submit" disabled={locked || stale || awaitingDecision || membershipDirty || resourceDirty || logisticsDirty}><span aria-hidden="true" className={styles.actionSizer}>저장 중…</span><span className={styles.actionLabel}>{operation === "save" ? "저장 중…" : "저장"}</span></button> : null}
         </div>
       </footer>
     </form>
