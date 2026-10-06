@@ -59,7 +59,7 @@ export function ProjectMilestoneDashboard({ publicId, revision, tasks, active, b
       <div className={styles.advancedGrid}>
         {arrayFilter("milestoneIds", "표시 단계", data?.catalog.milestones ?? [])}
         {arrayFilter("resourceIds", "공수 대상 개인 리소스", data?.catalog.resources ?? [])}
-        {arrayFilter("assignmentRoles", "assignment 역할", ["PI", "DEVELOPER", "EQUIPMENT_OWNER", "UNSPECIFIED"].map((role) => ({ id: role, name: role === "UNSPECIFIED" ? "역할 미지정" : role })))}
+        {arrayFilter("assignmentRoles", "Global Role", ["PI", "DEVELOPER", "EQUIPMENT_OWNER", "UNSPECIFIED"].map((role) => ({ id: role, name: role === "UNSPECIFIED" ? "Global Role 미지정" : role })))}
         {arrayFilter("developerGrades", "개발자 등급", ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT", "UNSPECIFIED"].map((grade, index) => ({ id: grade, name: ["초급", "중급", "고급", "특급", "등급 미지정"][index] })))}
         {arrayFilter("processIds", "공정", data?.catalog.processes ?? [])}{arrayFilter("equipmentIds", "설비", data?.catalog.equipment ?? [])}{arrayFilter("systemIds", "시스템", data?.catalog.systems ?? [])}{arrayFilter("roleResourceIds", "물류 담당 리소스", data?.catalog.resources ?? [])}
         <label>공수 시작일<input type="date" value={from} onChange={(event) => setFrom(event.target.value)} /></label><label>공수 종료일<input type="date" value={to} onChange={(event) => setTo(event.target.value)} /></label>
