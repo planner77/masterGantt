@@ -155,7 +155,7 @@ export function CountryCalendarAdmin(){
         setError(response.status===409?"현재 dataset 상태와 충돌하여 변경할 수 없습니다. 공식 상태에는 source 정보와 최소 1개 날짜가 필요합니다.":"변경사항을 저장하지 못했습니다. 입력값과 중복 날짜를 확인해 주세요.");
         return false;
       }
-      setSnapshot(value);syncMetadata(value);setPreview(null);setNotice("변경사항을 저장했습니다.");return true;
+      setSnapshot(value);syncMetadata(value);setPreview(null);setNotice(/\/dates(?:\/|$)/.test(url)&&value.data.dataset.status==="UNAVAILABLE"?"수동 날짜 변경으로 공식 상태와 출처 정보가 해제되었습니다. 검증 후 메타데이터를 다시 저장해 주세요.":"변경사항을 저장했습니다.");return true;
     }catch{if(!controller.signal.aborted)setError("변경 결과를 확인할 수 없습니다.");return false;}
     finally{end(controller);}
   }
