@@ -352,7 +352,7 @@ test("Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Ga
   const ganttIdentity = await rememberGanttRoot(page);
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
 
-  const roleSummary = page.getByLabel("역할별 계획 공수");
+  const roleSummary = page.getByLabel("Global Role별 계획 공수");
   await expect(roleSummary.getByText("개발자", { exact: true })).toBeVisible();
   await expect(roleSummary.getByText("5.00 M/D", { exact: true })).toBeVisible();
   await expect(page.getByText("작업 지연 기준일: 2026-09-18 (Asia/Seoul)")).toBeVisible();
