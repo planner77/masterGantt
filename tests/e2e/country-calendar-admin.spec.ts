@@ -215,3 +215,73 @@ test("Issue #342: 412 reload 뒤 stale 날짜 편집 초안을 폐기한다",asy
   await page.unroute("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",conflict);
 });
 
+test("Issue #342: 변경 없는 날짜 저장은 OFFICIAL provenance를 유지한다",async({page})=>{
+  await installCalendarMocks(page);
+  await page.goto("/calendar-admin");
+  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
+  await page.getByRole("button",{name:"로그인",exact:true}).click();
+
+  const before=await page.getByLabel("Source version").inputValue();
+  const row=page.getByRole("row").filter({hasText:"신정"});
+  await row.getByRole("button",{name:"편집"}).click();
+  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 편집"});
+  await dialog.getByRole("button",{name:"저장",exact:true}).click();
+
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("status",{name:"Dataset 상태: 공식"})).toBeVisible();
+  await expect(page.getByLabel("Source version")).toHaveValue(before);
+});
+
+test("Issue #342: 국가 전환은 신규 날짜와 파일 draft를 폐기한다",async({page})=>{
+  await installCalendarMocks(page);
+  await page.goto("/calendar-admin");
+  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
+  await page.getByRole("button",{name:"로그인",exact:true}).click();
+
+  await page.getByLabel("날짜",{exact:true}).first().fill("2026-12-30");
+  await page.getByLabel("이름",{exact:true}).first().fill("KR draft");
+  await page.getByLabel("sourceKey",{exact:true}).first().fill("kr-draft");
+  const fileInput=page.getByLabel("파일",{exact:true});
+  await fileInput.setInputFiles({
+    name:"draft.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify({
+      countryCode:"KR",year:2026,sourceVersion:"draft",sourceUrl:"https://example.go.kr/draft",
+      dates:[{date:"2026-12-30",name:"draft",dayType:"NON_WORKING",sourceKey:"draft"}],
+    })),
+  });
+  await expect(page.getByRole("button",{name:"업로드 전 검증"})).toBeEnabled();
+
+  await page.getByLabel("국가",{exact:true}).selectOption("CN");
+  await expect(page.getByLabel("날짜",{exact:true}).first()).toHaveValue("");
+  await expect(page.getByLabel("이름",{exact:true}).first()).toHaveValue("");
+  await expect(page.getByLabel("sourceKey",{exact:true}).first()).toHaveValue("");
+  await expect(fileInput).toHaveValue("");
+  await expect(page.getByRole("button",{name:"업로드 전 검증"})).toBeDisabled();
+});
+
+test("Issue #342: DELETE pending 중 취소 버튼은 동작하지 않는다",async({page})=>{
+  await installCalendarMocks(page);
+  await page.goto("/calendar-admin");
+  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
+  await page.getByRole("button",{name:"로그인",exact:true}).click();
+
+  let releaseDelete!:()=>void;
+  const gate=new Promise<void>((resolve)=>{releaseDelete=resolve;});
+  const delayedDelete=async(route:Route)=>{
+    if(route.request().method()!=="DELETE"){await route.fallback();return;}
+    await gate;
+    await route.fallback();
+  };
+  await page.route("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",delayedDelete);
+
+  const row=page.getByRole("row").filter({hasText:"신정"});
+  await row.getByRole("button",{name:"삭제"}).click();
+  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 삭제"});
+  await dialog.getByRole("button",{name:"삭제",exact:true}).click();
+  await expect(dialog.getByRole("button",{name:"취소",exact:true})).toBeDisabled();
+  await expect(dialog).toBeVisible();
+
+  releaseDelete();
+  await expect(dialog).toHaveCount(0);
+  await page.unroute("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",delayedDelete);
+});
+
