@@ -12,8 +12,9 @@ describe("country calendar fixture", () => {
     expect(descriptors.map((entry)=>entry.code)).toEqual([...WORK_CALENDAR_COUNTRY_CODES]);
     for(const descriptor of descriptors) {
       expect(descriptor.supportedYears).toContain(2026);
-      expect(descriptor.sourceVersion.length).toBeGreaterThan(0);
-      expect(descriptor.sourceUrl).toMatch(/^https:\/\//);
+      expect(descriptor.sourceVersion).toEqual(expect.any(String));
+      expect(descriptor.sourceVersion).not.toBe("");
+      expect(descriptor.sourceUrl).toEqual(expect.stringMatching(/^https:\/\//));
       expect(getCountryCalendarDataset(descriptor.code,2026)?.dates.length).toBeGreaterThan(0);
     }
   });
