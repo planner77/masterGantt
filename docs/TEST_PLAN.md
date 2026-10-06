@@ -2018,3 +2018,13 @@ Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manag
 - `tests/e2e/project-task-editor.spec.ts`는 편집 가능한 Summary에서 Description/URL은 readOnly가 아니고 요청 시작일은 계속 readOnly인지 확인한다.
 - `tests/e2e/project-task-editor-persistence.spec.ts`는 실제 브라우저+SQLite에서 Summary Description/URL PATCH 1회, 파생 일정 불변, 마지막 child 삭제 후 빈 Summary의 null 일정과 메타데이터 보존, reload 후 재표시를 검증한다. reload 후 값 검증은 실패 artifact에서 확인된 실제 접근성 tree의 `textbox` role을 사용한다.
 - readonly/stale/pending/focus/Escape/Gantt instance 보존은 기존 Task Editor 회귀를 함께 사용한다. 전체 공식 회귀 판정은 동일 PR head의 `quality`, `e2e`, `docker` GitHub Actions로 한다.
+
+
+## Issue #456 — Main CI #1993.1 dependency audit corrective
+
+- PR #500 merge SHA `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 Main CI Run `37524404994` / #1993.1은 build, typecheck, lint, Vitest, Chromium E2E 6/6, Docker smoke가 SUCCESS였고 production dependency audit만 FAIL했다.
+- 실패 원인은 `sharp 0.35.4`의 GHSA-wq5f-xc86-pv6w / CVE-2026-96889 (High)이며 audit gate는 완화하지 않는다.
+- 최초 corrective PR #504 head `bc90e12e3dfc1eee8f1f1d4afdccb7964fb87acc`의 PR CI #2014.1에서 dependency audit를 포함한 quality, E2E 6/6, Docker가 SUCCESS했다.
+- 그 사이 Issue #493가 병합된 latest main `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7` / application 0.93.0이 동일 advisory 대응으로 `sharp 0.35.5`, `@img/sharp-libvips-* 1.3.4`를 이미 포함하므로 lockfile을 되돌리거나 중복 패치하지 않는다.
+- #456 corrective는 latest main을 기준으로 재정렬해 `tests/scripts/test-config-layout.test.ts`의 `sharp >= 0.35.5`, 모든 `@img/sharp-libvips-* >= 1.3.4` 정적 회귀와 이 추적 기록을 유지한다. 실제 advisory authority는 계속 PR/Main/Release의 `npm audit --omit=dev`다.
+- 재정렬 후 새 exact-head PR CI SUCCESS → merge → 새 Main CI 시작을 본 요청의 완료 기준으로 사용한다.
