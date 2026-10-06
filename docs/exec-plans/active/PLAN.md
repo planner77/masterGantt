@@ -1,5 +1,11 @@
 # Active execution plan
 
+## Issue #455 기준정보 입력 컨트롤 — 최신 main 재정렬 / 병합 / Main CI
+
+PR #481의 기존 head `7f9cfb87e4e56bba9eff444d74a0559bcb80b89d`는 PR CI Run `37411553451` / Run #1908.1 SUCCESS였으나, 이후 #453/#454 및 운영 변경이 main에 반영되어 최신 main이 `0fc986cb0cb642bdbedeec30157b27bd522b5a38`까지 전진했고 기존 head는 GitHub `mergeable_state=dirty`가 되었다. #455 고유 제품·테스트·fixture·증거를 최신 main 위에 재적용하고, 충돌 교집합인 CHANGELOG/PROJECT_UX/TEST_PLAN/active PLAN은 최신 main 기록과 #455 기록을 함께 보존한다.
+
+새 exact-head PR CI의 quality/e2e/docker 성공을 병합 전 authoritative gate로 사용한다. 성공하면 PR #481을 main에 병합하고 해당 merge push로 Main CI가 시작되는 것까지 확인한다. 기존 Run #1908.1은 재정렬 전 head 근거이므로 새 head의 PASS로 대체하지 않는다. release/GHCR/finalizer/Issue close/branch cleanup은 이번 요청 범위에 포함하지 않는다.
+
 ## Issue #454 물류 유형 목록 — 최신 main 정렬 / 충돌 정리 / 새 PR CI
 
 PR #478의 기존 head `04b3047328bb338bace1990e18a434ae80b611db`는 PR CI Run `37408864316` / Run #1900.1 SUCCESS였으나, 선행 #453이 별도 재정렬 후 PR #477로 병합되고 main이 `22326fc350b91ab59ddafa20ef97c3f418f71aae`까지 전진하여 기존 stacked head는 병합 불가 상태가 되었다. #454 자체 delta만 보존하고 최신 main을 병합하는 방식으로 정렬한다.
@@ -16,7 +22,7 @@ published PR history는 force-push하지 않고 기존 feature head와 최신 ma
 
 ## Issue #460~#464 완료 단계 관리 — 순차 구현·문서 동기화·push·PR CI 시작
 
-#460~#462는 main에 병합되어 있고 latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` / application `0.90.1`의 #453/#454 UI 및 #461 Release corrective를 보존해 #463 candidate `0.91.0`을 유지한다. #463 [PR #472](https://github.com/planner77/masterGantt/pull/472)의 head `703807d600c1499092b0144732669fbe54465ca6` PR CI Run #1941.1(`37431883032`)은 quality/build/Docker와 Chromium shard 2~5 PASS, shard 1 dashboard cache/abort 1건과 shard 6 Context Menu scroll 1건 FAIL이다. cache hit는 effect 진입 즉시 ready로 복원하고 실제 fetch만 async로 유지하며, Task Menu settle 재캡처는 연결된 원래 trigger 또는 원래 grid/chart surface를 보존한 taskId fallback을 사용하도록 보완한다. 새 exact-head PR CI를 시작하고 완료 결과·병합·release는 별도 단계로 남긴다. 상세는 [Issue #463 실행 계획](ISSUE_463.md)을 따른다.
+#460~#462는 main에 병합되어 있고 latest main `528ebfffa639a275ea4349a04860f5b3785e50e9` / application `0.90.2`의 #453~#455 UI 및 #461 Release corrective를 보존해 #463 candidate `0.91.0`을 유지한다. #463 [PR #472](https://github.com/planner77/masterGantt/pull/472)의 head `8f78a24d6e2d37e6c0a9da7ec1f79e2025a55a66` PR CI Run #1946.1(`37434077594`)은 quality/build/Docker와 Chromium shard 2~6 PASS, shard 1의 완료 단계 picker keyboard geometry 1건 FAIL이다. 열린 list의 `End/Home/Arrow` 대상 option은 이미 DOM에 있으므로 지연 rAF 대신 keyboard handler 안에서 즉시 `scrollIntoView(nearest)`해 active option 가시성을 보장한 뒤 새 exact-head PR CI를 시작한다. 상세는 [Issue #463 실행 계획](ISSUE_463.md)을 따른다.
 
 최초 #460 기반 도메인·DB/API 구현의 정렬 기준은 main `9280536ddc85a8a841346bdf413b2ba638685880` / application `0.83.4`에서 구현한다. 작업 브랜치는 `feat/issue-460-stage-gates`, 예정 버전은 `0.85.0`이다. [Issue #460 실행 계획](ISSUE_460.md)에 Work Packet·공유 interface·잠금·호환성·검증·문서 소유권을 기록한다. 이후 #461 Editor → #462 Gantt/Grid → #463 KPI → #464 Import/Export·Copy·Template 순서로 선행 구현을 포함하는 branch를 만들고 각 push/PR CI 시작까지 반복한다. CI 완료 모니터링/병합/정식 릴리스/브랜치 정리/Issue 종료는 이번 요청 범위 밖이며 `release_authorized=false`다. 착수 당시 독립 사전 QA 및 원격 CI는 `NOT TESTED`였으며 이후 단계는 위 현재 상태와 Issue 로그를 따른다.
 

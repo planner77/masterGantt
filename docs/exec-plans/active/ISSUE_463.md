@@ -155,3 +155,11 @@ main 통합 최소LFF는 qa_docs의 migration-cli3/3 PASS(751ms/chunka6a71a), fr
 - shard 6의 새 실패는 Chart bar menu가 opening settle 재캡처에서 같은 taskId의 Grid row로 surface가 바뀌어 이후 실제 Chart scroll을 감지하지 못한 것이다. connected trigger 우선, 교체 시 원래 surface 보존 fallback으로 수정한다.
 - shard 1의 dashboard cache/abort 실패는 cached query 복귀가 network I/O 없이도 microtask 뒤에서 ready 처리돼 CI 부하에서 loading이 남은 경계다. valid cache는 effect 진입 즉시 ready로 복원하고 fetch만 async로 유지한다.
 - latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` / `0.90.1`을 통합하고 candidate `0.91.0` 유지. 새 exact-head 전체 PR CI를 시작한다.
+
+
+## PR CI #1946 REWORK
+
+- head `8f78a24d6e2d37e6c0a9da7ec1f79e2025a55a66` / Run #1946.1(`37434077594`)은 quality/build/Docker와 Chromium shard 2~6 PASS, shard 1 단계 picker keyboard/five-width geometry 1건 FAIL이다.
+- #1941에서 실패했던 Context Menu scroll과 dashboard cache/abort 시나리오는 모두 PASS하여 해당 보완은 유지한다.
+- 390px picker에서 End 키 후 active option scroll이 requestAnimationFrame에 지연되어 geometry 측정이 먼저 실행될 수 있었다. 열린 option DOM을 keyboard handler에서 즉시 `scrollIntoView(nearest)`하고 active state/focus/aria/Escape 계약은 유지한다.
+- latest main `528ebfffa639a275ea4349a04860f5b3785e50e9` / `0.90.2`를 통합하고 candidate `0.91.0` 유지. 새 exact-head 전체 PR CI를 시작한다.
