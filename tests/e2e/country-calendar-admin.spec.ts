@@ -100,6 +100,7 @@ test("Issue #342: 관리자에서 Import Preview/Apply와 휴일 CRUD를 완료�
   await expect(page.getByText("연말 휴일")).toBeVisible();
   await expect(page.getByText("미확보",{exact:true})).toBeVisible();
   await expect(page.getByLabel("Source version")).toHaveValue("");
+  await expect(page.getByText("수동 날짜 변경으로 공식 상태와 출처 정보가 해제되었습니다. 검증 후 메타데이터를 다시 저장해 주세요.",{exact:true})).toBeVisible();
 
   const row=page.getByRole("row").filter({hasText:"연말 휴일"});
   await row.getByRole("button",{name:"편집"}).click();
