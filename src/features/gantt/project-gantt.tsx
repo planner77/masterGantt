@@ -419,6 +419,7 @@ export function ProjectGantt({
   const taskMenuScrollChangedReference = useRef<() => boolean>(() => false);
   const taskMenuScrollSettleGenerationReference = useRef(0);
   const taskMenuScrollSettlingReference = useRef(false);
+  const taskMenuScrollSurfaceReference = useRef<"grid" | "chart">("grid");
   const [columnMenuPosition, setColumnMenuPosition] = useState<MenuPosition | null>(null);
   const [taskMenu, setTaskMenu] = useState<TaskMenuState | null>(null);
   const [taskSubmenu, setTaskSubmenu] = useState<TaskSubmenuState | null>(null);
@@ -1581,7 +1582,16 @@ export function ProjectGantt({
       // bounded two-frame settle 동안 새 기준으로 흡수한다. 임의 timeout은 쓰지 않는다.
       if (event?.type === "scroll" && taskMenuScrollSettlingReference.current) {
         const root = ganttScrollReference.current;
-        const currentElement = root ? findTaskContextElement(root, taskMenu.taskId) : null;
+        const connectedTrigger = taskMenuTriggerReference.current;
+        const currentElement = connectedTrigger?.isConnected && root?.contains(connectedTrigger)
+          ? connectedTrigger
+          : root
+            ? Array.from(root.querySelectorAll<HTMLElement>(
+                taskMenuScrollSurfaceReference.current === "chart"
+                  ? ".wx-chart .wx-bar[data-task-id]"
+                  : ".wx-table-container .wx-row[data-id], .wx-table-container .wx-row[data-task-id]",
+              )).find((candidate) => taskIdFromElement(candidate) === taskMenu.taskId) ?? null
+            : null;
         if (currentElement) taskMenuScrollChangedReference.current = captureMenuScrollChange(currentElement);
         return;
       }
@@ -2234,6 +2244,11 @@ export function ProjectGantt({
       : match.element;
     focusTrigger.focus({ preventScroll: true });
     taskMenuTriggerReference.current = focusTrigger;
+    taskMenuScrollSurfaceReference.current = match.element.classList.contains("wx-bar") ? "chart" : "grid";
+    // Opening a menu can synchronously select the row and then let React/SVAR
+    // normalize virtualized row geometry. Ignore only that bounded opening
+    // settle, then capture the actual post-layout scroll baseline. This keeps
+    // real user scroll as an immediate close signal after the settle window.
     const scrollGuardTaskId = match.taskId;
     const scrollGuardGeneration = ++taskMenuScrollSettleGenerationReference.current;
     taskMenuScrollSettlingReference.current = true;
@@ -2242,7 +2257,16 @@ export function ProjectGantt({
       requestAnimationFrame(() => {
         if (taskMenuScrollSettleGenerationReference.current !== scrollGuardGeneration) return;
         const currentRoot = ganttScrollReference.current;
-        const currentElement = currentRoot ? findTaskContextElement(currentRoot, scrollGuardTaskId) : null;
+        const connectedTrigger = taskMenuTriggerReference.current;
+        const currentElement = connectedTrigger?.isConnected && currentRoot?.contains(connectedTrigger)
+          ? connectedTrigger
+          : currentRoot
+            ? Array.from(currentRoot.querySelectorAll<HTMLElement>(
+                taskMenuScrollSurfaceReference.current === "chart"
+                  ? ".wx-chart .wx-bar[data-task-id]"
+                  : ".wx-table-container .wx-row[data-id], .wx-table-container .wx-row[data-task-id]",
+              )).find((candidate) => taskIdFromElement(candidate) === scrollGuardTaskId) ?? null
+            : null;
         if (currentElement) taskMenuScrollChangedReference.current = captureMenuScrollChange(currentElement);
         taskMenuScrollSettlingReference.current = false;
       });

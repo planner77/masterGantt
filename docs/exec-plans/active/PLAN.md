@@ -1,11 +1,27 @@
 # Active execution plan
 
-## Issue #464 JSON·Excel·Copy·Template 보존 — latest main/#463 재정렬 / 새 PR CI
+## Issue #464 JSON·Excel·Copy·Template 보존 — latest main 재정렬 / 새 PR CI
 
-PR #473의 기존 head `c5a7bc9e8462128b5f977918b719d38d4d7a89be`는 Run #1883.1에서 production CSS build/Docker와 일부 E2E가 실패했고 Codex P2 source schedule preview 지적이 남았다. 최신 main `0fc986cb0cb642bdbedeec30157b27bd522b5a38`의 #454 변경과 선행 #463 head `703807d600c1499092b0144732669fbe54465ca6`의 CSS·Task Editor·Relation Editor·Context Menu opening-scroll 보완을 모두 보존한 뒤 #464 고유 변경만 재적용한다.
+PR #473 head `1e1397aca8d48780dbc8dcc397f333b3d9bb85ca`는 latest main `d748046733ae2006580052a480c984ae1eb1fa2a`보다 뒤처져 mergeable=false가 되었다. 현재 main에는 #463 병합, #455 기준정보 UI/transport corrective, #463 물류·Resource 결합 필터 보완이 포함되어 있으므로 이를 authoritative base로 보존하고 #464 고유 변경만 다시 적용한다.
 
-JSON preview는 advisory source calendar/dependency로 source effective schedule을 재구성하고 동일 Export round-trip에서 false `changedTasks`가 없도록 회귀를 추가한다. Context Menu keyboard 회귀는 고정 ArrowDown 횟수 대신 enabled root item 순서를 사용한다. 후보 version은 `0.92.0`이며 새 exact-head PR CI 등록까지만 이번 실행 범위다. 완료 모니터링·병합·main CI·GHCR·tag/release·branch cleanup·Issue 종료는 별도 단계다. `release_required=true`, `release_authorized=false`.
+충돌 교집합은 `project-gantt.tsx`와 문서 5개다. Gantt는 main의 context-menu surface-aware two-frame settle을 유지하면서 #464의 context selection `show:false`/Copy feedback 보존을 합친다. 문서는 최신 main 기록을 우선하고 #464 계약·검증 섹션을 병합한다. application candidate는 `0.92.0`을 유지한다.
 
+정렬 후 exact new head에서 PR CI를 새로 시작하며 그 결과가 병합 판단 기준이다. 이번 요청 범위는 재정렬·충돌 해결·새 PR CI 시작까지이며 완료 모니터링·병합·main CI·GHCR/tag/release·branch cleanup·Issue 종료는 별도 단계다. `release_required=true`, `release_authorized=false`.
+
+
+## Issue #455 기준정보 입력 컨트롤 — 최신 main 재정렬 / 병합 / Main CI
+
+PR #481의 기존 head `7f9cfb87e4e56bba9eff444d74a0559bcb80b89d`는 PR CI Run `37411553451` / Run #1908.1 SUCCESS였으나, 이후 #453/#454 및 운영 변경이 main에 반영되어 최신 main이 `0fc986cb0cb642bdbedeec30157b27bd522b5a38`까지 전진했고 기존 head는 GitHub `mergeable_state=dirty`가 되었다. #455 고유 제품·테스트·fixture·증거를 최신 main 위에 재적용하고, 충돌 교집합인 CHANGELOG/PROJECT_UX/TEST_PLAN/active PLAN은 최신 main 기록과 #455 기록을 함께 보존한다.
+
+새 exact-head PR CI의 quality/e2e/docker 성공을 병합 전 authoritative gate로 사용한다. 성공하면 PR #481을 main에 병합하고 해당 merge push로 Main CI가 시작되는 것까지 확인한다. 기존 Run #1908.1은 재정렬 전 head 근거이므로 새 head의 PASS로 대체하지 않는다. release/GHCR/finalizer/Issue close/branch cleanup은 이번 요청 범위에 포함하지 않는다.
+
+## Issue #454 물류 유형 목록 — 최신 main 정렬 / 충돌 정리 / 새 PR CI
+
+PR #478의 기존 head `04b3047328bb338bace1990e18a434ae80b611db`는 PR CI Run `37408864316` / Run #1900.1 SUCCESS였으나, 선행 #453이 별도 재정렬 후 PR #477로 병합되고 main이 `22326fc350b91ab59ddafa20ef97c3f418f71aae`까지 전진하여 기존 stacked head는 병합 불가 상태가 되었다. #454 자체 delta만 보존하고 최신 main을 병합하는 방식으로 정렬한다.
+
+제품 `logistics-type-catalog-admin.tsx/.module.css`, #454 전용 E2E/fixture/output, version `0.90.1`은 기존 #454 후보를 유지한다. 충돌 교집합인 CHANGELOG/PROJECT_UX/TEST_PLAN/active PLAN은 최신 main의 #453 재정렬·#475/#461/#483 운영 기록을 보존하면서 #454 기록을 병합한다. published PR history는 force-push하지 않고 기존 #454 head를 첫 부모, 최신 main을 두 번째 부모로 하는 conflict-resolution merge commit을 사용한다.
+
+새 exact head의 pull_request CI가 quality/e2e/docker를 다시 검증하며 그 결과 전에는 최종 ACCEPT를 재사용하지 않는다. `release_required=true`, `release_authorized=false`; 이번 요청 범위는 정렬·충돌 해결·새 PR CI 시작까지다.
 
 ## Issue #453 리소스 관리 독립 탭 — PR #477 최신 main 재정렬 / 새 PR CI
 
@@ -15,7 +31,7 @@ published PR history는 force-push하지 않고 기존 feature head와 최신 ma
 
 ## Issue #460~#464 완료 단계 관리 — 순차 구현·문서 동기화·push·PR CI 시작
 
-#460~#462는 main에 병합되어 있고 latest main `22326fc350b91ab59ddafa20ef97c3f418f71aae` / application `0.90.0`의 #453 리소스 UI와 #461 Release corrective를 보존해 #463 candidate `0.91.0`을 유지한다. #463 [PR #472](https://github.com/planner77/masterGantt/pull/472)의 head `b711280b0629b7af6b579dcc831f54bd09897a92` PR CI Run #1938.1(`37429658024`)은 quality/build/Docker 및 Chromium shard 1~5 PASS, shard 6의 기존 #407/#418 Context Menu 1건 FAIL이다. Core selection mirror 제거 후에도 trace의 table scrollTop 147→124가 재현되어 이전 가설을 폐기하고 mirror를 복원한다. Context Menu opening selection/virtual-row layout의 내부 scroll만 bounded two-frame settle에서 baseline으로 흡수한 뒤 실제 scroll guard를 arm하도록 보완하고 새 exact-head PR CI를 시작한다. 상세는 [Issue #463 실행 계획](ISSUE_463.md)을 따른다.
+#460~#462는 main에 병합되어 있고 latest main `528ebfffa639a275ea4349a04860f5b3785e50e9` / application `0.90.2`의 #453~#455 UI 및 #461 Release corrective를 보존해 #463 candidate `0.91.0`을 유지한다. #463 [PR #472](https://github.com/planner77/masterGantt/pull/472)의 head `8f78a24d6e2d37e6c0a9da7ec1f79e2025a55a66` PR CI Run #1946.1(`37434077594`)은 quality/build/Docker와 Chromium shard 2~6 PASS, shard 1의 완료 단계 picker keyboard geometry 1건 FAIL이다. 열린 list의 `End/Home/Arrow` 대상 option은 이미 DOM에 있으므로 지연 rAF 대신 keyboard handler 안에서 즉시 `scrollIntoView(nearest)`해 active option 가시성을 보장한 뒤 새 exact-head PR CI를 시작한다. 상세는 [Issue #463 실행 계획](ISSUE_463.md)을 따른다.
 
 최초 #460 기반 도메인·DB/API 구현의 정렬 기준은 main `9280536ddc85a8a841346bdf413b2ba638685880` / application `0.83.4`에서 구현한다. 작업 브랜치는 `feat/issue-460-stage-gates`, 예정 버전은 `0.85.0`이다. [Issue #460 실행 계획](ISSUE_460.md)에 Work Packet·공유 interface·잠금·호환성·검증·문서 소유권을 기록한다. 이후 #461 Editor → #462 Gantt/Grid → #463 KPI → #464 Import/Export·Copy·Template 순서로 선행 구현을 포함하는 branch를 만들고 각 push/PR CI 시작까지 반복한다. CI 완료 모니터링/병합/정식 릴리스/브랜치 정리/Issue 종료는 이번 요청 범위 밖이며 `release_authorized=false`다. 착수 당시 독립 사전 QA 및 원격 CI는 `NOT TESTED`였으며 이후 단계는 위 현재 상태와 Issue 로그를 따른다.
 
@@ -220,11 +236,3 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위인 Project 생성�
 ## Issue #8 — 내부망 HTTP
 
 전용 브랜치에서 URL/쿠키/설정 주입/공유 URL과 문서를 갱신한다. PR quality/E2E/Docker 및 HTTP·HTTPS 실제 브라우저 검증 후 리뷰·병합하고 main exact digest 결과를 별도로 기록한다. 본 계획 추가만으로 PASS가 아니며 운영 Windows/WSL2 전환은 별도 미검증이다.
-
-## Issue #454 물류 유형 목록 — 최신 main 정렬 / 충돌 정리 / 새 PR CI
-
-PR #478의 기존 head `04b3047328bb338bace1990e18a434ae80b611db`는 PR CI Run `37408864316` / Run #1900.1 SUCCESS였으나, 선행 #453이 별도 재정렬 후 PR #477로 병합되고 main이 `22326fc350b91ab59ddafa20ef97c3f418f71aae`까지 전진하여 기존 stacked head는 병합 불가 상태가 되었다. #454 자체 delta만 보존하고 최신 main을 병합하는 방식으로 정렬한다.
-
-제품 `logistics-type-catalog-admin.tsx/.module.css`, #454 전용 E2E/fixture/output, version `0.90.1`은 기존 #454 후보를 유지한다. 충돌 교집합인 CHANGELOG/PROJECT_UX/TEST_PLAN/active PLAN은 최신 main의 #453 재정렬·#475/#461/#483 운영 기록을 보존하면서 #454 기록을 병합한다. published PR history는 force-push하지 않고 기존 #454 head를 첫 부모, 최신 main을 두 번째 부모로 하는 conflict-resolution merge commit을 사용한다.
-
-새 exact head의 pull_request CI가 quality/e2e/docker를 다시 검증하며 그 결과 전에는 최종 ACCEPT를 재사용하지 않는다. `release_required=true`, `release_authorized=false`; 이번 요청 범위는 정렬·충돌 해결·새 PR CI 시작까지다.

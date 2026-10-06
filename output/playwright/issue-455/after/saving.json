@@ -1,0 +1,1760 @@
+{
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "documentWidth": 1280,
+  "environment": {
+    "locale": "en-US",
+    "timezone": "Asia/Seoul",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+    "zoom": "100% default;native125% NOT TESTED"
+  },
+  "headings": [
+    {
+      "label": "프로젝트 기준정보 관리",
+      "rect": {
+        "x": 24,
+        "y": 103,
+        "width": 1232,
+        "height": 30,
+        "right": 1256,
+        "bottom": 133
+      }
+    },
+    {
+      "label": "관리자 인증됨",
+      "rect": {
+        "x": 41,
+        "y": 198,
+        "width": 351.125,
+        "height": 24,
+        "right": 392.125,
+        "bottom": 222
+      }
+    },
+    {
+      "label": "항목 관리",
+      "rect": {
+        "x": 41,
+        "y": 298,
+        "width": 467.5625,
+        "height": 24,
+        "right": 508.5625,
+        "bottom": 322
+      }
+    },
+    {
+      "label": "사업부 항목 추가",
+      "rect": {
+        "x": 41,
+        "y": 375,
+        "width": 1198,
+        "height": 21.609375,
+        "right": 1239,
+        "bottom": 396.609375
+      }
+    },
+    {
+      "label": "사업부 목록",
+      "rect": {
+        "x": 41,
+        "y": 534.40625,
+        "width": 136.9375,
+        "height": 21.609375,
+        "right": 177.9375,
+        "bottom": 556.015625
+      }
+    }
+  ],
+  "table": {
+    "x": 48,
+    "y": 675.015625,
+    "width": 1184,
+    "height": 222,
+    "right": 1232,
+    "bottom": 897.015625
+  },
+  "owner": {
+    "x": 41,
+    "y": 668.015625,
+    "width": 1198,
+    "height": 236,
+    "right": 1239,
+    "bottom": 904.015625,
+    "scrollWidth": 1196,
+    "clientWidth": 1196
+  },
+  "headerBodyAligned": true,
+  "firstRowHeaderGap": 0,
+  "headers": [
+    {
+      "x": 48,
+      "y": 675.015625,
+      "width": 464,
+      "height": 34.5,
+      "right": 512,
+      "bottom": 709.515625
+    },
+    {
+      "x": 512,
+      "y": 675.015625,
+      "width": 192,
+      "height": 34.5,
+      "right": 704,
+      "bottom": 709.515625
+    },
+    {
+      "x": 704,
+      "y": 675.015625,
+      "width": 120,
+      "height": 34.5,
+      "right": 824,
+      "bottom": 709.515625
+    },
+    {
+      "x": 824,
+      "y": 675.015625,
+      "width": 216,
+      "height": 34.5,
+      "right": 1040,
+      "bottom": 709.515625
+    },
+    {
+      "x": 1040,
+      "y": 675.015625,
+      "width": 192,
+      "height": 34.5,
+      "right": 1232,
+      "bottom": 709.515625
+    }
+  ],
+  "rows": [
+    {
+      "rect": {
+        "x": 48,
+        "y": 709.515625,
+        "width": 1184,
+        "height": 47,
+        "right": 1232,
+        "bottom": 756.515625
+      },
+      "controls": [
+        {
+          "tag": "INPUT",
+          "label": "사업부 A 이름",
+          "rect": {
+            "x": 57,
+            "y": 713.015625,
+            "width": 446,
+            "height": 40,
+            "right": 503,
+            "bottom": 753.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "INPUT",
+          "label": "사업부 A 코드",
+          "rect": {
+            "x": 521,
+            "y": 713.015625,
+            "width": 174,
+            "height": 40,
+            "right": 695,
+            "bottom": 753.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "INPUT",
+          "label": "사업부 A 정렬 순서",
+          "rect": {
+            "x": 713,
+            "y": 713.015625,
+            "width": 102,
+            "height": 40,
+            "right": 815,
+            "bottom": 753.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "BUTTON",
+          "label": "저장",
+          "rect": {
+            "x": 1049,
+            "y": 713.015625,
+            "width": 48,
+            "height": 40,
+            "right": 1097,
+            "bottom": 753.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(185, 200, 218)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(255, 255, 255)",
+            "padding": "8px 9px",
+            "minHeight": "40px",
+            "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "21px",
+            "outline": "rgb(30, 58, 95) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(30, 58, 95)",
+            "opacity": "0.6"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "BUTTON",
+          "label": "비활성화",
+          "rect": {
+            "x": 1105,
+            "y": 713.015625,
+            "width": 76,
+            "height": 40,
+            "right": 1181,
+            "bottom": 753.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(185, 200, 218)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(255, 255, 255)",
+            "padding": "8px 9px",
+            "minHeight": "40px",
+            "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "21px",
+            "outline": "rgb(30, 58, 95) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(30, 58, 95)",
+            "opacity": "0.6"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        }
+      ],
+      "cells": [
+        {
+          "rect": {
+            "x": 48,
+            "y": 709.515625,
+            "width": 464,
+            "height": 47,
+            "right": 512,
+            "bottom": 756.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 512,
+            "y": 709.515625,
+            "width": 192,
+            "height": 47,
+            "right": 704,
+            "bottom": 756.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 704,
+            "y": 709.515625,
+            "width": 120,
+            "height": 47,
+            "right": 824,
+            "bottom": 756.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 824,
+            "y": 709.515625,
+            "width": 216,
+            "height": 47,
+            "right": 1040,
+            "bottom": 756.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 1040,
+            "y": 709.515625,
+            "width": 192,
+            "height": 47,
+            "right": 1232,
+            "bottom": 756.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        }
+      ]
+    },
+    {
+      "rect": {
+        "x": 48,
+        "y": 756.515625,
+        "width": 1184,
+        "height": 47,
+        "right": 1232,
+        "bottom": 803.515625
+      },
+      "controls": [
+        {
+          "tag": "INPUT",
+          "label": "긴 한글 사업부 기준정보 이름을 입력하는 영역과 저장 제어를 비교합니다 Long English Master Item Display Name for Stable Control GeometryNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN 이름",
+          "rect": {
+            "x": 57,
+            "y": 760.015625,
+            "width": 446,
+            "height": 40,
+            "right": 503,
+            "bottom": 800.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "INPUT",
+          "label": "긴 한글 사업부 기준정보 이름을 입력하는 영역과 저장 제어를 비교합니다 Long English Master Item Display Name for Stable Control GeometryNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN 코드",
+          "rect": {
+            "x": 521,
+            "y": 760.015625,
+            "width": 174,
+            "height": 40,
+            "right": 695,
+            "bottom": 800.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "INPUT",
+          "label": "긴 한글 사업부 기준정보 이름을 입력하는 영역과 저장 제어를 비교합니다 Long English Master Item Display Name for Stable Control GeometryNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN 정렬 순서",
+          "rect": {
+            "x": 713,
+            "y": 760.015625,
+            "width": 102,
+            "height": 40,
+            "right": 815,
+            "bottom": 800.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "BUTTON",
+          "label": "저장",
+          "rect": {
+            "x": 1049,
+            "y": 760.015625,
+            "width": 48,
+            "height": 40,
+            "right": 1097,
+            "bottom": 800.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(185, 200, 218)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(255, 255, 255)",
+            "padding": "8px 9px",
+            "minHeight": "40px",
+            "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "21px",
+            "outline": "rgb(30, 58, 95) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(30, 58, 95)",
+            "opacity": "0.6"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "BUTTON",
+          "label": "비활성화",
+          "rect": {
+            "x": 1105,
+            "y": 760.015625,
+            "width": 76,
+            "height": 40,
+            "right": 1181,
+            "bottom": 800.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(185, 200, 218)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(255, 255, 255)",
+            "padding": "8px 9px",
+            "minHeight": "40px",
+            "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "21px",
+            "outline": "rgb(30, 58, 95) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(30, 58, 95)",
+            "opacity": "0.6"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        }
+      ],
+      "cells": [
+        {
+          "rect": {
+            "x": 48,
+            "y": 756.515625,
+            "width": 464,
+            "height": 47,
+            "right": 512,
+            "bottom": 803.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 512,
+            "y": 756.515625,
+            "width": 192,
+            "height": 47,
+            "right": 704,
+            "bottom": 803.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 704,
+            "y": 756.515625,
+            "width": 120,
+            "height": 47,
+            "right": 824,
+            "bottom": 803.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 824,
+            "y": 756.515625,
+            "width": 216,
+            "height": 47,
+            "right": 1040,
+            "bottom": 803.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 1040,
+            "y": 756.515625,
+            "width": 192,
+            "height": 47,
+            "right": 1232,
+            "bottom": 803.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        }
+      ]
+    },
+    {
+      "rect": {
+        "x": 48,
+        "y": 803.515625,
+        "width": 1184,
+        "height": 47,
+        "right": 1232,
+        "bottom": 850.515625
+      },
+      "controls": [
+        {
+          "tag": "INPUT",
+          "label": "비활성 사업부 이름",
+          "rect": {
+            "x": 57,
+            "y": 807.015625,
+            "width": 446,
+            "height": 40,
+            "right": 503,
+            "bottom": 847.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "INPUT",
+          "label": "비활성 사업부 코드",
+          "rect": {
+            "x": 521,
+            "y": 807.015625,
+            "width": 174,
+            "height": 40,
+            "right": 695,
+            "bottom": 847.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "INPUT",
+          "label": "비활성 사업부 정렬 순서",
+          "rect": {
+            "x": 713,
+            "y": 807.015625,
+            "width": 102,
+            "height": 40,
+            "right": 815,
+            "bottom": 847.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "BUTTON",
+          "label": "저장",
+          "rect": {
+            "x": 1049,
+            "y": 807.015625,
+            "width": 48,
+            "height": 40,
+            "right": 1097,
+            "bottom": 847.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(185, 200, 218)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(255, 255, 255)",
+            "padding": "8px 9px",
+            "minHeight": "40px",
+            "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "21px",
+            "outline": "rgb(30, 58, 95) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(30, 58, 95)",
+            "opacity": "0.6"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "BUTTON",
+          "label": "재활성화",
+          "rect": {
+            "x": 1105,
+            "y": 807.015625,
+            "width": 76,
+            "height": 40,
+            "right": 1181,
+            "bottom": 847.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(185, 200, 218)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(255, 255, 255)",
+            "padding": "8px 9px",
+            "minHeight": "40px",
+            "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "21px",
+            "outline": "rgb(30, 58, 95) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(30, 58, 95)",
+            "opacity": "0.6"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        }
+      ],
+      "cells": [
+        {
+          "rect": {
+            "x": 48,
+            "y": 803.515625,
+            "width": 464,
+            "height": 47,
+            "right": 512,
+            "bottom": 850.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 512,
+            "y": 803.515625,
+            "width": 192,
+            "height": 47,
+            "right": 704,
+            "bottom": 850.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 704,
+            "y": 803.515625,
+            "width": 120,
+            "height": 47,
+            "right": 824,
+            "bottom": 850.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 824,
+            "y": 803.515625,
+            "width": 216,
+            "height": 47,
+            "right": 1040,
+            "bottom": 850.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 1040,
+            "y": 803.515625,
+            "width": 192,
+            "height": 47,
+            "right": 1232,
+            "bottom": 850.515625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        }
+      ]
+    },
+    {
+      "rect": {
+        "x": 48,
+        "y": 850.515625,
+        "width": 1184,
+        "height": 46.5,
+        "right": 1232,
+        "bottom": 897.015625
+      },
+      "controls": [
+        {
+          "tag": "INPUT",
+          "label": "미사용 사업부 이름",
+          "rect": {
+            "x": 57,
+            "y": 854.015625,
+            "width": 446,
+            "height": 40,
+            "right": 503,
+            "bottom": 894.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "INPUT",
+          "label": "미사용 사업부 코드",
+          "rect": {
+            "x": 521,
+            "y": 854.015625,
+            "width": 174,
+            "height": 40,
+            "right": 695,
+            "bottom": 894.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "INPUT",
+          "label": "미사용 사업부 정렬 순서",
+          "rect": {
+            "x": 713,
+            "y": 854.015625,
+            "width": 102,
+            "height": 40,
+            "right": 815,
+            "bottom": 894.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(148, 163, 184)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(237, 241, 247)",
+            "padding": "8px",
+            "minHeight": "40px",
+            "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "20px",
+            "outline": "rgb(71, 85, 105) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(71, 85, 105)",
+            "opacity": "1"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "BUTTON",
+          "label": "저장",
+          "rect": {
+            "x": 1049,
+            "y": 854.015625,
+            "width": 48,
+            "height": 40,
+            "right": 1097,
+            "bottom": 894.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(185, 200, 218)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(255, 255, 255)",
+            "padding": "8px 9px",
+            "minHeight": "40px",
+            "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "21px",
+            "outline": "rgb(30, 58, 95) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(30, 58, 95)",
+            "opacity": "0.6"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        },
+        {
+          "tag": "BUTTON",
+          "label": "비활성화",
+          "rect": {
+            "x": 1105,
+            "y": 854.015625,
+            "width": 76,
+            "height": 40,
+            "right": 1181,
+            "bottom": 894.015625
+          },
+          "style": {
+            "borderWidth": "1px",
+            "borderStyle": "solid",
+            "borderColor": "rgb(185, 200, 218)",
+            "borderSides": [
+              "1px",
+              "1px",
+              "1px",
+              "1px"
+            ],
+            "boxSizing": "border-box",
+            "background": "rgb(255, 255, 255)",
+            "padding": "8px 9px",
+            "minHeight": "40px",
+            "font": "650 14px / 21px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+            "fontSize": "14px",
+            "lineHeight": "21px",
+            "outline": "rgb(30, 58, 95) none 3px",
+            "outlineOffset": "0px",
+            "color": "rgb(30, 58, 95)",
+            "opacity": "0.6"
+          },
+          "disabled": true,
+          "marginTop": "0px"
+        }
+      ],
+      "cells": [
+        {
+          "rect": {
+            "x": 48,
+            "y": 850.515625,
+            "width": 464,
+            "height": 46.5,
+            "right": 512,
+            "bottom": 897.015625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 512,
+            "y": 850.515625,
+            "width": 192,
+            "height": 46.5,
+            "right": 704,
+            "bottom": 897.015625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 704,
+            "y": 850.515625,
+            "width": 120,
+            "height": 46.5,
+            "right": 824,
+            "bottom": 897.015625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 824,
+            "y": 850.515625,
+            "width": 216,
+            "height": 46.5,
+            "right": 1040,
+            "bottom": 897.015625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        },
+        {
+          "rect": {
+            "x": 1040,
+            "y": 850.515625,
+            "width": 192,
+            "height": 46.5,
+            "right": 1232,
+            "bottom": 897.015625
+          },
+          "paddingTop": "3px",
+          "paddingBottom": "3px"
+        }
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "label": "사업부 이름",
+      "rect": {
+        "x": 41,
+        "y": 465.40625,
+        "width": 589.65625,
+        "height": 40,
+        "right": 630.65625,
+        "bottom": 505.40625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 5
+    },
+    {
+      "label": "사업부 코드",
+      "rect": {
+        "x": 641.046875,
+        "y": 465.40625,
+        "width": 383.28125,
+        "height": 40,
+        "right": 1024.328125,
+        "bottom": 505.40625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 7
+    },
+    {
+      "label": "사업부 정렬",
+      "rect": {
+        "x": 1034.71875,
+        "y": 465.40625,
+        "width": 104,
+        "height": 40,
+        "right": 1138.71875,
+        "bottom": 505.40625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 1
+    },
+    {
+      "label": "사업부 A 이름",
+      "rect": {
+        "x": 57,
+        "y": 713.015625,
+        "width": 446,
+        "height": 40,
+        "right": 503,
+        "bottom": 753.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 5
+    },
+    {
+      "label": "사업부 A 코드",
+      "rect": {
+        "x": 521,
+        "y": 713.015625,
+        "width": 174,
+        "height": 40,
+        "right": 695,
+        "bottom": 753.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": "project-master-used-code-hint",
+      "valueLength": 7
+    },
+    {
+      "label": "사업부 A 정렬 순서",
+      "rect": {
+        "x": 713,
+        "y": 713.015625,
+        "width": 102,
+        "height": 40,
+        "right": 815,
+        "bottom": 753.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 1
+    },
+    {
+      "label": "긴 한글 사업부 기준정보 이름을 입력하는 영역과 저장 제어를 비교합니다 Long English Master Item Display Name for Stable Control GeometryNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN 이름",
+      "rect": {
+        "x": 57,
+        "y": 760.015625,
+        "width": 446,
+        "height": 40,
+        "right": 503,
+        "bottom": 800.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 200
+    },
+    {
+      "label": "긴 한글 사업부 기준정보 이름을 입력하는 영역과 저장 제어를 비교합니다 Long English Master Item Display Name for Stable Control GeometryNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN 코드",
+      "rect": {
+        "x": 521,
+        "y": 760.015625,
+        "width": 174,
+        "height": 40,
+        "right": 695,
+        "bottom": 800.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": "project-master-used-code-hint",
+      "valueLength": 64
+    },
+    {
+      "label": "긴 한글 사업부 기준정보 이름을 입력하는 영역과 저장 제어를 비교합니다 Long English Master Item Display Name for Stable Control GeometryNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN 정렬 순서",
+      "rect": {
+        "x": 713,
+        "y": 760.015625,
+        "width": 102,
+        "height": 40,
+        "right": 815,
+        "bottom": 800.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 7
+    },
+    {
+      "label": "비활성 사업부 이름",
+      "rect": {
+        "x": 57,
+        "y": 807.015625,
+        "width": 446,
+        "height": 40,
+        "right": 503,
+        "bottom": 847.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 7
+    },
+    {
+      "label": "비활성 사업부 코드",
+      "rect": {
+        "x": 521,
+        "y": 807.015625,
+        "width": 174,
+        "height": 40,
+        "right": 695,
+        "bottom": 847.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": "project-master-used-code-hint",
+      "valueLength": 10
+    },
+    {
+      "label": "비활성 사업부 정렬 순서",
+      "rect": {
+        "x": 713,
+        "y": 807.015625,
+        "width": 102,
+        "height": 40,
+        "right": 815,
+        "bottom": 847.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 2
+    },
+    {
+      "label": "미사용 사업부 이름",
+      "rect": {
+        "x": 57,
+        "y": 854.015625,
+        "width": 446,
+        "height": 40,
+        "right": 503,
+        "bottom": 894.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 7
+    },
+    {
+      "label": "미사용 사업부 코드",
+      "rect": {
+        "x": 521,
+        "y": 854.015625,
+        "width": 174,
+        "height": 40,
+        "right": 695,
+        "bottom": 894.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 8
+    },
+    {
+      "label": "미사용 사업부 정렬 순서",
+      "rect": {
+        "x": 713,
+        "y": 854.015625,
+        "width": 102,
+        "height": 40,
+        "right": 815,
+        "bottom": 894.015625
+      },
+      "style": {
+        "borderWidth": "1px",
+        "borderStyle": "solid",
+        "borderColor": "rgb(148, 163, 184)",
+        "borderSides": [
+          "1px",
+          "1px",
+          "1px",
+          "1px"
+        ],
+        "boxSizing": "border-box",
+        "background": "rgb(237, 241, 247)",
+        "padding": "8px",
+        "minHeight": "40px",
+        "font": "14px / 20px -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Noto Sans KR\", \"Apple SD Gothic Neo\", Arial, sans-serif",
+        "fontSize": "14px",
+        "lineHeight": "20px",
+        "outline": "rgb(71, 85, 105) none 3px",
+        "outlineOffset": "0px",
+        "color": "rgb(71, 85, 105)",
+        "opacity": "1"
+      },
+      "disabled": true,
+      "focused": false,
+      "invalid": null,
+      "describedBy": null,
+      "valueLength": 2
+    }
+  ],
+  "allControlsContained": true,
+  "allControlsNonoverlapping": true,
+  "dialog": null
+}

@@ -35,7 +35,14 @@ export function StageFilterPicker({ tasks, value, onChange, allowUnassigned = tr
   }, [open, query, options.length]);
   function close() { setOpen(false); requestAnimationFrame(() => trigger.current?.focus({ preventScroll: true })); }
   function choose(index: number) { if (!options[index]) return; onChange(options[index].id); close(); }
-  function move(index: number) { const next = Math.max(0, Math.min(options.length - 1, index)); setActive(next); requestAnimationFrame(() => document.getElementById(`${id}-option-${next}`)?.scrollIntoView({ block: "nearest", inline: "nearest" })); }
+  function move(index: number) {
+    const next = Math.max(0, Math.min(options.length - 1, index));
+    setActive(next);
+    // Keyboard navigation targets already exist in the open list. Scroll the
+    // option synchronously so End/Home/Arrow key completion includes the
+    // visibility contract instead of leaving it to a later animation frame.
+    document.getElementById(`${id}-option-${next}`)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
   return <div className="project-stage-filter" onKeyDown={(event) => { if (open && event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); } }}>
     <button ref={trigger} type="button" className="secondary-button project-stage-filter-trigger" aria-label={`완료 단계: ${label}`} aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? `${id}-list` : undefined} title={chosen ? `${chosen.name} · ${chosen.externalId} · ${chosen.taskId}` : label} onClick={() => { if (open) close(); else { setOpen(true); setQuery(""); setActive(0); requestAnimationFrame(() => input.current?.focus()); } }}><span>완료 단계: {label}</span><span aria-hidden="true">▾</span></button>
     {open ? <div ref={popup} className="project-stage-filter-popup" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null) && event.relatedTarget !== trigger.current) setOpen(false); }}>

@@ -145,3 +145,11 @@ feedback 변경의 독립 source·회귀·문서·4/4 실행 비교는 PASS/bloc
 - 최신 workflow/lifecycle, #454 물류 유형 변경, #463 production CSS·Summary/Relation Editor·Context Menu opening-scroll 보완을 우선 보존하고 #464 고유 JSON/Excel/Copy/Template 변경만 재적용한다.
 - Codex P2는 advisory source calendar/dependency로 source effective schedule을 재구성해 동일 Export 재가져오기의 false `changedTasks`를 제거한다.
 - 후보 application version은 `0.92.0`; 새 exact-head PR CI가 공식 원격 재검증 기준이다.
+
+## 2026-10-06 latest main 재정렬 — second alignment
+
+- 이전 head: `1e1397aca8d48780dbc8dcc397f333b3d9bb85ca`.
+- latest main: `d748046733ae2006580052a480c984ae1eb1fa2a`; #463 merge와 이후 #455/transport/#463 filter corrective를 포함한다.
+- 충돌 파일은 `project-gantt.tsx`, CHANGELOG, MILESTONE_STAGE_GATES, PROJECT_UX, TEST_PLAN, active PLAN으로 한정됐다. #454 중복 산출물/source는 양쪽 blob이 동일함을 확인했다.
+- Gantt는 main의 surface-aware opening scroll settle을 보존하고 #464의 context selection `show:false`·Copy feedback 보존만 재적용한다.
+- application version은 `0.92.0` 유지. 새 exact-head PR CI가 공식 재검증 기준이다.

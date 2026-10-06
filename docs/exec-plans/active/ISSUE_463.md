@@ -147,3 +147,26 @@ main 통합 최소LFF는 qa_docs의 migration-cli3/3 PASS(751ms/chunka6a71a), fr
 - Core selection mirror를 제거했는데도 trace에서 app-owned selection 뒤 table scrollTop 147→124가 동일하게 발생했다. 따라서 #1937 가설을 폐기하고 Core mirror는 복원한다.
 - Context Menu open 시 selection/virtual-row layout 내부 scroll을 bounded two-frame settling 구간에서 baseline으로 흡수하고, settle 종료 후 현재 canonical task element 위치에서 실제 scroll guard를 arm한다. 임의 timeout은 사용하지 않으며 이후 사용자 scroll 닫힘은 유지한다.
 - 기존 #407/#418 selection assertion과 전용 scroll E2E를 유지하고 새 exact-head 전체 PR CI를 시작한다. candidate version은 `0.91.0` 유지.
+
+
+## PR CI #1941 REWORK
+
+- head `703807d600c1499092b0144732669fbe54465ca6` / Run #1941.1(`37431883032`)에서 기존 #407/#418 Context Menu 회귀는 사라졌다.
+- shard 6의 새 실패는 Chart bar menu가 opening settle 재캡처에서 같은 taskId의 Grid row로 surface가 바뀌어 이후 실제 Chart scroll을 감지하지 못한 것이다. connected trigger 우선, 교체 시 원래 surface 보존 fallback으로 수정한다.
+- shard 1의 dashboard cache/abort 실패는 cached query 복귀가 network I/O 없이도 microtask 뒤에서 ready 처리돼 CI 부하에서 loading이 남은 경계다. valid cache는 effect 진입 즉시 ready로 복원하고 fetch만 async로 유지한다.
+- latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` / `0.90.1`을 통합하고 candidate `0.91.0` 유지. 새 exact-head 전체 PR CI를 시작한다.
+
+
+## PR CI #1946 REWORK
+
+- head `8f78a24d6e2d37e6c0a9da7ec1f79e2025a55a66` / Run #1946.1(`37434077594`)은 quality/build/Docker와 Chromium shard 2~6 PASS, shard 1 단계 picker keyboard/five-width geometry 1건 FAIL이다.
+- #1941에서 실패했던 Context Menu scroll과 dashboard cache/abort 시나리오는 모두 PASS하여 해당 보완은 유지한다.
+- 390px picker에서 End 키 후 active option scroll이 requestAnimationFrame에 지연되어 geometry 측정이 먼저 실행될 수 있었다. 열린 option DOM을 keyboard handler에서 즉시 `scrollIntoView(nearest)`하고 active state/focus/aria/Escape 계약은 유지한다.
+- latest main `528ebfffa639a275ea4349a04860f5b3785e50e9` / `0.90.2`를 통합하고 candidate `0.91.0` 유지. 새 exact-head 전체 PR CI를 시작한다.
+
+
+## PR review P2 — combined Logistics/Resource S intersection
+
+- unresolved PR review thread는 서로 다른 member가 물류/Resource 조건을 각각 만족할 때 S가 잘못 포함될 수 있는 실제 로직 결함을 지적했다.
+- non-date ordinary Task 교집합을 먼저 계산해 S 관련성에 사용하고, 기간은 F-only로 유지한다. Resource filter가 없을 때 직접 Milestone 물류 match는 기존 계약대로 허용한다.
+- same-task 교집합 Unit을 추가한 뒤 새 exact-head PR CI 성공 시 thread를 resolve하고 병합한다.

@@ -71,10 +71,18 @@ export function calculateMilestoneDashboard(input: MilestoneDashboardCalculation
   parseDateOnly(from, "from"); parseDateOnly(to, "to");
   if (from > to) throw new MilestoneDashboardInvalidRangeError();
   const matchingLogisticsTasks = new Set(logistics.includedTaskIds), matchingLogisticsMilestones = new Set(logistics.includedMilestoneIds);
+  // S must apply Logistics + Resource dimensions to the same ordinary Task.
+  // Date remains F-only, so keep a non-date intersection for stage visibility
+  // and derive the dated scopedTasks separately for effort.
+  const nonDateScopedTaskSet = new Set(input.tasks.filter((task) =>
+    task.type === "task" &&
+    matchingLogisticsTasks.has(task.taskId) &&
+    (!hasResourceFilters || resourceMatchedTaskIds.has(task.taskId)),
+  ).map((task) => task.taskId));
   const scopedTasks = input.tasks.filter((task) => {
-    if (task.type !== "task" || !matchingLogisticsTasks.has(task.taskId)) return false;
+    if (task.type !== "task" || !nonDateScopedTaskSet.has(task.taskId)) return false;
     if (!hasTaskSchedule(task)) throw new Error("Canonical task schedule is missing.");
-    return task.start <= to && task.end >= from && (!hasResourceFilters || resourceMatchedTaskIds.has(task.taskId));
+    return task.start <= to && task.end >= from;
   });
   const scopedTaskIds = scopedTasks.map((task) => task.taskId), scopedTaskSet = new Set(scopedTaskIds);
   const mdPerMm = resolveMdPerMm(input.filter.mdPerMm, input.mdPerMmEnvironment);
@@ -102,8 +110,11 @@ export function calculateMilestoneDashboard(input: MilestoneDashboardCalculation
   const rows = projection.rows.filter((row) => {
     if (filter.milestoneIds.length && !filter.milestoneIds.includes(row.milestoneTaskId)) return false;
     if (search && ![row.name, row.externalId, row.milestoneTaskId].some((value) => value.toLocaleLowerCase().includes(search))) return false;
-    if (!matchingLogisticsMilestones.has(row.milestoneTaskId) && !row.stageGate.memberTaskIds.some((id) => matchingLogisticsTasks.has(id))) return false;
-    if (hasResourceFilters && !resourceMatchedTaskIds.has(row.milestoneTaskId) && !row.stageGate.memberTaskIds.some((id) => resourceMatchedTaskIds.has(id))) return false;
+    const memberMatchesCombinedScope = row.stageGate.memberTaskIds.some((id) => nonDateScopedTaskSet.has(id));
+    // A direct Milestone Logistics match remains meaningful when Resource
+    // dimensions are absent. Once Resource filters are present, S is selected
+    // only by an ordinary member Task satisfying the combined non-date scope.
+    if (!memberMatchesCombinedScope && !(matchingLogisticsMilestones.has(row.milestoneTaskId) && !hasResourceFilters)) return false;
     return true;
   }).map((row) => ({ ...row,
     scopedTaskIds: row.stageGate.memberTaskIds.filter((id) => scopedTaskSet.has(id)),

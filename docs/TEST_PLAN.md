@@ -1632,6 +1632,75 @@ PR CI Run #1873.1도 Chromium shard 4/6의 같은 기존 Summary 회귀 1건만 
 
 owned Next 프로세스 종료 후 이번 실행 전 저장한 next-env.d.ts/tsconfig.json을 복원했고 generated diff0 및 source/test/fixture10 hash drift0을 확인했다. 게시 후보는 기존 allowlist71개뿐이며 legacy #268/raw trace/report/DB/runtime log는 제외한다. 정렬 후 변경은 TEST_PLAN 재검증 기록과 after61 artifact뿐이고 production 수정은 없다. 원격 quality/e2e/docker·독립 QA는 새 head에서 별도 판정한다.
 
+## Issue #454 물류 유형 행 밀도와 열·dialog LFF
+
+baseline `c411634f75b7a69131a095e9cb6b7416060b827e`, branch `fix/issue-454-logistics-table-density`, infra 준비 version0.90.1이다. 설치 의존성은 #453 frozen npm ci 결과의 실제 node_modules 디렉터리를 복사했고 root version 외 dependency content가 같다. #454 fresh npm ci는 NOT TESTED이며 새 install이나 dependency 변경을 주장하지 않는다. 구현자는 native catalog source2 및 전용 fixture/spec·이 문서/PROJECT_UX만 변경했다. 기존 logistics-type-catalog-admin.spec.ts 두 case는 수정 없이 유지했다.
+
+동일 seed는 각 설비/시스템3개: 짧은 AGV/agv·MCS/mcs, 긴 KO/EN name·64/62자 code, active/inactive 및 usage0/2/12345다. 추가 empty/state 시나리오에서 usage1도 별도 검증한다. before production bytes는 baseline 그대로이고 header는 준비된0.90.1이므로 application 전체 baseline bytes 동일은 아니다. before/after seed 의미는 같으며 전용 mock route는 after 요청/오류/deferred 제어로 보강했다. mock API+실제 Chromium 조작이며 실제 SQLite/서버 authorization PASS로 확대하지 않는다.
+
+공통 명령은 `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome npx playwright test --config tests/config/playwright.config.ts <spec> --project=chromium --workers=1 --max-failures=1`이다. before는 `LOGISTICS_CAPTURE=before`, 전용 spec의 `--grep '#454 before'`를 사용했다. after 최초와4차는 기존 spec+전용 spec `--grep-invert '#454 before'`,2·3차는 전용 `--grep '#454 after'`,5차는 양 spec `--grep 'Issue #280|Issue #330|#454 after|pending 동기|loading·'`이다.
+
+| 실행 | session/chunk | 결과·원인·조치 |
+| --- | --- | --- |
+| before 최초 | 75038/ea41b0 | exit0,1 PASS7.1s(3.7s),두 유형·두 dialog5폭;이후65자 fixture 오류 발견으로 최종 증거 교체 |
+| after1 | 95915/17332b | exit1,1 FAIL/13 미실행;768px 마지막 action keyboard focus 외곽선819.890625가 owner744 밖. 390 geometry는 PASS |
+| 준비 명령 | 1be5e4 | raw 보존 Python 경로 결합 TypeError. 수정 뒤 probe 적용 전 별도 shell 명령이 실행된 조작 오류. 제품 오류와 구분 |
+| after2 | 5949/49c1bb | exit1,같은 미수정case1 FAIL1.7s. 준비 실패 때문에 불필요한 동일 재실행. 첫 오류 tool로그는 보존됐으나 첫 raw trace는 이 실행으로 교체되어 원본 없음; 두번째 재현 raw 별도 보존 |
+| after3 poll probe | 93072/d2787a | exit1,1 FAIL6.7s,5초 뒤에도 clipping 지속. assertion timing 가설 배제,raw 보존 |
+| 제품 보강 | 승인된 owned tableWrap focus capture | 필요한 horizontal delta만 보정,fixture/keyboard/assertion 완화 없음. source/fixture 수정 전 owned Next STOP/generated복원 |
+| after4 | 55822/790698 | exit1,11 PASS/1 FAIL/2 미실행19.9s. geometry·양쪽 성공·pending·412/401/network PASS. empty case는 GET 후 mock만 변경한 하니스 설정 순서;GET 전 설정으로 수정,raw 보존 |
+| after5 | 22413/a4c7c0 | exit0,6 PASS11.1s(geometry4.2s),하니스 실패1+미실행 기존2 및 geometry/pending2 보강 재검증 |
+
+최초 after14 unique case PASS,17 PASS 실행(중복3)이었고,아래 valid64 geometry1 재검증 후 누적18 PASS 실행(중복4)이다. before unique1은2회 실행했다. 단일 최종14개 전체 실행이 아니다. source는 after4~5 동일하고 test 변경은 empty 값 설정 시점·focus 측정 JSON 통합·pending row geometry assertion 보강이다. 기존11 PASS 중 영향 없는 요청/오류 case8개는 source-identical 근거로 재사용하고 geometry·두 pending은 다시 실행했다. 첫 실패를 retry로 숨기지 않는다. 신규 pure domain/API algorithm 변경이 없어 별도 Unit 작성/실행은 N/A이며 request/count/state/geometry 핵심 계약을 실제 browser E2E로 검증한다. 서버 service/handler 전체 회귀는 exact PR head CI의 기존 tests가 담당한다.
+
+직접 coverage는 양 catalog POST/code identity/name-onlyPATCH/active-onlyPATCH 및 If-Match7→8→9→10,usage 불변, passwordPUT 성공,종류/필터 GET/mutation0,0건/필터0/loading/GET실패/retry, mutation401 로그인 focus/password clear,412→GET200/500/401 원인·초안·새If-Match 수동 저장,network/불명 canonical 성공오판·자동retry0,두 dialog 동기submit2→요청1이다. pending5폭에서 disabled input/cancel/close·반복Escape5·Tab/ShiftTab·실제 포인터 취소·응답 후 trigger focus를 검증했고 기존 #280 password Escape/clear/실패logout 및 #330 필터/count/control non-overlap 보호를 유지했다.
+
+두 유형5폭 모두 documentWidth=390/768/1024/1440/1920,table824/824/950/1366/1574px,표시명240/240/366/782/990px,짧은 행47px,td block padding3px,action margin0 및 control40px다. 같은 행 action top/height 차이≤1px,header/body 경계·모든 row button closest-td containment·text/code/count 실제 Range containment 및 기타 input/control containment를 실측했다. 390/768은 table-owned scroll이며 실제 Tab으로 마지막 action+6px outline을 보여준다. 큰 폭 pointer focus의 불필요한 horizontal jump0도 확인했다. 이름/password dialog5폭 정상·invalid-disabled·pending footer의 top/height 차이≤1px,초기focus/Escape/취소/Tab trap,390px 조회 오류 복구 action containment를 확인했다.
+
+게시 allowlist는 `output/playwright/issue-454/before/` PNG20+JSON20 및 `after/` PNG14+JSON21(environment1 포함),총75개다. after catalog 두 탭5폭 screenshot과 geometry10,dialog5폭 geometry10·대표390/1440 screenshot4이다. keyboard focus 측정은 catalog JSON에 합쳐 중복 artifact를 줄였다. raw trace/errorcontext는 `/tmp/issue454-{second,third,fourth}-after-fail`에 보존만 하며 Git 제외다. DB/.data/.next-e2e/test-results/playwright-report/runtime log/다른Issue output/원래 #464 raw는 게시하지 않는다.
+
+실제 before/after 환경은 각 JSON에 en-US·Asia/Seoul·Chromium153.0.8010.12 및 navigator userAgent를 기록했다. 최종 after environment capturedAt `2026-10-06T03:12:36.238Z`,default100% zoom이다. native125% browser chrome zoom은 headless 제어가 없어 NOT TESTED이며 DSF/CSSzoom/viewport로 대체하지 않았다. 실제기기/screenreader/서버authorization 전체/원격quality+e2e+docker/최종 수동UX/독립 QA는 별도 NOT TESTED이다.
+
+최종 source/test/fixture freeze5 drift0·owned Next STOP·next-env.d.ts/tsconfig.json 정확 복원은 ched8d0e로 확인했다. source/API/DB/auth/domain/shared CSS/shared dialog/SVAR 변경은 N/A이며 PROJECT_UX/TEST_PLAN만 frontend 문서 범위다. Root Packet/PLAN/CHANGELOG와 infra package/lock는 별도 writer로 보존했다. 최종 type/lint/version/link/diff 및 모든 경로별 SHA는 frontend Result Contract/manifest로 반환한다.
+
+### Issue #454 유효64자 fixture 최종 증거 교체
+
+최종 점검에서 첫 전용 fixture의 설비 code가15+50=65자라는 길이 오류를 발견했다. API64자 상한 위반의 synthetic fixture 오류이며 제품 validator를 변경하지 않았다. 기존65자 before/after75개는 `/tmp/issue454-invalid65-evidence`에 보존만 하고 게시하지 않는다. Manager 승인으로 hyphen1자만 줄여64자로 만들고, STOP 뒤 최종 source2를 별도 byte/hash 백업→source2 정확c411 baseline 임시 복원→before 캡처→STOP/generated복원→검증된 최종source2 byte 동일 복원→after geometry만 캡처했다.
+
+유효64 before 재캡처77830/ch20c364 exit0,1 PASS6.6s(3.9s). after geometry31896/ch48c975 exit0,1 PASS7.4s(4.7s),실패0이다. 최종75 artifact는 같은 유효dataset으로 모두 교체됐고 환경/numeric actual metric/control pair 비중첩·세로/가로 focus 외곽선도 JSON에 명시했다. 사용 건수 header/cell computed text-align right와 font-variant-numeric tabular-nums를 실측했다. 최종 before 짧은 행 수치는390/768224.96875,1024140.96875,1440/1920100.96875px로 같고 after5폭47px이다.
+
+마지막 ch7213f4는 source/test/fixture5 drift0,최종source2 백업byte 동일,owned Next STOP/generated2 정확 복원을 확인했다. 기존 CRUD/오류/pending/두 기존 case는 짧은 code에 대한 검증이며 제품 source도 동일하므로 재사용한다. 고유 after14개는 유지하고 PASS 실행은18회로 구분하며 전체14를 다시 실행하지 않았다. 게시 allowlist75개는 그대로이고 native125%·실기기·screenreader·serverauthorization 전체·remoteCI·독립 QA 미검증 경계도 유지한다.
+
+## Issue #455 — 프로젝트 기준정보 제어 밀도 Local Fast Feedback
+
+전용 `tests/fixtures/project-master-455.ts`는 세 범주 각각 짧은 used 행, 이름200자/code64자/정렬1000000/사용 수12345의 긴 행, inactive 행, unused0 행을 만든다. UUID와 API 길이/정렬 상한을 fixture 생성 시 검증한다. 같은 최종 12행 dataset으로 before/after를 비교하며 mock API UI 검증을 실제 SQLite authorization 검증으로 확대하지 않는다.
+
+첫 before 76506/ch43c7c1 exit0(1 PASS,6.7초)는 초기 9행 fixture였다. 제품 수정 전 승인된 상한/unused0 보강 후 최종 before 51732/chd846d4 exit0(1 PASS,6.7초)를 다시 확보했다. 최종 게시 비교에는 12행 before만 사용한다. before production source는 baseline04b3047328bb338bace1990e18a434ae80b611db이며 header의0.90.2는 infra 준비값이다. 짧은 정상 행57px, 입력 border0px/transparent/padding0px/min-height auto를 실제 측정했다. #452의 전역 margin0는 이미 적용되어 있으므로 이번 변경을 button margin 제거라고 해석하지 않는다.
+
+전용 spec은 세 범주×390/768/1024/1440/1920의 표/행/header-body/첫 행 경계, 정상/focus/disabled computed input style, control containment·비중첩, native Tab의 마지막 작업 접근, password dialog 초기/복원 focus를 확인한다. 기존 project-master-admin.spec.ts의7개 #289/#332 범주/필터/의미 구조/반응형 보호는 새 제목 selector만 이관한다. 추가 request/state 검증은 범주/필터 초안·생성 target, POST/명시 PATCH/active/password, used code 이유, 실제 필드 오류,0/1/filter0, GET 오류 복구, 동기 중복 submit/pending 반복 Escape, mutation401/403/412 및 복구 GET500/401/network/불명 canonical을 다룬다. 실패 요청을 자동 재전송하지 않는 counter를 유지한다.
+
+첫 after 55446/chab1a09 exit1: 390px 표/입력/행/Tab geometry 통과 후 password 초기 focus FAIL(1 FAIL,18 미실행). React autoFocus만으로 native showModal 이후 focus가 보장되지 않은 제품 UI 오류다. 원본 trace/error context는 `/tmp/issue455-after-firstfail-1`에 보존하고 게시 대상에서 제외했다. owned form의 명시 초기 focus를 연결해 재검증한다.
+
+모든 server 실행 중 production/fixture/test는 동결하고 종료 후 owned Next STOP, next-env.d.ts/tsconfig.json 정확 백업 복원 및 hash 불변을 확인한다. 기존 canonical 재적용 시 다른 dirty 행 덮임은 DEFER이며 이 검증으로 전체 저장 동작의 초안 보존을 주장하지 않는다. 실제125% browser zoom은 headless native UI로 실행할 수 없어 NOT TESTED이며 DSF/CSS zoom으로 대체하지 않는다. 실기기/screen reader, 전체 서버 authorization/원격 quality·e2e·docker, 독립 QA는 별도 근거가 없으므로 NOT TESTED다. API/DB/auth/domain/공유 CSS/Next·SVAR 엔진 계약 문서는 변경 없는 로컬 UI 범위로 N/A다.
+
+### Issue #455 최종 후보 및 실행 이력
+
+| 실행 | 실제 명령 범위 / handle·chunk | 결과 |
+| --- | --- | --- |
+| before 초기 | `MASTER_CAPTURE=before npx playwright test --config tests/config/playwright.config.ts tests/e2e/master-controls-density.spec.ts --project=chromium --workers=1 --max-failures=1 --grep '#455 before'` ·76506/43c7c1 | exit0,1 PASS6.7초; 초기9행, 최종 비교에서 제외 |
+| before 최종 | 동일 명령·51732/d846d4 | exit0,1 PASS6.7초; 유효12행 dataset |
+| after1 | 전용 spec+기존 spec,`--grep-invert '#455 before'` ·55446/ab1a09 | exit1,초기 focus1 FAIL/18 미실행 |
+| after2 | 같은19개·40983/1beb06 | exit1,owned effect 보강 뒤 동일 초기 focus1 FAIL/18 미실행 |
+| after3 | native autofocus ref 적용 뒤 같은19개·34563/44bd01 | exit1,2 PASS/1 FAIL/16 미실행; Next route announcer까지 선택한 alert strict selector 하니스 오류 |
+| after4 | 같은 두 spec,`--grep-invert '#455 before\|#455 after 세 범주'` ·87943/1b8046 | exit0,18 PASS15.1초; alert는 main 영역으로 한정, 생성/행 draft 검사도 최종 보강 |
+| after5 | 전용 spec,`--grep '#455 after 세 범주\|#455 실제 필드'` ·13519/99c70b | exit0,2 PASS7.3초; top≤1px와 실제 오류 computed 색상, loading 상태 좁은 재검증 |
+
+모든 browser 명령은 `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome`, workers1/max-failures1을 사용한다. 고유 after case는19개(기존7+전용12), PASS 실행은22회(2+18+2)이며 중복3회를 포함한다. 단일19개 전체 PASS 실행이라고 쓰지 않는다. 제품 source는 after3 이후 변경 없고 after4/5는 owned test selector 및 인수 기준 측정 보강만 적용했으므로 영향 없는 PASS를 재사용한다. 마지막 e54c15에서 source/test/fixture5 drift0·owned Next STOP·generated2 백업 정확 복원을 확인했다.
+
+최종 evidence는 before28개(7PNG/21JSON)와 after32개(9PNG/23JSON), 총60개다. geometry는 세 범주15개 normal/focused 및 password5폭을 포함하고, PNG는 사업부5폭/password390·1440/error·saving 대표 상태만이다. 정상 짧은 행은 모든 폭47px, 입력/버튼40px, cell 상하3px, header/body 및 동급 control top 차이≤1px, first-row header gap0px, document width=viewport다. table width는390/768/1024에서960px,1440에서1344px,1920에서1552px이며 wide는 shell의 가용 작업면을 기준으로 한다. before의 입력 borderWidth0px shorthand는 네 면이 동일한 CSSOM 실측값이며 after는 borderSides 네 면1px도 명시했다. 정상 표면 rgb(255,255,255), padding8px/min-height40px/14px·20px/box-sizing border-box, focus3px outline, disabled 표면·used 이유, 실제 invalid input과 오류 설명의 computed 색 일치를 확인했다.
+
+실측 환경은 en-US/Asia-Seoul(실제 값 `Asia/Seoul`)/Chromium153.0.8010.12, 기본100%이며 before/after environment JSON에 기록했다. fresh npm ci는 실행하지 않았고 infra가 #454의 동일 dependency 실제 디렉터리를 복사한 환경이다. 별도 pure domain 알고리즘 추가가 없으므로 신규 Unit N/A이며 동기 guard는 실제 browser request counter로 검증했다. typecheck/scoped lint/version/Markdown link/diff의 마지막 실행은 frontend Result Contract에 연결한다. 원본 실패 trace·runtime DB·report·log 및 다른 Issue 출력은 게시 allowlist에서 제외한다.
+
 ## Issue #475 Generic Finalizer closed-Issue backlog 회귀
 
 - 재현 순서는 `FINAL #452@f8f...` → 미완료 `#461@fd8...` → 이미 closed인 #452를 다시 참조한 후속 merge `#474@56e...`다.
@@ -1725,44 +1794,35 @@ branch 정렬은 published PR history를 강제 재작성하지 않고 기존 fe
 - 일반 selection의 Core mirror는 복원한다. 기존 `task-context-menu-scroll.spec.ts`는 같은 위치의 지연 scroll은 무시하고 bounded settle 이후 실제 scroll은 메뉴를 닫는 계약을 명시적으로 유지한다. #407/#418의 app-owned selection assertion도 유지한다.
 - 새 exact-head 전체 PR CI의 quality/e2e/docker가 authoritative하며 이전 run의 부분 PASS를 새 head 증거로 전용하지 않는다.
 
-## Issue #454 물류 유형 행 밀도와 열·dialog LFF
 
-baseline `c411634f75b7a69131a095e9cb6b7416060b827e`, branch `fix/issue-454-logistics-table-density`, infra 준비 version0.90.1이다. 설치 의존성은 #453 frozen npm ci 결과의 실제 node_modules 디렉터리를 복사했고 root version 외 dependency content가 같다. #454 fresh npm ci는 NOT TESTED이며 새 install이나 dependency 변경을 주장하지 않는다. 구현자는 native catalog source2 및 전용 fixture/spec·이 문서/PROJECT_UX만 변경했다. 기존 logistics-type-catalog-admin.spec.ts 두 case는 수정 없이 유지했다.
+## Issue #463 PR CI Run #1941 dual corrective
 
-동일 seed는 각 설비/시스템3개: 짧은 AGV/agv·MCS/mcs, 긴 KO/EN name·64/62자 code, active/inactive 및 usage0/2/12345다. 추가 empty/state 시나리오에서 usage1도 별도 검증한다. before production bytes는 baseline 그대로이고 header는 준비된0.90.1이므로 application 전체 baseline bytes 동일은 아니다. before/after seed 의미는 같으며 전용 mock route는 after 요청/오류/deferred 제어로 보강했다. mock API+실제 Chromium 조작이며 실제 SQLite/서버 authorization PASS로 확대하지 않는다.
+- head `703807d600c1499092b0144732669fbe54465ca6`의 PR CI Run #1941.1(`37431883032`)은 quality/build/Docker와 Chromium shard 2~5 PASS였고, shard 1의 dashboard cache/abort 1건과 shard 6의 전용 Context Menu scroll 1건이 FAIL했다.
+- shard 6에서 기존 #407/#418 시나리오는 더 이상 실패하지 않아 opening-settle 보완은 해당 회귀를 해소했다. 새 실패는 Chart bar에서 연 메뉴의 settle 재캡처가 taskId fallback으로 Grid row를 먼저 찾아 Chart scroll owner를 잃은 회귀다. 연결된 원래 trigger가 있으면 그 요소를 계속 사용하고, 교체됐을 때만 원래 surface(grid/chart)를 보존한 taskId fallback을 사용한다.
+- shard 1은 slow query를 abort하고 직전 cached query로 되돌릴 때 network I/O가 없는 cache hit임에도 ready 복원이 effect 내부 microtask 뒤로 밀려 CI 부하에서 loading 상태가 남았다. cache hit는 effect 진입 즉시 `ready`로 복원하고 actual fetch만 async 경로로 유지한다. 기존 focus TTL catch-up·catalog/revision 검증은 유지한다.
+- latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` / application `0.90.1`의 #454 UI/문서 변경을 보존하며 candidate `0.91.0`을 유지한다. 새 exact-head 전체 PR CI가 authoritative다.
 
-공통 명령은 `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome npx playwright test --config tests/config/playwright.config.ts <spec> --project=chromium --workers=1 --max-failures=1`이다. before는 `LOGISTICS_CAPTURE=before`, 전용 spec의 `--grep '#454 before'`를 사용했다. after 최초와4차는 기존 spec+전용 spec `--grep-invert '#454 before'`,2·3차는 전용 `--grep '#454 after'`,5차는 양 spec `--grep 'Issue #280|Issue #330|#454 after|pending 동기|loading·'`이다.
 
-| 실행 | session/chunk | 결과·원인·조치 |
-| --- | --- | --- |
-| before 최초 | 75038/ea41b0 | exit0,1 PASS7.1s(3.7s),두 유형·두 dialog5폭;이후65자 fixture 오류 발견으로 최종 증거 교체 |
-| after1 | 95915/17332b | exit1,1 FAIL/13 미실행;768px 마지막 action keyboard focus 외곽선819.890625가 owner744 밖. 390 geometry는 PASS |
-| 준비 명령 | 1be5e4 | raw 보존 Python 경로 결합 TypeError. 수정 뒤 probe 적용 전 별도 shell 명령이 실행된 조작 오류. 제품 오류와 구분 |
-| after2 | 5949/49c1bb | exit1,같은 미수정case1 FAIL1.7s. 준비 실패 때문에 불필요한 동일 재실행. 첫 오류 tool로그는 보존됐으나 첫 raw trace는 이 실행으로 교체되어 원본 없음; 두번째 재현 raw 별도 보존 |
-| after3 poll probe | 93072/d2787a | exit1,1 FAIL6.7s,5초 뒤에도 clipping 지속. assertion timing 가설 배제,raw 보존 |
-| 제품 보강 | 승인된 owned tableWrap focus capture | 필요한 horizontal delta만 보정,fixture/keyboard/assertion 완화 없음. source/fixture 수정 전 owned Next STOP/generated복원 |
-| after4 | 55822/790698 | exit1,11 PASS/1 FAIL/2 미실행19.9s. geometry·양쪽 성공·pending·412/401/network PASS. empty case는 GET 후 mock만 변경한 하니스 설정 순서;GET 전 설정으로 수정,raw 보존 |
-| after5 | 22413/a4c7c0 | exit0,6 PASS11.1s(geometry4.2s),하니스 실패1+미실행 기존2 및 geometry/pending2 보강 재검증 |
+## Issue #463 PR CI Run #1946 picker keyboard visibility REWORK
 
-최초 after14 unique case PASS,17 PASS 실행(중복3)이었고,아래 valid64 geometry1 재검증 후 누적18 PASS 실행(중복4)이다. before unique1은2회 실행했다. 단일 최종14개 전체 실행이 아니다. source는 after4~5 동일하고 test 변경은 empty 값 설정 시점·focus 측정 JSON 통합·pending row geometry assertion 보강이다. 기존11 PASS 중 영향 없는 요청/오류 case8개는 source-identical 근거로 재사용하고 geometry·두 pending은 다시 실행했다. 첫 실패를 retry로 숨기지 않는다. 신규 pure domain/API algorithm 변경이 없어 별도 Unit 작성/실행은 N/A이며 request/count/state/geometry 핵심 계약을 실제 browser E2E로 검증한다. 서버 service/handler 전체 회귀는 exact PR head CI의 기존 tests가 담당한다.
+- head `8f78a24d6e2d37e6c0a9da7ec1f79e2025a55a66`의 PR CI Run #1946.1(`37434077594`)은 quality/build/Docker와 Chromium shard 2~6 PASS, shard 1의 `#463 readonly full-state/F separation, keyboard and five-width geometry` 1건만 FAIL했다. 이전 Context Menu scroll 및 dashboard cache/abort 회귀는 이 run에서 PASS했다.
+- 실패는 390px 단계 picker에서 `End` 키 입력 직후 active option의 `scrollIntoView`를 requestAnimationFrame으로 지연해, CI에서 geometry 측정이 먼저 실행될 수 있는 timing race다. popup bounds는 viewport 안에 있었고 실패 assertion은 input focus/visibility/active option visibility 묶음이었다.
+- 열린 list의 keyboard target DOM은 이미 존재하므로 `move()`에서 active state와 동시에 해당 option에 synchronous `scrollIntoView({block:"nearest"})`를 적용한다. focus·aria-activedescendant·Escape 복귀·popup fit 계약은 유지하며 임의 timeout은 추가하지 않는다.
+- latest main `528ebfffa639a275ea4349a04860f5b3785e50e9` / application `0.90.2`의 #455 UI/문서 변경을 보존하고 #463 candidate `0.91.0`을 유지한다. 새 exact-head 전체 PR CI가 authoritative다.
 
-직접 coverage는 양 catalog POST/code identity/name-onlyPATCH/active-onlyPATCH 및 If-Match7→8→9→10,usage 불변, passwordPUT 성공,종류/필터 GET/mutation0,0건/필터0/loading/GET실패/retry, mutation401 로그인 focus/password clear,412→GET200/500/401 원인·초안·새If-Match 수동 저장,network/불명 canonical 성공오판·자동retry0,두 dialog 동기submit2→요청1이다. pending5폭에서 disabled input/cancel/close·반복Escape5·Tab/ShiftTab·실제 포인터 취소·응답 후 trigger focus를 검증했고 기존 #280 password Escape/clear/실패logout 및 #330 필터/count/control non-overlap 보호를 유지했다.
+### Issue #455 Main CI #1947.1 transport hostname corrective
 
-두 유형5폭 모두 documentWidth=390/768/1024/1440/1920,table824/824/950/1366/1574px,표시명240/240/366/782/990px,짧은 행47px,td block padding3px,action margin0 및 control40px다. 같은 행 action top/height 차이≤1px,header/body 경계·모든 row button closest-td containment·text/code/count 실제 Range containment 및 기타 input/control containment를 실측했다. 390/768은 table-owned scroll이며 실제 Tab으로 마지막 action+6px outline을 보여준다. 큰 폭 pointer focus의 불필요한 horizontal jump0도 확인했다. 이름/password dialog5폭 정상·invalid-disabled·pending footer의 top/height 차이≤1px,초기focus/Escape/취소/Tab trap,390px 조회 오류 복구 action containment를 확인했다.
+Main CI Run `37435545662` / #1947.1은 build/typecheck/lint/Vitest/Docker smoke/E2E 6 shards와 게시 image policy/readiness/SQLite/API persistence까지 SUCCESS였으나, 게시 digest transport 검증의 production-http 첫 Chromium navigation에서 `ERR_NAME_NOT_RESOLVED`가 발생해 실패했다. 같은 script의 `/etc/hosts` 등록 뒤 HTTP/HTTPS readiness curl은 성공했으므로 application/image failure가 아니라 hosted runner Chromium의 test hostname resolution 실패로 분리한다.
 
-게시 allowlist는 `output/playwright/issue-454/before/` PNG20+JSON20 및 `after/` PNG14+JSON21(environment1 포함),총75개다. after catalog 두 탭5폭 screenshot과 geometry10,dialog5폭 geometry10·대표390/1440 screenshot4이다. keyboard focus 측정은 catalog JSON에 합쳐 중복 artifact를 줄였다. raw trace/errorcontext는 `/tmp/issue454-{second,third,fourth}-after-fail`에 보존만 하며 Git 제외다. DB/.data/.next-e2e/test-results/playwright-report/runtime log/다른Issue output/원래 #464 raw는 게시하지 않는다.
+Corrective는 `tests/config/transport.config.ts`의 Chromium launch option에 `plain.gantt.test`와 `secure.gantt.test`만 127.0.0.1로 매핑한다. browser URL/Host header와 HTTPS certificate hostname은 계속 원래 test domain을 사용하므로 Origin/cookie/TLS 의미를 localhost 예외로 바꾸지 않는다. shell/Node 측 `/etc/hosts`, NO_PROXY, 실제 Nginx와 신뢰 CA 검증도 유지한다. 최종 authoritative 판정은 corrective 병합 후 새 Main CI의 동일 published-digest transport smoke다.
 
-실제 before/after 환경은 각 JSON에 en-US·Asia/Seoul·Chromium153.0.8010.12 및 navigator userAgent를 기록했다. 최종 after environment capturedAt `2026-10-06T03:12:36.238Z`,default100% zoom이다. native125% browser chrome zoom은 headless 제어가 없어 NOT TESTED이며 DSF/CSSzoom/viewport로 대체하지 않았다. 실제기기/screenreader/서버authorization 전체/원격quality+e2e+docker/최종 수동UX/독립 QA는 별도 NOT TESTED이다.
 
-최종 source/test/fixture freeze5 drift0·owned Next STOP·next-env.d.ts/tsconfig.json 정확 복원은 ched8d0e로 확인했다. source/API/DB/auth/domain/shared CSS/shared dialog/SVAR 변경은 N/A이며 PROJECT_UX/TEST_PLAN만 frontend 문서 범위다. Root Packet/PLAN/CHANGELOG와 infra package/lock는 별도 writer로 보존했다. 최종 type/lint/version/link/diff 및 모든 경로별 SHA는 frontend Result Contract/manifest로 반환한다.
+### Issue #463 PR #472 unresolved review P2 — combined S scope
 
-### Issue #454 유효64자 fixture 최종 증거 교체
-
-최종 점검에서 첫 전용 fixture의 설비 code가15+50=65자라는 길이 오류를 발견했다. API64자 상한 위반의 synthetic fixture 오류이며 제품 validator를 변경하지 않았다. 기존65자 before/after75개는 `/tmp/issue454-invalid65-evidence`에 보존만 하고 게시하지 않는다. Manager 승인으로 hyphen1자만 줄여64자로 만들고, STOP 뒤 최종 source2를 별도 byte/hash 백업→source2 정확c411 baseline 임시 복원→before 캡처→STOP/generated복원→검증된 최종source2 byte 동일 복원→after geometry만 캡처했다.
-
-유효64 before 재캡처77830/ch20c364 exit0,1 PASS6.6s(3.9s). after geometry31896/ch48c975 exit0,1 PASS7.4s(4.7s),실패0이다. 최종75 artifact는 같은 유효dataset으로 모두 교체됐고 환경/numeric actual metric/control pair 비중첩·세로/가로 focus 외곽선도 JSON에 명시했다. 사용 건수 header/cell computed text-align right와 font-variant-numeric tabular-nums를 실측했다. 최종 before 짧은 행 수치는390/768224.96875,1024140.96875,1440/1920100.96875px로 같고 after5폭47px이다.
-
-마지막 ch7213f4는 source/test/fixture5 drift0,최종source2 백업byte 동일,owned Next STOP/generated2 정확 복원을 확인했다. 기존 CRUD/오류/pending/두 기존 case는 짧은 code에 대한 검증이며 제품 source도 동일하므로 재사용한다. 고유 after14개는 유지하고 PASS 실행은18회로 구분하며 전체14를 다시 실행하지 않았다. 게시 allowlist75개는 그대로이고 native125%·실기기·screenreader·serverauthorization 전체·remoteCI·독립 QA 미검증 경계도 유지한다.
+- PR review는 물류 조건을 만족하는 member와 Resource 조건을 만족하는 다른 member가 있을 때 기존 독립 existential 판정이 stage를 S에 포함할 수 있음을 지적했다.
+- S의 물류+Resource 관련성은 기간을 제외한 동일 일반 Task 교집합으로 판정한다. 날짜는 기존 계약대로 F-only다. Resource 조건이 없으면 Milestone 자체의 직접 물류 match는 계속 S에 포함한다.
+- Unit 회귀는 t1=물류 only, t2=Resource only일 때 rows/KPI가 empty이고, t2에도 같은 물류 연결을 추가하면 m1/scopedTaskIds=t2가 복원되는지 검증한다.
+- 이 보완 후 exact-head PR CI를 다시 실행하며 이전 #1952 PASS는 수정 전 head 증거로만 유지한다.
 
 ## Issue #464 Local Fast Feedback와 보존/교환 검증
 
@@ -1880,3 +1940,7 @@ Stage Gate 실행의 Next/Playwright 프로세스가 모두 종료됐고(ch3c8b4
 ### Issue #464 재정렬 후 원격 재검증
 
 latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` 및 #463 head `703807d600c1499092b0144732669fbe54465ca6` 위로 재정렬하며 기존 #464 로컬 증거는 이전 head의 범위 증거로 유지한다. JSON 1.1 동일 Export preview의 `changedTasks=[]`, Context Menu enabled-item keyboard 이동, #463 opening-scroll settle 승계를 새 head에서 검증한다. 공식 판정은 새 exact-head PR CI의 quality/e2e/docker이며 시작 전에는 NOT TESTED다.
+
+### Issue #464 latest main 재정렬 — 2026-10-06
+
+PR #473를 latest main `d748046733ae2006580052a480c984ae1eb1fa2a` 기준으로 다시 정렬한다. 해당 main에는 #463가 병합되어 있고 #455 UI/transport 및 #463 결합 필터 보완까지 포함된다. #464 고유 JSON/Excel/Copy/Template 구현과 Codex P2 round-trip 보완을 유지하고, `project-gantt.tsx`는 main의 context-menu surface settle을 보존하면서 context 선택에서만 `show:false`와 Copy feedback 보존을 재적용한다. 새 exact-head PR CI의 quality/e2e/docker가 공식 재검증 기준이며 결과 확인 전에는 NOT TESTED다.

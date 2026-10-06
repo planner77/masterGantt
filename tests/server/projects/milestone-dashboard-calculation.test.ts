@@ -74,6 +74,26 @@ describe("milestone dashboard full-stage and scoped effort", () => {
     input.filter = { assignmentRoles: ["UNSPECIFIED"], developerGrades: ["UNSPECIFIED"] };
     expect(calculateMilestoneDashboard(input).scope.assignmentIds).toEqual(["a1"]);
   });
+  it("requires Logistics and Resource filters to match the same ordinary Task before a stage enters S", () => {
+    const input = fixture();
+    input.resources.push({ id: "r2", name: "R2", code: "R2", description: "", active: true, developerGrade: "ADVANCED", roles: ["DEVELOPER"] });
+    input.assignments[0] = { ...input.assignments[0], target: { kind: "resource", id: "r2" } };
+    input.logistics.processes = [{ id: "p", code: "P", name: "P", parentProcessId: null, sortOrder: 0, active: true, createdAt: "", updatedAt: "" }];
+    input.logistics.equipment = [{ id: "eq", processId: "p", code: "EQ", name: "EQ", equipmentType: "AGV", managementUnit: "unit", quantity: 1, manufacturer: "", model: "", description: "", active: true, controlSystems: [], resourceRoles: [], createdAt: "", updatedAt: "" }];
+    input.logistics.taskEquipmentLinks = [{ taskId: "t1", equipmentId: "eq", scope: "self" }];
+    input.filter = { equipmentIds: ["eq"], resourceIds: ["r1"] };
+
+    const none = calculateMilestoneDashboard(input);
+    expect(none.scope.taskIds).toEqual([]);
+    expect(none.rows).toEqual([]);
+    expect(none.kpi.completion.denominator).toBe(0);
+
+    input.logistics.taskEquipmentLinks.push({ taskId: "t2", equipmentId: "eq", scope: "self" });
+    const matched = calculateMilestoneDashboard(input);
+    expect(matched.scope.taskIds).toEqual(["t2"]);
+    expect(matched.rows.map((row) => row.milestoneTaskId)).toEqual(["m1"]);
+    expect(matched.rows[0].scopedTaskIds).toEqual(["t2"]);
+  });
   it("uses inclusive clipping and Resource calendar while retaining unset and zero-day Task coverage", () => {
     const input = fixture(); input.filter = { from: "2026-10-05", to: "2026-10-05", mdPerMm: 3 };
     input.calendarForResource = () => createWorkingCalendar({ timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [{ date: "2026-10-05", name: "Resource holiday" }] });

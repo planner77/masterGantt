@@ -138,6 +138,7 @@ Task/Summary 이름+소속 한 PATCH, Milestone 초안 한 batch POST와 같은 
 - E(M)는 M에 effective 소속된 고유 일반 Task 전체이며 P(M)는 직접 predecessor Milestone 전체다. Summary 및 기존 mixed Task→Milestone Link는 이 집합의 member/predecessor가 아니다.
 - S는 검색/단계 선택과 물류·Resource 조건에 관련된 고유 Milestone 표시 집합이다. 날짜순은 표시 순서이며 새로운 Dependency를 만들지 않는다.
 - F는 Project 전체를 기준으로 물류·Resource·수행 역할·등급·기간 조건을 적용한 일반 Task/개인 assignment 범위다. 기존 WBS scope는 적용하지 않는다. 검색과 `milestoneIds`는 S만 제한한다. 기간은 F만 제한한다.
+- 물류와 Resource 조건을 함께 적용할 때 S의 관련성도 **같은 일반 Task**가 두 조건의 non-date 교집합을 만족해야 한다. 한 member는 물류, 다른 member는 Resource 조건을 각각 만족하는 식으로 stage를 포함하지 않는다. 날짜는 계속 F-only이므로 S 관련성 계산에는 사용하지 않는다. Resource 조건이 없을 때 Milestone 자신의 기존 물류 match는 계속 S 관련성으로 인정한다.
 - 같은 Resource assignment 하나가 Resource/수행 역할/등급 조건을 모두 만족해야 Task가 일치한다. 서로 다른 담당자 둘의 속성을 조합하지 않는다. legacy 역할/등급은 UNSPECIFIED이며 글로벌 역할로 수행 역할을 추정하지 않는다.
 - 전체 E/P가 `rows.stageGate`와 소속 작업 진척의 authority다. `scopedTaskIds`와 `effort`는 F 표시다. 화면 밖 미완료 member/predecessor도 원인 ID에 남는다.
 
