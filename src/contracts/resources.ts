@@ -88,7 +88,7 @@ export interface ProjectAssignmentDto {
   id: string;
   taskId: string;
   target: AssignmentTargetRefDto;
-  /** Issue #413. NULL is the explicit legacy/unspecified state; groups always use NULL. */
+  /** @deprecated Issue #485: Task-specific roles are non-authoritative; canonical responses return null. */
   role?: ResourceRole | null;
   /** Issue #56. Optional only for source compatibility with older fixtures/adapters. */
   allocation?: ResourceAllocationDto | null;
@@ -102,7 +102,7 @@ export interface AssignmentTargetDto {
   /** Included by public assigned-target metadata for Project-local search. Optional keeps older fixtures compatible. */
   description?: string;
   active: boolean;
-  /** Resource-only Global roles used by the Task assignment role picker. Groups omit this field. */
+  /** Resource-only Global roles used as the single role source for display/filtering. Groups omit this field. */
   roles?: ResourceRole[];
 }
 
@@ -123,7 +123,7 @@ export interface AssignedTargetsResponse {
 }
 
 export interface ReplaceTaskAssignmentTargetRequest extends AssignmentTargetRefDto {
-  /** Resource-only performed role. Omitted/null remains supported as the legacy UNSPECIFIED state. */
+  /** @deprecated Issue #485: omit or send null. Non-null Task-specific roles are rejected. */
   role?: ResourceRole | null;
   allocation?: {
     start?: string | null;
@@ -151,7 +151,9 @@ export interface ResourceWorkloadTaskDto {
   effortMd: number | null;
   effortMm: number | null;
   effortConfigured: boolean;
-  /** Issue #414. Assignment performed role; UNSPECIFIED preserves legacy null without inference. */
+  /** Issue #485. Current Global Resource Roles; empty means the Resource has no Global Role. */
+  roles?: ResourceRole[];
+  /** @deprecated Issue #485: Task-specific workload role is no longer emitted. */
   role?: ResourceWorkloadRole;
   /** Issue #414. Canonical task schedule/status are informational and do not change planned effort. */
   taskStart?: string;
@@ -168,6 +170,8 @@ export interface ResourceWorkloadResourceDto {
   active: boolean;
   /** Issue #414. Resource profile metadata for developer estimate drill-down. */
   developerGrade?: DeveloperGrade | null;
+  /** Issue #485. Current Global Resource Roles. */
+  roles?: ResourceRole[];
   start: string | null;
   end: string | null;
   effortMd: number;

@@ -31,11 +31,6 @@ export interface AssignmentRecord {
   assignmentRole: ResourceRole | null;
 }
 
-export interface ResourceRoleAssignmentUsage {
-  projectCount: number;
-  taskCount: number;
-}
-
 export interface CatalogTargetProjectUsage {
   projectCount: number;
   taskAssignmentProjectCount: number;
@@ -302,17 +297,6 @@ export class ResourceCatalogRepository {
     }));
   }
 
-  getResourceRoleAssignmentUsage(resourceId: number, role: ResourceRole): ResourceRoleAssignmentUsage {
-    const row = this.database.prepare(`
-      SELECT COUNT(DISTINCT project_id) AS project_count,
-             COUNT(*) AS task_count
-        FROM task_assignments
-       WHERE resource_id = ?
-         AND assignment_role = ?
-    `).get(resourceId, role) as { project_count: number; task_count: number };
-    return { projectCount: row.project_count, taskCount: row.task_count };
-  }
-
   replaceTaskAssignments(input: {
     projectId: number;
     taskId: number;
@@ -336,7 +320,7 @@ export class ResourceCatalogRepository {
         assignmentStart: target.kind === "resource" ? target.assignmentStart : null,
         assignmentEnd: target.kind === "resource" ? target.assignmentEnd : null,
         allocationPercent: target.kind === "resource" ? target.allocationPercent : null,
-        assignmentRole: target.kind === "resource" ? target.assignmentRole ?? null : null,
+        assignmentRole: null,
         now: input.now,
       });
     }
