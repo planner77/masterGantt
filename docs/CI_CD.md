@@ -508,3 +508,14 @@ Release quality의 setup/build duration recorder는 원래 제품·보안 gate�
 - `if: always()`가 필요한 cleanup/artifact 업로드와, 선행 output이 필수인 duration recorder를 구분한다.
 - recorder guard는 보안 gate를 완화하지 않는다. `npm audit --omit=dev`의 non-zero는 그대로 Release static quality FAIL이다.
 - 회귀 계약은 `tests/scripts/test-config-layout.test.ts`에서 release workflow condition과 취약 transitive dependency 최소 버전을 정적으로 확인한다.
+
+
+## Issue #483 Release Completion Resume Actions 권한 경계
+
+`release-finalizer-resume.yml`은 successful Release를 finalize한 뒤 동일 실행에서 backlog의 다음 release-required target을 시작할 수 있다. 이 경로는 `issue_lifecycle.py`의 Release workflow dispatch를 재사용하므로 job-scoped `GITHUB_TOKEN`에 `actions: write`가 필요하다.
+
+- `actions: write`: `release-image.yml` workflow_dispatch에만 필요하다.
+- `contents: write`: annotated tag 및 lifecycle repository mutation 계약을 유지한다.
+- `issues: write`, `packages: write`, `pull-requests: read`: 기존 finalize/cleanup 계약을 유지한다.
+- Resume는 trusted `main`만 checkout하며 source Release run의 path/head SHA/conclusion을 검증한 뒤 resolver를 실행한다.
+- 권한 누락은 `scripts/verify-issue-lifecycle.py`에서 PR CI 단계에 fail-closed로 검출한다.
