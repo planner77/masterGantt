@@ -79,9 +79,14 @@ def push_git_refs(*refs: str) -> None:
     env = os.environ.copy()
     env.update(
         {
-            "GIT_CONFIG_COUNT": "1",
+            # http.extraHeader is multi-valued across config scopes.  Reset
+            # inherited checkout/local values first so exactly one
+            # Authorization header reaches GitHub.
+            "GIT_CONFIG_COUNT": "2",
             "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
-            "GIT_CONFIG_VALUE_0": f"AUTHORIZATION: basic {basic}",
+            "GIT_CONFIG_VALUE_0": "",
+            "GIT_CONFIG_KEY_1": "http.https://github.com/.extraheader",
+            "GIT_CONFIG_VALUE_1": f"AUTHORIZATION: basic {basic}",
         }
     )
     run("git", "push", "origin", *refs, env=env)
