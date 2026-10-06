@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import type { ProjectExcelExportRequest } from "../../../src/contracts/project-excel-export";
 import type { ProjectSnapshotResponse } from "../../../src/contracts/projects";
-import type { ResourceWorkloadResponse } from "../../../src/contracts/resources";
+import type { ResourceRole, ResourceWorkloadResponse } from "../../../src/contracts/resources";
 import { buildProjectExcelWorkbook } from "../../../src/server/exports/project-excel-export-core";
 
 function extractZipEntries(bytes: Uint8Array): Map<string, string> {
@@ -66,7 +66,7 @@ function workload(mdPerMm: number | null): ResourceWorkloadResponse {
     effortMd: 5,
     effortMm: mdPerMm === null ? null : 0.25,
     effortConfigured: true,
-    roles: ["DEVELOPER"] as const,
+    roles: ["DEVELOPER"] as ResourceRole[],
     taskStart: "2026-09-14",
     taskEnd: "2026-09-18",
     progress: 50,
@@ -79,7 +79,7 @@ function workload(mdPerMm: number | null): ResourceWorkloadResponse {
     code: "@DEV-01",
     active: true,
     developerGrade: "ADVANCED" as const,
-    roles: ["DEVELOPER"] as const,
+    roles: ["DEVELOPER"] as ResourceRole[],
     start: "2026-09-14",
     end: "2026-09-18",
     effortMd: 5,
