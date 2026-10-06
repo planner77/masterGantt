@@ -1448,3 +1448,9 @@ Import apply와 CRUD는 `country_calendar_catalog_state.revision`을 별도로 �
 
 다시 Scheduling에 사용하려면 운영자가 공식 source를 검증한 뒤 metadata PATCH에서 \`status=OFFICIAL\`과 새 \`sourceVersion/sourceUrl\`을 함께 저장해야 한다. Import Apply는 파일 자체가 complete provenance를 포함하므로 전체 교체 transaction에서 OFFICIAL로 확정할 수 있다.
 
+### Issue #342 날짜 mutation 입력·삭제 경계
+
+날짜 PATCH는 최소 1개의 지원 필드(\`date | name | dayType | sourceKey\`)를 포함해야 하고 unknown field를 포함하면 400으로 거부한다. 빈 object나 오타 field가 Catalog revision/provenance를 변경해서는 안 된다.
+
+OFFICIAL dataset의 마지막 1개 날짜도 삭제할 수 있다. DELETE 성공 transaction은 dataset을 UNAVAILABLE로 전환하고 provenance를 비우므로 0건 상태가 Scheduling에 노출되지 않는다.
+

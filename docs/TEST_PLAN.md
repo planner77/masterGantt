@@ -1980,3 +1980,11 @@ PR CI #1960의 유일한 Vitest 실패는 `tests/server/db/database.test.ts`의 
 - File race: file A의 \`text()\` 완료를 지연한 상태에서 file B를 재선택하면 A 완료 후에도 Preview/Apply payload와 적용 결과가 B여야 한다.
 - Import Apply는 complete source metadata를 포함하는 atomic full replacement이므로 OFFICIAL 유지가 가능하며 수동 CRUD와 구분한다.
 
+### Issue #342 두 번째 Codex review rework
+
+- Country/year GET 실패 후 이전 snapshot이 DOM에서 제거되고 mutation이 잠기는지 검증한다.
+- 날짜 PATCH 412 후 편집 dialog와 stale draft가 폐기되고 최신 snapshot만 남는지 검증한다.
+- OFFICIAL 1-date dataset의 마지막 날짜 DELETE가 성공하고 결과가 UNAVAILABLE/0 dates/effective undefined인지 검증한다.
+- 빈 object/unknown field PATCH는 invalid input으로 거부하고 revision/provenance를 바꾸지 않는지 검증한다.
+- Import Apply 성공 후 native file input value가 비워지고 같은 파일 재선택으로 Preview가 다시 활성화되는지 검증한다.
+

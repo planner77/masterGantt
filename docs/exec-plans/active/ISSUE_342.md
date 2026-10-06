@@ -63,6 +63,15 @@ N/A:
 - 관련 Unit/E2E와 ARCHITECTURE/API/PROJECT_UX/TEST_PLAN/CHANGELOG/release note를 동기화한다.
 - 이 rework로 #1964 PASS는 stale이며 새 exact head에서 full PR gate와 Codex review를 다시 받아야 한다.
 
+## Codex review REWORK 2
+
+- P1 target/snapshot 정합: selector 변경 직후 snapshot을 비우고 GET 성공 시에만 새 snapshot을 채운다.
+- P1 stale 412 draft: revision conflict reload 시 열린 edit/delete draft를 폐기한다.
+- P2 sole-date delete: 수동 변경은 즉시 UNAVAILABLE이므로 마지막 날짜 삭제를 허용한다.
+- P2 no-op PATCH: 지원 field 최소 1개를 요구하고 unknown field를 거부한다.
+- P2 native file input: successful Import Apply 후 DOM file input value까지 초기화한다.
+- Unit/Chromium과 API/UX/Test Plan/CHANGELOG/release note를 다시 동기화한다.
+
 ## 검증
 
 - Catalog parser/service/CRUD/atomic import/stale revision/WORKING 보존 Unit.

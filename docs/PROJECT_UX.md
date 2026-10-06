@@ -1023,3 +1023,11 @@ OFFICIAL dataset에서 휴일/보충근무일을 수동 추가·편집·삭제�
 
 파일 선택은 가장 최근 선택한 파일만 Preview/Apply 대상으로 인정한다. 이전 파일의 비동기 \`File.text()\`가 늦게 완료되더라도 최신 선택의 envelope를 덮어쓰지 않아야 한다.
 
+### Issue #342 target 조회 실패와 stale draft
+
+국가/연도 selector 변경 뒤 새 target GET이 실패하면 이전 target의 snapshot/table/metadata를 계속 표시하지 않는다. 선택값은 새 target을 가리키되 snapshot은 비우고 모든 mutation action을 잠근 상태로 오류를 표시한다.
+
+날짜 편집 저장이 412를 받으면 최신 snapshot을 다시 읽고 열린 날짜 편집/삭제 초안을 폐기한다. 최신 revision 위에 stale full-field draft를 다시 저장하지 않는다.
+
+Import Apply 성공 시 React file state뿐 아니라 native file input value도 함께 비워 같은 파일을 즉시 다시 선택해도 change event와 Preview가 정상 동작해야 한다.
+
