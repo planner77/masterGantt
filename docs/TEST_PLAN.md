@@ -1690,3 +1690,10 @@ branch 정렬은 published PR history를 강제 재작성하지 않고 기존 fe
 - 정적 contract: `scripts/verify-issue-lifecycle.py`는 automatic Generic Finalizer와 Release Completion Resume 양쪽에 `actions: write`가 있는지 검사한다.
 - 보안 경계: Resume는 계속 trusted `main` checkout, source Release exact run ID/path/head SHA/success 검증, shared concurrency group을 유지한다. 다른 권한과 제품 source/API/DB/UI는 변경하지 않는다.
 - 복구 판정: corrective PR exact head의 policy/typecheck/lint/unit/build/E2E/Docker PASS를 공식 PR gate로 사용한다. 병합 후 기존 `v0.87.1` tag를 authority로 Release dispatch를 재개하며 새 tag/version을 만들지 않는다.
+
+### Issue #455 Main CI #1947.1 transport hostname corrective
+
+Main CI Run `37435545662` / #1947.1은 build/typecheck/lint/Vitest/Docker smoke/E2E 6 shards와 게시 image policy/readiness/SQLite/API persistence까지 SUCCESS였으나, 게시 digest transport 검증의 production-http 첫 Chromium navigation에서 `ERR_NAME_NOT_RESOLVED`가 발생해 실패했다. 같은 script의 `/etc/hosts` 등록 뒤 HTTP/HTTPS readiness curl은 성공했으므로 application/image failure가 아니라 hosted runner Chromium의 test hostname resolution 실패로 분리한다.
+
+Corrective는 `tests/config/transport.config.ts`의 Chromium launch option에 `plain.gantt.test`와 `secure.gantt.test`만 127.0.0.1로 매핑한다. browser URL/Host header와 HTTPS certificate hostname은 계속 원래 test domain을 사용하므로 Origin/cookie/TLS 의미를 localhost 예외로 바꾸지 않는다. shell/Node 측 `/etc/hosts`, NO_PROXY, 실제 Nginx와 신뢰 CA 검증도 유지한다. 최종 authoritative 판정은 corrective 병합 후 새 Main CI의 동일 published-digest transport smoke다.
+
