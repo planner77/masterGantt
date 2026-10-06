@@ -363,27 +363,33 @@ export class CountryCalendarCatalogService {
     }
     return this.repository.transactionImmediate(() => {
       this.assertRevision(expectedRevision);
-      const now = this.clock().toISOString();
-      const row = this.ensureOverride(code, year, now);
-      const status = input.status ?? row.status;
+      const current = this.getAdminDataset(code, year);
+      const status = input.status ?? current.data.dataset.status;
       if (!["OFFICIAL","UNAVAILABLE","SUPERSEDED"].includes(status)) throw new CountryCalendarCatalogInvalidInputError();
-      let sourceVersion: string | null = row.sourceVersion;
+      let sourceVersion: string | null = current.data.dataset.sourceVersion;
       if (input.sourceVersion === null) sourceVersion = null;
       else if (input.sourceVersion !== undefined) {
         const normalized = text(input.sourceVersion, 200);
         if (!normalized) throw new CountryCalendarCatalogInvalidInputError();
         sourceVersion = normalized;
       }
-      let sourceUrl: string | null = row.sourceUrl;
+      let sourceUrl: string | null = current.data.dataset.sourceUrl;
       if (input.sourceUrl === null) sourceUrl = null;
       else if (input.sourceUrl !== undefined) {
         const normalized = validSourceUrl(input.sourceUrl);
         if (!normalized) throw new CountryCalendarCatalogInvalidInputError();
         sourceUrl = normalized;
       }
-      if (status === "OFFICIAL" && (!sourceVersion || !sourceUrl || this.dateRows(row.id).length === 0)) {
+      if (status === "OFFICIAL" && (!sourceVersion || !sourceUrl || current.data.dates.length === 0)) {
         throw new CountryCalendarCatalogConflictError();
       }
+      if (status === current.data.dataset.status &&
+          sourceVersion === current.data.dataset.sourceVersion &&
+          sourceUrl === current.data.dataset.sourceUrl) {
+        return current;
+      }
+      const now = this.clock().toISOString();
+      const row = this.ensureOverride(code, year, now);
       this.repository.updateDatasetMetadata(row.id, { status, sourceVersion, sourceUrl, now });
       this.advance(expectedRevision, now);
       return this.getAdminDataset(code, year);
@@ -426,7 +432,9 @@ export class CountryCalendarCatalogService {
       throw new CountryCalendarCatalogInvalidInputError();
     }
     const keys = Object.keys(input);
-    if (keys.length === 0 || keys.some((key) => !["date","name","dayType","sourceKey"].includes(key))) {
+    const raw = input as Record<string, unknown>;
+    if (keys.length === 0 ||
+        keys.some((key) => !["date","name","dayType","sourceKey"].includes(key) || raw[key] === null)) {
       throw new CountryCalendarCatalogInvalidInputError();
     }
     return this.repository.transactionImmediate(() => {
