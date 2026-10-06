@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import re
@@ -53,13 +54,40 @@ class WorkItem:
     actionable: bool = True
 
 
-def run(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(args, text=True, capture_output=True)
+def run(
+    *args: str,
+    check: bool = True,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    result = subprocess.run(args, text=True, capture_output=True, env=env)
     if check and result.returncode != 0:
         raise AutoFinalizerError(
             f"command failed ({result.returncode}): {' '.join(args)}\n{result.stderr.strip()}"
         )
     return result
+
+
+def git_remote_auth_env() -> dict[str, str]:
+    token = os.environ.get("GITHUB_TOKEN", "")
+    if not token:
+        raise AutoFinalizerError("GITHUB_TOKEN is required for authenticated git remote access")
+
+    basic = base64.b64encode(f"x-access-token:{token}".encode("utf-8")).decode("ascii")
+    env = os.environ.copy()
+    env.update(
+        {
+            "GIT_CONFIG_COUNT": "2",
+            "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
+            "GIT_CONFIG_VALUE_0": "",
+            "GIT_CONFIG_KEY_1": "http.https://github.com/.extraheader",
+            "GIT_CONFIG_VALUE_1": f"AUTHORIZATION: basic {basic}",
+        }
+    )
+    return env
+
+
+def run_git_remote(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+    return run("git", *args, check=check, env=git_remote_auth_env())
 
 
 def gh(path: str) -> Any:
@@ -470,8 +498,7 @@ def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
         return "not-required", None
 
     tag = f"v{item.current_version}"
-    remote = run(
-        "git",
+    remote = run_git_remote(
         "ls-remote",
         "--exit-code",
         "--tags",
@@ -482,7 +509,7 @@ def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
     if remote.returncode != 0:
         return "not-started", None
 
-    run("git", "fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
+    run_git_remote("fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
     if run("git", "cat-file", "-t", f"refs/tags/{tag}").stdout.strip() != "tag":
         raise AutoFinalizerError(
             f"{tag}: existing release tag is lightweight; refusing supersession"

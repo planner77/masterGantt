@@ -4,6 +4,10 @@ import React, { useId, useMemo, useRef, useState } from "react";
 import type { DependencyType, ProjectLinkDto, ProjectTaskDto } from "@/contracts/projects";
 import {
   DEPENDENCY_TYPE_LABELS,
+  MIXED_LINK_EXPLANATION,
+  canCreateSchedulingLink,
+  linkStructureLocked,
+  COMPLETED_LINK_EXPLANATION,
   findNextRelatedLink,
   getRelatedLinksForAnchor,
   searchCandidateTasks,
@@ -165,7 +169,7 @@ export function RelationEditorDialog({
 
   async function handleSaveActiveLink(event: React.FormEvent) {
     event.preventDefault();
-    if (!editable || !activeLink || !isDirty || pendingRef.current || confirmation !== null) return;
+    if (!editable || linkStructureLocked(activeLink, tasks) || !activeLink || !isDirty || pendingRef.current || confirmation !== null) return;
     pendingRef.current = true;
     setIsSaving(true);
     setLinkError(null);
@@ -181,7 +185,7 @@ export function RelationEditorDialog({
   }
 
   async function handleDeleteLink(linkToDeleteId: string) {
-    if (!editable || pendingRef.current) return;
+    if (!editable || linkStructureLocked(links.find((link) => link.id === linkToDeleteId), tasks) || pendingRef.current) return;
     pendingRef.current = true;
     setIsDeleting(true);
     setLinkError(null);
@@ -209,7 +213,7 @@ export function RelationEditorDialog({
 
   async function handleCreateLink(event: React.FormEvent) {
     event.preventDefault();
-    if (!editable || !effectiveAnchorExternalId || !selectedCandidate || pendingRef.current || confirmation !== null) return;
+    if (!canCreateSchedulingLink(tasksByExternalId.get(effectiveAnchorExternalId), tasks.find((task) => task.taskId === selectedCandidate?.taskId)) || !editable || !effectiveAnchorExternalId || !selectedCandidate || pendingRef.current || confirmation !== null) return;
     const anchorTask = tasksByExternalId.get(effectiveAnchorExternalId);
     if (!anchorTask) return;
 
@@ -234,6 +238,7 @@ export function RelationEditorDialog({
   const successorTask = activeLink ? tasksByExternalId.get(activeLink.successorExternalId) : undefined;
   const anchorTask = tasksByExternalId.get(effectiveAnchorExternalId);
 
+  const activeLocked = linkStructureLocked(activeLink, tasks);
   const deleteTarget = confirmation?.kind === "delete" ? links.find((link) => link.id === confirmation.linkId) : undefined;
   const relationName = (link: ProjectLinkDto) => `${tasksByExternalId.get(link.predecessorExternalId)?.name ?? link.predecessorExternalId} → ${tasksByExternalId.get(link.successorExternalId)?.name ?? link.successorExternalId}`;
 
@@ -251,11 +256,12 @@ export function RelationEditorDialog({
         ) : null}
         {/* Body */}
         <div className="relation-editor-body" inert={confirmation !== null}>
+          <p className="relation-editor-hint">{MIXED_LINK_EXPLANATION}</p>{activeLocked ? <p className="relation-editor-hint">{COMPLETED_LINK_EXPLANATION}</p> : null}
           {/* Section 1: Selected Relation */}
           {activeLink ? (
             <div className="relation-editor-section">
               <div className="relation-editor-section-title">
-                <span>선택된 관계 설정</span>
+                <span>선택된 관계 설정</span>{activeLocked ? <span className="relation-editor-badge">완료 단계 잠금</span> : null}
                 {!editable && <span className="relation-editor-badge">읽기 전용</span>}
               </div>
 
@@ -319,7 +325,7 @@ export function RelationEditorDialog({
                       </label>
                       <select
                         className="relation-editor-select"
-                        disabled={!editable || mutationPending}
+                        disabled={!editable || activeLocked || mutationPending}
                         id={`${dialogId}-type`}
                         onChange={(e) => { if (!pendingRef.current) setType(e.target.value as DependencyType); }}
                         value={type}
@@ -338,7 +344,7 @@ export function RelationEditorDialog({
                       </label>
                       <input
                         className="relation-editor-input"
-                        disabled={!editable || mutationPending}
+                        disabled={!editable || activeLocked || mutationPending}
                         id={`${dialogId}-lag`}
                         onChange={(e) => { if (!pendingRef.current) setLag(parseInt(e.target.value, 10) || 0); }}
                         step={1}
@@ -351,15 +357,15 @@ export function RelationEditorDialog({
                       <div className="relation-editor-btn-group">
                         <button
                           className="relation-editor-btn relation-editor-btn-primary"
-                          disabled={!isDirty || mutationPending}
+                          disabled={activeLocked || !isDirty || mutationPending}
                           type="submit"
                         >
                           {isSaving ? "저장 중..." : "수정 저장"}
                         </button>
                         <button
                           className="relation-editor-btn relation-editor-btn-danger"
-                          disabled={mutationPending}
-                          onClick={() => requestConfirmation({ kind: "delete", linkId: activeLink.id })}
+                          disabled={activeLocked || mutationPending}
+                          onClick={() => { if (!activeLocked) requestConfirmation({ kind: "delete", linkId: activeLink.id }); }}
                           type="button"
                         >
                           {isDeleting ? "삭제 중..." : "관계 삭제"}
@@ -429,8 +435,8 @@ export function RelationEditorDialog({
                             {editable && (
                               <button
                                 className="relation-editor-btn relation-editor-btn-danger"
-                                disabled={mutationPending}
-                                onClick={() => requestConfirmation({ kind: "delete", linkId: item.link.id })}
+                                disabled={linkStructureLocked(item.link, tasks) || mutationPending}
+                                onClick={() => { if (!linkStructureLocked(item.link, tasks)) requestConfirmation({ kind: "delete", linkId: item.link.id }); }}
                                 type="button"
                               >
                                 삭제
@@ -484,8 +490,8 @@ export function RelationEditorDialog({
                             {editable && (
                               <button
                                 className="relation-editor-btn relation-editor-btn-danger"
-                                disabled={mutationPending}
-                                onClick={() => requestConfirmation({ kind: "delete", linkId: item.link.id })}
+                                disabled={linkStructureLocked(item.link, tasks) || mutationPending}
+                                onClick={() => { if (!linkStructureLocked(item.link, tasks)) requestConfirmation({ kind: "delete", linkId: item.link.id }); }}
                                 type="button"
                               >
                                 삭제
@@ -666,7 +672,7 @@ export function RelationEditorDialog({
                   <div className="relation-editor-btn-group">
                     <button
                       className="relation-editor-btn relation-editor-btn-primary"
-                      disabled={!selectedCandidate || mutationPending}
+                      disabled={!selectedCandidate || !canCreateSchedulingLink(anchorTask, tasks.find((task) => task.taskId === selectedCandidate.taskId)) || mutationPending}
                       type="submit"
                     >
                       {isCreating ? "추가 중..." : "관계 추가"}

@@ -82,3 +82,9 @@ used code의 visible 이유·aria-describedby와 확인된 입력 오류의 aria
 - 최종 통합 중간local HEAD `61a046678494fc1e7fbef57189da9cccc7ae4059`, tree `c89a191693da22f18f69cf253f163880bdb44405`, 부모 순서는 `[04b3047328bb338bace1990e18a434ae80b611db,1e531d29bf7c822cc0239ae815cd691abc0bf25e]`다. 누적feature ancestry와 최신main을 모두 보존하며 원격main을 병합한 것이 아니다. 이 HEAD는 마지막 문서 갱신 전 로컬 중간후보로서 최종 게시 SHA가 아니다.
 - 원격쓰기0, tracked/stageddiff0 및 원래#464/raw26·453/454 보존 확인. 관련19 unique/22 PASS LFF는 제품/tests/60증거 byte불변으로 재사용하고 새browser/전체로컬회귀를 반복하지 않는다. 기존main의 운영 검증 기록은 이번 LFF/원격CI 결과와 구분한다. 문서context·Markdown/diff/version·새76파일 manifest·독립delta검토를 갱신한 뒤 게시한다.
 - 현재 게시 계약: 선행누적04b와 최신main1e 두 부모, old72 feature경로+main4 운영경로=76 explicit allowlist. 이전72 snapshot UI/PRE_QA PASS는 그 snapshot에 한정하고 새후보에는 delta검토 결과를 사용한다. quality/e2e/docker·공식최종ACCEPT는 NOT TESTED이며 결과 모니터링은 수행하지 않는다.
+
+## 2026-10-06 latest main 재정렬 / 병합 단계
+
+기존 published head `7f9cfb87e4e56bba9eff444d74a0559bcb80b89d`의 PR CI Run `37411553451`은 SUCCESS였으나 최신 main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` 대비 diverged/dirty가 되어 병합 근거로 재사용하지 않는다. #455 고유 변경을 최신 main 위에 재적용하고 CHANGELOG/PROJECT_UX/TEST_PLAN/active PLAN 충돌은 최신 main의 후속 기록을 보존하는 방향으로 해소한다.
+
+새 exact-head PR CI가 성공한 경우에만 PR #481을 병합하고 merge push의 Main CI 시작을 확인한다. 이번 사용자 요청은 Main CI 시작까지이며 GHCR 게시, Generic/Release Finalizer, tag/release, Issue close, branch cleanup은 별도 단계다.
