@@ -100,6 +100,8 @@ require("workflow_dispatch:" in resume_workflow and "target_sha:" in resume_work
 require("github.event.workflow_run.conclusion == 'success'" in resume_workflow, "failed release completion must not mutate lifecycle")
 require("packages: write" in auto_workflow, "automatic finalizer needs scoped packages: write for temporary GHCR cleanup")
 require("packages: write" in resume_workflow, "release completion finalizer needs scoped packages: write for backlog cleanup")
+require("actions: write" in auto_workflow, "automatic finalizer needs actions: write to dispatch release-image workflows")
+require("actions: write" in resume_workflow, "release completion finalizer needs actions: write to dispatch the next release-image workflow")
 require("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in auto_workflow, "automatic finalizer must expose the job-scoped package token to cleanup helper")
 require("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in resume_workflow, "release completion finalizer must expose the job-scoped package token to cleanup helper")
 require(workflow.count("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}") >= 3, "manual release/finalize operations must expose the job-scoped token for authenticated git/package mutations")

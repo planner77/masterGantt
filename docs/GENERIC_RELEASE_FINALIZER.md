@@ -115,3 +115,14 @@ Main CI의 successful non-docs `publish-commit-image`는 verified `ci-<SHA>`를 
 - release/cleanup 판단 전 Main CI가 version 변경 여부만으로 candidate를 삭제하지 않는다. same-Issue corrective convergence가 immediate merge의 version delta와 다른 lifecycle delta를 가질 수 있기 때문이다.
 - no-release candidate cleanup을 수행하는 Generic Finalizer/Resume은 최소 `packages: write`를 사용한다. PR CI/일반 CI 권한은 확대하지 않는다.
 - failed immutable release tag는 이동하거나 덮어쓰지 않는다. 결정적 workflow 결함은 새 SemVer corrective merge로 복구한다.
+
+
+## Issue #483 Resume 후속 Release dispatch 권한
+
+Release completion Resume는 단순한 완료 확인기만이 아니다. 선행 Release를 `release_finalize`한 뒤 first-parent backlog의 다음 target이 `release_required=true`이면 같은 trusted main의 `auto_release_finalizer.py`가 `release-image.yml`을 `workflow_dispatch`할 수 있다.
+
+- 따라서 `release-finalizer-resume.yml`에는 `actions: write`가 필요하다. `actions: read`만 있으면 tag 생성 뒤 `POST /actions/workflows/release-image.yml/dispatches`가 HTTP 403 `Resource not accessible by integration`으로 실패한다.
+- Resume는 계속 `ref: main`, `persist-credentials:false`, exact source Release run/SHA/workflow 검증을 유지한다. 권한 확대는 Actions dispatch에만 사용하며 제품 코드나 triggering tag의 코드를 실행하지 않는다.
+- Generic `release-finalizer.yml`도 같은 이유로 `actions: write`를 유지한다.
+- `scripts/verify-issue-lifecycle.py`가 두 workflow의 `actions: write` 계약을 정적으로 검사한다.
+- Issue #461의 `v0.87.1`은 이미 생성된 annotated tag를 authority로 유지하며 tag 이동/재생성 없이 Release dispatch를 재개한다.

@@ -124,3 +124,10 @@ main 통합 최소LFF는 qa_docs의 migration-cli3/3 PASS(751ms/chunka6a71a), fr
 - head `caa520bac3a0bb2d97e61e725e513280fffa5dc0` / Run #1927.1(`37418422688`)은 quality와 Docker가 PASS했으나 Chromium shard 6의 기존 #407/#418 scoped-add E2E 1건으로 FAIL했다.
 - #463 peer tab 도입으로 줄어든 일정 viewport에서 이전 `headerLeaf`가 화면 밖으로 밀렸고 Playwright auto-scroll+right-click 중 SVAR virtual row 교체로 contextmenu가 유실됐다. 제품 mutation/canonical 상태 실패가 아니며 기대값이나 Context Menu 보호를 완화하지 않는다.
 - taskId 기반 E2E helper는 행을 먼저 가시화·안정화한 뒤 실제 우클릭하고 기존 메뉴 가시성 단언을 유지한다. 새 exact-head 전체 PR CI를 다시 시작한다.
+
+
+## PR CI #1929 REWORK
+
+- head `9b4e1d4680be581a0d91d5f23ac0d59cd778083f` / Run #1929.1(`37424880340`)은 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6 기존 #407/#418 1건 FAIL이다.
+- pre-scroll 후에도 row-center 우클릭이 `add-task` 등 Task context 제외 control hit area에 걸릴 수 있음을 확인했다. 제품 guard를 완화하지 않고 taskId 행의 실제 작업명 text hit area를 우클릭하도록 테스트를 고정한다.
+- latest main `22326fc350b91ab59ddafa20ef97c3f418f71aae` / `0.90.0`을 다시 통합하며 후보 버전은 다음 MINOR `0.91.0`이다. 새 exact-head 전체 PR CI를 시작한다.

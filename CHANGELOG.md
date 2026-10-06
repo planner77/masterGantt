@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.88.0] - 2026-10-06
+## [0.91.0] - 2026-10-06
 
 ### Added
 
@@ -11,10 +11,25 @@
 
 - PR CI Run #1869에서 발견된 CSS Module의 전역-only selector를 전역 스타일 소유 위치로 이동해 Next.js production build와 Docker build의 동일 연쇄 실패를 제거한다. 최신 main의 #461/#462 회귀 보완은 유지하고 #463 변경만 재적용한다.
 
+### Fixed
+
+- PR CI Run #1929의 남은 #407/#418 E2E 실패는 row-center 우클릭이 레이아웃에 따라 앱 소유 control hit area에 걸릴 수 있던 테스트 기하학 문제로 확인했다. 제품 Context Menu guard를 유지하고 taskId 행의 실제 작업명 text hit area를 우클릭하도록 안정화한다.
+
 ### Changed
 
 - Logistics M/M의 무조건 20일 환산을 명시 query·유효 환경 설정·미설정(null) 정책으로 정합화하고 사용 기준·출처를 제공한다. 기존 물류 계획 M/D·진척·대상 ID는 보존한다.
-- Application version을 `0.87.1`에서 `0.88.0`으로 증가한다. 선행 #460~#462를 포함하는 순차 구현 PR이며 정식 릴리스는 게시하지 않는다.
+- Application version을 `0.90.0`에서 `0.91.0`으로 증가한다. latest main의 #453 및 선행 #460~#462를 보존한 재정렬 PR이며 정식 릴리스는 게시하지 않는다.
+
+## [0.90.0] - 2026-10-06
+
+### Added
+
+- Issue #453: 리소스와 리소스 그룹을 독립 탭의 전체 폭 목록으로 구성하고 탭별 검색·상태·스크롤 및 구성원 초안을 보존한다. 생성 dialog와 선택한 리소스의 프로필 명시 저장으로 상시 행 편집기의 밀도를 줄인다.
+
+### Changed
+
+- 기존 관리자 권한·카탈로그 revision·역할/등급·usage 및 구성원 저장 계약을 유지한다. Application version은 `0.90.0`이며 이번 작업 범위는 PR CI 시작까지다.
+- 최신 main 0.87.1의 #461/#462 및 Release corrective 변경과 source-map-js 1.2.2 lockfile을 보존하여 후보를 재정렬한다.
 
 ## [0.87.1] - 2026-10-06
 

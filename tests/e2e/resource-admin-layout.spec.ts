@@ -74,14 +74,12 @@ test("Issue #235/#331/#366: resource admin layout, create forms, and password di
   const changePassword = page.getByRole("button", { name: "관리자 비밀번호 변경", exact: true });
   const refresh = page.getByRole("button", { name: "새로고침", exact: true });
   const logout = page.getByRole("button", { name: "로그아웃", exact: true });
-  const resourceSection = page.getByRole("region", { name: "리소스", exact: true });
-  const groupSection = page.getByRole("region", { name: "리소스 그룹", exact: true });
+  await page.getByRole("button", { name: "리소스 추가", exact: true }).click();
+  const resourceSection = page.getByRole("dialog", { name: "리소스 추가", exact: true });
   const resourceCreateForm = resourceSection.locator("form");
-  const groupCreateForm = groupSection.locator("form");
   const resourceName = resourceSection.getByLabel("이름", { exact: true });
   const resourceCode = resourceSection.getByLabel("코드", { exact: true });
   const resourceGrade = resourceSection.getByLabel("신규 리소스 개발자 등급", { exact: true });
-  const resourceAdd = resourceSection.getByRole("button", { name: "추가", exact: true });
   await expect(changePassword).toBeVisible();
   await expect(refresh).toBeVisible();
   await expect(logout).toBeVisible();
@@ -104,7 +102,6 @@ test("Issue #235/#331/#366: resource admin layout, create forms, and password di
     expect(Math.abs(refreshBox!.y - logoutBox!.y)).toBeLessThanOrEqual(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
     await expectDirectChildrenDoNotOverlap(resourceCreateForm);
-    await expectDirectChildrenDoNotOverlap(groupCreateForm);
     await expectControlsDoNotOverlap(resourceCreateForm, [resourceCode, resourceGrade]);
     if (width === 390 || width === 1024) {
       await page.screenshot({ path: testInfo.outputPath(`issue-331-resource-create-layout-${width}.png`), fullPage: true });
@@ -128,7 +125,14 @@ test("Issue #235/#331/#366: resource admin layout, create forms, and password di
   await page.keyboard.press("Tab");
   await expect(resourceGrade).toBeFocused();
   await page.keyboard.press("Tab");
-  await expect(resourceAdd).toBeFocused();
+  await expect(resourceSection.getByRole("checkbox", { name: "PI", exact: true })).toBeFocused();
+  await resourceSection.getByRole("button", { name: "취소", exact: true }).click();
+  await page.getByRole("button", { name: "초안 폐기", exact: true }).click();
+  await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
+  await page.getByRole("button", { name: "그룹 추가", exact: true }).click();
+  const groupDialog = page.getByRole("dialog", { name: "그룹 추가", exact: true });
+  await expectDirectChildrenDoNotOverlap(groupDialog.locator("form"));
+  await groupDialog.getByRole("button", { name: "취소", exact: true }).click();
 
   await changePassword.click();
   const dialog = page.getByRole("dialog", { name: "관리자 비밀번호 변경", exact: true });
