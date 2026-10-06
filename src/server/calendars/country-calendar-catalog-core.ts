@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
 import type Database from "better-sqlite3";
 
 import { CountryCalendarRepository, type CountryCalendarDatasetRecord } from "../repositories/country-calendar-repository-core";
@@ -30,6 +31,7 @@ export class CountryCalendarCatalogInvalidInputError extends Error {}
 export class CountryCalendarCatalogRevisionMismatchError extends Error {}
 export class CountryCalendarCatalogNotFoundError extends Error {}
 export class CountryCalendarCatalogConflictError extends Error {}
+export class CountryCalendarCatalogPreviewMismatchError extends Error {}
 
 const MAX_IMPORT_BYTES = 1024 * 1024;
 const MAX_IMPORT_DATES = 500;
@@ -194,6 +196,31 @@ function countryName(code: WorkCalendarCountryCode): string {
 
 function sameDate(left: CountryCalendarAdminDateDto, right: CountryCalendarAdminDateDto): boolean {
   return left.date === right.date && left.name === right.name && left.dayType === right.dayType && left.sourceKey === right.sourceKey;
+}
+
+function importPreviewToken(
+  secret: Buffer,
+  revision: number,
+  envelope: CountryCalendarImportEnvelope,
+  incoming: CountryCalendarImportDataset,
+): string {
+  return createHmac("sha256", secret)
+    .update(String(revision))
+    .update("\0")
+    .update(incoming.countryCode)
+    .update("\0")
+    .update(String(incoming.year))
+    .update("\0")
+    .update(envelope.format)
+    .update("\0")
+    .update(envelope.content)
+    .digest("base64url");
+}
+
+function safeTokenEquals(actual: string, expected: string): boolean {
+  const actualBuffer = Buffer.from(actual, "utf8");
+  const expectedBuffer = Buffer.from(expected, "utf8");
+  return actualBuffer.length === expectedBuffer.length && timingSafeEqual(actualBuffer, expectedBuffer);
 }
 
 export class CountryCalendarCatalogService {
@@ -404,9 +431,8 @@ export class CountryCalendarCatalogService {
     }
     return this.repository.transactionImmediate(() => {
       this.assertRevision(expectedRevision);
-      const now = this.clock().toISOString();
-      const row = this.ensureOverride(code, year, now);
-      const current = this.repository.findDate(row.id, originalDate);
+      const currentSnapshot = this.getAdminDataset(code, year);
+      const current = currentSnapshot.data.dates.find((entry) => entry.date === originalDate);
       if (!current) throw new CountryCalendarCatalogNotFoundError();
       const merged = normalizeDate({
         date: input.date ?? current.date,
@@ -414,6 +440,9 @@ export class CountryCalendarCatalogService {
         dayType: input.dayType ?? current.dayType,
         sourceKey: input.sourceKey ?? current.sourceKey,
       }, year);
+      if (sameDate(current, merged)) return currentSnapshot;
+      const now = this.clock().toISOString();
+      const row = this.ensureOverride(code, year, now);
       try {
         this.repository.updateDate(row.id, originalDate, merged, now);
       } catch (error) {
@@ -460,6 +489,7 @@ export class CountryCalendarCatalogService {
     const deletions = current.data.dates.filter((entry) => !incomingByDate.has(entry.date)).length;
     return { data: {
       revision: current.data.revision,
+      previewToken: importPreviewToken(this.repository.getPreviewSecret(), current.data.revision, envelope, incoming),
       dataset: current.data.dataset,
       importDataset: {
         countryCode: incoming.countryCode,
@@ -473,10 +503,18 @@ export class CountryCalendarCatalogService {
     } };
   }
 
-  applyImport(expectedRevision: number, envelope: CountryCalendarImportEnvelope): CountryCalendarAdminResponse {
+  applyImport(
+    expectedRevision: number,
+    previewToken: string,
+    envelope: CountryCalendarImportEnvelope,
+  ): CountryCalendarAdminResponse {
     const incoming = parseCountryCalendarImport(envelope);
     return this.repository.transactionImmediate(() => {
       this.assertRevision(expectedRevision);
+      const expectedToken = importPreviewToken(this.repository.getPreviewSecret(), expectedRevision, envelope, incoming);
+      if (typeof previewToken !== "string" || !safeTokenEquals(previewToken, expectedToken)) {
+        throw new CountryCalendarCatalogPreviewMismatchError();
+      }
       const now = this.clock().toISOString();
       const row = this.repository.upsertOfficialDataset({
         countryCode: incoming.countryCode,
