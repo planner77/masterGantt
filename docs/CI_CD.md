@@ -498,3 +498,13 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 - baseline median/p90과 cache hit/miss를 기록한 뒤 후보 최적화의 before/after를 동일 metric 정의로 비교한다.
 - wall-clock 개선이 의미 있고 runner-minutes가 증가하지 않거나 합리적 범위일 때만 cache 변경을 채택한다.
 - Playwright browser cache, 추가 Next/Docker cache 조정은 이 Phase 1 PR의 범위 밖이며 측정 근거 없이 활성화하지 않는다.
+
+### Release static 실패 시 계측 종료 guard
+
+Release quality의 setup/build duration recorder는 원래 제품·보안 gate의 결과를 보조하는 계측이며 실패 원인을 추가로 만들거나 덮어쓰면 안 된다.
+
+- build 시작 step이 실제 실행되어 `started_ms` output을 만든 경우에만 대응 종료 metric을 기록한다.
+- audit/typecheck/lint/test 등 선행 gate 실패로 시작 step이 SKIPPED되면 종료 recorder도 SKIPPED되어야 한다.
+- `if: always()`가 필요한 cleanup/artifact 업로드와, 선행 output이 필수인 duration recorder를 구분한다.
+- recorder guard는 보안 gate를 완화하지 않는다. `npm audit --omit=dev`의 non-zero는 그대로 Release static quality FAIL이다.
+- 회귀 계약은 `tests/scripts/test-config-layout.test.ts`에서 release workflow condition과 취약 transitive dependency 최소 버전을 정적으로 확인한다.
