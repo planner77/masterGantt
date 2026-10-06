@@ -67,6 +67,7 @@ export function CountryCalendarAdmin(){
   const [sourceUrl,setSourceUrl]=useState("");
   const [datasetStatus,setDatasetStatus]=useState<CountryCalendarDatasetStatus>("UNAVAILABLE");
   const request=useRef<AbortController|null>(null);
+  const fileReadGeneration=useRef(0);
   const loginRef=useRef<HTMLInputElement|null>(null);
   const editTriggerRef=useRef<HTMLButtonElement|null>(null);
   const deleteTriggerRef=useRef<HTMLButtonElement|null>(null);
@@ -198,14 +199,21 @@ export function CountryCalendarAdmin(){
     ))setDeleting(null);
   }
   async function chooseFile(selected:File|null){
+    const generation=fileReadGeneration.current+1;
+    fileReadGeneration.current=generation;
     setFile(selected);setFileEnvelope(null);setPreview(null);setError(null);
     if(!selected)return;
     const lower=selected.name.toLowerCase();
     const format=lower.endsWith(".csv")?"csv":lower.endsWith(".json")?"json":null;
     if(!format){setError("JSON 또는 CSV 파일만 업로드할 수 있습니다.");return;}
     if(selected.size>1024*1024){setError("업로드 파일은 1 MiB 이하여야 합니다.");return;}
-    try{setFileEnvelope({format,content:await selected.text()});}
-    catch{setError("파일을 읽지 못했습니다.");}
+    try{
+      const content=await selected.text();
+      if(generation!==fileReadGeneration.current)return;
+      setFileEnvelope({format,content});
+    }catch{
+      if(generation===fileReadGeneration.current)setError("파일을 읽지 못했습니다.");
+    }
   }
   async function previewImport(){
     if(!fileEnvelope)return;
