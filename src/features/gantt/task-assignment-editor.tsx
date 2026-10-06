@@ -67,6 +67,20 @@ function isTarget(value: unknown): value is AssignmentTargetDto {
 }
 function targetKey(target: Pick<AssignmentTargetDto, "kind" | "id">): string { return `${target.kind}:${target.id}`; }
 
+function assignmentDraftSnapshot(
+  selected: Iterable<string>,
+  allocations: Readonly<Record<string, AllocationDraft>>,
+  roles: Readonly<Record<string, AssignmentRoleDraft>>,
+): string {
+  const selectedKeys = [...selected].sort();
+  const resourceKeys = selectedKeys.filter((key) => key.startsWith("resource:"));
+  return JSON.stringify({
+    selected: selectedKeys,
+    allocations: Object.fromEntries(resourceKeys.map((key) => [key, allocations[key] ?? { start: "", end: "", percent: "" }])),
+    roles: Object.fromEntries(resourceKeys.map((key) => [key, roles[key] ?? ""])),
+  });
+}
+
 export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onApplied, onSelectionCountChange, onDirtyChange, onPendingChange, onUnauthorized, discardGeneration = 0 }: Props) {
   const initialDraft = useRef<string | null>(null);
   const dirtyReference = useRef(false);
@@ -125,7 +139,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
           nextRoleDrafts[key] = assignment.role ?? "";
           if (assignment.role === null || assignment.role === undefined) nextLegacyUnspecified.add(key);
         }
-        initialDraft.current = JSON.stringify({ selected: taskAssignments.map((assignment) => `${assignment.target.kind}:${assignment.target.id}`).sort(), allocations: nextAllocations, roles: nextRoleDrafts });
+        initialDraft.current = assignmentDraftSnapshot(taskAssignments.map((assignment) => `${assignment.target.kind}:${assignment.target.id}`), nextAllocations, nextRoleDrafts);
         dirtyReference.current = false;
         onDirtyChange?.(false);
         setAllocations(nextAllocations);
@@ -212,7 +226,7 @@ export function TaskAssignmentEditor({ taskId, revision, editable, disabled, onA
 
   useEffect(() => {
     if (ready && initialDraft.current !== null) {
-      dirtyReference.current = JSON.stringify({ selected: [...selected].sort(), allocations, roles: roleDrafts }) !== initialDraft.current;
+      dirtyReference.current = assignmentDraftSnapshot(selected, allocations, roleDrafts) !== initialDraft.current;
       onDirtyChange?.(dirtyReference.current);
     }
   }, [selected, allocations, roleDrafts, ready, onDirtyChange]);

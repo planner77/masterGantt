@@ -190,6 +190,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
     applyCanonicalSession(next) {
       if (next.task.taskId !== session.task.taskId) return;
       setBase(next);
+      setActiveTab((current) => taskEditorTabs(next.task.type).includes(current) ? current : "task");
       setMembershipDraft({});
       setDraft(createTaskEditorDraft(next.task, next.calendar));
       setScheduleBasis("duration");
@@ -244,7 +245,7 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
       const next = await onReload(base.task.taskId);
       if (!mountedReference.current) return;
       if (!next) { setError("최신 정보를 불러올 수 없습니다. 작업이 존재하는지와 네트워크 연결을 확인해 주세요."); return; }
-      setMembershipDraft({}); setResourceDirty(false); setLogisticsDirty(false); setDiscardGeneration((value) => value + 1); setBase(next); setDraft(createTaskEditorDraft(next.task, next.calendar)); setScheduleBasis("duration"); setConflicted(false); setError(null);
+      setMembershipDraft({}); setResourceDirty(false); setLogisticsDirty(false); setDiscardGeneration((value) => value + 1); setBase(next); setActiveTab((current) => taskEditorTabs(next.task.type).includes(current) ? current : "task"); setDraft(createTaskEditorDraft(next.task, next.calendar)); setScheduleBasis("duration"); setConflicted(false); setError(null);
     } catch { if (mountedReference.current) setError("최신 정보를 불러올 수 없습니다. 입력 내용은 유지됩니다."); }
     finally { actionReference.current = false; if (mountedReference.current) setOperation(null); }
   }

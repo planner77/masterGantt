@@ -109,3 +109,11 @@ required 서버8개·UI3개 문서 및 Manager PLAN/CHANGELOG/이 계획을 동�
 
 
 main 통합 최소LFF는 qa_docs의 migration-cli3/3 PASS(751ms/chunka6a71a), frontend Copy ID1 PASS(18.6s/79426/ch55efaf), blank 생성1 PASS(3.7s/66106/ch7e9a8a)다. 첫 anchored grep은 파일 경로 접두어로 blank case를 찾지 못해 해당1개만 별도 실행했고 전체 발견 문제와 구분했다. 생성파일 diff0, 제품/UI source 불변을 확인했다. TEST_PLAN과 기준 문서를 재동기화했으며 backend25개 최종 manifest SHA256은 `42dd36ee9f788e97ff422c3420393fd58cca7af301aafbf7d25e63c792c9707a`다. 동일 source/화면 hash에 대한 기존 ui_ux 비교는 재사용하며 새75파일·두 parent의 독립 변화 검토를 다시 요청한다.
+
+
+## PR CI #1869 REWORK
+
+- 최초 remote head: `ca15145b1167b7253841e648d23e59d1a172022a`; PR CI Run #1869.1(`37382878627`) FAIL.
+- 직접 build blocker는 CSS Module의 global-only selector이며 전역 workspace selector를 `src/app/globals.css`로 이동한다. Docker 실패는 동일 build 실패의 연쇄다.
+- 이전 branch가 사용한 #462 중간 baseline의 회귀 기대를 유지하지 않는다. latest main `d7316880732ecde5a8193764ac3b0cfca2ae455f`의 병합된 #461/#462 보완과 #461 release static corrective를 보존하고 #463 고유 delta만 재적용한다.
+- candidate version은 latest main `0.87.1`의 다음 MINOR `0.88.0`. 새 exact head에서 PR quality/e2e/docker를 새로 시작하며 결과 완료 모니터링·병합·release는 별도 승인 전 수행하지 않는다.

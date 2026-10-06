@@ -53,7 +53,7 @@ GitHub/CI/GHCR 요청은 Docker 파일 수정이 없어도 `infra`에 배정한�
 
 Image 경로는 `ghcr.io/<owner>/<repository>`의 소문자 정규화 기준을 따른다. Repository 연결, `org.opencontainers.image.source` label, package visibility, 권한 상속과 Actions access는 별도로 점검한다. Repository가 private라는 사실만으로 package visibility를 검증했다고 하지 않는다.
 
-기존 불변식을 유지한다. PR/수동 CI는 readonly다. 품질 gate를 통과한 비문서 main push는 `ci-<full SHA>`를 게시해 registry digest/runtime을 검증한다. version이 바뀌지 않은 merge는 검증 뒤 package version을 삭제하지만, **version-changing merge의 verified `ci-<SHA>`는 formal release의 build-once candidate로 보존**한다. Annotated SemVer release는 새 container를 build하지 않고 tag target SHA의 candidate exact digest를 source/revision/version label과 함께 재검증한 뒤 같은 digest를 exact/rolling tag로 promotion한다. Publish/cleanup/promotion job만 최소 권한의 `GITHUB_TOKEN`을 쓰며 개인 PAT를 workflow에 추가하지 않는다. Candidate registry smoke, digest 동일성, SBOM/provenance와 활성화된 attestation 검증을 구분한다. Release 직렬화, monotonic version과 exact overwrite 금지는 [CI_CD.md](CI_CD.md)를 따른다.
+기존 불변식을 유지한다. PR/수동 CI는 readonly다. 품질 gate를 통과한 비문서 main push는 `ci-<full SHA>`를 게시해 registry digest/runtime을 검증한다. successful candidate는 Main CI에서 즉시 삭제하지 않고 **Generic Release Finalizer가 release/cleanup을 결정할 때까지 보존**한다. no-release finalize는 exact temporary package version을 삭제하고, release-required candidate는 formal release의 build-once source로 유지한다. Annotated SemVer release는 새 container를 build하지 않고 tag target SHA의 candidate exact digest를 source/revision/version label과 함께 재검증한 뒤 같은 digest를 exact/rolling tag로 promotion한다. Publish/cleanup/promotion job만 최소 권한의 `GITHUB_TOKEN`을 쓰며 개인 PAT를 workflow에 추가하지 않는다. Candidate registry smoke, digest 동일성, SBOM/provenance와 활성화된 attestation 검증을 구분한다. Release 직렬화, monotonic version과 exact overwrite 금지는 [CI_CD.md](CI_CD.md)를 따른다.
 
 Image 정리 요청은 dry-run을 먼저 수행한다. 대상 package/version/tag/digest, 현재 배포·rollback 참조, multi-platform manifest와 attestation 참조, 삭제 영향과 복구 가능성을 제시한다. 승인 전에는 삭제하지 않는다. Registry에 존재하는 digest와 실제 운영에서 실행 중인 digest는 별도 근거로 확인하며, runtime 접근이 없으면 운영 배포 여부는 미확인으로 남긴다.
 
@@ -221,8 +221,11 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 - Main CI Finalizer가 release를 시작한 뒤에는 Actions UI에서 Finalizer가 먼저 종료되는 것이 정상이다.
 - 정식 release publish 성공 후에는 release workflow가 `release-finalizer-resume.yml`을 exact `target_sha`와 source `release_run_id`와 함께 `workflow_dispatch`한다. `Publish release image workflow_run.completed` 구독은 fallback으로 유지한다. Explicit Resume은 source run이 실제 `completed/success`로 전환되고 동일 target SHA를 가리키는지 확인한 뒤 lifecycle을 재개한다.
 - Resume workflow는 write 권한 경계이므로 tag/manual ref를 checkout하지 않고 trusted `main`에서 Generic resolver를 실행한다.
+- Resume/Generic Finalizer의 checkout은 `persist-credentials:false`를 유지한다. 후속 SemVer tag 생성이 필요한 경우 `issue_lifecycle.py`가 job-scoped `GITHUB_TOKEN`을 해당 `git push` 프로세스의 환경 기반 Git config에만 주입한다. Token을 remote URL, repository/global git config, 명령 인자, 로그에 영속화하지 않는다.
+- `http.extraHeader`는 multi-valued이므로 release tag의 `ls-remote`·`fetch`·`push`는 모두 공통 process-scoped Git auth helper를 사용한다. helper는 상위 checkout/local config에서 상속된 header를 빈 값으로 먼저 reset한 뒤 job-scoped Authorization header 하나만 주입한다. Generic Finalizer와 수동 release/finalize mutation checkout도 모두 `persist-credentials:false`로 고정하여 duplicate Authorization header와 private-repo unauthenticated read를 동시에 방지한다.
 - Release 실패 시 Issue/branch를 닫거나 지우지 않는다. 기존 immutable run의 성공 재실행 또는 same-Issue corrective release 뒤 lifecycle을 재평가한다.
 - explicit handoff 실패는 이미 성공한 publication을 실패로 바꾸지 않는다. 이후 completion fallback 또는 다음 Main CI가 backlog를 다시 계산할 수 있다.
+- Generic Finalizer backlog에서 `closed` 자체는 완료 boundary가 아니다. exact target SHA FINAL marker가 boundary authority이며, marker 없는 closed Issue merge는 mutation하지 않는 **ordering barrier**로 유지한다. adjacent same-Issue coalesce가 이 barrier를 넘지 못하게 한 뒤 lifecycle 실행 대상에서만 제거하고, 더 오래된 first-parent pending target 탐색은 계속한다.
 
 ## Issue #437 E2E 샤드 최적화 운영
 

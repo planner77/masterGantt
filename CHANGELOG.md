@@ -7,10 +7,25 @@
 - Issue #463: 완료 단계의 전체 소속·선행 상태 기반 Ready/위험 KPI와 조회 범위의 개인 assignment 공수를 구분하는 readonly 대시보드/API 및 관련 물류 단계 정보를 제공한다.
 - 대시보드 원인·소속 상세·리소스 조회를 기존 Editor와 일정에 연결하고, 기준일·revision·조건 변경에 맞춰 갱신한다. 일정과 대시보드 왕복 시 Gantt 인스턴스와 보기 상태를 보존한다.
 
+### Fixed
+
+- PR CI Run #1869에서 발견된 CSS Module의 전역-only selector를 전역 스타일 소유 위치로 이동해 Next.js production build와 Docker build의 동일 연쇄 실패를 제거한다. 최신 main의 #461/#462 회귀 보완은 유지하고 #463 변경만 재적용한다.
+
 ### Changed
 
 - Logistics M/M의 무조건 20일 환산을 명시 query·유효 환경 설정·미설정(null) 정책으로 정합화하고 사용 기준·출처를 제공한다. 기존 물류 계획 M/D·진척·대상 ID는 보존한다.
-- Application version을 `0.87.0`에서 `0.88.0`으로 증가한다. 선행 #460~#462를 포함하는 순차 구현 PR이며 정식 릴리스는 게시하지 않는다.
+- Application version을 `0.87.1`에서 `0.88.0`으로 증가한다. 선행 #460~#462를 포함하는 순차 구현 PR이며 정식 릴리스는 게시하지 않는다.
+
+## [0.87.1] - 2026-10-06
+
+### Fixed
+
+- Issue #461 corrective: 실패한 v0.86.0 GHCR Release Run #136.1의 static quality에서 발견된 `source-map-js 1.2.1` High 취약 버전을 재사용하지 않는다. 최신 main에 반영된 `source-map-js 1.2.2` 이상을 정적 회귀로 고정한다.
+- Release static quality가 audit 등 선행 gate에서 실패해 production build 시작 step이 실행되지 않은 경우, 빈 `started_ms`로 setup metric recorder가 2차 실패하지 않도록 build 시작 output이 존재할 때만 종료 계측을 수행한다.
+
+### Changed
+
+- Application version을 `0.87.0`에서 `0.87.1`로 증가한다. immutable 실패 tag `v0.86.0`은 이동·덮어쓰기·재사용하지 않고 same-Issue corrective PATCH로 검증한다.
 
 ## [0.87.0] - 2026-10-06
 
@@ -29,9 +44,28 @@
 - Issue #461: Task/Summary 작업 정보에서 완료 단계의 검색·직접 지정·상속 복귀를 편집하고 Milestone 소속 작업 탭에서 명시 소속 초안을 원자 적용한다. Summary 일정은 파생 읽기 전용으로 유지한다.
 - Milestone의 본인 상태와 소속 진척·Ready·선행 차단·수동 이벤트·완료 불일치 진단을 구분하고 명시 완료/재개 및 초안 보호를 적용한다.
 
+### Fixed
+
+- Issue #475 follow-up: Generic Finalizer의 release tag 접근을 단일 process-scoped 인증 계약으로 통일한다. lifecycle mutation checkout은 credential persistence를 끄고 tag `ls-remote`·`fetch`·`push` 및 automatic finalizer의 exact tag evidence 조회가 inherited extraHeader를 reset한 뒤 단일 job-scoped Authorization header를 사용하여 duplicate header와 private-repo unauthenticated read를 함께 방지한다.
+- Issue #475: Generic Release Finalizer가 FINAL marker 없는 closed Issue merge를 historical boundary로 오인해 그 이전 pending lifecycle을 숨기던 문제를 수정한다. closed merge는 mutation 대상에서 제외하되 non-actionable ordering barrier로 보존해 same-Issue retry coalesce가 이를 가로지르지 못하게 하고, exact FINAL marker까지 탐색을 계속한다.
+- PR #470 review: 새 리소스를 선택했다가 해제하면 남은 역할·투입 초안 때문에 false dirty 상태가 유지되던 문제를 선택된 리소스 기준 canonical 비교로 수정한다.
+- PR #470 review: 외부 변경으로 Milestone이 일반 Task로 바뀐 뒤 다시 불러올 때 더 이상 존재하지 않는 `소속 작업` 탭이 활성 상태로 남지 않도록 작업 정보 탭으로 정규화한다.
+- PR #470 review: Membership 보유 Project의 Excel 보존 차단 오류에 명시 source와 target의 public Task ID를 포함하여 API의 구조화된 진단 계약을 지킨다.
+
 ### Changed
 
-- Application version을 `0.85.0`에서 `0.86.0`으로 증가한다. 선행 #460 PR을 포함하는 순차 구현 PR이며 이번 요청에서 정식 릴리스를 게시하지 않는다.
+- Application version을 `0.85.1`에서 `0.86.0`으로 증가한다. 최신 main의 #452 release-candidate lifecycle 보완과 선행 #460 Stage Gate 구현을 함께 보존하며 이번 요청에서 정식 릴리스를 게시하지 않는다.
+
+## [0.85.1] - 2026-10-06
+
+### Fixed
+
+- Issue #452: Main CI에서 검증한 non-docs `ci-<SHA>` candidate를 Generic Release Finalizer 판정 전에 삭제하지 않고 lifecycle handoff까지 보존하도록 GHCR 수명주기를 정합화한다.
+- `release_required=false` finalize에서만 exact temporary candidate를 fail-closed helper로 정리하고, release-required candidate는 formal exact-digest promotion에 사용하도록 유지한다.
+- Generic Finalizer/Resume 및 수동 finalize 경로에 temporary package cleanup을 위한 최소 `packages: write` 권한·job-scoped token과 정적 회귀 검증을 추가한다. 정식 image build/promotion은 계속 `release-image.yml`에만 위임한다.
+- PR #469를 최신 `main` 0.85.0 / Issue #460 변경 위로 재정렬해 Milestone Stage Gate 구현과 문서를 보존한다.
+- 실패한 immutable `v0.83.4`와 미게시 작업 후보 `0.83.5`는 재사용하지 않고 corrective PATCH `0.85.1`에서 새 Main verified candidate와 정식 GHCR promotion을 다시 수행한다.
+- Application version을 `0.85.0`에서 `0.85.1`로 증가한다.
 
 ## [0.85.0] - 2026-10-05
 

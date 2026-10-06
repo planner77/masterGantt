@@ -35,7 +35,7 @@ interface Fixture {
   projectReads: number;
 }
 
-async function setup(page: Page, options: { editable?: boolean; links?: boolean; assignmentTargets?: boolean } = {}): Promise<Fixture> {
+async function setup(page: Page, options: { editable?: boolean; links?: boolean; assignmentTargets?: boolean; milestonePeer?: boolean } = {}): Promise<Fixture> {
   await page.clock.setFixedTime(new Date("2026-09-16T12:00:00Z"));
   const fixture: Fixture = {
     project: { publicId, name: "Task Editor fixture", description: "Issue #4", status: "planned", revision: 20, calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [{ date: "2026-09-21", name: "Fixture holiday" }] } },
@@ -45,6 +45,7 @@ async function setup(page: Page, options: { editable?: boolean; links?: boolean;
       task(3, "Alpha leaf", { requestedStart: "2026-09-16", start: "2026-09-16", end: "2026-09-16" }),
       task(4, "Beta leaf"),
       task(5, "Milestone", { type: "milestone", duration: 0, requestedStart: "2026-09-23", start: "2026-09-23", end: "2026-09-23" }),
+      ...(options.milestonePeer ? [task(6, "Milestone peer", { type: "milestone", duration: 0, requestedStart: "2026-09-24", start: "2026-09-24", end: "2026-09-24" })] : []),
     ],
     links: options.links ? [{ id: id(90), predecessorExternalId: "EDITOR-3", successorExternalId: "EDITOR-4", type: "FS", lag: 0 }] : [],
     editable: options.editable ?? true, patches: [], linkMutations: [], assignmentMutations: [], nextFailure: null, gate: null, failReads: false, projectReads: 0,
@@ -248,8 +249,10 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await cancel(page);
     await row(page, "Summary").locator('[data-action="open-task"]').click();
     await openRow(page, "Summary");
-    await expect(save(page)).toHaveCount(0);
-    await expect(editor(page)).toContainText("하위 작업으로 계산");
+    await expect(save(page)).toHaveCount(1);
+    await expect(editor(page).getByLabel("작업명", { exact: true })).not.toHaveAttribute("readonly", "");
+    await expect(editor(page).getByLabel("요청 시작일", { exact: true })).toHaveAttribute("readonly", "");
+    await expect(editor(page).getByText("하위 작업 기본 완료 단계", { exact: true })).toBeVisible();
     await cancel(page);
     await header.click({ button: "right" });
     await expect(page.locator(".project-column-menu")).toBeVisible();
@@ -703,8 +706,8 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     }));
   });
 
-  test("Issue #377 관계가 없는 Milestone에서 anchor 기반 Relation Editor로 새 후행 관계를 추가한다", async ({ page }) => {
-    const fixture = await setup(page, { editable: true });
+  test("Issue #377/#462 관계가 없는 Milestone에서 same-type anchor 기반 Relation Editor로 새 후행 Milestone 관계를 추가한다", async ({ page }) => {
+    const fixture = await setup(page, { editable: true, milestonePeer: true });
     await openRow(page, "Milestone");
     const taskDialog = editor(page);
     const relationTab = taskDialog.getByRole("tab", { name: /관계/ });
@@ -713,8 +716,8 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
     const modal = relationEditor(page);
     await expect(modal).toContainText("기준 작업 [Milestone]");
-    await modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...").fill("Beta");
-    await modal.getByRole("button", { name: /Beta leaf.*외부 ID: EDITOR-4.*작업 ID:/ }).click();
+    await modal.getByPlaceholder("작업명 / 외부 ID / 작업 ID 검색...").fill("Milestone peer");
+    await modal.getByRole("button", { name: /Milestone peer.*외부 ID: EDITOR-6.*작업 ID:/ }).click();
     await modal.getByLabel("관계 유형 (Type)", { exact: true }).selectOption("FF");
     await modal.getByLabel("지연 시간 (Lag, 일 단위)", { exact: true }).fill("-1");
     await modal.getByRole("button", { name: "관계 추가", exact: true }).click();
@@ -724,13 +727,13 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
 
     const successor = taskDialog.getByRole("region", { name: "후행 작업" });
     await expect(relationTab).toHaveAttribute("aria-selected", "true");
-    await expect(successor).toContainText("Beta leaf");
+    await expect(successor).toContainText("Milestone peer");
     await expect(successor).toContainText("FF (종료 → 종료)");
     await expect(successor).toContainText("Lag -1일");
     await expect(taskDialog).toContainText("Revision 21");
     expect(fixture.linkMutations[0].postDataJSON()).toEqual({
       predecessorExternalId: "EDITOR-5",
-      successorExternalId: "EDITOR-4",
+      successorExternalId: "EDITOR-6",
       type: "FF",
       lag: -1,
     });
@@ -1089,6 +1092,29 @@ test("#461 batch 412·network 실패 검색/선택/초안 보존과 pending 중 
   await expect(query).toHaveValue("Beta"); await dialog.getByRole("row", { name: /Beta leaf/ }).getByRole("button", { name: "직접 지정", exact: true }).click(); failure = "network";
   await dialog.getByRole("button", { name: "소속 변경 적용", exact: true }).click(); await expect.poll(() => calls).toBe(2); release?.();
   await expect(dialog).toContainText("네트워크 연결"); await expect(query).toHaveValue("Beta"); await expect(dialog).toContainText("변경 예정: 직접 지정 1"); expect(calls).toBe(2);
+});
+
+test("#461 Resource 신규 선택 해제는 잔여 draft로 dirty를 유지하지 않는다", async ({ page }) => {
+  const fixture = await setup(page, { assignmentTargets: true }); await openRow(page);
+  const dialog = editor(page); await dialog.getByRole("tab", { name: /리소스/ }).click();
+  const resource = dialog.getByRole("checkbox", { name: /Resource A/ }); await resource.check();
+  await dialog.getByLabel(/Resource A.*수행 역할/).selectOption("DEVELOPER"); await dialog.getByLabel(/Resource A.*투입률/).fill("60");
+  await resource.uncheck(); await expect(resource).not.toBeChecked();
+  await dialog.getByRole("button", { name: "작업 편집기 닫기" }).click();
+  await expect(dialog).toHaveCount(0); expect(fixture.assignmentMutations).toHaveLength(0);
+});
+
+test("#461 reload 후 작업 유형이 바뀌면 유효하지 않은 소속 작업 탭을 정규화한다", async ({ page }) => {
+  const fixture = await setup(page); await openRow(page, "Milestone");
+  const dialog = editor(page); await dialog.getByRole("tab", { name: /소속 작업/ }).click();
+  const milestone = fixture.tasks.find((task) => task.taskId === id(5))!;
+  milestone.type = "task"; milestone.duration = 1; milestone.stageGate = undefined; fixture.project.revision += 1;
+  await page.evaluate(({ publicId, revision }) => window.dispatchEvent(new StorageEvent("storage", { key: `mastergantt:project-revision:${publicId}`, newValue: String(revision) })), { publicId, revision: fixture.project.revision });
+  await expect(dialog).toContainText("작업 유형이 변경되었습니다");
+  await dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }).click();
+  await expect(dialog.getByRole("tab", { name: /소속 작업/ })).toHaveCount(0);
+  await expect(dialog.getByRole("tab", { name: "작업 정보", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(dialog.getByLabel("작업명", { exact: true })).toHaveValue("Milestone");
 });
 
 test("#461 Resource 외부 revision·401에서도 초안 유지, 확인 focus와 저장 잠금", async ({ page }) => {

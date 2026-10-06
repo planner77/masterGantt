@@ -1357,7 +1357,7 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 
 - Main 분류: first-parent `package.json.version`과 현재 version이 다를 때만 `version_changed=true`이며 `current_version`을 candidate build metadata에 사용한다.
 - Main artifact: 비문서 main merge의 quality/e2e/docker PASS 뒤 `ci-<merge SHA>`를 정확히 한 번 build/push하고 digest pull, image policy, readiness, SQLite restart persistence, Project/Task API, transport smoke를 통과해야 한다.
-- Retention: version 유지 merge와 failed artifact job은 `ci-*`를 정리하고, version-changing merge의 successful `ci-*`만 release candidate로 보존한다.
+- Retention: successful non-docs Main CI의 verified `ci-*`는 version 변경 여부와 무관하게 Generic Finalizer까지 보존한다. no-release finalize가 exact temporary candidate를 정리하고 release-required candidate는 formal promotion source로 유지한다. failed artifact job은 successful handoff가 아니다.
 - Release target: annotated tag의 `tag^{commit}`이 candidate SHA의 유일한 source이며 `github.sha`나 mutable branch를 candidate key로 사용하지 않는다.
 - Candidate binding: `org.opencontainers.image.source`, `revision`, `version`과 registry digest가 repository/tag target/package version과 모두 일치해야 한다.
 - Build-once: `release-image.yml`에는 `docker/build-push-action`이 없어야 하며 container image 재-build를 수행하지 않는다.
@@ -1437,6 +1437,18 @@ Issue #452 소비자 전수 및 실제 실행/미실행 구분은 [검증 증거
 - retry는 Playwright 전체 retry나 test 실패 무시가 아니며 제품 요청/저장 동작을 재실행하지 않는다. favicon 정적 GET과 canonical 프로젝트 document GET의 transport reset에만 동일 helper를 사용한다.
 - corrective PR은 Issue #452의 non-docs 후속 merge로 `Refs #452`를 유지한다. application version은 `0.83.4`를 유지하고 기존 version-scoped release authorization을 재사용한다.
 - PR exact head의 quality/e2e/docker가 모두 PASS한 뒤에만 병합한다. 새 main CI SUCCESS가 확인되면 Generic Release Finalizer가 first-parent backlog와 same-Issue corrective merge를 해석하여 v0.83.4 GHCR release를 진행해야 한다.
+
+
+### Issue #452 GHCR candidate lifecycle corrective
+
+- Main CI #1852.1의 `Main 임시 commit 이미지 게시·검증·정리` job은 `ci-e812e56f...`를 build/push하고 image policy/readiness/SQLite/API/transport smoke를 모두 PASS했다.
+- 기존 cleanup은 immediate first-parent의 `version_changed=false`만 보고 해당 package version을 삭제했고, Generic Finalizer는 #466/#467을 same-Issue target으로 수렴해 e812 SHA의 v0.83.4 Release를 시작했다.
+- Release #133.1은 static quality와 Chromium 6/6이 PASS했으나 `Main verified candidate exact digest 확인`에서 candidate 부재로 FAIL했다.
+- 보완 후 Main artifact job은 successful non-docs candidate를 Finalizer에 handoff하고 직접 삭제하지 않아야 한다.
+- 단, image push 이후 digest/policy/readiness/API/transport/artifact 검증이 실패하면 Generic Finalizer가 실행되지 않으므로 Main artifact job 자체가 exact `ci-<SHA>` package version을 fail-closed helper로 삭제해야 한다.
+- no-release lifecycle fixture에서는 `cleanup_temporary_main_candidate`가 exact `ci-<SHA>` cleanup helper를 호출하며, release-required finalize에서는 candidate cleanup을 호출하지 않아야 한다.
+- Generic Finalizer/Resume과 수동 finalize mutation job은 candidate cleanup에 필요한 `packages: write`를 가지되 PR/일반 CI 권한은 확대하지 않는다. formal build/promotion은 계속 `release-image.yml`만 수행한다.
+- failed immutable `v0.83.4`와 미게시 작업 후보 `0.83.5`는 재사용하지 않는다. 최신 main 0.85.0 기준 corrective package version은 `0.85.1`이며 PR CI → Main CI → Finalizer → Release에서 새 exact SHA/digest로 검증한다.
 
 ## Issue #461 완료 단계 Editor 검증
 
@@ -1558,3 +1570,57 @@ PR #468의 새 main `a9107ab2776829cbb0467a762ab8bf9ce1ce82c4`를 feature #463�
 최종 DOCUMENTATION_SYNC는 API/ARCHITECTURE/SECURITY/REQUIREMENTS/MILESTONE_STAGE_GATES/ISSUE_56_RESOURCE_WORKLOAD/LOGISTICS_DASHBOARD/TEST_PLAN과 frontend 소유 PROJECT_UX/UI_UX_GUIDELINES/TASK_EDITOR를 갱신한다. DB_SCHEMA/migration은 저장 구조 변경 없음, SCHEDULING_ENGINE은 기존 inheritance/Ready/Calendar 알고리즘 재사용, IMPORT_SCHEMA/VBA_EXPORT/Export는 해당 경로 변경 없음, DESIGN은 기존 semantic token 재사용, CI_CD/REMOTE_VALIDATION/DEPLOYMENT/HTTP_OPERATION은 workflow·runtime·HTTP 보안 정책 변경 없음으로 각각 N/A다. 기존 Resource workload API는 같은 from/to 조회를 연결하는 UI 변경이며 새 필드/공수 엔진이 없어 N/A다. CHANGELOG/활성 PLAN/version/Git/PR은 지정 Manager/infra 소유로 handoff한다. 로컬 구현·문서 판정과 독립 QA/원격 CI 판정을 분리한다.
 
 Local Fast Feedback는 관련 테스트 실행 결과이며 PR quality/e2e/docker 공식 회귀 PASS를 대체하지 않는다. 원격 실행 전/진행 중은 NOT TESTED다. 실제 운영 HTTP/TLS reverse proxy/Windows Excel/VBA/DRM은 별도 환경이며 #463에서 검증했다고 주장하지 않는다.
+
+### Issue #461 PR #470 review 보완
+
+PR #470의 P2 review 3건은 기존 저장·권한·domain 계약을 확대하지 않는 회귀 수정으로 처리한다. Resource 신규 선택→역할/투입 입력→선택 해제 후에는 선택 대상 기준 canonical draft가 원래 상태와 같아 dirty가 해제되어야 한다. Milestone의 소속 작업 탭에서 외부 type 변경을 감지해 명시 reload했을 때 새 type이 제공하지 않는 active tab은 작업 정보로 정규화한다. Membership 보유 Project의 Excel 409 응답은 `MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE`과 함께 explicit source/target public Task ID를 `details`에 포함한다.
+
+회귀 근거는 `project-task-editor.spec.ts`의 Resource 선택 해제/타입 변경 reload 시나리오와 `milestone-stage-gates.spec.ts`의 실제 HTTP Excel error details 검증으로 보강한다. 최신 main 정렬 뒤 동일 PR head에서 새 Full PR CI의 quality/e2e/docker 결과를 공식 판정 근거로 사용하며, 새 원격 PASS 전에는 기존 로컬·사전 QA 결과를 최종 ACCEPT로 승격하지 않는다.
+
+### Issue #461 PR CI #1870 E2E corrective
+
+PR CI Run #1870.1의 Chromium shard 4/6은 `project-task-editor.spec.ts`의 기존 회귀가 Summary Editor에 저장 버튼이 없어야 한다고 기대하여 1건 실패했다. #461 계약은 Summary 일정·진척은 readonly로 유지하되 이름과 Membership은 편집 가능하므로 저장 버튼 자체는 존재해야 한다. 제품 동작을 되돌리지 않고 해당 회귀를 저장 버튼 존재 + 작업명 editable + 요청 시작일 readonly 검증으로 갱신한다. 같은 run에서 quality/build/unit/docker와 나머지 E2E 5개 shard는 PASS였으며, 새 head의 전체 PR CI 결과를 공식 증거로 다시 사용한다.
+
+### Issue #461 PR CI #1873 E2E corrective
+
+PR CI Run #1873.1도 Chromium shard 4/6의 같은 기존 Summary 회귀 1건만 실패했다. #1870에서 저장 버튼 계약은 정정했지만 이어지는 문자열 assertion이 과거 문구 `하위 작업으로 계산`을 계속 요구했다. 현재 #461 UI는 Summary의 새 Membership 의미를 `하위 작업 기본 완료 단계`로 표시하고 요청 일정은 readonly로 유지하므로, 문자열 회귀를 현재 계약의 실제 label로 교체한다. 같은 run의 quality/build/unit/docker와 E2E 1/2/3/5/6 shard는 모두 PASS였다. 새 head 전체 PR CI 결과를 다시 공식 판정 근거로 사용한다.
+
+## Issue #475 Generic Finalizer closed-Issue backlog 회귀
+
+- 재현 순서는 `FINAL #452@f8f...` → 미완료 `#461@fd8...` → 이미 closed인 #452를 다시 참조한 후속 merge `#474@56e...`다.
+- 최신 merge의 Issue가 closed이지만 그 exact target SHA에 FINAL marker가 없으면 해당 merge 자체는 lifecycle mutation 대상에서 제외한다.
+- 이 closed/no-marker merge는 수집 단계에서 non-actionable ordering barrier로 유지하여 same-Issue retry adjacency를 끊고, coalesce 이후에만 lifecycle target에서 필터링한다.
+- barrier를 이유로 first-parent 탐색을 종료하지 않고 더 오래된 merge를 계속 조회하여 #461 같은 pending target을 발견해야 한다.
+- 더 과거의 exact FINAL marker를 만나면 기존처럼 강한 boundary로 탐색을 종료한다.
+- closed/no-marker merge에 대해 Issue reopen, release/finalize, branch cleanup을 수행하지 않는다.
+- 동일 Issue의 pending retry 두 개 사이에 closed/no-marker merge가 있으면 두 retry를 coalesce하지 않고 각각의 first-parent/version 범위를 유지한다.
+- `MAX_BACKLOG_DEPTH` 안에서 exact FINAL/non-PR historical boundary를 찾지 못하는 기존 fail-closed 계약은 유지한다.
+- 정적/시나리오 검증은 `scripts/verify-issue-lifecycle.py`에서 closed skip classifier, exact FINAL boundary, pending backlog 보존을 함께 확인한다.
+
+### Issue #475 Finalizer tag push Authorization corrective
+
+- PR #476 병합 후 Main CI #1906.1은 SUCCESS였고 Generic Finalizer #64.1이 pending #461/v0.86.0을 정확히 발견했다.
+- Finalizer #64.1은 `git push origin refs/tags/v0.86.0`에서 GitHub 응답 `Duplicate header: "Authorization"` / HTTP 400으로 실패했다.
+- 원인은 Generic Finalizer checkout이 기본 credential persistence를 유지한 상태에서 `push_git_refs()`가 별도 `http.extraHeader` Authorization을 추가해 동일 header가 두 번 전송된 것이다.
+- 자동 Finalizer와 수동 release/finalize/release_finalize checkout은 모두 `persist-credentials:false`를 사용해야 한다.
+- lifecycle의 release tag `ls-remote`·`fetch`·`push`와 automatic finalizer의 exact tag evidence `ls-remote`·`fetch`는 동일한 process-scoped auth helper를 사용해야 한다.
+- helper는 inherited `http.https://github.com/.extraheader`를 빈 값으로 reset한 뒤 job-scoped Authorization header 하나를 command-scope Git config로 넣어야 한다.
+- 회귀 검증은 process-scoped config count/order, empty reset header, 단일 auth header, command argument token 비노출, lifecycle tag read/fetch/push와 automatic finalizer tag evidence read/fetch가 모두 authenticated helper를 경유하는지, mutation workflow의 non-persistent checkout을 확인한다.
+- 기존 immutable tag가 생성되기 전에 push가 실패했으므로 v0.86.0 tag/release 중복 evidence를 만들지 않아야 한다. corrective merge 후 Generic Finalizer가 backlog를 재계산해 #461 release_start를 재시도한다.
+
+## Issue #461 v0.86.0 GHCR Release static quality corrective
+
+- Release Run #136.1 (`37412901512`)은 SemVer 검증과 Chromium E2E 6/6, Vitest 126 files / 1177 tests를 PASS했으나 `Release static quality`의 `npm audit --omit=dev`에서 `source-map-js 1.2.1` High 취약점으로 FAIL했다. 이에 따라 quality aggregate가 FAIL하고 Main verified digest 재검증·promotion·handoff는 SKIPPED였다.
+- 같은 job에서 audit 실패 뒤 production build 시작 step이 SKIPPED됐는데 `Release production build 시간 기록`이 `if: always()`로 실행되어 빈 `started_ms`를 recorder에 전달한 2차 실패도 관측했다. 이 오류는 최초 audit failure를 대체하지 않으며 corrective에서 함께 제거한다.
+- 현재 latest main은 #462 병합 이후 application `0.87.0`이며 `package-lock.json`의 `source-map-js`는 `1.2.2`다. 따라서 실패한 immutable `v0.86.0`을 재사용하지 않고 #461 same-Issue corrective PATCH `0.87.1`로 진행한다.
+- 정적 회귀는 `tests/scripts/test-config-layout.test.ts`에서 `source-map-js >= 1.2.2`와 Release build 종료 계측의 `steps.release-build-start.outputs.started_ms != ''` guard를 확인한다. audit 자체는 PR/Main/Release의 실제 `npm audit` gate가 계속 authoritative하다.
+- corrective PR의 공식 판정은 exact head의 PR quality/e2e/docker 결과다. 이번 요청 범위는 새 PR CI 시작 확인까지이며 merge/Main CI/tag/GHCR/branch cleanup/Issue close는 수행하지 않는다. 새 `0.87.1` release는 별도 명시 승인 전 `release_authorized=false`다.
+
+
+## Issue #463 PR CI Run #1869 실패 재정렬·보완
+
+- PR #472 head `ca15145b1167b7253841e648d23e59d1a172022a`의 PR CI Run #1869.1(`37382878627`)은 Vitest/ESLint/TypeScript/정책 검사는 PASS했으나 production build, Docker build, Chromium E2E shard 4/5/6이 FAIL했다.
+- production build의 직접 원인은 `project-milestone-dashboard.module.css`의 전역-only `:global(.project-schedule-peer-tabs)` selector가 CSS Module pure 규칙을 위반한 것이다. Docker 실패는 같은 `npm run build` 오류의 연쇄 결과다. peer workspace 전역 layout selector는 `src/app/globals.css`로 이동하고 Milestone module은 local selector만 소유한다.
+- 최초 #463 branch는 #462의 중간 head를 선행으로 사용했다. E2E 실패의 기존 Context Menu/Editor/Relation/scoped-add 경로는 기대를 완화하지 않고 latest main에 병합된 #461/#462 보완을 source of truth로 유지한 뒤 #463 delta만 재적용한다.
+- 재정렬 후보는 latest main `d7316880732ecde5a8193764ac3b0cfca2ae455f` / application `0.87.1`을 포함하고 #463 candidate를 `0.88.0`으로 유지한다. #461 corrective의 `source-map-js 1.2.2` 및 Release 계측 guard를 되돌리지 않는다.
+- 새 exact-head PR CI의 quality/e2e/docker는 등록 전까지 NOT TESTED이며 기존 Run #1869의 PASS를 새 head 증거로 전용하지 않는다.
