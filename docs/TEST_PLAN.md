@@ -1956,3 +1956,12 @@ latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` 및 #463 head `703807d600
 ### Issue #464 latest main 재정렬 — 2026-10-06
 
 PR #473를 latest main `d748046733ae2006580052a480c984ae1eb1fa2a` 기준으로 다시 정렬한다. 해당 main에는 #463가 병합되어 있고 #455 UI/transport 및 #463 결합 필터 보완까지 포함된다. #464 고유 JSON/Excel/Copy/Template 구현과 Codex P2 round-trip 보완을 유지하고, `project-gantt.tsx`는 main의 context-menu surface settle을 보존하면서 context 선택에서만 `show:false`와 Copy feedback 보존을 재적용한다. 새 exact-head PR CI의 quality/e2e/docker가 공식 재검증 기준이며 결과 확인 전에는 NOT TESTED다.
+
+## Issue #493 — Summary Task Description/URL 편집
+
+- `tests/features/gantt/task-editor-model.test.ts`는 Summary command가 name/Description/URL/명시 완료 단계 소속만 포함하고 schedule/progress/Baseline 변경을 누락하는지, Description 길이와 URL scheme을 일반 Task와 같은 규칙으로 검증한다.
+- `tests/domain/milestone-editor-model.test.ts`는 Summary 메타데이터와 완료 단계 소속을 한 command로 결합하면서 잘못된 일정 초안이 payload로 새지 않는지 확인한다.
+- `tests/server/projects/summary-task-details.test.ts`는 실제 SQLite의 `TaskFieldProjectService`에서 Summary Description/URL 저장·canonical 재조회, child 추가/삭제에 따른 일정 재계산 뒤 메타데이터 보존, schedule readonly 거부와 revision 불변을 검증한다.
+- `tests/e2e/project-task-editor.spec.ts`는 편집 가능한 Summary에서 Description/URL은 readOnly가 아니고 요청 시작일은 계속 readOnly인지 확인한다.
+- `tests/e2e/project-task-editor-persistence.spec.ts`는 실제 브라우저+SQLite에서 Summary Description/URL PATCH 1회, 파생 일정 불변, 마지막 child 삭제 후 빈 Summary의 null 일정과 메타데이터 보존, reload 후 재표시를 검증한다.
+- readonly/stale/pending/focus/Escape/Gantt instance 보존은 기존 Task Editor 회귀를 함께 사용한다. 전체 공식 회귀 판정은 동일 PR head의 `quality`, `e2e`, `docker` GitHub Actions로 한다.
