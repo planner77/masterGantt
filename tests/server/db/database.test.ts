@@ -136,9 +136,13 @@ describe("SQLite connection and schema", () => {
     const before = state(original); original.close();
     const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
     try {
-      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql"]);
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_country_calendar_catalog.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
+      expect(migrated.database.prepare("SELECT revision FROM country_calendar_catalog_state WHERE id = 1").get())
+        .toEqual({ revision: 1 });
+      expect(migrated.database.prepare("SELECT count(*) AS count FROM country_calendar_datasets").get())
+        .toEqual({ count: 0 });
       expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     } finally { migrated.database.close(); }
   });
