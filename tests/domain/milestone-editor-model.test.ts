@@ -162,10 +162,10 @@ describe("Issue #461 explicit-only batch drafts and completed lock", () => {
 });
 
 describe("Issue #461 basic editor atomic payload boundary", () => {
-  it("combines Summary name and Membership while omitting readonly fields, even malformed ones", () => {
+  it("combines Summary editable metadata and Membership while omitting readonly schedule fields", () => {
     const summary = fixture().find((task) => task.taskId === root.taskId)!;
-    const draft = { ...createTaskEditorDraft(summary), name: "  새 기본 단계  ", explicitMilestoneTaskId: second.taskId, start: "invalid", requestedEnd: "invalid", duration: "99", progress: "100", status: "completed" as const, scheduleMode: "manual" as const, description: "not editable", url: "javascript:invalid", baselineStart: "invalid", baselineDuration: "99", baselineEnd: "invalid" };
-    expect(prepareTaskEditorCommand(summary, draft)).toEqual({ command: { taskId: root.taskId, payload: { name: "새 기본 단계", explicitMilestoneTaskId: second.taskId } }, error: null });
+    const draft = { ...createTaskEditorDraft(summary), name: "  새 기본 단계  ", explicitMilestoneTaskId: second.taskId, start: "invalid", requestedEnd: "invalid", duration: "99", progress: "100", status: "completed" as const, scheduleMode: "manual" as const, description: "요약 설명", url: "https://example.test/summary", baselineStart: "invalid", baselineDuration: "99", baselineEnd: "invalid" };
+    expect(prepareTaskEditorCommand(summary, draft)).toEqual({ command: { taskId: root.taskId, payload: { name: "새 기본 단계", description: "요약 설명", url: "https://example.test/summary", explicitMilestoneTaskId: second.taskId } }, error: null });
   });
 
   it("combines Task name/status/progress and Membership in one command", () => {

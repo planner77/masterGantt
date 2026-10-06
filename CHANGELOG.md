@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.93.0] - 2026-10-07
+
+### Added
+
+- Issue #493: Summary Task의 Description과 URL을 일반 Task와 같은 검증·저장 경로로 편집할 수 있다. 빈 Summary와 일정 산정 Summary 모두 지원한다.
+
+### Changed
+
+- 최신 main의 Issue #456 Task Editor 레이아웃·pending Escape·Gantt viewport 보완과 application `0.92.1`을 보존한 뒤 #493 변경을 재적용한다.
+- Summary PATCH 직접 편집 allowlist를 name/Description/URL/명시 완료 단계 소속으로 확장하되 일정·진척·상태·Baseline의 자손 파생 read-only 계약은 유지한다.
+- 하위 작업 추가·삭제에 따른 Summary 일정 재계산 뒤에도 메타데이터를 보존하는 Unit/SQLite/E2E 회귀를 추가하고 application version을 `0.93.0`으로 설정한다.
+
+### Fixed
+
+- PR CI Run #1992에서 공개된 Sharp High advisory(CVE-2026-96889, GHSA-wq5f-xc86-pv6w)에 대응해 Next.js의 호환 optional dependency 범위 안에서 lockfile의 Sharp closure를 `0.35.5` / libvips `1.3.4`로 갱신한다.
+- 실패 Playwright artifact의 accessibility tree에서 Description/URL textbox와 저장값이 실제 존재함을 확인하고 reload 후 검증 locator를 실제 노출 role 기준으로 정합화한다.
+
 ## [0.92.1] - 2026-10-06
 
 ### Fixed
@@ -11,7 +28,6 @@
 - Editor 진입 등 상위 화면의 렌더에서 같은 visible Task 집합의 Gantt 필터가 반복 적용되어 가로 스크롤을 초기화하는 경로를 보완한다. 실제 필터·범위·Task 집합 변경과 API 교체는 기존 필터 계약을 유지한다.
 - 같은 보기에서 일정·계층·관계가 유지되는 metadata 저장 후 Gantt 가로 스크롤이 초기화되는 경로를 공개 viewport API로 보완한다. 실제 일정·범위 변화와 사용자 스크롤은 조건부 복원 대상에서 제외한다.
 - Editor 관계·기준 일정 action의32px 최소 높이를44px로 확대하며 긴 label의 자연 wrap을 유지한다. 동적 탭·독립 저장·dirty/stale·server canonical 및 Gantt 상태 계약은 변경하지 않는다.
-- Main CI #1993.1에서 새로 탐지된 `sharp 0.35.4` High 취약점(CVE-2026-96889)을 audit gate 완화 없이 `sharp 0.35.5` / `@img/sharp-libvips 1.3.4` lockfile로 보완하고 최소 버전 회귀를 고정한다.
 
 ### Changed
 

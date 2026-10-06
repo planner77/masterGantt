@@ -131,13 +131,10 @@ REQUIREMENTS·ARCHITECTURE는 새 기능·계층 경계 변경이 없어 N/A다.
 현재 source3가 영향을 주는 date/status/Baseline·검색/필터·scope/fullscreen/peer·실제SQLite 관련 선택 회귀를 실행했고, 마지막 guard-only 수정의 직접8사례와 나머지19 unique의 재사용 근거를 TEST_PLAN에 구분했다. native125%/실기기/스크린리더/최종수동UX 및 모든 상태×폭 조합은 NOT TESTED다. 실제SQLite persistence와 mocked payload/state는 서로 대체하지 않는다.
 
 
-## Main CI #1993.1 security audit corrective
+## Main CI #1993.1 security audit corrective — latest main 재정렬
 
-PR #500 병합 SHA `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 Main CI Run `37524404994`은 제품 build/typecheck/lint/Vitest/E2E 6/6/Docker smoke는 통과했지만 production audit에서 `sharp 0.35.4` High 취약점(CVE-2026-96889)으로 실패했다. audit gate를 완화하지 않고 corrective branch `fix/issue-456-main-ci-sharp-audit`에서 lockfile을 `sharp 0.35.5` 및 `@img/sharp-libvips 1.3.4`로 갱신하고 정적 최소 버전 회귀를 추가한다.
+PR #500 merge SHA `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 Main CI #1993.1은 production audit에서 `sharp 0.35.4` / CVE-2026-96889로 실패했다. corrective PR #504는 lockfile과 정적 회귀를 보완했고 head `bc90e12e3dfc1eee8f1f1d4afdccb7964fb87acc`의 PR CI #2014.1에서 quality/E2E/Docker 전체가 SUCCESS했다.
 
-application version은 `0.92.1`을 유지한다. 이 corrective는 동일 Issue의 non-docs 후속 merge이며 Generic Finalizer의 same-Issue convergence가 최초 0.92.0→최신0.92.1 span으로 release_required를 판정하므로 기존 v0.92.1 authorization 범위를 유지한다. 새 PR exact-head quality/e2e/docker PASS → merge → 새 Main CI 시작이 현재 요청 종료점이며, 그 뒤 GHCR/finalize는 기존 자동 lifecycle gate가 처리한다.
+검증 중 Issue #493 PR #496이 main에 병합되어 main이 `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7` / application 0.93.0으로 전진했다. #493 main 자체가 동일 advisory 대응인 `sharp 0.35.5` / libvips 1.3.4를 포함하므로, published PR history를 보존하는 2-parent merge 정렬에서 latest main tree를 authority로 사용하고 #456의 재발 방지 정적 테스트와 corrective 추적 문서만 재적용한다. package/version/기능 변경을 되돌리지 않는다.
 
-
-### Corrective PR trace 재등록
-
-PR #504 최초 Run #2011.1은 제품 검증 전에 PR 제목의 Primary Issue 표기가 canonical 형식이 아니어서 `verify-ci-run-trace.py`에서 차단됐다. 제목을 `fix: Main CI sharp audit 보완 (#456)`으로 정정했다. close/reopen으로 생성된 #2012.1은 same-head metadata evidence 대기 경로에 들어가므로, 이 이력을 문서화한 새 commit으로 head를 갱신해 `pull_request.synchronize` full CI를 다시 시작한다. 보안 lockfile/test 내용은 변경하지 않는다.
+재정렬 exact head에서 required PR CI를 다시 수행한 뒤 merge하고 새 Main CI push run의 시작을 확인한다.
