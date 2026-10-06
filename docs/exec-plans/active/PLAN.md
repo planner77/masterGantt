@@ -1,5 +1,11 @@
 # Active execution plan
 
+## Issue #487 Release E2E stage scroll timing race — 테스트 동기화 보완
+
+Issue #454의 v0.90.1 Release Run #140.1에서 동일 exact SHA의 Main CI PASS와 달리 완료 단계 필터의 `End` 키 직후 geometry 측정이 다음 animation-frame `scrollIntoView()`보다 먼저 실행되어 shard 2/6이 실패했다. 제품/접근성 기준은 유지하고 static sleep 없이 active option이 list viewport 안에 들어오고 `scrollTop > 0`이 되는 observable postcondition을 bounded poll로 기다린 뒤 기존 geometry assertion을 수행한다.
+
+branch `fix/issue-487-stage-filter-scroll-race`, baseline main `528ebfffa639a275ea4349a04860f5b3785e50e9` / application `0.90.2`. application version과 제품 source/API/DB/domain은 변경하지 않는다. exact-head PR CI가 공식 검증 기준이며 병합은 별도 판단한다.
+
 ## Issue #455 기준정보 입력 컨트롤 — 최신 main 재정렬 / 병합 / Main CI
 
 PR #481의 기존 head `7f9cfb87e4e56bba9eff444d74a0559bcb80b89d`는 PR CI Run `37411553451` / Run #1908.1 SUCCESS였으나, 이후 #453/#454 및 운영 변경이 main에 반영되어 최신 main이 `0fc986cb0cb642bdbedeec30157b27bd522b5a38`까지 전진했고 기존 head는 GitHub `mergeable_state=dirty`가 되었다. #455 고유 제품·테스트·fixture·증거를 최신 main 위에 재적용하고, 충돌 교집합인 CHANGELOG/PROJECT_UX/TEST_PLAN/active PLAN은 최신 main 기록과 #455 기록을 함께 보존한다.
