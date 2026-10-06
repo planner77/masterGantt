@@ -8,6 +8,7 @@ version, CI and release evidence are resolved from GitHub and repository state.
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import re
@@ -60,6 +61,30 @@ def run(
             f"command failed ({result.returncode}): {' '.join(args)}\n{result.stderr.strip()}"
         )
     return result
+
+
+def push_git_refs(*refs: str) -> None:
+    """Push refs with job-scoped GITHUB_TOKEN without persisting credentials.
+
+    The checkout intentionally uses persist-credentials=false.  Supply the
+    HTTPS Authorization header only to this git subprocess via environment
+    backed Git config so the token is not written to the remote URL, git
+    config, command arguments, logs, or repository files.
+    """
+    token = os.environ.get("GITHUB_TOKEN", "")
+    if not token:
+        raise LifecycleError("GITHUB_TOKEN is required for authenticated git push")
+
+    basic = base64.b64encode(f"x-access-token:{token}".encode("utf-8")).decode("ascii")
+    env = os.environ.copy()
+    env.update(
+        {
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
+            "GIT_CONFIG_VALUE_0": f"AUTHORIZATION: basic {basic}",
+        }
+    )
+    run("git", "push", "origin", *refs, env=env)
 
 
 def gh(path: str, *, method: str = "GET", fields: dict[str, str] | None = None) -> Any:
@@ -463,7 +488,7 @@ def start_release(ctx: Context, args: argparse.Namespace) -> tuple[str, str]:
     run("git", "config", "user.name", "github-actions[bot]")
     run("git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
     run("git", "tag", "-a", tag, ctx.merge_sha, "-m", f"Release {tag}")
-    run("git", "push", "origin", f"refs/tags/{tag}")
+    push_git_refs(f"refs/tags/{tag}")
 
     dispatch_release(repo, ctx, tag)
     return tag, "DISPATCHED — completion is handled by Generic Release Finalizer"
@@ -495,7 +520,7 @@ def ensure_release(ctx: Context, args: argparse.Namespace) -> tuple[str, str]:
     run("git", "config", "user.name", "github-actions[bot]")
     run("git", "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com")
     run("git", "tag", "-a", tag, ctx.merge_sha, "-m", f"Release {tag}")
-    run("git", "push", "origin", f"refs/tags/{tag}")
+    push_git_refs(f"refs/tags/{tag}")
 
     gh(
         f"/repos/{repo}/actions/workflows/release-image.yml/dispatches",
