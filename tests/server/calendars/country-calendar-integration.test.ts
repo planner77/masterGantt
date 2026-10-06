@@ -66,6 +66,7 @@ describe("Issue #342 country catalog scheduling integration",()=>{
       expect(calendars.get(created.response.data.project.publicId)?.data.rules)
         .toContainEqual(expect.objectContaining({sourceVersion:"KR-2030-official-1"}));
     }finally{database.close();}
+  });
 
   it("keeps project creation available while the current KR override awaits reapproval",async()=>{
     const database=openDatabase({filename:":memory:",migrationsDirectory:MIGRATIONS}).database;
@@ -92,6 +93,5 @@ describe("Issue #342 country catalog scheduling integration",()=>{
       expect(calendars.get(created.response.data.project.publicId)?.data.projectDates)
         .not.toContainEqual(expect.objectContaining({sourceKey:"manual-review"}));
     }finally{database.close();}
-  });
   });
 });
