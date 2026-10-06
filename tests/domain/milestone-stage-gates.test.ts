@@ -46,6 +46,52 @@ describe("stage membership and gates", () => {
     expect(projectStageGates(after).gates.get("M2")?.completionInconsistent).toBe(true);
     expect(() => assertMilestoneCompletionTransitions(after, structuredClone(after))).not.toThrow();
   });
+  it("keeps member Task dependencies separate from Milestone Gate predecessors", () => {
+    const s: StageSnapshot = {
+      tasks: [
+        task("M1", "milestone"),
+        task("M2", "milestone"),
+        task("T1", "task", null, 2, 100),
+        task("T2", "task", null, 3, 100),
+      ],
+      memberships: [
+        { taskId: "T1", milestoneTaskId: "M1" },
+        { taskId: "T2", milestoneTaskId: "M2" },
+      ],
+      links: [
+        { id: "TASK", predecessorTaskId: "T1", successorTaskId: "T2", type: "FS", lag: 0 },
+      ],
+    };
+
+    const taskOnly = projectStageGates(s).gates.get("M2");
+    expect(taskOnly).toMatchObject({
+      memberCount: 1,
+      membersCompleted: true,
+      predecessorMilestoneTaskIds: [],
+      incompletePredecessorMilestoneTaskIds: [],
+      blocked: false,
+      ready: true,
+    });
+    expect(s.links).toHaveLength(1);
+
+    s.links.push({ id: "STAGE", predecessorTaskId: "M1", successorTaskId: "M2", type: "FS", lag: 0 });
+    const withStageGate = projectStageGates(s).gates.get("M2");
+    expect(withStageGate).toMatchObject({
+      predecessorMilestoneTaskIds: ["M1"],
+      incompletePredecessorMilestoneTaskIds: ["M1"],
+      blocked: true,
+      ready: false,
+    });
+
+    s.tasks.find((candidate) => candidate.taskId === "M1")!.status = "completed";
+    expect(projectStageGates(s).gates.get("M2")).toMatchObject({
+      predecessorMilestoneTaskIds: ["M1"],
+      incompletePredecessorMilestoneTaskIds: [],
+      blocked: false,
+      ready: true,
+    });
+  });
+
   it("requires every direct Milestone predecessor, independently of type/lag and empty member events", () => {
     const s = fixture(); s.memberships = [];
     s.links = [{ id: "L1", predecessorTaskId: "M1", successorTaskId: "M3", type: "SS", lag: 10 }, { id: "L2", predecessorTaskId: "M2", successorTaskId: "M3", type: "SF", lag: -10 }];
