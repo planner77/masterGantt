@@ -277,7 +277,7 @@ export class ResourceCatalogRepository {
              CASE WHEN a.resource_id IS NOT NULL THEN 'resource' ELSE 'group' END AS kind,
              COALESCE(a.resource_id, a.group_id) AS target_internal_id,
              COALESCE(r.public_id, g.public_id) AS target_public_id,
-             a.assignment_start, a.assignment_end, a.allocation_percent, a.assignment_role
+             a.assignment_start, a.assignment_end, a.allocation_percent
       FROM task_assignments a
       JOIN tasks t ON t.id = a.task_id AND t.project_id = a.project_id
       LEFT JOIN resources r ON r.id = a.resource_id
@@ -286,14 +286,14 @@ export class ResourceCatalogRepository {
       ORDER BY a.task_id, a.id`).all(projectId) as Array<{
         id:number; public_id:string; project_id:number; task_id:number; task_public_id:string;
         kind:"resource"|"group"; target_internal_id:number; target_public_id:string;
-        assignment_start:string|null; assignment_end:string|null; allocation_percent:number|null; assignment_role:ResourceRole|null;
+        assignment_start:string|null; assignment_end:string|null; allocation_percent:number|null;
       }>;
     return rows.map((row) => ({
       id: row.id, publicId: row.public_id, projectId: row.project_id, taskId: row.task_id,
       taskPublicId: row.task_public_id, kind: row.kind, targetInternalId: row.target_internal_id,
       targetPublicId: row.target_public_id, assignmentStart: row.assignment_start,
       assignmentEnd: row.assignment_end, allocationPercent: row.allocation_percent,
-      assignmentRole: row.kind === "resource" ? row.assignment_role : null,
+      assignmentRole: null,
     }));
   }
 
