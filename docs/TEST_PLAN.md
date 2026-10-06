@@ -1972,3 +1972,11 @@ PR #473를 latest main `d748046733ae2006580052a480c984ae1eb1fa2a` 기준으로 �
 ### CI #1960 migration regression 보완
 
 PR CI #1960의 유일한 Vitest 실패는 `tests/server/db/database.test.ts`의 legacy schema21 upgrade 기대값이 `0022_task_milestone_memberships.sql` 하나만 가정한 데서 발생했다. #342의 `0023_country_calendar_catalog.sql`이 정상적으로 함께 적용되므로 기대 applied list를 0022+0023으로 갱신한다. 기존 Project/Task/Link/Resource/Assignment row 불변, empty Stage membership, FK check를 유지하고 Country Calendar Catalog 초기 `revision=1`, dataset 0건도 함께 검증한다.
+
+### Issue #342 Codex review rework
+
+- Repository boundary: Country Calendar Service source에 직접 \`.prepare()/database.transaction\` 호출이 없고 SQL은 \`CountryCalendarRepository\`만 소유하는지 확인한다.
+- Provenance: built-in/override OFFICIAL dataset의 수동 date Add/Edit/Delete 직후 status가 UNAVAILABLE, sourceVersion/sourceUrl이 null이고 effective Scheduling dataset이 사라지는지 검증한다. 새 metadata로 OFFICIAL 재승인 후에만 다시 노출되어야 한다.
+- File race: file A의 \`text()\` 완료를 지연한 상태에서 file B를 재선택하면 A 완료 후에도 Preview/Apply payload와 적용 결과가 B여야 한다.
+- Import Apply는 complete source metadata를 포함하는 atomic full replacement이므로 OFFICIAL 유지가 가능하며 수동 CRUD와 구분한다.
+

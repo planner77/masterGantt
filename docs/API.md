@@ -1441,3 +1441,10 @@ Project 기준정보 관리자 세션을 재사용하며 mutation은 exact Origi
 - `POST /api/admin/work-calendars/import/apply`
 
 Import apply와 CRUD는 `country_calendar_catalog_state.revision`을 별도로 증가시키며 Project revision은 변경하지 않는다. 기존 `GET /api/work-calendars/countries`의 `supportedYears`는 built-in + DB override 중 OFFICIAL로 Scheduling 가능한 연도만 반환한다. Project Preview/Save에서 비공식/미확보 연도는 기존 `422 COUNTRY_CALENDAR_UNAVAILABLE` 계약을 유지한다.
+
+### Issue #342 수동 날짜 CRUD provenance
+
+국가 Calendar 날짜 POST/PATCH/DELETE 성공은 날짜 mutation과 Catalog revision 증가를 원자적으로 처리한다. 기존 dataset이 OFFICIAL이더라도 수동 날짜 변경 후 응답 dataset은 \`status=UNAVAILABLE\`, \`sourceVersion=null\`, \`sourceUrl=null\`이다. 이는 변경된 내용에 과거 source provenance를 재사용하지 않기 위한 fail-closed 계약이다.
+
+다시 Scheduling에 사용하려면 운영자가 공식 source를 검증한 뒤 metadata PATCH에서 \`status=OFFICIAL\`과 새 \`sourceVersion/sourceUrl\`을 함께 저장해야 한다. Import Apply는 파일 자체가 complete provenance를 포함하므로 전체 교체 transaction에서 OFFICIAL로 확정할 수 있다.
+

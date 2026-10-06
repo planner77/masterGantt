@@ -1016,3 +1016,10 @@ Context 선택은 기존 Copy 완료 feedback도 보존한다. 미선택 목적�
 상단 compact toolbar에서 국가와 2026~2037 연도를 선택하고 dataset 상태, source version/URL, 데이터 건수, 마지막 수정 시각을 확인한다. Import는 파일 선택 → 업로드 전 검증 → 추가/변경/삭제 예상 건수 Preview → 명시적 적용 순서이며 선택한 국가/연도와 파일 target이 다르면 적용하지 않는다. 날짜 목록은 날짜/요일/이름/dayType/sourceKey/action 중심의 data-dense table로 제공하고 추가·편집·삭제를 지원한다. 삭제는 `WorkspaceDialog` 확인을 거치며 Escape/focus restore 계약을 유지한다.
 
 390/768/1024/1440px에서 form control은 의미 단위로 reflow하고 table은 내부 horizontal scroll을 사용해 document-level overflow를 만들지 않는다. Import/CRUD 중 중복 mutation을 막고 loading/error/success와 stale revision(412)을 명시적으로 표시한다.
+
+### Issue #342 수동 날짜 편집 후 재승인
+
+OFFICIAL dataset에서 휴일/보충근무일을 수동 추가·편집·삭제하면 화면은 즉시 \`미확보\` 상태와 비어 있는 Source version/URL을 표시하고 “공식 상태와 출처 정보가 해제되었으므로 검증 후 메타데이터를 다시 저장”하라는 안내를 제공한다. 운영자가 재검증하기 전에는 Scheduling이 해당 override를 사용하지 않는다.
+
+파일 선택은 가장 최근 선택한 파일만 Preview/Apply 대상으로 인정한다. 이전 파일의 비동기 \`File.text()\`가 늦게 완료되더라도 최신 선택의 envelope를 덮어쓰지 않아야 한다.
+

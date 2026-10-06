@@ -14,6 +14,12 @@
 - 2026 built-in fixture는 초기 baseline으로 유지하고 Project Calendar Preview/Save 및 신규 Project 기본 Calendar는 최신 OFFICIAL DB override를 우선 사용한다. Catalog 변경만으로 기존 Project의 materialized Calendar/Task는 자동 재계산하지 않는다.
 - Issue #452의 공통 `admin-page` shell과 `AdminAuth` presentation을 국가 Calendar 관리자에도 적용하고 Application version을 `0.92.0`에서 `0.93.0`으로 증가한다.
 
+### Fixed
+
+- 수동 날짜 CRUD가 기존 OFFICIAL provenance를 유지하지 않도록 즉시 UNAVAILABLE로 전환하고 source metadata를 비워 공식 재검증을 요구한다.
+- Country Calendar SQL persistence를 Repository 계층으로 분리해 `Route Handler → Service → Repository → SQLite` 경계를 복구한다.
+- 빠른 파일 재선택에서 이전 `File.text()` 완료가 최신 선택 envelope를 덮어쓸 수 없도록 generation guard를 추가한다.
+
 ## [0.92.0] - 2026-10-06
 
 ### Added

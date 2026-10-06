@@ -55,6 +55,14 @@ N/A:
 - 테스트 기대값을 0022+0023으로 갱신하고 기존 row 불변/empty membership/FK invariant에 더해 Country Calendar Catalog 초기 revision 1/dataset 0건을 확인한다.
 - 제품 코드와 migration SQL은 변경하지 않는다.
 
+## Codex review REWORK
+
+- P1 stale provenance: 수동 날짜 Add/Edit/Delete가 기존 source metadata와 OFFICIAL 상태를 유지하던 문제를 수정한다. 같은 mutation transaction에서 status=UNAVAILABLE, sourceVersion/sourceUrl=null로 전환하고 재승인을 요구한다.
+- P1 persistence layering: Country Calendar SQL을 \`src/server/repositories/country-calendar-repository-core.ts\`로 이동하고 Service는 Repository만 호출한다.
+- P2 file selection race: \`File.text()\` generation token으로 가장 최근 선택만 envelope에 반영한다.
+- 관련 Unit/E2E와 ARCHITECTURE/API/PROJECT_UX/TEST_PLAN/CHANGELOG/release note를 동기화한다.
+- 이 rework로 #1964 PASS는 stale이며 새 exact head에서 full PR gate와 Codex review를 다시 받아야 한다.
+
 ## 검증
 
 - Catalog parser/service/CRUD/atomic import/stale revision/WORKING 보존 Unit.

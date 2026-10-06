@@ -231,3 +231,10 @@ Project Master Admin session
 ```
 
 DB override가 존재하면 resolver가 built-in보다 우선한다. 관리자 API는 기존 `Route Handler → Service → SQLite` 경계와 Project Master admin session/Origin/If-Match를 재사용하며 런타임 외부 Holiday API를 호출하지 않는다. Catalog와 Project snapshot은 lifecycle이 분리되어 Catalog mutation 자체는 기존 Project Task/Calendar를 변경하지 않는다. Milestone Stage Gate와 JSON 1.1의 membership canonical model은 최신 main 계약을 그대로 유지한다.
+
+### Issue #342 Country Calendar Repository boundary
+
+Country Calendar persistence는 공통 계층 규칙인 \`Route Handler → Service → Repository → SQLite\`를 따른다. \`CountryCalendarCatalogService\`는 validation, revision/transaction orchestration, built-in + override resolution을 담당하고 실제 SQL prepare/run은 \`CountryCalendarRepository\`가 소유한다. Service가 직접 SQLite statement를 만들지 않는다.
+
+수동 날짜 Add/Edit/Delete는 기존 OFFICIAL provenance와 데이터 내용의 정합성이 깨지는 변경이므로 같은 transaction에서 dataset을 \`UNAVAILABLE\`로 내리고 \`sourceVersion/sourceUrl\`을 비운다. 운영자가 공식 source를 다시 검증해 metadata를 OFFICIAL로 저장하기 전에는 Scheduling resolver가 해당 override를 사용하지 않는다.
+
