@@ -147,3 +147,11 @@ main 통합 최소LFF는 qa_docs의 migration-cli3/3 PASS(751ms/chunka6a71a), fr
 - Core selection mirror를 제거했는데도 trace에서 app-owned selection 뒤 table scrollTop 147→124가 동일하게 발생했다. 따라서 #1937 가설을 폐기하고 Core mirror는 복원한다.
 - Context Menu open 시 selection/virtual-row layout 내부 scroll을 bounded two-frame settling 구간에서 baseline으로 흡수하고, settle 종료 후 현재 canonical task element 위치에서 실제 scroll guard를 arm한다. 임의 timeout은 사용하지 않으며 이후 사용자 scroll 닫힘은 유지한다.
 - 기존 #407/#418 selection assertion과 전용 scroll E2E를 유지하고 새 exact-head 전체 PR CI를 시작한다. candidate version은 `0.91.0` 유지.
+
+
+## PR CI #1941 REWORK
+
+- head `703807d600c1499092b0144732669fbe54465ca6` / Run #1941.1(`37431883032`)에서 기존 #407/#418 Context Menu 회귀는 사라졌다.
+- shard 6의 새 실패는 Chart bar menu가 opening settle 재캡처에서 같은 taskId의 Grid row로 surface가 바뀌어 이후 실제 Chart scroll을 감지하지 못한 것이다. connected trigger 우선, 교체 시 원래 surface 보존 fallback으로 수정한다.
+- shard 1의 dashboard cache/abort 실패는 cached query 복귀가 network I/O 없이도 microtask 뒤에서 ready 처리돼 CI 부하에서 loading이 남은 경계다. valid cache는 effect 진입 즉시 ready로 복원하고 fetch만 async로 유지한다.
+- latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` / `0.90.1`을 통합하고 candidate `0.91.0` 유지. 새 exact-head 전체 PR CI를 시작한다.

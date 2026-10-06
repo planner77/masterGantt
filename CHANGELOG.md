@@ -10,12 +10,21 @@
 ### Fixed
 
 - PR CI Run #1869에서 발견된 CSS Module의 전역-only selector를 전역 스타일 소유 위치로 이동해 Next.js production build와 Docker build의 동일 연쇄 실패를 제거한다. 최신 main의 #461/#462 회귀 보완은 유지하고 #463 변경만 재적용한다.
-- PR CI Run #1938 trace에서 Core selection mirror 제거 후에도 Context Menu opening selection/virtual-row layout이 내부 Grid scrollTop을 147→124로 보정하는 것을 확인했다. Core mirror를 복원하고, 메뉴 scroll guard가 bounded two animation frames 동안 opening-layout 내부 이동을 새 baseline으로 흡수한 뒤 실제 사용자 scroll을 닫힘 신호로 처리하도록 보완한다.
+- PR CI Run #1941에서 opening-settle이 기존 #407/#418 회귀를 해소한 뒤, Chart bar menu의 baseline 재캡처가 Grid row로 surface를 바꾸는 새 회귀를 확인했다. 연결된 원래 trigger 또는 원래 grid/chart surface를 보존한 fallback을 사용해 실제 Chart scroll 닫힘 계약을 유지한다.
+- slow query abort 후 직전 cached query로 복귀할 때 cache hit를 effect 진입 즉시 ready로 복원하여 불필요한 loading 잔류를 제거한다. 실제 network fetch·TTL focus catch-up·revision/catalog 검증은 유지한다.
 
 ### Changed
 
 - Logistics M/M의 무조건 20일 환산을 명시 query·유효 환경 설정·미설정(null) 정책으로 정합화하고 사용 기준·출처를 제공한다. 기존 물류 계획 M/D·진척·대상 ID는 보존한다.
 - Application version을 `0.90.0`에서 `0.91.0`으로 증가한다. latest main의 #453 및 선행 #460~#462를 보존한 재정렬 PR이며 정식 릴리스는 게시하지 않는다.
+
+## [0.90.1] - 2026-10-06
+
+### Fixed
+
+- Issue #454: 물류 설비·시스템 유형 목록의 열 너비·행 밀도·사용 건수 정렬과 편집 dialog action 정렬을 정돈한다. 기존 유형 code·usage·필터·권한·revision 계약을 유지한다.
+- 최소824px 표의 이름·코드·상태·사용·작업 열을 명시하고 좁은 화면의 키보드 focus에 필요한 가로 이동을 표 내부에서 처리한다. 짧은 한 줄 fixture는5폭에서47px이며 긴 값은 자연스럽게 줄바꿈한다.
+- 수정·비밀번호 dialog의 pending 조작과 초점을 보호하고, 412 뒤 최신 목록 조회 실패/401 원인을 유지하며 열린 수정 초안의 명시 조회 복구를 제공한다.
 
 ## [0.90.0] - 2026-10-06
 

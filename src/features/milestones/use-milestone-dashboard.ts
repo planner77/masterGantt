@@ -32,10 +32,18 @@ export function useMilestoneDashboard(publicId: string, revision: number, input:
     const automatic = !expected.asOfDate;
     const validCache = !force.current && cached && Date.now() - cached.confirmedAt < CACHE_MAX_AGE && cached.data.catalogRevision === minimumCatalog && (!automatic || cached.data.asOfDate === projectDateAt(cached.data.timezone));
     force.current = false;
+    if (validCache) {
+      // Returning to a confirmed query must not remain in the loading state
+      // while an obsolete request is being aborted. A cache hit performs no
+      // I/O, so restore ready synchronously in this effect and reserve the
+      // async path for actual network reads.
+      inFlight.current = false;
+      setOutcome({ key, status: "ready", data: cached.data });
+      return () => { controller.abort(); if (generation.current === id) inFlight.current = false; };
+    }
     void (async () => {
       await Promise.resolve();
       if (controller.signal.aborted) return;
-      if (validCache) { inFlight.current = false; setOutcome({ key, status: "ready", data: cached.data }); return; }
       lastAttempt.current = Date.now();
       inFlight.current = true;
       setOutcome((previous) => ({ key, status: "loading", data: previous.data?.projectPublicId === publicId ? previous.data : null }));
