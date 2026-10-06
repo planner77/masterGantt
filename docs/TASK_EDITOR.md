@@ -26,7 +26,7 @@ Edit/Delete/Cut/Move는 메뉴 또는 실제 focus target 하나다. 여러 선�
 
 프로젝트 Grid의 작업 행 또는 Chart의 작업 막대를 우클릭하면 해당 작업의 **작업 메뉴**를 먼저 연다. 메뉴의 **작업 정보**를 선택해야 기존 작업 정보 대화상자가 열린다. 메뉴를 여는 것만으로 대화상자·저장·삭제가 실행되지 않는다. 선택된 행이나 작업명이 아니라 실제 taskId로 찾는다. Tab으로 작업 행/막대에 포커스를 옮긴 뒤 Shift+F10 또는 ContextMenu 키로 메뉴를 열고, 작업 정보 항목에서 Enter로 진입할 수 있다. Escape는 메뉴를 닫는다. Grid 헤더의 우클릭/Shift+F10은 기존 표시 열 메뉴를 유지하며 두 메뉴는 동시에 표시하지 않는다. 빈 Chart, 링크, 시간축과 입력 상자에는 작업 우클릭 처리를 적용하지 않는다.
 
-일반 작업은 작업명·요청 시작일·기간(근무일)·요청 종료일과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 요청 종료일은 별도 저장 필드가 아니라 현재 Project Effective Calendar로 `requestedStart + duration`에서 도출하는 편집 초안이다. 사용자가 기간을 바꾸면 요청 종료일을 계산하고, 요청 종료일을 바꾸면 기간을 역산한다. 마지막 명시 입력이 기간인지 종료일인지 기억해 요청 시작일 변경 시 반대 필드를 재계산한다. 서버 확정 시작/종료일은 별도 secondary 정보로 표시하며 저장 시 서버가 최신 휴일/주말·WORKING/NON_WORKING 예외, 일정 모드와 Dependency를 다시 적용한다. 마일스톤 기간은 0이며 요청 종료일 양방향 편집을 적용하지 않는다. 요약 작업은 #461에서 이름·하위 작업 기본 완료 단계만 편집하고 일정·진척·Baseline은 읽기 전용이다. 편집 권한이 없으면 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 관계 endpoint인 leaf도 아래 #258 계약에 따라 편집한다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
+일반 작업은 작업명·요청 시작일·기간(근무일)·요청 종료일과 0~100% 진행률 Slider, 여러 줄 Description, `http://`/`https://` URL을 입력하고 **저장**한다. 요청 종료일은 별도 저장 필드가 아니라 현재 Project Effective Calendar로 `requestedStart + duration`에서 도출하는 편집 초안이다. 사용자가 기간을 바꾸면 요청 종료일을 계산하고, 요청 종료일을 바꾸면 기간을 역산한다. 마지막 명시 입력이 기간인지 종료일인지 기억해 요청 시작일 변경 시 반대 필드를 재계산한다. 서버 확정 시작/종료일은 별도 secondary 정보로 표시하며 저장 시 서버가 최신 휴일/주말·WORKING/NON_WORKING 예외, 일정 모드와 Dependency를 다시 적용한다. 마일스톤 기간은 0이며 요청 종료일 양방향 편집을 적용하지 않는다. 요약 작업은 #493부터 이름·Description·URL·하위 작업 기본 완료 단계를 편집하고 일정·진척·Baseline은 계속 읽기 전용이다. 편집 권한이 없으면 같은 정보창에 읽기 전용 사유를 표시하고 저장을 제공하지 않는다. 관계 endpoint인 leaf도 아래 #258 계약에 따라 편집한다. 작업 삭제는 #31의 별도 보호 흐름으로 제공한다. 작업 유형 변경, 관계/담당자 편집과 PRO 기능은 범위 밖이다.
 
 취소/닫기/Escape는 미저장 변경이 있으면 먼저 버리기 확인을 요구한다. 편집기 하나가 열려 있는 동안 다른 작업으로 초안을 조용히 전환하지 않는다. 메뉴의 Escape는 원래 호출 대상으로 포커스를 복구한다. 편집기 종료 시 연결된 원래 대상이 없으면 해당 taskId의 현재 행이나 작업공간을 사용한다. 포커스 복구에는 preventScroll을 사용한다.
 
@@ -47,7 +47,7 @@ Edit/Delete/Cut/Move는 메뉴 또는 실제 focus target 하나다. 여러 선�
 
 - 메뉴의 작업 정보 선택은 공개 SVAR `show-editor` action을 실행하고 `api.intercept`로 프로젝트 편집기에 연결한다. 기존 double-click/native show-editor 경로를 메뉴 클릭으로 대체하지 않는다. 초기화/해제 tag는 `project-task-editor`이며 native add/update 동기화 가드는 변경하지 않는다.
 - `task-context-target.ts`만 SVAR의 행/막대 DOM 속성을 해석한다. `data-id` / `data-task-id`의 문자열 ID 접두사를 해석한 뒤 UUID와 현재 canonical task 목록 양쪽을 확인한다. 이름·선택·정렬 순번으로 fallback하지 않는다.
-- `task-editor-model.ts`는 DTO와 해당 Project Calendar를 초안으로 복사하고 변경된 name/start/duration/progress/status/description/url/baseline/explicitMilestoneTaskId만 command로 만든다. Summary command는 name과 explicitMilestoneTaskId만 허용한다. 일반 Task의 `requestedEnd`는 UI-only 파생값이며 command whitelist에 포함하지 않는다. 시작일은 date-only 문자열이고 duration은 직접 입력·역산한 근무일이다. 기간 기준이면 `endFromStart`, 종료일 기준이면 `workingDaysBetween`을 기존 pure Scheduling Domain과 동일한 Effective Calendar로 사용한다. Auto 비근무 요청 시작일은 preview에서도 다음 근무일로 정규화하지만 서버가 최종 authority이며, Manual 비근무 시작일과 비근무 요청 종료일은 필드 오류로 저장을 막는다. Pointer resize의 달력 span 변환기를 통과시키지 않는다. name/progress-only PATCH는 start를 포함하지 않으므로 requestedStart를 보존한다.
+- `task-editor-model.ts`는 DTO와 해당 Project Calendar를 초안으로 복사하고 변경된 name/start/duration/progress/status/description/url/baseline/explicitMilestoneTaskId만 command로 만든다. Summary command는 name, description, url, explicitMilestoneTaskId만 허용하며 일정·진척·Baseline 필드는 계속 제외한다. 일반 Task의 `requestedEnd`는 UI-only 파생값이며 command whitelist에 포함하지 않는다. 시작일은 date-only 문자열이고 duration은 직접 입력·역산한 근무일이다. 기간 기준이면 `endFromStart`, 종료일 기준이면 `workingDaysBetween`을 기존 pure Scheduling Domain과 동일한 Effective Calendar로 사용한다. Auto 비근무 요청 시작일은 preview에서도 다음 근무일로 정규화하지만 서버가 최종 authority이며, Manual 비근무 시작일과 비근무 요청 종료일은 필드 오류로 저장을 막는다. Pointer resize의 달력 span 변환기를 통과시키지 않는다. name/progress-only PATCH는 start를 포함하지 않으므로 requestedStart를 보존한다.
 - 기존 `ProjectReadonlyView.saveTask`가 credentials:same-origin, Content-Type과 If-Match를 포함해 동일 PATCH API를 호출한다. 편집기를 열었을 때의 revision을 명시적으로 전달한다. 서버 session/Origin/revision/스케줄러 계약을 유지하며, Issue #36의 Description/URL은 동일 PATCH 경로와 SQLite migration/canonical snapshot 계약으로 저장한다.
 - 편집기 ref mutex와 기존 aggregate mutation mutex로 연속 클릭/Enter 중복 요청을 차단한다. 저장 중 입력/닫기를 막고, 성공한 canonical 응답만 Gantt와 열린 Editor base에 반영한다. 일반 저장은 닫고 Milestone의 명시 상태 변경은 Editor를 유지해 완료·재개 결과를 확인한다. 정상 처리에서는 문서 reload, loading 화면이나 Gantt key 변경이 없다.
 - Editor의 400/409/422/5xx/network 오류는 입력을 보존하며 자동 재조회·재전송하지 않는다. 사용자가 최신 정보 조회와 재시도를 명시한다. Grid/native mutation의 기존 canonical recovery는 유지한다. 검증 오류를 수정하거나 사용자가 명시적으로 재시도할 수 있다.
@@ -257,7 +257,6 @@ Chart 수직 DnD는 일정 PATCH가 아닌 hierarchy mutation이며 vertical ges
 - assignment PUT은 Resource에 `role`을 전송하지 않는다. 호환용 null은 허용할 수 있으나 non-null Task별 역할 입력은 거부한다.
 - allocation draft, dirty/stale/pending, Project/Catalog revision, inactive 대상, 401/412 복구 계약은 그대로 유지한다.
 - Group pane은 기존 담당 팀 참조 의미를 유지한다.
-
 ## Issue #461 완료 단계 소속 Editor
 
 Task의 작업 정보에는 단일 `완료 단계`, Summary에는 `하위 작업 기본 완료 단계` combobox를 둔다. 이름·externalId·canonical taskId를 trim/case-insensitive 검색하며 동일 이름 후보는 외부 ID/작업 ID·날짜·상태로 식별한다. 직접 지정·가장 가까운 Summary 상속·미지정을 구분한다. 직접 지정 해제는 null을 전송하여 상속으로 복귀하며 차단 sentinel은 없다. 해제 초안의 설명과 상속 출처 열기는 같은 preview membership을 사용한다. 이름과 소속은 기본 저장 한 PATCH에 담는다.
@@ -306,3 +305,9 @@ Footer는 Reload 왼쪽, Cancel/Commit 오른쪽을 유지하되 모든 action�
 동일 WBS 표시 ID 집합의 필터 재적용을 생략하고, metadata-only canonical 응답으로 생기는 viewport zero reset은 실제 visible ID 집합과 일정/계층/Link가 같은 경우에만 동일 queue의 columns 완료 후 공개 scroll-chart로 복원한다. 실제 일정·scope·필터·scale·열 변경과 Chart 사용자 입력은 이전 위치로 덮지 않는다. 상세 guard는 PROJECT_UX의 #456 항목을 따른다.
 
 검증 범위는 TEST_PLAN의 #456 실행 기록을 따른다. B 설정·근무 규칙·인증은 #490, C 생성·복사·template·Import/Export·견적은 #491 후속이며 이 구현의 제품 검증으로 간주하지 않는다.
+
+## Issue #493 — Summary Description/URL 편집
+
+Summary의 Description과 URL은 자손 일정에서 파생되는 값이 아니라 Summary 자체가 소유하는 비일정 메타데이터다. 따라서 편집 권한이 있는 Task Editor에서는 일반 Task와 같은 입력·정규화·검증을 사용한다. Description은 10,000 Unicode code point 이하이며 공백-only는 null, URL은 trim 후 4,096 code point 이하의 HTTP(S)만 허용한다.
+
+Summary의 요청 시작일·기간·일정 모드·진행률·상태·Baseline은 기존 파생/읽기 전용 계약을 유지한다. Description/URL 변경은 이 필드를 payload에 넣지 않으며, 하위 Task 추가·삭제·이동 또는 Summary 재계산이 저장된 Description/URL을 초기화하지 않는다. readonly, 다른 편집 단위의 dirty/pending, stale revision, 저장 중 잠금과 focus/Escape/초안 보호는 기존 Task Editor 규칙을 그대로 따른다.

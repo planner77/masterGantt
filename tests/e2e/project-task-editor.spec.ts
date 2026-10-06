@@ -252,6 +252,8 @@ test.describe("Issue #4/#22 작업 메뉴와 보호된 편집기", () => {
     await expect(save(page)).toHaveCount(1);
     await expect(editor(page).getByLabel("작업명", { exact: true })).not.toHaveAttribute("readonly", "");
     await expect(editor(page).getByLabel("요청 시작일", { exact: true })).toHaveAttribute("readonly", "");
+    await expect(editor(page).getByLabel("Description", { exact: true })).not.toHaveAttribute("readonly", "");
+    await expect(editor(page).getByLabel("URL", { exact: true })).not.toHaveAttribute("readonly", "");
     await expect(editor(page).getByText("하위 작업 기본 완료 단계", { exact: true })).toBeVisible();
     await cancel(page);
     await header.click({ button: "right" });

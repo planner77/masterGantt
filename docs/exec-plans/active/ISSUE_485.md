@@ -2,7 +2,7 @@
 
 - 기준: Issue #485, `AGENTS.md`, `DESIGN.md`, `docs/ISSUE_LIFECYCLE.md`, `docs/CI_CD.md`, `docs/REMOTE_VALIDATION.md`
 - branch: `feat/issue-485-global-role-source-of-truth`
-- version: `0.93.0` (MINOR), `release_required=true`, `release_authorized=false`
+- version: `0.94.0` (MINOR), `release_required=true`, `release_authorized=true`
 - PR: #499
 - 종료점: PR 생성 및 exact-head PR CI 시작 확인. CI 완료/병합/release는 범위 밖.
 
@@ -26,3 +26,8 @@
 - 관련 Vitest/E2E fixture를 #485 의미로 갱신한다.
 - 공식 판정은 PR exact-head GitHub Actions `quality`, `e2e`, `docker`다.
 - 이 작업의 사용자 요청 종료점에서는 CI가 시작됐는지만 확인하고 결과는 `RUNNING / NOT TESTED`로 남긴다.
+
+## Release authorization update — 2026-10-07
+
+- latest main #493가 `0.93.0`을 이미 사용하므로 #485는 독립 MINOR `0.94.0`으로 승격한다.
+- 사용자가 GHCR 게시를 포함한 Release Finalizer 실행을 명시적으로 승인했다. Issue comment의 version-scoped authorization marker를 authority로 사용한다.

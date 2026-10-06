@@ -1019,3 +1019,9 @@ metadata-only viewport 보존은 전후 semantic visibleTaskFilterKey(null/정�
 canonical sync에서 public scroll 좌표를 기록하고 기존 columns queue의 layout settle 뒤 ensureTimelineEnd를 다시 확인한다. 같은 API, 실제 연결된 Gantt DOM, 동일한 현재 semantic filter signature, visible 상태, continuity key, 최신 sync version, scale, public gridWidth와 열 ID/width/hidden 의미가 유지되고 Chart/Grid pointer·wheel·keyboard 입력이 없을 때만 실제 0으로 reset된 축을 공개 scroll-chart로 한 번 복원한다. 91px처럼 0이 아닌 clamp를 임의 복원하지 않는다. scope/filter/date 이동이나 사용자 scale·열 변경을 이전 viewport로 덮지 않는다. 새 sync·stale request·catch·queue 완료(후속 columns 미실행 포함)·unmount에서 snapshot/input listener를 정리한다. unmount는 listener 제거와 함께 request ref를 null로 무효화하고, 뒤늦은 queue 실행은 연결된 root가 있을 때만 snapshot을 생성한다.
 
 설치 SVAR Core 2.7.3의 공개 getState scrollLeft/scrollTop(pixel), scroll-chart(left/top), set-columns(columns)를 사용한다. Core/PRO 내부 구현을 복제하거나 새로운 controller/API를 도입하지 않는다. 반복 filter action 제거와 canonical/columns 뒤 복원은 실제 #456 브라우저 관찰을 위한 앱 보강이며 SVAR가 일반적으로 viewport 보존을 보장한다는 뜻은 아니다.
+
+## Issue #493 — Summary 메타데이터 편집
+
+작업 정보에서 Summary도 Description과 URL을 일반 Task와 같은 위치·컴포넌트로 편집한다. Summary라는 이유만으로 두 입력을 숨기거나 readOnly로 만들지 않으며, 프로젝트 readonly·저장 중·다른 편집 단위의 미저장 초안 등 기존 mutation 잠금은 동일하게 적용한다.
+
+Summary의 일정·진척·상태·Baseline은 자손 기반 파생값이므로 기존 readOnly 표현을 유지한다. Description/URL 저장은 동일 PATCH와 canonical snapshot 갱신을 사용하며 Gantt remount, reload, selection/scroll/scale 초기화를 유발하지 않는다.

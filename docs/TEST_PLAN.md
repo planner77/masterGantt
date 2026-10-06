@@ -1994,3 +1994,22 @@ filter의 설치 handler가 직접 scroll0/timeline 축소를 수행한다고 �
 최종 source 직접8 unique scenario PASS, 나머지19 unique는 기존19/10/9 실행에서 필터 signature guard 추가의 영향 근거로 재사용하여27 unique다. 최종 계열19+10+9+5+1+8=52 PASS 실행/중복25회, 전체 after102 PASS/19 FAIL testcase 실행이다. 이전 source SHA/실행 결과는 과거 단계 근거로 그대로 남기고 최종 hash로 소급 바꾸지 않았다.
 
 Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manager의 독립 검토·infra 원격 게시/exact-head CI 등록 후 상태를 별도로 기록한다. CI 모니터링·merge/main GHCR/release는 사용자 이번 범위 밖이다. B #490/C #491은 FOLLOW-UP/NOT TESTED다.
+
+## Issue #493 — Summary Task Description/URL 편집
+
+- `tests/features/gantt/task-editor-model.test.ts`는 Summary command가 name/Description/URL/명시 완료 단계 소속만 포함하고 schedule/progress/Baseline 변경을 누락하는지, Description 길이와 URL scheme을 일반 Task와 같은 규칙으로 검증한다.
+- `tests/domain/milestone-editor-model.test.ts`는 Summary 메타데이터와 완료 단계 소속을 한 command로 결합하면서 잘못된 일정 초안이 payload로 새지 않는지 확인한다.
+- `tests/server/projects/summary-task-details.test.ts`는 실제 SQLite의 `TaskFieldProjectService`에서 Summary Description/URL 저장·canonical 재조회, child 추가/삭제에 따른 일정 재계산 뒤 메타데이터 보존, schedule readonly 거부와 revision 불변을 검증한다.
+- `tests/e2e/project-task-editor.spec.ts`는 편집 가능한 Summary에서 Description/URL은 readOnly가 아니고 요청 시작일은 계속 readOnly인지 확인한다.
+- `tests/e2e/project-task-editor-persistence.spec.ts`는 실제 브라우저+SQLite에서 Summary Description/URL PATCH 1회, 파생 일정 불변, 마지막 child 삭제 후 빈 Summary의 null 일정과 메타데이터 보존, reload 후 재표시를 검증한다. reload 후 값 검증은 실패 artifact에서 확인된 실제 접근성 tree의 `textbox` role을 사용한다.
+- readonly/stale/pending/focus/Escape/Gantt instance 보존은 기존 Task Editor 회귀를 함께 사용한다. 전체 공식 회귀 판정은 동일 PR head의 `quality`, `e2e`, `docker` GitHub Actions로 한다.
+
+
+## Issue #456 — Main CI #1993.1 dependency audit corrective
+
+- PR #500 merge SHA `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 Main CI Run `37524404994` / #1993.1은 build, typecheck, lint, Vitest, Chromium E2E 6/6, Docker smoke가 SUCCESS였고 production dependency audit만 FAIL했다.
+- 실패 원인은 `sharp 0.35.4`의 GHSA-wq5f-xc86-pv6w / CVE-2026-96889 (High)이며 audit gate는 완화하지 않는다.
+- 최초 corrective PR #504 head `bc90e12e3dfc1eee8f1f1d4afdccb7964fb87acc`의 PR CI #2014.1에서 dependency audit를 포함한 quality, E2E 6/6, Docker가 SUCCESS했다.
+- 그 사이 Issue #493가 병합된 latest main `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7` / application 0.93.0이 동일 advisory 대응으로 `sharp 0.35.5`, `@img/sharp-libvips-* 1.3.4`를 이미 포함하므로 lockfile을 되돌리거나 중복 패치하지 않는다.
+- #456 corrective는 latest main을 기준으로 재정렬해 `tests/scripts/test-config-layout.test.ts`의 `sharp >= 0.35.5`, 모든 `@img/sharp-libvips-* >= 1.3.4` 정적 회귀와 이 추적 기록을 유지한다. 실제 advisory authority는 계속 PR/Main/Release의 `npm audit --omit=dev`다.
+- 재정렬 후 새 exact-head PR CI SUCCESS → merge → 새 Main CI 시작을 본 요청의 완료 기준으로 사용한다.
