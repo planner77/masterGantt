@@ -255,3 +255,11 @@ B 설정·근무 규칙·인증은 [#490](https://github.com/planner77/masterGan
 #456 실제before71개와 독립UIUX를 근거로 진행률 숫자 clipping, 일정+mode group, footer폭, relation/baseline32→44px을 FIX로 승인했다. Description읽기폭·기존탭/저장단위는 유지한다. 구현/LFF/최종문서·독립PRE_QA는 진행 중이며 원격CI/ACCEPT는 NOT TESTED다.
 
 #456 A 구현·관련 Local Fast Feedback는 PASS이며 최종 source3에서8/8,재사용 포함27 unique/최종계열52 PASS 실행을 구분했다. before71/after86을 동결하고 문서7개 및 항목별N/A를 동기화한다. 실제 visible 집합이바뀌는metadata는스크롤복원에서제외하고 same집합metadata의120/38보존을검증했다. 다음은 같은171파일 후보의 독립UIX/PRE_QA,게시동등성,PR과CI등록이다. 공식quality/e2e/docker·최종ACCEPT는NOT TESTED이며#490/#491은후속으로남긴다.
+
+## Issue #457 — 전 화면 회귀 체계 확장
+
+선행 #456 PR #500의 exact head에서 stacked branch를 만들어 공통 측정 helper/대표 E2E/전체 coverage 표와 문서를 보강한다. [Work Packet](ISSUE_457.md)에 기준 SHA·역할·증거·검증 경계를 기록한다. version0.92.1 유지, tests/docs only, 공식 CI와 최종 ACCEPT는 NOT TESTED다. 현재 구현·독립 검토를 진행하며 요청 범위는 원격 PR과 exact-head CI 등록까지다. B #490/C #491 및 실제 배포/환경별 검증은 후속으로 유지하고 Epic #449를 종료하지 않는다.
+
+#457의 실제 React error boundary·native125%·수동 UX·운영 source/version 미실행은 [#502](https://github.com/planner77/masterGantt/issues/502) FOLLOW-UP / NOT TESTED로 추적한다. 이번 PR은 해당 후속이나 B #490/C #491를 자동 구현하지 않는다.
+
+#457 게시 준비 중 선행 PR #500 병합을 확인했다. 최신 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 tree가 기존 측정 source와 정확히 같아 제품 검증을 재사용하며 최종 PR base는 main으로 갱신한다. 착수 당시 stacked 계획과 원래 capture source SHA는 역사 기록으로 보존한다. 독립 QA에서 확인한 목록 실측1280×720·Asia/Seoul 요약 정정 후 새 후보 검토로 진행한다.

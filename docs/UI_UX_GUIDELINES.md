@@ -234,3 +234,17 @@ Copy feedback 보존 보강 후 같은 좁은 Chromium 4개를 다시 실행해 
 - Gantt 보존은 실제 public/DOM scroll, 존재하는 header 열 폭, 선택/tree/scale/scope/fullscreen과 instance를 함께 비교한다. 빈 배열이나 instance identity만 비교한 결과를 전체 상태 보존 PASS로 사용하지 않는다. 실제 날짜/filter/scope 이동은 이전 viewport로 덮지 않아야 한다. active name/status filter에서 metadata 저장으로 실제 표시 ID 집합이 바뀌는 경우도 확인한다. raw query가 같은 것만으로 동일 필터 상태라고 판정하지 않는다.
 
 #456의 390/768/1024/1440/1920px before/after와 대표 상태 evidence는 TEST_PLAN에 기록한다. B #490 및 C #491은 별도 후속/NOT TESTED이며 이 항목을 통해 인수하지 않는다. SVAR 자료 확인일은 2026-10-06, 설치 Core는 2.7.3이다. 공식 문서 확인과 실제 브라우저 조작 증거는 구분한다.
+
+## Issue #457 공통 관측과 coverage 계약
+
+[전 화면 coverage](ISSUE_457_UI_UX_COVERAGE.md)는 각 표면의 route/entry·fixture·child Issue/PR·실제 viewport/state·source/test/env provenance·artifact·판정·남은 이유를 함께 기록한다. 전체 행의 대표 PASS를 해당 화면 모든 상태 PASS로 확대하지 않는다. 이전 source의 before/after와 현재 actual browser를 구분하고 동일 product/CSS 변경0은 KEEP로 판정한다. 일반 회귀 실행은 tracked evidence를 덮어쓰지 않아야 하며, 증거 게시 경로는 명시적으로 opt-in한다. KEEP/REGRESSION 같은 판정은 명시적 source baseline과 비교할 때만 계산하고 baseline 없는 관측은 중립 상태로 기록한다.
+
+공통 observer는 표시 control의 경계/배경/padding/font/높이, 실제 label/description, native focus-visible/outline와 clipping owner, error/disabled 상태를 관찰한다. populated row/header/control의 최소수를 명시하며 empty colspan·숨은 text·0rect·inert/비활성 panel을 제외한다. 형제 control만 비중첩 검사하고 parent-child를 같은 층으로 비교하지 않는다. Cell text 침범과 의도된 ellipsis/clip은 구분하며 document overflow는 clientWidth+1, table/Gantt 내부 scroll은 별도 소유자로 측정한다. viewport와 owner에 실제 교차하는 row 수와 usable budget을 수집하며 가상 DOM 수를 전체 Task 수로 부르지 않는다.
+
+비교 환경을 먼저 맞춘다. #457 cross-admin은 같은390/768/1024/1440/1920px·높이900·ko-KR/Asia-Seoul/default100%를 사용한다. 설명 줄 수의 정상 높이 차이를 공통 shell 실패로 판정하지 않는다. Native125가 실행 불가능하면 NOT TESTED로 남기고 DPR를 zoom으로 대체하지 않는다. 관찰용 scroll 준비는 keyboard 접근 증거와 분리하며 마지막 action은 native Tab로 owner 안에 보이는 실제 focus outline을 확인한다. 기존40px admin/44px Task Editor/nested Relation 자체33.5px 예외를 보존한다.
+
+실제 browser·E2E·source-only·분리 CSS 실험·원격 CI·독립 ui_ux/QA 결과는 각각 기록한다. 실행별 HTML/trace/JSON 원본을 다음 실행 전에 분리 보존하고 후기 hash를 이전 capture에 소급하지 않는다. #452 first PR에는 지역 observer만 있었으며 재사용 helper를 당시부터 존재한 것으로 쓰지 않는다. B#490/C#491 및 React boundary·실제 배포·native125의 미검증은 coverage에서 후속으로 추적하며 사진/문서만으로 Epic 완료를 선언하지 않는다.
+
+환경별 미검증은 [Follow-up #502](https://github.com/planner77/masterGantt/issues/502)에서 실제 React error boundary/native125/실기기·screen reader·최종 수동 UX/배포 source·version을 FOLLOW-UP/NOT TESTED로 추적한다. frontend·ui_ux·qa_docs가 환경별 증거를 작성/비교/독립 확인하고 Manager가 환경 제공과 수용 범위를 판단한다. B#490/C#491 제품 개선과 별개이며 현재 scope에서 자동 실행하지 않는다.
+
+#457 독립 검토의 provenance 정정: 목록 `list-populated-1440`/`list-no-result-1440` key는 별칭이며 실제 JSON/PNG는1280×720이다. Current62 JSON은 ko-KR/Asia-Seoul/높이900/DPR1 49개, en-US/Asia-Seoul/높이900/DPR1 11개, en-US/Asia-Seoul/높이720/DPR1 목록2개다. 정상 Master auth는 기존 autofocus 때문에 focused/focusVisible=true이므로 normal을 비포커스 baseline으로 해석하지 않는다. 과거capture/test/source hash와141개raw PNG/JSON은 그대로 유지한다. 착수 시 stacked 계획과 달리 parent PR#500 외부 병합 후 최종 base는 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`/0.92.1이며 tree `6a322cc119ed5b0a435f3b1ff20fe5826035ed66`이 원래 capture source b397eedf35d50befb4ae17e623036f0a8d77f556과 정확히 같아 LFF를 재사용한다. 실제 운영 배포는 #502 NOT TESTED다.

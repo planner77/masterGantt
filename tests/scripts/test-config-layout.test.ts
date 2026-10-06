@@ -134,6 +134,14 @@ describe("test configuration repository layout", () => {
     }
   });
 
+  it("keeps Issue #457 evidence publication opt-in and source-baseline-aware", () => {
+    const geometry = text("tests/e2e/helpers/ui-geometry.ts");
+    expect(geometry).toContain("process.env.ISSUE_457_EVIDENCE_DIR?.trim()");
+    expect(geometry).toContain('testInfo.outputPath("issue-457-evidence")');
+    expect(geometry).toContain("ISSUE_457_BASELINE_SOURCE_AGGREGATE_SHA256");
+    expect(geometry).not.toContain("KEEP: unchanged product source; new regression observation");
+  });
+
   it("guards Release static metrics after earlier gate failures and keeps source-map-js patched", () => {
     const release = text(".github/workflows/release-image.yml");
     const lock = JSON.parse(text("package-lock.json"));

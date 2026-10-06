@@ -1,5 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+import { captureUi } from "./helpers/ui-geometry";
+
 const templates = [
   {
     id: "template-alpha",
@@ -55,8 +57,8 @@ function sameRow(a: { y: number }, b: { y: number }, tolerance = 3) {
   return Math.abs(a.y - b.y) <= tolerance;
 }
 
-for (const width of [320, 390, 768, 1024, 1440, 1600]) {
-  test(`Issue #282: 프로젝트 생성 화면이 ${width}px에서 wide/reflow 계약을 지킨다`, async ({ page }) => {
+for (const width of [320, 390, 768, 1024, 1440, 1600, 1920]) {
+  test(`Issue #282: 프로젝트 생성 화면이 ${width}px에서 wide/reflow 계약을 지킨다`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     await installTemplates(page);
     await installProjectMasterCatalog(page);
@@ -123,6 +125,7 @@ for (const width of [320, 390, 768, 1024, 1440, 1600]) {
       expect(blankDescription.width).toBeGreaterThan(blankPassword.width * 2);
     }
 
+    await captureUi(page, testInfo, `create-blank-${width}`);
     await page.getByRole("tab", { name: "템플릿에서 만들기", exact: true }).click();
     const templateForm = page.locator("#panel-template .template-instantiate-container > form.project-form");
     await expect(templateForm).toBeVisible();
@@ -144,5 +147,6 @@ for (const width of [320, 390, 768, 1024, 1440, 1600]) {
     }
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+    await captureUi(page, testInfo, `create-template-${width}`);
   });
 }
