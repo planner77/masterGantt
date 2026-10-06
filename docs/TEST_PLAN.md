@@ -1548,3 +1548,11 @@ PR CI Run #1873.1도 Chromium shard 4/6의 같은 기존 Summary 회귀 1건만 
 - helper는 inherited `http.https://github.com/.extraheader`를 빈 값으로 reset한 뒤 job-scoped Authorization header 하나를 command-scope Git config로 넣어야 한다.
 - 회귀 검증은 process-scoped config count/order, empty reset header, 단일 auth header, command argument token 비노출, lifecycle tag read/fetch/push와 automatic finalizer tag evidence read/fetch가 모두 authenticated helper를 경유하는지, mutation workflow의 non-persistent checkout을 확인한다.
 - 기존 immutable tag가 생성되기 전에 push가 실패했으므로 v0.86.0 tag/release 중복 evidence를 만들지 않아야 한다. corrective merge 후 Generic Finalizer가 backlog를 재계산해 #461 release_start를 재시도한다.
+
+## Issue #461 v0.86.0 GHCR Release static quality corrective
+
+- Release Run #136.1 (`37412901512`)은 SemVer 검증과 Chromium E2E 6/6, Vitest 126 files / 1177 tests를 PASS했으나 `Release static quality`의 `npm audit --omit=dev`에서 `source-map-js 1.2.1` High 취약점으로 FAIL했다. 이에 따라 quality aggregate가 FAIL하고 Main verified digest 재검증·promotion·handoff는 SKIPPED였다.
+- 같은 job에서 audit 실패 뒤 production build 시작 step이 SKIPPED됐는데 `Release production build 시간 기록`이 `if: always()`로 실행되어 빈 `started_ms`를 recorder에 전달한 2차 실패도 관측했다. 이 오류는 최초 audit failure를 대체하지 않으며 corrective에서 함께 제거한다.
+- 현재 latest main은 #462 병합 이후 application `0.87.0`이며 `package-lock.json`의 `source-map-js`는 `1.2.2`다. 따라서 실패한 immutable `v0.86.0`을 재사용하지 않고 #461 same-Issue corrective PATCH `0.87.1`로 진행한다.
+- 정적 회귀는 `tests/scripts/test-config-layout.test.ts`에서 `source-map-js >= 1.2.2`와 Release build 종료 계측의 `steps.release-build-start.outputs.started_ms != ''` guard를 확인한다. audit 자체는 PR/Main/Release의 실제 `npm audit` gate가 계속 authoritative하다.
+- corrective PR의 공식 판정은 exact head의 PR quality/e2e/docker 결과다. 이번 요청 범위는 새 PR CI 시작 확인까지이며 merge/Main CI/tag/GHCR/branch cleanup/Issue close는 수행하지 않는다. 새 `0.87.1` release는 별도 명시 승인 전 `release_authorized=false`다.

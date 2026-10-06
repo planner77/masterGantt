@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.87.1] - 2026-10-06
+
+### Fixed
+
+- Issue #461 corrective: 실패한 v0.86.0 GHCR Release Run #136.1의 static quality에서 발견된 `source-map-js 1.2.1` High 취약 버전을 재사용하지 않는다. 최신 main에 반영된 `source-map-js 1.2.2` 이상을 정적 회귀로 고정한다.
+- Release static quality가 audit 등 선행 gate에서 실패해 production build 시작 step이 실행되지 않은 경우, 빈 `started_ms`로 setup metric recorder가 2차 실패하지 않도록 build 시작 output이 존재할 때만 종료 계측을 수행한다.
+
+### Changed
+
+- Application version을 `0.87.0`에서 `0.87.1`로 증가한다. immutable 실패 tag `v0.86.0`은 이동·덮어쓰기·재사용하지 않고 same-Issue corrective PATCH로 검증한다.
+
 ## [0.87.0] - 2026-10-06
 
 ### Added

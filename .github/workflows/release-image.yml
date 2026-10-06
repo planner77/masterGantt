@@ -133,7 +133,7 @@ jobs:
         run: echo "started_ms=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
       - run: npm run build
       - name: Release production build 시간 기록
-        if: always()
+        if: ${{ always() && steps.release-build-start.outputs.started_ms != '' }}
         shell: bash
         run: node scripts/record-ci-setup-metric.mjs --metric release-production-build --started-ms "${{ steps.release-build-start.outputs.started_ms }}"
       - name: Release static setup 계측 artifact 업로드
