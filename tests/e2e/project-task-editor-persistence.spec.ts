@@ -106,6 +106,96 @@ test("persists explicit editor changes, task details and safe URL click without 
   }
 });
 
+
+test("Summary Description and URL persist while derived schedule stays readonly", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill("Summary details " + Date.now());
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("EditPwd1234!");
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
+  const api = "/api" + new URL(page.url()).pathname;
+  const origin = new URL(page.url()).origin;
+  const summaryUrl = origin + "/projects/new";
+  let snapshot = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+
+  const summaryResponse = await page.request.post(api + "/tasks", {
+    headers: { Origin: origin, "If-Match": "\"" + snapshot.data.project.revision + "\"" },
+    data: { name: "Summary metadata", type: "summary" },
+  });
+  expect(summaryResponse.status()).toBe(201);
+  snapshot = await summaryResponse.json() as ProjectSnapshotResponse;
+  const summary = snapshot.data.tasks.find((entry) => entry.name === "Summary metadata")!;
+
+  const childResponse = await page.request.post(api + "/tasks", {
+    headers: { Origin: origin, "If-Match": "\"" + snapshot.data.project.revision + "\"" },
+    data: { parentTaskId: summary.taskId, name: "Summary child", type: "task", start: "2026-10-06", duration: 2, progress: 25 },
+  });
+  expect(childResponse.status()).toBe(201);
+  snapshot = await childResponse.json() as ProjectSnapshotResponse;
+  const child = snapshot.data.tasks.find((entry) => entry.name === "Summary child")!;
+  const derivedBefore = snapshot.data.tasks.find((entry) => entry.taskId === summary.taskId)!;
+
+  const summaryPatches: Record<string, unknown>[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "PATCH" && new URL(request.url()).pathname === api + "/tasks/" + summary.taskId) {
+      summaryPatches.push(request.postDataJSON());
+    }
+  });
+
+  await page.reload();
+  await expect(page.getByText("편집 중", { exact: true })).toBeVisible();
+  const summaryRow = page.locator('.project-gantt-widget .wx-row[data-id=":' + summary.taskId + '"]').first();
+  await expect(summaryRow).toBeVisible();
+  await summaryRow.getByText("Summary metadata", { exact: true }).click({ button: "right" });
+  await chooseTaskInformation(page);
+  const editor = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await expect(editor.getByLabel("요청 시작일", { exact: true })).toHaveAttribute("readonly", "");
+  await expect(editor.getByLabel("Description", { exact: true })).not.toHaveAttribute("readonly", "");
+  await expect(editor.getByLabel("URL", { exact: true })).not.toHaveAttribute("readonly", "");
+  await editor.getByLabel("Description", { exact: true }).fill("요약 설명\n상세");
+  await editor.getByLabel("URL", { exact: true }).fill(summaryUrl);
+  await editor.getByRole("button", { name: "저장", exact: true }).click();
+  await expect(editor).toHaveCount(0);
+  expect(summaryPatches).toEqual([{ description: "요약 설명\n상세", url: summaryUrl }]);
+
+  const stored = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  expect(stored.data.tasks.find((entry) => entry.taskId === summary.taskId)).toMatchObject({
+    description: "요약 설명\n상세",
+    url: summaryUrl,
+    requestedStart: null,
+    start: derivedBefore.start,
+    end: derivedBefore.end,
+    duration: derivedBefore.duration,
+    progress: derivedBefore.progress,
+  });
+
+  const deleteResponse = await page.request.delete(api + "/tasks/" + child.taskId, {
+    headers: { Origin: origin, "If-Match": "\"" + stored.data.project.revision + "\"" },
+  });
+  expect(deleteResponse.status()).toBe(200);
+  const emptied = await deleteResponse.json() as TaskMutationResponse;
+  expect(emptied.data.tasks.find((entry) => entry.taskId === summary.taskId)).toMatchObject({
+    description: "요약 설명\n상세",
+    url: summaryUrl,
+    requestedStart: null,
+    start: null,
+    end: null,
+    duration: null,
+    progress: null,
+  });
+
+  await page.reload();
+  const emptySummaryRow = page.locator('.project-gantt-widget .wx-row[data-id=":' + summary.taskId + '"]').first();
+  await expect(emptySummaryRow).toBeVisible();
+  await emptySummaryRow.getByText("Summary metadata", { exact: true }).click({ button: "right" });
+  await chooseTaskInformation(page);
+  const reopened = page.getByRole("dialog", { name: "작업 정보", exact: true });
+  await expect(reopened.getByLabel("Description", { exact: true })).toHaveValue("요약 설명\n상세");
+  await expect(reopened.getByLabel("URL", { exact: true })).toHaveValue(summaryUrl);
+  await reopened.getByRole("button", { name: "취소", exact: true }).click();
+});
+
 test("linked requested dates, metadata, baseline and successor schedules persist canonically", async ({ page }) => {
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 1440, height: 1000 });
