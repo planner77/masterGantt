@@ -7,17 +7,16 @@ import { openDatabase } from "../../../src/server/db/core";
 import { EditSessionRepository, ProjectRepository } from "../../../src/server/repositories/project-repository-core";
 import { ScheduleRepository } from "../../../src/server/repositories/schedule-repository-core";
 import {
-  ResourceCatalogAssignmentRoleInvalidError,
-  ResourceCatalogRoleInUseError,
+  ResourceCatalogInvalidInputError,
   ResourceCatalogService,
 } from "../../../src/server/resources/resource-catalog-service-core";
 import { createSessionToken } from "../../../src/server/security/session-core";
 
 const migrationsDirectory = join(process.cwd(), "db", "migrations");
-const NOW = "2026-10-04T12:00:00.000Z";
+const NOW = "2026-10-06T12:00:00.000Z";
 
-describe("Issue #413 task assignment roles", () => {
-  it("persists a per-task role, rejects roles the Resource does not hold, and blocks removal while in use", () => {
+describe("Issue #485 Global Resource Role source of truth", () => {
+  it("stores Task assignment without a performed role, rejects non-null role input, and allows Global Role changes", () => {
     const { database } = openDatabase({ filename: ":memory:", migrationsDirectory });
     try {
       const projects = new ProjectRepository(database);
@@ -25,7 +24,7 @@ describe("Issue #413 task assignment roles", () => {
       const schedules = new ScheduleRepository(database);
       const project = projects.insert({
         publicId: randomUUID(),
-        name: "Assignment role fixture",
+        name: "Global role fixture",
         description: "",
         passwordKdf: "scrypt",
         passwordSalt: Buffer.alloc(16, 1),
@@ -46,25 +45,23 @@ describe("Issue #413 task assignment roles", () => {
         createdAt: NOW,
         expiresAt: "2026-11-01T00:00:00.000Z",
       });
-      const makeTask = (name: string, order: number) => schedules.insertTask({
+      const task = schedules.insertTask({
         projectId: project.id,
         externalId: randomUUID(),
         publicId: randomUUID(),
-        name,
+        name: "Assignment",
         type: "task",
         scheduleMode: "auto",
-        requestedStart: "2026-10-05",
-        startDate: "2026-10-05",
+        requestedStart: "2026-10-07",
+        startDate: "2026-10-07",
         endDate: "2026-10-09",
-        duration: 5,
+        duration: 3,
         progress: 0,
         parentId: null,
-        sortOrder: order,
+        sortOrder: 0,
         createdAt: NOW,
         updatedAt: NOW,
       });
-      const piTask = makeTask("PI task", 0);
-      const devTask = makeTask("Developer task", 1);
       const authorization = {
         projectId: project.id,
         projectPublicId: project.publicId,
@@ -84,34 +81,24 @@ describe("Issue #413 task assignment roles", () => {
       });
       const resource = catalog.data.resources[0];
 
-      const first = service.replaceTaskAssignments(authorization, 1, piTask.publicId, {
+      const assigned = service.replaceTaskAssignments(authorization, 1, task.publicId, {
         catalogRevision: catalog.data.revision,
-        targets: [{ kind: "resource", id: resource.id, role: "PI" }],
+        targets: [{ kind: "resource", id: resource.id, allocation: { percent: 80 } }],
       });
-      const second = service.replaceTaskAssignments({ ...authorization, projectRevision: 2 }, 2, devTask.publicId, {
+      expect(assigned.data.assignments).toEqual([
+        expect.objectContaining({ taskId: task.publicId, role: null, target: { kind: "resource", id: resource.id } }),
+      ]);
+
+      expect(() => service.replaceTaskAssignments({ ...authorization, projectRevision: 2 }, 2, task.publicId, {
         catalogRevision: catalog.data.revision,
-        targets: [{ kind: "resource", id: resource.id, role: "DEVELOPER" }],
+        targets: [{ kind: "resource", id: resource.id, role: "PI", allocation: { percent: 80 } }],
+      })).toThrow(ResourceCatalogInvalidInputError);
+
+      const changed = service.updateTarget("resource", resource.id, admin.rawToken, catalog.data.revision, {
+        roles: ["DEVELOPER"],
       });
-      expect(second.data.assignments).toEqual(expect.arrayContaining([
-        expect.objectContaining({ taskId: piTask.publicId, role: "PI" }),
-        expect.objectContaining({ taskId: devTask.publicId, role: "DEVELOPER" }),
-      ]));
-
-      expect(() => service.replaceTaskAssignments({ ...authorization, projectRevision: 3 }, 3, devTask.publicId, {
-        catalogRevision: catalog.data.revision,
-        targets: [{ kind: "resource", id: resource.id, role: "EQUIPMENT_OWNER" }],
-      })).toThrow(ResourceCatalogAssignmentRoleInvalidError);
-
-      const expanded = service.updateTarget("resource", resource.id, admin.rawToken, catalog.data.revision, {
-        roles: ["PI", "DEVELOPER", "EQUIPMENT_OWNER"],
-      });
-      expect(expanded.data.resources[0].roles).toEqual(["PI", "DEVELOPER", "EQUIPMENT_OWNER"]);
-
-      expect(() => service.updateTarget("resource", resource.id, admin.rawToken, expanded.data.revision, {
-        roles: ["DEVELOPER", "EQUIPMENT_OWNER"],
-      })).toThrow(ResourceCatalogRoleInUseError);
-      expect(service.getCatalog(admin.rawToken).data.resources[0].roles).toEqual(["PI", "DEVELOPER", "EQUIPMENT_OWNER"]);
-      expect(first.data.assignments[0].role).toBe("PI");
+      expect(changed.data.resources[0].roles).toEqual(["DEVELOPER"]);
+      expect(service.getAssignedTargets(project.publicId)!.data.assignments[0].role).toBeNull();
 
       const insertResource = database.prepare(
         "INSERT INTO resources(public_id,name,code,description,developer_grade,active,created_at,updated_at) VALUES(?,?,NULL,'',NULL,1,?,?)",
@@ -132,17 +119,15 @@ describe("Issue #413 task assignment roles", () => {
     }
   });
 
-  it("keeps legacy NULL roles and rejects group role persistence at the database boundary", () => {
+  it("keeps the compatibility column but removes Task-role guards and indexes", () => {
     const { database } = openDatabase({ filename: ":memory:", migrationsDirectory });
     try {
-      const columns = database.prepare("SELECT assignment_role FROM task_assignments LIMIT 0").columns();
-      expect(columns.some((column) => column.name === "assignment_role")).toBe(true);
-
-      expect(() => database.prepare(`
-        INSERT INTO task_assignments
-          (public_id, project_id, task_id, group_id, assignment_role, created_at, updated_at)
-        VALUES (?, 999, 999, 999, 'PI', ?, ?)
-      `).run(randomUUID(), NOW, NOW)).toThrow();
+      const columns = database.prepare("SELECT name FROM pragma_table_info('task_assignments')").pluck().all() as string[];
+      expect(columns).toContain("assignment_role");
+      const schemaNames = database.prepare(
+        "SELECT name FROM sqlite_schema WHERE name IN ('task_assignments_resource_role_idx','task_assignments_role_insert_guard','task_assignments_role_update_guard','resource_roles_assignment_delete_guard')",
+      ).pluck().all();
+      expect(schemaNames).toEqual([]);
     } finally {
       database.close();
     }
