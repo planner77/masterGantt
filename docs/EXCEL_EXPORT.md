@@ -197,10 +197,10 @@ Windows Excel 2021과 조직 DRM 환경에서 실제 `.xlsx` 열기 및 DrawingM
 
 Excel 요청은 선택적으로 `includeResourceEffort: true`를 받을 수 있다. 생략 또는 false이면 기존 workbook 구조는 바뀌지 않는다. true이면 기존 Gantt/Tasks/Project/Dependencies/Logistics 시트 뒤에 다음 두 시트를 append한다. #464의 Milestone Stages 시트는 그 뒤에 위치한다.
 
-- `Resource Effort Summary`: Project/Catalog revision, 조회 기간, `RESOURCE_MD_PER_MM`, 전체 및 역할별 M/D·M/M, 공수/역할 미설정 건수, 과투입 Resource 수, DEVELOPER 개인별 계획 공수를 제공한다.
-- `Resource Effort Detail`: assignmentId 단위로 Task/WBS/상태/진행률/일정, Resource 식별자·코드·이름·수행 역할·개발자 등급, Group 목록, assignment 기간/투입률, canonical 유효 근무일, M/D·M/M, 지연/공수 설정 상태를 제공한다.
+- `Resource Effort Summary`: Project/Catalog revision, 조회 기간, `RESOURCE_MD_PER_MM`, 전체 및 Global Role별 M/D·M/M, 공수/Global Role 미설정 건수, 과투입 Resource 수, DEVELOPER 개인별 계획 공수를 제공한다.
+- `Resource Effort Detail`: assignmentId 단위로 Task/WBS/상태/진행률/일정, Resource 식별자·코드·이름·Global Role 집합·개발자 등급, Group 목록, assignment 기간/투입률, canonical 유효 근무일, M/D·M/M, 지연/공수 설정 상태를 제공한다.
 
-계산 권위는 #414 `resource-workload`와 동일한 서버 서비스다. export handler는 Project snapshot과 workload의 `projectRevision`이 동일한 경우에만 workbook을 생성하고 다르면 412로 실패한다. 여러 Resource Group에 같은 Resource가 속해도 Detail은 `assignmentId` 기준 한 행만 생성하고 Group은 쉼표 목록으로 표시한다. `RESOURCE_MD_PER_MM`이 없으면 M/D는 유지하되 M/M은 `미설정`으로 표시하며 0으로 환산하지 않는다.
+계산 권위는 #414 `resource-workload`와 동일한 서버 서비스다. Global Role subtotal은 복수 역할 Resource의 동일 assignment가 여러 분류에 포함될 수 있는 비가산 보기이며, subtotal 합으로 Grand Total을 계산하지 않는다. export handler는 Project snapshot과 workload의 `projectRevision`이 동일한 경우에만 workbook을 생성하고 다르면 412로 실패한다. 여러 Resource Group에 같은 Resource가 속해도 Detail은 `assignmentId` 기준 한 행만 생성하고 Group은 쉼표 목록으로 표시한다. `RESOURCE_MD_PER_MM`이 없으면 M/D는 유지하되 M/M은 `미설정`으로 표시하며 0으로 환산하지 않는다.
 
 모든 사용자 문자열은 기존 formula injection/cell length 보호를 그대로 거치며 내부 DB PK, edit session/password/token은 내보내지 않는다. 실제 Excel 2021/DRM 호환성은 자동 OOXML parser 검증과 별개의 Environment-specific Validation으로 관리한다.
 
