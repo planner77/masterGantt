@@ -356,7 +356,7 @@ export function CountryCalendarAdmin(){
         <label>이름<input value={editName} maxLength={200} onChange={event=>setEditName(event.target.value)}/></label>
         <label>구분<select value={editDayType} onChange={event=>setEditDayType(event.target.value as WorkCalendarDayType)}><option value="NON_WORKING">휴일</option><option value="WORKING">보충 근무일</option></select></label>
         <label>sourceKey<input value={editSourceKey} maxLength={120} onChange={event=>setEditSourceKey(event.target.value)}/></label>
-        <div className={styles.actions}><button className="secondary-button" type="button" onClick={()=>setEditing(null)}>취소</button><button className="primary-button" type="submit" disabled={busy||!editDate||!editName.trim()||!editSourceKey.trim()}>저장</button></div>
+        <div className={styles.actions}><button className="secondary-button" type="button" disabled={busy} onClick={()=>{if(!busy)setEditing(null);}}>취소</button><button className="primary-button" type="submit" disabled={busy||!editDate||!editName.trim()||!editSourceKey.trim()}>저장</button></div>
       </form>
     </WorkspaceDialog>:null}
 
