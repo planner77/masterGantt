@@ -767,7 +767,12 @@ function effortRoleLabel(role: string | undefined): string {
   if (role === "PI") return "PI";
   if (role === "DEVELOPER") return "개발자 (DEVELOPER)";
   if (role === "EQUIPMENT_OWNER") return "설비 담당 (EQUIPMENT_OWNER)";
-  return "미지정 (UNSPECIFIED)";
+  return "Global Role 미지정 (UNSPECIFIED)";
+}
+
+function effortRoleLabels(roles: readonly string[] | undefined): string {
+  if (!roles || roles.length === 0) return "Global Role 미지정 (UNSPECIFIED)";
+  return roles.map((role) => effortRoleLabel(role)).join(", ");
 }
 
 function developerGradeLabel(grade: string | null | undefined): string {
@@ -862,12 +867,12 @@ function resourceEffortSummarySheet(
   pair("전체 계획 M/D", { column: 2, style: STYLE.integer, type: "number", value: workload.data.grandTotalMd });
   pair("전체 계획 M/M", effortNumberCell(2, workload.data.grandTotalMm));
   pair("공수 미설정 건수", { column: 2, style: STYLE.integer, type: "number", value: workload.data.unsetCount });
-  pair("역할 미지정 건수", { column: 2, style: STYLE.integer, type: "number", value: workload.data.unspecifiedRoleCount ?? 0 });
+  pair("Global Role 미지정 Assignment 수", { column: 2, style: STYLE.integer, type: "number", value: workload.data.unspecifiedRoleCount ?? 0 });
   pair("과투입 Resource 수", { column: 2, style: STYLE.integer, type: "number", value: workload.data.overAllocatedResourceCount ?? 0 });
   row += 1;
 
-  add([{ column: 1, style: STYLE.title, value: "역할별 계획 공수" }], 24);
-  add(["역할", "Assignment 수", "M/D", "M/M", "공수 미설정"].map((value, index) => ({
+  add([{ column: 1, style: STYLE.title, value: "Global Role별 계획 공수 (비가산 분류)" }], 24);
+  add(["Global Role", "Assignment 수", "M/D", "M/M", "공수 미설정"].map((value, index) => ({
     column: index + 1, style: STYLE.header, value,
   })), 22);
   for (const total of workload.data.roleTotals ?? []) {
@@ -879,6 +884,7 @@ function resourceEffortSummarySheet(
       { column: 5, style: STYLE.integer, type: "number", value: total.unsetCount },
     ]);
   }
+  add([{ column: 1, style: STYLE.muted, value: "복수 Global Role Resource의 같은 Assignment는 여러 역할 행에 포함될 수 있으므로 역할별 합계를 서로 더해 전체 계획 공수로 해석하지 않습니다." }]);
   row += 1;
 
   const developers = new Map<string, {
@@ -886,7 +892,7 @@ function resourceEffortSummarySheet(
     groupNames: Set<string>; assignmentCount: number; effortMd: number; unsetCount: number; overAllocated: boolean;
   }>();
   for (const detail of details) {
-    if (detail.task.role !== "DEVELOPER") continue;
+    if (!(detail.task.roles ?? []).includes("DEVELOPER")) continue;
     let current = developers.get(detail.resource.id);
     if (!current) {
       current = {
@@ -921,7 +927,7 @@ function resourceEffortSummarySheet(
       { column: 10, style: STYLE.text, value: developer.overAllocated ? "예" : "아니오" },
     ]);
   }
-  if (developers.size === 0) add([{ column: 1, style: STYLE.muted, value: "DEVELOPER assignment가 없습니다." }]);
+  if (developers.size === 0) add([{ column: 1, style: STYLE.muted, value: "DEVELOPER Global Role 리소스의 assignment가 없습니다." }]);
 
   const lastRow = Math.max(1, row - 1);
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:J${lastRow}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><cols><col min="1" max="1" width="38" customWidth="1"/><col min="2" max="10" width="20" customWidth="1"/></cols><sheetData>${rows.join("")}</sheetData><pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
@@ -934,7 +940,7 @@ function resourceEffortDetailSheet(
   const taskById = new Map(tasks.map((entry) => [entry.task.taskId, entry]));
   const headers = [
     "Assignment ID", "Task ID", "WBS", "Task", "Task 상태", "진행률", "Task 시작", "Task 종료",
-    "Resource ID", "Resource 코드", "Resource 이름", "수행 역할", "개발자 등급", "Resource Group",
+    "Resource ID", "Resource 코드", "Resource 이름", "Global Role", "개발자 등급", "Resource Group",
     "Assignment 시작", "Assignment 종료", "Allocation %", "유효 근무일", "Effort M/D", "Effort M/M",
     "지연", "공수 설정",
   ];
@@ -955,7 +961,7 @@ function resourceEffortDetailSheet(
       { column: 9, style: STYLE.text, value: safeText(detail.resource.id) },
       { column: 10, style: STYLE.text, value: safeText(detail.resource.code ?? "") },
       { column: 11, style: STYLE.text, value: safeText(detail.resource.name) },
-      { column: 12, style: STYLE.text, value: effortRoleLabel(detail.task.role) },
+      { column: 12, style: STYLE.text, value: effortRoleLabels(detail.task.roles) },
       { column: 13, style: STYLE.text, value: developerGradeLabel(detail.resource.developerGrade) },
       { column: 14, style: STYLE.text, value: safeText([...detail.groupNames].sort((a, b) => a.localeCompare(b, "ko")).join(", ")) },
       { column: 15, style: STYLE.date, type: "number", value: excelSerial(detail.task.start) },
@@ -1059,14 +1065,14 @@ function milestoneStagesSheet(stage: MilestoneDashboardDto): string {
       row.memberDurationSum, row.memberWeightedProgressSum, gate.membersCompleted, gate.predecessorsCompleted, row.overdue, row.upcoming, row.atRisk,
       row.effort.plannedMd, row.effort.plannedMm, row.effort.unsetAllocationCount]);
   }
-  append(["공수 범위", "단계 ID", "역할", "M/D(원시)", "M/M(원시)", "투입률 미설정 수"], true);
+  append(["공수 범위", "단계 ID", "Global Role", "M/D(원시)", "M/M(원시)", "투입률 미설정 수"], true);
   const effort = (label: string, milestoneId: string | null, value: MilestoneDashboardDto["effort"]) => {
     append([label, milestoneId, "전체", value.plannedMd, value.plannedMm, value.unsetAllocationCount]);
     for (const role of value.roleTotals) append([label, milestoneId, role.role, role.plannedMd, role.plannedMm]);
   };
   effort("Grand Total", null, stage.effort);
   for (const bucket of stage.effort.buckets) effort(bucket.milestoneTaskId === null ? "미지정" : "단계 bucket", bucket.milestoneTaskId, { ...stage.effort, ...bucket });
-  append(["ID 집합 분류", "단계 ID", "역할", "ID"], true);
+  append(["ID 집합 분류", "단계 ID", "Global Role", "ID"], true);
   const ids = (kind: string, values: readonly string[], milestoneId: string | null = null, role: string | null = null) => {
     for (const id of values) append([kind, milestoneId, role, id]);
   };
