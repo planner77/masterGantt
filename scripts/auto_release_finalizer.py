@@ -261,20 +261,19 @@ def issue_comments(repo: str, issue_number: int) -> list[dict[str, Any]]:
 
 
 def is_finalized_boundary(repo: str, item: WorkItem) -> bool:
-    issue = gh(f"/repos/{repo}/issues/{item.issue_number}")
-    if not isinstance(issue, dict):
-        raise AutoFinalizerError(f"Issue #{item.issue_number} 응답 형식이 올바르지 않습니다")
     comments = issue_comments(repo, item.issue_number)
     marker = final_marker(item.issue_number, item.target_sha)
-    if any(
+    return any(
         line.strip() == marker
         for comment in comments
         for line in (comment.get("body") or "").splitlines()
-    ):
-        return True
+    )
 
-    # Legacy lifecycle before #350 may have closed an Issue without the generic
-    # marker. Treat a closed Issue as a historical boundary and never reopen it.
+
+def is_closed_issue(repo: str, item: WorkItem) -> bool:
+    issue = gh(f"/repos/{repo}/issues/{item.issue_number}")
+    if not isinstance(issue, dict):
+        raise AutoFinalizerError(f"Issue #{item.issue_number} 응답 형식이 올바르지 않습니다")
     return issue.get("state") == "closed"
 
 
@@ -293,6 +292,13 @@ def collect_pending_work(
             return list(reversed(pending_newest_first))
         if is_finalized_boundary(repo, item):
             return list(reversed(pending_newest_first))
+        if is_closed_issue(repo, item):
+            # A later maintenance/fix PR may legitimately reference an Issue
+            # whose older target was already finalized.  Do not mutate or
+            # reopen that closed Issue, but keep traversing first-parent so an
+            # older unfinished lifecycle target cannot be hidden behind it.
+            cursor = item.first_parent_sha
+            continue
         pending_newest_first.append(item)
         cursor = item.first_parent_sha
 
