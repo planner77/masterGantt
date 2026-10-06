@@ -94,6 +94,7 @@ jobs:
       - name: Release approved target
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python3 scripts/issue_lifecycle.py release \
             --issue "${{ inputs.issue_number }}" \
