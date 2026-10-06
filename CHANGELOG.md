@@ -10,10 +10,7 @@
 ### Fixed
 
 - PR CI Run #1869에서 발견된 CSS Module의 전역-only selector를 전역 스타일 소유 위치로 이동해 Next.js production build와 Docker build의 동일 연쇄 실패를 제거한다. 최신 main의 #461/#462 회귀 보완은 유지하고 #463 변경만 재적용한다.
-
-### Fixed
-
-- PR CI Run #1929의 남은 #407/#418 E2E 실패는 row-center 우클릭이 레이아웃에 따라 앱 소유 control hit area에 걸릴 수 있던 테스트 기하학 문제로 확인했다. 제품 Context Menu guard를 유지하고 taskId 행의 실제 작업명 text hit area를 우클릭하도록 안정화한다.
+- PR CI Run #1937 trace에서 Context Menu singleton 선택 직후 SVAR Core selection이 내부 Grid scroll을 보정해 메뉴 scroll guard가 메뉴를 즉시 닫는 회귀를 확인했다. Context Menu는 기존 app-owned selection을 authority로 유지하고 이 경로의 Core `select-task` mirror만 생략해 실제 사용자 scroll 닫힘 계약을 보존한다.
 
 ### Changed
 

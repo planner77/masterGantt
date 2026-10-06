@@ -1706,3 +1706,12 @@ branch 정렬은 published PR history를 강제 재작성하지 않고 기존 fe
 - E2E helper는 taskId 행의 canonical 작업명 hit area `[data-col-id=":text"] .wx-content > .wx-text`를 직접 가시화한 뒤 실제 right-click한다. 제품 Context Menu guard·권한·scope 계약과 메뉴 가시성 assertion은 변경하지 않는다.
 - latest main `22326fc350b91ab59ddafa20ef97c3f418f71aae` / application `0.90.0`의 #453 리소스 UI/문서 변경을 보존하고 #463 candidate를 다음 MINOR `0.91.0`로 재정렬한다.
 - 새 exact-head 전체 PR CI가 authoritative이며 이전 run의 부분 PASS를 새 head 증거로 전용하지 않는다.
+
+
+## Issue #463 PR CI Run #1937 Core selection scroll REWORK
+
+- head `b1ff0294195436b806e4b76929cd8bc269ec55bb`의 PR CI Run #1937.1(`37427125874`)은 quality/build/Docker와 Chromium shard 1~5를 PASS했으나 shard 6의 기존 #407/#418 Context Menu 시나리오 1건만 FAIL했다.
+- Run #1937 Playwright trace를 직접 분석했다. 실패 우클릭은 canonical 작업명 text에 정확히 입력됐고 해당 taskId 행이 app-owned `data-copy-selected=true` / `aria-selected=true`로 전환됐다. 그러나 직후 SVAR Core selection/layout 동기화가 Grid table `scrollTop 147 → 124`와 chart resize를 발생시켰고, 기존 Task Menu scroll guard가 이 내부 보정을 메뉴 이후 실제 viewport 이동으로 판정하여 메뉴를 즉시 닫았다.
+- 따라서 이전 auto-scroll 및 hit-area 가설은 최종 원인이 아니다. Task Context Menu에서 선택 밖 행을 singleton으로 만드는 계약의 authority는 #384부터 app-owned selection이다. Context Menu open 경로에서는 `applySelectionGesture(..., false)`로 Core `select-task` mirror만 생략하고 `data-copy-selected` singleton selection·menu taskId·명령 dispatch는 유지한다.
+- 일반 click/keyboard selection의 Core mirror, 실제 사용자 scroll 시 메뉴 닫힘, 지연된 동일 scroll 알림 무시는 기존 계약을 유지한다. #407/#418 E2E는 메뉴 open 뒤 해당 행의 `data-copy-selected=true`를 추가 확인한다.
+- 새 exact-head 전체 PR CI의 quality/e2e/docker가 authoritative하며 Run #1937의 부분 PASS를 새 head의 PASS로 전용하지 않는다.

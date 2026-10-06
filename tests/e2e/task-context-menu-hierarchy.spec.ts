@@ -380,6 +380,7 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
 
   await openMenuByTaskId(page, headerLeaf!.taskId);
+  await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveAttribute("data-copy-selected", "true");
   const milestoneSnapshot = await chooseSubmenu(page, "Convert to", "Milestone");
   expect(milestoneSnapshot.data.tasks.find((task) => task.taskId === headerLeaf!.taskId)?.type).toBe("milestone");
   const milestoneAdd = rowByTaskId(page, headerLeaf!.taskId).locator('[data-action="add-task"]');

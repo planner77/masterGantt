@@ -2217,7 +2217,14 @@ export function ProjectGantt({
       if (currentElement) match = { taskId: fallbackTaskId, element: currentElement };
     }
     if (!match) return false;
-    if (!selectedTaskIdsReference.current.includes(match.taskId)) applySelectionGesture(match.taskId, "single");
+    if (!selectedTaskIdsReference.current.includes(match.taskId)) {
+      // Context Menu selection is app-owned. Mirroring this singleton selection
+      // into Core can trigger SVAR's row reveal/scroll after the menu opens,
+      // which the menu scroll guard correctly interprets as viewport movement.
+      // Explicit menu commands already use taskId and data-copy-selected is the
+      // canonical visual/selection state, so avoid that unnecessary Core scroll.
+      applySelectionGesture(match.taskId, "single", false);
+    }
     if (!match.element.hasAttribute("tabindex")) match.element.tabIndex = 0;
     const focusTrigger = target instanceof HTMLElement && target.matches("input[data-copy-selection]")
       ? target

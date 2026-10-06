@@ -949,3 +949,8 @@ Context Menu 완료 단계 연결…은 #461 기본 작업 탭, 소속 작업 �
 초기 값은 서버 Project timezone의 기준일이다. 수동 기준일은 현재 snapshot의 평가일이며 과거 실제 상태를 복원하지 않는다. 성공 응답은 프로젝트·revision·정규화된 조건 echo·catalog revision을 확인한다. 이전 요청 역전은 무시하고 조건 변경 중 이전 값을 유지하면 stale 사유와 drill 잠금을 표시한다. 오류에는 명시 재시도를 제공한다. 30초 캐시는 활성 진입과 focus/visibility에서 같은 날의 catalog 변경도 catch-up하며 비활성/hidden 무한 polling을 하지 않는다. 자동 날짜 경계 timer는 local Project day당 한 번만 시도하며 실패하거나 서버가 이전 날짜를 유지해도 매분 재요청하지 않는다. focus/visibility의 TTL 재시도는 별도다. known canonical revision 변경은 즉시 재조회한다.
 
 물류 대시보드는 기존 KPI·포함 작업·진척·계획 M/D를 유지하고 관련 단계 전체 상태를 별도 섹션에 표시한다. 관련 단계는 서버 projection이며 화면이 새 Gate를 계산하지 않는다. 미설정 M/M은 —와 기준 설명을 제공한다.
+
+
+### #463 Context Menu 선택과 peer layout scroll
+
+Gantt의 Task Context Menu로 현재 선택 밖 작업을 열 때 selection authority는 기존 #384의 app-owned `selectedTaskIds/data-copy-selected`다. 이 경로는 메뉴 대상 taskId를 singleton 선택으로 즉시 반영하되 SVAR Core `select-task`를 별도로 mirror하지 않는다. Core mirror는 row reveal/selection layout 과정에서 내부 scroll을 만들 수 있고, 메뉴가 열린 뒤의 실제 사용자 scroll을 닫기 조건으로 사용하는 기존 scroll guard와 충돌할 수 있기 때문이다. 메뉴의 Edit/Copy/Cut/Move/Delete 등 명령은 이미 menu taskId와 app-owned selection을 사용한다. 일반 click/checkbox/keyboard 선택의 Core 연동은 유지하며, 실제 viewport scroll에서는 기존처럼 Task Menu를 닫는다.

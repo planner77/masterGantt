@@ -131,3 +131,11 @@ main 통합 최소LFF는 qa_docs의 migration-cli3/3 PASS(751ms/chunka6a71a), fr
 - head `9b4e1d4680be581a0d91d5f23ac0d59cd778083f` / Run #1929.1(`37424880340`)은 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6 기존 #407/#418 1건 FAIL이다.
 - pre-scroll 후에도 row-center 우클릭이 `add-task` 등 Task context 제외 control hit area에 걸릴 수 있음을 확인했다. 제품 guard를 완화하지 않고 taskId 행의 실제 작업명 text hit area를 우클릭하도록 테스트를 고정한다.
 - latest main `22326fc350b91ab59ddafa20ef97c3f418f71aae` / `0.90.0`을 다시 통합하며 후보 버전은 다음 MINOR `0.91.0`이다. 새 exact-head 전체 PR CI를 시작한다.
+
+
+## PR CI #1937 REWORK
+
+- head `b1ff0294195436b806e4b76929cd8bc269ec55bb` / Run #1937.1(`37427125874`)은 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6 기존 #407/#418 Context Menu 1건 FAIL이다.
+- Playwright trace에서 작업명 text 우클릭과 app-owned singleton 선택은 성공했지만, 그 직후 Core `select-task` 동기화가 table scrollTop을 147→124로 보정하고 기존 menu scroll guard가 이를 실제 viewport 이동으로 판단해 메뉴를 즉시 닫는 것을 확인했다.
+- Context Menu 선택은 #384 계약대로 app-owned selection을 authority로 유지하고 이 경로의 Core mirror만 생략한다. 일반 선택·실제 사용자 scroll 닫힘·menu taskId 기반 명령은 유지한다. E2E는 우클릭 메뉴와 `data-copy-selected=true`를 함께 검증한다.
+- candidate version은 `0.91.0` 유지. 새 exact-head 전체 PR CI를 시작한다.
