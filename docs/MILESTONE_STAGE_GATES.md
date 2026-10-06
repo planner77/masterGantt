@@ -108,3 +108,46 @@ Task/Summary 이름+소속 한 PATCH, Milestone 초안 한 batch POST와 같은 
 단계 필터와 Grid의 effective/출처는 browser-safe stageSnapshotFromProject/projectStageGates projection을 사용한다. scoped task 배열을 상속 계산의 authority로 사용하지 않으며 canonical hierarchy는 그대로 보존한다. Summary context는 effective 일반 Task 수에 합산하지 않고 Milestone 자신의 소속 셀은 비어 있다. 표시 목록의 날짜 정렬은 Dependency 생성·Ready 계산·일정 재계산·WBS 저장을 하지 않는다.
 
 신규 Link UI는 같은 유형 후보와 native drag guard를 사용한다. 기존 mixed Link는 기존 일정/canonical 표시를 유지하며 Ready의 선행 단계 집계는 기존 공용 domain 규칙을 그대로 따른다. 완료 Milestone 양 endpoint 보호는 기존 #460 구조 정책의 UI 표현이고 domain/DB/API 변경은 없다.
+
+
+## Issue #463 단계 대시보드 읽기 모델
+
+`GET /api/projects/{publicId}/milestone-dashboard`는 공개 readonly 조회다. [typed contract](../src/contracts/milestone-dashboard.ts)를 기준으로 서버가 하나의 SQLite read transaction에서 Project row와 revision, Task/Link/explicit Membership, 물류 관계, Resource/assignment/catalog revision 및 Calendar를 읽는다. 시계는 요청마다 한 번 캡처한다. `projectStageGates`의 전체 snapshot을 재사용하며 별도 상속/Ready 엔진이나 영속 집계 테이블을 만들지 않는다.
+
+- E(M)는 M에 effective 소속된 고유 일반 Task 전체이며 P(M)는 직접 predecessor Milestone 전체다. Summary 및 기존 mixed Task→Milestone Link는 이 집합의 member/predecessor가 아니다.
+- S는 검색/단계 선택과 물류·Resource 조건에 관련된 고유 Milestone 표시 집합이다. 날짜순은 표시 순서이며 새로운 Dependency를 만들지 않는다.
+- F는 Project 전체를 기준으로 물류·Resource·수행 역할·등급·기간 조건을 적용한 일반 Task/개인 assignment 범위다. 기존 WBS scope는 적용하지 않는다. 검색과 `milestoneIds`는 S만 제한한다. 기간은 F만 제한한다.
+- 물류와 Resource 조건을 함께 적용할 때 S의 관련성도 **같은 일반 Task**가 두 조건의 non-date 교집합을 만족해야 한다. 한 member는 물류, 다른 member는 Resource 조건을 각각 만족하는 식으로 stage를 포함하지 않는다. 날짜는 계속 F-only이므로 S 관련성 계산에는 사용하지 않는다. Resource 조건이 없을 때 Milestone 자신의 기존 물류 match는 계속 S 관련성으로 인정한다.
+- 같은 Resource assignment 하나가 Resource/수행 역할/등급 조건을 모두 만족해야 Task가 일치한다. 서로 다른 담당자 둘의 속성을 조합하지 않는다. legacy 역할/등급은 UNSPECIFIED이며 글로벌 역할로 수행 역할을 추정하지 않는다.
+- 전체 E/P가 `rows.stageGate`와 소속 작업 진척의 authority다. `scopedTaskIds`와 `effort`는 F 표시다. 화면 밖 미완료 member/predecessor도 원인 ID에 남는다.
+
+### 지표와 분모
+
+`kpi.completion`은 S의 status=completed 수/전체 S 수이며 raw percent와 numerator/denominator/고유 ID 집합을 함께 제공한다. 완료된 단계의 현재 조건 불일치는 기존 `completionInconsistent` 진단이고 자동 재개하지 않는다. count KPI는 count와 해당 Milestone ID 배열을 반환한다.
+
+| 지표 | 서버 판정 |
+| --- | --- |
+| Ready | S 중 기존 stageGate.ready=true. member 0 수동 이벤트의 ready=null은 제외 |
+| Blocked | S 중 기존 stageGate.blocked=true. 직접 선행 미완료 ID는 전체 P에서 제공 |
+| Overdue | 미완료 M의 canonical start < asOfDate |
+| Upcoming | 미완료 M의 start가 asOfDate부터 horizonDays-1 calendar day까지 포함 |
+| At Risk | 미완료 M의 전체 E 중 status!=completed이고 canonical end > M.start인 Task 존재 |
+| Coverage | F 일반 Task 중 effective Milestone이 존재하는 수/F 일반 Task 수 |
+
+이 축은 중첩 가능하며 합산해 전체 수라고 표시하지 않는다. At Risk는 현재 계획 일정 불일치이며 실제 종료 이력/예측/CPM 위험이 아니다. `memberProgressPercent`는 기존 raw sum(duration×progress)/sum(duration)이며 Milestone 본인 progress와 별도다. DTO는 memberDurationSum/memberWeightedProgressSum을 함께 제공한다. 비율 분모0은 null, count0은 0이다. raw 값은 표시 시에만 반올림하며 반올림된 100%로 Ready를 판단하지 않는다.
+
+### 범위 공수와 물류 연결
+
+일반 Task의 개인 Resource assignment만 ID 기준 1회 계산한다. effective assignment 날짜는 명시 날짜 또는 Task 일정이고, 조회 기간과의 inclusive 교집합 근무일 수에 allocation/100을 곱한다. 기존 Project→Resource Group→Resource Calendar resolver를 사용하며 Group assignment, Summary/Milestone 담당 참조나 물류 역할은 공수를 만들지 않는다. allocation=null은 plannedMd=null/미설정 ID에 남고 100%로 추정하지 않는다. 근무일0도 설정된 공수0/Task Coverage로 보존한다.
+
+`effort.buckets`는 전체 F의 M bucket과 `milestoneTaskId=null` 미지정 bucket이다. S에 표시되지 않는 단계의 bucket도 남고 모든 bucket M/D 및 M/M 합은 동일 F Grand Total과 부동소수 계산 precision 안에서 일치한다. DTO는 raw 공수/환산값을 제공하며 UI 표시만 반올림한다. `rows(S)` 공수 합이 Grand Total이라는 계약은 없다. 모든 count, 미설정 count와 drill-down은 응답의 assignment/task/Milestone ID를 사용한다.
+
+물류 관련 M은 기존 물류 matcher에 M 자신이 일치하거나 전체 effective member 중 일치하는 Task가 있는 경우다. 기존 Logistics KPI/includedTaskIds/progress/plannedMd/기간 수치 범위는 유지하고 `milestoneStages`에 full-stage 진단을 추가한다. 다중 설비/시스템/그룹 연결은 M 및 assignment 개수를 중복시키지 않는다. Membership을 물류 연결/assignment로 복제하지 않는다.
+
+### 날짜·환산·갱신
+
+기본 기준일은 캡처한 현재 시각을 Project timezone `Asia/Seoul`로 해석한다. `timezone` 하나로 반환하며 브라우저 날짜/UTC 날짜로 대체하지 않는다. horizon은 1..90 calendar day, 기본14다. 지원 날짜 상한의 horizon은 ordinal 비교로 처리한다. 빈 Project의 workloadRange 기본 기준일은 조회용이며 canonical 일정에 저장하지 않는다. 현재 snapshot을 다른 날짜와 비교하는 기능이고 과거 실제 상태 복원이 아니다.
+
+M/M 기준은 명시 finite-positive query → 유효 `RESOURCE_MD_PER_MM` → null 순이다. HTTP `mdPerMm=null`과 programmatic null은 ENV를 무시한다. 빈/invalid query는400, invalid ENV는 null이다. DTO `mdPerMmSource=query|environment|unset`과 기준 숫자를 표시하고, `filters.mdPerMmProvided`가 query omission과 명시 null을 구분한다. 기존 Logistics의 20일 fallback과 invalid query 무시를 제거한 의미 변경이다. 기존 Resource workload의 ENV 기준과 M/D 산식은 유지한다.
+
+응답 `filters`는 trim된 search(대소문자 보존), unique/sort 배열, defaults 및 요청 날짜 omission=null을 echo한다. resolved asOfDate/workloadRange와 기준값은 별도 필드다. Project/Catalog revision, publicId, query echo, calculatedAt와 timezone을 검증한 현재 성공 응답만 UI에 채택한다. 요청마다 no-store 재계산하며 서버 cache/polling/job이 없다. 날짜 경계 및 visibility/focus 갱신, 요청 역전/실패/stale drill-down 처리는 [Project UX](PROJECT_UX.md)를 따른다.

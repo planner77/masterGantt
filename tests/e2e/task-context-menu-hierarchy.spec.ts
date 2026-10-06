@@ -21,7 +21,17 @@ async function openMenu(page: import("@playwright/test").Page, name: string) {
 }
 
 async function openMenuByTaskId(page: import("@playwright/test").Page, taskId: string) {
-  await rowByTaskId(page, taskId).click({ button: "right" });
+  const target = rowByTaskId(page, taskId);
+  const nameTarget = target.locator('[role="gridcell"][data-col-id=":text"] .wx-content > .wx-text').first();
+  // Keep the gesture on the canonical task-name hit area. Right-clicking the
+  // row's geometric center can land on app-owned controls (for example the
+  // child-add action), which are intentionally excluded from Task context
+  // resolution and vary with viewport geometry.
+  await nameTarget.scrollIntoViewIfNeeded();
+  await expect(nameTarget).toBeVisible();
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => resolve())));
+  await page.mouse.move(0, 0);
+  await nameTarget.click({ button: "right" });
   await expect(menu(page)).toBeVisible();
   return menu(page);
 }
@@ -370,6 +380,7 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
 
   await openMenuByTaskId(page, headerLeaf!.taskId);
+  await expect(rowByTaskId(page, headerLeaf!.taskId)).toHaveAttribute("data-copy-selected", "true");
   const milestoneSnapshot = await chooseSubmenu(page, "Convert to", "Milestone");
   expect(milestoneSnapshot.data.tasks.find((task) => task.taskId === headerLeaf!.taskId)?.type).toBe("milestone");
   const milestoneAdd = rowByTaskId(page, headerLeaf!.taskId).locator('[data-action="add-task"]');
