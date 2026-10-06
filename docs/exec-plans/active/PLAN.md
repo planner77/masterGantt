@@ -1,5 +1,9 @@
 # Active execution plan
 
+## Issue #453 → #454 → #455 관리자 작업면 개선 — 순차 구현·문서·PR CI 등록
+
+선행 #452가 포함된 최초 main `fd8fdc9e9207ab43a6fb7ff85b5a5acbe91d4553` / `0.86.0`에서 #453의 독립 리소스·그룹 탭 구현과 독립 UI/사전 QA를 마쳤다. 게시 직전 main이 `56e2e54f88ab9124ec81c52e157161181ed6c337`로 이동해 로컬 후보를 재정렬했으며 dependency 관련 최소 검증을 PASS했고 문서·독립 사전 검토를 갱신한다. Resource 제품 source는 동일하고 새 main의 운영 4파일과 source-map-js 1.2.2를 보존한다. branch는 `feat/issue-453-resource-tabs`, 후보 version은 `0.90.0`이며 [Issue #453 Work Packet](ISSUE_453.md)에 인수 기준·설계·소유권·실제 before/after 검증을 기록한다. 이후 #454 물류 목록 밀도·열 너비 → #455 기준정보 입력/목록을 선행 PR CI 등록 후 순차 진행한다. 원격 CI 결과 모니터링·병합·GHCR·정식 release·branch cleanup·Issue 종료는 요청 범위 밖이다. `release_required=true`, `release_authorized=false`; 공식 quality/e2e/docker와 최종 QA는 NOT TESTED다.
+
 ## Issue #460~#464 완료 단계 관리 — 순차 구현·문서 동기화·push·PR CI 시작
 
 현재 #460의 구현·문서 동기화·독립 사전 QA·게시와 [PR #468](https://github.com/planner77/masterGantt/pull/468)의 [CI 등록](https://github.com/planner77/masterGantt/actions/runs/37327951203)을 마쳤고 결과는 모니터링하지 않는다. #461 Editor의 구현·문서 동기화·관련 로컬 검증을 `feat/issue-461-stage-editor` / `0.86.0`에서 마치고 독립 UI 비교·사전 QA PASS로 PR_READY이며 [Issue #461 실행 계획](ISSUE_461.md)이 현재 Work Packet이다. 선행 #460과 최신 main `e812e56f45fc9d641ffcd80e49fb0deaf115b704`를 포함한 baseline은 `4b98dd44c44335ae64e65e43f1c64f5f1b3fa384`다. 후속 #462~#464와 CI 완료·최종 QA는 아직 NOT TESTED다.

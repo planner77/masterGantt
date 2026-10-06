@@ -113,7 +113,7 @@ QA/browser evidence에는 viewport, locale/timezone, long-content fixture, `scro
 
 ## Data-dense Management List / Pane Geometry 검토 기준 (Issue #426)
 
-Resource Catalog처럼 table이 아닌 관리 화면도 column budget과 같은 수준의 geometry 검토를 적용한다.
+이전 #426 Resource Catalog처럼 table이 아닌 관리 화면도 column budget과 같은 수준의 geometry 검토를 적용한다.
 
 - sibling pane의 bounding box가 겹치지 않는지와 각 pane의 usable width를 함께 확인한다. 정보량이 다른 pane은 50:50을 기본값으로 간주하지 않는다.
 - list row의 identity 영역이 profile/action의 intrinsic width 때문에 collapse하지 않는지 확인하고, profile·lifecycle·destructive action의 semantic boundary가 시각 순서와 keyboard Tab 순서에 일치해야 한다.
@@ -168,3 +168,14 @@ Readonly/completed lock은 후보 검색을 숨기거나 disable하지 않고 op
 Editable 검색 입력의 query와 별도 Membership 지정 값을 구분한다. query가 편집 가능하면 `aria-readonly`를 사용하지 않고 `aria-describedby`로 검색·조회 가능 및 소속 변경 잠금 안내를 연결한다. Option/action의 mutation 잠금은 유지한다. 소속 패널 검색 Enter는 입력 흐름 안에서 처리하며 pending에는 조회 필터도 disable한다. Geometry 증거는 표 header/body column 정렬, sibling cell/control 비중첩, tablist scrollHeight/clientHeight와 focus outline 경계, 긴 후보의 focused input/active option/listbox scroll owner 가시성을 함께 기록한다.
 
 Horizontal tablist에서 overflow-y를 숨길 때 공통 focus outline과 offset을 합친 공간을 block padding에 확보해 외곽선이 잘리지 않게 한다. #461 실제 geometry 검증은 3px outline+3px offset의 6px 공간과 내부 scroll 높이를 검사한다.
+
+
+## Issue #453 리소스 관리자 탭·표·모달 검증
+
+Resource Catalog는 #453부터 독립 tabpanel 안 native table을 사용한다. 이전 #426 두 pane 비율/stack 기준은 활성 panel의 전체 가용 폭·비활성 접근/focus 제외로 대체하며 역할·등급 독립, 사용 여부, 초안, footer 보호는 유지한다. 최소 table budget 976/800px과 identity 240px, header/body 동일 경계, 셀 안 전체 action control containment, sibling 비중첩을 측정한다. 의도된 표 가로 scroll과 document overflow를 구분하며 검색·상태 toolbar는 390px에서 reflow한다.
+
+생성/profile/폐기 확인은 app-owned native dialog 흐름이다. React autofocus만으로 showModal 후 focus를 주장하지 않고 실제 focused control을 검증한다. 초기 이름/등급/계속 편집, Escape와 계속 편집 후 복원, 명시 폐기 후 호출 버튼, 401 로그인 focus와 명시 초안 재진입을 확인한다. 공유 dialog primitive/API/auth를 바꾸지 않는다. pending 표시와 동기 handler guard, 명시 최신 GET과 자동 mutation 재시도 부재를 함께 검사한다.
+
+동일 긴 KO/EN fixture를 390/768/1024/1440/1920px 기본 100% zoom에서 before/after 비교한다. before production Resource TSX/CSS는 fd8fdc9e9207ab43a6fb7ff85b5a5acbe91d4553 기준이며 header version은 브랜치 준비값 0.90.0이다. application 전체 byte 동일 baseline이라고 주장하지 않는다. before부터 document overflow는 0이었으므로 after 표 소유 scroll은 이전 document overflow 수정으로 설명하지 않는다. 1920px에서 작업 면적은 max100rem shell의 가용 폭을 기준으로 측정한다. 실제 125% browser zoom을 실행하지 못하면 NOT TESTED와 사유를 남기며 DSF/CSS zoom을 대체 PASS로 사용하지 않는다.
+
+#453 pending native dialog는 disabled control에서 focus가 body로 빠지는 경우도 검증한다. 해당 모달에 focus를 두고 owned Escape capture로 반복 닫기 요청을 차단하며, Tab/ShiftTab·포인터 닫기·이중 제출·응답 이후 focus와 성공/실패 전환을 확인한다. 비pending Escape·탭 동작과 다른 화면은 가로채지 않는다. 원시 revision 번호는 표시하지 않으며 기존 If-Match 검증을 사용자용 최신 목록 안내와 구분한다.
