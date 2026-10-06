@@ -68,6 +68,7 @@ export function CountryCalendarAdmin(){
   const [datasetStatus,setDatasetStatus]=useState<CountryCalendarDatasetStatus>("UNAVAILABLE");
   const request=useRef<AbortController|null>(null);
   const fileReadGeneration=useRef(0);
+  const fileInputRef=useRef<HTMLInputElement|null>(null);
   const loginRef=useRef<HTMLInputElement|null>(null);
   const editTriggerRef=useRef<HTMLButtonElement|null>(null);
   const deleteTriggerRef=useRef<HTMLButtonElement|null>(null);
@@ -150,7 +151,7 @@ export function CountryCalendarAdmin(){
       });
       const value:unknown=await response.json().catch(()=>null);
       if(response.status===401){expire();return false;}
-      if(response.status===412){await load(controller);setError("다른 관리 변경이 먼저 저장되어 최신 데이터를 다시 불러왔습니다.");return false;}
+      if(response.status===412){setEditing(null);setDeleting(null);await load(controller);setError("다른 관리 변경이 먼저 저장되어 최신 데이터를 다시 불러왔습니다. 열린 편집 초안은 폐기되었습니다.");return false;}
       if(!response.ok||!validAdmin(value)){
         setError(response.status===409?"현재 dataset 상태와 충돌하여 변경할 수 없습니다. 공식 상태에는 source 정보와 최소 1개 날짜가 필요합니다.":"변경사항을 저장하지 못했습니다. 입력값과 중복 날짜를 확인해 주세요.");
         return false;
@@ -159,8 +160,8 @@ export function CountryCalendarAdmin(){
     }catch{if(!controller.signal.aborted)setError("변경 결과를 확인할 수 없습니다.");return false;}
     finally{end(controller);}
   }
-  function switchCountry(value:WorkCalendarCountryCode){setCountry(value);setPreview(null);void reload(value,year);}
-  function switchYear(value:number){setYear(value);setPreview(null);void reload(country,value);}
+  function switchCountry(value:WorkCalendarCountryCode){setCountry(value);setSnapshot(null);setPreview(null);setEditing(null);setDeleting(null);void reload(value,year);}
+  function switchYear(value:number){setYear(value);setSnapshot(null);setPreview(null);setEditing(null);setDeleting(null);void reload(country,value);}
 
   async function saveMetadata(event:FormEvent){
     event.preventDefault();
@@ -246,6 +247,7 @@ export function CountryCalendarAdmin(){
       if(!response.ok||!validAdmin(value)){setError("업로드 적용에 실패했습니다. 일부 데이터는 반영되지 않았습니다.");return;}
       const target=value.data.dataset;
       setCountry(target.countryCode);setYear(target.year);setSnapshot(value);syncMetadata(value);
+      fileReadGeneration.current+=1;if(fileInputRef.current)fileInputRef.current.value="";
       setPreview(null);setFile(null);setFileEnvelope(null);setNotice("공식 국가 캘린더 dataset을 적용했습니다.");
     }catch{if(!controller.signal.aborted)setError("업로드 적용 결과를 확인할 수 없습니다.");}
     finally{end(controller);}
@@ -305,7 +307,7 @@ export function CountryCalendarAdmin(){
     <section className={styles.importSection} aria-labelledby="import-title">
       <div><h2 id="import-title">파일 Import</h2><p>JSON canonical 또는 CSV 파일을 검증한 뒤 연도 dataset 전체를 원자적으로 교체합니다.</p></div>
       <div className={styles.importControls}>
-        <label className={styles.fileLabel}>파일<input type="file" accept=".json,.csv,application/json,text/csv" disabled={busy} onChange={event=>void chooseFile(event.target.files?.[0]??null)}/></label>
+        <label className={styles.fileLabel}>파일<input ref={fileInputRef} type="file" accept=".json,.csv,application/json,text/csv" disabled={busy} onChange={event=>void chooseFile(event.target.files?.[0]??null)}/></label>
         <button className="secondary-button" type="button" disabled={busy||!fileEnvelope} onClick={()=>void previewImport()}>업로드 전 검증</button>
       </div>
       {file?<p className={styles.muted}>{file.name} · {(file.size/1024).toFixed(1)} KiB</p>:null}
