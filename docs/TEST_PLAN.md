@@ -1690,3 +1690,14 @@ branch 정렬은 published PR history를 강제 재작성하지 않고 기존 fe
 - 정적 contract: `scripts/verify-issue-lifecycle.py`는 automatic Generic Finalizer와 Release Completion Resume 양쪽에 `actions: write`가 있는지 검사한다.
 - 보안 경계: Resume는 계속 trusted `main` checkout, source Release exact run ID/path/head SHA/success 검증, shared concurrency group을 유지한다. 다른 권한과 제품 source/API/DB/UI는 변경하지 않는다.
 - 복구 판정: corrective PR exact head의 policy/typecheck/lint/unit/build/E2E/Docker PASS를 공식 PR gate로 사용한다. 병합 후 기존 `v0.87.1` tag를 authority로 Release dispatch를 재개하며 새 tag/version을 만들지 않는다.
+
+
+## Issue #487 — 완료 단계 필터 End scroll E2E timing race
+
+Issue #454의 immutable `v0.90.1` GHCR Release Run #140.1 (`37434408238`)은 static quality와 Chromium shard 1/3/4/5/6을 PASS했지만 shard 2/6의 `tests/e2e/milestone-stage-grid.spec.ts`에서 `activeVisible === false`로 실패했다. 동일 exact merge SHA `0fc986cb0cb642bdbedeec30157b27bd522b5a38`의 Main CI Run #1942.1에서는 같은 case가 14.5초에 PASS했다.
+
+제품 `StageFilterPicker.move()`는 keyboard `End` 처리 시 `setActive()` 뒤 `requestAnimationFrame(...scrollIntoView())`로 active option을 list viewport에 보이게 한다. 기존 E2E는 `input.press("End")` 직후 geometry를 즉시 읽어 animation-frame scroll 완료보다 먼저 측정할 수 있었다. 이는 active option 가시성 기준 자체의 완화가 아니라 runner scheduling에 따른 비결정적 측정 순서다.
+
+보완은 static sleep을 사용하지 않는다. `.project-stage-filter-popup`에서 현재 `aria-activedescendant`가 실제 DOM에 존재하고 list viewport 안에 완전히 들어오며 `scrollTop > 0`인 observable postcondition을 `expect.poll(..., { timeout: 2000 })`로 기다린 다음, 기존 `activeVisible === true`, `listScroll > 0`, input focus/containment 및 5개 viewport geometry assertion을 그대로 수행한다. 실제 scroll이 발생하지 않으면 poll 또는 기존 assertion이 계속 실패한다.
+
+application source/API/DB/domain/version은 변경하지 않는다. 기존 `v0.90.1` annotated tag는 이동·덮어쓰기하지 않으며, 현재 Release Run #140은 실패 shard 재실행으로 복구한다. Issue #487의 별도 exact-head PR CI가 재발 방지 수정의 공식 검증이다.
