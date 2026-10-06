@@ -23,7 +23,7 @@ Resume workflow는 write 권한을 가지므로 triggering tag/manual ref의 rep
 
 ## Exact mapping
 
-`scripts/auto_release_finalizer.py`는 workflow가 시작될 때의 **현재 main snapshot**을 authority로 잡고 first-parent chain을 뒤로 탐색한다. 가장 가까운 완료 boundary(FINAL marker 또는 legacy closed Issue) 다음의 미완료 merge를 oldest → newest 순서로 처리한다.
+`scripts/auto_release_finalizer.py`는 workflow가 시작될 때의 **현재 main snapshot**을 authority로 잡고 first-parent chain을 뒤로 탐색한다. **exact target SHA의 FINAL marker만 강한 완료 boundary**로 사용하며, FINAL marker가 없는 closed Issue merge는 재오픈·branch cleanup·release/finalize mutation 대상에서 제외하되 first-parent 탐색은 계속한다. 따라서 이미 종료된 Issue를 참조한 후속 유지보수 merge가 더 오래된 미완료 lifecycle target을 가리지 않는다. 수집된 미완료 merge는 oldest → newest 순서로 처리한다.
 
 1. 각 merge commit과 연결된 PR 중 `merge_commit_sha == target SHA`, base=`main`, same repository, merged=true인 PR이 정확히 1개여야 한다.
 2. PR body에는 정확히 하나의 canonical `Refs #<Issue>` 줄이 있어야 한다.
