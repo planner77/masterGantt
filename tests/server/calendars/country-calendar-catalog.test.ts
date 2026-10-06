@@ -144,15 +144,27 @@ describe("Issue #342 country calendar catalog", () => {
     const added = service.addDate("CN", 2026, initial.data.revision, {
       date: "2026-12-20", name: "추가 검증일", dayType: "WORKING", sourceKey: "operator-test",
     });
-    expect(added.data.dataset.origin).toBe("OVERRIDE");
+    expect(added.data.dataset).toMatchObject({
+      origin: "OVERRIDE", status: "UNAVAILABLE", sourceVersion: null, sourceUrl: null,
+    });
+    expect(service.getEffectiveDataset("CN", 2026)).toBeUndefined();
+
     const updated = service.updateMetadata("CN", 2026, added.data.revision, {
       status: "OFFICIAL",
       sourceVersion: "CN-2026-operator-2",
       sourceUrl: "https://www.gov.cn/official-2026",
     });
     expect(updated.data.dataset).toMatchObject({
-      sourceVersion: "CN-2026-operator-2", sourceUrl: "https://www.gov.cn/official-2026",
+      status: "OFFICIAL", sourceVersion: "CN-2026-operator-2", sourceUrl: "https://www.gov.cn/official-2026",
     });
+
+    const edited = service.updateDate("CN", 2026, "2026-12-20", updated.data.revision, {
+      name: "수정 검증일",
+    });
+    expect(edited.data.dataset).toMatchObject({
+      status: "UNAVAILABLE", sourceVersion: null, sourceUrl: null,
+    });
+    expect(service.getEffectiveDataset("CN", 2026)).toBeUndefined();
   });
 
   it("requires complete source metadata and at least one date before an empty slot becomes OFFICIAL", () => {
