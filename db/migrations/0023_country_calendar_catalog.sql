@@ -1,11 +1,12 @@
 CREATE TABLE country_calendar_catalog_state (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   revision INTEGER NOT NULL CHECK (revision >= 1),
+  preview_secret BLOB NOT NULL CHECK (length(preview_secret) = 32),
   updated_at TEXT NOT NULL CHECK (length(updated_at) > 0)
 ) STRICT;
 
-INSERT INTO country_calendar_catalog_state (id, revision, updated_at)
-VALUES (1, 1, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
+INSERT INTO country_calendar_catalog_state (id, revision, preview_secret, updated_at)
+VALUES (1, 1, randomblob(32), strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
 
 CREATE TABLE country_calendar_datasets (
   id INTEGER PRIMARY KEY,
