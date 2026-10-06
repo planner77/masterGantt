@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { inflateRawSync } from "node:zlib";
 import { afterEach, describe, expect, it } from "vitest";
+import type { ProjectExcelExportRequest } from "../../../src/contracts/project-excel-export";
 import type { CreateTaskRequest, ProjectTaskDto } from "../../../src/contracts/projects";
 import { openDatabase } from "../../../src/server/db/core";
 import { TaskFieldProjectService } from "../../../src/server/projects/task-field-project-service";
@@ -14,6 +16,7 @@ import { ProjectTemplateService } from "../../../src/server/templates/project-te
 import { ScheduleRepository } from "../../../src/server/repositories/schedule-repository-core";
 import { MilestoneMembershipRepository } from "../../../src/server/repositories/milestone-membership-repository-core";
 import { handleMilestoneMembershipCommand, handleUnavailableProjectImport, handleUpdateTask } from "../../../src/server/projects/task-handlers-core";
+import { ProjectExportSnapshotService } from "../../../src/server/exports/project-export-snapshot-service-core";
 import { buildProjectExcelWorkbook } from "../../../src/server/exports/project-excel-export-core";
 import { RevisionMismatchError, EditSessionInvalidError } from "../../../src/server/projects/project-service-core";
 
@@ -198,17 +201,58 @@ describe("milestone SQLite/API stage contract", () => {
     expect(f.links.update(f.authorization, f.revision(), legacy.publicId, { type: "FS", lag: 1 }).data.links[0].legacyMixed).toBe(true);
     expect(f.links.delete(f.authorization, f.revision(), legacy.publicId).data.links).toHaveLength(0);
   });
-  it("no-loss guards Copy, Template, Excel and affected subtree before success; no-membership paths work", async () => {
-    const f = await fixture(), m = f.add("M", "milestone"), s = f.add("S", "summary"), t = f.add("T", "task", s.taskId), target = f.add("Target", "summary"); f.assign(s, m); const before = f.state();
-    const copy = new ProjectCopyService(f.db, { clock, hashPassword });
-    await expect(copy.copy(f.authorization, f.revision(), { name: "Copy", description: "", editPassword: "test" })).rejects.toThrow("MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE");
-    expect(() => new ProjectTemplateService(f.db, { clock, hashPassword }).createTemplateFromProject(f.authorization, f.revision(), { name: "Template", description: "" })).toThrow("MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE");
-    expect(() => f.hierarchy.execute(f.authorization, f.revision(), { kind: "copy", taskId: t.taskId, anchorTaskId: target.taskId, placement: "child" })).toThrow("MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE");
-    expect(() => buildProjectExcelWorkbook(f.snapshot(), { includeDependencies: false, scope: "project", scale: "day", hierarchyDisplay: "expanded", layout: { columns: [{ id: "text", widthPx: 200 }] } })).toThrow("MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE"); expect(f.state()).toEqual(before);
-    expect(f.db.prepare("SELECT count(*) FROM projects").pluck().get()).toBe(1); expect(f.db.prepare("SELECT count(*) FROM project_templates").pluck().get()).toBe(0);
-    f.assign(s, null);
-    const copied = await copy.copy(f.authorization, f.revision(), { name: "Copy", description: "", editPassword: "test" }); expect(copied.response.data.tasks.every((task) => task.membership?.effectiveMilestoneTaskId === null)).toBe(true);
-    expect(new ProjectTemplateService(f.db, { clock, hashPassword }).createTemplateFromProject(f.authorization, f.revision(), { name: "Template", description: "" }).taskCount).toBe(3);
+  it("preserves whole Copy/Template memberships and requires review before external subtree exclusions", async () => {
+    const f = await fixture(), m = f.add("M", "milestone"), s = f.add("S", "summary"), t = f.add("T", "task", s.taskId), target = f.add("Target", "summary"); f.assign(s, m);
+    const source = f.snapshot(), copy = new ProjectCopyService(f.db, { clock, hashPassword });
+    const copied = await copy.copy(f.authorization, f.revision(), { name: "Copy", description: "", editPassword: "test" });
+    const rows = new Map(copied.response.data.tasks.map((task) => [task.externalId, task]));
+    expect(rows.get("S")?.membership?.explicitMilestoneTaskId).toBe(rows.get("M")?.taskId);
+    expect(rows.get("T")?.membership).toMatchObject({ explicitMilestoneTaskId: null, effectiveMilestoneTaskId: rows.get("M")!.taskId, inheritedFromTaskId: rows.get("S")!.taskId });
+    expect(f.snapshot()).toEqual(source);
+    const templates = new ProjectTemplateService(f.db, { clock, hashPassword });
+    const saved = templates.createTemplateFromProject(f.authorization, f.revision(), { name: "Template", description: "" });
+    const instantiated = await templates.instantiateProject(saved.id, { name: "Template copy", ownerName: "owner", editPassword: "test", projectStartDate: "2026-11-02" });
+    const templateRows = new Map(instantiated.response.data.tasks.map((task) => [task.externalId, task]));
+    expect(templateRows.get("S")?.membership?.explicitMilestoneTaskId).toBe(templateRows.get("M")?.taskId);
+    expect(templateRows.get("T")?.membership?.effectiveMilestoneTaskId).toBe(templateRows.get("M")?.taskId);
+    expect(templateRows.get("M")?.status).toBe("not_started"); expect(f.snapshot()).toEqual(source);
+    const before = f.state();
+    expect(() => f.hierarchy.execute(f.authorization, f.revision(), { kind: "copy", taskId: t.taskId, anchorTaskId: target.taskId, placement: "child" })).toThrow("TASK_COPY_MEMBERSHIP_REVIEW_REQUIRED");
+    expect(f.state()).toEqual(before);
+    const response = f.hierarchy.execute(f.authorization, f.revision(), { kind: "copy", taskId: t.taskId, anchorTaskId: target.taskId, placement: "child", acknowledgedMembershipExclusions: true });
+    const newTask = response.data.tasks.find((task) => !source.data.tasks.some((original) => original.taskId === task.taskId))!;
+    expect(newTask.membership).toEqual({ explicitMilestoneTaskId: null, effectiveMilestoneTaskId: null, inheritedFromTaskId: null });
+    expect(response.data.project.revision).toBe(source.data.project.revision + 1);
+  });
+  it("Excel preserves the matching typed stage snapshot and fails wholly for missing or stale stage data", async () => {
+    const f = await fixture(), m = f.add("M", "milestone"), s = f.add("S", "summary"), t = f.add("T", "task", s.taskId); f.assign(s, m); const before = f.state();
+    const bundle = new ProjectExportSnapshotService(f.db, { clock }).get(f.publicId)!;
+    const request: ProjectExcelExportRequest = { includeDependencies: false, scope: "project", scale: "day", hierarchyDisplay: "expanded", layout: { columns: [{ id: "text", widthPx: 200 }] } };
+    expect(() => buildProjectExcelWorkbook(bundle.snapshot, request)).toThrow("Milestone stage summary must be supplied for this snapshot.");
+    const workbook = Buffer.from(buildProjectExcelWorkbook(bundle.snapshot, request, undefined, bundle.stageDashboard));
+    const entries = new Map<string, string>(); let offset = 0;
+    while (offset + 30 <= workbook.length && workbook.readUInt32LE(offset) === 0x04034b50) {
+      const size = workbook.readUInt32LE(offset + 18), nameSize = workbook.readUInt16LE(offset + 26), extraSize = workbook.readUInt16LE(offset + 28);
+      const start = offset + 30 + nameSize + extraSize;
+      entries.set(workbook.toString("utf8", offset + 30, offset + 30 + nameSize), inflateRawSync(workbook.subarray(start, start + size)).toString("utf8"));
+      offset = start + size;
+    }
+    const metadata = entries.get("xl/workbook.xml")!;
+    const sheet = (name: string) => {
+      const sheetId = metadata.match(new RegExp(`name="${name}" sheetId="(\\d+)"`))![1];
+      return entries.get(`xl/worksheets/sheet${sheetId}.xml`)!;
+    };
+    expect(metadata).toContain('name="Milestone Stages"'); expect(metadata).not.toContain('name="Dependencies"');
+    const tasks = sheet("Tasks"), stages = sheet("Milestone Stages");
+    expect(tasks).toContain("명시 단계 외부 ID"); expect(tasks).toContain("유효 단계 외부 ID(파생)"); expect(tasks).toContain("상속 출처 외부 ID(파생)");
+    const leafRow = tasks.match(/<row[^>]*>[^]*?<\/row>/g)!.find((row) => row.includes(t.taskId))!;
+    expect(leafRow).toContain(m.taskId); expect(leafRow).toContain(s.taskId);
+    expect(stages).toContain(m.taskId); expect(stages).toContain(t.taskId); expect(stages).toContain("stage.member");
+    expect(bundle.stageDashboard.rows.find((row) => row.milestoneTaskId === m.taskId)?.stageGate).toEqual(bundle.snapshot.data.tasks.find((task) => task.taskId === m.taskId)?.stageGate);
+    const stale = structuredClone(bundle.stageDashboard); stale.projectRevision--;
+    expect(() => buildProjectExcelWorkbook(bundle.snapshot, request, undefined, stale)).toThrow("Milestone stage report must match the full exported Project snapshot and catalog revision.");
+    expect(f.state()).toEqual(before); expect(f.snapshot()).toEqual(bundle.snapshot);
+    expect(f.snapshot().data.tasks.find((task) => task.taskId === t.taskId)?.membership?.effectiveMilestoneTaskId).toBe(m.taskId);
   });
   it("disabled Import honors Origin/session/If-Match and never claims success or writes", async () => {
     const f = await fixture(), before = f.state();

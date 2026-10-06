@@ -173,7 +173,7 @@ Horizontal tablist에서 overflow-y를 숨길 때 공통 focus outline과 offset
 
 단계 popup은 전체/미지정/검색 가능한 Milestone을 제공하고 canonical 적용 예정일→외부 ID→작업 ID로 정렬한다. 후보에 외부 ID/작업 ID/적용 예정일/요청일 라벨을 분리한다. combobox는 Arrow/Home/End active option·Enter 선택·Escape popup 닫기·Tab 이동을 지원하고 active option을 listbox의 scroll owner 안에 보이게 한다. 선택/Escape는 trigger.focus({preventScroll:true})로 복원한다. 좁은 toolbar는 기존 grid에 별도 단계 행을 배치하며 전체 이름은 focus 가능한 동일 Editor 조회로 제공한다. readonly에서도 조회하며 pending 셀/메뉴의 disabled와 handler 차단이 일치해야 한다.
 
-Grid 단계 열은 기본 숨김 180px이며 기존 width/flex·내부 scroll budget을 보존한다. geometry는 390/768/1024/1440/1920px에서 toolbar 모든 control 경계·비중첩, popup/input/active option owner bounds, header/body 열 정렬, 표 모든 버튼과 소유 셀 경계·포커스를 측정한다. 스크린샷만으로 keyboard/권한/state PASS를 대신하지 않는다.
+Grid 단계 열은 기본 숨김 180px이며 기존 width/flex·내부 scroll budget을 보존한다. geometry는 Copy/Import의 고정 헤더·action과 내부 body 세로 스크롤을 유지하고 390/768/1024/1440/1920px에서 toolbar 모든 control 경계·비중첩, popup/input/active option owner bounds, header/body 열 정렬, 표 모든 버튼과 소유 셀 경계·포커스를 측정한다. 스크린샷만으로 keyboard/권한/state PASS를 대신하지 않는다.
 
 2026-10-06 SVAR 공식 [filter-tasks](https://docs.svar.dev/react/gantt/api/actions/filter-tasks/), [filtering](https://docs.svar.dev/react/gantt/guides/data-operations/filtering/), [links](https://docs.svar.dev/react/gantt/api/properties/links/) 문서를 조회했다. 설치 Core 2.7.3의 DataStore source map에서 filterTree(filter, open ?? true)를 확인하고 기존 공개 action에 open:false를 명시하여 tree-preserve를 검증한다. 최신 문서 조회와 실제 설치 Core browser 조작 증거는 별도로 기록하며 PRO helper는 도입하지 않는다.
 
@@ -192,3 +192,23 @@ Grid 단계 열은 기본 숨김 180px이며 기존 width/flex·내부 scroll bu
 변경 전 재현 근거는 baseline `603cd029d279ddc5b70309786abf8876b6bd1692`의 `src/features/projects/project-readonly-view.tsx`다. 해당 source의 일정 영역에는 Gantt만 있고 완료 단계 Dashboard peer가 없다. baseline에서 Project 직접 링크를 열어 일정 탭을 선택하는 절차와 변경 후 peer 선택 절차를 비교한다. 변경 전 실제 캡처는 수행하지 않았으며 source 비교를 실제 browser PASS로 표시하지 않는다. geometry는 실제 표시되는 control만 집계하고 닫힌 details 자식의 캐시 bounding rect는 `checkVisibility()`로 제외한다.
 
 공용 단계 popup은 anchor와 현재 viewport의 실제 여유를 계산한다. 검색·border·padding·list margin을 포함한 chrome 높이를 실측해 list max-height를 제한하고 아래 공간이 부족하면 위로 배치한다. 가로 경계는 viewport 안으로 clamp하며 열린 상태의 viewport resize와 외부 scroll에서 다시 배치한다. 내부 list scroll은 owner 안에서 유지하고 End active option과 Escape trigger focus 복원을 검증한다.
+
+## Issue #464 교환·Copy 확인 interaction
+
+Copy 영향 확인은 기존 Task 메뉴와 키보드 Paste의 공통 Workspace dispatch에 둔다. 영향 표는 제외 explicit row 수와 변화 Task/Summary 수를 별도로 표시하고, 기존 target과 복제 예정 target(원본 ID)을 구별한다. 검토 revision/command가 바뀌면 기존 동의는 사용할 수 없다. 완료 잠금·권한·서버 validation 실패는 확인으로 우회하지 않는다. native fullscreen host를 기존 portal 패턴으로 관측해 fullscreen 안에서도 dialog와 초기 취소 focus가 보이도록 한다. 취소는 저장하지 않고 호출 목적지로 `preventScroll` focus를 복원한다.
+
+Import preview는 조회 중 취소·abort를 허용하고 generation이 다른 늦은 응답을 적용하지 않는다. commit은 동일 File·대상·preview revision/digest로만 실행하고, 동기 pending guard와 실제 disabled/닫기/Escape가 일치해야 한다. 401/412/네트워크 실패에는 File을 보존하되 이전 preview로 자동 재저장하지 않는다. 조회·검토와 DB commit의 상태 문구를 분리한다. JSON Export의 legacy mixed 안내도 실제 다운로드에 사용할 최신 snapshot revision에 연결한다.
+
+새 표의 수치·범위는 서버 DTO를 표시하며 클라이언트에서 effective membership/Ready/공수 계산을 재구현하지 않는다. Copy 표 720px, Import 표 960px 최소폭과 `min(360px,40dvh)` 표 내부 세로 budget을 사용한다. Copy/Import의 고정 헤더·action과 내부 body 세로 스크롤을 유지하고 390/768/1024/1440/1920px에서 문서 overflow 0, 표 자체 가로 스크롤, header/body 정렬, 표시되는 모든 control의 cell/owner containment와 비중첩, focus outline 및 native dialog keyboard 경계를 실제 측정한다. 닫힌 details·inert·비표시 자식은 표시 control로 세지 않는다. 변경 전 실제 캡처와 변경 후 실제 증거, mock과 실제 SQLite, 로컬 LFF와 원격 CI는 각각 구분한다. 설치 SVAR Core 2.7.3의 Task/canonical/viewport 계약은 유지하고 PRO 교환 UI나 새 Gantt 엔진을 복제하지 않는다.
+
+Import 412에서는 파일과 dialog를 유지한 채 `최신 일정 조회`로 전체 canonical snapshot을 명시적으로 조회한다. 이 GET은 Workspace ready 상태를 유지하고 dialog를 unmount하지 않는다. 기존 preview를 무효화한 뒤 새 revision이 표시되면 사용자가 `다시 미리보기`와 `기존 일정에 추가`를 각각 실행한다. 자동 preview/commit은 없다. 최신 조회도 취소·target/generation·AbortSignal을 검사하며, 취소하거나 프로젝트가 바뀐 뒤 도착한 응답은 parent snapshot 적용 전에 폐기한다. 조회 실패에는 File을 유지하고 명시적 재조회만 허용한다.
+
+#464의 변경 후 Chromium 증거는 `output/playwright/issue-464/`의 Copy·Import·Excel·JSON별 390/768/1024/1440/1920px PNG 20개와 geometry JSON 20개다. 2026-10-06 마지막 영향 검증은 Import 기존 2개·412 최신 조회 복구 2개·5폭 geometry·SVG/PNG/Excel·다중 Copy canonical·pending Copy 412의 8개를 실행해 PASS했다. 이전 source와 무관한 Copy fullscreen·JSON 최신 revision·외부 revision·완료 경계·Editor 리뷰 2개는 재사용하여 고유 14개 범위를 검증했다. 단일 실행의 14 PASS나 원격 전체 회귀 PASS로 해석하지 않는다. 최초 테스트 메뉴/문구 선택 실패와 별도로, Manager가 발견한 Import 412 최신 조회 수단 누락은 제품 보완 사항으로 기록한다. 실제 SQLite 통합·독립 QA·원격 CI 및 실제 기기/스크린리더 결과는 [테스트 계획](TEST_PLAN.md)에서 별도로 확인한다.
+
+작업 메뉴를 열기 위한 미선택 행 선택은 공개 `select-task`의 `show:false`로 Core에 반영한다. 이미 보이는 호출 대상의 위치를 선택 직후 자동으로 이동시키지 않으며, 일반 클릭·키보드 선택의 기존 reveal 및 modifier/multi-selection은 유지한다. 메뉴가 열린 뒤 실제 사용자 스크롤·resize에는 기존 guard가 즉시 메뉴를 닫고, 같은 위치의 지연 scroll 알림은 무시한다. 설치 Core 2.7.3 타입과 [공식 select-task action](https://docs.svar.dev/react/gantt/api/actions/select-task/)의 show 기본 true/false 계약을 2026-10-06 확인했다. 하단 가상 행의 미선택 namecell 우클릭과 native/public 수직 위치 보존은 `tests/e2e/task-context-menu-scroll.spec.ts`에서 검증하며, 문서 확인과 실제 browser 결과를 구분한다.
+
+2026-10-06 context 선택 수정 후 좁은 Chromium 4개(하단 가상 행 미선택 우클릭, 화면 밖 Chart 우클릭/실제 스크롤 닫힘, 다중 Copy canonical, pending Copy 412)는 같은 source에서 PASS했다. 하단 이름 셀 우클릭 후 native/public top192와 소유/Core 선택을 유지하고 Copy 조회에 POST를 만들지 않았다. 실제 이후 스크롤은 메뉴를 닫는다. 기존 40개 화면/geometry는 layout 변경이 없어 재사용하며 실제 #464 통합 fixture와 원격/독립 QA 결과는 별도로 판정한다.
+
+Context 선택은 기존 Copy 완료 feedback도 보존한다. 미선택 목적지 우클릭 직후 조건부 feedback 줄을 제거하면 Gantt 높이가 바뀌고 scrollIntoView된 Grid 조상의 위치가 clamp되어 새 메뉴가 닫힐 수 있기 때문이다. 메시지는 clipboard의 복사 결과를 계속 설명하며 일반 클릭·키보드·modifier 선택의 기존 메시지 정리는 유지한다. Copy→더 아래 목적지 이름 셀 우클릭→활성 Paste 위치 submenu→소속 영향 확인·취소의 실제 경로를 검증하며 clipboard/revision 조건이나 실제 사용자 scroll 닫힘을 완화하지 않는다.
+
+Copy feedback 보존 보강 후 같은 좁은 Chromium 4개를 다시 실행해 PASS했다. 확장된 하단 가상 행 회귀는 Copy→한 행 아래 미선택 목적지의 실제 scrollIntoView/이름 셀 우클릭→활성 Paste/Below→소속 영향 확인·취소까지 도달했다. 우클릭 전후 Grid 조상 위치와 Gantt 높이, native/public top192를 유지하고 DB mutation은 0회다. 실제 사용자 이후 스크롤 닫힘과 기존 다중 Copy/pending412도 유지했다. 원본 actual 통합 테스트의 수정 후 결과는 별도 근거다.

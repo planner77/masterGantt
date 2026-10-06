@@ -1091,6 +1091,29 @@ test("#461 batch 412·network 실패 검색/선택/초안 보존과 pending 중 
   await expect(dialog).toContainText("네트워크 연결"); await expect(query).toHaveValue("Beta"); await expect(dialog).toContainText("변경 예정: 직접 지정 1"); expect(calls).toBe(2);
 });
 
+test("#461 Resource 신규 선택 해제는 잔여 draft로 dirty를 유지하지 않는다", async ({ page }) => {
+  const fixture = await setup(page, { assignmentTargets: true }); await openRow(page);
+  const dialog = editor(page); await dialog.getByRole("tab", { name: /리소스/ }).click();
+  const resource = dialog.getByRole("checkbox", { name: /Resource A/ }); await resource.check();
+  await dialog.getByLabel(/Resource A.*수행 역할/).selectOption("DEVELOPER"); await dialog.getByLabel(/Resource A.*투입률/).fill("60");
+  await resource.uncheck(); await expect(resource).not.toBeChecked();
+  await dialog.getByRole("button", { name: "작업 편집기 닫기" }).click();
+  await expect(dialog).toHaveCount(0); expect(fixture.assignmentMutations).toHaveLength(0);
+});
+
+test("#461 reload 후 작업 유형이 바뀌면 유효하지 않은 소속 작업 탭을 정규화한다", async ({ page }) => {
+  const fixture = await setup(page); await openRow(page, "Milestone");
+  const dialog = editor(page); await dialog.getByRole("tab", { name: /소속 작업/ }).click();
+  const milestone = fixture.tasks.find((task) => task.taskId === id(5))!;
+  milestone.type = "task"; milestone.duration = 1; milestone.stageGate = undefined; fixture.project.revision += 1;
+  await page.evaluate(({ publicId, revision }) => window.dispatchEvent(new StorageEvent("storage", { key: `mastergantt:project-revision:${publicId}`, newValue: String(revision) })), { publicId, revision: fixture.project.revision });
+  await expect(dialog).toContainText("작업 유형이 변경되었습니다");
+  await dialog.getByRole("button", { name: "최신 정보 다시 불러오기" }).click();
+  await expect(dialog.getByRole("tab", { name: /소속 작업/ })).toHaveCount(0);
+  await expect(dialog.getByRole("tab", { name: "작업 정보", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(dialog.getByLabel("작업명", { exact: true })).toHaveValue("Milestone");
+});
+
 test("#461 Resource 외부 revision·401에서도 초안 유지, 확인 focus와 저장 잠금", async ({ page }) => {
   const fixture = await setup(page, { assignmentTargets: true }); await openRow(page);
   const dialog = editor(page); await dialog.getByRole("tab", { name: /리소스/ }).click();

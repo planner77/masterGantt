@@ -7,6 +7,19 @@
 Membership은 Dependency나 WBS reparent가 아니다. Task/Summary의 명시 소속과 Summary 상속, Ready/완료 조건은 [Stage Gates](MILESTONE_STAGE_GATES.md)를 따른다. 아래 과거 Leaf Task/Milestone 혼합 후보와 Summary name-only 설명은 당시 범위이며 현재 Summary PATCH는 name/Membership만 원자 편집할 수 있다. #461의 Editor 후보 UI는 별도 단계다.
 
 
+
+## Issue #464 — Subtree Copy 소속 경계와 Cut
+
+Copy의 정규화 root+descendant union C에 대해 Dependency와 Membership을 각각 처리한다. Dependency는 기존처럼 양 endpoint가 C 안인 Link만 새 ID로 복제한다. Membership은 member Task/Summary와 target M가 모두 C 안이면 새 FK로 remap한다. member만 C 안이면 외부 target의 명시 row를 복제하지 않고, target만 C 안이면 외부 member를 복사본 M에 연결하지 않는다. 외부 Summary에서 받은 상속을 새 explicit 설정으로 생성하지 않는다.
+
+`membership-copy-plan.ts`는 UI/서버가 함께 사용하는 순수 영향 계획이다. 현재 canonical full snapshot과 source IDs·anchor·placement에서 C와 destination hierarchy를 정하고 새 effective/상속 출처를 계산한다. 명시 제외 row 수와 영향을 받은 descendant 수는 다르므로 각각 표시한다. 외부 명시 제외, 외부 상속의 소속/출처 변화, 미지정→destination 상속 같은 변화는 mutation 전에 확인한다. 같은 target M여도 상속 출처가 달라지면 확인한다. 완전한 내부 remap은 이 손실 확인 대상이 아니다. 새 복제 예정 M/Summary 참조는 `copiedFromMilestoneTaskId`/`copiedFromSummaryTaskId`로 기존 Task ID와 구분한다. canonical 소속 projection 누락은 미지정으로 추정하지 않고 fail-closed한다.
+
+copy-only optional boolean `acknowledgedMembershipExclusions`는 위 소속 변화 전부를 확인했다는 뜻이다. omission/false에서 확인이 필요하면 서버가 `TASK_COPY_MEMBERSHIP_REVIEW_REQUIRED`로 전체 거부한다. 서버는 동일 revision의 transaction 안에서 계획을 다시 계산하며 boolean이 권한·완료 잠금·Assignment 제한을 우회하지 않는다. UI에서 revision/source/destination이 바뀌면 확인 내용은 무효다. menu와 keyboard Paste는 공통 확인 경로를 사용한다.
+
+C에 completed M가 포함되면 전체 E, M를 참조하는 모든 explicit source 및 모든 incident Link의 endpoint가 C 안이어야 한다. 실제 복사본 E/P/명시 source/incident Link를 원본으로 역매핑하여 동일성을 검사하며 손실은 `COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED`로 거부한다. 완전 보존된 서버 소유 완료 기록만 기존 상태/불일치 진단을 유지한다. status를 자동 reset하거나 외부 JSON을 trusted Copy로 취급하지 않는다. 기존 completed destination에 일반 구성원을 추가하는 구조 변경은 항상 잠긴다. 상속만 받는 빈 Summary 추가는 E/명시 row 변화가 없으면 이 잠금 대상이 아니지만 상속 변화 확인은 필요할 수 있다.
+
+Cut/reparent는 동일 Task identity·명시 FK를 유지한다. inherited old/new target 변경에는 기존 완료 구조 잠금이 적용되고 Dependency boundary guard도 유지한다. 원본 baseline은 불변이며 subtree 복사본 baseline은 기존 null 정책이다. Resource Assignment를 포함한 subtree Copy는 계속 거부한다. 모든 성공은 기존 canonical snapshot과 revision+1이고 실패는 전체 rollback한다.
+
 ## Issue #430 — Cut/Reparent의 Dependency 경계
 
 Cut source Task/Summary와 모든 descendants를 하나의 이동 집합 `C`로 본다. Link 처리 기준은 관계 존재 자체가 아니라 `C` 경계 통과 여부다.

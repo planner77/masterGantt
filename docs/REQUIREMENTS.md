@@ -2,7 +2,16 @@
 
 ## Issue #460 — 단계 소속과 Milestone Gate
 
-기존 Milestone identity에 Task/Summary 단일 명시 소속과 가장 가까운 Summary 상속을 추가한다. Ready는 duration 가중 작업 진척 및 canonical 완료 상태/직접 선행 Milestone 조건과 구분하고 자동 완료하지 않는다. 완료 단계의 명시·상속 소속 및 Dependency 구조는 서버 transaction에서 잠근다. Summary는 name/Membership 원자 PATCH만 확장하고 일정 readonly를 유지한다. 신규 mixed Dependency는 거부하며 기존 mixed는 조회·일정·무관 편집·endpoint 불변 수정에서 보존한다. 미지원 Copy/Template/Excel 보존 경로는 Membership 보유 데이터에 한해 명시적 no-loss 오류를 반환한다. 실제 JSON Import 저장 구현은 부재이며 고정 성공 응답을 501 unavailable로 교체한다. 상세 계약과 경로 inventory는 [MILESTONE_STAGE_GATES](MILESTONE_STAGE_GATES.md)를 따른다.
+기존 Milestone identity에 Task/Summary 단일 명시 소속과 가장 가까운 Summary 상속을 추가한다. Ready는 duration 가중 작업 진척 및 canonical 완료 상태/직접 선행 Milestone 조건과 구분하고 자동 완료하지 않는다. 완료 단계의 명시·상속 소속 및 Dependency 구조는 서버 transaction에서 잠근다. Summary는 name/Membership 원자 PATCH만 확장하고 일정 readonly를 유지한다. 신규 mixed Dependency는 거부하며 기존 mixed는 조회·일정·무관 편집·endpoint 불변 수정에서 보존한다. Issue #464에서 전체 Copy/Template/subtree의 명시 row와 상속 의미를 보존하고 Excel 단계 보고 및 JSON1.1 보호 Import/Export를 연결한다. 미지원·완료 경계는 fail-closed로 전체 거부한다. 상세 계약과 경로 inventory는 [MILESTONE_STAGE_GATES](MILESTONE_STAGE_GATES.md)를 따른다.
+
+
+## Issue #464 — 단계 데이터 보존과 교환
+
+전체 Project Copy와 Template은 모든 explicit membership FK를 새 Task UUID로 remap하고 source를 변경하지 않는다. Template은 이전 snapshot membership omission을 호환하며 leaf/M progress0/not_started를 유지한다. subtree/multi-root Copy는 외부 explicit 제외와 외부 상속/새 destination effective 변화에 사용자 확인을 요구한다. 내부 완전 remap에는 제외 확인이 필요하지 않다. Completed Milestone 복사본은 전체 E/explicit source/incident Dependency endpoint와 역매핑 동일성이 유지되어야 하며 ack로 우회할 수 없다. 기존 Copy Assignment·5000 Task 상한,404/revision/구조 잠금과 원본 Baseline 불변·복사본 Baseline 초기화는 유지한다. Cut은 기존 identity와 row를 이동하고 상속 변화를 재파생한다.
+
+JSON1.1은 taskExternalId/milestoneExternalId 명시 membership, requestedStart/status/description/URL/leaf Baseline와 정보용 source metadata를 제공한다. Summary/Ready/effective/KPI는 서버 파생이며 입력으로 받지 않는다. JSON1.0 순수 validator와 machine schema는 유지한다. Export는 빈 Project와 기존 mixed Link를 모두 표현하지만 새 Import의 mixed는 전체 거부한다. Import는 target Calendar authority, create-only·전체 rollback·새 UUID·revision+1·Origin/session/preview digest/strong revision 재검증을 요구한다. 파일5 MiB/JSON syntax depth64/Task5000/Link20000 및 UTF-8/decoded duplicate key/multipart 전체 검증은 서버에서 수행한다. Resource/물류/권한 데이터와 새 Direct Hyperlink는 이번 교환 범위 밖이다.
+
+Excel은 현재 Dashboard filter와 별개인 full Project 기본 Stage DTO를 같은 SQLite read snapshot/revision/catalog/clock에서 받아 원시 E/P·Ready/KPI·공수와 null/M/M 기준을 보고한다. explicit/effective/inherited source 식별자는 Dependency 옵션과 독립해 Tasks에 표시하고 대량 UUID는 하나씩 행으로 기록한다. 기존 cell32767/Stage50000행 한도를 넘으면 전체 거부하며 생략/절삭하지 않는다. workbook은 JSON schedule-stage 파일이나 DB 전체 백업과 구분한다. 상세 [Import 계약](IMPORT_SCHEMA.md), [Excel](EXCEL_EXPORT.md), [API](API.md), [보안](SECURITY.md), [검증](TEST_PLAN.md)을 따른다.
 
 
 ## Issue #430 — Cut/Reparent Dependency 경계 정책

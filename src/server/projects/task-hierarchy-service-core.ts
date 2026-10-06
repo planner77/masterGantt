@@ -1,4 +1,7 @@
-import { assertMembershipTaskTypeChange, assertMembershipPreservationAvailable, assertStageMutation, readStageSnapshot, withStageProjection } from "./milestone-stage-core";
+import { planMembershipCopy, trustedCopyCompletionBaseline } from "../../domain/milestones/membership-copy-plan";
+import { assertStageStructureChange, assertMilestoneCompletionTransitions, StageGateError } from "../../domain/milestones/stage-gates";
+import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
+import { assertMembershipTaskTypeChange, assertStageMutation, readStageSnapshot, withStageProjection } from "./milestone-stage-core";
 import { randomUUID } from "node:crypto";
 
 import type Database from "better-sqlite3";
@@ -423,6 +426,7 @@ export class TaskHierarchyService {
       const byPublicId = new Map(initialTasks.map((task) => [task.publicId, task]));
       const changed = new Set<string>();
       const warnings: ScheduleWarningDto[] = [];
+      const copiedBySource = new Map<string, string>();
 
       if (command.kind === "create") {
         if (initialTasks.length >= MAX_PROJECT_TASKS) throw new TaskLimitExceededError();
@@ -576,13 +580,23 @@ export class TaskHierarchyService {
         const anchor = byPublicId.get(command.anchorTaskId);
         if (!anchor) throw new TaskNotFoundError();
         if (!copyIds) throw new InvalidTaskInputError();
+        if (copyIds.some((id) => !byPublicId.has(id))) throw new TaskNotFoundError();
         const { roots, branch } = copyForest(initialTasks, copyIds);
-        assertMembershipPreservationAvailable(this.database, project.id, branch.map((task) => task.publicId));
         const rootIds = new Set(roots.map((task) => task.id));
         if (initialTasks.length + branch.length > MAX_PROJECT_TASKS) throw new TaskLimitExceededError();
         const branchPublicIds = new Set(branch.map((task) => task.publicId));
         if (this.resources.listAssignments(project.id).some((assignment) => branchPublicIds.has(assignment.taskPublicId))) {
           throw new TaskCopyAssignmentUnsupportedError();
+        }
+        if (command.placement === "child" && anchor.type === "milestone") throw new InvalidParentTaskError();
+        // Keep the original cheap Task budget and Assignment guards ahead of the full candidate projection.
+        const plan = planMembershipCopy({ snapshot: stageBefore,
+          order: initialTasks.map((task) => ({ taskId: task.publicId, siblingOrder: task.sortOrder })),
+          taskIds: copyIds, anchorTaskId: anchor.publicId, placement: command.placement });
+        if (plan.rootTaskIds.join(",") !== roots.map((task) => task.publicId).join(",") ||
+            plan.copiedTaskIds.join(",") !== branch.map((task) => task.publicId).join(",")) throw new PersistedScheduleInvalidError();
+        if (plan.requiresAcknowledgement && !(parsedCopy?.success && parsedCopy.data.kind === "copy" && parsedCopy.data.acknowledgedMembershipExclusions === true)) {
+          throw new StageGateError("TASK_COPY_MEMBERSHIP_REVIEW_REQUIRED", plan.impacts.map((impact) => impact.sourceTaskId));
         }
         if (command.placement === "child") {
           assertTasksNotLinked(links, [anchor.id]);
@@ -622,7 +636,15 @@ export class TaskHierarchyService {
             updatedAt: nowText,
           });
           newBySource.set(original.id, inserted);
+          copiedBySource.set(original.publicId, inserted.publicId);
           changed.add(inserted.externalId);
+        }
+        const memberships = new MilestoneMembershipRepository(this.database);
+        for (const row of plan.preservedExplicitMemberships) {
+          const originalMember = byPublicId.get(row.taskId), originalMilestone = byPublicId.get(row.milestoneTaskId);
+          const member = originalMember && newBySource.get(originalMember.id), milestone = originalMilestone && newBySource.get(originalMilestone.id);
+          if (!member || !milestone) throw new PersistedScheduleInvalidError();
+          memberships.set(project.id, member.id, milestone.id);
         }
         const copiedRoots = roots.map((root) => {
           const copy = newBySource.get(root.id);
@@ -656,7 +678,13 @@ export class TaskHierarchyService {
 
       if (command.kind === "copy") this.applyDependencySchedules(project.id, calendar, nowText, changed);
       this.applySummaryDerivations(project.id, calendar, nowText, changed);
-      assertStageMutation(this.database, project.id, stageBefore);
+      if (command.kind === "copy") {
+        const stageAfter = readStageSnapshot(this.database, project.id);
+        assertStageStructureChange(stageBefore, stageAfter);
+        assertMilestoneCompletionTransitions(trustedCopyCompletionBaseline(stageBefore, stageAfter, copiedBySource), stageAfter);
+      } else {
+        assertStageMutation(this.database, project.id, stageBefore);
+      }
       const updatedProject = this.projects.advanceRevision(project.id, expectedRevision, nowText);
       if (!updatedProject) throw new RevisionMismatchError();
       const tasks = this.schedules.listTasks(project.id);

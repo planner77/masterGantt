@@ -102,3 +102,14 @@ Generic Finalizer는 release-required target을 하나의 장시간 동기 job�
 8. publication 이후 handoff job은 `continue-on-error`로 release 성공 자체를 뒤집지 않는다. explicit dispatch가 실패해도 workflow_run fallback과 이후 Main CI backlog 재평가가 복구 경로로 남는다.
 
 따라서 release 실행시간만큼 Finalizer runner를 polling에 묶지 않으며, 정상 경로에서는 release 성공 후 lifecycle이 자동 재개된다. Release workflow 자체의 repository-wide serialization과 immutable/stable alias 정책은 그대로 유지한다.
+
+
+## Main verified candidate lifecycle handoff (#452)
+
+Main CI의 successful non-docs `publish-commit-image`는 verified `ci-<SHA>`를 Generic Finalizer 판단 전에 삭제하지 않는다. 즉 artifact job의 책임은 **build/push + exact digest 검증 + handoff**까지다.
+
+- `release_required=false`: lifecycle `finalize`가 branch cleanup과 함께 exact temporary `ci-<merge SHA>` package version을 fail-closed helper로 정리한다.
+- `release_required=true`: candidate는 `release_start`/Release workflow가 동일 digest를 formal tag로 promotion할 수 있도록 유지한다.
+- release/cleanup 판단 전 Main CI가 version 변경 여부만으로 candidate를 삭제하지 않는다. same-Issue corrective convergence가 immediate merge의 version delta와 다른 lifecycle delta를 가질 수 있기 때문이다.
+- no-release candidate cleanup을 수행하는 Generic Finalizer/Resume은 최소 `packages: write`를 사용한다. PR CI/일반 CI 권한은 확대하지 않는다.
+- failed immutable release tag는 이동하거나 덮어쓰지 않는다. 결정적 workflow 결함은 새 SemVer corrective merge로 복구한다.

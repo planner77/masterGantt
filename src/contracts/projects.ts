@@ -288,12 +288,44 @@ export type TaskHierarchyCommandRequest =
     }
   | ({
       kind: "copy";
+      /** Confirms explicit exclusions and inherited/destination membership changes at this revision. */
+      acknowledgedMembershipExclusions?: boolean;
       anchorTaskId: string;
       placement: TaskHierarchyPlacement;
     } & (
       | { taskIds: readonly string[]; taskId?: never }
       | { taskId: string; taskIds?: never }
     ));
+
+export type CopyMilestoneReference =
+  | { kind: "existing"; existingMilestoneTaskId: string }
+  | { kind: "copied"; copiedFromMilestoneTaskId: string }
+  | null;
+
+export type CopyInheritanceReference =
+  | { kind: "existing"; existingSummaryTaskId: string }
+  | { kind: "copied"; copiedFromSummaryTaskId: string }
+  | null;
+
+export interface MembershipCopyImpact {
+  sourceTaskId: string;
+  excludedExplicitMilestoneTaskId: string | null;
+  beforeEffectiveMilestoneTaskId: string | null;
+  beforeInheritedFromTaskId: string | null;
+  afterExplicit: CopyMilestoneReference;
+  afterEffective: CopyMilestoneReference;
+  afterInheritedFrom: CopyInheritanceReference;
+  reasons: ("EXTERNAL_EXPLICIT_EXCLUDED" | "EXTERNAL_INHERITANCE_CHANGED" | "DESTINATION_INHERITANCE_CHANGED")[];
+}
+
+export interface MembershipCopyPlan {
+  rootTaskIds: string[];
+  copiedTaskIds: string[];
+  preservedExplicitMemberships: { taskId: string; milestoneTaskId: string }[];
+  excludedExplicitMemberships: { taskId: string; milestoneTaskId: string }[];
+  impacts: MembershipCopyImpact[];
+  requiresAcknowledgement: boolean;
+}
 
 export interface ScheduleWarningDto {
   code: "NON_WORKING_START_SHIFTED";

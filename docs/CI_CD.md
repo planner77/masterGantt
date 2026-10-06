@@ -459,7 +459,7 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 
 ## Issue #438 Build-once / verified digest promotion
 
-- Container binary는 Main CI의 `publish-commit-image`에서 한 번만 build한다. version-changing merge의 successful candidate만 formal release까지 보존한다.
+- Container binary는 Main CI의 `publish-commit-image`에서 한 번만 build한다. successful non-docs main candidate는 version 변경 여부와 무관하게 Generic Finalizer까지 보존한다. no-release finalize가 exact temporary candidate를 정리하고, release-required candidate는 formal release에서 재사용한다.
 - Main image build는 Dockerfile `VERSION`과 OCI version label에 현재 `package.json.version`을 사용하고 revision label에는 exact main SHA를 기록한다.
 - Release prepare는 annotated `v*` tag object 자체를 검사한 뒤 `refs/tags/<tag>^{commit}`으로 `target_sha`를 계산한다. candidate 조회는 `ci-<target_sha>`만 허용한다.
 - Release quality/static/E2E gate는 유지하지만 container build action은 release workflow에서 제거한다.

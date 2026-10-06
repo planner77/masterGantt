@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.89.0] - 2026-10-06
+
+### Added
+
+- Issue #464: JSON 1.0 호환을 유지하는 1.1 명시 단계 소속 교환 계약과 보호된 가져오기 미리보기·원자 저장, 전체 일정 JSON 내보내기를 제공한다.
+- Excel에 명시·유효 단계 소속과 상속 출처, 동일 단계 대시보드 계산의 요약·조회 기준을 출력한다.
+
+### Changed
+
+- 전체 Project Copy·Template에서 명시 소속 FK를 새 Task로 매핑하며, 부분 복사는 외부 소속 제외·상속 변화 확인과 완료 단계 경계 잠금을 적용한다.
+- 외부 PR #470의 Editor 유효 탭 정규화·Resource 선택 해제 후 초안 판정과 관련 회귀를 누적 구현에 반영한다.
+- Application version을 `0.88.0`에서 `0.89.0`으로 증가한다. 최신 main의 `0.85.1` 운영 수정과 기록을 함께 보존한다.
+
+### Fixed
+
+- 전체 Project Copy의 일정 검증에 원본 Dependency를 전달하여 requestedStart와 의존관계로 이동한 유효 일정이 다른 정상 Project도 복사한다. 기존 일정·완료 검증은 유지한다.
+- Template 저장 시 만료·철회 세션과 Project 식별자 결속을 재검증한다.
+- Gantt 하단 행의 우클릭 선택이 자동 스크롤을 일으켜 작업 메뉴가 즉시 닫히던 문제를 수정한다. Copy 안내를 메뉴 선택 중 유지하여 Gantt 높이 변경으로 Paste 메뉴가 닫히는 경로도 방지한다. 일반 선택과 실제 스크롤 동작은 유지한다.
+
 ## [0.88.0] - 2026-10-06
 
 ### Added
@@ -32,6 +51,17 @@
 ### Changed
 
 - Application version을 `0.85.0`에서 `0.86.0`으로 증가한다. 선행 #460 PR을 포함하는 순차 구현 PR이며 이번 요청에서 정식 릴리스를 게시하지 않는다.
+
+## [0.85.1] - 2026-10-06
+
+### Fixed
+
+- Issue #452: Main CI에서 검증한 non-docs `ci-<SHA>` candidate를 Generic Release Finalizer 판정 전에 삭제하지 않고 lifecycle handoff까지 보존하도록 GHCR 수명주기를 정합화한다.
+- `release_required=false` finalize에서만 exact temporary candidate를 fail-closed helper로 정리하고, release-required candidate는 formal exact-digest promotion에 사용하도록 유지한다.
+- Generic Finalizer/Resume 및 수동 finalize 경로에 temporary package cleanup을 위한 최소 `packages: write` 권한·job-scoped token과 정적 회귀 검증을 추가한다. 정식 image build/promotion은 계속 `release-image.yml`에만 위임한다.
+- PR #469를 최신 `main` 0.85.0 / Issue #460 변경 위로 재정렬해 Milestone Stage Gate 구현과 문서를 보존한다.
+- 실패한 immutable `v0.83.4`와 미게시 작업 후보 `0.83.5`는 재사용하지 않고 corrective PATCH `0.85.1`에서 새 Main verified candidate와 정식 GHCR promotion을 다시 수행한다.
+- Application version을 `0.85.0`에서 `0.85.1`로 증가한다.
 
 ## [0.85.0] - 2026-10-05
 

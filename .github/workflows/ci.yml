@@ -982,18 +982,18 @@ jobs:
           path: ${{ runner.temp }}/ci-setup-metrics-${{ github.job }}.jsonl
           if-no-files-found: error
           retention-days: 30
-      - name: GHCR main commit image 정리 또는 release candidate 보존
+      - name: GHCR main commit image lifecycle handoff
         if: always() && steps.push.outcome == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GHCR_OWNER_TYPE: ${{ github.event.repository.owner.type }}
-          VERSION_CHANGED: ${{ needs.changes.outputs.version_changed }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${VERSION_CHANGED}" == "true" && "${{ job.status }}" == "success" ]]; then
-            echo "- GHCR retention: verified ci-${GITHUB_SHA} retained for exact-digest release promotion." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+          if [[ "${{ job.status }}" != "success" ]]; then
+            node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"
+            echo "- GHCR cleanup: failed validation candidate ci-${GITHUB_SHA} deleted." >> "$GITHUB_STEP_SUMMARY"
+            echo "Main artifact 검증이 성공하지 않아 ci-${GITHUB_SHA}를 lifecycle candidate로 보존하지 않습니다." >&2
+            exit 1
           fi
-          node scripts/delete-ghcr-package-version-by-tag.mjs "ci-${GITHUB_SHA}"
-          echo "- GHCR cleanup: ci-${GITHUB_SHA} package version deleted." >> "$GITHUB_STEP_SUMMARY"
+          echo "- GHCR retention: verified ci-${GITHUB_SHA} retained until Generic Release Finalizer resolves release or cleanup." >> "$GITHUB_STEP_SUMMARY"

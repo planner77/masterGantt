@@ -480,16 +480,16 @@ export function ProjectGantt({
     }
   }, []);
 
-  const applySelectionGesture = useCallback((id: string, gesture: "single" | "toggle" | "range", mirrorCore = true) => {
+  const applySelectionGesture = useCallback((id: string, gesture: "single" | "toggle" | "range", mirrorCore = true, reveal = true, preserveFeedback = false) => {
     const next = selectTaskGesture(tasksReference.current, selectedTaskIdsReference.current,
       selectionAnchorReference.current, id, gesture, visibleTaskIdsReference.current, matchingTaskIdsReference.current);
     if (gesture === "range" && next.length === 1 && selectionAnchorReference.current !== id) {
       setSelectionMessage("같은 부모의 보이는 작업 범위가 없어 한 작업만 선택했습니다.");
-    } else setSelectionMessage("");
+    } else if (!preserveFeedback) setSelectionMessage("");
     if (gesture !== "range") selectionAnchorReference.current = id;
     updateSelection(next);
     // Mirror a singular primary Task into Core: Cut/Move remain single target.
-    if (mirrorCore && next.includes(id)) void apiReference.current?.exec("select-task", { id, eventSource: "project-owned-selection" });
+    if (mirrorCore && next.includes(id)) void apiReference.current?.exec("select-task", { id, show: reveal, eventSource: "project-owned-selection" });
   }, [updateSelection, setSelectionMessage]);
 
   const stageMembership = useMemo(() => membershipProjection(tasks, links).membership, [tasks, links]);
@@ -2217,7 +2217,8 @@ export function ProjectGantt({
       if (currentElement) match = { taskId: fallbackTaskId, element: currentElement };
     }
     if (!match) return false;
-    if (!selectedTaskIdsReference.current.includes(match.taskId)) applySelectionGesture(match.taskId, "single");
+    // Preserve viewport and Copy feedback height while anchoring a context menu.
+    if (!selectedTaskIdsReference.current.includes(match.taskId)) applySelectionGesture(match.taskId, "single", true, false, true);
     if (!match.element.hasAttribute("tabindex")) match.element.tabIndex = 0;
     const focusTrigger = target instanceof HTMLElement && target.matches("input[data-copy-selection]")
       ? target

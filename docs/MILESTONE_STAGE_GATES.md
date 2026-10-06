@@ -2,7 +2,7 @@
 
 ## 구현 경계
 
-Issue #460은 기존 Milestone Task identity를 단계 Gate로 사용한다. WBS, 일정 Dependency와 단계 Membership은 각각 별도 관계이며 일정 엔진/SVAR Core를 교체하지 않는다. Editor/Gantt 단계 표현은 #461/#462, KPI는 #463, 교환·복사 완전 보존은 #464의 후속 범위다.
+Issue #460은 기존 Milestone Task identity를 단계 Gate로 사용한다. WBS, 일정 Dependency와 단계 Membership은 각각 별도 관계이며 일정 엔진/SVAR Core를 교체하지 않는다. Editor/Gantt 단계 표현은 #461/#462, KPI는 #463, 교환·복사 보존은 #464에서 명시 FK remap과 경계 확인 계약으로 확장한다.
 
 ## 저장과 identity
 
@@ -66,22 +66,43 @@ Task 생성/삭제, subtree 삭제, 첫-child Summary 전환, hierarchy create/c
 
 ## 단계적 데이터 유실 방지 inventory
 
-| 경로 | #460 동작 / 구현 위치 | 후속 |
-| --- | --- | --- |
-| canonical read/Task/Link/metadata/hierarchy/subtree 응답 | 공통 `milestone-stage-core.ts` projector | #461/#462 표시 |
-| Task PATCH / batch 소속 | explicit 저장 + 상속·잠금·완료 guard | #461 atomic Editor 구현 |
-| child/create/delete/convert/indent/outdent/reparent | 같은 transaction old/new 구조 검증, FK 안전 rollback | 유지 |
-| 전체 Project Copy | 원본에 Membership이 있으면 `MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE` 전체 거부; 없는 원본은 기존 복사 유지 | #464 FK remap |
-| Template 저장 | Membership이 있으면 같은 no-loss 오류, 독립 snapshot의 기존 경로는 유지 | #464 snapshot 확장 |
-| Template 생성/duplicate | 저장 시 Membership 보유 원본을 차단하므로 신규 metadata가 빠진 Template을 만들지 않음; 기존 Template은 원래 초기 진척0 계약 유지 | #464 |
-| subtree/multi-root Copy | 복사 집합의 explicit/effective 또는 target 참조가 있으면 no-loss 전체 거부; 무관 Copy는 계속 허용, 완료 destination의 E(M) 변경은 구조 잠금 | #464 내부 remap/외부 경고 |
-| Excel | Membership 보유 canonical snapshot은 선택 옵션과 관계없이 no-loss 오류; 기존 Membership 없는 workbook은 유지 | #464 단계 열/요약 |
-| JSON Import preview/commit | 실제 서버 저장 구현은 부재. 과거 고정 성공 stub를 제거하고 501 `IMPORT_UNAVAILABLE`; preview는 Origin/session, commit은 Origin/session/If-Match를 검증. 모두 무변경 | #385/#464 구현 |
-| JSON Export | 실제 export endpoint/serializer 부재; 구현 완료라고 주장하지 않음 | #379/#464 |
-| JSON 1.0 pure validator/schema | 기존 strict shape 유지, Membership/effective/legacy client flag unknown field 거부; HTTP 저장 권한이 아님 | 새 version 계약 #464 |
-| SVG/PNG | 현행 선택 Grid/Chart의 시각 출력; metadata backup/round-trip exporter가 아님. #460은 새 stage 열/label을 노출하지 않음 | #462/#464 표시 정합 |
+#460은 지원 전 Copy/Template/Excel을 영향 데이터에 한해 no-loss 차단하고 Import에 보호된 501을 제공했다. 아래는 #464의 현재 구현 경로다. 과거 unavailable helper는 직접 회귀 대상으로 남지만 실제 Import route는 신규 handler를 사용한다. 이 inventory와 Local Fast Feedback는 공식 PR CI/최종 QA 완료를 뜻하지 않는다.
 
-보존 경로 미구현은 지원을 가장하지 않는 명시 거부다. 원본/새 Project/Template에 부분 row를 남기지 않으며 사용자는 대상에 단계 소속이 있는 동안 해당 출력·복사 경로를 사용할 수 없다. #464에서는 이 제한을 검증된 보존/명시적 경계 정책으로 대체한다.
+| 경로 | 현재 구현 / 계약 | 상세 근거 |
+| --- | --- | --- |
+| canonical read/Task/Link/metadata/hierarchy/subtree 응답 | 공통 `milestone-stage-core.ts` projector, full snapshot 소속/Gate 정규화 | #460–#463 |
+| Task PATCH / batch 소속 | 명시 저장 + 상속·잠금·완료 guard, atomic Editor | [API](API.md), #461 |
+| child/create/delete/convert/indent/outdent/reparent | 같은 transaction old/new 구조 검증, FK 안전 rollback | 완료 구조 잠금 |
+| 전체 Project Copy | 모든 명시 source/target 새 FK remap, source 불변, 선택 reset/기존 완료 진단/legacy Link 보존 | [Project Copy](ISSUE_27_PROJECT_COPY.md) |
+| Template 저장 | 독립 snapshot의 optional memberships external refs에 명시 row만 저장 | [DB](DB_SCHEMA.md) |
+| Template 생성/duplicate | 전체 source/target resolve 후 새 FK 저장, snapshot omission 호환, leaf/M progress0/not_started | #464 보존 계약 |
+| subtree/multi-root Copy | C 내부 명시 remap, 외부 명시 제외/상속 변화 사전 확인, 완료 경계 안전 거부, 기존 budget/Assignment guard | [Task Relations](TASK_RELATIONS.md) |
+| Excel | 같은 read transaction의 typed Dashboard DTO로 명시/유효/상속 열과 단계 요약을 Dependency 선택과 독립 출력. 필요한 DTO 누락·불일치는 전체 실패 | [Excel](EXCEL_EXPORT.md) |
+| JSON Import preview/commit | 실제 protected handler/validation, 1.0/1.1 create-only append, preview digest/revision 결속, target Calendar/full Gate 검증, 원자 저장 또는 전체 rollback | [JSON Import](JSON_IMPORT.md), [API](API.md) |
+| JSON Export | full Project JSON1.1의 tasks/모든 Link/명시 memberships/source metadata. 기존 mixed도 원형 출력하지만 현행 외부 Import는 파일 전체 거부 | [Import/Export](IMPORT_EXPORT.md) |
+| JSON 1.0/1.1 validator/schema | 1.0 strict 호환 유지, 1.1 별도 machine schema/예제. source UUID는 참고 정보, effective/Ready/client legacy bypass 입력 거부 | [Import Schema](IMPORT_SCHEMA.md) |
+| SVG/PNG | 기존 고정 Grid 작업명/시작/기간과 canonical Chart의 시각 출력. live 단계 열 전체 복제나 metadata backup은 아님. 단계 상세는 Excel/JSON | [Image Export](IMAGE_EXPORT.md) |
+
+실패 시 원본/새 Project/Template에 부분 row를 남기지 않는다. JSON의 Resource/Logistics 교환·CSV HTTP parser·Windows VBA producer 확장은 이 범위 밖이다. Excel 단계 요약의 기본 full F/평가일/horizon14/환산 기준은 현재 Dashboard UI 조건과 다를 수 있으며 metadata와 UI에서 구분한다. 직접 builder에서 단계 데이터의 typed summary가 없으면 `EXPORT_UNSUPPORTED`, production handler의 필요한 report 설정 부재는 `CONFIGURATION_ERROR`로 실패한다. 동일 Project/Catalog revision 검증을 생략하지 않는다.
+
+## Issue #464 복사·Template의 명시 보존
+
+전체 Project Copy는 원본 explicit Task/Summary→M의 두 endpoint를 새 Task ID로 remap한다. 상속은 원래 hierarchy/명시 row에서 다시 계산하며 flatten하지 않는다. resetProgress=false의 기존 완료·legacy Link 기록은 보존하고 불일치는 canonical 진단으로 남긴다. resetProgress=true는 기존 leaf/M progress0/not_started와 Summary 재계산을 유지한다. 원본 status/Link/Membership/Assignment/revision은 불변이다.
+
+전체 Copy의 원본 일정 검증은 Calendar와 전체 Dependency Link를 사용한다. requestedStart와 Dependency가 조정한 유효 날짜가 다른 정상 API 일정도 복사할 수 있다. 일정 validator/engine과 Summary endpoint 금지를 유지하고 원본 날짜·status·baseline·소속·revision을 변경하지 않는다. FS/lag 및 Milestone 간 Link가 있는 전체 Copy의 두 reset 옵션과 Template 생성·재생성 회귀를 native SQLite에서 확인한다.
+
+Template은 독립 contentJson snapshot에 optional `memberships:[{taskExternalId,milestoneExternalId}]`를 보관한다. 필드 omission은 과거 소속 없는 Template과 호환된다. 모든 Task를 생성하고 전체 명시 row의 source/target·단일 source·유형을 먼저 resolve한 뒤 새 FK로 저장한다. 잘못된 row만 생략하지 않고 전체 rollback한다. Template 초기 leaf/M progress0/not_started는 그대로다. source session의 revokedAt·Project public/internal binding·authVersion·expiry를 검증한다. 새 DB migration은 없다.
+
+Subtree/multi-root Copy의 C는 canonical root와 descendants union이다. 내부 source/target만 remap하며 외부 explicit target 제외와 외부 Summary 상속 변화는 `membership-copy-plan.ts`가 UI/서버에 동일한 전후 projection으로 제공한다. destination 상속을 반영하고 실제 미해결 projection을 미지정처럼 표시하지 않는다. 명시 제외 row와 영향 descendant를 따로 센다. optional `acknowledgedMembershipExclusions`는 외부 제외뿐 아니라 inherited target/source 및 새로운 destination 소속 변화도 확인한다. 서버가 revision/session transaction 안에서 다시 계산하고 미확인 영향은 `TASK_COPY_MEMBERSHIP_REVIEW_REQUIRED`로 원자 거부한다. 공유 helper는 정규화 C를 계산한 뒤 기존 Project5000 상한을 후보 생성 전에 검사하며 UI preflight 오류는 `TASK_COPY_TASK_LIMIT_EXCEEDED`다. 서버는 기존 cheap C/budget/Assignment 검사 순서와 `TASK_LIMIT_EXCEEDED` 오류를 유지한다.
+
+completed M 복사에는 full E·모든 explicit source·모든 incident Dependency endpoints의 C 내부 보존과 후보 역매핑 동등성이 필요하다. 누락은 `COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED`다. 검증된 서버 소유 복사본만 trusted 이전 완료 상태로 비교하여 과거 완료 불일치 기록을 보존한다. 실제 기존 단계의 before/after 구조 잠금은 항상 별도로 검사하며 외부 JSON 신규 완료 guard를 우회하는 입력은 없다. 기존 destination 완료 구성원 추가/Assignment Copy 제한은 확인을 받아도 거부한다. 상속만 받는 빈 Summary는 full E/명시 row 변화가 없으면 구조 잠금 대상이 아니다.
+
+Cut/reparent는 동일 identity와 explicit row를 유지하고 old/new effective 잠금을 적용한다. 원본 baseline은 불변이고 subtree 복사본 baseline은 기존 null 정책이다. 정확한 public report 참조 및 Dependency 별도 경계는 [Task Relations](TASK_RELATIONS.md#issue-464--subtree-copy-소속-경계와-cut)를 따른다.
+
+- 순수 계획: `tests/domain/membership-copy-plan.test.ts`.
+- SQLite/HTTP Copy·Cut·완료/Assignment/rollback: `tests/server/projects/milestone-membership-copy.test.ts`.
+- 독립 Template·forward target·old snapshot·보호/rollback: `tests/server/templates/milestone-membership-template.test.ts`.
+- 새 boolean의 strict 입력/normalize: `tests/server/projects/task-hierarchy-contract.test.ts`.
 
 ## 검증
 
