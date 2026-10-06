@@ -240,3 +240,7 @@ Scheduling Engine은 계속 날짜당 effective exception 하나만 사용한다
 국가별 관리 범위는 2026~2037이며 실제 Scheduling 가능 연도는 `OFFICIAL` dataset이 존재하는 연도만이다. 2026 built-in fixture는 초기 baseline으로 유지하고 관리자 Import/CRUD로 생성한 DB override를 우선한다. `UNAVAILABLE/SUPERSEDED` 연도는 `COUNTRY_CALENDAR_UNAVAILABLE`로 거부한다.
 
 Catalog 변경은 기존 Project의 materialized Calendar와 Task를 자동 갱신하지 않는다. 사용자가 Project Calendar Preview/저장을 명시적으로 수행하는 시점에 최신 OFFICIAL dataset이 반영된다. 국가별 공식 source, JSON/CSV 형식, 검증/정정 절차는 `docs/COUNTRY_CALENDAR_DATA.md`를 따른다.
+
+### Issue #342 default seed 가용성
+
+Catalog override가 수동 수정 후 UNAVAILABLE로 재승인 대기 중이어도 신규 Project 생성은 차단하지 않는다. 신규 Project 기본 KR seed만 built-in approved baseline으로 fallback하며, 명시적 Preview/Save의 OFFICIAL-only effective resolver는 그대로 유지한다.

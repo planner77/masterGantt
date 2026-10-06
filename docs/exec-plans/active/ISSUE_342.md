@@ -87,3 +87,13 @@ N/A:
 - /calendar-admin Import/CRUD 및 responsive Chromium.
 - project-status direct GET transient reset 회귀.
 - 공식 전체 판정은 새 exact head의 GitHub Actions `quality/e2e/docker` 결과로 수행한다.
+
+## Codex review REWORK 4
+
+- P2 no-op edit: normalized current/next가 같으면 override clone·revision/provenance mutation 없이 동일 snapshot을 반환한다.
+- P2 pending delete: mutation 중 child 취소 action도 disabled 처리한다.
+- P2 target draft: country/year 전환 시 create/file/Preview/edit/delete draft를 함께 폐기한다.
+- P2 Preview binding: Catalog state server secret HMAC으로 revision+target+format+bytes를 묶고 Apply가 exact token을 요구한다.
+- P1 Project creation availability: 재승인 대기 override 때문에 신규 Project create가 500이 되지 않도록 default seed에서 built-in approved baseline fallback을 사용하고 baseline도 없으면 rule 없이 생성한다.
+- CI #1989 locator ambiguity 2건은 product accessible status name 및 exact label locator로 분리한다.
+- SECURITY/API/ARCHITECTURE/DB_SCHEMA/SCHEDULING/UX/Test Plan/CHANGELOG/release note를 동기화한다.

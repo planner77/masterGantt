@@ -1031,3 +1031,9 @@ OFFICIAL dataset에서 휴일/보충근무일을 수동 추가·편집·삭제�
 
 Import Apply 성공 시 React file state뿐 아니라 native file input value도 함께 비워 같은 파일을 즉시 다시 선택해도 change event와 Preview가 정상 동작해야 한다.
 
+### Issue #342 draft/pending/no-op interaction
+
+- country/year target을 바꾸면 신규 날짜 입력, 열린 edit/delete dialog, 선택 파일, Preview를 모두 폐기한다. 다른 target에 이전 draft가 재사용되지 않는다.
+- DELETE 요청이 pending인 동안 dialog의 취소/삭제 action과 chrome close를 잠가 “취소했지만 실제 삭제됨” 상태를 만들지 않는다.
+- 날짜 편집 dialog에서 실제 값이 하나도 바뀌지 않은 저장은 no-op이며 OFFICIAL provenance와 revision을 유지한다.
+- dataset 상태 badge는 별도 accessible status name을 제공해 metadata select option과 구분한다.

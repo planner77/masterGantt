@@ -1990,3 +1990,12 @@ PR CI #1960의 유일한 Vitest 실패는 `tests/server/db/database.test.ts`의 
 
 - effective provenance null: 유일한 지원 연도 override가 UNAVAILABLE로 전환되면 \`supportedYears=[]\`, \`sourceVersion=null\`, \`sourceUrl=null\`인지 검증한다. built-in provenance fallback은 허용하지 않는다.
 
+### Issue #342 Codex review REWORK 4
+
+- date no-op: OFFICIAL built-in date를 동일 값으로 저장해도 override clone, revision 증가, provenance invalidation이 없어야 한다.
+- pending delete: 느린 DELETE 중 dialog 취소가 disabled이고 요청 완료 전 dialog가 닫히지 않아야 한다.
+- target draft: 국가/연도 변경 시 신규 날짜 draft와 선택 file/Preview를 폐기한다.
+- project creation availability: current-year KR override가 UNAVAILABLE이어도 신규 Project 생성은 성공하고 built-in approved baseline으로 초기 Calendar를 seed한다. baseline도 없으면 Country rule 없이 생성한다.
+- Preview binding: Preview token 없이 Apply, token과 다른 envelope Apply를 거부하고 동일 token+revision+bytes만 성공시킨다.
+- migration 0023: Catalog state의 preview_secret이 정확히 32 bytes이며 API/log에 노출되지 않는다.
+- Chromium locator는 dataset status의 accessible name과 exact 국가 label을 사용해 select option/toolbar와 strict-mode 충돌하지 않는다.

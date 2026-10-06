@@ -23,6 +23,9 @@
 - 날짜 PATCH는 최소 1개 지원 field만 허용하고 unknown/no-op payload를 거부하며, 마지막 날짜 삭제 후에도 fail-closed UNAVAILABLE 상태를 유지한다.
 - Import Apply 성공 후 native file input을 초기화해 동일 파일을 즉시 다시 선택할 수 있게 한다.
 - supportedYears가 비어 있는 국가는 과거 built-in provenance를 노출하지 않고 sourceVersion/sourceUrl을 null로 반환한다.
+- 변경 없는 날짜 편집은 no-op으로 처리해 OFFICIAL provenance와 revision을 보존하고, target 전환 시 신규 날짜/file draft를 폐기하며 DELETE pending 중 취소를 차단한다.
+- Import Preview와 Apply를 HMAC token으로 exact revision·country/year·format·file bytes에 묶어 Preview 우회를 차단한다.
+- current-year KR override가 재승인 대기여도 신규 Project 기본 Calendar는 built-in approved baseline으로 fallback하여 Project 생성 가용성을 유지한다.
 
 ## [0.92.0] - 2026-10-06
 

@@ -689,3 +689,7 @@ Project Copy와 Template은 `assignment_role`을 보존하고 workload/Calendar 
 - 관리 가능 year CHECK 범위: 2026..2037
 
 Repository built-in 2026 fixture는 DB로 일괄 복제하지 않는다. override가 필요할 때 첫 mutation이 built-in dataset을 DB에 clone하고 이후 DB가 resolution 우선권을 가진다. 기존 `work_calendar_rules/work_calendar_dates`는 Project snapshot이므로 Catalog mutation으로 수정되지 않는다. Milestone Stage Gate membership schema와 독립된 전역 Catalog다.
+
+### Issue #342 Preview HMAC secret
+
+`country_calendar_catalog_state.preview_secret BLOB NOT NULL CHECK(length(preview_secret)=32)`은 Import Preview→Apply binding 전용 server secret이다. migration 0023 적용 시 `randomblob(32)`로 한 번 생성되며 API 응답, 로그, Catalog export 대상이 아니다. Catalog revision 증가와 별개로 secret은 회전하지 않는다.

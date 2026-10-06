@@ -378,3 +378,13 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 `GET /api/projects/{publicId}/milestone-dashboard`는 route security inventory의 `public-read`, mutatesState=false다. 기존 Project direct read와 같은 공개 범위이며 편집 세션·Origin·If-Match를 요구하지 않는다. query는 allowlist/단일 scalar/UUID/enum/date/숫자/개수·길이 제한으로 서버에서 검증한다. bound Project repository 조회 및 동일 read transaction을 사용하고 unknown valid filter ID는 empty-match 처리한다. 응답은 public ID와 Project 관련 최소 표시 metadata만 포함하며 credential/session/token/internal PK/SQL/stack/path를 포함하지 않는다. 응답과 오류는 no-store다.
 
 이 조회 추가와 명시 M/M 설정은 보호 mutation의 Origin/session/revision 검증을 제거하지 않는다. production HTTPS 및 명시 내부망 HTTP 지원은 기존 공용 URL parser/cookie 정책과 [HTTP 운영](HTTP_OPERATION.md)을 유지한다. 새로운 비밀번호·권한·세션·환경 secret을 만들지 않는다.
+
+## Issue #342 Country Calendar Import Preview binding
+
+Country Calendar Import는 기존 Project Master 관리자 session + exact Origin + strong `If-Match`에 더해 server-issued Preview token을 요구한다. token은 `country_calendar_catalog_state.preview_secret`(32-byte BLOB)을 키로 한 HMAC이며 Catalog revision, country/year, format, 원본 content bytes를 포함한다.
+
+- secret은 DB 외부로 반환하거나 로그하지 않는다.
+- Preview는 Catalog business revision을 증가시키지 않는다.
+- Apply는 exact token + envelope + revision을 검증하고 mismatch는 409로 fail-closed한다.
+- Apply 성공 시 revision 증가로 token 재사용이 차단된다.
+- token은 authorization 자체가 아니며 관리자 session/Origin/If-Match 요구를 대체하지 않는다.

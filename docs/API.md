@@ -1458,3 +1458,8 @@ OFFICIAL dataset의 마지막 1개 날짜도 삭제할 수 있다. DELETE 성공
 
 \`GET /api/work-calendars/countries\`의 \`sourceVersion/sourceUrl\`은 effective OFFICIAL dataset 기준이다. 해당 국가의 \`supportedYears\`가 비어 있으면 effective provenance가 하나도 없으므로 두 필드는 \`null\`을 반환한다. override가 built-in 연도를 UNAVAILABLE/SUPERSEDED로 가린 경우 과거 built-in provenance를 fallback해서 반환하지 않는다.
 
+### Issue #342 Preview-bound Import Apply
+
+`POST /api/admin/work-calendars/import/preview` 응답은 Catalog revision과 함께 server-issued `previewToken`을 반환한다. token은 server-only 32-byte HMAC secret으로 catalog revision + country/year + format + 원본 file content bytes에 서명한다.
+
+`POST /api/admin/work-calendars/import/apply` body는 `{ previewToken, envelope }`이며 `If-Match` revision과 token이 모두 Preview 결과와 일치해야 한다. Preview 없이 Apply하거나 Preview A 뒤 envelope B를 적용하면 `409 COUNTRY_CALENDAR_IMPORT_PREVIEW_MISMATCH`으로 거부한다. 성공 Apply는 Catalog revision을 증가시키므로 같은 token의 재사용도 stale `If-Match`으로 차단된다.

@@ -102,3 +102,7 @@ UTF-8 CSV의 header는 아래 순서와 이름을 사용한다.
 ## 8. 2026 built-in baseline과 2027~2037
 
 Repository의 2026 fixture는 초기 설치용 검증 baseline으로 유지한다. 2027~2037은 모두 관리 가능한 슬롯이지만, DB에 검증된 OFFICIAL override가 등록되기 전에는 UNAVAILABLE이다. 이미 공식 발표가 나온 연도는 운영자가 위 절차로 등록할 수 있으며, 공식 자료가 없는 연도는 비워 둔다.
+
+## Preview token 적용 규칙
+
+Import 운영 절차는 파일 선택 → Preview → 검토 → Apply다. Preview 응답의 `previewToken`은 해당 revision, 국가/연도, format, 원본 파일 bytes에 서버 HMAC으로 묶인다. Apply는 같은 token과 envelope를 보내야 하며 Preview 후 파일을 바꾸면 새 Preview가 필요하다. token을 수동 생성하거나 다른 파일에 재사용할 수 없다.

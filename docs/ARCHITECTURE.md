@@ -238,3 +238,8 @@ Country Calendar persistence는 공통 계층 규칙인 \`Route Handler → Serv
 
 수동 날짜 Add/Edit/Delete는 기존 OFFICIAL provenance와 데이터 내용의 정합성이 깨지는 변경이므로 같은 transaction에서 dataset을 \`UNAVAILABLE\`로 내리고 \`sourceVersion/sourceUrl\`을 비운다. 운영자가 공식 source를 다시 검증해 metadata를 OFFICIAL로 저장하기 전에는 Scheduling resolver가 해당 override를 사용하지 않는다.
 
+### Issue #342 Preview token과 default seed availability
+
+Import Preview는 Catalog business data를 변경하지 않는다. `country_calendar_catalog_state.preview_secret`을 이용한 HMAC token으로 reviewed payload를 식별하고 Apply가 동일 revision/target/원본 bytes인지 검증한다. secret은 API/UI/로그에 노출하지 않는다.
+
+신규 Project의 기본 KR Calendar seed는 `effective OFFICIAL override → repository built-in approved baseline → rule 없음` 순서로 동작한다. 관리자가 override를 수동 수정해 재승인 대기(UNAVAILABLE)로 만든 동안에도 Project 생성 자체를 실패시키지 않는다. 반면 명시적 Project Calendar Preview/Save는 기존대로 UNAVAILABLE override를 fail-closed 처리한다.
