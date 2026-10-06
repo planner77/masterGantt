@@ -1024,7 +1024,7 @@ test("Issue #485 Global Role 필터는 후보만 제한하고 assignment 저장�
 
   await dialog.getByRole("checkbox", { name: /Resource A/ }).check();
   await expect(dialog.getByLabel(/Resource A.*수행 역할/)).toHaveCount(0);
-  await expect(dialog.getByText("개발자", { exact: true }).first()).toBeVisible();
+  await expect(dialog.getByRole("checkbox", { name: /Resource A/ }).locator("..")).toContainText("개발자");
   await dialog.getByLabel(/Resource A.*투입률/).fill("60");
   await dialog.getByRole("button", { name: /할당 저장/ }).click();
 
