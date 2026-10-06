@@ -20,9 +20,10 @@ function database(): Database.Database {
     CREATE TABLE country_calendar_catalog_state (
       id INTEGER PRIMARY KEY CHECK (id = 1),
       revision INTEGER NOT NULL CHECK (revision >= 1),
+      preview_secret BLOB NOT NULL CHECK (length(preview_secret) = 32),
       updated_at TEXT NOT NULL
     ) STRICT;
-    INSERT INTO country_calendar_catalog_state VALUES (1, 1, '2026-09-30T00:00:00.000Z');
+    INSERT INTO country_calendar_catalog_state VALUES (1, 1, randomblob(32), '2026-09-30T00:00:00.000Z');
     CREATE TABLE country_calendar_datasets (
       id INTEGER PRIMARY KEY,
       country_code TEXT NOT NULL CHECK (country_code IN ('KR','CN','VN','PH','TH','MX','US')),
@@ -115,11 +116,18 @@ describe("Issue #342 country calendar catalog", () => {
         ],
       }),
     };
-    expect(service.previewImport(envelope).data.summary).toEqual({
+    const preview = service.previewImport(envelope);
+    expect(preview.data.summary).toEqual({
       additions: 2, changes: 0, deletions: 0, unchanged: 0,
     });
+    expect(preview.data.previewToken.length).toBeGreaterThan(32);
 
-    const applied = service.applyImport(1, envelope);
+    expect(() => service.applyImport(1, preview.data.previewToken, {
+      ...envelope,
+      content: envelope.content.replace("KR-2030-official-1", "KR-2030-official-2"),
+    })).toThrow(CountryCalendarCatalogPreviewMismatchError);
+
+    const applied = service.applyImport(1, preview.data.previewToken, envelope);
     expect(applied.data.revision).toBe(2);
     expect(applied.data.dataset).toMatchObject({
       countryCode: "KR", year: 2030, status: "OFFICIAL", origin: "OVERRIDE",
@@ -130,7 +138,7 @@ describe("Issue #342 country calendar catalog", () => {
     }));
     expect(service.listEffectiveDescriptors().find((entry) => entry.code === "KR")?.supportedYears)
       .toEqual([2026, 2030]);
-    expect(() => service.applyImport(1, envelope)).toThrow(CountryCalendarCatalogRevisionMismatchError);
+    expect(() => service.applyImport(1, preview.data.previewToken, envelope)).toThrow(CountryCalendarCatalogRevisionMismatchError);
     expect(db.prepare("SELECT count(*) AS count FROM country_calendar_dates").get()).toEqual({ count: 2 });
   });
 
@@ -168,6 +176,23 @@ describe("Issue #342 country calendar catalog", () => {
       status: "UNAVAILABLE", sourceVersion: null, sourceUrl: null,
     });
     expect(service.getEffectiveDataset("CN", 2026)).toBeUndefined();
+  });
+
+  it("keeps an unchanged date edit as a no-op without cloning or invalidating provenance", () => {
+    const db = database();
+    const service = new CountryCalendarCatalogService(db);
+    const initial = service.getAdminDataset("KR", 2026);
+    const target = initial.data.dates.find((entry) => entry.date === "2026-01-01")!;
+    const unchanged = service.updateDate("KR", 2026, target.date, initial.data.revision, {
+      date: target.date, name: target.name, dayType: target.dayType, sourceKey: target.sourceKey,
+    });
+    expect(unchanged.data.revision).toBe(initial.data.revision);
+    expect(unchanged.data.dataset).toMatchObject({
+      origin: "BUILT_IN", status: "OFFICIAL",
+      sourceVersion: initial.data.dataset.sourceVersion,
+      sourceUrl: initial.data.dataset.sourceUrl,
+    });
+    expect(db.prepare("SELECT count(*) AS count FROM country_calendar_datasets").get()).toEqual({ count: 0 });
   });
 
   it("allows deleting the sole official date and invalidates provenance atomically", () => {
