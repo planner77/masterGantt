@@ -1,5 +1,11 @@
 # Active execution plan
 
+## Issue #459 Milestone Stage Gate Epic — 통합 감사 / PR CI
+
+latest main `4098a064a9c5a614b0adfa1ac90dcbd9523db993` / application `0.92.0`에서 #460~#464가 모두 main에 반영된 상태를 기준으로 Epic 수용 기준을 재감사한다. 제품 runtime 재구현은 하지 않고, 상위 #459가 핵심 Source of Truth에 직접 연결되지 않은 문서 공백과 “member Task Dependency는 Milestone predecessor로 자동 승격하지 않는다”는 사용자 확정 정책의 전용 Domain regression을 보강한다.
+
+branch는 `feat/issue-459-stage-gate-epic-integration`이며 상세 Work Packet은 [Issue #459 실행 계획](ISSUE_459.md)을 따른다. application version은 `0.92.0` 유지, `release_required=false`, `release_authorized=false`다. 이번 요청 종료점은 PR 생성 및 exact head PR CI 시작 확인이며 CI 완료 모니터링·병합·main CI·GHCR·Issue 종료는 수행하지 않는다.
+
 ## Issue #464 JSON·Excel·Copy·Template 보존 — latest main 재정렬 / 새 PR CI
 
 PR #473 head `1e1397aca8d48780dbc8dcc397f333b3d9bb85ca`는 latest main `d748046733ae2006580052a480c984ae1eb1fa2a`보다 뒤처져 mergeable=false가 되었다. 현재 main에는 #463 병합, #455 기준정보 UI/transport corrective, #463 물류·Resource 결합 필터 보완이 포함되어 있으므로 이를 authoritative base로 보존하고 #464 고유 변경만 다시 적용한다.
