@@ -1096,8 +1096,8 @@ function milestoneStagesSheet(stage: MilestoneDashboardDto): string {
   for (const bucket of stage.effort.buckets) { ids("bucket.task", bucket.taskIds, bucket.milestoneTaskId); effortIds(bucket, bucket.milestoneTaskId, "bucket"); }
   append(["위험 단계 ID", "위험 Task ID", "작업명", "종료일", "단계 예정일"], true);
   for (const row of stage.rows) for (const risk of row.risks) append([row.milestoneTaskId, risk.taskId, risk.name, risk.end, risk.scheduledDate]);
-  append(["Assignment ID", "Task ID", "단계 ID", "Resource ID", "역할", "개발자 등급", "시작", "종료", "투입률", "유효 근무일", "M/D(원시)", "M/M(원시)"], true);
-  for (const a of stage.effort.assignments) append([a.assignmentId, a.taskId, a.milestoneTaskId, a.resourceId, a.role, a.developerGrade, a.from, a.to, a.allocationPercent, a.effectiveWorkingDays, a.plannedMd, a.plannedMm]);
+  append(["Assignment ID", "Task ID", "단계 ID", "Resource ID", "Global Role", "개발자 등급", "시작", "종료", "투입률", "유효 근무일", "M/D(원시)", "M/M(원시)"], true);
+  for (const a of stage.effort.assignments) append([a.assignmentId, a.taskId, a.milestoneTaskId, a.resourceId, a.roles.join(", "), a.developerGrade, a.from, a.to, a.allocationPercent, a.effectiveWorkingDays, a.plannedMd, a.plannedMm]);
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:W${rows.length}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetData>${rows.join("")}</sheetData></worksheet>`;
 }
 
