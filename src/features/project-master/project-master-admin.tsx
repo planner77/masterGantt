@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FocusEvent, type FormEvent, type KeyboardEvent } from "react";
 import type {
   ProjectMasterAdminResponse,
   ProjectMasterCategory,
@@ -48,18 +48,49 @@ export function ProjectMasterAdmin() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, { name: string; code: string; sortOrder: number }>>({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const passwordTrigger = useRef<HTMLButtonElement>(null);
   const loginInput = useRef<HTMLInputElement>(null);
   const categoryTabs = useRef<HTMLDivElement>(null);
+  const pending = useRef(false);
+  const passwordForm = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (!passwordOpen) return;
+    const guard = (event: globalThis.KeyboardEvent) => {
+      const dialog = passwordForm.current?.closest("dialog");
+      if (event.key !== "Escape" || !pending.current || !dialog?.open) return;
+      event.preventDefault(); event.stopImmediatePropagation();
+      dialog.focus({ preventScroll: true });
+    };
+    document.addEventListener("keydown", guard, true);
+    return () => document.removeEventListener("keydown", guard, true);
+  }, [passwordOpen]);
+
+  function closePassword() {
+    if (pending.current) return;
+    setPasswordOpen(false); setNewPassword(""); setConfirmPassword("");
+  }
+
+  function revealTableControl(event: FocusEvent<HTMLDivElement>) {
+    if (!(event.target instanceof HTMLElement)) return;
+    const owner = event.currentTarget;
+    const target = event.target.getBoundingClientRect();
+    const bounds = owner.getBoundingClientRect();
+    const delta = target.left < bounds.left + 6 ? target.left - bounds.left - 6
+      : target.right > bounds.right - 6 ? target.right - bounds.right + 6 : 0;
+    if (delta) owner.scrollLeft += delta;
+  }
 
   useEffect(() => {
     if (!authenticated && !busy) loginInput.current?.focus();
   }, [authenticated, busy]);
 
   function applyCatalog(next: ProjectMasterAdminResponse) {
+    setFieldErrors({});
     setCatalog(next);
     setState("ready");
     setDrafts(Object.fromEntries(next.data.items.map((item) => [item.id, {
@@ -91,7 +122,8 @@ export function ProjectMasterAdmin() {
 
   async function login(event: FormEvent) {
     event.preventDefault();
-    if (busy || !password) return;
+    if (pending.current || !password) return;
+    pending.current = true;
     const candidate = password; setPassword(""); setBusy(true); setError(null); setNotice(null);
     try {
       const response = await fetch("/api/project-master/admin-sessions", {
@@ -103,11 +135,12 @@ export function ProjectMasterAdmin() {
       setAuthenticated(true);
       await loadCatalog();
     } catch { setError("관리자 인증 서버에 연결할 수 없습니다."); }
-    finally { setPassword(""); setBusy(false); }
+    finally { pending.current = false; setPassword(""); setBusy(false); }
   }
 
   async function mutate(url: string, method: "POST" | "PATCH", body: unknown): Promise<boolean> {
-    if (!catalog || state !== "ready" || busy) return false;
+    if (!catalog || state !== "ready" || pending.current) return false;
+    pending.current = true;
     setBusy(true); setError(null); setNotice(null);
     try {
       const response = await fetch(url, {
@@ -122,8 +155,7 @@ export function ProjectMasterAdmin() {
         return false;
       }
       if (response.status === 412) {
-        await loadCatalog();
-        setError("다른 관리 변경이 먼저 저장되었습니다. 최신 목록을 확인한 후 다시 저장해 주세요.");
+        if (await loadCatalog()) setError("다른 관리 변경이 먼저 저장되었습니다. 최신 목록을 확인한 후 다시 저장해 주세요.");
         return false;
       }
       if (!response.ok || !isAdminCatalog(value)) {
@@ -137,7 +169,7 @@ export function ProjectMasterAdmin() {
     } catch {
       setState("error"); setError("저장 결과를 확인하지 못했습니다. 새로고침 후 다시 확인해 주세요.");
       return false;
-    } finally { setBusy(false); }
+    } finally { pending.current = false; setBusy(false); }
   }
 
   async function addItem(event: FormEvent) {
@@ -152,7 +184,14 @@ export function ProjectMasterAdmin() {
 
   async function saveItem(item: ProjectMasterItemDto) {
     const draft = drafts[item.id];
-    if (!draft) return;
+    if (!draft || pending.current) return;
+    const invalid = !draft.name.trim() ? "name" : !draft.code.trim() ? "code"
+      : !Number.isSafeInteger(draft.sortOrder) || draft.sortOrder < 0 || draft.sortOrder > 1000000 ? "sortOrder" : null;
+    setFieldErrors((current) => Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith(`${item.id}-`))));
+    if (invalid) {
+      setFieldErrors((current) => ({ ...current, [`${item.id}-${invalid}`]: invalid === "sortOrder" ? "정렬은 0~1000000의 정수로 입력해 주세요." : "이름과 코드를 입력해 주세요." }));
+      return;
+    }
     await mutate(`/api/project-master/admin/items/${encodeURIComponent(item.id)}`, "PATCH", draft);
   }
 
@@ -161,21 +200,24 @@ export function ProjectMasterAdmin() {
   }
 
   async function logout() {
-    if (busy) return;
+    if (pending.current) return;
+    pending.current = true;
     setBusy(true); setError(null);
     try {
       await fetch("/api/project-master/admin-sessions", { method: "DELETE", credentials: "same-origin" });
     } finally {
-      setAuthenticated(false); setCatalog(null); setState("error"); setBusy(false); setPassword("");
+      setAuthenticated(false); setCatalog(null); setState("error"); pending.current = false; setBusy(false); setPassword("");
     }
   }
 
   async function changePassword(event: FormEvent) {
     event.preventDefault();
+    if (pending.current) return;
     if (!newPassword || newPassword !== confirmPassword || Array.from(newPassword).length > 12) {
       setError("새 관리자 비밀번호는 1~12자이며 확인 값이 일치해야 합니다.");
       return;
     }
+    pending.current = true;
     setBusy(true); setError(null);
     try {
       const response = await fetch("/api/project-master/admin-password", {
@@ -186,10 +228,11 @@ export function ProjectMasterAdmin() {
       if (!response.ok) { setError("관리자 비밀번호를 변경하지 못했습니다."); return; }
       setPasswordOpen(false); setNotice("관리자 비밀번호를 변경했습니다.");
     } catch { setError("비밀번호 변경 결과를 확인할 수 없습니다."); }
-    finally { setNewPassword(""); setConfirmPassword(""); setBusy(false); }
+    finally { pending.current = false; setNewPassword(""); setConfirmPassword(""); setBusy(false); }
   }
 
   function handleCategoryKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    if (pending.current) return;
     let target = -1;
     if (event.key === "ArrowRight") target = (index + 1) % CATEGORIES.length;
     else if (event.key === "ArrowLeft") target = (index - 1 + CATEGORIES.length) % CATEGORIES.length;
@@ -243,14 +286,13 @@ export function ProjectMasterAdmin() {
   return <div className={styles.panel}>
     <section className={styles.sessionSection} aria-labelledby="project-master-session-title">
       <div className={styles.sectionHeading}>
-        <p className={styles.eyebrow}>관리자 인증</p>
-        <h2 id="project-master-session-title">프로젝트 기준정보 관리자 인증됨</h2>
+        <h2 id="project-master-session-title">관리자 인증됨</h2>
         <p className={styles.note}>전 프로젝트 공통 기준정보를 편집할 수 있습니다.</p>
       </div>
       <div className={styles.actions}>
         <button ref={passwordTrigger} className="secondary-button" type="button" disabled={busy}
-          onClick={() => setPasswordOpen(true)}>관리자 비밀번호 변경</button>
-        <button className="secondary-button" type="button" disabled={busy} onClick={() => void loadCatalog()}>새로고침</button>
+          onClick={() => { if (!pending.current) setPasswordOpen(true); }}>관리자 비밀번호 변경</button>
+        <button className="secondary-button" type="button" disabled={busy || state === "loading"} onClick={() => { if (!pending.current && state !== "loading") void loadCatalog(); }}>새로고침</button>
         <button className="secondary-button" type="button" disabled={busy} onClick={() => void logout()}>로그아웃</button>
       </div>
     </section>
@@ -264,8 +306,7 @@ export function ProjectMasterAdmin() {
     <section className={styles.catalogSection} aria-labelledby="project-master-catalog-title">
       <div className={styles.catalogHeader}>
         <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>기준정보 관리</p>
-          <h2 id="project-master-catalog-title">프로젝트 기준정보</h2>
+          <h2 id="project-master-catalog-title">항목 관리</h2>
           <p className={styles.note}>관리할 범주를 선택한 뒤 항목을 추가하거나 목록에서 수정합니다.</p>
         </div>
         <div ref={categoryTabs} className={styles.tabs} role="tablist" aria-label="프로젝트 기준정보 범주">
@@ -280,7 +321,8 @@ export function ProjectMasterAdmin() {
               aria-selected={selected}
               aria-controls="project-master-category-panel"
               tabIndex={selected ? 0 : -1}
-              onClick={() => setCategory(entry.value)}
+              disabled={busy}
+              onClick={() => { if (!pending.current) setCategory(entry.value); }}
               onKeyDown={(event) => handleCategoryKeyDown(event, index)}
             >{entry.label}</button>;
           })}
@@ -293,17 +335,15 @@ export function ProjectMasterAdmin() {
         role="tabpanel"
         aria-labelledby={`project-master-tab-${category.toLowerCase()}`}
       >
-        <h2 className={styles.categoryTitle}>{categoryLabel}</h2>
-
         <section className={styles.editorSection} aria-labelledby="project-master-editor-title">
           <div className={styles.subsectionHeading}>
-            <h3 id="project-master-editor-title">항목 추가</h3>
+            <h3 id="project-master-editor-title">{categoryLabel} 항목 추가</h3>
             <p className={styles.note}>이름, 안정 코드, 정렬 순서를 입력합니다.</p>
           </div>
           <form className={styles.formGrid} onSubmit={(event) => void addItem(event)}>
-            <label className={styles.field}>이름<input maxLength={200} disabled={busy || state !== "ready"} value={name} onChange={(event) => setName(event.target.value)} /></label>
-            <label className={styles.field}>코드<input maxLength={64} disabled={busy || state !== "ready"} value={code} onChange={(event) => setCode(event.target.value)} /></label>
-            <label className={styles.field}>정렬<input min={0} max={1000000} type="number" disabled={busy || state !== "ready"} value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} /></label>
+            <label className={styles.field}>{categoryLabel} 이름<input maxLength={200} disabled={busy || state !== "ready"} value={name} onChange={(event) => setName(event.target.value)} /></label>
+            <label className={styles.field}>{categoryLabel} 코드<input maxLength={64} disabled={busy || state !== "ready"} value={code} onChange={(event) => setCode(event.target.value)} /></label>
+            <label className={styles.field}>{categoryLabel} 정렬<input min={0} max={1000000} type="number" disabled={busy || state !== "ready"} value={sortOrder} onChange={(event) => setSortOrder(Number(event.target.value))} /></label>
             <button className="primary-button" type="submit" disabled={busy || state !== "ready" || !name.trim() || !code.trim()}>항목 추가</button>
           </form>
         </section>
@@ -321,7 +361,8 @@ export function ProjectMasterAdmin() {
                   className={`secondary-button ${styles.statusFilterButton}`}
                   type="button"
                   aria-pressed={statusFilter === filter.value}
-                  onClick={() => setStatusFilter(filter.value)}
+                  disabled={busy}
+                  onClick={() => { if (!pending.current) setStatusFilter(filter.value); }}
                 >
                   {filter.label}
                 </button>
@@ -329,11 +370,14 @@ export function ProjectMasterAdmin() {
             </div>
           </div>
 
+          <p id="project-master-used-code-hint" className={styles.note}>사용 중인 안정 코드는 변경할 수 없습니다.</p>
+          <p className={styles.note}>항목을 하나씩 저장하세요. 저장·최신 목록 조회 후에는 미저장 입력이 최신 값으로 바뀝니다.</p>
           {items.length === 0 ? (
             <p className={styles.empty} role="status">{emptyMessage}</p>
           ) : (
-            <div className={styles.tableScroll} data-testid="project-master-table-scroll">
+            <div className={styles.tableScroll} data-testid="project-master-table-scroll" onFocusCapture={revealTableControl}>
               <table className={styles.table} aria-label={`${categoryLabel} 기준정보 목록`}>
+                <colgroup><col /><col className={styles.codeColumn} /><col className={styles.sortColumn} /><col className={styles.statusColumn} /><col className={styles.actionsColumn} /></colgroup>
                 <thead>
                   <tr>
                     <th scope="col">이름</th>
@@ -348,17 +392,21 @@ export function ProjectMasterAdmin() {
                     const draft = drafts[item.id] ?? { name: item.name, code: item.code, sortOrder: item.sortOrder };
                     return <tr key={item.id} className={item.active ? undefined : styles.inactive}>
                       <td>
-                        <input aria-label={`${item.name} 이름`} value={draft.name} disabled={busy}
+                        <input aria-invalid={fieldErrors[`${item.id}-name`] ? true : undefined} aria-describedby={fieldErrors[`${item.id}-name`] ? `${item.id}-name-error` : undefined} aria-label={`${item.name} 이름`} value={draft.name} title={draft.name} maxLength={200} disabled={busy || state !== "ready"}
                           onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, name: event.target.value } }))} />
+                        {fieldErrors[`${item.id}-name`] ? <p id={`${item.id}-name-error`} className={styles.error}>{fieldErrors[`${item.id}-name`]}</p> : null}
                       </td>
                       <td>
-                        <input aria-label={`${item.name} 코드`} value={draft.code} disabled={busy || (item.usageCount ?? 0) > 0}
+                        <input aria-invalid={fieldErrors[`${item.id}-code`] ? true : undefined} aria-label={`${item.name} 코드`} value={draft.code} maxLength={64} disabled={busy || state !== "ready" || (item.usageCount ?? 0) > 0}
+                          aria-describedby={(item.usageCount ?? 0) > 0 ? "project-master-used-code-hint" : fieldErrors[`${item.id}-code`] ? `${item.id}-code-error` : undefined}
                           title={(item.usageCount ?? 0) > 0 ? "사용 중인 안정 코드는 변경할 수 없습니다." : undefined}
                           onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, code: event.target.value } }))} />
+                        {fieldErrors[`${item.id}-code`] ? <p id={`${item.id}-code-error`} className={styles.error}>{fieldErrors[`${item.id}-code`]}</p> : null}
                       </td>
                       <td className={styles.sortCell}>
-                        <input aria-label={`${item.name} 정렬 순서`} type="number" min={0} value={draft.sortOrder} disabled={busy}
+                        <input aria-invalid={fieldErrors[`${item.id}-sortOrder`] ? true : undefined} aria-describedby={fieldErrors[`${item.id}-sortOrder`] ? `${item.id}-sortOrder-error` : undefined} aria-label={`${item.name} 정렬 순서`} type="number" min={0} max={1000000} value={draft.sortOrder} disabled={busy || state !== "ready"}
                           onChange={(event) => setDrafts((current) => ({ ...current, [item.id]: { ...draft, sortOrder: Number(event.target.value) } }))} />
+                        {fieldErrors[`${item.id}-sortOrder`] ? <p id={`${item.id}-sortOrder-error`} className={styles.error}>{fieldErrors[`${item.id}-sortOrder`]}</p> : null}
                       </td>
                       <td>
                         <div className={styles.statusMeta}>
@@ -385,14 +433,14 @@ export function ProjectMasterAdmin() {
     </section>
 
     {passwordOpen ? <WorkspaceDialog title="프로젝트 기준정보 관리자 비밀번호 변경" restoreFocusRef={passwordTrigger} busy={busy}
-      onClose={() => { if (!busy) { setPasswordOpen(false); setNewPassword(""); setConfirmPassword(""); } }}>
-      <form className="project-form compact-form" onSubmit={(event) => void changePassword(event)}>
+      onClose={closePassword}>
+      <form ref={passwordForm} className={`project-form compact-form ${styles.passwordForm}`} onSubmit={(event) => void changePassword(event)}>
         <div className="form-field"><label htmlFor="project-master-new-password">새 비밀번호</label>
-          <input id="project-master-new-password" type="password" autoComplete="new-password" value={newPassword} disabled={busy} onChange={(event) => setNewPassword(event.target.value)} /></div>
+          <input id="project-master-new-password" ref={(input) => { input?.setAttribute("autofocus", ""); }} type="password" autoComplete="new-password" value={newPassword} disabled={busy} onChange={(event) => setNewPassword(event.target.value)} /></div>
         <div className="form-field"><label htmlFor="project-master-confirm-password">새 비밀번호 확인</label>
           <input id="project-master-confirm-password" type="password" autoComplete="new-password" value={confirmPassword} disabled={busy} onChange={(event) => setConfirmPassword(event.target.value)} /></div>
         <div className={styles.dialogActions}>
-          <button className="secondary-button" type="button" disabled={busy} onClick={() => setPasswordOpen(false)}>취소</button>
+          <button className="secondary-button" type="button" disabled={busy} onClick={closePassword}>취소</button>
           <button className="primary-button" type="submit" disabled={busy || !newPassword || newPassword !== confirmPassword}>비밀번호 변경</button>
         </div>
       </form>

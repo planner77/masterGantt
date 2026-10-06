@@ -1588,3 +1588,45 @@ baseline `c411634f75b7a69131a095e9cb6b7416060b827e`, branch `fix/issue-454-logis
 유효64 before 재캡처77830/ch20c364 exit0,1 PASS6.6s(3.9s). after geometry31896/ch48c975 exit0,1 PASS7.4s(4.7s),실패0이다. 최종75 artifact는 같은 유효dataset으로 모두 교체됐고 환경/numeric actual metric/control pair 비중첩·세로/가로 focus 외곽선도 JSON에 명시했다. 사용 건수 header/cell computed text-align right와 font-variant-numeric tabular-nums를 실측했다. 최종 before 짧은 행 수치는390/768224.96875,1024140.96875,1440/1920100.96875px로 같고 after5폭47px이다.
 
 마지막 ch7213f4는 source/test/fixture5 drift0,최종source2 백업byte 동일,owned Next STOP/generated2 정확 복원을 확인했다. 기존 CRUD/오류/pending/두 기존 case는 짧은 code에 대한 검증이며 제품 source도 동일하므로 재사용한다. 고유 after14개는 유지하고 PASS 실행은18회로 구분하며 전체14를 다시 실행하지 않았다. 게시 allowlist75개는 그대로이고 native125%·실기기·screenreader·serverauthorization 전체·remoteCI·독립 QA 미검증 경계도 유지한다.
+
+## Issue #455 — 프로젝트 기준정보 제어 밀도 Local Fast Feedback
+
+전용 `tests/fixtures/project-master-455.ts`는 세 범주 각각 짧은 used 행, 이름200자/code64자/정렬1000000/사용 수12345의 긴 행, inactive 행, unused0 행을 만든다. UUID와 API 길이/정렬 상한을 fixture 생성 시 검증한다. 같은 최종 12행 dataset으로 before/after를 비교하며 mock API UI 검증을 실제 SQLite authorization 검증으로 확대하지 않는다.
+
+첫 before 76506/ch43c7c1 exit0(1 PASS,6.7초)는 초기 9행 fixture였다. 제품 수정 전 승인된 상한/unused0 보강 후 최종 before 51732/chd846d4 exit0(1 PASS,6.7초)를 다시 확보했다. 최종 게시 비교에는 12행 before만 사용한다. before production source는 baseline04b3047328bb338bace1990e18a434ae80b611db이며 header의0.90.2는 infra 준비값이다. 짧은 정상 행57px, 입력 border0px/transparent/padding0px/min-height auto를 실제 측정했다. #452의 전역 margin0는 이미 적용되어 있으므로 이번 변경을 button margin 제거라고 해석하지 않는다.
+
+전용 spec은 세 범주×390/768/1024/1440/1920의 표/행/header-body/첫 행 경계, 정상/focus/disabled computed input style, control containment·비중첩, native Tab의 마지막 작업 접근, password dialog 초기/복원 focus를 확인한다. 기존 project-master-admin.spec.ts의7개 #289/#332 범주/필터/의미 구조/반응형 보호는 새 제목 selector만 이관한다. 추가 request/state 검증은 범주/필터 초안·생성 target, POST/명시 PATCH/active/password, used code 이유, 실제 필드 오류,0/1/filter0, GET 오류 복구, 동기 중복 submit/pending 반복 Escape, mutation401/403/412 및 복구 GET500/401/network/불명 canonical을 다룬다. 실패 요청을 자동 재전송하지 않는 counter를 유지한다.
+
+첫 after 55446/chab1a09 exit1: 390px 표/입력/행/Tab geometry 통과 후 password 초기 focus FAIL(1 FAIL,18 미실행). React autoFocus만으로 native showModal 이후 focus가 보장되지 않은 제품 UI 오류다. 원본 trace/error context는 `/tmp/issue455-after-firstfail-1`에 보존하고 게시 대상에서 제외했다. owned form의 명시 초기 focus를 연결해 재검증한다.
+
+모든 server 실행 중 production/fixture/test는 동결하고 종료 후 owned Next STOP, next-env.d.ts/tsconfig.json 정확 백업 복원 및 hash 불변을 확인한다. 기존 canonical 재적용 시 다른 dirty 행 덮임은 DEFER이며 이 검증으로 전체 저장 동작의 초안 보존을 주장하지 않는다. 실제125% browser zoom은 headless native UI로 실행할 수 없어 NOT TESTED이며 DSF/CSS zoom으로 대체하지 않는다. 실기기/screen reader, 전체 서버 authorization/원격 quality·e2e·docker, 독립 QA는 별도 근거가 없으므로 NOT TESTED다. API/DB/auth/domain/공유 CSS/Next·SVAR 엔진 계약 문서는 변경 없는 로컬 UI 범위로 N/A다.
+
+### Issue #455 최종 후보 및 실행 이력
+
+| 실행 | 실제 명령 범위 / handle·chunk | 결과 |
+| --- | --- | --- |
+| before 초기 | `MASTER_CAPTURE=before npx playwright test --config tests/config/playwright.config.ts tests/e2e/master-controls-density.spec.ts --project=chromium --workers=1 --max-failures=1 --grep '#455 before'` ·76506/43c7c1 | exit0,1 PASS6.7초; 초기9행, 최종 비교에서 제외 |
+| before 최종 | 동일 명령·51732/d846d4 | exit0,1 PASS6.7초; 유효12행 dataset |
+| after1 | 전용 spec+기존 spec,`--grep-invert '#455 before'` ·55446/ab1a09 | exit1,초기 focus1 FAIL/18 미실행 |
+| after2 | 같은19개·40983/1beb06 | exit1,owned effect 보강 뒤 동일 초기 focus1 FAIL/18 미실행 |
+| after3 | native autofocus ref 적용 뒤 같은19개·34563/44bd01 | exit1,2 PASS/1 FAIL/16 미실행; Next route announcer까지 선택한 alert strict selector 하니스 오류 |
+| after4 | 같은 두 spec,`--grep-invert '#455 before\|#455 after 세 범주'` ·87943/1b8046 | exit0,18 PASS15.1초; alert는 main 영역으로 한정, 생성/행 draft 검사도 최종 보강 |
+| after5 | 전용 spec,`--grep '#455 after 세 범주\|#455 실제 필드'` ·13519/99c70b | exit0,2 PASS7.3초; top≤1px와 실제 오류 computed 색상, loading 상태 좁은 재검증 |
+
+모든 browser 명령은 `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome`, workers1/max-failures1을 사용한다. 고유 after case는19개(기존7+전용12), PASS 실행은22회(2+18+2)이며 중복3회를 포함한다. 단일19개 전체 PASS 실행이라고 쓰지 않는다. 제품 source는 after3 이후 변경 없고 after4/5는 owned test selector 및 인수 기준 측정 보강만 적용했으므로 영향 없는 PASS를 재사용한다. 마지막 e54c15에서 source/test/fixture5 drift0·owned Next STOP·generated2 백업 정확 복원을 확인했다.
+
+최종 evidence는 before28개(7PNG/21JSON)와 after32개(9PNG/23JSON), 총60개다. geometry는 세 범주15개 normal/focused 및 password5폭을 포함하고, PNG는 사업부5폭/password390·1440/error·saving 대표 상태만이다. 정상 짧은 행은 모든 폭47px, 입력/버튼40px, cell 상하3px, header/body 및 동급 control top 차이≤1px, first-row header gap0px, document width=viewport다. table width는390/768/1024에서960px,1440에서1344px,1920에서1552px이며 wide는 shell의 가용 작업면을 기준으로 한다. before의 입력 borderWidth0px shorthand는 네 면이 동일한 CSSOM 실측값이며 after는 borderSides 네 면1px도 명시했다. 정상 표면 rgb(255,255,255), padding8px/min-height40px/14px·20px/box-sizing border-box, focus3px outline, disabled 표면·used 이유, 실제 invalid input과 오류 설명의 computed 색 일치를 확인했다.
+
+실측 환경은 en-US/Asia-Seoul(실제 값 `Asia/Seoul`)/Chromium153.0.8010.12, 기본100%이며 before/after environment JSON에 기록했다. fresh npm ci는 실행하지 않았고 infra가 #454의 동일 dependency 실제 디렉터리를 복사한 환경이다. 별도 pure domain 알고리즘 추가가 없으므로 신규 Unit N/A이며 동기 guard는 실제 browser request counter로 검증했다. typecheck/scoped lint/version/Markdown link/diff의 마지막 실행은 frontend Result Contract에 연결한다. 원본 실패 trace·runtime DB·report·log 및 다른 Issue 출력은 게시 allowlist에서 제외한다.
+## Issue #475 Generic Finalizer closed-Issue backlog 회귀
+
+- 재현 순서는 `FINAL #452@f8f...` → 미완료 `#461@fd8...` → 이미 closed인 #452를 다시 참조한 후속 merge `#474@56e...`다.
+- 최신 merge의 Issue가 closed이지만 그 exact target SHA에 FINAL marker가 없으면 해당 merge 자체는 lifecycle mutation 대상에서 제외한다.
+- 이 closed/no-marker merge는 수집 단계에서 non-actionable ordering barrier로 유지하여 same-Issue retry adjacency를 끊고, coalesce 이후에만 lifecycle target에서 필터링한다.
+- barrier를 이유로 first-parent 탐색을 종료하지 않고 더 오래된 merge를 계속 조회하여 #461 같은 pending target을 발견해야 한다.
+- 더 과거의 exact FINAL marker를 만나면 기존처럼 강한 boundary로 탐색을 종료한다.
+- closed/no-marker merge에 대해 Issue reopen, release/finalize, branch cleanup을 수행하지 않는다.
+- 동일 Issue의 pending retry 두 개 사이에 closed/no-marker merge가 있으면 두 retry를 coalesce하지 않고 각각의 first-parent/version 범위를 유지한다.
+- `MAX_BACKLOG_DEPTH` 안에서 exact FINAL/non-PR historical boundary를 찾지 못하는 기존 fail-closed 계약은 유지한다.
+- 정적/시나리오 검증은 `scripts/verify-issue-lifecycle.py`에서 closed skip classifier, exact FINAL boundary, pending backlog 보존을 함께 확인한다.
+

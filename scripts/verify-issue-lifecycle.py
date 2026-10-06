@@ -172,6 +172,11 @@ require("filter=latest&per_page=100" in impl, "lifecycle must inspect latest-att
 require("mastergantt-release-authorization:v1" in auto_impl, "version-scoped release authorization marker is required")
 require("gh_paginated(" in auto_impl, "comment and PR pagination helper is required")
 require("collect_pending_work(" in auto_impl, "first-parent backlog resolver is required")
+require("def is_closed_issue(" in auto_impl, "closed Issue skip classifier is required")
+require("replace(item, actionable=False)" in auto_impl, "closed unmarked Issue must remain as a non-actionable ordering barrier")
+require("coalesced[-1].actionable" in auto_impl and "item.actionable" in auto_impl, "retry coalescing must not cross non-actionable closed barriers")
+require("pending_with_barriers" in auto_impl and "if item.actionable" in auto_impl, "closed ordering barriers must be filtered only after adjacency-sensitive coalescing")
+require("return issue.get(\"state\") == \"closed\"" not in auto_impl.split("def is_finalized_boundary", 1)[1].split("def is_closed_issue", 1)[0], "closed Issue must not be treated as an exact finalized boundary")
 require("coalesce_consecutive_issue_retries(" in auto_impl, "same-Issue corrective merge convergence is required")
 require("supersede_failed_issue_retries(" in auto_impl, "non-adjacent same-Issue retry supersession is required")
 require("exact_release_state(" in auto_impl, "formal release evidence classification is required")
@@ -533,14 +538,80 @@ a_item = auto.WorkItem(a_sha, old_sha, 2, 2, "1.0.0", "1.1.0")
 b_item = auto.WorkItem(b_sha, a_sha, 3, 3, "1.1.0", "1.2.0")
 saved_resolve = auto.resolve_work_item
 saved_boundary = auto.is_finalized_boundary
+saved_closed = auto.is_closed_issue
 auto.resolve_work_item = lambda _repo, target: {old_sha: old, a_sha: a_item, b_sha: b_item}.get(target)
 auto.is_finalized_boundary = lambda _repo, item: item.target_sha == old_sha
+auto.is_closed_issue = lambda _repo, _item: False
 try:
     backlog = auto.collect_pending_work(repo, b_sha)
     require([item.target_sha for item in backlog] == [a_sha, b_sha], "first-parent backlog order failed")
 finally:
     auto.resolve_work_item = saved_resolve
     auto.is_finalized_boundary = saved_boundary
+    auto.is_closed_issue = saved_closed
+
+# A new merge can reference an Issue that was already finalized/closed by an
+# older exact target.  The new closed/no-marker merge must not be mutated and
+# must not hide an older unfinished target behind it.
+closed_sha = "f" * 40
+pending_sha = "e" * 40
+finalized_sha = "d" * 40
+finalized_item = auto.WorkItem(finalized_sha, "0" * 40, 470, 452, "0.85.0", "0.85.1")
+pending_item = auto.WorkItem(pending_sha, finalized_sha, 471, 461, "0.85.1", "0.86.0")
+closed_item = auto.WorkItem(closed_sha, pending_sha, 474, 452, "0.86.0", "0.86.0")
+saved_resolve = auto.resolve_work_item
+saved_boundary = auto.is_finalized_boundary
+saved_closed = auto.is_closed_issue
+auto.resolve_work_item = lambda _repo, target: {
+    finalized_sha: finalized_item,
+    pending_sha: pending_item,
+    closed_sha: closed_item,
+}.get(target)
+auto.is_finalized_boundary = lambda _repo, item: item.target_sha == finalized_sha
+auto.is_closed_issue = lambda _repo, item: item.target_sha == closed_sha
+try:
+    backlog = auto.collect_pending_work(repo, closed_sha)
+    require(
+        [item.target_sha for item in backlog] == [pending_sha, closed_sha],
+        "closed/no-marker latest merge must remain in traversal while older pending target stays discoverable",
+    )
+    require(
+        [item.actionable for item in backlog] == [True, False],
+        "closed/no-marker merge must be a non-actionable ordering barrier",
+    )
+    coalesced = auto.coalesce_consecutive_issue_retries(backlog)
+    require(
+        [item.target_sha for item in coalesced if item.actionable] == [pending_sha],
+        "closed ordering barrier must be filtered only after adjacency-sensitive processing",
+    )
+finally:
+    auto.resolve_work_item = saved_resolve
+    auto.is_finalized_boundary = saved_boundary
+    auto.is_closed_issue = saved_closed
+
+# Two pending retries for the same Issue must not become adjacent when a
+# closed/no-marker merge sits between them in first-parent order.
+retry_before_barrier = auto.WorkItem("c" * 40, finalized_sha, 480, 500, "1.0.0", "1.1.0")
+closed_barrier = auto.WorkItem("b" * 40, retry_before_barrier.target_sha, 481, 452, "1.1.0", "1.1.0", actionable=False)
+retry_after_barrier = auto.WorkItem("a" * 40, closed_barrier.target_sha, 482, 500, "1.1.0", "1.2.0")
+barrier_sequence = auto.coalesce_consecutive_issue_retries(
+    [retry_before_barrier, closed_barrier, retry_after_barrier]
+)
+require(
+    [item.target_sha for item in barrier_sequence] == [
+        retry_before_barrier.target_sha,
+        closed_barrier.target_sha,
+        retry_after_barrier.target_sha,
+    ],
+    "closed ordering barrier must prevent same-Issue retry coalescing across intervening merge",
+)
+require(
+    [item.target_sha for item in barrier_sequence if item.actionable] == [
+        retry_before_barrier.target_sha,
+        retry_after_barrier.target_sha,
+    ],
+    "barrier filtering must preserve both actionable retry targets",
+)
 
 # Adjacent corrective merges for the same Issue converge only when their
 # validation scope is equivalent. Collapsed PR identities remain cleanup

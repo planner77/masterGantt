@@ -933,3 +933,15 @@ Pending에서 disabled control 때문에 focus가 body로 빠지지 않도록 �
 412는 최신 GET 성공일 때 stale 안내를 표시하고 입력을 보존한 수동 저장만 허용한다. 최신 GET이 실패하거나401이면 그 조회/인증 원인을 stale 안내로 덮지 않는다. 열린 이름 dialog의 조회 오류에는 기존 GET을 명시 실행하는 `최신 목록 조회`를 보여주며 정상 상태에는 간단한 기존 footer를 유지한다. network·알 수 없는 canonical 응답은 성공/초안 초기화로 처리하지 않고 최신 조회 전 변경을 잠근다. 401은 보호 화면을 잠그고 비밀번호를 비운 후 로그인 focus로 복귀한다. 새로운 dirty 확인 흐름이나 자동 mutation retry는 추가하지 않는다.
 
 #452가 이미 action margin0을 적용했으므로 역사적 분리 CSS의77.78125→53.78125/24px 제거를 이번 개선 수치로 사용하지 않는다. 동일 긴 code dataset의 before 짧은 행은 자동 열 배분과 작업 열 wrap 때문에390/768에서224.96875px,1024에서140.96875px,1440/1920에서100.96875px였다. after는 같은 dataset에서47px이다. 자세한 실측·실행 실패와 검증 경계는 TEST_PLAN의 #454 절을 따른다.
+
+## Issue #455 — 프로젝트 기준정보 입력과 행 밀도
+
+#332의 인증/관리/생성/목록 section, 범주 roving tab 및 상태 필터 계약을 유지하면서 중복된 제목을 줄인다. 인증 상태는 `관리자 인증됨`, 관리 영역은 `항목 관리`로 표시하고 생성 제목과 이름/코드/정렬 label은 현재 범주를 명시한다. 범주를 바꾸면 공통 생성 입력 값은 유지되며 현재 선택 범주가 제출 대상이다. 별도 범주별 생성 초안이나 확인 단계는 추가하지 않는다.
+
+이름/코드/정렬 입력은 로컬 1px 테두리·불투명 표면·8px 내부 여백·14px/20px 글꼴·40px 최소 높이를 사용한다. focus outline, disabled 표면과 실제 필드 오류 테두리를 구분한다. 일반 서버 오류는 alert이며 정상 필드나 사용 중인 disabled code에 오류 상태를 붙이지 않는다. 사용 중인 code에는 보이는 변경 불가 이유를 `aria-describedby`로 연결한다. 이름 200자/code 64자/정렬 0~1000000의 기존 한도를 유지하며 긴 값은 single-line input의 전체 accessible value, 이름 title 및 native caret/내부 text scroll로 접근한다.
+
+목록은 native table이며 최소 960px budget은 이름 최소 240px + code 192px + 정렬 120px + 상태/사용 216px + 작업 192px이다. 넓은 작업면의 추가 폭은 이름에 사용한다. 입력/작업 버튼은 40px, cell 상하 padding은 3px이며 짧은 행 목표는 divider를 포함한 47px이다. 행 높이를 고정하거나 상태 의미를 잘라내지 않는다. 폭이 부족하면 표 자체의 수평 scroll을 사용한다. 실제 Tab/pointer focus에서 필요한 수평 delta만 보정해 표 owner 안에 focus 외곽선 여유를 확보하며 문서/세로 scroll은 직접 변경하지 않는다.
+
+범주/상태 필터만 바꾸는 동작은 GET/mutation/revision 변경 없이 행 초안과 공통 생성 입력을 유지한다. 반면 기존 `applyCatalog`는 저장·활성 상태 변경·새로고침·412 후 GET 성공 시 모든 행 초안을 canonical 값으로 다시 만든다. 다른 미저장 행을 덮는 이 기존 위험은 Manager 결정으로 이번 범위에서 DEFER이며 초안 merge/확인 dialog는 추가하지 않는다. 화면에 한 항목씩 저장하고 최신 목록 조회 시 미저장 입력이 바뀐다는 안내를 제공한다.
+
+생성/행 저장/password 저장은 동기 pending guard로 중복 요청을 막는다. 비밀번호 dialog는 새 비밀번호 초기 focus, Escape/취소의 입력 정리와 trigger 복원, pending 중 반복 Escape/닫기 잠금을 제공한다. 412 후 최신 GET 실패나 401 원인을 stale 안내로 덮지 않으며 자동 mutation 재시도는 하지 않는다. 서버 session/Origin/If-Match/안정 code 및 inactive 참조 정책은 변경하지 않는다.
