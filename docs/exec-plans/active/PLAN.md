@@ -1,5 +1,11 @@
 # Active execution plan
 
+## Issue #455 기준정보 입력 컨트롤 — 최신 main 재정렬 / 병합 / Main CI
+
+PR #481의 기존 head `7f9cfb87e4e56bba9eff444d74a0559bcb80b89d`는 PR CI Run `37411553451` / Run #1908.1 SUCCESS였으나, 이후 #453/#454 및 운영 변경이 main에 반영되어 최신 main이 `0fc986cb0cb642bdbedeec30157b27bd522b5a38`까지 전진했고 기존 head는 GitHub `mergeable_state=dirty`가 되었다. #455 고유 제품·테스트·fixture·증거를 최신 main 위에 재적용하고, 충돌 교집합인 CHANGELOG/PROJECT_UX/TEST_PLAN/active PLAN은 최신 main 기록과 #455 기록을 함께 보존한다.
+
+새 exact-head PR CI의 quality/e2e/docker 성공을 병합 전 authoritative gate로 사용한다. 성공하면 PR #481을 main에 병합하고 해당 merge push로 Main CI가 시작되는 것까지 확인한다. 기존 Run #1908.1은 재정렬 전 head 근거이므로 새 head의 PASS로 대체하지 않는다. release/GHCR/finalizer/Issue close/branch cleanup은 이번 요청 범위에 포함하지 않는다.
+
 ## Issue #454 물류 유형 목록 — 최신 main 정렬 / 충돌 정리 / 새 PR CI
 
 PR #478의 기존 head `04b3047328bb338bace1990e18a434ae80b611db`는 PR CI Run `37408864316` / Run #1900.1 SUCCESS였으나, 선행 #453이 별도 재정렬 후 PR #477로 병합되고 main이 `22326fc350b91ab59ddafa20ef97c3f418f71aae`까지 전진하여 기존 stacked head는 병합 불가 상태가 되었다. #454 자체 delta만 보존하고 최신 main을 병합하는 방식으로 정렬한다.
