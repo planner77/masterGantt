@@ -340,15 +340,19 @@ export class CountryCalendarCatalogService {
       const row = this.ensureOverride(code, year, now);
       const status = input.status ?? row.status;
       if (!["OFFICIAL","UNAVAILABLE","SUPERSEDED"].includes(status)) throw new CountryCalendarCatalogInvalidInputError();
-      const sourceVersion = input.sourceVersion === undefined
-        ? row.sourceVersion
-        : input.sourceVersion === null ? null : text(input.sourceVersion, 200);
-      const sourceUrl = input.sourceUrl === undefined
-        ? row.sourceUrl
-        : input.sourceUrl === null ? null : validSourceUrl(input.sourceUrl);
-      if ((input.sourceVersion !== undefined && input.sourceVersion !== null && !sourceVersion) ||
-          (input.sourceUrl !== undefined && input.sourceUrl !== null && !sourceUrl)) {
-        throw new CountryCalendarCatalogInvalidInputError();
+      let sourceVersion: string | null = row.sourceVersion;
+      if (input.sourceVersion === null) sourceVersion = null;
+      else if (input.sourceVersion !== undefined) {
+        const normalized = text(input.sourceVersion, 200);
+        if (!normalized) throw new CountryCalendarCatalogInvalidInputError();
+        sourceVersion = normalized;
+      }
+      let sourceUrl: string | null = row.sourceUrl;
+      if (input.sourceUrl === null) sourceUrl = null;
+      else if (input.sourceUrl !== undefined) {
+        const normalized = validSourceUrl(input.sourceUrl);
+        if (!normalized) throw new CountryCalendarCatalogInvalidInputError();
+        sourceUrl = normalized;
       }
       if (status === "OFFICIAL" && (!sourceVersion || !sourceUrl || this.dateRows(row.id).length === 0)) {
         throw new CountryCalendarCatalogConflictError();
