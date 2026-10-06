@@ -17,7 +17,7 @@ Issue #350에서 Issue별 one-shot finalizer를 제거하고 main CI 이후 life
 
 `.github/workflows/release-finalizer.yml`은 `CI`의 `workflow_run.completed` 중 triggering branch가 `main`인 경우만 생성된다. Job mutation은 추가로 triggering event=`push`, head branch=`main`, conclusion=`success`를 모두 요구한다. 따라서 PR CI, feature branch CI, 수동 CI, 실패/취소 main CI는 lifecycle mutation을 수행하지 않는다.
 
-Generic Finalizer와 수동 lifecycle mutation checkout은 credential persistence를 사용하지 않는다. SemVer tag push는 `issue_lifecycle.py`가 inherited `http.extraHeader`를 command scope에서 reset한 뒤 job-scoped `GITHUB_TOKEN` Authorization header 하나만 주입한다. 따라서 checkout credential과 helper header가 중복되어 GitHub가 `Duplicate header: Authorization`으로 거부하는 경로를 차단한다.
+Generic Finalizer와 수동 lifecycle mutation checkout은 credential persistence를 사용하지 않는다. SemVer tag의 존재 확인(`ls-remote`), exact tag fetch, push는 모두 command-scoped auth helper를 사용한다. helper는 inherited `http.extraHeader`를 reset한 뒤 job-scoped `GITHUB_TOKEN` Authorization header 하나만 주입하므로 private repository의 tag read/fetch와 write가 동일한 인증 경계에서 동작하고 `Duplicate header: Authorization`도 방지한다.
 
 Release 완료 재개는 `.github/workflows/release-finalizer-resume.yml`이 담당한다. 이 workflow는 `Publish release image`의 successful `workflow_run.completed`를 fallback으로 구독하는 동시에 `workflow_dispatch(target_sha, release_run_id)`를 지원한다. `release-image.yml`의 publish 성공 후에는 GitHub가 `GITHUB_TOKEN`에 명시적으로 허용하는 `workflow_dispatch`로 Resume을 호출하므로 implicit event delivery 하나에만 의존하지 않는다. Explicit handoff는 source Release run이 아직 active일 수 있으므로 Resume이 exact `release_run_id`를 polling해 `completed/success`, workflow path, head SHA를 확인한 뒤 Generic resolver를 실행한다. 대기는 최대 10분으로 제한하고, 그 안에 completed/success evidence를 확보하지 못하면 Resume만 FAIL하여 lifecycle mutation을 중단한다.
 
