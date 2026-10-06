@@ -37,6 +37,7 @@ function validPreview(value:unknown):value is CountryCalendarImportPreviewRespon
   if(!value||typeof value!=="object"||!("data" in value))return false;
   const data=value.data;
   return !!data&&typeof data==="object"&&"revision" in data&&typeof data.revision==="number"&&
+    "previewToken" in data&&typeof data.previewToken==="string"&&
     "summary" in data&&!!data.summary&&typeof data.summary==="object"&&
     "importDataset" in data&&!!data.importDataset&&typeof data.importDataset==="object";
 }
@@ -160,8 +161,15 @@ export function CountryCalendarAdmin(){
     }catch{if(!controller.signal.aborted)setError("변경 결과를 확인할 수 없습니다.");return false;}
     finally{end(controller);}
   }
-  function switchCountry(value:WorkCalendarCountryCode){setCountry(value);setSnapshot(null);setPreview(null);setEditing(null);setDeleting(null);void reload(value,year);}
-  function switchYear(value:number){setYear(value);setSnapshot(null);setPreview(null);setEditing(null);setDeleting(null);void reload(country,value);}
+  function clearTargetDrafts(){
+    setNewDate("");setNewName("");setNewDayType("NON_WORKING");setNewSourceKey("");
+    setEditing(null);setDeleting(null);
+    fileReadGeneration.current+=1;
+    if(fileInputRef.current)fileInputRef.current.value="";
+    setFile(null);setFileEnvelope(null);setPreview(null);
+  }
+  function switchCountry(value:WorkCalendarCountryCode){setCountry(value);setSnapshot(null);clearTargetDrafts();void reload(value,year);}
+  function switchYear(value:number){setYear(value);setSnapshot(null);clearTargetDrafts();void reload(country,value);}
 
   async function saveMetadata(event:FormEvent){
     event.preventDefault();
@@ -239,7 +247,7 @@ export function CountryCalendarAdmin(){
       const response=await fetch("/api/admin/work-calendars/import/apply",{
         method:"POST",credentials:"same-origin",signal:controller.signal,
         headers:{"Content-Type":"application/json","If-Match":revisionTag(preview.data.revision)},
-        body:JSON.stringify(fileEnvelope),
+        body:JSON.stringify({previewToken:preview.data.previewToken,envelope:fileEnvelope}),
       });
       const value:unknown=await response.json().catch(()=>null);
       if(response.status===401){expire();return;}
@@ -289,7 +297,7 @@ export function CountryCalendarAdmin(){
     {snapshot&&dataset?<section className={styles.dataset} aria-labelledby="dataset-title">
       <div className={styles.datasetHeader}>
         <div><h2 id="dataset-title">{dataset.countryName} {dataset.year}</h2><p>{dataset.origin==="BUILT_IN"?"내장 기준 데이터":dataset.origin==="OVERRIDE"?"DB 관리 데이터":"등록 데이터 없음"}</p></div>
-        <span className={`${styles.status} ${statusClass}`}>{STATUS_LABELS[dataset.status]}</span>
+        <span className={`${styles.status} ${statusClass}`} role="status" aria-label={`Dataset 상태: ${STATUS_LABELS[dataset.status]}`}>{STATUS_LABELS[dataset.status]}</span>
       </div>
       <dl className={styles.facts}>
         <div><dt>데이터 건수</dt><dd>{dataset.dateCount}</dd></div>
@@ -354,7 +362,7 @@ export function CountryCalendarAdmin(){
 
     {deleting?<WorkspaceDialog title="캘린더 날짜 삭제" restoreFocusRef={deleteTriggerRef} busy={busy} onClose={()=>setDeleting(null)}>
       <div className={styles.dialog}><p><strong>{deleting.date} {deleting.name}</strong>을 삭제합니다. 기존 Project의 저장된 Calendar는 자동 변경되지 않습니다.</p>
-      <div className={styles.actions}><button className="secondary-button" type="button" onClick={()=>setDeleting(null)}>취소</button><button className="primary-button" type="button" disabled={busy} onClick={()=>void confirmDelete()}>삭제</button></div></div>
+      <div className={styles.actions}><button className="secondary-button" type="button" disabled={busy} onClick={()=>{if(!busy)setDeleting(null);}}>취소</button><button className="primary-button" type="button" disabled={busy} onClick={()=>void confirmDelete()}>삭제</button></div></div>
     </WorkspaceDialog>:null}
   </div>;
 }
