@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.93.0] - 2026-10-06
+
+### Added
+
+- Issue #493: Summary Task의 Description과 URL을 일반 Task와 같은 검증·저장 경로로 편집할 수 있다. 빈 Summary와 일정 산정 Summary 모두 지원한다.
+
+### Changed
+
+- Summary PATCH의 직접 편집 allowlist를 name/Description/URL/명시 완료 단계 소속으로 확장하되 일정·진척·상태·Baseline의 자손 파생 read-only 계약은 유지한다.
+- 하위 작업 추가·삭제에 따른 Summary 일정 재계산 뒤에도 메타데이터를 보존하는 Unit/SQLite/E2E 회귀를 추가하고 application version을 `0.92.0`에서 `0.93.0`으로 증가한다.
+
 ## [0.92.0] - 2026-10-06
 
 ### Added
