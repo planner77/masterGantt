@@ -1008,3 +1008,14 @@ Import 412에서는 파일과 dialog를 유지한 채 `최신 일정 조회`로 
 작업 메뉴를 열기 위한 미선택 행 선택은 공개 `select-task`의 `show:false`로 Core에 반영한다. 이미 보이는 호출 대상의 위치를 선택 직후 자동으로 이동시키지 않으며, 일반 클릭·키보드 선택의 기존 reveal 및 modifier/multi-selection은 유지한다. 메뉴가 열린 뒤 실제 사용자 스크롤·resize에는 기존 guard가 즉시 메뉴를 닫고, 같은 위치의 지연 scroll 알림은 무시한다. 설치 Core 2.7.3 타입과 [공식 select-task action](https://docs.svar.dev/react/gantt/api/actions/select-task/)의 show 기본 true/false 계약을 2026-10-06 확인했다. 하단 가상 행의 미선택 namecell 우클릭과 native/public 수직 위치 보존은 `tests/e2e/task-context-menu-scroll.spec.ts`에서 검증하며, 문서 확인과 실제 browser 결과를 구분한다.
 
 Context 선택은 기존 Copy 완료 feedback도 보존한다. 미선택 목적지 우클릭 직후 조건부 feedback 줄을 제거하면 Gantt 높이가 바뀌고 scrollIntoView된 Grid 조상의 위치가 clamp되어 새 메뉴가 닫힐 수 있기 때문이다. 메시지는 clipboard의 복사 결과를 계속 설명하며 일반 클릭·키보드·modifier 선택의 기존 메시지 정리는 유지한다. Copy→더 아래 목적지 이름 셀 우클릭→활성 Paste 위치 submenu→소속 영향 확인·취소의 실제 경로를 검증하며 clipboard/revision 조건이나 실제 사용자 scroll 닫힘을 완화하지 않는다.
+
+
+## Issue #456 — Editor 조작과 metadata 저장의 Gantt 상태 보존
+
+Task Editor 진입·탭 이동·취소는 동일 API/instance와 현재 WBS 범위·fullscreen·scale·행 선택·tree·실제 열 폭 및 public/DOM scroll을 보존한다. scoped 표시 ID 배열은 상위 렌더마다 새로 생성될 수 있으므로 filter-tasks는 같은 API와 정렬·중복 제거한 ID 집합에 대해 재적용하지 않는다. null(필터 해제), 빈집합, 실제 ID 변경 및 새 API는 구분하고 기존 `open:false`와 serialized queue를 유지한다. metadata는 기존 canonical sync가 소유하며 필터 dependency에 Task 객체 identity를 넣지 않는다. active name/status 필터의 metadata 변경으로 표시 ID 집합이 바뀌면 raw query가 같아도 metadata-only 복원 대상에서 제외한다.
+
+metadata-only viewport 보존은 전후 semantic visibleTaskFilterKey(null/정렬·중복 제거한 ID 집합), Project Calendar, 행 순서와 각 Task의 taskId/externalId/parentExternalId/siblingOrder/type/start/end/duration/requestedStart/scheduleMode/baselineStart/baselineDuration/baselineEnd 및 scoped SVAR Link 의미가 같은 경우에 한정한다. name/description/url/progress/status의 실제 변경이 있어야 snapshot을 기록한다. 날짜·기간·유형·계층·Link 변경은 이 보존 경로를 사용하지 않는다.
+
+canonical sync에서 public scroll 좌표를 기록하고 기존 columns queue의 layout settle 뒤 ensureTimelineEnd를 다시 확인한다. 같은 API, 실제 연결된 Gantt DOM, 동일한 현재 semantic filter signature, visible 상태, continuity key, 최신 sync version, scale, public gridWidth와 열 ID/width/hidden 의미가 유지되고 Chart/Grid pointer·wheel·keyboard 입력이 없을 때만 실제 0으로 reset된 축을 공개 scroll-chart로 한 번 복원한다. 91px처럼 0이 아닌 clamp를 임의 복원하지 않는다. scope/filter/date 이동이나 사용자 scale·열 변경을 이전 viewport로 덮지 않는다. 새 sync·stale request·catch·queue 완료(후속 columns 미실행 포함)·unmount에서 snapshot/input listener를 정리한다. unmount는 listener 제거와 함께 request ref를 null로 무효화하고, 뒤늦은 queue 실행은 연결된 root가 있을 때만 snapshot을 생성한다.
+
+설치 SVAR Core 2.7.3의 공개 getState scrollLeft/scrollTop(pixel), scroll-chart(left/top), set-columns(columns)를 사용한다. Core/PRO 내부 구현을 복제하거나 새로운 controller/API를 도입하지 않는다. 반복 filter action 제거와 canonical/columns 뒤 복원은 실제 #456 브라우저 관찰을 위한 앱 보강이며 SVAR가 일반적으로 viewport 보존을 보장한다는 뜻은 아니다.

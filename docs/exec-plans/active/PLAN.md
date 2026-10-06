@@ -242,3 +242,16 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위인 Project 생성�
 ## Issue #8 — 내부망 HTTP
 
 전용 브랜치에서 URL/쿠키/설정 주입/공유 URL과 문서를 갱신한다. PR quality/E2E/Docker 및 HTTP·HTTPS 실제 브라우저 검증 후 리뷰·병합하고 main exact digest 결과를 별도로 기록한다. 본 계획 추가만으로 PASS가 아니며 운영 Windows/WSL2 전환은 별도 미검증이다.
+
+
+## Issue #456 — Task Editor 폼 밀도와 의미별 배치
+
+[Issue Work Packet](ISSUE_456.md)을 기준으로 최신 main `05fe212060ed4a935510dc2f7a692bb9113c55e8` / version0.92.0에서 기존branch `fix/issue-456-task-editor-form-density`를 재사용하며 후보 PATCH0.92.1을 적용한다. 실제 before 후 A Task Editor의 필드·intrinsic action 폭·부모 간격을 정돈한다. 기존44px hit-area·동적탭·dirty/stale/canonical/Gantt 계약을 유지한다.
+
+B 설정·근무 규칙·인증은 [#490](https://github.com/planner77/masterGantt/issues/490), C 생성·복사·template·입출력·견적은 [#491](https://github.com/planner77/masterGantt/issues/491)로 분리했으며 FOLLOW-UP/NOT TESTED다. 미검증 표면을 KEEP/PASS로 처리하지 않는다. 한 PR에 A/B/C를 restyle하지 않는다.
+
+요청 종료점은 구현·DOCUMENTATION_SYNC·독립 사전 검토·원격 Refs #456 PR·exact head PR CI 등록이다. CI 결과 모니터링은 수행하지 않으며 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다. release_required=true/release_authorized=false; 병합·main/GHCR·tag/release·cleanup·Issue 종료는 범위 밖이다. 현재 branch/version 준비와 실제 before 측정은 PASS이며, 구현과 관련 재검증·최종 문서·독립 사전 검토는 진행 중이다.
+
+#456 실제before71개와 독립UIUX를 근거로 진행률 숫자 clipping, 일정+mode group, footer폭, relation/baseline32→44px을 FIX로 승인했다. Description읽기폭·기존탭/저장단위는 유지한다. 구현/LFF/최종문서·독립PRE_QA는 진행 중이며 원격CI/ACCEPT는 NOT TESTED다.
+
+#456 A 구현·관련 Local Fast Feedback는 PASS이며 최종 source3에서8/8,재사용 포함27 unique/최종계열52 PASS 실행을 구분했다. before71/after86을 동결하고 문서7개 및 항목별N/A를 동기화한다. 실제 visible 집합이바뀌는metadata는스크롤복원에서제외하고 same집합metadata의120/38보존을검증했다. 다음은 같은171파일 후보의 독립UIX/PRE_QA,게시동등성,PR과CI등록이다. 공식quality/e2e/docker·최종ACCEPT는NOT TESTED이며#490/#491은후속으로남긴다.

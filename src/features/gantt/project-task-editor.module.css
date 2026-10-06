@@ -121,14 +121,14 @@
 }
 .statusProgressFields {
   display: grid;
-  grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr);
+  grid-template-columns: minmax(7rem, 9rem) minmax(0, 1fr);
   gap: 0.75rem;
   align-items: end;
 }
 .scheduleFields { grid-area: schedule; }
 .scheduleFields {
   display: grid;
-  grid-template-columns: minmax(10rem, 13rem) minmax(7rem, 9rem) minmax(10rem, 13rem);
+  grid-template-columns: minmax(10rem, 13rem) minmax(7rem, 9rem) minmax(10rem, 13rem) minmax(10rem, 13rem);
   align-items: end;
   gap: 0.75rem;
 }
@@ -176,9 +176,11 @@
 }
 .sliderRow {
   display: grid;
-  grid-template-columns: minmax(12rem, 20rem) 4rem;
+  grid-template-columns: minmax(0, 1fr) 3.5rem;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
+  width: 100%;
   max-width: 24rem;
 }
 .sliderRow input[type="range"] { min-height: 2.5rem; padding: 0; border: 0; }
@@ -244,7 +246,7 @@
 }
 .relationSectionActions { justify-content: flex-end; }
 .relationSectionActions button, .relationActions button {
-  min-height: 2rem;
+  min-height: 2.75rem;
   padding: 0.25rem 0.6rem;
   font-size: 0.78rem;
 }
@@ -413,8 +415,11 @@
   line-height: 1.25;
 }
 .reloadButton { display: inline-flex; align-items: center; gap: 0.45rem; }
-.footerActions { display: flex; align-items: center; justify-content: flex-end; gap: 0.65rem; }
-.footerActions button { min-width: 6.5rem; }
+.footerActions { display: flex; align-items: stretch; justify-content: flex-end; gap: 0.65rem; }
+.footerActions button { min-width: 0; }
+.stableAction { display: grid; }
+.actionSizer, .actionLabel { grid-area: 1 / 1; }
+.actionSizer { visibility: hidden; pointer-events: none; }
 
 .baselineSection {
   margin-top: 1.25rem;
@@ -441,7 +446,7 @@
   gap: 0.5rem;
 }
 .baselineActions button {
-  min-height: 2rem;
+  min-height: 2.75rem;
   padding: 0.25rem 0.6rem;
   font-size: 0.8rem;
 }
@@ -490,10 +495,13 @@
 .nameField { grid-area: name; }
 .statusProgressFields { grid-area: progress; }
 .membershipField { grid-area: membership; min-width: 0; }
-.modeField { grid-area: mode; max-width: 42rem; }
-.descriptionField { grid-area: description; }
-.urlField { grid-area: url; }
-.taskFields { grid-template-areas: "name progress" "membership membership" "schedule schedule" "mode mode" "description description" "url url"; }
+.modeField { min-width: 0; }
+.descriptionField { min-width: 0; }
+.urlField { min-width: 0; }
+.taskFields { grid-template-areas: "name progress" "membership membership" "schedule schedule" "details details"; }
+.scheduleFields, .detailsFields { min-width: 0; margin: 0; padding: 0; border: 0; }
+.detailsFields { grid-area: details; display: grid; gap: 0.75rem; }
+.groupLegend { padding: 0; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 650; }
 .membershipOptions { display: grid; gap: 0; max-height: 16rem; overflow: auto; margin: 0.4rem 0; padding: 0; list-style: none; border: 1px solid var(--border-default); border-radius: 0.4rem; }
 .membershipOptions li { display: grid; gap: 0.3rem; padding: 0.65rem; overflow-wrap: anywhere; cursor: pointer; border-bottom: 1px solid var(--border-default); }
 .membershipOptions li[aria-selected="true"] { background: var(--action-selected-subtle); }
@@ -512,7 +520,7 @@
 .membershipTaskLink { padding: 0; border: 0; background: transparent; color: var(--action-selected); font: inherit; font-weight: 650; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
 .membershipRowActions { display: grid; gap: 0.4rem; }
 @media (max-width: 768px) {
-  .taskFields { grid-template-areas: "name" "progress" "membership" "schedule" "mode" "description" "url"; }
+  .taskFields { grid-template-areas: "name" "progress" "membership" "schedule" "details"; }
   .membershipFilters { grid-template-columns: 1fr; }
 }
 .tabs { padding-top: calc(var(--focus-offset) + 0.1875rem); padding-bottom: calc(var(--focus-offset) + 0.1875rem); scroll-padding-inline: calc(var(--focus-offset) + 0.1875rem); }

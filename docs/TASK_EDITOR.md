@@ -293,3 +293,16 @@ Task Editor의 기본 정보·Milestone 소속 작업 탭은 canonical Task ID�
 Copy는 공유 순수 계획에서 Summary root의 상속 설정과 하위 override를 구분한다. 내부 Milestone 복제 시 연결을 새 ID로 remap하고, 외부 명시 소속 제외·외부/새 목적지 Summary 상속 변화는 같은 revision으로 확인받는다. 완료 단계 구성 잠금은 확인 dialog로 해제하지 않는다. JSON 1.1 교환은 Description·URL·Baseline과 명시 소속을 보존하지만 Resource/Logistics 배정은 제외하므로, 가져오기 후 해당 공수가 원본과 동일하다고 안내하지 않는다. 원본 Task UUID는 참고 값이며 대상 UUID는 새로 발급한다. effective membership/Ready는 서버의 대상 전체 hierarchy/Link 계산 결과를 조회한다.
 
 #470 선택 리뷰의 Resource 신규 선택 해제 후 dirty 정리와 reload 후 유효 탭 정규화 회귀는 `tests/e2e/project-task-editor.spec.ts`의 #461 두 시나리오를 유지한다. #464의 실제 Editor→Milestone 탭→Grid→Dashboard→Logistics/Resource→JSON/Excel 연결 증거는 `tests/e2e/milestone-stage-exchange.spec.ts`, 요청 실패·취소 및 dialog geometry는 `tests/e2e/milestone-exchange-state.spec.ts`를 사용한다. 로컬 실행 결과는 TEST_PLAN 작성자에게 전달하며 원격 E2E 완료를 대체하지 않는다.
+
+
+## Issue #456 — 폼 정보 밀도와 저장 중 닫기 보호
+
+작업 정보의 요청 시작일·기간·요청 종료일·일정 모드는 이름이 있는 `일정` fieldset 안에 인접하게 배치한다. 설명과 URL은 `상세 정보` fieldset으로 묶는다. 좁은 화면의 DOM 읽기 순서, 설명의 기존 전체 읽기 폭·최소 높이 120px·세로 resize는 유지한다. 상태/slider/진행률 값은 각자의 grid 폭 안에 배정하며 10%와 100% 값·focus outline이 panel 안에서 보여야 한다.
+
+Footer는 Reload 왼쪽, Cancel/Commit 오른쪽을 유지하되 모든 action에 104px 최소 폭을 강제하지 않는다. Commit은 가장 긴 pending label을 aria-hidden sizer로 미리 확보해 저장 전후 geometry를 유지한다. 관계 추가·편집·삭제와 Baseline action의 최소 높이는 44px이며, 모바일 두 줄 label의 자연 높이를 44px로 잘라내지 않는다. Resource, 소속 작업, 물류 연결 및 nested Relation Editor의 저장 단위·동적 탭·초안 계약은 그대로다.
+
+실제 in-flight 상태(Task 저장, 소속 batch, Resource/Logistics 저장 등)에서는 disabled action으로 focus가 body에 떨어져도 반복 Escape가 현재 Task Editor를 닫지 않도록 document capture에서 보호한다. 보호는 열린 dialog의 DOM 순서에서 마지막 항목이 해당 Editor일 때에 한정하고 effect 종료 때 제거한다. 이는 현재 sibling dialog 소비자 범위의 보호이며 모든 native top-layer 순서를 일반적으로 보장하는 API는 아니다. readonly 또는 dirty 자체를 in-flight로 해석하지 않고 기존 Escape/확인 경로와 nested dialog 동작을 유지한다.
+
+동일 WBS 표시 ID 집합의 필터 재적용을 생략하고, metadata-only canonical 응답으로 생기는 viewport zero reset은 실제 visible ID 집합과 일정/계층/Link가 같은 경우에만 동일 queue의 columns 완료 후 공개 scroll-chart로 복원한다. 실제 일정·scope·필터·scale·열 변경과 Chart 사용자 입력은 이전 위치로 덮지 않는다. 상세 guard는 PROJECT_UX의 #456 항목을 따른다.
+
+검증 범위는 TEST_PLAN의 #456 실행 기록을 따른다. B 설정·근무 규칙·인증은 #490, C 생성·복사·template·Import/Export·견적은 #491 후속이며 이 구현의 제품 검증으로 간주하지 않는다.

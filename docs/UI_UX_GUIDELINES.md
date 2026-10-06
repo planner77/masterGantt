@@ -223,3 +223,14 @@ Import 412에서는 파일과 dialog를 유지한 채 `최신 일정 조회`로 
 Context 선택은 기존 Copy 완료 feedback도 보존한다. 미선택 목적지 우클릭 직후 조건부 feedback 줄을 제거하면 Gantt 높이가 바뀌고 scrollIntoView된 Grid 조상의 위치가 clamp되어 새 메뉴가 닫힐 수 있기 때문이다. 메시지는 clipboard의 복사 결과를 계속 설명하며 일반 클릭·키보드·modifier 선택의 기존 메시지 정리는 유지한다. Copy→더 아래 목적지 이름 셀 우클릭→활성 Paste 위치 submenu→소속 영향 확인·취소의 실제 경로를 검증하며 clipboard/revision 조건이나 실제 사용자 scroll 닫힘을 완화하지 않는다.
 
 Copy feedback 보존 보강 후 같은 좁은 Chromium 4개를 다시 실행해 PASS했다. 확장된 하단 가상 행 회귀는 Copy→한 행 아래 미선택 목적지의 실제 scrollIntoView/이름 셀 우클릭→활성 Paste/Below→소속 영향 확인·취소까지 도달했다. 우클릭 전후 Grid 조상 위치와 Gantt 높이, native/public top192를 유지하고 DB mutation은 0회다. 실제 사용자 이후 스크롤 닫힘과 기존 다중 Copy/pending412도 유지했다. 원본 actual 통합 테스트의 수정 후 결과는 별도 근거다.
+
+
+### Issue #456 Task Editor 폼 검토 기준
+
+- schedule 날짜·기간·mode는 이름이 있는 fieldset으로 인접하게 배치하고 작은 화면에서도 label 연결과 읽기 순서를 유지한다. 설명/URL은 별도 semantic group으로 묶되 기존 설명 읽기 폭과 resize를 줄이지 않는다.
+- 진행률은 slider와 실제 숫자 text·focus outline의 containment를 함께 확인한다. document horizontal overflow 0만으로 내부 clipping을 PASS 처리하지 않는다.
+- Footer action은 label/padding 기반의 폭과 pending label budget을 사용한다. 숨김 sizer는 accessible name을 중복시키지 않으며 normal/pending 상단·높이·폭 차이는 1px 이내여야 한다. native action hit area 최소 44px와 모바일 multiline 자연 높이를 보존한다.
+- 실제 pending에서 disabled 버튼→body focus→반복 Escape를 확인하고 readonly/dirty/unlock 이후 기존 Escape, nested dialog, 401/412·reload와 교차 draft 잠금도 별도로 검증한다. 화면 캡처는 keyboard/state evidence를 대신하지 않는다.
+- Gantt 보존은 실제 public/DOM scroll, 존재하는 header 열 폭, 선택/tree/scale/scope/fullscreen과 instance를 함께 비교한다. 빈 배열이나 instance identity만 비교한 결과를 전체 상태 보존 PASS로 사용하지 않는다. 실제 날짜/filter/scope 이동은 이전 viewport로 덮지 않아야 한다. active name/status filter에서 metadata 저장으로 실제 표시 ID 집합이 바뀌는 경우도 확인한다. raw query가 같은 것만으로 동일 필터 상태라고 판정하지 않는다.
+
+#456의 390/768/1024/1440/1920px before/after와 대표 상태 evidence는 TEST_PLAN에 기록한다. B #490 및 C #491은 별도 후속/NOT TESTED이며 이 항목을 통해 인수하지 않는다. SVAR 자료 확인일은 2026-10-06, 설치 Core는 2.7.3이다. 공식 문서 확인과 실제 브라우저 조작 증거는 구분한다.
