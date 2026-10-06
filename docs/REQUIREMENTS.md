@@ -1,5 +1,19 @@
 # Requirements baseline
 
+## Issue #459 — Milestone Stage Gate 통합 계약
+
+Milestone은 프로젝트의 특정 시점 완료 단계(Stage Gate)이며 기존 `type=milestone`, `duration=0` Task identity를 유지한다. WBS 계층, 완료 단계 소속(Membership), 일정 Dependency는 서로 다른 관계다.
+
+- Task/Summary는 명시적 Primary Milestone을 최대 1개 가지며, 명시값이 없으면 가장 가까운 Summary의 설정을 상속한다. 하위 명시 설정은 상위 기본값을 override하고 해제는 상속 복귀다.
+- Membership 변경만으로 Task/Milestone 일정, WBS, Dependency를 생성·변경하지 않는다.
+- 실제 작업 실행 제약은 Task→Task Dependency로 표현한다. 서로 다른 완료 단계의 member Task 사이에 Dependency가 있어도 이를 Milestone→Milestone Gate로 자동 승격·추론하지 않는다.
+- 단계 Gate 제약이 필요한 경우에만 Milestone→Milestone Dependency를 명시한다. 날짜순 표시는 일정 제약이나 Dependency 생성의 근거가 아니다.
+- Ready는 전체 effective member Task의 canonical 완료와 직접 선행 Milestone 완료에서 파생하며 Completed와 구분한다. 완료는 자동 전환하지 않고 사용자가 명시하며, 완료 단계의 소속/Dependency 구조를 바꾸려면 먼저 재개한다.
+- Dashboard/물류/Resource/필터가 일부 Task만 보여도 Ready와 단계 전체 진척은 full canonical membership 기준이다. 공수는 기존 일반 Task 개인 assignment를 단계 차원으로만 분류하고 Summary/Milestone/group을 중복 산입하지 않는다.
+- JSON/Excel/Copy/Template는 explicit membership을 보존하고 effective/Ready는 서버 파생 projection으로 유지한다.
+
+구현은 #460~#464에 분리되어 있으며 상세 도메인·경로 inventory는 [Milestone Stage Gates](MILESTONE_STAGE_GATES.md), UI는 [Project UX](PROJECT_UX.md)/[Task Editor](TASK_EDITOR.md), 검증은 [Test Plan](TEST_PLAN.md)을 따른다.
+
 ## Issue #460 — 단계 소속과 Milestone Gate
 
 기존 Milestone identity에 Task/Summary 단일 명시 소속과 가장 가까운 Summary 상속을 추가한다. Ready는 duration 가중 작업 진척 및 canonical 완료 상태/직접 선행 Milestone 조건과 구분하고 자동 완료하지 않는다. 완료 단계의 명시·상속 소속 및 Dependency 구조는 서버 transaction에서 잠근다. Summary는 name/Membership 원자 PATCH만 확장하고 일정 readonly를 유지한다. 신규 mixed Dependency는 거부하며 기존 mixed는 조회·일정·무관 편집·endpoint 불변 수정에서 보존한다. Issue #464에서 전체 Copy/Template/subtree의 명시 row와 상속 의미를 보존하고 Excel 단계 보고 및 JSON1.1 보호 Import/Export를 연결한다. 미지원·완료 경계는 fail-closed로 전체 거부한다. 상세 계약과 경로 inventory는 [MILESTONE_STAGE_GATES](MILESTONE_STAGE_GATES.md)를 따른다.
