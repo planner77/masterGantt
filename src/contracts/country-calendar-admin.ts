@@ -31,7 +31,6 @@ export interface CountryCalendarAdminDatasetDto {
 export interface CountryCalendarAdminResponse {
   data: {
     revision: number;
-    previewToken: string;
     dataset: CountryCalendarAdminDatasetDto;
     dates: CountryCalendarAdminDateDto[];
   };
@@ -47,6 +46,7 @@ export interface CountryCalendarImportSummary {
 export interface CountryCalendarImportPreviewResponse {
   data: {
     revision: number;
+    previewToken: string;
     dataset: CountryCalendarAdminDatasetDto;
     importDataset: {
       countryCode: WorkCalendarCountryCode;
