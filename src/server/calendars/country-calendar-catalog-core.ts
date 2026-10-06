@@ -398,6 +398,10 @@ export class CountryCalendarCatalogService {
     if (!validDate(originalDate, year) || !input || typeof input !== "object" || Array.isArray(input)) {
       throw new CountryCalendarCatalogInvalidInputError();
     }
+    const keys = Object.keys(input);
+    if (keys.length === 0 || keys.some((key) => !["date","name","dayType","sourceKey"].includes(key))) {
+      throw new CountryCalendarCatalogInvalidInputError();
+    }
     return this.repository.transactionImmediate(() => {
       this.assertRevision(expectedRevision);
       const now = this.clock().toISOString();
@@ -434,8 +438,6 @@ export class CountryCalendarCatalogService {
       this.assertRevision(expectedRevision);
       const now = this.clock().toISOString();
       const row = this.ensureOverride(code, year, now);
-      const count = this.dateRows(row.id).length;
-      if (row.status === "OFFICIAL" && count <= 1) throw new CountryCalendarCatalogConflictError();
       if (!this.repository.deleteDate(row.id, date)) throw new CountryCalendarCatalogNotFoundError();
       this.repository.invalidateDatasetProvenance(row.id, now);
       this.advance(expectedRevision, now);
