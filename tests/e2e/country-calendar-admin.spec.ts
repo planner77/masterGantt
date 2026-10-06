@@ -34,15 +34,18 @@ async function installCalendarMocks(page:Page){
     const imported=JSON.parse(envelope.content) as {countryCode:"KR";year:2026;sourceVersion:string;sourceUrl:string;dates:DateRow[]};
     await route.fulfill({status:200,headers:{ETag:`"${revision}"`},json:{
       data:{
-        revision,dataset:response().data.dataset,
+        revision,previewToken:`preview-${revision}-${imported.sourceVersion}`,dataset:response().data.dataset,
         importDataset:{countryCode:imported.countryCode,year:imported.year,status:"OFFICIAL",sourceVersion:imported.sourceVersion,sourceUrl:imported.sourceUrl,dateCount:imported.dates.length},
         summary:{additions:imported.dates.length,changes:0,deletions:dates.length,unchanged:0},
       },
     }});
   });
   await page.route("**/api/admin/work-calendars/import/apply",async(route)=>{
-    const envelope=route.request().postDataJSON() as {content:string};
-    const imported=JSON.parse(envelope.content) as {sourceVersion:string;sourceUrl:string;dates:DateRow[]};
+    const body=route.request().postDataJSON() as {previewToken:string;envelope:{content:string}};
+    const imported=JSON.parse(body.envelope.content) as {sourceVersion:string;sourceUrl:string;dates:DateRow[]};
+    if(body.previewToken!==`preview-${revision}-${imported.sourceVersion}`){
+      await route.fulfill({status:409,json:{error:{code:"COUNTRY_CALENDAR_IMPORT_PREVIEW_MISMATCH"}}});return;
+    }
     revision+=1;dates=imported.dates;status="OFFICIAL";
     sourceVersion=imported.sourceVersion;sourceUrl=imported.sourceUrl;
     await route.fulfill({status:200,headers:{ETag:`"${revision}"`},json:response()});
@@ -59,8 +62,14 @@ async function installCalendarMocks(page:Page){
       dates=[...dates,body].sort((a,b)=>a.date.localeCompare(b.date));status="UNAVAILABLE";sourceVersion=null;sourceUrl=null;revision+=1;
     }else if(method==="PATCH"&&isDate?.[1]){
       const original=decodeURIComponent(isDate[1]);
-      const body=JSON.parse(request.postData()??"{}") as DateRow;
-      dates=dates.map(item=>item.date===original?{...item,...body}:item).sort((a,b)=>a.date.localeCompare(b.date));status="UNAVAILABLE";sourceVersion=null;sourceUrl=null;revision+=1;
+      const body=JSON.parse(request.postData()??"{}") as Partial<DateRow>;
+      const current=dates.find(item=>item.date===original);
+      const merged=current?{...current,...body}:undefined;
+      const unchanged=!!current&&!!merged&&current.date===merged.date&&current.name===merged.name&&current.dayType===merged.dayType&&current.sourceKey===merged.sourceKey;
+      if(!unchanged){
+        dates=dates.map(item=>item.date===original?{...item,...body} as DateRow:item).sort((a,b)=>a.date.localeCompare(b.date));
+        status="UNAVAILABLE";sourceVersion=null;sourceUrl=null;revision+=1;
+      }
     }else if(method==="DELETE"&&isDate?.[1]){
       const original=decodeURIComponent(isDate[1]);dates=dates.filter(item=>item.date!==original);status="UNAVAILABLE";sourceVersion=null;sourceUrl=null;revision+=1;
     }else if(method==="PATCH"){
@@ -104,7 +113,7 @@ test("Issue #342: 관리자에서 Import Preview/Apply와 휴일 CRUD를 완료�
   await page.getByLabel("sourceKey",{exact:true}).first().fill("year-end");
   await page.getByRole("button",{name:"추가",exact:true}).click();
   await expect(page.getByText("연말 휴일")).toBeVisible();
-  await expect(page.getByRole("region",{name:/대한민국 2026/}).getByText("미확보",{exact:true})).toBeVisible();
+  await expect(page.getByRole("status",{name:"Dataset 상태: 미확보"})).toBeVisible();
   await expect(page.getByLabel("Source version")).toHaveValue("");
   await expect(page.getByText("수동 날짜 변경으로 공식 상태와 출처 정보가 해제되었습니다. 검증 후 메타데이터를 다시 저장해 주세요.",{exact:true})).toBeVisible();
 
@@ -177,7 +186,7 @@ test("Issue #342: 조회 실패는 선택 target과 이전 snapshot을 섞지 �
     await route.fallback();
   };
   await page.route("**/api/admin/work-calendars/countries/CN/years/2026",failGet);
-  await page.getByLabel("국가").selectOption("CN");
+  await page.getByLabel("국가",{exact:true}).selectOption("CN");
   await expect(page.getByRole("heading",{name:"대한민국 2026"})).toHaveCount(0);
   await expect(page.getByText("국가 캘린더 데이터를 불러오지 못했습니다.",{exact:true})).toBeVisible();
   await expect(page.getByRole("button",{name:"메타데이터 저장"})).toBeDisabled();
