@@ -17,13 +17,15 @@ Issue #350에서 Issue별 one-shot finalizer를 제거하고 main CI 이후 life
 
 `.github/workflows/release-finalizer.yml`은 `CI`의 `workflow_run.completed` 중 triggering branch가 `main`인 경우만 생성된다. Job mutation은 추가로 triggering event=`push`, head branch=`main`, conclusion=`success`를 모두 요구한다. 따라서 PR CI, feature branch CI, 수동 CI, 실패/취소 main CI는 lifecycle mutation을 수행하지 않는다.
 
+Generic Finalizer와 수동 lifecycle mutation checkout은 credential persistence를 사용하지 않는다. SemVer tag의 존재 확인(`ls-remote`), exact tag fetch, push는 모두 command-scoped auth helper를 사용한다. helper는 inherited `http.extraHeader`를 reset한 뒤 job-scoped `GITHUB_TOKEN` Authorization header 하나만 주입하므로 private repository의 tag read/fetch와 write가 동일한 인증 경계에서 동작하고 `Duplicate header: Authorization`도 방지한다.
+
 Release 완료 재개는 `.github/workflows/release-finalizer-resume.yml`이 담당한다. 이 workflow는 `Publish release image`의 successful `workflow_run.completed`를 fallback으로 구독하는 동시에 `workflow_dispatch(target_sha, release_run_id)`를 지원한다. `release-image.yml`의 publish 성공 후에는 GitHub가 `GITHUB_TOKEN`에 명시적으로 허용하는 `workflow_dispatch`로 Resume을 호출하므로 implicit event delivery 하나에만 의존하지 않는다. Explicit handoff는 source Release run이 아직 active일 수 있으므로 Resume이 exact `release_run_id`를 polling해 `completed/success`, workflow path, head SHA를 확인한 뒤 Generic resolver를 실행한다. 대기는 최대 10분으로 제한하고, 그 안에 completed/success evidence를 확보하지 못하면 Resume만 FAIL하여 lifecycle mutation을 중단한다.
 
 Resume workflow는 write 권한을 가지므로 triggering tag/manual ref의 repository code를 실행하지 않는다. 항상 trusted `main`을 checkout하고 release의 exact target SHA는 lifecycle resolver 입력 데이터로만 전달한다.
 
 ## Exact mapping
 
-`scripts/auto_release_finalizer.py`는 workflow가 시작될 때의 **현재 main snapshot**을 authority로 잡고 first-parent chain을 뒤로 탐색한다. 가장 가까운 완료 boundary(FINAL marker 또는 legacy closed Issue) 다음의 미완료 merge를 oldest → newest 순서로 처리한다.
+`scripts/auto_release_finalizer.py`는 workflow가 시작될 때의 **현재 main snapshot**을 authority로 잡고 first-parent chain을 뒤로 탐색한다. **exact target SHA의 FINAL marker만 강한 완료 boundary**로 사용한다. FINAL marker가 없는 closed Issue merge는 재오픈·branch cleanup·release/finalize mutation 대상에서는 제외하지만, first-parent 수집 중에는 **non-actionable ordering barrier**로 유지한다. adjacent same-Issue corrective coalesce가 끝난 뒤에만 해당 barrier를 lifecycle target에서 필터링하므로, closed merge 양쪽의 retry가 인접한 것으로 오인되지 않으면서 더 오래된 미완료 target 탐색도 계속된다. 최종 actionable merge는 oldest → newest 순서로 처리한다.
 
 1. 각 merge commit과 연결된 PR 중 `merge_commit_sha == target SHA`, base=`main`, same repository, merged=true인 PR이 정확히 1개여야 한다.
 2. PR body에는 정확히 하나의 canonical `Refs #<Issue>` 줄이 있어야 한다.
@@ -113,3 +115,14 @@ Main CI의 successful non-docs `publish-commit-image`는 verified `ci-<SHA>`를 
 - release/cleanup 판단 전 Main CI가 version 변경 여부만으로 candidate를 삭제하지 않는다. same-Issue corrective convergence가 immediate merge의 version delta와 다른 lifecycle delta를 가질 수 있기 때문이다.
 - no-release candidate cleanup을 수행하는 Generic Finalizer/Resume은 최소 `packages: write`를 사용한다. PR CI/일반 CI 권한은 확대하지 않는다.
 - failed immutable release tag는 이동하거나 덮어쓰지 않는다. 결정적 workflow 결함은 새 SemVer corrective merge로 복구한다.
+
+
+## Issue #483 Resume 후속 Release dispatch 권한
+
+Release completion Resume는 단순한 완료 확인기만이 아니다. 선행 Release를 `release_finalize`한 뒤 first-parent backlog의 다음 target이 `release_required=true`이면 같은 trusted main의 `auto_release_finalizer.py`가 `release-image.yml`을 `workflow_dispatch`할 수 있다.
+
+- 따라서 `release-finalizer-resume.yml`에는 `actions: write`가 필요하다. `actions: read`만 있으면 tag 생성 뒤 `POST /actions/workflows/release-image.yml/dispatches`가 HTTP 403 `Resource not accessible by integration`으로 실패한다.
+- Resume는 계속 `ref: main`, `persist-credentials:false`, exact source Release run/SHA/workflow 검증을 유지한다. 권한 확대는 Actions dispatch에만 사용하며 제품 코드나 triggering tag의 코드를 실행하지 않는다.
+- Generic `release-finalizer.yml`도 같은 이유로 `actions: write`를 유지한다.
+- `scripts/verify-issue-lifecycle.py`가 두 workflow의 `actions: write` 계약을 정적으로 검사한다.
+- Issue #461의 `v0.87.1`은 이미 생성된 annotated tag를 authority로 유지하며 tag 이동/재생성 없이 Release dispatch를 재개한다.

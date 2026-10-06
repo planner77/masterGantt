@@ -17,7 +17,28 @@
 ### Changed
 
 - 기존 관리자 권한·카탈로그 revision·역할/등급·usage 및 구성원 저장 계약을 유지한다. Application version은 `0.90.0`이며 이번 작업 범위는 PR CI 시작까지다.
-- 최신 main의 Lifecycle 운영 변경과 source-map-js 1.2.2 lockfile을 보존하여 후보를 재정렬한다.
+- 최신 main 0.87.1의 #461/#462 및 Release corrective 변경과 source-map-js 1.2.2 lockfile을 보존하여 후보를 재정렬한다.
+
+## [0.87.1] - 2026-10-06
+
+### Fixed
+
+- Issue #461 corrective: 실패한 v0.86.0 GHCR Release Run #136.1의 static quality에서 발견된 `source-map-js 1.2.1` High 취약 버전을 재사용하지 않는다. 최신 main에 반영된 `source-map-js 1.2.2` 이상을 정적 회귀로 고정한다.
+- Release static quality가 audit 등 선행 gate에서 실패해 production build 시작 step이 실행되지 않은 경우, 빈 `started_ms`로 setup metric recorder가 2차 실패하지 않도록 build 시작 output이 존재할 때만 종료 계측을 수행한다.
+
+### Changed
+
+- Application version을 `0.87.0`에서 `0.87.1`로 증가한다. immutable 실패 tag `v0.86.0`은 이동·덮어쓰기·재사용하지 않고 same-Issue corrective PATCH로 검증한다.
+
+## [0.87.0] - 2026-10-06
+
+### Added
+
+- Issue #462: 완료 단계 소속 조회를 유형·검색·기간·리소스·WBS 범위와 조합하고 선택 Grid 열과 공통 Editor 진입을 제공한다. full canonical 소속과 조회 가시성을 구분하며 기존 Gantt 상태를 보존한다.
+
+### Changed
+
+- Application version을 `0.86.0`에서 `0.87.0`으로 증가한다. 선행 #460/#461을 포함하는 순차 구현 PR이며 정식 릴리스는 게시하지 않는다.
 
 ## [0.86.0] - 2026-10-06
 
@@ -28,6 +49,8 @@
 
 ### Fixed
 
+- Issue #475 follow-up: Generic Finalizer의 release tag 접근을 단일 process-scoped 인증 계약으로 통일한다. lifecycle mutation checkout은 credential persistence를 끄고 tag `ls-remote`·`fetch`·`push` 및 automatic finalizer의 exact tag evidence 조회가 inherited extraHeader를 reset한 뒤 단일 job-scoped Authorization header를 사용하여 duplicate header와 private-repo unauthenticated read를 함께 방지한다.
+- Issue #475: Generic Release Finalizer가 FINAL marker 없는 closed Issue merge를 historical boundary로 오인해 그 이전 pending lifecycle을 숨기던 문제를 수정한다. closed merge는 mutation 대상에서 제외하되 non-actionable ordering barrier로 보존해 same-Issue retry coalesce가 이를 가로지르지 못하게 하고, exact FINAL marker까지 탐색을 계속한다.
 - PR #470 review: 새 리소스를 선택했다가 해제하면 남은 역할·투입 초안 때문에 false dirty 상태가 유지되던 문제를 선택된 리소스 기준 canonical 비교로 수정한다.
 - PR #470 review: 외부 변경으로 Milestone이 일반 Task로 바뀐 뒤 다시 불러올 때 더 이상 존재하지 않는 `소속 작업` 탭이 활성 상태로 남지 않도록 작업 정보 탭으로 정규화한다.
 - PR #470 review: Membership 보유 Project의 Excel 보존 차단 오류에 명시 source와 target의 public Task ID를 포함하여 API의 구조화된 진단 계약을 지킨다.

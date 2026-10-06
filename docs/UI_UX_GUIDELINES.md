@@ -179,3 +179,13 @@ Resource Catalog는 #453부터 독립 tabpanel 안 native table을 사용한다.
 동일 긴 KO/EN fixture를 390/768/1024/1440/1920px 기본 100% zoom에서 before/after 비교한다. before production Resource TSX/CSS는 fd8fdc9e9207ab43a6fb7ff85b5a5acbe91d4553 기준이며 header version은 브랜치 준비값 0.90.0이다. application 전체 byte 동일 baseline이라고 주장하지 않는다. before부터 document overflow는 0이었으므로 after 표 소유 scroll은 이전 document overflow 수정으로 설명하지 않는다. 1920px에서 작업 면적은 max100rem shell의 가용 폭을 기준으로 측정한다. 실제 125% browser zoom을 실행하지 못하면 NOT TESTED와 사유를 남기며 DSF/CSS zoom을 대체 PASS로 사용하지 않는다.
 
 #453 pending native dialog는 disabled control에서 focus가 body로 빠지는 경우도 검증한다. 해당 모달에 focus를 두고 owned Escape capture로 반복 닫기 요청을 차단하며, Tab/ShiftTab·포인터 닫기·이중 제출·응답 이후 focus와 성공/실패 전환을 확인한다. 비pending Escape·탭 동작과 다른 화면은 가로채지 않는다. 원시 revision 번호는 표시하지 않으며 기존 If-Match 검증을 사용자용 최신 목록 안내와 구분한다.
+
+## Issue #462 단계 조회 interaction
+
+단계 popup은 전체/미지정/검색 가능한 Milestone을 제공하고 canonical 적용 예정일→외부 ID→작업 ID로 정렬한다. 후보에 외부 ID/작업 ID/적용 예정일/요청일 라벨을 분리한다. combobox는 Arrow/Home/End active option·Enter 선택·Escape popup 닫기·Tab 이동을 지원하고 active option을 listbox의 scroll owner 안에 보이게 한다. 선택/Escape는 trigger.focus({preventScroll:true})로 복원한다. 좁은 toolbar는 기존 grid에 별도 단계 행을 배치하며 전체 이름은 focus 가능한 동일 Editor 조회로 제공한다. readonly에서도 조회하며 pending 셀/메뉴의 disabled와 handler 차단이 일치해야 한다.
+
+Grid 단계 열은 기본 숨김 180px이며 기존 width/flex·내부 scroll budget을 보존한다. geometry는 390/768/1024/1440/1920px에서 toolbar 모든 control 경계·비중첩, popup/input/active option owner bounds, header/body 열 정렬, 표 모든 버튼과 소유 셀 경계·포커스를 측정한다. 스크린샷만으로 keyboard/권한/state PASS를 대신하지 않는다.
+
+2026-10-06 SVAR 공식 [filter-tasks](https://docs.svar.dev/react/gantt/api/actions/filter-tasks/), [filtering](https://docs.svar.dev/react/gantt/guides/data-operations/filtering/), [links](https://docs.svar.dev/react/gantt/api/properties/links/) 문서를 조회했다. 설치 Core 2.7.3의 DataStore source map에서 filterTree(filter, open ?? true)를 확인하고 기존 공개 action에 open:false를 명시하여 tree-preserve를 검증한다. 최신 문서 조회와 실제 설치 Core browser 조작 증거는 별도로 기록하며 PRO helper는 도입하지 않는다.
+
+완료 단계 열 표시 시 공개 `set-columns`의 현재 사용자 width/flexgrow를 보존하고 `resize-grid`로 optional 열의 폭 증감만 반영한다. 작업명 최소 180px을 stage 열 추가로 소비하지 않으며 기본 최소 433px/단계 포함 613px/전체 optional 929px 예산은 Gantt 내부 scroll owner에서 처리한다. 2026-10-06 [공식 resize-grid action](https://docs.svar.dev/react/gantt/api/actions/resize-grid/)과 설치 Core 2.7.3 구현을 확인했고, 실제 grip 조절 뒤 단계 열 표시/숨김의 폭 보존은 관련 Chromium fixture로 검증한다.

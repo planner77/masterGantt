@@ -176,7 +176,7 @@ describe("relation-editor-model", () => {
 
       const candidateIds = candidates.map((c) => c.externalId);
       expect(candidateIds).toContain("T3");
-      expect(candidateIds).toContain("MS1");
+      expect(candidateIds).not.toContain("MS1");
       expect(candidateIds).not.toContain("T1");
       expect(candidateIds).not.toContain("T2");
       expect(candidateIds).not.toContain("SUM1");
@@ -198,7 +198,7 @@ describe("relation-editor-model", () => {
 
       const candidateIds = candidates.map((c) => c.externalId);
       expect(candidateIds).toContain("T1");
-      expect(candidateIds).toContain("MS1");
+      expect(candidateIds).not.toContain("MS1");
       expect(candidateIds).not.toContain("T3");
       expect(candidateIds).not.toContain("T2");
       expect(candidateIds).not.toContain("SUM1");
@@ -206,54 +206,54 @@ describe("relation-editor-model", () => {
 
     it("filters candidates by name, externalId, or canonical taskId", () => {
       const byName = searchCandidateTasks({
-        anchorExternalId: "T2",
+        anchorExternalId: "T1",
         direction: "successor",
-        query: "릴리스",
+        query: "API",
         tasks: sampleTasks,
         links: sampleLinks,
       });
       expect(byName).toHaveLength(1);
-      expect(byName[0].externalId).toBe("MS1");
+      expect(byName[0].externalId).toBe("T3");
 
       const byExternalId = searchCandidateTasks({
-        anchorExternalId: "T2",
+        anchorExternalId: "T1",
         direction: "successor",
-        query: "MS1",
+        query: "T3",
         tasks: sampleTasks,
         links: sampleLinks,
       });
       expect(byExternalId).toHaveLength(1);
-      expect(byExternalId[0].taskId).toBe("task-milestone");
+      expect(byExternalId[0].taskId).toBe("task-3");
 
       const byPartialExternalId = searchCandidateTasks({
-        anchorExternalId: "T2",
+        anchorExternalId: "T1",
         direction: "successor",
-        query: "ms",
+        query: "t3",
         tasks: sampleTasks,
         links: sampleLinks,
       });
       expect(byPartialExternalId).toHaveLength(1);
-      expect(byPartialExternalId[0].externalId).toBe("MS1");
+      expect(byPartialExternalId[0].externalId).toBe("T3");
 
       const byTaskId = searchCandidateTasks({
-        anchorExternalId: "T2",
+        anchorExternalId: "T1",
         direction: "successor",
-        query: "  TASK-MILESTONE  ",
+        query: "  TASK-3  ",
         tasks: sampleTasks,
         links: sampleLinks,
       });
       expect(byTaskId).toHaveLength(1);
-      expect(byTaskId[0].externalId).toBe("MS1");
+      expect(byTaskId[0].externalId).toBe("T3");
 
       const byPartialTaskId = searchCandidateTasks({
-        anchorExternalId: "T2",
+        anchorExternalId: "T1",
         direction: "successor",
-        query: "MILE",
+        query: "task-3",
         tasks: sampleTasks,
         links: sampleLinks,
       });
       expect(byPartialTaskId).toHaveLength(1);
-      expect(byPartialTaskId[0].taskId).toBe("task-milestone");
+      expect(byPartialTaskId[0].taskId).toBe("task-3");
     });
   });
 });

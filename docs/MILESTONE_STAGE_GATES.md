@@ -102,3 +102,9 @@ Editor는 `project-stage-model.ts`의 browser-safe full-project snapshot/preview
 완료 단계는 old/new target 잠금을 preview하고 서버가 transaction에서 다시 검증한다. manualEvent의 ready=null은 가짜 0%/100%가 아니며 predecessor 조건을 만족하면 명시 완료를 시도한다. 완료 기록 불일치는 진단이며 자동 재개가 없다. 본인 상태·memberProgress·미완료 member/predecessor를 분리하고 재개 성공 canonical을 받은 뒤 소속/관계 변경을 활성화한다.
 
 Task/Summary 이름+소속 한 PATCH, Milestone 초안 한 batch POST와 같은 canonical revision 동기화를 `tests/domain/milestone-editor-model.test.ts`, `tests/e2e/milestone-stage-editor.spec.ts`, `project-task-editor.spec.ts`의 #461 fixture로 검증한다. DB/migration/Domain algorithm/Import·Copy·Grid 변경은 이 UI Issue의 범위 밖이다.
+
+## Issue #462 조회 projection과 Scheduling Link UI
+
+단계 필터와 Grid의 effective/출처는 browser-safe stageSnapshotFromProject/projectStageGates projection을 사용한다. scoped task 배열을 상속 계산의 authority로 사용하지 않으며 canonical hierarchy는 그대로 보존한다. Summary context는 effective 일반 Task 수에 합산하지 않고 Milestone 자신의 소속 셀은 비어 있다. 표시 목록의 날짜 정렬은 Dependency 생성·Ready 계산·일정 재계산·WBS 저장을 하지 않는다.
+
+신규 Link UI는 같은 유형 후보와 native drag guard를 사용한다. 기존 mixed Link는 기존 일정/canonical 표시를 유지하며 Ready의 선행 단계 집계는 기존 공용 domain 규칙을 그대로 따른다. 완료 Milestone 양 endpoint 보호는 기존 #460 구조 정책의 UI 표현이고 domain/DB/API 변경은 없다.

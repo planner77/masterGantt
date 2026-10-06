@@ -113,6 +113,21 @@ describe("test configuration repository layout", () => {
     expect(existsSync(resolve(root, "scripts/analyze-ci-setup-metrics.mjs"))).toBe(true);
   });
 
+  it("guards Release static metrics after earlier gate failures and keeps source-map-js patched", () => {
+    const release = text(".github/workflows/release-image.yml");
+    const lock = JSON.parse(text("package-lock.json"));
+    const sourceMapVersion = lock.packages["node_modules/source-map-js"]?.version;
+    const [major, minor, patch] = String(sourceMapVersion ?? "").split(".").map(Number);
+    expect(
+      major > 1 ||
+        (major === 1 && (minor > 2 || (minor === 2 && patch >= 2))),
+    ).toBe(true);
+    expect(release).toContain("Release production build 시간 기록");
+    expect(release).toContain(
+      "if: ${{ always() && steps.release-build-start.outputs.started_ms != '' }}",
+    );
+  });
+
   it("keeps release candidate container aligned with registry API smoke allowlist", () => {
     const release = text(".github/workflows/release-image.yml");
     const registrySmoke = text("scripts/verify-registry-api-smoke.mjs");

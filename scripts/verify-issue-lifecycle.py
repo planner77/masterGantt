@@ -100,6 +100,8 @@ require("workflow_dispatch:" in resume_workflow and "target_sha:" in resume_work
 require("github.event.workflow_run.conclusion == 'success'" in resume_workflow, "failed release completion must not mutate lifecycle")
 require("packages: write" in auto_workflow, "automatic finalizer needs scoped packages: write for temporary GHCR cleanup")
 require("packages: write" in resume_workflow, "release completion finalizer needs scoped packages: write for backlog cleanup")
+require("actions: write" in auto_workflow, "automatic finalizer needs actions: write to dispatch release-image workflows")
+require("actions: write" in resume_workflow, "release completion finalizer needs actions: write to dispatch the next release-image workflow")
 require("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in auto_workflow, "automatic finalizer must expose the job-scoped package token to cleanup helper")
 require("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in resume_workflow, "release completion finalizer must expose the job-scoped package token to cleanup helper")
 require(workflow.count("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}") >= 3, "manual release/finalize operations must expose the job-scoped token for authenticated git/package mutations")
@@ -172,9 +174,18 @@ require("filter=latest&per_page=100" in impl, "lifecycle must inspect latest-att
 require("mastergantt-release-authorization:v1" in auto_impl, "version-scoped release authorization marker is required")
 require("gh_paginated(" in auto_impl, "comment and PR pagination helper is required")
 require("collect_pending_work(" in auto_impl, "first-parent backlog resolver is required")
+require("def is_closed_issue(" in auto_impl, "closed Issue skip classifier is required")
+require("replace(item, actionable=False)" in auto_impl, "closed unmarked Issue must remain as a non-actionable ordering barrier")
+require("coalesced[-1].actionable" in auto_impl and "item.actionable" in auto_impl, "retry coalescing must not cross non-actionable closed barriers")
+require("pending_with_barriers" in auto_impl and "if item.actionable" in auto_impl, "closed ordering barriers must be filtered only after adjacency-sensitive coalescing")
+require("return issue.get(\"state\") == \"closed\"" not in auto_impl.split("def is_finalized_boundary", 1)[1].split("def is_closed_issue", 1)[0], "closed Issue must not be treated as an exact finalized boundary")
 require("coalesce_consecutive_issue_retries(" in auto_impl, "same-Issue corrective merge convergence is required")
 require("supersede_failed_issue_retries(" in auto_impl, "non-adjacent same-Issue retry supersession is required")
 require("exact_release_state(" in auto_impl, "formal release evidence classification is required")
+require("def run_git_remote(" in impl, "lifecycle remote Git operations must use process-scoped authentication")
+require('run_git_remote("ls-remote"' in impl and 'run_git_remote("fetch"' in impl, "lifecycle tag lookup/fetch must use authenticated Git remote helper")
+require("def run_git_remote(" in auto_impl, "automatic finalizer remote Git evidence must use process-scoped authentication")
+require('run_git_remote(' in auto_impl and '"ls-remote"' in auto_impl and 'run_git_remote("fetch"' in auto_impl, "automatic finalizer tag lookup/fetch must use authenticated Git remote helper")
 require("validation_docs_only" in auto_impl, "coalescing must preserve validation scope")
 require("--cleanup-pr" in auto_impl and "--cleanup-pr" in impl, "coalesced PR cleanup identities must reach lifecycle finalize")
 require("current_main_sha(" in auto_impl, "dispatcher must snapshot current main")
@@ -533,14 +544,80 @@ a_item = auto.WorkItem(a_sha, old_sha, 2, 2, "1.0.0", "1.1.0")
 b_item = auto.WorkItem(b_sha, a_sha, 3, 3, "1.1.0", "1.2.0")
 saved_resolve = auto.resolve_work_item
 saved_boundary = auto.is_finalized_boundary
+saved_closed = auto.is_closed_issue
 auto.resolve_work_item = lambda _repo, target: {old_sha: old, a_sha: a_item, b_sha: b_item}.get(target)
 auto.is_finalized_boundary = lambda _repo, item: item.target_sha == old_sha
+auto.is_closed_issue = lambda _repo, _item: False
 try:
     backlog = auto.collect_pending_work(repo, b_sha)
     require([item.target_sha for item in backlog] == [a_sha, b_sha], "first-parent backlog order failed")
 finally:
     auto.resolve_work_item = saved_resolve
     auto.is_finalized_boundary = saved_boundary
+    auto.is_closed_issue = saved_closed
+
+# A new merge can reference an Issue that was already finalized/closed by an
+# older exact target.  The new closed/no-marker merge must not be mutated and
+# must not hide an older unfinished target behind it.
+closed_sha = "f" * 40
+pending_sha = "e" * 40
+finalized_sha = "d" * 40
+finalized_item = auto.WorkItem(finalized_sha, "0" * 40, 470, 452, "0.85.0", "0.85.1")
+pending_item = auto.WorkItem(pending_sha, finalized_sha, 471, 461, "0.85.1", "0.86.0")
+closed_item = auto.WorkItem(closed_sha, pending_sha, 474, 452, "0.86.0", "0.86.0")
+saved_resolve = auto.resolve_work_item
+saved_boundary = auto.is_finalized_boundary
+saved_closed = auto.is_closed_issue
+auto.resolve_work_item = lambda _repo, target: {
+    finalized_sha: finalized_item,
+    pending_sha: pending_item,
+    closed_sha: closed_item,
+}.get(target)
+auto.is_finalized_boundary = lambda _repo, item: item.target_sha == finalized_sha
+auto.is_closed_issue = lambda _repo, item: item.target_sha == closed_sha
+try:
+    backlog = auto.collect_pending_work(repo, closed_sha)
+    require(
+        [item.target_sha for item in backlog] == [pending_sha, closed_sha],
+        "closed/no-marker latest merge must remain in traversal while older pending target stays discoverable",
+    )
+    require(
+        [item.actionable for item in backlog] == [True, False],
+        "closed/no-marker merge must be a non-actionable ordering barrier",
+    )
+    coalesced = auto.coalesce_consecutive_issue_retries(backlog)
+    require(
+        [item.target_sha for item in coalesced if item.actionable] == [pending_sha],
+        "closed ordering barrier must be filtered only after adjacency-sensitive processing",
+    )
+finally:
+    auto.resolve_work_item = saved_resolve
+    auto.is_finalized_boundary = saved_boundary
+    auto.is_closed_issue = saved_closed
+
+# Two pending retries for the same Issue must not become adjacent when a
+# closed/no-marker merge sits between them in first-parent order.
+retry_before_barrier = auto.WorkItem("c" * 40, finalized_sha, 480, 500, "1.0.0", "1.1.0")
+closed_barrier = auto.WorkItem("b" * 40, retry_before_barrier.target_sha, 481, 452, "1.1.0", "1.1.0", actionable=False)
+retry_after_barrier = auto.WorkItem("a" * 40, closed_barrier.target_sha, 482, 500, "1.1.0", "1.2.0")
+barrier_sequence = auto.coalesce_consecutive_issue_retries(
+    [retry_before_barrier, closed_barrier, retry_after_barrier]
+)
+require(
+    [item.target_sha for item in barrier_sequence] == [
+        retry_before_barrier.target_sha,
+        closed_barrier.target_sha,
+        retry_after_barrier.target_sha,
+    ],
+    "closed ordering barrier must prevent same-Issue retry coalescing across intervening merge",
+)
+require(
+    [item.target_sha for item in barrier_sequence if item.actionable] == [
+        retry_before_barrier.target_sha,
+        retry_after_barrier.target_sha,
+    ],
+    "barrier filtering must preserve both actionable retry targets",
+)
 
 # Adjacent corrective merges for the same Issue converge only when their
 # validation scope is equivalent. Collapsed PR identities remain cleanup
@@ -682,7 +759,19 @@ require("GIT_CONFIG_KEY_0" in impl and "http.https://github.com/.extraheader" in
 require("GIT_CONFIG_VALUE_0" in impl and "AUTHORIZATION: basic" in impl, "git push auth header contract is required")
 require('push_git_refs(f"refs/tags/{tag}")' in impl, "release start/fallback paths must use authenticated tag push")
 require('run("git", "push", "origin", f"refs/tags/{tag}")' not in impl, "unauthenticated release tag push must not remain")
+require('"git", "ls-remote"' not in impl, "unauthenticated lifecycle tag lookup must not remain")
+require('run("git", "fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")' not in impl, "unauthenticated lifecycle tag fetch must not remain")
 require("persist-credentials: false" in resume_workflow, "release completion resume must keep checkout credentials non-persistent")
+require("persist-credentials: false" in auto_workflow, "automatic finalizer must keep checkout credentials non-persistent")
+release_job = workflow.split("  release:", 1)[1].split("\n  finalize:", 1)[0]
+finalize_job = workflow.split("  finalize:", 1)[1].split("\n\n  release_finalize:", 1)[0]
+release_finalize_job = workflow.split("  release_finalize:", 1)[1]
+for job_name, job_text in (
+    ("release", release_job),
+    ("finalize", finalize_job),
+    ("release_finalize", release_finalize_job),
+):
+    require("persist-credentials: false" in job_text, f"manual {job_name} job must keep checkout credentials non-persistent")
 
 saved_run = module.run
 saved_token = __import__("os").environ.get("GITHUB_TOKEN")
@@ -698,9 +787,11 @@ try:
     push_args, push_env = push_calls[0]
     require(push_args == ("git", "push", "origin", "refs/tags/v9.9.9"), "git push refs must remain exact")
     require("test-token" not in " ".join(push_args), "GITHUB_TOKEN must not be exposed in git command arguments")
-    require(push_env is not None and push_env.get("GIT_CONFIG_COUNT") == "1", "git auth config must be process-scoped")
-    require(push_env.get("GIT_CONFIG_KEY_0") == "http.https://github.com/.extraheader", "git auth header key mismatch")
-    require(push_env.get("GIT_CONFIG_VALUE_0", "").startswith("AUTHORIZATION: basic "), "git auth header value missing")
+    require(push_env is not None and push_env.get("GIT_CONFIG_COUNT") == "2", "git auth config must be process-scoped")
+    require(push_env.get("GIT_CONFIG_KEY_0") == "http.https://github.com/.extraheader", "git auth reset header key mismatch")
+    require(push_env.get("GIT_CONFIG_VALUE_0") == "", "inherited git auth header must be reset before injecting token")
+    require(push_env.get("GIT_CONFIG_KEY_1") == "http.https://github.com/.extraheader", "git auth header key mismatch")
+    require(push_env.get("GIT_CONFIG_VALUE_1", "").startswith("AUTHORIZATION: basic "), "git auth header value missing")
 finally:
     module.run = saved_run
     if saved_token is None:
@@ -721,5 +812,32 @@ finally:
     module.run = saved_run
     if saved_token is not None:
         __import__("os").environ["GITHUB_TOKEN"] = saved_token
+
+# Automatic finalizer tag evidence reads use the same process-scoped auth
+# contract as lifecycle tag push/read paths.
+saved_auto_run = auto.run
+saved_auto_token = __import__("os").environ.get("GITHUB_TOKEN")
+auto_calls = []
+def fake_auto_run(*args, check=True, env=None):
+    auto_calls.append((args, check, env))
+    return type("Result", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+auto.run = fake_auto_run
+__import__("os").environ["GITHUB_TOKEN"] = "test-token"
+try:
+    auto.run_git_remote("ls-remote", "--exit-code", "--tags", "origin", "refs/tags/v9.9.9", check=False)
+    require(len(auto_calls) == 1, "automatic finalizer authenticated remote helper must invoke one git command")
+    auto_args, auto_check, auto_env = auto_calls[0]
+    require(auto_args[0:3] == ("git", "ls-remote", "--exit-code"), "automatic finalizer remote command mismatch")
+    require(auto_check is False, "automatic finalizer remote helper must preserve check=False")
+    require(auto_env is not None and auto_env.get("GIT_CONFIG_COUNT") == "2", "automatic finalizer auth config must be process-scoped")
+    require(auto_env.get("GIT_CONFIG_VALUE_0") == "", "automatic finalizer must reset inherited auth header")
+    require(auto_env.get("GIT_CONFIG_VALUE_1", "").startswith("AUTHORIZATION: basic "), "automatic finalizer auth header missing")
+    require("test-token" not in " ".join(auto_args), "automatic finalizer token must not appear in command arguments")
+finally:
+    auto.run = saved_auto_run
+    if saved_auto_token is None:
+        __import__("os").environ.pop("GITHUB_TOKEN", None)
+    else:
+        __import__("os").environ["GITHUB_TOKEN"] = saved_auto_token
 
 print("issue-lifecycle generic/automatic contract scenarios: PASS")

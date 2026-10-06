@@ -1,3 +1,5 @@
+import type { ProjectTaskDto } from "../../contracts/projects";
+
 /** SVAR DOM integration is deliberately isolated here and covered by browser tests. */
 export const TASK_TARGET_SELECTOR = ".wx-table-container .wx-row[data-id], .wx-table-container .wx-row[data-task-id], .wx-chart .wx-bar[data-task-id]";
 
@@ -30,15 +32,7 @@ type PointerCandidate = { taskId: string; x: number; y: number; moved: boolean }
 let installed = false;
 let candidate: PointerCandidate | null = null;
 let refreshTimer: ReturnType<typeof setTimeout> | null = null;
-let refreshing = false;
-let refreshAgain = false;
-
-function projectPublicId(): string | null {
-  if (typeof window === "undefined") return null;
-  const match = /^\/projects\/([^/]+)\/?$/.exec(window.location.pathname);
-  if (!match) return null;
-  try { return decodeURIComponent(match[1]); } catch { return null; }
-}
+const frameUrls = new Map<HTMLElement, ReadonlyMap<string, string>>();
 
 function safeStoredUrl(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -48,45 +42,33 @@ function safeStoredUrl(value: unknown): string | null {
   } catch { return null; }
 }
 
-async function decorateTaskUrls(): Promise<void> {
-  if (refreshing) { refreshAgain = true; return; }
-  const publicId = projectPublicId();
-  const frame = document.querySelector<HTMLElement>(".project-gantt-frame");
-  if (!publicId || !frame) return;
-  refreshing = true;
-  try {
-    const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}`, { credentials: "same-origin", cache: "no-store" });
-    const body: unknown = await response.json().catch(() => null);
-    if (!response.ok || typeof body !== "object" || body === null || !("data" in body)) return;
-    const data = body.data;
-    if (typeof data !== "object" || data === null || !("tasks" in data) || !Array.isArray(data.tasks)) return;
-    const urls = new Map<string, string>();
-    for (const task of data.tasks) {
-      if (typeof task !== "object" || task === null || !("taskId" in task) || typeof task.taskId !== "string" || !("url" in task)) continue;
-      const url = safeStoredUrl(task.url);
-      if (url) urls.set(task.taskId, url);
-    }
-    frame.querySelectorAll<HTMLElement>(TASK_TARGET_SELECTOR).forEach((element) => {
-      const taskId = taskIdFromElement(element);
-      const url = taskId ? urls.get(taskId) : undefined;
-      if (url) {
-        element.dataset.taskUrl = url;
-        element.classList.add("has-task-url");
-      } else {
-        delete element.dataset.taskUrl;
-        element.classList.remove("has-task-url");
-      }
-    });
-  } finally {
-    refreshing = false;
-    if (refreshAgain) { refreshAgain = false; scheduleDecoration(); }
-  }
+/** Canonical props are the authority; DOM decoration never reads the API. */
+export function registerTaskUrlSnapshot(frame: HTMLElement, tasks: readonly Pick<ProjectTaskDto, "taskId" | "url">[]): () => void {
+  const urls = new Map<string, string>();
+  for (const task of tasks) { const url = safeStoredUrl(task.url); if (url) urls.set(task.taskId, url); }
+  frameUrls.set(frame, urls);
+  decorateFrameUrls(frame, urls);
+  return () => {
+    if (frameUrls.get(frame) !== urls) return;
+    frameUrls.delete(frame);
+    decorateFrameUrls(frame, new Map());
+  };
+}
+function decorateFrameUrls(frame: HTMLElement, urls: ReadonlyMap<string, string>): void {
+  frame.querySelectorAll<HTMLElement>(TASK_TARGET_SELECTOR).forEach((element) => {
+    const taskId = taskIdFromElement(element), url = taskId ? urls.get(taskId) : undefined;
+    if (url) { element.dataset.taskUrl = url; element.classList.add("has-task-url"); }
+    else { delete element.dataset.taskUrl; element.classList.remove("has-task-url"); }
+  });
+}
+function decorateTaskUrls(): void {
+  for (const [frame, urls] of frameUrls) if (frame.isConnected) decorateFrameUrls(frame, urls);
 }
 
 function scheduleDecoration(): void {
   if (typeof document === "undefined") return;
   if (refreshTimer) clearTimeout(refreshTimer);
-  refreshTimer = setTimeout(() => { refreshTimer = null; void decorateTaskUrls(); }, 80);
+  refreshTimer = setTimeout(() => { refreshTimer = null; decorateTaskUrls(); }, 80);
 }
 
 export function taskUrlGestureBlocked(event: Pick<MouseEvent, "ctrlKey" | "metaKey" | "shiftKey">): boolean {
