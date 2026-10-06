@@ -63,28 +63,36 @@ def run(
     return result
 
 
-def push_git_refs(*refs: str) -> None:
-    """Push refs with job-scoped GITHUB_TOKEN without persisting credentials.
-
-    The checkout intentionally uses persist-credentials=false.  Supply the
-    HTTPS Authorization header only to this git subprocess via environment
-    backed Git config so the token is not written to the remote URL, git
-    config, command arguments, logs, or repository files.
-    """
+def git_remote_auth_env() -> dict[str, str]:
+    """Return process-scoped GitHub HTTPS auth without persisting credentials."""
     token = os.environ.get("GITHUB_TOKEN", "")
     if not token:
-        raise LifecycleError("GITHUB_TOKEN is required for authenticated git push")
+        raise LifecycleError("GITHUB_TOKEN is required for authenticated git remote access")
 
     basic = base64.b64encode(f"x-access-token:{token}".encode("utf-8")).decode("ascii")
     env = os.environ.copy()
     env.update(
         {
-            "GIT_CONFIG_COUNT": "1",
+            # http.extraHeader is multi-valued across config scopes. Reset
+            # inherited checkout/local values first so exactly one
+            # Authorization header reaches GitHub.
+            "GIT_CONFIG_COUNT": "2",
             "GIT_CONFIG_KEY_0": "http.https://github.com/.extraheader",
-            "GIT_CONFIG_VALUE_0": f"AUTHORIZATION: basic {basic}",
+            "GIT_CONFIG_VALUE_0": "",
+            "GIT_CONFIG_KEY_1": "http.https://github.com/.extraheader",
+            "GIT_CONFIG_VALUE_1": f"AUTHORIZATION: basic {basic}",
         }
     )
-    run("git", "push", "origin", *refs, env=env)
+    return env
+
+
+def run_git_remote(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+    return run("git", *args, check=check, env=git_remote_auth_env())
+
+
+def push_git_refs(*refs: str) -> None:
+    """Push refs with job-scoped auth while checkout credentials stay disabled."""
+    run_git_remote("push", "origin", *refs)
 
 
 def gh(path: str, *, method: str = "GET", fields: dict[str, str] | None = None) -> Any:
@@ -457,8 +465,7 @@ def start_release(ctx: Context, args: argparse.Namespace) -> tuple[str, str]:
         raise LifecycleError("formal release requires a merged PR")
 
     tag = f"v{ctx.version}"
-    remote = run(
-        "git",
+    remote = run_git_remote(
         "ls-remote",
         "--exit-code",
         "--tags",
@@ -467,7 +474,7 @@ def start_release(ctx: Context, args: argparse.Namespace) -> tuple[str, str]:
         check=False,
     )
     if remote.returncode == 0:
-        run("git", "fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
+        run_git_remote("fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
         if run("git", "cat-file", "-t", f"refs/tags/{tag}").stdout.strip() != "tag":
             raise LifecycleError("existing release tag is lightweight; refusing mutation")
         actual = run("git", "rev-parse", f"{tag}^{{commit}}").stdout.strip()
@@ -504,9 +511,9 @@ def ensure_release(ctx: Context, args: argparse.Namespace) -> tuple[str, str]:
         raise LifecycleError("formal release requires a merged PR")
 
     tag = f"v{ctx.version}"
-    remote = run("git", "ls-remote", "--exit-code", "--tags", "origin", f"refs/tags/{tag}", check=False)
+    remote = run_git_remote("ls-remote", "--exit-code", "--tags", "origin", f"refs/tags/{tag}", check=False)
     if remote.returncode == 0:
-        run("git", "fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
+        run_git_remote("fetch", "--force", "origin", f"refs/tags/{tag}:refs/tags/{tag}")
         if run("git", "cat-file", "-t", f"refs/tags/{tag}").stdout.strip() != "tag":
             raise LifecycleError("existing release tag is lightweight; refusing mutation")
         actual = run("git", "rev-parse", f"{tag}^{{commit}}").stdout.strip()

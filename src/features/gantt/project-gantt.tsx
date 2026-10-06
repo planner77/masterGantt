@@ -90,7 +90,7 @@ import {
   type ProjectTaskUpdateCommand,
 } from "./project-task-adapter";
 import { applyCanonicalGanttSync } from "./canonical-snapshot-sync";
-import { findTaskContextElement, resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
+import { registerTaskUrlSnapshot, findTaskContextElement, resolveTaskContextTarget, taskIdFromElement, TASK_TARGET_SELECTOR } from "./task-context-target";
 import type { TaskEditorSaveResult } from "./task-editor-model";
 import { captureMenuScrollChange } from "./menu-scroll-guard";
 import {
@@ -113,6 +113,8 @@ import { normalizeCopySelection, selectTaskGesture, hiddenSelectedCount } from "
 import { canOpenTaskAsSubtreeRoot, resolveTaskSubtreeScope, taskHierarchyCommandStaysInSubtree } from "./task-subtree-scope";
 import { resolveNativeTaskAddIntent, type NativeTaskAddRejectReason, type NativeTaskAddSource } from "./native-task-add-intent";
 import { taskStatusFromProgress } from "../../domain/task-status";
+import { membershipProjection, membershipDescription } from "./milestone-membership-model";
+import { canCreateSchedulingLink, MIXED_LINK_EXPLANATION, completedMilestoneEndpoint, COMPLETED_LINK_EXPLANATION } from "./relation-editor-model";
 import { RelationContextMenu } from "./relation-context-menu";
 import type { DependencyType } from "../../contracts/projects";
 import "./task-context-menu.css";
@@ -121,6 +123,9 @@ import "./gantt-scale-toolbar.css";
 interface CopySelectionContextValue {
   tasksById: ReadonlyMap<string, ProjectTaskDto>;
   selectedTaskIds: readonly string[];
+  onStageOpen: (id: string) => void;
+  stageLocked: boolean;
+  stageMembership: ReturnType<typeof membershipProjection>["membership"];
   onGesture: (id: string, gesture: "single" | "toggle" | "range") => void;
 }
 const CopySelectionContext = createContext<CopySelectionContextValue | null>(null);
@@ -143,13 +148,27 @@ function ProjectTaskSelectionCell({ row }: { row: Record<string, unknown> }) {
     </label>;
 }
 
+function ProjectStageCell({ row }: { row: Record<string, unknown> }) {
+  const context = useContext(CopySelectionContext);
+  if (!context) return null;
+  const task = context.tasksById.get(String(row.id));
+  if (!task || task.type === "milestone") return <span>—</span>;
+  const tasks = [...context.tasksById.values()];
+  const membership = context.stageMembership.get(task.taskId);
+  const target = tasks.find((candidate) => candidate.taskId === membership?.effectiveMilestoneTaskId);
+  const source = tasks.find((candidate) => candidate.taskId === membership?.inheritedFromTaskId);
+  const detail = `${membershipDescription(task, tasks, membership)}${target ? ` · ${target.externalId} · ${target.taskId}` : ""}${source ? ` · 출처 ${source.externalId} · ${source.taskId}` : ""}`;
+  return <button type="button" className="project-stage-membership-cell" disabled={context.stageLocked} title={detail} aria-label={`${task.name} 완료 단계: ${detail}`} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); context.onStageOpen(task.taskId); }}>{target?.name ?? "미지정"}{target ? membership?.inheritedFromTaskId ? " · 상속" : " · 직접" : ""}</button>;
+}
+
 export type ProjectGridDataColumnId =
   | "text"
   | "externalId"
   | "projectStart"
   | "projectDuration"
   | "baselineStart"
-  | "baselineEnd";
+  | "baselineEnd"
+  | "milestoneStage";
 
 export type ProjectGridColumnVisibility = Record<ProjectGridDataColumnId, boolean>;
 let nextApiInstanceId = 1;
@@ -197,7 +216,7 @@ interface ProjectGanttProps {
   readonly onTaskCreate: (command: ProjectTaskCreateCommand) => void;
   readonly onTaskCommand: (command: ProjectTaskUpdateCommand, expectedRevision?: number) => Promise<TaskEditorSaveResult>;
   readonly onTaskHierarchyCommand: (command: TaskHierarchyCommandRequest) => void;
-  readonly onTaskEditorOpen: (taskId: string) => void;
+  readonly onTaskEditorOpen: (taskId: string, initialTab?: "task" | "memberships") => void;
   readonly onTaskOpenAsRoot: (taskId: string) => void;
   readonly onTaskDeleteRequest: (taskId: string, trigger: HTMLElement | null) => void;
   readonly onRelationEditorOpen?: (linkId: string) => void;
@@ -224,6 +243,7 @@ const baseProjectColumns: IColumnConfig[] = [
   { id: "projectStart", header: "시작", width: 104, align: "center" },
   { id: "projectDuration", header: "기간", width: 56, align: "center" },
   { id: "baselineStart", header: "기준 시작", width: 104, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineStart ?? "—") },
+  { id: "milestoneStage", header: "완료 단계", width: 180, cell: ProjectStageCell },
   { id: "baselineEnd", header: "기준 종료", width: 104, align: "center", getter: (task) => String((task as Record<string, unknown>).baselineEnd ?? "—") },
   // The Core recognizes this documented ID and renders its native header/row
   // plus controls. Their `add-task` event is intercepted below.
@@ -236,6 +256,7 @@ const dataColumns: ReadonlyArray<Readonly<{ id: ProjectGridDataColumnId; label: 
   { id: "projectStart", label: "시작" },
   { id: "projectDuration", label: "기간" },
   { id: "baselineStart", label: "기준 시작" },
+  { id: "milestoneStage", label: "완료 단계" },
   { id: "baselineEnd", label: "기준 종료" },
 ];
 
@@ -467,9 +488,10 @@ export function ProjectGantt({
     if (mirrorCore && next.includes(id)) void apiReference.current?.exec("select-task", { id, eventSource: "project-owned-selection" });
   }, [updateSelection, setSelectionMessage]);
 
+  const stageMembership = useMemo(() => membershipProjection(tasks, links).membership, [tasks, links]);
   const selectionContext = useMemo(() => ({
-    tasksById, selectedTaskIds, onGesture: applySelectionGesture,
-  }), [tasksById, selectedTaskIds, applySelectionGesture]);
+    tasksById, selectedTaskIds, stageMembership, stageLocked: mutationLocked, onGesture: applySelectionGesture, onStageOpen: (id: string) => { if (!mutationLockedReference.current) onTaskEditorOpenReference.current(id, "task"); },
+  }), [tasksById, selectedTaskIds, applySelectionGesture, stageMembership, mutationLocked]);
 
   useEffect(() => {
     if (selectionProjectReference.current !== projectPublicId) {
@@ -1133,10 +1155,16 @@ export function ProjectGantt({
       if (!canCreateReference.current) return;
       if (typeof id === "string") onLinkDeleteReference.current(id);
     });
-    api.intercept("add-link", (event) => canonicalSyncDepthReference.current > 0 ? true : add(event), { tag });
+    api.intercept("add-link", (event) => {
+      if (canonicalSyncDepthReference.current > 0) return true;
+      if (!canCreateReference.current) return false;
+      const source = tasksByIdReference.current.get(String(event.link.source)), target = tasksByIdReference.current.get(String(event.link.target));
+      if (!canCreateSchedulingLink(source, target)) { notify("error", completedMilestoneEndpoint(source, target) ? COMPLETED_LINK_EXPLANATION : MIXED_LINK_EXPLANATION, "일정 관계 연결 제한"); return false; }
+      return add(event);
+    }, { tag });
     api.intercept("delete-link", (event) => canonicalSyncDepthReference.current > 0 ? true : remove(event), { tag });
     return () => api.detach(tag);
-  }, [apiInstanceId]);
+  }, [apiInstanceId, notify]);
 
   useEffect(() => {
     const root = ganttScrollReference.current;
@@ -1192,8 +1220,10 @@ export function ProjectGantt({
     taskUpdateGateway(event);
   }, [taskUpdateGateway]);
   const columns = useMemo(
-    () => [{ id: "copySelection", header: "선택", width: 56, align: "center" as const, cell: ProjectTaskSelectionCell }, ...baseProjectColumns.map((column) => (
-      column.id === "externalId"
+    () => [{ id: "copySelection", header: "선택", width: 56, hidden: false, align: "center" as const, cell: ProjectTaskSelectionCell }, ...baseProjectColumns.map((column) => (
+      column.id === "milestoneStage"
+        ? { ...column, hidden: !columnVisibility.milestoneStage }
+        : column.id === "externalId"
         ? { ...column, hidden: !columnVisibility.externalId }
         : column.id === "projectStart"
           ? {
@@ -1411,6 +1441,7 @@ export function ProjectGantt({
       if (!visible && !taskFilterAppliedReference.current) return;
       taskFilterAppliedReference.current = visible !== null;
       await api.exec("filter-tasks", {
+        open: false,
         filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined,
       });
     }).catch(() => onCanonicalSyncFailureReference.current());
@@ -1429,12 +1460,21 @@ export function ProjectGantt({
           const current = currentColumns.find((candidate) => candidate.id === column.id);
           return current ? { ...column, width: current.width, flexgrow: current.flexgrow } : { ...column };
         });
+        const visibleWidth = (items: IColumnConfig[]) => items.reduce((width, column) => width + (column.hidden ? 0 : column.id === "text" ? Math.max(180, column.width ?? 180) : column.width ?? 0), 0);
+        const previousWidth = visibleWidth(currentColumns);
+        const nextWidth = visibleWidth(nextColumns);
+        const gridWidth = api.getState().gridWidth ?? 480;
         ganttColumnsReference.current.splice(
           0,
           ganttColumnsReference.current.length,
           ...nextColumns.map((column) => ({ ...column })),
         );
         await api.exec("set-columns", { columns: nextColumns });
+        // Add/remove optional columns without consuming the user's name-column
+        // width. Core's flex column otherwise absorbs the fixed stage width.
+        if (previousWidth !== nextWidth) {
+          await api.exec("resize-grid", { width: Math.max(nextWidth, gridWidth + nextWidth - previousWidth) });
+        }
         await restoreSummaryToggleState(api, summaryState);
       } catch {
         onCanonicalSyncFailureReference.current();
@@ -2146,12 +2186,13 @@ export function ProjectGantt({
     return true;
   }
 
-  function openTaskEditorFromMenu() {
+  function openTaskEditorFromMenu(initialTab?: "task" | "memberships") {
     const api = apiReference.current;
-    if (!api || !taskMenu) return;
+    if (!api || !taskMenu || mutationLockedReference.current) return;
     const taskId = taskMenu.taskId;
     setTaskMenu(null);
-    void api.exec("show-editor", { id: taskId });
+    if (initialTab) onTaskEditorOpenReference.current(taskId, initialTab);
+    else void api.exec("show-editor", { id: taskId });
   }
 
   function openTaskAsRootFromMenu() {
@@ -3007,6 +3048,11 @@ export function ProjectGantt({
     }
   })() : null;
 
+  useLayoutEffect(() => {
+    const frame = fullscreenFrameReference.current;
+    return frame ? registerTaskUrlSnapshot(frame, tasks) : undefined;
+  }, [tasks, projectPublicId]);
+
   useEffect(() => {
     if (!taskMenu || !focusTaskMenuOnOpenReference.current) return;
     focusTaskMenuOnOpenReference.current = false;
@@ -3078,7 +3124,7 @@ export function ProjectGantt({
           role="region"
           tabIndex={0}
         >
-          <div className="wx-theme gantt-widget project-gantt-widget">
+          <div className="wx-theme gantt-widget project-gantt-widget" style={{ minWidth: Math.max(720, columns.reduce((width, column) => width + (column.hidden ? 0 : column.width ?? 0), 0) + 100) }}>
             <Gantt
               cellWidth={GANTT_CELL_WIDTH[scaleMode]}
               columns={initialConfig.columns}
@@ -3219,9 +3265,10 @@ export function ProjectGantt({
               <span aria-hidden="true" className="project-task-context-menu-icon">↻</span><span>Convert to</span><span className="project-task-context-menu-arrow">›</span>
             </button>
           </div>
-          <button aria-label="Edit" onClick={openTaskEditorFromMenu} role="menuitem" type="button">
+          <button aria-label="Edit" disabled={mutationLocked} onClick={() => openTaskEditorFromMenu()} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">i</span><span>Edit</span>
           </button>
+          <button disabled={mutationLocked} role="menuitem" type="button" onClick={() => openTaskEditorFromMenu(tasksById.get(taskMenu.taskId)?.type === "milestone" ? "memberships" : "task")}><span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>{tasksById.get(taskMenu.taskId)?.type === "milestone" ? "소속 작업 관리…" : "완료 단계 연결…"}</span></button>
           {canOpenAsRoot ? <button aria-label="최상위로 열기 (작업공간 탭)" onClick={openTaskAsRootFromMenu} role="menuitem" type="button">
             <span aria-hidden="true" className="project-task-context-menu-icon">▤</span><span>최상위로 열기</span>
           </button> : null}

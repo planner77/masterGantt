@@ -346,3 +346,11 @@ Task Editor 리소스 탭은 역할→Resource 및 Resource→역할 두 흐름�
 Task/Summary의 작업 정보에서 Milestone을 이름·externalId·canonical taskId로 단일 검색·지정한다. Summary는 이름과 하위 작업 기본 단계만 편집하고 파생 일정/진척/Baseline은 읽기 전용이다. 직접/nearest Summary 상속/미지정을 구분하고 null 해제는 상속 복귀다. 기본 필드와 소속은 한 PATCH로 원자 저장한다.
 
 Milestone은 기존 탭을 유지한 소속 작업 N 탭으로 유효 일반 Task 수와 explicit root 수를 구분한다. 검색·유형·소속 상태·다른 단계 이동·영향 preview, Summary override 보존과 inherited explicit-only 해제를 제공하고 batch 한 POST로 적용한다. full canonical 동기화와 모든 저장 단위의 dirty/pending/stale/readonly/완료 잠금을 유지하며 실패 초안·검색·선택을 보존한다. Ready/소속 진척/본인 완료를 분리하고 재개는 별도 명시 저장 뒤 구조 변경한다. Domain/API/auth/revision은 #460 계약을 재사용하며 새 서버 기능은 추가하지 않는다.
+
+## Issue #462 완료 단계 Gantt/Grid 조회
+
+유형 quick view와 완료 단계 전체/미지정/특정 M 조건은 독립 상태이며 기존 조건·WBS scope와 AND다. effective Membership은 전체 canonical hierarchy projection을 재사용하고 scope 밖 ancestor는 계산에만 사용한다. M/일반 Task matching과 Summary 구조/설정 context를 구분하고 고유 일반 Task 건수를 별도 표시한다. 빈 Summary context에도 유형 외 나머지 조건을 적용한다. 후보는 canonical 적용 예정일과 안정 ID 키로 조회 정렬하며 요청일/WBS 순서를 변경하지 않는다.
+
+기본 숨김 선택 열은 effective 이름·직접/상속·출처·동명이인 식별자 조회 경로를 제공하고 기존 column budget/preferences를 보존한다. Task/Summary/M 메뉴는 같은 #461 Editor에 진입하고 진입 mutation은 없다. 신규 일정 관계는 같은 유형 Task/Task·M/M만, 기존 mixed 관계 표시/endpoint 고정 편집은 유지하며 완료 M 양 endpoint 구조 변경은 서버와 UI에서 보호한다. 필터/열 전환은 canonical/GET/revision/instance·scroll·tree·scale·selection·fullscreen을 초기화하지 않는다. 5폭 toolbar/popup/Grid geometry와 keyboard를 실제 browser로 검증한다.
+
+특정 M + Milestone-only는 M 자체와 해당 행을 표시하기 위한 scope 내 hierarchy ancestors만 표시한다. Membership 설정용 Summary context/빈 Summary는 추가하지 않는다. 전체/Task-only에서는 설정 context를 유지하며 match/count와 구분한다.

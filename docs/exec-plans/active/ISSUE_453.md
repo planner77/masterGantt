@@ -3,8 +3,8 @@
 ## Issue Work Packet
 
 - Repository: planner77/masterGantt; Issue: [#453](https://github.com/planner77/masterGantt/issues/453).
-- Lifecycle phase: DOCUMENTATION_SYNC / PRE_QA 갱신. 이전 후보의 DOCUMENTATION_SYNC / PRE_QA / UI 비교는 PASS였으며 최신 main 통합 후 관련 검증과 검토를 갱신한다. 요청 종료점은 구현·문서·독립 사전 검토·원격 branch/PR 게시·exact head PR CI 등록 확인이다.
-- 현재 통합 baseline main: `56e2e54f88ab9124ec81c52e157161181ed6c337`, application `0.86.0`. 최초 구현·before Source baseline은 `fd8fdc9e9207ab43a6fb7ff85b5a5acbe91d4553`다. 선행 #452 및 main에 병합된 #461을 보존한다.
+- Lifecycle phase: PR #477 최신 main 충돌 해소 / 새 exact head PR CI 재검증. 최초 PR CI는 PASS였으나 current main 통합 후 새 head 결과를 공식 기준으로 사용한다.
+- 현재 통합 baseline main: `d7316880732ecde5a8193764ac3b0cfca2ae455f`, application `0.87.1`. 최초 구현·before Source baseline은 `fd8fdc9e9207ab43a6fb7ff85b5a5acbe91d4553`이며 이전 `56e2e54f88ab9124ec81c52e157161181ed6c337` 재정렬은 역사적 검증 기록으로 유지한다.
 - Branch: `feat/issue-453-resource-tabs`; worktree: `/home/planner/Dev/masterGantt-worktrees/issue-453`. 시작 시 기존 feature PR/원격 branch 없음.
 - Version decision: MINOR `0.90.0`. 독립 탭·생성 dialog·프로필 명시 저장으로 사용자 작업 흐름이 추가되며 다른 미병합 후보 `0.87.0`/`0.88.0`/`0.89.0`을 재사용하지 않는다. package/lock은 infra가 반영했고 version check PASS다.
 - release_required=true, release_authorized=false. 사용자 요청은 PR CI 시작까지만이며 정식 게시 승인이 아니다. merge/main CI/GHCR/tag/cleanup/Issue 종료는 이번 범위 밖이다.
@@ -89,3 +89,12 @@ Manager가 ui_ux의 `/tmp/issue453-uiux-design.md` 설계를 승인했다. 실�
 - 기존 41 unique / 57회 browser LFF와 최초 실패 이력은 보존한다. dependency 변경에 맞춰 frozen npm ci, 관련 typecheck/lint/Unit 9 및 5폭 기본·dirty/pending geometry를 새로 검증한다. 그 뒤 문서 동기화·독립 사전 검토·최종 후보 manifest를 갱신한다. 이전 snapshot의 검토 PASS를 변경된 후보의 검토로 사용하지 않는다.
 - 최신 통합 LFF: frozen npm ci `93526` / `ch797155` exit0(447 설치/448 audit, dev 포함 high6), typecheck `14418` / `ch75caca`, scoped lint `30542` / `ch4c8c62`, Unit9 `chc2f05f` PASS. Chromium `45776` / `cha9e89d` 지정2개 PASS(8.6초), after61 자료 갱신, owned Next 종료·generated2 복원·source/test/fixture10 drift0 및 복원 뒤 typecheck `6180` / `ch7b0103` PASS. 이전 high7과 새 high6은 각 실제 설치 결과이며 공식 production audit 판정과 구분한다.
 - 현재 원격 branch/PR 쓰기는 0회다. 정식 quality/e2e/docker와 최종 ACCEPT는 NOT TESTED이며 결과 모니터링을 하지 않는다. 원래 #464 worktree와 raw 26파일은 보존한다.
+
+
+## PR #477 최신 main 충돌 해소
+
+- 최초 게시 head `c411634f75b7a69131a095e9cb6b7416060b827e`의 PR CI Run `37406441919` / Run #1898.1은 SUCCESS였다.
+- 이후 main이 `d7316880732ecde5a8193764ac3b0cfca2ae455f` / application `0.87.1`까지 39 commits 전진했고 PR은 `mergeable_state=dirty`가 되었다. old base→current main과 #453 변경의 교집합은 문서5파일과 package/lock 2파일뿐이며 Resource TSX/CSS·관련 E2E/fixture는 main 이동에서 변경되지 않았다.
+- CHANGELOG/PROJECT_UX/TEST_PLAN/UI_UX_GUIDELINES/PLAN은 최신 main의 후속 기록을 보존하면서 #453 내용을 병합한다. package/lock은 최신 dependency 및 source-map-js 1.2.2를 보존하고 candidate version `0.90.0`만 유지한다.
+- published PR의 history를 강제 재작성하지 않는다. 기존 feature head를 첫 부모, 최신 main을 두 번째 부모로 하는 conflict-resolution merge commit을 만든 뒤 branch를 fast-forward한다.
+- 새 exact head PR CI가 quality/e2e/docker를 다시 통과하기 전 최종 ACCEPT는 `NOT TESTED`다. 이번 사용자 요청의 종료점은 새 PR CI 시작 확인이다.
