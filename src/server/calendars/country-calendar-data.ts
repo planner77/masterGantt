@@ -11,8 +11,13 @@ export interface CountryCalendarDate {
   sourceKey: string;
 }
 
+export type EffectiveCountryCalendarDescriptor = CountryCalendarDescriptorDto & {
+  sourceVersion: string;
+  sourceUrl: string;
+};
+
 export interface CountryCalendarDataset {
-  descriptor: CountryCalendarDescriptorDto;
+  descriptor: EffectiveCountryCalendarDescriptor;
   dates: readonly CountryCalendarDate[];
 }
 
@@ -52,7 +57,7 @@ const descriptors = {
     sourceVersion: "US-2026-opm-federal",
     sourceUrl: "https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/",
   },
-} satisfies Record<WorkCalendarCountryCode, CountryCalendarDescriptorDto>;
+} satisfies Record<WorkCalendarCountryCode, EffectiveCountryCalendarDescriptor>;
 
 function d(date:string,name:string,sourceKey:string,dayType:WorkCalendarDayType="NON_WORKING"):CountryCalendarDate {
   return Object.freeze({date,name,sourceKey,dayType});
