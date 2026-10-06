@@ -66,6 +66,14 @@ export class CountryCalendarRepository {
     return row.revision;
   }
 
+  getPreviewSecret(): Buffer {
+    const row = this.database.prepare("SELECT preview_secret AS previewSecret FROM country_calendar_catalog_state WHERE id = 1").get() as { previewSecret: Buffer } | undefined;
+    if (!row || !Buffer.isBuffer(row.previewSecret) || row.previewSecret.length !== 32) {
+      throw new Error("Country calendar preview secret is missing.");
+    }
+    return row.previewSecret;
+  }
+
   advanceRevision(expectedRevision: number, updatedAt: string): boolean {
     return this.database.prepare("UPDATE country_calendar_catalog_state SET revision = revision + 1, updated_at = ? WHERE id = 1 AND revision = ?").run(updatedAt, expectedRevision).changes === 1;
   }
