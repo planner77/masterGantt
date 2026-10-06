@@ -1968,3 +1968,7 @@ PR #473를 latest main `d748046733ae2006580052a480c984ae1eb1fa2a` 기준으로 �
 - E2E: `/calendar-admin` 로그인, Import Preview/Apply, date add/edit/delete, 390/768/1024/1440 document overflow, 기존 관리자 shell/header geometry 비회귀.
 - CI #1850의 `project-status.spec.ts` direct GET transient reset 재발 방지를 위해 읽기 GET에만 `socket hang up|ECONNRESET` 최대 3회 retry를 적용한다. POST/PATCH 등 mutation은 retry하지 않는다.
 - 공식 전체 회귀는 exact PR head의 현재 `quality/e2e/docker` required gate이며 과거 head의 PASS/FAIL을 대체 증거로 사용하지 않는다.
+
+### CI #1960 migration regression 보완
+
+PR CI #1960의 유일한 Vitest 실패는 `tests/server/db/database.test.ts`의 legacy schema21 upgrade 기대값이 `0022_task_milestone_memberships.sql` 하나만 가정한 데서 발생했다. #342의 `0023_country_calendar_catalog.sql`이 정상적으로 함께 적용되므로 기대 applied list를 0022+0023으로 갱신한다. 기존 Project/Task/Link/Resource/Assignment row 불변, empty Stage membership, FK check를 유지하고 Country Calendar Catalog 초기 `revision=1`, dataset 0건도 함께 검증한다.

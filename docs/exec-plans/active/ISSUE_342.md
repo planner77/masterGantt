@@ -47,6 +47,14 @@ N/A:
 - SECURITY.md: 새로운 인증 체계 없이 Project Master admin session/Origin/If-Match 재사용.
 - IMPORT_SCHEMA.md: Project JSON 1.1 Import와 별도 Country Calendar Import 계약이며 Project import schema 변경 없음.
 
+## CI #1960 실패 보완
+
+- Vitest 1513개 중 1509 PASS, 1 FAIL, 3 skipped.
+- 실패는 `SQLite connection and schema > adds explicit stage storage to schema 21 without inferring or altering existing data`.
+- legacy schema21 DB를 최신 migration directory로 올리면 이제 `0022_task_milestone_memberships.sql`과 `0023_country_calendar_catalog.sql`이 연속 적용되는 것이 정상이다.
+- 테스트 기대값을 0022+0023으로 갱신하고 기존 row 불변/empty membership/FK invariant에 더해 Country Calendar Catalog 초기 revision 1/dataset 0건을 확인한다.
+- 제품 코드와 migration SQL은 변경하지 않는다.
+
 ## 검증
 
 - Catalog parser/service/CRUD/atomic import/stale revision/WORKING 보존 Unit.
