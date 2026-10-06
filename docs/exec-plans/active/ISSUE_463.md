@@ -139,3 +139,11 @@ main 통합 최소LFF는 qa_docs의 migration-cli3/3 PASS(751ms/chunka6a71a), fr
 - Playwright trace에서 작업명 text 우클릭과 app-owned singleton 선택은 성공했지만, 그 직후 Core `select-task` 동기화가 table scrollTop을 147→124로 보정하고 기존 menu scroll guard가 이를 실제 viewport 이동으로 판단해 메뉴를 즉시 닫는 것을 확인했다.
 - Context Menu 선택은 #384 계약대로 app-owned selection을 authority로 유지하고 이 경로의 Core mirror만 생략한다. 일반 선택·실제 사용자 scroll 닫힘·menu taskId 기반 명령은 유지한다. E2E는 우클릭 메뉴와 `data-copy-selected=true`를 함께 검증한다.
 - candidate version은 `0.91.0` 유지. 새 exact-head 전체 PR CI를 시작한다.
+
+
+## PR CI #1938 REWORK
+
+- head `b711280b0629b7af6b579dcc831f54bd09897a92` / Run #1938.1(`37429658024`)은 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6 기존 #407/#418 Context Menu 1건 FAIL이다.
+- Core selection mirror를 제거했는데도 trace에서 app-owned selection 뒤 table scrollTop 147→124가 동일하게 발생했다. 따라서 #1937 가설을 폐기하고 Core mirror는 복원한다.
+- Context Menu open 시 selection/virtual-row layout 내부 scroll을 bounded two-frame settling 구간에서 baseline으로 흡수하고, settle 종료 후 현재 canonical task element 위치에서 실제 scroll guard를 arm한다. 임의 timeout은 사용하지 않으며 이후 사용자 scroll 닫힘은 유지한다.
+- 기존 #407/#418 selection assertion과 전용 scroll E2E를 유지하고 새 exact-head 전체 PR CI를 시작한다. candidate version은 `0.91.0` 유지.

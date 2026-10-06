@@ -417,6 +417,8 @@ export function ProjectGantt({
   const focusTaskMenuOnOpenReference = useRef(false);
   const taskMenuTriggerReference = useRef<HTMLElement | null>(null);
   const taskMenuScrollChangedReference = useRef<() => boolean>(() => false);
+  const taskMenuScrollSettleGenerationReference = useRef(0);
+  const taskMenuScrollSettlingReference = useRef(false);
   const [columnMenuPosition, setColumnMenuPosition] = useState<MenuPosition | null>(null);
   const [taskMenu, setTaskMenu] = useState<TaskMenuState | null>(null);
   const [taskSubmenu, setTaskSubmenu] = useState<TaskSubmenuState | null>(null);
@@ -1575,8 +1577,15 @@ export function ProjectGantt({
     };
     const closeForViewportChange = (event?: Event) => {
       if (event?.target instanceof Node && taskMenuReference.current?.contains(event.target)) return;
+      // 메뉴 open 직후 selection/virtual-row layout이 만드는 내부 scroll은
+      // bounded two-frame settle 동안 새 기준으로 흡수한다. 임의 timeout은 쓰지 않는다.
+      if (event?.type === "scroll" && taskMenuScrollSettlingReference.current) {
+        const root = ganttScrollReference.current;
+        const currentElement = root ? findTaskContextElement(root, taskMenu.taskId) : null;
+        if (currentElement) taskMenuScrollChangedReference.current = captureMenuScrollChange(currentElement);
+        return;
+      }
       // 열기 전에 완료된 scrollIntoView/SVAR 동기화의 지연 알림은 무시한다.
-      // 임의의 지연 시간 대신 호출 대상 조상의 실제 위치 변화를 확인한다.
       if (event?.type === "scroll" && !taskMenuScrollChangedReference.current()) return;
       setTaskMenu(null);
       setTaskSubmenu(null);
@@ -2217,21 +2226,30 @@ export function ProjectGantt({
       if (currentElement) match = { taskId: fallbackTaskId, element: currentElement };
     }
     if (!match) return false;
-    if (!selectedTaskIdsReference.current.includes(match.taskId)) {
-      // Context Menu selection is app-owned. Mirroring this singleton selection
-      // into Core can trigger SVAR's row reveal/scroll after the menu opens,
-      // which the menu scroll guard correctly interprets as viewport movement.
-      // Explicit menu commands already use taskId and data-copy-selected is the
-      // canonical visual/selection state, so avoid that unnecessary Core scroll.
-      applySelectionGesture(match.taskId, "single", false);
-    }
+    if (!selectedTaskIdsReference.current.includes(match.taskId)) applySelectionGesture(match.taskId, "single");
     if (!match.element.hasAttribute("tabindex")) match.element.tabIndex = 0;
     const focusTrigger = target instanceof HTMLElement && target.matches("input[data-copy-selection]")
       ? target
       : match.element;
     focusTrigger.focus({ preventScroll: true });
     taskMenuTriggerReference.current = focusTrigger;
-    taskMenuScrollChangedReference.current = captureMenuScrollChange(match.element);
+    // Opening a menu can synchronously select the row and then let React/SVAR
+    // normalize virtualized row geometry. Ignore only that bounded opening
+    // settle, then capture the actual post-layout scroll baseline. This keeps
+    // real user scroll as an immediate close signal after the settle window.
+    const scrollGuardTaskId = match.taskId;
+    const scrollGuardGeneration = ++taskMenuScrollSettleGenerationReference.current;
+    taskMenuScrollSettlingReference.current = true;
+    taskMenuScrollChangedReference.current = () => false;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (taskMenuScrollSettleGenerationReference.current !== scrollGuardGeneration) return;
+        const currentRoot = ganttScrollReference.current;
+        const currentElement = currentRoot ? findTaskContextElement(currentRoot, scrollGuardTaskId) : null;
+        if (currentElement) taskMenuScrollChangedReference.current = captureMenuScrollChange(currentElement);
+        taskMenuScrollSettlingReference.current = false;
+      });
+    });
     const bounds = focusTrigger.getBoundingClientRect();
     const anchorX = x ?? bounds.left + Math.min(bounds.width / 2, 24);
     const anchorY = y ?? bounds.top + Math.min(bounds.height / 2, 24);

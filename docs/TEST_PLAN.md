@@ -1715,3 +1715,12 @@ branch 정렬은 published PR history를 강제 재작성하지 않고 기존 fe
 - 따라서 이전 auto-scroll 및 hit-area 가설은 최종 원인이 아니다. Task Context Menu에서 선택 밖 행을 singleton으로 만드는 계약의 authority는 #384부터 app-owned selection이다. Context Menu open 경로에서는 `applySelectionGesture(..., false)`로 Core `select-task` mirror만 생략하고 `data-copy-selected` singleton selection·menu taskId·명령 dispatch는 유지한다.
 - 일반 click/keyboard selection의 Core mirror, 실제 사용자 scroll 시 메뉴 닫힘, 지연된 동일 scroll 알림 무시는 기존 계약을 유지한다. #407/#418 E2E는 메뉴 open 뒤 해당 행의 `data-copy-selected=true`를 추가 확인한다.
 - 새 exact-head 전체 PR CI의 quality/e2e/docker가 authoritative하며 Run #1937의 부분 PASS를 새 head의 PASS로 전용하지 않는다.
+
+
+## Issue #463 PR CI Run #1938 opening-layout scroll REWORK
+
+- head `b711280b0629b7af6b579dcc831f54bd09897a92`의 PR CI Run #1938.1(`37429658024`)도 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6의 기존 #407/#418 Context Menu 1건만 FAIL했다.
+- 새 trace에서 Core `select-task` mirror를 제거한 상태에서도 작업명 우클릭 후 app-owned `data-copy-selected=true`가 반영되고 Grid table `scrollTop 147 → 124` 보정이 동일하게 발생했다. 따라서 Run #1937의 "Core mirror가 직접 원인" 가설은 반증됐고 해당 의미 변경은 되돌린다.
+- 최종 원인은 Context Menu open 직후 app-owned selection + React/SVAR virtual-row layout settle 자체가 내부 scroll을 만들 수 있는데, 기존 menu scroll baseline을 settle 전에 캡처했다는 점이다. 메뉴 open 시 scroll guard를 bounded two animation frames 동안 settling 상태로 두고, 이 구간의 내부 scroll마다 현재 canonical task element에서 baseline을 재캡처한 뒤 settle 종료 시 최종 위치를 기준으로 arm한다. 임의 timeout/retry는 사용하지 않는다.
+- 일반 selection의 Core mirror는 복원한다. 기존 `task-context-menu-scroll.spec.ts`는 같은 위치의 지연 scroll은 무시하고 bounded settle 이후 실제 scroll은 메뉴를 닫는 계약을 명시적으로 유지한다. #407/#418의 app-owned selection assertion도 유지한다.
+- 새 exact-head 전체 PR CI의 quality/e2e/docker가 authoritative하며 이전 run의 부분 PASS를 새 head 증거로 전용하지 않는다.
