@@ -1,5 +1,19 @@
 # Milestone Stage Gates
 
+## Issue #459 Epic 통합 계약
+
+Issue #459는 #460~#464의 상위 계약이다. 완료 단계 기능은 하나의 거대한 mutation으로 구현하지 않고 저장/Editor/Gantt/KPI/교환 경계를 분리하되 동일 canonical Stage projection을 사용한다.
+
+- **WBS**: Summary/Task 구조와 파생 일정.
+- **Membership**: Task/Summary가 어느 완료 단계에 속하는지 나타내는 explicit 0..1 + Summary 상속 관계. 일정 제약이 아니다.
+- **Task Dependency**: member Task들의 실제 실행 순서/제약. 서로 다른 Milestone의 Task 사이 Link가 있어도 단계 Dependency로 자동 승격하지 않는다.
+- **Milestone Dependency**: 단계 자체에 일정 Gate 제약이 필요할 때만 명시적으로 생성한다.
+- **Ready/Completed**: Ready는 전체 유효 member Task와 직접 선행 Milestone 완료에서 파생하고, Completed는 사용자 명시 상태다.
+
+따라서 `T1(M1) → T2(M2)` Task Dependency만 존재하는 경우 M2는 M1을 predecessor Gate로 보지 않는다. 별도의 `M1 → M2` Link를 명시했을 때만 M2의 `predecessorMilestoneTaskIds/blocked/ready`가 M1 상태의 영향을 받는다. 이 경계는 `tests/domain/milestone-stage-gates.test.ts`의 #459 회귀로 고정한다.
+
+하위 역할은 #460 도메인·DB/API, #461 Editor, #462 Gantt/Grid, #463 Dashboard/KPI, #464 JSON·Excel·Copy·Template다. 어느 화면도 UI filter/scope를 Stage 계산 authority로 사용하지 않으며 파생 값을 독립 저장하지 않는다.
+
 ## 구현 경계
 
 Issue #460은 기존 Milestone Task identity를 단계 Gate로 사용한다. WBS, 일정 Dependency와 단계 Membership은 각각 별도 관계이며 일정 엔진/SVAR Core를 교체하지 않는다. Editor/Gantt 단계 표현은 #461/#462, KPI는 #463, 교환·복사 보존은 #464에서 명시 FK remap과 경계 확인 계약으로 확장한다.
