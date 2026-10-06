@@ -102,7 +102,9 @@ require("packages: write" in auto_workflow, "automatic finalizer needs scoped pa
 require("packages: write" in resume_workflow, "release completion finalizer needs scoped packages: write for backlog cleanup")
 require("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in auto_workflow, "automatic finalizer must expose the job-scoped package token to cleanup helper")
 require("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in resume_workflow, "release completion finalizer must expose the job-scoped package token to cleanup helper")
-require(workflow.count("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}") >= 2, "manual finalize operations must expose the job-scoped package token")
+require(workflow.count("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}") >= 3, "manual release/finalize operations must expose the job-scoped token for authenticated git/package mutations")
+release_job = workflow.split("  release:", 1)[1].split("\n  finalize:", 1)[0]
+require("GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}" in release_job, "manual release job must expose GITHUB_TOKEN for authenticated SemVer tag push")
 require("ref: main" in resume_workflow, "release completion resume must execute trusted main code")
 require("ref: ${{ github.event.workflow_run.head_sha }}" not in resume_workflow, "release completion resume must not execute triggering tag/manual ref code")
 require("actions/runs/$RELEASE_RUN_ID" in resume_workflow, "explicit release resume must wait on the exact source release run")
@@ -671,5 +673,53 @@ require('f"{args.operation} requires release_authorized=true"' in impl, "release
 require('f"{args.operation} requires expected_version"' in impl, "release mutation expected_version guard missing")
 require('f"{args.operation} requires authorization_note"' in impl, "release mutation authorization_note guard missing")
 require("validate_operation_inputs(args)" in impl, "release_finalize input validation must run before context resolution")
+
+# Release tag push must preserve persist-credentials:false and inject the
+# job-scoped token only into the git subprocess environment.  The token must
+# never appear in command arguments.
+require("def push_git_refs(" in impl, "authenticated release tag push helper is required")
+require("GIT_CONFIG_KEY_0" in impl and "http.https://github.com/.extraheader" in impl, "git push must use command-scoped HTTPS auth config")
+require("GIT_CONFIG_VALUE_0" in impl and "AUTHORIZATION: basic" in impl, "git push auth header contract is required")
+require('push_git_refs(f"refs/tags/{tag}")' in impl, "release start/fallback paths must use authenticated tag push")
+require('run("git", "push", "origin", f"refs/tags/{tag}")' not in impl, "unauthenticated release tag push must not remain")
+require("persist-credentials: false" in resume_workflow, "release completion resume must keep checkout credentials non-persistent")
+
+saved_run = module.run
+saved_token = __import__("os").environ.get("GITHUB_TOKEN")
+push_calls = []
+def fake_run(*args, check=True, env=None):
+    push_calls.append((args, env))
+    return type("Result", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+module.run = fake_run
+__import__("os").environ["GITHUB_TOKEN"] = "test-token"
+try:
+    module.push_git_refs("refs/tags/v9.9.9")
+    require(len(push_calls) == 1, "authenticated git push helper must invoke one git command")
+    push_args, push_env = push_calls[0]
+    require(push_args == ("git", "push", "origin", "refs/tags/v9.9.9"), "git push refs must remain exact")
+    require("test-token" not in " ".join(push_args), "GITHUB_TOKEN must not be exposed in git command arguments")
+    require(push_env is not None and push_env.get("GIT_CONFIG_COUNT") == "1", "git auth config must be process-scoped")
+    require(push_env.get("GIT_CONFIG_KEY_0") == "http.https://github.com/.extraheader", "git auth header key mismatch")
+    require(push_env.get("GIT_CONFIG_VALUE_0", "").startswith("AUTHORIZATION: basic "), "git auth header value missing")
+finally:
+    module.run = saved_run
+    if saved_token is None:
+        __import__("os").environ.pop("GITHUB_TOKEN", None)
+    else:
+        __import__("os").environ["GITHUB_TOKEN"] = saved_token
+
+saved_run = module.run
+saved_token = __import__("os").environ.pop("GITHUB_TOKEN", None)
+module.run = fake_run
+try:
+    try:
+        module.push_git_refs("refs/tags/v9.9.9")
+        raise SystemExit("missing GITHUB_TOKEN must fail closed before git push")
+    except module.LifecycleError:
+        pass
+finally:
+    module.run = saved_run
+    if saved_token is not None:
+        __import__("os").environ["GITHUB_TOKEN"] = saved_token
 
 print("issue-lifecycle generic/automatic contract scenarios: PASS")
