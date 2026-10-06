@@ -2,11 +2,14 @@ import type { ProjectAssignmentDto, AssignmentTargetDto } from "@/contracts/reso
 import type { ProjectTaskDto } from "@/contracts/projects";
 import type { ProjectLogisticsDto } from "@/contracts/logistics";
 
+import { membershipProjection, matchesMembershipSearch } from "../gantt/milestone-membership-model";
+
 export type DateOperator = "overlap" | "contained" | "start-in" | "end-in";
 export type NumberOperator = "eq" | "gte" | "lte" | "range";
 export type TextOperator = "contains" | "not-contains" | "equals";
 
 export type TaskFilterState = Readonly<{
+  milestoneTaskId: string;
   query: string;
   nameQuery: string;
   nameOperator: TextOperator;
@@ -33,6 +36,7 @@ export type TaskFilterState = Readonly<{
 }>;
 
 export const EMPTY_TASK_FILTER: TaskFilterState = {
+  milestoneTaskId: "all",
   query: "",
   nameQuery: "",
   nameOperator: "contains",
@@ -254,14 +258,27 @@ export function filterTasksWithAncestors(
   assignments: readonly ProjectAssignmentDto[] | undefined,
   logistics?: ProjectLogisticsDto | undefined,
   logisticsContextTasks: readonly ProjectTaskDto[] = tasks,
-): Readonly<{ tasks: ProjectTaskDto[]; matchCount: number; matchingTaskIds: readonly string[] }> {
+): Readonly<{ tasks: ProjectTaskDto[]; matchCount: number; matchingTaskIds: readonly string[]; ordinaryMatchCount: number }> {
   const assigned = buildAssignmentIdsByTask(assignments);
   const effectiveLogistics = buildTaskEffectiveLogisticsMap(logisticsContextTasks, logistics);
-  const matching = tasks.filter((task) => taskMatchesFilter(task, filter, assigned, effectiveLogistics));
+  const projection = membershipProjection(logisticsContextTasks, []);
+  const stageMatches = (task: ProjectTaskDto) => {
+    if (filter.milestoneTaskId === "all") return true;
+    const effective = projection.membership.get(task.taskId)?.effectiveMilestoneTaskId ?? null;
+    if (filter.milestoneTaskId === "unassigned") return task.type === "task" && effective === null;
+    return task.type === "milestone" ? task.taskId === filter.milestoneTaskId : task.type === "task" && effective === filter.milestoneTaskId;
+  };
+  const matching = tasks.filter((task) => stageMatches(task) && taskMatchesFilter(task, filter, assigned, effectiveLogistics));
   const matchingExternalIds = new Set(matching.map((task) => task.externalId));
   const byExternalId = new Map(tasks.map((task) => [task.externalId, task]));
   const visibleExternalIds = new Set(matchingExternalIds);
-  for (const task of matching) {
+  // A configured empty Summary remains structural context, never a match.
+  if (filter.milestoneTaskId !== "all" && filter.milestoneTaskId !== "unassigned" && getTaskQuickView(filter.types) !== "milestone") {
+    for (const task of tasks) {
+      if (task.type === "summary" && projection.membership.get(task.taskId)?.effectiveMilestoneTaskId === filter.milestoneTaskId && taskMatchesFilter(task, { ...filter, types: [] }, assigned, effectiveLogistics)) visibleExternalIds.add(task.externalId);
+    }
+  }
+  for (const task of tasks.filter((task) => visibleExternalIds.has(task.externalId))) {
     let parentId = task.parentExternalId;
     while (parentId) {
       if (visibleExternalIds.has(parentId)) break;
@@ -269,11 +286,12 @@ export function filterTasksWithAncestors(
       parentId = byExternalId.get(parentId)?.parentExternalId ?? null;
     }
   }
-  return { tasks: tasks.filter((task) => visibleExternalIds.has(task.externalId)), matchCount: matching.length, matchingTaskIds: matching.map((task) => task.taskId) };
+  return { tasks: tasks.filter((task) => visibleExternalIds.has(task.externalId)), matchCount: matching.length, matchingTaskIds: matching.map((task) => task.taskId), ordinaryMatchCount: matching.filter((task) => task.type === "task").length };
 }
 
 export function activeTaskFilterCount(filter: TaskFilterState): number {
   return [
+    filter.milestoneTaskId !== "all",
     normalizeFilterText(filter.query) !== "",
     normalizeFilterText(filter.nameQuery) !== "",
     normalizeFilterText(filter.descriptionQuery) !== "",
@@ -312,4 +330,9 @@ export function applyTaskQuickView(filter: TaskFilterState, view: TaskQuickView)
     ...filter,
     types: view === "all" ? [] : [view],
   };
+}
+
+/** Display ordering only; never changes canonical sibling order or dates. */
+export function stageFilterCandidates(tasks: readonly ProjectTaskDto[], query = ""): ProjectTaskDto[] {
+  return tasks.filter((task) => task.type === "milestone" && matchesMembershipSearch(task, query)).sort((a, b) => (a.start ?? "9999").localeCompare(b.start ?? "9999") || a.externalId.localeCompare(b.externalId) || a.taskId.localeCompare(b.taskId));
 }
