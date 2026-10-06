@@ -754,6 +754,16 @@ require("GIT_CONFIG_VALUE_0" in impl and "AUTHORIZATION: basic" in impl, "git pu
 require('push_git_refs(f"refs/tags/{tag}")' in impl, "release start/fallback paths must use authenticated tag push")
 require('run("git", "push", "origin", f"refs/tags/{tag}")' not in impl, "unauthenticated release tag push must not remain")
 require("persist-credentials: false" in resume_workflow, "release completion resume must keep checkout credentials non-persistent")
+require("persist-credentials: false" in auto_workflow, "automatic finalizer must keep checkout credentials non-persistent")
+release_job = workflow.split("  release:", 1)[1].split("\n  finalize:", 1)[0]
+finalize_job = workflow.split("  finalize:", 1)[1].split("\n\n  release_finalize:", 1)[0]
+release_finalize_job = workflow.split("  release_finalize:", 1)[1]
+for job_name, job_text in (
+    ("release", release_job),
+    ("finalize", finalize_job),
+    ("release_finalize", release_finalize_job),
+):
+    require("persist-credentials: false" in job_text, f"manual {job_name} job must keep checkout credentials non-persistent")
 
 saved_run = module.run
 saved_token = __import__("os").environ.get("GITHUB_TOKEN")
@@ -769,9 +779,11 @@ try:
     push_args, push_env = push_calls[0]
     require(push_args == ("git", "push", "origin", "refs/tags/v9.9.9"), "git push refs must remain exact")
     require("test-token" not in " ".join(push_args), "GITHUB_TOKEN must not be exposed in git command arguments")
-    require(push_env is not None and push_env.get("GIT_CONFIG_COUNT") == "1", "git auth config must be process-scoped")
-    require(push_env.get("GIT_CONFIG_KEY_0") == "http.https://github.com/.extraheader", "git auth header key mismatch")
-    require(push_env.get("GIT_CONFIG_VALUE_0", "").startswith("AUTHORIZATION: basic "), "git auth header value missing")
+    require(push_env is not None and push_env.get("GIT_CONFIG_COUNT") == "2", "git auth config must be process-scoped")
+    require(push_env.get("GIT_CONFIG_KEY_0") == "http.https://github.com/.extraheader", "git auth reset header key mismatch")
+    require(push_env.get("GIT_CONFIG_VALUE_0") == "", "inherited git auth header must be reset before injecting token")
+    require(push_env.get("GIT_CONFIG_KEY_1") == "http.https://github.com/.extraheader", "git auth header key mismatch")
+    require(push_env.get("GIT_CONFIG_VALUE_1", "").startswith("AUTHORIZATION: basic "), "git auth header value missing")
 finally:
     module.run = saved_run
     if saved_token is None:
