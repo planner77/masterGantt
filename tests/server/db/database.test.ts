@@ -185,6 +185,8 @@ describe("SQLite connection and schema", () => {
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
       expect(database.pragma("synchronous", { simple: true })).toBe(2);
       expect(database.pragma("busy_timeout", { simple: true })).toBe(5000);
+      expect(database.prepare("SELECT revision, length(preview_secret) AS previewSecretBytes FROM country_calendar_catalog_state WHERE id = 1").get())
+        .toEqual({ revision: 1, previewSecretBytes: 32 });
 
       const tables = database
         .prepare(
