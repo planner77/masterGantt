@@ -920,6 +920,20 @@ Pending에서 disabled control 때문에 focus가 body로 빠지지 않도록 �
 
 명시 로그아웃은 성공 또는 서버 확인 실패 모두 관리 화면을 잠근다. 기존 catalog·선택 Group·선택 members·비밀번호 초기화 범위를 유지하며 일반 생성 입력/검색까지 임의 초기화하지 않는다. 삭제는 서버 `deletable === true`일 때만 허용하며 사용 중·사용 여부 미확인을 구분한다. 409/412 삭제 재검증, 취소 호출 버튼 focus·삭제 후 검색 focus 계약은 유지한다. API/DB/auth/domain/공유 dialog primitive 변경은 없다.
 
+## Issue #454 물류 유형 native table 밀도·열·dialog
+
+설비/시스템 유형의 기존 버튼 그룹·공유 상태 필터·inline 추가 폼은 #330 계약을 유지한다. 이름 수정은 stable code를 바꾸지 않는 name-only PATCH이고 활성 변경은 active-only PATCH다. 기존 사용 건수와 프로젝트의 비활성 유형 참조 정책은 서버 계약을 그대로 따른다.
+
+목록은 최소824px native table이다. 표시명은 최소240px에서 남는 폭을 받고, 코드160px·상태88px·사용 건수104px·작업232px은 고정 예산을 사용한다. 긴 한글/영문 표시명과 최대64자 코드는 셀 안에서 줄바꿈하며 전체 값을 숨기지 않는다. 사용 건수는 header/body 우측 및 tabular numeric 정렬이다. 두 row action은40px control과8px gap으로 같은 줄에 두고, td 위아래3px padding을 사용한다. 실제 짧은 AGV/agv 및 MCS/mcs 행은5폭 모두47px이며 긴 값은 필요한 만큼 행 높이가 증가한다. 강제 row height/max-height로 자르지 않는다.
+
+390/768px에서 wrapper만 가로 scroll을 소유하고 문서 폭은 viewport를 넘지 않는다. 1024/1440/1920px에서도 #452 shell 가용 폭을 기준으로 표시명이 확장된다. 부분적으로 보이는 버튼에 native Tab focus가 머물 때는 이 목록 wrapper의 focus capture가 필요한 가로 delta만 적용해 focused control과6px outline 공간을 보인다. 문서/세로 위치나 keyboard 순서를 변경하지 않고 이미 충분히 보이는 pointer control은 가로 이동하지 않는다.
+
+이름 수정과 관리자 비밀번호 dialog의 취소/저장·변경은 같은40px control, 우측 정렬과8px gap을 사용한다. 초기 focus는 이름 또는 새 비밀번호이고 비pending Escape/취소는 호출 버튼으로 복귀한다. 비밀번호 닫기·변경 완료·401에는 password draft를 지운다. 동기 중복 제출은 pending ref로 요청1개만 보내며 pending 입력/취소/닫기 잠금과 실행 handler가 일치한다. 모든 control이 disabled인 동안 열린 dialog에 focus를 유지하고 반복 Escape의 native 닫힘을 owned capture에서 차단한다. 공유 WorkspaceDialog는 수정하지 않는다.
+
+412는 최신 GET 성공일 때 stale 안내를 표시하고 입력을 보존한 수동 저장만 허용한다. 최신 GET이 실패하거나401이면 그 조회/인증 원인을 stale 안내로 덮지 않는다. 열린 이름 dialog의 조회 오류에는 기존 GET을 명시 실행하는 `최신 목록 조회`를 보여주며 정상 상태에는 간단한 기존 footer를 유지한다. network·알 수 없는 canonical 응답은 성공/초안 초기화로 처리하지 않고 최신 조회 전 변경을 잠근다. 401은 보호 화면을 잠그고 비밀번호를 비운 후 로그인 focus로 복귀한다. 새로운 dirty 확인 흐름이나 자동 mutation retry는 추가하지 않는다.
+
+#452가 이미 action margin0을 적용했으므로 역사적 분리 CSS의77.78125→53.78125/24px 제거를 이번 개선 수치로 사용하지 않는다. 동일 긴 code dataset의 before 짧은 행은 자동 열 배분과 작업 열 wrap 때문에390/768에서224.96875px,1024에서140.96875px,1440/1920에서100.96875px였다. after는 같은 dataset에서47px이다. 자세한 실측·실행 실패와 검증 경계는 TEST_PLAN의 #454 절을 따른다.
+
 ## Issue #462 완료 단계 조회와 Grid 진입
 
 일정 toolbar의 완료 단계 조건(전체/미지정/특정 Milestone)은 유형 빠른 보기와 독립적으로 유지한다. 기존 검색·기간·리소스·물류·WBS scope 조건과 AND로 조합하고 scope별 TaskFilterState Map에 함께 보존한다. 후보는 이름/외부 ID/작업 ID를 trim·case-insensitive 검색하며 canonical start, externalId, taskId 순으로 안정 정렬한다. 요청일은 상세 metadata이며 정렬이나 WBS 저장의 기준이 아니다. 단계 조건 해제는 나머지 조건을 보존하고 전체 초기화는 모두 비운다.
