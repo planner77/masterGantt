@@ -482,8 +482,8 @@ export const ProjectTaskEditor = forwardRef<ProjectTaskEditorHandle, Props>(func
               </div> : null}
             </div>
             <label className={`${styles.field} ${styles.modeField}`}>일정 모드<select name="task-schedule-mode" value={draft.scheduleMode} disabled={locked || scheduleReadOnly} onChange={(event) => changeScheduleMode(event.target.value as "auto" | "manual")}><option value="auto">자동 (Auto)</option><option value="manual">수동 (Manual)</option></select></label>
-            <label className={`${styles.field} ${styles.descriptionField}`}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
-            <label className={`${styles.field} ${styles.urlField}`}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={scheduleReadOnly} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
+            <label className={`${styles.field} ${styles.descriptionField}`}>Description<textarea name="task-description" rows={5} value={draft.description} readOnly={basicMutationLocked} disabled={locked} onChange={(event) => change("description", event.target.value)} /></label>
+            <label className={`${styles.field} ${styles.urlField}`}>URL<input name="task-url" type="url" inputMode="url" placeholder="https://... 또는 http://..." value={draft.url} readOnly={basicMutationLocked} disabled={locked} onChange={(event) => change("url", event.target.value)} /></label>
           </div>
 
           {base.task.type === "milestone" && base.task.stageGate ? <section className={styles.metadata} aria-label="완료 단계 준비 상태">
