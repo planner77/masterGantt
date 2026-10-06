@@ -1,5 +1,7 @@
 import type Database from "better-sqlite3";
 
+import { CountryCalendarRepository, type CountryCalendarDatasetRecord } from "../repositories/country-calendar-repository-core";
+
 import {
   COUNTRY_CALENDAR_MANAGED_YEARS,
   type CountryCalendarAdminDateDto,
@@ -28,23 +30,6 @@ export class CountryCalendarCatalogInvalidInputError extends Error {}
 export class CountryCalendarCatalogRevisionMismatchError extends Error {}
 export class CountryCalendarCatalogNotFoundError extends Error {}
 export class CountryCalendarCatalogConflictError extends Error {}
-
-interface DatasetRow {
-  id: number;
-  countryCode: WorkCalendarCountryCode;
-  year: number;
-  status: CountryCalendarDatasetStatus;
-  sourceVersion: string | null;
-  sourceUrl: string | null;
-  updatedAt: string;
-}
-
-interface DateRow {
-  date: string;
-  name: string;
-  dayType: WorkCalendarDayType;
-  sourceKey: string;
-}
 
 const MAX_IMPORT_BYTES = 1024 * 1024;
 const MAX_IMPORT_DATES = 500;
@@ -212,33 +197,25 @@ function sameDate(left: CountryCalendarAdminDateDto, right: CountryCalendarAdmin
 }
 
 export class CountryCalendarCatalogService {
+  private readonly repository: CountryCalendarRepository;
+
   constructor(
-    private readonly database: Database.Database,
+    database: Database.Database,
     private readonly clock: () => Date = () => new Date(),
-  ) {}
+  ) {
+    this.repository = new CountryCalendarRepository(database);
+  }
 
   private revision(): number {
-    const row = this.database.prepare("SELECT revision FROM country_calendar_catalog_state WHERE id = 1").get() as { revision: number } | undefined;
-    if (!row) throw new Error("Country calendar catalog state is missing.");
-    return row.revision;
+    return this.repository.getRevision();
   }
 
-  private datasetRow(code: WorkCalendarCountryCode, year: number): DatasetRow | undefined {
-    return this.database.prepare(`
-      SELECT id, country_code AS countryCode, calendar_year AS year, status,
-             source_version AS sourceVersion, source_url AS sourceUrl, updated_at AS updatedAt
-      FROM country_calendar_datasets
-      WHERE country_code = ? AND calendar_year = ?
-    `).get(code, year) as DatasetRow | undefined;
+  private datasetRow(code: WorkCalendarCountryCode, year: number): CountryCalendarDatasetRecord | undefined {
+    return this.repository.findDataset(code, year);
   }
 
-  private dateRows(datasetId: number): DateRow[] {
-    return this.database.prepare(`
-      SELECT holiday_date AS date, name, day_type AS dayType, source_key AS sourceKey
-      FROM country_calendar_dates
-      WHERE dataset_id = ?
-      ORDER BY holiday_date
-    `).all(datasetId) as DateRow[];
+  private dateRows(datasetId: number): CountryCalendarAdminDateDto[] {
+    return this.repository.listDates(datasetId);
   }
 
   private validateSlot(code: unknown, year: unknown): asserts code is WorkCalendarCountryCode {
@@ -320,38 +297,29 @@ export class CountryCalendarCatalogService {
   }
 
   private advance(expectedRevision: number, now: string): void {
-    const result = this.database.prepare(`
-      UPDATE country_calendar_catalog_state
-      SET revision = revision + 1, updated_at = ?
-      WHERE id = 1 AND revision = ?
-    `).run(now, expectedRevision);
-    if (result.changes !== 1) throw new CountryCalendarCatalogRevisionMismatchError();
+    if (!this.repository.advanceRevision(expectedRevision, now)) {
+      throw new CountryCalendarCatalogRevisionMismatchError();
+    }
   }
 
-  private ensureOverride(code: WorkCalendarCountryCode, year: number, now: string): DatasetRow {
+  private ensureOverride(code: WorkCalendarCountryCode, year: number, now: string): CountryCalendarDatasetRecord {
     const existing = this.datasetRow(code, year);
     if (existing) return existing;
     const builtIn = getCountryCalendarDataset(code, year);
-    const result = this.database.prepare(`
-      INSERT INTO country_calendar_datasets
-        (country_code, calendar_year, status, source_version, source_url, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(
-      code, year, builtIn ? "OFFICIAL" : "UNAVAILABLE",
-      builtIn?.descriptor.sourceVersion ?? null, builtIn?.descriptor.sourceUrl ?? null, now,
-    );
-    const id = Number(result.lastInsertRowid);
+    const row = this.repository.insertDataset({
+      countryCode: code,
+      year,
+      status: builtIn ? "OFFICIAL" : "UNAVAILABLE",
+      sourceVersion: builtIn?.descriptor.sourceVersion ?? null,
+      sourceUrl: builtIn?.descriptor.sourceUrl ?? null,
+      now,
+    });
     if (builtIn) {
-      const insert = this.database.prepare(`
-        INSERT INTO country_calendar_dates
-          (dataset_id, holiday_date, name, day_type, source_key, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
       for (const entry of builtIn.dates) {
-        insert.run(id, entry.date, entry.name, entry.dayType, entry.sourceKey, now, now);
+        this.repository.insertDate(row.id, entry, now);
       }
     }
-    return this.datasetRow(code, year)!;
+    return row;
   }
 
   updateMetadata(
@@ -366,7 +334,7 @@ export class CountryCalendarCatalogService {
     if (keys.length === 0 || keys.some((key) => !["status","sourceVersion","sourceUrl"].includes(key))) {
       throw new CountryCalendarCatalogInvalidInputError();
     }
-    const transaction = this.database.transaction(() => {
+    return this.repository.transactionImmediate(() => {
       this.assertRevision(expectedRevision);
       const now = this.clock().toISOString();
       const row = this.ensureOverride(code, year, now);
@@ -385,15 +353,10 @@ export class CountryCalendarCatalogService {
       if (status === "OFFICIAL" && (!sourceVersion || !sourceUrl || this.dateRows(row.id).length === 0)) {
         throw new CountryCalendarCatalogConflictError();
       }
-      this.database.prepare(`
-        UPDATE country_calendar_datasets
-        SET status = ?, source_version = ?, source_url = ?, updated_at = ?
-        WHERE id = ?
-      `).run(status, sourceVersion, sourceUrl, now, row.id);
+      this.repository.updateDatasetMetadata(row.id, { status, sourceVersion, sourceUrl, now });
       this.advance(expectedRevision, now);
       return this.getAdminDataset(code, year);
     });
-    return transaction.immediate();
   }
 
   addDate(
@@ -404,25 +367,20 @@ export class CountryCalendarCatalogService {
   ): CountryCalendarAdminResponse {
     this.validateSlot(code, year);
     const normalized = normalizeDate(input, year);
-    const transaction = this.database.transaction(() => {
+    return this.repository.transactionImmediate(() => {
       this.assertRevision(expectedRevision);
       const now = this.clock().toISOString();
       const row = this.ensureOverride(code, year, now);
       try {
-        this.database.prepare(`
-          INSERT INTO country_calendar_dates
-            (dataset_id, holiday_date, name, day_type, source_key, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-        `).run(row.id, normalized.date, normalized.name, normalized.dayType, normalized.sourceKey, now, now);
+        this.repository.insertDate(row.id, normalized, now);
       } catch (error) {
         if (error instanceof Error && /UNIQUE constraint failed/.test(error.message)) throw new CountryCalendarCatalogConflictError();
         throw error;
       }
-      this.database.prepare("UPDATE country_calendar_datasets SET updated_at = ? WHERE id = ?").run(now, row.id);
+      this.repository.invalidateDatasetProvenance(row.id, now);
       this.advance(expectedRevision, now);
       return this.getAdminDataset(code, year);
     });
-    return transaction.immediate();
   }
 
   updateDate(
@@ -436,14 +394,11 @@ export class CountryCalendarCatalogService {
     if (!validDate(originalDate, year) || !input || typeof input !== "object" || Array.isArray(input)) {
       throw new CountryCalendarCatalogInvalidInputError();
     }
-    const transaction = this.database.transaction(() => {
+    return this.repository.transactionImmediate(() => {
       this.assertRevision(expectedRevision);
       const now = this.clock().toISOString();
       const row = this.ensureOverride(code, year, now);
-      const current = this.database.prepare(`
-        SELECT holiday_date AS date, name, day_type AS dayType, source_key AS sourceKey
-        FROM country_calendar_dates WHERE dataset_id = ? AND holiday_date = ?
-      `).get(row.id, originalDate) as DateRow | undefined;
+      const current = this.repository.findDate(row.id, originalDate);
       if (!current) throw new CountryCalendarCatalogNotFoundError();
       const merged = normalizeDate({
         date: input.date ?? current.date,
@@ -452,20 +407,15 @@ export class CountryCalendarCatalogService {
         sourceKey: input.sourceKey ?? current.sourceKey,
       }, year);
       try {
-        this.database.prepare(`
-          UPDATE country_calendar_dates
-          SET holiday_date = ?, name = ?, day_type = ?, source_key = ?, updated_at = ?
-          WHERE dataset_id = ? AND holiday_date = ?
-        `).run(merged.date, merged.name, merged.dayType, merged.sourceKey, now, row.id, originalDate);
+        this.repository.updateDate(row.id, originalDate, merged, now);
       } catch (error) {
         if (error instanceof Error && /UNIQUE constraint failed/.test(error.message)) throw new CountryCalendarCatalogConflictError();
         throw error;
       }
-      this.database.prepare("UPDATE country_calendar_datasets SET updated_at = ? WHERE id = ?").run(now, row.id);
+      this.repository.invalidateDatasetProvenance(row.id, now);
       this.advance(expectedRevision, now);
       return this.getAdminDataset(code, year);
     });
-    return transaction.immediate();
   }
 
   deleteDate(
@@ -476,19 +426,17 @@ export class CountryCalendarCatalogService {
   ): CountryCalendarAdminResponse {
     this.validateSlot(code, year);
     if (!validDate(date, year)) throw new CountryCalendarCatalogInvalidInputError();
-    const transaction = this.database.transaction(() => {
+    return this.repository.transactionImmediate(() => {
       this.assertRevision(expectedRevision);
       const now = this.clock().toISOString();
       const row = this.ensureOverride(code, year, now);
       const count = this.dateRows(row.id).length;
       if (row.status === "OFFICIAL" && count <= 1) throw new CountryCalendarCatalogConflictError();
-      const result = this.database.prepare("DELETE FROM country_calendar_dates WHERE dataset_id = ? AND holiday_date = ?").run(row.id, date);
-      if (result.changes !== 1) throw new CountryCalendarCatalogNotFoundError();
-      this.database.prepare("UPDATE country_calendar_datasets SET updated_at = ? WHERE id = ?").run(now, row.id);
+      if (!this.repository.deleteDate(row.id, date)) throw new CountryCalendarCatalogNotFoundError();
+      this.repository.invalidateDatasetProvenance(row.id, now);
       this.advance(expectedRevision, now);
       return this.getAdminDataset(code, year);
     });
-    return transaction.immediate();
   }
 
   previewImport(envelope: CountryCalendarImportEnvelope): CountryCalendarImportPreviewResponse {
@@ -521,36 +469,25 @@ export class CountryCalendarCatalogService {
 
   applyImport(expectedRevision: number, envelope: CountryCalendarImportEnvelope): CountryCalendarAdminResponse {
     const incoming = parseCountryCalendarImport(envelope);
-    const transaction = this.database.transaction(() => {
+    return this.repository.transactionImmediate(() => {
       this.assertRevision(expectedRevision);
       const now = this.clock().toISOString();
-      this.database.prepare(`
-        INSERT INTO country_calendar_datasets
-          (country_code, calendar_year, status, source_version, source_url, updated_at)
-        VALUES (?, ?, 'OFFICIAL', ?, ?, ?)
-        ON CONFLICT(country_code, calendar_year) DO UPDATE SET
-          status = 'OFFICIAL',
-          source_version = excluded.source_version,
-          source_url = excluded.source_url,
-          updated_at = excluded.updated_at
-      `).run(incoming.countryCode, incoming.year, incoming.sourceVersion, incoming.sourceUrl, now);
-      const row = this.datasetRow(incoming.countryCode, incoming.year)!;
-      this.database.prepare("DELETE FROM country_calendar_dates WHERE dataset_id = ?").run(row.id);
-      const insert = this.database.prepare(`
-        INSERT INTO country_calendar_dates
-          (dataset_id, holiday_date, name, day_type, source_key, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `);
+      const row = this.repository.upsertOfficialDataset({
+        countryCode: incoming.countryCode,
+        year: incoming.year,
+        sourceVersion: incoming.sourceVersion,
+        sourceUrl: incoming.sourceUrl,
+        now,
+      });
+      this.repository.deleteDates(row.id);
       for (const entry of incoming.dates) {
-        insert.run(row.id, entry.date, entry.name, entry.dayType, entry.sourceKey, now, now);
+        this.repository.insertDate(row.id, entry, now);
       }
       this.advance(expectedRevision, now);
       return this.getAdminDataset(incoming.countryCode, incoming.year);
     });
-    return transaction.immediate();
   }
 }
-
 export function getEffectiveCountryCalendarDataset(
   database: Database.Database,
   code: WorkCalendarCountryCode,
