@@ -1957,6 +1957,59 @@ latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` 및 #463 head `703807d600
 
 PR #473를 latest main `d748046733ae2006580052a480c984ae1eb1fa2a` 기준으로 다시 정렬한다. 해당 main에는 #463가 병합되어 있고 #455 UI/transport 및 #463 결합 필터 보완까지 포함된다. #464 고유 JSON/Excel/Copy/Template 구현과 Codex P2 round-trip 보완을 유지하고, `project-gantt.tsx`는 main의 context-menu surface settle을 보존하면서 context 선택에서만 `show:false`와 Copy feedback 보존을 재적용한다. 새 exact-head PR CI의 quality/e2e/docker가 공식 재검증 기준이며 결과 확인 전에는 NOT TESTED다.
 
+
+## Issue #456 — 폼 밀도와 상태 보존 검증
+
+검증 baseline은 `05fe212060ed4a935510dc2f7a692bb9113c55e8`, 작업 branch는 `fix/issue-456-task-editor-form-density`다. 전용 spec `tests/e2e/task-editor-form-density.spec.ts`와 합성 canonical fixture `tests/e2e/fixtures/task-editor-density.ts`를 추가했다. 테스트 설정은 `tests/config/playwright.config.ts`를 명시하고 기존 Task Editor·fullscreen·검색/필터·scope·peer·SQLite persistence case를 선택 실행했다. 전체 local suite는 반복하지 않았다.
+
+### 실제 브라우저 증거
+
+- Chromium 153.0.8010.12, locale en-US, timezone Asia/Seoul, devicePixelRatio 1, browser 기본 100%/visualViewportScale 1. native 125% 확대는 NOT TESTED이며 CSS scale/DSF로 대체하지 않았다.
+- 390/768/1024/1440/1920px에서 Task/선택된 Resource allocation·역할/Relation/nested/Baseline/Footer 및 Milestone 소속·물류 동적 탭을 실제 앱에서 측정했다. 합성 값은 이름 168자, Description 2600자, URL 1640자, domain이 계산한 유효 Baseline 9999 working days다. 실제 limit를 넘는 잘못된 fixture로 before를 만들지 않았다.
+- 원래 before evidence 71개는 `output/playwright/issue-456/before/`에 유지한다. 초기 incomplete capture는 Git 제외 `/tmp/issue456-before-firstcapture/`로 보존하고 최종 enriched before와 구분했다. after는 같은 정상 표면과 keyboard100%·날짜 오류·saving·비기본 Gantt 상태의 PNG/JSON을 `output/playwright/issue-456/after/`에 기록한다.
+- desktop 진행률 값 clipping을 document overflow와 별도로 재현하고 실제10%/100% text 및 range/outline containment를 검사했다. baseline/relation action 최소44px와 모바일 native wrap 높이를 확인했다. desktop Footer Cancel58px/Commit85px, 높이44px이며 saving label 전환의 bounding box는 동일하다. description 전체 읽기 폭/min-height120px/vertical resize는 유지했다.
+- representative1440 keyboard/focus/label-error 연결, actual pending disabled Save→body focus→반복 Escape와 public/DOM Gantt 상태, dirty/readonly/401/412/reload, nested Relation 및 #461 소속·Resource·Logistics 교차 draft 잠금을 별도로 검사한다. 모든 상태를5폭 전체 조합으로 실행했다고 주장하지 않는다.
+- 비기본 WBS Summary scope, nativefullscreen, week, horizontal120/vertical38, 실제 task열227px/externalId열108px, 선택/tree/API/instance를 Editor 진입·각탭·취소와 metadata PATCH1 이후 비교했다. header 존재와 실제 폭을 확인해 empty-array 비교 PASS를 허용하지 않았다. ID 필터 변경·빈집합·null reset·reload의 새 API, 실제 scope/date/metadata/Link/Baseline 및 peer 왕복은 관련 selected case로 검증한다.
+
+### 최초 실패와 진단 이력
+
+실패 원본은 Git 제외 `/tmp/issue456-after-firstfail-<N>`에 보존한다. 성공 retry로 최초 실패를 지우지 않는다.
+
+| 실패 기록 | 원인·조치 및 범위 |
+| --- | --- |
+| 1 / session95057 | 모바일 slider/value는 세로 배열인데 가로 비중첩만 검사한 하니스 오류. 실제 축에 맞게 수정. Milestone capture1 PASS |
+| 2 / session52502 | mode label의 기존 accessible name에 options가 포함되어 exact getByLabel timeout. 기존 name selector와 별도 accessible name/label 검증으로 수정. Milestone1 PASS |
+| 3 / session74651 | 실제 pending 반복 Escape로 dialog가 닫힘. layout2 PASS와 분리 |
+| 4 / session39754 | dialog-local keydown guard는 disabled Save가 body로 focus를 보내면 막지 못함. 기존26+layout2 PASS, pending1 FAIL. 실제 in-flight/document capture 제한 guard로 수정 |
+| 5–9 / sessions76678·36156·51080·82953·25767 | 비기본 Gantt120→0 FAIL. 빈 header selector를 실제열 geometry로 개선하고 단계별 public/DOM을 기록. speculative columns restore/DEV 계측은 Editor 진입 중 columns sync가 없다는 근거로 정확히 철회. session51080의 정상3case PASS는 실패와 분리 |
+| baseline experiment / session92086 | source2를 exact baseline bytes로 잠시 복원해 같은120→0을 재현. baseline-existing 결함과 새 layout 영향 구분. STOP 뒤 승인 source2를 exact 복원 |
+| 10–12 / sessions20091·25809·72302 | 직접 initialTab 진입도 FAIL하여 show-editor 경로 기각. focus/showModal 동기 호출 전후는120/821/1632로 동일하고 이후 native scrollWidth 축소/0이 관찰됨. 임시 browser 계측 철회 |
+| 13–15 / sessions92406·69009·65170 | 같은 ID filter guard 뒤 Editor open/탭/취소120/38 유지, metadata 저장은 FAIL. canonical tasks identity까지 filter guard에 넣은 과도한 조건도 제거. session69009의 정상3case PASS와 저장 실패 분리 |
+| 16–17 / sessions99503·5575 | 저장 단계에 filter-tasks 없음. update-task2→set-columns→scroll0 관찰. canonical sync 후2RAF/set-columns 전에도0/38/scaleWidth884/chartWidth822를 실측. 임시 source3 이벤트·대기 계측 철회 |
+| 18 / session41437 | canonical 단계 복원은91px clamp 뒤 후속 columns0 reset을 막지 못함. metadata snapshot을 columns 완료/layout settle 이후 한 번 소비하도록 이동 |
+| 19 / session1640 | 변경 스크립트 assertion 중단 뒤 미수정 source가 실행된 중복 FAIL. 별도 unchanged-source 원본으로 보존; 새로운 제품 원인으로 계산하지 않음 |
+
+filter의 설치 handler가 직접 scroll0/timeline 축소를 수행한다고 단정하지 않는다. 반복 action을 제거한 뒤 Editor open/tab/cancel 보존과 canonical/columns 뒤 metadata 복원은 실제 브라우저 관찰 근거다.
+
+### 최종 Local Fast Feedback와 재사용
+
+- session3105/chunkb28d71: metadata snapshot을 columns 완료 뒤 소비한 source3의 비기본 Gantt1 PASS(8.1초).
+- session39520/chunk956453: source3 영향 selected19 PASS(1.8분). 새4case, keyboard/dirty/readonly/401/412/reload/nested/#461 교차 초안·pending, search/filter/fullscreen/scope/peer와 실제 native SQLite requested dates·metadata·Baseline·successor persistence를 포함한다.
+- 이후 same scale/public gridWidth/열 ID·width·hidden guard와 siblingOrder signature를 추가했다. session98507/chunkc16a5d: 비기본 Gantt·ID filter empty/null/new API·date/status/Baseline/milestone·scale/column/scope10 PASS(50.5초). guard는 복원 허용 범위를 더 좁히므로 앞선 정상 geometry/기존 상태 회귀는 source2/fixture 불변과 직접 관련 영향 근거로 재사용하며 예전 Escape-only 설명을 재사용하지 않는다.
+- session40436/chunkae882f: 최신 guard source에서 실제 body-focus·반복 Escape 전후 public/DOM Gantt 비교, dirty/readonly/unlock·nested·401/412 및 소속/Resource/Logistics 교차 잠금9 PASS(29.5초). 당시 guard source에서19 unique scenario를 실행했고 앞선19의 영향 없는7 scenario를 재사용해26 unique scenario다. 이 최종 계열은 총38 PASS 실행/중복12회로 구분한다.
+- Manager 검토 후 unmount cleanup의 request ref를 null로 무효화했다. source3 SHA256 `53bce567936360da3b755a920463c09c2fe9dc0ddec90c34b385b8cf810bee6f`에서 session69358/chunk3d875d 전용5 scenario PASS(24.6초), typecheck92399/chunk642279 PASS이며 같은 실행의 normal/state/env를 확정했다.
+- 이어 snapshot 생성의 root 연결 및 소비의 실제 Gantt DOM 연결 조건만 추가했다. 당시 후보 source3 SHA256 `167c5e6a73e25925489368d568f8f0854bb59b9a5b73b98c485936f59d794212`에서 session4725/chunke914eb 비기본 metadata/Gantt1 PASS(7.0초), typecheck26034/chunk4c0c22 PASS다. 연결된 정상 화면의 판정에는 영향이 없는 guard 추가이므로 앞선 capture/run의 실제 hash를 소급 변경하지 않고 재사용했다.
+- 이 중간 후보 계열은19+10+9+5+1=44 PASS 실행, 재사용 포함26 unique scenario/중복18회다. 최종 exact source에서는 대표1 scenario를 실행했고 이전25 unique scenario는 cleanup/DOM 연결 guard만 추가한 영향 근거로 재사용했다. 전체 after 이력은94 PASS testcase 실행과19 FAIL testcase 실행이며 같은 scenario 반복을 추가 coverage로 세지 않는다. baseline source2 실험 FAIL1과 before PASS3 실행은 별도다.
+- 최신 typecheck session68684/chunk02b6de PASS. Scoped lint는 error0/warning4이며 exact baseline stdin lint session96489/chunk976615에도 같은4 hook 경고가 존재한다. required checks와 version/link/diff 결과는 최종 Result Contract와 manifest를 따른다.
+
+최신 영향 검증은26 unique scenario이며 반복 실행을 별도 scenario로 세지 않는다. 이전 source의 추가 case와 중복 PASS 실행 횟수는 최종 Result Contract에 분리한다. mock-backed state/payload와 실제 SQLite persistence는 서로 대체하지 않는다. 전용 after fixture에는 유효한 빈 resource-workload/dashboard/logistics GET 응답을 추가했지만 기존 selected mock spec의 미구성 peer GET404 로그는 별도 한계로 남긴다. 해당 backend 전체 검증 PASS로 확대하지 않는다.
+
+독립 QA가 active name/status metadata로 실제 visible ID 집합이 바뀌는 경계의 추가 guard를 요청했다. semantic visibleTaskFilterKey를 geometry 분류와 snapshot 생성/소비의 현재 filter signature 검증에 포함했다. 최종 source3 SHA256은 `98f77ddcc1d05c6e84ec4f559b6de4ae06f2295469b03312a0147b17ab637233`다. session37066/chunk796c82는 전용6 scenario와 scale/column/scope 대표2case 모두 PASS(51.1초), typecheck49261/chunk40ffc7 PASS다. 같은 visible집합의 metadata120/38 보존과 active name filter에서 rename→visible 빈집합→public/DOM0으로 이전120을 복원하지 않는 negative regression을 함께 확인했다. normal5폭/state/env도 이번 source에서 다시 수집했다.
+
+최종 source 직접8 unique scenario PASS, 나머지19 unique는 기존19/10/9 실행에서 필터 signature guard 추가의 영향 근거로 재사용하여27 unique다. 최종 계열19+10+9+5+1+8=52 PASS 실행/중복25회, 전체 after102 PASS/19 FAIL testcase 실행이다. 이전 source SHA/실행 결과는 과거 단계 근거로 그대로 남기고 최종 hash로 소급 바꾸지 않았다.
+
+Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manager의 독립 검토·infra 원격 게시/exact-head CI 등록 후 상태를 별도로 기록한다. CI 모니터링·merge/main GHCR/release는 사용자 이번 범위 밖이다. B #490/C #491은 FOLLOW-UP/NOT TESTED다.
+
 ## Issue #342 국가 Calendar 2026~2037 / Import / 관리자 CRUD
 
 - Dataset: KR/CN/VN/PH/TH/MX/US의 2026~2037 관리 슬롯, 2026 built-in baseline, 미래 미등록 연도 UNAVAILABLE, `supportedYears=OFFICIAL only`, 공식 WORKING 보충근무일 보존.

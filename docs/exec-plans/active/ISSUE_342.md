@@ -5,10 +5,10 @@
 ## 기준과 결정
 
 - Issue: #342, OPEN. 기존 PR #346과 branch `feat/issue-342-country-calendar-catalog`를 재사용한다.
-- 최신 main: `05fe212060ed4a935510dc2f7a692bb9113c55e8`, application `0.92.0`.
-- 최신 main은 #459 Stage Gate Epic, #460~#464 membership/dashboard/JSON 1.1 계약과 migration `0022_task_milestone_memberships.sql`을 포함한다.
+- 최신 main: `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`, application `0.92.1`.
+- 최신 main은 #459 Stage Gate Epic, #460~#464 membership/dashboard/JSON 1.1 계약, Issue #456 Task Editor UI/상태 보존 개선과 migration `0022_task_milestone_memberships.sql`을 포함한다.
 - 기존 #342 migration `0022_country_calendar_catalog.sql`은 번호 충돌이므로 **`0023_country_calendar_catalog.sql`**로 재배치한다. 적용된 migration ledger를 재작성하지 않는다.
-- version: **`0.92.0 → 0.93.0` MINOR**. 글로벌 Catalog, DB schema/API/admin UI라는 하위 호환 기능 추가다.
+- version: **`0.92.1 → 0.93.0` MINOR**. 글로벌 Catalog, DB schema/API/admin UI라는 하위 호환 기능 추가다.
 - 현재 요청 종료점: 최신 main 정렬, 충돌 해소, 문서 동기화, PR #346 head 갱신 및 새 PR CI 시작 확인. CI 완료 모니터링·병합·main/GHCR·정식 release·branch cleanup·Issue 종료는 현재 요청 범위 밖이다.
 - 과거 #1844/#1845/#1850/#1855/#1858 결과는 각 과거 head에 한정되며 새 head의 required gate를 대체하지 않는다.
 

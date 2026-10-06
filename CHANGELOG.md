@@ -10,9 +10,11 @@
 
 ### Changed
 
-- 최신 main 0.92.0의 Milestone Stage Gate membership/대시보드/JSON 1.1 교환 계약과 기존 0018~0022 migration을 보존하고, Country Calendar Catalog migration을 `0023_country_calendar_catalog.sql`로 재배치한다.
+- 최신 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075` / v0.92.1의 Issue #456 Task Editor UI/상태 보존 개선을 함께 보존한다.
+
+- 최신 main 0.92.1의 Milestone Stage Gate membership/대시보드/JSON 1.1 교환 계약과 기존 0018~0022 migration을 보존하고, Country Calendar Catalog migration을 `0023_country_calendar_catalog.sql`로 재배치한다.
 - 2026 built-in fixture는 초기 baseline으로 유지하고 Project Calendar Preview/Save 및 신규 Project 기본 Calendar는 최신 OFFICIAL DB override를 우선 사용한다. Catalog 변경만으로 기존 Project의 materialized Calendar/Task는 자동 재계산하지 않는다.
-- Issue #452의 공통 `admin-page` shell과 `AdminAuth` presentation을 국가 Calendar 관리자에도 적용하고 Application version을 `0.92.0`에서 `0.93.0`으로 증가한다.
+- Issue #452의 공통 `admin-page` shell과 `AdminAuth` presentation을 국가 Calendar 관리자에도 적용하고 Application version을 `0.92.1`에서 `0.93.0`으로 증가한다.
 
 ### Fixed
 
@@ -26,6 +28,22 @@
 - 변경 없는 날짜 편집은 no-op으로 처리해 OFFICIAL provenance와 revision을 보존하고, target 전환 시 신규 날짜/file draft를 폐기하며 DELETE pending 중 취소를 차단한다.
 - Import Preview와 Apply를 HMAC token으로 exact revision·country/year·format·file bytes에 묶어 Preview 우회를 차단한다.
 - current-year KR override가 재승인 대기여도 신규 Project 기본 Calendar는 built-in approved baseline으로 fallback하여 Project 생성 가용성을 유지한다.
+
+## [0.92.1] - 2026-10-06
+
+### Fixed
+
+- Issue #456: Task Editor의 상태·진행률 내부 열 예산을 조정해 desktop에서 진행률 숫자가 오른쪽에 잘리는 문제를 수정한다.
+- 요청 일정과 일정 모드를 하나의 의미 그룹으로, Description과 URL을 상세 정보 그룹으로 묶고 기존 설명 읽기 폭과 textarea resize를 유지한다.
+- Footer의 짧은 명령에 일괄104px 폭을 강제하지 않고 action별 normal/pending label에 맞는 폭을 사용한다. 기존44px 클릭 영역과 최신 조회 좌측·취소/저장 우측 계약을 유지한다.
+- Task Editor 저장 중 반복 Escape가 대화상자를 닫는 경로를 차단해 기존 pending 잠금 계약을 보강한다.
+- Editor 진입 등 상위 화면의 렌더에서 같은 visible Task 집합의 Gantt 필터가 반복 적용되어 가로 스크롤을 초기화하는 경로를 보완한다. 실제 필터·범위·Task 집합 변경과 API 교체는 기존 필터 계약을 유지한다.
+- 같은 보기에서 일정·계층·관계가 유지되는 metadata 저장 후 Gantt 가로 스크롤이 초기화되는 경로를 공개 viewport API로 보완한다. 실제 일정·범위 변화와 사용자 스크롤은 조건부 복원 대상에서 제외한다.
+- Editor 관계·기준 일정 action의32px 최소 높이를44px로 확대하며 긴 label의 자연 wrap을 유지한다. 동적 탭·독립 저장·dirty/stale·server canonical 및 Gantt 상태 계약은 변경하지 않는다.
+
+### Changed
+
+- #456의 Task Editor A를 첫 소단위 PR로 개선한다. 설정·근무 규칙·인증 B는#490, 생성·복사·template·입출력·견적 C는#491의 후속 범위로 분리하며 미검증 표면을 완료로 처리하지 않는다.
 
 ## [0.92.0] - 2026-10-06
 

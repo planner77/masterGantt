@@ -308,7 +308,7 @@ before/after 개선은 workflow 파일/event/job/metric별로 **서로 다른 su
 
 ## Issue #342 최신 main 0.92.0 재정렬 원격 검증
 
-PR #346은 장기간 열린 동안 main이 Milestone Stage Gate Epic 및 JSON 1.1까지 전진했으므로 과거 head의 CI evidence는 stale이다. 최신 main `05fe212060ed4a935510dc2f7a692bb9113c55e8` 기준으로 #342 변경만 재적용하며 migration은 0023, application version은 0.93.0으로 재산정한다.
+PR #346은 장기간 열린 동안 main이 Milestone Stage Gate Epic 및 JSON 1.1까지 전진했으므로 과거 head의 CI evidence는 stale이다. 최신 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075` 기준으로 #342 변경만 재적용하며 migration은 0023, application version은 0.93.0으로 재산정한다.
 
 Country Calendar Catalog는 migration/API/admin UI/Scheduling resolution을 함께 변경하므로 동일 exact PR head의 현재 `quality/e2e/docker` gate를 모두 요구한다. quality는 migration 0023, JSON/CSV parser, transaction/revision, effective OFFICIAL resolution, route security inventory와 package/lock/version 정합성을 검증한다. Chromium E2E는 `/calendar-admin` Import/CRUD 및 responsive geometry와 기존 Stage Gate/Workspace/Admin 회귀를 포함한다. Docker gate는 최신 0018~0022 뒤 0023 migration이 빈 DB와 기존 DB startup/persistence 계약을 깨지 않는지 검증한다.
 

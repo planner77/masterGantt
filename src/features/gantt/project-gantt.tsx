@@ -1441,13 +1441,44 @@ export function ProjectGantt({
     return () => { api.detach(tag); if (frame) Reflect.deleteProperty(frame, "__masterganttPublicViewport"); };
   }, [apiInstanceId]);
 
+  const visibleTaskFilterKey = JSON.stringify(visibleTaskIds === null ? null : [...new Set(visibleTaskIds)].sort());
+  const visibleTaskFilterKeyReference = useRef(visibleTaskFilterKey);
+  useLayoutEffect(() => { visibleTaskFilterKeyReference.current = visibleTaskFilterKey; }, [visibleTaskFilterKey]);
+  const canonicalViewportGeometry = JSON.stringify([calendar, visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
+  const canonicalViewportMetadata = JSON.stringify(tasks.map((task) => [task.name, task.description, task.url, task.progress, task.status]));
+  const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; hasInput: () => boolean; cleanup: () => void } | null>(null);
+  useEffect(() => () => {
+    metadataViewportReference.current?.cleanup();
+    metadataViewportReference.current = null;
+  }, []);
+  const previousCanonicalViewportReference = useRef<{ geometry: string; metadata: string } | null>(null);
   useEffect(() => {
+    const previous = previousCanonicalViewportReference.current;
+    previousCanonicalViewportReference.current = { geometry: canonicalViewportGeometry, metadata: canonicalViewportMetadata };
+    const metadataOnly = previous?.geometry === canonicalViewportGeometry && previous.metadata !== canonicalViewportMetadata;
     const syncVersion = ++canonicalSyncVersionReference.current;
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       if (syncVersion !== canonicalSyncVersionReference.current) return;
       const api = apiReference.current;
       if (!api) return;
       canonicalSyncDepthReference.current += 1;
+      const context = peerViewportContext.current;
+      const viewport = api.getState();
+      const root = ganttScrollReference.current;
+      let viewportInput = false;
+      const markViewportInput = (event: Event) => {
+        if (event.target instanceof Element && !event.target.closest("dialog") && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) viewportInput = true;
+      };
+      metadataViewportReference.current?.cleanup();
+      metadataViewportReference.current = null;
+      if (metadataOnly && context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
+        for (const event of ["pointerdown", "wheel", "keydown"]) root?.addEventListener(event, markViewportInput, true);
+        const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), hasInput: () => viewportInput, cleanup: () => { for (const event of ["pointerdown", "wheel", "keydown"]) root?.removeEventListener(event, markViewportInput, true); } };
+        metadataViewportReference.current = request;
+        const cleanup = () => { request.cleanup(); if (metadataViewportReference.current === request) metadataViewportReference.current = null; };
+        // The queue tail also clears requests when no columns update follows.
+        void canonicalSyncQueueReference.current.then(cleanup, cleanup);
+      }
       try {
         const currentTasks = (api.serialize({ data: "tasks" }) ?? []) as ITask[];
         const currentLinks = (api.serialize({ data: "links" }) ?? []) as ILink[];
@@ -1458,25 +1489,38 @@ export function ProjectGantt({
           () => syncVersion === canonicalSyncVersionReference.current,
         );
         ensureTimelineEnd(api);
+
       } catch {
+        metadataViewportReference.current?.cleanup();
+        metadataViewportReference.current = null;
         if (syncVersion === canonicalSyncVersionReference.current) onCanonicalSyncFailureReference.current();
       } finally { canonicalSyncDepthReference.current -= 1; }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [ensureTimelineEnd, svarLinks, svarTasks]);
+  }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey]);
 
+  const appliedTaskFilterReference = useRef<{ api: IApi; key: string } | null>(null);
   useEffect(() => {
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       const api = apiReference.current;
       if (!api || !apiInstanceId) return;
-      const visible = visibleTaskIds ? new Set(visibleTaskIds) : null;
-      if (!visible && !taskFilterAppliedReference.current) return;
-      taskFilterAppliedReference.current = visible !== null;
+      const applied = appliedTaskFilterReference.current;
+      // Parent renders produce fresh arrays; avoid reapplying the same
+      // filter while the project editor owns focus.
+      if (applied?.api === api && applied.key === visibleTaskFilterKey) return;
+      const ids = JSON.parse(visibleTaskFilterKey) as string[] | null;
+      const visible = ids === null ? null : new Set(ids);
+      if (!visible && !taskFilterAppliedReference.current) {
+        appliedTaskFilterReference.current = { api, key: visibleTaskFilterKey };
+        return;
+      }
       await api.exec("filter-tasks", {
         open: false,
         filter: visible ? (task: ITask) => typeof task.id === "string" && visible.has(task.id) : undefined,
       });
+      taskFilterAppliedReference.current = visible !== null;
+      appliedTaskFilterReference.current = { api, key: visibleTaskFilterKey };
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [apiInstanceId, visibleTaskIds]);
+  }, [apiInstanceId, visibleTaskFilterKey]);
 
   useEffect(() => {
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
@@ -1507,6 +1551,26 @@ export function ProjectGantt({
           await api.exec("resize-grid", { width: Math.max(nextWidth, gridWidth + nextWidth - previousWidth) });
         }
         await restoreSummaryToggleState(api, summaryState);
+        const request = metadataViewportReference.current;
+        if (request) {
+          const currentRequest = () => request === metadataViewportReference.current && ganttScrollReference.current?.isConnected === true && apiReference.current === request.api && api === request.api && request.version === canonicalSyncVersionReference.current && visibleTaskFilterKeyReference.current === request.filter && peerViewportContext.current.visible && peerViewportContext.current.key === request.key && scaleModeReference.current === request.scale && api.getState().gridWidth === request.gridWidth && JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])) === request.columns && !request.hasInput();
+          try {
+            await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+            if (currentRequest()) {
+              ensureTimelineEnd(api);
+              await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+              const current = api.getState();
+              if (currentRequest()) {
+                const left = current.scrollLeft === 0 && request.left > 0 ? request.left : undefined;
+                const top = current.scrollTop === 0 && request.top > 0 ? request.top : undefined;
+                if (left !== undefined || top !== undefined) await api.exec("scroll-chart", { left, top });
+              }
+            }
+          } finally {
+            request.cleanup();
+            if (metadataViewportReference.current === request) metadataViewportReference.current = null;
+          }
+        }
       } catch {
         onCanonicalSyncFailureReference.current();
       } finally {
@@ -1514,7 +1578,7 @@ export function ProjectGantt({
         canonicalSyncDepthReference.current -= 1;
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
-  }, [columns]);
+  }, [columns, ensureTimelineEnd]);
 
   useEffect(() => {
     const id = ++peerViewportGeneration.current;

@@ -1,8 +1,8 @@
 # Active execution plan
 
-## Issue #342 국가 Calendar 2026~2037 Catalog — latest main 0.92.0 재정렬 / PR CI
+## Issue #342 국가 Calendar Catalog — main 0.92.1 재정렬 / review rework 4 / release 준비
 
-최신 main `05fe212060ed4a935510dc2f7a692bb9113c55e8` / application `0.92.0`의 #459 Stage Gate Epic, #460~#464 membership/dashboard/JSON 1.1, 최신 Lifecycle/CI 및 관리자 UI 계약을 보존하면서 기존 PR #346의 Country Calendar Catalog를 재적용한다. 현재 main의 `0022_task_milestone_memberships.sql`과 충돌하지 않도록 #342 migration은 `0023_country_calendar_catalog.sql`, 후보 version은 다음 MINOR `0.93.0`이다. CI #1850의 GET transport reset은 읽기 GET에만 제한된 retry로 보완하고 mutation retry는 금지한다. 현재 종료점은 DOCUMENTATION_SYNC 완료 후 PR #346 새 exact-head CI 시작 확인이며 CI 완료 모니터링·병합·main/GHCR·정식 release·Issue 종료는 범위 밖이다. 상세는 [Issue #342 실행 계획](ISSUE_342.md)을 따른다.
+최신 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075` / application `0.92.1`의 Issue #456 Task Editor UI·상태 보존 개선과 #459 Stage Gate Epic, 최신 Lifecycle/CI를 보존하면서 PR #346을 재정렬한다. #342 migration은 `0023_country_calendar_catalog.sql`, 후보 version은 `0.93.0`을 유지한다. Codex review rework 4의 no-op edit, pending delete lock, target draft reset, Preview HMAC binding, 신규 Project default seed fallback 및 CI #1989 locator 보완을 반영한다. v0.93.0 GHCR release authorization marker는 이미 Issue #342에 기록되어 있다. 새 exact-head PR CI와 review가 모두 PASS한 뒤 merge → Main CI → Generic Release Finalizer → GHCR release 순서로 진행한다.
 
 ## Issue #459 Milestone Stage Gate Epic — 통합 감사 / PR CI
 
@@ -246,3 +246,16 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위인 Project 생성�
 ## Issue #8 — 내부망 HTTP
 
 전용 브랜치에서 URL/쿠키/설정 주입/공유 URL과 문서를 갱신한다. PR quality/E2E/Docker 및 HTTP·HTTPS 실제 브라우저 검증 후 리뷰·병합하고 main exact digest 결과를 별도로 기록한다. 본 계획 추가만으로 PASS가 아니며 운영 Windows/WSL2 전환은 별도 미검증이다.
+
+
+## Issue #456 — Task Editor 폼 밀도와 의미별 배치
+
+[Issue Work Packet](ISSUE_456.md)을 기준으로 최신 main `05fe212060ed4a935510dc2f7a692bb9113c55e8` / version0.92.0에서 기존branch `fix/issue-456-task-editor-form-density`를 재사용하며 후보 PATCH0.92.1을 적용한다. 실제 before 후 A Task Editor의 필드·intrinsic action 폭·부모 간격을 정돈한다. 기존44px hit-area·동적탭·dirty/stale/canonical/Gantt 계약을 유지한다.
+
+B 설정·근무 규칙·인증은 [#490](https://github.com/planner77/masterGantt/issues/490), C 생성·복사·template·입출력·견적은 [#491](https://github.com/planner77/masterGantt/issues/491)로 분리했으며 FOLLOW-UP/NOT TESTED다. 미검증 표면을 KEEP/PASS로 처리하지 않는다. 한 PR에 A/B/C를 restyle하지 않는다.
+
+요청 종료점은 구현·DOCUMENTATION_SYNC·독립 사전 검토·원격 Refs #456 PR·exact head PR CI 등록이다. CI 결과 모니터링은 수행하지 않으며 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다. release_required=true/release_authorized=false; 병합·main/GHCR·tag/release·cleanup·Issue 종료는 범위 밖이다. 현재 branch/version 준비와 실제 before 측정은 PASS이며, 구현과 관련 재검증·최종 문서·독립 사전 검토는 진행 중이다.
+
+#456 실제before71개와 독립UIUX를 근거로 진행률 숫자 clipping, 일정+mode group, footer폭, relation/baseline32→44px을 FIX로 승인했다. Description읽기폭·기존탭/저장단위는 유지한다. 구현/LFF/최종문서·독립PRE_QA는 진행 중이며 원격CI/ACCEPT는 NOT TESTED다.
+
+#456 A 구현·관련 Local Fast Feedback는 PASS이며 최종 source3에서8/8,재사용 포함27 unique/최종계열52 PASS 실행을 구분했다. before71/after86을 동결하고 문서7개 및 항목별N/A를 동기화한다. 실제 visible 집합이바뀌는metadata는스크롤복원에서제외하고 same집합metadata의120/38보존을검증했다. 다음은 같은171파일 후보의 독립UIX/PRE_QA,게시동등성,PR과CI등록이다. 공식quality/e2e/docker·최종ACCEPT는NOT TESTED이며#490/#491은후속으로남긴다.
