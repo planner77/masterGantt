@@ -2052,3 +2052,9 @@ PR CI #1960의 유일한 Vitest 실패는 `tests/server/db/database.test.ts`의 
 - Preview binding: Preview token 없이 Apply, token과 다른 envelope Apply를 거부하고 동일 token+revision+bytes만 성공시킨다.
 - migration 0023: Catalog state의 preview_secret이 정확히 32 bytes이며 API/log에 노출되지 않는다.
 - Chromium locator는 dataset status의 accessible name과 exact 국가 label을 사용해 select option/toolbar와 strict-mode 충돌하지 않는다.
+
+### Issue #342 CI #1995 보완
+
+- TypeScript/Vitest: Preview mismatch 오류 import, 모든 `applyImport(revision, previewToken, envelope)` 호출과 Integration test describe/it 구조를 검증한다.
+- production audit: Next 16.3.8의 optional `sharp ^0.35.4`는 lock에서 `0.35.5`, `@img/sharp-* 0.35.5`, `@img/sharp-libvips-* 1.3.4`를 사용하고 `npm audit --omit=dev`가 High vulnerability 없이 통과해야 한다.
+- 기존 exact-head quality/e2e/docker 전체 gate를 다시 수행하며 #1995 결과는 수정 전 head에 한정한다.

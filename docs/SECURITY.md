@@ -388,3 +388,7 @@ Country Calendar Import는 기존 Project Master 관리자 session + exact Origi
 - Apply는 exact token + envelope + revision을 검증하고 mismatch는 409로 fail-closed한다.
 - Apply 성공 시 revision 증가로 token 재사용이 차단된다.
 - token은 authorization 자체가 아니며 관리자 session/Origin/If-Match 요구를 대체하지 않는다.
+
+## Issue #342 dependency audit 보완
+
+PR CI #1995의 `npm audit --omit=dev`에서 Next.js optional dependency `sharp 0.35.4`의 librsvg CVE-2026-96889가 High로 탐지되었다. Next 16.3.8의 `sharp ^0.35.4` 범위 안에서 `sharp 0.35.5` 및 해당 prebuilt `sharp-libvips 1.3.4` lock tree로 갱신한다. 애플리케이션의 직접 image-processing API 표면은 추가하지 않으며 frozen `npm ci`, production audit, Next build, Docker smoke로 공급망 정합성을 검증한다.

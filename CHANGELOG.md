@@ -28,6 +28,7 @@
 - 변경 없는 날짜 편집은 no-op으로 처리해 OFFICIAL provenance와 revision을 보존하고, target 전환 시 신규 날짜/file draft를 폐기하며 DELETE pending 중 취소를 차단한다.
 - Import Preview와 Apply를 HMAC token으로 exact revision·country/year·format·file bytes에 묶어 Preview 우회를 차단한다.
 - current-year KR override가 재승인 대기여도 신규 Project 기본 Calendar는 built-in approved baseline으로 fallback하여 Project 생성 가용성을 유지한다.
+- PR CI #1995 production dependency audit에서 확인된 librsvg CVE-2026-96889를 해소하기 위해 Next 16.3.8의 허용 범위 내에서 optional `sharp 0.35.4 → 0.35.5`, `sharp-libvips 1.3.3 → 1.3.4` lock tree를 갱신한다.
 
 ## [0.92.1] - 2026-10-06
 

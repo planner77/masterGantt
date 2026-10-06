@@ -78,6 +78,14 @@ N/A:
 - public descriptor DTO는 nullable provenance를 허용하되 실제 Scheduling \`CountryCalendarDataset\`은 non-null provenance 타입을 유지한다.
 - Unit/API/Test Plan/CHANGELOG/release note를 동기화한다.
 
+## CI #1995 보완
+
+- TypeScript: Preview mismatch error import 누락과 구형 2-argument `applyImport` test 호출을 수정한다.
+- Vitest: sole-date import test를 Preview token 경로로 이관하고 Integration test의 잘못 중첩된 `it` 구조를 복구한다.
+- Policy: `npm audit --omit=dev`의 librsvg CVE-2026-96889를 Next 16.3.8 허용 범위의 `sharp 0.35.5` / `sharp-libvips 1.3.4` lock update로 해소한다.
+- dependency 변경은 package-lock only이며 Next/application direct dependency version은 변경하지 않는다.
+- 새 exact head에서 quality/e2e/docker와 Codex review를 다시 판정한다.
+
 ## 검증
 
 - Catalog parser/service/CRUD/atomic import/stale revision/WORKING 보존 Unit.
