@@ -64,7 +64,6 @@ test("Issue #491: Resource Dashboard 실제 공수·큰 서버 표시값·필터
   await expect(filter).toBeFocused();
   expect(mockedRequests).toBeGreaterThan(0);
   await writeSafe491(info,"effort-contract",{actualApiStatus:actualResponse.status(),actualAssignmentCount:actual.summary.assignmentCount,actualMmUnconfigured:true,serverFixtureMm:20,mockedRequests,largeDisplayOnly:true,invalidRangeBlocked:true,separateEffortModal:"N/A: Dashboard inline controls and Excel include checkbox remain supported"});
-}
 });
 
 test("Issue #491: 전송 dialog와 템플릿 저장의 Gantt 범위·열·tree·선택·scroll 및 fullscreen 보존",async({page,baseURL},info)=>{
