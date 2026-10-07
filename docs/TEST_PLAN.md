@@ -2050,13 +2050,22 @@ Main CI Run #2053.1 corrective: exact merge `75f014fccc8f6e3f19ba5fadebd3ecad4e0
 
 #490 REWORK는 최신 main4f8fc2c9c86941d1b86ae4472b1e953707c85ef7/제품0.94.1에서6case를 실행한다. 0.93.1의 마지막5case와16runs40executions는 historical로 원본 hash를 유지한다. 새1case는1440px 실제 PUT hold→pending BODY·빠른2Escape·민감 입력 비움·중복PUT1개·native 보안탭 focus→204/revision+1/canonical GET/호출자 edit·이전 peer readonly·구password401/새password204와 정상 close/logout/unlock 초점을 검증한다. Calendar 기존 case에390px 새 field select/date의 native Tab·화면 안 bbox/ring을 추가한다. 성공 loading 동안 BODY 초점을 실제 관측으로 남기며 호출 버튼 복원 PASS로 확대하지 않는다. fullscreen 설정 진입은 지원 trigger가 frame 밖이라 N/A이고 fullscreen 왕복은 별도 검증한다. main #485 migration0023은 실제 isolated DB에 적용되며 변경된 stateful-project workload fixture는 이 spec의 직접 fixture가 아니다.
 
+## Issue #486 — 401 후 Resource Catalog suspended draft 전환
+
+- `tests/e2e/resource-error-recovery.spec.ts`에서 Resource dirty draft → 401 → 재로그인 → Group 추가 시 기존 Resource editor가 자동 재개되지 않고 `보존한 초안 확인`이 표시되는지 검증한다.
+- `초안 유지`는 기존 draft를 suspended 상태로 보존하고, 이후 `보존한 초안 계속 편집`으로 재개했을 때 Resource 입력값이 그대로인지 확인한다.
+- Group dirty draft → 401 → 재로그인 → Resource 추가에서는 `초안 폐기 후 리소스 추가`가 요청한 Resource editor를 열고 이전 Group draft를 제거하는지 확인한다.
+- Profile dirty draft → 401 → 재로그인 → 다른 editor trigger에서도 자동 Profile 재개를 막고, 명시 재개 시 developer grade/roles 초안을 보존하는지 확인한다.
+- 기존 password clearing/login focus, 401/412 수동 복구, pending 중복 mutation 차단, Escape/focus restore, Group 구성원 초안 보존 회귀를 같은 spec의 기존 case와 함께 유지한다.
+- 현재 connector 세션의 Local Fast Feedback은 NOT TESTED다. 공식 판정은 동일 PR head의 required `quality`, `e2e`, `docker` GitHub Actions 결과로 수행한다.
+
 ## Issue #487 — 완료 단계 필터 End scroll E2E timing race
 
 Issue #454의 immutable `v0.90.1` GHCR Release Run #140.1 (`37434408238`)은 static quality와 Chromium shard 1/3/4/5/6을 PASS했지만 shard 2/6의 `tests/e2e/milestone-stage-grid.spec.ts`에서 `activeVisible === false`로 실패했다. 동일 exact merge SHA `0fc986cb0cb642bdbedeec30157b27bd522b5a38`의 Main CI Run #1942.1에서는 같은 case가 PASS했다.
 
 제품 `StageFilterPicker.move()`는 keyboard `End` 처리 시 `setActive()` 뒤 `requestAnimationFrame(...scrollIntoView())`로 active option을 list viewport에 보이게 한다. 기존 E2E는 `input.press("End")` 직후 geometry를 즉시 읽어 animation-frame scroll 완료보다 먼저 측정할 수 있었다. 이는 active option 가시성·키보드 접근성 기준의 완화 대상이 아니라 runner scheduling에 따른 비결정적 측정 순서다.
 
-최신 main `44b2ee3562cf76a73368a49fa17933ed341ab424`의 #490 transient reset retry를 보존한다. 보완은 static sleep을 사용하지 않고, 현재 `aria-activedescendant`가 실제 DOM에 존재하며 list viewport 안에 완전히 들어오고 `scrollTop > 0`인 observable postcondition을 `expect.poll(..., { timeout: 2000 })`로 기다린 다음 기존 `activeVisible === true`, `listScroll > 0`, input focus/containment 및 5개 viewport geometry assertion을 그대로 수행한다. 실제 scroll이 발생하지 않으면 bounded poll 또는 기존 assertion이 실패한다.
+최신 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`의 #490 transient reset retry와 후속 main 변경을 보존한다. 보완은 static sleep을 사용하지 않고, 현재 `aria-activedescendant`가 실제 DOM에 존재하며 list viewport 안에 완전히 들어오고 `scrollTop > 0`인 observable postcondition을 `expect.poll(..., { timeout: 2000 })`로 기다린 다음 기존 `activeVisible === true`, `listScroll > 0`, input focus/containment 및 5개 viewport geometry assertion을 그대로 수행한다. 실제 scroll이 발생하지 않으면 bounded poll 또는 기존 assertion이 실패한다.
 
 application source/API/DB/domain/version은 변경하지 않는다. 기존 `v0.90.1` tag는 immutable historical evidence로 유지하고 이동·덮어쓰기·재사용하지 않는다. 이 corrective PR의 최신 exact-head PR CI가 timing-race 보완의 검증 근거다.
 

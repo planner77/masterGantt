@@ -4,9 +4,15 @@
 
 Issue #454의 immutable `v0.90.1` GHCR Release Run #140.1에서 Chromium shard 2/6의 `tests/e2e/milestone-stage-grid.spec.ts`만 `activeVisible === false`로 실패했고, 동일 exact merge SHA `0fc986cb0cb642bdbedeec30157b27bd522b5a38`의 Main CI Run #1942.1에서는 같은 case가 PASS했다. 제품 `StageFilterPicker.move()`가 `End` 처리 후 `requestAnimationFrame(...scrollIntoView())`로 active option을 노출하므로, E2E가 animation-frame scroll 완료보다 먼저 geometry를 읽는 timing race로 판정한다.
 
-최신 main `44b2ee3562cf76a73368a49fa17933ed341ab424` / application `0.94.2`를 기준으로 PR #488을 재정렬한다. main의 #490 stage-grid transient transport reset retry 보완을 그대로 보존하고, #487의 static sleep 없는 observable postcondition(`activeVisible && scrollTop > 0`) bounded poll만 재적용한다. 기존 focus/containment 및 390/768/1024/1440/1920 geometry assertion은 유지하며 제품 source/API/DB/domain 및 application version은 변경하지 않는다.
+최신 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d` / application `0.94.3`을 기준으로 PR #488을 재정렬한다. main의 #490 stage-grid transient transport reset retry와 #486 변경을 그대로 보존하고, #487의 static sleep 없는 observable postcondition(`activeVisible && scrollTop > 0`) bounded poll만 재적용한다. 기존 focus/containment 및 390/768/1024/1440/1920 geometry assertion은 유지하며 제품 source/API/DB/domain 및 application version은 변경하지 않는다.
 
 `release_required=false`, `release_authorized=false`; 이번 요청 종료점은 새 exact-head PR CI 시작 확인이다. 기존 실패 `v0.90.1` tag/run은 historical evidence이며 실패한 exact tag를 수정 검증 근거로 재사용·이동·덮어쓰기하지 않는다.
+
+## Issue #486 Resource Catalog 401 보존 초안 전환 — 구현·문서 동기화 / PR CI 시작
+
+최신 정렬 기준 `main`은 `44b2ee3562cf76a73368a49fa17933ed341ab424`, application `0.94.2`이며 작업 branch는 `fix/issue-486-suspended-resource-draft`다. 401 후 suspended dirty Resource/Group/Profile draft가 다른 editor trigger를 자동 가로채던 `openEditor()` 경로를 제거하고, `보존한 초안 확인`에서 초안 유지 또는 폐기 후 요청 editor 진입을 명시 선택하도록 수정한다. 기존 `보존한 초안 계속 편집`은 직접 재개 경로로 유지한다.
+
+관련 E2E는 Resource→Group trigger의 자동 재개 금지/명시 재개 보존, Group→Resource trigger의 폐기 후 요청 editor 진입, Profile→다른 trigger의 명시 재개 보존을 추가한다. session/401/403/412, If-Match/revision, pending/Escape/focus와 API/DB/security/scheduling 계약은 유지한다. 상세 범위와 문서 영향은 [Issue #486 실행 계획](ISSUE_486.md)을 따른다. 하위 호환 버그 수정이므로 application version은 `0.94.3` PATCH다. `release_required=true`, `release_authorized=true`이며 사용자의 명시 승인에 따라 병합 후 exact main CI 성공 시 Generic Release Finalizer가 `0.94.3` 정식 GHCR 게시와 후속 lifecycle을 수행한다.
 
 ## Issue #490 프로젝트 설정·근무 규칙·인증 폼 — 로컬 검증 / 문서 동기화·PR CI 시작
 
