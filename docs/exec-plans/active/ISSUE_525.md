@@ -60,3 +60,10 @@ REWORK 최종 source/docs freeze는 manifest SHA256 a43723049660dc9c56464779a351
 ## 2026-10-08 PR CI #2107 E2E 재검증
 
 CI #2107.1(head db04c5e)은 quality/build/docker와 #525 보완 대상 #76, 앞선 unrelated #456을 포함한 Chromium shard 2~6이 통과했다. 유일 실패는 shard1의 기존 #502 `error-boundary-regression.spec.ts` gantt-demo 경계 테스트에서 오류 heading이 5초 내 나타나지 않은 1건이다. db04c5e는 직전 head 대비 `project-workspace-ux.spec.ts`의 Resource tab focus 한 줄만 변경했고 #502 제품/테스트 경로는 변경하지 않았다. 따라서 #525 범위를 #502 제품 수정으로 확대하지 않고 동일 #525 head 내용의 전체 원격 재검증을 새 commit/run으로 수행한다. 재검증 성공 전 공식 E2E PASS는 주장하지 않는다.
+
+## 2026-10-08 최신 main 정렬 후 Code Review P2 대응
+
+- #524 PR #532 병합 main `b417fcc094bff98ea142374fcd746bce2458c2e1`에 #525 정렬 커밋 `1e5e42cadcd5049ba5d7e83265b0ff2ff036006a` 반영, PR base main·conflict 0. 새 exact-head PR CI #2117(37701553729)은 success.
+- Codex PR review P2(미해결 #4209279185): query를 변경 후 기존 조건으로 되돌리면 결정적 snapshotId 때문에 숨긴 `selection`이 다시 mount되고 detail GET이 중복된다. 이 결함은 병합 차단으로 분류한다.
+- 수정은 `ProjectResourceDashboard`의 project/revision/query/snapshot scope key가 달라지면 렌더 완료 전 selection/expanded state를 무효화한다. 검색/기간 필터 A→B→A 회귀에서 상세의 숨김·재등장 부재, 상세 GET 증가 부재 및 focus 보존을 검증한다. `PROJECT_UX`·`TEST_PLAN`·`CHANGELOG` 동기화.
+- 변경 후 required PR quality/e2e/docker와 exact-head 독립 검토·리뷰 resolution을 다시 확보해야 하며 기존 #2117 success는 새 head 승인 근거가 아니다.

@@ -103,7 +103,16 @@ test("#525 외부 snapshot 교체는 사라지는 상세 focus만 복원하고 �
   await page.route(path, (route) => { const data = mutate(resourceDashboardUiFixture(fixture, new URL(route.request().url()).searchParams)); data.scope.identity = data.snapshotId; return route.fulfill({ json: { data } }); });
   await page.route(`**${projectPath}/resource-dashboard/details?*`, (route) => route.fulfill({ json: { data: mutate(resourceDashboardDetailUiFixture(fixture, new URL(route.request().url()).searchParams)) } }));
   await open(page); await ready(page); const root = panel(page), kpi = root.getByLabel("선택 범위 KPI").getByRole("button", { name: "1건", exact: true }); await kpi.click(); await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toBeFocused(); catalog = 2; await page.evaluate(() => window.dispatchEvent(new Event("focus"))); await ready(page); await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toHaveCount(0); await expect(kpi).toBeFocused();
-  await kpi.click(); await expect(root.getByText("Stable leaf", { exact: true })).toBeVisible(); const search = root.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" }); await search.fill("R-01"); await ready(page); await expect(search).toBeFocused(); await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toHaveCount(0);
+  const detailRequests: string[] = [];
+  page.on("request", (request) => { if (new URL(request.url()).pathname === `${projectPath}/resource-dashboard/details`) detailRequests.push(request.url()); });
+  await kpi.click(); await expect(root.getByText("Stable leaf", { exact: true })).toBeVisible();
+  const search = root.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" });
+  await search.fill("R-01"); await ready(page); await expect(search).toBeFocused();
+  await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toHaveCount(0);
+  const requestsBeforeRestore = detailRequests.length;
+  await search.fill(""); await ready(page);
+  await expect(root.getByRole("heading", { name: "선택 범위 할당 Task" })).toHaveCount(0);
+  expect(detailRequests).toHaveLength(requestsBeforeRestore);
 });
 
 

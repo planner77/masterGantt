@@ -28,6 +28,15 @@ export function ProjectResourceDashboard({ publicId, revision, active, refreshDi
   const queryKey = dashboardQuery(normalized).toString();
   const report = useResourceDashboard(publicId, revision, active && validDates, queryKey);
   const data = report.data;
+  // Clear the selector before a prior deterministic query/snapshot can become visible again.
+  // Guarded render-time adjustment prevents a one-frame remount or unintended detail fetch.
+  const scopeKey = JSON.stringify([publicId, revision, queryKey, data?.snapshotId ?? null]);
+  const [selectionScopeKey, setSelectionScopeKey] = useState(scopeKey);
+  if (selectionScopeKey !== scopeKey) {
+    setSelectionScopeKey(scopeKey);
+    setSelection(null);
+    setExpanded(new Set());
+  }
   const stale = report.stale || (data !== null && detailStale === data.snapshotId);
   const set = <K extends keyof ResourceDashboardFilterInput>(key: K, value: ResourceDashboardFilterInput[K]) => setFilters((previous) => ({ ...previous, [key]: value }));
   const selectedCount = Object.entries(filters).filter(([key, value]) => key !== "mode" && value !== undefined && value !== "" && value !== "all" && (!Array.isArray(value) || value.length)).length;
