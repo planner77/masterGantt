@@ -1454,6 +1454,9 @@ export function ProjectGantt({
   const appliedCanonicalViewportGeometryReference = useRef<string | null>(null);
   useEffect(() => {
     const syncVersion = ++canonicalSyncVersionReference.current;
+    if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+      fullscreenFrameReference.current.dataset.ganttCanonicalSyncGeneration = String(syncVersion);
+    }
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       if (syncVersion !== canonicalSyncVersionReference.current) return;
       // Compare with the geometry that actually completed the previous canonical sync.
@@ -1465,6 +1468,9 @@ export function ProjectGantt({
       const api = apiReference.current;
       if (!api) return;
       canonicalSyncDepthReference.current += 1;
+      if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+        fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+      }
       const context = peerViewportContext.current;
       const viewport = api.getState();
       const root = ganttScrollReference.current;
@@ -1500,7 +1506,15 @@ export function ProjectGantt({
         metadataViewportReference.current?.cleanup();
         metadataViewportReference.current = null;
         if (syncVersion === canonicalSyncVersionReference.current) onCanonicalSyncFailureReference.current();
-      } finally { canonicalSyncDepthReference.current -= 1; }
+      } finally {
+        canonicalSyncDepthReference.current -= 1;
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+          fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+          if (syncVersion === canonicalSyncVersionReference.current) {
+            fullscreenFrameReference.current.dataset.ganttCanonicalSyncSettledGeneration = String(syncVersion);
+          }
+        }
+      }
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey]);
 
@@ -1533,6 +1547,9 @@ export function ProjectGantt({
       const api = apiReference.current;
       if (!api) return;
       canonicalSyncDepthReference.current += 1;
+      if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+        fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+      }
       try {
         // State columns are optional; retain configured defaults when absent.
         const summaryState = captureSummaryToggleState();
@@ -1582,6 +1599,9 @@ export function ProjectGantt({
       } finally {
         // State reads and column mapping must also release the sync guard.
         canonicalSyncDepthReference.current -= 1;
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+          fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+        }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [columns, ensureTimelineEnd]);
