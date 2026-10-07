@@ -2147,3 +2147,14 @@ PR 검토용 최종 합성 화면: [390px](evidence/issue-525/after-390.png), [1
 `project-resource-workload-status.spec.ts`의 긴 이름·다중 행 geometry1개를 실제 Chromium에서 실행했다(1 PASS,9.6초). 그룹/개인 각각390/768/1024/1440/1920px의 총10개 관측에서 그룹12행/개인40행/Assignment 상세50행(전체120행, 다음 페이지50)을 실제 Dashboard DOM으로 측정한다. 조건은 개인 활성 상태/그룹 활성 소속 전체이며 normalized filter와 mode를 geometry JSON에 기록한다. 모든 populated 행의 header/body 정렬·cell 비중첩·control containment, toolbar 비중첩·화면 내 containment, 날짜 열208px 이상/날짜 토큰 비분리, 소유 table 내부 가로·세로 overflow, document 폭=viewport, native Tab focus ring의 cell/scroll owner/viewport containment를 통과했다. 안정 UUID Task50개·상세 WBS 최대375자·화면 identity 최대233자를 확인했으며 Gantt fixture로 대체하지 않았다.
 
 기존 짧은5폭 PASS와 초기 실패 artifact는 보존한다. 새 근거는 로컬 `output/playwright/issue-525/long-many/geometry.json`과 mode별5폭 PNG 및 `run-long-many-final-frozen.log`다. PR PNG390/1440은 새 긴 그룹 기본화면과 일치하며 이전 짧은 PNG는 로컬 `short-before-rework/`에 보존한다. 합성 geometry는 별도 실제 SQLite/HTTP 회귀를 대체하지 않는다. 기존 고유 Chromium10개 PASS에 신규1개를 더한 고유11개이며 반복 geometry 실행을 추가 테스트로 세지 않는다. Unit은 긴 fixture 계약 검증1개를 추가해 관련2파일10개다. 원격 quality/e2e/docker·최종 독립 QA 및 실제 환경 검증은 별도 NOT TESTED다.
+
+### Issue #525 최초 실패 PR CI E2E 보완 (2026-10-08)
+
+원격 [#2093.1](https://github.com/planner77/masterGantt/actions/runs/37650777139): quality/docker PASS, e2e shard2(#130)·4(#83)·5(#491/#76) FAIL. 이전 Resource 화면의 selector/집계 의미와 새 기본 Dashboard 계약의 불일치가 확인됐으며 API 계산 오류는 확인되지 않았다.
+
+- project-filter-toolbar-consistency: 5폭 Resource 검색·Role·기간/역순 조건과 stale 차단, Escape/포커스, Gantt 인스턴스·scroll 및 mutation 부재.
+- project-search-filter: 선택 범위 KPI/표시 행 동시 갱신, 기간 미교차 0건 및 초기화. UI fixture는 date overlap만 모사하며 실제 Calendar/workday clipping은 SQLite/HTTP 회귀가 담당한다.
+- project-workspace-ux: 기본 Group disclosure 후 개인 행과 5.00 M/D, 기존 Gantt 보존.
+- project-transfer-layout-491: 실제 HTTP M/M 미설정, 개발 견적 preset, 실제 서버 응답 기반 합성 대규모 공수 display-only 값과 단위 변환, 역순 기간 차단, native Tab/Escape.
+
+테스트 skip/삭제 없이 갱신한다. 새 원격 PR quality/e2e/docker 성공 전 ACCEPT는 유보한다.

@@ -1089,3 +1089,7 @@ Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0d
 `project-resource-workload-status.spec.ts`의 긴 이름·다중 행 geometry1개를 실제 Chromium에서 실행했다(1 PASS,9.6초). 그룹/개인 각각390/768/1024/1440/1920px의 총10개 관측에서 그룹12행/개인40행/Assignment 상세50행(전체120행, 다음 페이지50)을 실제 Dashboard DOM으로 측정한다. 조건은 개인 활성 상태/그룹 활성 소속 전체이며 normalized filter와 mode를 geometry JSON에 기록한다. 모든 populated 행의 header/body 정렬·cell 비중첩·control containment, toolbar 비중첩·화면 내 containment, 날짜 열208px 이상/날짜 토큰 비분리, 소유 table 내부 가로·세로 overflow, document 폭=viewport, native Tab focus ring의 cell/scroll owner/viewport containment를 통과했다. 안정 UUID Task50개·상세 WBS 최대375자·화면 identity 최대233자를 확인했으며 Gantt fixture로 대체하지 않았다.
 
 기존 짧은5폭 PASS와 초기 실패 artifact는 보존한다. 새 근거는 로컬 `output/playwright/issue-525/long-many/geometry.json`과 mode별5폭 PNG 및 `run-long-many-final-frozen.log`다. PR PNG390/1440은 새 긴 그룹 기본화면과 일치하며 이전 짧은 PNG는 로컬 `short-before-rework/`에 보존한다. 합성 geometry는 별도 실제 SQLite/HTTP 회귀를 대체하지 않는다. 기존 고유 Chromium10개 PASS에 신규1개를 더한 고유11개이며 반복 geometry 실행을 추가 테스트로 세지 않는다. Unit은 긴 fixture 계약 검증1개를 추가해 관련2파일10개다. 원격 quality/e2e/docker·최종 독립 QA 및 실제 환경 검증은 별도 NOT TESTED다.
+
+### Issue #525 기존 E2E UI 계약의 회귀 해석 (2026-10-08)
+
+새 Dashboard에서 Group 행은 기본 접힘이며 Resource는 disclosure 후 보인다. 검색·Role·기간 조건은 서버 선택 Assignment scope를 변경해 KPI와 행을 함께 갱신한다. legacy 화면의 표시 행-only/전체 프로젝트 공수 고정 규칙은 신규 Dashboard에 적용하지 않는다. 기존 Milestone exact assignmentIds Stage drill은 legacy renderer/API를 유지한다. 기본 화면은 /resource-dashboard의 data-ready와 고유 row를 확인하며 M/M 환산 미설정은 disabled 단위 버튼 및 기준 문구로 설명한다.

@@ -49,9 +49,13 @@ test.describe("Issue #76 Project Workspace UX", () => {
     await expect(resourcesTab).toBeFocused();
     await expect(resourcesTab).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("heading", { level: 2, name: "리소스 공수" })).toBeVisible();
-    await expect(page.getByText("개발팀", { exact: true })).toBeVisible();
-    await expect(page.getByRole("tabpanel", { name: "리소스" }).getByText("테스트 리소스 (R-01)", { exact: true })).toBeVisible();
-    await expect(page.getByText("5.00 M/D", { exact: true }).first()).toBeVisible();
+    const resourceDashboard = page.getByRole("tabpanel", { name: "리소스" }).locator('[data-resource-dashboard="true"]');
+    await expect(resourceDashboard).toHaveAttribute("data-ready", "true");
+    const group = resourceDashboard.getByRole("region", { name: "그룹 현황" }).getByRole("button", { name: /개발팀 \(G-01\)/ });
+    await expect(group).toBeVisible();
+    await group.click();
+    await expect(resourceDashboard.getByRole("region", { name: "개발팀 개인 현황" }).getByRole("button", { name: /테스트 리소스 \(R-01\)/ })).toBeVisible();
+    await expect(resourceDashboard.locator('dl[aria-label="선택 범위 KPI"]')).toContainText("5.00 M/D");
 
     await page.keyboard.press("Home");
     await expect(scheduleTab).toBeFocused();

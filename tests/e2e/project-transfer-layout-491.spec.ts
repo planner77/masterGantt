@@ -14,9 +14,57 @@ test("Issue #491: readonly Excel·JSON·SVG·PNG 옵션·날짜 validation·pend
   await page.keyboard.press("Escape");await expect(dialog).toHaveCount(0);await expect(page.getByRole("button",{name:"내보내기",exact:true})).toBeFocused();expect((await(await page.request.get(source.path)).json()).data).toEqual(source.snapshot);await writeSafe491(info,"export-contract",{downloads,requests:gate.requests,readonlySupported:true,sourceUnchanged:true,normalEscapeRestore:true,realExcelDrm:"NOT TESTED",fullWorkbookFormulaRegression:"NOT TESTED: existing dedicated tests own semantic coverage"});
 });
 
-test("Issue #491: 실제 inline 공수 옵션·빈 결과·큰 서버 표시값과 native 필터",async({page,baseURL},info)=>{
-  const source=await createSource491(page,baseURL!);await page.getByRole("tab",{name:"리소스",exact:true}).click();const panel=page.locator(".project-resource-workload");await expect(panel.getByText("M/M 환산 기준이 설정되지 않아 M/M 보기는 사용할 수 없습니다.",{exact:true})).toBeVisible();await capture491(page,info,"effort-actual-empty",".project-resource-workload");await panel.getByRole("button",{name:"개발 견적",exact:true}).click();await expect(panel.getByRole("button",{name:"개발 견적",exact:true})).toHaveAttribute("aria-pressed","true");await panel.locator("button[aria-controls=resource-advanced-filter]").click();await panel.getByLabel("Task 기간 From",{exact:true}).fill("2026-10-06");await capture491(page,info,"effort-date-partial",".project-resource-workload");
-  const actual=await(await page.request.get(`${source.path}/resource-workload`)).json();const large={...actual,data:{...actual.data,mdPerMm:20,grandTotalMd:999999.99,grandTotalMm:49999.9995}};await page.route(`**${source.path}/resource-workload*`,route=>route.fulfill({json:large}));await panel.getByRole("button",{name:"새로고침",exact:true}).click();await expect(panel.getByRole("button",{name:"M/M",exact:true})).toBeEnabled();await capture491(page,info,"effort-large-server-values",".project-resource-workload","formal response fixture; actual API baseline cloned, no effort algorithm assertion");await panel.getByRole("button",{name:"M/M",exact:true}).click();await expect(panel.getByRole("button",{name:"M/M",exact:true})).toHaveAttribute("aria-pressed","true");await panel.getByLabel("Task 기간 To",{exact:true}).fill("2026-10-01");await capture491(page,info,"effort-date-reversed",".project-resource-workload","formal workload fixture; local option display");await panel.getByLabel(/^종류/).focus();await page.keyboard.press("Tab");await expect(panel.getByLabel(/^상태/)).toBeFocused();await capture491(page,info,"effort-filter-native-focus",".project-resource-workload","native Tab within filter",[390,1440]);await page.keyboard.press("Escape");await expect(panel.locator("button[aria-controls=resource-advanced-filter]")).toBeFocused();await writeSafe491(info,"effort-contract",{actualApiStatus:200,actualAssignmentCount:actual.data.groups.reduce((n:number,g:{resources:unknown[]})=>n+g.resources.length,0),actualMmUnconfigured:true,serverFixtureMm:20,largeDisplayOnly:true,separateEffortModal:"N/A: inline controls and Excel include checkbox are supported entries"});
+test("Issue #491: Resource Dashboard 실제 공수·큰 서버 표시값·필터·포커스 호환",async({page,baseURL},info)=>{
+  const source=await createSource491(page,baseURL!);
+  await page.getByRole("tab",{name:"리소스",exact:true}).click();
+  const panel=page.locator('.project-resource-workload[data-resource-dashboard="true"]');
+  await expect(panel).toHaveAttribute("data-ready","true");
+  await expect(panel.getByRole("button",{name:"M/M",exact:true})).toBeDisabled();
+  await expect(panel).toContainText("M/M 기준: 미설정 · 전환 불가");
+  await capture491(page,info,"effort-actual-empty",".project-resource-workload");
+  await panel.getByRole("button",{name:"개발 견적",exact:true}).click();
+  await expect(panel.getByRole("button",{name:"개발 견적",exact:true})).toHaveAttribute("aria-pressed","true");
+  await expect(panel).toHaveAttribute("data-ready","true");
+  const filter=panel.locator('button[aria-controls="resource-dashboard-advanced-filter"]');
+  await filter.click();
+  await expect(panel.getByLabel("Global Role",{exact:true})).toHaveValue("DEVELOPER");
+  await panel.getByLabel("기간 시작",{exact:true}).fill("2026-10-06");
+  await panel.getByLabel("기간 종료",{exact:true}).fill("2026-10-20");
+  await expect(panel).toHaveAttribute("data-ready","true");
+  await capture491(page,info,"effort-date-partial",".project-resource-workload");
+  const actualResponse=await page.request.get(source.path+"/resource-dashboard?mode=group&resourceActivity=all&groupActivity=all");
+  expect(actualResponse.status()).toBe(200);
+  const actual=(await actualResponse.json()).data;
+  let mockedRequests=0;
+  await page.route("**"+source.path+"/resource-dashboard*",async route=>{
+    const response=await route.fetch();
+    const body=await response.json();
+    if(response.ok()&&body?.data){
+      mockedRequests+=1;
+      await route.fulfill({response,json:{...body,data:{...body.data,mdPerMm:20,mdPerMmSource:"environment",summary:{...body.data.summary,effort:{knownMd:999999.99,plannedMd:999999.99,plannedMm:49999.9995,state:"configured",partial:false,unsetCount:0}}}}});
+    }else await route.fulfill({response});
+  });
+  await panel.getByRole("button",{name:"새로고침",exact:true}).click();
+  await expect(panel).toHaveAttribute("data-ready","true");
+  await expect(panel.locator('dl[aria-label="선택 범위 KPI"]')).toContainText("999999.99 M/D");
+  await expect(panel.getByRole("button",{name:"M/M",exact:true})).toBeEnabled();
+  await capture491(page,info,"effort-large-server-values",".project-resource-workload","actual API response with large display-only effort fixture; server algorithm unmodified");
+  await panel.getByRole("button",{name:"M/M",exact:true}).click();
+  await expect(panel.getByRole("button",{name:"M/M",exact:true})).toHaveAttribute("aria-pressed","true");
+  await expect(panel.locator('dl[aria-label="선택 범위 KPI"]')).toContainText("50000.00 M/M");
+  await panel.getByLabel("기간 종료",{exact:true}).fill("2026-10-01");
+  await expect(panel).toHaveAttribute("data-ready","false");
+  await expect(panel.getByRole("alert")).toContainText("시작일이 종료일보다 늦습니다.");
+  await capture491(page,info,"effort-date-reversed",".project-resource-workload","invalid date range blocks new scope drill and report");
+  await panel.getByLabel("Global Role",{exact:true}).focus();
+  await page.keyboard.press("Tab");
+  await expect(panel.getByLabel("개발자 등급",{exact:true})).toBeFocused();
+  await capture491(page,info,"effort-filter-native-focus",".project-resource-workload","native Global Role → grade Tab",[390,1440]);
+  await page.keyboard.press("Escape");
+  await expect(filter).toBeFocused();
+  expect(mockedRequests).toBeGreaterThan(0);
+  await writeSafe491(info,"effort-contract",{actualApiStatus:actualResponse.status(),actualAssignmentCount:actual.summary.assignmentCount,actualMmUnconfigured:true,serverFixtureMm:20,mockedRequests,largeDisplayOnly:true,invalidRangeBlocked:true,separateEffortModal:"N/A: Dashboard inline controls and Excel include checkbox remain supported"});
+}
 });
 
 test("Issue #491: 전송 dialog와 템플릿 저장의 Gantt 범위·열·tree·선택·scroll 및 fullscreen 보존",async({page,baseURL},info)=>{
