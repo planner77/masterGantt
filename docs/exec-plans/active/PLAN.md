@@ -297,6 +297,16 @@ B 설정·근무 규칙·인증은 [#490](https://github.com/planner77/masterGan
 
 선행 #456 PR #500의 exact head에서 stacked branch를 만들어 공통 측정 helper/대표 E2E/전체 coverage 표와 문서를 보강한다. [Work Packet](ISSUE_457.md)에 기준 SHA·역할·증거·검증 경계를 기록한다. version0.92.1 유지, tests/docs only, 공식 CI와 최종 ACCEPT는 NOT TESTED다. 현재 구현·독립 검토를 진행하며 요청 범위는 원격 PR과 exact-head CI 등록까지다. B #490/C #491 및 실제 배포/환경별 검증은 후속으로 유지하고 Epic #449를 종료하지 않는다.
 
-#457의 실제 React error boundary·native125%·수동 UX·운영 source/version 미실행은 [#502](https://github.com/planner77/masterGantt/issues/502) FOLLOW-UP / NOT TESTED로 추적한다. 이번 PR은 해당 후속이나 B #490/C #491를 자동 구현하지 않는다.
+#457의 실제 React error boundary 미실행은 [#502](https://github.com/planner77/masterGantt/issues/502), native125%·수동 UX·운영 source/version 미실행은 [#517](https://github.com/planner77/masterGantt/issues/517) FOLLOW-UP / NOT TESTED(BLOCKED 가능)로 분리 추적한다. 당시 #457 PR은 해당 후속이나 B #490/C #491를 자동 구현하지 않았다.
 
 #457 게시 준비 중 선행 PR #500 병합을 확인했다. 최신 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 tree가 기존 측정 source와 정확히 같아 제품 검증을 재사용하며 최종 PR base는 main으로 갱신한다. 착수 당시 stacked 계획과 원래 capture source SHA는 역사 기록으로 보존한다. 독립 QA에서 확인한 목록 실측1280×720·Asia/Seoul 요약 정정 후 새 후보 검토로 진행한다.
+
+## Issue #502 — 실제 Error Boundary·확대·배포 환경 검증 보완
+
+최신 main `c94b13e110ed5fd9e17625daa084c181f35703e8` / application `0.95.1`에서 `test/issue-502-error-boundary-validation`을 최신 main 기준으로 재정렬한다. #457의 source-only 공백 중 자동화 가능한 root/gantt-demo 실제 React error boundary, keyboard retry와 focus restore를 server-gated non-production E2E probe로 구현한다. #457 geometry/provenance helper는 `evidenceScope=502`를 추가해 tracked evidence를 기본 덮어쓰지 않는다.
+
+PR CI #2076.1은 ESLint의 effect 내부 동기 state update, #457 evidence literal fallback 회귀, reset 뒤 probe focus restore 실패로 FAIL했다. 보완은 recovery state를 timer callback으로 전환하고 recovered button을 새 key로 재마운트해 `autoFocus`로 focus를 복원하며, #457/#502 기본 evidence output을 각각 literal 경로로 유지한다. 실패 assertion/gate는 완화하지 않는다.
+
+제품 인증/API/DB/scheduling 및 #490/#491 기능 범위는 변경하지 않는다. version은 `0.95.1`을 유지하고 release_required=false / release_authorized=false로 취급한다. native125% 실제 browser zoom, 실기기/screen reader/최종 수동 UX, 승인 운영 배포 source SHA/application version/proxy 비교는 GitHub-hosted CI로 대체하지 않으며 환경 후속 [#517](https://github.com/planner77/masterGantt/issues/517)에서 NOT TESTED/BLOCKED로 관리한다.
+
+PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI #2078.1/#2079.1 SUCCESS다. Generic Finalizer가 no-release merge 후 #502를 자동 close하므로 CI로 대체할 수 없는 환경 검증을 #517로 분리했다. #517 이관 문서가 반영된 새 head에서 required PR CI와 독립 리뷰를 다시 통과한 뒤 #502를 병합/Main CI/finalize하고, #517은 OPEN으로 유지한다.

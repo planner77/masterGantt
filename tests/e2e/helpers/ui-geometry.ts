@@ -72,7 +72,7 @@ export function assertSiblingControls(controls: Awaited<ReturnType<typeof observ
   controls.forEach((a, index) => controls.slice(index + 1).forEach(b => { expect(Math.min(a.rect.right, b.rect.right) - Math.max(a.rect.x, b.rect.x) > 1 && Math.min(a.rect.bottom, b.rect.bottom) - Math.max(a.rect.y, b.rect.y) > 1).toBe(false); }));
 }
 
-export async function captureUi(page: Page, testInfo: TestInfo, key: string, selector = "main") {
+export async function captureUi(page: Page, testInfo: TestInfo, key: string, selector = "main", evidenceScope: "457" | "502" = "457") {
   const facts = await observeUi(page, selector); assertUi(facts);
   const root = resolve(__dirname, "../../..");
   const files = execFileSync("git", ["ls-files", "src"], { cwd: root, encoding: "utf8" }).trim().split("\n");
@@ -80,15 +80,18 @@ export async function captureUi(page: Page, testInfo: TestInfo, key: string, sel
   const sourceFiles = await hashFiles(files);
   const fixtureFiles = execFileSync("git", ["ls-files", "tests/fixtures", "tests/e2e/fixtures", "tests/e2e/helpers"], { cwd: root, encoding: "utf8" }).trim().split("\n");
   const sourceAggregateSha256 = createHash("sha256").update(JSON.stringify(sourceFiles)).digest("hex");
-  const provenance = { capturedAt: new Date().toISOString(), sourceSha: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(), sourceFiles, sourceAggregateSha256, tests: await hashFiles([testInfo.file.replace(root + "/", ""), "tests/e2e/helpers/ui-geometry.ts", "tests/config/playwright.config.ts", ...fixtureFiles]), appVersion: JSON.parse(await readFile(resolve(root, "package.json"), "utf8")).version, browserVersion: page.context().browser()?.version(), testcase: testInfo.titlePath, command: process.env.ISSUE_457_COMMAND ?? "npx playwright test --config tests/config/playwright.config.ts", report: process.env.ISSUE_457_REPORT ?? "playwright-report" };
-  const baselineSourceAggregateSha256 = process.env.ISSUE_457_BASELINE_SOURCE_AGGREGATE_SHA256?.trim();
+  const evidenceSettings = evidenceScope === "502"
+    ? { command: process.env.ISSUE_502_COMMAND, report: process.env.ISSUE_502_REPORT, baseline: process.env.ISSUE_502_BASELINE_SOURCE_AGGREGATE_SHA256?.trim(), directory: process.env.ISSUE_502_EVIDENCE_DIR?.trim() }
+    : { command: process.env.ISSUE_457_COMMAND, report: process.env.ISSUE_457_REPORT, baseline: process.env.ISSUE_457_BASELINE_SOURCE_AGGREGATE_SHA256?.trim(), directory: process.env.ISSUE_457_EVIDENCE_DIR?.trim() };
+  const provenance = { evidenceScope, capturedAt: new Date().toISOString(), sourceSha: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(), sourceFiles, sourceAggregateSha256, tests: await hashFiles([testInfo.file.replace(root + "/", ""), "tests/e2e/helpers/ui-geometry.ts", "tests/config/playwright.config.ts", ...fixtureFiles]), appVersion: JSON.parse(await readFile(resolve(root, "package.json"), "utf8")).version, browserVersion: page.context().browser()?.version(), testcase: testInfo.titlePath, command: evidenceSettings.command ?? "npx playwright test --config tests/config/playwright.config.ts", report: evidenceSettings.report ?? "playwright-report" };
+  const baselineSourceAggregateSha256 = evidenceSettings.baseline;
   const judgment = baselineSourceAggregateSha256
     ? sourceAggregateSha256 === baselineSourceAggregateSha256
       ? "KEEP: product source matches explicit baseline"
       : "REVIEW: product source differs from explicit baseline"
     : "OBSERVATION: explicit product-source baseline not supplied";
-  const explicitEvidenceDir = process.env.ISSUE_457_EVIDENCE_DIR?.trim();
-  const directory = explicitEvidenceDir ? resolve(root, explicitEvidenceDir) : testInfo.outputPath("issue-457-evidence");
+  const explicitEvidenceDir = evidenceSettings.directory;
+  const directory = explicitEvidenceDir ? resolve(root, explicitEvidenceDir) : evidenceScope === "502" ? testInfo.outputPath("issue-502-evidence") : testInfo.outputPath("issue-457-evidence");
   await mkdir(directory, { recursive: true });
   await page.screenshot({ path: resolve(directory, `${key}.png`), fullPage: true });
   await writeFile(resolve(directory, `${key}.json`), JSON.stringify({ judgment, provenance, facts }, null, 2) + "\n");
