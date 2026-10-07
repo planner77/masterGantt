@@ -1026,6 +1026,22 @@ canonical sync에서 public scroll 좌표를 기록하고 기존 columns queue�
 
 Summary의 일정·진척·상태·Baseline은 자손 기반 파생값이므로 기존 readOnly 표현을 유지한다. Description/URL 저장은 동일 PATCH와 canonical snapshot 갱신을 사용하며 Gantt remount, reload, selection/scroll/scale 초기화를 유발하지 않는다.
 
+## Issue #490 — 프로젝트 설정 폼과 상태 보존
+
+프로젝트 설정의 기본 정보·작업 캘린더·편집/보안 탭은 기존 순서와 저장 단위를 유지한다. 탭의 스크롤 영역은 3px outline과 3px offset이 보이도록 사방 6px 여유를 둔다. 작업 캘린더의 국가·기간·날짜 예외 입력은 기존 semantic input token, 40px 높이, 1px 테두리와 8px/12px 안쪽 여백을 사용한다. 미리보기/저장 버튼은 내용 폭을 유지하며 12px 간격으로 자연스럽게 줄바꿈한다.
+
+저장 중 WorkspaceDialog는 가장 위의 자체 native modal에 대한 Escape keydown을 취소한다. disabled 제출 버튼에서 BODY로 초점이 옮겨져도 빠른 두 번의 Escape가 취소 불가능한 native close를 만들지 않도록 commit 시점에 보호하며, 중첩 nonbusy modal의 Escape와 busy 해제/언마운트 뒤 정상 닫기는 유지한다. 기존 Tab 순환·호출 버튼 초점 복원·onCancel 정책은 그대로 사용한다.
+
+기본 정보 초안은 탭 전환과 Escape/reopen 사이에 기존 부모 state로 남는다. 작업 캘린더 내부 초안과 비밀번호 입력의 기존 수명·민감 입력 초기화는 변경하지 않는다. 401은 readonly 전환, 412는 설정 닫기와 canonical 재조회/metadata 재작성이라는 기존 정책을 따른다. 모든 초안을 412 뒤 보존한다는 계약을 추가하지 않는다.
+
+Project metadata 저장이 Task metadata 변경 없이 새 canonical 배열을 반환할 때도 canonical geometry가 같으면 기존 Gantt viewport 복원 후보가 된다. 같은 instance/context/filter/scale/grid/columns, 사용자 입력 없음과 scroll이 0으로 붕괴한 조건을 계속 확인하며 geometry/date/calendar/filter 변경에는 복원을 적용하지 않는다. 실제 API의 복합 조건 PASS와 정식 DTO를 사용한 mock canonical 경로의 가로 scroll 120→0 FAIL은 별도 근거다. 전체 실제 API 결함으로 확대하지 않는다. 검증 범위와 원본 이력은 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
+
+### Issue #490 비밀번호 변경 검증 보완
+
+유효한 비밀번호 변경은 실제 PUT204 후 호출자에게 새 edit session을 발급하고 기존 다른 세션을 revoke한다. UI는 beginRefresh(false)로 설정을 닫고 canonical GET/current-session을 재확인한다. 잠시 readonly/checking을 거쳐 호출자는 edit를 유지하며 revision은1 증가한다. 변경 중 비밀번호 입력은 즉시 비우고 disabled로 잠그며 빠른 두Escape와 중복 제출을 기존 busy guard로 막는다. 탭의 native keyboard focus는 사용할 수 있다.
+
+성공 재조회 동안 호출 버튼이 unmount되어 실제 초점은 BODY로 돌아간다. 이를 성공 후 호출 버튼 복원 PASS로 보고하지 않는다. 재조회 후 정상 설정 Escape는 settings 버튼, logout은 unlock 버튼, 새 비밀번호 unlock은 settings 버튼으로 복원하는 기존 흐름을 별도로 검증한다. 구 비밀번호는401, 새 비밀번호는204이며 다른 이전 세션은 readonly다. fullscreen frame 밖의 프로젝트 header에는 fullscreen 중 설정 진입이 없으므로 그 조작은 N/A이며 지원 fullscreen 왕복 상태 보존과 구분한다. 상세 실제 계약/관측은 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
+
 ## Issue #342 — 국가 Calendar 관리자 UX
 
 프로젝트 기준정보 관리 화면에서 `/calendar-admin`으로 진입하고 최신 공통 `admin-page` / `AdminAuth` / compact data-table 규칙을 재사용한다. 전역 Header 메뉴 구조는 변경하지 않는다.

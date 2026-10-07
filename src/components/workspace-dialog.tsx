@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useEffect, useId, useRef, type ReactNode, type RefObject } from "react";
+import { useContext, useEffect, useId, useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
 import { WorkspaceMessageContext } from "./workspace-message-context";
 import styles from "./workspace-feedback.module.css";
 
@@ -27,6 +27,22 @@ export function WorkspaceDialog({ title, children, onClose, onEscape, busy = fal
       if (trigger?.isConnected) trigger.focus({ preventScroll: true });
     };
   }, [restoreFocusRef]);
+  useLayoutEffect(() => {
+    if (!busy) return;
+    const dialog = reference.current;
+    if (!dialog) return;
+    const guardPendingEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || !dialog.open || !dialog.matches(":modal")) return;
+      // Native backdrops hit-test to their modal owner, including body focus
+      // after a submitted control is disabled. A nested modal owns its Escape.
+      if (document.elementFromPoint(0, 0)?.closest("dialog") !== dialog) return;
+      event.preventDefault();
+    };
+    // Rapid repeated Escape can produce a non-cancelable native close request.
+    // Install before the busy DOM commit can receive another key event.
+    document.addEventListener("keydown", guardPendingEscape, true);
+    return () => document.removeEventListener("keydown", guardPendingEscape, true);
+  }, [busy]);
   return <dialog ref={reference} className={`${styles.dialog} ${size === "wide" ? styles.dialogWide : ""}`} aria-labelledby={titleId}
     onCancel={(event) => { event.preventDefault(); if (!busy) (onEscape ?? onClose)(); }}
     onKeyDown={(event) => {

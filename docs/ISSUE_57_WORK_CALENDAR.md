@@ -235,6 +235,14 @@ Gantt Day Header처럼 읽기 전용 canonical Project snapshot만 사용하는 
 
 Scheduling Engine은 계속 날짜당 effective exception 하나만 사용한다. `names` 추가는 근무일 판정, COUNTRY/CUSTOM precedence, 충돌 규칙, DB schema를 바꾸지 않는다. `WORKING` 이름도 snapshot에는 보존할 수 있으나 #315 Tooltip은 이를 NON_WORKING 휴일명으로 표시하지 않는다.
 
+## Issue #490 설정 소비자 presentation
+
+Project 설정의 Calendar 국가/기간/날짜 예외 input/select에 기존 semantic border/background/padding/focus/disabled 표현을 적용한다. 기본 높이는 40px이며 footer 미리보기/저장 버튼은 12px gap과 자연스러운 wrap을 사용한다. label/fieldset/error association, 미리보기 stale 안내, 날짜 validation과 readonly/pending/401/412 처리는 기존 구현을 유지한다.
+
+이 변경은 Calendar 계산·국가 fixture·COUNTRY/CUSTOM precedence·Resource 정책·API/DB schema를 변경하지 않는다. 401/412 뒤 설정이 닫힌 화면은 page-level 관측이며 Calendar 초안이 모두 보존된다는 의미가 아니다. 실제 5폭 상태/geometry와 계산 계약 N/A 근거는 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
+
+#490 독립 검토 후390px에서 새 .field 적용 범위 select와 시작일 input을 실제 native Tab로 이동해 직접 focus를 관측한다. 기존 국가 select의 UA outline과 구분하고 visible bbox/outline3px+offset3px/clip owner를 검증한다. 현재 제품 CSS bytes는0.93.1 구현과 같으며 최신main/0.94.1 재검증의 source/spec/helper provenance를 새 파일에 기록한다. 과거 focused date가 viewport 아래에 있었던 사진을 가시성 PASS로 사용하지 않는다.
+
 ## Issue #342 확장 — Country Calendar Catalog
 
 국가별 관리 범위는 2026~2037이며 실제 Scheduling 가능 연도는 `OFFICIAL` dataset이 존재하는 연도만이다. 2026 built-in fixture는 초기 baseline으로 유지하고 관리자 Import/CRUD로 생성한 DB override를 우선한다. `UNAVAILABLE/SUPERSEDED` 연도는 `COUNTRY_CALENDAR_UNAVAILABLE`로 거부한다.

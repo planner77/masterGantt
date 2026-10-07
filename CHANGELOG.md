@@ -10,7 +10,7 @@
 
 ### Changed
 
-- 최신 main v0.94.0의 Issue #485 Global Resource Role Source of Truth 및 migration `0023_deprecate_task_assignment_roles.sql`을 보존하고 Country Calendar Catalog migration을 `0024_country_calendar_catalog.sql`로 재배치한다.
+- 최신 main v0.94.1의 Issue #485 Global Resource Role Source of Truth 및 migration `0023_deprecate_task_assignment_roles.sql`을 보존하고 Country Calendar Catalog migration을 `0024_country_calendar_catalog.sql`로 재배치한다.
 - Project Calendar Preview/Save는 OFFICIAL effective override만 사용하되 신규 Project 기본 KR Calendar seed는 재승인 대기 중에도 approved built-in baseline으로 fallback하여 Project 생성 가용성을 유지한다.
 - Country Calendar persistence는 `Route Handler → Service → Repository → SQLite` 경계를 따른다.
 
@@ -19,6 +19,15 @@
 - 수동 날짜 Add/Edit/Delete 후 기존 OFFICIAL provenance를 재사용하지 않고 UNAVAILABLE + source metadata null로 전환하며, 실제 값이 동일한 date/metadata 저장은 no-op으로 처리한다.
 - explicit null date PATCH, target 전환 stale draft, session 만료 stale edit/delete, pending edit/delete 취소, 삭제 후 focus 복원, 빠른 file reselection race를 fail-closed 처리한다.
 - Country Calendar E2E locator와 target 전환 reload timing을 실제 accessible control 기준으로 안정화한다.
+
+## [0.94.1] - 2026-10-07
+
+### Fixed
+
+- Issue #490: 프로젝트 근무 규칙의 날짜·국가 선택·적용 입력에 40px 높이와 명확한 border·padding을 적용해 입력 경계를 식별하기 쉽게 한다.
+- 프로젝트 설정 Footer action 간격을 12px로 확보하고, 탭의 focus outline을 위한 6px 여유를 둔다. 짧은 action의 내용 기반 폭과 좁은 화면의 자연 wrap을 유지한다.
+- 공용 Workspace Dialog의 요청 처리 중 반복 native Escape가 잠금을 우회해 대화상자를 닫지 않도록 보완한다.
+- 일정 geometry가 같은 canonical Project metadata 응답을 반영할 때 Gantt viewport를 보존한다. 실제 일정·표시 범위 변화와 사용자 스크롤에는 기존 동작을 유지한다.
 
 ## [0.94.0] - 2026-10-07
 

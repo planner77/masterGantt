@@ -1451,14 +1451,17 @@ export function ProjectGantt({
     metadataViewportReference.current?.cleanup();
     metadataViewportReference.current = null;
   }, []);
-  const previousCanonicalViewportReference = useRef<{ geometry: string; metadata: string } | null>(null);
+  const appliedCanonicalViewportGeometryReference = useRef<string | null>(null);
   useEffect(() => {
-    const previous = previousCanonicalViewportReference.current;
-    previousCanonicalViewportReference.current = { geometry: canonicalViewportGeometry, metadata: canonicalViewportMetadata };
-    const metadataOnly = previous?.geometry === canonicalViewportGeometry && previous.metadata !== canonicalViewportMetadata;
     const syncVersion = ++canonicalSyncVersionReference.current;
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       if (syncVersion !== canonicalSyncVersionReference.current) return;
+      // Compare with the geometry that actually completed the previous canonical sync.
+      // A render that was superseded before its queued sync ran must not become the
+      // viewport-restoration baseline for the surviving update.
+      const geometryUnchanged =
+        appliedCanonicalViewportGeometryReference.current !== null &&
+        appliedCanonicalViewportGeometryReference.current === canonicalViewportGeometry;
       const api = apiReference.current;
       if (!api) return;
       canonicalSyncDepthReference.current += 1;
@@ -1471,7 +1474,7 @@ export function ProjectGantt({
       };
       metadataViewportReference.current?.cleanup();
       metadataViewportReference.current = null;
-      if (metadataOnly && context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
+      if (geometryUnchanged && context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
         for (const event of ["pointerdown", "wheel", "keydown"]) root?.addEventListener(event, markViewportInput, true);
         const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), hasInput: () => viewportInput, cleanup: () => { for (const event of ["pointerdown", "wheel", "keydown"]) root?.removeEventListener(event, markViewportInput, true); } };
         metadataViewportReference.current = request;
@@ -1488,6 +1491,9 @@ export function ProjectGantt({
           { tasks: svarTasks, links: svarLinks },
           () => syncVersion === canonicalSyncVersionReference.current,
         );
+        if (syncVersion === canonicalSyncVersionReference.current) {
+          appliedCanonicalViewportGeometryReference.current = canonicalViewportGeometry;
+        }
         ensureTimelineEnd(api);
 
       } catch {
