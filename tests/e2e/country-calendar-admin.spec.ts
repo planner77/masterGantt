@@ -285,3 +285,75 @@ test("Issue #342: DELETE pending 중 취소 버튼은 동작하지 않는다",as
   await page.unroute("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",delayedDelete);
 });
 
+test("Issue #342: PATCH pending 중 편집 취소는 비활성화된다",async({page})=>{
+  await installCalendarMocks(page);
+  await page.goto("/calendar-admin");
+  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
+  await page.getByRole("button",{name:"로그인",exact:true}).click();
+
+  let releasePatch!:()=>void;
+  const gate=new Promise<void>((resolve)=>{releasePatch=resolve;});
+  const delayedPatch=async(route:Route)=>{
+    if(route.request().method()!=="PATCH"){await route.fallback();return;}
+    await gate;
+    await route.fallback();
+  };
+  await page.route("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",delayedPatch);
+
+  const row=page.getByRole("row").filter({hasText:"신정"});
+  await row.getByRole("button",{name:"편집"}).click();
+  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 편집"});
+  await dialog.getByLabel("이름",{exact:true}).fill("pending edit");
+  await dialog.getByRole("button",{name:"저장",exact:true}).click();
+  await expect(dialog.getByRole("button",{name:"취소",exact:true})).toBeDisabled();
+  await expect(dialog).toBeVisible();
+
+  releasePatch();
+  await expect(dialog).toHaveCount(0);
+  await page.unroute("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",delayedPatch);
+});
+
+test("Issue #342: 401 재인증은 stale edit/delete draft를 폐기한다",async({page})=>{
+  await installCalendarMocks(page);
+  await page.goto("/calendar-admin");
+  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
+  await page.getByRole("button",{name:"로그인",exact:true}).click();
+
+  const row=page.getByRole("row").filter({hasText:"신정"});
+  await row.getByRole("button",{name:"편집"}).click();
+  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 편집"});
+  await dialog.getByLabel("이름",{exact:true}).fill("stale after 401");
+
+  const unauthorized=async(route:Route)=>{
+    if(route.request().method()==="PATCH"){await route.fulfill({status:401,json:{error:{code:"PROJECT_MASTER_ADMIN_REQUIRED"}}});return;}
+    await route.fallback();
+  };
+  await page.route("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",unauthorized);
+  await dialog.getByRole("button",{name:"저장",exact:true}).click();
+
+  await expect(page.getByRole("heading",{name:"국가 캘린더 관리자 로그인"})).toBeVisible();
+  await expect(page.getByRole("dialog",{name:"캘린더 날짜 편집"})).toHaveCount(0);
+  await page.unroute("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",unauthorized);
+
+  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
+  await page.getByRole("button",{name:"로그인",exact:true}).click();
+  await expect(page.getByRole("heading",{name:"대한민국 2026"})).toBeVisible();
+  await expect(page.getByRole("dialog",{name:"캘린더 날짜 편집"})).toHaveCount(0);
+});
+
+test("Issue #342: 삭제 후 focus는 남아 있는 날짜 section으로 복원된다",async({page})=>{
+  await installCalendarMocks(page);
+  await page.goto("/calendar-admin");
+  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
+  await page.getByRole("button",{name:"로그인",exact:true}).click();
+
+  const row=page.getByRole("row").filter({hasText:"신정"});
+  await row.getByRole("button",{name:"삭제"}).click();
+  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 삭제"});
+  await dialog.getByRole("button",{name:"삭제",exact:true}).click();
+
+  const datesRegion=page.getByRole("region",{name:"휴일·보충 근무일"});
+  await expect(dialog).toHaveCount(0);
+  await expect(datesRegion).toBeFocused();
+});
+
