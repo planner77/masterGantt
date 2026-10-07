@@ -325,7 +325,7 @@ Project List의 검색 도구줄 순서와 `필터 N` accessible name은 유지�
 
 프로젝트 설정의 작업 캘린더 초안은 국가, 적용 범위·기간, 휴무일 이름·날짜·대상·대상 선택, 규칙·휴무일 추가·삭제가 바뀔 때마다 이전 미리보기를 즉시 숨긴다. 입력을 원래 값으로 되돌려도 이전 결과를 자동으로 다시 표시하지 않으며, 사용자가 `미리보기 계산`을 다시 실행해야 한다. 결과는 계산 당시의 프로젝트 publicId, revision, 요청 본문과 일치할 때만 표시한다. 다른 프로젝트·revision의 늦은 성공/오류 응답은 현재 상태나 알림을 덮어쓰지 않는다.
 
-한 개의 간결한 live status가 초기 안내, 재계산 필요, 계산 중, 실패 후 재시도, 완료 요약을 전달한다. 자세한 변경 작업과 휴무일 목록은 이 live region 밖에 둔다. 계산 중에는 초안과 저장·미리보기 버튼을 잠그며, 계산 실패 때는 결과를 숨기고 재시도 방법을 표시한다. 미리보기는 저장 전 필수 단계가 아니다. 저장 성공 시 이전 미리보기를 지우고 기존 canonical 일정 재조회·알림 경로를 사용한다. 저장 응답을 미리보기 결과처럼 표시하지 않는다. 기존 edit session, Origin, If-Match, 401/412 처리와 서버 인가 계약은 그대로 따른다.
+한 개의 간결한 live status가 초기 안내, 재계산 필요, 계산 중, 실패 후 재시도, 완료 요약을 전달한다. 자세한 변경 작업과 휴무일 목록은 이 live region 밖에 둔다. 계산 중에는 초안과 저장·미리보기 버튼을 잠그며, 계산 실패 때는 결과를 숨기고 재시도 방법을 표시한다. #342의 국가 원본 revision 보호를 적용한 새 UI는 저장 전 현재 초안의 미리보기가 필요하다. 저장 성공 시 이전 미리보기를 지우고 기존 canonical 일정 재조회·알림 경로를 사용한다. 저장 응답을 미리보기 결과처럼 표시하지 않는다. 기존 edit session, Origin, If-Match, 401/412 처리와 서버 인가 계약은 그대로 따른다.
 
 자동 Chromium 검증은 `tests/e2e/project-work-calendar-preview.spec.ts`가 실제 KR→US 미리보기·저장 요청, 초안 변경, 실패·재시도, metadata 저장에 따른 revision 변경·editor unmount 뒤 늦은 응답, 390/768/1024/1440px 상태·버튼 접근을 확인한다. Metadata 저장은 기존 설정 창을 닫으므로 같은 editor 인스턴스에서 revision prop만 바뀌는 경로는 브라우저에서 직접 재현하지 않는다. publicId/revision 일치 검사와 요청 토큰 경계는 코드 검토 및 원격 회귀와 함께 판정한다. 스크린리더와 실제 기기 조작은 별도 환경 검증이다.
 
@@ -1068,3 +1068,17 @@ Project metadata 저장이 Task metadata 변경 없이 새 canonical 배열을 �
 Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
 
 Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.
+
+## Issue #342 국가 캘린더 원본 관리와 명시적 Project 적용
+
+`/country-calendar-admin`은 7개 국가의 2026~2037년 원본을 관리한다. 기존 Project master 관리자 session을 사용하며 `AdminAuth`는 인증 폼 표현, `WorkspaceDialog`는 날짜·Import·확인 창을 제공한다. 관리자 인증이 확인된 화면의 국가/연도 native select, 출처 metadata 필드 및 저장/추가/Import action은 최초 조회 실패에도 제거하지 않는다. 최신 snapshot이 없거나 stale이면 저장은 비활성이고 재조회 경로를 제공한다. 조회 중 대상 선택은 가능하며 로그인 mutation이 완료되면 뒤따르는 GET을 별도 조회 상태로 처리한다. 국가·연도 값과 request/auth generation이 맞는 응답만 반영하고, 다른 대상의 마지막 snapshot을 현재 결과로 표시하지 않는다.
+
+공식 자료 확보, 미확보, 기존 자료 대체 필요와 조회 실패·확인된 빈 목록을 구분한다. 공개 descriptor의 연도별 dataset 상태와 실제 지원 연도를 사용하며 미래 휴일을 추정하지 않는다. 자료 적용 범위는 KR 관공서 공휴일, CN 국무원 연간 일정, VN 주5일 공공기관 직원, PH 전국 공식 휴일, TH 전국 금융기관 공통, MX 연방노동법 일반 의무휴무일, US 연방직원이다. 실제 Project의 업종·근무 조건은 Project 날짜 예외로 확인한다. 출처 URL 문법이나 관리자의 OFFICIAL 선언만으로 해당 문서 내용의 독립 검증이 수행됐다고 표시하지 않는다. 원본 확보 정책은 [COUNTRY_CALENDAR_DATA](COUNTRY_CALENDAR_DATA.md)를 따른다.
+
+Metadata와 날짜 초안은 선택 대상에 연결한다. dirty 대상 전환은 초안 버리기 확인을 요구하고 취소 시 native 선택 control로 focus를 돌린다. 401은 인증·preview 세대를 무효화하고 편집을 잠근다. 비민감 metadata/날짜 초안은 메모리에 보존하며 재로그인 후 최신 값과 명시적으로 비교·검토하기 전 저장할 수 없다. 412는 자동 mutation 재전송 없이 최신 snapshot을 조회하고 초안 비교 및 검토 완료/서버 값 복원 경로를 제공한다. 결과 불확실한 mutation은 재조회 전 재저장을 막는다. 날짜 key 변경 또는 삭제로 원래 trigger가 사라지면 canonical 새 행의 수정 action 또는 생존하는 날짜 추가 action으로 focus를 복원한다. 저장 중 중복 클릭·Enter·대상 변경·닫기·반복 Escape를 막고 완료 후 정상 닫기/초점 복원을 유지한다.
+
+JSON/CSV는 UTF-8 원문을 서버 preview한 후 counts와 삭제 수·출처를 검토하고 명시적으로 확인해 전체 날짜를 원자적으로 교체한다. 클라이언트는 `arrayBuffer`와 fatal UTF-8 decoder를 사용하며 선행 BOM을 원문에 보존한다. 파일 선택/형식/대상/인증 세대 변경은 이전 읽기·preview 동의를 무효화한다. 서버 token은 화면·URL·로그에 표시하지 않으며 만료, catalog revision 변경, 401/412 뒤에는 자동 apply하지 않는다. 적용 실패의 입력·행 오류를 표시하고 새 인증/최신 조회/파일 선택 및 새 preview 경로를 제공한다. 국가 원본 수정은 이미 materialize한 Project Calendar·Task·revision을 자동으로 변경하지 않는다.
+
+새 Project는 생성 연도의 사용 가능한 KR 원본 또는 같은 연도의 검증된 builtin을 사용하고, 둘 다 없으면 국가 규칙 없이 기본 월~금으로 생성한다. 국가 규칙을 명시한 Project Calendar Preview/Save는 해당 연도의 공식 확보 자료가 필요하다. 미확보 국가·연도는 상세 422로 표시하며 다른 연도 자료로 대체하지 않는다. 새 UI는 현재 초안의 Preview가 반환한 양의 정수 `countryCatalogRevision`을 저장에 반드시 전송한다. Preview가 없거나 입력/Project revision이 바뀌었거나 catalog revision 필드가 없거나 잘못되면 저장을 잠근다. Preview 이후 국가 원본이 변경되면 Save 412로 최신 상태 재확인을 요구한다. 기존 API 호출의 omitted 호환 경로는 새 UI의 저장 경로로 사용하지 않는다.
+
+로컬 자동화는 실제 SQLite/auth JSON·CSV apply, metadata/date CRUD와 rename/delete focus, no-op 및 기존 Project 불변, Project Preview→Save→canonical 재조회와 catalog race 412·미확보 422를 제어 mock 없이 검증한다. 지연·역순 응답/최초 오류/401·412 재검토/파일 읽기 race·만료/pending은 별도 mock 경로로 확인한다. 390/768/1024/1440/1920px 캡처의 US2031 E2E-v3는 테스트 전용 override이며 builtin 공식 확보 자료의 증거가 아니다. source/test/env와 실제 실행 결과는 Issue/PR Result Contract로 구분한다. 로컬 결과는 원격 quality/e2e/docker 및 독립 QA를 대체하지 않는다.

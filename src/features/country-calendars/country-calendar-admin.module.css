@@ -1,0 +1,49 @@
+.panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
+.workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
+.workspace > * { min-width: 0; }
+.workspace[hidden] { display: none; }
+.note { margin: 0; color: var(--text-muted); overflow-wrap: anywhere; }
+.toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.field { display: grid; align-content: start; gap: 6px; min-width: 0; font-size: 14px; font-weight: 500; }
+.field input, .field select { width: 100%; min-width: 0; min-height: 44px; padding: 8px 12px; border: 1px solid var(--border-control); border-radius: 8px; background: var(--surface-panel); color: var(--text-default); font: inherit; }
+.field input:focus-visible, .field select:focus-visible, .confirm input:focus-visible, .tableScroll:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+.field input:disabled, .field select:disabled { opacity: var(--state-disabled-opacity); }
+.toolbar > .field:first-child { min-width: 190px; }
+.toolbar > .field:nth-child(2) { min-width: 150px; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.actions button, .dialogActions button, .metadata button, .feedback button { margin: 0; min-height: 44px; }
+.feedback { display: grid; gap: 8px; min-width: 0; }
+.feedback p { margin: 0; overflow-wrap: anywhere; }
+.error { color: var(--status-error); white-space: pre-wrap; overflow-wrap: anywhere; }
+.comparison { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; }
+.metadata { display: grid; grid-template-columns: minmax(160px, .8fr) minmax(160px, 1fr) minmax(200px, 2fr) max-content; gap: 12px; align-items: end; padding: 12px; min-width: 0; }
+.metadata legend { font-weight: 600; padding: 0 4px; }
+.metadata + .note { margin-top: 8px; }
+.listHeading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.listHeading h2 { margin: 0; font-size: 18px; }
+.tableScroll { overflow-x: auto; min-width: 0; max-width: 100%; padding: 6px; border: 1px solid var(--border); border-radius: 8px; }
+.table { width: 100%; min-width: 780px; border-collapse: collapse; text-align: left; font-size: 14px; }
+.table th, .table td { padding: 8px 12px; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.table th { font-weight: 600; background: var(--surface-subtle); }
+.table th:first-child { width: 120px; }
+.table th:nth-child(2) { width: 104px; }
+.table th:nth-child(3) { min-width: 160px; }
+.table th:nth-child(4) { width: 160px; }
+.table th:last-child { width: 160px; }
+.table td .actions { flex-wrap: nowrap; }
+.dialogBody { display: grid; gap: 12px; min-width: 0; overflow-y: auto; padding: 16px; }
+.dialogBody p { margin: 0; overflow-wrap: anywhere; }
+.dateForm { display: grid; gap: 12px; padding: 12px; min-width: 0; }
+.dialogActions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 12px; }
+.dialogActions button { min-height: 44px; }
+.fileControls { display: grid; grid-template-columns: minmax(120px, .4fr) minmax(0, 1fr); gap: 12px; }
+.fileControls input[type="file"] { max-width: 100%; padding: 8px; }
+.counts { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+.counts > div { min-width: 72px; padding: 8px 12px; background: var(--surface-subtle); border: 1px solid var(--border); border-radius: 6px; }
+.counts dt { color: var(--text-muted); }
+.counts dd { margin: 4px 0 0; font-size: 20px; font-weight: 600; }
+.confirm { display: flex; gap: 8px; align-items: center; min-height: 44px; }
+.confirm input { width: 20px; height: 20px; flex: 0 0 auto; }
+.urlText { overflow-wrap: anywhere; }
+@media (max-width: 1100px) { .metadata { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .metadata .url { grid-column: 1 / -1; } .metadata button { justify-self: end; grid-column: 1 / -1; } }
+@media (max-width: 540px) { .metadata { grid-template-columns: minmax(0, 1fr); } .metadata .url { grid-column: auto; } .metadata button { grid-column: auto; } .fileControls { grid-template-columns: minmax(0, 1fr); } .toolbar > .field:first-child { min-width: 0; flex: 1 1 170px; } .toolbar > .field:nth-child(2) { min-width: 0; flex: 1 1 140px; } }

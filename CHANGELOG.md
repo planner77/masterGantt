@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.96.0] - 2026-10-07
+
+### Added
+
+- Issue #342: KR/CN/VN/PH/TH/MX/US의 2026~2037년 84개 국가·연도 슬롯을 국가 Calendar Catalog로 관리한다. 공식 검증된 날짜만 일정 계산에 사용하고, 확인되지 않은 슬롯은 UNAVAILABLE로 명시한다.
+- 기본 제공 Calendar와 DB override를 결합하고, 관리자 화면에서 메타데이터·근무일·휴일 편집 및 JSON/CSV Preview·원자적 적용을 제공한다. 실행 중 외부 Calendar API는 호출하지 않는다.
+- 관리자 session·Origin·강한 If-Match와 Preview token의 내용·형식·대상·revision·session·만료 검증을 적용한다. 날짜 변경은 공식 출처 상태를 해제하며, 실제 변경이 없는 저장은 revision과 출처를 유지한다.
+
+### Changed
+
+- 기존 Project에 구체화된 Calendar와 Task·Project revision을 보존한다. 새 Calendar 적용은 명시적으로 수행하며, 미확인 국가 슬롯과 Preview 이후 Catalog 변경을 오류로 구분한다.
+- 국가 Calendar 관리 화면의 조회 실패에서도 메타데이터·action 영역을 유지하고, 대상 전환·재인증·파일 선택·처리 중 상태와 초점을 보존한다.
+- 최신 main의 application version `0.95.1`과 기존 변경을 보존하고, 국가 Calendar Catalog 기능 추가에 맞춰 MINOR `0.96.0`으로 증가한다.
+
+### Fixed
+
+- 기존 main에서도 재현된 NativeAdd 요청 누락을 최소 callback 참조 갱신으로 보완하고, 최신 Gantt Tooltip 동작을 유지한다.
+
 ## [0.95.1] - 2026-10-07
 
 ### Fixed

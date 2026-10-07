@@ -288,3 +288,9 @@ Probe UI는 제품 기능이 아니며 production에서 활성화하지 않는�
 ### #502 자동화와 #517 환경 검증 분리
 
 PR #516의 Error Boundary 하니스/keyboard/focus 검증은 #502의 자동화 범위다. 실제 브라우저 native125%·실기기/screen reader·최종 수동 UX·운영 source/version/proxy는 #517의 환경별 범위이며, #502 CI 또는 merge/close를 해당 환경 PASS로 해석하지 않는다.
+
+## Issue #342 비동기 관리자 폼 적용
+
+국가 캘린더 관리자는 기존 Light/compact semantic token, 관리자 shell와 native control·dialog 기준을 적용한다. 국가/연도/자료 상태/날짜 유형/파일 형식은 분리된 label과 `id/htmlFor`로 연결한다. 조회 상태는 선택 control·metadata/action의 DOM 수명과 분리하고, 최초 오류에도 저장 action을 비활성 상태로 유지한다. GET 중 native 선택 변경과 역순 응답이 label/focus/현재 대상을 없애거나 바꾸지 않는지 실제 browser로 확인한다. 로그인·mutation busy와 GET loading을 동일 잠금으로 취급하지 않는다.
+
+공통 observer로 5폭 control 경계/배경/padding/44px 작업 hit area, populated table과 자체 가로 scroll, document overflow, sibling 비중첩과 실제 native Tab focus outline을 관찰한다. 날짜 rename/delete의 disconnected trigger는 취소 focus 복원과 구분해 생존 action으로 확인한다. 오류/race 제어 mock, 실제 SQLite/auth 성공 흐름, test-only US2031 override 캡처, builtin 공식 출처 증거와 원격 CI를 각각 구분한다. 공통 token·AdminAuth·WorkspaceDialog 자체 및 native125%/실기기/screen reader 환경 경계는 변경하지 않는다. 화면별 초안·권한·revision·Import 동작은 [PROJECT_UX의 #342 계약](PROJECT_UX.md#issue-342-국가-캘린더-원본-관리와-명시적-project-적용)을 따른다.

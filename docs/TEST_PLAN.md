@@ -2105,3 +2105,16 @@ GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않�
 ### #502 → #517 환경 검증 이관
 
 #502는 자동화 가능한 실제 React error boundary 검증을 PR #516으로 수렴시킨다. native125%·실기기/screen reader·최종 수동 UX·승인 운영 source/version/reverse proxy 검증은 lifecycle finalize와 실제 환경 PASS를 혼동하지 않도록 [#517](https://github.com/planner77/masterGantt/issues/517)로 이관한다. #502 merge/close는 #517 PASS를 의미하지 않는다.
+
+## Issue #342 국가 캘린더 원본 관리자
+
+- `tests/e2e/country-calendar-admin.spec.ts`는 격리된 실제 SQLite/Next와 테스트 전용 Project master 관리자 credential로 JSON/CSV preview/apply, metadata 및 date create/rename/delete, 출처 무효화/재확인, no-op, 실제 native focus 복원, 기존 materialized Project·Calendar·revision 불변을 검증한다. Project Preview/Save는 서버 catalog revision payload·canonical 재조회·catalog 변화 412·명시 미확보 연도 422를 실제 API로 확인한다. 성공 경로에 `route.fulfill`을 사용하지 않는다.
+- 같은 spec의 제어 mock은 최초 GET 실패에서 metadata/action DOM 유지와 disabled, native 국가 변경과 역순 응답/초기 로그인 후 GET, 401/412 보존 초안의 명시적 재검토와 mutation 재전송 0, fatal UTF-8/선행 BOM 원문/파일 읽기 epoch, preview 만료와 중복 apply 0, pending 반복 Escape 및 해제 후 닫기·trigger focus를 검증한다.
+- 390/768/1024/1440/1920px에서 공통 `observeUi`의 label/border/background/padding/높이/table 최소수, sibling geometry, 표 자체 가로 scroll과 document overflow를 수집한다. 390px country→year 실제 Tab의 focus-visible/outline/clip owner를 별도 관찰한다. 캡처의 US2031 E2E-v3는 테스트 전용 override이며 builtin OFFICIAL 출처 확인 근거가 아니다. 실제 native125%/실기기/screen reader는 NOT TESTED다.
+- 기존 `project-work-calendar-preview.spec.ts`는 현재 preview의 필수 `countryCatalogRevision`, 누락/비정수 mock의 저장 잠금, 입력 변경 뒤 새 preview와 저장 payload를 확인한다. `project-resource-calendar-exceptions.spec.ts`와 `project-settings-layout-490.spec.ts`의 해당 mock은 새 DTO 필드를 사용하며 저장 영향 경로는 현재 Preview 계약을 따른다.
+- `project-gantt-stability.spec.ts`의 첫 native 하위 추가 및 지연/연속 추가 회귀는 callback/scope/reject ref의 layout commit 업데이트와 기존 instance/selection/tree/column/scroll/readonly·보호 오류 의미를 검증한다. Tooltip 및 새 main 공통 config/helper의 제품 계약은 변경하지 않는다.
+- 서버의 `country-calendar-catalog.test.ts`/`country-calendar-integration.test.ts`와 관련 회귀는 strict JSON/CSV, 84 slot/출처 확보 범위, override masking, 날짜 변경 provenance/no-op write0, preview counts·binding·expiry·session, mid-insert/revision 실패 rollback, delayed-body 재인증, Origin/strong If-Match, materialized 일정 불변, seed fallback/copy 및 23→24 migration/reopen을 검증한다. UTC2026 KR seed를 유지한 실제 Task의 US2027→2028 연말 경계에는 연도별 원본과 OPM2028 표의 실제 날짜 2027-12-31, Preview write0·명시 Save·sourceVersion 지속성을 별도로 확인한다. Template 저장 뒤 원본 catalog가 미확보로 바뀌어도 template/source Project snapshot이 불변이며 instantiate가 저장된 휴일을 사용하는 경계도 실제 SQLite에서 확인한다. 실제 실행 counts와 재사용 영향 근거는 backend Result Contract로 관리한다.
+
+독립 QA의 긴 값 증거 보완은 같은 실제 SQLite CSV 교체 시나리오에 name200자, sourceKey120자, sourceVersion200자, sourceUrl2048자의 허용 최대값을 사용한다. 서버 canonical 원문 보존을 확인한 뒤 5폭의 sibling/header/body 정렬, document overflow0, 표 자체 가로 scroll 범위와 390px native Tab/focus-visible을 다시 검증한다. 값은 US2031 테스트 전용 override이며 공식 자료 내용의 확인 근거가 아니다. 짧은 값의 이전 캡처/실행은 역사적 원문으로 보존하고 최신 캡처의 provenance를 소급하지 않는다.
+
+Local Fast Feedback의 선택 실행과 원격 PR `quality/e2e/docker`는 별도 판정한다. 최초 실패·trace/report 원문은 다음 실행 전에 분리 보존하고, 최신 source/test/env 증거를 과거 capture에 소급하지 않는다. 신규 route는 before UI가 없으므로 main 소스/설계가 baseline이며 이전 PR #346의 오류는 재현 교훈으로만 사용한다.

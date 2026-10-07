@@ -1,5 +1,14 @@
 # Active execution plan
 
+## Issue #342 국가 캘린더 — 최신 main 재구현 / 기존 PR 재검증
+
+최신 main `c94b13e110ed5fd9e17625daa084c181f35703e8` / application `0.95.1`에서 국가 원본·관리 화면·테스트를 새로 구현한다. 기존 PR #346과 branch `feat/issue-342-country-calendar-catalog`를 재사용하고 과거 실패 이력을 보존한다. 신규 기능 version은 MINOR `0.96.0`이며 자세한 AC·소유권·정책·문서·검증은 [Issue #342 실행 계획](ISSUE_342.md)을 따른다.
+
+작업 중 PR #516 / Issue #502가 main `36cf2db8ab0c6d04ab904b01c6bc8a0bb6b1cdab`에 병합돼 공통 E2E 설정·geometry helper와 문서를 통합했다. version은 동일하므로 `0.96.0`을 유지한다. backend 고유 bytes의 관련 로컬 결과는 재사용하고 최신 공통 설정에서 브라우저 검증을 다시 수행한다.
+
+확인한 관리자 조회/국가 전환 상태 회귀와 main에도 있는 Native Add 첫 클릭 실패를 해결한다. 84개 슬롯의 공식 상태, strict JSON/CSV Preview 및 atomic Apply, 관리자 권한·revision·token binding, 기존 Project snapshot 불변을 검증한다. 구현·문서 동기화·독립 QA 후 새 head의 quality/e2e/docker를 모두 확인한다. 최신 main에서 관련 서버 239개 고유 테스트와 선택한 브라우저 10개가 PASS다. 문서 동기화·독립 QA·게시 검토 후 PR 검증으로 넘긴다. 현재 새 구현의 원격 CI와 최종 QA는 NOT TESTED다. `release_required=true`, `release_authorized=false`; 병합·GHCR·tag·Issue 종료는 현재 요청 범위 밖이다.
+
+
 ## Issue #491 생성·복사·템플릿·입출력 폼 — 최신 Tooltip main 통합 / PR CI 시작
 
 main `44b2ee3562cf76a73368a49fa17933ed341ab424` / application `0.94.2`에서 #456 C 후속을 구현하고 PATCH `0.94.3`의 최종 after 8case PASS(2.5분)를 확인했다. branch는 `fix/issue-491-project-transfer-layout`, 전용 worktree는 `issue-491`이며 [Issue #491 실행 계획](ISSUE_491.md)의 6AC·소유권·지원 경계·문서·검증을 따른다. 실제 7개 표면을 390/768/1024/1440/1920px에서 관측해 template/Export/Import 3표면을 FIX하고 나머지 지원 배치는 KEEP으로 기록한다. JSON-only Import/CSV mapping 미지원과 inline 견적 범위를 분리하며 신규 기능·계산은 추가하지 않는다.

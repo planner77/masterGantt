@@ -281,7 +281,7 @@ Grouping은 표시 그룹과 실제 Parent Tree를 구분한다. Resource Assign
 = Project Effective Calendar
 ```
 
-여러 국가 rule이 같은 날짜에 같은 day type을 만들면 계산에서는 한 번만 적용하고 source는 API Preview에 모두 보존한다. 서로 반대 day type이면 `CALENDAR_EXCEPTION_CONFLICT`로 저장 전에 거부한다. 국가 fixture는 현재 2026년 KR/CN/VN/PH/TH/MX/US만 검증 범위이며 범위 밖 연도는 추정하지 않는다.
+여러 국가 rule이 같은 날짜에 같은 day type을 만들면 계산에서는 한 번만 적용하고 source는 API Preview에 모두 보존한다. 서로 반대 day type이면 `CALENDAR_EXCEPTION_CONFLICT`로 저장 전에 거부한다. 최초 #57 fixture는 2026년 KR/CN/VN/PH/TH/MX/US였다. 현재 공식 dataset의 지원 연도와 원본 catalog 경계는 아래 #342 절을 따르며, 미확보 연도는 추정하지 않는다.
 
 ### Resource Effective Calendar (#261)
 
@@ -338,3 +338,14 @@ Service는 원본 persisted↔최종 candidate 날짜를 비교하여 target/앞
 
 Chart vertical DnD는 일정 계산 명령이 아니다. vertical axis가 lock되면 `start/end/duration` PATCH를 생성하지 않고 same-parent sibling order만 hierarchy transaction으로 확정한다. #335와 같이 Dependency Link 및 requested/effective schedule은 변경하지 않으며 Calendar/Summary/Dependency scheduling 규칙도 변경하지 않는다.
 
+
+
+## Issue #342 — 원본 dataset과 materialization
+
+국가 원본의 관리 범위는 2026~2037이며 실제 사용 가능한 supportedYears는 OFFICIAL 완전 자료 기준이다. repository 내 고정 공식 date rows + DB override를 사용하고 UNAVAILABLE/SUPERSEDED override는 기본 자료를 마스킹한다. 새 연도는 공식 자료를 업로드해 추가하며 미래 공휴일을 계산·추정하지 않는다. 확보 범위/정부 발표와 관측일 sourceScheduleYear는 [국가 데이터 운영](COUNTRY_CALENDAR_DATA.md)에 기록한다.
+
+순수 Working Calendar/Dependency/Hierarchy/Resource algorithm은 변경하지 않는다. 서버 WorkCalendarService가 명시적 Preview/Save materialization 시에만 current OFFICIAL country provider를 읽는다. 필요한 year가 없으면 국가/연도 상세 COUNTRY_CALENDAR_UNAVAILABLE 오류다. 기존 Task mutation/Workload/Copy/Template는 저장한 rule/date를 계속 사용하므로 catalog mutation만으로 일정/공수/Project revision이 바뀌지 않는다.
+
+Preview의 materialization과 countryCatalogRevision은 같은 read transaction에서 조회한다. 새 UI Save가 해당 revision을 보내면 기존 Project revision 검사와 별도로 catalog 변화도 412로 거부한다. 생략한 legacy API는 기존 현재 자료 재계산 계약을 유지한다. explicit Save 성공의 Calendar/Auto/Summary/revision + 1 transaction은 그대로다.
+
+새 Project default는 생성 UTC year current OFFICIAL KR → 같은 year verified built-in KR → 국가 예외 없는 월~금 규칙이다. 다른 year 휴일 fallback 없이 생성 availability를 유지하고, explicit country rule 적용에서는 strict official-only 422를 유지한다.

@@ -25,7 +25,7 @@ Project 일정과 Resource 공수 계산에서 사용하는 근무일 규칙을 
 | MX | 멕시코 |
 | US | 미국 |
 
-신규 Project의 기본 국가 규칙은 `KR / FULL_PROJECT`다. 기존 Project에는 migration만으로 국가 규칙을 새로 추가하지 않는다.
+신규 Project는 같은 UTC 연도의 사용 가능한 공식 자료가 있으면 `KR / FULL_PROJECT`로 시작한다. #342부터 같은 연도 자료가 없으면 국가 rule 없이 월~금 기본 주간 규칙으로 생성한다. 기존 Project에는 migration만으로 국가 규칙을 새로 추가하지 않는다.
 
 국가 규칙은 `FULL_PROJECT` 또는 `DATE_RANGE`를 사용한다. 여러 국가 규칙을 동시에 적용할 수 있으며 같은 날짜에 같은 `dayType`이 중복되면 하나의 유효 날짜로 합치고 source 목록을 보존한다.
 
@@ -242,3 +242,16 @@ Project 설정의 Calendar 국가/기간/날짜 예외 input/select에 기존 se
 이 변경은 Calendar 계산·국가 fixture·COUNTRY/CUSTOM precedence·Resource 정책·API/DB schema를 변경하지 않는다. 401/412 뒤 설정이 닫힌 화면은 page-level 관측이며 Calendar 초안이 모두 보존된다는 의미가 아니다. 실제 5폭 상태/geometry와 계산 계약 N/A 근거는 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
 
 #490 독립 검토 후390px에서 새 .field 적용 범위 select와 시작일 input을 실제 native Tab로 이동해 직접 focus를 관측한다. 기존 국가 select의 UA outline과 구분하고 visible bbox/outline3px+offset3px/clip owner를 검증한다. 현재 제품 CSS bytes는0.93.1 구현과 같으며 최신main/0.94.1 재검증의 source/spec/helper provenance를 새 파일에 기록한다. 과거 focused date가 viewport 아래에 있었던 사진을 가시성 PASS로 사용하지 않는다.
+
+
+## Issue #342 국가 데이터 운영 확장
+
+위 #57 최초 2026 fixture 계약은 #342에서 국가 원본 catalog 관리로 확장된다. 관리 범위 7국가 × 2026~2037 = 84 slots와 상태 OFFICIAL/UNAVAILABLE/SUPERSEDED를 제공한다. actual supportedYears는 완전 공식 자료가 있는 연도만 포함한다. 미래 관습 추정과 runtime 외부 API는 계속 금지한다. 공식 획득·발표·scope·sourceVersion 절차와 JSON/CSV 샘플은 [국가 데이터 운영](COUNTRY_CALENDAR_DATA.md)을 따른다.
+
+built-in + DB override 모델에서 명시적 UNAVAILABLE/SUPERSEDED override는 built-in을 마스킹한다. 최신 자료는 명시적 Project Calendar Preview/Save에서만 materialize하며 기존 Project의 rule/date/Task/revision은 자동 갱신하지 않는다. Copy/Template/Workload도 저장 snapshot을 사용한다. 새 built-in sourceVersion은 기존 날짜에 소급 반영되지 않는다.
+
+VN 2026의 1/2 NON_WORKING·1/10 WORKING 교환과 11/24 휴일은 공식 공지·법률에 따른 새 version이다. US 2027~2030은 OPM 고정 표이며 2028 표의 2027-12-31은 2027 dataset으로 정규화하고 원표 연도를 보존한다. TH 2027은 BOT 공식기관 scope의 18 dates다. 상세 scope와 추가 확보 중 연도 상태는 운영 문서가 기록한다.
+
+관리자는 기존 Project Master session으로 JSON/CSV validation/Preview/전체 교체와 날짜 CRUD/metadata를 수행한다. Preview token은 raw UTF-8 / format / target / catalog revision / 현재 관리자 session / expiry 결속, Apply는 권한·자료를 같은 transaction에서 재검증한다. 날짜 actual 수정은 UNAVAILABLE + 출처 null로 공식 provenance를 무효화하고 명시적 source 재확인 후에만 OFFICIAL로 복귀한다. no-op은 write 0, actual 변경은 revision + 1, failure는 전체 rollback이다.
+
+Project Preview는 countryCatalogRevision을 제공하고 신규 UI Save는 이를 보내 stale catalog 변화를 412로 막는다. 기존 Project If-Match/edit-session/Origin은 유지한다. 기본 신규 Project는 같은 UTC year KR current → 같은 year verified built-in → 국가 rule 없는 월~금으로 생성 가능하며, 명시적 국가 적용은 여전히 미확보 시 422다. API·영속 구조·보안 세칙은 [API](API.md), [DB_SCHEMA](DB_SCHEMA.md), [SECURITY](SECURITY.md)를 따른다.

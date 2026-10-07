@@ -694,7 +694,7 @@ export function ProjectGantt({
     });
   }, [editable, mutationLocked]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     onTaskCreateReference.current = onTaskCreate;
     onTaskCommandReference.current = onTaskCommand;
     linksReference.current = links;

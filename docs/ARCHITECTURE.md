@@ -215,3 +215,16 @@ Import는 서버를 참조하지 않는 `src/contracts/import.ts`의 JSON object
 Milestone dashboard Route → read Service → 기존 Project/Schedule/Membership/Resource Catalog/Logistics/Calendar Repository → SQLite 경계를 유지한다. Project row부터 모든 입력을 하나의 read transaction에서 조회하고 clock을 한 번 캡처한다. 새로운 DB 테이블/집계 job/cache는 없다. `milestone-dashboard-calculation-core.ts`는 전체 `projectStageGates`와 기존 Logistics pure matcher를 재사용한다. Logistics는 독립 `milestone-dashboard-projection-core.ts`만 호출하므로 두 service 사이 순환 의존성이 없다.
 
 전체 E/P Gate와 선택 S, 공수 F는 [단계 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델)으로 분리한다. S 검색/선택과 WBS 화면 scope는 전체 F 합계를 축소하지 않는다. ProjectRevision은 일정/소속/관계/상태/assignment/Project Calendar/물류를, CatalogRevision은 Resource 이름·등급·그룹/calendar 선택 의존성을 반영한다. 물류 유형 code를 재해석하지 않으므로 유형 catalog revision은 계산 입력이 아니다. `md-per-mm-core.ts`는 query/ENV/null 환산을 공유하며 pure 계산 안에서 process.env를 읽지 않는다. readonly UI는 같은 snapshot의 최소 관련 catalog를 받는다. Gantt와 Dashboard peer는 같은 grid cell에 mount 상태를 유지한다. 비활성 peer는 visibility:hidden/inert/aria-hidden으로 입력과 접근성을 제외하면서 layout box를 보존한다. peer 숨김/복귀 때 기존 Gantt의 공개 scroll 상태가 손실되는 actual 회귀에 대응하여 이 배치를 적용했으며 client의 E/P/Ready/공수 계산은 추가하지 않는다.
+
+
+## Issue #342 — 국가 원본 관리 경계
+
+국가 원본 관리 흐름은 관리자 UI → Route Handler → CountryCalendarAdminService → CountryCalendarRepository → SQLite다. 기존 Project Master admin cookie/session을 재사용하며 body await 뒤 read/IMMEDIATE transaction에서 현재 session과 finite expiry를 다시 검증한다. SQL은 Repository가 소유한다. Preview는 immutable 원문·format·선택 국가/연도·catalog revision·현재 관리자 session·expiry에 HMAC으로 묶이며 DB write 0이다. Apply는 strict 재검증과 전체 slot replace/revision + 1을 같은 transaction에 수행한다.
+
+`CountryCalendarCatalog`는 immutable built-in + DB override를 resolve한다. 7국가 × 2026~2037의 84 slots, OFFICIAL/UNAVAILABLE/SUPERSEDED를 관리하며 OFFICIAL만 새로운 materialization에 제공한다. 미확보 미래 연도는 생성하지 않는다. 고정 공식 원문 date rows만 repository에 포함하고 runtime network I/O는 없다. public 84 slots / countryCatalogRevision과 Project Preview materialization/revision은 일관된 read transaction snapshot이다.
+
+이 catalog를 `calendar-resolution-core.ts`에 주입하지 않는다. 기존 Project/Task/Resource Workload/Copy/Template는 이미 materialized된 Calendar를 계속 읽는다. 최신 국가 데이터를 읽는 경로는 신규 Project seed와 명시적 Project Calendar Preview/Save다. 국가 catalog 변경만으로 Project/Task/revision을 바꾸는 hook/job은 없다. Scheduling Domain 공식은 바뀌지 않는다.
+
+신규 Project 생성은 같은 연도 KR official current → immutable verified built-in → 기본 주간 규칙으로 availability를 유지하며, 명시적으로 국가를 추가하는 흐름은 strict 422를 유지한다. Project Preview는 countryCatalogRevision을 제공하고 신규 UI Save가 이를 보내며 변화 시 412로 다시 Preview를 요구한다. 생략한 legacy 호출의 기존 recompute 계약은 보존한다.
+
+공용 `strict-json-core.ts`는 UTF-8/중복 decoded key/JSON 깊이 검증을 담당한다. 기존 Project Import wrapper는 기존 5 MiB / 깊이 64/오류를 유지하고 국가 Import는 1 MiB / 깊이 32/국가 오류를 사용한다. DTO의 공식표 internal provenance proof와 업로드 allowed fields를 분리한다.

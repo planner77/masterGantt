@@ -85,7 +85,7 @@ function validTargets(value:unknown):value is AssignmentTargetsResponse {
 function validPreview(value:unknown,revision:number):value is PreviewProjectWorkCalendarResponse {
   if(!value || typeof value!=="object" || !("data" in value)) return false;
   const data=(value as Partial<PreviewProjectWorkCalendarResponse>).data;
-  return !!data && data.projectRevision===revision && !!data.calendar && data.calendar.projectRevision===revision &&
+  return !!data && Number.isSafeInteger(data.countryCatalogRevision) && data.countryCatalogRevision > 0 && data.projectRevision===revision && !!data.calendar && data.calendar.projectRevision===revision &&
     Array.isArray(data.calendar.projectDates) &&
     data.calendar.projectDates.every((date)=>typeof date.date==="string" && Array.isArray(date.sources) &&
       date.sources.every((source)=>typeof source.ruleName==="string")) &&
@@ -117,6 +117,7 @@ export function ProjectWorkCalendarEditor({
   const validationSummary=useRef<HTMLDivElement|null>(null);
   const [showValidation,setShowValidation]=useState(false);
   const [normalizationNotice,setNormalizationNotice]=useState("");
+  const [unavailableMessage,setUnavailableMessage]=useState("");
   const [serverConflict,setServerConflict]=useState<string[]|null>(null);
   const conflictSummary=useRef<HTMLDivElement|null>(null);
   const [serverConflictDates,setServerConflictDates]=useState<string[]>([]);
@@ -179,7 +180,7 @@ export function ProjectWorkCalendarEditor({
     statusKind==="error"?"미리보기를 계산하지 못했습니다. 입력을 확인하고 다시 계산하세요.":
     statusKind==="ready" && preview?`현재 입력 기준 미리보기 계산 완료. 일정 변경 작업 ${preview.data.changedTasks.length}개, 수동 작업 충돌 ${preview.data.manualConflicts.length}개. 리소스 예외 적용 ${preview.data.resourceExceptionEffects.filter((effect)=>effect.effect==="CHANGED").length}개, 현재 효과 없음 ${preview.data.resourceExceptionEffects.filter((effect)=>effect.effect==="NO_EFFECT").length}개.`:
     statusKind==="stale"?"입력이 변경되었습니다. 미리보기를 다시 계산하세요.":
-    "저장 전에 일정 변경을 확인하려면 미리보기를 계산하세요.";
+    "저장하려면 현재 국가 원본과 일정 변경을 미리보기로 확인하세요.";
   useEffect(()=>{
     if(!serverConflict) return;
     conflictSummary.current?.focus({preventScroll:true});
@@ -205,6 +206,7 @@ export function ProjectWorkCalendarEditor({
     }
   },[working]);
   function invalidatePreview() {
+    setUnavailableMessage("");
     requestSequence.current+=1;
     setServerConflict(null);
     setServerConflictDates([]);
@@ -260,6 +262,7 @@ export function ProjectWorkCalendarEditor({
     const submittedOrigin=origin;
     const isCurrent=()=>mounted.current && operation===requestSequence.current && sameOrigin(submittedOrigin,currentOrigin.current);
     restorePreviewFocus.current=document.activeElement===previewButton.current?operation:null;
+    setUnavailableMessage("");
     setPreviewState({kind:"pending",origin:submittedOrigin});
     setWorking("preview");
     try {
@@ -273,6 +276,13 @@ export function ProjectWorkCalendarEditor({
       if(response.status===401){onUnauthorized();return;}
       if(response.status===412){onConflict(body);return;}
       if(response.status===409 && reportExceptionConflict(body)){setPreviewState({kind:"error",origin:submittedOrigin});return;}
+      if(response.status===422) {
+        const error=(body as {error?:{code?:string;message?:string;details?:Array<{message?:string}>}}|null)?.error;
+        if(error?.code==="COUNTRY_CALENDAR_UNAVAILABLE") {
+          setUnavailableMessage([error.message??"해당 국가·연도 공식 자료가 미확보입니다.",...(error.details??[]).map((detail)=>detail.message??"")].filter(Boolean).join(" · "));
+        }
+      }
+
       if(!response.ok || !validPreview(body,revision)){setPreviewState({kind:"error",origin:submittedOrigin});notify("error","작업 캘린더 미리보기를 계산하지 못했습니다.","작업 캘린더 Preview",body);return;}
       setPreviewState({kind:"ready",origin:submittedOrigin,result:body});
     } catch { if(isCurrent()){setPreviewState({kind:"error",origin:submittedOrigin});notify("error","네트워크 연결을 확인해 주세요.","작업 캘린더 Preview");} }
@@ -280,7 +290,7 @@ export function ProjectWorkCalendarEditor({
   }
 
   async function saveCalendar() {
-    if(disabled || working || invalidSubmission()) return;
+    if(disabled || working || !preview || invalidSubmission()) return;
     const operation=++requestSequence.current;
     latestUserOperation.current=operation;
     const submittedOrigin=origin;
@@ -293,7 +303,7 @@ export function ProjectWorkCalendarEditor({
       const response=await fetch(`/api/projects/${encodeURIComponent(publicId)}/work-calendar`,{
         method:"PUT",credentials:"same-origin",
         headers:{"Content-Type":"application/json","If-Match":`"${revision}"`},
-        body:JSON.stringify(request),
+        body:JSON.stringify({...request,countryCatalogRevision:preview!.data.countryCatalogRevision}),
       });
       const body:unknown=await response.json().catch(()=>null);
       if(!isCurrent()) return;
@@ -329,6 +339,7 @@ export function ProjectWorkCalendarEditor({
     </div>
     <fieldset disabled={disabled||working!==null}>
       <legend>국가 공휴일</legend>
+      <p className={styles.fullRow}>국가 규칙이 없으면 기본 월~금 근무를 사용합니다. 국가를 명시하면 해당 연도의 공식 자료가 필요하며, 미확보 연도는 적용할 수 없습니다.</p>
       {countryRules.map((rule,index)=><fieldset className={styles.itemFieldset} key={rule.key}>
         <legend>국가 규칙 {index+1}</legend>
         <div className="form-field"><label htmlFor={`country-${rule.key}`}>국가 {index+1}</label>
@@ -393,9 +404,10 @@ export function ProjectWorkCalendarEditor({
     </div>:null}
     <div className={styles.footerActions}>
       <button ref={previewButton} className="secondary-button" disabled={disabled||working!==null} type="button" onClick={()=>void previewCalendar()}>{working==="preview"?"계산 중…":"미리보기 계산"}</button>
-      <button className="primary-button" disabled={disabled||working!==null||serverConflict!==null} type="button" onClick={()=>void saveCalendar()}>{working==="save"?"저장 중…":"작업 캘린더 저장"}</button>
+      <button className="primary-button" disabled={disabled||working!==null||serverConflict!==null||!preview} type="button" onClick={()=>void saveCalendar()}>{working==="save"?"저장 중…":"작업 캘린더 저장"}</button>
     </div>
     <p role="status" aria-live="polite" aria-atomic="true">{previewStatus}</p>
+    {unavailableMessage?<p role="alert">{unavailableMessage}</p>:null}
     {preview?<div>
       <h4>프로젝트 일정 영향</h4>
       <p>일정 변경 작업 {preview.data.changedTasks.length}개 · 수동 작업 충돌 {preview.data.manualConflicts.length}개</p>

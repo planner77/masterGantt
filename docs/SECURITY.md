@@ -378,3 +378,16 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 `GET /api/projects/{publicId}/milestone-dashboard`는 route security inventory의 `public-read`, mutatesState=false다. 기존 Project direct read와 같은 공개 범위이며 편집 세션·Origin·If-Match를 요구하지 않는다. query는 allowlist/단일 scalar/UUID/enum/date/숫자/개수·길이 제한으로 서버에서 검증한다. bound Project repository 조회 및 동일 read transaction을 사용하고 unknown valid filter ID는 empty-match 처리한다. 응답은 public ID와 Project 관련 최소 표시 metadata만 포함하며 credential/session/token/internal PK/SQL/stack/path를 포함하지 않는다. 응답과 오류는 no-store다.
 
 이 조회 추가와 명시 M/M 설정은 보호 mutation의 Origin/session/revision 검증을 제거하지 않는다. production HTTPS 및 명시 내부망 HTTP 지원은 기존 공용 URL parser/cookie 정책과 [HTTP 운영](HTTP_OPERATION.md)을 유지한다. 새로운 비밀번호·권한·세션·환경 secret을 만들지 않는다.
+
+
+## Issue #342 — 국가 원본 관리자 및 Preview 권한
+
+국가 catalog 관리자는 기존 Project Master admin cookie/session을 재사용한다. Resource/Logistics admin과 Project edit-session은 권한이 아니다. 새 password/ENV/auth 쿠키는 만들지 않는다. 검증된 APP_BASE_URL/parser/cookie 정책으로 production HTTPS 및 명시적 내부망 HTTP를 유지한다. HTTP에서도 Origin/session/strong revision 검증을 제거하지 않는다.
+
+GET은 session, 모든 mutation 및 Preview는 exact Origin + session + strong catalog If-Match를 요구한다. async body를 읽기 전 early auth, 읽은 뒤 service의 read/IMMEDIATE transaction 안에서 현재 session의 revoke/finite expiry를 재검증한다. UI auth 상태는 authority가 아니다. expires_at이 NaN이면 fail-closed한다. Preview 응답과 Apply token은 비밀번호/세션 원문/internal DB secret을 포함하지 않는다.
+
+Preview HMAC은 migration이 만든 32-byte DB secret으로 exact UTF-8 content hash(선행 BOM 포함), format, 선택 국가/연도, catalog revision, current admin session ID/token digest, expiry를 서명한다. 유효기간은 min(10분, 현재 session expiry)다. body/target/format/session/revision 변경과 만료는 적용을 거부한다. Apply는 token 검증과 별도로 현재 admin 권한을 반복 검증한다. 성공 actual Apply/revision + 1 뒤 replay는 stale 412다. Preview 자체는 DB write 0이다.
+
+파일 1 MiB / outer envelope 8 MiB / 단일 CRUD 16 KiB / date 366개 / JSON depth 32를 제한하고 valid Unicode/실재 ISO 날짜 / 같은 연도 / 중복·상충 / 필수 metadata/unknown field/decoded duplicate JSON key를 서버에서 재검증한다. URL은 credentials 없는 HTTP(S)만 표시하며 서버가 외부 URL을 fetch하지 않는다. CSV는 strict 문법으로 읽고 수식을 실행하지 않는다. 모든 실패는 원자 rollback이며 prepared binding을 사용한다. Password/token/파일 원문/secret/body는 로그에 기록하지 않는다.
+
+공식 URL syntax 검증 자체는 자료의 진위를 증명하지 않는다. OFFICIAL Import/metadata 승격은 운영자가 해당 완전 자료와 source scope를 검증해 명시적으로 확인하는 절차다. 날짜 실제 편집은 상태 UNAVAILABLE / sourceVersion·sourceUrl null로 무효화해 출처 확인 없이 Scheduling에 들어가지 않게 한다. no-op은 provenance를 유지한다.

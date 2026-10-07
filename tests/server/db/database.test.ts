@@ -136,7 +136,7 @@ describe("SQLite connection and schema", () => {
     const before = state(original); original.close();
     const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
     try {
-      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql"]);
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_country_calendar_catalog.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
       expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
@@ -176,6 +176,7 @@ describe("SQLite connection and schema", () => {
         "0021_task_assignment_roles.sql",
         "0022_task_milestone_memberships.sql",
         "0023_deprecate_task_assignment_roles.sql",
+        "0024_country_calendar_catalog.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -189,6 +190,9 @@ describe("SQLite connection and schema", () => {
         .pluck()
         .all();
       expect(tables).toEqual([
+        "country_calendar_catalog_state",
+        "country_calendar_datasets",
+        "country_calendar_dates",
         "edit_sessions",
         "links",
         "logistics_catalog_admin_credentials",

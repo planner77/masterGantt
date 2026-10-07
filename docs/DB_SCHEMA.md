@@ -430,7 +430,7 @@ Issue #261의 NO_EFFECT 예외도 원래 dayType을 저장한다. 글로벌 Grou
 ### Migration 0006 호환 원칙
 
 - 기존 Project의 `project_holidays`는 Custom Project rule로 이관하며 국가 공휴일을 자동 추가하지 않는다.
-- 신규 Project는 생성 시 2026 KR `FULL_PROJECT` 국가 rule/date를 materialize한다.
+- 신규 Project는 생성 UTC 연도의 현재 OFFICIAL KR 또는 같은 연도의 검증된 built-in을 materialize한다. 둘 다 없으면 국가 rule 없이 월~금 기본 주간 규칙으로 생성한다(#342).
 - 국가 fixture update는 기존 Project row를 조용히 다시 쓰지 않는다. 사용자가 Preview/저장을 수행할 때만 새 candidate가 저장된다.
 - Calendar 교체와 Auto/Summary Task 재계산, Project revision 증가는 하나의 transaction에서 처리한다.
 
@@ -678,3 +678,20 @@ Repository write는 status/progress 일관성을 검증한다. Summary schedule 
 `0023_deprecate_task_assignment_roles.sql`은 기존 값을 모두 `NULL`로 정규화하고 `task_assignments_resource_role_idx`, assignment role INSERT/UPDATE guard, `resource_roles_assignment_delete_guard`를 제거한다. 신규 repository 저장도 항상 null을 기록한다.
 
 역할의 Source of Truth는 `resource_roles(resource_id, role)`뿐이다. Global Role 변경은 Task assignment 참조 때문에 차단하지 않으며 `(project_id, task_id, resource_id)` unique invariant와 allocation index/Calendar 계약은 유지한다. Project Copy/Template은 Task별 역할을 복제하지 않는다.
+
+
+## Issue #342 — 국가 원본 Catalog (migration 0024)
+
+`0024_country_calendar_catalog.sql`은 0023 이후 아래 세 테이블을 추가한다. 기존 Project/Task/Calendar/Link/Assignment/credential/session row를 재작성하지 않는다.
+
+- `country_calendar_catalog_state`: singleton id 1, revision >= 1, updated_at, 32-byte `preview_secret` BLOB. migration이 randomblob(32)로 생성하고 Preview는 이를 읽기만 한다. secret은 HTTP/로그에 노출하지 않는다.
+- `country_calendar_datasets`: internal id, country_code enum 7개, year 2026..2037, status OFFICIAL/UNAVAILABLE/SUPERSEDED, nullable source_version/source_url, created_at/updated_at. UNIQUE(country_code,year), OFFICIAL source 필수 CHECK.
+- `country_calendar_dates`: dataset_id FK CASCADE, ISO date, name, day_type WORKING/NON_WORKING, source_key, created_at/updated_at. PK(dataset_id,date), enum/길이 CHECK. 실제 날짜와 연도/중복/공식 최소 1건은 service가 다시 검증한다.
+
+84 managed slots는 7국가 × 12연도의 projection이다. DB는 override만 저장하며 row 부재는 해당 연도의 immutable built-in 또는 UNAVAILABLE empty slot로 해석한다. UNAVAILABLE/SUPERSEDED override를 삭제하지 않고 유지하여 built-in을 마스킹한다.
+
+모든 actual import/CRUD/metadata 변경은 IMMEDIATE transaction에서 관리자 session/strict finite expiry/국가 catalog revision을 확인하고 단일 revision + 1과 저장을 원자 처리한다. no-op은 DB row/updatedAt/revision 변경 0이고 Preview도 DB write 0이다. 실패 중간 insert/revision mismatch는 전체 rollback한다. 국가 catalog revision은 Project와 다른 global catalog revision에서 분리된다.
+
+Project가 계산하는 authority는 기존 `work_calendar_rules/work_calendar_dates`다. 국가 catalog 변경은 이 저장소에 쓰지 않는다. 명시적 Calendar 저장에서만 최신 OFFICIAL 원본을 복제하고 날짜별 sourceVersion을 보존한다. Copy/Template/Task 변경은 현재 materialized snapshot을 사용한다.
+
+신규 Project의 seed availability는 같은 UTC year 현재 OFFICIAL KR → 같은 year immutable KR built-in → 국가 rule 없이 기본 주간 규칙이다. 과거 연도 fallback/미래 추정은 없다. 명시적 국가 적용은 미확보 시 422로 실패한다. migration/file reopen 및 mid-insert·revision failure rollback은 국가 catalog integration/service test에서 검증한다.
