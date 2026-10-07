@@ -162,7 +162,14 @@ test.describe("Issue #3 stable Gantt instance", () => {
     expect(fixture.posts).toHaveLength(2);
     async function rejectNextAdd(outcome: PostOutcome, expectedNotice: string, trigger = rootAdd(page)): Promise<void> {
       const taskCount = fixture.tasks.length; const postCount = fixture.posts.length;
-      fixture.nextPost = outcome; await trigger.click();
+      // The previous failure toast is emitted before saveTask's finally block releases
+      // the shared mutation lock. Wait for the add control to become actionable again
+      // and prove that this error injection started a new POST before asserting its toast.
+      await expect(trigger).toHaveAttribute("aria-disabled", "false");
+      const requestStarted = page.waitForRequest((request) =>
+        request.method() === "POST" && new URL(request.url()).pathname === taskPath,
+      );
+      fixture.nextPost = outcome; await trigger.click(); await requestStarted;
       await expect(page.getByTestId("workspace-toast")).toContainText(expectedNotice);
       expect(fixture.posts).toHaveLength(postCount + 1); expect(fixture.tasks).toHaveLength(taskCount);
       expect(fixture.createdTaskIds).toHaveLength(2);

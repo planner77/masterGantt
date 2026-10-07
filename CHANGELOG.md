@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.94.1] - 2026-10-07
+
+### Fixed
+
+- Issue #490: 프로젝트 근무 규칙의 날짜·국가 선택·적용 입력에 40px 높이와 명확한 border·padding을 적용해 입력 경계를 식별하기 쉽게 한다.
+- 프로젝트 설정 Footer action 간격을 12px로 확보하고, 탭의 focus outline을 위한 6px 여유를 둔다. 짧은 action의 내용 기반 폭과 좁은 화면의 자연 wrap을 유지한다.
+- 공용 Workspace Dialog의 요청 처리 중 반복 native Escape가 잠금을 우회해 대화상자를 닫지 않도록 보완한다.
+- 일정 geometry가 같은 canonical Project metadata 응답을 반영할 때 Gantt viewport를 보존한다. 실제 일정·표시 범위 변화와 사용자 스크롤에는 기존 동작을 유지한다.
+
 ## [0.94.0] - 2026-10-07
 
 ### Changed

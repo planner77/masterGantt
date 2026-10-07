@@ -1,0 +1,400 @@
+{
+  "responseKind": "mock-backed canonical fixture; actual installed SVAR Core",
+  "phases": [
+    {
+      "phase": "before",
+      "state": {
+        "api": "svar-api-1",
+        "instance": "project-gantt-owqq71syns8",
+        "publicViewport": {
+          "left": 120,
+          "top": 38
+        },
+        "fullscreen": false,
+        "scale": "week",
+        "chartScroll": 120,
+        "verticalScroll": 38,
+        "selected": [
+          ":00000000-0000-4000-8000-000000000004"
+        ],
+        "tree": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "closed": false
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000080",
+            "closed": true
+          }
+        ],
+        "scope": "Summary",
+        "rootTask": "00000000-0000-4000-8000-000000000001",
+        "columns": [
+          {
+            "id": ":copySelection",
+            "width": 56
+          },
+          {
+            "id": ":text",
+            "width": 274
+          },
+          {
+            "id": ":externalId",
+            "width": 108
+          },
+          {
+            "id": ":projectStart",
+            "width": 104
+          },
+          {
+            "id": ":projectDuration",
+            "width": 56
+          },
+          {
+            "id": ":add-task",
+            "width": 37
+          }
+        ]
+      }
+    },
+    {
+      "phase": "tab 작업 캘린더",
+      "state": {
+        "api": "svar-api-1",
+        "instance": "project-gantt-owqq71syns8",
+        "publicViewport": {
+          "left": 120,
+          "top": 38
+        },
+        "fullscreen": false,
+        "scale": "week",
+        "chartScroll": 120,
+        "verticalScroll": 38,
+        "selected": [
+          ":00000000-0000-4000-8000-000000000004"
+        ],
+        "tree": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "closed": false
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000080",
+            "closed": true
+          }
+        ],
+        "scope": "Summary",
+        "rootTask": "00000000-0000-4000-8000-000000000001",
+        "columns": [
+          {
+            "id": ":copySelection",
+            "width": 56
+          },
+          {
+            "id": ":text",
+            "width": 274
+          },
+          {
+            "id": ":externalId",
+            "width": 108
+          },
+          {
+            "id": ":projectStart",
+            "width": 104
+          },
+          {
+            "id": ":projectDuration",
+            "width": 56
+          },
+          {
+            "id": ":add-task",
+            "width": 37
+          }
+        ]
+      }
+    },
+    {
+      "phase": "tab 편집·보안",
+      "state": {
+        "api": "svar-api-1",
+        "instance": "project-gantt-owqq71syns8",
+        "publicViewport": {
+          "left": 120,
+          "top": 38
+        },
+        "fullscreen": false,
+        "scale": "week",
+        "chartScroll": 120,
+        "verticalScroll": 38,
+        "selected": [
+          ":00000000-0000-4000-8000-000000000004"
+        ],
+        "tree": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "closed": false
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000080",
+            "closed": true
+          }
+        ],
+        "scope": "Summary",
+        "rootTask": "00000000-0000-4000-8000-000000000001",
+        "columns": [
+          {
+            "id": ":copySelection",
+            "width": 56
+          },
+          {
+            "id": ":text",
+            "width": 274
+          },
+          {
+            "id": ":externalId",
+            "width": 108
+          },
+          {
+            "id": ":projectStart",
+            "width": 104
+          },
+          {
+            "id": ":projectDuration",
+            "width": 56
+          },
+          {
+            "id": ":add-task",
+            "width": 37
+          }
+        ]
+      }
+    },
+    {
+      "phase": "tab 기본 정보",
+      "state": {
+        "api": "svar-api-1",
+        "instance": "project-gantt-owqq71syns8",
+        "publicViewport": {
+          "left": 120,
+          "top": 38
+        },
+        "fullscreen": false,
+        "scale": "week",
+        "chartScroll": 120,
+        "verticalScroll": 38,
+        "selected": [
+          ":00000000-0000-4000-8000-000000000004"
+        ],
+        "tree": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "closed": false
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000080",
+            "closed": true
+          }
+        ],
+        "scope": "Summary",
+        "rootTask": "00000000-0000-4000-8000-000000000001",
+        "columns": [
+          {
+            "id": ":copySelection",
+            "width": 56
+          },
+          {
+            "id": ":text",
+            "width": 274
+          },
+          {
+            "id": ":externalId",
+            "width": 108
+          },
+          {
+            "id": ":projectStart",
+            "width": 104
+          },
+          {
+            "id": ":projectDuration",
+            "width": 56
+          },
+          {
+            "id": ":add-task",
+            "width": 37
+          }
+        ]
+      }
+    },
+    {
+      "phase": "closed",
+      "state": {
+        "api": "svar-api-1",
+        "instance": "project-gantt-owqq71syns8",
+        "publicViewport": {
+          "left": 120,
+          "top": 38
+        },
+        "fullscreen": false,
+        "scale": "week",
+        "chartScroll": 120,
+        "verticalScroll": 38,
+        "selected": [
+          ":00000000-0000-4000-8000-000000000004"
+        ],
+        "tree": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "closed": false
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000080",
+            "closed": true
+          }
+        ],
+        "scope": "Summary",
+        "rootTask": "00000000-0000-4000-8000-000000000001",
+        "columns": [
+          {
+            "id": ":copySelection",
+            "width": 56
+          },
+          {
+            "id": ":text",
+            "width": 274
+          },
+          {
+            "id": ":externalId",
+            "width": 108
+          },
+          {
+            "id": ":projectStart",
+            "width": 104
+          },
+          {
+            "id": ":projectDuration",
+            "width": 56
+          },
+          {
+            "id": ":add-task",
+            "width": 37
+          }
+        ]
+      }
+    },
+    {
+      "phase": "metadata saved",
+      "state": {
+        "api": "svar-api-1",
+        "instance": "project-gantt-owqq71syns8",
+        "publicViewport": {
+          "left": 120,
+          "top": 38
+        },
+        "fullscreen": false,
+        "scale": "week",
+        "chartScroll": 120,
+        "verticalScroll": 38,
+        "selected": [
+          ":00000000-0000-4000-8000-000000000004"
+        ],
+        "tree": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "closed": false
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000080",
+            "closed": true
+          }
+        ],
+        "scope": "Summary",
+        "rootTask": "00000000-0000-4000-8000-000000000001",
+        "columns": [
+          {
+            "id": ":copySelection",
+            "width": 56
+          },
+          {
+            "id": ":text",
+            "width": 274
+          },
+          {
+            "id": ":externalId",
+            "width": 108
+          },
+          {
+            "id": ":projectStart",
+            "width": 104
+          },
+          {
+            "id": ":projectDuration",
+            "width": 56
+          },
+          {
+            "id": ":add-task",
+            "width": 37
+          }
+        ]
+      }
+    },
+    {
+      "phase": "native fullscreen round trip",
+      "state": {
+        "api": "svar-api-1",
+        "instance": "project-gantt-owqq71syns8",
+        "publicViewport": {
+          "left": 120,
+          "top": 38
+        },
+        "fullscreen": false,
+        "scale": "week",
+        "chartScroll": 120,
+        "verticalScroll": 38,
+        "selected": [
+          ":00000000-0000-4000-8000-000000000004"
+        ],
+        "tree": [
+          {
+            "id": ":00000000-0000-4000-8000-000000000001",
+            "closed": false
+          },
+          {
+            "id": ":00000000-0000-4000-8000-000000000080",
+            "closed": true
+          }
+        ],
+        "scope": "Summary",
+        "rootTask": "00000000-0000-4000-8000-000000000001",
+        "columns": [
+          {
+            "id": ":copySelection",
+            "width": 56
+          },
+          {
+            "id": ":text",
+            "width": 274
+          },
+          {
+            "id": ":externalId",
+            "width": 108
+          },
+          {
+            "id": ":projectStart",
+            "width": 104
+          },
+          {
+            "id": ":projectDuration",
+            "width": 56
+          },
+          {
+            "id": ":add-task",
+            "width": 37
+          }
+        ]
+      }
+    }
+  ],
+  "fixtureSource": "tests/e2e/fixtures/task-editor-density.ts",
+  "nativeResizePixels": 48,
+  "fullscreenSettingsEntry": "project header is outside fullscreen; modal entry tested with fullscreen=false"
+}

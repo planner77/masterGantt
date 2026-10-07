@@ -1,5 +1,11 @@
 # Active execution plan
 
+## Issue #490 프로젝트 설정·근무 규칙·인증 폼 — 로컬 검증 / 문서 동기화·PR CI 시작
+
+현재 main `4f8fc2c9c86941d1b86ae4472b1e953707c85ef7` / application `0.94.0`을 기준으로 #456 B 후속을 통합한다. branch는 `fix/issue-490-project-settings-layout`, 현재 전용 worktree는 `issue-490-current`이며 상세 소유권·AC·문서·검증은 [Issue #490 실행 계획](ISSUE_490.md)을 따른다. 5폭 actual before에서 calendar 입력 경계·footer 간격·tab focus clipping을 확인했고, 빠른 반복 Escape와 같은 geometry canonical mock 갱신의 viewport 보존 guard를 포함한 제품 5파일을 최소 수정했다.
+
+이전 0.93.1의 관련 E2E 5/5 PASS와 원래 FAIL을 보존한다. 독립 검토에서 actual password rotation pending/성공과 새 calendar field native focus 증거 보완을 요청했고, 작업 중 PR #499/main 이동으로 겹친 문서·버전 5파일을 통합한다. 제품 bytes는 유지하며 최신 baseline PATCH `0.94.1`에서 관련 6케이스가 모두 PASS했다(1.5분). actual password rotation과 새 Calendar field native focus를 보완했고 성공 refresh의 BODY 초점은 기존 동작으로 기록한다. 관련 최소 LFF와 문서 동기화·독립 사전/게시본 검토 후 PR CI 등록으로 넘긴다. `release_required=true`, `release_authorized=false`이며 요청 종료점은 원격 PR과 exact-head CI 등록이다. CI 결과 모니터링·병합·GHCR/release·Issue 종료는 수행하지 않는다. 공식 quality/e2e/docker와 최종 ACCEPT는 NOT TESTED다.
+
 ## Issue #459 Milestone Stage Gate Epic — 통합 감사 / PR CI
 
 latest main `4098a064a9c5a614b0adfa1ac90dcbd9523db993` / application `0.92.0`에서 #460~#464가 모두 main에 반영된 상태를 기준으로 Epic 수용 기준을 재감사한다. 제품 runtime 재구현은 하지 않고, 상위 #459가 핵심 Source of Truth에 직접 연결되지 않은 문서 공백과 “member Task Dependency는 Milestone predecessor로 자동 승격하지 않는다”는 사용자 확정 정책의 전용 Domain regression을 보강한다.
