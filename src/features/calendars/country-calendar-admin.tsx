@@ -108,10 +108,11 @@ export function CountryCalendarAdmin(){
         credentials:"same-origin",cache:"no-store",signal:controller.signal,
       });
       const body:unknown=await response.json().catch(()=>null);
+      if(!isActive(controller))return false;
       if(response.status===401){expire();return false;}
       if(!response.ok||!validAdmin(body)){setError("국가 캘린더 데이터를 불러오지 못했습니다.");return false;}
       setAuthenticated(true);setSnapshot(body);syncMetadata(body);setPreview(null);return true;
-    }catch{if(!controller.signal.aborted)setError("국가 캘린더 서버에 연결할 수 없습니다.");return false;}
+    }catch{if(isActive(controller))setError("국가 캘린더 서버에 연결할 수 없습니다.");return false;}
   }
   useEffect(()=>{
     const controller=new AbortController();
