@@ -2049,3 +2049,13 @@ PR CI Run #2037.1 corrective: 위 shard 3/6은 PASS했으나 shard 4/6의 `proje
 Main CI Run #2053.1 corrective: exact merge `75f014fccc8f6e3f19ba5fadebd3ecad4e0926c4`의 shard 2/6에서 `milestone-stage-grid.spec.ts` snapshot helper가 `apiRequestContext.get: read ECONNRESET`으로 실패했다. 같은 run의 다른 5개 E2E shard와 quality/build/typecheck/lint/Vitest/Docker는 PASS였고 HTTP status/assertion 실패는 없었다. 최신 main은 이후 #511 병합으로 `eab12824e359029b4c7f00b6ca7ab16535147a14` / app `0.94.2`까지 전진했으므로 corrective branch는 이 main에서 시작한다. 이미 저장소에서 검증된 direct GET 정책과 동일하게 snapshot GET에만 `socket hang up|ECONNRESET`을 최대 3회 bounded retry하고, 다른 예외·HTTP/JSON/assertion 실패와 retry 소진은 계속 FAIL한다. 제품 API/UI 동작과 mutation 경로는 변경하지 않는다.
 
 #490 REWORK는 최신 main4f8fc2c9c86941d1b86ae4472b1e953707c85ef7/제품0.94.1에서6case를 실행한다. 0.93.1의 마지막5case와16runs40executions는 historical로 원본 hash를 유지한다. 새1case는1440px 실제 PUT hold→pending BODY·빠른2Escape·민감 입력 비움·중복PUT1개·native 보안탭 focus→204/revision+1/canonical GET/호출자 edit·이전 peer readonly·구password401/새password204와 정상 close/logout/unlock 초점을 검증한다. Calendar 기존 case에390px 새 field select/date의 native Tab·화면 안 bbox/ring을 추가한다. 성공 loading 동안 BODY 초점을 실제 관측으로 남기며 호출 버튼 복원 PASS로 확대하지 않는다. fullscreen 설정 진입은 지원 trigger가 frame 밖이라 N/A이고 fullscreen 왕복은 별도 검증한다. main #485 migration0023은 실제 isolated DB에 적용되며 변경된 stateful-project workload fixture는 이 spec의 직접 fixture가 아니다.
+
+## Issue #486 — 401 후 Resource Catalog suspended draft 전환
+
+- `tests/e2e/resource-error-recovery.spec.ts`에서 Resource dirty draft → 401 → 재로그인 → Group 추가 시 기존 Resource editor가 자동 재개되지 않고 `보존한 초안 확인`이 표시되는지 검증한다.
+- `초안 유지`는 기존 draft를 suspended 상태로 보존하고, 이후 `보존한 초안 계속 편집`으로 재개했을 때 Resource 입력값이 그대로인지 확인한다.
+- Group dirty draft → 401 → 재로그인 → Resource 추가에서는 `초안 폐기 후 리소스 추가`가 요청한 Resource editor를 열고 이전 Group draft를 제거하는지 확인한다.
+- Profile dirty draft → 401 → 재로그인 → 다른 editor trigger에서도 자동 Profile 재개를 막고, 명시 재개 시 developer grade/roles 초안을 보존하는지 확인한다.
+- 기존 password clearing/login focus, 401/412 수동 복구, pending 중복 mutation 차단, Escape/focus restore, Group 구성원 초안 보존 회귀를 같은 spec의 기존 case와 함께 유지한다.
+- 현재 connector 세션의 Local Fast Feedback은 NOT TESTED다. 공식 판정은 동일 PR head의 required `quality`, `e2e`, `docker` GitHub Actions 결과로 수행한다.
+
