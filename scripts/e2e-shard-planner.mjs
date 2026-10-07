@@ -327,7 +327,7 @@ if (args.command === "select") {
     minRuns: Number(args["min-runs"] || 10),
     currentPlanPath: args["current-plan"] || "tests/config/e2e-shard-plan.json",
   });
-  const output = args.output || ".e2e-shard-proposal.json";
+  const output = args.output || "e2e-shard-proposal.json";
   fs.writeFileSync(output, JSON.stringify(result, null, 2) + "\n", "utf8");
   if (args.summary) writeSummary(result, args.summary);
   process.stdout.write(JSON.stringify({ shouldUpdate: result.shouldUpdate, output }) + "\n");
