@@ -186,7 +186,9 @@ test("Issue #342: 조회 실패는 선택 target과 이전 snapshot을 섞지 �
     await route.fallback();
   };
   await page.route("**/api/admin/work-calendars/countries/CN/years/2026",failGet);
-  await page.getByLabel("국가",{exact:true}).selectOption("CN");
+  const countrySelect=page.getByLabel("국가",{exact:true});
+  await expect(countrySelect).toBeEnabled();
+  await countrySelect.selectOption("CN");
   await expect(page.getByRole("heading",{name:"대한민국 2026"})).toHaveCount(0);
   await expect(page.getByText("국가 캘린더 데이터를 불러오지 못했습니다.",{exact:true})).toBeVisible();
   await expect(page.getByRole("button",{name:"메타데이터 저장"})).toBeDisabled();
@@ -250,7 +252,9 @@ test("Issue #342: 국가 전환은 신규 날짜와 파일 draft를 폐기한다
   });
   await expect(page.getByRole("button",{name:"업로드 전 검증"})).toBeEnabled();
 
-  await page.getByLabel("국가",{exact:true}).selectOption("CN");
+  const countrySelect=page.getByLabel("국가",{exact:true});
+  await expect(countrySelect).toBeEnabled();
+  await countrySelect.selectOption("CN");
   await expect(page.getByLabel("날짜",{exact:true}).first()).toHaveValue("");
   await expect(page.getByLabel("이름",{exact:true}).first()).toHaveValue("");
   await expect(page.getByLabel("sourceKey",{exact:true}).first()).toHaveValue("");
