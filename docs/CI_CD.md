@@ -457,6 +457,10 @@ Issue Lifecycle은 exact merge target의 first-parent diff를 CI와 동일한 do
 
 GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용하고 dependency cache와 혼용하지 않는다. optimizer는 최근 run/artifact 조회와 자동 plan PR 생성 직후 exact branch에 `ci.yml workflow_dispatch`를 명시적으로 시작하므로 `actions: write`, plan PR 생성에 한정한 `contents: write`, `pull-requests: write`를 사용한다. `GITHUB_TOKEN`이 만든 일반 push/PR 이벤트가 후속 workflow를 자동 재귀 실행한다고 가정하지 않으며, regular CI 권한은 확대하지 않는다.
 
+- Issue #508 보완: optimizer의 분석 결과는 hidden file이 아닌 `e2e-shard-proposal.json`으로 기록하고 30일 artifact로 보존한다. 기본 `actions/upload-artifact` hidden-file 제외 정책에 의존하지 않는다.
+- 기존 자동 plan PR 조회는 inline Bash quote nesting을 사용하지 않고 `scripts/e2e-shard-optimizer-pr.mjs`가 GitHub CLI 인자를 배열로 전달한다. 검색 결과는 `[Issue #437] ci: E2E 샤드 계획 갱신` exact title만 기존 PR로 인정한다.
+- `shouldUpdate=false`이면 기존 PR 조회와 PR 생성은 모두 skip한다. `shouldUpdate=true`일 때 exact-title PR이 있으면 새 PR을 만들지 않고, 없을 때만 기존 자동 PR 생성·명시적 `ci.yml workflow_dispatch` 경로로 진행한다. 6-shard, median/LPT, threshold, cooldown과 자동 merge 금지 계약은 변경하지 않는다.
+
 ## Issue #438 Build-once / verified digest promotion
 
 - Container binary는 Main CI의 `publish-commit-image`에서 한 번만 build한다. successful non-docs main candidate는 version 변경 여부와 무관하게 Generic Finalizer까지 보존한다. no-release finalize가 exact temporary candidate를 정리하고, release-required candidate는 formal release에서 재사용한다.
