@@ -154,6 +154,32 @@ describe("test configuration repository layout", () => {
     expect(geometry).not.toContain("KEEP: unchanged product source; new regression observation");
   });
 
+  it("keeps Issue #502 error-boundary probes non-production and E2E-only", () => {
+    const browser = text("tests/config/playwright.config.ts");
+    const gate = text("src/server/testing/error-boundary-probe-gate.ts");
+    const rootProbe = text("src/app/e2e-error-boundary/page.tsx");
+    const demoPage = text("src/app/gantt-demo/page.tsx");
+    const probe = text("src/features/testing/error-boundary-probe.tsx");
+    expect(browser).toContain('E2E_ERROR_BOUNDARY_PROBE: "true"');
+    expect(gate).toContain('process.env.NODE_ENV !== "production"');
+    expect(gate).toContain('process.env.E2E_ERROR_BOUNDARY_PROBE === "true"');
+    expect(rootProbe).toContain("notFound()");
+    expect(rootProbe).toContain("isE2eErrorBoundaryProbeEnabled()");
+    expect(demoPage).toContain('params.__e2eBoundary === "1"');
+    expect(demoPage).toContain("isE2eErrorBoundaryProbeEnabled()");
+    expect(probe).toContain("window.setTimeout");
+    expect(probe).toContain("autoFocus={recovered}");
+  });
+
+  it("keeps Issue #502 evidence separate while reusing the #457 geometry provenance helper", () => {
+    const geometry = text("tests/e2e/helpers/ui-geometry.ts");
+    expect(geometry).toContain("ISSUE_502_EVIDENCE_DIR");
+    expect(geometry).toContain("ISSUE_502_BASELINE_SOURCE_AGGREGATE_SHA256");
+    expect(geometry).toContain('testInfo.outputPath("issue-502-evidence")');
+    expect(geometry).toContain('testInfo.outputPath("issue-457-evidence")');
+    expect(geometry).toContain('evidenceScope: "457" | "502" = "457"');
+  });
+
   it("guards Release static metrics after earlier gate failures and keeps source-map-js patched", () => {
     const release = text(".github/workflows/release-image.yml");
     const lock = JSON.parse(text("package-lock.json"));

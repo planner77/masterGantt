@@ -275,3 +275,11 @@ Pending Escape 회귀는 busy DOM 반영 직후 지연 없이 두 번 누른다.
 Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
 
 Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.
+
+## Issue #502 Error Boundary 복구와 환경별 접근성 경계
+
+실제 route error boundary는 일반 API/network 오류 상태와 별도 검증한다. E2E probe는 오류 전 keyboard focus가 있던 테스트 control에서 실제 client render 오류를 일으키고, fallback의 `다시 시도`를 native Tab/Enter로 실행한 뒤 reset된 segment에서 같은 probe focus가 복원되는지 확인한다. 이 절차는 screenshot만으로 대체하지 않는다.
+
+Probe UI는 제품 기능이 아니며 production에서 활성화하지 않는다. `NODE_ENV !== "production"`과 명시적 E2E flag를 동시에 요구하고, gantt-demo는 추가 query opt-in까지 요구한다. 일반 사용자가 접근하는 화면·권한·데이터 계약은 이 검증을 위해 변경하지 않는다.
+
+자동 Chromium 390/1440px 결과는 실제 boundary/keyboard/focus 범위에만 적용한다. native125% zoom, 실기기, screen reader, 최종 수동 UX 및 운영 reverse proxy/source-version 일치는 환경별 검증으로 남긴다. DPR 또는 device emulation을 native zoom 근거로 사용하지 않으며, 환경이 없으면 NOT TESTED/BLOCKED를 유지한다.

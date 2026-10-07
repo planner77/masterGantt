@@ -2082,3 +2082,21 @@ Main CI Run #2053.1 corrective: exact merge `75f014fccc8f6e3f19ba5fadebd3ecad4e0
 템플릿 instantiate의 실제 navigation·편집 상태·원본 불변은 검증했으나 safeJSON의201은 서버 계약 literal이며 response.status 직접 검증이 아니다. 기존 원본과 helper를 유지하고 최신 실행 provenance에 한계를 기록한다.
 
 Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.
+
+## Issue #502 실제 Error Boundary와 환경별 검증
+
+#502는 #457에서 source-only로 남은 `app/error.tsx`와 `app/gantt-demo/error.tsx`를 실제 React 오류로 실행하는 자동화와, CI가 대체할 수 없는 환경별 검증을 분리한다.
+
+- 자동화: `tests/e2e/error-boundary-regression.spec.ts`가 390/1440px에서 root와 gantt-demo segment에 client render 오류를 발생시킨다. native keyboard로 retry 버튼에 도달해 Enter로 `reset()`을 실행하고, 복구된 probe가 오류 전 focus 지점으로 돌아오는지 확인한다.
+- 안전 경계: probe는 `NODE_ENV !== production` + `E2E_ERROR_BOUNDARY_PROBE=true`에서만 허용한다. root probe route는 gate가 닫히면 404이며 gantt-demo는 일반 요청에서 probe를 렌더링하지 않는다. 인증/권한/API/DB/scheduling 계약을 변경하지 않는다.
+- 증거: #457의 `ui-geometry` provenance를 `evidenceScope=502`로 재사용하되 기본 artifact 경로를 Playwright test output에 격리한다. tracked evidence publication은 explicit opt-in이다.
+- 구분: Project/API의 HTTP 500·network error UI를 route error boundary PASS로 사용하지 않는다.
+
+| 검증 | 현재 판정 | 근거/다음 조건 |
+| --- | --- | --- |
+| root/gantt-demo 실제 React error boundary + retry + focus restore | NOT TESTED (보완 구현, 새 exact PR CI 실행 전) | PR exact head Chromium 결과와 artifact로 판정 |
+| 실제 browser native 125% zoom | NOT TESTED | DPR/deviceScaleFactor/visualViewportScale로 대체 금지; 지원되는 실제 브라우저 수동 실행 필요 |
+| 실기기·screen reader·최종 수동 UX | NOT TESTED | 승인 장비/접근성 환경에서 별도 기록 |
+| 운영 source SHA/application version·proxy 입력 상태 | BLOCKED / NOT TESTED | 승인 운영 환경 metadata 접근이 제공될 때 read-only 비교; 운영 mutation 금지 |
+
+GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않는다.
