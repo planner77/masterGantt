@@ -409,3 +409,13 @@ Resource/Group/Role/Milestone/기간 KPI의 공통 pure Domain과 typed 사전·
 동일 Project read snapshot과 단일 기준시각의 Resource/Group subtotal·Milestone cell·distinct Task KPI·raw M/D/M/M·T0 진단을 신규 readonly API로 제공한다. 조건은 같은 개인 Assignment에서 AND이며 Group/개인 mode는 Grand Total을 바꾸지 않는다. 개인/Group 활성 조건과 개인·Task·연결Group 검색은 A, Task-only 검색/status는 T0에도 적용하고 full-stage Ready/Blocked는 전체 member/predecessor를 유지한다. 기간이 다른 canonical Task 일정과 Assignment 투입 구간은 별도 제공한다.
 
 상세는 같은 filter/revision/Calendar/scope identity를 확인하는 bounded selector/page이며 변경 시 재조회409를 요구한다. 다른 Project/글로벌 미할당 개인 정보는 공개하지 않고 전체집계·조회부하에 유한 상한을 두며 초과 시 부분합을 완전한 값으로 표시하지 않는다. 기존 workload/Stage/Logistics 응답 의미·rounding·권한은 불변이다. [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다. UI/capacity/export 공개는 후속 단위다.
+
+## Issue #538 — 프로젝트 기준정보 관계 (후속 계약)
+
+#289의 독립 선택/cascading 비범위 기록은 당시 범위에 한정된다. #538부터 사업부→제품→사업장/법인 관계를 Project Master의 추가 Source of Truth로 관리한다.
+
+- 사업부 1개에 0..N 제품, (사업부,제품) 1개에 0..N 사업장/법인을 연결한다. 같은 제품은 여러 사업부에서, 같은 사업장/법인은 여러 사업부·제품 조합에서 안정 ID를 공유할 수 있다.
+- Project 분류 값은 기존 nullable 단일 ID 3개이며, 전체 미지정과 사업부만 지정 및 사업부+제품만 지정이 가능하다. 제품은 사업부 없이, 사업장/법인은 두 상위 선택 없이 지정할 수 없다.
+- 신규 지정/변경 시 반드시 활성 item + 유효 관계를 선택한다. 이미 저장된 legacy/비활성/부분 참조는 관계 변경이 없는 메타데이터 편집·조회·복사에서 보존한다. Template 신규 생성 시에는 관계를 검증한다.
+- 연결 해제 시 그 관계를 참조하는 Project가 있으면 409로 거부한다. 제품 관계는 하위 사이트 연결이 남아 있어도 해제 불가다. Project row를 자동 수정하거나 관계를 임의 추정하지 않는다.
+- Server 검증을 권위로 하며 UI 필터는 편의용이다. SVAR Task/일정/Resource·물류 도메인은 변경하지 않는다.

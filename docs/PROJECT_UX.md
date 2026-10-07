@@ -1068,3 +1068,9 @@ Project metadata 저장이 Task metadata 변경 없이 새 canonical 배열을 �
 Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
 
 Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.
+
+## Issue #538 — Project 분류의 종속 선택
+
+기존 #289의 독립 3개 Select를 관계 기반 `사업부 → 제품 → 사업장/법인`으로 확장한다. 초기값은 모두 미지정, 사업부/제품 변경 시 하위 값은 초안에서만 지우고 `role=status`로 안내하며 저장 전 사용자 확인을 기다린다. 사업부 없이는 제품을, 사업부·제품 없이는 사이트를 변경할 수 없다. 기존 inactive/legacy 참조는 현재값 옵션에 남기고 새 선택은 active relation만 허용한다.
+
+`/project-master-admin`에서는 기존 category Tab과 항목 표 아래에 독립 관계 편집 영역을 둔다. 먼저 사업부-제품을 연결한 후 동일 조합에 사업장/법인을 연결할 수 있다. 관계 해제는 두 번째 명시 클릭이 필요하며, 프로젝트/하위 관계 사용 중에는 서버가 거부한다. 390~wide에서는 control wrap/표 자체 가로 scroll을 유지하고 keyboard/tab/aria/focus, 기존 조회 오류/비밀번호 UI를 보존한다.

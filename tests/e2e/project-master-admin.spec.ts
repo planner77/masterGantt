@@ -6,6 +6,7 @@ const catalog = {
     businessUnits: [],
     products: [],
     siteEntities: [],
+    relations: [],
     items: [
       {
         id: "bu-active",

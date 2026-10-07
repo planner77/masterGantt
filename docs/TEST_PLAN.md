@@ -2123,3 +2123,12 @@ GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않�
 실제 SQLite benchmark는 Task1011/개인Assignment1005/Group8/365일260근무일을 사용한다. timing/reportBytes는 선택 환경변수 RESOURCE_DASHBOARD_BENCHMARK_OUTPUT의 로컬 JSON 근거로 기록하며 로컬 기준3000ms 안에서 측정한다. 이 수치가 원격 CI나 운영 성능 PASS를 뜻하지 않는다. 전체 원격회귀는 PR quality/e2e/docker가 담당한다.
 
 `tests/e2e/resource-dashboard-api.spec.ts`는 격리 실제 Next/SQLite/Chromium에서 편집 쿠키 없는 public report/detail, no-store/nosniff,405 mutation 거부, selection400, 원본 revision 불변, 실제 서버 재시작 snapshot과 scope/환산 stale409를 검증한다. 초기 실패 이력은 inventory 예상 route2개 누락, Turbopack 외부 node_modules symlink 거부, 신규테스트 비밀번호의 기존12자상한 위반, report nosniff 누락을 보존한다. route expected inventory·작업tree 실제 dependencies·유효 fixture·신규handler 성공/오류 nosniff를 보완하고 동일 관련 범위를 다시 검증한다. 최종 실행 결과는 Manager Issue/PR Work Packet에 exact head 근거로 기록하며 원격 CI 결과 모니터링은 이번 범위 밖이다.
+
+## Issue #538 — Project master 계층 검증
+
+- DB migration 0024: 이미 연결된 조합 중복 제거, 부분/legacy row의 무추정·무변경, FK/category/parent 보호, checksum/rollback.
+- Unit/Service: 사업부 A/B에 제품 공유, 사이트 다중 조합, product-only/site-only 거부, 다른 사업부/조합 사이트 거부, 중복 링크 no-op revision, 사용/하위 연결 관계 unlink 409, inactive, 잘못된 UUID/category.
+- Project API: create/update/template의 서버 직접 유효성 검증, 기존 project의 legacy/비활성 참조 조회·이름만 수정 및 copy 보존, 400/401/403/409/412 시 transaction 원자성.
+- 관리자 API: 세션/Origin/If-Match/ETag/revision 동기화, stale 탭, 로그인 만료, 409 메시지.
+- Browser: 관리자 항목/관계 영역 연결·해제 확인, 프로젝트 사업부/제품 변경에 따른 후보/초안 초기화 및 status 안내, 재선택, inactive 이전값, 390/768/1024/1440/wide, keyboard/focus/overflow.
+- 해당 PR head의 공식 quality/E2E/docker GitHub Actions 증거가 최종 판정이며, 문서나 변경 코드만으로 PASS라고 하지 않는다.

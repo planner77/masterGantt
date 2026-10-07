@@ -385,3 +385,7 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 신규 report/details GET 두 경로는 route security inventory의 public-read/stateless다. 서버가 canonical UUIDv4와 Project 존재를 확인하며 편집 쿠키를 읽기 권한으로 승격하거나 신규 쿠키를 발급하지 않는다. Project에 연결되지 않은 catalog ID/다른 Project Task·Milestone은 공개 selection으로 사용할 수 없다. Repository는 해당 Project Task 직접 참조 Resource, 직접 Group 참조 또는 그 Resource의 Group만 projection하고 전역 미할당 인력·Group 전체 멤버·description·내부PK/비밀번호/KDF/session/token을 DTO에 넣지 않는다.
 
 성공과 오류는 private/no-store·nosniff·request ID이며 CORS/Origin/session/revision mutation 정책을 변경하지 않는다. same-snapshot SHA256은 권한 token이 아니라 현재 보고서의 정합성 identity다. Detail에서 source/filter/날짜/환산이 바뀌면409 stale이고 기존 KPI와 새 행을 성공으로 혼합하지 않는다. unknown scalar/잘못된 배열·날짜·페이지·selector는400, 유한 raw/cell/path/JSON 예산 초과는422다. raw query/SQL/stack/secret을 공개 오류로 전달하지 않으며 새 migration·report 저장 원장이 없다. [KPI/API 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다.
+
+## Issue #538 — Project master relation mutation
+
+`POST|DELETE /api/project-master/admin/relations`은 기준정보 관리자 전용 세션, 동일 Origin, strong catalog `If-Match`와 atomic revision 증가를 요구한다. Project 편집권은 관계 수정권을 부여하지 않는다. 참조 중 링크 해제 및 child link가 남은 parent 해제는 서버에서 409로 보호한다. 클라이언트 선택지 필터만으로 API 직접 호출을 신뢰하지 않으며 create/update/template은 조합을 서버에서 검증한다. 비정상·stale 요청의 mutation은 rollback되어 기존 Project/relations를 변경하지 않는다.

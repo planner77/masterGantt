@@ -288,3 +288,7 @@ Probe UI는 제품 기능이 아니며 production에서 활성화하지 않는�
 ### #502 자동화와 #517 환경 검증 분리
 
 PR #516의 Error Boundary 하니스/keyboard/focus 검증은 #502의 자동화 범위다. 실제 브라우저 native125%·실기기/screen reader·최종 수동 UX·운영 source/version/proxy는 #517의 환경별 범위이며, #502 CI 또는 merge/close를 해당 환경 PASS로 해석하지 않는다.
+
+## Issue #538 — 관계 관리자와 cascade 상태
+
+전역 Project Master의 연결 편집은 app-owned native control이다(SVAR Gantt Core API 적용 대상 아님). 라벨 있는 select/연결 버튼/해제 확인을 사용하며 disabled 이유와 server 409/412 메시지, 로딩/빈 관계/초안 하위 해제 상태를 텍스트로 구분한다. 하위 선택 변경은 저장과 분리하고 Project dirty draft를 무단 제출하지 않는다. 390/768/1024/1440/wide의 table-owned scroll, keyboard focus 및 document overflow를 회귀 검증한다.

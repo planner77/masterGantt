@@ -1413,3 +1413,11 @@ Detail query는 동일 report 조건에 필수 `snapshotId=<64 lowercase hex>`, 
 Report `data`는 schema/projectPublicId/projectRevision/catalogRevision/calendarRevision/snapshotId/calculatedAt/asOfDate/timezone/filters/range/rangeFallback/mdPerMm/mdPerMmSource/scope, compact summary/resources/groups/roleTotals/milestones/stages/diagnostics/catalog/metadata다. Resource/Group 행은 서버가 계산한 assignmentRange를 포함한다. full stage 진척/Ready/Blocked와 selected Task summary는 별개다. Detail `data`는 동일 schema/identity/revision과 selector/view/offset/limit/totalCount/nextOffset/rows다. 행은 Task/WBS/Milestone public identity와 canonical Task 일정·status/progress, 개인 Assignment가 있을 때 개인 분류·투입기간·raw 계획 공수를 포함한다. 빈 결과나 미할당 진단에 가짜 Assignment를 만들지 않는다.
 
 `mdPerMmProvided=false`인 report filter를 상세 query로 재전송할 때 mdPerMm은 생략한다. explicit null은문자열null이다. 동일 filter에 projection mode만 바꿀 수 있으며 다른 날짜/filter/환산 또는 데이터 변경은409 REPORT_STALE다. Task 삭제로 선택 ID가 stale된 detail도409를 반환하고 report 조회의 INVALID_SELECTION과 구분한다. 예산은422 REPORT_LIMIT_EXCEEDED, Calendar same-level conflict는409 RESOURCE_CALENDAR_EXCEPTION_CONFLICT, 존재하지 않는 Project는404 PROJECT_NOT_FOUND다. 오류에는 SQL/stack/내부PK/secret을 노출하지 않는다.
+
+## Issue #538 — Project Master 관계 계약
+
+`GET /api/project-master/catalog`과 인증된 `GET /api/project-master/admin/items`는 기존 배열에 `data.relations`를 추가한다. 각 row는 `{businessUnitId,productId,siteEntityId}` (stable public UUID)이며, `siteEntityId:null`은 사업부·제품 직접 연결, UUID 값은 해당 조합의 사업장/법인 연결이다. 표시용 name은 `items`/category arrays에서 참조하며 Relation 목록은 중복 없이 반환한다.
+
+`POST /api/project-master/admin/relations`은 연결, `DELETE`는 해제다. JSON body는 `{businessUnitId:string,productId:string,siteEntityId?:string|null}`이며 미지정 site는 제품 연결로 해석한다. 기존 관리자 Cookie, Origin, strong catalog `If-Match`, request logging, `private,no-store`, 최신 revision/ETag를 유지한다. 동일 관계 재연결은 no-op(리비전 유지). Category·UUID 불일치/존재하지 않는 부모 관계는 409 `PROJECT_MASTER_RELATION_INVALID`, 프로젝트 사용 또는 하위 site 연결이 남은 해제는 409 `PROJECT_MASTER_RELATION_IN_USE`, 비활성 항목 신규 연결은 409 `PROJECT_MASTER_INACTIVE`, stale revision은 412다.
+
+Project create/update에서 조합이 맞지 않으면 409 `PROJECT_MASTER_RELATION_INVALID`. Project는 모두 null, 사업부만, 사업부+제품, 사업부+제품+사이트 형태만 신규 허용한다. 기존 Project와 동일한 legacy 관계가 그대로 유지될 때는 비분류 메타데이터 변경을 허용한다. Copy는 원본 관계를 안정 ID 그대로 보존한다.

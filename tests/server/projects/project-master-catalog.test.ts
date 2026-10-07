@@ -179,7 +179,7 @@ describe("Issue #289 project master catalog", () => {
     if(auth.kind!=="authorized") throw new Error("missing authorization");
     expect(()=>projects.updateMetadata(auth.authorization,created.response.data.project.revision,{businessUnitId:ids[1]}))
       .toThrow(ProjectMasterRelationInvalidError);
-    expect(projects.getProject(created.response.data.project.publicId).data.project.businessUnit?.id).toBe(ids[0]);
+    expect(projects.listProjects().data.projects.find((row) => row.publicId === created.response.data.project.publicId)?.businessUnit?.id).toBe(ids[0]);
   });
 
   it("keeps existing projects unassigned after migration", () => {

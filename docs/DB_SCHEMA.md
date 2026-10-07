@@ -678,3 +678,9 @@ Repository write는 status/progress 일관성을 검증한다. Summary schedule 
 `0023_deprecate_task_assignment_roles.sql`은 기존 값을 모두 `NULL`로 정규화하고 `task_assignments_resource_role_idx`, assignment role INSERT/UPDATE guard, `resource_roles_assignment_delete_guard`를 제거한다. 신규 repository 저장도 항상 null을 기록한다.
 
 역할의 Source of Truth는 `resource_roles(resource_id, role)`뿐이다. Global Role 변경은 Task assignment 참조 때문에 차단하지 않으며 `(project_id, task_id, resource_id)` unique invariant와 allocation index/Calendar 계약은 유지한다. Project Copy/Template은 Task별 역할을 복제하지 않는다.
+
+## Issue #538 — 사업부/제품/사업장 연결 (migration 0024)
+
+`db/migrations/0024_project_master_relations.sql`은 `business_unit_products(business_unit_id,product_id)` 및 `business_unit_product_sites(business_unit_id,product_id,site_entity_id)` STRICT 복합 PK/FK 연결 테이블을 생성한다. site 연결은 유효한 business_unit_products 연결에만 귀속된다. INSERT category trigger는 BUSINESS_UNIT/PRODUCT/SITE_ENTITY 타입을 강제하며 FK는 삭제와 고아 관계를 보호한다.
+
+Migration은 기존 Project의 **사업부+제품이 모두 지정된 조합**을 중복 없이 backfill하고 site가 있는 3개 조합도 연결한다. Project의 FK/row/revision이나 부분·legacy 선택을 추정/수정하지 않는다. migration ledger의 순서 및 checksum 검증은 유지한다.
