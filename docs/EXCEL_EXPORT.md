@@ -207,3 +207,11 @@ Excel 요청은 선택적으로 `includeResourceEffort: true`를 받을 수 있�
 ## Issue #464 Local Fast Feedback
 
 `tests/server/projects/project-excel-stage.test.ts`는 실제 native SQLite에서 세 Milestone 병렬→합류, Summary 중첩 상속과 Task override, 개인 Resource와 두 Group, 미설정 투입률을 구성해 같은 read transaction/clock1회·source 불변을 검증한다. Dependency true/false의 Membership·leaf baseline·상태·Unicode 원문, Dashboard raw totals/null/KPI/ID, 1,000개 구성원 ID의 행별 보존과 텍스트/50,000행 초과 거부, readonly HTTP 200/no-store/ETag/filename·403/412/미설정500을 포함한다. 기존 Logistics/Resource Effort/Project status/ISO week 회귀도 실행한다. 최초 실패와 보완 후 결과는 Issue/PR 검증 근거에서 구분한다. Local PASS는 GitHub Actions quality/e2e/docker 또는 실제 Windows Excel 표시 PASS를 대체하지 않는다.
+
+## Issue #491 Export 옵션 presentation
+
+로컬 footer gap12px과390px action stack을 유지하며 Dependency/Logistics/Resource Effort choice는 기존 browser-native control과 연결 label을 사용한다. readonly 실제 Excel200 다운로드/PK 서명 및 이미지·JSON과 구분한 pending/412, local compact36px 입력의 KEEP 근거는 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 참조한다. workbook 수식 안전성·서버 공수 권위·M/D/M/M·Origin/If-Match·출력 범위/시트 계약은 변경하지 않았고 실제 Windows Excel/VBA/DRM 및 전체 workbook 회귀를 새 로컬 PASS로 주장하지 않는다.
+
+Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
+
+Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.

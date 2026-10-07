@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import { useWorkspaceNotifications } from "@/components/workspace-notifications";
 import type { ProjectSnapshotResponse } from "@/contracts/projects";
+import styles from "./project-save-as-template.module.css";
 
 type Props = Readonly<{ publicId: string; busy?: boolean }>;
 
@@ -251,7 +252,7 @@ export function ProjectSaveAsTemplateButton({ publicId, busy = false }: Props) {
         {sourceNotice ? <p role="status">{sourceNotice}</p> : null}
         {!loading && (sourceState === "loadError" || sourceState === "conflict") ? <div className="standalone-actions"><button className="secondary-button" type="button" disabled={saving} onClick={() => void loadSource()}>{sourceState === "conflict" ? "최신 원본 확인" : "다시 시도"}</button></div> : null}
         {sourceId === publicId && snapshot ? <p>원본 revision {snapshot.data.project.revision} · 작업 {snapshot.data.tasks.length}{!ready ? " · 이전 조회 정보 · 최신 상태 확인 필요" : ""}</p> : null}
-        <form className="form-grid" noValidate onSubmit={handleSubmit}>
+        <form className={`form-grid ${styles.form}`} noValidate onSubmit={handleSubmit}>
 
             <div className="form-field">
               <label htmlFor="template-name-input">템플릿 이름</label>
@@ -294,7 +295,7 @@ export function ProjectSaveAsTemplateButton({ publicId, busy = false }: Props) {
               </div>
             )}
 
-            <div className="dialog-actions">
+            <div className={`dialog-actions ${styles.actions}`}>
               <button
                 type="button"
                 className="secondary-button"

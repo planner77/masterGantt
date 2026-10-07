@@ -263,3 +263,15 @@ Copy feedback 보존 보강 후 같은 좁은 Chromium 4개를 다시 실행해 
 Pending Escape 회귀는 busy DOM 반영 직후 지연 없이 두 번 누른다. listener 준비 대기나 50ms 간격으로 실패를 숨기지 않는다. BODY 초점·가장 위의 native modal 소유·중첩 nonbusy modal·busy=false/unmount cleanup을 분리한다. PNG만으로 keyboard/초안/권한/viewport 보존 PASS를 대신하지 않는다. 실제 125% zoom, 실기기와 screen reader는 [환경별 후속 #502](https://github.com/planner77/masterGantt/issues/502)의 NOT TESTED 범위다. 상세 비교는 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
 
 #490 검증 보완은 기존 국가 select의 UA focus 관측과 새 Calendar .field의 focus 관측을 분리한다. 390px에서 국가→적용 범위 select→시작일 input을 native Tab로 이동하고 browser가 보이도록 스크롤한 실제 bbox/outline3px+offset3px/clip owner를 확인한다. 화면 아래의 focused input 사진이나 기존 country의 UA outline1px을 새 field focus PASS로 쓰지 않는다. 유효 password rotation은 대표1440px 실제 pending/204 성공/session 교체 경로로 추가하며 모든 상태×5폭으로 확대하지 않는다. canonical refresh 중 BODY 초점은 실제 기존 정책으로 기록하고 정상 닫기/로그아웃/unlock의 호출 초점 복원과 구분한다.
+
+## Issue #491 소비자 전송 폼 검증
+
+실제 FIX는 템플릿 저장 field/footer와 action peers의0px gap, Export footer의0px 수평/세로 gap, JSON Import region의6px native ring 예산 부족이었다. 로컬 form/footer gap12px와 Import body8px/scroll-padding8px/table scroll-margin8px으로 보완한다. 36px compact Export 입력과 browser-native13px radio/checkbox는 기존 경계·label·focus 계약을 충족하므로 전역40px 강제나 choice restyle을 하지 않는다.
+
+회귀 oracle은 실제 `.dialog-actions`/`.form-actions` bbox의 peers gap≥11px, 같은 행 top/height≤1px, 템플릿 마지막 field/footer gap≥11px와 native region ring의 viewport/실제 clipping owner containment를 검사한다. text/date/select/textarea 경계 assertion을 native choice에 적용하지 않는다. choice는 label·nonzero rect·native appearance를 검증하고 genuine Tab/ShiftTab proof와 관찰용 resize/full-page 캡처를 구분한다.
+
+[Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)의 5폭·대표 native focus·actual API/controlled fixture·실행별 원래 실패·source/spec/helper hash·지원 entry N/A를 참조한다. CSS 보완은 공용 dialog의 preview 취소/commit busy·401/412·민감 입력 clearing·Gantt 보존 의미를 바꾸지 않는다. 새로운 shell/flow/견적 modal/CSV mapping을 도입하지 않는다.
+
+Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
+
+Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.

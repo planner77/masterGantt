@@ -1,0 +1,2517 @@
+{
+  "currentRun": {
+    "run": "after-current-0944",
+    "cases": 8,
+    "pass": 8,
+    "fail": 0,
+    "elapsedReported": "2.5m",
+    "command": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-transfer-layout-491.spec.ts --output /tmp/issue491-after-current-0944/results",
+    "version": "0.94.4",
+    "sourceCount": 324,
+    "sourceAggregateSha256": "45750a6365d582ebe6326aa8e62463f5f4d78ea4aaf8e6b640fb548a96bcc3e1",
+    "specHash": "1fb2342eff3fcec3f8b23878d492f6e546c4209f58157905f452537ee42c73f9",
+    "helperHash": "8d7a5f18dc16b2b210b7d075dcc7349060dd7f9f2363280c9b91cf5e4f0f8e29",
+    "geometryCount": 242,
+    "pngCount": 242,
+    "privateRawDirectory": "/tmp/issue491-after-current-0944",
+    "stdoutSha256": "974ed80620edc01250f5d24feeeca8cfdb8b0b4fc2044468cb279aa31ba6921b",
+    "timingSha256": "c084a33d650842dfe27febce34bad03ecde1092713dd9853c008f39ba7667be2",
+    "caseDurationMs": [
+      16355,
+      6398,
+      5698,
+      4072,
+      11840,
+      12460,
+      9129,
+      13990
+    ],
+    "originalCaptureHashes": [
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-401-1024.json",
+        "sha256": "0369ba62968922c00000b5fa2948775334dde3b28f3df3873a3c9e90f32c26ed",
+        "bytes": 79001
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-401-1024.png",
+        "sha256": "7086da028b501aae0b71dcaa198b4e2142ccf67c4d5bc8e3078a6b0ac590a302",
+        "bytes": 149561
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-401-1440.json",
+        "sha256": "8f7893eebaaf3650fd973fbbc7922c7f22e0506ba620a7fad70f6dceb9d11b94",
+        "bytes": 79029
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-401-1440.png",
+        "sha256": "aa26ea640adc15328bd1c1d46278ab9eec8b0571a523c51c0be8ad355185f845",
+        "bytes": 171479
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-401-1920.json",
+        "sha256": "ac2452ea51eba50564cef49f882a722d72dd5eb612ff59d8467fe550d63ed4ed",
+        "bytes": 79032
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-401-1920.png",
+        "sha256": "95106ce44e0fe9ae7cdc13b0cc6c914159ce96e3394456a8e63fe867e7cea48b",
+        "bytes": 191826
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-401-390.json",
+        "sha256": "f3b72efd5b5f0ebc9a8d2938e6ba18253be2394bc945f700c9fbc6093954710f",
+        "bytes": 78980
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-401-390.png",
+        "sha256": "dc02c77eb45dc829b2d880504ecc0d3dbf771652699f495c95aafcd9767d834e",
+        "bytes": 75692
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-401-768.json",
+        "sha256": "e22016b2fb1aaa3530136dfadc6716fdbd977229ee9e4ded450a34995a7d800b",
+        "bytes": 78987
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-401-768.png",
+        "sha256": "0c3306694693eb3a0efec7037ba11a1679a25a11ba644531c35237884ce2727a",
+        "bytes": 114719
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-contract.json",
+        "sha256": "87d7ac1c8d8dd29496110c65754a57a811412a14cf69e8904dbfbd26f8161487",
+        "bytes": 952
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-error-1024.json",
+        "sha256": "7a23e78e4aa706dd1eefc538047c241bd1a5f28663f526f52b517d31d381dcb6",
+        "bytes": 76643
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-error-1024.png",
+        "sha256": "b16b8556a27ccdd5953f13c67fce28597856b0b1944c11f807f9dff657ff6e0a",
+        "bytes": 136998
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-error-1440.json",
+        "sha256": "e7c9d6a7dc6165817ba6affbf37720022ccd9cffb217560c5a0a00696ec264ff",
+        "bytes": 76668
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-error-1440.png",
+        "sha256": "41d8af35af9849a4b82f8df7e29c6162b792536ca52e4a894472e5d315206842",
+        "bytes": 157073
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-error-1920.json",
+        "sha256": "e995b5da158eacd3223a8df3bc53eb8c03c9de27f3ee2e88a297bb15336fad8f",
+        "bytes": 76671
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-error-1920.png",
+        "sha256": "8db86321d2ed80c58b54cd40b0f25430b944a8456daa91a38036b54b15243109",
+        "bytes": 174873
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-error-390.json",
+        "sha256": "97191e3354fffe3b711250db1d4e149ca3d540287279b8376538edd61f01b986",
+        "bytes": 76614
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-error-390.png",
+        "sha256": "f926fc7f92666f455f8a0875a386daaf6b286d384e549775123318c02852ca95",
+        "bytes": 70077
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-error-768.json",
+        "sha256": "40dcf3dbee40999cb5ab1a53b992d9144b9f07e536c41595e1b6e5bc382264c3",
+        "bytes": 76630
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-error-768.png",
+        "sha256": "30e04db96cb20c7f44d2439fb7c41e12619befc62474107e23d095e1734f48ce",
+        "bytes": 104276
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-loading-1024.json",
+        "sha256": "5d055a623f12860982b9fd43e6684f2d709d9762aab8f33ff1ed48bdad1ba56c",
+        "bytes": 59721
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-loading-1024.png",
+        "sha256": "b62eca85695fc613fee15968964ba2b36662afda43847c93e59b2070d6904499",
+        "bytes": 94368
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-loading-1440.json",
+        "sha256": "72d643d76253d66076f6ff605b2cbbef58bdacf5308ce50280a27c26f985acec",
+        "bytes": 59726
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-loading-1440.png",
+        "sha256": "bc6189752a0666553d34657b2777936d1f7c64f0646db9bd9d6b0f39d33b4e5f",
+        "bytes": 103006
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-loading-1920.json",
+        "sha256": "01bf26f1e6693e893b290e9c9a11ae62874ce2ea1925aa46387faa25d08daa4e",
+        "bytes": 59729
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-loading-1920.png",
+        "sha256": "35685cfb1f41a2a1c122c740687a54121a205e9ca696e1af353c9b775d9ee710",
+        "bytes": 109542
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-loading-390.json",
+        "sha256": "52cb856de4443ba2e6ebccc18cd37943958fe488dd1e0ffe84aeddf3718e2a69",
+        "bytes": 59729
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-loading-390.png",
+        "sha256": "1affec38e018e325c0e559365ab71e5de1d5406c6560961cf9aa45987bad718b",
+        "bytes": 76683
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-loading-768.json",
+        "sha256": "80173278815d339830a2894341f326d54235b9c5f82fb244215e158d4fdede5e",
+        "bytes": 59715
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-loading-768.png",
+        "sha256": "66c88a65882f41efbaa02fbad34ede3060d9f0626389c7203f06d9171da4fe78",
+        "bytes": 92775
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-long-1024.json",
+        "sha256": "dfa6397a5eb690a68383cf33259efe002db9dcf0371f780de3afe9fbdbd8fabe",
+        "bytes": 76643
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-long-1024.png",
+        "sha256": "2d9f731b71cbc1f7228de06870e02b1538ca4f6cebaa9886147164ce539f0aea",
+        "bytes": 129183
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-long-1440.json",
+        "sha256": "faa786ce595c3c4469412907c874e795979a3b27b4922aa063348ac9ad666d3e",
+        "bytes": 76668
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-long-1440.png",
+        "sha256": "69ee95f51b4881bdcc26aed5c115517c588a41c6b98da36b0c8df8d0dd67e030",
+        "bytes": 148500
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-long-1920.json",
+        "sha256": "7156c7d59d15d3e7e6e330e871f3388f197a7a15c8d668976cd3b94943cb4204",
+        "bytes": 76671
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-long-1920.png",
+        "sha256": "e931e85fcb2acfeb269437b1e02d1804cb3c6294928d625114e2f037c0882a81",
+        "bytes": 165703
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-long-390.json",
+        "sha256": "e03f4cf52d448a9cac4a5b0fc43f00c5bb44fa635c9cc76e4066bbed45ab46c6",
+        "bytes": 76616
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-long-390.png",
+        "sha256": "3faafc8ad61aecc8788d3c17d6e3f3fe65259397d6f9b084974d6466ee96c95f",
+        "bytes": 64596
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-long-768.json",
+        "sha256": "95c0e8cc479c1a11a54abb1b120f1563a94a2a1de69bc4625536f23222dd538a",
+        "bytes": 76630
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-long-768.png",
+        "sha256": "f8e78068d542af45ae916e56d52b88f57470cb862f86f0002e44e9ee603ad437",
+        "bytes": 96761
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-pending-1024.json",
+        "sha256": "e0683d4b6411c3f91ae5503e339bcd4c210bb4936091a91a441b1134c213acf2",
+        "bytes": 76645
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-pending-1024.png",
+        "sha256": "5c76a88b310201baaf129b5b4e7bb5ed53060eefe61d7a5976a87eb7fd6cef17",
+        "bytes": 127690
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-pending-1440.json",
+        "sha256": "d9ecbb807820e9d8b00ac3817edcc95573ee076a223e67a17b340a5174fd4952",
+        "bytes": 76670
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-pending-1440.png",
+        "sha256": "5e3dd9446bf34f98e6417c51bd248e779970a8c98aecfdb8e756382018d821ea",
+        "bytes": 147079
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-pending-1920.json",
+        "sha256": "2fbf90f4e24794a6bd2066c31b8ee35ec1559d872aa39a6f4eda568a6bdf733a",
+        "bytes": 76673
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-pending-1920.png",
+        "sha256": "d9c8f2822c691d34220fa6c5b1f39bf05569143c0f1624fb7d2f097a72bb7efa",
+        "bytes": 164342
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-pending-390.json",
+        "sha256": "18f59df8eac29ea5f36c1aada31feaa392096b43dfcfc0f61654c3b55701ad96",
+        "bytes": 76618
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-pending-390.png",
+        "sha256": "1e0f120a854677b849c53e61721f16264907253b7602f70ee67413179f9dd1b3",
+        "bytes": 63501
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-pending-768.json",
+        "sha256": "e501ddc9e260759b8ec7682e4bde49301b6d8b06ddbdde34a7398149b5938e8d",
+        "bytes": 76632
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-pending-768.png",
+        "sha256": "e65a5461a8b653282a09724158e8a1ff8f235681ed9e546b484bf45d0e8325fc",
+        "bytes": 95381
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-readonly-1024.json",
+        "sha256": "0aeab38cebe4826a239913b44444e3707b53588fb0bb7cc96714e1c005acc311",
+        "bytes": 78975
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-readonly-1024.png",
+        "sha256": "5b3793e3b7db060527d8344ed71d5669e16cb0e493fcc1f9ab2021ab3d524978",
+        "bytes": 124520
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-readonly-1440.json",
+        "sha256": "ffd6be00fd27ac79e140d0d10a95d82bef97f9152b07b54bf9f233fef715f1e3",
+        "bytes": 79003
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-readonly-1440.png",
+        "sha256": "f3f3f0a9f7350447d547317fe25d8587b5382d2e1591baa8e898362a281f57cf",
+        "bytes": 144504
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-readonly-1920.json",
+        "sha256": "95545da1ea8d341f02e70d193c4094f46d007255b63732899f72c8a976285294",
+        "bytes": 79006
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-readonly-1920.png",
+        "sha256": "6f8aa2f1fcfa057a0ae3bdb0bfc23e4e36bfd3b5bf14943908659ebaed66a613",
+        "bytes": 163045
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-readonly-390.json",
+        "sha256": "2b494309db3ca2f3a4dca7f0c76daf9cc2081bdc8bd78aef255937af509c5f13",
+        "bytes": 78957
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-readonly-390.png",
+        "sha256": "f6b99e87e99bf40bdb9b12ea66a7441d895544007a2d9b7c4d035ab05ff69bd9",
+        "bytes": 58507
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-readonly-768.json",
+        "sha256": "54e27e52391f0a534a88530c5b21d370f2adb0f9133d04f520f9351cf1642228",
+        "bytes": 78961
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-readonly-768.png",
+        "sha256": "321310be2ee730acbc630179f836a7897ea6a3b7ba588f87626483717a41ee25",
+        "bytes": 90325
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-stale-1024.json",
+        "sha256": "57784d3d55b4cad19a36e4988f9daea01108559494cadb44914278d8951210a4",
+        "bytes": 78866
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-stale-1024.png",
+        "sha256": "641c1c4af65f90531aca7889049c953c8e76ec5ec916a8ec76cb7ede2b9d1278",
+        "bytes": 143833
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-stale-1440.json",
+        "sha256": "446517d79c767f127ec84df39460efc9a7b8819f66cce2c1664dc2f9d8fda01f",
+        "bytes": 78893
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-stale-1440.png",
+        "sha256": "2bfd52f0a4248c5482d065986f235eb78c60e5b96e296a63350a4ba203a5ea73",
+        "bytes": 164919
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-stale-1920.json",
+        "sha256": "920037fc13f3c6ac151e75e39c1c31ebcee43d8733215e78ff6d2e686726c262",
+        "bytes": 78896
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-stale-1920.png",
+        "sha256": "0d99285f03239da22fc1d395d3427878819e1c730dc7f2d92fcf6cf20a830b71",
+        "bytes": 183702
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-stale-390.json",
+        "sha256": "359b49a258d696a4005bfe1b00e83098fed97ad9db310f48e7d11c6882cd1158",
+        "bytes": 78722
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-stale-390.png",
+        "sha256": "c5a3ea48041140301de7b6c96ff9fc675e337d91cb22d3cab5f6ea7ac7a3aa98",
+        "bytes": 72558
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-stale-768.json",
+        "sha256": "bca0ef08b1ff925bf93802c9ee048ed4c9632e1b24fca6dc82e1e2d70455dc9e",
+        "bytes": 78852
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-stale-768.png",
+        "sha256": "3c6f9fff34f6d188691d4aa7f72acd1df15dbcddaa7c9ee9d0edfab080517e27",
+        "bytes": 108987
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-validation-1024.json",
+        "sha256": "0c7646ece0bb0476f277a85c647ca38d72e3ad7de3d8b09be107879ece5e95af",
+        "bytes": 76642
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-validation-1024.png",
+        "sha256": "c7c4b294a9d1b7e52ce56e274e0a17e872af5f1bd6beb9389e13c290f82d642e",
+        "bytes": 133331
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-validation-1440.json",
+        "sha256": "12d01e5351bb90fa7b131689998a1180ab7bd7c2584120fc48d5d24652ed2bc9",
+        "bytes": 76667
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-validation-1440.png",
+        "sha256": "a5b1eafea3c9786f00a2bee7614bed85eb925b2675e1ea6851378b38c1766798",
+        "bytes": 152967
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-validation-1920.json",
+        "sha256": "772d44c9e92f25fce13e7449ccbb16170dcb5601951938add110b4959a50ba58",
+        "bytes": 76670
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-validation-1920.png",
+        "sha256": "959d2ae321d948e0a8158e429f4b04da22a7c510d14800f6164353867930422e",
+        "bytes": 171066
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-validation-390.json",
+        "sha256": "ec0dccca01e298c4bd352118b9f088a83e02483b00846290c8ab82c8e7284f5c",
+        "bytes": 76613
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-validation-390.png",
+        "sha256": "f672d5fb0f08f5c06360ce54ebf6235c78e3a5e51e2ab7f7da534a07cd094965",
+        "bytes": 65504
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-validation-768.json",
+        "sha256": "236581472e33c89d3b043abade10d17bf7df4e674f7ff14a366edb8a4d99681d",
+        "bytes": 76629
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/copy-validation-768.png",
+        "sha256": "0ff7364258f7de05a576ca8cade4cfd23693e9c26a041132bf3100286b066f79",
+        "bytes": 100814
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-contract.json",
+        "sha256": "06564a28b87a01f63bdf388ff7eda9f0eab27c12243ca94404a363b9b77c3cfa",
+        "bytes": 305
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-long-1024.json",
+        "sha256": "0fb235aeb1d00005589990ccbceba60e8d330c3828eaa2acb81b31738b5434d2",
+        "bytes": 81872
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-long-1024.png",
+        "sha256": "583266b3e470299438c40ef049aa3153e345cbe767c9e87b3a25d06b51881a32",
+        "bytes": 127847
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-long-1440.json",
+        "sha256": "1812dc6f5348c348e0390ed3405599e40ef4314c0f9bd7f00360bdb9b2857801",
+        "bytes": 81762
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-long-1440.png",
+        "sha256": "02f3820add237d42f26532182cf96f3e88355a298bf77db8b6db287ca3b557da",
+        "bytes": 142372
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-long-1920.json",
+        "sha256": "fd3541595c5f20778d23162f7cb7304770a5c2e88946c20da2e0d9d17db803e9",
+        "bytes": 81770
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-long-1920.png",
+        "sha256": "e164a5ba97753468848f8b8bea51f016ec974b6eb73ca69fa581c964ff9d03ec",
+        "bytes": 144015
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-long-390.json",
+        "sha256": "15b9d248213ed535f6391839ebaad0c78bd3d661ad93efb4812207fd681e9e11",
+        "bytes": 81709
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-long-390.png",
+        "sha256": "3fa867226d339db2b41645737cdd879d66ddc7d29871db0224a18855843978fa",
+        "bytes": 96063
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-long-768.json",
+        "sha256": "92c6b0ecb4ffaba57825554cd5228a5f0eb91bd9c48a751cd4eab85fad6d2cf3",
+        "bytes": 81827
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-long-768.png",
+        "sha256": "8ef32ec4cd31e983bb1779ddefd40ecd450014c583f2451ca00e3b9da4a57076",
+        "bytes": 125714
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-native-focus-1440.json",
+        "sha256": "2b118a96a1e689e32da0c057567c92fe3ad7b5a2dfb81ab12e799c3d8bfd3761",
+        "bytes": 81787
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-native-focus-1440.png",
+        "sha256": "0724665f69b8f4c5fcd5219674339425ea50523902c9424df97776cc73871492",
+        "bytes": 144730
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-native-focus-390.json",
+        "sha256": "9de4925375b3681ddc8cd756eaa8bde24251faea234e948ef19bb573e96e396f",
+        "bytes": 81723
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-native-focus-390.png",
+        "sha256": "64825d85e84791dc82382c1d013d0723facb92406edec80f107234b224f472cc",
+        "bytes": 96960
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-pending-1024.json",
+        "sha256": "fc631a65d4c72e70c07924f1ec0309a31d5027e7134348b1ed02e77b9fbb05e7",
+        "bytes": 81863
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-pending-1024.png",
+        "sha256": "2049fdf414826772fa1b47b0a4393f6bc43a1d8af58a53d0f3c5c3826134c4ea",
+        "bytes": 127204
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-pending-1440.json",
+        "sha256": "1b042eab93771ca61338fd7395d65a82b30c9729d970f5d7cfc8a97c809d6993",
+        "bytes": 81772
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-pending-1440.png",
+        "sha256": "3b348a1b957eedbad6cb5d0a8955339208ffb2df538761c1a5c0f27f01ec3045",
+        "bytes": 141531
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-pending-1920.json",
+        "sha256": "27fda76ba6fd39f01f4c8fb6488a3a2cc99d38464781433b519db053632f5b1c",
+        "bytes": 81780
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-pending-1920.png",
+        "sha256": "73caf707ef84b4c6b0dcfc183627a647aa8001a9934da3553df3cc8a23c1ac4c",
+        "bytes": 143134
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-pending-390.json",
+        "sha256": "3a533d9e53d62f47a44e8430c682959f58de710ab4a2e12b80ab3546c8da53d7",
+        "bytes": 81721
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-pending-390.png",
+        "sha256": "8f4efb3e45efe632ef8c34602cac921df0179b0bd43a09e9eb2822fc1e6af16e",
+        "bytes": 96623
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-pending-768.json",
+        "sha256": "e7549cd1c27285892d7372d6e6444ed84f73a8c3ba34ce263791d1b5287df1a6",
+        "bytes": 81830
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-pending-768.png",
+        "sha256": "c92ccd37aaffdd79df230b239a738979ebb85ac6048b98ffd1a2b381fc52c7f9",
+        "bytes": 125867
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-validation-1024.json",
+        "sha256": "0a2eda2d29f8607f11b9b4896c2a7ba2af318417c1f9bf6c2d7683698dca755d",
+        "bytes": 84019
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-validation-1024.png",
+        "sha256": "69f1d3b57181c8785a2be2cbb6dd8f1559b1cc2a1c88b7ae36db3cf7a4de5ad0",
+        "bytes": 140583
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-validation-1440.json",
+        "sha256": "46cfbb5ea9610d748944c97eceac98bbb0a65b1c2662d5e638ac0dc09af61195",
+        "bytes": 83914
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-validation-1440.png",
+        "sha256": "11b5d49c7a31876dc3044f508cd5b1d48655f13e4688895195ecfac798f0e9be",
+        "bytes": 155342
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-validation-1920.json",
+        "sha256": "7d79ad4546d583f5ae0647cb5a9172d27140c3629c653ae37ce4adca5a6b8a20",
+        "bytes": 83922
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-validation-1920.png",
+        "sha256": "7eeacd7bfd504e3ae62e7f582f522e4a69620fff60056e5708575dd531826ea7",
+        "bytes": 157347
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-validation-390.json",
+        "sha256": "a3862e73d178bb2a555228648e00ceb014b57781700ab9073c3c51236a2eb391",
+        "bytes": 83876
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-validation-390.png",
+        "sha256": "9249f1c5d5e764124f4cdc1d99072373daa084b6b420e518eeb62f10b8ff3948",
+        "bytes": 108972
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-validation-768.json",
+        "sha256": "dbdf0c9e55ab0bb3c7b3f4fdf348c546e5d1756108594db372b192294a783bc8",
+        "bytes": 84003
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/create-validation-768.png",
+        "sha256": "ae4bb45e4bbf575f59eee90f14c13ef89e60090291ab77509f23cd872347d962",
+        "bytes": 138872
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-actual-empty-1024.json",
+        "sha256": "b36f28b628bbda858261220256217d275f32eb430e714b999b66f23516359a9e",
+        "bytes": 71669
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-actual-empty-1024.png",
+        "sha256": "f850be0179a9a5614cd0b13f45a1c214195608560f1658871dbc5ec59d02f123",
+        "bytes": 108078
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-actual-empty-1440.json",
+        "sha256": "e73e1ef97db69548dd0691aedbb530689c9fe32dd97cec34cbccc3a5e9e408b2",
+        "bytes": 71695
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-actual-empty-1440.png",
+        "sha256": "b5b4ef3b8edcb56ecd75b61d8f2ad32cb3f8596595317e631b824b226f5f8d86",
+        "bytes": 112743
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-actual-empty-1920.json",
+        "sha256": "c8ef920c011eb4ae32b2097420d0ec6025ffe842faee9a291c170f16c9d3973e",
+        "bytes": 71697
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-actual-empty-1920.png",
+        "sha256": "a59615313e5c58c182ea1b8508ca5a7586b4bc7b79e2d31f83e7e1309a5399d0",
+        "bytes": 114323
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-actual-empty-390.json",
+        "sha256": "4b1b8abf3f35eaf5a91ceb3cffe0daa17022c77676ed99ef041e379e5a3cd0d5",
+        "bytes": 71475
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-actual-empty-390.png",
+        "sha256": "fe3c67154e7a115bcf795b8c5119eeef60048624b4e7facd7634e33925ff4e0e",
+        "bytes": 61026
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-actual-empty-768.json",
+        "sha256": "364e7cba4c4cf41ed0562364869eac15a910d316e0824e2b18d7ab04f6ee5291",
+        "bytes": 71663
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-actual-empty-768.png",
+        "sha256": "895f1660bf7ef80184a591f01faf49b81c8c8233542e7d0be570600a66a817c2",
+        "bytes": 76007
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-contract.json",
+        "sha256": "fd441295872bff817a0c516de330fa84b1f8770b001725c0ca5a78d2ee7e7d9a",
+        "bytes": 242
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-partial-1024.json",
+        "sha256": "105dd3bc60578fac551356f702867e3d6467ac0723bf5e95d3a8f03c74b1d18b",
+        "bytes": 89972
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-partial-1024.png",
+        "sha256": "a79b6aa0f2c1afde03c46c40c50a5e966086aec17e9048789ac695ead9cb3af9",
+        "bytes": 104504
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-partial-1440.json",
+        "sha256": "4088406bd39f4d3abf7b9f6a54b36cb2aa49c06eff5b72b4257f168672fa6065",
+        "bytes": 90416
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-partial-1440.png",
+        "sha256": "17d795eb68584183fe5da52be77948352117debaf5bd5080e9b4470acfe3222b",
+        "bytes": 133634
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-partial-1920.json",
+        "sha256": "7c652b2e893669e29da85bcfafa19135150f7b5451ebfecfd3f5088e9e100425",
+        "bytes": 90458
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-partial-1920.png",
+        "sha256": "880c8ae4033097a1f208064392011b2bad48932121e3a8ae3b2c8279bc28c34e",
+        "bytes": 136113
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-partial-390.json",
+        "sha256": "455c7e2ed048e491701ffd958951a105a0896363b4522a33340e8cd6851a58b8",
+        "bytes": 89930
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-partial-390.png",
+        "sha256": "57543688ed5d115ada715af2892292f1e21b7e015a963d7fdaf74db7db5b2fce",
+        "bytes": 54589
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-partial-768.json",
+        "sha256": "2bc589341c90323bcf7f050e692832537822051f13887dc5ab53cbe49f09b10a",
+        "bytes": 89961
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-partial-768.png",
+        "sha256": "3d6b1128d0f06424c9faa8a464890557ba9a8aab42ca5a035e32a6c86061c9e9",
+        "bytes": 87957
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-reversed-1024.json",
+        "sha256": "67ac576eaa4287ece4b667f6f324fc81a1967bd41b9057c22033a1e0a06595a0",
+        "bytes": 90000
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-reversed-1024.png",
+        "sha256": "ee2d653ef19cdc72cc87a5792e56c2b8d6eb6e07ea2e756842bcd1815a9105e0",
+        "bytes": 102267
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-reversed-1440.json",
+        "sha256": "920910b1600e4a2b27dc170320dc71211f9d7ae15e533dece4ad1fc48dc7ba93",
+        "bytes": 90444
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-reversed-1440.png",
+        "sha256": "90651e078e3b6b2961191e586984cd3c6c93c5ffc6f7af530618fd452ce01a27",
+        "bytes": 128032
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-reversed-1920.json",
+        "sha256": "d55360369f517b6fdea12f0ca34bab5102c473fcc52703ff70b8c783205a7e6f",
+        "bytes": 90486
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-reversed-1920.png",
+        "sha256": "5d49b8a38e90458d492f319c115847055f146f4242d016c9da007b97f62ccbb4",
+        "bytes": 130509
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-reversed-390.json",
+        "sha256": "3b3433c351cf9e97f42f2bf9d34847536ee588132684416b597578e47f8bf8ab",
+        "bytes": 90197
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-reversed-390.png",
+        "sha256": "96c97ee790d631e3eb22433554a367666f91428ff775521c5b4201e1a8c7100e",
+        "bytes": 54570
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-reversed-768.json",
+        "sha256": "88bea27e506d1dd52812616461ceec69492d80f75b41f67673b9eaad790a0df0",
+        "bytes": 89989
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-date-reversed-768.png",
+        "sha256": "77d3c7149ff783372af06cfa8b9c75868efcfabc5c3c5509e54d8fa34ce2168a",
+        "bytes": 85964
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-filter-native-focus-1440.json",
+        "sha256": "de98fca14d81c70a73e5061e472b6d2e776af18ebfb56e14ef1beffb26ca1969",
+        "bytes": 90423
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-filter-native-focus-1440.png",
+        "sha256": "93cc414c484de7c5e2c999d8e3e6f277100e17c582487da9a6bc254bf8b3aa11",
+        "bytes": 127707
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-filter-native-focus-390.json",
+        "sha256": "e3acd5c8b6121337f5c96419203a5ae247a0a07fd7e62e1bd475fc32e1d854d7",
+        "bytes": 89691
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-filter-native-focus-390.png",
+        "sha256": "b08bdaa145f1d7bdf980ff7289d265f7d65e12b96fe37ac35e5fe7f983a89578",
+        "bytes": 54725
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-large-server-values-1024.json",
+        "sha256": "395d68cd785494726b451aa7a149af477afc2ee13d1935b2cb03a39e03b7387b",
+        "bytes": 90039
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-large-server-values-1024.png",
+        "sha256": "8692c859deb86f54987867cbe903c6d514a403469f48d01a704e938b11508dc6",
+        "bytes": 104073
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-large-server-values-1440.json",
+        "sha256": "8957bb7ba1a55582144a9b0c8d83d08ced6e5c1e9686892089b0c219a3965c33",
+        "bytes": 90483
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-large-server-values-1440.png",
+        "sha256": "0444fee3234750f8c346ffebb6dbe621268d1b589ada7ba32f572668fa46ec6d",
+        "bytes": 129780
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-large-server-values-1920.json",
+        "sha256": "5e90ef22acd6fd0b002c868304c4708d3ee1ab56c41cea9c6e5caef37b5049bf",
+        "bytes": 90525
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-large-server-values-1920.png",
+        "sha256": "042a2a92491393591af202e553a3886a16ce520245ab64b5ec00c146c87ed55e",
+        "bytes": 132316
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-large-server-values-390.json",
+        "sha256": "31c4f1782d75f2dc22a5024f47525aa5f53746e4986949ae4c81229ca4c304a1",
+        "bytes": 89751
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-large-server-values-390.png",
+        "sha256": "e80b35f2d76d8c453e252e3d32f35d6cf0bd29d50dad5053c1637055a7a4e254",
+        "bytes": 54547
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-large-server-values-768.json",
+        "sha256": "ca1b60ade1497e91f6aa2ab002cab4184d5247be46caef00a699e25087bb6541",
+        "bytes": 90028
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/effort-large-server-values-768.png",
+        "sha256": "c61b6038bddd4fd322b6b8e21f6324b9535cb004cda7054acd51a385012d7cf3",
+        "bytes": 87683
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-contract.json",
+        "sha256": "25e8a03a483b07c9427b33d6139142a3aabe0746e1716afbcb152ecc384ab75a",
+        "bytes": 2058
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-date-native-focus-1440.json",
+        "sha256": "767c190ead3824b5eef3f9467913f95c013ec275342a519c53e7a57182a24a6d",
+        "bytes": 80645
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-date-native-focus-1440.png",
+        "sha256": "f0614ba1cf8ffd9185198136f04e4c7fcb3ec0dd24318cf91ddd590867eee55b",
+        "bytes": 119396
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-date-native-focus-390.json",
+        "sha256": "c6b0992af393a6e72c665d13f5c6d2773d0ebedb3bfd6d609382c8a706f47804",
+        "bytes": 80438
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-date-native-focus-390.png",
+        "sha256": "21f27f8b382abfa76f346d30705dff5cc24589405a7090eb8819d5cc43cce277",
+        "bytes": 58550
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-effort-options-1024.json",
+        "sha256": "21084d4dd9a77e1d356b55f375a8f327628ec97be0afe627dbdaf3657a40fd17",
+        "bytes": 77848
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-effort-options-1024.png",
+        "sha256": "446527f4034a49d0af702ea7e15c9858866796c5d6a8be1537890f262aa474de",
+        "bytes": 111212
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-effort-options-1440.json",
+        "sha256": "582ef00273b98025423059e76f058ef2d5e2b24975bf9b9ccbab188c68e43718",
+        "bytes": 77869
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-effort-options-1440.png",
+        "sha256": "1f159ca40f1b827c2418581f841a1a5fb0cf9b36dde21959a36fb7a7619041e6",
+        "bytes": 126128
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-effort-options-1920.json",
+        "sha256": "c0d2571af01048029d4695671d300b7911b1dba4b44587456f5f4ecb4b87b01f",
+        "bytes": 77872
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-effort-options-1920.png",
+        "sha256": "0abafe54538c2db2c76f8ec505cb1136afe534570575e313885341ee8fc8631f",
+        "bytes": 139725
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-effort-options-390.json",
+        "sha256": "f53463ccc6748b8dbbcab02800bec15dd139e8260b1f66498cc0bde4c5a437aa",
+        "bytes": 77646
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-effort-options-390.png",
+        "sha256": "12458580be621ecc83af17a9ae5a0002ecc60a68c46c80a71dff5103200eca4c",
+        "bytes": 76897
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-effort-options-768.json",
+        "sha256": "e84825962b3c1b8ab297432c77727d724d2c8417daad896344b6038b766aa6c9",
+        "bytes": 77835
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-effort-options-768.png",
+        "sha256": "185309c6c0976fd0d989cee86199734da4680110d642c3e8f45c1995a0b9d195",
+        "bytes": 97264
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-error-1024.json",
+        "sha256": "f4cfd810a0683494f746f44a3b02248a84b2b7b3618c21e21b942304fa61565b",
+        "bytes": 80161
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-error-1024.png",
+        "sha256": "668142099824ddc1f93646ea9f2ba6e57a47ffed024cb8edea64a98ae150f6b9",
+        "bytes": 105024
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-error-1440.json",
+        "sha256": "fa8da51b19b7930e02aafa76b51888ade355f4fe630c3f10eef4b02da8508298",
+        "bytes": 80187
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-error-1440.png",
+        "sha256": "a7258d16ae4527e2170b32acc84871e7fb1b0e1dc9a26b60e8bd0291afcdc5ed",
+        "bytes": 118924
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-error-1920.json",
+        "sha256": "5c5c18cfb3187fc042b89e03ef4411395356a14c862dae63e832f66e7f18ae00",
+        "bytes": 80190
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-error-1920.png",
+        "sha256": "4098b3aad700a7308eb85a5eccf5bc549564848171fad2d773bed350e1698c8c",
+        "bytes": 132154
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-error-390.json",
+        "sha256": "defebbe52974445585a08954511263a85daa36d231659158343576402a32bf0e",
+        "bytes": 79831
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-error-390.png",
+        "sha256": "ebc39e9b72b46598bb6851bc9e73b5269c50a0d303020b86a5e70b99a84a6a10",
+        "bytes": 56031
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-error-768.json",
+        "sha256": "9d5d0dff6415f573c6344af94956a63f724df7becd6c434e3c55ad074e5c00cf",
+        "bytes": 80147
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-error-768.png",
+        "sha256": "acd06a37cd813a485049b33588bc6e33ff2922f82225c2d051acebb84b8a34c9",
+        "bytes": 79580
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-options-1024.json",
+        "sha256": "21244c3d2dc30ac7e09d7baa77ffe8ff358e02468c7e434a753b3db45b089847",
+        "bytes": 77849
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-options-1024.png",
+        "sha256": "877e1c6804774ff4268dd7f82bae5ce9770fc50812e3dff26766249375eaa165",
+        "bytes": 112067
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-options-1440.json",
+        "sha256": "5a1307e92f5646610a85a36aa73b39f648869e4bdc05807c78ac925dc8ba9529",
+        "bytes": 77870
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-options-1440.png",
+        "sha256": "f7ce350a4ee5ec7a83aaa63e48f8d3401bf897a61c74c097c06d8c717d70b816",
+        "bytes": 127092
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-options-1920.json",
+        "sha256": "f5dc2fbe21d7a4339dda6a37b208088d9fa9c88923726ff6e18ba50c0c6a1162",
+        "bytes": 77873
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-options-1920.png",
+        "sha256": "fd49009ddef8358084cbaf4b8968ec437f92328f1a1bf349fab773c89a38d56a",
+        "bytes": 140602
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-options-390.json",
+        "sha256": "c5f0d8b5dad53672c58fb3b7fb43c07a936a6ad0cf407582d711dc40ac82ab25",
+        "bytes": 77647
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-options-390.png",
+        "sha256": "dd11d9c6426a5fa1c938291f8e374c9769d70a33f6919059184fd8fe290fc952",
+        "bytes": 77669
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-options-768.json",
+        "sha256": "f86fcd32c299723c0558adef95e7d00c461a44f3a4eea85ff6397d909748d29c",
+        "bytes": 77836
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-options-768.png",
+        "sha256": "f37e7e9d3a517cd8741c4063dc3ab2c8e63f08132a364b01a61eb559991646dd",
+        "bytes": 97981
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-readonly-1024.json",
+        "sha256": "89095e2d65fcc0d2c4b3ef51abc9b734a0b3eaeb23036e2626bbae87c0c4f0dd",
+        "bytes": 77849
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-readonly-1024.png",
+        "sha256": "176ca328a9f0a1f238f066ea31c0a03f608bed494daea940c7d8ca16444663b5",
+        "bytes": 111209
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-readonly-1440.json",
+        "sha256": "95899418dcbbd92b9ebdaf6471242c61da31a26a2bf177f09c19a5bcfc9f3311",
+        "bytes": 77870
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-readonly-1440.png",
+        "sha256": "d12641444c2bf29bcefd54d341f658afc566e474b90cc7c7178b5636a52ca128",
+        "bytes": 126124
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-readonly-1920.json",
+        "sha256": "b32181c0b2167fc9b8758f25afbbf1c81baa2efe4921d8b760c8346f3ad28392",
+        "bytes": 77873
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-readonly-1920.png",
+        "sha256": "66e7a437daa2ed7e96cb42bfae31397d5d61cc7d0dc36cb20bebd3ecb2e84253",
+        "bytes": 139720
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-readonly-390.json",
+        "sha256": "486394f9785f1a98e394cb390ee7fa56e08a5f180d18a919642f7bbe28fae095",
+        "bytes": 77647
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-readonly-390.png",
+        "sha256": "12458580be621ecc83af17a9ae5a0002ecc60a68c46c80a71dff5103200eca4c",
+        "bytes": 76897
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-readonly-768.json",
+        "sha256": "401cf871dbadedae3be17c6006e12b9dbece029609b969cc0cc6af80de1bc0e8",
+        "bytes": 77836
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-excel-readonly-768.png",
+        "sha256": "185309c6c0976fd0d989cee86199734da4680110d642c3e8f45c1995a0b9d195",
+        "bytes": 97264
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-range-1024.json",
+        "sha256": "658742f9716b56ca044655c8467aa91ed529420853c7bf8b70913e5fa5181f07",
+        "bytes": 80199
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-range-1024.png",
+        "sha256": "0139fb919f8eaa0de0ec87540d650464c1dbfc632b6e6c0af6ec1a3f1d9c0ce7",
+        "bytes": 100476
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-range-1440.json",
+        "sha256": "078db096c2c02df529febc9a8e3106209fda96526eee0e29c8f399f5f4977d58",
+        "bytes": 80225
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-range-1440.png",
+        "sha256": "e8bcd5621a289784d113b5b19b831075166aafc0c69941cf81fd25b453977ec9",
+        "bytes": 114121
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-range-1920.json",
+        "sha256": "fc02a6cfea4abe836c5d1d9fbe53d61896e068363f0c331adf7bd0786b4632a2",
+        "bytes": 80228
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-range-1920.png",
+        "sha256": "77f22969ad1f74fe14fb19a94a11f5c0c2199c73f981f62b1ce829c644c274b3",
+        "bytes": 126786
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-range-390.json",
+        "sha256": "af6d385c605d47212d969afd28c845317476d42f1daad67482ce0cdb3fac4ef0",
+        "bytes": 79991
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-range-390.png",
+        "sha256": "ac355be07fa0451ce9f897adf497a8488c92483d42fbbc77a4e26fb9f6f0c675",
+        "bytes": 55177
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-range-768.json",
+        "sha256": "c1c704c43466506889ba230c31dc7f97f02471d738d2ef98fdbe2d171b41e149",
+        "bytes": 80185
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-range-768.png",
+        "sha256": "79ad9ad58d4a58aabd9d293864db7d82e38431292558350171ee508927ec94ce",
+        "bytes": 75163
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-validation-1024.json",
+        "sha256": "cba5c769f809da81135fd8d037e4e549758c7ed377f770fbac118804341e0f97",
+        "bytes": 80594
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-validation-1024.png",
+        "sha256": "cf1014219a0e207ac087a0a842a0aca6296fd169d7085317ba50022f82004c83",
+        "bytes": 104441
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-validation-1440.json",
+        "sha256": "f9b9b6271d5da66eb17ba9912c8f8a448b97a6dbe5ce2e8c41fdbada72e05b96",
+        "bytes": 80620
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-validation-1440.png",
+        "sha256": "0bb6aca374a0ad0bbfac1d8ca31faccc3d527c4f8b19e5e627a31103a6c9b3e5",
+        "bytes": 118388
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-validation-1920.json",
+        "sha256": "042638a541695cf51712dc4cc8592023b9f87c78eaf22cab5a5b28f49d1cd357",
+        "bytes": 80623
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-validation-1920.png",
+        "sha256": "7c773820200731622ff1cf13b3624caba7c7ade2b351d4bd9a523f9c8ce9598d",
+        "bytes": 131604
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-validation-390.json",
+        "sha256": "42f076bab08be21fb66d9a6427e4d504779582cf77d69175ae2761f291567464",
+        "bytes": 80413
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-validation-390.png",
+        "sha256": "ebec96fc85901ecbe10ddf91a80013a736af538d0f4962c23939acd131a7291c",
+        "bytes": 57600
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-validation-768.json",
+        "sha256": "28077eaea9924d2f0194d2bbc518ffe96d0e432e300eb86146dd681c9ac3f14b",
+        "bytes": 80580
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-image-validation-768.png",
+        "sha256": "1c2fad6ba5e96cd4a71d5f8ad98987981d05d8255084ced0c26b703c5bcb1687",
+        "bytes": 79062
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-json-readonly-1024.json",
+        "sha256": "be456908bf18120ddeca62fbd190f526aeea45143ba90d7ac0172b22923b6e7c",
+        "bytes": 67799
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-json-readonly-1024.png",
+        "sha256": "91f8720ad08331ec125d3626d35ef158b12e111b1fdd00b8114c25a45f7ac2e8",
+        "bytes": 98397
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-json-readonly-1440.json",
+        "sha256": "0fc4920f41961d08e30d20b9fd5f0e4165d11f3ee36b1e660729b8f63ba30ec7",
+        "bytes": 67812
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-json-readonly-1440.png",
+        "sha256": "4a55151244c46685d61c93d37492ebb33bdfbdbcc379a8dfa1348f7266684a36",
+        "bytes": 104988
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-json-readonly-1920.json",
+        "sha256": "50b76d8067d5db4dbf578eb6a11b8c5970f2211b50b7bae81c44a3e93d0136e3",
+        "bytes": 67815
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-json-readonly-1920.png",
+        "sha256": "b46600ee4ff317d347650371cfc999247441e986e59bdf7b688519097db5c7a0",
+        "bytes": 118775
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-json-readonly-390.json",
+        "sha256": "b8d14d40326afb5bafc82ba137ea8a7b6906b0b0a043cafdb432ba095f67202a",
+        "bytes": 67591
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-json-readonly-390.png",
+        "sha256": "b70b9208e7d8132dd6e7099d1832e9394b2ccfe441a5ebcb6b78eca02a197c4c",
+        "bytes": 64801
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-json-readonly-768.json",
+        "sha256": "367ec2e1c6ac69a5eeaa0cecd8ded420e99875c71a4b4650f08bf3a0fdac52a0",
+        "bytes": 67790
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-json-readonly-768.png",
+        "sha256": "eceddfe3a8b48ef011851a033002e6664de23318751c6fd169d3b560c696030f",
+        "bytes": 86049
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-pending-1024.json",
+        "sha256": "fc2392406b21ab8266ec079b50cda38cf0524066c424e7b9389cb9b7f71eb6a8",
+        "bytes": 80208
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-pending-1024.png",
+        "sha256": "47b98feb6f2e4402e82c8f89713ec42cf52a4be354da30f5ab1afe21b68a96fa",
+        "bytes": 101221
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-pending-1440.json",
+        "sha256": "8030dbbd2a2308bf1b1b96711e939984f6ba0a7412073a4731f17d129b532984",
+        "bytes": 80234
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-pending-1440.png",
+        "sha256": "c42fe00a3660b2ed888b265fa5010083baeaec7eeafa52c34baeb54b8eef694b",
+        "bytes": 115032
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-pending-1920.json",
+        "sha256": "144631201fd42b0650a0dca3cab544373b263571b31a7cc13111907cd21d3563",
+        "bytes": 80237
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-pending-1920.png",
+        "sha256": "a530a3b9c4d134afbe424d9154cb04315a30d42286fee3f893517d892c28c366",
+        "bytes": 127762
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-pending-390.json",
+        "sha256": "c52c0896a7170d0a298e465ca40e079247f3544b4e8c449db091fe9e1d606e48",
+        "bytes": 79999
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-pending-390.png",
+        "sha256": "541cf60afe7cfe81dd4a2eb0323b2bc66a3d095346c1f06a96d30e9385950673",
+        "bytes": 55712
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-pending-768.json",
+        "sha256": "607c1403761f8387967443df705e9875c9ab5a75d340ad5b7d7b21d7038a5a8a",
+        "bytes": 80194
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-pending-768.png",
+        "sha256": "33cff641cfdfc5d7e3834d8fcc3c6312af896accc3d7ac13f30d839f5c7e1a9d",
+        "bytes": 75833
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-png-readonly-1024.json",
+        "sha256": "1f5434164d80e5842bd372c107e8621e9b0bc4e931060c0fa5ea036fafb13858",
+        "bytes": 75378
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-png-readonly-1024.png",
+        "sha256": "2f244bdb77dc28682fdec9f6099b44b72791f2925acedb8d4e15204386f3c48d",
+        "bytes": 93230
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-png-readonly-1440.json",
+        "sha256": "dc71dc14d50c7563d2b44bb5c5113643a13106ba24d69d07df39a6382eba4f53",
+        "bytes": 75398
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-png-readonly-1440.png",
+        "sha256": "646185fad1e324c864c635f4e5dddde32552cb5e1e01d7d1468f5d5367ad6576",
+        "bytes": 105358
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-png-readonly-1920.json",
+        "sha256": "681e0ce08403d4c0fdfd171ad73c59afeee57c5a62102abccfd2e95b5e14e299",
+        "bytes": 75401
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-png-readonly-1920.png",
+        "sha256": "0253b56514d30b573a329fbaa62784b24652051e8ecf1e303da08cf2b56d8cd9",
+        "bytes": 118825
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-png-readonly-390.json",
+        "sha256": "e38b4fb4e739fa18ea5b764f74a485b976584c2dff147e61fa15d4d16836fdf8",
+        "bytes": 75073
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-png-readonly-390.png",
+        "sha256": "32b73a9c0ab349e45d030ebcce516dc982042f68a5b9ff60886104272711bdf0",
+        "bytes": 61886
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-png-readonly-768.json",
+        "sha256": "0ea78493a7ba71aa272948382a3c62bed160cc1f3d431f1a14fac7a4b03ae56f",
+        "bytes": 75366
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-png-readonly-768.png",
+        "sha256": "5dbf6b443ff070f4bba1df9349c5aa7170c5f11e7979eb1b001512b25da94be2",
+        "bytes": 80824
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-stale-1024.json",
+        "sha256": "2acb802b1dc33a5bc0897d0c3d13f77b9cc6564ecf95793d5f6bdf968415f80b",
+        "bytes": 80179
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-stale-1024.png",
+        "sha256": "4d91b7a3fba8f9a0a8cce1e6e9432fa96e4bd0e9a8da458c1851a62bed90dfd8",
+        "bytes": 105468
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-stale-1440.json",
+        "sha256": "48c9d9e49438bfd52f01c0d59e812a4c2610aab85642edb3e2592ba5f08e6039",
+        "bytes": 80205
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-stale-1440.png",
+        "sha256": "eead72859b9e4f128a5dd0175581f358ee12153bfac74c160aa83fffde20a563",
+        "bytes": 119374
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-stale-1920.json",
+        "sha256": "463ae3bb1bda0c5bb336b5943da67891fe6dff69908669318cc3036f99fdeced",
+        "bytes": 80208
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-stale-1920.png",
+        "sha256": "79954a0d556a9bd0a1930b5539a51ce8bb87d8aeda5ac95de58da87b487c1cc6",
+        "bytes": 132593
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-stale-390.json",
+        "sha256": "c286b44b556e40c9d212ccf07c456fafe333c38c4d3ec45221f3bb7b5e22d837",
+        "bytes": 79849
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-stale-390.png",
+        "sha256": "c892b58c1203b723d36a17338b836f6106fd56287aab655f25b68bc18c261999",
+        "bytes": 56499
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-stale-768.json",
+        "sha256": "6e30e278c700e59b2d103f68ffa7f7c20340cc5064c4b5959cf084e656d4a444",
+        "bytes": 80165
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-stale-768.png",
+        "sha256": "0342983880f22bf2449a3b6f837c9ffbdf768d344de960a48501d2e449e4e2a2",
+        "bytes": 79993
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-svg-readonly-1024.json",
+        "sha256": "e0e4f50cb04d86adaeb0c45f92e604c4bd1bc13cd321dc62511b54fc84765327",
+        "bytes": 75377
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-svg-readonly-1024.png",
+        "sha256": "ae6714df35c2f1c755eef4e460dead426d032881c164811aa9b71197bd336d6d",
+        "bytes": 92498
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-svg-readonly-1440.json",
+        "sha256": "cced4f13f8221db90d196c735cc1144265a5e7d56ebfcd0683ad26c5edf73ddb",
+        "bytes": 75397
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-svg-readonly-1440.png",
+        "sha256": "c2e8469d7475b2dcf0019bb7138cb5d22dbd0dfd85b4d8fa3e63af2ee1d121d5",
+        "bytes": 104616
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-svg-readonly-1920.json",
+        "sha256": "aa79191b5499b85e30be5cc69e5654e3b608bb7f70a1164884f62fb387b3b0ac",
+        "bytes": 75400
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-svg-readonly-1920.png",
+        "sha256": "4a0b5cdd87c54ea5cf453c367e86028986d4c257de847cb287c002dfbcb84d9d",
+        "bytes": 118068
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-svg-readonly-390.json",
+        "sha256": "5d5ab5f26aeb82ecec0d69dab841238a626a40d8348cb28e3fc756b7207bc2f1",
+        "bytes": 75072
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-svg-readonly-390.png",
+        "sha256": "05a2fc0349e224ddb804dacff47e0000dca00769aa8ef9e7ef5ff39bca3b74d2",
+        "bytes": 61220
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-svg-readonly-768.json",
+        "sha256": "b8ca91d475990c7b7c99ac494ef0284aa1084b90953cb2db468684ae7ff34407",
+        "bytes": 75365
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/export-svg-readonly-768.png",
+        "sha256": "ccfc8d934a0e66ddee9c4630cd83708e3119c8f71f595d1d2107756d4e6d1361",
+        "bytes": 80079
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/fullscreen-entry-scope.json",
+        "sha256": "6261a4cafef29418655808734c7919c04e9b13044c6e29522fe257128b59c3e8",
+        "bytes": 256
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/gantt-state-contract.json",
+        "sha256": "433fbbb033926a8db9f7fe428c08976139b68892d41437b38158369b24321fdc",
+        "bytes": 7731
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-401-1024.json",
+        "sha256": "db7e7beb192b63a5749b049b8e91cbf0b435a1508e66a3b003e2a027fbca943e",
+        "bytes": 74094
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-401-1024.png",
+        "sha256": "84fbb1ea64176493d584945b19a5d3ae17c85986ec8b52c50e08a54b78326e4b",
+        "bytes": 97689
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-401-1440.json",
+        "sha256": "ed0da3a61d85851138df99c9a634aef38d26a49f20348a562885f584d2b740b2",
+        "bytes": 74140
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-401-1440.png",
+        "sha256": "969209fac5f6a9fd27f01ce58e3b2473f06a19f924e8b4714374ef28088763e2",
+        "bytes": 109114
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-401-1920.json",
+        "sha256": "eae5c3060a64d6c535eb652e41644166386669cfa5b43c64946a0e455feeff21",
+        "bytes": 74146
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-401-1920.png",
+        "sha256": "ccb07a5f406f175965aefd4febd4fba6fa27ade72653b4dd59b412afc867fcb3",
+        "bytes": 128409
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-401-390.json",
+        "sha256": "2402fecd76a322f52432a8d553934691c1bcd8e9fabc8ced865c9a68165c782b",
+        "bytes": 72755
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-401-390.png",
+        "sha256": "ee198d547f1f270a381e0d76bbae21e9be3ceaa08558a77fbd0dbe2770f1309e",
+        "bytes": 73768
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-401-768.json",
+        "sha256": "1ba1f570b9fb2c5a6fca11747f8c34688ce0ad8cd545d24fd7f55a49571fa548",
+        "bytes": 74090
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-401-768.png",
+        "sha256": "d5b0c62ca3a0586b77a30f5fa685786dec923244861051b08f407f866f4d7b96",
+        "bytes": 92441
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-commit-pending-1024.json",
+        "sha256": "d0aff5f0dbbf8fbfec7366da9ef756e0a2b06c3fcb8af4cc2bba82921fc8c6ac",
+        "bytes": 79260
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-commit-pending-1024.png",
+        "sha256": "4d94ea8589a2bf2b923d3206ee02350b512b0907e521ca178ccb4cbbade777c6",
+        "bytes": 119805
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-commit-pending-1440.json",
+        "sha256": "c82cec3699d6309edf901ed1165b363adff6afad0822ff804fb5d60d7eb7cb8b",
+        "bytes": 79321
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-commit-pending-1440.png",
+        "sha256": "3ec58acc5cc08207358fb323fe1aba53ca0a252051d1a53f1a136f3227e305a3",
+        "bytes": 166603
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-commit-pending-1920.json",
+        "sha256": "e0a719fe2580d0a7a9b1b541fbaac3ad440e5f02b172a2fc4df9936acdce696e",
+        "bytes": 79335
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-commit-pending-1920.png",
+        "sha256": "ac400530fbbd7317b46635a6cdf9d64d0dcc6c0956764818d5525ef1eabed788",
+        "bytes": 187250
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-commit-pending-390.json",
+        "sha256": "bf0790a7dcb79221d808f21ebdec088b1db9febee0e0d8b4e93dd013b7cd1401",
+        "bytes": 77815
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-commit-pending-390.png",
+        "sha256": "748fed0b130fdcd9852252611a1bf3a141d68b681aa2e567865891f525e940b9",
+        "bytes": 78686
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-commit-pending-768.json",
+        "sha256": "56326f4797a38f4e8addf0d9694bb16591090d9c2776d7ef1c6d085b754c3e74",
+        "bytes": 79256
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-commit-pending-768.png",
+        "sha256": "107770983a6a72b169bbd4b1c136dd181b3fb4053eac14f2a96a6f49c54919d8",
+        "bytes": 108962
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-contract.json",
+        "sha256": "f93f90c481b81395bfc818324d8710027b22d49e2a9b94056d8dbbcd6382adf8",
+        "bytes": 920
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-long-1024.json",
+        "sha256": "c2d779c13d73783a167a5417f541ae9e5bb6143c3744dcf9b5a696e8c0600c97",
+        "bytes": 79288
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-long-1024.png",
+        "sha256": "ed128584d8218f8a74106edd07f63f4b8b83179b257d714937a7f17f9a51a7ed",
+        "bytes": 121912
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-long-1440.json",
+        "sha256": "fad6fc96f113e22e88d23281ec8c3c7a789a7b7d7bbadbaa895ec7c784da7223",
+        "bytes": 79349
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-long-1440.png",
+        "sha256": "eb9633cf557aa9abf27f71acaed90f218b2ece2f7c11899e4d467330651faaa1",
+        "bytes": 168521
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-long-1920.json",
+        "sha256": "96a9b663de45f1ed9f1262f0e31c277db731f86adfc65d4b5e2272f1b9c5f09e",
+        "bytes": 79362
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-long-1920.png",
+        "sha256": "3d0640d1c12728c4641ea63cd41fffca215245066dc3d5977b404a2ee2f6731d",
+        "bytes": 188827
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-long-390.json",
+        "sha256": "d81a4e70d004b864e8af0eb721eefcce103a15883984c5ca9dbe2ac2943b267c",
+        "bytes": 77809
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-long-390.png",
+        "sha256": "388a090532705cb6fea7b00944ecba30dabbb7b78a02fbbc78a5fe7ab70da4c8",
+        "bytes": 80787
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-long-768.json",
+        "sha256": "5a304cc8d8e76c73ec6f315b197f912908eb0141ff152518400f6aed71f7c916",
+        "bytes": 79284
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-long-768.png",
+        "sha256": "574a7421d312fafd34998350cd0c826fca57c1d77c3544354aee121e8a6736d4",
+        "bytes": 111147
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-pending-1024.json",
+        "sha256": "ccc5ff1ee3de215d24fd24e81c945811b27c8647f92fb8835d69ecf953c000eb",
+        "bytes": 71265
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-pending-1024.png",
+        "sha256": "54919d2b6732e81381f9b166117f802c57e98badff707afb030edebe19016bc4",
+        "bytes": 97233
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-pending-1440.json",
+        "sha256": "81de84193229d1dc447cf87457ebda72a6d815d9583fc72c2272665436c0dd76",
+        "bytes": 71301
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-pending-1440.png",
+        "sha256": "0c2aa8b834d84ce783771d9b862a8ed959c9362521cfc37714240d4dacfcca1f",
+        "bytes": 111640
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-pending-1920.json",
+        "sha256": "9f7e6c1edcc50fac9d2823a62a6673297601a73a32b8d7957a9232bd3c9cfbd1",
+        "bytes": 71307
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-pending-1920.png",
+        "sha256": "0f8827a791ecb1ba9f5b90bb347fa91f1112d12e30f78dbe64c5710a7dc60c81",
+        "bytes": 125013
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-pending-390.json",
+        "sha256": "9bd49db1f5b3e296f725a251b28f123368c9be749b38f39c0a2b85654f52faab",
+        "bytes": 69920
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-pending-390.png",
+        "sha256": "e4831649215389acfc0525f8fb3e42de5aa18b580ca0e1221191245350ece202",
+        "bytes": 72302
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-pending-768.json",
+        "sha256": "002a20d3c8df8e366fed2b3340d10b7e992df5efdb133a7b2a3626b176ca164c",
+        "bytes": 71261
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-preview-pending-768.png",
+        "sha256": "a4d86da93abbbb6e3a3cfcb638d6d25ec8bc2d1aae6d89a4fdf338edb4f602ac",
+        "bytes": 94105
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-stale-1024.json",
+        "sha256": "d88267581060a5518e0e95187cd1ad89135a90ee6c78f1a4a1af8dae1969e9ae",
+        "bytes": 71238
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-stale-1024.png",
+        "sha256": "8d68235ce0f156799224fad25aa691e1f379ae7022b709001101eb4b396bcca9",
+        "bytes": 100060
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-stale-1440.json",
+        "sha256": "069a830fa199f6d010c66f3eaaf8d0f567bf8bc995f46168f1cd7b02732a1951",
+        "bytes": 71274
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-stale-1440.png",
+        "sha256": "27e7d5bc36fe64bdb9f7676703ffe58be1ef1ae1367b5179264a3a906b0db67c",
+        "bytes": 114294
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-stale-1920.json",
+        "sha256": "a2bbd766ba59990b8809ba139dde1e5a459c571ab8baa6eaba7c1453714319fa",
+        "bytes": 71280
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-stale-1920.png",
+        "sha256": "1ac7c55afd015497d8243f093135edbcc522ad86b0efd1b6566b3eb3976da33b",
+        "bytes": 127748
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-stale-390.json",
+        "sha256": "46744940e3122e9393bbb958db7886bd3eb90d53b0cf1ed6f0245403f613225a",
+        "bytes": 69821
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-stale-390.png",
+        "sha256": "4ad0a583c6df93edc53322e492e9acb6296cbe6e68f9643d97e12f65f06e76db",
+        "bytes": 74280
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-stale-768.json",
+        "sha256": "6ad6faba105184297a9ba954dc746a033c6dfc5730c1eeea26d13bb07b716420",
+        "bytes": 71234
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-stale-768.png",
+        "sha256": "62eefb7419244e0334bf87a3460dc17e806e80f351027ccaaf58aa41912e30b5",
+        "bytes": 96795
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-table-native-focus-1440.json",
+        "sha256": "83eb100ba4f79738782497ab89277017d72e4b72a7eddbee4861f003e7c14300",
+        "bytes": 80290
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-table-native-focus-1440.png",
+        "sha256": "b92db2c8604621a1db7a5e3609d8dd2fc92cf6294b9fc7ef449a9341ca3a1bc5",
+        "bytes": 168609
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-table-native-focus-390.json",
+        "sha256": "288db843da535ed2501c5f8d25388082b6e3eec6e77eda5a7b0c97b28cf9f612",
+        "bytes": 78731
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-table-native-focus-390.png",
+        "sha256": "e8f73ef0671b8451fa0bb4e38a875d887da0e93c6732525a28cc9d9cce3c3c94",
+        "bytes": 72292
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-table-owner.json",
+        "sha256": "86a37da507471f1e8d76276beb9ee4dfe798dedd1e99ca4f314f1a87b9969004",
+        "bytes": 92
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-validation-1024.json",
+        "sha256": "cf2ed73cebe2f9bbe9e88d5b7ab42a23b8b8ab05bbe1ee2af61813db5b580744",
+        "bytes": 71242
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-validation-1024.png",
+        "sha256": "bd9aa3c2e342f131c1bfa804fc7390cb3cc426085ab5f6dca84ef8b1e760083b",
+        "bytes": 93574
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-validation-1440.json",
+        "sha256": "d968dbcf0ae0c821454fc83b8f42e10d45e315b836f58c01380a12d28dffd253",
+        "bytes": 71278
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-validation-1440.png",
+        "sha256": "3c7f5c9b77f2907bea39abc97566a7732745ef85b8e0e41a14dd75124ddfc273",
+        "bytes": 107673
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-validation-1920.json",
+        "sha256": "a7a57e6ed1b1b8272709ca854fff512a5087f4f8439d03175b95cacf81f071cf",
+        "bytes": 71284
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-validation-1920.png",
+        "sha256": "52ce2afb0f956fdfe3420b9aa8c0687accdc703058c643214ccb835ec3b61ce8",
+        "bytes": 121211
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-validation-390.json",
+        "sha256": "1b62e6f734da2aaabcf0cad411a9569f2c3e901ee938707c9a0ab15948a659a3",
+        "bytes": 69885
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-validation-390.png",
+        "sha256": "24c88bc639f7f4ffe2bf0368478c116dbe943c288767abcb01bf7597837325dd",
+        "bytes": 73269
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-validation-768.json",
+        "sha256": "ffe679cfb2d352e0ee4eb01876a22ff065e0001c7c795401c5355055078e8a6a",
+        "bytes": 71238
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/import-validation-768.png",
+        "sha256": "b20ca6c76affe4a9270a3fc0ecc5d4c7bab3a3a95f2a920683a21b918bad4015",
+        "bytes": 90302
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-contract.json",
+        "sha256": "d4c131241abc8f538af070e80449438a59c2b38e56548b017d8063b1422cea3a",
+        "bytes": 381
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-long-1024.json",
+        "sha256": "e46ce2674bb21df5160341283d37985b4e5c29ae426c23b1417f4701d05293ec",
+        "bytes": 84532
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-long-1024.png",
+        "sha256": "8416d19395c1fc18582914e62384e0c7e513e687ef6a5f60bb873ed4d078b036",
+        "bytes": 310561
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-long-1440.json",
+        "sha256": "f32d0db937608d69adeb90bb1a275b0091bd803af5c32bc8cb5a922102e05656",
+        "bytes": 84358
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-long-1440.png",
+        "sha256": "ebd05ddd2e1cfa3c2d2002dcd01a091a968f9b23c82ea3f9cf24cb8dda289e5e",
+        "bytes": 324155
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-long-1920.json",
+        "sha256": "f1d3e91e936133a9ca32b8e245a74232ed382a87fee2faa7c49a8df5b0cb592f",
+        "bytes": 84390
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-long-1920.png",
+        "sha256": "af4d4f689d15ca79eda3d1072a28ea6b40851843a76101a74e9c461a1646b5c4",
+        "bytes": 340975
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-long-390.json",
+        "sha256": "51acbcdfd517fbb36a7e6daa7403cd9bcd6e5b6e0b79aa53b1a3909c29ac2cae",
+        "bytes": 84075
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-long-390.png",
+        "sha256": "e5f76c4ce052f3bd2af8d67ef5427f038d6584483010c054332d41121c551d62",
+        "bytes": 260846
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-long-768.json",
+        "sha256": "acbf72d4197b5e41b67d0ff0b09cdb92370c960916c30745b213f496c3be9fdf",
+        "bytes": 84343
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-long-768.png",
+        "sha256": "4cde334bb5b86f0ae51b9cbdcc1cf6a613f8e7f08afaddf65182a3a294de3f79",
+        "bytes": 304030
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-native-focus-1440.json",
+        "sha256": "6a17586c31335dc1bdc49ade22a0dda56f121afd50359d4f5bedef2cd064c6db",
+        "bytes": 84366
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-native-focus-1440.png",
+        "sha256": "7eb187b4309306f009cd844e85f7d3219fa45ffe8cd271c71a9224c8f9f9ed5f",
+        "bytes": 324809
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-native-focus-390.json",
+        "sha256": "add4db5badf24d52574426310f36fef83e3ff0fe987c8d0cb3da67c7284eac27",
+        "bytes": 84082
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-native-focus-390.png",
+        "sha256": "d05e477e7027d52e06094fc07f4a52cb8b6db2432feb8b17f0fbb3c7f535e1a4",
+        "bytes": 261323
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-pending-1024.json",
+        "sha256": "2deda92e168ce2c36b49c4dfd7a970d6c34003c6f103249f9f781b42f47866b4",
+        "bytes": 84530
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-pending-1024.png",
+        "sha256": "6899a39ef294ce76341fe5ff5692156b865d9a0ee387a31160644f2f5ee153fe",
+        "bytes": 307967
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-pending-1440.json",
+        "sha256": "5c6180c06d59bcf88f95331321779f19d80800f333e026d18cbe5538e4b9c3d2",
+        "bytes": 84356
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-pending-1440.png",
+        "sha256": "f1c61eb7441640901d66c1a8c98d762b34a96ecb69f344b064ec3640595568c5",
+        "bytes": 321501
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-pending-1920.json",
+        "sha256": "de518dbbd6f6802ae9da0a084285372abef0d95211c10e3031acbe8ce1c63717",
+        "bytes": 84387
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-pending-1920.png",
+        "sha256": "a11d58877d6b6d7a34679f3799981f044df6a0750e8bdffc468ae97fa9988f3c",
+        "bytes": 338002
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-pending-390.json",
+        "sha256": "223df2a45ba203a3d7751425ef56266744258ad91d3753ef8361e3b08773ea5b",
+        "bytes": 84081
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-pending-390.png",
+        "sha256": "fc58107eeec1ef00f6eb459599dc0cd091c6196866ce617e84932e0754229e1b",
+        "bytes": 258810
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-pending-768.json",
+        "sha256": "82e3ecb12286e3bd49a5d91f9682706fb28db3b7e23e4151ef8ee83488668110",
+        "bytes": 84341
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-pending-768.png",
+        "sha256": "99baaab42210cdf4be4b10f200b893ca194e7276c5da9f3aa59c77de7a2385cd",
+        "bytes": 301608
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-validation-1024.json",
+        "sha256": "c043570966f29be15a5410359e390f8201e56f26ec227d1ab998e493ff044979",
+        "bytes": 84926
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-validation-1024.png",
+        "sha256": "00dcedbaf82ae5444cb43c89022907c7ede380589be2557c749c9dd4c6d1a2c8",
+        "bytes": 315077
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-validation-1440.json",
+        "sha256": "4685617cad4dae368500f00ef0d514536cb724bf527b330d0da4deb3f6254930",
+        "bytes": 84761
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-validation-1440.png",
+        "sha256": "59a05e29657e3b30ad2aa2d6c39919bcba13de7da1132b9e6e453d6f290607f7",
+        "bytes": 330155
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-validation-1920.json",
+        "sha256": "710a9578b8e38ed1e8fc8c1884c65e27b95047758eb4ebbb1fe1f18801705825",
+        "bytes": 84794
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-validation-1920.png",
+        "sha256": "072b107e9ca69f2c9c49abc3a43de4c4284bffad8f3f7f74be07b8a520585384",
+        "bytes": 346884
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-validation-390.json",
+        "sha256": "1554286339d087abf410a55e728ec26a6f928b537ab572203cedb0d5b36a5643",
+        "bytes": 84460
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-validation-390.png",
+        "sha256": "d94a52c73ef90d09021f897d103b936c0a8c97a1febd8572f927eb5120026bfe",
+        "bytes": 264117
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-validation-768.json",
+        "sha256": "6677be780ec744304fcd0fe4d23a1a8b946f4ac728d57546a1476a328d7e3fb8",
+        "bytes": 84745
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-create-validation-768.png",
+        "sha256": "0c26d2448afaee42feaa113930e1276e431e17f9247a5455ac302774320a9710",
+        "bytes": 308447
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-large-counts-1024.json",
+        "sha256": "a51da69d82ec0542e0c4eccd242b67925c089dc6ca4658a4ae8706bbadb678db",
+        "bytes": 84638
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-large-counts-1024.png",
+        "sha256": "1c00b99a631d78e447d61e90a50a79e6a29715f1bb55b72776ec71ef4059fab3",
+        "bytes": 274893
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-large-counts-1440.json",
+        "sha256": "81b19478360da2ab013c8505a5d1a29175bdf9842869916f8445d4b10aac3e91",
+        "bytes": 84459
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-large-counts-1440.png",
+        "sha256": "9ea5a84fb09f5255710e89a89680d774cdca942ce540a1277d36881d5db7c424",
+        "bytes": 273739
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-large-counts-1920.json",
+        "sha256": "34bbe37f7b4ce4d9351b68546ecee13632847ec48519dc00439685a0fa490058",
+        "bytes": 84492
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-large-counts-1920.png",
+        "sha256": "d63023b71f38edd257c5d8cfeacf3725c36821b9b7b66f41acb32359719b8478",
+        "bytes": 282627
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-large-counts-390.json",
+        "sha256": "28412d19760fc79bc1bdd97e63be31ca1be104972c7812b91d539df4d01dfabd",
+        "bytes": 84173
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-large-counts-390.png",
+        "sha256": "7fde7d3d0abaff3e4bbf476150c53aa76d79b44acccfb43c59928b042b4794e7",
+        "bytes": 246777
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-large-counts-768.json",
+        "sha256": "587454a990c128ded69c0b956ad6bb22e5ad1d3b1f8c66d31f1925f15c663ff4",
+        "bytes": 84452
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-large-counts-768.png",
+        "sha256": "ca2dcfed11103a96a0e907b39c9a91d70cecee346eea96aa39387abf0819d2b1",
+        "bytes": 271162
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-empty-1024.json",
+        "sha256": "a0c41c044b0a4d26f4da876e783c229b27ca9c556bf1d7efdb5e89fe0398e2ea",
+        "bytes": 61958
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-empty-1024.png",
+        "sha256": "bbf354cd04204fa344d48c6ce726bdf3e5a330b5ab96fe660947b9b004006bd4",
+        "bytes": 43124
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-empty-1440.json",
+        "sha256": "b3d6a2a127f85ac52022739a620e4b9a719004069e65fc192ba488e342f87de0",
+        "bytes": 61937
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-empty-1440.png",
+        "sha256": "865f71a16c1702a886ebce045cedda2f54c01c0f4cddf4e7bcff20daca4d0bc1",
+        "bytes": 44783
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-empty-1920.json",
+        "sha256": "0918b809c9a4f80c769378736d34ee416011b9b3030238a1bd2fbadb92dd778d",
+        "bytes": 61937
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-empty-1920.png",
+        "sha256": "226ef71e6865d8e21c40950527182ba5583cec55ce619dbbd2ebbc829fc59090",
+        "bytes": 46016
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-empty-390.json",
+        "sha256": "c79196fb738257f5e6746f0f5d1b5033508cb8e331f366ea50f0c5278d91beb1",
+        "bytes": 61936
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-empty-390.png",
+        "sha256": "75770cbaf66547ec0d28787be9ca8c51d9693b905f524b763f6cabb8bdc1a714",
+        "bytes": 35676
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-empty-768.json",
+        "sha256": "d37acc58af064c73b99548e951e30a6edc59102d11d9beef96de0422edb3f703",
+        "bytes": 61936
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-empty-768.png",
+        "sha256": "6e4bdbfd0378cbd32f5b067ac9a691974ca629d30bebc642cda773502d31345d",
+        "bytes": 41845
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-error-1024.json",
+        "sha256": "742551082dccdde99b77e58c1c13011713c7b4fd8c49eb552b2a19dbdcd4fc41",
+        "bytes": 63919
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-error-1024.png",
+        "sha256": "9b0857e00dbf1fb64a15e29afc9b17796ef1cfc8a870810eaee8a73ea9b1e19e",
+        "bytes": 41650
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-error-1440.json",
+        "sha256": "e5877e94dc64f281b3745f4e5f6b0b8b1498cd6ac88c9569e6ff04525c33729e",
+        "bytes": 63891
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-error-1440.png",
+        "sha256": "cd1c5e7f2be5297c736c6ec37b89f22941e053aa7f7601b67741f24eb708dc59",
+        "bytes": 43312
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-error-1920.json",
+        "sha256": "88ede008a55b6c388907f2a6344ae7da7db7f38f25d6ea444b72450badf7cc8d",
+        "bytes": 63891
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-error-1920.png",
+        "sha256": "b82d8fc0759934c9243add6bb0c7785570b04498ef28c1fe6db873ce1829a18c",
+        "bytes": 44585
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-error-390.json",
+        "sha256": "13163f85d3f2571ca589cffc1659fd69406f792dac6d9277d31d3d8dbf3ef059",
+        "bytes": 63892
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-error-390.png",
+        "sha256": "27bd3e7f7698b6bbad8e916aae36f8eb2d4ee39bb5bf652ddd37c028e9bf8ebe",
+        "bytes": 35769
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-error-768.json",
+        "sha256": "882c93e810ec2f74f55cb82e967be506910eb95bb9de61a9d0c7c77e4e4770f2",
+        "bytes": 63892
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-error-768.png",
+        "sha256": "10b59a383d5e3fc5bc99031fa55a9089346349589f17ba673f9aadcfc081539f",
+        "bytes": 40378
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-loading-1024.json",
+        "sha256": "0a8aa5984ae6260107afe3e99b49273c8b8c9b007b5d16203b72d293f4484967",
+        "bytes": 61951
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-loading-1024.png",
+        "sha256": "7f8e60a395262794624bc8c4ecd75d9936fbd3a30ee2b3fedc357adb51f10e5d",
+        "bytes": 35024
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-loading-1440.json",
+        "sha256": "b33861390b0e33c4b9c4f29af30f7ffbfa4727862bd3a8a2cdaacc1721a94549",
+        "bytes": 61930
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-loading-1440.png",
+        "sha256": "d6b85b1cb494b2b72e4729efbfac8940fe16bab7680515d1063246737580da5d",
+        "bytes": 36886
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-loading-1920.json",
+        "sha256": "671c2fee05a90ce80c65ad16c3ec47990f762fc48818a3a14c4b4d861d95d993",
+        "bytes": 61930
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-loading-1920.png",
+        "sha256": "453c11925e532e88c29d9d489de2b12f6a849c63eb0c73f38357cfa0d7328ed6",
+        "bytes": 38123
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-loading-390.json",
+        "sha256": "f415cdfec0807f28390f80266c8bb1570b9ba4ca873813a7bb93f7b0bbfb0c87",
+        "bytes": 61929
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-loading-390.png",
+        "sha256": "51e0a8ed10a05de25432df3f83f6d85761dee89cb53a951ce71b306bedd718bb",
+        "bytes": 29244
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-loading-768.json",
+        "sha256": "c0ebe604d0129a93f635fb0d6fffdfc4bea4a4930b65dce5405a20949d9865e0",
+        "bytes": 61929
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-list-loading-768.png",
+        "sha256": "61c735e93841e483b5865c31604ad08cc161a9a6daf9208451cdfbc10ee9dc3f",
+        "bytes": 33776
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-401-1024.json",
+        "sha256": "2c11f361d73eeef23320bc5a7b0e5d1fe987b449653617988224cda1e5376b8e",
+        "bytes": 72823
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-401-1024.png",
+        "sha256": "055c02f3c86668f5610a4673ec4c2ec868bf068e80f93a86d0d3e914250ce2fd",
+        "bytes": 149190
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-401-1440.json",
+        "sha256": "f263876da2f64759423334368d11989ce29052ba7e668c79975840536d71a243",
+        "bytes": 72844
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-401-1440.png",
+        "sha256": "8e8f6522f9ba748a93f23e68a5f3780b34559dd6efd0507a84fe8be64540d261",
+        "bytes": 165845
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-401-1920.json",
+        "sha256": "4b12f8a0203b8bd35189459ca3ce5461e2cab68978e71f77a57a074a3d0a388e",
+        "bytes": 72853
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-401-1920.png",
+        "sha256": "cedf0b7bb73e303d6c27aefffc76b0055da608ac2d8ef54dec514f97400f8410",
+        "bytes": 179111
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-401-390.json",
+        "sha256": "67111d7552ec4c21478cc85fd6a6f533503a4fdc2bdb31f8f636174784a65f0d",
+        "bytes": 72804
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-401-390.png",
+        "sha256": "c44495616fc47a7fdb1bacf75b3794ecf78b04c6d762cb4f204fa2b36937ce84",
+        "bytes": 86319
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-401-768.json",
+        "sha256": "9444bbaa6ae2d12b6e64f9262cf979f42639cf5253f6a48ae8034b70633de2fe",
+        "bytes": 72812
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-401-768.png",
+        "sha256": "c8c1ec2f5dda20925992cdd645ddc3b0aec6f7800935304ff7d0d204ae5375c2",
+        "bytes": 124057
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-contract.json",
+        "sha256": "8b6cda5b308fb7325e0d46340d6534990dc1d202a3fd235ab82a0495e3b088a3",
+        "bytes": 802
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-error-1024.json",
+        "sha256": "89eb9eeb18253b394a887e127da5d668f28fab4c63bd4c6c3a9c8359b51a3ef5",
+        "bytes": 70277
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-error-1024.png",
+        "sha256": "42b69ead0b82d7e7bac67940ad9edc91aa2a3f2b20c8c06d653d2a6770a8e6b6",
+        "bytes": 131422
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-error-1440.json",
+        "sha256": "b7fa69bd7ba52f23836b70c40c5ecc1b8ee44fc48b9025dd80e461accc471d4e",
+        "bytes": 70295
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-error-1440.png",
+        "sha256": "04660c03c5dce4a96dd53d3a363b3b90cb2758b8b2e4d81df15f16a0d792a79e",
+        "bytes": 147891
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-error-1920.json",
+        "sha256": "b25c4670c43140f81dd4b4e5dc71dcc5b82d8cbd1a79ce90f81dd765c7f298b2",
+        "bytes": 70304
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-error-1920.png",
+        "sha256": "6282b3c4f920311bcb4e10672763f167526f8bd183d29dd07a8f71bfc468742e",
+        "bytes": 159552
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-error-390.json",
+        "sha256": "304fbbd1a6270b05ed6ed0875c2baa5b85627ca90eaa62031156e9cb4b401605",
+        "bytes": 70261
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-error-390.png",
+        "sha256": "bdbbb84a6d14a489045197b889b3e7f83f4f2d82645b1e73505a7c9624d50976",
+        "bytes": 81161
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-error-768.json",
+        "sha256": "77a778eb4b2078ffbb4e170694080afd1d670bd77a20f7d034126016a0464c8d",
+        "bytes": 70267
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-error-768.png",
+        "sha256": "4b847c4958450e39d207cb41592edcfde1a58d98209444cb30c5dc1a7b94a7d0",
+        "bytes": 118900
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-long-1024.json",
+        "sha256": "7109a77d5cd3a6816b75cad4df13dc5ec82fe8a28a353e20dde42c6f0d119e2d",
+        "bytes": 70273
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-long-1024.png",
+        "sha256": "637654098a125878c7b51e15f8adfd4bda8a7a344f402f386c35d71b956280a5",
+        "bytes": 136166
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-long-1440.json",
+        "sha256": "7fee003c8b4d80f6d9c10e4aa1bedc4522bb34474b8f75d822b9f67d04aa4799",
+        "bytes": 70291
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-long-1440.png",
+        "sha256": "996ca70f817883addeec19cdc8deea154bd1ce44269872c54ba4357ae53934dc",
+        "bytes": 149849
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-long-1920.json",
+        "sha256": "ec50522983ce25da43510693f1d761455208f1f6d58611b98c5c8dc05705badf",
+        "bytes": 70300
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-long-1920.png",
+        "sha256": "31ed805f2604316bd12980c02f29bf80604aa0736cec33d9f13d91719c46620b",
+        "bytes": 161375
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-long-390.json",
+        "sha256": "117062ceb34be4cc73b22aa9075eefad2a6c7451a948ff8d4c97df29351a22ef",
+        "bytes": 70332
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-long-390.png",
+        "sha256": "e14eb35431b77c1b8741b161644a69bc7bf32f18141690ac164cbed84f67776d",
+        "bytes": 85865
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-long-768.json",
+        "sha256": "8dfe9f3e7d98616d5f69f3114fcf6bc2966f07e7123528b9566e2592ff87386e",
+        "bytes": 70263
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-long-768.png",
+        "sha256": "a95fe819f07323b3802f0cc2f888b7b48325a3dd7b998c762f2aeee586a8be8d",
+        "bytes": 121658
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-native-focus-1440.json",
+        "sha256": "05da4ac771f2e5dd3fed0fbc9adf7b3bcd65d3039bae449f563db083ee76175e",
+        "bytes": 70308
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-native-focus-1440.png",
+        "sha256": "30ffe671dc0587073960baeeee5bc35bdd6c74267cece1be5fcc4c6475c504e0",
+        "bytes": 147153
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-native-focus-390.json",
+        "sha256": "933d66535aaba7b07a021cecccb443ba9820524a826ecf257918a4e3c96dfd3f",
+        "bytes": 70274
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-native-focus-390.png",
+        "sha256": "20afc245d0ee3410bb98ce3a0fa3f85a296fcbac427aed507805f8550bfc7fd7",
+        "bytes": 83135
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-pending-1024.json",
+        "sha256": "3b858e051374fb394b6029e362e5ff64b0253ca495078fe893a8993d9f3664e1",
+        "bytes": 70275
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-pending-1024.png",
+        "sha256": "be95dae0745d7952644c5c84fb7f7abfbdff3ab75eed3214283d93b70dc16587",
+        "bytes": 131344
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-pending-1440.json",
+        "sha256": "054937c8086d8a569a4d9de6dfb87976a9dc2e0858a6c22e425ad17941af952a",
+        "bytes": 70293
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-pending-1440.png",
+        "sha256": "96fdd416c642a7c12f616750ae21a50bed8d1ea5c567ec5f8f01f14307c07151",
+        "bytes": 145372
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-pending-1920.json",
+        "sha256": "74f2251dda92c89845a140aeb4028f39f93a5a25487810aa981959421d47ab07",
+        "bytes": 70302
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-pending-1920.png",
+        "sha256": "083ef26821d6385af79976a60f99f348aaafa251a86747bf3892c2164a1870dc",
+        "bytes": 156881
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-pending-390.json",
+        "sha256": "e98be8f337c656ad93f29cdb62469681d1585483bcebd180ee385d7882b80a6b",
+        "bytes": 70259
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-pending-390.png",
+        "sha256": "390cd60c3ffc04906b7f06c8ddb24f061e04072ca0bf8d56608bfc7372d9e15e",
+        "bytes": 81609
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-pending-768.json",
+        "sha256": "502eb9cc583c156f203eae490c3e046fa600f0830d31cbb4fd06f4d09c89d240",
+        "bytes": 70265
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-pending-768.png",
+        "sha256": "cccc795c5c0c5e46e62817dffe557c871aa29f08828cefa8f4e3fbd4f07ad475",
+        "bytes": 117368
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-readonly-1024.json",
+        "sha256": "c88802d076f8f5445e679eeee2714bca0de01e099b0e8e10fbde3564707ae969",
+        "bytes": 72818
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-readonly-1024.png",
+        "sha256": "cf472f44d8582180b44bd2552739627a84bde366904bb6e01cf972728d85dfe8",
+        "bytes": 132935
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-readonly-1440.json",
+        "sha256": "7fcb0944131b30ca162c625b05169d13e9db6356497260030264ded59e905f90",
+        "bytes": 72839
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-readonly-1440.png",
+        "sha256": "01cd1c5d52fd3cb25909bf5e5649368da2178cc29cd7c18ab7b6ef2718248ea0",
+        "bytes": 148453
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-readonly-1920.json",
+        "sha256": "cf86c949d1510c9121a5de9c39e33aef307dbed6d43dee94d4fa5589530ace54",
+        "bytes": 72848
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-readonly-1920.png",
+        "sha256": "85432d1bfe4ee4ea2a089f6d2983978b030de7368bd5fefc7378c5ac01c30103",
+        "bytes": 161199
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-readonly-390.json",
+        "sha256": "8933c6a7e50defac6ebd224c60847dcf241a059b69f3091362afbdd4603acc3a",
+        "bytes": 72799
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-readonly-390.png",
+        "sha256": "d5b68c831299dc0f73093df8311b05eb79d72f2cdd2ac5d36fa916f2a35a661c",
+        "bytes": 79609
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-readonly-768.json",
+        "sha256": "402fdee33919720c6cef603af18271e3b46d2fa6ca3e5b7fb9afcd8ee5c3433e",
+        "bytes": 72807
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-readonly-768.png",
+        "sha256": "bbd3121e2bb61b1c1642a1b6e17bf4ad0b7b0829e3b480f1f2e273d4442ef5e2",
+        "bytes": 110374
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-stale-1024.json",
+        "sha256": "ab65b04fee1f79a1ba60ecbfd3339430d323e6a7ab7f856f67301066cc0ca2f3",
+        "bytes": 72491
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-stale-1024.png",
+        "sha256": "0442d03b053145661a8ef949eadbb93b6d83da82b7e67cbe9481ac8cd07b4353",
+        "bytes": 141273
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-stale-1440.json",
+        "sha256": "56b6e0ba2907a03e0ad7e861da784efb638ccad1d98bad9f147add7e512e735c",
+        "bytes": 72511
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-stale-1440.png",
+        "sha256": "a6635c4e7db83fa0c085c0b4c9e59327604e0cc9e62d0cda28ef1b3e4e6d911f",
+        "bytes": 158080
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-stale-1920.json",
+        "sha256": "266e758fd868d1fcfcec4b3b5e9c77dcff88c40611105f6b25da66da0e54b138",
+        "bytes": 72520
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-stale-1920.png",
+        "sha256": "5801738047cbb61edc5c7a0ad151c97e49e20dca3ad427fe3b6f0e7a4ef0d624",
+        "bytes": 171454
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-stale-390.json",
+        "sha256": "285938a5ab432ccd43c852743dea76940109735d3082daf55033e67ff3f3f259",
+        "bytes": 72472
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-stale-390.png",
+        "sha256": "aab27f9db88500d810b645198c6440ffd9e4693a4777b81d142388a64ce5da76",
+        "bytes": 84763
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-stale-768.json",
+        "sha256": "465bf1cd85f3fe704ca7acede9a7794ff92267ffd63f403b7f1b87dfc4935ee5",
+        "bytes": 72480
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-stale-768.png",
+        "sha256": "28cc4c40f037ecd08c68647a7451b38e82cfab18e6e1a55f36d4ea48fa37c0df",
+        "bytes": 122781
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-validation-1024.json",
+        "sha256": "d953ff34db3a7ecb1ca5242e8a909f5591f41d72bfe55e9827ca02d1a604696b",
+        "bytes": 70272
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-validation-1024.png",
+        "sha256": "7a834028f12a80bfa36cf6e3ada0ecce9c73bfdc9fba5a13efc88e425b7ec183",
+        "bytes": 128919
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-validation-1440.json",
+        "sha256": "2813eee30df76a401c0a1452ab876ca8a59cd03a6ff609e5fec275c741a127b6",
+        "bytes": 70290
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-validation-1440.png",
+        "sha256": "9bea534054ce358f31ee860636508b6e2b747db870331365a0a25d03b6fd3da1",
+        "bytes": 145305
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-validation-1920.json",
+        "sha256": "247e1b6ce45265cd8894ed954de7b1fb7250723eb18a59bcd7926977f0592ad0",
+        "bytes": 70299
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-validation-1920.png",
+        "sha256": "923979e5c47bdb20677352612b94c0d5d23bebd342c905871776ce6e80ffe48e",
+        "bytes": 156959
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-validation-390.json",
+        "sha256": "0af51e32f8f7de3b2bc3e4a6686938c95fff52f990e0c10fc8e6000a5609c9c2",
+        "bytes": 70256
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-validation-390.png",
+        "sha256": "3c0c7d47df9149d5bd00fc1184bfd3fcede43508a1a3bb3ffc1fd735d6cbeabd",
+        "bytes": 79757
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-validation-768.json",
+        "sha256": "ba94ff3557b79b11a7ef622ad8a7c6b0e468d01130491a75858d9e9341ddbb76",
+        "bytes": 70262
+      },
+      {
+        "file": "output/playwright/issue-491/after-current-0944/template-save-validation-768.png",
+        "sha256": "90619289fe725ab9649554ea437a0b930e76794374e7e72ed19353b22234da77",
+        "bytes": 116513
+      }
+    ]
+  },
+  "historicalRuns": {
+    "file": "output/playwright/issue-491/review/runs.json",
+    "sha256": "6f99684247c82cc2bfe115c0899efbc605dee7714900b9ba10e63958017145fd",
+    "runs": 8,
+    "cases": 45,
+    "pass": 34,
+    "fail": 11
+  },
+  "combinedTotals": {
+    "runs": 9,
+    "cases": 53,
+    "pass": 42,
+    "fail": 11
+  },
+  "evidenceLimit": "template-create-contract의 actualInstantiationStatus:201은 literal 서버 계약값이며 response.status 직접 검증이 아니다. 실제 navigation/edit/source 불변은 assertion으로 검증했다. 원본 JSON은 보존한다."
+}
