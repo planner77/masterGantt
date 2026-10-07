@@ -74,6 +74,18 @@ describe("test configuration repository layout", () => {
     expect(release).toContain("e2e-timing-release-shard-");
     expect(optimizer).toContain("event=push&branch=main&status=success");
     expect(optimizer).toContain("scripts/e2e-shard-planner.mjs analyze");
+    expect(text("scripts/e2e-shard-planner.mjs")).toContain(
+      'args.output || "e2e-shard-proposal.json"',
+    );
+    expect(optimizer).toContain("--output e2e-shard-proposal.json");
+    expect(optimizer).toContain("path: e2e-shard-proposal.json");
+    expect(optimizer).not.toContain(".e2e-shard-proposal.json");
+    expect(optimizer).toContain('number="$(node scripts/e2e-shard-optimizer-pr.mjs)"');
+    expect(optimizer).not.toContain("gh pr list");
+    expect(optimizer).toContain(
+      "if: steps.analyze.outputs.should_update == 'true' && (github.event_name != 'workflow_dispatch' || inputs.dry_run != true)",
+    );
+    expect(optimizer).toContain("steps.existing.outputs.number == ''");
     expect(optimizer).toContain("actions: write");
     expect(optimizer).toContain("[Issue #437] ci: E2E 샤드 계획 갱신");
     expect(optimizer).toContain("actions/workflows/ci.yml/dispatches");
