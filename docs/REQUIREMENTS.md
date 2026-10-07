@@ -1,5 +1,11 @@
 # Requirements baseline
 
+## Issue #492 — Grid/Chart 작업 Hover Tooltip
+
+Project 일정의 Grid 작업 행과 Chart Task/Summary/Milestone에 마우스를 올리면 같은 작업 정보를 Tooltip으로 제공한다. 첫 줄은 canonical 작업명, 다음 줄은 canonical 시작일·종료일이며 기존 공통 locale 날짜 formatter를 사용한다. `start/end=null`인 작업은 `—`로 표시하고 SVAR가 date-less Summary를 렌더하기 위해 사용하는 내부 anchor 날짜를 사용자 일정으로 노출하지 않는다.
+
+Tooltip은 조회 전용이며 readonly/edit, Day/Week, fullscreen, WBS 범위 탭에서 동일 계약을 유지한다. 표시를 위해 Gantt를 remount하거나 canonical Task/Link/Calendar/revision을 변경하지 않으며 click/double-click/context menu/drag/dependency hit area를 가로채지 않는다. SVAR 공식 Tooltip API를 우선 검토하되 설치 버전에서 인수 기준을 안정적으로 충족하지 못하면 기존 Gantt DOM target 계약과 app-owned overlay를 사용한다. 상세 UX/검증은 [Project UX](PROJECT_UX.md), [UI/UX Guidelines](UI_UX_GUIDELINES.md), [Test Plan](TEST_PLAN.md)을 따른다.
+
 ## Issue #459 — Milestone Stage Gate 통합 계약
 
 Milestone은 프로젝트의 특정 시점 완료 단계(Stage Gate)이며 기존 `type=milestone`, `duration=0` Task identity를 유지한다. WBS 계층, 완료 단계 소속(Membership), 일정 Dependency는 서로 다른 관계다.

@@ -1028,6 +1028,19 @@ canonical sync에서 public scroll 좌표를 기록하고 기존 columns queue�
 
 Summary의 일정·진척·상태·Baseline은 자손 기반 파생값이므로 기존 readOnly 표현을 유지한다. Description/URL 저장은 동일 PATCH와 canonical snapshot 갱신을 사용하며 Gantt remount, reload, selection/scroll/scale 초기화를 유발하지 않는다.
 
+## Issue #492 — Grid/Chart 작업 Hover Tooltip
+
+Project 일정에서 Grid의 작업 행 또는 Chart의 Task/Summary/Milestone bar에 pointer를 올리면 같은 조회 전용 Tooltip을 표시한다. 정보 구조는 두 줄이다.
+
+```text
+작업명
+시작일: <locale date 또는 —> · 종료일: <locale date 또는 —>
+```
+
+작업명·시작일·종료일의 authority는 현재 canonical `ProjectTaskDto`다. SVAR `ITask`는 hit target 식별에만 사용하며, 일정 없는 Summary에 Core가 넣는 anchor 날짜를 Tooltip 일정으로 사용하지 않는다. 날짜는 Grid와 같은 `formatLocaleDateOnly`/browser locale 정책을 재사용한다.
+
+SVAR 공식 Tooltip API는 설계 참고로 확인했지만 설치 2.7.3의 실제 wrapper가 Milestone·WBS scope와 Header Tooltip 공존에서 불안정함이 PR CI로 확인되어 최종 구현에는 사용하지 않는다. 기존 `TASK_TARGET_SELECTOR`에 app-owned mouse event delegation을 적용해 Grid row와 Chart bar를 같은 canonical taskId로 해석한다. Tooltip은 hover 중에만 존재하고 focus/scroll/영역 이탈 시 닫히며 click/double-click/context menu/drag/dependency 동작을 가로채지 않는다. Tooltip hover state와 native event listener는 별도 `TaskHoverTooltipLayer`가 소유하여 표시/닫힘이 `ProjectGantt`/SVAR를 재렌더링하지 않는다. Day/Week, readonly/edit, fullscreen, `최상위로 열기` WBS scope가 바뀌어도 Gantt/API instance를 재생성하지 않고 현재 canonical snapshot을 읽으며 긴 이름은 최대 viewport 폭 안에서 wrap한다.
+
 ## Issue #490 — 프로젝트 설정 폼과 상태 보존
 
 프로젝트 설정의 기본 정보·작업 캘린더·편집/보안 탭은 기존 순서와 저장 단위를 유지한다. 탭의 스크롤 영역은 3px outline과 3px offset이 보이도록 사방 6px 여유를 둔다. 작업 캘린더의 국가·기간·날짜 예외 입력은 기존 semantic input token, 40px 높이, 1px 테두리와 8px/12px 안쪽 여백을 사용한다. 미리보기/저장 버튼은 내용 폭을 유지하며 12px 간격으로 자연스럽게 줄바꿈한다.

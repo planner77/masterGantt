@@ -225,6 +225,13 @@ Context 선택은 기존 Copy 완료 feedback도 보존한다. 미선택 목적�
 Copy feedback 보존 보강 후 같은 좁은 Chromium 4개를 다시 실행해 PASS했다. 확장된 하단 가상 행 회귀는 Copy→한 행 아래 미선택 목적지의 실제 scrollIntoView/이름 셀 우클릭→활성 Paste/Below→소속 영향 확인·취소까지 도달했다. 우클릭 전후 Grid 조상 위치와 Gantt 높이, native/public top192를 유지하고 DB mutation은 0회다. 실제 사용자 이후 스크롤 닫힘과 기존 다중 Copy/pending412도 유지했다. 원본 actual 통합 테스트의 수정 후 결과는 별도 근거다.
 
 
+## Issue #492 작업 Hover Tooltip — SVAR 공식 경로
+
+2026-10-06 SVAR React Gantt 공식 [Adding tooltips](https://docs.svar.dev/react/gantt/guides/tasks/add-tooltip/)와 [Tooltip API](https://docs.svar.dev/react/gantt/api/tooltip/)를 확인했다. 다만 설치 2.7.3의 실제 PR CI에서 wrapper/custom resolver 경로가 일반 Task에는 동작하면서 Milestone·WBS scope에서는 content를 만들지 못했고, hover shell이 기존 Header Tooltip과 동시에 `role=tooltip`으로 남는 회귀가 확인됐다.
+
+#492 최종 구현은 이 실증 결과에 따라 기존 app-owned Header Tooltip 패턴과 `TASK_TARGET_SELECTOR`를 재사용한다. Grid/Chart의 mouse move를 event delegation으로 canonical taskId에 연결하고 `ProjectTaskDto.start/end`만 표시한다. hover 대상이 없거나 keyboard focus/scroll/영역 이탈이 발생하면 Task Tooltip을 제거해 #315/#316 Header Tooltip과 동시에 accessible tooltip이 존재하지 않게 한다. 긴 이름은 viewport 안에서 wrap하고 pointer-events를 받지 않으며 fullscreen frame 내부 fixed overlay로 표시한다. PR CI #2040에서 부모 hover state가 #490 viewport 복원과 교차해 scrollLeft를 120→91로 바꾸는 회귀가 확인되어, Tooltip state/event listener는 전용 child layer로 격리하고 Gantt 부모 렌더 경계를 건드리지 않는다.
+
+
 ### Issue #456 Task Editor 폼 검토 기준
 
 - schedule 날짜·기간·mode는 이름이 있는 fieldset으로 인접하게 배치하고 작은 화면에서도 label 연결과 읽기 순서를 유지한다. 설명/URL은 별도 semantic group으로 묶되 기존 설명 읽기 폭과 resize를 줄이지 않는다.

@@ -256,6 +256,13 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위인 Project 생성�
 전용 브랜치에서 URL/쿠키/설정 주입/공유 URL과 문서를 갱신한다. PR quality/E2E/Docker 및 HTTP·HTTPS 실제 브라우저 검증 후 리뷰·병합하고 main exact digest 결과를 별도로 기록한다. 본 계획 추가만으로 PASS가 아니며 운영 Windows/WSL2 전환은 별도 미검증이다.
 
 
+## Issue #492 — Grid/Chart 작업 Hover Tooltip
+
+최신 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d` / application `0.94.3` 기준으로 `feat/issue-492-task-hover-tooltip`에서 작업 Hover Tooltip을 구현한다. Grid row와 Chart Task/Summary/Milestone를 기존 task target selector로 canonical taskId에 연결하고, 표시 authority는 `ProjectTaskDto`의 name/start/end로 고정한다. 설치된 SVAR React Gantt 2.7.3의 공식 Tooltip API를 검토했으나 실제 PR CI에서 Milestone/WBS scope 및 Header Tooltip 공존 회귀가 확인되어 app-owned delegated hover로 전환했다. Tooltip 상태와 native listener는 전용 child layer로 격리하여 hover가 ProjectGantt/SVAR 부모를 재렌더링하거나 viewport를 변경하지 않으며 date-less Summary의 Core anchor 날짜는 노출하지 않는다.
+
+candidate version은 `0.95.0`, release_required=true, release_authorized=true다. 사용자가 병합 후 정식 GHCR 게시를 명시적으로 승인했으며 Issue #492의 version-scoped authorization marker가 authority다. REQUIREMENTS/PROJECT_UX/UI_UX_GUIDELINES/TEST_PLAN/CHANGELOG/Issue 실행 계획을 동기화하고 Unit+Chromium 명세를 추가한다. 현재 사용자 승인 범위는 latest-main exact PR CI SUCCESS → 병합 → exact Main CI 시작 및 성공 후 Generic Release Finalizer가 정식 GHCR 게시를 수행하도록 하는 것이다.
+
+
 ## Issue #456 — Task Editor 폼 밀도와 의미별 배치
 
 [Issue Work Packet](ISSUE_456.md)을 기준으로 최신 main `05fe212060ed4a935510dc2f7a692bb9113c55e8` / version0.92.0에서 기존branch `fix/issue-456-task-editor-form-density`를 재사용하며 후보 PATCH0.92.1을 적용한다. 실제 before 후 A Task Editor의 필드·intrinsic action 폭·부모 간격을 정돈한다. 기존44px hit-area·동적탭·dirty/stale/canonical/Gantt 계약을 유지한다.
