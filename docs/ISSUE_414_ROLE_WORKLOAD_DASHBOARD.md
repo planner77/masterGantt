@@ -100,3 +100,8 @@ Chromium:
 - 기존 loading/error/stale/partial retry 회귀 유지
 
 전체 판정은 PR exact head의 GitHub Actions quality/e2e/docker 결과를 사용한다.
+
+
+## Issue #523 공통 Task/Assignment KPI
+
+[공통 Resource KPI](RESOURCE_KPI_DASHBOARD.md)는 현재 Global Role 복수 분류와 같은 Resource Calendar 산식을 사용한다. 역할마다 중복 subtotal이 생길 수 있지만 Grand Total은 raw 개인 Assignment ID에서 한 번만 계산한다. 할당 Task/완료율/진척은 역할 범위의 고유 일반 Task 기준이며 개인 생산성이 아니다. canonical `progress<100 AND end<asOfDate` 지연 정의와 date-only/Project timezone을 유지한다. 개인 조건의 A와 개인/Role/등급 조건을 적용할 수 없는 T0 미배정 진단을 별도로 명시한다. 기존 workload API·Global Role 저장·legacy rounding은 변경하지 않는다.

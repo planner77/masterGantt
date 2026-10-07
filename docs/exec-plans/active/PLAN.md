@@ -1,3 +1,7 @@
+# Issue #523–#528 — Resource KPI 순차 구현
+
+최신 main `f3373386d084bad5973b88180cd04ee9778e4fd6` / application `0.95.1`에서 #523을 시작한다. [#523 Work Packet](ISSUE_523.md)의 Domain·fixture·문서·독립 사전 검토 후 원격 PR과 CI 등록까지 진행하며, #524–#528은 직전 PR branch를 기반으로 순차 stacked PR을 만든다. CI 결과 모니터링·병합·main/GHCR·Issue 종료는 이번 범위 밖이다. `release_authorized=false`; 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다. #495/#518은 착수 시 OPEN이며 관련 PR이 없어 공유 UI 통합 상태를 후속 UI 착수 때 재확인한다.
+
 # Active execution plan
 
 ## Issue #491 생성·복사·템플릿·입출력 폼 — 최신 Tooltip main 통합 / PR CI 시작

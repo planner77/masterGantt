@@ -186,3 +186,8 @@ Task/Summary 이름+소속 한 PATCH, Milestone 초안 한 batch POST와 같은 
 M/M 기준은 명시 finite-positive query → 유효 `RESOURCE_MD_PER_MM` → null 순이다. HTTP `mdPerMm=null`과 programmatic null은 ENV를 무시한다. 빈/invalid query는400, invalid ENV는 null이다. DTO `mdPerMmSource=query|environment|unset`과 기준 숫자를 표시하고, `filters.mdPerMmProvided`가 query omission과 명시 null을 구분한다. 기존 Logistics의 20일 fallback과 invalid query 무시를 제거한 의미 변경이다. 기존 Resource workload의 ENV 기준과 M/D 산식은 유지한다.
 
 응답 `filters`는 trim된 search(대소문자 보존), unique/sort 배열, defaults 및 요청 날짜 omission=null을 echo한다. resolved asOfDate/workloadRange와 기준값은 별도 필드다. Project/Catalog revision, publicId, query echo, calculatedAt와 timezone을 검증한 현재 성공 응답만 UI에 채택한다. 요청마다 no-store 재계산하며 서버 cache/polling/job이 없다. 날짜 경계 및 visibility/focus 갱신, 요청 역전/실패/stale drill-down 처리는 [Project UX](PROJECT_UX.md)를 따른다.
+
+
+## Issue #523 Resource KPI의 선택 범위와 전체 상태
+
+`calculateResourceKpi`는 full canonical snapshot의 `projectStageGates`를 그대로 재사용해 explicit/상속/override/해제/빈 Summary/미지정을 분류한다. Resource/Group/Milestone bucket의 할당 작업 진척은 A의 고유 일반 Task를 사용하지만 `fullMilestones.stageGate`의 전체 진척·Ready·Blocked는 full E(M)/P(M)를 사용한다. 숨긴 미완료 member나 predecessor를 조회 조건으로 제거하지 않는다. Task Dependency나 날짜순을 Milestone Dependency로 승격하지 않고 조회로 상태를 변경하지 않는다. 각 Resource/Group의 모든 Milestone+미지정 raw 공수 partition은 해당 subtotal을 보존하며 Group/Role 중첩 소계를 전체 합으로 더하지 않는다. 상세 [공통 KPI 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다.
