@@ -1465,6 +1465,9 @@ export function ProjectGantt({
       const api = apiReference.current;
       if (!api) return;
       canonicalSyncDepthReference.current += 1;
+      if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+        fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+      }
       const context = peerViewportContext.current;
       const viewport = api.getState();
       const root = ganttScrollReference.current;
@@ -1500,7 +1503,12 @@ export function ProjectGantt({
         metadataViewportReference.current?.cleanup();
         metadataViewportReference.current = null;
         if (syncVersion === canonicalSyncVersionReference.current) onCanonicalSyncFailureReference.current();
-      } finally { canonicalSyncDepthReference.current -= 1; }
+      } finally {
+        canonicalSyncDepthReference.current -= 1;
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+          fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+        }
+      }
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey]);
 
@@ -1533,6 +1541,9 @@ export function ProjectGantt({
       const api = apiReference.current;
       if (!api) return;
       canonicalSyncDepthReference.current += 1;
+      if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+        fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+      }
       try {
         // State columns are optional; retain configured defaults when absent.
         const summaryState = captureSummaryToggleState();
@@ -1582,6 +1593,9 @@ export function ProjectGantt({
       } finally {
         // State reads and column mapping must also release the sync guard.
         canonicalSyncDepthReference.current -= 1;
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+          fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+        }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [columns, ensureTimelineEnd]);
