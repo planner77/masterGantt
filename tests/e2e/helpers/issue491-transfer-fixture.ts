@@ -21,7 +21,7 @@ export async function writeSafe491(info: TestInfo, key: string, data: unknown) {
 export async function capture491(page: Page, info: TestInfo, key: string, selector = "dialog[open]", responseKind = "actual application", widths = widths491) {
   const directory = evidenceDirectory491(info); await mkdir(directory, { recursive: true });
   const hashFiles = async (paths: string[]) => Promise.all(paths.map(async path => ({ path, sha256: createHash("sha256").update(await readFile(resolve(root, path))).digest("hex") })));
-  const sourceFiles = await hashFiles(execFileSync("rg", ["--files", "src"], { cwd: root, encoding: "utf8" }).trim().split("\n").sort());
+  const sourceFiles = await hashFiles(execFileSync("git", ["ls-files", "src"], { cwd: root, encoding: "utf8" }).trim().split("\n").filter(Boolean).sort());
   const provenance = {
     capturedAt: new Date().toISOString(), sourceSha: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
     sourceFiles, sourceAggregateSha256: createHash("sha256").update(JSON.stringify(sourceFiles)).digest("hex"),
