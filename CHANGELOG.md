@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.100.0] - 2026-10-08
+
+### Added
+
+- Issue #527: 주·월 Resource Plan에서 개인 근무일 Capacity와 선택 범위·Project 전체 계획 공수를 비교한다. 일별 Peak·개인별 초과·미설정 기여를 구별하고 동일 snapshot의 날짜·개인·Assignment 근거를 제공한다. 기간·표시 행 페이지와 기존 Gantt·Dashboard 상태를 보존한다.
+
 ## [0.99.0] - 2026-10-08
 
 ### Added

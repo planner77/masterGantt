@@ -139,6 +139,14 @@ describe("resource KPI common raw domain", () => {
     expect(calculateResourceKpi(permuted)).toEqual(baseline);
     expect(input.filters).toBeUndefined();
     expect(() => calculateResourceKpi({ ...input, assignments: [...input.assignments, { ...input.assignments[0], allocationPercent: 99 }] })).toThrow("Conflicting KPI input");
+    const assignment = input.assignments[0];
+    const nonFinite = { ...assignment, allocationPercent: NaN };
+    const unset = { ...assignment, allocationPercent: null };
+    const otherRows = input.assignments.filter((row) => row.assignmentId !== assignment.assignmentId);
+    for (const duplicateRows of [[nonFinite, unset], [unset, nonFinite]]) {
+      expect(() => calculateResourceKpi({ ...input, assignments: [...otherRows, ...duplicateRows] })).toThrow("Conflicting KPI input");
+    }
+    expect(() => calculateResourceKpi({ ...input, assignments: [...otherRows, nonFinite, nonFinite] })).toThrow("Invalid KPI allocation");
   });
   it("fixes complete KPI dictionaries and rejects invalid dates, references and assignment schedules", () => {
     expect(RESOURCE_KPI_DICTIONARY).toHaveLength(17);
