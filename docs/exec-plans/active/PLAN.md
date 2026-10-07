@@ -307,6 +307,6 @@ B 설정·근무 규칙·인증은 [#490](https://github.com/planner77/masterGan
 
 PR CI #2076.1은 ESLint의 effect 내부 동기 state update, #457 evidence literal fallback 회귀, reset 뒤 probe focus restore 실패로 FAIL했다. 보완은 recovery state를 timer callback으로 전환하고 recovered button을 새 key로 재마운트해 `autoFocus`로 focus를 복원하며, #457/#502 기본 evidence output을 각각 literal 경로로 유지한다. 실패 assertion/gate는 완화하지 않는다.
 
-제품 인증/API/DB/scheduling 및 #490/#491 기능 범위는 변경하지 않는다. version은 `0.95.1`을 유지하고 release_required=false / release_authorized=false로 취급한다. native125% 실제 browser zoom, 실기기/screen reader/최종 수동 UX, 승인 운영 배포 source SHA/application version/proxy 비교는 GitHub-hosted CI로 대체하지 않으며 환경 접근이 없으면 NOT TESTED/BLOCKED다.
+제품 인증/API/DB/scheduling 및 #490/#491 기능 범위는 변경하지 않는다. version은 `0.95.1`을 유지하고 release_required=false / release_authorized=false로 취급한다. native125% 실제 browser zoom, 실기기/screen reader/최종 수동 UX, 승인 운영 배포 source SHA/application version/proxy 비교는 GitHub-hosted CI로 대체하지 않으며 환경 후속 [#517](https://github.com/planner77/masterGantt/issues/517)에서 NOT TESTED/BLOCKED로 관리한다.
 
-요청 종료점은 관련 문서 동기화, 원격 `Refs #502` PR 및 latest-main exact-head PR CI 등록이다. CI 결과 완료/최종 ACCEPT, 병합, main CI, GHCR, cleanup, Issue 종료는 이번 요청 범위가 아니다.
+PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI #2078.1/#2079.1 SUCCESS다. Generic Finalizer가 no-release merge 후 #502를 자동 close하므로 CI로 대체할 수 없는 환경 검증을 #517로 분리했다. #517 이관 문서가 반영된 새 head에서 required PR CI와 독립 리뷰를 다시 통과한 뒤 #502를 병합/Main CI/finalize하고, #517은 OPEN으로 유지한다.

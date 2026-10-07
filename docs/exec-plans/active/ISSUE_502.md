@@ -38,18 +38,18 @@
 - reset 후 probe focus restore
 - source/test/fixture/config/browser/app version provenance
 
-환경별 별도 대상:
+환경별 별도 대상은 후속 [#517](https://github.com/planner77/masterGantt/issues/517)로 이관한다:
 - native browser 125% zoom
 - 실기기
 - screen reader
 - 최종 수동 UX
 - 승인 운영 source SHA/application version/reverse proxy 입력 상태
 
-후자는 GitHub Actions로 대체하지 않고 환경이 없으면 NOT TESTED/BLOCKED로 유지한다.
+후자는 GitHub Actions로 대체하지 않고 #517에서 환경이 없으면 NOT TESTED/BLOCKED로 유지한다. #502 finalize는 #517 PASS를 의미하지 않는다.
 
 ## 현재 상태
 
-구현 후보와 문서 동기화 후 원격 PR 및 exact-head PR CI를 시작한다. PR CI가 완료되기 전 공식 quality/e2e/docker 및 실제 boundary PASS는 NOT TESTED다. qa_docs 최종 독립 판정, 병합/main/GHCR/Issue 종료는 후속 gate다.
+PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`에서 quality/e2e/docker와 실제 root/gantt-demo boundary E2E가 PASS했다. #517 이관 문서 반영으로 새 head가 만들어지므로 required PR CI와 최신 독립 리뷰는 다시 필요하다. 그 뒤 병합/Main CI/Generic Finalizer로 #502를 수렴하고 #517은 OPEN으로 유지한다.
 
 
 ## PR CI #2076.1 실패와 보완
@@ -66,3 +66,13 @@ Exact head `563262218f69adcfecac86e9f08319c290cd2508`의 PR CI Run `37609042914`
 ## 최신 main 재정렬
 
 PR CI #2076.1 보완 중 main이 `c94b13e110ed5fd9e17625daa084c181f35703e8` / `0.95.1`까지 전진해 기존 branch는 behind 3이었다. #502와 main #491 변경이 함께 수정한 `TEST_PLAN.md`, `UI_UX_GUIDELINES.md`, 활성 `PLAN.md`는 최신 main 내용을 우선 보존하고 #502 섹션을 다시 적용한다. 그 외 #502 파일은 latest main tree 위에 그대로 재적용한다. 새 PR CI는 latest-main exact head에서 수행한다.
+
+
+## 환경 검증 분리 결정
+
+Generic Finalizer는 `release_required=false`인 merged `Refs #502` PR을 `finalize`하여 safe branch cleanup, FINAL marker, Issue close까지 수행한다. 따라서 #502에 native125%·screen reader·운영 source/version 검증을 남긴 채 병합하면 lifecycle 완료 의미가 왜곡된다.
+
+- 자동화 가능한 actual React boundary/keyboard/focus: #502 / PR #516
+- CI로 대체할 수 없는 환경 검증: #517
+- #502 merge/close는 #517 PASS가 아니다.
+- #517은 환경 접근과 실제 실행 증거가 확보될 때 별도 완료한다.

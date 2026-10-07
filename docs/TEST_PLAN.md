@@ -2094,9 +2094,14 @@ Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0d
 
 | 검증 | 현재 판정 | 근거/다음 조건 |
 | --- | --- | --- |
-| root/gantt-demo 실제 React error boundary + retry + focus restore | NOT TESTED (보완 구현, 새 exact PR CI 실행 전) | PR exact head Chromium 결과와 artifact로 판정 |
-| 실제 browser native 125% zoom | NOT TESTED | DPR/deviceScaleFactor/visualViewportScale로 대체 금지; 지원되는 실제 브라우저 수동 실행 필요 |
-| 실기기·screen reader·최종 수동 UX | NOT TESTED | 승인 장비/접근성 환경에서 별도 기록 |
-| 운영 source SHA/application version·proxy 입력 상태 | BLOCKED / NOT TESTED | 승인 운영 환경 metadata 접근이 제공될 때 read-only 비교; 운영 mutation 금지 |
+| root/gantt-demo 실제 React error boundary + retry + focus restore | PASS on previous head `ada3420df6d2018cec187c8b42103b843fb1c87b` | PR CI #2078.1/#2079.1 및 실제 #502 Chromium 2case PASS. #517 문서 이관으로 바뀐 새 head는 required CI를 다시 판정 |
+| 실제 browser native 125% zoom | NOT TESTED | 환경 후속 #517. DPR/deviceScaleFactor/visualViewportScale로 대체 금지; 지원되는 실제 브라우저 수동 실행 필요 |
+| 실기기·screen reader·최종 수동 UX | NOT TESTED | 환경 후속 #517. 승인 장비/접근성 환경에서 별도 기록 |
+| 운영 source SHA/application version·proxy 입력 상태 | BLOCKED / NOT TESTED | 환경 후속 #517. 승인 운영 환경 metadata 접근이 제공될 때 read-only 비교; 운영 mutation 금지 |
 
 GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않는다.
+
+
+### #502 → #517 환경 검증 이관
+
+#502는 자동화 가능한 실제 React error boundary 검증을 PR #516으로 수렴시킨다. native125%·실기기/screen reader·최종 수동 UX·승인 운영 source/version/reverse proxy 검증은 lifecycle finalize와 실제 환경 PASS를 혼동하지 않도록 [#517](https://github.com/planner77/masterGantt/issues/517)로 이관한다. #502 merge/close는 #517 PASS를 의미하지 않는다.

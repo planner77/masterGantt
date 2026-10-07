@@ -282,4 +282,9 @@ Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0d
 
 Probe UI는 제품 기능이 아니며 production에서 활성화하지 않는다. `NODE_ENV !== "production"`과 명시적 E2E flag를 동시에 요구하고, gantt-demo는 추가 query opt-in까지 요구한다. 일반 사용자가 접근하는 화면·권한·데이터 계약은 이 검증을 위해 변경하지 않는다.
 
-자동 Chromium 390/1440px 결과는 실제 boundary/keyboard/focus 범위에만 적용한다. native125% zoom, 실기기, screen reader, 최종 수동 UX 및 운영 reverse proxy/source-version 일치는 환경별 검증으로 남긴다. DPR 또는 device emulation을 native zoom 근거로 사용하지 않으며, 환경이 없으면 NOT TESTED/BLOCKED를 유지한다.
+자동 Chromium 390/1440px 결과는 실제 boundary/keyboard/focus 범위에만 적용한다. native125% zoom, 실기기, screen reader, 최종 수동 UX 및 운영 reverse proxy/source-version 일치는 환경별 후속 [#517](https://github.com/planner77/masterGantt/issues/517)에서 검증한다. DPR 또는 device emulation을 native zoom 근거로 사용하지 않으며, 환경이 없으면 NOT TESTED/BLOCKED를 유지한다.
+
+
+### #502 자동화와 #517 환경 검증 분리
+
+PR #516의 Error Boundary 하니스/keyboard/focus 검증은 #502의 자동화 범위다. 실제 브라우저 native125%·실기기/screen reader·최종 수동 UX·운영 source/version/proxy는 #517의 환경별 범위이며, #502 CI 또는 merge/close를 해당 환경 PASS로 해석하지 않는다.
