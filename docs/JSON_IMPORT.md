@@ -9,3 +9,11 @@ JSON 내보내기는 Readonly에서도 full Project 범위로 가능하다. 현�
 기존 mixed Task/Milestone Link는 JSON Export에 전부 보존한다. 새 Import는 기존 신규 Link 정책에 따라 mixed가 하나라도 있으면 전체를 거부한다. UI에서 이 경계를 먼저 안내하고 데이터를 생략하지 않는다. 빈 Project는 tasks[]/memberships[]로 출력하며 empty commit은 수행하지 않는다. 파일5 MiB/Task5000/Link20000/Task당 incoming100을 넘으면 JSON Export를 전체 거부한다. 현재 서버 일정에 incoming101이 있어도 행/Link를 줄인 파일을 생성하지 않는다.
 
 Producer는 schemaVersion·정보용 project → stable externalId → parentExternalId와 배열 sibling 순서 → Dependency endpoint/type/signed lag → memberships → JSON Schema → server Preview → warning/diff 검토 → Commit 순서로 작성한다. CSV/VBA producer는 기존1.0 POC이며 이번 변경에서 parser나 실제 Excel 환경 검증을 확장하지 않는다. file/UTF-8/BOM/duplicate key/size/transaction 보안 한도는 [IMPORT_SCHEMA.md](IMPORT_SCHEMA.md), HTTP 계약은 [API.md](API.md), 실제 검증은 [TEST_PLAN.md](TEST_PLAN.md)를 따른다.
+
+## Issue #491 preview 배치 검증
+
+검토 dialog의 body8px gutter/scroll padding과 table-owned scroll margin은 native focus ring을 보존한다. 960px 작업/차이 표 최소 폭과 문서 밖이 아닌 table owner의 수평 스크롤, 취소 가능한 preview와 취소 금지 commit의 기존 의미를 유지한다. 대표390/1440 native Tab과 실제 preview 성공·commit201,401/412·파일 보존·기존 Task/Link 불변 증거는 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 참조한다. 이 변경은 presentation만이며 JSON1.0/1.1 strict schema·digest·새 UUID·target Calendar/create-only/atomic revision 계약이나 CSV 지원을 확장하지 않는다.
+
+Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
+
+Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.

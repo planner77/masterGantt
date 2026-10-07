@@ -68,15 +68,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/e2e-shard-planner.mjs analyze             --history .e2e-history             --shards 6             --min-runs "$MIN_RUNS"             --current-plan tests/config/e2e-shard-plan.json             --output .e2e-shard-proposal.json             --summary "$GITHUB_STEP_SUMMARY"
-          should_update="$(jq -r '.shouldUpdate' .e2e-shard-proposal.json)"
+          node scripts/e2e-shard-planner.mjs analyze             --history .e2e-history             --shards 6             --min-runs "$MIN_RUNS"             --current-plan tests/config/e2e-shard-plan.json             --output e2e-shard-proposal.json             --summary "$GITHUB_STEP_SUMMARY"
+          should_update="$(jq -r '.shouldUpdate' e2e-shard-proposal.json)"
           echo "should_update=$should_update" >> "$GITHUB_OUTPUT"
 
       - name: 분석 결과 artifact 보존
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: e2e-shard-optimizer-proposal
-          path: .e2e-shard-proposal.json
+          path: e2e-shard-proposal.json
           retention-days: 30
 
       - name: 기존 최적화 PR 확인
@@ -87,7 +87,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          number="$(gh pr list             --state open             --search '"'"'[Issue #437] ci: E2E 샤드 계획 갱신'"'"' in:title'             --json number             --jq '.[0].number // empty')"
+          number="$(node scripts/e2e-shard-optimizer-pr.mjs)"
           echo "number=$number" >> "$GITHUB_OUTPUT"
 
       - name: 샤드 계획 자동 PR 생성
@@ -97,7 +97,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          jq '.plan' .e2e-shard-proposal.json > tests/config/e2e-shard-plan.json
+          jq '.plan' e2e-shard-proposal.json > tests/config/e2e-shard-plan.json
           branch_name="ci/issue-437-e2e-shard-plan-${GITHUB_RUN_ID}"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

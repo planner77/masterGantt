@@ -1350,6 +1350,10 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Remote: #437 implementation PR exact head의 quality/e2e/docker required checks를 통과하고, 병합 후 timing artifacts가 실제 main CI에서 생성되는지 확인한다.
 - Activation: historical sample 10회가 쌓이기 전에는 native 6-shard fallback이 정상 상태이며, 첫 자동 plan PR은 threshold 충족 후 별도 required CI로 검증한다.
 
+- Issue #508 regression: proposal 출력과 workflow artifact path가 모두 `e2e-shard-proposal.json`인지 확인하고 hidden filename을 다시 사용하지 않는지 검증한다.
+- PR lookup script는 GitHub CLI의 `--search` 값을 `"[Issue #437] ci: E2E 샤드 계획 갱신" in:title` 단일 argument로 구성하고, 후보 목록에서 exact title만 기존 PR 번호로 선택하는 Unit test를 유지한다. 이 로직을 inline Bash quoting으로 되돌리지 않는다.
+- Workflow contract test는 `shouldUpdate=false`에서 조회/생성 step이 skip되는 조건, `shouldUpdate=true`에서 기존 PR 번호가 있으면 생성하지 않는 조건, 번호가 비어 있을 때만 생성하는 조건과 proposal artifact path를 정적으로 검증한다.
+
 ## Issue #438 Build-once / verified digest release promotion 검증
 
 - Main 분류: first-parent `package.json.version`과 현재 version이 다를 때만 `version_changed=true`이며 `current_version`을 candidate build metadata에 사용한다.
@@ -2021,14 +2025,24 @@ Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manag
 - `cross-screen-regression.spec.ts`는 직접 cross-admin 비교, populated Master 대표390/1440, 404 recovery/demo 대표만 추가한다. 생성 기존 spec에1920px를 추가했고 선택 기존 회귀를 유지했다. 전체 state×surface×viewport Cartesian product와 로컬 전체 suite 반복은 추가하지 않았다.
 - 최종 대표 범위는 고유23개=최종 observer 직접7 PASS(32.7s)+제품 source/spec 불변 선택16 재사용이다. 총4실행36case의34 PASS/2 FAIL과 중간 `TS2304`는 별도로 보존한다. 최초 FAIL은 fold 아래 table 관찰 준비와 숨은 status text0rect의 observer 오류였다. 실제 제품 defect를 기대값 완화로 숨기지 않았다.
 - Raw HTML/embedded ZIP/decoded JSON/trace/stdout은 각 실행 직후 고유 `/tmp/issue457-run<N>-*`에 보존하고 실제 case ID·해시를 `output/playwright/issue-457/runs.json`에 연결했다. 현재 PNG/JSON은 source/test/helper/fixture/env provenance를 가진다. Historical hardcoded outputs의 backup 필터 오류와 정확한 baseline403복원 경위도 coverage에 기록하며 성공한 사전 backup이라고 과대 보고하지 않는다.
-- 같은 source/CSS는 KEEP이며 새 guard를 제품 개선으로 보고하지 않는다. #452 first-PR 공통 reusable helper 부재는 역사적 GAP/FAIL을 현재 보완하는 범위다. B#490/C#491·React error boundary·실제 배포·native125·실기기/스크린리더 및 원격 `quality/e2e/docker`는 NOT TESTED다. CI 등록은 required jobs PASS와 최종 ACCEPT를 대체하지 않는다.
+- 같은 source/CSS는 KEEP이며 새 guard를 제품 개선으로 보고하지 않는다. #452 first-PR 공통 reusable helper 부재는 역사적 GAP/FAIL을 현재 보완하는 범위다. B#490/C#491 및 당시 React error boundary·실제 배포·native125·실기기/스크린리더는 #457 시점의 NOT TESTED 기록이다. 현재 실제 React boundary 자동화는 #502, native125·실기기/screen reader·운영 배포 검증은 #517이 소유한다. 당시 원격 `quality/e2e/docker` 미실행 기록은 역사 증거로 유지한다. CI 등록은 required jobs PASS와 최종 ACCEPT를 대체하지 않는다.
 
-환경별 미검증은 [Follow-up #502](https://github.com/planner77/masterGantt/issues/502)에서 실제 React error boundary/native125/실기기·screen reader·최종 수동 UX/배포 source·version을 FOLLOW-UP/NOT TESTED로 추적한다. frontend·ui_ux·qa_docs가 환경별 증거를 작성/비교/독립 확인하고 Manager가 환경 제공과 수용 범위를 판단한다. B#490/C#491 제품 개선과 별개이며 현재 scope에서 자동 실행하지 않는다.
+후속 추적은 분리한다. [#502](https://github.com/planner77/masterGantt/issues/502)는 실제 React error boundary 자동화를, [#517](https://github.com/planner77/masterGantt/issues/517)은 native125/실기기·screen reader·최종 수동 UX/배포 source·version의 환경별 검증을 소유한다. ui_ux·infra·qa_docs가 #517 환경 증거를 작성/비교/독립 확인하고 Manager가 환경 제공과 수용 범위를 판단한다. B#490/C#491 제품 개선과 별개다.
 
-#457 독립 검토의 provenance 정정: 목록 `list-populated-1440`/`list-no-result-1440` key는 별칭이며 실제 JSON/PNG는1280×720이다. Current62 JSON은 ko-KR/Asia-Seoul/높이900/DPR1 49개, en-US/Asia-Seoul/높이900/DPR1 11개, en-US/Asia-Seoul/높이720/DPR1 목록2개다. 정상 Master auth는 기존 autofocus 때문에 focused/focusVisible=true이므로 normal을 비포커스 baseline으로 해석하지 않는다. 과거capture/test/source hash와141개raw PNG/JSON은 그대로 유지한다. 착수 시 stacked 계획과 달리 parent PR#500 외부 병합 후 최초 게시 base는 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`/0.92.1이었고 tree `6a322cc119ed5b0a435f3b1ff20fe5826035ed66`이 원래 capture source `b397eedf35d50befb4ae17e623036f0a8d77f556`과 정확히 같아 LFF를 재사용했다. PR CI 보완 시점에는 main이 `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7`까지 전진하여 재정렬했다. 실제 운영 배포는 #502 NOT TESTED다.
+#457 독립 검토의 provenance 정정: 목록 `list-populated-1440`/`list-no-result-1440` key는 별칭이며 실제 JSON/PNG는1280×720이다. Current62 JSON은 ko-KR/Asia-Seoul/높이900/DPR1 49개, en-US/Asia-Seoul/높이900/DPR1 11개, en-US/Asia-Seoul/높이720/DPR1 목록2개다. 정상 Master auth는 기존 autofocus 때문에 focused/focusVisible=true이므로 normal을 비포커스 baseline으로 해석하지 않는다. 과거capture/test/source hash와141개raw PNG/JSON은 그대로 유지한다. 착수 시 stacked 계획과 달리 parent PR#500 외부 병합 후 최초 게시 base는 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`/0.92.1이었고 tree `6a322cc119ed5b0a435f3b1ff20fe5826035ed66`이 원래 capture source `b397eedf35d50befb4ae17e623036f0a8d77f556`과 정확히 같아 LFF를 재사용했다. PR CI 보완 시점에는 main이 `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7`까지 전진하여 재정렬했다. 실제 운영 배포는 환경 후속 #517에서 NOT TESTED/BLOCKED다.
 
 - #457 geometry helper는 일반 `npm run test:e2e`에서 tracked 증거를 덮어쓰지 않고 Playwright test output에 기록한다. tracked evidence publication은 `ISSUE_457_EVIDENCE_DIR` 명시가 필요하며, KEEP/REVIEW는 `ISSUE_457_BASELINE_SOURCE_AGGREGATE_SHA256`의 명시적 baseline과 source aggregate를 비교할 때만 부여한다. baseline이 없으면 중립 OBSERVATION이다.
 - PR CI #2004.1의 production dependency audit에서 `sharp 0.35.4` / CVE-2026-96889가 High로 실패했다. audit gate는 완화하지 않는다. 최신 main에는 `sharp 0.35.5` 및 대응 `@img/sharp-* 0.35.5`, `@img/sharp-libvips-* 1.3.4`가 이미 반영되어 있으므로 그 lockfile을 그대로 사용하고 저장소 계약 테스트로 최소 버전을 고정한다.
+
+## Issue #492 Grid/Chart 작업 Hover Tooltip 검증
+
+- Unit: `task-hover-tooltip.test.ts`에서 canonical `ProjectTaskDto.start/end`가 공통 locale formatter를 사용하고 날짜 미설정 Summary는 `—`로 표시되는지 검증한다.
+- Chromium: `project-task-hover-tooltip.spec.ts`에서 Grid/Chart 동일 Task의 작업명·시작일·종료일 parity, Task/Summary/Milestone, date-less Summary, Week, fullscreen, WBS scope, readonly를 검증한다.
+- viewport 밖 Task/Milestone은 먼저 `scrollIntoViewIfNeeded()`로 위치를 확정한 뒤 hover한다. 제품은 scroll 중 기존 Tooltip을 닫는 계약이므로 Playwright `hover()`의 내부 auto-scroll과 hover 이벤트를 하나의 gesture로 결합해 오탐하지 않는다.
+- app-owned delegated hover는 `TASK_TARGET_SELECTOR`의 Grid row/Chart bar를 canonical taskId로 resolve하며 Core API/렌더 anchor에 의존하지 않는다. hover 중일 때만 Task Tooltip DOM이 존재하고 Header focus·scroll·영역 이탈 시 제거되어 #315/#316 Header Tooltip과 `role=tooltip`이 중복되지 않아야 한다.
+- 회귀: #315/#316 Header Tooltip, Context Menu, double-click Editor, Chart drag/dependency interaction을 PR 전체 E2E gate에서 함께 판정한다.
+- #490/#456 Gantt 상태 보존 회귀는 hover 표시/닫힘 전후에도 horizontal/public viewport·tree·column·scale·selection·fullscreen이 유지되는지 기존 `task-editor-form-density.spec.ts`를 함께 판정한다. Tooltip state는 child layer에 격리되어 부모 Gantt render를 발생시키지 않아야 한다.
+- 공식 결과는 동일 PR head의 GitHub Actions quality/e2e/docker다. CI가 완료되기 전에는 PASS로 기록하지 않는다.
 
 ## Issue #490 프로젝트 설정 회귀
 
@@ -2036,17 +2050,71 @@ Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manag
 
 401/412로 닫힌 설정은 dialog PASS로 세지 않고 page-level readonly/canonical refresh 관측으로 구분한다. Mock state는 native 48px 열 resize·optional 외부ID 열·닫힌 중첩 Summary·native 선택·주 scale·Summary scope·scroll/public viewport·instance·전체 화면 round trip을 비교한다. 실제 API 테스트는 Origin/If-Match와 name/description 저장 성공, Task/Link/Calendar 불변 및 viewport를 별도로 검증한다. 요청 body/password/Cookie/token은 증거에 저장하지 않는다. Local Fast Feedback과 원격 quality/e2e/docker 판정을 분리하며 PR CI 시작만으로 전체 회귀 PASS를 주장하지 않는다. 실행별 실패·준비 oracle 정정·재사용 범위는 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)에 기록한다.
 
+Main CI Run #2035.1 corrective: shard 3/6에서 412 복구 직후 다음 보호 오류 주입이 canonical sync guard와 경합하여 POST가 시작되지 않고 `waitForRequest`가 timeout됐다. 제품의 sync 중 mutation 차단 계약은 유지한다. 비운영 환경의 Gantt frame에 `data-gantt-canonical-sync-depth` 진단 값을 기록하고, 연속 오류 E2E는 depth=0 및 mutation lock 해제를 확인한 뒤 다음 POST를 시작한다. timeout 확대나 retry로 실패를 숨기지 않는다.
+
+PR #510 review corrective: 단순 `data-gantt-canonical-sync-depth=0`은 412 복구 React update가 passive effect를 시작하기 전의 이전 cycle 값일 수 있다. 비운영 frame에 canonical sync `generation`과 `settled-generation`을 기록하고, 연속 보호 오류 E2E는 mutation 직전 generation을 캡처한 뒤 새 generation이 증가하고 같은 generation이 settle되며 depth=0이 될 때까지 기다린다. 이전 cycle의 0을 새 복구 완료로 오인하지 않는다.
+
+PR CI Run #2037.1 corrective: 위 shard 3/6은 PASS했으나 shard 4/6의 `project-status.spec.ts`가 revision 충돌 준비용 `page.request.get()`에서 단일 `ECONNRESET`으로 실패했다. 이 보조 요청은 제품 UI 기능 자체가 아니라 충돌 상태를 만드는 test harness이며, 별도 APIRequestContext 연결 재시도 대신 현재 페이지가 이미 사용하는 same-origin browser `fetch`로 snapshot GET과 외부 PATCH를 수행한다. 실제 UI 저장은 그대로 stale If-Match를 사용해 412/canonical refresh를 검증하며 timeout 확대·blind retry는 추가하지 않는다.
+
+Main CI Run #2053.1 corrective: exact merge `75f014fccc8f6e3f19ba5fadebd3ecad4e0926c4`의 shard 2/6에서 `milestone-stage-grid.spec.ts` snapshot helper가 `apiRequestContext.get: read ECONNRESET`으로 실패했다. 같은 run의 다른 5개 E2E shard와 quality/build/typecheck/lint/Vitest/Docker는 PASS였고 HTTP status/assertion 실패는 없었다. 최신 main은 이후 #511 병합으로 `eab12824e359029b4c7f00b6ca7ab16535147a14` / app `0.94.2`까지 전진했으므로 corrective branch는 이 main에서 시작한다. 이미 저장소에서 검증된 direct GET 정책과 동일하게 snapshot GET에만 `socket hang up|ECONNRESET`을 최대 3회 bounded retry하고, 다른 예외·HTTP/JSON/assertion 실패와 retry 소진은 계속 FAIL한다. 제품 API/UI 동작과 mutation 경로는 변경하지 않는다.
+
 #490 REWORK는 최신 main4f8fc2c9c86941d1b86ae4472b1e953707c85ef7/제품0.94.1에서6case를 실행한다. 0.93.1의 마지막5case와16runs40executions는 historical로 원본 hash를 유지한다. 새1case는1440px 실제 PUT hold→pending BODY·빠른2Escape·민감 입력 비움·중복PUT1개·native 보안탭 focus→204/revision+1/canonical GET/호출자 edit·이전 peer readonly·구password401/새password204와 정상 close/logout/unlock 초점을 검증한다. Calendar 기존 case에390px 새 field select/date의 native Tab·화면 안 bbox/ring을 추가한다. 성공 loading 동안 BODY 초점을 실제 관측으로 남기며 호출 버튼 복원 PASS로 확대하지 않는다. fullscreen 설정 진입은 지원 trigger가 frame 밖이라 N/A이고 fullscreen 왕복은 별도 검증한다. main #485 migration0023은 실제 isolated DB에 적용되며 변경된 stateful-project workload fixture는 이 spec의 직접 fixture가 아니다.
 
-## Issue #342 — Country Calendar Catalog 검증
+## Issue #486 — 401 후 Resource Catalog suspended draft 전환
 
-- Dataset/Resolver: 7개 국가 2026~2037 관리 슬롯, OFFICIAL-only effective resolution, UNAVAILABLE/SUPERSEDED 차단, WORKING 보존.
-- Import: JSON/CSV validation, duplicate/year mismatch, 1 MiB/500 dates, Preview diff, HMAC previewToken exact revision/target/format/bytes binding, token mismatch/reuse 거부.
-- CRUD provenance: 수동 Add/Edit/Delete 후 UNAVAILABLE + source null, OFFICIAL 재승인 전 effective dataset 부재.
-- No-op/input: 동일 metadata/date PATCH는 revision/override/provenance 불변, empty/unknown/explicit-null date PATCH는 거부.
-- Project availability: current-year KR override 재승인 대기 중 신규 Project 생성은 built-in approved baseline으로 초기 seed하며 수동 미승인 날짜는 포함하지 않는다.
-- DB: migration 0024, preview_secret 32 bytes, tables/indexes/FK, legacy schema21→0022→0023→0024 연속 upgrade 데이터 불변.
-- UI/E2E: file race, target draft clear, target load 실패 snapshot 제거, 401/412 stale draft 폐기, pending edit/delete cancel 차단, delete 후 focus 복원, same-file reselect, responsive overflow.
-- E2E locator는 dataset status의 accessible name과 exact 국가/연도 select를 사용한다.
-- Country Calendar 국가 선택은 wrapper label text가 아니라 `role=combobox` + accessible name으로 식별한다. #490 회귀 연계 검증은 412 canonical reload 직후 Native Add 첫 클릭도 실제 POST를 시작해야 한다.
-- 공식 전체 판정은 exact PR head의 `quality/e2e/docker` required gate이며 이전 head PASS/FAIL을 재사용하지 않는다.
+- `tests/e2e/resource-error-recovery.spec.ts`에서 Resource dirty draft → 401 → 재로그인 → Group 추가 시 기존 Resource editor가 자동 재개되지 않고 `보존한 초안 확인`이 표시되는지 검증한다.
+- `초안 유지`는 기존 draft를 suspended 상태로 보존하고, 이후 `보존한 초안 계속 편집`으로 재개했을 때 Resource 입력값이 그대로인지 확인한다.
+- Group dirty draft → 401 → 재로그인 → Resource 추가에서는 `초안 폐기 후 리소스 추가`가 요청한 Resource editor를 열고 이전 Group draft를 제거하는지 확인한다.
+- Profile dirty draft → 401 → 재로그인 → 다른 editor trigger에서도 자동 Profile 재개를 막고, 명시 재개 시 developer grade/roles 초안을 보존하는지 확인한다.
+- 기존 password clearing/login focus, 401/412 수동 복구, pending 중복 mutation 차단, Escape/focus restore, Group 구성원 초안 보존 회귀를 같은 spec의 기존 case와 함께 유지한다.
+- 현재 connector 세션의 Local Fast Feedback은 NOT TESTED다. 공식 판정은 동일 PR head의 required `quality`, `e2e`, `docker` GitHub Actions 결과로 수행한다.
+
+## Issue #491 프로젝트 생성·전송 폼 회귀
+
+`tests/e2e/project-transfer-layout-491.spec.ts`와 전용 `helpers/issue491-transfer-fixture.ts`의8case는 생성·템플릿 목록/생성·복사·템플릿 저장·JSON Import·readonly4형식 Export·inline 공수 옵션·실제 Gantt 상태를 검증한다. `ISSUE_491_EVIDENCE_DIR`를 생략하는 일반 CI는 test output을 사용해 tracked 증거를 덮어쓰지 않는다. 직접 CLI에는 `--config tests/config/playwright.config.ts`를 지정한다.
+
+390/768/1024/1440/1920px geometry와 긴 입력/큰 표시값, 관련 validation/loading/pending/500/401/412/readonly를 표면별로 분리한다. 실제 footer12px·field/footer12px·top/height≤1px, native ring390/1440 clipping0을 assertion으로 검증한다. text-field 경계와 native radio/checkbox label/appearance는 별도 oracle이다. pending 빠른2Escape/민감 입력 비움/중복 POST, preview 취소와 commit busy, actual201/readonly download200 및 원본/canonical 의미를 확인한다. 공수 fixture의 큰 값은 실제 알고리즘 PASS가 아니며 source별 partial/stale 전체 회귀로 확대하지 않는다.
+
+실제 Gantt는 Summary scope·optional 외부ID·native48px resize·closed nested tree·native 선택·주 scale·scroll120/38·instance/API/public viewport를 준비한다. 기존 workspace의 dialog 취소/템플릿 저장/지원 fullscreen 버튼 왕복을 동일 state로 비교하고 실제 Import commit의 instance/API/scale을 확인한다. 새 publicId navigation은 same-instance N/A, fullscreen C header 진입은 지원 경로 밖이다. headless keyboard Escape의 browser fullscreen 종료는 NOT TESTED로 구분한다.
+
+역사적0.94.3 after8 PASS/8runs45case(34PASS/11originalFAIL)와 최신0.94.4 after-current8 PASS/합계9runs53case(42PASS/11originalFAIL), before/helper 재사용 조건, 미게시 raw/trace·원래 hash, 환경·공식 CI/수식·domain·Windows/DRM/125% 미검증은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. 로컬 PASS는 새 PR head의 quality/e2e/docker PASS를 대체하지 않는다.
+
+템플릿 instantiate의 실제 navigation·편집 상태·원본 불변은 검증했으나 safeJSON의201은 서버 계약 literal이며 response.status 직접 검증이 아니다. 기존 원본과 helper를 유지하고 최신 실행 provenance에 한계를 기록한다.
+
+Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.
+
+## Issue #502 실제 Error Boundary와 환경별 검증
+
+#502는 #457에서 source-only로 남은 `app/error.tsx`와 `app/gantt-demo/error.tsx`를 실제 React 오류로 실행하는 자동화와, CI가 대체할 수 없는 환경별 검증을 분리한다.
+
+- 자동화: `tests/e2e/error-boundary-regression.spec.ts`가 390/1440px에서 root와 gantt-demo segment에 client render 오류를 발생시킨다. native keyboard로 retry 버튼에 도달해 Enter로 `reset()`을 실행하고, 복구된 probe가 오류 전 focus 지점으로 돌아오는지 확인한다.
+- 안전 경계: probe는 `NODE_ENV !== production` + `E2E_ERROR_BOUNDARY_PROBE=true`에서만 허용한다. root probe route는 gate가 닫히면 404이며 gantt-demo는 일반 요청에서 probe를 렌더링하지 않는다. 인증/권한/API/DB/scheduling 계약을 변경하지 않는다.
+- 증거: #457의 `ui-geometry` provenance를 `evidenceScope=502`로 재사용하되 기본 artifact 경로를 Playwright test output에 격리한다. tracked evidence publication은 explicit opt-in이다.
+- 구분: Project/API의 HTTP 500·network error UI를 route error boundary PASS로 사용하지 않는다.
+
+| 검증 | 현재 판정 | 근거/다음 조건 |
+| --- | --- | --- |
+| root/gantt-demo 실제 React error boundary + retry + focus restore | PASS on previous head `ada3420df6d2018cec187c8b42103b843fb1c87b` | PR CI #2078.1/#2079.1 및 실제 #502 Chromium 2case PASS. #517 문서 이관으로 바뀐 새 head는 required CI를 다시 판정 |
+| 실제 browser native 125% zoom | NOT TESTED | 환경 후속 #517. DPR/deviceScaleFactor/visualViewportScale로 대체 금지; 지원되는 실제 브라우저 수동 실행 필요 |
+| 실기기·screen reader·최종 수동 UX | NOT TESTED | 환경 후속 #517. 승인 장비/접근성 환경에서 별도 기록 |
+| 운영 source SHA/application version·proxy 입력 상태 | BLOCKED / NOT TESTED | 환경 후속 #517. 승인 운영 환경 metadata 접근이 제공될 때 read-only 비교; 운영 mutation 금지 |
+
+GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않는다.
+
+
+### #502 → #517 환경 검증 이관
+
+#502는 자동화 가능한 실제 React error boundary 검증을 PR #516으로 수렴시킨다. native125%·실기기/screen reader·최종 수동 UX·승인 운영 source/version/reverse proxy 검증은 lifecycle finalize와 실제 환경 PASS를 혼동하지 않도록 [#517](https://github.com/planner77/masterGantt/issues/517)로 이관한다. #502 merge/close는 #517 PASS를 의미하지 않는다.
+
+## Issue #342 국가 캘린더 원본 관리자
+
+- `tests/e2e/country-calendar-admin.spec.ts`는 격리된 실제 SQLite/Next와 테스트 전용 Project master 관리자 credential로 JSON/CSV preview/apply, metadata 및 date create/rename/delete, 출처 무효화/재확인, no-op, 실제 native focus 복원, 기존 materialized Project·Calendar·revision 불변을 검증한다. Project Preview/Save는 서버 catalog revision payload·canonical 재조회·catalog 변화 412·명시 미확보 연도 422를 실제 API로 확인한다. 성공 경로에 `route.fulfill`을 사용하지 않는다.
+- 같은 spec의 제어 mock은 최초 GET 실패에서 metadata/action DOM 유지와 disabled, native 국가 변경과 역순 응답/초기 로그인 후 GET, 401/412 보존 초안의 명시적 재검토와 mutation 재전송 0, fatal UTF-8/선행 BOM 원문/파일 읽기 epoch, preview 만료와 중복 apply 0, pending 반복 Escape 및 해제 후 닫기·trigger focus를 검증한다.
+- 390/768/1024/1440/1920px에서 공통 `observeUi`의 label/border/background/padding/높이/table 최소수, sibling geometry, 표 자체 가로 scroll과 document overflow를 수집한다. 390px country→year 실제 Tab의 focus-visible/outline/clip owner를 별도 관찰한다. 캡처의 US2031 E2E-v3는 테스트 전용 override이며 builtin OFFICIAL 출처 확인 근거가 아니다. 실제 native125%/실기기/screen reader는 NOT TESTED다.
+- 기존 `project-work-calendar-preview.spec.ts`는 현재 preview의 필수 `countryCatalogRevision`, 누락/비정수 mock의 저장 잠금, 입력 변경 뒤 새 preview와 저장 payload를 확인한다. `project-resource-calendar-exceptions.spec.ts`와 `project-settings-layout-490.spec.ts`의 해당 mock은 새 DTO 필드를 사용하며 저장 영향 경로는 현재 Preview 계약을 따른다.
+- `project-gantt-stability.spec.ts`의 첫 native 하위 추가 및 지연/연속 추가 회귀는 callback/scope/reject ref의 layout commit 업데이트와 기존 instance/selection/tree/column/scroll/readonly·보호 오류 의미를 검증한다. Tooltip 및 새 main 공통 config/helper의 제품 계약은 변경하지 않는다.
+- 서버의 `country-calendar-catalog.test.ts`/`country-calendar-integration.test.ts`와 관련 회귀는 strict JSON/CSV, 84 slot/출처 확보 범위, override masking, 날짜 변경 provenance/no-op write0, preview counts·binding·expiry·session, mid-insert/revision 실패 rollback, delayed-body 재인증, Origin/strong If-Match, materialized 일정 불변, seed fallback/copy 및 23→24 migration/reopen을 검증한다. UTC2026 KR seed를 유지한 실제 Task의 US2027→2028 연말 경계에는 연도별 원본과 OPM2028 표의 실제 날짜 2027-12-31, Preview write0·명시 Save·sourceVersion 지속성을 별도로 확인한다. Template 저장 뒤 원본 catalog가 미확보로 바뀌어도 template/source Project snapshot이 불변이며 instantiate가 저장된 휴일을 사용하는 경계도 실제 SQLite에서 확인한다. 실제 실행 counts와 재사용 영향 근거는 backend Result Contract로 관리한다.
+
+독립 QA의 긴 값 증거 보완은 같은 실제 SQLite CSV 교체 시나리오에 name200자, sourceKey120자, sourceVersion200자, sourceUrl2048자의 허용 최대값을 사용한다. 서버 canonical 원문 보존을 확인한 뒤 5폭의 sibling/header/body 정렬, document overflow0, 표 자체 가로 scroll 범위와 390px native Tab/focus-visible을 다시 검증한다. 값은 US2031 테스트 전용 override이며 공식 자료 내용의 확인 근거가 아니다. 짧은 값의 이전 캡처/실행은 역사적 원문으로 보존하고 최신 캡처의 provenance를 소급하지 않는다.
+
+Local Fast Feedback의 선택 실행과 원격 PR `quality/e2e/docker`는 별도 판정한다. 최초 실패·trace/report 원문은 다음 실행 전에 분리 보존하고, 최신 source/test/env 증거를 과거 capture에 소급하지 않는다. 신규 route는 before UI가 없으므로 main 소스/설계가 baseline이며 이전 PR #346의 오류는 재현 교훈으로만 사용한다.

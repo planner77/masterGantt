@@ -281,7 +281,7 @@ Grouping은 표시 그룹과 실제 Parent Tree를 구분한다. Resource Assign
 = Project Effective Calendar
 ```
 
-여러 국가 rule이 같은 날짜에 같은 day type을 만들면 계산에서는 한 번만 적용하고 source는 API Preview에 모두 보존한다. 서로 반대 day type이면 `CALENDAR_EXCEPTION_CONFLICT`로 저장 전에 거부한다. 국가 fixture는 현재 2026년 KR/CN/VN/PH/TH/MX/US만 검증 범위이며 범위 밖 연도는 추정하지 않는다.
+여러 국가 rule이 같은 날짜에 같은 day type을 만들면 계산에서는 한 번만 적용하고 source는 API Preview에 모두 보존한다. 서로 반대 day type이면 `CALENDAR_EXCEPTION_CONFLICT`로 저장 전에 거부한다. 최초 #57 fixture는 2026년 KR/CN/VN/PH/TH/MX/US였다. 현재 공식 dataset의 지원 연도와 원본 catalog 경계는 아래 #342 절을 따르며, 미확보 연도는 추정하지 않는다.
 
 ### Resource Effective Calendar (#261)
 
@@ -338,14 +338,14 @@ Service는 원본 persisted↔최종 candidate 날짜를 비교하여 target/앞
 
 Chart vertical DnD는 일정 계산 명령이 아니다. vertical axis가 lock되면 `start/end/duration` PATCH를 생성하지 않고 same-parent sibling order만 hierarchy transaction으로 확정한다. #335와 같이 Dependency Link 및 requested/effective schedule은 변경하지 않으며 Calendar/Summary/Dependency scheduling 규칙도 변경하지 않는다.
 
-## Issue #342 Country Calendar Catalog resolution
 
-COUNTRY rule materialization은 repository built-in dataset과 DB Country Calendar Catalog를 하나의 effective dataset으로 해석한다. 같은 국가·연도에 DB override가 있으면 built-in보다 우선하며 status가 `OFFICIAL`이고 sourceVersion/sourceUrl과 최소 1개 날짜가 유효할 때만 Scheduling에 사용할 수 있다. `UNAVAILABLE` 또는 `SUPERSEDED` override는 해당 연도를 사용할 수 없는 것으로 처리하고 `COUNTRY_CALENDAR_UNAVAILABLE` 경계를 유지한다.
 
-Catalog 변경은 이미 Project에 materialize된 `work_calendar_rules/work_calendar_dates`나 Task 일정을 자동 변경하지 않는다. 사용자가 Project Calendar Preview/Save를 명시적으로 실행할 때만 최신 effective dataset을 candidate rule/date로 materialize하고 기존 Calendar → Dependency → Summary 재계산 계약을 따른다. 신규 Project의 기본 KR Calendar도 같은 resolver를 사용한다. #459 Stage Gate membership/Ready 계산은 canonical Task 일정과 별도 domain이며 이 Catalog 도입으로 의미를 변경하지 않는다.
+## Issue #342 — 원본 dataset과 materialization
 
-### Issue #342 신규 Project default seed fallback
+국가 원본의 관리 범위는 2026~2037이며 실제 사용 가능한 supportedYears는 OFFICIAL 완전 자료 기준이다. repository 내 고정 공식 date rows + DB override를 사용하고 UNAVAILABLE/SUPERSEDED override는 기본 자료를 마스킹한다. 새 연도는 공식 자료를 업로드해 추가하며 미래 공휴일을 계산·추정하지 않는다. 확보 범위/정부 발표와 관측일 sourceScheduleYear는 [국가 데이터 운영](COUNTRY_CALENDAR_DATA.md)에 기록한다.
 
-신규 Project 생성은 관리 중인 Country Catalog override가 일시적으로 UNAVAILABLE인 경우에도 실패하지 않아야 한다. 기본 KR Calendar seed는 effective OFFICIAL override를 우선 사용하고, 없으면 repository built-in approved baseline을 사용한다. 해당 연도에 승인된 baseline 자체가 없으면 Country rule을 만들지 않고 Project 생성은 계속한다.
+순수 Working Calendar/Dependency/Hierarchy/Resource algorithm은 변경하지 않는다. 서버 WorkCalendarService가 명시적 Preview/Save materialization 시에만 current OFFICIAL country provider를 읽는다. 필요한 year가 없으면 국가/연도 상세 COUNTRY_CALENDAR_UNAVAILABLE 오류다. 기존 Task mutation/Workload/Copy/Template는 저장한 rule/date를 계속 사용하므로 catalog mutation만으로 일정/공수/Project revision이 바뀌지 않는다.
 
-이 fallback은 신규 Project 초기 seed에만 적용한다. 사용자가 Project Calendar Preview/Save에서 국가 규칙을 명시하면 effective resolver의 OFFICIAL-only 정책을 유지하며 UNAVAILABLE/SUPERSEDED override를 우회하지 않는다.
+Preview의 materialization과 countryCatalogRevision은 같은 read transaction에서 조회한다. 새 UI Save가 해당 revision을 보내면 기존 Project revision 검사와 별도로 catalog 변화도 412로 거부한다. 생략한 legacy API는 기존 현재 자료 재계산 계약을 유지한다. explicit Save 성공의 Calendar/Auto/Summary/revision + 1 transaction은 그대로다.
+
+새 Project default는 생성 UTC year current OFFICIAL KR → 같은 year verified built-in KR → 국가 예외 없는 월~금 규칙이다. 다른 year 휴일 fallback 없이 생성 availability를 유지하고, explicit country rule 적용에서는 strict official-only 422를 유지한다.

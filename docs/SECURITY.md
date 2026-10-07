@@ -379,16 +379,15 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 
 이 조회 추가와 명시 M/M 설정은 보호 mutation의 Origin/session/revision 검증을 제거하지 않는다. production HTTPS 및 명시 내부망 HTTP 지원은 기존 공용 URL parser/cookie 정책과 [HTTP 운영](HTTP_OPERATION.md)을 유지한다. 새로운 비밀번호·권한·세션·환경 secret을 만들지 않는다.
 
-## Issue #342 Country Calendar Import Preview binding
 
-Country Calendar Import는 기존 Project Master 관리자 session + exact Origin + strong `If-Match`에 더해 server-issued Preview token을 요구한다. token은 `country_calendar_catalog_state.preview_secret`(32-byte BLOB)을 키로 한 HMAC이며 Catalog revision, country/year, format, 원본 content bytes를 포함한다.
+## Issue #342 — 국가 원본 관리자 및 Preview 권한
 
-- secret은 DB 외부로 반환하거나 로그하지 않는다.
-- Preview는 Catalog business revision을 증가시키지 않는다.
-- Apply는 exact token + envelope + revision을 검증하고 mismatch는 409로 fail-closed한다.
-- Apply 성공 시 revision 증가로 token 재사용이 차단된다.
-- token은 authorization 자체가 아니며 관리자 session/Origin/If-Match 요구를 대체하지 않는다.
+국가 catalog 관리자는 기존 Project Master admin cookie/session을 재사용한다. Resource/Logistics admin과 Project edit-session은 권한이 아니다. 새 password/ENV/auth 쿠키는 만들지 않는다. 검증된 APP_BASE_URL/parser/cookie 정책으로 production HTTPS 및 명시적 내부망 HTTP를 유지한다. HTTP에서도 Origin/session/strong revision 검증을 제거하지 않는다.
 
-## Issue #342 dependency audit 보완
+GET은 session, 모든 mutation 및 Preview는 exact Origin + session + strong catalog If-Match를 요구한다. async body를 읽기 전 early auth, 읽은 뒤 service의 read/IMMEDIATE transaction 안에서 현재 session의 revoke/finite expiry를 재검증한다. UI auth 상태는 authority가 아니다. expires_at이 NaN이면 fail-closed한다. Preview 응답과 Apply token은 비밀번호/세션 원문/internal DB secret을 포함하지 않는다.
 
-PR CI #1995의 `npm audit --omit=dev`에서 Next.js optional dependency `sharp 0.35.4`의 librsvg CVE-2026-96889가 High로 탐지되었다. Next 16.3.8의 `sharp ^0.35.4` 범위 안에서 `sharp 0.35.5` 및 해당 prebuilt `sharp-libvips 1.3.4` lock tree로 갱신한다. 애플리케이션의 직접 image-processing API 표면은 추가하지 않으며 frozen `npm ci`, production audit, Next build, Docker smoke로 공급망 정합성을 검증한다.
+Preview HMAC은 migration이 만든 32-byte DB secret으로 exact UTF-8 content hash(선행 BOM 포함), format, 선택 국가/연도, catalog revision, current admin session ID/token digest, expiry를 서명한다. 유효기간은 min(10분, 현재 session expiry)다. body/target/format/session/revision 변경과 만료는 적용을 거부한다. Apply는 token 검증과 별도로 현재 admin 권한을 반복 검증한다. 성공 actual Apply/revision + 1 뒤 replay는 stale 412다. Preview 자체는 DB write 0이다.
+
+파일 1 MiB / outer envelope 8 MiB / 단일 CRUD 16 KiB / date 366개 / JSON depth 32를 제한하고 valid Unicode/실재 ISO 날짜 / 같은 연도 / 중복·상충 / 필수 metadata/unknown field/decoded duplicate JSON key를 서버에서 재검증한다. URL은 credentials 없는 HTTP(S)만 표시하며 서버가 외부 URL을 fetch하지 않는다. CSV는 strict 문법으로 읽고 수식을 실행하지 않는다. 모든 실패는 원자 rollback이며 prepared binding을 사용한다. Password/token/파일 원문/secret/body는 로그에 기록하지 않는다.
+
+공식 URL syntax 검증 자체는 자료의 진위를 증명하지 않는다. OFFICIAL Import/metadata 승격은 운영자가 해당 완전 자료와 source scope를 검증해 명시적으로 확인하는 절차다. 날짜 실제 편집은 상태 UNAVAILABLE / sourceVersion·sourceUrl null로 무효화해 출처 확인 없이 Scheduling에 들어가지 않게 한다. no-op은 provenance를 유지한다.

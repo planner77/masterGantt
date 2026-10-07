@@ -1,0 +1,12 @@
+countryCode,year,date,name,dayType,sourceKey,sourceVersion,sourceUrl
+US,2030,2030-01-01,New Year's Day,NON_WORKING,new-year,US-2030-OPM-federal-holidays-page,https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/
+US,2030,2030-01-21,"Birthday of Martin Luther King, Jr.",NON_WORKING,mlk,US-2030-OPM-federal-holidays-page,https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/
+US,2030,2030-02-18,Washington's Birthday,NON_WORKING,washington,US-2030-OPM-federal-holidays-page,https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/
+US,2030,2030-05-27,Memorial Day,NON_WORKING,memorial-day,US-2030-OPM-federal-holidays-page,https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/
+US,2030,2030-06-19,Juneteenth National Independence Day,NON_WORKING,juneteenth,US-2030-OPM-federal-holidays-page,https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/
+US,2030,2030-07-04,Independence Day,NON_WORKING,independence-day,US-2030-OPM-federal-holidays-page,https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/
+US,2030,2030-09-02,Labor Day,NON_WORKING,labor-day,US-2030-OPM-federal-holidays-page,https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/
+US,2030,2030-10-14,Columbus Day,NON_WORKING,columbus-day,US-2030-OPM-federal-holidays-page,https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/
+US,2030,2030-11-11,Veterans Day,NON_WORKING,veterans-day,US-2030-OPM-federal-holidays-page,https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/
+US,2030,2030-11-28,Thanksgiving Day,NON_WORKING,thanksgiving,US-2030-OPM-federal-holidays-page,https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/
+US,2030,2030-12-25,Christmas Day,NON_WORKING,christmas,US-2030-OPM-federal-holidays-page,https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/

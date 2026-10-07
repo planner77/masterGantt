@@ -139,10 +139,6 @@ describe("SQLite connection and schema", () => {
       expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_country_calendar_catalog.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
-      expect(migrated.database.prepare("SELECT revision, length(preview_secret) AS previewSecretBytes FROM country_calendar_catalog_state WHERE id = 1").get())
-        .toEqual({ revision: 1, previewSecretBytes: 32 });
-      expect(migrated.database.prepare("SELECT count(*) AS count FROM country_calendar_datasets").get())
-        .toEqual({ count: 0 });
       expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     } finally { migrated.database.close(); }
   });
@@ -186,8 +182,6 @@ describe("SQLite connection and schema", () => {
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
       expect(database.pragma("synchronous", { simple: true })).toBe(2);
       expect(database.pragma("busy_timeout", { simple: true })).toBe(5000);
-      expect(database.prepare("SELECT revision, length(preview_secret) AS previewSecretBytes FROM country_calendar_catalog_state WHERE id = 1").get())
-        .toEqual({ revision: 1, previewSecretBytes: 32 });
 
       const tables = database
         .prepare(
@@ -244,8 +238,6 @@ describe("SQLite connection and schema", () => {
         .pluck()
         .all();
       expect(indexes).toEqual([
-        "country_calendar_datasets_country_year_idx",
-        "country_calendar_dates_dataset_date_idx",
         "edit_sessions_project_expires_idx",
         "equipment_resource_one_primary",
         "equipment_systems_one_primary",

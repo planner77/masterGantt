@@ -1,5 +1,11 @@
 # Requirements baseline
 
+## Issue #492 — Grid/Chart 작업 Hover Tooltip
+
+Project 일정의 Grid 작업 행과 Chart Task/Summary/Milestone에 마우스를 올리면 같은 작업 정보를 Tooltip으로 제공한다. 첫 줄은 canonical 작업명, 다음 줄은 canonical 시작일·종료일이며 기존 공통 locale 날짜 formatter를 사용한다. `start/end=null`인 작업은 `—`로 표시하고 SVAR가 date-less Summary를 렌더하기 위해 사용하는 내부 anchor 날짜를 사용자 일정으로 노출하지 않는다.
+
+Tooltip은 조회 전용이며 readonly/edit, Day/Week, fullscreen, WBS 범위 탭에서 동일 계약을 유지한다. 표시를 위해 Gantt를 remount하거나 canonical Task/Link/Calendar/revision을 변경하지 않으며 click/double-click/context menu/drag/dependency hit area를 가로채지 않는다. SVAR 공식 Tooltip API를 우선 검토하되 설치 버전에서 인수 기준을 안정적으로 충족하지 못하면 기존 Gantt DOM target 계약과 app-owned overlay를 사용한다. 상세 UX/검증은 [Project UX](PROJECT_UX.md), [UI/UX Guidelines](UI_UX_GUIDELINES.md), [Test Plan](TEST_PLAN.md)을 따른다.
+
 ## Issue #459 — Milestone Stage Gate 통합 계약
 
 Milestone은 프로젝트의 특정 시점 완료 단계(Stage Gate)이며 기존 `type=milestone`, `duration=0` Task identity를 유지한다. WBS 계층, 완료 단계 소속(Membership), 일정 Dependency는 서로 다른 관계다.
@@ -128,7 +134,6 @@ Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계�
 | R53 | Grid/Chart 작업 Context Menu의 `Copy ID`는 선택 Task/Summary/Milestone의 canonical `taskId`를 OS clipboard에 복사한다 (#390). | readonly·mutation lock·Dependency 연결 여부와 무관한 조회성 action이며 기존 단일/다중 Task `Copy/Paste` clipboard·선택 집합과 Project revision을 변경하지 않는다. #364 공통 clipboard 호환 경로를 사용하고 실제 자동 복사 성공 후에만 성공 안내하며 권한 거부/자동 복사 실패 시 수동 복사·재시도를 제공한다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
 | R54 | Dependency Link가 연결된 Task/Milestone 또는 linked descendant를 가진 subtree는 **parent를 바꾸지 않는 sibling reorder**를 수행할 수 있다 (#335). #430부터 단일 Cut-Paste/reparent는 source subtree 내부 관계만 있을 때 parent 변경도 허용한다. | Context Move Up/Down 및 Grid same-parent before/after는 Link 여부와 무관하다. Cross-parent Cut-Paste/reparent는 source subtree 경계를 넘는 Dependency가 없을 때만 허용하며 내부 Link ID/endpoints/type/lag를 보존한다. Boundary Link, linked leaf anchor child 전환, Indent/Outdent/Delete/Convert 보호는 유지한다. [UX 계약](PROJECT_UX.md), [API](API.md), [Relations](TASK_RELATIONS.md), [Test Plan](TEST_PLAN.md) |
 | R55 | Relation Editor의 관계 추가 후보 검색은 작업명, 외부 ID(`externalId`), 작업 ID(`taskId`)를 모두 지원하고 두 식별자를 명시적으로 구분한다 (#409). | #390 `Copy ID`의 canonical taskId를 그대로 검색할 수 있으며 후보 선택 뒤 실제 Link mutation은 기존 externalId endpoint 계약을 유지한다. Summary/self/already-connected 제외, readonly/dirty/pending/focus 계약은 불변이다. [Relations](TASK_RELATIONS.md), [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
-| R56 | Global Country Calendar Catalog은 KR/CN/VN/PH/TH/MX/US의 2026~2037 슬롯과 `OFFICIAL / UNAVAILABLE / SUPERSEDED` 상태를 관리하고 built-in baseline보다 DB override를 우선한다 (#342). | Scheduling은 OFFICIAL만 사용하고 미래 공식자료를 추정하지 않는다. JSON/CSV Import는 Preview token으로 reviewed revision·국가/연도·format·원본 bytes에 binding한 뒤 atomic Apply한다. 수동 date 변경은 provenance를 무효화하며 기존 Project snapshot은 자동 변경하지 않는다. 신규 Project default KR seed는 재승인 대기 시 built-in approved baseline으로 fallback한다. [Calendar](ISSUE_57_WORK_CALENDAR.md), [Data](COUNTRY_CALENDAR_DATA.md), [API](API.md), [DB](DB_SCHEMA.md), [UX](PROJECT_UX.md) |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 
@@ -392,3 +397,16 @@ Project 일정의 Gantt/Milestone 대시보드 peer view에서 readonly KPI와 �
 - Summary의 requestedStart/start/end/duration/progress/status/Baseline은 계속 자손에서 파생하거나 읽기 전용이다. 메타데이터 편집을 일정 편집 허용으로 확대하지 않는다.
 - 하위 작업 추가·삭제·이동 및 Summary 일정 재계산은 Summary의 Description/URL을 보존해야 한다. 저장·재조회·reload 후 canonical snapshot과 UI가 일치해야 한다.
 - 보호 mutation은 기존 edit session, exact Origin, strong If-Match/revision 및 프로젝트 격리 규칙을 유지한다.
+
+
+## Issue #342 — 국가 캘린더 원본 관리
+
+KR/CN/VN/PH/TH/MX/US × 2026~2037을 84 managed slots로 제공한다. 공식 자료가 확인된 완전 dataset만 OFFICIAL로 Scheduling에 제공한다. 미발표/미확보는 UNAVAILABLE, 대체된 원본은 SUPERSEDED로 표시하며 미래 휴일의 관습·패턴 추정과 runtime 외부 API를 금지한다. 국가별 source scope/획득/검증 절차는 [국가 데이터 운영](COUNTRY_CALENDAR_DATA.md)을 따른다.
+
+관리자는 기존 Project Master 권한으로 JSON/CSV를 업로드해 validation/추가·변경·삭제 Preview 후 전체 slot을 적용하며 metadata/날짜/name/dayType/sourceKey를 편집할 수 있다. 날짜 actual 변경은 기존 공식 provenance를 무효화하고 재확인 전까지 사용할 수 없다. no-op은 저장 0, 실제 변경은 atomic revision + 1이며 부분 성공은 없다. Preview는 원문/format/선택 target/revision/admin session/expiry에 묶이고 Apply는 모두 다시 검증한다.
+
+현재 내장 공식 자료는 12개 slot(2026년 7국가 + US 2027~2030 + TH 2027)이며 나머지 72개 slot은 UNAVAILABLE이다. KR 2027은 공식 공고는 확인했으나 전체 원문 날짜를 확보하지 못해 UNAVAILABLE로 유지한다. 정부 발표 존재와 사용 가능한 완전 dataset 확보를 구분한다. VN 2026은 공식 1/2 휴무·1/10 교환근무·11/24 휴일을 반영한 새 sourceVersion이며 기존 Project materialized 날짜를 변경하지 않는다. US 2028 표의 2027-12-31은 실제 2027 dataset에 속하고 원 sourceScheduleYear를 보존한다. 일부 자료만 확인된 연도는 OFFICIAL로 만들지 않는다.
+
+국가 catalog 갱신은 기존 Project/Task/revision 자동 변경 0이다. 사용자가 명시적으로 Calendar를 Preview/Save할 때 최신 OFFICIAL 데이터가 반영된다. 필요한 국가/연도가 없으면 상세 422 오류다. Preview 이후 catalog가 변하면 신규 UI의 Save는 412로 다시 Preview한다. Project별 edit-session/Origin/revision과 기존 Scheduling/Resource 정책은 유지한다.
+
+신규 Project 생성은 국가 자료 발표와 독립적으로 가능해야 한다. 같은 UTC year KR current OFFICIAL → 같은 year verified built-in → 국가 rule 없는 월~금 기본 근무로 시작한다. 다른 연도 날짜 재사용·미래 추정은 금지하고 명시적 국가 적용의 미확보 시 422는 유지한다.

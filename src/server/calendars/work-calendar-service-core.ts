@@ -42,7 +42,9 @@ import {
 } from "../repositories/work-calendar-repository-core";
 import type { AuthorizedEditSession } from "../projects/project-service-core";
 import { resolveProjectWorkingCalendar } from "./calendar-resolution-core";
-import { getEffectiveCountryCalendarDataset, listEffectiveCountryCalendarDescriptors } from "./country-calendar-catalog-core";
+import { getCountryCalendarDataset } from "./country-calendar-data";
+import { CountryCalendarCatalog } from "./country-calendar-catalog-core";
+import { PublicApiError } from "../http/api-error-core";
 
 const MAX_COUNTRY_RULES = 32;
 const MAX_CUSTOM_DATES = 2_000;
@@ -233,6 +235,7 @@ export class WorkCalendarService {
   private readonly calendars:WorkCalendarRepository;
   private readonly clock:()=>Date;
   private readonly generatePublicId:()=>string;
+  private readonly countryCatalog:CountryCalendarCatalog;
 
   constructor(private readonly database:Database.Database,options:WorkCalendarServiceOptions={}) {
     this.projects=new ProjectRepository(database);
@@ -240,12 +243,13 @@ export class WorkCalendarService {
     this.schedules=new ScheduleRepository(database);
     this.resources=new ResourceCatalogRepository(database);
     this.calendars=new WorkCalendarRepository(database);
+    this.countryCatalog=new CountryCalendarCatalog(database);
     this.clock=options.clock??(()=>new Date());
     this.generatePublicId=options.generatePublicId??randomUUID;
   }
 
   listCountries():CountryCalendarListResponse {
-    return {data:{countries:listEffectiveCountryCalendarDescriptors(this.database)}};
+    return this.database.transaction(()=>this.countryCatalog.listCountries()).deferred();
   }
 
   get(projectPublicId:string):ProjectWorkCalendarResponse|undefined {
@@ -324,7 +328,7 @@ export class WorkCalendarService {
       const rangeFrom=raw.scope==="FULL_PROJECT" ? `${dateYear(logicalFrom)}-01-01` : logicalFrom;
       const rangeTo=raw.scope==="FULL_PROJECT" ? `${dateYear(logicalTo)}-12-31` : logicalTo;
       const datasets=yearRange(rangeFrom,rangeTo).map((year)=>{
-        const dataset=getEffectiveCountryCalendarDataset(this.database,raw.countryCode,year);
+        const dataset=this.countryCatalog.effectiveDataset(raw.countryCode,year);
         if(!dataset) throw new WorkCalendarCountryUnavailableError(raw.countryCode,year);
         return dataset;
       });
@@ -524,14 +528,18 @@ export class WorkCalendarService {
     return {
       candidateRules,
       afterTasks:[...after],
-      response:{data:{projectRevision,calendar:{projectRevision,rules,projectDates,customDates},changedTasks,manualConflicts,resourceExceptionEffects}},
+      response:{data:{projectRevision,countryCatalogRevision:this.countryCatalog.repository.getRevision(),calendar:{projectRevision,rules,projectDates,customDates},changedTasks,manualConflicts,resourceExceptionEffects}},
     };
   }
 
-  preview(projectPublicId:string,input:ReplaceProjectWorkCalendarRequest):PreviewProjectWorkCalendarResponse {
-    const project=this.projects.findByPublicId(projectPublicId);
-    if(!project) throw new WorkCalendarProjectNotFoundError();
-    return this.previewForProject(project.id,project.revision,input).response;
+  preview(projectPublicId:string,input:ReplaceProjectWorkCalendarRequest,authorization?:AuthorizedEditSession,expectedRevision?:number):PreviewProjectWorkCalendarResponse {
+    return this.database.transaction(()=>{
+      if(authorization) this.assertAuthorization(authorization);
+      const project=this.projects.findByPublicId(projectPublicId);
+      if(!project) throw new WorkCalendarProjectNotFoundError();
+      if(expectedRevision!==undefined && project.revision!==expectedRevision) throw new WorkCalendarRevisionMismatchError();
+      return this.previewForProject(project.id,project.revision,input).response;
+    }).deferred();
   }
 
   replace(
@@ -544,6 +552,10 @@ export class WorkCalendarService {
       const project=this.projects.findById(authorization.projectId);
       if(!project) throw new WorkCalendarProjectNotFoundError();
       if(project.revision!==expectedRevision) throw new WorkCalendarRevisionMismatchError();
+      if(input?.countryCatalogRevision!==undefined) {
+        if(!Number.isSafeInteger(input.countryCatalogRevision) || input.countryCatalogRevision<1) throw new WorkCalendarInvalidInputError();
+        if(input.countryCatalogRevision!==this.countryCatalog.repository.getRevision()) throw new PublicApiError(412,"COUNTRY_CALENDAR_REVISION_MISMATCH","Country calendar catalog changed. Preview the calendar again.");
+      }
       const preview=this.previewForProject(project.id,project.revision,input);
       if(preview.response.data.manualConflicts.length>0) {
         throw new WorkCalendarManualConflictError(preview.response.data.manualConflicts);
@@ -597,7 +609,7 @@ export class WorkCalendarService {
 }
 
 function datasetVersion(
-  datasets:readonly ReturnType<typeof getEffectiveCountryCalendarDataset>[],
+  datasets:readonly ReturnType<typeof getCountryCalendarDataset>[],
   date:string,
 ):string|null {
   const year=dateYear(date);

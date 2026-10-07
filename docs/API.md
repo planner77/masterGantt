@@ -419,7 +419,7 @@ Issue #57부터 Project Calendar는 단일 holiday 교체 endpoint가 아니라 
 
 #### `GET /api/work-calendars/countries`
 
-지원 국가와 fixture metadata를 공개 조회한다. 현재 지원 코드는 `KR/CN/VN/PH/TH/MX/US`, 최초 지원 연도는 **2026년**이다. 응답에는 국가 표시명, `supportedYears`, `sourceVersion`, `sourceUrl`이 포함된다. 런타임 외부 공휴일 API를 호출하지 않는다.
+지원 국가와 현재 catalog metadata를 공개 조회한다. 관리 범위는 `KR/CN/VN/PH/TH/MX/US` × 2026~2037이며 `supportedYears`는 실제 OFFICIAL 데이터가 있는 연도만 포함한다. `catalogRevision`과 국가별 12개 `datasets` 슬롯의 상태·출처·건수·수정시각을 반환한다. 기존 `sourceVersion/sourceUrl`은 최신 지원 연도의 요약이며 지원 연도가 없으면 null이다. 연도별 출처는 `datasets`를 사용한다. 전체 응답은 같은 SQLite read transaction에서 만든다. 런타임 외부 공휴일 API를 호출하지 않는다.
 
 #### `GET /api/projects/{publicId}/work-calendar`
 
@@ -1399,20 +1399,68 @@ Public-read, Node runtime, `Cache-Control: private, no-store`. 인증/Origin/If-
 
 단계→Resource drill은 기존 `GET /api/projects/{publicId}/resource-workload?from=&to=`를 같은 기간으로 호출한다. 기존 API 필드·ENV 환산·4자리 rounding은 N/A(변경 없음)이며 UI가 range echo/Project/Catalog revision을 검사하고 받은 개인 assignment만 표시 필터한다. Stage raw 공수 및 query 환산 기준과 기존 Resource 기간 subtotal/ENV 기준을 구분하고, scope 해제는 기본 조회로 복귀한다. 이 동작은 Resource API에 새 필터나 계산 엔진을 추가하지 않는다.
 
-## Issue #342 — Country Calendar Catalog / 관리자 Import
 
-Project Master 관리자 세션을 재사용한다. 조회는 no-store, mutation은 exact Origin + strong `If-Match` Catalog revision을 요구한다.
+## Issue #342 — 국가 캘린더 관리와 파일 Import
 
-- `GET /api/admin/work-calendars/countries/{countryCode}/years/{year}`
-- `PATCH /api/admin/work-calendars/countries/{countryCode}/years/{year}`
-- `POST /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates`
-- `PATCH /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}`
-- `DELETE /api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}`
-- `POST /api/admin/work-calendars/import/preview`
-- `POST /api/admin/work-calendars/import/apply`
+기존 Project Calendar API와 권한은 유지한다. Preview 응답 `data.countryCatalogRevision`은 후보 materialization과 같은 read transaction의 catalog revision이다. PUT 요청은 선택적 `countryCatalogRevision`을 받으며, 제공한 값이 현재 catalog와 다르면 countryRules가 비어 있어도 `412 COUNTRY_CALENDAR_REVISION_MISMATCH`다. 신규 UI는 실제 Preview에서 받은 값을 반드시 보낸다. 생략한 기존 호출은 현행 최신 dataset 재계산 계약을 유지한다. Project `If-Match`와 edit-session/Origin 검증도 계속 적용한다.
 
-Import Preview 응답은 Catalog revision과 `previewToken`을 반환한다. token은 server-only 32-byte HMAC secret으로 **revision + country/year + format + 원본 file content bytes**에 묶인다. Apply body는 `{ previewToken, envelope }`이며 Preview 없이 Apply하거나 Preview한 bytes와 다른 envelope를 보내면 `409 COUNTRY_CALENDAR_IMPORT_PREVIEW_MISMATCH`이다. 성공 Apply는 revision을 증가시켜 같은 token 재사용도 stale If-Match로 차단한다.
+명시적 국가 규칙에 필요한 공식 데이터가 없으면 `422 COUNTRY_CALENDAR_UNAVAILABLE`이며 message와 details에 국가 코드·연도(예: KR 2037)를 제공한다. UNAVAILABLE/SUPERSEDED override는 built-in을 마스킹한다. 카탈로그 수정만으로 기존 Project Calendar/Task/revision은 바뀌지 않는다.
 
-수동 date Add/Edit/Delete 성공 후 dataset은 `UNAVAILABLE`, `sourceVersion/sourceUrl=null`로 전환되어 과거 provenance를 재사용하지 않는다. 실제 값이 동일한 date/metadata PATCH는 no-op이며 revision/override를 만들지 않는다. date PATCH explicit null/unknown field는 400으로 거부한다.
+신규 Project 생성은 같은 UTC 연도의 현재 OFFICIAL KR → 같은 연도의 검증된 immutable KR built-in → 국가 rule 없는 월~금 기본 주간 규칙 순서로 seed한다. 다른 연도의 휴일을 재사용하거나 미래 날짜를 추정하지 않는다. 기본 생성은 국가 자료 미확보로 실패하지 않으며, 이후 명시적으로 국가 규칙을 적용하는 Preview/Save는 strict 422 정책을 따른다. `project.calendar.exceptions/holidays`와 편집 Calendar의 `rules`가 실제 저장 상태다.
 
-`GET /api/work-calendars/countries`의 supportedYears/source provenance는 effective OFFICIAL dataset만 반영한다. supportedYears가 비면 sourceVersion/sourceUrl도 null이다.
+관리 API는 기존 Project Master admin session/cookie를 재사용한다. 다른 관리자·Project edit-session은 권한이 아니다. 모든 응답/오류는 private/no-store이며 성공 ETag는 별도 국가 catalog revision이다.
+
+| Method | Path | 동작 |
+| --- | --- | --- |
+| GET | /api/admin/work-calendars/countries/{countryCode}/years/{year} | 국가/연도 slot 조회 |
+| PATCH | 같은 slot | status/sourceVersion/sourceUrl 부분 수정 |
+| POST | 같은 slot/dates | 날짜 추가, 201 |
+| PATCH | 같은 slot/dates/{date} | 원래 ISO 날짜를 지정해 date/name/dayType/sourceKey 부분 수정 |
+| DELETE | 같은 slot/dates/{date} | 날짜 삭제 |
+| POST | /api/admin/work-calendars/import/preview | 파일 검증·교체 예상 건수·signed Preview token, DB write 0 |
+| POST | /api/admin/work-calendars/import/apply | 검토한 파일로 해당 slot 전체 교체 |
+
+GET은 관리자 session, 나머지 모든 요청(Preview 포함)은 관리자 session + exact Origin + strong `If-Match: "<catalogRevision>"`를 요구한다. body를 읽은 뒤 service transaction 안에서 session/finite expiry/revision을 다시 검증한다. 국가 catalog revision은 Project Master/Resource/Project revision과 독립이다.
+
+slot 응답 `data`는 `{revision,dataset,dates}`다. dataset은 `{countryCode,countryName,year,status,origin,sourceVersion,sourceUrl,dateCount,updatedAt}`, origin은 BUILT_IN/OVERRIDE/EMPTY다. source metadata와 updatedAt은 null 가능하다. dates는 `{date,name,dayType,sourceKey}`만 제공한다. 내부 공식표의 sourceScheduleYear proof를 Import DTO에 섞지 않는다.
+
+JSON 파일 계약은 `{countryCode,year,status:"OFFICIAL",sourceVersion,sourceUrl,dates:[{date,name,dayType,sourceKey}]}`다. CSV는 정확한 header `countryCode,year,date,name,dayType,sourceKey,sourceVersion,sourceUrl`와 반복되는 동일 국가/연도/출처 metadata를 사용하고 OFFICIAL 완전 dataset 확인을 의미한다. 자세한 획득·업로드 절차는 [국가 데이터 운영](COUNTRY_CALENDAR_DATA.md)을 따른다. 기존 Project Import 1.0/1.1과 별도 계약이다.
+
+Preview body는 `{countryCode,year,format:"json"|"csv",content}`다. 선택한 target과 파일 metadata가 일치해야 한다. Apply body는 `{envelope:<동일 Preview body>,previewToken}`다. Preview 응답은 아래 구조다. `dataset`은 현재 slot의 dataset이며, `importDataset.dateCount`는 검증한 파일의 날짜 수다. 최상위 `data`에는 별도의 `dateCount`가 없다.
+
+```typescript
+type CountryCalendarImportPreviewResponse = {
+  data: {
+    revision: number;
+    previewToken: string;
+    expiresAt: string;
+    dataset: CountryCalendarDatasetDto;
+    importDataset: {
+      countryCode: WorkCalendarCountryCode;
+      year: number;
+      status: "OFFICIAL";
+      sourceVersion: string;
+      sourceUrl: string;
+      dateCount: number;
+    };
+    summary: {
+      additions: number;
+      changes: number;
+      deletions: number;
+      unchanged: number;
+      metadataChanged: boolean;
+    };
+    changed: boolean;
+  };
+};
+```
+
+`CountryCalendarDatasetDto`는 위 slot 응답의 dataset 구조와 같다. 실제 Apply는 전체 slot replace이며 merge/skip이 없다.
+
+파일 text는 valid UTF-8 1 MiB 이하, dates 1..366, JSON 깊이 32다. unknown fields/decoded duplicate JSON key/null 필수값/잘못된 ISO·연도·dayType/중복 날짜/상반된 유형을 전체 거부한다. 단일 선행 BOM만 허용하고 HMAC에는 BOM 포함 원문을 사용한다. JSON escaping을 감안한 outer envelope는 8 MiB, 단일 CRUD/metadata body는 16 KiB 이하이다. name 1..200 / sourceKey 1..120 / sourceVersion 1..200 / sourceUrl 1..2048자, trim된 Unicode/control-free text를 사용한다. sourceVersion은 첫 영숫자 이후 ASCII 영숫자·`._:+-`, source URL은 credentials 없는 absolute HTTP(S)만 허용하며 서버가 URL을 fetch하지 않는다. CSV는 strict quoted field/doubled quote/CRLF 또는 LF만 허용하며 수식은 실행하지 않는다.
+
+actual date CRUD는 UNAVAILABLE로 전환하고 sourceVersion/sourceUrl을 null로 지워 공식 provenance를 무효화한다. 날짜를 보존하며 날짜 1건 이상 + 출처를 입력하고 명시적으로 OFFICIAL을 선택해야 다시 Scheduling에 사용할 수 있다. 동일 내용의 metadata/date/Import no-op은 override 생성·updatedAt·revision 변경 0이다. 실제 변경은 revision + 1이며 실패는 모든 row/revision rollback이다.
+
+Preview token은 DB secret으로 HMAC 서명하며 원본 UTF-8 content hash/format/선택 country-year/catalog revision/current admin session ID와 token digest/expiry에 묶인다. 유효기간은 min(10분, session expiry)다. raw content의 공백/BOM 변경도 다시 미리보기를 요구한다. token은 권한을 대신하지 않으며 Apply에서 현재 session을 다시 검사한다.
+
+오류는 400 INVALID_COUNTRY_CALENDAR_INPUT(field/row details), 401 PROJECT_MASTER_ADMIN_REQUIRED, 403 ORIGIN_NOT_ALLOWED, 404 COUNTRY_CALENDAR_DATE_NOT_FOUND, 409 COUNTRY_CALENDAR_CONFLICT 또는 COUNTRY_CALENDAR_IMPORT_PREVIEW_MISMATCH, 412 COUNTRY_CALENDAR_REVISION_MISMATCH, 413 IMPORT_TOO_LARGE/REQUEST_TOO_LARGE, 415 UNSUPPORTED_MEDIA_TYPE, 428 PRECONDITION_REQUIRED다. 성공 Apply를 stale revision으로 반복하면 412이며 no-op Preview 반복은 같은 권한·revision·expiry 안에서 write 0이다.

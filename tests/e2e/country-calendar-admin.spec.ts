@@ -1,363 +1,198 @@
-import { expect, test, type Page, type Route } from "@playwright/test";
+import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
+import { observeUi, assertUi, assertIdentifiableInput, assertFocusVisible, assertPopulatedTable, assertSiblingControls } from "./helpers/ui-geometry";
+import type { Page, TestInfo } from "@playwright/test";
+import type { CountryCalendarAdminResponse } from "../../src/contracts/country-calendar-admin";
 
-type DateRow={date:string;name:string;dayType:"NON_WORKING"|"WORKING";sourceKey:string};
-
-async function installCalendarMocks(page:Page){
-  let loggedIn=false;
-  let revision=1;
-  let dates:DateRow[]=[
-    {date:"2026-01-01",name:"신정",dayType:"NON_WORKING",sourceKey:"new-year"},
-    {date:"2026-02-14",name:"보충 근무",dayType:"WORKING",sourceKey:"working-swap"},
-  ];
-  let status:"OFFICIAL"|"UNAVAILABLE"="OFFICIAL";
-  let sourceVersion:string|null="KR-2026-official-1";
-  let sourceUrl:string|null="https://example.go.kr/2026";
-
-  const response=()=>({
-    data:{
-      revision,
-      dataset:{
-        countryCode:"KR",countryName:"대한민국",year:2026,status,origin:"OVERRIDE" as const,
-        sourceVersion,sourceUrl,dateCount:dates.length,updatedAt:"2026-09-30T09:00:00.000Z",
-      },
-      dates,
-    },
-  });
-
-  await page.route("**/api/project-master/admin-sessions",async(route)=>{
-    if(route.request().method()==="POST"){loggedIn=true;await route.fulfill({status:201,json:{data:{permission:"project_master_admin",expiresAt:"2026-10-01T00:00:00.000Z"}}});return;}
-    await route.fulfill({status:204});
-  });
-
-  await page.route("**/api/admin/work-calendars/import/preview",async(route)=>{
-    const envelope=route.request().postDataJSON() as {content:string};
-    const imported=JSON.parse(envelope.content) as {countryCode:"KR";year:2026;sourceVersion:string;sourceUrl:string;dates:DateRow[]};
-    await route.fulfill({status:200,headers:{ETag:`"${revision}"`},json:{
-      data:{
-        revision,previewToken:`preview-${revision}-${imported.sourceVersion}`,dataset:response().data.dataset,
-        importDataset:{countryCode:imported.countryCode,year:imported.year,status:"OFFICIAL",sourceVersion:imported.sourceVersion,sourceUrl:imported.sourceUrl,dateCount:imported.dates.length},
-        summary:{additions:imported.dates.length,changes:0,deletions:dates.length,unchanged:0},
-      },
-    }});
-  });
-  await page.route("**/api/admin/work-calendars/import/apply",async(route)=>{
-    const body=route.request().postDataJSON() as {previewToken:string;envelope:{content:string}};
-    const imported=JSON.parse(body.envelope.content) as {sourceVersion:string;sourceUrl:string;dates:DateRow[]};
-    if(body.previewToken!==`preview-${revision}-${imported.sourceVersion}`){
-      await route.fulfill({status:409,json:{error:{code:"COUNTRY_CALENDAR_IMPORT_PREVIEW_MISMATCH"}}});return;
-    }
-    revision+=1;dates=imported.dates;status="OFFICIAL";
-    sourceVersion=imported.sourceVersion;sourceUrl=imported.sourceUrl;
-    await route.fulfill({status:200,headers:{ETag:`"${revision}"`},json:response()});
-  });
-  await page.route("**/api/admin/work-calendars/countries/**",async(route:Route)=>{
-    if(!loggedIn){await route.fulfill({status:401,json:{error:{code:"PROJECT_MASTER_ADMIN_REQUIRED"}}});return;}
-    const request=route.request();
-    const url=new URL(request.url());
-    const method=request.method();
-    const isDate=/\/dates(?:\/([^/]+))?$/.exec(url.pathname);
-    if(method==="GET"){await route.fulfill({status:200,headers:{ETag:`"${revision}"`},json:response()});return;}
-    if(method==="POST"&&isDate){
-      const body=JSON.parse(request.postData()??"{}") as DateRow;
-      dates=[...dates,body].sort((a,b)=>a.date.localeCompare(b.date));status="UNAVAILABLE";sourceVersion=null;sourceUrl=null;revision+=1;
-    }else if(method==="PATCH"&&isDate?.[1]){
-      const original=decodeURIComponent(isDate[1]);
-      const body=JSON.parse(request.postData()??"{}") as Partial<DateRow>;
-      const current=dates.find(item=>item.date===original);
-      const merged=current?{...current,...body}:undefined;
-      const unchanged=!!current&&!!merged&&current.date===merged.date&&current.name===merged.name&&current.dayType===merged.dayType&&current.sourceKey===merged.sourceKey;
-      if(!unchanged){
-        dates=dates.map(item=>item.date===original?{...item,...body} as DateRow:item).sort((a,b)=>a.date.localeCompare(b.date));
-        status="UNAVAILABLE";sourceVersion=null;sourceUrl=null;revision+=1;
-      }
-    }else if(method==="DELETE"&&isDate?.[1]){
-      const original=decodeURIComponent(isDate[1]);dates=dates.filter(item=>item.date!==original);status="UNAVAILABLE";sourceVersion=null;sourceUrl=null;revision+=1;
-    }else if(method==="PATCH"){
-      const body=JSON.parse(request.postData()??"{}") as {status?:"OFFICIAL"|"UNAVAILABLE";sourceVersion?:string|null;sourceUrl?:string|null};
-      status=body.status??status;sourceVersion=body.sourceVersion===undefined?sourceVersion:body.sourceVersion;sourceUrl=body.sourceUrl===undefined?sourceUrl:body.sourceUrl;revision+=1;
-    }
-    await route.fulfill({status:200,headers:{ETag:`"${revision}"`},json:response()});
-  });
+const adminPassword = "Calendar342Admin!";
+test.use({ ...isolatedApplicationOptions, isolatedProjectMasterAdminPassword: adminPassword, locale: "ko-KR", timezoneId: "Asia/Seoul" });
+const root = "/api/admin/work-calendars";
+// Test-only allowed-limit values exercise layout, not official source authority.
+const longCsvFixture = {
+  name: "CSV 날짜, 원문 " + "긴".repeat(189),
+  sourceKey: "csv-test-only-" + "k".repeat(106),
+  sourceVersion: "US-2031-E2E-v3-" + "V".repeat(185),
+  sourceUrl: "https://example.com/test-only/" + "u".repeat(2018),
+};
+async function authenticate(page: Page, baseURL: string) {
+  const response = await page.request.post("/api/project-master/admin-sessions", { headers: { Origin: baseURL }, data: { password: adminPassword } });
+  expect(response.status()).toBe(201);
+}
+async function openAdmin(page: Page) {
+  await page.goto("/country-calendar-admin");
+  await expect(page.getByRole("combobox", { name: "국가", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "출처 정보 저장", exact: true })).toBeEnabled();
+}
+async function captureGeometry(page: Page, info: TestInfo, surface: string) {
+  const geometry = [];
+  for (const width of [390, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    const facts = await observeUi(page, 'section[aria-label="국가 캘린더 관리"]');
+    assertUi(facts, 10); expect(facts.document.scrollWidth).toBeLessThanOrEqual(width);
+    expect(facts.tables.length).toBe(1); assertPopulatedTable(facts.tables[0]);
+    const table = facts.tables[0];
+    expect(table.owner.x).toBeGreaterThanOrEqual(0); expect(table.owner.right).toBeLessThanOrEqual(width + 1);
+    expect(table.owner.scrollWidth).toBeGreaterThanOrEqual(table.owner.clientWidth);
+    expect(table.rect.width).toBeLessThanOrEqual(table.owner.scrollWidth + 1);
+    expect(table.headers.length).toBe(5); expect(table.rows[0].cells.length).toBe(5);
+    for (const control of facts.controls.filter(control => control.tag === "INPUT" || control.tag === "SELECT")) assertIdentifiableInput(control);
+    assertSiblingControls(facts.controls.filter(control => ["국가", "연도", "새로고침", "로그아웃"].includes(control.label ?? "")));
+    assertSiblingControls(facts.controls.filter(control => ["자료 상태", "출처 버전", "출처 URL", "출처 정보 저장"].includes(control.label ?? "")));
+    const toolbar = facts.controls.find(control => control.id === "country-calendar-country"); expect(toolbar).toBeDefined(); expect(toolbar!.rect.x).toBeGreaterThanOrEqual(0); expect(toolbar!.rect.right).toBeLessThanOrEqual(width); expect(toolbar!.rect.height).toBeGreaterThanOrEqual(44);
+    await page.screenshot({ path: info.outputPath(`${surface}-${width}.png`), fullPage: true }); geometry.push(facts);
+  }
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.getByRole("combobox", { name: "국가", exact: true }).focus(); await page.keyboard.press("Tab");
+  await expect(page.getByRole("combobox", { name: "연도", exact: true })).toBeFocused();
+  const keyboard = await observeUi(page, 'section[aria-label="국가 캘린더 관리"]'); const focus = keyboard.controls.find(control => control.id === "country-calendar-year"); expect(focus).toBeDefined(); assertFocusVisible(focus!);
+  await page.screenshot({ path: info.outputPath(`${surface}-keyboard-390.png`), fullPage: true });
+  await info.attach(`${surface}-geometry`, { body: JSON.stringify({ fixture: "TEST ONLY US2031 OVERRIDE E2E-v3; not builtin official dataset evidence", catalogScope: "administrator-entered test metadata; URL syntax is not source-content verification", longFixture: { name: Array.from(longCsvFixture.name).length, sourceKey: longCsvFixture.sourceKey.length, sourceVersion: longCsvFixture.sourceVersion.length, sourceUrl: longCsvFixture.sourceUrl.length }, native125: "NOT TESTED", browserVersion: page.context().browser()?.version(), geometry, keyboard }, null, 2), contentType: "application/json" });
 }
 
-test("Issue #342: 관리자에서 Import Preview/Apply와 휴일 CRUD를 완료한다",async({page})=>{
-  await installCalendarMocks(page);
-  await page.goto("/calendar-admin");
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
+test("실제 SQLite 관리자 JSON/CSV 전체 교체·metadata·날짜 rename/delete와 Project Preview Save를 검증한다", async ({ page, baseURL }, info) => {
+  test.setTimeout(90_000);
+  await authenticate(page, baseURL!);
+  const created = await page.request.post("/api/projects", { headers: { Origin: baseURL! }, data: { name: "국가 캘린더 원본 보호342", ownerName: "E2E 자동화", description: "원본 변경 전 snapshot", editPassword: "Calendar342!" } });
+  expect(created.status()).toBe(201); const publicId = (await created.json()).data.project.publicId;
+  const beforeProject = await (await page.request.get(`/api/projects/${publicId}`)).json();
+  const beforeCalendar = await (await page.request.get(`/api/projects/${publicId}/work-calendar`)).json();
+  await openAdmin(page);
+  await page.getByRole("combobox", { name: "국가", exact: true }).selectOption("US");
+  await expect(page.getByRole("status").filter({ hasText: "미국 2026년" }).first()).toContainText("공식 자료 확보");
+  await page.getByRole("combobox", { name: "연도", exact: true }).selectOption("2031");
+  await expect(page.getByRole("status").filter({ hasText: "미국 2031년" }).first()).toContainText("미확보");
+  const dataset = { countryCode: "US", year: 2031, status: "OFFICIAL", sourceVersion: "US-2031-E2E-v1", sourceUrl: "https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/", dates: [{ date: "2031-01-01", name: "테스트 공식 날짜", dayType: "NON_WORKING", sourceKey: "new-year" }] };
+  await page.getByRole("button", { name: "JSON/CSV 가져오기", exact: true }).click();
+  let dialog = page.getByRole("dialog", { name: "국가 캘린더 JSON/CSV 가져오기", exact: true });
+  await dialog.getByLabel("UTF-8 파일").setInputFiles({ name: "US-2031.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(dataset)) });
+  await dialog.getByRole("button", { name: "가져오기 미리보기", exact: true }).click();
+  await expect(dialog.getByRole("heading", { name: "전체 교체 미리보기" })).toBeVisible();
+  await dialog.getByRole("checkbox").check();
+  const apply = page.waitForResponse((r) => r.request().method() === "POST" && new URL(r.url()).pathname === `${root}/import/apply`);
+  await dialog.getByRole("button", { name: "확인한 자료 적용", exact: true }).click(); expect((await apply).status()).toBe(200);
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "JSON/CSV 가져오기", exact: true })).toBeFocused();
+  await expect(page.getByRole("status").filter({ hasText: "미국 2031년" }).first()).toContainText("공식 자료 확보");
+  await page.getByRole("button", { name: "2031-01-01 수정", exact: true }).click();
+  dialog = page.getByRole("dialog", { name: "국가 캘린더 날짜 수정" });
+  await dialog.getByLabel("날짜", { exact: true }).fill("2031-01-02");
+  await dialog.getByLabel("날짜 이름").fill("직접 변경된 근무 예외");
+  await dialog.getByRole("combobox", { name: "날짜 유형", exact: true }).selectOption("WORKING");
+  await dialog.getByRole("button", { name: "날짜 저장", exact: true }).click();
+  await expect(dialog).toHaveCount(0); await expect(page.getByRole("button", { name: "2031-01-02 수정", exact: true })).toBeFocused();
+  await expect(page.getByRole("combobox", { name: "자료 상태", exact: true })).toHaveValue("UNAVAILABLE"); await expect(page.getByLabel("출처 버전")).toHaveValue("");
+  await page.getByLabel("출처 버전").fill("US-2031-E2E-v2"); await page.getByLabel("출처 URL").fill(dataset.sourceUrl); await page.getByRole("combobox", { name: "자료 상태", exact: true }).selectOption("OFFICIAL");
+  await page.getByRole("button", { name: "출처 정보 저장", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "미국 2031년" }).first()).toContainText("공식 자료 확보");
+  await page.getByRole("button", { name: "2031-01-02 삭제", exact: true }).click();
+  dialog = page.getByRole("dialog", { name: "날짜 삭제 확인" }); await dialog.getByRole("button", { name: "날짜 삭제", exact: true }).click();
+  await expect(dialog).toHaveCount(0); await expect(page.getByRole("button", { name: "날짜 추가", exact: true })).toBeFocused();
+  await expect(page.getByRole("button", { name: "2031-01-02 수정", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "날짜 추가", exact: true }).click();
+  dialog = page.getByRole("dialog", { name: "국가 캘린더 날짜 추가" }); await dialog.getByLabel("날짜 이름").fill("추가 날짜"); await dialog.getByRole("button", { name: "날짜 저장", exact: true }).click(); await expect(dialog).toHaveCount(0);
+  await page.getByRole("button", { name: "JSON/CSV 가져오기", exact: true }).click();
+  dialog = page.getByRole("dialog", { name: "국가 캘린더 JSON/CSV 가져오기", exact: true }); await dialog.getByRole("combobox", { name: "파일 형식", exact: true }).selectOption("csv");
+  const csv = `countryCode,year,date,name,dayType,sourceKey,sourceVersion,sourceUrl\r\nUS,2031,2031-01-03,"${longCsvFixture.name}",WORKING,${longCsvFixture.sourceKey},${longCsvFixture.sourceVersion},${longCsvFixture.sourceUrl}\r\n`;
+  await dialog.getByLabel("UTF-8 파일").setInputFiles({ name: "US-2031.csv", mimeType: "text/csv", buffer: Buffer.from(csv) });
+  await dialog.getByRole("button", { name: "가져오기 미리보기", exact: true }).click(); await expect(dialog.getByRole("heading", { name: "전체 교체 미리보기" })).toBeVisible(); await dialog.getByRole("checkbox").check(); await dialog.getByRole("button", { name: "확인한 자료 적용", exact: true }).click(); await expect(dialog).toHaveCount(0);
+  await expect(page.getByText(longCsvFixture.name, { exact: true })).toBeVisible();
+  await expect(page.getByText(longCsvFixture.sourceKey, { exact: true })).toBeVisible();
+  await expect(page.getByLabel("출처 버전")).toHaveValue(longCsvFixture.sourceVersion);
+  await expect(page.getByLabel("출처 URL")).toHaveValue(longCsvFixture.sourceUrl);
+  const noOpBefore = await (await page.request.get(`${root}/countries/US/years/2031`)).json();
+  expect(noOpBefore.data.dataset.sourceVersion).toBe(longCsvFixture.sourceVersion);
+  expect(noOpBefore.data.dataset.sourceUrl).toBe(longCsvFixture.sourceUrl);
+  expect(noOpBefore.data.dates[0]).toMatchObject({ name: longCsvFixture.name, sourceKey: longCsvFixture.sourceKey });
+  await page.getByRole("button", { name: "출처 정보 저장", exact: true }).click();
+  await expect(page.getByRole("button", { name: "출처 정보 저장", exact: true })).toBeEnabled();
+  const noOpAfter = await (await page.request.get(`${root}/countries/US/years/2031`)).json(); expect(noOpAfter).toEqual(noOpBefore);
 
-  await expect(page.getByRole("heading",{name:"대한민국 2026"})).toBeVisible();
-  await expect(page.getByText("근무",{exact:true})).toBeVisible();
+  expect(await (await page.request.get(`/api/projects/${publicId}`)).json()).toEqual(beforeProject);
+  expect(await (await page.request.get(`/api/projects/${publicId}/work-calendar`)).json()).toEqual(beforeCalendar);
+  await captureGeometry(page, info, "country-calendar-admin");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/projects/${publicId}`); await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
+  dialog = page.getByRole("dialog", { name: "프로젝트 설정", exact: true }); await dialog.getByRole("tab", { name: "작업 캘린더" }).click();
+  await expect(dialog.getByRole("button", { name: "작업 캘린더 저장", exact: true })).toBeDisabled();
+  await dialog.getByLabel("국가 1", { exact: true }).selectOption("US"); await dialog.getByLabel("국가 규칙 1 적용 범위").selectOption("DATE_RANGE"); await dialog.getByLabel("국가 규칙 1 시작일").fill("2031-01-01"); await dialog.getByLabel("국가 규칙 1 종료일").fill("2031-12-31");
+  const previewResponse = page.waitForResponse((r) => r.request().method() === "POST" && r.url().endsWith(`/projects/${publicId}/work-calendar/preview`));
+  await dialog.getByRole("button", { name: "미리보기 계산", exact: true }).click(); const preview = await previewResponse; expect(preview.status()).toBe(200); const catalogRevision = (await preview.json()).data.countryCatalogRevision;
+  const saveResponse = page.waitForResponse((r) => r.request().method() === "PUT" && r.url().endsWith(`/projects/${publicId}/work-calendar`)); await dialog.getByRole("button", { name: "작업 캘린더 저장", exact: true }).click(); const saved = await saveResponse; expect(saved.status()).toBe(200); expect(saved.request().postDataJSON().countryCatalogRevision).toBe(catalogRevision);
+  const canonical = await (await page.request.get(`/api/projects/${publicId}/work-calendar`)).json(); expect(canonical.data.projectDates.some((entry: { date: string }) => entry.date === "2031-01-03")).toBe(true);
+  await dialog.getByRole("button", { name: "미리보기 계산", exact: true }).click(); await expect(dialog.getByRole("button", { name: "작업 캘린더 저장", exact: true })).toBeEnabled();
+  const changedCatalog = await page.request.patch(`${root}/countries/US/years/2031`, { headers: { Origin: baseURL!, "If-Match": `"${catalogRevision}"` }, data: { sourceVersion: "US-2031-E2E-v4" } }); expect(changedCatalog.status()).toBe(200);
+  const staleSave = page.waitForResponse((r) => r.request().method() === "PUT" && r.url().endsWith(`/projects/${publicId}/work-calendar`)); await dialog.getByRole("button", { name: "작업 캘린더 저장", exact: true }).click(); expect((await staleSave).status()).toBe(412); await expect(dialog).toHaveCount(0);
+  expect(await (await page.request.get(`/api/projects/${publicId}/work-calendar`)).json()).toEqual(canonical);
+  await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click(); await dialog.getByRole("tab", { name: "작업 캘린더" }).click(); await dialog.getByLabel("국가 규칙 1 시작일").fill("2032-01-01"); await dialog.getByLabel("국가 규칙 1 종료일").fill("2032-12-31");
+  const unavailable = page.waitForResponse((r) => r.request().method() === "POST" && r.url().endsWith(`/projects/${publicId}/work-calendar/preview`)); await dialog.getByRole("button", { name: "미리보기 계산", exact: true }).click(); expect((await unavailable).status()).toBe(422); await expect(dialog.getByRole("alert")).toContainText("US 2032"); await expect(dialog.getByRole("button", { name: "작업 캘린더 저장", exact: true })).toBeDisabled();
 
-  const upload={
-    countryCode:"KR",year:2026,sourceVersion:"KR-2026-upload-2",sourceUrl:"https://example.go.kr/upload",
-    dates:[{date:"2026-12-25",name:"기독탄신일",dayType:"NON_WORKING",sourceKey:"christmas"}],
-  };
-  const fileInput=page.getByLabel("파일",{exact:true});
-  await fileInput.setInputFiles({
-    name:"kr-2026.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(upload)),
+});
+
+function snapshot(countryCode = "KR", year = 2026, revision = 1): CountryCalendarAdminResponse {
+  return { data: { revision, dataset: { countryCode: countryCode as "KR", countryName: countryCode, year, status: "OFFICIAL", origin: "BUILT_IN", sourceVersion: "E2E-1", sourceUrl: "https://example.com/calendar", dateCount: 1, updatedAt: null }, dates: [{ date: `${year}-01-01`, name: `${countryCode} 원본`, dayType: "NON_WORKING", sourceKey: "new-year" }] } };
+}
+
+test("첫 조회 오류에도 metadata/toolbar DOM을 유지하며 native 국가 변경과 역순 응답을 처리한다", async ({ page }) => {
+  let authorized = false, fail = true; let releaseKR: (() => void) | undefined;
+  await page.route("**/api/project-master/admin-sessions", async (route) => { authorized = true; await route.fulfill({ status: 201, json: { data: {} } }); });
+  await page.route(`**${root}/countries/*/years/*`, async (route) => {
+    if (!authorized) { await route.fulfill({ status: 401, json: { error: {} } }); return; }
+    if (fail) { await route.fulfill({ status: 500, json: { error: { message: "제어된 최초 조회 오류" } } }); return; }
+    const parts = new URL(route.request().url()).pathname.split("/"); const country = parts[5], year = Number(parts[7]);
+    if (country === "KR") await new Promise<void>((resolve) => { releaseKR = resolve; });
+    await route.fulfill({ json: snapshot(country, year) });
   });
-  await page.getByRole("button",{name:"업로드 전 검증"}).click();
-  await expect(page.getByText("추가 1")).toBeVisible();
-  await page.getByRole("button",{name:"검증 결과 적용"}).click();
-  await expect(page.getByLabel("Source version")).toHaveValue("KR-2026-upload-2");
-  await expect(page.getByText("기독탄신일")).toBeVisible();
-  await expect(fileInput).toHaveValue("");
-  await fileInput.setInputFiles({
-    name:"kr-2026.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(upload)),
+  await page.goto("/country-calendar-admin"); await page.getByLabel("관리자 비밀번호").fill("mock-admin"); await page.getByRole("button", { name: "로그인", exact: true }).click();
+  await expect(page.getByRole("region", { name: "국가 캘린더 관리", exact: true }).getByRole("alert")).toContainText("제어된 최초 조회 오류");
+  await expect(page.getByRole("combobox", { name: "국가", exact: true })).toBeEnabled(); await expect(page.getByLabel("출처 버전")).toBeVisible(); await expect(page.getByRole("button", { name: "출처 정보 저장", exact: true })).toBeDisabled();
+  const select = page.getByRole("combobox", { name: "국가", exact: true });
+  expect(await select.evaluate((element) => ({ id: element.id, label: (element as HTMLSelectElement).labels?.[0]?.textContent }))).toEqual({ id: "country-calendar-country", label: "국가" });
+  await select.evaluate((element) => { Object.defineProperty(element, "__stable342", { value: true }); });
+  fail = false; await page.getByRole("button", { name: "다시 조회", exact: true }).click(); await expect.poll(() => !!releaseKR).toBe(true);
+  await select.focus(); await page.keyboard.press("ArrowDown"); await page.keyboard.press("Enter");
+  await expect(select).toHaveValue("CN"); await expect(select).toBeFocused(); await expect(page.getByText("CN 원본", { exact: true })).toBeVisible();
+  releaseKR!(); await expect(select).toHaveValue("CN"); expect(await select.evaluate((element) => (element as HTMLElement & { __stable342?: boolean }).__stable342)).toBe(true); await expect(page.getByText("KR 원본", { exact: true })).toHaveCount(0);
+  // Login mutation finishes before its initial GET. That read must not lock
+  // the native selector or let its late response override a new selection.
+  authorized = false; releaseKR = undefined; await page.reload();
+  await page.getByLabel("관리자 비밀번호").fill("mock-admin"); await page.getByRole("button", { name: "로그인", exact: true }).click();
+  await expect.poll(() => !!releaseKR).toBe(true); await expect(select).toBeEnabled();
+  await select.selectOption("US"); await expect(page.getByText("US 원본", { exact: true })).toBeVisible(); releaseKR!(); await expect(select).toHaveValue("US");
+
+});
+
+test("412와 401 뒤 보존 초안은 명시적 검토 전 mutation을 재전송하지 않는다", async ({ page }) => {
+  let authenticated = false, mutations = 0, reject: 401 | 412 = 412;
+  await page.route("**/api/project-master/admin-sessions", async (route) => { authenticated = true; await route.fulfill({ status: 201, json: { data: {} } }); });
+  await page.route(`**${root}/countries/KR/years/2026`, async (route) => {
+    if (route.request().method() === "GET") { await route.fulfill({ status: authenticated ? 200 : 401, json: authenticated ? snapshot("KR", 2026, mutations + 1) : { error: {} } }); return; }
+    mutations++; if (reject === 401) authenticated = false; await route.fulfill({ status: reject, json: { error: { message: "제어된 충돌" } } });
   });
-  await expect(page.getByRole("button",{name:"업로드 전 검증"})).toBeEnabled();
-
-  await page.getByLabel("날짜",{exact:true}).first().fill("2026-12-31");
-  await page.getByLabel("이름",{exact:true}).first().fill("연말 휴일");
-  await page.getByLabel("sourceKey",{exact:true}).first().fill("year-end");
-  await page.getByRole("button",{name:"추가",exact:true}).click();
-  await expect(page.getByText("연말 휴일")).toBeVisible();
-  await expect(page.getByRole("status",{name:"Dataset 상태: 미확보"})).toBeVisible();
-  await expect(page.getByLabel("Source version")).toHaveValue("");
-  await expect(page.getByText("수동 날짜 변경으로 공식 상태와 출처 정보가 해제되었습니다. 검증 후 메타데이터를 다시 저장해 주세요.",{exact:true})).toBeVisible();
-
-  const row=page.getByRole("row").filter({hasText:"연말 휴일"});
-  await row.getByRole("button",{name:"편집"}).click();
-  await page.getByRole("dialog").getByLabel("이름",{exact:true}).fill("연말 휴일 수정");
-  await page.getByRole("dialog").getByRole("button",{name:"저장"}).click();
-  await expect(page.getByText("연말 휴일 수정")).toBeVisible();
-
-  const edited=page.getByRole("row").filter({hasText:"연말 휴일 수정"});
-  await edited.getByRole("button",{name:"삭제"}).click();
-  await expect(page.getByRole("dialog",{name:"캘린더 날짜 삭제"})).toBeVisible();
-  await page.getByRole("dialog").getByRole("button",{name:"삭제",exact:true}).click();
-  await expect(page.getByText("연말 휴일 수정")).toHaveCount(0);
+  await page.goto("/country-calendar-admin"); await page.getByLabel("관리자 비밀번호").fill("mock-admin"); await page.getByRole("button", { name: "로그인", exact: true }).click();
+  await page.getByLabel("출처 버전").fill("draft-v2"); await page.getByRole("button", { name: "출처 정보 저장", exact: true }).click();
+  await expect(page.getByLabel("출처 버전")).toHaveValue("draft-v2"); await expect(page.getByRole("button", { name: "출처 정보 저장", exact: true })).toBeDisabled(); expect(mutations).toBe(1);
+  await page.getByRole("button", { name: "새로고침", exact: true }).click(); await expect(page.getByRole("button", { name: "출처 정보 저장", exact: true })).toBeDisabled(); expect(mutations).toBe(1);
+  await page.getByRole("button", { name: "최신 데이터 검토 완료", exact: true }).click(); reject = 401; await page.getByRole("button", { name: "출처 정보 저장", exact: true }).click(); await expect(page.getByLabel("관리자 비밀번호")).toBeVisible(); expect(mutations).toBe(2);
+  await page.getByLabel("관리자 비밀번호").fill("mock-admin"); await page.getByRole("button", { name: "로그인", exact: true }).click(); await expect(page.getByLabel("출처 버전")).toHaveValue("draft-v2"); await expect(page.getByRole("button", { name: "출처 정보 저장", exact: true })).toBeDisabled(); expect(mutations).toBe(2);
 });
 
-test("Issue #342: 390/768/1024/1440px에서 관리자 화면에 document overflow가 없다",async({page})=>{
-  await installCalendarMocks(page);
-  await page.goto("/calendar-admin");
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
-
-  for(const width of [390,768,1024,1440]){
-    await page.setViewportSize({width,height:900});
-    await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1)).toBe(true);
-    await expect(page.getByRole("heading",{name:"국가 캘린더 관리"})).toBeVisible();
-  }
-});
-
-test("Issue #342: 빠른 파일 재선택은 마지막 파일 내용만 Preview/Apply에 사용한다",async({page})=>{
-  await installCalendarMocks(page);
-  await page.goto("/calendar-admin");
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
-
-  await page.evaluate(()=>{
-    const original=File.prototype.text;
-    let calls=0;
-    File.prototype.text=function(){
-      calls+=1;
-      const pending=original.call(this);
-      if(calls!==1)return pending;
-      return pending.then((value)=>new Promise<string>((resolve)=>setTimeout(()=>resolve(value),200)));
-    };
+test("파일 UTF-8 오류·읽기 epoch·preview 만료와 pending Escape를 잠근다", async ({ page }) => {
+  let authenticated = false, release: (() => void) | undefined, applies = 0;
+  await page.route("**/api/project-master/admin-sessions", async (route) => { authenticated = true; await route.fulfill({ status: 201, json: { data: {} } }); });
+  await page.route(`**${root}/countries/KR/years/2026`, (route) => route.fulfill({ status: authenticated ? 200 : 401, json: authenticated ? snapshot() : { error: {} } }));
+  await page.route(`**${root}/import/preview`, async (route) => {
+    const request = route.request().postDataJSON();
+    expect(request.content).toContain("latest-file");
+    await new Promise<void>((resolve) => { release = resolve; });
+    await route.fulfill({ json: { data: { revision: 1, previewToken: "opaque-mock", expiresAt: new Date(Date.now() + 1000).toISOString(), dataset: snapshot().data.dataset, importDataset: { countryCode: "KR", year: 2026, sourceVersion: "E2E-1", sourceUrl: "https://example.com", dateCount: 1 }, summary: { additions: 0, changes: 1, deletions: 0, unchanged: 0, metadataChanged: false }, changed: true } } });
   });
-
-  const first={countryCode:"KR",year:2026,sourceVersion:"KR-2026-A",sourceUrl:"https://example.go.kr/a",dates:[{date:"2026-11-01",name:"A",dayType:"NON_WORKING",sourceKey:"a"}]};
-  const second={countryCode:"KR",year:2026,sourceVersion:"KR-2026-B",sourceUrl:"https://example.go.kr/b",dates:[{date:"2026-11-02",name:"B",dayType:"NON_WORKING",sourceKey:"b"}]};
-  const input=page.getByLabel("파일",{exact:true});
-  await input.setInputFiles({name:"a.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(first))});
-  await input.setInputFiles({name:"b.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify(second))});
-  await page.waitForTimeout(300);
-
-  await page.getByRole("button",{name:"업로드 전 검증"}).click();
-  await page.getByRole("button",{name:"검증 결과 적용"}).click();
-  await expect(page.getByLabel("Source version")).toHaveValue("KR-2026-B");
-  await expect(page.getByText("B",{exact:true})).toBeVisible();
-  await expect(page.getByText("A",{exact:true})).toHaveCount(0);
+  await page.route(`**${root}/import/apply`, async (route) => { applies++; await route.fulfill({ json: snapshot() }); });
+  await page.goto("/country-calendar-admin"); await page.getByLabel("관리자 비밀번호").fill("mock-admin"); await page.getByRole("button", { name: "로그인", exact: true }).click();
+  await page.getByRole("button", { name: "JSON/CSV 가져오기", exact: true }).click(); const dialog = page.getByRole("dialog", { name: "국가 캘린더 JSON/CSV 가져오기", exact: true });
+  await dialog.getByLabel("UTF-8 파일").setInputFiles({ name: "bad.json", mimeType: "application/json", buffer: Buffer.from([0xff]) }); await expect(dialog.getByRole("alert")).toContainText("UTF-8"); await expect(dialog.getByRole("button", { name: "가져오기 미리보기", exact: true })).toBeDisabled();
+  await page.evaluate(() => { const original = File.prototype.arrayBuffer; File.prototype.arrayBuffer = async function () { if (this.name === "old.json") { await new Promise((resolve) => setTimeout(resolve, 250)); } return original.call(this); }; });
+  await dialog.getByLabel("UTF-8 파일").setInputFiles({ name: "old.json", mimeType: "application/json", buffer: Buffer.from("old-file") }); await dialog.getByLabel("UTF-8 파일").setInputFiles({ name: "latest.json", mimeType: "application/json", buffer: Buffer.from("\uFEFFlatest-file") });
+  await dialog.getByRole("button", { name: "가져오기 미리보기", exact: true }).click(); await expect.poll(() => !!release).toBe(true);
+  for (let index = 0; index < 3; index++) await page.keyboard.press("Escape"); await expect(dialog).toBeVisible(); await expect(dialog.getByRole("button", { name: "취소", exact: true })).toBeDisabled();
+  release!(); await expect(dialog.getByRole("heading", { name: "전체 교체 미리보기" })).toBeVisible(); await dialog.getByRole("checkbox").check(); await expect(dialog.getByRole("alert").filter({ hasText: "만료" })).toBeVisible(); await expect(dialog.getByRole("button", { name: "확인한 자료 적용", exact: true })).toBeDisabled(); expect(applies).toBe(0);
+  await page.keyboard.press("Escape"); await expect(dialog).toHaveCount(0); await expect(page.getByRole("button", { name: "JSON/CSV 가져오기", exact: true })).toBeFocused();
 });
-
-test("Issue #342: 조회 실패는 선택 target과 이전 snapshot을 섞지 않는다",async({page})=>{
-  await installCalendarMocks(page);
-  await page.goto("/calendar-admin");
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
-  await expect(page.getByRole("heading",{name:"대한민국 2026"})).toBeVisible();
-
-  const failGet=async(route:Route)=>{
-    if(route.request().method()==="GET"){await route.fulfill({status:500,json:{error:{code:"TEST_ERROR"}}});return;}
-    await route.fallback();
-  };
-  await page.route("**/api/admin/work-calendars/countries/CN/years/2026",failGet);
-  const countrySelect=page.getByRole("combobox",{name:"국가",exact:true});
-  await expect(countrySelect).toBeEnabled();
-  await countrySelect.selectOption("CN");
-  await expect(page.getByRole("heading",{name:"대한민국 2026"})).toHaveCount(0);
-  await expect(page.getByText("국가 캘린더 데이터를 불러오지 못했습니다.",{exact:true})).toBeVisible();
-  await expect(page.getByRole("button",{name:"메타데이터 저장"})).toBeDisabled();
-  await page.unroute("**/api/admin/work-calendars/countries/CN/years/2026",failGet);
-});
-
-test("Issue #342: 412 reload 뒤 stale 날짜 편집 초안을 폐기한다",async({page})=>{
-  await installCalendarMocks(page);
-  await page.goto("/calendar-admin");
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
-
-  const row=page.getByRole("row").filter({hasText:"신정"});
-  await row.getByRole("button",{name:"편집"}).click();
-  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 편집"});
-  await dialog.getByLabel("이름",{exact:true}).fill("stale draft");
-
-  const conflict=async(route:Route)=>{
-    if(route.request().method()==="PATCH"){await route.fulfill({status:412,json:{error:{code:"COUNTRY_CALENDAR_REVISION_MISMATCH"}}});return;}
-    await route.fallback();
-  };
-  await page.route("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",conflict);
-  await dialog.getByRole("button",{name:"저장",exact:true}).click();
-  await expect(dialog).toHaveCount(0);
-  await expect(page.getByText("다른 관리 변경이 먼저 저장되어 최신 데이터를 다시 불러왔습니다. 열린 편집 초안은 폐기되었습니다.",{exact:true})).toBeVisible();
-  await page.unroute("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",conflict);
-});
-
-test("Issue #342: 변경 없는 날짜 저장은 OFFICIAL provenance를 유지한다",async({page})=>{
-  await installCalendarMocks(page);
-  await page.goto("/calendar-admin");
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
-
-  const before=await page.getByLabel("Source version").inputValue();
-  const row=page.getByRole("row").filter({hasText:"신정"});
-  await row.getByRole("button",{name:"편집"}).click();
-  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 편집"});
-  await dialog.getByRole("button",{name:"저장",exact:true}).click();
-
-  await expect(dialog).toHaveCount(0);
-  await expect(page.getByRole("status",{name:"Dataset 상태: 공식"})).toBeVisible();
-  await expect(page.getByLabel("Source version")).toHaveValue(before);
-});
-
-test("Issue #342: 국가 전환은 신규 날짜와 파일 draft를 폐기한다",async({page})=>{
-  await installCalendarMocks(page);
-  await page.goto("/calendar-admin");
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
-
-  await page.getByLabel("날짜",{exact:true}).first().fill("2026-12-30");
-  await page.getByLabel("이름",{exact:true}).first().fill("KR draft");
-  await page.getByLabel("sourceKey",{exact:true}).first().fill("kr-draft");
-  const fileInput=page.getByLabel("파일",{exact:true});
-  await fileInput.setInputFiles({
-    name:"draft.json",mimeType:"application/json",buffer:Buffer.from(JSON.stringify({
-      countryCode:"KR",year:2026,sourceVersion:"draft",sourceUrl:"https://example.go.kr/draft",
-      dates:[{date:"2026-12-30",name:"draft",dayType:"NON_WORKING",sourceKey:"draft"}],
-    })),
-  });
-  await expect(page.getByRole("button",{name:"업로드 전 검증"})).toBeEnabled();
-
-  const countrySelect=page.getByRole("combobox",{name:"국가",exact:true});
-  await expect(countrySelect).toBeEnabled();
-  await countrySelect.selectOption("CN");
-  await expect(page.getByLabel("날짜",{exact:true}).first()).toHaveValue("");
-  await expect(page.getByLabel("이름",{exact:true}).first()).toHaveValue("");
-  await expect(page.getByLabel("sourceKey",{exact:true}).first()).toHaveValue("");
-  await expect(fileInput).toHaveValue("");
-  await expect(page.getByRole("button",{name:"업로드 전 검증"})).toBeDisabled();
-});
-
-test("Issue #342: DELETE pending 중 취소 버튼은 동작하지 않는다",async({page})=>{
-  await installCalendarMocks(page);
-  await page.goto("/calendar-admin");
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
-
-  let releaseDelete!:()=>void;
-  const gate=new Promise<void>((resolve)=>{releaseDelete=resolve;});
-  const delayedDelete=async(route:Route)=>{
-    if(route.request().method()!=="DELETE"){await route.fallback();return;}
-    await gate;
-    await route.fallback();
-  };
-  await page.route("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",delayedDelete);
-
-  const row=page.getByRole("row").filter({hasText:"신정"});
-  await row.getByRole("button",{name:"삭제"}).click();
-  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 삭제"});
-  await dialog.getByRole("button",{name:"삭제",exact:true}).click();
-  await expect(dialog.getByRole("button",{name:"취소",exact:true})).toBeDisabled();
-  await expect(dialog).toBeVisible();
-
-  releaseDelete();
-  await expect(dialog).toHaveCount(0);
-  await page.unroute("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",delayedDelete);
-});
-
-test("Issue #342: PATCH pending 중 편집 취소는 비활성화된다",async({page})=>{
-  await installCalendarMocks(page);
-  await page.goto("/calendar-admin");
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
-
-  let releasePatch!:()=>void;
-  const gate=new Promise<void>((resolve)=>{releasePatch=resolve;});
-  const delayedPatch=async(route:Route)=>{
-    if(route.request().method()!=="PATCH"){await route.fallback();return;}
-    await gate;
-    await route.fallback();
-  };
-  await page.route("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",delayedPatch);
-
-  const row=page.getByRole("row").filter({hasText:"신정"});
-  await row.getByRole("button",{name:"편집"}).click();
-  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 편집"});
-  await dialog.getByLabel("이름",{exact:true}).fill("pending edit");
-  await dialog.getByRole("button",{name:"저장",exact:true}).click();
-  await expect(dialog.getByRole("button",{name:"취소",exact:true})).toBeDisabled();
-  await expect(dialog).toBeVisible();
-
-  releasePatch();
-  await expect(dialog).toHaveCount(0);
-  await page.unroute("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",delayedPatch);
-});
-
-test("Issue #342: 401 재인증은 stale edit/delete draft를 폐기한다",async({page})=>{
-  await installCalendarMocks(page);
-  await page.goto("/calendar-admin");
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
-
-  const row=page.getByRole("row").filter({hasText:"신정"});
-  await row.getByRole("button",{name:"편집"}).click();
-  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 편집"});
-  await dialog.getByLabel("이름",{exact:true}).fill("stale after 401");
-
-  const unauthorized=async(route:Route)=>{
-    if(route.request().method()==="PATCH"){await route.fulfill({status:401,json:{error:{code:"PROJECT_MASTER_ADMIN_REQUIRED"}}});return;}
-    await route.fallback();
-  };
-  await page.route("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",unauthorized);
-  await dialog.getByRole("button",{name:"저장",exact:true}).click();
-
-  await expect(page.getByRole("heading",{name:"국가 캘린더 관리자 로그인"})).toBeVisible();
-  await expect(page.getByRole("dialog",{name:"캘린더 날짜 편집"})).toHaveCount(0);
-  await page.unroute("**/api/admin/work-calendars/countries/KR/years/2026/dates/2026-01-01",unauthorized);
-
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
-  await expect(page.getByRole("heading",{name:"대한민국 2026"})).toBeVisible();
-  await expect(page.getByRole("dialog",{name:"캘린더 날짜 편집"})).toHaveCount(0);
-});
-
-test("Issue #342: 삭제 후 focus는 남아 있는 날짜 section으로 복원된다",async({page})=>{
-  await installCalendarMocks(page);
-  await page.goto("/calendar-admin");
-  await page.getByLabel("관리자 비밀번호",{exact:true}).fill("admin");
-  await page.getByRole("button",{name:"로그인",exact:true}).click();
-
-  const row=page.getByRole("row").filter({hasText:"신정"});
-  await row.getByRole("button",{name:"삭제"}).click();
-  const dialog=page.getByRole("dialog",{name:"캘린더 날짜 삭제"});
-  await dialog.getByRole("button",{name:"삭제",exact:true}).click();
-
-  const datesRegion=page.getByRole("region",{name:"휴일·보충 근무일"});
-  await expect(dialog).toHaveCount(0);
-  await expect(datesRegion).toBeFocused();
-});
-

@@ -104,7 +104,7 @@ test("Issue #490: 국가·기간·날짜 예외의 다섯 폭 validation·pendin
   await capture490(page,info,"calendar-validation");
   await dialog.getByLabel("국가 규칙 1 종료일").fill("2026-12-31");
   const original=await (await page.request.get(`/api/projects/${id}/work-calendar`)).json();
-  const body={data:{projectRevision:original.data.projectRevision,calendar:{projectRevision:original.data.projectRevision,rules:original.data.rules,customDates:[],projectDates:[]},changedTasks:[],manualConflicts:[],resourceExceptionEffects:[]}};
+  const body={data:{countryCatalogRevision:1,projectRevision:original.data.projectRevision,calendar:{projectRevision:original.data.projectRevision,rules:original.data.rules,customDates:[],projectDates:[]},changedTasks:[],manualConflicts:[],resourceExceptionEffects:[]}};
   let mode:"normal"|"hold"|"error"|"401"|"412"="normal";let release:(()=>void)|undefined;let requestCount=0;
   await page.route(`**/api/projects/${id}/work-calendar/preview`,async route=>{
     requestCount++;expect(route.request().headers()["origin"]).toBe(baseURL);expect(route.request().headers()["if-match"]).toMatch(/^"[1-9][0-9]*"$/);

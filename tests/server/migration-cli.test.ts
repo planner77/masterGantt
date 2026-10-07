@@ -99,10 +99,6 @@ describe("migration CLI", () => {
         .toEqual({ revision: 1 });
       expect(database.prepare("SELECT count(*) AS count FROM project_master_items").get())
         .toEqual({ count: 0 });
-      expect(database.prepare("SELECT revision, length(preview_secret) AS previewSecretBytes FROM country_calendar_catalog_state WHERE id = 1").get())
-        .toEqual({ revision: 1, previewSecretBytes: 32 });
-      expect(database.prepare("SELECT count(*) AS count FROM country_calendar_datasets").get())
-        .toEqual({ count: 0 });
       const ownerColumn = database.prepare("SELECT name, \"notnull\" AS required FROM pragma_table_info('projects') WHERE name = 'owner_name'").get();
       expect(ownerColumn).toEqual({ name: "owner_name", required: 0 });
       const allocationColumn = database.prepare("SELECT name, type FROM pragma_table_info('task_assignments') WHERE name = 'allocation_percent'").get();

@@ -7,7 +7,7 @@
 .preview summary { padding:6px 0; font-size:13px; font-weight:600; cursor:pointer; }
 .preview summary:focus-visible,.tableOwner:focus-visible { outline:var(--focus-outline); outline-offset:var(--focus-offset); }
 .code { overflow-wrap:anywhere; font-family:var(--font-mono,monospace); }
-.tableOwner { max-height:min(360px,40dvh); max-width:100%; min-width:0; overflow:auto; border:1px solid var(--border); border-radius:6px; margin-top:8px; }
+.tableOwner { max-height:min(360px,40dvh); max-width:100%; min-width:0; overflow:auto; border:1px solid var(--border); border-radius:6px; margin-top:8px; scroll-margin-block:8px; }
 .tableOwner table { min-width:960px; width:100%; table-layout:fixed; border-collapse:collapse; font-size:12px; }
 .tableOwner th,.tableOwner td { padding:10px; text-align:left; vertical-align:top; overflow-wrap:anywhere; border-bottom:1px solid var(--border); }
 .tableOwner th { background:var(--surface-subtle); }
@@ -21,5 +21,5 @@
 /* 공용 dialog 계약은 유지하고 이 검토 화면의 body만 스크롤한다. */
 :global(dialog[open]):has(> .content) { display:flex; flex-direction:column; overflow:hidden; }
 .content { flex:1; min-height:0; overflow:hidden; }
-.body { display:flex; flex-direction:column; gap:12px; min-width:0; min-height:0; overflow:auto; padding:4px; }
+.body { display:flex; flex-direction:column; gap:12px; min-width:0; min-height:0; overflow:auto; padding:8px; scroll-padding-block:8px; }
 .actions { flex-shrink:0; padding-top:4px; }

@@ -83,6 +83,16 @@ type PendingDeleteTarget = Readonly<{
   name: string;
 }>;
 
+type EditorKind = "resource" | "group" | "profile";
+type EditorSwitchRequest = Readonly<{
+  kind: EditorKind;
+  resource?: ResourceDto;
+}>;
+type DiscardState =
+  | { kind: "editor" }
+  | { kind: "editor-switch"; next: EditorSwitchRequest }
+  | { kind: "members"; next: ResourceGroupDto | null };
+
 export function ResourceCatalogAdmin() {
   const [catalog, setCatalog] = useState<ResourceCatalogResponse | null>(null);
   const [authenticated, setAuthenticated] = useState(false);
@@ -116,12 +126,12 @@ export function ResourceCatalogAdmin() {
   const continueFocus = useRef<HTMLElement | null>(null);
   const discardInitialFocus = useRef<HTMLButtonElement | null>(null);
   const discardWasOpen = useRef(false);
-  const [editor, setEditor] = useState<"resource" | "group" | "profile" | null>(null);
+  const [editor, setEditor] = useState<EditorKind | null>(null);
   const [editorSuspended, setEditorSuspended] = useState(false);
   const [profile, setProfile] = useState<ResourceDto | null>(null);
   const [profileGrade, setProfileGrade] = useState<DeveloperGrade | "">("");
   const [profileRoles, setProfileRoles] = useState<ResourceRole[]>([]);
-  const [discard, setDiscard] = useState<{ kind: "editor" } | { kind: "members"; next: ResourceGroupDto | null } | null>(null);
+  const [discard, setDiscard] = useState<DiscardState | null>(null);
   const [groupName, setGroupName] = useState("");
   const [groupCode, setGroupCode] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
@@ -142,7 +152,7 @@ export function ResourceCatalogAdmin() {
   }, [authenticated, busy]);
 
   useEffect(() => {
-    if (!authenticated || editorSuspended) return;
+    if (!authenticated || (editorSuspended && !discard)) return;
     // React autofocus runs before the native dialog opens; focus after showModal.
     if (discard) {
       discardWasOpen.current = true;
@@ -390,10 +400,14 @@ export function ResourceCatalogAdmin() {
     } else setEditor(null);
   }
 
-  function openEditor(kind: "resource" | "group" | "profile", trigger: HTMLElement, resource?: ResourceDto) {
-    if (pending.current || catalogState !== "ready") return;
+  function openEditor(kind: EditorKind, trigger: HTMLElement, resource?: ResourceDto) {
+    if (pending.current || catalogState !== "ready" || discard) return;
     editorTrigger.current = trigger;
-    if (editor && editorSuspended && editorDirty()) { setEditorSuspended(false); return; }
+    if (editor && editorSuspended && editorDirty()) {
+      continueFocus.current = trigger;
+      setDiscard({ kind: "editor-switch", next: { kind, resource } });
+      return;
+    }
     setEditorSuspended(false);
     if (resource) { setProfile(resource); setProfileGrade(resource.developerGrade ?? ""); setProfileRoles(resource.roles ?? []); }
     setEditor(kind);
@@ -425,13 +439,29 @@ export function ResourceCatalogAdmin() {
     } else applyGroup(group);
   }
 
+  function clearEditorDraft() {
+    if (editor === "resource") { setResourceName(""); setResourceCode(""); setResourceDeveloperGrade(""); setResourceRoles(new Set()); }
+    if (editor === "group") { setGroupName(""); setGroupCode(""); }
+    setProfile(null);
+  }
+
   function confirmDiscard() {
     if (pending.current || !discard) return;
-    if (discard.kind === "members") applyGroup(discard.next);
-    else {
-      if (editor === "resource") { setResourceName(""); setResourceCode(""); setResourceDeveloperGrade(""); setResourceRoles(new Set()); }
-      if (editor === "group") { setGroupName(""); setGroupCode(""); }
-      setProfile(null); setEditor(null);
+    if (discard.kind === "members") {
+      applyGroup(discard.next);
+    } else if (discard.kind === "editor-switch") {
+      const next = discard.next;
+      clearEditorDraft();
+      setEditorSuspended(false);
+      if (next.resource) {
+        setProfile(next.resource);
+        setProfileGrade(next.resource.developerGrade ?? "");
+        setProfileRoles(next.resource.roles ?? []);
+      }
+      setEditor(next.kind);
+    } else {
+      clearEditorDraft();
+      setEditor(null);
     }
     setDiscard(null);
   }
@@ -697,7 +727,7 @@ export function ResourceCatalogAdmin() {
         <div className={styles.dialogActions}><button className="secondary-button" type="button" disabled={busy || !!discard} onClick={closeEditor}>취소</button><button className="primary-button" type="submit" disabled={locked || !!discard || (editor === "profile" ? !profileCurrent : !(editor === "resource" ? resourceName : groupName).trim())}>{busy ? "저장 중…" : editor === "profile" ? "프로필 저장" : "추가"}</button></div>
       </form>
     </WorkspaceDialog> : null}
-    {discard ? <WorkspaceDialog title="초안 폐기 확인" feedback={false} restoreFocusRef={continueFocus} busy={busy} onClose={() => { if (!pending.current) setDiscard(null); }}><p className={styles.note}>저장하지 않은 변경사항을 폐기할까요?</p><div className={styles.dialogActions}><button ref={(node) => { discardInitialFocus.current = node; node?.setAttribute("autofocus", ""); }} autoFocus className="secondary-button" type="button" onClick={() => setDiscard(null)}>계속 편집</button><button className="danger-button" type="button" onClick={confirmDiscard}>초안 폐기</button></div></WorkspaceDialog> : null}
+    {discard ? <WorkspaceDialog title={discard.kind === "editor-switch" ? "보존한 초안 확인" : "초안 폐기 확인"} feedback={false} restoreFocusRef={continueFocus} busy={busy} onClose={() => { if (!pending.current) setDiscard(null); }}><p className={styles.note}>{discard.kind === "editor-switch" ? "401 이후 보존한 초안이 있습니다. 기존 초안을 유지하거나 폐기한 뒤 요청한 편집 작업을 계속할 수 있습니다." : "저장하지 않은 변경사항을 폐기할까요?"}</p><div className={styles.dialogActions}><button ref={(node) => { discardInitialFocus.current = node; node?.setAttribute("autofocus", ""); }} autoFocus className="secondary-button" type="button" onClick={() => setDiscard(null)}>{discard.kind === "editor-switch" ? "초안 유지" : "계속 편집"}</button><button className="danger-button" type="button" onClick={confirmDiscard}>{discard.kind === "editor-switch" ? `초안 폐기 후 ${discard.next.kind === "resource" ? "리소스 추가" : discard.next.kind === "group" ? "그룹 추가" : "프로필 편집"}` : "초안 폐기"}</button></div></WorkspaceDialog> : null}
     {pendingDelete ? (
       <WorkspaceDialog
         title={pendingDelete.kind === "resource" ? "리소스 삭제" : "리소스 그룹 삭제"}

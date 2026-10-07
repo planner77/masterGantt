@@ -325,7 +325,7 @@ Project List의 검색 도구줄 순서와 `필터 N` accessible name은 유지�
 
 프로젝트 설정의 작업 캘린더 초안은 국가, 적용 범위·기간, 휴무일 이름·날짜·대상·대상 선택, 규칙·휴무일 추가·삭제가 바뀔 때마다 이전 미리보기를 즉시 숨긴다. 입력을 원래 값으로 되돌려도 이전 결과를 자동으로 다시 표시하지 않으며, 사용자가 `미리보기 계산`을 다시 실행해야 한다. 결과는 계산 당시의 프로젝트 publicId, revision, 요청 본문과 일치할 때만 표시한다. 다른 프로젝트·revision의 늦은 성공/오류 응답은 현재 상태나 알림을 덮어쓰지 않는다.
 
-한 개의 간결한 live status가 초기 안내, 재계산 필요, 계산 중, 실패 후 재시도, 완료 요약을 전달한다. 자세한 변경 작업과 휴무일 목록은 이 live region 밖에 둔다. 계산 중에는 초안과 저장·미리보기 버튼을 잠그며, 계산 실패 때는 결과를 숨기고 재시도 방법을 표시한다. 미리보기는 저장 전 필수 단계가 아니다. 저장 성공 시 이전 미리보기를 지우고 기존 canonical 일정 재조회·알림 경로를 사용한다. 저장 응답을 미리보기 결과처럼 표시하지 않는다. 기존 edit session, Origin, If-Match, 401/412 처리와 서버 인가 계약은 그대로 따른다.
+한 개의 간결한 live status가 초기 안내, 재계산 필요, 계산 중, 실패 후 재시도, 완료 요약을 전달한다. 자세한 변경 작업과 휴무일 목록은 이 live region 밖에 둔다. 계산 중에는 초안과 저장·미리보기 버튼을 잠그며, 계산 실패 때는 결과를 숨기고 재시도 방법을 표시한다. #342의 국가 원본 revision 보호를 적용한 새 UI는 저장 전 현재 초안의 미리보기가 필요하다. 저장 성공 시 이전 미리보기를 지우고 기존 canonical 일정 재조회·알림 경로를 사용한다. 저장 응답을 미리보기 결과처럼 표시하지 않는다. 기존 edit session, Origin, If-Match, 401/412 처리와 서버 인가 계약은 그대로 따른다.
 
 자동 Chromium 검증은 `tests/e2e/project-work-calendar-preview.spec.ts`가 실제 KR→US 미리보기·저장 요청, 초안 변경, 실패·재시도, metadata 저장에 따른 revision 변경·editor unmount 뒤 늦은 응답, 390/768/1024/1440px 상태·버튼 접근을 확인한다. Metadata 저장은 기존 설정 창을 닫으므로 같은 editor 인스턴스에서 revision prop만 바뀌는 경로는 브라우저에서 직접 재현하지 않는다. publicId/revision 일치 검사와 요청 토큰 경계는 코드 검토 및 원격 회귀와 함께 판정한다. 스크린리더와 실제 기기 조작은 별도 환경 검증이다.
 
@@ -918,6 +918,8 @@ Dirty 생성/profile 취소·닫기·Escape는 `계속 편집 / 초안 폐기` �
 
 Pending에서 disabled control 때문에 focus가 body로 빠지지 않도록 해당 열린 native dialog에 focus를 두고, owned panel의 Escape capture로 반복 닫기 요청을 차단한다. Tab/ShiftTab은 dialog 안에 유지한다. Pending은 기존 동기 ref와 표시 disabled를 공유하여 이중 submit·입력·모달 닫기/Escape를 잠근다. 401은 모든 비밀번호를 지우고 로그인 focus로 전환하며 비민감 초안을 memory에 보존한다. 인증 전에는 초안 모달이 로그인 focus를 가리지 않는다. 재로그인 후 최신 카탈로그를 조회하고 `보존한 초안 계속 편집`으로 명시 재진입한다. 412는 기존 최신 GET과 strong If-Match 계약을 유지하며 최신 저장 값과 보존 초안을 검토한 후 수동 저장한다. network/5xx/불명 응답은 저장 완료로 취급하지 않고 mutation을 잠가 명시 최신 조회로 복구한다. 403은 성공 표시 없이 초안을 보존한다.
 
+Issue #486부터 재로그인 후 suspended dirty Resource/Group/Profile 초안이 있는 상태에서 다른 `리소스 추가`/`그룹 추가`/`프로필 편집` trigger를 눌러도 기존 editor를 묵시적으로 재개하지 않는다. `보존한 초안 확인`에서 `초안 유지`를 선택하면 suspended draft와 trigger focus를 그대로 보존하고, 기존 초안의 직접 재개는 계속 `보존한 초안 계속 편집`만 담당한다. `초안 폐기 후 …`를 선택하면 기존 editor draft만 초기화하고 사용자가 실제로 누른 editor kind/resource를 연다. 이 분기는 401/session/revision/pending/keyboard 계약을 바꾸지 않는다.
+
 명시 로그아웃은 성공 또는 서버 확인 실패 모두 관리 화면을 잠근다. 기존 catalog·선택 Group·선택 members·비밀번호 초기화 범위를 유지하며 일반 생성 입력/검색까지 임의 초기화하지 않는다. 삭제는 서버 `deletable === true`일 때만 허용하며 사용 중·사용 여부 미확인을 구분한다. 409/412 삭제 재검증, 취소 호출 버튼 focus·삭제 후 검색 focus 계약은 유지한다. API/DB/auth/domain/공유 dialog primitive 변경은 없다.
 
 ## Issue #454 물류 유형 native table 밀도·열·dialog
@@ -1026,6 +1028,19 @@ canonical sync에서 public scroll 좌표를 기록하고 기존 columns queue�
 
 Summary의 일정·진척·상태·Baseline은 자손 기반 파생값이므로 기존 readOnly 표현을 유지한다. Description/URL 저장은 동일 PATCH와 canonical snapshot 갱신을 사용하며 Gantt remount, reload, selection/scroll/scale 초기화를 유발하지 않는다.
 
+## Issue #492 — Grid/Chart 작업 Hover Tooltip
+
+Project 일정에서 Grid의 작업 행 또는 Chart의 Task/Summary/Milestone bar에 pointer를 올리면 같은 조회 전용 Tooltip을 표시한다. 정보 구조는 두 줄이다.
+
+```text
+작업명
+시작일: <locale date 또는 —> · 종료일: <locale date 또는 —>
+```
+
+작업명·시작일·종료일의 authority는 현재 canonical `ProjectTaskDto`다. SVAR `ITask`는 hit target 식별에만 사용하며, 일정 없는 Summary에 Core가 넣는 anchor 날짜를 Tooltip 일정으로 사용하지 않는다. 날짜는 Grid와 같은 `formatLocaleDateOnly`/browser locale 정책을 재사용한다.
+
+SVAR 공식 Tooltip API는 설계 참고로 확인했지만 설치 2.7.3의 실제 wrapper가 Milestone·WBS scope와 Header Tooltip 공존에서 불안정함이 PR CI로 확인되어 최종 구현에는 사용하지 않는다. 기존 `TASK_TARGET_SELECTOR`에 app-owned mouse event delegation을 적용해 Grid row와 Chart bar를 같은 canonical taskId로 해석한다. Tooltip은 hover 중에만 존재하고 focus/scroll/영역 이탈 시 닫히며 click/double-click/context menu/drag/dependency 동작을 가로채지 않는다. Tooltip hover state와 native event listener는 별도 `TaskHoverTooltipLayer`가 소유하여 표시/닫힘이 `ProjectGantt`/SVAR를 재렌더링하지 않는다. Day/Week, readonly/edit, fullscreen, `최상위로 열기` WBS scope가 바뀌어도 Gantt/API instance를 재생성하지 않고 현재 canonical snapshot을 읽으며 긴 이름은 최대 viewport 폭 안에서 wrap한다.
+
 ## Issue #490 — 프로젝트 설정 폼과 상태 보존
 
 프로젝트 설정의 기본 정보·작업 캘린더·편집/보안 탭은 기존 순서와 저장 단위를 유지한다. 탭의 스크롤 영역은 3px outline과 3px offset이 보이도록 사방 6px 여유를 둔다. 작업 캘린더의 국가·기간·날짜 예외 입력은 기존 semantic input token, 40px 높이, 1px 테두리와 8px/12px 안쪽 여백을 사용한다. 미리보기/저장 버튼은 내용 폭을 유지하며 12px 간격으로 자연스럽게 줄바꿈한다.
@@ -1042,16 +1057,28 @@ Project metadata 저장이 Task metadata 변경 없이 새 canonical 배열을 �
 
 성공 재조회 동안 호출 버튼이 unmount되어 실제 초점은 BODY로 돌아간다. 이를 성공 후 호출 버튼 복원 PASS로 보고하지 않는다. 재조회 후 정상 설정 Escape는 settings 버튼, logout은 unlock 버튼, 새 비밀번호 unlock은 settings 버튼으로 복원하는 기존 흐름을 별도로 검증한다. 구 비밀번호는401, 새 비밀번호는204이며 다른 이전 세션은 readonly다. fullscreen frame 밖의 프로젝트 header에는 fullscreen 중 설정 진입이 없으므로 그 조작은 N/A이며 지원 fullscreen 왕복 상태 보존과 구분한다. 상세 실제 계약/관측은 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
 
-## Issue #342 — 국가 Calendar 관리자 UX
+## Issue #491 프로젝트 전송 폼 배치
 
-프로젝트 기준정보 관리 화면에서 `/calendar-admin`으로 진입하고 최신 공통 `admin-page` / `AdminAuth` / compact data-table 규칙을 재사용한다. 전역 Header 메뉴 구조는 변경하지 않는다.
+프로젝트 생성·복사·템플릿 선택/생성, JSON preview/commit, readonly Excel/JSON/이미지 Export와 inline 공수 옵션을 실제로 관측했다. 템플릿 저장 form의 field/footer와 footer peers, Export footer peers는 소비자 로컬 12px gap을 갖고 Export390px stack을 유지한다. JSON Import body는8px gutter/scroll padding과 table-owned scroll margin으로 native region focus ring의6px 예산을 확보한다. 전역 control/공용 dialog/controller/API 계약을 바꾸지 않는다.
 
-- country/year 전환 시 create/edit/delete/file/Preview draft를 폐기한다.
-- target 전환의 reload는 native select change가 끝난 다음 task에서 시작해 control interaction을 안정적으로 보존한다.
-- 수동 date mutation 후 `미확보`와 비어 있는 source metadata를 즉시 표시하고 공식 재검증 필요 안내를 제공한다.
-- 실제 값이 동일한 metadata/date 저장은 no-op이다.
-- PATCH/DELETE pending 중 dialog chrome과 취소/submit을 잠근다.
-- 401 session expiry와 412 stale revision은 열린 edit/delete draft를 폐기한다.
-- 삭제 성공으로 trigger row가 사라지면 살아 있는 날짜 section으로 focus를 복원한다.
-- file A→B 빠른 재선택은 최신 generation만 Preview/Apply 대상이 되며 Apply 성공 후 native file input을 비운다.
-- 390/768/1024/1440px에서 document-level horizontal overflow를 만들지 않는다.
+복사·템플릿 저장은412 최신 원본 조회 후 명시 재제출과 비민감 초안 보존, 민감 입력 clearing을 유지한다. Import preview는 취소 가능하고 commit은 busy 취소 금지다. readonly Export 실제 성공은 dialog를 닫는다. 새 publicId를 만드는 생성/복사/instantiate navigation은 같은 Gantt instance 보존 N/A이고, 기존 workspace의 dialog 취소/템플릿 저장/지원 fullscreen 버튼 왕복 및 실제 Import commit은 검증한 상태를 보존한다. C header가 native fullscreen host 밖인 진입, CSV mapping UI, 별도 견적 modal은 지원하지 않는다.
+
+최종 로컬8case PASS와 5폭 geometry·대표390/1440 native focus, 원래 실패·helper 분류 정정·실제 API와 controlled 상태의 범위는 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. 원격 quality/e2e/docker, 독립 최종 QA, 실기기/125%/스크린리더/운영은 별도이며 CI 등록만으로 PASS를 주장하지 않는다.
+
+Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
+
+Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.
+
+## Issue #342 국가 캘린더 원본 관리와 명시적 Project 적용
+
+`/country-calendar-admin`은 7개 국가의 2026~2037년 원본을 관리한다. 기존 Project master 관리자 session을 사용하며 `AdminAuth`는 인증 폼 표현, `WorkspaceDialog`는 날짜·Import·확인 창을 제공한다. 관리자 인증이 확인된 화면의 국가/연도 native select, 출처 metadata 필드 및 저장/추가/Import action은 최초 조회 실패에도 제거하지 않는다. 최신 snapshot이 없거나 stale이면 저장은 비활성이고 재조회 경로를 제공한다. 조회 중 대상 선택은 가능하며 로그인 mutation이 완료되면 뒤따르는 GET을 별도 조회 상태로 처리한다. 국가·연도 값과 request/auth generation이 맞는 응답만 반영하고, 다른 대상의 마지막 snapshot을 현재 결과로 표시하지 않는다.
+
+공식 자료 확보, 미확보, 기존 자료 대체 필요와 조회 실패·확인된 빈 목록을 구분한다. 공개 descriptor의 연도별 dataset 상태와 실제 지원 연도를 사용하며 미래 휴일을 추정하지 않는다. 자료 적용 범위는 KR 관공서 공휴일, CN 국무원 연간 일정, VN 주5일 공공기관 직원, PH 전국 공식 휴일, TH 전국 금융기관 공통, MX 연방노동법 일반 의무휴무일, US 연방직원이다. 실제 Project의 업종·근무 조건은 Project 날짜 예외로 확인한다. 출처 URL 문법이나 관리자의 OFFICIAL 선언만으로 해당 문서 내용의 독립 검증이 수행됐다고 표시하지 않는다. 원본 확보 정책은 [COUNTRY_CALENDAR_DATA](COUNTRY_CALENDAR_DATA.md)를 따른다.
+
+Metadata와 날짜 초안은 선택 대상에 연결한다. dirty 대상 전환은 초안 버리기 확인을 요구하고 취소 시 native 선택 control로 focus를 돌린다. 401은 인증·preview 세대를 무효화하고 편집을 잠근다. 비민감 metadata/날짜 초안은 메모리에 보존하며 재로그인 후 최신 값과 명시적으로 비교·검토하기 전 저장할 수 없다. 412는 자동 mutation 재전송 없이 최신 snapshot을 조회하고 초안 비교 및 검토 완료/서버 값 복원 경로를 제공한다. 결과 불확실한 mutation은 재조회 전 재저장을 막는다. 날짜 key 변경 또는 삭제로 원래 trigger가 사라지면 canonical 새 행의 수정 action 또는 생존하는 날짜 추가 action으로 focus를 복원한다. 저장 중 중복 클릭·Enter·대상 변경·닫기·반복 Escape를 막고 완료 후 정상 닫기/초점 복원을 유지한다.
+
+JSON/CSV는 UTF-8 원문을 서버 preview한 후 counts와 삭제 수·출처를 검토하고 명시적으로 확인해 전체 날짜를 원자적으로 교체한다. 클라이언트는 `arrayBuffer`와 fatal UTF-8 decoder를 사용하며 선행 BOM을 원문에 보존한다. 파일 선택/형식/대상/인증 세대 변경은 이전 읽기·preview 동의를 무효화한다. 서버 token은 화면·URL·로그에 표시하지 않으며 만료, catalog revision 변경, 401/412 뒤에는 자동 apply하지 않는다. 적용 실패의 입력·행 오류를 표시하고 새 인증/최신 조회/파일 선택 및 새 preview 경로를 제공한다. 국가 원본 수정은 이미 materialize한 Project Calendar·Task·revision을 자동으로 변경하지 않는다.
+
+새 Project는 생성 연도의 사용 가능한 KR 원본 또는 같은 연도의 검증된 builtin을 사용하고, 둘 다 없으면 국가 규칙 없이 기본 월~금으로 생성한다. 국가 규칙을 명시한 Project Calendar Preview/Save는 해당 연도의 공식 확보 자료가 필요하다. 미확보 국가·연도는 상세 422로 표시하며 다른 연도 자료로 대체하지 않는다. 새 UI는 현재 초안의 Preview가 반환한 양의 정수 `countryCatalogRevision`을 저장에 반드시 전송한다. Preview가 없거나 입력/Project revision이 바뀌었거나 catalog revision 필드가 없거나 잘못되면 저장을 잠근다. Preview 이후 국가 원본이 변경되면 Save 412로 최신 상태 재확인을 요구한다. 기존 API 호출의 omitted 호환 경로는 새 UI의 저장 경로로 사용하지 않는다.
+
+로컬 자동화는 실제 SQLite/auth JSON·CSV apply, metadata/date CRUD와 rename/delete focus, no-op 및 기존 Project 불변, Project Preview→Save→canonical 재조회와 catalog race 412·미확보 422를 제어 mock 없이 검증한다. 지연·역순 응답/최초 오류/401·412 재검토/파일 읽기 race·만료/pending은 별도 mock 경로로 확인한다. 390/768/1024/1440/1920px 캡처의 US2031 E2E-v3는 테스트 전용 override이며 builtin 공식 확보 자료의 증거가 아니다. source/test/env와 실제 실행 결과는 Issue/PR Result Contract로 구분한다. 로컬 결과는 원격 quality/e2e/docker 및 독립 QA를 대체하지 않는다.

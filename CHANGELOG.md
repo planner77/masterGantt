@@ -1,25 +1,64 @@
 # Changelog
 
+## [0.96.0] - 2026-10-07
+
+### Added
+
+- Issue #342: KR/CN/VN/PH/TH/MX/US의 2026~2037년 84개 국가·연도 슬롯을 국가 Calendar Catalog로 관리한다. 공식 검증된 날짜만 일정 계산에 사용하고, 확인되지 않은 슬롯은 UNAVAILABLE로 명시한다.
+- 기본 제공 Calendar와 DB override를 결합하고, 관리자 화면에서 메타데이터·근무일·휴일 편집 및 JSON/CSV Preview·원자적 적용을 제공한다. 실행 중 외부 Calendar API는 호출하지 않는다.
+- 관리자 session·Origin·강한 If-Match와 Preview token의 내용·형식·대상·revision·session·만료 검증을 적용한다. 날짜 변경은 공식 출처 상태를 해제하며, 실제 변경이 없는 저장은 revision과 출처를 유지한다.
+
+### Changed
+
+- 기존 Project에 구체화된 Calendar와 Task·Project revision을 보존한다. 새 Calendar 적용은 명시적으로 수행하며, 미확인 국가 슬롯과 Preview 이후 Catalog 변경을 오류로 구분한다.
+- 국가 Calendar 관리 화면의 조회 실패에서도 메타데이터·action 영역을 유지하고, 대상 전환·재인증·파일 선택·처리 중 상태와 초점을 보존한다.
+- 최신 main의 application version `0.95.1`과 기존 변경을 보존하고, 국가 Calendar Catalog 기능 추가에 맞춰 MINOR `0.96.0`으로 증가한다.
+
+### Fixed
+
+- 기존 main에서도 재현된 NativeAdd 요청 누락을 최소 callback 참조 갱신으로 보완하고, 최신 Gantt Tooltip 동작을 유지한다.
+
+## [0.95.1] - 2026-10-07
+
+### Fixed
+
+- Issue #491: 프로젝트 템플릿 저장 폼의 마지막 입력과 Footer 사이에 12px 간격을 확보해 focus outline이 action 영역과 겹치지 않도록 정돈한다. Footer의 취소·저장 action에도 12px 간격과 자연 wrap을 적용한다.
+- 프로젝트 내보내기 Footer의 action 사이에 12px 간격을 적용하고, 좁은 화면의 기존 1열 배치를 유지한다.
+- JSON Import의 스크롤 영역에 8px focus 여유와 scroll padding을 적용해 native keyboard focus의 outline이 잘리지 않도록 보완한다. 기존 표·body·Footer의 스크롤 역할을 유지한다.
+
 ## [0.95.0] - 2026-10-07
 
 ### Added
 
-- Issue #342: KR/CN/VN/PH/TH/MX/US 국가 Calendar의 2026~2037 관리 슬롯과 OFFICIAL/UNAVAILABLE/SUPERSEDED 상태를 built-in baseline + DB override Catalog로 추가한다.
-- JSON/CSV Import validation → Preview → HMAC-bound Apply와 국가·연도별 metadata/date CRUD, 관리자 화면을 추가한다.
-- Import Preview token은 server-only 32-byte HMAC secret으로 catalog revision, country/year, format, 원본 bytes에 묶고 exact Apply만 허용한다.
+- Issue #492: Grid 작업 행과 Chart Task/Summary/Milestone hover에서 작업명과 canonical 시작일·종료일을 같은 Tooltip으로 표시한다. 일정이 없는 Summary는 Core 렌더링 anchor가 아니라 canonical 미설정 값 `—`를 표시한다.
 
 ### Changed
 
-- 최신 main v0.94.1의 Issue #485 Global Resource Role Source of Truth 및 migration `0023_deprecate_task_assignment_roles.sql`을 보존하고 Country Calendar Catalog migration을 `0024_country_calendar_catalog.sql`로 재배치한다.
-- Project Calendar Preview/Save는 OFFICIAL effective override만 사용하되 신규 Project 기본 KR Calendar seed는 재승인 대기 중에도 approved built-in baseline으로 fallback하여 Project 생성 가용성을 유지한다.
-- Country Calendar persistence는 `Route Handler → Service → Repository → SQLite` 경계를 따른다.
+- 최신 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`의 Issue #486 Resource Catalog draft handoff 보완과 application `0.94.3`을 보존한 뒤 #492 변경만 재적용한다.
+- SVAR 공식 Tooltip API를 검토한 뒤 설치 2.7.3 PR CI에서 확인된 Milestone/WBS scope 누락과 Header Tooltip role 중복을 피하기 위해 기존 task selector 기반 app-owned delegated hover로 구현한다. Day/Week·readonly/edit·fullscreen·WBS scope에서 동일 canonical 정보를 표시하고 application version을 `0.94.3`에서 `0.95.0`으로 증가한다.
 
 ### Fixed
 
-- 수동 날짜 Add/Edit/Delete 후 기존 OFFICIAL provenance를 재사용하지 않고 UNAVAILABLE + source metadata null로 전환하며, 실제 값이 동일한 date/metadata 저장은 no-op으로 처리한다.
-- explicit null date PATCH, target 전환 stale draft, session 만료 stale edit/delete, pending edit/delete 취소, 삭제 후 focus 복원, 빠른 file reselection race를 fail-closed 처리한다.
-- Country Calendar E2E locator와 target 전환 reload timing을 실제 accessible control 기준으로 안정화한다.
-- latest main #490의 412 canonical reload 직후 Native Add가 stale `onTaskCreate` closure를 참조해 첫 클릭을 무시할 수 있는 경합을 layout-phase ref 동기화로 제거한다.
+- PR CI Run #2023/#2026에서 확인된 Tooltip wrapper의 render-time ref/Hook lint 문제, Milestone·WBS scope content 누락, 기존 Header Tooltip과의 role 중복을 제거한다. Task Tooltip은 hover 중에만 app-owned DOM으로 존재하고 Header focus·scroll·영역 이탈 시 제거된다.
+- PR CI Run #2028의 잔여 lint는 hover handler의 불필요한 manual memoization을 제거해 해소한다. viewport 밖 Milestone E2E는 제품의 scroll-dismiss와 Playwright auto-scroll 경합을 피하도록 scroll과 hover를 분리한다.
+- PR CI #2040에서 확인된 #490/#456 Gantt horizontal/public viewport 회귀를 해소하기 위해 Tooltip 상태와 native listener를 전용 child layer로 격리한다. 이후 exact head PR CI #2043/#2067에서 quality/e2e/docker 전체 SUCCESS를 확보했으나 최신 main 전진으로 재검증한다.
+
+## [0.94.3] - 2026-10-07
+
+### Fixed
+
+- Issue #486: Resource Catalog에서 401 후 보존된 Resource/Group/Profile 초안이 다른 편집 명령을 묵시적으로 가로채던 문제를 수정한다.
+- 다른 편집 trigger는 `보존한 초안 확인`을 표시하고, 기존 초안 유지 또는 폐기 후 실제 요청한 리소스 추가/그룹 추가/프로필 편집으로 명시 분기한다.
+- `보존한 초안 계속 편집`은 기존 draft의 직접 재개 경로로 유지하며 session/revision/If-Match/pending/Escape/focus 계약은 변경하지 않는다.
+
+## [0.94.2] - 2026-10-07
+
+### Fixed
+
+- Issue #508: E2E 샤드 최적화 workflow의 기존 자동 PR 검색을 shell-safe Node helper로 분리하고 exact title만 중복 PR로 인정한다.
+- 분석 proposal을 non-hidden `e2e-shard-proposal.json`으로 저장해 기본 artifact 업로드 정책에서도 30일 보존되도록 한다.
+- PR 검색 helper의 직접 작성 오류 설명을 CI/CD 한글 작성 정책에 맞추고 lookup/workflow 회귀 검증을 보강한다.
+
 
 ## [0.94.1] - 2026-10-07
 

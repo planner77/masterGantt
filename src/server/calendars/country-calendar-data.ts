@@ -1,3 +1,4 @@
+import { VERIFIED_COUNTRY_CALENDAR_DATASETS } from "./verified-country-calendar-data";
 import type {
   CountryCalendarDescriptorDto,
   WorkCalendarCountryCode,
@@ -9,15 +10,11 @@ export interface CountryCalendarDate {
   dayType: WorkCalendarDayType;
   name: string;
   sourceKey: string;
+  sourceScheduleYear?: number;
 }
 
-export type EffectiveCountryCalendarDescriptor = CountryCalendarDescriptorDto & {
-  sourceVersion: string;
-  sourceUrl: string;
-};
-
 export interface CountryCalendarDataset {
-  descriptor: EffectiveCountryCalendarDescriptor;
+  descriptor: CountryCalendarDescriptorDto & { sourceVersion: string; sourceUrl: string };
   dates: readonly CountryCalendarDate[];
 }
 
@@ -57,7 +54,7 @@ const descriptors = {
     sourceVersion: "US-2026-opm-federal",
     sourceUrl: "https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/",
   },
-} satisfies Record<WorkCalendarCountryCode, EffectiveCountryCalendarDescriptor>;
+} satisfies Record<WorkCalendarCountryCode, CountryCalendarDescriptorDto>;
 
 function d(date:string,name:string,sourceKey:string,dayType:WorkCalendarDayType="NON_WORKING"):CountryCalendarDate {
   return Object.freeze({date,name,sourceKey,dayType});
@@ -159,14 +156,22 @@ const dates:Record<WorkCalendarCountryCode,readonly CountryCalendarDate[]> = {
   ]),
 };
 
-export function listCountryCalendarDescriptors():CountryCalendarDescriptorDto[] {
-  return Object.values(descriptors).map((descriptor)=>({
-    ...descriptor,
-    supportedYears:[...descriptor.supportedYears],
-  }));
+export function listCountryCalendarDescriptors():Array<CountryCalendarDescriptorDto & { sourceVersion: string; sourceUrl: string }> {
+  return Object.values(descriptors).map((descriptor)=>{
+    const verified=VERIFIED_COUNTRY_CALENDAR_DATASETS.filter((entry)=>entry.descriptor.code===descriptor.code);
+    const latest=verified.at(-1)?.descriptor;
+    return {
+      ...descriptor,
+      sourceVersion:latest?.sourceVersion??descriptor.sourceVersion,
+      sourceUrl:latest?.sourceUrl??descriptor.sourceUrl,
+      supportedYears:[...new Set([...descriptor.supportedYears,...verified.flatMap((entry)=>[...entry.descriptor.supportedYears])])].sort((a,b)=>a-b),
+    };
+  });
 }
 
 export function getCountryCalendarDataset(code:WorkCalendarCountryCode,year:number):CountryCalendarDataset|undefined {
+  const verified=VERIFIED_COUNTRY_CALENDAR_DATASETS.find((entry)=>entry.descriptor.code===code && (entry.descriptor.supportedYears as readonly number[]).includes(year));
+  if(verified) return {descriptor:{...verified.descriptor,supportedYears:[year]},dates:verified.dates};
   const descriptor=descriptors[code];
   if(!descriptor.supportedYears.includes(year)) return undefined;
   return {

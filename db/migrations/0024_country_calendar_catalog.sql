@@ -2,38 +2,30 @@ CREATE TABLE country_calendar_catalog_state (
   id INTEGER PRIMARY KEY CHECK (id = 1),
   revision INTEGER NOT NULL CHECK (revision >= 1),
   preview_secret BLOB NOT NULL CHECK (length(preview_secret) = 32),
-  updated_at TEXT NOT NULL CHECK (length(updated_at) > 0)
+  updated_at TEXT NOT NULL
 ) STRICT;
-
-INSERT INTO country_calendar_catalog_state (id, revision, preview_secret, updated_at)
-VALUES (1, 1, randomblob(32), strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
+INSERT INTO country_calendar_catalog_state VALUES (1, 1, randomblob(32), strftime('%Y-%m-%dT%H:%M:%fZ', 'now'));
 
 CREATE TABLE country_calendar_datasets (
   id INTEGER PRIMARY KEY,
   country_code TEXT NOT NULL CHECK (country_code IN ('KR','CN','VN','PH','TH','MX','US')),
-  calendar_year INTEGER NOT NULL CHECK (calendar_year BETWEEN 2026 AND 2037),
+  year INTEGER NOT NULL CHECK (year BETWEEN 2026 AND 2037),
   status TEXT NOT NULL CHECK (status IN ('OFFICIAL','UNAVAILABLE','SUPERSEDED')),
   source_version TEXT,
   source_url TEXT,
-  updated_at TEXT NOT NULL CHECK (length(updated_at) > 0),
-  UNIQUE (country_code, calendar_year),
-  CHECK (source_version IS NULL OR length(trim(source_version)) BETWEEN 1 AND 200),
-  CHECK (source_url IS NULL OR length(trim(source_url)) BETWEEN 1 AND 2048)
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(country_code, year),
+  CHECK (status <> 'OFFICIAL' OR (length(source_version) BETWEEN 1 AND 200 AND length(source_url) BETWEEN 1 AND 2048 AND source_version IS NOT NULL AND source_url IS NOT NULL))
 ) STRICT;
 
 CREATE TABLE country_calendar_dates (
-  id INTEGER PRIMARY KEY,
   dataset_id INTEGER NOT NULL REFERENCES country_calendar_datasets(id) ON DELETE CASCADE,
-  holiday_date TEXT NOT NULL CHECK (length(holiday_date) = 10),
-  name TEXT NOT NULL CHECK (length(trim(name)) BETWEEN 1 AND 200),
+  date TEXT NOT NULL CHECK (length(date) = 10),
+  name TEXT NOT NULL CHECK (length(name) BETWEEN 1 AND 200),
   day_type TEXT NOT NULL CHECK (day_type IN ('NON_WORKING','WORKING')),
-  source_key TEXT NOT NULL CHECK (length(trim(source_key)) BETWEEN 1 AND 120),
-  created_at TEXT NOT NULL CHECK (length(created_at) > 0),
-  updated_at TEXT NOT NULL CHECK (length(updated_at) > 0),
-  UNIQUE (dataset_id, holiday_date)
+  source_key TEXT NOT NULL CHECK (length(source_key) BETWEEN 1 AND 120),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (dataset_id, date)
 ) STRICT;
-
-CREATE INDEX country_calendar_datasets_country_year_idx
-  ON country_calendar_datasets(country_code, calendar_year);
-CREATE INDEX country_calendar_dates_dataset_date_idx
-  ON country_calendar_dates(dataset_id, holiday_date);

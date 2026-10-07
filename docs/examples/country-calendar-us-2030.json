@@ -1,0 +1,75 @@
+{
+  "countryCode": "US",
+  "year": 2030,
+  "status": "OFFICIAL",
+  "sourceVersion": "US-2030-OPM-federal-holidays-page",
+  "sourceUrl": "https://www.opm.gov/policy-data-oversight/pay-leave/federal-holidays/",
+  "dates": [
+    {
+      "date": "2030-01-01",
+      "name": "New Year's Day",
+      "dayType": "NON_WORKING",
+      "sourceKey": "new-year"
+    },
+    {
+      "date": "2030-01-21",
+      "name": "Birthday of Martin Luther King, Jr.",
+      "dayType": "NON_WORKING",
+      "sourceKey": "mlk"
+    },
+    {
+      "date": "2030-02-18",
+      "name": "Washington's Birthday",
+      "dayType": "NON_WORKING",
+      "sourceKey": "washington"
+    },
+    {
+      "date": "2030-05-27",
+      "name": "Memorial Day",
+      "dayType": "NON_WORKING",
+      "sourceKey": "memorial-day"
+    },
+    {
+      "date": "2030-06-19",
+      "name": "Juneteenth National Independence Day",
+      "dayType": "NON_WORKING",
+      "sourceKey": "juneteenth"
+    },
+    {
+      "date": "2030-07-04",
+      "name": "Independence Day",
+      "dayType": "NON_WORKING",
+      "sourceKey": "independence-day"
+    },
+    {
+      "date": "2030-09-02",
+      "name": "Labor Day",
+      "dayType": "NON_WORKING",
+      "sourceKey": "labor-day"
+    },
+    {
+      "date": "2030-10-14",
+      "name": "Columbus Day",
+      "dayType": "NON_WORKING",
+      "sourceKey": "columbus-day"
+    },
+    {
+      "date": "2030-11-11",
+      "name": "Veterans Day",
+      "dayType": "NON_WORKING",
+      "sourceKey": "veterans-day"
+    },
+    {
+      "date": "2030-11-28",
+      "name": "Thanksgiving Day",
+      "dayType": "NON_WORKING",
+      "sourceKey": "thanksgiving"
+    },
+    {
+      "date": "2030-12-25",
+      "name": "Christmas Day",
+      "dayType": "NON_WORKING",
+      "sourceKey": "christmas"
+    }
+  ]
+}

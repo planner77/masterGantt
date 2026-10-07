@@ -24,8 +24,7 @@ export type RouteSecurityPolicy =
   | "origin-project-master-admin-auth"
   | "origin-project-master-admin-logout"
   | "origin-project-master-admin-password"
-  | "origin-project-master-admin-if-match"
-  | "origin-project-master-admin";
+  | "origin-project-master-admin-if-match";
 
 export interface RouteSecurityInventoryEntry {
   template: string;
@@ -46,13 +45,6 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/project-master/admin-sessions", method: "POST", policy: "origin-project-master-admin-auth", mutatesState: true },
   { template: "/api/project-master/admin-sessions", method: "DELETE", policy: "origin-project-master-admin-logout", mutatesState: true },
   { template: "/api/project-master/admin-password", method: "PUT", policy: "origin-project-master-admin-password", mutatesState: true },
-  { template: "/api/admin/work-calendars/countries/{countryCode}/years/{year}", method: "GET", policy: "project-master-admin-read", mutatesState: false },
-  { template: "/api/admin/work-calendars/countries/{countryCode}/years/{year}", method: "PATCH", policy: "origin-project-master-admin-if-match", mutatesState: true },
-  { template: "/api/admin/work-calendars/countries/{countryCode}/years/{year}/dates", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: true },
-  { template: "/api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}", method: "PATCH", policy: "origin-project-master-admin-if-match", mutatesState: true },
-  { template: "/api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}", method: "DELETE", policy: "origin-project-master-admin-if-match", mutatesState: true },
-  { template: "/api/admin/work-calendars/import/preview", method: "POST", policy: "origin-project-master-admin", mutatesState: false },
-  { template: "/api/admin/work-calendars/import/apply", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: true },
   { template: "/api/project-templates", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/project-templates", method: "POST", policy: "origin-session-if-match", mutatesState: true },
   { template: "/api/project-templates/{templateId}", method: "GET", policy: "public-read", mutatesState: false },
@@ -107,6 +99,13 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/projects/{publicId}/assignment-targets", method: "GET", policy: "project-edit-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/assigned-targets", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-workload", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/admin/work-calendars/countries/{countryCode}/years/{year}", method: "GET", policy: "project-master-admin-read", mutatesState: false },
+  { template: "/api/admin/work-calendars/countries/{countryCode}/years/{year}", method: "PATCH", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/admin/work-calendars/countries/{countryCode}/years/{year}/dates", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}", method: "PATCH", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/admin/work-calendars/countries/{countryCode}/years/{year}/dates/{date}", method: "DELETE", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/admin/work-calendars/import/preview", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: false },
+  { template: "/api/admin/work-calendars/import/apply", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: true },
   { template: "/api/work-calendars/countries", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/work-calendar", method: "GET", policy: "project-edit-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/work-calendar/preview", method: "POST", policy: "origin-session-if-match", mutatesState: false },

@@ -1,117 +1,64 @@
-# Issue #342 국가 Calendar 2026~2037 Catalog 및 Import/관리
+# Issue #342 국가 캘린더 재구현
 
-상태: 최신 main 0.94.0 재정렬·충돌 해소·DOCUMENTATION_SYNC 후 기존 PR #346의 새 exact-head CI 시작 준비.
+## 목표와 기준
 
-## 기준과 결정
+[Issue #342](https://github.com/planner77/masterGantt/issues/342)의 국가 근무 캘린더 원본 관리와 JSON/CSV 업로드를 최신 main에서 다시 구현한다. 기존 [PR #346](https://github.com/planner77/masterGantt/pull/346)과 branch `feat/issue-342-country-calendar-catalog`를 재사용한다. 과거 실패 이력을 보존하고 새 head의 원격 검증을 받는다.
 
-- Issue: #342, OPEN. 기존 PR #346과 branch `feat/issue-342-country-calendar-catalog`를 재사용한다.
-- 최신 main: `4f8fc2c9c86941d1b86ae4472b1e953707c85ef7`, application `0.94.0`.
-- 최신 main은 #459 Stage Gate Epic, #460~#464 membership/dashboard/JSON 1.1 계약, Issue #456 Task Editor UI/상태 보존 개선과 migration `0022_task_milestone_memberships.sql`을 포함한다.
-- 기존 #342 migration `0022_country_calendar_catalog.sql`은 번호 충돌이므로 **`0024_country_calendar_catalog.sql`**로 재배치한다. 적용된 migration ledger를 재작성하지 않는다.
-- version: **`0.94.0 → 0.95.0` MINOR**. 글로벌 Catalog, DB schema/API/admin UI라는 하위 호환 기능 추가다.
-- 현재 요청 종료점: 최신 main 정렬, 충돌 해소, 문서 동기화, PR #346 head 갱신 및 새 PR CI 시작 확인. CI 완료 모니터링·병합·main/GHCR·정식 release·branch cleanup·Issue 종료는 현재 요청 범위 밖이다.
-- 과거 #1844/#1845/#1850/#1855/#1858 결과는 각 과거 head에 한정되며 새 head의 required gate를 대체하지 않는다.
+- 최초 baseline main: `c94b13e110ed5fd9e17625daa084c181f35703e8`, application `0.95.1`.
+- 통합·게시 baseline main: `36cf2db8ab0c6d04ab904b01c6bc8a0bb6b1cdab`, tree `e032aaebceaf82a882bf50d8df96a2ca8298e357`.
+- 기존 PR head: `8a6b4fd99280c899005d4b7c9a6e876f46ce0856`.
+- 격리 구현 branch: `rebuild/issue-342-country-calendar-catalog`. 공유 checkout과 기존 worktree를 수정하지 않는다.
+- version: 신규 관리 기능과 지원 연도 확장이므로 MINOR `0.96.0`.
+- `release_required=true`, `release_authorized=false`. 현재 요청 범위는 구현 및 PR 검증이다. 병합·main artifact·정식 GHCR·tag·Issue 종료·branch 정리는 실행하지 않는다.
 
-## 구현 범위
+## 최신 main 통합
 
-- KR/CN/VN/PH/TH/MX/US, 2026~2037 관리 슬롯.
-- `OFFICIAL | UNAVAILABLE | SUPERSEDED` 상태와 sourceVersion/sourceUrl.
-- 2026 built-in fixture + DB override; DB override 우선, Scheduling은 OFFICIAL만 사용.
-- JSON/CSV Import validation → additions/changes/deletions Preview → strong If-Match 기반 atomic Apply.
-- 국가·연도 metadata와 date/name/dayType/sourceKey CRUD.
-- Project Master admin session, exact Origin, bounded JSON, Catalog revision 재사용.
-- Project Calendar Preview/Save와 신규 Project 기본 Calendar가 effective resolver 사용.
-- Catalog mutation은 기존 Project materialized Calendar/Task를 자동 재계산하지 않음.
-- `/calendar-admin`은 Issue #452 공통 `admin-page` shell과 `AdminAuth` presentation을 사용.
-- #459 Stage Gate explicit/effective membership, Ready/KPI, JSON 1.1, Copy/Template/Export/Import 의미는 변경하지 않음.
+구현 중 PR #516 / Issue #502가 main에 병합됐다. version은 `0.95.1`로 동일하다. main 변경 15개 중 #342 제품과 같은 path는 없고 TEST_PLAN·UI_UX_GUIDELINES·PLAN이 겹쳤다. 새 error boundary 검증 코드·공통 E2E 설정·geometry helper와 기존 계획을 보존해 통합했다. #342 backend 구현 bytes가 동일한 범위의 Local Fast Feedback은 재사용하고 새 공통 설정에서 관련 브라우저 검증을 다시 수행한다. 기존 실행을 최신 환경 전체 검증으로 확대하지 않는다.
 
-## CI #1850/#1855 후속
+## 확인한 실패
 
-- #1850: `project-status.spec.ts`의 읽기 GET에서 transient `ECONNRESET`; 제품 assertion 실패가 아니었다.
-- 최신 main의 GET-only transport retry 정책을 `project-status.spec.ts` direct GET에도 적용한다. `socket hang up|ECONNRESET`에 최대 3회, POST/PATCH mutation은 retry 금지.
-- #1855: `변경 경로 판정` job이 abandoned/cancelled되어 quality/e2e/docker aggregate가 fail-closed했다. 이후 main의 CI/Lifecycle 변경을 그대로 받아들이고 새 exact head에서 다시 검증한다.
+PR CI run `37566474453`, 기존 head `8a6b4fd99280c899005d4b7c9a6e876f46ce0856`의 quality/docker는 성공했고 e2e job `112615374357`의 `E2E shard 실행`이 실패했다. 관리자 조회 오류 후 metadata form이 사라져 `메타데이터 저장` 버튼을 찾는 검증이 실패했다. 이전 run `37558757715`, `37561192247`, `37563367685`의 국가 전환·조회 오류 경로도 새로운 상태 설계의 회귀 범위다.
 
-## DOCUMENTATION_SYNC
+Native Add 첫 클릭 요청 누락은 PR run `37563367685`뿐 아니라 baseline main run `37562885177`에도 존재한다. callback 참조의 화면 반영 시점을 최소 수정하고 기존 `project-gantt-stability.spec.ts` 회귀를 검증한다. 타임아웃 증가나 required gate 삭제로 해결하지 않는다.
 
-갱신:
-- REQUIREMENTS, ARCHITECTURE, API, DB_SCHEMA, SCHEDULING_ENGINE
-- ISSUE_57_WORK_CALENDAR, COUNTRY_CALENDAR_DATA
-- PROJECT_UX, TEST_PLAN, REMOTE_VALIDATION
-- CHANGELOG, v0.95.0 release note, active PLAN, 본 실행 계획
+## 구현 계약
 
-N/A:
-- DESIGN.md: 최신 공통 visual/geometry 규칙을 그대로 사용하며 새 전역 디자인 규칙 없음.
-- AGENTS.md: 현재 역할/DOCUMENTATION_SYNC/GitHub-first/Lifecycle 규칙 변경 없음.
-- UI_UX_GUIDELINES.md: 기존 admin/data-dense/keyboard/focus 규칙을 재사용.
-- CI_CD.md / GITHUB_OPERATIONS.md: workflow/required check/GHCR 운영 계약 자체 변경 없음.
-- SECURITY.md: 새로운 인증 체계 없이 Project Master admin session/Origin/If-Match 재사용.
-- IMPORT_SCHEMA.md: Project JSON 1.1 Import와 별도 Country Calendar Import 계약이며 Project import schema 변경 없음.
+1. KR/CN/VN/PH/TH/MX/US와 2026~2037의 84개 슬롯을 관리한다. 검증된 공식 자료는 OFFICIAL, 미확보는 UNAVAILABLE, 대체된 자료는 SUPERSEDED다. 미래 날짜를 규칙으로 생성하지 않는다.
+2. immutable builtin과 SQLite override를 사용한다. 명시적인 UNAVAILABLE/SUPERSEDED override는 builtin을 차단한다. runtime 외부 휴일 API는 호출하지 않는다.
+3. 기존 Project Master 관리자 session/cookie와 Origin 검사를 재사용한다. mutation은 strong If-Match를 요구하고 body 읽기 후 transaction 안에서 관리자 권한을 다시 검사한다.
+4. metadata/date CRUD 및 strict JSON/CSV Preview→Apply를 제공한다. 실제 날짜 변경은 provenance를 무효화한다. no-op은 revision·updatedAt·상태·출처를 바꾸지 않는다.
+5. Preview token은 원본 UTF-8 내용·format·선택 국가/연도·catalog revision·관리자 session·만료에 묶인다. Apply는 다시 검증하고 하나의 IMMEDIATE transaction에서 전체 대체한다. 삽입 중 오류에도 부분 저장하지 않는다.
+6. 국가 원본 변경은 기존 Project materialized calendar/Task/Project revision을 변경하지 않는다. 명시적 Project calendar Preview/Save에서만 최신 OFFICIAL 원본을 읽는다. 새 UI는 Preview의 `countryCatalogRevision`을 Save에 전달하고 불일치는 412다.
+7. 새 Project 기본 달력은 같은 UTC 연도의 effective KR OFFICIAL, 같은 연도의 검증된 builtin, 월~금 기본 근무주 순으로 초기화한다. 다른 연도의 휴일을 가져오지 않는다. 사용자가 명시적으로 선택한 국가 규칙의 미확보 연도는 상세 422로 거부한다.
+8. 관리자 화면은 기존 DESIGN, AdminAuth, WorkspaceDialog와 semantic token을 사용한다. 조회 중과 오류에서도 선택 toolbar 및 metadata/action DOM을 유지한다. target/request/auth/file 세대, pending 잠금, Escape 및 날짜 이름·날짜 변경 후 focus 복원을 검증한다.
 
-## CI #1960 실패 보완
+공식 출처·자료 적용 범위·파일 계약·갱신 절차는 [COUNTRY_CALENDAR_DATA](../../COUNTRY_CALENDAR_DATA.md), 서버 계약은 [API](../../API.md), 저장 구조는 [DB_SCHEMA](../../DB_SCHEMA.md)를 따른다.
 
-- Vitest 1513개 중 1509 PASS, 1 FAIL, 3 skipped.
-- 실패는 `SQLite connection and schema > adds explicit stage storage to schema 21 without inferring or altering existing data`.
-- legacy schema21 DB를 최신 migration directory로 올리면 이제 `0022_task_milestone_memberships.sql`과 `0024_country_calendar_catalog.sql`이 연속 적용되는 것이 정상이다.
-- 테스트 기대값을 0022+0023으로 갱신하고 기존 row 불변/empty membership/FK invariant에 더해 Country Calendar Catalog 초기 revision 1/dataset 0건을 확인한다.
-- 제품 코드와 migration SQL은 변경하지 않는다.
+## 소유권과 문서 동기화
 
-## Codex review REWORK
+| 담당 | 코드·검증 | 문서 |
+| --- | --- | --- |
+| backend | migration 0024, catalog repository/service/handler, shared contracts, 보호 routes, materialize/seed 연결, 관련 Unit/SQLite/API tests | API, DB_SCHEMA, ARCHITECTURE, REQUIREMENTS, SECURITY, SCHEDULING_ENGINE, ISSUE_57_WORK_CALENDAR |
+| frontend | 관리자 화면/route/접근 링크, Project calendar editor revision 전달, Gantt callback 최소 수정, 관련 E2E와 5폭 증거 | PROJECT_UX, UI_UX_GUIDELINES, TEST_PLAN |
+| Manager | 정책·공용 계약·통합 검토 | COUNTRY_CALENDAR_DATA, 이 계획, active PLAN |
+| infra | version/package/lock/CHANGELOG, Manager 승인 뒤 기존 PR 게시와 CI | CHANGELOG |
+| researcher | 공식 자료와 원표 대조, read-only | 문서 작성자를 위한 출처 handoff |
+| qa_docs | AC/code/test/docs/실제 CI 독립 검토, read-only | 검토 결과 handoff |
 
-- P1 stale provenance: 수동 날짜 Add/Edit/Delete가 기존 source metadata와 OFFICIAL 상태를 유지하던 문제를 수정한다. 같은 mutation transaction에서 status=UNAVAILABLE, sourceVersion/sourceUrl=null로 전환하고 재승인을 요구한다.
-- P1 persistence layering: Country Calendar SQL을 \`src/server/repositories/country-calendar-repository-core.ts\`로 이동하고 Service는 Repository만 호출한다.
-- P2 file selection race: \`File.text()\` generation token으로 가장 최근 선택만 envelope에 반영한다.
-- 관련 Unit/E2E와 ARCHITECTURE/API/PROJECT_UX/TEST_PLAN/CHANGELOG/release note를 동기화한다.
-- 이 rework로 #1964 PASS는 stale이며 새 exact head에서 full PR gate와 Codex review를 다시 받아야 한다.
+UI 설계는 실제 frontend Agent가 read-only phase에서 수행한 뒤 구현 phase로 전환했다. 별도 native ui_ux Agent 실행을 주장하지 않는다. qa_docs는 별도로 실행해 독립 검토한다.
 
-## Codex review REWORK 2
+DESIGN은 기존 시각 정책을 사용하므로 변경 N/A다. 기존 Project Import schema, CI/CD·원격 검증 정책, 배포·HTTP·Excel/VBA 계약은 바꾸지 않으며 문서 영향 분석에서 각각 N/A 근거를 확인한다. 국가 파일 Import는 Project Import와 별도 계약이다.
 
-- P1 target/snapshot 정합: selector 변경 직후 snapshot을 비우고 GET 성공 시에만 새 snapshot을 채운다.
-- P1 stale 412 draft: revision conflict reload 시 열린 edit/delete draft를 폐기한다.
-- P2 sole-date delete: 수동 변경은 즉시 UNAVAILABLE이므로 마지막 날짜 삭제를 허용한다.
-- P2 no-op PATCH: 지원 field 최소 1개를 요구하고 unknown field를 거부한다.
-- P2 native file input: successful Import Apply 후 DOM file input value까지 초기화한다.
-- Unit/Chromium과 API/UX/Test Plan/CHANGELOG/release note를 다시 동기화한다.
+## 검증과 단계
 
-## Codex review REWORK 3
+Local Fast Feedback은 strict parser, 실제 SQLite CRUD/Preview/Apply, no-op, 만료·revoked session·지연 body, session/target/content/format/revision token binding, 삽입 중 injected failure rollback, 기존 Project snapshot 불변, seed fallback 및 명시적 미확보 국가 규칙을 다룬다. 실제 관리자 인증과 JSON/CSV 적용 E2E를 mock race 검증과 구분한다. Native Add 관련 회귀, typecheck, 변경 파일 lint 및 문서 링크를 확인한다.
 
-- P2 effective provenance: override가 유일한 built-in 연도를 비활성화해 \`supportedYears=[]\`이 되면 목록 descriptor의 sourceVersion/sourceUrl도 null이어야 한다.
-- public descriptor DTO는 nullable provenance를 허용하되 실제 Scheduling \`CountryCalendarDataset\`은 non-null provenance 타입을 유지한다.
-- Unit/API/Test Plan/CHANGELOG/release note를 동기화한다.
+390/768/1024/1440/1920px에서 대표 상태와 native keyboard/focus/Escape 및 table 자체 overflow를 확인한다. CSS zoom이나 deviceScaleFactor를 실제 OS 125% 검증이라고 보고하지 않는다.
 
-## CI #1995 보완
+진행 순서는 구현 → Local Fast Feedback → DOCUMENTATION_SYNC → 독립 QA → Manager 게시 검토 → 기존 PR #346 게시 → 새 head quality/e2e/docker → 최종 QA다. head가 변경되면 세 원격 gate와 최종 QA를 다시 확인한다.
 
-- TypeScript: Preview mismatch error import 누락과 구형 2-argument `applyImport` test 호출을 수정한다.
-- Vitest: sole-date import test를 Preview token 경로로 이관하고 Integration test의 잘못 중첩된 `it` 구조를 복구한다.
-- Policy: `npm audit --omit=dev`의 librsvg CVE-2026-96889를 Next 16.3.8 허용 범위의 `sharp 0.35.5` / `sharp-libvips 1.3.4` lock update로 해소한다.
-- dependency 변경은 package-lock only이며 Next/application direct dependency version은 변경하지 않는다.
-- 새 exact head에서 quality/e2e/docker와 Codex review를 다시 판정한다.
+서버 Local Fast Feedback은 관련 239개 고유 테스트 PASS다(236개 Vitest + migration CLI 3개). 후속으로 추가한 US 2027→2028 FULL_PROJECT 통합과 국가 원본 미확보 상태에서 저장된 Template를 사용하는 검증을 포함한다. 기존 테스트의 반복 실행 수를 새 테스트 수로 더하지 않았다.
 
-## Codex review REWORK 5
+최신 main의 공통 E2E 설정과 helper에서 선택한 브라우저 10개가 PASS다. 국가 관리자 4개, Project Calendar 3개, Resource Calendar 1개, Native Add 2개이며 실제 서버/auth/SQLite 성공 경로와 제어 mock의 경합·오류 검증을 구분한다. 390/768/1024/1440/1920px의 populated table·control 경계와 실제 Tab focus를 확인했다. 첫 실행의 실패와 원본 기록은 보존한다. 캡처의 US 2031 E2E override는 테스트 자료이며 builtin 공식 자료의 검증 근거가 아니다.
 
-- pending edit 취소는 busy 동안 disabled/guard한다.
-- BUILT_IN metadata 동일 저장은 override clone·revision 증가 없이 no-op이다.
-- date PATCH explicit null field는 omission이 아니라 invalid input이다.
-- 401 session expiry는 edit/delete와 associated draft를 폐기한다.
-- 삭제 후 원 trigger row가 사라지면 날짜 section으로 focus를 복원한다.
-- country/year reload는 다음 task에서 시작해 native select change와 busy disable 경합을 피한다.
-- 최신 main v0.94.0 / migration 0023을 보존해 #342를 v0.95.0 / migration 0024로 재정렬한다.
-
-## 검증
-
-- Catalog parser/service/CRUD/atomic import/stale revision/WORKING 보존 Unit.
-- built-in first-edit clone 및 OFFICIAL effective resolver.
-- 기존 Project snapshot 불변 + 명시적 Preview/Save 최신 dataset 반영 Integration.
-- migration 0023 및 schema/index/FK/route-security inventory.
-- /calendar-admin Import/CRUD 및 responsive Chromium.
-- project-status direct GET transient reset 회귀.
-- 공식 전체 판정은 새 exact head의 GitHub Actions `quality/e2e/docker` 결과로 수행한다.
-
-## Codex review REWORK 4
-
-- P2 no-op edit: normalized current/next가 같으면 override clone·revision/provenance mutation 없이 동일 snapshot을 반환한다.
-- P2 pending delete: mutation 중 child 취소 action도 disabled 처리한다.
-- P2 target draft: country/year 전환 시 create/file/Preview/edit/delete draft를 함께 폐기한다.
-- P2 Preview binding: Catalog state server secret HMAC으로 revision+target+format+bytes를 묶고 Apply가 exact token을 요구한다.
-- P1 Project creation availability: 재승인 대기 override 때문에 신규 Project create가 500이 되지 않도록 default seed에서 built-in approved baseline fallback을 사용하고 baseline도 없으면 rule 없이 생성한다.
-- CI #1989 locator ambiguity 2건은 product accessible status name 및 exact label locator로 분리한다.
-- SECURITY/API/ARCHITECTURE/DB_SCHEMA/SCHEDULING/UX/Test Plan/CHANGELOG/release note를 동기화한다.
+관련 문서를 동기화한 뒤 독립 QA와 게시 검토를 진행한다. 새 head 원격 quality/e2e/docker와 최종 QA는 아직 NOT TESTED다. Local PASS를 전체 원격 회귀 PASS로 대체하지 않는다.

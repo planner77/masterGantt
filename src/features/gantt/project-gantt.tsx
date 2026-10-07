@@ -72,6 +72,10 @@ import {
   nextTimelineScaleWidth,
   type GanttScaleMode,
 } from "./timeline-range";
+import {
+  buildProjectTaskHoverTooltipData,
+  type ProjectTaskHoverTooltipData,
+} from "./task-hover-tooltip";
 
 import {
   createTaskAddGateway,
@@ -190,6 +194,99 @@ type WeekHeaderTooltipState = Readonly<{
   top: number;
   anchorTop: number;
 }>;
+type TaskHoverTooltipState = Readonly<{
+  taskId: string;
+  data: ProjectTaskHoverTooltipData;
+  left: number;
+  top: number;
+}>;
+
+function TaskHoverTooltipLayer({
+  rootReference,
+  tasks,
+  locales,
+}: {
+  readonly rootReference: Readonly<{ current: HTMLDivElement | null }>;
+  readonly tasks: readonly ProjectTaskDto[];
+  readonly locales: Intl.LocalesArgument;
+}) {
+  const [tooltip, setTooltip] = useState<TaskHoverTooltipState | null>(null);
+
+  useEffect(() => {
+    const root = rootReference.current;
+    if (!root) return;
+    const tasksById = new Map(tasks.map((task) => [task.taskId, task]));
+
+    const close = () => setTooltip(null);
+    const move = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) {
+        close();
+        return;
+      }
+      const target = event.target.closest<HTMLElement>(TASK_TARGET_SELECTOR);
+      if (!target || !root.contains(target)) {
+        close();
+        return;
+      }
+      const taskId = taskIdFromElement(target);
+      const canonicalTask = taskId ? tasksById.get(taskId) : undefined;
+      if (!taskId || !canonicalTask) {
+        close();
+        return;
+      }
+
+      const rect = target.getBoundingClientRect();
+      const width = Math.min(384, Math.max(0, window.innerWidth - 16));
+      const halfWidth = width / 2;
+      const left = Math.max(
+        8 + halfWidth,
+        Math.min(rect.left + rect.width / 2, window.innerWidth - 8 - halfWidth),
+      );
+      const estimatedHeight = 64;
+      const below = rect.bottom + 8;
+      const top = below + estimatedHeight <= window.innerHeight - 8
+        ? below
+        : Math.max(8, rect.top - estimatedHeight - 8);
+      const data = buildProjectTaskHoverTooltipData(canonicalTask, locales);
+
+      setTooltip((current) =>
+        current?.taskId === taskId &&
+        current.left === left &&
+        current.top === top &&
+        current.data.name === data.name &&
+        current.data.start === data.start &&
+        current.data.end === data.end
+          ? current
+          : { taskId, data, left, top },
+      );
+    };
+
+    root.addEventListener("mousemove", move);
+    root.addEventListener("mouseleave", close);
+    root.addEventListener("focusin", close);
+    root.addEventListener("scroll", close, true);
+    return () => {
+      root.removeEventListener("mousemove", move);
+      root.removeEventListener("mouseleave", close);
+      root.removeEventListener("focusin", close);
+      root.removeEventListener("scroll", close, true);
+    };
+  }, [rootReference, tasks, locales]);
+
+  if (!tooltip) return null;
+  return (
+    <div
+      className="project-task-hover-tooltip"
+      role="tooltip"
+      style={{ left: tooltip.left, top: tooltip.top }}
+    >
+      <div className="project-task-hover-tooltip-content">
+        <span className="project-task-hover-tooltip-name">{tooltip.data.name}</span>
+        <span className="project-task-hover-tooltip-dates">시작일: {tooltip.data.start} · 종료일: {tooltip.data.end}</span>
+      </div>
+    </div>
+  );
+}
 type StartDatePickerState = Readonly<{
   taskId: string;
   revision: number;
@@ -556,13 +653,10 @@ export function ProjectGantt({
   useLayoutEffect(() => {
     canCreateReference.current = editable && !mutationLocked;
     mutationLockedReference.current = mutationLocked;
-    onTaskCreateReference.current = onTaskCreate;
-    onTaskAddRejectedReference.current = onTaskAddRejected;
     tasksByIdReference.current = tasksById;
     projectPublicIdReference.current = projectPublicId;
-    viewRootTaskIdReference.current = viewRootTaskId;
     tasksReference.current = tasks;
-  }, [editable, mutationLocked, onTaskAddRejected, onTaskCreate, projectPublicId, tasks, tasksById, viewRootTaskId]);
+  }, [editable, mutationLocked, projectPublicId, tasks, tasksById]);
 
   useLayoutEffect(() => {
     const wasLocked = previousMutationLockedReference.current;
@@ -600,7 +694,7 @@ export function ProjectGantt({
     });
   }, [editable, mutationLocked]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     onTaskCreateReference.current = onTaskCreate;
     onTaskCommandReference.current = onTaskCommand;
     linksReference.current = links;
@@ -1457,6 +1551,9 @@ export function ProjectGantt({
   const appliedCanonicalViewportGeometryReference = useRef<string | null>(null);
   useEffect(() => {
     const syncVersion = ++canonicalSyncVersionReference.current;
+    if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+      fullscreenFrameReference.current.dataset.ganttCanonicalSyncGeneration = String(syncVersion);
+    }
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       if (syncVersion !== canonicalSyncVersionReference.current) return;
       // Compare with the geometry that actually completed the previous canonical sync.
@@ -1468,6 +1565,9 @@ export function ProjectGantt({
       const api = apiReference.current;
       if (!api) return;
       canonicalSyncDepthReference.current += 1;
+      if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+        fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+      }
       const context = peerViewportContext.current;
       const viewport = api.getState();
       const root = ganttScrollReference.current;
@@ -1503,7 +1603,15 @@ export function ProjectGantt({
         metadataViewportReference.current?.cleanup();
         metadataViewportReference.current = null;
         if (syncVersion === canonicalSyncVersionReference.current) onCanonicalSyncFailureReference.current();
-      } finally { canonicalSyncDepthReference.current -= 1; }
+      } finally {
+        canonicalSyncDepthReference.current -= 1;
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+          fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+          if (syncVersion === canonicalSyncVersionReference.current) {
+            fullscreenFrameReference.current.dataset.ganttCanonicalSyncSettledGeneration = String(syncVersion);
+          }
+        }
+      }
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [canonicalViewportGeometry, canonicalViewportMetadata, ensureTimelineEnd, svarLinks, svarTasks, visibleTaskFilterKey]);
 
@@ -1536,6 +1644,9 @@ export function ProjectGantt({
       const api = apiReference.current;
       if (!api) return;
       canonicalSyncDepthReference.current += 1;
+      if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+        fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+      }
       try {
         // State columns are optional; retain configured defaults when absent.
         const summaryState = captureSummaryToggleState();
@@ -1585,6 +1696,9 @@ export function ProjectGantt({
       } finally {
         // State reads and column mapping must also release the sync guard.
         canonicalSyncDepthReference.current -= 1;
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+          fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+        }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
   }, [columns, ensureTimelineEnd]);
@@ -3314,6 +3428,12 @@ export function ProjectGantt({
             />
           </div>
         </div>
+        <TaskHoverTooltipLayer
+          key={`${projectRevision}:${scaleMode}:${viewRootTaskId ?? "root"}`}
+          locales={locales}
+          rootReference={ganttScrollReference}
+          tasks={tasks}
+        />
         {startDatePicker ? (
           <div
             aria-label="시작일 날짜 선택"

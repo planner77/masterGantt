@@ -1,8 +1,37 @@
 # Active execution plan
 
-## Issue #342 국가 Calendar Catalog — latest main v0.94.1 재정렬 / PR CI
+## Issue #342 국가 캘린더 — 최신 main 재구현 / 기존 PR 재검증
 
-최신 main `69ba4ce65e6734f13ff960a06ae74776353c228e` / v0.94.1의 #485 Global Resource Role, #457 cross-screen regression, #493/#456 및 Stage Gate/JSON 1.1 계약을 보존하고 기존 PR #346의 Country Calendar Catalog를 재적용한다. main의 `0023_deprecate_task_assignment_roles.sql`을 보존하므로 #342 migration은 `0024_country_calendar_catalog.sql`, 후보 version은 다음 MINOR `0.95.0`이다. 최신 Codex review의 pending dialog/session/focus/input no-op 경계와 Chromium target-switch timing을 보완한 뒤 exact-head PR CI를 시작한다. 현재 요청 종료점은 새 PR CI 시작 확인이며 CI 완료 모니터링·병합·Main CI·GHCR는 이번 응답 범위 밖이다. 상세는 [Issue #342 실행 계획](ISSUE_342.md)을 따른다.
+최신 main `c94b13e110ed5fd9e17625daa084c181f35703e8` / application `0.95.1`에서 국가 원본·관리 화면·테스트를 새로 구현한다. 기존 PR #346과 branch `feat/issue-342-country-calendar-catalog`를 재사용하고 과거 실패 이력을 보존한다. 신규 기능 version은 MINOR `0.96.0`이며 자세한 AC·소유권·정책·문서·검증은 [Issue #342 실행 계획](ISSUE_342.md)을 따른다.
+
+작업 중 PR #516 / Issue #502가 main `36cf2db8ab0c6d04ab904b01c6bc8a0bb6b1cdab`에 병합돼 공통 E2E 설정·geometry helper와 문서를 통합했다. version은 동일하므로 `0.96.0`을 유지한다. backend 고유 bytes의 관련 로컬 결과는 재사용하고 최신 공통 설정에서 브라우저 검증을 다시 수행한다.
+
+확인한 관리자 조회/국가 전환 상태 회귀와 main에도 있는 Native Add 첫 클릭 실패를 해결한다. 84개 슬롯의 공식 상태, strict JSON/CSV Preview 및 atomic Apply, 관리자 권한·revision·token binding, 기존 Project snapshot 불변을 검증한다. 구현·문서 동기화·독립 QA 후 새 head의 quality/e2e/docker를 모두 확인한다. 최신 main에서 관련 서버 239개 고유 테스트와 선택한 브라우저 10개가 PASS다. 문서 동기화·독립 QA·게시 검토 후 PR 검증으로 넘긴다. 현재 새 구현의 원격 CI와 최종 QA는 NOT TESTED다. `release_required=true`, `release_authorized=false`; 병합·GHCR·tag·Issue 종료는 현재 요청 범위 밖이다.
+
+
+## Issue #491 생성·복사·템플릿·입출력 폼 — 최신 Tooltip main 통합 / PR CI 시작
+
+main `44b2ee3562cf76a73368a49fa17933ed341ab424` / application `0.94.2`에서 #456 C 후속을 구현하고 PATCH `0.94.3`의 최종 after 8case PASS(2.5분)를 확인했다. branch는 `fix/issue-491-project-transfer-layout`, 전용 worktree는 `issue-491`이며 [Issue #491 실행 계획](ISSUE_491.md)의 6AC·소유권·지원 경계·문서·검증을 따른다. 실제 7개 표면을 390/768/1024/1440/1920px에서 관측해 template/Export/Import 3표면을 FIX하고 나머지 지원 배치는 KEEP으로 기록한다. JSON-only Import/CSV mapping 미지원과 inline 견적 범위를 분리하며 신규 기능·계산은 추가하지 않는다.
+
+실제 5폭에서 template save의 textarea/footer와 action 내부 간격, Export의 가로/세로 footer 간격이 0px임을 확인했다. 전체 8개 baseline before는 PASS(2.4분)이며 추가 region 측정에서 Import의 390px 초점 테두리 잘림도 확인했다. 소비자 4파일에 12px parent gap 및 Import의 8px focus 여유를 적용하는 최소안을 확정하고 PATCH `0.94.3`을 배정한다. 관련 최소 LFF·문서 동기화·독립 사전/게시본 검토 후 원격 PR 및 exact-head CI 등록까지 진행한다. CI 결과 모니터링·병합·GHCR/release·Issue 종료는 요청 범위 밖이고 공식 quality/e2e/docker 및 최종 ACCEPT는 NOT TESTED다. `release_required=true`, `release_authorized=false`다.
+
+
+게시 전 외부 PR #513 / Issue #486 병합으로 main이 `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`(tree `91cb73e2ca089f0b8ac7d3371ab29e33d0f845cf`), application `0.94.3`으로 전진했다. 원래 후보와 모든 실패·원본 자료는 `issue-491` worktree에 보존한다. 같은 branch의 새 `issue-491-current`에서 최신 Resource Catalog 코드·문서와 #491 고유 변경을 통합하고 PATCH 후보를 `0.94.4`로 정한다. 제품 4개와 테스트 2개는 main 변경과 겹치지 않는다. 기존 before 및 0.94.3 after는 과거 증거로 구분하고, 0.94.4의 관련 8개 E2E와 문서 동기화·독립 검토를 수행한 뒤 게시한다. CI 결과는 조회하지 않는다.
+
+최신 0.94.4의 고유 after-current 실행은 관련 8개 모두 PASS(2.5분)다. 제품 4파일·spec/helper bytes는 원래 동결본과 같고 기존 before 재사용 범위를 명시했다. 새 geometry242/계약10 및 PNG10+JSON5 선택 증거를 기존 역사 자료와 구분한다. 문서 동기화·독립 UIX/PRE_QA·게시 동등성 후 PR CI를 등록한다. 공식 CI와 최종 ACCEPT는 NOT TESTED다.
+
+
+
+게시 직전 외부 PR #498 / Issue #492 Hover Tooltip 병합으로 main이 `61a5f511d79e1f9429635bb0da35c0c02ee2163c`(tree `ff49917c4326aa6ff6b1d9f9ef33666148a4f11e`), application `0.95.0`으로 다시 전진했다. 새 현재 경로는 `issue-491-latest`, 후보는 PATCH `0.95.1`이다. 이전 0.94.4 후보·원본 증거·독립 검토는 과거 기록으로 보존한다. C 소비자 제품4/spec/helper가 동일한 범위의 before는 재사용하고, Gantt Tooltip의 실제 mousemove/focusin/scroll 영향을 반영하여 관련8개 E2E를 다시 실행한다. 최신 #492 소스·테스트·문서와 #491 자체 변경을 통합한 뒤 새 문서 gate·독립 delta 검토·게시본 동등성을 확인한다. 원격 쓰기와 CI 결과 조회는 아직0이다.
+
+최신0.95.1의 after-latest8개 모두 PASS(2.5분)다. 제품4/spec/helper는 같고 최신GanttTooltip과 사용자 상태 보존을 새실행에서 확인했다. 기존78선택파일과 전체10회61case50PASS11원래FAIL 이력을 보존하고 새PNG10/JSON5·geometry242/계약10을 추가했다. 최신 문서 gate·독립delta 검토 후 게시본을 대조하고 PR CI등록으로 넘긴다. 공식CI/최종ACCEPT는 NOT TESTED다.
+
+
+## Issue #486 Resource Catalog 401 보존 초안 전환 — 구현·문서 동기화 / PR CI 시작
+
+최신 정렬 기준 `main`은 `44b2ee3562cf76a73368a49fa17933ed341ab424`, application `0.94.2`이며 작업 branch는 `fix/issue-486-suspended-resource-draft`다. 401 후 suspended dirty Resource/Group/Profile draft가 다른 editor trigger를 자동 가로채던 `openEditor()` 경로를 제거하고, `보존한 초안 확인`에서 초안 유지 또는 폐기 후 요청 editor 진입을 명시 선택하도록 수정한다. 기존 `보존한 초안 계속 편집`은 직접 재개 경로로 유지한다.
+
+관련 E2E는 Resource→Group trigger의 자동 재개 금지/명시 재개 보존, Group→Resource trigger의 폐기 후 요청 editor 진입, Profile→다른 trigger의 명시 재개 보존을 추가한다. session/401/403/412, If-Match/revision, pending/Escape/focus와 API/DB/security/scheduling 계약은 유지한다. 상세 범위와 문서 영향은 [Issue #486 실행 계획](ISSUE_486.md)을 따른다. 하위 호환 버그 수정이므로 application version은 `0.94.3` PATCH다. `release_required=true`, `release_authorized=true`이며 사용자의 명시 승인에 따라 병합 후 exact main CI 성공 시 Generic Release Finalizer가 `0.94.3` 정식 GHCR 게시와 후속 lifecycle을 수행한다.
 
 ## Issue #490 프로젝트 설정·근무 규칙·인증 폼 — 로컬 검증 / 문서 동기화·PR CI 시작
 
@@ -254,6 +283,13 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위인 Project 생성�
 전용 브랜치에서 URL/쿠키/설정 주입/공유 URL과 문서를 갱신한다. PR quality/E2E/Docker 및 HTTP·HTTPS 실제 브라우저 검증 후 리뷰·병합하고 main exact digest 결과를 별도로 기록한다. 본 계획 추가만으로 PASS가 아니며 운영 Windows/WSL2 전환은 별도 미검증이다.
 
 
+## Issue #492 — Grid/Chart 작업 Hover Tooltip
+
+최신 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d` / application `0.94.3` 기준으로 `feat/issue-492-task-hover-tooltip`에서 작업 Hover Tooltip을 구현한다. Grid row와 Chart Task/Summary/Milestone를 기존 task target selector로 canonical taskId에 연결하고, 표시 authority는 `ProjectTaskDto`의 name/start/end로 고정한다. 설치된 SVAR React Gantt 2.7.3의 공식 Tooltip API를 검토했으나 실제 PR CI에서 Milestone/WBS scope 및 Header Tooltip 공존 회귀가 확인되어 app-owned delegated hover로 전환했다. Tooltip 상태와 native listener는 전용 child layer로 격리하여 hover가 ProjectGantt/SVAR 부모를 재렌더링하거나 viewport를 변경하지 않으며 date-less Summary의 Core anchor 날짜는 노출하지 않는다.
+
+candidate version은 `0.95.0`, release_required=true, release_authorized=true다. 사용자가 병합 후 정식 GHCR 게시를 명시적으로 승인했으며 Issue #492의 version-scoped authorization marker가 authority다. REQUIREMENTS/PROJECT_UX/UI_UX_GUIDELINES/TEST_PLAN/CHANGELOG/Issue 실행 계획을 동기화하고 Unit+Chromium 명세를 추가한다. 현재 사용자 승인 범위는 latest-main exact PR CI SUCCESS → 병합 → exact Main CI 시작 및 성공 후 Generic Release Finalizer가 정식 GHCR 게시를 수행하도록 하는 것이다.
+
+
 ## Issue #456 — Task Editor 폼 밀도와 의미별 배치
 
 [Issue Work Packet](ISSUE_456.md)을 기준으로 최신 main `05fe212060ed4a935510dc2f7a692bb9113c55e8` / version0.92.0에서 기존branch `fix/issue-456-task-editor-form-density`를 재사용하며 후보 PATCH0.92.1을 적용한다. 실제 before 후 A Task Editor의 필드·intrinsic action 폭·부모 간격을 정돈한다. 기존44px hit-area·동적탭·dirty/stale/canonical/Gantt 계약을 유지한다.
@@ -270,6 +306,16 @@ B 설정·근무 규칙·인증은 [#490](https://github.com/planner77/masterGan
 
 선행 #456 PR #500의 exact head에서 stacked branch를 만들어 공통 측정 helper/대표 E2E/전체 coverage 표와 문서를 보강한다. [Work Packet](ISSUE_457.md)에 기준 SHA·역할·증거·검증 경계를 기록한다. version0.92.1 유지, tests/docs only, 공식 CI와 최종 ACCEPT는 NOT TESTED다. 현재 구현·독립 검토를 진행하며 요청 범위는 원격 PR과 exact-head CI 등록까지다. B #490/C #491 및 실제 배포/환경별 검증은 후속으로 유지하고 Epic #449를 종료하지 않는다.
 
-#457의 실제 React error boundary·native125%·수동 UX·운영 source/version 미실행은 [#502](https://github.com/planner77/masterGantt/issues/502) FOLLOW-UP / NOT TESTED로 추적한다. 이번 PR은 해당 후속이나 B #490/C #491를 자동 구현하지 않는다.
+#457의 실제 React error boundary 미실행은 [#502](https://github.com/planner77/masterGantt/issues/502), native125%·수동 UX·운영 source/version 미실행은 [#517](https://github.com/planner77/masterGantt/issues/517) FOLLOW-UP / NOT TESTED(BLOCKED 가능)로 분리 추적한다. 당시 #457 PR은 해당 후속이나 B #490/C #491를 자동 구현하지 않았다.
 
 #457 게시 준비 중 선행 PR #500 병합을 확인했다. 최신 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 tree가 기존 측정 source와 정확히 같아 제품 검증을 재사용하며 최종 PR base는 main으로 갱신한다. 착수 당시 stacked 계획과 원래 capture source SHA는 역사 기록으로 보존한다. 독립 QA에서 확인한 목록 실측1280×720·Asia/Seoul 요약 정정 후 새 후보 검토로 진행한다.
+
+## Issue #502 — 실제 Error Boundary·확대·배포 환경 검증 보완
+
+최신 main `c94b13e110ed5fd9e17625daa084c181f35703e8` / application `0.95.1`에서 `test/issue-502-error-boundary-validation`을 최신 main 기준으로 재정렬한다. #457의 source-only 공백 중 자동화 가능한 root/gantt-demo 실제 React error boundary, keyboard retry와 focus restore를 server-gated non-production E2E probe로 구현한다. #457 geometry/provenance helper는 `evidenceScope=502`를 추가해 tracked evidence를 기본 덮어쓰지 않는다.
+
+PR CI #2076.1은 ESLint의 effect 내부 동기 state update, #457 evidence literal fallback 회귀, reset 뒤 probe focus restore 실패로 FAIL했다. 보완은 recovery state를 timer callback으로 전환하고 recovered button을 새 key로 재마운트해 `autoFocus`로 focus를 복원하며, #457/#502 기본 evidence output을 각각 literal 경로로 유지한다. 실패 assertion/gate는 완화하지 않는다.
+
+제품 인증/API/DB/scheduling 및 #490/#491 기능 범위는 변경하지 않는다. version은 `0.95.1`을 유지하고 release_required=false / release_authorized=false로 취급한다. native125% 실제 browser zoom, 실기기/screen reader/최종 수동 UX, 승인 운영 배포 source SHA/application version/proxy 비교는 GitHub-hosted CI로 대체하지 않으며 환경 후속 [#517](https://github.com/planner77/masterGantt/issues/517)에서 NOT TESTED/BLOCKED로 관리한다.
+
+PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI #2078.1/#2079.1 SUCCESS다. Generic Finalizer가 no-release merge 후 #502를 자동 close하므로 CI로 대체할 수 없는 환경 검증을 #517로 분리했다. #517 이관 문서가 반영된 새 head에서 required PR CI와 독립 리뷰를 다시 통과한 뒤 #502를 병합/Main CI/finalize하고, #517은 OPEN으로 유지한다.
