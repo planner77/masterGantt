@@ -378,3 +378,10 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 `GET /api/projects/{publicId}/milestone-dashboard`는 route security inventory의 `public-read`, mutatesState=false다. 기존 Project direct read와 같은 공개 범위이며 편집 세션·Origin·If-Match를 요구하지 않는다. query는 allowlist/단일 scalar/UUID/enum/date/숫자/개수·길이 제한으로 서버에서 검증한다. bound Project repository 조회 및 동일 read transaction을 사용하고 unknown valid filter ID는 empty-match 처리한다. 응답은 public ID와 Project 관련 최소 표시 metadata만 포함하며 credential/session/token/internal PK/SQL/stack/path를 포함하지 않는다. 응답과 오류는 no-store다.
 
 이 조회 추가와 명시 M/M 설정은 보호 mutation의 Origin/session/revision 검증을 제거하지 않는다. production HTTPS 및 명시 내부망 HTTP 지원은 기존 공용 URL parser/cookie 정책과 [HTTP 운영](HTTP_OPERATION.md)을 유지한다. 새로운 비밀번호·권한·세션·환경 secret을 만들지 않는다.
+
+
+## Issue #524 Resource Dashboard public read
+
+신규 report/details GET 두 경로는 route security inventory의 public-read/stateless다. 서버가 canonical UUIDv4와 Project 존재를 확인하며 편집 쿠키를 읽기 권한으로 승격하거나 신규 쿠키를 발급하지 않는다. Project에 연결되지 않은 catalog ID/다른 Project Task·Milestone은 공개 selection으로 사용할 수 없다. Repository는 해당 Project Task 직접 참조 Resource, 직접 Group 참조 또는 그 Resource의 Group만 projection하고 전역 미할당 인력·Group 전체 멤버·description·내부PK/비밀번호/KDF/session/token을 DTO에 넣지 않는다.
+
+성공과 오류는 private/no-store·nosniff·request ID이며 CORS/Origin/session/revision mutation 정책을 변경하지 않는다. same-snapshot SHA256은 권한 token이 아니라 현재 보고서의 정합성 identity다. Detail에서 source/filter/날짜/환산이 바뀌면409 stale이고 기존 KPI와 새 행을 성공으로 혼합하지 않는다. unknown scalar/잘못된 배열·날짜·페이지·selector는400, 유한 raw/cell/path/JSON 예산 초과는422다. raw query/SQL/stack/secret을 공개 오류로 전달하지 않으며 새 migration·report 저장 원장이 없다. [KPI/API 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다.

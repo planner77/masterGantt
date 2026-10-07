@@ -4,9 +4,12 @@ import { parseDateOnly } from "../scheduling/date-only";
 import { resolveResourceCalendar, type ResourceCalendarException } from "../scheduling/resource-calendar";
 import { mdPerMmSource, resolveMdPerMm } from "./md-per-mm";
 
-export interface ResourceKpiTask extends StageTask { start: string | null; end: string | null }
+export interface ResourceKpiTask extends StageTask { start: string | null; end: string | null; name?: string; externalId?: string; wbsPath?: string }
 export interface ResourceKpiResource {
   resourceId: string;
+  name?: string;
+  code?: string | null;
+  groupSearchText?: string;
   groupIds: readonly string[];
   roles: readonly string[];
   developerGrade: string | null;
@@ -21,6 +24,12 @@ export interface ResourceKpiAssignment {
   allocationPercent: number | null;
 }
 export interface ResourceKpiFilters {
+  /** Defined empty means no eligible Resource, unlike optional user OR arrays. */
+  eligibleResourceIds?: readonly string[];
+  statuses?: readonly StageTask["status"][];
+  search?: string;
+  taskSearch?: string;
+  includeUngrouped?: boolean;
   taskIds?: readonly string[];
   wbsRootIds?: readonly string[];
   milestoneIds?: readonly (string | null)[];
@@ -46,6 +55,8 @@ export interface ResourceKpiInput {
   mdPerMm?: number | null;
   /** Deployment value is injected by the caller; the domain never reads ENV. */
   mdPerMmEnvironment?: string;
+  /** Optional caller budget, checked before subtotal/cell materialization. */
+  maxProjectionCells?: number;
 }
 export interface ResourceKpiAssignmentRow {
   projectPublicId: string;
@@ -121,6 +132,10 @@ export const RESOURCE_KPI_DICTIONARY: readonly ResourceKpiDictionaryEntry[] = [
   entry("Milestone 전체 진척/Ready/Blocked", "milestone", "full milestone", "canonical projectStageGates full snapshot", "full E(M) duration for progress", "full E(M)/P(M)", "manual event progress/Ready=null", "fullMilestones.stageGate"),
 ];
 
+export class ResourceKpiProjectionLimitError extends Error {
+  constructor() { super("Resource KPI projection cell limit exceeded"); this.name = "ResourceKpiProjectionLimitError"; }
+}
+
 const unique = (values: readonly string[]): string[] => [...new Set(values)].sort();
 const matches = <T>(filter: readonly T[] | undefined, value: T): boolean => !filter?.length || filter.includes(value);
 
@@ -191,7 +206,10 @@ export function calculateResourceKpi(input: ResourceKpiInput) {
     }
     return false;
   };
-  const t0 = tasks.filter((task) => task.type === "task" && matches(filters.taskIds, task.taskId) && inWbs(task) &&
+  const taskText = (task: ResourceKpiTask) => [task.taskId, task.name ?? "", task.externalId ?? "", task.wbsPath ?? ""].join(" ").toLocaleLowerCase();
+  const taskSearch = (filters.taskSearch ?? "").trim().toLocaleLowerCase();
+  const search = (filters.search ?? "").trim().toLocaleLowerCase();
+  const t0 = tasks.filter((task) => task.type === "task" && matches(filters.statuses, task.status) && (!taskSearch || taskText(task).includes(taskSearch)) && matches(filters.taskIds, task.taskId) && inWbs(task) &&
     matches(filters.milestoneIds, projection.membership.get(task.taskId)!.effectiveMilestoneTaskId) && task.start! <= input.to && task.end! >= input.from);
   const t0Ids = new Set(t0.map((task) => task.taskId));
   const selected: ResourceKpiAssignmentRow[] = [];
@@ -200,11 +218,12 @@ export function calculateResourceKpi(input: ResourceKpiInput) {
     if (assignment.kind !== "resource" || !t0Ids.has(assignment.taskId)) continue;
     const resource = byResource.get(assignment.targetId)!;
     const roles = resource.roles.length ? resource.roles : ["UNSPECIFIED"];
-    if (!matches(filters.resourceIds, resource.resourceId) ||
-        (filters.groupIds?.length && !resource.groupIds.some((id) => filters.groupIds!.includes(id))) ||
+    if ((filters.eligibleResourceIds !== undefined && !filters.eligibleResourceIds.includes(resource.resourceId)) || !matches(filters.resourceIds, resource.resourceId) ||
+        ((filters.groupIds?.length || filters.includeUngrouped) && !resource.groupIds.some((id) => filters.groupIds?.includes(id)) && !(filters.includeUngrouped && !resource.groupIds.length)) ||
         (filters.roles?.length && !roles.some((role) => filters.roles!.includes(role))) ||
         !matches(filters.developerGrades, resource.developerGrade ?? "UNSPECIFIED")) continue;
     const task = byTask.get(assignment.taskId)!;
+    if (search && ![taskText(task), resource.name ?? "", resource.code ?? "", resource.groupSearchText ?? ""].join(" ").toLocaleLowerCase().includes(search)) continue;
     const from = (assignment.start ?? task.start!) < input.from ? input.from : assignment.start ?? task.start!;
     const to = (assignment.end ?? task.end!) > input.to ? input.to : assignment.end ?? task.end!;
     if (from > to) continue;
@@ -219,6 +238,20 @@ export function calculateResourceKpi(input: ResourceKpiInput) {
       resourceId: resource.resourceId, milestoneTaskId: projection.membership.get(task.taskId)!.effectiveMilestoneTaskId,
       groupIds: resource.groupIds, roles, from, to, allocationPercent: assignment.allocationPercent, effectiveWorkingDays,
       plannedMd, plannedMm: plannedMd === null || mdPerMm === null ? null : plannedMd / mdPerMm });
+  }
+  if (input.maxProjectionCells !== undefined) {
+    const dimensions = new Map<string, Set<string | null>>();
+    const add = (key: string, milestone: string | null) => { const values = dimensions.get(key) ?? new Set<string | null>([null]); values.add(milestone); dimensions.set(key, values); };
+    add("all", null); add("group:none", null);
+    const roleIds = new Set<string>();
+    for (const row of selected) {
+      add("all", row.milestoneTaskId); add(`resource:${row.resourceId}`, row.milestoneTaskId);
+      if (!row.groupIds.length) add("group:none", row.milestoneTaskId);
+      for (const groupId of row.groupIds) add(`group:${groupId}`, row.milestoneTaskId);
+      for (const role of row.roles) roleIds.add(role);
+    }
+    const cells = [...dimensions.values()].reduce((sum, values) => sum + values.size, roleIds.size);
+    if (cells > input.maxProjectionCells) throw new ResourceKpiProjectionLimitError();
   }
   const totals = (rows: readonly ResourceKpiAssignmentRow[]): ResourceKpiTotals => {
     const taskIds = unique(rows.map((row) => row.taskId));
@@ -255,8 +288,8 @@ export function calculateResourceKpi(input: ResourceKpiInput) {
     responsibilityReferences: assignments.filter((row) => row.kind === "group" || byTask.get(row.taskId)!.type !== "task"),
     diagnostics: {
       scope: "T0" as const, taskIds: t0.map((task) => task.taskId), denominator: t0.length,
-      inapplicableFilters: ["resourceIds", "groupIds", "roles", "developerGrades"] as const,
-      personalFiltersAppliedToA: Boolean(filters.resourceIds?.length || filters.groupIds?.length || filters.roles?.length || filters.developerGrades?.length),
+      inapplicableFilters: ["resourceIds", "groupIds", "roles", "developerGrades", "search", "resourceActivity", "groupActivity"] as const,
+      personalFiltersAppliedToA: Boolean(filters.eligibleResourceIds !== undefined || filters.resourceIds?.length || filters.groupIds?.length || filters.includeUngrouped || filters.roles?.length || filters.developerGrades?.length || search),
       completelyUnassigned: diagnostic((task) => !personalTaskIds.has(task.taskId) && !groupTaskIds.has(task.taskId)),
       groupOnly: diagnostic((task) => !personalTaskIds.has(task.taskId) && groupTaskIds.has(task.taskId)),
       personallyUnassigned: diagnostic((task) => !personalTaskIds.has(task.taskId)),

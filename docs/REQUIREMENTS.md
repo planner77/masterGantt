@@ -402,3 +402,10 @@ Project 일정의 Gantt/Milestone 대시보드 peer view에서 readonly KPI와 �
 ## Issue #523 Resource KPI 공통 집계
 
 Resource/Group/Role/Milestone/기간 KPI의 공통 pure Domain과 typed 사전·fixture를 제공한다. 개인 Assignment 공수와 distinct 일반 Task 지표를 분리하고 중첩 Group/Role 소계를 Grand Total로 더하지 않는다. allocation 미설정은 알려진 공수/partial/unsetCount와 함께 반환하며 모두 미설정과 확정0을 구분한다. 미배정 Task 진단은 개인 조건이 없는 T0, 할당 KPI는 같은 개인 조건을 만족한 A를 사용한다. full Milestone E/P 상태는 선택 범위로 재정의하지 않는다. 실행 계약은 [RESOURCE_KPI_DASHBOARD](RESOURCE_KPI_DASHBOARD.md)를 따른다. HTTP/UI 공개·capacity·실제공수 원장은 이 단위 범위 밖이다.
+
+
+## Issue #524 Resource·Group×Milestone 서버 조회
+
+동일 Project read snapshot과 단일 기준시각의 Resource/Group subtotal·Milestone cell·distinct Task KPI·raw M/D/M/M·T0 진단을 신규 readonly API로 제공한다. 조건은 같은 개인 Assignment에서 AND이며 Group/개인 mode는 Grand Total을 바꾸지 않는다. 개인/Group 활성 조건과 개인·Task·연결Group 검색은 A, Task-only 검색/status는 T0에도 적용하고 full-stage Ready/Blocked는 전체 member/predecessor를 유지한다. 기간이 다른 canonical Task 일정과 Assignment 투입 구간은 별도 제공한다.
+
+상세는 같은 filter/revision/Calendar/scope identity를 확인하는 bounded selector/page이며 변경 시 재조회409를 요구한다. 다른 Project/글로벌 미할당 개인 정보는 공개하지 않고 전체집계·조회부하에 유한 상한을 두며 초과 시 부분합을 완전한 값으로 표시하지 않는다. 기존 workload/Stage/Logistics 응답 의미·rounding·권한은 불변이다. [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다. UI/capacity/export 공개는 후속 단위다.

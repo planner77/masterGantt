@@ -1,3 +1,7 @@
+## Issue #524 — Resource KPI 조회 API와 동일 snapshot
+
+[Work Packet](ISSUE_524.md)에 따라 직접 선행 `feat/issue-523-resource-kpi` / `f8a51503745cd5f3f1f3c9986f6b7577d83ce93a` 기반 stacked PR로 순차 진행한다. application `0.97.0`, `release_required=true/release_authorized=false`. 요청 종료점은 원격 PR·CI 시작 확인이며 CI 모니터링·병합·main/GHCR·Issue 종료는 비범위다. 관련 Vitest188개·실제 API Chromium1개 PASS 후 DOCUMENTATION_SYNC·독립 사전 QA를 거쳐 게시한다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다.
+
 # Issue #523–#528 — Resource KPI 순차 구현
 
 최신 main `f3373386d084bad5973b88180cd04ee9778e4fd6` / application `0.95.1`에서 #523을 시작한다. [#523 Work Packet](ISSUE_523.md)의 Domain·fixture·문서·독립 사전 검토 후 원격 PR과 CI 등록까지 진행하며, #524–#528은 직전 PR branch를 기반으로 순차 stacked PR을 만든다. CI 결과 모니터링·병합·main/GHCR·Issue 종료는 이번 범위 밖이다. `release_authorized=false`; 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다. #495/#518은 착수 시 OPEN이며 관련 PR이 없어 공유 UI 통합 상태를 후속 UI 착수 때 재확인한다.

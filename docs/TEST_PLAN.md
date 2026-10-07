@@ -2112,3 +2112,14 @@ GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않�
 `tests/domain/resource-kpi.test.ts`와 `tests/fixtures/resource-kpi.ts`는 Task1/Resource2/Assignment2 grain,4근무일×50%=2M/D, Resource WORKING override와 필터 제외 Group Calendar/충돌, 복수 Group/Role 비가산, Resource/Group별 Milestone+미지정 raw 합, full-stage Ready/Blocked, duration 가중 진척과 canonical 완료, T0 미배정·Group-only·미설정 Task/Assignment ID, empty/all-unset/partial/비근무일0/분모0, M/M omission/null/invalid query/ENV와 순열·중복·필터 교집합을 검증한다. fixture는 실제 Task Calendar 근무일과 일치하는 기간/Duration 및 Assignment 부분기간, 한 날짜 Milestone을 사용한다.
 
 `tests/server/resources/resource-kpi-compatibility.test.ts`는 native in-memory SQLite의 실제 Workload Service에서 legacy4자리1.3333 M/D/0.0702 M/M와 raw precision을 구별한다. 기존 Resource Workload service/integrity, Milestone calculation, Logistics fixture와 Calendar/Stage Gate tests를 Local Fast Feedback으로 함께 실행한다. 최초 raw float literal assertion4건 FAIL 및 canonical fixture 정렬 후 stale 기대값2건 FAIL을 수정하고 재실행 기록을 보존한다. Local PASS는 PR quality/e2e/docker PASS를 대체하지 않는다. HTTP/UI 신규 검증은 후속 단위이며 이번 Issue는 원격 PR CI 시작까지만 진행한다.
+
+
+## Issue #524 Resource Dashboard SQLite·HTTP·브라우저 검증
+
+`tests/fixtures/resource-dashboard.ts`는 #523 고정 입력을 native SQLite/public UUID로 적재한다. `tests/server/resources/resource-dashboard.test.ts`는 raw 합계·Task/Resource/Assignment grain, Resource/Group Milestone partition, 같은 Assignment 교집합, Group/Resource 활성 조건의 같은 Group membership, Resource/Task/WBS/연결Group 검색과 T0 분모, null/partial/0/M/M, compact selector/page, full Ready/Blocked 및 row assignmentRange를 직접 HTTP/Service로 확인한다. 다른 Project/미연결 개인·Group 전체 멤버·private description을 노출하지 않으며 비활성 기존 Assignment는 보존한다.
+
+한 SQLite read transaction/clock1회, 별도 WAL 연결의 중간 변경에 대한 snapshot 일관성, revision bump 없는 Task/Link/Membership/Calendar/Catalog/Assignment 변경 및 Task 삭제 stale409, GET 전후 원본 Task/Link/Assignment/Calendar/revision 불변, SQLite 재시작 identity를 검증한다. Calendar bulk reuse/선택에서 숨긴 Group Calendar·same-layer 충돌도 확인한다. Query/ID/date/검색/page/selector 한도와 실제100개인×50Milestone/5000Assignment의 cell 폭발,320단계 WBS, 과다 Group 소속/반복은422로 실패하며 절삭하지 않는다.
+
+실제 SQLite benchmark는 Task1011/개인Assignment1005/Group8/365일260근무일을 사용한다. timing/reportBytes는 선택 환경변수 RESOURCE_DASHBOARD_BENCHMARK_OUTPUT의 로컬 JSON 근거로 기록하며 로컬 기준3000ms 안에서 측정한다. 이 수치가 원격 CI나 운영 성능 PASS를 뜻하지 않는다. 전체 원격회귀는 PR quality/e2e/docker가 담당한다.
+
+`tests/e2e/resource-dashboard-api.spec.ts`는 격리 실제 Next/SQLite/Chromium에서 편집 쿠키 없는 public report/detail, no-store/nosniff,405 mutation 거부, selection400, 원본 revision 불변, 실제 서버 재시작 snapshot과 scope/환산 stale409를 검증한다. 초기 실패 이력은 inventory 예상 route2개 누락, Turbopack 외부 node_modules symlink 거부, 신규테스트 비밀번호의 기존12자상한 위반, report nosniff 누락을 보존한다. route expected inventory·작업tree 실제 dependencies·유효 fixture·신규handler 성공/오류 nosniff를 보완하고 동일 관련 범위를 다시 검증한다. 최종 실행 결과는 Manager Issue/PR Work Packet에 exact head 근거로 기록하며 원격 CI 결과 모니터링은 이번 범위 밖이다.
