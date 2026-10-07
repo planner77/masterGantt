@@ -1,0 +1,452 @@
+{
+  "runs": [
+    {
+      "run": "before-run1",
+      "stdoutPrivatePath": "/tmp/issue490-before-run1-stdout.log",
+      "stdoutSha256": "4f81d27a8c4be63a98c8ef073081b15522c0feddc4ce562b3582ec70ef396d31",
+      "htmlPrivatePath": "/tmp/issue490-before-run1-html",
+      "resultsPrivatePath": "/tmp/issue490-before-run1-results",
+      "caseDurations": [
+        "12.9s",
+        "10.5s"
+      ],
+      "summary": [
+        "1 failed",
+        "1 passed (44.1s)"
+      ],
+      "note": "일반 초안 Escape/reopen reset oracle를 실제 부모 state 유지로 정정. 원래 FAIL 보존.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-run2",
+      "stdoutPrivatePath": "/tmp/issue490-before-run2-stdout.log",
+      "stdoutSha256": "a09f3e730da3e36c940091517aa71f1b9d9c98f71a1d12f1916953885984ccb4",
+      "htmlPrivatePath": "/tmp/issue490-before-run2-html",
+      "resultsPrivatePath": "/tmp/issue490-before-run2-results",
+      "caseDurations": [
+        "10.7s",
+        "10.2s",
+        "212ms"
+      ],
+      "summary": [
+        "1 failed",
+        "2 passed (47.9s)"
+      ],
+      "note": "Gantt fixture의 dynamic TS import 실행 오류. 정식 DTO warnings/operation 필드는 정정했지만 당시 실행 실패 원인과 분리.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-run3",
+      "stdoutPrivatePath": "/tmp/issue490-before-run3-stdout.log",
+      "stdoutSha256": "25ed711e2f7d175be9f2a66db458270f640e57e2cc20d7644481ea1c0a4aad41",
+      "htmlPrivatePath": "/tmp/issue490-before-run3-html",
+      "resultsPrivatePath": "/tmp/issue490-before-run3-results",
+      "caseDurations": [
+        "13.4s",
+        "10.6s",
+        "6.9s"
+      ],
+      "summary": [
+        "2 failed",
+        "1 passed (58.0s)"
+      ],
+      "note": "빠른 반복 Escape native close와 mock metadata scroll120→0 원래 결함.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-native-diagnostic",
+      "stdoutPrivatePath": "/tmp/issue490-before-native-diagnostic-stdout.log",
+      "stdoutSha256": "b2bae855eb24a4069078ef3b18e7bb3f8b2dba2f57b4dd6d403edbbf85739cc9",
+      "htmlPrivatePath": "/tmp/issue490-before-native-diagnostic-html",
+      "resultsPrivatePath": "/tmp/issue490-before-native-diagnostic-results",
+      "caseDurations": [
+        "2.2s"
+      ],
+      "summary": [
+        "1 passed (12.5s)"
+      ],
+      "note": "microtask 시점 defaultPrevented 관측 준비가 너무 빨라 이후 setTimeout0로 정정.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-diagnostics2",
+      "stdoutPrivatePath": "/tmp/issue490-before-diagnostics2-stdout.log",
+      "stdoutSha256": "84183a5f19574d36de041d505ca6b33fa9c3d1c69793285dabee478498aa5ecb",
+      "htmlPrivatePath": "/tmp/issue490-before-diagnostics2-html",
+      "resultsPrivatePath": "/tmp/issue490-before-diagnostics2-results",
+      "caseDurations": [
+        "2.4s",
+        "3.4s"
+      ],
+      "summary": [
+        "2 passed (24.2s)"
+      ],
+      "note": "50ms 간격 Escape는 보호됨. 실제 API 기본 description-only PASS는 제한된 조건.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-diagnostics3",
+      "stdoutPrivatePath": "/tmp/issue490-before-diagnostics3-stdout.log",
+      "stdoutSha256": "faa1a888834825223871d14d15fc12377d0de66b8f0c734ee91848bc4859cc47",
+      "htmlPrivatePath": "/tmp/issue490-before-diagnostics3-html",
+      "resultsPrivatePath": "/tmp/issue490-before-diagnostics3-results",
+      "caseDurations": [
+        "2.3s",
+        "3.9s"
+      ],
+      "summary": [
+        "2 passed (24.6s)"
+      ],
+      "note": "즉시 반복 Escape 실패와 capture guard 차이; 실제 Summary scope/optional resize PASS.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-diagnostics4",
+      "stdoutPrivatePath": "/tmp/issue490-before-diagnostics4-stdout.log",
+      "stdoutSha256": "3f6e8d438a6bbe6bad4875d3c5b6c2b7a66c2b3695f32ed061bdd5fc3a65efe1",
+      "htmlPrivatePath": "/tmp/issue490-before-diagnostics4-html",
+      "resultsPrivatePath": "/tmp/issue490-before-diagnostics4-results",
+      "caseDurations": [
+        "2.5s",
+        "4.0s"
+      ],
+      "summary": [
+        "2 passed (24.7s)"
+      ],
+      "note": "최상단 backdrop hit-test·nested nonbusy modal 확인; 실제 name+description 저장 PASS.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-metadata-baseline",
+      "stdoutPrivatePath": "/tmp/issue490-before-metadata-baseline-stdout.log",
+      "stdoutSha256": "49b108f019b316330cc72c1c3d82f433fa40ff8cf2b4c300b3296f2029f9d870",
+      "htmlPrivatePath": "/tmp/issue490-before-metadata-baseline-html",
+      "resultsPrivatePath": "/tmp/issue490-before-metadata-baseline-results",
+      "caseDurations": [
+        "2.1s"
+      ],
+      "summary": [
+        "1 failed"
+      ],
+      "note": "fixture Baseline2026-10-05 휴일로 NON_WORKING_START422. 서버 정책 유지.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-metadata-baseline2",
+      "stdoutPrivatePath": "/tmp/issue490-before-metadata-baseline2-stdout.log",
+      "stdoutSha256": "b5a2da388d858773449317f3e5e6e4b62f1eb01a7fa7eb6ef5917eee9d1b80b2",
+      "htmlPrivatePath": "/tmp/issue490-before-metadata-baseline2-html",
+      "resultsPrivatePath": "/tmp/issue490-before-metadata-baseline2-results",
+      "caseDurations": [
+        "4.0s"
+      ],
+      "summary": [
+        "1 passed (14.1s)"
+      ],
+      "note": "Baseline 시작2026-10-06 정정 후9999 장기 baseline 실제 API PASS.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "after-run1",
+      "stdoutPrivatePath": "/tmp/issue490-after-run1-stdout.log",
+      "stdoutSha256": "113488c36463ec5e2534cc4fb25ca4a09e7bb8fa60d3b10fca2025299f597b38",
+      "htmlPrivatePath": "/tmp/issue490-after-run1-html",
+      "resultsPrivatePath": "/tmp/issue490-after-run1-results",
+      "caseDurations": [
+        "3.1s",
+        "10.9s",
+        "6.7s",
+        "2.4s",
+        "4.1s"
+      ],
+      "summary": [
+        "2 failed",
+        "3 passed (1.2m)"
+      ],
+      "note": "0.93.0 제품4파일. programmatic focus-visible 준비 FAIL→native Home 정정; mock viewport 원래 FAIL 유지.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-final",
+      "stdoutPrivatePath": "/tmp/issue490-before-final-stdout.log",
+      "stdoutSha256": "13474460d1a6e750a156fc1e62452070d08caa5c5107d89ec015be0d24bc87cb",
+      "htmlPrivatePath": "/tmp/issue490-before-final-html",
+      "resultsPrivatePath": "/tmp/issue490-before-final-results",
+      "caseDurations": [
+        "13.3s",
+        "10.8s",
+        "30.1s",
+        "2.5s",
+        "4.2s"
+      ],
+      "summary": [
+        "2 failed",
+        "3 passed (1.7m)"
+      ],
+      "note": "제품4 정확 baseline 임시 복원. 빠른 Escape 원래 FAIL, 강화 nested subtree 최초 offscreen 준비 FAIL.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-state-final",
+      "stdoutPrivatePath": "/tmp/issue490-before-state-final-stdout.log",
+      "stdoutSha256": "30c285d509c2a922f21f92421dc12adfeacee14a443f6221df2cf67b505236f9",
+      "htmlPrivatePath": "/tmp/issue490-before-state-final-html",
+      "resultsPrivatePath": "/tmp/issue490-before-state-final-results",
+      "caseDurations": [
+        "3.0s"
+      ],
+      "summary": [
+        "1 failed"
+      ],
+      "note": "nested subtree scroll 뒤 virtualized 관측 false 준비 FAIL.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-state-final2",
+      "stdoutPrivatePath": "/tmp/issue490-before-state-final2-stdout.log",
+      "stdoutSha256": "822dd53f3a925311b692fb4010df2d37cf26f1f57f54135df586571e2a775115",
+      "htmlPrivatePath": "/tmp/issue490-before-state-final2-html",
+      "resultsPrivatePath": "/tmp/issue490-before-state-final2-results",
+      "caseDurations": [
+        "3.0s"
+      ],
+      "summary": [
+        "1 failed"
+      ],
+      "note": "scale/selection 준비 후 closed tree 관측 false. collapse를 마지막으로 정정.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "NOT RECORDED: original filter/env string not separately collected; do not infer from helper default command"
+    },
+    {
+      "run": "before-state-final3",
+      "stdoutPrivatePath": "/tmp/issue490-before-state-final3-stdout.log",
+      "stdoutSha256": "2aaf3ea85f6309efa80a925dc1f3232d55b154031dca18724b9defb8f3f54322",
+      "htmlPrivatePath": "/tmp/issue490-before-state-final3-html",
+      "resultsPrivatePath": "/tmp/issue490-before-state-final3-results",
+      "caseDurations": [
+        "8.2s"
+      ],
+      "summary": [
+        "1 failed"
+      ],
+      "note": "강화6열/닫힌 tree/native 선택 준비 PASS, metadata120→0 원래 FAIL8.2초.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "ISSUE_490_PHASE=before ISSUE_490_EVIDENCE_DIR=output/playwright/issue-490/before-state-final3 PLAYWRIGHT_HTML_OUTPUT_DIR=/tmp/issue490-before-state-final3-html npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts -g '설정 탭·닫기' --output=/tmp/issue490-before-state-final3-results > /tmp/issue490-before-state-final3-stdout.log 2>&1"
+    },
+    {
+      "run": "after-final",
+      "stdoutPrivatePath": "/tmp/issue490-after-final-stdout.log",
+      "stdoutSha256": "3b4fbc336b7804e8e85f49ec30304822e534193fb189c64575ba94135cbad418",
+      "htmlPrivatePath": "/tmp/issue490-after-final-html",
+      "resultsPrivatePath": "/tmp/issue490-after-final-results",
+      "caseDurations": [
+        "4.7s",
+        "11.0s",
+        "4.6s",
+        "2.3s",
+        "4.3s"
+      ],
+      "summary": [
+        "1 failed",
+        "4 passed (1.2m)"
+      ],
+      "note": "0.93.1 제품5.4PASS/390px 마지막 탭 ring clip1FAIL. 원본 보존.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "ISSUE_490_PHASE=after ISSUE_490_EVIDENCE_DIR=output/playwright/issue-490/after-final PLAYWRIGHT_HTML_OUTPUT_DIR=/tmp/issue490-after-final-html npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts --output=/tmp/issue490-after-final-results > /tmp/issue490-after-final-stdout.log 2>&1"
+    },
+    {
+      "run": "after-final2",
+      "stdoutPrivatePath": "/tmp/issue490-after-final2-stdout.log",
+      "stdoutSha256": "92d8330312a16263d1a748f411ab1c4407e57e2e963284f95c3b6643f274cf77",
+      "htmlPrivatePath": "/tmp/issue490-after-final2-html",
+      "resultsPrivatePath": "/tmp/issue490-after-final2-results",
+      "caseDurations": [
+        "13.1s",
+        "10.5s",
+        "4.7s",
+        "2.4s",
+        "4.5s"
+      ],
+      "summary": [
+        "5 passed (1.3m)"
+      ],
+      "note": "동일 spec/helper, tabList margin-inline:-6px 보완 후 최종 실행.",
+      "publication": "safe summary only; stdout/html/trace excluded",
+      "commandBase": "npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts",
+      "exactOriginalCommand": "ISSUE_490_PHASE=after ISSUE_490_EVIDENCE_DIR=output/playwright/issue-490/after-final2 PLAYWRIGHT_HTML_OUTPUT_DIR=/tmp/issue490-after-final2-html npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts --output=/tmp/issue490-after-final2-results > /tmp/issue490-after-final2-stdout.log 2>&1"
+    }
+  ],
+  "baselineHead": "f4d3aeb075a899e0fe379dcdaf5730857117d775",
+  "beforeAppVersion": "0.93.0",
+  "finalAppVersion": "0.93.1",
+  "finalSpecSha256": "dee81a623896cbe92aaef7d0197e8cb3e7830adecb8d5a47dae0263f42e66d67",
+  "finalHelperSha256": "febcb43afb3c8f91af6bd303e376c1f97f8bf024c97accff4e8d7f422c10da18",
+  "truthCounts": {
+    "runs": 16,
+    "cases": 40,
+    "passed": 27,
+    "failed": 13
+  },
+  "currentReworkRuns": [
+    {
+      "run": "rework-smoke-0941",
+      "argv": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/project-settings-layout-490.spec.ts",
+        "-g",
+        "국가·기간|실제 비밀번호 변경",
+        "--output",
+        "/tmp/issue490-rework-smoke-0941-results"
+      ],
+      "runtimeEnv": {
+        "ISSUE_490_PHASE": "after",
+        "ISSUE_490_EVIDENCE_DIR": "output/playwright/issue-490/rework-smoke-0941",
+        "PLAYWRIGHT_HTML_OUTPUT_DIR": "/tmp/issue490-rework-smoke-0941-html"
+      },
+      "recordedCommand": "ISSUE_490_PHASE=after ISSUE_490_EVIDENCE_DIR=output/playwright/issue-490/rework-smoke-0941 PLAYWRIGHT_HTML_OUTPUT_DIR=/tmp/issue490-rework-smoke-0941-html npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts -g \"국가·기간|실제 비밀번호 변경\" --output=/tmp/issue490-rework-smoke-0941-results",
+      "stdoutPrivatePath": "/tmp/issue490-rework-smoke-0941-stdout.log",
+      "stdoutSha256": "405c1827ea45f3cb1f3efa8928ec78aafed805bb966eb0b987ff678a29a3bd23",
+      "htmlPrivatePath": "/tmp/issue490-rework-smoke-0941-html",
+      "resultsPrivatePath": "/tmp/issue490-rework-smoke-0941-results",
+      "caseDurations": [
+        "11.6s",
+        "4.6s"
+      ],
+      "summary": [
+        "2 passed (35.9s)"
+      ],
+      "testHashes": [
+        {
+          "path": "tests/e2e/project-settings-layout-490.spec.ts",
+          "sha256": "e4ca40048a4c7151abf80bed8034c5a489dccfdd21fa8052a1f674187da61ef5"
+        },
+        {
+          "path": "tests/e2e/helpers/issue490-settings-fixture.ts",
+          "sha256": "1bc5e8bbbf9a7ab4426c050c55cd119acf98d46dfbad7e527100b44e17ff3468"
+        },
+        {
+          "path": "tests/e2e/helpers/ui-geometry.ts",
+          "sha256": "625d8e4828f330685a16854ac7ddef8b14bde748a00215c9098067974f2f95dd"
+        },
+        {
+          "path": "tests/e2e/fixtures/isolated-application.ts",
+          "sha256": "222ca04e2153a78c2416f0e2bc1d473b8b38928f88e3e14f99f206cb933941a2"
+        },
+        {
+          "path": "tests/e2e/fixtures/task-editor-density.ts",
+          "sha256": "815c52fa48a91a59c6c1f10e2b53c4f24ca8c8aafe14e9505f39682743bb0199"
+        },
+        {
+          "path": "tests/config/playwright.config.ts",
+          "sha256": "d018c7a039018597383375bd341627f3386b05317bae85e40437d6d87e3d2dd4"
+        }
+      ],
+      "sourceAggregateSha256": "47c3326c89ceb733d43b7c03664fa56fdabfe5732cbca15294b5c8afe1a9acb9",
+      "sourceSha": "4f8fc2c9c86941d1b86ae4472b1e953707c85ef7",
+      "appVersion": "0.94.1",
+      "published": "final safe captures only; smoke/raw traces/html/stdout excluded"
+    },
+    {
+      "run": "after-current-0941",
+      "argv": [
+        "npx",
+        "playwright",
+        "test",
+        "--config",
+        "tests/config/playwright.config.ts",
+        "tests/e2e/project-settings-layout-490.spec.ts",
+        "--output",
+        "/tmp/issue490-after-current-0941-results"
+      ],
+      "runtimeEnv": {
+        "ISSUE_490_PHASE": "after",
+        "ISSUE_490_EVIDENCE_DIR": "output/playwright/issue-490/after-current-0941",
+        "PLAYWRIGHT_HTML_OUTPUT_DIR": "/tmp/issue490-after-current-0941-html"
+      },
+      "recordedCommand": "ISSUE_490_PHASE=after ISSUE_490_EVIDENCE_DIR=output/playwright/issue-490/after-current-0941 PLAYWRIGHT_HTML_OUTPUT_DIR=/tmp/issue490-after-current-0941-html npx playwright test --config tests/config/playwright.config.ts tests/e2e/project-settings-layout-490.spec.ts --output=/tmp/issue490-after-current-0941-results",
+      "stdoutPrivatePath": "/tmp/issue490-after-current-0941-stdout.log",
+      "stdoutSha256": "4769720439ba17ff737a4c42f1e8e920434d12740beee04e1daf42f4826433b6",
+      "htmlPrivatePath": "/tmp/issue490-after-current-0941-html",
+      "resultsPrivatePath": "/tmp/issue490-after-current-0941-results",
+      "caseDurations": [
+        "13.3s",
+        "12.7s",
+        "4.5s",
+        "2.4s",
+        "4.3s",
+        "4.9s"
+      ],
+      "summary": [
+        "6 passed (1.5m)"
+      ],
+      "testHashes": [
+        {
+          "path": "tests/e2e/project-settings-layout-490.spec.ts",
+          "sha256": "e4ca40048a4c7151abf80bed8034c5a489dccfdd21fa8052a1f674187da61ef5"
+        },
+        {
+          "path": "tests/e2e/helpers/issue490-settings-fixture.ts",
+          "sha256": "1bc5e8bbbf9a7ab4426c050c55cd119acf98d46dfbad7e527100b44e17ff3468"
+        },
+        {
+          "path": "tests/e2e/helpers/ui-geometry.ts",
+          "sha256": "625d8e4828f330685a16854ac7ddef8b14bde748a00215c9098067974f2f95dd"
+        },
+        {
+          "path": "tests/e2e/fixtures/isolated-application.ts",
+          "sha256": "222ca04e2153a78c2416f0e2bc1d473b8b38928f88e3e14f99f206cb933941a2"
+        },
+        {
+          "path": "tests/e2e/fixtures/task-editor-density.ts",
+          "sha256": "815c52fa48a91a59c6c1f10e2b53c4f24ca8c8aafe14e9505f39682743bb0199"
+        },
+        {
+          "path": "tests/config/playwright.config.ts",
+          "sha256": "d018c7a039018597383375bd341627f3386b05317bae85e40437d6d87e3d2dd4"
+        }
+      ],
+      "sourceAggregateSha256": "47c3326c89ceb733d43b7c03664fa56fdabfe5732cbca15294b5c8afe1a9acb9",
+      "sourceSha": "4f8fc2c9c86941d1b86ae4472b1e953707c85ef7",
+      "appVersion": "0.94.1",
+      "published": "final safe captures only; smoke/raw traces/html/stdout excluded"
+    }
+  ],
+  "combinedTruthCounts": {
+    "runs": 18,
+    "cases": 48,
+    "passed": 35,
+    "failed": 13
+  },
+  "historicalRunsUnchanged": true
+}

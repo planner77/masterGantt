@@ -132,7 +132,7 @@ describe("Issue #460 milestone membership HTTP-Service-SQLite contract", () => {
     resources.replaceTaskAssignments(value.authorization(), value.revision(), value.child.taskId, {
       catalogRevision: catalog.data.revision,
       targets: [{
-        kind: "resource", id: catalog.data.resources[0].id, role: "DEVELOPER",
+        kind: "resource", id: catalog.data.resources[0].id,
         allocation: { start: "2026-10-06", end: "2026-10-07", percent: 50 },
       }],
     });

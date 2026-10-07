@@ -1,4 +1,6 @@
-import { assertMembershipPreservationAvailable, withStageProjection } from "../projects/milestone-stage-core";
+import { projectStageGates } from "../../domain/milestones/stage-gates";
+import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
+import { readStageSnapshot, withStageProjection } from "../projects/milestone-stage-core";
 import { PersistedScheduleInvalidError } from "../projects/project-service-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
@@ -98,8 +100,9 @@ function validSession(
   authorization: AuthorizedEditSession,
   now: Date,
 ): boolean {
-  if (!session || !project) return false;
-  if (session.projectId !== authorization.projectId) return false;
+  if (!session || !project || session.revokedAt !== null) return false;
+  if (project.id !== authorization.projectId || project.publicId !== authorization.projectPublicId) return false;
+  if (session.projectId !== project.id || session.id !== authorization.sessionId) return false;
   if (session.authVersion !== authorization.projectAuthVersion) return false;
   if (!session.tokenHash.equals(authorization.tokenHash)) return false;
   if (project.authVersion !== authorization.projectAuthVersion) return false;
@@ -188,7 +191,8 @@ export class ProjectTemplateService {
       }
 
       const calendar = resolveProjectWorkingCalendar(this.database, source.id);
-      assertMembershipPreservationAvailable(this.database, source.id);
+      const sourceStage = readStageSnapshot(this.database, source.id);
+      projectStageGates(sourceStage);
       const tasks = this.schedules.listTasks(source.id);
       const links = this.schedules.listLinks(source.id);
       const assignments = this.resources.listAssignments(source.id);
@@ -257,7 +261,6 @@ export class ProjectTemplateService {
           offsetStartDays,
           offsetEndDays,
           allocationPercent: a.allocationPercent,
-          assignmentRole: a.kind === "resource" ? a.assignmentRole : null,
         };
       }).filter((a) => a.taskExternalId.length > 0);
 
@@ -338,6 +341,12 @@ export class ProjectTemplateService {
 
       const selectedMaster = this.projectMaster.projectSelectionDto(source.id);
       const snapshot: ProjectTemplateSnapshot = {
+        memberships: sourceStage.memberships.map((row) => {
+          const member = tasks.find((task) => task.publicId === row.taskId);
+          const milestone = tasks.find((task) => task.publicId === row.milestoneTaskId);
+          if (!member || !milestone) throw new PersistedScheduleInvalidError();
+          return { taskExternalId: member.externalId, milestoneExternalId: milestone.externalId };
+        }),
         sourceRevision: source.revision,
         projectMaster: {
           businessUnitId: selectedMaster.businessUnit?.id ?? null,
@@ -607,6 +616,23 @@ export class ProjectTemplateService {
         }
       }
 
+      const seenMembers = new Set<string>();
+      if (snapshot.memberships !== undefined && !Array.isArray(snapshot.memberships)) {
+        throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "Template memberships must be an array.");
+      }
+      const resolvedMemberships = (snapshot.memberships ?? []).map((row) => {
+        const member = row && newByExternalId.get(row.taskExternalId);
+        const milestone = row && newByExternalId.get(row.milestoneExternalId);
+        if (!member || !milestone || member.type === "milestone" || milestone.type !== "milestone" || seenMembers.has(row.taskExternalId)) {
+          throw new ProjectTemplateError("INVALID_TEMPLATE_REQUEST", "Template membership references are invalid.");
+        }
+        seenMembers.add(row.taskExternalId);
+        return { memberId: member.id, milestoneId: milestone.id };
+      });
+      const memberships = new MilestoneMembershipRepository(this.database);
+      for (const row of resolvedMemberships) memberships.set(project.id, row.memberId, row.milestoneId);
+      projectStageGates(readStageSnapshot(this.database, project.id));
+
       // 4. 의존관계(Links) 삽입
       for (const link of snapshot.links) {
         const pred = newByExternalId.get(link.predecessorExternalId);
@@ -679,7 +705,6 @@ export class ProjectTemplateService {
         assignmentStart: string | null;
         assignmentEnd: string | null;
         allocationPercent: number | null;
-        assignmentRole: import("../../contracts/resources").ResourceRole | null;
       }>>();
 
       for (const a of snapshot.assignments) {
@@ -688,17 +713,12 @@ export class ProjectTemplateService {
 
         let internalTargetId: number | undefined;
         let isActive = true;
-        let assignmentRole = a.kind === "resource" ? a.assignmentRole ?? null : null;
 
         if (a.kind === "resource") {
           const res = this.resources.findResourceByPublicId(a.targetPublicId);
           if (res) {
             internalTargetId = res.id;
             isActive = res.active;
-            if (assignmentRole !== null && !res.roles.includes(assignmentRole)) {
-              warnings.push(`배정 대상 리소스(${a.targetPublicId})의 수행 역할(${assignmentRole})이 현재 Global Role에 없어 역할 미지정으로 복원되었습니다.`);
-              assignmentRole = null;
-            }
           }
         } else {
           const grp = this.resources.findGroupByPublicId(a.targetPublicId);
@@ -729,7 +749,6 @@ export class ProjectTemplateService {
             ? null
             : endFromStart(projectStart, a.offsetEndDays + 1, calendar),
           allocationPercent: a.allocationPercent,
-          assignmentRole,
         });
         assignmentsByTaskId.set(taskInfo.id, list);
       }
@@ -964,7 +983,7 @@ export class ProjectTemplateService {
         id: assignment.publicId,
         taskId: assignment.taskPublicId,
         target: { kind: assignment.kind, id: assignment.targetPublicId },
-        role: assignment.kind === "resource" ? assignment.assignmentRole : null,
+        role: null,
         allocation: assignment.kind === "resource"
           ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
           : null,

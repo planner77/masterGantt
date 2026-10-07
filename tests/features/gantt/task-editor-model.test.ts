@@ -191,10 +191,31 @@ describe("explicit task editor commands", () => {
     for (const name of ["", "   ", "x".repeat(201), "\ud800"]) expect(prepareTaskEditorCommand(task, { ...createTaskEditorDraft(task), name }).error).toBeTruthy();
     expect(prepareTaskEditorCommand(task, { ...createTaskEditorDraft(task), name: "😀".repeat(200) }).error).toBeNull();
   });
-  it("permits only Summary name and membership while calculated fields stay omitted", () => {
-    const summary = { ...task, type: "summary" as const };
+  it("permits Summary name, details and membership while calculated fields stay omitted", () => {
+    const summary = { ...task, type: "summary" as const, description: "old", url: "https://example.test/old" };
     expect(taskEditorReadOnlyReason(summary, true, false)).toBeNull();
-    expect(prepareTaskEditorCommand(summary, { ...createTaskEditorDraft(summary), name: "Changed", progress: "100", start: "", explicitMilestoneTaskId: "M" }).command?.payload).toEqual({ name: "Changed", explicitMilestoneTaskId: "M" });
+    expect(prepareTaskEditorCommand(summary, {
+      ...createTaskEditorDraft(summary),
+      name: "Changed",
+      description: "요약 설명\n둘째 줄",
+      url: "  https://example.test/summary  ",
+      progress: "100",
+      start: "",
+      duration: "99",
+      scheduleMode: "manual",
+      baselineStart: "invalid",
+      explicitMilestoneTaskId: "M",
+    }).command?.payload).toEqual({
+      name: "Changed",
+      description: "요약 설명\n둘째 줄",
+      url: "https://example.test/summary",
+      explicitMilestoneTaskId: "M",
+    });
+  });
+  it("validates Summary details with the same limits as leaf tasks", () => {
+    const summary = { ...task, type: "summary" as const };
+    expect(prepareTaskEditorCommand(summary, { ...createTaskEditorDraft(summary), url: "javascript:alert(1)" }).error).toContain("http://");
+    expect(prepareTaskEditorCommand(summary, { ...createTaskEditorDraft(summary), description: "가".repeat(10_001) }).error).toContain("10,000");
   });
   it("enforces milestone zero duration and omits it from allowed updates", () => {
     const milestone = { ...task, type: "milestone" as const, duration: 0 };

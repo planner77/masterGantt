@@ -2,11 +2,14 @@ import { expect, test } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
+import { assertFocusVisible, assertIdentifiableInput, assertSiblingControls, captureUi } from "./helpers/ui-geometry";
+
 const admins = [
   { page: "/resources", name: "resource", session: "/api/resource-catalog/admin-sessions", catalog: "/api/resources", data: { revision: 1, resources: [], groups: [] } },
   { page: "/logistics-admin", name: "logistics", session: "/api/logistics-catalog/admin-sessions", catalog: "/api/logistics-catalog/admin/equipment-types", data: { revision: 1, equipmentTypes: [], systemTypes: [] } },
   { page: "/project-master-admin", name: "master", session: "/api/project-master/admin-sessions", catalog: "/api/project-master/admin/items", data: { revision: 1, businessUnits: [], products: [], siteEntities: [], items: [] } },
 ];
+test.use({ locale: "ko-KR", timezoneId: "Asia/Seoul" });
 const baseline = false;
 const evidence = process.env.ISSUE_452_EVIDENCE_DIR;
 
@@ -33,11 +36,19 @@ for (const admin of admins) {
     await page.goto(admin.page);
     const heading = page.locator("h1");
     const measurements: unknown[] = [];
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await captureUi(page, testInfo, `${admin.name}-normal-1440`);
     for (const width of [390, 768, 1024, 1440, 1920]) {
       await page.setViewportSize({ width, height: 900 });
       const input = page.getByLabel("관리자 비밀번호", { exact: true });
       await expect(input).toBeVisible();
-      await input.focus();
+      await input.press("Shift+Tab");
+      await page.keyboard.press("Tab");
+      await expect(input).toBeFocused();
+      const shared = await captureUi(page, testInfo, `${admin.name}-focus-${width}`);
+      const sharedInput = shared.controls.find(control => control.type === "password")!;
+      assertIdentifiableInput(sharedInput); assertFocusVisible(sharedInput);
+      assertSiblingControls(shared.controls.filter(control => control.type === "password" || control.type === "submit"));
       const metrics = await page.evaluate(() => {
         const input = document.querySelector('input[type="password"]')!;
         const form = input.closest("form")!;
@@ -94,6 +105,8 @@ for (const admin of admins) {
       await input.press("Enter");
       await expect(page.locator("main").getByRole("alert")).toBeVisible();
       await expect(input).toHaveValue("");
+      if (failure === 401) { await page.setViewportSize({ width: 1440, height: 900 }); const error = await captureUi(page, testInfo, `${admin.name}-error-1440`);
+        expect(error.controls.find(control => control.type === "password")!.describedBy.some(target => target.exists && target.visible && !!target.text)).toBe(true); }
       if (!baseline) {
         const errorId = await page.locator("main").getByRole("alert").getAttribute("id");
         expect(errorId).toBeTruthy();
@@ -129,6 +142,9 @@ for (const admin of admins) {
       if (width > 540) expect(Math.abs(a!.y - b!.y)).toBeLessThanOrEqual(1);
       else expect(b!.y).toBeGreaterThan(a!.y + a!.height);
     }
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const disabled = await captureUi(page, testInfo, `${admin.name}-disabled-1440`);
+    expect(disabled.controls.some(control => control.type === "password" && control.disabled)).toBe(true);
     release!();
     await expect(page.getByRole("button", { name: "새로고침", exact: true })).toBeVisible();
     const headingBefore = measurements as { heading: { x: number; y: number } ; width: number }[];

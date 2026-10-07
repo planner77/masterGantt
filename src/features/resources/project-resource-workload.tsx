@@ -9,6 +9,7 @@ import type {
   ResourceWorkloadRole,
   ResourceWorkloadTaskDto,
 } from "@/contracts/resources";
+import { resourceDrillMatches, resourceDrillRevisionMatches, type MilestoneResourceDrill } from "./milestone-resource-drill";
 
 type Unit = "md" | "mm";
 type ActiveFilter = "all" | "active" | "inactive";
@@ -16,10 +17,11 @@ type KindFilter = "all" | "resource" | "group";
 type RoleFilter = "all" | ResourceWorkloadRole;
 type GradeFilter = "all" | DeveloperGrade;
 
-type Props = Readonly<{ publicId: string }>;
+type Props = Readonly<{ publicId: string; drillScope?: MilestoneResourceDrill | null; onClearDrillScope?: () => void }>;
 type Source = "workload" | "targets";
 type QueryState<T> = Readonly<{
   publicId: string;
+  queryKey?: string;
   value: T | null;
   phase: "loading" | "ready" | "error";
   lastSuccessAt: string | null;
@@ -30,7 +32,7 @@ const ROLE_OPTIONS: Array<{ value: ResourceWorkloadRole; label: string }> = [
   { value: "PI", label: "PI" },
   { value: "DEVELOPER", label: "개발자" },
   { value: "EQUIPMENT_OWNER", label: "설비 담당" },
-  { value: "UNSPECIFIED", label: "역할 미지정" },
+  { value: "UNSPECIFIED", label: "Global Role 미지정" },
 ];
 const GRADE_OPTIONS: Array<{ value: DeveloperGrade; label: string }> = [
   { value: "BEGINNER", label: "초급" },
@@ -99,8 +101,9 @@ function effort(md: number, mm: number | null, unit: Unit): string {
   if (unit === "mm") return mm === null ? "—" : `${mm.toFixed(2)} M/M`;
   return `${md.toFixed(2)} M/D`;
 }
-function roleLabel(role: ResourceWorkloadRole | undefined): string {
-  return ROLE_OPTIONS.find((option) => option.value === (role ?? "UNSPECIFIED"))?.label ?? "역할 미지정";
+function roleLabels(roles: readonly string[] | undefined): string {
+  if (!roles || roles.length === 0) return "Global Role 미지정";
+  return roles.map((role) => ROLE_OPTIONS.find((option) => option.value === role)?.label ?? role).join(", ");
 }
 function gradeLabel(grade: DeveloperGrade | null | undefined): string {
   return GRADE_OPTIONS.find((option) => option.value === grade)?.label ?? "등급 미지정";
@@ -130,7 +133,7 @@ function maxTaskDate(tasks: ResourceWorkloadTaskDto[], field: "start" | "end"): 
   return tasks.length ? tasks.map((task) => task[field]).reduce((a, b) => a > b ? a : b) : null;
 }
 
-export function ProjectResourceWorkload({ publicId }: Props) {
+export function ProjectResourceWorkload({ publicId, drillScope = null, onClearDrillScope }: Props) {
   const [workloadQuery, setWorkloadQuery] = useState<QueryState<ResourceWorkloadResponse["data"]>>(() => initialQueryState(publicId));
   const [targetsQuery, setTargetsQuery] = useState<QueryState<AssignmentTargetDto[]>>(() => initialQueryState(publicId));
   const currentPublicId = useRef(publicId);
@@ -149,6 +152,9 @@ export function ProjectResourceWorkload({ publicId }: Props) {
   const searchInput = useRef<HTMLInputElement>(null);
 
   useLayoutEffect(() => { currentPublicId.current = publicId; }, [publicId]);
+  const drillFrom = drillScope?.from, drillTo = drillScope?.to;
+  const drillRevision = drillScope ? `${drillScope.projectRevision}:${drillScope.catalogRevision}` : "";
+  const workloadKey = `${publicId}:${drillFrom ?? ""}:${drillTo ?? ""}:${drillRevision}`;
 
   const loadSource = useCallback(async (source: Source, retrying = false) => {
     const id = ++requestId.current[source];
@@ -156,28 +162,34 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     const controller = new AbortController();
     requestControllers.current[source] = controller;
     if (source === "workload") setWorkloadQuery((previous) => ({
-      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading", retrying,
+      ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), queryKey: workloadKey, phase: "loading", retrying,
     }));
     else setTargetsQuery((previous) => ({
       ...(previous.publicId === publicId ? previous : initialQueryState(publicId)), phase: "loading", retrying,
     }));
     try {
       const endpoint = source === "workload" ? "resource-workload" : "assigned-targets";
-      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/${endpoint}`, {
+      const response = await fetch(`/api/projects/${encodeURIComponent(publicId)}/${endpoint}${source === "workload" && drillFrom && drillTo ? `?${new URLSearchParams({ from: drillFrom, to: drillTo })}` : ""}`, {
         credentials: "same-origin", cache: "no-store", signal: controller.signal,
       });
       const body: unknown = await response.json().catch(() => null);
       if (!response.ok) throw new Error("request failed");
       const fresh = source === "workload" ? workloadFrom(body) : targetsFrom(body);
       if (!fresh) throw new Error("invalid response");
+      if (source === "workload" && drillFrom && drillTo) {
+        const snapshot = fresh as ResourceWorkloadResponse["data"];
+        if (`${snapshot.projectRevision}:${snapshot.catalogRevision}` !== drillRevision) throw new Error("revision mismatch");
+        const range = snapshot.range;
+        if (range.from !== drillFrom || range.to !== drillTo) throw new Error("range mismatch");
+      }
       if (controller.signal.aborted || id !== requestId.current[source] || currentPublicId.current !== publicId) return;
       const lastSuccessAt = new Date().toISOString();
-      if (source === "workload") setWorkloadQuery({ publicId, value: fresh as ResourceWorkloadResponse["data"], phase: "ready", lastSuccessAt, retrying: false });
+      if (source === "workload") setWorkloadQuery({ publicId, queryKey: workloadKey, value: fresh as ResourceWorkloadResponse["data"], phase: "ready", lastSuccessAt, retrying: false });
       else setTargetsQuery({ publicId, value: fresh as AssignmentTargetDto[], phase: "ready", lastSuccessAt, retrying: false });
     } catch {
       if (controller.signal.aborted || id !== requestId.current[source] || currentPublicId.current !== publicId) return;
       if (source === "workload") setWorkloadQuery((previous) => ({
-        ...(previous.publicId === publicId ? previous : initialQueryState<ResourceWorkloadResponse["data"]>(publicId)), phase: "error", retrying: false,
+        ...(previous.publicId === publicId ? previous : initialQueryState<ResourceWorkloadResponse["data"]>(publicId)), queryKey: workloadKey, phase: "error", retrying: false,
       }));
       else setTargetsQuery((previous) => ({
         ...(previous.publicId === publicId ? previous : initialQueryState<AssignmentTargetDto[]>(publicId)), phase: "error", retrying: false,
@@ -185,7 +197,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     } finally {
       if (requestControllers.current[source] === controller) requestControllers.current[source] = null;
     }
-  }, [publicId]);
+  }, [publicId, drillFrom, drillTo, drillRevision, workloadKey]);
 
   useEffect(() => {
     let active = true;
@@ -204,15 +216,16 @@ export function ProjectResourceWorkload({ publicId }: Props) {
     };
   }, [loadSource]);
 
-  const currentWorkload = workloadQuery.publicId === publicId ? workloadQuery : initialQueryState<ResourceWorkloadResponse["data"]>(publicId);
+  const currentWorkload = workloadQuery.publicId === publicId && workloadQuery.queryKey === workloadKey ? workloadQuery : initialQueryState<ResourceWorkloadResponse["data"]>(publicId);
   const currentTargets = targetsQuery.publicId === publicId ? targetsQuery : initialQueryState<AssignmentTargetDto[]>(publicId);
   const data = currentWorkload.value;
   const targets = currentTargets.value ?? [];
   const targetByKey = useMemo(() => new Map(targets.map((target) => [`${target.kind}:${target.id}`, target])), [targets]);
+  const drillCurrent = !drillScope || (currentWorkload.phase === "ready" && data !== null && resourceDrillRevisionMatches(drillScope, data) && data.range.from === drillScope.from && data.range.to === drillScope.to);
 
   const filteredGroups = useMemo(() => {
-    if (!data) return [];
-    const taskFilterActive = roleFilter !== "all" || Boolean(dateFrom && dateTo);
+    if (!data || !drillCurrent) return [];
+    const taskFilterActive = roleFilter !== "all" || Boolean(dateFrom && dateTo) || drillScope !== null;
     const memberScopeActive = taskFilterActive || gradeFilter !== "all";
     return data.groups.flatMap((group) => {
       const groupTarget = group.id ? targetByKey.get(`group:${group.id}`) : undefined;
@@ -222,13 +235,16 @@ export function ProjectResourceWorkload({ publicId }: Props) {
       const scopedMembers = group.resources.flatMap((resource) => {
         const gradeMatch = gradeFilter === "all" || resource.developerGrade === gradeFilter;
         const tasks = resource.tasks.filter((task) =>
+          (!drillScope || resourceDrillMatches(drillScope, resource.id, task)) &&
           overlaps(task.start, task.end, dateFrom, dateTo) &&
-          (roleFilter === "all" || (task.role ?? "UNSPECIFIED") === roleFilter));
+          (roleFilter === "all" ||
+            (roleFilter === "UNSPECIFIED" ? (task.roles?.length ?? 0) === 0 : (task.roles ?? []).includes(roleFilter))));
         if (!gradeMatch || (taskFilterActive && tasks.length === 0)) return [];
         return [{ resource, tasks }];
       });
 
       if (kindFilter === "group") {
+        if (drillScope) return [];
         const memberScopeMatch = !memberScopeActive || scopedMembers.length > 0;
         if (!groupMatchesText || !groupMatchesActive || !memberScopeMatch) return [];
         return [{ ...group, resources: group.resources }];
@@ -264,7 +280,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
         resources,
       }];
     });
-  }, [activeFilter, data, dateFrom, dateTo, gradeFilter, kindFilter, query, roleFilter, targetByKey]);
+  }, [activeFilter, data, dateFrom, dateTo, gradeFilter, kindFilter, query, roleFilter, targetByKey, drillScope, drillCurrent]);
 
   const visibleResourceCount = new Set(filteredGroups.flatMap((group) => group.resources.map((resource) => resource.id))).size;
   const visibleGroupCount = filteredGroups.filter((group) => group.id !== null).length;
@@ -300,10 +316,16 @@ export function ProjectResourceWorkload({ publicId }: Props) {
 
   return (
     <section aria-labelledby="resource-workload-heading" className="project-resource-workload">
+      {drillScope ? <div className="resource-workload-note" role="status">
+        <strong>완료 단계에서 전달한 개인 assignment 표시 범위</strong> · {drillScope.from} ~ {drillScope.to} · Revision {drillScope.projectRevision}/{drillScope.catalogRevision}
+        <p>단계 Dashboard 범위 공수: {effort(drillScope.plannedMd, drillScope.plannedMm, "md")}{drillScope.plannedMm === null ? " · M/M 미설정" : ` / ${effort(drillScope.plannedMd, drillScope.plannedMm, "mm")}`}. 아래 행과 표시 subtotal은 같은 기간을 기존 Resource 서버 계산으로 조회한 뒤 전달된 assignment ID와 기존 필터를 적용합니다. 상단 전체 합계는 같은 기간의 Project 전체 값입니다. 단계 공수는 반올림 전 합계이며 Resource는 기존 반올림 기준을 사용합니다. 단계의 명시 M/M 환산 기준은 Resource에 전달하지 않습니다. Resource 환산 기준은 {data?.mdPerMm === null || data?.mdPerMm === undefined ? "미설정" : `${data.mdPerMm} M/D = 1 M/M (환경 설정)`}입니다.</p>
+        {!drillCurrent ? <p>리소스 응답 Revision이 전달한 범위와 다릅니다. 최신 완료 단계에서 다시 진입하거나 범위를 해제해 주세요.</p> : null}
+        <button type="button" className="secondary-button" onClick={onClearDrillScope}>완료 단계 전달 범위 해제</button>
+      </div> : null}
       <div className="resource-workload-header">
         <div>
           <h2 id="resource-workload-heading">리소스 공수</h2>
-          <p>역할·그룹·리소스·작업별 계획 공수와 현재 작업 상태를 함께 확인합니다.</p>
+          <p>Global Role·그룹·리소스·작업별 계획 공수와 현재 작업 상태를 함께 확인합니다.</p>
         </div>
         <div className="resource-workload-toolbar" role="toolbar" aria-label="리소스 공수 도구">
           <button className={`secondary-button resource-estimate-button${developerEstimateActive ? " is-active" : ""}`} type="button" aria-pressed={developerEstimateActive} onClick={toggleDeveloperEstimate}>개발 견적</button>
@@ -335,7 +357,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
         }}>
         <label>종류<select value={kindFilter} onChange={(event) => setKindFilter(event.target.value as KindFilter)}><option value="all">전체</option><option value="resource">Resource</option><option value="group">Resource Group</option></select></label>
         <label>상태<select value={activeFilter} onChange={(event) => setActiveFilter(event.target.value as ActiveFilter)}><option value="all">전체</option><option value="active">활성</option><option value="inactive">비활성</option></select></label>
-        <label>수행 역할<select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}><option value="all">전체</option>{ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+        <label>Global Role<select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}><option value="all">전체</option>{ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
         <label>개발자 등급<select value={gradeFilter} onChange={(event) => setGradeFilter(event.target.value as GradeFilter)}><option value="all">전체</option>{GRADE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
         <label>Task 기간 From<input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label>
         <label>Task 기간 To<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
@@ -374,7 +396,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
             <div><dt>공수 미설정</dt><dd>{data.unsetCount}건</dd></div>
             <div><dt>과투입 리소스</dt><dd>{overAllocatedCount}개</dd></div>
           </dl>
-          <dl className="resource-role-summary" aria-label="역할별 계획 공수">
+          <dl className="resource-role-summary" aria-label="Global Role별 계획 공수">
             {ROLE_OPTIONS.map((option) => {
               const total = totalForRole(option.value);
               return <div key={option.value}>
@@ -385,7 +407,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
             })}
           </dl>
 
-          <p className="resource-workload-note">상단 역할별 집계와 전체 합계는 assignmentId 기준 Project 전체 값이며, 아래 필터는 drill-down 표시 범위와 표시 subtotal만 제한합니다.</p>
+          <p className="resource-workload-note">Global Role별 집계는 같은 assignment가 복수 Global Role에 중복 포함될 수 있는 비가산 분류 보기입니다. 역할별 값을 서로 더해 전체 계획 공수로 해석하지 않으며, 전체 합계는 assignmentId 기준으로 정확히 한 번만 계산합니다. 아래 필터는 drill-down 표시 범위와 표시 subtotal만 제한합니다.</p>
           {data.asOfDate ? <p className="resource-workload-note">작업 지연 기준일: {data.asOfDate}{data.timezone ? ` (${data.timezone})` : ""}. 계획 공수는 진행률로 차감하거나 실제 소진 공수로 환산하지 않습니다.</p> : null}
           {data.mdPerMm
             ? <p className="resource-workload-note">M/M 환산 기준: 1 M/M = {data.mdPerMm} M/D</p>
@@ -418,7 +440,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
                         <table className="resource-workload-table">
                           <thead>
                             <tr>
-                              <th>작업</th><th>역할</th><th>상태</th><th>진행률</th><th>일정</th>
+                              <th>작업</th><th>Global Role</th><th>상태</th><th>진행률</th><th>일정</th>
                               <th>투입 시작</th><th>투입 종료</th><th>투입률</th><th>공수</th>
                             </tr>
                           </thead>
@@ -426,7 +448,7 @@ export function ProjectResourceWorkload({ publicId }: Props) {
                             {resource.tasks.map((task) => (
                               <tr key={task.assignmentId}>
                                 <td>{task.taskName}</td>
-                                <td>{roleLabel(task.role)}</td>
+                                <td>{roleLabels(task.roles)}</td>
                                 <td>{task.delayed ? <span className="status-badge danger">지연</span> : statusLabel(task.status)}</td>
                                 <td>{task.progress === null || task.progress === undefined ? "—" : `${task.progress}%`}</td>
                                 <td>{task.taskStart && task.taskEnd ? `${task.taskStart} ~ ${task.taskEnd}` : "—"}</td>

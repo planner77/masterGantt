@@ -1,0 +1,461 @@
+[
+  {
+    "label": "pending",
+    "state": {
+      "events": [],
+      "dialogCount": 1,
+      "open": true,
+      "activeTag": "BODY",
+      "activeId": "",
+      "buttonDisabled": true,
+      "topCornerOwn": true,
+      "topCornerTag": "DIALOG",
+      "modal": true
+    }
+  },
+  {
+    "label": "fast two Escape",
+    "state": {
+      "events": [
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        }
+      ],
+      "dialogCount": 1,
+      "open": true,
+      "activeTag": "BODY",
+      "activeId": "",
+      "buttonDisabled": true,
+      "topCornerOwn": true,
+      "topCornerTag": "DIALOG",
+      "modal": true
+    }
+  },
+  {
+    "label": "test-only document capture prevention",
+    "state": {
+      "events": [
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        }
+      ],
+      "dialogCount": 1,
+      "open": true,
+      "activeTag": "BODY",
+      "activeId": "",
+      "buttonDisabled": true,
+      "topCornerOwn": true,
+      "topCornerTag": "DIALOG",
+      "modal": true
+    }
+  },
+  {
+    "label": "nested nonbusy top modal",
+    "state": {
+      "events": [
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        }
+      ],
+      "dialogCount": 2,
+      "open": true,
+      "activeTag": "BUTTON",
+      "activeId": "",
+      "buttonDisabled": true,
+      "topCornerOwn": false,
+      "topCornerTag": "BUTTON",
+      "modal": true
+    }
+  },
+  {
+    "label": "auth pending",
+    "state": {
+      "events": [
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BUTTON",
+          "targetId": "",
+          "defaultPrevented": false,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BUTTON",
+          "dialogOpen": true
+        },
+        {
+          "type": "cancel",
+          "key": null,
+          "target": "DIALOG",
+          "targetId": "issue490-diagnostic-child",
+          "defaultPrevented": false,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BUTTON",
+          "dialogOpen": true
+        },
+        {
+          "type": "close",
+          "key": null,
+          "target": "DIALOG",
+          "targetId": "issue490-diagnostic-child",
+          "defaultPrevented": false,
+          "cancelable": false,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": false,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BUTTON"
+        },
+        {
+          "type": "cancel",
+          "key": null,
+          "target": "DIALOG",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BUTTON"
+        },
+        {
+          "type": "close",
+          "key": null,
+          "target": "DIALOG",
+          "targetId": "",
+          "defaultPrevented": false,
+          "cancelable": false,
+          "isTrusted": true,
+          "activeTag": "BUTTON",
+          "dialogOpen": true
+        },
+        {
+          "type": "close",
+          "key": null,
+          "target": "DIALOG",
+          "targetId": "",
+          "defaultPrevented": false,
+          "cancelable": false,
+          "isTrusted": true,
+          "activeTag": "BUTTON",
+          "dialogOpen": true
+        }
+      ],
+      "dialogCount": 1,
+      "open": true,
+      "activeTag": "BODY",
+      "activeId": "",
+      "buttonDisabled": true,
+      "topCornerOwn": true,
+      "topCornerTag": "DIALOG",
+      "modal": true
+    }
+  },
+  {
+    "label": "auth fast two Escape",
+    "state": {
+      "events": [
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BUTTON",
+          "targetId": "",
+          "defaultPrevented": false,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BUTTON",
+          "dialogOpen": true
+        },
+        {
+          "type": "cancel",
+          "key": null,
+          "target": "DIALOG",
+          "targetId": "issue490-diagnostic-child",
+          "defaultPrevented": false,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BUTTON",
+          "dialogOpen": true
+        },
+        {
+          "type": "close",
+          "key": null,
+          "target": "DIALOG",
+          "targetId": "issue490-diagnostic-child",
+          "defaultPrevented": false,
+          "cancelable": false,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": false,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BUTTON"
+        },
+        {
+          "type": "cancel",
+          "key": null,
+          "target": "DIALOG",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BUTTON"
+        },
+        {
+          "type": "close",
+          "key": null,
+          "target": "DIALOG",
+          "targetId": "",
+          "defaultPrevented": false,
+          "cancelable": false,
+          "isTrusted": true,
+          "activeTag": "BUTTON",
+          "dialogOpen": true
+        },
+        {
+          "type": "close",
+          "key": null,
+          "target": "DIALOG",
+          "targetId": "",
+          "defaultPrevented": false,
+          "cancelable": false,
+          "isTrusted": true,
+          "activeTag": "BUTTON",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        },
+        {
+          "type": "keydown",
+          "key": "Escape",
+          "target": "BODY",
+          "targetId": "",
+          "defaultPrevented": true,
+          "cancelable": true,
+          "isTrusted": true,
+          "activeTag": "BODY",
+          "dialogOpen": true
+        }
+      ],
+      "dialogCount": 1,
+      "open": true,
+      "activeTag": "BODY",
+      "activeId": "",
+      "buttonDisabled": true,
+      "topCornerOwn": true,
+      "topCornerTag": "DIALOG",
+      "modal": true
+    }
+  }
+]

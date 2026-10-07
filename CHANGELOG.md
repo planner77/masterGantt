@@ -1,5 +1,95 @@
 # Changelog
 
+## [0.94.1] - 2026-10-07
+
+### Fixed
+
+- Issue #490: 프로젝트 근무 규칙의 날짜·국가 선택·적용 입력에 40px 높이와 명확한 border·padding을 적용해 입력 경계를 식별하기 쉽게 한다.
+- 프로젝트 설정 Footer action 간격을 12px로 확보하고, 탭의 focus outline을 위한 6px 여유를 둔다. 짧은 action의 내용 기반 폭과 좁은 화면의 자연 wrap을 유지한다.
+- 공용 Workspace Dialog의 요청 처리 중 반복 native Escape가 잠금을 우회해 대화상자를 닫지 않도록 보완한다.
+- 일정 geometry가 같은 canonical Project metadata 응답을 반영할 때 Gantt viewport를 보존한다. 실제 일정·표시 범위 변화와 사용자 스크롤에는 기존 동작을 유지한다.
+
+## [0.94.0] - 2026-10-07
+
+### Changed
+
+- Issue #485: Resource Catalog의 Global Role을 수행 역할의 단일 Source of Truth로 확정하고 Task Editor의 별도 수행 역할 Select/필수 validation을 제거한다. Task assignment는 Resource/Group 참조와 allocation만 소유한다.
+- compatibility `assignment_role` 컬럼과 API `role` 필드는 non-authoritative로 전환한다. migration `0023_deprecate_task_assignment_roles.sql`은 기존 값을 NULL로 정규화하고 role index/guard를 제거하며 신규 canonical 응답은 role=null이다.
+- Resource workload, Milestone dashboard와 Excel 역할 분류는 현재 Global Role 집합을 사용한다. multi-role Resource의 역할 subtotal은 비가산이며 Grand Total은 assignmentId 기준 한 번만 합산한다.
+- Project Copy/Template은 Task별 역할을 새로 복제하지 않고 Resource/Group assignment와 allocation만 보존한다. legacy template `assignmentRole`은 호환 읽기만 하고 instantiate 시 무시한다.
+- latest main의 Issue #493 `0.93.0`을 보존하고 #485의 독립 MINOR release를 위해 application version을 `0.94.0`으로 증가한다.
+
+
+## [0.93.0] - 2026-10-07
+
+### Added
+
+- Issue #493: Summary Task의 Description과 URL을 일반 Task와 같은 검증·저장 경로로 편집할 수 있다. 빈 Summary와 일정 산정 Summary 모두 지원한다.
+
+### Changed
+
+- 최신 main의 Issue #456 Task Editor 레이아웃·pending Escape·Gantt viewport 보완과 application `0.92.1`을 보존한 뒤 #493 변경을 재적용한다.
+- Summary PATCH 직접 편집 allowlist를 name/Description/URL/명시 완료 단계 소속으로 확장하되 일정·진척·상태·Baseline의 자손 파생 read-only 계약은 유지한다.
+- 하위 작업 추가·삭제에 따른 Summary 일정 재계산 뒤에도 메타데이터를 보존하는 Unit/SQLite/E2E 회귀를 추가하고 application version을 `0.93.0`으로 설정한다.
+
+### Fixed
+
+- PR CI Run #1992에서 공개된 Sharp High advisory(CVE-2026-96889, GHSA-wq5f-xc86-pv6w)에 대응해 Next.js의 호환 optional dependency 범위 안에서 lockfile의 Sharp closure를 `0.35.5` / libvips `1.3.4`로 갱신한다.
+- 실패 Playwright artifact의 accessibility tree에서 Description/URL textbox와 저장값이 실제 존재함을 확인하고 reload 후 검증 locator를 실제 노출 role 기준으로 정합화한다.
+
+## [0.92.1] - 2026-10-06
+
+### Fixed
+
+- Issue #456: Task Editor의 상태·진행률 내부 열 예산을 조정해 desktop에서 진행률 숫자가 오른쪽에 잘리는 문제를 수정한다.
+- 요청 일정과 일정 모드를 하나의 의미 그룹으로, Description과 URL을 상세 정보 그룹으로 묶고 기존 설명 읽기 폭과 textarea resize를 유지한다.
+- Footer의 짧은 명령에 일괄104px 폭을 강제하지 않고 action별 normal/pending label에 맞는 폭을 사용한다. 기존44px 클릭 영역과 최신 조회 좌측·취소/저장 우측 계약을 유지한다.
+- Task Editor 저장 중 반복 Escape가 대화상자를 닫는 경로를 차단해 기존 pending 잠금 계약을 보강한다.
+- Editor 진입 등 상위 화면의 렌더에서 같은 visible Task 집합의 Gantt 필터가 반복 적용되어 가로 스크롤을 초기화하는 경로를 보완한다. 실제 필터·범위·Task 집합 변경과 API 교체는 기존 필터 계약을 유지한다.
+- 같은 보기에서 일정·계층·관계가 유지되는 metadata 저장 후 Gantt 가로 스크롤이 초기화되는 경로를 공개 viewport API로 보완한다. 실제 일정·범위 변화와 사용자 스크롤은 조건부 복원 대상에서 제외한다.
+- Editor 관계·기준 일정 action의32px 최소 높이를44px로 확대하며 긴 label의 자연 wrap을 유지한다. 동적 탭·독립 저장·dirty/stale·server canonical 및 Gantt 상태 계약은 변경하지 않는다.
+
+### Changed
+
+- #456의 Task Editor A를 첫 소단위 PR로 개선한다. 설정·근무 규칙·인증 B는#490, 생성·복사·template·입출력·견적 C는#491의 후속 범위로 분리하며 미검증 표면을 완료로 처리하지 않는다.
+
+## [0.92.0] - 2026-10-06
+
+### Added
+
+- Issue #464: JSON 1.0 호환을 유지하는 JSON 1.1 명시 단계 소속 교환, 보호된 Import preview/원자 commit, 전체 일정 JSON Export와 Excel 단계 보고를 제공한다.
+- 전체 Project Copy·Template과 subtree/multi-root Copy에서 단계 Membership을 새 Task ID로 안전하게 remap하고 외부 소속 제외·상속 변화·완료 단계 경계를 명시적으로 검증한다.
+
+### Changed
+
+- latest main `d748046733ae2006580052a480c984ae1eb1fa2a`에는 #463가 병합되어 있으며, 해당 main의 #455/transport/필터 후속 보완을 보존해 #464를 재정렬하고 application version을 `0.91.0`에서 `0.92.0`으로 증가한다.
+- JSON 1.1 preview는 advisory source calendar와 dependency로 source effective schedule을 재구성하여 동일 Export 재가져오기를 거짓 일정 변경으로 표시하지 않는다.
+
+### Fixed
+
+- Context Menu opening scroll settle 보완을 #463에서 승계하고, #464 키보드 회귀 검증은 실제 enabled root item 순서를 기준으로 수행한다.
+
+## [0.91.0] - 2026-10-06
+
+### Added
+
+- Issue #463: 완료 단계의 전체 소속·선행 상태 기반 Ready/위험 KPI와 조회 범위의 개인 assignment 공수를 구분하는 readonly 대시보드/API 및 관련 물류 단계 정보를 제공한다.
+- 대시보드 원인·소속 상세·리소스 조회를 기존 Editor와 일정에 연결하고, 기준일·revision·조건 변경에 맞춰 갱신한다. 일정과 대시보드 왕복 시 Gantt 인스턴스와 보기 상태를 보존한다.
+
+### Fixed
+
+- 완료 단계 대시보드의 물류·Resource 조건을 서로 다른 member에서 조합해 단계 관련성을 만들지 않고, 같은 일반 Task가 두 non-date 조건을 함께 만족할 때만 S에 포함한다.
+- PR CI Run #1869에서 발견된 CSS Module의 전역-only selector를 전역 스타일 소유 위치로 이동해 Next.js production build와 Docker build의 동일 연쇄 실패를 제거한다. 최신 main의 #461/#462 회귀 보완은 유지하고 #463 변경만 재적용한다.
+- PR CI Run #1941에서 opening-settle이 기존 #407/#418 회귀를 해소한 뒤, Chart bar menu의 baseline 재캡처가 Grid row로 surface를 바꾸는 새 회귀를 확인했다. 연결된 원래 trigger 또는 원래 grid/chart surface를 보존한 fallback을 사용해 실제 Chart scroll 닫힘 계약을 유지한다.
+- slow query abort 후 직전 cached query로 복귀할 때 cache hit를 effect 진입 즉시 ready로 복원하여 불필요한 loading 잔류를 제거한다. 실제 network fetch·TTL focus catch-up·revision/catalog 검증은 유지한다.
+
+- PR CI Run #1946에서 390px 단계 picker의 End 키 active option scroll이 requestAnimationFrame에 지연되어 geometry 측정과 경합하는 회귀를 확인했다. 열린 option DOM을 keyboard handler에서 즉시 scrollIntoView(nearest)하여 focus·active option 가시성 계약을 결정적으로 유지한다.
+
+### Changed
+
+- Logistics M/M의 무조건 20일 환산을 명시 query·유효 환경 설정·미설정(null) 정책으로 정합화하고 사용 기준·출처를 제공한다. 기존 물류 계획 M/D·진척·대상 ID는 보존한다.
+- Application version을 `0.90.0`에서 `0.91.0`으로 증가한다. latest main의 #453 및 선행 #460~#462를 보존한 재정렬 PR이며 정식 릴리스는 게시하지 않는다.
+
 ## [0.90.2] - 2026-10-06
 
 ### Fixed

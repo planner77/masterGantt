@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
 
+import { captureUi } from "./helpers/ui-geometry";
+
 const workloadPath = `**/api/projects/${publicId}/resource-workload`;
 const targetsPath = `**/api/projects/${publicId}/assigned-targets`;
 
@@ -346,13 +348,13 @@ test("Issue #117 최신 메타데이터 라벨과 재시도 focus를 유지한�
   await expect(targets.getByRole("button", { name: "이름·코드 다시 시도" })).toBeFocused();
 });
 
-test("Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Gantt 상태를 보존한다", async ({ page }) => {
+test("Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Gantt 상태를 보존한다", async ({ page }, testInfo) => {
   await installStatefulProjectFixture(page);
   await page.goto(`/projects/${publicId}`);
   const ganttIdentity = await rememberGanttRoot(page);
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
 
-  const roleSummary = page.getByLabel("역할별 계획 공수");
+  const roleSummary = page.getByLabel("Global Role별 계획 공수");
   await expect(roleSummary.getByText("개발자", { exact: true })).toBeVisible();
   await expect(roleSummary.getByText("5.00 M/D", { exact: true })).toBeVisible();
   await expect(page.getByText("작업 지연 기준일: 2026-09-18 (Asia/Seoul)")).toBeVisible();
@@ -365,7 +367,7 @@ test("Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Ga
   await filters.locator('button[aria-controls="resource-advanced-filter"]').click();
   const advanced = page.getByLabel("리소스 고급 필터");
   await expect(advanced.getByLabel("종류")).toHaveValue("resource");
-  await expect(advanced.getByLabel("수행 역할")).toHaveValue("DEVELOPER");
+  await expect(advanced.getByLabel("Global Role")).toHaveValue("DEVELOPER");
 
   const resource = page.locator(".resource-workload-resource").first();
   await expect(resource.locator("summary")).toContainText("테스트 리소스 (R-01)");
@@ -400,6 +402,7 @@ test("Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Ga
     await page.setViewportSize({ width, height: 900 });
     await expectResourcePanelOwnsOnlyVerticalScroll(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+    if (width === 390 || width === 1440) await captureUi(page, testInfo, `workload-estimate-${width}`);
   }
 
   await page.getByRole("tab", { name: "일정", exact: true }).click();
@@ -407,6 +410,6 @@ test("Issue #414 역할별 공수와 개발 견적 preset을 drill-down하고 Ga
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
   await expectSameGanttRoot(page, ganttIdentity);
   await expect(estimate).toHaveAttribute("aria-pressed", "true");
-  await expect(advanced.getByLabel("수행 역할")).toHaveValue("DEVELOPER");
+  await expect(advanced.getByLabel("Global Role")).toHaveValue("DEVELOPER");
   await expect(advanced.getByLabel("개발자 등급")).toHaveValue("ADVANCED");
 });

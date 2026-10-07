@@ -189,3 +189,70 @@ Grid 단계 열은 기본 숨김 180px이며 기존 width/flex·내부 scroll bu
 2026-10-06 SVAR 공식 [filter-tasks](https://docs.svar.dev/react/gantt/api/actions/filter-tasks/), [filtering](https://docs.svar.dev/react/gantt/guides/data-operations/filtering/), [links](https://docs.svar.dev/react/gantt/api/properties/links/) 문서를 조회했다. 설치 Core 2.7.3의 DataStore source map에서 filterTree(filter, open ?? true)를 확인하고 기존 공개 action에 open:false를 명시하여 tree-preserve를 검증한다. 최신 문서 조회와 실제 설치 Core browser 조작 증거는 별도로 기록하며 PRO helper는 도입하지 않는다.
 
 완료 단계 열 표시 시 공개 `set-columns`의 현재 사용자 width/flexgrow를 보존하고 `resize-grid`로 optional 열의 폭 증감만 반영한다. 작업명 최소 180px을 stage 열 추가로 소비하지 않으며 기본 최소 433px/단계 포함 613px/전체 optional 929px 예산은 Gantt 내부 scroll owner에서 처리한다. 2026-10-06 [공식 resize-grid action](https://docs.svar.dev/react/gantt/api/actions/resize-grid/)과 설치 Core 2.7.3 구현을 확인했고, 실제 grip 조절 뒤 단계 열 표시/숨김의 폭 보존은 관련 Chromium fixture로 검증한다.
+
+## Issue #463 Dashboard interaction과 표 예산
+
+일정 peer body는 같은 minmax(0,1fr) grid cell과 min-width/min-height 0으로 두 panel의 layout budget을 유지한다. 비활성 Gantt는 visibility:hidden·inert·aria-hidden으로 숨기며 focus/keyboard/접근성 조회에서 제외한다. Dashboard만 활성 세로 body scroll을 소유한다. 일정 peer 탭은 Arrow/Home/End 로빙과 활성 panel 연결을 제공하고 전환 후 focus를 hidden Gantt에 남기지 않는다. 단계 선택은 #462의 검색·명시 ID 라벨·active option 가시성·Escape 복원(preventScroll)을 재사용한다. 다중 선택과 단일 picker는 같은 선택 상태를 표현하고 다중값을 조용히 단일값으로 덮지 않는다. 추가 조건과 원인 영역은 disclosure 의미를 공개한다. 원인 확인은 제목에 focus를 옮기고 Escape/닫기 뒤 trigger로 복원한다. readonly는 조회·필터·원인·drill을 허용하며 pending/stale에서는 조회 결과에 대한 이동 버튼과 실행 handler를 함께 잠근다.
+
+단계 전체 상태 표의 최소 예산은 1052px이다. identity는 최소 260px의 가변 열이고 날짜 112px, 상태 96px, member progress 160px, 완료/전체 104px, 선행 차단 88px, 위험 88px, 조회 144px을 둔다. 긴 이름·외부 ID·UUID는 cell 안에서 wrap/ellipsis와 전체 title로 접근한다. 숫자는 우측 정렬하고 공수는 별도 표에 둔다. 작은 폭에서는 필터/KPI를 reflow하고 표 자체 가로 scroll을 사용한다. 활성 peer body가 세로 scroll을 소유하며 document/sibling overflow를 만들지 않는다.
+
+로컬 Chromium 근거는 `tests/e2e/milestone-dashboard-state.spec.ts`의 390/768/1024/1440/1920px 화면과 geometry, `tests/e2e/milestone-stage-dashboard.spec.ts`의 실제 SQLite drill/Gantt 상태 조작으로 구분한다. geometry는 header/body alignment, 모든 row button의 cell containment와 비중첩, 필터 control 경계, 실제 focus outline 가시성, popup viewport/active option/input 경계, tab 높이와 body scroll owner를 측정한다. 변경 전 actual 화면은 NOT TESTED이며 baseline `603cd029d279ddc5b70309786abf8876b6bd1692`의 일정 화면에는 peer 대시보드가 없다는 source 재현 근거를 사용한다. 실제 기기·screen reader·최종 수동 UX와 원격 CI는 별도 검증이다.
+
+2026-10-06 [공식 scroll-chart action](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/)과 설치 Core 2.7.3 `DataStore.d.ts`의 공개 left/top 계약을 확인했다. 일반 peer 복원은 visible·세대·scope/filter key를 확인하고 기존 canonical/column queue 뒤에 공개 viewport action을 직렬 적용한다. native fullscreen과 scheduling 정책은 변경하지 않는다. 복원 오류는 canonical reset/remount를 호출하지 않는다. 공개 scroll event/state 진단은 개발/test에만 한정하며 최근 12건을 보존하고 Task 데이터나 비밀값을 포함하지 않는다. 문서 조회와 실제 Chromium의 public state/DOM 및 후속 layout 유지 근거는 구분한다.
+
+변경 전 재현 근거는 baseline `603cd029d279ddc5b70309786abf8876b6bd1692`의 `src/features/projects/project-readonly-view.tsx`다. 해당 source의 일정 영역에는 Gantt만 있고 완료 단계 Dashboard peer가 없다. baseline에서 Project 직접 링크를 열어 일정 탭을 선택하는 절차와 변경 후 peer 선택 절차를 비교한다. 변경 전 실제 캡처는 수행하지 않았으며 source 비교를 실제 browser PASS로 표시하지 않는다. geometry는 실제 표시되는 control만 집계하고 닫힌 details 자식의 캐시 bounding rect는 `checkVisibility()`로 제외한다.
+
+공용 단계 popup은 anchor와 현재 viewport의 실제 여유를 계산한다. 검색·border·padding·list margin을 포함한 chrome 높이를 실측해 list max-height를 제한하고 아래 공간이 부족하면 위로 배치한다. 가로 경계는 viewport 안으로 clamp하며 열린 상태의 viewport resize와 외부 scroll에서 다시 배치한다. 내부 list scroll은 owner 안에서 유지하고 End active option과 Escape trigger focus 복원을 검증한다.
+
+## Issue #464 교환·Copy 확인 interaction
+
+Copy 영향 확인은 기존 Task 메뉴와 키보드 Paste의 공통 Workspace dispatch에 둔다. 영향 표는 제외 explicit row 수와 변화 Task/Summary 수를 별도로 표시하고, 기존 target과 복제 예정 target(원본 ID)을 구별한다. 검토 revision/command가 바뀌면 기존 동의는 사용할 수 없다. 완료 잠금·권한·서버 validation 실패는 확인으로 우회하지 않는다. native fullscreen host를 기존 portal 패턴으로 관측해 fullscreen 안에서도 dialog와 초기 취소 focus가 보이도록 한다. 취소는 저장하지 않고 호출 목적지로 `preventScroll` focus를 복원한다.
+
+Import preview는 조회 중 취소·abort를 허용하고 generation이 다른 늦은 응답을 적용하지 않는다. commit은 동일 File·대상·preview revision/digest로만 실행하고, 동기 pending guard와 실제 disabled/닫기/Escape가 일치해야 한다. 401/412/네트워크 실패에는 File을 보존하되 이전 preview로 자동 재저장하지 않는다. 조회·검토와 DB commit의 상태 문구를 분리한다. JSON Export의 legacy mixed 안내도 실제 다운로드에 사용할 최신 snapshot revision에 연결한다.
+
+새 표의 수치·범위는 서버 DTO를 표시하며 클라이언트에서 effective membership/Ready/공수 계산을 재구현하지 않는다. Copy 표 720px, Import 표 960px 최소폭과 `min(360px,40dvh)` 표 내부 세로 budget을 사용한다. Copy/Import의 고정 헤더·action과 내부 body 세로 스크롤을 유지하고 390/768/1024/1440/1920px에서 문서 overflow 0, 표 자체 가로 스크롤, header/body 정렬, 표시되는 모든 control의 cell/owner containment와 비중첩, focus outline 및 native dialog keyboard 경계를 실제 측정한다. 닫힌 details·inert·비표시 자식은 표시 control로 세지 않는다. 변경 전 실제 캡처와 변경 후 실제 증거, mock과 실제 SQLite, 로컬 LFF와 원격 CI는 각각 구분한다. 설치 SVAR Core 2.7.3의 Task/canonical/viewport 계약은 유지하고 PRO 교환 UI나 새 Gantt 엔진을 복제하지 않는다.
+
+Import 412에서는 파일과 dialog를 유지한 채 `최신 일정 조회`로 전체 canonical snapshot을 명시적으로 조회한다. 이 GET은 Workspace ready 상태를 유지하고 dialog를 unmount하지 않는다. 기존 preview를 무효화한 뒤 새 revision이 표시되면 사용자가 `다시 미리보기`와 `기존 일정에 추가`를 각각 실행한다. 자동 preview/commit은 없다. 최신 조회도 취소·target/generation·AbortSignal을 검사하며, 취소하거나 프로젝트가 바뀐 뒤 도착한 응답은 parent snapshot 적용 전에 폐기한다. 조회 실패에는 File을 유지하고 명시적 재조회만 허용한다.
+
+#464의 변경 후 Chromium 증거는 `output/playwright/issue-464/`의 Copy·Import·Excel·JSON별 390/768/1024/1440/1920px PNG 20개와 geometry JSON 20개다. 2026-10-06 마지막 영향 검증은 Import 기존 2개·412 최신 조회 복구 2개·5폭 geometry·SVG/PNG/Excel·다중 Copy canonical·pending Copy 412의 8개를 실행해 PASS했다. 이전 source와 무관한 Copy fullscreen·JSON 최신 revision·외부 revision·완료 경계·Editor 리뷰 2개는 재사용하여 고유 14개 범위를 검증했다. 단일 실행의 14 PASS나 원격 전체 회귀 PASS로 해석하지 않는다. 최초 테스트 메뉴/문구 선택 실패와 별도로, Manager가 발견한 Import 412 최신 조회 수단 누락은 제품 보완 사항으로 기록한다. 실제 SQLite 통합·독립 QA·원격 CI 및 실제 기기/스크린리더 결과는 [테스트 계획](TEST_PLAN.md)에서 별도로 확인한다.
+
+작업 메뉴를 열기 위한 미선택 행 선택은 공개 `select-task`의 `show:false`로 Core에 반영한다. 이미 보이는 호출 대상의 위치를 선택 직후 자동으로 이동시키지 않으며, 일반 클릭·키보드 선택의 기존 reveal 및 modifier/multi-selection은 유지한다. 메뉴가 열린 뒤 실제 사용자 스크롤·resize에는 기존 guard가 즉시 메뉴를 닫고, 같은 위치의 지연 scroll 알림은 무시한다. 설치 Core 2.7.3 타입과 [공식 select-task action](https://docs.svar.dev/react/gantt/api/actions/select-task/)의 show 기본 true/false 계약을 2026-10-06 확인했다. 하단 가상 행의 미선택 namecell 우클릭과 native/public 수직 위치 보존은 `tests/e2e/task-context-menu-scroll.spec.ts`에서 검증하며, 문서 확인과 실제 browser 결과를 구분한다.
+
+2026-10-06 context 선택 수정 후 좁은 Chromium 4개(하단 가상 행 미선택 우클릭, 화면 밖 Chart 우클릭/실제 스크롤 닫힘, 다중 Copy canonical, pending Copy 412)는 같은 source에서 PASS했다. 하단 이름 셀 우클릭 후 native/public top192와 소유/Core 선택을 유지하고 Copy 조회에 POST를 만들지 않았다. 실제 이후 스크롤은 메뉴를 닫는다. 기존 40개 화면/geometry는 layout 변경이 없어 재사용하며 실제 #464 통합 fixture와 원격/독립 QA 결과는 별도로 판정한다.
+
+Context 선택은 기존 Copy 완료 feedback도 보존한다. 미선택 목적지 우클릭 직후 조건부 feedback 줄을 제거하면 Gantt 높이가 바뀌고 scrollIntoView된 Grid 조상의 위치가 clamp되어 새 메뉴가 닫힐 수 있기 때문이다. 메시지는 clipboard의 복사 결과를 계속 설명하며 일반 클릭·키보드·modifier 선택의 기존 메시지 정리는 유지한다. Copy→더 아래 목적지 이름 셀 우클릭→활성 Paste 위치 submenu→소속 영향 확인·취소의 실제 경로를 검증하며 clipboard/revision 조건이나 실제 사용자 scroll 닫힘을 완화하지 않는다.
+
+Copy feedback 보존 보강 후 같은 좁은 Chromium 4개를 다시 실행해 PASS했다. 확장된 하단 가상 행 회귀는 Copy→한 행 아래 미선택 목적지의 실제 scrollIntoView/이름 셀 우클릭→활성 Paste/Below→소속 영향 확인·취소까지 도달했다. 우클릭 전후 Grid 조상 위치와 Gantt 높이, native/public top192를 유지하고 DB mutation은 0회다. 실제 사용자 이후 스크롤 닫힘과 기존 다중 Copy/pending412도 유지했다. 원본 actual 통합 테스트의 수정 후 결과는 별도 근거다.
+
+
+### Issue #456 Task Editor 폼 검토 기준
+
+- schedule 날짜·기간·mode는 이름이 있는 fieldset으로 인접하게 배치하고 작은 화면에서도 label 연결과 읽기 순서를 유지한다. 설명/URL은 별도 semantic group으로 묶되 기존 설명 읽기 폭과 resize를 줄이지 않는다.
+- 진행률은 slider와 실제 숫자 text·focus outline의 containment를 함께 확인한다. document horizontal overflow 0만으로 내부 clipping을 PASS 처리하지 않는다.
+- Footer action은 label/padding 기반의 폭과 pending label budget을 사용한다. 숨김 sizer는 accessible name을 중복시키지 않으며 normal/pending 상단·높이·폭 차이는 1px 이내여야 한다. native action hit area 최소 44px와 모바일 multiline 자연 높이를 보존한다.
+- 실제 pending에서 disabled 버튼→body focus→반복 Escape를 확인하고 readonly/dirty/unlock 이후 기존 Escape, nested dialog, 401/412·reload와 교차 draft 잠금도 별도로 검증한다. 화면 캡처는 keyboard/state evidence를 대신하지 않는다.
+- Gantt 보존은 실제 public/DOM scroll, 존재하는 header 열 폭, 선택/tree/scale/scope/fullscreen과 instance를 함께 비교한다. 빈 배열이나 instance identity만 비교한 결과를 전체 상태 보존 PASS로 사용하지 않는다. 실제 날짜/filter/scope 이동은 이전 viewport로 덮지 않아야 한다. active name/status filter에서 metadata 저장으로 실제 표시 ID 집합이 바뀌는 경우도 확인한다. raw query가 같은 것만으로 동일 필터 상태라고 판정하지 않는다.
+
+#456의 390/768/1024/1440/1920px before/after와 대표 상태 evidence는 TEST_PLAN에 기록한다. B #490 및 C #491은 별도 후속/NOT TESTED이며 이 항목을 통해 인수하지 않는다. SVAR 자료 확인일은 2026-10-06, 설치 Core는 2.7.3이다. 공식 문서 확인과 실제 브라우저 조작 증거는 구분한다.
+
+## Issue #457 공통 관측과 coverage 계약
+
+[전 화면 coverage](ISSUE_457_UI_UX_COVERAGE.md)는 각 표면의 route/entry·fixture·child Issue/PR·실제 viewport/state·source/test/env provenance·artifact·판정·남은 이유를 함께 기록한다. 전체 행의 대표 PASS를 해당 화면 모든 상태 PASS로 확대하지 않는다. 이전 source의 before/after와 현재 actual browser를 구분하고 동일 product/CSS 변경0은 KEEP로 판정한다. 일반 회귀 실행은 tracked evidence를 덮어쓰지 않아야 하며, 증거 게시 경로는 명시적으로 opt-in한다. KEEP/REGRESSION 같은 판정은 명시적 source baseline과 비교할 때만 계산하고 baseline 없는 관측은 중립 상태로 기록한다.
+
+공통 observer는 표시 control의 경계/배경/padding/font/높이, 실제 label/description, native focus-visible/outline와 clipping owner, error/disabled 상태를 관찰한다. populated row/header/control의 최소수를 명시하며 empty colspan·숨은 text·0rect·inert/비활성 panel을 제외한다. 형제 control만 비중첩 검사하고 parent-child를 같은 층으로 비교하지 않는다. Cell text 침범과 의도된 ellipsis/clip은 구분하며 document overflow는 clientWidth+1, table/Gantt 내부 scroll은 별도 소유자로 측정한다. viewport와 owner에 실제 교차하는 row 수와 usable budget을 수집하며 가상 DOM 수를 전체 Task 수로 부르지 않는다.
+
+비교 환경을 먼저 맞춘다. #457 cross-admin은 같은390/768/1024/1440/1920px·높이900·ko-KR/Asia-Seoul/default100%를 사용한다. 설명 줄 수의 정상 높이 차이를 공통 shell 실패로 판정하지 않는다. Native125가 실행 불가능하면 NOT TESTED로 남기고 DPR를 zoom으로 대체하지 않는다. 관찰용 scroll 준비는 keyboard 접근 증거와 분리하며 마지막 action은 native Tab로 owner 안에 보이는 실제 focus outline을 확인한다. 기존40px admin/44px Task Editor/nested Relation 자체33.5px 예외를 보존한다.
+
+실제 browser·E2E·source-only·분리 CSS 실험·원격 CI·독립 ui_ux/QA 결과는 각각 기록한다. 실행별 HTML/trace/JSON 원본을 다음 실행 전에 분리 보존하고 후기 hash를 이전 capture에 소급하지 않는다. #452 first PR에는 지역 observer만 있었으며 재사용 helper를 당시부터 존재한 것으로 쓰지 않는다. B#490/C#491 및 React boundary·실제 배포·native125의 미검증은 coverage에서 후속으로 추적하며 사진/문서만으로 Epic 완료를 선언하지 않는다.
+
+환경별 미검증은 [Follow-up #502](https://github.com/planner77/masterGantt/issues/502)에서 실제 React error boundary/native125/실기기·screen reader·최종 수동 UX/배포 source·version을 FOLLOW-UP/NOT TESTED로 추적한다. frontend·ui_ux·qa_docs가 환경별 증거를 작성/비교/독립 확인하고 Manager가 환경 제공과 수용 범위를 판단한다. B#490/C#491 제품 개선과 별개이며 현재 scope에서 자동 실행하지 않는다.
+
+#457 독립 검토의 provenance 정정: 목록 `list-populated-1440`/`list-no-result-1440` key는 별칭이며 실제 JSON/PNG는1280×720이다. Current62 JSON은 ko-KR/Asia-Seoul/높이900/DPR1 49개, en-US/Asia-Seoul/높이900/DPR1 11개, en-US/Asia-Seoul/높이720/DPR1 목록2개다. 정상 Master auth는 기존 autofocus 때문에 focused/focusVisible=true이므로 normal을 비포커스 baseline으로 해석하지 않는다. 과거capture/test/source hash와141개raw PNG/JSON은 그대로 유지한다. 착수 시 stacked 계획과 달리 parent PR#500 외부 병합 후 최종 base는 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`/0.92.1이며 tree `6a322cc119ed5b0a435f3b1ff20fe5826035ed66`이 원래 capture source b397eedf35d50befb4ae17e623036f0a8d77f556과 정확히 같아 LFF를 재사용한다. 실제 운영 배포는 #502 NOT TESTED다.
+
+## Issue #490 설정 폼 검증 적용
+
+설정 탭의 native Home/Arrow/End 및 Tab 이동에서 focus ring은 scroll owner 안에 완전히 보여야 한다. outline 3px + offset 3px인 소비자는 최소 6px 여유를 확보한다. Calendar 입력의 식별 가능한 테두리·padding·focus·disabled 표현과 footer의 같은 행 높이/간격, 좁은 폭의 자연스러운 wrap을 측정한다. 일반 정보·보안·unlock의 정상 표현은 기존 공통 form-field를 재사용한다. Task Editor의 44px 정책과 공통 전역 token은 변경하지 않는다.
+
+Pending Escape 회귀는 busy DOM 반영 직후 지연 없이 두 번 누른다. listener 준비 대기나 50ms 간격으로 실패를 숨기지 않는다. BODY 초점·가장 위의 native modal 소유·중첩 nonbusy modal·busy=false/unmount cleanup을 분리한다. PNG만으로 keyboard/초안/권한/viewport 보존 PASS를 대신하지 않는다. 실제 125% zoom, 실기기와 screen reader는 [환경별 후속 #502](https://github.com/planner77/masterGantt/issues/502)의 NOT TESTED 범위다. 상세 비교는 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
+
+#490 검증 보완은 기존 국가 select의 UA focus 관측과 새 Calendar .field의 focus 관측을 분리한다. 390px에서 국가→적용 범위 select→시작일 input을 native Tab로 이동하고 browser가 보이도록 스크롤한 실제 bbox/outline3px+offset3px/clip owner를 확인한다. 화면 아래의 focused input 사진이나 기존 country의 UA outline1px을 새 field focus PASS로 쓰지 않는다. 유효 password rotation은 대표1440px 실제 pending/204 성공/session 교체 경로로 추가하며 모든 상태×5폭으로 확대하지 않는다. canonical refresh 중 BODY 초점은 실제 기존 정책으로 기록하고 정상 닫기/로그아웃/unlock의 호출 초점 복원과 구분한다.

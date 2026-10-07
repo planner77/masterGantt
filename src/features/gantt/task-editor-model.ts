@@ -54,6 +54,27 @@ function validHttpUrl(value: string): boolean {
   }
 }
 
+function taskDetailChanges(
+  task: ProjectTaskDto,
+  draft: Pick<TaskEditorDraft, "description" | "url">,
+): { readonly payload: Partial<Pick<ProjectTaskUpdatePayload, "description" | "url">>; readonly error: string | null } {
+  if (Array.from(draft.description).length > 10_000) {
+    return { payload: {}, error: "Description은 10,000자 이하로 입력해 주세요." };
+  }
+  const description = normalizedDescription(draft.description);
+  const url = normalizedUrl(draft.url);
+  if (url !== null && (!validHttpUrl(url) || Array.from(url).length > 4_096)) {
+    return { payload: {}, error: "URL은 http:// 또는 https:// 형식으로 입력해 주세요." };
+  }
+  return {
+    payload: {
+      ...(description !== (task.description ?? null) ? { description } : {}),
+      ...(url !== (task.url ?? null) ? { url } : {}),
+    },
+    error: null,
+  };
+}
+
 function scheduleIssue(field: TaskEditorScheduleField, message: string): TaskEditorScheduleIssue {
   return { field, message };
 }
@@ -263,7 +284,13 @@ export function prepareTaskEditorCommand(task: ProjectTaskDto, draft: TaskEditor
   if (characters.length < 1 || characters.length > 200 || characters.some((character) => { const code = character.charCodeAt(0); return character.length === 1 && code >= 0xd800 && code <= 0xdfff; })) return invalid("작업명은 올바른 문자로 1~200자까지 입력해 주세요.");
   const membership = draft.explicitMilestoneTaskId !== (task.membership?.explicitMilestoneTaskId ?? null) ? { explicitMilestoneTaskId: draft.explicitMilestoneTaskId } : {};
   if (task.type === "summary") {
-    const payload: ProjectTaskUpdatePayload = { ...(name !== task.name ? { name } : {}), ...membership };
+    const details = taskDetailChanges(task, draft);
+    if (details.error) return invalid(details.error);
+    const payload: ProjectTaskUpdatePayload = {
+      ...(name !== task.name ? { name } : {}),
+      ...details.payload,
+      ...membership,
+    };
     return { command: Object.keys(payload).length ? { taskId: task.taskId, payload } : null, error: null };
   }
   try { parseDateOnly(draft.start); } catch { return invalid("시작일은 1900-01-01~2199-12-31 범위의 올바른 날짜여야 합니다."); }
@@ -274,10 +301,8 @@ export function prepareTaskEditorCommand(task: ProjectTaskDto, draft: TaskEditor
   if (!draft.progress.trim() || !Number.isFinite(progress) || progress < 0 || progress > 100 || (progress !== task.progress && !Number.isInteger(progress))) {
     return invalid("진행률은 0~100 사이의 1% 단위 값으로 입력해 주세요.");
   }
-  if (Array.from(draft.description).length > 10_000) return invalid("Description은 10,000자 이하로 입력해 주세요.");
-  const description = normalizedDescription(draft.description);
-  const url = normalizedUrl(draft.url);
-  if (url !== null && (!validHttpUrl(url) || Array.from(url).length > 4_096)) return invalid("URL은 http:// 또는 https:// 형식으로 입력해 주세요.");
+  const details = taskDetailChanges(task, draft);
+  if (details.error) return invalid(details.error);
 
   let nextBaselineStart: string | null = null;
   let nextBaselineDuration: number | null = null;
@@ -316,8 +341,7 @@ export function prepareTaskEditorCommand(task: ProjectTaskDto, draft: TaskEditor
     ...(draft.scheduleMode !== task.scheduleMode ? { scheduleMode: draft.scheduleMode } : {}),
     ...(progress !== task.progress ? { progress } : {}),
     ...(draft.status !== initialStatus ? { status: draft.status } : {}),
-    ...(description !== (task.description ?? null) ? { description } : {}),
-    ...(url !== (task.url ?? null) ? { url } : {}),
+    ...details.payload,
     ...(baselineChanged ? {
       baselineStart: nextBaselineStart,
       baselineDuration: nextBaselineDuration,

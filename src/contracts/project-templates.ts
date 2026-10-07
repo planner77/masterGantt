@@ -63,6 +63,7 @@ export interface TemplateAssignmentSnapshotItem {
   offsetStartDays?: number | null;
   offsetEndDays?: number | null;
   allocationPercent: number | null;
+  /** @deprecated Issue #485: legacy snapshots may contain this field; new snapshots omit it. */
   assignmentRole?: "PI" | "DEVELOPER" | "EQUIPMENT_OWNER" | null;
 }
 
@@ -115,7 +116,14 @@ export interface TemplateTaskSystemLinkSnapshotItem {
   scope: "self" | "subtree";
 }
 
+export interface TemplateMembershipSnapshotItem {
+  taskExternalId: string;
+  milestoneExternalId: string;
+}
+
 export interface ProjectTemplateSnapshot {
+  /** Omission supports snapshots saved before membership preservation. */
+  memberships?: TemplateMembershipSnapshotItem[];
   sourceRevision: number;
   projectMaster?: {
     businessUnitId: string | null;

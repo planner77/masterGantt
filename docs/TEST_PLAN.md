@@ -1,5 +1,17 @@
 # Test Plan
 
+## Issue #459 — Milestone Stage Gate Epic 통합 회귀
+
+#460~#464의 개별 테스트를 Epic 수용 기준으로 묶어 다음 교차 불변식을 유지한다.
+
+- `tests/domain/milestone-stage-gates.test.ts`: 서로 다른 Milestone의 member Task 사이 Task→Task Dependency만으로 후행 단계의 predecessor/blocked 상태가 생기지 않는다. 명시 Milestone→Milestone Link를 추가했을 때만 Gate predecessor가 생기며, 선행 Milestone 완료 후 Ready가 복구된다.
+- Editor→canonical membership→Grid 단계 열/필터→Milestone Dashboard→물류/Resource drill-down은 같은 full Project revision과 effective membership을 사용한다.
+- 부분 WBS/물류/Resource/기간 조건으로 화면 대상이나 공수 범위를 제한해도 Ready와 memberProgress의 full-stage E(M)/P(M)는 바뀌지 않는다.
+- JSON/Excel/Project Copy/Template/subtree Copy는 explicit membership의 보존·명시적 제외 경계를 검증하며 effective/Ready를 입력 row로 평탄화하지 않는다.
+- 완료 단계 소속/Dependency 잠금, legacy mixed Link 보존, stale/401/412/rollback 및 Gantt instance/scroll/tree/scale/selection/fullscreen 보존을 기존 하위 Issue 회귀와 함께 유지한다.
+
+이번 #459 마무리 변경은 runtime/API/DB 알고리즘을 바꾸지 않고 umbrella 문서와 누락된 Dependency 의미 회귀를 보강한다. 공식 판정은 동일 PR head GitHub Actions의 `quality/e2e/docker`이며 CI 시작 전·진행 중은 NOT TESTED다.
+
 ## Issue #460 — Stage Gate 회귀
 
 [Milestone Stage Gates](MILESTONE_STAGE_GATES.md)의 검증 파일 목록을 기준으로 explicit/상속/override/clear/빈 Summary/기준 scope 무관 계산, duration 가중률·반올림·canonical 완료·수동 이벤트·predecessor Gate를 검증한다. 실제 SQLite/API는 atomic composite/batch, 일정/WBS/Link/Assignment 불변, FK/Project 격리/unique/invalid type, 401/403/428/412, 오류 rollback, completion status/progress 양 경로, old/new explicit+effective 구조 잠금, CRUD/hierarchy/Link 우회, legacy mixed 보존/신규 금지, no-loss Copy/Template/Excel/Import를 포함한다.
@@ -1275,35 +1287,20 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - UI/Chromium: 생성/표시/row 역할 checkbox, keyboard Space/focus, 역할/등급 구분, Group member 역할 참고, long Korean name, mutation `If-Match`, 390/768/1024/1440px document overflow를 검증한다.
 - 회귀: 기존 Resource 삭제 usage guard, group member 저장, Task Resource tab/assignment, logistics owner/developer/PI 저장, Resource Calendar 테스트는 동일 PR head의 전체 CI에서 함께 판정한다.
 
-## Issue #413 — Task assignment 수행 역할 검증
+## Issue #485 — Global Resource Role 단일 기준 검증
 
-- DB migration: `0021_task_assignment_roles.sql` ledger, nullable column, allowed role CHECK, role lookup index, assignment membership guard, role delete guard를 확인한다.
-- Service/API: multi-role Resource의 Task별 PI/DEVELOPER 저장, 보유하지 않은 role 거부, stale catalog/Project revision, Group role 금지, 사용 중 Global Role 제거 fail-closed와 Project/Task usage detail을 검증한다.
-- 기존 데이터: migration 전 assignment는 role null로 유지되고 allocation/M/D/M/M 결과가 바뀌지 않아야 한다.
-- UI/E2E: 역할 우선 후보 필터, Resource별 역할 option 제한, 신규 assignment 역할 필수, legacy 미지정 표시, 역할 변경 시 allocation draft 유지, 390/768/1024/1440 overflow와 keyboard 접근성을 검사한다.
-- 복사/Template: Project Copy와 Template snapshot/instantiate에서 assignment role과 null 상태가 보존되어야 한다.
-- 회귀: Group assignment, 관계/물류/작업 정보 탭, Calendar/workload, Gantt scope state는 역할 메타데이터 추가로 동작이 변하지 않아야 한다.
+- DB migration: `0023_deprecate_task_assignment_roles.sql`이 기존 `assignment_role`을 null로 만들고 role index/INSERT·UPDATE guard/role-delete guard를 제거하는지, 재실행·reopen·FK 정합성을 확인한다.
+- Service/API: 신규 개인 Resource assignment는 role 없이 저장되고 canonical role은 null인지 확인한다. non-null legacy `role` mutation은 거부하고, 사용 중 Resource의 Global Role 변경/제거는 Task assignment 때문에 차단되지 않아야 한다.
+- UI/E2E: Resource 선택 후 수행 역할 Select가 없고 Global Role badge만 표시되는지, Global Role 필터가 `assignment-targets?kind=resource&role=...` 후보 조회만 수행하며 저장 payload에 role을 넣지 않는지 확인한다.
+- Workload/Milestone/Excel: 현재 Global Role 집합으로 분류하고 role 0개는 UNSPECIFIED인지 확인한다. multi-role assignment의 role subtotal 합은 Grand Total보다 클 수 있으며 Grand Total은 assignmentId 기준 한 번만 합산되어야 한다.
+- Copy/Template: Project Copy와 신규 Template snapshot/instantiate가 Task별 role을 복제하지 않고 Resource/Group 참조와 allocation을 보존하는지 확인한다. legacy snapshot의 `assignmentRole`은 무시한다.
+- 기존 readonly/401/412/catalog stale/inactive/중복 submit, allocation Calendar/M/D·M/M, Gantt state 회귀를 함께 검증한다.
 
-### Issue #413 review 회귀
+## Issue #414 — Global Role 기반 Resource workload 검증
 
-- 100개를 초과하는 활성 Resource에서 역할 없는 filler가 앞에 정렬되어도 `role=EQUIPMENT_OWNER` 검색은 뒤쪽 matching Resource를 반환해야 한다.
-- Task Editor에서 수행 역할 선택 시 실제 `assignment-targets?kind=resource&role=...` request가 발생해야 한다.
-- Template snapshot에 남은 수행 역할을 live assignment 삭제 후 Global Role에서 제거하고 instantiate해도 500이 발생하지 않아야 한다. 새 assignment/allocation은 유지하고 role은 null, warning은 stale role과 역할 미지정 복원을 포함해야 한다.
-
-## Issue #414 — 역할 기반 Resource workload 검증
-
-- Server: PI 2 M/D + Developer 8 M/D + Equipment Owner 3 M/D = Grand Total 13 M/D fixture를 사용해 역할 subtotal 합과 Grand Total을 비교한다.
-- Dedup: multi-role Resource를 Task별 다른 수행 역할로 분류하고, 동일 Resource가 두 Group에 속해도 Grand Total은 assignmentId 기준 한 번만 합산되는지 확인한다.
-- Legacy: Global DEVELOPER 역할을 가진 Resource라도 Task assignment role이 null이면 `UNSPECIFIED`로 분류하고 Developer subtotal에 포함하지 않는다.
-- M/M: `RESOURCE_MD_PER_MM=20`이면 13 M/D → 0.65 M/M이며 기준 미설정 시 Grand/role M/M은 null이고 M/D는 유지한다.
-- Status: canonical task progress/status/start/end와 Project timezone 기준 delayed를 반환하되 progress/status 변경으로 계획 M/D가 변하지 않는지 확인한다.
-- Capacity: 역할 분류와 무관하게 기존 Resource Calendar 및 일별 allocation >100% 과투입 판정을 유지한다.
-- Chromium: 역할 summary, 개발 견적 preset(Resource+DEVELOPER), 역할/개발자 등급 filter, developer Task detail을 검증한다.
-- State/geometry: 390/768/1024/1440px document overflow 없음, task table 내부 horizontal scroll, 일정↔리소스 왕복 후 동일 Gantt instance와 preset/filter 상태 보존을 확인한다.
-- 기존 #117 workload/assigned-target 독립 loading/error/stale/partial retry E2E를 그대로 통과해야 한다.
-- 공식 전체 판정은 Issue #414 PR exact head의 GitHub Actions quality/e2e/docker 결과로 한다.
-
-
+- #56 산식과 assignmentId Grand Total dedup은 유지한다.
+- 역할 subtotal은 Resource의 현재 Global Role 집합에 따라 비가산 분류한다. DEVELOPER preset도 Global Role을 사용한다.
+- 공식 전체 판정은 #485 PR exact head의 GitHub Actions quality/e2e/docker 결과로 한다.
 
 ## Issue #415 — Resource Effort Excel 검증
 
@@ -1512,6 +1509,65 @@ DOCUMENTATION_SYNC는 PROJECT_UX/TASK_EDITOR/TASK_RELATIONS/REQUIREMENTS/TEST_PL
 
 최종 source typecheck와 변경 파일 ESLint는 PASS(0 errors, 기존 project-gantt hook warnings 4개 유지)이며 isolated Next가 만든 next-env/tsconfig 경로는 실행 종료 뒤 baseline으로 복구했다. 로컬 Markdown 링크 검사와 diff whitespace 검사도 수행한다. 원시 geometry 5개 폭에 대해 작업명≥180px/단계=180px 및 popup 0..844px 경계를 추가 확인했다.
 
+
+## Issue #463: 단계 dashboard와 scoped effort
+
+최종 로컬 결과는 backend 관련 검증 PASS, actual #463 1/1 PASS, 새 layout/picker의 five-width geometry 및 추가 actual #462 PASS다. 최초 harness 오류와 가로 scroll/popup 제품 FAIL은 아래 이력으로 보존한다. 원격 quality/e2e/docker와 독립 최종 QA는 NOT TESTED다.
+
+- `tests/domain/milestone-dashboard-model.test.ts`: request 정규화/배열 unique-sort, 요청 날짜 echo와 resolved 날짜 구분, mdPerMmProvided·omission/null/ENV 환산, publicId/Project exact revision/minimum Catalog revision, 과거 filter 응답 거부, null 표시와 서울 자정/year/leap 경계를 고정한다. client는 E/P/Ready/공수를 재계산하지 않고 DTO를 보존한다. 담당 Agent의 최초 Local Fast Feedback는64/64 PASS, 이 파일 ESLint PASS이며 실제 브라우저/원격 CI 증거는 별도다.
+- `tests/domain/milestone-resource-drill.test.ts`: 개인 assignment ID/Task ID/Resource ID 교집합과 inclusive 기간 overlap, exact Project/Catalog revision 및 빈 ID 집합의 전체 범위 확대 방지를 검증한다. frontend Local Fast Feedback는5/5 PASS이며 기존 API의 값을 새 공수 산식으로 재계산하지 않는다.
+- `tests/server/projects/milestone-dashboard-calculation.test.ts`: E/P full Gate, Summary 상속, S/F 독립, raw weighted progress·반올림100경계, 수동 이벤트·완료 불일치, mixed predecessor 제외, 직접/member 물류 관련 M, 범위 밖 불완료, 개인 assignment dedup·미설정·다중 그룹·same-assignment role/grade, raw M/M thirds, bucket Grand Total, coverage0/null, inclusive 날짜/horizon1·상한·서울 자정 및 query/ENV/null 정책을 검증한다.
+- `tests/server/projects/milestone-dashboard-http.test.ts`: 실제 SQLite read transaction/Project row, clock 1회, 공개 readonly/no-store/최소 catalog·secret 비노출·무변경, Project 격리, Resource Group/Resource Calendar, 기존 workload totals 일치, resolved 범위400·strict query/ID/enum/size/scalar중복, unknown valid ID empty-match, revisions/날짜 재조회, 물류 환산/동일 full projection·날짜상한, DB close/reopen persistence 및 inventory를 검증한다.
+- 기존 `tests/server/logistics/logistics-dashboard.test.ts`는 M/D/진척/ID/기간 기존 기대값을 유지하며 default20 M/M 기대를 명시 unset으로 갱신한다. 기존 Stage Gate/Resource workload/Calendar/API inventory 회귀를 함께 실행한다.
+- UI의 echo/revision/timezone/요청 역전/실패 재시도·날짜 경계/focus/visible refresh, full-stage/scoped 공수 구분, 원인 ID 전체 일정 drill, Resource 범위 drill, readonly/Gantt mount 상태, 390/768/1024/1440/wide·긴 이름/큰 수·keyboard/column geometry는 frontend evidence와 별도 browser 검증으로 기록한다.
+- Resource drill은 실제 기존 GET from/to가 Stage workloadRange와 같고 range echo/Project/Catalog revision이 맞는지, 받은 원시 assignment를 재계산 없이 표시 필터하는지, scope 해제 시 기본 GET으로 복귀하는지 검증한다. Stage raw/query 환산과 기존 Resource4자리 rounding/ENV 및 기간 subtotal의 표시 차이를 검사하며 새 Resource API/공수 엔진은 N/A(변경 없음)다.
+
+Backend Local Fast Feedback는 관련 Stage/Logistics/Resource/Calendar 테스트 9 files/155 tests PASS 뒤 계산 회귀 2건을 추가하여 `milestone-dashboard-calculation.test.ts` 30/30 PASS로 재검증했다. `milestone-dashboard-http.test.ts`는34/34 PASS, API inventory를 포함한 `edit-authorization-handlers.test.ts`는17/17 PASS다. 이 결과는 서로 겹치는 실행이며 전체 suite PASS를 뜻하지 않는다. Backend source freeze 시점의 `npm run typecheck`와 변경 backend source/test의 scoped ESLint는 exit0, Markdown 링크 검사는122 files PASS, diff whitespace 검사는 PASS였다. 이후 frontend 수정의 최종 typecheck/lint는 해당 담당 결과로 별도 기록한다.
+
+최초 backend 검증 실패도 보존한다. HTTP fixture가 개인 assignment의 전역 DEVELOPER 역할을 구성하지 않아 DB trigger `task assignment role is not held by resource`로 실패했고 fixture 역할을 추가했다. Calendar fixture의 target/scope 및 revision 함수 타입 오류를 실제 계약에 맞게 수정했다. 초기 typecheck의 frontend `mdPerMmProvided`/callback narrowing 오류는 frontend가 수정했으며 DB trigger와 authorization gate를 완화하지 않았다. Vite native configLoader future 경고는 유지했다.
+
+실제 browser 검증 `tests/e2e/milestone-stage-dashboard.spec.ts`는 Next/SQLite에 병렬 M-A/M-B→M-JOIN, 수동/완료 이벤트, Summary 상속/Task override/빈 Summary/미지정 및 개인 DEVELOPER50/100/50·Group 참조·물류 direct link를 구성한다. Editor1 PATCH/revision+1→Grid/필터→full E/P/Ready·Blocked·Risk/완료율1/5→2026-10-05..06 공수 Grand Total2 M/D·JOIN0.5·미지정0.5→숨긴 bucket→물류 full gate→Resource 같은 기간/revision/3 assignment ID 검증은 실제 실행에서 PASS다. 기본 Project 한국 공휴일10/05를 제외한 근무일1이 각 개인 assignment의 기준이다.
+
+7차 실행의 전체 browser 판정은 FAIL이었다. 원인 분리 실행(session66170/chunk45a54a,15.2s)에서 차트 가로 위치는 native fullscreen 전120(max1179)→활성120(max1155)→종료120(max1179)→peer 숨김 직전120(max1179)→복귀0(max1315)였다. native fullscreen 자체는 PASS이며 DOM의 최대 scroll 범위 축소로 생긴 clamp는 관측되지 않았다. 이 측정은 Core의 scale/chartWidth clamp 여부를 판정하지 않는다. peer 숨김/복귀의 horizontal scroll 손실을 확인해 frontend가 viewport 복원과 공개 scroll 상태를 검토하며 원인은 아직 확정하지 않는다. 최종 수정 뒤 전체 actual 재실행 전에는 PASS로 바꾸지 않는다.
+
+8차 재실행(session28788/chunk2004b7,15.0s)은 첫 peer viewport 복원 수정 뒤에도120→0으로 FAIL이었다. Grid661/Chart client725 split 폭·native fullscreen 및 나머지 Gantt 상태는 PASS였고, 실제 Logistics UI의 M-B Ready/1 /1 및 API/Resource 같은 기간3 assignment ID도 다시 PASS다. checkpoint/report/trace를 유지하며 frontend 후속 수정과 전체 actual 재실행을 기다린다.
+
+9차 실행(19.8s)은 공개 `scroll-chart` 상태를 보강한 뒤 requestedLeft120/domLeft120/publicLeft22로 FAIL이었다. 공개 이벤트 trace는 left0→120→22→0(visible=true)이며 공개 state120 조건에서 실패해 후속 layout/viewport1456→1440 검증은 NOT TESTED다. 초기 API·Logistics UI·Resource·readonly401·native fullscreen 검증은 PASS이고 frontend가 후속 수정 중이다. 이 결과를 최종 제품 PASS로 확대하지 않는다.
+
+10차 actual 실행(session46909/chunk099033,20.4s, fixture SHA256 `3e66bbc01bbb459bfa45b17c45807b32ab00e1ba1eb6aed57179086f0e1fca5c`)은 live getter 도입 뒤 초기 DOM/public120 baseline 및 native fullscreen 종료120까지 PASS였다. peer 복원 count1/requested120 뒤 최종 live DOM/public이 모두0으로 FAIL이므로 단일 시점 진단값의 한계와 구분되는 실제 상태 회귀다. 기존 full/scoped API·Logistics UI·Resource 기간/IDs·readonly401은 다시 PASS였고, 후속 layout 및 조건부 #462 actual 실행은 NOT TESTED다. frontend 재작업과 최종 재실행을 기다리며 동일 경로 trace를 보존한다.
+
+후속 mock 실행98701은10개 중8 PASS/2 FAIL이었다. 공개 live viewport·후속 실제 layout·1회 consume 및 request/time/cache, 기존 #462 stage-grid2건/fullscreen2건은 PASS였고, 실패2건은 표시값 `5 M/D`를 `5.00 M/D`로 가정한 기대 및 exact getByLabel harness였다. narrow 실행72881에서는 이 두 오류를 수정했으나 geometry 합성 조건1개와 refresh 응답 미대기 fixture race가 남아16265에서 측정/재검증 중이다. 이 시점의 geometry 원인은 제품 결함으로 확정하지 않는다. 최종 mock/geometry 판정은 후속 결과로 기록한다.
+
+추가 측정95025(exit1)에서 geometry 실패는 닫힌 DETAILS 내부의 숨겨진 “Dashboard 조건 초기화” 버튼 cached rect를 표시 control로 집계한 harness 오류로 확인됐다. checkVisibility를 적용하여 실제 visible control containment 조건을 유지하며 제품 source는 변경하지 않았다. selection/catalog/revision narrow 실행16265는1/1 PASS였다. 390px narrow 측정에서 단계 표/공수 표 폭1052/800, header/body 및80개 cell control·필터·focus containment, documentWidth390은 PASS였다. 이 부분 측정을 다섯 폭 geometry PASS로 확대하지 않는다. 95025 시점의 geometry 전체 재실행과 actual 최종 결과는 NOT TESTED였다. 최초 mock 실패 context/trace는 `output/playwright/issue-463/first-mock-failures`와 `second-mock-failures`에 보존한다.
+
+Five-width geometry 최종 narrow 실행21866은1/1 PASS(6.9s)였다. 명령은 `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-dashboard-state.spec.ts --grep 'five-width geometry' --workers=1`이다. 390/768/1024/1440/1920px의 header/body·전체 cell/기타 control containment·focus·popup·document 폭을 확인했다. 390px에서 단계 표/공수 표 폭은1052/800px이고 두 scroll owner의 client 폭은352px다. 나머지 폭별 원시 수치는 geometry.json에 기록한다. `output/playwright/issue-463/geometry.json`, `dashboard-{390,768,1024,1440,1920}.png`와 `dashboard-stage-table-{390,768,1024,1440,1920}.png`는 after 재현 증거이며 actual10차 가로 스크롤 제품 FAIL과 별도다.
+
+10차 FAIL 뒤 Manager는 inactive peer의 display:none으로 생기는 zero geometry를 제거하도록 shared grid cell과 visibility:hidden/inert/aria-hidden의 최소 peer layout 전략을 승인했다. native fullscreen·Gantt instance·domain 계약을 유지하며 임의 restore delay/retry와 private API는 사용하지 않는다. 21866 five-width geometry PASS는 이 layout 수정 전 증거다. 새 layout 적용 뒤 viewport mock·다섯 폭 geometry·기존 fullscreen·actual을 재검증해야 하므로 이 항목의 최종 판정과 문서 동기화는 후속 실행에 따른다.
+
+승인된 shared-grid peer layout 수정 뒤31864 실행은4/4 PASS(16.0s, exit0)였다. repository config로 `milestone-dashboard-state.spec.ts project-gantt-fullscreen.spec.ts --grep 'five-width geometry|public viewport|버튼·Ctrl|split/열' --workers=1`을 실행하여 새 five-width geometry·공개 viewport·기존 fullscreen 시나리오를 확인했다. inactive Gantt의 inert/visibility:hidden/keyboard focus 제외도 PASS다. 수정 전21866 geometry/PNG는 `output/playwright/issue-463/before-peer-grid-layout`에 별도 보존하고 현재 geometry/PNG는 새 layout 증거로 갱신했다. 이어 actual11차를 실행했으며 결과는 아래 기록을 따른다.
+
+Shared-grid layout 후 actual11차 실행56655/chunk08d93a는1/1 PASS(15.3s, 전체25.8s)였다. live DOM/public 가로 위치120은 native fullscreen·peer 왕복·후속 layout에서 유지됐고 Grid661/Chart client725/scrollWidth1904 및 restore count1을 확인했다. full/scoped API·Editor/Grid·Logistics UI M-B Ready/1/1·Resource 동일 기간/IDs·readonly401도 PASS였다. 결과 JSON5개와 PNG는 `output/playwright/issue-463-actual`에 남긴다. 10차 trace에서 hidden resize726과 공개 restore 뒤 synthetic1972→726/scroll0을 관측했으며 zero-width action을 직접 관측했다고 주장하지 않는다. shared-grid layout box 유지로 기존 재현의 회귀를 해결했으나 실제 운영/다른 engine 전체 검증을 뜻하지 않는다. 이 실행은 ProjectRevision25/CatalogRevision3의5개 M과3개 개인 assignment ID를 원시 JSON에 보존했고 test SHA256은 `c8a6c9542591636c368efdfb89e53b7a1951ed1eff953dc1e1eb60173b127344`다. native fullscreen 활성 중 peer 탭 전환과 비영(0보다 큰) 수직 scroll의 SQLite actual 보존은 NOT TESTED다. 담당 scoped ESLint/typecheck는 PASS였고 추가 #462 actual은 아래 결과와 분리한다.
+
+Manager 최종 코드 검토에서 peer 복원의 top을 가로 owner `.wx-chart.scrollTop`에서 읽는 위험을 확인하여 기존 수직 owner `.wx-gantt.scrollTop`을 사용하도록 최소 수정했다. 후속 mock64059는1/1 PASS(4.3s)였으며 maxVertical≥96을 먼저 확인한 뒤 native/public top96·left120이 peer 왕복과 후속 layout에서 유지되는지 검증했다. Actual11은 top0 범위의 기존 PASS로 재사용한다. 이 최소 수정은 수직 capture owner만 바꾸고 가로 scroll·layout·instance·서버 계산/조회는 바꾸지 않으며 top0에서는 양 owner의 기존 값이 같고 비영 범위는 새 mock으로 확인했다. 비영 SQLite actual은 실행하지 않아 NOT TESTED로 유지한다.
+
+추가 #462 actual 실행23252/chunk19be1c는9.9s에 FAIL이었다. 390px에서 popup bottom845.5가 viewport 높이844를 넘었으며 첫 screenshot 이전 실패라 #462 생성 출력은 바뀌지 않았다. 당시 frontend가 후보 popup geometry를 재작업했다. 이 실패를 #463 actual11차의 서버/peer PASS로 가리지 않으며 수정 뒤 관련 geometry/actual 재검증 결과를 반영한다.
+
+최초 실행의 중복 selector FAIL 뒤 fixture scope/interruption·한국 휴일 oracle·copy-sort oracle·label lookup을 수정한 이력을 보존한다. 명령은 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-stage-dashboard.spec.ts --project=chromium --workers=1`이다. 확인 폭은1440×900이며 API/Resource 동일 기간/revision/IDs와 readonly peer의 instance/Week/tree/selection/column width는 다시 PASS다. trace/screenshot 및 report JSON의 `actual-scroll-checkpoints`를 근거로 기록한다. native fullscreen 활성 중 peer 전환은 범위 밖 NOT TESTED이고, 다른 폭 geometry/mock 증거는 frontend handoff로 별도 기록한다.
+
+후보 popup의 실제 browser chrome 측정·upward 배치·resize/scroll fit 수정 뒤34383/chunk e9aa2a는2/2 PASS(26.3s, exit0)였다. 명령은 `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-dashboard-state.spec.ts tests/e2e/milestone-stage-grid.spec.ts --grep 'five-width geometry|#462' --workers=1`이다. 기존 containment/viewport assertion을 유지하여 새 picker의 다섯 폭 geometry와 actual #462를 확인했다. 31864의 공개 viewport/기존 fullscreen 및 actual11차는 picker 후속 수정과 scroll source가 독립이고34383에서 교차 검증했으므로 재사용한다.
+
+Frontend 최종 LFF는 typecheck11606/chunk92b97f exit0, 변경 picker/view/test ESLint51190/chunk7c6007 exit0, 소유 전체 ESLint26149 exit0(0 errors/9 warnings: 기존8개와 generation ref 보호의 의도된1개)다. 기존69개 Unit과 나머지 request/mock PASS는 영향 없는 범위로 재사용한다. 생성 next-env/tsconfig는 HEAD와 diff0으로 복구했다. 새 layout/picker의 geometry.json과10 PNG 및 actual6개 파일은 로컬 after 증거이며 before actual screenshot·실기기·스크린리더 수동 UX·운영 proxy는 NOT TESTED다.
+
+수직 capture owner 수정 뒤 최종 frontend typecheck24623/chunk3a76dc는 exit0, picker/view/mock ESLint90970/chunk033b07는 exit0, Markdown 링크122 files는 PASS였다. 생성 파일 diff0을 확인하고 frontend source/doc writer를 freeze했다. 이 변경은 client viewport capture만 보강하므로 API·DB·서버 권한·snapshot/calculation 문서의 추가 변경은 N/A다.
+
+PR #468의 새 main `a9107ab2776829cbb0467a762ab8bf9ce1ce82c4`를 feature #463에 `--no-ff --no-commit`으로 통합했다. 충돌은 0건이고 기존 72개 대상 파일 hash는 불변이며 main 원본 테스트 3개만 추가했다. 독립 QA의 `npx vitest run --config tests/config/vitest.config.ts tests/server/migration-cli.test.ts`는1 file/3 tests PASS(751ms, exit0, chunka6a71a, 시작07:18:09 KST)였다. subprocess의22개 migration 적용·재실행 applied[]·SQLite persistence/count22를 확인했고 기존 Vite native configLoader future 경고는 유지했다.
+
+통합 후 browser 최소 LFF는 Chromium 환경 `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome`에서 공통 명령 `npx playwright test --config tests/config/playwright.config.ts --workers=1`로 실행했다. 79426에서 `project-task-context-menu.spec.ts new-project-draft-preservation.spec.ts --grep 'Issue #390 Copy ID copies canonical|^blank 요청 중'`은 Copy ID1/1 PASS(18.6s, exit0, chunk55efaf)였다. 첫 anchored blank grep은 Playwright file prefix 때문에 발견되지 않아66106에서 `new-project-draft-preservation.spec.ts --grep 'blank 요청 중'`만 별도 실행해1/1 PASS(3.7s, exit0, chunk7e9a8a)를 확인했다. Template/다른 case는 실행하지 않았다. Next 생성 파일 diff0과 source hash 불변을 확인했으며 제품/API 계약 문서 추가 영향은 N/A다. 이 결과는 관련 LFF이고 전체 75개 대상 파일 변경의 독립 QA와 공식 quality/e2e/docker는 NOT TESTED다.
+
+최종 DOCUMENTATION_SYNC는 API/ARCHITECTURE/SECURITY/REQUIREMENTS/MILESTONE_STAGE_GATES/ISSUE_56_RESOURCE_WORKLOAD/LOGISTICS_DASHBOARD/TEST_PLAN과 frontend 소유 PROJECT_UX/UI_UX_GUIDELINES/TASK_EDITOR를 갱신한다. DB_SCHEMA/migration은 저장 구조 변경 없음, SCHEDULING_ENGINE은 기존 inheritance/Ready/Calendar 알고리즘 재사용, IMPORT_SCHEMA/VBA_EXPORT/Export는 해당 경로 변경 없음, DESIGN은 기존 semantic token 재사용, CI_CD/REMOTE_VALIDATION/DEPLOYMENT/HTTP_OPERATION은 workflow·runtime·HTTP 보안 정책 변경 없음으로 각각 N/A다. 기존 Resource workload API는 같은 from/to 조회를 연결하는 UI 변경이며 새 필드/공수 엔진이 없어 N/A다. CHANGELOG/활성 PLAN/version/Git/PR은 지정 Manager/infra 소유로 handoff한다. 로컬 구현·문서 판정과 독립 QA/원격 CI 판정을 분리한다.
+
+Local Fast Feedback는 관련 테스트 실행 결과이며 PR quality/e2e/docker 공식 회귀 PASS를 대체하지 않는다. 원격 실행 전/진행 중은 NOT TESTED다. 실제 운영 HTTP/TLS reverse proxy/Windows Excel/VBA/DRM은 별도 환경이며 #463에서 검증했다고 주장하지 않는다.
+
 ### Issue #461 PR #470 review 보완
 
 PR #470의 P2 review 3건은 기존 저장·권한·domain 계약을 확대하지 않는 회귀 수정으로 처리한다. Resource 신규 선택→역할/투입 입력→선택 해제 후에는 선택 대상 기준 canonical draft가 원래 상태와 같아 dirty가 해제되어야 한다. Milestone의 소속 작업 탭에서 외부 type 변경을 감지해 명시 reload했을 때 새 type이 제공하지 않는 active tab은 작업 정보로 정규화한다. Membership 보유 Project의 Excel 409 응답은 `MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE`과 함께 explicit source/target public Task ID를 `details`에 포함한다.
@@ -1674,6 +1730,23 @@ baseline `c411634f75b7a69131a095e9cb6b7416060b827e`, branch `fix/issue-454-logis
 - corrective PR의 공식 판정은 exact head의 PR quality/e2e/docker 결과다. 이번 요청 범위는 새 PR CI 시작 확인까지이며 merge/Main CI/tag/GHCR/branch cleanup/Issue close는 수행하지 않는다. 새 `0.87.1` release는 별도 명시 승인 전 `release_authorized=false`다.
 
 
+## Issue #463 PR CI Run #1869 실패 재정렬·보완
+
+- PR #472 head `ca15145b1167b7253841e648d23e59d1a172022a`의 PR CI Run #1869.1(`37382878627`)은 Vitest/ESLint/TypeScript/정책 검사는 PASS했으나 production build, Docker build, Chromium E2E shard 4/5/6이 FAIL했다.
+- production build의 직접 원인은 `project-milestone-dashboard.module.css`의 전역-only `:global(.project-schedule-peer-tabs)` selector가 CSS Module pure 규칙을 위반한 것이다. Docker 실패는 같은 `npm run build` 오류의 연쇄 결과다. peer workspace 전역 layout selector는 `src/app/globals.css`로 이동하고 Milestone module은 local selector만 소유한다.
+- 최초 #463 branch는 #462의 중간 head를 선행으로 사용했다. E2E 실패의 기존 Context Menu/Editor/Relation/scoped-add 경로는 기대를 완화하지 않고 latest main에 병합된 #461/#462 보완을 source of truth로 유지한 뒤 #463 delta만 재적용한다.
+- 재정렬 후보는 latest main `d7316880732ecde5a8193764ac3b0cfca2ae455f` / application `0.87.1`을 포함하고 #463 candidate를 `0.88.0`으로 유지한다. #461 corrective의 `source-map-js 1.2.2` 및 Release 계측 guard를 되돌리지 않는다.
+- 새 exact-head PR CI의 quality/e2e/docker는 등록 전까지 NOT TESTED이며 기존 Run #1869의 PASS를 새 head 증거로 전용하지 않는다.
+
+
+## Issue #463 PR CI Run #1927 E2E geometry REWORK
+
+- 재정렬 head `caa520bac3a0bb2d97e61e725e513280fffa5dc0`의 PR CI Run #1927.1(`37418422688`)에서 production build, Docker, Vitest, ESLint, TypeScript, 정책 검사는 모두 PASS했고 Chromium E2E shard 1~5도 PASS했다. shard 6의 기존 `Issue #407/#418 keeps scoped Header and Row additions canonical and continuous` 1건만 FAIL했다.
+- 실패 지점은 여러 scoped row를 추가한 뒤 이전에 만든 `headerLeaf`를 taskId로 우클릭하는 단계다. #463의 peer tab이 일정 작업면의 세로 공간을 사용하면서 해당 행이 viewport 밖으로 이동했고, Playwright의 `locator.click({ button: "right" })`가 auto-scroll과 우클릭을 한 gesture로 결합하는 동안 SVAR virtual row가 교체되어 `contextmenu`가 생성되지 않았다. 서버 mutation, row persistence, Gantt instance/api instance, 이전 scoped-add assertion은 실패 지점 전까지 PASS했다.
+- 이는 과거 #407/#384에서 기록한 virtualized-row/Playwright auto-scroll 경계와 같은 테스트 기하학 유형이다. 제품의 Context Menu guard나 권한/범위 계약을 완화하지 않는다. 해당 E2E helper가 target row를 먼저 `scrollIntoViewIfNeeded()`로 가시화하고 한 animation frame 안정화한 뒤 실제 우클릭을 수행하도록 보강한다. 메뉴 가시성 assertion은 그대로 유지한다.
+- 새 head의 전체 PR quality/e2e/docker가 authoritative하며 Run #1927 PASS 결과를 새 head 증거로 전용하지 않는다.
+
+
 ### Issue #453 PR #477 최신 main 재정렬 및 새 PR CI 기준
 
 PR #477의 최초 head `c411634f75b7a69131a095e9cb6b7416060b827e`는 PR CI Run `37406441919` / Run #1898.1에서 quality·E2E·Docker를 포함해 SUCCESS였다. 이후 main이 `d7316880732ecde5a8193764ac3b0cfca2ae455f` / application `0.87.1`까지 전진해 기존 head가 39 commits behind, GitHub `mergeable_state=dirty`가 되었으므로 그 성공을 현재 main 통합 후보의 공식 PASS로 재사용하지 않는다.
@@ -1692,12 +1765,286 @@ branch 정렬은 published PR history를 강제 재작성하지 않고 기존 fe
 - 복구 판정: corrective PR exact head의 policy/typecheck/lint/unit/build/E2E/Docker PASS를 공식 PR gate로 사용한다. 병합 후 기존 `v0.87.1` tag를 authority로 Release dispatch를 재개하며 새 tag/version을 만들지 않는다.
 
 
+## Issue #463 PR CI Run #1929 Context Menu target REWORK
+
+- head `9b4e1d4680be581a0d91d5f23ac0d59cd778083f`의 PR CI Run #1929.1(`37424880340`)은 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6의 동일 #407/#418 Context Menu 시나리오 1건 FAIL이다.
+- 이전 pre-scroll 보강 뒤에도 동일 위치에서 실패했으므로 auto-scroll 단독 원인 가설은 폐기한다. 제품 `resolveTaskContextTarget`은 button/`[data-action="add-task"]` 등 앱 소유 control 우클릭을 의도적으로 제외하며, row-center 우클릭은 viewport/column geometry에 따라 해당 hit area에 걸릴 수 있다.
+- E2E helper는 taskId 행의 canonical 작업명 hit area `[data-col-id=":text"] .wx-content > .wx-text`를 직접 가시화한 뒤 실제 right-click한다. 제품 Context Menu guard·권한·scope 계약과 메뉴 가시성 assertion은 변경하지 않는다.
+- latest main `22326fc350b91ab59ddafa20ef97c3f418f71aae` / application `0.90.0`의 #453 리소스 UI/문서 변경을 보존하고 #463 candidate를 다음 MINOR `0.91.0`로 재정렬한다.
+- 새 exact-head 전체 PR CI가 authoritative이며 이전 run의 부분 PASS를 새 head 증거로 전용하지 않는다.
+
+
+## Issue #463 PR CI Run #1937 Core selection scroll REWORK
+
+- head `b1ff0294195436b806e4b76929cd8bc269ec55bb`의 PR CI Run #1937.1(`37427125874`)은 quality/build/Docker와 Chromium shard 1~5를 PASS했으나 shard 6의 기존 #407/#418 Context Menu 시나리오 1건만 FAIL했다.
+- Run #1937 Playwright trace를 직접 분석했다. 실패 우클릭은 canonical 작업명 text에 정확히 입력됐고 해당 taskId 행이 app-owned `data-copy-selected=true` / `aria-selected=true`로 전환됐다. 그러나 직후 SVAR Core selection/layout 동기화가 Grid table `scrollTop 147 → 124`와 chart resize를 발생시켰고, 기존 Task Menu scroll guard가 이 내부 보정을 메뉴 이후 실제 viewport 이동으로 판정하여 메뉴를 즉시 닫았다.
+- 따라서 이전 auto-scroll 및 hit-area 가설은 최종 원인이 아니다. Task Context Menu에서 선택 밖 행을 singleton으로 만드는 계약의 authority는 #384부터 app-owned selection이다. Context Menu open 경로에서는 `applySelectionGesture(..., false)`로 Core `select-task` mirror만 생략하고 `data-copy-selected` singleton selection·menu taskId·명령 dispatch는 유지한다.
+- 일반 click/keyboard selection의 Core mirror, 실제 사용자 scroll 시 메뉴 닫힘, 지연된 동일 scroll 알림 무시는 기존 계약을 유지한다. #407/#418 E2E는 메뉴 open 뒤 해당 행의 `data-copy-selected=true`를 추가 확인한다.
+- 새 exact-head 전체 PR CI의 quality/e2e/docker가 authoritative하며 Run #1937의 부분 PASS를 새 head의 PASS로 전용하지 않는다.
+
+
+## Issue #463 PR CI Run #1938 opening-layout scroll REWORK
+
+- head `b711280b0629b7af6b579dcc831f54bd09897a92`의 PR CI Run #1938.1(`37429658024`)도 quality/build/Docker와 Chromium shard 1~5 PASS, shard 6의 기존 #407/#418 Context Menu 1건만 FAIL했다.
+- 새 trace에서 Core `select-task` mirror를 제거한 상태에서도 작업명 우클릭 후 app-owned `data-copy-selected=true`가 반영되고 Grid table `scrollTop 147 → 124` 보정이 동일하게 발생했다. 따라서 Run #1937의 "Core mirror가 직접 원인" 가설은 반증됐고 해당 의미 변경은 되돌린다.
+- 최종 원인은 Context Menu open 직후 app-owned selection + React/SVAR virtual-row layout settle 자체가 내부 scroll을 만들 수 있는데, 기존 menu scroll baseline을 settle 전에 캡처했다는 점이다. 메뉴 open 시 scroll guard를 bounded two animation frames 동안 settling 상태로 두고, 이 구간의 내부 scroll마다 현재 canonical task element에서 baseline을 재캡처한 뒤 settle 종료 시 최종 위치를 기준으로 arm한다. 임의 timeout/retry는 사용하지 않는다.
+- 일반 selection의 Core mirror는 복원한다. 기존 `task-context-menu-scroll.spec.ts`는 같은 위치의 지연 scroll은 무시하고 bounded settle 이후 실제 scroll은 메뉴를 닫는 계약을 명시적으로 유지한다. #407/#418의 app-owned selection assertion도 유지한다.
+- 새 exact-head 전체 PR CI의 quality/e2e/docker가 authoritative하며 이전 run의 부분 PASS를 새 head 증거로 전용하지 않는다.
+
+
+## Issue #463 PR CI Run #1941 dual corrective
+
+- head `703807d600c1499092b0144732669fbe54465ca6`의 PR CI Run #1941.1(`37431883032`)은 quality/build/Docker와 Chromium shard 2~5 PASS였고, shard 1의 dashboard cache/abort 1건과 shard 6의 전용 Context Menu scroll 1건이 FAIL했다.
+- shard 6에서 기존 #407/#418 시나리오는 더 이상 실패하지 않아 opening-settle 보완은 해당 회귀를 해소했다. 새 실패는 Chart bar에서 연 메뉴의 settle 재캡처가 taskId fallback으로 Grid row를 먼저 찾아 Chart scroll owner를 잃은 회귀다. 연결된 원래 trigger가 있으면 그 요소를 계속 사용하고, 교체됐을 때만 원래 surface(grid/chart)를 보존한 taskId fallback을 사용한다.
+- shard 1은 slow query를 abort하고 직전 cached query로 되돌릴 때 network I/O가 없는 cache hit임에도 ready 복원이 effect 내부 microtask 뒤로 밀려 CI 부하에서 loading 상태가 남았다. cache hit는 effect 진입 즉시 `ready`로 복원하고 actual fetch만 async 경로로 유지한다. 기존 focus TTL catch-up·catalog/revision 검증은 유지한다.
+- latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` / application `0.90.1`의 #454 UI/문서 변경을 보존하며 candidate `0.91.0`을 유지한다. 새 exact-head 전체 PR CI가 authoritative다.
+
+
+## Issue #463 PR CI Run #1946 picker keyboard visibility REWORK
+
+- head `8f78a24d6e2d37e6c0a9da7ec1f79e2025a55a66`의 PR CI Run #1946.1(`37434077594`)은 quality/build/Docker와 Chromium shard 2~6 PASS, shard 1의 `#463 readonly full-state/F separation, keyboard and five-width geometry` 1건만 FAIL했다. 이전 Context Menu scroll 및 dashboard cache/abort 회귀는 이 run에서 PASS했다.
+- 실패는 390px 단계 picker에서 `End` 키 입력 직후 active option의 `scrollIntoView`를 requestAnimationFrame으로 지연해, CI에서 geometry 측정이 먼저 실행될 수 있는 timing race다. popup bounds는 viewport 안에 있었고 실패 assertion은 input focus/visibility/active option visibility 묶음이었다.
+- 열린 list의 keyboard target DOM은 이미 존재하므로 `move()`에서 active state와 동시에 해당 option에 synchronous `scrollIntoView({block:"nearest"})`를 적용한다. focus·aria-activedescendant·Escape 복귀·popup fit 계약은 유지하며 임의 timeout은 추가하지 않는다.
+- latest main `528ebfffa639a275ea4349a04860f5b3785e50e9` / application `0.90.2`의 #455 UI/문서 변경을 보존하고 #463 candidate `0.91.0`을 유지한다. 새 exact-head 전체 PR CI가 authoritative다.
+
+### Issue #455 Main CI #1947.1 transport hostname corrective
+
+Main CI Run `37435545662` / #1947.1은 build/typecheck/lint/Vitest/Docker smoke/E2E 6 shards와 게시 image policy/readiness/SQLite/API persistence까지 SUCCESS였으나, 게시 digest transport 검증의 production-http 첫 Chromium navigation에서 `ERR_NAME_NOT_RESOLVED`가 발생해 실패했다. 같은 script의 `/etc/hosts` 등록 뒤 HTTP/HTTPS readiness curl은 성공했으므로 application/image failure가 아니라 hosted runner Chromium의 test hostname resolution 실패로 분리한다.
+
+Corrective는 `tests/config/transport.config.ts`의 Chromium launch option에 `plain.gantt.test`와 `secure.gantt.test`만 127.0.0.1로 매핑한다. browser URL/Host header와 HTTPS certificate hostname은 계속 원래 test domain을 사용하므로 Origin/cookie/TLS 의미를 localhost 예외로 바꾸지 않는다. shell/Node 측 `/etc/hosts`, NO_PROXY, 실제 Nginx와 신뢰 CA 검증도 유지한다. 최종 authoritative 판정은 corrective 병합 후 새 Main CI의 동일 published-digest transport smoke다.
+
+
+### Issue #463 PR #472 unresolved review P2 — combined S scope
+
+- PR review는 물류 조건을 만족하는 member와 Resource 조건을 만족하는 다른 member가 있을 때 기존 독립 existential 판정이 stage를 S에 포함할 수 있음을 지적했다.
+- S의 물류+Resource 관련성은 기간을 제외한 동일 일반 Task 교집합으로 판정한다. 날짜는 기존 계약대로 F-only다. Resource 조건이 없으면 Milestone 자체의 직접 물류 match는 계속 S에 포함한다.
+- Unit 회귀는 t1=물류 only, t2=Resource only일 때 rows/KPI가 empty이고, t2에도 같은 물류 연결을 추가하면 m1/scopedTaskIds=t2가 복원되는지 검증한다.
+- 이 보완 후 exact-head PR CI를 다시 실행하며 이전 #1952 PASS는 수정 전 head 증거로만 유지한다.
+
+## Issue #464 Local Fast Feedback와 보존/교환 검증
+
+이 기록은 현재 feature0.89.0의 관련 로컬 증거이며 전체 suite/독립 최종 QA/PR quality/e2e/docker가 아니다. 원격 미실행/진행 중은 NOT TESTED, 운영 HTTP/TLS proxy·Windows Excel/VBA/DRM과 main/GHCR/release는 별도 범위다. source/문서/테스트 소유권은 Work Packet에 따르며 version/Git/PR/Issue 진행은 Manager/infra가 담당한다.
+
+교환 담당의 `npx vitest run --config tests/config/vitest.config.ts tests/contracts/import.test.ts tests/contracts/import11.test.ts tests/server/imports/project-import-parser.test.ts tests/server/imports/project-import-service.test.ts tests/server/projects/edit-authorization-handlers.test.ts`는5 files/96 tests PASS(che9d797,1.26s)였다. 기존1.0 pure semantic/result·1.1 strict fields/derived 거부·status/baseline/Summary/forward membership/empty, UTF-8 fatal/한 BOM/decoded duplicate key/depth64/byte5 MiB/Content-Length+actual stream/multipart duplicate·unknown part, actual SQLite preview/commit201 permission edit·newUUID/advisory source·target Calendar·collision/budget/완료 full E/P/mixed 전체 거부/digest+권한+revision/trigger rollback/persistence 및 JSON readonly full export를 확인한다. Route security inventory는 실제 모든 route/method source와 exact policy를 비교하고 JSON export origin-if-match-read를 추가했다.
+
+작성 중 첫 typecheck는 Import201의 permission literal widening1건과 frontend calendar weekendDays fixture1건으로 FAIL이었다. own literal은 edit as const로 수정했고 frontend가 fixture를 수정했다. 후속 새1.1 contract test의 cast/it.each tuple2 오류를 test input object shape로 수정했다. source freeze 시 전체 tsc는 own 오류0이나 actual 신규 spec createdTaskIds 오류1로 exit2(ch8bc539)였다. 해당 파일은 actual 담당 소유이며 후속 global typecheck 판정과 구분한다. Exchange source/test/route/기존 Stagegates E2E scoped ESLint는 exit0(ch626367)였다. 초기 test unused destructuring4 warning은 명시 Link field projection으로 정리했다.
+
+최초 parser/contract 관련3 files/51 tests는 PASS(ch892d05,273ms)였다. 첫 SQLite/HTTP+inventory2 files/41 tests는34 PASS/7 FAIL(chbf2b46,1.03s)이었다. 실제 source 결함1건은 canonical source Calendar가 같은 NON_WORKING 날짜를 holidays와 exceptions에 함께 투영하여 preview 복원에서 DUPLICATE_CALENDAR_EXCEPTION을 발생시킨 것이었다. exceptions property가 있으면 해당 authority를 사용하고 holidays는 legacy-only fallback으로 수정하여 target Calendar/Scheduling 알고리즘은 유지했다. 나머지6건은 한국10/09 휴일을 근무일 baseline 시작으로 사용한3개 fixture, stageGate.memberProgressPercent를 memberProgress로 잘못 기대한1개, edit_sessions 실제 테이블명 대신 project_edit_sessions를 쓴1개, inventory 순서1개 oracle였다. 후속40 PASS/1 FAIL(ch196228)은 Link 비교 양쪽의 legacyMixed:false 처리 불일치 oracle였고 양쪽 canonical endpoint/type/lag projection 동등 비교로 수정했다.3 files/58 tests PASS(ch11b32d,1.02s) 후 budget/1.0 normalization/UUID collision/HTTP bounded parsing을 추가해96개 PASS를 확보했다. Vite native configLoader future 경고는 유지한다.
+
+문서 producer 예제2개를 추가하여 `tests/contracts/import11.test.ts`만19/19 PASS(chc68f8c,258ms)로 검증했다. 이 결과는 이전17개에2개 추가한 범위이며 관련 unique98개다. Machine schema1.0은 byte 불변이고 새1.1 schema/example과 server field 계약을 별도로 비교한다. JSON syntax depth64와 WBS MAX_HIERARCHY_DEPTH64는 서로 다른 조건이다. CSV parser/production VBA producer 확장 및 실제 Windows 실행은 N/A/NOT TESTED이며 sourceTaskId/sourceCalendar가 새 FK/target authority를 대신하지 않음을 SQLite에서 확인했다.
+
+보존 담당의 관련11 files는151 PASS(chf0e814,2.06s) 후 회귀2개를 추가했다. 최종 source의153개 실행은152 PASS/1 fixture oracle FAIL(ch75cbb6,2.07s)이었고 completed M에 progress0을 쓰면 기존 정책의 in_progress0으로 재개되는 것을 not_started로 잘못 기대한 것이었다. 원본 beforeSnapshot의 실제 status와 복사본 동등성을 비교하도록 oracle만 수정한 뒤 해당 Copy21/21 PASS(chd7a5d5,1.62s)였다. 이어 source4998+C2=5000 허용/overlap dedup와4999+C2=5001 거부·원본 불변을2개 추가해 helper23+기존 server budget/foreign4042=25 PASS(ch30c70a,588ms,18 무관 skip)였다. 기존153+새2의 unique155 관련 coverage이며 단일155 전체 PASS 실행으로 표현하지 않는다. source500/Project5000 상한을 shared UI helper도 preflight하고 서버의 cheap source404 resolve→budget→Assignment→full membership plan 순서를 유지한다.
+
+보존 최초 실패도 유지한다. pure 계획20개 중2 FAIL(ch662e31)은 inherited-only empty Summary의 full E/explicit row 변화0인데 완료 destination 구조 잠금을 기대한 oracle와 child anchor 전후 nearest Summary 동일인데 변화로 기대한 oracle였다. source 불변으로 fixture를 수정했다. Copy20개 중4 FAIL(cha27b6f)은 완료 상속 아래 후속 Task 생성, 전체 DB를 source 불변으로 비교, Milestone 선행 완료 순서 등 fixture 오류였다. Template12개 중1 FAIL(chcc4b6c)은 실제 validSession revokedAt 미검사 결함이어서 source를 보강했고 wrong-public-id/wrong-project-id/expired/authVersion4개를 추가해16 PASS였다. 확대119개 중1 FAIL(chf179eb)은 actual unknown/foreign Copy404가 helper409로 바뀐 회귀였고 source resolve 순서를 복구하여 기존 test 기대를 유지했다. Source status/Calendar/Dependency 알고리즘을 바꾸지 않았다. Copy ack는 외부 explicit/상속/destination 의미 변화만 확인하며 Completed full E/P·모든 explicit source·incident endpoint 보존과 Assignment/권한 잠금을 우회하지 않는다.
+
+Excel 담당의 관련6 files/27 tests는 PASS(chec147f,1.60s)다. 신규 `tests/server/projects/project-excel-stage.test.ts`10개는 native SQLite 병렬3M join/중첩 Summary override/Group 참조·null allocation/raw M/D·M/M/행별 IDs, missing·foreign·stale Stage DTO/HTTP200403400404412413500/source 불변을 확인한다. 기존5개 관련 회귀 파일도 포함한다. 같은 SQLite read transaction/clock1회 canonical/default Stage/optionalResource 및 Project/Catalog revision을 확인하고 current Dashboard filter와 다른 full default F를 workbook에 명시한다. 수천 UUID는 한 개씩 ID detail 행으로 기록하며 text32767/Stage50000행 상한 초과는 전체 거부한다. Excel4번째 Stage DTO를 완성한 뒤 보존 담당의 milestone-stage-service.test.ts 성공/missing/mismatch 회귀 결과는 후속 handoff로 기록한다.
+
+기존 `tests/e2e/milestone-stage-gates.spec.ts`는 no-loss Excel409 임시 기대를 실제 workbook200/압축 OOXML의 source S/M/T UUID 보존, JSON1.1 explicit membership/완료 status, commit preview digest 누락428 및 invalid preview422로 갱신했다. 실제 browser는 source freeze와 공유 서버 직렬 승인 뒤 실행하며 아직 NOT TESTED다. 신규 actual exchange의 legacy 직접 DB seed는 비범위이고 browser legacy NOT TESTED를 유지한다. mixed JSON 원형 유지/양 버전 전체 Import 거부/rollback은 위 native SQLite service test가 근거이며 전체 Copy/Template 기존 mixed 보존은 보존 담당 server 증거와 분리한다.
+
+DOCUMENTATION_SYNC는 API/TEST_PLAN/IMPORT_SCHEMA/IMPORT_EXPORT/JSON_IMPORT/ARCHITECTURE/SECURITY/REQUIREMENTS 및 새1.1 schema/examples를 교환 담당이 갱신하고 Excel/보존/UI 지정 writer 근거를 통합한다. 기존1.0 machine schema/VBA_EXPORT는 변경 없음, migrations/DB 구조/Calendar·Dependency Scheduling 알고리즘/Resource engine/CI_CD/REMOTE_VALIDATION/DEPLOYMENT/HTTP_OPERATION/DESIGN은 해당 구현 변경 없음으로 N/A다. DB_SCHEMA와 MILESTONE_STAGE_GATES 등 보존 기술 문서는 보존 담당, EXCEL_EXPORT는 Excel 담당, UI docs는 frontend 담당이다. 현재 단계는 로컬 source freeze와 docs evidence 작성이며 실제 browser/global typecheck/독립 QA/공식 원격 gate는 후속 근거를 기다린다.
+
+Source freeze 후 JSON clock1/read-transaction/no-secret 회귀1건을 추가하여 server 파일29/29 PASS(ch1f015e,1.44s)를 확인했다. 이어 합법적인10,000자 description을 가진531 Task Project의 JSON이5 MiB를 넘으면 EXPORT_LIMIT_EXCEEDED로 전체 실패하고 source row/revision을 보존하는 회귀1건을 추가해 같은 파일30/30 PASS(ch210ccf,1.48s)를 확인했다. production source13개 hash는 freeze와 불변이고 후속 tests-only scoped ESLint는 exit0(ch4115cb)이다. 기존96+예제2+clock1+대량export1의 관련 unique100개 증거이며 단일100 전체 실행이라고 주장하지 않는다.
+
+보존 담당의 Excel4번째 Stage DTO 연결 회귀는 matching workbook 성공/Tasks explicit·effective·inherited IDs/Stage full Gate·IDs/Dependency off 소속 유지/missing·stale DTO 전체 실패/source 불변을 검증했다. 해당1case만 PASS(chc196f5,686ms,31 무관 skip)이며 소유 milestone-stage-service.test.ts를 보존 담당이 갱신했다. Exchange/Excel source 변경은 없다. Excel 최초실패 ch4f0846의 .data 타입1오류는 owner가 수정했고, ch0871b3에서 runtime @ alias Vitest import 실패(new suite0 tests/기존11 PASS) 후 owned handler runtime import를 relative로 변경했다. ch482426의 신규8 FAIL/기존11 PASS는 DEVELOPER role fixture 미등록 DB trigger 오류여서 역할을 추가했고 trigger/assertion을 유지했다. Markdown 최초 ch272a74는 존재하지 않는 command 파일명 오류였고 실제 check-markdown-links.mjs로 수정해123 files PASS를 확인했다. Excel 최종 npx tsc --noEmit --incremental false는 exit0(chad1b34), scoped ESLint source4+test1은 exit0(ch71b600,warning0)였다.
+
+보존 Excel 회귀는 typed ProjectExcelExportRequest annotation을 추가한 뒤 같은1case1/1 PASS(chd6f7bd,793ms,31 무관 skip)로 재검증했다. 작성 중 tsc의 columns.id:string widening3건(ch03a656)은 owner가 타입 annotation으로 해결했고 전체 typecheck PASS(ch14d5cd), scoped lint PASS(chc22e83), Markdown123 PASS를 전달했다. source7 hash는 불변이다.
+
+Frontend mock/외부 PR470 review E2E의 관련 unique9 coverage는 PASS다. 최초74093 exit130/chb7fb1e는1 FAIL(6.5s: 닫힌 더보기의 hidden file input을 직접 선택한 harness),1 interrupted/7 not run이었다. user disclosure+filechooser를 통해 실제 흐름으로 수정했다.81801 exit130/chc174f2에서 Import2건은 PASS(1.9s/1.6s), Copy의 기존 Below label 대신 After를 찾은 harness는 FAIL(30.1s), JSON412의 safe 한국어 오류 대신 raw 영문을 기대한 harness는 FAIL(6.2s), geometry는 interrupted/4 not run이었다. tests-only 수정 뒤33014 exit0/chf17525는 남은7건 PASS(17.5s)였다. Copy native fullscreen/menu/keyboard/ack/pending2.3s, JSON 최신 mixed GET/If-Match/4121.1s, Copy/Import/Excel/JSON five-width5.1s, 외부 revision1.8s, completed M1.2s, review Resource dirty1.6s/type-tab1.6s를 확인했다. 앞선 Import2+후속7의 unique9이며 단일9 PASS 실행으로 표현하지 않는다.
+
+Frontend after geometry는 `output/playwright/issue-464`의20 PNG+20 JSON으로390/768/1024/1440/1920×844px를 기록한다. documentWidth=viewport, control 침범/중첩0, focus outline visible, Copy720/Import960 own scroll과 header/body alignment를 확인했다. 최초 raw trace는 /tmp/issue464-first-mock-failures와 second-mock-failures에 Git 제외로 보존한다. product production327 source hash는 불변이고 Next 종료/backup2개 복구를 확인했다. mock evidence는 실제 SQLite exchange/browser나 공식 CI PASS를 대체하지 않으며 actual source freeze/직렬 실행 결과는 후속으로 기록한다.
+
+앞선 frontend mock unique9 PASS 뒤 Manager 정적 검토에서 Import412 복구의 제품 gap을 발견했다. 파일은 유지됐지만 현재 revision을 다시 GET할 수단이 없어 새 preview도 이전 prop revision으로 거부될 수 있었다. frontend가 명시적 “최신 일정 조회”로 canonical GET을 수행하고 AbortSignal/target/generation을 apply 전 재검증하여 file/dialog을 유지하되 기존 preview를 무효화한다. 자동 preview/commit을 수행하지 않고 사용자가 다시 preview/diff를 확인한 뒤 새 digest와 manual commit을 제출한다. 신규 mock2개는412→GET revision 갱신→새 digest/manual201 및 늦은 GET의 취소/네트워크 명시 retry를 작성했다. Unit20 PASS(125ms)와 tsc/scoped lint89635 exit0를 전달했으나 후속5대상 browser 실행은 아직 NOT TESTED다. 기존9 PASS는 수정 전 source 증거이고 추가 버튼이 생겨 기존 geometry40 산출물의 최종 적용 판정은 stale로 유지한다. 이 finding은 첫 harness FAIL들과 구분되는 제품 복구 gap이며 backend 계약/source13은 변경하지 않았다.
+
+
+Manager/독립 Domain 검토에서 canonical LinkService는 Task당 incoming101 DAG를 저장할 수 있지만 JSON1.1 schema는 perTask100인 교환 gap을 재현했다. 수정 전 JSON Export가101 predecessor를 성공 출력한 뒤1.1 재검증이 INVALID_FIELD tasks.101.predecessors로 실패했다. schema cap/Link engine/원형 Link를 변경하거나 줄이지 않고 serializer가101번째 row를 추가하기 전에422 EXPORT_LIMIT_EXCEEDED로 전체 실패하도록 수정했다. canonical LinkService로102 Task DAG를 만들고 incoming100의 Export+1.1 재검증 성공과 incoming101의 HTTP422/no attachment/no partial tasks/file body/no revision/source 불변 경계를 실제 SQLite에서 확인했다. server 파일31/31 PASS(chd4ad4e,2.10s)이며 기존30+새1이다. 이 source 변화로 이전 exchange13 freeze는 stale이고 새 manifest/LFF를 작성한다. 실제 browser는 승인된 Next STOP 상태의 source 재고정 뒤 실행한다.
+
+최신 main f8f830d2e8d65a76c718301bad8225532ab8b94a(PR469)의 운영19파일 변경은 application source를 변경하지 않는다. TEST_PLAN writer가 a9107ab..f8f830d의 retention1줄 및 Issue452 candidate corrective12줄을 현재#461~#464 증거를 보존하여 정확히 통합했다. 운영15파일은 지정 Agent, CHANGELOG/version/package/PLAN은 Manager/infra 소유다. 성공 non-docs Main candidate의 Generic Finalizer handoff 원칙은 새 main 정책을 따르며 실제 실행/완료 범위를 바꾸지 않는다. 이번 작업의 PR CI 결과/monitoring/main/release는 미검증 또는 승인 범위 밖 상태를 유지한다.
+
+perTask100 Export REWORK 후 최종 교환 LFF는 같은5 files의101/101 PASS(ch5ba256,3.43s)다. 이후 전체 `npx tsc --noEmit --incremental false`는 exit0(cha55acd), changed JSON core/관련 test scoped ESLint는 exit0(ch437839), Markdown123은 PASS(ch403560)였다. production13 새 source freeze SHA256은 `fe94c8eaa8a4f58955b80987f8ab1f40dca1204077f3becbba0341fc69c38865`다. 이전100unique 서술은 이전 source/여러 실행의 기록이며 이번 최종101개는 단일 관련 명령에서 실제 완주했다. DTO/body/Origin/revision/read transaction/clock과 cap100/Domain 알고리즘은 변경하지 않았다.
+
+최신 main 운영 exact15파일 통합의 별도 최소 LFF는 lifecycle verify PASS(cha59263), deployment7/7 PASS(ch5dd3a1), version0.89 검증 PASS(chb12c87)다. CI_CD/REMOTE_VALIDATION/DEPLOYMENT N/A는 #464 제품 구현의 추가 운영 계약 변경이 없다는 뜻이며 최신main f8f830d의 운영 파일·candidate handoff 정책 통합은 별도 실제 변경으로 기록한다. 이 통합이 feature의 PR quality/e2e/docker 또는 main/release runtime 검증을 수행한 것은 아니다. 현재 source 재고정 뒤 actual2/기존Stagegates1의 직렬 browser 승인을 기다린다.
+
+최초 actual exchange 실행42932/che331f2는 primary test6.6s에 FAIL(exit1)이었다. Resource admin POST의201 기대가401이었고 합성 admin password 길이14가 기존 설정 정책의 금지 구간13..15에 해당한 fixture 오류였다. 제품 authorization/설정 gate와 assertion은 유지하고 허용16자 이상 합성 fixture로 수정했다. 기존 Task/Stage seed API 약43건까지 진행했으나 Resource/Editor/Stage 조회·JSON/Excel·Copy/Template·viewport 및 두 번째 stale recovery는 해당 실행에서 NOT TESTED다. 첫 trace/error context는 test-results/milestone-stage-exchange---fa9fb-port·Copy-Template·소속-확인-통합-chromium에 Git 제외로 보존한다. Next 종료/생성2개 backup 복구/production327 hash drift0을 확인했고 Manager가 actual2 재실행을 승인했다. 첫 fixture FAIL을 최종 성공 근거로 숨기지 않는다.
+
+Frontend412 제품 gap 보강 뒤 최종 targeted 실행6427/chb235f9는8/8 PASS(1.1m, exit0)다. repository Playwright config에서 milestone-exchange-state.spec.ts/project-gantt-image-export.spec.ts/project-multi-task-copy-paste.spec.ts, Chromium, workers1, max-failures1을 사용하고 grep은 `#464 Import commit|#464 Import cancellation|#464 Import and Copy 5|#464 Import 412|#464 cancelled latest|SVG/PNG export|다중 checkbox Copy의 canonical|pending 다중 Copy`였다. 기존 Import2+latest GET recovery/취소·실패2+새 five-width geometry1+실제 SVG/PNG/Excel1+기존 canonical multiCopy/pending4122를 확인했다. 이전33014의 변경 비영향 Copy fullscreen/JSON/외부 revision/완료 경계/Editor review2의6개를 재사용하여 unique14 coverage이며 단일14개 실행/전체 회귀 PASS는 아니다. 이전 geometry는 최신40개 PNG/geometry exact allowlist로 교체했고33014의 exact narrow grep은 압축된 context에서 복원하지 못하여 원래 tool 입력을 증거로 유지하며 추정 command를 기록하지 않는다.
+
+Frontend 최종 Unit20 PASS(chb80fa2,125ms), scoped lint16파일 warning0/전체 tsc/Markdown123 PASS(session51659/chfc139c,exit0), 최종 UI 문서 추가 뒤 Markdown123 PASS(ch733383)다. source15/문서4 writer를 freeze했으며 exact manifest /tmp/issue464-frontend-final-manifest.json SHA256 `338a917fa5a5a656679c4266fc79abb96750a9a31b51fce809feb2257c3cafb8`에 기록한다. 생산327 hash drift0/생성 diff0(chb9c6bf)은 backend cap100 수정 전 상태 확인이며 이후 승인된 cap 수정의 새 전역 freeze는 별도다. 현재 실제 SQLite integration2/기존Stagegates1/원격/최종QA는 진행 또는 NOT TESTED다.
+
+독립 Domain 최종 검토는 blocker0/PASS다. source13 fe94c8/Excel4 ec05f6/preservation7 a16445와30개 검토 파일 전후 hash 일치를 확인했다. actual LinkService/HTTP incoming100/101 회귀1개만1/1 PASS(30 무관 skip,1.99s,ch1c40b6)로 독립 실행했고 교환 담당의101/101 실행과 구분한다. pure import11은 앞서19/19 PASS(426ms,chf1014f)였고 이후 cap 수정은 validator를 바꾸지 않아 영향 없는 그 결과를 재사용했다. source-only Excel/domain 읽기는 독립 full Excel 실행이나 최종QA가 아니다. 최초 ESM named-export probe CJS SyntaxError 및 owner 수정 중 uncaught expected throw probe는 harness로 분리하고 실제 cap gap의 재현을 숨기지 않는다. 상세 /tmp/issue464-domain-exchange-review.md SHA256 `4539694ad60eabb81bf4acd342578b7a0a9d07555143dc260358f5ee3dc962bb`를 따른다.
+
+독립 UI/UX 최종 검토는 blocker0/PASS이며20개 geometry JSON과12개 PNG를 직접 읽어120개 controls와40개 artifact manifest를 확인했다. 보고 /tmp/issue464-uiux-final-review.md SHA256 `d7a637c194fa634a027292e11ff01543870436735c761f6348240cc01e7c605d`와 artifact manifest311a484 기준이다. Own Excel 제품 승인·실제 SQLite 전체2·remote 최종QA/CI를 대신하는 판정은 아니며 actual과stagegates 후 최종DOCSYNC/QA를 구분한다.
+
+Actual2차82735/ch75ac89는37.7s에 OOXML test parser harness로 FAIL했다. parser regex가 self-closing 빈 O cell을 다음 닫는 R(UUID) cell까지 묶어 Summary leaf Baseline O의 공란 assertion이 실패했다. 제품 Excel writer의 해당 value=undefined/공란 출력은 정상임을 읽기 확인했고 source를 바꾸지 않는다. owned E2E parser만 최소 수정하여 정적 샘플/lint/type을 검증한 뒤 동일 actual2개를 재실행한다. Seed/Editor/Milestone tab/Grid/Stage full M/D5.5·partial4/Logistics/Resource 같은 기간IDs/JSON 실제 download/Excel Task 일부까지 진행한 PASS와 남은 전체 및 두 번째 stale recovery NOT TESTED를 구분한다. 최초2차 trace/raw는 Git 제외로 보존하며 Next STOP/production327 복원(ch365696)을 확인했다. 이 harness FAIL은 제품 데이터 유실이나 source 변경 근거가 아니다.
+
+Actual3차63530/ch080ac2는33.2s에 unlock harness의 edit-sessions201 기대가 정상 계약204와 달라 FAIL했다. 기존 [API.md](API.md)의 edit session 성공204를 그대로 유지하고 helper expectation만204로 수정하며 남은 endpoint harness를 실제 API 문서와 대조했다. 실제 Excel 전체 Stage/Tasks/ResourceSummary의 default full M/D5.5·범위/IDs/revision/Ready/null 공란과 JSON 실제 Target preview→commit201/revision2/newUUID/Task DAG/explicit·effective·inherited/status/requestedStart/Baseline/Gate 의미/source 불변/Assignment scope 제외까지 진행한 PASS를 기록한다. Whole Copy/Template/Copy warning/readonly viewport/두 번째 stale recovery는 이 실행에서 NOT TESTED다. source auth 계약은 변경하지 않고 Next STOP/production327·생성 파일 복원(chd5260d), 첫3개 raw trace 보존을 확인한 뒤 동일 actual2개를 재실행한다.
+
+Actual 담당은 첫3회 trace/error context를 /tmp/issue464-actual-firstfail-1, -2, -3에 별도 보존(Git 제외)했다. OOXML parser의 self-closing/string/number 정적 샘플을 먼저 검증하고 unlock204 oracle를 실제 계약으로 고친 뒤4차67465를 실행한다. 스펙 SHA256은56f48002 접두어이며 최종 exact SHA는 actual handoff를 따른다. 각 재시도에서 Next STOP/생성2개 exact 복구/production327 drift0을 확인했고 제품 source는 변경하지 않았다.
+
+Actual4차67465/ch5e4de2는 Whole Project Copy resetProgress:false의 POST201 기대에409 PERSISTED_SCHEDULE_INVALID를 반환한 첫 제품 FAIL이다. 앞선 세 번의 fixture/parser/status harness 실패와 구분한다. 원본은 정상 공개 API로 만든45 Tasks/6 M, nested/empty Summary, 병렬 join/Completed full E, 개인 Resource3+Group1, 물류 Equipment1, long Task120을 포함하고 legacy mixed는0이다. 앞선 JSON/Excel roundtrip 영역은 PASS에 도달했으나 Copy/Template/사용자 확인/readonly viewport·두 번째 recovery 및 전체2개 완주는 미검증이다. assert/fixture를 약화하지 않고 Next STOP/production327 drift0/생성 복원(ch7823f5)을 확인했다. Manager가 보존 source owner에게 읽기 원인 분석을 배정했고 source 쓰기는 별도 승인 뒤 수행한다. 교환13/Excel/UI는 불변이며 이전 LFF가 이번 실제 Copy 제품 FAIL을 대신하지 않는다. DOCSYNC/QA/actual 전체 완료는 Pending이다.
+
+Actual 중간 handoff는 /tmp/issue464-actual-result.md와 /tmp/issue464-actual-manifest.json에 보존한다. 첫4회 스펙 SHA256은 `56f48002f11c845660065ae8102d288fda870bb06ba2081a7e74fec3832da38b`이며 /tmp/issue464-actual-production-first-four.json은 당시 source freeze 근거다. 첫4회 raw trace/error context는 /tmp/issue464-actual-firstfail-{1,2,3,4}/에 Git 제외로 보존하고 after PNG는 아직 없다. 4차의 비밀값을 제외한 합성 canonical API 재현은 /tmp/issue464-actual-whole-copy-repro.json에 있으며 source revision62/task45/M6/link3/assignment4다. 원인 분석은 보존 담당이 수행하며 이 기록만으로 가설을 확정하지 않는다. 브라우저 legacy mixed 직접 DB seed와 Cut는 범위 밖 NOT TESTED이고 native SQLite server LFF 및 frontend mock 근거와 분리한다.
+
+Actual4차 Whole Copy 제품 실패의 원인은 보존 담당의 native SQLite 회귀2개가 최초2/2 FAIL(ch756532)로 재현했다. 원본 검증에서 `recalculatePersistedHierarchy(sourceTasks, calendar, sourceLinks)`의 sourceLinks를 누락해 정상 Task DAG의 requestedStart와 Dependency 적용 날짜 차이를 invalid로 판정했다. 보존 담당이 해당 호출에 원본 Links를 전달하는 최소 source 수정 뒤 Copy23/23 PASS였다. 기존 공용 Scheduling 계산 helper/Calendar 알고리즘과 Task DAG·membership·완료 guard를 바꾸지 않는다. 후속3 files/43 tests 실행은41 PASS/2 FAIL(ch1067b0)이었으며 기존 Summary→Task SQL 비정상 fixture와 신규 Template Baseline DTO omission/null oracle였다. 기존 WBS/Link/FK/Baseline assertion을 유지해 정상 DAG fixture 및 DB baseline-null oracle로 보정하고 후속 재검증한다. 이 중간 결과를43/43 PASS나 실제 브라우저 전체 PASS로 확대하지 않는다.
+
+Whole Copy REWORK 최종 인계에서 actual4차 primary 시간은36.7s로 확인했다. 최종 관련3 files/44 tests는44/44 PASS(chcfa0ed,3.85s: Copy24/Template17/기존Copy3)다. 정상 API FS/lag의 effective≠requested, M→M Link, reset 양 옵션, Baseline/status/소속 새 FK, Template offset/reset과 source rows/snapshot 불변을 검증한다. 기존 비정상 Summary→Task SQL fixture는 정상 API Summary+child+predecessor3 Task/Task→Task FS1 Link로 보정했고 WBS/Link/UUID/Calendar/Baseline/원본 검증을 유지했다. 비정상 Summary endpoint 전체 거부/partial Copy0도 별도 추가했다. Template Baseline 생략/null oracle는 새 DB row의 baseline_start/end/duration null을 직접 검증했으며 Template source는 바꾸지 않았다. 이전 unique155 범위와 이번44개는 중복되므로 합산한 단일 전체 PASS를 주장하지 않는다. TypeScript/scoped ESLint4 PASS(ch0b0bc0), Markdown123/diff PASS(ch4fb3d7)다.
+
+보존 담당의 새 source7 freeze SHA256은 `7225cee84607945647ff445267196df09d6bce6608b396ddcf2189321ee80f9c`, owned17 manifest SHA256은 `b857125ec3b96b2c1f2ba5a8cfd9188138e5fb1b9efe5a3c0a792fd88f5f164b`다. Copy service1개의 sourceLinks 전달만 바뀌고 다른6 source는 불변이며 이전 source freeze는 /tmp/issue464-preservation-source-freeze-before-copy-fix.json에 보존한다. API 입력/응답/error mapping·Origin/session/revision·DB/migration·공용 Calendar/계산 알고리즘은 그대로이므로 API/SECURITY의 추가 계약 변경은 N/A다. ISSUE_27_PROJECT_COPY/MILESTONE_STAGE_GATES는 보존 담당이 전체 Links 검증과 FS/lag 정상 복사를 반영했고 교환13/Excel/UI는 동결을 유지한다. 실제 통합 재실행/독립 Domain·최종QA/원격 CI는 별도 대기 또는 NOT TESTED다.
+
+Copy REWORK의 독립 Domain 재검토도 blocker0/PASS다. 독립 담당은 관련3 files에서 Copy DAG reset 양 옵션·불법 Summary endpoint·Template DAG·기존 Copy 계층/휴일/식별자5개만5 PASS/39 skip(1.51s, session72007/ch85cf00)로 실행했고 기존 Copy 물류 회귀는 별도1 file/2 PASS(1.23s, session54592/ch539600)로 확인했다. 이 두 명령을 단일7개 실행이나 owner44개 결과로 표현하지 않는다. 검토 전후96개 source/test/docs/artifact hash는 drift0이며 새 보존 source7/owned17 manifest 일치를 확인했다. 변경 없는6개 보존 source 및 교환/Excel/frontend 검토는 동일 hash로 범위별 재사용하고 이전 Whole Copy source a16445 기준 결론은 stale이다. 상세 /tmp/issue464-domain-preservation-review.md SHA256 `d6baead04176783e2beea8d5893e8eb459242ab2c8c535af0e61378e132ff699`를 따른다. 실제 통합 완주와 전체 최종 사전QA/DOCUMENTATION_SYNC·원격 CI는 이 Domain 판정과 별도다.
+
+Actual5차3149/ch2145b3는 primary1.1m에 row contextmenu 뒤 Copy 메뉴를20s 안에 찾지 못해 FAIL했다. 이 시점은 메뉴 harness/제품 원인 미확정이며 interactive cell 좌표나 scroll race를 확정 원인으로 기록하지 않는다. 새 Copy source에서 Whole Copy resetProgress:false의 새 UUID/Link/Gate/Assignment/원본 불변과 resetProgress:true의0/not_started, Template 생성·적용201/FK remap/status reset/원본 불변까지 실제 assertion PASS에 도달했다. 기존 actual Copy 테스트처럼 명시 작업명 cell을 contextmenu 대상으로 사용하도록 owned harness를 보정하고 같은2개 테스트를 재실행한다. 제품 source는 변경하지 않으며 UI Copy/사용자 확인/native fullscreen·readonly viewport/두 번째 stale recovery는 아직 NOT TESTED다. Next STOP/생성 원본 복구/production327 drift0(ch42c36c)과 첫5회 raw trace 보존을 확인했고 최종 성공 판정은 후속 완주 결과에 따른다.
+
+실제 통합6차64441/ch59c068에서도 정확한 작업명 셀을 우클릭한 뒤 Copy 메뉴가 나타나지 않아 FAIL했다. 따라서 넓은 행 영역을 우클릭한 것이 원인이라는5차 가설은 배제한다. 전체 Project Copy와 Template 검증까지 도달한 부분 PASS는 유지하되 메뉴 이후와 두 번째 테스트는 NOT TESTED다. Core 선택의 자동 스크롤 직후 메뉴가 닫히는 경로는 분석 후보이며 원인으로 확정하지 않는다. Frontend 담당이 trace를 읽어 분석하고 제품 수정은 원인 확인과 Manager 승인 뒤 수행한다. Next 중지·생성 파일 원본 복원·production327 hash 불변을 확인했고 교환 source13개는 동결을 유지한다. 이전 문서의5차 원인 미확정 상태와 이번 가설 배제를 구분하며 최종 판정은 후속 실제 재검증을 따른다.
+
+실제6차의 보고서 원시 시간은 primary63492ms/전체82642.603ms, 시작2026-10-05T23:43:11.966Z다. /tmp/issue464-actual-firstfail-6/report-timing.json과 최신 /tmp/issue464-actual-manifest.json에 보존한다. 스펙 SHA256은 `5015015dba8076bc34085dca7678ac479c498d7cdb94fe340fde3bf3ee77275a`, production327 freeze SHA256은 `f62cfe6a4b3436999bb9fbab6063713341030a0dafcff11d8ea4fe326d514944`다. 공통 실행 명령은 `npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-stage-exchange.spec.ts --project=chromium --workers=1 --max-failures=1`이며 브라우저 실행 파일 환경은 해당 담당 결과에 기록한다. 첫6회 trace와 재현 JSON은 Git 제외로 보존하고 after artifact는 아직 없다. 메뉴 원인을 확정하기 전 오류 분류는 미확정이며 source를 바꾸지 않은 실제 담당과 후속 frontend 분석을 구분한다.
+
+실제5·6차 메뉴 실패는 후속 trace 분석에서 제품 race로 확정됐다. 메뉴 선택 전 native/public top192가 Core 기본 show:true 선택 뒤201로9px reveal되고 기존 scroll guard가 contextmenu를 닫았다. 넓은 행 우클릭 가설과 당시 원인 미확정 기록은 이전 분석 단계로 보존하며, 이번 관측이 그 미확정 판정을 대체한다. Manager는 frontend에 실제 project-gantt.tsx의 contextmenu 선택 mirror에만 공개 show:false를 전달하는 source1개 최소 수정과 기존 task-context-menu-scroll.spec.ts 회귀·UX 문서2개 동기화를 승인했다. 일반/keyboard/modifier 선택과 사용자 스크롤의 메뉴 닫힘은 유지한다. 교환13/Copy7/Excel4 및 실제 통합 스펙5015015는 고정하고, 메뉴 수정 뒤 관련 LFF·실제 통합·독립 검토/문서 근거를 새 기준으로 확정한다. 이전 메뉴 이전 영역의 부분 PASS로 수정 후 전체 실제 PASS를 주장하지 않는다.
+
+Frontend의 contextmenu 최소 수정은 openTaskMenu에서 공개 select-task의 show:false를 명시하는1개 source 변경으로 동결했다. 상세 /tmp/issue464-context-menu-analysis.md와 /tmp/issue464-context-selection-freeze.json SHA256 `5b508bebacf1174c10058cd1714d3d6daaa4ced814d28db83a1da993fb17a9a9`를 따른다. 직접 Unit menu-scroll-guard4개는4/4 PASS(208ms, session3211/cha78f73), source scoped ESLint는0 errors/기존 warning4이며 전체 TypeScript/Markdown123은 PASS(session3211/ch33b646)다. 회귀 test 보강 뒤 test lint/TypeScript도 PASS(session11604/ch619883)였다. UI 문서2개는 공개 show:false와 실제 사용자 scroll의 메뉴 닫힘 계약을 반영했다. 이 결과는 actual6차 제품 FAIL 이후의 직접 Unit/정적 검증이며 새 mock·실제 통합 완주 결과는 아직 NOT TESTED다. 기존 frontend14 unique 범위의 contextmenu 영향 항목은 수정 후 검증과 구분하고, 변경 비영향 결과만 범위별 재사용한다.
+
+Contextmenu 수정 후 관련 browser4개는4/4 PASS(session85154/ch4bb047,전체 표시1.4m)다. 기존 multi Copy24.1s·pending9.3s·신규 하단 메뉴5.4s·기존 화면 밖 메뉴3.1s를 새 source 기준으로 검증했다. 이전 Copy/contextmenu 동작 근거는 이 실행으로 갱신하며 layout을 바꾸지 않아 five-width40개 artifact는 변경 비영향 근거로 재사용한다. Source327 새 freeze05efed 접두어 기준 drift0과 Next 완전 중지/생성 원본 복원(ch659bec/ch33ce43)을 확인했다. 이4개 PASS를 실제 통합2개나 전체 suite PASS로 확대하지 않으며 동일 actual2개7차와 기존 Stage Gate1개는 후속 직렬 실행 결과를 따른다. Exact source SHA와 명령은 frontend 최종 handoff를 사용한다.
+
+Frontend 최종 context handoff의 owned21 manifest SHA256은 `c2e97a1fc0561e77c39fbb4e4b99266313233387ed05c1ca941832dc4368d062`다. Unit/정적 검증 때5b508 기준에 이어 회귀 test 최종 내용을 포함한 context freeze는 /tmp/issue464-context-selection-freeze.json SHA256 `5378dd5086c2c12b2eaf3b072e26a227bd3b153f4ea95c8dceaf5e60ee1cb0eb`다. 실제 메뉴 회귀 명령은 `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome npx playwright test --config tests/config/playwright.config.ts tests/e2e/task-context-menu-scroll.spec.ts tests/e2e/project-multi-task-copy-paste.spec.ts --project=chromium --workers=1 --max-failures=1 --grep "미선택 하단 가상 행|화면 밖 막대를 우클릭|다중 checkbox Copy의 canonical|pending 다중 Copy"`였다. Native/public top192 보존·Core/소유 선택·Copy POST0·Escape focus·사용자 scroll 닫힘을 확인했고 해당4개 실행의 최초 실패는 없었다. 최종 UI 문서2개 추가 뒤 Markdown123 PASS(ch10b749)다. 기존14 unique와 이4개는 중복 항목이 있어 더한 단일18개 PASS로 표현하지 않는다.
+
+실제7차21576/ch5f3027는 WARN Copy 메뉴 단계가 성공한 뒤 다음 DEST 작업명 셀의 Paste 메뉴를20s 안에 찾지 못해 FAIL했다. 보고서 시간은 primary62406ms/전체82891.751ms다. 앞선 contextmenu 수정은 Source Copy 메뉴 단계에서 실제 확인됐지만 전체 경고/복사 완료나 전체 통합 PASS로 확대하지 않는다. Paste 실패 원인은 미확정이며 frontend가 clipboard/메뉴 disabled/지연 scroll을 trace와 대조한다. 추가 source 수정은 원인 확인과 Manager 승인 뒤 수행한다. Source32705efed 접두어와 실제 스펙5015015는 불변이며 Next 중지/생성 원본 복원/drift0(chee8bcc)을 확인했다. Copy 경고 이후 내부 remap/완료 경계·readonly top96·두 번째 stale 복구는 NOT TESTED를 유지한다.
+
+실제7차 Paste 실패는 trace에서 제품 layout race로 확정됐다. Copy feedback이 표시되며 Core 높이가407→379px로 바뀌고 DEST scrollIntoView 뒤 table.scrollTop이152였다. Context 선택의 setSelectionMessage('')가 안내를 지우면서 높이가407px로 복귀하고 table.scrollTop이124로 clamp돼 기존 scroll guard가 메뉴를 닫았다. Native/public top192는 유지됐으며 clipboard disabled가 원인이라는 증거는 없다. 앞선 원인 미확정 단계는 조사 이력으로 보존하고 이번 관측으로 확정 원인을 연결한다. Manager는 frontend에 context 선택만 feedback을 보존하는 내부 옵션과 실제 Copy→더 아래 DEST→Paste 회귀 확장을 같은4개 소유 파일에서 승인했다. 일반 선택의 기존 메시지 정리와 실제 사용자 scroll 닫힘은 유지하고 영구 빈 공간이나 넓은 layout 변경은 추가하지 않는다. 교환13/Copy7/Excel4는 고정하며 수정 후 관련 LFF·실제 통합·문서/독립 검토 결과는 새 기준으로 기록한다.
+
+Paste layout race의 최소 수정은 context 전용 preserveFeedback 옵션이며 일반 선택의 기존 메시지 정리는 유지한다. Frontend 직접 검증80895/ch8091fa는 Unit menu-scroll-guard4/4 PASS(241ms), source lint0 errors/기존 warning4, 전체 TypeScript와 Markdown123 PASS다. 분석은 /tmp/issue464-context-menu-analysis-7.md에 보존했다. Mock 회귀는 Copy→더 아래 목적지→Paste enabled/Below→사용자 확인·취소 POST0까지 확장했고 root의 직렬 browser 승인을 기다린다. 실제7차 최초 실패는 그대로 보존하며 이 시점의 새 source browser와 전체 실제 통합은 NOT TESTED다. Exact 최종 source freeze는 후속 frontend handoff에 따른다.
+
+실제7차 시작 시간은2026-10-05T23:52:15.412Z이며 primary62406ms/전체82891.751ms와 함께 /tmp/issue464-actual-manifest.json에 보존한다. WARN의 정확한 작업명→Copy와 DEST의 정확한 작업명 우클릭까지 완료한 뒤 main 메뉴의 Paste20s timeout이었고 As child 선택에는 도달하지 않았다. 최초 원인 미확정 읽기 단계(ch704419)와 이후 확정 layout race를 구분해 보존하며, 실제 스펙5015015를 유지한다. 첫7회 raw trace/error context는 Git 제외로 보존하고 Copy 확인 이후·readonly96·두 번째 stale 테스트는 후속 결과 전 NOT TESTED다.
+
+Paste feedback 보존 수정 후 최신 관련 browser4개는4/4 PASS(session91415/ch127f06,exit0,40.1s)다. 다중 Copy13.6s·pending412 3.8s·확장 Source Copy→아래 DEST→Paste enabled/Below→경고 확인·취소 POST0과 table/native/public192 보존2.4s·기존 사용자 scroll 닫힘1.1s를 확인했다. 이전85154는 show:false만 적용한 source의 PASS이고 이번 실행은 preserveFeedback까지 적용한 최종 source의 직접 근거로 구분한다. Unit4/정적 검사80895의 PASS와 Next 중지(chca58b3)/생성2개 원본 복원·source327 drift0(chdf50cb), 마지막 복원 뒤 전체 TypeScript/Markdown123 PASS(session9175/ch27060d)를 기록한다. 최초 실제7차 제품 실패를 이번 mock 성공으로 숨기지 않으며 같은 실제 원본2개 완주는 후속 결과를 따른다.
+
+Frontend 최종 owned21/evidence40 manifest SHA256은 `ed0aa0ef348080207a7284583f3b8d0dbc155dc08422453a9bebce74ca4137c8`, context source/test/문서4개 freeze SHA256은 `e0db8f866575742ee09019e0aa63410a3fd0247283bc17b7de2cad588d979a69`다. 상세 /tmp/issue464-frontend-result.json을 따르며 layout40개 기존 artifact는 변경 비영향으로 재사용한다. 이전14 unique와 겹치는 두 Copy 회귀·새 context 회귀의 반복 실행을 신규 건수로 더하거나 단일 전체 실행 PASS로 표현하지 않는다. 수정 후 실제 통합2/Stage Gate1/독립 최종QA/원격 CI는 대기 또는 NOT TESTED다.
+
+실제 담당 thread 재개가 반복 거부되어 Manager가 frontend에게 원본 실제2개 테스트의 실행 책임만 재배정했다. 같은8차 실행이며 실제 스펙/source/fixture 쓰기는 허용하지 않는다. 실행 담당 변경은 기존 assertion이나 검증 범위를 줄이는 근거가 아니고 결과는 Local Fast Feedback로 기록하며 독립QA로 주장하지 않는다. 해당2개 종료 후 교환 담당의 기존 Stage Gate1개가 직렬 슬롯에서 이어진다.
+
+실제8차의 첫 시나리오는 PASS(session14704/chfcdd45,29.1s)했다. 원본 assertion을 유지해 Copy→DEST Paste 확인·취소·ack과 readonly native fullscreen/peer/후속 layout의 public·DOM left120/top96까지 도달했다. 이전7차 이후 미검증 영역을 이번 실제 PASS로 갱신하지만 두 번째412 수동 복구는 실행 중이므로 전체2개 PASS로 표현하지 않는다. Manager의 독립 hash 확인에서도 source327/raw26 drift0이었다. 서버 실행 중에는 Stage Gate1개를 시작하지 않으며 두 번째 종료·Next 중지·생성 원본 복원 인계 뒤 직렬 검증한다. Final exact 스펙/명령/시간과 artifact는 후속 실제 handoff를 따른다.
+
+실제8차는 원본2개 모두 PASS(session14704, 결과chb9ae2b/최종ch9ccc79,exit0)다. 통합29.1s·실제412 복구5.7s/전체54.3s였다. Copy→DEST Paste/As child→경고 취소0→ack1·내부 remap/완료 경계, readonly native fullscreen·peer·후속 layout의 public/DOM left120/top96 및412 파일 보존→명시 GET1→재preview→수동 commit201까지 원본 assertion으로 완주했다. 같은 스펙 SHA256 `5015015dba8076bc34085dca7678ac479c498d7cdb94fe340fde3bf3ee77275a`와 production327 freeze SHA256 `3d8ae3b8d3e97fcd9852c1c1069dffe19ab19b000b315dfd7c3798250d413c9d`를 유지했다. Next 중지(chd11a76)/생성2개 정확 복원·diff0/source327 drift0·스펙 불변(ch7fa29a)을 확인했다. 실행은 Manager가 frontend 구현자에게 재배정한 Local Fast Feedback이며 독립QA가 아니다.
+
+최종 실제 handoff /tmp/issue464-actual-result.md SHA256은 `645ec22280dd7ee4a2b931b8e3f67bfa36c62d0ea35556839b4e12dc0bad57c2`, /tmp/issue464-actual-manifest.json SHA256은 `c39af1abf42b1150eb219956f29065e23bd693693392408c04aaba8687e1b7ec`다. 게시 후보는 [실제 readonly peer 화면](../output/playwright/issue-464-actual/after-readonly-peer.png)1개(SHA256 `c64f5fbde9476501121d7f85a397bd394e3d51d140620e730f01027ea242b279`)이며 첫7회 실패 raw trace/error context·DB/log/download/canonical 원본은 Git 제외로 보존한다. 이전 최초 하니스3회/Whole Copy 제품 실패1회/메뉴 제품 race3회의 이력과 source 수정·회귀 결과는 삭제하지 않는다. 기존 Stage Gate1개는 후속 직렬 검증이고 최종 독립QA·원격 CI·Windows Excel/VBA/DRM·실기기·스크린리더·운영 환경은 NOT TESTED다. 브라우저 legacy mixed 직접 DB seed/Cut와 변경 전 실제 screenshot은 실행하지 않았고 native SQLite·mock 및 기준 source 재현 근거와 분리한다.
+
+기존 Stage Gate 실제1개도 PASS(session91128/chf683c1,exit0,개별12.8s/전체23.6s)다. 명령은 `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/home/planner/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome npx playwright test --config tests/config/playwright.config.ts tests/e2e/milestone-stage-gates.spec.ts --project=chromium --workers=1 --max-failures=1`이었다. 실제 소속 저장/revision+1·상속·미완료409·완료/구조 잠금·Excel200/압축 XML의 S/M/T UUID·JSON1.1 명시 소속/완료 status·preview digest 누락428·잘못된 preview422·프로세스 재시작 후 canonical 불변·readonly mutation401·명시 재개와 삭제204를 검증했다. 스펙 SHA256 `a2038199164ae2a1db8ba76b9285a99fcb68e6596f3f39e1d87eb0bdc830d375`와 production327 freeze3d8ae3 기준은 불변이다.
+
+Stage Gate 실행의 Next/Playwright 프로세스가 모두 종료됐고(ch3c8b42), 생성 next-env.d.ts/tsconfig.json은 직전 backup과 정확히 같은 bytes로 복원했다. Production327 hash drift0/스펙 불변(ch8d0645)을 확인했다. 초기 넓은 프로세스 검사에 기존 다른 사용자 컨테이너의 Next2개가 포함된 것은 검증 도우미의 범위 오류였으며 이번 실행 PID로 종료를 확인했고 기존 서비스는 변경하지 않았다. 이 Stage Gate 테스트의 최초 실행 실패는 없었다. NO_COLOR/FORCE_COLOR의 기존 경고는 유지한다. 이 실행은 교환 구현자의 Local Fast Feedback이며 실제8차2개와 별도 명령이고 독립QA/전체 suite/원격 CI를 대신하지 않는다.
+
+최종 DOCUMENTATION_SYNC에서 교환 담당은 API/ARCHITECTURE/SECURITY/REQUIREMENTS/IMPORT_SCHEMA/IMPORT_EXPORT/JSON_IMPORT/TEST_PLAN과 신규1.1 schema/예제2개를 갱신했다. 보존 담당의 DB_SCHEMA/MILESTONE_STAGE_GATES/ISSUE_27_PROJECT_COPY/TASK_RELATIONS, Excel 담당의 EXCEL_EXPORT, frontend의 PROJECT_UX/TASK_EDITOR/UI_UX_GUIDELINES/IMAGE_EXPORT 최종 handoff를 통합했다. SourceCalendar 중복 복원·incoming101 cap·Whole Copy sourceLinks 누락·Import412 복구·Core 자동 reveal/feedback layout race의 실제 결함과 각 첫 실패/수정 후 검증을 구분해 보존한다. DB migration·기존1.0 machine schema·VBA/CSV producer·Calendar/Dependency/Resource 공용 알고리즘·HTTP transport 보안 정책의 추가 변경은 각각 N/A다. 새 Direct Project Hyperlink는 승인 범위 밖이며 추가하지 않았다. 제품 구현 기준 CI/배포 N/A와 별도 최신main 운영 정책 통합/LFF를 구분한다. 최종 Markdown 검사는 최신 Manager Packet/PLAN/CHANGELOG까지 포함하며 exact 소유 manifest는 해당 검사 뒤 확정한다. 독립 최종QA와 PR quality/e2e/docker·main GHCR/release·Windows Excel/VBA/DRM·운영 proxy/실기기/스크린리더는 실행 범위와 증거에 따라 NOT TESTED로 유지한다.
+
+교환 담당의 최종 DOCUMENTATION_SYNC 판정은 PASS다. 실제8차2개와 기존 Stage Gate1개를 각 실행의 LFF로 확인했고 최신 Manager Packet/PLAN/CHANGELOG를 포함한 Markdown123 files 링크 검사(chbe9315), diff whitespace(ch92aa2c), 생성2개 Git diff0(chb51fb4)는 PASS였다. source13 freeze fe94c8은 유지하며29개 소유 파일의 최종 manifest와 Result Contract를 Manager에게 반환하고 writer를 동결한다. 전체138개 게시 후보의 독립 사전QA·게시 후 새 PR head의 quality/e2e/docker는 다음 단계이며 현재 NOT TESTED다.
+
+### Issue #464 재정렬 후 원격 재검증
+
+latest main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` 및 #463 head `703807d600c1499092b0144732669fbe54465ca6` 위로 재정렬하며 기존 #464 로컬 증거는 이전 head의 범위 증거로 유지한다. JSON 1.1 동일 Export preview의 `changedTasks=[]`, Context Menu enabled-item keyboard 이동, #463 opening-scroll settle 승계를 새 head에서 검증한다. 공식 판정은 새 exact-head PR CI의 quality/e2e/docker이며 시작 전에는 NOT TESTED다.
+
+### Issue #464 latest main 재정렬 — 2026-10-06
+
+PR #473를 latest main `d748046733ae2006580052a480c984ae1eb1fa2a` 기준으로 다시 정렬한다. 해당 main에는 #463가 병합되어 있고 #455 UI/transport 및 #463 결합 필터 보완까지 포함된다. #464 고유 JSON/Excel/Copy/Template 구현과 Codex P2 round-trip 보완을 유지하고, `project-gantt.tsx`는 main의 context-menu surface settle을 보존하면서 context 선택에서만 `show:false`와 Copy feedback 보존을 재적용한다. 새 exact-head PR CI의 quality/e2e/docker가 공식 재검증 기준이며 결과 확인 전에는 NOT TESTED다.
+
+
+## Issue #456 — 폼 밀도와 상태 보존 검증
+
+검증 baseline은 `05fe212060ed4a935510dc2f7a692bb9113c55e8`, 작업 branch는 `fix/issue-456-task-editor-form-density`다. 전용 spec `tests/e2e/task-editor-form-density.spec.ts`와 합성 canonical fixture `tests/e2e/fixtures/task-editor-density.ts`를 추가했다. 테스트 설정은 `tests/config/playwright.config.ts`를 명시하고 기존 Task Editor·fullscreen·검색/필터·scope·peer·SQLite persistence case를 선택 실행했다. 전체 local suite는 반복하지 않았다.
+
+### 실제 브라우저 증거
+
+- Chromium 153.0.8010.12, locale en-US, timezone Asia/Seoul, devicePixelRatio 1, browser 기본 100%/visualViewportScale 1. native 125% 확대는 NOT TESTED이며 CSS scale/DSF로 대체하지 않았다.
+- 390/768/1024/1440/1920px에서 Task/선택된 Resource allocation·역할/Relation/nested/Baseline/Footer 및 Milestone 소속·물류 동적 탭을 실제 앱에서 측정했다. 합성 값은 이름 168자, Description 2600자, URL 1640자, domain이 계산한 유효 Baseline 9999 working days다. 실제 limit를 넘는 잘못된 fixture로 before를 만들지 않았다.
+- 원래 before evidence 71개는 `output/playwright/issue-456/before/`에 유지한다. 초기 incomplete capture는 Git 제외 `/tmp/issue456-before-firstcapture/`로 보존하고 최종 enriched before와 구분했다. after는 같은 정상 표면과 keyboard100%·날짜 오류·saving·비기본 Gantt 상태의 PNG/JSON을 `output/playwright/issue-456/after/`에 기록한다.
+- desktop 진행률 값 clipping을 document overflow와 별도로 재현하고 실제10%/100% text 및 range/outline containment를 검사했다. baseline/relation action 최소44px와 모바일 native wrap 높이를 확인했다. desktop Footer Cancel58px/Commit85px, 높이44px이며 saving label 전환의 bounding box는 동일하다. description 전체 읽기 폭/min-height120px/vertical resize는 유지했다.
+- representative1440 keyboard/focus/label-error 연결, actual pending disabled Save→body focus→반복 Escape와 public/DOM Gantt 상태, dirty/readonly/401/412/reload, nested Relation 및 #461 소속·Resource·Logistics 교차 draft 잠금을 별도로 검사한다. 모든 상태를5폭 전체 조합으로 실행했다고 주장하지 않는다.
+- 비기본 WBS Summary scope, nativefullscreen, week, horizontal120/vertical38, 실제 task열227px/externalId열108px, 선택/tree/API/instance를 Editor 진입·각탭·취소와 metadata PATCH1 이후 비교했다. header 존재와 실제 폭을 확인해 empty-array 비교 PASS를 허용하지 않았다. ID 필터 변경·빈집합·null reset·reload의 새 API, 실제 scope/date/metadata/Link/Baseline 및 peer 왕복은 관련 selected case로 검증한다.
+
+### 최초 실패와 진단 이력
+
+실패 원본은 Git 제외 `/tmp/issue456-after-firstfail-<N>`에 보존한다. 성공 retry로 최초 실패를 지우지 않는다.
+
+| 실패 기록 | 원인·조치 및 범위 |
+| --- | --- |
+| 1 / session95057 | 모바일 slider/value는 세로 배열인데 가로 비중첩만 검사한 하니스 오류. 실제 축에 맞게 수정. Milestone capture1 PASS |
+| 2 / session52502 | mode label의 기존 accessible name에 options가 포함되어 exact getByLabel timeout. 기존 name selector와 별도 accessible name/label 검증으로 수정. Milestone1 PASS |
+| 3 / session74651 | 실제 pending 반복 Escape로 dialog가 닫힘. layout2 PASS와 분리 |
+| 4 / session39754 | dialog-local keydown guard는 disabled Save가 body로 focus를 보내면 막지 못함. 기존26+layout2 PASS, pending1 FAIL. 실제 in-flight/document capture 제한 guard로 수정 |
+| 5–9 / sessions76678·36156·51080·82953·25767 | 비기본 Gantt120→0 FAIL. 빈 header selector를 실제열 geometry로 개선하고 단계별 public/DOM을 기록. speculative columns restore/DEV 계측은 Editor 진입 중 columns sync가 없다는 근거로 정확히 철회. session51080의 정상3case PASS는 실패와 분리 |
+| baseline experiment / session92086 | source2를 exact baseline bytes로 잠시 복원해 같은120→0을 재현. baseline-existing 결함과 새 layout 영향 구분. STOP 뒤 승인 source2를 exact 복원 |
+| 10–12 / sessions20091·25809·72302 | 직접 initialTab 진입도 FAIL하여 show-editor 경로 기각. focus/showModal 동기 호출 전후는120/821/1632로 동일하고 이후 native scrollWidth 축소/0이 관찰됨. 임시 browser 계측 철회 |
+| 13–15 / sessions92406·69009·65170 | 같은 ID filter guard 뒤 Editor open/탭/취소120/38 유지, metadata 저장은 FAIL. canonical tasks identity까지 filter guard에 넣은 과도한 조건도 제거. session69009의 정상3case PASS와 저장 실패 분리 |
+| 16–17 / sessions99503·5575 | 저장 단계에 filter-tasks 없음. update-task2→set-columns→scroll0 관찰. canonical sync 후2RAF/set-columns 전에도0/38/scaleWidth884/chartWidth822를 실측. 임시 source3 이벤트·대기 계측 철회 |
+| 18 / session41437 | canonical 단계 복원은91px clamp 뒤 후속 columns0 reset을 막지 못함. metadata snapshot을 columns 완료/layout settle 이후 한 번 소비하도록 이동 |
+| 19 / session1640 | 변경 스크립트 assertion 중단 뒤 미수정 source가 실행된 중복 FAIL. 별도 unchanged-source 원본으로 보존; 새로운 제품 원인으로 계산하지 않음 |
+
+filter의 설치 handler가 직접 scroll0/timeline 축소를 수행한다고 단정하지 않는다. 반복 action을 제거한 뒤 Editor open/tab/cancel 보존과 canonical/columns 뒤 metadata 복원은 실제 브라우저 관찰 근거다.
+
+### 최종 Local Fast Feedback와 재사용
+
+- session3105/chunkb28d71: metadata snapshot을 columns 완료 뒤 소비한 source3의 비기본 Gantt1 PASS(8.1초).
+- session39520/chunk956453: source3 영향 selected19 PASS(1.8분). 새4case, keyboard/dirty/readonly/401/412/reload/nested/#461 교차 초안·pending, search/filter/fullscreen/scope/peer와 실제 native SQLite requested dates·metadata·Baseline·successor persistence를 포함한다.
+- 이후 same scale/public gridWidth/열 ID·width·hidden guard와 siblingOrder signature를 추가했다. session98507/chunkc16a5d: 비기본 Gantt·ID filter empty/null/new API·date/status/Baseline/milestone·scale/column/scope10 PASS(50.5초). guard는 복원 허용 범위를 더 좁히므로 앞선 정상 geometry/기존 상태 회귀는 source2/fixture 불변과 직접 관련 영향 근거로 재사용하며 예전 Escape-only 설명을 재사용하지 않는다.
+- session40436/chunkae882f: 최신 guard source에서 실제 body-focus·반복 Escape 전후 public/DOM Gantt 비교, dirty/readonly/unlock·nested·401/412 및 소속/Resource/Logistics 교차 잠금9 PASS(29.5초). 당시 guard source에서19 unique scenario를 실행했고 앞선19의 영향 없는7 scenario를 재사용해26 unique scenario다. 이 최종 계열은 총38 PASS 실행/중복12회로 구분한다.
+- Manager 검토 후 unmount cleanup의 request ref를 null로 무효화했다. source3 SHA256 `53bce567936360da3b755a920463c09c2fe9dc0ddec90c34b385b8cf810bee6f`에서 session69358/chunk3d875d 전용5 scenario PASS(24.6초), typecheck92399/chunk642279 PASS이며 같은 실행의 normal/state/env를 확정했다.
+- 이어 snapshot 생성의 root 연결 및 소비의 실제 Gantt DOM 연결 조건만 추가했다. 당시 후보 source3 SHA256 `167c5e6a73e25925489368d568f8f0854bb59b9a5b73b98c485936f59d794212`에서 session4725/chunke914eb 비기본 metadata/Gantt1 PASS(7.0초), typecheck26034/chunk4c0c22 PASS다. 연결된 정상 화면의 판정에는 영향이 없는 guard 추가이므로 앞선 capture/run의 실제 hash를 소급 변경하지 않고 재사용했다.
+- 이 중간 후보 계열은19+10+9+5+1=44 PASS 실행, 재사용 포함26 unique scenario/중복18회다. 최종 exact source에서는 대표1 scenario를 실행했고 이전25 unique scenario는 cleanup/DOM 연결 guard만 추가한 영향 근거로 재사용했다. 전체 after 이력은94 PASS testcase 실행과19 FAIL testcase 실행이며 같은 scenario 반복을 추가 coverage로 세지 않는다. baseline source2 실험 FAIL1과 before PASS3 실행은 별도다.
+- 최신 typecheck session68684/chunk02b6de PASS. Scoped lint는 error0/warning4이며 exact baseline stdin lint session96489/chunk976615에도 같은4 hook 경고가 존재한다. required checks와 version/link/diff 결과는 최종 Result Contract와 manifest를 따른다.
+
+최신 영향 검증은26 unique scenario이며 반복 실행을 별도 scenario로 세지 않는다. 이전 source의 추가 case와 중복 PASS 실행 횟수는 최종 Result Contract에 분리한다. mock-backed state/payload와 실제 SQLite persistence는 서로 대체하지 않는다. 전용 after fixture에는 유효한 빈 resource-workload/dashboard/logistics GET 응답을 추가했지만 기존 selected mock spec의 미구성 peer GET404 로그는 별도 한계로 남긴다. 해당 backend 전체 검증 PASS로 확대하지 않는다.
+
+독립 QA가 active name/status metadata로 실제 visible ID 집합이 바뀌는 경계의 추가 guard를 요청했다. semantic visibleTaskFilterKey를 geometry 분류와 snapshot 생성/소비의 현재 filter signature 검증에 포함했다. 최종 source3 SHA256은 `98f77ddcc1d05c6e84ec4f559b6de4ae06f2295469b03312a0147b17ab637233`다. session37066/chunk796c82는 전용6 scenario와 scale/column/scope 대표2case 모두 PASS(51.1초), typecheck49261/chunk40ffc7 PASS다. 같은 visible집합의 metadata120/38 보존과 active name filter에서 rename→visible 빈집합→public/DOM0으로 이전120을 복원하지 않는 negative regression을 함께 확인했다. normal5폭/state/env도 이번 source에서 다시 수집했다.
+
+최종 source 직접8 unique scenario PASS, 나머지19 unique는 기존19/10/9 실행에서 필터 signature guard 추가의 영향 근거로 재사용하여27 unique다. 최종 계열19+10+9+5+1+8=52 PASS 실행/중복25회, 전체 after102 PASS/19 FAIL testcase 실행이다. 이전 source SHA/실행 결과는 과거 단계 근거로 그대로 남기고 최종 hash로 소급 바꾸지 않았다.
+
+Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manager의 독립 검토·infra 원격 게시/exact-head CI 등록 후 상태를 별도로 기록한다. CI 모니터링·merge/main GHCR/release는 사용자 이번 범위 밖이다. B #490/C #491은 FOLLOW-UP/NOT TESTED다.
+
+## Issue #493 — Summary Task Description/URL 편집
+
+- `tests/features/gantt/task-editor-model.test.ts`는 Summary command가 name/Description/URL/명시 완료 단계 소속만 포함하고 schedule/progress/Baseline 변경을 누락하는지, Description 길이와 URL scheme을 일반 Task와 같은 규칙으로 검증한다.
+- `tests/domain/milestone-editor-model.test.ts`는 Summary 메타데이터와 완료 단계 소속을 한 command로 결합하면서 잘못된 일정 초안이 payload로 새지 않는지 확인한다.
+- `tests/server/projects/summary-task-details.test.ts`는 실제 SQLite의 `TaskFieldProjectService`에서 Summary Description/URL 저장·canonical 재조회, child 추가/삭제에 따른 일정 재계산 뒤 메타데이터 보존, schedule readonly 거부와 revision 불변을 검증한다.
+- `tests/e2e/project-task-editor.spec.ts`는 편집 가능한 Summary에서 Description/URL은 readOnly가 아니고 요청 시작일은 계속 readOnly인지 확인한다.
+- `tests/e2e/project-task-editor-persistence.spec.ts`는 실제 브라우저+SQLite에서 Summary Description/URL PATCH 1회, 파생 일정 불변, 마지막 child 삭제 후 빈 Summary의 null 일정과 메타데이터 보존, reload 후 재표시를 검증한다. reload 후 값 검증은 실패 artifact에서 확인된 실제 접근성 tree의 `textbox` role을 사용한다.
+- readonly/stale/pending/focus/Escape/Gantt instance 보존은 기존 Task Editor 회귀를 함께 사용한다. 전체 공식 회귀 판정은 동일 PR head의 `quality`, `e2e`, `docker` GitHub Actions로 한다.
+
+
+## Issue #456 — Main CI #1993.1 dependency audit corrective
+
+- PR #500 merge SHA `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 Main CI Run `37524404994` / #1993.1은 build, typecheck, lint, Vitest, Chromium E2E 6/6, Docker smoke가 SUCCESS였고 production dependency audit만 FAIL했다.
+- 실패 원인은 `sharp 0.35.4`의 GHSA-wq5f-xc86-pv6w / CVE-2026-96889 (High)이며 audit gate는 완화하지 않는다.
+- 최초 corrective PR #504 head `bc90e12e3dfc1eee8f1f1d4afdccb7964fb87acc`의 PR CI #2014.1에서 dependency audit를 포함한 quality, E2E 6/6, Docker가 SUCCESS했다.
+- 그 사이 Issue #493가 병합된 latest main `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7` / application 0.93.0이 동일 advisory 대응으로 `sharp 0.35.5`, `@img/sharp-libvips-* 1.3.4`를 이미 포함하므로 lockfile을 되돌리거나 중복 패치하지 않는다.
+- #456 corrective는 latest main을 기준으로 재정렬해 `tests/scripts/test-config-layout.test.ts`의 `sharp >= 0.35.5`, 모든 `@img/sharp-libvips-* >= 1.3.4` 정적 회귀와 이 추적 기록을 유지한다. 실제 advisory authority는 계속 PR/Main/Release의 `npm audit --omit=dev`다.
+- 재정렬 후 새 exact-head PR CI SUCCESS → merge → 새 Main CI 시작을 본 요청의 완료 기준으로 사용한다.
+
+## Issue #457 전 화면 공통 geometry·상태 회귀
+
+- [11행 coverage와 정확한 실행·예외](ISSUE_457_UI_UX_COVERAGE.md)를 기준으로 현재 branch의 대표 경로와 미실행 표면을 구분한다. Historical capture product source는 parent PR#500 `b397eedf35d50befb4ae17e623036f0a8d77f556` /0.92.1과 동일하다. 이번 CI 보완은 최신 main `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7` 기준으로 재정렬하며 #493의 후속 제품 변경과 기존 캡처 provenance를 구분한다.
+- `tests/e2e/helpers/ui-geometry.ts`를 기존 admin-auth, 생성/목록/공수/물류/설정 spec에 연결했다. 인증 정상·native keyboard focus·실제 error·deferred disabled의 computed style/label/description/clip owner를 검사하고 같은5폭에서 세 admin shell을 직접 비교한다. 최소 control/populated row/header 수, cell text/열 경계, document clientWidth+1, 내부 scroll/density와 native Tab last action을 검증한다. Empty colspan·숨은 text·0rect·inert는 성공 자료로 세지 않는다.
+- `cross-screen-regression.spec.ts`는 직접 cross-admin 비교, populated Master 대표390/1440, 404 recovery/demo 대표만 추가한다. 생성 기존 spec에1920px를 추가했고 선택 기존 회귀를 유지했다. 전체 state×surface×viewport Cartesian product와 로컬 전체 suite 반복은 추가하지 않았다.
+- 최종 대표 범위는 고유23개=최종 observer 직접7 PASS(32.7s)+제품 source/spec 불변 선택16 재사용이다. 총4실행36case의34 PASS/2 FAIL과 중간 `TS2304`는 별도로 보존한다. 최초 FAIL은 fold 아래 table 관찰 준비와 숨은 status text0rect의 observer 오류였다. 실제 제품 defect를 기대값 완화로 숨기지 않았다.
+- Raw HTML/embedded ZIP/decoded JSON/trace/stdout은 각 실행 직후 고유 `/tmp/issue457-run<N>-*`에 보존하고 실제 case ID·해시를 `output/playwright/issue-457/runs.json`에 연결했다. 현재 PNG/JSON은 source/test/helper/fixture/env provenance를 가진다. Historical hardcoded outputs의 backup 필터 오류와 정확한 baseline403복원 경위도 coverage에 기록하며 성공한 사전 backup이라고 과대 보고하지 않는다.
+- 같은 source/CSS는 KEEP이며 새 guard를 제품 개선으로 보고하지 않는다. #452 first-PR 공통 reusable helper 부재는 역사적 GAP/FAIL을 현재 보완하는 범위다. B#490/C#491·React error boundary·실제 배포·native125·실기기/스크린리더 및 원격 `quality/e2e/docker`는 NOT TESTED다. CI 등록은 required jobs PASS와 최종 ACCEPT를 대체하지 않는다.
+
+환경별 미검증은 [Follow-up #502](https://github.com/planner77/masterGantt/issues/502)에서 실제 React error boundary/native125/실기기·screen reader·최종 수동 UX/배포 source·version을 FOLLOW-UP/NOT TESTED로 추적한다. frontend·ui_ux·qa_docs가 환경별 증거를 작성/비교/독립 확인하고 Manager가 환경 제공과 수용 범위를 판단한다. B#490/C#491 제품 개선과 별개이며 현재 scope에서 자동 실행하지 않는다.
+
+#457 독립 검토의 provenance 정정: 목록 `list-populated-1440`/`list-no-result-1440` key는 별칭이며 실제 JSON/PNG는1280×720이다. Current62 JSON은 ko-KR/Asia-Seoul/높이900/DPR1 49개, en-US/Asia-Seoul/높이900/DPR1 11개, en-US/Asia-Seoul/높이720/DPR1 목록2개다. 정상 Master auth는 기존 autofocus 때문에 focused/focusVisible=true이므로 normal을 비포커스 baseline으로 해석하지 않는다. 과거capture/test/source hash와141개raw PNG/JSON은 그대로 유지한다. 착수 시 stacked 계획과 달리 parent PR#500 외부 병합 후 최초 게시 base는 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`/0.92.1이었고 tree `6a322cc119ed5b0a435f3b1ff20fe5826035ed66`이 원래 capture source `b397eedf35d50befb4ae17e623036f0a8d77f556`과 정확히 같아 LFF를 재사용했다. PR CI 보완 시점에는 main이 `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7`까지 전진하여 재정렬했다. 실제 운영 배포는 #502 NOT TESTED다.
+
+- #457 geometry helper는 일반 `npm run test:e2e`에서 tracked 증거를 덮어쓰지 않고 Playwright test output에 기록한다. tracked evidence publication은 `ISSUE_457_EVIDENCE_DIR` 명시가 필요하며, KEEP/REVIEW는 `ISSUE_457_BASELINE_SOURCE_AGGREGATE_SHA256`의 명시적 baseline과 source aggregate를 비교할 때만 부여한다. baseline이 없으면 중립 OBSERVATION이다.
+- PR CI #2004.1의 production dependency audit에서 `sharp 0.35.4` / CVE-2026-96889가 High로 실패했다. audit gate는 완화하지 않는다. 최신 main에는 `sharp 0.35.5` 및 대응 `@img/sharp-* 0.35.5`, `@img/sharp-libvips-* 1.3.4`가 이미 반영되어 있으므로 그 lockfile을 그대로 사용하고 저장소 계약 테스트로 최소 버전을 고정한다.
+
+## Issue #490 프로젝트 설정 회귀
+
+`tests/e2e/project-settings-layout-490.spec.ts`는 현재 6case로 설정/보안/unlock 상태, Calendar 날짜/국가/validation/preview 상태, mock canonical Gantt 보존, native 반복 Escape, 실제 metadata API 및 실제 password rotation을 검증한다. 관측 helper는 390/768/1024/1440/1920px·높이900·ko-KR/Asia-Seoul·default100%에서 PNG/geometry와 실제 source bytehash/test hash/version을 기록한다. `ISSUE_490_EVIDENCE_DIR`를 명시하지 않은 일반 CI는 test output만 사용하여 tracked 증거를 덮어쓰지 않는다.
+
+401/412로 닫힌 설정은 dialog PASS로 세지 않고 page-level readonly/canonical refresh 관측으로 구분한다. Mock state는 native 48px 열 resize·optional 외부ID 열·닫힌 중첩 Summary·native 선택·주 scale·Summary scope·scroll/public viewport·instance·전체 화면 round trip을 비교한다. 실제 API 테스트는 Origin/If-Match와 name/description 저장 성공, Task/Link/Calendar 불변 및 viewport를 별도로 검증한다. 요청 body/password/Cookie/token은 증거에 저장하지 않는다. Local Fast Feedback과 원격 quality/e2e/docker 판정을 분리하며 PR CI 시작만으로 전체 회귀 PASS를 주장하지 않는다. 실행별 실패·준비 oracle 정정·재사용 범위는 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)에 기록한다.
+
+#490 REWORK는 최신 main4f8fc2c9c86941d1b86ae4472b1e953707c85ef7/제품0.94.1에서6case를 실행한다. 0.93.1의 마지막5case와16runs40executions는 historical로 원본 hash를 유지한다. 새1case는1440px 실제 PUT hold→pending BODY·빠른2Escape·민감 입력 비움·중복PUT1개·native 보안탭 focus→204/revision+1/canonical GET/호출자 edit·이전 peer readonly·구password401/새password204와 정상 close/logout/unlock 초점을 검증한다. Calendar 기존 case에390px 새 field select/date의 native Tab·화면 안 bbox/ring을 추가한다. 성공 loading 동안 BODY 초점을 실제 관측으로 남기며 호출 버튼 복원 PASS로 확대하지 않는다. fullscreen 설정 진입은 지원 trigger가 frame 밖이라 N/A이고 fullscreen 왕복은 별도 검증한다. main #485 migration0023은 실제 isolated DB에 적용되며 변경된 stateful-project workload fixture는 이 spec의 직접 fixture가 아니다.
+
 ## Issue #487 — 완료 단계 필터 End scroll E2E timing race
 
-Issue #454의 immutable `v0.90.1` GHCR Release Run #140.1 (`37434408238`)은 static quality와 Chromium shard 1/3/4/5/6을 PASS했지만 shard 2/6의 `tests/e2e/milestone-stage-grid.spec.ts`에서 `activeVisible === false`로 실패했다. 동일 exact merge SHA `0fc986cb0cb642bdbedeec30157b27bd522b5a38`의 Main CI Run #1942.1에서는 같은 case가 14.5초에 PASS했다.
+Issue #454의 immutable `v0.90.1` GHCR Release Run #140.1 (`37434408238`)은 static quality와 Chromium shard 1/3/4/5/6을 PASS했지만 shard 2/6의 `tests/e2e/milestone-stage-grid.spec.ts`에서 `activeVisible === false`로 실패했다. 동일 exact merge SHA `0fc986cb0cb642bdbedeec30157b27bd522b5a38`의 Main CI Run #1942.1에서는 같은 case가 PASS했다.
 
-제품 `StageFilterPicker.move()`는 keyboard `End` 처리 시 `setActive()` 뒤 `requestAnimationFrame(...scrollIntoView())`로 active option을 list viewport에 보이게 한다. 기존 E2E는 `input.press("End")` 직후 geometry를 즉시 읽어 animation-frame scroll 완료보다 먼저 측정할 수 있었다. 이는 active option 가시성 기준 자체의 완화가 아니라 runner scheduling에 따른 비결정적 측정 순서다.
+제품 `StageFilterPicker.move()`는 keyboard `End` 처리 시 `setActive()` 뒤 `requestAnimationFrame(...scrollIntoView())`로 active option을 list viewport에 보이게 한다. 기존 E2E는 `input.press("End")` 직후 geometry를 즉시 읽어 animation-frame scroll 완료보다 먼저 측정할 수 있었다. 이는 active option 가시성·키보드 접근성 기준의 완화 대상이 아니라 runner scheduling에 따른 비결정적 측정 순서다.
 
-보완은 static sleep을 사용하지 않는다. `.project-stage-filter-popup`에서 현재 `aria-activedescendant`가 실제 DOM에 존재하고 list viewport 안에 완전히 들어오며 `scrollTop > 0`인 observable postcondition을 `expect.poll(..., { timeout: 2000 })`로 기다린 다음, 기존 `activeVisible === true`, `listScroll > 0`, input focus/containment 및 5개 viewport geometry assertion을 그대로 수행한다. 실제 scroll이 발생하지 않으면 poll 또는 기존 assertion이 계속 실패한다.
+보완은 static sleep을 사용하지 않는다. 현재 `aria-activedescendant`가 실제 DOM에 존재하고 list viewport 안에 완전히 들어오며 `scrollTop > 0`인 observable postcondition을 `expect.poll(..., { timeout: 2000 })`로 기다린 다음 기존 `activeVisible === true`, `listScroll > 0`, input focus/containment 및 390/768/1024/1440/1920 geometry assertion을 그대로 수행한다. 실제 scroll이 발생하지 않으면 bounded poll 또는 기존 assertion이 실패한다.
 
-application source/API/DB/domain/version은 변경하지 않는다. 기존 `v0.90.1` annotated tag는 이동·덮어쓰기하지 않으며, 현재 Release Run #140은 실패 shard 재실행으로 복구한다. Issue #487의 별도 exact-head PR CI가 재발 방지 수정의 공식 검증이다.
+application source/API/DB/domain/version은 변경하지 않는다. 기존 `v0.90.1` tag는 immutable historical evidence로 유지하고 이동·덮어쓰기·재사용하지 않는다. 이 corrective PR의 exact-head PR CI가 timing-race 보완의 검증 근거이며, 실패한 과거 exact tag/run의 재실행 성공을 수정 반영 근거로 대체하지 않는다. 향후 정식 release가 필요하면 현행 CI/CD/Lifecycle의 승인된 새 version/tag 절차를 별도로 따른다.
+

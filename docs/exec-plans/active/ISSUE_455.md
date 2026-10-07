@@ -88,3 +88,10 @@ used code의 visible 이유·aria-describedby와 확인된 입력 오류의 aria
 기존 published head `7f9cfb87e4e56bba9eff444d74a0559bcb80b89d`의 PR CI Run `37411553451`은 SUCCESS였으나 최신 main `0fc986cb0cb642bdbedeec30157b27bd522b5a38` 대비 diverged/dirty가 되어 병합 근거로 재사용하지 않는다. #455 고유 변경을 최신 main 위에 재적용하고 CHANGELOG/PROJECT_UX/TEST_PLAN/active PLAN 충돌은 최신 main의 후속 기록을 보존하는 방향으로 해소한다.
 
 새 exact-head PR CI가 성공한 경우에만 PR #481을 병합하고 merge push의 Main CI 시작을 확인한다. 이번 사용자 요청은 Main CI 시작까지이며 GHCR 게시, Generic/Release Finalizer, tag/release, Issue close, branch cleanup은 별도 단계다.
+
+## 2026-10-06 Main CI #1947.1 실패 보완
+
+PR #481 병합 commit `528ebfffa639a275ea4349a04860f5b3785e50e9`의 Main CI Run `37435545662`은 `Main 임시 commit 이미지 게시·검증·정리`에서 실패했다. image build/push, policy, readiness, SQLite/API persistence는 성공했고 production transport browser 검증에서 HTTP test hostname 첫 navigation이 `ERR_NAME_NOT_RESOLVED`로 실패했다. script의 hosts 등록 및 HTTP/HTTPS curl readiness는 성공한 상태였다.
+
+Corrective branch `fix/issue-455-main-ci-transport-dns`는 Playwright Chromium에 두 test domain만 loopback resolver rule로 고정한다. browser URL/Host/TLS hostname과 실제 Nginx·CA 검증은 유지한다. corrective PR CI 성공 후 병합하여 새 Main CI 시작을 확인하며, 새 Main transport smoke가 최종 판정이다.
+

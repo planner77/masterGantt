@@ -1,4 +1,6 @@
-import { assertMembershipPreservationAvailable, withStageProjection } from "./milestone-stage-core";
+import { readStageSnapshot, withStageProjection } from "./milestone-stage-core";
+import { projectStageGates } from "../../domain/milestones/stage-gates";
+import { MilestoneMembershipRepository } from "../repositories/milestone-membership-repository-core";
 import { randomUUID } from "node:crypto";
 import type Database from "better-sqlite3";
 
@@ -95,7 +97,7 @@ function assignmentDtos(repository: ResourceCatalogRepository, projectId: number
     id: assignment.publicId,
     taskId: assignment.taskPublicId,
     target: { kind: assignment.kind, id: assignment.targetPublicId },
-    role: assignment.kind === "resource" ? assignment.assignmentRole : null,
+    role: null,
     allocation: assignment.kind === "resource"
       ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
       : null,
@@ -184,7 +186,8 @@ export class ProjectCopyService {
           throw new RevisionMismatchError();
         }
 
-        assertMembershipPreservationAvailable(this.database, source.id);
+        const sourceStage = readStageSnapshot(this.database, source.id);
+        projectStageGates(sourceStage);
         const sourceTasks = this.schedules.listTasks(source.id);
         const sourceLinks = this.schedules.listLinks(source.id);
         const sourceHolidays = this.schedules.listHolidays(source.id);
@@ -195,7 +198,7 @@ export class ProjectCopyService {
         }
 
         const calendar = resolveProjectWorkingCalendar(this.database, source.id);
-        recalculatePersistedHierarchy(sourceTasks, calendar);
+        recalculatePersistedHierarchy(sourceTasks, calendar, sourceLinks);
 
         const project = this.projects.insert({
           publicId: newPublicId,
@@ -320,6 +323,16 @@ export class ProjectCopyService {
           }
         }
 
+        const sourceByPublicId = new Map(sourceTasks.map((task) => [task.publicId, task]));
+        const memberships = new MilestoneMembershipRepository(this.database);
+        for (const row of sourceStage.memberships) {
+          const originalMember = sourceByPublicId.get(row.taskId), originalMilestone = sourceByPublicId.get(row.milestoneTaskId);
+          const member = originalMember && newBySourceId.get(originalMember.id);
+          const milestone = originalMilestone && newBySourceId.get(originalMilestone.id);
+          if (!member || !milestone) throw new PersistedScheduleInvalidError();
+          memberships.set(project.id, member.id, milestone.id);
+        }
+
         if (input.resetProgress) {
           const copiedTasks = this.schedules.listTasks(project.id);
           const derived = recalculateHierarchy(dtoTasks(copiedTasks), calendar);
@@ -384,7 +397,6 @@ export class ProjectCopyService {
           assignmentStart: string | null;
           assignmentEnd: string | null;
           allocationPercent: number | null;
-          assignmentRole: import("../../contracts/resources").ResourceRole | null;
         }>>();
 
         for (const sa of sourceAssignments) {
@@ -399,7 +411,6 @@ export class ProjectCopyService {
             assignmentStart: sa.assignmentStart,
             assignmentEnd: sa.assignmentEnd,
             allocationPercent: sa.allocationPercent,
-            assignmentRole: sa.assignmentRole,
           });
           copiedAssignmentsByTask.set(newTask.id, list);
         }

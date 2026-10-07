@@ -1,0 +1,18 @@
+{
+  "browser": "153.0.8010.12",
+  "phase": "before",
+  "zoom": "browser default 100%; native 125% NOT TESTED",
+  "fixture": {
+    "nameCharacters": 168,
+    "descriptionCharacters": 2600,
+    "urlCharacters": 1640,
+    "baselineDuration": 9999
+  },
+  "browserEnvironment": {
+    "locale": "en-US",
+    "timezone": "Asia/Seoul",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+    "devicePixelRatio": 1,
+    "visualViewportScale": 1
+  }
+}

@@ -1,0 +1,544 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mastergantt.local/schemas/project-import-1.1.schema.json",
+  "title": "masterGantt authored schedule-stage import 1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "project",
+    "tasks"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.1"
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "description"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 4000
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "maxItems": 5000,
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "externalId",
+              "name",
+              "type",
+              "parentExternalId",
+              "predecessors",
+              "requestedStart",
+              "duration",
+              "progress",
+              "status"
+            ],
+            "properties": {
+              "externalId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "description": "Case-sensitive stable business ID; server rejects surrounding whitespace, Cc/Cf and unpaired surrogate."
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "parentExternalId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Case-sensitive stable business ID; server rejects surrounding whitespace, Cc/Cf and unpaired surrogate."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "predecessors": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "externalId"
+                  ],
+                  "properties": {
+                    "externalId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128,
+                      "description": "Case-sensitive stable business ID; server rejects surrounding whitespace, Cc/Cf and unpaired surrogate."
+                    },
+                    "type": {
+                      "enum": [
+                        "FS",
+                        "SS",
+                        "FF",
+                        "SF"
+                      ]
+                    },
+                    "lag": {
+                      "type": "integer",
+                      "minimum": -10000,
+                      "maximum": 10000
+                    }
+                  }
+                }
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 4096,
+                    "description": "Server accepts only safe HTTP(S), trims, blank becomes null."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "sourceTaskId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "enum": [
+                  "task",
+                  "milestone"
+                ]
+              },
+              "scheduleMode": {
+                "enum": [
+                  "auto",
+                  "manual"
+                ]
+              },
+              "requestedStart": {
+                "type": "string",
+                "pattern": "^(19[0-9]{2}|20[0-9]{2}|21[0-9]{2})-[0-9]{2}-[0-9]{2}$",
+                "description": "Server validates actual date and 1900-01-01..2199-12-31 bounds."
+              },
+              "duration": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "progress": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "status": {
+                "enum": [
+                  "not_started",
+                  "in_progress",
+                  "completed"
+                ]
+              },
+              "baseline": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "start",
+                      "duration"
+                    ],
+                    "properties": {
+                      "start": {
+                        "type": "string",
+                        "pattern": "^(19[0-9]{2}|20[0-9]{2}|21[0-9]{2})-[0-9]{2}-[0-9]{2}$",
+                        "description": "Server validates actual date and 1900-01-01..2199-12-31 bounds."
+                      },
+                      "duration": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 10000
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "milestone"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "duration": {
+                      "const": 0
+                    },
+                    "baseline": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "duration": {
+                              "const": 0
+                            }
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "duration": {
+                      "minimum": 1
+                    },
+                    "baseline": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "duration": {
+                              "minimum": 1
+                            }
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "status": {
+                      "const": "completed"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "progress": {
+                      "const": 100
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "status": {
+                      "const": "not_started"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "progress": {
+                      "const": 0
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "status": {
+                      "const": "in_progress"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "progress": {
+                      "exclusiveMaximum": 100
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "externalId",
+              "name",
+              "type",
+              "parentExternalId",
+              "predecessors"
+            ],
+            "properties": {
+              "externalId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "description": "Case-sensitive stable business ID; server rejects surrounding whitespace, Cc/Cf and unpaired surrogate."
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "parentExternalId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Case-sensitive stable business ID; server rejects surrounding whitespace, Cc/Cf and unpaired surrogate."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "predecessors": {
+                "type": "array",
+                "maxItems": 0
+              },
+              "description": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 10000
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "url": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 4096,
+                    "description": "Server accepts only safe HTTP(S), trims, blank becomes null."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "sourceTaskId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "type": {
+                "const": "summary"
+              },
+              "requestedStart": {
+                "type": "null"
+              },
+              "scheduleMode": {
+                "const": "auto"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "memberships": {
+      "type": "array",
+      "maxItems": 5000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "taskExternalId",
+          "milestoneExternalId"
+        ],
+        "properties": {
+          "taskExternalId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Case-sensitive stable business ID; server rejects surrounding whitespace, Cc/Cf and unpaired surrogate."
+          },
+          "milestoneExternalId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "description": "Case-sensitive stable business ID; server rejects surrounding whitespace, Cc/Cf and unpaired surrogate."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projectPublicId",
+        "projectRevision",
+        "exportedAt",
+        "calendar",
+        "contentScope"
+      ],
+      "properties": {
+        "projectPublicId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "projectRevision": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "exportedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "calendar": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "timezone",
+            "weekendDays",
+            "holidays"
+          ],
+          "properties": {
+            "timezone": {
+              "const": "Asia/Seoul"
+            },
+            "weekendDays": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "const": 6
+                },
+                {
+                  "const": 0
+                }
+              ],
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "holidays": {
+              "type": "array",
+              "maxItems": 10000,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "date"
+                ],
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^(19[0-9]{2}|20[0-9]{2}|21[0-9]{2})-[0-9]{2}-[0-9]{2}$",
+                    "description": "Server validates actual date and 1900-01-01..2199-12-31 bounds."
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "exceptions": {
+              "type": "array",
+              "maxItems": 10000,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "date",
+                  "dayType"
+                ],
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^(19[0-9]{2}|20[0-9]{2}|21[0-9]{2})-[0-9]{2}-[0-9]{2}$",
+                    "description": "Server validates actual date and 1900-01-01..2199-12-31 bounds."
+                  },
+                  "name": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "dayType": {
+                    "enum": [
+                      "WORKING",
+                      "NON_WORKING"
+                    ]
+                  },
+                  "names": {
+                    "type": "array",
+                    "maxItems": 100,
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "contentScope": {
+          "const": "schedule-stage"
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
-import { StageGateError } from "../../domain/milestones/stage-gates";
 import { deflateRawSync } from "node:zlib";
 
 import type { ProjectLinkDto, ProjectSnapshotResponse, ProjectStatus, ProjectTaskDto } from "@/contracts/projects";
+import type { MilestoneDashboardDto } from "@/contracts/milestone-dashboard";
 import type { ProjectExcelExportRequest } from "@/contracts/project-excel-export";
 import type { ResourceWorkloadResponse, ResourceWorkloadTaskDto } from "@/contracts/resources";
 
@@ -345,7 +345,15 @@ function tasksSheet(tasks: readonly OrderedTask[], links: readonly ProjectLinkDt
       successors.set(link.predecessorExternalId, after);
     }
   }
-  const headers = ["WBS", "작업", "외부 ID", "유형", "시작", "종료", "기간(근무일)", "진행률", "설명", "URL", ...(includeDependencies ? ["선행 작업", "후행 작업"] : [])];
+  const byTaskId = new Map(tasks.map(({ task }) => [task.taskId, task]));
+  const externalId = (id: string | null | undefined) => {
+    if (!id) return "";
+    const task = byTaskId.get(id);
+    if (!task) throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "A membership reference is missing from the snapshot.");
+    return task.externalId;
+  };
+  const preservationHeaders = ["Task ID", "부모 외부 ID", "요청 시작", "작업 상태", "Baseline 시작", "Baseline 기간", "Baseline 종료", "명시 단계 ID", "명시 단계 외부 ID", "유효 단계 ID(파생)", "유효 단계 외부 ID(파생)", "상속 출처 ID(파생)", "상속 출처 외부 ID(파생)"];
+  const headers = ["WBS", "작업", "외부 ID", "유형", "시작", "종료", "기간(근무일)", "진행률", "설명", "URL", ...(includeDependencies ? ["선행 작업", "후행 작업"] : []), ...preservationHeaders];
   const rows = [rowXml(1, headers.map((value, index) => ({ column: index + 1, style: STYLE.header, value })), 0, 22)];
   tasks.forEach((entry, index) => {
     const task = entry.task;
@@ -365,6 +373,22 @@ function tasksSheet(tasks: readonly OrderedTask[], links: readonly ProjectLinkDt
       cells.push({ column: 11, style: STYLE.text, value: (predecessors.get(task.externalId) ?? []).join(", ") });
       cells.push({ column: 12, style: STYLE.text, value: (successors.get(task.externalId) ?? []).join(", ") });
     }
+    const extra: Cell[] = [
+      { column: 1, value: task.taskId }, { column: 2, value: task.parentExternalId ?? "" },
+      { column: 3, style: STYLE.date, type: "number", value: task.requestedStart === null ? undefined : excelSerial(task.requestedStart) },
+      { column: 4, value: task.status ?? "" },
+      { column: 5, style: STYLE.date, type: "number", value: task.type === "summary" || !task.baselineStart ? undefined : excelSerial(task.baselineStart) },
+      { column: 6, style: STYLE.integer, type: "number", value: task.type === "summary" ? undefined : task.baselineDuration ?? undefined },
+      { column: 7, style: STYLE.date, type: "number", value: task.type === "summary" || !task.baselineEnd ? undefined : excelSerial(task.baselineEnd) },
+      { column: 8, value: task.membership?.explicitMilestoneTaskId ?? "" },
+      { column: 9, value: externalId(task.membership?.explicitMilestoneTaskId) },
+      { column: 10, value: task.membership?.effectiveMilestoneTaskId ?? "" },
+      { column: 11, value: externalId(task.membership?.effectiveMilestoneTaskId) },
+      { column: 12, value: task.membership?.inheritedFromTaskId ?? "" },
+      { column: 13, value: externalId(task.membership?.inheritedFromTaskId) },
+    ];
+    const offset = includeDependencies ? 12 : 10;
+    cells.push(...extra.map((cell) => ({ ...cell, column: cell.column + offset })));
     rows.push(rowXml(index + 2, cells, Math.min(entry.depth, MAX_OUTLINE_LEVEL)));
   });
   const lastColumn = columnName(headers.length);
@@ -743,7 +767,12 @@ function effortRoleLabel(role: string | undefined): string {
   if (role === "PI") return "PI";
   if (role === "DEVELOPER") return "개발자 (DEVELOPER)";
   if (role === "EQUIPMENT_OWNER") return "설비 담당 (EQUIPMENT_OWNER)";
-  return "미지정 (UNSPECIFIED)";
+  return "Global Role 미지정 (UNSPECIFIED)";
+}
+
+function effortRoleLabels(roles: readonly string[] | undefined): string {
+  if (!roles || roles.length === 0) return "Global Role 미지정 (UNSPECIFIED)";
+  return roles.map((role) => effortRoleLabel(role)).join(", ");
 }
 
 function developerGradeLabel(grade: string | null | undefined): string {
@@ -838,12 +867,12 @@ function resourceEffortSummarySheet(
   pair("전체 계획 M/D", { column: 2, style: STYLE.integer, type: "number", value: workload.data.grandTotalMd });
   pair("전체 계획 M/M", effortNumberCell(2, workload.data.grandTotalMm));
   pair("공수 미설정 건수", { column: 2, style: STYLE.integer, type: "number", value: workload.data.unsetCount });
-  pair("역할 미지정 건수", { column: 2, style: STYLE.integer, type: "number", value: workload.data.unspecifiedRoleCount ?? 0 });
+  pair("Global Role 미지정 Assignment 수", { column: 2, style: STYLE.integer, type: "number", value: workload.data.unspecifiedRoleCount ?? 0 });
   pair("과투입 Resource 수", { column: 2, style: STYLE.integer, type: "number", value: workload.data.overAllocatedResourceCount ?? 0 });
   row += 1;
 
-  add([{ column: 1, style: STYLE.title, value: "역할별 계획 공수" }], 24);
-  add(["역할", "Assignment 수", "M/D", "M/M", "공수 미설정"].map((value, index) => ({
+  add([{ column: 1, style: STYLE.title, value: "Global Role별 계획 공수 (비가산 분류)" }], 24);
+  add(["Global Role", "Assignment 수", "M/D", "M/M", "공수 미설정"].map((value, index) => ({
     column: index + 1, style: STYLE.header, value,
   })), 22);
   for (const total of workload.data.roleTotals ?? []) {
@@ -855,6 +884,7 @@ function resourceEffortSummarySheet(
       { column: 5, style: STYLE.integer, type: "number", value: total.unsetCount },
     ]);
   }
+  add([{ column: 1, style: STYLE.muted, value: "복수 Global Role Resource의 같은 Assignment는 여러 역할 행에 포함될 수 있으므로 역할별 합계를 서로 더해 전체 계획 공수로 해석하지 않습니다." }]);
   row += 1;
 
   const developers = new Map<string, {
@@ -862,7 +892,7 @@ function resourceEffortSummarySheet(
     groupNames: Set<string>; assignmentCount: number; effortMd: number; unsetCount: number; overAllocated: boolean;
   }>();
   for (const detail of details) {
-    if (detail.task.role !== "DEVELOPER") continue;
+    if (!(detail.task.roles ?? []).includes("DEVELOPER")) continue;
     let current = developers.get(detail.resource.id);
     if (!current) {
       current = {
@@ -897,7 +927,7 @@ function resourceEffortSummarySheet(
       { column: 10, style: STYLE.text, value: developer.overAllocated ? "예" : "아니오" },
     ]);
   }
-  if (developers.size === 0) add([{ column: 1, style: STYLE.muted, value: "DEVELOPER assignment가 없습니다." }]);
+  if (developers.size === 0) add([{ column: 1, style: STYLE.muted, value: "DEVELOPER Global Role 리소스의 assignment가 없습니다." }]);
 
   const lastRow = Math.max(1, row - 1);
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:J${lastRow}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><cols><col min="1" max="1" width="38" customWidth="1"/><col min="2" max="10" width="20" customWidth="1"/></cols><sheetData>${rows.join("")}</sheetData><pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
@@ -910,7 +940,7 @@ function resourceEffortDetailSheet(
   const taskById = new Map(tasks.map((entry) => [entry.task.taskId, entry]));
   const headers = [
     "Assignment ID", "Task ID", "WBS", "Task", "Task 상태", "진행률", "Task 시작", "Task 종료",
-    "Resource ID", "Resource 코드", "Resource 이름", "수행 역할", "개발자 등급", "Resource Group",
+    "Resource ID", "Resource 코드", "Resource 이름", "Global Role", "개발자 등급", "Resource Group",
     "Assignment 시작", "Assignment 종료", "Allocation %", "유효 근무일", "Effort M/D", "Effort M/M",
     "지연", "공수 설정",
   ];
@@ -931,7 +961,7 @@ function resourceEffortDetailSheet(
       { column: 9, style: STYLE.text, value: safeText(detail.resource.id) },
       { column: 10, style: STYLE.text, value: safeText(detail.resource.code ?? "") },
       { column: 11, style: STYLE.text, value: safeText(detail.resource.name) },
-      { column: 12, style: STYLE.text, value: effortRoleLabel(detail.task.role) },
+      { column: 12, style: STYLE.text, value: effortRoleLabels(detail.task.roles) },
       { column: 13, style: STYLE.text, value: developerGradeLabel(detail.resource.developerGrade) },
       { column: 14, style: STYLE.text, value: safeText([...detail.groupNames].sort((a, b) => a.localeCompare(b, "ko")).join(", ")) },
       { column: 15, style: STYLE.date, type: "number", value: excelSerial(detail.task.start) },
@@ -954,21 +984,134 @@ function resourceEffortDetailSheet(
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:${lastColumn}${lastRow}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="22" width="18" customWidth="1"/></cols><sheetData>${rows.join("")}</sheetData><autoFilter ref="A1:${lastColumn}${lastRow}"/><pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/></worksheet>`;
 }
 
+function validateStageDashboard(snapshot: ProjectSnapshotResponse, stage: MilestoneDashboardDto, workload?: ResourceWorkloadResponse): void {
+  const sameIds = (a: readonly string[], b: readonly string[]) => {
+    const left = [...a].sort(), right = [...b].sort();
+    return left.length === right.length && new Set(a).size === a.length && left.every((id, i) => id === right[i]);
+  };
+  const tasks = new Map(snapshot.data.tasks.map((task) => [task.taskId, task]));
+  const milestoneIds = snapshot.data.tasks.filter((task) => task.type === "milestone").map((task) => task.taskId);
+  const taskIds = snapshot.data.tasks.filter((task) => task.type === "task").map((task) => task.taskId);
+  const milestoneSet = new Set(milestoneIds), taskSet = new Set(taskIds);
+  const assignmentSet = new Set(snapshot.data.assignments?.filter((assignment) => assignment.target.kind === "resource").map((assignment) => assignment.id));
+  const known = (values: readonly string[], allowed: ReadonlySet<string>) => values.every((id) => allowed.has(id));
+  const filter = stage.filters;
+  if (stage.projectPublicId !== snapshot.data.project.publicId || stage.projectRevision !== snapshot.data.project.revision
+    || (workload && (stage.catalogRevision !== workload.data.catalogRevision || stage.projectRevision !== workload.data.projectRevision))
+    || !sameIds(milestoneIds, stage.rows.map((row) => row.milestoneTaskId)) || !sameIds(milestoneIds, stage.catalog.milestones.map((row) => row.id))
+    || !sameIds(taskIds, stage.scope.taskIds) || filter.search !== "" || filter.from !== null || filter.to !== null
+    || filter.asOfDate !== null || filter.horizonDays !== 14 || filter.mdPerMmProvided || filter.activeOnly || filter.systemView !== "direct" || !filter.includeDescendantProcesses
+    || filter.milestoneIds.length || filter.resourceIds.length || filter.assignmentRoles.length || filter.developerGrades.length
+    || filter.processIds.length || filter.equipmentIds.length || filter.systemIds.length || filter.roleResourceIds.length) {
+    throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Milestone stage report must match the full exported Project snapshot and catalog revision.");
+  }
+  if (!known(stage.kpi.completion.milestoneTaskIds, milestoneSet) || !known(stage.kpi.completion.completedMilestoneTaskIds, milestoneSet)
+    || !known(stage.kpi.coverage.taskIds, taskSet) || !known(stage.kpi.coverage.assignedTaskIds, taskSet)
+    || ["ready", "blocked", "overdue", "upcoming", "atRisk"].some((key) => !known(stage.kpi[key as "ready"].milestoneTaskIds, milestoneSet))
+    || !known(stage.scope.milestoneTaskIds, milestoneSet)
+    || (snapshot.data.assignments && !known(stage.scope.assignmentIds, assignmentSet))) {
+    throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Milestone stage IDs must match the exported snapshot.");
+  }
+  for (const row of stage.rows) {
+    const task = tasks.get(row.milestoneTaskId)!;
+    if (task.externalId !== row.externalId || task.start !== row.scheduledDate
+      || (task.stageGate && JSON.stringify(task.stageGate) !== JSON.stringify(row.stageGate))
+      || !known(row.stageGate.memberTaskIds, taskSet) || !known(row.stageGate.incompleteMemberTaskIds, taskSet)
+      || !known(row.stageGate.predecessorMilestoneTaskIds, milestoneSet) || !known(row.stageGate.incompletePredecessorMilestoneTaskIds, milestoneSet)
+      || !known(row.riskTaskIds, taskSet) || !known(row.scopedTaskIds, taskSet)) {
+      throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Milestone stage report does not match canonical stage data.");
+    }
+  }
+  const effortIds = [stage.effort, ...stage.rows.map((row) => row.effort), ...stage.effort.buckets].flatMap((effort) => [
+    ...effort.assignmentIds, ...effort.unsetAssignmentIds, ...effort.roleTotals.flatMap((role) => [...role.assignmentIds, ...role.unsetAssignmentIds]),
+  ]);
+  if ((snapshot.data.assignments && !known(effortIds, assignmentSet))
+    || stage.effort.buckets.some((bucket) => (bucket.milestoneTaskId !== null && !milestoneSet.has(bucket.milestoneTaskId)) || !known(bucket.taskIds, taskSet))
+    || stage.effort.assignments.some((assignment) => !taskSet.has(assignment.taskId) || (assignment.milestoneTaskId !== null && !milestoneSet.has(assignment.milestoneTaskId))
+      || (snapshot.data.assignments && !assignmentSet.has(assignment.assignmentId)))) {
+    throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Milestone effort IDs must match the exported snapshot.");
+  }
+}
+
+/** Numeric values and ID sets come from the dashboard DTO; no report-specific calculation. */
+function milestoneStagesSheet(stage: MilestoneDashboardDto): string {
+  const rows: string[] = [];
+  const append = (values: readonly (string | number | boolean | null | undefined)[], header = false) => {
+    if (rows.length >= MAX_RESOURCE_EFFORT_ROWS) throw new ProjectExcelExportError("EXPORT_LIMIT_EXCEEDED", "Milestone stage detail exceeds the report row limit.");
+    rows.push(rowXml(rows.length + 1, values.map((value, index): Cell => {
+      if (typeof value === "number" && !Number.isFinite(value)) throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Milestone stage report contains a non-finite value.");
+      return { column: index + 1, style: header ? STYLE.header : STYLE.text,
+        ...(typeof value === "number" ? { type: "number" as const } : {}),
+        value: value === null || value === undefined ? undefined : typeof value === "boolean" ? String(value) : value };
+    })));
+  };
+  append(["단계 보고서 — 기본 전체 Project 범위"], true);
+  append(["안내", "현재 Dashboard 화면 필터와 별개인 서버 기본 전체 F 범위입니다. Excel은 보고용이며 JSON 1.1이 일정·단계 재가져오기 파일입니다."]);
+  for (const [key, value] of Object.entries({
+    projectPublicId: stage.projectPublicId, projectRevision: stage.projectRevision, catalogRevision: stage.catalogRevision,
+    calculatedAt: stage.calculatedAt, timezone: stage.timezone, asOfDate: stage.asOfDate, horizonDays: stage.horizonDays,
+    from: stage.workloadRange.from, to: stage.workloadRange.to, mdPerMm: stage.mdPerMm, mdPerMmSource: stage.mdPerMmSource,
+    filters: JSON.stringify(stage.filters), gateBasis: "전체 E(M)/P(M)", effortBasis: "기본 전체 F, assignmentId 중복 제거, 원시 수치", nullPolicy: "공란=null/N/A, M/M 환산 미설정은 0이 아님",
+  })) append([key, value]);
+  append(["KPI", "분자/수", "분모", "퍼센트(원시)"], true);
+  append(["completion", stage.kpi.completion.numerator, stage.kpi.completion.denominator, stage.kpi.completion.percent]);
+  append(["coverage", stage.kpi.coverage.numerator, stage.kpi.coverage.denominator, stage.kpi.coverage.percent]);
+  for (const key of ["ready", "blocked", "overdue", "upcoming", "atRisk"] as const) append([key, stage.kpi[key].count]);
+  append(["단계 ID", "외부 ID", "단계명", "예정일", "상태", "진척(원시)", "Ready", "Blocked", "수동", "완료 불일치", "구성원 수", "완료 구성원 수", "구성원 진척(원시)", "기간합", "가중진척합", "구성원 완료", "선행단계 완료", "기한초과", "예정", "위험", "M/D", "M/M", "투입률 미설정 수"], true);
+  for (const row of stage.rows) {
+    const gate = row.stageGate;
+    append([row.milestoneTaskId, row.externalId, row.name, row.scheduledDate, row.status, row.progress, gate.ready, gate.blocked,
+      gate.manualEvent, gate.completionInconsistent, gate.memberCount, gate.completedMemberCount, gate.memberProgressPercent,
+      row.memberDurationSum, row.memberWeightedProgressSum, gate.membersCompleted, gate.predecessorsCompleted, row.overdue, row.upcoming, row.atRisk,
+      row.effort.plannedMd, row.effort.plannedMm, row.effort.unsetAllocationCount]);
+  }
+  append(["공수 범위", "단계 ID", "Global Role", "M/D(원시)", "M/M(원시)", "투입률 미설정 수"], true);
+  const effort = (label: string, milestoneId: string | null, value: MilestoneDashboardDto["effort"]) => {
+    append([label, milestoneId, "전체", value.plannedMd, value.plannedMm, value.unsetAllocationCount]);
+    for (const role of value.roleTotals) append([label, milestoneId, role.role, role.plannedMd, role.plannedMm]);
+  };
+  effort("Grand Total", null, stage.effort);
+  for (const bucket of stage.effort.buckets) effort(bucket.milestoneTaskId === null ? "미지정" : "단계 bucket", bucket.milestoneTaskId, { ...stage.effort, ...bucket });
+  append(["ID 집합 분류", "단계 ID", "Global Role", "ID"], true);
+  const ids = (kind: string, values: readonly string[], milestoneId: string | null = null, role: string | null = null) => {
+    for (const id of values) append([kind, milestoneId, role, id]);
+  };
+  ids("completion.completed", stage.kpi.completion.completedMilestoneTaskIds);
+  ids("completion.denominator", stage.kpi.completion.milestoneTaskIds);
+  ids("coverage.assigned", stage.kpi.coverage.assignedTaskIds);
+  ids("coverage.denominator", stage.kpi.coverage.taskIds);
+  for (const key of ["ready", "blocked", "overdue", "upcoming", "atRisk"] as const) ids(`kpi.${key}`, stage.kpi[key].milestoneTaskIds);
+  ids("scope.task", stage.scope.taskIds); ids("scope.assignment", stage.scope.assignmentIds); ids("scope.milestone", stage.scope.milestoneTaskIds);
+  const effortIds = (value: MilestoneDashboardDto["rows"][number]["effort"], milestoneId: string | null, prefix: string) => {
+    ids(`${prefix}.assignment`, value.assignmentIds, milestoneId); ids(`${prefix}.unsetAssignment`, value.unsetAssignmentIds, milestoneId);
+    for (const role of value.roleTotals) { ids(`${prefix}.role.assignment`, role.assignmentIds, milestoneId, role.role); ids(`${prefix}.role.unsetAssignment`, role.unsetAssignmentIds, milestoneId, role.role); }
+  };
+  effortIds(stage.effort, null, "GrandTotal");
+  for (const row of stage.rows) {
+    const id = row.milestoneTaskId;
+    ids("stage.member", row.stageGate.memberTaskIds, id); ids("stage.incompleteMember", row.stageGate.incompleteMemberTaskIds, id);
+    ids("stage.predecessor", row.stageGate.predecessorMilestoneTaskIds, id); ids("stage.incompletePredecessor", row.stageGate.incompletePredecessorMilestoneTaskIds, id);
+    ids("stage.risk", row.riskTaskIds, id); ids("stage.scopedTask", row.scopedTaskIds, id); effortIds(row.effort, id, "stage");
+  }
+  for (const bucket of stage.effort.buckets) { ids("bucket.task", bucket.taskIds, bucket.milestoneTaskId); effortIds(bucket, bucket.milestoneTaskId, "bucket"); }
+  append(["위험 단계 ID", "위험 Task ID", "작업명", "종료일", "단계 예정일"], true);
+  for (const row of stage.rows) for (const risk of row.risks) append([row.milestoneTaskId, risk.taskId, risk.name, risk.end, risk.scheduledDate]);
+  append(["Assignment ID", "Task ID", "단계 ID", "Resource ID", "Global Role", "개발자 등급", "시작", "종료", "투입률", "유효 근무일", "M/D(원시)", "M/M(원시)"], true);
+  for (const a of stage.effort.assignments) append([a.assignmentId, a.taskId, a.milestoneTaskId, a.resourceId, a.roles.join(", "), a.developerGrade, a.from, a.to, a.allocationPercent, a.effectiveWorkingDays, a.plannedMd, a.plannedMm]);
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:W${rows.length}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetData>${rows.join("")}</sheetData></worksheet>`;
+}
+
 export function buildProjectExcelWorkbook(
   snapshot: ProjectSnapshotResponse,
   request: ProjectExcelExportRequest,
   resourceWorkload?: ResourceWorkloadResponse,
+  stageDashboard?: MilestoneDashboardDto,
 ): Uint8Array<ArrayBuffer> {
-  const membershipTaskIds = snapshot.data.tasks.flatMap((task) => {
-    const milestoneTaskId = task.membership?.explicitMilestoneTaskId;
-    return milestoneTaskId ? [task.taskId, milestoneTaskId] : [];
-  });
-  if (membershipTaskIds.length > 0) {
-    throw new StageGateError(
-      "MILESTONE_MEMBERSHIP_PRESERVATION_UNAVAILABLE",
-      [...new Set(membershipTaskIds)],
-    );
+  const stagePresent = snapshot.data.tasks.some((task) => task.type === "milestone" || task.membership?.explicitMilestoneTaskId || task.membership?.effectiveMilestoneTaskId);
+  if (stagePresent && !stageDashboard) {
+    throw new ProjectExcelExportError("EXPORT_UNSUPPORTED", "Milestone stage summary must be supplied for this snapshot.");
   }
+  if (stageDashboard) validateStageDashboard(snapshot, stageDashboard, resourceWorkload);
   const tasks = orderedTasks(snapshot.data.tasks);
   const dates = timeline(tasks);
   if (request.includeDependencies) validateLinks(snapshot.data.links, tasks);
@@ -987,6 +1130,7 @@ export function buildProjectExcelWorkbook(
     ...(request.includeDependencies ? ["Dependencies"] : []),
     ...(includeLogistics ? ["Logistics"] : []),
     ...(includeResourceEffort ? ["Resource Effort Summary", "Resource Effort Detail"] : []),
+    ...(stageDashboard ? ["Milestone Stages"] : []),
   ];
   const entries: ZipEntry[] = [
     { path: "[Content_Types].xml", content: contentTypes(names.length, drawing) },
@@ -1011,6 +1155,10 @@ export function buildProjectExcelWorkbook(
     entries.push({ path: `xl/worksheets/sheet${nextSheetIndex}.xml`, content: resourceEffortSummarySheet(snapshot, resourceWorkload!, effortRows) });
     nextSheetIndex += 1;
     entries.push({ path: `xl/worksheets/sheet${nextSheetIndex}.xml`, content: resourceEffortDetailSheet(tasks, effortRows) });
+    nextSheetIndex += 1;
+  }
+  if (stageDashboard) {
+    entries.push({ path: `xl/worksheets/sheet${nextSheetIndex}.xml`, content: milestoneStagesSheet(stageDashboard) });
     nextSheetIndex += 1;
   }
   if (drawing) {

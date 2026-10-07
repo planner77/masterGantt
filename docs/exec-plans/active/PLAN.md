@@ -1,10 +1,33 @@
 # Active execution plan
 
-## Issue #487 Release E2E stage scroll timing race — 테스트 동기화 보완
+## Issue #487 완료 단계 필터 End scroll E2E timing race — 최신 main 재정렬 / PR CI 재시작
 
-Issue #454의 v0.90.1 Release Run #140.1에서 동일 exact SHA의 Main CI PASS와 달리 완료 단계 필터의 `End` 키 직후 geometry 측정이 다음 animation-frame `scrollIntoView()`보다 먼저 실행되어 shard 2/6이 실패했다. 제품/접근성 기준은 유지하고 static sleep 없이 active option이 list viewport 안에 들어오고 `scrollTop > 0`이 되는 observable postcondition을 bounded poll로 기다린 뒤 기존 geometry assertion을 수행한다.
+Issue #454의 immutable `v0.90.1` GHCR Release Run #140.1에서 Chromium shard 2/6의 `tests/e2e/milestone-stage-grid.spec.ts`만 `activeVisible === false`로 실패했고, 동일 exact merge SHA `0fc986cb0cb642bdbedeec30157b27bd522b5a38`의 Main CI Run #1942.1에서는 같은 case가 PASS했다. 제품 `StageFilterPicker.move()`가 `End` 처리 후 `requestAnimationFrame(...scrollIntoView())`로 active option을 노출하므로, E2E가 animation-frame scroll 완료보다 먼저 geometry를 읽는 timing race로 판정한다.
 
-branch `fix/issue-487-stage-filter-scroll-race`, baseline main `528ebfffa639a275ea4349a04860f5b3785e50e9` / application `0.90.2`. application version과 제품 source/API/DB/domain은 변경하지 않는다. exact-head PR CI가 공식 검증 기준이며 병합은 별도 판단한다.
+최신 main `69ba4ce65e6734f13ff960a06ae74776353c228e` / application `0.94.1`을 기준으로 PR #488의 테스트 보완만 재적용한다. static sleep이나 접근성/geometry 기준 완화 없이 active descendant가 list viewport 안에 완전히 들어오고 `scrollTop > 0`이 되는 observable postcondition을 bounded poll로 기다린 뒤 기존 `activeVisible`, `listScroll`, input focus/containment와 5개 viewport geometry assertion을 그대로 수행한다. 제품 source/API/DB/domain 및 application version은 변경하지 않는다.
+
+`release_required=false`, `release_authorized=false`; 이번 요청 종료점은 새 exact-head PR CI 시작 확인이다. 기존 실패 `v0.90.1` tag/run은 historical evidence이며 실패한 exact tag를 수정 검증 근거로 재사용·이동·덮어쓰기하지 않는다. 향후 정식 release가 필요해지면 현행 CI/CD/Lifecycle의 새 승인 version/tag 절차를 별도로 따른다.
+
+## Issue #490 프로젝트 설정·근무 규칙·인증 폼 — 로컬 검증 / 문서 동기화·PR CI 시작
+
+현재 main `4f8fc2c9c86941d1b86ae4472b1e953707c85ef7` / application `0.94.0`을 기준으로 #456 B 후속을 통합한다. branch는 `fix/issue-490-project-settings-layout`, 현재 전용 worktree는 `issue-490-current`이며 상세 소유권·AC·문서·검증은 [Issue #490 실행 계획](ISSUE_490.md)을 따른다. 5폭 actual before에서 calendar 입력 경계·footer 간격·tab focus clipping을 확인했고, 빠른 반복 Escape와 같은 geometry canonical mock 갱신의 viewport 보존 guard를 포함한 제품 5파일을 최소 수정했다.
+
+이전 0.93.1의 관련 E2E 5/5 PASS와 원래 FAIL을 보존한다. 독립 검토에서 actual password rotation pending/성공과 새 calendar field native focus 증거 보완을 요청했고, 작업 중 PR #499/main 이동으로 겹친 문서·버전 5파일을 통합한다. 제품 bytes는 유지하며 최신 baseline PATCH `0.94.1`에서 관련 6케이스가 모두 PASS했다(1.5분). actual password rotation과 새 Calendar field native focus를 보완했고 성공 refresh의 BODY 초점은 기존 동작으로 기록한다. 관련 최소 LFF와 문서 동기화·독립 사전/게시본 검토 후 PR CI 등록으로 넘긴다. `release_required=true`, `release_authorized=false`이며 요청 종료점은 원격 PR과 exact-head CI 등록이다. CI 결과 모니터링·병합·GHCR/release·Issue 종료는 수행하지 않는다. 공식 quality/e2e/docker와 최종 ACCEPT는 NOT TESTED다.
+
+## Issue #459 Milestone Stage Gate Epic — 통합 감사 / PR CI
+
+latest main `4098a064a9c5a614b0adfa1ac90dcbd9523db993` / application `0.92.0`에서 #460~#464가 모두 main에 반영된 상태를 기준으로 Epic 수용 기준을 재감사한다. 제품 runtime 재구현은 하지 않고, 상위 #459가 핵심 Source of Truth에 직접 연결되지 않은 문서 공백과 “member Task Dependency는 Milestone predecessor로 자동 승격하지 않는다”는 사용자 확정 정책의 전용 Domain regression을 보강한다.
+
+branch는 `feat/issue-459-stage-gate-epic-integration`이며 상세 Work Packet은 [Issue #459 실행 계획](ISSUE_459.md)을 따른다. application version은 `0.92.0` 유지, `release_required=false`, `release_authorized=false`다. 이번 요청 종료점은 PR 생성 및 exact head PR CI 시작 확인이며 CI 완료 모니터링·병합·main CI·GHCR·Issue 종료는 수행하지 않는다.
+
+## Issue #464 JSON·Excel·Copy·Template 보존 — latest main 재정렬 / 새 PR CI
+
+PR #473 head `1e1397aca8d48780dbc8dcc397f333b3d9bb85ca`는 latest main `d748046733ae2006580052a480c984ae1eb1fa2a`보다 뒤처져 mergeable=false가 되었다. 현재 main에는 #463 병합, #455 기준정보 UI/transport corrective, #463 물류·Resource 결합 필터 보완이 포함되어 있으므로 이를 authoritative base로 보존하고 #464 고유 변경만 다시 적용한다.
+
+충돌 교집합은 `project-gantt.tsx`와 문서 5개다. Gantt는 main의 context-menu surface-aware two-frame settle을 유지하면서 #464의 context selection `show:false`/Copy feedback 보존을 합친다. 문서는 최신 main 기록을 우선하고 #464 계약·검증 섹션을 병합한다. application candidate는 `0.92.0`을 유지한다.
+
+정렬 후 exact new head에서 PR CI를 새로 시작하며 그 결과가 병합 판단 기준이다. 이번 요청 범위는 재정렬·충돌 해결·새 PR CI 시작까지이며 완료 모니터링·병합·main CI·GHCR/tag/release·branch cleanup·Issue 종료는 별도 단계다. `release_required=true`, `release_authorized=false`.
+
 
 ## Issue #455 기준정보 입력 컨트롤 — 최신 main 재정렬 / 병합 / Main CI
 
@@ -28,7 +51,7 @@ published PR history는 force-push하지 않고 기존 feature head와 최신 ma
 
 ## Issue #460~#464 완료 단계 관리 — 순차 구현·문서 동기화·push·PR CI 시작
 
-#460 [PR #468](https://github.com/planner77/masterGantt/pull/468)과 #461 [PR #470](https://github.com/planner77/masterGantt/pull/470)의 구현·문서 동기화·독립 사전 QA·원격 게시·CI 등록을 마쳤다. #461의 head는 `055f3fb23f94d6d42261927de8e452e237641529`, [등록 CI run은 37367438813](https://github.com/planner77/masterGantt/actions/runs/37367438813)이다. 결과는 모니터링하지 않는다. 현재 #462 Gantt/Grid를 `feat/issue-462-stage-grid` / `0.87.0`에서 구현하며 [Issue #462 실행 계획](ISSUE_462.md)이 현재 Work Packet이다. 최신 main `e812e56f45fc9d641ffcd80e49fb0deaf115b704`는 선행 head에 포함된다. #463~#464 구현과 원격 CI 완료·최종 QA는 NOT TESTED다.
+#460~#462는 main에 병합되어 있고 latest main `528ebfffa639a275ea4349a04860f5b3785e50e9` / application `0.90.2`의 #453~#455 UI 및 #461 Release corrective를 보존해 #463 candidate `0.91.0`을 유지한다. #463 [PR #472](https://github.com/planner77/masterGantt/pull/472)의 head `8f78a24d6e2d37e6c0a9da7ec1f79e2025a55a66` PR CI Run #1946.1(`37434077594`)은 quality/build/Docker와 Chromium shard 2~6 PASS, shard 1의 완료 단계 picker keyboard geometry 1건 FAIL이다. 열린 list의 `End/Home/Arrow` 대상 option은 이미 DOM에 있으므로 지연 rAF 대신 keyboard handler 안에서 즉시 `scrollIntoView(nearest)`해 active option 가시성을 보장한 뒤 새 exact-head PR CI를 시작한다. 상세는 [Issue #463 실행 계획](ISSUE_463.md)을 따른다.
 
 최초 #460 기반 도메인·DB/API 구현의 정렬 기준은 main `9280536ddc85a8a841346bdf413b2ba638685880` / application `0.83.4`에서 구현한다. 작업 브랜치는 `feat/issue-460-stage-gates`, 예정 버전은 `0.85.0`이다. [Issue #460 실행 계획](ISSUE_460.md)에 Work Packet·공유 interface·잠금·호환성·검증·문서 소유권을 기록한다. 이후 #461 Editor → #462 Gantt/Grid → #463 KPI → #464 Import/Export·Copy·Template 순서로 선행 구현을 포함하는 branch를 만들고 각 push/PR CI 시작까지 반복한다. CI 완료 모니터링/병합/정식 릴리스/브랜치 정리/Issue 종료는 이번 요청 범위 밖이며 `release_authorized=false`다. 착수 당시 독립 사전 QA 및 원격 CI는 `NOT TESTED`였으며 이후 단계는 위 현재 상태와 Issue 로그를 따른다.
 
@@ -233,3 +256,24 @@ B4 후 W01→W02/W03→W04→W05→W06→W07의 작은 범위인 Project 생성�
 ## Issue #8 — 내부망 HTTP
 
 전용 브랜치에서 URL/쿠키/설정 주입/공유 URL과 문서를 갱신한다. PR quality/E2E/Docker 및 HTTP·HTTPS 실제 브라우저 검증 후 리뷰·병합하고 main exact digest 결과를 별도로 기록한다. 본 계획 추가만으로 PASS가 아니며 운영 Windows/WSL2 전환은 별도 미검증이다.
+
+
+## Issue #456 — Task Editor 폼 밀도와 의미별 배치
+
+[Issue Work Packet](ISSUE_456.md)을 기준으로 최신 main `05fe212060ed4a935510dc2f7a692bb9113c55e8` / version0.92.0에서 기존branch `fix/issue-456-task-editor-form-density`를 재사용하며 후보 PATCH0.92.1을 적용한다. 실제 before 후 A Task Editor의 필드·intrinsic action 폭·부모 간격을 정돈한다. 기존44px hit-area·동적탭·dirty/stale/canonical/Gantt 계약을 유지한다.
+
+B 설정·근무 규칙·인증은 [#490](https://github.com/planner77/masterGantt/issues/490), C 생성·복사·template·입출력·견적은 [#491](https://github.com/planner77/masterGantt/issues/491)로 분리했으며 FOLLOW-UP/NOT TESTED다. 미검증 표면을 KEEP/PASS로 처리하지 않는다. 한 PR에 A/B/C를 restyle하지 않는다.
+
+요청 종료점은 구현·DOCUMENTATION_SYNC·독립 사전 검토·원격 Refs #456 PR·exact head PR CI 등록이다. CI 결과 모니터링은 수행하지 않으며 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다. release_required=true/release_authorized=false; 병합·main/GHCR·tag/release·cleanup·Issue 종료는 범위 밖이다. 현재 branch/version 준비와 실제 before 측정은 PASS이며, 구현과 관련 재검증·최종 문서·독립 사전 검토는 진행 중이다.
+
+#456 실제before71개와 독립UIUX를 근거로 진행률 숫자 clipping, 일정+mode group, footer폭, relation/baseline32→44px을 FIX로 승인했다. Description읽기폭·기존탭/저장단위는 유지한다. 구현/LFF/최종문서·독립PRE_QA는 진행 중이며 원격CI/ACCEPT는 NOT TESTED다.
+
+#456 A 구현·관련 Local Fast Feedback는 PASS이며 최종 source3에서8/8,재사용 포함27 unique/최종계열52 PASS 실행을 구분했다. before71/after86을 동결하고 문서7개 및 항목별N/A를 동기화한다. 실제 visible 집합이바뀌는metadata는스크롤복원에서제외하고 same집합metadata의120/38보존을검증했다. 다음은 같은171파일 후보의 독립UIX/PRE_QA,게시동등성,PR과CI등록이다. 공식quality/e2e/docker·최종ACCEPT는NOT TESTED이며#490/#491은후속으로남긴다.
+
+## Issue #457 — 전 화면 회귀 체계 확장
+
+선행 #456 PR #500의 exact head에서 stacked branch를 만들어 공통 측정 helper/대표 E2E/전체 coverage 표와 문서를 보강한다. [Work Packet](ISSUE_457.md)에 기준 SHA·역할·증거·검증 경계를 기록한다. version0.92.1 유지, tests/docs only, 공식 CI와 최종 ACCEPT는 NOT TESTED다. 현재 구현·독립 검토를 진행하며 요청 범위는 원격 PR과 exact-head CI 등록까지다. B #490/C #491 및 실제 배포/환경별 검증은 후속으로 유지하고 Epic #449를 종료하지 않는다.
+
+#457의 실제 React error boundary·native125%·수동 UX·운영 source/version 미실행은 [#502](https://github.com/planner77/masterGantt/issues/502) FOLLOW-UP / NOT TESTED로 추적한다. 이번 PR은 해당 후속이나 B #490/C #491를 자동 구현하지 않는다.
+
+#457 게시 준비 중 선행 PR #500 병합을 확인했다. 최신 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 tree가 기존 측정 source와 정확히 같아 제품 검증을 재사용하며 최종 PR base는 main으로 갱신한다. 착수 당시 stacked 계획과 원래 capture source SHA는 역사 기록으로 보존한다. 독립 QA에서 확인한 목록 실측1280×720·Asia/Seoul 요약 정정 후 새 후보 검토로 진행한다.

@@ -5,6 +5,15 @@ import { describe, expect, it } from "vitest";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const text = (path: string) => readFileSync(resolve(root, path), "utf8");
+const versionAtLeast = (value: unknown, minimum: [number, number, number]) => {
+  const parts = String(value ?? "").split(".").map(Number);
+  if (parts.length < 3 || parts.some((part) => !Number.isFinite(part))) return false;
+  for (let index = 0; index < 3; index += 1) {
+    if (parts[index]! > minimum[index]!) return true;
+    if (parts[index]! < minimum[index]!) return false;
+  }
+  return true;
+};
 
 describe("test configuration repository layout", () => {
   it("uses one explicit configuration per test runner", () => {
@@ -111,6 +120,26 @@ describe("test configuration repository layout", () => {
     expect(timingReporter).toContain("E2E_RUN_STARTED_MS");
     expect(timingReporter).toContain("runnerReadyMs");
     expect(existsSync(resolve(root, "scripts/analyze-ci-setup-metrics.mjs"))).toBe(true);
+  });
+
+  it("keeps audited sharp and libvips production dependencies patched", () => {
+    const lock = JSON.parse(text("package-lock.json"));
+    expect(versionAtLeast(lock.packages["node_modules/sharp"]?.version, [0, 35, 5])).toBe(true);
+    for (const [path, metadata] of Object.entries(
+      lock.packages as Record<string, { version?: string }>,
+    )) {
+      if (path.startsWith("node_modules/@img/sharp-libvips-")) {
+        expect(versionAtLeast(metadata.version, [1, 3, 4])).toBe(true);
+      }
+    }
+  });
+
+  it("keeps Issue #457 evidence publication opt-in and source-baseline-aware", () => {
+    const geometry = text("tests/e2e/helpers/ui-geometry.ts");
+    expect(geometry).toContain("process.env.ISSUE_457_EVIDENCE_DIR?.trim()");
+    expect(geometry).toContain('testInfo.outputPath("issue-457-evidence")');
+    expect(geometry).toContain("ISSUE_457_BASELINE_SOURCE_AGGREGATE_SHA256");
+    expect(geometry).not.toContain("KEEP: unchanged product source; new regression observation");
   });
 
   it("guards Release static metrics after earlier gate failures and keeps source-map-js patched", () => {

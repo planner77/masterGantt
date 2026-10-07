@@ -363,7 +363,7 @@ describe("Logistics Dashboard Engine (Deterministic Synthetic Fixture & Edge Cas
     expect(coordResult.effort.plannedMd).toBe(4);
   });
 
-  it("uses the project timezone for the default as-of date and the documented 20 MD/MM default", () => {
+  it("uses the project timezone and preserves M/D without an implicit M/M conversion", () => {
     const fixture = createDeterministicFixture();
     const result = calculateLogisticsDashboardPure({
       ...fixture,
@@ -374,8 +374,9 @@ describe("Logistics Dashboard Engine (Deterministic Synthetic Fixture & Edge Cas
     expect(result.asOfDate).toBe("2026-10-09");
     expect(result.timezone).toBe("Asia/Seoul");
     expect(result.effort.plannedMd).toBe(4);
-    expect(result.effort.plannedMm).toBe(0.2);
-    expect(result.effort.mdPerMm).toBe(20);
+    expect(result.effort.plannedMm).toBeNull();
+    expect(result.effort.mdPerMm).toBeNull();
+    expect(result.effort.mdPerMmSource).toBe("unset");
   });
 
   it("treats inactive primary resources as missing and removes inactive rows from active-only breakdowns", () => {
@@ -562,4 +563,3 @@ describe("LogisticsDashboardService SQLite Integration", () => {
     }
   });
 });
-
