@@ -57,6 +57,7 @@ test.describe("Issue #76 Project Workspace UX", () => {
     await expect(resourceDashboard.getByRole("region", { name: "개발팀 개인 현황" }).getByRole("button", { name: /테스트 리소스 \(R-01\)/ })).toBeVisible();
     await expect(resourceDashboard.locator('dl[aria-label="선택 범위 KPI"]')).toContainText("5.00 M/D");
 
+    await resourcesTab.focus();
     await page.keyboard.press("Home");
     await expect(scheduleTab).toBeFocused();
     await expect(scheduleTab).toHaveAttribute("aria-selected", "true");
