@@ -318,3 +318,16 @@ before/after 개선은 workflow 파일/event/job/metric별로 **서로 다른 su
 - `release_required=false` finalize는 `scripts/delete-ghcr-package-version-by-tag.mjs ci-<merge SHA>`를 사용해 exact temporary package version만 삭제한다. tag가 없으면 idempotent no-op, 다른 tag와 package version을 공유하면 fail-closed한다.
 - release-required candidate는 formal release source이므로 finalize 전 삭제하지 않는다. Release workflow는 container를 재-build하지 않고 candidate exact digest를 재검증·promotion한다.
 - 회귀 재현 기준: v0.83.4 Run #133.1은 Main #1852에서 검증한 `ci-e812...`가 version-maintaining cleanup으로 삭제되어 candidate lookup이 실패했다. corrective v0.85.1에서는 Main candidate가 Finalizer까지 존재해야 한다.
+
+
+## 동일 exact Main SHA 중복 실행 복구 (#520)
+
+같은 merge SHA에 push Main CI가 둘 이상 존재할 때 단순 created_at 최신 run 하나만 선택하지 않는다.
+
+1. exact SHA가 일치하는 run만 후보로 한다.
+2. completed/success run 중 변경 유형에 맞는 main artifact gate까지 유효한 run을 찾는다.
+3. 조건을 만족하는 후보 중 최신 run을 lifecycle evidence로 사용한다.
+4. 후보가 없으면 최신 exact-SHA run URL과 artifact 상태를 진단 근거로 남기고 release/finalize mutation을 금지한다.
+5. PR required check의 latest-check-run 정책은 별도이며 이 규칙으로 완화하지 않는다.
+
+회귀 사례: #502 merge SHA의 Main #2083.1은 quality/e2e/docker 및 temporary GHCR exact digest smoke가 모두 SUCCESS였고, 뒤따른 #2084.1은 동일 immutable `ci-<SHA>` overwrite 거부로 artifact job만 실패했다. #520 이후 lifecycle은 #2083.1의 성공 evidence를 재사용하되 #2084.1 FAILURE 자체는 역사적 기록으로 유지한다.

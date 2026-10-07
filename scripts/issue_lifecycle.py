@@ -233,22 +233,58 @@ def exact_main_ci(
     if not runs:
         return False, None, False, "NOT TESTED — exact main CI run not found"
 
-    run_data = sorted(runs, key=lambda r: r.get("created_at", ""))[-1]
-    run_ok = (
-        run_data.get("status") == "completed"
+    def run_order(run_data: dict[str, Any]) -> tuple[str, int, int]:
+        return (
+            str(run_data.get("created_at") or ""),
+            int(run_data.get("run_attempt") or 0),
+            int(run_data.get("id") or 0),
+        )
+
+    ordered = sorted(runs, key=run_order, reverse=True)
+    successful = [
+        run_data
+        for run_data in ordered
+        if run_data.get("status") == "completed"
         and run_data.get("conclusion") == "success"
+    ]
+
+    for run_data in successful:
+        run_id = run_data.get("id")
+        if not run_id:
+            continue
+        jobs_data = gh(
+            f"/repos/{repo}/actions/runs/{run_id}/jobs?filter=latest&per_page=100"
+        )
+        jobs = jobs_data.get("jobs", []) if isinstance(jobs_data, dict) else []
+        artifact_ok, artifact_evidence = main_artifact_gate(
+            jobs, docs_only=docs_only
+        )
+        if artifact_ok:
+            return True, run_data.get("html_url"), True, artifact_evidence
+
+    latest = ordered[0]
+    latest_ok = (
+        latest.get("status") == "completed"
+        and latest.get("conclusion") == "success"
     )
-    run_url = run_data.get("html_url")
-    run_id = run_data.get("id")
-    if not run_id:
-        return run_ok, run_url, False, "NOT TESTED — main CI run id is missing"
+    latest_url = latest.get("html_url")
+    latest_id = latest.get("id")
+    if not latest_id:
+        return (
+            latest_ok,
+            latest_url,
+            False,
+            "NOT TESTED — main CI run id is missing",
+        )
 
     jobs_data = gh(
-        f"/repos/{repo}/actions/runs/{run_id}/jobs?filter=latest&per_page=100"
+        f"/repos/{repo}/actions/runs/{latest_id}/jobs?filter=latest&per_page=100"
     )
     jobs = jobs_data.get("jobs", []) if isinstance(jobs_data, dict) else []
-    artifact_ok, artifact_evidence = main_artifact_gate(jobs, docs_only=docs_only)
-    return run_ok, run_url, artifact_ok, artifact_evidence
+    artifact_ok, artifact_evidence = main_artifact_gate(
+        jobs, docs_only=docs_only
+    )
+    return latest_ok, latest_url, artifact_ok, artifact_evidence
 
 
 def required_checks_ok(repo: str, sha: str) -> tuple[bool, list[str]]:
