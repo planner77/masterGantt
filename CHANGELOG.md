@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.95.1] - 2026-10-07
+
+### Fixed
+
+- Issue #491: 프로젝트 템플릿 저장 폼의 마지막 입력과 Footer 사이에 12px 간격을 확보해 focus outline이 action 영역과 겹치지 않도록 정돈한다. Footer의 취소·저장 action에도 12px 간격과 자연 wrap을 적용한다.
+- 프로젝트 내보내기 Footer의 action 사이에 12px 간격을 적용하고, 좁은 화면의 기존 1열 배치를 유지한다.
+- JSON Import의 스크롤 영역에 8px focus 여유와 scroll padding을 적용해 native keyboard focus의 outline이 잘리지 않도록 보완한다. 기존 표·body·Footer의 스크롤 역할을 유지한다.
+
+## [0.95.0] - 2026-10-07
+
+### Added
+
+- Issue #492: Grid 작업 행과 Chart Task/Summary/Milestone hover에서 작업명과 canonical 시작일·종료일을 같은 Tooltip으로 표시한다. 일정이 없는 Summary는 Core 렌더링 anchor가 아니라 canonical 미설정 값 `—`를 표시한다.
+
+### Changed
+
+- 최신 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`의 Issue #486 Resource Catalog draft handoff 보완과 application `0.94.3`을 보존한 뒤 #492 변경만 재적용한다.
+- SVAR 공식 Tooltip API를 검토한 뒤 설치 2.7.3 PR CI에서 확인된 Milestone/WBS scope 누락과 Header Tooltip role 중복을 피하기 위해 기존 task selector 기반 app-owned delegated hover로 구현한다. Day/Week·readonly/edit·fullscreen·WBS scope에서 동일 canonical 정보를 표시하고 application version을 `0.94.3`에서 `0.95.0`으로 증가한다.
+
+### Fixed
+
+- PR CI Run #2023/#2026에서 확인된 Tooltip wrapper의 render-time ref/Hook lint 문제, Milestone·WBS scope content 누락, 기존 Header Tooltip과의 role 중복을 제거한다. Task Tooltip은 hover 중에만 app-owned DOM으로 존재하고 Header focus·scroll·영역 이탈 시 제거된다.
+- PR CI Run #2028의 잔여 lint는 hover handler의 불필요한 manual memoization을 제거해 해소한다. viewport 밖 Milestone E2E는 제품의 scroll-dismiss와 Playwright auto-scroll 경합을 피하도록 scroll과 hover를 분리한다.
+- PR CI #2040에서 확인된 #490/#456 Gantt horizontal/public viewport 회귀를 해소하기 위해 Tooltip 상태와 native listener를 전용 child layer로 격리한다. 이후 exact head PR CI #2043/#2067에서 quality/e2e/docker 전체 SUCCESS를 확보했으나 최신 main 전진으로 재검증한다.
+
 ## [0.94.3] - 2026-10-07
 
 ### Fixed

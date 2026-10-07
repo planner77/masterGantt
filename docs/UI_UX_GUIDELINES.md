@@ -225,6 +225,13 @@ Context 선택은 기존 Copy 완료 feedback도 보존한다. 미선택 목적�
 Copy feedback 보존 보강 후 같은 좁은 Chromium 4개를 다시 실행해 PASS했다. 확장된 하단 가상 행 회귀는 Copy→한 행 아래 미선택 목적지의 실제 scrollIntoView/이름 셀 우클릭→활성 Paste/Below→소속 영향 확인·취소까지 도달했다. 우클릭 전후 Grid 조상 위치와 Gantt 높이, native/public top192를 유지하고 DB mutation은 0회다. 실제 사용자 이후 스크롤 닫힘과 기존 다중 Copy/pending412도 유지했다. 원본 actual 통합 테스트의 수정 후 결과는 별도 근거다.
 
 
+## Issue #492 작업 Hover Tooltip — SVAR 공식 경로
+
+2026-10-06 SVAR React Gantt 공식 [Adding tooltips](https://docs.svar.dev/react/gantt/guides/tasks/add-tooltip/)와 [Tooltip API](https://docs.svar.dev/react/gantt/api/tooltip/)를 확인했다. 다만 설치 2.7.3의 실제 PR CI에서 wrapper/custom resolver 경로가 일반 Task에는 동작하면서 Milestone·WBS scope에서는 content를 만들지 못했고, hover shell이 기존 Header Tooltip과 동시에 `role=tooltip`으로 남는 회귀가 확인됐다.
+
+#492 최종 구현은 이 실증 결과에 따라 기존 app-owned Header Tooltip 패턴과 `TASK_TARGET_SELECTOR`를 재사용한다. Grid/Chart의 mouse move를 event delegation으로 canonical taskId에 연결하고 `ProjectTaskDto.start/end`만 표시한다. hover 대상이 없거나 keyboard focus/scroll/영역 이탈이 발생하면 Task Tooltip을 제거해 #315/#316 Header Tooltip과 동시에 accessible tooltip이 존재하지 않게 한다. 긴 이름은 viewport 안에서 wrap하고 pointer-events를 받지 않으며 fullscreen frame 내부 fixed overlay로 표시한다. PR CI #2040에서 부모 hover state가 #490 viewport 복원과 교차해 scrollLeft를 120→91로 바꾸는 회귀가 확인되어, Tooltip state/event listener는 전용 child layer로 격리하고 Gantt 부모 렌더 경계를 건드리지 않는다.
+
+
 ### Issue #456 Task Editor 폼 검토 기준
 
 - schedule 날짜·기간·mode는 이름이 있는 fieldset으로 인접하게 배치하고 작은 화면에서도 label 연결과 읽기 순서를 유지한다. 설명/URL은 별도 semantic group으로 묶되 기존 설명 읽기 폭과 resize를 줄이지 않는다.
@@ -243,16 +250,41 @@ Copy feedback 보존 보강 후 같은 좁은 Chromium 4개를 다시 실행해 
 
 비교 환경을 먼저 맞춘다. #457 cross-admin은 같은390/768/1024/1440/1920px·높이900·ko-KR/Asia-Seoul/default100%를 사용한다. 설명 줄 수의 정상 높이 차이를 공통 shell 실패로 판정하지 않는다. Native125가 실행 불가능하면 NOT TESTED로 남기고 DPR를 zoom으로 대체하지 않는다. 관찰용 scroll 준비는 keyboard 접근 증거와 분리하며 마지막 action은 native Tab로 owner 안에 보이는 실제 focus outline을 확인한다. 기존40px admin/44px Task Editor/nested Relation 자체33.5px 예외를 보존한다.
 
-실제 browser·E2E·source-only·분리 CSS 실험·원격 CI·독립 ui_ux/QA 결과는 각각 기록한다. 실행별 HTML/trace/JSON 원본을 다음 실행 전에 분리 보존하고 후기 hash를 이전 capture에 소급하지 않는다. #452 first PR에는 지역 observer만 있었으며 재사용 helper를 당시부터 존재한 것으로 쓰지 않는다. B#490/C#491 및 React boundary·실제 배포·native125의 미검증은 coverage에서 후속으로 추적하며 사진/문서만으로 Epic 완료를 선언하지 않는다.
+실제 browser·E2E·source-only·분리 CSS 실험·원격 CI·독립 ui_ux/QA 결과는 각각 기록한다. 실행별 HTML/trace/JSON 원본을 다음 실행 전에 분리 보존하고 후기 hash를 이전 capture에 소급하지 않는다. #452 first PR에는 지역 observer만 있었으며 재사용 helper를 당시부터 존재한 것으로 쓰지 않는다. B#490/C#491와 별도로 실제 React boundary 자동화는 #502, 실제 배포·native125 환경 검증은 #517에서 추적하며 사진/문서만으로 Epic 완료를 선언하지 않는다.
 
-환경별 미검증은 [Follow-up #502](https://github.com/planner77/masterGantt/issues/502)에서 실제 React error boundary/native125/실기기·screen reader·최종 수동 UX/배포 source·version을 FOLLOW-UP/NOT TESTED로 추적한다. frontend·ui_ux·qa_docs가 환경별 증거를 작성/비교/독립 확인하고 Manager가 환경 제공과 수용 범위를 판단한다. B#490/C#491 제품 개선과 별개이며 현재 scope에서 자동 실행하지 않는다.
+[Follow-up #502](https://github.com/planner77/masterGantt/issues/502)는 실제 React error boundary 자동화를 추적하고, 환경별 native125/실기기·screen reader·최종 수동 UX/배포 source·version은 [#517](https://github.com/planner77/masterGantt/issues/517)에서 FOLLOW-UP/NOT TESTED 또는 BLOCKED로 추적한다. ui_ux·infra·qa_docs가 #517 환경 증거를 작성/비교/독립 확인하고 Manager가 환경 제공과 수용 범위를 판단한다.
 
-#457 독립 검토의 provenance 정정: 목록 `list-populated-1440`/`list-no-result-1440` key는 별칭이며 실제 JSON/PNG는1280×720이다. Current62 JSON은 ko-KR/Asia-Seoul/높이900/DPR1 49개, en-US/Asia-Seoul/높이900/DPR1 11개, en-US/Asia-Seoul/높이720/DPR1 목록2개다. 정상 Master auth는 기존 autofocus 때문에 focused/focusVisible=true이므로 normal을 비포커스 baseline으로 해석하지 않는다. 과거capture/test/source hash와141개raw PNG/JSON은 그대로 유지한다. 착수 시 stacked 계획과 달리 parent PR#500 외부 병합 후 최종 base는 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`/0.92.1이며 tree `6a322cc119ed5b0a435f3b1ff20fe5826035ed66`이 원래 capture source b397eedf35d50befb4ae17e623036f0a8d77f556과 정확히 같아 LFF를 재사용한다. 실제 운영 배포는 #502 NOT TESTED다.
+#457 독립 검토의 provenance 정정: 목록 `list-populated-1440`/`list-no-result-1440` key는 별칭이며 실제 JSON/PNG는1280×720이다. Current62 JSON은 ko-KR/Asia-Seoul/높이900/DPR1 49개, en-US/Asia-Seoul/높이900/DPR1 11개, en-US/Asia-Seoul/높이720/DPR1 목록2개다. 정상 Master auth는 기존 autofocus 때문에 focused/focusVisible=true이므로 normal을 비포커스 baseline으로 해석하지 않는다. 과거capture/test/source hash와141개raw PNG/JSON은 그대로 유지한다. 착수 시 stacked 계획과 달리 parent PR#500 외부 병합 후 최종 base는 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`/0.92.1이며 tree `6a322cc119ed5b0a435f3b1ff20fe5826035ed66`이 원래 capture source b397eedf35d50befb4ae17e623036f0a8d77f556과 정확히 같아 LFF를 재사용한다. 실제 운영 배포는 #517 NOT TESTED/BLOCKED다.
 
 ## Issue #490 설정 폼 검증 적용
 
 설정 탭의 native Home/Arrow/End 및 Tab 이동에서 focus ring은 scroll owner 안에 완전히 보여야 한다. outline 3px + offset 3px인 소비자는 최소 6px 여유를 확보한다. Calendar 입력의 식별 가능한 테두리·padding·focus·disabled 표현과 footer의 같은 행 높이/간격, 좁은 폭의 자연스러운 wrap을 측정한다. 일반 정보·보안·unlock의 정상 표현은 기존 공통 form-field를 재사용한다. Task Editor의 44px 정책과 공통 전역 token은 변경하지 않는다.
 
-Pending Escape 회귀는 busy DOM 반영 직후 지연 없이 두 번 누른다. listener 준비 대기나 50ms 간격으로 실패를 숨기지 않는다. BODY 초점·가장 위의 native modal 소유·중첩 nonbusy modal·busy=false/unmount cleanup을 분리한다. PNG만으로 keyboard/초안/권한/viewport 보존 PASS를 대신하지 않는다. 실제 125% zoom, 실기기와 screen reader는 [환경별 후속 #502](https://github.com/planner77/masterGantt/issues/502)의 NOT TESTED 범위다. 상세 비교는 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
+Pending Escape 회귀는 busy DOM 반영 직후 지연 없이 두 번 누른다. listener 준비 대기나 50ms 간격으로 실패를 숨기지 않는다. BODY 초점·가장 위의 native modal 소유·중첩 nonbusy modal·busy=false/unmount cleanup을 분리한다. PNG만으로 keyboard/초안/권한/viewport 보존 PASS를 대신하지 않는다. 실제 125% zoom, 실기기와 screen reader는 [환경별 후속 #517](https://github.com/planner77/masterGantt/issues/517)의 NOT TESTED/BLOCKED 범위다. 상세 비교는 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
 
 #490 검증 보완은 기존 국가 select의 UA focus 관측과 새 Calendar .field의 focus 관측을 분리한다. 390px에서 국가→적용 범위 select→시작일 input을 native Tab로 이동하고 browser가 보이도록 스크롤한 실제 bbox/outline3px+offset3px/clip owner를 확인한다. 화면 아래의 focused input 사진이나 기존 country의 UA outline1px을 새 field focus PASS로 쓰지 않는다. 유효 password rotation은 대표1440px 실제 pending/204 성공/session 교체 경로로 추가하며 모든 상태×5폭으로 확대하지 않는다. canonical refresh 중 BODY 초점은 실제 기존 정책으로 기록하고 정상 닫기/로그아웃/unlock의 호출 초점 복원과 구분한다.
+
+## Issue #491 소비자 전송 폼 검증
+
+실제 FIX는 템플릿 저장 field/footer와 action peers의0px gap, Export footer의0px 수평/세로 gap, JSON Import region의6px native ring 예산 부족이었다. 로컬 form/footer gap12px와 Import body8px/scroll-padding8px/table scroll-margin8px으로 보완한다. 36px compact Export 입력과 browser-native13px radio/checkbox는 기존 경계·label·focus 계약을 충족하므로 전역40px 강제나 choice restyle을 하지 않는다.
+
+회귀 oracle은 실제 `.dialog-actions`/`.form-actions` bbox의 peers gap≥11px, 같은 행 top/height≤1px, 템플릿 마지막 field/footer gap≥11px와 native region ring의 viewport/실제 clipping owner containment를 검사한다. text/date/select/textarea 경계 assertion을 native choice에 적용하지 않는다. choice는 label·nonzero rect·native appearance를 검증하고 genuine Tab/ShiftTab proof와 관찰용 resize/full-page 캡처를 구분한다.
+
+[Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)의 5폭·대표 native focus·actual API/controlled fixture·실행별 원래 실패·source/spec/helper hash·지원 entry N/A를 참조한다. CSS 보완은 공용 dialog의 preview 취소/commit busy·401/412·민감 입력 clearing·Gantt 보존 의미를 바꾸지 않는다. 새로운 shell/flow/견적 modal/CSV mapping을 도입하지 않는다.
+
+Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
+
+Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.
+
+## Issue #502 Error Boundary 복구와 환경별 접근성 경계
+
+실제 route error boundary는 일반 API/network 오류 상태와 별도 검증한다. E2E probe는 오류 전 keyboard focus가 있던 테스트 control에서 실제 client render 오류를 일으키고, fallback의 `다시 시도`를 native Tab/Enter로 실행한 뒤 reset된 segment에서 같은 probe focus가 복원되는지 확인한다. 이 절차는 screenshot만으로 대체하지 않는다.
+
+Probe UI는 제품 기능이 아니며 production에서 활성화하지 않는다. `NODE_ENV !== "production"`과 명시적 E2E flag를 동시에 요구하고, gantt-demo는 추가 query opt-in까지 요구한다. 일반 사용자가 접근하는 화면·권한·데이터 계약은 이 검증을 위해 변경하지 않는다.
+
+자동 Chromium 390/1440px 결과는 실제 boundary/keyboard/focus 범위에만 적용한다. native125% zoom, 실기기, screen reader, 최종 수동 UX 및 운영 reverse proxy/source-version 일치는 환경별 후속 [#517](https://github.com/planner77/masterGantt/issues/517)에서 검증한다. DPR 또는 device emulation을 native zoom 근거로 사용하지 않으며, 환경이 없으면 NOT TESTED/BLOCKED를 유지한다.
+
+
+### #502 자동화와 #517 환경 검증 분리
+
+PR #516의 Error Boundary 하니스/keyboard/focus 검증은 #502의 자동화 범위다. 실제 브라우저 native125%·실기기/screen reader·최종 수동 UX·운영 source/version/proxy는 #517의 환경별 범위이며, #502 CI 또는 merge/close를 해당 환경 PASS로 해석하지 않는다.

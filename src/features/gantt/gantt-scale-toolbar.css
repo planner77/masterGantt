@@ -372,3 +372,36 @@
 .project-gantt-frame .wx-chart .wx-bar.project-chart-drop-target[data-chart-drop-placement="after"]::after {
   bottom: -3px;
 }
+
+
+/* Issue #492: canonical Task details for Grid rows and Chart task bars. */
+.project-task-hover-tooltip {
+  position: fixed;
+  z-index: 1200;
+  max-width: min(24rem, calc(100vw - 1rem));
+  transform: translateX(-50%);
+  border: 1px solid var(--border-default, var(--border));
+  border-radius: calc(var(--radius) - 0.125rem);
+  background: var(--surface-panel, var(--card));
+  color: var(--text-default, var(--foreground));
+  box-shadow: 0 0.375rem 1rem rgb(15 23 42 / 0.16);
+  pointer-events: none;
+  overflow-wrap: anywhere;
+}
+
+.project-task-hover-tooltip-content {
+  display: grid;
+  gap: 0.125rem;
+  max-width: min(24rem, calc(100vw - 1rem));
+  padding: 0.375rem 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.project-task-hover-tooltip-name {
+  font-weight: 650;
+}
+
+.project-task-hover-tooltip-dates {
+  color: var(--text-muted, var(--muted-foreground));
+}

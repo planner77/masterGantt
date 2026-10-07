@@ -17,6 +17,7 @@ backups
 coverage
 playwright-report
 test-results
+output
 docs
 tests
 .codex

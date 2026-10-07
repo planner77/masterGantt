@@ -2025,14 +2025,24 @@ Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manag
 - `cross-screen-regression.spec.ts`는 직접 cross-admin 비교, populated Master 대표390/1440, 404 recovery/demo 대표만 추가한다. 생성 기존 spec에1920px를 추가했고 선택 기존 회귀를 유지했다. 전체 state×surface×viewport Cartesian product와 로컬 전체 suite 반복은 추가하지 않았다.
 - 최종 대표 범위는 고유23개=최종 observer 직접7 PASS(32.7s)+제품 source/spec 불변 선택16 재사용이다. 총4실행36case의34 PASS/2 FAIL과 중간 `TS2304`는 별도로 보존한다. 최초 FAIL은 fold 아래 table 관찰 준비와 숨은 status text0rect의 observer 오류였다. 실제 제품 defect를 기대값 완화로 숨기지 않았다.
 - Raw HTML/embedded ZIP/decoded JSON/trace/stdout은 각 실행 직후 고유 `/tmp/issue457-run<N>-*`에 보존하고 실제 case ID·해시를 `output/playwright/issue-457/runs.json`에 연결했다. 현재 PNG/JSON은 source/test/helper/fixture/env provenance를 가진다. Historical hardcoded outputs의 backup 필터 오류와 정확한 baseline403복원 경위도 coverage에 기록하며 성공한 사전 backup이라고 과대 보고하지 않는다.
-- 같은 source/CSS는 KEEP이며 새 guard를 제품 개선으로 보고하지 않는다. #452 first-PR 공통 reusable helper 부재는 역사적 GAP/FAIL을 현재 보완하는 범위다. B#490/C#491·React error boundary·실제 배포·native125·실기기/스크린리더 및 원격 `quality/e2e/docker`는 NOT TESTED다. CI 등록은 required jobs PASS와 최종 ACCEPT를 대체하지 않는다.
+- 같은 source/CSS는 KEEP이며 새 guard를 제품 개선으로 보고하지 않는다. #452 first-PR 공통 reusable helper 부재는 역사적 GAP/FAIL을 현재 보완하는 범위다. B#490/C#491 및 당시 React error boundary·실제 배포·native125·실기기/스크린리더는 #457 시점의 NOT TESTED 기록이다. 현재 실제 React boundary 자동화는 #502, native125·실기기/screen reader·운영 배포 검증은 #517이 소유한다. 당시 원격 `quality/e2e/docker` 미실행 기록은 역사 증거로 유지한다. CI 등록은 required jobs PASS와 최종 ACCEPT를 대체하지 않는다.
 
-환경별 미검증은 [Follow-up #502](https://github.com/planner77/masterGantt/issues/502)에서 실제 React error boundary/native125/실기기·screen reader·최종 수동 UX/배포 source·version을 FOLLOW-UP/NOT TESTED로 추적한다. frontend·ui_ux·qa_docs가 환경별 증거를 작성/비교/독립 확인하고 Manager가 환경 제공과 수용 범위를 판단한다. B#490/C#491 제품 개선과 별개이며 현재 scope에서 자동 실행하지 않는다.
+후속 추적은 분리한다. [#502](https://github.com/planner77/masterGantt/issues/502)는 실제 React error boundary 자동화를, [#517](https://github.com/planner77/masterGantt/issues/517)은 native125/실기기·screen reader·최종 수동 UX/배포 source·version의 환경별 검증을 소유한다. ui_ux·infra·qa_docs가 #517 환경 증거를 작성/비교/독립 확인하고 Manager가 환경 제공과 수용 범위를 판단한다. B#490/C#491 제품 개선과 별개다.
 
-#457 독립 검토의 provenance 정정: 목록 `list-populated-1440`/`list-no-result-1440` key는 별칭이며 실제 JSON/PNG는1280×720이다. Current62 JSON은 ko-KR/Asia-Seoul/높이900/DPR1 49개, en-US/Asia-Seoul/높이900/DPR1 11개, en-US/Asia-Seoul/높이720/DPR1 목록2개다. 정상 Master auth는 기존 autofocus 때문에 focused/focusVisible=true이므로 normal을 비포커스 baseline으로 해석하지 않는다. 과거capture/test/source hash와141개raw PNG/JSON은 그대로 유지한다. 착수 시 stacked 계획과 달리 parent PR#500 외부 병합 후 최초 게시 base는 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`/0.92.1이었고 tree `6a322cc119ed5b0a435f3b1ff20fe5826035ed66`이 원래 capture source `b397eedf35d50befb4ae17e623036f0a8d77f556`과 정확히 같아 LFF를 재사용했다. PR CI 보완 시점에는 main이 `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7`까지 전진하여 재정렬했다. 실제 운영 배포는 #502 NOT TESTED다.
+#457 독립 검토의 provenance 정정: 목록 `list-populated-1440`/`list-no-result-1440` key는 별칭이며 실제 JSON/PNG는1280×720이다. Current62 JSON은 ko-KR/Asia-Seoul/높이900/DPR1 49개, en-US/Asia-Seoul/높이900/DPR1 11개, en-US/Asia-Seoul/높이720/DPR1 목록2개다. 정상 Master auth는 기존 autofocus 때문에 focused/focusVisible=true이므로 normal을 비포커스 baseline으로 해석하지 않는다. 과거capture/test/source hash와141개raw PNG/JSON은 그대로 유지한다. 착수 시 stacked 계획과 달리 parent PR#500 외부 병합 후 최초 게시 base는 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`/0.92.1이었고 tree `6a322cc119ed5b0a435f3b1ff20fe5826035ed66`이 원래 capture source `b397eedf35d50befb4ae17e623036f0a8d77f556`과 정확히 같아 LFF를 재사용했다. PR CI 보완 시점에는 main이 `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7`까지 전진하여 재정렬했다. 실제 운영 배포는 환경 후속 #517에서 NOT TESTED/BLOCKED다.
 
 - #457 geometry helper는 일반 `npm run test:e2e`에서 tracked 증거를 덮어쓰지 않고 Playwright test output에 기록한다. tracked evidence publication은 `ISSUE_457_EVIDENCE_DIR` 명시가 필요하며, KEEP/REVIEW는 `ISSUE_457_BASELINE_SOURCE_AGGREGATE_SHA256`의 명시적 baseline과 source aggregate를 비교할 때만 부여한다. baseline이 없으면 중립 OBSERVATION이다.
 - PR CI #2004.1의 production dependency audit에서 `sharp 0.35.4` / CVE-2026-96889가 High로 실패했다. audit gate는 완화하지 않는다. 최신 main에는 `sharp 0.35.5` 및 대응 `@img/sharp-* 0.35.5`, `@img/sharp-libvips-* 1.3.4`가 이미 반영되어 있으므로 그 lockfile을 그대로 사용하고 저장소 계약 테스트로 최소 버전을 고정한다.
+
+## Issue #492 Grid/Chart 작업 Hover Tooltip 검증
+
+- Unit: `task-hover-tooltip.test.ts`에서 canonical `ProjectTaskDto.start/end`가 공통 locale formatter를 사용하고 날짜 미설정 Summary는 `—`로 표시되는지 검증한다.
+- Chromium: `project-task-hover-tooltip.spec.ts`에서 Grid/Chart 동일 Task의 작업명·시작일·종료일 parity, Task/Summary/Milestone, date-less Summary, Week, fullscreen, WBS scope, readonly를 검증한다.
+- viewport 밖 Task/Milestone은 먼저 `scrollIntoViewIfNeeded()`로 위치를 확정한 뒤 hover한다. 제품은 scroll 중 기존 Tooltip을 닫는 계약이므로 Playwright `hover()`의 내부 auto-scroll과 hover 이벤트를 하나의 gesture로 결합해 오탐하지 않는다.
+- app-owned delegated hover는 `TASK_TARGET_SELECTOR`의 Grid row/Chart bar를 canonical taskId로 resolve하며 Core API/렌더 anchor에 의존하지 않는다. hover 중일 때만 Task Tooltip DOM이 존재하고 Header focus·scroll·영역 이탈 시 제거되어 #315/#316 Header Tooltip과 `role=tooltip`이 중복되지 않아야 한다.
+- 회귀: #315/#316 Header Tooltip, Context Menu, double-click Editor, Chart drag/dependency interaction을 PR 전체 E2E gate에서 함께 판정한다.
+- #490/#456 Gantt 상태 보존 회귀는 hover 표시/닫힘 전후에도 horizontal/public viewport·tree·column·scale·selection·fullscreen이 유지되는지 기존 `task-editor-form-density.spec.ts`를 함께 판정한다. Tooltip state는 child layer에 격리되어 부모 Gantt render를 발생시키지 않아야 한다.
+- 공식 결과는 동일 PR head의 GitHub Actions quality/e2e/docker다. CI가 완료되기 전에는 PASS로 기록하지 않는다.
 
 ## Issue #490 프로젝트 설정 회귀
 
@@ -2059,13 +2069,50 @@ Main CI Run #2053.1 corrective: exact merge `75f014fccc8f6e3f19ba5fadebd3ecad4e0
 - 기존 password clearing/login focus, 401/412 수동 복구, pending 중복 mutation 차단, Escape/focus restore, Group 구성원 초안 보존 회귀를 같은 spec의 기존 case와 함께 유지한다.
 - 현재 connector 세션의 Local Fast Feedback은 NOT TESTED다. 공식 판정은 동일 PR head의 required `quality`, `e2e`, `docker` GitHub Actions 결과로 수행한다.
 
+## Issue #491 프로젝트 생성·전송 폼 회귀
+
+`tests/e2e/project-transfer-layout-491.spec.ts`와 전용 `helpers/issue491-transfer-fixture.ts`의8case는 생성·템플릿 목록/생성·복사·템플릿 저장·JSON Import·readonly4형식 Export·inline 공수 옵션·실제 Gantt 상태를 검증한다. `ISSUE_491_EVIDENCE_DIR`를 생략하는 일반 CI는 test output을 사용해 tracked 증거를 덮어쓰지 않는다. 직접 CLI에는 `--config tests/config/playwright.config.ts`를 지정한다.
+
+390/768/1024/1440/1920px geometry와 긴 입력/큰 표시값, 관련 validation/loading/pending/500/401/412/readonly를 표면별로 분리한다. 실제 footer12px·field/footer12px·top/height≤1px, native ring390/1440 clipping0을 assertion으로 검증한다. text-field 경계와 native radio/checkbox label/appearance는 별도 oracle이다. pending 빠른2Escape/민감 입력 비움/중복 POST, preview 취소와 commit busy, actual201/readonly download200 및 원본/canonical 의미를 확인한다. 공수 fixture의 큰 값은 실제 알고리즘 PASS가 아니며 source별 partial/stale 전체 회귀로 확대하지 않는다.
+
+실제 Gantt는 Summary scope·optional 외부ID·native48px resize·closed nested tree·native 선택·주 scale·scroll120/38·instance/API/public viewport를 준비한다. 기존 workspace의 dialog 취소/템플릿 저장/지원 fullscreen 버튼 왕복을 동일 state로 비교하고 실제 Import commit의 instance/API/scale을 확인한다. 새 publicId navigation은 same-instance N/A, fullscreen C header 진입은 지원 경로 밖이다. headless keyboard Escape의 browser fullscreen 종료는 NOT TESTED로 구분한다.
+
+역사적0.94.3 after8 PASS/8runs45case(34PASS/11originalFAIL)와 최신0.94.4 after-current8 PASS/합계9runs53case(42PASS/11originalFAIL), before/helper 재사용 조건, 미게시 raw/trace·원래 hash, 환경·공식 CI/수식·domain·Windows/DRM/125% 미검증은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. 로컬 PASS는 새 PR head의 quality/e2e/docker PASS를 대체하지 않는다.
+
+템플릿 instantiate의 실제 navigation·편집 상태·원본 불변은 검증했으나 safeJSON의201은 서버 계약 literal이며 response.status 직접 검증이 아니다. 기존 원본과 helper를 유지하고 최신 실행 provenance에 한계를 기록한다.
+
+Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.
+
+## Issue #502 실제 Error Boundary와 환경별 검증
+
+#502는 #457에서 source-only로 남은 `app/error.tsx`와 `app/gantt-demo/error.tsx`를 실제 React 오류로 실행하는 자동화와, CI가 대체할 수 없는 환경별 검증을 분리한다.
+
+- 자동화: `tests/e2e/error-boundary-regression.spec.ts`가 390/1440px에서 root와 gantt-demo segment에 client render 오류를 발생시킨다. native keyboard로 retry 버튼에 도달해 Enter로 `reset()`을 실행하고, 복구된 probe가 오류 전 focus 지점으로 돌아오는지 확인한다.
+- 안전 경계: probe는 `NODE_ENV !== production` + `E2E_ERROR_BOUNDARY_PROBE=true`에서만 허용한다. root probe route는 gate가 닫히면 404이며 gantt-demo는 일반 요청에서 probe를 렌더링하지 않는다. 인증/권한/API/DB/scheduling 계약을 변경하지 않는다.
+- 증거: #457의 `ui-geometry` provenance를 `evidenceScope=502`로 재사용하되 기본 artifact 경로를 Playwright test output에 격리한다. tracked evidence publication은 explicit opt-in이다.
+- 구분: Project/API의 HTTP 500·network error UI를 route error boundary PASS로 사용하지 않는다.
+
+| 검증 | 현재 판정 | 근거/다음 조건 |
+| --- | --- | --- |
+| root/gantt-demo 실제 React error boundary + retry + focus restore | PASS on previous head `ada3420df6d2018cec187c8b42103b843fb1c87b` | PR CI #2078.1/#2079.1 및 실제 #502 Chromium 2case PASS. #517 문서 이관으로 바뀐 새 head는 required CI를 다시 판정 |
+| 실제 browser native 125% zoom | NOT TESTED | 환경 후속 #517. DPR/deviceScaleFactor/visualViewportScale로 대체 금지; 지원되는 실제 브라우저 수동 실행 필요 |
+| 실기기·screen reader·최종 수동 UX | NOT TESTED | 환경 후속 #517. 승인 장비/접근성 환경에서 별도 기록 |
+| 운영 source SHA/application version·proxy 입력 상태 | BLOCKED / NOT TESTED | 환경 후속 #517. 승인 운영 환경 metadata 접근이 제공될 때 read-only 비교; 운영 mutation 금지 |
+
+GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않는다.
+
+
+### #502 → #517 환경 검증 이관
+
+#502는 자동화 가능한 실제 React error boundary 검증을 PR #516으로 수렴시킨다. native125%·실기기/screen reader·최종 수동 UX·승인 운영 source/version/reverse proxy 검증은 lifecycle finalize와 실제 환경 PASS를 혼동하지 않도록 [#517](https://github.com/planner77/masterGantt/issues/517)로 이관한다. #502 merge/close는 #517 PASS를 의미하지 않는다.
+
 ## Issue #487 — 완료 단계 필터 End scroll E2E timing race
 
 Issue #454의 immutable `v0.90.1` GHCR Release Run #140.1 (`37434408238`)은 static quality와 Chromium shard 1/3/4/5/6을 PASS했지만 shard 2/6의 `tests/e2e/milestone-stage-grid.spec.ts`에서 `activeVisible === false`로 실패했다. 동일 exact merge SHA `0fc986cb0cb642bdbedeec30157b27bd522b5a38`의 Main CI Run #1942.1에서는 같은 case가 PASS했다.
 
 제품 `StageFilterPicker.move()`는 keyboard `End` 처리 시 `setActive()` 뒤 `requestAnimationFrame(...scrollIntoView())`로 active option을 list viewport에 보이게 한다. 기존 E2E는 `input.press("End")` 직후 geometry를 즉시 읽어 animation-frame scroll 완료보다 먼저 측정할 수 있었다. 이는 active option 가시성·키보드 접근성 기준의 완화 대상이 아니라 runner scheduling에 따른 비결정적 측정 순서다.
 
-최신 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`의 #490 transient reset retry와 후속 main 변경을 보존한다. 보완은 static sleep을 사용하지 않고, 현재 `aria-activedescendant`가 실제 DOM에 존재하며 list viewport 안에 완전히 들어오고 `scrollTop > 0`인 observable postcondition을 `expect.poll(..., { timeout: 2000 })`로 기다린 다음 기존 `activeVisible === true`, `listScroll > 0`, input focus/containment 및 5개 viewport geometry assertion을 그대로 수행한다. 실제 scroll이 발생하지 않으면 bounded poll 또는 기존 assertion이 실패한다.
+최신 main `f3373386d084bad5973b88180cd04ee9778e4fd6`의 #490 transient reset retry와 이후 main 변경을 보존한다. 보완은 static sleep을 사용하지 않고, 현재 `aria-activedescendant`가 실제 DOM에 존재하며 list viewport 안에 완전히 들어오고 `scrollTop > 0`인 observable postcondition을 `expect.poll(..., { timeout: 2000 })`로 기다린 다음 기존 `activeVisible === true`, `listScroll > 0`, input focus/containment 및 5개 viewport geometry assertion을 그대로 수행한다. 실제 scroll이 발생하지 않으면 bounded poll 또는 기존 assertion이 실패한다.
 
 application source/API/DB/domain/version은 변경하지 않는다. 기존 `v0.90.1` tag는 immutable historical evidence로 유지하고 이동·덮어쓰기·재사용하지 않는다. 이 corrective PR의 최신 exact-head PR CI가 timing-race 보완의 검증 근거다.
 

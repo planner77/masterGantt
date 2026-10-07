@@ -18,7 +18,7 @@ Project 설정의 기본 정보·작업 캘린더·편집/보안 및 편집 활�
 | 빠른 Escape | 설정·unlock pending에서 첫 native cancel은 취소 가능, 빠른 두 번째는 cancelable=false. React DOM1개가 남지만 open=false/BODY 초점 | busy commit의 capture keydown에서 own open/:modal·native backdrop hit-test 최상단 소유일 때 Escape만 preventDefault. 기존 cancel/Tab/restoreFocus 유지. nested nonbusy modal·busy=false/언마운트 cleanup 분리 |
 | 같은 geometry canonical refresh | 정식 Project metadata DTO mock에서 Task/Link/Calendar 불변이어도 public/DOM 가로120→0; 세로38 유지 | Task metadata 변경 조건 대신 canonical geometry 동일 조건. 기존 instance/context/filter/scale/grid/columns/no-user-input/0-collapse/layout-settle guard는 유지 |
 | 일반/보안/auth 정상 | 기존 form-field 표현 정상 | KEEP. 민감 password clearing, validation 정책과 authorization/Origin/revision 유지 |
-| 125%/실기기/screen reader/배포 | 미실행 | FOLLOW-UP/NOT TESTED: [#502](https://github.com/planner77/masterGantt/issues/502) |
+| 125%/실기기/screen reader/배포 | 미실행 | 환경 FOLLOW-UP/NOT TESTED 또는 BLOCKED: [#517](https://github.com/planner77/masterGantt/issues/517) |
 
 실제 API의 Summary scope·optional 열·48px resize·주 scale·long baseline9999·Project name/description 저장은 before에서도 가로120/세로38을 유지했다. mock 스트레스 재현과 실제 API PASS는 별도 조건이며 실제 저장 경로 전체의 결함이라고 주장하지 않는다.
 

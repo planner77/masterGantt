@@ -418,3 +418,15 @@ Issue #344의 CI #1370 후속 보완이 이 복구 경로의 첫 적용 사례�
 - 이 규칙은 실패한 중간 version을 별도 정식 release하지 않고, 검증된 corrective version에서 원 Issue를 마무리하기 위한 것이다.
 
 Issue #344의 failed main-CI attempt 복구와 Issue #331의 immutable `v0.65.1` Release quality 반복 실패 → corrective release 복구가 대표 시나리오다.
+
+
+## 동일 merge SHA의 Main CI 재실행 evidence (#520)
+
+PR head의 required check는 기존대로 required check 이름별 최신 check-run을 authority로 사용한다. 그러나 merged `main`의 exact SHA는 immutable하므로 동일 SHA에 Main CI가 중복 실행될 수 있다.
+
+- release/finalize는 exact SHA에 대해 **completed/success이면서 해당 run의 main artifact gate까지 유효한 run** 중 최신 것을 사용한다.
+- non-docs merge는 `Main 임시 commit 이미지 게시·검증·정리=SUCCESS`, docs-only merge는 동일 job의 `SKIPPED`가 필요하다.
+- 성공 evidence가 하나도 없으면 최신 exact-SHA run을 diagnostics로 남기고 mutation은 NOT TESTED/DEFERRED로 유지한다.
+- 후속 중복 run 실패 이력은 그대로 보존하며, 이전 성공을 재사용한다는 이유로 failed run을 삭제·재분류하지 않는다.
+
+이 규칙은 동일 SHA의 immutable source에만 적용하며, 새 commit/head의 이전 CI를 재사용하는 규칙이 아니다.
