@@ -4,7 +4,7 @@
 
 최신 정렬 기준 `main`은 `44b2ee3562cf76a73368a49fa17933ed341ab424`, application `0.94.2`이며 작업 branch는 `fix/issue-486-suspended-resource-draft`다. 401 후 suspended dirty Resource/Group/Profile draft가 다른 editor trigger를 자동 가로채던 `openEditor()` 경로를 제거하고, `보존한 초안 확인`에서 초안 유지 또는 폐기 후 요청 editor 진입을 명시 선택하도록 수정한다. 기존 `보존한 초안 계속 편집`은 직접 재개 경로로 유지한다.
 
-관련 E2E는 Resource→Group trigger의 자동 재개 금지/명시 재개 보존, Group→Resource trigger의 폐기 후 요청 editor 진입, Profile→다른 trigger의 명시 재개 보존을 추가한다. session/401/403/412, If-Match/revision, pending/Escape/focus와 API/DB/security/scheduling 계약은 유지한다. 상세 범위와 문서 영향은 [Issue #486 실행 계획](ISSUE_486.md)을 따른다. 하위 호환 버그 수정이므로 application version은 `0.94.3` PATCH다. `release_required=false`, `release_authorized=false`이며 요청 종료점은 PR 생성과 exact-head PR CI 시작이다.
+관련 E2E는 Resource→Group trigger의 자동 재개 금지/명시 재개 보존, Group→Resource trigger의 폐기 후 요청 editor 진입, Profile→다른 trigger의 명시 재개 보존을 추가한다. session/401/403/412, If-Match/revision, pending/Escape/focus와 API/DB/security/scheduling 계약은 유지한다. 상세 범위와 문서 영향은 [Issue #486 실행 계획](ISSUE_486.md)을 따른다. 하위 호환 버그 수정이므로 application version은 `0.94.3` PATCH다. `release_required=true`, `release_authorized=true`이며 사용자의 명시 승인에 따라 병합 후 exact main CI 성공 시 Generic Release Finalizer가 `0.94.3` 정식 GHCR 게시와 후속 lifecycle을 수행한다.
 
 ## Issue #490 프로젝트 설정·근무 규칙·인증 폼 — 로컬 검증 / 문서 동기화·PR CI 시작
 
