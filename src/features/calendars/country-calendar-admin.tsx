@@ -73,6 +73,7 @@ export function CountryCalendarAdmin(){
   const loginRef=useRef<HTMLInputElement|null>(null);
   const editTriggerRef=useRef<HTMLButtonElement|null>(null);
   const deleteTriggerRef=useRef<HTMLButtonElement|null>(null);
+  const datesSectionRef=useRef<HTMLElement|null>(null);
 
   useEffect(()=>()=>request.current?.abort(),[]);
   const locked=busy||!snapshot;
@@ -86,8 +87,12 @@ export function CountryCalendarAdmin(){
     return controller;
   }
   function end(controller:AbortController){if(!controller.signal.aborted)setBusy(false);}
+  function clearEditDeleteDrafts(){
+    setEditing(null);setEditDate("");setEditName("");setEditDayType("NON_WORKING");setEditSourceKey("");
+    setDeleting(null);
+  }
   function expire(){
-    setAuthenticated(false);setSnapshot(null);setPreview(null);
+    setAuthenticated(false);setSnapshot(null);clearTargetDrafts();
     setError("관리자 세션이 만료되었습니다. 다시 로그인해 주세요.");
     queueMicrotask(()=>loginRef.current?.focus());
   }
@@ -152,7 +157,7 @@ export function CountryCalendarAdmin(){
       });
       const value:unknown=await response.json().catch(()=>null);
       if(response.status===401){expire();return false;}
-      if(response.status===412){setEditing(null);setDeleting(null);await load(controller);setError("다른 관리 변경이 먼저 저장되어 최신 데이터를 다시 불러왔습니다. 열린 편집 초안은 폐기되었습니다.");return false;}
+      if(response.status===412){clearEditDeleteDrafts();await load(controller);setError("다른 관리 변경이 먼저 저장되어 최신 데이터를 다시 불러왔습니다. 열린 편집 초안은 폐기되었습니다.");return false;}
       if(!response.ok||!validAdmin(value)){
         setError(response.status===409?"현재 dataset 상태와 충돌하여 변경할 수 없습니다. 공식 상태에는 source 정보와 최소 1개 날짜가 필요합니다.":"변경사항을 저장하지 못했습니다. 입력값과 중복 날짜를 확인해 주세요.");
         return false;
@@ -163,13 +168,17 @@ export function CountryCalendarAdmin(){
   }
   function clearTargetDrafts(){
     setNewDate("");setNewName("");setNewDayType("NON_WORKING");setNewSourceKey("");
-    setEditing(null);setDeleting(null);
+    clearEditDeleteDrafts();
     fileReadGeneration.current+=1;
     if(fileInputRef.current)fileInputRef.current.value="";
     setFile(null);setFileEnvelope(null);setPreview(null);
   }
-  function switchCountry(value:WorkCalendarCountryCode){setCountry(value);setSnapshot(null);clearTargetDrafts();void reload(value,year);}
-  function switchYear(value:number){setYear(value);setSnapshot(null);clearTargetDrafts();void reload(country,value);}
+  function switchCountry(value:WorkCalendarCountryCode){
+    setCountry(value);setSnapshot(null);clearTargetDrafts();queueMicrotask(()=>void reload(value,year));
+  }
+  function switchYear(value:number){
+    setYear(value);setSnapshot(null);clearTargetDrafts();queueMicrotask(()=>void reload(country,value));
+  }
 
   async function saveMetadata(event:FormEvent){
     event.preventDefault();
@@ -205,7 +214,10 @@ export function CountryCalendarAdmin(){
     if(await mutate(
       `/api/admin/work-calendars/countries/${country}/years/${year}/dates/${encodeURIComponent(deleting.date)}`,
       "DELETE",
-    ))setDeleting(null);
+    )){
+      setDeleting(null);
+      window.requestAnimationFrame(()=>datesSectionRef.current?.focus());
+    }
   }
   async function chooseFile(selected:File|null){
     const generation=fileReadGeneration.current+1;
@@ -326,7 +338,7 @@ export function CountryCalendarAdmin(){
       </div>:null}
     </section>
 
-    <section className={styles.dateSection} aria-labelledby="dates-title">
+    <section ref={datesSectionRef} tabIndex={-1} className={styles.dateSection} aria-labelledby="dates-title">
       <div className={styles.sectionTitle}><h2 id="dates-title">휴일·보충 근무일</h2><span>{sortedDates.length}건</span></div>
       <form className={styles.addRow} onSubmit={addDate}>
         <label>날짜<input type="date" min={`${year}-01-01`} max={`${year}-12-31`} value={newDate} disabled={locked} onChange={event=>setNewDate(event.target.value)}/></label>
