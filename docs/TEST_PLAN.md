@@ -1350,6 +1350,10 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Remote: #437 implementation PR exact head의 quality/e2e/docker required checks를 통과하고, 병합 후 timing artifacts가 실제 main CI에서 생성되는지 확인한다.
 - Activation: historical sample 10회가 쌓이기 전에는 native 6-shard fallback이 정상 상태이며, 첫 자동 plan PR은 threshold 충족 후 별도 required CI로 검증한다.
 
+- Issue #508 regression: proposal 출력과 workflow artifact path가 모두 `e2e-shard-proposal.json`인지 확인하고 hidden filename을 다시 사용하지 않는지 검증한다.
+- PR lookup script는 GitHub CLI의 `--search` 값을 `"[Issue #437] ci: E2E 샤드 계획 갱신" in:title` 단일 argument로 구성하고, 후보 목록에서 exact title만 기존 PR 번호로 선택하는 Unit test를 유지한다. 이 로직을 inline Bash quoting으로 되돌리지 않는다.
+- Workflow contract test는 `shouldUpdate=false`에서 조회/생성 step이 skip되는 조건, `shouldUpdate=true`에서 기존 PR 번호가 있으면 생성하지 않는 조건, 번호가 비어 있을 때만 생성하는 조건과 proposal artifact path를 정적으로 검증한다.
+
 ## Issue #438 Build-once / verified digest release promotion 검증
 
 - Main 분류: first-parent `package.json.version`과 현재 version이 다를 때만 `version_changed=true`이며 `current_version`을 candidate build metadata에 사용한다.
