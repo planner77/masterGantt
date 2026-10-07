@@ -397,3 +397,8 @@ Project 일정의 Gantt/Milestone 대시보드 peer view에서 readonly KPI와 �
 - Summary의 requestedStart/start/end/duration/progress/status/Baseline은 계속 자손에서 파생하거나 읽기 전용이다. 메타데이터 편집을 일정 편집 허용으로 확대하지 않는다.
 - 하위 작업 추가·삭제·이동 및 Summary 일정 재계산은 Summary의 Description/URL을 보존해야 한다. 저장·재조회·reload 후 canonical snapshot과 UI가 일치해야 한다.
 - 보호 mutation은 기존 edit session, exact Origin, strong If-Match/revision 및 프로젝트 격리 규칙을 유지한다.
+
+
+## Issue #523 Resource KPI 공통 집계
+
+Resource/Group/Role/Milestone/기간 KPI의 공통 pure Domain과 typed 사전·fixture를 제공한다. 개인 Assignment 공수와 distinct 일반 Task 지표를 분리하고 중첩 Group/Role 소계를 Grand Total로 더하지 않는다. allocation 미설정은 알려진 공수/partial/unsetCount와 함께 반환하며 모두 미설정과 확정0을 구분한다. 미배정 Task 진단은 개인 조건이 없는 T0, 할당 KPI는 같은 개인 조건을 만족한 A를 사용한다. full Milestone E/P 상태는 선택 범위로 재정의하지 않는다. 실행 계약은 [RESOURCE_KPI_DASHBOARD](RESOURCE_KPI_DASHBOARD.md)를 따른다. HTTP/UI 공개·capacity·실제공수 원장은 이 단위 범위 밖이다.

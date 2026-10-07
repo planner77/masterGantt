@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.96.0] - 2026-10-07
+
+### Added
+
+- Issue #523: 개인 Assignment와 고유 Task에 기반한 순수 Resource KPI 집계 계약, raw 계획 M/D·M/M, effective Milestone 분류와 미배정 진단을 추가한다.
+
 ## [0.95.1] - 2026-10-07
 
 ### Fixed

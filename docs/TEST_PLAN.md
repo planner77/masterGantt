@@ -2105,3 +2105,10 @@ GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않�
 ### #502 → #517 환경 검증 이관
 
 #502는 자동화 가능한 실제 React error boundary 검증을 PR #516으로 수렴시킨다. native125%·실기기/screen reader·최종 수동 UX·승인 운영 source/version/reverse proxy 검증은 lifecycle finalize와 실제 환경 PASS를 혼동하지 않도록 [#517](https://github.com/planner77/masterGantt/issues/517)로 이관한다. #502 merge/close는 #517 PASS를 의미하지 않는다.
+
+
+## Issue #523 Resource KPI 공통 Domain 회귀
+
+`tests/domain/resource-kpi.test.ts`와 `tests/fixtures/resource-kpi.ts`는 Task1/Resource2/Assignment2 grain,4근무일×50%=2M/D, Resource WORKING override와 필터 제외 Group Calendar/충돌, 복수 Group/Role 비가산, Resource/Group별 Milestone+미지정 raw 합, full-stage Ready/Blocked, duration 가중 진척과 canonical 완료, T0 미배정·Group-only·미설정 Task/Assignment ID, empty/all-unset/partial/비근무일0/분모0, M/M omission/null/invalid query/ENV와 순열·중복·필터 교집합을 검증한다. fixture는 실제 Task Calendar 근무일과 일치하는 기간/Duration 및 Assignment 부분기간, 한 날짜 Milestone을 사용한다.
+
+`tests/server/resources/resource-kpi-compatibility.test.ts`는 native in-memory SQLite의 실제 Workload Service에서 legacy4자리1.3333 M/D/0.0702 M/M와 raw precision을 구별한다. 기존 Resource Workload service/integrity, Milestone calculation, Logistics fixture와 Calendar/Stage Gate tests를 Local Fast Feedback으로 함께 실행한다. 최초 raw float literal assertion4건 FAIL 및 canonical fixture 정렬 후 stale 기대값2건 FAIL을 수정하고 재실행 기록을 보존한다. Local PASS는 PR quality/e2e/docker PASS를 대체하지 않는다. HTTP/UI 신규 검증은 후속 단위이며 이번 Issue는 원격 PR CI 시작까지만 진행한다.

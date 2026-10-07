@@ -140,3 +140,8 @@ Milestone dashboard는 동일 개인 assignment/기간/allocation/계층형 Reso
 새 Stage/기존 Logistics 조회는 명시 finite-positive mdPerMm query → 유효 RESOURCE_MD_PER_MM → null 정책을 공유한다. HTTP null 문자열/programmatic null은 ENV를 무시한다. invalid query는400, invalid ENV는 null. 기존 Logistics의 숨은20일 fallback 제거와 invalid query 거부는 #463의 명시 의미 변경이다. `mdPerMmSource`와 실제 기준을 표시하며 미설정은 환산하지 않는다. M/D·물류 기존 집합/기간/진척 숫자는 변경하지 않는다.
 
 단계에서 Resource로 drill하면 기존 `resource-workload?from=&to=`로 같은 기간을 서버 조회하고 range echo 및 Project/Catalog revision을 검증한다. 받은 원시 assignment 결과만 표시 필터로 제한하며 UI에서 공수를 재계산하지 않는다. scope 해제는 기존 기본 범위 GET으로 복귀한다. 기존 Resource API/4자리 rounding/ENV 환산은 변경하지 않으므로 Stage raw 값 및 명시 query 환산과 다를 수 있다. Resource 조회의 기간 subtotal과 Stage의 물류/역할/등급 범위 공수, 각 환산 기준을 명시적으로 구분한다. 새 API·공수 엔진 없이 기존 조회를 연결하는 UI 변경이다.
+
+
+## Issue #523 신규 raw KPI와 legacy 호환성
+
+[Resource KPI 공통 Domain](RESOURCE_KPI_DASHBOARD.md)은 기존 date-only/Resource Calendar와 개인 Assignment 공수 산식을 재사용한다. 신규 raw projection은 모두 미설정이면 plannedMd=null, 일부 미설정이면 알려진 합+partial/unsetCount를 제공하고 빈0/설정된 비근무일0을 구별한다. 기존 Workload 응답의 unset 합계0 및 assignment/subtotal4자리 반올림은 그대로 유지한다. 동일 T1의 두 개인은 Task1/Resource2/Assignment2이며 Group/Role 중첩 subtotal은 비가산이다. native SQLite regression은33.333333%×4근무일의 legacy1.3333 M/D·19기준0.0702 M/M를 확인하며 raw 값을 바꾸지 않는다. 기존 저장 allocation0초과100이하, Group 책임 참조, server session/Origin/revision 계약은 불변이다.

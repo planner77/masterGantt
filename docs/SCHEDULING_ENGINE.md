@@ -338,3 +338,8 @@ Service는 원본 persisted↔최종 candidate 날짜를 비교하여 target/앞
 
 Chart vertical DnD는 일정 계산 명령이 아니다. vertical axis가 lock되면 `start/end/duration` PATCH를 생성하지 않고 same-parent sibling order만 hierarchy transaction으로 확정한다. #335와 같이 Dependency Link 및 requested/effective schedule은 변경하지 않으며 Calendar/Summary/Dependency scheduling 규칙도 변경하지 않는다.
 
+
+
+## Issue #523 Resource KPI와 일정 엔진 경계
+
+Resource KPI는 일정 mutation이나 별도 공수 엔진이 아니라 기존 `resolveResourceCalendar` 및 `workingDaysBetween`의 조회 projection이다. Project < Group < Resource 예외와 same-layer conflict를 유지하고 Task Calendar AND를 추가하지 않는다. canonical Task 기간과 조회 기간은 T0 진단을, 유효 Assignment 기간의 교집합은 A 공수를 제한한다. allocation은 null 또는0초과100이하이며 비근무일 부분기간은 설정된0공수다. raw 공수는 Task progress/status로 차감하지 않고 Group/Role/개인/Milestone partition의 중복을 제거한다. full `projectStageGates`의 Membership/Ready/Blocked는 선택 범위와 별도이며 Task Link를 Stage Link로 추론하지 않는다. [KPI 사전·fixture](RESOURCE_KPI_DASHBOARD.md), `tests/domain/resource-kpi.test.ts` 및 native legacy precision 회귀를 따른다.
