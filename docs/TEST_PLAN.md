@@ -2048,4 +2048,5 @@ Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manag
 - DB: migration 0024, preview_secret 32 bytes, tables/indexes/FK, legacy schema21→0022→0023→0024 연속 upgrade 데이터 불변.
 - UI/E2E: file race, target draft clear, target load 실패 snapshot 제거, 401/412 stale draft 폐기, pending edit/delete cancel 차단, delete 후 focus 복원, same-file reselect, responsive overflow.
 - E2E locator는 dataset status의 accessible name과 exact 국가/연도 select를 사용한다.
+- Country Calendar 국가 선택은 wrapper label text가 아니라 `role=combobox` + accessible name으로 식별한다. #490 회귀 연계 검증은 412 canonical reload 직후 Native Add 첫 클릭도 실제 POST를 시작해야 한다.
 - 공식 전체 판정은 exact PR head의 `quality/e2e/docker` required gate이며 이전 head PASS/FAIL을 재사용하지 않는다.

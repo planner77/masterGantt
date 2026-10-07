@@ -19,6 +19,7 @@
 - 수동 날짜 Add/Edit/Delete 후 기존 OFFICIAL provenance를 재사용하지 않고 UNAVAILABLE + source metadata null로 전환하며, 실제 값이 동일한 date/metadata 저장은 no-op으로 처리한다.
 - explicit null date PATCH, target 전환 stale draft, session 만료 stale edit/delete, pending edit/delete 취소, 삭제 후 focus 복원, 빠른 file reselection race를 fail-closed 처리한다.
 - Country Calendar E2E locator와 target 전환 reload timing을 실제 accessible control 기준으로 안정화한다.
+- latest main #490의 412 canonical reload 직후 Native Add가 stale `onTaskCreate` closure를 참조해 첫 클릭을 무시할 수 있는 경합을 layout-phase ref 동기화로 제거한다.
 
 ## [0.94.1] - 2026-10-07
 
