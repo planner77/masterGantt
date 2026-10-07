@@ -17,7 +17,7 @@ export function resourceDashboardUiFixture(fixture: StatefulProjectFixture, quer
 export function resourceDashboardDetailUiFixture(fixture: StatefulProjectFixture, query: URLSearchParams): ResourceDashboardDetailsDto {
   const checked = parseResourceDashboardDetails(query);
   const filterQuery = new URLSearchParams(query);
-  for (const key of ["snapshotId", "dimension", "id", "milestoneTaskId", "metric", "view", "offset", "limit"]) filterQuery.delete(key);
+  for (const key of ["snapshotId", "dimension", "id", "milestoneTaskId", "metric", "view", "offset", "limit", "resourceId", "assignmentScope"]) filterQuery.delete(key);
   const report = resourceDashboardUiFixture(fixture, filterQuery);
   const task = fixture.tasks[2];
   return { schema: report.schema, projectPublicId: report.projectPublicId, projectRevision: report.projectRevision, catalogRevision: report.catalogRevision, calendarRevision: report.calendarRevision, ...checked, totalCount: 1, nextOffset: null, rows: [{ taskId: task.taskId, taskName: task.name, externalId: task.externalId, status: "in_progress", progress: 50, taskStart: "2026-09-16", taskEnd: "2026-09-18", duration: 3, wbsPath: [], effectiveMilestoneTaskId: null, explicitMilestoneTaskId: null, inheritedFromTaskId: null, assignment: checked.view === "tasks" ? null : { assignmentId: "33333333-3333-4333-8333-333333333333", resourceId: dashboardResourceId, resourceName: "테스트 리소스", resourceCode: "R-01", active: true, roles: ["DEVELOPER"], developerGrade: "ADVANCED", groupIds: [dashboardGroupId], assignmentStart: null, assignmentEnd: null, from: "2026-09-16", to: "2026-09-18", allocationPercent: 100, effectiveWorkingDays: 3, plannedMd: 5, plannedMm: .25 } }] };

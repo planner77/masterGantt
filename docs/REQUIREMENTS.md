@@ -417,3 +417,14 @@ Resource/Group/Role/Milestone/기간 KPI의 공통 pure Domain과 typed 사전·
 조회 조건/기간/revision/snapshot 검증, abort·늦은 응답 폐기, hidden 조회 중단, stale 상세 잠금과 명시 재시도/최신 일정 조회를 제공한다. 오류 후 입력 조건·단위·같은 snapshot의 열림 상태를 보존한다. Task KPI는 고유 Task 표, Assignment 공수는 개인 할당 상세로 구분하고 작업 일정·저장 override/상속·선택 투입 구간을 별도 표시한다. keyboard/Escape/focus 복원, 내부 scroll/5개 viewport와 Gantt instance/상태 보존을 검증한다.
 
 기존 stage assignmentIds drill은 legacy API/UI로 보존한다. 상위 Workspace 재설계(#518)/Milestone 용어 일괄 변경(#495), Milestone tree/matrix(#526), capacity(#527), 외부 navigation/export(#528)는 이 구현의 인수 범위 밖이다. 상세 source of truth는 [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md#issue-525-기본-resourcegroup-dashboard)이다.
+
+
+## Issue #526 서버 Milestone 비교 범위
+
+동일 Resource/Group 필터의 Group→Milestone→Resource와 Group→Resource→Milestone을 서버가 계산한 자식 행으로 제공한다. 선택 범위의 전체/단계 소계와 Group∩Resource 상세를 동일 snapshot으로 조회하고 공동 Task는 distinct, 복수 Group/Role은 비가산으로 유지한다. Milestone 조건 제외 reference 및 실제 제외 Assignment summary를 제공하며 비율/count를 숫자로 차감하지 않는다.
+
+필터/페이지/열 숨김이 원시 Grand Total이나 full Milestone Ready/Blocked를 바꾸지 않는다. canonical 예정일+ID 정렬/미지정 마지막, null/부분합/설정0/빈0, bounded same-snapshot public read와 유효 구성원 empty/foreign400/stale409를 구별한다. [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)을 따른다. UI geometry/interaction 구현은 별도 frontend 검증으로 연결한다.
+
+### Issue #526 UI
+
+리소스 탭 내 Group→Milestone→Resource→Task, Group→Resource→Milestone→Task, Resource→Milestone→Task와 Group/Resource×Milestone 비교표를 제공한다. Raw 서버합계·distinct/비가산·선택/reference/excluded·full 단계 Gate 의미를 유지한다. 비교표50행/6단계와 펼침12개 budget은 표현 상한이며 집계 범위를 줄이지 않는다. Keyboard·focus·stale/canceled 응답과390/768/1024/1440/1920px 긴 이름/다수 행 geometry 및 기존 Gantt 상태를 검증한다. API/계산 계약은 [Resource KPI Dashboard](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)를 따른다.

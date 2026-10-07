@@ -167,7 +167,7 @@ function effort(rows: readonly ResourceKpiAssignmentRow[], mdPerMm: number | nul
 }
 
 /** Pure current-snapshot projection. All scopes are intersections; no snapshot mutation. */
-export function calculateResourceKpi(input: ResourceKpiInput) {
+export function prepareResourceKpiSnapshot(input: ResourceKpiInput) {
   parseDateOnly(input.from, "from"); parseDateOnly(input.to, "to"); parseDateOnly(input.asOfDate, "asOfDate");
   if (input.from > input.to) throw new Error("Invalid KPI date range");
   if (input.timezone !== input.projectCalendar.timezone) throw new Error("KPI timezone/calendar mismatch");
@@ -196,7 +196,13 @@ export function calculateResourceKpi(input: ResourceKpiInput) {
     parseDateOnly(start); parseDateOnly(end);
     if (start > end || start < task.start! || end > task.end!) throw new Error("Invalid KPI assignment range");
   }
-  const filters = input.filters ?? {};
+  return { input, mdPerMm, tasks, resources, assignments, byTask, byResource, projection, calendars: new Map<string, WorkingCalendar>(), assignmentRows: new Map<string, ResourceKpiAssignmentRow>() };
+}
+export type PreparedResourceKpiSnapshot = ReturnType<typeof prepareResourceKpiSnapshot>;
+
+/** Select a validated snapshot without materializing Resource/Group/Milestone cells. */
+export function selectResourceKpiAssignments(prepared: PreparedResourceKpiSnapshot, filters: ResourceKpiFilters = prepared.input.filters ?? {}) {
+  const { input, mdPerMm, tasks, assignments, byTask, byResource, projection, calendars, assignmentRows } = prepared;
   const inWbs = (task: ResourceKpiTask): boolean => {
     if (!filters.wbsRootIds?.length) return true;
     let current: ResourceKpiTask | undefined = task;
@@ -213,7 +219,6 @@ export function calculateResourceKpi(input: ResourceKpiInput) {
     matches(filters.milestoneIds, projection.membership.get(task.taskId)!.effectiveMilestoneTaskId) && task.start! <= input.to && task.end! >= input.from);
   const t0Ids = new Set(t0.map((task) => task.taskId));
   const selected: ResourceKpiAssignmentRow[] = [];
-  const calendars = new Map<string, WorkingCalendar>();
   for (const assignment of assignments) {
     if (assignment.kind !== "resource" || !t0Ids.has(assignment.taskId)) continue;
     const resource = byResource.get(assignment.targetId)!;
@@ -227,6 +232,8 @@ export function calculateResourceKpi(input: ResourceKpiInput) {
     const from = (assignment.start ?? task.start!) < input.from ? input.from : assignment.start ?? task.start!;
     const to = (assignment.end ?? task.end!) > input.to ? input.to : assignment.end ?? task.end!;
     if (from > to) continue;
+    const cached = assignmentRows.get(assignment.assignmentId);
+    if (cached) { selected.push(cached); continue; }
     let calendar = calendars.get(resource.resourceId);
     if (!calendar) {
       calendar = resolveResourceCalendar({ projectCalendar: input.projectCalendar, resourceId: resource.resourceId, groupIds: resource.groupIds, exceptions: input.calendarExceptions ?? [] }).calendar;
@@ -234,11 +241,38 @@ export function calculateResourceKpi(input: ResourceKpiInput) {
     }
     const effectiveWorkingDays = workingDaysBetween(from, to, calendar);
     const plannedMd = assignment.allocationPercent === null ? null : effectiveWorkingDays * assignment.allocationPercent / 100;
-    selected.push({ projectPublicId: input.projectPublicId, assignmentId: assignment.assignmentId, taskId: task.taskId,
+    const row: ResourceKpiAssignmentRow = { projectPublicId: input.projectPublicId, assignmentId: assignment.assignmentId, taskId: task.taskId,
       resourceId: resource.resourceId, milestoneTaskId: projection.membership.get(task.taskId)!.effectiveMilestoneTaskId,
       groupIds: resource.groupIds, roles, from, to, allocationPercent: assignment.allocationPercent, effectiveWorkingDays,
-      plannedMd, plannedMm: plannedMd === null || mdPerMm === null ? null : plannedMd / mdPerMm });
+      plannedMd, plannedMm: plannedMd === null || mdPerMm === null ? null : plannedMd / mdPerMm };
+    assignmentRows.set(assignment.assignmentId, row); selected.push(row);
   }
+  return { assignments: selected, t0, t0Ids, filters };
+}
+export type ResourceKpiSelection = ReturnType<typeof selectResourceKpiAssignments>;
+
+/** Distinct/raw totals of an actual Assignment set, including an empty or excluded set. */
+export function summarizeResourceKpiAssignments(prepared: PreparedResourceKpiSnapshot, rows: readonly ResourceKpiAssignmentRow[]): ResourceKpiTotals {
+  const { input, mdPerMm, byTask } = prepared;
+  rows = distinct(rows, (row) => row.assignmentId);
+  const taskIds = unique(rows.map((row) => row.taskId));
+  const targetTasks = taskIds.map((id) => byTask.get(id)!);
+  const count = (predicate: (task: ResourceKpiTask) => boolean): ResourceKpiCount => { const ids = targetTasks.filter(predicate).map((task) => task.taskId); return { count: ids.length, taskIds: ids }; };
+  const completed = count((task) => task.status === "completed");
+  const denominator = targetTasks.reduce((sum, task) => sum + task.duration!, 0);
+  const numerator = targetTasks.reduce((sum, task) => sum + task.duration! * task.progress!, 0);
+  const resourceIds = unique(rows.map((row) => row.resourceId));
+  return { taskIds, resourceIds, assignmentIds: rows.map((row) => row.assignmentId), taskCount: taskIds.length, resourceCount: resourceIds.length,
+    assignmentCount: rows.length, notStarted: count((task) => task.status === "not_started"), inProgress: count((task) => task.status === "in_progress"), completed,
+    delayed: count((task) => isResourceKpiTaskDelayed(task, input.asOfDate)),
+    completion: { numerator: completed.count, denominator: taskIds.length, percent: taskIds.length ? completed.count / taskIds.length * 100 : null, taskIds, completedTaskIds: completed.taskIds },
+    assignedTaskProgress: { numerator, denominator, percent: denominator ? numerator / denominator : null, taskIds }, effort: effort(rows, mdPerMm) };
+}
+
+/** Bound the selected projection before any subtotal/cell materialization. */
+export function assertResourceKpiProjectionBudget(prepared: PreparedResourceKpiSnapshot, selection: ResourceKpiSelection) {
+  const { input } = prepared;
+  const { assignments: selected } = selection;
   if (input.maxProjectionCells !== undefined) {
     const dimensions = new Map<string, Set<string | null>>();
     const add = (key: string, milestone: string | null) => { const values = dimensions.get(key) ?? new Set<string | null>([null]); values.add(milestone); dimensions.set(key, values); };
@@ -253,29 +287,39 @@ export function calculateResourceKpi(input: ResourceKpiInput) {
     const cells = [...dimensions.values()].reduce((sum, values) => sum + values.size, roleIds.size);
     if (cells > input.maxProjectionCells) throw new ResourceKpiProjectionLimitError();
   }
-  const totals = (rows: readonly ResourceKpiAssignmentRow[]): ResourceKpiTotals => {
-    const taskIds = unique(rows.map((row) => row.taskId));
-    const targetTasks = taskIds.map((id) => byTask.get(id)!);
-    const count = (predicate: (task: ResourceKpiTask) => boolean): ResourceKpiCount => { const ids = targetTasks.filter(predicate).map((task) => task.taskId); return { count: ids.length, taskIds: ids }; };
-    const completed = count((task) => task.status === "completed");
-    const denominator = targetTasks.reduce((sum, task) => sum + task.duration!, 0);
-    const numerator = targetTasks.reduce((sum, task) => sum + task.duration! * task.progress!, 0);
-    const resourceIds = unique(rows.map((row) => row.resourceId));
-    return { taskIds, resourceIds, assignmentIds: rows.map((row) => row.assignmentId), taskCount: taskIds.length, resourceCount: resourceIds.length,
-      assignmentCount: rows.length, notStarted: count((task) => task.status === "not_started"), inProgress: count((task) => task.status === "in_progress"), completed,
-      delayed: count((task) => isResourceKpiTaskDelayed(task, input.asOfDate)),
-      completion: { numerator: completed.count, denominator: taskIds.length, percent: taskIds.length ? completed.count / taskIds.length * 100 : null, taskIds, completedTaskIds: completed.taskIds },
-      assignedTaskProgress: { numerator, denominator, percent: denominator ? numerator / denominator : null, taskIds }, effort: effort(rows, mdPerMm) };
-  };
-  const buckets = (rows: readonly ResourceKpiAssignmentRow[]) => [...unique(rows.flatMap((row) => row.milestoneTaskId === null ? [] : [row.milestoneTaskId])), null].map((milestoneTaskId) => ({ milestoneTaskId, ...totals(rows.filter((row) => row.milestoneTaskId === milestoneTaskId)) }));
-  const grouped = (ids: readonly string[], predicate: (row: ResourceKpiAssignmentRow, id: string) => boolean) => ids.map((id) => {
-    const rows = selected.filter((row) => predicate(row, id)); return { id, ...totals(rows), milestones: buckets(rows) };
-  });
+}
+
+/** T0 diagnostics reuse the same full membership without generating any matrix cells. */
+export function getResourceKpiDiagnostics(prepared: PreparedResourceKpiSnapshot, selection: ResourceKpiSelection) {
+  const { assignments } = prepared;
+  const { t0, t0Ids, filters } = selection;
   const onT0 = assignments.filter((row) => t0Ids.has(row.taskId));
   const personalTaskIds = new Set(onT0.filter((row) => row.kind === "resource").map((row) => row.taskId));
   const groupTaskIds = new Set(onT0.filter((row) => row.kind === "group").map((row) => row.taskId));
   const diagnostic = (predicate: (task: ResourceKpiTask) => boolean) => { const taskIds = t0.filter(predicate).map((task) => task.taskId); return { count: taskIds.length, taskIds }; };
   const unsetRows = onT0.filter((row) => row.kind === "resource" && row.allocationPercent === null);
+  return {
+      scope: "T0" as const, taskIds: t0.map((task) => task.taskId), denominator: t0.length,
+      inapplicableFilters: ["resourceIds", "groupIds", "roles", "developerGrades", "search", "resourceActivity", "groupActivity"] as const,
+      personalFiltersAppliedToA: Boolean(filters.eligibleResourceIds !== undefined || filters.resourceIds?.length || filters.groupIds?.length || filters.includeUngrouped || filters.roles?.length || filters.developerGrades?.length || (filters.search ?? "").trim()),
+      completelyUnassigned: diagnostic((task) => !personalTaskIds.has(task.taskId) && !groupTaskIds.has(task.taskId)),
+      groupOnly: diagnostic((task) => !personalTaskIds.has(task.taskId) && groupTaskIds.has(task.taskId)),
+      personallyUnassigned: diagnostic((task) => !personalTaskIds.has(task.taskId)),
+      unsetTasks: { count: unique(unsetRows.map((row) => row.taskId)).length, taskIds: unique(unsetRows.map((row) => row.taskId)) },
+      unsetAssignmentCount: unsetRows.length, unsetAssignmentIds: unsetRows.map((row) => row.assignmentId),
+  };
+}
+
+/** Materialize only the selected projection, retaining the existing public Domain result. */
+export function renderResourceKpi(prepared: PreparedResourceKpiSnapshot, selection: ResourceKpiSelection) {
+  const { input, mdPerMm, byTask, projection, assignments } = prepared;
+  const { assignments: selected } = selection;
+  assertResourceKpiProjectionBudget(prepared, selection);
+  const totals = (rows: readonly ResourceKpiAssignmentRow[]) => summarizeResourceKpiAssignments(prepared, rows);
+  const buckets = (rows: readonly ResourceKpiAssignmentRow[]) => [...unique(rows.flatMap((row) => row.milestoneTaskId === null ? [] : [row.milestoneTaskId])), null].map((milestoneTaskId) => ({ milestoneTaskId, ...totals(rows.filter((row) => row.milestoneTaskId === milestoneTaskId)) }));
+  const grouped = (ids: readonly string[], predicate: (row: ResourceKpiAssignmentRow, id: string) => boolean) => ids.map((id) => {
+    const rows = selected.filter((row) => predicate(row, id)); return { id, ...totals(rows), milestones: buckets(rows) };
+  });
   return {
     projectPublicId: input.projectPublicId, timezone: input.timezone, asOfDate: input.asOfDate, range: { from: input.from, to: input.to },
     mdPerMm, mdPerMmSource: mdPerMmSource(input.mdPerMm, input.mdPerMmEnvironment), mdPerMmProvided: input.mdPerMm !== undefined,
@@ -286,17 +330,13 @@ export function calculateResourceKpi(input: ResourceKpiInput) {
     roles: grouped(unique(selected.flatMap((row) => row.roles)), (row, id) => row.roles.includes(id)),
     fullMilestones: [...projection.gates.entries()].map(([milestoneTaskId, stageGate]) => ({ milestoneTaskId, stageGate })),
     responsibilityReferences: assignments.filter((row) => row.kind === "group" || byTask.get(row.taskId)!.type !== "task"),
-    diagnostics: {
-      scope: "T0" as const, taskIds: t0.map((task) => task.taskId), denominator: t0.length,
-      inapplicableFilters: ["resourceIds", "groupIds", "roles", "developerGrades", "search", "resourceActivity", "groupActivity"] as const,
-      personalFiltersAppliedToA: Boolean(filters.eligibleResourceIds !== undefined || filters.resourceIds?.length || filters.groupIds?.length || filters.includeUngrouped || filters.roles?.length || filters.developerGrades?.length || search),
-      completelyUnassigned: diagnostic((task) => !personalTaskIds.has(task.taskId) && !groupTaskIds.has(task.taskId)),
-      groupOnly: diagnostic((task) => !personalTaskIds.has(task.taskId) && groupTaskIds.has(task.taskId)),
-      personallyUnassigned: diagnostic((task) => !personalTaskIds.has(task.taskId)),
-      unsetTasks: { count: unique(unsetRows.map((row) => row.taskId)).length, taskIds: unique(unsetRows.map((row) => row.taskId)) },
-      unsetAssignmentCount: unsetRows.length, unsetAssignmentIds: unsetRows.map((row) => row.assignmentId),
-    },
+    diagnostics: getResourceKpiDiagnostics(prepared, selection),
     metadata: { taskScope: "distinct ordinary tasks represented in A", assignmentScope: "A: T0 AND personal classification filters AND assignment range", diagnosticsScope: "T0: project/WBS/milestone/task AND canonical task schedule range; no personal filters", responsibilityScope: "full project reference-only", groupRoleSubtotalsAdditive: false, precision: "raw; round at presentation boundary" },
   };
+}
+/** Backward-compatible entry point. Pure snapshot/selection helpers also support totals-only callers. */
+export function calculateResourceKpi(input: ResourceKpiInput) {
+  const prepared = prepareResourceKpiSnapshot(input);
+  return renderResourceKpi(prepared, selectResourceKpiAssignments(prepared));
 }
 export type ResourceKpiResult = ReturnType<typeof calculateResourceKpi>;

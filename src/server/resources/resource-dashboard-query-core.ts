@@ -1,4 +1,4 @@
-import type { ResourceDashboardDetailInput, ResourceDashboardFilterInput, ResourceDashboardFilters, ResourceDashboardMetric, ResourceDashboardSelector } from "../../contracts/resource-dashboard";
+import type { ResourceDashboardDetailInput, ResourceDashboardFilterInput, ResourceDashboardFilters, ResourceDashboardMetric, ResourceDashboardSelector, ResourceDashboardGroupChildrenInput } from "../../contracts/resource-dashboard";
 import { RESOURCE_DASHBOARD_LIMITS as LIMITS } from "../../contracts/resource-dashboard";
 import { parseDateOnly } from "../../domain/scheduling/date-only";
 import { PublicApiError } from "../http/api-error-core";
@@ -6,17 +6,18 @@ import { isCanonicalUuidV4 } from "../projects/project-contract";
 
 const ARRAYS = ["resourceIds", "groupIds", "milestoneIds", "taskIds", "wbsRootIds", "roles", "developerGrades", "statuses"] as const;
 const SCALARS = ["from", "to", "asOfDate", "search", "taskSearch", "mode", "mdPerMm", "resourceActivity", "groupActivity"] as const;
-const DETAILS = ["snapshotId", "dimension", "id", "milestoneTaskId", "metric", "view", "offset", "limit"] as const;
+const DETAILS = ["snapshotId", "dimension", "id", "milestoneTaskId", "metric", "view", "offset", "limit", "resourceId", "assignmentScope"] as const;
+const CHILDREN = ["snapshotId", "groupId", "milestoneTaskId", "offset", "limit"] as const;
 const ROLES = ["PI", "DEVELOPER", "EQUIPMENT_OWNER", "UNSPECIFIED"];
 const GRADES = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT", "UNSPECIFIED"];
 const STATUSES = ["not_started", "in_progress", "completed"];
 const METRICS: ResourceDashboardMetric[] = ["all", "notStarted", "inProgress", "completed", "delayed", "unset", "completelyUnassigned", "groupOnly", "personallyUnassigned"];
 export const invalidDashboardQuery = (): never => { throw new PublicApiError(400, "INVALID_REQUEST", "리소스 대시보드 조회 조건을 확인해 주세요."); };
 
-export function parseResourceDashboardQuery(params: URLSearchParams, details = false): ResourceDashboardFilterInput {
+export function parseResourceDashboardQuery(params: URLSearchParams, details = false, children = false): ResourceDashboardFilterInput {
   if (params.toString().length > 32768) invalidDashboardQuery();
-  for (const key of params.keys()) if (![...ARRAYS, ...SCALARS, ...(details ? DETAILS : [])].includes(key as typeof SCALARS[number])) invalidDashboardQuery();
-  for (const key of [...SCALARS, ...(details ? DETAILS : [])]) if (params.getAll(key).length > 1) invalidDashboardQuery();
+  for (const key of params.keys()) if (![...ARRAYS, ...SCALARS, ...(details ? DETAILS : []), ...(children ? CHILDREN : [])].includes(key as typeof SCALARS[number])) invalidDashboardQuery();
+  for (const key of [...SCALARS, ...(details ? DETAILS : []), ...(children ? CHILDREN : [])]) if (params.getAll(key).length > 1) invalidDashboardQuery();
   const output: ResourceDashboardFilterInput = {};
   let total = 0;
   for (const key of ARRAYS) {
@@ -76,11 +77,21 @@ export function parseResourceDashboardDetails(params: URLSearchParams): Resource
   if (view !== "tasks" && view !== "assignments") invalidDashboardQuery();
   if (dimension === "diagnostic" && (view !== "tasks" || !["completelyUnassigned", "groupOnly", "personallyUnassigned", "unset"].includes(metric))) invalidDashboardQuery();
   if (dimension !== "diagnostic" && ["completelyUnassigned", "groupOnly", "personallyUnassigned"].includes(metric)) invalidDashboardQuery();
-  const selector: ResourceDashboardSelector = { dimension: dimension as ResourceDashboardSelector["dimension"], id: id === "ungrouped" || id === "unassigned" ? null : id, metric: metric as ResourceDashboardMetric };
+  const selector: ResourceDashboardSelector = { dimension: dimension as ResourceDashboardSelector["dimension"], id: id === "ungrouped" || id === "unassigned" ? null : id, assignmentScope: "selected", metric: metric as ResourceDashboardMetric };
   if (params.has("milestoneTaskId")) {
     const value = params.get("milestoneTaskId")!;
     if (dimension === "diagnostic" || !(value === "unassigned" || isCanonicalUuidV4(value))) invalidDashboardQuery();
     selector.milestoneTaskId = value === "unassigned" ? null : value;
+  }
+  if (params.has("resourceId")) {
+    const value = params.get("resourceId")!;
+    if (dimension !== "group" || !isCanonicalUuidV4(value)) invalidDashboardQuery();
+    selector.resourceId = value;
+  }
+  if (params.has("assignmentScope")) {
+    const value = params.get("assignmentScope")!;
+    if (!["selected", "milestoneReference", "milestoneExcluded"].includes(value) || (dimension === "diagnostic" && value !== "selected")) invalidDashboardQuery();
+    selector.assignmentScope = value as NonNullable<ResourceDashboardSelector["assignmentScope"]>;
   }
   const number = (key: "offset" | "limit", fallback: number, max: number, min: number) => {
     const raw = params.get(key); if (raw === null) return fallback;
@@ -88,4 +99,14 @@ export function parseResourceDashboardDetails(params: URLSearchParams): Resource
     const value = Number(raw); if (!Number.isSafeInteger(value) || value < min || value > max) invalidDashboardQuery(); return value;
   };
   return { snapshotId, selector, view: view as "tasks" | "assignments", offset: number("offset", 0, LIMITS.detailOffset, 0), limit: number("limit", 50, LIMITS.detailPage, 1) };
+}
+
+export function parseResourceDashboardGroupChildren(params: URLSearchParams): ResourceDashboardGroupChildrenInput {
+  parseResourceDashboardQuery(params, false, true);
+  const groupId = params.get("groupId");
+  if (groupId === null || !(groupId === "ungrouped" || isCanonicalUuidV4(groupId))) invalidDashboardQuery();
+  const detailParams = new URLSearchParams({ dimension: "group", id: groupId!, snapshotId: params.get("snapshotId") ?? "" });
+  for (const key of ["milestoneTaskId", "offset", "limit"] as const) if (params.has(key)) detailParams.set(key, params.get(key)!);
+  const detail = parseResourceDashboardDetails(detailParams);
+  return { snapshotId: detail.snapshotId, groupId: detail.selector.id, ...(detail.selector.milestoneTaskId === undefined ? {} : { milestoneTaskId: detail.selector.milestoneTaskId }), offset: detail.offset, limit: detail.limit };
 }

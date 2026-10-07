@@ -191,3 +191,7 @@ M/M 기준은 명시 finite-positive query → 유효 `RESOURCE_MD_PER_MM` → n
 ## Issue #523 Resource KPI의 선택 범위와 전체 상태
 
 `calculateResourceKpi`는 full canonical snapshot의 `projectStageGates`를 그대로 재사용해 explicit/상속/override/해제/빈 Summary/미지정을 분류한다. Resource/Group/Milestone bucket의 할당 작업 진척은 A의 고유 일반 Task를 사용하지만 `fullMilestones.stageGate`의 전체 진척·Ready·Blocked는 full E(M)/P(M)를 사용한다. 숨긴 미완료 member나 predecessor를 조회 조건으로 제거하지 않는다. Task Dependency나 날짜순을 Milestone Dependency로 승격하지 않고 조회로 상태를 변경하지 않는다. 각 Resource/Group의 모든 Milestone+미지정 raw 공수 partition은 해당 subtotal을 보존하며 Group/Role 중첩 소계를 전체 합으로 더하지 않는다. 상세 [공통 KPI 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다.
+
+## Issue #526 Resource 교차 범위 표시
+
+Resource/Group Milestone 소계의 할당 작업 진척은 선택 Assignment의 작업범위다. 계층 안에 표시하는 단계 전체 소속 완료 수/Ready/선행 Blocked는 서버 full canonical stage를 그대로 사용한다. 선택 개인의 모든 작업이 완료되어도 다른 전체 member 또는 선행 단계가 미완료면 준비 전/선행 차단 있음이 유지된다. manual event와 준비 판정 해당 없음은 문자열로 구분한다. 비교표 완료율은 고유 Task 완료율이며 null은 미산정으로 표시한다. 상세로 이동해도 membership/일정/Dependency/완료상태 mutation을 수행하지 않는다.

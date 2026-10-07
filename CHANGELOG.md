@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.99.0] - 2026-10-08
+
+### Added
+
+- Issue #526: 그룹→Milestone→개인, 그룹→개인→Milestone, 개인→Milestone 조회와 Group/Resource 비교표를 추가한다. 같은 snapshot의 그룹 자식 페이지·교차 상세·Milestone 선택/기준/제외 요약을 제공하고, 표시 페이지와 전체 합계 및 선택 작업 진척과 단계 전체 상태를 구별한다.
+
 ## [0.98.0] - 2026-10-08
 
 ### Added

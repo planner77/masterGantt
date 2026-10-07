@@ -1089,3 +1089,9 @@ Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0d
 `project-resource-workload-status.spec.ts`의 긴 이름·다중 행 geometry1개를 실제 Chromium에서 실행했다(1 PASS,9.6초). 그룹/개인 각각390/768/1024/1440/1920px의 총10개 관측에서 그룹12행/개인40행/Assignment 상세50행(전체120행, 다음 페이지50)을 실제 Dashboard DOM으로 측정한다. 조건은 개인 활성 상태/그룹 활성 소속 전체이며 normalized filter와 mode를 geometry JSON에 기록한다. 모든 populated 행의 header/body 정렬·cell 비중첩·control containment, toolbar 비중첩·화면 내 containment, 날짜 열208px 이상/날짜 토큰 비분리, 소유 table 내부 가로·세로 overflow, document 폭=viewport, native Tab focus ring의 cell/scroll owner/viewport containment를 통과했다. 안정 UUID Task50개·상세 WBS 최대375자·화면 identity 최대233자를 확인했으며 Gantt fixture로 대체하지 않았다.
 
 기존 짧은5폭 PASS와 초기 실패 artifact는 보존한다. 새 근거는 로컬 `output/playwright/issue-525/long-many/geometry.json`과 mode별5폭 PNG 및 `run-long-many-final-frozen.log`다. PR PNG390/1440은 새 긴 그룹 기본화면과 일치하며 이전 짧은 PNG는 로컬 `short-before-rework/`에 보존한다. 합성 geometry는 별도 실제 SQLite/HTTP 회귀를 대체하지 않는다. 기존 고유 Chromium10개 PASS에 신규1개를 더한 고유11개이며 반복 geometry 실행을 추가 테스트로 세지 않는다. Unit은 긴 fixture 계약 검증1개를 추가해 관련2파일10개다. 원격 quality/e2e/docker·최종 독립 QA 및 실제 환경 검증은 별도 NOT TESTED다.
+
+## Issue #526 리소스 Milestone 조회
+
+리소스 탭의 보기 선택에 계층/비교표를 추가한다. Group 중심은 Milestone 우선 또는 개인 우선 집계 순서를 선택하고, 개인 중심은 Milestone 소계에서 상세를 연다. 상위 Workspace navigation은 추가하지 않는다. 기존 기본 현황과 legacy stage drill은 유지한다. 필터·단위·snapshot은 공유하고 행/열 페이지는 계산 범위를 바꾸지 않는다.
+
+긴 Group/Resource/Milestone 이름은2줄로 보이되 full accessible name/title을 보존한다. 비교표는 내부 scroll을 가진50행×6단계+전체이며 visible 개수와 전체 scope를 구분한다. 계층은12개 실제 펼침 상한과 안정 ID별 보존 상태를 사용한다. 상세의 이름은 row·Milestone·metric을 포함하고 Escape는 숨김/inert trigger를 피하여 검색으로 복원한다. Gantt instance 및 기존 일정 scroll/선택/열/tree/scale을 변경하지 않는다. 정량 검증은 TEST_PLAN의 #526 UI 절을 따른다.
