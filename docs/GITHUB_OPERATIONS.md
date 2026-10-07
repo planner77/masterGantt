@@ -238,6 +238,10 @@ CI 장애 분석 시 aggregate required check가 SUCCESS인데 artifact job이 S
 - historical artifact는 untrusted input으로 취급한다. duration/file JSON을 파싱하는 것 외의 명령 실행이나 credential 사용을 허용하지 않는다.
 - plan 파일 오류·stale 상태는 test skip 사유가 아니다. CI/Release는 current test 목록을 기준으로 신규 file을 포함하거나 native sharding으로 fallback한다.
 
+- Issue #508부터 proposal은 `e2e-shard-proposal.json` non-hidden artifact로 30일 보존한다. artifact 누락을 방지하기 위해 hidden-file 업로드 옵션에 의존하지 않는다.
+- 기존 자동 PR 조회는 `scripts/e2e-shard-optimizer-pr.mjs`가 quoted title search를 GitHub CLI의 단일 인자로 전달하고 반환된 `number,title` 중 exact title만 선택한다. workflow inline shell에는 복잡한 quote nesting을 두지 않는다.
+- `shouldUpdate=false`는 no-op 성공, `shouldUpdate=true + 기존 exact-title PR 있음`은 중복 PR 미생성, `shouldUpdate=true + 기존 PR 없음`만 새 plan PR 생성 경로로 진행한다. required checks/ruleset과 자동 merge 금지 정책은 그대로 유지한다.
+
 ## Issue #439 CI setup/cache 계측 운영
 
 - CI setup metric artifact는 성능 관찰 데이터이며 required check나 release evidence를 대체하지 않는다.

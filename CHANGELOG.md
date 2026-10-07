@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.94.2] - 2026-10-07
+
+### Fixed
+
+- Issue #508: E2E 샤드 최적화 workflow의 기존 자동 PR 검색을 shell-safe Node helper로 분리하고 exact title만 중복 PR로 인정한다.
+- 분석 proposal을 non-hidden `e2e-shard-proposal.json`으로 저장해 기본 artifact 업로드 정책에서도 30일 보존되도록 한다.
+- PR 검색 helper의 직접 작성 오류 설명을 CI/CD 한글 작성 정책에 맞추고 lookup/workflow 회귀 검증을 보강한다.
+
+
 ## [0.94.1] - 2026-10-07
 
 ### Fixed

@@ -285,6 +285,19 @@ Lifecycle의 exact main CI 조회는 repository의 최근 run 목록을 넓게 �
 
 다른 SHA의 성공 run, head_sha binding 없는 최근 run 목록, overall CI success만으로 lifecycle mutation을 허용하지 않는다.
 
+
+## Issue #508 E2E 샤드 최적화 원격 검증
+
+Issue #508은 제품 required check 자체가 아니라 `.github/workflows/e2e-shard-optimizer.yml`의 운영 경로를 수정하므로 정적 계약과 실제 optimizer run 증거를 구분한다.
+
+- PR 단계에서는 exact head의 `quality`/`e2e`/`docker` SUCCESS로 helper Unit test와 workflow contract regression이 통과했는지 확인한다. 이 결과만으로 scheduled optimizer의 실제 GitHub CLI 조회나 artifact 업로드를 실행했다고 보고하지 않는다.
+- optimizer의 실제 원격 실행에서는 `median/LPT 분석` 후 `e2e-shard-proposal.json`이 `e2e-shard-optimizer-proposal` artifact로 생성되고 30일 보존되는지 확인한다. hidden file 업로드 옵션에 의존하는 결과는 PASS 근거로 사용하지 않는다.
+- `shouldUpdate=false`이면 `기존 최적화 PR 확인`과 `샤드 계획 자동 PR 생성`이 모두 SKIPPED인 no-op success를 확인한다.
+- `shouldUpdate=true`이면 기존 자동 PR 조회 단계가 Bash syntax error 없이 실행되어야 한다. exact title `[Issue #437] ci: E2E 샤드 계획 갱신` PR이 이미 열려 있으면 해당 번호를 반환하고 새 PR을 생성하지 않는다.
+- 기존 exact-title PR이 없을 때만 새 `ci/issue-437-e2e-shard-plan-<run id>` branch/PR 생성과 exact branch의 `ci.yml workflow_dispatch` 등록을 확인한다. 자동 merge, required checks/ruleset 완화, shard 수/threshold 변경은 허용하지 않는다.
+- 위 `shouldUpdate=true` 분기는 historical timing threshold가 실제 충족된 run에서만 원격 PASS로 판정한다. 조건을 임의로 낮추거나 테스트용 중복 PR을 만들어 증거를 조작하지 않는다.
+
+
 ## Issue #439 setup/cache 성능 원격 검증
 
 | 구분 | 원격 증거 | 판정 |
