@@ -8,7 +8,7 @@
 - 사용자 요청 종료점: 구현, 관련 문서 동기화, PR 생성, 동일 head PR CI 시작
 - CI 결과 모니터링, 병합, main CI/GHCR, 정식 release, branch cleanup, Issue close는 이번 요청 범위 밖이다.
 - version: 하위 호환 UI state bug 수정이므로 `0.94.3` PATCH
-- `release_required=false`, `release_authorized=false`
+- `release_required=true`, `release_authorized=true` — application version `0.94.3` 정식 GHCR 게시를 사용자가 명시 승인했다.
 
 ## 문제와 사용자 흐름
 
