@@ -48,11 +48,11 @@ AC2의 cross-admin baseline은 #452 PR #466에서 존재했지만 재사용 geom
 
 ## 미실행 항목 추적
 
-실제 React error boundary·native125% 등과 운영 source/version 미검증은 [#502](https://github.com/planner77/masterGantt/issues/502) FOLLOW-UP / NOT TESTED로 추적한다. 404/API 실패 실행을 boundary 검증으로 보고하지 않는다. 제품 후속B[#490](https://github.com/planner77/masterGantt/issues/490)/C[#491](https://github.com/planner77/masterGantt/issues/491)와 구분하며 이번에 자동 구현하지 않는다.
+당시 실제 React error boundary·native125% 등과 운영 source/version은 미검증이었다. 현재 실제 React boundary 자동화는 [#502](https://github.com/planner77/masterGantt/issues/502), native125%·실기기/screen reader·최종 수동 UX·운영 source/version은 [#517](https://github.com/planner77/masterGantt/issues/517)로 분리 추적한다. 404/API 실패 실행을 boundary 검증으로 보고하지 않는다. 제품 후속B[#490](https://github.com/planner77/masterGantt/issues/490)/C[#491](https://github.com/planner77/masterGantt/issues/491)와 구분하며 이번에 자동 구현하지 않는다.
 
 ## DOCUMENTATION_SYNC와 동결 후보
 
-frontend의 테스트8/문서3/증거143개가 동결됐고 Manager의 현재 Packet/PLAN2개를 합쳐156파일 후보로 검토한다. 로컬 직접7 PASS 및 선택16 재사용으로 고유23 시나리오를 기록하되 단일23 PASS 실행으로 합치지 않는다. 4회 실행36 testcase=34 PASS/2 FAIL과 최초 typecheck/관찰/보존 오류를 유지한다. 제품323 source와 generated 파일, baseline439 tracked output은 변경0이다. 역사적 AC2 GAP/FAIL과 #490/#491/#502의 FOLLOW-UP/NOT TESTED는 그대로 유지한다. 독립 사전 QA와 게시 동등성은 다음 단계다. 공식 quality/e2e/docker·QA_FINAL/Manager 최종 ACCEPT는 NOT TESTED다.
+frontend의 테스트8/문서3/증거143개가 동결됐고 Manager의 현재 Packet/PLAN2개를 합쳐156파일 후보로 검토한다. 로컬 직접7 PASS 및 선택16 재사용으로 고유23 시나리오를 기록하되 단일23 PASS 실행으로 합치지 않는다. 4회 실행36 testcase=34 PASS/2 FAIL과 최초 typecheck/관찰/보존 오류를 유지한다. 제품323 source와 generated 파일, baseline439 tracked output은 변경0이다. 역사적 AC2 GAP/FAIL과 당시 #490/#491/#502 FOLLOW-UP/NOT TESTED 기록은 역사 증거로 유지한다. 현재 환경 검증 소유자는 #517이다. 독립 사전 QA와 게시 동등성은 다음 단계다. 공식 quality/e2e/docker·QA_FINAL/Manager 최종 ACCEPT는 NOT TESTED다.
 
 추가 N/A: CHANGELOG는 제품 변경이 없어 version/release 항목을 새로 만들지 않는다. README/npm/설정 진입점은 기존 test 실행 계약을 유지하고 검사 방법은 TEST_PLAN/coverage 문서에 기록한다. source/API/DB/보안/일정/Import·Export/VBA/배포/CI·운영 문서는 해당 계약의 구현 변경이 없어 N/A다.
 

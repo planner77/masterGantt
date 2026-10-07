@@ -297,7 +297,7 @@ B 설정·근무 규칙·인증은 [#490](https://github.com/planner77/masterGan
 
 선행 #456 PR #500의 exact head에서 stacked branch를 만들어 공통 측정 helper/대표 E2E/전체 coverage 표와 문서를 보강한다. [Work Packet](ISSUE_457.md)에 기준 SHA·역할·증거·검증 경계를 기록한다. version0.92.1 유지, tests/docs only, 공식 CI와 최종 ACCEPT는 NOT TESTED다. 현재 구현·독립 검토를 진행하며 요청 범위는 원격 PR과 exact-head CI 등록까지다. B #490/C #491 및 실제 배포/환경별 검증은 후속으로 유지하고 Epic #449를 종료하지 않는다.
 
-#457의 실제 React error boundary·native125%·수동 UX·운영 source/version 미실행은 [#502](https://github.com/planner77/masterGantt/issues/502) FOLLOW-UP / NOT TESTED로 추적한다. 이번 PR은 해당 후속이나 B #490/C #491를 자동 구현하지 않는다.
+#457의 실제 React error boundary 미실행은 [#502](https://github.com/planner77/masterGantt/issues/502), native125%·수동 UX·운영 source/version 미실행은 [#517](https://github.com/planner77/masterGantt/issues/517) FOLLOW-UP / NOT TESTED(BLOCKED 가능)로 분리 추적한다. 당시 #457 PR은 해당 후속이나 B #490/C #491를 자동 구현하지 않았다.
 
 #457 게시 준비 중 선행 PR #500 병합을 확인했다. 최신 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 tree가 기존 측정 source와 정확히 같아 제품 검증을 재사용하며 최종 PR base는 main으로 갱신한다. 착수 당시 stacked 계획과 원래 capture source SHA는 역사 기록으로 보존한다. 독립 QA에서 확인한 목록 실측1280×720·Asia/Seoul 요약 정정 후 새 후보 검토로 진행한다.
 
