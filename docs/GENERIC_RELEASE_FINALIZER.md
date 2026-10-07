@@ -126,3 +126,15 @@ Release completion Resume는 단순한 완료 확인기만이 아니다. 선행 
 - Generic `release-finalizer.yml`도 같은 이유로 `actions: write`를 유지한다.
 - `scripts/verify-issue-lifecycle.py`가 두 workflow의 `actions: write` 계약을 정적으로 검사한다.
 - Issue #461의 `v0.87.1`은 이미 생성된 annotated tag를 authority로 유지하며 tag 이동/재생성 없이 Release dispatch를 재개한다.
+
+
+## Issue #520 동일 merge SHA 중복 Main CI evidence 선택
+
+PR required check는 같은 head SHA에서도 최신 check-run을 판정하는 기존 정책을 유지한다. 반면 merge 이후의 `main` commit은 immutable하므로, 동일 merge SHA에 여러 push CI가 등록된 경우 lifecycle evidence는 다음과 같이 해석한다.
+
+- `auto_release_finalizer.py`는 동일 exact SHA의 completed/success Main CI가 하나 이상 있으면 성공 run 중 가장 최신 것을 CI evidence로 사용한다.
+- `issue_lifecycle.py`는 Main CI run 자체의 SUCCESS만으로 충분하지 않다. 해당 run의 변경 유형에 맞는 `Main 임시 commit 이미지 게시·검증·정리` gate까지 성공/N/A인 run만 authoritative evidence로 선택한다.
+- 이후 중복 run의 failed/cancelled 기록은 삭제하거나 성공으로 바꾸지 않는다. successful evidence가 전혀 없으면 최신 exact-SHA run URL을 diagnostics로 보존하고 mutation은 계속 fail-closed한다.
+- 이 규칙은 immutable `ci-<SHA>`를 overwrite하는 허용이 아니다. 이미 검증된 exact SHA evidence를 lifecycle이 재사용하는 규칙이다.
+
+#502 merge SHA `36cf2db8ab0c6d04ab904b01c6bc8a0bb6b1cdab`에서 #2083.1 SUCCESS 뒤 #2084.1이 기존 `ci-<SHA>` overwrite 거부로 실패한 사례가 #520의 회귀 기준이다.

@@ -451,6 +451,125 @@ finally:
     module.gh = saved_lifecycle_gh
 
 saved_lifecycle_gh = module.gh
+def fake_duplicate_main_runs(path: str, *, method: str = "GET", fields=None):
+    if "/actions/workflows/ci.yml/runs" in path:
+        return {
+            "workflow_runs": [
+                {
+                    "id": 79,
+                    "head_sha": test_sha,
+                    "status": "completed",
+                    "conclusion": "failure",
+                    "created_at": "2026-09-30T00:05:00Z",
+                    "html_url": "https://example.invalid/run/79",
+                },
+                {
+                    "id": 77,
+                    "head_sha": test_sha,
+                    "status": "completed",
+                    "conclusion": "success",
+                    "created_at": "2026-09-30T00:00:00Z",
+                    "html_url": "https://example.invalid/run/77",
+                },
+            ]
+        }
+    if "/actions/runs/77/jobs" in path:
+        return {
+            "jobs": [
+                {
+                    "name": module.MAIN_ARTIFACT_JOB,
+                    "status": "completed",
+                    "conclusion": "success",
+                    "html_url": "https://example.invalid/job/77",
+                }
+            ]
+        }
+    if "/actions/runs/79/jobs" in path:
+        return {
+            "jobs": [
+                {
+                    "name": module.MAIN_ARTIFACT_JOB,
+                    "status": "completed",
+                    "conclusion": "failure",
+                    "html_url": "https://example.invalid/job/79",
+                }
+            ]
+        }
+    return {}
+module.gh = fake_duplicate_main_runs
+try:
+    ci_ok, ci_url, artifact_ok, artifact_evidence = module.exact_main_ci(
+        test_repo, test_sha, docs_only=False
+    )
+    require(ci_ok and artifact_ok, "older exact-SHA successful main CI with valid artifact must remain authoritative")
+    require(ci_url.endswith("/run/77"), "duplicate later failure must not mask successful exact-SHA main CI evidence")
+    require("/job/77" in artifact_evidence, "artifact evidence must come from selected successful main CI")
+finally:
+    module.gh = saved_lifecycle_gh
+
+saved_auto_gh = auto.gh
+def fake_auto_duplicate_main_runs(path: str):
+    if "/actions/workflows/ci.yml/runs" in path:
+        return {
+            "workflow_runs": [
+                {
+                    "id": 79,
+                    "head_sha": test_sha,
+                    "status": "completed",
+                    "conclusion": "failure",
+                    "created_at": "2026-09-30T00:05:00Z",
+                    "html_url": "https://example.invalid/run/79",
+                },
+                {
+                    "id": 77,
+                    "head_sha": test_sha,
+                    "status": "completed",
+                    "conclusion": "success",
+                    "created_at": "2026-09-30T00:00:00Z",
+                    "html_url": "https://example.invalid/run/77",
+                },
+            ]
+        }
+    return {}
+auto.gh = fake_auto_duplicate_main_runs
+try:
+    ci_ok, ci_url = auto.exact_main_ci_success(test_repo, test_sha)
+    require(ci_ok and ci_url.endswith("/run/77"), "auto finalizer must preserve successful exact-SHA evidence across later duplicate failure")
+finally:
+    auto.gh = saved_auto_gh
+
+saved_auto_gh = auto.gh
+def fake_auto_all_failed(path: str):
+    if "/actions/workflows/ci.yml/runs" in path:
+        return {
+            "workflow_runs": [
+                {
+                    "id": 78,
+                    "head_sha": test_sha,
+                    "status": "completed",
+                    "conclusion": "failure",
+                    "created_at": "2026-09-30T00:00:00Z",
+                    "html_url": "https://example.invalid/run/78",
+                },
+                {
+                    "id": 79,
+                    "head_sha": test_sha,
+                    "status": "completed",
+                    "conclusion": "cancelled",
+                    "created_at": "2026-09-30T00:05:00Z",
+                    "html_url": "https://example.invalid/run/79",
+                },
+            ]
+        }
+    return {}
+auto.gh = fake_auto_all_failed
+try:
+    ci_ok, ci_url = auto.exact_main_ci_success(test_repo, test_sha)
+    require(not ci_ok and ci_url.endswith("/run/79"), "all-failure diagnostics must retain the newest exact-SHA run URL")
+finally:
+    auto.gh = saved_auto_gh
+
+saved_lifecycle_gh = module.gh
 def fake_wrong_sha(path: str, *, method: str = "GET", fields=None):
     if "/actions/workflows/ci.yml/runs" in path:
         return {

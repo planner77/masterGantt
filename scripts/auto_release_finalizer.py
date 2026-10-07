@@ -475,12 +475,33 @@ def exact_main_ci_success(repo: str, sha: str) -> tuple[bool, str | None]:
     )
     if not isinstance(data, dict):
         raise AutoFinalizerError("main CI 조회 응답 형식이 올바르지 않습니다")
-    runs = [run_data for run_data in data.get("workflow_runs", []) if run_data.get("head_sha") == sha]
+    runs = [
+        run_data
+        for run_data in data.get("workflow_runs", [])
+        if run_data.get("head_sha") == sha
+    ]
     if not runs:
         return False, None
-    latest = sorted(runs, key=lambda run_data: run_data.get("created_at", ""))[-1]
-    ok = latest.get("status") == "completed" and latest.get("conclusion") == "success"
-    return ok, latest.get("html_url")
+
+    def run_order(run_data: dict[str, Any]) -> tuple[str, int, int]:
+        return (
+            str(run_data.get("created_at") or ""),
+            int(run_data.get("run_attempt") or 0),
+            int(run_data.get("id") or 0),
+        )
+
+    successful = [
+        run_data
+        for run_data in runs
+        if run_data.get("status") == "completed"
+        and run_data.get("conclusion") == "success"
+    ]
+    if successful:
+        latest_success = sorted(successful, key=run_order)[-1]
+        return True, latest_success.get("html_url")
+
+    latest = sorted(runs, key=run_order)[-1]
+    return False, latest.get("html_url")
 
 
 def exact_release_state(repo: str, item: WorkItem) -> tuple[str, str | None]:
