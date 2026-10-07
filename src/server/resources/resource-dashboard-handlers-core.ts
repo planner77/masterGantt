@@ -1,3 +1,7 @@
+import { readBoundedJson } from "../http/request-core";
+import { isExactAllowedOrigin, parseApplicationBaseUrl } from "../security/origin-core";
+import { RESOURCE_DRILL_LIMITS, type ResourceDrillQueryInput, type ResourceDrillScopeRequest } from "../../contracts/resource-drill";
+import { parseResourceDrillQuery, parseResourceDrillScopeRequest } from "./resource-drill-query-core";
 import { randomUUID } from "node:crypto";
 import { ResourceCalendarExceptionConflictError } from "../../domain/scheduling/resource-calendar";
 import { PersistedWorkCalendarConflictError } from "../calendars/calendar-resolution-core";
@@ -44,6 +48,29 @@ export async function handleGetResourcePlan(request: Request, publicId: string, 
     const data = service.getPlanDetails(publicId, filter, detail, kind);
     if (!data) throw new PublicApiError(404, "PROJECT_NOT_FOUND", "프로젝트를 찾을 수 없습니다.");
     return Response.json({ data }, { headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "X-Request-ID": requestId } });
+  } catch (error) {
+    const normalized = error instanceof ResourceCalendarExceptionConflictError || error instanceof PersistedWorkCalendarConflictError
+      ? new PublicApiError(409, "RESOURCE_CALENDAR_EXCEPTION_CONFLICT", "근무 달력의 충돌을 먼저 해결해 주세요.") : error;
+    const response = apiErrorResponse(normalized, requestId);
+    response.headers.set("Cache-Control", "private, no-store"); response.headers.set("X-Content-Type-Options", "nosniff"); return response;
+  }
+}
+
+export async function handleResourceDrill(request: Request, publicId: string, dependencies: {
+  service: Pick<ResourceDashboardService, "getScope" | "query"> | (() => Pick<ResourceDashboardService, "getScope" | "query">);
+  applicationBaseUrl?: string; environment?: string; allowInsecureHttp?: string; requestId?: () => string;
+}, post = false): Promise<Response> {
+  const requestId = (dependencies.requestId ?? randomUUID)();
+  try {
+    if (!isCanonicalUuidV4(publicId)) throw new PublicApiError(404, "PROJECT_NOT_FOUND", "프로젝트를 찾을 수 없습니다.");
+    if (post && !isExactAllowedOrigin(request.headers.get("Origin"), parseApplicationBaseUrl(dependencies.applicationBaseUrl, dependencies.environment, dependencies.allowInsecureHttp))) {
+      throw new PublicApiError(403, "ORIGIN_NOT_ALLOWED", "허용된 서비스 주소에서 다시 요청해 주세요.");
+    }
+    const input = post ? parseResourceDrillQuery(await readBoundedJson(request, RESOURCE_DRILL_LIMITS.bodyBytes)) : parseResourceDrillScopeRequest(new URL(request.url).searchParams);
+    const service = typeof dependencies.service === "function" ? dependencies.service() : dependencies.service;
+    const result = post ? service.query(publicId, input as ResourceDrillQueryInput) : service.getScope(publicId, input as ResourceDrillScopeRequest);
+    if (!result) throw new PublicApiError(404, "PROJECT_NOT_FOUND", "프로젝트를 찾을 수 없습니다.");
+    return Response.json(post ? result : { data: result }, { headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff", "X-Request-ID": requestId } });
   } catch (error) {
     const normalized = error instanceof ResourceCalendarExceptionConflictError || error instanceof PersistedWorkCalendarConflictError
       ? new PublicApiError(409, "RESOURCE_CALENDAR_EXCEPTION_CONFLICT", "근무 달력의 충돌을 먼저 해결해 주세요.") : error;

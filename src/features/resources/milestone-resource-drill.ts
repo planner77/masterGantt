@@ -1,7 +1,9 @@
+import type { ResourceDrillSourceContext } from "@/contracts/resource-drill";
 import type { ResourceWorkloadTaskDto } from "../../contracts/resources";
 
 /** A display drill from a confirmed dashboard, never a second effort engine. */
 export interface MilestoneResourceDrill {
+  sourceContext?: ResourceDrillSourceContext | null;
   projectRevision: number;
   catalogRevision: number;
   resourceIds: readonly string[];

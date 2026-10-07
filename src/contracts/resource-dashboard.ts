@@ -1,3 +1,4 @@
+import type { ResourceDataContext, ResourceDrillSourceContext } from "./resource-drill";
 import type { TaskStatus } from "./projects";
 import type { DeveloperGrade, ResourceWorkloadRole } from "./resources";
 import type { ResourcePlanResult, ResourcePlanResourceSeries, ResourcePlanGroupSeries, ResourcePlanRowSelector, ResourcePlanDemandScope, ResourcePlanGranularity, ResourcePlanDailyRow, ResourcePlanDayResourceRow, ResourcePlanDayAssignmentRow } from "../domain/resources/resource-plan";
@@ -64,6 +65,7 @@ export interface ResourceDashboardStage {
   selected: ResourceDashboardSummary;
 }
 export interface ResourceDashboardDto {
+  resourceScopeContext?: ResourceDrillSourceContext;
   plan?: ResourceDashboardPlanDto;
   schema: "resource-dashboard/1"; projectPublicId: string; projectRevision: number; catalogRevision: number;
   calendarRevision: string; snapshotId: string; calculatedAt: string; asOfDate: string; timezone: "Asia/Seoul";
@@ -99,6 +101,7 @@ export interface ResourceDashboardDetailRow {
     effectiveWorkingDays: number; plannedMd: number | null; plannedMm: number | null } | null;
 }
 export interface ResourceDashboardDetailsDto {
+  resourceDataContext?: ResourceDataContext;
   schema: "resource-dashboard/1"; snapshotId: string; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
   selector: ResourceDashboardSelector; view: "tasks" | "assignments"; offset: number; limit: number; totalCount: number;
   nextOffset: number | null; rows: ResourceDashboardDetailRow[];
@@ -110,6 +113,7 @@ export interface ResourceDashboardGroupChildrenInput {
   snapshotId: string; groupId: string | null; milestoneTaskId?: string | null; offset: number; limit: number;
 }
 export interface ResourceDashboardGroupChildrenDto {
+  resourceDataContext?: ResourceDataContext;
   schema: "resource-dashboard/1"; snapshotId: string; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
   groupId: string | null; milestoneTaskId?: string | null; filters: ResourceDashboardFilters; range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null; mdPerMmSource: "query" | "environment" | "unset"; summary: ResourceDashboardSummary;
   offset: number; limit: number; totalCount: number; nextOffset: number | null; rows: ResourceDashboardRow[];
@@ -131,6 +135,7 @@ export interface ResourcePlanDetailInput {
   demandScope: ResourcePlanDemandScope; date?: string; offset: number; limit: number;
 }
 export interface ResourcePlanDetailContext extends ResourcePlanDetailInput {
+  resourceDataContext?: ResourceDataContext;
   schema: "resource-dashboard/1"; projectPublicId: string; projectRevision: number; catalogRevision: number; calendarRevision: string;
   filters: ResourceDashboardFilters; range: { from: string; to: string }; asOfDate: string; mdPerMm: number | null; mdPerMmSource: "query" | "environment" | "unset";
   totalCount: number; nextOffset: number | null;

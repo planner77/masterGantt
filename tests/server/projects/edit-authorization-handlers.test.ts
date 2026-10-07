@@ -476,6 +476,8 @@ describe("route security inventory", () => {
       "PATCH /api/logistics-catalog/admin/system-types/{code}",
       "GET /api/projects/{publicId}/assignment-targets",
       "GET /api/projects/{publicId}/assigned-targets",
+      "GET /api/projects/{publicId}/resource-dashboard/scope",
+      "POST /api/projects/{publicId}/resource-dashboard/query",
       "GET /api/projects/{publicId}/resource-dashboard",
       "GET /api/projects/{publicId}/resource-dashboard/details",
       "GET /api/projects/{publicId}/resource-dashboard/group-children",
@@ -511,6 +513,7 @@ describe("route security inventory", () => {
       expect(route.method).not.toBe("GET");
       expect(route.policy).not.toBe("public-read");
     }
+    expect(ROUTE_SECURITY_INVENTORY.find(({ template }) => template.endsWith("/resource-dashboard/query"))).toMatchObject({ method: "POST", policy: "origin-public-query-read", mutatesState: false });
     expect(ROUTE_SECURITY_INVENTORY.filter(({ method }) => method === "GET").every(({ mutatesState }) => !mutatesState))
       .toBe(true);
     expect(ROUTE_SECURITY_INVENTORY.find(({ template }) => template === "/api/projects/{publicId}/exports/excel"))

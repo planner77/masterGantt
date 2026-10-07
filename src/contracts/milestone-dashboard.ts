@@ -1,3 +1,4 @@
+import type { ResourceDrillSourceContext, ResourceScopeUnavailableReason } from "./resource-drill";
 import type { MilestoneStageGateDto } from "./milestones";
 import type { TaskStatus } from "./projects";
 import type { DeveloperGrade, ResourceRole, ResourceWorkloadRole } from "./resources";
@@ -100,6 +101,8 @@ export interface MilestoneDashboardAssignmentDto {
 }
 
 export interface MilestoneDashboardDto {
+  resourceScopeContext?: ResourceDrillSourceContext | null;
+  resourceScopeUnavailableReason?: ResourceScopeUnavailableReason | null;
   projectPublicId: string;
   projectRevision: number;
   catalogRevision: number;

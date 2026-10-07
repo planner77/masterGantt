@@ -228,3 +228,19 @@ Group 셀은 날짜별 요약→날짜의 개인 numeric 근거→개인·날짜
 Plan 컴포넌트와 마지막 정상 Plan DTO는 메모리에서 보존한다. 다른 보기에서는 hidden/inert이며 요청을 중단한다. 오래된 자료는 새 filter/snapshot/granularity의 결과로 표시하거나 drill하지 않는다. 늦게 도착한 canceled409는 현재 상태를 stale로 만들지 않는다. 동일 snapshot의 view/mode/week/month 왕복은 펼침·분류 페이지·기간 창·지표·scope를 보존한다. #526 tree/matrix 상태 key에서 projection granularity를 제외하고 실제 filter/snapshot 변화와 구별한다. Gantt instance나 저장 데이터를 변경하지 않는다.
 
 Resource Plan owner는 sticky identity 폭(280px/144px)을 scroll-padding에 반영하고 기간 버튼에 scroll-margin을 적용한다. 가로·세로 scroll 뒤 native Tab focus ring이 identity/header 아래에 숨지 않고 owner 안에 드러나도록 유지한다. 상세 Assignment 0건의 페이지 표기는 `0–0 / 0`이며 이전/다음은 잠긴다.
+
+## Issue #528 — 정확한 source scope와 양방향 drill
+
+선택 source descriptor는 일반 Task 집합과 optional 정확 Assignment 집합으로 정규화한다. selected A는 두 집합과 현재 target 필터의 교집합이다. 공동 Task의 한 개인 Assignment를 다른 개인 배정으로 확대하지 않는다. 명시 빈 집합과 빈 Summary는 empty다. T0는 허용 일반 Task 집합을 적용한 후 기존 개인·역할 조건 전 raw Assignment 진단을 유지한다. Summary/Milestone 직접 참조는 개인 effort에 포함하지 않는다. full Ready/Blocked는 전체 canonical Membership/Dependency를 유지한다.
+
+#526 reference/excluded는 source restriction을 유지하고 Milestone 필터만 제거한다. #527 Capacity R는 현재 Project 일반 Task 개인 배정 이력과 개인 분류 조건으로 결정하며 source Task/Assignment descriptor로 축소하지 않는다. project demand는 같은 R/실제 기간 전체 개인 배정 참고이며 selected exact 기여와 구별한다. resourceMilestone/project 상세는 해당 M 기여이고 parent Resource 전체 과투입 원인은 resource/project로 조회한다. source 제한을 버리는 GET fallback을 사용하지 않는다.
+
+전체 scope API는 page50과 무관한 고유 일반 Task/개인 Assignment IDs 및 건수, 별도 ancestorSummaryIds를 반환한다. ancestor는 화면 context이며 분모가 아니다. Resource/Milestone/schedule 출발 context와 target normalized 필터/기간/환산/projection을 별도로 echo한다. scope의 새 sourceContext는 현재 target selector의 실제 조건이며 원래 POST drill.sourceContext는 불변이다. 한 read transaction의 canonical raw fingerprint를 공유하고 stale409를 foreign semantic400보다 먼저 판정한다. Legacy Milestone 추가 context budget이 초과하면 기존 report를 유지한 채 context=null/limit-exceeded로 정확한 이동만 차단한다. 임의 새 bootstrap으로 옛 report를 fresh로 바꾸거나 기간을366일로 clip하지 않는다. [API](API.md#issue-528-정확한-resource일정-drill-조회)와 공용 drill DTO가 정확한 전송 계약이다.
+
+Frontend의 모든 report/details/groupChildren/Plan 상세는 활성 exact descriptor를 같은 POST query로 전달한다. scope 응답은 원본 context/normalized descriptor/projection/독립 요청 targetFilters와 실제 target sourceProjection(selector·주월·기간·scope·날짜)을 검증한다. ScopeDto에 filters가 없다고 응답 echo를 자기 자신과 비교하지 않는다. 명시 empty preflight는 원본 정책 검증에만 쓰고 사용자 선택 N이나 기간을 덮어쓰지 않는다.
+
+기본/#526/#527 화면은 방문 ID별 mounted hidden/inert로 보존한다. live return frame과 현재 방문만 pin/prune하며8개 frame에 필요한 최초 출발을 포함해 최대9개 context를 유지한다. pop 뒤 참조가 없어진 방문을 제거한다. 한 Task의 한 Assignment 출발은 다른 담당자로 확대하지 않으며 헤더 전체 일정 명령과 Task 행1건 명령을 구분한다. 공통 Workspace 위치의 기존 Task Editor를 재사용하여 Resource 탭에서도 보이도록 한다.
+
+일정 출발에는 계산 화면의 환경 환산이 없으므로 source query/null/provided=true를 명시한다. target의 실제 환산 기준은 별도로 유지한다. 실제 일반 Task min/max와 조회 기준일을 사용하며366일로 임의 clip하지 않는다. 개인 배정0이면 '선택 작업에 조회할 개인 배정이 없습니다'로 안내한다.
+
+새 임시 이동 버튼은 공통 secondary-button으로 최소40px hitbox와3px focus ring을 유지한다. 캐시에서 이전 방문 제목이 먼저 존재해도 hidden/inert 없는 현재 visible Resource 제목에 도착 focus를 준다. Milestone manual scope는 originalSource를 그대로 보존하고 별도 lookup의 오늘 조건을 원본 표시로 사용하지 않는다.

@@ -52,15 +52,18 @@ export function ProjectResourceDashboard({
   active,
   refreshDisabled,
   onRefreshProject,
+  initialFilters,
 }: {
   publicId: string;
   revision: number;
   active: boolean;
   refreshDisabled: boolean;
   onRefreshProject: () => void;
+  initialFilters?: ResourceDashboardFilterInput;
 }) {
-  const [filters, setFilters] =
-    useState<ResourceDashboardFilterInput>(DEFAULTS);
+  const [filters, setFilters] = useState<ResourceDashboardFilterInput>(
+    initialFilters ?? DEFAULTS,
+  );
   const [mode, setMode] = useState<"group" | "resource">("group");
   const [unit, setUnit] = useState<"md" | "mm">("md");
   const [view, setView] = useState<"summary" | "tree" | "matrix" | "plan">(

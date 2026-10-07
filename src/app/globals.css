@@ -2596,3 +2596,8 @@ h2 {
 .project-schedule-peer-panel[hidden] { display: none; }
 .project-milestone-panel { overflow-y: auto; overflow-x: hidden; padding: 0 0 6px; }
 .project-schedule-peer-panel[aria-hidden="true"] { visibility: hidden; pointer-events: none; }
+
+.resource-drill-strip { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border-default); font-size:12px; }
+.resource-drill-strip:empty { display:none; }
+.resource-drill-strip > span { flex:1 1 260px; min-width:0; overflow-wrap:anywhere; }
+.resource-drill-strip > button { flex:0 0 auto; max-width:100%; }

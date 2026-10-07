@@ -1105,3 +1105,15 @@ Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0d
 Plan/기본 현황/#526 보기와 Group/개인·주/월 전환에서 상태를 보존한다. 마지막 Plan DTO는 비활성 보기에서 hidden/inert·drill 잠금 상태로 보존하고 실제 snapshot/filter 변화는 새 상태로 취급한다. Step 진입 제목 focus/Escape 한 단계 복귀, 안정적인 retry/pager focus, 늦은 canceled409 무시와 stale 차단을 검증한다. 실제 Gantt scroll120/96·선택/tree/열/주scale·instance 보존과5폭 geometry는 TEST_PLAN의 #527 UI 절을 따른다.
 
 Resource Plan owner는 sticky identity 폭(280px/144px)을 scroll-padding에 반영하고 기간 버튼에 scroll-margin을 적용한다. 가로·세로 scroll 뒤 native Tab focus ring이 identity/header 아래에 숨지 않고 owner 안에 드러나도록 유지한다. 상세 Assignment 0건의 페이지 표기는 `0–0 / 0`이며 이전/다음은 잠긴다.
+
+## Issue #528 — 정확한 화면 간 조회 범위
+
+일정의 선택 일반 Task 또는 Summary 자손에서 모든 개인 담당을 조회하고, Resource 상세의 전체 범위에서 일정으로 이동한다. 상세의 전체 일정 명령은 현재 page50이 아닌 서버의 전체 고유 Task/Assignment 집합을 사용한다. Task 이름은 기존 작업 정보 Editor를 열며 개별 일정 명령과 전체 범위 명령을 구분한다. Milestone 원본은 실제 출발 context가 있을 때 기본 Resource Dashboard로 이동한다. 직접 Milestone 일정 위치는 표시 노드이며 일반 Task 분모에 포함하지 않는다.
+
+임시 조회 범위 strip은 출발 화면, 고유 일반 Task, Assignment, 조상 문맥, 실제 기간과 선택 기여/Project 전체 참고를 표시한다. 다른 탭을 수동으로 열면 최근 이동의 대상 화면을 명시하여 그 집합을 현재 화면 결과로 표시하지 않는다. 최대8단계 LIFO 복귀에서 원래 보기는 직전 출발의 조건·선택·펼침·페이지·단위·지표·scroll을 복원한다. 임시 이동 범위 전체 해제는 현재 화면을 유지하고 그 화면의 첫 이동 전 조건을 복원하며 전체 복귀 기록을 폐기한다. 오래된 원본을 조용히 밀어내지 않고9번째 이동을 차단한다. 현재 및 live frame의 방문 context만 최대9개 보존한다.
+
+WBS·필터 또는 기존 Resource 분류·기간의 전체 scope가 명시 대상 일부를 숨기면 숨길 일반 Task 수와 전체 수를 확인하고 별도 범위 이동 또는 취소를 선택한다. 출발 데이터 identity와 서버 환산 정책은 비동기 조회 뒤, 확인 승인 직전에 다시 검증한다. 로딩 취소/Escape/overlay는 요청 generation을 폐기하고 visible 출발 trigger 또는 탭으로 focus를 돌린다. 도착 시 visible 제목에 focus한다. dirty Editor·관계·설정·삭제·복사·Import 진행 중에는 새 범위 이동을 차단하고 기존 편집 권한·초안 계약을 유지한다.
+
+조회는 기존 Gantt instance와 공개 Core 선택 API를 유지한다. 선택 복원은 현재 canonical/권한 검증 후 show:false로 수행하여 viewport 복원과 자동 reveal이 경합하지 않게 한다. 설치 SVAR React Gantt Core2.7.3의 grouping 공식 자료는2026-10-08 URL로 확인했으며 PRO grouping 복제는 사용하지 않는다. 공식 demo 실제 조작은 NOT TESTED다.
+
+Issue #528의 임시 범위 strip 버튼은 기존 secondary-button(최소40px)과 공통 focus-visible outline을 사용한다. 신규 Resource 방문 도착 시 hidden/inert 조상 없이 실제 보이는 제목을 선택하여 focus하며, 이전 방문의 숨은 제목을 선택하지 않는다. Milestone 직접 노드 일정 명령은 검증한 원본 range/asOf/환산/sourceProjection을 복귀 frame에 그대로 보존하고 lookup snapshot·오늘 target 조건과 분리한다.
