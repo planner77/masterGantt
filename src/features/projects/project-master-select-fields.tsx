@@ -96,26 +96,32 @@ export function ProjectMasterSelectFields({
       key: "productId" as const,
       id: "project-product",
       label: "제품",
-      items: options(catalog.data.products.filter((item) => linkedProducts.has(item.id)), current?.product),
+      items: options(catalog.data.products.filter((item) => linkedProducts.has(item.id)),
+        current?.product?.id === value.productId ? current.product : null),
     },
     {
       key: "siteEntityId" as const,
       id: "project-site-entity",
       label: "사업장/법인",
-      items: options(catalog.data.siteEntities.filter((item) => linkedSites.has(item.id)), current?.siteEntity),
+      items: options(catalog.data.siteEntities.filter((item) => linkedSites.has(item.id)),
+        current?.siteEntity?.id === value.siteEntityId ? current.siteEntity : null),
     },
   ];
 
   const handleChange = (key: keyof ProjectMasterSelectionValue, selected: string) => {
     if (key === "businessUnitId") {
-      if (selected !== value.businessUnitId && (value.productId || value.siteEntityId)) setNotice("사업부가 변경되어 하위 제품·사업장 선택을 해제했습니다.");
-      onChange({businessUnitId:selected,productId:"",siteEntityId:""});
+      if (selected === value.businessUnitId) return;
+      setNotice(value.productId || value.siteEntityId
+        ? "사업부가 변경되어 하위 제품·사업장 선택을 해제했습니다."
+        : null);
+      onChange({ businessUnitId: selected, productId: "", siteEntityId: "" });
     } else if (key === "productId") {
-      if (selected !== value.productId && value.siteEntityId) setNotice("제품이 변경되어 사업장/법인 선택을 해제했습니다.");
-      onChange({...value,productId:selected,siteEntityId:""});
+      if (selected === value.productId) return;
+      setNotice(value.siteEntityId ? "제품이 변경되어 사업장/법인 선택을 해제했습니다." : null);
+      onChange({ ...value, productId: selected, siteEntityId: "" });
     } else {
       setNotice(null);
-      onChange({...value,siteEntityId:selected});
+      onChange({ ...value, siteEntityId: selected });
     }
   };
   return <div>

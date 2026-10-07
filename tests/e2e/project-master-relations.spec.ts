@@ -27,6 +27,10 @@ test("Issue #538: Project 생성의 종속 옵션과 상위 변경 시 초안 �
   await expect(siteInput).toBeEnabled();
   await expect(siteInput.locator("option")).toHaveCount(2);
   await siteInput.selectOption(site.id);
+  // Re-selecting the current parent must not erase the user's draft.
+  await unit.selectOption(bu.id);
+  await expect(productInput).toHaveValue(product.id);
+  await expect(siteInput).toHaveValue(site.id);
   await unit.selectOption(other.id);
   await expect(productInput).toHaveValue("");
   await expect(siteInput).toHaveValue("");
