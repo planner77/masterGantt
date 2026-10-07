@@ -2116,3 +2116,11 @@ Issue #454의 immutable `v0.90.1` GHCR Release Run #140.1 (`37434408238`)은 sta
 
 application source/API/DB/domain/version은 변경하지 않는다. 기존 `v0.90.1` tag는 immutable historical evidence로 유지하고 이동·덮어쓰기·재사용하지 않는다. 이 corrective PR의 최신 exact-head PR CI가 timing-race 보완의 검증 근거다.
 
+### Issue #487 PR CI Run #2089.1 timeout failure와 보완
+
+- exact head `8d4b33c76d4a230a55499bc25a960f60e9afa924`의 PR CI Run #2089.1 (`37637832069`)에서 Chromium shard 4/6만 CANCELLED되고 E2E aggregate가 FAIL했다.
+- shard 4 로그는 historical timing plan을 사용하지 못해 Playwright native `--shard=4/6` fallback을 선택했다. Playwright setup 완료까지 약 8분 30초가 소요됐고 이후 테스트는 50개까지 연속 PASS했으나 job 시작 25분 시점에 `The operation was canceled`로 종료됐다.
+- 따라서 #487의 bounded-poll assertion 실패나 제품 회귀 증거가 아니라 E2E job budget과 transient setup latency의 충돌이다.
+- PR/Main과 Release Chromium shard timeout을 25→35분으로 동일하게 늘린다. 6-way shard, `workers: 1`, assertion, native fallback, fail-fast=false와 aggregate fail-closed 계약은 유지한다.
+- 새 exact-head PR CI에서 모든 shard/aggregate PASS를 확인해야 하며 #2089.1 실패 기록은 보존한다.
+

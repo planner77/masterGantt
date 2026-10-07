@@ -26,7 +26,7 @@ GitHub Actions의 workflow 고정 식별자 `name`과 required job/check 이름�
 - PR의 **HTTP/HTTPS transport smoke**는 deploy, transport test/script, security/http server, 인증·Origin/cookie 계약과 연결된 API 또는 CI workflow/action 변경에서만 실행한다. `main` push와 수동 `workflow_dispatch`는 항상 transport smoke를 수행해 release 전 운영 경로 검증을 축소하지 않는다.
 - `Issue #118 구현 전후 레이아웃 증거` workflow는 고정 baseline/after revision을 비교하는 완료된 one-time evidence이므로 자동 PR trigger를 제거하고 수동 `workflow_dispatch` 재현만 남긴다.
 - Required aggregate check 이름과 fail-closed routing은 변경하지 않는다. 선택 step이 생략되어도 Docker aggregate는 candidate/runtime 필수 검증 결과를 기준으로 판정한다.
-- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 늘어나는 경우를 고려해 shard timeout은 25분으로 둔다. 이는 실행시간 최적화 자체가 아니라 외부 setup 지연으로 정상 테스트가 취소되는 것을 막는 안정성 여유이며, 6-way shard와 `workers: 1` 계약은 유지한다.
+- GitHub-hosted runner의 Playwright OS dependency 설치가 Ubuntu mirror 지연으로 늘어나는 경우를 고려해 PR/Main과 Release Chromium shard timeout은 35분으로 둔다. #487 PR CI Run #2089.1에서는 historical plan 불일치로 native 6-way fallback을 사용했고 Playwright setup이 약 8분 30초 소요된 뒤 shard 4의 테스트가 계속 PASS 중이었지만 기존 25분 job ceiling에서 CANCELLED되었다. 35분은 assertion·shard 수·`workers: 1`을 완화하는 값이 아니라 외부 setup 지연을 흡수하는 job budget이며 실제 테스트 실패는 기존처럼 즉시 실패한다.
 - Phase 2는 process/DB 격리를 유지한 prebuilt E2E runtime과 historical timing 기반 shard 균형화를 별도 검증한다. Phase 3는 exact main CI evidence를 release에서 재사용할 수 있는지 별도 검증한다.
 
 ## Issue #283 Docker runtime 슬림화 검증

@@ -331,3 +331,15 @@ before/after 개선은 workflow 파일/event/job/metric별로 **서로 다른 su
 5. PR required check의 latest-check-run 정책은 별도이며 이 규칙으로 완화하지 않는다.
 
 회귀 사례: #502 merge SHA의 Main #2083.1은 quality/e2e/docker 및 temporary GHCR exact digest smoke가 모두 SUCCESS였고, 뒤따른 #2084.1은 동일 immutable `ci-<SHA>` overwrite 거부로 artifact job만 실패했다. #520 이후 lifecycle은 #2083.1의 성공 evidence를 재사용하되 #2084.1 FAILURE 자체는 역사적 기록으로 유지한다.
+
+## Issue #487 PR E2E job-timeout corrective
+
+PR CI Run #2089.1 (`37637832069`)의 Chromium shard 4/6은 제품 assertion 실패가 아니라 job timeout으로 CANCELLED되었다. shard는 `tests/config/e2e-shard-plan.json` 불일치/부재로 native `--shard=4/6` fallback을 사용했고, Playwright setup이 약 8분 30초 걸린 뒤 browser test가 50개까지 계속 PASS했지만 25분 ceiling에서 강제 종료되었다.
+
+보완 검증은 다음을 확인한다.
+
+- `.github/workflows/ci.yml`과 `.github/workflows/release-image.yml`의 Chromium 6-shard job timeout이 모두 35분으로 동일하다.
+- shard 수 6, `workers: 1`, native fallback, historical timing artifact 계약과 required aggregate check 이름은 변경하지 않는다.
+- timeout 증가는 정상 진행 test의 runner setup jitter만 흡수하며 assertion 실패나 non-zero test exit를 success로 바꾸지 않는다.
+- corrective exact-head PR CI에서 Chromium 6개 shard와 aggregate가 실제 PASS해야 한다. 기존 #2089.1 CANCELLED는 실패 이력으로 유지하고 retry 성공으로 덮어쓰지 않는다.
+

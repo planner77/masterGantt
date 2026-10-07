@@ -490,8 +490,10 @@ jobs:
     runs-on: ubuntu-latest
     # Playwright OS dependency install occasionally stalls on Ubuntu mirrors.
     # Keep the six-way shard topology but allow transient setup latency without
-    # converting otherwise healthy browser tests into a 15-minute cancellation.
-    timeout-minutes: 25
+    # converting otherwise healthy browser tests into a job-timeout cancellation.
+    # #487 Run #2089.1 observed ~8.5m setup followed by healthy test progress until
+    # the 25m job ceiling; 35m keeps failure semantics while absorbing setup jitter.
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:

@@ -69,6 +69,7 @@ describe("test configuration repository layout", () => {
       expect(workflow).toContain("tests/config/e2e-shard-plan.json");
       expect(workflow).toContain("E2E_TIMING_OUTPUT");
       expect(workflow).toContain("native 6-way sharding fallback");
+      expect(workflow).toMatch(/(?:e2e_shard|release_e2e_shard):[\\s\\S]*?timeout-minutes: 35/);
     }
     expect(ci).toContain("e2e-timing-ci-shard-");
     expect(release).toContain("e2e-timing-release-shard-");
