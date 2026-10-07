@@ -56,7 +56,7 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
     await expectSameGanttRoot(page, identity);
   });
 
-  test("Resource 검색·기간 필터는 표시 행만 제한하고 전체 Project 집계를 유지한다", async ({ page }) => {
+  test("Resource 검색·기간 필터는 서버 선택 범위를 갱신하고 조건 초기화를 지원한다", async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 900 });
     await installStatefulProjectFixture(page);
     await page.goto(`/projects/${publicId}`);
@@ -66,20 +66,23 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
     await expect(panel.getByRole("heading", { name: "리소스 공수" })).toBeVisible();
     await expect(panel).toContainText("5.00 M/D");
 
-    const search = panel.getByRole("searchbox", { name: "리소스 또는 그룹 이름과 코드 검색" });
+    const dashboard = panel.locator('[data-resource-dashboard="true"]');
+    const search = dashboard.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" });
     await search.fill("R-01");
-    await expect(panel.getByText("테스트 리소스", { exact: false })).toBeVisible();
+    await expect(dashboard).toHaveAttribute("data-ready", "true");
+    await expect(dashboard.getByText("테스트 리소스", { exact: false }).first()).toBeVisible();
 
-    const filter = panel.locator('button[aria-controls="resource-advanced-filter"]');
-    await filter.click();
-    const advanced = panel.getByLabel("리소스 고급 필터");
-    await expect(advanced).toBeVisible();
-    await advanced.getByLabel("Task 기간 From").fill("2026-10-01");
-    await advanced.getByLabel("Task 기간 To").fill("2026-10-31");
-    await expect(panel.getByText("검색 조건에 일치하는 리소스 할당이 없습니다.")).toBeVisible();
-    await expect(panel).toContainText("5.00 M/D");
-
-    await panel.getByRole("button", { name: "초기화", exact: true }).click();
-    await expect(panel.getByText("테스트 리소스", { exact: false })).toBeVisible();
+    // #525 made the range part of the server-side KPI scope, not a local row-only filter.
+    const from = dashboard.getByLabel("기간 시작", { exact: true });
+    const to = dashboard.getByLabel("기간 종료", { exact: true });
+    await from.fill("2026-10-01");
+    await to.fill("2026-10-31");
+    await expect(dashboard).toHaveAttribute("data-ready", "true");
+    await expect(from).toHaveValue("2026-10-01");
+    await expect(to).toHaveValue("2026-10-31");
+    await dashboard.getByRole("button", { name: "초기화", exact: true }).click();
+    await expect(dashboard).toHaveAttribute("data-ready", "true");
+    await expect(search).toHaveValue("");
+    await expect(dashboard).toContainText("5.00 M/D");
   });
 });

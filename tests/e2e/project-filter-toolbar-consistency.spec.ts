@@ -135,7 +135,7 @@ test("Issue #130 Phase 4 일정·리소스 필터는 같은 조작 계층과 API
   const ganttIdentity = await rememberGanttRoot(page);
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
   await expect(page.locator('[data-source="workload"]')).toHaveAttribute("data-state", "ready");
-  await expect(page.locator('[data-source="targets"]')).toHaveAttribute("data-state", "ready");
+  await expect(page.locator(".project-resource-workload")).toHaveAttribute("data-ready", "true");
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   const filterRequests: string[] = [];
   page.on("request", (request) => {

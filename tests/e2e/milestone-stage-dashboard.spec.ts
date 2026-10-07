@@ -105,13 +105,15 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   await panel.getByLabel("공수 시작일", { exact: true }).fill("2026-10-05"); await panel.getByLabel("공수 종료일", { exact: true }).fill("2026-10-06");
   await panel.getByRole("combobox", { name: "M/M 환산 기준", exact: true }).selectOption("unset"); await expect(panel).toHaveAttribute("data-ready", "true");
   await expect(panel).toContainText("2 M/D");
-  const drillResponse = page.waitForResponse((response) => response.url().includes(`${api}/resource-workload?`) && new URL(response.url()).searchParams.get("from") === "2026-10-05" && new URL(response.url()).searchParams.get("to") === "2026-10-06");
+  // #528 uses the exact-assignment readonly POST, not the legacy workload GET.
+  const drillRequest = page.waitForRequest((request) => request.method() === "POST" && request.url().includes(`${api}/resource-dashboard/query`) && request.postData()?.includes('"exactAssignments"') === true);
   await panel.getByRole("button", { name: "해당 범위 리소스 보기", exact: true }).click();
-  const workload = (await (await drillResponse).json()).data;
-  expect(workload.projectRevision).toBe(partial.projectRevision); expect(workload.range).toEqual(partial.workloadRange);
-  const workloadIds = workload.groups.flatMap((group: { resources: { tasks: { assignmentId: string }[] }[] }) => group.resources.flatMap((resource) => resource.tasks.map((task) => task.assignmentId)));
-  expect([...new Set(workloadIds)].sort()).toEqual([...partial.effort.assignmentIds].sort());
-  await expect(page.getByRole("tabpanel", { name: "리소스", exact: true })).toContainText("2.00");
+  const requestPayload = (await drillRequest).postDataJSON();
+  expect([...requestPayload.scope.assignmentIds].sort()).toEqual([...partial.effort.assignmentIds].sort());
+  expect(requestPayload.filters).toMatchObject({ from: "2026-10-05", to: "2026-10-06" });
+  const resources = page.getByRole("tabpanel", { name: "리소스", exact: true });
+  await expect(resources).toContainText("Milestone 원본의 정확한 배정 범위");
+  await expect(resources).toContainText("2.00");
   await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
   await page.getByRole("tab", { name: "KPI 대시보드", exact: true }).click();
   const logisticsPanel = page.getByRole("tabpanel", { name: "물류 구성", exact: true });

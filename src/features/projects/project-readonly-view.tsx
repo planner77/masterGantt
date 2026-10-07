@@ -1614,16 +1614,24 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     void performResourceNavigation(async (signal) => {
       const context = await readNavigationContext(signal),
         tasks = confirmedSnapshotReference.current!.data.tasks;
-      const requested = summaryId
-          ? resolveTaskSubtreeScope(tasks, summaryId)
-          : null,
-        ordinary = tasks.filter(
-          (task) =>
-            task.type === "task" &&
-            (requested?.kind === "valid"
-              ? requested.taskIds.includes(task.taskId)
-              : nodeIds.includes(task.taskId)),
-        );
+      // Selection can contain Summary nodes: expand them before computing
+      // the range, without adding ancestor rows to the Task numerator.
+      const selectedOrdinaryIds = new Set<string>();
+      const selectedNodes = summaryId ? [summaryId] : [...nodeIds];
+      for (const nodeId of selectedNodes) {
+        const node = tasks.find((task) => task.taskId === nodeId);
+        if (!node) throw Error("INVALID_SELECTION");
+        if (node.type === "summary") {
+          const subtree = resolveTaskSubtreeScope(tasks, nodeId);
+          if (subtree.kind !== "valid") throw Error("INVALID_SELECTION");
+          for (const id of subtree.taskIds) selectedOrdinaryIds.add(id);
+        } else if (node.type === "task") {
+          selectedOrdinaryIds.add(nodeId);
+        }
+      }
+      const ordinary = tasks.filter(
+        (task) => task.type === "task" && selectedOrdinaryIds.has(task.taskId),
+      );
       if (!ordinary.length) throw Error("INVALID_SELECTION");
       const starts = ordinary
           .flatMap((task) => (task.start ? [task.start] : []))
