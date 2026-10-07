@@ -165,6 +165,8 @@ test.describe("Issue #3 stable Gantt instance", () => {
       // The previous failure toast is emitted before saveTask's finally block releases
       // the shared mutation lock. Wait for the add control to become actionable again
       // and prove that this error injection started a new POST before asserting its toast.
+      await expect(ganttRoot(page)).toHaveAttribute("data-gantt-canonical-sync-depth", "0");
+      await expect(ganttRoot(page)).not.toHaveAttribute("data-task-mutation-locked", "true");
       await expect(trigger).toHaveAttribute("aria-disabled", "false");
       const requestStarted = page.waitForRequest((request) =>
         request.method() === "POST" && new URL(request.url()).pathname === taskPath,
