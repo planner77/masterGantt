@@ -179,6 +179,19 @@ describe("Issue #342 country calendar catalog", () => {
     expect(service.getEffectiveDataset("CN", 2026)).toBeUndefined();
   });
 
+  it("keeps unchanged built-in metadata as a no-op without freezing an override", () => {
+    const db = database();
+    const service = new CountryCalendarCatalogService(db);
+    const initial = service.getAdminDataset("KR", 2026);
+    const unchanged = service.updateMetadata("KR", 2026, initial.data.revision, {
+      status: initial.data.dataset.status,
+      sourceVersion: initial.data.dataset.sourceVersion,
+      sourceUrl: initial.data.dataset.sourceUrl,
+    });
+    expect(unchanged).toEqual(initial);
+    expect(db.prepare("SELECT count(*) AS count FROM country_calendar_datasets").get()).toEqual({ count: 0 });
+  });
+
   it("keeps an unchanged date edit as a no-op without cloning or invalidating provenance", () => {
     const db = database();
     const service = new CountryCalendarCatalogService(db);
@@ -223,6 +236,9 @@ describe("Issue #342 country calendar catalog", () => {
       .toThrow(CountryCalendarCatalogInvalidInputError);
     expect(() => service.updateDate("KR", 2026, "2026-01-01", initial.data.revision, { typo: "x" } as never))
       .toThrow(CountryCalendarCatalogInvalidInputError);
+    expect(() => service.updateDate("KR", 2026, "2026-01-01", initial.data.revision, {
+      date: "2026-02-02", name: null,
+    } as never)).toThrow(CountryCalendarCatalogInvalidInputError);
     const after = service.getAdminDataset("KR", 2026);
     expect(after.data.revision).toBe(initial.data.revision);
     expect(after.data.dataset).toMatchObject({ status: "OFFICIAL", origin: "BUILT_IN" });
