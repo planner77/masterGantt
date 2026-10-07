@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.98.0] - 2026-10-08
+
+### Added
+
+- Issue #525: 기존 리소스 탭에 서버 raw KPI 기반 그룹·개인 Dashboard, 역할·등급·상태·기간 필터, M/D·M/M 표시와 동일 snapshot Task/Assignment 상세를 제공한다. 기존 개발 견적·역할 소계·단계 할당 상세와 Gantt 상태를 보존하고 stale·잘못된 선택·조회 한도를 구별한다.
+
 ## [0.97.0] - 2026-10-07
 
 ### Added

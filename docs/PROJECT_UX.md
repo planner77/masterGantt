@@ -1068,3 +1068,24 @@ Project metadata 저장이 Task metadata 변경 없이 새 canonical 배열을 �
 Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
 
 Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.
+
+## Issue #525 리소스 기본 Dashboard
+
+리소스 탭은 기본 그룹/개인 표시 모드와 compact toolbar·flat 선택 범위/Global Role KPI·내부 scroll 표를 사용한다. #495/#518의 상위 peer 탭/용어 재설계는 이 변경에 포함하지 않는다. 그룹/개인 모드·단위·필터만으로 Gantt를 remount하거나 페이지를 reload하지 않는다. 개발 견적은 Global Role preset으로 유지한다. 상세 grain과 서버 raw KPI·필터·null·snapshot 계약은 [Resource KPI 기본 화면](RESOURCE_KPI_DASHBOARD.md#issue-525-기본-resourcegroup-dashboard)을 따른다.
+
+고급 필터 Escape는 필터 trigger로 복원한다. KPI 상세는 인라인 section으로 열고 제목에 초점을 둔다. Escape/닫기는 호출 KPI로 복원하며 호출 control이 stale로 disabled/제거되면 검색 입력으로 복원한다. 외부 snapshot/조건 교체가 상세를 제거하면 상세 내부 focus만 복원하고 이미 필터에 있는 focus는 이동하지 않는다. row disclosure는 실제 button/aria-expanded/aria-controls와 native keyboard를 사용한다.
+
+새 조건 로딩·오류에서 이전 값은 이전 성공 결과라고 표시하고 상세/페이지 이동을 잠근다. 필터 입력과 표시 단위를 유지한다.400 삭제된 선택은 조건 해제/초기화,422는 범위 축소,409는 새로고침 후 상세 명시 재진입을 안내한다. 외부 Project revision 변경은 busy/편집기 guard가 있는 `최신 일정 조회`로 canonical snapshot을 명시 갱신한다. hidden tab의 조회를 중단하고 활성화·focus/visibility 복귀에 최신 report를 조회한다.
+
+기존 단계→리소스 exact assignment drill은 legacy UI/API를 유지한다. drill 중 기본 Dashboard는 hidden/inert로 mount 보존하고, 범위 해제 후 원래 필터·단위·모드로 돌아온다. 기존 legacy filter 종류와 새 표시 모드의 의미를 혼합하지 않는다. Assignment 저장 override/작업 상속과 이번 선택 구간은 별도로 표시하고 실제 작업 일정과 혼동하지 않는다.
+
+390/768/1024/1440/1920px의 문서 overflow·내부 scroll·직접 header/body 열 정렬·cell/control containment·native focus와 기존 Gantt 인스턴스/scroll/선택/열폭/scale 보존은 [테스트 계획](TEST_PLAN.md#issue-525-resourcegroup-dashboard-검증)에서 실행 근거와 한계를 확인한다.
+
+
+### Issue #525 긴 이름·다중 행 인수 보완
+
+2026-10-08 독립 QA에서 기존 짧은 Dashboard fixture만으로 긴 이름·많은 행을 검증하지 못한 점을 발견하여, 제품 코드를 변경하지 않고 별도 `longResourceDashboardUiFixture`를 추가했다. 합성 입력은 Group12개·Resource40명·공동 Task120개·Assignment4800개이며 이름200자/코드64자/외부 ID128자 및 WBS 각 구간200자 상한 안의 긴 한국어·영문을 사용한다. 최대3개 Global Role(PI/DEVELOPER/EQUIPMENT_OWNER)과 Role 미지정 각각1행, 복수 Role39행 및 비활성 개인·Group을 포함한다.
+
+`project-resource-workload-status.spec.ts`의 긴 이름·다중 행 geometry1개를 실제 Chromium에서 실행했다(1 PASS,9.6초). 그룹/개인 각각390/768/1024/1440/1920px의 총10개 관측에서 그룹12행/개인40행/Assignment 상세50행(전체120행, 다음 페이지50)을 실제 Dashboard DOM으로 측정한다. 조건은 개인 활성 상태/그룹 활성 소속 전체이며 normalized filter와 mode를 geometry JSON에 기록한다. 모든 populated 행의 header/body 정렬·cell 비중첩·control containment, toolbar 비중첩·화면 내 containment, 날짜 열208px 이상/날짜 토큰 비분리, 소유 table 내부 가로·세로 overflow, document 폭=viewport, native Tab focus ring의 cell/scroll owner/viewport containment를 통과했다. 안정 UUID Task50개·상세 WBS 최대375자·화면 identity 최대233자를 확인했으며 Gantt fixture로 대체하지 않았다.
+
+기존 짧은5폭 PASS와 초기 실패 artifact는 보존한다. 새 근거는 로컬 `output/playwright/issue-525/long-many/geometry.json`과 mode별5폭 PNG 및 `run-long-many-final-frozen.log`다. PR PNG390/1440은 새 긴 그룹 기본화면과 일치하며 이전 짧은 PNG는 로컬 `short-before-rework/`에 보존한다. 합성 geometry는 별도 실제 SQLite/HTTP 회귀를 대체하지 않는다. 기존 고유 Chromium10개 PASS에 신규1개를 더한 고유11개이며 반복 geometry 실행을 추가 테스트로 세지 않는다. Unit은 긴 fixture 계약 검증1개를 추가해 관련2파일10개다. 원격 quality/e2e/docker·최종 독립 QA 및 실제 환경 검증은 별도 NOT TESTED다.

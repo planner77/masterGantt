@@ -117,3 +117,30 @@ Calendar count와 Task/Assignment/Link/소속 예산은 원시 목록 load 전�
 실제 검증은 `tests/fixtures/resource-dashboard.ts`의 #523 fixture를 새 public UUID로 native SQLite에 적재한 HTTP/Service 테스트다. 다른 연결의 WAL 변경에도 기존 read transaction은 동일 snapshot을 유지하고 다음 상세는409 stale로 거부한다. raw 데이터가 revision bump 없이 바뀐 경우도 fingerprint가 Task/Link/Membership/Assignment/Calendar/개인·Group 상태를 결속한다. 재시작 동일 데이터는 동일 snapshotId이며 calculatedAt/mode만으로 identity를 바꾸지 않는다. Calendar helper는 조회당 고정 bulk read를 사용하고 Resource별 DB resolve를 반복하지 않는다.
 
 넓은 기간 multi-group benchmark는 실제 SQLite Task1011/개인Assignment1005/Group8,365일(260Resource근무일) 입력으로 실행한다. 별도로 실제100개인×50Milestone의5000Assignment cell 폭발,320단계 WBS 경로, 과다 Group 소속/반복 예산을 거부하는 회귀를 포함한다. 시간·byte 측정은 로컬 실행 증거이며 원격 CI 성능 보장은 아니다. 검증 상태와 최초 실패 이력은 [TEST_PLAN](TEST_PLAN.md)의 #524 기록을 따른다.
+
+## Issue #525 기본 Resource·Group Dashboard
+
+기존 Project 리소스 탭의 기본 화면은 `ProjectResourceDashboard`를 통해 #524 `resource-dashboard`와 `/details`를 조회한다. 기본 모드는 그룹이며 그룹 → 개인 → Assignment Task 상세, 개인 모드는 개인 → Assignment Task 상세다. 모드와 M/D·M/M 전환은 표시만 바꾸며 조회 조건·Grand Total·저장 데이터를 바꾸지 않는다. 개발 견적은 Global Role=DEVELOPER의 서버 필터 preset이며 개인 모드로 표시한다. 기존 종류 all/resource/group의 담당 참조 의미는 legacy 단계 drill에만 유지하며 새 그룹/개인 모드와 같은 조건으로 해석하지 않는다.
+
+기간·Milestone·검색은 기본 도구줄, Global Role·개발자 등급·작업 상태·개인 활성 상태·그룹 활성 소속·그룹/개인 선택·작업 검색은 고급 필터다. 한쪽 날짜는 입력 그대로 서버 조건으로 전송한다. 역순 날짜는 오류를 표시하고 조회를 막으며 이전 결과를 stale로 잠근다. 검색 및 activity/개인 필터는 A에만 적용하고, T0 진단은 개인 조건 적용 전 작업범위라고 표시한다. 개인 미배정/완전 미할당/Group만 지정은 실제 고유 Task 상세로 조회한다. Milestone 미지정과 미분류 Resource는 별도 선택이다.
+
+선택 범위 KPI와 Group/Resource/Global Role 행은 서버 raw 값만 표시 경계에서 반올림한다. 화면 행을 재합산하지 않는다. Grand Total과 복수 분류의 비가산 소계를 구분하고, `unset`은 산정 불가, `partial`은 알려진 부분합, configured zero와 empty zero를 구분한다. 환산 기준값과 query/환경 출처를 표시하며 미설정이면 M/M 전환을 비활성화하고 이유를 보인다. 계획 공수는 실제 기여도나 소진 공수로 표현하지 않는다.
+
+할당 Task/완료/지연 KPI 상세는 view=tasks의 고유 Task 표다. 공수 미설정과 개인 행 상세는 view=assignments다. Task 표의 assignment:null은 정상이다. 작업명/UUID/externalId/WBS/현재 상태·진척/작업 일정/effective Milestone을 표시하고, Assignment 표에는 저장 override/상속, 선택 기간으로 자른 투입 구간·근무일·투입률·공수를 추가한다. 표 행의 투입 시작/종료도 선택 기간으로 자른 구간이다.
+
+조회는 schema/publicId/전체 normalized filter echo/기간/Project revision/양수 환산기준/source/scope.identity=snapshotId를 검증한다. 상세는 같은 필터·snapshot·selector/view/page와 Project/Catalog/Calendar revision을 검증한다. 늦은 응답은 abort/generation guard로 버리고 hidden tab에서는 조회·polling하지 않는다. 활성화·focus·visibility 복귀와 canonical revision 변경에 최신 조회를 수행한다. 이전 성공 결과를 유지할 때 stale와 이전 기간·검색을 표시하고 상세/페이지 이동을 잠근다. 오류 후 필터·단위·같은 snapshot의 열린 행을 보존한다.
+
+409 상세 stale는 명시 새로고침 후 사용자가 상세를 다시 열어야 한다. 삭제/해제된 선택400은 조건을 유지하며 해제/초기화를 안내하고422는 한도 및 범위 축소를 안내한다. Project revision이 달라져 report만으로 복구할 수 없으면 `최신 일정 조회`가 기존 Workspace canonical 조회를 실행한다. pending/열린 편집기 상태에는 이 동작을 잠그고 초안을 자동 폐기하지 않는다. snapshot/query 교체 시 기존 selector를 새 범위로 자동 적용하지 않으며, 사라진 상세에 초점이 있었을 때만 원래 trigger 또는 검색 입력으로 복원한다. stale로 trigger가 disabled이면 검색으로 복원한다.
+
+기존 MilestoneResourceDrill의 exact assignmentIds 표시 경로는 `LegacyProjectResourceWorkload`에 그대로 유지한다. 기본 Dashboard를 hidden/inert로 mount 보존하고 drill 중 active=false로 만들어 이전 기본 조건·단위·모드가 복귀 시 유지된다. legacy HTTP/4자리 계산 의미와 상위 Workspace/Gantt 구조는 변경하지 않는다. #528 이전에 새 외부 navigation을 노출하지 않는다.
+
+SVAR Core2.7.3의 기존 Gantt 인스턴스를 재사용하고 앱 소유 HTML 표를 사용한다. 공식 Base/Grouping/Resource Load 문서는 2026-10-07 Issue 등록 시 확인했으며 PRO API를 호출하지 않는다. 공식 demo 실제 interaction은 NOT TESTED다. 요약 표1120px(280+64×4+88+112×2+144+128), Assignment 표1360px(320+112+80+208×2+88+144+200), 고유 Task 표920px(320+112+80+208+200)를 내부 scroll owner에 둔다. 열 예산은 해당 표의 직접 thead에만 적용해 중첩 표에 상위 너비가 전파되지 않는다. 날짜 토큰은 줄 중간에서 자르지 않는다.
+
+
+### Issue #525 긴 이름·다중 행 인수 보완
+
+2026-10-08 독립 QA에서 기존 짧은 Dashboard fixture만으로 긴 이름·많은 행을 검증하지 못한 점을 발견하여, 제품 코드를 변경하지 않고 별도 `longResourceDashboardUiFixture`를 추가했다. 합성 입력은 Group12개·Resource40명·공동 Task120개·Assignment4800개이며 이름200자/코드64자/외부 ID128자 및 WBS 각 구간200자 상한 안의 긴 한국어·영문을 사용한다. 최대3개 Global Role(PI/DEVELOPER/EQUIPMENT_OWNER)과 Role 미지정 각각1행, 복수 Role39행 및 비활성 개인·Group을 포함한다.
+
+`project-resource-workload-status.spec.ts`의 긴 이름·다중 행 geometry1개를 실제 Chromium에서 실행했다(1 PASS,9.6초). 그룹/개인 각각390/768/1024/1440/1920px의 총10개 관측에서 그룹12행/개인40행/Assignment 상세50행(전체120행, 다음 페이지50)을 실제 Dashboard DOM으로 측정한다. 조건은 개인 활성 상태/그룹 활성 소속 전체이며 normalized filter와 mode를 geometry JSON에 기록한다. 모든 populated 행의 header/body 정렬·cell 비중첩·control containment, toolbar 비중첩·화면 내 containment, 날짜 열208px 이상/날짜 토큰 비분리, 소유 table 내부 가로·세로 overflow, document 폭=viewport, native Tab focus ring의 cell/scroll owner/viewport containment를 통과했다. 안정 UUID Task50개·상세 WBS 최대375자·화면 identity 최대233자를 확인했으며 Gantt fixture로 대체하지 않았다.
+
+기존 짧은5폭 PASS와 초기 실패 artifact는 보존한다. 새 근거는 로컬 `output/playwright/issue-525/long-many/geometry.json`과 mode별5폭 PNG 및 `run-long-many-final-frozen.log`다. PR PNG390/1440은 새 긴 그룹 기본화면과 일치하며 이전 짧은 PNG는 로컬 `short-before-rework/`에 보존한다. 합성 geometry는 별도 실제 SQLite/HTTP 회귀를 대체하지 않는다. 기존 고유 Chromium10개 PASS에 신규1개를 더한 고유11개이며 반복 geometry 실행을 추가 테스트로 세지 않는다. Unit은 긴 fixture 계약 검증1개를 추가해 관련2파일10개다. 원격 quality/e2e/docker·최종 독립 QA 및 실제 환경 검증은 별도 NOT TESTED다.

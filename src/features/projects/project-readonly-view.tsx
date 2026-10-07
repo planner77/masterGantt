@@ -1526,7 +1526,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         hidden={activeView !== "resources"}
         className="project-workspace-panel project-resource-panel"
       >
-        <ProjectResourceWorkload publicId={publicId} drillScope={resourceDrill} onClearDrillScope={() => setResourceDrill(null)} />
+        <ProjectResourceWorkload publicId={publicId} revision={project.revision} active={activeView === "resources"} refreshDisabled={busy || editorSession !== null || relationEditorRequest !== null || pendingTaskDelete !== null} onRefreshProject={() => { if (!busy && editorSession === null && relationEditorRequest === null && pendingTaskDelete === null) void reloadCanonicalSnapshot(); }} drillScope={resourceDrill} onClearDrillScope={() => setResourceDrill(null)} />
       </section>
       <section
         id="project-panel-logistics"

@@ -1,3 +1,7 @@
+## Issue #525 — Resource·Group 기본 Dashboard
+
+[Work Packet](ISSUE_525.md)에 따라 직접 선행 `feat/issue-524-resource-dashboard-api` / `5c17d3a394d95c6799dceb2b22ed166dca34f241` 기반 stacked PR로 순차 진행한다. application `0.98.0`, `release_required=true/release_authorized=false`. 요청 종료점은 원격 PR·CI 시작 확인이며 CI 모니터링·병합·main/GHCR·Issue 종료는 비범위다. 관련 Unit10개·Chromium고유11개(긴 Dashboard 추가1 포함)와 ui_ux 설계 비교 PASS 후 최종 캡처·독립 사전 QA를 확인해 게시한다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다.
+
 ## Issue #524 — Resource KPI 조회 API와 동일 snapshot
 
 [Work Packet](ISSUE_524.md)에 따라 직접 선행 `feat/issue-523-resource-kpi` / `f8a51503745cd5f3f1f3c9986f6b7577d83ce93a` 기반 stacked PR로 순차 진행한다. application `0.97.0`, `release_required=true/release_authorized=false`. 요청 종료점은 원격 PR·CI 시작 확인이며 CI 모니터링·병합·main/GHCR·Issue 종료는 비범위다. 관련 Vitest188개·실제 API Chromium1개 PASS 후 DOCUMENTATION_SYNC·독립 사전 QA를 거쳐 게시한다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다.

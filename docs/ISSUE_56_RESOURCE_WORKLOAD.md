@@ -145,3 +145,9 @@ Milestone dashboard는 동일 개인 assignment/기간/allocation/계층형 Reso
 ## Issue #523 신규 raw KPI와 legacy 호환성
 
 [Resource KPI 공통 Domain](RESOURCE_KPI_DASHBOARD.md)은 기존 date-only/Resource Calendar와 개인 Assignment 공수 산식을 재사용한다. 신규 raw projection은 모두 미설정이면 plannedMd=null, 일부 미설정이면 알려진 합+partial/unsetCount를 제공하고 빈0/설정된 비근무일0을 구별한다. 기존 Workload 응답의 unset 합계0 및 assignment/subtotal4자리 반올림은 그대로 유지한다. 동일 T1의 두 개인은 Task1/Resource2/Assignment2이며 Group/Role 중첩 subtotal은 비가산이다. native SQLite regression은33.333333%×4근무일의 legacy1.3333 M/D·19기준0.0702 M/M를 확인하며 raw 값을 바꾸지 않는다. 기존 저장 allocation0초과100이하, Group 책임 참조, server session/Origin/revision 계약은 불변이다.
+
+## Issue #525 기본 조회 화면 확장
+
+Project 리소스 탭의 기본 조회는 새 raw Resource Dashboard API로 확장한다. 서버 scope에 기간/Milestone/개인·그룹·Global Role/등급·상태·활성·검색을 적용하며 화면에서 legacy 반올림 행을 재합산하지 않는다. 기본 그룹/개인 모드, 선택 범위 Grand Total, 고유 Task/Assignment 상세와 미설정/부분합/T0 진단을 제공한다. M/M 기준값·출처·미설정 이유를 표시한다.
+
+기존 `resource-workload` endpoint·ENV 환산·4자리 반올림·과투입 계산은 변경하지 않는다. Milestone exact assignmentIds drill만 legacy renderer/API를 사용하고 기본 Dashboard 상태는 mount 보존한다. 새 기본 화면은 시간축 capacity/과투입 재계산을 구현하지 않는다. 세부 계약은 [Resource KPI 기본 화면](RESOURCE_KPI_DASHBOARD.md#issue-525-기본-resourcegroup-dashboard), 검증은 [테스트 계획](TEST_PLAN.md#issue-525-resourcegroup-dashboard-검증)을 따른다.
