@@ -248,3 +248,11 @@ Copy feedback 보존 보강 후 같은 좁은 Chromium 4개를 다시 실행해 
 환경별 미검증은 [Follow-up #502](https://github.com/planner77/masterGantt/issues/502)에서 실제 React error boundary/native125/실기기·screen reader·최종 수동 UX/배포 source·version을 FOLLOW-UP/NOT TESTED로 추적한다. frontend·ui_ux·qa_docs가 환경별 증거를 작성/비교/독립 확인하고 Manager가 환경 제공과 수용 범위를 판단한다. B#490/C#491 제품 개선과 별개이며 현재 scope에서 자동 실행하지 않는다.
 
 #457 독립 검토의 provenance 정정: 목록 `list-populated-1440`/`list-no-result-1440` key는 별칭이며 실제 JSON/PNG는1280×720이다. Current62 JSON은 ko-KR/Asia-Seoul/높이900/DPR1 49개, en-US/Asia-Seoul/높이900/DPR1 11개, en-US/Asia-Seoul/높이720/DPR1 목록2개다. 정상 Master auth는 기존 autofocus 때문에 focused/focusVisible=true이므로 normal을 비포커스 baseline으로 해석하지 않는다. 과거capture/test/source hash와141개raw PNG/JSON은 그대로 유지한다. 착수 시 stacked 계획과 달리 parent PR#500 외부 병합 후 최종 base는 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`/0.92.1이며 tree `6a322cc119ed5b0a435f3b1ff20fe5826035ed66`이 원래 capture source b397eedf35d50befb4ae17e623036f0a8d77f556과 정확히 같아 LFF를 재사용한다. 실제 운영 배포는 #502 NOT TESTED다.
+
+## Issue #490 설정 폼 검증 적용
+
+설정 탭의 native Home/Arrow/End 및 Tab 이동에서 focus ring은 scroll owner 안에 완전히 보여야 한다. outline 3px + offset 3px인 소비자는 최소 6px 여유를 확보한다. Calendar 입력의 식별 가능한 테두리·padding·focus·disabled 표현과 footer의 같은 행 높이/간격, 좁은 폭의 자연스러운 wrap을 측정한다. 일반 정보·보안·unlock의 정상 표현은 기존 공통 form-field를 재사용한다. Task Editor의 44px 정책과 공통 전역 token은 변경하지 않는다.
+
+Pending Escape 회귀는 busy DOM 반영 직후 지연 없이 두 번 누른다. listener 준비 대기나 50ms 간격으로 실패를 숨기지 않는다. BODY 초점·가장 위의 native modal 소유·중첩 nonbusy modal·busy=false/unmount cleanup을 분리한다. PNG만으로 keyboard/초안/권한/viewport 보존 PASS를 대신하지 않는다. 실제 125% zoom, 실기기와 screen reader는 [환경별 후속 #502](https://github.com/planner77/masterGantt/issues/502)의 NOT TESTED 범위다. 상세 비교는 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
+
+#490 검증 보완은 기존 국가 select의 UA focus 관측과 새 Calendar .field의 focus 관측을 분리한다. 390px에서 국가→적용 범위 select→시작일 input을 native Tab로 이동하고 browser가 보이도록 스크롤한 실제 bbox/outline3px+offset3px/clip owner를 확인한다. 화면 아래의 focused input 사진이나 기존 country의 UA outline1px을 새 field focus PASS로 쓰지 않는다. 유효 password rotation은 대표1440px 실제 pending/204 성공/session 교체 경로로 추가하며 모든 상태×5폭으로 확대하지 않는다. canonical refresh 중 BODY 초점은 실제 기존 정책으로 기록하고 정상 닫기/로그아웃/unlock의 호출 초점 복원과 구분한다.

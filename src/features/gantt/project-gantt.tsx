@@ -1455,7 +1455,9 @@ export function ProjectGantt({
   useEffect(() => {
     const previous = previousCanonicalViewportReference.current;
     previousCanonicalViewportReference.current = { geometry: canonicalViewportGeometry, metadata: canonicalViewportMetadata };
-    const metadataOnly = previous?.geometry === canonicalViewportGeometry && previous.metadata !== canonicalViewportMetadata;
+    // Project metadata refreshes can also supply fresh canonical arrays without task metadata changes.
+    // Preserve the viewport whenever geometry is unchanged; the existing context and input guards still apply.
+    const geometryUnchanged = previous?.geometry === canonicalViewportGeometry;
     const syncVersion = ++canonicalSyncVersionReference.current;
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       if (syncVersion !== canonicalSyncVersionReference.current) return;
@@ -1471,7 +1473,7 @@ export function ProjectGantt({
       };
       metadataViewportReference.current?.cleanup();
       metadataViewportReference.current = null;
-      if (metadataOnly && context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
+      if (geometryUnchanged && context.visible && root?.isConnected && visibleTaskFilterKeyReference.current === visibleTaskFilterKey) {
         for (const event of ["pointerdown", "wheel", "keydown"]) root?.addEventListener(event, markViewportInput, true);
         const request = { api, key: context.key, version: syncVersion, filter: visibleTaskFilterKey, left: viewport.scrollLeft, top: viewport.scrollTop, scale: scaleModeReference.current, gridWidth: viewport.gridWidth, columns: JSON.stringify((viewport.columns ?? []).map((column) => [column.id, column.width, column.hidden])), hasInput: () => viewportInput, cleanup: () => { for (const event of ["pointerdown", "wheel", "keydown"]) root?.removeEventListener(event, markViewportInput, true); } };
         metadataViewportReference.current = request;
