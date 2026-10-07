@@ -73,3 +73,47 @@ raw 합산·환산에는 반올림하지 않는다. 각 Resource/Group의 모든
 `tests/fixtures/resource-kpi.ts`는 Project 휴일10-06, T1 10-05..09(duration4), T2 10-05..16(duration9), T5 10-09..12(duration2)와 T5 Assignment10-10..11의 정상 canonical 기간을 사용한다. 기준일10-17, 조회10-05..18이다. R1은 G1/G2 및 PI/DEVELOPER 복수 분류, R2는 G1/EQUIPMENT_OWNER다. T1의50%·33.333333% 개인 Assignment는 Task1/Resource2/Assignment2와 raw2+1.3333333200000002 M/D를 만든다. T2는 미설정2Assignment/1Task, T3는 완전 미할당, T4는 Group만 지정, T5는 비근무일 부분기간으로 설정된0공수다. Summary/Milestone 직접 개인 참조는 별도로 보존한다. Milestone 일정은 한 날짜이며 빈 Summary, nested override, clear와 미지정도 검증한다.
 
 Domain 테스트는 순열/중복입력/교집합/원시합/M/M/null/분모0/전체 Ready를 검증한다. `tests/server/resources/resource-kpi-compatibility.test.ts`는 실제 in-memory native SQLite와 기존 Workload Service를 통해 raw1.3333333200000002와 legacy1.3333 M/D,19기준 legacy0.0702 M/M를 구별한다. 기존 Workload/Stage/Logistics fixture 회귀도 함께 실행한다. HTTP/API/DB/DESIGN/AGENTS 변경은 없다. 별도 공개 DTO의 범위·revision·bounded drill-down과 성능 한도는 #524가 담당한다.
+
+## Issue #524 서버 Report PLAN과 공개 계약
+
+공개 조회는 `GET /api/projects/{publicId}/resource-dashboard`, bounded 상세는 같은 경로의 `/details`다. schema는 `resource-dashboard/1`이며 compact summary/Resource·Group·Role 행/Milestone cell에 전체 ID를 반복하지 않고 selector를 제공한다. 상세 요청은 report의 정규화 필터와 snapshotId를 다시 보내 같은 read snapshot identity를 확인한다. mode=resource|group은 projection 선택이며 Grand Total/snapshotId를 바꾸지 않는다.
+
+Query 배열은 resourceIds/groupIds/roles/developerGrades/milestoneIds/taskIds/wbsRootIds/statuses다. 같은 축 OR/다른 축 AND이며 groupIds=ungrouped, milestoneIds=unassigned는 null bucket이다. exact duplicate array token은 unique/sort하지만 raw token 개수도 한도에 포함한다. 반복 scalar, unknown key, 빈·잘못된 값은400 INVALID_REQUEST다. UUID 형식은 canonical UUIDv4, 다른 Project Task/Milestone 또는 존재하지 않는·Project에 연결되지 않은 Resource/Group 선택은400 INVALID_SELECTION이다. 이 거부 정책은 기존 Stage API의 unknown-ID200empty와 별개다.
+
+search(200자)는 A에서 Resource 이름/code, 그 Resource의 Project 연결 Group 이름/code 또는 같은 Assignment의 Task 이름/externalId/WBS 이름 경로에 일치한다. 개인 조건이므로 T0에 적용하지 않는다. taskSearch(200자)는 Task 이름/externalId/WBS 경로만 검색하며 T0와 A 모두 적용한다. statuses는 canonical Task status 조건이다. 개인 검색 결과와 T0 진단이 같은 분모가 아님을 metadata로 제공한다. from/to/asOfDate는 date-only다. 기본 범위는 일반 Task의 canonical 유효 endpoints이며 날짜 없는 빈 Project fallback은 현재 기준일이고 rangeFallback=true로 표시한다. mdPerMm은 #523 omission/null/양수 계약을 유지한다.
+
+Project/Catalog revision 및 관련 Calendar fingerprint(calendarRevision), calculatedAt, timezone/asOfDate, normalized filters, resolved range, mdPerMm/source, snapshotId를 반환한다. snapshotId는 Project 원시 Task/Link/Membership/Assignment, Project에 연결된 Resource/Group의 상태, Calendar 규칙/날짜, filter/유효날짜/환산기준에 묶인 SHA256이며 calculatedAt/mode는 포함하지 않는다. 상세 조회는 clock1회와 현재 read snapshot을 재계산해 동일 snapshotId가 아니면409 REPORT_STALE로 재조회 안내한다. 후속 export도 이 서비스의 same-snapshot identity를 재사용해야 하며 #524에 새 export 경로는 추가하지 않는다.
+
+유한 상한은 아래 표를 따른다. `RESOURCE_DASHBOARD_LIMITS`가 실행 값의 기준이다. 한도 초과는422 REPORT_LIMIT_EXCEEDED이며 임의 절삭 없이 범위 축소 안내를 반환한다. full snapshot 상한은 필터로 우회하지 않는다. detail pagination은 전체 KPI를 다시 정의하지 않는다. 모든 Calendar 규칙/날짜는 조회당 bulk load하며 Resource별 계산을 Domain 내부에서 재사용한다.
+
+
+| 제한 필드 | 상한 | 검사 대상 / 축소 방법 |
+| --- | --- | --- |
+| tasks | 5000 | 전체 Project snapshot / Project 분리 |
+| assignments | 8000 | 전체 Project snapshot / Assignment 정리·Project 분리 |
+| links | 20000 | 전체 Project snapshot / Link 정리·Project 분리 |
+| calendarRules / calendarDates | 각각20000 | 전체 Project Calendar / 규칙 정리 |
+| catalogMemberships | 16000 | Project 연결 개인의 Group 소속 관계 / 소속 정리 |
+| rangeDays | 366 | inclusive 조회 기간 / 기간 축소 |
+| idsPerField / totalIds | 200 / 400 | 배열축 raw token / 선택 축소·중복 제거 |
+| groupsPerResource | 32 | 개인의 전체 연결 Group 수 / 소속 정리 |
+| groupAssignmentRows | 16000 | 전체 candidate 일반 개인 Assignment의 Group 반복(미소속1) / 소속·Project 정리 |
+| cells | 5000 | Resource·Group×Milestone 내부 미지정 bucket + 전체 Milestone bucket + Role subtotal / 개인·Group·Milestone 선택 축소 |
+| wbsPathEntries | 50000 | 전체 WBS 경로 Task node 누적 / 계층 정리·Project 분리 |
+| wbsPathChars | 20000 | 한 WBS 경로의 이름 문자 합 / 이름·계층 축소 |
+| reportBytes | 2097152 | report/detail JSON 각각2MiB / report 선택 축소 또는 detail page 축소 |
+| detailPage / detailOffset | 100 / 8000 | default page50 / 작은 page·유효 offset 선택 |
+
+Calendar count와 Task/Assignment/Link/소속 예산은 원시 목록 load 전에 검사한다. `maxProjectionCells`는 공통 Domain에서 A가 확정된 뒤 subtotal/cell materialization 전에 검사하고 서버는 실제 산출 폭도 재확인한다. 전체 snapshot 상한과 projection/기간/page 상한은 공개 오류의 details.path로 구분하며 해당 축소 방법을 안내한다. 임의 절삭 없이 실패하고 완전한 합계라고 표시하지 않는다.
+
+`resourceActivity`와 `groupActivity`는 all|active|inactive, 기본all이다. 개인 활성 상태는 그 Resource, 그룹 활성 소속은 그 Resource의 실제 Project 연결 Group 관계로 판정한다. Group ID와 그룹 활성 소속을 함께 선택하면 같은 Group membership에서 일치해야 한다. 그룹 미소속은 groupActivity=all에서만 통과한다. 두 필터는 A-only이며 T0/full-stage/Calendar의 전체 소속을 바꾸지 않는다. 후보 목록과 기본all은 비활성 기존 참조를 보존한다. eligibility가 명시된 빈 집합이면 개인 대상 없음이며 생략과 구분한다.
+
+`ResourceDashboardRow.assignmentRange`는 그 행의 A에서 clipped 유효 Assignment from 최소/to 최대이며 빈 범위는null이다. 행 기간은 canonical Task 일정과 다르다. 상세에는 canonical taskStart/taskEnd와 raw assignmentStart/assignmentEnd, 조회로 clipped from/to를 별도 제공한다. WBS path는 Project 안의 이름/public ID, Milestone은 explicit/effective/inheritedFrom public ID를 반환한다. catalog에는 해당 Project Task에 실제 개인 참조가 있는 Resource 및 직접 Group 참조/그 Resource의 Group만 있고 글로벌 미배정 인력·Group 전체 구성원·description은 제공하지 않는다.
+
+상세 selector의 dimension은 all/resource/group/role/milestone/diagnostic이고 id는 public ID 또는null이다. null Group은 HTTP id=ungrouped, null Milestone은 id=unassigned로 보낸다. optional milestoneTaskId=null은 HTTP milestoneTaskId=unassigned이며 생략은 모든 Milestone이다. metric은 all/notStarted/inProgress/completed/delayed/unset와 diagnostic용 completelyUnassigned/groupOnly/personallyUnassigned다. Task KPI 클릭은 view=tasks로 고유 Task, Assignment KPI/공수 미설정 Assignment 클릭은 view=assignments로 해당 원시 Assignment를 본다. T0 진단은 dimension=diagnostic/view=tasks이며 가짜 개인/공수 없이 assignment=null이다.
+
+필터 echo의 mdPerMmProvided=false는 detail query에서 mdPerMm을 생략해야 한다. true/null은 문자열null을 보내 ENV를 무시한다. scope를 바꾸면 기존 snapshotId가 detail을 승인하지 않는다. 상세는 Task public ID→Assignment public ID 순으로 안정 정렬하며 offset/limit page에서 전체 totalCount와 nextOffset을 제공한다. report/cell에는 반복되는 전체 ID 목록이 없고 same-scope selector만 있다. Page 행을 합산해 KPI를 재정의하지 않는다. 새 조회는 같은 Project public-read guard, private/no-store 및 JSON nosniff를 적용하고 edit 쿠키를 발급하지 않는다.
+
+실제 검증은 `tests/fixtures/resource-dashboard.ts`의 #523 fixture를 새 public UUID로 native SQLite에 적재한 HTTP/Service 테스트다. 다른 연결의 WAL 변경에도 기존 read transaction은 동일 snapshot을 유지하고 다음 상세는409 stale로 거부한다. raw 데이터가 revision bump 없이 바뀐 경우도 fingerprint가 Task/Link/Membership/Assignment/Calendar/개인·Group 상태를 결속한다. 재시작 동일 데이터는 동일 snapshotId이며 calculatedAt/mode만으로 identity를 바꾸지 않는다. Calendar helper는 조회당 고정 bulk read를 사용하고 Resource별 DB resolve를 반복하지 않는다.
+
+넓은 기간 multi-group benchmark는 실제 SQLite Task1011/개인Assignment1005/Group8,365일(260Resource근무일) 입력으로 실행한다. 별도로 실제100개인×50Milestone의5000Assignment cell 폭발,320단계 WBS 경로, 과다 Group 소속/반복 예산을 거부하는 회귀를 포함한다. 시간·byte 측정은 로컬 실행 증거이며 원격 CI 성능 보장은 아니다. 검증 상태와 최초 실패 이력은 [TEST_PLAN](TEST_PLAN.md)의 #524 기록을 따른다.

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.97.0] - 2026-10-07
+
+### Added
+
+- Issue #524: 동일 SQLite read snapshot에서 Resource/Group×Milestone raw KPI를 조회하는 resource-dashboard API와 bounded 상세 API를 추가한다. 정규화 필터·활성 소속·Calendar fingerprint·stale 확인과 계산 전 예산 검증을 제공하고 기존 workload 응답을 보존한다.
+
 ## [0.96.0] - 2026-10-07
 
 ### Added
