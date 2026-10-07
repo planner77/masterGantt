@@ -174,10 +174,10 @@ export function CountryCalendarAdmin(){
     setFile(null);setFileEnvelope(null);setPreview(null);
   }
   function switchCountry(value:WorkCalendarCountryCode){
-    setCountry(value);setSnapshot(null);clearTargetDrafts();queueMicrotask(()=>void reload(value,year));
+    setCountry(value);setSnapshot(null);clearTargetDrafts();window.setTimeout(()=>void reload(value,year),0);
   }
   function switchYear(value:number){
-    setYear(value);setSnapshot(null);clearTargetDrafts();queueMicrotask(()=>void reload(country,value));
+    setYear(value);setSnapshot(null);clearTargetDrafts();window.setTimeout(()=>void reload(country,value),0);
   }
 
   async function saveMetadata(event:FormEvent){
