@@ -54,7 +54,7 @@ export class ResourceDashboardService {
       try { calculated = this.calculate(publicId, filter); }
       catch (error) { if (error instanceof PublicApiError && error.code === "INVALID_SELECTION") stale(); throw error; }
       if (!calculated) return undefined;
-      const { report, raw, taskById, resourceById, assignmentById, paths, projection } = calculated;
+      const { report, raw, diagnosticRaw, taskById, resourceById, assignmentById, paths, projection } = calculated;
       if (report.snapshotId !== checked.snapshotId) stale();
       const selector = checked.selector;
       if (selector.dimension === "resource" && !resourceById.has(selector.id!)) invalidSelection();
@@ -71,7 +71,10 @@ export class ResourceDashboardService {
         (!metricTaskIds || metricTaskIds.includes(row.taskId)) && (selector.metric !== "unset" || row.plannedMd === null));
       const diagnosticTaskIds = selector.metric === "completelyUnassigned" ? raw.diagnostics.completelyUnassigned.taskIds : selector.metric === "groupOnly" ? raw.diagnostics.groupOnly.taskIds : selector.metric === "personallyUnassigned" ? raw.diagnostics.personallyUnassigned.taskIds : raw.diagnostics.unsetTasks.taskIds;
       const targetTaskIds = selector.dimension === "diagnostic" ? diagnosticTaskIds : [...new Set(rows.map((row) => row.taskId))].sort();
-      const details: { taskId: string; row: ResourceKpiAssignmentRow | null }[] = checked.view === "tasks" ? targetTaskIds.map((taskId) => ({ taskId, row: null })) : rows.map((row) => ({ taskId: row.taskId, row }));
+      const assignmentRows = selector.dimension === "diagnostic" && selector.metric === "unset"
+        ? diagnosticRaw.assignments.filter((row) => diagnosticRaw.diagnostics.unsetAssignmentIds.includes(row.assignmentId))
+        : rows;
+      const details: { taskId: string; row: ResourceKpiAssignmentRow | null }[] = checked.view === "tasks" ? targetTaskIds.map((taskId) => ({ taskId, row: null })) : assignmentRows.map((row) => ({ taskId: row.taskId, row }));
       details.sort((a, b) => a.taskId.localeCompare(b.taskId) || (a.row?.assignmentId ?? "").localeCompare(b.row?.assignmentId ?? ""));
       const page: ResourceDashboardDetailRow[] = details.slice(checked.offset, checked.offset + checked.limit).map(({ taskId, row }) => {
         const task = taskById.get(taskId)!, membership = projection.membership.get(taskId)!;
@@ -154,6 +157,12 @@ export class ResourceDashboardService {
         roles: filters.roles, developerGrades: filters.developerGrades, statuses: filters.statuses, search: filters.search, taskSearch: filters.taskSearch } });
     let raw: ReturnType<typeof calculateResourceKpi>;
     try { raw = calculateRaw(); } catch (error) { if (error instanceof ResourceKpiProjectionLimitError) resourceDashboardLimit("projection.cells"); throw error; }
+    const diagnosticRaw = calculateResourceKpi({ projectPublicId: publicId, timezone: "Asia/Seoul", asOfDate, from, to, tasks, memberships, links,
+      resources: resources.map((row) => ({ resourceId: row.publicId, name: row.name, code: row.code, groupSearchText: groups.filter((group) => group.memberResourceIds.includes(row.publicId)).map((group) => `${group.name} ${group.code ?? ""}`).join(" "), groupIds: groupIdsByResource.get(row.publicId) ?? [], roles: row.roles, developerGrade: row.developerGrade })),
+      assignments: assignments.map((row) => ({ assignmentId: row.publicId, taskId: row.taskPublicId, kind: row.kind, targetId: row.targetPublicId, start: row.assignmentStart, end: row.assignmentEnd, allocationPercent: row.allocationPercent })),
+      projectCalendar, calendarExceptions, maxProjectionCells: LIMITS.cells, mdPerMm: filters.mdPerMmProvided ? filters.mdPerMm : undefined, mdPerMmEnvironment: this.options.mdPerMmEnvironment,
+      filters: { taskIds: filters.taskIds, wbsRootIds: filters.wbsRootIds, milestoneIds: filters.milestoneIds.map((id) => id === "unassigned" ? null : id),
+        statuses: filters.statuses, taskSearch: filters.taskSearch } });
     const assignmentRange = (ids: string[]) => { const idSet = new Set(ids), rows = raw.assignments.filter((row) => idSet.has(row.assignmentId)); return rows.length ? { from: rows.map((row) => row.from).sort()[0], to: rows.map((row) => row.to).sort().at(-1)! } : null; };
     const cells = raw.roles.length + raw.resources.reduce((sum, row) => sum + row.milestones.length, 0) + raw.groups.reduce((sum, row) => sum + row.milestones.length, 0) + raw.milestones.length;
     if (cells > LIMITS.cells) resourceDashboardLimit("projection.cells");
@@ -192,6 +201,6 @@ export class ResourceDashboardService {
     };
     if (Buffer.byteLength(JSON.stringify(report)) > LIMITS.reportBytes) resourceDashboardLimit("projection.reportBytes");
     const projection = projectStageGates({ tasks, memberships, links });
-    return { report, raw, taskById, resourceById, assignmentById: new Map(assignments.map((row) => [row.publicId, row])), paths, projection };
+    return { report, raw, diagnosticRaw, taskById, resourceById, assignmentById: new Map(assignments.map((row) => [row.publicId, row])), paths, projection };
   }
 }
