@@ -2069,3 +2069,16 @@ Main CI Run #2053.1 corrective: exact merge `75f014fccc8f6e3f19ba5fadebd3ecad4e0
 - 기존 password clearing/login focus, 401/412 수동 복구, pending 중복 mutation 차단, Escape/focus restore, Group 구성원 초안 보존 회귀를 같은 spec의 기존 case와 함께 유지한다.
 - 현재 connector 세션의 Local Fast Feedback은 NOT TESTED다. 공식 판정은 동일 PR head의 required `quality`, `e2e`, `docker` GitHub Actions 결과로 수행한다.
 
+## Issue #491 프로젝트 생성·전송 폼 회귀
+
+`tests/e2e/project-transfer-layout-491.spec.ts`와 전용 `helpers/issue491-transfer-fixture.ts`의8case는 생성·템플릿 목록/생성·복사·템플릿 저장·JSON Import·readonly4형식 Export·inline 공수 옵션·실제 Gantt 상태를 검증한다. `ISSUE_491_EVIDENCE_DIR`를 생략하는 일반 CI는 test output을 사용해 tracked 증거를 덮어쓰지 않는다. 직접 CLI에는 `--config tests/config/playwright.config.ts`를 지정한다.
+
+390/768/1024/1440/1920px geometry와 긴 입력/큰 표시값, 관련 validation/loading/pending/500/401/412/readonly를 표면별로 분리한다. 실제 footer12px·field/footer12px·top/height≤1px, native ring390/1440 clipping0을 assertion으로 검증한다. text-field 경계와 native radio/checkbox label/appearance는 별도 oracle이다. pending 빠른2Escape/민감 입력 비움/중복 POST, preview 취소와 commit busy, actual201/readonly download200 및 원본/canonical 의미를 확인한다. 공수 fixture의 큰 값은 실제 알고리즘 PASS가 아니며 source별 partial/stale 전체 회귀로 확대하지 않는다.
+
+실제 Gantt는 Summary scope·optional 외부ID·native48px resize·closed nested tree·native 선택·주 scale·scroll120/38·instance/API/public viewport를 준비한다. 기존 workspace의 dialog 취소/템플릿 저장/지원 fullscreen 버튼 왕복을 동일 state로 비교하고 실제 Import commit의 instance/API/scale을 확인한다. 새 publicId navigation은 same-instance N/A, fullscreen C header 진입은 지원 경로 밖이다. headless keyboard Escape의 browser fullscreen 종료는 NOT TESTED로 구분한다.
+
+역사적0.94.3 after8 PASS/8runs45case(34PASS/11originalFAIL)와 최신0.94.4 after-current8 PASS/합계9runs53case(42PASS/11originalFAIL), before/helper 재사용 조건, 미게시 raw/trace·원래 hash, 환경·공식 CI/수식·domain·Windows/DRM/125% 미검증은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. 로컬 PASS는 새 PR head의 quality/e2e/docker PASS를 대체하지 않는다.
+
+템플릿 instantiate의 실제 navigation·편집 상태·원본 불변은 검증했으나 safeJSON의201은 서버 계약 literal이며 response.status 직접 검증이 아니다. 기존 원본과 helper를 유지하고 최신 실행 provenance에 한계를 기록한다.
+
+Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.

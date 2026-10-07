@@ -1,5 +1,23 @@
 # Active execution plan
 
+## Issue #491 생성·복사·템플릿·입출력 폼 — 최신 Tooltip main 통합 / PR CI 시작
+
+main `44b2ee3562cf76a73368a49fa17933ed341ab424` / application `0.94.2`에서 #456 C 후속을 구현하고 PATCH `0.94.3`의 최종 after 8case PASS(2.5분)를 확인했다. branch는 `fix/issue-491-project-transfer-layout`, 전용 worktree는 `issue-491`이며 [Issue #491 실행 계획](ISSUE_491.md)의 6AC·소유권·지원 경계·문서·검증을 따른다. 실제 7개 표면을 390/768/1024/1440/1920px에서 관측해 template/Export/Import 3표면을 FIX하고 나머지 지원 배치는 KEEP으로 기록한다. JSON-only Import/CSV mapping 미지원과 inline 견적 범위를 분리하며 신규 기능·계산은 추가하지 않는다.
+
+실제 5폭에서 template save의 textarea/footer와 action 내부 간격, Export의 가로/세로 footer 간격이 0px임을 확인했다. 전체 8개 baseline before는 PASS(2.4분)이며 추가 region 측정에서 Import의 390px 초점 테두리 잘림도 확인했다. 소비자 4파일에 12px parent gap 및 Import의 8px focus 여유를 적용하는 최소안을 확정하고 PATCH `0.94.3`을 배정한다. 관련 최소 LFF·문서 동기화·독립 사전/게시본 검토 후 원격 PR 및 exact-head CI 등록까지 진행한다. CI 결과 모니터링·병합·GHCR/release·Issue 종료는 요청 범위 밖이고 공식 quality/e2e/docker 및 최종 ACCEPT는 NOT TESTED다. `release_required=true`, `release_authorized=false`다.
+
+
+게시 전 외부 PR #513 / Issue #486 병합으로 main이 `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`(tree `91cb73e2ca089f0b8ac7d3371ab29e33d0f845cf`), application `0.94.3`으로 전진했다. 원래 후보와 모든 실패·원본 자료는 `issue-491` worktree에 보존한다. 같은 branch의 새 `issue-491-current`에서 최신 Resource Catalog 코드·문서와 #491 고유 변경을 통합하고 PATCH 후보를 `0.94.4`로 정한다. 제품 4개와 테스트 2개는 main 변경과 겹치지 않는다. 기존 before 및 0.94.3 after는 과거 증거로 구분하고, 0.94.4의 관련 8개 E2E와 문서 동기화·독립 검토를 수행한 뒤 게시한다. CI 결과는 조회하지 않는다.
+
+최신 0.94.4의 고유 after-current 실행은 관련 8개 모두 PASS(2.5분)다. 제품 4파일·spec/helper bytes는 원래 동결본과 같고 기존 before 재사용 범위를 명시했다. 새 geometry242/계약10 및 PNG10+JSON5 선택 증거를 기존 역사 자료와 구분한다. 문서 동기화·독립 UIX/PRE_QA·게시 동등성 후 PR CI를 등록한다. 공식 CI와 최종 ACCEPT는 NOT TESTED다.
+
+
+
+게시 직전 외부 PR #498 / Issue #492 Hover Tooltip 병합으로 main이 `61a5f511d79e1f9429635bb0da35c0c02ee2163c`(tree `ff49917c4326aa6ff6b1d9f9ef33666148a4f11e`), application `0.95.0`으로 다시 전진했다. 새 현재 경로는 `issue-491-latest`, 후보는 PATCH `0.95.1`이다. 이전 0.94.4 후보·원본 증거·독립 검토는 과거 기록으로 보존한다. C 소비자 제품4/spec/helper가 동일한 범위의 before는 재사용하고, Gantt Tooltip의 실제 mousemove/focusin/scroll 영향을 반영하여 관련8개 E2E를 다시 실행한다. 최신 #492 소스·테스트·문서와 #491 자체 변경을 통합한 뒤 새 문서 gate·독립 delta 검토·게시본 동등성을 확인한다. 원격 쓰기와 CI 결과 조회는 아직0이다.
+
+최신0.95.1의 after-latest8개 모두 PASS(2.5분)다. 제품4/spec/helper는 같고 최신GanttTooltip과 사용자 상태 보존을 새실행에서 확인했다. 기존78선택파일과 전체10회61case50PASS11원래FAIL 이력을 보존하고 새PNG10/JSON5·geometry242/계약10을 추가했다. 최신 문서 gate·독립delta 검토 후 게시본을 대조하고 PR CI등록으로 넘긴다. 공식CI/최종ACCEPT는 NOT TESTED다.
+
+
 ## Issue #486 Resource Catalog 401 보존 초안 전환 — 구현·문서 동기화 / PR CI 시작
 
 최신 정렬 기준 `main`은 `44b2ee3562cf76a73368a49fa17933ed341ab424`, application `0.94.2`이며 작업 branch는 `fix/issue-486-suspended-resource-draft`다. 401 후 suspended dirty Resource/Group/Profile draft가 다른 editor trigger를 자동 가로채던 `openEditor()` 경로를 제거하고, `보존한 초안 확인`에서 초안 유지 또는 폐기 후 요청 editor 진입을 명시 선택하도록 수정한다. 기존 `보존한 초안 계속 편집`은 직접 재개 경로로 유지한다.

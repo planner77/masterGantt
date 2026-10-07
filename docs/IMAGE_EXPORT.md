@@ -49,3 +49,11 @@ JSON은 전체 schedule-stage 교환용이다. Description·URL·Baseline·Task/
 Excel에서는 명시·유효 소속 및 상속 출처와 단계 요약을 일정 Dependency 선택과 독립 출력한다. 단계 요약의 기본값은 서버 전체 Project 공수, 오늘 Project timezone 기준, horizon 14일 및 서버 M/M 환산 기준이다. 화면 Dashboard의 S 표시 선택/F 공수 조건/수동 평가일을 전송하지 않으며 해당 차이를 Excel 선택 직후 표시한다. 이 추가 형식은 이미지 Export에 새로운 기간·공수 계산을 도입하지 않는다.
 
 SVG/PNG의 전체 Grid는 기존 고정 `exportLayout`의 작업명 224px·시작일 128px·기간 84px만 출력한다. live Grid의 선택 열·사용자 조절 폭·완료 단계 열 전체를 그대로 출력하는 계약이 아니다. 표시 이름/유형/일정 값은 같은 canonical snapshot에서 가져오며 단계 소속 상세는 Excel/JSON으로 제공한다. 이 경계를 이미지 형식 선택 직후 안내한다. Dashboard 전용 이미지 exporter와 새로운 image stage column/API는 #464 범위 밖이다.
+
+## Issue #491 이미지 옵션 presentation
+
+SVG/PNG 날짜 범위의 기존 label/control/error 연결과36px compact 입력을 유지하고 footer peers에12px gap을 둔다. 390px action stack,390/1440 native 날짜 Tab ring과 실제 readonly SVG/PNG200 다운로드·서명, pending 빠른2Escape와412 재실행 근거는 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에 있다. 날짜 범위·서버 XML 안전성·PNG pixel 한도·object URL cleanup·canonical 전체 scope 계약은 변경하지 않았다. C header가 native fullscreen host 밖이므로 fullscreen중 이 dialog 직접 진입은 N/A이며 Gantt fullscreen 버튼 왕복 보존과 구분한다.
+
+Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
+
+Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.

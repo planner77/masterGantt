@@ -1056,3 +1056,15 @@ Project metadata 저장이 Task metadata 변경 없이 새 canonical 배열을 �
 유효한 비밀번호 변경은 실제 PUT204 후 호출자에게 새 edit session을 발급하고 기존 다른 세션을 revoke한다. UI는 beginRefresh(false)로 설정을 닫고 canonical GET/current-session을 재확인한다. 잠시 readonly/checking을 거쳐 호출자는 edit를 유지하며 revision은1 증가한다. 변경 중 비밀번호 입력은 즉시 비우고 disabled로 잠그며 빠른 두Escape와 중복 제출을 기존 busy guard로 막는다. 탭의 native keyboard focus는 사용할 수 있다.
 
 성공 재조회 동안 호출 버튼이 unmount되어 실제 초점은 BODY로 돌아간다. 이를 성공 후 호출 버튼 복원 PASS로 보고하지 않는다. 재조회 후 정상 설정 Escape는 settings 버튼, logout은 unlock 버튼, 새 비밀번호 unlock은 settings 버튼으로 복원하는 기존 흐름을 별도로 검증한다. 구 비밀번호는401, 새 비밀번호는204이며 다른 이전 세션은 readonly다. fullscreen frame 밖의 프로젝트 header에는 fullscreen 중 설정 진입이 없으므로 그 조작은 N/A이며 지원 fullscreen 왕복 상태 보존과 구분한다. 상세 실제 계약/관측은 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)을 따른다.
+
+## Issue #491 프로젝트 전송 폼 배치
+
+프로젝트 생성·복사·템플릿 선택/생성, JSON preview/commit, readonly Excel/JSON/이미지 Export와 inline 공수 옵션을 실제로 관측했다. 템플릿 저장 form의 field/footer와 footer peers, Export footer peers는 소비자 로컬 12px gap을 갖고 Export390px stack을 유지한다. JSON Import body는8px gutter/scroll padding과 table-owned scroll margin으로 native region focus ring의6px 예산을 확보한다. 전역 control/공용 dialog/controller/API 계약을 바꾸지 않는다.
+
+복사·템플릿 저장은412 최신 원본 조회 후 명시 재제출과 비민감 초안 보존, 민감 입력 clearing을 유지한다. Import preview는 취소 가능하고 commit은 busy 취소 금지다. readonly Export 실제 성공은 dialog를 닫는다. 새 publicId를 만드는 생성/복사/instantiate navigation은 같은 Gantt instance 보존 N/A이고, 기존 workspace의 dialog 취소/템플릿 저장/지원 fullscreen 버튼 왕복 및 실제 Import commit은 검증한 상태를 보존한다. C header가 native fullscreen host 밖인 진입, CSV mapping UI, 별도 견적 modal은 지원하지 않는다.
+
+최종 로컬8case PASS와 5폭 geometry·대표390/1440 native focus, 원래 실패·helper 분류 정정·실제 API와 controlled 상태의 범위는 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. 원격 quality/e2e/docker, 독립 최종 QA, 실기기/125%/스크린리더/운영은 별도이며 CI 등록만으로 PASS를 주장하지 않는다.
+
+Issue #491의 최신 검증 기준은 main `d8d0bb3bab5d13ca68a6b319e116dec4ca24d48d`/0.94.4이며 제품4/spec/helper byte를 유지한 after-current8case PASS다. 역사적0.94.3 증거와 최신 선택 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)에서 구분한다. 템플릿 instantiate는 실제 navigation·편집 상태·원본 불변을 확인했으며201은 서버 계약값으로 response.status 직접 검증이 아니다. 공식 원격 CI와 최신 독립 QA는 별도 판정 전까지 NOT TESTED다.
+
+Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0da35c0c02ee2163c`/0.95.1이다. 기존 #492 HoverTooltip 변경을 보존하고 동일 소비자 제품4/spec/helper로 새8case PASS를 확인했다. 이전0.94.3/0.94.4는 역사적 검증으로 보존하며 총10run61case(50PASS/11원래FAIL)와 최신 관측은 [Issue #491 검토](ISSUE_491_UI_UX_REVIEW.md)를 따른다. create/copy/instantiate201의 간접 근거와 직접 response.status 검증은 구분한다. 공식 CI와 최신 독립 검토는 별도다.

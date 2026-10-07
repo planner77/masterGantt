@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.95.1] - 2026-10-07
+
+### Fixed
+
+- Issue #491: 프로젝트 템플릿 저장 폼의 마지막 입력과 Footer 사이에 12px 간격을 확보해 focus outline이 action 영역과 겹치지 않도록 정돈한다. Footer의 취소·저장 action에도 12px 간격과 자연 wrap을 적용한다.
+- 프로젝트 내보내기 Footer의 action 사이에 12px 간격을 적용하고, 좁은 화면의 기존 1열 배치를 유지한다.
+- JSON Import의 스크롤 영역에 8px focus 여유와 scroll padding을 적용해 native keyboard focus의 outline이 잘리지 않도록 보완한다. 기존 표·body·Footer의 스크롤 역할을 유지한다.
+
 ## [0.95.0] - 2026-10-07
 
 ### Added
