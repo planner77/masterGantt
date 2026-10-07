@@ -86,7 +86,8 @@ export function CountryCalendarAdmin(){
     setBusy(true);setError(null);setNotice(null);
     return controller;
   }
-  function isActive(controller:AbortController){return request.current===controller&&!controller.signal.aborted;}\n  function end(controller:AbortController){if(isActive(controller))setBusy(false);}
+  function isActive(controller:AbortController){return request.current===controller&&!controller.signal.aborted;}
+  function end(controller:AbortController){if(isActive(controller))setBusy(false);}
   function clearEditDeleteDrafts(){
     setEditing(null);setEditDate("");setEditName("");setEditDayType("NON_WORKING");setEditSourceKey("");
     setDeleting(null);
