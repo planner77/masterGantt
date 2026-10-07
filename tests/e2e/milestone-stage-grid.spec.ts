@@ -1,14 +1,30 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import type { APIResponse, Page } from "@playwright/test";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
 
 test.use(isolatedApplicationOptions);
+
+async function getWithTransientResetRetry(page: Page, url: string): Promise<APIResponse> {
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await page.request.get(url);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const isTransientReset = /socket hang up|ECONNRESET/i.test(message);
+      if (!isTransientReset || attempt === maxAttempts) throw error;
+      await page.waitForTimeout(250 * attempt);
+    }
+  }
+  throw new Error("unreachable");
+}
 test("#462 actual SQLite stage filter·Grid·common Editor·canonical and geometry", async ({ page, baseURL }) => {
   test.setTimeout(180_000);
   const origin = baseURL!;
   const response = await page.request.post("/api/projects", { headers: { Origin: origin }, data: { name: "Stage Grid #462", description: "단계 조회 실제 SQLite", ownerName: "E2E", editPassword: "Stage462!" } });
   expect(response.status()).toBe(201); const id = (await response.json()).data.project.publicId as string, api = `/api/projects/${id}`;
-  const get = async () => (await (await page.request.get(api)).json()) as ProjectSnapshotResponse;
+  const get = async () => (await (await getWithTransientResetRetry(page, api)).json()) as ProjectSnapshotResponse;
   let snapshot = await get();
   const add = async (name: string, type: ProjectTaskDto["type"], externalId: string, parentTaskId?: string) => {
     const response = await page.request.post(`${api}/tasks`, { headers: { Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` }, data: { name, type, externalId, parentTaskId, ...(type === "summary" ? {} : { start: "2026-10-05", duration: type === "milestone" ? 0 : 2, progress: 0 }) } });
