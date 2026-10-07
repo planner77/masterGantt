@@ -1,34 +1,52 @@
 # Changelog
 
-## [0.93.0] - 2026-10-06
+## [0.95.0] - 2026-10-07
 
 ### Added
 
-- Issue #342: KR/CN/VN/PH/TH/MX/US 국가 Calendar의 2026~2037 관리 슬롯과 OFFICIAL/UNAVAILABLE/SUPERSEDED 상태를 DB override Catalog로 추가한다.
-- JSON/CSV 국가 Calendar Import의 검증 → 추가/변경/삭제 Preview → 원자적 Apply와 국가·연도별 sourceVersion/sourceUrl 및 NON_WORKING/WORKING 날짜 CRUD 관리자 화면을 추가한다.
-- 국가별 공식 데이터 확보·변환·검증·정정 절차와 sourceVersion 규칙을 docs/COUNTRY_CALENDAR_DATA.md에 문서화한다.
+- Issue #342: KR/CN/VN/PH/TH/MX/US 국가 Calendar의 2026~2037 관리 슬롯과 OFFICIAL/UNAVAILABLE/SUPERSEDED 상태를 built-in baseline + DB override Catalog로 추가한다.
+- JSON/CSV Import validation → Preview → HMAC-bound Apply와 국가·연도별 metadata/date CRUD, 관리자 화면을 추가한다.
+- Import Preview token은 server-only 32-byte HMAC secret으로 catalog revision, country/year, format, 원본 bytes에 묶고 exact Apply만 허용한다.
 
 ### Changed
 
-- 최신 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075` / v0.92.1의 Issue #456 Task Editor UI/상태 보존 개선을 함께 보존한다.
-
-- 최신 main 0.92.1의 Milestone Stage Gate membership/대시보드/JSON 1.1 교환 계약과 기존 0018~0022 migration을 보존하고, Country Calendar Catalog migration을 `0023_country_calendar_catalog.sql`로 재배치한다.
-- 2026 built-in fixture는 초기 baseline으로 유지하고 Project Calendar Preview/Save 및 신규 Project 기본 Calendar는 최신 OFFICIAL DB override를 우선 사용한다. Catalog 변경만으로 기존 Project의 materialized Calendar/Task는 자동 재계산하지 않는다.
-- Issue #452의 공통 `admin-page` shell과 `AdminAuth` presentation을 국가 Calendar 관리자에도 적용하고 Application version을 `0.92.1`에서 `0.93.0`으로 증가한다.
+- 최신 main v0.94.0의 Issue #485 Global Resource Role Source of Truth 및 migration `0023_deprecate_task_assignment_roles.sql`을 보존하고 Country Calendar Catalog migration을 `0024_country_calendar_catalog.sql`로 재배치한다.
+- Project Calendar Preview/Save는 OFFICIAL effective override만 사용하되 신규 Project 기본 KR Calendar seed는 재승인 대기 중에도 approved built-in baseline으로 fallback하여 Project 생성 가용성을 유지한다.
+- Country Calendar persistence는 `Route Handler → Service → Repository → SQLite` 경계를 따른다.
 
 ### Fixed
 
-- 수동 날짜 CRUD가 기존 OFFICIAL provenance를 유지하지 않도록 즉시 UNAVAILABLE로 전환하고 source metadata를 비워 공식 재검증을 요구한다.
-- Country Calendar SQL persistence를 Repository 계층으로 분리해 `Route Handler → Service → Repository → SQLite` 경계를 복구한다.
-- 빠른 파일 재선택에서 이전 `File.text()` 완료가 최신 선택 envelope를 덮어쓸 수 없도록 generation guard를 추가한다.
-- country/year 조회 실패 시 이전 snapshot을 제거해 새 selector와 이전 데이터가 섞이지 않게 하고, 412 reload 후 stale 날짜 편집 초안을 폐기한다.
-- 날짜 PATCH는 최소 1개 지원 field만 허용하고 unknown/no-op payload를 거부하며, 마지막 날짜 삭제 후에도 fail-closed UNAVAILABLE 상태를 유지한다.
-- Import Apply 성공 후 native file input을 초기화해 동일 파일을 즉시 다시 선택할 수 있게 한다.
-- supportedYears가 비어 있는 국가는 과거 built-in provenance를 노출하지 않고 sourceVersion/sourceUrl을 null로 반환한다.
-- 변경 없는 날짜 편집은 no-op으로 처리해 OFFICIAL provenance와 revision을 보존하고, target 전환 시 신규 날짜/file draft를 폐기하며 DELETE pending 중 취소를 차단한다.
-- Import Preview와 Apply를 HMAC token으로 exact revision·country/year·format·file bytes에 묶어 Preview 우회를 차단한다.
-- current-year KR override가 재승인 대기여도 신규 Project 기본 Calendar는 built-in approved baseline으로 fallback하여 Project 생성 가용성을 유지한다.
-- PR CI #1995 production dependency audit에서 확인된 librsvg CVE-2026-96889를 해소하기 위해 Next 16.3.8의 허용 범위 내에서 optional `sharp 0.35.4 → 0.35.5`, `sharp-libvips 1.3.3 → 1.3.4` lock tree를 갱신한다.
+- 수동 날짜 Add/Edit/Delete 후 기존 OFFICIAL provenance를 재사용하지 않고 UNAVAILABLE + source metadata null로 전환하며, 실제 값이 동일한 date/metadata 저장은 no-op으로 처리한다.
+- explicit null date PATCH, target 전환 stale draft, session 만료 stale edit/delete, pending edit/delete 취소, 삭제 후 focus 복원, 빠른 file reselection race를 fail-closed 처리한다.
+- Country Calendar E2E locator와 target 전환 reload timing을 실제 accessible control 기준으로 안정화한다.
+
+## [0.94.0] - 2026-10-07
+
+### Changed
+
+- Issue #485: Resource Catalog의 Global Role을 수행 역할의 단일 Source of Truth로 확정하고 Task Editor의 별도 수행 역할 Select/필수 validation을 제거한다. Task assignment는 Resource/Group 참조와 allocation만 소유한다.
+- compatibility `assignment_role` 컬럼과 API `role` 필드는 non-authoritative로 전환한다. migration `0023_deprecate_task_assignment_roles.sql`은 기존 값을 NULL로 정규화하고 role index/guard를 제거하며 신규 canonical 응답은 role=null이다.
+- Resource workload, Milestone dashboard와 Excel 역할 분류는 현재 Global Role 집합을 사용한다. multi-role Resource의 역할 subtotal은 비가산이며 Grand Total은 assignmentId 기준 한 번만 합산한다.
+- Project Copy/Template은 Task별 역할을 새로 복제하지 않고 Resource/Group assignment와 allocation만 보존한다. legacy template `assignmentRole`은 호환 읽기만 하고 instantiate 시 무시한다.
+- latest main의 Issue #493 `0.93.0`을 보존하고 #485의 독립 MINOR release를 위해 application version을 `0.94.0`으로 증가한다.
+
+
+## [0.93.0] - 2026-10-07
+
+### Added
+
+- Issue #493: Summary Task의 Description과 URL을 일반 Task와 같은 검증·저장 경로로 편집할 수 있다. 빈 Summary와 일정 산정 Summary 모두 지원한다.
+
+### Changed
+
+- 최신 main의 Issue #456 Task Editor 레이아웃·pending Escape·Gantt viewport 보완과 application `0.92.1`을 보존한 뒤 #493 변경을 재적용한다.
+- Summary PATCH 직접 편집 allowlist를 name/Description/URL/명시 완료 단계 소속으로 확장하되 일정·진척·상태·Baseline의 자손 파생 read-only 계약은 유지한다.
+- 하위 작업 추가·삭제에 따른 Summary 일정 재계산 뒤에도 메타데이터를 보존하는 Unit/SQLite/E2E 회귀를 추가하고 application version을 `0.93.0`으로 설정한다.
+
+### Fixed
+
+- PR CI Run #1992에서 공개된 Sharp High advisory(CVE-2026-96889, GHSA-wq5f-xc86-pv6w)에 대응해 Next.js의 호환 optional dependency 범위 안에서 lockfile의 Sharp closure를 `0.35.5` / libvips `1.3.4`로 갱신한다.
+- 실패 Playwright artifact의 accessibility tree에서 Description/URL textbox와 저장값이 실제 존재함을 확인하고 reload 후 검증 locator를 실제 노출 role 기준으로 정합화한다.
 
 ## [0.92.1] - 2026-10-06
 

@@ -32,7 +32,7 @@ const ROLE_OPTIONS: Array<{ value: ResourceWorkloadRole; label: string }> = [
   { value: "PI", label: "PI" },
   { value: "DEVELOPER", label: "개발자" },
   { value: "EQUIPMENT_OWNER", label: "설비 담당" },
-  { value: "UNSPECIFIED", label: "역할 미지정" },
+  { value: "UNSPECIFIED", label: "Global Role 미지정" },
 ];
 const GRADE_OPTIONS: Array<{ value: DeveloperGrade; label: string }> = [
   { value: "BEGINNER", label: "초급" },
@@ -101,8 +101,9 @@ function effort(md: number, mm: number | null, unit: Unit): string {
   if (unit === "mm") return mm === null ? "—" : `${mm.toFixed(2)} M/M`;
   return `${md.toFixed(2)} M/D`;
 }
-function roleLabel(role: ResourceWorkloadRole | undefined): string {
-  return ROLE_OPTIONS.find((option) => option.value === (role ?? "UNSPECIFIED"))?.label ?? "역할 미지정";
+function roleLabels(roles: readonly string[] | undefined): string {
+  if (!roles || roles.length === 0) return "Global Role 미지정";
+  return roles.map((role) => ROLE_OPTIONS.find((option) => option.value === role)?.label ?? role).join(", ");
 }
 function gradeLabel(grade: DeveloperGrade | null | undefined): string {
   return GRADE_OPTIONS.find((option) => option.value === grade)?.label ?? "등급 미지정";
@@ -236,7 +237,8 @@ export function ProjectResourceWorkload({ publicId, drillScope = null, onClearDr
         const tasks = resource.tasks.filter((task) =>
           (!drillScope || resourceDrillMatches(drillScope, resource.id, task)) &&
           overlaps(task.start, task.end, dateFrom, dateTo) &&
-          (roleFilter === "all" || (task.role ?? "UNSPECIFIED") === roleFilter));
+          (roleFilter === "all" ||
+            (roleFilter === "UNSPECIFIED" ? (task.roles?.length ?? 0) === 0 : (task.roles ?? []).includes(roleFilter))));
         if (!gradeMatch || (taskFilterActive && tasks.length === 0)) return [];
         return [{ resource, tasks }];
       });
@@ -323,7 +325,7 @@ export function ProjectResourceWorkload({ publicId, drillScope = null, onClearDr
       <div className="resource-workload-header">
         <div>
           <h2 id="resource-workload-heading">리소스 공수</h2>
-          <p>역할·그룹·리소스·작업별 계획 공수와 현재 작업 상태를 함께 확인합니다.</p>
+          <p>Global Role·그룹·리소스·작업별 계획 공수와 현재 작업 상태를 함께 확인합니다.</p>
         </div>
         <div className="resource-workload-toolbar" role="toolbar" aria-label="리소스 공수 도구">
           <button className={`secondary-button resource-estimate-button${developerEstimateActive ? " is-active" : ""}`} type="button" aria-pressed={developerEstimateActive} onClick={toggleDeveloperEstimate}>개발 견적</button>
@@ -355,7 +357,7 @@ export function ProjectResourceWorkload({ publicId, drillScope = null, onClearDr
         }}>
         <label>종류<select value={kindFilter} onChange={(event) => setKindFilter(event.target.value as KindFilter)}><option value="all">전체</option><option value="resource">Resource</option><option value="group">Resource Group</option></select></label>
         <label>상태<select value={activeFilter} onChange={(event) => setActiveFilter(event.target.value as ActiveFilter)}><option value="all">전체</option><option value="active">활성</option><option value="inactive">비활성</option></select></label>
-        <label>수행 역할<select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}><option value="all">전체</option>{ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
+        <label>Global Role<select value={roleFilter} onChange={(event) => setRoleFilter(event.target.value as RoleFilter)}><option value="all">전체</option>{ROLE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
         <label>개발자 등급<select value={gradeFilter} onChange={(event) => setGradeFilter(event.target.value as GradeFilter)}><option value="all">전체</option>{GRADE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>
         <label>Task 기간 From<input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label>
         <label>Task 기간 To<input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label>
@@ -394,7 +396,7 @@ export function ProjectResourceWorkload({ publicId, drillScope = null, onClearDr
             <div><dt>공수 미설정</dt><dd>{data.unsetCount}건</dd></div>
             <div><dt>과투입 리소스</dt><dd>{overAllocatedCount}개</dd></div>
           </dl>
-          <dl className="resource-role-summary" aria-label="역할별 계획 공수">
+          <dl className="resource-role-summary" aria-label="Global Role별 계획 공수">
             {ROLE_OPTIONS.map((option) => {
               const total = totalForRole(option.value);
               return <div key={option.value}>
@@ -405,7 +407,7 @@ export function ProjectResourceWorkload({ publicId, drillScope = null, onClearDr
             })}
           </dl>
 
-          <p className="resource-workload-note">상단 역할별 집계와 전체 합계는 assignmentId 기준 Project 전체 값이며, 아래 필터는 drill-down 표시 범위와 표시 subtotal만 제한합니다.</p>
+          <p className="resource-workload-note">Global Role별 집계는 같은 assignment가 복수 Global Role에 중복 포함될 수 있는 비가산 분류 보기입니다. 역할별 값을 서로 더해 전체 계획 공수로 해석하지 않으며, 전체 합계는 assignmentId 기준으로 정확히 한 번만 계산합니다. 아래 필터는 drill-down 표시 범위와 표시 subtotal만 제한합니다.</p>
           {data.asOfDate ? <p className="resource-workload-note">작업 지연 기준일: {data.asOfDate}{data.timezone ? ` (${data.timezone})` : ""}. 계획 공수는 진행률로 차감하거나 실제 소진 공수로 환산하지 않습니다.</p> : null}
           {data.mdPerMm
             ? <p className="resource-workload-note">M/M 환산 기준: 1 M/M = {data.mdPerMm} M/D</p>
@@ -438,7 +440,7 @@ export function ProjectResourceWorkload({ publicId, drillScope = null, onClearDr
                         <table className="resource-workload-table">
                           <thead>
                             <tr>
-                              <th>작업</th><th>역할</th><th>상태</th><th>진행률</th><th>일정</th>
+                              <th>작업</th><th>Global Role</th><th>상태</th><th>진행률</th><th>일정</th>
                               <th>투입 시작</th><th>투입 종료</th><th>투입률</th><th>공수</th>
                             </tr>
                           </thead>
@@ -446,7 +448,7 @@ export function ProjectResourceWorkload({ publicId, drillScope = null, onClearDr
                             {resource.tasks.map((task) => (
                               <tr key={task.assignmentId}>
                                 <td>{task.taskName}</td>
-                                <td>{roleLabel(task.role)}</td>
+                                <td>{roleLabels(task.roles)}</td>
                                 <td>{task.delayed ? <span className="status-badge danger">지연</span> : statusLabel(task.status)}</td>
                                 <td>{task.progress === null || task.progress === undefined ? "—" : `${task.progress}%`}</td>
                                 <td>{task.taskStart && task.taskEnd ? `${task.taskStart} ~ ${task.taskEnd}` : "—"}</td>

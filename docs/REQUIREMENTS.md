@@ -128,7 +128,7 @@ Issue #9/#10/#11/#18/#21의 현재 UX·API 사용 경계·보충 테스트 계�
 | R53 | Grid/Chart 작업 Context Menu의 `Copy ID`는 선택 Task/Summary/Milestone의 canonical `taskId`를 OS clipboard에 복사한다 (#390). | readonly·mutation lock·Dependency 연결 여부와 무관한 조회성 action이며 기존 단일/다중 Task `Copy/Paste` clipboard·선택 집합과 Project revision을 변경하지 않는다. #364 공통 clipboard 호환 경로를 사용하고 실제 자동 복사 성공 후에만 성공 안내하며 권한 거부/자동 복사 실패 시 수동 복사·재시도를 제공한다. [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
 | R54 | Dependency Link가 연결된 Task/Milestone 또는 linked descendant를 가진 subtree는 **parent를 바꾸지 않는 sibling reorder**를 수행할 수 있다 (#335). #430부터 단일 Cut-Paste/reparent는 source subtree 내부 관계만 있을 때 parent 변경도 허용한다. | Context Move Up/Down 및 Grid same-parent before/after는 Link 여부와 무관하다. Cross-parent Cut-Paste/reparent는 source subtree 경계를 넘는 Dependency가 없을 때만 허용하며 내부 Link ID/endpoints/type/lag를 보존한다. Boundary Link, linked leaf anchor child 전환, Indent/Outdent/Delete/Convert 보호는 유지한다. [UX 계약](PROJECT_UX.md), [API](API.md), [Relations](TASK_RELATIONS.md), [Test Plan](TEST_PLAN.md) |
 | R55 | Relation Editor의 관계 추가 후보 검색은 작업명, 외부 ID(`externalId`), 작업 ID(`taskId`)를 모두 지원하고 두 식별자를 명시적으로 구분한다 (#409). | #390 `Copy ID`의 canonical taskId를 그대로 검색할 수 있으며 후보 선택 뒤 실제 Link mutation은 기존 externalId endpoint 계약을 유지한다. Summary/self/already-connected 제외, readonly/dirty/pending/focus 계약은 불변이다. [Relations](TASK_RELATIONS.md), [UX 계약](PROJECT_UX.md), [Test Plan](TEST_PLAN.md) |
-| R56 | Global Country Calendar Catalog은 KR/CN/VN/PH/TH/MX/US의 2026~2037 연도 슬롯과 `OFFICIAL / UNAVAILABLE / SUPERSEDED` 상태를 관리하고, 2026 built-in fixture보다 DB override를 우선한다 (#342). JSON/CSV Import는 Preview 후 원자 적용하며 Preview token은 reviewed revision·국가/연도·format·원본 bytes에 묶이고, 국가/연도별 날짜·`WORKING/NON_WORKING`·source metadata CRUD를 제공한다. | Scheduling은 `OFFICIAL` dataset만 사용한다. 공식 자료가 없는 미래 연도를 추정하지 않으며 Catalog 변경만으로 기존 Project materialized Calendar/Task를 자동 변경하지 않는다. #459 Milestone Stage Gate/JSON 1.1 membership 계약은 독립적으로 유지한다. [Issue #57](ISSUE_57_WORK_CALENDAR.md), [Country Calendar Data](COUNTRY_CALENDAR_DATA.md), [API](API.md), [DB](DB_SCHEMA.md), [UX](PROJECT_UX.md) |
+| R56 | Global Country Calendar Catalog은 KR/CN/VN/PH/TH/MX/US의 2026~2037 슬롯과 `OFFICIAL / UNAVAILABLE / SUPERSEDED` 상태를 관리하고 built-in baseline보다 DB override를 우선한다 (#342). | Scheduling은 OFFICIAL만 사용하고 미래 공식자료를 추정하지 않는다. JSON/CSV Import는 Preview token으로 reviewed revision·국가/연도·format·원본 bytes에 binding한 뒤 atomic Apply한다. 수동 date 변경은 provenance를 무효화하며 기존 Project snapshot은 자동 변경하지 않는다. 신규 Project default KR seed는 재승인 대기 시 built-in approved baseline으로 fallback한다. [Calendar](ISSUE_57_WORK_CALENDAR.md), [Data](COUNTRY_CALENDAR_DATA.md), [API](API.md), [DB](DB_SCHEMA.md), [UX](PROJECT_UX.md) |
 
 R05의 Project 생성은 아직 해당 Project/session이 없으므로 선행 edit session을 요구할 수 없다. 생성에 별도의 same-origin·rate-limit 경계를 적용하고 생성 Project의 session만 발급하는 것은 요구 충돌이 아닌 bootstrap 예외다.
 
@@ -334,27 +334,26 @@ Summary는 하위 일정에서 날짜가 파생되므로 시작일 직접 편집
 - 비활성 Resource의 기존 역할은 조회/보존되어야 한다. 안전 삭제가 허용된 Resource 삭제 시 role row는 함께 정리되어야 한다.
 - 관리 UI는 역할과 개발자 등급을 시각·의미적으로 구분하고 keyboard로 역할 다중 선택이 가능해야 한다.
 
-## Issue #413 — Task Resource 수행 역할
+## Issue #485 — Global Resource Role 단일 기준
 
-개인 Resource assignment는 Task별 수행 역할을 선택할 수 있어야 한다. 수행 역할은 Resource의 Global Role 중 하나이며 하나의 Task+Resource에는 assignment 하나만 존재한다. 같은 Resource가 서로 다른 Task에서 다른 역할을 수행하는 것은 허용한다.
+#413의 Task별 수행 역할 선택/저장 계약은 #485로 대체한다. Resource 관리의 Global Role이 해당 Resource의 수행 역할에 대한 단일 Source of Truth다.
 
-Task Editor 리소스 탭은 역할→Resource 및 Resource→역할 두 흐름을 모두 지원한다. 역할 필터는 해당 역할을 가진 Resource 후보만 남기고, Resource별 select는 해당 Resource의 Global Role만 보여준다. 기존 역할 미지정 assignment는 별도 상태로 보여주고 사용자가 역할을 보완할 수 있어야 한다. 신규 개인 Resource UI 배정은 역할 선택 없이는 저장하지 않는다.
+- Task assignment는 Resource/Group 참조와 개인 Resource의 allocation(start/end/percent)만 소유한다. Task별 `assignment_role`을 신규 입력·수정하지 않는다.
+- Task Editor는 개인 Resource 선택 후 별도 역할 Select를 표시하지 않는다. Global Role badge는 read-only 정보이며 `role` query는 후보 Resource의 Global Role 검색/필터 의미만 가진다.
+- 호환용 `ProjectAssignmentDto.role`과 DB `assignment_role`은 non-authoritative이며 canonical 응답/신규 저장은 null이다. non-null mutation 입력은 거부한다.
+- Global Role 변경은 기존 Task assignment 때문에 차단하지 않는다. Project Equipment/System 역할은 별도 도메인으로 유지한다.
+- Project Copy/Template은 Task별 역할을 복제하지 않고 Resource/Group 참조와 allocation만 보존한다.
 
-수행 역할 변경은 allocation 기간/투입률, 근무 Calendar, Task schedule을 자동 변경하지 않는다. Group assignment, Project Equipment/System role, Resource Group membership도 자동 변경하지 않는다. 사용 중 Global Role은 silently 제거할 수 없으며 서버 transaction에서 차단한다.
+## Issue #414 — Global Role 기반 Resource workload / 개발자 견적
 
-## Issue #414 — 역할 기반 Resource workload / 개발자 견적
-
-- #56의 개인 Resource assignment M/D·M/M 계산과 Calendar/allocation 계약을 유지한 채 #413의 Task 수행 역할을 집계 분류 축으로 제공해야 한다.
-- 역할별 합계는 `PI | DEVELOPER | EQUIPMENT_OWNER | UNSPECIFIED`를 구분하며, 역할 미지정 legacy assignment를 Global Role로 추정하지 않는다.
-- Grand Total은 assignmentId 기준으로 정확히 한 번 합산되어야 하며 Resource Group 중복 membership으로 증가하면 안 된다.
-- Resource View는 역할/개발자 등급/기간 drill-down과 `개발 견적` preset을 제공하고, 개발자별 Task 계획 공수·진행률·상태/지연·allocation 기간/투입률을 함께 보여야 한다.
-- Task progress/status는 계획 공수를 차감하거나 실제 소진 공수로 변환하지 않는다.
-- M/M 기준 미설정, 공수 미설정, 과투입, stale/error/empty 상태를 명시적으로 보존하며 일정↔리소스 tab 전환은 Gantt instance/state를 재생성하지 않는다.
+- #56의 개인 Resource assignment M/D·M/M 계산과 Calendar/allocation 계약을 유지한다.
+- 역할 분류는 assignment row가 아니라 Resource의 현재 Global Role 집합을 사용한다. 역할이 없는 Resource는 `UNSPECIFIED`로 표시한다.
+- 복수 Global Role Resource의 동일 assignment는 여러 역할 subtotal에 포함될 수 있으므로 역할 subtotal은 **비가산 분류 보기**다. 역할 subtotal 합으로 Grand Total을 계산하지 않는다.
+- Grand Total은 계속 assignmentId 기준 정확히 한 번 합산하며 Resource Group 중복 membership으로 증가하지 않는다.
+- `개발 견적` preset은 현재 Global Role에 `DEVELOPER`가 포함된 Resource를 사용한다.
+- Resource View와 Milestone dashboard의 기존 `assignmentRoles` query key는 호환을 위해 유지하되 의미는 Global Role 필터다.
 
 상세 계약은 [Issue #414 문서](ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md)를 따른다.
-
-
-
 ## Issue #415 — Resource/개발 공수 견적 Excel
 
 - 사용자는 Excel 내보내기에서 역할·개발자 공수 견적 포함 여부를 선택할 수 있어야 한다.
@@ -367,7 +366,7 @@ Task Editor 리소스 탭은 역할→Resource 및 Resource→역할 두 흐름�
 
 ## Issue #461 완료 단계 Editor
 
-Task/Summary의 작업 정보에서 Milestone을 이름·externalId·canonical taskId로 단일 검색·지정한다. Summary는 이름과 하위 작업 기본 단계만 편집하고 파생 일정/진척/Baseline은 읽기 전용이다. 직접/nearest Summary 상속/미지정을 구분하고 null 해제는 상속 복귀다. 기본 필드와 소속은 한 PATCH로 원자 저장한다.
+Task/Summary의 작업 정보에서 Milestone을 이름·externalId·canonical taskId로 단일 검색·지정한다. Summary는 이름·Description·URL·하위 작업 기본 단계만 편집하고 파생 일정/진척/상태/Baseline은 읽기 전용이다. 직접/nearest Summary 상속/미지정을 구분하고 null 해제는 상속 복귀다. 기본 필드와 소속은 한 PATCH로 원자 저장한다.
 
 Milestone은 기존 탭을 유지한 소속 작업 N 탭으로 유효 일반 Task 수와 explicit root 수를 구분한다. 검색·유형·소속 상태·다른 단계 이동·영향 preview, Summary override 보존과 inherited explicit-only 해제를 제공하고 batch 한 POST로 적용한다. full canonical 동기화와 모든 저장 단위의 dirty/pending/stale/readonly/완료 잠금을 유지하며 실패 초안·검색·선택을 보존한다. Ready/소속 진척/본인 완료를 분리하고 재개는 별도 명시 저장 뒤 구조 변경한다. Domain/API/auth/revision은 #460 계약을 재사용하며 새 서버 기능은 추가하지 않는다.
 
@@ -385,3 +384,11 @@ Milestone은 기존 탭을 유지한 소속 작업 N 탭으로 유효 일반 Tas
 Project 일정의 Gantt/Milestone 대시보드 peer view에서 readonly KPI와 단계 목록을 조회한다. full canonical snapshot의 E(M)/P(M)로 Ready·Blocked·소속 작업 진척·완료 불일치를 계산한다. 현재 단계 검색/선택 S와 Project 전체 물류·Resource·수행 역할·등급·기간 공수 F를 분리하고 WBS scope 미적용을 명시한다. 완료율/Ready/Blocked/지연/임박/계획 위험/소속 적용률은 raw 분모와 snapshot 대상 ID를 제공하며 null/0/loading/error를 구분한다.
 
 일반 Task 개인 assignment만 기존 Calendar/allocation으로 계산하고 모든 단계+미지정 bucket 합은 같은 F Grand Total이다. 검색으로 숨겨진 단계의 공수도 총합에 남는다. M/M은 명시 query 또는 유효 ENV 설정에서만 환산한다. 기존 물류 수치는 유지하고 full-stage 관련 projection을 추가한다. 기준일은 현재 snapshot의 Project timezone 평가이며 과거 상태/actual completion/원가/AI 위험 예측이 아니다. [정확한 서버 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델) 및 [API](API.md#issue-463-milestone-dashboard-api)를 따른다.
+
+## Issue #493 — Summary Task Description/URL 편집
+
+- Summary는 WBS 컨테이너이면서 자체 `description`과 `url` 메타데이터를 소유한다. 편집 세션이 유효하면 빈 Summary와 일정 산정 Summary 모두 두 필드를 직접 편집할 수 있어야 한다.
+- Summary Description/URL은 일반 Task와 동일한 validation/normalization 계약을 사용한다. 공백-only Description/URL은 null이며 URL은 HTTP(S)만 허용한다.
+- Summary의 requestedStart/start/end/duration/progress/status/Baseline은 계속 자손에서 파생하거나 읽기 전용이다. 메타데이터 편집을 일정 편집 허용으로 확대하지 않는다.
+- 하위 작업 추가·삭제·이동 및 Summary 일정 재계산은 Summary의 Description/URL을 보존해야 한다. 저장·재조회·reload 후 canonical snapshot과 UI가 일치해야 한다.
+- 보호 mutation은 기존 edit session, exact Origin, strong If-Match/revision 및 프로젝트 격리 규칙을 유지한다.

@@ -136,11 +136,11 @@ describe("SQLite connection and schema", () => {
     const before = state(original); original.close();
     const migrated = openDatabase({ filename, migrationsDirectory: sourceMigrations });
     try {
-      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_country_calendar_catalog.sql"]);
+      expect(migrated.migrations.applied).toEqual(["0022_task_milestone_memberships.sql", "0023_deprecate_task_assignment_roles.sql", "0024_country_calendar_catalog.sql"]);
       expect(state(migrated.database)).toEqual(before);
       expect(migrated.database.prepare("SELECT * FROM task_milestone_memberships").all()).toEqual([]);
-      expect(migrated.database.prepare("SELECT revision FROM country_calendar_catalog_state WHERE id = 1").get())
-        .toEqual({ revision: 1 });
+      expect(migrated.database.prepare("SELECT revision, length(preview_secret) AS previewSecretBytes FROM country_calendar_catalog_state WHERE id = 1").get())
+        .toEqual({ revision: 1, previewSecretBytes: 32 });
       expect(migrated.database.prepare("SELECT count(*) AS count FROM country_calendar_datasets").get())
         .toEqual({ count: 0 });
       expect(migrated.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
@@ -179,7 +179,8 @@ describe("SQLite connection and schema", () => {
         "0020_resource_roles.sql",
         "0021_task_assignment_roles.sql",
         "0022_task_milestone_memberships.sql",
-        "0023_country_calendar_catalog.sql",
+        "0023_deprecate_task_assignment_roles.sql",
+        "0024_country_calendar_catalog.sql",
       ]);
       expect(database.pragma("foreign_keys", { simple: true })).toBe(1);
       expect(database.pragma("journal_mode", { simple: true })).toBe("wal");
@@ -279,7 +280,6 @@ describe("SQLite connection and schema", () => {
         "task_assignments_group_unique_idx",
         "task_assignments_project_task_idx",
         "task_assignments_resource_idx",
-        "task_assignments_resource_role_idx",
         "task_assignments_resource_unique_idx",
         "task_assignments_resource_workload_idx",
         "task_equipment_links_equipment_idx",
@@ -295,7 +295,7 @@ describe("SQLite connection and schema", () => {
       expect(database.prepare("SELECT name, type FROM pragma_table_info('task_assignments') WHERE name = 'assignment_role'").get())
         .toEqual({ name: "assignment_role", type: "TEXT" });
       expect(database.prepare("SELECT name FROM sqlite_schema WHERE type = 'trigger' AND name = 'resource_roles_assignment_delete_guard'").pluck().get())
-        .toBe("resource_roles_assignment_delete_guard");
+        .toBeUndefined();
     } finally {
       database.close();
     }

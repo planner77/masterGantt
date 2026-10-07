@@ -192,7 +192,7 @@ Project-level status 변경은 새 서버 endpoint나 DB 계층을 만들지 않
 
 `ProjectService.updateTask`는 현재 aggregate 유효성을 확인한 뒤 field-only 요청에서는 저장된 effective start/end/requestedStart를 쓰고 Summary 진척/Baseline을 파생한다. 일정 요청에서는 직접 Task의 Calendar 계산과 end assertion을 먼저 검증하고 `src/domain/scheduling/task-candidate.ts`의 `recalculateTaskCandidate`에 전체 Project Task/Link를 넘긴다. 후보는 leaf requestedStart 재생성 → 기존 generic dependency forward-pass → Summary 계산 순서로 만든다. Service는 원본↔최종 날짜 diff로 모든 영향 leaf의 할당 범위를 한 번 읽어 검증한 뒤 후보 leaf/직접 편집/Baseline/Summary와 revision을 같은 IMMEDIATE transaction에 저장한다. `ScheduleRepository.updateLeafSchedules`는 prepared UPDATE를 재사용하고 후행별 SELECT 재조회를 하지 않는다.
 
-Manual/resource conflict는 Task 전용 오류로 Handler에서 HTTP 409로 매핑한다. `TaskFieldProjectService`는 같은 외부 transaction에서 description/url을 저장하고 canonical assignment/logistics를 enrich하므로 부분 저장이나 별도 revision 증가가 없다. Task Service에서 LinkService의 공개 mutation을 호출하지 않으며 순환 service 의존성도 추가하지 않는다. Link와 Calendar 경로는 기존 domain 공식을 계속 사용한다. 구조 명령/삭제의 linked guard는 유지한다. DB schema, migration, auth/session/Origin 계약과 CI workflow는 바뀌지 않는다.
+Manual/resource conflict는 Task 전용 오류로 Handler에서 HTTP 409로 매핑한다. `ProjectService`의 Summary PATCH allowlist는 name/description/url/explicitMilestoneTaskId만 허용하고 파생 일정·진척·상태·Baseline은 계속 거부한다. `TaskFieldProjectService`는 같은 외부 transaction에서 Task/Summary description/url을 저장하고 canonical assignment/logistics를 enrich하므로 부분 저장이나 별도 revision 증가가 없다. Task Service에서 LinkService의 공개 mutation을 호출하지 않으며 순환 service 의존성도 추가하지 않는다. Link와 Calendar 경로는 기존 domain 공식을 계속 사용한다. 구조 명령/삭제의 linked guard는 유지한다. DB schema, migration, auth/session/Origin 계약과 CI workflow는 바뀌지 않는다.
 
 
 ## Issue #289 — Project master data boundary
@@ -216,30 +216,18 @@ Milestone dashboard Route → read Service → 기존 Project/Schedule/Membershi
 
 전체 E/P Gate와 선택 S, 공수 F는 [단계 계약](MILESTONE_STAGE_GATES.md#issue-463-단계-대시보드-읽기-모델)으로 분리한다. S 검색/선택과 WBS 화면 scope는 전체 F 합계를 축소하지 않는다. ProjectRevision은 일정/소속/관계/상태/assignment/Project Calendar/물류를, CatalogRevision은 Resource 이름·등급·그룹/calendar 선택 의존성을 반영한다. 물류 유형 code를 재해석하지 않으므로 유형 catalog revision은 계산 입력이 아니다. `md-per-mm-core.ts`는 query/ENV/null 환산을 공유하며 pure 계산 안에서 process.env를 읽지 않는다. readonly UI는 같은 snapshot의 최소 관련 catalog를 받는다. Gantt와 Dashboard peer는 같은 grid cell에 mount 상태를 유지한다. 비활성 peer는 visibility:hidden/inert/aria-hidden으로 입력과 접근성을 제외하면서 layout box를 보존한다. peer 숨김/복귀 때 기존 Gantt의 공개 scroll 상태가 손실되는 actual 회귀에 대응하여 이 배치를 적용했으며 client의 E/P/Ready/공수 계산은 추가하지 않는다.
 
-## Issue #342 Global Country Calendar Catalog
-
-국가 Calendar는 기존 Project별 materialized Calendar와 분리된 글로벌 Catalog를 가진다.
+## Issue #342 — Global Country Calendar Catalog
 
 ```text
-Built-in 2026 fixture ─┐
-                       ├─ Effective Country Dataset Resolver ─→ WorkCalendarService Preview/Save
-DB Country Catalog ────┘
-        ↑
-Project Master Admin session
-        ↑
-/api/admin/work-calendars/* ← /calendar-admin
+Built-in approved fixture ─┐
+                           ├─ Effective Country Dataset Resolver ─→ Project Calendar Preview/Save
+DB Country Catalog ────────┘
+          ↑
+CountryCalendarRepository ← CountryCalendarCatalogService ← Admin Route Handler
 ```
 
-DB override가 존재하면 resolver가 built-in보다 우선한다. 관리자 API는 기존 `Route Handler → Service → SQLite` 경계와 Project Master admin session/Origin/If-Match를 재사용하며 런타임 외부 Holiday API를 호출하지 않는다. Catalog와 Project snapshot은 lifecycle이 분리되어 Catalog mutation 자체는 기존 Project Task/Calendar를 변경하지 않는다. Milestone Stage Gate와 JSON 1.1의 membership canonical model은 최신 main 계약을 그대로 유지한다.
+Country Calendar persistence는 `Route Handler → Service → Repository → SQLite`를 따른다. Repository만 SQL을 소유하고 Service는 validation, optimistic revision, transaction orchestration, built-in/override resolution을 담당한다.
 
-### Issue #342 Country Calendar Repository boundary
+DB override가 있으면 일반 effective resolver에서 built-in보다 우선하며 `OFFICIAL`만 Scheduling에 사용할 수 있다. 수동 수정으로 override가 `UNAVAILABLE`인 동안 Project Calendar Preview/Save는 fail-closed한다. 단, **신규 Project 초기 KR seed만** Project 생성 가용성을 위해 effective OFFICIAL override → built-in approved baseline → country rule 없음 순으로 fallback한다.
 
-Country Calendar persistence는 공통 계층 규칙인 \`Route Handler → Service → Repository → SQLite\`를 따른다. \`CountryCalendarCatalogService\`는 validation, revision/transaction orchestration, built-in + override resolution을 담당하고 실제 SQL prepare/run은 \`CountryCalendarRepository\`가 소유한다. Service가 직접 SQLite statement를 만들지 않는다.
-
-수동 날짜 Add/Edit/Delete는 기존 OFFICIAL provenance와 데이터 내용의 정합성이 깨지는 변경이므로 같은 transaction에서 dataset을 \`UNAVAILABLE\`로 내리고 \`sourceVersion/sourceUrl\`을 비운다. 운영자가 공식 source를 다시 검증해 metadata를 OFFICIAL로 저장하기 전에는 Scheduling resolver가 해당 override를 사용하지 않는다.
-
-### Issue #342 Preview token과 default seed availability
-
-Import Preview는 Catalog business data를 변경하지 않는다. `country_calendar_catalog_state.preview_secret`을 이용한 HMAC token으로 reviewed payload를 식별하고 Apply가 동일 revision/target/원본 bytes인지 검증한다. secret은 API/UI/로그에 노출하지 않는다.
-
-신규 Project의 기본 KR Calendar seed는 `effective OFFICIAL override → repository built-in approved baseline → rule 없음` 순서로 동작한다. 관리자가 override를 수동 수정해 재승인 대기(UNAVAILABLE)로 만든 동안에도 Project 생성 자체를 실패시키지 않는다. 반면 명시적 Project Calendar Preview/Save는 기존대로 UNAVAILABLE override를 fail-closed 처리한다.
+Import Preview는 DB business data를 변경하지 않으며 Catalog state의 server-only HMAC secret으로 reviewed revision/target/file bytes를 식별한다.

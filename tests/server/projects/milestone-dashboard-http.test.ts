@@ -35,7 +35,7 @@ function fixture(filename = ":memory:") {
   const group1 = catalog.insertGroup({ publicId: randomUUID(), name: "G1", code: "G1", description: "", now: NOW });
   const group2 = catalog.insertGroup({ publicId: randomUUID(), name: "G2", code: "G2", description: "", now: NOW });
   catalog.replaceGroupMembers(group1.id, [resource.id], NOW); catalog.replaceGroupMembers(group2.id, [resource.id], NOW);
-  const assign = (target: typeof task, percent: number | null) => catalog.replaceTaskAssignments({ projectId: project.id, taskId: target.id, now: NOW, targets: [{ publicId: resource.publicId, kind: "resource", internalId: resource.id, assignmentPublicId: randomUUID(), assignmentStart: null, assignmentEnd: null, allocationPercent: percent, assignmentRole: "DEVELOPER" }] });
+  const assign = (target: typeof task, percent: number | null) => catalog.replaceTaskAssignments({ projectId: project.id, taskId: target.id, now: NOW, targets: [{ publicId: resource.publicId, kind: "resource", internalId: resource.id, assignmentPublicId: randomUUID(), assignmentStart: null, assignmentEnd: null, allocationPercent: percent }] });
   assign(task, 50); assign(unassigned, null);
   const clock = vi.fn(() => new Date(NOW));
   const service = new MilestoneDashboardService(db, { clock, mdPerMmEnvironment: "20" });
@@ -55,7 +55,7 @@ describe("milestone dashboard SQLite readonly HTTP contract", () => {
     expect(spy).toHaveBeenCalled(); expect(f.clock).toHaveBeenCalledTimes(1);
     expect(data).toMatchObject({ projectRevision: 1, catalogRevision: f.catalog.getRevision(), asOfDate: "2026-10-07", timezone: "Asia/Seoul", mdPerMm: 20, mdPerMmSource: "environment", calculatedAt: NOW });
     expect(data.rows[0].stageGate.memberTaskIds).toEqual([f.task.publicId]); expect(data.effort.plannedMd).toBe(2.5); expect(data.effort.unsetAllocationCount).toBe(1);
-    expect(data.catalog.resources).toEqual([{ id: f.resource.publicId, name: "R", code: "R", active: true, developerGrade: "EXPERT" }]);
+    expect(data.catalog.resources).toEqual([{ id: f.resource.publicId, name: "R", code: "R", active: true, developerGrade: "EXPERT", roles: ["DEVELOPER"] }]);
     expect(JSON.stringify(data)).not.toMatch(/password|scrypt|tokenHash|salt|session/i); expect(f.state()).toEqual(before);
   });
   it("uses hierarchy Group/Resource calendars and matches workload totals with M buckets", () => {

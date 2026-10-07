@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 
+import { assertPopulatedTable, captureUi } from "./helpers/ui-geometry";
+
 test.use(isolatedApplicationOptions);
 
 async function createProject(page: import("@playwright/test").Page, baseURL: string, name: string, ownerName: string, description: string, password: string) {
@@ -13,7 +15,7 @@ async function createProject(page: import("@playwright/test").Page, baseURL: str
 }
 
 test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
-  test("Quick Search와 고급 조건을 AND로 조합하고 서버 재조회 없이 초기화한다", async ({ page, baseURL }) => {
+  test("Quick Search와 고급 조건을 AND로 조합하고 서버 재조회 없이 초기화한다", async ({ page, baseURL }, testInfo) => {
     const suffix = randomUUID().slice(0, 8);
     await createProject(page, baseURL!, `AMR Alpha ${suffix}`, "Automation Team", "Vietnam logistics", "PwdA123456!");
     await createProject(page, baseURL!, `Stocker Beta ${suffix}`, "Storage Team", "Korea stocker", "PwdB123456!");
@@ -33,6 +35,8 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
     await expect(alphaRow.locator("td").nth(1)).toHaveText("미지정");
     await expect(alphaRow.locator("td").nth(2)).toHaveText("미지정");
     await expect(alphaRow.locator("td").nth(3)).toHaveText("미지정");
+    const facts = await captureUi(page, testInfo, "list-populated-1440");
+    expect(facts.tables).toHaveLength(1); assertPopulatedTable(facts.tables[0], 2);
     const initialGets = collectionGets;
 
     const search = page.getByLabel("프로젝트명, 소유자 또는 설명 검색");
@@ -54,6 +58,7 @@ test.describe("Issue #84 프로젝트 목록 검색·필터", () => {
 
     await panel.getByRole("textbox", { name: "프로젝트명", exact: true }).fill("does-not-match");
     await expect(page.getByRole("heading", { name: "조건에 맞는 프로젝트가 없습니다." })).toBeVisible();
+    await captureUi(page, testInfo, "list-no-result-1440");
     await page.getByRole("button", { name: "검색/필터 초기화" }).click();
     await expect(table.locator("tbody tr")).toHaveCount(2);
     await expect(search).toHaveValue("");

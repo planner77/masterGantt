@@ -20,7 +20,7 @@ function fixture(): MilestoneDashboardCalculationInput {
     task("t3", { membership: { explicitMilestoneTaskId: "m2", effectiveMilestoneTaskId: "m2", inheritedFromTaskId: null } }),
     task("unassigned"),
   ];
-  const assignment = (id: string, taskId: string, percent: number | null): ProjectAssignmentDto => ({ id, taskId, target: { kind: "resource", id: "r1" }, role: "DEVELOPER", allocation: { start: null, end: null, percent } });
+  const assignment = (id: string, taskId: string, percent: number | null): ProjectAssignmentDto => ({ id, taskId, target: { kind: "resource", id: "r1" }, role: null, allocation: { start: null, end: null, percent } });
   const assignments = [assignment("a1", "t1", 100), assignment("a2", "t2", 50), assignment("a3", "t3", 100), assignment("a4", "unassigned", 100)];
   return {
     project: { publicId: "project", name: "Project", description: "", status: "in_progress", revision: 7, calendar: { timezone: "Asia/Seoul", weekendDays: [6, 0], holidays: [] } },
@@ -64,13 +64,19 @@ describe("milestone dashboard full-stage and scoped effort", () => {
     expect(data.effort.unsetAssignmentIds).toEqual(["a2"]); expect(data.effort.unsetAllocationCount).toBe(1);
     expect(data.effort.plannedMd).toBe(3); expect(data.effort.assignments.find((row) => row.assignmentId === "a2")!.plannedMd).toBeNull();
   });
-  it("requires resource, performed role and grade on one assignment rather than combining people", () => {
-    const input = fixture(); input.resources.push({ id: "r2", name: "R2", code: null, description: "", active: true, developerGrade: "BEGINNER" });
-    input.assignments.push({ ...input.assignments[0], id: "second", target: { kind: "resource", id: "r2" }, role: "PI" });
+  it("requires resource, Global Role and grade on the same Resource rather than combining people", () => {
+    const input = fixture();
+    input.resources.push({ id: "r2", name: "R2", code: null, description: "", active: true, developerGrade: "BEGINNER", roles: ["EQUIPMENT_OWNER"] });
+    input.assignments.push({ ...input.assignments[0], id: "second", target: { kind: "resource", id: "r2" } });
+    input.filter = { resourceIds: ["r1"], assignmentRoles: ["EQUIPMENT_OWNER"], developerGrades: ["ADVANCED"] };
+    const none = calculateMilestoneDashboard(input);
+    expect(none.scope.taskIds).toEqual([]); expect(none.rows).toEqual([]); expect(none.kpi.coverage.percent).toBeNull();
+
     input.filter = { resourceIds: ["r1"], assignmentRoles: ["PI"], developerGrades: ["ADVANCED"] };
-    const data = calculateMilestoneDashboard(input);
-    expect(data.scope.taskIds).toEqual([]); expect(data.rows).toEqual([]); expect(data.kpi.coverage.percent).toBeNull();
-    input.assignments[0].role = null; input.resources[0].developerGrade = null;
+    expect(calculateMilestoneDashboard(input).scope.assignmentIds).toEqual(["a1", "a2", "a3", "a4"]);
+
+    input.assignments = [input.assignments[0]];
+    input.resources[0].roles = []; input.resources[0].developerGrade = null;
     input.filter = { assignmentRoles: ["UNSPECIFIED"], developerGrades: ["UNSPECIFIED"] };
     expect(calculateMilestoneDashboard(input).scope.assignmentIds).toEqual(["a1"]);
   });

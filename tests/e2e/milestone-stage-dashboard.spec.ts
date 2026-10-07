@@ -43,7 +43,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   const groupResponse = await page.request.post("/api/resource-groups", { headers: { Origin: origin, "If-Match": `"${catalog.revision}"` }, data: { name: "참조 그룹" } });
   expect(groupResponse.status()).toBe(201); catalog = (await groupResponse.json()).data;
   const groupId = catalog.groups[0].id as string;
-  for (const [task, percent] of [[child, 50], [override, 100], [free, 50]] as const) await mutate(`/tasks/${task.taskId}/assignments`, { catalogRevision: catalog.revision, targets: [{ kind: "resource", id: resourceId, role: "DEVELOPER", allocation: { start: null, end: null, percent } }] }, "put");
+  for (const [task, percent] of [[child, 50], [override, 100], [free, 50]] as const) await mutate(`/tasks/${task.taskId}/assignments`, { catalogRevision: catalog.revision, targets: [{ kind: "resource", id: resourceId, allocation: { start: null, end: null, percent } }] }, "put");
   await mutate(`/tasks/${summary.taskId}/assignments`, { catalogRevision: catalog.revision, targets: [{ kind: "group", id: groupId }] }, "put");
   const processResponse = await mutate("/logistics/processes", { name: "연결 공정", code: "PROC-463" }, "post", 201);
   const processId = (await processResponse.json()).data.logistics.processes.find((row: { code: string }) => row.code === "PROC-463").id as string;

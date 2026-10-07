@@ -31,9 +31,9 @@ export class MilestoneDashboardService {
         project: { publicId: project.publicId, name: project.name, description: project.description, status: project.status, revision: project.revision, calendar: projectCalendarDto(this.database, project.id) },
         tasks, stageSnapshot: readStageSnapshot(this.database, project.id), catalogRevision: catalog.getRevision(),
         logistics: new LogisticsService(this.database).getLogisticsDto(project.id),
-        assignments: catalog.listAssignments(project.id).map((row) => ({ id: row.publicId, taskId: row.taskPublicId, target: { kind: row.kind, id: row.targetPublicId }, role: row.assignmentRole,
+        assignments: catalog.listAssignments(project.id).map((row) => ({ id: row.publicId, taskId: row.taskPublicId, target: { kind: row.kind, id: row.targetPublicId }, role: null,
           allocation: { start: row.assignmentStart, end: row.assignmentEnd, percent: row.allocationPercent } })),
-        resources: catalog.listResources().map((row) => ({ id: row.publicId, name: row.name, code: row.code, description: row.description, active: row.active, developerGrade: row.developerGrade })),
+        resources: catalog.listResources().map((row) => ({ id: row.publicId, name: row.name, code: row.code, description: row.description, active: row.active, developerGrade: row.developerGrade, roles: row.roles })),
         groups: [],
         calendarForResource: (id) => {
           if (!calendars.has(id)) calendars.set(id, resolveResourceWorkingCalendar(this.database, project.id, id));

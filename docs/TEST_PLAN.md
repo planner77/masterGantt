@@ -1287,35 +1287,20 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - UI/Chromium: 생성/표시/row 역할 checkbox, keyboard Space/focus, 역할/등급 구분, Group member 역할 참고, long Korean name, mutation `If-Match`, 390/768/1024/1440px document overflow를 검증한다.
 - 회귀: 기존 Resource 삭제 usage guard, group member 저장, Task Resource tab/assignment, logistics owner/developer/PI 저장, Resource Calendar 테스트는 동일 PR head의 전체 CI에서 함께 판정한다.
 
-## Issue #413 — Task assignment 수행 역할 검증
+## Issue #485 — Global Resource Role 단일 기준 검증
 
-- DB migration: `0021_task_assignment_roles.sql` ledger, nullable column, allowed role CHECK, role lookup index, assignment membership guard, role delete guard를 확인한다.
-- Service/API: multi-role Resource의 Task별 PI/DEVELOPER 저장, 보유하지 않은 role 거부, stale catalog/Project revision, Group role 금지, 사용 중 Global Role 제거 fail-closed와 Project/Task usage detail을 검증한다.
-- 기존 데이터: migration 전 assignment는 role null로 유지되고 allocation/M/D/M/M 결과가 바뀌지 않아야 한다.
-- UI/E2E: 역할 우선 후보 필터, Resource별 역할 option 제한, 신규 assignment 역할 필수, legacy 미지정 표시, 역할 변경 시 allocation draft 유지, 390/768/1024/1440 overflow와 keyboard 접근성을 검사한다.
-- 복사/Template: Project Copy와 Template snapshot/instantiate에서 assignment role과 null 상태가 보존되어야 한다.
-- 회귀: Group assignment, 관계/물류/작업 정보 탭, Calendar/workload, Gantt scope state는 역할 메타데이터 추가로 동작이 변하지 않아야 한다.
+- DB migration: `0023_deprecate_task_assignment_roles.sql`이 기존 `assignment_role`을 null로 만들고 role index/INSERT·UPDATE guard/role-delete guard를 제거하는지, 재실행·reopen·FK 정합성을 확인한다.
+- Service/API: 신규 개인 Resource assignment는 role 없이 저장되고 canonical role은 null인지 확인한다. non-null legacy `role` mutation은 거부하고, 사용 중 Resource의 Global Role 변경/제거는 Task assignment 때문에 차단되지 않아야 한다.
+- UI/E2E: Resource 선택 후 수행 역할 Select가 없고 Global Role badge만 표시되는지, Global Role 필터가 `assignment-targets?kind=resource&role=...` 후보 조회만 수행하며 저장 payload에 role을 넣지 않는지 확인한다.
+- Workload/Milestone/Excel: 현재 Global Role 집합으로 분류하고 role 0개는 UNSPECIFIED인지 확인한다. multi-role assignment의 role subtotal 합은 Grand Total보다 클 수 있으며 Grand Total은 assignmentId 기준 한 번만 합산되어야 한다.
+- Copy/Template: Project Copy와 신규 Template snapshot/instantiate가 Task별 role을 복제하지 않고 Resource/Group 참조와 allocation을 보존하는지 확인한다. legacy snapshot의 `assignmentRole`은 무시한다.
+- 기존 readonly/401/412/catalog stale/inactive/중복 submit, allocation Calendar/M/D·M/M, Gantt state 회귀를 함께 검증한다.
 
-### Issue #413 review 회귀
+## Issue #414 — Global Role 기반 Resource workload 검증
 
-- 100개를 초과하는 활성 Resource에서 역할 없는 filler가 앞에 정렬되어도 `role=EQUIPMENT_OWNER` 검색은 뒤쪽 matching Resource를 반환해야 한다.
-- Task Editor에서 수행 역할 선택 시 실제 `assignment-targets?kind=resource&role=...` request가 발생해야 한다.
-- Template snapshot에 남은 수행 역할을 live assignment 삭제 후 Global Role에서 제거하고 instantiate해도 500이 발생하지 않아야 한다. 새 assignment/allocation은 유지하고 role은 null, warning은 stale role과 역할 미지정 복원을 포함해야 한다.
-
-## Issue #414 — 역할 기반 Resource workload 검증
-
-- Server: PI 2 M/D + Developer 8 M/D + Equipment Owner 3 M/D = Grand Total 13 M/D fixture를 사용해 역할 subtotal 합과 Grand Total을 비교한다.
-- Dedup: multi-role Resource를 Task별 다른 수행 역할로 분류하고, 동일 Resource가 두 Group에 속해도 Grand Total은 assignmentId 기준 한 번만 합산되는지 확인한다.
-- Legacy: Global DEVELOPER 역할을 가진 Resource라도 Task assignment role이 null이면 `UNSPECIFIED`로 분류하고 Developer subtotal에 포함하지 않는다.
-- M/M: `RESOURCE_MD_PER_MM=20`이면 13 M/D → 0.65 M/M이며 기준 미설정 시 Grand/role M/M은 null이고 M/D는 유지한다.
-- Status: canonical task progress/status/start/end와 Project timezone 기준 delayed를 반환하되 progress/status 변경으로 계획 M/D가 변하지 않는지 확인한다.
-- Capacity: 역할 분류와 무관하게 기존 Resource Calendar 및 일별 allocation >100% 과투입 판정을 유지한다.
-- Chromium: 역할 summary, 개발 견적 preset(Resource+DEVELOPER), 역할/개발자 등급 filter, developer Task detail을 검증한다.
-- State/geometry: 390/768/1024/1440px document overflow 없음, task table 내부 horizontal scroll, 일정↔리소스 왕복 후 동일 Gantt instance와 preset/filter 상태 보존을 확인한다.
-- 기존 #117 workload/assigned-target 독립 loading/error/stale/partial retry E2E를 그대로 통과해야 한다.
-- 공식 전체 판정은 Issue #414 PR exact head의 GitHub Actions quality/e2e/docker 결과로 한다.
-
-
+- #56 산식과 assignmentId Grand Total dedup은 유지한다.
+- 역할 subtotal은 Resource의 현재 Global Role 집합에 따라 비가산 분류한다. DEVELOPER preset도 Global Role을 사용한다.
+- 공식 전체 판정은 #485 PR exact head의 GitHub Actions quality/e2e/docker 결과로 한다.
 
 ## Issue #415 — Resource Effort Excel 검증
 
@@ -2010,51 +1995,49 @@ filter의 설치 handler가 직접 scroll0/timeline 축소를 수행한다고 �
 
 Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manager의 독립 검토·infra 원격 게시/exact-head CI 등록 후 상태를 별도로 기록한다. CI 모니터링·merge/main GHCR/release는 사용자 이번 범위 밖이다. B #490/C #491은 FOLLOW-UP/NOT TESTED다.
 
-## Issue #342 국가 Calendar 2026~2037 / Import / 관리자 CRUD
+## Issue #493 — Summary Task Description/URL 편집
 
-- Dataset: KR/CN/VN/PH/TH/MX/US의 2026~2037 관리 슬롯, 2026 built-in baseline, 미래 미등록 연도 UNAVAILABLE, `supportedYears=OFFICIAL only`, 공식 WORKING 보충근무일 보존.
-- Import parser: canonical JSON과 UTF-8 CSV, country/year/date/dayType/source metadata, year/date mismatch, duplicate/conflict, malformed input, 1 MiB/500 date 제한.
-- Service/API: Preview additions/changes/deletions/unchanged, atomic full replacement, source metadata round-trip, stale Catalog revision 거부, built-in first-edit clone, OFFICIAL 승격 조건, 기존 Project Master admin session/Origin/If-Match.
-- DB: migration `0023_country_calendar_catalog.sql` tables/indexes/FK/revision, 최신 0018~0022 migration과 공존.
-- Scheduling integration: Project Calendar Preview/Save와 신규 Project default Calendar가 DB OFFICIAL override를 built-in보다 우선하고 UNAVAILABLE/SUPERSEDED를 사용하지 않는다. Catalog mutation만으로 기존 materialized Project Calendar/Task를 변경하지 않는다.
-- Stage Gate regression: #459의 explicit/effective Milestone membership, Ready/KPI/JSON 1.1 및 Task Dependency 의미는 Country Calendar Catalog 변경으로 달라지지 않는다.
-- E2E: `/calendar-admin` 로그인, Import Preview/Apply, date add/edit/delete, 390/768/1024/1440 document overflow, 기존 관리자 shell/header geometry 비회귀.
-- CI #1850의 `project-status.spec.ts` direct GET transient reset 재발 방지를 위해 읽기 GET에만 `socket hang up|ECONNRESET` 최대 3회 retry를 적용한다. POST/PATCH 등 mutation은 retry하지 않는다.
-- 공식 전체 회귀는 exact PR head의 현재 `quality/e2e/docker` required gate이며 과거 head의 PASS/FAIL을 대체 증거로 사용하지 않는다.
+- `tests/features/gantt/task-editor-model.test.ts`는 Summary command가 name/Description/URL/명시 완료 단계 소속만 포함하고 schedule/progress/Baseline 변경을 누락하는지, Description 길이와 URL scheme을 일반 Task와 같은 규칙으로 검증한다.
+- `tests/domain/milestone-editor-model.test.ts`는 Summary 메타데이터와 완료 단계 소속을 한 command로 결합하면서 잘못된 일정 초안이 payload로 새지 않는지 확인한다.
+- `tests/server/projects/summary-task-details.test.ts`는 실제 SQLite의 `TaskFieldProjectService`에서 Summary Description/URL 저장·canonical 재조회, child 추가/삭제에 따른 일정 재계산 뒤 메타데이터 보존, schedule readonly 거부와 revision 불변을 검증한다.
+- `tests/e2e/project-task-editor.spec.ts`는 편집 가능한 Summary에서 Description/URL은 readOnly가 아니고 요청 시작일은 계속 readOnly인지 확인한다.
+- `tests/e2e/project-task-editor-persistence.spec.ts`는 실제 브라우저+SQLite에서 Summary Description/URL PATCH 1회, 파생 일정 불변, 마지막 child 삭제 후 빈 Summary의 null 일정과 메타데이터 보존, reload 후 재표시를 검증한다. reload 후 값 검증은 실패 artifact에서 확인된 실제 접근성 tree의 `textbox` role을 사용한다.
+- readonly/stale/pending/focus/Escape/Gantt instance 보존은 기존 Task Editor 회귀를 함께 사용한다. 전체 공식 회귀 판정은 동일 PR head의 `quality`, `e2e`, `docker` GitHub Actions로 한다.
 
-### CI #1960 migration regression 보완
 
-PR CI #1960의 유일한 Vitest 실패는 `tests/server/db/database.test.ts`의 legacy schema21 upgrade 기대값이 `0022_task_milestone_memberships.sql` 하나만 가정한 데서 발생했다. #342의 `0023_country_calendar_catalog.sql`이 정상적으로 함께 적용되므로 기대 applied list를 0022+0023으로 갱신한다. 기존 Project/Task/Link/Resource/Assignment row 불변, empty Stage membership, FK check를 유지하고 Country Calendar Catalog 초기 `revision=1`, dataset 0건도 함께 검증한다.
+## Issue #456 — Main CI #1993.1 dependency audit corrective
 
-### Issue #342 Codex review rework
+- PR #500 merge SHA `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`의 Main CI Run `37524404994` / #1993.1은 build, typecheck, lint, Vitest, Chromium E2E 6/6, Docker smoke가 SUCCESS였고 production dependency audit만 FAIL했다.
+- 실패 원인은 `sharp 0.35.4`의 GHSA-wq5f-xc86-pv6w / CVE-2026-96889 (High)이며 audit gate는 완화하지 않는다.
+- 최초 corrective PR #504 head `bc90e12e3dfc1eee8f1f1d4afdccb7964fb87acc`의 PR CI #2014.1에서 dependency audit를 포함한 quality, E2E 6/6, Docker가 SUCCESS했다.
+- 그 사이 Issue #493가 병합된 latest main `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7` / application 0.93.0이 동일 advisory 대응으로 `sharp 0.35.5`, `@img/sharp-libvips-* 1.3.4`를 이미 포함하므로 lockfile을 되돌리거나 중복 패치하지 않는다.
+- #456 corrective는 latest main을 기준으로 재정렬해 `tests/scripts/test-config-layout.test.ts`의 `sharp >= 0.35.5`, 모든 `@img/sharp-libvips-* >= 1.3.4` 정적 회귀와 이 추적 기록을 유지한다. 실제 advisory authority는 계속 PR/Main/Release의 `npm audit --omit=dev`다.
+- 재정렬 후 새 exact-head PR CI SUCCESS → merge → 새 Main CI 시작을 본 요청의 완료 기준으로 사용한다.
 
-- Repository boundary: Country Calendar Service source에 직접 \`.prepare()/database.transaction\` 호출이 없고 SQL은 \`CountryCalendarRepository\`만 소유하는지 확인한다.
-- Provenance: built-in/override OFFICIAL dataset의 수동 date Add/Edit/Delete 직후 status가 UNAVAILABLE, sourceVersion/sourceUrl이 null이고 effective Scheduling dataset이 사라지는지 검증한다. 새 metadata로 OFFICIAL 재승인 후에만 다시 노출되어야 한다.
-- File race: file A의 \`text()\` 완료를 지연한 상태에서 file B를 재선택하면 A 완료 후에도 Preview/Apply payload와 적용 결과가 B여야 한다.
-- Import Apply는 complete source metadata를 포함하는 atomic full replacement이므로 OFFICIAL 유지가 가능하며 수동 CRUD와 구분한다.
+## Issue #457 전 화면 공통 geometry·상태 회귀
 
-### Issue #342 두 번째 Codex review rework
+- [11행 coverage와 정확한 실행·예외](ISSUE_457_UI_UX_COVERAGE.md)를 기준으로 현재 branch의 대표 경로와 미실행 표면을 구분한다. Historical capture product source는 parent PR#500 `b397eedf35d50befb4ae17e623036f0a8d77f556` /0.92.1과 동일하다. 이번 CI 보완은 최신 main `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7` 기준으로 재정렬하며 #493의 후속 제품 변경과 기존 캡처 provenance를 구분한다.
+- `tests/e2e/helpers/ui-geometry.ts`를 기존 admin-auth, 생성/목록/공수/물류/설정 spec에 연결했다. 인증 정상·native keyboard focus·실제 error·deferred disabled의 computed style/label/description/clip owner를 검사하고 같은5폭에서 세 admin shell을 직접 비교한다. 최소 control/populated row/header 수, cell text/열 경계, document clientWidth+1, 내부 scroll/density와 native Tab last action을 검증한다. Empty colspan·숨은 text·0rect·inert는 성공 자료로 세지 않는다.
+- `cross-screen-regression.spec.ts`는 직접 cross-admin 비교, populated Master 대표390/1440, 404 recovery/demo 대표만 추가한다. 생성 기존 spec에1920px를 추가했고 선택 기존 회귀를 유지했다. 전체 state×surface×viewport Cartesian product와 로컬 전체 suite 반복은 추가하지 않았다.
+- 최종 대표 범위는 고유23개=최종 observer 직접7 PASS(32.7s)+제품 source/spec 불변 선택16 재사용이다. 총4실행36case의34 PASS/2 FAIL과 중간 `TS2304`는 별도로 보존한다. 최초 FAIL은 fold 아래 table 관찰 준비와 숨은 status text0rect의 observer 오류였다. 실제 제품 defect를 기대값 완화로 숨기지 않았다.
+- Raw HTML/embedded ZIP/decoded JSON/trace/stdout은 각 실행 직후 고유 `/tmp/issue457-run<N>-*`에 보존하고 실제 case ID·해시를 `output/playwright/issue-457/runs.json`에 연결했다. 현재 PNG/JSON은 source/test/helper/fixture/env provenance를 가진다. Historical hardcoded outputs의 backup 필터 오류와 정확한 baseline403복원 경위도 coverage에 기록하며 성공한 사전 backup이라고 과대 보고하지 않는다.
+- 같은 source/CSS는 KEEP이며 새 guard를 제품 개선으로 보고하지 않는다. #452 first-PR 공통 reusable helper 부재는 역사적 GAP/FAIL을 현재 보완하는 범위다. B#490/C#491·React error boundary·실제 배포·native125·실기기/스크린리더 및 원격 `quality/e2e/docker`는 NOT TESTED다. CI 등록은 required jobs PASS와 최종 ACCEPT를 대체하지 않는다.
 
-- Country/year GET 실패 후 이전 snapshot이 DOM에서 제거되고 mutation이 잠기는지 검증한다.
-- 날짜 PATCH 412 후 편집 dialog와 stale draft가 폐기되고 최신 snapshot만 남는지 검증한다.
-- OFFICIAL 1-date dataset의 마지막 날짜 DELETE가 성공하고 결과가 UNAVAILABLE/0 dates/effective undefined인지 검증한다.
-- 빈 object/unknown field PATCH는 invalid input으로 거부하고 revision/provenance를 바꾸지 않는지 검증한다.
-- Import Apply 성공 후 native file input value가 비워지고 같은 파일 재선택으로 Preview가 다시 활성화되는지 검증한다.
+환경별 미검증은 [Follow-up #502](https://github.com/planner77/masterGantt/issues/502)에서 실제 React error boundary/native125/실기기·screen reader·최종 수동 UX/배포 source·version을 FOLLOW-UP/NOT TESTED로 추적한다. frontend·ui_ux·qa_docs가 환경별 증거를 작성/비교/독립 확인하고 Manager가 환경 제공과 수용 범위를 판단한다. B#490/C#491 제품 개선과 별개이며 현재 scope에서 자동 실행하지 않는다.
 
-- effective provenance null: 유일한 지원 연도 override가 UNAVAILABLE로 전환되면 \`supportedYears=[]\`, \`sourceVersion=null\`, \`sourceUrl=null\`인지 검증한다. built-in provenance fallback은 허용하지 않는다.
+#457 독립 검토의 provenance 정정: 목록 `list-populated-1440`/`list-no-result-1440` key는 별칭이며 실제 JSON/PNG는1280×720이다. Current62 JSON은 ko-KR/Asia-Seoul/높이900/DPR1 49개, en-US/Asia-Seoul/높이900/DPR1 11개, en-US/Asia-Seoul/높이720/DPR1 목록2개다. 정상 Master auth는 기존 autofocus 때문에 focused/focusVisible=true이므로 normal을 비포커스 baseline으로 해석하지 않는다. 과거capture/test/source hash와141개raw PNG/JSON은 그대로 유지한다. 착수 시 stacked 계획과 달리 parent PR#500 외부 병합 후 최초 게시 base는 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`/0.92.1이었고 tree `6a322cc119ed5b0a435f3b1ff20fe5826035ed66`이 원래 capture source `b397eedf35d50befb4ae17e623036f0a8d77f556`과 정확히 같아 LFF를 재사용했다. PR CI 보완 시점에는 main이 `8e7865dd69b398d818e0d80ae69e089d7f6dd9a7`까지 전진하여 재정렬했다. 실제 운영 배포는 #502 NOT TESTED다.
 
-### Issue #342 Codex review REWORK 4
+- #457 geometry helper는 일반 `npm run test:e2e`에서 tracked 증거를 덮어쓰지 않고 Playwright test output에 기록한다. tracked evidence publication은 `ISSUE_457_EVIDENCE_DIR` 명시가 필요하며, KEEP/REVIEW는 `ISSUE_457_BASELINE_SOURCE_AGGREGATE_SHA256`의 명시적 baseline과 source aggregate를 비교할 때만 부여한다. baseline이 없으면 중립 OBSERVATION이다.
+- PR CI #2004.1의 production dependency audit에서 `sharp 0.35.4` / CVE-2026-96889가 High로 실패했다. audit gate는 완화하지 않는다. 최신 main에는 `sharp 0.35.5` 및 대응 `@img/sharp-* 0.35.5`, `@img/sharp-libvips-* 1.3.4`가 이미 반영되어 있으므로 그 lockfile을 그대로 사용하고 저장소 계약 테스트로 최소 버전을 고정한다.
 
-- date no-op: OFFICIAL built-in date를 동일 값으로 저장해도 override clone, revision 증가, provenance invalidation이 없어야 한다.
-- pending delete: 느린 DELETE 중 dialog 취소가 disabled이고 요청 완료 전 dialog가 닫히지 않아야 한다.
-- target draft: 국가/연도 변경 시 신규 날짜 draft와 선택 file/Preview를 폐기한다.
-- project creation availability: current-year KR override가 UNAVAILABLE이어도 신규 Project 생성은 성공하고 built-in approved baseline으로 초기 Calendar를 seed한다. baseline도 없으면 Country rule 없이 생성한다.
-- Preview binding: Preview token 없이 Apply, token과 다른 envelope Apply를 거부하고 동일 token+revision+bytes만 성공시킨다.
-- migration 0023: Catalog state의 preview_secret이 정확히 32 bytes이며 API/log에 노출되지 않는다.
-- Chromium locator는 dataset status의 accessible name과 exact 국가 label을 사용해 select option/toolbar와 strict-mode 충돌하지 않는다.
+## Issue #342 — Country Calendar Catalog 검증
 
-### Issue #342 CI #1995 보완
-
-- TypeScript/Vitest: Preview mismatch 오류 import, 모든 `applyImport(revision, previewToken, envelope)` 호출과 Integration test describe/it 구조를 검증한다.
-- production audit: Next 16.3.8의 optional `sharp ^0.35.4`는 lock에서 `0.35.5`, `@img/sharp-* 0.35.5`, `@img/sharp-libvips-* 1.3.4`를 사용하고 `npm audit --omit=dev`가 High vulnerability 없이 통과해야 한다.
-- 기존 exact-head quality/e2e/docker 전체 gate를 다시 수행하며 #1995 결과는 수정 전 head에 한정한다.
+- Dataset/Resolver: 7개 국가 2026~2037 관리 슬롯, OFFICIAL-only effective resolution, UNAVAILABLE/SUPERSEDED 차단, WORKING 보존.
+- Import: JSON/CSV validation, duplicate/year mismatch, 1 MiB/500 dates, Preview diff, HMAC previewToken exact revision/target/format/bytes binding, token mismatch/reuse 거부.
+- CRUD provenance: 수동 Add/Edit/Delete 후 UNAVAILABLE + source null, OFFICIAL 재승인 전 effective dataset 부재.
+- No-op/input: 동일 metadata/date PATCH는 revision/override/provenance 불변, empty/unknown/explicit-null date PATCH는 거부.
+- Project availability: current-year KR override 재승인 대기 중 신규 Project 생성은 built-in approved baseline으로 초기 seed하며 수동 미승인 날짜는 포함하지 않는다.
+- DB: migration 0024, preview_secret 32 bytes, tables/indexes/FK, legacy schema21→0022→0023→0024 연속 upgrade 데이터 불변.
+- UI/E2E: file race, target draft clear, target load 실패 snapshot 제거, 401/412 stale draft 폐기, pending edit/delete cancel 차단, delete 후 focus 복원, same-file reselect, responsive overflow.
+- E2E locator는 dataset status의 accessible name과 exact 국가/연도 select를 사용한다.
+- 공식 전체 판정은 exact PR head의 `quality/e2e/docker` required gate이며 이전 head PASS/FAIL을 재사용하지 않는다.

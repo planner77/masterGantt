@@ -671,25 +671,22 @@ Repository write는 status/progress 일관성을 검증한다. Summary schedule 
 
 상세 결정과 검증 범위는 [ISSUE_412_RESOURCE_ROLES.md](ISSUE_412_RESOURCE_ROLES.md)를 따른다.
 
-## Issue #413 — Task assignment 수행 역할 migration 0021
+## Issue #485 — Task assignment 역할 비권위화 migration 0023
 
-`0021_task_assignment_roles.sql`은 기존 `task_assignments`에 nullable `assignment_role TEXT`를 추가한다. 허용값은 `PI | DEVELOPER | EQUIPMENT_OWNER`이며 migration 이전 row는 `NULL`을 유지한다. Group assignment는 역할을 사용하지 않는다.
+`0021_task_assignment_roles.sql`이 추가했던 nullable `task_assignments.assignment_role`은 기존 DB/백업 호환을 위해 컬럼 자체는 유지하지만 #485부터 non-authoritative다.
 
-`task_assignments_resource_role_idx(resource_id, assignment_role)`는 사용 중 역할 조회를 지원한다. INSERT/UPDATE guard는 non-null 수행 역할이 해당 Resource의 `resource_roles`에 존재하는지 검사하고, `resource_roles_assignment_delete_guard`는 Task assignment가 참조 중인 Global Role 삭제를 거부한다. 기존 `(project_id, task_id, resource_id)` unique index는 그대로 유지하므로 하나의 Task+Resource는 최대 하나의 수행 역할만 가진다.
+`0023_deprecate_task_assignment_roles.sql`은 기존 값을 모두 `NULL`로 정규화하고 `task_assignments_resource_role_idx`, assignment role INSERT/UPDATE guard, `resource_roles_assignment_delete_guard`를 제거한다. 신규 repository 저장도 항상 null을 기록한다.
 
-Project Copy와 Template은 `assignment_role`을 보존하고 workload/Calendar 계산은 이 필드에 의존하지 않는다. 상세 결정은 [ISSUE_413_TASK_ASSIGNMENT_ROLES.md](ISSUE_413_TASK_ASSIGNMENT_ROLES.md)를 따른다.
+역할의 Source of Truth는 `resource_roles(resource_id, role)`뿐이다. Global Role 변경은 Task assignment 참조 때문에 차단하지 않으며 `(project_id, task_id, resource_id)` unique invariant와 allocation index/Calendar 계약은 유지한다. Project Copy/Template은 Task별 역할을 복제하지 않는다.
 
-## Issue #342 Country Calendar Catalog — migration 0023
+## Issue #342 — Country Calendar Catalog (migration 0024)
 
-`0023_country_calendar_catalog.sql`은 Project별 materialized Calendar와 분리된 글로벌 국가 Calendar Catalog를 추가한다. 현재 main의 `0022_task_milestone_memberships.sql` 이후에 적용하며 기존 migration ledger를 재작성하지 않는다.
+`0024_country_calendar_catalog.sql`은 최신 main의 `0023_deprecate_task_assignment_roles.sql` 이후 적용한다.
 
-- `country_calendar_catalog_state`: 관리자 optimistic concurrency용 단일 revision row
-- `country_calendar_datasets`: country_code + calendar_year unique, OFFICIAL/UNAVAILABLE/SUPERSEDED status, sourceVersion/sourceUrl, updated_at
-- `country_calendar_dates`: dataset별 ISO date, name, NON_WORKING/WORKING, sourceKey. dataset 삭제 시 cascade
-- 관리 가능 year CHECK 범위: 2026..2037
+- `country_calendar_catalog_state(id=1, revision, preview_secret, updated_at)`
+  - `preview_secret`: 32-byte BLOB, Import Preview→Apply HMAC binding 전용이며 API/log/export에 노출하지 않는다.
+- `country_calendar_datasets`: country/year unique, `OFFICIAL|UNAVAILABLE|SUPERSEDED`, sourceVersion/sourceUrl
+- `country_calendar_dates`: dataset별 ISO date, name, `NON_WORKING|WORKING`, sourceKey, dataset delete cascade
+- 관리 year CHECK: 2026..2037
 
-Repository built-in 2026 fixture는 DB로 일괄 복제하지 않는다. override가 필요할 때 첫 mutation이 built-in dataset을 DB에 clone하고 이후 DB가 resolution 우선권을 가진다. 기존 `work_calendar_rules/work_calendar_dates`는 Project snapshot이므로 Catalog mutation으로 수정되지 않는다. Milestone Stage Gate membership schema와 독립된 전역 Catalog다.
-
-### Issue #342 Preview HMAC secret
-
-`country_calendar_catalog_state.preview_secret BLOB NOT NULL CHECK(length(preview_secret)=32)`은 Import Preview→Apply binding 전용 server secret이다. migration 0023 적용 시 `randomblob(32)`로 한 번 생성되며 API 응답, 로그, Catalog export 대상이 아니다. Catalog revision 증가와 별개로 secret은 회전하지 않는다.
+Built-in 2026 fixture는 DB로 선복제하지 않는다. 첫 실제 override mutation 때만 필요 row를 만들며 no-op metadata/date 저장은 override를 생성하지 않는다. 기존 `work_calendar_rules/work_calendar_dates`, Milestone membership, Resource role migration과 lifecycle을 분리한다.

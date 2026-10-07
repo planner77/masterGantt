@@ -55,7 +55,7 @@ function assignmentDtos(repository: ResourceCatalogRepository, projectId: number
     id: assignment.publicId,
     taskId: assignment.taskPublicId,
     target: { kind: assignment.kind, id: assignment.targetPublicId },
-    role: assignment.kind === "resource" ? assignment.assignmentRole : null,
+    role: null,
     allocation: assignment.kind === "resource"
       ? { start: assignment.assignmentStart, end: assignment.assignmentEnd, percent: assignment.allocationPercent }
       : null,

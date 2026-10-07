@@ -871,13 +871,13 @@ Resource Group 구성원 footer는 `닫기` secondary를 좌측, `구성원 저�
 
 이 변경은 Resource Catalog의 관리자 session, Origin, strong `If-Match`, revision/412 stale recovery, 삭제 usage guard, Group membership, 역할 PATCH 실패 시 draft 보존 계약을 변경하지 않는다. #288의 개발자 등급 읽기 표시와 #412의 역할 요약 표시 계약도 유지한다.
 
-## Issue #414 — Resource 역할 공수 및 개발 견적
+## Issue #414/#485 — Global Role 공수 및 개발 견적
 
 Resource tab의 기존 Group → Resource → Task hierarchy를 유지하면서 역할 기반 분석을 같은 full-width workspace 안에 확장한다.
 
-상단은 전체 계획 공수·공수 미설정·과투입과 PI/개발자/설비 담당/역할 미지정 역할 subtotal을 flat summary로 제공한다. 고급 필터에는 수행 역할과 개발자 등급을 추가하며 `개발 견적` preset은 Resource + DEVELOPER 조건을 한 번에 적용한다. 필터는 서버 집계를 다시 요청하지 않고 현재 성공 snapshot의 drill-down 표시 범위만 변경한다.
+상단은 전체 계획 공수·공수 미설정·과투입과 PI/개발자/설비 담당/Global Role 미지정 subtotal을 flat summary로 제공한다. 고급 필터에는 Global Role과 개발자 등급을 추가하며 `개발 견적` preset은 Resource + Global Role=DEVELOPER 조건을 한 번에 적용한다. 필터는 서버 집계를 다시 요청하지 않고 현재 성공 snapshot의 drill-down 표시 범위만 변경한다.
 
-역할/기간/등급 필터가 적용되면 Group/Resource row의 표시 subtotal은 현재 보이는 Task만 합산한다. 반대로 상단 Project 전체 및 역할 subtotal은 필터와 무관한 서버 권위 값이다. 개발자 row에는 등급을 표시하고 Task detail에는 수행 역할, canonical 상태/진행률/일정, allocation 기간/%, 계획 M/D·M/M을 함께 표시한다. 지연은 Project timezone 기준 `미완료 && end < 기준일`이다.
+Global Role/기간/등급 필터가 적용되면 Group/Resource row의 표시 subtotal은 현재 보이는 Task만 합산한다. 반대로 상단 Project 전체 및 역할 subtotal은 필터와 무관한 서버 권위 값이다. 개발자 row에는 등급을 표시하고 Task detail에는 Global Role 집합, canonical 상태/진행률/일정, allocation 기간/%, 계획 M/D·M/M을 함께 표시한다. 지연은 Project timezone 기준 `미완료 && end < 기준일`이다.
 
 기존 independent workload/assigned-target query, stale 결과 보존, source별 retry, M/M 미설정 비활성화, Resource tab 내부 table horizontal scroll, 390/768/1024/1440 responsive, 일정↔리소스 탭 전환 시 Gantt mount/state 보존 계약을 유지한다.
 
@@ -1020,31 +1020,22 @@ canonical sync에서 public scroll 좌표를 기록하고 기존 columns queue�
 
 설치 SVAR Core 2.7.3의 공개 getState scrollLeft/scrollTop(pixel), scroll-chart(left/top), set-columns(columns)를 사용한다. Core/PRO 내부 구현을 복제하거나 새로운 controller/API를 도입하지 않는다. 반복 filter action 제거와 canonical/columns 뒤 복원은 실제 #456 브라우저 관찰을 위한 앱 보강이며 SVAR가 일반적으로 viewport 보존을 보장한다는 뜻은 아니다.
 
-## Issue #342 국가 Calendar 관리자
+## Issue #493 — Summary 메타데이터 편집
 
-전역 Header의 기존 메뉴 수·hit area 계약은 유지하고 프로젝트 기준정보 관리 화면의 보조 action에서 `/calendar-admin`으로 이동한다. 화면은 최신 `DESIGN.md`와 `UI_UX_GUIDELINES.md`의 Light-first, workspace-first, data-dense, flat surface, compact controls 원칙을 따른다. Issue #452의 공통 `admin-page` shell과 `AdminAuth` presentation을 재사용한다.
+작업 정보에서 Summary도 Description과 URL을 일반 Task와 같은 위치·컴포넌트로 편집한다. Summary라는 이유만으로 두 입력을 숨기거나 readOnly로 만들지 않으며, 프로젝트 readonly·저장 중·다른 편집 단위의 미저장 초안 등 기존 mutation 잠금은 동일하게 적용한다.
 
-상단 compact toolbar에서 국가와 2026~2037 연도를 선택하고 dataset 상태, source version/URL, 데이터 건수, 마지막 수정 시각을 확인한다. Import는 파일 선택 → 업로드 전 검증 → 추가/변경/삭제 예상 건수 Preview → 명시적 적용 순서이며 선택한 국가/연도와 파일 target이 다르면 적용하지 않는다. 날짜 목록은 날짜/요일/이름/dayType/sourceKey/action 중심의 data-dense table로 제공하고 추가·편집·삭제를 지원한다. 삭제는 `WorkspaceDialog` 확인을 거치며 Escape/focus restore 계약을 유지한다.
+Summary의 일정·진척·상태·Baseline은 자손 기반 파생값이므로 기존 readOnly 표현을 유지한다. Description/URL 저장은 동일 PATCH와 canonical snapshot 갱신을 사용하며 Gantt remount, reload, selection/scroll/scale 초기화를 유발하지 않는다.
 
-390/768/1024/1440px에서 form control은 의미 단위로 reflow하고 table은 내부 horizontal scroll을 사용해 document-level overflow를 만들지 않는다. Import/CRUD 중 중복 mutation을 막고 loading/error/success와 stale revision(412)을 명시적으로 표시한다.
+## Issue #342 — 국가 Calendar 관리자 UX
 
-### Issue #342 수동 날짜 편집 후 재승인
+프로젝트 기준정보 관리 화면에서 `/calendar-admin`으로 진입하고 최신 공통 `admin-page` / `AdminAuth` / compact data-table 규칙을 재사용한다. 전역 Header 메뉴 구조는 변경하지 않는다.
 
-OFFICIAL dataset에서 휴일/보충근무일을 수동 추가·편집·삭제하면 화면은 즉시 \`미확보\` 상태와 비어 있는 Source version/URL을 표시하고 “공식 상태와 출처 정보가 해제되었으므로 검증 후 메타데이터를 다시 저장”하라는 안내를 제공한다. 운영자가 재검증하기 전에는 Scheduling이 해당 override를 사용하지 않는다.
-
-파일 선택은 가장 최근 선택한 파일만 Preview/Apply 대상으로 인정한다. 이전 파일의 비동기 \`File.text()\`가 늦게 완료되더라도 최신 선택의 envelope를 덮어쓰지 않아야 한다.
-
-### Issue #342 target 조회 실패와 stale draft
-
-국가/연도 selector 변경 뒤 새 target GET이 실패하면 이전 target의 snapshot/table/metadata를 계속 표시하지 않는다. 선택값은 새 target을 가리키되 snapshot은 비우고 모든 mutation action을 잠근 상태로 오류를 표시한다.
-
-날짜 편집 저장이 412를 받으면 최신 snapshot을 다시 읽고 열린 날짜 편집/삭제 초안을 폐기한다. 최신 revision 위에 stale full-field draft를 다시 저장하지 않는다.
-
-Import Apply 성공 시 React file state뿐 아니라 native file input value도 함께 비워 같은 파일을 즉시 다시 선택해도 change event와 Preview가 정상 동작해야 한다.
-
-### Issue #342 draft/pending/no-op interaction
-
-- country/year target을 바꾸면 신규 날짜 입력, 열린 edit/delete dialog, 선택 파일, Preview를 모두 폐기한다. 다른 target에 이전 draft가 재사용되지 않는다.
-- DELETE 요청이 pending인 동안 dialog의 취소/삭제 action과 chrome close를 잠가 “취소했지만 실제 삭제됨” 상태를 만들지 않는다.
-- 날짜 편집 dialog에서 실제 값이 하나도 바뀌지 않은 저장은 no-op이며 OFFICIAL provenance와 revision을 유지한다.
-- dataset 상태 badge는 별도 accessible status name을 제공해 metadata select option과 구분한다.
+- country/year 전환 시 create/edit/delete/file/Preview draft를 폐기한다.
+- target 전환의 reload는 native select change가 끝난 다음 task에서 시작해 control interaction을 안정적으로 보존한다.
+- 수동 date mutation 후 `미확보`와 비어 있는 source metadata를 즉시 표시하고 공식 재검증 필요 안내를 제공한다.
+- 실제 값이 동일한 metadata/date 저장은 no-op이다.
+- PATCH/DELETE pending 중 dialog chrome과 취소/submit을 잠근다.
+- 401 session expiry와 412 stale revision은 열린 edit/delete draft를 폐기한다.
+- 삭제 성공으로 trigger row가 사라지면 살아 있는 날짜 section으로 focus를 복원한다.
+- file A→B 빠른 재선택은 최신 generation만 Preview/Apply 대상이 되며 Apply 성공 후 native file input을 비운다.
+- 390/768/1024/1440px에서 document-level horizontal overflow를 만들지 않는다.

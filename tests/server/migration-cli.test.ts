@@ -70,7 +70,8 @@ describe("migration CLI", () => {
         "0020_resource_roles.sql",
         "0021_task_assignment_roles.sql",
         "0022_task_milestone_memberships.sql",
-        "0023_country_calendar_catalog.sql",
+        "0023_deprecate_task_assignment_roles.sql",
+        "0024_country_calendar_catalog.sql",
       ],
     });
     expect(diagnosticEvents(first.stderr).map((entry) => entry.event)).toEqual([
@@ -89,7 +90,7 @@ describe("migration CLI", () => {
     const database = new Database(filename, { readonly: true });
     try {
       expect(database.prepare("SELECT count(*) AS count FROM schema_migrations").get())
-        .toEqual({ count: 23 });
+        .toEqual({ count: 24 });
       expect(database.prepare("SELECT count(*) AS count FROM projects").get())
         .toEqual({ count: 0 });
       expect(database.prepare("SELECT revision FROM resource_catalog_state WHERE id = 1").get())
@@ -98,8 +99,8 @@ describe("migration CLI", () => {
         .toEqual({ revision: 1 });
       expect(database.prepare("SELECT count(*) AS count FROM project_master_items").get())
         .toEqual({ count: 0 });
-      expect(database.prepare("SELECT revision FROM country_calendar_catalog_state WHERE id = 1").get())
-        .toEqual({ revision: 1 });
+      expect(database.prepare("SELECT revision, length(preview_secret) AS previewSecretBytes FROM country_calendar_catalog_state WHERE id = 1").get())
+        .toEqual({ revision: 1, previewSecretBytes: 32 });
       expect(database.prepare("SELECT count(*) AS count FROM country_calendar_datasets").get())
         .toEqual({ count: 0 });
       const ownerColumn = database.prepare("SELECT name, \"notnull\" AS required FROM pragma_table_info('projects') WHERE name = 'owner_name'").get();
@@ -108,6 +109,8 @@ describe("migration CLI", () => {
       expect(allocationColumn).toEqual({ name: "allocation_percent", type: "REAL" });
       const assignmentRoleColumn = database.prepare("SELECT name, type FROM pragma_table_info('task_assignments') WHERE name = 'assignment_role'").get();
       expect(assignmentRoleColumn).toEqual({ name: "assignment_role", type: "TEXT" });
+      expect(database.prepare("SELECT name FROM sqlite_schema WHERE name = 'task_assignments_resource_role_idx'").get()).toBeUndefined();
+      expect(database.prepare("SELECT name FROM sqlite_schema WHERE name = 'resource_roles_assignment_delete_guard'").get()).toBeUndefined();
     } finally {
       database.close();
     }

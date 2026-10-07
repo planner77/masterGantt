@@ -1,3 +1,5 @@
+> **Issue #485 update (2026-10-06):** 아래 문서의 `수행 역할`/`assignment_role`은 더 이상 Task별 저장값이 아니다. 역할 Source of Truth는 Resource의 현재 Global Role 집합이며, 복수 역할 subtotal은 비가산 분류다. Grand Total은 assignmentId 기준으로만 계산한다.
+
 # Issue #414 — 역할 기반 Resource workload 및 개발자 공수 견적
 
 ## 기준
@@ -12,7 +14,7 @@
 
 ## 목적
 
-기존 #56 Resource workload를 새 계산 엔진으로 교체하지 않고, 같은 Task Resource assignment를 수행 역할 기준으로 분류해 PI·개발자·설비 담당 공수와 개발자 견적을 Project Resource View에서 확인한다.
+기존 #56 Resource workload를 새 계산 엔진으로 교체하지 않고, 같은 Task Resource assignment를 Resource의 현재 Global Role 기준으로 분류해 PI·개발자·설비 담당 공수와 개발자 견적을 Project Resource View에서 확인한다.
 
 ## 계산 계약
 
@@ -27,8 +29,8 @@ M/M = M/D / RESOURCE_MD_PER_MM
 - 개인 Resource가 직접 할당된 일반 Task만 계획 공수를 생성한다.
 - Group, Summary, Milestone, Project Equipment/System 책임 관계는 개인 공수를 생성하지 않는다.
 - Grand Total은 기존처럼 `assignmentId`별 한 번만 합산한다. 한 Resource가 여러 Group에 속해도 Grand Total은 증가하지 않는다.
-- 역할 subtotal도 동일 assignment row의 `assignment_role`을 기준으로 정확히 한 bucket에 넣는다.
-- `assignment_role = NULL`은 Global Role에서 추정하지 않고 `UNSPECIFIED`로 별도 집계한다.
+- 역할 subtotal은 Resource의 현재 Global Role 집합을 기준으로 만든다. 복수 역할 Resource는 동일 assignment가 여러 bucket에 포함될 수 있다.
+- Global Role이 0개인 Resource assignment를 `UNSPECIFIED`로 별도 집계한다.
 - `allocationPercent = NULL`은 기존처럼 공수 미설정이며 100%로 추정하지 않는다.
 - Resource Calendar 계층과 과투입 판정은 #56/#261 계약을 그대로 사용한다.
 - Task progress/status는 표시 정보다. 계획 공수를 진척률로 차감하거나 실제 소진 공수로 환산하지 않는다.
@@ -64,8 +66,8 @@ delayed = progress < 100 AND canonical end < asOfDate
 
 - 상단 전체 계획 공수 / 공수 미설정 / 과투입 요약을 유지한다.
 - PI / 개발자 / 설비 담당 / 역할 미지정 역할 subtotal을 별도 flat summary row로 표시한다.
-- 고급 필터에 수행 역할과 개발자 등급을 추가한다.
-- `개발 견적` preset은 `종류=Resource`, `수행 역할=DEVELOPER`를 한 번에 적용한다.
+- 고급 필터에 Global Role과 개발자 등급을 추가한다.
+- `개발 견적` preset은 `종류=Resource`, `Global Role=DEVELOPER`를 한 번에 적용한다.
 - preset 및 역할/기간/등급 필터가 적용된 drill-down의 Resource/Group subtotal은 **현재 표시 Task**만 다시 합산한다. 상단 Project 전체 역할 subtotal은 필터와 무관한 서버 권위 값으로 유지한다.
 - 개발자 Resource에는 개발자 등급을 표시하고 Task row에서 역할, 상태/지연, 진행률, canonical 일정, allocation 기간/%, 계획 공수를 함께 본다.
 - M/M 기준 미설정이면 기존처럼 M/M 전환을 비활성화한다.

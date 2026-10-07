@@ -604,7 +604,7 @@ UI 생성에서는 `externalId` 생략을 허용하고 server가 Task `taskId`�
 
 ### `PATCH /api/projects/{publicId}/tasks/{taskId}`
 
-Mutable allowlist는 `name`, `description`, `url`, `scheduleMode`, `start`, `duration`, `progress`, optional assertion `end`, 그리고 기준 일정 필드 `baselineStart`, `baselineDuration`, `baselineEnd`(또는 `{ start, duration }` 형식의 `baseline`)다. `description`은 최대 10,000 Unicode code point이며 공백만 입력하면 `null`로 정규화한다. `url`은 trim 후 최대 4,096 code point의 `http:`/`https:` URL만 허용하고 `javascript:`, `data:`, `vbscript:`, `file:` 등 다른 scheme은 거부한다. Empty object와 unknown field를 거부하며 `taskId`, `externalId`, `type`, parent/order는 불변이다. `start` 변경은 새 `requestedStart`를 만든다. 계산된 `end`만 직접 변경하는 요청은 허용하지 않아 `end`가 있으면 `start` 또는 `duration`도 함께 있어야 한다. `baselineStart`, `baselineDuration`, `baselineEnd`는 기준 일정을 설정하거나 null로 일괄 지정하여 삭제할 수 있으며, 마일스톤의 기준 기간은 0이다. Client Adapter는 이동을 `start`, 좌측 resize를 `start + duration`, 우측 resize를 `duration` 명령으로 변환한다. 기존 persisted `end`를 새 assertion으로 자동 재사용하지 않는다. Nested leaf 변경 후 모든 ancestor Summary를 같은 transaction에서 재계산(일정 및 자손 전원 baseline 존재 시 summary baseline 자동 파생)한다. Summary는 이름만 변경할 수 있고 날짜·기간·진척·기준일정·mode는 `409 SUMMARY_SCHEDULE_READONLY`로 거부한다.
+Mutable allowlist는 `name`, `description`, `url`, `scheduleMode`, `start`, `duration`, `progress`, optional assertion `end`, 그리고 기준 일정 필드 `baselineStart`, `baselineDuration`, `baselineEnd`(또는 `{ start, duration }` 형식의 `baseline`)다. `description`은 최대 10,000 Unicode code point이며 공백만 입력하면 `null`로 정규화한다. `url`은 trim 후 최대 4,096 code point의 `http:`/`https:` URL만 허용하고 `javascript:`, `data:`, `vbscript:`, `file:` 등 다른 scheme은 거부한다. Empty object와 unknown field를 거부하며 `taskId`, `externalId`, `type`, parent/order는 불변이다. `start` 변경은 새 `requestedStart`를 만든다. 계산된 `end`만 직접 변경하는 요청은 허용하지 않아 `end`가 있으면 `start` 또는 `duration`도 함께 있어야 한다. `baselineStart`, `baselineDuration`, `baselineEnd`는 기준 일정을 설정하거나 null로 일괄 지정하여 삭제할 수 있으며, 마일스톤의 기준 기간은 0이다. Client Adapter는 이동을 `start`, 좌측 resize를 `start + duration`, 우측 resize를 `duration` 명령으로 변환한다. 기존 persisted `end`를 새 assertion으로 자동 재사용하지 않는다. Nested leaf 변경 후 모든 ancestor Summary를 같은 transaction에서 재계산(일정 및 자손 전원 baseline 존재 시 summary baseline 자동 파생)한다. Summary는 `name`, `description`, `url`, `explicitMilestoneTaskId`만 변경할 수 있고 날짜·기간·진척·상태·기준일정·mode는 `409 SUMMARY_SCHEDULE_READONLY`로 거부한다. Description/URL은 일반 Task와 동일한 길이·정규화·HTTP(S) URL 검증을 사용한다.
 
 Issue #258부터 incoming/outgoing/both 관계가 있는 일반 Task/Milestone도 편집할 수 있다. `name/description/url/progress/Baseline`만 보낸 요청은 저장된 effective `start/end`와 `requestedStart`를 그대로 보존하고 필요한 Summary 진척/Baseline만 재집계한다. 일정 필드(`start/duration/scheduleMode/end`)가 있으면 Calendar 정규화 및 optional `end` assertion을 먼저 검사하고 모든 leaf를 각 `requestedStart`에서 다시 만들어 현재 FS/SS/FF/SF와 signed lag 그래프를 재계산한다. `end` assertion은 관계 적용 전 Calendar 계산값에 대한 검증이다. Auto 후행은 지연과 앞당김 모두 가능하며, 명시적으로 바꾸지 않은 후행 요청일과 Baseline은 유지한다.
 
@@ -1290,7 +1290,7 @@ Frontend는 현재 Project `publicId`와 마지막 확정 revision을 기준으�
 
 Summary는 자식 수와 무관하게 유효한 WBS 컨테이너다. 모든 canonical GET/mutation 응답에서 일정 있는 Task/Milestone 자손이 없으면 `type: summary`, `scheduleMode: auto`, `requestedStart/start/end/duration/progress: null`을 반환한다. 빈 Summary들만 중첩된 경우도 동일하다. 이름/ID/parent/order·직접 Resource/Group·물류 `self/subtree` 연결은 유지한다. Leaf의 필수 날짜·기간·진척, Summary Dependency endpoint 금지는 유지한다.
 
-`POST /api/projects/{publicId}/tasks`는 `{ "name": "설계", "type": "summary" }`와 선택적인 `parentTaskId`로 빈 Summary를 직접 생성한다. Summary의 `start/end/duration/progress` 입력은 생략 또는 명시적 null만 허용하고 `scheduleMode`는 생략/auto만 허용한다. `requestedStart`는 파생 응답 필드이며 create 입력 allowlist에 없으므로 명시하면 unknown field로 거부한다. Task/Milestone은 기존 strict schedule 입력이 필요하다. hierarchy `kind:create`의 task seed도 동일하다. Summary PATCH는 기존 이름 변경 정책을 유지하며 일정 수동 입력을 허용하지 않는다. 생성/복사 시 저장한 description/URL은 부모가 비어도 보존한다.
+`POST /api/projects/{publicId}/tasks`는 `{ "name": "설계", "type": "summary" }`와 선택적인 `parentTaskId`로 빈 Summary를 직접 생성한다. Summary의 `start/end/duration/progress` 입력은 생략 또는 명시적 null만 허용하고 `scheduleMode`는 생략/auto만 허용한다. `requestedStart`는 파생 응답 필드이며 create 입력 allowlist에 없으므로 명시하면 unknown field로 거부한다. Task/Milestone은 기존 strict schedule 입력이 필요하다. hierarchy `kind:create`의 task seed도 동일하다. Summary PATCH는 이름·description·URL·명시 완료 단계 소속만 직접 변경할 수 있으며 일정·진척·상태·Baseline 수동 입력을 허용하지 않는다. 생성/복사/직접 편집으로 저장한 description/URL은 부모가 비거나 일정 재계산이 발생해도 보존한다.
 
 단건 DELETE는 빈 Summary 자체를 삭제할 수 있다. 자손이 있는 Summary는 기존 `includeDescendants=true` 확인 경로를 이용한다. 마지막 child/선택 subtree 삭제 또는 reparent/indent/outdent 이후에도 범위 밖 부모가 비었다는 이유로 `EMPTY_SUMMARY_NOT_ALLOWED`를 반환하지 않는다. 한 논리적 변경의 transaction/revision/changed/deleted ID 계약과 보호 정책은 유지한다. 과거 오류 코드는 legacy error adapter의 호환 mapping만 남아 있으며 이 조건에서는 발생하지 않는다.
 
@@ -1341,52 +1341,23 @@ Resource Catalog의 Resource 표현은 `roles` 배열을 반환한다.
 
 Task assignment search/assigned-target DTO에는 이 Issue에서 roles를 새로 결합하지 않는다. 역할 적합성 기반 Task assignment는 후속 #413의 범위다.
 
-## Issue #413 — Task assignment 수행 역할
+## Issue #485 — Task assignment와 Global Role
 
-`GET /api/projects/{publicId}/assignment-targets`와 `GET /api/projects/{publicId}/assigned-targets`의 Resource target은 `roles: ("PI" | "DEVELOPER" | "EQUIPMENT_OWNER")[]`를 제공한다. Group target에는 roles를 제공하지 않는다.
+`PUT /api/projects/{publicId}/tasks/{taskId}/assignments`의 개인 Resource target은 `kind`, `id`, 선택적 `allocation`만 사용한다. Task별 수행 역할은 저장하지 않는다.
 
-`PUT /api/projects/{publicId}/tasks/{taskId}/assignments`의 Resource target은 optional `role`을 함께 받는다.
+- 호환용 request `role`은 omitted/null만 허용하고 non-null 값은 invalid request다.
+- canonical `ProjectAssignmentDto.role`은 Resource/Group 모두 null이다. 역할 정보가 필요하면 assignment target/Resource catalog의 Global `roles`를 사용한다.
+- `assignment-targets?kind=resource&role=...`의 `role`은 **Global Role 후보 검색 조건**이다. MAX_SEARCH_RESULTS 적용 전에 서버에서 필터하며 catalog revision 계약을 유지한다.
+- Global Role 변경은 Task assignment usage 때문에 차단하지 않는다. `ASSIGNMENT_ROLE_INVALID`/`RESOURCE_ROLE_IN_USE` Task-role 오류는 더 이상 사용하지 않는다.
+- Project Copy/Template은 Task별 role을 보존하지 않고 assignment/allocation만 보존한다. legacy template의 `assignmentRole`은 읽을 수 있으나 instantiate 시 무시한다.
 
-```json
-{
-  "catalogRevision": 23,
-  "targets": [
-    {
-      "kind": "resource",
-      "id": "<resource uuid>",
-      "role": "DEVELOPER",
-      "allocation": { "start": null, "end": null, "percent": 60 }
-    }
-  ]
-}
-```
+## Issue #414 — Global Role 기반 Resource workload 응답
 
-non-null role은 해당 Resource가 현재 보유한 Global Resource Role이어야 한다. omitted/null은 migration 이전 연동과 기존 역할 미지정 assignment의 하위 호환 상태로 유지된다. Group target에 `role` 또는 allocation을 보내면 invalid request다. 응답 `ProjectAssignmentDto.role`은 Resource에서 수행 역할 또는 null, Group에서 null이다.
-
-역할 검증은 기존 edit session, exact Origin, strong Project `If-Match`, `catalogRevision`과 같은 transaction에서 수행한다. stale catalog는 `412 CATALOG_REVISION_MISMATCH`, Resource가 보유하지 않은 role은 `409 ASSIGNMENT_ROLE_INVALID`이다. Resource Catalog에서 사용 중 role 제거는 `409 RESOURCE_ROLE_IN_USE`와 role/Project count/Task count detail을 반환한다.
-
-### Issue #413 역할 기반 assignment target 검색
-
-`GET /api/projects/{publicId}/assignment-targets`는 optional `role=PI|DEVELOPER|EQUIPMENT_OWNER`를 지원한다. role은 Resource 후보에만 적용하며 `kind=group`과 함께 보내면 `400 INVALID_REQUEST`다. 서버는 Global Resource Role membership으로 먼저 필터한 뒤 기존 최대 100건 제한을 적용하므로, 전체 활성 대상이 100건을 넘어도 해당 역할 Resource가 앞선 무관 후보 때문에 잘리지 않는다.
-
-Template instantiate 시 snapshot의 Resource 수행 역할이 현재 Global Role에서 제거된 경우 project 생성 자체를 실패시키지 않는다. 기존 assignment와 allocation은 보존하고 수행 역할만 `null`로 복원하며 warnings에 stale 역할을 명시한다.
-
-## Issue #414 — 역할 기반 Resource workload 응답 확장
-
-`GET /api/projects/{publicId}/resource-workload`는 #56의 public-read/조회범위/M-D·M-M 계산 계약을 유지하면서 역할 기반 진단 필드를 추가한다.
-
-- `asOfDate` / `timezone`: Project calendar timezone 기준 서버 기준일과 timezone.
-- `roleTotals[]`: `PI | DEVELOPER | EQUIPMENT_OWNER | UNSPECIFIED`별 `assignmentCount`, `effortMd`, `effortMm`, `unsetCount`.
-- `unspecifiedRoleCount`: 조회 범위에 포함된 role-null 일반 Task Resource assignment 수.
-- `overAllocatedResourceCount`: 기존 일별 allocation 합계 100% 초과 규칙으로 판정한 고유 Resource 수.
-- Resource row는 `developerGrade`를, Task row는 `role`, canonical `taskStart/taskEnd`, `progress`, `status`, `delayed`를 제공한다.
-
-역할은 분류 축일 뿐 공수를 생성하지 않는다. Grand Total과 역할 subtotal은 동일 assignment를 중복 생성하지 않으며 role-null은 Global Role로 추정하지 않고 `UNSPECIFIED`로 유지한다. `delayed`는 #188과 동일하게 `progress < 100 && canonical end < asOfDate`다. 진행률/상태는 계획 공수 산식의 입력이 아니다.
-
-상세 설계: [ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md](ISSUE_414_ROLE_WORKLOAD_DASHBOARD.md).
-
-
-
+- Grand Total M/D·M/M은 assignmentId 기준 한 번만 합산한다.
+- 각 개인 assignment의 역할 표시는 Resource의 현재 Global `roles`를 사용한다. 역할이 없으면 `UNSPECIFIED` 분류를 사용한다.
+- 복수 Global Role Resource는 동일 assignment가 여러 role subtotal에 포함될 수 있으므로 role subtotal은 비가산 분류다. subtotal 합은 Grand Total과 일치할 필요가 없다.
+- `unspecifiedRoleCount`는 Global Role이 없는 Resource assignment 수다.
+- 기존 `assignmentRoles` query key는 호환을 위해 유지하되 Global Role 필터 의미다. resource/Global Role/developerGrade 조건은 같은 Resource assignment에서 AND로 만족해야 한다.
 ## Issue #415 — Excel Resource Effort 옵션
 
 `POST /api/projects/{publicId}/exports/excel` 요청에 optional boolean `includeResourceEffort`를 추가한다. true이면 서버는 #414와 동일한 기본 range 및 `RESOURCE_MD_PER_MM` 환경값으로 Resource workload를 계산하고, export 대상 Project snapshot의 revision과 workload `projectRevision`을 비교한다. 불일치하면 기존 stale 보호와 동일하게 412 `REVISION_MISMATCH`를 반환한다.
@@ -1396,7 +1367,7 @@ Template instantiate 시 snapshot의 Resource 수행 역할이 현재 Global Rol
 
 ## Issue #461 Editor의 기존 소속 API 사용
 
-신규 endpoint/DTO/authorization 계약은 없다. Task/Summary 기본 저장은 변경된 허용 기본 필드와 `explicitMilestoneTaskId`를 기존 Task PATCH 한 요청에 담는다. omission은 기존 직접 지정 보존, null은 직접 지정 해제·상속 복귀다. Summary는 name과 이 필드만 전송한다. Milestone 소속 탭은 기존 `POST /api/projects/{publicId}/milestone-memberships`의 changes를 한 번 전송한다.
+신규 endpoint/DTO/authorization 계약은 없다. Task/Summary 기본 저장은 변경된 허용 기본 필드와 `explicitMilestoneTaskId`를 기존 Task PATCH 한 요청에 담는다. omission은 기존 직접 지정 보존, null은 직접 지정 해제·상속 복귀다. Summary는 `name`, `description`, `url`, `explicitMilestoneTaskId`만 전송하며 일정·진척·상태·Baseline은 계속 파생/read-only다. Milestone 소속 탭은 기존 `POST /api/projects/{publicId}/milestone-memberships`의 changes를 한 번 전송한다.
 
 UI canonical parser는 `operation.kind=milestoneMembership`을 Task mutation으로 수락하고 응답 전체 tasks/links/project.revision을 Workspace와 열린 Editor에 함께 적용한다. 클라이언트 dirty/pending/완료 disable은 서버 권한을 대신하지 않는다. Editor 실패는 초안을 보존하며 412 이후 명시 GET·폐기 확인·최신 값 검토가 필요하고 자동 재전송하지 않는다. 완료/재개는 기존 status PATCH이며 재개와 소속 batch를 숨은 복합 요청으로 만들지 않는다.
 
@@ -1428,9 +1399,9 @@ Public-read, Node runtime, `Cache-Control: private, no-store`. 인증/Origin/If-
 
 단계→Resource drill은 기존 `GET /api/projects/{publicId}/resource-workload?from=&to=`를 같은 기간으로 호출한다. 기존 API 필드·ENV 환산·4자리 rounding은 N/A(변경 없음)이며 UI가 range echo/Project/Catalog revision을 검사하고 받은 개인 assignment만 표시 필터한다. Stage raw 공수 및 query 환산 기준과 기존 Resource 기간 subtotal/ENV 기준을 구분하고, scope 해제는 기본 조회로 복귀한다. 이 동작은 Resource API에 새 필터나 계산 엔진을 추가하지 않는다.
 
-## Issue #342 Country Calendar 관리자 API
+## Issue #342 — Country Calendar Catalog / 관리자 Import
 
-Project 기준정보 관리자 세션을 재사용하며 mutation은 exact Origin과 Catalog revision `If-Match`를 요구한다. 응답은 최신 revision ETag를 반환한다.
+Project Master 관리자 세션을 재사용한다. 조회는 no-store, mutation은 exact Origin + strong `If-Match` Catalog revision을 요구한다.
 
 - `GET /api/admin/work-calendars/countries/{countryCode}/years/{year}`
 - `PATCH /api/admin/work-calendars/countries/{countryCode}/years/{year}`
@@ -1440,26 +1411,8 @@ Project 기준정보 관리자 세션을 재사용하며 mutation은 exact Origi
 - `POST /api/admin/work-calendars/import/preview`
 - `POST /api/admin/work-calendars/import/apply`
 
-Import apply와 CRUD는 `country_calendar_catalog_state.revision`을 별도로 증가시키며 Project revision은 변경하지 않는다. 기존 `GET /api/work-calendars/countries`의 `supportedYears`는 built-in + DB override 중 OFFICIAL로 Scheduling 가능한 연도만 반환한다. Project Preview/Save에서 비공식/미확보 연도는 기존 `422 COUNTRY_CALENDAR_UNAVAILABLE` 계약을 유지한다.
+Import Preview 응답은 Catalog revision과 `previewToken`을 반환한다. token은 server-only 32-byte HMAC secret으로 **revision + country/year + format + 원본 file content bytes**에 묶인다. Apply body는 `{ previewToken, envelope }`이며 Preview 없이 Apply하거나 Preview한 bytes와 다른 envelope를 보내면 `409 COUNTRY_CALENDAR_IMPORT_PREVIEW_MISMATCH`이다. 성공 Apply는 revision을 증가시켜 같은 token 재사용도 stale If-Match로 차단한다.
 
-### Issue #342 수동 날짜 CRUD provenance
+수동 date Add/Edit/Delete 성공 후 dataset은 `UNAVAILABLE`, `sourceVersion/sourceUrl=null`로 전환되어 과거 provenance를 재사용하지 않는다. 실제 값이 동일한 date/metadata PATCH는 no-op이며 revision/override를 만들지 않는다. date PATCH explicit null/unknown field는 400으로 거부한다.
 
-국가 Calendar 날짜 POST/PATCH/DELETE 성공은 날짜 mutation과 Catalog revision 증가를 원자적으로 처리한다. 기존 dataset이 OFFICIAL이더라도 수동 날짜 변경 후 응답 dataset은 \`status=UNAVAILABLE\`, \`sourceVersion=null\`, \`sourceUrl=null\`이다. 이는 변경된 내용에 과거 source provenance를 재사용하지 않기 위한 fail-closed 계약이다.
-
-다시 Scheduling에 사용하려면 운영자가 공식 source를 검증한 뒤 metadata PATCH에서 \`status=OFFICIAL\`과 새 \`sourceVersion/sourceUrl\`을 함께 저장해야 한다. Import Apply는 파일 자체가 complete provenance를 포함하므로 전체 교체 transaction에서 OFFICIAL로 확정할 수 있다.
-
-### Issue #342 날짜 mutation 입력·삭제 경계
-
-날짜 PATCH는 최소 1개의 지원 필드(\`date | name | dayType | sourceKey\`)를 포함해야 하고 unknown field를 포함하면 400으로 거부한다. 빈 object나 오타 field가 Catalog revision/provenance를 변경해서는 안 된다.
-
-OFFICIAL dataset의 마지막 1개 날짜도 삭제할 수 있다. DELETE 성공 transaction은 dataset을 UNAVAILABLE로 전환하고 provenance를 비우므로 0건 상태가 Scheduling에 노출되지 않는다.
-
-### Issue #342 국가 목록 effective provenance
-
-\`GET /api/work-calendars/countries\`의 \`sourceVersion/sourceUrl\`은 effective OFFICIAL dataset 기준이다. 해당 국가의 \`supportedYears\`가 비어 있으면 effective provenance가 하나도 없으므로 두 필드는 \`null\`을 반환한다. override가 built-in 연도를 UNAVAILABLE/SUPERSEDED로 가린 경우 과거 built-in provenance를 fallback해서 반환하지 않는다.
-
-### Issue #342 Preview-bound Import Apply
-
-`POST /api/admin/work-calendars/import/preview` 응답은 Catalog revision과 함께 server-issued `previewToken`을 반환한다. token은 server-only 32-byte HMAC secret으로 catalog revision + country/year + format + 원본 file content bytes에 서명한다.
-
-`POST /api/admin/work-calendars/import/apply` body는 `{ previewToken, envelope }`이며 `If-Match` revision과 token이 모두 Preview 결과와 일치해야 한다. Preview 없이 Apply하거나 Preview A 뒤 envelope B를 적용하면 `409 COUNTRY_CALENDAR_IMPORT_PREVIEW_MISMATCH`으로 거부한다. 성공 Apply는 Catalog revision을 증가시키므로 같은 token의 재사용도 stale `If-Match`으로 차단된다.
+`GET /api/work-calendars/countries`의 supportedYears/source provenance는 effective OFFICIAL dataset만 반영한다. supportedYears가 비면 sourceVersion/sourceUrl도 null이다.

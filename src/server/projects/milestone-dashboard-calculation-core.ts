@@ -32,7 +32,7 @@ function sumEffort(assignments: MilestoneDashboardAssignmentDto[], mdPerMm: numb
     plannedMd, plannedMm: mdPerMm === null ? null : plannedMd / mdPerMm,
     assignmentIds: assignments.map((row) => row.assignmentId), unsetAssignmentIds, unsetAllocationCount: unsetAssignmentIds.length,
     roleTotals: ROLES.map((role) => {
-      const rows = assignments.filter((row) => row.role === role), md = rows.reduce((sum, row) => sum + (row.plannedMd ?? 0), 0);
+      const rows = assignments.filter((row) => row.roles.includes(role)), md = rows.reduce((sum, row) => sum + (row.plannedMd ?? 0), 0);
       return { role, plannedMd: md, plannedMm: mdPerMm === null ? null : md / mdPerMm, assignmentIds: rows.map((row) => row.assignmentId), unsetAssignmentIds: rows.filter((row) => row.plannedMd === null).map((row) => row.assignmentId) };
     }),
   };
@@ -61,7 +61,10 @@ export function calculateMilestoneDashboard(input: MilestoneDashboardCalculation
     const resource = resourceById.get(row.target.id);
     if (!resource) return false;
     return (!filter.resourceIds.length || filter.resourceIds.includes(row.target.id)) &&
-      (!filter.assignmentRoles.length || filter.assignmentRoles.includes(row.role ?? "UNSPECIFIED")) &&
+      (!filter.assignmentRoles.length || (() => {
+        const roles: ResourceWorkloadRole[] = (resource.roles?.length ?? 0) > 0 ? resource.roles! : ["UNSPECIFIED"];
+        return roles.some((role) => filter.assignmentRoles.includes(role));
+      })()) &&
       (!filter.developerGrades.length || filter.developerGrades.includes(resource.developerGrade ?? "UNSPECIFIED"));
   });
   const resourceMatchedTaskIds = new Set(matchedAssignments.map((row) => row.taskId));
@@ -96,7 +99,9 @@ export function calculateMilestoneDashboard(input: MilestoneDashboardCalculation
     const percent = assignment.allocation?.percent ?? null;
     const plannedMd = percent === null ? null : effectiveWorkingDays * percent / 100;
     return [{ assignmentId: assignment.id, taskId: task.taskId, milestoneTaskId: projection.membership.get(task.taskId)!.effectiveMilestoneTaskId,
-      resourceId: assignment.target.id, role: assignment.role ?? "UNSPECIFIED", developerGrade: resourceById.get(assignment.target.id)!.developerGrade ?? "UNSPECIFIED",
+      resourceId: assignment.target.id,
+      roles: (resourceById.get(assignment.target.id)!.roles?.length ?? 0) > 0 ? resourceById.get(assignment.target.id)!.roles! : ["UNSPECIFIED"],
+      developerGrade: resourceById.get(assignment.target.id)!.developerGrade ?? "UNSPECIFIED",
       from: clippedFrom, to: clippedTo, allocationPercent: percent, effectiveWorkingDays, plannedMd,
       plannedMm: plannedMd === null || mdPerMm === null ? null : plannedMd / mdPerMm }];
   });
@@ -142,7 +147,7 @@ export function calculateMilestoneDashboard(input: MilestoneDashboardCalculation
     effort: { ...sumEffort(assignments, mdPerMm), buckets, assignments },
     catalog: {
       milestones: projection.rows.map((row) => ({ id: row.milestoneTaskId, name: row.name, externalId: row.externalId })),
-      resources: input.resources.filter((row) => referencedResourceIds.has(row.id)).map((row) => ({ id: row.id, name: row.name, code: row.code, active: row.active, developerGrade: row.developerGrade ?? null })),
+      resources: input.resources.filter((row) => referencedResourceIds.has(row.id)).map((row) => ({ id: row.id, name: row.name, code: row.code, active: row.active, developerGrade: row.developerGrade ?? null, roles: row.roles ?? [] })),
       processes: candidates(input.logistics.processes), equipment: candidates(input.logistics.equipment), systems: candidates(input.logistics.systems),
     },
   };

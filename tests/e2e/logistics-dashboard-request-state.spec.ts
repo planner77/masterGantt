@@ -1,6 +1,8 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
 import { deferred, expectSameGanttRoot, installStatefulProjectFixture, publicId, rememberGanttRoot } from "../fixtures/stateful-project";
 
+import { captureUi } from "./helpers/ui-geometry";
+
 const dashboardPath = `**/api/projects/${publicId}/logistics/dashboard?*`;
 function dashboard(route: Route, revision = 40, longName = false) {
   const params = new URL(route.request().url()).searchParams;
@@ -117,7 +119,7 @@ test("기간 빈 값·0·91·소수는 field 오류와 GET 차단 후 정상 범
 });
 
 for (const width of [390, 768, 1024, 1440]) {
-  test(`세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 ${width}px`, async ({ page }) => {
+  test(`세부 tab keyboard·빈 현황·긴 이름·정상 drilldown Gantt 보존 ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     await installStatefulProjectFixture(page);
     await page.route(dashboardPath, (route) => route.fulfill({ json: { data: dashboard(route, 40, true) } }));
@@ -152,6 +154,7 @@ for (const width of [390, 768, 1024, 1440]) {
     await expect(view.getByRole("tabpanel", { name: /^공정별 현황/ })).toContainText("매우긴공정명");
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
     await page.screenshot({ path: `output/playwright/issue-267/long-data-${width}.png` });
+    await captureUi(page, testInfo, `logistics-long-${width}`);
     await view.getByRole("button", { name: "일정에서 전체 작업 보기" }).click();
     await expect(page.getByRole("tab", { name: "일정", exact: true })).toHaveAttribute("aria-selected", "true");
     await expectSameGanttRoot(page, root);

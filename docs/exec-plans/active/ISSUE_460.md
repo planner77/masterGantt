@@ -36,7 +36,7 @@ Membership-only 변경은 일정/WBS/Dependency/assignment를 보존한다. 구�
 
 현재 main의 JSON Import HTTP route에는 고정 성공 응답이 있고 JSON Export 구현은 확인되지 않았다. #464의 완전한 직렬화 지원 전에는 보존 미지원 경로의 성공을 가장하지 않는다. Membership이 있는 Project의 Copy/Template/Excel은 명시적인 누락 방지 오류를 제공하고, Membership 없는 기존 Project는 기존 흐름을 유지한다. Import 미지원 응답은 Preview에서 기존 인증·Origin 계약을, Commit에서 인증·Origin·If-Match revision 계약을 유지한다. 실제 저장 없이 성공을 반환하지 않는다.
 
-Migration loader는 연속 번호를 강제한다. 당시 #460에서 `0022_task_milestone_memberships.sql`을 선점했고 별도 PR #346의 Country Calendar migration과 번호 충돌 가능성을 기록했다. 후속 #459 Epic 통합으로 0022가 main에 확정되었으므로 #342 재정렬에서는 Country Calendar migration을 `0023_country_calendar_catalog.sql`로 이동하며 기존 적용 ledger를 재작성하지 않는다.
+Migration loader는 연속 번호를 강제한다. #460에서 `0022_task_milestone_memberships.sql`이 main에 확정된 뒤 #485가 `0023_deprecate_task_assignment_roles.sql`을 사용했다. 따라서 장기 Open 상태인 PR #346의 Country Calendar migration은 최신 ledger 다음인 `0024_country_calendar_catalog.sql`로 재배치하며 기존 적용 ledger를 재작성하지 않는다.
 
 후속 branch는 선행 구현을 기반으로 구성한다. 이번 요청에서 main 병합을 하지 않으므로 PR에 의존 관계와 누적 변경 범위를 명시한다. 선행 PR의 CI 시작을 확인한 뒤 다음 이슈 구현으로 넘어간다.
 

@@ -1,14 +1,14 @@
 # Issue #342 국가 Calendar 2026~2037 Catalog 및 Import/관리
 
-상태: 최신 main 0.92.0 재정렬·충돌 해소·DOCUMENTATION_SYNC 후 기존 PR #346의 새 exact-head CI 시작 준비.
+상태: 최신 main 0.94.0 재정렬·충돌 해소·DOCUMENTATION_SYNC 후 기존 PR #346의 새 exact-head CI 시작 준비.
 
 ## 기준과 결정
 
 - Issue: #342, OPEN. 기존 PR #346과 branch `feat/issue-342-country-calendar-catalog`를 재사용한다.
-- 최신 main: `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075`, application `0.92.1`.
+- 최신 main: `4f8fc2c9c86941d1b86ae4472b1e953707c85ef7`, application `0.94.0`.
 - 최신 main은 #459 Stage Gate Epic, #460~#464 membership/dashboard/JSON 1.1 계약, Issue #456 Task Editor UI/상태 보존 개선과 migration `0022_task_milestone_memberships.sql`을 포함한다.
-- 기존 #342 migration `0022_country_calendar_catalog.sql`은 번호 충돌이므로 **`0023_country_calendar_catalog.sql`**로 재배치한다. 적용된 migration ledger를 재작성하지 않는다.
-- version: **`0.92.1 → 0.93.0` MINOR**. 글로벌 Catalog, DB schema/API/admin UI라는 하위 호환 기능 추가다.
+- 기존 #342 migration `0022_country_calendar_catalog.sql`은 번호 충돌이므로 **`0024_country_calendar_catalog.sql`**로 재배치한다. 적용된 migration ledger를 재작성하지 않는다.
+- version: **`0.94.0 → 0.95.0` MINOR**. 글로벌 Catalog, DB schema/API/admin UI라는 하위 호환 기능 추가다.
 - 현재 요청 종료점: 최신 main 정렬, 충돌 해소, 문서 동기화, PR #346 head 갱신 및 새 PR CI 시작 확인. CI 완료 모니터링·병합·main/GHCR·정식 release·branch cleanup·Issue 종료는 현재 요청 범위 밖이다.
 - 과거 #1844/#1845/#1850/#1855/#1858 결과는 각 과거 head에 한정되며 새 head의 required gate를 대체하지 않는다.
 
@@ -37,7 +37,7 @@
 - REQUIREMENTS, ARCHITECTURE, API, DB_SCHEMA, SCHEDULING_ENGINE
 - ISSUE_57_WORK_CALENDAR, COUNTRY_CALENDAR_DATA
 - PROJECT_UX, TEST_PLAN, REMOTE_VALIDATION
-- CHANGELOG, v0.93.0 release note, active PLAN, 본 실행 계획
+- CHANGELOG, v0.95.0 release note, active PLAN, 본 실행 계획
 
 N/A:
 - DESIGN.md: 최신 공통 visual/geometry 규칙을 그대로 사용하며 새 전역 디자인 규칙 없음.
@@ -51,7 +51,7 @@ N/A:
 
 - Vitest 1513개 중 1509 PASS, 1 FAIL, 3 skipped.
 - 실패는 `SQLite connection and schema > adds explicit stage storage to schema 21 without inferring or altering existing data`.
-- legacy schema21 DB를 최신 migration directory로 올리면 이제 `0022_task_milestone_memberships.sql`과 `0023_country_calendar_catalog.sql`이 연속 적용되는 것이 정상이다.
+- legacy schema21 DB를 최신 migration directory로 올리면 이제 `0022_task_milestone_memberships.sql`과 `0024_country_calendar_catalog.sql`이 연속 적용되는 것이 정상이다.
 - 테스트 기대값을 0022+0023으로 갱신하고 기존 row 불변/empty membership/FK invariant에 더해 Country Calendar Catalog 초기 revision 1/dataset 0건을 확인한다.
 - 제품 코드와 migration SQL은 변경하지 않는다.
 
@@ -85,6 +85,16 @@ N/A:
 - Policy: `npm audit --omit=dev`의 librsvg CVE-2026-96889를 Next 16.3.8 허용 범위의 `sharp 0.35.5` / `sharp-libvips 1.3.4` lock update로 해소한다.
 - dependency 변경은 package-lock only이며 Next/application direct dependency version은 변경하지 않는다.
 - 새 exact head에서 quality/e2e/docker와 Codex review를 다시 판정한다.
+
+## Codex review REWORK 5
+
+- pending edit 취소는 busy 동안 disabled/guard한다.
+- BUILT_IN metadata 동일 저장은 override clone·revision 증가 없이 no-op이다.
+- date PATCH explicit null field는 omission이 아니라 invalid input이다.
+- 401 session expiry는 edit/delete와 associated draft를 폐기한다.
+- 삭제 후 원 trigger row가 사라지면 날짜 section으로 focus를 복원한다.
+- country/year reload는 다음 task에서 시작해 native select change와 busy disable 경합을 피한다.
+- 최신 main v0.94.0 / migration 0023을 보존해 #342를 v0.95.0 / migration 0024로 재정렬한다.
 
 ## 검증
 

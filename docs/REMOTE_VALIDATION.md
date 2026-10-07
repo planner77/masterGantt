@@ -306,9 +306,9 @@ before/after 개선은 workflow 파일/event/job/metric별로 **서로 다른 su
 - release-required candidate는 formal release source이므로 finalize 전 삭제하지 않는다. Release workflow는 container를 재-build하지 않고 candidate exact digest를 재검증·promotion한다.
 - 회귀 재현 기준: v0.83.4 Run #133.1은 Main #1852에서 검증한 `ci-e812...`가 version-maintaining cleanup으로 삭제되어 candidate lookup이 실패했다. corrective v0.85.1에서는 Main candidate가 Finalizer까지 존재해야 한다.
 
-## Issue #342 최신 main 0.92.0 재정렬 원격 검증
+## Issue #342 최신 main 0.94.0 재정렬 원격 검증
 
-PR #346은 장기간 열린 동안 main이 Milestone Stage Gate Epic 및 JSON 1.1까지 전진했으므로 과거 head의 CI evidence는 stale이다. 최신 main `24072f4fd28cd1306b3c348d3f7da1a0e3dbc075` 기준으로 #342 변경만 재적용하며 migration은 0023, application version은 0.93.0으로 재산정한다.
+PR #346은 장기간 열린 동안 main이 Milestone Stage Gate Epic 및 JSON 1.1까지 전진했으므로 과거 head의 CI evidence는 stale이다. 최신 main `4f8fc2c9c86941d1b86ae4472b1e953707c85ef7` 기준으로 #342 변경만 재적용하며 migration은 0023, application version은 0.95.0으로 재산정한다.
 
 Country Calendar Catalog는 migration/API/admin UI/Scheduling resolution을 함께 변경하므로 동일 exact PR head의 현재 `quality/e2e/docker` gate를 모두 요구한다. quality는 migration 0023, JSON/CSV parser, transaction/revision, effective OFFICIAL resolution, route security inventory와 package/lock/version 정합성을 검증한다. Chromium E2E는 `/calendar-admin` Import/CRUD 및 responsive geometry와 기존 Stage Gate/Workspace/Admin 회귀를 포함한다. Docker gate는 최신 0018~0022 뒤 0023 migration이 빈 DB와 기존 DB startup/persistence 계약을 깨지 않는지 검증한다.
 
