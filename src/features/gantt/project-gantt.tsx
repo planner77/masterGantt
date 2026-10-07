@@ -1454,6 +1454,9 @@ export function ProjectGantt({
   const appliedCanonicalViewportGeometryReference = useRef<string | null>(null);
   useEffect(() => {
     const syncVersion = ++canonicalSyncVersionReference.current;
+    if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
+      fullscreenFrameReference.current.dataset.ganttCanonicalSyncGeneration = String(syncVersion);
+    }
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       if (syncVersion !== canonicalSyncVersionReference.current) return;
       // Compare with the geometry that actually completed the previous canonical sync.
@@ -1507,6 +1510,9 @@ export function ProjectGantt({
         canonicalSyncDepthReference.current -= 1;
         if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) {
           fullscreenFrameReference.current.dataset.ganttCanonicalSyncDepth = String(canonicalSyncDepthReference.current);
+          if (syncVersion === canonicalSyncVersionReference.current) {
+            fullscreenFrameReference.current.dataset.ganttCanonicalSyncSettledGeneration = String(syncVersion);
+          }
         }
       }
     }).catch(() => onCanonicalSyncFailureReference.current());
