@@ -3,6 +3,7 @@ import type Database from "better-sqlite3";
 
 import type {
   CreateProjectMasterItemRequest,
+  ProjectMasterRelationMutationRequest,
   ProjectMasterAdminResponse,
   ProjectMasterCategory,
   ProjectMasterItemDto,
@@ -20,6 +21,8 @@ export class ProjectMasterInvalidInputError extends Error {}
 export class ProjectMasterItemNotFoundError extends Error {}
 export class ProjectMasterItemInactiveError extends Error {}
 export class ProjectMasterItemInUseError extends Error {}
+export class ProjectMasterRelationInvalidError extends Error {}
+export class ProjectMasterRelationInUseError extends Error {}
 
 export interface ProjectMasterServiceOptions {
   clock?: () => Date;
@@ -162,6 +165,7 @@ export class ProjectMasterService {
         businessUnits: items.filter((item) => item.category === "BUSINESS_UNIT"),
         products: items.filter((item) => item.category === "PRODUCT"),
         siteEntities: items.filter((item) => item.category === "SITE_ENTITY"),
+        relations: this.repository.listRelations(),
       },
     };
   }
@@ -176,6 +180,7 @@ export class ProjectMasterService {
         businessUnits: active.filter((item) => item.category === "BUSINESS_UNIT"),
         products: active.filter((item) => item.category === "PRODUCT"),
         siteEntities: active.filter((item) => item.category === "SITE_ENTITY"),
+        relations: this.repository.listRelations(),
         items,
       },
     };
@@ -246,6 +251,43 @@ export class ProjectMasterService {
     return transaction.immediate();
   }
 
+  mutateRelation(rawToken: string | undefined, expectedRevision: number, input: ProjectMasterRelationMutationRequest, remove: boolean): ProjectMasterAdminResponse {
+    if (!input || typeof input !== "object" || Array.isArray(input) ||
+        Object.keys(input).some((k) => !["businessUnitId","productId","siteEntityId"].includes(k)) ||
+        !isCanonicalUuidV4(input.businessUnitId) || !isCanonicalUuidV4(input.productId) ||
+        (input.siteEntityId != null && !isCanonicalUuidV4(input.siteEntityId))) throw new ProjectMasterInvalidInputError();
+    const transaction = this.database.transaction(() => {
+      if (!this.authorizeAdmin(rawToken)) throw new ProjectMasterAuthorizationError();
+      if (this.repository.getRevision() !== expectedRevision) throw new ProjectMasterRevisionMismatchError();
+      const b=this.repository.findItemByPublicId(input.businessUnitId);
+      const p=this.repository.findItemByPublicId(input.productId);
+      const s=input.siteEntityId ? this.repository.findItemByPublicId(input.siteEntityId) : undefined;
+      if (!b || b.category!=="BUSINESS_UNIT" || !p || p.category!=="PRODUCT" ||
+        (input.siteEntityId && (!s || s.category!=="SITE_ENTITY"))) throw new ProjectMasterRelationInvalidError();
+      const siteId=s?.id ?? null;
+      const exists=this.repository.relationExists(b.id,p.id,siteId);
+      if (remove) {
+        if (!exists) throw new ProjectMasterRelationInvalidError();
+        if (this.repository.relationProjectUsage(b.id,p.id,siteId)>0 ||
+            (siteId===null && this.repository.relationSiteCount(b.id,p.id)>0)) throw new ProjectMasterRelationInUseError();
+        this.repository.removeRelation(b.id,p.id,siteId);
+      } else {
+        if (!b.active || !p.active || (s && !s.active)) throw new ProjectMasterItemInactiveError();
+        if (siteId!==null && !this.repository.relationExists(b.id,p.id)) throw new ProjectMasterRelationInvalidError();
+        if (exists) return this.getAdminCatalog(rawToken);
+        this.repository.addRelation(b.id,p.id,siteId);
+      }
+      if (!this.repository.advanceRevision(expectedRevision,this.clock().toISOString())) throw new ProjectMasterRevisionMismatchError();
+      return this.getAdminCatalog(rawToken);
+    });
+    return transaction.immediate();
+  }
+
+  private requireValidHierarchy(b: number | null | undefined,p: number | null | undefined,s: number | null | undefined): void {
+    if (p != null && (b == null || !this.repository.relationExists(b,p))) throw new ProjectMasterRelationInvalidError();
+    if (s != null && (b == null || p == null || !this.repository.relationExists(b,p,s))) throw new ProjectMasterRelationInvalidError();
+  }
+
   resolveProjectSelection(input: {
     businessUnitId?: string | null; productId?: string | null; siteEntityId?: string | null;
   }, options: { allowInactive: boolean }): { businessUnitId?: number | null; productId?: number | null; siteEntityId?: number | null } {
@@ -258,11 +300,13 @@ export class ProjectMasterService {
       if (!options.allowInactive && !item.active) throw new ProjectMasterItemInactiveError();
       return item.id;
     };
-    return {
+    const selected = {
       businessUnitId: resolve(input.businessUnitId, "BUSINESS_UNIT"),
       productId: resolve(input.productId, "PRODUCT"),
       siteEntityId: resolve(input.siteEntityId, "SITE_ENTITY"),
     };
+    this.requireValidHierarchy(selected.businessUnitId,selected.productId,selected.siteEntityId);
+    return selected;
   }
 
   resolveProjectSelectionForUpdate(projectId: number, input: {
@@ -282,11 +326,18 @@ export class ProjectMasterService {
       if (!item.active && currentItem?.publicId !== item.publicId) throw new ProjectMasterItemInactiveError();
       return item.id;
     };
-    return {
+    const selected = {
       businessUnitId: resolve(input.businessUnitId, "BUSINESS_UNIT", current.businessUnit),
       productId: resolve(input.productId, "PRODUCT", current.product),
       siteEntityId: resolve(input.siteEntityId, "SITE_ENTITY", current.siteEntity),
     };
+    const b=selected.businessUnitId === undefined ? current.businessUnit?.id ?? null : selected.businessUnitId;
+    const p=selected.productId === undefined ? current.product?.id ?? null : selected.productId;
+    const s=selected.siteEntityId === undefined ? current.siteEntity?.id ?? null : selected.siteEntityId;
+    // Unchanged legacy/incomplete Project combinations remain readable and editable.
+    if (b !== (current.businessUnit?.id ?? null) || p !== (current.product?.id ?? null) ||
+        s !== (current.siteEntity?.id ?? null)) this.requireValidHierarchy(b,p,s);
+    return selected;
   }
 
   setProjectSelection(projectId: number, resolved: { businessUnitId?: number | null; productId?: number | null; siteEntityId?: number | null }): void {

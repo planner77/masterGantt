@@ -42,6 +42,8 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/project-master/admin/items", method: "GET", policy: "project-master-admin-read", mutatesState: false },
   { template: "/api/project-master/admin/items", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: true },
   { template: "/api/project-master/admin/items/{itemId}", method: "PATCH", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/project-master/admin/relations", method: "POST", policy: "origin-project-master-admin-if-match", mutatesState: true },
+  { template: "/api/project-master/admin/relations", method: "DELETE", policy: "origin-project-master-admin-if-match", mutatesState: true },
   { template: "/api/project-master/admin-sessions", method: "POST", policy: "origin-project-master-admin-auth", mutatesState: true },
   { template: "/api/project-master/admin-sessions", method: "DELETE", policy: "origin-project-master-admin-logout", mutatesState: true },
   { template: "/api/project-master/admin-password", method: "PUT", policy: "origin-project-master-admin-password", mutatesState: true },
