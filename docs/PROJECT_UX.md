@@ -918,6 +918,8 @@ Dirty 생성/profile 취소·닫기·Escape는 `계속 편집 / 초안 폐기` �
 
 Pending에서 disabled control 때문에 focus가 body로 빠지지 않도록 해당 열린 native dialog에 focus를 두고, owned panel의 Escape capture로 반복 닫기 요청을 차단한다. Tab/ShiftTab은 dialog 안에 유지한다. Pending은 기존 동기 ref와 표시 disabled를 공유하여 이중 submit·입력·모달 닫기/Escape를 잠근다. 401은 모든 비밀번호를 지우고 로그인 focus로 전환하며 비민감 초안을 memory에 보존한다. 인증 전에는 초안 모달이 로그인 focus를 가리지 않는다. 재로그인 후 최신 카탈로그를 조회하고 `보존한 초안 계속 편집`으로 명시 재진입한다. 412는 기존 최신 GET과 strong If-Match 계약을 유지하며 최신 저장 값과 보존 초안을 검토한 후 수동 저장한다. network/5xx/불명 응답은 저장 완료로 취급하지 않고 mutation을 잠가 명시 최신 조회로 복구한다. 403은 성공 표시 없이 초안을 보존한다.
 
+Issue #486부터 재로그인 후 suspended dirty Resource/Group/Profile 초안이 있는 상태에서 다른 `리소스 추가`/`그룹 추가`/`프로필 편집` trigger를 눌러도 기존 editor를 묵시적으로 재개하지 않는다. `보존한 초안 확인`에서 `초안 유지`를 선택하면 suspended draft와 trigger focus를 그대로 보존하고, 기존 초안의 직접 재개는 계속 `보존한 초안 계속 편집`만 담당한다. `초안 폐기 후 …`를 선택하면 기존 editor draft만 초기화하고 사용자가 실제로 누른 editor kind/resource를 연다. 이 분기는 401/session/revision/pending/keyboard 계약을 바꾸지 않는다.
+
 명시 로그아웃은 성공 또는 서버 확인 실패 모두 관리 화면을 잠근다. 기존 catalog·선택 Group·선택 members·비밀번호 초기화 범위를 유지하며 일반 생성 입력/검색까지 임의 초기화하지 않는다. 삭제는 서버 `deletable === true`일 때만 허용하며 사용 중·사용 여부 미확인을 구분한다. 409/412 삭제 재검증, 취소 호출 버튼 focus·삭제 후 검색 focus 계약은 유지한다. API/DB/auth/domain/공유 dialog primitive 변경은 없다.
 
 ## Issue #454 물류 유형 native table 밀도·열·dialog

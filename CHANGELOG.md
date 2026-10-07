@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.94.3] - 2026-10-07
+
+### Fixed
+
+- Issue #486: Resource Catalog에서 401 후 보존된 Resource/Group/Profile 초안이 다른 편집 명령을 묵시적으로 가로채던 문제를 수정한다.
+- 다른 편집 trigger는 `보존한 초안 확인`을 표시하고, 기존 초안 유지 또는 폐기 후 실제 요청한 리소스 추가/그룹 추가/프로필 편집으로 명시 분기한다.
+- `보존한 초안 계속 편집`은 기존 draft의 직접 재개 경로로 유지하며 session/revision/If-Match/pending/Escape/focus 계약은 변경하지 않는다.
+
 ## [0.94.2] - 2026-10-07
 
 ### Fixed

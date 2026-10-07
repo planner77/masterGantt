@@ -185,6 +185,74 @@ test("401 재로그인은 비민감 초안·검색·구성원을 보존하고 �
   expect(state.posts).toBe(1);
 });
 
+test("401 Resource 초안은 다른 Group 편집 명령을 가로채지 않고 명시 재개만 허용한다", async ({ page }) => {
+  const state = await fixture(page);
+  await page.goto("/resources"); await login(page);
+  const resource = await openCreate(page, "resource");
+  await resource.getByLabel("이름", { exact: true }).fill("보존 Resource");
+  state.mutationFailure = "401";
+  await resource.getByRole("button", { name: "추가", exact: true }).click();
+  state.mutationFailure = null;
+  await login(page);
+
+  await page.getByRole("tab", { name: /^리소스 그룹/ }).click();
+  await page.getByRole("button", { name: "그룹 추가", exact: true }).click();
+  const conflict = page.getByRole("dialog", { name: "보존한 초안 확인", exact: true });
+  await expect(conflict).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "리소스 추가", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "그룹 추가", exact: true })).toHaveCount(0);
+
+  await conflict.getByRole("button", { name: "초안 유지", exact: true }).click();
+  await expect(conflict).toHaveCount(0);
+  await page.getByRole("button", { name: "보존한 초안 계속 편집", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "리소스 추가", exact: true }).getByLabel("이름", { exact: true })).toHaveValue("보존 Resource");
+});
+
+test("401 Group 초안을 폐기하면 요청한 Resource 편집기를 열고 이전 Group 초안을 제거한다", async ({ page }) => {
+  const state = await fixture(page);
+  await page.goto("/resources"); await login(page);
+  const group = await openCreate(page, "group");
+  await group.getByLabel("이름", { exact: true }).fill("보존 Group");
+  state.mutationFailure = "401";
+  await group.getByRole("button", { name: "추가", exact: true }).click();
+  state.mutationFailure = null;
+  await login(page);
+
+  await page.getByRole("tab", { name: /^리소스 \d/ }).click();
+  await page.getByRole("button", { name: "리소스 추가", exact: true }).click();
+  const conflict = page.getByRole("dialog", { name: "보존한 초안 확인", exact: true });
+  await conflict.getByRole("button", { name: "초안 폐기 후 리소스 추가", exact: true }).click();
+
+  const resource = page.getByRole("dialog", { name: "리소스 추가", exact: true });
+  await expect(resource).toBeVisible();
+  await expect(resource.getByLabel("이름", { exact: true })).toHaveValue("");
+  await resource.getByRole("button", { name: "취소", exact: true }).click();
+
+  const reopenedGroup = await openCreate(page, "group");
+  await expect(reopenedGroup.getByLabel("이름", { exact: true })).toHaveValue("");
+});
+
+test("401 Profile 초안도 다른 편집 trigger와 분리하고 명시 재개 시 값을 보존한다", async ({ page }) => {
+  const state = await fixture(page);
+  await page.goto("/resources"); await login(page);
+  await page.getByRole("button", { name: "담당자 A 프로필 편집", exact: true }).click();
+  const profile = page.getByRole("dialog", { name: "리소스 프로필 편집", exact: true });
+  await profile.getByLabel("담당자 A 개발자 등급", { exact: true }).selectOption("ADVANCED");
+  state.mutationFailure = "401";
+  await profile.getByRole("button", { name: "프로필 저장", exact: true }).click();
+  state.mutationFailure = null;
+  await login(page);
+
+  await page.getByRole("button", { name: "리소스 추가", exact: true }).click();
+  const conflict = page.getByRole("dialog", { name: "보존한 초안 확인", exact: true });
+  await expect(conflict).toBeVisible();
+  await conflict.getByRole("button", { name: "초안 유지", exact: true }).click();
+  await page.getByRole("button", { name: "보존한 초안 계속 편집", exact: true }).click();
+
+  const resumed = page.getByRole("dialog", { name: "리소스 프로필 편집", exact: true });
+  await expect(resumed.getByLabel("담당자 A 개발자 등급", { exact: true })).toHaveValue("ADVANCED");
+});
+
 test("인증 성공 후 목록 실패는 재로그인 없이 GET retry하고 불명확한 canonical은 mutation을 잠근다", async ({ page }) => {
   const state = await fixture(page);
   state.getFailure = "500";
