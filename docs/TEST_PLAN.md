@@ -1350,6 +1350,10 @@ Playwright에서는 구현 CSS 값 자체를 단정하지 말고 사용자에게
 - Remote: #437 implementation PR exact head의 quality/e2e/docker required checks를 통과하고, 병합 후 timing artifacts가 실제 main CI에서 생성되는지 확인한다.
 - Activation: historical sample 10회가 쌓이기 전에는 native 6-shard fallback이 정상 상태이며, 첫 자동 plan PR은 threshold 충족 후 별도 required CI로 검증한다.
 
+- Issue #508 regression: proposal 출력과 workflow artifact path가 모두 `e2e-shard-proposal.json`인지 확인하고 hidden filename을 다시 사용하지 않는지 검증한다.
+- PR lookup script는 GitHub CLI의 `--search` 값을 `"[Issue #437] ci: E2E 샤드 계획 갱신" in:title` 단일 argument로 구성하고, 후보 목록에서 exact title만 기존 PR 번호로 선택하는 Unit test를 유지한다. 이 로직을 inline Bash quoting으로 되돌리지 않는다.
+- Workflow contract test는 `shouldUpdate=false`에서 조회/생성 step이 skip되는 조건, `shouldUpdate=true`에서 기존 PR 번호가 있으면 생성하지 않는 조건, 번호가 비어 있을 때만 생성하는 조건과 proposal artifact path를 정적으로 검증한다.
+
 ## Issue #438 Build-once / verified digest release promotion 검증
 
 - Main 분류: first-parent `package.json.version`과 현재 version이 다를 때만 `version_changed=true`이며 `current_version`을 candidate build metadata에 사용한다.
@@ -2036,6 +2040,14 @@ Remote PR quality/e2e/docker는 이 frontend handoff 시점 NOT TESTED다. Manag
 
 401/412로 닫힌 설정은 dialog PASS로 세지 않고 page-level readonly/canonical refresh 관측으로 구분한다. Mock state는 native 48px 열 resize·optional 외부ID 열·닫힌 중첩 Summary·native 선택·주 scale·Summary scope·scroll/public viewport·instance·전체 화면 round trip을 비교한다. 실제 API 테스트는 Origin/If-Match와 name/description 저장 성공, Task/Link/Calendar 불변 및 viewport를 별도로 검증한다. 요청 body/password/Cookie/token은 증거에 저장하지 않는다. Local Fast Feedback과 원격 quality/e2e/docker 판정을 분리하며 PR CI 시작만으로 전체 회귀 PASS를 주장하지 않는다. 실행별 실패·준비 oracle 정정·재사용 범위는 [Issue #490 검토 기록](ISSUE_490_UI_UX_REVIEW.md)에 기록한다.
 
+Main CI Run #2035.1 corrective: shard 3/6에서 412 복구 직후 다음 보호 오류 주입이 canonical sync guard와 경합하여 POST가 시작되지 않고 `waitForRequest`가 timeout됐다. 제품의 sync 중 mutation 차단 계약은 유지한다. 비운영 환경의 Gantt frame에 `data-gantt-canonical-sync-depth` 진단 값을 기록하고, 연속 오류 E2E는 depth=0 및 mutation lock 해제를 확인한 뒤 다음 POST를 시작한다. timeout 확대나 retry로 실패를 숨기지 않는다.
+
+PR #510 review corrective: 단순 `data-gantt-canonical-sync-depth=0`은 412 복구 React update가 passive effect를 시작하기 전의 이전 cycle 값일 수 있다. 비운영 frame에 canonical sync `generation`과 `settled-generation`을 기록하고, 연속 보호 오류 E2E는 mutation 직전 generation을 캡처한 뒤 새 generation이 증가하고 같은 generation이 settle되며 depth=0이 될 때까지 기다린다. 이전 cycle의 0을 새 복구 완료로 오인하지 않는다.
+
+PR CI Run #2037.1 corrective: 위 shard 3/6은 PASS했으나 shard 4/6의 `project-status.spec.ts`가 revision 충돌 준비용 `page.request.get()`에서 단일 `ECONNRESET`으로 실패했다. 이 보조 요청은 제품 UI 기능 자체가 아니라 충돌 상태를 만드는 test harness이며, 별도 APIRequestContext 연결 재시도 대신 현재 페이지가 이미 사용하는 same-origin browser `fetch`로 snapshot GET과 외부 PATCH를 수행한다. 실제 UI 저장은 그대로 stale If-Match를 사용해 412/canonical refresh를 검증하며 timeout 확대·blind retry는 추가하지 않는다.
+
+Main CI Run #2053.1 corrective: exact merge `75f014fccc8f6e3f19ba5fadebd3ecad4e0926c4`의 shard 2/6에서 `milestone-stage-grid.spec.ts` snapshot helper가 `apiRequestContext.get: read ECONNRESET`으로 실패했다. 같은 run의 다른 5개 E2E shard와 quality/build/typecheck/lint/Vitest/Docker는 PASS였고 HTTP status/assertion 실패는 없었다. 최신 main은 이후 #511 병합으로 `eab12824e359029b4c7f00b6ca7ab16535147a14` / app `0.94.2`까지 전진했으므로 corrective branch는 이 main에서 시작한다. 이미 저장소에서 검증된 direct GET 정책과 동일하게 snapshot GET에만 `socket hang up|ECONNRESET`을 최대 3회 bounded retry하고, 다른 예외·HTTP/JSON/assertion 실패와 retry 소진은 계속 FAIL한다. 제품 API/UI 동작과 mutation 경로는 변경하지 않는다.
+
 #490 REWORK는 최신 main4f8fc2c9c86941d1b86ae4472b1e953707c85ef7/제품0.94.1에서6case를 실행한다. 0.93.1의 마지막5case와16runs40executions는 historical로 원본 hash를 유지한다. 새1case는1440px 실제 PUT hold→pending BODY·빠른2Escape·민감 입력 비움·중복PUT1개·native 보안탭 focus→204/revision+1/canonical GET/호출자 edit·이전 peer readonly·구password401/새password204와 정상 close/logout/unlock 초점을 검증한다. Calendar 기존 case에390px 새 field select/date의 native Tab·화면 안 bbox/ring을 추가한다. 성공 loading 동안 BODY 초점을 실제 관측으로 남기며 호출 버튼 복원 PASS로 확대하지 않는다. fullscreen 설정 진입은 지원 trigger가 frame 밖이라 N/A이고 fullscreen 왕복은 별도 검증한다. main #485 migration0023은 실제 isolated DB에 적용되며 변경된 stateful-project workload fixture는 이 spec의 직접 fixture가 아니다.
 
 ## Issue #487 — 완료 단계 필터 End scroll E2E timing race
@@ -2044,7 +2056,7 @@ Issue #454의 immutable `v0.90.1` GHCR Release Run #140.1 (`37434408238`)은 sta
 
 제품 `StageFilterPicker.move()`는 keyboard `End` 처리 시 `setActive()` 뒤 `requestAnimationFrame(...scrollIntoView())`로 active option을 list viewport에 보이게 한다. 기존 E2E는 `input.press("End")` 직후 geometry를 즉시 읽어 animation-frame scroll 완료보다 먼저 측정할 수 있었다. 이는 active option 가시성·키보드 접근성 기준의 완화 대상이 아니라 runner scheduling에 따른 비결정적 측정 순서다.
 
-보완은 static sleep을 사용하지 않는다. 현재 `aria-activedescendant`가 실제 DOM에 존재하고 list viewport 안에 완전히 들어오며 `scrollTop > 0`인 observable postcondition을 `expect.poll(..., { timeout: 2000 })`로 기다린 다음 기존 `activeVisible === true`, `listScroll > 0`, input focus/containment 및 390/768/1024/1440/1920 geometry assertion을 그대로 수행한다. 실제 scroll이 발생하지 않으면 bounded poll 또는 기존 assertion이 실패한다.
+최신 main `44b2ee3562cf76a73368a49fa17933ed341ab424`의 #490 transient reset retry를 보존한다. 보완은 static sleep을 사용하지 않고, 현재 `aria-activedescendant`가 실제 DOM에 존재하며 list viewport 안에 완전히 들어오고 `scrollTop > 0`인 observable postcondition을 `expect.poll(..., { timeout: 2000 })`로 기다린 다음 기존 `activeVisible === true`, `listScroll > 0`, input focus/containment 및 5개 viewport geometry assertion을 그대로 수행한다. 실제 scroll이 발생하지 않으면 bounded poll 또는 기존 assertion이 실패한다.
 
-application source/API/DB/domain/version은 변경하지 않는다. 기존 `v0.90.1` tag는 immutable historical evidence로 유지하고 이동·덮어쓰기·재사용하지 않는다. 이 corrective PR의 exact-head PR CI가 timing-race 보완의 검증 근거이며, 실패한 과거 exact tag/run의 재실행 성공을 수정 반영 근거로 대체하지 않는다. 향후 정식 release가 필요하면 현행 CI/CD/Lifecycle의 승인된 새 version/tag 절차를 별도로 따른다.
+application source/API/DB/domain/version은 변경하지 않는다. 기존 `v0.90.1` tag는 immutable historical evidence로 유지하고 이동·덮어쓰기·재사용하지 않는다. 이 corrective PR의 최신 exact-head PR CI가 timing-race 보완의 검증 근거다.
 

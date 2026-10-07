@@ -155,7 +155,11 @@ test("생성 기본값과 설정 변경은 canonical 상태를 목록·읽기 �
   await expect(dialog).toHaveCount(0);
   await expect(headerStatus).toHaveValue("completed");
   await expect(headerStatus).toHaveAttribute("data-status", "completed");
-  const completedSnapshot = await (await page.request.get(`/api/projects/${publicId}`)).json();
+  const completedSnapshot = await page.evaluate(async (path) => {
+    const response = await fetch(path, { credentials: "same-origin", cache: "no-store" });
+    if (!response.ok) throw new Error(`project snapshot GET failed: ${response.status}`);
+    return response.json();
+  }, `/api/projects/${publicId}`);
   expect(completedSnapshot.data.project.status).toBe("completed");
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -194,12 +198,21 @@ test("생성 기본값과 설정 변경은 canonical 상태를 목록·읽기 �
   await page.getByRole("link", { name, exact: true }).click();
   await page.getByRole("button", { name: "프로젝트 설정", exact: true }).click();
   await dialog.getByLabel("프로젝트 상태").selectOption("planned");
-  const current = await (await page.request.get(`/api/projects/${publicId}`)).json();
-  const conflicting = await page.request.patch(`/api/projects/${publicId}`, {
-    headers: { Origin: baseURL!, "If-Match": `"${current.data.project.revision}"` },
-    data: { status: "completed" },
-  });
-  expect(conflicting.status()).toBe(200);
+  const current = await page.evaluate(async (path) => {
+    const response = await fetch(path, { credentials: "same-origin", cache: "no-store" });
+    if (!response.ok) throw new Error(`project snapshot GET failed: ${response.status}`);
+    return response.json();
+  }, `/api/projects/${publicId}`);
+  const conflicting = await page.evaluate(async ({ path, revision }) => {
+    const response = await fetch(path, {
+      method: "PATCH",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "If-Match": `"${revision}"` },
+      body: JSON.stringify({ status: "completed" }),
+    });
+    return response.status;
+  }, { path: `/api/projects/${publicId}`, revision: current.data.project.revision });
+  expect(conflicting).toBe(200);
   await dialog.getByRole("button", { name: "프로젝트 정보 저장" }).click();
   await expect(page.getByTestId("workspace-toast")).toContainText("다른 편집 내용이 먼저 저장되었습니다.");
   await expect(headerStatus).toHaveValue("completed");

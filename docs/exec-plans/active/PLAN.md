@@ -4,9 +4,9 @@
 
 Issue #454의 immutable `v0.90.1` GHCR Release Run #140.1에서 Chromium shard 2/6의 `tests/e2e/milestone-stage-grid.spec.ts`만 `activeVisible === false`로 실패했고, 동일 exact merge SHA `0fc986cb0cb642bdbedeec30157b27bd522b5a38`의 Main CI Run #1942.1에서는 같은 case가 PASS했다. 제품 `StageFilterPicker.move()`가 `End` 처리 후 `requestAnimationFrame(...scrollIntoView())`로 active option을 노출하므로, E2E가 animation-frame scroll 완료보다 먼저 geometry를 읽는 timing race로 판정한다.
 
-최신 main `69ba4ce65e6734f13ff960a06ae74776353c228e` / application `0.94.1`을 기준으로 PR #488의 테스트 보완만 재적용한다. static sleep이나 접근성/geometry 기준 완화 없이 active descendant가 list viewport 안에 완전히 들어오고 `scrollTop > 0`이 되는 observable postcondition을 bounded poll로 기다린 뒤 기존 `activeVisible`, `listScroll`, input focus/containment와 5개 viewport geometry assertion을 그대로 수행한다. 제품 source/API/DB/domain 및 application version은 변경하지 않는다.
+최신 main `44b2ee3562cf76a73368a49fa17933ed341ab424` / application `0.94.2`를 기준으로 PR #488을 재정렬한다. main의 #490 stage-grid transient transport reset retry 보완을 그대로 보존하고, #487의 static sleep 없는 observable postcondition(`activeVisible && scrollTop > 0`) bounded poll만 재적용한다. 기존 focus/containment 및 390/768/1024/1440/1920 geometry assertion은 유지하며 제품 source/API/DB/domain 및 application version은 변경하지 않는다.
 
-`release_required=false`, `release_authorized=false`; 이번 요청 종료점은 새 exact-head PR CI 시작 확인이다. 기존 실패 `v0.90.1` tag/run은 historical evidence이며 실패한 exact tag를 수정 검증 근거로 재사용·이동·덮어쓰기하지 않는다. 향후 정식 release가 필요해지면 현행 CI/CD/Lifecycle의 새 승인 version/tag 절차를 별도로 따른다.
+`release_required=false`, `release_authorized=false`; 이번 요청 종료점은 새 exact-head PR CI 시작 확인이다. 기존 실패 `v0.90.1` tag/run은 historical evidence이며 실패한 exact tag를 수정 검증 근거로 재사용·이동·덮어쓰기하지 않는다.
 
 ## Issue #490 프로젝트 설정·근무 규칙·인증 폼 — 로컬 검증 / 문서 동기화·PR CI 시작
 

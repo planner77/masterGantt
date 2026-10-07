@@ -162,15 +162,24 @@ test.describe("Issue #3 stable Gantt instance", () => {
     expect(fixture.posts).toHaveLength(2);
     async function rejectNextAdd(outcome: PostOutcome, expectedNotice: string, trigger = rootAdd(page)): Promise<void> {
       const taskCount = fixture.tasks.length; const postCount = fixture.posts.length;
-      // The previous failure toast is emitted before saveTask's finally block releases
-      // the shared mutation lock. Wait for the add control to become actionable again
-      // and prove that this error injection started a new POST before asserting its toast.
+      const frame = ganttRoot(page);
+      const generationBefore = Number(await frame.getAttribute("data-gantt-canonical-sync-generation") ?? "0");
+      // Each failed mutation reloads the canonical snapshot. Prove that the next POST
+      // starts, then wait for the newly scheduled sync generation itself to settle;
+      // accepting an old depth=0 can race with the passive effect that starts that sync.
+      await expect(frame).not.toHaveAttribute("data-task-mutation-locked", "true");
       await expect(trigger).toHaveAttribute("aria-disabled", "false");
       const requestStarted = page.waitForRequest((request) =>
         request.method() === "POST" && new URL(request.url()).pathname === taskPath,
       );
       fixture.nextPost = outcome; await trigger.click(); await requestStarted;
       await expect(page.getByTestId("workspace-toast")).toContainText(expectedNotice);
+      await expect.poll(async () => {
+        const generation = Number(await frame.getAttribute("data-gantt-canonical-sync-generation") ?? "0");
+        const settled = Number(await frame.getAttribute("data-gantt-canonical-sync-settled-generation") ?? "0");
+        const depth = Number(await frame.getAttribute("data-gantt-canonical-sync-depth") ?? "0");
+        return generation > generationBefore && settled === generation && depth === 0;
+      }).toBe(true);
       expect(fixture.posts).toHaveLength(postCount + 1); expect(fixture.tasks).toHaveLength(taskCount);
       expect(fixture.createdTaskIds).toHaveLength(2);
       await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(2);
