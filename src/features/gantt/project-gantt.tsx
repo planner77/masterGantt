@@ -556,10 +556,13 @@ export function ProjectGantt({
   useLayoutEffect(() => {
     canCreateReference.current = editable && !mutationLocked;
     mutationLockedReference.current = mutationLocked;
+    onTaskCreateReference.current = onTaskCreate;
+    onTaskAddRejectedReference.current = onTaskAddRejected;
     tasksByIdReference.current = tasksById;
     projectPublicIdReference.current = projectPublicId;
+    viewRootTaskIdReference.current = viewRootTaskId;
     tasksReference.current = tasks;
-  }, [editable, mutationLocked, projectPublicId, tasks, tasksById]);
+  }, [editable, mutationLocked, onTaskAddRejected, onTaskCreate, projectPublicId, tasks, tasksById, viewRootTaskId]);
 
   useLayoutEffect(() => {
     const wasLocked = previousMutationLockedReference.current;
