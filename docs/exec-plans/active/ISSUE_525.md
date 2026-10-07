@@ -56,3 +56,7 @@ REWORK 최종 source/docs freeze는 manifest SHA256 a43723049660dc9c56464779a351
 - PR #533 head c4454ba4, CI 37650777139 (#2093.1): quality·docker PASS, Chromium E2E shard 2/4/5 FAIL(4개 시나리오). 나머지 3개 shard는 PASS.
 - #130 이전 targets/필터 locator → 신규 Dashboard ready·기간 오류·Role·keyboard/Escape/5폭 검사. #83 표시 행-only 기대 → 선택 범위 KPI·행 동시 갱신과 기간 미교차 fixture. #76 숨겨진 group option → Group disclosure와 실제 Resource 행. #491 레거시 M/M 안내 → disabled 이유/실제 API 기반 큰 표시값·단위 전환·포커스 검사.
 - Runtime/API/Domain/Calendar/version은 변경하지 않고 테스트·fixture 및 문서만 보완했다. 검증 생략 없이 기존 Gantt 보존 계약도 유지한다. 새 head PR CI가 완료되기 전 quality/e2e/docker는 NOT TESTED이며 병합/GHCR은 비범위다.
+
+## 2026-10-08 PR CI #2107 E2E 재검증
+
+CI #2107.1(head db04c5e)은 quality/build/docker와 #525 보완 대상 #76, 앞선 unrelated #456을 포함한 Chromium shard 2~6이 통과했다. 유일 실패는 shard1의 기존 #502 `error-boundary-regression.spec.ts` gantt-demo 경계 테스트에서 오류 heading이 5초 내 나타나지 않은 1건이다. db04c5e는 직전 head 대비 `project-workspace-ux.spec.ts`의 Resource tab focus 한 줄만 변경했고 #502 제품/테스트 경로는 변경하지 않았다. 따라서 #525 범위를 #502 제품 수정으로 확대하지 않고 동일 #525 head 내용의 전체 원격 재검증을 새 commit/run으로 수행한다. 재검증 성공 전 공식 E2E PASS는 주장하지 않는다.
