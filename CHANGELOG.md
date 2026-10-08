@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.102.2] - 2026-10-08
+
+### Fixed
+
+- Issue #530: Resource·Milestone drill-down 이동 기록마다 Gantt 공개 Core·DOM viewport 관측값을 보존하고, 원래 보기로 복귀할 때 같은 snapshot·instance·범위의 유효한 좌표를 복원한다. 오래된 복원과 새 사용자 입력의 충돌을 방지한다.
+
+### Changed
+
+- Issue #530: 공통 합성 fixture로 Domain·SQLite HTTP·UI·Excel의 원시 공수·고유 Assignment·scope 정합성을 비교하는 통합 회귀 검증과 사용자 가이드를 추가한다. 외부 ID 표시를 제거한 최신 #519 Milestone picker와 기존 회귀 검증을 보존한다.
+
 ## [0.102.1] - 2026-10-08
 
 ### Fixed

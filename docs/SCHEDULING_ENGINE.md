@@ -374,3 +374,9 @@ resource-day200000, full Assignment-day1000000, 전체 projection cell5000의 �
 `ResourcePlanInput.projectionGroupIds`는 출력 Group series와 projection cell 예산만 제한한다. 생략은 기존 전체 R 소속 Group 출력, 명시 빈 배열은 Group series 없음이다. Resource의 전체 `groupIds`와 Calendar 입력은 항상 유지하므로 숨은 Group 휴일/근무 예외가 Capacity와 공수에 반영된다. Resource/Grand/Milestone 계산과 R은 표시 Group 조건으로 줄이지 않는다.
 
 중복 projection ID는 거부하고 문자열 ID는 전체 입력 Resource 소속에 존재해야 한다. null은 미분류 selector sentinel로 허용한다. 알려진 Group이라도 R에 구성원이 없으면 기존 sparse 계약대로 출력 행을 생성하지 않는다. 표시되지 않는 Group을 먼저 materialize해 cell 예산을 부과하지 않는다. Group1 표시+숨은 Group2 휴일 fixture에서 정확히 grand/Resource/Group의3기간 셀을 허용하고2셀 예산은 거부한다. 명시 빈 배열은2셀과 같은 Capacity를 유지하며32개 소속 중1개만 표시하는 회귀도 고정한다.
+
+## Issue #530 KPI·Plan 통합 수치 검증
+
+고정 5근무일 fixture의 T1은 A50%와 B100%로7.5 M/D, T2는 A60%로3 M/D, T3는 B20%로1 M/D, T6의 A는 allocation=null이다. T4는 완전 미할당, T5는 Group만 지정이다. 개인 A5.5/B6, Grand11.5이며 G1/G2 중첩 소계17을 Grand로 더하지 않는다. Capacity는 고유 개인×근무일10이고 명시20 M/D 기준에서만0.575 M/M다.
+
+KPI의11.5와 일별 반복 합산 Plan의11.499999999999998, 개인 초과 합1.5000000000000002는 raw 연산 순서 차이다. 통합 테스트는 `toBeCloseTo(..., 14)`로 수치 오차를 검사하며 저장/출력 계산에 반올림을 추가하지 않는다. ID·count·null/state는 정확히 비교한다. 원장은 복사본으로 파생하며 Calendar 우선순위, hidden incomplete member/full predecessor Blocked, 미설정/설정0/empty와150% peak를 별도로 검증한다. 기존 Plan/ISO 기간/예산 회귀를 함께 선택 실행하며 Scheduling mutation 알고리즘은 변경하지 않는다.

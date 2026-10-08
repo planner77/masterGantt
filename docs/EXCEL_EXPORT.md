@@ -251,3 +251,9 @@ Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/
 - `Resource Quality`의 `originalFrom/originalTo`는 `raw Assignment` 및 `selected Assignment`(Milestone 미지정 포함) 모두 원래 **실효 배정 시작/종료일**을 의미한다. 원본 Assignment 날짜가 있으면 우선하고 없으면 canonical Task 시작/종료일을 사용한다.
 - `Resource Assignments` 시트의 `overlapFrom/overlapTo`는 조회 `from/to`에 잘린 기간이다. 원래 기간이 보고기간 밖으로 이어져도 `Resource Quality`를 교차기간으로 잘못 표기하지 않는다. 두 시트의 raw/selected grain·null 공수 계약과 기존 Export 구조는 그대로 유지한다.
 
+
+## Issue #530 공통 원장과 실제 파일 정합성
+
+통합 회귀는 실제 native SQLite HTTP handler와 Next HTTP의 Export 응답 ZIP을 풀어7개 Resource 시트의 OOXML을 검사한다. 동일 Assignment ID별 raw 계획값2.5/5/3/1/null과 unknown 공란, 전체11.5 M/D, 개인·Group×Milestone partition, Plan selected/project 숫자와 report의 기간/asOf/환산/revision/Calendar/snapshot metadata를 비교한다. Group 소계17은 중첩 분류 결과이며 전체11.5로 대체하지 않는다. null 공란과 numeric0을 합계 표시만으로 판정하지 않는다.
+
+readonly Export, exact Origin·strong `If-Match`, stale 전체 실패, ID·scope 보존과 credential 없는 단일 서버 생성 Project hyperlink를 함께 확인한다. 시트 숫자는 report와 같은 raw 값을 유지하고 KPI와 Plan 사이의 부동소수 연산 순서 차이만 기존 정밀도 허용범위에서 비교한다. 실제 Windows Excel/VBA/DRM에서 파일을 열고 표시하는 검증과 원격 CI는 로컬 OOXML 검사로 대체하지 않는다. 새 Export endpoint·시트·예산이나 재가져오기 계약을 추가하지 않는다.

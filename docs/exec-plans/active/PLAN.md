@@ -1,3 +1,10 @@
+## Issue #530 Resource KPI 통합 회귀·사용자 가이드 — 구현 / PR CI 시작까지
+
+main `599b824677cec2daa47743a60fcac422297f925b` / application `0.102.0`에서 선행 #523~#529를 같은 합성 원장으로 연결해 검증한다. branch `test/issue-530-resource-kpi-integration`, 상세 범위·소유권·기대값·검증은 [Issue #530 실행 계획](ISSUE_530.md)을 따른다. 알려진 11.5 M/D+미설정1, distinct Task4/Assignment5/Resource2, 다중 Group 비가산, 명시 환산20일 경우0.575 M/M, 고유 Capacity10이 Domain·실제 SQLite HTTP·UI·Excel에서 같은 raw ID/숫자/조건으로 나와야 한다.
+
+기존 Dashboard/Plan/정확한 일정 이동/Export를 재사용하여 세 계층·두 matrix·주월/일별 과투입·Gantt 상태 보존·5폭 keyboard 및 사용자 가이드 네 시나리오를 검증한다. 실제 fixed1440 Core/DOM240→0 및 최소120→0 결함으로 frame별 viewport 기록을 최소 수정한다. 최신 main `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` / `0.102.1` 통합과 PATCH `0.102.2`를 적용했다. 검증된 제품·테스트 bytes를 보존했고 Vitest243개·브라우저18개(API1/UI17: 신규실제7·기존실제2·mock8), 통합 후 typecheck·version·Markdown153·테스트 발견이 PASS다. DOCUMENTATION_SYNC와 독립 PRE_QA 뒤 원격 게시·새 전체 PR CI 등록까지만 진행한다. CI 모니터링·병합·main/GHCR/tag·Issue 종료·branch 정리는 범위 밖이며 새 quality/e2e/docker와 최종 ACCEPT는 NOT TESTED다. `release_required=true`, `release_authorized=false`다.
+
+
 ## Issue #519 — 최초 PR CI 실패·최신 main 통합 (2026-10-08)
 
 [Issue #519](https://github.com/planner77/masterGantt/issues/519) / [Work Packet](ISSUE_519.md) / [PR #547](https://github.com/planner77/masterGantt/pull/547). 최초 head `d1924ffbbebc8cf38ebeafbde4edac67a8ecb599` / [CI #2185.1](https://github.com/planner77/masterGantt/actions/runs/37773843644): quality/docker 및 E2E 5개 shard SUCCESS, 5/6의 기존 #130 workspace 5폭×readonly/edit 단일 시나리오가 30s timeout으로 FAIL. 최신 main `599b824677cec2daa47743a60fcac422297f925b` / version `0.102.0`은 #130 시나리오를 폭별 독립 Playwright 테스트로 이미 분할했다. main 이력과 #529 구현을 보존하고 #519 UI/문서 delta를 통합하며 후보 PATCH `0.102.1`로 변경한다. 기존 0.101.3은 미병합 PR 후보 이력이다. 새 exact-head PR CI `quality/e2e/docker` 재검증 필요. 로컬 npm/Chromium 및 독립 qa_docs 미실행: NOT TESTED. `release_required=true` / `release_authorized=false`, 병합/Main CI/GHCR/Issue 종료 비범위.

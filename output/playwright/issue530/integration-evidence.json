@@ -1,0 +1,1988 @@
+{
+  "actual-ledger-ui-geometry": {
+    "report": {
+      "resourceScopeContext": {
+        "projectPublicId": "67a21370-979d-499a-b964-4f164b95f907",
+        "projectRevision": 16,
+        "catalogRevision": 7,
+        "calendarRevision": "e427d5347254469b6f9643cfe4a846cdd4288977f1e7a05f2c80f97e5c0aee99",
+        "dataSnapshotId": "046cd6374adf711d040c1584343462613a8870ba052634544de08abe3d23ec7c",
+        "range": {
+          "from": "2026-10-05",
+          "to": "2026-10-09"
+        },
+        "asOfDate": "2026-10-08",
+        "mdPerMm": null,
+        "mdPerMmSource": "unset",
+        "mdPerMmProvided": false,
+        "sourceProjection": {
+          "kind": "report"
+        }
+      },
+      "schema": "resource-dashboard/1",
+      "projectPublicId": "67a21370-979d-499a-b964-4f164b95f907",
+      "projectRevision": 16,
+      "catalogRevision": 7,
+      "calendarRevision": "e427d5347254469b6f9643cfe4a846cdd4288977f1e7a05f2c80f97e5c0aee99",
+      "snapshotId": "150e0c31c169a85688500bb820163bce67da3ccc1b037babcc9bc254c03b34ec",
+      "calculatedAt": "2026-10-08T13:22:13.704Z",
+      "asOfDate": "2026-10-08",
+      "timezone": "Asia/Seoul",
+      "filters": {
+        "from": "2026-10-05",
+        "to": "2026-10-09",
+        "asOfDate": null,
+        "resourceActivity": "all",
+        "groupActivity": "all",
+        "search": "",
+        "taskSearch": "",
+        "mode": "group",
+        "mdPerMm": null,
+        "mdPerMmProvided": false,
+        "resourceIds": [],
+        "groupIds": [],
+        "milestoneIds": [],
+        "taskIds": [],
+        "wbsRootIds": [],
+        "roles": [],
+        "developerGrades": [],
+        "statuses": []
+      },
+      "range": {
+        "from": "2026-10-05",
+        "to": "2026-10-09"
+      },
+      "rangeFallback": false,
+      "mdPerMm": null,
+      "mdPerMmSource": "unset",
+      "scope": {
+        "assignment": "A",
+        "diagnostics": "T0",
+        "identity": "150e0c31c169a85688500bb820163bce67da3ccc1b037babcc9bc254c03b34ec"
+      },
+      "summary": {
+        "taskCount": 4,
+        "resourceCount": 2,
+        "assignmentCount": 5,
+        "notStarted": 4,
+        "inProgress": 0,
+        "completed": 0,
+        "delayed": 0,
+        "completion": {
+          "numerator": 0,
+          "denominator": 4,
+          "percent": 0
+        },
+        "assignedTaskProgress": {
+          "numerator": 0,
+          "denominator": 20,
+          "percent": 0
+        },
+        "effort": {
+          "knownMd": 11.5,
+          "plannedMd": 11.5,
+          "plannedMm": null,
+          "state": "partial",
+          "partial": true,
+          "unsetCount": 1
+        },
+        "selector": {
+          "assignmentScope": "selected",
+          "dimension": "all",
+          "id": null,
+          "metric": "all"
+        }
+      },
+      "reference": {
+        "taskCount": 4,
+        "resourceCount": 2,
+        "assignmentCount": 5,
+        "notStarted": 4,
+        "inProgress": 0,
+        "completed": 0,
+        "delayed": 0,
+        "completion": {
+          "numerator": 0,
+          "denominator": 4,
+          "percent": 0
+        },
+        "assignedTaskProgress": {
+          "numerator": 0,
+          "denominator": 20,
+          "percent": 0
+        },
+        "effort": {
+          "knownMd": 11.5,
+          "plannedMd": 11.5,
+          "plannedMm": null,
+          "state": "partial",
+          "partial": true,
+          "unsetCount": 1
+        },
+        "selector": {
+          "assignmentScope": "milestoneReference",
+          "dimension": "all",
+          "id": null,
+          "metric": "all"
+        }
+      },
+      "excluded": {
+        "taskCount": 0,
+        "resourceCount": 0,
+        "assignmentCount": 0,
+        "notStarted": 0,
+        "inProgress": 0,
+        "completed": 0,
+        "delayed": 0,
+        "completion": {
+          "numerator": 0,
+          "denominator": 0,
+          "percent": null
+        },
+        "assignedTaskProgress": {
+          "numerator": 0,
+          "denominator": 0,
+          "percent": null
+        },
+        "effort": {
+          "knownMd": 0,
+          "plannedMd": 0,
+          "plannedMm": null,
+          "state": "empty",
+          "partial": false,
+          "unsetCount": 0
+        },
+        "selector": {
+          "assignmentScope": "milestoneExcluded",
+          "dimension": "all",
+          "id": null,
+          "metric": "all"
+        }
+      },
+      "milestoneSelection": {
+        "applied": false,
+        "reference": "A without Milestone filter",
+        "excluded": "reference Assignment IDs minus selected Assignment IDs"
+      },
+      "resources": [
+        {
+          "id": "15648735-8a42-4e10-a4af-a976d2f57682",
+          "name": "B",
+          "code": "B",
+          "active": true,
+          "resourceIds": [
+            "15648735-8a42-4e10-a4af-a976d2f57682"
+          ],
+          "assignmentRange": {
+            "from": "2026-10-05",
+            "to": "2026-10-09"
+          },
+          "summary": {
+            "taskCount": 2,
+            "resourceCount": 1,
+            "assignmentCount": 2,
+            "notStarted": 2,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 2,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 10,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 6,
+              "plannedMd": 6,
+              "plannedMm": null,
+              "state": "configured",
+              "partial": false,
+              "unsetCount": 0
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "resource",
+              "id": "15648735-8a42-4e10-a4af-a976d2f57682",
+              "metric": "all"
+            }
+          },
+          "milestones": [
+            {
+              "milestoneTaskId": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013",
+              "summary": {
+                "taskCount": 1,
+                "resourceCount": 1,
+                "assignmentCount": 1,
+                "notStarted": 1,
+                "inProgress": 0,
+                "completed": 0,
+                "delayed": 0,
+                "completion": {
+                  "numerator": 0,
+                  "denominator": 1,
+                  "percent": 0
+                },
+                "assignedTaskProgress": {
+                  "numerator": 0,
+                  "denominator": 5,
+                  "percent": 0
+                },
+                "effort": {
+                  "knownMd": 5,
+                  "plannedMd": 5,
+                  "plannedMm": null,
+                  "state": "configured",
+                  "partial": false,
+                  "unsetCount": 0
+                },
+                "selector": {
+                  "assignmentScope": "selected",
+                  "dimension": "resource",
+                  "id": "15648735-8a42-4e10-a4af-a976d2f57682",
+                  "metric": "all",
+                  "milestoneTaskId": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013"
+                }
+              }
+            },
+            {
+              "milestoneTaskId": null,
+              "summary": {
+                "taskCount": 1,
+                "resourceCount": 1,
+                "assignmentCount": 1,
+                "notStarted": 1,
+                "inProgress": 0,
+                "completed": 0,
+                "delayed": 0,
+                "completion": {
+                  "numerator": 0,
+                  "denominator": 1,
+                  "percent": 0
+                },
+                "assignedTaskProgress": {
+                  "numerator": 0,
+                  "denominator": 5,
+                  "percent": 0
+                },
+                "effort": {
+                  "knownMd": 1,
+                  "plannedMd": 1,
+                  "plannedMm": null,
+                  "state": "configured",
+                  "partial": false,
+                  "unsetCount": 0
+                },
+                "selector": {
+                  "assignmentScope": "selected",
+                  "dimension": "resource",
+                  "id": "15648735-8a42-4e10-a4af-a976d2f57682",
+                  "metric": "all",
+                  "milestoneTaskId": null
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "f80a3cb4-859e-4019-884a-5bd801c600b0",
+          "name": "A",
+          "code": "A",
+          "active": true,
+          "resourceIds": [
+            "f80a3cb4-859e-4019-884a-5bd801c600b0"
+          ],
+          "assignmentRange": {
+            "from": "2026-10-05",
+            "to": "2026-10-09"
+          },
+          "summary": {
+            "taskCount": 3,
+            "resourceCount": 1,
+            "assignmentCount": 3,
+            "notStarted": 3,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 3,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 15,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 5.5,
+              "plannedMd": 5.5,
+              "plannedMm": null,
+              "state": "partial",
+              "partial": true,
+              "unsetCount": 1
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "resource",
+              "id": "f80a3cb4-859e-4019-884a-5bd801c600b0",
+              "metric": "all"
+            }
+          },
+          "milestones": [
+            {
+              "milestoneTaskId": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013",
+              "summary": {
+                "taskCount": 1,
+                "resourceCount": 1,
+                "assignmentCount": 1,
+                "notStarted": 1,
+                "inProgress": 0,
+                "completed": 0,
+                "delayed": 0,
+                "completion": {
+                  "numerator": 0,
+                  "denominator": 1,
+                  "percent": 0
+                },
+                "assignedTaskProgress": {
+                  "numerator": 0,
+                  "denominator": 5,
+                  "percent": 0
+                },
+                "effort": {
+                  "knownMd": 2.5,
+                  "plannedMd": 2.5,
+                  "plannedMm": null,
+                  "state": "configured",
+                  "partial": false,
+                  "unsetCount": 0
+                },
+                "selector": {
+                  "assignmentScope": "selected",
+                  "dimension": "resource",
+                  "id": "f80a3cb4-859e-4019-884a-5bd801c600b0",
+                  "metric": "all",
+                  "milestoneTaskId": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013"
+                }
+              }
+            },
+            {
+              "milestoneTaskId": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e",
+              "summary": {
+                "taskCount": 2,
+                "resourceCount": 1,
+                "assignmentCount": 2,
+                "notStarted": 2,
+                "inProgress": 0,
+                "completed": 0,
+                "delayed": 0,
+                "completion": {
+                  "numerator": 0,
+                  "denominator": 2,
+                  "percent": 0
+                },
+                "assignedTaskProgress": {
+                  "numerator": 0,
+                  "denominator": 10,
+                  "percent": 0
+                },
+                "effort": {
+                  "knownMd": 3,
+                  "plannedMd": 3,
+                  "plannedMm": null,
+                  "state": "partial",
+                  "partial": true,
+                  "unsetCount": 1
+                },
+                "selector": {
+                  "assignmentScope": "selected",
+                  "dimension": "resource",
+                  "id": "f80a3cb4-859e-4019-884a-5bd801c600b0",
+                  "metric": "all",
+                  "milestoneTaskId": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e"
+                }
+              }
+            },
+            {
+              "milestoneTaskId": null,
+              "summary": {
+                "taskCount": 0,
+                "resourceCount": 0,
+                "assignmentCount": 0,
+                "notStarted": 0,
+                "inProgress": 0,
+                "completed": 0,
+                "delayed": 0,
+                "completion": {
+                  "numerator": 0,
+                  "denominator": 0,
+                  "percent": null
+                },
+                "assignedTaskProgress": {
+                  "numerator": 0,
+                  "denominator": 0,
+                  "percent": null
+                },
+                "effort": {
+                  "knownMd": 0,
+                  "plannedMd": 0,
+                  "plannedMm": null,
+                  "state": "empty",
+                  "partial": false,
+                  "unsetCount": 0
+                },
+                "selector": {
+                  "assignmentScope": "selected",
+                  "dimension": "resource",
+                  "id": "f80a3cb4-859e-4019-884a-5bd801c600b0",
+                  "metric": "all",
+                  "milestoneTaskId": null
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "id": "54d7f81e-d621-4a52-8285-841db2994b02",
+          "name": "G2",
+          "code": "G2",
+          "active": true,
+          "resourceIds": [
+            "f80a3cb4-859e-4019-884a-5bd801c600b0"
+          ],
+          "assignmentRange": {
+            "from": "2026-10-05",
+            "to": "2026-10-09"
+          },
+          "summary": {
+            "taskCount": 3,
+            "resourceCount": 1,
+            "assignmentCount": 3,
+            "notStarted": 3,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 3,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 15,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 5.5,
+              "plannedMd": 5.5,
+              "plannedMm": null,
+              "state": "partial",
+              "partial": true,
+              "unsetCount": 1
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "group",
+              "id": "54d7f81e-d621-4a52-8285-841db2994b02",
+              "metric": "all"
+            }
+          },
+          "milestones": [
+            {
+              "milestoneTaskId": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013",
+              "summary": {
+                "taskCount": 1,
+                "resourceCount": 1,
+                "assignmentCount": 1,
+                "notStarted": 1,
+                "inProgress": 0,
+                "completed": 0,
+                "delayed": 0,
+                "completion": {
+                  "numerator": 0,
+                  "denominator": 1,
+                  "percent": 0
+                },
+                "assignedTaskProgress": {
+                  "numerator": 0,
+                  "denominator": 5,
+                  "percent": 0
+                },
+                "effort": {
+                  "knownMd": 2.5,
+                  "plannedMd": 2.5,
+                  "plannedMm": null,
+                  "state": "configured",
+                  "partial": false,
+                  "unsetCount": 0
+                },
+                "selector": {
+                  "assignmentScope": "selected",
+                  "dimension": "group",
+                  "id": "54d7f81e-d621-4a52-8285-841db2994b02",
+                  "metric": "all",
+                  "milestoneTaskId": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013"
+                }
+              }
+            },
+            {
+              "milestoneTaskId": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e",
+              "summary": {
+                "taskCount": 2,
+                "resourceCount": 1,
+                "assignmentCount": 2,
+                "notStarted": 2,
+                "inProgress": 0,
+                "completed": 0,
+                "delayed": 0,
+                "completion": {
+                  "numerator": 0,
+                  "denominator": 2,
+                  "percent": 0
+                },
+                "assignedTaskProgress": {
+                  "numerator": 0,
+                  "denominator": 10,
+                  "percent": 0
+                },
+                "effort": {
+                  "knownMd": 3,
+                  "plannedMd": 3,
+                  "plannedMm": null,
+                  "state": "partial",
+                  "partial": true,
+                  "unsetCount": 1
+                },
+                "selector": {
+                  "assignmentScope": "selected",
+                  "dimension": "group",
+                  "id": "54d7f81e-d621-4a52-8285-841db2994b02",
+                  "metric": "all",
+                  "milestoneTaskId": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e"
+                }
+              }
+            },
+            {
+              "milestoneTaskId": null,
+              "summary": {
+                "taskCount": 0,
+                "resourceCount": 0,
+                "assignmentCount": 0,
+                "notStarted": 0,
+                "inProgress": 0,
+                "completed": 0,
+                "delayed": 0,
+                "completion": {
+                  "numerator": 0,
+                  "denominator": 0,
+                  "percent": null
+                },
+                "assignedTaskProgress": {
+                  "numerator": 0,
+                  "denominator": 0,
+                  "percent": null
+                },
+                "effort": {
+                  "knownMd": 0,
+                  "plannedMd": 0,
+                  "plannedMm": null,
+                  "state": "empty",
+                  "partial": false,
+                  "unsetCount": 0
+                },
+                "selector": {
+                  "assignmentScope": "selected",
+                  "dimension": "group",
+                  "id": "54d7f81e-d621-4a52-8285-841db2994b02",
+                  "metric": "all",
+                  "milestoneTaskId": null
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "7a05ac2c-ff6a-4ffc-8039-6e12a4e9ba78",
+          "name": "G1",
+          "code": "G1",
+          "active": true,
+          "resourceIds": [
+            "15648735-8a42-4e10-a4af-a976d2f57682",
+            "f80a3cb4-859e-4019-884a-5bd801c600b0"
+          ],
+          "assignmentRange": {
+            "from": "2026-10-05",
+            "to": "2026-10-09"
+          },
+          "summary": {
+            "taskCount": 4,
+            "resourceCount": 2,
+            "assignmentCount": 5,
+            "notStarted": 4,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 4,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 20,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 11.5,
+              "plannedMd": 11.5,
+              "plannedMm": null,
+              "state": "partial",
+              "partial": true,
+              "unsetCount": 1
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "group",
+              "id": "7a05ac2c-ff6a-4ffc-8039-6e12a4e9ba78",
+              "metric": "all"
+            }
+          },
+          "milestones": [
+            {
+              "milestoneTaskId": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013",
+              "summary": {
+                "taskCount": 1,
+                "resourceCount": 2,
+                "assignmentCount": 2,
+                "notStarted": 1,
+                "inProgress": 0,
+                "completed": 0,
+                "delayed": 0,
+                "completion": {
+                  "numerator": 0,
+                  "denominator": 1,
+                  "percent": 0
+                },
+                "assignedTaskProgress": {
+                  "numerator": 0,
+                  "denominator": 5,
+                  "percent": 0
+                },
+                "effort": {
+                  "knownMd": 7.5,
+                  "plannedMd": 7.5,
+                  "plannedMm": null,
+                  "state": "configured",
+                  "partial": false,
+                  "unsetCount": 0
+                },
+                "selector": {
+                  "assignmentScope": "selected",
+                  "dimension": "group",
+                  "id": "7a05ac2c-ff6a-4ffc-8039-6e12a4e9ba78",
+                  "metric": "all",
+                  "milestoneTaskId": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013"
+                }
+              }
+            },
+            {
+              "milestoneTaskId": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e",
+              "summary": {
+                "taskCount": 2,
+                "resourceCount": 1,
+                "assignmentCount": 2,
+                "notStarted": 2,
+                "inProgress": 0,
+                "completed": 0,
+                "delayed": 0,
+                "completion": {
+                  "numerator": 0,
+                  "denominator": 2,
+                  "percent": 0
+                },
+                "assignedTaskProgress": {
+                  "numerator": 0,
+                  "denominator": 10,
+                  "percent": 0
+                },
+                "effort": {
+                  "knownMd": 3,
+                  "plannedMd": 3,
+                  "plannedMm": null,
+                  "state": "partial",
+                  "partial": true,
+                  "unsetCount": 1
+                },
+                "selector": {
+                  "assignmentScope": "selected",
+                  "dimension": "group",
+                  "id": "7a05ac2c-ff6a-4ffc-8039-6e12a4e9ba78",
+                  "metric": "all",
+                  "milestoneTaskId": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e"
+                }
+              }
+            },
+            {
+              "milestoneTaskId": null,
+              "summary": {
+                "taskCount": 1,
+                "resourceCount": 1,
+                "assignmentCount": 1,
+                "notStarted": 1,
+                "inProgress": 0,
+                "completed": 0,
+                "delayed": 0,
+                "completion": {
+                  "numerator": 0,
+                  "denominator": 1,
+                  "percent": 0
+                },
+                "assignedTaskProgress": {
+                  "numerator": 0,
+                  "denominator": 5,
+                  "percent": 0
+                },
+                "effort": {
+                  "knownMd": 1,
+                  "plannedMd": 1,
+                  "plannedMm": null,
+                  "state": "configured",
+                  "partial": false,
+                  "unsetCount": 0
+                },
+                "selector": {
+                  "assignmentScope": "selected",
+                  "dimension": "group",
+                  "id": "7a05ac2c-ff6a-4ffc-8039-6e12a4e9ba78",
+                  "metric": "all",
+                  "milestoneTaskId": null
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "roleTotals": [
+        {
+          "role": "DEVELOPER",
+          "summary": {
+            "taskCount": 3,
+            "resourceCount": 1,
+            "assignmentCount": 3,
+            "notStarted": 3,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 3,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 15,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 5.5,
+              "plannedMd": 5.5,
+              "plannedMm": null,
+              "state": "partial",
+              "partial": true,
+              "unsetCount": 1
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "role",
+              "id": "DEVELOPER",
+              "metric": "all"
+            }
+          }
+        },
+        {
+          "role": "EQUIPMENT_OWNER",
+          "summary": {
+            "taskCount": 2,
+            "resourceCount": 1,
+            "assignmentCount": 2,
+            "notStarted": 2,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 2,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 10,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 6,
+              "plannedMd": 6,
+              "plannedMm": null,
+              "state": "configured",
+              "partial": false,
+              "unsetCount": 0
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "role",
+              "id": "EQUIPMENT_OWNER",
+              "metric": "all"
+            }
+          }
+        },
+        {
+          "role": "PI",
+          "summary": {
+            "taskCount": 3,
+            "resourceCount": 1,
+            "assignmentCount": 3,
+            "notStarted": 3,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 3,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 15,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 5.5,
+              "plannedMd": 5.5,
+              "plannedMm": null,
+              "state": "partial",
+              "partial": true,
+              "unsetCount": 1
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "role",
+              "id": "PI",
+              "metric": "all"
+            }
+          }
+        }
+      ],
+      "milestones": [
+        {
+          "milestoneTaskId": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013",
+          "summary": {
+            "taskCount": 1,
+            "resourceCount": 2,
+            "assignmentCount": 2,
+            "notStarted": 1,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 1,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 5,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 7.5,
+              "plannedMd": 7.5,
+              "plannedMm": null,
+              "state": "configured",
+              "partial": false,
+              "unsetCount": 0
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "all",
+              "id": null,
+              "metric": "all",
+              "milestoneTaskId": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013"
+            }
+          }
+        },
+        {
+          "milestoneTaskId": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e",
+          "summary": {
+            "taskCount": 2,
+            "resourceCount": 1,
+            "assignmentCount": 2,
+            "notStarted": 2,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 2,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 10,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 3,
+              "plannedMd": 3,
+              "plannedMm": null,
+              "state": "partial",
+              "partial": true,
+              "unsetCount": 1
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "all",
+              "id": null,
+              "metric": "all",
+              "milestoneTaskId": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e"
+            }
+          }
+        },
+        {
+          "milestoneTaskId": null,
+          "summary": {
+            "taskCount": 1,
+            "resourceCount": 1,
+            "assignmentCount": 1,
+            "notStarted": 1,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 1,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 5,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 1,
+              "plannedMd": 1,
+              "plannedMm": null,
+              "state": "configured",
+              "partial": false,
+              "unsetCount": 0
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "all",
+              "id": null,
+              "metric": "all",
+              "milestoneTaskId": null
+            }
+          }
+        }
+      ],
+      "stages": [
+        {
+          "milestoneTaskId": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013",
+          "name": "M1",
+          "scheduledDate": "2026-10-05",
+          "status": "not_started",
+          "full": {
+            "memberCount": 1,
+            "completedMemberCount": 0,
+            "memberProgressPercent": 0,
+            "predecessorCount": 0,
+            "incompletePredecessorCount": 0,
+            "ready": false,
+            "blocked": false,
+            "manualEvent": false,
+            "completionInconsistent": false
+          },
+          "selected": {
+            "taskCount": 1,
+            "resourceCount": 2,
+            "assignmentCount": 2,
+            "notStarted": 1,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 1,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 5,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 7.5,
+              "plannedMd": 7.5,
+              "plannedMm": null,
+              "state": "configured",
+              "partial": false,
+              "unsetCount": 0
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "milestone",
+              "id": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013",
+              "metric": "all"
+            }
+          }
+        },
+        {
+          "milestoneTaskId": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e",
+          "name": "M2",
+          "scheduledDate": "2026-10-05",
+          "status": "not_started",
+          "full": {
+            "memberCount": 2,
+            "completedMemberCount": 0,
+            "memberProgressPercent": 0,
+            "predecessorCount": 0,
+            "incompletePredecessorCount": 0,
+            "ready": false,
+            "blocked": false,
+            "manualEvent": false,
+            "completionInconsistent": false
+          },
+          "selected": {
+            "taskCount": 2,
+            "resourceCount": 1,
+            "assignmentCount": 2,
+            "notStarted": 2,
+            "inProgress": 0,
+            "completed": 0,
+            "delayed": 0,
+            "completion": {
+              "numerator": 0,
+              "denominator": 2,
+              "percent": 0
+            },
+            "assignedTaskProgress": {
+              "numerator": 0,
+              "denominator": 10,
+              "percent": 0
+            },
+            "effort": {
+              "knownMd": 3,
+              "plannedMd": 3,
+              "plannedMm": null,
+              "state": "partial",
+              "partial": true,
+              "unsetCount": 1
+            },
+            "selector": {
+              "assignmentScope": "selected",
+              "dimension": "milestone",
+              "id": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e",
+              "metric": "all"
+            }
+          }
+        }
+      ],
+      "diagnostics": {
+        "denominator": 6,
+        "completelyUnassigned": {
+          "count": 1,
+          "selector": {
+            "dimension": "diagnostic",
+            "id": null,
+            "metric": "completelyUnassigned",
+            "assignmentScope": "selected"
+          }
+        },
+        "groupOnly": {
+          "count": 1,
+          "selector": {
+            "dimension": "diagnostic",
+            "id": null,
+            "metric": "groupOnly",
+            "assignmentScope": "selected"
+          }
+        },
+        "personallyUnassigned": {
+          "count": 2,
+          "selector": {
+            "dimension": "diagnostic",
+            "id": null,
+            "metric": "personallyUnassigned",
+            "assignmentScope": "selected"
+          }
+        },
+        "unsetTasks": {
+          "count": 1,
+          "selector": {
+            "dimension": "diagnostic",
+            "id": null,
+            "metric": "unset",
+            "assignmentScope": "selected"
+          }
+        },
+        "unsetAssignmentCount": 1,
+        "inapplicableFilters": [
+          "resourceIds",
+          "groupIds",
+          "roles",
+          "developerGrades",
+          "search",
+          "resourceActivity",
+          "groupActivity"
+        ],
+        "personalFiltersAppliedToA": false
+      },
+      "catalog": {
+        "resources": [
+          {
+            "id": "15648735-8a42-4e10-a4af-a976d2f57682",
+            "name": "B",
+            "code": "B",
+            "active": true,
+            "roles": [
+              "EQUIPMENT_OWNER"
+            ],
+            "developerGrade": "INTERMEDIATE",
+            "groupIds": [
+              "7a05ac2c-ff6a-4ffc-8039-6e12a4e9ba78"
+            ]
+          },
+          {
+            "id": "f80a3cb4-859e-4019-884a-5bd801c600b0",
+            "name": "A",
+            "code": "A",
+            "active": true,
+            "roles": [
+              "DEVELOPER",
+              "PI"
+            ],
+            "developerGrade": "ADVANCED",
+            "groupIds": [
+              "54d7f81e-d621-4a52-8285-841db2994b02",
+              "7a05ac2c-ff6a-4ffc-8039-6e12a4e9ba78"
+            ]
+          }
+        ],
+        "groups": [
+          {
+            "id": "54d7f81e-d621-4a52-8285-841db2994b02",
+            "name": "G2",
+            "code": "G2",
+            "active": true
+          },
+          {
+            "id": "7a05ac2c-ff6a-4ffc-8039-6e12a4e9ba78",
+            "name": "G1",
+            "code": "G1",
+            "active": true
+          }
+        ],
+        "milestones": [
+          {
+            "id": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013",
+            "name": "M1"
+          },
+          {
+            "id": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e",
+            "name": "M2"
+          }
+        ],
+        "wbsRoots": [
+          {
+            "id": "020e9a98-1ded-4966-b960-b44cc70eced9",
+            "name": "T3",
+            "type": "task"
+          },
+          {
+            "id": "73d4e7cb-6b54-436e-bde2-2f57212e9431",
+            "name": "T6",
+            "type": "task"
+          },
+          {
+            "id": "9c6b5c36-5d95-4bf6-8348-4e8f366ff013",
+            "name": "M1",
+            "type": "milestone"
+          },
+          {
+            "id": "a19dffc1-fd02-4b2f-a4eb-48d9a4433a35",
+            "name": "T1",
+            "type": "task"
+          },
+          {
+            "id": "a767649f-4a00-4a8b-a623-6779bf3c61dd",
+            "name": "T5",
+            "type": "task"
+          },
+          {
+            "id": "bfca8700-ed30-45b8-bfe1-b4fdd77ef82f",
+            "name": "T4",
+            "type": "task"
+          },
+          {
+            "id": "d4d9c8be-57aa-4f6f-a22b-8e244fccd47e",
+            "name": "M2",
+            "type": "milestone"
+          },
+          {
+            "id": "ee9e63c6-4296-463e-ab27-e5406af1df3e",
+            "name": "T2",
+            "type": "task"
+          }
+        ]
+      },
+      "metadata": {
+        "groupRoleSubtotalsAdditive": false,
+        "precision": "raw",
+        "diagnosticsScope": "T0: Task/WBS/Milestone/status/taskSearch/canonical task dates; no personal/activity filters or search",
+        "searchScope": "A: Resource name/code OR its connected Group name/code OR assigned Task name/externalId/WBS path; taskSearch applies to T0 and A",
+        "historicalStateRestoration": false,
+        "totalFrom": "full selected assignment set",
+        "limits": {
+          "tasks": 5000,
+          "assignments": 8000,
+          "links": 20000,
+          "calendarRules": 20000,
+          "calendarDates": 20000,
+          "catalogMemberships": 16000,
+          "rangeDays": 366,
+          "idsPerField": 200,
+          "totalIds": 400,
+          "groupsPerResource": 32,
+          "groupAssignmentRows": 16000,
+          "cells": 5000,
+          "wbsPathEntries": 50000,
+          "wbsPathChars": 20000,
+          "reportBytes": 2097152,
+          "detailPage": 100,
+          "detailOffset": 8000
+        }
+      }
+    },
+    "observations": [
+      {
+        "kind": "tree",
+        "mode": "group",
+        "order": "milestone",
+        "text": "현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지 위치는 보존되며 집계 범위는 바뀌지 않습니다.\n\n계층 모두 접기\n상위 행 1–2 / 2\n이전\n다음\n▸\nG2\n▾\nG1\n4 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n11.50 M/D · 알려진 부분합\n계층 단계 1–3 / 3\n이전\n다음\n▾\nM1\n1 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n7.50 M/D\n\n단계 전체 소속 0/1 · 준비 전 · 선행 차단 없음\n\n그룹 개인 1–2 / 2\n이전\n다음\n▸\nB\n▾\nA\n1 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n2.50 M/D\n▸\nM2\n▸\nMilestone 미지정"
+      },
+      {
+        "kind": "tree",
+        "mode": "group",
+        "order": "resource",
+        "text": "현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지 위치는 보존되며 집계 범위는 바뀌지 않습니다.\n\n계층 모두 접기\n상위 행 1–2 / 2\n이전\n다음\n▸\nG2\n▾\nG1\n4 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n11.50 M/D · 알려진 부분합\n그룹 개인 1–2 / 2\n이전\n다음\n▸\nB\n▾\nA\n3 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n5.50 M/D · 알려진 부분합\n계층 단계 1–3 / 3\n이전\n다음\n▾\nM1\n1 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n2.50 M/D\n\n단계 전체 소속 0/1 · 준비 전 · 선행 차단 없음\n\n▸\nM2\n▸\nMilestone 미지정"
+      },
+      {
+        "kind": "matrix",
+        "mode": "group",
+        "width": 390,
+        "documentWidth": 390,
+        "clientWidth": 364,
+        "scrollWidth": 852,
+        "rows": 2,
+        "columns": 5,
+        "controlsContained": true,
+        "nativeTab": {
+          "tag": "BUTTON",
+          "ring": 6,
+          "left": 129,
+          "right": 261,
+          "top": 754,
+          "bottom": 802,
+          "ownerTop": 618,
+          "ownerBottom": 816.5,
+          "viewportHeight": 900,
+          "ownerLeft": 12,
+          "ownerRight": 378,
+          "painted": true
+        }
+      },
+      {
+        "kind": "matrix",
+        "mode": "group",
+        "width": 768,
+        "documentWidth": 768,
+        "clientWidth": 718,
+        "scrollWidth": 852,
+        "rows": 2,
+        "columns": 5,
+        "controlsContained": true,
+        "nativeTab": {
+          "tag": "BUTTON",
+          "ring": 6,
+          "left": 311,
+          "right": 443,
+          "top": 754.5,
+          "bottom": 802.5,
+          "ownerTop": 618.5,
+          "ownerBottom": 817,
+          "viewportHeight": 900,
+          "ownerLeft": 24,
+          "ownerRight": 744,
+          "painted": true
+        }
+      },
+      {
+        "kind": "matrix",
+        "mode": "group",
+        "width": 1024,
+        "documentWidth": 1024,
+        "clientWidth": 974,
+        "scrollWidth": 974,
+        "rows": 2,
+        "columns": 5,
+        "controlsContained": true,
+        "nativeTab": {
+          "tag": "BUTTON",
+          "ring": 6,
+          "left": 504.234375,
+          "right": 650.234375,
+          "top": 754.5,
+          "bottom": 784.5,
+          "ownerTop": 618.5,
+          "ownerBottom": 817,
+          "viewportHeight": 900,
+          "ownerLeft": 24,
+          "ownerRight": 1000,
+          "painted": true
+        }
+      },
+      {
+        "kind": "matrix",
+        "mode": "group",
+        "width": 1440,
+        "documentWidth": 1440,
+        "clientWidth": 1390,
+        "scrollWidth": 1390,
+        "rows": 2,
+        "columns": 5,
+        "controlsContained": true,
+        "nativeTab": {
+          "tag": "BUTTON",
+          "ring": 6,
+          "left": 706.296875,
+          "right": 852.296875,
+          "top": 754.5,
+          "bottom": 784.5,
+          "ownerTop": 618.5,
+          "ownerBottom": 817,
+          "viewportHeight": 900,
+          "ownerLeft": 24,
+          "ownerRight": 1416,
+          "painted": true
+        }
+      },
+      {
+        "kind": "matrix",
+        "mode": "group",
+        "width": 1920,
+        "documentWidth": 1920,
+        "clientWidth": 1870,
+        "scrollWidth": 1870,
+        "rows": 2,
+        "columns": 5,
+        "controlsContained": true,
+        "nativeTab": {
+          "tag": "BUTTON",
+          "ring": 6,
+          "left": 939.4375,
+          "right": 1085.4375,
+          "top": 754.5,
+          "bottom": 784.5,
+          "ownerTop": 618.5,
+          "ownerBottom": 817,
+          "viewportHeight": 900,
+          "ownerLeft": 24,
+          "ownerRight": 1896,
+          "painted": true
+        }
+      },
+      {
+        "kind": "tree",
+        "mode": "resource",
+        "order": "milestone",
+        "text": "현재 표시에서 최대 12개 계층을 펼칩니다. 페이지 밖 펼침과 페이지 위치는 보존되며 집계 범위는 바뀌지 않습니다.\n\n계층 모두 접기\n상위 행 1–2 / 2\n이전\n다음\n▸\nB\n▾\nA\n3 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n5.50 M/D · 알려진 부분합\n계층 단계 1–3 / 3\n이전\n다음\n▾\nM1\n1 Task\n완료 0 · 지연 0 · 선택 할당 작업 진척 0.0%\n2.50 M/D\n\n단계 전체 소속 0/1 · 준비 전 · 선행 차단 없음\n\n▸\nM2\n▸\nMilestone 미지정"
+      },
+      {
+        "kind": "matrix",
+        "mode": "resource",
+        "width": 390,
+        "documentWidth": 390,
+        "clientWidth": 364,
+        "scrollWidth": 852,
+        "rows": 2,
+        "columns": 5,
+        "controlsContained": true,
+        "nativeTab": {
+          "tag": "BUTTON",
+          "ring": 6,
+          "left": 129,
+          "right": 261,
+          "top": 754,
+          "bottom": 802,
+          "ownerTop": 618,
+          "ownerBottom": 816.5,
+          "viewportHeight": 900,
+          "ownerLeft": 12,
+          "ownerRight": 378,
+          "painted": true
+        }
+      },
+      {
+        "kind": "matrix",
+        "mode": "resource",
+        "width": 768,
+        "documentWidth": 768,
+        "clientWidth": 718,
+        "scrollWidth": 852,
+        "rows": 2,
+        "columns": 5,
+        "controlsContained": true,
+        "nativeTab": {
+          "tag": "BUTTON",
+          "ring": 6,
+          "left": 311,
+          "right": 443,
+          "top": 754.5,
+          "bottom": 802.5,
+          "ownerTop": 618.5,
+          "ownerBottom": 817,
+          "viewportHeight": 900,
+          "ownerLeft": 24,
+          "ownerRight": 744,
+          "painted": true
+        }
+      },
+      {
+        "kind": "matrix",
+        "mode": "resource",
+        "width": 1024,
+        "documentWidth": 1024,
+        "clientWidth": 974,
+        "scrollWidth": 974,
+        "rows": 2,
+        "columns": 5,
+        "controlsContained": true,
+        "nativeTab": {
+          "tag": "BUTTON",
+          "ring": 6,
+          "left": 504.234375,
+          "right": 650.234375,
+          "top": 754.5,
+          "bottom": 784.5,
+          "ownerTop": 618.5,
+          "ownerBottom": 817,
+          "viewportHeight": 900,
+          "ownerLeft": 24,
+          "ownerRight": 1000,
+          "painted": true
+        }
+      },
+      {
+        "kind": "matrix",
+        "mode": "resource",
+        "width": 1440,
+        "documentWidth": 1440,
+        "clientWidth": 1390,
+        "scrollWidth": 1390,
+        "rows": 2,
+        "columns": 5,
+        "controlsContained": true,
+        "nativeTab": {
+          "tag": "BUTTON",
+          "ring": 6,
+          "left": 706.296875,
+          "right": 852.296875,
+          "top": 754.5,
+          "bottom": 784.5,
+          "ownerTop": 618.5,
+          "ownerBottom": 817,
+          "viewportHeight": 900,
+          "ownerLeft": 24,
+          "ownerRight": 1416,
+          "painted": true
+        }
+      },
+      {
+        "kind": "matrix",
+        "mode": "resource",
+        "width": 1920,
+        "documentWidth": 1920,
+        "clientWidth": 1870,
+        "scrollWidth": 1870,
+        "rows": 2,
+        "columns": 5,
+        "controlsContained": true,
+        "nativeTab": {
+          "tag": "BUTTON",
+          "ring": 6,
+          "left": 939.4375,
+          "right": 1085.4375,
+          "top": 754.5,
+          "bottom": 784.5,
+          "ownerTop": 618.5,
+          "ownerBottom": 817,
+          "viewportHeight": 900,
+          "ownerLeft": 24,
+          "ownerRight": 1896,
+          "painted": true
+        }
+      },
+      {
+        "kind": "plan",
+        "width": 390,
+        "documentWidth": 390,
+        "rows": 3,
+        "columns": 3
+      },
+      {
+        "kind": "plan",
+        "width": 768,
+        "documentWidth": 768,
+        "rows": 3,
+        "columns": 3
+      },
+      {
+        "kind": "plan",
+        "width": 1024,
+        "documentWidth": 1024,
+        "rows": 3,
+        "columns": 3
+      },
+      {
+        "kind": "plan",
+        "width": 1440,
+        "documentWidth": 1440,
+        "rows": 3,
+        "columns": 3
+      },
+      {
+        "kind": "plan",
+        "width": 1920,
+        "documentWidth": 1920,
+        "rows": 3,
+        "columns": 3
+      }
+    ],
+    "before": {
+      "instance": "project-gantt-qc3mo420fbo",
+      "apiInstance": "svar-api-1",
+      "publicViewport": {
+        "left": 120,
+        "top": 0
+      },
+      "left": 120,
+      "top": 0,
+      "columns": [
+        56,
+        227,
+        104,
+        56,
+        37
+      ],
+      "selection": [
+        ":a19dffc1-fd02-4b2f-a4eb-48d9a4433a35"
+      ],
+      "tree": [
+        ":9c6b5c36-5d95-4bf6-8348-4e8f366ff013",
+        ":d4d9c8be-57aa-4f6f-a22b-8e244fccd47e",
+        ":a19dffc1-fd02-4b2f-a4eb-48d9a4433a35",
+        ":ee9e63c6-4296-463e-ab27-e5406af1df3e",
+        ":020e9a98-1ded-4966-b960-b44cc70eced9",
+        ":bfca8700-ed30-45b8-bfe1-b4fdd77ef82f",
+        ":a767649f-4a00-4a8b-a623-6779bf3c61dd",
+        ":73d4e7cb-6b54-436e-bde2-2f57212e9431",
+        null,
+        null
+      ]
+    },
+    "fixedBefore": {
+      "instance": "project-gantt-qc3mo420fbo",
+      "apiInstance": "svar-api-1",
+      "publicViewport": {
+        "left": 120,
+        "top": 0
+      },
+      "left": 120,
+      "top": 0,
+      "columns": [
+        56,
+        227,
+        104,
+        56,
+        37
+      ],
+      "selection": [
+        ":a19dffc1-fd02-4b2f-a4eb-48d9a4433a35"
+      ],
+      "tree": [
+        ":9c6b5c36-5d95-4bf6-8348-4e8f366ff013",
+        ":d4d9c8be-57aa-4f6f-a22b-8e244fccd47e",
+        ":a19dffc1-fd02-4b2f-a4eb-48d9a4433a35",
+        ":ee9e63c6-4296-463e-ab27-e5406af1df3e",
+        ":020e9a98-1ded-4966-b960-b44cc70eced9",
+        ":bfca8700-ed30-45b8-bfe1-b4fdd77ef82f",
+        ":a767649f-4a00-4a8b-a623-6779bf3c61dd",
+        ":73d4e7cb-6b54-436e-bde2-2f57212e9431",
+        null,
+        null
+      ]
+    },
+    "exportRequests": [
+      {
+        "includeDependencies": true,
+        "includeLogistics": true,
+        "includeResourceEffort": false,
+        "scope": "project",
+        "scale": "day",
+        "hierarchyDisplay": "expanded",
+        "layout": {
+          "columns": [
+            {
+              "id": "text",
+              "widthPx": 224
+            },
+            {
+              "id": "projectStart",
+              "widthPx": 128
+            },
+            {
+              "id": "projectDuration",
+              "widthPx": 84
+            }
+          ]
+        },
+        "resourceDashboard": {
+          "granularities": [
+            "week",
+            "month"
+          ],
+          "basis": "current",
+          "expectedReport": {
+            "context": {
+              "projectPublicId": "67a21370-979d-499a-b964-4f164b95f907",
+              "projectRevision": 16,
+              "catalogRevision": 7,
+              "calendarRevision": "e427d5347254469b6f9643cfe4a846cdd4288977f1e7a05f2c80f97e5c0aee99",
+              "dataSnapshotId": "046cd6374adf711d040c1584343462613a8870ba052634544de08abe3d23ec7c",
+              "range": {
+                "from": "2026-10-05",
+                "to": "2026-10-09"
+              },
+              "asOfDate": "2026-10-08",
+              "mdPerMm": null,
+              "mdPerMmSource": "unset",
+              "mdPerMmProvided": false,
+              "sourceProjection": {
+                "kind": "report"
+              }
+            },
+            "snapshotId": "150e0c31c169a85688500bb820163bce67da3ccc1b037babcc9bc254c03b34ec",
+            "filters": {
+              "search": "",
+              "taskSearch": "",
+              "mode": "group",
+              "resourceActivity": "all",
+              "groupActivity": "all",
+              "resourceIds": [],
+              "groupIds": [],
+              "milestoneIds": [],
+              "taskIds": [],
+              "wbsRootIds": [],
+              "roles": [],
+              "developerGrades": [],
+              "statuses": [],
+              "from": "2026-10-05",
+              "to": "2026-10-09"
+            }
+          }
+        }
+      }
+    ],
+    "assignmentIds": [
+      "7dfd82ee-a037-4d8d-8b3f-d55e476f31b6",
+      "953e4ddf-9688-4ff7-a92d-beb8c97bfd3c",
+      "65f88075-472e-46d5-99cd-e539e25ebada",
+      "e71ef994-5388-40cb-856b-a9b394d34eab",
+      "d632f8b3-60d8-46cb-a5f3-c5ca646853c2"
+    ]
+  },
+  "fixed-geometry-exact-drill": {
+    "before": {
+      "instance": "project-gantt-5mnz7is7p9k",
+      "apiInstance": "svar-api-1",
+      "publicViewport": {
+        "left": 120,
+        "top": 0
+      },
+      "left": 120,
+      "top": 0,
+      "columns": [
+        56,
+        227,
+        104,
+        56,
+        37
+      ],
+      "selection": [
+        ":48602dff-12c4-4158-b6b6-2104d63ac9ed"
+      ],
+      "tree": [
+        ":75cee43b-3e7f-4e55-a272-e61aeb6a69f1",
+        ":ef5e9c3b-e35e-4b09-9331-9906abd0b61f",
+        ":48602dff-12c4-4158-b6b6-2104d63ac9ed",
+        ":edcb7fc5-984a-440e-b58a-9b7ee3e0119d",
+        ":a4a17212-7339-4d34-9263-2dbc59c39812",
+        ":00684810-445c-45b0-b1ae-9265de59667d",
+        ":67cc29f5-69f5-4e5d-8c83-bf16dc3a7080",
+        ":aafec909-1404-4673-88e1-d8f04a5d459f",
+        null,
+        null
+      ]
+    },
+    "after": {
+      "instance": "project-gantt-5mnz7is7p9k",
+      "apiInstance": "svar-api-1",
+      "publicViewport": {
+        "left": 120,
+        "top": 0
+      },
+      "left": 120,
+      "top": 0,
+      "columns": [
+        56,
+        227,
+        104,
+        56,
+        37
+      ],
+      "selection": [
+        ":48602dff-12c4-4158-b6b6-2104d63ac9ed"
+      ],
+      "tree": [
+        ":75cee43b-3e7f-4e55-a272-e61aeb6a69f1",
+        ":ef5e9c3b-e35e-4b09-9331-9906abd0b61f",
+        ":48602dff-12c4-4158-b6b6-2104d63ac9ed",
+        ":edcb7fc5-984a-440e-b58a-9b7ee3e0119d",
+        ":a4a17212-7339-4d34-9263-2dbc59c39812",
+        ":00684810-445c-45b0-b1ae-9265de59667d",
+        ":67cc29f5-69f5-4e5d-8c83-bf16dc3a7080",
+        ":aafec909-1404-4673-88e1-d8f04a5d459f",
+        null,
+        null
+      ]
+    },
+    "initialCapture": "{\"public\":{\"left\":120,\"top\":0},\"dom\":{\"left\":120,\"top\":0}}",
+    "returnCapture": "{\"public\":{\"left\":120,\"top\":0},\"dom\":{\"left\":120,\"top\":0}}"
+  },
+  "nested-pop-clear-positions": {
+    "origin": {
+      "instance": "project-gantt-bdtl56vfl2j",
+      "apiInstance": "svar-api-1",
+      "publicViewport": {
+        "left": 120,
+        "top": 0
+      },
+      "left": 120,
+      "top": 0,
+      "columns": [
+        56,
+        227,
+        104,
+        56,
+        37
+      ],
+      "selection": [],
+      "tree": [
+        ":960af083-553d-4e2f-b540-7f4b29ba59bc",
+        ":5374448d-4b47-46f5-803f-9efaf21b1966",
+        ":1b3aa600-5994-4631-8654-b3a72ebd7b9d",
+        ":e15fd124-0409-4a4c-a766-ce5e06857817",
+        ":2162e3a0-72e9-4b4d-84ab-ef155f1ba703",
+        ":954573bb-f6bf-43bb-85ee-a4fb6b6aed5b",
+        ":e26a5eed-835f-4544-bbd5-90f44a1a717d",
+        ":92f2d537-5d0a-4040-af13-4f761e7f06ce",
+        null,
+        null
+      ]
+    },
+    "middle": {
+      "instance": "project-gantt-bdtl56vfl2j",
+      "apiInstance": "svar-api-1",
+      "publicViewport": {
+        "left": 240,
+        "top": 0
+      },
+      "left": 240,
+      "top": 0,
+      "columns": [
+        56,
+        227,
+        104,
+        56,
+        37
+      ],
+      "selection": [],
+      "tree": [
+        ":1b3aa600-5994-4631-8654-b3a72ebd7b9d",
+        ":e15fd124-0409-4a4c-a766-ce5e06857817",
+        ":2162e3a0-72e9-4b4d-84ab-ef155f1ba703",
+        ":92f2d537-5d0a-4040-af13-4f761e7f06ce",
+        null,
+        null
+      ]
+    },
+    "after": {
+      "instance": "project-gantt-bdtl56vfl2j",
+      "apiInstance": "svar-api-1",
+      "publicViewport": {
+        "left": 120,
+        "top": 0
+      },
+      "left": 120,
+      "top": 0,
+      "columns": [
+        56,
+        227,
+        104,
+        56,
+        37
+      ],
+      "selection": [],
+      "tree": [
+        ":960af083-553d-4e2f-b540-7f4b29ba59bc",
+        ":5374448d-4b47-46f5-803f-9efaf21b1966",
+        ":1b3aa600-5994-4631-8654-b3a72ebd7b9d",
+        ":e15fd124-0409-4a4c-a766-ce5e06857817",
+        ":2162e3a0-72e9-4b4d-84ab-ef155f1ba703",
+        ":954573bb-f6bf-43bb-85ee-a4fb6b6aed5b",
+        ":e26a5eed-835f-4544-bbd5-90f44a1a717d",
+        ":92f2d537-5d0a-4040-af13-4f761e7f06ce",
+        null,
+        null
+      ]
+    }
+  },
+  "explicit-return-native-input-cancel": {
+    "user": {
+      "instance": "project-gantt-qkt354rnxxo",
+      "apiInstance": "svar-api-1",
+      "publicViewport": {
+        "left": 30,
+        "top": 0
+      },
+      "left": 31,
+      "top": 0,
+      "columns": [
+        56,
+        227,
+        104,
+        56,
+        37
+      ],
+      "selection": [],
+      "tree": [
+        ":f0e618e5-5c03-4da8-a230-22423d8a0c23",
+        ":07a380ae-605b-4a41-b667-c809c3084d79",
+        null,
+        null
+      ]
+    },
+    "settled": {
+      "instance": "project-gantt-qkt354rnxxo",
+      "apiInstance": "svar-api-1",
+      "publicViewport": {
+        "left": 30,
+        "top": 0
+      },
+      "left": 31,
+      "top": 0,
+      "columns": [
+        56,
+        227,
+        104,
+        56,
+        37
+      ],
+      "selection": [],
+      "tree": [
+        ":f0e618e5-5c03-4da8-a230-22423d8a0c23",
+        ":07a380ae-605b-4a41-b667-c809c3084d79",
+        ":62ed491f-78dd-4a22-9261-922230b44229",
+        ":947b0825-5f49-41f7-8047-1a211c99c764",
+        ":c0e3c21e-1933-48a2-a613-e648df2063cc",
+        ":167950a5-a06f-49d2-96b8-81743dafb16e",
+        ":8be3dfe1-e29e-477d-a83c-9eea2524f236",
+        ":9c6ddb32-2739-4503-9e92-99e56b8f2cf0",
+        null,
+        null
+      ]
+    }
+  },
+  "explicit-return-viewport-geometry-cancel": {
+    "user": {
+      "instance": "project-gantt-3xu6njethvf",
+      "apiInstance": "svar-api-1",
+      "publicViewport": {
+        "left": 0,
+        "top": 0
+      },
+      "left": 0,
+      "top": 0,
+      "columns": [
+        56,
+        227,
+        104,
+        56,
+        37
+      ],
+      "selection": [],
+      "tree": [
+        ":7d9df08b-2aec-4ffe-8f8e-1152a6a2d7f0",
+        ":67988db5-29b1-4ca1-a16f-d957376a16cb",
+        null,
+        null
+      ]
+    },
+    "settled": {
+      "instance": "project-gantt-3xu6njethvf",
+      "apiInstance": "svar-api-1",
+      "publicViewport": {
+        "left": 0,
+        "top": 0
+      },
+      "left": 0,
+      "top": 0,
+      "columns": [
+        56,
+        227,
+        104,
+        56,
+        37
+      ],
+      "selection": [],
+      "tree": [
+        ":7d9df08b-2aec-4ffe-8f8e-1152a6a2d7f0",
+        ":67988db5-29b1-4ca1-a16f-d957376a16cb",
+        ":31fb1626-829a-4668-9bde-86c1a5ee6e37",
+        ":3ce9f528-2759-477c-aeec-afeeaca59b77",
+        ":afa8724e-7716-42a0-a43f-dcd0cd97c50d",
+        ":cd247172-9228-4fb7-926c-0fc91974425a",
+        ":d8341e7c-4f65-4c75-ba9c-80fc8a42c0f6",
+        ":1c1a72d6-77c7-4128-b324-4e8c2f5cbfda",
+        null,
+        null
+      ]
+    }
+  }
+}

@@ -63,7 +63,7 @@ import {
 } from "@/features/projects/project-status-mutation";
 import type { AssignedTargetsResponse, AssignmentTargetDto } from "@/contracts/resources";
 import type { ProjectGridColumnVisibility } from "@/features/gantt/project-gantt";
-import { capturePeerViewportCoordinates, type PublicGanttViewportReader } from "@/features/gantt/peer-viewport-capture";
+import { capturePeerViewportCoordinates, type PeerViewportRestore, type PublicGanttViewportReader } from "@/features/gantt/peer-viewport-capture";
 import type { ProjectTaskCreateCommand, ProjectTaskUpdateCommand } from "@/features/gantt/project-task-adapter";
 import { ProjectTaskEditor, type ProjectTaskEditorHandle, type TaskRelationEditorRequest } from "@/features/gantt/project-task-editor";
 import { RelationEditorDialog } from "@/features/gantt/relation-editor-dialog";
@@ -77,6 +77,8 @@ import { ProjectLogisticsManagement } from "@/features/logistics/project-logisti
 import { todayLocalDateString } from "@/lib/date-display";
 import { canAcceptCanonicalSnapshot, replayConfirmedSnapshot } from "./canonical-snapshot-recovery";
 import { mergePendingProjectRevision, shouldRetireDurableProjectRevision } from "./project-revision-sync";
+
+import { captureResourceNavigationViewport, cloneResourceNavigationViewport, canRestoreResourceNavigationViewport, type ResourceNavigationViewport } from "@/features/resources/resource-navigation-viewport";
 
 const ProjectGantt = dynamic(
   () => import("@/features/gantt/project-gantt").then((module) => module.ProjectGantt),
@@ -97,6 +99,7 @@ type ResourceNavigationState = {
   selection: readonly string[];
   trigger: HTMLElement | null;
   positions: { element: HTMLElement; left: number; top: number }[];
+  viewport?: ResourceNavigationViewport | null;
 };
 type ResourceNavigationFrame = ResourceDrillFrame<ResourceNavigationState> & {
   scope: ResourceDrillScopeDto;
@@ -239,7 +242,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const registerPublicGanttViewportReader = useCallback((reader: PublicGanttViewportReader | null) => {
     publicGanttViewportReader.current = reader;
   }, []);
-  const [peerChartRestore, setPeerChartRestore] = useState<{ key: string; left: number; top: number; snapshot: ProjectSnapshotResponse; generation: number } | null>(null);
+  const [peerChartRestore, setPeerChartRestore] = useState<(PeerViewportRestore & { snapshot: ProjectSnapshotResponse; generation: number }) | null>(null);
+  const navigationViewport = useRef<ResourceNavigationViewport | null>(null);
   const peerViewport = useRef<{ publicId: string; rootTaskId: string | null; filter: TaskFilterState; snapshot: ProjectSnapshotResponse; generation: number; instanceId: string | null; syncGeneration: string | null; positions: { selector: string; left: number; top: number }[] } | null>(null);
   const [activeRootTaskId, setActiveRootTaskId] = useState<string | null>(() => initialRootTaskId);
   const [openScopeTaskIds, setOpenScopeTaskIds] = useState<readonly string[]>(() => initialRootTaskId ? [initialRootTaskId] : []);
@@ -1188,7 +1192,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       left: chart.scrollLeft, top: nativeGantt?.scrollTop ?? 0,
     });
     // Never manufacture a Core position from DOM if no SVAR public reader exists.
-    if (!captured) { peerViewport.current = null; setPeerChartRestore(null); return; }
+    if (!captured) { navigationViewport.current = null; peerViewport.current = null; setPeerChartRestore(null); return; }
     if (process.env.NODE_ENV !== "production") frame.dataset.ganttPeerCapture = JSON.stringify(captured);
     // Native scroll positions and SVAR public viewport are distinct (often 1px apart).
     peerViewport.current = {
@@ -1200,6 +1204,10 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
         return owner ? [{ selector, left: owner.scrollLeft, top: owner.scrollTop }] : [];
       }),
     };
+    navigationViewport.current = captureResourceNavigationViewport(
+      state.snapshot, ganttResetGeneration, publicGanttViewportReader.current,
+      `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`, peerViewport.current.positions.map(position => ({ ...position, owner: panel.querySelector<HTMLElement>(position.selector) ?? undefined })),
+    );
     setPeerChartRestore({ key: `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`,
       left: captured.public.left, top: captured.public.top,
       snapshot: state.snapshot, generation: ganttResetGeneration });
@@ -1229,7 +1237,9 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     );
   }
   function captureNavigation(): ResourceNavigationState {
+    if (activeView === "schedule") capturePeerViewport();
     return {
+      viewport: navigationViewport.current,
       view: activeView,
       rootTaskId: activeRootTaskId,
       filter: taskFilter,
@@ -1253,7 +1263,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   function focusNavigation(state: ResourceNavigationState, origin: boolean) {
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
-        for (const position of state.positions)
+        for (const position of state.view === "schedule" ? [] : state.positions)
           if (
             position.element.isConnected &&
             !position.element.closest("[hidden],[inert]")
@@ -1291,13 +1301,23 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       }),
     );
   }
-  function applyNavigation(target: ResourceNavigationState, origin: boolean) {
+  function applyNavigation(target: ResourceNavigationState, origin: boolean, returning = false) {
+    if (returning) {
+      navigationViewport.current = target.viewport ?? null;
+      peerViewport.current = null;
+      const saved = target.viewport;
+      if (saved && state.status === "ready" && canRestoreResourceNavigationViewport(
+        saved, state.snapshot, ganttResetGeneration, publicGanttViewportReader.current,
+        `${publicId}:${target.rootTaskId ?? ""}:${JSON.stringify(target.filter)}`,
+      )) setPeerChartRestore({ ...saved.request, snapshot: state.snapshot, generation: ganttResetGeneration });
+      else setPeerChartRestore(null);
+    }
     activateScope(target.rootTaskId, false);
     setTaskFilter(target.filter);
     setResourceViewId(target.resourceViewId);
     setResourceBinding(target.binding);
     setResourceInitialFilters(target.initialFilters);
-    if (activeView === "schedule" && target.view !== "schedule") capturePeerViewport();
+    if (!returning && activeView === "schedule" && target.view !== "schedule") capturePeerViewport();
     setActiveView(target.view);
     setSelectionRestore({
       generation: ++navigationSequence.current,
@@ -1335,9 +1355,13 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
             ...source,
             view: "schedule" as const,
           };
+    if (source.view === "schedule" && activeView === "schedule") {
+      capturePeerViewport();
+      source = { ...source, viewport: navigationViewport.current };
+    }
     const frame: ResourceNavigationFrame = {
-      source,
-      destinationBefore: before,
+      source: { ...source, viewport: cloneResourceNavigationViewport(source.viewport) },
+      destinationBefore: { ...before, viewport: cloneResourceNavigationViewport(source.viewport) },
       destination: nextDestination,
       scope,
       label,
@@ -1915,7 +1939,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       }
       setNavigationFrames(result.frames as ResourceNavigationFrame[]);
       if (clear) setResourceCacheGeneration((v) => v + 1);
-      applyNavigation(result.state, !clear);
+      applyNavigation(result.state, !clear, true);
     } catch (error) {
       if (!controller.signal.aborted)
         notify(

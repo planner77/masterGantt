@@ -25,7 +25,7 @@ import {
 } from "react";
 
 import { createTaskMoveGateway } from "./task-move-gateway";
-import type { PublicGanttViewportReader } from "./peer-viewport-capture";
+import type { PeerViewportRestore, PublicGanttViewportReader } from "./peer-viewport-capture";
 import {
   buildChartReorderCommand,
   resolveChartDragIntent,
@@ -313,7 +313,7 @@ interface ProjectGanttProps {
   } | null;
   readonly viewVisible?: boolean;
   readonly viewportContinuityKey?: string;
-  readonly peerViewportRestore?: Readonly<{ key: string; left: number; top: number }> | null;
+  readonly peerViewportRestore?: PeerViewportRestore | null;
   /** Read SVAR's public viewport synchronously while the schedule is visible. */
   readonly onPublicViewportReader?: (reader: PublicGanttViewportReader | null) => void;
   readonly calendar: ProjectCalendarDto;
@@ -1577,6 +1577,10 @@ export function ProjectGantt({
     };
   }, [apiInstanceId, ensureTimelineEnd, scheduleTimelineExtension]);
 
+  const visibleTaskFilterKey = JSON.stringify(visibleTaskIds === null ? null : [...new Set(visibleTaskIds)].sort());
+  const visibleTaskFilterKeyReference = useRef(visibleTaskFilterKey);
+  useLayoutEffect(() => { visibleTaskFilterKeyReference.current = visibleTaskFilterKey; }, [visibleTaskFilterKey]);
+
   // Public Core coordinates must not be inferred from the integer-rounded
   // .wx-chart DOM position. The callback remains available in production.
   useLayoutEffect(() => {
@@ -1584,7 +1588,17 @@ export function ProjectGantt({
     if (!api || !apiInstanceId) return;
     const read: PublicGanttViewportReader = () => {
       const state = api.getState();
-      return { left: state.scrollLeft, top: state.scrollTop };
+      return { left: state.scrollLeft, top: state.scrollTop, continuity: {
+        apiInstanceId, syncVersion: canonicalSyncVersionReference.current,
+        filter: visibleTaskFilterKeyReference.current, scale: scaleModeReference.current,
+        gridWidth: state.gridWidth,
+        columns: JSON.stringify((state.columns ?? []).map(column => [column.id, column.width, column.hidden])),
+        viewportWidth: window.innerWidth, viewportHeight: window.innerHeight,
+        rootWidth: ganttScrollReference.current?.clientWidth,
+        rootHeight: ganttScrollReference.current?.clientHeight,
+        fullscreen: document.fullscreenElement !== null, fullscreenElement: document.fullscreenElement,
+        syncDepth: canonicalSyncDepthReference.current,
+      } };
     };
     onPublicViewportReader?.(read);
     return () => onPublicViewportReader?.(null);
@@ -1619,9 +1633,6 @@ export function ProjectGantt({
     return () => { api.detach(tag); if (frame) { Reflect.deleteProperty(frame, "__masterganttPublicViewport"); Reflect.deleteProperty(frame, "__masterganttGridReveal"); } };
   }, [apiInstanceId]);
 
-  const visibleTaskFilterKey = JSON.stringify(visibleTaskIds === null ? null : [...new Set(visibleTaskIds)].sort());
-  const visibleTaskFilterKeyReference = useRef(visibleTaskFilterKey);
-  useLayoutEffect(() => { visibleTaskFilterKeyReference.current = visibleTaskFilterKey; }, [visibleTaskFilterKey]);
   const canonicalViewportGeometry = JSON.stringify([calendar, visibleTaskFilterKey, tasks.map((task) => [task.taskId, task.externalId, task.parentExternalId, task.siblingOrder, task.type, task.start, task.end, task.duration, task.requestedStart, task.scheduleMode, task.baselineStart, task.baselineDuration, task.baselineEnd]), svarLinks]);
   const canonicalViewportMetadata = JSON.stringify(tasks.map((task) => [task.name, task.description, task.url, task.progress, task.status]));
   const metadataViewportReference = useRef<{ api: IApi; key: string; version: number; filter: string; left: number; top: number; scale: GanttScaleMode; gridWidth: number | undefined; columns: string; hasInput: () => boolean; cleanup: () => void } | null>(null);
@@ -1795,6 +1806,8 @@ export function ProjectGantt({
       columnsKey = () => JSON.stringify((api.getState().columns ?? []).map((column) => [column.id, column.width, column.hidden])),
       columns = columnsKey();
     let cancelled = false, input = false;
+    let targetGeometry: string | null = null;
+    const geometry = () => JSON.stringify([root.clientWidth, root.clientHeight]);
     const markInput = (event: Event) => {
       if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) input = true;
     };
@@ -1804,13 +1817,26 @@ export function ProjectGantt({
       api === apiReference.current && root.isConnected && peerViewportContext.current.visible &&
       peerViewportContext.current.key === request.key && version === canonicalSyncVersionReference.current &&
       filter === visibleTaskFilterKeyReference.current && scale === scaleModeReference.current &&
-      gridWidth === api.getState().gridWidth && columns === columnsKey();
+      gridWidth === api.getState().gridWidth && columns === columnsKey() &&
+      (!request.continuity || (request.continuity.apiInstanceId === apiInstanceId &&
+        request.continuity.syncVersion <= version && request.continuity.filter === filter &&
+        request.continuity.scale === scale && request.continuity.gridWidth === gridWidth &&
+        request.continuity.columns === columns && request.continuity.viewportWidth === window.innerWidth &&
+        request.continuity.viewportHeight === window.innerHeight &&
+        request.continuity.rootWidth === root.clientWidth &&
+        request.continuity.fullscreen === (document.fullscreenElement !== null) &&
+        request.continuity.fullscreenElement === document.fullscreenElement)) &&
+      (targetGeometry === null || targetGeometry === geometry());
     const cleanupInput = () => { for (const event of inputEvents) root.removeEventListener(event, markInput, true); };
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
       const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       try {
         await frame(); await frame();
         if (!current()) return;
+        // A scope return may legitimately change the toolbar/root height.
+        // Once the target canonical queue has settled, later geometry changes
+        // cancel this request instead of recapturing a moving layout.
+        targetGeometry = geometry();
         // Timeline expansion can trigger a later Chart layout. Settle that
         // application-owned work before restoring Core's public viewport.
         ensureTimelineEnd(api);
@@ -1820,6 +1846,11 @@ export function ProjectGantt({
         if (typeof chartWidth === "number") expandTimelineScale(api, chartWidth + request.left);
         if (!current()) return;
         await api.exec("scroll-chart", { left: request.left, top: request.top });
+        if (!current()) return;
+        for (const position of request.positions ?? []) {
+          const owner = root.matches(position.selector) ? root : root.querySelector<HTMLElement>(position.selector);
+          if (owner?.isConnected && !owner.closest("[hidden], [inert]") && owner.getClientRects().length && (!position.owner || owner === position.owner)) { owner.scrollLeft = position.left; owner.scrollTop = position.top; }
+        }
         peerViewportRestoreCount.current++;
         if (!current()) return;
         const state = api.getState(), chart = root.querySelector<HTMLElement>(".wx-chart");
