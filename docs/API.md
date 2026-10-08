@@ -1423,6 +1423,29 @@ Report `data`는 schema/projectPublicId/projectRevision/catalogRevision/calendar
 
 응답 `{data: ResourceDashboardGroupChildrenDto}`는 schema/snapshotId/projectPublicId/projectRevision/catalogRevision/calendarRevision/filters/range/asOfDate/mdPerMm/mdPerMmSource/groupId/optional milestoneTaskId/summary/offset/limit/totalCount/nextOffset/rows다. rows는 Group 교집합 ResourceDashboardRow이며 selector.dimension=group/id=groupId/resourceId를 유지한다. 개인 ID 순 페이지, Milestone 예정일+ID 순/미지정 마지막이다. 현재 필터에 없는 유효 Group 구성원 상세는200empty, 다른 Group/미연결 Resource는400 INVALID_SELECTION, source/scope 변경은409 REPORT_STALE다. full snapshot 예산 초과는 기존422를 유지한다. 정확한 계산·null·범위는 [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)을 따른다.
 
+
+## Issue #527 Resource Plan 공개 조회
+
+`GET /api/projects/{publicId}/resource-dashboard?granularity=week|month`는 기존 `resource-dashboard/1`에 optional `plan`을 추가한다. granularity 생략 시 Plan 계산·필드가 없고 기존 raw/null/legacy 응답을 유지한다. mode와 granularity는 projection이므로 snapshotId에서 제외한다. normalized filters에는 요청 granularity를 echo하며 기간·개인 조건·Task 조건·asOfDate·M/M 정책은 계속 identity에 포함한다. 같은 normalized 조회의 기본/week/month는 동일 snapshotId다.
+
+Plan은 periods/population/totals/resources/groups/metadata를 제공한다. Resource는 R 전체의 안전한 이름/code/active/groupIds/Global Role/개발 등급을 포함해 0부하 개인을 유지한다. Group은 R 구성원의 고유 resourceIds만 반환한다. 각 summary/cell은 selected/project 지표 쌍이며 cell.periodKey는 periods.key다. 개인별 sparse Milestone에는 canonical 이름/예정일, capacityReferenceOnly/projectReferenceOnly와 projectReferenceRow를 제공한다. Milestone의 selected는 기여, project는 동일 개인 Project 전체 참고로서 Milestone 귀속 공수나 과투입이 아니다.
+
+신규 GET 경로는 다음과 같다. 세 경로 모두 기존 public-read Project guard와 성공/오류 private/no-store/nosniff/X-Request-ID를 사용하고 session 없이 조회한다.
+
+| 경로 | selector | 추가 필수 조건 | 응답 view |
+| --- | --- | --- | --- |
+| `/resource-dashboard/plan/daily` | total/group/resource/resourceMilestone | 없음 | daily |
+| `/resource-dashboard/plan/day-resources` | total/group | date | day-resources |
+| `/resource-dashboard/plan/day-assignments` | resource/resourceMilestone | date | day-assignments |
+
+모든 상세는 기존 report filters와 snapshotId(64자리 SHA256), granularity, periodId, row, demandScope를 필수로 보낸다. periodId=all은 조회 전체, 나머지는 해당 granularity의 실제 periods.key다. date는 부모 periodId의 clipped 범위 안이어야 한다. row=group은 groupId=UUID|ungrouped, row=resource는 resourceId=UUID, row=resourceMilestone은 resourceId와 milestoneTaskId=UUID|unassigned를 요구한다. total에는 ID를 보내지 않는다. demandScope=selected|project를 생략하지 않는다. 기본 offset0/limit50, 최대 offset8000/limit100이며 반복 scalar·unknown key·잘못된 조합은400 INVALID_REQUEST다. metric/view/assignmentScope는 새 경로에서 허용하지 않는다.
+
+응답 `{data: ResourcePlanDetailsDto}`는 schema/projectPublicId/snapshotId/Project·Catalog·Calendar revisions, filters/range/asOfDate/mdPerMm/mdPerMmSource, granularity/periodId/selector/demandScope/optional date, view/offset/limit/totalCount/nextOffset/rows를 echo한다. Daily는 날짜별 numeric metrics이며 Assignment ID 배열을 반복하지 않는다. day-resources는 Resource ID 안정 정렬, 0부하 개인 포함 및 안전한 분류 metadata와 당일 metrics를 반환한다. day-assignments는 Resource ID→Task ID→Assignment ID 안정 정렬의 별도 bounded 원인 페이지이며 날짜·투입률·근무 여부·일별 known/planned M/D, canonical Task/원시 Assignment 기간, Milestone 이름, WBS public path를 제공한다. page를 전체 KPI로 재합산하지 않는다.
+
+예시: `plan/daily?from=2026-10-19&to=2026-10-20&granularity=week&snapshotId=<report.snapshotId>&periodId=all&row=resource&resourceId=<R>&demandScope=project`. 다음 원인 조회는 같은 context에 `date=2026-10-19`를 추가해 `plan/day-assignments`로 보낸다. Milestone 행의 전체 과투입 참고 원인은 row=resource/demandScope=project로 조회해 선택 Milestone 밖 원인을 유지한다. row=resourceMilestone/demandScope=project 자체는 해당 Milestone의 Project 기여이므로 report Milestone.project 참고값과 동일하다고 해석하지 않는다.
+
+현재 snapshot을 먼저 확인해 source/filter/환산 변경은409 REPORT_STALE, 이후 foreign ID·R 밖 개인·비표시/멤버 없는 Group·잘못된 실제 period/date는400 INVALID_SELECTION이다. 기간366/resourceDays200000/assignmentDays1000000/matrixCells5000/응답 JSON2097152 bytes를 초과하면422 REPORT_LIMIT_EXCEEDED다. 실제 `{data}` envelope까지 bytes를 검사하며 부분 기간·개인을 절삭하지 않는다. 전체 계산·Capacity·unknown 의미는 [Resource Plan 계약](RESOURCE_KPI_DASHBOARD.md#issue-527-backend-resource-plan-범위와-api)을 따른다.
+
 ## Issue #538 — Project Master 관계 계약
 
 `GET /api/project-master/catalog`과 인증된 `GET /api/project-master/admin/items`는 기존 배열에 `data.relations`를 추가한다. 각 row는 `{businessUnitId,productId,siteEntityId}` (stable public UUID)이며, `siteEntityId:null`은 사업부·제품 직접 연결, UUID 값은 해당 조합의 사업장/법인 연결이다. 표시용 name은 `items`/category arrays에서 참조하며 Relation 목록은 중복 없이 반환한다.

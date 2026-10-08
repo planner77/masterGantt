@@ -45,3 +45,11 @@
 - `package.json`/`package-lock.json`은 main `0.99.0`보다 높은 `0.100.0`으로 통일한다. `route-security-inventory.ts` 및 `edit-authorization-handlers.test.ts`는 main에 새로 추가된 Resource Dashboard route 목록과 PR의 project-master 관계 API 2개를 함께 유지한다.
 - 교차 수정 없는 26개 PR 파일은 원본 blob SHA를 그대로 보존하고 나머지 main 변경은 main tree에서 유지한다. 이전 #2135.1 SUCCESS는 **merge 이전 PR head** 증거이므로 merge 후 exact head 신규 PR CI를 별도 실행·검증한다.
 - 이번 요청은 최신 main 정렬·충돌 해결·새 PR CI 시작까지이며, 병합(main)·Main CI·GHCR 게시·Issue 종료는 미승인.
+
+
+## CI Run #2156.1 실패 / 최신 main 재정렬 및 E2E 안정화 (2026-10-08 KST)
+
+- PR #539 기존 head `c8ad66e7ed2110c9458cd7b0de005d32d989ad5e`, [CI #2156.1](https://github.com/planner77/masterGantt/actions/runs/37736384745) FAIL. Vitest, ESLint, TypeScript, Next.js build, policy, Docker 및 E2E shards 1~5 PASS.
+- E2E shard 6: 신규 main #526의 `tests/e2e/resource-milestone-views.spec.ts` 최초 `setup()`에서 Gantt scroll `{left:120,top:96}` 직후 `left=1581`로 이동, 74 PASS / 1 FAIL / 1 SKIP. 실제 제품 반응인지 native row selection 직후 지연 스크롤 경합인지 trace 직접 재생 미검증. 초기 fixture에서 delayed scroll-to-task 실행과 명시 scroll 설정이 경합할 수 있으므로, **두 RAF 이후 DOM과 Core 공개 viewport를 함께 확인하고 목표 좌표를 bounded 재설정**해 상태를 고정한다. 진짜 Resource 탭 왕복 상태 보존 `expect.poll(() => ganttState(page)).toEqual(before)`은 변경하지 않는다.
+- main이 `8b9d4d76758f73094ec84590e3a8a49314741587`에서 `b4a0898283571ac4f05d53299266acccadeeff68`로 6 commits 이동했으며 #527 Resource Plan/version 0.100.0을 포함한다. 최신 main과 #538를 다시 두 부모 merge 방식으로 정렬하고 고유 변경·Resource Plan을 함께 보존한다. 버전은 `0.101.0`.
+- `release_required=true`, `release_authorized=false`. 새 PR CI exact-head 등록까지만 실행하며 병합/Main CI/정식 GHCR 게시/Issue 종료 미진행.

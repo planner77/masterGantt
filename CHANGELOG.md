@@ -1,15 +1,21 @@
 # Changelog
 
+## [0.101.0] - 2026-10-08
+
+### Added
+
+- Issue #538: Project Master 사업부→제품→사업장/법인 관계 매핑, 관리자 연결 관리, 프로젝트 분류 종속 선택 및 서버 검증을 추가한다. 기존 Project 안정 ID·참조 보존, migration 0024의 확인된 기존 조합만 이관한다.
+
+### Fixed
+
+- 기존 Gantt 메타데이터 저장 뒤 비영점 스크롤 drift 복원과 격리 E2E의 read-only GET 일시 연결 리셋 검증을 보강한다. 최신 main의 #525·#526 Resource Dashboard 및 #527 Resource Plan 계약을 유지한다.
+
+
 ## [0.100.0] - 2026-10-08
 
 ### Added
 
-- Issue #538: 사업부→제품→사업장/법인 관계를 전역 기준정보에 도입하고 관리자 관계 연결/해제 및 프로젝트 분류 종속 선택을 제공한다. 기존 프로젝트는 안정 ID와 참조를 유지하고 완전한 관계만 마이그레이션으로 이관한다.
-
-### Fixed
-
-- 메타데이터 저장 중 Gantt의 비영점 스크롤 좌표 복원과 격리 E2E 읽기 전용 GET 일시적 ECONNRESET 회귀를 보완한다. 최신 main의 Resource KPI/Dashboard (#525/#526)를 보존한다.
-
+- Issue #527: 주·월 Resource Plan에서 개인 근무일 Capacity와 선택 범위·Project 전체 계획 공수를 비교한다. 일별 Peak·개인별 초과·미설정 기여를 구별하고 동일 snapshot의 날짜·개인·Assignment 근거를 제공한다. 기간·표시 행 페이지와 기존 Gantt·Dashboard 상태를 보존한다.
 
 ## [0.99.0] - 2026-10-08
 

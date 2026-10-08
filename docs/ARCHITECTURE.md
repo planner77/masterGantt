@@ -235,6 +235,13 @@ ResourceDashboardService는 같은 SQLite read transaction의 prepareSnapshot, p
 
 신규 Group 자식 GET은 동일 snapshot identity와 Project-connected Group∩Resource 범위의 bounded 페이지다. 후속 capacity가 준비 입력과 검증된 Assignment grain을 재사용할 수 있도록 경계를 유지하며 새 DB 저장/서버 간 상태 cache는 없다. route/service/repository/SQLite 권한 경계와 기존 workload/Stage/Logistics 계산은 유지한다. [공개 계약](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)을 따른다.
 
+
+## Issue #527 Resource Plan 조회 경계
+
+기존 ResourceDashboardService가 같은 SQLite read transaction/clock1회와 준비 ResourceKpi snapshot에서 Capacity R, selectedA, fullProjectA를 구성하고 pure Resource Plan으로 전달한다. Domain은 HTTP/DB/clock/ENV를 읽지 않으며 서비스는 Project 연결 metadata를 compact report와 bounded numeric/Assignment DTO에 enrich한다. granularity는 opt-in projection으로 snapshot hash에서 제외하되 canonical source/실제 filter/range/asOf/M/M identity를 유지한다.
+
+Calendar의 전체 Group 소속과 Group 출력 projectionGroupIds를 분리한다. 선택 기간/Task/Milestone/search로 R를 축소하지 않고 Group/Role 중첩 Capacity를 Grand로 합산하지 않는다. 신규 daily/day-resources/day-assignments GET은 기존 route→service→repository→SQLite 경계를 유지하며 전역 Group 멤버·원장·cache·migration을 추가하지 않는다. 실제 daily ID 원인은 별도 page이며 시간축 전체 ID 배열을 report에 복제하지 않는다. [Plan 공개 계약](API.md#issue-527-resource-plan-공개-조회)을 따른다.
+
 ## Issue #538 — Project master relations
 
 계층 관계는 SVAR와 분리된 전역 Project Master Domain이다. `project_master_items`는 안정된 item authority, `business_unit_products` 및 `business_unit_product_sites`는 재사용 가능한 연결 authority, Project는 기존 nullable FK를 보유한다. `Route Handler → ProjectMasterService → ProjectMasterRepository → SQLite`의 transaction boundary에서 관계 생성/해제·Project 조합 validation·catalog revision 경쟁 검사를 실행한다. Frontend cascading은 서버의 `relations`를 읽는 projection이며 자체 Source of Truth가 아니다.

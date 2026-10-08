@@ -11,7 +11,32 @@ async function setup(page: import("@playwright/test").Page, manyGroups = false) 
   await page.route(`**${projectPath}/resource-dashboard?*`, route => route.fulfill({ json: { data: reportFixture(state, new URL(route.request().url()).searchParams) } }));
   await page.route(`**${projectPath}/resource-dashboard/group-children?*`, route => { const q = new URL(route.request().url()).searchParams, filters = new URLSearchParams(q); for (const k of ["groupId", "milestoneTaskId", "snapshotId", "offset", "limit"]) filters.delete(k); return route.fulfill({ json: { data: childrenUiFixture(reportFixture(state, filters), q) } }); });
   await page.route(`**${projectPath}/resource-dashboard/details?*`, route => route.fulfill({ json: { data: longResourceDashboardDetailUiFixture(state, new URL(route.request().url()).searchParams) } }));
-  await page.setViewportSize({ width: 1440, height: 900 }); await page.goto(`/projects/${publicId}`); const identity = await rememberGanttRoot(page); await page.getByRole("button", { name: "주", exact: true }).click(); const frame = page.locator(".project-gantt-frame"); await frame.locator('.wx-row[data-id=":00000000-0000-4000-8000-000000000003"]').first().click(); await frame.locator(".wx-gantt").evaluate(el => { el.scrollTop = 96; }); await frame.locator(".wx-chart").evaluate(el => { el.scrollLeft = 120; }); await expect.poll(async () => (await ganttState(page)).dom).toEqual({ left: 120, top: 96 }); const before = await ganttState(page); expect(before.columns.length).toBeGreaterThan(0); expect(before.selection.length).toBeGreaterThan(0); await page.getByRole("tab", { name: "리소스", exact: true }).click(); await expect(root(page)).toHaveAttribute("data-ready", "true"); return { state, identity, before };
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/projects/${publicId}`);
+  const identity = await rememberGanttRoot(page);
+  await page.getByRole("button", { name: "주", exact: true }).click();
+  const frame = page.locator(".project-gantt-frame");
+  await frame.locator('.wx-row[data-id=":00000000-0000-4000-8000-000000000003"]').first().click();
+  const chart = frame.locator(".wx-chart");
+  const gantt = frame.locator(".wx-gantt");
+  // Selecting a task can schedule a native scroll-to-task after the click.
+  // Establish the intended fixture viewport only when both DOM and the Core
+  // public viewport agree after animation frames; do not weaken the subsequent
+  // Schedule -> Resource -> Schedule state-preservation assertion.
+  await expect(async () => {
+    await gantt.evaluate(el => { el.scrollTop = 96; });
+    await chart.evaluate(el => { el.scrollLeft = 120; });
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    const current = await ganttState(page);
+    expect(current.dom).toEqual({ left: 120, top: 96 });
+    expect(current.public).toEqual({ left: 120, top: 96 });
+  }).toPass({ timeout: 10_000, intervals: [100, 250, 500] });
+  const before = await ganttState(page);
+  expect(before.columns.length).toBeGreaterThan(0);
+  expect(before.selection.length).toBeGreaterThan(0);
+  await page.getByRole("tab", { name: "리소스", exact: true }).click();
+  await expect(root(page)).toHaveAttribute("data-ready", "true");
+  return { state, identity, before };
 }
 test("#526 populated Group/Resource matrix 5폭·bounded cells·순서·단위·focus·Gantt", async ({ page }) => {
   test.setTimeout(120_000); const { identity, before } = await setup(page); const r = root(page); await r.getByLabel("리소스 보기", { exact: true }).selectOption("matrix"); const evidence = []; mkdirSync("output/playwright/issue-526", { recursive: true });
