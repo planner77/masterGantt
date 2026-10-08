@@ -72,3 +72,11 @@
 - 동시 변경 문서 `PROJECT_UX.md`, `TEST_PLAN.md`, `UI_UX_GUIDELINES.md`에는 최신 main의 수정 사항을 보존하고 #538 독립 섹션을 병합. `CHANGELOG.md`에 #538 0.103.0 변경을 0.102.1 앞에 추가하고 `package.json`·`package-lock.json` 버전을 0.103.0으로 통일.
 - 이전 PR CI #2189.1은 부모 SHA `73d63a4a3c98a955b4230badd847f6265b808f0a`에 대해 SUCCESS. 최신 main 반영 후 exact-head full PR CI를 새로 시작해야 하므로 부모 CI 성공만으로 병합 승인하지 않음.
 - 작업 범위는 최신 main 정렬·충돌 해소·새 PR CI 시작까지. Main 병합, Main CI, GHCR 게시, Issue 종료 미진행.
+
+## 병합 전 리뷰 보완 · 2026-10-08
+
+- PR #539 Codex 리뷰의 unresolved P1 migration schema assertion은 앞선 commit에서 이미 테스트 동기화하여 CI #2197.1 통과. 나머지 P2 3건(비활성 상위항목 유지 상태에서 하위 선택 변경, 비활성 관계의 idempotent 재연결, 과거 template 인스턴스화의 hierarchy 충돌 500) 보완.
+- project master는 값 전체 변경 때 기존의 비활성 상위·형제·하위 항목을 신규 조합으로 재사용할 수 없도록 검증한다. 세 분류값 모두 변화 없으면 과거 프로젝트 보존 정책을 유지한다.
+- 관리자 기존 관계 POST 재시도는 활성 검증 전에 idempotent no-op으로 처리해 revision을 증가시키지 않는다. 신규 관계 연결만 활성 검증을 요구한다.
+- 기존 template snapshot의 잘못된 계층은 서버에서 409 `PROJECT_MASTER_RELATION_INVALID`로 번역하며 500을 노출하지 않는다. 템플릿 스냅샷의 무추정 보존 및 트랜잭션 롤백 계약을 유지한다.
+- Vitest 단위 및 handler 테스트를 추가하고 이 PR의 exact head 새 CI에서 검증한다. 명시적 GHCR 릴리스 승인 요청을 Issue #538의 v0.103.0 marker로 기록한 다음 성공 Main CI 이후 범용 Finalizer 절차로 게시한다.

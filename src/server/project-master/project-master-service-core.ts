@@ -272,9 +272,11 @@ export class ProjectMasterService {
             (siteId===null && this.repository.relationSiteCount(b.id,p.id)>0)) throw new ProjectMasterRelationInUseError();
         this.repository.removeRelation(b.id,p.id,siteId);
       } else {
+        // Idempotent retries of a previously linked (now inactive) relation
+        // must not change its revision or require reactivation.
+        if (exists) return this.getAdminCatalog(rawToken);
         if (!b.active || !p.active || (s && !s.active)) throw new ProjectMasterItemInactiveError();
         if (siteId!==null && !this.repository.relationExists(b.id,p.id)) throw new ProjectMasterRelationInvalidError();
-        if (exists) return this.getAdminCatalog(rawToken);
         this.repository.addRelation(b.id,p.id,siteId);
       }
       if (!this.repository.advanceRevision(expectedRevision,this.clock().toISOString())) throw new ProjectMasterRevisionMismatchError();
@@ -336,7 +338,17 @@ export class ProjectMasterService {
     const s=selected.siteEntityId === undefined ? current.siteEntity?.id ?? null : selected.siteEntityId;
     // Unchanged legacy/incomplete Project combinations remain readable and editable.
     if (b !== (current.businessUnit?.id ?? null) || p !== (current.product?.id ?? null) ||
-        s !== (current.siteEntity?.id ?? null)) this.requireValidHierarchy(b,p,s);
+        s !== (current.siteEntity?.id ?? null)) {
+      // The previous inactive/legacy triple is preserved only when unchanged.
+      // A new combination must not inherit an inactive parent retained from
+      // the current project, even when its newly selected child is active.
+      if ((b !== null && b === current.businessUnit?.id && !current.businessUnit.active) ||
+          (p !== null && p === current.product?.id && !current.product.active) ||
+          (s !== null && s === current.siteEntity?.id && !current.siteEntity.active)) {
+        throw new ProjectMasterItemInactiveError();
+      }
+      this.requireValidHierarchy(b,p,s);
+    }
     return selected;
   }
 

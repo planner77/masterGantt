@@ -96,6 +96,10 @@ describe("Issue #289 project master catalog", () => {
       businessUnit: expect.objectContaining({ name: "스마트팩토리사업부", active: false }),
     }));
     expect(master.getSelectionCatalog().data.businessUnits).toEqual([]);
+    const unchangedInactiveRelation = master.mutateRelation(adminToken, catalog.data.revision, {
+      businessUnitId: ids[0]!, productId: ids[1]!, siteEntityId: ids[2]!,
+    }, false);
+    expect(unchangedInactiveRelation.data.revision).toBe(catalog.data.revision);
 
     const auth = projects.authorize(created.response.data.project.publicId, projectToken);
     expect(auth.kind).toBe("authorized");
@@ -131,7 +135,7 @@ describe("Issue #289 project master catalog", () => {
 
   it("links reusable items, validates combinations, and blocks removing referenced relations", async () => {
     const {database}=openDatabase({filename:":memory:",migrationsDirectory});
-    const ids=Array.from({length:5},(_,i)=>`30000000-0000-4000-8000-00000000000${i+1}`);
+    const ids=Array.from({length:6},(_,i)=>`30000000-0000-4000-8000-00000000000${i+1}`);
     let i=0;
     const token="R".repeat(43);
     const master=new ProjectMasterService(database,{
@@ -144,8 +148,11 @@ describe("Issue #289 project master catalog", () => {
     c=master.createItem(token,c.data.revision,{category:"PRODUCT",code:"MCS",name:"제품"});
     c=master.createItem(token,c.data.revision,{category:"SITE_ENTITY",code:"S1",name:"법인 1"});
     c=master.createItem(token,c.data.revision,{category:"SITE_ENTITY",code:"S2",name:"법인 2"});
+    c=master.createItem(token,c.data.revision,{category:"PRODUCT",code:"ALT",name:"대체 제품"});
     c=master.mutateRelation(token,c.data.revision,{businessUnitId:ids[0]!,productId:ids[2]!},false);
     c=master.mutateRelation(token,c.data.revision,{businessUnitId:ids[0]!,productId:ids[2]!,siteEntityId:ids[3]!},false);
+    c=master.mutateRelation(token,c.data.revision,{businessUnitId:ids[0]!,productId:ids[5]!},false);
+    c=master.mutateRelation(token,c.data.revision,{businessUnitId:ids[0]!,productId:ids[5]!,siteEntityId:ids[3]!},false);
     expect(c.data.relations).toEqual(expect.arrayContaining([
       {businessUnitId:ids[0],productId:ids[2],siteEntityId:null},
       {businessUnitId:ids[0],productId:ids[2],siteEntityId:ids[3]},
@@ -180,6 +187,14 @@ describe("Issue #289 project master catalog", () => {
     expect(()=>projects.updateMetadata(auth.authorization,created.response.data.project.revision,{businessUnitId:ids[1]}))
       .toThrow(ProjectMasterRelationInvalidError);
     expect(projects.listProjects().data.projects.find((row) => row.publicId === created.response.data.project.publicId)?.businessUnit?.id).toBe(ids[0]);
+
+    c=master.updateItem(ids[0]!,token,c.data.revision,{active:false});
+    // The current inactive parent cannot be retained when a child changes,
+    // even when both the old and new product-site combinations are linked.
+    expect(()=>projects.updateMetadata(auth.authorization,created.response.data.project.revision,{
+      productId:ids[5],
+    })).toThrow(ProjectMasterItemInactiveError);
+    expect(projects.listProjects().data.projects.find((row) => row.publicId === created.response.data.project.publicId)?.product?.id).toBe(ids[2]);
   });
 
   it("keeps existing projects unassigned after migration", () => {

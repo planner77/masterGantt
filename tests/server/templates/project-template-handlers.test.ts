@@ -12,6 +12,7 @@ import {
   type ProjectTemplateHandlerDependencies,
 } from "../../../src/server/templates/project-template-handlers-core";
 import { ProjectTemplateError, type ProjectTemplateService } from "../../../src/server/templates/project-template-service-core";
+import { ProjectMasterRelationInvalidError } from "../../../src/server/project-master/project-master-service-core";
 import { FixedWindowRateLimiter } from "../../../src/server/security/rate-limit-core";
 import { createSessionToken } from "../../../src/server/security/session-core";
 
@@ -276,6 +277,28 @@ describe("Project Template Handlers", () => {
     const response = await handleInstantiateTemplate(request, templateId, dependencies);
     expect(response.status).toBe(400);
     expect(called).toBe(false);
+  });
+
+  it("returns a stable 409 instead of 500 for legacy template hierarchy conflicts", async () => {
+    const dependencies: ProjectTemplateHandlerDependencies = {
+      ...defaultDependencies,
+      templateService: createMockService({
+        instantiateProject: async () => { throw new ProjectMasterRelationInvalidError(); },
+      }),
+    };
+    const request = new Request(`http://localhost:3000/api/project-templates/${templateId}/instantiate`, {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "http://localhost:3000" },
+      body: JSON.stringify({
+        name: "레거시 템플릿",
+        ownerName: "QA",
+        editPassword: "pass",
+        projectStartDate: "2026-11-02",
+      }),
+    });
+    const response = await handleInstantiateTemplate(request, templateId, dependencies);
+    expect(response.status).toBe(409);
+    expect((await response.json()).error.code).toBe("PROJECT_MASTER_RELATION_INVALID");
   });
 
   it("handles handleInstantiateTemplate with rate limiting and session cookie emission", async () => {
