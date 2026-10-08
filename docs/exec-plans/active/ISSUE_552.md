@@ -111,3 +111,13 @@ React 보완 후 typecheck/수정3파일 lint exit0(기존4 warning), source125�
 2026-10-08T18:21:40Z에 backend가 기존 3파일의 직접 관련 case를 `vitest -t`로 선별 실행했다. exit0, 1.19s, 고유23 PASS이며 35개는 선택 정규식의 비대상이다. 새 skip이나 guard 약화는 없다. Copy/Stage는 실제 native better-sqlite3 in-memory transaction, Delete recovery는 임시 파일 SQLite reopen을 사용한다. Request/Response handler는 in-process이며 이 시점의 새 화면 Next HTTP 연결은 NOT TESTED였다. Password hash helper는 fixture 주입이다.
 
 전체 subtree/internal remap/외부 소속 확인/completed full E·incident endpoint/Assignment Copy 제한/Cut identity/삭제 rollback/401·412·403 원자성을 검증했다. server/domain/contracts/migrations 173파일의 전후 변경0이며 aggregate SHA256은 `f36bd89f609975425123de4e2cf921d43884d70b4baa0edef2cc266cbf13e339`다. 실행 계약은 `/tmp/issue552-backend-guard-execution.json`, 원본 로그는 `/tmp/issue552-backend-guard-run.log`에 보존했다. 기존 또는 이후 동일 case 실행과 고유 수를 중복 합산하지 않는다.
+
+## PR #563 CI trace REWORK — 2026-10-09
+
+- 기존 #552 PR #561의 최초 전체 PR CI run `37839172928`은 quality/build/unit/Docker PASS, Chromium E2E 5/6 shard FAIL이었다. 이를 조사해 WBS에서 숨겨진 Milestone native 행에 의존하는 테스트를 변경하는 별도 보완 PR #563을 생성했다. 기존 기능 제품 소스 변경은 없으며, 이 PR의 UI/E2E/QA 최종 통과는 아직 주장할 수 없다.
+- PR #563 run `37848837406` (#2235.1)은 코드·E2E 실행 전 `변경 경로 판정`의 `scripts/verify-ci-run-trace.py`에서 FAIL하였다. PR 본문이 `Refs #552. PR #561...`으로 이어져 정규식 `^\\s*Refs\\s+#\\s*([1-9][0-9]*)\\s*$`에 맞는 독립 행이 없었다. 그 결과 `Refs` 목록이 빈 배열로 판정되어 다른 CI jobs가 SKIPPED / aggregator FAIL 처리되었다. 이를 E2E 재실패로 기록하지 않는다.
+- 보완: PR 본문에 **독립 한 행** `Refs #552`만 배치한다. PR 제목 `test(#552): ...`과 branch `fix/issue-552-ci-milestone-e2e`가 동일 Primary Issue #552로 정규화됨을 원본 CI 스크립트와 대조했다.
+- `pull_request.edited` 이벤트는 검증된 같은 SHA의 이전 전체 CI 성공 증거를 요구하므로 그 경량 실행으로 승인하지 않는다. 이 복구 기록을 별도 commit으로 추가하여 `synchronize` 이벤트의 전체 PR CI를 시작하고 **새 head SHA / run ID / result**를 구분해 확인한다. 임의 테스트 skip, gate 삭제, `continue-on-error`, 캐시로 성공 판정 우회는 하지 않는다.
+- 이 변경은 **PR metadata 및 실패·재실행 추적 문서만** 다룬다. 제품·API·DB·Scheduling·디자인 정책·버전은 변경하지 않는다. 신규 테스트의 실제 CI result는 새 실행 전 **NOT TESTED**이며, #551 선행 stacked base 및 #553 후속 PR 겹치는 E2E 변경은 병합 단계에 별도 정리한다.
+- `release_required=true`, `release_authorized=false`. 새 PR CI START까지만 수행하며 merge/main/GHCR/tag/release/Issue close는 요청되지 않았다.
+
