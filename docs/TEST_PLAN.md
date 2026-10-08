@@ -2408,3 +2408,9 @@ PR CI #2144.1의 Chromium shard6에서 #527 두 테스트(주/월 계층/geometr
 - `resource-dashboard.test.ts`는 20개×50,000일의 경계/초과 조건을 Excel export 경로에도 확장하고, `resource-export-model.test.ts`는 Task/WBS/resource 코드 표시를 검증한다. 성공한 이전 CI #2174는 이 변경의 PASS가 아니며 신규 exact-head quality/e2e/docker 재검증이 필요하다.
 - 사용자의 2026-10-08 18:47 KST 요청은 Issue #529의 정식 GHCR 게시를 포함한다. 승인 대상은 application 0.102.0이며 Main CI 및 exact digest·release 검증 전 tag/GHCR 성공을 선언하지 않는다. trusted Owner authorization marker는 Issue 댓글로 별도 기록한다.
 
+### Issue #529 — PR CI #2178: Issue #130 E2E 실행 단위 분할 (2026-10-08)
+
+- PR #543 exact-head `5193c9ce2de112e6d0a115c2d50dcbc93407d9b9` / [PR CI #2178](https://github.com/planner77/masterGantt/actions/runs/37761148163): Quality·TypeScript·Lint·Vitest·Next production build·Docker smoke 및 Chromium E2E shard 1/2/3/4/6 PASS. Chromium shard 5의 기존 `tests/e2e/project-workspace-ux.spec.ts` Issue #130 Phase 2 한 테스트가 기본 **30,000ms 테스트 전체 제한**을 초과하여 FAIL. 단위 assertion 실패는 로그에 없고 78개 다른 테스트 PASS다.
+- 이전 단일 테스트에 화면 폭 390/768/1024/1440/1600px × 읽기 전용·편집 가능=10개 완전한 페이지 로드/키보드/geometry/Gantt 상태/Screenshot을 직렬 수행했다. 한 테스트에 10개 시나리오를 묶어 공통 기본 time budget을 소모하는 구조이므로, **폭별 5개 Playwright 독립 테스트**로 분할한다. 각 테스트는 읽기 전용·편집 가능 모두 검증하고 1440px/week/chart scroll 특수 Oracle 및 기존 모든 assertion/PNG 출력 이름을 유지한다. 기본 30초 timeout 증액·검증 skip·threshold 완화는 하지 않는다.
+- 각각의 width는 별도 browser page/mock fixture 수명을 사용하여 상태·재시도·trace를 분리하며, 테스트 수가 증가하는 것은 범위 확대가 아닌 기존 테스트의 10개 조합 분리다. 새 exact-head CI에서 5개 모두와 quality/E2E/Docker aggregate 결과를 새로 판정한다. 기존 #2178 FAIL을 PASS로 간주하지 않는다.
+

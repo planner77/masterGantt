@@ -202,3 +202,9 @@ frontend는 readonly DOM RAF에도 Gantt 영역의 입력 취소 및 현재 pane
 - #529의 Gantt viewport 보호 및 Excel evidence 수집/내보내기 진입은 #518 상위 탭 이벤트에 통합하고, 제거된 `scheduleView`와 하위 Gantt/Milestone 탭 코드가 재도입되지 않도록 한다.
 - #518 `0.101.1` CHANGELOG 및 PLAN 히스토리와 #529 `0.102.0`의 릴리스 승인 근거를 동시에 보존한다. 기존 PR CI #2176 성공 여부만으로 새 main merge tree의 검증을 대체하지 않으며 exact-head PR CI 재실행 후 병합한다.
 
+## #529 최신 PR CI #2178 E2E timeout 후속 (2026-10-08)
+
+- #518 상위탭 병합분을 포함한 PR #543 head `5193c9ce2de112e6d0a115c2d50dcbc93407d9b9` / PR CI #2178 run `37761148163`에서 Build/TypeScript/Vitest/ESLint/Policy/Docker 및 E2E 5개 shard PASS, shard5 단일 Issue #130 `project-workspace-ux.spec.ts:206` FAIL. 원인은 테스트 하나에 5개 반응형 width × 2가지 권한 상태를 30초 미만에 완료하도록 묶은 실행 단위로, 에러는 `Test timeout of 30000ms exceeded`다.
+- `tests/e2e/project-workspace-ux.spec.ts`의 10개 width×권한 조합을 5개 width별 독립 Playwright test로 분리하여 각 width의 읽기/편집·정보/더보기·키보드 탭·Gantt 동일 instance/scroll·geometry·PNG 검증을 유지한다. 재시도·time budget 확장·assertion 제거로 통과시키지 않는다.
+- 사용자의 #529 정식 GHCR v0.102.0 명시 승인 marker는 [Issue comment](https://github.com/planner77/masterGantt/issues/529#issuecomment-6057333248) (trusted OWNER)로 기록되어 있다. 이번 요청 마지막 단계는 **새 PR CI 등록**이며 병합/Release를 성공이라고 주장하지 않는다. #518 선행 릴리스 승인 여부와 정식 GHCR 의존관계는 별도 검증 대상이다.
+

@@ -203,12 +203,14 @@ test.describe("Issue #76 Project Workspace UX", () => {
   }
 });
 
-test("Issue #130 Phase 2 Project Context와 tab은 다섯 폭·권한 상태에서 작업공간을 유지한다", async ({ page }, testInfo) => {
-  const fixture = await installStatefulProjectFixture(page);
-  fixture.project.name = "긴 한국어 프로젝트 제목과 English delivery workspace ".repeat(8);
-  fixture.project.description = "상세 설명과 owner metadata ".repeat(80);
+// Keep every width × permission check, but isolate the five widths into
+// independent Playwright tests instead of exhausting one 30s test deadline.
+for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900], [1600, 900]] as const) {
+  test(`Issue #130 Phase 2 Project Context·탭 ${width}px 읽기/편집 상태 보존`, async ({ page }, testInfo) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.project.name = "긴 한국어 프로젝트 제목과 English delivery workspace ".repeat(8);
+    fixture.project.description = "상세 설명과 owner metadata ".repeat(80);
 
-  for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900], [1600, 900]] as const) {
     await page.setViewportSize({ width, height });
     for (const editing of [false, true]) {
       fixture.sessionEditable = editing;
@@ -304,8 +306,8 @@ test("Issue #130 Phase 2 Project Context와 tab은 다섯 폭·권한 상태에�
         expect(await page.locator(".project-gantt-widget .wx-chart").first().evaluate((element) => element.scrollLeft)).toBe(chartScrollLeft);
       }
     }
-  }
-});
+  });
+}
 
 test("Issue #130 Phase 2 조회 중·오류 상태의 본문과 재시도가 작업공간에 복귀한다", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
