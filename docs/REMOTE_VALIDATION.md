@@ -351,3 +351,11 @@ PR head `ec2add4f277dc6fd7bf6f60372c611ff1cd19c8a`의 PR CI [#2191.1](https://gi
 PR #488의 exact head `252216fa6757cd9ecaa40263e16d4dfc46238aa4`에 대한 Codex 재검토에서 P1 지적: OS deps의 360초 timeout + Azure→Ubuntu archive fallback 최대 2회(약 12분 20초)에도 `.github/workflows/ci.yml`의 `publish-commit-image`는 job 30분, `.github/workflows/release-image.yml`의 `container`는 20분이었다. 이 두 main/release job은 GHCR digest pull/build·transport·runtime/persistence 추가 검증이 필수여서 setup 지연 시 검증 전에 강제 취소될 위험이 있다.
 
 보완: Main `publish-commit-image` timeout 50분, Release `container` timeout 40분으로 조정한다. 기존 CI/Release Chromium E2E 35분, Docker smoke 40분, shared action 두 시도 각 360초 제한, 실패 후 최대 1회 retry 및 non-zero fail-closed, required aggregate와 GHCR exact digest/transport/runtime/persistence 검사 내용은 그대로 유지한다. `tests/scripts/test-config-layout.test.ts`에 두 job의 timeout 값 검증을 추가했다. 새 exact-head PR CI는 수정 사항의 PR quality/E2E/Docker를 검증하며, main image/Release 실제 경로는 병합 뒤 main 및 별도 승인 release 증거로 판단한다.
+
+## Issue #487 — 병합 후 Main CI #2203.1 Playwright APT lock 복구
+
+- 기존 [PR #488](https://github.com/planner77/masterGantt/pull/488)은 `08ac7749efc4544dfc125853d9e58ef3a9d56b21`로 병합됐다. 정확한 Main CI [#2203.1](https://github.com/planner77/masterGantt/actions/runs/37793380955)에서 Quality/Docker 및 E2E shard 2~6 PASS, shard 1/6 FAIL, E2E aggregate FAIL, Main 임시 GHCR publish SKIPPED가 확인됐다.
+- shard 1/6 로그: 첫 `playwright install-deps chromium` 360초 timeout (exit 124) 뒤 공식 Ubuntu archive로 재시도했으나 `/var/lib/apt/lists/lock`을 이전 `apt-get` PID 2593이 점유해 `Unable to lock directory` / exit 100. 외부 네트워크 불안정 자체와 **프로세스 간 APT 재시도 경합**을 구분한다.
+- 후속 수정은 Azure `mirror+file`/legacy source를 첫 설치 전에 공식 Ubuntu archive로 정규화하고, APT network timeout(45초)·retries(1회)로 자식 APT 지연을 제한하며, 실패 시 활성 lists/dpkg 잠금을 `fuser`로 최대 60초 감시하여 해제 확인 후에만 Playwright 1회 retry한다. 잠금이 유지되면 명시적으로 FAIL하고 kill/검증 skip으로 통과시키지 않는다.
+- 정적 회귀에서 미러 정규화가 첫 설치보다 앞서 수행되고 lock 감시가 retry보다 앞서는 실행 순서와 fail-closed 경계를 고정한다. 실제 검증은 새로운 후속 PR exact-head required quality/E2E 6 shard/Docker와 병합 뒤 새 merge SHA의 Main CI, 임시 GHCR `ci-<SHA>` image publish/exact digest pull/runtime/transport/persistence/SBOM·provenance, Generic Finalizer 결과로 분리한다.
+- 후속 PR 이전 Main #2203.1의 실패 결과는 불변이다. 관련 제품 API/DB/domain/version은 바꾸지 않는다.
