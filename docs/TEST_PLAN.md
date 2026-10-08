@@ -1,5 +1,12 @@
 # Test Plan
 
+## Issue #506 — Context Menu Add Above/Below 즉시 sibling 위치 회귀
+
+- 서버: `tests/server/projects/task-hierarchy-command-service.test.ts`에서 root `[A,B,C]`의 B 직전·직후 생성, 첫/마지막 sibling 경계, nested Summary family의 동일 parent·연속 `siblingOrder`와 readonly snapshot read-back을 검증한다.
+- Core sync: `tests/features/gantt/canonical-snapshot-sync.test.ts`에서 중간 sibling 앞/뒤 신규 Task 추가의 공개 `add-task target/mode`, root/nested family, multi-task insert, 새 parent가 뒤늦게 나타나는 canonical snapshot과 기존 row 불필요 재이동 0회를 검증한다.
+- Chromium: `tests/e2e/task-context-menu-hierarchy.spec.ts`에서 root `Task above/Task below`와 scoped Summary 내부 `Task above` 성공 응답의 순서, 실제 Grid 행 및 Chart bar 세로 위치, reload 후 동일 canonical 순서, Gantt/Core 인스턴스 연속성을 검사한다. 기존 #72 / #418 scope-root sibling 비활성·selection/tree/scroll·Day/Week 회귀는 전체 suite에서 유지한다.
+- API/DB/security/scheduling 계약·새 migration은 없다. 공식 회귀 판정은 변경 PR head의 GitHub Actions `quality/e2e/docker` 성공 전까지 NOT TESTED이며, 로컬 환경을 실제 실행하지 않았다면 PASS라고 보고하지 않는다.
+
 ## Issue #518 — PR #544 접근성 리뷰 P2 보완 및 최신 CI 증거
 
 - PR #544 head `230cefa19300e928023e3de65c35f05aa22b96dc`의 [PR CI #2173.1](https://github.com/planner77/masterGantt/actions/runs/37755252750)은 Quality/Chromium 6 shards/Docker **SUCCESS**였다. 그러나 Codex 리뷰의 미해결 P2 1건: `src/app/globals.css`의 `.project-primary-tabs`는 `overflow-y: hidden`이므로 상위 탭 기본 양수 3px focus outline/offset이 세로 경계에서 잘릴 수 있다.
