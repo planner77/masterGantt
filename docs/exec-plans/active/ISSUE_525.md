@@ -50,3 +50,26 @@ qa_docs는 기존 geometry가 실제 Dashboard의 짧은 개인1/그룹1/상세T
 frontend는 실제 Dashboard 전용 합성 fixture(그룹12/개인40/개인별Task120·상세page50, 긴한국어·영문·code·WBS·UUID, 최대3Role/Role미지정/비활성)를 추가했다. long/many Chromium1개 PASS(9.6s)에서 그룹/개인×390/768/1024/1440/1920px 총10관측을 실행했고 각 populated row·header/body·cell/control containment·date208px·toolbar·documentoverflow·native focus를 확인했다. 기존 짧은5폭 증거와 실제 비빈SQLite/HTTP·legacy 회귀는 보존한다. 이번 추가로 고유 Chromium 범위는11개(mock9/actualHTTP1/legacyactual1)이며 capture/geometry 재실행2개는 고유 수에 더하지 않는다. 제품 CSS/계산 source는 추가 변경하지 않았고 긴 fixture·테스트·문서·PNG·manifest를 새 tree로 동기화한 뒤 독립 QA를 재개한다.
 
 REWORK 최종 source/docs freeze는 manifest SHA256 a43723049660dc9c56464779a35144325a5212114c3a84db4a61b124f9590d33다. 최종 Unit2파일10개 PASS(304ms), typecheck·변경fixture/spec/unit ESLint 오류/경고0·Markdown144·HEAD/cached diff check PASS를 확인했다. 제품 source는 whitespace-only 수정 뒤 추가 변경 없이 유지했고 docs PNG2개는 최종 긴 그룹 화면과 byte일치한다. 생성 Next 설정은 baseline byte로 복원했다. 독립 QA 재검토 후 동일 tree로 게시한다.
+
+## 2026-10-08 PR CI #2093 실패 후 E2E 보완
+
+- PR #533 head c4454ba4, CI 37650777139 (#2093.1): quality·docker PASS, Chromium E2E shard 2/4/5 FAIL(4개 시나리오). 나머지 3개 shard는 PASS.
+- #130 이전 targets/필터 locator → 신규 Dashboard ready·기간 오류·Role·keyboard/Escape/5폭 검사. #83 표시 행-only 기대 → 선택 범위 KPI·행 동시 갱신과 기간 미교차 fixture. #76 숨겨진 group option → Group disclosure와 실제 Resource 행. #491 레거시 M/M 안내 → disabled 이유/실제 API 기반 큰 표시값·단위 전환·포커스 검사.
+- Runtime/API/Domain/Calendar/version은 변경하지 않고 테스트·fixture 및 문서만 보완했다. 검증 생략 없이 기존 Gantt 보존 계약도 유지한다. 새 head PR CI가 완료되기 전 quality/e2e/docker는 NOT TESTED이며 병합/GHCR은 비범위다.
+
+## 2026-10-08 PR CI #2107 E2E 재검증
+
+CI #2107.1(head db04c5e)은 quality/build/docker와 #525 보완 대상 #76, 앞선 unrelated #456을 포함한 Chromium shard 2~6이 통과했다. 유일 실패는 shard1의 기존 #502 `error-boundary-regression.spec.ts` gantt-demo 경계 테스트에서 오류 heading이 5초 내 나타나지 않은 1건이다. db04c5e는 직전 head 대비 `project-workspace-ux.spec.ts`의 Resource tab focus 한 줄만 변경했고 #502 제품/테스트 경로는 변경하지 않았다. 따라서 #525 범위를 #502 제품 수정으로 확대하지 않고 동일 #525 head 내용의 전체 원격 재검증을 새 commit/run으로 수행한다. 재검증 성공 전 공식 E2E PASS는 주장하지 않는다.
+
+## 2026-10-08 최신 main 정렬 후 Code Review P2 대응
+
+- #524 PR #532 병합 main `b417fcc094bff98ea142374fcd746bce2458c2e1`에 #525 정렬 커밋 `1e5e42cadcd5049ba5d7e83265b0ff2ff036006a` 반영, PR base main·conflict 0. 새 exact-head PR CI #2117(37701553729)은 success.
+- Codex PR review P2(미해결 #4209279185): query를 변경 후 기존 조건으로 되돌리면 결정적 snapshotId 때문에 숨긴 `selection`이 다시 mount되고 detail GET이 중복된다. 이 결함은 병합 차단으로 분류한다.
+- 수정은 `ProjectResourceDashboard`의 project/revision/query/snapshot scope key가 달라지면 렌더 완료 전 selection/expanded state를 무효화한다. 검색/기간 필터 A→B→A 회귀에서 상세의 숨김·재등장 부재, 상세 GET 증가 부재 및 focus 보존을 검증한다. `PROJECT_UX`·`TEST_PLAN`·`CHANGELOG` 동기화.
+- 변경 후 required PR quality/e2e/docker와 exact-head 독립 검토·리뷰 resolution을 다시 확보해야 하며 기존 #2117 success는 새 head 승인 근거가 아니다.
+
+## 2026-10-08 Codex 최종 리뷰 신규 P2 재작업
+
+- PR #533 exact-head `4ac5d2f6e704fc308f8a2377f0cf07dccc717792`의 PR CI #2122.1은 PASS, 이전 P2 상세 재등장 review thread는 RESOLVED다.
+- 동일 head에 요청한 독립 Codex 리뷰가 추가 P2를 발견했다: `plannedEffort`가 서버 `empty`(Assignment 0건)와 `configured`(의도된 유효 0공수)를 모두 `0.00 M/D`로 렌더링함. 선택 범위·Role 소계의 공수 의미를 왜곡하므로 병합 전 수정한다.
+- 모델 표시·Role fallback에 `할당 없음`을 도입한다. 단위 및 기존 실제 UI 기간필터 E2E는 `empty` / `configured 0`을 구분하고 `unset` /`partial`을 유지한다. RESOURCE_KPI_DASHBOARD·PROJECT_UX·TEST_PLAN·CHANGELOG 동기화. Domain/API 계산은 불변. 새 exact-head CI/리뷰 성공 후 병합 재판정, 기존 PASS는 변경된 head의 검증 근거가 아니다.

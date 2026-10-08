@@ -169,3 +169,15 @@ frontend는 readonly DOM RAF에도 Gantt 영역의 입력 취소 및 현재 pane
 - PR #543 / commit `58f3ef97` CI #2148: Chromium shard1의 기존 #502 `error-boundary-regression.spec.ts` Gantt Demo error boundary assertion 1건 FAIL; 나머지 E2E shard2~6 및 Quality/Build/Docker/Policy PASS.
 - SSR-visible React button의 hydrate 전 native Enter race를 방지하기 위해 비운영 gated `ErrorBoundaryProbe`의 effect readiness marker 및 Playwright onClick receipt를 추가한다. 여전히 실제 render throw → route boundary → retry/reset → focus 복구를 검증한다.
 - 임의 timeout/skip/expected failure로 위장하지 않는다. #529 Resource Excel/Domain/API/DB 변경 없음. CI와 최종 QA 결과는 새 exact-head 검증 전 NOT TESTED, merge/main/GHCR/Issue close 미승인.
+
+## 최신 main 정렬·충돌 해결 — 2026-10-08
+
+- #527 PR #535와 #528 PR #536이 main에 병합되었다. #528 merge SHA `3fa543b10e98d59e50f63f3f53613affe720b648`가 이 정렬의 기준이고, 기존 #529 공통 조상은 `899d5d7d12855771339e84f7d7b10ce1e1012983`이다. 기존 #529 head `c521e18d2368729ac757614c003b9376e660ea0f`의 PR CI #2150은 PASS지만, 새 병합 tree에 대한 재검증으로 취급하지 않는다.
+- 변경 비교: main 쪽24파일, #529 쪽70파일. #529에만 있는51파일은 그대로 보존하고 동일 경로 수정19파일은 공통 조상 3-way 비교로 합쳤다. 충돌7곳은 아래 계약을 기준으로 명시적으로 해소했다.
+- `docs/TEST_PLAN.md`: main의 #527/#528/PR #545 검증 기록과 #529 Export/CI 기록을 모두 유지한다.
+- `project-resource-dashboard.tsx`: main의 query/snapshot 변경 시 selection/expanded 무효화와 #529의 Excel evidence/refresh callback을 둘 다 유지한다.
+- `resource-dashboard-service-core.ts`: main의 `diagnosticSelection`과 #529의 exact Assignment 진단용 `diagnosticDomain`을 둘 다 반환한다. 기존 GET/POST 원장·조회 권한의 축소/확대를 허용하지 않는다.
+- `resource-milestone-ui.spec.ts`: main의 직접 하위 Alice node 선택 및 dimension/resourceId/milestone 판정과 #529의 excluded Assignment 상세 검증을 둘 다 보존한다.
+- `resource-plan-dashboard.spec.ts`: #529에서 CI 통과한 Core auto-pan 이후 nonzero public/DOM 안정 상태를 유지하며 왕복 strict equality도 보존한다. main의 임의 120px 입력 경합 회피 목적도 유지한다.
+- `resource-dashboard-model.test.ts`: empty MD/MM 0/null, configured 0, unset/partial 구별을 모두 테스트한다. `resource-dashboard-ui.ts` fixture는 main의 동일 날짜 교집합 동작을 사용한다.
+- 공통 소스에는 Release 승인·제품 버전·DB schema·기존 권한·CI gate 변경을 가하지 않는다. 충돌 해결 후 exact-tree PR CI가 최종 검증이며 QA_FINAL/Manager ACCEPT, main/GHCR/정식 Release는 이번 요청 범위 밖이다. `release_required=true`, `release_authorized=false`.

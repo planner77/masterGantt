@@ -329,12 +329,21 @@ export class ResourceDashboardService {
       try { calculated = this.prepareAndSelect(publicId, filter, checked.snapshotId, scope); }
       catch (error) { if (error instanceof PublicApiError && error.code === "INVALID_SELECTION") stale(); throw error; }
       if (!calculated) return undefined;
-      const { snapshot } = calculated;
+      const { snapshot, diagnosticSelection } = calculated;
       const report = snapshot;
       if (report.snapshotId !== checked.snapshotId) stale();
       const selector = checked.selector;
       const { rows, targetTaskIds } = this.detailTargets(calculated, selector);
-      const details: { taskId: string; row: ResourceKpiAssignmentRow | null }[] = checked.view === "tasks" ? targetTaskIds.map((taskId) => ({ taskId, row: null })) : rows.map((row) => ({ taskId: row.taskId, row }));
+      // Diagnostic "unset" operates on all in-scope assignments rather than person-filtered rows.
+      const diagnosticIds = selector.dimension === "diagnostic" && selector.metric === "unset"
+        ? new Set(getResourceKpiDiagnostics(domain, calculated.selection).unsetAssignmentIds)
+        : null;
+      const diagnosticRows = diagnosticIds
+        ? diagnosticSelection.assignments.filter((row) => diagnosticIds.has(row.assignmentId))
+        : null;
+      const details: { taskId: string; row: ResourceKpiAssignmentRow | null }[] = checked.view === "tasks"
+        ? targetTaskIds.map((taskId) => ({ taskId, row: null }))
+        : (diagnosticRows ?? rows).map((row) => ({ taskId: row.taskId, row }));
       details.sort((a, b) => a.taskId.localeCompare(b.taskId) || (a.row?.assignmentId ?? "").localeCompare(b.row?.assignmentId ?? ""));
       const page = details.slice(checked.offset, checked.offset + checked.limit).map(({ taskId, row }) => this.detailRow(snapshot, taskId, row));
       const result: ResourceDashboardDetailsDto = { resourceDataContext: snapshot.dataContext, schema: "resource-dashboard/1", snapshotId: report.snapshotId, projectPublicId: publicId,
@@ -512,13 +521,21 @@ export class ResourceDashboardService {
     if (restriction) snapshot.snapshotId = fingerprint({ snapshotId: snapshot.snapshotId, taskIds: [...restriction.tasks].sort(), assignmentIds: restriction.assignments ? [...restriction.assignments].sort() : null });
     if (expectedSnapshotId !== undefined && snapshot.snapshotId !== expectedSnapshotId) stale();
     const restrict = (value: ReturnType<typeof selectResourceKpiAssignments>) => restriction ? { ...value, assignments: value.assignments.filter((row) => restriction.tasks.has(row.taskId) && (!restriction.assignments || restriction.assignments.has(row.assignmentId))), t0: value.t0.filter((task) => restriction.tasks.has(task.taskId)), t0Ids: new Set([...value.t0Ids].filter((id) => restriction.tasks.has(id))) } : value;
+    // Keep the same exact drill scope, but do not narrow diagnostic coverage to personal filters.
+    const diagnosticSelection = restrict(selectResourceKpiAssignments(snapshot.domain, {
+      taskIds: snapshot.domain.input.filters?.taskIds,
+      wbsRootIds: snapshot.domain.input.filters?.wbsRootIds,
+      milestoneIds: snapshot.domain.input.filters?.milestoneIds,
+      statuses: snapshot.domain.input.filters?.statuses,
+      taskSearch: snapshot.domain.input.filters?.taskSearch,
+    }));
     const reference = restrict(selectResourceKpiAssignments(snapshot.domain, { ...snapshot.domain.input.filters, milestoneIds: [] }));
     const selection = snapshot.filters.milestoneIds.length ? restrict(selectResourceKpiAssignments(snapshot.domain)) : reference;
     try { assertResourceKpiProjectionBudget(snapshot.domain, selection); } catch (error) { if (error instanceof ResourceKpiProjectionLimitError) resourceDashboardLimit("projection.cells"); throw error; }
     const selectedIds = new Set(selection.assignments.map((row) => row.assignmentId));
     const excludedRows = reference.assignments.filter((row) => !selectedIds.has(row.assignmentId));
     const diagnosticDomain = restriction?.assignments ? { ...snapshot.domain, assignments: snapshot.domain.assignments.filter(row => restriction.assignments!.has(row.assignmentId)) } : snapshot.domain;
-    return { snapshot, selection, referenceRows: reference.assignments, excludedRows, diagnosticDomain };
+    return { snapshot, selection, referenceRows: reference.assignments, excludedRows, diagnosticSelection, diagnosticDomain };
   }
   private calculate(publicId: string, filter: ResourceDashboardFilterInput, scope?: ResourceDrillScope) {
     const calculated = this.prepareAndSelect(publicId, filter, undefined, scope);

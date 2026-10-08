@@ -87,6 +87,11 @@ describe("resource dashboard native SQLite and direct HTTP", () => {
     const unassigned = f.service.getDetails(f.project.publicId, {}, detail(all.snapshotId, { selector: all.diagnostics.personallyUnassigned.selector, view: "tasks" }))!;
     expect(unassigned.totalCount).toBe(2); expect(unassigned.rows.every((row) => row.assignment === null)).toBe(true);
     expect(unassigned.rows.map((row) => row.taskName).sort()).toEqual(["T3", "T4"]);
+    const filtered = { resourceIds: [f.resources.get("R1")!.publicId] };
+    const filteredReport = f.service.getDashboard(f.project.publicId, filtered)!;
+    const unsetAssignments = f.service.getDetails(f.project.publicId, filtered, detail(filteredReport.snapshotId, { selector: filteredReport.diagnostics.unsetTasks.selector, view: "assignments" }))!;
+    expect(unsetAssignments.totalCount).toBe(filteredReport.diagnostics.unsetAssignmentCount);
+    expect(unsetAssignments.rows.every((row) => row.assignment?.allocationPercent === null)).toBe(true);
     const params = new URLSearchParams({ snapshotId: all.snapshotId, dimension: "all", view: "tasks", metric: "completed" });
     const response = await handleGetResourceDashboard(f.request(params.toString(), true), f.project.publicId, { service: f.service }, true);
     expect(response.status).toBe(200); expect((await response.json()).data.totalCount).toBe(1);

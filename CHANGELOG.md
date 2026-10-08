@@ -32,6 +32,11 @@
 
 ## [0.98.0] - 2026-10-08
 
+### Fixed
+
+- Issue #525: Resource 공수 `empty`(할당 없음)와 `configured` 0공수를 구분하여 빈 선택 범위를 확정된 계획 0공수로 오인하지 않게 한다.
+- Issue #525: Resource Dashboard 필터·snapshot 전환 시 이전 KPI 상세/행 확장 상태를 해제하여 조건 복귀 때 숨겨진 상세가 자동 재개되지 않도록 한다.
+
 ### Added
 
 - Issue #525: 기존 리소스 탭에 서버 raw KPI 기반 그룹·개인 Dashboard, 역할·등급·상태·기간 필터, M/D·M/M 표시와 동일 snapshot Task/Assignment 상세를 제공한다. 기존 개발 견적·역할 소계·단계 할당 상세와 Gantt 상태를 보존하고 stale·잘못된 선택·조회 한도를 구별한다.

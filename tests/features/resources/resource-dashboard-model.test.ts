@@ -46,6 +46,7 @@ describe("Resource dashboard client contracts", () => {
     expect(plannedEffort({ ...effort, state: "partial", partial: true }, "md")).toContain("알려진 부분합");
     expect(plannedEffort({ ...effort, state: "empty", plannedMd: 0, plannedMm: 0, partial: false }, "md")).toBe("할당 없음");
     expect(plannedEffort({ ...effort, state: "empty", plannedMd: null, plannedMm: null, partial: false }, "mm")).toBe("할당 없음");
+    expect(plannedEffort({ ...effort, state: "empty", plannedMd: 0, plannedMm: 0, partial: false }, "mm")).toBe("할당 없음");
     expect(plannedEffort({ ...effort, state: "configured", plannedMd: 0 }, "md")).toBe("0.00 M/D");
     expect(plannedEffort({ ...effort, state: "configured", plannedMm: 0 }, "mm")).toBe("0.00 M/M");
   });

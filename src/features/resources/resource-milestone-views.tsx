@@ -70,7 +70,16 @@ export function MilestoneScopeSummaries({
           summary ? (
             <div key={label}>
               <dt>{label}</dt>
-              <dd>{plannedEffort(summary.effort, unit)}</dd>
+              <dd>
+                <button
+                  type="button"
+                  aria-label={`${label} · 계획 공수 ${plannedEffort(summary.effort, unit)} · ${summary.assignmentCount} Assignment 상세`}
+                  disabled={stale || !summary.assignmentCount}
+                  onClick={(event) => onOpen(summary, label, "assignments", event.currentTarget)}
+                >
+                  {plannedEffort(summary.effort, unit)} · {summary.assignmentCount} Assignment
+                </button>
+              </dd>
               <button
                 type="button"
                 disabled={stale || !summary.taskCount}
@@ -81,7 +90,7 @@ export function MilestoneScopeSummaries({
                 {summary.taskCount} Task
               </button>
               <small>
-                {summary.assignmentCount} Assignment · 선택 할당 작업 진척{" "}
+                선택 할당 작업 진척{" "}
                 {pct(summary.assignedTaskProgress.percent)}
               </small>
             </div>
