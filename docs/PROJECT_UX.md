@@ -618,6 +618,7 @@ Readonly에서는 조회만 허용하고 edit session이 유효할 때만 mutati
 - Baseline mutation은 기존 edit-session / If-Match / revision / canonical snapshot 계약을 따른다.
 - Project Copy는 Baseline을 보존한다.
 - **Chart Baseline bar/toggle은 이번 Issue #202 범위에서 분리하여 Issue #253에서 처리한다.** SVAR PRO Baseline 기능을 사용하지 않고 Core 공개 API/state 기반 Alignment POC를 먼저 통과해야 한다.
+- #253의 [Core 정렬 POC](ISSUE_253_BASELINE_POC.md)는 시험한 공개 상태·resize 후보의 기초 x 정렬이 FAIL하여 `DECISION_REQUIRED`다. Chart bar/toggle은 구현하지 않았으며 나머지 interaction·반응형 matrix는 NOT TESTED다.
 
 ## Issue #266 관계 편집 안전성
 
