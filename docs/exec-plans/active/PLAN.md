@@ -1,3 +1,11 @@
+## #523–#528 요청 범위 진행 상태
+
+#523 [PR #531](https://github.com/planner77/masterGantt/pull/531) / head `f8a51503745cd5f3f1f3c9986f6b7577d83ce93a` / [CI 37639620321](https://github.com/planner77/masterGantt/actions/runs/37639620321), #524 [PR #532](https://github.com/planner77/masterGantt/pull/532) / head `5c17d3a394d95c6799dceb2b22ed166dca34f241` / [CI 37643698987](https://github.com/planner77/masterGantt/actions/runs/37643698987), #525 [PR #533](https://github.com/planner77/masterGantt/pull/533) / head `c4454ba4085930ba2d6e32c58f1653a32e496aca` / [CI 37650777139](https://github.com/planner77/masterGantt/actions/runs/37650777139)의 실행 등록까지 확인했다. CI 결과는 조회하지 않았으며 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다. #526은 서버 계약 구현 뒤 UI를 순차 구현하며 #527/#528 구현은 각각 선행 PR CI 등록 이후 시작한다. 모든 branch/Issue는 유지한다.
+
+## Issue #526 — Resource·Group Milestone roll-up과 비교표
+
+[Work Packet](ISSUE_526.md)에 따라 직접 선행 `feat/issue-525-resource-dashboard-ui` / `c4454ba4085930ba2d6e32c58f1653a32e496aca` 기반 stacked PR로 순차 진행한다. application `0.99.0`, `release_required=true/release_authorized=false`. 요청 종료점은 원격 PR·CI 시작 확인이며 CI 모니터링·병합·main/GHCR·Issue 종료는 비범위다. 관련 backend211/frontend8 Unit·Next16.3.8 고유Chromium7·ui_ux 비교 PASS 후 최종stagedtree 독립 PRE_QA와 원격 게시를 수행한다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다.
+
 ## Issue #525 — Resource·Group 기본 Dashboard
 
 [Work Packet](ISSUE_525.md)에 따라 직접 선행 `feat/issue-524-resource-dashboard-api` / `5c17d3a394d95c6799dceb2b22ed166dca34f241` 기반 stacked PR로 순차 진행한다. application `0.98.0`, `release_required=true/release_authorized=false`. 요청 종료점은 원격 PR·CI 시작 확인이며 CI 모니터링·병합·main/GHCR·Issue 종료는 비범위다. 관련 Unit10개·Chromium고유11개(긴 Dashboard 추가1 포함)와 ui_ux 설계 비교 PASS 후 최종 캡처·독립 사전 QA를 확인해 게시한다. 공식 quality/e2e/docker·최종 ACCEPT는 NOT TESTED다.
@@ -331,7 +339,3 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 `auto_release_finalizer.py`는 exact immutable SHA의 successful Main run을 보존하고, `issue_lifecycle.py`는 그 successful run의 main artifact gate까지 확인한다. PR latest-check 정책, GHCR immutable overwrite 거부, failed/cancelled run 보존 정책은 유지한다. `verify-issue-lifecycle.py`에 success→later failure와 all-failure 회귀를 추가한다.
 
 #520이 main에서 SUCCESS하면 Generic Finalizer가 backlog의 #502를 다시 평가해 Main #2083.1의 valid success evidence를 사용할 수 있어야 한다. #517 환경 검증은 별도 OPEN 상태를 유지한다.
-
-## Issue #525 — PR CI 회귀 보완 (2026-10-08)
-
-최초 PR #533 CI #2093.1은 4개 E2E(#130/#83/#491/#76)의 이전 UI 계약으로 실패했다. #525 신규 Dashboard 검증 계약을 반영하고 새 CI를 시작한다. 선행 #524 stacked PR·release_authorized=false는 유지하며 병합/GHCR은 제외한다. [상세 Work Packet](ISSUE_525.md)을 참조한다.

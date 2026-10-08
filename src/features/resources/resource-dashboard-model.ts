@@ -1,10 +1,10 @@
 import { z } from "zod";
-import type { ResourceDashboardDetailsDto, ResourceDashboardDto, ResourceDashboardFilterInput, ResourceDashboardSelector } from "@/contracts/resource-dashboard";
+import type { ResourceDashboardDetailsDto, ResourceDashboardDto, ResourceDashboardFilterInput, ResourceDashboardSelector, ResourceDashboardGroupChildrenDto } from "@/contracts/resource-dashboard";
 
 const count = z.number().int().nonnegative();
 const finite = z.number().finite();
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const selector = z.object({ dimension: z.enum(["all", "resource", "group", "role", "milestone", "diagnostic"]), id: z.string().nullable(), metric: z.enum(["all", "notStarted", "inProgress", "completed", "delayed", "unset", "completelyUnassigned", "groupOnly", "personallyUnassigned"]), milestoneTaskId: z.string().nullable().optional() });
+const selector = z.object({ dimension: z.enum(["all", "resource", "group", "role", "milestone", "diagnostic"]), id: z.string().nullable(), metric: z.enum(["all", "notStarted", "inProgress", "completed", "delayed", "unset", "completelyUnassigned", "groupOnly", "personallyUnassigned"]), milestoneTaskId: z.string().nullable().optional(), resourceId: z.string().optional(), assignmentScope: z.enum(["selected", "milestoneReference", "milestoneExcluded"]).optional() });
 const summary = z.object({ taskCount: count, resourceCount: count, assignmentCount: count, notStarted: count, inProgress: count, completed: count, delayed: count,
   completion: z.object({ numerator: finite, denominator: finite, percent: finite.nullable() }),
   assignedTaskProgress: z.object({ numerator: finite, denominator: finite, percent: finite.nullable() }),
@@ -15,7 +15,7 @@ const grade = z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"]);
 const filters = z.object({ from: date.nullable(), to: date.nullable(), asOfDate: date.nullable(), search: z.string(), taskSearch: z.string(), mode: z.enum(["resource", "group"]), resourceActivity: z.enum(["all", "active", "inactive"]), groupActivity: z.enum(["all", "active", "inactive"]), resourceIds: z.array(z.string()), groupIds: z.array(z.string()), milestoneIds: z.array(z.string()), taskIds: z.array(z.string()), wbsRootIds: z.array(z.string()), roles, developerGrades: z.array(z.union([grade, z.literal("UNSPECIFIED")])), statuses: z.array(z.enum(["not_started", "in_progress", "completed"])), mdPerMm: finite.nullable(), mdPerMmProvided: z.boolean() });
 const revisions = { schema: z.literal("resource-dashboard/1"), projectPublicId: z.string(), projectRevision: count, catalogRevision: count, calendarRevision: z.string().regex(/^[a-f0-9]{64}$/), snapshotId: z.string().regex(/^[a-f0-9]{64}$/) };
 const diagnostic = z.object({ count, selector });
-const report = z.object({ ...revisions, calculatedAt: z.iso.datetime(), asOfDate: date, timezone: z.literal("Asia/Seoul"), filters, range: z.object({ from: date, to: date }), rangeFallback: z.boolean(), mdPerMm: finite.nullable(), mdPerMmSource: z.enum(["query", "environment", "unset"]), scope: z.object({ assignment: z.literal("A"), diagnostics: z.literal("T0"), identity: z.string() }), summary, resources: z.array(row), groups: z.array(row), roleTotals: z.array(z.object({ role: z.string(), summary })), milestones: z.array(z.object({ milestoneTaskId: z.string().nullable(), summary })), stages: z.array(z.unknown()), diagnostics: z.object({ denominator: count, completelyUnassigned: diagnostic, groupOnly: diagnostic, personallyUnassigned: diagnostic, unsetTasks: diagnostic, unsetAssignmentCount: count, inapplicableFilters: z.array(z.string()), personalFiltersAppliedToA: z.boolean() }), catalog: z.object({ resources: z.array(z.object({ id: z.string(), name: z.string(), code: z.string().nullable(), active: z.boolean(), roles, developerGrade: grade.nullable(), groupIds: z.array(z.string()) })), groups: z.array(z.object({ id: z.string(), name: z.string(), code: z.string().nullable(), active: z.boolean() })), milestones: z.array(z.object({ id: z.string(), name: z.string() })), wbsRoots: z.array(z.unknown()) }), metadata: z.object({ groupRoleSubtotalsAdditive: z.literal(false), precision: z.literal("raw"), diagnosticsScope: z.string(), searchScope: z.string(), historicalStateRestoration: z.literal(false), totalFrom: z.literal("full selected assignment set"), limits: z.object({ detailPage: count }).passthrough() }) });
+const report = z.object({ ...revisions, calculatedAt: z.iso.datetime(), asOfDate: date, timezone: z.literal("Asia/Seoul"), filters, range: z.object({ from: date, to: date }), rangeFallback: z.boolean(), mdPerMm: finite.nullable(), mdPerMmSource: z.enum(["query", "environment", "unset"]), scope: z.object({ assignment: z.literal("A"), diagnostics: z.literal("T0"), identity: z.string() }), summary, reference: summary.optional(), excluded: summary.optional(), milestoneSelection: z.object({ applied: z.boolean(), reference: z.literal("A without Milestone filter"), excluded: z.literal("reference Assignment IDs minus selected Assignment IDs") }).optional(), resources: z.array(row), groups: z.array(row), roleTotals: z.array(z.object({ role: z.string(), summary })), milestones: z.array(z.object({ milestoneTaskId: z.string().nullable(), summary })), stages: z.array(z.object({ milestoneTaskId: z.string(), name: z.string(), scheduledDate: date.nullable(), status: z.enum(["not_started", "in_progress", "completed"]), selected: summary, full: z.object({ memberCount: count, completedMemberCount: count, memberProgressPercent: finite.nullable(), predecessorCount: count, incompletePredecessorCount: count, ready: z.boolean().nullable(), blocked: z.boolean(), manualEvent: z.boolean(), completionInconsistent: z.boolean() }) })), diagnostics: z.object({ denominator: count, completelyUnassigned: diagnostic, groupOnly: diagnostic, personallyUnassigned: diagnostic, unsetTasks: diagnostic, unsetAssignmentCount: count, inapplicableFilters: z.array(z.string()), personalFiltersAppliedToA: z.boolean() }), catalog: z.object({ resources: z.array(z.object({ id: z.string(), name: z.string(), code: z.string().nullable(), active: z.boolean(), roles, developerGrade: grade.nullable(), groupIds: z.array(z.string()) })), groups: z.array(z.object({ id: z.string(), name: z.string(), code: z.string().nullable(), active: z.boolean() })), milestones: z.array(z.object({ id: z.string(), name: z.string() })), wbsRoots: z.array(z.unknown()) }), metadata: z.object({ groupRoleSubtotalsAdditive: z.literal(false), precision: z.literal("raw"), diagnosticsScope: z.string(), searchScope: z.string(), historicalStateRestoration: z.literal(false), totalFrom: z.literal("full selected assignment set"), limits: z.object({ detailPage: count }).passthrough() }) });
 const detail = z.object({ ...revisions, selector, view: z.enum(["tasks", "assignments"]), offset: count, limit: count, totalCount: count, nextOffset: count.nullable(), rows: z.array(z.object({ taskId: z.string(), taskName: z.string(), externalId: z.string(), status: z.enum(["not_started", "in_progress", "completed"]), progress: finite.nullable(), taskStart: date.nullable(), taskEnd: date.nullable(), duration: finite.nullable(), wbsPath: z.array(z.object({ taskId: z.string(), name: z.string() })), effectiveMilestoneTaskId: z.string().nullable(), explicitMilestoneTaskId: z.string().nullable(), inheritedFromTaskId: z.string().nullable(), assignment: z.object({ assignmentId: z.string(), resourceId: z.string(), resourceName: z.string(), resourceCode: z.string().nullable(), active: z.boolean(), roles, developerGrade: grade.nullable(), groupIds: z.array(z.string()), assignmentStart: date.nullable(), assignmentEnd: date.nullable(), from: date, to: date, allocationPercent: finite.nullable(), effectiveWorkingDays: finite, plannedMd: finite.nullable(), plannedMm: finite.nullable() }).nullable() })) });
 
 export function dashboardQuery(input: ResourceDashboardFilterInput): URLSearchParams {
@@ -55,6 +55,8 @@ export function detailsQuery(data: ResourceDashboardDto, selected: ResourceDashb
   else if (selected.dimension === "group") query.set("id", "ungrouped");
   else if (selected.dimension === "milestone") query.set("id", "unassigned");
   if (selected.milestoneTaskId !== undefined) query.set("milestoneTaskId", selected.milestoneTaskId ?? "unassigned");
+  if (selected.resourceId !== undefined) query.set("resourceId", selected.resourceId);
+  query.set("assignmentScope", selected.assignmentScope ?? "selected");
   query.set("view", view); query.set("offset", String(offset)); query.set("limit", "50");
   return query;
 }
@@ -62,7 +64,7 @@ export function readDetails(body: unknown, data: ResourceDashboardDto, selected:
   const parsed = z.object({ data: detail }).safeParse(body);
   if (!parsed.success) return null;
   const value = parsed.data.data;
-  if (["projectPublicId", "projectRevision", "catalogRevision", "calendarRevision", "snapshotId"].some((key) => value[key as keyof typeof value] !== data[key as keyof typeof data]) || JSON.stringify(value.selector) !== JSON.stringify(selected) || value.view !== view || value.offset !== offset || value.limit !== 50 || (view === "assignments" && value.rows.some((row) => row.assignment === null))) return null;
+  if (["projectPublicId", "projectRevision", "catalogRevision", "calendarRevision", "snapshotId"].some((key) => value[key as keyof typeof value] !== data[key as keyof typeof data]) || !sameSelector(value.selector, selected) || value.view !== view || value.offset !== offset || value.limit !== 50 || (view === "assignments" && value.rows.some((row) => row.assignment === null))) return null;
   return value as ResourceDashboardDetailsDto;
 }
 export function plannedEffort(effort: ResourceDashboardDto["summary"]["effort"], unit: "md" | "mm"): string {
@@ -70,4 +72,28 @@ export function plannedEffort(effort: ResourceDashboardDto["summary"]["effort"],
   if (effort.state === "empty") return "할당 없음";
   const amount = unit === "md" ? effort.plannedMd : effort.plannedMm;
   return `${amount === null ? "—" : amount.toFixed(2)} ${unit === "md" ? "M/D" : "M/M"}${effort.partial ? " · 알려진 부분합" : ""}`;
+}
+
+export function sameSelector(a: ResourceDashboardSelector, b: ResourceDashboardSelector): boolean {
+  return a.dimension === b.dimension && a.id === b.id && a.metric === b.metric && a.milestoneTaskId === b.milestoneTaskId && a.resourceId === b.resourceId && (a.assignmentScope ?? "selected") === (b.assignmentScope ?? "selected");
+}
+const children = z.object({ ...revisions, groupId: z.string().nullable(), milestoneTaskId: z.string().nullable().optional(), filters, range: z.object({ from: date, to: date }), asOfDate: date, mdPerMm: finite.nullable(), mdPerMmSource: z.enum(["query", "environment", "unset"]), summary, offset: count, limit: count, totalCount: count, nextOffset: count.nullable(), rows: z.array(row) });
+export function groupChildrenQuery(data: ResourceDashboardDto, groupId: string | null, milestoneTaskId: string | null | undefined, offset: number): URLSearchParams {
+  const query = detailsQuery(data, { dimension: "group", id: groupId, metric: "all" }, "assignments", offset);
+  for (const key of ["dimension", "id", "metric", "view", "assignmentScope"]) query.delete(key);
+  query.set("groupId", groupId ?? "ungrouped");
+  if (milestoneTaskId !== undefined) query.set("milestoneTaskId", milestoneTaskId ?? "unassigned");
+  return query;
+}
+export function readGroupChildren(body: unknown, data: ResourceDashboardDto, groupId: string | null, milestoneTaskId: string | null | undefined, offset: number): ResourceDashboardGroupChildrenDto | null {
+  const parsed = z.object({ data: children }).safeParse(body);
+  if (!parsed.success) return null;
+  const v = parsed.data.data;
+  const sameFilters = Object.keys(data.filters).every(key => JSON.stringify(v.filters[key as keyof typeof v.filters]) === JSON.stringify(data.filters[key as keyof typeof data.filters]));
+  if (["projectPublicId", "projectRevision", "catalogRevision", "calendarRevision", "snapshotId", "asOfDate", "mdPerMm", "mdPerMmSource"].some(key => v[key as keyof typeof v] !== data[key as keyof typeof data]) || !sameFilters || v.range.from !== data.range.from || v.range.to !== data.range.to || v.groupId !== groupId || v.milestoneTaskId !== milestoneTaskId || v.offset !== offset || v.limit !== 50 || v.rows.length > 50 || v.rows.some(r => r.id === null || r.summary.selector.dimension !== "group" || r.summary.selector.id !== groupId || r.summary.selector.resourceId !== r.id)) return null;
+  return v as ResourceDashboardGroupChildrenDto;
+}
+export function orderedMilestones(data: ResourceDashboardDto): { id: string | null; name: string; date: string | null }[] {
+  const stages: { id: string | null; name: string; date: string | null }[] = [...data.stages].sort((a, b) => (a.scheduledDate ?? "9999").localeCompare(b.scheduledDate ?? "9999") || a.milestoneTaskId.localeCompare(b.milestoneTaskId)).map(s => ({ id: s.milestoneTaskId, name: s.name, date: s.scheduledDate }));
+  return [...stages, { id: null, name: "Milestone 미지정", date: null }];
 }

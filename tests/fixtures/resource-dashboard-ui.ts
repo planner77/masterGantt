@@ -7,9 +7,11 @@ export const dashboardResourceId = "11111111-1111-4111-8111-111111111111";
 export const dashboardGroupId = "22222222-2222-4222-8222-222222222222";
 export function resourceDashboardUiFixture(fixture: StatefulProjectFixture, query = new URLSearchParams()): ResourceDashboardDto {
   const filters = normalizeResourceDashboardFilters(parseResourceDashboardQuery(query));
-  // UI-only fixture models date overlap; actual workday clipping belongs to SQLite/HTTP verification.
-  const outsideAssignmentRange = Boolean((filters.from && filters.from > "2026-09-18") || (filters.to && filters.to < "2026-09-16"));
-  const empty = outsideAssignmentRange || Boolean(filters.search && !["테스트 리소스", "R-01", "개발팀", "G-01", "Stable leaf", "LEAF-1"].some((text) => text.toLowerCase().includes(filters.search.toLowerCase()))) || filters.resourceActivity === "inactive" || filters.groupActivity === "inactive" || (filters.roles.length > 0 && !filters.roles.includes("DEVELOPER")) || (filters.developerGrades.length > 0 && !filters.developerGrades.includes("ADVANCED")) || (filters.statuses.length > 0 && !filters.statuses.includes("in_progress"));
+  // Synthetic personal Assignment exists only from 2026-09-16 through 2026-09-18.
+  // Mirror the read API's inclusive date intersection for the selected scope;
+  // an out-of-range query must not fabricate a nonzero Resource subtotal.
+  const assignmentInRange = (!filters.from || filters.from <= "2026-09-18") && (!filters.to || filters.to >= "2026-09-16");
+  const empty = !assignmentInRange || Boolean(filters.search && !["테스트 리소스", "R-01", "개발팀", "G-01", "Stable leaf", "LEAF-1"].some((text) => text.toLowerCase().includes(filters.search.toLowerCase()))) || filters.resourceActivity === "inactive" || filters.groupActivity === "inactive" || (filters.roles.length > 0 && !filters.roles.includes("DEVELOPER")) || (filters.developerGrades.length > 0 && !filters.developerGrades.includes("ADVANCED")) || (filters.statuses.length > 0 && !filters.statuses.includes("in_progress"));
   const summary = (selector: ResourceDashboardSelector): ResourceDashboardSummary => ({ taskCount: empty ? 0 : 1, resourceCount: empty ? 0 : 1, assignmentCount: empty ? 0 : 1, notStarted: 0, inProgress: empty ? 0 : 1, completed: 0, delayed: 0, completion: { numerator: 0, denominator: empty ? 0 : 1, percent: empty ? null : 0 }, assignedTaskProgress: { numerator: empty ? 0 : 50, denominator: empty ? 0 : 1, percent: empty ? null : 50 }, effort: { knownMd: empty ? 0 : 5, plannedMd: empty ? 0 : 5, plannedMm: empty ? 0 : .25, state: empty ? "empty" : "configured", partial: false, unsetCount: 0 }, selector });
   const all = summary({ dimension: "all", id: null, metric: "all" });
   const resources = empty ? [] : [{ id: dashboardResourceId, name: "테스트 리소스", code: "R-01", active: true, summary: summary({ dimension: "resource", id: dashboardResourceId, metric: "all" }), resourceIds: [dashboardResourceId], assignmentRange: { from: "2026-09-16", to: "2026-09-18" }, milestones: [] }];
@@ -19,7 +21,7 @@ export function resourceDashboardUiFixture(fixture: StatefulProjectFixture, quer
 export function resourceDashboardDetailUiFixture(fixture: StatefulProjectFixture, query: URLSearchParams): ResourceDashboardDetailsDto {
   const checked = parseResourceDashboardDetails(query);
   const filterQuery = new URLSearchParams(query);
-  for (const key of ["snapshotId", "dimension", "id", "milestoneTaskId", "metric", "view", "offset", "limit"]) filterQuery.delete(key);
+  for (const key of ["snapshotId", "dimension", "id", "milestoneTaskId", "metric", "view", "offset", "limit", "resourceId", "assignmentScope"]) filterQuery.delete(key);
   const report = resourceDashboardUiFixture(fixture, filterQuery);
   const task = fixture.tasks[2];
   return { schema: report.schema, projectPublicId: report.projectPublicId, projectRevision: report.projectRevision, catalogRevision: report.catalogRevision, calendarRevision: report.calendarRevision, ...checked, totalCount: 1, nextOffset: null, rows: [{ taskId: task.taskId, taskName: task.name, externalId: task.externalId, status: "in_progress", progress: 50, taskStart: "2026-09-16", taskEnd: "2026-09-18", duration: 3, wbsPath: [], effectiveMilestoneTaskId: null, explicitMilestoneTaskId: null, inheritedFromTaskId: null, assignment: checked.view === "tasks" ? null : { assignmentId: "33333333-3333-4333-8333-333333333333", resourceId: dashboardResourceId, resourceName: "테스트 리소스", resourceCode: "R-01", active: true, roles: ["DEVELOPER"], developerGrade: "ADVANCED", groupIds: [dashboardGroupId], assignmentStart: null, assignmentEnd: null, from: "2026-09-16", to: "2026-09-18", allocationPercent: 100, effectiveWorkingDays: 3, plannedMd: 5, plannedMm: .25 } }] };

@@ -144,3 +144,34 @@ SVAR Core2.7.3의 기존 Gantt 인스턴스를 재사용하고 앱 소유 HTML �
 `project-resource-workload-status.spec.ts`의 긴 이름·다중 행 geometry1개를 실제 Chromium에서 실행했다(1 PASS,9.6초). 그룹/개인 각각390/768/1024/1440/1920px의 총10개 관측에서 그룹12행/개인40행/Assignment 상세50행(전체120행, 다음 페이지50)을 실제 Dashboard DOM으로 측정한다. 조건은 개인 활성 상태/그룹 활성 소속 전체이며 normalized filter와 mode를 geometry JSON에 기록한다. 모든 populated 행의 header/body 정렬·cell 비중첩·control containment, toolbar 비중첩·화면 내 containment, 날짜 열208px 이상/날짜 토큰 비분리, 소유 table 내부 가로·세로 overflow, document 폭=viewport, native Tab focus ring의 cell/scroll owner/viewport containment를 통과했다. 안정 UUID Task50개·상세 WBS 최대375자·화면 identity 최대233자를 확인했으며 Gantt fixture로 대체하지 않았다.
 
 기존 짧은5폭 PASS와 초기 실패 artifact는 보존한다. 새 근거는 로컬 `output/playwright/issue-525/long-many/geometry.json`과 mode별5폭 PNG 및 `run-long-many-final-frozen.log`다. PR PNG390/1440은 새 긴 그룹 기본화면과 일치하며 이전 짧은 PNG는 로컬 `short-before-rework/`에 보존한다. 합성 geometry는 별도 실제 SQLite/HTTP 회귀를 대체하지 않는다. 기존 고유 Chromium10개 PASS에 신규1개를 더한 고유11개이며 반복 geometry 실행을 추가 테스트로 세지 않는다. Unit은 긴 fixture 계약 검증1개를 추가해 관련2파일10개다. 원격 quality/e2e/docker·최종 독립 QA 및 실제 환경 검증은 별도 NOT TESTED다.
+
+
+## Issue #526 서버 Milestone roll-up 계약
+
+기존 schema `resource-dashboard/1`과 report/detail 진입점을 유지하며 같은 SQLite read transaction을 prepareSnapshot → pure Assignment 선택/합계 → 필요한 DTO 렌더링으로 분리한다. Project read부터 clock1회를 고정하고 full Membership/Stage projector와 Resource의 전체 Group Calendar를 공유한다. 개인 Calendar와 clipped Assignment 공수 행은 snapshot 내에서 재사용하며 reference 계산을 위해 전체 비교표를 다시 생성하지 않는다. prepared 입력과 캐시는 요청 동안만 사용하고 새 원장·DB write·지속 report cache를 만들지 않는다.
+
+report의 optional 타입 필드 `reference`, `excluded`, `milestoneSelection`은 신규 서버 응답에 항상 존재한다. selected는 기존 summary의 A, reference는 같은 모든 조건 중 Milestone 조건만 제거한 A, excluded는 reference의 실제 Assignment ID 집합에서 selected ID를 제거한 집합이다. 각각 동일 pure totals helper로 distinct Task/Resource/Assignment·진척·raw M/D/M/M·null/partial을 계산한다. Resource 수/진척/비율을 reference-selected 숫자로 차감하지 않는다. Milestone 제한이 없으면 reference=selected이고 excluded는 empty다. 두 summary는 totals-only이며 reference의 미선택 Milestone Resource/Group cells를 생성하지 않는다. `milestoneSelection.applied`와 두 집합 설명을 함께 제공한다.
+
+selector의 `assignmentScope`는 selected(기본), milestoneReference, milestoneExcluded다. 기본 범위를 생략한 기존 요청도 selected로 정규화해 echo한다. reference/excluded summary의 selector로 같은 snapshot 상세를 조회한다. diagnostic은 selected scope만 허용하며 T0/full-stage 계약을 바꾸지 않는다. `resourceId`는 optional public UUID 문자열이고 dimension=group에서만 허용한다. null은 허용하지 않고 제한 없음은 생략한다. Group Resource 상세는 Group∩Resource∩선택 scope이며 기존 Resource 전체 selector로 바꾸지 않는다.
+
+`GET /api/projects/{publicId}/resource-dashboard/group-children`은 기존 report filters와 필수 snapshotId/groupId, optional milestoneTaskId, offset/limit를 받는다. groupId=null은 HTTP `ungrouped`, milestoneTaskId=null은 `unassigned`로 전송하며 Milestone 생략은 모든 선택 단계다. metric/resourceId/assignmentScope query는 이 경로에서 허용하지 않는다. Group→Resource→Milestone은 Milestone 생략, Group→Milestone→Resource는 해당 Milestone 지정으로 조회한다. metric 전환은 서버 summary를 표시할 뿐 자식 요청의 집합을 바꾸지 않는다.
+
+응답은 schema/snapshotId/projectPublicId/Project·Catalog·Calendar revision, 정규화 filters, resolved range/asOfDate/mdPerMm/source, groupId/optional milestoneTaskId와 서버 summary/Resource rows를 반환한다. 각 행의 summary/assignmentRange/milestones는 Group 교집합의 A다. summary selector와 모든 cell selector에 groupId/resourceId를 보존한다. Resource는 public ID 순으로 페이지하고 offset/default50/max100/상한8000, totalCount/nextOffset을 echo한다. optional Milestone의 생략과 명시null은 구별한다. 페이지는 전체 그룹 summary를 바꾸지 않고 frontend는 받은 페이지 행으로 그룹 합계를 다시 계산하지 않는다.
+
+Resource 선택은 Project 연결과 해당 Group의 실제 소속을 검증한다. 유효 구성원이 현재 조건에서 제외되면 정상200/0건이다. 미연결 Resource, 다른 Group 구성원, 잘못된 selector는400이고 snapshot 변경은409 REPORT_STALE다. 미분류 Group은 실제 Group 미소속 개인만 통과한다. 글로벌 미배정 구성원은 공개하지 않는다. 신규 route도 public-read·private/no-store·nosniff이며 Cookie/Origin/session mutation 계약을 변경하지 않는다.
+
+Milestone 정렬은 canonical 예정일→안정 public ID이며 날짜 없는 경우 뒤로, 미지정은 마지막이다. report stages와 catalog Milestone 후보, 전체/Resource/Group cells 및 children cells에 같은 순서를 적용한다. full stages는 필터 이전 전체 상태이고 selected cells는 선택 집합이다. sparse cell 생략은 대상 없음이며 화면에서 유효0으로 위장하거나 추가 Assignment를 만들지 않는다.
+
+기존 full snapshot 및 selected cells5000 예산을 유지한다. reference/excluded는 전체 Assignment8000 상한 안에서 totals-only다. children page의 실제 Resource×Milestone bucket(미지정 포함)을 materialization 전에 cells5000으로 검사하고 응답2MiB를 적용한다. 초과 시422 REPORT_LIMIT_EXCEEDED이며 절삭 합계를 반환하지 않는다. 화면 tree/matrix 페이지·열 창은 표시 범위만 줄이고 서버 raw 계산 범위는 유지한다. 후속 capacity는 같은 prepared 입력/Calendar/검증된 개인 Assignment grain을 재사용할 수 있으며 본 단위에 capacity 계산은 추가하지 않는다.
+
+### Issue #526 Milestone 계층과 비교표 UI
+
+기존 리소스 탭에서 기본 현황/Milestone 계층/비교표를 선택한다. Group→Milestone→Resource→Task, Group→Resource→Milestone→Task, Resource→Milestone→Task는 서버 selector의 교차 범위로 조회하며 WBS를 변경하지 않는다. Group children는 동일 snapshot·filter·Calendar/Catalog revision을 검증하고 페이지당50개 개인을 조회한다. Task 상세는 고유 Task, 공수 상세는 Assignment 행이다.
+
+비교표는 Group 또는 Resource를50행씩, canonical 예정일·동률 stable ID로 정렬한 Milestone을6열씩 표시하며 미지정은 마지막, 전체는 별도 열이다. 전체값은 서버 summary로 유지하고 표시 행/열을 합산하지 않는다. 계획 공수/Task/완료율/지연을 한 지표씩 표시한다. 누락된 교차 셀은 대상 없음으로 비활성, 유효0은0으로 표시하고 미설정·부분합·M/M 기준 부재를 구별한다. Row/Milestone fullname은 accessible name과 title로 보존하면서 시각 이름은2줄로 제한한다. Identity264px/Milestone144px 최소폭과 표 내부 scroll을 사용한다.
+
+Milestone 조건이 없으면 기준=선택·제외0을 한 줄로 표시한다. 조건이 있으면 선택/reference/excluded raw 서버값을 평이한 집계 줄로 표시하며 각각 실제 Assignment 집합에 연결된 상세를 연다. 선택 할당 작업 진척과 단계 전체 member/Ready/Blocked는 별도 라벨이다. 단계 완료 mutation은 제공하지 않는다.
+
+펼침 의도·nested pager는 안정 ID tuple로 보존하며 실제 mount되는 펼침은 provider admission으로 최대12개다. 페이지 밖 상태를 지우지 않고 상위부터 허용하여 ancestor 재펼침·페이지 복귀 시12개를 넘기지 않는다. 동일 query에서 mode/order 변경은 상태를 유지하고 snapshot/filter 변경은 새 상태다. canceled/이전 child409는 현재 report를 stale로 만들지 않는다. stale 클릭을 잠그고 실패를 이전 정상 결과로 위장하지 않는다. 상세 Escape는 유효한 visible trigger로 복원하고 숨김/inert/disabled/unmounted trigger는 검색으로 복원한다.
+
+2026-10-08 공식 [SVAR Group tasks](https://docs.svar.dev/react/gantt/guides/data-operations/grouping-tasks/) 문서를 확인했다. 해당 grouping은 PRO 기능이며 설치 Core2.7.3의 API로 가정하지 않는다. 앱 서버 projection을 표/계층으로 표시하며 Gantt 자체의 tree/grouping을 재구성하지 않는다. 공식 demo JavaScript 직접 조작은 NOT TESTED다.

@@ -26,6 +26,11 @@ test("Issue #524 실제 브라우저 public readonly report/detail과 재시작 
     expect(report.mdPerMm).toBeNull(); expect(report.mdPerMmSource).toBe("query");
     const detail = await readonly.request.get(`/api/projects/${publicId}/resource-dashboard/details?mdPerMm=null&snapshotId=${report.snapshotId}&dimension=all`);
     expect(detail.status()).toBe(200); expect((await detail.json()).data.totalCount).toBe(0);
+    const groupChildren = await readonly.request.get(`/api/projects/${publicId}/resource-dashboard/group-children?mdPerMm=null&snapshotId=${report.snapshotId}&groupId=ungrouped`);
+    expect(groupChildren.status()).toBe(200); expect(groupChildren.headers()["x-content-type-options"]).toBe("nosniff");
+    expect((await groupChildren.json()).data).toMatchObject({ snapshotId: report.snapshotId, filters: report.filters, range: report.range, mdPerMm: null, mdPerMmSource: "query", totalCount: 0, rows: [] });
+    const reference = await readonly.request.get(`/api/projects/${publicId}/resource-dashboard/details?mdPerMm=null&snapshotId=${report.snapshotId}&dimension=all&assignmentScope=milestoneReference`);
+    expect(reference.status()).toBe(200); expect((await reference.json()).data.selector.assignmentScope).toBe("milestoneReference");
     expect(await readonly.cookies()).toEqual([]);
     const unsupported = await readonly.request.post(path); expect(unsupported.status()).toBe(405);
     const rejected = await readonly.request.get(`${path}&resourceIds=00000000-0000-4000-8000-000000000001`); expect(rejected.status()).toBe(400);
