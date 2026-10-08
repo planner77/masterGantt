@@ -34,7 +34,7 @@ export function MilestoneMembershipPicker({ task, tasks, links, value, disabled,
     </label>
     {open && !pending ? <ul ref={optionsRef} id={`${id}-list`} role="listbox" aria-label="완료 단계 검색 결과" className={styles.membershipOptions}>
       {options.length ? options.map((option, index) => <li key={option.taskId} id={`${id}-option-${index}`} role="option" aria-selected={index === active} aria-disabled={disabled || completedLock || option.status === "completed"} onMouseDown={(event) => event.preventDefault()} onClick={() => { if (option.status !== "completed") choose(option.taskId); }}>
-        <strong>{option.name}</strong><span>외부 ID: {option.externalId} · 작업 ID: {option.taskId}</span><span>{option.start ?? "날짜 미정"} · {option.status === "completed" ? "완료 · 먼저 재개해야 합니다" : option.status === "in_progress" ? "진행 중" : "시작 전"}</span>
+        <strong>{option.name}</strong><span>{option.start ?? "날짜 미정"} · {option.status === "completed" ? "완료 · 먼저 재개해야 합니다" : option.status === "in_progress" ? "진행 중" : "시작 전"}</span>
       </li>) : <li role="presentation">검색 결과가 없습니다.</li>}
     </ul> : null}
     <p className={styles.caption}>{description}</p>
