@@ -29,3 +29,10 @@
 - [Run #2123.1](https://github.com/planner77/masterGantt/actions/runs/37706749312), head `b0a9dcc232afc7abc2fec6ae8b2b87597c0c6607`: 변경 경로/TypeScript/ESLint/build/Vitest/정책/Docker PASS, E2E shard 1–5 PASS. Shard 6은 기존 #456 `task-editor-form-density.spec.ts`의 *metadata 저장 후 Gantt viewport continuity* assertion에서 FAIL (기대 chartScroll/publicViewport.left=120, 실제=91; 다른 상태는 보존), shard 6 = 72 PASS / 1 FAIL / 1 SKIP.
 - 현재 Core canonical metadata sync 후 Gantt viewport 복원은 `scrollLeft===0` 또는 `scrollTop===0`에서만 보정한다. 기존 nonzero 좌표 `120 → 91`의 일부 변동은 복원하지 않는다. 동일 API/scope/geometry/columns/scale 및 사용자 입력 없음이라는 기존 `currentRequest()` guard를 유지하고 *실제 값이 이전 좌표와 다르면* public `scroll-chart`로 정확히 복원하도록 보완한다. 별도 순수 helper와 0/partial/nonzero/invalid 단위 회귀를 추가한다. 사용자 입력 후 offset을 강제로 되돌리지 않도록 기존 `hasInput` guard를 그대로 유지한다.
 - 원격 브라우저 trace ZIP의 직접 재생/독립 실험은 수행하지 않았다. 원인은 코드 검토 + observed numeric mismatch의 합리적 추정이며 수정 효과는 새 PR exact-head CI에서 검증할 것. 사용자 승인 범위는 보완 후 PR CI 시작까지이며 병합/메인 CI/정식 릴리스는 미승인.
+
+## PR CI #2132.1 실패 후 보완 (2026-10-08 KST)
+
+- [Run #2132.1](https://github.com/planner77/masterGantt/actions/runs/37709855634), head `22b58c88e0cb1a85d7a69029729959110d5df014`: 빌드·타입 검사·ESLint·Vitest·정책·Docker·E2E shard 1/3/4/5/6 성공, E2E shard 2 실패 (74 PASS / 1 FAIL).
+- 실패는 `tests/e2e/project-edit-authorization.spec.ts:79`의 저장 완료 후 read-only `page.request.get(projectPath)`에서 `read ECONNRESET` (HTTP 응답 자체 없음). 로그만으로 Node/Next.js 서버 종료나 제품 API 오류라고 확정할 수 없음. 기능 변경으로 API 응답을 우회하지 않는다.
+- 저장소의 `tests/e2e/project-browser-title-favicon.spec.ts`, `milestone-stage-grid.spec.ts`에서 사용하는 동일 패턴에 따라 W05 보안 회귀의 **읽기 전용 프로젝트 GET만** `ECONNRESET/socket hang up` 시 최대 3회, 250ms×시도번호 지연으로 재전송한다. 재시도 소진, HTTP 401/409/500, mutation 실패 등은 기존대로 즉시 실패·검증한다. `HEAD/OPTIONS/PATCH`, 인증·revision·session assertion은 변경하지 않는다.
+- 실제 장애 원인 증거가 부족하므로 재시도 후 최종 PASS는 새 exact-head CI 결과가 판단한다. 요청 범위는 새 PR CI 시작까지이고 병합·Main CI·GHCR 게시·Issue 종료는 금지.
