@@ -1077,6 +1077,8 @@ Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0d
 
 새 조건 로딩·오류에서 이전 값은 이전 성공 결과라고 표시하고 상세/페이지 이동을 잠근다. 필터 입력과 표시 단위를 유지한다.400 삭제된 선택은 조건 해제/초기화,422는 범위 축소,409는 새로고침 후 상세 명시 재진입을 안내한다. 외부 Project revision 변경은 busy/편집기 guard가 있는 `최신 일정 조회`로 canonical snapshot을 명시 갱신한다. hidden tab의 조회를 중단하고 활성화·focus/visibility 복귀에 최신 report를 조회한다.
 
+선택된 KPI 상세와 펼친 행은 Project/revision/검색·기간·필터 query/snapshot이 달라지면 **즉시 해제**한다. 사용자가 이전 검색 조건을 복원하더라도 deterministic snapshot ID를 근거로 과거 상세를 자동 재개하거나 detail API를 재호출하지 않는다. 같은 scope의 상세 조회 오류는 명시적 `상세 다시 시도`로 재시도할 수 있다. 이 동작은 hidden peer tab 보존(조건이 불변일 때)과 구별한다.
+
 기존 단계→리소스 exact assignment drill은 legacy UI/API를 유지한다. drill 중 기본 Dashboard는 hidden/inert로 mount 보존하고, 범위 해제 후 원래 필터·단위·모드로 돌아온다. 기존 legacy filter 종류와 새 표시 모드의 의미를 혼합하지 않는다. Assignment 저장 override/작업 상속과 이번 선택 구간은 별도로 표시하고 실제 작업 일정과 혼동하지 않는다.
 
 390/768/1024/1440/1920px의 문서 overflow·내부 scroll·직접 header/body 열 정렬·cell/control containment·native focus와 기존 Gantt 인스턴스/scroll/선택/열폭/scale 보존은 [테스트 계획](TEST_PLAN.md#issue-525-resourcegroup-dashboard-검증)에서 실행 근거와 한계를 확인한다.
@@ -1093,6 +1095,8 @@ Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0d
 ## Issue #526 리소스 Milestone 조회
 
 리소스 탭의 보기 선택에 계층/비교표를 추가한다. Group 중심은 Milestone 우선 또는 개인 우선 집계 순서를 선택하고, 개인 중심은 Milestone 소계에서 상세를 연다. 상위 Workspace navigation은 추가하지 않는다. 기존 기본 현황과 legacy stage drill은 유지한다. 필터·단위·snapshot은 공유하고 행/열 페이지는 계산 범위를 바꾸지 않는다.
+
+계획 공수의 서버 `effort.state=empty`는 `할당 없음`이며 의도적으로 설정된 0공수(`configured`의 `0.00 M/D` 또는 `0.00 M/M`)와 구분한다. `unset`은 `산정 불가 · 공수 미설정`, `partial`은 `알려진 부분합` 표시를 유지한다. 비어 있는 Role 소계에도 가짜 확정 0공수를 노출하지 않는다.
 
 긴 Group/Resource/Milestone 이름은2줄로 보이되 full accessible name/title을 보존한다. 비교표는 내부 scroll을 가진50행×6단계+전체이며 visible 개수와 전체 scope를 구분한다. 계층은12개 실제 펼침 상한과 안정 ID별 보존 상태를 사용한다. 상세의 이름은 row·Milestone·metric을 포함하고 Escape는 숨김/inert trigger를 피하여 검색으로 복원한다. Gantt instance 및 기존 일정 scroll/선택/열/tree/scale을 변경하지 않는다. 정량 검증은 TEST_PLAN의 #526 UI 절을 따른다.
 

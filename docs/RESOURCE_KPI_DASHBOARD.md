@@ -124,7 +124,7 @@ Calendar count와 Task/Assignment/Link/소속 예산은 원시 목록 load 전�
 
 기간·Milestone·검색은 기본 도구줄, Global Role·개발자 등급·작업 상태·개인 활성 상태·그룹 활성 소속·그룹/개인 선택·작업 검색은 고급 필터다. 한쪽 날짜는 입력 그대로 서버 조건으로 전송한다. 역순 날짜는 오류를 표시하고 조회를 막으며 이전 결과를 stale로 잠근다. 검색 및 activity/개인 필터는 A에만 적용하고, T0 진단은 개인 조건 적용 전 작업범위라고 표시한다. 개인 미배정/완전 미할당/Group만 지정은 실제 고유 Task 상세로 조회한다. Milestone 미지정과 미분류 Resource는 별도 선택이다.
 
-선택 범위 KPI와 Group/Resource/Global Role 행은 서버 raw 값만 표시 경계에서 반올림한다. 화면 행을 재합산하지 않는다. Grand Total과 복수 분류의 비가산 소계를 구분하고, `unset`은 산정 불가, `partial`은 알려진 부분합, configured zero와 empty zero를 구분한다. 환산 기준값과 query/환경 출처를 표시하며 미설정이면 M/M 전환을 비활성화하고 이유를 보인다. 계획 공수는 실제 기여도나 소진 공수로 표현하지 않는다.
+선택 범위 KPI와 Group/Resource/Global Role 행은 서버 raw 값만 표시 경계에서 반올림한다. 화면 행을 재합산하지 않는다. Grand Total과 복수 분류의 비가산 소계를 구분하고, `unset`은 산정 불가, `partial`은 알려진 부분합, configured zero와 empty zero를 구분한다. `empty`(선택 범위 Assignment 0건)는 `할당 없음`으로 표시하고, 설정된 근무일 0 등의 `configured` 실제 0공수만 `0.00 M/D`/`0.00 M/M`으로 표시한다. Global Role 집계 행 자체가 없을 때에도 가짜 확정 0공수를 대신하지 않는다. 환산 기준값과 query/환경 출처를 표시하며 미설정이면 M/M 전환을 비활성화하고 이유를 보인다. 계획 공수는 실제 기여도나 소진 공수로 표현하지 않는다.
 
 할당 Task/완료/지연 KPI 상세는 view=tasks의 고유 Task 표다. 공수 미설정과 개인 행 상세는 view=assignments다. Task 표의 assignment:null은 정상이다. 작업명/UUID/externalId/WBS/현재 상태·진척/작업 일정/effective Milestone을 표시하고, Assignment 표에는 저장 override/상속, 선택 기간으로 자른 투입 구간·근무일·투입률·공수를 추가한다. 표 행의 투입 시작/종료도 선택 기간으로 자른 구간이다.
 
