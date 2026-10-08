@@ -1043,7 +1043,7 @@ test("Issue #485 Global Role 필터는 후보만 제한하고 assignment 저장�
 
 test("#461 picker UUID·동명이인·긴 후보 keyboard·Summary 필드·리소스 초안 보호", async ({ page }) => {
   const fixture = await setup(page, { assignmentTargets: true });
-  for (let index = 10; index < 32; index++) fixture.tasks.push(task(index, `Milestone 긴 한글 English duplicate ${index === 10 || index === 11 ? "same" : index}`, { type: "milestone", duration: 0, status: "not_started", progress: 0 }));
+  for (let index = 10; index < 32; index++) fixture.tasks.push(task(index, `Gate 긴 한글 English duplicate ${index === 10 || index === 11 ? "same" : index}`, { type: "milestone", duration: 0, status: "not_started", progress: 0 }));
   fixture.tasks[0].membership = { explicitMilestoneTaskId: id(10), effectiveMilestoneTaskId: id(10), inheritedFromTaskId: null };
   fixture.tasks[1].membership = { explicitMilestoneTaskId: id(11), effectiveMilestoneTaskId: id(11), inheritedFromTaskId: null };
   await page.reload();
@@ -1083,7 +1083,7 @@ test("#461 picker UUID·동명이인·긴 후보 keyboard·Summary 필드·리�
   await expect(listbox).toHaveCount(0);
   await picker.fill("same");
   await expect(listbox.getByRole("option")).toHaveCount(2);
-  await picker.fill("Milestone");
+  await picker.fill("Gate");
   for (let index = 0; index < 18; index++) await picker.press("ArrowDown");
   const visible = await picker.evaluate((element) => { const active = document.getElementById(element.getAttribute("aria-activedescendant")!)!, list = document.getElementById(element.getAttribute("aria-controls")!)!, body = element.closest("dialog")!.querySelector('[class*="body"]')!; const a = active.getBoundingClientRect(), b = list.getBoundingClientRect(), input = element.getBoundingClientRect(), owner = body.getBoundingClientRect(); return { activeOptionTop: a.top, activeOptionBottom: a.bottom, listOwnerTop: b.top, listOwnerBottom: b.bottom, activeOptionVisible: a.top >= b.top && a.bottom <= b.bottom, inputTop: input.top, inputBottom: input.bottom, bodyTop: owner.top, bodyBottom: owner.bottom, focusedInputVisible: input.top >= owner.top && input.bottom <= owner.bottom, focusedInputRetained: element === document.activeElement, listScrollTop: list.scrollTop }; });
   expect(visible.activeOptionVisible).toBe(true); expect(visible.focusedInputVisible).toBe(true); expect(visible.focusedInputRetained).toBe(true);
