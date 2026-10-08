@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.101.3] - 2026-10-08
+
+### Fixed
+
+- Issue #519: Task/Summary 작업 정보의 Milestone 후보에서 외부 ID·작업 ID 표시를 제거하고 이름·날짜·상태를 유지한다. 이름·ID/UUID 검색, canonical 선택 및 완료 잠금 계약은 보존한다.
+
 ## [0.101.2] - 2026-10-08
 
 ### Fixed
