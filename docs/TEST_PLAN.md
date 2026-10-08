@@ -2129,6 +2129,7 @@ GitHub Actions PASS는 위 환경별 항목을 자동 PASS로 승격하지 않�
 - `tests/features/resources/resource-dashboard-model.test.ts`: 기본 nullable 날짜의 상세 query omission/명시 mdPerMm=null, filter/schema/publicId/scope/calendar echo 거부, snapshot-bound details, tasks assignment:null/assignments nonnull, unset/partial/configured zero 표시. 기존 `tests/domain/milestone-resource-drill.test.ts`도 보존한다.
 - `tests/e2e/project-resource-workload-status.spec.ts`: 새 기본 endpoint에 #117/#414 상태 oracle을 이관한다. report가 catalog를 원자적으로 포함하므로 기존 workload/assigned-targets의 독립 부분 실패 대신 report 실패와 독립 상세 실패·재시도, malformed200/네트워크/echo 거부, stale·입력·단위·열림 보존, 응답 역전, 중복 refresh/hidden 조회 없음/focus catch-up, canonical mismatch와 명시 최신 일정 조회,409/400/422 및 disabled trigger focus fallback, 개발 견적/Global Role/등급/단위, 고급필터 Escape를 검증한다. 기존 client filter 네트워크0은 실제 server filter 조회 계약으로 변경한다.
 - 같은 spec의5폭 geometry는390/768/1024/1440/1920px에서 populated 요약/Assignment 표의 header/body 정렬, 소유 table의 date 열208px 최소 예산, cell 비중첩/control containment, toolbar 비중첩·document overflow0·의도한 내부 overflow 및 native Tab focus ring containment를 검사한다. Gantt의 존재하는 header 열폭·비어 있지 않은 실제 선택·native/public scroll120/96·주 scale·instance를 탭 왕복 전후 비교한다. Summary를 실제로 접고 자식 row가 없음을 확인한 뒤 복귀 후 접힘 icon/자식 비표시와 같은 scroll을 다시 확인한다. legacy 단계 drill의 exact 기존 endpoint/mount된 기본 필터·단위·모드 복귀와 DOM ID 고유성도 확인한다. 외부 snapshot으로 상세가 사라질 때 내부 focus만 trigger/검색으로 복원하고 filter focus를 보존한다.
+- `project-resource-workload-status.spec.ts`의 외부 snapshot/focus 시나리오는 고유 snapshot A→B와 동일한 B의 검색 조건 A→B→A 복귀에서 숨긴 KPI 상세가 다시 나타나지 않고 상세 GET 횟수가 증가하지 않음을 검증한다. 검색 입력 focus를 유지하고 동일 scope의 명시적 상세 retry는 유지한다.
 - `tests/e2e/resource-dashboard-ui.spec.ts`: isolated 실제 native SQLite/HTTP/readonly browser에서 Task4개+Milestone1개, 개인2명/Group2개, 공동 Task2Assignment와 null 공수/완전 미할당/Group만 지정, 복수 Group/Role 비가산 subtotal을 생성한다. raw 서버 합계·기본 view/tasks 고유 Task·Assignment 상세·Milestone 소속·DEVELOPER 필터/all-unset/미배정 T0·비활성 기존 할당·외부 Project revision 명시 복구·읽기전용 cookie 없음/조회 mutation 없음을 검증한다. `milestone-stage-dashboard.spec.ts`의 기존 실제 legacy drill 회귀도 실행한다.
 
 합성 화면 PNG와 geometry/실행별 실패 trace는 `output/playwright/issue-525/` 및 실행별 sibling artifact에 로컬 보존한다. PR 검토용 합성 PNG390/1440은 `docs/evidence/issue-525/`에 둔다. legacy-preserved 이미지는 동일한 기존 renderer의 현재 보존 관측이며 historical before capture를 새 source의 before로 소급하지 않는다.
@@ -2174,6 +2175,22 @@ Mock 대량 fixture는 긴200자 Resource/Group/Milestone명·code50자·Group12
 최초 중단된 JSX 추가괄호로 browser2FAIL/typecheck syntaxFAIL, 수정 뒤 테스트 identity 인수누락으로 matrix1FAIL/tree1PASS를 확인했다. Compact 개선 중 oracle이 내부 가로scroll metricbutton을 toolbar viewport 검사에 포함하고 Resource→M 경로에 summary3개를 요구하여 실패했으며 실제 표/toolbar·경로별 최소수를 구분했다. Native target없음 locator의 숨김패널 선택과 known부분합 중복 strictlocator, fallback 검색 oracle의 다른 입력label 선택을 고쳤다. 실제Summary fixture에 authored duration/progress0을 보내400인 실패를 확인하고 파생 Summary 필드를 생략했다. 12개 budget 복귀와 source cap admission 수정, compact identity 작업면 REWORK, Next 환경 동기화를 기록하며 gate를 제거하지 않았다. Raw 실행 로그/geometry/source hash는 로컬 `output/playwright/issue-526/`에 보존하고 runtimeDB/민감 로그는 Git에 넣지 않는다.
 
 DOCUMENTATION_SYNC 대상은 Resource KPI/PROJECT_UX/MILESTONE_STAGE_GATES/REQUIREMENTS/TEST_PLAN UI 절이다. Backend freeze의 DTO/API/Domain/Calendar/security 계약을 변경하지 않았다. DB migration/DESIGN/공용semantic token/AGENTS 변경은 N/A다. Official PR quality/e2e/docker, 독립 QA/최종 Manager ACCEPT, 실제 native125%/실기기/screen reader/Windows Excel/운영환경 검증은 별도 NOT TESTED다.
+
+### Issue #525 Codex P2: 빈 할당과 설정된 0공수 구별 (2026-10-08)
+
+`src/features/resources/resource-dashboard-model.ts`의 공수 표시에서 `state=empty` / `assignmentCount=0`은 `할당 없음`으로 표현한다. `state=configured`이면서 유효 근무일이 0인 계획은 실제 `0.00 M/D`·`0.00 M/M`로 표시해야 한다. `unset`(산정 불가)·`partial`(알려진 부분합)도 각각 다른 값이다. 단위 테스트는 empty/configured-zero를 M/D·M/M 양쪽에서 별도 검증하고, `project-search-filter.spec.ts`는 실제 기본 Dashboard의 기간 밖 0건 범위에서 `할당 없음`을 확인한다. Global Role 누락 행도 같은 의미로 표시한다. 최신 head CI 성공 전 ACCEPT는 유보한다.
+
+
+### Issue #526 PR CI #2142.1 — 기존 Resource 검색 기간 E2E fixture 회귀 (2026-10-08)
+
+원격 full PR CI [#2142.1](https://github.com/planner77/masterGantt/actions/runs/37720291182)의 TypeScript/ESLint/Vitest/Next production build/Docker smoke/정책 및 Chromium shard 1·2·3·5·6는 PASS였다. Chromium shard 4에서 `tests/e2e/project-search-filter.spec.ts`의 #83 테스트 1건이 실패했다. 조회 from=2026-10-01, to=2026-10-31에서 합성 배정기간 2026-09-16~18은 교집합이 없어야 하지만 `tests/fixtures/resource-dashboard-ui.ts`가 날짜를 무시하고 1 Assignment/5 M/D를 반환했다. 이 fixture는 UI 회귀 검증용 응답이며 실제 SQLite 서버 계산과 구분한다.
+
+기존 선택 범위 검색/활성/역할/등급/상태 판정에 inclusive 날짜 교집합 조건을 추가한다. 기간 밖일 때 Resource·Group 행 0개, `effort.state=empty` 및 `할당 없음`을 유지하되 명시 설정된 0공수(`configured`)와 혼동하지 않는다. 기간 재초기화 시 합성 9월 배정과 5 M/D가 복원되는 기존 E2E assertion을 유지하며 skip/기대값 완화는 적용하지 않는다. DB/API·출력 기능과 실제 Dashboard 서버 코드 변경 없음. 이 수정 이후 공식 exact-head 원격 CI/ACCEPT는 결과 확인 전 NOT TESTED다.
+
+
+### Issue #526 PR #534 Codex P2 — Milestone scope Assignment drill-down 보완 (2026-10-08)
+
+PR #534 unresolved review `PRRT_kwDOUUB7Bc6qEYQc`는 Milestone 조건 활성화 시 선택/reference/excluded 계획공수를 보이면서 고유 Task 상세만 제공하는 실제 UI 누락을 지적한다. 이 세 서버 `ResourceDashboardSummary.selector`는 동일 snapshot의 실제 Assignment 집합을 가리킨다. `MilestoneScopeSummaries`의 각 scope에 계획 M/D·M/M 및 Assignment 수를 포함한 명시적 `assignments` 상세 버튼을 추가하고 기존 고유 Task 상세 버튼은 유지한다. Assignment 0건은 비활성이고 null/partial/unset 텍스트를 변경하지 않는다. native SQLite/HTTP E2E에서 Milestone 제외 집합의 `assignmentScope=milestoneExcluded`/`view=assignments`/고유 Assignment 행·Task 집합을 검증하며 모드/수치 계산·DB·API 계약은 변경하지 않는다. 리뷰 해결·정확한 새 head의 PR CI success 전에는 병합/ACCEPT를 선언하지 않는다.
 
 
 ## Issue #527 Backend Resource Plan 검증
@@ -2242,3 +2259,8 @@ Backend nativeAPI1PASS15.8초/전체27.6초는 최초 실행의 이전 source �
 최종 /tmp/frontend528-final-rework-native2.log 실제 SQLite UI1PASS16.5초/전체27.4초. 390/768/1024/1440/1920에서 버튼2개가 모두40px, native Tab focus outline solid3px, document overflow0·strip containment를 확인했다. 최초 및8단계 신규 Resource 방문의 visible 제목 focus를 확인하고390/1440 PNG·five-width JSON을 갱신했다. M 수동 기준일2026-10-02/원본기간2026-10-01–2026-10-03/명시 환산15 M/D /1 M/M은 오늘 lookup과 달라도 strip·원본 M 복귀 후 입력에 유지된다.
 
 첫 hitbox 영향 native1PASS16.7초/전체27.4초는 동일 고유 case 반복이다. M manual 추가 최초 실행은 select의 label에 option text가 포함된 exact locator로15초 timeout이 발생했다(/tmp/frontend528-final-m-context-native.log). 적절한 label 부분 일치로 수정하고 최종 통과했으며 timeout을 늘리지 않았다. 새 고유 case 수는 여전히 mock2/nativeUI1이고, 영향 없는 mock2의 browser11 증거를 재사용한다. 관련 navigation/transport Unit2파일13PASS·typecheck·변경2파일lint0error/0warning·Markdown 링크를 최종 갱신한다. 기존 전체28Unit 및 Gantt baseline4warning 분류는 관련 Local 재사용이며 추가 전체 회귀로 합산하지 않는다. 원격CI/독립QA는 NOT TESTED다.
+
+
+### Issue #528 PR CI #2115.1 — 선행 #527 정렬·회귀 검증 보완 (2026-10-08)
+
+PR #536 exact head `899d5d7` Actions `37697904378`에서 Chromium shard 2/4/5/6는 실패하고 quality/typecheck/Vitest/ESLint/Next Build/Docker smoke는 성공했다. Gantt 선택 직후 Core auto-pan으로 고정 수평좌표120이 달라질 수 있으므로 실제 전환 직전 스크롤을 취득해 복귀 시 같은 native viewport·선택·scale·instance인지 비교한다. Milestone→Resource 정확한 원본 범위 문구는 Dashboard 본문이 아닌 `임시 조회 범위` region에 있으며, POST exactAssignments·기간·원본 revision을 검증한다. Resource 검색의 숨김 option 대신 실제 row를 검증한다. 선행 #527에 추가된 #525의 빈 배정 `할당 없음`·snapshot 전환 시 상세 초기화·진단 projection·기간 fixture 교집합과 관련 E2E 변경은 유지한다. 새 CI 전에는 모두 NOT TESTED이며 테스트 skip/검증 제거로 성공을 주장하지 않는다.

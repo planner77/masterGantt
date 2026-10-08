@@ -139,6 +139,7 @@ export class ResourceKpiProjectionLimitError extends Error {
 const unique = (values: readonly string[]): string[] => [...new Set(values)].sort();
 const matches = <T>(filter: readonly T[] | undefined, value: T): boolean => !filter?.length || filter.includes(value);
 
+/** Exact duplicate joins collapse; conflicting rows fail instead of choosing input order. */
 /** Structural equality preserves non-finite numbers and ignores object key order. */
 function equalKpiInput(left: unknown, right: unknown): boolean {
   if (Object.is(left, right)) return true;

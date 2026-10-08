@@ -89,9 +89,12 @@ async function setup(page: import("@playwright/test").Page) {
   await frame.locator(".wx-chart").evaluate((el) => {
     el.scrollLeft = 120;
   });
-  await expect
-    .poll(async () => (await viewport(page)).dom)
-    .toEqual({ left: 120, top: 96 });
+  // Core may auto-pan selected tasks after selection. Verify round-trip continuity
+  // against the actual stable viewport rather than assuming a fixed 120px offset.
+  await expect.poll(async () => (await viewport(page)).dom.top).toBe(96);
+  await expect.poll(async () => (await viewport(page)).dom.left).toBeGreaterThan(0);
+  await frame.evaluate(() => new Promise<void>((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   const before = await viewport(page);
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
   await expect(root(page)).toHaveAttribute("data-ready", "true");

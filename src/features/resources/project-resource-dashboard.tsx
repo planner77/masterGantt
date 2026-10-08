@@ -101,6 +101,14 @@ export function ProjectResourceDashboard({
     queryKey,
   );
   const data = report.data;
+  // A changed query/snapshot invalidates interactive selections without resetting the cached report.
+  const scopeKey = JSON.stringify([publicId, revision, queryKey, data?.snapshotId ?? null]);
+  const [selectionScopeKey, setSelectionScopeKey] = useState(scopeKey);
+  if (selectionScopeKey !== scopeKey) {
+    setSelectionScopeKey(scopeKey);
+    setSelection(null);
+    setExpanded(new Set());
+  }
   const stale =
     report.stale || (data !== null && detailStale === data.snapshotId);
   const set = <K extends keyof ResourceDashboardFilterInput>(
@@ -820,7 +828,7 @@ export function ProjectResourceDashboard({
                   <dd>
                     {total
                       ? plannedEffort(total.summary.effort, displayUnit)
-                      : `0.00 ${displayUnit === "md" ? "M/D" : "M/M"}`}
+                      : "할당 없음"}
                   </dd>
                   <small>
                     {total?.summary.assignmentCount ?? 0} Assignment
