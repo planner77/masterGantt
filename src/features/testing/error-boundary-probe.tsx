@@ -6,6 +6,7 @@ export function ErrorBoundaryProbe({ probeId }: Readonly<{ probeId: string }>) {
   const triggerReference = useRef<HTMLButtonElement>(null);
   const [shouldThrow, setShouldThrow] = useState(false);
   const [recovered, setRecovered] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const storageKey = `mastergantt:e2e-error-boundary:${probeId}`;
 
   // Server-rendered button text can appear before React attaches its event handler.
@@ -23,6 +24,16 @@ export function ErrorBoundaryProbe({ probeId }: Readonly<{ probeId: string }>) {
     return () => window.clearTimeout(timer);
   }, [storageKey]);
 
+  // An SSR-visible button is not necessarily hydrated. The marker is set
+  // from a committed client effect, after React has attached the event handler.
+  // This probe is gated to non-production E2E runs only.
+  useEffect(() => {
+    const button = triggerRef.current;
+    if (!button) return;
+    button.dataset.e2eHydrated = "true";
+    return () => { delete button.dataset.e2eHydrated; };
+  }, []);
+
   if (shouldThrow) {
     throw new Error(`Controlled E2E error boundary probe: ${probeId}`);
   }
@@ -38,7 +49,7 @@ export function ErrorBoundaryProbe({ probeId }: Readonly<{ probeId: string }>) {
           : "이 컨트롤은 E2E 환경에서만 실제 React 오류 경계를 검증합니다."}
       </p>
       <button
-        ref={triggerReference}
+        ref={triggerRef}
         key={recovered ? "recovered" : "initial"}
         autoFocus={recovered}
         className="secondary-button"

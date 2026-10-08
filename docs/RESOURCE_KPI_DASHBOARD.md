@@ -110,7 +110,7 @@ Calendar count와 Task/Assignment/Link/소속 예산은 원시 목록 load 전�
 
 `ResourceDashboardRow.assignmentRange`는 그 행의 A에서 clipped 유효 Assignment from 최소/to 최대이며 빈 범위는null이다. 행 기간은 canonical Task 일정과 다르다. 상세에는 canonical taskStart/taskEnd와 raw assignmentStart/assignmentEnd, 조회로 clipped from/to를 별도 제공한다. WBS path는 Project 안의 이름/public ID, Milestone은 explicit/effective/inheritedFrom public ID를 반환한다. catalog에는 해당 Project Task에 실제 개인 참조가 있는 Resource 및 직접 Group 참조/그 Resource의 Group만 있고 글로벌 미배정 인력·Group 전체 구성원·description은 제공하지 않는다.
 
-상세 selector의 dimension은 all/resource/group/role/milestone/diagnostic이고 id는 public ID 또는null이다. null Group은 HTTP id=ungrouped, null Milestone은 id=unassigned로 보낸다. optional milestoneTaskId=null은 HTTP milestoneTaskId=unassigned이며 생략은 모든 Milestone이다. metric은 all/notStarted/inProgress/completed/delayed/unset와 diagnostic용 completelyUnassigned/groupOnly/personallyUnassigned다. Task KPI 클릭은 view=tasks로 고유 Task, Assignment KPI/공수 미설정 Assignment 클릭은 view=assignments로 해당 원시 Assignment를 본다. T0 진단은 dimension=diagnostic/view=tasks이며 가짜 개인/공수 없이 assignment=null이다.
+상세 selector의 dimension은 all/resource/group/role/milestone/diagnostic이고 id는 public ID 또는null이다. null Group은 HTTP id=ungrouped, null Milestone은 id=unassigned로 보낸다. optional milestoneTaskId=null은 HTTP milestoneTaskId=unassigned이며 생략은 모든 Milestone이다. metric은 all/notStarted/inProgress/completed/delayed/unset와 diagnostic용 completelyUnassigned/groupOnly/personallyUnassigned다. Task KPI 클릭은 view=tasks로 고유 Task, Assignment KPI/공수 미설정 Assignment 클릭은 view=assignments로 해당 원시 Assignment를 본다. T0 Task 진단은 dimension=diagnostic/view=tasks이며 가짜 개인/공수 없이 assignment=null이다. diagnostic unset의 원시 Assignment 상세만 view=assignments를 추가 허용하며 아래 #529 기간·예산 계약을 따른다.
 
 필터 echo의 mdPerMmProvided=false는 detail query에서 mdPerMm을 생략해야 한다. true/null은 문자열null을 보내 ENV를 무시한다. scope를 바꾸면 기존 snapshotId가 detail을 승인하지 않는다. 상세는 Task public ID→Assignment public ID 순으로 안정 정렬하며 offset/limit page에서 전체 totalCount와 nextOffset을 제공한다. report/cell에는 반복되는 전체 ID 목록이 없고 same-scope selector만 있다. Page 행을 합산해 KPI를 재정의하지 않는다. 새 조회는 같은 Project public-read guard, private/no-store 및 JSON nosniff를 적용하고 edit 쿠키를 발급하지 않는다.
 
@@ -231,7 +231,7 @@ Resource Plan owner는 sticky identity 폭(280px/144px)을 scroll-padding에 반
 
 ## Issue #528 — 정확한 source scope와 양방향 drill
 
-선택 source descriptor는 일반 Task 집합과 optional 정확 Assignment 집합으로 정규화한다. selected A는 두 집합과 현재 target 필터의 교집합이다. 공동 Task의 한 개인 Assignment를 다른 개인 배정으로 확대하지 않는다. 명시 빈 집합과 빈 Summary는 empty다. T0는 허용 일반 Task 집합을 적용한 후 기존 개인·역할 조건 전 raw Assignment 진단을 유지한다. Summary/Milestone 직접 참조는 개인 effort에 포함하지 않는다. full Ready/Blocked는 전체 canonical Membership/Dependency를 유지한다.
+선택 source descriptor는 일반 Task 집합과 optional 정확 Assignment 집합으로 정규화한다. selected A는 두 집합과 현재 target 필터의 교집합이다. 공동 Task의 한 개인 Assignment를 다른 개인 배정으로 확대하지 않는다. 명시 빈 집합과 빈 Summary는 empty다. T0는 허용 일반 Task 집합을 적용한 후 기존 개인·역할 조건 전 raw Assignment 진단을 유지하며, exact Assignment source가 있으면 원시 Assignment도 해당 ID 교집합으로 제한한다. Summary/Milestone 직접 참조는 개인 effort에 포함하지 않는다. full Ready/Blocked는 전체 canonical Membership/Dependency를 유지한다.
 
 #526 reference/excluded는 source restriction을 유지하고 Milestone 필터만 제거한다. #527 Capacity R는 현재 Project 일반 Task 개인 배정 이력과 개인 분류 조건으로 결정하며 source Task/Assignment descriptor로 축소하지 않는다. project demand는 같은 R/실제 기간 전체 개인 배정 참고이며 selected exact 기여와 구별한다. resourceMilestone/project 상세는 해당 M 기여이고 parent Resource 전체 과투입 원인은 resource/project로 조회한다. source 제한을 버리는 GET fallback을 사용하지 않는다.
 
@@ -244,3 +244,15 @@ Frontend의 모든 report/details/groupChildren/Plan 상세는 활성 exact desc
 일정 출발에는 계산 화면의 환경 환산이 없으므로 source query/null/provided=true를 명시한다. target의 실제 환산 기준은 별도로 유지한다. 실제 일반 Task min/max와 조회 기준일을 사용하며366일로 임의 clip하지 않는다. 개인 배정0이면 '선택 작업에 조회할 개인 배정이 없습니다'로 안내한다.
 
 새 임시 이동 버튼은 공통 secondary-button으로 최소40px hitbox와3px focus ring을 유지한다. 캐시에서 이전 방문 제목이 먼저 존재해도 hidden/inert 없는 현재 visible Resource 제목에 도착 focus를 준다. Milestone manual scope는 originalSource를 그대로 보존하고 별도 lookup의 오늘 조건을 원본 표시로 사용하지 않는다.
+
+## Issue #529 Excel projection과 raw unset 상세
+
+[Excel opt-in 계약](EXCEL_EXPORT.md#issue-529-resource-dashboardplan-추가-보고서)은 current report 조건/context와 원래 drill binding을 구별한다. project는 같은 실제 기간/asOf/M-D 정책에서 개인/분류/Task/WBS/M/search/status/exact 제한을 제거한다. Resource/Group×Milestone·미지정, 기존 Plan period DTO 및 raw metrics, 고유 선택 A 상세, T0 품질과 정규화 관계를 출력한다. Full Stage Gate·Capacity R·#526 M reference·#527 같은 R project 참고는 기존 의미다. M project/Capacity 참고를 해당 M의 자체 기여 합으로 표현하지 않는다.
+
+T0는 원래 allowed Task 집합을 적용한 뒤 개인·역할 조건 전 raw 진단이다. exact Assignment source가 있으면 raw Assignment도 해당 ID 교집합으로 제한하며 공동담당으로 확대하지 않는다. diagnostic unset의 count/detail/scope는 같은 raw unset ID 집합이다. `dimension=diagnostic,metric=unset,view=assignments`를 추가 허용하고 다른 diagnostic Assignment view는 거부한다. within-period는 기존 clipped 값과 `allocationOverlapsReport=true,effortRangeBasis=report-overlap`, outside-period는 원래 실효 from/to·기존 Calendar 근무일·null MD/MM과 `false,raw-allocation`을 제공한다. 필드는 additive optional이며 required 숫자/날짜 의미를 깨뜨리지 않는다.
+
+모든 진단 대상 원래 inclusive 기간 합은 page 전에 1,000,000일을 검사한다. 유효 supported date-only를 사용하고 개별 366일 제한은 추가하지 않는다. 초과는 명시적 422 diagnostic.assignmentDays 전체 실패이며 개인·역할/page 조건으로 우회하지 않는다. 원래 기간 계산은 별도 cache를 사용해 clipped Assignment-ID cache나 prepared range를 바꾸지 않는다. Export 품질 원장은 기간 밖 raw unset도 원래 기간/overlap=false/effort=null로 보존하지만 selected A effort에 더하지 않는다.
+
+Excel 보고서 명령은 활성 visit의 ready report·실제 query/binding·원장·대상 기간/asOf/환산 정책을 확인한다. exact 이동은 immutable 원래 binding을 serialize하고 Project 전체는 binding을 보내지 않는다. report stale 및 상세 stale 모두 생성 금지이며 재조회 성공 뒤 명시 확인으로 복구한다. 기간 밖 raw unset 상세에는 `조회 기간 밖 · 원래 배정 기간 기준`을 표시하여 조회 기간의 공수 합계와 구분한다. Export 열기·취소·다운로드는 Resource 조건·LIFO 복귀 기록과 Gantt 선택·viewport·열폭·tree·인스턴스를 보존한다.
+
+Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/pointer/keydown 입력을 우선한다. Core와 native DOM 양쪽 복원을 취소하고 현재 사용자 위치를 보존하며, source·instance·동기화·조건·화면 geometry가 달라진 과거 복원은 적용하지 않는다. 관련 검증은 [TEST_PLAN의 PRE_QA REWORK](TEST_PLAN.md#issue-529-pre_qa-사용자-입력-취소-rework) 근거를 따른다.

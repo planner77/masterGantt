@@ -1,3 +1,5 @@
+import type { ResourceExcelExportOptions, ResourceExcelReportBundle, ResourceExcelAssignmentRow } from "../../contracts/resource-excel-export";
+import { parseResourceExcelOptions } from "../exports/project-excel-export-contract";
 import { resourceFingerprint as fingerprint, readResourceDataSnapshot } from "./resource-data-context-core";
 import type { ResourceDrillQueryInput, ResourceDrillQueryResponse, ResourceDrillScope, ResourceDrillScopeDto, ResourceDrillScopeRequest, ResourceDrillSourceContext, ResourceDrillSourceProjection } from "../../contracts/resource-drill";
 import { parseResourceDrillQuery } from "./resource-drill-query-core";
@@ -19,7 +21,7 @@ import { calculateResourcePlan, getResourcePlanDailyPage, getResourcePlanDayReso
 import { parseResourcePlanDetails } from "./resource-dashboard-query-core";
 
 export function resourceDashboardLimit(kind: string): never {
-  const guidance = kind.startsWith("plan.") ? kind === "plan.bytes" ? "조회 기간·개인 분류 범위를 줄이거나 월별로 조회해 주세요." : kind === "plan.matrixCells" ? "월별로 전환하거나 조회 기간·개인 분류 범위를 줄여 주세요." : "조회 기간 또는 Resource·Group·역할·등급·활성 조건의 개인 범위를 줄여 주세요. Task·Milestone·검색 조건만으로 전체 부하 계산 범위를 줄일 수 없습니다." : kind === "range.days" ? "조회 기간을 366일 이하로 줄여 주세요." : kind.startsWith("projection.") ? "개인·Group·Milestone 선택 범위를 줄여 주세요." : kind === "detail.bytes" ? "상세 page 크기를 줄여 주세요." : "프로젝트의 Task·관계·Group 소속 범위를 정리하거나 프로젝트를 분리해 주세요. 전체 snapshot 한도는 조회 필터로 우회할 수 없습니다.";
+  const guidance = kind === "diagnostic.assignmentDays" ? "미설정 원장 진단의 Task 또는 정확 Assignment 범위를 줄여 주세요. 개인·역할 필터나 상세 page 크기로 원래 투입기간 예산을 줄일 수 없습니다." : kind.startsWith("plan.") ? kind === "plan.bytes" ? "조회 기간·개인 분류 범위를 줄이거나 월별로 조회해 주세요." : kind === "plan.matrixCells" ? "월별로 전환하거나 조회 기간·개인 분류 범위를 줄여 주세요." : "조회 기간 또는 Resource·Group·역할·등급·활성 조건의 개인 범위를 줄여 주세요. Task·Milestone·검색 조건만으로 전체 부하 계산 범위를 줄일 수 없습니다." : kind === "range.days" ? "조회 기간을 366일 이하로 줄여 주세요." : kind.startsWith("projection.") ? "개인·Group·Milestone 선택 범위를 줄여 주세요." : kind === "detail.bytes" ? "상세 page 크기를 줄여 주세요." : "프로젝트의 Task·관계·Group 소속 범위를 정리하거나 프로젝트를 분리해 주세요. 전체 snapshot 한도는 조회 필터로 우회할 수 없습니다.";
   throw new PublicApiError(422, "REPORT_LIMIT_EXCEEDED", `${kind} 조회 한도를 초과했습니다. ${guidance}`, [{ path: kind, code: "REPORT_LIMIT_EXCEEDED", message: kind }]);
 }
 export function assertResourcePlanResponseBytes(value: unknown, kind = "plan.bytes", maxBytes = LIMITS.reportBytes): void {
@@ -28,8 +30,29 @@ export function assertResourcePlanResponseBytes(value: unknown, kind = "plan.byt
 function planCall<T>(call: () => T): T {
   try { return call(); } catch (error) { if (error instanceof ResourcePlanLimitError) resourceDashboardLimit(`plan.${error.dimension}`); throw error; }
 }
+type DiagnosticAssignmentRow = ResourceKpiAssignmentRow & { allocationOverlapsReport: boolean; effortRangeBasis: "report-overlap" | "raw-allocation" };
+const DIAGNOSTIC_ASSIGNMENT_DAYS_LIMIT = 1000000;
 const invalidSelection: () => never = () => { throw new PublicApiError(400, "INVALID_SELECTION", "현재 프로젝트에 연결된 조회 대상을 다시 선택해 주세요."); };
 const stale = (): never => { throw new PublicApiError(409, "REPORT_STALE", "기준 데이터 또는 조회 범위가 변경되었습니다. 대시보드를 다시 조회해 주세요."); };
+// Original effective allocation days, not the report's clipped range. Use the
+// same budget for interactive unset diagnostics and Excel quality export.
+function assertDiagnosticAssignmentDayBudget(
+  snapshot: { taskById: ReadonlyMap<string, { startDate: string | null; endDate: string | null }> },
+  assignments: readonly { taskId: string; start?: string | null; end?: string | null }[],
+): void {
+  let totalDays = 0;
+  for (const assignment of assignments) {
+    const task = snapshot.taskById.get(assignment.taskId);
+    if (!task) invalidSelection();
+    const from = assignment.start ?? task.startDate;
+    const to = assignment.end ?? task.endDate;
+    if (!from || !to) invalidSelection();
+    const days = dateToOrdinal(to) - dateToOrdinal(from) + 1;
+    if (days < 1) invalidSelection();
+    totalDays += days;
+    if (totalDays > DIAGNOSTIC_ASSIGNMENT_DAYS_LIMIT) resourceDashboardLimit("diagnostic.assignmentDays");
+  }
+}
 function compact(value: ResourceKpiTotals, selector: ResourceDashboardSelector): ResourceDashboardSummary {
   return { taskCount: value.taskCount, resourceCount: value.resourceCount, assignmentCount: value.assignmentCount,
     notStarted: value.notStarted.count, inProgress: value.inProgress.count, completed: value.completed.count, delayed: value.delayed.count,
@@ -156,34 +179,37 @@ export class ResourceDashboardService {
       assertResourcePlanResponseBytes({ data: result }, "detail.bytes"); return result;
     })();
   }
+  private validateSourceContext(data: NonNullable<ReturnType<typeof readResourceDataSnapshot>>, source: ResourceDrillSourceContext) {
+    if (Object.entries(data.context).some(([key, value]) => source[key as keyof typeof data.context] !== value)) stale();
+    if (!source.mdPerMmProvided && (source.mdPerMm !== resolveMdPerMm(undefined, this.options.mdPerMmEnvironment) || source.mdPerMmSource !== mdPerMmSource(undefined, this.options.mdPerMmEnvironment))) stale();
+    const origin = source.sourceProjection;
+    const validTask = (id: string | null | undefined, type?: string) => { if (id != null && !data.storedTasks.some((task) => task.publicId === id && (!type || task.type === type))) invalidSelection(); };
+    const validPerson = (id: string | undefined) => { if (id !== undefined && !data.resources.some((resource) => resource.publicId === id)) invalidSelection(); };
+    const validGroup = (id: string | null) => { if (id !== null && !data.groups.some((group) => group.publicId === id)) invalidSelection(); };
+    if (origin.kind === "details") {
+      const selector = origin.selector;
+      if (selector.dimension === "resource") validPerson(selector.id!);
+      if (selector.dimension === "group") validGroup(selector.id);
+      if (selector.dimension === "milestone") validTask(selector.id, "milestone");
+      validPerson(selector.resourceId); validTask(selector.milestoneTaskId, "milestone");
+    } else if (origin.kind === "groupChildren") { validGroup(origin.groupId); validTask(origin.milestoneTaskId, "milestone"); }
+    else if (origin.kind === "plan") {
+      const row = origin.selector;
+      if (row.kind === "group") validGroup(row.groupId);
+      if (row.kind === "resource" || row.kind === "resourceMilestone") validPerson(row.resourceId);
+      if (row.kind === "resourceMilestone") validTask(row.milestoneTaskId, "milestone");
+      if (dateToOrdinal(source.range.to) - dateToOrdinal(source.range.from) + 1 > LIMITS.rangeDays) resourceDashboardLimit("range.days");
+      const period = origin.periodId === "all" ? source.range : buildResourcePlanPeriods(source.range.from, source.range.to, origin.granularity).find((period) => period.key === origin.periodId);
+      if (!period || (origin.date !== undefined && (origin.date < period.from || origin.date > period.to))) invalidSelection();
+    }
+  }
   query(publicId: string, raw: ResourceDrillQueryInput): ResourceDrillQueryResponse | undefined {
     const input = parseResourceDrillQuery(raw);
     return this.database.transaction(() => {
       const data = readResourceDataSnapshot(this.database, publicId);
       if (!data) return undefined;
       const source = input.sourceContext;
-      if (Object.entries(data.context).some(([key, value]) => source[key as keyof typeof data.context] !== value)) stale();
-      if (!source.mdPerMmProvided && (source.mdPerMm !== resolveMdPerMm(undefined, this.options.mdPerMmEnvironment) || source.mdPerMmSource !== mdPerMmSource(undefined, this.options.mdPerMmEnvironment))) stale();
-      const origin = source.sourceProjection;
-      const validTask = (id: string | null | undefined, type?: string) => { if (id != null && !data.storedTasks.some((task) => task.publicId === id && (!type || task.type === type))) invalidSelection(); };
-      const validPerson = (id: string | undefined) => { if (id !== undefined && !data.resources.some((resource) => resource.publicId === id)) invalidSelection(); };
-      const validGroup = (id: string | null) => { if (id !== null && !data.groups.some((group) => group.publicId === id)) invalidSelection(); };
-      if (origin.kind === "details") {
-        const selector = origin.selector;
-        if (selector.dimension === "resource") validPerson(selector.id!);
-        if (selector.dimension === "group") validGroup(selector.id);
-        if (selector.dimension === "milestone") validTask(selector.id, "milestone");
-        validPerson(selector.resourceId); validTask(selector.milestoneTaskId, "milestone");
-      } else if (origin.kind === "groupChildren") { validGroup(origin.groupId); validTask(origin.milestoneTaskId, "milestone"); }
-      else if (origin.kind === "plan") {
-        const row = origin.selector;
-        if (row.kind === "group") validGroup(row.groupId);
-        if (row.kind === "resource" || row.kind === "resourceMilestone") validPerson(row.resourceId);
-        if (row.kind === "resourceMilestone") validTask(row.milestoneTaskId, "milestone");
-        if (dateToOrdinal(source.range.to) - dateToOrdinal(source.range.from) + 1 > LIMITS.rangeDays) resourceDashboardLimit("range.days");
-        const period = origin.periodId === "all" ? source.range : buildResourcePlanPeriods(source.range.from, source.range.to, origin.granularity).find((period) => period.key === origin.periodId);
-        if (!period || (origin.date !== undefined && (origin.date < period.from || origin.date > period.to))) invalidSelection();
-      }
+      this.validateSourceContext(data, source);
       // Validate descriptor IDs before legacy detail wrappers translate invalid filters to stale.
       const descriptor = input.scope;
       const sourceTasks = new Map(data.storedTasks.map(task => [task.publicId, task]));
@@ -213,6 +239,58 @@ export class ResourceDashboardService {
       if (!result) return undefined;
       const response = { data: result, drill: { sourceContext: source, scope: input.scope, targetFilters: normalizeResourceDashboardFilters(filter), projection, assignmentScope: "exact-source-intersection" as const, projectReferenceScope: "same-resource-population-and-period" as const } };
       assertResourcePlanResponseBytes(response, projection.kind === "report" ? "plan.bytes" : "detail.bytes"); return response;
+    })();
+  }
+  getExcelReport(publicId: string, rawOptions: ResourceExcelExportOptions): ResourceExcelReportBundle | undefined {
+    const options = parseResourceExcelOptions(rawOptions);
+    return this.database.transaction(() => {
+      const data = readResourceDataSnapshot(this.database, publicId);
+      if (!data) return undefined;
+      const expected = options.expectedReport.context;
+      if (expected.sourceProjection.kind !== "report") stale();
+      this.validateSourceContext(data, expected);
+      if (options.originalSourceContext) this.validateSourceContext(data, options.originalSourceContext);
+      if (options.basis === "current" && options.binding) this.validateSourceContext(data, options.binding.sourceContext);
+      const filters: ResourceDashboardFilterInput = options.basis === "current" ? options.expectedReport.filters : {
+        from: expected.range.from, to: expected.range.to, asOfDate: expected.asOfDate, ...(expected.mdPerMmProvided ? { mdPerMm: expected.mdPerMm } : {}),
+      };
+      const scope = options.basis === "current" ? options.binding?.scope : undefined;
+      const calculated = this.prepareAndSelect(publicId, filters, options.basis === "current" ? options.expectedReport.snapshotId : undefined, scope);
+      if (!calculated) return undefined;
+      const { snapshot, selection } = calculated;
+      const actual = this.sourceContext(snapshot, { kind: "report" });
+      if (JSON.stringify(actual.range) !== JSON.stringify(expected.range) || actual.asOfDate !== expected.asOfDate || actual.mdPerMm !== expected.mdPerMm || actual.mdPerMmSource !== expected.mdPerMmSource || actual.mdPerMmProvided !== expected.mdPerMmProvided) stale();
+      const report = this.renderReport(calculated), plans: ResourceExcelReportBundle["plans"] = {};
+      const granularities = new Set([...options.granularities, ...(snapshot.filters.granularity ? [snapshot.filters.granularity] : [])]);
+      for (const granularity of granularities) {
+        const plan = this.renderPlan({ ...calculated, snapshot: { ...snapshot, filters: { ...snapshot.filters, granularity } } });
+        assertResourcePlanResponseBytes({ data: plan });
+        if (options.granularities.includes(granularity)) plans[granularity] = plan;
+        if (granularity === snapshot.filters.granularity) report.plan = plan;
+      }
+      assertResourcePlanResponseBytes({ data: report });
+      const assignments = selection.assignments.map((row): ResourceExcelAssignmentRow => {
+        const detail = this.detailRow(snapshot, row.taskId, row), task = snapshot.taskById.get(row.taskId)!;
+        return { ...detail, assignment: detail.assignment!, delayed: task.progress! < 100 && task.endDate! < snapshot.asOfDate };
+      });
+      const diagnostics = getResourceKpiDiagnostics(calculated.diagnosticDomain, selection);
+      const categories = ["completelyUnassigned", "groupOnly", "personallyUnassigned", "unset"] as const;
+      const diagnosticIds = new Map(categories.map(category => [category, new Set(category === "unset" ? diagnostics.unsetTasks.taskIds : diagnostics[category].taskIds)]));
+      const tasks = selection.t0.filter(task => categories.some(category => diagnosticIds.get(category)!.has(task.taskId))).map(task => {
+        const stored = snapshot.taskById.get(task.taskId)!;
+        return { taskId: task.taskId, name: stored.name, externalId: stored.externalId, wbsPath: snapshot.paths.get(task.taskId)!, categories: categories.filter(category => diagnosticIds.get(category)!.has(task.taskId)) };
+      });
+      const unsetIds = new Set(diagnostics.unsetAssignmentIds);
+      const rawUnsetAssignments = calculated.diagnosticDomain.assignments.filter(row => unsetIds.has(row.assignmentId));
+      // Fail before Excel row materialization, even if the clipped report is small.
+      assertDiagnosticAssignmentDayBudget(snapshot, rawUnsetAssignments);
+      const unsetAssignments = rawUnsetAssignments.map(row => {
+        const task = snapshot.taskById.get(row.taskId)!, resource = snapshot.resourceById.get(row.targetId)!;
+        const effectiveFrom = row.start ?? task.startDate!, effectiveTo = row.end ?? task.endDate!;
+        return { assignmentId: row.assignmentId, taskId: row.taskId, taskName: task.name, resourceId: row.targetId, resourceName: resource.name, groupIds: snapshot.groupIdsByResource.get(row.targetId) ?? [], roles: resource.roles,
+          assignmentStart: row.start ?? null, assignmentEnd: row.end ?? null, effectiveFrom, effectiveTo, allocationPercent: null, overlapsRange: effectiveFrom <= snapshot.to && effectiveTo >= snapshot.from };
+      });
+      return { basis: options.basis, sourceContext: actual, ...(options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) ? { originalSourceContext: options.originalSourceContext ?? (options.basis === "current" ? options.binding?.sourceContext : undefined) } : {}), ...(scope ? { scope } : {}), report, plans, assignments, quality: { scope: "T0-before-personal-filters", tasks, unsetAssignments } } as ResourceExcelReportBundle;
     })();
   }
   private planPerson(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>, resourceId: string): ResourcePlanPersonMetadata {
@@ -273,35 +351,19 @@ export class ResourceDashboardService {
       try { calculated = this.prepareAndSelect(publicId, filter, checked.snapshotId, scope); }
       catch (error) { if (error instanceof PublicApiError && error.code === "INVALID_SELECTION") stale(); throw error; }
       if (!calculated) return undefined;
-      const { snapshot, diagnosticSelection } = calculated;
-      const { taskById, resourceById, assignmentById, paths, domain } = snapshot;
-      const projection = domain.projection;
+      const { snapshot } = calculated;
       const report = snapshot;
       if (report.snapshotId !== checked.snapshotId) stale();
       const selector = checked.selector;
+      // detailTargets handles T0 diagnostics via diagnosticUnsetRows, including
+      // exact-Assignment scope and original dates outside the report range.
+      // Do not override its raw result with the clipped dashboard selection.
       const { rows, targetTaskIds } = this.detailTargets(calculated, selector);
-      // Diagnostic "unset" operates on all in-scope assignments rather than person-filtered rows.
-      const diagnosticIds = selector.dimension === "diagnostic" && selector.metric === "unset"
-        ? new Set(getResourceKpiDiagnostics(domain, calculated.selection).unsetAssignmentIds)
-        : null;
-      const diagnosticRows = diagnosticIds
-        ? diagnosticSelection.assignments.filter((row) => diagnosticIds.has(row.assignmentId))
-        : null;
       const details: { taskId: string; row: ResourceKpiAssignmentRow | null }[] = checked.view === "tasks"
         ? targetTaskIds.map((taskId) => ({ taskId, row: null }))
-        : (diagnosticRows ?? rows).map((row) => ({ taskId: row.taskId, row }));
+        : rows.map((row) => ({ taskId: row.taskId, row }));
       details.sort((a, b) => a.taskId.localeCompare(b.taskId) || (a.row?.assignmentId ?? "").localeCompare(b.row?.assignmentId ?? ""));
-      const page: ResourceDashboardDetailRow[] = details.slice(checked.offset, checked.offset + checked.limit).map(({ taskId, row }) => {
-        const task = taskById.get(taskId)!, membership = projection.membership.get(taskId)!;
-        const resource = row ? resourceById.get(row.resourceId)! : null;
-        const assignment = row ? assignmentById.get(row.assignmentId)! : null;
-        return { taskId, taskName: task.name, externalId: task.externalId, status: task.status, progress: task.progress,
-          taskStart: task.startDate, taskEnd: task.endDate, duration: task.duration, wbsPath: paths.get(taskId)!, ...membership,
-          assignment: row && resource && assignment ? { assignmentId: row.assignmentId, resourceId: row.resourceId, resourceName: resource.name, resourceCode: resource.code, active: resource.active,
-            roles: resource.roles.length ? resource.roles : ["UNSPECIFIED"], developerGrade: resource.developerGrade, groupIds: row.groupIds,
-            assignmentStart: assignment.assignmentStart, assignmentEnd: assignment.assignmentEnd, from: row.from, to: row.to, allocationPercent: row.allocationPercent,
-            effectiveWorkingDays: row.effectiveWorkingDays, plannedMd: row.plannedMd, plannedMm: row.plannedMm } : null };
-      });
+      const page = details.slice(checked.offset, checked.offset + checked.limit).map(({ taskId, row }) => this.detailRow(snapshot, taskId, row));
       const result: ResourceDashboardDetailsDto = { resourceDataContext: snapshot.dataContext, schema: "resource-dashboard/1", snapshotId: report.snapshotId, projectPublicId: publicId,
         projectRevision: report.project.revision, catalogRevision: report.catalogRevision, calendarRevision: report.calendarRevision,
         selector, view: checked.view, offset: checked.offset, limit: checked.limit, totalCount: details.length,
@@ -310,10 +372,23 @@ export class ResourceDashboardService {
       return result;
     })();
   }
+  private detailRow(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>, taskId: string, row: ResourceKpiAssignmentRow | null): ResourceDashboardDetailRow {
+    const { taskById, resourceById, assignmentById, paths, domain } = snapshot, projection = domain.projection;
+    const task = taskById.get(taskId)!, membership = projection.membership.get(taskId)!;
+    const resource = row ? resourceById.get(row.resourceId)! : null;
+    const assignment = row ? assignmentById.get(row.assignmentId)! : null;
+    return { taskId, taskName: task.name, externalId: task.externalId, status: task.status, progress: task.progress,
+      taskStart: task.startDate, taskEnd: task.endDate, duration: task.duration, wbsPath: paths.get(taskId)!, ...membership,
+      assignment: row && resource && assignment ? { assignmentId: row.assignmentId, resourceId: row.resourceId, resourceName: resource.name, resourceCode: resource.code, active: resource.active,
+        roles: resource.roles.length ? resource.roles : ["UNSPECIFIED"], developerGrade: resource.developerGrade, groupIds: row.groupIds,
+        assignmentStart: assignment.assignmentStart, assignmentEnd: assignment.assignmentEnd, from: row.from, to: row.to, allocationPercent: row.allocationPercent,
+        effectiveWorkingDays: row.effectiveWorkingDays, plannedMd: row.plannedMd, plannedMm: row.plannedMm,
+        ...("allocationOverlapsReport" in row ? { allocationOverlapsReport: (row as DiagnosticAssignmentRow).allocationOverlapsReport, effortRangeBasis: (row as DiagnosticAssignmentRow).effortRangeBasis } : {}) } : null };
+  }
   private detailTargets(calculated: NonNullable<ReturnType<ResourceDashboardService["prepareAndSelect"]>>, selector: ResourceDashboardSelector) {
     const { snapshot, selection, referenceRows, excludedRows } = calculated;
     const { domain, resourceById } = snapshot;
-    const diagnostics = getResourceKpiDiagnostics(domain, selection);
+    const diagnostics = getResourceKpiDiagnostics(calculated.diagnosticDomain, selection);
     if (selector.dimension === "resource" && !resourceById.has(selector.id!)) invalidSelection();
     if (selector.dimension === "group" && selector.id !== null && !snapshot.groups.some((row) => row.publicId === selector.id)) invalidSelection();
     if (selector.dimension === "milestone" && selector.id !== null && !snapshot.milestones.some((row) => row.publicId === selector.id)) invalidSelection();
@@ -322,7 +397,7 @@ export class ResourceDashboardService {
     const scopeRows = selector.assignmentScope === "milestoneReference" ? referenceRows : selector.assignmentScope === "milestoneExcluded" ? excludedRows : selection.assignments;
     const scopeTotals = summarizeResourceKpiAssignments(domain, scopeRows);
     const metricTaskIds = selector.metric === "notStarted" ? scopeTotals.notStarted.taskIds : selector.metric === "inProgress" ? scopeTotals.inProgress.taskIds : selector.metric === "completed" ? scopeTotals.completed.taskIds : selector.metric === "delayed" ? scopeTotals.delayed.taskIds : null;
-    const rows = scopeRows.filter((row) =>
+    let rows: ResourceKpiAssignmentRow[] = scopeRows.filter((row) =>
       (selector.resourceId === undefined || row.resourceId === selector.resourceId) &&
       (selector.dimension !== "resource" || row.resourceId === selector.id) &&
       (selector.dimension !== "group" || (selector.id === null ? !row.groupIds.length : row.groupIds.includes(selector.id))) &&
@@ -332,7 +407,26 @@ export class ResourceDashboardService {
       (!metricTaskIds || metricTaskIds.includes(row.taskId)) && (selector.metric !== "unset" || row.plannedMd === null));
     const diagnosticTaskIds = selector.metric === "completelyUnassigned" ? diagnostics.completelyUnassigned.taskIds : selector.metric === "groupOnly" ? diagnostics.groupOnly.taskIds : selector.metric === "personallyUnassigned" ? diagnostics.personallyUnassigned.taskIds : diagnostics.unsetTasks.taskIds;
     const targetTaskIds = selector.dimension === "diagnostic" ? diagnosticTaskIds : [...new Set(rows.map((row) => row.taskId))].sort();
+    if (selector.dimension === "diagnostic" && selector.metric === "unset") rows = this.diagnosticUnsetRows(calculated);
     return { rows, targetTaskIds };
+  }
+  private diagnosticUnsetRows(calculated: NonNullable<ReturnType<ResourceDashboardService["prepareAndSelect"]>>): DiagnosticAssignmentRow[] {
+    const { snapshot, selection, diagnosticDomain } = calculated;
+    const unsetIds = new Set(getResourceKpiDiagnostics(diagnosticDomain, selection).unsetAssignmentIds);
+    const raw = diagnosticDomain.assignments.filter(row => unsetIds.has(row.assignmentId));
+    assertDiagnosticAssignmentDayBudget(snapshot, raw);
+    if (!raw.length) return [];
+    const current = new Map(selectResourceKpiAssignments(snapshot.domain, { taskIds: [...selection.t0Ids] }).assignments.map(row => [row.assignmentId, row]));
+    return raw.map(assignment => {
+      const clipped = current.get(assignment.assignmentId);
+      if (clipped) return { ...clipped, allocationOverlapsReport: true, effortRangeBasis: "report-overlap" };
+      const task = snapshot.domain.byTask.get(assignment.taskId)!;
+      // A separate cache is mandatory: the existing cache key is only Assignment ID.
+      const original = selectResourceKpiAssignments({ ...snapshot.domain, tasks: [task], assignments: [assignment], assignmentRows: new Map(),
+        input: { ...snapshot.domain.input, from: assignment.start ?? task.start!, to: assignment.end ?? task.end! } }, { taskIds: [task.taskId] }).assignments[0];
+      if (!original) invalidSelection();
+      return { ...original, allocationOverlapsReport: false, effortRangeBasis: "raw-allocation" };
+    });
   }
   getGroupChildren(publicId: string, filter: ResourceDashboardFilterInput, input: ResourceDashboardGroupChildrenInput, scope?: ResourceDrillScope): ResourceDashboardGroupChildrenDto | undefined {
     const params = new URLSearchParams({ snapshotId: input.snapshotId, groupId: input.groupId ?? "ungrouped", offset: String(input.offset), limit: String(input.limit) });
@@ -452,7 +546,8 @@ export class ResourceDashboardService {
     try { assertResourceKpiProjectionBudget(snapshot.domain, selection); } catch (error) { if (error instanceof ResourceKpiProjectionLimitError) resourceDashboardLimit("projection.cells"); throw error; }
     const selectedIds = new Set(selection.assignments.map((row) => row.assignmentId));
     const excludedRows = reference.assignments.filter((row) => !selectedIds.has(row.assignmentId));
-    return { snapshot, selection, referenceRows: reference.assignments, excludedRows, diagnosticSelection };
+    const diagnosticDomain = restriction?.assignments ? { ...snapshot.domain, assignments: snapshot.domain.assignments.filter(row => restriction.assignments!.has(row.assignmentId)) } : snapshot.domain;
+    return { snapshot, selection, referenceRows: reference.assignments, excludedRows, diagnosticSelection, diagnosticDomain };
   }
   private calculate(publicId: string, filter: ResourceDashboardFilterInput, scope?: ResourceDrillScope) {
     const calculated = this.prepareAndSelect(publicId, filter, undefined, scope);
@@ -465,7 +560,7 @@ export class ResourceDashboardService {
     const { snapshot, selection, referenceRows, excludedRows } = calculated;
     const { project, publicId, now, filters, from, to, asOfDate, dates, resources, groups, milestones, groupIdsByResource, taskById, resourceById, storedTasks, catalogRevision, calendarRevision, snapshotId, domain } = snapshot;
     let raw: ReturnType<typeof renderResourceKpi>;
-    try { raw = renderResourceKpi(domain, selection); } catch (error) { if (error instanceof ResourceKpiProjectionLimitError) resourceDashboardLimit("projection.cells"); throw error; }
+    try { raw = renderResourceKpi(calculated.diagnosticDomain, selection); } catch (error) { if (error instanceof ResourceKpiProjectionLimitError) resourceDashboardLimit("projection.cells"); throw error; }
     const assignmentRange = (ids: string[]) => { const idSet = new Set(ids); return assignmentRangeOf(raw.assignments.filter((row) => idSet.has(row.assignmentId))); };
     const selector = (dimension: ResourceDashboardSelector["dimension"], id: string | null = null): ResourceDashboardSelector => ({ dimension, id, metric: "all" });
     const convertCells = (rows: typeof raw.milestones, dimension: ResourceDashboardSelector["dimension"], id: string | null) => rows.slice().sort((a, b) => milestoneOrder(snapshot, a.milestoneTaskId, b.milestoneTaskId)).map((row) => ({ milestoneTaskId: row.milestoneTaskId, summary: compact(row, { ...selector(dimension, id), milestoneTaskId: row.milestoneTaskId }) }));

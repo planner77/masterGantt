@@ -76,32 +76,34 @@ async function setup(page: import("@playwright/test").Page) {
     .first()
     .click();
   await expect(frame.locator(".wx-row.wx-selected")).toHaveCount(1);
-  // Selection can queue SVAR's show-task scroll after the next paint. Do not
-  // capture a transient DOM position while canonical scale/selection sync runs.
-  await expect.poll(async () => frame.evaluate((el) => {
-    const generation = el.dataset.ganttCanonicalSyncGeneration;
-    return Boolean(generation &&
-      generation === el.dataset.ganttCanonicalSyncSettledGeneration &&
-      el.dataset.ganttCanonicalSyncDepth === "0");
-  }), { timeout: 15_000 }).toBe(true);
-  // Establish the intended manual viewport after pending task reveal settles.
-  // Verify multiple animation frames; a one-frame 120px reading is insufficient.
-  await expect.poll(async () => frame.evaluate(async (el) => {
-    const chart = el.querySelector<HTMLElement>(".wx-chart");
-    const gantt = el.querySelector<HTMLElement>(".wx-gantt");
-    if (!chart || !gantt) throw new Error("Gantt scrollers are not mounted");
-    gantt.scrollTop = 96;
-    chart.scrollLeft = 120;
-    const samples: Array<{ left: number; top: number }> = [];
-    for (let i = 0; i < 5; i++) {
+  // Selecting a Task may legitimately reveal it at a nonzero chart offset
+  // (1581px on CI #2144). Directly assigning chart.scrollLeft=120 during that
+  // Core reveal creates a competing DOM-only position that Core overwrites.
+  // Verify peer navigation against the settled public+DOM viewport instead.
+  await frame.locator(".wx-gantt").evaluate((el) => {
+    el.scrollTop = 96;
+  });
+  await expect.poll(() => frame.getAttribute("data-gantt-canonical-sync-depth")).toBe("0");
+  await frame.evaluate(async (el) => {
+    let previous = "", stableFrames = 0;
+    for (let tick = 0; tick < 90 && stableFrames < 8; tick++) {
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      samples.push({ left: chart.scrollLeft, top: gantt.scrollTop });
+      const chart = el.querySelector<HTMLElement>(".wx-chart");
+      const gantt = el.querySelector<HTMLElement>(".wx-gantt");
+      const state = Reflect.get(el, "__masterganttPublicViewport") as { left: number; top: number } | undefined;
+      const current = [chart?.scrollLeft, gantt?.scrollTop, state?.left, state?.top, el.getAttribute("data-gantt-canonical-sync-depth")].join(":");
+      stableFrames = current === previous && el.getAttribute("data-gantt-canonical-sync-depth") === "0" ? stableFrames + 1 : 0;
+      previous = current;
     }
-    const final = samples[samples.length - 1];
-    return samples.every((sample) => sample.left === 120 && sample.top === 96)
-      ? { left: 120, top: 96 }
-      : final;
-  }), { timeout: 15_000, intervals: [100, 250, 500, 1000] }).toEqual({ left: 120, top: 96 });
+    if (stableFrames < 8) throw new Error("Gantt public/DOM viewport did not settle before peer-view test");
+  });
+  await expect.poll(async () => {
+    const current = await viewport(page);
+    // Both axes must be meaningfully scrolled and the public Core viewport
+    // must agree with the DOM; a reset-to-origin cannot pass this assertion.
+    return current.dom.left > 0 && current.dom.top === 96 &&
+      current.public?.left === current.dom.left && current.public?.top === current.dom.top;
+  }).toBe(true);
   const before = await viewport(page);
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
   await expect(root(page)).toHaveAttribute("data-ready", "true");

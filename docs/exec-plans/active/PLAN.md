@@ -1,3 +1,13 @@
+## Issue #529 — Resource Plan·공수 견적 Excel 보고
+
+[Work Packet](ISSUE_529.md)에 따라 최신 선행 #528 branch/head `899d5d7d12855771339e84f7d7b10ce1e1012983` 기반 `feat/issue-529-resource-excel-report`를 생성했다. 최신 main `b417fcc094bff98ea142374fcd746bce2458c2e1`, 후보 version0.102.0 MINOR, release_required=true/release_authorized=false. 동일 snapshot·현재 조건/Project 전체·raw 숫자/null·고유 Assignment·기존 Export 보안과 기본 시트 호환을 설계한다. 구현·DOCUMENTATION_SYNC·독립 PRE_QA 후 원격 게시·PR CI 등록까지만 진행하며 quality/e2e/docker 결과 모니터링·병합·main/GHCR·Issue 종료는 범위 밖이다. 공식 gate/QA_FINAL/Manager ACCEPT는 NOT TESTED다.
+
+구현과 required docs를 동결했다. Backend 고유 Unit147·nativeAPI1, frontend 관련 Unit18·mock 고유3·native 고유3·기존 Milestone viewport1의 영향 범위 PASS를 확인했다. 최초 viewport FAIL과 재작업 FAIL, 반복 실행·controlled RAF·실행 당시 source hash 미수집은 별도로 보존한다. 독립 source/UI/PRE_QA 후 exact tree를 게시하며 PR/head/CI 실행 등록 증거는 Issue/PR에 기록한다. 전체 회귀와 Windows Excel/DRM은 NOT TESTED다.
+
+최초 독립 PRE_QA는 readonly DOM 복원의 입력 취소 guard 누락으로 REWORK다. 기존 취소 oracle의 marker-null PASS는 실제 사용자 위치 보존 증거로 무효이며 원래 source/event 근거를 보존한다. DOM/Core 양쪽 취소·최종 public/DOM 직접 assertion·관련 검증/문서를 보완해 재동결하기 전 원격 게시를 보류한다.
+
+DOM 입력 취소를 보완한 동일 제품 source에서 정상 복원/control·실제 Export·기존 Milestone3 PASS 및 취소1 PASS6.8초를 확인했다. 취소는 public30/DOM31 각각의 실제 사용자 위치와 이전120 복원 없음의 직접 assertion이다. 문서·소스를 다시 동결한 후 새 tree의 독립 delta QA를 거쳐 원격 게시한다.
+
 ## Issue #514 — 최신 #518 Workspace 구조 통합 / PR CI 준비
 
 [Work Packet](ISSUE_514.md)에 따라 외부 #518 병합 main `f94c22b00cac57bab409ca57e744b0530d2d35e5` / application `0.101.1`의 상위 Milestone 탭과 복원 구조를 보존해 #514 보완을 적응 통합한다. 최종 branch는 `fix/issue-514-grid-start-reveal`, current worktree는 `issue-514-current`, 후보 PATCH `0.101.2`다. 최초 baseline `3fa543b10e98d59e50f63f3f53613affe720b648`의 source/진단/16조합 PASS와 실제 null/pending FAIL·폭 fixture FAIL은 historical로 보존한다. 최신 구조의 영향 검증·문서 gate·독립 PRE_QA 후 원격 게시와 exact-head PR CI 등록까지만 진행한다. CI 결과 모니터링·병합·main/GHCR·Issue 종료는 하지 않으며 release_required=true/release_authorized=false, 공식 quality/e2e/docker·QA_FINAL/Manager ACCEPT는 NOT TESTED다. 기존 #529 구현은 유지한다.
