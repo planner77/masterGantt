@@ -1,5 +1,12 @@
 # Issue #518 — 일정·Milestone 상위 탭 단순화 실행 계획
 
+## PR CI #2158 E2E shard 실패 / hydrate-ready 보완 / 최신 main 정렬 (2026-10-08)
+
+- PR #544, head `b9c97861c07a79f7656e5aeb5e387d279f0bcfb7`, [Run #2158.1](https://github.com/planner77/masterGantt/actions/runs/37736467124): `quality` 및 `docker` SUCCESS, Chromium shard 2~6 SUCCESS. shard 1/6은 `tests/e2e/error-boundary-regression.spec.ts`의 #502 Gantt Demo 1건이 예상되는 오류 heading을 발견하지 못해 FAIL했다.
+- 해당 #502 probe/error boundary 본체는 #518 변경 이전에도 동일했다. root 테스트는 실제 controlled throw를 기록했지만 Gantt Demo throw는 로그에 없어 SSR button 표시와 hydration handler 준비 사이 입력 경쟁을 가설로 확인한다. E2E-only `ErrorBoundaryProbe`에 `useEffect` 이후 readiness marker를 제공하고, Playwright는 실제 event handler hydration 후 Enter로 오류 경계와 retry/focus 복원을 계속 검증한다. 단순 대기시간 증가, 실패 무시, 모킹, 품질 gate 완화 금지.
+- 재정렬 기준 최신 main `b4a0898283571ac4f05d53299266acccadeeff68` / application `0.100.0` (#527 Resource Plan 포함), 새 PATCH 후보 `0.100.1`; 초기 기준 `8b9d4d76758f73094ec84590e3a8a49314741587` / `0.99.0`의 역사 이력은 유지. 충돌 파일은 main의 #527 코드·문서·계산·테스트/증거를 우선 보존하고 #518 delta만 병합한다.
+- 새 head CI 전체 quality/e2e/docker 통과 전에는 최종 PASS 아님. Local Chromium 및 독립 QA 실행은 NOT TESTED. `release_required=true` / `release_authorized=false`; merge/main CI/GHCR/Issue 종료는 이번 요청 비범위.
+
 ## PR CI #2154 E2E 실패 및 보완 (2026-10-08)
 
 - PR #544 head `a0e31b69cb6f169a9e8f4683031abf1440aa1d30`, Run #2154.1 / `37734388502`: 추적 메타데이터, TypeScript, ESLint, Vitest, production build, 정책 검사, Docker smoke와 quality/docker 집계 PASS. **Chromium E2E만 FAIL**(shard 2/6 및 5/6).
@@ -21,9 +28,9 @@
 
 
 - Issue: https://github.com/planner77/masterGantt/issues/518
-- 기준 main: `8b9d4d76758f73094ec84590e3a8a49314741587`; application `0.99.0`
+- 초기 기준 main: `8b9d4d76758f73094ec84590e3a8a49314741587`; 현재 정렬 main: `b4a0898283571ac4f05d53299266acccadeeff68` / application `0.100.0`
 - branch: `feat/issue-518-workspace-milestone-tab`
-- 후보 version: `0.99.1` (PATCH: 기존 탭 계층/공간 문제 시정)
+- 후보 version: `0.100.1` (PATCH: 최신 main 0.100.0 기준 기존 탭 계층/공간 문제 시정)
 - release_required: true / release_authorized: false
 - 현재 종료 목표: 구현·관련 문서 동기화·PR 생성·exact-head PR CI 시작. CI 완료, 독립 QA 확정, merge/main, tag/GHCR, branch cleanup, Issue 종료는 범위 밖
 

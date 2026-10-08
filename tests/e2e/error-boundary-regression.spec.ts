@@ -27,7 +27,10 @@ async function verifyBoundary(
 
   const trigger = page.getByTestId(`e2e-error-boundary-trigger-${input.probeId}`);
   await expect(trigger).toHaveText("오류 경계 테스트 시작");
+  // toHaveText alone may observe SSR markup before the click handler hydrates.
+  await expect(trigger).toHaveAttribute("data-e2e-hydrated", "true");
   await trigger.focus();
+  await expect(trigger).toBeFocused();
   await page.keyboard.press("Enter");
 
   await expect(page.getByRole("heading", { name: input.heading, exact: true })).toBeVisible();

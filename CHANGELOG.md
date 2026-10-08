@@ -1,14 +1,22 @@
 # Changelog
 
-## [0.99.1] - 2026-10-08
+## [0.100.1] - 2026-10-08
 
 ### Fixed
+
+- Issue #518 PR CI #2158: 개발용 #502 Gantt Demo Error Boundary probe의 React hydration 전 keyboard 입력 경쟁을 감지하도록 useEffect 완료 신호를 추가하고, 기존 실제 오류·재시도·포커스 복귀 E2E를 유지한 채 준비 완료 후 검증한다. 최신 main #527 변경을 보존해 통합한다.
 
 - Issue #518 PR CI #2154 후속: 화면의 Dashboard 제목을 상위 `Milestone 대시보드` 탭과 일치시키고, 삭제된 `Gantt` 하위 탭 및 기존 3개 peer 순서를 전제한 E2E를 실제 4개 상위 탭의 접근성/상태 보존 검증으로 수정한다.
 - Issue #518: 프로젝트 상위 탭을 `일정 / Milestone 대시보드 / 리소스 / 물류 구성`으로 통합하고 중복 Gantt/Dashboard 중첩 탭 행을 제거해 Gantt 세로 작업 공간을 회복한다.
 - Milestone 대시보드 전환에도 동일 Gantt instance·scope·viewport를 보존하고 Dashboard Task Editor가 숨겨진 일정 panel에 갇히지 않도록 공통 Dialog를 상위 Workspace로 옮긴다.
 - 상위 tab 접근성/키보드·좁은 화면 수평 스크롤 및 기존 Dashboard/Gantt/Resource 회귀 E2E를 갱신한다.
 
+
+## [0.100.0] - 2026-10-08
+
+### Added
+
+- Issue #527: 주·월 Resource Plan에서 개인 근무일 Capacity와 선택 범위·Project 전체 계획 공수를 비교한다. 일별 Peak·개인별 초과·미설정 기여를 구별하고 동일 snapshot의 날짜·개인·Assignment 근거를 제공한다. 기간·표시 행 페이지와 기존 Gantt·Dashboard 상태를 보존한다.
 
 ## [0.99.0] - 2026-10-08
 

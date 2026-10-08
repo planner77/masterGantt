@@ -151,3 +151,9 @@ Milestone dashboard는 동일 개인 assignment/기간/allocation/계층형 Reso
 Project 리소스 탭의 기본 조회는 새 raw Resource Dashboard API로 확장한다. 서버 scope에 기간/Milestone/개인·그룹·Global Role/등급·상태·활성·검색을 적용하며 화면에서 legacy 반올림 행을 재합산하지 않는다. 기본 그룹/개인 모드, 선택 범위 Grand Total, 고유 Task/Assignment 상세와 미설정/부분합/T0 진단을 제공한다. M/M 기준값·출처·미설정 이유를 표시한다.
 
 기존 `resource-workload` endpoint·ENV 환산·4자리 반올림·과투입 계산은 변경하지 않는다. Milestone exact assignmentIds drill만 legacy renderer/API를 사용하고 기본 Dashboard 상태는 mount 보존한다. 새 기본 화면은 시간축 capacity/과투입 재계산을 구현하지 않는다. 세부 계약은 [Resource KPI 기본 화면](RESOURCE_KPI_DASHBOARD.md#issue-525-기본-resourcegroup-dashboard), 검증은 [테스트 계획](TEST_PLAN.md#issue-525-resourcegroup-dashboard-검증)을 따른다.
+
+## Issue #527 기간별 계획 조회
+
+기존 legacy resource-workload API/UI와 stage Assignment drill을 유지하면서 Resource KPI Dashboard의 Resource Plan 보기로 기간별 서버 계획을 표시한다. 주/월·Group/개인·Milestone 기여의 raw 계산은 독립 Domain/API 결과이며 UI에서 allocation/Capacity를 재계산하지 않는다. 상세의 Assignment별 M/M은 동일한 명시적 환산값으로 표시한다.
+
+현재 Project의 개인 할당 이력 모집단은 기여 필터와 구별한다. 미배정 전역 Catalog 인력을 포함하거나 active flag를 고용/FTE로 해석하지 않는다. Group 평균이 낮아도 개인 초과 경고와 개인·날짜별 근거를 조회한다. 단계 반복 Capacity/Group 소계는 비가산이며 실제 근태·전사 가용성으로 이름 붙이지 않는다. 상세 UI·snapshot/null/pagination 계약은 RESOURCE_KPI_DASHBOARD를 따른다.
