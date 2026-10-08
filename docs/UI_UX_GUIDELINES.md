@@ -206,7 +206,7 @@ Grid 단계 열은 기본 숨김 180px이며 기존 width/flex·내부 scroll bu
 
 로컬 Chromium 근거는 `tests/e2e/milestone-dashboard-state.spec.ts`의 390/768/1024/1440/1920px 화면과 geometry, `tests/e2e/milestone-stage-dashboard.spec.ts`의 실제 SQLite drill/Gantt 상태 조작으로 구분한다. geometry는 header/body alignment, 모든 row button의 cell containment와 비중첩, 필터 control 경계, 실제 focus outline 가시성, popup viewport/active option/input 경계, tab 높이와 body scroll owner를 측정한다. 변경 전 actual 화면은 NOT TESTED이며 baseline `603cd029d279ddc5b70309786abf8876b6bd1692`의 일정 화면에는 peer 대시보드가 없다는 source 재현 근거를 사용한다. 실제 기기·screen reader·최종 수동 UX와 원격 CI는 별도 검증이다.
 
-2026-10-06 [공식 scroll-chart action](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/)과 설치 Core 2.7.3 `DataStore.d.ts`의 공개 left/top 계약을 확인했다. 일반 peer 복원은 visible·세대·scope/filter key를 확인하고 기존 canonical/column queue 뒤에 공개 viewport action을 직렬 적용한다. native fullscreen과 scheduling 정책은 변경하지 않는다. 복원 오류는 canonical reset/remount를 호출하지 않는다. 공개 scroll event/state 진단은 개발/test에만 한정하며 최근 12건을 보존하고 Task 데이터나 비밀값을 포함하지 않는다. 문서 조회와 실제 Chromium의 public state/DOM 및 후속 layout 유지 근거는 구분한다.
+2026-10-06 [공식 scroll-chart action](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/)과 설치 Core 2.7.3 `DataStore.d.ts`의 공개 left/top 계약을 확인했다. 일반 peer 복원은 visible·세대·scope/filter key를 확인하고 기존 canonical/column queue 뒤에 공개 viewport action을 직렬 적용한다. native fullscreen과 scheduling 정책은 변경하지 않는다. 복원 오류는 canonical reset/remount를 호출하지 않는다. 공개 scroll event/state 진단은 개발/test에만 한정하며 최근 256건의 공개 scroll/resize/select 진단을 보존한다. select 진단은 ID/show/eventSource에 한정하며 Task 본문이나 비밀값을 포함하지 않는다. 문서 조회와 실제 Chromium의 public state/DOM 및 후속 layout 유지 근거는 구분한다.
 
 변경 전 재현 근거는 baseline `603cd029d279ddc5b70309786abf8876b6bd1692`의 `src/features/projects/project-readonly-view.tsx`다. 해당 source의 일정 영역에는 Gantt만 있고 완료 단계 Dashboard peer가 없다. baseline에서 Project 직접 링크를 열어 일정 탭을 선택하는 절차와 변경 후 peer 선택 절차를 비교한다. 변경 전 실제 캡처는 수행하지 않았으며 source 비교를 실제 browser PASS로 표시하지 않는다. geometry는 실제 표시되는 control만 집계하고 닫힌 details 자식의 캐시 bounding rect는 `checkVisibility()`로 제외한다.
 
@@ -296,3 +296,12 @@ Probe UI는 제품 기능이 아니며 production에서 활성화하지 않는�
 ### #502 자동화와 #517 환경 검증 분리
 
 PR #516의 Error Boundary 하니스/keyboard/focus 검증은 #502의 자동화 범위다. 실제 브라우저 native125%·실기기/screen reader·최종 수동 UX·운영 source/version/proxy는 #517의 환경별 범위이며, #502 CI 또는 merge/close를 해당 환경 PASS로 해석하지 않는다.
+
+
+## Issue #514 — null 시작과 입력 뒤 viewport 복원 경계
+
+canonical start=null을 renderer anchor가 있는 날짜 작업으로 취급하지 않는다. 해당 native `select-task show:xy`만 공개 `show:y`로 좁혀 선택/focus·수직 reveal을 유지한다. dated native xy, Context Menu false, modifier/checkbox/keyboard와 canonical-owned 선택은 일괄 변경하지 않는다.
+
+지연된 peer viewport 복원은 실제 작업면 pointerdown/wheel/keydown과 source/snapshot/instance/sync/visibility/scale/column/grid 변경 뒤 취소한다. DOM와 Core 경로를 각각 검증하며 marker 해제나 screenshot만으로 사용자 위치 보존을 판단하지 않는다. public/native 위치가 rounding 때문에 다를 수 있으므로 입력 직후 각각의 값을 pending queue 후 각각 비교한다. 복원 준비의 RAF는 앱 통합 선택이며 SVAR layout-settled 보장으로 기록하지 않는다. Production DOM 복원은 snapshot/reset generation/instance/input/geometry를 검사하고 Core 복원은 실제 canonicalSyncVersion ref를 검사한다. DOM sync marker는 기존 개발/test 전용 추가 검사이며 개발 browser 증거를 production marker PASS로 해석하지 않는다.
+
+설치 Core2.7.3와 2026-10-08 공식 [select-task](https://docs.svar.dev/react/gantt/api/actions/select-task/)·[scroll-chart](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/)의 공개 계약을 확인했다. 문서 URL 조회와 실제 project fixture Chromium pointer 증거를 구별하며 공식 demo 실제 조작은 NOT TESTED다. Core 공개 action을 사용하고 PRO·비공개 state·날짜 픽셀 탐색 구현을 추가하지 않는다. 좁은 화면의 기존 내부 작업면 제한은 [프로젝트 UX](PROJECT_UX.md#issue-514--grid-시작-위치와-지연된-peer-복원)를 따른다.

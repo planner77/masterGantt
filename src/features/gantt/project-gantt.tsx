@@ -1586,16 +1586,21 @@ export function ProjectGantt({
     if (process.env.NODE_ENV === "production") return;
     const tag = "project-peer-viewport-events", frame = fullscreenFrameReference.current;
     if (frame) Object.defineProperty(frame, "__masterganttPublicViewport", { configurable: true, get: () => { const state = api.getState(); return { left: state.scrollLeft, top: state.scrollTop }; } });
-    const events: { action: string; left: number; top: number; visible: boolean; requestedLeft?: number; width?: number; height?: number }[] = [];
-    const record = (action: string, payload: { requestedLeft?: number; width?: number; height?: number }) => {
+    if (frame) Object.defineProperty(frame, "__masterganttGridReveal", { configurable: true, get: () => {
+      const state = api.getState();
+      return { start: state.start, cellWidth: state.cellWidth, scaleUnit: state.scales?.at(-1)?.unit, selected: state.selected };
+    } });
+    const events: { action: string; left: number; top: number; visible: boolean; requestedLeft?: number; width?: number; height?: number; taskId?: string; show?: boolean | string; eventSource?: string }[] = [];
+    const record = (action: string, payload: { requestedLeft?: number; width?: number; height?: number; taskId?: string; show?: boolean | string; eventSource?: string }) => {
       const state = api.getState();
       events.push({ action, left: state.scrollLeft, top: state.scrollTop, visible: peerViewportContext.current.visible, ...payload });
-      if (events.length > 12) events.shift();
+      if (events.length > 256) events.shift();
       if (frame) frame.dataset.ganttPublicScrollEvents = JSON.stringify(events);
     };
     api.on("scroll-chart", (event) => record("scroll-chart", { requestedLeft: event.left }), { tag });
     api.on("resize-chart", (event) => record("resize-chart", { width: event.width, height: event.height }), { tag });
-    return () => { api.detach(tag); if (frame) Reflect.deleteProperty(frame, "__masterganttPublicViewport"); };
+    api.on("select-task", (event) => record("select-task", { taskId: String(event.id), show: event.show, eventSource: event.eventSource }), { tag });
+    return () => { api.detach(tag); if (frame) { Reflect.deleteProperty(frame, "__masterganttPublicViewport"); Reflect.deleteProperty(frame, "__masterganttGridReveal"); } };
   }, [apiInstanceId]);
 
   const visibleTaskFilterKey = JSON.stringify(visibleTaskIds === null ? null : [...new Set(visibleTaskIds)].sort());
@@ -1767,24 +1772,38 @@ export function ProjectGantt({
     const id = ++peerViewportGeneration.current;
     if (!viewVisible || !apiInstanceId || !peerViewportRestore || peerViewportRestore.key !== viewportContinuityKey || peerViewportConsumed.current === peerViewportRestore) return;
     peerViewportConsumed.current = peerViewportRestore;
-    const request = peerViewportRestore;
-    let cancelled = false;
-    const current = () => !cancelled && id === peerViewportGeneration.current && peerViewportContext.current.visible && peerViewportContext.current.key === request.key;
+    const request = peerViewportRestore, api = apiReference.current, root = ganttScrollReference.current;
+    if (!api || !root?.isConnected) return;
+    const version = canonicalSyncVersionReference.current, filter = visibleTaskFilterKeyReference.current,
+      scale = scaleModeReference.current, gridWidth = api.getState().gridWidth,
+      columnsKey = () => JSON.stringify((api.getState().columns ?? []).map(column => [column.id, column.width, column.hidden])),
+      columns = columnsKey();
+    let cancelled = false, input = false;
+    const inputEvents = ["pointerdown", "wheel", "keydown"];
+    const markInput = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) input = true;
+    };
+    for (const event of inputEvents) root.addEventListener(event, markInput, true);
+    const cleanupInput = () => { for (const event of inputEvents) root.removeEventListener(event, markInput, true); };
+    const current = () => !cancelled && !input && id === peerViewportGeneration.current &&
+      api === apiReference.current && root.isConnected && peerViewportContext.current.visible &&
+      peerViewportContext.current.key === request.key && version === canonicalSyncVersionReference.current &&
+      filter === visibleTaskFilterKeyReference.current && scale === scaleModeReference.current &&
+      gridWidth === api.getState().gridWidth && columns === columnsKey();
     canonicalSyncQueueReference.current = canonicalSyncQueueReference.current.then(async () => {
-      const api = apiReference.current;
-      if (!api || !current()) return;
-      const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      await frame(); await frame();
-      if (api !== apiReference.current || !current()) return;
-      // Hidden native scroll may report zero to Core. Restore its documented
-      // viewport state, so later Chart layout cannot overwrite a DOM-only fix.
-      await api.exec("scroll-chart", { left: request.left, top: request.top });
-      peerViewportRestoreCount.current++;
-      if (!current()) return;
-      const state = api.getState(), chart = ganttScrollReference.current?.querySelector<HTMLElement>(".wx-chart");
-      if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({ count: peerViewportRestoreCount.current, requestedLeft: request.left, publicLeft: state.scrollLeft, publicTop: state.scrollTop, domLeft: chart?.scrollLeft });
+      const frame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      try {
+        await frame(); await frame();
+        if (!current()) return;
+        // An actual Grid gesture owns the viewport; a delayed peer return cannot override it.
+        await api.exec("scroll-chart", { left: request.left, top: request.top });
+        peerViewportRestoreCount.current++;
+        if (!current()) return;
+        const state = api.getState(), chart = root.querySelector<HTMLElement>(".wx-chart");
+        if (process.env.NODE_ENV !== "production" && fullscreenFrameReference.current) fullscreenFrameReference.current.dataset.ganttPeerRestore = JSON.stringify({ count: peerViewportRestoreCount.current, requestedLeft: request.left, publicLeft: state.scrollLeft, publicTop: state.scrollTop, domLeft: chart?.scrollLeft });
+      } finally { cleanupInput(); }
     }).catch(() => { if (current()) notify("error", "보기 전환 뒤 스크롤 위치를 복원하지 못했습니다. 일정에서 위치를 직접 조정해 주세요.", "일정 보기 전환"); });
-    return () => { cancelled = true; };
+    return () => { cancelled = true; cleanupInput(); };
   }, [viewVisible, viewportContinuityKey, peerViewportRestore, apiInstanceId, notify]);
 
   useEffect(() => {
@@ -2429,6 +2448,12 @@ export function ProjectGantt({
       },
       { tag: "project-summary-update" },
     );
+    api.detach("project-null-start-reveal");
+    api.intercept("select-task", (event) => {
+      // A date-less Summary has renderer coordinates, not a schedule start.
+      // Preserve native selection/vertical reveal without navigating to that anchor.
+      if (event.show === "xy" && typeof event.id === "string" && tasksByIdReference.current.get(event.id)?.start === null) event.show = "y";
+    }, { tag: "project-null-start-reveal" });
     api.detach("project-owned-selection");
     api.on("select-task", (event) => {
       if (canonicalSyncDepthReference.current > 0 || event.eventSource === "project-canonical-sync" ||

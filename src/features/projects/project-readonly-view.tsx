@@ -234,7 +234,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const [activeView, setActiveView] = useState<WorkspaceView>("schedule");
   const scheduleGanttPanel = useRef<HTMLElement>(null);
   const [peerChartRestore, setPeerChartRestore] = useState<{ key: string; left: number; top: number } | null>(null);
-  const peerViewport = useRef<{ publicId: string; rootTaskId: string | null; filter: TaskFilterState; positions: { selector: string; left: number; top: number }[] } | null>(null);
+  const peerViewport = useRef<{ publicId: string; rootTaskId: string | null; filter: TaskFilterState; snapshot: ProjectSnapshotResponse; generation: number; instanceId: string | null; syncGeneration: string | null; positions: { selector: string; left: number; top: number }[] } | null>(null);
   const [activeRootTaskId, setActiveRootTaskId] = useState<string | null>(() => initialRootTaskId);
   const [openScopeTaskIds, setOpenScopeTaskIds] = useState<readonly string[]>(() => initialRootTaskId ? [initialRootTaskId] : []);
   const [taskFilter, setTaskFilter] = useState<TaskFilterState>(EMPTY_TASK_FILTER);
@@ -1172,12 +1172,21 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   // Preserve native and public Chart viewport while switching the top-level peer.
   function captureScheduleViewport() {
     const panel = scheduleGanttPanel.current;
-    peerViewport.current = { publicId, rootTaskId: activeRootTaskId, filter: taskFilter, positions: [".project-gantt-scroll", ".wx-gantt", ".wx-chart", ".wx-table-container"].flatMap((selector) => {
-      const owner = panel?.querySelector<HTMLElement>(selector);
-      return owner ? [{ selector, left: owner.scrollLeft, top: owner.scrollTop }] : [];
-    }) };
-    const chart = panel?.querySelector<HTMLElement>(".wx-chart");
-    if (chart) setPeerChartRestore({ key: `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`, left: chart.scrollLeft, top: panel?.querySelector<HTMLElement>(".wx-gantt")?.scrollTop ?? 0 });
+    const frame = panel?.querySelector<HTMLElement>(".project-gantt-frame");
+    // Hidden peer DOM may report zero; only the visible canonical Gantt can
+    // supply a return viewport and its source/instance generation.
+    if (state.status !== "ready" || activeView !== "schedule" || !panel || !frame ||
+      panel.closest("[hidden], [inert]") || frame.getClientRects().length === 0) return;
+    peerViewport.current = { publicId, rootTaskId: activeRootTaskId, filter: taskFilter,
+      snapshot: state.snapshot, generation: ganttResetGeneration,
+      instanceId: frame.dataset.projectGanttApiInstance ?? null,
+      syncGeneration: frame.dataset.ganttCanonicalSyncGeneration ?? null,
+      positions: [".project-gantt-scroll", ".wx-gantt", ".wx-chart", ".wx-table-container"].flatMap((selector) => {
+        const owner = panel.querySelector<HTMLElement>(selector);
+        return owner ? [{ selector, left: owner.scrollLeft, top: owner.scrollTop }] : [];
+      }) };
+    const chart = panel.querySelector<HTMLElement>(".wx-chart");
+    if (chart) setPeerChartRestore({ key: `${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`, left: chart.scrollLeft, top: panel.querySelector<HTMLElement>(".wx-gantt")?.scrollTop ?? 0 });
   }
   function activateWorkspaceView(view: WorkspaceView) {
     if (navigationPending.current || navigationConfirmation.current)
@@ -1997,22 +2006,42 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     const saved = peerViewport.current;
     if (activeView !== "schedule" || !saved) return;
     peerViewport.current = null;
-    // Explicit ID/scope drills own their new viewport. Only a plain peer return
-    // restores native DOM scroll, after Core has resized the visible frame.
-    if (saved.publicId !== publicId || saved.rootTaskId !== activeRootTaskId || saved.filter !== taskFilter) return;
-    let secondFrame = 0;
+    const panel = scheduleGanttPanel.current, frame = panel?.querySelector<HTMLElement>(".project-gantt-frame");
+    if (!panel || !frame || state.status !== "ready" || saved.publicId !== publicId || saved.rootTaskId !== activeRootTaskId ||
+      saved.filter !== taskFilter || saved.snapshot !== state.snapshot || saved.generation !== ganttResetGeneration ||
+      saved.instanceId !== (frame.dataset.projectGanttApiInstance ?? null) ||
+      saved.syncGeneration !== (frame.dataset.ganttCanonicalSyncGeneration ?? null)) {
+      setPeerChartRestore(null);
+      return;
+    }
+    const geometry = () => JSON.stringify({ scale: frame.dataset.ganttScaleMode, cellWidth: frame.dataset.ganttCellWidth,
+      columns: Array.from(frame.querySelectorAll(".wx-header .wx-cell")).map(cell => cell.getBoundingClientRect().width),
+      gridWidth: frame.querySelector(".wx-table-container")?.getBoundingClientRect().width });
+    const initialGeometry = geometry();
+    let secondFrame = 0, cancelled = false;
+    const inputEvents = ["pointerdown", "wheel", "keydown"];
+    const markInput = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest(".wx-chart, .wx-gantt, .wx-table-container")) cancelled = true;
+    };
+    for (const event of inputEvents) frame.addEventListener(event, markInput, true);
+    const cleanupInput = () => { for (const event of inputEvents) frame.removeEventListener(event, markInput, true); };
+    const current = () => !cancelled && frame.isConnected && panel === scheduleGanttPanel.current &&
+      !panel.closest("[hidden], [inert]") && frame.getClientRects().length > 0 &&
+      saved.instanceId === (frame.dataset.projectGanttApiInstance ?? null) &&
+      saved.syncGeneration === (frame.dataset.ganttCanonicalSyncGeneration ?? null) && geometry() === initialGeometry;
     const firstFrame = requestAnimationFrame(() => {
       secondFrame = requestAnimationFrame(() => {
-        const panel = scheduleGanttPanel.current;
-        if (!panel || panel.hidden) return;
-        for (const position of saved.positions) {
-          const owner = panel.querySelector<HTMLElement>(position.selector);
-          if (owner) { owner.scrollLeft = position.left; owner.scrollTop = position.top; }
-        }
+        try {
+          if (!current()) return;
+          for (const position of saved.positions) {
+            const owner = panel.querySelector<HTMLElement>(position.selector);
+            if (owner) { owner.scrollLeft = position.left; owner.scrollTop = position.top; }
+          }
+        } finally { cleanupInput(); }
       });
     });
-    return () => { cancelAnimationFrame(firstFrame); cancelAnimationFrame(secondFrame); };
-  }, [activeView, publicId, activeRootTaskId, taskFilter]);
+    return () => { cancelled = true; cancelAnimationFrame(firstFrame); cancelAnimationFrame(secondFrame); cleanupInput(); };
+  }, [activeView, publicId, activeRootTaskId, taskFilter, state, ganttResetGeneration]);
 
   if (state.status === "loading") return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>프로젝트 정보를 불러오는 중입니다.</p></section>;
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
