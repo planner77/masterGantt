@@ -110,7 +110,7 @@ Local 자정 Timestamp 차이를 `86,400,000`으로 나누어 일수를 계산�
 - `parseDateOnly`, ordinal 변환·가감·요일: strict Gregorian label과 범위 검사
 - `createWorkingCalendar`: exact `Asia/Seoul`, exact weekend `[6,0]`, legacy Holiday 및 `WORKING/NON_WORKING` exception 검증·정렬·불변 복사
 - `isWorkingDay`, `nextWorkingDay`, `workingDaysBetween`, `endFromStart`: 양 끝 포함 근무일 연산
-- `scheduleLeaf`: `requestedStart` 보존, Auto 비근무 시작 이동 warning, Manual 거부, Task/Milestone와 dependency 전 optional end 검증
+- `scheduleLeaf`: `requestedStart` 보존, Auto 비근무 시작 이동 warning, Manual 거부, Task/Milestone과 dependency 전 optional end 검증
 - `recalculateFinishStartDependencies`: calendar-normalized Leaf와 FS/lag=0 graph를 검증하고 Kahn forward-pass로 Auto 일정 이동 및 Manual lower-bound conflict를 계산
 - `SchedulingError`: 안정적인 `code`와 제한된 `field/date/expectedDate/index` context
 - `MIN_SUPPORTED_DATE`, `MAX_SUPPORTED_DATE`, `MAX_CALENDAR_SPAN_DAYS`, `MAX_TASK_DURATION`, `MAX_CALENDAR_HOLIDAYS`, `MAX_CALENDAR_EXCEPTIONS`: 실행 가능한 자원 경계
@@ -174,7 +174,7 @@ WBS는 Parent Tree의 형제 순서에 따라 `1`, `1.1`, `1.2`, `2` 형태로 �
 
 ### 4대 의존성 관계 종류 및 Lag 공식
 
-선행 작업 A와 후행 작업 B(기간 $D_B$, 0인 경우 마일스톤) 및 정수 Lag(근무일수 단위, 음수 가능)에 대해, B의 시작 가능 하한선(`requiredStart`)은 다음과 같이 결정된다:
+선행 작업 A와 후행 작업 B(기간 $D_B$, 0인 경우 Milestone) 및 정수 Lag(근무일수 단위, 음수 가능)에 대해, B의 시작 가능 하한선(`requiredStart`)은 다음과 같이 결정된다:
 
 1. **FS (Finish-to-Start, 종료 후 시작)**
    - 기준: $A$의 종료일 다음 첫 근무일로부터 $Lag$ 근무일 오프셋 이동.
@@ -185,7 +185,7 @@ WBS는 Parent Tree의 형제 순서에 따라 `1`, `1.1`, `1.2`, `2` 형태로 �
 3. **FF (Finish-to-End, 종료 후 종료)**
    - 기준: $A$의 종료일로부터 $Lag$ 근무일 오프셋 이동한 날짜가 후행 작업의 최소 종료일($requiredEnd$)이 됨.
    - $requiredEnd = \text{shiftWorkingDate}(A.end, Lag)$
-   - $requiredStart = \text{startFromEnd}(requiredEnd, D_B)$ ($D_B \ge 1$인 경우 $D_B$ 근무일 역산, 마일스톤은 $requiredEnd$ 자체)
+   - $requiredStart = \text{startFromEnd}(requiredEnd, D_B)$ ($D_B \ge 1$인 경우 $D_B$ 근무일 역산, Milestone은 $requiredEnd$ 자체)
 4. **SF (Start-to-End, 시작 후 종료)**
    - 기준: $A$의 시작일로부터 $Lag$ 근무일 오프셋 이동한 날짜가 후행 작업의 최소 종료일($requiredEnd$)이 됨.
    - $requiredEnd = \text{shiftWorkingDate}(A.start, Lag)$
