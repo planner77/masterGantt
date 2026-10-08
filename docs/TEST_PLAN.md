@@ -2452,3 +2452,12 @@ PR CI #2144.1의 Chromium shard6에서 #527 두 테스트(주/월 계층/geometr
 Local Fast Feedback은 현재 selection/timeline Unit2파일18PASS157ms, 최종 typecheck와 변경 lint0error/기존 hook dependency4warning이다. 최초/현재 typecheck는 fixture 배열의 type literal widening1건 FAIL이었고 ProjectTaskDto[] 명시 타입으로 보완해 현재 재검증했다. 최초 historical freeze의 typecheck PASS 보고는 완료 로그 확인 전의 잘못된 판정이며 이 기록으로 정정한다. 타입만 수정한 최종 spec과 browser 실행 당시 spec hash는 별도 기록한다. 제품2파일 hash는 현재 browser 증거와 일치한다.
 
 선별 비민감 JSON/PNG·실행별 source SHA/시각·범위·최초 실패는 [증거 README](../output/playwright/issue-514/review/README.md)를 따른다. 공식 quality/e2e/docker, 독립 QA_FINAL·Manager 최종 승인, 실제 demo 조작·screen reader·실기기·최종 수동 UX·사용자 outer pan은 NOT TESTED다. 원격 CI는 PR 등록 후 사용자 요청대로 결과를 모니터링하지 않는다.
+
+
+## Issue #495 — Milestone 표시 용어 통합 회귀
+
+- Gantt/Grid의 Milestone 열·Context Menu, Task/Summary Editor의 Milestone picker 및 Milestone 소속 작업 관리에서 표시 텍스트와 accessible name이 `Milestone`으로 일치해야 한다.
+- Milestone Dashboard의 KPI·검색·필터·표·원인 상세, Resource/Logistics drill, Template/Import/Copy/Export 안내를 E2E에서 검증한다. 영향 테스트: `tests/e2e/milestone-stage-grid.spec.ts`, `milestone-stage-editor.spec.ts`, `milestone-stage-dashboard.spec.ts`, `milestone-dashboard-state.spec.ts`, `milestone-stage-exchange.spec.ts`, `project-task-editor.spec.ts`, `resource-milestone-views.spec.ts`와 관련 drill E2E.
+- Ready/Completed/blocked, 상속 소속, 관계 저장, 일정/revision/If-Match 계산 결과는 불변이다. 내부 API/DB migration 없음.
+- Excel의 기존 고정 sheet/header(`명시 단계 ID`, `유효 단계 ID(파생)` 등)는 호환 예외로 유지한다. `tests/server/projects/project-excel-stage.test.ts` 기존 헤더 검증을 보존하며 화면 안내와 보고 제목만 Milestone으로 변경한다.
+- 390/768/1024/1440/wide viewport 및 keyboard/focus/Escape·readonly/stale 검증과 동일 head PR quality/e2e/docker·독립 QA 증거는 실제 수행 결과로 판정한다. 미실행은 NOT TESTED다.
