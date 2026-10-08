@@ -48,6 +48,12 @@ describe("E2E optimizer PR creation failure recovery", () => {
     expect(createStep).toContain('pr_error_file="$RUNNER_TEMP/e2e-shard-create-pr.stderr"');
     expect(createStep).toContain("GitHub Actions is not permitted to create or approve pull requests");
     expect(createStep).toContain("compare/main...$branch_name?expand=1");
+    expect(createStep).toContain('pr_title="[Issue #437] ci: E2E 샤드 계획 갱신"');
+    expect(createStep).toContain('--title "$pr_title"');
+    expect(createStep).toContain('printf \'%s\\n\' "$pr_title"');
+    expect(createStep).toContain('cat /tmp/e2e-shard-plan-pr-body.md');
+    expect(createStep).toContain('echo \'- 필수 PR 본문 (`Refs #437` 정확히 1개 필요):\'');
+    expect(createStep).toContain("'Refs #437' > /tmp/e2e-shard-plan-pr-body.md");
     expect(createStep).toContain('echo "### E2E 샤드 자동 PR 생성 실패 (BLOCKED)"');
     expect(createStep).toContain('>> "$GITHUB_STEP_SUMMARY"');
   });

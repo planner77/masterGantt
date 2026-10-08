@@ -115,13 +115,14 @@ jobs:
             '자동 병합은 수행하지 않으며 동일 head SHA의 전체 CI를 명시적으로 실행해 기존 required checks로 검증합니다.' \
             '' \
             'Refs #437' > /tmp/e2e-shard-plan-pr-body.md
+          pr_title="[Issue #437] ci: E2E 샤드 계획 갱신"
           head_sha="$(git rev-parse HEAD)"
           echo "자동 PR head: $head_sha"
           pr_error_file="$RUNNER_TEMP/e2e-shard-create-pr.stderr"
           if ! pr_url="$(gh pr create \
             --base main \
             --head "$branch_name" \
-            --title "[Issue #437] ci: E2E 샤드 계획 갱신" \
+            --title "$pr_title" \
             --body-file /tmp/e2e-shard-plan-pr-body.md 2>"$pr_error_file")"; then
             manual_pr_url="https://github.com/$GITHUB_REPOSITORY/compare/main...$branch_name?expand=1"
             {
@@ -130,6 +131,15 @@ jobs:
               echo "- 샤드 계산/브랜치 push: 성공"
               echo "- 변경 브랜치: \`$branch_name\` (head \`$head_sha\`)"
               echo "- [수동 PR 생성 링크]($manual_pr_url)"
+              echo "- **수동 PR 생성 시 아래 제목과 본문을 그대로 사용하세요.** 변경하면 중복 PR 확인과 Issue 종료 자동화가 실패할 수 있습니다."
+              echo "- 필수 PR 제목:"
+              echo '```text'
+              printf '%s\n' "$pr_title"
+              echo '```'
+              echo '- 필수 PR 본문 (`Refs #437` 정확히 1개 필요):'
+              echo '```markdown'
+              cat /tmp/e2e-shard-plan-pr-body.md
+              echo '```'
               echo "- 설정 확인: Repository Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests"
               echo "- 위 설정 변경은 repository 관리자의 명시적 승인이 필요합니다."
             } >> "$GITHUB_STEP_SUMMARY"
