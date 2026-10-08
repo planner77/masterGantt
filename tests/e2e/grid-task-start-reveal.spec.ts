@@ -234,11 +234,14 @@ test("#514 narrow logical viewport smoke and three-wide page start reveal geomet
   await page.mouse.down();
   await page.mouse.move(split!.x + split!.width / 2 - 330, split!.y + 20, { steps: 8 });
   await page.mouse.up();
-  await page.getByRole("button", { name: "Gantt 전체 화면", exact: true }).click();
-  await expect.poll(() => page.evaluate(() => document.fullscreenElement?.classList.contains("project-gantt-frame"))).toBe(true);
   const observations = [];
   for (const width of [390, 768, 1024, 1440, 1920]) {
-    await page.setViewportSize({ width, height: 900 }); await settle(page);
+    // Chromium cannot resize a fullscreen browser window with setViewportSize.
+    // Resize in normal mode, then exercise the same supported fullscreen UI.
+    await page.setViewportSize({ width, height: 900 });
+    await page.getByRole("button", { name: "Gantt 전체 화면", exact: true }).click();
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement?.classList.contains("project-gantt-frame"))).toBe(true);
+    await settle(page);
     for (const task of [state.tasks[1], state.tasks[0]]) {
       const row = frame.locator(`.wx-table-container .wx-row[data-id=":${task.taskId}"]`);
       // On narrow layouts the period column is horizontally outside the Grid
@@ -270,6 +273,11 @@ test("#514 narrow logical viewport smoke and three-wide page start reveal geomet
       observations.push({ width, actualStart, pageStartVisible: actualStart < Math.min(width, result.geometry.chart.right),
         scope: width <= 768 ? "Core logical viewport smoke; existing minWidth720 workarea, automatic page intersection not claimed" : "Core and page intersection reveal" });
     }
+    // Restore normal window bounds before the next viewport change.
+    await page.evaluate(async () => {
+      if (document.fullscreenElement) await document.exitFullscreen();
+    });
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement)).toBeNull();
   }
   await saveEvidence(info, "five-widths", { observations });
 });
