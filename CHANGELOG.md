@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.101.3] - 2026-10-08
+
+### Fixed
+
+- Issue #506: 작업 Context Menu의 `Add > Task above/Task below`가 선택 작업의 바로 앞·뒤 sibling 대신 마지막 행에 표시되는 canonical SVAR 동기화 회귀를 수정한다. Root, Summary 내부 및 Workspace scope의 순서가 저장된 `siblingOrder`와 일치하며 기존 Gantt instance·접힘/선택/스크롤 상태를 보존한다.
+- 신규 Task 삽입 시 SVAR 공개 `add-task`의 상대 위치(`before/after/child`)를 사용하고 여러 Task·새 parent/child 동기화의 순서도 보장한다. API·DB schema는 변경하지 않는다.
+
 ## [0.101.2] - 2026-10-08
 
 ### Fixed
