@@ -1,5 +1,22 @@
 # Test Plan
 
+## Issue #551 PR #560 CI #2234.1 TypeScript gate 복구 (2026-10-09)
+
+- 실패 run [#2234.1](https://github.com/planner77/masterGantt/actions/runs/37848762006) / exact head `4f6815575d2078e989554da3f1482143ae3b1213`: Chromium E2E 6/6 shard SUCCESS(앞선 #2217.1의 geometry 회귀 PASS), Vitest/ESLint/정책 SUCCESS. TypeScript TS18048 1건 FAIL로 Next production build와 Docker build 역시 FAIL.
+- `src/features/gantt/milestone-timeline-adapter.ts:79`: `state._chartWidth`는 설치 Core의 typed derived state에서 `number | undefined`; `Number.isFinite(x)`만으로 TypeScript narrowing이 되지 않아서 `x <= 0`에서 TS18048이 발생했다. `typeof state._chartWidth !== "number"` 가드를 먼저 평가해 타입을 좁힌 다음 유한·양수 검사를 유지한다.
+- 실제 DOM plot x·폭 기준 좌표 정책, 무효/숨김 viewport 차단, scroll/marker/guide/초점 복원, 원래 E2E assertion과 production ON/OFF 설정은 변경하지 않는다. 검사 무력화, 타입 assertion, skip/retry/timeout 상향을 사용하지 않는다.
+- 이번 범위의 문서 동기화는 TEST_PLAN 및 본 Work Packet의 원인·증거 반영이며 다른 DESIGN/AGENTS/API/DB/보안/Calendar/릴리스·CI workflow/버전 문서는 계약 불변으로 N/A다. 새 head의 공식 CI 결과·독립 QA_FINAL/Manager ACCEPT는 새 실행 결과 전까지 NOT TESTED, release_required=true/release_authorized=false, 병합/Main CI/GHCR/Issue 종료는 비범위다.
+
+
+## Issue #551 PR #560 CI #2217.1 실패 보완 (2026-10-09)
+
+- 최초 head `fb6e5a634b3fcd70d62d4e8404a42cefe0ab6ce9`, [run 37821023371](https://github.com/planner77/masterGantt/actions/runs/37821023371). Next production build, TypeScript, ESLint, Vitest, policy 및 Docker PASS. Chromium 6개 중 shard 2에서 89 PASS/1 FAIL, 나머지 shard PASS. 따라서 E2E 전체 FAIL.
+- 실패는 `tests/e2e/milestone-timeline-lane.spec.ts:126`의 1000 Task/2000 Milestone, peer tab 복귀 후 Grid splitter 변경 시 lane plot이 5초간 존재하지 않는 현상이다. CI trace에서 Core `_chartWidth=842px`와 실제 DOM `.wx-chart=825px` 차이 17px, `gridWidth=560px`, `hidden=false`, laneMeasurement.count=14, queueVersion=2를 확인했다.
+- Core scrollbar gutter/렌더링 폭 차이 상황에서 DOM 너비와 내부 state 너비가 1px 이내여야 한다는 조건 때문에 lane을 표시하지 못했다. 실제 DOM plot의 x/width/clip을 기준으로 lane 위치를 결정하고 날짜/scrollLeft/unit/cellWidth는 기존 Core state 기반으로 유지한다. zero-size/hidden/inert/unsupported scale은 fail closed하며 timeout·retry·skip은 완화하지 않는다.
+- 미해결 PR 리뷰 P2 두 건에 따라 혼합 날짜 cluster item focus/Editor 진입에서 해당 ID의 선택 및 guide 동기화, scroll로 focused marker가 사라질 때 surviving marker 또는 전체 목록 focus 복원을 추가했다. 다른 dialog/tab 사용자가 이미 focus를 옮긴 경우에는 빼앗지 않는다.
+- 새 E2E는 기존 대형 fixture의 실제 plot 원점·폭, Grid/Chart/fullscreen/scroll 불변 assertion을 유지하고 혼합 날짜 guide 및 가로 clip 키보드 복원 회귀를 추가한다. 새 head의 정식 quality/E2E/docker, QA_FINAL/Manager ACCEPT는 실제 새 CI 결과 확인 전 NOT TESTED.
+- `DESIGN.md`/`AGENTS.md`는 시각 원칙·작업 지침·검증 계약 불변으로 N/A. API/DB/Security/Scheduling/ImportExport/배포/워크플로/패키지 버전 역시 불변이며 제품/테스트/관련 문서만 수정한다. release_required=true, release_authorized=false. 병합/Main CI/GHCR/Issue 종료는 요청 범위 밖이다.
+
 ## Issue #519 PR #547 최초 CI timeout과 최신 main 회귀 복구
 
 PR head `d1924ffbbebc8cf38ebeafbde4edac67a8ecb599`, [PR CI #2185.1](https://github.com/planner77/masterGantt/actions/runs/37773843644)에서 quality/docker/기타 E2E shards는 SUCCESS, shard 5/6의 기존 `project-workspace-ux.spec.ts:206` #130(5폭×readonly/edit 단일 테스트)만 30초 timeout으로 FAIL(79 PASS, 1 FAIL)했다. #519 picker E2E 실패 증거가 아니며 PASS라고 재판정하지 않는다. 최신 main은 #130의 5폭 테스트를 폭별 독립 fixture test로 분할했으므로 통합하여 원래 10개 조합·접근성·스크롤·상태 보존 assertion을 그대로 재검증한다. CI timeout 증가·retry·skip 없음. 최신 main `0.102.0`에 맞춘 보완 PATCH `0.102.1`의 새 exact head PR CI quality/e2e/docker가 완료되기 전 최종 PASS는 NOT TESTED다.
@@ -2524,3 +2541,25 @@ PRE_QA에서 관리 ID를 폐기하는 RAF가 대상 복귀 render의 cleanup으
 관리 ID는 현재 컴포넌트의 조건부 render-state 조정으로 자식 commit 전에 폐기하고, 취소 가능한 RAF에는 focus 복원만 남긴다. 테스트 전용 application-world RAF gate는 React의 소멸 DOM commit/행 제거를 먼저 확인하고, 복귀 행이 나타날 때까지 callback을 실행하지 않는다. 자동 메뉴 재개가 없는 것을 검증한 뒤 명시 같은/다른 ID를 열고 보류 callback을 한 번 해제하여 새 dialog와 focus가 유지되는지 확인한다. 임의 timeout이나 생산 control hook을 추가하지 않는다. 삭제 취소/Escape의 disconnected trigger는 별도 정적 후보였으며 기존 source에서 runtime 재현한 것으로 표기하지 않는다. 보완 후 외부 canonical 삭제→취소/Escape가 현재 visible Dashboard 검색으로 복귀하고 outline 선두께3px/offset3px/전체6px 외곽이 viewport 내부, center hit=true/불투명 sticky 겹침0/DELETE0임을 실제 검증했다.
 
 최종19/19 PASS exit0(44.5s)는 `/tmp/issue550-frontend-preqa-final.log`와 `preqa-final-source.sha256`의 동일 UI source 기준이다. 기존15case/5폭도 이 source로 재실행하여 선별 PNG/JSON을 갱신했다. `expiry-race-same-id`, `expiry-race-other-id`, `delete-close-cancel`, `delete-close-escape`의 JSON/PNG를 추가한다. 이전19 실행 없는 상태를 PASS로 재명명하지 않으며 독립 QA·원격 CI는 별도 gate다. TASK_RELATIONS/MILESTONE_STAGE_GATES는 이번 focus/메뉴 수명 보완으로 관계/Gate 계약 변경이 없어 기존 #550 문단을 유지한다.
+## Issue #551 — opt-in lane와 Week 의미 Local Fast Feedback
+
+Baseline `31345da9346dfbdc1ac02e4e7ca567edafec775f`, 설치 react-gantt2.7.3/store2.7.2/Next16.3.8. 실행은 기존 Playwright config의 개발 서버와 synthetic API의 실제 Chromium Core다. 공식 demo URL 확인/formatter Unit만으로 browser PASS를 판단하지 않는다. 기본 production 활성화·native M 행/빠른 보기 제거는 #552이며, remote quality/e2e/docker·production build/runtime·실물 touch/screen reader는 NOT TESTED다.
+
+| 대상 | 로컬 증거와 범위 |
+| --- | --- |
+| 새 interval/helper와 기존 지원 계약 | 새 Gregorian/ISO/calendar 경계11, lane cluster/빈 상태5, 기존 Sunday/Week tooltip8, adapter5 = 서로 다른29 Unit PASS. Calendar 지원 범위 변경 없음 |
+| 최초 before | 실제 4날짜×Day/Week8관측. Week native month3FAIL/lowerISO 불일치; Day 의미/adapter anchor 일치. source/hash/FAIL 원본 보존 |
+| 진단과 공개 대안 | Week lower/axis11424px vs native upper13668px(차이2244px), weekStart0 관측. scoped Monday+상위 weekly Gregorian span 대안. 월1일3개의 주 셀 내부 x와 accessible full interval을 별도로 비교 |
+| 상한 날짜 | 시험 시각2199-12-01의 작은 M-only 실제 Week2199-12-31/ISO2200-W01/exclusive2200-01-06 및 keyboard 전체 근무일 미산정/pageerror0/mutation0. 처음 현재시각2026과 함께 둔 fixture 초기 probe timeout은 원본 FAIL이며 tooltip FAIL 또는 확정 원인으로 단정하지 않음 |
+| 최종 browser | targeted `milestone-timeline-lane.spec.ts` 최신 동일 source17/17 PASS, exit0, 46.4s. 실행 전후10개 SHA 모두 일치하며 최종 결과/명령/sourceSHA는 선별 evidence의 실행 계약을 따른다. 390/768/1024/1440/1920px×Day/Week10관측, native Task anchor/tick±1px·Grid/Chart row center±1px·height·같은instance·64px lane/160×44px marker·clip을 직접 비교 |
+| interaction | singleton hover leave에도 keyboard focus guide 유지/outline3+offset3=6px·center hit·정확한 ID의 기존 Editor 복귀; 동일/근접 날짜56개 묶음의50/6페이지·roving/UpDownHomeEnd; canonical 소멸/같은ID복귀 자동재개 없음; OFF와dirty Editor 초안/명시 폐기; Task checkbox선택 보존/context menu/guide pointer hit/mutation0 |
+| viewport/모집단 | Task-only 필터도 전체 M61개 유지, 프로젝트 M0 vs날짜viewport0 이유 구별. 대형1000Task+2000M의 native wheel nonzeroTop→peer Chart height/top/left/같은instance, splitter/resize/fullscreen/동적축/latest scroll. Grid-only hidden native DOM+lane0, Chart-only collapsedGrid38+resizer4=42px 실제 rail과 plot/lane 원점·폭합 직접 비교 |
+| bounded 비용 | 전체 모델은 snapshot memo이며 scroll마다 E/P를 계산하지 않음. 실제3000행/2000좌표·측정횟수/마지막 durationMs/DOM marker 수를 JSON에 기록. 한 합성 desktop 입력의 측정이며 전체 운영 부하/성능 보장이나 다양한 장치 benchmark PASS가 아님 |
+| touch | 별도 isMobile/hasTouch390px Chromium의 실제 tap→같은Editor 및160×44px target. desktop390 관측과 구별하며 실물 기기는 NOT TESTED |
+| 오류/N/A | invalid/missing 날짜 이유와 물리폭/geometry fail-closed는 직접 Unit; invalid canonical 날짜의 전체 앱/서버 수용을 실제 browser PASS로 주장하지 않음. 최신source typecheck/changed lint/Markdown/diff의 실제exit는 실행 계약에 기록 |
+
+첫390 whole-list x=-335px(expected≥12px) actualFAIL은 widget overflow:hidden의 sticky 기준 경계로 보완했다. 앱 wrapper overflow:clip과 read-only adapter의 실제 목록 bbox 뒤 control clamp를 사용하고 날짜 tick을 옮기지 않는다. Dirty Editor 시험의 최초 버튼명 오류(기존은 변경사항 버리고 닫기), Grid-only가 DOM을 제거할 것이라는 oracle 오류, Chart-only widget 전체폭/단일42px DOM rail 가정 오류는 제품 오류와 분리해 원본을 보존했다. peer splitter 뒤 projection 소멸은 처음 측정 전 oracle 가설로 분류했으나 visible projection 완료를 기다려도 실제5초 재발했다. Manager REWORK로 queue 완료 전 version을 잡아 결과를 폐기하는 소스 경계를 보완했다. 현재 queue 완료 뒤 version을 읽고 await 중 queue identity가 교체된 경우만 재요청하며 대기 중 event/frame 요청은 하나로 합친다. resize-grid 공개 이벤트도 측정을 요청한다. 상시 polling/임의 sleep/허용오차 확대/scroll 복원은 없다. 최초 FAIL과 새source 검증을 구별한다. dev public displayMode JSX 중복 prop의 최초 type/lint FAIL도 보존하고 production all/defaultOFF를 유지했다.
+
+실제 dev displayMode case에서 관측한 React child-key warning(render Lt, 원인 미확정), synthetic Project가 실제 DB에 없어서 Editor logistics-link/비활성 보고 GET404·503을 반환하는 경계는 fixture 경계로 기록한다. Week header-only 및 lane Week 실행의 로그에는 해당 warning이 기록되지 않았다. 설치 TimeScale의 rowIdx/cellIdx는 별도 부모 아래 key이므로 두 week 행 자체가 key 충돌 원인이라는 근거가 없고, baseline warning으로 확대하지 않는다. 경고는 숨기거나 라이브러리를 수정하지 않는다. 이 시험으로 실제 HTTP authorization/SQLite persistence PASS를 주장하지 않는다. API/DB/SCHEDULING/SECURITY/Import/Export/CI는 경계/저장/알고리즘/권한계약 소스 변경이 없어 이번 documentation N/A다. 기존 Task drag/Dependency 전체 회귀, invalid 서버 DTO, 최소1900 전체UI와 runtime observer/listener 수의 독립 계측은 이번 실제 assertion 밖이며 관련 최신 PR CI와 후속 통합 gate가 필요하다.
+
+OFF 뒤 window resize의 측정 횟수가 증가하지 않는 cleanup 경계를 실제5폭 case에서 확인했다. 최종 typecheck/변경 lint exit0이며 기존 ProjectGantt hook 경고4개는 유지한다. [선별 실행 계약과 전체 관측 JSON](../output/playwright/issue-551/review-selected/execution-contract.json), [제품/UX 계약](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)을 따른다. 원본 로그/trace/DB는 `/tmp` 또는 runtime 경로에 유지하고 Git에는 합성 선별 PNG/JSON만 포함한다. 첫 FAIL/진단/지원 대안과 최신 source를 시점별로 구별하고 이전17PASS44.5초가 최신 검사로 대체되었다고 원본을 삭제하지 않는다.

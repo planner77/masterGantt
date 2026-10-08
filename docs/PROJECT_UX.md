@@ -1185,3 +1185,17 @@ Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약
 열린 관리 메뉴의 대상이 외부 canonical 삭제 또는 보고 population 변화로 사라지면 메뉴 ID를 폐기하고 현재 Project의 보이는 Dashboard fallback으로 focus를 복원한다. 같은 대상이 재등장해도 메뉴를 자동으로 열지 않는다. 실제5폭 geometry는 표 header/body 경계 차이0px, 문서폭=viewport, sibling/button/toolbar/focus-owner containment ±1px와 표 키보드 scroll을 검증한다. 모달 screenshot의 폭만으로 표 전체 geometry를 PASS로 간주하지 않는다.
 
 #550 관리 대상 소멸은 자식 commit 전 현재 컴포넌트 state에서 ID를 폐기하며 focus만 한정된 RAF로 분리한다. 대상의 RAF 전 복귀로 메뉴를 자동 재개하지 않는다. 같은/다른 ID의 명시 열기는 오래된 focus를 취소한다. 삭제 확인 취소/Escape는 외부 갱신으로 trigger가 사라져도 현재 Dashboard의 보이는 검색/추가/heading으로 복귀하고 삭제 요청을 보내지 않는다.
+
+## Issue #551 — opt-in Milestone Timeline 작업면
+
+운영 기본은 OFF이며 기존 native M 행/빠른 보기를 유지한다. 개발 전용 기술 미리보기에서 전체 canonical Milestone 모델을 사용하는 같은 Gantt의 capability를 검증한다. 전체 목록은 Task 필터·WBS scope와 독립임을 표시한다. 프로젝트 전체 0개와 날짜 viewport 0개, 미정/invalid 날짜, 물리 화면 밖/읽기 조작 폭 부족을 구별한다. 모델이나 DOM clip을 저장·Export·전체 Gate의 모집단으로 사용하지 않는다.
+
+앱 소유 64px sibling lane → native Grid/date header → Task 행 순서이며 native 헤더 아래 삽입이 아니다. 숨은 peer 탭도 ON의 공간을 유지하고 marker만 숨기며 OFF만 64→0으로 반환한다. 같은 wrapper/key/API를 유지한다. Chart-only는 Core 고유 42px rail을 제외한 실제 전체 plot과 같은 원점/폭, 개발 실험의 Grid-only는 lane 없음이다.
+
+이름/상태의 두 줄 160×44px control과 원래 날짜 tick을 분리한다. 이름은 제한 폭에서 축약하고 accessible label 및 정확한 ID의 기존 Editor/50개씩 묶음 목록에서 전체 값을 제공한다. 묶음은 N개 Milestone+동일일/근접 날짜 범위다. outline 3px+offset 3px(외곽 6px)+양쪽 2px 여유가 겹치면 묶고 control만 8px/전체 목록/owner/window clip 안으로 clamp한다. 390px의 최소 720px 작업면은 native owner 가로 scroll로 접근한다. glyph만 남겨 이름을 없애지 않으며 폭 부족 시 전체 목록으로 안내한다.
+
+Lane Left/Right/Home/End roving Tab 1개, Enter/Space; 묶음 Up/Down/Home/End/Tab/Escape를 사용한다. 같은 Editor는 actual trigger를 보존하고 끊긴 marker/item에는 보이는 전체 목록/일정 작업면으로 복귀한다. OFF가 열린 Editor의 dirty/pending 초안을 폐기하지 않는다. focus/hover/별도 조회 선택에서 derive한 guide 하나는 pointer-events:none이며 Task 선택/clipboard·native pointer/context menu를 가로채지 않는다.
+
+Week는 실제 Monday→next Monday 셀의 포함 Gregorian 월·연도 span과 ISO 주차를 구별한다. Day의 기존 월/일 의미는 유지한다. 2199-12-31의 2200 exclusive-end metadata는 표시 전용이며 해당 주 전체 Calendar 근무일은 미산정 사유를 표시한다. 원래 native 월 셀 오류를 고쳤다고 표기하지 않는다. 상세 current/target/compatibility와 검증 경계는 [Milestone Timeline](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)를 따른다.
+
+#551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.

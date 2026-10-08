@@ -1,0 +1,4571 @@
+{
+  "capturedAt": "2026-10-08T17:40:43.443Z",
+  "baseline": "31345da9346dfbdc1ac02e4e7ca567edafec775f",
+  "environment": "Chromium/Next dev actual Core2.7.3/store2.7.2, synthetic canonical API, America/New_York",
+  "observations": [
+    {
+      "scale": "day",
+      "date": "2024-02-29",
+      "nativeContentX": 0,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 0
+      },
+      "rows": [
+        [
+          {
+            "text": "February 2024",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          },
+          {
+            "text": "March 2024",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": 546,
+            "right": 1662,
+            "width": 1116,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "29",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240229 ",
+            "ariaLabel": "2024-02-29, Thursday",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          },
+          {
+            "text": "1",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240301 ",
+            "ariaLabel": "2024-03-01, Friday",
+            "x": 546,
+            "right": 582,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "2",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240302 wx-weekend",
+            "ariaLabel": "2024-03-02, Saturday",
+            "x": 582,
+            "right": 618,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "3",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240303 wx-weekend",
+            "ariaLabel": "2024-03-03, Sunday",
+            "x": 618,
+            "right": 654,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "4",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240304 ",
+            "ariaLabel": "2024-03-04, Monday",
+            "x": 654,
+            "right": 690,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "5",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240305 ",
+            "ariaLabel": "2024-03-05, Tuesday",
+            "x": 690,
+            "right": 726,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "6",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240306 ",
+            "ariaLabel": "2024-03-06, Wednesday",
+            "x": 726,
+            "right": 762,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "7",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240307 ",
+            "ariaLabel": "2024-03-07, Thursday",
+            "x": 762,
+            "right": 798,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "8",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240308 ",
+            "ariaLabel": "2024-03-08, Friday",
+            "x": 798,
+            "right": 834,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "9",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240309 wx-weekend",
+            "ariaLabel": "2024-03-09, Saturday",
+            "x": 834,
+            "right": 870,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "10",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240310 wx-weekend",
+            "ariaLabel": "2024-03-10, Sunday",
+            "x": 870,
+            "right": 906,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "11",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240311 ",
+            "ariaLabel": "2024-03-11, Monday",
+            "x": 906,
+            "right": 942,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "12",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240312 ",
+            "ariaLabel": "2024-03-12, Tuesday",
+            "x": 942,
+            "right": 978,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "13",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240313 ",
+            "ariaLabel": "2024-03-13, Wednesday",
+            "x": 978,
+            "right": 1014,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "14",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240314 ",
+            "ariaLabel": "2024-03-14, Thursday",
+            "x": 1014,
+            "right": 1050,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "15",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240315 ",
+            "ariaLabel": "2024-03-15, Friday",
+            "x": 1050,
+            "right": 1086,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "16",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240316 wx-weekend",
+            "ariaLabel": "2024-03-16, Saturday",
+            "x": 1086,
+            "right": 1122,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "17",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240317 wx-weekend",
+            "ariaLabel": "2024-03-17, Sunday",
+            "x": 1122,
+            "right": 1158,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "18",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240318 ",
+            "ariaLabel": "2024-03-18, Monday",
+            "x": 1158,
+            "right": 1194,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "19",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240319 ",
+            "ariaLabel": "2024-03-19, Tuesday",
+            "x": 1194,
+            "right": 1230,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "20",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240320 ",
+            "ariaLabel": "2024-03-20, Wednesday",
+            "x": 1230,
+            "right": 1266,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "21",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240321 ",
+            "ariaLabel": "2024-03-21, Thursday",
+            "x": 1266,
+            "right": 1302,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "22",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240322 ",
+            "ariaLabel": "2024-03-22, Friday",
+            "x": 1302,
+            "right": 1338,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "23",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240323 wx-weekend",
+            "ariaLabel": "2024-03-23, Saturday",
+            "x": 1338,
+            "right": 1374,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "24",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240324 wx-weekend",
+            "ariaLabel": "2024-03-24, Sunday",
+            "x": 1374,
+            "right": 1410,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "25",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240325 ",
+            "ariaLabel": "2024-03-25, Monday",
+            "x": 1410,
+            "right": 1446,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "26",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240326 ",
+            "ariaLabel": "2024-03-26, Tuesday",
+            "x": 1446,
+            "right": 1482,
+            "width": 36,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "February 2024",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "29",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20240229 ",
+            "ariaLabel": "2024-02-29, Thursday",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 0,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "day",
+        "cellWidth": 36
+      },
+      "expectedMonth": "February 2024",
+      "expected": {
+        "start": "2024-02-26",
+        "end": "2024-03-04",
+        "label": "2024.02→03",
+        "week": "W09",
+        "isoYear": "2024"
+      },
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 0,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-29T05:00:00.000Z",
+        "end": "2027-01-03T05:00:00.000Z",
+        "width": 37404,
+        "chartWidth": 906,
+        "weekStart": 1,
+        "scaleRows": [
+          {
+            "count": 36,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-11-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "November 2026"
+              },
+              {
+                "date": "2026-12-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "December 2026"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 72,
+                "value": "January 2027"
+              }
+            ]
+          },
+          {
+            "count": 1039,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "29"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2024-03-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-12-31T05:00:00.000Z",
+                "width": 36,
+                "value": "31"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2027-01-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": -15.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 25272,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 37332,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 26624.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 37316.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 0,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "day",
+      "date": "2026-01-31",
+      "nativeContentX": 25272,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 25272
+      },
+      "rows": [
+        [
+          {
+            "text": "January 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": -570,
+            "right": 546,
+            "width": 1116,
+            "containsAnchor": true
+          },
+          {
+            "text": "February 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": 546,
+            "right": 1554,
+            "width": 1008,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "30",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260130 ",
+            "ariaLabel": "2026-01-30, Friday",
+            "x": 474,
+            "right": 510,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "31",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260131 wx-weekend",
+            "ariaLabel": "2026-01-31, Saturday",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          },
+          {
+            "text": "1",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260201 wx-weekend",
+            "ariaLabel": "2026-02-01, Sunday",
+            "x": 546,
+            "right": 582,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "2",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260202 ",
+            "ariaLabel": "2026-02-02, Monday",
+            "x": 582,
+            "right": 618,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "3",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260203 ",
+            "ariaLabel": "2026-02-03, Tuesday",
+            "x": 618,
+            "right": 654,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "4",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260204 ",
+            "ariaLabel": "2026-02-04, Wednesday",
+            "x": 654,
+            "right": 690,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "5",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260205 ",
+            "ariaLabel": "2026-02-05, Thursday",
+            "x": 690,
+            "right": 726,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "6",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260206 ",
+            "ariaLabel": "2026-02-06, Friday",
+            "x": 726,
+            "right": 762,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "7",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260207 wx-weekend",
+            "ariaLabel": "2026-02-07, Saturday",
+            "x": 762,
+            "right": 798,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "8",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260208 wx-weekend",
+            "ariaLabel": "2026-02-08, Sunday",
+            "x": 798,
+            "right": 834,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "9",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260209 ",
+            "ariaLabel": "2026-02-09, Monday",
+            "x": 834,
+            "right": 870,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "10",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260210 ",
+            "ariaLabel": "2026-02-10, Tuesday",
+            "x": 870,
+            "right": 906,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "11",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260211 ",
+            "ariaLabel": "2026-02-11, Wednesday",
+            "x": 906,
+            "right": 942,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "12",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260212 ",
+            "ariaLabel": "2026-02-12, Thursday",
+            "x": 942,
+            "right": 978,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "13",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260213 ",
+            "ariaLabel": "2026-02-13, Friday",
+            "x": 978,
+            "right": 1014,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "14",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260214 wx-weekend",
+            "ariaLabel": "2026-02-14, Saturday",
+            "x": 1014,
+            "right": 1050,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "15",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260215 wx-weekend",
+            "ariaLabel": "2026-02-15, Sunday",
+            "x": 1050,
+            "right": 1086,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "16",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260216 ",
+            "ariaLabel": "2026-02-16, Monday",
+            "x": 1086,
+            "right": 1122,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "17",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260217 ",
+            "ariaLabel": "2026-02-17, Tuesday",
+            "x": 1122,
+            "right": 1158,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "18",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260218 ",
+            "ariaLabel": "2026-02-18, Wednesday",
+            "x": 1158,
+            "right": 1194,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "19",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260219 ",
+            "ariaLabel": "2026-02-19, Thursday",
+            "x": 1194,
+            "right": 1230,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "20",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260220 ",
+            "ariaLabel": "2026-02-20, Friday",
+            "x": 1230,
+            "right": 1266,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "21",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260221 wx-weekend",
+            "ariaLabel": "2026-02-21, Saturday",
+            "x": 1266,
+            "right": 1302,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "22",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260222 wx-weekend",
+            "ariaLabel": "2026-02-22, Sunday",
+            "x": 1302,
+            "right": 1338,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "23",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260223 ",
+            "ariaLabel": "2026-02-23, Monday",
+            "x": 1338,
+            "right": 1374,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "24",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260224 ",
+            "ariaLabel": "2026-02-24, Tuesday",
+            "x": 1374,
+            "right": 1410,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "25",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260225 ",
+            "ariaLabel": "2026-02-25, Wednesday",
+            "x": 1410,
+            "right": 1446,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "26",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260226 ",
+            "ariaLabel": "2026-02-26, Thursday",
+            "x": 1446,
+            "right": 1482,
+            "width": 36,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "January 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": -570,
+            "right": 546,
+            "width": 1116,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "31",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260131 wx-weekend",
+            "ariaLabel": "2026-01-31, Saturday",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 25272,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "day",
+        "cellWidth": 36
+      },
+      "expectedMonth": "January 2026",
+      "expected": {
+        "start": "2026-01-26",
+        "end": "2026-02-02",
+        "label": "2026.01→02",
+        "week": "W05",
+        "isoYear": "2026"
+      },
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 25272,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-29T05:00:00.000Z",
+        "end": "2027-01-03T05:00:00.000Z",
+        "width": 37404,
+        "chartWidth": 906,
+        "weekStart": 1,
+        "scaleRows": [
+          {
+            "count": 36,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-11-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "November 2026"
+              },
+              {
+                "date": "2026-12-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "December 2026"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 72,
+                "value": "January 2027"
+              }
+            ]
+          },
+          {
+            "count": 1039,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "29"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2024-03-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-12-31T05:00:00.000Z",
+                "width": 36,
+                "value": "31"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2027-01-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": -15.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 25272,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 37332,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 26624.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 37316.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 0,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "day",
+      "date": "2026-03-10",
+      "nativeContentX": 26640,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 26640
+      },
+      "rows": [
+        [
+          {
+            "text": "March 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": 186,
+            "right": 1302,
+            "width": 1116,
+            "containsAnchor": true
+          },
+          {
+            "text": "April 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": 1302,
+            "right": 2382,
+            "width": 1080,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "9",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260309 ",
+            "ariaLabel": "2026-03-09, Monday",
+            "x": 474,
+            "right": 510,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "10",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260310 ",
+            "ariaLabel": "2026-03-10, Tuesday",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          },
+          {
+            "text": "11",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260311 ",
+            "ariaLabel": "2026-03-11, Wednesday",
+            "x": 546,
+            "right": 582,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "12",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260312 ",
+            "ariaLabel": "2026-03-12, Thursday",
+            "x": 582,
+            "right": 618,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "13",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260313 ",
+            "ariaLabel": "2026-03-13, Friday",
+            "x": 618,
+            "right": 654,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "14",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260314 wx-weekend",
+            "ariaLabel": "2026-03-14, Saturday",
+            "x": 654,
+            "right": 690,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "15",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260315 wx-weekend",
+            "ariaLabel": "2026-03-15, Sunday",
+            "x": 690,
+            "right": 726,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "16",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260316 ",
+            "ariaLabel": "2026-03-16, Monday",
+            "x": 726,
+            "right": 762,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "17",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260317 ",
+            "ariaLabel": "2026-03-17, Tuesday",
+            "x": 762,
+            "right": 798,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "18",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260318 ",
+            "ariaLabel": "2026-03-18, Wednesday",
+            "x": 798,
+            "right": 834,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "19",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260319 ",
+            "ariaLabel": "2026-03-19, Thursday",
+            "x": 834,
+            "right": 870,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "20",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260320 ",
+            "ariaLabel": "2026-03-20, Friday",
+            "x": 870,
+            "right": 906,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "21",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260321 wx-weekend",
+            "ariaLabel": "2026-03-21, Saturday",
+            "x": 906,
+            "right": 942,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "22",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260322 wx-weekend",
+            "ariaLabel": "2026-03-22, Sunday",
+            "x": 942,
+            "right": 978,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "23",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260323 ",
+            "ariaLabel": "2026-03-23, Monday",
+            "x": 978,
+            "right": 1014,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "24",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260324 ",
+            "ariaLabel": "2026-03-24, Tuesday",
+            "x": 1014,
+            "right": 1050,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "25",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260325 ",
+            "ariaLabel": "2026-03-25, Wednesday",
+            "x": 1050,
+            "right": 1086,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "26",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260326 ",
+            "ariaLabel": "2026-03-26, Thursday",
+            "x": 1086,
+            "right": 1122,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "27",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260327 ",
+            "ariaLabel": "2026-03-27, Friday",
+            "x": 1122,
+            "right": 1158,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "28",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260328 wx-weekend",
+            "ariaLabel": "2026-03-28, Saturday",
+            "x": 1158,
+            "right": 1194,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "29",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260329 wx-weekend",
+            "ariaLabel": "2026-03-29, Sunday",
+            "x": 1194,
+            "right": 1230,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "30",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260330 ",
+            "ariaLabel": "2026-03-30, Monday",
+            "x": 1230,
+            "right": 1266,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "31",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260331 ",
+            "ariaLabel": "2026-03-31, Tuesday",
+            "x": 1266,
+            "right": 1302,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "1",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260401 ",
+            "ariaLabel": "2026-04-01, Wednesday",
+            "x": 1302,
+            "right": 1338,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "2",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260402 ",
+            "ariaLabel": "2026-04-02, Thursday",
+            "x": 1338,
+            "right": 1374,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "3",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260403 ",
+            "ariaLabel": "2026-04-03, Friday",
+            "x": 1374,
+            "right": 1410,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "4",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260404 wx-weekend",
+            "ariaLabel": "2026-04-04, Saturday",
+            "x": 1410,
+            "right": 1446,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "5",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260405 wx-weekend",
+            "ariaLabel": "2026-04-05, Sunday",
+            "x": 1446,
+            "right": 1482,
+            "width": 36,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "March 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": 186,
+            "right": 1302,
+            "width": 1116,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "10",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20260310 ",
+            "ariaLabel": "2026-03-10, Tuesday",
+            "x": 510,
+            "right": 546,
+            "width": 36,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 26640,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "day",
+        "cellWidth": 36
+      },
+      "expectedMonth": "March 2026",
+      "expected": {
+        "start": "2026-03-09",
+        "end": "2026-03-16",
+        "label": "2026.03",
+        "week": "W11",
+        "isoYear": "2026"
+      },
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 26640,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-29T05:00:00.000Z",
+        "end": "2027-01-03T05:00:00.000Z",
+        "width": 37404,
+        "chartWidth": 906,
+        "weekStart": 1,
+        "scaleRows": [
+          {
+            "count": 36,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-11-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "November 2026"
+              },
+              {
+                "date": "2026-12-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "December 2026"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 72,
+                "value": "January 2027"
+              }
+            ]
+          },
+          {
+            "count": 1039,
+            "width": 37404,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "29"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2024-03-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-12-31T05:00:00.000Z",
+                "width": 36,
+                "value": "31"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2027-01-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": -15.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 25272,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 37332,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 26624.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 37316.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 0,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "day",
+      "date": "2027-01-01",
+      "nativeContentX": 37332,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 36498
+      },
+      "rows": [
+        [
+          {
+            "text": "December 2026",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": 228,
+            "right": 1344,
+            "width": 1116,
+            "containsAnchor": false
+          },
+          {
+            "text": "January 2027",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": 1344,
+            "right": 2352,
+            "width": 1008,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "7",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261207 ",
+            "ariaLabel": "2026-12-07, Monday",
+            "x": 444,
+            "right": 480,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "8",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261208 ",
+            "ariaLabel": "2026-12-08, Tuesday",
+            "x": 480,
+            "right": 516,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "9",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261209 ",
+            "ariaLabel": "2026-12-09, Wednesday",
+            "x": 516,
+            "right": 552,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "10",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261210 ",
+            "ariaLabel": "2026-12-10, Thursday",
+            "x": 552,
+            "right": 588,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "11",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261211 ",
+            "ariaLabel": "2026-12-11, Friday",
+            "x": 588,
+            "right": 624,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "12",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261212 wx-weekend",
+            "ariaLabel": "2026-12-12, Saturday",
+            "x": 624,
+            "right": 660,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "13",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261213 wx-weekend",
+            "ariaLabel": "2026-12-13, Sunday",
+            "x": 660,
+            "right": 696,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "14",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261214 ",
+            "ariaLabel": "2026-12-14, Monday",
+            "x": 696,
+            "right": 732,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "15",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261215 ",
+            "ariaLabel": "2026-12-15, Tuesday",
+            "x": 732,
+            "right": 768,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "16",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261216 ",
+            "ariaLabel": "2026-12-16, Wednesday",
+            "x": 768,
+            "right": 804,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "17",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261217 ",
+            "ariaLabel": "2026-12-17, Thursday",
+            "x": 804,
+            "right": 840,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "18",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261218 ",
+            "ariaLabel": "2026-12-18, Friday",
+            "x": 840,
+            "right": 876,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "19",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261219 wx-weekend",
+            "ariaLabel": "2026-12-19, Saturday",
+            "x": 876,
+            "right": 912,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "20",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261220 wx-weekend",
+            "ariaLabel": "2026-12-20, Sunday",
+            "x": 912,
+            "right": 948,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "21",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261221 ",
+            "ariaLabel": "2026-12-21, Monday",
+            "x": 948,
+            "right": 984,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "22",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261222 ",
+            "ariaLabel": "2026-12-22, Tuesday",
+            "x": 984,
+            "right": 1020,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "23",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261223 ",
+            "ariaLabel": "2026-12-23, Wednesday",
+            "x": 1020,
+            "right": 1056,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "24",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261224 ",
+            "ariaLabel": "2026-12-24, Thursday",
+            "x": 1056,
+            "right": 1092,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "25",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261225 ",
+            "ariaLabel": "2026-12-25, Friday",
+            "x": 1092,
+            "right": 1128,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "26",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261226 wx-weekend",
+            "ariaLabel": "2026-12-26, Saturday",
+            "x": 1128,
+            "right": 1164,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "27",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261227 wx-weekend",
+            "ariaLabel": "2026-12-27, Sunday",
+            "x": 1164,
+            "right": 1200,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "28",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261228 ",
+            "ariaLabel": "2026-12-28, Monday",
+            "x": 1200,
+            "right": 1236,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "29",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261229 ",
+            "ariaLabel": "2026-12-29, Tuesday",
+            "x": 1236,
+            "right": 1272,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "30",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261230 ",
+            "ariaLabel": "2026-12-30, Wednesday",
+            "x": 1272,
+            "right": 1308,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "31",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20261231 ",
+            "ariaLabel": "2026-12-31, Thursday",
+            "x": 1308,
+            "right": 1344,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "1",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20270101 ",
+            "ariaLabel": "2027-01-01, Friday",
+            "x": 1344,
+            "right": 1380,
+            "width": 36,
+            "containsAnchor": true
+          },
+          {
+            "text": "2",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20270102 wx-weekend",
+            "ariaLabel": "2027-01-02, Saturday",
+            "x": 1380,
+            "right": 1416,
+            "width": 36,
+            "containsAnchor": false
+          },
+          {
+            "text": "3",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20270103 wx-weekend",
+            "ariaLabel": "2027-01-03, Sunday",
+            "x": 1416,
+            "right": 1452,
+            "width": 36,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "January 2027",
+            "className": "wx-ZkvhDKir wx-cell  ",
+            "ariaLabel": null,
+            "x": 1344,
+            "right": 2352,
+            "width": 1008,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "1",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-day-scale project-gantt-day-date-20270101 ",
+            "ariaLabel": "2027-01-01, Friday",
+            "x": 1344,
+            "right": 1380,
+            "width": 36,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 37332,
+        "viewportX": 834,
+        "insideRange": true,
+        "visible": true,
+        "unit": "day",
+        "cellWidth": 36
+      },
+      "expectedMonth": "January 2027",
+      "expected": {
+        "start": "2026-12-28",
+        "end": "2027-01-04",
+        "label": "2026.12→2027.01",
+        "week": "W53",
+        "isoYear": "2026"
+      },
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 36498,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-29T05:00:00.000Z",
+        "end": "2027-01-29T05:00:00.000Z",
+        "width": 38340,
+        "chartWidth": 906,
+        "weekStart": 1,
+        "scaleRows": [
+          {
+            "count": 36,
+            "width": 38340,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "February 2024"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "March 2024"
+              },
+              {
+                "date": "2024-04-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "April 2024"
+              }
+            ],
+            "last": [
+              {
+                "date": "2026-11-01T04:00:00.000Z",
+                "width": 1080,
+                "value": "November 2026"
+              },
+              {
+                "date": "2026-12-01T05:00:00.000Z",
+                "width": 1116,
+                "value": "December 2026"
+              },
+              {
+                "date": "2027-01-01T05:00:00.000Z",
+                "width": 1008,
+                "value": "January 2027"
+              }
+            ]
+          },
+          {
+            "count": 1065,
+            "width": 38340,
+            "first": [
+              {
+                "date": "2024-02-29T05:00:00.000Z",
+                "width": 36,
+                "value": "29"
+              },
+              {
+                "date": "2024-03-01T05:00:00.000Z",
+                "width": 36,
+                "value": "1"
+              },
+              {
+                "date": "2024-03-02T05:00:00.000Z",
+                "width": 36,
+                "value": "2"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-01-26T05:00:00.000Z",
+                "width": 36,
+                "value": "26"
+              },
+              {
+                "date": "2027-01-27T05:00:00.000Z",
+                "width": 36,
+                "value": "27"
+              },
+              {
+                "date": "2027-01-28T05:00:00.000Z",
+                "width": 36,
+                "value": "28"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 0,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": -15.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 25272,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 26640,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 37332,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 26624.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 37316.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 0,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "week",
+      "date": "2024-02-29",
+      "nativeContentX": 29,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 29
+      },
+      "rows": [
+        [
+          {
+            "text": "2024.02→03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240226 ",
+            "ariaLabel": "2024-02-26 이상, 2024-03-04 미만 · 포함 월 2024.02→03 · ISO 2024-W09",
+            "x": 481,
+            "right": 549,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "2024.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240304 ",
+            "ariaLabel": "2024-03-04 이상, 2024-03-11 미만 · 포함 월 2024.03 · ISO 2024-W10",
+            "x": 549,
+            "right": 617,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240311 ",
+            "ariaLabel": "2024-03-11 이상, 2024-03-18 미만 · 포함 월 2024.03 · ISO 2024-W11",
+            "x": 617,
+            "right": 685,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240318 ",
+            "ariaLabel": "2024-03-18 이상, 2024-03-25 미만 · 포함 월 2024.03 · ISO 2024-W12",
+            "x": 685,
+            "right": 753,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240325 ",
+            "ariaLabel": "2024-03-25 이상, 2024-04-01 미만 · 포함 월 2024.03 · ISO 2024-W13",
+            "x": 753,
+            "right": 821,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240401 ",
+            "ariaLabel": "2024-04-01 이상, 2024-04-08 미만 · 포함 월 2024.04 · ISO 2024-W14",
+            "x": 821,
+            "right": 889,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240408 ",
+            "ariaLabel": "2024-04-08 이상, 2024-04-15 미만 · 포함 월 2024.04 · ISO 2024-W15",
+            "x": 889,
+            "right": 957,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240415 ",
+            "ariaLabel": "2024-04-15 이상, 2024-04-22 미만 · 포함 월 2024.04 · ISO 2024-W16",
+            "x": 957,
+            "right": 1025,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240422 ",
+            "ariaLabel": "2024-04-22 이상, 2024-04-29 미만 · 포함 월 2024.04 · ISO 2024-W17",
+            "x": 1025,
+            "right": 1093,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.04→05",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240429 ",
+            "ariaLabel": "2024-04-29 이상, 2024-05-06 미만 · 포함 월 2024.04→05 · ISO 2024-W18",
+            "x": 1093,
+            "right": 1161,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.05",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240506 ",
+            "ariaLabel": "2024-05-06 이상, 2024-05-13 미만 · 포함 월 2024.05 · ISO 2024-W19",
+            "x": 1161,
+            "right": 1229,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.05",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240513 ",
+            "ariaLabel": "2024-05-13 이상, 2024-05-20 미만 · 포함 월 2024.05 · ISO 2024-W20",
+            "x": 1229,
+            "right": 1297,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.05",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240520 ",
+            "ariaLabel": "2024-05-20 이상, 2024-05-27 미만 · 포함 월 2024.05 · ISO 2024-W21",
+            "x": 1297,
+            "right": 1365,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.05→06",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240527 ",
+            "ariaLabel": "2024-05-27 이상, 2024-06-03 미만 · 포함 월 2024.05→06 · ISO 2024-W22",
+            "x": 1365,
+            "right": 1433,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2024.06",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240603 ",
+            "ariaLabel": "2024-06-03 이상, 2024-06-10 미만 · 포함 월 2024.06 · ISO 2024-W23",
+            "x": 1433,
+            "right": 1501,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "W095일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240226 ",
+            "ariaLabel": "2024-02-26 ~ 2024-03-03, 근무일 5일 · 2024-02-26 이상, 2024-03-04 미만 · 포함 월 2024.02→03 · ISO 2024-W09",
+            "x": 481,
+            "right": 549,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "W105일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240304 ",
+            "ariaLabel": "2024-03-04 ~ 2024-03-10, 근무일 5일 · 2024-03-04 이상, 2024-03-11 미만 · 포함 월 2024.03 · ISO 2024-W10",
+            "x": 549,
+            "right": 617,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W115일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240311 ",
+            "ariaLabel": "2024-03-11 ~ 2024-03-17, 근무일 5일 · 2024-03-11 이상, 2024-03-18 미만 · 포함 월 2024.03 · ISO 2024-W11",
+            "x": 617,
+            "right": 685,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W125일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240318 ",
+            "ariaLabel": "2024-03-18 ~ 2024-03-24, 근무일 5일 · 2024-03-18 이상, 2024-03-25 미만 · 포함 월 2024.03 · ISO 2024-W12",
+            "x": 685,
+            "right": 753,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W135일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240325 ",
+            "ariaLabel": "2024-03-25 ~ 2024-03-31, 근무일 5일 · 2024-03-25 이상, 2024-04-01 미만 · 포함 월 2024.03 · ISO 2024-W13",
+            "x": 753,
+            "right": 821,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W145일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240401 ",
+            "ariaLabel": "2024-04-01 ~ 2024-04-07, 근무일 5일 · 2024-04-01 이상, 2024-04-08 미만 · 포함 월 2024.04 · ISO 2024-W14",
+            "x": 821,
+            "right": 889,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W155일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240408 ",
+            "ariaLabel": "2024-04-08 ~ 2024-04-14, 근무일 5일 · 2024-04-08 이상, 2024-04-15 미만 · 포함 월 2024.04 · ISO 2024-W15",
+            "x": 889,
+            "right": 957,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W165일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240415 ",
+            "ariaLabel": "2024-04-15 ~ 2024-04-21, 근무일 5일 · 2024-04-15 이상, 2024-04-22 미만 · 포함 월 2024.04 · ISO 2024-W16",
+            "x": 957,
+            "right": 1025,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W175일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240422 ",
+            "ariaLabel": "2024-04-22 ~ 2024-04-28, 근무일 5일 · 2024-04-22 이상, 2024-04-29 미만 · 포함 월 2024.04 · ISO 2024-W17",
+            "x": 1025,
+            "right": 1093,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W185일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240429 ",
+            "ariaLabel": "2024-04-29 ~ 2024-05-05, 근무일 5일 · 2024-04-29 이상, 2024-05-06 미만 · 포함 월 2024.04→05 · ISO 2024-W18",
+            "x": 1093,
+            "right": 1161,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W195일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240506 ",
+            "ariaLabel": "2024-05-06 ~ 2024-05-12, 근무일 5일 · 2024-05-06 이상, 2024-05-13 미만 · 포함 월 2024.05 · ISO 2024-W19",
+            "x": 1161,
+            "right": 1229,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W205일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240513 ",
+            "ariaLabel": "2024-05-13 ~ 2024-05-19, 근무일 5일 · 2024-05-13 이상, 2024-05-20 미만 · 포함 월 2024.05 · ISO 2024-W20",
+            "x": 1229,
+            "right": 1297,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W215일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240520 ",
+            "ariaLabel": "2024-05-20 ~ 2024-05-26, 근무일 5일 · 2024-05-20 이상, 2024-05-27 미만 · 포함 월 2024.05 · ISO 2024-W21",
+            "x": 1297,
+            "right": 1365,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W225일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240527 ",
+            "ariaLabel": "2024-05-27 ~ 2024-06-02, 근무일 5일 · 2024-05-27 이상, 2024-06-03 미만 · 포함 월 2024.05→06 · ISO 2024-W22",
+            "x": 1365,
+            "right": 1433,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W235일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240603 ",
+            "ariaLabel": "2024-06-03 ~ 2024-06-09, 근무일 5일 · 2024-06-03 이상, 2024-06-10 미만 · 포함 월 2024.06 · ISO 2024-W23",
+            "x": 1433,
+            "right": 1501,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "2024.02→03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20240226 ",
+            "ariaLabel": "2024-02-26 이상, 2024-03-04 미만 · 포함 월 2024.02→03 · ISO 2024-W09",
+            "x": 481,
+            "right": 549,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "W095일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20240226 ",
+            "ariaLabel": "2024-02-26 ~ 2024-03-03, 근무일 5일 · 2024-02-26 이상, 2024-03-04 미만 · 포함 월 2024.02→03 · ISO 2024-W09",
+            "x": 481,
+            "right": 549,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 29,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "week",
+        "cellWidth": 68
+      },
+      "expectedMonth": "February 2024",
+      "expected": {
+        "start": "2024-02-26",
+        "end": "2024-03-04",
+        "label": "2024.02→03",
+        "week": "W09",
+        "isoYear": "2024"
+      },
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 29,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-26T05:00:00.000Z",
+        "end": "2027-05-17T04:00:00.000Z",
+        "width": 11424,
+        "chartWidth": 906,
+        "weekStart": 1,
+        "scaleRows": [
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-26T05:00:00.000Z",
+                "width": 68,
+                "value": "2024.02→03"
+              },
+              {
+                "date": "2024-03-04T05:00:00.000Z",
+                "width": 68,
+                "value": "2024.03"
+              },
+              {
+                "date": "2024-03-11T04:00:00.000Z",
+                "width": 68,
+                "value": "2024.03"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-26T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.04→05"
+              },
+              {
+                "date": "2027-05-03T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.05"
+              },
+              {
+                "date": "2027-05-10T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.05"
+              }
+            ]
+          },
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-26T05:00:00.000Z",
+                "width": 68,
+                "value": "W09"
+              },
+              {
+                "date": "2024-03-04T05:00:00.000Z",
+                "width": 68,
+                "value": "W10"
+              },
+              {
+                "date": "2024-03-11T04:00:00.000Z",
+                "width": 68,
+                "value": "W11"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-26T04:00:00.000Z",
+                "width": 68,
+                "value": "W17"
+              },
+              {
+                "date": "2027-05-03T04:00:00.000Z",
+                "width": 68,
+                "value": "W18"
+              },
+              {
+                "date": "2027-05-10T04:00:00.000Z",
+                "width": 68,
+                "value": "W19"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 29,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 29,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": 13.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 6849,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 7218,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 7218,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 10103,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 7202.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 10087.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 29,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 9566,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9537,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9537,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 29,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "week",
+      "date": "2026-01-31",
+      "nativeContentX": 6849,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 6849
+      },
+      "rows": [
+        [
+          {
+            "text": "2026.01",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260119 ",
+            "ariaLabel": "2026-01-19 이상, 2026-01-26 미만 · 포함 월 2026.01 · ISO 2026-W04",
+            "x": 393,
+            "right": 461,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.01→02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260126 ",
+            "ariaLabel": "2026-01-26 이상, 2026-02-02 미만 · 포함 월 2026.01→02 · ISO 2026-W05",
+            "x": 461,
+            "right": 529,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "2026.02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260202 ",
+            "ariaLabel": "2026-02-02 이상, 2026-02-09 미만 · 포함 월 2026.02 · ISO 2026-W06",
+            "x": 529,
+            "right": 597,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260209 ",
+            "ariaLabel": "2026-02-09 이상, 2026-02-16 미만 · 포함 월 2026.02 · ISO 2026-W07",
+            "x": 597,
+            "right": 665,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260216 ",
+            "ariaLabel": "2026-02-16 이상, 2026-02-23 미만 · 포함 월 2026.02 · ISO 2026-W08",
+            "x": 665,
+            "right": 733,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.02→03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260223 ",
+            "ariaLabel": "2026-02-23 이상, 2026-03-02 미만 · 포함 월 2026.02→03 · ISO 2026-W09",
+            "x": 733,
+            "right": 801,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260302 ",
+            "ariaLabel": "2026-03-02 이상, 2026-03-09 미만 · 포함 월 2026.03 · ISO 2026-W10",
+            "x": 801,
+            "right": 869,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260309 ",
+            "ariaLabel": "2026-03-09 이상, 2026-03-16 미만 · 포함 월 2026.03 · ISO 2026-W11",
+            "x": 869,
+            "right": 937,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260316 ",
+            "ariaLabel": "2026-03-16 이상, 2026-03-23 미만 · 포함 월 2026.03 · ISO 2026-W12",
+            "x": 937,
+            "right": 1005,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260323 ",
+            "ariaLabel": "2026-03-23 이상, 2026-03-30 미만 · 포함 월 2026.03 · ISO 2026-W13",
+            "x": 1005,
+            "right": 1073,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.03→04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260330 ",
+            "ariaLabel": "2026-03-30 이상, 2026-04-06 미만 · 포함 월 2026.03→04 · ISO 2026-W14",
+            "x": 1073,
+            "right": 1141,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260406 ",
+            "ariaLabel": "2026-04-06 이상, 2026-04-13 미만 · 포함 월 2026.04 · ISO 2026-W15",
+            "x": 1141,
+            "right": 1209,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260413 ",
+            "ariaLabel": "2026-04-13 이상, 2026-04-20 미만 · 포함 월 2026.04 · ISO 2026-W16",
+            "x": 1209,
+            "right": 1277,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260420 ",
+            "ariaLabel": "2026-04-20 이상, 2026-04-27 미만 · 포함 월 2026.04 · ISO 2026-W17",
+            "x": 1277,
+            "right": 1345,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.04→05",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260427 ",
+            "ariaLabel": "2026-04-27 이상, 2026-05-04 미만 · 포함 월 2026.04→05 · ISO 2026-W18",
+            "x": 1345,
+            "right": 1413,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.05",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260504 ",
+            "ariaLabel": "2026-05-04 이상, 2026-05-11 미만 · 포함 월 2026.05 · ISO 2026-W19",
+            "x": 1413,
+            "right": 1481,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.05",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260511 ",
+            "ariaLabel": "2026-05-11 이상, 2026-05-18 미만 · 포함 월 2026.05 · ISO 2026-W20",
+            "x": 1481,
+            "right": 1549,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "W045일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260119 ",
+            "ariaLabel": "2026-01-19 ~ 2026-01-25, 근무일 5일 · 2026-01-19 이상, 2026-01-26 미만 · 포함 월 2026.01 · ISO 2026-W04",
+            "x": 393,
+            "right": 461,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W055일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260126 ",
+            "ariaLabel": "2026-01-26 ~ 2026-02-01, 근무일 5일 · 2026-01-26 이상, 2026-02-02 미만 · 포함 월 2026.01→02 · ISO 2026-W05",
+            "x": 461,
+            "right": 529,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "W065일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260202 ",
+            "ariaLabel": "2026-02-02 ~ 2026-02-08, 근무일 5일 · 2026-02-02 이상, 2026-02-09 미만 · 포함 월 2026.02 · ISO 2026-W06",
+            "x": 529,
+            "right": 597,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W075일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260209 ",
+            "ariaLabel": "2026-02-09 ~ 2026-02-15, 근무일 5일 · 2026-02-09 이상, 2026-02-16 미만 · 포함 월 2026.02 · ISO 2026-W07",
+            "x": 597,
+            "right": 665,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W085일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260216 ",
+            "ariaLabel": "2026-02-16 ~ 2026-02-22, 근무일 5일 · 2026-02-16 이상, 2026-02-23 미만 · 포함 월 2026.02 · ISO 2026-W08",
+            "x": 665,
+            "right": 733,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W095일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260223 ",
+            "ariaLabel": "2026-02-23 ~ 2026-03-01, 근무일 5일 · 2026-02-23 이상, 2026-03-02 미만 · 포함 월 2026.02→03 · ISO 2026-W09",
+            "x": 733,
+            "right": 801,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W105일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260302 ",
+            "ariaLabel": "2026-03-02 ~ 2026-03-08, 근무일 5일 · 2026-03-02 이상, 2026-03-09 미만 · 포함 월 2026.03 · ISO 2026-W10",
+            "x": 801,
+            "right": 869,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W115일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260309 ",
+            "ariaLabel": "2026-03-09 ~ 2026-03-15, 근무일 5일 · 2026-03-09 이상, 2026-03-16 미만 · 포함 월 2026.03 · ISO 2026-W11",
+            "x": 869,
+            "right": 937,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W125일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260316 ",
+            "ariaLabel": "2026-03-16 ~ 2026-03-22, 근무일 5일 · 2026-03-16 이상, 2026-03-23 미만 · 포함 월 2026.03 · ISO 2026-W12",
+            "x": 937,
+            "right": 1005,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W135일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260323 ",
+            "ariaLabel": "2026-03-23 ~ 2026-03-29, 근무일 5일 · 2026-03-23 이상, 2026-03-30 미만 · 포함 월 2026.03 · ISO 2026-W13",
+            "x": 1005,
+            "right": 1073,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W145일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260330 ",
+            "ariaLabel": "2026-03-30 ~ 2026-04-05, 근무일 5일 · 2026-03-30 이상, 2026-04-06 미만 · 포함 월 2026.03→04 · ISO 2026-W14",
+            "x": 1073,
+            "right": 1141,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W155일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260406 ",
+            "ariaLabel": "2026-04-06 ~ 2026-04-12, 근무일 5일 · 2026-04-06 이상, 2026-04-13 미만 · 포함 월 2026.04 · ISO 2026-W15",
+            "x": 1141,
+            "right": 1209,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W165일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260413 ",
+            "ariaLabel": "2026-04-13 ~ 2026-04-19, 근무일 5일 · 2026-04-13 이상, 2026-04-20 미만 · 포함 월 2026.04 · ISO 2026-W16",
+            "x": 1209,
+            "right": 1277,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W175일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260420 ",
+            "ariaLabel": "2026-04-20 ~ 2026-04-26, 근무일 5일 · 2026-04-20 이상, 2026-04-27 미만 · 포함 월 2026.04 · ISO 2026-W17",
+            "x": 1277,
+            "right": 1345,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W185일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260427 ",
+            "ariaLabel": "2026-04-27 ~ 2026-05-03, 근무일 5일 · 2026-04-27 이상, 2026-05-04 미만 · 포함 월 2026.04→05 · ISO 2026-W18",
+            "x": 1345,
+            "right": 1413,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W195일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260504 ",
+            "ariaLabel": "2026-05-04 ~ 2026-05-10, 근무일 5일 · 2026-05-04 이상, 2026-05-11 미만 · 포함 월 2026.05 · ISO 2026-W19",
+            "x": 1413,
+            "right": 1481,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W205일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260511 ",
+            "ariaLabel": "2026-05-11 ~ 2026-05-17, 근무일 5일 · 2026-05-11 이상, 2026-05-18 미만 · 포함 월 2026.05 · ISO 2026-W20",
+            "x": 1481,
+            "right": 1549,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "2026.01→02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260126 ",
+            "ariaLabel": "2026-01-26 이상, 2026-02-02 미만 · 포함 월 2026.01→02 · ISO 2026-W05",
+            "x": 461,
+            "right": 529,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "W055일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260126 ",
+            "ariaLabel": "2026-01-26 ~ 2026-02-01, 근무일 5일 · 2026-01-26 이상, 2026-02-02 미만 · 포함 월 2026.01→02 · ISO 2026-W05",
+            "x": 461,
+            "right": 529,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 6849,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "week",
+        "cellWidth": 68
+      },
+      "expectedMonth": "January 2026",
+      "expected": {
+        "start": "2026-01-26",
+        "end": "2026-02-02",
+        "label": "2026.01→02",
+        "week": "W05",
+        "isoYear": "2026"
+      },
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 6849,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-26T05:00:00.000Z",
+        "end": "2027-05-17T04:00:00.000Z",
+        "width": 11424,
+        "chartWidth": 906,
+        "weekStart": 1,
+        "scaleRows": [
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-26T05:00:00.000Z",
+                "width": 68,
+                "value": "2024.02→03"
+              },
+              {
+                "date": "2024-03-04T05:00:00.000Z",
+                "width": 68,
+                "value": "2024.03"
+              },
+              {
+                "date": "2024-03-11T04:00:00.000Z",
+                "width": 68,
+                "value": "2024.03"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-26T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.04→05"
+              },
+              {
+                "date": "2027-05-03T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.05"
+              },
+              {
+                "date": "2027-05-10T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.05"
+              }
+            ]
+          },
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-26T05:00:00.000Z",
+                "width": 68,
+                "value": "W09"
+              },
+              {
+                "date": "2024-03-04T05:00:00.000Z",
+                "width": 68,
+                "value": "W10"
+              },
+              {
+                "date": "2024-03-11T04:00:00.000Z",
+                "width": 68,
+                "value": "W11"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-26T04:00:00.000Z",
+                "width": 68,
+                "value": "W17"
+              },
+              {
+                "date": "2027-05-03T04:00:00.000Z",
+                "width": 68,
+                "value": "W18"
+              },
+              {
+                "date": "2027-05-10T04:00:00.000Z",
+                "width": 68,
+                "value": "W19"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 29,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 29,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": 13.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 6849,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 7218,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 7218,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 10103,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 7202.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 10087.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 29,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 9566,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9537,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9537,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 29,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 6849,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "week",
+      "monthFirst": "2026-01-01",
+      "actualWeekStart": "2025-12-29",
+      "boundary": {
+        "x": 6528,
+        "right": 6596,
+        "monthFirstX": 6557
+      },
+      "nativeMonthCellBoundary": false
+    },
+    {
+      "scale": "week",
+      "date": "2026-03-10",
+      "nativeContentX": 7218,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 6557
+      },
+      "rows": [
+        [
+          {
+            "text": "2025.12",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20251222 ",
+            "ariaLabel": "2025-12-22 이상, 2025-12-29 미만 · 포함 월 2025.12 · ISO 2025-W52",
+            "x": 413,
+            "right": 481,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2025.12→2026.01",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20251229 ",
+            "ariaLabel": "2025-12-29 이상, 2026-01-05 미만 · 포함 월 2025.12→2026.01 · ISO 2026-W01",
+            "x": 481,
+            "right": 549,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.01",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260105 ",
+            "ariaLabel": "2026-01-05 이상, 2026-01-12 미만 · 포함 월 2026.01 · ISO 2026-W02",
+            "x": 549,
+            "right": 617,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.01",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260112 ",
+            "ariaLabel": "2026-01-12 이상, 2026-01-19 미만 · 포함 월 2026.01 · ISO 2026-W03",
+            "x": 617,
+            "right": 685,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.01",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260119 ",
+            "ariaLabel": "2026-01-19 이상, 2026-01-26 미만 · 포함 월 2026.01 · ISO 2026-W04",
+            "x": 685,
+            "right": 753,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.01→02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260126 ",
+            "ariaLabel": "2026-01-26 이상, 2026-02-02 미만 · 포함 월 2026.01→02 · ISO 2026-W05",
+            "x": 753,
+            "right": 821,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260202 ",
+            "ariaLabel": "2026-02-02 이상, 2026-02-09 미만 · 포함 월 2026.02 · ISO 2026-W06",
+            "x": 821,
+            "right": 889,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260209 ",
+            "ariaLabel": "2026-02-09 이상, 2026-02-16 미만 · 포함 월 2026.02 · ISO 2026-W07",
+            "x": 889,
+            "right": 957,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260216 ",
+            "ariaLabel": "2026-02-16 이상, 2026-02-23 미만 · 포함 월 2026.02 · ISO 2026-W08",
+            "x": 957,
+            "right": 1025,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.02→03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260223 ",
+            "ariaLabel": "2026-02-23 이상, 2026-03-02 미만 · 포함 월 2026.02→03 · ISO 2026-W09",
+            "x": 1025,
+            "right": 1093,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260302 ",
+            "ariaLabel": "2026-03-02 이상, 2026-03-09 미만 · 포함 월 2026.03 · ISO 2026-W10",
+            "x": 1093,
+            "right": 1161,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260309 ",
+            "ariaLabel": "2026-03-09 이상, 2026-03-16 미만 · 포함 월 2026.03 · ISO 2026-W11",
+            "x": 1161,
+            "right": 1229,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "2026.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260316 ",
+            "ariaLabel": "2026-03-16 이상, 2026-03-23 미만 · 포함 월 2026.03 · ISO 2026-W12",
+            "x": 1229,
+            "right": 1297,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260323 ",
+            "ariaLabel": "2026-03-23 이상, 2026-03-30 미만 · 포함 월 2026.03 · ISO 2026-W13",
+            "x": 1297,
+            "right": 1365,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.03→04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260330 ",
+            "ariaLabel": "2026-03-30 이상, 2026-04-06 미만 · 포함 월 2026.03→04 · ISO 2026-W14",
+            "x": 1365,
+            "right": 1433,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260406 ",
+            "ariaLabel": "2026-04-06 이상, 2026-04-13 미만 · 포함 월 2026.04 · ISO 2026-W15",
+            "x": 1433,
+            "right": 1501,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "W525일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20251222 ",
+            "ariaLabel": "2025-12-22 ~ 2025-12-28, 근무일 5일 · 2025-12-22 이상, 2025-12-29 미만 · 포함 월 2025.12 · ISO 2025-W52",
+            "x": 413,
+            "right": 481,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W015일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20251229 ",
+            "ariaLabel": "2025-12-29 ~ 2026-01-04, 근무일 5일 · 2025-12-29 이상, 2026-01-05 미만 · 포함 월 2025.12→2026.01 · ISO 2026-W01",
+            "x": 481,
+            "right": 549,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W025일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260105 ",
+            "ariaLabel": "2026-01-05 ~ 2026-01-11, 근무일 5일 · 2026-01-05 이상, 2026-01-12 미만 · 포함 월 2026.01 · ISO 2026-W02",
+            "x": 549,
+            "right": 617,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W035일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260112 ",
+            "ariaLabel": "2026-01-12 ~ 2026-01-18, 근무일 5일 · 2026-01-12 이상, 2026-01-19 미만 · 포함 월 2026.01 · ISO 2026-W03",
+            "x": 617,
+            "right": 685,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W045일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260119 ",
+            "ariaLabel": "2026-01-19 ~ 2026-01-25, 근무일 5일 · 2026-01-19 이상, 2026-01-26 미만 · 포함 월 2026.01 · ISO 2026-W04",
+            "x": 685,
+            "right": 753,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W055일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260126 ",
+            "ariaLabel": "2026-01-26 ~ 2026-02-01, 근무일 5일 · 2026-01-26 이상, 2026-02-02 미만 · 포함 월 2026.01→02 · ISO 2026-W05",
+            "x": 753,
+            "right": 821,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W065일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260202 ",
+            "ariaLabel": "2026-02-02 ~ 2026-02-08, 근무일 5일 · 2026-02-02 이상, 2026-02-09 미만 · 포함 월 2026.02 · ISO 2026-W06",
+            "x": 821,
+            "right": 889,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W075일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260209 ",
+            "ariaLabel": "2026-02-09 ~ 2026-02-15, 근무일 5일 · 2026-02-09 이상, 2026-02-16 미만 · 포함 월 2026.02 · ISO 2026-W07",
+            "x": 889,
+            "right": 957,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W085일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260216 ",
+            "ariaLabel": "2026-02-16 ~ 2026-02-22, 근무일 5일 · 2026-02-16 이상, 2026-02-23 미만 · 포함 월 2026.02 · ISO 2026-W08",
+            "x": 957,
+            "right": 1025,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W095일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260223 ",
+            "ariaLabel": "2026-02-23 ~ 2026-03-01, 근무일 5일 · 2026-02-23 이상, 2026-03-02 미만 · 포함 월 2026.02→03 · ISO 2026-W09",
+            "x": 1025,
+            "right": 1093,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W105일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260302 ",
+            "ariaLabel": "2026-03-02 ~ 2026-03-08, 근무일 5일 · 2026-03-02 이상, 2026-03-09 미만 · 포함 월 2026.03 · ISO 2026-W10",
+            "x": 1093,
+            "right": 1161,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W115일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260309 ",
+            "ariaLabel": "2026-03-09 ~ 2026-03-15, 근무일 5일 · 2026-03-09 이상, 2026-03-16 미만 · 포함 월 2026.03 · ISO 2026-W11",
+            "x": 1161,
+            "right": 1229,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "W125일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260316 ",
+            "ariaLabel": "2026-03-16 ~ 2026-03-22, 근무일 5일 · 2026-03-16 이상, 2026-03-23 미만 · 포함 월 2026.03 · ISO 2026-W12",
+            "x": 1229,
+            "right": 1297,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W135일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260323 ",
+            "ariaLabel": "2026-03-23 ~ 2026-03-29, 근무일 5일 · 2026-03-23 이상, 2026-03-30 미만 · 포함 월 2026.03 · ISO 2026-W13",
+            "x": 1297,
+            "right": 1365,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W145일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260330 ",
+            "ariaLabel": "2026-03-30 ~ 2026-04-05, 근무일 5일 · 2026-03-30 이상, 2026-04-06 미만 · 포함 월 2026.03→04 · ISO 2026-W14",
+            "x": 1365,
+            "right": 1433,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W155일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260406 ",
+            "ariaLabel": "2026-04-06 ~ 2026-04-12, 근무일 5일 · 2026-04-06 이상, 2026-04-13 미만 · 포함 월 2026.04 · ISO 2026-W15",
+            "x": 1433,
+            "right": 1501,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "2026.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20260309 ",
+            "ariaLabel": "2026-03-09 이상, 2026-03-16 미만 · 포함 월 2026.03 · ISO 2026-W11",
+            "x": 1161,
+            "right": 1229,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "W115일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20260309 ",
+            "ariaLabel": "2026-03-09 ~ 2026-03-15, 근무일 5일 · 2026-03-09 이상, 2026-03-16 미만 · 포함 월 2026.03 · ISO 2026-W11",
+            "x": 1161,
+            "right": 1229,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 7218,
+        "viewportX": 661,
+        "insideRange": true,
+        "visible": true,
+        "unit": "week",
+        "cellWidth": 68
+      },
+      "expectedMonth": "March 2026",
+      "expected": {
+        "start": "2026-03-09",
+        "end": "2026-03-16",
+        "label": "2026.03",
+        "week": "W11",
+        "isoYear": "2026"
+      },
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 6557,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-26T05:00:00.000Z",
+        "end": "2027-05-17T04:00:00.000Z",
+        "width": 11424,
+        "chartWidth": 906,
+        "weekStart": 1,
+        "scaleRows": [
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-26T05:00:00.000Z",
+                "width": 68,
+                "value": "2024.02→03"
+              },
+              {
+                "date": "2024-03-04T05:00:00.000Z",
+                "width": 68,
+                "value": "2024.03"
+              },
+              {
+                "date": "2024-03-11T04:00:00.000Z",
+                "width": 68,
+                "value": "2024.03"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-26T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.04→05"
+              },
+              {
+                "date": "2027-05-03T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.05"
+              },
+              {
+                "date": "2027-05-10T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.05"
+              }
+            ]
+          },
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-26T05:00:00.000Z",
+                "width": 68,
+                "value": "W09"
+              },
+              {
+                "date": "2024-03-04T05:00:00.000Z",
+                "width": 68,
+                "value": "W10"
+              },
+              {
+                "date": "2024-03-11T04:00:00.000Z",
+                "width": 68,
+                "value": "W11"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-26T04:00:00.000Z",
+                "width": 68,
+                "value": "W17"
+              },
+              {
+                "date": "2027-05-03T04:00:00.000Z",
+                "width": 68,
+                "value": "W18"
+              },
+              {
+                "date": "2027-05-10T04:00:00.000Z",
+                "width": 68,
+                "value": "W19"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 29,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 29,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": 13.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 6849,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 7218,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 7218,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 10103,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 7202.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 10087.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 29,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 9566,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9537,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9537,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 29,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 6849,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 6557,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "week",
+      "monthFirst": "2026-03-01",
+      "actualWeekStart": "2026-02-23",
+      "boundary": {
+        "x": 7072,
+        "right": 7140,
+        "monthFirstX": 7130
+      },
+      "nativeMonthCellBoundary": false
+    },
+    {
+      "scale": "week",
+      "date": "2027-01-01",
+      "nativeContentX": 10103,
+      "chart": {
+        "x": 510,
+        "width": 905,
+        "left": 10103
+      },
+      "rows": [
+        [
+          {
+            "text": "2026.12",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20261221 ",
+            "ariaLabel": "2026-12-21 이상, 2026-12-28 미만 · 포함 월 2026.12 · ISO 2026-W52",
+            "x": 403,
+            "right": 471,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2026.12→2027.01",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20261228 ",
+            "ariaLabel": "2026-12-28 이상, 2027-01-04 미만 · 포함 월 2026.12→2027.01 · ISO 2026-W53",
+            "x": 471,
+            "right": 539,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "2027.01",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270104 ",
+            "ariaLabel": "2027-01-04 이상, 2027-01-11 미만 · 포함 월 2027.01 · ISO 2027-W01",
+            "x": 539,
+            "right": 607,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.01",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270111 ",
+            "ariaLabel": "2027-01-11 이상, 2027-01-18 미만 · 포함 월 2027.01 · ISO 2027-W02",
+            "x": 607,
+            "right": 675,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.01",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270118 ",
+            "ariaLabel": "2027-01-18 이상, 2027-01-25 미만 · 포함 월 2027.01 · ISO 2027-W03",
+            "x": 675,
+            "right": 743,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.01",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270125 ",
+            "ariaLabel": "2027-01-25 이상, 2027-02-01 미만 · 포함 월 2027.01 · ISO 2027-W04",
+            "x": 743,
+            "right": 811,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270201 ",
+            "ariaLabel": "2027-02-01 이상, 2027-02-08 미만 · 포함 월 2027.02 · ISO 2027-W05",
+            "x": 811,
+            "right": 879,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270208 ",
+            "ariaLabel": "2027-02-08 이상, 2027-02-15 미만 · 포함 월 2027.02 · ISO 2027-W06",
+            "x": 879,
+            "right": 947,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270215 ",
+            "ariaLabel": "2027-02-15 이상, 2027-02-22 미만 · 포함 월 2027.02 · ISO 2027-W07",
+            "x": 947,
+            "right": 1015,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.02",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270222 ",
+            "ariaLabel": "2027-02-22 이상, 2027-03-01 미만 · 포함 월 2027.02 · ISO 2027-W08",
+            "x": 1015,
+            "right": 1083,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270301 ",
+            "ariaLabel": "2027-03-01 이상, 2027-03-08 미만 · 포함 월 2027.03 · ISO 2027-W09",
+            "x": 1083,
+            "right": 1151,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270308 ",
+            "ariaLabel": "2027-03-08 이상, 2027-03-15 미만 · 포함 월 2027.03 · ISO 2027-W10",
+            "x": 1151,
+            "right": 1219,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270315 ",
+            "ariaLabel": "2027-03-15 이상, 2027-03-22 미만 · 포함 월 2027.03 · ISO 2027-W11",
+            "x": 1219,
+            "right": 1287,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.03",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270322 ",
+            "ariaLabel": "2027-03-22 이상, 2027-03-29 미만 · 포함 월 2027.03 · ISO 2027-W12",
+            "x": 1287,
+            "right": 1355,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.03→04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270329 ",
+            "ariaLabel": "2027-03-29 이상, 2027-04-05 미만 · 포함 월 2027.03→04 · ISO 2027-W13",
+            "x": 1355,
+            "right": 1423,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "2027.04",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20270405 ",
+            "ariaLabel": "2027-04-05 이상, 2027-04-12 미만 · 포함 월 2027.04 · ISO 2027-W14",
+            "x": 1423,
+            "right": 1491,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ],
+        [
+          {
+            "text": "W525일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20261221 ",
+            "ariaLabel": "2026-12-21 ~ 2026-12-27, 근무일 5일 · 2026-12-21 이상, 2026-12-28 미만 · 포함 월 2026.12 · ISO 2026-W52",
+            "x": 403,
+            "right": 471,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W535일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20261228 ",
+            "ariaLabel": "2026-12-28 ~ 2027-01-03, 근무일 5일 · 2026-12-28 이상, 2027-01-04 미만 · 포함 월 2026.12→2027.01 · ISO 2026-W53",
+            "x": 471,
+            "right": 539,
+            "width": 68,
+            "containsAnchor": true
+          },
+          {
+            "text": "W015일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270104 ",
+            "ariaLabel": "2027-01-04 ~ 2027-01-10, 근무일 5일 · 2027-01-04 이상, 2027-01-11 미만 · 포함 월 2027.01 · ISO 2027-W01",
+            "x": 539,
+            "right": 607,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W025일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270111 ",
+            "ariaLabel": "2027-01-11 ~ 2027-01-17, 근무일 5일 · 2027-01-11 이상, 2027-01-18 미만 · 포함 월 2027.01 · ISO 2027-W02",
+            "x": 607,
+            "right": 675,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W035일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270118 ",
+            "ariaLabel": "2027-01-18 ~ 2027-01-24, 근무일 5일 · 2027-01-18 이상, 2027-01-25 미만 · 포함 월 2027.01 · ISO 2027-W03",
+            "x": 675,
+            "right": 743,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W045일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270125 ",
+            "ariaLabel": "2027-01-25 ~ 2027-01-31, 근무일 5일 · 2027-01-25 이상, 2027-02-01 미만 · 포함 월 2027.01 · ISO 2027-W04",
+            "x": 743,
+            "right": 811,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W055일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270201 ",
+            "ariaLabel": "2027-02-01 ~ 2027-02-07, 근무일 5일 · 2027-02-01 이상, 2027-02-08 미만 · 포함 월 2027.02 · ISO 2027-W05",
+            "x": 811,
+            "right": 879,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W065일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270208 ",
+            "ariaLabel": "2027-02-08 ~ 2027-02-14, 근무일 5일 · 2027-02-08 이상, 2027-02-15 미만 · 포함 월 2027.02 · ISO 2027-W06",
+            "x": 879,
+            "right": 947,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W075일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270215 ",
+            "ariaLabel": "2027-02-15 ~ 2027-02-21, 근무일 5일 · 2027-02-15 이상, 2027-02-22 미만 · 포함 월 2027.02 · ISO 2027-W07",
+            "x": 947,
+            "right": 1015,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W085일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270222 ",
+            "ariaLabel": "2027-02-22 ~ 2027-02-28, 근무일 5일 · 2027-02-22 이상, 2027-03-01 미만 · 포함 월 2027.02 · ISO 2027-W08",
+            "x": 1015,
+            "right": 1083,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W095일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270301 ",
+            "ariaLabel": "2027-03-01 ~ 2027-03-07, 근무일 5일 · 2027-03-01 이상, 2027-03-08 미만 · 포함 월 2027.03 · ISO 2027-W09",
+            "x": 1083,
+            "right": 1151,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W105일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270308 ",
+            "ariaLabel": "2027-03-08 ~ 2027-03-14, 근무일 5일 · 2027-03-08 이상, 2027-03-15 미만 · 포함 월 2027.03 · ISO 2027-W10",
+            "x": 1151,
+            "right": 1219,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W115일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270315 ",
+            "ariaLabel": "2027-03-15 ~ 2027-03-21, 근무일 5일 · 2027-03-15 이상, 2027-03-22 미만 · 포함 월 2027.03 · ISO 2027-W11",
+            "x": 1219,
+            "right": 1287,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W125일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270322 ",
+            "ariaLabel": "2027-03-22 ~ 2027-03-28, 근무일 5일 · 2027-03-22 이상, 2027-03-29 미만 · 포함 월 2027.03 · ISO 2027-W12",
+            "x": 1287,
+            "right": 1355,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W135일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270329 ",
+            "ariaLabel": "2027-03-29 ~ 2027-04-04, 근무일 5일 · 2027-03-29 이상, 2027-04-05 미만 · 포함 월 2027.03→04 · ISO 2027-W13",
+            "x": 1355,
+            "right": 1423,
+            "width": 68,
+            "containsAnchor": false
+          },
+          {
+            "text": "W145일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20270405 ",
+            "ariaLabel": "2027-04-05 ~ 2027-04-11, 근무일 5일 · 2027-04-05 이상, 2027-04-12 미만 · 포함 월 2027.04 · ISO 2027-W14",
+            "x": 1423,
+            "right": 1491,
+            "width": 68,
+            "containsAnchor": false
+          }
+        ]
+      ],
+      "atAnchor": [
+        [
+          {
+            "text": "2026.12→2027.01",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-calendar-scale project-gantt-week-calendar-20261228 ",
+            "ariaLabel": "2026-12-28 이상, 2027-01-04 미만 · 포함 월 2026.12→2027.01 · ISO 2026-W53",
+            "x": 471,
+            "right": 539,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ],
+        [
+          {
+            "text": "W535일",
+            "className": "wx-ZkvhDKir wx-cell project-gantt-week-scale project-gantt-week-date-20261228 ",
+            "ariaLabel": "2026-12-28 ~ 2027-01-03, 근무일 5일 · 2026-12-28 이상, 2027-01-04 미만 · 포함 월 2026.12→2027.01 · ISO 2026-W53",
+            "x": 471,
+            "right": 539,
+            "width": 68,
+            "containsAnchor": true
+          }
+        ]
+      ],
+      "coordinate": {
+        "contentX": 10103,
+        "viewportX": 0,
+        "insideRange": true,
+        "visible": true,
+        "unit": "week",
+        "cellWidth": 68
+      },
+      "expectedMonth": "January 2027",
+      "expected": {
+        "start": "2026-12-28",
+        "end": "2027-01-04",
+        "label": "2026.12→2027.01",
+        "week": "W53",
+        "isoYear": "2026"
+      },
+      "publicObservation": {
+        "instance": "svar-api-1",
+        "left": 10103,
+        "top": 0,
+        "gridWidth": 480,
+        "start": "2024-02-26T05:00:00.000Z",
+        "end": "2027-05-17T04:00:00.000Z",
+        "width": 11424,
+        "chartWidth": 906,
+        "weekStart": 1,
+        "scaleRows": [
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-26T05:00:00.000Z",
+                "width": 68,
+                "value": "2024.02→03"
+              },
+              {
+                "date": "2024-03-04T05:00:00.000Z",
+                "width": 68,
+                "value": "2024.03"
+              },
+              {
+                "date": "2024-03-11T04:00:00.000Z",
+                "width": 68,
+                "value": "2024.03"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-26T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.04→05"
+              },
+              {
+                "date": "2027-05-03T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.05"
+              },
+              {
+                "date": "2027-05-10T04:00:00.000Z",
+                "width": 68,
+                "value": "2027.05"
+              }
+            ]
+          },
+          {
+            "count": 168,
+            "width": 11424,
+            "first": [
+              {
+                "date": "2024-02-26T05:00:00.000Z",
+                "width": 68,
+                "value": "W09"
+              },
+              {
+                "date": "2024-03-04T05:00:00.000Z",
+                "width": 68,
+                "value": "W10"
+              },
+              {
+                "date": "2024-03-11T04:00:00.000Z",
+                "width": 68,
+                "value": "W11"
+              }
+            ],
+            "last": [
+              {
+                "date": "2027-04-26T04:00:00.000Z",
+                "width": 68,
+                "value": "W17"
+              },
+              {
+                "date": "2027-05-03T04:00:00.000Z",
+                "width": 68,
+                "value": "W18"
+              },
+              {
+                "date": "2027-05-10T04:00:00.000Z",
+                "width": 68,
+                "value": "W19"
+              }
+            ]
+          }
+        ],
+        "rows": [
+          {
+            "id": "00000000-0000-4000-8000-000000000001",
+            "y": 3,
+            "x": 29,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "y": 41,
+            "x": 29,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "y": 79,
+            "x": 13.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "y": 117,
+            "x": 6849,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "y": 155,
+            "x": 7218,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "y": 193,
+            "x": 7218,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000007",
+            "y": 231,
+            "x": 10103,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000008",
+            "y": 269,
+            "x": 7202.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000009",
+            "y": 307,
+            "x": 10087.5,
+            "height": 31
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000010",
+            "y": 345,
+            "x": 29,
+            "height": 31
+          }
+        ],
+        "links": [
+          {
+            "id": "TT",
+            "source": "00000000-0000-4000-8000-000000000006",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          },
+          {
+            "id": "MM",
+            "source": "00000000-0000-4000-8000-000000000003",
+            "target": "00000000-0000-4000-8000-000000000008",
+            "type": "e2s"
+          },
+          {
+            "id": "legacy",
+            "source": "00000000-0000-4000-8000-000000000008",
+            "target": "00000000-0000-4000-8000-000000000007",
+            "type": "e2s"
+          }
+        ],
+        "canonicalIds": [
+          "00000000-0000-4000-8000-000000000001",
+          "00000000-0000-4000-8000-000000000002",
+          "00000000-0000-4000-8000-000000000003",
+          "00000000-0000-4000-8000-000000000004",
+          "00000000-0000-4000-8000-000000000005",
+          "00000000-0000-4000-8000-000000000006",
+          "00000000-0000-4000-8000-000000000007",
+          "00000000-0000-4000-8000-000000000008",
+          "00000000-0000-4000-8000-000000000009",
+          "00000000-0000-4000-8000-000000000010"
+        ],
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 25272,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 26640,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 36498,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9849,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 9566,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9537,
+            "top": 0
+          },
+          {
+            "action": "resize-chart",
+            "left": 9537,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 29,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 6849,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 6557,
+            "top": 0
+          },
+          {
+            "action": "scroll-chart",
+            "left": 10103,
+            "top": 0
+          }
+        ]
+      }
+    },
+    {
+      "scale": "week",
+      "monthFirst": "2027-01-01",
+      "actualWeekStart": "2026-12-28",
+      "boundary": {
+        "x": 10064,
+        "right": 10132,
+        "monthFirstX": 10103
+      },
+      "nativeMonthCellBoundary": false
+    }
+  ],
+  "failures": [],
+  "mutationCount": 0,
+  "sourceHashes": {
+    "src/features/gantt/project-gantt.tsx": "f4371b59243bd9301e5abaece578e69b89635a85f36ad2da65054432cf1efb06",
+    "src/features/gantt/milestone-timeline-adapter.ts": "3c0b19b960e2ea36f35fbe84af83e39f3c02e3a70819c4eafd4275446cdcd1bf",
+    "src/features/gantt/week-header-tooltip.ts": "164cd434ef364021f020c46796ee72c06dc6121a6eb80b653d7a843c8c5cb170",
+    "src/features/gantt/week-calendar-interval.ts": "226e09e3d1936d3db8214b9d27947cff19ef8552cb6d96fe3777745c909934d1",
+    "src/features/gantt/gantt-scale-toolbar.css": "8251d7d5f789ae2647a9228a0803ae357fbb9fab87058b84625abed4313cdc56",
+    "tests/e2e/milestone-timeline-lane.spec.ts": "aff1b1a044fd0e779e2ff64dcfbcc228143396095bdc77c4c1df54c86a72a143"
+  }
+}

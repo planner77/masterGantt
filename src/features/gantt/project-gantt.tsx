@@ -10,6 +10,10 @@ import {
   type ITask,
 } from "@svar-ui/react-gantt";
 import "@svar-ui/react-gantt/all.css";
+import { Locale } from "@svar-ui/react-core";
+import { weekCalendarInterval, weekCalendarScaleClass, weekCalendarIntervalFromClass, weekTimelineScaleClass } from "./week-calendar-interval";
+import { weekTimelineTooltip, type WeekTimelineTooltipData } from "./week-timeline-tooltip";
+const ganttIsoLocale = { calendar: { weekStart: 1 } };
 import {
   createContext,
   useContext,
@@ -25,7 +29,9 @@ import {
 } from "react";
 
 import { createTaskMoveGateway } from "./task-move-gateway";
-import { filterMilestoneWbsRows, milestoneDateCoordinate, revealMilestoneDate } from "./milestone-timeline-adapter";
+import { filterMilestoneWbsRows, milestoneDateCoordinate, revealMilestoneDate, readMilestonePlotGeometry, type MilestonePlotGeometry } from "./milestone-timeline-adapter";
+import { MilestoneTimelineLane, type MilestoneTimelineCapability } from "./milestone-timeline-lane";
+import type { MilestoneLanePoint } from "./milestone-timeline-lane-model";
 import { localDateFromDateOnly, type DateOnly } from "./date-adapter";
 import type { PublicGanttViewportReader } from "./peer-viewport-capture";
 import {
@@ -41,11 +47,8 @@ import {
   type GanttDayHeaderTooltipData,
 } from "./day-header-tooltip";
 import {
-  buildGanttWeekHeaderTooltipDataForDateOnly,
   dateOnlyFromGanttWeekScaleClassName,
   formatGanttWeekWorkingDaysLabel,
-  ganttWeekScaleClassName,
-  type GanttWeekHeaderTooltipData,
 } from "./week-header-tooltip";
 import {
   canEditGridStartDate,
@@ -193,7 +196,7 @@ type DayHeaderTooltipState = Readonly<{
   anchorTop: number;
 }>;
 type WeekHeaderTooltipState = Readonly<{
-  data: GanttWeekHeaderTooltipData;
+  data: WeekTimelineTooltipData;
   left: number;
   top: number;
   anchorTop: number;
@@ -308,6 +311,7 @@ function fullscreenShortcutBlocked(target: EventTarget | null): boolean {
 
 
 interface ProjectGanttProps {
+  readonly milestoneTimeline?: MilestoneTimelineCapability;
   readonly onSelectionChange?: (ids: readonly string[]) => void;
   readonly selectionRestore?: {
     generation: number;
@@ -400,6 +404,7 @@ function clampMenuPosition(left: number, top: number, width: number, height: num
 export function ProjectGantt({
   viewVisible = true, viewportContinuityKey = "", peerViewportRestore = null,
   onPublicViewportReader,
+  milestoneTimeline,
   calendar,
   editable,
   onSelectionChange,
@@ -430,6 +435,16 @@ export function ProjectGantt({
 }: ProjectGanttProps) {
   const { notify } = useWorkspaceNotifications();
   const apiReference = useRef<IApi | null>(null);
+  const [timelinePreview, setTimelinePreview] = useState(false);
+  const [timelinePreviewDisplay, setTimelinePreviewDisplay] = useState<"all" | "grid" | "chart">("all");
+  const timelineEnabled = Boolean(milestoneTimeline?.enabled || (process.env.NODE_ENV !== "production" && timelinePreview));
+  const timelineWidget = useRef<HTMLDivElement>(null);
+  const [laneGeometry, setLaneGeometry] = useState<MilestonePlotGeometry | null>(null);
+  const [lanePoints, setLanePoints] = useState<readonly MilestoneLanePoint[]>([]);
+  const [laneSource, setLaneSource] = useState<{ model: MilestoneTimelineCapability["timelineModel"]; context: string; scale: string; api: string | null; display: string } | null>(null);
+  const [laneGuide, setLaneGuide] = useState<number | null>(null);
+  const laneMeasurement = useRef<{ count: number; coordinateCount: number; durationMs: number; sourceTasks: number; sourceMilestones: number; queueVersion: number } | null>(null);
+
   const onTaskCreateReference = useRef(onTaskCreate);
   const onTaskCommandReference = useRef(onTaskCommand);
   const linksReference = useRef(links);
@@ -1625,6 +1640,45 @@ export function ProjectGantt({
   const visibleTaskFilterKeyReference = useRef(visibleTaskFilterKey);
   useLayoutEffect(() => { visibleTaskFilterKeyReference.current = visibleTaskFilterKey; }, [visibleTaskFilterKey]);
 
+  useEffect(() => {
+    const api = apiReference.current, widget = timelineWidget.current, model = milestoneTimeline?.timelineModel;
+    if (!timelineEnabled || !viewVisible || !api || !widget || !model) return;
+    let cancelled = false, frame: number | null = null, awaiting = false, requested = false;
+    const tag = "project-milestone-lane-geometry";
+    const measure = () => {
+      frame = null;
+      awaiting = true; requested = false;
+      const queue = canonicalSyncQueueReference.current;
+      void queue.then(() => {
+        if (cancelled || apiReference.current !== api || !peerViewportContext.current.visible) return;
+        // A queued canonical write can advance the version while we wait.
+        // Measure its completed state; request again only if a newer queue won.
+        if (canonicalSyncQueueReference.current !== queue) { requested = true; return; }
+        const version = canonicalSyncVersionReference.current;
+        const geometry = readMilestonePlotGeometry(api, widget), started = performance.now();
+        const snapshot = api.getState(), reader = { getState: () => snapshot };
+        const points: MilestoneLanePoint[] = [];
+        if (geometry) for (const row of model.timeline.datedMilestones) {
+          const coordinate = milestoneDateCoordinate(reader, row.date!);
+          if (coordinate?.insideRange && coordinate.viewportX >= geometry.visibleLeft && coordinate.viewportX < geometry.visibleRight) points.push({ row, viewportX: coordinate.viewportX });
+        }
+        setLaneGeometry(geometry); setLanePoints(points);
+        setLaneSource({ model, context: viewportContinuityKey, scale: scaleMode, api: apiInstanceId, display: timelinePreviewDisplay });
+        laneMeasurement.current = { count: (laneMeasurement.current?.count ?? 0) + 1, coordinateCount: model.timeline.datedMilestones.length,
+          durationMs: performance.now() - started, sourceTasks: model.canonical.tasks.length, sourceMilestones: model.timeline.milestones.length, queueVersion: version };
+      }).finally(() => {
+        awaiting = false;
+        if (!cancelled && requested) { requested = false; schedule(); }
+      });
+    };
+    const schedule = () => { if (awaiting) requested = true; else if (frame === null) frame = requestAnimationFrame(measure); };
+    const owner = ganttScrollReference.current, chart = widget.querySelector<HTMLElement>(".wx-chart");
+    for (const action of ["scroll-chart", "resize-chart", "resize-grid", "filter-tasks", "update-task"] as const) api.on(action, schedule, { tag });
+    const resize = new ResizeObserver(schedule); resize.observe(widget); if (chart) resize.observe(chart); if (owner) resize.observe(owner);
+    owner?.addEventListener("scroll", schedule, { passive: true }); window.addEventListener("resize", schedule); schedule();
+    return () => { cancelled = true; if (frame !== null) cancelAnimationFrame(frame); api.detach(tag); resize.disconnect(); owner?.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); };
+  }, [apiInstanceId, timelineEnabled, viewVisible, milestoneTimeline?.timelineModel, scaleMode, viewportContinuityKey, timelinePreviewDisplay]);
+
   const milestoneProbeRequest = useRef<{ api: IApi; ids: string[]; source: readonly ProjectTaskDto[]; filterKey: string; request: number } | null>(null);
   const milestoneProbeGeneration = useRef(0);
   // MT1 technical probe only: no production row transition or preference UI.
@@ -1642,6 +1696,9 @@ export function ProjectGantt({
       }, { tag });
     }
     Object.defineProperty(frame, "__masterganttMilestoneTimeline", { configurable: true, value: {
+      preview: (enabled: boolean) => { if (typeof enabled === "boolean") setTimelinePreview(enabled); },
+      display: (mode: string) => { if (mode === "all" || mode === "grid" || mode === "chart") setTimelinePreviewDisplay(mode); },
+      laneMeasurement: () => laneMeasurement.current,
       coordinate: (date: string) => milestoneDateCoordinate(api, date),
       reveal: (date: string) => revealMilestoneDate(api, date),
       nativeDateReveal: (date: string) => api.exec("scroll-chart", { date: localDateFromDateOnly(date as DateOnly) }),
@@ -1659,6 +1716,8 @@ export function ProjectGantt({
         const state = api.getState();
         return { instance: apiInstanceId, left: state.scrollLeft, top: state.scrollTop, gridWidth: state.gridWidth,
           start: state._scales?.start, end: state._scales?.end, width: state._scales?.width, chartWidth: state._chartWidth,
+          weekStart: state._weekStart,
+          scaleRows: state._scales?.rows.map(row => ({ count: row.cells.length, width: row.cells.reduce((sum, cell) => sum + cell.width, 0), first: row.cells.slice(0, 3).map(cell => ({ date: Reflect.get(cell, "date") instanceof Date ? Reflect.get(cell, "date") : null, width: cell.width, value: cell.value })), last: row.cells.slice(-3).map(cell => ({ date: Reflect.get(cell, "date") instanceof Date ? Reflect.get(cell, "date") : null, width: cell.width, value: cell.value })) })),
           rows: state._tasks.slice(0, 500).map(task => ({ id: task.id, y: task.$y, x: task.$x, height: task.$h })),
           links: state.links.map(link => ({ id: link.id, source: link.source, target: link.target, type: link.type })).slice(0, 500),
           canonicalIds: tasksReference.current.slice(0, 500).map(task => task.taskId), events: [...events] };
@@ -2185,12 +2244,17 @@ export function ProjectGantt({
     let focusedCell: HTMLElement | null = null;
     let repositionFrame: number | null = null;
 
-    const tooltipData = (cell: HTMLElement): GanttWeekHeaderTooltipData | null => {
+    const tooltipData = (cell: HTMLElement): WeekTimelineTooltipData | null => {
       const date = dateOnlyFromGanttWeekScaleClassName(cell.className);
-      return date ? buildGanttWeekHeaderTooltipDataForDateOnly(date, calendar) : null;
+      if (!date) return null;
+      return weekTimelineTooltip(date, calendar);
     };
 
     const markCells = () => {
+      root.querySelectorAll<HTMLElement>(".project-gantt-week-calendar-scale").forEach(cell => {
+        const interval = weekCalendarIntervalFromClass(cell.className);
+        if (interval) { cell.setAttribute("aria-label", interval.description); cell.setAttribute("role", "group"); cell.title = interval.description; }
+      });
       root.querySelectorAll<HTMLElement>(selector).forEach((cell) => {
         if (!cell.hasAttribute("tabindex")) cell.tabIndex = 0;
         const data = tooltipData(cell);
@@ -2198,7 +2262,7 @@ export function ProjectGantt({
         cell.setAttribute("aria-label", data.ariaLabel);
         cell.dataset.workingDays = String(data.workingDays);
 
-        const labelText = formatGanttWeekWorkingDaysLabel(data.workingDays);
+        const labelText = data.workingDays === null ? "미산정" : formatGanttWeekWorkingDaysLabel(data.workingDays);
         let label = cell.querySelector<HTMLElement>(".project-gantt-week-working-days");
         if (!label) {
           label = document.createElement("span");
@@ -2344,28 +2408,14 @@ export function ProjectGantt({
       setWeekHeaderTooltip((current) => current ? { ...current, left, top } : current);
     }
   }, [weekHeaderTooltip]);
-  const scales = useMemo(() => [
-    {
-      unit: "month",
-      step: 1,
-      format: (date: Date) => new Intl.DateTimeFormat(locales, {
-        year: "numeric",
-        month: "long",
-      }).format(date),
-    },
-    scaleMode === "day"
-      ? {
-        unit: "day",
-        step: 1,
-        format: (date: Date) => formatGanttDayOfMonth(date),
-        css: (date: Date) => ganttDayScaleClassName(date),
-      }
-      : {
-        unit: "week",
-        step: 1,
-        format: (date: Date) => formatIsoWeek(date),
-        css: (date: Date) => ganttWeekScaleClassName(date),
-      },
+  const scales = useMemo(() => scaleMode === "day" ? [
+    { unit: "month", step: 1, format: (date: Date) => new Intl.DateTimeFormat(locales, { year: "numeric", month: "long" }).format(date) },
+    { unit: "day", step: 1, format: formatGanttDayOfMonth, css: ganttDayScaleClassName },
+  ] : [
+    // Each upper cell describes the same ISO week as the lower cell. Native
+    // month spans on a week axis round partial weeks independently in 2.7.2.
+    { unit: "week", step: 1, format: (date: Date) => weekCalendarInterval(date).label, css: weekCalendarScaleClass },
+    { unit: "week", step: 1, format: formatIsoWeek, css: weekTimelineScaleClass },
   ], [locales, scaleMode]);
 
   function changeScaleMode(nextMode: GanttScaleMode): void {
@@ -3526,6 +3576,7 @@ export function ProjectGantt({
     <div className="project-gantt-frame" ref={fullscreenFrameReference} data-gantt-scale-mode={scaleMode} data-gantt-cell-width={GANTT_CELL_WIDTH[scaleMode]} data-gantt-timeline-end={timelineEndMs} data-project-gantt-api-instance={apiInstanceId ?? undefined} data-project-gantt-instance={instanceId} data-task-mutation-locked={mutationLocked || undefined} data-task-inline-editable={(editable && !mutationLocked ) || undefined}>
       <CopySelectionContext.Provider value={selectionContext}><Willow>
       <div className="project-gantt-scale-toolbar">
+        {process.env.NODE_ENV !== "production" && milestoneTimeline ? <button type="button" aria-pressed={timelinePreview} onClick={() => setTimelinePreview(value => !value)}>Milestone Timeline 기술 미리보기</button> : null}
         <div aria-label="Gantt 표시 단위" className="project-gantt-scale-controls" role="group">
           <span aria-hidden="true" className="project-gantt-scale-label">표시 단위</span>
           <button aria-pressed={scaleMode === "day"} onClick={() => changeScaleMode("day")} type="button">일</button>
@@ -3586,12 +3637,16 @@ export function ProjectGantt({
           role="region"
           tabIndex={0}
         >
-          <div className="wx-theme gantt-widget project-gantt-widget" style={{ minWidth: Math.max(720, columns.reduce((width, column) => width + (column.hidden ? 0 : (column.width ?? 0)), 0) + 100) }}>
-            <Gantt
+          <div ref={timelineWidget} className="wx-theme gantt-widget project-gantt-widget project-gantt-lane-layout" style={{ minWidth: Math.max(720, columns.reduce((width, column) => width + (column.hidden ? 0 : (column.width ?? 0)), 0) + 100) }}>
+            {timelineEnabled && timelinePreviewDisplay !== "grid" && milestoneTimeline ? <MilestoneTimelineLane capability={milestoneTimeline}
+              geometry={viewVisible && laneSource?.model === milestoneTimeline.timelineModel && laneSource.context === viewportContinuityKey && laneSource.scale === scaleMode && laneSource.api === apiInstanceId && laneSource.display === timelinePreviewDisplay ? laneGeometry : null}
+              points={viewVisible && laneSource?.model === milestoneTimeline.timelineModel && laneSource.context === viewportContinuityKey && laneSource.scale === scaleMode && laneSource.api === apiInstanceId && laneSource.display === timelinePreviewDisplay ? lanePoints : []}
+              contextKey={`${viewportContinuityKey}:${viewVisible}`} busy={mutationLocked} readOnly={!editable} onGuide={setLaneGuide} /> : null}
+            <div className="project-gantt-native-owner"><Locale words={ganttIsoLocale}><Gantt
               cellWidth={GANTT_CELL_WIDTH[scaleMode]}
               columns={initialConfig.columns}
-              displayMode="all"
               gridWidth={480}
+              displayMode={process.env.NODE_ENV !== "production" ? timelinePreviewDisplay : "all"}
               highlightTime={scaleMode === "day" ? highlightWeekend : undefined}
               init={initialize}
               links={initialConfig.links}
@@ -3602,7 +3657,8 @@ export function ProjectGantt({
               start={initialRange.start}
               tasks={initialConfig.tasks}
               taskTypes={projectTaskTypes}
-            />
+            /></Locale></div>
+            {timelineEnabled && timelinePreviewDisplay !== "grid" && viewVisible && laneSource?.model === milestoneTimeline?.timelineModel && laneSource?.context === viewportContinuityKey && laneSource.scale === scaleMode && laneSource.api === apiInstanceId && laneSource.display === timelinePreviewDisplay && laneGeometry && laneGuide !== null ? <div className="project-milestone-lane-guide" aria-hidden="true" style={{ left: laneGeometry.left + laneGuide, top: laneGeometry.bodyTop, height: laneGeometry.bodyHeight }} /> : null}
           </div>
         </div>
         <TaskHoverTooltipLayer
@@ -3657,7 +3713,9 @@ export function ProjectGantt({
             role="tooltip"
             style={{ left: weekHeaderTooltip.left, top: weekHeaderTooltip.top }}
           >
-            <span className="project-gantt-week-header-tooltip-working">근무일: {weekHeaderTooltip.data.workingDays}일</span>
+            <span>{weekCalendarInterval(localDateFromDateOnly(weekHeaderTooltip.data.start)).description}</span>
+            <span className="project-gantt-week-header-tooltip-working">근무일: {weekHeaderTooltip.data.workingDays === null ? "미산정" : `${weekHeaderTooltip.data.workingDays}일`}</span>
+            {weekHeaderTooltip.data.reason ? <span>{weekHeaderTooltip.data.reason}</span> : null}
             {weekHeaderTooltip.data.holidays.length > 0 ? (
               <span className="project-gantt-week-header-tooltip-holidays">
                 <span className="project-gantt-week-header-tooltip-label">공휴일:</span>

@@ -3,6 +3,7 @@ import type {
   ResourceDrillScopeDto,
   ResourceDrillSourceContext,
 } from "@/contracts/resource-drill";
+import { buildMilestoneTimelineModel } from "../milestones/milestone-timeline-model";
 import type { ResourceDashboardDto, ResourceDashboardFilterInput } from "@/contracts/resource-dashboard";
 import {
   clearResourceDrill,
@@ -43,7 +44,7 @@ import type { MilestoneResourceDrill } from "@/features/resources/milestone-reso
 
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ProjectLinkButton } from "@/components/project-link-button";
 import { ProjectCopyEntry } from "@/features/projects/project-copy-entry";
 import { ProjectSaveAsTemplateButton } from "@/features/templates/project-save-as-template-button";
@@ -276,6 +277,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
   const projectTaskEditorReference = useRef<ProjectTaskEditorHandle>(null);
   const relationEditorTriggerReference = useRef<HTMLElement | null>(null);
   const editorTriggerReference = useRef<HTMLElement | null>(null);
+  const editorLaneOriginReference = useRef(false);
   const editorOriginViewReference = useRef<WorkspaceView>("schedule");
   const editorOpeningReference = useRef(false);
   const [milestoneCreate, setMilestoneCreate] = useState<{ revision: number; publicId: string } | null>(null);
@@ -989,6 +991,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     editorOriginViewReference.current = activeView;
     editorOpeningReference.current = true;
     editorTriggerReference.current = trigger;
+    editorLaneOriginReference.current = Boolean(trigger?.closest(".project-milestone-lane"));
     setEditorSession({ task: { ...task }, calendar: state.snapshot.data.project.calendar, revision: state.snapshot.data.project.revision });
   }
   function closeTaskDelete() {
@@ -1029,6 +1032,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
       if (!created) { notify("info", "생성 결과의 작업 ID를 유일하게 확인하지 못했습니다. 목록에서 단계를 확인해 주세요.", "Milestone 추가"); focusMilestoneDashboard(); return; }
       editorOriginViewReference.current = "milestones";
       editorTriggerReference.current = milestoneCreateTriggerReference.current;
+      editorLaneOriginReference.current = false;
       editorOpeningReference.current = true; setEditorInitialTab("task");
       setEditorSession({ task: { ...created }, calendar: snapshot.data.project.calendar, revision: snapshot.data.project.revision });
     });
@@ -1061,6 +1065,12 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     if (editorOriginViewReference.current === "milestones") { focusMilestoneDashboard(trigger); return; }
     requestAnimationFrame(() => {
       const root = document.querySelector<HTMLElement>(".project-gantt-scroll");
+      if (editorLaneOriginReference.current) {
+        const list = root?.querySelector<HTMLElement>("[data-milestone-lane-focus=list]");
+        const target = isVisibleFocusTarget(trigger) ? trigger : isVisibleFocusTarget(list) ? list : root;
+        target?.focus();
+        return;
+      }
       const target = isVisibleFocusTarget(trigger) ? trigger : root && taskId ? findTaskContextElement(root, taskId) ?? root : root;
       target?.focus({ preventScroll: true });
     });
@@ -2139,6 +2149,8 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
     return () => { cancelled = true; cancelAnimationFrame(firstFrame); cancelAnimationFrame(secondFrame); cleanupInput(); };
   }, [activeView, publicId, activeRootTaskId, taskFilter, state, ganttResetGeneration]);
 
+  const milestoneTimelineModel = useMemo(() => state.status === "ready" ? buildMilestoneTimelineModel({ tasks: state.snapshot.data.tasks, links: state.snapshot.data.links }) : null, [state]);
+
   if (state.status === "loading") return <section className="loading-state" aria-busy="true" aria-live="polite"><span className="loading-indicator" aria-hidden="true" /><p>프로젝트 정보를 불러오는 중입니다.</p></section>;
   if (state.status === "not-found") return <section className="status-page" aria-labelledby="project-not-found-heading"><p className="eyebrow">404</p><h1 id="project-not-found-heading">프로젝트를 찾을 수 없습니다.</h1><p>프로젝트 주소를 확인해 주세요.</p></section>;
   if (state.status === "error") return <section className="status-page" aria-labelledby="project-load-error-heading"><p className="eyebrow">PROJECT</p><h1 id="project-load-error-heading">프로젝트를 불러올 수 없습니다.</h1><p>네트워크 또는 서버 상태를 확인한 뒤 다시 시도해 주세요.</p><div className="standalone-actions"><button className="secondary-button" onClick={() => beginRefresh(true)} type="button">다시 시도</button></div></section>;
@@ -2679,6 +2691,7 @@ function ProjectWorkspace({ publicId, projectUrl = null, ownerName }: ProjectVie
           <div className="project-scope-recovery-actions"><button className="secondary-button project-scope-recovery-button" type="button" onClick={() => activateScope(null)}>전체 프로젝트로 돌아가기</button></div>
         </div> ) : (
                   <ProjectGantt viewVisible={activeView === "schedule"} onPublicViewportReader={registerPublicGanttViewportReader} viewportContinuityKey={`${publicId}:${activeRootTaskId ?? ""}:${JSON.stringify(taskFilter)}`} peerViewportRestore={peerChartRestore?.snapshot === state.snapshot && peerChartRestore.generation === ganttResetGeneration ? peerChartRestore : null} key={ganttResetGeneration} calendar={project.calendar} editable={editing} mutationLocked={busy || editorSession !== null || pendingTaskDelete !== null || relationEditorRequest !== null}
+          milestoneTimeline={milestoneTimelineModel ? { enabled: false, timelineModel: milestoneTimelineModel, onOpenMilestone: (taskId, trigger) => openTaskEditor(taskId, "task", trigger), onOpenDashboard: () => activateWorkspaceView("milestones") } : undefined}
           projectPublicId={project.publicId}
           onCanonicalSyncFailure={recoverCanonicalGantt} links={links} onTaskAddRejected={rejectNativeTaskAdd} onTaskCreate={createNativeTask} onTaskCommand={saveTaskCommand}
           onTaskHierarchyCommand={(command) => void saveTaskHierarchyCommand(command)} projectRevision={project.revision}
