@@ -356,7 +356,7 @@ test("#528 실제 SQLite 일정·리소스 왕복과 정확한 배정·Editor", 
     await expect(strip).toContainText('2026-10-01–2026-10-03');
     await expect(strip).toContainText('평가일 2026-10-02');
     await expect(strip).toContainText('원본 환산 15 M/D / 1 M/M (명시 기준)');
-    await expect(frame.locator(`.wx-row[data-id=":${completedMarker.taskId}"]`).first()).toBeVisible();
+    await expect(frame.locator(`.wx-row[data-id=":${completedMarker.taskId}"]`)).toHaveCount(0); // Milestone remains canonical in drill strip, not the WBS.
     await strip.getByRole('button',{name:/원래 보기/}).click();
     await expect(p.getByRole('tab',{name:'Milestone 대시보드',exact:true})).toHaveAttribute('aria-selected','true');
     await expect(mRoot.getByLabel("기준일",{exact:true})).toHaveValue("2026-10-02");

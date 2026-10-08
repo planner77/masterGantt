@@ -83,3 +83,10 @@ Manager 착수 비교에서 #552 최종 source125 중 현재 변화는 src/featu
 제품 변경은 기존 export 대화상자의 원본 일정/layout 차이 안내 문단1개이며 renderer/API/schema/권한/domain은 유지한다. 신규 integration13·실제 HTTP/restart3·UI 고유37(새10+기존27)·기존 parent 제한 Unit6의 로컬 증거와 최초 실패·source 제한 재사용을 TEST_PLAN/추적표/선별 execution-contract에 연결했다. 최종 typecheck·변경 lint·version·문서 링크·diff check를 확인한다.
 
 위 필수 문서를 갱신하고 계약별 N/A 근거를 재확인하여 DOCUMENTATION_SYNC PASS로 read-only PRE_QA에 전달한다. 실제 독립 PRE_QA/Manager GO/원격 PR와 exact head CI 등록은 Issue STATUS에 기록한다. 결과 모니터링0이며 quality/e2e/docker/QA_FINAL/ACCEPT는 NOT TESTED로 유지한다. Next 설정은 frontend가 중간과 최종 서버 종료 시 복원했으며 각각 뒤의 실제 typecheck를 구분한다.
+
+## 2026-10-09 PR CI 실패 보완 기록
+
+- 최초 PR CI: https://github.com/planner77/masterGantt/actions/runs/37847151509 (`b4bc7e8`), E2E shard 2–6 FAIL, quality/build/docker PASS.
+- 원인: #552 Milestone 표시 구조가 native WBS 행/막대/혼합 link를 분리했으나 레거시 E2E는 종전 native locator로 접근. 일부 viewport는 Milestone 제외 후 scroll 높이가 줄어든 환경에서 고정 픽셀을 전제.
+- 보완: 일반 Task 사이 관계와 fullscreen 테스트 진입, canonical Milestone 데이터/대시보드 검증, 물리적으로 scroll 가능한 ordinary WBS fixture, 계층 메뉴의 Convert 시점 조정. E2E skip·timeout 완화는 적용하지 않음.
+- 새 exact-head 공식 검증과 QA는 결과 확인 전까지 NOT TESTED. merge/main/GHCR/release/Issue 종료 미승인.
