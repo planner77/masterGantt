@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   AUTO_PR_TITLE,
@@ -36,5 +37,24 @@ describe("E2E shard optimizer PR lookup", () => {
         { number: 103, title: "[Issue #437] ci: 다른 제목" },
       ]),
     ).toBe("");
+  });
+});
+
+describe("E2E optimizer PR creation failure recovery", () => {
+  const workflow = readFileSync(".github/workflows/e2e-shard-optimizer.yml", "utf8");
+  const createStep = workflow.split("      - name: 샤드 계획 자동 PR 생성")[1];
+
+  it("records permission denial with the preserved branch and manual PR link", () => {
+    expect(createStep).toContain('pr_error_file="$RUNNER_TEMP/e2e-shard-create-pr.stderr"');
+    expect(createStep).toContain("GitHub Actions is not permitted to create or approve pull requests");
+    expect(createStep).toContain("compare/main...$branch_name?expand=1");
+    expect(createStep).toContain('echo "### E2E 샤드 자동 PR 생성 실패 (BLOCKED)"');
+    expect(createStep).toContain('>> "$GITHUB_STEP_SUMMARY"');
+  });
+
+  it("fails closed and dispatches CI only after a PR was created", () => {
+    expect(createStep).toMatch(/if ! pr_url="\$\(gh pr create/);
+    expect(createStep).toMatch(/cat "\$pr_error_file" >&2\s+exit 1\s+fi/);
+    expect(createStep?.indexOf("exit 1")).toBeLessThan(createStep?.indexOf("ci.yml/dispatches"));
   });
 });
