@@ -48,7 +48,9 @@ test("#526 실제 SQLite/HTTP 세 계층·비교표·선택 진척과 전체 Gat
     const aliceButton = groupChildren.getByRole("button", { name: "개발 담당 Alice", exact: true });
     await expect(aliceButton).toBeVisible();
     await aliceButton.click();
-    const aliceBranch = groupChildren.locator(":scope > .resource-milestone-node").filter({ has: aliceButton });
+    // Scope the locator to Alice's direct child node, avoiding a nested has-locator's ancestor constraints.
+    const aliceBranch = groupChildren.locator(":scope > .resource-milestone-node").filter({ hasText: "개발 담당 Alice" });
+    await expect(aliceBranch).toHaveCount(1);
     const aliceTasks = aliceBranch.locator(":scope > div > .resource-milestone-summary").getByRole("button", { name: "2 Task", exact: true });
     await expect(aliceTasks).toBeVisible();
     const childResponse = publicPage.waitForResponse(response => {

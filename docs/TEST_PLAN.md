@@ -2232,3 +2232,5 @@ DOCUMENTATION_SYNC required API/ARCHITECTURE/SECURITY/REQUIREMENTS/TEST_PLAN/RES
 - 변경 범위는 E2E fixture 2파일+이 실패 이력 문서이며 제품 계산·API·UI·DB/버전과 기존 `v0.100.0` trusted release 승인 범위는 변경하지 않는다. 보완 PR의 exact HEAD remote PR CI/독립 QA, 이후 새 Main CI 및 정식 GHCR exact-digest 증거는 실제 성공 확인 전 `NOT TESTED`로 유지한다.
 
 PR #545 최초 PR CI #2162(run `37740429409`)는 코드 테스트 이전 CI trace metadata 검사에서 실패했다. PR 본문의 `Refs #527` 뒤에 설명을 붙여 canonical 독립 행 패턴이 매칭되지 않은 것이 원인이며, PR 메타데이터를 정확히 독립 행 `Refs #527`로 수정했다. metadata-only `edited` 실행은 첫 전체 CI PASS를 대체할 수 없으므로 문서 검증 이력을 기록한 새 HEAD에 대해 전체 PR CI를 다시 시작한다.
+
+PR #545 원격 Trace gate/전체 CI 실행 보완: PR CI #2164(run `37740562154`)는 PR 제목의 `(#527)` 누락으로 `verify-ci-run-trace.py`의 Primary Issue 검사에서 실패했다. PR 제목을 `test: Resource Plan E2E 비동기 행·스크롤 경합 보완 (#527)`로 변경했고, #2165(run `37740621980`)는 metadata edit event이므로 성공 여부와 관계없이 해당 HEAD의 quality/E2E/Docker 전체 검증이 아니다. 추가로 async Group children의 Alice locator는 Playwright `filter({has: ancestor-scoped-locator})` 대신 직접 자식 node의 이름 조건 및 고유 count를 사용하여 child summary 스코프를 명확히 한다. 이 변경 HEAD에서 신규 전체 PR CI를 검증한다.
