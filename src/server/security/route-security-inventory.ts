@@ -1,4 +1,5 @@
 export type RouteSecurityPolicy =
+  | "origin-public-query-read"
   | "public-read"
   | "origin-and-create-limit"
   | "origin-and-password-limit"
@@ -98,8 +99,14 @@ export const ROUTE_SECURITY_INVENTORY = Object.freeze([
   { template: "/api/logistics-catalog/admin/system-types/{code}", method: "PATCH", policy: "origin-logistics-admin-if-match", mutatesState: true },
   { template: "/api/projects/{publicId}/assignment-targets", method: "GET", policy: "project-edit-session-read", mutatesState: false },
   { template: "/api/projects/{publicId}/assigned-targets", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/scope", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/query", method: "POST", policy: "origin-public-query-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-dashboard", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-dashboard/details", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/group-children", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/plan/daily", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/plan/day-resources", method: "GET", policy: "public-read", mutatesState: false },
+  { template: "/api/projects/{publicId}/resource-dashboard/plan/day-assignments", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/resource-workload", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/work-calendars/countries", method: "GET", policy: "public-read", mutatesState: false },
   { template: "/api/projects/{publicId}/work-calendar", method: "GET", policy: "project-edit-session-read", mutatesState: false },

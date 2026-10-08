@@ -1,3 +1,4 @@
+import { resourceDashboardUiFixture, resourceDashboardDetailUiFixture } from "./resource-dashboard-ui";
 import { expect, type Page, type Request, type Route } from "@playwright/test";
 import type { CreateTaskRequest, ProjectDto, ProjectLinkDto, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
 import { stageSnapshotFromProject } from "../../src/domain/milestones/project-stage-model";
@@ -119,6 +120,12 @@ export async function installStatefulProjectFixture(page: Page): Promise<Statefu
           { kind: "group", id: "group-1", name: "개발팀", code: "G-01", description: "개발 그룹 설명", active: true },
         ],
       } } }); return;
+    }
+    if (pathname === `${projectPath}/resource-dashboard` && request.method() === "GET") {
+      await route.fulfill({ json: { data: resourceDashboardUiFixture(fixture, new URL(request.url()).searchParams) } }); return;
+    }
+    if (pathname === `${projectPath}/resource-dashboard/details` && request.method() === "GET") {
+      await route.fulfill({ json: { data: resourceDashboardDetailUiFixture(fixture, new URL(request.url()).searchParams) } }); return;
     }
     if (pathname === `${projectPath}/resource-workload` && request.method() === "GET") {
       await route.fulfill({ json: { data: { projectRevision: fixture.project.revision, catalogRevision: 1, range: { from: "2026-09-01", to: "2026-09-30" }, mdPerMm: 20, grandTotalMd: 5, grandTotalMm: 0.25, unsetCount: 0, asOfDate: "2026-09-18", timezone: "Asia/Seoul", unspecifiedRoleCount: 0, overAllocatedResourceCount: 0, roleTotals: [{ role: "PI", assignmentCount: 0, effortMd: 0, effortMm: 0, unsetCount: 0 }, { role: "DEVELOPER", assignmentCount: 1, effortMd: 5, effortMm: 0.25, unsetCount: 0 }, { role: "EQUIPMENT_OWNER", assignmentCount: 0, effortMd: 0, effortMm: 0, unsetCount: 0 }, { role: "UNSPECIFIED", assignmentCount: 0, effortMd: 0, effortMm: 0, unsetCount: 0 }], groups: [{ id: "group-1", name: "개발팀", active: true, start: "2026-09-16", end: "2026-09-18", effortMd: 5, effortMm: 0.25, unsetCount: 0, resources: [{ id: "resource-1", name: "테스트 리소스", code: "R-01", active: true, developerGrade: "ADVANCED", roles: ["DEVELOPER"], start: "2026-09-16", end: "2026-09-18", effortMd: 5, effortMm: 0.25, unsetCount: 0, overAllocated: false, tasks: [{ assignmentId: "assignment-1", taskId: fixture.tasks[2].taskId, taskName: fixture.tasks[2].name, start: "2026-09-16", end: "2026-09-18", allocationPercent: 100, effortMd: 5, effortMm: 0.25, effortConfigured: true, roles: ["DEVELOPER"], role: "DEVELOPER", taskStart: "2026-09-16", taskEnd: "2026-09-18", progress: 50, status: "in_progress", delayed: false }] }] }] } } }); return;

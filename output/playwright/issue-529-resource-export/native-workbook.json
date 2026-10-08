@@ -1,0 +1,151 @@
+{
+  "capturedAt": "2026-10-08T00:56:35.785Z",
+  "sourceHashes": {
+    "src/features/projects/project-readonly-view.tsx": "84cd28fe370b707de4331f46e174272773b336d99a4783cb029d7d0d1f7d1d25",
+    "src/features/gantt/project-gantt.tsx": "fbc5605bda6ac32bc6cd7987bd1c73b715c1fda39cfc68aced3b7ee026777704",
+    "src/features/projects/project-excel-export-button.tsx": "9a7ad810ec801a34829ec439827cd3b52fd8a79e67f62799fbb0bc44081fcf55",
+    "src/features/resources/resource-export-model.ts": "d72e85d348bd839c227c110110a0b84a1a7088215f337f4b0d95fbfde090b4df",
+    "src/features/resources/project-resource-dashboard.tsx": "a70f150f232658cb74acc3770e29b2ec180bdd031c951230fefb1be33e286d99",
+    "tests/e2e/resource-excel-export-ui.spec.ts": "49673625bc4faac4474abe14ff730e00eef972b8d34e9de4af47663e4a94cca7"
+  },
+  "readonly": true,
+  "ganttBeforeAfter": {
+    "public": {
+      "left": 120,
+      "top": 0
+    },
+    "left": 120,
+    "top": 0,
+    "columns": [
+      56,
+      264,
+      104,
+      56
+    ],
+    "selected": [
+      ":675af45f-0aa0-41f8-aae0-b6a6bd437a31"
+    ],
+    "rows": [
+      ":675af45f-0aa0-41f8-aae0-b6a6bd437a31",
+      ":a3b126b3-6c9c-4663-a455-29d6ff4e9baf",
+      null,
+      null
+    ]
+  },
+  "currentEvidence": {
+    "assignmentIds": [
+      "0ac29aff-5fbe-4893-a3f8-6f73e702bc02"
+    ],
+    "assignmentCount": 1,
+    "knownMd": 1.6,
+    "snapshotId": "67ba947b22b36127579bf0ac6b85223f5c1f187e6889f52806f91314142aa715"
+  },
+  "exactEvidence": {
+    "assignmentIds": [
+      "0ac29aff-5fbe-4893-a3f8-6f73e702bc02"
+    ],
+    "assignmentCount": 1,
+    "knownMd": 1.6,
+    "snapshotId": "6884bd50f866a632369210857a721ace0b9c59fb2a66bd454e2f135acf90733b"
+  },
+  "wholeEvidence": {
+    "assignmentIds": [
+      "0ac29aff-5fbe-4893-a3f8-6f73e702bc02"
+    ],
+    "assignmentCount": 1,
+    "knownMd": 1.6,
+    "snapshotId": "db59f34b578568e374f9983a9d798ddab72eb448d8c507048743bfb2b2a1b461"
+  },
+  "exactOptions": {
+    "granularities": [
+      "week",
+      "month"
+    ],
+    "originalSourceContext": {
+      "projectPublicId": "3928fe5d-de67-4af3-a650-378e68b05455",
+      "projectRevision": 5,
+      "catalogRevision": 4,
+      "calendarRevision": "1f073cae9e25554b49b1d199d6667de347c11c83408aeca523020a9412ef4e0c",
+      "dataSnapshotId": "fecbb540fc184c3428d6baca4a37fe05fcb6eb17b2c8361219d0c524e9c4553b",
+      "range": {
+        "from": "2026-10-06",
+        "to": "2026-10-07"
+      },
+      "asOfDate": "2026-10-08",
+      "mdPerMm": null,
+      "mdPerMmSource": "unset",
+      "mdPerMmProvided": false,
+      "sourceProjection": {
+        "kind": "milestoneReport"
+      }
+    },
+    "basis": "current",
+    "expectedReport": {
+      "context": {
+        "projectPublicId": "3928fe5d-de67-4af3-a650-378e68b05455",
+        "projectRevision": 5,
+        "catalogRevision": 4,
+        "calendarRevision": "1f073cae9e25554b49b1d199d6667de347c11c83408aeca523020a9412ef4e0c",
+        "dataSnapshotId": "fecbb540fc184c3428d6baca4a37fe05fcb6eb17b2c8361219d0c524e9c4553b",
+        "range": {
+          "from": "2026-10-06",
+          "to": "2026-10-07"
+        },
+        "asOfDate": "2026-10-08",
+        "mdPerMm": null,
+        "mdPerMmSource": "unset",
+        "mdPerMmProvided": false,
+        "sourceProjection": {
+          "kind": "report"
+        }
+      },
+      "snapshotId": "6884bd50f866a632369210857a721ace0b9c59fb2a66bd454e2f135acf90733b",
+      "filters": {
+        "search": "",
+        "taskSearch": "",
+        "mode": "group",
+        "resourceActivity": "all",
+        "groupActivity": "all",
+        "resourceIds": [],
+        "groupIds": [],
+        "milestoneIds": [],
+        "taskIds": [],
+        "wbsRootIds": [],
+        "roles": [],
+        "developerGrades": [],
+        "statuses": [],
+        "from": "2026-10-06",
+        "to": "2026-10-07"
+      }
+    },
+    "binding": {
+      "sourceContext": {
+        "projectPublicId": "3928fe5d-de67-4af3-a650-378e68b05455",
+        "projectRevision": 5,
+        "catalogRevision": 4,
+        "calendarRevision": "1f073cae9e25554b49b1d199d6667de347c11c83408aeca523020a9412ef4e0c",
+        "dataSnapshotId": "fecbb540fc184c3428d6baca4a37fe05fcb6eb17b2c8361219d0c524e9c4553b",
+        "range": {
+          "from": "2026-10-06",
+          "to": "2026-10-07"
+        },
+        "asOfDate": "2026-10-08",
+        "mdPerMm": null,
+        "mdPerMmSource": "unset",
+        "mdPerMmProvided": false,
+        "sourceProjection": {
+          "kind": "milestoneReport"
+        }
+      },
+      "scope": {
+        "kind": "exactAssignments",
+        "assignmentIds": [
+          "0ac29aff-5fbe-4893-a3f8-6f73e702bc02"
+        ]
+      }
+    }
+  },
+  "originalRevision": 5,
+  "status": "PASS",
+  "reuseNote": "Product hashes match final source. After this execution only the same spec cancel-case second clock.pauseAt baseline changed; these positive case bodies are unchanged."
+}

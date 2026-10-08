@@ -1,0 +1,944 @@
+{
+  "capturedAt": "2026-10-08T10:16:56.622Z",
+  "observations": [
+    {
+      "hierarchy": "root",
+      "before": {
+        "public": {
+          "left": 0,
+          "top": 0
+        },
+        "dom": {
+          "left": 0,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": false,
+        "chartWidth": 929,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": []
+        },
+        "geometry": {
+          "chart": {
+            "left": 498,
+            "right": 1427
+          },
+          "grid": {
+            "left": 13,
+            "right": 494
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 930,
+            "height": 752
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "right": {
+        "public": {
+          "left": 19806,
+          "top": 0
+        },
+        "dom": {
+          "left": 19806,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": true,
+        "chartWidth": 929,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000102"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 498,
+            "right": 1427
+          },
+          "grid": {
+            "left": 13,
+            "right": 494
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 930,
+            "height": 752
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19806
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "alreadyVisible": {
+        "public": {
+          "left": 19806,
+          "top": 0
+        },
+        "dom": {
+          "left": 19806,
+          "top": 0
+        },
+        "startX": 20664,
+        "startVisible": true,
+        "chartWidth": 929,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000102"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 498,
+            "right": 1427
+          },
+          "grid": {
+            "left": 13,
+            "right": 494
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 930,
+            "height": 752
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19806
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "left": {
+        "public": {
+          "left": 0,
+          "top": 0
+        },
+        "dom": {
+          "left": 0,
+          "top": 0
+        },
+        "startX": 0,
+        "startVisible": true,
+        "chartWidth": 929,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000101"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 498,
+            "right": 1427
+          },
+          "grid": {
+            "left": 13,
+            "right": 494
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 930,
+            "height": 752
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19806
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 0
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": "xy"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      }
+    },
+    {
+      "hierarchy": "nested",
+      "before": {
+        "public": {
+          "left": 0,
+          "top": 0
+        },
+        "dom": {
+          "left": 0,
+          "top": 0
+        },
+        "startX": 21924,
+        "startVisible": false,
+        "chartWidth": 929,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000101"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 498,
+            "right": 1427
+          },
+          "grid": {
+            "left": 13,
+            "right": 494
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 930,
+            "height": 752
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19806
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 0
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": "xy"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "right": {
+        "public": {
+          "left": 21066,
+          "top": 0
+        },
+        "dom": {
+          "left": 21066,
+          "top": 0
+        },
+        "startX": 21924,
+        "startVisible": true,
+        "chartWidth": 929,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000105"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 498,
+            "right": 1427
+          },
+          "grid": {
+            "left": 13,
+            "right": 494
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 930,
+            "height": 752
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19806
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 0
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 21066
+          },
+          {
+            "action": "select-task",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000105",
+            "show": "xy"
+          },
+          {
+            "action": "resize-chart",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "width": 22968,
+            "height": 752
+          },
+          {
+            "action": "resize-chart",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "width": 930,
+            "height": 752
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "alreadyVisible": {
+        "public": {
+          "left": 21066,
+          "top": 0
+        },
+        "dom": {
+          "left": 21066,
+          "top": 0
+        },
+        "startX": 21924,
+        "startVisible": true,
+        "chartWidth": 929,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000105"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 498,
+            "right": 1427
+          },
+          "grid": {
+            "left": 13,
+            "right": 494
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 930,
+            "height": 752
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19806
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 0
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 21066
+          },
+          {
+            "action": "select-task",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000105",
+            "show": "xy"
+          },
+          {
+            "action": "resize-chart",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "width": 22968,
+            "height": 752
+          },
+          {
+            "action": "resize-chart",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "width": 930,
+            "height": 752
+          },
+          {
+            "action": "scroll-chart",
+            "left": 21066,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000105",
+            "show": "xy"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      },
+      "left": {
+        "public": {
+          "left": 0,
+          "top": 0
+        },
+        "dom": {
+          "left": 0,
+          "top": 0
+        },
+        "startX": 0,
+        "startVisible": true,
+        "chartWidth": 929,
+        "scale": {
+          "start": "2026-01-04T15:00:00.000Z",
+          "cellWidth": 36,
+          "scaleUnit": "day",
+          "selected": [
+            "00000000-0000-4000-8000-000000000101"
+          ]
+        },
+        "geometry": {
+          "chart": {
+            "left": 498,
+            "right": 1427
+          },
+          "grid": {
+            "left": 13,
+            "right": 494
+          },
+          "viewportWidth": 1440,
+          "documentOverflow": 0
+        },
+        "events": [
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": -484,
+            "height": -72
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 906,
+            "height": 460
+          },
+          {
+            "action": "resize-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "width": 930,
+            "height": 752
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 19806
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 19806,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 19806,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000102",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 0
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 21066
+          },
+          {
+            "action": "select-task",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000105",
+            "show": "xy"
+          },
+          {
+            "action": "resize-chart",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "width": 22968,
+            "height": 752
+          },
+          {
+            "action": "resize-chart",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "width": 930,
+            "height": 752
+          },
+          {
+            "action": "scroll-chart",
+            "left": 21066,
+            "top": 0,
+            "visible": true
+          },
+          {
+            "action": "select-task",
+            "left": 21066,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000105",
+            "show": "xy"
+          },
+          {
+            "action": "scroll-chart",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "requestedLeft": 0
+          },
+          {
+            "action": "select-task",
+            "left": 0,
+            "top": 0,
+            "visible": true,
+            "taskId": "00000000-0000-4000-8000-000000000101",
+            "show": "xy"
+          }
+        ],
+        "instance": "svar-api-1",
+        "syncGeneration": "2"
+      }
+    }
+  ],
+  "initial": {
+    "instance": "svar-api-1",
+    "scale": "day",
+    "rows": [
+      ":00000000-0000-4000-8000-000000000101",
+      ":00000000-0000-4000-8000-000000000102",
+      ":00000000-0000-4000-8000-000000000103",
+      ":00000000-0000-4000-8000-000000000104",
+      ":00000000-0000-4000-8000-000000000105",
+      ":00000000-0000-4000-8000-000000000106",
+      ":00000000-0000-4000-8000-000000000107"
+    ],
+    "columns": [
+      56,
+      227,
+      104,
+      56,
+      37
+    ]
+  },
+  "final": {
+    "instance": "svar-api-1",
+    "scale": "day",
+    "rows": [
+      ":00000000-0000-4000-8000-000000000101",
+      ":00000000-0000-4000-8000-000000000102",
+      ":00000000-0000-4000-8000-000000000103",
+      ":00000000-0000-4000-8000-000000000104",
+      ":00000000-0000-4000-8000-000000000105",
+      ":00000000-0000-4000-8000-000000000106",
+      ":00000000-0000-4000-8000-000000000107"
+    ],
+    "columns": [
+      56,
+      227,
+      104,
+      56,
+      37
+    ]
+  },
+  "mutationCount": 0,
+  "sourceHashes": {
+    "src/features/gantt/project-gantt.tsx": "e8f8c0ff3597de865667537e5d176b1bc2396050492403160e95828229fc12b6",
+    "src/features/projects/project-readonly-view.tsx": "1d8a755288b87be3c1ee8ec06a8b59b28bbe933e73113b1d5fda08295039c063",
+    "tests/e2e/grid-task-start-reveal.spec.ts": "01241b42c87a08486cd20ae9323a2b66676b0b49704fad3133e6a1d2dbf70526"
+  },
+  "environment": "Next16.3.8/Core2.7.3; mocked canonical API, native browser pointer"
+}

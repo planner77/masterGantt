@@ -490,10 +490,10 @@ jobs:
     if: needs.changes.outputs.e2e == 'true'
     needs: changes
     runs-on: ubuntu-latest
-    # Playwright OS dependency install occasionally stalls on Ubuntu mirrors.
-    # Keep the six-way shard topology but allow transient setup latency without
-    # converting otherwise healthy browser tests into a 15-minute cancellation.
-    timeout-minutes: 25
+    # Playwright OS dependency install can stall on runner mirrors.
+    # #487: allow healthy tests to finish after bounded setup/retry.
+    # Six shards, workers=1 and fail-closed aggregate checks stay unchanged.
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
@@ -611,7 +611,8 @@ jobs:
     if: needs.changes.outputs.docker == 'true'
     needs: changes
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Bounded Playwright OS dependency retries plus full transport/Compose smoke.
+    timeout-minutes: 40
     steps:
       - name: checkout 계측 시작
         id: checkout-start
@@ -833,7 +834,9 @@ jobs:
       needs.docker.result == 'success' &&
       needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Shared Playwright setup may perform two bounded 360s OS-deps installs.
+    # Allow enough budget for image build/push, digest pull and transport smoke.
+    timeout-minutes: 50
     needs: [changes, quality, e2e, docker]
     permissions:
       contents: read

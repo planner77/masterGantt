@@ -158,7 +158,7 @@ test.describe("Issue #3 stable Gantt instance", () => {
     const milestoneAdd = rowNamed(page, "Stable milestone").locator('[data-action="add-task"]');
     await expect(milestoneAdd).toHaveAttribute("aria-disabled", "true");
     await milestoneAdd.dispatchEvent("click");
-    await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업을 추가할 수 없습니다");
+    await expect(page.getByTestId("workspace-toast")).toContainText("Milestone에는 하위 작업을 추가할 수 없습니다");
     expect(fixture.posts).toHaveLength(2);
     async function rejectNextAdd(outcome: PostOutcome, expectedNotice: string, trigger = rootAdd(page)): Promise<void> {
       const taskCount = fixture.tasks.length; const postCount = fixture.posts.length;
@@ -185,7 +185,7 @@ test.describe("Issue #3 stable Gantt instance", () => {
       await expect(page.getByRole("grid").getByText("새 작업", { exact: true })).toHaveCount(2);
       expect(fixture.patchRequests).toHaveLength(0);
     }
-    await rejectNextAdd({ kind: "error", status: 422, code: "INVALID_PARENT_TASK" }, "마일스톤에는 하위 작업을 추가할 수 없습니다", rowNamed(page, "Stable summary").locator('[data-action="add-task"]'));
+    await rejectNextAdd({ kind: "error", status: 422, code: "INVALID_PARENT_TASK" }, "Milestone에는 하위 작업을 추가할 수 없습니다", rowNamed(page, "Stable summary").locator('[data-action="add-task"]'));
     await rejectNextAdd({ kind: "error", status: 412, code: "REVISION_MISMATCH" }, "다른 편집 내용이 먼저 저장되었습니다");
     await rejectNextAdd({ kind: "error", status: 500, code: "INTERNAL_ERROR" }, "작업을 저장할 수 없습니다");
     await rejectNextAdd({ kind: "network" }, "네트워크 연결을 확인한 뒤 다시 시도해 주세요");

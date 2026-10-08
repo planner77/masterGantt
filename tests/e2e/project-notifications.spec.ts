@@ -37,7 +37,7 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   const before = await geometry(page);
   // Native dispatch avoids Playwright actionability auto-scroll from changing the Grid position.
   await milestoneAdd.dispatchEvent("click");
-  await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업");
+  await expect(page.getByTestId("workspace-toast")).toContainText("Milestone에는 하위 작업");
   await expect(page.getByRole("button", { name: "알림함, 미확인 1건" })).toBeVisible();
   expect(await geometry(page)).toEqual(before);
   await expectSameGanttRoot(page, identity);
@@ -54,7 +54,7 @@ test("토스트 타이머·오류 보관·읽음·복사가 Gantt 위치와 인�
   await bell.focus(); await page.keyboard.press("Enter");
   const inbox = page.getByRole("dialog", { name: "오류 알림함" });
   await expect(inbox).toBeVisible();
-  await expect(inbox.getByLabel("알림 1 내용")).toHaveValue(/마일스톤에는 하위 작업/);
+  await expect(inbox.getByLabel("알림 1 내용")).toHaveValue(/Milestone에는 하위 작업/);
   expect(await geometry(page)).toEqual(before);
   await expectSameGanttRoot(page, identity);
   await inbox.getByRole("button", { name: "내용 복사", exact: true }).click();
@@ -231,7 +231,7 @@ for (const width of [320, 360, 361, 375, 390, 400, 401, 414, 768, 1440]) {
 
     // Native dispatch avoids scrolling the workspace away from the header while creating unread state.
     await rowNamed(page, "Stable milestone").locator('[data-action="add-task"]').dispatchEvent("click");
-    await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업");
+    await expect(page.getByTestId("workspace-toast")).toContainText("Milestone에는 하위 작업");
     const unreadBell = page.getByRole("button", { name: "알림함, 미확인 1건", exact: true });
     await expect(unreadBell).toBeVisible();
     const unreadBellBox = await unreadBell.boundingBox();

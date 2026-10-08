@@ -1,5 +1,81 @@
 # Changelog
 
+## [0.102.2] - 2026-10-08
+
+### Fixed
+
+- Issue #495: Gantt/Grid, Task Editor, Milestone Dashboard, 필터, 물류·리소스 및 Template·Import/Copy/Export 안내의 사용자 표기를 `Milestone`으로 통일하고 접근성 이름·E2E·관련 문서를 동기화한다. Stage Gate 내부 판정과 Membership/Dependency/API/DB 의미는 유지한다.
+- 기존 Excel 시트·고정 열 헤더와 JSON schema/key는 하위 호환을 위해 보존한다. 일반 완료 상태, CI 단계와 이동 이력의 `단계`는 용도에 맞게 유지한다.
+
+
+## [0.102.1] - 2026-10-08
+
+### Fixed
+
+- Issue #519: Task/Summary 작업 정보 Milestone 후보에서 외부 ID·작업 ID 노출을 제거하고 이름·날짜·상태만 유지한다. 이름/externalId/taskId 검색, canonical 식별·선택 및 완료 잠금·접근성 계약은 유지한다. PR #547의 E2E 재검증을 위해 최신 main의 #130 Project Context 5폭×권한 조합을 폭별로 독립 실행하는 테스트와 #529 Resource Excel 보고를 함께 보존한다.
+
+## [0.102.0] - 2026-10-08
+
+### Added
+
+- Issue #529: Resource Dashboard·Milestone·주/월 Resource Plan과 고유 Assignment 상세를 같은 조회 기준의 Excel 보고서로 확장한다. 기존 Export 옵션과 시트 구성을 보존한다.
+
+### Fixed
+
+- Issue #529: Resource Quality의 Milestone 미지정 선택 Assignment 원래 실효기간과 보고기간 교차값을 구별하고, Gantt peer 이동 시 SVAR 공개 Core/DOM 스크롤 좌표를 각각 보존한다. 원본기간 XLSX·1px 좌표 차이 회귀 검증을 추가한다.
+- Issue #529: Excel Quality raw unset Assignment에 원본 실효기간 1,000,000일 한도를 적용하고, 보고서 확인창의 Task/WBS 범위를 이름과 안정 ID로 표시한다. PR 리뷰 지적과 회귀 테스트를 동기화한다.
+- Issue #529: Resource 공수 조회의 `empty`는 `할당 없음`으로 표시하며, 명시적으로 설정한 0 M/D·M/M와 구분한다. #526 E2E는 Core/DOM의 안정화된 Gantt 스크롤을 기준으로 peer-view 상태 보존을 검증한다.
+- Issue #524/#529: 공수 미설정 진단의 Assignment 상세와 조회 범위를 진단 원장에 맞춘다. 조회 기간 밖 배정은 원래 실효기간 근거를 표시하고 선택 공수 합계와 구별한다.
+- Issue #529: 리소스·물류 화면에서 일정으로 돌아올 때 기존 Gantt viewport를 복원한다. 다른 조회 범위·원장·인스턴스의 오래된 복원 값은 적용하지 않는다.
+
+## [0.101.2] - 2026-10-08
+
+### Fixed
+
+- Issue #514: Gantt 복귀 중 대기 복원이 Grid 선택의 작업 시작 일정 이동을 덮는 회귀와 날짜 없는 Summary의 임의 수평 이동을 수정한다. 일반 선택과 Context Menu의 위치 보존 계약을 유지한다.
+
+## [0.101.1] - 2026-10-08
+
+### Fixed
+
+- Issue #518 최신 main 정렬: #528 Resource·Milestone drill-down의 context·원래 보기 복귀·중첩 navigation 상태를 보존하고, Gantt/Dashboard를 상위 peer tab으로 통합해 사용자 동작을 단순화한다.
+
+- Issue #518 PR CI #2158: 개발용 #502 Gantt Demo Error Boundary probe의 React hydration 전 keyboard 입력 경쟁을 감지하도록 useEffect 완료 신호를 추가하고, 기존 실제 오류·재시도·포커스 복귀 E2E를 유지한 채 준비 완료 후 검증한다. 최신 main #527·#528 변경을 보존해 통합한다.
+
+- Issue #518 PR CI #2154 후속: 화면의 Dashboard 제목을 상위 `Milestone 대시보드` 탭과 일치시키고, 삭제된 `Gantt` 하위 탭 및 기존 3개 peer 순서를 전제한 E2E를 실제 4개 상위 탭의 접근성/상태 보존 검증으로 수정한다.
+- Issue #518: 프로젝트 상위 탭을 `일정 / Milestone 대시보드 / 리소스 / 물류 구성`으로 통합하고 중복 Gantt/Dashboard 중첩 탭 행을 제거해 Gantt 세로 작업 공간을 회복한다.
+- Milestone 대시보드 전환에도 동일 Gantt instance·scope·viewport를 보존하고 Dashboard Task Editor가 숨겨진 일정 panel에 갇히지 않도록 공통 Dialog를 상위 Workspace로 옮긴다.
+- 상위 tab 접근성/키보드·좁은 화면 수평 스크롤 및 기존 Dashboard/Gantt/Resource 회귀 E2E를 갱신한다.
+
+## [0.101.0] - 2026-10-08
+
+### Added
+
+- Issue #528: Resource·Milestone·일정 간 임시 조회 범위를 전체 고유 Task·개인 Assignment 기준으로 연결한다. 동일 원장·출발 조건의 stale 검증, 원래 보기 복귀와 범위 해제, 최대 8단계 이동 기록과 기존 Task Editor·Gantt 상태 보존을 제공한다.
+
+## [0.100.0] - 2026-10-08
+
+### Added
+
+- Issue #527: 주·월 Resource Plan에서 개인 근무일 Capacity와 선택 범위·Project 전체 계획 공수를 비교한다. 일별 Peak·개인별 초과·미설정 기여를 구별하고 동일 snapshot의 날짜·개인·Assignment 근거를 제공한다. 기간·표시 행 페이지와 기존 Gantt·Dashboard 상태를 보존한다.
+
+## [0.99.0] - 2026-10-08
+
+### Added
+
+- Issue #526: 그룹→Milestone→개인, 그룹→개인→Milestone, 개인→Milestone 조회와 Group/Resource 비교표를 추가한다. 같은 snapshot의 그룹 자식 페이지·교차 상세·Milestone 선택/기준/제외 요약을 제공하고, 표시 페이지와 전체 합계 및 선택 작업 진척과 단계 전체 상태를 구별한다.
+
+## [0.98.0] - 2026-10-08
+
+### Fixed
+
+- Issue #525: Resource 공수 `empty`(할당 없음)와 `configured` 0공수를 구분하여 빈 선택 범위를 확정된 계획 0공수로 오인하지 않게 한다.
+- Issue #525: Resource Dashboard 필터·snapshot 전환 시 이전 KPI 상세/행 확장 상태를 해제하여 조건 복귀 때 숨겨진 상세가 자동 재개되지 않도록 한다.
+
+### Added
+
+- Issue #525: 기존 리소스 탭에 서버 raw KPI 기반 그룹·개인 Dashboard, 역할·등급·상태·기간 필터, M/D·M/M 표시와 동일 snapshot Task/Assignment 상세를 제공한다. 기존 개발 견적·역할 소계·단계 할당 상세와 Gantt 상태를 보존하고 stale·잘못된 선택·조회 한도를 구별한다.
+
 ## [0.97.0] - 2026-10-07
 
 ### Added

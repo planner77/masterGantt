@@ -33,9 +33,11 @@ test.describe("Issue #76 Project Workspace UX", () => {
 
     const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
     const scheduleTab = tabs.getByRole("tab", { name: "일정", exact: true });
+    const milestoneTab = tabs.getByRole("tab", { name: "Milestone 대시보드", exact: true });
     const resourcesTab = tabs.getByRole("tab", { name: "리소스", exact: true });
     const logisticsTab = tabs.getByRole("tab", { name: "물류 구성", exact: true });
     await expect(scheduleTab).toHaveAttribute("aria-selected", "true");
+    await expect(milestoneTab).toHaveAttribute("aria-selected", "false");
     await expect(resourcesTab).toHaveAttribute("aria-selected", "false");
     await expect(logisticsTab).toHaveAttribute("aria-selected", "false");
 
@@ -46,13 +48,22 @@ test.describe("Issue #76 Project Workspace UX", () => {
 
     await scheduleTab.focus();
     await page.keyboard.press("ArrowRight");
+    await expect(milestoneTab).toBeFocused();
+    await expect(milestoneTab).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("tabpanel", { name: "Milestone 대시보드", exact: true })).toBeVisible();
+    await page.keyboard.press("ArrowRight");
     await expect(resourcesTab).toBeFocused();
     await expect(resourcesTab).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("heading", { level: 2, name: "리소스 공수" })).toBeVisible();
-    await expect(page.getByText("개발팀", { exact: true })).toBeVisible();
-    await expect(page.getByRole("tabpanel", { name: "리소스" }).getByText("테스트 리소스 (R-01)", { exact: true })).toBeVisible();
-    await expect(page.getByText("5.00 M/D", { exact: true }).first()).toBeVisible();
+    const resourceDashboard = page.getByRole("tabpanel", { name: "리소스" }).locator('[data-resource-dashboard="true"]');
+    await expect(resourceDashboard).toHaveAttribute("data-ready", "true");
+    const group = resourceDashboard.getByRole("region", { name: "그룹 현황" }).getByRole("button", { name: /개발팀 \(G-01\)/ });
+    await expect(group).toBeVisible();
+    await group.click();
+    await expect(resourceDashboard.getByRole("region", { name: "개발팀 개인 현황" }).getByRole("button", { name: /테스트 리소스 \(R-01\)/ })).toBeVisible();
+    await expect(resourceDashboard.locator('dl[aria-label="선택 범위 KPI"]')).toContainText("5.00 M/D");
 
+    await resourcesTab.focus();
     await page.keyboard.press("Home");
     await expect(scheduleTab).toBeFocused();
     await expect(scheduleTab).toHaveAttribute("aria-selected", "true");
@@ -63,6 +74,8 @@ test.describe("Issue #76 Project Workspace UX", () => {
     await expect(logisticsTab).toBeFocused();
     await page.keyboard.press("ArrowLeft");
     await expect(resourcesTab).toBeFocused();
+    await page.keyboard.press("ArrowLeft");
+    await expect(milestoneTab).toBeFocused();
     await page.keyboard.press("ArrowLeft");
     await expect(scheduleTab).toBeFocused();
     await expectSameGanttRoot(page, identity);
@@ -190,12 +203,14 @@ test.describe("Issue #76 Project Workspace UX", () => {
   }
 });
 
-test("Issue #130 Phase 2 Project Context와 tab은 다섯 폭·권한 상태에서 작업공간을 유지한다", async ({ page }, testInfo) => {
-  const fixture = await installStatefulProjectFixture(page);
-  fixture.project.name = "긴 한국어 프로젝트 제목과 English delivery workspace ".repeat(8);
-  fixture.project.description = "상세 설명과 owner metadata ".repeat(80);
+// Keep every width × permission check, but isolate the five widths into
+// independent Playwright tests instead of exhausting one 30s test deadline.
+for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900], [1600, 900]] as const) {
+  test(`Issue #130 Phase 2 Project Context·탭 ${width}px 읽기/편집 상태 보존`, async ({ page }, testInfo) => {
+    const fixture = await installStatefulProjectFixture(page);
+    fixture.project.name = "긴 한국어 프로젝트 제목과 English delivery workspace ".repeat(8);
+    fixture.project.description = "상세 설명과 owner metadata ".repeat(80);
 
-  for (const [width, height] of [[390, 844], [768, 900], [1024, 900], [1440, 900], [1600, 900]] as const) {
     await page.setViewportSize({ width, height });
     for (const editing of [false, true]) {
       fixture.sessionEditable = editing;
@@ -262,12 +277,20 @@ test("Issue #130 Phase 2 Project Context와 tab은 다섯 폭·권한 상태에�
 
       const tabs = page.getByRole("tablist", { name: "프로젝트 작업공간" });
       const schedule = tabs.getByRole("tab", { name: "일정" });
+      const milestones = tabs.getByRole("tab", { name: "Milestone 대시보드" });
       const resources = tabs.getByRole("tab", { name: "리소스" });
       const logistics = tabs.getByRole("tab", { name: "물류 구성" });
       await expect(schedule).toHaveAttribute("aria-controls", "project-panel-schedule");
+      await expect(milestones).toHaveAttribute("aria-controls", "project-panel-milestones");
       await expect(resources).toHaveAttribute("aria-controls", "project-panel-resources");
       await expect(logistics).toHaveAttribute("aria-controls", "project-panel-logistics");
+      await expect(tabs.getByRole("tab")).toHaveText(["일정", "Milestone 대시보드", "리소스", "물류 구성"]);
+      await expect(page.getByRole("tab", { name: "Gantt", exact: true })).toHaveCount(0);
       await schedule.focus();
+      await page.keyboard.press("ArrowRight");
+      await expect(milestones).toBeFocused();
+      await page.keyboard.press("Home");
+      await expect(schedule).toBeFocused();
       await page.keyboard.press("End");
       await expect(logistics).toBeFocused();
       await expect(page.getByRole("tabpanel", { name: "물류 구성" })).toBeVisible();
@@ -283,8 +306,8 @@ test("Issue #130 Phase 2 Project Context와 tab은 다섯 폭·권한 상태에�
         expect(await page.locator(".project-gantt-widget .wx-chart").first().evaluate((element) => element.scrollLeft)).toBe(chartScrollLeft);
       }
     }
-  }
-});
+  });
+}
 
 test("Issue #130 Phase 2 조회 중·오류 상태의 본문과 재시도가 작업공간에 복귀한다", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
