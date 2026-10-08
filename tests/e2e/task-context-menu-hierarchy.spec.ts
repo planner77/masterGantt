@@ -101,6 +101,41 @@ function orderedRootNames(tasks: readonly ProjectTaskDto[]): string[] {
     .map((task) => task.name);
 }
 
+function orderedFamily(tasks: readonly ProjectTaskDto[], parentExternalId: string | null): ProjectTaskDto[] {
+  return tasks.filter((task) => task.parentExternalId === parentExternalId)
+    .sort((a, b) => a.siblingOrder - b.siblingOrder);
+}
+
+async function expectRenderedSiblingOrder(
+  page: import("@playwright/test").Page,
+  tasks: readonly ProjectTaskDto[],
+  parentExternalId: string | null,
+) {
+  const expected = orderedFamily(tasks, parentExternalId);
+  expect(expected.map((task) => task.siblingOrder)).toEqual(expected.map((_, index) => index));
+  await expect.poll(async () => {
+    const ids = expected.map((task) => task.taskId);
+    return page.locator(".project-gantt-widget .wx-table .wx-row[data-id]").evaluateAll(
+      (rows, expectedIds) => rows.map((row) => row.getAttribute("data-id"))
+        .filter((id) => expectedIds.some((taskId) => id === `:${taskId}`))
+        .map((id) => id?.slice(1)),
+      ids,
+    );
+  }).toEqual(expected.map((task) => task.taskId));
+  const bars = expected.filter((task) => task.start !== null);
+  await expect.poll(async () => {
+    const ids = bars.map((task) => task.taskId);
+    return page.locator(".project-gantt-widget .wx-chart .wx-bar[data-task-id]").evaluateAll(
+      (elements, taskIds) => elements
+        .filter((el) => taskIds.includes(el.getAttribute("data-task-id") ?? ""))
+        .map((el) => ({ id: el.getAttribute("data-task-id"), top: el.getBoundingClientRect().top }))
+        .sort((a, b) => a.top - b.top)
+        .map((item) => item.id),
+      ids,
+    );
+  }).toEqual(bars.map((task) => task.taskId));
+}
+
 test("Issue #72 menu exposes Willow commands and readonly users cannot mutate", async ({ page, browser }) => {
   const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   await page.goto("/projects/new");
@@ -568,6 +603,70 @@ test("Issue #373 direct subtree deep link keeps scoped editing and cross-tab fre
   }
 
   expect(keepCreated.data.tasks.some((task) => task.name === "Keep sibling")).toBe(true);
+});
+
+test("Issue #506 places root and nested Add Above/Below immediately around the anchor, including scoped view", async ({ page }) => {
+  await page.goto("/projects/new");
+  await page.getByLabel("프로젝트 이름", { exact: true }).fill("Issue 506 sibling order");
+  await page.getByLabel("편집 비밀번호", { exact: true }).fill("Issue506Pwd!");
+  await submitProjectAndExpectCreated(page);
+  await page.waitForURL(/\/projects\/[0-9a-f-]{36}$/);
+  const api = `/api${new URL(page.url()).pathname}`;
+  const origin = new URL(page.url()).origin;
+  let snapshot = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  for (const name of ["A", "B", "C", "Summary"]) {
+    snapshot = await createRootTask(page, api, origin, snapshot.data.project.revision, name);
+  }
+  const summary = snapshot.data.tasks.find((task) => task.name === "Summary")!;
+  for (const [index, name] of ["Child A", "Child B", "Child C"].entries()) {
+    const response = await page.request.post(`${api}/tasks`, {
+      headers: { Origin: origin, "If-Match": `"${snapshot.data.project.revision}"` },
+      data: { name, type: "task", start: "2026-09-21", duration: 1, progress: 0,
+        parentTaskId: summary.taskId, ...(index === 0 ? { convertParentToSummary: true } : {}) },
+    });
+    expect(response.status()).toBe(201);
+    snapshot = await response.json() as TaskMutationResponse;
+  }
+  await page.reload();
+  const frame = page.locator(".project-gantt-frame");
+  const instance = await frame.getAttribute("data-project-gantt-instance");
+  const apiInstance = await frame.getAttribute("data-project-gantt-api-instance");
+  await expectRenderedSiblingOrder(page, snapshot.data.tasks, null);
+
+  await openMenu(page, "B");
+  const above = await chooseSubmenu(page, "Add", "Task above");
+  expect(orderedRootNames(above.data.tasks)).toEqual(["A", "새 작업", "B", "C", "Summary"]);
+  const rootInserted = above.data.tasks.find((task) => task.name === "새 작업")!;
+  expect(rootInserted.parentExternalId).toBeNull();
+  await expectRenderedSiblingOrder(page, above.data.tasks, null);
+  await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+
+  await openMenu(page, "B");
+  const below = await chooseSubmenu(page, "Add", "Task below");
+  const rootOrder = orderedFamily(below.data.tasks, null);
+  expect(rootOrder.map((task) => task.taskId)).toEqual([
+    ...orderedFamily(above.data.tasks, null).slice(0, 3).map((task) => task.taskId),
+    ...below.data.tasks.filter((task) => task.name === "새 작업" && task.taskId !== rootInserted.taskId).map((task) => task.taskId),
+    ...orderedFamily(above.data.tasks, null).slice(3).map((task) => task.taskId),
+  ]);
+  await expectRenderedSiblingOrder(page, below.data.tasks, null);
+
+  await openMenu(page, "Summary");
+  await menu(page).getByRole("menuitem", { name: "최상위로 열기 (작업공간 탭)", exact: true }).click();
+  await expect(page.getByRole("tab", { name: "Summary", exact: true })).toHaveAttribute("aria-selected", "true");
+  await openMenu(page, "Child B");
+  const nested = await chooseSubmenu(page, "Add", "Task above");
+  const childNames = orderedFamily(nested.data.tasks, summary.externalId).map((task) => task.name);
+  expect(childNames).toEqual(["Child A", "새 작업", "Child B", "Child C"]);
+  await expectRenderedSiblingOrder(page, nested.data.tasks, summary.externalId);
+  await expect(frame).toHaveAttribute("data-project-gantt-instance", instance!);
+  await expect(frame).toHaveAttribute("data-project-gantt-api-instance", apiInstance!);
+  await page.reload();
+  const persisted = await (await page.request.get(api)).json() as ProjectSnapshotResponse;
+  expect(orderedFamily(persisted.data.tasks, summary.externalId).map((task) => task.taskId))
+    .toEqual(orderedFamily(nested.data.tasks, summary.externalId).map((task) => task.taskId));
+  await expectRenderedSiblingOrder(page, persisted.data.tasks, summary.externalId);
 });
 
 test("Issue #72 hierarchy commands persist across reload without remounting the Gantt", async ({ page }) => {
