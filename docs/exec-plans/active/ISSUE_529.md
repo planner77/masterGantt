@@ -155,3 +155,11 @@ Manager는 frontend에 DOM/공개 Core 양쪽의 입력 취소와 현재 source/
 frontend는 readonly DOM RAF에도 Gantt 영역의 입력 취소 및 현재 panel/source/instance/sync/geometry guard를 적용했다. Core effect는 그대로 유지했다. 정상 기존 Milestone1/실제 Export1/no-Export control1은 각각 PASS1.8/6.2/2.2초이며 제품 source가 같은 최종 취소1은 PASS6.8초다. 취소 테스트는 실제 wheel 직후 public30/DOM31을 각각 캡처하고 pending RAF 200+300ms 후 exact 값 보존, 이전 requested120 이벤트 없음 및 source/filter 변경 취소를 직접 검증한다. 서로 다른 public/DOM 값을 같다고 가정한 두 번의 oracle FAIL과 가상 clock보다 과거 pauseAt fixture FAIL도 별도로 보존했다. 마지막 spec 변경은 두 번째 pause 기준만 browser의 현재 clock+100ms로 보완했으며 positive3의 실행 source/spec와 재사용 범위를 구분한다.
 
 최초 marker-only 취소 PASS와 ui_ux의 해당 판정은 NOT VALID로 유지하고 원본 근거를 삭제하지 않는다. 새 동결 manifest와 source hashes/공개 JSON/관련 문서를 다시 대조해 DOCUMENTATION_SYNC를 수행하고 새 staged tree에서 독립 PRE_QA와 ui_ux delta 검토를 요청한다. 정식 CI gate·QA_FINAL/Manager ACCEPT·Windows Excel/DRM은 계속 NOT TESTED다.
+
+
+## Issue #529 CI #2145 후속 (2026-10-08)
+
+- 실패: PR #543 CI #2145, Chromium E2E shard 4(#83) 및 shard 6(#526). Static/Unit/Build/Docker/Policy PASS.
+- #83: 선택 범위에 개인 Assignment가 없는 empty 상태는 할당 없음으로 표시. configured 0 M/D·M/M, unset은 서로 구별. Unit 검증 추가.
+- #526: Task 선택 후 SVAR 자동 가로 이동과 DOM-only 120px 스크롤 설정 경합 제거. 기존 #527 패턴으로 canonical sync 및 연속 animation frame 이후 Core/DOM 일치 상태를 기준으로 하여 화면 복귀 strict equality 유지.
+- 새 exact-head CI 결과가 확인되기 전 PASS 미주장. QA_FINAL/Manager ACCEPT/Windows Excel/GHCR NOT TESTED, release_authorized=false.

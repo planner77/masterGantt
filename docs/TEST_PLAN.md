@@ -2294,3 +2294,11 @@ CI #2143.1의 quality/Vitest/typecheck/build/Docker는 PASS이며 Chromium shard
 PR CI #2144.1의 Chromium shard6에서 #527 두 테스트(주/월 계층/geometry, unknown/nonworking)가 공통 `setup`의 `left=120` 고정값 assertion에 실패했다. 실제 차트 왼쪽은 1581이며 이전 #2143에서도 동일한 Core Task 선택/자동 reveal 위치가 관측됐다. 6프레임의 초기 정착만으로는 `chart.scrollLeft=120`을 직접 쓰는 DOM-only 변경과 SVAR Core의 공개 viewport 복원이 일치한다고 보장하지 못한다. 이번 수정은 제품의 Task 선택/scroll 정책을 변경하지 않는다.
 
 테스트는 먼저 Task 선택과 주 배율을 유지하고 세로 위치 96을 설정한다. Core canonical sync depth=0과 공개 Core/DOM 스크롤값의 연속 8 animation-frame 안정 상태를 검증한다. 이후 실제 차트 왼쪽이 0보다 크고 세로가 96이며 공개 Core viewport와 DOM이 양 축에서 일치함을 검증하고 그 값을 `before`로 저장한다. Resource Plan 왕복 뒤 기존 `expect.poll(() => viewport(page)).toEqual(before)`로 전체 viewport/columns/selection/tree 불변을 그대로 확인한다. 원점으로 리셋되는 회귀를 통과로 오인하지 않으며, 안정된 선택 결과를 임의 고정 pixel 값으로 재정의하지 않는다. 이 변경의 새 PR CI·실제 Chromium PASS는 시작 전 NOT TESTED로 구분한다.
+
+
+## Issue #529 CI #2145 후속 (2026-10-08)
+
+- 실패: PR #543 CI #2145, Chromium E2E shard 4(#83) 및 shard 6(#526). Static/Unit/Build/Docker/Policy PASS.
+- #83: 선택 범위에 개인 Assignment가 없는 empty 상태는 할당 없음으로 표시. configured 0 M/D·M/M, unset은 서로 구별. Unit 검증 추가.
+- #526: Task 선택 후 SVAR 자동 가로 이동과 DOM-only 120px 스크롤 설정 경합 제거. 기존 #527 패턴으로 canonical sync 및 연속 animation frame 이후 Core/DOM 일치 상태를 기준으로 하여 화면 복귀 strict equality 유지.
+- 새 exact-head CI 결과가 확인되기 전 PASS 미주장. QA_FINAL/Manager ACCEPT/Windows Excel/GHCR NOT TESTED, release_authorized=false.
