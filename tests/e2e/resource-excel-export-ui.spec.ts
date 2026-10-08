@@ -207,6 +207,11 @@ test("#529 진단 control: Export 없는 동일 native fixture의 일정·리소
   await page.getByRole("tab", { name: "리소스", exact: true }).click();
   await expect(page.locator('[data-resource-dashboard="true"]:visible')).toHaveAttribute("data-ready", "true");
   const hidden = await peerDiagnostics(page);
+  // The parent must capture the public Core coordinates separately from the
+  // native chart DOM positions before leaving the schedule tab.
+  const capture = await frame.getAttribute("data-gantt-peer-capture");
+  expect(capture).not.toBeNull();
+  expect(JSON.parse(capture!)).toEqual({ public: before.public, dom: before.dom });
   await page.getByRole("tab", { name: "일정", exact: true }).click();
   try {
     await expect.poll(() => frame.evaluate(node => ({ public: Reflect.get(node, "__masterganttPublicViewport"),

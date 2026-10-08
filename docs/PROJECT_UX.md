@@ -1154,3 +1154,8 @@ Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약
 - 현재 조건 확인창의 Resource·Group·Milestone·Task·WBS 선택은 사람이 확인할 수 있는 **이름(코드가 있으면 코드 포함) + 안정 ID**로 표시한다. 선택 범위가 비어 있으면 전체, 보고서 snapshot catalog에서 찾을 수 없는 ID는 ID 그대로 표시한다. 다른 Task/WBS가 동일한 이름이어도 ID로 구별한다.
 - Raw unset Assignment의 Excel Quality 보고는 interactive 진단과 같은 원래 실효기간 합산 1,000,000일 제한을 따른다. 초과 시 부분 결과를 제공하지 않고 422 `REPORT_LIMIT_EXCEEDED`를 반환한다.
 
+### Issue #529 — Gantt peer 복귀의 Core/DOM 별도 좌표
+
+- SVAR 공개 Core `scrollLeft/scrollTop`은 자식 Gantt가 읽기 전용 callback으로 현재 값만 전달한다. 부모는 보이는 Chart의 native `scrollLeft/scrollTop`을 별도로 캡처한다. 레이아웃 반올림 등으로 공개 Core와 DOM에 1px 차이가 있어도 Core 복원을 DOM 값으로 덮어쓰지 않는다.
+- `scroll-chart`에는 캡처한 공개 Core 좌표를 사용하고 기존 DOM native 좌표는 별도 복귀 대상으로 유지한다. 공개 reader가 준비되지 않거나 유효하지 않으면 DOM 값을 Core로 대체하지 않고 해당 peer Core 복원을 취소한다. 원장/snapshot, task root/filter, Gantt instance, sync generation, 사용자 입력/geometry 취소 정책은 유지한다.
+

@@ -2414,3 +2414,10 @@ PR CI #2144.1의 Chromium shard6에서 #527 두 테스트(주/월 계층/geometr
 - 이전 단일 테스트에 화면 폭 390/768/1024/1440/1600px × 읽기 전용·편집 가능=10개 완전한 페이지 로드/키보드/geometry/Gantt 상태/Screenshot을 직렬 수행했다. 한 테스트에 10개 시나리오를 묶어 공통 기본 time budget을 소모하는 구조이므로, **폭별 5개 Playwright 독립 테스트**로 분할한다. 각 테스트는 읽기 전용·편집 가능 모두 검증하고 1440px/week/chart scroll 특수 Oracle 및 기존 모든 assertion/PNG 출력 이름을 유지한다. 기본 30초 timeout 증액·검증 skip·threshold 완화는 하지 않는다.
 - 각각의 width는 별도 browser page/mock fixture 수명을 사용하여 상태·재시도·trace를 분리하며, 테스트 수가 증가하는 것은 범위 확대가 아닌 기존 테스트의 10개 조합 분리다. 새 exact-head CI에서 5개 모두와 quality/E2E/Docker aggregate 결과를 새로 판정한다. 기존 #2178 FAIL을 PASS로 간주하지 않는다.
 
+## Issue #529 — PR CI #2180 성공 후 P2 리뷰 2건 보완 (2026-10-08)
+
+- PR #543 previous exact HEAD `76a4ca2cf012cf43bccc8287ced25cd7b76dcc3f` / [CI #2180](https://github.com/planner77/masterGantt/actions/runs/37768406917)은 Quality/Vitest/TypeScript/Build/Docker 및 Chromium E2E 6 shards SUCCESS다. 다만 Codex의 미해결 P2 2건으로 현재 tree의 병합 인수는 아직 완료되지 않았다.
+- Resource Quality Excel 시트의 `originalFrom/originalTo`는 raw/unset과 **선택된 Milestone 미지정 Assignment** 양쪽 모두 원래 실효기간으로 표현한다. 선택 행은 `assignmentStart ?? taskStart`, `assignmentEnd ?? taskEnd`를 사용하고, 별도 `Resource Assignments.overlapFrom/overlapTo`에만 보고기간 잘림 값을 보존한다. 실제 HTTP XLSX 압축해제·worksheet 셀 I/J 및 U/V 검증에서 explicit Assignment 기간 및 null Task fallback 두 조건을 확인한다.
+- Gantt peer 이동은 자식 SVAR API의 `getState().scrollLeft/scrollTop`을 production-safe callback reader로 캡처한다. DOM `.wx-chart.scrollLeft`/native top은 별도 저장한다. Core 복원은 public 값만 `scroll-chart`에 사용하며 DOM native 원래 위치·snapshot/instance/generation/scale/geometry·사용자 입력 cancel guard는 유지한다. 공개 좌표와 DOM이 1px 다를 때 및 reader 미준비/NaN 조건에 관한 pure Unit 3건, 기존 native E2E의 정확한 capture `public/dom` 비교를 추가한다.
+- 수정 HEAD의 공식 Quality/E2E/Docker, 독립 QA_FINAL, 병합/Main CI/정식 GHCR은 새 실행·증거 확인 전 NOT TESTED다. PR/CI 성공 전 branch 정리·Issue 종료를 하지 않는다.
+

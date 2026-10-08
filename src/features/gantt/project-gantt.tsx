@@ -25,6 +25,7 @@ import {
 } from "react";
 
 import { createTaskMoveGateway } from "./task-move-gateway";
+import type { PublicGanttViewportReader } from "./peer-viewport-capture";
 import {
   buildChartReorderCommand,
   resolveChartDragIntent,
@@ -312,8 +313,9 @@ interface ProjectGanttProps {
   } | null;
   readonly viewVisible?: boolean;
   readonly viewportContinuityKey?: string;
-  readonly peerViewportRestore?: Readonly<{ key: string; left: number; top: number ;
-  }> | null;
+  readonly peerViewportRestore?: Readonly<{ key: string; left: number; top: number }> | null;
+  /** Read SVAR's public viewport synchronously while the schedule is visible. */
+  readonly onPublicViewportReader?: (reader: PublicGanttViewportReader | null) => void;
   readonly calendar: ProjectCalendarDto;
   readonly editable: boolean;
   readonly mutationLocked: boolean;
@@ -395,6 +397,7 @@ function clampMenuPosition(left: number, top: number, width: number, height: num
 /** Browser-only renderer; normal canonical snapshots keep this SVAR instance mounted. */
 export function ProjectGantt({
   viewVisible = true, viewportContinuityKey = "", peerViewportRestore = null,
+  onPublicViewportReader,
   calendar,
   editable,
   onSelectionChange,
@@ -1573,6 +1576,19 @@ export function ProjectGantt({
       }
     };
   }, [apiInstanceId, ensureTimelineEnd, scheduleTimelineExtension]);
+
+  // Public Core coordinates must not be inferred from the integer-rounded
+  // .wx-chart DOM position. The callback remains available in production.
+  useLayoutEffect(() => {
+    const api = apiReference.current;
+    if (!api || !apiInstanceId) return;
+    const read: PublicGanttViewportReader = () => {
+      const state = api.getState();
+      return { left: state.scrollLeft, top: state.scrollTop };
+    };
+    onPublicViewportReader?.(read);
+    return () => onPublicViewportReader?.(null);
+  }, [apiInstanceId, onPublicViewportReader]);
 
   const peerViewportGeneration = useRef(0);
   const peerViewportConsumed = useRef<Readonly<{ key: string; left: number; top: number }> | null>(null);

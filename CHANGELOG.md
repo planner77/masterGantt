@@ -8,6 +8,7 @@
 
 ### Fixed
 
+- Issue #529: Resource Quality의 Milestone 미지정 선택 Assignment 원래 실효기간과 보고기간 교차값을 구별하고, Gantt peer 이동 시 SVAR 공개 Core/DOM 스크롤 좌표를 각각 보존한다. 원본기간 XLSX·1px 좌표 차이 회귀 검증을 추가한다.
 - Issue #529: Excel Quality raw unset Assignment에 원본 실효기간 1,000,000일 한도를 적용하고, 보고서 확인창의 Task/WBS 범위를 이름과 안정 ID로 표시한다. PR 리뷰 지적과 회귀 테스트를 동기화한다.
 - Issue #529: Resource 공수 조회의 `empty`는 `할당 없음`으로 표시하며, 명시적으로 설정한 0 M/D·M/M와 구분한다. #526 E2E는 Core/DOM의 안정화된 Gantt 스크롤을 기준으로 peer-view 상태 보존을 검증한다.
 - Issue #524/#529: 공수 미설정 진단의 Assignment 상세와 조회 범위를 진단 원장에 맞춘다. 조회 기간 밖 배정은 원래 실효기간 근거를 표시하고 선택 공수 합계와 구별한다.

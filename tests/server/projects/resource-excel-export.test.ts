@@ -90,6 +90,34 @@ describe("#529 Resource workbook real SQLite HTTP handler and OOXML", () => {
     const response = await http(f, options(f)); expect(response.status).toBe(200); const entries = extract(new Uint8Array(await response.arrayBuffer())), text = [...entries.entries()].filter(([path]) => /sheet(?:[5-9]|10|11)\.xml$/.test(path)).map(([, value]) => value).join("");
     expect(text).toContain("=SUM(1,2)&lt;&amp;"); expect(text).toContain("+Alice"); expect(text).toContain("@DEV"); expect(text).not.toContain("&apos;=SUM"); expect(text).not.toContain("<f>");
   });
+  it.each([
+    { kind: "explicit Assignment dates", clearDates: false, originalFrom: "2026-10-10", originalTo: "2026-10-11" },
+    { kind: "Task date fallback", clearDates: true, originalFrom: "2026-10-09", originalTo: "2026-10-12" },
+  ])("uses real original dates for selected Milestone-unassigned Quality rows: $kind", async ({ clearDates, originalFrom, originalTo }) => {
+    const f = fixture();
+    const assignmentId = f.assignmentIds.get("A5")!;
+    if (clearDates) f.database.prepare("UPDATE task_assignments SET assignment_start=NULL, assignment_end=NULL WHERE public_id=?").run(assignmentId);
+    const response = await http(f, options(f, { from: "2026-10-10", to: "2026-10-10" }));
+    expect(response.status).toBe(200);
+    const entries = extract(new Uint8Array(await response.arrayBuffer()));
+    const workbook = entries.get("xl/workbook.xml")!;
+    const names = [...workbook.matchAll(/name="([^"]+)"/g)].map(match => match[1]);
+    const quality = entries.get(`xl/worksheets/sheet${names.indexOf("Resource Quality") + 1}.xml`)!;
+    const assignments = entries.get(`xl/worksheets/sheet${names.indexOf("Resource Assignments") + 1}.xml`)!;
+    const assignedRow = (xml: string) => {
+      const hit = [...xml.matchAll(/<row r="(\d+)"[^>]*>(.*?)<\/row>/gs)].find(match => match[2].includes(assignmentId));
+      expect(hit, "Selected A5 must exist in the exported sheet").toBeDefined();
+      return { index: hit![1], content: hit![0] };
+    };
+    const q = assignedRow(quality), a = assignedRow(assignments);
+    // Quality I/J are originalFrom/To, while the Assignment sheet U/V are
+    // clipped to the requested report's single day.
+    const textCell = (xml: string, ref: string) => cells(xml).find(cell => cell.ref === ref)?.text;
+    expect(textCell(q.content, `I${q.index}`)).toBe(originalFrom);
+    expect(textCell(q.content, `J${q.index}`)).toBe(originalTo);
+    expect(textCell(a.content, `U${a.index}`)).toBe("2026-10-10");
+    expect(textCell(a.content, `V${a.index}`)).toBe("2026-10-10");
+  });
   it("keeps outside-range raw quality separate from selected A and preserves ISO-year/partial period DTO", () => {
     const f = fixture(); f.database.prepare("UPDATE task_assignments SET assignment_start='2026-10-12', assignment_end='2026-10-16' WHERE public_id=?").run(f.assignmentIds.get("A3"));
     const opts = options(f, { from: "2026-10-07", to: "2026-10-08", resourceIds: [f.resources.get("R1")!.publicId] });

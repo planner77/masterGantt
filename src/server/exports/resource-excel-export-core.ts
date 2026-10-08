@@ -140,7 +140,13 @@ export function buildResourceExcelSheets(snapshot: ProjectSnapshotResponse, opti
     append(["grain", "scope", "category", "taskId", "task", "assignmentId", "resourceId", "resource", "originalFrom", "originalTo", "overlapsReport", "allocationPercent", "plannedMd", "plannedMm"], true);
     for (const task of bundle.quality.tasks) for (const category of task.categories) append(["Task", bundle.quality.scope, category, task.taskId, task.name]);
     for (const row of bundle.quality.unsetAssignments) append(["raw Assignment", bundle.quality.scope, "unset", row.taskId, row.taskName, row.assignmentId, row.resourceId, row.resourceName, row.effectiveFrom, row.effectiveTo, row.overlapsRange, null, null, null]);
-    for (const row of bundle.assignments.filter(row => row.effectiveMilestoneTaskId === null)) append(["selected Assignment", "A", "Milestone 미지정", row.taskId, row.taskName, row.assignment.assignmentId, row.assignment.resourceId, row.assignment.resourceName, row.assignment.from, row.assignment.to, true, row.assignment.allocationPercent, row.assignment.plannedMd, row.assignment.plannedMm]);
+    for (const row of bundle.assignments.filter(row => row.effectiveMilestoneTaskId === null)) {
+      // Quality.originalFrom/originalTo are the original effective Assignment
+      // dates; Resource Assignments.overlapFrom/overlapTo hold the clipped range.
+      const originalFrom = row.assignment.assignmentStart ?? row.taskStart;
+      const originalTo = row.assignment.assignmentEnd ?? row.taskEnd;
+      append(["selected Assignment", "A", "Milestone 미지정", row.taskId, row.taskName, row.assignment.assignmentId, row.assignment.resourceId, row.assignment.resourceName, originalFrom, originalTo, true, row.assignment.allocationPercent, row.assignment.plannedMd, row.assignment.plannedMm]);
+    }
   });
   sheet("Resource Relations", append => {
     append(["relation", "sourceId", "targetId", "name", "position"], true);

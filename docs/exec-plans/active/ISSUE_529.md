@@ -208,3 +208,10 @@ frontend는 readonly DOM RAF에도 Gantt 영역의 입력 취소 및 현재 pane
 - `tests/e2e/project-workspace-ux.spec.ts`의 10개 width×권한 조합을 5개 width별 독립 Playwright test로 분리하여 각 width의 읽기/편집·정보/더보기·키보드 탭·Gantt 동일 instance/scroll·geometry·PNG 검증을 유지한다. 재시도·time budget 확장·assertion 제거로 통과시키지 않는다.
 - 사용자의 #529 정식 GHCR v0.102.0 명시 승인 marker는 [Issue comment](https://github.com/planner77/masterGantt/issues/529#issuecomment-6057333248) (trusted OWNER)로 기록되어 있다. 이번 요청 마지막 단계는 **새 PR CI 등록**이며 병합/Release를 성공이라고 주장하지 않는다. #518 선행 릴리스 승인 여부와 정식 GHCR 의존관계는 별도 검증 대상이다.
 
+## 2026-10-08 — PR #543 / CI #2180 후속 P2 리뷰 해소
+
+- HEAD `76a4ca2cf012cf43bccc8287ced25cd7b76dcc3f`의 PR CI #2180은 모든 필수 aggregate SUCCESS이고 main `f94c22b00cac57bab409ca57e744b0530d2d35e5`과 정렬되어 있다. 단 두 미해결 Codex P2는 아직 release/merge gate다: `src/server/exports/resource-excel-export-core.ts`의 Milestone 미지정 선택 행 `originalFrom/To` 오류, `src/features/projects/project-readonly-view.tsx`의 DOM→SVAR Core 좌표 오염.
+- 수정 범위: writer는 `assignmentStart/End` 우선 + Task 날짜 fallback으로 원래 실효기간을 기록하고, clipped 기간은 기존 Assignment 시트에만 유지. 새로운 API/DTO/DB 변경 없음. 실제 HTTP ZIP→sheet XML의 명시 날짜/null fallback + 교차기간 검증 추가.
+- Gantt에서는 read-only public SVAR API `getState` 좌표를 자식에서 부모에 등록하여 순수 viewport 캡처 함수로 공개 Core/DOM 좌표를 분리한다. 공개 reader 미준비는 fail-closed, 부모의 DOM 원형·기존 Gantt instance/snapshot/generation/input guard와 자식 Core 복원 호출은 보존한다. pure Unit 3건(1px drift/동일/무효)과 native peer 왕복에서 captured Core/DOM 별도 일치 검증 추가.
+- 사용자 요청 종료점은 보완 commit·새 PR CI 시작이며 병합/Main CI/정식 GHCR 게시/Issue 종료는 이번 요청에서 미수행한다. 기존 trusted OWNER의 `v0.102.0` 정식 GHCR 승인([#529 기록](https://github.com/planner77/masterGantt/issues/529#issuecomment-6057333248))은 유효하나 최종 원격 gate와 실제 릴리스 성공을 대신하지 않는다. 새로운 HEAD의 CI 결과 전까지 NOT TESTED.
+

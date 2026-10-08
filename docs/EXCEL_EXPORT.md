@@ -245,3 +245,9 @@ Plan은 기존 period DTO의 label/year/ISO week/month/partial/from/to를 저장
 Resource toolbar 진입은 기존 단일 Export 대화상자의 Excel·보고서 포함·현재 조건 기본값을 사용한다. 일반 Export는 기존 기본값을 유지한다. 서버 409/412 뒤 옵션을 보존하고 동일 조회 증거의 즉시 재제출을 잠근다. 실제 새 ready 조회와 사용자 명시 확인이 필요하며 Project·방문·query·binding이 다른 조회의 receipt는 이전 방문의 숫자와 직접 비교하지 않는다. 대화상자는 실제 대상 조건과 원래 이동 출발 조건을 구분하고 Project 전체에서 제외되는 분류·Task/WBS/M·검색·상태·exact 조건을 안내한다. 상세 stale도 생성 금지에 포함하며 재조회는 기존 Resource stale 해제 경로를 사용한다.
 
 Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/pointer/keydown 입력을 우선한다. Core와 native DOM 양쪽 복원을 취소하고 현재 사용자 위치를 보존하며, source·instance·동기화·조건·화면 geometry가 달라진 과거 복원은 적용하지 않는다. 관련 검증은 [TEST_PLAN의 PRE_QA REWORK](TEST_PLAN.md#issue-529-pre_qa-사용자-입력-취소-rework) 근거를 따른다.
+
+### Issue #529 — Resource Quality의 원래 기간과 교차 기간 구분
+
+- `Resource Quality`의 `originalFrom/originalTo`는 `raw Assignment` 및 `selected Assignment`(Milestone 미지정 포함) 모두 원래 **실효 배정 시작/종료일**을 의미한다. 원본 Assignment 날짜가 있으면 우선하고 없으면 canonical Task 시작/종료일을 사용한다.
+- `Resource Assignments` 시트의 `overlapFrom/overlapTo`는 조회 `from/to`에 잘린 기간이다. 원래 기간이 보고기간 밖으로 이어져도 `Resource Quality`를 교차기간으로 잘못 표기하지 않는다. 두 시트의 raw/selected grain·null 공수 계약과 기존 Export 구조는 그대로 유지한다.
+
