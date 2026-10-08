@@ -74,7 +74,9 @@ export function readMilestonePlotGeometry(api: Pick<IApi, "getState">, widget: H
   const chart = widget.querySelector<HTMLElement>(".wx-chart"), state = api.getState();
   if (!widget.isConnected || !chart || widget.closest("[hidden], [inert]") || !milestoneDateCoordinate(api, "2000-01-01")) return null;
   const plot = chart.getBoundingClientRect(), root = widget.getBoundingClientRect();
-  if (!plot.width || !plot.height || !root.width || !root.height || typeof state._chartWidth !== "number" || Math.abs(plot.width - state._chartWidth) > 1) return null;
+  // The Core width can include the native scrollbar gutter after a Grid resize.
+  // Use rendered Chart bounds for lane placement and visible clipping.
+  if (!plot.width || !plot.height || !root.width || !root.height || !Number.isFinite(state._chartWidth) || state._chartWidth <= 0) return null;
   const header = chart.querySelector<HTMLElement>(".wx-scale")?.getBoundingClientRect();
   const owner = widget.closest<HTMLElement>(".project-gantt-scroll");
   const ownerBox = owner?.getBoundingClientRect();

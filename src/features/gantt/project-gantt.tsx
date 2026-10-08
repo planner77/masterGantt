@@ -1660,7 +1660,7 @@ export function ProjectGantt({
         const points: MilestoneLanePoint[] = [];
         if (geometry) for (const row of model.timeline.datedMilestones) {
           const coordinate = milestoneDateCoordinate(reader, row.date!);
-          if (coordinate?.visible) points.push({ row, viewportX: coordinate.viewportX });
+          if (coordinate?.insideRange && coordinate.viewportX >= geometry.visibleLeft && coordinate.viewportX < geometry.visibleRight) points.push({ row, viewportX: coordinate.viewportX });
         }
         setLaneGeometry(geometry); setLanePoints(points);
         setLaneSource({ model, context: viewportContinuityKey, scale: scaleMode, api: apiInstanceId, display: timelinePreviewDisplay });

@@ -9,6 +9,7 @@
 ### Fixed
 
 - Week 모드의 일요일 축과 ISO 주차 의미 차이를 월요일 locale로 정합화한다. 월별 부분 주 올림이 누적되는 상단 월 셀 대신 각 ISO 주가 포함하는 Gregorian 월·연도 범위를 표시한다.
+- PR #560 CI 보완: Grid splitter 후 실제 Chart DOM 폭과 Core 내부 폭이 달라도 Timeline 좌표를 유지하고 cluster 날짜 guide·키보드 focus를 복원한다.
 
 ## [0.104.0] - 2026-10-09
 

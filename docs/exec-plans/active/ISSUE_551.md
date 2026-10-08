@@ -130,3 +130,13 @@ qa_docs 독립 PRE_QA PASS는 PR 준비 판정이다. 같은 검토 source의 �
 Grid 열 표시·숨김과 clipboard 전체 회귀, full Task drag/resize/Dependency, 독립 observer 수·document scrollWidth overflow assertion은 현재 NOT TESTED다. Grid splitter/Chart resize·Task checkbox/context hit를 전체 기능 PASS로 확대하지 않는다. 후속 #552의 실제 표시 전환 검증에 Grid 열 표시·숨김/5폭 document overflow를 포함하고, #553 통합 검증에서 남은 계약을 비교한다. 현재 feature는 opt-in 준비이며 production 기본 활성화/main 통합/최종 AC·QA_FINAL·Manager ACCEPT를 판정하지 않는다.
 
 Manager는 PR 후보 게시를 승인한다. version0.105.0/release_required=true/release_authorized=false, parent550 exact SHA/stacked base 유지. infra의 게시 전 읽기에서 2026-10-09 02:51:28KST main08ac7749efc4544dfc125853d9e58ef3a9d56b21/version0.102.1·predecessor31345da9346dfbdc1ac02e4e7ca567edafec775f 일치, remote551branch/PR 중복0이다. 다음은 최종 tree/byte equality→PR→exact-head CI 등록만이며 결과 조회 없이 #552로 인계한다. 공식 quality/e2e/docker/QA_FINAL/ACCEPT·merge/main/GHCR/tag/Issue 종료/cleanup은 NOT TESTED/비범위로 유지한다.
+
+## Issue #551 PR #560 CI #2217.1 실패 보완 (2026-10-09)
+
+- 최초 head `fb6e5a634b3fcd70d62d4e8404a42cefe0ab6ce9`, [run 37821023371](https://github.com/planner77/masterGantt/actions/runs/37821023371). Next production build, TypeScript, ESLint, Vitest, policy 및 Docker PASS. Chromium 6개 중 shard 2에서 89 PASS/1 FAIL, 나머지 shard PASS. 따라서 E2E 전체 FAIL.
+- 실패는 `tests/e2e/milestone-timeline-lane.spec.ts:126`의 1000 Task/2000 Milestone, peer tab 복귀 후 Grid splitter 변경 시 lane plot이 5초간 존재하지 않는 현상이다. CI trace에서 Core `_chartWidth=842px`와 실제 DOM `.wx-chart=825px` 차이 17px, `gridWidth=560px`, `hidden=false`, laneMeasurement.count=14, queueVersion=2를 확인했다.
+- Core scrollbar gutter/렌더링 폭 차이 상황에서 DOM 너비와 내부 state 너비가 1px 이내여야 한다는 조건 때문에 lane을 표시하지 못했다. 실제 DOM plot의 x/width/clip을 기준으로 lane 위치를 결정하고 날짜/scrollLeft/unit/cellWidth는 기존 Core state 기반으로 유지한다. zero-size/hidden/inert/unsupported scale은 fail closed하며 timeout·retry·skip은 완화하지 않는다.
+- 미해결 PR 리뷰 P2 두 건에 따라 혼합 날짜 cluster item focus/Editor 진입에서 해당 ID의 선택 및 guide 동기화, scroll로 focused marker가 사라질 때 surviving marker 또는 전체 목록 focus 복원을 추가했다. 다른 dialog/tab 사용자가 이미 focus를 옮긴 경우에는 빼앗지 않는다.
+- 새 E2E는 기존 대형 fixture의 실제 plot 원점·폭, Grid/Chart/fullscreen/scroll 불변 assertion을 유지하고 혼합 날짜 guide 및 가로 clip 키보드 복원 회귀를 추가한다. 새 head의 정식 quality/E2E/docker, QA_FINAL/Manager ACCEPT는 실제 새 CI 결과 확인 전 NOT TESTED.
+- `DESIGN.md`/`AGENTS.md`는 시각 원칙·작업 지침·검증 계약 불변으로 N/A. API/DB/Security/Scheduling/ImportExport/배포/워크플로/패키지 버전 역시 불변이며 제품/테스트/관련 문서만 수정한다. release_required=true, release_authorized=false. 병합/Main CI/GHCR/Issue 종료는 요청 범위 밖이다.
+

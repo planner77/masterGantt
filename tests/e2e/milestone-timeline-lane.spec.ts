@@ -123,6 +123,44 @@ test("#551 same-date/near-date cluster pagination keyboard and exact-ID Editor r
   expect(state.posts.length+state.patchRequests.length).toBe(0);await captureLane(page,info,"cluster-keyboard",{clusterCount:2,firstCluster:56,pageSize:50,secondPage:6,openedTaskId:id,mutationCount:0});
 });
 
+
+test("#551 focus on mixed-date cluster item moves guide to that date after Editor",async({page})=>{
+  await page.setViewportSize({width:1440,height:1000});
+  const {state,frame}=await fixture(page,"cluster");
+  await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");
+  await frame.locator(".project-milestone-lane-marker").first().click();
+  const list=page.getByRole("dialog",{name:"Milestone 날짜 목록",exact:true});
+  await list.getByRole("button",{name:"다음 50개",exact:true}).click();
+  const item=list.locator("[data-milestone-lane-trigger]").nth(1);
+  await expect(item).toContainText("2026-10-06");await item.focus();
+  const offset=async()=>{
+    const date=await probe<{viewportX:number}>(frame,"coordinate","2026-10-06");
+    return frame.evaluate((node,x)=>{
+      const guide=node.querySelector<HTMLElement>(".project-milestone-lane-guide");
+      const chart=node.querySelector<HTMLElement>(".wx-chart");
+      return guide&&chart?Math.abs(guide.getBoundingClientRect().left-chart.getBoundingClientRect().left-x):Infinity;
+    },date.viewportX);
+  };
+  await expect.poll(offset).toBeLessThanOrEqual(1);
+  await page.keyboard.press("Enter");
+  const editor=page.getByRole("dialog",{name:"작업 정보",exact:true});
+  await expect(editor).toBeVisible();await page.keyboard.press("Escape");
+  await expect(editor).toBeHidden();await expect(item).toBeFocused();
+  await expect.poll(offset).toBeLessThanOrEqual(1);
+  expect(state.posts.length+state.patchRequests.length).toBe(0);
+});
+
+test("#551 keyboard focus survives marker disappearing by horizontal clipping",async({page})=>{
+  await page.setViewportSize({width:1440,height:1000});
+  const {state,frame}=await fixture(page,"cluster");
+  await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");
+  const markers=frame.locator(".project-milestone-lane-marker");
+  await expect(markers).toHaveCount(2);await markers.first().focus();
+  await probe(frame,"scroll",300);
+  await expect(markers).toHaveCount(1);await expect(markers.first()).toBeFocused();
+  expect(state.posts.length+state.patchRequests.length).toBe(0);
+});
+
 test("#551 enabled slot preserves peer Chart height/scroll and fullscreen Grid/resize alignment",async({page},info)=>{
   await page.setViewportSize({width:1440,height:1000});const {state,frame}=await fixture(page,"large");await probe(frame,"preview",true);await probe(frame,"reveal","2026-10-05");await settle(page);
   await frame.locator(".wx-chart").hover();await page.mouse.wheel(0,570);await settle(page);
