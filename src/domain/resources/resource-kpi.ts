@@ -139,20 +139,6 @@ export class ResourceKpiProjectionLimitError extends Error {
 const unique = (values: readonly string[]): string[] => [...new Set(values)].sort();
 const matches = <T>(filter: readonly T[] | undefined, value: T): boolean => !filter?.length || filter.includes(value);
 
-/** Structural equality preserves non-finite numbers and ignores object key order. */
-function equalKpiInput(left: unknown, right: unknown): boolean {
-  if (Object.is(left, right)) return true;
-  if (left === null || right === null || typeof left !== "object" || typeof right !== "object") return false;
-  if (Array.isArray(left) || Array.isArray(right)) {
-    return Array.isArray(left) && Array.isArray(right) && left.length === right.length &&
-      left.every((value, index) => equalKpiInput(value, right[index]));
-  }
-  const leftRecord = left as Record<string, unknown>, rightRecord = right as Record<string, unknown>;
-  const leftKeys = Object.keys(leftRecord).sort(), rightKeys = Object.keys(rightRecord).sort();
-  return leftKeys.length === rightKeys.length &&
-    leftKeys.every((key, index) => key === rightKeys[index] && equalKpiInput(leftRecord[key], rightRecord[key]));
-}
-
 /** Exact duplicate joins collapse; conflicting rows fail instead of choosing input order. */
 /** Structural equality preserves non-finite numbers and ignores object key order. */
 function equalKpiInput(left: unknown, right: unknown): boolean {
