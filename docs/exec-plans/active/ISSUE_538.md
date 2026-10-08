@@ -80,3 +80,9 @@
 - 관리자 기존 관계 POST 재시도는 활성 검증 전에 idempotent no-op으로 처리해 revision을 증가시키지 않는다. 신규 관계 연결만 활성 검증을 요구한다.
 - 기존 template snapshot의 잘못된 계층은 서버에서 409 `PROJECT_MASTER_RELATION_INVALID`로 번역하며 500을 노출하지 않는다. 템플릿 스냅샷의 무추정 보존 및 트랜잭션 롤백 계약을 유지한다.
 - Vitest 단위 및 handler 테스트를 추가하고 이 PR의 exact head 새 CI에서 검증한다. 명시적 GHCR 릴리스 승인 요청을 Issue #538의 v0.103.0 marker로 기록한 다음 성공 Main CI 이후 범용 Finalizer 절차로 게시한다.
+
+## 리뷰 보완 성공 및 #487 최신 main 정렬
+
+- 리뷰 지적 P1 1건/P2 3건의 검토·수정·리뷰 스레드 해결 완료. `650e2a45d8b952e5c302390dbab61c33bec588df`에서 전체 PR CI #2201.1 SUCCESS, PR metadata #2202 SUCCESS.
+- Latest main `08ac7749efc4544dfc125853d9e58ef3a9d56b21` (Issue #487 Playwright CI 안정화)를 PR과 이중 부모 병합하여 release candidate `v0.103.0`을 보존. GitHub synchronization 시 새 정확한 HEAD의 full PR CI를 요구한다.
+- OWNER 댓글 #6061984912는 `mastergantt-release-authorization:v1` with `expected_version=0.103.0`로 검증. CI 성공 전 병합/태그 금지, merge 후 main CI SUCCESS와 범용 Release Finalizer로 GHCR 게시.
