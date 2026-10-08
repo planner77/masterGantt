@@ -485,3 +485,9 @@ MT1은 canonical snapshot, Task/Summary WBS projection, 전체 프로젝트 Mile
 기존 #196의 전체/Task/Milestone 빠른 보기와 고급 M 유형은 #552 후보에서 단일 표시 토글로 대체한다. WBS Summary/Task의 matching/context count와 전체 프로젝트 Timeline 모집단을 분리한다. Membership 필터는 전체 canonical context로 계산하며 M 표시 OFF도 유효하다. 기본 ON 설정은 프로젝트별 브라우저 v1 schema이고 명시 토글만 저장한다. 오류에서는 현재 메모리와 한번 알림을 제공한다.
 
 기존 mixed/M-only 메모리 조건은 다른 조건을 보존해 호환하며 자동 types migration은 없다. canonical M date 조회/일시 표시/출발 조건·viewport 복귀와 exactID Dashboard fallback은 [Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)을 따른다. 숨김은 canonical 구조/Link/일정/roll-up/전체 Gate/Copy/Delete/Move/export 입력을 축소하지 않는다. Assignment는 기존 Copy 제한이며 Delete/Move 전체를 새로 잠그지 않는다. API/domain/auth/revision 계약은 불변이다.
+
+## Issue #553 — Timeline 이후 교환 의미 보존
+
+조회·표시·필터·탭 변경은 원본 저장을 만들지 않는다. JSON/Excel/SVG/PNG는 기존 full canonical 범위·지원 한도·실패 정책을 유지한다. UI의 단계 표시와 Export 모양 차이를 안내하며 과거 mixed JSON의 재Import 성공을 보장하지 않는다. 새로운 출력 renderer/domain/API는 비범위다.
+
+사용자 흐름은 [Milestone 사용 가이드](MILESTONE_USER_GUIDE.md), 실제 검증 범위는 [테스트 계획](TEST_PLAN.md), 원격 상태는 [통합 추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 따른다.

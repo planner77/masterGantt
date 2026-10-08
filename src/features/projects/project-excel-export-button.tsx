@@ -313,6 +313,7 @@ export function ProjectExportButton({ publicId, expectedRevision = 0, ref, getRe
     {open ? <WorkspaceDialog title="내보내기" busy={busy} feedback={false} restoreFocusRef={triggerRef}
       onClose={() => { if (!exportPending.current) setOpen(false); }}>
       <div className={`project-form compact-form ${styles.form}`}>
+        <p>화면의 Milestone 표시와 별개로 원본 일정 데이터를 출력하며, 현재 Gantt 레이아웃과 다를 수 있습니다.</p>
         <label htmlFor="project-export-format">형식</label>
         <select id="project-export-format" ref={formatRef} value={format} disabled={busy} onChange={(event) => {
           setFormat(event.target.value as ExportFormat); setJsonReview(null); setMessage(null); setDateError(false);

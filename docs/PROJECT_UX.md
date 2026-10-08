@@ -1207,3 +1207,11 @@ Week는 실제 Monday→next Monday 셀의 포함 Gregorian 월·연도 span과 
 날짜 조회는 저장 OFF를 쓰지 않고 일시 표시한다. 원래 보기는 출발 Dashboard 조건/현재 canonical 관리 trigger와 이전 peer/public viewport로 복귀하되 최신 사용자 입력을 덮지 않는다. 물리 폭 부족은 날짜 범위 밖 0과 구별하고 exactID 목록 fallback을 제공한다. invalid Summary root는 삭제/M drift를 구별하여 명시 복귀 전 hidden/inert 같은 Gantt로 보류한다. 상세는 [Timeline 계약](MILESTONE_TIMELINE.md#issue-552--wbs와-milestone-표시-분리)을 따른다.
 
 #552 비활성 Dashboard peer에서는 정상 scope owner가 조상의 `visibility:hidden`을 상속한다. invalid Summary scope만 별도 hidden/inert를 지정한다. schedule/Core의 양수 bbox와 같은 instance는 보존하지만 Toolbar/Grid/Chart가 Dashboard 위에 그려지지 않아야 한다. 390px 날짜 fallback은 exact-ID focus·검색·저장 OFF·원래 viewport와 실제 hidden paint를 함께 검증한다.
+
+## Issue #553 — Export 안내와 단계 Editor 경로
+
+내보내기 form은 기존 간격·muted 텍스트로 모든 형식에 공통 안내를 제공한다. Milestone OFF·검색·접기는 파일의 canonical 전체 집합을 줄이지 않으며 현재 Gantt와 다른 레이아웃일 수 있다. 기존 format focus·Escape·busy 닫기 보호·revision·성공 후 focus 복원을 유지한다. 숨은 단계의 이름·날짜 편집은 같은 canonical ID의 Dashboard/Editor를 사용한다.
+
+사용자 흐름은 [Milestone 사용 가이드](MILESTONE_USER_GUIDE.md), 실제 검증 범위는 [테스트 계획](TEST_PLAN.md), 원격 상태는 [통합 추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 따른다.
+
+Resource 범위 복귀의 기존 focus guard는 원래 HTMLElement가 연결되어 있고 disabled/hidden/inert가 아닐 때 해당 대상을 사용하며, 그렇지 않으면 출발 탭을 사용한다. #553은 동기 focusin의 원래 대상 상태와 현재 active element를 직접 기록한다. 비활성 대상의 Resource 탭 fallback을 원래 상세 버튼 focus 복원으로 표시하지 않는다.

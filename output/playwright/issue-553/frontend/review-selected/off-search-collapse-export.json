@@ -1,0 +1,124 @@
+{
+  "capturedAt": "2026-10-08T20:55:15.369Z",
+  "environment": "Chromium/Next dev/Core2.7.3; synthetic canonical routes + real pure export builders; not actual HTTP/SQLite",
+  "sourceHashes": {
+    "src/features/projects/project-excel-export-button.tsx": "65de085ecdd4ebdb72640ea90558d32fb67fb289274deb6962cd3c3121ae0a77",
+    "src/features/projects/project-export.module.css": "46171c4068de4a3d15c3a4b28d154b55f17c0580e4e44ce63c0cc5a948c1d9bf",
+    "src/features/projects/project-readonly-view.tsx": "0edcccac566d13f84e92740e3891f4c9d21061d42df50d3394a6d0130208f9e7",
+    "src/features/gantt/project-gantt.tsx": "be4c545b0a5a612602cace4551371a87012feccb1a9773eb2b7f58e07392b384",
+    "src/features/gantt/milestone-timeline-lane.tsx": "5447dbe3fbf9d6e1cdf0fe20254e27552e8ab18b8b8561bee5de9d20e6f19951",
+    "tests/e2e/helpers/milestone-ui.ts": "472b4a23ef4987c35b0d6da23035e22c33f1f72beee923ed79302957e66f93a6",
+    "tests/e2e/milestone-timeline-interchange-ui.spec.ts": "edbab118d1b33ff12e1aac3395c64d1024bc5db950873b7f587eb4dda7d04ad4"
+  },
+  "data": {
+    "requests": [
+      {
+        "endpoint": "json",
+        "body": {
+          "scope": "project"
+        },
+        "ifMatch": "\"40\""
+      },
+      {
+        "endpoint": "excel",
+        "body": {
+          "includeDependencies": false,
+          "includeLogistics": true,
+          "includeResourceEffort": false,
+          "scope": "project",
+          "scale": "day",
+          "hierarchyDisplay": "expanded",
+          "layout": {
+            "columns": [
+              {
+                "id": "text",
+                "widthPx": 224
+              },
+              {
+                "id": "projectStart",
+                "widthPx": 128
+              },
+              {
+                "id": "projectDuration",
+                "widthPx": 84
+              }
+            ]
+          }
+        },
+        "ifMatch": "\"40\""
+      },
+      {
+        "endpoint": "gantt-svg",
+        "body": {
+          "scope": "project",
+          "scale": "day",
+          "hierarchyDisplay": "expanded"
+        },
+        "ifMatch": "\"40\""
+      },
+      {
+        "endpoint": "gantt-svg",
+        "body": {
+          "scope": "project",
+          "scale": "day",
+          "hierarchyDisplay": "expanded"
+        },
+        "ifMatch": "\"40\""
+      }
+    ],
+    "results": [
+      {
+        "format": "json",
+        "filename": "mastergantt-a3405d3d-8cb4-4da4-9b0f-43a5de330003-r40.json",
+        "bytes": 1632,
+        "sha256": "0094b2931216744c6ec58846e2a70ce7e81366f0a9283db1d1c1ea28600fc7b6"
+      },
+      {
+        "format": "excel",
+        "filename": "mastergantt-a3405d3d-8cb4-4da4-9b0f-43a5de330003-r40.xlsx",
+        "bytes": 9632,
+        "sha256": "8b79abe8d21061109b63b671718f342144d9c83746b8841c7edc02b4a3bedaeb"
+      },
+      {
+        "format": "svg",
+        "filename": "mastergantt-a3405d3d-8cb4-4da4-9b0f-43a5de330003-r40.svg",
+        "bytes": 4017,
+        "sha256": "5334edf9f4b826bd21114424b27260c2cf30ae4dfb049a1b4b80f3038082ceaf"
+      },
+      {
+        "format": "png",
+        "filename": "mastergantt-a3405d3d-8cb4-4da4-9b0f-43a5de330003-r40.png",
+        "bytes": 27114,
+        "sha256": "f84885ac5ef758fa272945aaf507b45ee8f46ff0754c94b26e3903d3d9490c52"
+      }
+    ],
+    "fullCanonicalIds": [
+      "00000000-0000-4000-8000-000000000001",
+      "00000000-0000-4000-8000-000000000002",
+      "00000000-0000-4000-8000-000000000003",
+      "00000000-0000-4000-8000-000000000004"
+    ],
+    "sameSnapshot": true,
+    "instance": {
+      "apiId": "svar-api-1",
+      "instanceId": "project-gantt-dgb13tuuy"
+    },
+    "blobURLs": {
+      "created": [
+        "blob:http://127.0.0.1:3100/44004af3-7bdf-4152-bddc-136ccc12453c",
+        "blob:http://127.0.0.1:3100/12653774-bd2c-4f3c-baa9-99f42540f650",
+        "blob:http://127.0.0.1:3100/f29302d0-1870-4fc7-a91c-96b88594c2bc",
+        "blob:http://127.0.0.1:3100/c0d14ec2-0de6-434a-baa7-a6290de98369",
+        "blob:http://127.0.0.1:3100/558d252f-ffcf-4586-87b0-59821379d0bd"
+      ],
+      "revoked": [
+        "blob:http://127.0.0.1:3100/44004af3-7bdf-4152-bddc-136ccc12453c",
+        "blob:http://127.0.0.1:3100/12653774-bd2c-4f3c-baa9-99f42540f650",
+        "blob:http://127.0.0.1:3100/f29302d0-1870-4fc7-a91c-96b88594c2bc",
+        "blob:http://127.0.0.1:3100/c0d14ec2-0de6-434a-baa7-a6290de98369",
+        "blob:http://127.0.0.1:3100/558d252f-ffcf-4586-87b0-59821379d0bd"
+      ]
+    },
+    "meaning": "UI transport + existing real pure builders over synthetic snapshot; actual HTTP/nativeSQLite has separate backend evidence"
+  }
+}

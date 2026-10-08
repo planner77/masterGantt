@@ -1,5 +1,17 @@
 # Import / Export
 
+## Issue #553 — Timeline 표시와 일정 교환의 독립성
+
+Milestone Timeline ON/OFF, 작업 검색·접힘·선택 범위는 JSON 1.1의 모집단을 바꾸지 않는다. Export는 프로젝트 전체 canonical Task/Summary/Milestone, 모든 Dependency, 명시 Membership을 사용한다. 새 Project Import는 모든 Task/Link UUID를 새로 발급하고 parent·endpoint·명시 소속 FK를 다시 연결한다. 비교 시 UUID 문자열의 동일성 대신 외부 ID 대응에 따른 일정·상태·Baseline·형제 순서·유효 상속·전체 Gate 의미를 확인한다. Target Calendar가 바뀌면 일정 의미까지 동일하다고 보장하지 않는다.
+
+화면에서 숨긴 Milestone은 전체 Project Copy/Template 및 Summary/multi-root Copy의 canonical 자손 집합에도 포함된다. 전체 Copy의 progress reset 옵션, Template의 상태·Baseline 초기화, subtree Copy의 외부 소속 제외 확인·Assignment 제한·완료 경계 잠금, Cut의 기존 ID 유지 정책을 그대로 적용한다. 표시 설정은 서버 권한이나 transaction 검증의 근거가 아니다. Resource/Logistics 데이터는 JSON 1.1 교환 대상이 아니므로 전체 운영 백업과 구분한다.
+
+고정 fixture [canonical-interchange.ts](../tests/fixtures/issue-553/canonical-interchange.ts)는 33개 작업, 8개 FS/SS/FF/SF signed-lag 관계, 5개 명시 소속을 가진다. [통합 테스트](../tests/integration/milestone-timeline-interchange.test.ts)는 UUID/FK remap, 전체 Copy/Template/multi-root Copy·Cut, 완료 불일치와 경계 잠금, legacy mixed 출력 후 외부 Import 전체 거부, Import/Copy/Template/subtree의 강제 Membership 쓰기 오류 rollback을 비교한다. M-only Summary의 기간은 현행 inclusive 근무일 roll-up이며 Milestone leaf의 duration 0과 혼동하지 않는다.
+
+실제 HTTP/native SQLite 및 Next 프로세스 재시작 검증은 [HTTP 통합 테스트](../tests/e2e/milestone-timeline-interchange-http.spec.ts)가 담당한다. 로컬 실행 결과와 source hash, 최초 실패 이력은 [TEST_PLAN](TEST_PLAN.md)과 [추적표](MILESTONE_TIMELINE_TRACEABILITY.md)에 기록하며 PR `quality/e2e/docker` 결과와 별도로 판정한다. Legacy mixed 및 완료 불일치 파일은 원형 Export가 가능해도 현재 create-only Import가 전체 거부할 수 있으며, 재Import 성공을 보장하지 않는다.
+
+#553 로컬 통합 13개와 실제 HTTP 3개는 PASS다. HTTP는 실제 Next 프로세스 재시작을 포함하며 관련 소스 408개는 실행 전후 일치했다. 외부 ID 충돌 409와 mixed 관계 자체의 `422 MIXED_DEPENDENCY_UNSUPPORTED`는 다른 검증 단계다. 새 프로젝트 생성 후 이전 프로젝트 mutation을 검증할 때 해당 프로젝트의 편집 세션을 다시 연결하며, 이 절차가 Origin/revision 검증을 대신하지 않는다. [선택 증거](../output/playwright/issue-553/backend-http/execution-contract.json)는 최초 fixture/oracle 실패와 최종 실행을 구분한다. 원격 CI와 전체 Lifecycle ACCEPT는 NOT TESTED다.
+
 ## Issue #464 — JSON 1.1과 보호된 Import/Export
 
 현재 웹 Import는 strict JSON `1.0`과 `1.1`을 지원한다. 기존 `validateImportPayload`와 [1.0 machine schema](schemas/project-import.schema.json)는 변경하지 않는다. 신규 dispatcher `validateProjectImportPayload`가 [1.1 machine schema](schemas/project-import-1.1.schema.json)의 authored schedule-stage 표현을 검증한다. [1.1 예제](examples/project-import-1.1.json)와 [빈 예제](examples/project-import-1.1-empty.json)를 제공한다. CSV/Windows VBA producer의 FS/0 subset은 별도 POC이며 실제 웹 JSON이 지원하는 FS/SS/FF/SF와 signed lag를 CSV producer가 모두 구현했다고 주장하지 않는다. HTTP CSV parser는 제공하지 않으며 `415 UNSUPPORTED_MEDIA_TYPE`다.

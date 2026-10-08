@@ -1,5 +1,15 @@
 # Milestone Stage Gates
 
+## Issue #553 — Timeline과 전체 단계 판정의 교환 회귀
+
+화면 표시/검색/선택 scope는 E(M)의 전체 유효 일반 Task와 P(M)의 전체 직접 선행 Milestone 집합을 바꾸지 않는다. JSON/전체 Copy/Template에서는 명시 소속만 저장·remap하고, 유효 소속·상속 출처·Summary roll-up과 Gate는 대상 전체 hierarchy에서 재계산한다. Resource report가 한 member/Assignment만 선택해도 stage 출력은 범위 밖 member를 포함한 전체 Gate를 유지한다.
+
+[고정 fixture](../tests/fixtures/issue-553/canonical-interchange.ts)와 [통합 테스트](../tests/integration/milestone-timeline-interchange.test.ts)는 중첩 상속·직접 override·빈 Summary·M-only Summary·수동 빈 M·Ready/Blocked·완료 기록 불일치 및 완료 구조 잠금을 같은 canonical 데이터에서 검증한다. 완료 member를 다시 미완료로 편집한 기존 M의 completionInconsistent 진단은 보존한다. 외부 member가 있는 완료 M 단독 Copy는 `COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED`로 원자 거부하며, 전체 Project Copy의 보존/초기화 옵션과 혼동하지 않는다.
+
+Subtree/multi-root Copy는 숨은 M을 포함한 canonical 자손 union에 기존 내부 연결 remap·외부 소속 제외 확인·Assignment guard를 적용한다. Cut/reparent는 UUID를 유지하고 destination 상속을 다시 계산한다. Membership 저장 실패를 강제로 발생시킨 Import/전체 Copy/Template/subtree 테스트는 전체 Task/Link/Membership/revision rollback과 FK 무결성을 비교한다. API/DB/domain 정책은 변경하지 않으며, [실제 HTTP 및 재시작 테스트](../tests/e2e/milestone-timeline-interchange-http.spec.ts)와 원격 PR CI 판정은 각각의 증거를 따른다.
+
+#553 로컬 통합 13개 및 실제 HTTP 3개는 PASS다. 실제 HTTP는 완료 M 단독 Copy의 `409 COMPLETED_MILESTONE_COPY_BOUNDARY_LOCKED`, 소속 제외 미확인의 `409 TASK_COPY_MEMBERSHIP_REVIEW_REQUIRED`, 별도 cookie 없는 `401 EDIT_SESSION_REQUIRED`, 원본 session을 연결한 stale `412 REVISION_MISMATCH` 및 각 거부 후 canonical snapshot/revision 불변을 확인했다. 강제 SQL trigger rollback은 native SQLite service 통합 근거이며 HTTP fault injection으로 과대 표시하지 않는다. [선택 증거](../output/playwright/issue-553/backend-http/execution-contract.json)와 공식 PR CI는 별도다.
+
 ## Issue #459 Epic 통합 계약
 
 Issue #459는 #460~#464의 상위 계약이다. 완료 단계 기능은 하나의 거대한 mutation으로 구현하지 않고 저장/Editor/Gantt/KPI/교환 경계를 분리하되 동일 canonical Stage projection을 사용한다.

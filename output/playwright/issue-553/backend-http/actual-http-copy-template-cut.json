@@ -1,0 +1,18 @@
+{
+  "environment": "Next development + real loopback HTTP + native SQLite",
+  "fixtureHash": "59da58e469c1f3d8a1d1b15966ab8fc7c12a0f11adebd364c5f646596fb9a5d3",
+  "publicId": "aa1b81c7-8bd6-467d-88ba-785fa1cbee1d",
+  "copiedPublicId": "da467d82-16a2-4035-bcd4-d8162ecb5a0d",
+  "templateId": "08a25cc3-eb3c-452b-a143-57df5bacfe40",
+  "instantiatedPublicId": "c8d62702-ee10-402c-b288-d5f69f36999f",
+  "beforeRevision": 2,
+  "finalRevision": 4,
+  "fullCopySemanticHash": "39e6d4305a4fa0ad25b2a66224aae0895e47880a3b06945041ce053be4fdf373",
+  "sourceSemanticHash": "39e6d4305a4fa0ad25b2a66224aae0895e47880a3b06945041ce053be4fdf373",
+  "templateTaskCount": 33,
+  "templateLinkCount": 8,
+  "sourceBeforeStructuralCommandsUnchanged": true,
+  "multiRootCopiedTaskCount": 11,
+  "cutIdsUnchanged": true,
+  "unconfirmedMembershipStatus": 409
+}

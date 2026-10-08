@@ -1,0 +1,42 @@
+{
+  "environment": "Next development + real loopback HTTP + native SQLite",
+  "fixtureHash": "59da58e469c1f3d8a1d1b15966ab8fc7c12a0f11adebd364c5f646596fb9a5d3",
+  "publicId": "4a363dcf-1eaf-4173-9431-afab78fa7bda",
+  "revision": 2,
+  "apiInstance": "svar-api-1",
+  "showMilestones": false,
+  "searchDuringDownloads": "FREE",
+  "collapsedSummaryExternalId": "S",
+  "downloads": [
+    {
+      "format": "json",
+      "bytes": 24564,
+      "hash": "df8c6e105e89ddc47d2732e6298af75af5fa3842508c3bc3baf8e4b999e6d2dc",
+      "revision": 2
+    },
+    {
+      "format": "excel",
+      "bytes": 19926,
+      "hash": "7eaadaf436c18eca320828dea9c6af83cd3fa1929ab294fb79c4c5a49db2da2a",
+      "revision": 2
+    },
+    {
+      "format": "svg",
+      "bytes": 20720,
+      "hash": "b9960d4bf52e4a0849decb833fa205d9a36ce432fec20240795d08726f0b18b6",
+      "revision": 2
+    },
+    {
+      "format": "png",
+      "bytes": 117955,
+      "hash": "fea1965ec36d007a79e21bae37739be508f76c90683a659328ea20875fe8487d",
+      "revision": 2,
+      "width": 704,
+      "height": 1052
+    }
+  ],
+  "mutationRequestCount": 0,
+  "canonicalSnapshotUnchanged": true,
+  "objectUrlsAllRevoked": true,
+  "actualHttpNoRouteMocking": true
+}

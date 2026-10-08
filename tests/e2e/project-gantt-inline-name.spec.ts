@@ -1,3 +1,5 @@
+import { taskStatusFromProgress } from "../../src/domain/task-status";
+import { canonicalMilestoneTasks, installMilestoneDashboardFixture, openMilestoneEditor } from "./helpers/milestone-ui";
 import { expect, test, type Locator, type Page, type Request, type Route } from "@playwright/test";
 import type { TaskMutationResponse } from "../../src/contracts/projects";
 import {
@@ -69,7 +71,7 @@ async function routeRenames(page: Page, fixture: StatefulProjectFixture) {
     task!.name = body.name!;
     fixture.project.revision += 1;
     const response: TaskMutationResponse = { data: {
-      project: { ...fixture.project }, tasks: fixture.tasks.map((entry) => ({ ...entry })),
+      project: { ...fixture.project }, tasks: canonicalMilestoneTasks(fixture),
       links: fixture.links.map((entry) => ({ ...entry })), warnings: [],
       operation: { kind: "taskUpdate", changedTaskExternalIds: [task!.externalId], deletedTaskExternalIds: [], deletedLinkIds: [] },
     } };
@@ -79,10 +81,12 @@ async function routeRenames(page: Page, fixture: StatefulProjectFixture) {
   return { patches, failOnce: (next: typeof failure) => { failure = next; } };
 }
 
-test("single-click names use one canonical PATCH across Summary, Task and Milestone", async ({ page }) => {
+test("Summary/Task inline and exact-ID Milestone Editor each use one canonical PATCH", async ({ page }) => {
   const fixture = await installStatefulProjectFixture(page);
   fixture.tasks[2].url = "https://example.invalid/leaf";
   const route = await routeRenames(page, fixture);
+  for (const task of fixture.tasks) if (task.type === "milestone") task.status = taskStatusFromProgress(task.progress);
+  await installMilestoneDashboardFixture(page, fixture);
   await page.addInitScript(() => {
     const tracked = window as typeof window & { __openedTaskUrls?: string[] };
     tracked.__openedTaskUrls = [];
@@ -95,7 +99,7 @@ test("single-click names use one canonical PATCH across Summary, Task and Milest
   const leafBar = ganttRoot(page).locator(`.wx-bar[data-task-id=":${id(3)}"]`);
   const leafBarBefore = await barContentBox(leafBar);
 
-  for (const [before, after] of [["Stable summary", "Renamed summary"], ["Stable leaf", "001"], ["Stable milestone", "Renamed milestone"]] as const) {
+  for (const [before, after] of [["Stable summary", "Renamed summary"], ["Stable leaf", "001"]] as const) {
     const input = await openName(page, before);
     await input.fill(`  ${after}  `);
     const beforeCount = route.patches.length;
@@ -104,6 +108,14 @@ test("single-click names use one canonical PATCH across Summary, Task and Milest
     await expect(nameCell(page, after)).toBeVisible();
     await expectSameGanttRoot(page, identity);
   }
+  const milestoneEditor = await openMilestoneEditor(page, id(4));
+  await milestoneEditor.getByLabel("작업명", { exact: true }).fill("  Renamed milestone  ");
+  await milestoneEditor.getByRole("button", { name: "저장", exact: true }).click();
+  await expect.poll(() => route.patches.length).toBe(3);
+  await expect(milestoneEditor).toBeHidden();
+  expect(fixture.tasks.find(task => task.taskId === id(4))?.name).toBe("Renamed milestone");
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
+  await expect(rowNamed(page, "Renamed milestone")).toHaveCount(0);
   expect(await nameCell(page, "Renamed summary").locator('[data-action="open-task"]').getAttribute("class")).toBe(summaryToggleClass);
   const leafBarAfter = await barContentBox(leafBar);
   expect(leafBarAfter.x).toBeCloseTo(leafBarBefore.x, 0);
@@ -112,18 +124,22 @@ test("single-click names use one canonical PATCH across Summary, Task and Milest
   await leafKeyboardInput.fill("002");
   await leafKeyboardInput.press("Enter");
   await expect(nameCell(page, "002")).toBeVisible();
-  const milestoneKeyboardInput = await openNameWithF2(page, "Renamed milestone", 4);
-  await milestoneKeyboardInput.press("Escape");
+  const canceledMilestoneEditor = await openMilestoneEditor(page, id(4));
+  await canceledMilestoneEditor.getByLabel("작업명", { exact: true }).focus();
+  await page.keyboard.press("Escape");
+  await expect(canceledMilestoneEditor).toBeHidden();
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
   expect(route.patches.map((request) => request.postDataJSON())).toEqual([{ name: "Renamed summary" }, { name: "001" }, { name: "Renamed milestone" }, { name: "002" }]);
   expect(route.patches.map((request) => new URL(request.url()).pathname.split("/").at(-1))).toEqual([id(1), id(3), id(4), id(3)]);
   expect(await page.evaluate(() => (window as typeof window & { __openedTaskUrls?: string[] }).__openedTaskUrls)).toEqual([]);
   await page.reload();
-  for (const name of ["Renamed summary", "002", "Renamed milestone"]) await expect(nameCell(page, name)).toBeVisible();
+  for (const name of ["Renamed summary", "002"]) await expect(nameCell(page, name)).toBeVisible();
 
   // Other cells and tree controls keep their native behavior and do not open an editor.
   await nameCell(page, "Renamed summary").locator('[data-action="open-task"]').click();
   await expect(inlineInput(page)).toHaveCount(0);
-  await rowNamed(page, "Renamed milestone").locator('[role="gridcell"][data-col-id=":projectStart"]').click();
+  await rowNamed(page, "002").locator('[role="gridcell"][data-col-id=":projectStart"]').click();
+  await expect(rowNamed(page, "Renamed milestone")).toHaveCount(0);
   await expect(inlineInput(page)).toHaveCount(0);
   expect(route.patches).toHaveLength(4);
 });

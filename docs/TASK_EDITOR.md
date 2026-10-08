@@ -326,3 +326,9 @@ Dashboard 호출 Editor 닫기는 visible actual trigger 또는 원 Dashboard의
 Timeline/전체 Dashboard는 같은 canonical M ID와 실제 trigger로 기존 단일 Editor를 연다. 표시 OFF/범위/clip은 Editor dirty/pending 초안을 저장하거나 폐기하지 않는다. 닫기에서 소멸한 marker를 숨은 native M 행 선택으로 복원하지 않고 현재 전체 목록/visible Dashboard 안전 대상으로 복귀한다.
 
 날짜 관리 명령은 유효 canonical date/current snapshot 및 ready/busy guard를 사용하고 소속 drill의 resourceScopeContext와 분리한다. 기존 #550 date context 조건은 이 후보의 canonical 날짜 조회에서 대체되며 소속 작업/리소스 drill guard는 유지한다. 삭제 확인과 기존 Copy 소속 확인은 전체 canonical 숨은 M 수를 설명한다. Assignment Copy 제한을 삭제/Move 포괄 제한으로 확대하지 않으며 기존 session/Origin/revision/완료/관계 보호를 유지한다.
+
+## Issue #553 — 숨은 단계의 동일 Editor
+
+WBS에서 숨긴 Milestone은 Timeline의 단일/묶음 대상이나 Dashboard의 고유 ID 행에서 같은 작업 정보 Editor로 연다. 일반 Task/Summary의 native 이름·시작일 inline 경로는 유지한다. Milestone의 이름·예정일 편집은 Editor의 단일 canonical PATCH/기존 revision/초안·저장·취소·완료 조건을 사용한다. 과거 Milestone native row를 찾는 테스트는 이 경로로 이관하며 비공개 Core나 옛 UI를 복원하지 않는다.
+
+사용자 흐름은 [Milestone 사용 가이드](MILESTONE_USER_GUIDE.md), 실제 검증 범위는 [테스트 계획](TEST_PLAN.md), 원격 상태는 [통합 추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 따른다.

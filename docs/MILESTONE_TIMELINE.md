@@ -204,3 +204,9 @@ Guide는 focus → hover → 별도 조회 선택 순으로 하나를 derive하�
 #552 Local Fast Feedback의 이전 실행과 visibility 수정 후 실행은 별도 source 지문으로 구분한다. 순수 의존성이 불변인 Unit56만 영향 재사용하며 UI44/실제HTTP3은 제품 visibility 수정 후 재실행한다. 명령/시간/소스 지문과 검증되지 않은 환경은 [TEST_PLAN](TEST_PLAN.md#552-local-fast-feedback-이력과-미검증-경계) 및 [실행 계약](../output/playwright/issue-552/review-selected/execution-contract.json)을 따른다. 설정 읽기는 SSR defaultON과 cached browser snapshot을 분리하며 저장 실패 시 현재 memory 선택을 유지한다. Clipboard는 canonical tasks가 바뀐 commit에서 explicit M root만 제거하고 Summary full subtree를 보존한다. 최신 source 실제 HTTP는 whole canonical 복사/권한/atomicity의 지정3cases 범위이며 production·원격회귀 완료를 뜻하지 않는다.
 
 #552 정상 scope의 visibility는 schedule 조상을 상속한다. Dashboard 활성 중 Core의 실제 bbox와 instance를 유지하되 scope owner/Toolbar/native Grid/Chart의 paint는 hidden이어야 한다. invalid Summary scope의 별도 hidden/inert와 명시 복귀는 그대로다. 최초390px PNG의 peer 노출을 결함 근거로 보존하고 수정 후 fallback PNG를 exact-ID focus/외곽6px·조건 보존과 함께 비교한다.
+
+## Issue #553 — 교환 회귀와 사용자 안내
+
+전체 canonical 교환·복사·Template·내보내기의 기존 의미를 유지한다. 공통 Export dialog는 표시 설정과 원본 출력의 차이를 한 문장으로 안내한다. 새 Timeline renderer/API는 추가하지 않는다. 기존 Milestone native 행에 의존한 E2E는 exact-ID Dashboard/Editor로 이관하고 일반 Task/Summary native 동작은 유지한다.
+
+사용자 흐름은 [Milestone 사용 가이드](MILESTONE_USER_GUIDE.md), 실제 검증 범위는 [테스트 계획](TEST_PLAN.md), 원격 상태는 [통합 추적표](MILESTONE_TIMELINE_TRACEABILITY.md)를 따른다.

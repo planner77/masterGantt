@@ -1,3 +1,13 @@
+## Issue #553 — 데이터 교환·내보내기 통합 검증과 사용자 가이드
+
+[#553 Work Packet](ISSUE_553.md)에 따라 선행 #552 [PR #561](https://github.com/planner77/masterGantt/pull/561)/head `fed88f5e00e104a35cca44c342005bfe8fd04f4e`/[CI #2219.1](https://github.com/planner77/masterGantt/actions/runs/37839172928) 등록 뒤 MT5에 착수한다. 최신 main `3b9aea97aa885c5ecbf430f39b72ba722bbcf408`의 별도 #487/#558 CI 수정은 확인했으며 제품 stack에 합치지 않는다. stacked branch `feat/issue-553-milestone-interchange-regression`, PATCH `0.106.1`, `release_required=true/release_authorized=false`. endpoint는 관련 구현·문서·Local Fast Feedback·독립 PRE_QA·원격 PR/exact-head CI 등록이며 결과 모니터링은 수행하지 않는다.
+
+backend는 고정 canonical fixture의 JSON UUID/FK remap·Copy/Cut/Template·기존 Excel/SVG 계약과 실제 HTTP/SQLite 재시작을, frontend는 공통 export 안내·직접 관련 UI 흐름과 사용자 가이드를 담당한다. 기존 #549~552 증거는 [추적표](../../MILESTONE_TIMELINE_TRACEABILITY.md)에 exact source/범위/미검증을 구분해 연결한다. 공식 quality/e2e/docker·QA_FINAL/ACCEPT·main 통합·정식 release·환경별 검증은 NOT TESTED이며 #548과 하위 Issue는 종료하지 않는다.
+
+## #549–#552 요청 종료점 기록
+
+#549 [PR557](https://github.com/planner77/masterGantt/pull/557)/head `4bc4c31d9c5f46d90a83cbe4de878a52a2f2529b`/[CI37795569338](https://github.com/planner77/masterGantt/actions/runs/37795569338), #550 [PR559](https://github.com/planner77/masterGantt/pull/559)/head `31345da9346dfbdc1ac02e4e7ca567edafec775f`/[CI37806909407](https://github.com/planner77/masterGantt/actions/runs/37806909407), #551 [PR560](https://github.com/planner77/masterGantt/pull/560)/head `fb6e5a634b3fcd70d62d4e8404a42cefe0ab6ce9`/[CI37821023371](https://github.com/planner77/masterGantt/actions/runs/37821023371), #552 PR561/head `fed88f5e00e104a35cca44c342005bfe8fd04f4e`/CI37839172928의 exact-head 실행 등록이 끝났다. CI 결과 모니터링 없이 순차 진행하며 official gates는 NOT TESTED다. 아래 각 계획의 이전 phase는 당시 기록으로 보존한다.
+
 ## Issue #552 — WBS 표시 분리와 Milestone 표시 전환
 
 재개 후 독립 PNG 비교에서 비활성 schedule의 hidden을 정상 scope-owner visibility가 덮는 실제 가림을 발견했다. 정상 visibility 상속과 inactive paint oracle를 보완한 새 source에서 UI44/HTTP3을 fresh 재검증해 PASS(2.6분/57.1초), source125/405 drift0를 확보했다. Unit56은 pure dependency 불변 근거의 제한 재사용이다. 최신 PNG/문서/원본FAIL을 동결해 독립 재검토 뒤 PR CI 등록까지만 이어간다.
@@ -427,3 +437,7 @@ PR #516의 이전 exact head `ada3420df6d2018cec187c8b42103b843fb1c87b`는 PR CI
 `auto_release_finalizer.py`는 exact immutable SHA의 successful Main run을 보존하고, `issue_lifecycle.py`는 그 successful run의 main artifact gate까지 확인한다. PR latest-check 정책, GHCR immutable overwrite 거부, failed/cancelled run 보존 정책은 유지한다. `verify-issue-lifecycle.py`에 success→later failure와 all-failure 회귀를 추가한다.
 
 #520이 main에서 SUCCESS하면 Generic Finalizer가 backlog의 #502를 다시 평가해 Main #2083.1의 valid success evidence를 사용할 수 있어야 한다. #517 환경 검증은 별도 OPEN 상태를 유지한다.
+
+### #553 MT5 로컬 검증과 문서 동기화
+
+#552 exact head `fed88f5e00e104a35cca44c342005bfe8fd04f4e`에서 `feat/issue-553-milestone-interchange-regression`, PATCH0.106.1 후보를 준비했다. 공통 export 안내1문단·사용자 가이드·canonical 교환/실제 재시작/4형식 출력과 기존10spec 보호를 반영했다. integration13·실제 HTTP3·UI 고유37(새10+기존27)·서버 parent 제한 Unit6 Local PASS이며 각 source 불변 재사용·최초 FAIL을 [MT1–MT5 추적표](../../MILESTONE_TIMELINE_TRACEABILITY.md)에 연결한다. DOCUMENTATION_SYNC PASS 후 독립 PRE_QA와 원격 게시로 인계하며 exact PR/head/run는 Issue STATUS에 남긴다. 원격 quality/e2e/docker/QA_FINAL/ACCEPT NOT TESTED, CI 모니터링·merge/release/Issue 종료 없음.

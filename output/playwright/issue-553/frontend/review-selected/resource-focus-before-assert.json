@@ -1,0 +1,119 @@
+{
+  "capturedAt": "2026-10-08T20:55:25.244Z",
+  "environment": "Chromium/Next dev/Core2.7.3; synthetic canonical routes + real pure export builders; not actual HTTP/SQLite",
+  "sourceHashes": {
+    "src/features/projects/project-excel-export-button.tsx": "65de085ecdd4ebdb72640ea90558d32fb67fb289274deb6962cd3c3121ae0a77",
+    "src/features/projects/project-export.module.css": "46171c4068de4a3d15c3a4b28d154b55f17c0580e4e44ce63c0cc5a948c1d9bf",
+    "src/features/projects/project-readonly-view.tsx": "0edcccac566d13f84e92740e3891f4c9d21061d42df50d3394a6d0130208f9e7",
+    "src/features/gantt/project-gantt.tsx": "be4c545b0a5a612602cace4551371a87012feccb1a9773eb2b7f58e07392b384",
+    "src/features/gantt/milestone-timeline-lane.tsx": "5447dbe3fbf9d6e1cdf0fe20254e27552e8ab18b8b8561bee5de9d20e6f19951",
+    "tests/e2e/helpers/milestone-ui.ts": "472b4a23ef4987c35b0d6da23035e22c33f1f72beee923ed79302957e66f93a6",
+    "tests/e2e/milestone-timeline-interchange-ui.spec.ts": "edbab118d1b33ff12e1aac3395c64d1024bc5db950873b7f587eb4dda7d04ad4"
+  },
+  "data": {
+    "originalTriggerConnected": true,
+    "currentFocus": {
+      "label": "리소스",
+      "role": "tab",
+      "events": [
+        {
+          "label": "전체 범위 일정 보기",
+          "role": null,
+          "originalConnected": true,
+          "originalDisabled": false,
+          "originalFocused": true,
+          "originalHiddenOrInert": false,
+          "originalRect": {
+            "x": 32,
+            "y": 373.5,
+            "right": 138.015625,
+            "bottom": 391.5,
+            "width": 106.015625,
+            "height": 18
+          },
+          "activeRect": {
+            "x": 32,
+            "y": 373.5,
+            "right": 138.015625,
+            "bottom": 391.5,
+            "width": 106.015625,
+            "height": 18
+          }
+        },
+        {
+          "label": "일정",
+          "role": null,
+          "originalConnected": true,
+          "originalDisabled": true,
+          "originalFocused": false,
+          "originalHiddenOrInert": true,
+          "originalRect": {
+            "x": 0,
+            "y": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "activeRect": {
+            "x": 24,
+            "y": 290,
+            "right": 55.375,
+            "bottom": 314,
+            "width": 31.375,
+            "height": 24
+          }
+        },
+        {
+          "label": "원래 보기 (리소스)",
+          "role": null,
+          "originalConnected": true,
+          "originalDisabled": true,
+          "originalFocused": false,
+          "originalHiddenOrInert": true,
+          "originalRect": {
+            "x": 0,
+            "y": 0,
+            "right": 0,
+            "bottom": 0,
+            "width": 0,
+            "height": 0
+          },
+          "activeRect": {
+            "x": 1010,
+            "y": 186,
+            "right": 1154,
+            "bottom": 226,
+            "width": 144,
+            "height": 40
+          }
+        },
+        {
+          "label": "리소스",
+          "role": "tab",
+          "originalConnected": true,
+          "originalDisabled": true,
+          "originalFocused": false,
+          "originalHiddenOrInert": false,
+          "originalRect": {
+            "x": 32,
+            "y": 923.5,
+            "right": 137,
+            "bottom": 941.5,
+            "width": 105,
+            "height": 18
+          },
+          "activeRect": {
+            "x": 221,
+            "y": 129,
+            "right": 271,
+            "bottom": 165,
+            "width": 50,
+            "height": 36
+          }
+        }
+      ]
+    },
+    "originalDisabled": false
+  }
+}
