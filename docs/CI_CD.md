@@ -467,6 +467,7 @@ GitHub Actions artifact는 run 간 결과 보존/다운로드 용도로 사용�
 - `permissions: pull-requests: write`는 workflow-scoped token 권한이며, 자동 PR 허용을 위한 repository-level 정책과 별개다. 관리자 승인 없이 Actions 설정이나 Secret 권한을 확대하지 않는다.
 - 권한 거부 또는 다른 자동 PR 생성 실패 시 생성된 변경 브랜치를 보존하고 `GITHUB_STEP_SUMMARY`에 BLOCKED 원인, 브랜치 SHA, GitHub compare 기반 수동 PR 생성 링크 및 Settings → Actions → General → Workflow permissions 설정 경로를 남긴다. `exit 1`을 유지하여 자동화 실패를 SUCCESS로 위장하지 않는다.
 - 자동 PR이 성공했을 때만 exact branch의 `ci.yml workflow_dispatch`를 실행한다. 기존 PR이 있으면 추가 자동 PR을 생성하지 않는다.
+- 또한 `tests/config/e2e-shard-plan.json` 또는 `scripts/e2e-shard-planner.mjs` 변경은 Chromium E2E 실행에 직접 영향을 미치므로 `ci.yml`의 `e2e` path filter에 포함한다. PR aggregate E2E 성공이라도 shard job이 `SKIPPED`였다면 새 계획의 런타임 검증을 완료했다고 해석하지 않는다.
 - 장애 복구: #10에서 생성된 `ci/issue-437-e2e-shard-plan-37706501705` 브랜치를 별도 [PR #540](https://github.com/planner77/masterGantt/pull/540)으로 복구했다. required CI가 성공하기 전에는 병합하지 않으며 repository 설정 변경은 owner/maintainer의 별도 승인 대상이다.
 
 ## Issue #438 Build-once / verified digest promotion
