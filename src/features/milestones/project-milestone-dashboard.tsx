@@ -45,7 +45,7 @@ export function ProjectMilestoneDashboard({ publicId, revision, tasks, active, b
     { key: "atRisk", title: "계획 일정 위험", metric: data.kpi.atRisk, note: "미완료 소속 작업 종료 > 단계 예정" },
   ] : [];
   return <div className={styles.dashboard} data-testid="milestone-dashboard" data-ready={enabled} aria-busy={query.loading || undefined}>
-    <div className={styles.sectionHeading}><div><h2>완료 단계 대시보드</h2><p>프로젝트 전체 기준 · Gantt WBS 범위 미적용</p></div><button type="button" className="secondary-button" disabled={query.loading || Boolean(query.validation)} onClick={query.reload}>{query.loading ? "조회 중…" : query.error ? "다시 시도" : "새로고침"}</button></div>
+    <div className={styles.sectionHeading}><div><h2>Milestone 대시보드</h2><p>프로젝트 전체 기준 · Gantt WBS 범위 미적용</p></div><button type="button" className="secondary-button" disabled={query.loading || Boolean(query.validation)} onClick={query.reload}>{query.loading ? "조회 중…" : query.error ? "다시 시도" : "새로고침"}</button></div>
     <div className={styles.filters}>
       {(filters.milestoneIds?.length ?? 0) > 1 ? <div className={styles.multiSummary}><strong>여러 단계 {filters.milestoneIds!.length}개 선택</strong><span>추가 조건에서 선택을 변경합니다.</span><button type="button" onClick={() => setFilters((current) => ({ ...current, milestoneIds: [] }))}>모든 단계 선택 해제</button></div> : <StageFilterPicker tasks={tasks} value={filters.milestoneIds?.[0] ?? "all"} allowUnassigned={false} onChange={(value) => setFilters((current) => ({ ...current, milestoneIds: value === "all" ? [] : [value] }))} />}
       <label className={styles.search}>단계 검색<input type="search" value={search} placeholder="이름·외부 ID·작업 ID" onChange={(event) => setSearch(event.target.value)} /></label>

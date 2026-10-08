@@ -1,5 +1,14 @@
 # Test Plan
 
+## Issue #518 — PR CI #2154 Chromium E2E 실패 분석 및 재검증
+
+- PR #544 / head `a0e31b69cb6f169a9e8f4683031abf1440aa1d30` / Run #2154.1(`37734388502`): quality(TypeScript/ESLint/Vitest/Next build)와 Docker, 선행 추적·정책 gate SUCCESS. Chromium shard 2/6은 74 PASS·2 FAIL, shard 5/6은 75 PASS·1 FAIL; 다른 4개 shard는 SUCCESS. 따라서 E2E 전체 FAIL이다.
+- `milestone-dashboard-state.spec.ts`의 geometry 검증은 상위 tab/화면 h2의 `Milestone 대시보드` 일치 여부를 검사하고 timeout으로 실패하지 않아야 한다. 5폭 표/필터/포커스/hidden Gantt geometry assertion은 기존 그대로 검증한다.
+- 같은 spec의 기준일 자동/수동·refresh는 새 상위 `일정` tab으로 이동한 후에도 hidden Dashboard에서 추가 request가 없음을 검증한다. 삭제된 `Gantt` 하위 tab에 의존하지 않는다.
+- `project-workspace-ux.spec.ts`의 ArrowRight/ArrowLeft는 `일정 → Milestone → 리소스 → 물류 구성` 네 peer를 모두 방문한다. focus/aria-selected/실제 tabpanel 및 Gantt identity/scroll/no GET navigation/no mutation/Resource 상태를 그대로 확인한다.
+- 새 head의 필수 E2E 6개 shard, quality와 Docker는 각각 실제 run/job으로만 PASS 판정한다. 운영·스크린리더 수동 검증과 독립 QA는 별개다.
+
+
 ## Issue #518 — PR CI #2152 trace 선행 실패
 
 Run #2152.1 (`37733916932`)의 `변경 경로 판정`에서 PR title `feat: #518 ...`를 canonical Issue 표기로 파싱하지 못해 `title Issues=[]`가 발생했다. 후속 quality/e2e/docker 집계 실패는 선행 gate 실패 전파이며 실제 TypeScript/Build/Chromium/Docker 구현 job은 실행되지 않았다. PR title을 `[Issue #518] feat: ...`로 수정하고 새 head에 대한 전체 `pull_request.synchronize` PR CI를 시작한다. 새로운 run의 통과 여부와 앱 회귀는 해당 run/job 결과로만 판정한다.

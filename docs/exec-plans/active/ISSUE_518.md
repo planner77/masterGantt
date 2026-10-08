@@ -1,5 +1,15 @@
 # Issue #518 — 일정·Milestone 상위 탭 단순화 실행 계획
 
+## PR CI #2154 E2E 실패 및 보완 (2026-10-08)
+
+- PR #544 head `a0e31b69cb6f169a9e8f4683031abf1440aa1d30`, Run #2154.1 / `37734388502`: 추적 메타데이터, TypeScript, ESLint, Vitest, production build, 정책 검사, Docker smoke와 quality/docker 집계 PASS. **Chromium E2E만 FAIL**(shard 2/6 및 5/6).
+- shard 2/6: `milestone-dashboard-state.spec.ts`의 5폭 geometry 검사에서 `Milestone 대시보드` heading을 기다리다 120초 timeout. 원인은 상위 tab label만 변경되고 실제 `ProjectMilestoneDashboard` h2는 `완료 단계 대시보드`인 UI 표시 불일치다. 현재 #518 표기에 맞게 h2를 `Milestone 대시보드`로 수정하여 UI와 E2E를 일치시킨다.
+- shard 2/6: 동일 spec의 자동/수동 기준일·catalog refresh 검사는 삭제된 하위 `Gantt` tab 클릭에서 30초 timeout. 상위 `일정` tab으로 복귀하도록 변경한다. 기준일, 호출 횟수, 숨김 시 polling 중단 assertion은 유지한다.
+- shard 5/6: `project-workspace-ux.spec.ts`는 `일정`에서 ArrowRight 1회로 `리소스` 이동을 가정해 실패. 변경된 상위 peer 순서 `일정 → Milestone 대시보드 → 리소스 → 물류 구성`에 맞춰 양방향 Arrow와 focus/selected/tabpanel을 단계별로 검사한다. Gantt instance/scroll, Resource KPI, navigation/mutation 불변 검증을 유지한다.
+- 수정은 Dashboard h2 1곳과 해당 E2E 2파일 및 실행 근거 문서에 한정. 시간 제한 완화, selector 무차별 우회, CI required gate skip, KPI/API/DB 계약 변경 없음.
+- 독립 qa_docs/로컬 Playwright는 별도 PASS 증거 없음. 새 PR head의 전체 CI 결과를 확인하기 전 acceptance는 **NOT TESTED**. 병합/Main/GHCR/Issue 종료 범위 밖.
+
+
 ## PR CI #2152 실패 분석 및 재검증 (2026-10-08)
 
 - 실패한 exact head: `ddbd4c7f27e5a8f34f18485d0d001db989e3855c`, PR #544, GitHub Actions Run #2152.1 (ID `37733916932`).
