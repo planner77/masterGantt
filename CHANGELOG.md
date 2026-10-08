@@ -4,12 +4,18 @@
 
 ### Added
 
-- Issue #538: 전역 프로젝트 기준정보에 사업부→제품→사업장/법인 관계 관리와 Project 생성·편집 종속 선택 및 관계 서버 검증을 추가한다. 기존 프로젝트 참조를 유지하면서 확인된 조합만 migration 0024에서 관계로 이관한다.
+- Issue #538: 프로젝트 기준정보 사업부→제품→사업장/법인 연결 관계를 별도 권한으로 관리하고 종속 선택 및 서버 유효성 검증을 제공한다. 기존 Project 참조는 보존하고 확인된 조합만 migration 0024에서 연결한다.
 
 ### Fixed
 
-- 순수 metadata 갱신 중 Gantt 비영점 스크롤 좌표의 상태 보존을 보완하고, 격리 E2E 읽기 전용 GET의 일시적 연결 리셋을 제한적으로 재시도한다. 최신 main의 #514/#518/#528/#529 변경 및 Resource Dashboard의 개선된 peer viewport 회귀 테스트를 보존한다.
+- 메타데이터 저장 뒤 Gantt 비영점 스크롤 위치와 독립 E2E 서버의 읽기 전용 GET 일시적 연결 리셋 검증을 보완한다. 최신 main의 #519 Milestone 후보 ID 숨김 및 Resource KPI/Excel 보고·워크스페이스 변경을 보존한다.
 
+
+## [0.102.1] - 2026-10-08
+
+### Fixed
+
+- Issue #519: Task/Summary 작업 정보 Milestone 후보에서 외부 ID·작업 ID 노출을 제거하고 이름·날짜·상태만 유지한다. 이름/externalId/taskId 검색, canonical 식별·선택 및 완료 잠금·접근성 계약은 유지한다. PR #547의 E2E 재검증을 위해 최신 main의 #130 Project Context 5폭×권한 조합을 폭별로 독립 실행하는 테스트와 #529 Resource Excel 보고를 함께 보존한다.
 
 ## [0.102.0] - 2026-10-08
 

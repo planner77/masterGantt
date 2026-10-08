@@ -167,7 +167,7 @@ frontend는 변경 전후 screenshot 또는 재현 근거, viewport, 실행 명�
 
 ## Issue #461 동적 탭과 소속 검색
 
-Task/Summary는 기존 네 Editor 탭, Milestone은 두 번째 소속 작업 N 탭을 추가한다. Keyboard 이동은 실제 노출 배열을 사용하고 active tab focus를 한 행 내부 scroll에서 보인다. 검색 combobox의 Arrow 이동은 aria-activedescendant와 visible option을 함께 갱신하며 Escape는 후보 목록→초안 확인→dialog 순서다. 진행 중에는 선택/닫기/Escape를 잠근다.
+Task/Summary는 기존 네 Editor 탭, Milestone은 두 번째 소속 작업 N 탭을 추가한다. #519부터 이 Task/Summary Membership 후보만 이름·날짜·상태를 표시하고 외부 ID/작업 ID는 숨긴다. ID/UUID 검색 및 canonical taskId 선택은 유지하며 Grid 단계 필터와 Relation Editor의 식별자 표시 정책에는 영향이 없다. Keyboard 이동은 실제 노출 배열을 사용하고 active tab focus를 한 행 내부 scroll에서 보인다. 검색 combobox의 Arrow 이동은 aria-activedescendant와 visible option을 함께 갱신하며 Escape는 후보 목록→초안 확인→dialog 순서다. 진행 중에는 선택/닫기/Escape를 잠근다.
 
 소속 표는 960px column budget을 유지한 소유 scroll container만 가로 넘치며 필터는 390px에서 한 열로 reflow한다. Header/Tab/Footer는 본문 세로 scroll과 분리한다. 다른 저장 단위의 dirty를 집계하여 cross-unit mutation을 차단하고 탭 이동은 초안을 유지한다. 연결 작업 열기/일정에서 보기·닫기·재조회에 전체 초안 폐기를 명시 확인한다. 기존 semantic tokens와 Editor 44px control/focus 규칙을 사용하며 제품 공통 시각 체계는 변경하지 않는다.
 

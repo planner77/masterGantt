@@ -1,5 +1,9 @@
 # Test Plan
 
+## Issue #519 PR #547 최초 CI timeout과 최신 main 회귀 복구
+
+PR head `d1924ffbbebc8cf38ebeafbde4edac67a8ecb599`, [PR CI #2185.1](https://github.com/planner77/masterGantt/actions/runs/37773843644)에서 quality/docker/기타 E2E shards는 SUCCESS, shard 5/6의 기존 `project-workspace-ux.spec.ts:206` #130(5폭×readonly/edit 단일 테스트)만 30초 timeout으로 FAIL(79 PASS, 1 FAIL)했다. #519 picker E2E 실패 증거가 아니며 PASS라고 재판정하지 않는다. 최신 main은 #130의 5폭 테스트를 폭별 독립 fixture test로 분할했으므로 통합하여 원래 10개 조합·접근성·스크롤·상태 보존 assertion을 그대로 재검증한다. CI timeout 증가·retry·skip 없음. 최신 main `0.102.0`에 맞춘 보완 PATCH `0.102.1`의 새 exact head PR CI quality/e2e/docker가 완료되기 전 최종 PASS는 NOT TESTED다.
+
 ## Issue #518 — PR #544 접근성 리뷰 P2 보완 및 최신 CI 증거
 
 - PR #544 head `230cefa19300e928023e3de65c35f05aa22b96dc`의 [PR CI #2173.1](https://github.com/planner77/masterGantt/actions/runs/37755252750)은 Quality/Chromium 6 shards/Docker **SUCCESS**였다. 그러나 Codex 리뷰의 미해결 P2 1건: `src/app/globals.css`의 `.project-primary-tabs`는 `overflow-y: hidden`이므로 상위 탭 기본 양수 3px focus outline/offset이 세로 경계에서 잘릴 수 있다.
@@ -1498,7 +1502,7 @@ Issue #452 소비자 전수 및 실제 실행/미실행 구분은 [검증 증거
 | --- | --- |
 | Unit | 직접/nearest Summary 상속/override/null 복귀, full hierarchy/links, explicit-only batch, 고유 일반 Task 영향, Summary name+membership-only/Task 한 payload, omission/null, 완료 잠금, manual event와 실제 동적 탭 |
 | 실제 SQLite API + Browser | 기본 한 PATCH·batch 한 POST 각각 revision+1, 실패 rollback, 양쪽 Editor 재조회 일치, override 보존, 100%+선행 미완료 거부, manual N/A 명시 완료, 완료/reopen 별도 save |
-| Mock Browser | UUID/동명이인 식별 metadata·긴 후보 active option scroll·Escape/focus, Summary 일정/진척 readonly, Resource/Logistics dirty/pending/stale/401/412/network 초안 보존, 교차 mutation/확인 focus/inert/기본 Baseline 잠금, readonly 검색과 지정 거부 |
+| Mock Browser | UUID/외부 ID 검색·동명이인 canonical 선택·#519 후보 이름/날짜/상태만 표시(ID 비표시)·긴 후보 active option scroll·Escape/focus, Summary 일정/진척 readonly, Resource/Logistics dirty/pending/stale/401/412/network 초안 보존, 교차 mutation/확인 focus/inert/기본 Baseline 잠금, readonly 검색과 지정 거부 |
 | Geometry | 390/768/1024/1440/1920×844, 긴 한글/영문/UUID·21개 후보 행·5개 탭, table 960px owned horizontal scroll, document overflow 없음, dynamic Arrow/Home/End focus, 기존 Gantt identity 유지 |
 
 Local Fast Feedback는 실제 명령과 최종 결과를 구현 Result Contract에 기록한다. 이번 로컬 명령은 `npm run typecheck`, 변경 TS/TSX에 대한 `npx eslint <files>`, `npx vitest run --config tests/config/vitest.config.ts tests/features/gantt/task-editor-model.test.ts tests/features/gantt/task-editor-view-model.test.ts tests/domain/milestone-editor-model.test.ts` 및 repository Playwright config의 관련 spec/grep만 실행한다. 원격 전체 quality/e2e/docker와 독립 최종 QA는 NOT TESTED다.

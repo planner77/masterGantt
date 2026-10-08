@@ -914,7 +914,7 @@ Secondary button은 기본 외부 margin 0이며 간격은 부모 toolbar/form/f
 
 ## Issue #461 양쪽 Editor의 완료 단계 관리
 
-Task/Summary 작업 정보의 단일 완료 단계 검색과 Milestone의 두 번째 소속 작업 N 탭은 같은 canonical Membership을 관리한다. Summary 기본값과 자손 override를 구분하고 해제는 상속 복귀다. Milestone 후보는 Task/Summary이며 현재 단계 조회와 전체/타 단계 후보 검색을 구분한다. 변경은 검색이나 선택 시 저장하지 않고 기본 한 PATCH 또는 소속 batch 한 POST로 명시 저장한다.
+Task/Summary 작업 정보의 단일 완료 단계 검색과 Milestone의 두 번째 소속 작업 N 탭은 같은 canonical Membership을 관리한다. #519부터 이 Task/Summary picker 후보는 이름·날짜·상태만 표시하고 외부 ID 및 작업 ID는 표시하지 않는다. 검색은 이름/externalId/taskId를 trim·대소문자 무관으로 계속 지원하며 중복 이름의 선택 값과 React key는 canonical taskId다. Relation Editor, Grid Milestone 필터, Dashboard, Milestone 소속 작업 표는 변경하지 않는다. Summary 기본값과 자손 override를 구분하고 해제는 상속 복귀다. Milestone 후보는 Task/Summary이며 현재 단계 조회와 전체/타 단계 후보 검색을 구분한다. 변경은 검색이나 선택 시 저장하지 않고 기본 한 PATCH 또는 소속 batch 한 POST로 명시 저장한다.
 
 기본·소속·Resource·Logistics의 별도 초안은 탭 전환에 남고 교차 mutation을 잠근다. 연결 작업 열기/일정에서 보기와 닫기/최신 조회에는 전체 미저장 초안의 명시 폐기 확인이 필요하다. 성공은 full canonical tasks/links/revision을 기존 Workspace와 열린 Editor에 반영하며 Gantt를 remount하지 않는다. 오류/401/412/network에서 초안을 자동 폐기하거나 재전송하지 않는다. 완료·재개는 상태 명시 저장이며 구조 변경과 묶지 않는다.
 

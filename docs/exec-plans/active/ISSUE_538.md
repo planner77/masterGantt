@@ -64,3 +64,11 @@
 - `CHANGELOG.md`는 main의 0.102.0 및 기존 릴리스 이력을 보존하면서 Issue #538의 0.103.0 내용을 상단에 추가. `package.json`과 `package-lock.json` 루트 버전은 둘 다 0.103.0.
 - 최종 결과는 두 부모 merge commit의 GitHub trees/refs와 PR CI exact head로 검증해야 하며, 이전 Run #2160.1 SUCCESS는 정렬 전 head 증거로만 남긴다.
 - 승인 범위는 main 정렬·충돌 해결·**새 PR CI 시작**까지. main 병합, Main CI, 정식 GHCR 게시, Issue 종료는 별도 승인 전 시행하지 않는다.
+
+## 최신 main 정렬 기록 — 2026-10-08, PR #539
+
+- 본 병합의 PR 부모: `73d63a4a3c98a955b4230badd847f6265b808f0a`; 최신 main 부모: `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0` (#519 Milestone 후보 ID 제거, 버전 0.102.1 포함). 공통 조상: `599b824677cec2daa47743a60fcac422297f925b`.
+- 공통 조상 이후 PR 독립 37파일, main 변경 11파일, 중복 변경 6파일. 최신 main tree를 기준으로 PR 독립 31파일은 원래 blob SHA를 그대로 적용. 이 방식으로 main 고유 Milestone 관련 source/test와 문서 변경을 모두 보존.
+- 동시 변경 문서 `PROJECT_UX.md`, `TEST_PLAN.md`, `UI_UX_GUIDELINES.md`에는 최신 main의 수정 사항을 보존하고 #538 독립 섹션을 병합. `CHANGELOG.md`에 #538 0.103.0 변경을 0.102.1 앞에 추가하고 `package.json`·`package-lock.json` 버전을 0.103.0으로 통일.
+- 이전 PR CI #2189.1은 부모 SHA `73d63a4a3c98a955b4230badd847f6265b808f0a`에 대해 SUCCESS. 최신 main 반영 후 exact-head full PR CI를 새로 시작해야 하므로 부모 CI 성공만으로 병합 승인하지 않음.
+- 작업 범위는 최신 main 정렬·충돌 해소·새 PR CI 시작까지. Main 병합, Main CI, GHCR 게시, Issue 종료 미진행.

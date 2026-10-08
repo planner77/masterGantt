@@ -259,7 +259,7 @@ Chart 수직 DnD는 일정 PATCH가 아닌 hierarchy mutation이며 vertical ges
 - Group pane은 기존 담당 팀 참조 의미를 유지한다.
 ## Issue #461 완료 단계 소속 Editor
 
-Task의 작업 정보에는 단일 `완료 단계`, Summary에는 `하위 작업 기본 완료 단계` combobox를 둔다. 이름·externalId·canonical taskId를 trim/case-insensitive 검색하며 동일 이름 후보는 외부 ID/작업 ID·날짜·상태로 식별한다. 직접 지정·가장 가까운 Summary 상속·미지정을 구분한다. 직접 지정 해제는 null을 전송하여 상속으로 복귀하며 차단 sentinel은 없다. 해제 초안의 설명과 상속 출처 열기는 같은 preview membership을 사용한다. 이름과 소속은 기본 저장 한 PATCH에 담는다.
+Task의 작업 정보에는 단일 `완료 단계`, Summary에는 `하위 작업 기본 완료 단계` combobox를 둔다. 이름·externalId·canonical taskId를 trim/case-insensitive 검색한다. #519부터 후보 행은 Milestone 이름과 날짜·상태만 표시하고 외부 ID·작업 ID는 노출하지 않는다. 동일 이름도 검색 결과의 canonical taskId로 선택하며 검색 입력의 ID 안내는 유지한다. 직접 지정·가장 가까운 Summary 상속·미지정을 구분한다. 직접 지정 해제는 null을 전송하여 상속으로 복귀하며 차단 sentinel은 없다. 해제 초안의 설명과 상속 출처 열기는 같은 preview membership을 사용한다. 이름과 소속은 기본 저장 한 PATCH에 담는다.
 
 Milestone의 소속 작업 N은 중복 제거한 유효 일반 Task 수다. 직접 지정 root 수와 검색 행 수는 별도로 표시한다. 기본은 현재 단계이며 전체 후보/직접/상속/다른 단계/미지정 및 Task/Summary 유형·식별자 검색을 제공한다. Summary 선택은 explicit row 하나만 변경하고 기존 자손 override를 보존한다. 없는 explicit row를 해제 성공으로 표시하지 않으며 상속 출처 열기 또는 다른 직접 지정으로 안내한다. 이동은 이전/새 단계와 유효 일반 작업 영향 수를 preview하고 여러 초안은 milestone-memberships POST 하나로 적용한다.
 
