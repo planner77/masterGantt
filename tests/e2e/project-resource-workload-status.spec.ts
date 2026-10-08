@@ -87,7 +87,7 @@ test("#525 기존 stage assignment drill은 legacy API와 기본 Dashboard 조�
   await page.route(path, (route) => { calls++; return route.fallback(); });
   await page.route(`**${projectPath}/milestone-dashboard?*`, (route) => route.fulfill({ json: { data: dashboardFixture(state, new URL(route.request().url()).searchParams) } }));
   await open(page); await ready(page); const root = panel(page); await root.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" }).fill("R-01"); await ready(page); await root.getByRole("button", { name: "개인", exact: true }).click(); await root.getByRole("button", { name: "M/M", exact: true }).click();
-  await page.getByRole("tab", { name: "일정", exact: true }).click(); await page.getByRole("tab", { name: "완료 단계 대시보드", exact: true }).click(); await expect(page.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
+  await page.getByRole("tab", { name: "일정", exact: true }).click(); await page.getByRole("tab", { name: "Milestone 대시보드", exact: true }).click(); await expect(page.getByTestId("milestone-dashboard")).toHaveAttribute("data-ready", "true");
   const response = page.waitForResponse((value) => value.url().includes("/resource-workload?")); await page.getByRole("button", { name: "해당 범위 리소스 보기", exact: true }).click(); expect((await response).status()).toBe(200);
   await expect(root).toBeHidden(); const resources = page.getByRole("tabpanel", { name: "리소스", exact: true }); await expect(resources).toContainText("완료 단계에서 전달한 개인 assignment 표시 범위"); const hiddenCalls = calls; await page.evaluate(() => window.dispatchEvent(new Event("focus"))); expect(calls).toBe(hiddenCalls);
   mkdirSync("output/playwright/issue-525", { recursive: true });

@@ -1,5 +1,11 @@
 # masterGantt 공통 UI/UX 기준
 
+## Issue #518 — Project Workspace 단일 상위 탭과 세로 영역
+
+상위 tablist의 peer는 `일정 / Milestone 대시보드 / 리소스 / 물류 구성` 순서다. 일정의 중복 Gantt/Dashboard tablist를 제거하고 #399 WBS scope tablist만 유지한다. 각 tab의 aria-controls/aria-labelledby/aria-selected/roving tabIndex, ArrowLeft/Right/Home/End, focus 이동과 비활성 panel 접근성 차단을 실제 DOM에서 검증한다. 390px 등 좁은 화면은 선택 tab과 focus outline이 잘리지 않도록 tablist 자체만 수평 스크롤하며 height를 적층하지 않는다.
+
+Milestone 활성 시 Gantt panel은 Core가 측정 가능한 높이/폭을 가진 visibility:hidden/inert/aria-hidden overlay로 남기고 Milestone 상위 panel만 scroll을 소유한다. 다른 상위 탭은 기존 hidden 정책을 사용한다. 동일 instance와 scope/filter 기준 viewport를 보존한다. Dashboard의 Task Editor/Dialog는 일정 패널 밖에 있어야 한다. 390/768/1024/1440/1920px에서 네비게이션/작업영역 geometry, Dashboard detail→Editor→복귀, readonly/edit, Gantt state를 검증한다.
+
 ## Issue #345 Summary 구조와 미산정 일정 구분
 
 Summary의 유형·이름·계층과 일정의 유무는 별개다. 일정 없는 Summary도 Grid/Chart의 동일 행에 남고 bar만 없다. Grid 이름의 보조 설명과 접근 가능한 `aria-description`은 실제 전체 계층에서 자식 0개와 일정 있는 자손 0개를 구분한다. 접기·검색으로 숨겨진 child 수를 빈 상태로 오인하지 않는다. readonly에서는 생성 명령을 노출하지 않고 saving에서는 중복 생성·편집을 차단한다. 기존 메뉴 keyboard/Escape/focus 복원을 재사용하며 도구 모음은 작은 폭에서 wrap한다.
@@ -192,9 +198,9 @@ Grid 단계 열은 기본 숨김 180px이며 기존 width/flex·내부 scroll bu
 
 ## Issue #463 Dashboard interaction과 표 예산
 
-일정 peer body는 같은 minmax(0,1fr) grid cell과 min-width/min-height 0으로 두 panel의 layout budget을 유지한다. 비활성 Gantt는 visibility:hidden·inert·aria-hidden으로 숨기며 focus/keyboard/접근성 조회에서 제외한다. Dashboard만 활성 세로 body scroll을 소유한다. 일정 peer 탭은 Arrow/Home/End 로빙과 활성 panel 연결을 제공하고 전환 후 focus를 hidden Gantt에 남기지 않는다. 단계 선택은 #462의 검색·명시 ID 라벨·active option 가시성·Escape 복원(preventScroll)을 재사용한다. 다중 선택과 단일 picker는 같은 선택 상태를 표현하고 다중값을 조용히 단일값으로 덮지 않는다. 추가 조건과 원인 영역은 disclosure 의미를 공개한다. 원인 확인은 제목에 focus를 옮기고 Escape/닫기 뒤 trigger로 복원한다. readonly는 조회·필터·원인·drill을 허용하며 pending/stale에서는 조회 결과에 대한 이동 버튼과 실행 handler를 함께 잠근다.
+#463의 일정 내부 peer 배치는 #518 이후 상위 `일정 / Milestone 대시보드` peer tab으로 대체한다. 동일 Gantt component를 유지하며 비활성 일정은 측정 가능한 크기로 overlay하되 visibility:hidden·inert·aria-hidden으로 keyboard/focus/접근성 조회에서 제외한다. 활성 Milestone 상위 panel만 세로 body scroll을 소유한다. 상위 tablist는 Arrow/Home/End와 활성 panel 관계를 제공한다. 단계 선택은 #462의 검색·명시 ID 라벨·active option 가시성·Escape 복원(preventScroll)을 재사용한다. 다중 선택과 단일 picker는 같은 선택 상태를 표현하고 다중값을 조용히 단일값으로 덮지 않는다. 추가 조건과 원인 영역은 disclosure 의미를 공개한다. 원인 확인은 제목에 focus를 옮기고 Escape/닫기 뒤 trigger로 복원한다. readonly는 조회·필터·원인·drill을 허용하며 pending/stale에서는 조회 결과에 대한 이동 버튼과 실행 handler를 함께 잠근다.
 
-단계 전체 상태 표의 최소 예산은 1052px이다. identity는 최소 260px의 가변 열이고 날짜 112px, 상태 96px, member progress 160px, 완료/전체 104px, 선행 차단 88px, 위험 88px, 조회 144px을 둔다. 긴 이름·외부 ID·UUID는 cell 안에서 wrap/ellipsis와 전체 title로 접근한다. 숫자는 우측 정렬하고 공수는 별도 표에 둔다. 작은 폭에서는 필터/KPI를 reflow하고 표 자체 가로 scroll을 사용한다. 활성 peer body가 세로 scroll을 소유하며 document/sibling overflow를 만들지 않는다.
+단계 전체 상태 표의 최소 예산은 1052px이다. identity는 최소 260px의 가변 열이고 날짜 112px, 상태 96px, member progress 160px, 완료/전체 104px, 선행 차단 88px, 위험 88px, 조회 144px을 둔다. 긴 이름·외부 ID·UUID는 cell 안에서 wrap/ellipsis와 전체 title로 접근한다. 숫자는 우측 정렬하고 공수는 별도 표에 둔다. 작은 폭에서는 필터/KPI를 reflow하고 표 자체 가로 scroll을 사용한다. 활성 Milestone 상위 panel이 세로 scroll을 소유하며 document/sibling overflow를 만들지 않는다.
 
 로컬 Chromium 근거는 `tests/e2e/milestone-dashboard-state.spec.ts`의 390/768/1024/1440/1920px 화면과 geometry, `tests/e2e/milestone-stage-dashboard.spec.ts`의 실제 SQLite drill/Gantt 상태 조작으로 구분한다. geometry는 header/body alignment, 모든 row button의 cell containment와 비중첩, 필터 control 경계, 실제 focus outline 가시성, popup viewport/active option/input 경계, tab 높이와 body scroll owner를 측정한다. 변경 전 actual 화면은 NOT TESTED이며 baseline `603cd029d279ddc5b70309786abf8876b6bd1692`의 일정 화면에는 peer 대시보드가 없다는 source 재현 근거를 사용한다. 실제 기기·screen reader·최종 수동 UX와 원격 CI는 별도 검증이다.
 

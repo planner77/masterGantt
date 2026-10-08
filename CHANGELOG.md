@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.99.1] - 2026-10-08
+
+### Fixed
+
+- Issue #518: 프로젝트 상위 탭을 `일정 / Milestone 대시보드 / 리소스 / 물류 구성`으로 통합하고 중복 Gantt/Dashboard 중첩 탭 행을 제거해 Gantt 세로 작업 공간을 회복한다.
+- Milestone 대시보드 전환에도 동일 Gantt instance·scope·viewport를 보존하고 Dashboard Task Editor가 숨겨진 일정 panel에 갇히지 않도록 공통 Dialog를 상위 Workspace로 옮긴다.
+- 상위 tab 접근성/키보드·좁은 화면 수평 스크롤 및 기존 Dashboard/Gantt/Resource 회귀 E2E를 갱신한다.
+
+
 ## [0.99.0] - 2026-10-08
 
 ### Added

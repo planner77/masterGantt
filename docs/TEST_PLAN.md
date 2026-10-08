@@ -1,5 +1,15 @@
 # Test Plan
 
+## Issue #518 — 단일 상위 탭 E2E 검증 계획
+
+대상은 `project-readonly-view.tsx`, `globals.css`, `tests/e2e/project-workspace-tabs-518.spec.ts`, `project-workspace-ux.spec.ts`, 기존 #463 milestone Dashboard/Grid/Exchange/Resource 회귀 테스트다.
+
+- 상위 4개 tab 순서·ARIA/keyboard/label과 내부 `Gantt` tab 제거, `일정`에서 `전체 프로젝트 / Summary` WBS 범위 보존을 검증한다.
+- Milestone→Task Editor→Milestone 복귀, readonly/edit 권한, 명시적 drill/filter 복원, Task·Link·Project revision 불변을 확인한다.
+- 탭 전환에서 Gantt API instance/viewport public+DOM/scale/tree/selection/column/scope 및 Milestone Dashboard 조회 조건이 보존되는지 확인한다.
+- 390/768/1024/1440/1920px에서 상위 tablist의 내부 scroll과 focus outline, 세로 중복행 제거·Gantt 높이, 비활성 Gantt inert/aria-hidden/visibility와 dashboard table geometry를 검증한다.
+- 동일 PR head의 공식 quality/e2e/docker, 독립 QA, 운영 환경 수동 검증은 각자의 실제 결과로 판정한다. 계획 단계는 NOT TESTED다.
+
 ## Issue #459 — Milestone Stage Gate Epic 통합 회귀
 
 #460~#464의 개별 테스트를 Epic 수용 기준으로 묶어 다음 교차 불변식을 유지한다.
