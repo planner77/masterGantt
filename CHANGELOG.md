@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.102.1] - 2026-10-08
+
+### Fixed
+
+- Issue #519: Task/Summary 작업 정보 Milestone 후보에서 외부 ID·작업 ID 노출을 제거하고 이름·날짜·상태만 유지한다. 이름/externalId/taskId 검색, canonical 식별·선택 및 완료 잠금·접근성 계약은 유지한다. PR #547의 E2E 재검증을 위해 최신 main의 #130 Project Context 5폭×권한 조합을 폭별로 독립 실행하는 테스트와 #529 Resource Excel 보고를 함께 보존한다.
+
 ## [0.102.0] - 2026-10-08
 
 ### Added
