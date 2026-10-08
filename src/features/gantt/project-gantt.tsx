@@ -1771,6 +1771,7 @@ export function ProjectGantt({
                   { left: request.left, top: request.top },
                 );
                 if (restore) await api.exec("scroll-chart", restore);
+              }
             }
           } finally {
             request.cleanup();
