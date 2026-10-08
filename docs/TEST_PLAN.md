@@ -1,5 +1,9 @@
 # Test Plan
 
+## Issue #518 — PR CI #2152 trace 선행 실패
+
+Run #2152.1 (`37733916932`)의 `변경 경로 판정`에서 PR title `feat: #518 ...`를 canonical Issue 표기로 파싱하지 못해 `title Issues=[]`가 발생했다. 후속 quality/e2e/docker 집계 실패는 선행 gate 실패 전파이며 실제 TypeScript/Build/Chromium/Docker 구현 job은 실행되지 않았다. PR title을 `[Issue #518] feat: ...`로 수정하고 새 head에 대한 전체 `pull_request.synchronize` PR CI를 시작한다. 새로운 run의 통과 여부와 앱 회귀는 해당 run/job 결과로만 판정한다.
+
 ## Issue #518 — 단일 상위 탭 E2E 검증 계획
 
 대상은 `project-readonly-view.tsx`, `globals.css`, `tests/e2e/project-workspace-tabs-518.spec.ts`, `project-workspace-ux.spec.ts`, 기존 #463 milestone Dashboard/Grid/Exchange/Resource 회귀 테스트다.

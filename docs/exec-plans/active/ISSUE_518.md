@@ -1,5 +1,15 @@
 # Issue #518 — 일정·Milestone 상위 탭 단순화 실행 계획
 
+## PR CI #2152 실패 분석 및 재검증 (2026-10-08)
+
+- 실패한 exact head: `ddbd4c7f27e5a8f34f18485d0d001db989e3855c`, PR #544, GitHub Actions Run #2152.1 (ID `37733916932`).
+- 선행 `변경 경로 판정`의 `CI 실행 추적 메타데이터 검증`에서 `title Issues=[]`로 FAIL. 기존 PR title `feat: #518 ...`는 `scripts/verify-ci-run-trace.py`의 공식 허용 패턴 (`Issue #518` 또는 `(#518)`)에 맞지 않는다.
+- PR title을 `[Issue #518] feat: 일정·Milestone 대시보드 상위 탭 통합 및 세로 공간 확보`로 정정했다. canonical `Refs #518` 및 `feat/issue-518-workspace-milestone-tab`은 변경하지 않는다.
+- quality/e2e/docker 집계 FAIL은 선행 gate 실패에 따른 종속 실패다. TypeScript/ESLint/Vitest/Build/Chromium/Docker 구현 검사 자체는 SKIPPED이므로 애플리케이션 검증 PASS 또는 FAIL로 추정하지 않는다.
+- 제목 `edited` 이벤트만으로는 직전 동일 head 전체 PASS가 없는 상태를 해소할 수 없으므로, 기존 변경에 본 증거 문서를 동기화한 **새 코드 브랜치 head**의 `pull_request.synchronize` 전체 PR CI로 검증한다. CI 정책을 완화하거나 필수 job을 skip으로 PASS 처리하지 않는다.
+- 새 exact head/run의 quality/e2e/docker가 완료되기 전 최종 QA는 **NOT TESTED**다. merge/main/정식 GHCR/Issue 종료는 범위 밖이다.
+
+
 - Issue: https://github.com/planner77/masterGantt/issues/518
 - 기준 main: `8b9d4d76758f73094ec84590e3a8a49314741587`; application `0.99.0`
 - branch: `feat/issue-518-workspace-milestone-tab`
