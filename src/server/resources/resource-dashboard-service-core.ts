@@ -34,6 +34,25 @@ type DiagnosticAssignmentRow = ResourceKpiAssignmentRow & { allocationOverlapsRe
 const DIAGNOSTIC_ASSIGNMENT_DAYS_LIMIT = 1000000;
 const invalidSelection: () => never = () => { throw new PublicApiError(400, "INVALID_SELECTION", "현재 프로젝트에 연결된 조회 대상을 다시 선택해 주세요."); };
 const stale = (): never => { throw new PublicApiError(409, "REPORT_STALE", "기준 데이터 또는 조회 범위가 변경되었습니다. 대시보드를 다시 조회해 주세요."); };
+// Original effective allocation days, not the report's clipped range. Use the
+// same budget for interactive unset diagnostics and Excel quality export.
+function assertDiagnosticAssignmentDayBudget(
+  snapshot: { taskById: ReadonlyMap<string, { startDate: string | null; endDate: string | null }> },
+  assignments: readonly { taskId: string; start?: string | null; end?: string | null }[],
+): void {
+  let totalDays = 0;
+  for (const assignment of assignments) {
+    const task = snapshot.taskById.get(assignment.taskId);
+    if (!task) invalidSelection();
+    const from = assignment.start ?? task.startDate;
+    const to = assignment.end ?? task.endDate;
+    if (!from || !to) invalidSelection();
+    const days = dateToOrdinal(to) - dateToOrdinal(from) + 1;
+    if (days < 1) invalidSelection();
+    totalDays += days;
+    if (totalDays > DIAGNOSTIC_ASSIGNMENT_DAYS_LIMIT) resourceDashboardLimit("diagnostic.assignmentDays");
+  }
+}
 function compact(value: ResourceKpiTotals, selector: ResourceDashboardSelector): ResourceDashboardSummary {
   return { taskCount: value.taskCount, resourceCount: value.resourceCount, assignmentCount: value.assignmentCount,
     notStarted: value.notStarted.count, inProgress: value.inProgress.count, completed: value.completed.count, delayed: value.delayed.count,
@@ -262,7 +281,10 @@ export class ResourceDashboardService {
         return { taskId: task.taskId, name: stored.name, externalId: stored.externalId, wbsPath: snapshot.paths.get(task.taskId)!, categories: categories.filter(category => diagnosticIds.get(category)!.has(task.taskId)) };
       });
       const unsetIds = new Set(diagnostics.unsetAssignmentIds);
-      const unsetAssignments = calculated.diagnosticDomain.assignments.filter(row => unsetIds.has(row.assignmentId)).map(row => {
+      const rawUnsetAssignments = calculated.diagnosticDomain.assignments.filter(row => unsetIds.has(row.assignmentId));
+      // Fail before Excel row materialization, even if the clipped report is small.
+      assertDiagnosticAssignmentDayBudget(snapshot, rawUnsetAssignments);
+      const unsetAssignments = rawUnsetAssignments.map(row => {
         const task = snapshot.taskById.get(row.taskId)!, resource = snapshot.resourceById.get(row.targetId)!;
         const effectiveFrom = row.start ?? task.startDate!, effectiveTo = row.end ?? task.endDate!;
         return { assignmentId: row.assignmentId, taskId: row.taskId, taskName: task.name, resourceId: row.targetId, resourceName: resource.name, groupIds: snapshot.groupIdsByResource.get(row.targetId) ?? [], roles: resource.roles,
@@ -392,13 +414,7 @@ export class ResourceDashboardService {
     const { snapshot, selection, diagnosticDomain } = calculated;
     const unsetIds = new Set(getResourceKpiDiagnostics(diagnosticDomain, selection).unsetAssignmentIds);
     const raw = diagnosticDomain.assignments.filter(row => unsetIds.has(row.assignmentId));
-    let assignmentDays = 0;
-    for (const assignment of raw) {
-      const task = snapshot.taskById.get(assignment.taskId)!;
-      const days = dateToOrdinal(assignment.end ?? task.endDate!) - dateToOrdinal(assignment.start ?? task.startDate!) + 1;
-      if (days < 1) invalidSelection(); assignmentDays += days;
-      if (assignmentDays > DIAGNOSTIC_ASSIGNMENT_DAYS_LIMIT) resourceDashboardLimit("diagnostic.assignmentDays");
-    }
+    assertDiagnosticAssignmentDayBudget(snapshot, raw);
     if (!raw.length) return [];
     const current = new Map(selectResourceKpiAssignments(snapshot.domain, { taskIds: [...selection.t0Ids] }).assignments.map(row => [row.assignmentId, row]));
     return raw.map(assignment => {

@@ -2360,3 +2360,12 @@ PR CI #2144.1의 Chromium shard6에서 #527 두 테스트(주/월 계층/geometr
 - 같은 HEAD의 PR metadata-only CI #2172 (run `37753712741`)는 새 전체 검증이 아니며 #2171의 failed required gates를 회복하지 못했다.
 - 해결: `getDetails`는 `detailTargets`의 canonical `diagnosticUnsetRows` 결과를 그대로 사용한다. 원본 Assignment 기간과 보고기간 겹침, exact ID 범위 및 개인 필터 미적용 T0 진단의 3가지 기존 회귀 `tests/server/resources/resource-dashboard.test.ts`를 유지한다. 결과를 다시 `diagnosticSelection` clipped 행으로 덮어쓰지 않는다. 필터·원장·권한·DTO·API 변경 없이 미정의 식별자를 제거한다.
 - CI 오류를 기존 PASS라고 보고하지 않는다. 새 head 공식 Quality/E2E/Docker 결과와 QA_FINAL/Manager ACCEPT는 실행/판정 전 NOT TESTED. release_required=true, release_authorized=false; 병합, Main CI, GHCR, Issue 종료는 요청 범위 밖이다.
+
+## Issue #529 — PR 리뷰 2건 해소 및 최종 GHCR 승인 (2026-10-08)
+
+- PR #543의 최초 Codex Review P2 두 건: Excel Quality raw unset Assignment는 interactive diagnostic과 달리 원래 실효기간 합계 1,000,000일 예산을 우회했으며, 확인창의 Task/WBS 필터는 UUID만 노출했다.
+- 단일 `assertDiagnosticAssignmentDayBudget`으로 1,000,000일 포함/1,000,001일 422를 상세 조회와 Excel 내보내기 양쪽에서 적용한다. 기간은 report overlap이 아닌 원래 Assignment 시작/종료 또는 canonical Task 기간이다. raw row 생성 전에 검증하고 필터·페이지 크기로 우회하지 않는다.
+- Task/WBS는 `catalog.wbsRoots`의 실제 Task/Summary 이름과 안정 ID를 함께 표시한다. 항목이 사라진 경우 ID를 보존하고 Resource/Group/Milestone 기존 레이블도 동일하게 유지한다.
+- `resource-dashboard.test.ts`는 20개×50,000일의 경계/초과 조건을 Excel export 경로에도 확장하고, `resource-export-model.test.ts`는 Task/WBS/resource 코드 표시를 검증한다. 성공한 이전 CI #2174는 이 변경의 PASS가 아니며 신규 exact-head quality/e2e/docker 재검증이 필요하다.
+- 사용자의 2026-10-08 18:47 KST 요청은 Issue #529의 정식 GHCR 게시를 포함한다. 승인 대상은 application 0.102.0이며 Main CI 및 exact digest·release 검증 전 tag/GHCR 성공을 선언하지 않는다. trusted Owner authorization marker는 Issue 댓글로 별도 기록한다.
+

@@ -188,3 +188,11 @@ frontend는 readonly DOM RAF에도 Gantt 영역의 입력 취소 및 현재 pane
 - 같은 HEAD의 PR metadata-only CI #2172 (run `37753712741`)는 새 전체 검증이 아니며 #2171의 failed required gates를 회복하지 못했다.
 - 해결: `getDetails`는 `detailTargets`의 canonical `diagnosticUnsetRows` 결과를 그대로 사용한다. 원본 Assignment 기간과 보고기간 겹침, exact ID 범위 및 개인 필터 미적용 T0 진단의 3가지 기존 회귀 `tests/server/resources/resource-dashboard.test.ts`를 유지한다. 결과를 다시 `diagnosticSelection` clipped 행으로 덮어쓰지 않는다. 필터·원장·권한·DTO·API 변경 없이 미정의 식별자를 제거한다.
 - CI 오류를 기존 PASS라고 보고하지 않는다. 새 head 공식 Quality/E2E/Docker 결과와 QA_FINAL/Manager ACCEPT는 실행/판정 전 NOT TESTED. release_required=true, release_authorized=false; 병합, Main CI, GHCR, Issue 종료는 요청 범위 밖이다.
+
+## 2026-10-08 — 최종 PR 리뷰 해소와 명시적 릴리스 승인
+
+- 원격 HEAD `c79d7abdf201c4d8f0e268a7d820605401ec3701`의 PR CI #2174는 quality/e2e/docker PASS였으나 오래된 PR Review P2 두 건이 unresolved 상태였다. 변경된 신규 HEAD는 이 성공 증거를 재사용하지 않는다.
+- Raw unset Excel quality의 원래 Assignment 기간 합산 1,000,000일 예산을 기존 interactive 진단과 동일 함수에서 수행하도록 변경. 원래 기간 1,000,000일 허용, 1,000,001일 전체 422; 개인 필터/상세 페이지로 우회 불가. 기존 제한·출력 계약은 변경하지 않는다.
+- Excel 보고서 확인창의 Task/WBS 필터를 실제 catalog name + stable ID로 표시하며 missing ID는 그대로 남긴다. 전체/Group/Resource/Milestone 조건은 기존 출력 계약 유지. 두 지적에 대한 회귀 테스트 및 TEST_PLAN/PROJECT_UX/CHANGELOG를 동기화한다.
+- **사용자 명시 승인:** 2026-10-08 18:47 KST `GHCR 게시를 포함한 병합 후 Main CI 시작까지 진행` 요청. Issue #529의 `release_required=true`, `release_authorized=true` (대상 application `0.102.0`). 승인 근거는 이 요청이며 Generic Finalizer가 읽을 수 있도록 Issue #529에 Owner-authored version-scoped marker를 별도 남긴다. PR/merge 후 Main CI·임시 image exact digest·formal Release CI·GHCR promotion이 PASS여야 정식 게시 완료다. 운영 배포/Windows Excel/DRM은 승인 범위에 포함되지 않는다.
+

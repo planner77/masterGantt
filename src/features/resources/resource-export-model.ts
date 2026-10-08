@@ -3,6 +3,19 @@ import type { ResourceDataContext, ResourceDrillSourceContext } from "@/contract
 import type { ResourceExcelExportOptions } from "@/contracts/resource-excel-export";
 import type { ResourceDrillBinding } from "./resource-drill-transport";
 
+/** Human-readable filter evidence keeps the immutable Task/WBS IDs visible. */
+export function resourceExportFilterNames(
+  ids: readonly string[],
+  entries: readonly { id: string; name: string; code?: string | null }[],
+): string {
+  if (!ids.length) return "전체";
+  const byId = new Map(entries.map(entry => [entry.id, entry] as const));
+  return ids.map(id => {
+    const match = byId.get(id);
+    return match ? `${match.name}${match.code ? ` (${match.code})` : ""} · ${id}` : id;
+  }).join(" / ");
+}
+
 export const RESOURCE_EXPORT_BODY_BYTES = 8 * 1024;
 export type ResourceExportBasis = "current" | "project";
 export type ResourceExportGranularity = "week" | "month";

@@ -5,7 +5,7 @@ import { useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type
 import { WorkspaceDialog } from "@/components/workspace-dialog";
 import type { ProjectJsonExportRequest } from "@/contracts/project-json-export";
 import type { ProjectExcelExportRequest } from "@/contracts/project-excel-export";
-import { captureResourceExportLease, resourceExportBodyBudget, resourceExportCanDeliver, resourceExportDownloadToken,
+import { resourceExportFilterNames, captureResourceExportLease, resourceExportBodyBudget, resourceExportCanDeliver, resourceExportDownloadToken,
   resourceExportGuardReason, resourceExportCanReconfirm, resourceExportIntent, type ResourceExportRejectedProof, type ResourceExportBasis, type ResourceExportEvidence,
   type ResourceExportGranularity, type ResourceExportLease } from "@/features/resources/resource-export-model";
 import styles from "./project-export.module.css";
@@ -103,13 +103,11 @@ const exportLayout: ProjectExcelExportRequest["layout"] = {
 
 function ResourceReportEvidence({ lease, basis }: { lease: ResourceExportLease; basis: ResourceExportBasis }) {
   const report = lease.report, filters = report.filters;
-  const names = (ids: readonly string[], entries: readonly { id: string; name: string; code?: string | null }[]) =>
-    ids.length ? ids.map(id => { const item = entries.find(entry => entry.id === id);
-      return item ? `${item.name}${item.code ? ` (${item.code})` : ""} · ${id}` : id; }).join(" / ") : "전체";
+  const names = resourceExportFilterNames;
   const rows = [
     ["개인", names(filters.resourceIds, report.catalog.resources)], ["Group", names(filters.groupIds, report.catalog.groups)],
     ["Milestone", names(filters.milestoneIds, report.catalog.milestones)],
-    ["Task", filters.taskIds.join(" / ") || "전체"], ["WBS", filters.wbsRootIds.join(" / ") || "전체"],
+    ["Task", names(filters.taskIds, report.catalog.wbsRoots)], ["WBS", names(filters.wbsRootIds, report.catalog.wbsRoots)],
     ["Role / Grade", `${filters.roles.join(", ") || "전체"} / ${filters.developerGrades.join(", ") || "전체"}`],
     ["검색 / Task 검색", `${filters.search || "없음"} / ${filters.taskSearch || "없음"}`],
     ["상태 / 개인·Group 활성", `${filters.statuses.join(", ") || "전체"} / ${filters.resourceActivity} · ${filters.groupActivity}`],

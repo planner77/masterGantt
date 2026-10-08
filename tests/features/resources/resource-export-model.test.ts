@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { resourceDashboardUiFixture } from "../../fixtures/resource-dashboard-ui";
 import type { StatefulProjectFixture } from "../../fixtures/stateful-project";
-import { captureResourceExportLease, resourceExportCanReconfirm, resourceExportBindingKey, resourceExportBodyBudget, resourceExportCanDeliver, resourceExportDownloadToken, resourceExportGuardReason, resourceExportIntent, type ResourceExportLease, type ResourceExportLiveState } from "../../../src/features/resources/resource-export-model";
+import { resourceExportFilterNames, captureResourceExportLease, resourceExportCanReconfirm, resourceExportBindingKey, resourceExportBodyBudget, resourceExportCanDeliver, resourceExportDownloadToken, resourceExportGuardReason, resourceExportIntent, type ResourceExportLease, type ResourceExportLiveState } from "../../../src/features/resources/resource-export-model";
 
 function evidence() {
   const report = resourceDashboardUiFixture({ project: { publicId: "project", revision: 40 } } as StatefulProjectFixture);
@@ -15,6 +15,19 @@ function evidence() {
   return { lease, live };
 }
 describe("Resource Excel export evidence", () => {
+  it("shows the immutable Task and WBS filter IDs alongside catalog names", () => {
+    const entries = [
+      { id: "task-uuid", name: "시운전", type: "task" as const },
+      { id: "summary-uuid", name: "물류시스템 WBS", type: "summary" as const },
+    ];
+    expect(resourceExportFilterNames(["task-uuid"], entries)).toBe("시운전 · task-uuid");
+    expect(resourceExportFilterNames(["summary-uuid"], entries)).toBe("물류시스템 WBS · summary-uuid");
+    expect(resourceExportFilterNames(["task-uuid", "missing-id"], entries)).toBe("시운전 · task-uuid / missing-id");
+    expect(resourceExportFilterNames([], entries)).toBe("전체");
+    expect(resourceExportFilterNames(["res-01"], [{ id: "res-01", name: "Alice", code: "ENG" }]))
+      .toBe("Alice (ENG) · res-01");
+  });
+
   it("requires the current active ready visit and exact query/binding", () => {
     const { lease, live } = evidence();
     expect(resourceExportGuardReason(lease, live)).toBeNull();

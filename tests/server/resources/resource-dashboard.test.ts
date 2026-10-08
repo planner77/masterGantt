@@ -303,9 +303,19 @@ describe("#529 raw unset diagnostic compatibility", () => {
     }
     const filters = { from: "2026-10-07", to: "2026-10-08" }, report = f.service.getDashboard(f.project.publicId, filters)!;
     const input = detail(report.snapshotId, { selector: report.diagnostics.unsetTasks.selector }); expect(f.service.getDetails(f.project.publicId, filters, input)!.totalCount).toBe(20);
+    const exportOptions = (current: typeof report) => ({
+      basis: "current" as const,
+      expectedReport: { context: current.resourceScopeContext!, snapshotId: current.snapshotId, filters },
+      granularities: ["month" as const],
+    });
+    // Excel quality rows and interactive diagnostic details share the exact
+    // original effective period budget: 1,000,000 days is inclusive.
+    expect(f.service.getExcelReport(f.project.publicId, exportOptions(report))!.quality.unsetAssignments).toHaveLength(20);
     const taskId = f.database.prepare("SELECT task_id FROM task_assignments WHERE public_id=?").get(ids[0]) as { task_id: number };
     f.database.prepare("UPDATE tasks SET end_date=? WHERE id=?").run(ordinalToDate(dateToOrdinal(last) + 1), taskId.task_id);
     f.database.prepare("UPDATE task_assignments SET assignment_end=? WHERE public_id=?").run(ordinalToDate(dateToOrdinal(last) + 1), ids[0]);
     const fresh = f.service.getDashboard(f.project.publicId, filters)!; expect(() => f.service.getDetails(f.project.publicId, filters, { ...input, snapshotId: fresh.snapshotId })).toThrowError(expect.objectContaining({ status: 422 }));
+    expect(() => f.service.getExcelReport(f.project.publicId, exportOptions(fresh)))
+      .toThrowError(expect.objectContaining({ status: 422, code: "REPORT_LIMIT_EXCEEDED" }));
   });
 });

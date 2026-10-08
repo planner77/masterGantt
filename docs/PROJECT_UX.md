@@ -1139,3 +1139,9 @@ Project Context의 기존 내보내기 대화상자를 재사용한다. 일반 �
 2026-10-08 설치 SVAR React Gantt Core2.7.3에서 [exec](https://docs.svar.dev/react/gantt/api/methods/exec/), [scroll-chart](https://docs.svar.dev/react/gantt/api/actions/scroll-chart/), [resize-chart](https://docs.svar.dev/react/gantt/api/actions/resize-chart/) 공개 계약과 타입을 read-only 조사했다. URL/문서 확인과 실제 Chromium의 positive·입력취소·조건변경 조작 증거를 분리한다. Core 공개 기능을 사용하며 PRO 기능/비공개 구현을 복제하지 않는다.
 
 Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약을 적용한다. 대기 중 실제 Gantt wheel/pointer/keydown이 발생하거나 source/instance/sync/조건/scale/열/grid 상태가 바뀌면 저장된 위치로 되돌리지 않는다. 취소 검증은 복원 attribute 유무만 보지 않고 pending 전 사용자 public·DOM 위치 각각이 완료 후에도 보존되는지 확인한다. native DOM과 Core의 1px 반올림 차이를 강제로 같게 만들지 않는다.
+
+### Issue #529 — Resource Excel 보고서 범위 확인
+
+- 현재 조건 확인창의 Resource·Group·Milestone·Task·WBS 선택은 사람이 확인할 수 있는 **이름(코드가 있으면 코드 포함) + 안정 ID**로 표시한다. 선택 범위가 비어 있으면 전체, 보고서 snapshot catalog에서 찾을 수 없는 ID는 ID 그대로 표시한다. 다른 Task/WBS가 동일한 이름이어도 ID로 구별한다.
+- Raw unset Assignment의 Excel Quality 보고는 interactive 진단과 같은 원래 실효기간 합산 1,000,000일 제한을 따른다. 초과 시 부분 결과를 제공하지 않고 422 `REPORT_LIMIT_EXCEEDED`를 반환한다.
+
