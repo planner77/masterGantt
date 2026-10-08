@@ -418,3 +418,9 @@ POST는 실제 UTF-8 byte1MiB, content-type/charset/content-encoding, strict obj
 opt-in Workbook 전체 typed 입력(snapshot/legacy workload/Stage/Resource bundle)의 XML1.0 불허 문자·U+FFFE/U+FFFF·unpaired surrogate는 JSON escaping 이전에도 검증해 EXPORT_UNSUPPORTED로 전체 실패한다. tab/LF/CR와 유효 supplementary Unicode/=+-@ 원문을 보존한다. 신규 시트당50000/전체150000행·1000000실제셀·opt-in 전체XML32MiB/ZIP16MiB의 사전/최종 actualbyte 검증은 legacy opt-in 없는 파일에 적용하지 않는다.
 
 신규 Resource Report에만 validated APP_BASE_URL parser에서 만든 canonical `/projects/{publicId}` external hyperlink relationship 1개를 허용한다. writer는 server-only canonicalProjectUrl만 받고 request에 URL 필드는 없다. Task/user URL·credential·query·fragment·secret은 relationship target으로 만들지 않는다. Password/hash/session/Cookie/internal SQL/DB ID를 보고서·오류·로그에 추가하지 않는다. 성공/오류 private,no-store/nosniff/no-cookie와 UUID filename은 유지한다. [API](API.md#issue-529-resource-보고서-excel-opt-in)를 따른다.
+
+## Issue #530 공개 조회와 편집 권한 통합 회귀
+
+Resource GET의 Project UUID 공개 읽기, query POST의 exact Origin, Excel POST의 exact Origin·strong `If-Match`와 보호 Task mutation의 edit session을 실제 HTTP로 각각 확인한다. 공개 읽기와 Export는 edit session 없이 허용한다. `private, no-store`는 응답 cache 정책이며 private Project authorization 모델을 뜻하지 않는다. 현재 별도의 private Project 모델은 없고 공개 링크 보유자의 읽기를 차단하는 신규 권한을 이 회귀에 추가하지 않는다. 조직 SSO/reverse proxy 접근 통제는 해당 운영 환경의 별도 검증이다.
+
+회귀는 foreign Project ID 거부, stale report/export 실패, 조회/Export 전후 canonical snapshot 불변, 쿠키 발급 없음과 Workbook 내 credential 필드 없음·서버 생성 Project hyperlink를 확인한다. 합성 admin/edit password는 disposable test instance의 fixture에만 사용하며 운영 secret이나 SQLite 파일을 게시하지 않는다. 신규 session/token 저장소·Origin 예외·권한 우회는 없다.

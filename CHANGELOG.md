@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.103.0] - 2026-10-08
+## [0.103.0] - 2026-10-09
 
 ### Added
 
@@ -9,6 +9,16 @@
 ### Fixed
 
 - 메타데이터 저장 뒤 Gantt 비영점 스크롤 위치와 독립 E2E 서버의 읽기 전용 GET 일시적 연결 리셋 검증을 보완한다. 최신 main의 #519 Milestone 후보 ID 숨김 및 Resource KPI/Excel 보고·워크스페이스 변경을 보존한다.
+
+## [0.102.3] - 2026-10-09
+
+### Fixed
+
+- Issue #530: Resource·Milestone drill-down 이동 기록마다 Gantt 공개 Core·DOM viewport 관측값을 보존하고, 원래 보기로 복귀할 때 같은 snapshot·instance·범위의 유효한 좌표를 복원한다. 오래된 복원과 새 사용자 입력의 충돌을 방지한다.
+
+### Changed
+
+- Issue #530: 공통 합성 fixture로 Domain·SQLite HTTP·UI·Excel의 원시 공수·고유 Assignment·scope 정합성을 비교하는 통합 회귀 검증과 사용자 가이드를 추가한다. 외부 ID 표시를 제거한 최신 #519 Milestone picker와 기존 회귀 검증을 보존한다.
 
 ## [0.102.2] - 2026-10-08
 

@@ -7,7 +7,27 @@ export interface GanttViewportCoordinates {
   readonly top: number;
 }
 
-export type PublicGanttViewportReader = () => GanttViewportCoordinates;
+export interface GanttViewportContinuity {
+  readonly apiInstanceId: string;
+  readonly syncVersion: number;
+  readonly filter: string;
+  readonly scale: string;
+  readonly gridWidth: number | undefined;
+  readonly columns: string;
+  readonly viewportWidth: number;
+  readonly viewportHeight?: number;
+  readonly rootWidth?: number;
+  readonly rootHeight?: number;
+  readonly fullscreen?: boolean;
+  readonly fullscreenElement?: Element | null;
+  readonly syncDepth?: number;
+}
+export interface PeerViewportRestore extends GanttViewportCoordinates {
+  readonly key: string;
+  readonly continuity?: GanttViewportContinuity;
+  readonly positions?: readonly Readonly<{ selector: string; left: number; top: number; owner?: HTMLElement }>[];
+}
+export type PublicGanttViewportReader = () => GanttViewportCoordinates & { continuity?: GanttViewportContinuity };
 
 export function capturePeerViewportCoordinates(
   reader: PublicGanttViewportReader | null,

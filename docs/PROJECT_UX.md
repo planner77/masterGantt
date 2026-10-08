@@ -1173,3 +1173,19 @@ Core 공개 복원과 native DOM 복원은 같은 사용자 입력 취소 계약
 - SVAR 공개 Core `scrollLeft/scrollTop`은 자식 Gantt가 읽기 전용 callback으로 현재 값만 전달한다. 부모는 보이는 Chart의 native `scrollLeft/scrollTop`을 별도로 캡처한다. 레이아웃 반올림 등으로 공개 Core와 DOM에 1px 차이가 있어도 Core 복원을 DOM 값으로 덮어쓰지 않는다.
 - `scroll-chart`에는 캡처한 공개 Core 좌표를 사용하고 기존 DOM native 좌표는 별도 복귀 대상으로 유지한다. 공개 reader가 준비되지 않거나 유효하지 않으면 DOM 값을 Core로 대체하지 않고 해당 peer Core 복원을 취소한다. 원장/snapshot, task root/filter, Gantt instance, sync generation, 사용자 입력/geometry 취소 정책은 유지한다.
 
+
+## Issue #530 통합 회귀의 사용자 조건
+
+리소스 화면의 기간·보기·집계 순서·표시 단위를 왕복해도 고유 개인 Assignment 원장의 Grand 공수는 변하지 않는다. 복수 Group 소속의 소계는 중복 기여를 포함하므로 Grand와 합산하지 않는다. 공수 미설정은 알려진 부분합과 함께 표시하며 M/M 기준이 없으면 전환을 잠근다.
+
+현재 화면에는 조회 기준일이나 M/D 환산값을 직접 입력하는 control이 없다. 서버 응답에 표시된 기준일·환산값·출처를 API 및 Excel과 비교해야 하며 다른 기준일의 지연 KPI를 같은 조건의 결과로 취급하지 않는다. 명시적인 `mdPerMm=20` API 조회와 화면의 환경/미설정 환산은 별도 조건이다.
+
+통합 회귀는 합성 원장을 실제 SQLite/HTTP로 생성하고 계층·비교표·Resource Plan·Excel 명령·상위 Workspace 탭 왕복을 검사한다. 조회와 파일 생성으로 Project/Task/Link revision을 바꾸지 않는다. 로컬 Chromium 증거와 PR의 원격 전체 회귀는 별도로 판정한다.
+
+상세/report에서 stale를 확인한 경우 Excel Dialog는 열어 조건을 검토할 수 있다. 리소스 보고서를 포함한 생성은 현재 보고서 확인 전 로컬 handler에서 안내하고 POST를 보내지 않는다. 이 로컬 사전 차단은 실제 Excel POST의 409/412 응답으로 해당 증명이 거부되어 생성 버튼을 잠그는 상태와 구별한다.
+
+Resource 임시 범위 이동의 각 반환 단계는 당시 일정의 SVAR public 좌표와 native scroll 좌표를 독립된 불변 기록으로 보관한다. 원래 보기와 전체 해제는 복귀 대상 단계의 기록을 사용하며, 떠나는 임시 일정의 위치로 원본을 덮어쓰지 않는다. 동일 canonical snapshot 객체, Project·scope/filter, reset 세대, 실제 API reader identity 및 scale/grid/columns/viewport 조건이 맞는 명시적 frame 귀환만 기존 canonical queue에서 새 복원 요청을 만든다. 복원 전에 사용자가 일정에 입력하거나 조건이 바뀌면 Core와 native 복원을 함께 취소하고 사용자 위치를 유지한다. 일반 탭 전환과 일반 필터 변경의 기존 취소 계약은 유지한다.
+
+동일 1440×900 window에서 scope 반환 시 실제 Gantt root 높이가 532px에서 504px로 바뀌는 정상 배치를 확인했다. 원본과 target의 절대 높이 동일성을 요구하지 않고, 원본 window 크기·fullscreen host·scale/columns/grid/root 폭 조건을 유지하면서 target canonical filter 적용 후 보이는 root 크기를 해당 복원 요청의 기준으로 삼는다. 이후 geometry·입력·canonical 세대 변경은 복원을 취소하며, 움직이는 배치를 계속 재캡처하지 않는다.
+
+Issue #530의 추가 직접 경로는 실제 API로 T1과 개인 Assignment2개의 기간만2026-09-28~10-02로 이동한 명시 파생 원장에서 검증한다. M1 원인→정확한 Resource(T1/Assignment2,known7.5 M/D)→지연 KPI1→정확한T1 일정→원래 Resource 지연 상세→원래 M1 원인·검색·기간·focus의 두 단계 LIFO 복귀와 조회 전후 canonical/revision 불변을 확인했다. 실제 server asOf2026-10-08과 해당 report scope/환산을 사용하며 공통 기본11.5 M/D 원장과 파생 조회 context를 혼합하지 않는다. Source-bound report/detail은 같은 binding의 POST query로 대조하며 binding 없는 GET fallback으로 범위를 확대하지 않는다. [실행 증거](../output/playwright/issue530/cross-flow-evidence.json)는 제품4개·fixture/helper 불변, 기존spec32,454byte prefix 보존, 추가case1건12.0초PASS를 기록한다.

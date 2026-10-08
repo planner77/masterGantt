@@ -86,3 +86,12 @@
 - 리뷰 지적 P1 1건/P2 3건의 검토·수정·리뷰 스레드 해결 완료. `650e2a45d8b952e5c302390dbab61c33bec588df`에서 전체 PR CI #2201.1 SUCCESS, PR metadata #2202 SUCCESS.
 - Latest main `08ac7749efc4544dfc125853d9e58ef3a9d56b21` (Issue #487 Playwright CI 안정화)를 PR과 이중 부모 병합하여 release candidate `v0.103.0`을 보존. GitHub synchronization 시 새 정확한 HEAD의 full PR CI를 요구한다.
 - OWNER 댓글 #6061984912는 `mastergantt-release-authorization:v1` with `expected_version=0.103.0`로 검증. CI 성공 전 병합/태그 금지, merge 후 main CI SUCCESS와 범용 Release Finalizer로 GHCR 게시.
+
+
+## 2026-10-09 #530 main 정렬 및 v0.103.0 정식 게시 승인 확인
+
+- #538 PR #539 이전 exact-head `d78328dd06766cc002cf3c327b0c4ec7d21cefdc`의 [PR CI #2243.1](https://github.com/planner77/masterGantt/actions/runs/37852609868)에서 전체 required gate가 SUCCESS. 그러나 이 head 이후 main에 #530(버전 0.102.3)이 병합되었으므로 이전 성공으로 재정렬된 head를 승인하지 않는다.
+- main #530의 Resource/Milestone drill-down 프레임·SVAR public/native viewport 변경 및 통합 E2E·문서·증거를 보존한다. Gantt `project-gantt.tsx`는 최신 main의 peer continuity/geometry 복원을 유지하고 #538 metadata-only 저장 뒤 비영점 좌표 복원만 독립 guard에 결합한다. 새 소스의 TSX 양쪽 블록 닫힘과 새 PR CI를 확인한다.
+- `CHANGELOG.md`는 #538 0.103.0을 기존 #530 0.102.3보다 상단에 추가하고, package.json/lockfile 루트 버전을 0.103.0으로 일치시킨다. 공통 문서는 latest main 문맥과 #538 독립 계약을 모두 유지한다. #530 신규 Resource KPI/통합 증거/테스트 코드는 덮어쓰지 않는다.
+- 동일 PR의 최신 exact-head에서 새 전체 PR CI(quality·E2E·Docker) SUCCESS, mergeable/behind 0, 미해결 review 0 확인 후에만 병합한다. 사용자 요청은 **GHCR 정식 게시를 포함한 병합 및 Main CI 시작**이다.
+- [Issue #538 OWNER release authorization](https://github.com/planner77/masterGantt/issues/538#issuecomment-6061984912): `release_required=true`, `release_authorized=true`, `expected_version=0.103.0`. Main CI 성공과 verified `ci-<merge SHA>` 이후 기존 generic release finalizer→annotated tag→Release CI→GHCR digest/stable 검증. CI 실패나 불일치 시 fail-closed; 운영 배포는 별도다.

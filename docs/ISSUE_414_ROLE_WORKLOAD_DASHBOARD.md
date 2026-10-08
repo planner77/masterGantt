@@ -111,3 +111,8 @@ Chromium:
 기본 Resource Dashboard는 Global Role 공수 flat summary와 개발 견적 preset을 유지한다. 개발 견적은 서버 A의 DEVELOPER 조건과 개인 표시 모드를 선택하고 등급 필터를 추가할 수 있다. Global Role은 현재 catalog가 source이며 Task별 역할 저장을 다시 만들지 않는다. 역할 소계는 복수 Role 때문에 비가산이고 Grand Total은 원시 Assignment에서 서버가 계산한 값이다. 검색/역할/등급/activity/개인 조건이 T0 미배정 진단을 제한하지 않는다는 설명을 함께 제공한다.
 
 새 기본 화면의 역할·등급·상태·기간 필터는 서버 조회 조건이다. 과거의 client-only 표시 subtotal/필터 시 네트워크0 조건은 새 기본 화면에 적용하지 않는다. 기존 exact Milestone drill은 legacy 의미를 유지한다. raw/null/snapshot 및 독립 상세 실패·stale·keyboard·Gantt 보존 검증은 [Resource KPI 계약](RESOURCE_KPI_DASHBOARD.md#issue-525-기본-resourcegroup-dashboard)과 [테스트 계획](TEST_PLAN.md#issue-525-resourcegroup-dashboard-검증)을 따른다.
+
+
+## Issue #530 개발 견적 통합 사용 흐름
+
+Global Role·등급 조건의 raw 계획 공수 확인과 동일 범위 Excel 내보내기는 [통합 사용자 가이드](RESOURCE_KPI_DASHBOARD.md#개발자-역할등급-견적과-같은-범위-excel)를 따른다. 복수 Role/Group 소계는 비가산이며 Grand Total은 고유 Assignment에서 계산한다. 현재 분류를 과거 이력·실제 실적·금액으로 확대하지 않고 기존 legacy workload API 의미를 유지한다.

@@ -476,3 +476,8 @@ Issue #528의 신규 범위 버튼은 기존40px secondary-button/focus primitiv
 Resource 화면의 보고서 진입과 일반 Export opt-in은 단일 대화상자를 사용한다. current는 활성 방문·ready/query/exact binding·원장 fingerprint·실제 정책이 일치해야 한다. stale 후 옵션은 보존하되 실제 새 조회와 사용자 명시 확인 전에는 생성하지 않는다. 현재 조건의 이름/안정 ID·분류·기간·정책·원장·exact 범위를 확인할 수 있어야 한다. Export 종료 시 숨겨진 trigger 대신 visible tab/일반 Export로 focus를 복원하며 readonly·Gantt 선택/양수 viewport/열폭/tree/동일 인스턴스를 유지한다. 원격 quality/e2e/docker와 실제 Windows Excel 검증은 로컬 증거와 별도 판정한다.
 
 Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/pointer/keydown 입력을 우선한다. Core와 native DOM 양쪽 복원을 취소하고 현재 사용자 위치를 보존하며, source·instance·동기화·조건·화면 geometry가 달라진 과거 복원은 적용하지 않는다. 관련 검증은 [TEST_PLAN의 PRE_QA REWORK](TEST_PLAN.md#issue-529-pre_qa-사용자-입력-취소-rework) 근거를 따른다.
+
+
+## Issue #530 Resource KPI 통합 수용
+
+#523~#529의 기존 Domain/API/Dashboard/Plan/정확한 일정 이동/Excel을 같은 합성 원장으로 대조한다. 일반 Task·개인 Assignment 고유 집합, raw 계획 M/D/M/M, 미설정/null/0, 다중 Group 비가산, 선택 기여와 Project 전체 부하, full Milestone Ready를 유지한다. 통합 테스트는 기존 기능별 검증을 대체하거나 제품 계산·권한을 변경하지 않는다. 사용 흐름과 네 진단의 보완 경로는 [통합 사용자 가이드](RESOURCE_KPI_DASHBOARD.md#issue-530-통합-사용자-가이드), 실행 증거는 [Issue #530 계획](exec-plans/active/ISSUE_530.md)을 따른다.
