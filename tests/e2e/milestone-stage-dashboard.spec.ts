@@ -2,6 +2,7 @@ import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-ap
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
 import type { MilestoneDashboardResponse } from "../../src/contracts/milestone-dashboard";
 import { chooseTaskInformation } from "./helpers/task-context-menu";
+import { openMilestoneEditor } from "./helpers/milestone-ui";
 
 const adminPassword = "Stage463SyntheticAdmin!";
 test.use({ ...isolatedApplicationOptions, isolatedResourceAdminPassword: adminPassword, viewport: { width: 1440, height: 900 } });
@@ -69,9 +70,10 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   await dialog.getByRole("button", { name: "저장", exact: true }).click(); await expect(dialog).toHaveCount(0);
   snapshot = await get(); expect(snapshot.data.project.revision).toBe(beforeRevision + 1);
   expect(snapshot.data.tasks.find((task) => task.taskId === child.taskId)?.membership).toMatchObject({ explicitMilestoneTaskId: join.taskId, effectiveMilestoneTaskId: join.taskId });
-  await row(join.taskId).click({ button: "right" }); await chooseTaskInformation(page);
+  await openMilestoneEditor(page, join.taskId);
   await dialog.getByRole("tab", { name: /소속 작업/ }).click(); await expect(dialog).toContainText("유효 일반 작업 1개"); await expect(dialog).toContainText("상속 일반 작업");
   await dialog.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click();
+  await page.getByRole("tab", { name: "일정", exact: true }).click();
   const gridHeader = page.locator(".wx-table-container .wx-header").first();
   await gridHeader.click({ button: "right" }); await page.locator(".project-column-menu").getByRole("checkbox", { name: "완료 단계", exact: true }).check(); await page.keyboard.press("Escape");
   await expect(row(child.taskId).getByRole("button", { name: /완료 단계:/ })).toContainText(join.name);

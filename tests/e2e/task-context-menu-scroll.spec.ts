@@ -102,8 +102,8 @@ test("화면 밖 막대를 우클릭한 뒤 지연된 스크롤 알림은 무시
   // 9월 23일은 이 viewport의 초기 표시 범위 안에 있었다. 초기 작업과 충분히
   // 떨어진 마일스톤을 두고 실제 geometry로 화면 밖이라는 준비 조건을 확인한다.
   const task: ProjectTaskDto = {
-    taskId, externalId: "SCROLL-5", name: "Far milestone", type: "milestone", scheduleMode: "auto",
-    requestedStart: "2026-10-16", start: "2026-10-16", end: "2026-10-16", duration: 0, progress: 0,
+    taskId, externalId: "SCROLL-5", name: "Far task", type: "task", scheduleMode: "auto",
+    requestedStart: "2026-10-16", start: "2026-10-16", end: "2026-10-16", duration: 1, progress: 0,
     parentExternalId: null, siblingOrder: 1,
   };
   const firstTask: ProjectTaskDto = {
@@ -139,7 +139,7 @@ test("화면 밖 막대를 우클릭한 뒤 지연된 스크롤 알림은 무시
   await expect.poll(() => chart.evaluate((element) => element.scrollLeft)).toBe(0);
   await expect.poll(() => bar.evaluate((element) => {
     const parentChart = element.closest(".wx-chart");
-    if (!parentChart) throw new Error("마일스톤의 Chart 조상을 찾을 수 없습니다.");
+    if (!parentChart) throw new Error("작업의 Chart 조상을 찾을 수 없습니다.");
     return element.getBoundingClientRect().left - parentChart.getBoundingClientRect().right;
   })).toBeGreaterThan(0);
   // force/dispatchEvent로 우클릭을 우회하지 않는다. 실제 scrollIntoView 후 클릭을 검증한다.

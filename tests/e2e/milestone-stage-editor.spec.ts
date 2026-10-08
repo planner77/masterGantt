@@ -1,3 +1,4 @@
+import { openMilestoneEditor } from "./helpers/milestone-ui";
 import { mkdir, writeFile } from "node:fs/promises";
 import { expect, test, isolatedApplicationOptions } from "./fixtures/isolated-application";
 import type { ProjectSnapshotResponse, ProjectTaskDto, TaskMutationResponse } from "../../src/contracts/projects";
@@ -31,6 +32,8 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   const frame = page.locator(".project-gantt-frame"), instance = await frame.getAttribute("data-project-gantt-instance");
   const dialog = page.getByRole("dialog", { name: "작업 정보", exact: true });
   const open = async (taskId: string) => {
+    if (snapshot.data.tasks.find(task => task.taskId === taskId)?.type === "milestone") { await openMilestoneEditor(page, taskId); return; }
+    await page.getByRole("tab", { name: "일정", exact: true }).click();
     const row = page.locator(`.project-gantt-widget .wx-table-container .wx-row[data-id=":${taskId}"]`).first();
     await row.click({ button: "right" }); await chooseTaskInformation(page); await expect(dialog).toBeVisible();
   };

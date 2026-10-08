@@ -337,7 +337,7 @@ test.describe("Issue #155 Gantt Grid+Chart native 전체화면", () => {
       item.requestedStart = item.type === "summary" ? null : item.start;
     }
     const linkId = "00000000-0000-4000-8000-000000000090";
-    fixture.links.push({ id: linkId, predecessorExternalId: "LEAF-1", successorExternalId: "MILESTONE-1", type: "FS", lag: 0 });
+    fixture.links.push({ id: linkId, predecessorExternalId: "LEAF-1", successorExternalId: "SUMMARY-CHILD-1", type: "FS", lag: 0 });
     await page.goto(`/projects/${publicId}`);
     const identity = await rememberGanttRoot(page);
     await fullscreenButton(page).click();

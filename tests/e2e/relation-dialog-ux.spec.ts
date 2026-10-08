@@ -9,7 +9,7 @@ async function setup(page: Page, readonly = false, longNames = false) {
   fixture.sessionEditable = !readonly;
   for (const item of fixture.tasks) { item.start = "2026-09-16"; item.end = "2026-09-17"; item.requestedStart = item.type === "summary" ? null : item.start; }
   fixture.tasks.push({ ...fixture.tasks[2], taskId: "00000000-0000-4000-8000-000000000005", externalId: "CANDIDATE", name: longNames ? "후보 작업 " + "아주긴한국어와LongUnbrokenName".repeat(15) : "후보 작업", siblingOrder: 4 });
-  fixture.links.push({ id: linkId, predecessorExternalId: "LEAF-1", successorExternalId: "MILESTONE-1", type: "FS", lag: 0 }, { id: "00000000-0000-4000-8000-000000000081", predecessorExternalId: "LEAF-1", successorExternalId: "SUMMARY-CHILD-1", type: "FS", lag: 0 });
+  fixture.links.push({ id: linkId, predecessorExternalId: "LEAF-1", successorExternalId: "SUMMARY-CHILD-1", type: "FS", lag: 0 }, { id: "00000000-0000-4000-8000-000000000081", predecessorExternalId: "LEAF-1", successorExternalId: "CANDIDATE", type: "FS", lag: 0 });
   await page.goto(`/projects/${publicId}`);
   await expect(page.getByRole("heading", { level: 1, name: fixture.project.name })).toBeVisible();
   const root = await rememberGanttRoot(page);
@@ -127,7 +127,7 @@ test("삭제 확인은 대상 이름을 표시하고 취소는 DELETE를 보내�
   let deletes = 0;
   page.on("request", (request) => { if (request.method() === "DELETE" && request.url().includes("/links/")) deletes++; });
   await dialog(page).getByRole("button", { name: "관계 삭제", exact: true }).click();
-  await expect(dialog(page).getByRole("alert")).toContainText("Stable leaf → Stable milestone");
+  await expect(dialog(page).getByRole("alert")).toContainText("Stable leaf → Existing summary child");
   await dialog(page).getByRole("button", { name: "삭제 취소" }).click();
   expect(deletes).toBe(0);
   await expect(dialog(page)).toBeVisible();
