@@ -89,3 +89,17 @@ test("Issue #538: 비활성 사업부·제품으로 신규 하위 분류 선택 
   await expect(page.locator("#project-product")).toBeDisabled();
   await expect(page.locator("#project-site-entity")).toBeDisabled();
 });
+
+test("Issue #538: 활성 사업부에 연결된 비활성 제품은 새 프로젝트 선택지에서 제외", async ({page}) => {
+  const inactiveProduct = { ...product, active: false };
+  await page.route("**/api/project-master/catalog", (route) => route.fulfill({
+    status: 200,
+    json: {data: {revision: 1, businessUnits: [bu], products: [inactiveProduct],
+      siteEntities: [site], relations: [pair, triple]}},
+  }));
+  await page.goto("/projects/new");
+  await page.locator("#project-business-unit").selectOption(bu.id);
+  await expect(page.locator("#project-product")).toBeEnabled();
+  await expect(page.locator("#project-product option")).toHaveCount(1);
+  await expect(page.locator("#project-site-entity")).toBeDisabled();
+});
