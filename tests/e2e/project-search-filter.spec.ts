@@ -82,7 +82,8 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
     await dashboard.getByLabel("기간 종료", { exact: true }).fill("2026-10-31");
     await expect(dashboard).toHaveAttribute("data-ready", "true");
     await expect(dashboard.getByText("검색 조건에 일치하는 리소스 할당이 없습니다.")).toBeVisible();
-    await expect(kpis).toContainText("0.00 M/D");
+    await expect(kpis).toContainText("할당 없음");
+    await expect(kpis).not.toContainText("0.00 M/D");
     await dashboard.getByRole("button", { name: "초기화", exact: true }).click();
     await expect(search).toBeFocused();
     await expect(dashboard).toHaveAttribute("data-ready", "true");

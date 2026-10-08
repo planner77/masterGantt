@@ -67,6 +67,7 @@ export function readDetails(body: unknown, data: ResourceDashboardDto, selected:
 }
 export function plannedEffort(effort: ResourceDashboardDto["summary"]["effort"], unit: "md" | "mm"): string {
   if (effort.state === "unset") return "산정 불가 · 공수 미설정";
+  if (effort.state === "empty") return "할당 없음";
   const amount = unit === "md" ? effort.plannedMd : effort.plannedMm;
   return `${amount === null ? "—" : amount.toFixed(2)} ${unit === "md" ? "M/D" : "M/M"}${effort.partial ? " · 알려진 부분합" : ""}`;
 }

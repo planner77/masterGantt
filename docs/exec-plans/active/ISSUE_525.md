@@ -67,3 +67,9 @@ CI #2107.1(head db04c5e)은 quality/build/docker와 #525 보완 대상 #76, 앞�
 - Codex PR review P2(미해결 #4209279185): query를 변경 후 기존 조건으로 되돌리면 결정적 snapshotId 때문에 숨긴 `selection`이 다시 mount되고 detail GET이 중복된다. 이 결함은 병합 차단으로 분류한다.
 - 수정은 `ProjectResourceDashboard`의 project/revision/query/snapshot scope key가 달라지면 렌더 완료 전 selection/expanded state를 무효화한다. 검색/기간 필터 A→B→A 회귀에서 상세의 숨김·재등장 부재, 상세 GET 증가 부재 및 focus 보존을 검증한다. `PROJECT_UX`·`TEST_PLAN`·`CHANGELOG` 동기화.
 - 변경 후 required PR quality/e2e/docker와 exact-head 독립 검토·리뷰 resolution을 다시 확보해야 하며 기존 #2117 success는 새 head 승인 근거가 아니다.
+
+## 2026-10-08 Codex 최종 리뷰 신규 P2 재작업
+
+- PR #533 exact-head `4ac5d2f6e704fc308f8a2377f0cf07dccc717792`의 PR CI #2122.1은 PASS, 이전 P2 상세 재등장 review thread는 RESOLVED다.
+- 동일 head에 요청한 독립 Codex 리뷰가 추가 P2를 발견했다: `plannedEffort`가 서버 `empty`(Assignment 0건)와 `configured`(의도된 유효 0공수)를 모두 `0.00 M/D`로 렌더링함. 선택 범위·Role 소계의 공수 의미를 왜곡하므로 병합 전 수정한다.
+- 모델 표시·Role fallback에 `할당 없음`을 도입한다. 단위 및 기존 실제 UI 기간필터 E2E는 `empty` / `configured 0`을 구분하고 `unset` /`partial`을 유지한다. RESOURCE_KPI_DASHBOARD·PROJECT_UX·TEST_PLAN·CHANGELOG 동기화. Domain/API 계산은 불변. 새 exact-head CI/리뷰 성공 후 병합 재판정, 기존 PASS는 변경된 head의 검증 근거가 아니다.

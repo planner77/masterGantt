@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Issue #525: Resource 공수 `empty`(할당 없음)와 `configured` 0공수를 구분하여 빈 선택 범위를 확정된 계획 0공수로 오인하지 않게 한다.
 - Issue #525: Resource Dashboard 필터·snapshot 전환 시 이전 KPI 상세/행 확장 상태를 해제하여 조건 복귀 때 숨겨진 상세가 자동 재개되지 않도록 한다.
 
 ### Added

@@ -2159,3 +2159,7 @@ PR 검토용 최종 합성 화면: [390px](evidence/issue-525/after-390.png), [1
 - project-transfer-layout-491: 실제 HTTP M/M 미설정, 개발 견적 preset, 실제 서버 응답 기반 합성 대규모 공수 display-only 값과 단위 변환, 역순 기간 차단, native Tab/Escape.
 
 테스트 skip/삭제 없이 갱신한다. 새 원격 PR quality/e2e/docker 성공 전 ACCEPT는 유보한다.
+
+### Issue #525 Codex P2: 빈 할당과 설정된 0공수 구별 (2026-10-08)
+
+`src/features/resources/resource-dashboard-model.ts`의 공수 표시에서 `state=empty` / `assignmentCount=0`은 `할당 없음`으로 표현한다. `state=configured`이면서 유효 근무일이 0인 계획은 실제 `0.00 M/D`·`0.00 M/M`로 표시해야 한다. `unset`(산정 불가)·`partial`(알려진 부분합)도 각각 다른 값이다. 단위 테스트는 empty/configured-zero를 M/D·M/M 양쪽에서 별도 검증하고, `project-search-filter.spec.ts`는 실제 기본 Dashboard의 기간 밖 0건 범위에서 `할당 없음`을 확인한다. Global Role 누락 행도 같은 의미로 표시한다. 최신 head CI 성공 전 ACCEPT는 유보한다.

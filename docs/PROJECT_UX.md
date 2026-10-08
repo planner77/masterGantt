@@ -1094,4 +1094,6 @@ Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0d
 
 ### Issue #525 기존 E2E UI 계약의 회귀 해석 (2026-10-08)
 
+계획 공수의 서버 `effort.state=empty`는 `할당 없음`이며 의도적으로 설정된 0공수(`configured`의 `0.00 M/D` 또는 `0.00 M/M`)와 구분한다. `unset`은 `산정 불가 · 공수 미설정`, `partial`은 `알려진 부분합` 표시를 유지한다. 비어 있는 Role 소계에도 가짜 확정 0공수를 노출하지 않는다.
+
 새 Dashboard에서 Group 행은 기본 접힘이며 Resource는 disclosure 후 보인다. 검색·Role·기간 조건은 서버 선택 Assignment scope를 변경해 KPI와 행을 함께 갱신한다. legacy 화면의 표시 행-only/전체 프로젝트 공수 고정 규칙은 신규 Dashboard에 적용하지 않는다. 기존 Milestone exact assignmentIds Stage drill은 legacy renderer/API를 유지한다. 기본 화면은 /resource-dashboard의 data-ready와 고유 row를 확인하며 M/M 환산 미설정은 disabled 단위 버튼 및 기준 문구로 설명한다.
