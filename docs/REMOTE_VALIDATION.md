@@ -298,6 +298,14 @@ Issue #508은 제품 required check 자체가 아니라 `.github/workflows/e2e-s
 - 위 `shouldUpdate=true` 분기는 historical timing threshold가 실제 충족된 run에서만 원격 PASS로 판정한다. 조건을 임의로 낮추거나 테스트용 중복 PR을 만들어 증거를 조작하지 않는다.
 
 
+## Issue #541 자동 PR 권한 오류 원격 검증
+
+- 원 실행 [E2E 샤드 최적화 #10.1](https://github.com/planner77/masterGantt/actions/runs/37706501705)에서 timing 분석/plan proposal artifact/기존 PR 조회/branch push는 PASS, 자동 PR 생성은 GitHub repository permission restriction으로 FAIL이다. 기존 #508의 shell quoting/artifact 문제와 구별한다.
+- PR CI에서는 변경된 workflow에 `gh pr create` 실패 감지, BLOCKED Step Summary, head SHA/수동 PR 복구 링크 및 비정상 exit 조건이 존재하는지 정적 회귀로 확인한다.
+- 권한 차단 분기의 실제 원격 검증에는 같은 저장소 설정으로 새로운 `shouldUpdate=true` 재균형 후보가 있어야 한다. 기존 PR이 이미 열려있으면 해당 분기가 skip되므로 실제 권한 오류 재현 PASS로 과대 보고하지 않는다.
+- 자동 PR 생성이 차단된 상태에서 실제 plan은 브랜치에 보존되고 PR #540을 통해 별도 검증할 수 있다. 추가 token 생성, 저장소 PR 생성 허용 설정 변경, required checks 완화는 권한 있는 maintainer의 명시적 승인 없이는 진행하지 않는다.
+- 저장소 설정이 승인 후 변경되었다면 후속 신규 plan 생성 시 PR 생성과 exact head `ci.yml workflow_dispatch`를 확인한다. 생성 실패를 워크플로 성공으로 처리하지 않는다.
+
 ## Issue #439 setup/cache 성능 원격 검증
 
 | 구분 | 원격 증거 | 판정 |
