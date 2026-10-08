@@ -385,3 +385,10 @@ D04의 GHCR private·consumer 최소 pull 권한·main/tag 보호 의도·releas
 신규 report/details GET 두 경로는 route security inventory의 public-read/stateless다. 서버가 canonical UUIDv4와 Project 존재를 확인하며 편집 쿠키를 읽기 권한으로 승격하거나 신규 쿠키를 발급하지 않는다. Project에 연결되지 않은 catalog ID/다른 Project Task·Milestone은 공개 selection으로 사용할 수 없다. Repository는 해당 Project Task 직접 참조 Resource, 직접 Group 참조 또는 그 Resource의 Group만 projection하고 전역 미할당 인력·Group 전체 멤버·description·내부PK/비밀번호/KDF/session/token을 DTO에 넣지 않는다.
 
 성공과 오류는 private/no-store·nosniff·request ID이며 CORS/Origin/session/revision mutation 정책을 변경하지 않는다. same-snapshot SHA256은 권한 token이 아니라 현재 보고서의 정합성 identity다. Detail에서 source/filter/날짜/환산이 바뀌면409 stale이고 기존 KPI와 새 행을 성공으로 혼합하지 않는다. unknown scalar/잘못된 배열·날짜·페이지·selector는400, 유한 raw/cell/path/JSON 예산 초과는422다. raw query/SQL/stack/secret을 공개 오류로 전달하지 않으며 새 migration·report 저장 원장이 없다. [KPI/API 계약](RESOURCE_KPI_DASHBOARD.md)을 따른다.
+
+
+## Issue #526 Group 자식 조회와 비교 범위
+
+resource-dashboard/group-children GET은 inventory public-read/mutatesState=false이며 기존 UUIDv4+Project 존재 guard, private/no-store·nosniff·request ID를 사용한다. 상세 resourceId는 Group selector에서만 허용하며 Project 연결과 실제 해당 Group membership을 서버에서 검증한다. filtered-out valid member는 empty, 미연결/다른 Group 개인은 INVALID_SELECTION이다. Group 전체/글로벌 미배정 개인을 공개하는 API로 확장하지 않는다.
+
+reference/excluded scope는 동일 필터 중 Milestone 조건만 제거한 해당 Project 개인 Assignment 집합이다. snapshot identity를 먼저 재확인하며 SHA는 권한 token이 아니다. group children query/page/cells/JSON은 유한 allowlist/상한으로 검증하고 초과값을 완전 합계로 절삭하지 않는다. Origin/session/revision 보호 mutation, HTTPS/명시 HTTP cookie 정책, password/secret/SQL 비노출은 불변이다. [조회 계약](API.md#issue-526-milestone-roll-up-조회-확장)을 따른다.

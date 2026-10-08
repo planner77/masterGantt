@@ -1092,8 +1092,10 @@ Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0d
 
 기존 짧은5폭 PASS와 초기 실패 artifact는 보존한다. 새 근거는 로컬 `output/playwright/issue-525/long-many/geometry.json`과 mode별5폭 PNG 및 `run-long-many-final-frozen.log`다. PR PNG390/1440은 새 긴 그룹 기본화면과 일치하며 이전 짧은 PNG는 로컬 `short-before-rework/`에 보존한다. 합성 geometry는 별도 실제 SQLite/HTTP 회귀를 대체하지 않는다. 기존 고유 Chromium10개 PASS에 신규1개를 더한 고유11개이며 반복 geometry 실행을 추가 테스트로 세지 않는다. Unit은 긴 fixture 계약 검증1개를 추가해 관련2파일10개다. 원격 quality/e2e/docker·최종 독립 QA 및 실제 환경 검증은 별도 NOT TESTED다.
 
-### Issue #525 기존 E2E UI 계약의 회귀 해석 (2026-10-08)
+## Issue #526 리소스 Milestone 조회
+
+리소스 탭의 보기 선택에 계층/비교표를 추가한다. Group 중심은 Milestone 우선 또는 개인 우선 집계 순서를 선택하고, 개인 중심은 Milestone 소계에서 상세를 연다. 상위 Workspace navigation은 추가하지 않는다. 기존 기본 현황과 legacy stage drill은 유지한다. 필터·단위·snapshot은 공유하고 행/열 페이지는 계산 범위를 바꾸지 않는다.
 
 계획 공수의 서버 `effort.state=empty`는 `할당 없음`이며 의도적으로 설정된 0공수(`configured`의 `0.00 M/D` 또는 `0.00 M/M`)와 구분한다. `unset`은 `산정 불가 · 공수 미설정`, `partial`은 `알려진 부분합` 표시를 유지한다. 비어 있는 Role 소계에도 가짜 확정 0공수를 노출하지 않는다.
 
-새 Dashboard에서 Group 행은 기본 접힘이며 Resource는 disclosure 후 보인다. 검색·Role·기간 조건은 서버 선택 Assignment scope를 변경해 KPI와 행을 함께 갱신한다. legacy 화면의 표시 행-only/전체 프로젝트 공수 고정 규칙은 신규 Dashboard에 적용하지 않는다. 기존 Milestone exact assignmentIds Stage drill은 legacy renderer/API를 유지한다. 기본 화면은 /resource-dashboard의 data-ready와 고유 row를 확인하며 M/M 환산 미설정은 disabled 단위 버튼 및 기준 문구로 설명한다.
+긴 Group/Resource/Milestone 이름은2줄로 보이되 full accessible name/title을 보존한다. 비교표는 내부 scroll을 가진50행×6단계+전체이며 visible 개수와 전체 scope를 구분한다. 계층은12개 실제 펼침 상한과 안정 ID별 보존 상태를 사용한다. 상세의 이름은 row·Milestone·metric을 포함하고 Escape는 숨김/inert trigger를 피하여 검색으로 복원한다. Gantt instance 및 기존 일정 scroll/선택/열/tree/scale을 변경하지 않는다. 정량 검증은 TEST_PLAN의 #526 UI 절을 따른다.

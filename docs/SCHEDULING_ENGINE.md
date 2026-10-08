@@ -343,3 +343,10 @@ Chart vertical DnD는 일정 계산 명령이 아니다. vertical axis가 lock�
 ## Issue #523 Resource KPI와 일정 엔진 경계
 
 Resource KPI는 일정 mutation이나 별도 공수 엔진이 아니라 기존 `resolveResourceCalendar` 및 `workingDaysBetween`의 조회 projection이다. Project < Group < Resource 예외와 same-layer conflict를 유지하고 Task Calendar AND를 추가하지 않는다. canonical Task 기간과 조회 기간은 T0 진단을, 유효 Assignment 기간의 교집합은 A 공수를 제한한다. allocation은 null 또는0초과100이하이며 비근무일 부분기간은 설정된0공수다. raw 공수는 Task progress/status로 차감하지 않고 Group/Role/개인/Milestone partition의 중복을 제거한다. full `projectStageGates`의 Membership/Ready/Blocked는 선택 범위와 별도이며 Task Link를 Stage Link로 추론하지 않는다. [KPI 사전·fixture](RESOURCE_KPI_DASHBOARD.md), `tests/domain/resource-kpi.test.ts` 및 native legacy precision 회귀를 따른다.
+
+
+## Issue #526 Resource KPI helper 추출 영향
+
+기존 KPI 진입점은 pure snapshot 준비/Assignment 선택/실제 집합 totals/T0 진단/선택 projection helper의 wrapper로 유지한다. full projectStageGates와 전체 Group Resource Calendar를 준비 입력에서 재사용하며 raw/null/M/M·distinct·지연 계약을 변경하지 않는다. 동일 Assignment의 clipped 공수 행을 선택/reference에서 공유한다. reference/excluded는 실제 집합 totals이며 Group/Role/Milestone 전체 cell 재계산으로 대체하지 않는다.
+
+일정 mutation·Calendar 우선순위·Duration·Dependency·Summary·Membership 완료 규칙은 N/A(변경 없음)다. pure helper 회귀와 기존 Calendar/Stage/Workload/Logistics 테스트로 호환성을 확인한다. [공개 계산 계약](RESOURCE_KPI_DASHBOARD.md#issue-526-서버-milestone-roll-up-계약)을 따른다.

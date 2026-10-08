@@ -1,10 +1,10 @@
 import { createHash } from "node:crypto";
 import type Database from "better-sqlite3";
-import type { ResourceDashboardDetailInput, ResourceDashboardDetailRow, ResourceDashboardDetailsDto, ResourceDashboardDto, ResourceDashboardFilterInput, ResourceDashboardSelector, ResourceDashboardSummary } from "../../contracts/resource-dashboard";
+import type { ResourceDashboardDetailInput, ResourceDashboardDetailRow, ResourceDashboardDetailsDto, ResourceDashboardDto, ResourceDashboardFilterInput, ResourceDashboardSelector, ResourceDashboardSummary, ResourceDashboardGroupChildrenInput, ResourceDashboardGroupChildrenDto } from "../../contracts/resource-dashboard";
 import { RESOURCE_DASHBOARD_LIMITS as LIMITS } from "../../contracts/resource-dashboard";
 import type { ResourceWorkloadRole } from "../../contracts/resources";
-import { projectStageGates } from "../../domain/milestones/stage-gates";
-import { calculateResourceKpi, ResourceKpiProjectionLimitError, type ResourceKpiAssignmentRow, type ResourceKpiTotals } from "../../domain/resources/resource-kpi";
+import { prepareResourceKpiSnapshot, selectResourceKpiAssignments, summarizeResourceKpiAssignments, renderResourceKpi, getResourceKpiDiagnostics, assertResourceKpiProjectionBudget, ResourceKpiProjectionLimitError, type ResourceKpiAssignmentRow, type ResourceKpiTotals } from "../../domain/resources/resource-kpi";
+import { mdPerMmSource } from "../../domain/resources/md-per-mm";
 import { dateToOrdinal } from "../../domain/scheduling/date-only";
 import { loadResourceCalendarExceptions, resolveProjectWorkingCalendar } from "../calendars/calendar-resolution-core";
 import { PublicApiError } from "../http/api-error-core";
@@ -15,7 +15,7 @@ import { ResourceCatalogRepository } from "../repositories/resource-catalog-repo
 import { ResourceDashboardRepository } from "../repositories/resource-dashboard-repository-core";
 import { ScheduleRepository } from "../repositories/schedule-repository-core";
 import { WorkCalendarRepository } from "../repositories/work-calendar-repository-core";
-import { normalizeResourceDashboardFilters, parseResourceDashboardDetails } from "./resource-dashboard-query-core";
+import { normalizeResourceDashboardFilters, parseResourceDashboardDetails, parseResourceDashboardGroupChildren } from "./resource-dashboard-query-core";
 
 const fingerprint = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 export function resourceDashboardLimit(kind: string): never {
@@ -29,11 +29,21 @@ function compact(value: ResourceKpiTotals, selector: ResourceDashboardSelector):
     notStarted: value.notStarted.count, inProgress: value.inProgress.count, completed: value.completed.count, delayed: value.delayed.count,
     completion: { numerator: value.completion.numerator, denominator: value.completion.denominator, percent: value.completion.percent },
     assignedTaskProgress: { numerator: value.assignedTaskProgress.numerator, denominator: value.assignedTaskProgress.denominator, percent: value.assignedTaskProgress.percent },
-    effort: { knownMd: value.effort.knownMd, plannedMd: value.effort.plannedMd, plannedMm: value.effort.plannedMm, state: value.effort.state, partial: value.effort.partial, unsetCount: value.effort.unsetCount }, selector };
+    effort: { knownMd: value.effort.knownMd, plannedMd: value.effort.plannedMd, plannedMm: value.effort.plannedMm, state: value.effort.state, partial: value.effort.partial, unsetCount: value.effort.unsetCount }, selector: { assignmentScope: "selected", ...selector } };
 }
 function localDate(now: Date): string {
   const values = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now).map((part) => [part.type, part.value]));
   return `${values.year}-${values.month}-${values.day}`;
+}
+
+function assignmentRangeOf(rows: readonly ResourceKpiAssignmentRow[]) {
+  return rows.length ? { from: rows.map((row) => row.from).sort()[0], to: rows.map((row) => row.to).sort().at(-1)! } : null;
+}
+function milestoneOrder(snapshot: { taskById: Map<string, { startDate: string | null }> }, a: string | null, b: string | null) {
+  if (a === b) return 0;
+  if (a === null) return 1;
+  if (b === null) return -1;
+  return (snapshot.taskById.get(a)?.startDate ?? "9999").localeCompare(snapshot.taskById.get(b)?.startDate ?? "9999") || a.localeCompare(b);
 }
 
 export class ResourceDashboardService {
@@ -47,34 +57,44 @@ export class ResourceDashboardService {
     if (detail.selector.id !== null) params.set("id", detail.selector.id);
     else if (detail.selector.dimension === "group") params.set("id", "ungrouped");
     else if (detail.selector.dimension === "milestone") params.set("id", "unassigned");
+    if (detail.selector.resourceId !== undefined) params.set("resourceId", detail.selector.resourceId);
+    if (detail.selector.assignmentScope !== undefined) params.set("assignmentScope", detail.selector.assignmentScope);
     if (detail.selector.milestoneTaskId !== undefined) params.set("milestoneTaskId", detail.selector.milestoneTaskId ?? "unassigned");
     const checked = parseResourceDashboardDetails(params);
     return this.database.transaction(() => {
-      let calculated: ReturnType<ResourceDashboardService["calculate"]>;
-      try { calculated = this.calculate(publicId, filter); }
+      let calculated: ReturnType<ResourceDashboardService["prepareAndSelect"]>;
+      try { calculated = this.prepareAndSelect(publicId, filter, checked.snapshotId); }
       catch (error) { if (error instanceof PublicApiError && error.code === "INVALID_SELECTION") stale(); throw error; }
       if (!calculated) return undefined;
-      const { report, raw, diagnosticRaw, taskById, resourceById, assignmentById, paths, projection } = calculated;
+      const { snapshot, selection, referenceRows, excludedRows, diagnosticSelection } = calculated;
+      const { taskById, resourceById, assignmentById, paths, domain } = snapshot;
+      const projection = domain.projection;
+      const report = snapshot;
+      const diagnostics = getResourceKpiDiagnostics(domain, selection);
+      const diagnosticRows = selector.dimension === "diagnostic" && selector.metric === "unset"
+        ? diagnosticSelection.assignments.filter((row) => diagnostics.unsetAssignmentIds.includes(row.assignmentId))
+        : null;
       if (report.snapshotId !== checked.snapshotId) stale();
       const selector = checked.selector;
       if (selector.dimension === "resource" && !resourceById.has(selector.id!)) invalidSelection();
-      if (selector.dimension === "group" && selector.id !== null && !report.catalog.groups.some((row) => row.id === selector.id)) invalidSelection();
-      if (selector.dimension === "milestone" && selector.id !== null && !report.catalog.milestones.some((row) => row.id === selector.id)) invalidSelection();
-      if (selector.milestoneTaskId !== undefined && selector.milestoneTaskId !== null && !report.catalog.milestones.some((row) => row.id === selector.milestoneTaskId)) invalidSelection();
-      const metricTaskIds = selector.metric === "notStarted" ? raw.total.notStarted.taskIds : selector.metric === "inProgress" ? raw.total.inProgress.taskIds : selector.metric === "completed" ? raw.total.completed.taskIds : selector.metric === "delayed" ? raw.total.delayed.taskIds : null;
-      const rows = raw.assignments.filter((row) =>
+      if (selector.dimension === "group" && selector.id !== null && !snapshot.groups.some((row) => row.publicId === selector.id)) invalidSelection();
+      if (selector.dimension === "milestone" && selector.id !== null && !snapshot.milestones.some((row) => row.publicId === selector.id)) invalidSelection();
+      if (selector.milestoneTaskId !== undefined && selector.milestoneTaskId !== null && !snapshot.milestones.some((row) => row.publicId === selector.milestoneTaskId)) invalidSelection();
+      if (selector.resourceId !== undefined) this.validateGroupResource(snapshot, selector.id, selector.resourceId);
+      const scopeRows = selector.assignmentScope === "milestoneReference" ? referenceRows : selector.assignmentScope === "milestoneExcluded" ? excludedRows : selection.assignments;
+      const scopeTotals = summarizeResourceKpiAssignments(domain, scopeRows);
+      const metricTaskIds = selector.metric === "notStarted" ? scopeTotals.notStarted.taskIds : selector.metric === "inProgress" ? scopeTotals.inProgress.taskIds : selector.metric === "completed" ? scopeTotals.completed.taskIds : selector.metric === "delayed" ? scopeTotals.delayed.taskIds : null;
+      const rows = scopeRows.filter((row) =>
+        (selector.resourceId === undefined || row.resourceId === selector.resourceId) &&
         (selector.dimension !== "resource" || row.resourceId === selector.id) &&
         (selector.dimension !== "group" || (selector.id === null ? !row.groupIds.length : row.groupIds.includes(selector.id))) &&
         (selector.dimension !== "role" || row.roles.includes(selector.id!)) &&
         (selector.dimension !== "milestone" || row.milestoneTaskId === selector.id) &&
         (selector.milestoneTaskId === undefined || row.milestoneTaskId === selector.milestoneTaskId) &&
         (!metricTaskIds || metricTaskIds.includes(row.taskId)) && (selector.metric !== "unset" || row.plannedMd === null));
-      const diagnosticTaskIds = selector.metric === "completelyUnassigned" ? raw.diagnostics.completelyUnassigned.taskIds : selector.metric === "groupOnly" ? raw.diagnostics.groupOnly.taskIds : selector.metric === "personallyUnassigned" ? raw.diagnostics.personallyUnassigned.taskIds : raw.diagnostics.unsetTasks.taskIds;
+      const diagnosticTaskIds = selector.metric === "completelyUnassigned" ? diagnostics.completelyUnassigned.taskIds : selector.metric === "groupOnly" ? diagnostics.groupOnly.taskIds : selector.metric === "personallyUnassigned" ? diagnostics.personallyUnassigned.taskIds : diagnostics.unsetTasks.taskIds;
       const targetTaskIds = selector.dimension === "diagnostic" ? diagnosticTaskIds : [...new Set(rows.map((row) => row.taskId))].sort();
-      const assignmentRows = selector.dimension === "diagnostic" && selector.metric === "unset"
-        ? diagnosticRaw.assignments.filter((row) => diagnosticRaw.diagnostics.unsetAssignmentIds.includes(row.assignmentId))
-        : rows;
-      const details: { taskId: string; row: ResourceKpiAssignmentRow | null }[] = checked.view === "tasks" ? targetTaskIds.map((taskId) => ({ taskId, row: null })) : assignmentRows.map((row) => ({ taskId: row.taskId, row }));
+      const details: { taskId: string; row: ResourceKpiAssignmentRow | null }[] = checked.view === "tasks" ? targetTaskIds.map((taskId) => ({ taskId, row: null })) : (diagnosticRows ?? rows).map((row) => ({ taskId: row.taskId, row }));
       details.sort((a, b) => a.taskId.localeCompare(b.taskId) || (a.row?.assignmentId ?? "").localeCompare(b.row?.assignmentId ?? ""));
       const page: ResourceDashboardDetailRow[] = details.slice(checked.offset, checked.offset + checked.limit).map(({ taskId, row }) => {
         const task = taskById.get(taskId)!, membership = projection.membership.get(taskId)!;
@@ -88,14 +108,55 @@ export class ResourceDashboardService {
             effectiveWorkingDays: row.effectiveWorkingDays, plannedMd: row.plannedMd, plannedMm: row.plannedMm } : null };
       });
       const result: ResourceDashboardDetailsDto = { schema: "resource-dashboard/1", snapshotId: report.snapshotId, projectPublicId: publicId,
-        projectRevision: report.projectRevision, catalogRevision: report.catalogRevision, calendarRevision: report.calendarRevision,
+        projectRevision: report.project.revision, catalogRevision: report.catalogRevision, calendarRevision: report.calendarRevision,
         selector, view: checked.view, offset: checked.offset, limit: checked.limit, totalCount: details.length,
         nextOffset: checked.offset + checked.limit < details.length ? checked.offset + checked.limit : null, rows: page };
       if (Buffer.byteLength(JSON.stringify(result)) > LIMITS.reportBytes) resourceDashboardLimit("detail.bytes");
       return result;
     })();
   }
-  private calculate(publicId: string, filter: ResourceDashboardFilterInput) {
+  getGroupChildren(publicId: string, filter: ResourceDashboardFilterInput, input: ResourceDashboardGroupChildrenInput): ResourceDashboardGroupChildrenDto | undefined {
+    const params = new URLSearchParams({ snapshotId: input.snapshotId, groupId: input.groupId ?? "ungrouped", offset: String(input.offset), limit: String(input.limit) });
+    if (input.milestoneTaskId !== undefined) params.set("milestoneTaskId", input.milestoneTaskId ?? "unassigned");
+    const checked = parseResourceDashboardGroupChildren(params);
+    return this.database.transaction(() => {
+      let calculated: ReturnType<ResourceDashboardService["prepareAndSelect"]>;
+      try { calculated = this.prepareAndSelect(publicId, filter, checked.snapshotId); }
+      catch (error) { if (error instanceof PublicApiError && error.code === "INVALID_SELECTION") stale(); throw error; }
+      if (!calculated) return undefined;
+      const { snapshot, selection } = calculated;
+      if (snapshot.snapshotId !== checked.snapshotId) stale();
+      if (checked.groupId !== null && !snapshot.groups.some((row) => row.publicId === checked.groupId)) invalidSelection();
+      if (checked.milestoneTaskId !== undefined && checked.milestoneTaskId !== null && !snapshot.milestones.some((row) => row.publicId === checked.milestoneTaskId)) invalidSelection();
+      const rows = selection.assignments.filter((row) => (checked.groupId === null ? !row.groupIds.length : row.groupIds.includes(checked.groupId)) && (checked.milestoneTaskId === undefined || row.milestoneTaskId === checked.milestoneTaskId));
+      const resourceIds = [...new Set(rows.map((row) => row.resourceId))].sort();
+      const pageIds = resourceIds.slice(checked.offset, checked.offset + checked.limit);
+      const selector: ResourceDashboardSelector = { dimension: "group", id: checked.groupId, metric: "all", ...(checked.milestoneTaskId === undefined ? {} : { milestoneTaskId: checked.milestoneTaskId }) };
+      const pageCellCount = pageIds.reduce((sum, resourceId) => sum + new Set<string | null>([null, ...rows.filter((row) => row.resourceId === resourceId).map((row) => row.milestoneTaskId)]).size, 0);
+      if (pageCellCount > LIMITS.cells) resourceDashboardLimit("projection.groupChildrenCells");
+      const pageRows = pageIds.map((resourceId) => {
+        const assignments = rows.filter((row) => row.resourceId === resourceId), resource = snapshot.resourceById.get(resourceId)!;
+        const memberSelector = { ...selector, resourceId };
+        const milestoneIds = [...new Set(assignments.map((row) => row.milestoneTaskId))];
+        if (!milestoneIds.includes(null)) milestoneIds.push(null);
+        return { id: resourceId, name: resource.name, code: resource.code, active: resource.active, resourceIds: [resourceId], assignmentRange: assignmentRangeOf(assignments),
+          summary: compact(summarizeResourceKpiAssignments(snapshot.domain, assignments), memberSelector),
+          milestones: milestoneIds.sort((a, b) => milestoneOrder(snapshot, a, b)).map((milestoneTaskId) => ({ milestoneTaskId, summary: compact(summarizeResourceKpiAssignments(snapshot.domain, assignments.filter((row) => row.milestoneTaskId === milestoneTaskId)), { ...memberSelector, milestoneTaskId }) })) };
+      });
+      const result: ResourceDashboardGroupChildrenDto = { schema: "resource-dashboard/1", projectPublicId: publicId, snapshotId: snapshot.snapshotId, projectRevision: snapshot.project.revision,
+        catalogRevision: snapshot.catalogRevision, calendarRevision: snapshot.calendarRevision, filters: snapshot.filters, range: { from: snapshot.from, to: snapshot.to }, asOfDate: snapshot.asOfDate, mdPerMm: snapshot.domain.mdPerMm, mdPerMmSource: snapshot.mdPerMmSource, groupId: checked.groupId,
+        ...(checked.milestoneTaskId === undefined ? {} : { milestoneTaskId: checked.milestoneTaskId }), summary: compact(summarizeResourceKpiAssignments(snapshot.domain, rows), selector),
+        offset: checked.offset, limit: checked.limit, totalCount: resourceIds.length, nextOffset: checked.offset + checked.limit < resourceIds.length ? checked.offset + checked.limit : null, rows: pageRows };
+      if (Buffer.byteLength(JSON.stringify(result)) > LIMITS.reportBytes) resourceDashboardLimit("detail.bytes");
+      return result;
+    })();
+  }
+  private validateGroupResource(snapshot: NonNullable<ReturnType<ResourceDashboardService["prepareSnapshot"]>>, groupId: string | null, resourceId: string) {
+    if (!snapshot.resourceById.has(resourceId)) invalidSelection();
+    const groupIds = snapshot.groupIdsByResource.get(resourceId) ?? [];
+    if (groupId === null ? groupIds.length > 0 : !groupIds.includes(groupId)) invalidSelection();
+  }
+  private prepareSnapshot(publicId: string, filter: ResourceDashboardFilterInput) {
     if (!isCanonicalUuidV4(publicId)) return undefined;
     const project = new ProjectRepository(this.database).findByPublicId(publicId);
     if (!project) return undefined;
@@ -123,7 +184,7 @@ export class ResourceDashboardService {
       if (path.reduce((sum, row) => sum + row.name.length, 0) > LIMITS.wbsPathChars) resourceDashboardLimit("snapshot.wbsPathChars");
       paths.set(task.publicId, path);
     }
-    const milestones = storedTasks.filter((row) => row.type === "milestone");
+    const milestones = storedTasks.filter((row) => row.type === "milestone").sort((a, b) => (a.startDate ?? "9999").localeCompare(b.startDate ?? "9999") || a.publicId.localeCompare(b.publicId));
     const validateIds = (ids: string[], allowed: Set<string>, sentinel?: string) => { if (ids.some((id) => id !== sentinel && !allowed.has(id))) invalidSelection(); };
     validateIds(filters.taskIds, new Set(storedTasks.filter((row) => row.type === "task").map((row) => row.publicId)));
     validateIds(filters.wbsRootIds, new Set(storedTasks.map((row) => row.publicId)));
@@ -148,40 +209,62 @@ export class ResourceDashboardService {
       activityMatches(resource.active, filters.resourceActivity) && (filters.groupActivity === "all" || groups.some((group) => group.memberResourceIds.includes(resource.publicId) &&
         (!filters.groupIds.length || filters.groupIds.includes(group.publicId)) && activityMatches(group.active, filters.groupActivity))),
     ).map((row) => row.publicId);
-    const calculateRaw = () => calculateResourceKpi({ projectPublicId: publicId, timezone: "Asia/Seoul", asOfDate, from, to, tasks, memberships, links,
+    const domain = prepareResourceKpiSnapshot({ projectPublicId: publicId, timezone: "Asia/Seoul", asOfDate, from, to, tasks, memberships, links,
       resources: resources.map((row) => ({ resourceId: row.publicId, name: row.name, code: row.code, groupSearchText: groups.filter((group) => group.memberResourceIds.includes(row.publicId)).map((group) => `${group.name} ${group.code ?? ""}`).join(" "), groupIds: groupIdsByResource.get(row.publicId) ?? [], roles: row.roles, developerGrade: row.developerGrade })),
       assignments: assignments.map((row) => ({ assignmentId: row.publicId, taskId: row.taskPublicId, kind: row.kind, targetId: row.targetPublicId, start: row.assignmentStart, end: row.assignmentEnd, allocationPercent: row.allocationPercent })),
       projectCalendar, calendarExceptions, maxProjectionCells: LIMITS.cells, mdPerMm: filters.mdPerMmProvided ? filters.mdPerMm : undefined, mdPerMmEnvironment: this.options.mdPerMmEnvironment,
       filters: { eligibleResourceIds, taskIds: filters.taskIds, wbsRootIds: filters.wbsRootIds, milestoneIds: filters.milestoneIds.map((id) => id === "unassigned" ? null : id),
         resourceIds: filters.resourceIds, groupIds: filters.groupIds.filter((id) => id !== "ungrouped"), includeUngrouped: filters.groupIds.includes("ungrouped"),
         roles: filters.roles, developerGrades: filters.developerGrades, statuses: filters.statuses, search: filters.search, taskSearch: filters.taskSearch } });
-    let raw: ReturnType<typeof calculateResourceKpi>;
-    try { raw = calculateRaw(); } catch (error) { if (error instanceof ResourceKpiProjectionLimitError) resourceDashboardLimit("projection.cells"); throw error; }
-    const diagnosticRaw = calculateResourceKpi({ projectPublicId: publicId, timezone: "Asia/Seoul", asOfDate, from, to, tasks, memberships, links,
-      resources: resources.map((row) => ({ resourceId: row.publicId, name: row.name, code: row.code, groupSearchText: groups.filter((group) => group.memberResourceIds.includes(row.publicId)).map((group) => `${group.name} ${group.code ?? ""}`).join(" "), groupIds: groupIdsByResource.get(row.publicId) ?? [], roles: row.roles, developerGrade: row.developerGrade })),
-      assignments: assignments.map((row) => ({ assignmentId: row.publicId, taskId: row.taskPublicId, kind: row.kind, targetId: row.targetPublicId, start: row.assignmentStart, end: row.assignmentEnd, allocationPercent: row.allocationPercent })),
-      projectCalendar, calendarExceptions, maxProjectionCells: LIMITS.cells, mdPerMm: filters.mdPerMmProvided ? filters.mdPerMm : undefined, mdPerMmEnvironment: this.options.mdPerMmEnvironment,
-      filters: { taskIds: filters.taskIds, wbsRootIds: filters.wbsRootIds, milestoneIds: filters.milestoneIds.map((id) => id === "unassigned" ? null : id),
-        statuses: filters.statuses, taskSearch: filters.taskSearch } });
-    const assignmentRange = (ids: string[]) => { const idSet = new Set(ids), rows = raw.assignments.filter((row) => idSet.has(row.assignmentId)); return rows.length ? { from: rows.map((row) => row.from).sort()[0], to: rows.map((row) => row.to).sort().at(-1)! } : null; };
-    const cells = raw.roles.length + raw.resources.reduce((sum, row) => sum + row.milestones.length, 0) + raw.groups.reduce((sum, row) => sum + row.milestones.length, 0) + raw.milestones.length;
-    if (cells > LIMITS.cells) resourceDashboardLimit("projection.cells");
     const catalogRevision = catalogRepository.getRevision();
     const snapshotId = fingerprint({ projectPublicId: publicId, projectRevision: project.revision, catalogRevision, calendarRevision, tasks, memberships, links, assignments,
-      resources, groups, filters: { ...filters, mode: undefined }, from, to, asOfDate, mdPerMm: raw.mdPerMm });
+      resources, groups, filters: { ...filters, mode: undefined }, from, to, asOfDate, mdPerMm: domain.mdPerMm });
+    return { project, publicId, now, filters, from, to, asOfDate, dates, tasks, storedTasks, resources, groups, milestones, groupIdsByResource,
+      taskById, resourceById, assignmentById: new Map(assignments.map((row) => [row.publicId, row])), paths, domain, mdPerMmSource: mdPerMmSource(filters.mdPerMmProvided ? filters.mdPerMm : undefined, this.options.mdPerMmEnvironment), catalogRevision, calendarRevision, snapshotId };
+  }
+  private prepareAndSelect(publicId: string, filter: ResourceDashboardFilterInput, expectedSnapshotId?: string) {
+    const snapshot = this.prepareSnapshot(publicId, filter);
+    if (!snapshot) return undefined;
+    if (expectedSnapshotId !== undefined && snapshot.snapshotId !== expectedSnapshotId) stale();
+    const reference = selectResourceKpiAssignments(snapshot.domain, { ...snapshot.domain.input.filters, milestoneIds: [] });
+    const diagnosticSelection = selectResourceKpiAssignments(snapshot.domain, {
+      taskIds: snapshot.domain.input.filters?.taskIds, wbsRootIds: snapshot.domain.input.filters?.wbsRootIds,
+      milestoneIds: snapshot.domain.input.filters?.milestoneIds, statuses: snapshot.domain.input.filters?.statuses,
+      taskSearch: snapshot.domain.input.filters?.taskSearch,
+    });
+    const selection = snapshot.filters.milestoneIds.length ? selectResourceKpiAssignments(snapshot.domain) : reference;
+    try { assertResourceKpiProjectionBudget(snapshot.domain, selection); } catch (error) { if (error instanceof ResourceKpiProjectionLimitError) resourceDashboardLimit("projection.cells"); throw error; }
+    const selectedIds = new Set(selection.assignments.map((row) => row.assignmentId));
+    const excludedRows = reference.assignments.filter((row) => !selectedIds.has(row.assignmentId));
+    return { snapshot, selection, referenceRows: reference.assignments, excludedRows, diagnosticSelection };
+  }
+  private calculate(publicId: string, filter: ResourceDashboardFilterInput) {
+    const calculated = this.prepareAndSelect(publicId, filter);
+    if (!calculated) return undefined;
+    return { report: this.renderReport(calculated) };
+  }
+  private renderReport(calculated: NonNullable<ReturnType<ResourceDashboardService["prepareAndSelect"]>>) {
+    const { snapshot, selection, referenceRows, excludedRows } = calculated;
+    const { project, publicId, now, filters, from, to, asOfDate, dates, resources, groups, milestones, groupIdsByResource, taskById, resourceById, storedTasks, catalogRevision, calendarRevision, snapshotId, domain } = snapshot;
+    let raw: ReturnType<typeof renderResourceKpi>;
+    try { raw = renderResourceKpi(domain, selection); } catch (error) { if (error instanceof ResourceKpiProjectionLimitError) resourceDashboardLimit("projection.cells"); throw error; }
+    const assignmentRange = (ids: string[]) => { const idSet = new Set(ids); return assignmentRangeOf(raw.assignments.filter((row) => idSet.has(row.assignmentId))); };
     const selector = (dimension: ResourceDashboardSelector["dimension"], id: string | null = null): ResourceDashboardSelector => ({ dimension, id, metric: "all" });
-    const convertCells = (rows: typeof raw.milestones, dimension: ResourceDashboardSelector["dimension"], id: string | null) => rows.map((row) => ({ milestoneTaskId: row.milestoneTaskId, summary: compact(row, { ...selector(dimension, id), milestoneTaskId: row.milestoneTaskId }) }));
-    const diagnostic = (count: number, metric: ResourceDashboardSelector["metric"]) => ({ count, selector: { dimension: "diagnostic" as const, id: null, metric } });
+    const convertCells = (rows: typeof raw.milestones, dimension: ResourceDashboardSelector["dimension"], id: string | null) => rows.slice().sort((a, b) => milestoneOrder(snapshot, a.milestoneTaskId, b.milestoneTaskId)).map((row) => ({ milestoneTaskId: row.milestoneTaskId, summary: compact(row, { ...selector(dimension, id), milestoneTaskId: row.milestoneTaskId }) }));
+    const diagnostic = (count: number, metric: ResourceDashboardSelector["metric"]) => ({ count, selector: { dimension: "diagnostic" as const, id: null, metric, assignmentScope: "selected" as const } });
     const report: ResourceDashboardDto = {
       schema: "resource-dashboard/1", projectPublicId: publicId, projectRevision: project.revision, catalogRevision, calendarRevision, snapshotId,
       calculatedAt: now.toISOString(), asOfDate, timezone: "Asia/Seoul", filters, range: { from, to }, rangeFallback: !dates.length && filters.from === null,
       mdPerMm: raw.mdPerMm, mdPerMmSource: raw.mdPerMmSource, scope: { assignment: "A", diagnostics: "T0", identity: snapshotId },
       summary: compact(raw.total, selector("all")),
+      reference: compact(summarizeResourceKpiAssignments(domain, referenceRows), { ...selector("all"), assignmentScope: "milestoneReference" }),
+      excluded: compact(summarizeResourceKpiAssignments(domain, excludedRows), { ...selector("all"), assignmentScope: "milestoneExcluded" }),
+      milestoneSelection: { applied: filters.milestoneIds.length > 0, reference: "A without Milestone filter", excluded: "reference Assignment IDs minus selected Assignment IDs" },
       resources: raw.resources.map((row) => { const resource = resourceById.get(row.id)!; return { id: row.id, name: resource.name, code: resource.code, active: resource.active, resourceIds: [row.id], assignmentRange: assignmentRange(row.assignmentIds), summary: compact(row, selector("resource", row.id)), milestones: convertCells(row.milestones, "resource", row.id) }; }),
       groups: raw.groups.filter((row) => row.assignmentCount > 0).map((row) => { const group = groups.find((group) => group.publicId === row.id); return { id: row.id, name: group?.name ?? "미분류 리소스", code: group?.code ?? null, active: group?.active ?? true, resourceIds: row.resourceIds, assignmentRange: assignmentRange(row.assignmentIds), summary: compact(row, selector("group", row.id)), milestones: convertCells(row.milestones, "group", row.id) }; }),
       roleTotals: raw.roles.map((row) => ({ role: row.id as ResourceWorkloadRole, summary: compact(row, selector("role", row.id)) })),
       milestones: convertCells(raw.milestones, "all", null),
-      stages: raw.fullMilestones.map((row) => { const task = taskById.get(row.milestoneTaskId)!, gate = row.stageGate;
+      stages: raw.fullMilestones.slice().sort((a, b) => milestoneOrder(snapshot, a.milestoneTaskId, b.milestoneTaskId)).map((row) => { const task = taskById.get(row.milestoneTaskId)!, gate = row.stageGate;
         const bucket = raw.milestones.find((value) => value.milestoneTaskId === row.milestoneTaskId);
         return { milestoneTaskId: row.milestoneTaskId, name: task.name, scheduledDate: task.startDate, status: task.status,
           full: { memberCount: gate.memberCount, completedMemberCount: gate.completedMemberCount, memberProgressPercent: gate.memberProgressPercent,
@@ -200,7 +283,6 @@ export class ResourceDashboardService {
         searchScope: "A: Resource name/code OR its connected Group name/code OR assigned Task name/externalId/WBS path; taskSearch applies to T0 and A", historicalStateRestoration: false, totalFrom: "full selected assignment set", limits: LIMITS },
     };
     if (Buffer.byteLength(JSON.stringify(report)) > LIMITS.reportBytes) resourceDashboardLimit("projection.reportBytes");
-    const projection = projectStageGates({ tasks, memberships, links });
-    return { report, raw, diagnosticRaw, taskById, resourceById, assignmentById: new Map(assignments.map((row) => [row.publicId, row])), paths, projection };
+    return report;
   }
 }

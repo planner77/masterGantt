@@ -45,3 +45,21 @@
 
 .dashboard :global(.resource-dashboard-date) { white-space:nowrap; }
 .dashboard :global(.resource-dashboard-table:not(.resource-dashboard-detail-table) > tbody > tr > td:nth-child(7)), .dashboard :global(.resource-dashboard-table:not(.resource-dashboard-detail-table) > tbody > tr > td:nth-child(8)) { white-space:nowrap; }
+
+.dashboard :global(.resource-dashboard-view-controls), .dashboard :global(.resource-milestone-summary) { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+.dashboard :global(.resource-milestone-node) { margin:4px 0; padding:8px; border-bottom:1px solid var(--border-default); min-width:0; overflow-wrap:anywhere; }
+.dashboard :global(.resource-milestone-node > div) { padding-left:12px; }
+.dashboard :global(.resource-dashboard-matrix) { table-layout:fixed; border-collapse:collapse; width:100%; }
+.dashboard :global(.resource-dashboard-matrix th), .dashboard :global(.resource-dashboard-matrix td) { border-bottom:1px solid var(--border-default); padding:12px; vertical-align:top; overflow-wrap:anywhere; }
+.dashboard :global(.resource-dashboard-matrix > thead > tr > th:first-child) { width:264px; }
+.dashboard :global(.resource-dashboard-matrix > thead > tr > th:not(:first-child)) { width:144px; }
+.dashboard :global(.resource-dashboard-matrix button) { max-width:100%; margin:0; white-space:normal; overflow-wrap:anywhere; }
+.dashboard :global(.resource-dashboard-matrix small) { display:block; }
+
+.dashboard :global(.resource-milestone-identity) { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; line-height:20px; min-width:0; }
+.dashboard :global(.resource-dashboard-matrix) { font-size:12px; font-variant-numeric:tabular-nums; }
+
+.dashboard :global(.resource-milestone-scope) { display:flex; flex-direction:column; gap:4px; margin:8px 0; }
+.dashboard :global(.resource-milestone-scope > div) { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; }
+.dashboard :global(.resource-milestone-scope dd) { margin:0; font-size:12px; }
+.dashboard :global(.resource-milestone-scope small) { display:inline; }
