@@ -1,3 +1,7 @@
+## Issue #519 — Task/Summary Milestone 후보 표시 단순화 (2026-10-08)
+
+[Issue #519](https://github.com/planner77/masterGantt/issues/519) / [Work Packet](ISSUE_519.md). main `e61fa037d9b527dad5a014250dbdd1678519c027`의 application `0.101.2`에서 PATCH 후보 `0.101.3`을 준비한다. #461의 과거 후보 ID 노출 계약은 #519 이후 Task/Summary picker에 한해 변경하며, #495 전역 Milestone 용어 통일은 별도 OPEN Issue로 유지한다. 검색·canonical identity·날짜·상태·키보드·잠금·저장 계약을 유지하고 후보 ID 표시만 제거한다. TASK_EDITOR/PROJECT_UX/UI_UX_GUIDELINES/TEST_PLAN/CHANGELOG와 관련 E2E를 동기화한다. DESIGN/AGENTS/API/DB/Scheduling/Security는 계약 변경 없음으로 N/A다. 단일 에이전트 순차 처리, Local Fast Feedback/독립 QA는 NOT TESTED. PR CI exact-head quality/e2e/docker는 시작 후 판정. `release_required=true`, `release_authorized=false`; 병합/main/정식 GHCR/종료는 범위 밖.
+
 ## Issue #514 — 최신 #518 Workspace 구조 통합 / PR CI 준비
 
 [Work Packet](ISSUE_514.md)에 따라 외부 #518 병합 main `f94c22b00cac57bab409ca57e744b0530d2d35e5` / application `0.101.1`의 상위 Milestone 탭과 복원 구조를 보존해 #514 보완을 적응 통합한다. 최종 branch는 `fix/issue-514-grid-start-reveal`, current worktree는 `issue-514-current`, 후보 PATCH `0.101.2`다. 최초 baseline `3fa543b10e98d59e50f63f3f53613affe720b648`의 source/진단/16조합 PASS와 실제 null/pending FAIL·폭 fixture FAIL은 historical로 보존한다. 최신 구조의 영향 검증·문서 gate·독립 PRE_QA 후 원격 게시와 exact-head PR CI 등록까지만 진행한다. CI 결과 모니터링·병합·main/GHCR·Issue 종료는 하지 않으며 release_required=true/release_authorized=false, 공식 quality/e2e/docker·QA_FINAL/Manager ACCEPT는 NOT TESTED다. 기존 #529 구현은 유지한다.
