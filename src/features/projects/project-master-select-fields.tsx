@@ -62,6 +62,16 @@ function options(active: readonly ProjectMasterItemDto[], current?: ProjectMaste
   return [current, ...active];
 }
 
+/** Preserve a legacy selection for display, but never suggest new children of an inactive parent. */
+export function linkedProjectMasterChoices(
+  active: readonly ProjectMasterItemDto[],
+  linkedIds: ReadonlySet<string>,
+  current: ProjectMasterItemDto | null | undefined,
+  parentActive: boolean,
+): ProjectMasterItemDto[] {
+  return options(parentActive ? active.filter((item) => linkedIds.has(item.id)) : [], current);
+}
+
 export function ProjectMasterSelectFields({
   value,
   onChange,
@@ -85,6 +95,12 @@ export function ProjectMasterSelectFields({
   const linkedSites = new Set(catalog.data.relations.filter((r) =>
     r.businessUnitId === value.businessUnitId && r.productId === value.productId &&
     r.siteEntityId !== null).map((r) => r.siteEntityId));
+  const selectedBusinessUnit = current?.businessUnit?.id === value.businessUnitId
+    ? current.businessUnit
+    : catalog.data.businessUnits.find((item) => item.id === value.businessUnitId);
+  const selectedProduct = current?.product?.id === value.productId
+    ? current.product
+    : catalog.data.products.find((item) => item.id === value.productId);
   const fields = [
     {
       key: "businessUnitId" as const,
@@ -96,15 +112,21 @@ export function ProjectMasterSelectFields({
       key: "productId" as const,
       id: "project-product",
       label: "제품",
-      items: options(catalog.data.products.filter((item) => linkedProducts.has(item.id)),
-        current?.product?.id === value.productId ? current.product : null),
+      items: linkedProjectMasterChoices(
+        catalog.data.products, linkedProducts,
+        current?.product?.id === value.productId ? current.product : null,
+        selectedBusinessUnit?.active === true,
+      ),
     },
     {
       key: "siteEntityId" as const,
       id: "project-site-entity",
       label: "사업장/법인",
-      items: options(catalog.data.siteEntities.filter((item) => linkedSites.has(item.id)),
-        current?.siteEntity?.id === value.siteEntityId ? current.siteEntity : null),
+      items: linkedProjectMasterChoices(
+        catalog.data.siteEntities, linkedSites,
+        current?.siteEntity?.id === value.siteEntityId ? current.siteEntity : null,
+        selectedBusinessUnit?.active === true && selectedProduct?.active === true,
+      ),
     },
   ];
 
