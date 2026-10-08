@@ -1602,16 +1602,21 @@ export function ProjectGantt({
     if (process.env.NODE_ENV === "production") return;
     const tag = "project-peer-viewport-events", frame = fullscreenFrameReference.current;
     if (frame) Object.defineProperty(frame, "__masterganttPublicViewport", { configurable: true, get: () => { const state = api.getState(); return { left: state.scrollLeft, top: state.scrollTop }; } });
-    const events: { action: string; left: number; top: number; visible: boolean; requestedLeft?: number; width?: number; height?: number }[] = [];
-    const record = (action: string, payload: { requestedLeft?: number; width?: number; height?: number }) => {
+    if (frame) Object.defineProperty(frame, "__masterganttGridReveal", { configurable: true, get: () => {
+      const state = api.getState();
+      return { start: state.start, cellWidth: state.cellWidth, scaleUnit: state.scales?.at(-1)?.unit, selected: state.selected };
+    } });
+    const events: { action: string; left: number; top: number; visible: boolean; requestedLeft?: number; width?: number; height?: number; taskId?: string; show?: boolean | string; eventSource?: string }[] = [];
+    const record = (action: string, payload: { requestedLeft?: number; width?: number; height?: number; taskId?: string; show?: boolean | string; eventSource?: string }) => {
       const state = api.getState();
       events.push({ action, left: state.scrollLeft, top: state.scrollTop, visible: peerViewportContext.current.visible, ...payload });
-      if (events.length > 12) events.shift();
+      if (events.length > 256) events.shift();
       if (frame) frame.dataset.ganttPublicScrollEvents = JSON.stringify(events);
     };
     api.on("scroll-chart", (event) => record("scroll-chart", { requestedLeft: event.left }), { tag });
     api.on("resize-chart", (event) => record("resize-chart", { width: event.width, height: event.height }), { tag });
-    return () => { api.detach(tag); if (frame) Reflect.deleteProperty(frame, "__masterganttPublicViewport"); };
+    api.on("select-task", (event) => record("select-task", { taskId: String(event.id), show: event.show, eventSource: event.eventSource }), { tag });
+    return () => { api.detach(tag); if (frame) { Reflect.deleteProperty(frame, "__masterganttPublicViewport"); Reflect.deleteProperty(frame, "__masterganttGridReveal"); } };
   }, [apiInstanceId]);
 
   const visibleTaskFilterKey = JSON.stringify(visibleTaskIds === null ? null : [...new Set(visibleTaskIds)].sort());
@@ -2468,6 +2473,12 @@ export function ProjectGantt({
       },
       { tag: "project-summary-update" },
     );
+    api.detach("project-null-start-reveal");
+    api.intercept("select-task", (event) => {
+      // A date-less Summary has renderer coordinates, not a schedule start.
+      // Preserve native selection/vertical reveal without navigating to that anchor.
+      if (event.show === "xy" && typeof event.id === "string" && tasksByIdReference.current.get(event.id)?.start === null) event.show = "y";
+    }, { tag: "project-null-start-reveal" });
     api.detach("project-owned-selection");
     api.on("select-task", (event) => {
       if (canonicalSyncDepthReference.current > 0 || event.eventSource === "project-canonical-sync" ||

@@ -221,3 +221,9 @@ frontend는 readonly DOM RAF에도 Gantt 영역의 입력 취소 및 현재 pane
 - XML row 경계 matcher를 `([\\s\\S]*?)` + `g`로 변경하여 타깃 호환을 맞추고, 실제 XLSX 원본기간 및 overlap 셀의 모든 기대값·시험 데이터는 유지한다. 새 exact-head 전체 CI 완료 전 PASS/병합 준비 주장 금지.
 - 최신 main `e61fa037d9b527dad5a014250dbdd1678519c027` 대비 #529가 3커밋 뒤처진 점은 별도 형상 정렬 필요로 기록한다. 이번 요청은 새 PR CI 시작까지이며 main merge/GHCR은 미진행이다.
 
+## 2026-10-08 — #514 병합 최신 main 정렬 및 CI 재검증
+
+- #514가 병합된 latest main `e61fa037d9b527dad5a014250dbdd1678519c027`(application `0.101.2`)를 #529의 최신 baseline에 포함한다. #529 변경은 `0.102.0` MINOR를 유지하며 pre-existing `v0.101.2` changelog/TEST_PLAN/PLAN 근거를 보존한다.
+- 최신 main과 겹친 파일 8개는 3-way 검토 및 충돌 조정으로 해결. `project-gantt.tsx`에는 #514의 작업 선택/reveal 정책을 반영하면서 #529의 더 강한 pending restore guard/선행 timeline 확장과 공개 Core/DOM 좌표 분리를 유지한다. `project-readonly-view.tsx`는 #514 snapshot/instance 보호 및 #529 Core reader 캡처를 함께 유지. 새 스냅샷 변경에 대해 기존 raw Assignment·권한·원장 계산은 변경하지 않는다.
+- 새 HEAD exact PR CI가 등록되고 quality/E2E/docker 성공 전까지 이전 #2180/부분 #2182 결과는 최종 gate가 아니다. 이번 요청은 수정+PR CI 시작까지이며 merge/Main CI/formal GHCR 게시/Issue 종료는 미수행한다.
+

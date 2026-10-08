@@ -2427,3 +2427,24 @@ PR CI #2144.1의 Chromium shard6에서 #527 두 테스트(주/월 계층/geometr
 - 동일한 XML 내용을 검증하면서 `/<row ...>([\\s\\S]*?)<\\/row>/g`로 교체한다. dotAll의 전역 flag만 제거하고 원본기간/교차기간 각 셀 검증 및 explicit/null fallback을 그대로 유지한다. 기존 PASS를 수정 commit의 PASS로 재사용하지 않으며 새 exact-head PR CI 전체 결과를 판정한다.
 - 최신 main에 Issue #514 관련 후속 merge가 반영되어 #529는 정렬 전 상태다. 이 회차는 요청한 P2 보완 후 새 PR CI 시작 범위이며 main 정렬/병합/정식 GHCR은 미수행한다.
 
+## Issue #514 — Grid 시작 위치와 peer 복원 영향 검증
+
+현재 검토 baseline은 `f94c22b00cac57bab409ca57e744b0530d2d35e5`다. 외부 #518 상위 Milestone 탭 변경을 유지하고 readonly capture/DOM restore만 적응했다. 최초 `3fa543b10e98d59e50f63f3f53613affe720b648`의 증거는 historical 자료이며 최신 Workspace 검증으로 합산하지 않는다. Next/@next/env16.3.8·React Gantt Core2.7.3·gantt-store2.7.2, 실제 Chromium pointer와 mocked canonical API를 사용했다. 실제 SQLite/API 계산이나 전체 원격 회귀 PASS로 확대하지 않는다.
+
+| 현재 고유 사례 | 실제 범위와 결과 |
+| --- | --- |
+| 신규 matrix8 | readonly/editable × Day/Week × normal/fullscreen에 각각 root/nested를 넣은16설정 조합. 좌/우·이미 보이는 시작·행/tree·열 폭·scale·같은 API instance·revision·POST/PATCH0 PASS. |
+| 신규 기본2 | 짧은 작업 양방향·시작 밖 긴 bar와 editable 이름 native 선택/inline editor reveal PASS. clipped bar bbox와 canonical start 가시성을 구별한다. |
+| 신규 null1 | Week/fullscreen nested 날짜 reveal 뒤 null Summary 선택은 public/native 수평 값 각각 유지 PASS. 수직 위치 고정은 요구하지 않는다. |
+| 신규 pending3 | 날짜 pointer reveal 뒤 지연 복원 차단, actual wheel과 연속 최신 선택 유지, pending filter 변경 후 오래된 복원 폐기 PASS. public/native 값을 각각 비교한다. |
+| 신규 선택1 | 일반 reveal 전후 우클릭 위치 보존·Ctrl/Meta·동일 parent Shift range/다른 parent fallback·Space/Escape 의미와 무 mutation PASS. |
+| 신규 폭1 | 실제 splitter/fullscreen UI의390/768/1024/1440/1920 × 미래/과거10관측. Core logical viewport smoke PASS. 390 미래 시작x662는 page 밖, 과거x168은 안이다. 768 미래x684/과거x168 및1024/1440/1920 모두 page 안이다. 자동 좁은 화면 page-follow·outer pan PASS를 주장하지 않는다. |
+| 기존 영향4 | Context Menu scroll2, fullscreen split/열/주/scroll/선택/summary1, top-level Milestone 무입력 public/native viewport·layout/오래된 복원 폐기1 PASS. |
+
+현재 신규 고유16·기존 고유4의 근거는 `/tmp/frontend514-current1.log`11PASS33.1초, `/tmp/frontend514-current-controls2.log`2PASS8.2초, `/tmp/frontend514-current-source1.log`3PASS6.7초와 `/tmp/frontend514-current-regression1.log`기존4PASS/신규1FAIL17.4초다. 마지막 신규 FAIL은 nested anchor에서 root Shift 클릭의 기존 단일 fallback을 range로 기대한 fixture 오류이며 같은 source에서 기존 의미를 검증하도록 수정했다. 5폭 첫 실행 `/tmp/frontend514-current-width1.log`은390 page intersection을 강제하여 FAIL했고, 기존720px 작업면 제한을 명시한 smoke 범위로 수정했다. 반복 실행을 고유 사례 수로 더하지 않는다.
+
+최초 historical 재현은 native short/long/editable xy 정상3case PASS로 default true/Context Menu false 원인을 배제했고, null5005→0 및 pending120→19830→120 덮어쓰기2case 실제 FAIL을 보존했다. Week 이미 보임 재클릭10px를 exact-zero로 기대한 oracle FAIL, 좁은 폭의 pointerdown/up row 이동으로 select가 발생하지 않은 fixture FAIL, 공유 fixture 필수 행 누락 FAIL도 별도로 보존한다. 이후 현재 start 가시성 및 한 rendered cell 이내의 작은 native 이동으로 판단한다.
+
+Local Fast Feedback은 현재 selection/timeline Unit2파일18PASS157ms, 최종 typecheck와 변경 lint0error/기존 hook dependency4warning이다. 최초/현재 typecheck는 fixture 배열의 type literal widening1건 FAIL이었고 ProjectTaskDto[] 명시 타입으로 보완해 현재 재검증했다. 최초 historical freeze의 typecheck PASS 보고는 완료 로그 확인 전의 잘못된 판정이며 이 기록으로 정정한다. 타입만 수정한 최종 spec과 browser 실행 당시 spec hash는 별도 기록한다. 제품2파일 hash는 현재 browser 증거와 일치한다.
+
+선별 비민감 JSON/PNG·실행별 source SHA/시각·범위·최초 실패는 [증거 README](../output/playwright/issue-514/review/README.md)를 따른다. 공식 quality/e2e/docker, 독립 QA_FINAL·Manager 최종 승인, 실제 demo 조작·screen reader·실기기·최종 수동 UX·사용자 outer pan은 NOT TESTED다. 원격 CI는 PR 등록 후 사용자 요청대로 결과를 모니터링하지 않는다.

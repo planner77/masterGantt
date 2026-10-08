@@ -8,6 +8,12 @@
 
 DOM 입력 취소를 보완한 동일 제품 source에서 정상 복원/control·실제 Export·기존 Milestone3 PASS 및 취소1 PASS6.8초를 확인했다. 취소는 public30/DOM31 각각의 실제 사용자 위치와 이전120 복원 없음의 직접 assertion이다. 문서·소스를 다시 동결한 후 새 tree의 독립 delta QA를 거쳐 원격 게시한다.
 
+## Issue #514 — 최신 #518 Workspace 구조 통합 / PR CI 준비
+
+[Work Packet](ISSUE_514.md)에 따라 외부 #518 병합 main `f94c22b00cac57bab409ca57e744b0530d2d35e5` / application `0.101.1`의 상위 Milestone 탭과 복원 구조를 보존해 #514 보완을 적응 통합한다. 최종 branch는 `fix/issue-514-grid-start-reveal`, current worktree는 `issue-514-current`, 후보 PATCH `0.101.2`다. 최초 baseline `3fa543b10e98d59e50f63f3f53613affe720b648`의 source/진단/16조합 PASS와 실제 null/pending FAIL·폭 fixture FAIL은 historical로 보존한다. 최신 구조의 영향 검증·문서 gate·독립 PRE_QA 후 원격 게시와 exact-head PR CI 등록까지만 진행한다. CI 결과 모니터링·병합·main/GHCR·Issue 종료는 하지 않으며 release_required=true/release_authorized=false, 공식 quality/e2e/docker·QA_FINAL/Manager ACCEPT는 NOT TESTED다. 기존 #529 구현은 유지한다.
+
+현재 #518 통합의 신규 고유16case(8matrix/16설정 포함)와 직접 관련 기존4case, Unit18case가 로컬 PASS다. 양 복원 queue의 새 입력 우선순위와 null start 수평 보호를 확인했다. 5폭10관측 중 390px 미래 시작점은 기존 minWidth720 작업면의 논리 viewport에만 포함되며 page x662 제한·outer pan NOT TESTED를 명시한다. 이전/현재 최초 typecheck fixture 오류 및 초기 oracle/폭 fixture FAIL을 보존하고 명시 타입 수정 뒤 현재 typecheck PASS를 구분한다. 최신 문서·독립 PRE_QA 후 게시하며 공식 CI와 최종 ACCEPT는 NOT TESTED다.
+
 ## Issue #518 — 일정·Milestone 상위 탭 구조 단순화 (2026-10-08)
 
 [Issue #518](https://github.com/planner77/masterGantt/issues/518)의 현재 범위는 별도 `feat/issue-518-workspace-milestone-tab` 브랜치에서 #463의 내부 Gantt/Dashboard 중첩 탭을 제거하고 `일정 / Milestone 대시보드 / 리소스 / 물류 구성` 상위 탭으로 배치하는 것이다. 초기 기준 main은 `8b9d4d76758f73094ec84590e3a8a49314741587`, 이전 정렬 기준은 `b4a0898283571ac4f05d53299266acccadeeff68`, 신규 통합 기준 최신 main은 `3fa543b10e98d59e50f63f3f53613affe720b648` / application `0.101.0`; PATCH 후보 `0.101.1` (`release_required=true`, `release_authorized=false`). #399 WBS scope 탭, 기존 Gantt instance/viewport/filter/selection, #463 Dashboard 계산과 drill, dialog/focus 및 Core/Core-only 정책을 보존한다.
