@@ -56,33 +56,38 @@ test.describe("Issue #83 Project Task / Resource 검색·필터", () => {
     await expectSameGanttRoot(page, identity);
   });
 
-  test("Resource 검색·기간 필터는 서버 선택 범위를 갱신하고 조건 초기화를 지원한다", async ({ page }) => {
+  test("Resource 검색·기간 필터는 서버 선택 범위 KPI와 행을 함께 갱신하고 초기화를 복원한다", async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 900 });
     await installStatefulProjectFixture(page);
-    await page.goto(`/projects/${publicId}`);
+    await page.goto("/projects/" + publicId);
     await page.getByRole("tab", { name: "리소스", exact: true }).click();
-
     const panel = page.getByRole("tabpanel", { name: "리소스" });
-    await expect(panel.getByRole("heading", { name: "리소스 공수" })).toBeVisible();
-    await expect(panel).toContainText("5.00 M/D");
-
     const dashboard = panel.locator('[data-resource-dashboard="true"]');
+    const kpis = dashboard.locator('dl[aria-label="선택 범위 KPI"]');
+    await expect(dashboard).toHaveAttribute("data-ready", "true");
+    await expect(panel.getByRole("heading", { name: "리소스 공수" })).toBeVisible();
+    await expect(kpis).toContainText("5.00 M/D");
     const search = dashboard.getByRole("searchbox", { name: "리소스·그룹·Task 이름과 코드 검색" });
     await search.fill("R-01");
     await expect(dashboard).toHaveAttribute("data-ready", "true");
-    await expect(dashboard.getByText("테스트 리소스", { exact: false }).first()).toBeVisible();
-
-    // #525 made the range part of the server-side KPI scope, not a local row-only filter.
-    const from = dashboard.getByLabel("기간 시작", { exact: true });
-    const to = dashboard.getByLabel("기간 종료", { exact: true });
-    await from.fill("2026-10-01");
-    await to.fill("2026-10-31");
+    await expect(kpis).toContainText("5.00 M/D");
+    await dashboard.getByRole("button", { name: "개인", exact: true }).click();
+    await expect(dashboard.locator('[data-resource-row="resource"]').first()).toContainText("테스트 리소스");
+    await expect(kpis).toContainText("5.00 M/D");
+    const filter = dashboard.locator('button[aria-controls="resource-dashboard-advanced-filter"]');
+    await filter.click();
+    const advanced = dashboard.getByLabel("리소스 고급 필터");
+    await expect(advanced).toBeVisible();
+    await dashboard.getByLabel("기간 시작", { exact: true }).fill("2026-10-01");
+    await dashboard.getByLabel("기간 종료", { exact: true }).fill("2026-10-31");
     await expect(dashboard).toHaveAttribute("data-ready", "true");
-    await expect(from).toHaveValue("2026-10-01");
-    await expect(to).toHaveValue("2026-10-31");
+    await expect(dashboard.getByText("검색 조건에 일치하는 리소스 할당이 없습니다.")).toBeVisible();
+    await expect(kpis).toContainText("할당 없음");
+    await expect(kpis).not.toContainText("0.00 M/D");
     await dashboard.getByRole("button", { name: "초기화", exact: true }).click();
+    await expect(search).toBeFocused();
     await expect(dashboard).toHaveAttribute("data-ready", "true");
-    await expect(search).toHaveValue("");
-    await expect(dashboard).toContainText("5.00 M/D");
+    await expect(dashboard.locator('[data-resource-row="resource"]').first()).toContainText("테스트 리소스");
+    await expect(kpis).toContainText("5.00 M/D");
   });
 });

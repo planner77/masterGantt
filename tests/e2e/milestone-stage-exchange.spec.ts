@@ -156,7 +156,7 @@ test("#464 실제 Editor·Stage/물류/Resource·JSON/Excel 다운로드·Import
   const requestPayload = (await drillRequest).postDataJSON();
   expect([...requestPayload.scope.assignmentIds].sort()).toEqual([...partial.effort.assignmentIds].sort());
   expect(requestPayload.filters).toMatchObject({ from: "2026-10-06", to: "2026-10-07" });
-  await expect(page.getByRole("tabpanel", { name: "리소스", exact: true })).toContainText("Milestone 원본의 정확한 배정 범위");
+  await expect(page.getByRole("region", { name: "임시 조회 범위", exact: true })).toContainText("Milestone 원본의 정확한 배정 범위");
   await page.getByRole("tab", { name: "물류 구성", exact: true }).click(); await page.getByRole("tab", { name: "KPI 대시보드", exact: true }).click(); await expect(page.getByRole("tabpanel", { name: "물류 구성", exact: true }).getByRole("row", { name: /M-JOIN/ })).toContainText("3");
   await page.getByRole("tab", { name: "일정", exact: true }).click(); await page.getByRole("tab", { name: "Gantt", exact: true }).click();
 

@@ -112,7 +112,7 @@ test("#463 실제 SQLite Editor→Grid→단계 KPI·공수·물류·Resource dr
   expect([...requestPayload.scope.assignmentIds].sort()).toEqual([...partial.effort.assignmentIds].sort());
   expect(requestPayload.filters).toMatchObject({ from: "2026-10-05", to: "2026-10-06" });
   const resources = page.getByRole("tabpanel", { name: "리소스", exact: true });
-  await expect(resources).toContainText("Milestone 원본의 정확한 배정 범위");
+  await expect(page.getByRole("region", { name: "임시 조회 범위", exact: true })).toContainText("Milestone 원본의 정확한 배정 범위");
   await expect(resources).toContainText("2.00");
   await page.getByRole("tab", { name: "물류 구성", exact: true }).click();
   await page.getByRole("tab", { name: "KPI 대시보드", exact: true }).click();
