@@ -1012,7 +1012,7 @@ Milestone picker의 Home/End/Arrow 이동은 `aria-activedescendant` 갱신과 �
 
 ## Issue #464 Milestone 소속 보존과 JSON 교환
 
-Task 메뉴의 Copy/Paste와 Ctrl/Cmd+C/V는 Workspace의 같은 hierarchy command 경로를 사용한다. 공유 `previewMembershipCopy`는 화면에 보이는 행이 아니라 현재 revision의 전체 canonical Task/Link와 정규화 root·자손 집합 C, 목적지 anchor/placement를 사용한다. 외부 명시 소속 제외 또는 상속 변화가 있으면 저장 전에 영향 확인 대화상자를 연다. 외부 명시 연결 제외 건수와 유효 소속·상속 출처가 달라지는 Task/Summary 건수를 구분하고, 기존 단계와 복제될 단계의 원본 ID를 구별한다. 복사본의 신규 UUID를 미리 생성한 것처럼 표시하지 않는다.
+Task 메뉴의 Copy/Paste와 Ctrl/Cmd+C/V는 Workspace의 같은 hierarchy command 경로를 사용한다. 공유 `previewMembershipCopy`는 화면에 보이는 행이 아니라 현재 revision의 전체 canonical Task/Link와 정규화 root·자손 집합 C, 목적지 anchor/placement를 사용한다. 외부 명시 소속 제외 또는 상속 변화가 있으면 저장 전에 영향 확인 대화상자를 연다. 외부 명시 연결 제외 건수와 유효 소속·상속 출처가 달라지는 Task/Summary 건수를 구분하고, 기존 Milestone과 복제될 Milestone의 원본 ID를 구별한다. 복사본의 신규 UUID를 미리 생성한 것처럼 표시하지 않는다.
 
 취소는 POST를 보내지 않는다. 확인은 검토한 publicId/revision/roots/C/anchor/placement와 영향 계획을 재검증한 뒤 같은 revision의 단일 Copy 요청에 `acknowledgedMembershipExclusions:true`를 포함한다. 권한·revision·Milestone·배정 제한은 서버가 다시 검사한다. 완료 잠금이나 불완전한 canonical 소속은 동의로 우회하지 않는다. 저장 중 중복 실행·닫기·Escape 및 다른 mutation을 잠그고, 실패하면 검토 내용을 유지하며 자동 재전송하지 않는다. native Gantt fullscreen에서는 기존 fullscreen host에 확인 대화상자를 portal로 연결한다. 취소 후 목적지 작업으로 focus를 복원한다.
 
@@ -1121,7 +1121,7 @@ Issue #491의 두 번째 통합 최신 기준은 main `61a5f511d79e1f9429635bb0d
 
 리소스 탭 안에서 주/월 기간 matrix를 선택한다. Group/개인 집계 기준과 기존 필터·단위를 공유하고 별도 상위 navigation을 추가하지 않는다. 한 번에 전체1행+분류49행/4기간+전체만 표시하며 page2에 parent가 없어도 child의 Group/Resource context와 code/activity/Role/grade를 확인한다. 좁은 화면 identity144px/기간176px, desktop identity280px와 sticky header/identity·표 내부 scroll을 사용한다.
 
-선택 기여와 동일 개인의 Project 전체 참고는 명시적 scope다. Milestone 행은 선택 단계 기여와 개인 전체 참고를 함께 구별하고 parent 전체 경고에서 Resource/project 원인을 조회한다. Group 평균으로 개인 초과를 숨기지 않으며 R0·0부하·미설정·부분합·비근무기간을 구분한다. 상세는 날짜→개인→Assignment의 점진적 조회이며 readonly다.
+선택 기여와 동일 개인의 Project 전체 참고는 명시적 scope다. Milestone 행은 선택 Milestone 기여와 개인 전체 참고를 함께 구별하고 parent 전체 경고에서 Resource/project 원인을 조회한다. Group 평균으로 개인 초과를 숨기지 않으며 R0·0부하·미설정·부분합·비근무기간을 구분한다. 상세는 날짜→개인→Assignment의 점진적 조회이며 readonly다.
 
 Plan/기본 현황/#526 보기와 Group/개인·주/월 전환에서 상태를 보존한다. 마지막 Plan DTO는 비활성 보기에서 hidden/inert·drill 잠금 상태로 보존하고 실제 snapshot/filter 변화는 새 상태로 취급한다. Step 진입 제목 focus/Escape 한 단계 복귀, 안정적인 retry/pager focus, 늦은 canceled409 무시와 stale 차단을 검증한다. 실제 Gantt scroll120/96·선택/tree/열/주scale·instance 보존과5폭 geometry는 TEST_PLAN의 #527 UI 절을 따른다.
 
