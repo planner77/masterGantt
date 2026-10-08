@@ -304,6 +304,7 @@ Issue #508은 제품 required check 자체가 아니라 `.github/workflows/e2e-s
 - PR CI에서는 변경된 workflow에 `gh pr create` 실패 감지, BLOCKED Step Summary, head SHA/수동 PR 복구 링크 및 비정상 exit 조건이 존재하는지 정적 회귀로 확인한다.
 - 권한 차단 분기의 실제 원격 검증에는 같은 저장소 설정으로 새로운 `shouldUpdate=true` 재균형 후보가 있어야 한다. 기존 PR이 이미 열려있으면 해당 분기가 skip되므로 실제 권한 오류 재현 PASS로 과대 보고하지 않는다.
 - 자동 PR 생성이 차단된 상태에서 실제 plan은 브랜치에 보존되고 PR #540을 통해 별도 검증할 수 있다. 추가 token 생성, 저장소 PR 생성 허용 설정 변경, required checks 완화는 권한 있는 maintainer의 명시적 승인 없이는 진행하지 않는다.
+- PR #540의 최초 PR CI #2124는 aggregate E2E status가 SUCCESS이지만 Chromium 6-shard job은 SKIPPED다. 이 실행을 계획 변경에 대한 실제 E2E PASS로 사용하지 않는다. `ci.yml`의 E2E 경로 필터에 shard plan JSON과 planner script를 추가하여 새 head의 PR CI에서 실제 6-shard 실행을 요구한다.
 - 저장소 설정이 승인 후 변경되었다면 후속 신규 plan 생성 시 PR 생성과 exact head `ci.yml workflow_dispatch`를 확인한다. 생성 실패를 워크플로 성공으로 처리하지 않는다.
 
 ## Issue #439 setup/cache 성능 원격 검증
