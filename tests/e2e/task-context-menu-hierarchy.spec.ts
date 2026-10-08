@@ -391,7 +391,7 @@ test("Issue #407/#418 keeps scoped Header and Row additions canonical and contin
   };
   page.on("request", countMilestonePost);
   await milestoneAdd.click({ force: true });
-  await expect(page.getByTestId("workspace-toast")).toContainText("마일스톤에는 하위 작업을 추가할 수 없습니다.");
+  await expect(page.getByTestId("workspace-toast")).toContainText("Milestone에는 하위 작업을 추가할 수 없습니다.");
   page.off("request", countMilestonePost);
   expect(milestonePosts).toBe(0);
 

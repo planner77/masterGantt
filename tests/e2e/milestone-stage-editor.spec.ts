@@ -19,7 +19,7 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
     const response = await page.request.post(`${api}/tasks`, { headers: headers(), data: type === "summary" ? { name, type, parentTaskId } : { name, type, start: "2026-10-05", duration: type === "milestone" ? 0 : 2, progress: 0, parentTaskId } });
     expect(response.status()).toBe(201); const value = await response.json() as TaskMutationResponse; snapshot = { data: { ...value.data, permission: "edit" } }; return value.data.tasks.filter((task) => task.name === name).at(-1)!;
   };
-  const m1 = await add("설계 완료 단계 긴 한글 English milestone alpha", "milestone"), m2 = await add("설계 완료 단계 긴 한글 English milestone alpha", "milestone");
+  const m1 = await add("설계 Milestone 긴 한글 English milestone alpha", "milestone"), m2 = await add("설계 Milestone 긴 한글 English milestone alpha", "milestone");
   const summary = await add("Summary 기본 단계", "summary"), child = await add("Inherited child", "task", summary.taskId), override = await add("Override child", "task", summary.taskId);
   for (let index = 0; index < 18; index++) await add(`미지정 후보 ${index} 긴 한글 English extraordinary task identity`, "task");
   const assign = await page.request.post(`${api}/milestone-memberships`, { headers: headers(), data: { changes: [{ taskId: summary.taskId, milestoneTaskId: m1.taskId }, { taskId: override.taskId, milestoneTaskId: m2.taskId }] } });
@@ -36,7 +36,7 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   };
   await open(child.taskId);
   await expect(dialog).toContainText("Summary 기본 단계에서 상속");
-  const picker = dialog.getByRole("combobox", { name: "완료 단계", exact: true });
+  const picker = dialog.getByRole("combobox", { name: "Milestone", exact: true });
   await picker.fill(`  ${m2.taskId.toUpperCase()}  `);
   await expect(dialog.getByRole("listbox").getByRole("option")).toHaveCount(1);
   await picker.press("Enter");
@@ -53,7 +53,7 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   await expect(dialog).toContainText("유효 일반 작업 2개");
   await dialog.getByRole("combobox", { name: "소속 상태", exact: true }).selectOption("all");
   const summaryRow = dialog.getByRole("row", { name: /Summary 기본 단계/ });
-  await summaryRow.getByRole("button", { name: "이 단계로 이동", exact: true }).click();
+  await summaryRow.getByRole("button", { name: "이 Milestone으로 이동", exact: true }).click();
   await expect(dialog).toContainText("유효 일반 작업 영향 0개");
   await dialog.getByRole("tab", { name: "작업 정보", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "저장", exact: true })).toBeDisabled();
@@ -82,7 +82,7 @@ test("#461 실제 SQLite Editor 원자 저장·상속·양쪽 canonical·재개�
   await page.reload(); await open(m2.taskId);
   const currentInstance = await frame.getAttribute("data-project-gantt-instance");
   await expect(dialog).toContainText("소속 작업 진척 100%");
-  await expect(dialog).toContainText("미완료 선행 단계 1개");
+  await expect(dialog).toContainText("미완료 선행 Milestone 1개");
   await dialog.getByLabel("상태", { exact: true }).selectOption("completed"); await dialog.getByRole("button", { name: "저장", exact: true }).click();
   await expect(dialog).toContainText("완료 조건");
   await dialog.getByRole("button", { name: "작업 편집기 닫기", exact: true }).click(); await dialog.getByRole("button", { name: "변경사항 버리고 닫기", exact: true }).click();

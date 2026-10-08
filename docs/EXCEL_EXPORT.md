@@ -2,7 +2,7 @@
 
 SVG/PNG Gantt 내보내기 계약은 [IMAGE_EXPORT.md](IMAGE_EXPORT.md)를 따른다. 이 문서의 Excel workbook, 관계 포함/제외 및 물류 구성 보고서 옵션은 유지한다.
 
-## Issue #464 — 단계 소속과 같은 스냅샷 보고
+## Issue #464 — Milestone 소속과 같은 스냅샷 보고
 
 초기 #460의 Membership 전체 차단을 보존 출력으로 대체한다. production route는 `ProjectExportSnapshotService`의 하나의 SQLite deferred read transaction과 한 번의 clock 조회에서 canonical Project snapshot, #463 `MilestoneDashboardDto`, 선택적 Resource workload를 가져온다. Project revision과 Catalog revision이 다르면 412로 실패한다. 이 보고용 조회는 Project·Task·Link·Membership·Assignment를 변경하지 않는다.
 
@@ -251,3 +251,8 @@ Export와 workspace 복귀의 Gantt 상태 보존은 대기 중 사용자 wheel/
 - `Resource Quality`의 `originalFrom/originalTo`는 `raw Assignment` 및 `selected Assignment`(Milestone 미지정 포함) 모두 원래 **실효 배정 시작/종료일**을 의미한다. 원본 Assignment 날짜가 있으면 우선하고 없으면 canonical Task 시작/종료일을 사용한다.
 - `Resource Assignments` 시트의 `overlapFrom/overlapTo`는 조회 `from/to`에 잘린 기간이다. 원래 기간이 보고기간 밖으로 이어져도 `Resource Quality`를 교차기간으로 잘못 표기하지 않는다. 두 시트의 raw/selected grain·null 공수 계약과 기존 Export 구조는 그대로 유지한다.
 
+
+
+### Issue #495 — 사용자 용어와 Excel 호환 열 구분
+
+화면·안내·설명 문서에서 엔터티 명칭은 **Milestone**을 사용한다. 기존 Excel 파일의 `Tasks` 시트 내 `명시 단계 ID`, `유효 단계 ID(파생)` 등 기계적으로 소비될 수 있는 기존 열 헤더와 시트 식별자는 이 용어 정합화에서 변경하지 않는다. 출력 schema/header 변경은 별도 versioning·하위 호환 검토가 필요하며, Milestone Membership의 저장/산출 의미는 기존과 같다.

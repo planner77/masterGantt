@@ -22,6 +22,13 @@
 - **SVAR-native interaction**: Gantt 내부 동작은 설치된 SVAR React Gantt Core의 공식 기능/API와 사용자 기대를 우선한다.
 - **Scope-relative command semantics**: 동일한 native action은 현재 WBS scope의 사용자 의미와 canonical hierarchy를 함께 반영하는 단일 resolver로 해석한다. 표시된 enabled/disabled 상태, pointer/keyboard target, 실제 서버 command가 서로 다른 의미를 가져서는 안 되며 scope 변경을 Gantt remount나 임시 client state로 해결하지 않는다.
 
+### 1.2 Product Terminology (Issue #495)
+
+- 프로젝트 일정의 확인 지점인 엔터티는 모든 사용자 화면, 검색·필터, Editor, Dashboard, 도움말, 오류 및 접근성 이름에서 **Milestone**이라고 표기한다. 같은 엔터티를 `완료 단계`, `마일스톤`, `Stage Gate`로 별도 명명하지 않는다.
+- Milestone의 `Ready`(완료 가능 판정)와 `Completed`(명시 완료 상태)는 다르다. 일반 Task의 완료 상태, 구현·배포·CI 단계, Gantt 계층 깊이는 별개의 의미다.
+- 내부 `stageGate` DTO/guard, API 경로, DB 스키마 및 JSON·Excel의 기존 고정 key/header는 호환성 계약이다. 표시 용어만을 이유로 변경하지 않으며 외부 형식 변경은 별도 versioning 검토를 요구한다.
+- `Milestone` 표기의 길이가 Grid/Table/Popover의 geometry·접근성·keyboard/focus 계약을 깨지 않아야 한다. 구체 동작은 UI_UX_GUIDELINES와 화면별 Source of Truth를 따른다.
+
 ## 2. Reference Hierarchy
 
 외부 제품의 CSS나 비공개 구현을 복제하지 않는다. 다음 순서로 **설계 언어와 interaction을 참고**한다.
