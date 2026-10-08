@@ -2,7 +2,7 @@
 
 ## 적용 범위와 현재 상태
 
-Issue #549는 Epic #548의 MT1 공통 모델과 설치 SVAR Core 연동 기술 기반이다. 현재 운영의 Milestone Grid/Chart 행, 전체/Task/Milestone 빠른 보기와 고급 유형 필터를 유지한다. #550의 관리 진입은 기존 Dashboard에서 구현한다. 날짜 lane은 #551, 표시 전환과 호환 UI는 #552, 통합 검증은 #553의 선행 gate 이후 범위다. 이 문서의 target은 현재 화면 기능 완료를 뜻하지 않는다.
+Issue #549는 Epic #548의 MT1 공통 모델과 설치 SVAR Core 연동 기술 기반이다. 현재 운영의 Milestone Grid/Chart 행, 전체/Task/Milestone 빠른 보기와 고급 유형 필터를 유지한다. #550의 관리 진입은 기존 Dashboard에서 구현한다. #551은 기본 OFF인 opt-in lane capability와 개발 전용 기술 미리보기다. 운영 기본 표시 전환과 호환 UI는 #552, 통합 검증은 #553의 선행 gate 이후 범위다. 이 문서의 target은 현재 화면 기능 완료를 뜻하지 않는다.
 
 baseline은 `dca2f7821f277ef31ee3dbcbdc1e51ad257209f0`, 설치 `@svar-ui/react-gantt` 2.7.3, 그 종속 `@svar-ui/gantt-store` 2.7.2, Next.js 16.3.8이다. 공식 문서 확인일은 2026-10-08이다. 원격 quality/e2e/docker와 독립 최종 QA는 실제 exact-head 증거를 확보하기 전 NOT TESTED다.
 
@@ -146,3 +146,35 @@ MILESTONE_TIMELINE/PROJECT_UX/TASK_EDITOR/TASK_RELATIONS/REQUIREMENTS/TEST_PLAN/
 기존 Gantt의 Cut/Copy clipboard/Paste, 위·아래 이동/들여쓰기·내어쓰기/유형 변경 등 hierarchy 명령은 현재 native 행·메뉴·keyboard 경로와 기존 capabilities를 유지한다. 이 관리 메뉴는 그 경로를 새로 복제하거나 다중 Milestone 명령을 확장하지 않는다. #552에서 행을 제거하기 전에는 전체 기존 명령 inventory의 대체 진입·명시 비지원/후속 경계를 별도로 검토해야 하며 #550만으로 해당 명령을 제거하지 않는다.
 
 삭제 확인의 취소/Escape도 현재 Milestone Dashboard의 실제 trigger 또는 visible fallback으로 복귀한다. 확인 도중 외부 갱신으로 trigger가 사라져도 검색/추가/heading을 복원하며 취소는 삭제 요청을 보내지 않는다. 관리 ID의 조건부 자체 state 조정은 [React 공식 지침](https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)을 따른다(확인 2026-10-09). DOM focus와 frame cleanup은 effect/event에 유지하고 다른 컴포넌트 state나 render 중 ref를 변경하지 않는다.
+
+## Issue #551 — opt-in lane와 공개 Week 구간 표시
+
+Baseline `31345da9346dfbdc1ac02e4e7ca567edafec775f`, Core 2.7.3/store 2.7.2에서 개발 서버 Chromium으로 검증한다. production capability는 `enabled` 기본 false, 전체 canonical `timelineModel`, 선택적인 `activeMilestoneTaskId`, `onOpenMilestone(taskId,actualTrigger)`, `onOpenDashboard()`다. Workspace는 전체 snapshot의 Task/Link로 모델을 memoize하며 WBS scope·Task 필터·scroll RAF마다 전체 E/P를 재계산하지 않는다. 개발 전용 미리보기/공개 displayMode setter는 사용자 제품 명령이나 운영 testhook이 아니다. 기존 M 행·빠른 보기·types와 저장 환경설정은 그대로이며 #552의 기본 활성화 gate와 구별한다.
+
+### 변경 전 Week 불일치와 지원 대안
+
+#549의 native month/year 의미 FAIL은 #551 시작 시 별도로 재현했다. 4개 날짜×Day/Week 중 Day는 canonical 날짜/월 의미가 일치했고, Week 상위 월 3개가 불일치했다(2026-01-31→October 2025, 2026-03-10→November 2025, 2027-01-01→July 2026). native Task start와 adapter x ±1px 일치만으로 이 FAIL을 해결하지 않는다. 실제 Week 진단은 `_weekStart=0`, 168개 하위 주 합계/축폭 11424px와 40개 상위 월 합계 13668px, 차이 2244px였다. Day의 1065개 일/36개 월 합계는 모두 38340px였다. 설치 source의 월별 부분 주 반올림과 실제 합계 차이는 원인 근거이며 최초 실행 source/hash·FAIL은 보존한다.
+
+정책 대안은 scoped 공개 Locale `calendar.weekStart=1`과 Week 상위 행 `unit:week,step:1`이다. 문제가 있는 native month 셀을 고쳤다고 주장하지 않고 같은 실제 `[Monday,nextMonday)` 주 셀의 포함 Gregorian 월·연도 span으로 표현을 대체한다. 같은 월 `2027.01`, 두 월 `2027.01→02`, 두 해 `2026.12→2027.01`; ISO week-year를 Gregorian year와 구별한다. 68px 셀의 ellipsis는 허용하지만 accessible name과 기존 keyboard Week detail에 전체 구간·포함 월·ISO를 제공한다. Day month/day 표시와 Project Calendar/Task Editor 정책은 유지한다. 확인일 2026-10-09, [공개 scales](https://docs.svar.dev/react/gantt/api/properties/scales/)·[Locale](https://docs.svar.dev/react/gantt/guides/appearance/localization/)를 따른다.
+
+실제 oracle는 canonical 날짜가 하위 ISO 주 구간 안에 있는지, 상위 Gregorian span과 동일 구간인지, native anchor/adapter가 ±1px인지 각각 확인한다. 월 1일의 adapter x는 주 셀 내부 위치로 비교하며 존재하지 않는 native month 셀 경계 PASS로 표기하지 않는다. 2199-12-31의 exclusive end 2200-01-06/ISO2200-W01은 표시 metadata다. Calendar 지원 범위를 2200으로 넓히지 않으며 해당 주 전체 근무일은 미산정 사유를 표시한다. 기존 tooltip helper의 상한 예외를 직접 Unit로 보존하고 새 UI fallback만 적용한다. 상한 browser fixture는 시험 시각 2199-12-01로 기존 오늘 포함 축을 작게 유지한다. 현재 시각 2026을 함께 둔 최초 fixture는 초기 probe 준비 timeout FAIL이었으며 tooltip 실행 FAIL이나 정확한 시간 초과 원인으로 과대 해석하지 않는다.
+
+### 실제 row 순서와 조작 계약
+
+같은 wrapper/ancestry/key 안에서 앱 소유 64px sibling lane(Grid 대응 공간+plot) → native Grid/date header → native Task rows 순서다. native 날짜 헤더 아래에 Core 내부 공간을 삽입하지 않는다. ON은 peer 탭 가시성/geometry 측정과 독립적으로 64px를 예약하고 OFF는 0px로 반환한다. 개발 기술실험의 Grid-only는 lane 0px, Chart-only는 collapsed Grid38px+resizer4px의 Core 고유42px rail을 제외한 실제 plot 전체를 따른다. fake Task/별도 Gantt/remount/scaleHeight 변경/PRO markers는 사용하지 않는다.
+
+Marker는 높이 44px, 상하 10px이며 이름·상태를 최대 160px 두 줄에 표시한다. 이름은 ellipsis, 전체 이름/date/externalId/readonly·완료·Ready/Blocked/수동/완료 불일치는 accessible label과 같은 ID의 Editor/묶음 목록에서 확인한다. 개별 읽기 최소 96px, 묶음 최소 120px/최대 160px 설계 예산에서 현재 구현은 160px를 사용하고 그 폭을 확보하지 못하면 전체 목록으로 안내한다. 색만으로 상태를 구별하지 않는다. 묶음은 `N개 Milestone`과 동일일/근접 날짜 범위이며 첫 항목 상태를 묶음 전체 상태로 표시하지 않는다.
+
+동일 날짜 및 최종 control bbox+양쪽 outline 3px/offset 3px(외곽 6px)+2px 여유가 겹치는 날짜를 묶는다. 160px control의 현재 분리 기준은 176px이다. plot 안 8px과 sticky 전체 목록·owner/window 물리 clip 뒤 control만 clamp하고 각 원래 날짜 tick/guide x는 이동하지 않는다. 390px의 기존 최소 720px 논리 작업면과 화면 밖 물리 clip은 별도다. 전체 목록은 Task 필터/범위와 독립인 프로젝트 전체 모집단을 명시한다. 프로젝트 0개, 미정/invalid, 날짜 viewport 0개, 물리 화면 밖, 조작 폭 부족, geometry 없음은 서로 다른 이유를 표시한다.
+
+Lane은 날짜순 Left/Right/Home/End roving Tab 한 개, Enter/Space를 사용한다. native 묶음 dialog는 50개씩 표시하며 Up/Down/Home/End와 기존 Tab/Escape를 사용한다. 단일 marker/묶음 항목은 canonical taskId와 실제 trigger로 #550의 같은 Editor를 연다. 열린 묶음의 대상/날짜/문맥 소멸은 현재 컴포넌트 조건부 state 조정으로 폐기하며 focus RAF만 취소 가능하다. 같은 ID가 돌아와도 자동 재개하지 않는다. 새 modal이 열려 있으면 오래된 focus 예약이 탈취하지 않는다. Editor가 열린 상태의 OFF는 dirty/pending 초안을 폐기하지 않는다. 끊긴 lane trigger는 살아 있는 전체 목록 또는 보이는 일정 작업면으로 복귀하고 숨은 native M 행 선택을 사용하지 않는다.
+
+Guide는 focus → hover → 별도 조회 선택 순으로 하나를 derive하며 pointer-events:none/aria-hidden이다. viewport 측정 이후에도 현재 canonical 날짜 좌표를 사용한다. native Task 다중 선택/clipboard·pointer/context menu·일정 편집 gateway와 분리한다. 선택적인 member 강조는 이번 구현에 없으며 fullE∩visible Task를 지원한 것으로 표기하지 않는다.
+
+### 측정·검증 범위
+
+단일 version-bound adapter가 공개 state/calendar helper와 read-only Chart bbox, app owner clientbox, window 교집합을 읽는다. typed derived state와 `.wx-chart` 구조는 문서화된 안정 geometry API가 아니다. 지원 Day/Week step1 이외/hidden/zero-size/폭 불일치는 fail-closed한다. 모델/API/문맥/scale/display가 일치한 측정만 표시하며 canonical queue 완료 뒤 현재 version으로 측정하며 대기 중 요청을 합친다. await 중 새 queue가 생긴 경우만 한정 재요청하고 idle polling은 없다. tagged public event·ResizeObserver·owner scroll listener와 RAF를 cleanup한다. 사용자 scroll을 복원하거나 DOM scroll을 강제하지 않는다.
+
+로컬 증거와 최초 FAIL/제약은 [TEST_PLAN](TEST_PLAN.md#issue-551--opt-in-lane와-week-의미-local-fast-feedback)에 기록한다. production build/실제 운영·reverse proxy·실물 touch/screen reader·remote quality/e2e/docker는 이 개발 Chromium 증거로 대체하지 않는다.
+
+#551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.

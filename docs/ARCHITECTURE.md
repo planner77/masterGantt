@@ -259,3 +259,13 @@ actual target report context와 original drill provenance는 별도다. source �
 `milestone-timeline-model.ts`는 전체 canonical Task/Link와 기존 Gate 계산을 유지하는 순수 조회 projection이다. 단일 `milestone-timeline-adapter.ts`는 공개 Core filter/scroll/state와 기존 local date adapter를 연결한다. react-gantt 2.7.3의 타입/runtime calendar helper reexport 차이를 격리하기 위해 이미 설치된 gantt-store 2.7.2 package-root getDiffer를 사용한다. typed `_scales`/viewport derived fields는 read-only 관찰이며 공식 안정 geometry API 보장이 아니다. 검증한 Day/Week 설정 밖은 fail-closed다. source 복제/private store write/PRO markers/독립 Gantt/remount/DOM 강제 scroll은 사용하지 않는다.
 
 Core scale/config 갱신은 단발 filter를 초기화할 수 있으므로 표시 projection 재적용은 기존 canonical sync queue 이후 같은 API/source/현재 요청 조건에서 수행해야 한다. MT1의 개발 전용 bounded probe는 운영 row 전환을 제공하지 않으며 후속 production 통합은 실제 visibleTaskIds/공통 queue 경계를 사용해야 한다. [Milestone Timeline](MILESTONE_TIMELINE.md)에 실제 gate와 실패·제약을 기록한다. Route Handler → Service → Repository → SQLite와 server authorization/revision 계약은 불변이다.
+
+## Issue #551 — 앱 소유 opt-in lane 경계
+
+Workspace는 전체 canonical snapshot에서 Timeline 모델을 memoize하고 단일 ProjectGantt에 기본 OFF capability를 전달한다. scroll/resize RAF는 모델의 유효 날짜 좌표/clip/cluster만 측정하며 전체 E/P graph를 다시 계산하지 않는다. 같은 wrapper/key의 sibling 64px → native owner 구조로 Core 내부 DOM 삽입/scaleHeight/fake Task/독립 Gantt/remount 없이 배치한다. ON인 숨은 peer view도 공간을 유지한다. 원래 날짜 tick과 control clamp/physical clip은 별도다.
+
+단일 version-bound adapter만 공개 getState/calendar helper와 read-only Chart bbox·app scroll owner clientbox·window 교집합을 결합한다. 안정 widget geometry API로 주장하지 않고 폭 일치/지원 scale/hidden/zero-size를 검사한다. 측정은 canonical queue 뒤 한정 RAF이며 source model/API/문맥/scale/display가 바뀐 결과는 노출하지 않는다. tagged public event/ResizeObserver/owner scroll listener는 cleanup한다. 앱 wrapper overflow:clip은 원래 clip을 유지하며 sticky 전체 목록이 실제 outer scroll owner를 따르게 한다.
+
+Week는 Gantt에만 scoped Locale Monday 시작과 공개 weekly scales formatter를 사용한다. 상위 label은 실제 주가 포함하는 Gregorian 월·연도 span이며 native monthly rounding 구현 변경이 아니다. UI interval의 2200 metadata와 Calendar supported domain을 구별하고 전체 근무일 미산정 fallback만 제공한다. Editor·Calendar·API·server/auth/DB/일정 알고리즘 계약은 유지한다. [기술/UX 계약](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)을 따른다.
+
+#551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.

@@ -1,3 +1,13 @@
+## Issue #551 — compact Milestone Timeline 준비
+
+[#551 Work Packet](ISSUE_551.md). 선행 #550 [PR #559](https://github.com/planner77/masterGantt/pull/559), head `31345da9346dfbdc1ac02e4e7ca567edafec775f`, CI [2216.1](https://github.com/planner77/masterGantt/actions/runs/37806909407) 등록 후 결과 모니터링 없이 MT3를 시작한다. live main `08ac7749efc4544dfc125853d9e58ef3a9d56b21`과 구별하여 선행 exact head 기반 stacked branch `feat/issue-551-milestone-timeline-lane`/PR base `feat/issue-550-milestone-management`, 후보 MINOR `0.105.0`으로 진행한다. ui_ux의 배치·interaction 설계와 researcher의 공식 Core 자료를 따라 frontend가 단일 Gantt/Workspace writer로 구현·검증·관련 문서를 소유한다. #549 Week 헤더 의미 FAIL을 date/header 실제 oracle로 해결하기 전 lane 좌표 표시를 활성화하지 않는다. 현재 M native 행과 quickview는 유지하며 실제 기본 전환은 #552이다. 관련 문서 동기화와 독립 QA 뒤 PR CI 등록까지만 진행한다.
+
+최신 #551 로컬 검증은 같은 source Chromium17/17 PASS(46.4초), 직접 관련 Unit29 PASS, typecheck/변경lint PASS다. 5폭×Day/Week와 peer/resize 측정 요청 유실 보완을 포함한다. 관련6개 문서와 원본 실패·환경별 제한을 동기화하여 DOCUMENTATION_SYNC PASS, 정확 staged tree의 독립 UI/UX 및 PRE_QA를 진행한다. 기본 Timeline OFF·기존 M 행/빠른 보기 유지, 공식 원격 결과는 NOT TESTED다.
+
+독립 ui_ux bounded 비교/PRE_QA PASS, 추가 blocker0. reviewer Unit29 재실행은 고유 테스트 수에 중복 합산하지 않는다. Grid 열 표시·숨김/5폭 document overflow 직접 assertion은 #552 actual 표시 전환에 인계하며, 전체 drag/Dependency/clipboard·환경·원격 최종 검증은 별도다. Manager는 후보 PR 게시와 exact-head CI 등록까지만 승인한다.
+
+<!-- #550 인계: 독립 PRE_QA PASS, 로컬 UI19/44.5초·Unit88 PASS, 이전 실제 HTTP/SQLite2/43.3초 제한 재사용. PR559/head31345da9346dfbdc1ac02e4e7ca567edafec775f/CI37806909407 등록 확인, 원격 결과 NOT TESTED. -->
+
 ## Issue #550 — 독립 Milestone 관리 진입 구현
 
 [#550 Work Packet](ISSUE_550.md). 선행 #549 [PR #557](https://github.com/planner77/masterGantt/pull/557), head `4bc4c31d9c5f46d90a83cbe4de878a52a2f2529b`, CI [2210.1](https://github.com/planner77/masterGantt/actions/runs/37795569338) 등록 후 결과 모니터링 없이 MT2를 시작한다. live main `08ac7749efc4544dfc125853d9e58ef3a9d56b21`과 구별하여 선행 exact head 기반 stacked branch `feat/issue-550-milestone-management`/PR base `feat/issue-549-milestone-timeline-foundation`, 후보 MINOR `0.104.0`으로 진행한다. frontend가 기존 Dashboard/Workspace/Editor 관리 진입과 문서를, backend가 실제 SQLite/HTTP persistence 검증을 소유한다. 최종 로컬 UI19개/44.5초와 고유Unit88개 PASS, 실제HTTP/SQLite2개/43.3초는 이후 Dashboard focus·메뉴 상태·삭제 취소 bridge의 UI 영향 분석으로 재사용하며 실행 source를 구별한다. ui_ux geometry와 관리 대상 소멸·물리 focus 가시성 REWORK를 해소했다. ui_ux 설계·증거 비교와 qa_docs 독립 검토를 거친다. 원격 CI 결과/최종 ACCEPT 및 merge/main/GHCR/Issue 종료는 범위 밖이다.

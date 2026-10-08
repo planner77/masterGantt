@@ -405,3 +405,13 @@
 .project-task-hover-tooltip-dates {
   color: var(--text-muted, var(--muted-foreground));
 }
+
+/* Week mode describes Gregorian months per ISO week, not native month spans. */
+.project-gantt-week-calendar-scale > span {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}

@@ -309,3 +309,13 @@ canonical start=null을 renderer anchor가 있는 날짜 작업으로 취급하�
 ## Issue #549 — Timeline 기술 기반과 후속 UX gate
 
 [Milestone Timeline](MILESTONE_TIMELINE.md)의 current/target/compatibility 표를 따른다. 현재 native Milestone 행과 빠른 보기를 유지하며 모델/개발 probe만으로 후속 lane keyboard/focus/Escape/관리 UX PASS를 주장하지 않는다. 표시 설정은 작업 조건·활성 필터 수와 독립이고 전체 모집단/viewport 안 없음/일반 작업 없음/null 일정은 별도 상태다. MT1 browser는 390/768/1024/1440/1920px의 Core geometry·same-instance·공개 이벤트·무변경을 검증한다. 공식 demo URL 조회와 실제 설치 Core 앱 fixture 조작은 구분하며 후속 UI의 keyboard/focus/overflow 검증은 별도다.
+
+## Issue #551 — lane와 주 단위 calendar 표시
+
+실제 배치는 앱 소유 64px sibling lane → native Grid/date header → Task rows다. ON인 숨은 peer 탭은 공간을 유지하고 OFF만 반환한다. 고정 44px 높이, 상하 10px, 최대 160px 이름/상태 두 줄, outline 3px+offset 3px의 외곽 6px를 사용한다. 개별 최소 읽기 폭 96px/묶음 120px 미확보는 glyph-only 축소 대신 전체 목록 fallback이다. 현재 control은 160px이고 양쪽 focus 외곽+2px 여유의 176px 분리 기준으로 묶는다. 이름 ellipsis·전체 accessible name·keyboard 상세를 함께 제공하며 묶음은 N개 Milestone+날짜 범위로 표현한다.
+
+native Chart plot 원점/폭과 lane을 직접 비교하고 Grid/Chart row y/height·각 날짜 tick을 검증한다. sticky 전체 목록과 실제 scroll owner/window 교집합 후 control만 clamp하며 anchor는 그대로다. 390px 논리 작업면과 물리 화면 밖·물리폭 부족을 구별한다. 실제 focus 외곽의 viewport/owner 포함, center hit와 pointer-events:none guide, Task pointer/context menu/selection, peer height/scroll, 같은 instance를 확인한다. desktop pointer를 touch PASS로 표현하지 않으며 Chromium touch emulation과 실물 기기는 별도 환경이다.
+
+공개 Week 대안은 scoped Monday 시작과 동일 주 셀의 Gregorian 월·연도 span이다. 짧은 셀 label은 ellipsis하되 [Monday,nextMonday), 포함 월, ISO week-year를 accessible name/keyboard detail에 제공한다. 월 1일은 주 셀 내부 x로 비교하며 native 월 셀 경계가 있는 것처럼 검증하지 않는다. Calendar 지원 범위 밖 exclusive-end metadata는 표시 전용이고 해당 주 전체 근무일을 미산정으로 안내한다. [상세 계약과 원본 실패](MILESTONE_TIMELINE.md#issue-551--opt-in-lane와-공개-week-구간-표시)를 따른다.
+
+#551 최신 로컬 검증은 동일 source Chromium17/17 PASS(46.4s), 직접 관련 Unit29 PASS, typecheck/변경 lint PASS다. [선별 실행 계약](../output/playwright/issue-551/review-selected/execution-contract.json)에 실행 시각·source SHA와 최초 FAIL/경고 범위를 구분한다. 로컬 결과는 독립 QA 및 원격 quality/e2e/docker를 대체하지 않는다.
